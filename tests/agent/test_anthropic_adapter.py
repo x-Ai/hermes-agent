@@ -262,6 +262,117 @@ class TestBuildAnthropicClient:
             assert kwargs["max_retries"] == 0
 
 
+class TestConfiguredAuthScheme:
+    """``auth_scheme`` on a providers:/custom_providers: entry pins the header.
+
+    Third-party Anthropic-compatible relays are split between Authorization:
+    Bearer and Anthropic's native x-api-key. The built-in allowlist in
+    ``_requires_bearer_auth`` can only cover well-known hosts, so users pin
+    the style for their own gateway via config.yaml (no code change needed).
+    Each test writes its own config.yaml into the per-test HERMES_HOME
+    provided by the hermetic-environment fixture.
+    """
+
+    def _write_config(self, text: str) -> None:
+        import os
+        from pathlib import Path
+
+        home = Path(os.environ["HERMES_HOME"])
+        home.mkdir(parents=True, exist_ok=True)
+        (home / "config.yaml").write_text(text, encoding="utf-8")
+
+    def test_bearer_via_providers_entry(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        self._write_config(
+            "providers:\n"
+            "  myrelay:\n"
+            "    api: https://relay.example.com/anthropic\n"
+            "    auth_scheme: bearer\n"
+        )
+        assert _requires_bearer_auth("https://relay.example.com/anthropic") is True
+        # Unrelated hosts keep the default x-api-key behavior.
+        assert _requires_bearer_auth("https://other.example.com/anthropic") is False
+
+    def test_bearer_via_legacy_custom_providers_list(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        self._write_config(
+            "custom_providers:\n"
+            "  - name: myrelay\n"
+            "    base_url: https://relay.example.com/anthropic\n"
+            "    api_mode: anthropic_messages\n"
+            "    auth_scheme: bearer\n"
+        )
+        assert _requires_bearer_auth("https://relay.example.com/anthropic") is True
+
+    def test_hostname_match_covers_path_variants_and_subdomains(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        self._write_config(
+            "providers:\n"
+            "  myrelay:\n"
+            "    api: https://relay.example.com/anthropic\n"
+            "    auth_scheme: bearer\n"
+        )
+        # Same host, different path (e.g. a bare model.base_url) → covered.
+        assert _requires_bearer_auth("https://relay.example.com/v1") is True
+        # Subdomain of the configured host → covered.
+        assert _requires_bearer_auth("https://api.relay.example.com/anthropic") is True
+        # Lookalike host → NOT covered (hostname match, not substring).
+        assert _requires_bearer_auth(
+            "https://relay.example.com.evil.example/anthropic"
+        ) is False
+
+    def test_x_api_key_overrides_builtin_allowlist(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        # azure.com hosts normally match the built-in Bearer allowlist; an
+        # explicit x-api-key pin must win in that direction too.
+        self._write_config(
+            "providers:\n"
+            "  myazure:\n"
+            "    api: https://foo.azure.com/anthropic\n"
+            "    auth_scheme: x-api-key\n"
+        )
+        assert _requires_bearer_auth("https://foo.azure.com/anthropic") is False
+
+    def test_invalid_scheme_ignored(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        self._write_config(
+            "providers:\n"
+            "  myrelay:\n"
+            "    api: https://relay.example.com/anthropic\n"
+            "    auth_scheme: token\n"
+        )
+        assert _requires_bearer_auth("https://relay.example.com/anthropic") is False
+
+    def test_no_config_keeps_builtin_behavior(self):
+        from agent.anthropic_adapter import _requires_bearer_auth
+
+        assert _requires_bearer_auth("https://api.minimax.io/anthropic") is True
+        assert _requires_bearer_auth("https://relay.example.com/anthropic") is False
+
+    def test_build_client_routes_configured_bearer_to_auth_token(self):
+        """E2E through build_anthropic_client: the configured endpoint must be
+        built with auth_token (Bearer), not api_key (x-api-key)."""
+        self._write_config(
+            "providers:\n"
+            "  myrelay:\n"
+            "    api: https://relay.example.com/anthropic\n"
+            "    auth_scheme: bearer\n"
+        )
+        with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
+            build_anthropic_client(
+                "relay-secret-123",
+                base_url="https://relay.example.com/anthropic",
+            )
+            kwargs = mock_sdk.Anthropic.call_args[1]
+            assert kwargs["auth_token"] == "relay-secret-123"
+            assert "api_key" not in kwargs
+
+
 class TestReadClaudeCodeCredentials:
     @pytest.fixture(autouse=True)
     def no_keychain(self, monkeypatch):

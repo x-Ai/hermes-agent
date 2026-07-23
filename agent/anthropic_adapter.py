@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 
 from hermes_constants import get_hermes_home
 from typing import Any, Dict, List, Optional, Tuple
-from utils import base_url_host_matches, normalize_proxy_env_vars
+from utils import base_url_host_matches, base_url_hostname, normalize_proxy_env_vars
 
 # NOTE: `import anthropic` is deliberately NOT at module top — the SDK pulls
 # ~220 ms of imports (anthropic.types, anthropic.lib.tools._beta_runner, etc.)
@@ -546,6 +546,41 @@ def _is_deepseek_anthropic_endpoint(base_url: str | None) -> bool:
     return "/anthropic" in normalized.rstrip("/").lower()
 
 
+def _configured_auth_scheme(base_url: str | None) -> str | None:
+    """Return the user-configured auth scheme for *base_url*, or None.
+
+    Third-party Anthropic-compatible relays are split between Authorization:
+    Bearer and Anthropic's native x-api-key, and the built-in allowlist in
+    :func:`_requires_bearer_auth` can only ever cover the well-known hosts.
+    Users can pin the header style for their own endpoint by setting
+    ``auth_scheme: bearer`` (or ``x-api-key``) on the matching ``providers:``
+    / ``custom_providers:`` entry in config.yaml.
+
+    Matching is by hostname (exact host or subdomain) — the same granularity
+    the built-in allowlist uses — so the setting covers every path variant on
+    the relay host, including a bare ``model.base_url`` pointing at it.
+    Config-read failures fail open to None (auto-detect) so a broken YAML can
+    never change existing auth behavior.
+    """
+    if not base_url:
+        return None
+    try:
+        from hermes_cli.config import get_compatible_custom_providers
+        entries = get_compatible_custom_providers()
+    except Exception:
+        return None
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        scheme = str(entry.get("auth_scheme") or "").strip().lower()
+        if scheme not in ("bearer", "x-api-key"):
+            continue
+        entry_host = base_url_hostname(str(entry.get("base_url") or ""))
+        if entry_host and base_url_host_matches(str(base_url), entry_host):
+            return scheme
+    return None
+
+
 def _requires_bearer_auth(base_url: str | None) -> bool:
     """Return True for Anthropic-compatible providers that require Bearer auth.
 
@@ -554,11 +589,20 @@ def _requires_bearer_auth(base_url: str | None) -> bool:
     MiniMax's global and China Anthropic-compatible endpoints, Azure AI
     Foundry's Anthropic-style endpoint, and Palantir Foundry's LLM proxy
     follow this pattern.
+
+    An explicit ``auth_scheme`` on the endpoint's config.yaml provider entry
+    wins over the built-in allowlist in both directions (force Bearer for an
+    unknown relay, or force x-api-key for a host the allowlist would match).
     """
     normalized = _normalize_base_url_text(base_url)
     if not normalized:
         return False
     normalized = normalized.rstrip("/").lower()
+    configured = _configured_auth_scheme(normalized)
+    if configured == "bearer":
+        return True
+    if configured == "x-api-key":
+        return False
     return (
         normalized.startswith(("https://api.minimax.io/anthropic", "https://api.minimaxi.com/anthropic"))
         or "azure.com" in normalized

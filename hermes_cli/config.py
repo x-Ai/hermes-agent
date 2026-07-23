@@ -5107,6 +5107,7 @@ def _normalize_custom_provider_entry(
         "defaultModel": "default_model",
         "contextLength": "context_length",
         "rateLimitDelay": "rate_limit_delay",
+        "authScheme": "auth_scheme",
     }
     # api_key_env is a documented snake_case alias for key_env (see
     # website/docs/guides/azure-foundry.md).  Normalize it up front so the
@@ -5124,7 +5125,7 @@ def _normalize_custom_provider_entry(
         "context_length", "rate_limit_delay",
         "request_timeout_seconds", "stale_timeout_seconds",
         "discover_models", "extra_body", "extra_headers",
-        "ssl_ca_cert", "ssl_verify",
+        "ssl_ca_cert", "ssl_verify", "auth_scheme",
     }
     for camel, snake in _CAMEL_ALIASES.items():
         if camel in entry and snake not in entry:
@@ -5256,6 +5257,23 @@ def _normalize_custom_provider_entry(
     if normalized_headers:
         normalized["extra_headers"] = normalized_headers
 
+    # Auth header style for Anthropic-compatible endpoints: "bearer" sends
+    # Authorization: Bearer, "x-api-key" sends Anthropic's native header.
+    # Unset = auto-detect from the built-in per-host allowlist (see
+    # agent/anthropic_adapter.py::_requires_bearer_auth).
+    auth_scheme = entry.get("auth_scheme")
+    if isinstance(auth_scheme, str) and auth_scheme.strip():
+        scheme = auth_scheme.strip().lower().replace("_", "-")
+        if scheme in ("bearer", "x-api-key"):
+            normalized["auth_scheme"] = scheme
+        else:
+            _warn_once_per_provider(
+                provider_key, f"auth_scheme:{scheme}",
+                "providers.%s: unknown auth_scheme '%s' ignored "
+                "(expected 'bearer' or 'x-api-key')",
+                provider_key or "?", scheme,
+            )
+
     ssl_ca_cert = entry.get("ssl_ca_cert")
     if isinstance(ssl_ca_cert, str) and ssl_ca_cert.strip():
         normalized["ssl_ca_cert"] = ssl_ca_cert.strip()
@@ -5296,6 +5314,7 @@ def _custom_provider_entry_to_provider_config(
         "extra_headers",
         "ssl_ca_cert",
         "ssl_verify",
+        "auth_scheme",
     ):
         if field in normalized:
             provider_entry[field] = normalized[field]

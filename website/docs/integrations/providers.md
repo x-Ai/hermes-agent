@@ -1211,7 +1211,16 @@ custom_providers:
     base_url: https://proxy.example.com/anthropic
     key_env: ANTHROPIC_PROXY_KEY
     api_mode: anthropic_messages  # for Anthropic-compatible proxies
+    auth_scheme: bearer           # optional — see below
 ```
+
+**Auth header style for Anthropic-compatible proxies (`auth_scheme`).** Third-party gateways that speak the Anthropic Messages protocol are split on authentication: some expect Anthropic's native `x-api-key` header, others only accept `Authorization: Bearer`. Hermes auto-detects the right style for well-known hosts (MiniMax, Azure AI Foundry, Palantir Foundry), but it can't know about your self-hosted relay — if yours requires Bearer, requests fail with HTTP 401/403 at session start. Set `auth_scheme` on the provider entry to pin it:
+
+- `auth_scheme: bearer` — send `Authorization: Bearer <key>`
+- `auth_scheme: x-api-key` — send Anthropic's native `x-api-key: <key>` (also overrides the built-in auto-detection in the other direction)
+- unset — auto-detect (default)
+
+Matching is by hostname (including subdomains), so the setting also covers a bare `model.base_url` pointing at the same relay host. `auth_scheme` only affects `api_mode: anthropic_messages` endpoints; OpenAI-compatible endpoints always use Bearer.
 
 Some OpenAI-compatible endpoints need provider-specific request body fields. Add an `extra_body` map to the matching custom provider and Hermes will merge it into each chat-completions request for that endpoint:
 
