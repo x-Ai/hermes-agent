@@ -139,6 +139,23 @@ model:
 #       gpt-5.4:
 #         stale_timeout_seconds: 1800  # Longer non-stream stale timeout for slow large-context turns
 
+# Auth header style for Anthropic-compatible endpoints (optional).
+# Third-party relays speaking the Anthropic Messages protocol are split on
+# authentication: some expect Anthropic's native x-api-key header, others only
+# accept Authorization: Bearer. Hermes auto-detects well-known hosts (MiniMax,
+# Azure AI Foundry, Palantir Foundry); pin auth_scheme on the providers: /
+# custom_providers: entry for a self-hosted gateway it can't know about.
+# Matching is by hostname, so the pin also covers a bare model.base_url
+# pointing at the same relay host. Only affects api_mode: anthropic_messages;
+# OpenAI-compatible endpoints always use Bearer. Unset = auto-detect.
+#
+# custom_providers:
+#   my-anthropic-relay:
+#     base_url: https://relay.internal.example.com/anthropic
+#     key_env: MY_RELAY_API_KEY
+#     api_mode: anthropic_messages
+#     auth_scheme: bearer            # or "x-api-key"
+
 # =============================================================================
 # OpenRouter Provider Routing (only applies when using OpenRouter)
 # =============================================================================
