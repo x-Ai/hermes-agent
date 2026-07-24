@@ -1247,6 +1247,12 @@ class CustomEndpointUpdate(BaseModel):
     context_length: Optional[int] = None
     discover_models: bool = True
     make_default: bool = False
+    # API protocol + auth header style (see providers.md "auth_scheme").
+    # None = field absent (older clients) — the write path leaves whatever the
+    # entry already carries. Empty string = explicit "OpenAI-compatible" /
+    # "auto-detect" selection — the write path clears the config keys.
+    api_mode: Optional[str] = None
+    auth_scheme: Optional[str] = None
 
 
 class MessagingPlatformUpdate(BaseModel):
@@ -7494,6 +7500,14 @@ def _custom_endpoint_id(raw: str, fallback: str = "custom") -> str:
     return slug or fallback
 
 
+# API wires the endpoint editor can pin explicitly. Mirrors the runtime's
+# recognized api_mode values; anything else is rejected with a 422 so a typo
+# can't write a mode the adapters would silently ignore.
+_CUSTOM_ENDPOINT_API_MODES = frozenset(
+    {"chat_completions", "codex_responses", "anthropic_messages"}
+)
+
+
 def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
     models: List[str] = []
     raw_models = entry.get("models")
@@ -7528,6 +7542,10 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             endpoint_id = str(provider_id)
             models = _models_from_custom_endpoint_entry(raw_entry)
             endpoint_model = str(raw_entry.get("model") or raw_entry.get("default_model") or (models[0] if models else ""))
+            # Legacy ``api_mode`` first to match the runtime's resolution
+            # order, v12 canonical ``transport`` as fallback; a literal
+            # "auto" means the same as unset.
+            raw_mode = str(raw_entry.get("api_mode") or raw_entry.get("transport") or "").strip().lower()
             endpoints.append({
                 "id": endpoint_id,
                 "name": str(raw_entry.get("name") or endpoint_id),
@@ -7540,6 +7558,10 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
                 "api_key_preview": redact_key(str(raw_entry.get("api_key", "") or "")) if raw_entry.get("api_key") else None,
                 "is_current": endpoint_id == current_provider,
                 "source": "providers",
+                # Echoed so the editor can round-trip the protocol + auth pins
+                # ('' = auto wire / auto-detected auth).
+                "api_mode": "" if raw_mode == "auto" else raw_mode,
+                "auth_scheme": str(raw_entry.get("auth_scheme") or ""),
             })
 
     if current_provider.lower() == "custom" and current_base_url and not any(e["id"] == "custom" for e in endpoints):
@@ -7555,6 +7577,8 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "api_key_preview": redact_key(str(model_cfg.get("api_key", "") or "")) if model_cfg.get("api_key") else None,
             "is_current": True,
             "source": "direct-config",
+            "api_mode": str(model_cfg.get("api_mode") or ""),
+            "auth_scheme": "",
         })
 
     return {
@@ -7640,6 +7664,50 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         entry["models"][model]["context_length"] = int(body.context_length)
     if body.api_key is not None and body.api_key.strip():
         entry["api_key"] = body.api_key.strip()
+
+    # API protocol. None = older client without the field — preserve whatever
+    # the entry carries (the merge contract above). "" = explicit Auto — clear
+    # BOTH spellings of the protocol pin plus the auth pin (which only means
+    # something on the Anthropic wire). Explicit modes persist to the v12
+    # canonical ``transport`` key and drop the legacy ``api_mode`` spelling;
+    # anything outside the recognized set is rejected so the panel can't write
+    # a mode the runtime adapters would silently ignore. (The editor omits the
+    # field entirely for hand-written modes it doesn't know, so those still
+    # round-trip untouched.)
+    if body.api_mode is not None:
+        api_mode = body.api_mode.strip().lower()
+        if api_mode == "":
+            entry.pop("transport", None)
+            entry.pop("api_mode", None)
+            entry.pop("auth_scheme", None)
+        elif api_mode in _CUSTOM_ENDPOINT_API_MODES:
+            entry["transport"] = api_mode
+            entry.pop("api_mode", None)
+            if api_mode != "anthropic_messages":
+                entry.pop("auth_scheme", None)
+        else:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "api_mode must be one of "
+                    f"{sorted(_CUSTOM_ENDPOINT_API_MODES)} or '' for auto"
+                ),
+            )
+
+    # Auth header style for Anthropic-compatible endpoints. ""/"auto" clears
+    # the pin (back to the built-in per-host detection); anything else must be
+    # a valid scheme so a typo can't silently break authentication.
+    if body.auth_scheme is not None:
+        auth_scheme = body.auth_scheme.strip().lower().replace("_", "-")
+        if auth_scheme in ("", "auto"):
+            entry.pop("auth_scheme", None)
+        elif auth_scheme in ("bearer", "x-api-key"):
+            entry["auth_scheme"] = auth_scheme
+        else:
+            raise HTTPException(
+                status_code=422,
+                detail="auth_scheme must be 'bearer', 'x-api-key', or 'auto'",
+            )
 
     providers[endpoint_id] = entry
     cfg["providers"] = providers
@@ -7737,7 +7805,17 @@ def delete_custom_endpoint(endpoint_id: str):
 
 @app.post("/api/providers/custom-endpoints/validate")
 async def validate_custom_endpoint(body: CustomEndpointUpdate):
-    """Probe a custom endpoint by calling its OpenAI-compatible /models URL."""
+    """Probe a custom endpoint by calling its /models catalog URL.
+
+    OpenAI-compatible endpoints authenticate with a Bearer header. For
+    ``api_mode: anthropic_messages`` endpoints the probe sends BOTH auth
+    header styles (plus ``anthropic-version``) — relays are split between
+    the two and the probe's job is reachability, not scheme detection; the
+    server reads whichever header it understands. Anthropic's ``/v1/models``
+    shares the OpenAI ``{"data": [{"id": ...}]}`` shape, so model parsing is
+    common — but many Anthropic-compatible relays don't implement a catalog
+    at all, so a 404/405 there is "reachable, no catalog", not a failure.
+    """
     import httpx
 
     # ``message`` stays the human-readable English fallback for older
@@ -7750,10 +7828,18 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate):
             "message": "Enter an endpoint URL first.", "models": [],
         }
 
+    anthropic_wire = (body.api_mode or "").strip().lower() == "anthropic_messages"
+
     url = base_url + "/models"
     headers = {"Accept": "application/json"}
-    if body.api_key and body.api_key.strip():
-        headers["Authorization"] = f"Bearer {body.api_key.strip()}"
+    api_key = (body.api_key or "").strip()
+    if anthropic_wire:
+        headers["anthropic-version"] = "2023-06-01"
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+            headers["x-api-key"] = api_key
+    elif api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
     try:
         with httpx.Client(timeout=httpx.Timeout(8.0)) as client:
@@ -7768,6 +7854,12 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate):
         return {
             "ok": False, "reachable": True, "message_code": "auth_rejected",
             "message": "The endpoint rejected the API key.", "models": [],
+        }
+    if anthropic_wire and resp.status_code in (404, 405):
+        return {
+            "ok": True, "reachable": True, "message_code": "no_model_catalog",
+            "message": "Endpoint is reachable; it does not expose a model catalog.",
+            "models": [],
         }
     if not resp.is_success:
         return {

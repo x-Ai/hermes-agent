@@ -758,6 +758,15 @@ export interface Translations {
       nameLabel: string
       providerIdLabel: string
       urlLabel: string
+      apiModeLabel: string
+      apiModeAuto: string
+      apiModeChat: string
+      apiModeResponses: string
+      apiModeMessages: string
+      authSchemeLabel: string
+      authSchemeAuto: string
+      authSchemeHint: string
+      noModelCatalog: string
       defaultModelLabel: string
       contextLabel: string
       apiKeyLabel: string

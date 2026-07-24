@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
   activateCustomEndpoint,
   deleteCustomEndpoint,
@@ -26,6 +27,10 @@ interface CustomEndpointsSettingsProps {
 
 interface EndpointForm {
   apiKey: string
+  /** '' = OpenAI-compatible (the default wire). */
+  apiMode: string
+  /** '' = auto-detect; only sent meaningfully with the Anthropic wire. */
+  authScheme: string
   baseUrl: string
   contextLength: string
   discoverModels: boolean
@@ -37,6 +42,8 @@ interface EndpointForm {
 
 const EMPTY_FORM: EndpointForm = {
   apiKey: '',
+  apiMode: '',
+  authScheme: '',
   baseUrl: '',
   contextLength: '',
   discoverModels: true,
@@ -46,9 +53,19 @@ const EMPTY_FORM: EndpointForm = {
   name: ''
 }
 
+// The wires the editor knows ('' = Auto: leave protocol detection to the
+// runtime). Hand-written modes outside this list still round-trip: the editor
+// shows them as an extra segment and OMITS api_mode from the save payload, so
+// the backend preserves the entry untouched (unknown values are rejected 422).
+const KNOWN_API_MODES = ['', 'chat_completions', 'codex_responses', 'anthropic_messages'] as const
+
+const isKnownApiMode = (mode: string): boolean => (KNOWN_API_MODES as readonly string[]).includes(mode)
+
 function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
   return {
     apiKey: '',
+    apiMode: endpoint.api_mode ?? '',
+    authScheme: endpoint.auth_scheme ?? '',
     baseUrl: endpoint.base_url,
     contextLength: endpoint.context_length ? String(endpoint.context_length) : '',
     discoverModels: endpoint.discover_models,
@@ -68,6 +85,14 @@ function toPayload(form: EndpointForm): CustomEndpointUpdate {
     base_url: form.baseUrl.trim(),
     model: form.model.trim(),
     api_key: form.apiKey.trim() || undefined,
+    // Omitted (not '') for hand-written modes the editor doesn't know — the
+    // backend preserves omitted fields but rejects unknown values.
+    api_mode: isKnownApiMode(form.apiMode) ? form.apiMode : undefined,
+    auth_scheme: isKnownApiMode(form.apiMode)
+      ? form.apiMode === 'anthropic_messages'
+        ? form.authScheme
+        : ''
+      : undefined,
     context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
     discover_models: form.discoverModels,
     make_default: form.makeDefault
@@ -181,7 +206,12 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
         notify({
           kind: 'success',
-          message: response.models.length ? ce.reachableWithModels(response.models.length) : ce.reachable
+          message:
+            response.message_code === 'no_model_catalog'
+              ? ce.noModelCatalog
+              : response.models.length
+                ? ce.reachableWithModels(response.models.length)
+                : ce.reachable
         })
       } else {
         notify({
@@ -337,6 +367,48 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 value={form.baseUrl}
               />
             </label>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.apiModeLabel}
+              <SegmentedControl
+                onChange={value =>
+                  setForm(current => ({
+                    ...current,
+                    apiMode: value,
+                    // The auth pin only means something on the Anthropic
+                    // wire; leaving it set would silently re-apply if the
+                    // user later switched back.
+                    authScheme: value === 'anthropic_messages' ? current.authScheme : ''
+                  }))
+                }
+                options={[
+                  { id: '', label: ce.apiModeAuto },
+                  { id: 'chat_completions', label: ce.apiModeChat },
+                  { id: 'codex_responses', label: ce.apiModeResponses },
+                  { id: 'anthropic_messages', label: ce.apiModeMessages },
+                  // A hand-written mode outside the known set stays visible;
+                  // saving with it selected omits api_mode so it round-trips.
+                  ...(isKnownApiMode(form.apiMode) ? [] : [{ id: form.apiMode, label: form.apiMode }])
+                ]}
+                value={form.apiMode}
+              />
+            </div>
+            {form.apiMode === 'anthropic_messages' && (
+              <div className="grid gap-1.5 text-xs text-muted-foreground">
+                {ce.authSchemeLabel}
+                <SegmentedControl
+                  onChange={value =>
+                    setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))
+                  }
+                  options={[
+                    { id: 'auto', label: ce.authSchemeAuto },
+                    { id: 'bearer', label: 'Authorization: Bearer' },
+                    { id: 'x-api-key', label: 'x-api-key' }
+                  ]}
+                  value={form.authScheme || 'auto'}
+                />
+                <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.defaultModelLabel}

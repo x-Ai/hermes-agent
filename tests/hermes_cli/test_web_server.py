@@ -4530,6 +4530,214 @@ class TestWebServerEndpoints:
         assert sorted(models) == ["acme/model-1", "acme/model-2"]
         assert models["acme/model-1"]["context_length"] == 200000
 
+    def test_custom_endpoint_saves_anthropic_protocol_and_auth_pins(self):
+        """Explicit modes persist to the v12 canonical ``transport`` key.
+
+        The legacy ``api_mode`` spelling is dropped on write so entries
+        converge on one spelling, and the response echoes the pins for the
+        editor to round-trip.
+        """
+        from hermes_cli.config import load_config
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "bearer",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["relay"]
+        assert entry["transport"] == "anthropic_messages"
+        assert "api_mode" not in entry
+        assert entry["auth_scheme"] == "bearer"
+
+        echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "relay")
+        assert echoed["api_mode"] == "anthropic_messages"
+        assert echoed["auth_scheme"] == "bearer"
+
+    def test_custom_endpoint_canonicalizes_legacy_api_mode_spelling(self):
+        """An explicit save migrates a hand-written legacy ``api_mode`` to
+        ``transport``, and a non-Anthropic wire drops the auth pin (it only
+        means something on the Anthropic wire)."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "bearer",
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "chat_completions",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["acme"]
+        assert entry["transport"] == "chat_completions"
+        assert "api_mode" not in entry
+        assert "auth_scheme" not in entry
+
+    def test_custom_endpoint_auto_selection_clears_protocol_pins(self):
+        """Explicit Auto ('') clears both protocol spellings and the auth pin.
+
+        A stale auth pin would silently apply again if the user later switched
+        the protocol back.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "relay": {
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "transport": "anthropic_messages",
+                "auth_scheme": "x-api-key",
+                "models": {"claude-fable-5": {}},
+            }
+        }
+        save_config(cfg)
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "",
+                "auth_scheme": "",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["relay"]
+        assert "transport" not in entry
+        assert "api_mode" not in entry
+        assert "auth_scheme" not in entry
+
+    def test_custom_endpoint_rejects_unknown_api_mode(self):
+        """Modes outside the recognized set fail loudly instead of writing a
+        value the runtime adapters would silently ignore. (The editor omits
+        the field for hand-written modes it doesn't know, which the
+        preserves-hand-written-fields test covers.)"""
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "responses",
+            },
+        )
+
+        assert resp.status_code == 422
+        assert "api_mode" in resp.json()["detail"]
+
+    def test_custom_endpoint_rejects_invalid_auth_scheme(self):
+        """A typo'd auth_scheme must fail loudly, not silently break auth."""
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "basic",
+            },
+        )
+
+        assert resp.status_code == 422
+        assert "auth_scheme" in resp.json()["detail"]
+
+    def test_validate_anthropic_endpoint_probes_with_both_auth_headers(self):
+        """Anthropic-wire validation sends both header styles + the version
+        header, and treats a missing /models catalog as reachable, since many
+        Anthropic-compatible relays don't implement one.
+        """
+        from unittest.mock import MagicMock, patch
+
+        probe = MagicMock()
+        probe.status_code = 404
+        probe.is_success = False
+        client = MagicMock()
+        client.__enter__ = MagicMock(return_value=client)
+        client.__exit__ = MagicMock(return_value=False)
+        client.get.return_value = probe
+
+        with patch("httpx.Client", return_value=client):
+            resp = self.client.post(
+                "/api/providers/custom-endpoints/validate",
+                json={
+                    "name": "Relay",
+                    "base_url": "https://relay.example.com/anthropic",
+                    "model": "claude-fable-5",
+                    "api_key": "sk-relay",
+                    "api_mode": "anthropic_messages",
+                    "auth_scheme": "bearer",
+                },
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is True
+        assert data["message_code"] == "no_model_catalog"
+
+        headers = client.get.call_args.kwargs["headers"]
+        assert headers["Authorization"] == "Bearer sk-relay"
+        assert headers["x-api-key"] == "sk-relay"
+        assert headers["anthropic-version"] == "2023-06-01"
+
+    def test_validate_openai_endpoint_keeps_404_an_error(self):
+        """The OpenAI wire requires /models — a 404 there stays a failure."""
+        from unittest.mock import MagicMock, patch
+
+        probe = MagicMock()
+        probe.status_code = 404
+        probe.is_success = False
+        client = MagicMock()
+        client.__enter__ = MagicMock(return_value=client)
+        client.__exit__ = MagicMock(return_value=False)
+        client.get.return_value = probe
+
+        with patch("httpx.Client", return_value=client):
+            resp = self.client.post(
+                "/api/providers/custom-endpoints/validate",
+                json={
+                    "name": "Proxy",
+                    "base_url": "http://127.0.0.1:8081/v1",
+                    "model": "gpt-5.4",
+                },
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is False
+        assert data["message_code"] == "http_error"
+
     def test_deleting_the_active_custom_endpoint_clears_its_model_mirror(self):
         """Deleting an endpoint must not leave its key running the agent.
 
