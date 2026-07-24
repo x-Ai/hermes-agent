@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -110,10 +110,19 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const [endpoints, setEndpoints] = useState<CustomEndpoint[]>([])
   const [form, setForm] = useState<EndpointForm>(EMPTY_FORM)
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([])
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   async function refresh() {
     const data = await getCustomEndpoints()
     setEndpoints(data.endpoints)
+  }
+
+  // Reset the editor into "add" mode and put the cursor in the name field —
+  // focus also scrolls the form into view when the list above is long.
+  function startNewEndpoint() {
+    setForm(EMPTY_FORM)
+    setDiscoveredModels([])
+    requestAnimationFrame(() => nameInputRef.current?.focus())
   }
 
   useEffect(() => {
@@ -276,7 +285,17 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     <SettingsContent>
       <div className="space-y-6">
         <section>
-          <SectionHeading icon={Globe} meta={`${endpoints.length}`} title={ce.title} />
+          <SectionHeading
+            aside={
+              <Button onClick={startNewEndpoint} size="sm" type="button" variant="outline">
+                <Plus />
+                {ce.newEndpoint}
+              </Button>
+            }
+            icon={Globe}
+            meta={`${endpoints.length}`}
+            title={ce.title}
+          />
           <div className="divide-y divide-border/40 rounded-md border border-border/50">
             {endpoints.length ? (
               endpoints.map(endpoint => (
@@ -347,6 +366,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 <Input
                   onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
                   placeholder="Axet Proxy"
+                  ref={nameInputRef}
                   value={form.name}
                 />
               </label>
@@ -472,15 +492,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 {t.common.save}
               </Button>
-              <Button
-                className={cn(!form.id && 'hidden')}
-                onClick={() => {
-                  setForm(EMPTY_FORM)
-                  setDiscoveredModels([])
-                }}
-                type="button"
-                variant="ghost"
-              >
+              <Button className={cn(!form.id && 'hidden')} onClick={startNewEndpoint} type="button" variant="ghost">
                 {ce.newEndpoint}
               </Button>
             </div>
