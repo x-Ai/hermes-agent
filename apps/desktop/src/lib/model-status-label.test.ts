@@ -5,6 +5,7 @@ import {
   displayModelName,
   displayProviderLabel,
   formatModelStatusLabel,
+  providerCatalogName,
   reasoningEffortLabel
 } from './model-status-label'
 
@@ -60,6 +61,33 @@ describe('model-status-label', () => {
       expect(displayProviderLabel('anthropic', undefined)).toBe('anthropic')
       // Degenerate scheme-only slug never renders as an empty label.
       expect(displayProviderLabel('custom:')).toBe('custom:')
+    })
+  })
+
+  describe('providerCatalogName', () => {
+    const providers = [
+      { name: 'Fable', slug: 'ying' },
+      { name: 'Nous', slug: 'nous' }
+    ]
+
+    it('matches a plain slug case-insensitively', () => {
+      expect(providerCatalogName('YING', providers)).toBe('Fable')
+      expect(providerCatalogName('nous', providers)).toBe('Nous')
+    })
+
+    it('matches the durable custom:<id> identity against the bare catalog id', () => {
+      // The backend reports custom endpoints as `custom:<id>` (the routable
+      // identity), while catalog rows carry the bare endpoint id — the pill
+      // must still resolve the user-chosen endpoint name after a restart.
+      expect(providerCatalogName('custom:ying', providers)).toBe('Fable')
+      expect(providerCatalogName('CUSTOM:YING', providers)).toBe('Fable')
+    })
+
+    it('returns undefined for unknown, bare-custom, or empty slugs', () => {
+      expect(providerCatalogName('custom', providers)).toBeUndefined()
+      expect(providerCatalogName('unknown', providers)).toBeUndefined()
+      expect(providerCatalogName('', providers)).toBeUndefined()
+      expect(providerCatalogName('custom:ying', undefined)).toBeUndefined()
     })
   })
 

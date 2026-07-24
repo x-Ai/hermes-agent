@@ -20,6 +20,7 @@ import type { ChatMessage } from '@/lib/chat-messages'
 import { quickModelOptions, sessionTitle } from '@/lib/chat-runtime'
 import { useIncrementalExternalStoreRuntime } from '@/lib/incremental-external-store-runtime'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
+import { providerCatalogName } from '@/lib/model-status-label'
 import { cn } from '@/lib/utils'
 import { migrateSessionDraft } from '@/store/composer'
 import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
@@ -368,17 +369,13 @@ export function ChatView({
     [currentModel, currentProvider, modelOptionsQuery.data]
   )
 
-  // Catalog display name for the current provider — custom endpoints have an
-  // opaque slug (often literally "custom"), while their catalog row carries
-  // the user-chosen endpoint name. Case-insensitive to match the backend's
-  // slug normalization for hand-written config keys.
-  const currentProviderName = useMemo(() => {
-    const slug = currentProvider.trim().toLowerCase()
-
-    return slug
-      ? modelOptionsQuery.data?.providers?.find(provider => provider.slug.toLowerCase() === slug)?.name
-      : undefined
-  }, [currentProvider, modelOptionsQuery.data])
+  // Catalog display name for the current provider — custom endpoints report a
+  // durable `custom:<id>` identity (or an opaque slug), while their catalog
+  // row carries the user-chosen endpoint name under the bare id.
+  const currentProviderName = useMemo(
+    () => providerCatalogName(currentProvider, modelOptionsQuery.data?.providers),
+    [currentProvider, modelOptionsQuery.data]
+  )
 
   const chatBarState = useMemo<ChatBarState>(
     () => ({

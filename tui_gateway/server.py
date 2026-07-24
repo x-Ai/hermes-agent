@@ -4172,6 +4172,35 @@ def _project_info_for_cwd(cwd: str) -> dict | None:
         return None
 
 
+def _reportable_provider(provider, *, base_url=None, model=None) -> str:
+    """Upgrade the bare ``custom`` billing class to a durable ``custom:<name>``
+    identity before it reaches any UI surface.
+
+    ``agent.provider`` for a named ``providers:`` endpoint is the *resolved
+    billing class* — the literal string ``custom`` — which no client can map
+    back to the endpoint: the model catalog rows carry the endpoint id, so the
+    desktop composer falls through every display fallback and renders
+    "custom: <model>" (the after-restart regression). Recovery reuses the same
+    helper the session-restore path already relies on: base_url reverse-lookup
+    first, then the entry serving the model, then the configured provider.
+    Unrecoverable values (a genuine ad-hoc endpoint with no config entry) pass
+    through unchanged.
+    """
+    text = str(provider or "").strip()
+    if text.lower() != "custom":
+        return text
+    try:
+        from hermes_cli.runtime_provider import canonical_custom_identity
+
+        healed = canonical_custom_identity(
+            base_url=base_url or None, model=model or None
+        )
+    except Exception:
+        logger.debug("bare custom provider identity recovery failed", exc_info=True)
+        healed = None
+    return healed or text
+
+
 def _session_info(agent, session: dict | None = None) -> dict:
     if session is None:
         for candidate in _sessions.values():
@@ -4215,9 +4244,14 @@ def _session_info(agent, session: dict | None = None) -> dict:
         yolo = bool(_YOLO_MODE_FROZEN) or session_yolo or approval_mode == "off"
     except Exception:
         yolo = False
+    info_model = mirror.get("model", getattr(agent, "model", ""))
     info: dict = {
-        "model": mirror.get("model", getattr(agent, "model", "")),
-        "provider": mirror.get("provider", getattr(agent, "provider", "")),
+        "model": info_model,
+        "provider": _reportable_provider(
+            mirror.get("provider", getattr(agent, "provider", "")),
+            base_url=mirror.get("base_url") or getattr(agent, "base_url", None),
+            model=info_model,
+        ),
         "reasoning_effort": reasoning_effort,
         "service_tier": service_tier,
         "fast": service_tier == "priority",
@@ -6619,6 +6653,7 @@ def _lazy_resume_info(
     *,
     model: str = "",
     provider: str = "",
+    base_url: str = "",
     profile: str | None = None,
 ) -> dict:
     """session.info for a not-yet-built session (the shape session.create
@@ -6635,7 +6670,12 @@ def _lazy_resume_info(
         "profile_name": _response_profile_name(profile),
     }
     if provider:
-        info["provider"] = provider
+        # A bare "custom" can survive restore when the row kept its base_url
+        # (routable as an ad-hoc endpoint, so restore keeps it) — upgrade it
+        # for display the same way built-session session.info does.
+        info["provider"] = _reportable_provider(
+            provider, base_url=base_url or None, model=model or None
+        )
     return info
 
 
@@ -6971,6 +7011,7 @@ def _(rid, params: dict) -> dict:
                     cwd,
                     model=model_override.get("model") or "",
                     provider=overrides.get("provider_override") or "",
+                    base_url=model_override.get("base_url") or "",
                     profile=profile,
                 ),
                 "inflight": None,

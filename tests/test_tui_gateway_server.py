@@ -13138,3 +13138,97 @@ def test_clarify_timeout_seconds_maps_non_positive_to_unlimited(monkeypatch, con
     monkeypatch.setattr("tools.clarify_gateway.get_clarify_timeout", lambda: configured)
 
     assert server._clarify_timeout_seconds() == expected
+
+
+class TestReportableProvider:
+    """``session.info`` must never surface the bare ``custom`` billing class.
+
+    ``agent.provider`` for a named ``providers:`` endpoint resolves to the
+    literal string ``custom`` — no client can map that back to the endpoint
+    (catalog rows carry the endpoint id), so the desktop composer rendered
+    "custom: <model>" after every restart. The reporting layer upgrades it to
+    the durable ``custom:<name>`` identity via the same recovery helper the
+    session-restore path uses.
+    """
+
+    @staticmethod
+    def _write_providers_config(providers: dict) -> None:
+        import yaml
+
+        from hermes_constants import get_hermes_home
+
+        home = get_hermes_home()
+        home.mkdir(parents=True, exist_ok=True)
+        (home / "config.yaml").write_text(
+            yaml.safe_dump({"providers": providers}), encoding="utf-8"
+        )
+
+    def test_non_custom_values_pass_through_untouched(self):
+        assert server._reportable_provider("ying") == "ying"
+        assert server._reportable_provider("anthropic") == "anthropic"
+        assert server._reportable_provider("custom:ying") == "custom:ying"
+        assert server._reportable_provider("") == ""
+        assert server._reportable_provider(None) == ""
+
+    def test_bare_custom_recovers_the_endpoint_from_its_base_url(self):
+        self._write_providers_config(
+            {"ying": {"base_url": "https://relay.example/v1", "model": "claude-fable-5"}}
+        )
+        assert (
+            server._reportable_provider("custom", base_url="https://relay.example/v1")
+            == "custom:ying"
+        )
+        # URL normalization: a trailing slash must not break the reverse lookup.
+        assert (
+            server._reportable_provider("custom", base_url="https://relay.example/v1/")
+            == "custom:ying"
+        )
+
+    def test_bare_custom_recovers_the_endpoint_from_its_model_catalog(self):
+        self._write_providers_config(
+            {
+                "ying": {
+                    "base_url": "https://relay.example/v1",
+                    "models": ["claude-fable-5", "claude-opus-4-8"],
+                }
+            }
+        )
+        assert (
+            server._reportable_provider("custom", model="claude-opus-4-8")
+            == "custom:ying"
+        )
+
+    def test_casing_of_the_bare_class_does_not_matter(self):
+        self._write_providers_config(
+            {"ying": {"base_url": "https://relay.example/v1"}}
+        )
+        assert (
+            server._reportable_provider("Custom", base_url="https://relay.example/v1")
+            == "custom:ying"
+        )
+
+    def test_unrecoverable_bare_custom_is_kept_as_is(self):
+        # A genuine ad-hoc endpoint with no config entry: nothing to upgrade
+        # to, and hiding the provider entirely would be worse than "custom".
+        self._write_providers_config({})
+        assert (
+            server._reportable_provider("custom", base_url="https://nowhere.example")
+            == "custom"
+        )
+
+    def test_session_info_reports_the_upgraded_identity(self):
+        self._write_providers_config(
+            {"ying": {"base_url": "https://relay.example/v1", "name": "Fable"}}
+        )
+        agent = types.SimpleNamespace(
+            model="claude-opus-4-8",
+            provider="custom",
+            base_url="https://relay.example/v1",
+            reasoning_config=None,
+            service_tier=None,
+        )
+
+        info = server._session_info(agent, session={})
+
+        assert info["provider"] == "custom:ying"
+        assert info["model"] == "claude-opus-4-8"

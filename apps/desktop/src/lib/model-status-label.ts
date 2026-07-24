@@ -37,6 +37,29 @@ export function currentPickerSelection(
   }
 }
 
+/** Catalog display name for a provider slug. Case-insensitive, and a
+ *  `custom:<id>` slug also matches the catalog row whose slug is the bare
+ *  endpoint id — the backend reports the durable `custom:<id>` identity for
+ *  named endpoints while the catalog rows carry the id itself. */
+export function providerCatalogName(
+  provider: string,
+  providers?: ReadonlyArray<{ name: string; slug: string }>
+): string | undefined {
+  const slug = provider.trim().toLowerCase()
+
+  if (!slug || !providers) {
+    return undefined
+  }
+
+  const bare = slug.startsWith('custom:') ? slug.slice('custom:'.length) : slug
+
+  return providers.find(entry => {
+    const entrySlug = entry.slug.trim().toLowerCase()
+
+    return entrySlug === slug || entrySlug === bare
+  })?.name
+}
+
 /** Provider label for the composer pill tooltip. Custom endpoints carry an
  *  opaque slug (`custom`, or a `custom:<id>` scheme for `custom_providers`
  *  entries) — prefer the catalog's display name (the endpoint's user-chosen
