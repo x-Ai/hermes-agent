@@ -110,6 +110,12 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const [endpoints, setEndpoints] = useState<CustomEndpoint[]>([])
   const [form, setForm] = useState<EndpointForm>(EMPTY_FORM)
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([])
+  // Which existing endpoint the form is editing (null = "add" mode). Kept
+  // separate from form.id: the backend upserts by id, so an edited id would
+  // silently CREATE a second endpoint instead of renaming — in edit mode the
+  // id field is therefore locked, and this flag (not a typed-in id) is what
+  // decides edit-vs-add.
+  const [editingId, setEditingId] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   async function refresh() {
@@ -120,6 +126,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   // Reset the editor into "add" mode and put the cursor in the name field —
   // focus also scrolls the form into view when the list above is long.
   function startNewEndpoint() {
+    setEditingId(null)
     setForm(EMPTY_FORM)
     setDiscoveredModels([])
     requestAnimationFrame(() => nameInputRef.current?.focus())
@@ -140,6 +147,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         const current = data.endpoints.find(endpoint => endpoint.is_current) ?? data.endpoints[0]
 
         if (current) {
+          setEditingId(current.id)
           setForm(formFromEndpoint(current))
           setDiscoveredModels(current.models)
         }
@@ -167,6 +175,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       const saved = response.endpoints.find(endpoint => endpoint.id === response.id)
 
       if (saved) {
+        setEditingId(saved.id)
         setForm(formFromEndpoint(saved))
         setDiscoveredModels(saved.models)
       }
@@ -260,7 +269,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       const response = await deleteCustomEndpoint(endpoint.id)
       setEndpoints(response.endpoints)
 
-      if (form.id === endpoint.id) {
+      if (editingId === endpoint.id) {
+        setEditingId(null)
         setForm(EMPTY_FORM)
         setDiscoveredModels([])
       }
@@ -303,6 +313,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                   <button
                     className="min-w-0 text-left"
                     onClick={() => {
+                      setEditingId(endpoint.id)
                       setForm(formFromEndpoint(endpoint))
                       setDiscoveredModels(endpoint.models)
                     }}
@@ -358,7 +369,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         </section>
 
         <section>
-          <SectionHeading icon={Plus} title={form.id ? ce.editTitle : ce.addTitle} />
+          <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -373,10 +384,12 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.providerIdLabel}
                 <Input
+                  disabled={Boolean(editingId)}
                   onChange={event => setForm(current => ({ ...current, id: event.target.value }))}
                   placeholder="axet-proxy"
                   value={form.id}
                 />
+                <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.providerIdHint}</span>
               </label>
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -458,7 +471,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               {ce.apiKeyLabel}
               <Input
                 onChange={event => setForm(current => ({ ...current, apiKey: event.target.value }))}
-                placeholder={form.id ? ce.keyKeepPlaceholder : ce.keyOptionalPlaceholder}
+                placeholder={editingId ? ce.keyKeepPlaceholder : ce.keyOptionalPlaceholder}
                 type="password"
                 value={form.apiKey}
               />
@@ -492,7 +505,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 {t.common.save}
               </Button>
-              <Button className={cn(!form.id && 'hidden')} onClick={startNewEndpoint} type="button" variant="ghost">
+              <Button className={cn(!editingId && 'hidden')} onClick={startNewEndpoint} type="button" variant="ghost">
                 {ce.newEndpoint}
               </Button>
             </div>

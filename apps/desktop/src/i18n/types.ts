@@ -757,6 +757,7 @@ export interface Translations {
       addTitle: string
       nameLabel: string
       providerIdLabel: string
+      providerIdHint: string
       urlLabel: string
       apiModeLabel: string
       apiModeAuto: string

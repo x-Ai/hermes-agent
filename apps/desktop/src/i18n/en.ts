@@ -868,6 +868,7 @@ export const en: Translations = {
       addTitle: 'Add Endpoint',
       nameLabel: 'Name',
       providerIdLabel: 'Provider ID',
+      providerIdHint: 'Identifier stored as the provider key in config.yaml — fixed after creation; use New endpoint for a different ID.',
       urlLabel: 'Endpoint URL',
       apiModeLabel: 'API Protocol',
       apiModeAuto: 'Auto',

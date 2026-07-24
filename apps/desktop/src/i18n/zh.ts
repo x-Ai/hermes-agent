@@ -1210,6 +1210,7 @@ export const zh: Translations = {
       addTitle: '添加端点',
       nameLabel: '名称',
       providerIdLabel: '提供方 ID',
+      providerIdHint: '作为提供方标识符写入 config.yaml——创建后不可更改；需要不同 ID 请新建端点。',
       urlLabel: '端点 URL',
       apiModeLabel: 'API 协议',
       apiModeAuto: '自动',
