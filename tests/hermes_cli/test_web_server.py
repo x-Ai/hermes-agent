@@ -4801,6 +4801,61 @@ class TestWebServerEndpoints:
         assert model_cfg.get("api_key") == "sk-other"
         assert model_cfg.get("base_url") == "https://llm.other.corp/v1"
 
+    def test_hand_written_non_ascii_endpoint_id_saves_activates_and_deletes(self):
+        """Hand-written ``providers`` keys can be non-ASCII (e.g. Chinese).
+
+        The slug round-trip is lossy for those — ``_custom_endpoint_id``
+        collapses a fully non-ASCII key to the ``"custom"`` fallback — so
+        save/activate/delete must resolve the exact raw key first. The old
+        slug-only lookup 404'd on delete/activate ("custom endpoint not
+        found") and split saves into a new slugged duplicate entry.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        save_config({
+            "model": {"provider": "自定义", "default": "m-1", "base_url": "http://127.0.0.1:9931/v1"},
+            "providers": {
+                "自定义": {
+                    "base_url": "http://127.0.0.1:9931/v1",
+                    "model": "m-1",
+                    "api_key": "sk-hand",
+                }
+            },
+        })
+
+        # The list echoes the raw key.
+        listed = self.client.get("/api/providers/custom-endpoints").json()["endpoints"]
+        assert [e["id"] for e in listed] == ["自定义"]
+
+        # Saving under the raw id updates in place instead of splitting into
+        # a slugged duplicate.
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "自定义",
+                "name": "自定义",
+                "base_url": "http://127.0.0.1:9931/v1",
+                "model": "m-2",
+            },
+        )
+        assert resp.status_code == 200
+        providers = load_config()["providers"]
+        assert list(providers) == ["自定义"]
+        assert providers["自定义"]["model"] == "m-2"
+
+        # Activate and delete resolve the same raw key instead of 404ing.
+        assert self.client.post(
+            "/api/providers/custom-endpoints/自定义/activate", json={}
+        ).status_code == 200
+        assert self.client.request(
+            "DELETE", "/api/providers/custom-endpoints/自定义"
+        ).status_code == 200
+
+        cfg = load_config()
+        assert "自定义" not in (cfg.get("providers") or {})
+        model_cfg = cfg.get("model") or {}
+        assert not model_cfg.get("provider"), "deleted endpoint still routed as the main provider"
+
     def test_set_model_main_preserves_base_url_for_named_custom_provider(self):
         """Selecting a named custom endpoint from the Desktop model picker
         should keep its endpoint URL attached to model config.

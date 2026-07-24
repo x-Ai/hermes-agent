@@ -7500,6 +7500,28 @@ def _custom_endpoint_id(raw: str, fallback: str = "custom") -> str:
     return slug or fallback
 
 
+def _resolve_custom_endpoint_key(providers: Any, endpoint_id: str) -> Optional[str]:
+    """Resolve a client-supplied endpoint id to the actual ``providers`` key.
+
+    The list response echoes raw ``providers`` keys, and hand-written config
+    can make those non-ASCII (e.g. a Chinese key). The slug round-trip is
+    lossy for such keys — ``_custom_endpoint_id("自定义")`` collapses to the
+    ``"custom"`` fallback — so activate/delete/save must try the exact key
+    first and only then fall back to slug-normalized comparison (kept for
+    case-insensitive lookups of ASCII keys). The slug fallback is accepted
+    only on a unique match, so two non-ASCII keys that both collapse to the
+    fallback can't select each other.
+    """
+    if not isinstance(providers, dict):
+        return None
+    raw = str(endpoint_id or "")
+    if raw in providers:
+        return raw
+    slug = _custom_endpoint_id(raw)
+    matches = [key for key in providers if _custom_endpoint_id(str(key)) == slug]
+    return matches[0] if len(matches) == 1 else None
+
+
 # API wires the endpoint editor can pin explicitly. Mirrors the runtime's
 # recognized api_mode values; anything else is rejected with a 422 so a typo
 # can't write a mode the adapters would silently ignore.
@@ -7607,7 +7629,10 @@ def _detach_main_model_from_provider(cfg: Dict[str, Any], provider_key: str) -> 
     model_cfg = cfg.get("model")
     if not isinstance(model_cfg, dict):
         return
-    if str(model_cfg.get("provider") or "").strip().lower() != provider_key:
+    # Lowercase both sides: provider_key is now the raw providers key (which
+    # hand-written config can capitalize or write in non-ASCII), not always a
+    # pre-lowered slug.
+    if str(model_cfg.get("provider") or "").strip().lower() != str(provider_key or "").strip().lower():
         return
     for field in ("provider", "base_url", "api_key"):
         model_cfg.pop(field, None)
@@ -7615,7 +7640,11 @@ def _detach_main_model_from_provider(cfg: Dict[str, Any], provider_key: str) -> 
 
 
 def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> Tuple[str, Dict[str, Any]]:
-    endpoint_id = _custom_endpoint_id(body.id or body.name)
+    # An explicit id that resolves to an existing entry (exact key first, so
+    # hand-written non-ASCII keys update in place instead of splitting into a
+    # slugged duplicate) wins; otherwise slug a fresh id from the id/name.
+    resolved_key = _resolve_custom_endpoint_key(cfg.get("providers"), (body.id or "").strip()) if (body.id or "").strip() else None
+    endpoint_id = resolved_key if resolved_key is not None else _custom_endpoint_id(body.id or body.name)
     name = (body.name or "").strip()
     base_url = (body.base_url or "").strip().rstrip("/")
     model = (body.model or "").strip()
@@ -7755,9 +7784,9 @@ def activate_custom_endpoint(endpoint_id: str):
     """Set a configured custom endpoint as the default model provider."""
     try:
         cfg = load_config()
-        provider_key = _custom_endpoint_id(endpoint_id)
         providers = cfg.get("providers")
-        entry = providers.get(provider_key) if isinstance(providers, dict) else None
+        provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
+        entry = providers.get(provider_key) if provider_key is not None else None
         if not isinstance(entry, dict):
             raise HTTPException(status_code=404, detail="custom endpoint not found")
 
@@ -7785,9 +7814,9 @@ def delete_custom_endpoint(endpoint_id: str):
     """Remove a configured custom endpoint from ``providers``."""
     try:
         cfg = load_config()
-        provider_key = _custom_endpoint_id(endpoint_id)
         providers = cfg.get("providers")
-        if not isinstance(providers, dict) or provider_key not in providers:
+        provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
+        if provider_key is None:
             raise HTTPException(status_code=404, detail="custom endpoint not found")
         providers.pop(provider_key, None)
         cfg["providers"] = providers
