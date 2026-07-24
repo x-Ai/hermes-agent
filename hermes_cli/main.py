@@ -10997,13 +10997,22 @@ def _cmd_update_impl(args, gateway_mode: bool):
                     input_fn=gw_input_fn,
                 )
             if current_branch not in {branch, "HEAD"}:
-                subprocess.run(
-                    git_cmd + ["checkout", current_branch],
-                    cwd=PROJECT_ROOT,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
+                if getattr(args, "branch", None):
+                    # An explicit --branch <x> means "(re)point this install at
+                    # <x>" — a successful pull leaves HEAD on <x>, so the
+                    # already-up-to-date path must too. Switching back would
+                    # strand the checkout on the old branch, and any updater
+                    # that compares HEAD to origin/<x> (e.g. the desktop GUI)
+                    # would then report "update available" forever.
+                    print(f"  ✓ Staying on '{branch}' (switched from '{current_branch}').")
+                else:
+                    subprocess.run(
+                        git_cmd + ["checkout", current_branch],
+                        cwd=PROJECT_ROOT,
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
 
             # A current checkout does NOT imply a healthy install: a previous
             # dependency sync may have failed partway (classic on Windows,

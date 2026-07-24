@@ -804,6 +804,32 @@ class TestCmdUpdateBranchFlag:
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
+    def test_branch_flag_stays_on_target_when_already_up_to_date(self, mock_run, _mock_which, capsys):
+        """--branch <x> from another branch with 0 new commits stays on <x>.
+
+        The already-up-to-date early-exit used to switch HEAD back to the
+        original branch, stranding an explicit branch migration: a GUI updater
+        comparing HEAD to origin/<x> would then report "update available"
+        forever, and every apply would rebuild from the OLD branch's code.
+        """
+        mock_run.side_effect = self._branch_side_effect(
+            current_branch="main", target_branch="bb/gui", commit_count="0"
+        )
+        args = SimpleNamespace(branch="bb/gui")
+
+        cmd_update(args)
+
+        commands = [" ".join(str(a) for a in c.args[0]) for c in mock_run.call_args_list]
+        checkout_cmds = [c for c in commands if "checkout" in c and "rev-parse" not in c]
+        # One checkout onto the target — and NO checkout back to main.
+        assert checkout_cmds, commands
+        assert all("bb/gui" in c for c in checkout_cmds), checkout_cmds
+
+        out = capsys.readouterr().out
+        assert "Staying on 'bb/gui'" in out
+
+    @patch("shutil.which", return_value=None)
+    @patch("subprocess.run")
     def test_branch_flag_fails_when_branch_missing_everywhere(self, mock_run, _mock_which, capsys):
         """If branch doesn't exist locally OR on origin, exit non-zero with clear error."""
         mock_run.side_effect = self._branch_side_effect(
