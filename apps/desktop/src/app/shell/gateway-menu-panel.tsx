@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button'
 import { LogView } from '@/components/ui/log-view'
 import { Tip } from '@/components/ui/tooltip'
 import { getLogs } from '@/hermes'
-import { type Translations, useI18n } from '@/i18n'
+import { useI18n } from '@/i18n'
 import { LayoutDashboard, RefreshCw } from '@/lib/icons'
-import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
-import { DEFAULT_NOT_READY_REASON, type RuntimeReadinessResult } from '@/lib/runtime-readiness'
+import type { RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { cn } from '@/lib/utils'
 import { runGatewayRestart } from '@/store/system-actions'
 import type { StatusResponse } from '@/types/hermes'
@@ -87,15 +86,6 @@ const prettyState = (state: string) => state.replace(/_/g, ' ').replace(/^./, c 
 const TIMESTAMP_RE = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}[,.\d]*\s+/
 const RUNTIME_BRACKET_RE = /^\[[^\]]+]\s+/
 const trimLogLine = (raw: string) => raw.trim().replace(TIMESTAMP_RE, '').replace(RUNTIME_BRACKET_RE, '')
-
-// Readiness reasons are backend English prose (setup.runtime_check errors,
-// plus the interpreter's own default/disagreement copy). Map the known
-// provider-setup shapes to the localized credential copy; anything else
-// passes through raw.
-const localizedReadinessReason = (reason: string, t: Translations) =>
-  isProviderSetupErrorMessage(reason) || reason === DEFAULT_NOT_READY_REASON
-    ? t.desktop.providerCredentialRequired
-    : reason
 
 export function GatewayMenuPanel({
   gatewayState,
@@ -194,7 +184,7 @@ export function GatewayMenuPanel({
 
       {inferenceStatus?.reason && (
         <Section className="text-xs text-muted-foreground">
-          <div className="line-clamp-3">{localizedReadinessReason(inferenceStatus.reason, t)}</div>
+          <div className="line-clamp-3">{inferenceStatus.reason}</div>
         </Section>
       )}
 

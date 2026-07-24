@@ -2390,6 +2390,9 @@ export interface Translations {
     createSessionFailed: string
     promptFailed: string
     providerCredentialRequired: string
+    /** Appended to a runtime-check failure reason when setup.status
+     *  simultaneously claims credentials are configured. */
+    readinessChecksDisagree: string
     emptySlashCommand: string
     desktopCommands: string
     skillCommandsAvailable: (count: number) => string
