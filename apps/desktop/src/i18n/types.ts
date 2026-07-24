@@ -775,6 +775,8 @@ export interface Translations {
       defaultModelLabel: string
       contextLabel: string
       apiKeyLabel: string
+      userAgentLabel: string
+      userAgentHint: string
       contextAuto: string
       keyKeepPlaceholder: string
       keyOptionalPlaceholder: string

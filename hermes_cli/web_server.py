@@ -1253,6 +1253,12 @@ class CustomEndpointUpdate(BaseModel):
     # "auto-detect" selection — the write path clears the config keys.
     api_mode: Optional[str] = None
     auth_scheme: Optional[str] = None
+    # HTTP User-Agent for this endpoint, stored inside ``extra_headers`` so it
+    # rides the existing per-provider header merge onto the live API client.
+    # None = field absent (older clients) — preserve whatever the entry carries.
+    # Empty string = clear the override (back to the SDK default). Non-empty =
+    # pin the given agent.
+    user_agent: Optional[str] = None
 
 
 class MessagingPlatformUpdate(BaseModel):
@@ -7530,6 +7536,20 @@ _CUSTOM_ENDPOINT_API_MODES = frozenset(
 )
 
 
+def _extract_endpoint_user_agent(entry: Dict[str, Any]) -> str:
+    """Read the endpoint's pinned User-Agent from its ``extra_headers``.
+
+    Case-insensitive so a hand-written ``user-agent`` key still surfaces in the
+    editor. Returns ``""`` when no override is set (client shows the default).
+    """
+    headers = entry.get("extra_headers")
+    if isinstance(headers, dict):
+        for key, value in headers.items():
+            if str(key).lower() == "user-agent":
+                return str(value or "")
+    return ""
+
+
 def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
     models: List[str] = []
     raw_models = entry.get("models")
@@ -7584,6 +7604,8 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
                 # ('' = auto wire / auto-detected auth).
                 "api_mode": "" if raw_mode == "auto" else raw_mode,
                 "auth_scheme": str(raw_entry.get("auth_scheme") or ""),
+                # '' = no override → editor falls back to its standard default.
+                "user_agent": _extract_endpoint_user_agent(raw_entry),
             })
 
     if current_provider.lower() == "custom" and current_base_url and not any(e["id"] == "custom" for e in endpoints):
@@ -7601,6 +7623,7 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "source": "direct-config",
             "api_mode": str(model_cfg.get("api_mode") or ""),
             "auth_scheme": "",
+            "user_agent": _extract_endpoint_user_agent(model_cfg),
         })
 
     return {
@@ -7738,6 +7761,26 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
                 detail="auth_scheme must be 'bearer', 'x-api-key', or 'auto'",
             )
 
+    # User-Agent lives inside ``extra_headers`` so it reuses the existing
+    # per-provider header merge that reaches the live API client — a browser-
+    # like agent avoids WAF/relay rules that 403 SDK/library agents. None =
+    # field absent (older client) — preserve whatever the entry carries. ""
+    # clears the override (back to the SDK default); non-empty pins it. Any
+    # case-variant ``user-agent`` key is dropped first so a hand-written one
+    # can't shadow the canonical spelling.
+    if body.user_agent is not None:
+        raw_headers = entry.get("extra_headers")
+        headers_map: Dict[str, Any] = dict(raw_headers) if isinstance(raw_headers, dict) else {}
+        for key in [k for k in headers_map if str(k).lower() == "user-agent"]:
+            headers_map.pop(key, None)
+        user_agent = body.user_agent.strip()
+        if user_agent:
+            headers_map["User-Agent"] = user_agent
+        if headers_map:
+            entry["extra_headers"] = headers_map
+        else:
+            entry.pop("extra_headers", None)
+
     providers[endpoint_id] = entry
     cfg["providers"] = providers
 
@@ -7869,6 +7912,13 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate):
             headers["x-api-key"] = api_key
     elif api_key:
         headers["Authorization"] = f"Bearer {api_key}"
+
+    # Probe with the configured User-Agent so the reachability check exercises
+    # the same agent the live client will send (a relay that 403s SDK agents
+    # would otherwise fail the test but work in the chat).
+    user_agent = (body.user_agent or "").strip()
+    if user_agent:
+        headers["User-Agent"] = user_agent
 
     try:
         with httpx.Client(timeout=httpx.Timeout(8.0)) as client:

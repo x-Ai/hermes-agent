@@ -885,6 +885,9 @@ export const en: Translations = {
       defaultModelLabel: 'Default Model',
       contextLabel: 'Context',
       apiKeyLabel: 'API Key',
+      userAgentLabel: 'User-Agent',
+      userAgentHint:
+        'HTTP User-Agent sent to this endpoint. Defaults to a standard desktop browser agent so proxies and WAFs do not block requests. Clear the field to use the built-in SDK default.',
       contextAuto: 'Auto',
       keyKeepPlaceholder: 'Leave blank to keep current key',
       keyOptionalPlaceholder: 'Optional',

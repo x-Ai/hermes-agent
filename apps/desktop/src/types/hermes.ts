@@ -165,6 +165,8 @@ export interface CustomEndpoint {
   models: string[]
   name: string
   source?: string
+  /** Pinned HTTP User-Agent ('' = no override). Absent on older backends. */
+  user_agent?: string
 }
 
 export interface CustomEndpointsResponse {
@@ -192,6 +194,8 @@ export interface CustomEndpointUpdate {
   make_default?: boolean
   model: string
   name: string
+  /** '' clears the override (SDK default); older backends ignore it. */
+  user_agent?: string
 }
 
 export interface CustomEndpointValidationResponse {

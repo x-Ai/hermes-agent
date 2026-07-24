@@ -1227,6 +1227,9 @@ export const zh: Translations = {
       defaultModelLabel: '默认模型',
       contextLabel: '上下文',
       apiKeyLabel: 'API 密钥',
+      userAgentLabel: 'User-Agent',
+      userAgentHint:
+        '发送到该端点的 HTTP User-Agent。默认使用标准桌面浏览器 UA，避免被代理或 WAF 拦截。留空则使用内置 SDK 默认值。',
       contextAuto: '自动',
       keyKeepPlaceholder: '留空则保留当前密钥',
       keyOptionalPlaceholder: '可选',

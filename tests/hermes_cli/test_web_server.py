@@ -4498,6 +4498,127 @@ class TestWebServerEndpoints:
         # The edit still applies.
         assert entry["model"] == "acme/model-2"
 
+    def test_custom_endpoint_saves_user_agent_into_extra_headers(self):
+        """A pinned User-Agent rides ``extra_headers`` (so it reaches the live
+        client through the existing per-provider header merge) and is echoed
+        back for the editor to round-trip.
+        """
+        from hermes_cli.config import load_config
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "proxy",
+                "name": "Proxy",
+                "base_url": "https://relay.example.com/v1",
+                "model": "gpt-5.4",
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["proxy"]
+        assert entry["extra_headers"]["User-Agent"] == (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0"
+        )
+
+        echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "proxy")
+        assert echoed["user_agent"] == (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0"
+        )
+
+    def test_custom_endpoint_user_agent_preserves_other_headers_and_dedupes_case(self):
+        """Setting the UA must keep unrelated (possibly credential-bearing)
+        headers and must not leave a case-variant ``user-agent`` shadowing the
+        canonical key."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"CF-Access-Client-Id": "secret", "user-agent": "old-ua"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "user_agent": "new-ua",
+            },
+        )
+
+        headers = load_config()["providers"]["acme"]["extra_headers"]
+        assert headers["CF-Access-Client-Id"] == "secret"
+        assert headers["User-Agent"] == "new-ua"
+        assert "user-agent" not in headers
+
+    def test_custom_endpoint_empty_user_agent_clears_override(self):
+        """An explicit empty string clears the UA; when it was the only header
+        the whole ``extra_headers`` block is dropped."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"User-Agent": "pinned"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "user_agent": "",
+            },
+        )
+
+        assert "extra_headers" not in load_config()["providers"]["acme"]
+
+    def test_custom_endpoint_absent_user_agent_preserves_existing(self):
+        """An older client that omits the field leaves the stored UA intact."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"User-Agent": "keep-me"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+            },
+        )
+
+        assert load_config()["providers"]["acme"]["extra_headers"]["User-Agent"] == "keep-me"
+
     def test_custom_endpoint_edit_keeps_the_other_models(self):
         """The panel names one default model; it doesn't enumerate the catalogue."""
         from hermes_cli.config import load_config, save_config

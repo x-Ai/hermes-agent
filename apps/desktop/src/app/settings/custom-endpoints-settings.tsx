@@ -37,7 +37,16 @@ interface EndpointForm {
   makeDefault: boolean
   model: string
   name: string
+  /** '' = no override (SDK default). New endpoints prefill DEFAULT_USER_AGENT. */
+  userAgent: string
 }
+
+// A mainstream desktop-Chrome User-Agent. Custom relays / WAFs routinely 403
+// the OpenAI SDK's default agent (e.g. "OpenAI/Python …" or "python-httpx");
+// a standard browser agent is the safe, non-fingerprinted default. Users can
+// override it per endpoint, or clear it to fall back to the SDK default.
+const DEFAULT_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
 
 const EMPTY_FORM: EndpointForm = {
   apiKey: '',
@@ -49,7 +58,8 @@ const EMPTY_FORM: EndpointForm = {
   id: '',
   makeDefault: true,
   model: '',
-  name: ''
+  name: '',
+  userAgent: DEFAULT_USER_AGENT
 }
 
 // The wires the editor knows ('' = Auto: leave protocol detection to the
@@ -71,7 +81,11 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
     model: endpoint.model,
-    name: endpoint.name
+    name: endpoint.name,
+    // Show exactly what's stored — '' means "no override", not "reset to
+    // default" — so an intentional clear round-trips instead of being
+    // silently re-filled with DEFAULT_USER_AGENT on the next edit.
+    userAgent: endpoint.user_agent ?? ''
   }
 }
 
@@ -94,7 +108,10 @@ function toPayload(form: EndpointForm): CustomEndpointUpdate {
       : undefined,
     context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
     discover_models: form.discoverModels,
-    make_default: form.makeDefault
+    make_default: form.makeDefault,
+    // Always sent as a string: non-empty pins the agent, '' clears any
+    // override back to the SDK default.
+    user_agent: form.userAgent.trim()
   }
 }
 
@@ -474,6 +491,15 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 type="password"
                 value={form.apiKey}
               />
+            </label>
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.userAgentLabel}
+              <Input
+                onChange={event => setForm(current => ({ ...current, userAgent: event.target.value }))}
+                placeholder={DEFAULT_USER_AGENT}
+                value={form.userAgent}
+              />
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.userAgentHint}</span>
             </label>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <label className="flex items-center gap-2">
