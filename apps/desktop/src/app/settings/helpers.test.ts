@@ -5,6 +5,8 @@ import type { HermesConfigRecord } from '@/types/hermes'
 import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
 import {
+  delegationModelOptions,
+  delegationProviderOptions,
   enumOptionsFor,
   getNested,
   isExternalMemoryProvider,
@@ -306,6 +308,75 @@ describe('settings helpers', () => {
       expect(opts).not.toContain('local_command')
       expect(opts).not.toContain('deepinfra')
       expect(opts).toContain('myasr')
+    })
+  })
+
+  describe('delegation custom-endpoint suggestions', () => {
+    const endpoints: HermesConfigRecord = {
+      providers: {
+        'my-relay': {
+          name: 'My Relay',
+          base_url: 'https://relay.example/v1',
+          model: 'default-model',
+          models: ['default-model', 'alt-model', 'third-model']
+        },
+        'map-shaped': {
+          base_url: 'https://map.example/v1',
+          // Discovered catalogs are also stored as {model: meta} maps.
+          models: { 'map-a': {}, 'map-b': {} }
+        },
+        disabled: { base_url: 'https://off.example/v1', enabled: false, models: ['x'] },
+        'not-an-endpoint': { some_other_key: true },
+        broken: 'not a dict'
+      }
+    }
+
+    const withSwitch = (config: HermesConfigRecord, on: boolean): HermesConfigRecord => ({
+      ...config,
+      delegation: { use_custom_endpoints: on, provider: getNested(config, 'delegation.provider') ?? '' }
+    })
+
+    const withProvider = (config: HermesConfigRecord, provider: string): HermesConfigRecord => ({
+      ...config,
+      delegation: { use_custom_endpoints: true, provider }
+    })
+
+    it('suggests nothing while the opt-in switch is off', () => {
+      expect(delegationProviderOptions(endpoints)).toBeUndefined()
+      expect(delegationProviderOptions(withSwitch(endpoints, false))).toBeUndefined()
+      expect(delegationModelOptions(endpoints)).toBeUndefined()
+    })
+
+    it('suggests endpoint ids when the switch is on, skipping disabled and non-endpoint entries', () => {
+      const opts = delegationProviderOptions(withSwitch(endpoints, true))
+
+      expect(opts).toEqual(['my-relay', 'map-shaped'])
+    })
+
+    it('returns undefined instead of an empty provider list', () => {
+      expect(delegationProviderOptions(withSwitch({ providers: {} }, true))).toBeUndefined()
+      expect(delegationProviderOptions(withSwitch({}, true))).toBeUndefined()
+    })
+
+    it('suggests the selected endpoint model catalog, default model first', () => {
+      const opts = delegationModelOptions(withProvider(endpoints, 'my-relay'))
+
+      expect(opts).toEqual(['default-model', 'alt-model', 'third-model'])
+    })
+
+    it('reads map-shaped discovered catalogs', () => {
+      expect(delegationModelOptions(withProvider(endpoints, 'map-shaped'))).toEqual(['map-a', 'map-b'])
+    })
+
+    it('matches the endpoint by display name and custom: spelling, like the runtime resolver', () => {
+      expect(delegationModelOptions(withProvider(endpoints, 'My Relay'))).toContain('default-model')
+      expect(delegationModelOptions(withProvider(endpoints, 'custom:my-relay'))).toContain('default-model')
+    })
+
+    it('suggests nothing for built-in provider names or an empty provider', () => {
+      expect(delegationModelOptions(withProvider(endpoints, 'openrouter'))).toBeUndefined()
+      expect(delegationModelOptions(withProvider(endpoints, ''))).toBeUndefined()
+      expect(delegationModelOptions(withProvider(endpoints, 'disabled'))).toBeUndefined()
     })
   })
 

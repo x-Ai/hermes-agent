@@ -552,6 +552,7 @@ export const ja = defineLocale({
       delegation: {
         model: 'サブエージェントモデル',
         provider: 'サブエージェントプロバイダー',
+        useCustomEndpoints: 'サブエージェントにカスタムエンドポイントを提案',
         maxIterations: 'サブエージェントターン上限',
         maxConcurrentChildren: '並列サブエージェント',
         childTimeoutSeconds: 'サブエージェントタイムアウト',

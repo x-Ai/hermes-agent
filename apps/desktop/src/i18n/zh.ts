@@ -665,6 +665,7 @@ export const zh: Translations = {
       delegation: {
         model: '子智能体模型',
         provider: '子智能体提供方',
+        useCustomEndpoints: '子智能体建议自定义端点',
         maxIterations: '子智能体轮次上限',
         maxConcurrentChildren: '并行子智能体',
         childTimeoutSeconds: '子智能体超时',
@@ -694,6 +695,9 @@ export const zh: Translations = {
         serviceTier: 'API 服务等级（OpenAI/Anthropic）。'
       },
       delegation: {
+        model: '委派子智能体使用的模型。留空则继承父智能体的模型。',
+        provider: '委派子智能体使用的提供方——内置名称或自定义端点 id。留空则继承父智能体。',
+        useCustomEndpoints: '在子智能体提供方列表中提供你的自定义端点，并在模型列表中提供该端点已发现的模型。',
         reasoningEffort: '委派子智能体使用的推理力度。'
       },
       terminal: {

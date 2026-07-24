@@ -293,6 +293,120 @@ export function enumOptionsFor(
   return current && !opts.includes(current) ? [...opts, current] : opts
 }
 
+// ---------------------------------------------------------------------------
+// Subagent (delegation) suggestions from custom endpoints
+// ---------------------------------------------------------------------------
+
+// Mirrors the runtime's _normalize_custom_provider_name so a provider typed as
+// "My Relay" still matches the endpoint whose id is "my-relay".
+const normalizeProviderName = (value: string) => value.trim().toLowerCase().replace(/ /g, '-')
+
+interface CustomEndpointEntry {
+  id: string
+  models: string[]
+  name: string
+}
+
+// A ``providers.<id>`` entry counts as a custom endpoint when it carries a
+// base URL (same shape test the backend's custom-endpoint API uses) and is
+// not disabled. The runtime resolver skips ``enabled: false`` entries, so
+// suggesting one here would offer a provider that cannot resolve.
+function customEndpointEntries(config: HermesConfigRecord): CustomEndpointEntry[] {
+  const providers = config.providers
+
+  if (!providers || typeof providers !== 'object' || Array.isArray(providers)) {
+    return []
+  }
+
+  const entries: CustomEndpointEntry[] = []
+
+  for (const [id, raw] of Object.entries(providers as Record<string, unknown>)) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      continue
+    }
+
+    const entry = raw as Record<string, unknown>
+    const baseUrl = asText(entry.base_url ?? entry.url ?? entry.api).trim()
+
+    if (!baseUrl || entry.enabled === false) {
+      continue
+    }
+
+    // Discovered catalog first (list or {model: meta} map), then the
+    // endpoint's default model — same order the backend endpoint API uses.
+    const models: string[] = []
+    const rawModels = entry.models
+
+    if (Array.isArray(rawModels)) {
+      models.push(...rawModels.map(asText))
+    } else if (rawModels && typeof rawModels === 'object') {
+      models.push(...Object.keys(rawModels as Record<string, unknown>))
+    }
+
+    const defaultModel = asText(entry.model ?? entry.default_model).trim()
+
+    if (defaultModel) {
+      models.unshift(defaultModel)
+    }
+
+    entries.push({
+      id,
+      models: [...new Set(models.map(m => m.trim()).filter(Boolean))],
+      name: asText(entry.name).trim()
+    })
+  }
+
+  return entries
+}
+
+export function delegationCustomEndpointsEnabled(config: HermesConfigRecord): boolean {
+  return getNested(config, 'delegation.use_custom_endpoints') === true
+}
+
+/** Datalist suggestions for ``delegation.provider``: the configured custom
+ *  endpoint ids, gated behind delegation.use_custom_endpoints. The field stays
+ *  free-input either way — built-in provider names are always typeable. */
+export function delegationProviderOptions(config: HermesConfigRecord): string[] | undefined {
+  if (!delegationCustomEndpointsEnabled(config)) {
+    return undefined
+  }
+
+  const ids = customEndpointEntries(config).map(entry => entry.id)
+
+  return ids.length > 0 ? ids : undefined
+}
+
+/** Datalist suggestions for ``delegation.model``: the discovered model catalog
+ *  of whichever custom endpoint ``delegation.provider`` currently points at.
+ *  Matching accepts the endpoint id, its display name, or the runtime's
+ *  ``custom:<name>`` spelling. No endpoint match (built-in provider, empty
+ *  provider) means no suggestions — the field stays a plain input. */
+export function delegationModelOptions(config: HermesConfigRecord): string[] | undefined {
+  if (!delegationCustomEndpointsEnabled(config)) {
+    return undefined
+  }
+
+  const requested = normalizeProviderName(asText(getNested(config, 'delegation.provider')))
+
+  if (!requested) {
+    return undefined
+  }
+
+  for (const entry of customEndpointEntries(config)) {
+    const idNorm = normalizeProviderName(entry.id)
+    const nameNorm = normalizeProviderName(entry.name)
+    const candidates = new Set(
+      [idNorm, nameNorm, idNorm && `custom:${idNorm}`, nameNorm && `custom:${nameNorm}`].filter(Boolean)
+    )
+
+    if (candidates.has(requested)) {
+      return entry.models.length > 0 ? entry.models : undefined
+    }
+  }
+
+  return undefined
+}
+
 // Built-in memory (MEMORY.md/USER.md) is controlled by memory_enabled, not
 // memory.provider — only a real external plugin name gets provider-shaped
 // affordances (config panel, OAuth connect). See #49513.

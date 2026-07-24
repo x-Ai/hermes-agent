@@ -17,7 +17,15 @@ import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 import { PanelEmpty } from '../overlays/panel'
 
 import { ConfigField } from './config-field'
-import { enumOptionsFor, getNested, isExternalMemoryProvider, sectionFieldEntries, setNested } from './helpers'
+import {
+  delegationModelOptions,
+  delegationProviderOptions,
+  enumOptionsFor,
+  getNested,
+  isExternalMemoryProvider,
+  sectionFieldEntries,
+  setNested
+} from './helpers'
 import { MemoryConnect } from './memory/connect'
 import { ProviderConfigPanel } from './memory/provider-config-panel'
 import { ModelSettings, ModelSettingsSkeleton } from './model-settings'
@@ -281,6 +289,27 @@ export function ConfigSettings({
 
   const visibleFields = activeSectionId === 'voice' ? fields.filter(([key]) => voiceFieldVisible(key, config)) : fields
 
+  // Per-key dynamic datalist sources; everything else falls through to the
+  // static ENUM_OPTIONS table inside enumOptionsFor.
+  const enumOptionsForKey = (key: string) => {
+    if (key === 'tts.elevenlabs.voice_id') {
+      return enumOptionsFor(key, getNested(config, key), config, elevenLabsVoiceOptions ?? undefined)
+    }
+
+    // Subagent provider/model suggest the configured custom endpoints and the
+    // selected endpoint's discovered model catalog (opt-in via
+    // delegation.use_custom_endpoints); both stay free-input for built-ins.
+    if (key === 'delegation.provider') {
+      return enumOptionsFor(key, getNested(config, key), config, delegationProviderOptions(config))
+    }
+
+    if (key === 'delegation.model') {
+      return enumOptionsFor(key, getNested(config, key), config, delegationModelOptions(config))
+    }
+
+    return enumOptionsFor(key, getNested(config, key), config)
+  }
+
   return (
     <SettingsContent>
       {activeSectionId === 'model' && (
@@ -305,11 +334,7 @@ export function ConfigSettings({
                     <MemoryConnect provider={String(getNested(config, key))} />
                   ) : undefined
                 }
-                enumOptions={
-                  key === 'tts.elevenlabs.voice_id'
-                    ? enumOptionsFor(key, getNested(config, key), config, elevenLabsVoiceOptions ?? undefined)
-                    : enumOptionsFor(key, getNested(config, key), config)
-                }
+                enumOptions={enumOptionsForKey(key)}
                 onChange={value => updateConfig(setNested(config, key, value))}
                 optionLabels={key === 'tts.elevenlabs.voice_id' ? elevenLabsVoiceLabels : undefined}
                 schema={field}

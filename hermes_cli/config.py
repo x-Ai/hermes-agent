@@ -2371,7 +2371,14 @@ DEFAULT_CONFIG = {
     # configured providers (OpenRouter, Nous, Z.ai, Kimi, etc.) are supported.
     "delegation": {
         "model": "",       # e.g. "google/gemini-3-flash-preview" (empty = inherit parent model)
-        "provider": "",    # e.g. "openrouter" (empty = inherit parent provider + credentials)
+        "provider": "",    # e.g. "openrouter", or a custom endpoint id from the
+                           # ``providers:`` section (empty = inherit parent provider + credentials)
+        # Desktop settings affordance: when true, the subagent provider field
+        # suggests your configured custom endpoints and the model field
+        # suggests the selected endpoint's discovered catalog. Suggestions
+        # only — the runtime resolves an explicitly typed endpoint id either
+        # way, and built-in provider names remain typeable with this off.
+        "use_custom_endpoints": False,
         "base_url": "",    # direct OpenAI-compatible endpoint for subagents
         "api_key": "",     # API key for delegation.base_url (falls back to OPENAI_API_KEY)
         "api_mode": "",    # wire protocol for delegation.base_url: "chat_completions",

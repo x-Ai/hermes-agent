@@ -541,6 +541,7 @@ export const zhHant = defineLocale({
       delegation: {
         model: '子代理模型',
         provider: '子代理提供方',
+        useCustomEndpoints: '子代理建議自訂端點',
         maxIterations: '子代理輪次上限',
         maxConcurrentChildren: '平行子代理',
         childTimeoutSeconds: '子代理逾時',
