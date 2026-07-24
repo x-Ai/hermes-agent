@@ -122,6 +122,41 @@ class TestBuildAnthropicClient:
             kwargs = mock_sdk.Anthropic.call_args[1]
             assert kwargs["base_url"] == "https://proxy.example.com/anthropic"
 
+    def test_custom_provider_extra_headers_apply_user_agent(self):
+        """A browser User-Agent configured on an anthropic_messages endpoint
+        must reach the client's default_headers — parity with the OpenAI path,
+        so relays whose WAF 403s SDK agents can be passed with a browser UA."""
+        ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0 Safari/537.36"
+        with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk, \
+             patch("hermes_cli.config.get_custom_provider_extra_headers",
+                   return_value={"User-Agent": ua}):
+            build_anthropic_client("sk-ant-api03-x", base_url="https://relay.example.com/v1")
+            headers = mock_sdk.Anthropic.call_args[1]["default_headers"]
+            assert headers["User-Agent"] == ua
+            # the branch's betas are preserved alongside the injected UA
+            assert "anthropic-beta" in headers
+
+    def test_apply_custom_provider_headers_overrides_case_insensitively(self):
+        """A provider User-Agent replaces any case-variant default a branch set
+        (e.g. the OAuth path's lowercase 'user-agent'), leaving exactly one."""
+        from agent.anthropic_adapter import _apply_custom_provider_headers_to_kwargs
+        kwargs = {"default_headers": {"user-agent": "claude-code/1.0", "anthropic-beta": "x"}}
+        with patch("hermes_cli.config.get_custom_provider_extra_headers",
+                   return_value={"User-Agent": "browser"}):
+            _apply_custom_provider_headers_to_kwargs(kwargs, "https://relay.example.com/v1")
+        headers = kwargs["default_headers"]
+        assert [k for k in headers if k.lower() == "user-agent"] == ["User-Agent"]
+        assert headers["User-Agent"] == "browser"
+        assert headers["anthropic-beta"] == "x"  # unrelated header untouched
+
+    def test_apply_custom_provider_headers_noop_without_match(self):
+        """No matching provider entry → default_headers left exactly as-is."""
+        from agent.anthropic_adapter import _apply_custom_provider_headers_to_kwargs
+        kwargs = {"default_headers": {"anthropic-beta": "x"}}
+        with patch("hermes_cli.config.get_custom_provider_extra_headers", return_value={}):
+            _apply_custom_provider_headers_to_kwargs(kwargs, "https://relay.example.com/v1")
+        assert kwargs["default_headers"] == {"anthropic-beta": "x"}
+
     def test_azure_anthropic_endpoint_keeps_context_1m_beta(self):
         with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
             build_anthropic_client(

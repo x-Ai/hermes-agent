@@ -768,6 +768,42 @@ def _build_anthropic_client_with_bearer_hook(
     return _anthropic_sdk.Anthropic(**kwargs)
 
 
+def _apply_custom_provider_headers_to_kwargs(kwargs: Dict[str, Any], base_url: Optional[str]) -> None:
+    """Merge a matching custom provider's ``extra_headers`` onto the client's
+    ``default_headers`` (Anthropic-wire parity with the OpenAI client path).
+
+    The OpenAI client path applies per-provider ``extra_headers`` via
+    ``apply_custom_provider_extra_headers_to_client_kwargs`` so a user can, e.g.,
+    override the ``User-Agent`` to get past a relay/WAF that 403s SDK agents.
+    The Anthropic SDK path never did, so a custom ``User-Agent`` configured on
+    an ``anthropic_messages`` endpoint was silently ignored and the SDK's own
+    ``Anthropic/Python`` agent went on the wire. This closes that gap.
+
+    User-configured headers are the most specific level, so they win over the
+    betas / SDK identity set above — matched case-insensitively so a
+    hand-written ``user-agent`` doesn't coexist with the SDK's ``User-Agent``.
+    No-op when the base_url matches no entry or it declares no headers.
+
+    SECURITY: extra_headers values may carry credentials — never log them.
+    """
+    if not base_url:
+        return
+    try:
+        from hermes_cli.config import get_custom_provider_extra_headers
+        extra = get_custom_provider_extra_headers(base_url)
+    except Exception:
+        return
+    if not extra:
+        return
+    incoming_lower = {k.lower() for k in extra}
+    merged = {
+        k: v for k, v in (kwargs.get("default_headers") or {}).items()
+        if k.lower() not in incoming_lower
+    }
+    merged.update(extra)
+    kwargs["default_headers"] = merged
+
+
 def build_anthropic_client(
     api_key,
     base_url: str = None,
@@ -893,6 +929,11 @@ def build_anthropic_client(
         kwargs["api_key"] = api_key
         if common_betas:
             kwargs["default_headers"] = {"anthropic-beta": ",".join(common_betas)}
+
+    # Let a matching custom provider override headers (e.g. a browser
+    # User-Agent to pass a relay's WAF). Applies to every static-key branch
+    # above; provider values win over the betas/UA defaults just set.
+    _apply_custom_provider_headers_to_kwargs(kwargs, base_url)
 
     return _anthropic_sdk.Anthropic(**kwargs)
 
