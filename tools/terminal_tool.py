@@ -37,6 +37,7 @@ import json
 import logging
 import os
 import platform
+import posixpath
 import re
 import time
 import threading
@@ -1293,19 +1294,28 @@ def _workspace_container_key(host_path: str) -> str:
 
     Two sessions on the same project directory must land on the same container
     (so they share one bash, one set of installed packages) while two sessions
-    on different projects must not, since each container's ``/workspace`` bind
-    mount is baked in at creation. Hashing keeps the value inside Docker's
-    63-char label limit and its ``[A-Za-z0-9_.-]`` charset regardless of how
-    exotic the path is.
+    on different projects must not, since each container's workspace bind mount
+    is baked in at creation. Hashing keeps the value inside Docker's 63-char
+    label limit and its ``[A-Za-z0-9_.-]`` charset regardless of how exotic the
+    path is.
+
+    The in-container mount target is part of the identity too: a mount is
+    (source, target), and neither half can change on a running container. This
+    is what makes ``*_workspace_mount_path`` edits take effect without any
+    hot-remount machinery — the next tool call resolves a new key, gets a fresh
+    container mounted at the new target, and the old one ages out through the
+    normal idle/orphan reapers.
 
     Normalization resolves symlinks and ``..`` so different spellings of one
-    directory agree, and case-folds because Windows paths are case-insensitive.
+    directory agree, and case-folds because Windows paths are case-insensitive
+    (the POSIX in-container target is not case-folded).
     """
     try:
         normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
     except OSError:
         normalized = host_path
-    digest = hashlib.sha256(normalized.casefold().encode("utf-8", "surrogatepass")).hexdigest()
+    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}"
+    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
     return f"ws-{digest[:12]}"
 
 
@@ -1391,12 +1401,78 @@ _WORKSPACE_PER_SESSION_ENV_VARS = {
     "singularity": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
 }
 
-# Where a bind-mounted host directory lands inside the sandbox.
-_WORKSPACE_MOUNT_PATH = "/workspace"
+# Where a bind-mounted host directory lands inside the sandbox by default.
+# Overridable per backend via terminal.docker_workspace_mount_path /
+# terminal.singularity_workspace_mount_path (full in-container path).
+_DEFAULT_WORKSPACE_MOUNT_PATH = "/workspace"
+_WORKSPACE_MOUNT_PATH_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
+    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
+}
 
 # Absolute paths that already live *inside* a sandbox, so they are never a host
-# directory to bind-mount.
+# directory to bind-mount. A configured custom mount path is checked in
+# addition to these — see _is_sandbox_path.
 _SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
+
+# Mount targets that collide with the sandbox's own tmpfs/bind mount points
+# (docker.py's writable_args / base security tmpfs set). Nested paths under
+# them are fine; the exact paths are not.
+_RESERVED_MOUNT_TARGETS = frozenset({"/root", "/home", "/tmp", "/var/tmp", "/run"})
+
+
+def _workspace_mount_path(env_type: str | None = None) -> str:
+    """Return the in-sandbox mount target for the active (or given) backend.
+
+    Single source of truth so the mount resolver, the container-identity hash,
+    and both environment classes can never disagree about where the project
+    lands inside the sandbox. Invalid values (relative paths, Windows-style
+    paths, ``/``) fall back to the default rather than producing a container
+    that fails to start.
+    """
+    if env_type is None:
+        env_type = (os.getenv("TERMINAL_ENV", "local") or "").strip().lower()
+    env_var = _WORKSPACE_MOUNT_PATH_ENV_VARS.get(env_type)
+    raw = (os.getenv(env_var) or "").strip() if env_var else ""
+    if not raw:
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    # In-container paths are POSIX; normalize separators and collapse
+    # duplicate slashes / trailing slash so "/root//workspace/" and
+    # "/root/workspace" name one target (and hash to one container).
+    normalized = posixpath.normpath(raw.replace("\\", "/"))
+    if not normalized.startswith("/") or normalized == "/":
+        logger.warning(
+            "Ignoring invalid %s value %r (must be an absolute in-container "
+            "path other than /); using %s.",
+            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH,
+        )
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    if normalized in _RESERVED_MOUNT_TARGETS:
+        # These are the sandbox's own mount points (tmpfs /root, /home, /tmp,
+        # /run). Binding the project over one of them either collides with the
+        # duplicate mount target or hides the sandbox's writable state; a
+        # nested path like /root/workspace is fine.
+        logger.warning(
+            "Ignoring %s value %r — it collides with a sandbox-internal "
+            "mount point; using %s. Nested paths (e.g. %s/workspace) are ok.",
+            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH, normalized,
+        )
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    return normalized
+
+
+def _is_sandbox_path(path: str, mount_path: str) -> bool:
+    """Return True when *path* already points inside the sandbox.
+
+    Covers the static well-known sandbox roots plus the configured mount
+    target: with ``docker_workspace_mount_path: /data/ws``, a session cwd of
+    ``/data/ws`` refers to the *in-container* workspace, and must never be
+    treated as a host directory to bind-mount — even if the host happens to
+    have a real directory by the same name.
+    """
+    if path.startswith(_SANDBOX_PATH_PREFIXES):
+        return True
+    return path == mount_path or path.startswith(mount_path + "/")
 
 
 def _is_host_path(cwd: str) -> bool:
@@ -1415,12 +1491,14 @@ def _is_host_path(cwd: str) -> bool:
 def resolve_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
     """Split *raw_cwd* into ``(host mount source, in-container workdir)``.
 
-    Returns ``(host_path, "/workspace")`` when *raw_cwd* is a host directory to
-    bind-mount into the sandbox, or ``(None, None)`` when no mount applies —
+    Returns ``(host_path, <mount target>)`` when *raw_cwd* is a host directory
+    to bind-mount into the sandbox, or ``(None, None)`` when no mount applies —
     either because it already points inside a sandbox or because it is not a
-    directory on this host. Backend-agnostic: Docker turns the result into a
-    ``-v`` flag, Singularity into ``--bind`` (see ``_MOUNT_CWD_ENV_VARS`` for
-    which backends can mount at all).
+    directory on this host. The mount target defaults to ``/workspace`` and
+    follows the active backend's ``*_workspace_mount_path`` setting.
+    Backend-agnostic: Docker turns the result into a ``-v`` flag, Singularity
+    into ``--bind`` (see ``_MOUNT_CWD_ENV_VARS`` for which backends can mount
+    at all).
 
     Shared by the startup resolution in :func:`_get_env_config` and the
     per-session resolution in the terminal command path, so the two can never
@@ -1429,27 +1507,28 @@ def resolve_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]
     if not isinstance(raw_cwd, str) or not raw_cwd.strip():
         return None, None
     raw = raw_cwd.strip()
+    mount_path = _workspace_mount_path()
     # Rule out sandbox paths on the RAW spelling, before any abspath(): on a
     # Windows host ``os.path.abspath("/workspace")`` yields ``C:\workspace``,
     # which then looks exactly like a host path and would get bind-mounted over
     # the container's own workspace. For the same reason, a POSIX-rooted path on
     # a Windows host is a container path by construction — Windows host
     # directories are drive-qualified or UNC.
-    if raw.startswith(_SANDBOX_PATH_PREFIXES):
+    if _is_sandbox_path(raw, mount_path):
         return None, None
     if os.name == "nt" and raw.startswith("/"):
         return None, None
     candidate = os.path.abspath(os.path.expanduser(raw))
-    if candidate.startswith(_SANDBOX_PATH_PREFIXES):
+    if _is_sandbox_path(candidate, mount_path):
         return None, None
     if _is_host_path(candidate):
-        return candidate, _WORKSPACE_MOUNT_PATH
+        return candidate, mount_path
     # A POSIX-absolute path outside the known host roots only counts as a host
     # directory when it actually exists here: RL/benchmark overrides
     # legitimately pass image-internal paths like /app that exist only inside
     # the container, and those must reach ``docker run -w`` unchanged.
     if os.path.isabs(candidate) and os.path.isdir(candidate):
-        return candidate, _WORKSPACE_MOUNT_PATH
+        return candidate, mount_path
     return None, None
 
 
@@ -1623,8 +1702,9 @@ def _get_env_config() -> Dict[str, Any]:
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
         "singularity_mount_cwd_to_workspace": mount_singularity_cwd,
-        # Already resolved for the ACTIVE backend — consumers don't re-derive it.
+        # Already resolved for the ACTIVE backend — consumers don't re-derive them.
         "workspace_per_session": workspace_per_session,
+        "workspace_mount_path": _workspace_mount_path(env_type),
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),
         "lifetime_seconds": _parse_env_var("TERMINAL_LIFETIME_SECONDS", "300"),
         # SSH-specific config
@@ -1730,6 +1810,7 @@ def _create_environment(env_type: str, image: str, cwd: str, timeout: int,
             volumes=volumes,
             host_cwd=host_cwd,
             auto_mount_cwd=cc.get("docker_mount_cwd_to_workspace", False),
+            workspace_mount_path=cc.get("workspace_mount_path", "/workspace"),
             forward_env=docker_forward_env,
             env=docker_env,
             run_as_host_user=cc.get("docker_run_as_host_user", False),
@@ -1745,6 +1826,7 @@ def _create_environment(env_type: str, image: str, cwd: str, timeout: int,
             persistent_filesystem=persistent, task_id=task_id,
             host_cwd=host_cwd,
             auto_mount_cwd=cc.get("singularity_mount_cwd_to_workspace", False),
+            workspace_mount_path=cc.get("workspace_mount_path", "/workspace"),
         )
     
     elif env_type == "modal":
@@ -2511,6 +2593,7 @@ def terminal_tool(
                                 "docker_volumes": config.get("docker_volumes", []),
                                 "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
                                 "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
+                                "workspace_mount_path": config.get("workspace_mount_path", "/workspace"),
                                 "docker_forward_env": config.get("docker_forward_env", []),
                                 "docker_env": config.get("docker_env", {}),
                                 "docker_run_as_host_user": config.get("docker_run_as_host_user", False),

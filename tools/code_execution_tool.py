@@ -780,6 +780,7 @@ def _get_or_create_env(task_id: str):
                 # execute_code wins the race to create the shared container.
                 "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
                 "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
+                "workspace_mount_path": config.get("workspace_mount_path", "/workspace"),
                 "docker_run_as_host_user": config.get("docker_run_as_host_user", False),
                 "docker_network": config.get("docker_network", True),
             }

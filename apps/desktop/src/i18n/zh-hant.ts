@@ -412,9 +412,11 @@ export const zhHant = defineLocale({
         dockerImage: 'Docker 映像',
         dockerMountCwdToWorkspace: '將專案目錄掛載進 Docker',
         dockerWorkspacePerSession: '跟隨各工作階段選擇的專案',
+        dockerWorkspaceMountPath: 'Docker 掛載路徑',
         singularityImage: 'Singularity 映像',
         singularityMountCwdToWorkspace: '將專案目錄掛載進 Singularity',
         singularityWorkspacePerSession: '跟隨各工作階段選擇的專案（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity 掛載路徑',
         modalImage: 'Modal 映像',
         daytonaImage: 'Daytona 映像'
       },

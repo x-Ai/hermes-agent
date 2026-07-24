@@ -423,9 +423,11 @@ export const ja = defineLocale({
         dockerImage: 'Docker イメージ',
         dockerMountCwdToWorkspace: 'プロジェクトを Docker にマウント',
         dockerWorkspacePerSession: 'セッションごとのプロジェクトに追従',
+        dockerWorkspaceMountPath: 'Docker マウントパス',
         singularityImage: 'Singularity イメージ',
         singularityMountCwdToWorkspace: 'プロジェクトを Singularity にマウント',
         singularityWorkspacePerSession: 'セッションごとのプロジェクトに追従（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity マウントパス',
         modalImage: 'Modal イメージ',
         daytonaImage: 'Daytona イメージ'
       },

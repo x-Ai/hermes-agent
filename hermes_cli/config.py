@@ -1223,6 +1223,14 @@ DEFAULT_CONFIG = {
         # sync uploaded copies via the file-sync mechanism instead.)
         "singularity_mount_cwd_to_workspace": False,
         "singularity_workspace_per_session": False,
+        # In-container path where the mounted project (and the sandbox's own
+        # workspace) lives. Full absolute POSIX path, e.g. /root/workspace or
+        # /mnt/project. Independent per backend, like the switches above.
+        # Changing it takes effect on the NEXT sandbox: a mount is fixed at
+        # creation, so the new target simply becomes part of the sandbox's
+        # identity and the old sandbox ages out via the idle/orphan reapers.
+        "docker_workspace_mount_path": "/workspace",
+        "singularity_workspace_mount_path": "/workspace",
         # Opt-in egress lockdown for Docker terminal sessions. When false,
         # Docker runs with --network=none so commands cannot reach the network.
         "docker_network": True,
@@ -7422,6 +7430,8 @@ TERMINAL_CONFIG_ENV_MAP = {
     "docker_workspace_per_session": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
     "singularity_mount_cwd_to_workspace": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
     "singularity_workspace_per_session": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
+    "docker_workspace_mount_path": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
+    "singularity_workspace_mount_path": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
     "docker_network": "TERMINAL_DOCKER_NETWORK",
     "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
     "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",

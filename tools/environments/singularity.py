@@ -175,6 +175,7 @@ class SingularityEnvironment(BaseEnvironment):
         task_id: str = "default",
         host_cwd: str = None,
         auto_mount_cwd: bool = False,
+        workspace_mount_path: str = "/workspace",
     ):
         super().__init__(cwd=cwd, timeout=timeout)
         self.executable = _ensure_singularity_available()
@@ -188,10 +189,13 @@ class SingularityEnvironment(BaseEnvironment):
         self._memory = memory
 
         # Opt-in host workspace mount (singularity_mount_cwd_to_workspace):
-        # bind the host project directory to /workspace, mirroring the Docker
-        # backend's -v semantics. The existence check is the same final defense
-        # DockerEnvironment applies — the resolver upstream may hand us a host
-        # path it did not (or could not) verify.
+        # bind the host project directory to the workspace mount path,
+        # mirroring the Docker backend's -v semantics. The existence check is
+        # the same final defense DockerEnvironment applies — the resolver
+        # upstream may hand us a host path it did not (or could not) verify.
+        self._workspace_mount_path = (
+            (workspace_mount_path or "/workspace").rstrip("/") or "/workspace"
+        )
         host_cwd_abs = os.path.abspath(os.path.expanduser(host_cwd)) if host_cwd else ""
         self._host_workspace: Optional[str] = None
         if auto_mount_cwd and host_cwd_abs:
@@ -224,12 +228,12 @@ class SingularityEnvironment(BaseEnvironment):
         if self._host_workspace:
             # Read-write on purpose: the entire point of the opt-in is letting
             # the agent work on the live project tree, exactly like Docker's
-            # auto-mounted /workspace. Bind mounts stack above the overlay /
+            # auto-mounted workspace. Bind mounts stack above the overlay /
             # tmpfs, so the rest of the filesystem stays sandbox-owned.
-            cmd.extend(["--bind", f"{self._host_workspace}:/workspace"])
+            cmd.extend(["--bind", f"{self._host_workspace}:{self._workspace_mount_path}"])
             logger.info(
-                "Singularity: mounting host workspace %s -> /workspace",
-                self._host_workspace,
+                "Singularity: mounting host workspace %s -> %s",
+                self._host_workspace, self._workspace_mount_path,
             )
 
         try:

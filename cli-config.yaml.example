@@ -238,6 +238,7 @@ terminal:
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
   docker_workspace_per_session: false   # Mount the project dir each session picked (Desktop folder picker) instead of the launch cwd. Needs the flag above; one container per project.
+  docker_workspace_mount_path: "/workspace"  # Full in-container mount target. Changing it applies to the NEXT container.
   lifetime_seconds: 300
   # sudo_password: "hunter2"  # Optional: pipe a sudo password via sudo -S. SECURITY WARNING: plaintext.
   # sudo_password: ""         # Explicit empty password: try empty and never open the interactive sudo prompt.
@@ -308,6 +309,7 @@ terminal:
 #   # from inside the sandbox.
 #   singularity_mount_cwd_to_workspace: true   # mount the launch cwd into /workspace
 #   singularity_workspace_per_session: true    # follow each session's project dir; one instance per project
+#   singularity_workspace_mount_path: "/workspace"  # full in-container bind target; applies to the NEXT instance
 #   # (Modal/Daytona have no mount option: they run on remote cloud machines
 #   # and sync uploaded copies of skills/credentials instead.)
 

@@ -303,6 +303,8 @@ Every key under `terminal:` has an env-var override of the form `TERMINAL_<KEY_U
 | `TERMINAL_DOCKER_WORKSPACE_PER_SESSION` | `docker_workspace_per_session` | `true` / `false` — needs `..._MOUNT_CWD_TO_WORKSPACE=true` |
 | `TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE` | `singularity_mount_cwd_to_workspace` | `true` / `false` — Singularity twin (`--bind`) |
 | `TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION` | `singularity_workspace_per_session` | `true` / `false` — needs the Singularity mount flag |
+| `TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH` | `docker_workspace_mount_path` | Full in-container mount target — default `/workspace` |
+| `TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH` | `singularity_workspace_mount_path` | Full in-container mount target — default `/workspace` |
 | `TERMINAL_DOCKER_RUN_AS_HOST_USER` | `docker_run_as_host_user` | `true` / `false` |
 | `TERMINAL_DOCKER_NETWORK` | `docker_network` | `true` / `false` — default `true`; `false` = `--network=none` |
 | `TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES` | `docker_persist_across_processes` | `true` / `false` — default `true` |
@@ -559,6 +561,20 @@ terminal:
 ```
 
 Everything above applies unchanged: both flags required, one instance per project directory, host-writable mount, and dangerous-command approvals lose the sandbox fast-path while a host directory is mounted.
+
+#### Changing where the project lands inside the sandbox
+
+The in-container mount target defaults to `/workspace` and is configurable per backend as a full absolute path:
+
+```yaml
+terminal:
+  docker_workspace_mount_path: "/root/workspace"       # default: /workspace
+  singularity_workspace_mount_path: "/mnt/project"     # default: /workspace
+```
+
+The value is normalized (`/root//workspace/` → `/root/workspace`); relative paths, `/`, and sandbox-internal mount points (`/root`, `/home`, `/tmp`, `/var/tmp`, `/run` — nested paths under them are fine) fall back to the default with a warning.
+
+There is no hot-remount: a mount is fixed when the sandbox is created. Instead, the target is part of the sandbox's identity — after you change it, the next tool call gets a fresh sandbox mounted at the new path (and the working directory, backend probe, and file tools all follow automatically), while the old sandbox ages out through the normal idle/orphan reapers. Change it back and the original sandbox is reused if it still exists.
 
 **Modal and Daytona have no mount option, by design.** Their sandboxes run on remote cloud machines where your local filesystem does not exist — nothing can be bind-mounted. They sync uploaded *copies* of skills and credential files instead (see the file-sync mechanism), which is a different capability with different trade-offs, not a missing switch.
 

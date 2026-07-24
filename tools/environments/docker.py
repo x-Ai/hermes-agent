@@ -593,6 +593,7 @@ class DockerEnvironment(BaseEnvironment):
         network: bool = True,
         host_cwd: str = None,
         auto_mount_cwd: bool = False,
+        workspace_mount_path: str = "/workspace",
         run_as_host_user: bool = False,
         extra_args: list = None,
         persist_across_processes: bool = True,
@@ -647,6 +648,12 @@ class DockerEnvironment(BaseEnvironment):
         # mode uses tmpfs (ephemeral, fast, gone on cleanup).
         from tools.environments.base import get_sandbox_dir
 
+        # In-container path where the workspace (host bind, persistent dir, or
+        # tmpfs) lives. Defaults to /workspace; configurable via
+        # terminal.docker_workspace_mount_path.
+        workspace_mount_path = (workspace_mount_path or "/workspace").rstrip("/") or "/workspace"
+        self._workspace_mount_path = workspace_mount_path
+
         # User-configured volume mounts (from config.yaml docker_volumes)
         volume_args = []
         workspace_explicitly_mounted = False
@@ -659,7 +666,7 @@ class DockerEnvironment(BaseEnvironment):
                 continue
             if ":" in vol:
                 volume_args.extend(["-v", vol])
-                if ":/workspace" in vol:
+                if f":{workspace_mount_path}" in vol:
                     workspace_explicitly_mounted = True
             else:
                 logger.warning(f"Docker volume '{vol}' missing colon, skipping")
@@ -688,12 +695,12 @@ class DockerEnvironment(BaseEnvironment):
                 self._workspace_dir = str(sandbox / "workspace")
                 os.makedirs(self._workspace_dir, exist_ok=True)
                 writable_args.extend([
-                    "-v", f"{self._workspace_dir}:/workspace",
+                    "-v", f"{self._workspace_dir}:{workspace_mount_path}",
                 ])
         else:
             if not bind_host_cwd and not workspace_explicitly_mounted:
                 writable_args.extend([
-                    "--tmpfs", "/workspace:rw,exec,size=10g",
+                    "--tmpfs", f"{workspace_mount_path}:rw,exec,size=10g",
                 ])
             writable_args.extend([
                 "--tmpfs", "/home:rw,exec,size=1g",
@@ -701,10 +708,16 @@ class DockerEnvironment(BaseEnvironment):
             ])
 
         if bind_host_cwd:
-            logger.info(f"Mounting configured host cwd to /workspace: {host_cwd_abs}")
-            volume_args = ["-v", f"{host_cwd_abs}:/workspace", *volume_args]
+            logger.info(
+                "Mounting configured host cwd to %s: %s",
+                workspace_mount_path, host_cwd_abs,
+            )
+            volume_args = ["-v", f"{host_cwd_abs}:{workspace_mount_path}", *volume_args]
         elif workspace_explicitly_mounted:
-            logger.debug("Skipping docker cwd mount: /workspace already mounted by user config")
+            logger.debug(
+                "Skipping docker cwd mount: %s already mounted by user config",
+                workspace_mount_path,
+            )
 
         # Mount credential files (OAuth tokens, etc.) declared by skills.
         # Read-only so the container can authenticate but not modify host creds.

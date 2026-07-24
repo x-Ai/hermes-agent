@@ -536,9 +536,11 @@ export const zh: Translations = {
         dockerImage: 'Docker 镜像',
         dockerMountCwdToWorkspace: '将项目目录挂载进 Docker',
         dockerWorkspacePerSession: '跟随各会话选择的项目',
+        dockerWorkspaceMountPath: 'Docker 挂载路径',
         singularityImage: 'Singularity 镜像',
         singularityMountCwdToWorkspace: '将项目目录挂载进 Singularity',
         singularityWorkspacePerSession: '跟随各会话选择的项目（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity 挂载路径',
         modalImage: 'Modal 镜像',
         daytonaImage: 'Daytona 镜像'
       },
@@ -702,9 +704,11 @@ export const zh: Translations = {
         dockerImage: '执行后端为 Docker 时使用的容器镜像。',
         dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace。关闭时沙箱完全隔离。',
         dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的容器。',
+        dockerWorkspaceMountPath: '项目在容器内的完整挂载路径，默认 /workspace。修改后对下一个容器生效。',
         singularityImage: '执行后端为 Singularity 时使用的镜像。',
         singularityMountCwdToWorkspace: '把项目目录绑定挂载到 Singularity 沙箱的 /workspace。关闭时沙箱完全隔离。',
         singularityWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的实例。',
+        singularityWorkspaceMountPath: '项目在沙箱内的完整绑定路径，默认 /workspace。修改后对下一个实例生效。',
         modalImage: '执行后端为 Modal 时使用的镜像。运行在云端：项目目录以副本方式同步，无法挂载。',
         daytonaImage: '执行后端为 Daytona 时使用的镜像。运行在云端：项目目录以副本方式同步，无法挂载。'
       },

@@ -450,7 +450,173 @@ class TestConfigPlumbing:
 
 
 # ---------------------------------------------------------------------------
-# 5. Singularity --bind translation
+# 5. Configurable mount target (workspace_mount_path)
+# ---------------------------------------------------------------------------
+
+class TestWorkspaceMountPath:
+    def test_default_when_unset(self, monkeypatch):
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.delenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", raising=False)
+        assert tt._workspace_mount_path() == "/workspace"
+
+    def test_normalizes_slashes(self, monkeypatch):
+        # The doubled-slash spelling from the feature request must collapse to
+        # one canonical target, or the same config would hash to two containers.
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root//workspace/")
+        assert tt._workspace_mount_path() == "/root/workspace"
+
+    @pytest.mark.parametrize("bad", ["relative/path", "/", "workspace", "C:\\ws"])
+    def test_invalid_values_fall_back(self, monkeypatch, bad):
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", bad)
+        assert tt._workspace_mount_path() == "/workspace"
+
+    @pytest.mark.parametrize("reserved", ["/root", "/home", "/tmp", "/var/tmp", "/run"])
+    def test_sandbox_internal_mount_points_fall_back(self, monkeypatch, reserved):
+        # Binding the project exactly over a sandbox-owned mount point either
+        # collides (duplicate mount target) or hides the sandbox's state.
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", reserved)
+        assert tt._workspace_mount_path() == "/workspace"
+
+    def test_nested_path_under_reserved_root_is_allowed(self, monkeypatch):
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root/workspace")
+        assert tt._workspace_mount_path() == "/root/workspace"
+
+    def test_backends_read_independent_variables(self, monkeypatch):
+        monkeypatch.setenv("TERMINAL_ENV", "singularity")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root/ws")
+        monkeypatch.delenv("TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH", raising=False)
+        assert tt._workspace_mount_path() == "/workspace"
+        monkeypatch.setenv("TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH", "/mnt/project")
+        assert tt._workspace_mount_path() == "/mnt/project"
+
+    def test_resolver_uses_the_custom_target(self, projects, monkeypatch):
+        proj, _ = projects
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root/workspace")
+        assert tt.resolve_workspace_mount(str(proj)) == (str(proj), "/root/workspace")
+
+    def test_custom_target_is_a_sandbox_path_not_a_host_dir(self, monkeypatch):
+        """With a custom target configured, that path (and anything under it)
+        refers to the in-container workspace — it must never be re-mounted as
+        a host directory, even if the host has a real directory by that name."""
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root/workspace")
+        assert tt.resolve_workspace_mount("/root/workspace") == (None, None)
+        assert tt.resolve_workspace_mount("/root/workspace/sub") == (None, None)
+        # The default target stays a sandbox path too.
+        assert tt.resolve_workspace_mount("/workspace") == (None, None)
+
+    def test_mount_target_is_part_of_container_identity(self, projects, per_session_on, monkeypatch):
+        """No hot-remount exists, so a target change must produce a new
+        container key; reverting must land back on the original one."""
+        proj, _ = projects
+        backend = per_session_on
+        path_var = tt._WORKSPACE_MOUNT_PATH_ENV_VARS[backend]
+        tt.register_task_env_overrides("sess-a", {"cwd": str(proj)})
+        key_default = tt._resolve_container_task_id("sess-a")
+        monkeypatch.setenv(path_var, "/root/workspace")
+        key_custom = tt._resolve_container_task_id("sess-a")
+        assert key_default != key_custom
+        monkeypatch.delenv(path_var, raising=False)
+        assert tt._resolve_container_task_id("sess-a") == key_default
+
+    def test_env_config_carries_the_resolved_target(self, projects, monkeypatch):
+        proj, _ = projects
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH", "/root/workspace")
+        monkeypatch.setenv("TERMINAL_CWD", str(proj))
+        config = tt._get_env_config()
+        assert config["workspace_mount_path"] == "/root/workspace"
+        assert config["cwd"] == "/root/workspace"
+        assert config["host_cwd"] == str(proj)
+
+    def test_config_defaults(self):
+        from hermes_cli.config import DEFAULT_CONFIG
+
+        terminal = DEFAULT_CONFIG["terminal"]
+        assert terminal["docker_workspace_mount_path"] == "/workspace"
+        assert terminal["singularity_workspace_mount_path"] == "/workspace"
+
+
+class TestDockerCustomMountTarget:
+    """DockerEnvironment must place every workspace flavor at the configured
+    target: host bind, explicit-volume detection, and the tmpfs fallback."""
+
+    @pytest.fixture
+    def docker_calls(self, monkeypatch):
+        import subprocess as _sp
+
+        from tools.environments import docker as docker_env
+
+        docker_env._cgroup_limits_ok = True
+        monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+        calls = []
+
+        def _run(cmd, **kwargs):
+            calls.append(list(cmd) if isinstance(cmd, list) else cmd)
+            if isinstance(cmd, list) and len(cmd) >= 2:
+                if cmd[1] == "version":
+                    return _sp.CompletedProcess(cmd, 0, stdout="Docker version", stderr="")
+                if cmd[1] == "run":
+                    return _sp.CompletedProcess(cmd, 0, stdout="fake-container-id\n", stderr="")
+            return _sp.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        monkeypatch.setattr(docker_env.subprocess, "run", _run)
+        monkeypatch.setattr(docker_env.DockerEnvironment, "init_session", lambda self: None)
+        return docker_env, calls
+
+    @staticmethod
+    def _run_cmd(calls):
+        runs = [c for c in calls if isinstance(c, list) and len(c) >= 2 and c[1] == "run"]
+        assert runs, f"no docker run captured; calls={calls}"
+        return " ".join(runs[0])
+
+    def test_host_bind_lands_on_custom_target(self, docker_calls, tmp_path):
+        docker_env, calls = docker_calls
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        docker_env.DockerEnvironment(
+            image="python:3.11", cwd="/root/workspace",
+            host_cwd=str(proj), auto_mount_cwd=True,
+            workspace_mount_path="/root/workspace",
+            persist_across_processes=False,
+        )
+        assert f"{proj}:/root/workspace" in self._run_cmd(calls)
+
+    def test_tmpfs_workspace_follows_target(self, docker_calls):
+        docker_env, calls = docker_calls
+        docker_env.DockerEnvironment(
+            image="python:3.11", cwd="/root",
+            workspace_mount_path="/root/workspace",
+            persist_across_processes=False,
+        )
+        assert "/root/workspace:rw,exec,size=10g" in self._run_cmd(calls)
+
+    def test_explicit_volume_on_target_suppresses_auto_mount(self, docker_calls, tmp_path):
+        docker_env, calls = docker_calls
+        proj = tmp_path / "proj"
+        other = tmp_path / "other"
+        proj.mkdir()
+        other.mkdir()
+        docker_env.DockerEnvironment(
+            image="python:3.11", cwd="/root/workspace",
+            host_cwd=str(proj), auto_mount_cwd=True,
+            workspace_mount_path="/root/workspace",
+            volumes=[f"{other}:/root/workspace"],
+            persist_across_processes=False,
+        )
+        run_cmd = self._run_cmd(calls)
+        assert f"{other}:/root/workspace" in run_cmd
+        assert f"{proj}:/root/workspace" not in run_cmd
+
+
+# ---------------------------------------------------------------------------
+# 6. Singularity --bind translation
 # ---------------------------------------------------------------------------
 
 class TestSingularityBindMount:
@@ -513,3 +679,14 @@ class TestSingularityBindMount:
             host_cwd=str(ghost), auto_mount_cwd=True,
         )
         assert f"{ghost}:/workspace" not in " ".join(self._instance_start_cmd(calls))
+
+    def test_custom_mount_target_reaches_the_bind_flag(self, sg, tmp_path):
+        sg_mod, calls = sg
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        sg_mod.SingularityEnvironment(
+            image="docker://python:3.11", cwd="/mnt/project",
+            host_cwd=str(proj), auto_mount_cwd=True,
+            workspace_mount_path="/mnt/project",
+        )
+        assert f"{proj}:/mnt/project" in " ".join(self._instance_start_cmd(calls))
