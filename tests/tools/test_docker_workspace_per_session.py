@@ -1,21 +1,26 @@
-"""Per-session Docker workspace mounting (``terminal.docker_workspace_per_session``).
+"""Per-session workspace mounting (``terminal.docker_workspace_per_session`` /
+``terminal.singularity_workspace_per_session``).
 
-Three behaviours are pinned here, all of them contracts rather than snapshots:
+Behaviours pinned here, all of them contracts rather than snapshots:
 
-1. ``resolve_docker_workspace_mount`` splits a path into (mount source,
-   container workdir), and never mistakes a sandbox path for a host one.
+1. ``resolve_workspace_mount`` splits a path into (mount source, container
+   workdir), and never mistakes a sandbox path for a host one.
    The Windows case is load-bearing: ``os.path.abspath("/workspace")`` yields
    ``C:\\workspace`` on a Windows host, so deciding after abspath() would
    bind-mount over the container's own workspace.
 2. Container identity follows the workspace directory when the opt-in is on and
    collapses back to the shared ``"default"`` container when it is off. A
-   container's ``/workspace`` bind mount is fixed at ``docker run`` time, so two
-   sessions on different projects cannot share one container — but that is only
-   true under the opt-in, and the default must not start multiplying containers.
-3. The dangerous-command approval gate (``_docker_has_host_access``) tracks the
-   mount that was *actually* resolved for this call, not the startup snapshot.
-   A stale answer here hands the agent host write access under sandbox-grade
-   approval rules.
+   sandbox's ``/workspace`` bind mount is fixed at creation time, so two
+   sessions on different projects cannot share one sandbox — but that is only
+   true under the opt-in, and the default must not start multiplying sandboxes.
+3. Docker and Singularity gate independently: each backend has its own pair of
+   opt-ins, and enabling one backend's pair must not light up the other.
+   Modal/Daytona can never enable this — their sandboxes are remote machines
+   where the host filesystem cannot be mounted at all.
+4. The dangerous-command approval gate (``_sandbox_has_host_access``) tracks
+   the mount that was *actually* resolved for this call, not the startup
+   snapshot. A stale answer here hands the agent host write access under
+   sandbox-grade approval rules.
 """
 
 import os
@@ -43,12 +48,30 @@ def projects(tmp_path):
     return a, b
 
 
-@pytest.fixture
-def per_session_on(monkeypatch):
-    """Docker backend with both mount opt-ins enabled."""
-    monkeypatch.setenv("TERMINAL_ENV", "docker")
-    monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-    monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "true")
+# The two mount-capable backends and their independent opt-in pairs. Keyed the
+# same way as terminal_tool's own tables so a new backend added there without
+# test coverage shows up as a missing entry here.
+_BACKEND_FLAGS = {
+    "docker": (
+        "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+        "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
+    ),
+    "singularity": (
+        "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
+        "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
+    ),
+}
+
+
+@pytest.fixture(params=sorted(_BACKEND_FLAGS))
+def per_session_on(request, monkeypatch):
+    """Each mount-capable backend with both of its opt-ins enabled."""
+    backend = request.param
+    mount_var, per_session_var = _BACKEND_FLAGS[backend]
+    monkeypatch.setenv("TERMINAL_ENV", backend)
+    monkeypatch.setenv(mount_var, "true")
+    monkeypatch.setenv(per_session_var, "true")
+    return backend
 
 
 @pytest.fixture(autouse=True)
@@ -63,10 +86,10 @@ def _clean_overrides():
 # 1. Mount resolution
 # ---------------------------------------------------------------------------
 
-class TestResolveDockerWorkspaceMount:
+class TestResolveWorkspaceMount:
     def test_real_host_dir_becomes_a_mount_into_workspace(self, projects):
         proj, _ = projects
-        assert tt.resolve_docker_workspace_mount(str(proj)) == (
+        assert tt.resolve_workspace_mount(str(proj)) == (
             str(proj), "/workspace",
         )
 
@@ -74,13 +97,13 @@ class TestResolveDockerWorkspaceMount:
         # These live inside the container. Mounting a host directory over them
         # would clobber the sandbox's own workspace/home.
         for sandbox_path in ("/workspace", "/workspace/sub", "/root", "/root/x"):
-            assert tt.resolve_docker_workspace_mount(sandbox_path) == (None, None), (
+            assert tt.resolve_workspace_mount(sandbox_path) == (None, None), (
                 f"{sandbox_path!r} is a container path and must not be mounted"
             )
 
     def test_blank_input_resolves_to_no_mount(self):
         for blank in ("", "   ", None, 123):
-            assert tt.resolve_docker_workspace_mount(blank) == (None, None)
+            assert tt.resolve_workspace_mount(blank) == (None, None)
 
     def test_equivalent_spellings_resolve_to_one_mount_source(self, projects):
         proj, _ = projects
@@ -89,7 +112,7 @@ class TestResolveDockerWorkspaceMount:
             str(proj) + os.sep,
             str(proj / "sub" / ".."),
         ]
-        resolved = {tt.resolve_docker_workspace_mount(s)[0] for s in spellings}
+        resolved = {tt.resolve_workspace_mount(s)[0] for s in spellings}
         assert len(resolved) == 1, (
             f"one directory produced {len(resolved)} mount sources: {resolved}"
         )
@@ -99,7 +122,7 @@ class TestResolveDockerWorkspaceMount:
         # os.path.abspath('/workspace') == 'C:\\workspace' here, which matches
         # the C: host-path prefix. Deciding after abspath() would mount it.
         for posix_path in ("/workspace", "/root", "/home/user/proj", "/Users/me/proj"):
-            assert tt.resolve_docker_workspace_mount(posix_path) == (None, None), (
+            assert tt.resolve_workspace_mount(posix_path) == (None, None), (
                 f"{posix_path!r} is not a Windows host directory"
             )
 
@@ -109,7 +132,7 @@ class TestResolveDockerWorkspaceMount:
         # mount source even when it does not exist on this machine, because
         # DockerEnvironment does the final existence check.
         for host_path in ("/Users/someone/proj", "/home/someone/proj"):
-            source, workdir = tt.resolve_docker_workspace_mount(host_path)
+            source, workdir = tt.resolve_workspace_mount(host_path)
             assert (source, workdir) == (host_path, "/workspace")
 
 
@@ -184,36 +207,54 @@ class TestContainerIdentityFollowsWorkspace:
         tt.register_task_env_overrides("sess-c", {"cwd": str(a) + os.sep})
         assert tt._resolve_container_task_id("sess-a") == tt._resolve_container_task_id("sess-c")
 
-    def test_opt_in_off_collapses_every_session_to_default(self, projects, monkeypatch):
+    @pytest.mark.parametrize("backend", sorted(_BACKEND_FLAGS))
+    def test_opt_in_off_collapses_every_session_to_default(self, projects, monkeypatch, backend):
         """The pre-existing contract: a cwd-only override is not an isolation
         signal, so all sessions share the parent's long-lived container."""
         a, b = projects
-        monkeypatch.setenv("TERMINAL_ENV", "docker")
-        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "false")
+        mount_var, per_session_var = _BACKEND_FLAGS[backend]
+        monkeypatch.setenv("TERMINAL_ENV", backend)
+        monkeypatch.setenv(mount_var, "true")
+        monkeypatch.setenv(per_session_var, "false")
         tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
         tt.register_task_env_overrides("sess-b", {"cwd": str(b)})
         assert tt._resolve_container_task_id("sess-a") == "default"
         assert tt._resolve_container_task_id("sess-b") == "default"
 
-    def test_mount_opt_in_alone_is_not_enough(self, projects, monkeypatch):
+    @pytest.mark.parametrize("backend", sorted(_BACKEND_FLAGS))
+    def test_mount_opt_in_alone_is_not_enough(self, projects, monkeypatch, backend):
         """per_session without mount_cwd would key containers off a directory
         that never gets mounted — gate on both."""
         a, _ = projects
-        monkeypatch.setenv("TERMINAL_ENV", "docker")
-        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
-        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "true")
+        mount_var, per_session_var = _BACKEND_FLAGS[backend]
+        monkeypatch.setenv("TERMINAL_ENV", backend)
+        monkeypatch.setenv(mount_var, "false")
+        monkeypatch.setenv(per_session_var, "true")
         tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
         assert tt._resolve_container_task_id("sess-a") == "default"
 
-    @pytest.mark.parametrize("backend", ["local", "ssh", "modal", "daytona", "singularity"])
-    def test_non_docker_backends_never_key_off_workspace(self, projects, monkeypatch, backend):
-        """Only Docker bind-mounts a host cwd. Other backends' cwds live inside
-        the remote/managed environment, so they must not fan out containers."""
+    @pytest.mark.parametrize("backend", ["local", "ssh", "modal", "daytona"])
+    def test_mount_incapable_backends_never_key_off_workspace(self, projects, monkeypatch, backend):
+        """Only Docker and Singularity can bind-mount a host cwd. The other
+        backends' cwds live inside the remote/managed environment, so they must
+        not fan out sandboxes — even with every mount flag turned on."""
         a, _ = projects
         monkeypatch.setenv("TERMINAL_ENV", backend)
-        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "true")
+        for mount_var, per_session_var in _BACKEND_FLAGS.values():
+            monkeypatch.setenv(mount_var, "true")
+            monkeypatch.setenv(per_session_var, "true")
+        tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
+        assert tt._resolve_container_task_id("sess-a") == "default"
+
+    @pytest.mark.parametrize("active,other", [("docker", "singularity"), ("singularity", "docker")])
+    def test_backends_gate_independently(self, projects, monkeypatch, active, other):
+        """Deliberately separate switches: enabling one backend's pair must not
+        light up the other backend."""
+        a, _ = projects
+        other_mount, other_per_session = _BACKEND_FLAGS[other]
+        monkeypatch.setenv("TERMINAL_ENV", active)
+        monkeypatch.setenv(other_mount, "true")
+        monkeypatch.setenv(other_per_session, "true")
         tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
         assert tt._resolve_container_task_id("sess-a") == "default"
 
@@ -272,6 +313,47 @@ class TestHostAccessGateFollowsActualMount:
         assert tt._docker_has_host_access(cfg, None) is True
 
 
+class TestSandboxHostAccessDispatch:
+    """``_sandbox_has_host_access`` — the backend-dispatching approval gate."""
+
+    def test_docker_agrees_with_the_docker_specific_check(self):
+        cfg = {
+            "env_type": "docker",
+            "docker_volumes": ["/tmp:/x"],
+            "host_cwd": None,
+            "docker_mount_cwd_to_workspace": False,
+        }
+        assert tt._sandbox_has_host_access(cfg) is tt._docker_has_host_access(cfg)
+
+    def test_singularity_runtime_mount_reports_host_access(self):
+        cfg = {"env_type": "singularity", "singularity_mount_cwd_to_workspace": True,
+               "host_cwd": None}
+        assert tt._sandbox_has_host_access(cfg, "/host/projA") is True
+
+    def test_singularity_snapshot_mount_reports_host_access(self):
+        cfg = {"env_type": "singularity", "singularity_mount_cwd_to_workspace": True,
+               "host_cwd": "/host/launch-dir"}
+        assert tt._sandbox_has_host_access(cfg) is True
+
+    def test_singularity_without_mount_keeps_sandbox_posture(self):
+        cfg = {"env_type": "singularity", "singularity_mount_cwd_to_workspace": True,
+               "host_cwd": None}
+        assert tt._sandbox_has_host_access(cfg, None) is False
+
+    def test_singularity_flag_off_means_no_host_access(self):
+        cfg = {"env_type": "singularity", "singularity_mount_cwd_to_workspace": False,
+               "host_cwd": None}
+        assert tt._sandbox_has_host_access(cfg, "/host/projA") is False
+
+    @pytest.mark.parametrize("backend", ["modal", "daytona", "local", "ssh"])
+    def test_mount_incapable_backends_never_report_host_access(self, backend):
+        """Remote sandboxes hold uploaded copies; nothing they write touches
+        this host. Reporting host access there would force pointless approvals."""
+        cfg = {"env_type": backend, "singularity_mount_cwd_to_workspace": True,
+               "docker_mount_cwd_to_workspace": True, "docker_volumes": ["/tmp:/x"]}
+        assert tt._sandbox_has_host_access(cfg, "/host/projA") is False
+
+
 # ---------------------------------------------------------------------------
 # 4. Config plumbing
 # ---------------------------------------------------------------------------
@@ -281,19 +363,19 @@ class TestConfigPlumbing:
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "true")
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
-        assert tt._get_env_config()["docker_workspace_per_session"] is False
+        assert tt._get_env_config()["workspace_per_session"] is False
 
     def test_both_opt_ins_enable_it(self, monkeypatch):
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "true")
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-        assert tt._get_env_config()["docker_workspace_per_session"] is True
+        assert tt._get_env_config()["workspace_per_session"] is True
 
     def test_defaults_to_off(self, monkeypatch):
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         monkeypatch.delenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", raising=False)
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-        assert tt._get_env_config()["docker_workspace_per_session"] is False
+        assert tt._get_env_config()["workspace_per_session"] is False
 
     def test_launch_cwd_still_resolves_to_a_mount(self, projects, monkeypatch):
         """The pre-existing launch-directory behaviour is unchanged."""
@@ -305,18 +387,51 @@ class TestConfigPlumbing:
         assert config["cwd"] == "/workspace"
         assert config["host_cwd"] == str(proj)
 
-    def test_config_default_is_off(self):
+    def test_singularity_pair_enables_it(self, monkeypatch):
+        monkeypatch.setenv("TERMINAL_ENV", "singularity")
+        monkeypatch.setenv("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "true")
+        monkeypatch.setenv("TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION", "true")
+        config = tt._get_env_config()
+        assert config["workspace_per_session"] is True
+        assert config["singularity_mount_cwd_to_workspace"] is True
+
+    def test_singularity_launch_cwd_resolves_to_a_mount(self, projects, monkeypatch):
+        """Launch-directory mounting works for Singularity exactly as for Docker."""
+        proj, _ = projects
+        monkeypatch.setenv("TERMINAL_ENV", "singularity")
+        monkeypatch.setenv("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "true")
+        monkeypatch.setenv("TERMINAL_CWD", str(proj))
+        config = tt._get_env_config()
+        assert config["cwd"] == "/workspace"
+        assert config["host_cwd"] == str(proj)
+
+    def test_singularity_mount_off_discards_host_path(self, projects, monkeypatch):
+        """Without the opt-in, a host TERMINAL_CWD is discarded for the sandbox
+        default — the pre-existing isolation posture."""
+        proj, _ = projects
+        monkeypatch.setenv("TERMINAL_ENV", "singularity")
+        monkeypatch.delenv("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", raising=False)
+        monkeypatch.setenv("TERMINAL_CWD", str(proj))
+        config = tt._get_env_config()
+        assert config["host_cwd"] is None
+        assert config["cwd"] == "/root"
+
+    def test_config_defaults_are_off(self):
         from hermes_cli.config import DEFAULT_CONFIG
 
-        assert DEFAULT_CONFIG["terminal"]["docker_workspace_per_session"] is False
+        terminal = DEFAULT_CONFIG["terminal"]
+        assert terminal["docker_workspace_per_session"] is False
+        assert terminal["singularity_mount_cwd_to_workspace"] is False
+        assert terminal["singularity_workspace_per_session"] is False
 
+    @pytest.mark.parametrize("backend", sorted(_BACKEND_FLAGS))
     @pytest.mark.parametrize("raw,enabled", [
         ("true", True), ("True", True), ("TRUE", True),
         ("1", True), ("yes", True), ("on", True),
         ("false", False), ("0", False), ("no", False), ("off", False), ("", False),
     ])
     def test_config_snapshot_and_container_identity_never_disagree(
-        self, monkeypatch, raw, enabled,
+        self, monkeypatch, backend, raw, enabled,
     ):
         """The two consumers of this opt-in must read the same value.
 
@@ -326,8 +441,75 @@ class TestConfigPlumbing:
         exactly that) produces one container per project with none of them
         holding the project.
         """
-        monkeypatch.setenv("TERMINAL_ENV", "docker")
-        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", raw)
-        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", raw)
-        assert tt._get_env_config()["docker_workspace_per_session"] is enabled
-        assert tt._docker_workspace_per_session_enabled() is enabled
+        mount_var, per_session_var = _BACKEND_FLAGS[backend]
+        monkeypatch.setenv("TERMINAL_ENV", backend)
+        monkeypatch.setenv(mount_var, raw)
+        monkeypatch.setenv(per_session_var, raw)
+        assert tt._get_env_config()["workspace_per_session"] is enabled
+        assert tt._workspace_per_session_enabled() is enabled
+
+
+# ---------------------------------------------------------------------------
+# 5. Singularity --bind translation
+# ---------------------------------------------------------------------------
+
+class TestSingularityBindMount:
+    """The resolved host workspace must become an ``--bind host:/workspace``
+    flag on ``instance start`` — and only under the opt-in."""
+
+    @pytest.fixture
+    def sg(self, monkeypatch):
+        from tools.environments import singularity as sg_mod
+
+        monkeypatch.setattr(sg_mod, "_ensure_singularity_available", lambda: "apptainer")
+        monkeypatch.setattr(sg_mod, "_get_or_build_sif", lambda image, executable: image)
+        # init_session shells into the (fake) instance; not under test here.
+        monkeypatch.setattr(sg_mod.SingularityEnvironment, "init_session", lambda self: None)
+
+        calls = []
+
+        def _run(cmd, **kwargs):
+            import subprocess as _sp
+            calls.append(list(cmd))
+            return _sp.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        monkeypatch.setattr(sg_mod.subprocess, "run", _run)
+        return sg_mod, calls
+
+    @staticmethod
+    def _instance_start_cmd(calls):
+        starts = [c for c in calls if len(c) >= 3 and c[1:3] == ["instance", "start"]]
+        assert starts, f"no instance start captured; calls={calls}"
+        return starts[0]
+
+    def test_opt_in_mounts_the_host_workspace(self, sg, tmp_path):
+        sg_mod, calls = sg
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        sg_mod.SingularityEnvironment(
+            image="docker://python:3.11", cwd="/workspace",
+            host_cwd=str(proj), auto_mount_cwd=True,
+        )
+        cmd = self._instance_start_cmd(calls)
+        joined = " ".join(cmd)
+        assert f"{proj}:/workspace" in joined
+        assert "--bind" in cmd
+
+    def test_without_opt_in_no_workspace_bind(self, sg, tmp_path):
+        sg_mod, calls = sg
+        proj = tmp_path / "proj"
+        proj.mkdir()
+        sg_mod.SingularityEnvironment(
+            image="docker://python:3.11", cwd="/root",
+            host_cwd=str(proj), auto_mount_cwd=False,
+        )
+        assert f"{proj}:/workspace" not in " ".join(self._instance_start_cmd(calls))
+
+    def test_missing_host_dir_is_not_mounted(self, sg, tmp_path):
+        sg_mod, calls = sg
+        ghost = tmp_path / "does-not-exist"
+        sg_mod.SingularityEnvironment(
+            image="docker://python:3.11", cwd="/workspace",
+            host_cwd=str(ghost), auto_mount_cwd=True,
+        )
+        assert f"{ghost}:/workspace" not in " ".join(self._instance_start_cmd(calls))

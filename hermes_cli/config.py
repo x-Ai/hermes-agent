@@ -1215,6 +1215,14 @@ DEFAULT_CONFIG = {
         # original one, packages and background processes intact. Default off:
         # it inherits the isolation trade-off above and multiplies containers.
         "docker_workspace_per_session": False,
+        # Singularity/Apptainer equivalents of the two Docker opt-ins above,
+        # implemented with --bind instead of -v. Independent switches on
+        # purpose — enabling the Docker pair does not affect Singularity.
+        # (Modal and Daytona have no such switch: their sandboxes run on remote
+        # cloud machines where the host filesystem cannot be mounted; they
+        # sync uploaded copies via the file-sync mechanism instead.)
+        "singularity_mount_cwd_to_workspace": False,
+        "singularity_workspace_per_session": False,
         # Opt-in egress lockdown for Docker terminal sessions. When false,
         # Docker runs with --network=none so commands cannot reach the network.
         "docker_network": True,
@@ -7412,6 +7420,8 @@ TERMINAL_CONFIG_ENV_MAP = {
     "docker_env": "TERMINAL_DOCKER_ENV",
     "docker_mount_cwd_to_workspace": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
     "docker_workspace_per_session": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
+    "singularity_mount_cwd_to_workspace": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
+    "singularity_workspace_per_session": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
     "docker_network": "TERMINAL_DOCKER_NETWORK",
     "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
     "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",

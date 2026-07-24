@@ -289,6 +289,27 @@ def _docker_has_host_access(config: Dict[str, Any],
     return any(_docker_volume_uses_host_path(vol) for vol in config.get("docker_volumes", []))
 
 
+def _sandbox_has_host_access(config: Dict[str, Any],
+                             host_cwd: Optional[str] = None) -> bool:
+    """Backend-dispatching form of the host-access check.
+
+    Singularity gets the same treatment as Docker: a ``--bind``-mounted host
+    workspace means the sandbox is no longer the security boundary, so
+    dangerous commands must lose the container fast-path there too. Modal and
+    Daytona always report False — their sandboxes hold uploaded copies on a
+    remote machine, and nothing they write can touch this host's filesystem.
+    """
+    env_type = config.get("env_type")
+    if env_type == "docker":
+        return _docker_has_host_access(config, host_cwd)
+    if env_type == "singularity":
+        effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
+        return bool(effective_host_cwd) and bool(
+            config.get("singularity_mount_cwd_to_workspace")
+        )
+    return False
+
+
 def _check_all_guards(command: str, env_type: str,
                       has_host_access: bool = False) -> dict:
     """Delegate to consolidated guard (tirith + dangerous cmd) with CLI callback."""
@@ -1207,12 +1228,14 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     session to spin up its own container.  Only overrides containing
     backend-specific image keys or ``env_type`` trigger isolation.
 
-    The one exception is ``terminal.docker_workspace_per_session``: when an
-    operator opts into per-session workspace mounting, the cwd IS part of the
-    container's identity, because the bind mount is fixed at ``docker run``
-    time and cannot be added to a running container. See
-    :func:`_workspace_container_key`. With the opt-in off (the default) a
-    CWD-only override keeps collapsing to ``"default"`` exactly as before.
+    The one exception is per-session workspace mounting
+    (``terminal.docker_workspace_per_session`` /
+    ``terminal.singularity_workspace_per_session``): when an operator opts in,
+    the cwd IS part of the sandbox's identity, because the bind mount is fixed
+    at creation time (``docker run`` / ``apptainer instance start``) and cannot
+    be added to a running sandbox. See :func:`_workspace_container_key`. With
+    the opt-in off (the default) a CWD-only override keeps collapsing to
+    ``"default"`` exactly as before.
     """
     _ISOLATION_KEYS = frozenset({
         "docker_image", "modal_image", "singularity_image",
@@ -1222,15 +1245,15 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
         overrides = _task_env_overrides[task_id]
         if set(overrides.keys()) & _ISOLATION_KEYS:
             return task_id
-        if _docker_workspace_per_session_enabled():
-            mount_source, _ = resolve_docker_workspace_mount(overrides.get("cwd") or "")
+        if _workspace_per_session_enabled():
+            mount_source, _ = resolve_workspace_mount(overrides.get("cwd") or "")
             if mount_source:
                 return _workspace_container_key(mount_source)
     return "default"
 
 
-def _resolve_workspace_per_session(env_type: str, mount_docker_cwd: bool) -> bool:
-    """Return True when Docker sandboxes follow each session's workspace cwd.
+def _resolve_workspace_per_session(env_type: str, mount_cwd_enabled: bool) -> bool:
+    """Return True when this backend's sandboxes follow each session's cwd.
 
     The single source of truth for this opt-in. Two very different call paths
     ask the question — the config snapshot (:func:`_get_env_config`, which
@@ -1240,24 +1263,28 @@ def _resolve_workspace_per_session(env_type: str, mount_docker_cwd: bool) -> boo
     keyed off a project directory that never actually gets mounted: one
     container per project, none of them holding the project.
 
-    Requires the Docker backend AND ``docker_mount_cwd_to_workspace`` — with no
-    bind mount there is no workspace to follow.
+    Only backends in ``_MOUNT_CWD_ENV_VARS`` (Docker, Singularity) qualify, and
+    each requires its own ``*_mount_cwd_to_workspace`` opt-in — with no bind
+    mount there is no workspace to follow.
     """
-    if env_type != "docker" or not mount_docker_cwd:
+    per_session_var = _WORKSPACE_PER_SESSION_ENV_VARS.get(env_type)
+    if per_session_var is None or not mount_cwd_enabled:
         return False
-    return env_var_enabled("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "false")
+    return env_var_enabled(per_session_var, "false")
 
 
-def _docker_workspace_per_session_enabled() -> bool:
+def _workspace_per_session_enabled() -> bool:
     """Env-only form of :func:`_resolve_workspace_per_session`.
 
     Used by the container-identity path, which runs for every tool call and has
     no config dict in hand.
     """
     _ensure_terminal_env_bridged()
+    env_type = (os.getenv("TERMINAL_ENV", "local") or "").strip().lower()
+    mount_var = _MOUNT_CWD_ENV_VARS.get(env_type)
     return _resolve_workspace_per_session(
-        (os.getenv("TERMINAL_ENV", "local") or "").strip().lower(),
-        env_var_enabled("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false"),
+        env_type,
+        env_var_enabled(mount_var, "false") if mount_var else False,
     )
 
 
@@ -1349,8 +1376,23 @@ _WINDOWS_DRIVE_PATH_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
 _CONTAINER_BACKENDS = frozenset({"docker", "singularity", "modal", "daytona"})
 
+# Backends that can bind-mount a host directory into their sandbox, and the
+# per-backend opt-in env vars. Docker uses ``-v``, Singularity ``--bind`` —
+# both run on this machine and see the live host filesystem. Modal and Daytona
+# are deliberately absent: their sandboxes run on remote cloud machines where
+# the host filesystem does not exist, so "mount" is not a thing they can do
+# (they sync uploaded *copies* via tools/environments/file_sync.py instead).
+_MOUNT_CWD_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+    "singularity": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
+}
+_WORKSPACE_PER_SESSION_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
+    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
+}
+
 # Where a bind-mounted host directory lands inside the sandbox.
-_DOCKER_WORKSPACE_PATH = "/workspace"
+_WORKSPACE_MOUNT_PATH = "/workspace"
 
 # Absolute paths that already live *inside* a sandbox, so they are never a host
 # directory to bind-mount.
@@ -1370,13 +1412,15 @@ def _is_host_path(cwd: str) -> bool:
     return bool(_WINDOWS_DRIVE_PATH_RE.match(cwd))
 
 
-def resolve_docker_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
+def resolve_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
     """Split *raw_cwd* into ``(host mount source, in-container workdir)``.
 
     Returns ``(host_path, "/workspace")`` when *raw_cwd* is a host directory to
     bind-mount into the sandbox, or ``(None, None)`` when no mount applies —
     either because it already points inside a sandbox or because it is not a
-    directory on this host.
+    directory on this host. Backend-agnostic: Docker turns the result into a
+    ``-v`` flag, Singularity into ``--bind`` (see ``_MOUNT_CWD_ENV_VARS`` for
+    which backends can mount at all).
 
     Shared by the startup resolution in :func:`_get_env_config` and the
     per-session resolution in the terminal command path, so the two can never
@@ -1399,13 +1443,13 @@ def resolve_docker_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optiona
     if candidate.startswith(_SANDBOX_PATH_PREFIXES):
         return None, None
     if _is_host_path(candidate):
-        return candidate, _DOCKER_WORKSPACE_PATH
+        return candidate, _WORKSPACE_MOUNT_PATH
     # A POSIX-absolute path outside the known host roots only counts as a host
     # directory when it actually exists here: RL/benchmark overrides
     # legitimately pass image-internal paths like /app that exist only inside
     # the container, and those must reach ``docker run -w`` unchanged.
     if os.path.isabs(candidate) and os.path.isdir(candidate):
-        return candidate, _DOCKER_WORKSPACE_PATH
+        return candidate, _WORKSPACE_MOUNT_PATH
     return None, None
 
 
@@ -1495,13 +1539,19 @@ def _get_env_config() -> Dict[str, Any]:
     env_type = os.getenv("TERMINAL_ENV", "local")
     
     # env_var_enabled (not a local truthy set) so this agrees exactly with
-    # _docker_workspace_per_session_enabled(), which the container-identity path
+    # _workspace_per_session_enabled(), which the container-identity path
     # calls without a config dict. A split answer between the two would key
     # containers off a directory that never gets mounted.
     mount_docker_cwd = env_var_enabled("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
+    mount_singularity_cwd = env_var_enabled("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "false")
+    # The mount opt-in that applies to the ACTIVE backend (False for backends
+    # that cannot bind-mount at all — see _MOUNT_CWD_ENV_VARS).
+    mount_cwd_active = (env_type == "docker" and mount_docker_cwd) or (
+        env_type == "singularity" and mount_singularity_cwd
+    )
     # Follow the workspace directory each surface (Desktop picker, ACP client)
     # selected per session, instead of only the launch cwd.
-    workspace_per_session = _resolve_workspace_per_session(env_type, mount_docker_cwd)
+    workspace_per_session = _resolve_workspace_per_session(env_type, mount_cwd_active)
     container_backend = env_type in {"docker", "singularity", "modal", "daytona"}
     docker_backend = env_type == "docker"
 
@@ -1547,9 +1597,9 @@ def _get_env_config() -> Dict[str, Any]:
     if cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
     host_cwd = None
-    if env_type == "docker" and mount_docker_cwd:
-        docker_cwd_source = os.getenv("TERMINAL_CWD") or _safe_getcwd()
-        mount_source, container_cwd = resolve_docker_workspace_mount(docker_cwd_source)
+    if mount_cwd_active:
+        mount_cwd_source = os.getenv("TERMINAL_CWD") or _safe_getcwd()
+        mount_source, container_cwd = resolve_workspace_mount(mount_cwd_source)
         if mount_source:
             host_cwd = mount_source
             cwd = container_cwd
@@ -1572,7 +1622,9 @@ def _get_env_config() -> Dict[str, Any]:
         "cwd": cwd,
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
-        "docker_workspace_per_session": workspace_per_session,
+        "singularity_mount_cwd_to_workspace": mount_singularity_cwd,
+        # Already resolved for the ACTIVE backend — consumers don't re-derive it.
+        "workspace_per_session": workspace_per_session,
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),
         "lifetime_seconds": _parse_env_var("TERMINAL_LIFETIME_SECONDS", "300"),
         # SSH-specific config
@@ -1691,6 +1743,8 @@ def _create_environment(env_type: str, image: str, cwd: str, timeout: int,
             image=image, cwd=cwd, timeout=timeout,
             cpu=cpu, memory=memory, disk=disk,
             persistent_filesystem=persistent, task_id=task_id,
+            host_cwd=host_cwd,
+            auto_mount_cwd=cc.get("singularity_mount_cwd_to_workspace", False),
         )
     
     elif env_type == "modal":
@@ -2337,8 +2391,8 @@ def terminal_tool(
         # With the opt-in off, ``host_cwd`` stays whatever startup resolved and
         # the guard keeps discarding host paths exactly as before.
         host_cwd = config.get("host_cwd")
-        if config.get("docker_workspace_per_session"):
-            mount_source, container_cwd = resolve_docker_workspace_mount(cwd)
+        if config.get("workspace_per_session"):
+            mount_source, container_cwd = resolve_workspace_mount(cwd)
             if mount_source:
                 host_cwd = mount_source
                 cwd = container_cwd
@@ -2456,6 +2510,7 @@ def terminal_tool(
                                 "modal_mode": config.get("modal_mode", "auto"),
                                 "docker_volumes": config.get("docker_volumes", []),
                                 "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
+                                "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
                                 "docker_forward_env": config.get("docker_forward_env", []),
                                 "docker_env": config.get("docker_env", {}),
                                 "docker_run_as_host_user": config.get("docker_run_as_host_user", False),
@@ -2540,7 +2595,7 @@ def terminal_tool(
         if not force:
             approval = _check_all_guards(
                 command, env_type,
-                has_host_access=_docker_has_host_access(config, host_cwd),
+                has_host_access=_sandbox_has_host_access(config, host_cwd),
             )
             if not approval["approved"]:
                 # Check if this is an approval_required (gateway ask mode)

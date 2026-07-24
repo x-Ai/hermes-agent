@@ -947,7 +947,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
         _creation_locks_lock,
         _resolve_container_task_id,
         _is_unusable_container_cwd,
-        resolve_docker_workspace_mount,
+        resolve_workspace_mount,
         _CONTAINER_BACKENDS,
     )
     import time
@@ -1027,8 +1027,8 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
             # the same class of silent-empty-results bug as #54447, just from
             # the opposite direction.
             host_cwd = config.get("host_cwd")
-            if config.get("docker_workspace_per_session"):
-                mount_source, container_cwd = resolve_docker_workspace_mount(cwd)
+            if config.get("workspace_per_session"):
+                mount_source, container_cwd = resolve_workspace_mount(cwd)
                 if mount_source:
                     host_cwd = mount_source
                     cwd = container_cwd
@@ -1063,6 +1063,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
                     "container_persistent": config.get("container_persistent", True),
                     "docker_volumes": config.get("docker_volumes", []),
                     "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
+                    "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
                     "docker_forward_env": config.get("docker_forward_env", []),
                     "docker_run_as_host_user": config.get("docker_run_as_host_user", False),
                     "docker_network": config.get("docker_network", True),

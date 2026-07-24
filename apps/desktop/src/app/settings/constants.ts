@@ -413,6 +413,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     dockerMountCwdToWorkspace: 'Mount Project Into Docker',
     dockerWorkspacePerSession: 'Follow Each Session’s Project',
     singularityImage: 'Singularity Image',
+    singularityMountCwdToWorkspace: 'Mount Project Into Singularity',
+    singularityWorkspacePerSession: 'Follow Each Session’s Project (Singularity)',
     modalImage: 'Modal Image',
     daytonaImage: 'Daytona Image'
   },
@@ -579,8 +581,14 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     dockerWorkspacePerSession:
       'Use the folder each session picked instead of only the launch folder. Every project gets its own container.',
     singularityImage: 'Image used when the execution backend is Singularity.',
-    modalImage: 'Image used when the execution backend is Modal.',
-    daytonaImage: 'Image used when the execution backend is Daytona.'
+    singularityMountCwdToWorkspace:
+      'Bind-mount the project folder into the Singularity sandbox at /workspace. Off keeps the sandbox fully isolated.',
+    singularityWorkspacePerSession:
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own instance.',
+    modalImage:
+      'Image used when the execution backend is Modal. Runs in the cloud: project folders are synced as copies, not mounted.',
+    daytonaImage:
+      'Image used when the execution backend is Daytona. Runs in the cloud: project folders are synced as copies, not mounted.'
   },
   codeExecution: {
     mode: 'How strictly code execution is scoped to the current project.'
@@ -766,6 +774,9 @@ export const SECTIONS: DesktopConfigSection[] = [
       'terminal.docker_mount_cwd_to_workspace',
       'terminal.docker_workspace_per_session',
       'terminal.singularity_image',
+      // Same pairing rule as the Docker pair above.
+      'terminal.singularity_mount_cwd_to_workspace',
+      'terminal.singularity_workspace_per_session',
       'terminal.modal_image',
       'terminal.daytona_image',
       'tool_output.max_bytes',

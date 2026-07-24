@@ -1849,13 +1849,15 @@ def _terminal_task_cwd(session: dict | None) -> str:
     resolution path is taken even when the dashboard entrypoint did not call
     ``apply_terminal_config_to_env`` on its own ``os.environ``.
 
-    Docker with ``terminal.docker_workspace_per_session`` is the exception to
-    the exception: there the session's cwd is a real *host* directory that gets
-    bind-mounted into the container's ``/workspace``, so it must survive to the
+    Docker/Singularity with per-session workspace mounting
+    (``terminal.docker_workspace_per_session`` /
+    ``terminal.singularity_workspace_per_session``) are the exception to the
+    exception: there the session's cwd is a real *host* directory that gets
+    bind-mounted into the sandbox's ``/workspace``, so it must survive to the
     terminal layer instead of being replaced by the process-wide
-    ``TERMINAL_CWD``.  ``resolve_docker_workspace_mount`` does the host-path →
+    ``TERMINAL_CWD``.  ``resolve_workspace_mount`` does the host-path →
     ``/workspace`` translation there; handing it the wrong directory is exactly
-    what makes the Desktop folder picker a no-op under Docker.
+    what makes the Desktop folder picker a no-op under those backends.
     """
     backend = (os.environ.get("TERMINAL_ENV") or "").strip().lower()
     if not backend or backend == "local":
@@ -1870,7 +1872,7 @@ def _terminal_task_cwd(session: dict | None) -> str:
         except Exception:
             pass
 
-    if backend and backend != "local" and not _docker_follows_session_workspace(backend):
+    if backend and backend != "local" and not _backend_follows_session_workspace(backend):
         raw = os.environ.get("TERMINAL_CWD", "").strip()
         if not raw:
             try:
@@ -1885,18 +1887,34 @@ def _terminal_task_cwd(session: dict | None) -> str:
     return _session_cwd(session)
 
 
-def _docker_follows_session_workspace(backend: str) -> bool:
-    """Return True when Docker sessions bind-mount their own workspace cwd.
+# Per-backend (mount opt-in, per-session opt-in) flag pairs for backends that
+# can bind-mount a host directory. Modal/Daytona are absent on purpose — their
+# sandboxes live on remote machines and sync copies instead of mounting.
+_WORKSPACE_FOLLOW_FLAGS = {
+    "docker": (
+        ("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "docker_mount_cwd_to_workspace"),
+        ("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "docker_workspace_per_session"),
+    ),
+    "singularity": (
+        ("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "singularity_mount_cwd_to_workspace"),
+        ("TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION", "singularity_workspace_per_session"),
+    ),
+}
 
-    Both ``terminal.docker_mount_cwd_to_workspace`` and
-    ``terminal.docker_workspace_per_session`` must be on: the first is what
-    creates a bind mount at all, the second is what makes that mount follow the
-    directory this session selected. Env vars win over config so a launcher's
-    explicit bridge stays authoritative, matching ``terminal_tool``'s own
-    resolution — including the shared truthy set, so a value like ``on`` cannot
-    be read as enabled here and disabled there.
+
+def _backend_follows_session_workspace(backend: str) -> bool:
+    """Return True when *backend* bind-mounts each session's own workspace cwd.
+
+    Both the backend's ``*_mount_cwd_to_workspace`` and
+    ``*_workspace_per_session`` must be on: the first is what creates a bind
+    mount at all, the second is what makes that mount follow the directory this
+    session selected. Env vars win over config so a launcher's explicit bridge
+    stays authoritative, matching ``terminal_tool``'s own resolution —
+    including the shared truthy set, so a value like ``on`` cannot be read as
+    enabled here and disabled there.
     """
-    if backend != "docker":
+    flag_pair = _WORKSPACE_FOLLOW_FLAGS.get(backend)
+    if flag_pair is None:
         return False
 
     def _flag(env_var: str, cfg_key: str) -> bool:
@@ -1909,10 +1927,8 @@ def _docker_follows_session_workspace(backend: str) -> bool:
                 raw = None
         return is_truthy_value(raw)
 
-    return (
-        _flag("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "docker_mount_cwd_to_workspace")
-        and _flag("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "docker_workspace_per_session")
-    )
+    (mount_env, mount_key), (per_session_env, per_session_key) = flag_pair
+    return _flag(mount_env, mount_key) and _flag(per_session_env, per_session_key)
 
 
 # Git working-tree probing (run git, resolve roots, fold worktrees) lives in a

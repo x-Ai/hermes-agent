@@ -173,6 +173,8 @@ class SingularityEnvironment(BaseEnvironment):
         disk: int = 0,
         persistent_filesystem: bool = False,
         task_id: str = "default",
+        host_cwd: str = None,
+        auto_mount_cwd: bool = False,
     ):
         super().__init__(cwd=cwd, timeout=timeout)
         self.executable = _ensure_singularity_available()
@@ -184,6 +186,22 @@ class SingularityEnvironment(BaseEnvironment):
         self._overlay_dir: Optional[Path] = None
         self._cpu = cpu
         self._memory = memory
+
+        # Opt-in host workspace mount (singularity_mount_cwd_to_workspace):
+        # bind the host project directory to /workspace, mirroring the Docker
+        # backend's -v semantics. The existence check is the same final defense
+        # DockerEnvironment applies — the resolver upstream may hand us a host
+        # path it did not (or could not) verify.
+        host_cwd_abs = os.path.abspath(os.path.expanduser(host_cwd)) if host_cwd else ""
+        self._host_workspace: Optional[str] = None
+        if auto_mount_cwd and host_cwd_abs:
+            if os.path.isdir(host_cwd_abs):
+                self._host_workspace = host_cwd_abs
+            else:
+                logger.debug(
+                    "Singularity: skipping cwd mount — host_cwd is not a valid directory: %s",
+                    host_cwd,
+                )
 
         if self._persistent:
             overlay_base = _get_scratch_dir() / "hermes-overlays"
@@ -202,6 +220,17 @@ class SingularityEnvironment(BaseEnvironment):
             cmd.extend(["--overlay", str(self._overlay_dir)])
         else:
             cmd.append("--writable-tmpfs")
+
+        if self._host_workspace:
+            # Read-write on purpose: the entire point of the opt-in is letting
+            # the agent work on the live project tree, exactly like Docker's
+            # auto-mounted /workspace. Bind mounts stack above the overlay /
+            # tmpfs, so the rest of the filesystem stays sandbox-owned.
+            cmd.extend(["--bind", f"{self._host_workspace}:/workspace"])
+            logger.info(
+                "Singularity: mounting host workspace %s -> /workspace",
+                self._host_workspace,
+            )
 
         try:
             from tools.credential_files import get_credential_file_mounts, get_skills_directory_mount

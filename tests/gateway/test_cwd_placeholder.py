@@ -66,3 +66,48 @@ class TestResolvePlaceholderTerminalCwd:
             docker_mount_cwd_to_workspace=False,
             home_fallback="/home/user",
         ) == "/explicit/path"
+
+
+class TestSingularityPlaceholder:
+    """Singularity mirrors the docker mount-on/mount-off placeholder handling,
+    gated on its own flag — the docker flag must not leak across."""
+
+    def test_mount_on_preserves_host_path(self):
+        assert resolve_placeholder_terminal_cwd(
+            configured_cwd=".",
+            terminal_backend="singularity",
+            messaging_cwd="/host/project",
+            docker_mount_cwd_to_workspace=False,
+            singularity_mount_cwd_to_workspace=True,
+            home_fallback="/home/user",
+        ) == "/host/project"
+
+    def test_mount_off_unset(self):
+        assert resolve_placeholder_terminal_cwd(
+            configured_cwd=".",
+            terminal_backend="singularity",
+            messaging_cwd="/host/project",
+            docker_mount_cwd_to_workspace=False,
+            singularity_mount_cwd_to_workspace=False,
+            home_fallback="/home/user",
+        ) is None
+
+    def test_docker_flag_does_not_leak_into_singularity(self):
+        assert resolve_placeholder_terminal_cwd(
+            configured_cwd=".",
+            terminal_backend="singularity",
+            messaging_cwd="/host/project",
+            docker_mount_cwd_to_workspace=True,
+            singularity_mount_cwd_to_workspace=False,
+            home_fallback="/home/user",
+        ) is None
+
+    def test_singularity_flag_does_not_leak_into_docker(self):
+        assert resolve_placeholder_terminal_cwd(
+            configured_cwd=".",
+            terminal_backend="docker",
+            messaging_cwd="/host/project",
+            docker_mount_cwd_to_workspace=False,
+            singularity_mount_cwd_to_workspace=True,
+            home_fallback="/home/user",
+        ) is None

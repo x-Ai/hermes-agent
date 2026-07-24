@@ -301,6 +301,8 @@ Every key under `terminal:` has an env-var override of the form `TERMINAL_<KEY_U
 | `TERMINAL_DOCKER_EXTRA_ARGS` | `docker_extra_args` | JSON array |
 | `TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE` | `docker_mount_cwd_to_workspace` | `true` / `false` |
 | `TERMINAL_DOCKER_WORKSPACE_PER_SESSION` | `docker_workspace_per_session` | `true` / `false` — needs `..._MOUNT_CWD_TO_WORKSPACE=true` |
+| `TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE` | `singularity_mount_cwd_to_workspace` | `true` / `false` — Singularity twin (`--bind`) |
+| `TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION` | `singularity_workspace_per_session` | `true` / `false` — needs the Singularity mount flag |
 | `TERMINAL_DOCKER_RUN_AS_HOST_USER` | `docker_run_as_host_user` | `true` / `false` |
 | `TERMINAL_DOCKER_NETWORK` | `docker_network` | `true` / `false` — default `true`; `false` = `--network=none` |
 | `TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES` | `docker_persist_across_processes` | `true` / `false` — default `true` |
@@ -544,6 +546,21 @@ Consequences worth knowing before you turn this on:
 - **On Linux, add `docker_run_as_host_user: true`** unless you want root-owned files appearing in your project directories. (It is a no-op on Windows, where Docker Desktop handles the mapping.)
 
 Leave this off if you want one container for everything, or if you drive Hermes from the CLI where the launch directory is already the project directory.
+
+#### Singularity has the same pair of switches
+
+The Singularity/Apptainer backend supports the identical opt-ins, implemented with `--bind` instead of `-v`. The switches are deliberately independent — enabling the Docker pair does not affect Singularity:
+
+```yaml
+terminal:
+  backend: singularity
+  singularity_mount_cwd_to_workspace: true
+  singularity_workspace_per_session: true
+```
+
+Everything above applies unchanged: both flags required, one instance per project directory, host-writable mount, and dangerous-command approvals lose the sandbox fast-path while a host directory is mounted.
+
+**Modal and Daytona have no mount option, by design.** Their sandboxes run on remote cloud machines where your local filesystem does not exist — nothing can be bind-mounted. They sync uploaded *copies* of skills and credential files instead (see the file-sync mechanism), which is a different capability with different trade-offs, not a missing switch.
 
 ### Persistent Shell
 

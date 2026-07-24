@@ -394,6 +394,21 @@ terminal:
 
 如果你希望所有工作共用一个容器，或者你主要从 CLI 使用 Hermes（启动目录本就是项目目录），请保持关闭。
 
+#### Singularity 有同样的一对开关
+
+Singularity/Apptainer 后端支持完全相同的两个选择加入项，用 `--bind` 而非 `-v` 实现。两组开关刻意相互独立——打开 Docker 的那对不会影响 Singularity：
+
+```yaml
+terminal:
+  backend: singularity
+  singularity_mount_cwd_to_workspace: true
+  singularity_workspace_per_session: true
+```
+
+上文的所有说明原样适用：两个开关都必需、每个项目目录一个实例、挂载目录在沙箱内可写宿主文件、挂载期间危险命令失去沙箱快速通道。
+
+**Modal 和 Daytona 刻意没有挂载选项。** 它们的沙箱运行在远端云机器上，你的本地文件系统在那里不存在——没有任何东西可以绑定挂载。它们改为同步上传技能和凭据文件的**副本**（参见文件同步机制），这是一种权衡完全不同的能力，而不是缺了一个开关。
+
 ### 持久 Shell
 
 默认情况下，每条终端命令在其自己的子进程中运行 —— 工作目录、环境变量和 shell 变量在命令之间重置。启用**持久 shell** 后，单个长期运行的 bash 进程在 `execute()` 调用之间保持存活，使状态在命令之间保持。
