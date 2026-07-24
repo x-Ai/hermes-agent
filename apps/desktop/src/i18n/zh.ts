@@ -534,6 +534,8 @@ export const zh: Translations = {
         persistentShell: '持久化 Shell',
         envPassthrough: '环境变量透传',
         dockerImage: 'Docker 镜像',
+        dockerMountCwdToWorkspace: '将项目目录挂载进 Docker',
+        dockerWorkspacePerSession: '跟随各会话选择的项目',
         singularityImage: 'Singularity 镜像',
         modalImage: 'Modal 镜像',
         daytonaImage: 'Daytona 镜像'
@@ -696,6 +698,8 @@ export const zh: Translations = {
         persistentShell: '当后端支持时，在命令之间保留 Shell 状态。',
         envPassthrough: '传入工具执行的环境变量。',
         dockerImage: '执行后端为 Docker 时使用的容器镜像。',
+        dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace。关闭时沙箱完全隔离。',
+        dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的容器。',
         singularityImage: '执行后端为 Singularity 时使用的镜像。',
         modalImage: '执行后端为 Modal 时使用的镜像。',
         daytonaImage: '执行后端为 Daytona 时使用的镜像。'

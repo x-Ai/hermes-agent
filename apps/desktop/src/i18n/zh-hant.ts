@@ -410,6 +410,8 @@ export const zhHant = defineLocale({
         persistentShell: '持久化 Shell',
         envPassthrough: '環境變數傳遞',
         dockerImage: 'Docker 映像',
+        dockerMountCwdToWorkspace: '將專案目錄掛載進 Docker',
+        dockerWorkspacePerSession: '跟隨各工作階段選擇的專案',
         singularityImage: 'Singularity 映像',
         modalImage: 'Modal 映像',
         daytonaImage: 'Daytona 映像'

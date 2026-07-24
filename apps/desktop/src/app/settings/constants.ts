@@ -410,6 +410,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     persistentShell: 'Persistent Shell',
     envPassthrough: 'Environment Passthrough',
     dockerImage: 'Docker Image',
+    dockerMountCwdToWorkspace: 'Mount Project Into Docker',
+    dockerWorkspacePerSession: 'Follow Each Session’s Project',
     singularityImage: 'Singularity Image',
     modalImage: 'Modal Image',
     daytonaImage: 'Daytona Image'
@@ -572,6 +574,10 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     persistentShell: 'Keep shell state between commands when the backend supports it.',
     envPassthrough: 'Environment variables to pass into tool execution.',
     dockerImage: 'Container image used when the execution backend is Docker.',
+    dockerMountCwdToWorkspace:
+      'Bind-mount the project folder into the Docker sandbox at /workspace. Off keeps the sandbox fully isolated.',
+    dockerWorkspacePerSession:
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own container.',
     singularityImage: 'Image used when the execution backend is Singularity.',
     modalImage: 'Image used when the execution backend is Modal.',
     daytonaImage: 'Image used when the execution backend is Daytona.'
@@ -755,6 +761,10 @@ export const SECTIONS: DesktopConfigSection[] = [
       'terminal.backend',
       'terminal.timeout',
       'terminal.docker_image',
+      // Paired on purpose: per_session does nothing unless mount_cwd is on, so
+      // showing one without the other reads as a broken toggle.
+      'terminal.docker_mount_cwd_to_workspace',
+      'terminal.docker_workspace_per_session',
       'terminal.singularity_image',
       'terminal.modal_image',
       'terminal.daytona_image',

@@ -84,6 +84,12 @@ class TestCwdHandling:
         assert config["host_cwd"] is None
         assert config["docker_mount_cwd_to_workspace"] is False
 
+    @pytest.mark.skipif(
+        os.name == "nt",
+        reason="asserts POSIX host semantics: os.path.abspath('/Users/x') "
+               "rewrites to 'C:\\Users\\x' on Windows, and a POSIX-rooted path "
+               "on a Windows host is a container path, not a mount source",
+    )
     def test_users_path_maps_to_workspace_for_docker_when_enabled(self, monkeypatch):
         """Docker should map the host cwd into /workspace only when explicitly enabled."""
         monkeypatch.setenv("TERMINAL_ENV", "docker")
@@ -112,6 +118,11 @@ class TestCwdHandling:
             f"Backend {backend}: expected /root default, got {config['cwd']}"
         )
 
+    @pytest.mark.skipif(
+        os.name == "nt",
+        reason="asserts POSIX host semantics: a POSIX-rooted cwd on a Windows "
+               "host is a container path, not a host directory to bind-mount",
+    )
     def test_docker_default_cwd_maps_current_directory_when_enabled(self, monkeypatch):
         """Docker should use /workspace when cwd mounting is explicitly enabled."""
         monkeypatch.setattr("tools.terminal_tool.os.getcwd", lambda: "/home/user/project")

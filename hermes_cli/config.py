@@ -1206,6 +1206,15 @@ DEFAULT_CONFIG = {
         # Explicit opt-in: mount the host cwd into /workspace for Docker sessions.
         # Default off because passing host directories into a sandbox weakens isolation.
         "docker_mount_cwd_to_workspace": False,
+        # Follow the project directory each session selected (the Desktop folder
+        # picker, an ACP client's project root) instead of only the launch cwd.
+        # Requires docker_mount_cwd_to_workspace — with no bind mount there is
+        # nothing to follow. Because a container's /workspace mount is fixed at
+        # creation, each distinct project directory gets its own container;
+        # switching projects switches containers and switching back reuses the
+        # original one, packages and background processes intact. Default off:
+        # it inherits the isolation trade-off above and multiplies containers.
+        "docker_workspace_per_session": False,
         # Opt-in egress lockdown for Docker terminal sessions. When false,
         # Docker runs with --network=none so commands cannot reach the network.
         "docker_network": True,
@@ -7402,6 +7411,7 @@ TERMINAL_CONFIG_ENV_MAP = {
     "docker_volumes": "TERMINAL_DOCKER_VOLUMES",
     "docker_env": "TERMINAL_DOCKER_ENV",
     "docker_mount_cwd_to_workspace": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+    "docker_workspace_per_session": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
     "docker_network": "TERMINAL_DOCKER_NETWORK",
     "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
     "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",

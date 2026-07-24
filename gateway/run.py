@@ -1845,6 +1845,7 @@ if _config_path.exists():
                 "docker_env": "TERMINAL_DOCKER_ENV",
                 "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
                 "docker_mount_cwd_to_workspace": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+                "docker_workspace_per_session": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
                 "docker_network": "TERMINAL_DOCKER_NETWORK",
                 "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",
                 "docker_persist_across_processes": "TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES",
@@ -2075,10 +2076,12 @@ if not _configured_cwd or _configured_cwd in CWD_PLACEHOLDERS:
         configured_cwd=_configured_cwd,
         terminal_backend=os.environ.get("TERMINAL_ENV", ""),
         messaging_cwd=os.getenv("MESSAGING_CWD"),
-        docker_mount_cwd_to_workspace=os.getenv(
-            "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false"
-        ).lower()
-        in {"true", "1", "yes"},
+        # Shared truthy set, so a value like ``on`` cannot read as enabled in
+        # terminal_tool while reading as disabled here — that split would leave
+        # TERMINAL_CWD unset for a backend that does want the host path.
+        docker_mount_cwd_to_workspace=is_truthy_value(
+            os.getenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE")
+        ),
         home_fallback=str(Path.home()),
     )
     if _resolved_cwd is None:

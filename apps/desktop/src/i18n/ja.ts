@@ -421,6 +421,8 @@ export const ja = defineLocale({
         persistentShell: '永続シェル',
         envPassthrough: '環境変数の引き継ぎ',
         dockerImage: 'Docker イメージ',
+        dockerMountCwdToWorkspace: 'プロジェクトを Docker にマウント',
+        dockerWorkspacePerSession: 'セッションごとのプロジェクトに追従',
         singularityImage: 'Singularity イメージ',
         modalImage: 'Modal イメージ',
         daytonaImage: 'Daytona イメージ'

@@ -31,6 +31,7 @@ Usage:
     result = terminal_tool("python server.py", background=True)
 """
 
+import hashlib
 import importlib.util
 import json
 import logging
@@ -269,11 +270,21 @@ def _docker_volume_uses_host_path(volume_spec: str) -> bool:
     )
 
 
-def _docker_has_host_access(config: Dict[str, Any]) -> bool:
-    """Return True when a Docker sandbox exposes host paths through bind mounts."""
+def _docker_has_host_access(config: Dict[str, Any],
+                            host_cwd: Optional[str] = None) -> bool:
+    """Return True when a Docker sandbox exposes host paths through bind mounts.
+
+    *host_cwd* overrides ``config["host_cwd"]`` for callers that resolved the
+    mount per session (``terminal.docker_workspace_per_session``). The startup
+    config snapshot cannot know which project directory a given session picked,
+    and this flag decides whether dangerous commands get the sandbox fast-path
+    or full approval — judging it on a stale snapshot would hand the agent host
+    write access under sandbox-grade rules.
+    """
     if config.get("env_type") != "docker":
         return False
-    if config.get("host_cwd") and config.get("docker_mount_cwd_to_workspace"):
+    effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
+    if effective_host_cwd and config.get("docker_mount_cwd_to_workspace"):
         return True
     return any(_docker_volume_uses_host_path(vol) for vol in config.get("docker_volumes", []))
 
@@ -1195,6 +1206,13 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     tracking) are *not* isolation signals — they should not cause each
     session to spin up its own container.  Only overrides containing
     backend-specific image keys or ``env_type`` trigger isolation.
+
+    The one exception is ``terminal.docker_workspace_per_session``: when an
+    operator opts into per-session workspace mounting, the cwd IS part of the
+    container's identity, because the bind mount is fixed at ``docker run``
+    time and cannot be added to a running container. See
+    :func:`_workspace_container_key`. With the opt-in off (the default) a
+    CWD-only override keeps collapsing to ``"default"`` exactly as before.
     """
     _ISOLATION_KEYS = frozenset({
         "docker_image", "modal_image", "singularity_image",
@@ -1204,7 +1222,64 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
         overrides = _task_env_overrides[task_id]
         if set(overrides.keys()) & _ISOLATION_KEYS:
             return task_id
+        if _docker_workspace_per_session_enabled():
+            mount_source, _ = resolve_docker_workspace_mount(overrides.get("cwd") or "")
+            if mount_source:
+                return _workspace_container_key(mount_source)
     return "default"
+
+
+def _resolve_workspace_per_session(env_type: str, mount_docker_cwd: bool) -> bool:
+    """Return True when Docker sandboxes follow each session's workspace cwd.
+
+    The single source of truth for this opt-in. Two very different call paths
+    ask the question — the config snapshot (:func:`_get_env_config`, which
+    decides whether to translate a cwd into a bind mount) and container identity
+    (:func:`_resolve_container_task_id`, which decides whether to give each
+    project its own container). If those two ever disagreed, containers would be
+    keyed off a project directory that never actually gets mounted: one
+    container per project, none of them holding the project.
+
+    Requires the Docker backend AND ``docker_mount_cwd_to_workspace`` — with no
+    bind mount there is no workspace to follow.
+    """
+    if env_type != "docker" or not mount_docker_cwd:
+        return False
+    return env_var_enabled("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "false")
+
+
+def _docker_workspace_per_session_enabled() -> bool:
+    """Env-only form of :func:`_resolve_workspace_per_session`.
+
+    Used by the container-identity path, which runs for every tool call and has
+    no config dict in hand.
+    """
+    _ensure_terminal_env_bridged()
+    return _resolve_workspace_per_session(
+        (os.getenv("TERMINAL_ENV", "local") or "").strip().lower(),
+        env_var_enabled("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false"),
+    )
+
+
+def _workspace_container_key(host_path: str) -> str:
+    """Return the container/sandbox key for the workspace at *host_path*.
+
+    Two sessions on the same project directory must land on the same container
+    (so they share one bash, one set of installed packages) while two sessions
+    on different projects must not, since each container's ``/workspace`` bind
+    mount is baked in at creation. Hashing keeps the value inside Docker's
+    63-char label limit and its ``[A-Za-z0-9_.-]`` charset regardless of how
+    exotic the path is.
+
+    Normalization resolves symlinks and ``..`` so different spellings of one
+    directory agree, and case-folds because Windows paths are case-insensitive.
+    """
+    try:
+        normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
+    except OSError:
+        normalized = host_path
+    digest = hashlib.sha256(normalized.casefold().encode("utf-8", "surrogatepass")).hexdigest()
+    return f"ws-{digest[:12]}"
 
 
 def resolve_task_overrides(task_id: Optional[str]) -> Dict[str, Any]:
@@ -1265,7 +1340,73 @@ def _safe_getcwd() -> str:
 # cwd looks when it leaks toward a Linux container's ``-w`` flag.
 _HOST_CWD_PREFIXES = ("/Users/", "/home/", "C:\\", "C:/")
 
+# Any drive-qualified Windows path, not just ``C:``. The prefix tuple above
+# only lists the C: drive, but a project on D: (or any other letter) is just as
+# impossible as a container workdir — and on a Windows host ``os.path.isabs()``
+# returns True for it, so this drive check is the only thing keeping
+# ``D:\proj`` out of ``docker run -w D:\proj`` (container dies with exit 125).
+_WINDOWS_DRIVE_PATH_RE = re.compile(r"^[A-Za-z]:[\\/]")
+
 _CONTAINER_BACKENDS = frozenset({"docker", "singularity", "modal", "daytona"})
+
+# Where a bind-mounted host directory lands inside the sandbox.
+_DOCKER_WORKSPACE_PATH = "/workspace"
+
+# Absolute paths that already live *inside* a sandbox, so they are never a host
+# directory to bind-mount.
+_SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
+
+
+def _is_host_path(cwd: str) -> bool:
+    """Return True when *cwd* names a host directory rather than a sandbox one.
+
+    Split out of :func:`_is_unusable_container_cwd` so the workdir guard and
+    the mount resolver below cannot drift on what counts as a host path.
+    """
+    if not cwd:
+        return False
+    if any(cwd.startswith(p) for p in _HOST_CWD_PREFIXES):
+        return True
+    return bool(_WINDOWS_DRIVE_PATH_RE.match(cwd))
+
+
+def resolve_docker_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
+    """Split *raw_cwd* into ``(host mount source, in-container workdir)``.
+
+    Returns ``(host_path, "/workspace")`` when *raw_cwd* is a host directory to
+    bind-mount into the sandbox, or ``(None, None)`` when no mount applies —
+    either because it already points inside a sandbox or because it is not a
+    directory on this host.
+
+    Shared by the startup resolution in :func:`_get_env_config` and the
+    per-session resolution in the terminal command path, so the two can never
+    disagree about what gets mounted where.
+    """
+    if not isinstance(raw_cwd, str) or not raw_cwd.strip():
+        return None, None
+    raw = raw_cwd.strip()
+    # Rule out sandbox paths on the RAW spelling, before any abspath(): on a
+    # Windows host ``os.path.abspath("/workspace")`` yields ``C:\workspace``,
+    # which then looks exactly like a host path and would get bind-mounted over
+    # the container's own workspace. For the same reason, a POSIX-rooted path on
+    # a Windows host is a container path by construction — Windows host
+    # directories are drive-qualified or UNC.
+    if raw.startswith(_SANDBOX_PATH_PREFIXES):
+        return None, None
+    if os.name == "nt" and raw.startswith("/"):
+        return None, None
+    candidate = os.path.abspath(os.path.expanduser(raw))
+    if candidate.startswith(_SANDBOX_PATH_PREFIXES):
+        return None, None
+    if _is_host_path(candidate):
+        return candidate, _DOCKER_WORKSPACE_PATH
+    # A POSIX-absolute path outside the known host roots only counts as a host
+    # directory when it actually exists here: RL/benchmark overrides
+    # legitimately pass image-internal paths like /app that exist only inside
+    # the container, and those must reach ``docker run -w`` unchanged.
+    if os.path.isabs(candidate) and os.path.isdir(candidate):
+        return candidate, _DOCKER_WORKSPACE_PATH
+    return None, None
 
 
 def _is_ssh_remote_tilde_cwd(backend: str, cwd: str) -> bool:
@@ -1295,11 +1436,11 @@ def _is_unusable_container_cwd(cwd: str) -> bool:
     """
     if not cwd:
         return False
-    if any(cwd.startswith(p) for p in _HOST_CWD_PREFIXES):
+    if _is_host_path(cwd):
         return True
     # Relative paths (".", "src/") can't be a container workdir either. Windows
     # drive paths are absolute on Windows but os.path.isabs() is False on a
-    # POSIX host, so they're already caught by the prefix check above.
+    # POSIX host, so they're already caught by the host-path check above.
     if not os.path.isabs(cwd):
         return True
     return False
@@ -1353,7 +1494,14 @@ def _get_env_config() -> Dict[str, Any]:
     _ensure_terminal_env_bridged()
     env_type = os.getenv("TERMINAL_ENV", "local")
     
-    mount_docker_cwd = os.getenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false").lower() in {"true", "1", "yes"}
+    # env_var_enabled (not a local truthy set) so this agrees exactly with
+    # _docker_workspace_per_session_enabled(), which the container-identity path
+    # calls without a config dict. A split answer between the two would key
+    # containers off a directory that never gets mounted.
+    mount_docker_cwd = env_var_enabled("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
+    # Follow the workspace directory each surface (Desktop picker, ACP client)
+    # selected per session, instead of only the launch cwd.
+    workspace_per_session = _resolve_workspace_per_session(env_type, mount_docker_cwd)
     container_backend = env_type in {"docker", "singularity", "modal", "daytona"}
     docker_backend = env_type == "docker"
 
@@ -1401,13 +1549,10 @@ def _get_env_config() -> Dict[str, Any]:
     host_cwd = None
     if env_type == "docker" and mount_docker_cwd:
         docker_cwd_source = os.getenv("TERMINAL_CWD") or _safe_getcwd()
-        candidate = os.path.abspath(os.path.expanduser(docker_cwd_source))
-        if (
-            any(candidate.startswith(p) for p in _HOST_CWD_PREFIXES)
-            or (os.path.isabs(candidate) and os.path.isdir(candidate) and not candidate.startswith(("/workspace", "/root")))
-        ):
-            host_cwd = candidate
-            cwd = "/workspace"
+        mount_source, container_cwd = resolve_docker_workspace_mount(docker_cwd_source)
+        if mount_source:
+            host_cwd = mount_source
+            cwd = container_cwd
     elif env_type in _CONTAINER_BACKENDS and cwd:
         # Host paths and relative paths that won't work inside containers
         if _is_unusable_container_cwd(cwd) and cwd != default_cwd:
@@ -1427,6 +1572,7 @@ def _get_env_config() -> Dict[str, Any]:
         "cwd": cwd,
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
+        "docker_workspace_per_session": workspace_per_session,
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),
         "lifetime_seconds": _parse_env_var("TERMINAL_LIFETIME_SECONDS", "300"),
         # SSH-specific config
@@ -2184,6 +2330,18 @@ def terminal_tool(
             image = ""
 
         cwd = overrides.get("cwd") or get_session_cwd(task_id) or config["cwd"]
+        # Per-session workspace mounting: this session's cwd is a *host* path to
+        # bind-mount, not a container workdir. Resolve it into a mount source
+        # plus the in-container ``/workspace`` workdir here, so the host-path
+        # guard below already sees a safe container path and lets it through.
+        # With the opt-in off, ``host_cwd`` stays whatever startup resolved and
+        # the guard keeps discarding host paths exactly as before.
+        host_cwd = config.get("host_cwd")
+        if config.get("docker_workspace_per_session"):
+            mount_source, container_cwd = resolve_docker_workspace_mount(cwd)
+            if mount_source:
+                host_cwd = mount_source
+                cwd = container_cwd
         # A per-task cwd override (registered by the gateway/TUI for workspace
         # tracking, or by RL/benchmark envs) wins over config["cwd"] — but
         # config["cwd"] was already sanitized for container backends in
@@ -2322,7 +2480,7 @@ def terminal_tool(
                             container_config=container_config,
                             local_config=local_config,
                             task_id=effective_task_id,
-                            host_cwd=config.get("host_cwd"),
+                            host_cwd=host_cwd,
                         )
                     except ImportError as e:
                         return json.dumps({
@@ -2382,7 +2540,7 @@ def terminal_tool(
         if not force:
             approval = _check_all_guards(
                 command, env_type,
-                has_host_access=_docker_has_host_access(config),
+                has_host_access=_docker_has_host_access(config, host_cwd),
             )
             if not approval["approved"]:
                 # Check if this is an approval_required (gateway ask mode)

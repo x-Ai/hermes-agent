@@ -213,6 +213,7 @@ terminal:
   backend: docker
   docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
   docker_mount_cwd_to_workspace: false  # Mount launch dir into /workspace
+  docker_workspace_per_session: false   # Follow each session's project dir
   docker_run_as_host_user: false   # See "Running container as host user" below
   docker_forward_env:              # Host env vars to forward into container
     - "GITHUB_TOKEN"
@@ -299,6 +300,7 @@ Every key under `terminal:` has an env-var override of the form `TERMINAL_<KEY_U
 | `TERMINAL_DOCKER_VOLUMES` | `docker_volumes` | JSON array of `"host:container[:ro]"` strings |
 | `TERMINAL_DOCKER_EXTRA_ARGS` | `docker_extra_args` | JSON array |
 | `TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE` | `docker_mount_cwd_to_workspace` | `true` / `false` |
+| `TERMINAL_DOCKER_WORKSPACE_PER_SESSION` | `docker_workspace_per_session` | `true` / `false` — needs `..._MOUNT_CWD_TO_WORKSPACE=true` |
 | `TERMINAL_DOCKER_RUN_AS_HOST_USER` | `docker_run_as_host_user` | `true` / `false` |
 | `TERMINAL_DOCKER_NETWORK` | `docker_network` | `true` / `false` — default `true`; `false` = `--network=none` |
 | `TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES` | `docker_persist_across_processes` | `true` / `false` — default `true` |
@@ -519,6 +521,29 @@ Security tradeoff:
 - `true` gives the sandbox direct access to the directory you launched Hermes from
 
 Use the opt-in only when you intentionally want the container to work on live host files.
+
+### Optional: Follow the Project Directory You Picked
+
+`docker_mount_cwd_to_workspace` mounts the directory Hermes was *launched* from. That is the wrong directory when you pick projects inside Hermes — the Desktop app's folder picker, or an ACP client switching its project root. A second opt-in makes the mount follow the directory the current session selected:
+
+```yaml
+terminal:
+  backend: docker
+  docker_mount_cwd_to_workspace: true   # required — this is what creates a mount
+  docker_workspace_per_session: true    # make that mount follow the session
+```
+
+A container's `/workspace` bind mount is fixed at `docker run` time and cannot be changed afterwards, so **each project directory gets its own container**. Switching projects switches containers; switching back reuses the original one with its installed packages and background processes still alive. Idle containers are reclaimed by the same lifecycle rules as any other Hermes container (see **Container lifecycle**).
+
+Both flags are required. `docker_workspace_per_session` on its own does nothing, because without `docker_mount_cwd_to_workspace` there is no bind mount to follow.
+
+Consequences worth knowing before you turn this on:
+- **It inherits the security trade-off above, per project.** Every directory you pick becomes host-writable from inside the sandbox.
+- **Container count grows with the number of projects you touch.** This is what makes switching back instant, but each container holds its own image layer and package state.
+- **Approval prompts follow the mount.** Dangerous commands lose the sandbox fast-path in any session that has a host directory mounted, which is the correct posture — the sandbox is no longer the boundary.
+- **On Linux, add `docker_run_as_host_user: true`** unless you want root-owned files appearing in your project directories. (It is a no-op on Windows, where Docker Desktop handles the mapping.)
+
+Leave this off if you want one container for everything, or if you drive Hermes from the CLI where the launch directory is already the project directory.
 
 ### Persistent Shell
 

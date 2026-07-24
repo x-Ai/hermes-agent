@@ -237,6 +237,7 @@ terminal:
   #   profile - force HERMES_HOME/home for strict per-profile CLI config isolation
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
+  docker_workspace_per_session: false   # Mount the project dir each session picked (Desktop folder picker) instead of the launch cwd. Needs the flag above; one container per project.
   lifetime_seconds: 300
   # sudo_password: "hunter2"  # Optional: pipe a sudo password via sudo -S. SECURITY WARNING: plaintext.
   # sudo_password: ""         # Explicit empty password: try empty and never open the interactive sudo prompt.
@@ -268,6 +269,11 @@ terminal:
 #   lifetime_seconds: 300
 #   docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
 #   docker_mount_cwd_to_workspace: true   # Explicit opt-in: mount your launch cwd into /workspace
+#   # Optional: follow the project directory the current session picked (the
+#   # Desktop folder picker, an ACP client's project root) instead of only the
+#   # launch cwd. Requires the flag above. Each project directory gets its own
+#   # container, because a container's /workspace mount is fixed at creation.
+#   docker_workspace_per_session: true
 #   # Optional: run the container as your host user's uid:gid so files written
 #   # into bind-mounted dirs are owned by you, not root. Drops SETUID/SETGID
 #   # caps too since no gosu privilege drop is needed. Leave off if your
