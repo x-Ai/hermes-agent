@@ -29,7 +29,7 @@ export interface RuntimeReadinessResult {
 
 export type RuntimeReadinessRequester = <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
 
-const DEFAULT_NOT_READY_REASON = 'Add a provider credential before sending your first message.'
+export const DEFAULT_NOT_READY_REASON = 'Add a provider credential before sending your first message.'
 
 function toErrorMessage(error: unknown): null | string {
   if (error instanceof Error) {
