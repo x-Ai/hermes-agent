@@ -14,7 +14,6 @@ import {
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Globe, Loader2, Plus, Save, Trash2, Zap } from '@/lib/icons'
-import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
 import type { CustomEndpoint, CustomEndpointUpdate, CustomEndpointValidationResponse } from '@/types/hermes'
 
@@ -504,9 +503,6 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               <Button disabled={saving || !canSave} onClick={() => void handleSave()}>
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 {t.common.save}
-              </Button>
-              <Button className={cn(!editingId && 'hidden')} onClick={startNewEndpoint} type="button" variant="ghost">
-                {ce.newEndpoint}
               </Button>
             </div>
           </div>
