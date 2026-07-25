@@ -966,6 +966,14 @@ DEFAULT_CONFIG = {
         # Set a positive value in config.yaml only if you explicitly want a
         # grace window on /restart (and keep it well under TimeoutStopSec).
         "restart_drain_timeout": 0,
+        # Upper bound (seconds) a submitted prompt waits for the deferred
+        # agent build (MCP discovery, model metadata, skills scan) before
+        # failing with a visible error (#63078). The gateway's wait is
+        # patient — the prompt is delivered the moment the build completes
+        # and a progress notice is emitted past 30s — so this cap only fires
+        # on a genuinely hung build. Raise it for deployments with many slow
+        # or unreachable MCP servers.
+        "build_wait_timeout": 600,
         # Max app-level retry attempts for API errors (connection drops,
         # provider timeouts, 5xx, etc.) before the agent surfaces the
         # failure.  The OpenAI SDK already does its own low-level retries
@@ -1486,6 +1494,13 @@ DEFAULT_CONFIG = {
                                       # tool iteration. 0 = commit any non-zero prune.
         "hygiene_hard_message_limit": 5000,  # gateway session-hygiene force-compress threshold by message count
         "hygiene_timeout_seconds": 30,  # max seconds gateway waits for pre-agent hygiene compression
+                                      # WITHOUT forward progress. The summary call streams, so
+                                      # this is an inactivity budget: a slow model still
+                                      # producing tokens keeps extending the wait; only a
+                                      # silent/hung call is cut off.
+        "hygiene_total_ceiling_seconds": 600,  # absolute cap on the hygiene compression wait even
+                                      # while tokens are still moving — bounds a degenerate
+                                      # trickle stream. Clamped to >= hygiene_timeout_seconds.
         "hygiene_failure_cooldown_seconds": 300,  # skip repeated failed hygiene attempts for this session
         "protect_first_n": 3,         # non-system head messages always preserved
                                       # verbatim, in ADDITION to the system prompt
@@ -3678,6 +3693,17 @@ DEFAULT_CONFIG = {
         #   false   - always keep GPU acceleration on, even over a remote display.
         # Bridged to the HERMES_DESKTOP_DISABLE_GPU env var the Electron app reads.
         "disable_gpu": "auto",
+        # Auto-continue a turn that was killed mid-run by an app/backend/machine
+        # crash: resuming that session re-submits the interrupted prompt (shown
+        # as a "resumed interrupted turn" event) if the interruption is fresh.
+        # A stale interruption just shows the recovered partial transcript.
+        "auto_continue": {
+            "enabled": True,
+            # How recent the interruption must be to auto-continue (minutes).
+            "freshness_minutes": 15,
+            # Crash-loop breaker: max automatic re-runs of one interrupted turn.
+            "max_attempts": 2,
+        },
     },
 
 
@@ -8263,6 +8289,25 @@ def save_env_value(key: str, value: str):
 
     os.environ[key] = value
     invalidate_env_cache()
+
+
+def custom_endpoint_key_env(identity: str) -> str:
+    """Env var name holding a custom endpoint's API key.
+
+    ``identity`` is whatever names the endpoint on the calling path — the
+    Desktop panel's endpoint id, or ``host:port`` for the CLI setup flow.
+    Two properties matter:
+
+    - It keys off the endpoint's own identity, not just its hostname, so two
+      endpoints on one host (``127.0.0.1:8000`` and ``:8001``) get separate
+      slots instead of the second save clobbering the first's credential.
+    - The fixed ``HERMES_CUSTOM_`` prefix keeps the result a valid POSIX name
+      even when the slug starts with a digit, which every IP-based local
+      endpoint does (``127.0.0.1`` → ``127_0_0_1``). ``save_env_value``
+      rejects digit-leading names outright.
+    """
+    slug = re.sub(r"[^A-Z0-9]+", "_", str(identity or "").upper()).strip("_")
+    return f"HERMES_CUSTOM_{slug}_API_KEY" if slug else "HERMES_CUSTOM_API_KEY"
 
 
 def remove_env_value(key: str) -> bool:

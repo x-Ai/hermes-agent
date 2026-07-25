@@ -89,7 +89,7 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
   }
 }
 
-function toPayload(form: EndpointForm): CustomEndpointUpdate {
+function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate {
   const contextLength = Number.parseInt(form.contextLength, 10)
 
   return {
@@ -111,7 +111,8 @@ function toPayload(form: EndpointForm): CustomEndpointUpdate {
     make_default: form.makeDefault,
     // Always sent as a string: non-empty pins the agent, '' clears any
     // override back to the SDK default.
-    user_agent: form.userAgent.trim()
+    user_agent: form.userAgent.trim(),
+    models: models?.length ? models : undefined
   }
 }
 
@@ -186,7 +187,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   async function handleSave() {
     try {
       setSaving(true)
-      const response = await saveCustomEndpoint(toPayload(form))
+      const response = await saveCustomEndpoint(toPayload(form, discoveredModels))
       setEndpoints(response.endpoints)
       const saved = response.endpoints.find(endpoint => endpoint.id === response.id)
 
