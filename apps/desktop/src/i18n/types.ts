@@ -1559,6 +1559,8 @@ export interface Translations {
     }
     blueprints: {
       tab: string
+      startFrom: string
+      custom: string
       subtitle: string
       dialogDesc: string
       scheduleIt: string
