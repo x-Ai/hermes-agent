@@ -947,7 +947,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
         _creation_locks_lock,
         _resolve_container_task_id,
         _is_unusable_container_cwd,
-        resolve_workspace_mount,
+        _resolve_workspace_mount_for_task,
         _CONTAINER_BACKENDS,
     )
     import time
@@ -1022,16 +1022,16 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
             cwd = overrides.get("cwd") or recorded_cwd or config["cwd"]
             # Per-session workspace mounting: the resolved cwd is a *host*
             # directory to bind-mount, not a container workdir. Translate it to
-            # a mount source plus ``/workspace`` before the guard below runs, or
-            # the guard discards it and the file tools search the wrong tree —
-            # the same class of silent-empty-results bug as #54447, just from
-            # the opposite direction.
+            # a mount source plus the in-sandbox workdir before the guard below
+            # runs, or the guard discards it and the file tools search the wrong
+            # tree — the same class of silent-empty-results bug as #54447, just
+            # from the opposite direction. Shared resolver: the mount must match
+            # the cwd the container identity was keyed on.
             host_cwd = config.get("host_cwd")
-            if config.get("workspace_per_session"):
-                mount_source, container_cwd = resolve_workspace_mount(cwd)
-                if mount_source:
-                    host_cwd = mount_source
-                    cwd = container_cwd
+            mount_source, container_cwd = _resolve_workspace_mount_for_task(raw_task_id, config)
+            if mount_source:
+                host_cwd = mount_source
+                cwd = container_cwd
             # Re-apply the container cwd guard that _get_env_config() already
             # ran on config["cwd"] (see #50636).  A per-task cwd override
             # registered by the gateway/TUI/ACP for workspace tracking is a

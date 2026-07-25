@@ -76,10 +76,18 @@ def per_session_on(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def _clean_overrides():
-    """Keep the module-global override registry from leaking between tests."""
+    """Keep the module-global session state from leaking between tests.
+
+    The recorded session cwd is cleaned alongside the override registry
+    because it is the second rung of the chain that decides both the mount and
+    the container key — a leftover record would silently re-key a later test's
+    sandbox.
+    """
     yield
     for key in list(tt._task_env_overrides):
         tt.clear_task_env_overrides(key)
+    with tt._session_cwd_lock:
+        tt._session_cwd.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -690,3 +698,169 @@ class TestSingularityBindMount:
             workspace_mount_path="/mnt/project",
         )
         assert f"{proj}:/mnt/project" in " ".join(self._instance_start_cmd(calls))
+
+
+# ---------------------------------------------------------------------------
+# 7. Identity / mount agreement
+# ---------------------------------------------------------------------------
+
+class TestIdentityAndMountAgree:
+    """The container key and the bind mount must come from ONE cwd.
+
+    When they diverged, a sandbox keyed on project A was mounted at project B:
+    the agent believed it worked in A while every file it touched lived in B,
+    and each session minted a fresh container because the key moved while the
+    mount stayed on the global config directory. The regression vector was
+    ``code_execution_tool`` reading the override registry under the *collapsed*
+    task id (``ws-<hash>``) — a key that registry never contains, since it is
+    keyed by session id — so its cwd silently fell back to ``config["cwd"]``.
+    """
+
+    @pytest.fixture
+    def config(self, projects, per_session_on, monkeypatch, tmp_path):
+        """Startup config whose global cwd is NOT any session's project dir."""
+        global_dir = tmp_path / "elsewhere"
+        global_dir.mkdir()
+        monkeypatch.setenv("TERMINAL_CWD", str(global_dir))
+        return tt._get_env_config()
+
+    def test_every_session_mounts_the_directory_it_is_keyed_on(self, projects, config):
+        a, b = projects
+        tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
+        tt.register_task_env_overrides("sess-b", {"cwd": str(b)})
+
+        for session, project in (("sess-a", a), ("sess-b", b)):
+            identity = tt._resolve_container_task_id(session)
+            mount_source, _ = tt._resolve_workspace_mount_for_task(session, config)
+
+            assert mount_source == str(project)
+            assert identity == tt._workspace_container_key(str(project)), (
+                f"{session} is keyed on a different directory than it mounts"
+            )
+
+    def test_two_sessions_on_one_project_share_a_container(self, projects, config):
+        """The whole point of the feature: a project's sessions pool onto one
+        sandbox, however many of them there are."""
+        a, _ = projects
+        for session in ("sess-1", "sess-2", "sess-3"):
+            tt.register_task_env_overrides(session, {"cwd": str(a)})
+
+        keys = {tt._resolve_container_task_id(s) for s in ("sess-1", "sess-2", "sess-3")}
+        mounts = {
+            tt._resolve_workspace_mount_for_task(s, config)[0]
+            for s in ("sess-1", "sess-2", "sess-3")
+        }
+
+        assert len(keys) == 1
+        assert mounts == {str(a)}
+
+    def test_a_session_without_a_registered_cwd_does_not_fan_out(self, config):
+        """No host cwd to key on means the shared default container — and no
+        mount. Reporting one without the other is the divergence itself."""
+        identity = tt._resolve_container_task_id("never-registered")
+        mount_source, _ = tt._resolve_workspace_mount_for_task("never-registered", config)
+
+        assert identity == "default"
+        assert mount_source is None
+
+    def test_recorded_session_cwd_feeds_identity_too(self, projects, config):
+        """``get_session_cwd`` is the second rung of the mount chain, so it must
+        also be the second rung of the identity chain."""
+        a, _ = projects
+        tt.record_session_cwd("sess-recorded", str(a))
+
+        identity = tt._resolve_container_task_id("sess-recorded")
+        mount_source, _ = tt._resolve_workspace_mount_for_task("sess-recorded", config)
+
+        assert mount_source == str(a)
+        assert identity == tt._workspace_container_key(str(a))
+
+    def test_opt_in_off_means_no_mount_and_the_shared_container(self, projects, monkeypatch):
+        a, _ = projects
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
+        monkeypatch.setenv("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "false")
+        tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
+        config = tt._get_env_config()
+
+        assert tt._resolve_container_task_id("sess-a") == "default"
+        assert tt._resolve_workspace_mount_for_task("sess-a", config) == (None, None)
+
+
+# ---------------------------------------------------------------------------
+# 8. One mount per sandbox, whichever tool creates it
+# ---------------------------------------------------------------------------
+
+class TestEveryToolResolvesOneMount:
+    """execute_code and the file tools share a container, so they must resolve
+    the same mount for it.
+
+    Each reaches ``_create_environment`` by its own path and whichever wins the
+    race to create the sandbox decides what gets mounted. This exercises those
+    real paths rather than the resolver alone: the reported bug was
+    ``code_execution_tool`` reading overrides under the collapsed container id
+    and mounting the global config directory while the file tools mounted the
+    session's actual project.
+    """
+
+    @pytest.fixture
+    def creation_args(self, per_session_on, monkeypatch, tmp_path):
+        """Return the ``(cwd, host_cwd)`` a tool would create a sandbox with."""
+        global_dir = tmp_path / "elsewhere"
+        global_dir.mkdir()
+        monkeypatch.setenv("TERMINAL_CWD", str(global_dir))
+
+        import tools.file_tools as ft
+
+        class _Captured(Exception):
+            def __init__(self, kwargs):
+                self.kwargs = kwargs
+
+        monkeypatch.setattr(
+            tt, "_create_environment", lambda **kwargs: (_ for _ in ()).throw(_Captured(kwargs))
+        )
+
+        def _resolve(trigger, task_id):
+            tt._active_environments.clear()
+            ft._file_ops_cache.clear()
+            try:
+                trigger(task_id)
+            except _Captured as exc:
+                return exc.kwargs.get("cwd"), exc.kwargs.get("host_cwd")
+            raise AssertionError(f"{trigger.__name__} never reached _create_environment")
+
+        yield _resolve
+        tt._active_environments.clear()
+        ft._file_ops_cache.clear()
+
+    @pytest.fixture
+    def tools(self):
+        import tools.code_execution_tool as ce
+        import tools.file_tools as ft
+
+        return ce._get_or_create_env, ft._get_file_ops
+
+    def test_both_tools_mount_the_session_project(self, projects, creation_args, tools):
+        execute_code, file_tools = tools
+        a, b = projects
+        tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
+        tt.register_task_env_overrides("sess-b", {"cwd": str(b)})
+
+        for session, project in (("sess-a", a), ("sess-b", b)):
+            from_execute_code = creation_args(execute_code, session)
+            from_file_tools = creation_args(file_tools, session)
+
+            assert from_execute_code == from_file_tools, (
+                f"{session}: execute_code and the file tools disagree on the mount"
+            )
+            assert from_execute_code[1] == str(project)
+            assert from_execute_code[0] == tt._workspace_mount_path()
+
+    def test_the_sandbox_is_named_after_what_it_mounts(self, projects, creation_args, tools):
+        execute_code, _ = tools
+        a, _unused = projects
+        tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
+
+        _cwd, host_cwd = creation_args(execute_code, "sess-a")
+
+        assert tt._resolve_container_task_id("sess-a") == tt._workspace_container_key(host_cwd)

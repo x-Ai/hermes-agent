@@ -1205,6 +1205,39 @@ def clear_task_env_overrides(task_id: str):
     clear_session_cwd(task_id)
 
 
+def _workspace_cwd_for_task(task_id: Optional[str], config_cwd: str = "") -> str:
+    """Return the host cwd that BOTH keys this task's sandbox and feeds its mount.
+
+    Container identity (:func:`_resolve_container_task_id`) and the bind mount
+    each tool resolves must read the same cwd through the same fallback chain.
+    When they diverge, a sandbox keyed on project A gets mounted at project B:
+    the agent believes it is working in A while every file it touches lives in
+    B, and each session mints a fresh container because the key moves while the
+    mount does not.
+
+    Reads the raw task id only — no collapsed-id fallback like
+    :func:`resolve_task_overrides`, because this feeds the very function that
+    computes the collapsed id (and would otherwise recurse).
+    """
+    overrides = _task_env_overrides.get(task_id or "default") or {}
+    return str(overrides.get("cwd") or get_session_cwd(task_id) or config_cwd or "")
+
+
+def _resolve_workspace_mount_for_task(
+    task_id: Optional[str], config: Dict[str, Any]
+) -> tuple[Optional[str], Optional[str]]:
+    """Resolve ``(mount source, in-sandbox workdir)`` for *task_id*.
+
+    The one entry point every tool uses for per-session workspace mounting, so
+    terminal / file / execute_code cannot resolve three different mounts for
+    the sandbox they share. Returns ``(None, None)`` when the opt-in is off or
+    the cwd is not a host directory to mount.
+    """
+    if not config.get("workspace_per_session"):
+        return None, None
+    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("cwd") or ""))
+
+
 def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """
     Map a tool-call ``task_id`` to the container/sandbox key used by
@@ -1246,10 +1279,15 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
         overrides = _task_env_overrides[task_id]
         if set(overrides.keys()) & _ISOLATION_KEYS:
             return task_id
-        if _workspace_per_session_enabled():
-            mount_source, _ = resolve_workspace_mount(overrides.get("cwd") or "")
-            if mount_source:
-                return _workspace_container_key(mount_source)
+    # Deliberately outside the override-registry guard above: the cwd that keys
+    # the sandbox comes from the same chain that feeds the mount
+    # (:func:`_workspace_cwd_for_task`), and that chain also reads the recorded
+    # session cwd. Gating this on a registry hit would key a session on the
+    # shared container while still mounting its project directory.
+    if _workspace_per_session_enabled():
+        mount_source, _ = resolve_workspace_mount(_workspace_cwd_for_task(task_id))
+        if mount_source:
+            return _workspace_container_key(mount_source)
     return "default"
 
 
@@ -2468,16 +2506,15 @@ def terminal_tool(
         cwd = overrides.get("cwd") or get_session_cwd(task_id) or config["cwd"]
         # Per-session workspace mounting: this session's cwd is a *host* path to
         # bind-mount, not a container workdir. Resolve it into a mount source
-        # plus the in-container ``/workspace`` workdir here, so the host-path
-        # guard below already sees a safe container path and lets it through.
-        # With the opt-in off, ``host_cwd`` stays whatever startup resolved and
-        # the guard keeps discarding host paths exactly as before.
+        # plus the in-container workdir here, so the host-path guard below
+        # already sees a safe container path and lets it through. Routed through
+        # the shared resolver so the mount can never disagree with the container
+        # identity that _resolve_container_task_id computed from the same cwd.
         host_cwd = config.get("host_cwd")
-        if config.get("workspace_per_session"):
-            mount_source, container_cwd = resolve_workspace_mount(cwd)
-            if mount_source:
-                host_cwd = mount_source
-                cwd = container_cwd
+        mount_source, container_cwd = _resolve_workspace_mount_for_task(task_id, config)
+        if mount_source:
+            host_cwd = mount_source
+            cwd = container_cwd
         # A per-task cwd override (registered by the gateway/TUI for workspace
         # tracking, or by RL/benchmark envs) wins over config["cwd"] — but
         # config["cwd"] was already sanitized for container backends in
