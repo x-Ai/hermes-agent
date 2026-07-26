@@ -2402,6 +2402,11 @@ export const ar = defineLocale({
           pending: 'جار سرد الملفات',
           pendingAction: 'جار السرد'
         },
+        memory: {
+          done: 'تم الحفظ في الذاكرة',
+          pending: 'جار الحفظ في الذاكرة',
+          pendingAction: 'جار الحفظ'
+        },
         patch: {
           done: 'تم تصحيح الملف',
           pending: 'جار تصحيح الملف',
