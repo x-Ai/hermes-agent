@@ -295,7 +295,7 @@ Future messages in this room will use that transcript until `/reset` or another 
     success:               "✅ 主频道已设置为 **{name}**（ID：{chat_id}）。\n定时任务和跨平台消息将发送到此处。"
   context:
     header:                "🧠 **上下文窗口**"
-    model:                 "模型：`{model}`"
+    model:                 "Model: `{model}`"
     window:                "窗口：{total} tokens"
     in_use:                "已使用：{used} / {total}（{pct}%）"
     bar:                   "{bar}"
