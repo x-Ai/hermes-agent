@@ -2,14 +2,11 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { DecodeText } from '@/components/ui/decode-text'
+import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { $desktopBoot } from '@/store/boot'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $gatewayState } from '@/store/session'
-
-// Decode mechanics live in the shared <DecodeText> primitive
-// (components/ui/decode-text.tsx). "CONN" stays legible via prefix={4}.
-const TEXT = 'CONNECTING'
 
 // Exit choreography (ms): text fades down + out, hold, then the overlay fades.
 const TEXT_OUT_MS = 360
@@ -40,6 +37,9 @@ function prefersReducedMotion(): boolean {
 }
 
 export function GatewayConnectingOverlay() {
+  const { t } = useI18n()
+  const connectingLabel = t.boot.connecting
+  const decodePrefix = /^[A-Za-z]/.test(connectingLabel) ? Math.min(4, connectingLabel.length) : 0
   const gatewayState = useStore($gatewayState)
   const boot = useStore($desktopBoot)
   const gatewaySwitching = useStore($gatewaySwitching)
@@ -141,7 +141,7 @@ export function GatewayConnectingOverlay() {
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[1200] grid place-items-center bg-(--ui-chat-surface-background) transition-opacity duration-500 ease-out',
+        'fixed inset-0 z-(--z-connecting) grid place-items-center bg-(--ui-chat-surface-background) transition-opacity duration-500 ease-out',
         overlayHidden ? 'pointer-events-none opacity-0' : 'opacity-100'
       )}
     >
@@ -152,8 +152,8 @@ export function GatewayConnectingOverlay() {
           leaving ? 'translate-y-2 opacity-0 saturate-0' : 'translate-y-0 opacity-100 saturate-100'
         )}
         cursor
-        prefix={4}
-        text={TEXT}
+        prefix={decodePrefix}
+        text={connectingLabel}
       />
     </div>
   )

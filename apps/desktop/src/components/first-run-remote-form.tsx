@@ -7,6 +7,9 @@ import type { DesktopConnectionProbeResult } from '@/global'
 import { useI18n } from '@/i18n'
 import { deriveRemoteAuthProviderShape } from '@/lib/desktop-remote-auth'
 import { AlertCircle, Check, Loader2, LogIn } from '@/lib/icons'
+import { coerceRemoteUrlScheme } from '@/lib/remote-url'
+
+import { SetupLocaleControl } from './setup-locale-control'
 
 type AuthMode = 'oauth' | 'token'
 type ProbeStatus = 'idle' | 'probing' | 'done' | 'error'
@@ -15,8 +18,10 @@ interface FirstRunRemoteFormProps {
   onBack: () => void
 }
 
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err || 'Unknown error')
+function errorMessage(err: unknown, fallback: string): string {
+  const message = err instanceof Error ? err.message : String(err || '')
+
+  return message || fallback
 }
 
 export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
@@ -36,7 +41,7 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
   const probeSeq = useRef(0)
   const testSeq = useRef(0)
 
-  const trimmedUrl = remoteUrl.trim()
+  const trimmedUrl = coerceRemoteUrlScheme(remoteUrl)
 
   const invalidateTest = useCallback(() => {
     testSeq.current += 1
@@ -88,7 +93,7 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
 
           setProbe(null)
           setProbeStatus('error')
-          setError(errorMessage(err))
+          setError(errorMessage(err, copy.unknownError))
         })
     }, 500)
 
@@ -140,7 +145,7 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
         setError(copy.signInIncomplete)
       }
     } catch (err) {
-      setError(errorMessage(err))
+      setError(errorMessage(err, copy.unknownError))
     } finally {
       setSigningIn(false)
     }
@@ -187,7 +192,7 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
       setLastTestedPayloadKey(testedPayloadKey)
     } catch (err) {
       if (seq === testSeq.current && testedPayloadKey === payloadKeyRef.current) {
-        setError(errorMessage(err))
+        setError(errorMessage(err, copy.unknownError))
       }
     } finally {
       if (seq === testSeq.current) {
@@ -211,7 +216,7 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
       await window.hermesDesktop.applyConnectionConfig(testedPayload)
       applied = true
     } catch (err) {
-      setError(errorMessage(err))
+      setError(errorMessage(err, copy.unknownError))
     } finally {
       setApplying(false)
     }
@@ -222,7 +227,8 @@ export function FirstRunRemoteForm({ onBack }: FirstRunRemoteFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[1400] flex items-center justify-center bg-background/90 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-(--z-setup) flex items-center justify-center bg-background/90 p-4 backdrop-blur-md">
+      <SetupLocaleControl />
       <div className="flex w-full max-w-xl flex-col rounded-xl border border-(--stroke-nous) bg-card p-8 shadow-nous">
         <div className="flex items-start gap-4">
           <BrandMark className="size-11 shrink-0" />

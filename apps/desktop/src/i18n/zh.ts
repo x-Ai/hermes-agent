@@ -64,6 +64,7 @@ export const zh: Translations = {
 
   boot: {
     ready: 'Hermes 桌面版已就绪',
+    connecting: '连接中',
     desktopBootFailedWithMessage: message => `桌面启动失败：${message}`,
     steps: {
       connectingGateway: '正在连接桌面网关',
@@ -130,6 +131,7 @@ export const zh: Translations = {
     errors: {
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY。',
       elevenLabsRejectedKey: 'ElevenLabs 拒绝了该 API key (401)。',
+      diskFull: '磁盘已满 — 请腾出一些空间后再试。',
       gatewayAuthFailed: '网关认证失败 — 请检查你的 API_SERVER_KEY。',
       methodNotAllowed: '桌面后端拒绝了该请求 (405 Method Not Allowed)。请尝试重启 Hermes Desktop。',
       microphonePermission: '麦克风权限已被拒绝。',
@@ -151,6 +153,7 @@ export const zh: Translations = {
       noSpeechDetected: '没有检测到语音',
       playbackFailed: '语音播放失败',
       recordingFailed: '语音录制失败',
+      sayStopToEnd: phrase => `说“${phrase}”即可结束语音对话。`,
       transcriptionFailed: '语音转写失败',
       transcriptionUnavailable: '语音转写暂不可用。',
       tryRecordingAgain: '请再录一次。',
@@ -163,7 +166,7 @@ export const zh: Translations = {
       inputTitle: '需要输入',
       inputBody: 'Hermes 正在等待你的回应。',
       turnDoneTitle: 'Hermes 已完成',
-      turnDoneBody: '回复已就绪。',
+      turnDoneBody: '',
       turnErrorTitle: '本轮失败',
       backgroundDoneTitle: '后台任务已完成',
       backgroundFailedTitle: '后台任务失败',
@@ -205,14 +208,14 @@ export const zh: Translations = {
     search: '搜索',
     searchTitle: '搜索会话、视图与操作',
     swapSidebarSides: '交换侧边栏位置',
-    swapSidebarSidesTitle: '交换会话栏和文件浏览器的位置',
     hideRightSidebar: '隐藏右侧栏',
     showRightSidebar: '显示右侧栏',
     muteHaptics: '关闭触感反馈',
     unmuteHaptics: '开启触感反馈',
     openSettings: '打开设置',
     openStarmap: '打开记忆图谱',
-    openKeybinds: '键盘快捷键',
+    enterHud: 'HUD 模式',
+    exitHud: '退出 HUD 模式',
     layoutEditor: '布局编辑器',
     layoutEditorTitle: '布局编辑器 — ⌘ 点击重置布局'
   },
@@ -262,19 +265,25 @@ export const zh: Translations = {
       'session.focusSearch': '搜索会话',
       'session.togglePin': '固定/取消固定当前会话',
       'workspace.newWorktree': '新建工作树',
+      'workspace.openFolder': '打开文件夹为项目',
       'composer.focus': '聚焦输入框',
       'composer.modelPicker': '打开模型选择器',
       'composer.voice': '开始 / 停止语音对话',
       'view.toggleSidebar': '切换会话侧边栏',
       'view.toggleRightSidebar': '切换文件浏览器',
       'view.toggleReview': '切换审查面板',
+      'view.toggleStatusbar': '切换状态栏',
       'view.showFiles': '显示文件浏览器',
+      'view.toggleHud': '切换 HUD 模式',
+      'hud.snapToPointer': '将 HUD 移到指针处（全局，HUD 打开时）',
       'view.showTerminal': '显示终端',
       'view.newTerminal': '新建终端',
       'view.nextTerminal': '下一个终端',
       'view.prevTerminal': '上一个终端',
       'view.closeTerminal': '关闭终端',
       'view.terminalSelection': '将终端选区发送到输入框',
+      'view.terminalCopy': '复制终端选区',
+      'view.terminalPaste': '粘贴到终端',
       'view.closeTab': '关闭标签',
       'view.reopenTab': '重新打开已关闭的标签',
       'view.flipPanes': '交换侧边栏位置',
@@ -370,13 +379,26 @@ export const zh: Translations = {
       disable: '禁用',
       failed: '失败',
       empty: '尚未安装桌面插件。',
-      kinds: { bundled: '内置', disk: '磁盘', runtime: '运行时' }
+      kinds: { bundled: '内置', disk: '磁盘', runtime: '运行时' },
+      agent: {
+        title: '智能体插件',
+        blurb:
+          '运行在 Hermes 后端——工具、技能、MCP 服务器、钩子和斜杠命令。「便携」插件是 Agent Plugins 标准包（技能 + MCP 组合，也可在其他智能体中使用）。开关在新会话中生效。',
+        empty: '尚未安装智能体插件。',
+        loadFailed: '无法加载智能体插件',
+        portable: '便携',
+        search: '搜索插件…',
+        noMatches: '没有匹配的插件。',
+        toggleFailed: (name: string) => `无法切换 ${name}`,
+        updateBackendToManage: '请更新 Hermes 后端以便在桌面端管理此插件。',
+        sources: { bundled: '内置', user: '用户', git: 'git', project: '项目', entrypoint: 'pip' }
+      }
     },
     notifications: {
       title: '通知',
       intro: '原生桌面通知，区别于应用内提示。设置按设备保存，每台电脑各自独立。',
       enableAll: '启用通知',
-      enableAllDesc: '总开关。关闭后将静音下方所有通知。',
+      enableAllDesc: '关闭后静音下方所有通知。',
       focusedHint: '完成提醒仅在 Hermes 处于后台时触发。',
       kinds: {
         approval: {
@@ -393,7 +415,7 @@ export const zh: Translations = {
         },
         turnError: {
           label: '本轮失败',
-          description: '本轮以错误结束。'
+          description: '后台回合错误。'
         },
         backgroundDone: {
           label: '后台任务完成',
@@ -402,6 +424,10 @@ export const zh: Translations = {
         credits: {
           label: '额度提醒',
           description: '额度访问被暂停或恢复。'
+        },
+        plugin: {
+          label: '插件通知',
+          description: 'Hermes 在后台时，桌面插件发送了通知。'
         }
       },
       test: '发送测试通知',
@@ -447,10 +473,18 @@ export const zh: Translations = {
       uiScaleTitle: '界面缩放',
       uiScaleDesc: (percent: number) =>
         `缩放整个应用的文字和界面。也可使用 Cmd/Ctrl 加 +、- 或 0 调整。当前：${percent}%`,
+      terminalFontTitle: '终端字体',
+      terminalFontDesc:
+        '选择已安装的字体用于桌面端终端。Nerd Font 可正确显示 Powerlevel10k 和 Shell 图标；留空则使用内置的 JetBrains Mono。',
+      terminalFontPlaceholder: 'MesloLGS NF 或 CSS 字体栈',
+      terminalFontPreview: '字形预览',
+      terminalFontReset: '使用默认字体',
       translucencyTitle: '窗口透明',
       translucencyDesc: '让整个窗口透出桌面。仅支持 macOS 和 Windows。',
       backdropTitle: '聊天背景',
       backdropDesc: '对话后方那张淡淡的雕像图片。',
+      reactionsTitle: '消息回应',
+      reactionsDesc: 'iMessage 风格的表情回应 — 你可以给消息添加回应，Hermes 也能回应你的消息。',
       embedsTitle: '内嵌预览',
       embedsDesc:
         '富预览会从第三方网站（YouTube、X 等）加载。询问会在你允许前显示占位符；总是会自动加载；关闭则保留纯链接。',
@@ -801,6 +835,9 @@ export const zh: Translations = {
       builtinOnly: '仅内置',
       notSet: '未设置',
       commaSeparated: '逗号分隔的值',
+      searchPlaceholder: '搜索…',
+      noResults: '未找到结果',
+      systemDefault: '系统默认',
       loading: '正在加载 Hermes 配置...',
       emptyTitle: '无可配置项',
       emptyDesc: '此分区没有可调整的设置。',
@@ -809,7 +846,12 @@ export const zh: Translations = {
       imported: '配置已导入',
       invalidJson: '配置 JSON 无效',
       keepAwakeTitle: '保持电脑唤醒',
-      keepAwakeDesc: '阻止本机休眠，让长时间或通宵运行继续进行。屏幕仍可变暗。'
+      keepAwakeDesc: '阻止本机休眠，让长时间或通宵运行继续进行。屏幕仍可变暗。',
+      attachmentSizeTitle: '预览 / 图片加载大小上限',
+      attachmentSizeDesc:
+        '桌面端为预览和图片附件加载本地文件的大小上限（MB）。默认为 16。远程非图片附件使用单独的 256 MB 上限。设置过大会将整个文件读入内存，可能导致应用卡死或崩溃。',
+      attachmentSizeUnit: 'MB',
+      attachmentSizeLabel: '预览 / 图片加载大小上限（MB）'
     },
     quickEntry: {
       enabledTitle: '快速输入',
@@ -831,8 +873,7 @@ export const zh: Translations = {
       saving: '保存中'
     },
     envActions: {
-      actionsFor: label => `${label} 的操作`,
-      credentialActions: '凭据操作',
+      actions: '操作',
       manageInKeys: '在 API 密钥中管理',
       docs: '文档',
       hideValue: '隐藏值',
@@ -912,6 +953,13 @@ export const zh: Translations = {
       existingToken: value => `现有 token ${value}`,
       savedToken: '已保存',
       pasteSessionToken: '粘贴会话 token',
+      plainTextConfirmTitle: '以明文存储网关 token？',
+      plainTextConfirmDesc:
+        '在此设备上未找到操作系统的密钥环服务，因此 token 将以未加密的明文保存在应用的连接设置文件中，以该用户身份运行的任何进程都可读取。请安装或启用 GNOME Keyring 或 KWallet 以进行加密存储。',
+      plainTextConfirmAction: '以明文保存',
+      plainTextStoredTitle: 'Token 以明文存储',
+      plainTextStoredDesc:
+        '安全存储不可用，因此已保存的 token 以未加密方式存储在此设备上应用的连接设置文件中。请安装或启用 GNOME Keyring 或 KWallet 以对其加密。',
       testRemote: '测试远程',
       saveForRestart: '保存到下次重启',
       saveAndReconnect: '保存并重连',
@@ -958,6 +1006,8 @@ export const zh: Translations = {
       sshHermesPathTitle: 'Hermes 路径（可选）',
       sshHermesPathDesc: '远程 hermes 可执行文件的完整路径。留空 = 自动检测。',
       sshHermesPathPlaceholder: '自动检测',
+      sshRemoteProfileTitle: '远程配置文件（可选）',
+      sshRemoteProfileDesc: '远程主机上的配置文件名称。留空 = 使用 Desktop 配置文件名称。',
       sshTestConnection: '测试 SSH',
       sshConnect: '连接',
       sshButtonsHint: '"保存"将在下次启动时生效，"连接"则立即重新连接。',
@@ -1136,7 +1186,7 @@ export const zh: Translations = {
       disableServer: name => `禁用 ${name}`,
       serverEnabled: name => `${name} 已启用 — 对新会话生效。`,
       serverDisabled: name => `${name} 已禁用 — 对新会话生效。`,
-      toggleFailed: name => `切换 ${name} 失败`,
+      toggleFailed: (name, enabled) => `${enabled ? '开启' : '关闭'} ${name} 失败`,
       tabServers: '服务器',
       tabCatalog: '目录',
       catalogLoading: '正在加载 MCP 目录…',
@@ -1458,6 +1508,9 @@ export const zh: Translations = {
         'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
           'grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期。'
       },
+      activeBackend: '当前后端',
+      activeBackendHint: '这是你当前使用的后端',
+      useBackend: '使用此后端',
       nousIncluded: '包含在 Nous 订阅中；登录 Nous Portal 即可激活。',
       nousAuthNeededTitle: '登录 Nous Portal',
       nousAuthNeededMessage: provider => `已保存 ${provider}，但在登录 Nous Portal 之前不会激活。`,
@@ -1652,7 +1705,7 @@ export const zh: Translations = {
     visionModelLink: '在 设置 → 模型 中选择视觉模型',
     toolsetsEnabled: (enabled, total) => `已启用 ${enabled}/${total} 个工具集`,
     configureToolset: label => `配置 ${label}`,
-    toggleToolset: label => `切换 ${label} 工具集`,
+    toggleToolset: (label, enabled) => `${enabled ? '开启' : '关闭'} ${label} 工具集`,
     skillsLoadFailed: '技能加载失败',
     toolsetsRefreshFailed: '工具集刷新失败',
     skillEnabled: '技能已启用',
@@ -1672,7 +1725,7 @@ export const zh: Translations = {
     bulkNoChange: '没有需要更改的内容。',
     usageCount: count => `已使用 ${count} 次`,
     provenance: {
-      agent: '习得',
+      agent: '自定义',
       bundled: '内置',
       hub: '技能中心'
     },
@@ -1800,6 +1853,10 @@ export const zh: Translations = {
     goTo: '前往',
     goToSession: '前往会话',
     branches: '分支',
+    projects: '项目',
+    openFolder: '打开文件夹为项目…',
+    openFolderAt: path => `打开文件夹为项目 — ${path}`,
+    newSessionInProject: project => `在 ${project} 中新建会话`,
     commands: '命令',
     startInBranch: branch => `在 ${branch} 中开始新对话`,
     commandCenter: '命令中心',
@@ -1819,7 +1876,7 @@ export const zh: Translations = {
       installed: '已安装',
       generatedTag: '生成',
       adoptFailed: '无法领养该宠物。',
-      toggleFailed: '无法切换宠物显示。',
+      toggleFailed: enabled => `无法${enabled ? '开启' : '关闭'}宠物显示。`,
       noneAvailable: '暂无可用宠物——请在下方选择一个安装。'
     },
     generatePet: {
@@ -2023,6 +2080,23 @@ export const zh: Translations = {
     failedUpdate: name => `更新 ${name} 失败`,
     failedSave: name => `保存 ${name} 失败`,
     failedClear: key => `清除 ${key} 失败`,
+    pendingRequests: count => `待处理请求（${count}）`,
+    pendingAria: count => `${count} 条待处理配对请求`,
+    approvedUsers: count => `已批准用户（${count}）`,
+    approve: '批准',
+    approving: '批准中…',
+    revoke: '撤销',
+    revoking: '撤销中…',
+    revokeAria: name => `撤销 ${name}`,
+    revokeTitle: '撤销访问权限',
+    revokeDesc: name => `${name} 将失去访问权限，下次发送消息时不再被识别。`,
+    approvedUser: name => `已批准 ${name}`,
+    approvedHint: '对方下次发送消息时会被自动识别。',
+    revokedUser: name => `已撤销 ${name}`,
+    failedApprove: name => `批准 ${name} 失败`,
+    failedRevoke: name => `撤销 ${name} 失败`,
+    pairingLockedOut: '批准失败次数过多，该平台已被暂时锁定，请稍后再试。',
+    waitingSince: minutes => (minutes < 1 ? '刚刚' : `${minutes} 分钟前`),
     fieldCopy: {
       TELEGRAM_BOT_TOKEN: {
         label: 'Bot 令牌',
@@ -2387,7 +2461,7 @@ export const zh: Translations = {
     deleteDescPrefix: '这将永久移除 ',
     deleteDescSuffix: '。此操作无法撤销。',
     deleteFailed: (name: string) => `删除"${name}"失败`,
-    toggleFailed: (name: string) => `更新"${name}"失败`,
+    toggleFailed: (name, enabled) => `${enabled ? '开启' : '关闭'}"${name}"失败`,
     newSubscription: '新建订阅',
     restarting: '网关正在重启…',
     restartNeeded: 'Webhook 已启用，但网关仍需重启后接收器才能上线。',
@@ -2438,13 +2512,19 @@ export const zh: Translations = {
     search: '搜索配置档案…',
     loading: '正在加载配置档案…',
     newProfile: '新建配置档案',
+    importProfile: '导入配置档案…',
+    exportProfile: '导出配置档案…',
+    imported: '配置档案已导入',
+    exported: '配置档案已导出',
+    failedImport: '导入配置档案失败',
+    failedExport: '导出配置档案失败',
     allProfiles: '全部配置档案',
     showAllProfiles: '显示全部配置档案',
     switchToProfile: name => `切换到 ${name}`,
     manageProfiles: '管理配置档案…',
-    actionsFor: name => `${name} 的操作`,
+    actions: '操作',
     color: '颜色…',
-    colorFor: name => `${name} 的颜色`,
+    colorFor: '颜色',
     setColor: color => `设置颜色 ${color}`,
     autoColor: '自动',
     noProfiles: '暂无配置档案。',
@@ -2513,6 +2593,13 @@ export const zh: Translations = {
     close: '关闭定时任务',
     title: '定时任务',
     count: count => `${count} 个任务`,
+    modelImpact: {
+      title: '定时任务需要检查',
+      message: count => `在您检查模型设置之前，${count} 个定时任务将被跳过。`,
+      detailMore: (names, remaining) => `${names}，以及另外 ${remaining} 个`,
+      review: '检查定时任务',
+      saveFailed: 'Hermes 未保存该模型更改。'
+    },
     search: '搜索定时任务…',
     loading: '正在加载定时任务…',
     states: {
@@ -2578,7 +2665,7 @@ export const zh: Translations = {
     showRuns: '显示运行记录',
     hideRuns: '隐藏运行记录',
     runHistory: '运行记录',
-    actionsFor: title => `${title} 的操作`,
+
     actionsTitle: '定时任务操作',
     resume: '恢复定时任务',
     pause: '暂停定时任务',
@@ -2626,21 +2713,21 @@ export const zh: Translations = {
     createAction: '创建定时任务',
     tabs: {
       jobs: '任务',
-      blueprints: '蓝图'
+      blueprints: '模板'
     },
     blueprints: {
-      tab: '蓝图',
+      tab: '模板',
       startFrom: '从此开始',
       custom: '自定义',
       subtitle: '现成的自动化',
       dialogDesc: '填写详细信息并进行排程。',
       scheduleIt: '安排任务',
       scheduling: '安排中...',
-      scheduled: '蓝图已安排',
-      loading: '正在加载蓝图...',
-      failedLoad: '加载蓝图失败',
-      emptyTitle: '没有可用的蓝图',
-      emptyDesc: '此后端上没有可用的自动化蓝图。'
+      scheduled: '模板已安排',
+      loading: '正在加载模板...',
+      failedLoad: '加载模板失败',
+      emptyTitle: '没有可用的模板',
+      emptyDesc: '此后端上没有可用的自动化模板。'
     }
   },
 
@@ -2679,12 +2766,33 @@ export const zh: Translations = {
     copyPath: '复制路径'
   },
 
+  artifactCard: {
+    kind: { code: '代码', html: '交互页面', svg: '图形' },
+    generating: lines => `生成中… ${lines} 行`,
+    versionBadge: count => `${count} 个版本`,
+    open: '打开'
+  },
+
+  artifactPreview: {
+    versionOf: (current, total) => `第 ${current}/${total} 版`,
+    olderVersion: '较旧版本',
+    newerVersion: '较新版本',
+    latest: '最新',
+    copyContent: '复制内容',
+    download: '下载',
+    openInBrowser: '在浏览器中打开',
+    openInBrowserFailed: '无法在浏览器中打开',
+    missingTitle: '产物不可用',
+    missingBody: '此产物已不在本地注册表中。'
+  },
+
   sidebar: {
     nav: {
       'new-session': '新建会话',
       skills: '技能与工具',
       messaging: '消息平台',
-      artifacts: '产物'
+      artifacts: '产物',
+      cron: '定时任务'
     },
     searchAria: '搜索会话',
     searchPlaceholder: '搜索会话…',
@@ -2703,11 +2811,12 @@ export const zh: Translations = {
     allPinned: '这里的全部已置顶。取消置顶某个对话即可在最近中显示。',
     shiftClickHint: 'Shift+ 单击对话以置顶 · 拖动以重新排序',
     noWorkspace: '无工作区',
-    noProject: '无项目',
     projectEmpty: '暂无会话',
     noSessions: '暂无会话',
+    noFilterMatches: '没有会话符合这些筛选条件',
     projects: {
       sectionLabel: '项目',
+      home: '主页',
       newButton: '新建项目',
       createTitle: '新建项目',
       createDesc: '为工作区命名并添加一个或多个文件夹。',
@@ -2725,13 +2834,18 @@ export const zh: Translations = {
       primaryBadge: '主',
       removeFolder: '移除',
       create: '创建',
-      menu: '项目操作',
+      menu: '操作',
       menuRename: '重命名',
       menuAppearance: '外观',
       noColor: '无颜色',
       menuAddFolder: '添加文件夹',
       menuSetActive: '设为活动',
       menuDelete: '删除',
+      moveToProject: '移动到项目',
+      movedTo: name => `已移动到 ${name}`,
+      moveFailed: '无法移动会话',
+      moveNoFolder: '该项目没有可移入的文件夹',
+      moveNoProjects: '没有其他项目',
       reveal: '在文件夹中显示',
       copyPath: '复制路径',
       removeFromSidebar: '从侧边栏移除',
@@ -2746,6 +2860,9 @@ export const zh: Translations = {
       baseBranchPlaceholder: '搜索分支…',
       baseBranchNone: '未找到分支',
       startWorkFailed: '无法创建工作树',
+      worktreeProjectLabel: '项目',
+      worktreeProjectPlaceholder: '搜索项目…',
+      worktreeProjectNone: '没有包含文件夹的项目',
       convertBranch: '转换分支…',
       convertBranchTitle: '转换分支',
       convertBranchDesc: '打开已检出的分支，或为可用分支创建工作树。',
@@ -2754,6 +2871,7 @@ export const zh: Translations = {
       branchOpenExisting: '打开',
       branchSwitchHome: '切回主检出',
       branchCreateWorktree: '新工作树',
+      branchTrackRemote: '跟踪远程',
       branchesLoading: '正在加载分支…',
       noBranches: '未找到分支',
       removeWorktree: '移除工作树',
@@ -2764,7 +2882,7 @@ export const zh: Translations = {
       forceRemove: '强制移除',
       enter: label => `打开 ${label}`,
       reorder: label => `重新排序 ${label}`,
-      toggle: label => `展开/收起 ${label} 会话`,
+      toggle: (label, open) => `${open ? '展开' : '收起'} ${label} 会话`,
       back: '全部项目'
     },
     newSessionIn: label => `在 ${label} 中新建会话`,
@@ -2785,21 +2903,24 @@ export const zh: Translations = {
       openInNewTab: '在新标签页中打开',
       openInSplit: '在分屏中打开',
       copyIdFailed: '无法复制会话 ID',
-      actionsFor: title => `${title} 的操作`,
+
       sessionActions: '会话操作',
       sessionRunning: '会话运行中',
       needsInput: '需要你输入',
       waitingForAnswer: '正在等待你的回答',
       finishedUnread: '已完成 — 未读',
       backgroundRunning: '后台任务运行中',
+      draftSession: '草稿 — 尚未发送',
       handoffOrigin: platform => `从 ${platform} 转接`,
       ownedByProfile: profile => `配置档：${profile}`,
       renamed: '已重命名',
       renameFailed: '重命名失败',
       renameTitle: '重命名会话',
-      renameDesc: '给这个对话起一个好记的标题。留空则清除。',
+      renameDesc: '留空则清除。',
       untitledPlaceholder: '无标题会话',
       untitledChat: id => `会话 ${id}`,
+      messageCount: count => `${count} 条消息`,
+      todoProgress: '任务完成度',
       ageNow: '刚刚',
       ageDay: '天',
       ageHour: '时',
@@ -2811,6 +2932,122 @@ export const zh: Translations = {
       thisWeek: '本周',
       lastWeek: '上周',
       thisMonth: '本月'
+    },
+    statusDivider: {
+      working: '进行中',
+      done: '已完成'
+    }
+  },
+
+  // 与 intro-copy.jsonl 逐条对应的中文池；专业名词（git、diff、PR、terminal、
+  // stack trace 等）按惯例保留英文。每个人格 5 条，保持"每次启动随机"的行为。
+  intro: {
+    bodies: {
+      helpful: [
+        '让我打开仓库、跑测试、修 bug 或起草 PR。我会陪你一步步来。',
+        '指给我一个文件、贴一段报错，或者说说你在做什么。剩下的交给我。',
+        '试试：审查我的 diff、跑测试套件、解释这个函数。关于你的代码，什么都能问。',
+        '我可以编辑文件、运行命令、搜索网页，还能陪你排查棘手的 bug。描述任务就行。',
+        '发一个仓库路径或一个问题就能开始。我的回复清晰明了，并会标注我改动过的文件。'
+      ],
+      concise: [
+        '描述任务。我来完成。',
+        '贴代码、报错或目标。回答简短，改动迅速。',
+        '开口就行。我读文件、跑测试、交 patch。不说废话。',
+        '一句话就够。只有必要时我才展开说。',
+        '命令、问题或文件路径。其余交给我。'
+      ],
+      technical: [
+        '提供仓库路径、失败的测试或 stack trace。工具：fs、git、exec、search、patch、http。',
+        '发送提示词以触发工具调用。支持多文件编辑、运行测试、git 操作与网页抓取。',
+        '输入任务。我会规划、调用工具、验证输出。日志内联流式显示；diff 在应用前返回。',
+        '接受自然语言或结构化命令。典型流程：read -> plan -> patch -> test -> report。',
+        'filesystem、terminal、git、browser、search。描述你要的改动；我返回 diff 与测试输出。'
+      ],
+      creative: [
+        '我们来造点什么？贴一个想法、一段半坏的函数，或一个梦。我把它勾勒成形。',
+        '给我一点火花 — 一个功能、一次重构、一个狂野的原型 — 我把它变成能跑的代码。',
+        '描述那个还不存在的东西。我会把测试、文件和 API 织成一份能运行的草稿。',
+        '带来意图就好，不需要规格书。我们快速做原型，慢慢打磨，在页边改写世界。',
+        '告诉我你在追什么。我会混搭示例、改编代码片段，留下一个干净的 commit。'
+      ],
+      teacher: [
+        '问我任何文件、概念或报错。我不只给修法，还讲清原因，并配上完整示例。',
+        '贴上要审查的代码、要调试的 bug，或要拆解的概念。我一步步带你走。',
+        '说出问题。我把它拆成几部分，逐一讲解，让你下次能独立解决。',
+        '我们一起读代码，找到根因，建立一个下次还能复用的思维模型。',
+        '点一个主题或贴一段代码。你会得到讲解、文字版示意图和练习题。'
+      ],
+      kawaii: [
+        '贴一个 bug 或文件路径，我会超温柔地修好它。测试、diff、PR — 通通加倍用心！*闪闪*',
+        '告诉我你在做什么！重构、小工具、大到吓人的仓库，我都喜欢 (>w<)',
+        '丢来一个报错、一个目标，或整个文件夹。我会满怀爱心地收拾干净，再配上整洁的 commit message！',
+        '一次一个任务，干干净净！我能跑测试、打 patch，让你的仓库重新暖洋洋 <3',
+        '打个招呼或贴个 stack trace！任务再小也接，仓库再乱也不怕，我们一起理顺它！'
+      ],
+      catgirl: [
+        '贴个文件、拍拍 bug，或者扔给我一个仓库。我会扑向失败的测试，留下干净的 diff，喵~',
+        '描述任务吧。我会打 patch、跑测试，对着你的 PR 呼噜噜。小心 — 我会咬没用到的 import！',
+        '给我一个目标，我就追着它穿过整个代码库。读、改、跑 — 尾巴一直翘着。',
+        '贴个报错或计划。我调试像狩猎：安静、彻底，偶尔来一阵疯跑。',
+        '说一声，我就去读你的文件、跑你的测试，再带着一个整洁的 commit 蜷进你的分支里。'
+      ],
+      pirate: [
+        '报上你的猎物 — bug、功能，还是被诅咒的测试 — 我这就去追，伙计。战利品就是 diff。',
+        '把海图（代码）指给我，我来补船身、开炮（跑测试），再升起一面干净的 PR。',
+        '贴上报错或计划，你这水手。我会在 stack trace 里领航，带回宝藏：全绿的测试。',
+        '告诉我藏宝的 X 在哪。我读、改、commit，纪律严明如正规船队，啊哈！',
+        '丢来一个 bug、一个仓库路径，或一个疯狂的点子。我去洗劫文档，带着能跑的代码回来。'
+      ],
+      shakespeare: [
+        '道来汝之 bug、汝之文件、汝之疲惫测试，吾必以学者之手缝补之，并奉上诚实之 diff。',
+        '指明扰汝之代码。吾当细读、修订，呈上至美至洁之 patch。',
+        '呈上汝之 stack trace 或汝之梦想。吾将遍历文件、运行测试，以至朴之诗句复命。',
+        '陈述汝之所求，善良的先生或女士。汝之分支必得修剪，汝之 bug 必逐出王国。',
+        '一句心意足矣。吾读、吾改、吾 commit — 且留汝之历史清白无瑕。'
+      ],
+      surfer: [
+        '丢个文件、一个 bug、一条凶残的 stack trace — 我来驾着它冲。diff 干净，测试全绿，不翻板。',
+        '贴上仓库路径，或那个让你郁闷的 bug。我们划进去，修好，划出来。轻松。',
+        '说说什么感觉：功能、重构还是 hotfix。我跑测试、发 patch，一切都稳稳的，兄弟。',
+        '大 bug？小 typo？整个重写？指一下就行。代码我来搞，你就躺着收帅气的 commit。',
+        '说出任务就出发。我读、改、测，留下的 commit 比清晨的浪还顺滑。'
+      ],
+      noir: [
+        '告诉我哪儿坏了。我会翻文件、采指纹，天亮前把 diff 放在桌上。',
+        '你有一个 bug。我有耐心和一个 terminal。报上案子，我会审到它开口。',
+        '贴上 stack trace、嫌疑文件和不在场证明。我读出字里行间，带着真相回来。',
+        '每个 bug 都会留下踪迹。给我仓库和一条线索 — 我会跟到底，打上 patch，结案归档。',
+        '一个 typo、一次 segfault，或整个烂透的架构 — 把钥匙给我。我会带回干净的测试。'
+      ],
+      uwu: [
+        '贴一个有 bug 的文件或者小目标~我会读读、补补、测测，在 diff 上留下小爪印 owo',
+        '告诉我任务嘛，再小也可以哒~保证 commit 干干净净、重构轻轻柔柔，喵呜~',
+        '把报错消息丢过来叭！我会找出小坏蛋，修好它，留下一整套开开心心的测试 owo',
+        '给我一个仓库路径或者小 bug，我来照顾它 uwu。对烂代码凶凶，对你软软~',
+        '我会跑测试、改文件，还会开求看看的 PR。说一声就好啦，朋友 uwu'
+      ],
+      philosopher: [
+        '摆在你面前的是什么问题？描述它，我们将一同审视它的形态、成因与解法。',
+        '每个 bug 都是伪装的问题。说出你的；我会阅读、推理，带回一个答案 — 和一个 patch。',
+        '你想构建什么，或想理解什么？我从第一性原理出发推理、修改，并用测试验证。',
+        '描述你所求的终点。我穿过文件、测试与文档去追寻它，并沿途报告所见。',
+        '分享一条路径、一个谜题或一条原则。我会追踪逻辑，提出改动，并为每次编辑给出理由。'
+      ],
+      hype: [
+        '把那个 bug、那个仓库、那个疯狂的功能点子统统贴上来 — 我已进入状态！diff 干净！测试全绿！现在就干！',
+        '丢下任务看我发挥。读文件、跑测试、开 PR — 今天我们绝不认输，朋友！',
+        '拿出你最凶的 bug。我会拼命地读、补、测、commit。冲！',
+        '描述任务。我闪电扫过文件，碾碎失败的测试，留下一个炸裂的 commit。冲冲冲！',
+        '小 typo 还是大重构 — 无所谓。今天我就是要交付干净代码。报上任务，开工！'
+      ],
+      none: [
+        '提个问题、贴段报错，或指给我一个仓库。我能读代码、调用工具，帮你交付。',
+        '用你自己的话描述任务。我会选对工具、说明计划，并在有风险的操作前先和你确认。',
+        '丢一个文件路径、一段 traceback，或一个粗略的想法。我会调查、给出下一步建议，并保证操作可回退。',
+        '搜索仓库、编辑文件、运行测试、打开 PR。告诉我目标，机械的部分交给我。',
+        '输入任务、问题或代码片段。我记得本次会话内容、引用来源，拿不准时会停下来问你。'
+      ]
     }
   },
 
@@ -2952,6 +3189,7 @@ export const zh: Translations = {
       '调整或继续'
     ],
     startVoice: '开始语音对话',
+    openDirective: '打开',
     queueMessage: '排队消息',
     steer: '引导当前运行',
     stop: '停止',
@@ -2972,6 +3210,9 @@ export const zh: Translations = {
     voiceDictation: '语音听写',
     speakReplies: '朗读回复',
     stopSpeakingReplies: '停止朗读回复',
+    wakeWordListening: phrase => `唤醒词:"${phrase}" — 正在监听`,
+    wakeWordOff: phrase => `唤醒词:"${phrase}" — 已关闭`,
+    wakeWordPausedVoice: phrase => `唤醒词:"${phrase}" — 语音对话期间暂停`,
     lookupLoading: '查找中…',
     lookupNoMatches: '没有匹配项。',
     lookupTry: '试试',
@@ -3011,6 +3252,7 @@ export const zh: Translations = {
     editingQueuedInComposer: '正在输入框中编辑排队回合',
     queueEdit: '编辑',
     queueSendNext: '下一个',
+    queueSteer: '引导 — 立即修正当前回合',
     queueSend: '发送',
     queueDelete: '删除',
     queueResume: '继续',
@@ -3042,6 +3284,37 @@ export const zh: Translations = {
     snippetsDesc: '选择一个起始提示词放入输入框。',
     dropFiles: '拖放文件以附加',
     dropSession: '拖放以链接此对话',
+    mcpSuggestions: {
+      label: server => `添加 ${server}`,
+      tip: keyword => `因为你提到了“${keyword}”而推荐 — 点击连接`,
+      connecting: server => `正在连接 ${server}…`,
+      cancelTip: '点击取消',
+      added: server => `已添加 ${server}`,
+      addedTip: '已连接 — 其工具已在此对话中可用',
+      connectFailed: server => `无法连接 ${server}`
+    },
+    skillSuggestions: {
+      label: skill => `使用技能: ${skill}`,
+      tip: skill => `你提到了“${skill}” — 点击以该技能开头`,
+      done: skill => `已添加 /${skill}`,
+      doneTip: '发送时将加载该技能'
+    },
+    repairSuggestions: {
+      label: server => `重新连接 ${server}`,
+      tip: server => `${server} 调用刚因连接错误失败`,
+      working: server => `正在重新连接 ${server}…`,
+      workingTip: '点击取消',
+      done: server => `已重新连接 ${server}`,
+      doneTip: '新凭据已在此对话中生效',
+      failed: server => `无法重新连接 ${server}`
+    },
+    cronSuggestions: {
+      label: '定时执行',
+      tip: phrase => `“${phrase}”听起来是周期性任务 — 可以按计划运行`,
+      prefix: '将此设置为定时任务:',
+      done: '已标记为定时任务',
+      doneTip: '发送后由智能体创建任务'
+    },
     snippets: {
       codeReview: {
         label: '代码审查',
@@ -3186,6 +3459,29 @@ export const zh: Translations = {
       skipped: '已跳过',
       failed: '失败'
     },
+    stageNames: {
+      uv: '安装 uv',
+      python: '验证 Python',
+      git: '安装 Git',
+      node: '检测 Node.js',
+      'system-packages': '安装系统软件包',
+      prerequisites: '系统前置条件',
+      repository: '下载 Hermes Agent',
+      venv: '创建 Python 环境',
+      dependencies: '安装 Python 依赖',
+      'python-deps': '安装 Python 依赖',
+      'node-deps': '安装 Node.js 依赖',
+      desktop: '构建桌面应用',
+      path: '安装 hermes 命令',
+      'config-templates': '写入配置模板',
+      config: '准备配置和技能',
+      'platform-sdks': '安装消息平台 SDK',
+      'bootstrap-marker': '标记安装完成',
+      configure: '配置 API 密钥和模型',
+      setup: '配置 API 密钥和设置',
+      gateway: '配置网关'
+    },
+    unknownError: '未知错误',
     oneTimeTitle: 'Hermes 需要一次性安装',
     unsupportedDesc: platform =>
       `${platform} 暂不支持自动首次启动安装。请打开终端并运行下面的命令，然后重新启动此应用。之后启动会跳过此步骤。`,
@@ -3412,9 +3708,9 @@ export const zh: Translations = {
       connectionSsh: host => `SSH: ${host}`,
       connectionRemote: host => `远程: ${host}`,
       connectionCloud: host => `云端: ${host}`,
-      connectionCloudTooltip: host => `已连接到 Hermes Cloud ${host} · 点击管理`,
-      connectionSshTooltip: host => `已通过 SSH 连接到 ${host} · 点击管理`,
-      connectionRemoteTooltip: host => `已连接到远程后端 ${host} · 点击管理`,
+      connectionCloudTooltip: host => `Hermes Cloud · ${host}`,
+      connectionSshTooltip: host => `SSH · ${host}`,
+      connectionRemoteTooltip: host => `Remote · ${host}`,
       backendLabel: version => `后端 v${version}`,
       commit: sha => `提交 ${sha}`,
       branch: branch => `分支 ${branch}`,
@@ -3429,11 +3725,16 @@ export const zh: Translations = {
       gatewayConnecting: '连接中',
       gatewayOffline: '离线',
       gatewayRestarting: '重启中…',
-      gatewayTitle: 'Hermes 推理网关状态',
+      gatewayTitle: '网关',
       customizeTitle: '在状态栏中显示',
+      hideStatusbar: '隐藏状态栏',
+      resetStatusbar: '恢复默认设置',
       toggleApprovalMode: '审批',
       toggleBackendVersion: '后端版本',
       toggleCommandCenter: '命令中心',
+      toggleContextUsage: '上下文用量',
+      toggleRunningTimer: '回合计时',
+      toggleSessionTimer: '会话计时',
       toggleTerminal: '终端',
       toggleVersion: '版本与更新',
       toggleWorkspace: '工作区',
@@ -3450,7 +3751,6 @@ export const zh: Translations = {
       starmap: '记忆图谱',
       openStarmap: '打开记忆图谱',
       turnRunning: '运行中',
-      currentTurnElapsed: '当前回合已用时间',
       contextUsage: '上下文用量',
       contextUsagePanel: {
         categories: {
@@ -3469,11 +3769,9 @@ export const zh: Translations = {
         title: '上下文用量',
         tokenSummary: (used, max) => `${used} / ${max} Tokens`
       },
-      openContextUsage: '打开上下文用量明细',
       session: '会话',
-      runtimeSessionElapsed: '运行时会话已用时间',
-      yoloOn: 'YOLO 已开启 - 自动批准危险命令。点击关闭。Shift+点击可全局切换。',
-      yoloOff: 'YOLO 已关闭 - 点击自动批准危险命令。Shift+点击可全局切换。',
+      yoloOn: 'YOLO 已开启 — 自动批准危险命令。Shift+点击可全局切换。',
+      yoloOff: 'YOLO 已关闭。Shift+点击可全局切换。',
       modelNone: '无',
       noModel: '无模型',
       switchModel: '切换模型',
@@ -3494,7 +3792,7 @@ export const zh: Translations = {
     remotePickerTitle: '选择远程文件夹',
     remotePickerDescription: '浏览已连接后端上的文件夹。',
     remotePickerSelect: '选择文件夹',
-    folderTip: cwd => `${cwd} — 点击更改文件夹`,
+    folderTip: cwd => cwd,
     openFolder: '打开文件夹',
     refreshTree: '刷新文件树',
     collapseAll: '折叠所有文件夹',
@@ -3523,10 +3821,6 @@ export const zh: Translations = {
 
   preview: {
     tab: '预览',
-    closeTab: label => `关闭 ${label}`,
-    closeOthers: '关闭其他',
-    closeToRight: '关闭右侧',
-    closeAll: '全部关闭',
     closePane: '关闭预览面板',
     loading: '正在加载预览',
     unavailable: '预览不可用',
@@ -3621,6 +3915,7 @@ export const zh: Translations = {
     closeRunningTitle: '关闭正在运行的标签？',
     closeRunningBody: '此对话仍在运行（或正在等待你的输入）。关闭标签只会隐藏它——会话将保留进度，可从侧边栏重新打开。',
     closeRunningConfirm: '关闭标签',
+    reload: '重新加载',
     closeOthers: '关闭其他',
     closeToRight: '关闭右侧',
     closeAll: '全部关闭',
@@ -3635,7 +3930,7 @@ export const zh: Translations = {
     pluginDisabledBody: '在 设置 → 插件 中重新启用即可恢复面板。',
     missingPane: paneId => `缺少面板：${paneId}`,
     editTitle: '布局',
-    editHint: '选择一个布局，或在区域之间拖动面板。右键点击区域可拆分。',
+    editHint: '选择一个布局，或在区域之间拖动面板。',
     reset: '重置',
     templates: '模板',
     custom: '自定义',
@@ -3656,7 +3951,8 @@ export const zh: Translations = {
     layoutNamePlaceholder: fallback => `布局名称（${fallback}）`,
     saveApply: '保存并应用',
     notExpressible: '此排列互相咬合（风车形）——暂无法表示为嵌套拆分',
-    zoneCount: count => `${count} 个区域`
+    zoneCount: count => `${count} 个区域`,
+    tabCount: count => `${count} 个标签页`
   },
 
   assistant: {
@@ -3667,13 +3963,19 @@ export const zh: Translations = {
       resumeWhenBackgroundDone: count =>
         count === 1 ? '后台任务完成后将自动继续' : `${count} 个后台任务完成后将自动继续`,
       thinking: '思考中',
+      thought: '已思考',
+      thoughtBriefly: '思考了片刻',
+      thoughtFor: duration => `思考了 ${duration}`,
       today: time => `今天，${time}`,
       yesterday: time => `昨天，${time}`,
       copy: '复制',
       refresh: '刷新',
       moreActions: '更多操作',
       branchNewChat: '在新对话中分支',
+      react: '回应',
       dismissError: '关闭错误',
+      filesChanged: count => `${count} 个文件已更改`,
+      reviewChanges: '查看',
       readAloudFailed: '朗读失败',
       preparingAudio: '正在准备音频...',
       stopReading: '停止朗读',
@@ -3722,8 +4024,29 @@ export const zh: Translations = {
       lateAnswerTip: '将此回答起草为后续消息',
       lateAnswerHint: '此问题已不再等待回答。选择一个选项会将其起草为后续消息。'
     },
+    mcpSetup: {
+      installTitle: server => `添加 ${server} MCP 服务器？`,
+      enableTitle: server => `启用 ${server} MCP 服务器？`,
+      authorizeTitle: server => `授权 ${server} MCP 服务器？`,
+      installAction: '安装',
+      enableAction: '启用',
+      authorizeAction: '授权',
+      decline: '暂不',
+      declined: '已拒绝',
+      installed: server => `已安装 ${server}`,
+      enabled: server => `已启用 ${server}`,
+      authorized: server => `已授权 ${server}`,
+      failed: server => `${server} 设置失败`,
+      unanswered: '未响应',
+      toolCount: count => `${count} 个工具`,
+      notInCatalog: server => `“${server}”不在 MCP 目录中`,
+      catalogSource: '来自 Nous 认证目录',
+      envRequired: '请先填写所需凭据',
+      sendFailed: '无法发送 MCP 设置响应',
+      reloadFailed: '服务器已保存，但重新加载 MCP 工具失败 — 将在下个会话加载',
+      gatewayDisconnected: 'Hermes 网关未连接'
+    },
     tool: {
-      code: '代码',
       copyCode: '复制代码',
       renderingImage: '正在渲染图片',
       copyOutput: '复制输出',
@@ -3745,6 +4068,7 @@ export const zh: Translations = {
       statusError: '错误',
       statusRecovered: '已恢复',
       statusDone: '完成',
+      memoryWriteNoted: '已记下记忆写入',
       actions: {
         read: '已读取',
         reading: '正在读取',
@@ -3903,7 +4227,7 @@ export const zh: Translations = {
     sidebar: {
       title: '侧边栏',
       description: '显示移动端侧边栏。',
-      toggle: '切换侧边栏'
+      toggle: open => `${open ? '显示' : '隐藏'}侧边栏`
     }
   }
 }
