@@ -1999,6 +1999,8 @@ export const ja = defineLocale({
       BUZZ_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可？（true/false）', help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。' },
       BUZZ_TRANSPORT: { label: 'トランスポート（auto/websocket/poll）', help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。' },
       BUZZ_POLL_INTERVAL: { label: 'ポール間隔（秒）', help: 'インバウンドポールスイープの間隔秒数（デフォルト 4）。' },
+      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON（または空）', help: 'NIP-42 WebSocket 認証用のオプション NIP-OA 所有者証明 auth tag JSON。' },
+      BUZZ_CREDENTIALS_FILE: { label: '認証情報ファイルパス（または空）', help: 'nsec を保持する JSON 認証情報ファイル（BUZZ_PRIVATE_KEY 未設定時のフォールバック）。' },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: 'すべての Telegram ユーザーを許可',
         help: '開発用のみ。すべての Telegram ユーザーがボットを利用できます。'
@@ -2564,7 +2566,10 @@ export const ja = defineLocale({
         'on this day in history': '歴史上の今日',
         'word of the day': '今日の単語',
         'science fact': 'サイエンスファクト',
-        'quote of the day': '今日の名言'
+        'quote of the day': '今日の名言',
+        auto: '自動',
+        websocket: 'websocket',
+        poll: 'ポーリング'
       }
     }
   },

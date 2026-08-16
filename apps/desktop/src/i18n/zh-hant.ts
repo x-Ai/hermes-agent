@@ -2023,7 +2023,9 @@ export const zhHant = defineLocale({
       BUZZ_ALLOWED_USERS: { label: '允許的使用者（逗號分隔）', help: '允許與代理對話的 npub 或 hex 公鑰，逗號分隔。' },
       BUZZ_ALLOW_ALL_USERS: { label: '允許所有使用者？（true/false）', help: '允許任何社群成員與代理對話（true/false）。' },
       BUZZ_TRANSPORT: { label: '傳輸方式（auto/websocket/poll）', help: '入站傳輸方式：auto（WebSocket 帶輪詢回退，預設）、websocket 或 poll。' },
-      BUZZ_POLL_INTERVAL: { label: '輪詢間隔秒數', help: '入站輪詢掃描間隔秒數（預設 4）。' }
+      BUZZ_POLL_INTERVAL: { label: '輪詢間隔秒數', help: '入站輪詢掃描間隔秒數（預設 4）。' },
+      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON（或留空）', help: '用於 NIP-42 WebSocket 認證的可選 NIP-OA 所有者證明 auth tag JSON。' },
+      BUZZ_CREDENTIALS_FILE: { label: '憑證檔案路徑（或留空）', help: '保存 nsec 的 JSON 憑證檔案（當 BUZZ_PRIVATE_KEY 未設定時作為回退）。' }
     },
     platformIntro: {
       telegram: '在 Telegram 中與 @BotFather 對話，執行 /newbot，複製它給您的 Token。然後從 @userinfobot 取得您的數字使用者 ID。',
@@ -2394,7 +2396,10 @@ export const zhHant = defineLocale({
         'on this day in history': '歷史上的今天',
         'word of the day': '每日單詞',
         'science fact': '科學趣聞',
-        'quote of the day': '每日名言'
+        'quote of the day': '每日名言',
+        auto: '自動',
+        websocket: 'websocket',
+        poll: '輪詢'
       }
     }
   },
