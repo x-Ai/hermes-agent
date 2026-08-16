@@ -2018,6 +2018,7 @@ export interface Translations {
     wakeWordListening: (phrase: string) => string
     wakeWordOff: (phrase: string) => string
     wakeWordPausedVoice: (phrase: string) => string
+    wakeWordClickToEnable: string
     lookupLoading: string
     lookupNoMatches: string
     lookupTry: string
