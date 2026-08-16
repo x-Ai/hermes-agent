@@ -37,6 +37,7 @@ import { Slot } from '@/contrib/react/slot'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { registry } from '@/contrib/registry'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
+import { translateNow } from '@/i18n'
 import { NEW_SESSION_TITLE, sessionTitle as storedSessionTitle } from '@/lib/chat-runtime'
 import { Download, FileText, LayoutDashboard, PanelBottom, Terminal, Upload, Zap } from '@/lib/icons'
 import { type KeybindContribution, KEYBINDS_AREA } from '@/lib/keybinds/actions'
@@ -248,14 +249,14 @@ registry.registerMany([
     area: KEYBINDS_AREA,
     data: {
       id: 'layout.editMode',
-      label: 'Toggle layout edit mode',
+      label: translateNow('zones.toggleLayoutEditMode'),
       defaults: ['mod+shift+\\'],
       run: toggleLayoutEditMode
     } satisfies KeybindContribution
   },
   paletteToggle({
     id: 'layout.editMode',
-    label: 'Toggle layout edit mode',
+    label: translateNow('zones.toggleLayoutEditMode'),
     action: 'layout.editMode',
     icon: LayoutDashboard,
     keywords: ['layout', 'zones', 'panes', 'edit', 'rearrange'],

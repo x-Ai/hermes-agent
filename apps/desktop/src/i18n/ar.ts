@@ -2639,6 +2639,7 @@ export const ar = defineLocale({
     notExpressible: 'هذا الترتيب متشابك — لا يمكن تمثيله كتقسيمات متداخلة بعد',
     zoneCount: count => `${count} مناطق`,
     tabCount: count => `${count} تبويبات`,
+    toggleLayoutEditMode: 'تبديل وضع تحرير التخطيط',
     layoutNames: {
       default: 'افتراضي',
       focus: 'تركيز',

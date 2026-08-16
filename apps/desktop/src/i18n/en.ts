@@ -1770,6 +1770,8 @@ export const en: Translations = {
       BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' },
       BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (or empty)', help: 'Optional NIP-OA owner-attestation auth tag JSON for NIP-42 WebSocket auth.' },
       BUZZ_CREDENTIALS_FILE: { label: 'Credentials file path (or empty)', help: 'JSON credentials file holding the nsec (fallback when BUZZ_PRIVATE_KEY is unset).' },
+      LINE_HOST: { label: 'Webhook host', help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).' },
+      TEAMS_HOST: { label: 'Webhook host', help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).' },
     },
     platformIntro: {
       telegram:
@@ -3266,6 +3268,7 @@ export const en: Translations = {
     notExpressible: 'this arrangement interlocks (pinwheel) — not expressible as nested splits yet',
     zoneCount: count => `${count} zones`,
     tabCount: count => `${count} tabs`,
+    toggleLayoutEditMode: 'Toggle layout edit mode',
     layoutNames: {
       default: 'Default',
       focus: 'Focus',
