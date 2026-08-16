@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tip } from '@/components/ui/tooltip'
 import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/plugins-store'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
-import { useI18n } from '@/i18n'
+import { getRuntimeI18nLocale, useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Monitor, Package, RefreshCw } from '@/lib/icons'
 import { normalize } from '@/lib/text'
@@ -265,6 +265,9 @@ function AgentPluginsSection() {
 function PluginRow({ record }: { record: PluginRecord }) {
   const { t } = useI18n()
   const p = t.settings.plugins
+  const locale = getRuntimeI18nLocale()
+  const displayName = record.localizedName?.[locale] ?? record.name
+  const displayDescription = record.localizedDescription?.[locale] ?? record.description
 
   return (
     <PluginLine
@@ -278,7 +281,7 @@ function PluginRow({ record }: { record: PluginRecord }) {
             </Tip>
           )}
           <Switch
-            aria-label={`${record.status === 'disabled' ? p.enable : p.disable} ${record.name}`}
+            aria-label={`${record.status === 'disabled' ? p.enable : p.disable} ${displayName}`}
             checked={record.status !== 'disabled'}
             onCheckedChange={on => {
               triggerHaptic('selection')
@@ -291,12 +294,12 @@ function PluginRow({ record }: { record: PluginRecord }) {
         record.status === 'error' ? (
           <span className="text-(--ui-danger,#f87171)">{record.error}</span>
         ) : (
-          (record.description ?? record.file ?? record.id)
+          (displayDescription ?? record.file ?? record.id)
         )
       }
       title={
         <>
-          <span>{record.name}</span>
+          <span>{displayName}</span>
           <Pill>{p.kinds[record.kind]}</Pill>
           {record.status === 'error' && <Pill tone="primary">{p.failed}</Pill>}
         </>

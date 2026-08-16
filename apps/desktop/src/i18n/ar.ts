@@ -1370,7 +1370,9 @@ export const ar = defineLocale({
       BUZZ_TRANSPORT: { label: 'طريقة النقل (auto/websocket/poll)', help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.' },
       BUZZ_POLL_INTERVAL: { label: 'ثواني فاصل الاستطلاع', help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).' },
       BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (أو فارغ)', help: 'علامة NIP-OA لاعتماد المالك الاختيارية لمصادقة NIP-42 WebSocket.' },
-      BUZZ_CREDENTIALS_FILE: { label: 'مسار ملف الاعتمادات (أو فارغ)', help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).' }
+      BUZZ_CREDENTIALS_FILE: { label: 'مسار ملف الاعتمادات (أو فارغ)', help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).' },
+      LINE_HOST: { label: 'مضيف Webhook', help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).' },
+      TEAMS_HOST: { label: 'مضيف Webhook', help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).' },
     },
     platformIntro: {
       telegram:

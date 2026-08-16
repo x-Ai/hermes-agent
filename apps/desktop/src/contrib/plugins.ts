@@ -45,6 +45,8 @@ export function discoverBundledPlugins(): void {
       id: plugin.id,
       name: plugin.name ?? plugin.id,
       description: plugin.description,
+      localizedName: plugin.localizedName,
+      localizedDescription: plugin.localizedDescription,
       kind: 'bundled' as const
     }
 
