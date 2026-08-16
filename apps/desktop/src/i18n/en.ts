@@ -2175,6 +2175,41 @@ export const en: Translations = {
         'Meals per day?': 'Meals per day?',
         'Cooking effort?': 'Cooking effort?',
         'Only notify me if the mail…': 'Only notify me if the mail…'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24h local time, e.g. 08:00',
+        'minutes between checks': 'minutes between checks',
+        'hours between checks — be gentle with rate limits': 'hours between checks — be gentle with rate limits',
+        'hours between nudges': 'hours between nudges',
+        'first hour of the active window (24h)': 'first hour of the active window (24h)',
+        'last hour of the active window (24h)': 'last hour of the active window (24h)'
+      },
+      options: {
+        everyday: 'everyday',
+        weekdays: 'weekdays',
+        weekends: 'weekends',
+        sunday: 'sunday',
+        monday: 'monday',
+        tuesday: 'tuesday',
+        wednesday: 'wednesday',
+        thursday: 'thursday',
+        friday: 'friday',
+        saturday: 'saturday',
+        'dinner only': 'dinner only',
+        'lunch and dinner': 'lunch and dinner',
+        'all three': 'all three',
+        quick: 'quick',
+        medium: 'medium',
+        ambitious: 'ambitious',
+        'no restrictions': 'no restrictions',
+        vegetarian: 'vegetarian',
+        vegan: 'vegan',
+        'high-protein': 'high-protein',
+        'low-carb': 'low-carb',
+        'on this day in history': 'on this day in history',
+        'word of the day': 'word of the day',
+        'science fact': 'science fact',
+        'quote of the day': 'quote of the day'
       }
     }
   },

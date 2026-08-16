@@ -1,6 +1,9 @@
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { AutomationBlueprint, AutomationBlueprintField } from '@/hermes'
+import type { Translations } from '@/i18n/types'
+
+type BlueprintsCopy = Translations['cron']['blueprints']
 
 // The blueprint catalog is shared with the dashboard, so its deliver slot
 // defaults to "origin" (the chat/home-channel a dashboard or gateway job was
@@ -40,19 +43,22 @@ export function cleanBlueprintFieldError(message: string): string {
 // origin/dashboard-centric and even contradicts desktop semantics ("local =
 // save only" vs. This desktop), and the DeliverSelect is self-explanatory —
 // skip it for the deliver slot.
-export function blueprintSlotHelp(field: AutomationBlueprintField): string | undefined {
-  return field.help && field.type !== 'text' && !isDeliverField(field) ? field.help : undefined
+export function blueprintSlotHelp(field: AutomationBlueprintField, bp?: BlueprintsCopy): string | undefined {
+  if (!field.help || field.type === 'text' || isDeliverField(field)) return undefined
+  return bp?.helps?.[field.help] ?? field.help
 }
 
 // Renders one blueprint slot's control (enum/weekdays → Select, time → time
 // input, else text). The deliver slot is handled separately by the dialog's
 // shared DeliverSelect, so it's not rendered here.
 export function BlueprintSlotControl({
+  bp,
   field,
   id,
   onChange,
   value
 }: {
+  bp?: BlueprintsCopy
   field: AutomationBlueprintField
   id: string
   onChange: (next: string) => void
@@ -67,7 +73,7 @@ export function BlueprintSlotControl({
         <SelectContent>
           {field.options.map(option => (
             <SelectItem key={option} value={option}>
-              {option}
+              {bp?.options?.[option] ?? option}
             </SelectItem>
           ))}
         </SelectContent>

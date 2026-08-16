@@ -2872,6 +2872,41 @@ export const zh: Translations = {
         'Meals per day?': '每天几餐？',
         'Cooking effort?': '烹饪难度？',
         'Only notify me if the mail…': '仅在邮件…时通知我'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24小时制，如 08:00',
+        'minutes between checks': '检查间隔（分钟）',
+        'hours between checks — be gentle with rate limits': '检查间隔（小时）——注意速率限制',
+        'hours between nudges': '提醒间隔（小时）',
+        'first hour of the active window (24h)': '活跃时段开始小时（24小时制）',
+        'last hour of the active window (24h)': '活跃时段结束小时（24小时制）'
+      },
+      options: {
+        everyday: '每天',
+        weekdays: '工作日',
+        weekends: '周末',
+        sunday: '周日',
+        monday: '周一',
+        tuesday: '周二',
+        wednesday: '周三',
+        thursday: '周四',
+        friday: '周五',
+        saturday: '周六',
+        'dinner only': '仅晚餐',
+        'lunch and dinner': '午餐和晚餐',
+        'all three': '三餐',
+        quick: '简单',
+        medium: '中等',
+        ambitious: '复杂',
+        'no restrictions': '无限制',
+        vegetarian: '素食',
+        vegan: '纯素',
+        'high-protein': '高蛋白',
+        'low-carb': '低碳水',
+        'on this day in history': '历史上的今天',
+        'word of the day': '每日单词',
+        'science fact': '科学趣闻',
+        'quote of the day': '每日名言'
       }
     }
   },

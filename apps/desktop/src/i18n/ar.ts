@@ -1694,6 +1694,41 @@ export const ar = defineLocale({
         'Meals per day?': 'وجبات يوميًا؟',
         'Cooking effort?': 'جهد الطهي؟',
         'Only notify me if the mail…': 'فقط أخبرني إذا كان البريد…'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': 'بتوقيت محلي 24 ساعة، مثل 08:00',
+        'minutes between checks': 'دقائق بين كل فحص',
+        'hours between checks — be gentle with rate limits': 'ساعات بين كل فحص — كن رفيقًا مع حدود المعدل',
+        'hours between nudges': 'ساعات بين كل تذكير',
+        'first hour of the active window (24h)': 'الساعة الأولى من النافذة النشطة (24 ساعة)',
+        'last hour of the active window (24h)': 'الساعة الأخيرة من النافذة النشطة (24 ساعة)'
+      },
+      options: {
+        everyday: 'كل يوم',
+        weekdays: 'أيام الأسبوع',
+        weekends: 'نهاية الأسبوع',
+        sunday: 'الأحد',
+        monday: 'الاثنين',
+        tuesday: 'الثلاثاء',
+        wednesday: 'الأربعاء',
+        thursday: 'الخميس',
+        friday: 'الجمعة',
+        saturday: 'السبت',
+        'dinner only': 'العشاء فقط',
+        'lunch and dinner': 'الغداء والعشاء',
+        'all three': 'الثلاث وجبات',
+        quick: 'سريع',
+        medium: 'متوسط',
+        ambitious: 'متقدم',
+        'no restrictions': 'بدون قيود',
+        vegetarian: 'نباتي',
+        vegan: 'نباتي صرف',
+        'high-protein': 'غني بالبروتين',
+        'low-carb': 'منخفض الكربوهيدرات',
+        'on this day in history': 'في مثل هذا اليوم من التاريخ',
+        'word of the day': 'كلمة اليوم',
+        'science fact': 'حقيقة علمية',
+        'quote of the day': 'اقتباس اليوم'
       }
     }
   },
