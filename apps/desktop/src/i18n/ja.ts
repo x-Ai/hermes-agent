@@ -2520,7 +2520,9 @@ export const ja = defineLocale({
         'Diet?': '食事制限は？',
         'Meals per day?': '1日の食事回数？',
         'Cooking effort?': '調理の労力？',
-        'Only notify me if the mail…': 'メールが…の場合のみ通知'
+        'Only notify me if the mail…': 'メールが…の場合のみ通知',
+        'Learn about…': '学ぶテーマ…',
+        'What kind?': '種類は？'
       },
       helps: {
         '24h local time, e.g. 08:00': '24時間形式（例：08:00）',
