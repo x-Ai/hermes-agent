@@ -1303,7 +1303,8 @@ export const ar = defineLocale({
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'رمز البوت (token)'
+        label: 'رمز البوت (token)',
+        help: 'رمز بوت Mattermost أو رمز الوصول الشخصي'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: 'معرّفات المستخدمين المسموح بهم',
@@ -1311,14 +1312,17 @@ export const ar = defineLocale({
       },
       MATRIX_HOMESERVER: {
         label: 'رابط Homeserver',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'رابط خادم Matrix الرئيسي (مثل https://matrix.org)'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: 'رمز الوصول'
+        label: 'رمز الوصول',
+        help: 'رمز وصول Matrix (يُفضَّل على تسجيل الدخول بكلمة مرور)'
       },
       MATRIX_USER_ID: {
         label: 'معرّف مستخدم البوت',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'معرّف مستخدم Matrix (مثل @hermes:example.org)'
       },
       MATRIX_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Matrix المسموح بهم',

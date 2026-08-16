@@ -1723,14 +1723,14 @@ export const en: Translations = {
       },
       SLACK_ALLOWED_USERS: { label: 'Allowed Slack user IDs', help: 'Recommended. Comma-separated Slack user IDs.' },
       MATTERMOST_URL: { label: 'Server URL', placeholder: 'https://mattermost.example.com' },
-      MATTERMOST_TOKEN: { label: 'Bot token' },
+      MATTERMOST_TOKEN: { label: 'Bot token', help: 'Mattermost bot token or personal access token' },
       MATTERMOST_ALLOWED_USERS: {
         label: 'Allowed user IDs',
         help: 'Recommended. Comma-separated Mattermost user IDs.'
       },
-      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org' },
-      MATRIX_ACCESS_TOKEN: { label: 'Access token' },
-      MATRIX_USER_ID: { label: 'Bot user ID', placeholder: '@hermes:example.org' },
+      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org', help: 'Matrix homeserver URL (e.g. https://matrix.org)' },
+      MATRIX_ACCESS_TOKEN: { label: 'Access token', help: 'Matrix access token (preferred over password login)' },
+      MATRIX_USER_ID: { label: 'Bot user ID', placeholder: '@hermes:example.org', help: 'Matrix user ID (e.g. @hermes:example.org)' },
       MATRIX_ALLOWED_USERS: {
         label: 'Allowed Matrix user IDs',
         help: 'Recommended. Comma-separated user IDs in @user:server format.'

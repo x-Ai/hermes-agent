@@ -1740,11 +1740,11 @@ export const zhHant = defineLocale({
       },
       SLACK_ALLOWED_USERS: { label: '允許的 Slack 使用者 ID', help: '建議設定。逗號分隔的 Slack 使用者 ID。' },
       MATTERMOST_URL: { label: '伺服器 URL', placeholder: 'https://mattermost.example.com' },
-      MATTERMOST_TOKEN: { label: 'Bot Token' },
+      MATTERMOST_TOKEN: { label: 'Bot Token', help: 'Mattermost Bot Token 或個人存取 Token' },
       MATTERMOST_ALLOWED_USERS: { label: '允許的使用者 ID', help: '建議設定。逗號分隔的 Mattermost 使用者 ID。' },
-      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org' },
-      MATRIX_ACCESS_TOKEN: { label: '存取 Token' },
-      MATRIX_USER_ID: { label: 'Bot 使用者 ID', placeholder: '@hermes:example.org' },
+      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org', help: 'Matrix homeserver URL（如 https://matrix.org）' },
+      MATRIX_ACCESS_TOKEN: { label: '存取 Token', help: 'Matrix 存取 Token（優先於密碼登入）' },
+      MATRIX_USER_ID: { label: 'Bot 使用者 ID', placeholder: '@hermes:example.org', help: 'Matrix 使用者 ID（如 @hermes:example.org）' },
       MATRIX_ALLOWED_USERS: {
         label: '允許的 Matrix 使用者 ID',
         help: '建議設定。@user:server 格式的逗號分隔使用者 ID。'
