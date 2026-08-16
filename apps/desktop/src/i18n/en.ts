@@ -1767,7 +1767,9 @@ export const en: Translations = {
       BUZZ_ALLOWED_USERS: { label: 'Allowed users (comma-separated)', help: 'Comma-separated npubs or hex pubkeys allowed to talk to the agent.' },
       BUZZ_ALLOW_ALL_USERS: { label: 'Allow all users? (true/false)', help: 'Allow any community member to talk to the agent (true/false).' },
       BUZZ_TRANSPORT: { label: 'Transport (auto/websocket/poll)', help: 'Inbound transport: auto (WebSocket w/ poll fallback, default), websocket, or poll.' },
-      BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' }
+      BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' },
+      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (or empty)', help: 'Optional NIP-OA owner-attestation auth tag JSON for NIP-42 WebSocket auth.' },
+      BUZZ_CREDENTIALS_FILE: { label: 'Credentials file path (or empty)', help: 'JSON credentials file holding the nsec (fallback when BUZZ_PRIVATE_KEY is unset).' },
     },
     platformIntro: {
       telegram:
@@ -2211,7 +2213,10 @@ export const en: Translations = {
         'on this day in history': 'on this day in history',
         'word of the day': 'word of the day',
         'science fact': 'science fact',
-        'quote of the day': 'quote of the day'
+        'quote of the day': 'quote of the day',
+        auto: 'auto',
+        websocket: 'websocket',
+        poll: 'poll'
       }
     }
   },

@@ -2465,7 +2465,9 @@ export const zh: Translations = {
       BUZZ_ALLOWED_USERS: { label: '允许的用户（逗号分隔）', help: '允许与代理对话的 npub 或 hex 公钥，逗号分隔。' },
       BUZZ_ALLOW_ALL_USERS: { label: '允许所有用户？（true/false）', help: '允许任何社区成员与代理对话（true/false）。' },
       BUZZ_TRANSPORT: { label: '传输方式（auto/websocket/poll）', help: '入站传输方式：auto（WebSocket 带轮询回退，默认）、websocket 或 poll。' },
-      BUZZ_POLL_INTERVAL: { label: '轮询间隔秒数', help: '入站轮询扫描间隔秒数（默认 4）。' }
+      BUZZ_POLL_INTERVAL: { label: '轮询间隔秒数', help: '入站轮询扫描间隔秒数（默认 4）。' },
+      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON（或留空）', help: '用于 NIP-42 WebSocket 认证的可选 NIP-OA 所有者证明 auth tag JSON。' },
+      BUZZ_CREDENTIALS_FILE: { label: '凭证文件路径（或留空）', help: '保存 nsec 的 JSON 凭证文件（当 BUZZ_PRIVATE_KEY 未设置时作为回退）。' },
     },
     platformIntro: {
       telegram:
@@ -2908,7 +2910,10 @@ export const zh: Translations = {
         'on this day in history': '历史上的今天',
         'word of the day': '每日单词',
         'science fact': '科学趣闻',
-        'quote of the day': '每日名言'
+        'quote of the day': '每日名言',
+        auto: '自动',
+        websocket: 'websocket',
+        poll: '轮询'
       }
     }
   },

@@ -1368,7 +1368,9 @@ export const ar = defineLocale({
       BUZZ_ALLOWED_USERS: { label: 'المستخدمون المسموح بهم (مفصولون بفواصل)', help: 'npubs أو مفاتيح hex العامة المسموح لها بالتحدث إلى الوكيل، مفصولة بفواصل.' },
       BUZZ_ALLOW_ALL_USERS: { label: 'السماح لجميع المستخدمين؟ (true/false)', help: 'السماح لأي عضو في المجتمع بالتحدث إلى الوكيل (true/false).' },
       BUZZ_TRANSPORT: { label: 'طريقة النقل (auto/websocket/poll)', help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.' },
-      BUZZ_POLL_INTERVAL: { label: 'ثواني فاصل الاستطلاع', help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).' }
+      BUZZ_POLL_INTERVAL: { label: 'ثواني فاصل الاستطلاع', help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).' },
+      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (أو فارغ)', help: 'علامة NIP-OA لاعتماد المالك الاختيارية لمصادقة NIP-42 WebSocket.' },
+      BUZZ_CREDENTIALS_FILE: { label: 'مسار ملف الاعتمادات (أو فارغ)', help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).' }
     },
     platformIntro: {
       telegram:
@@ -1734,7 +1736,10 @@ export const ar = defineLocale({
         'on this day in history': 'في مثل هذا اليوم من التاريخ',
         'word of the day': 'كلمة اليوم',
         'science fact': 'حقيقة علمية',
-        'quote of the day': 'اقتباس اليوم'
+        'quote of the day': 'اقتباس اليوم',
+        auto: 'تلقائي',
+        websocket: 'websocket',
+        poll: 'استطلاع'
       }
     }
   },
