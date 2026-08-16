@@ -1225,12 +1225,16 @@ function CronEditorDialog({
                 <SelectItem value={CUSTOM_TEMPLATE}>{c.blueprints.custom}</SelectItem>
                 {blueprintList.map(item => (
                   <SelectItem key={item.key} value={item.key}>
-                    {item.title}
+                    {c.blueprints.titles?.[item.title] ?? item.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {blueprint?.description && <FieldHint>{blueprint.description}</FieldHint>}
+            {blueprint?.description && (
+              <FieldHint>
+                {c.blueprints.descriptions?.[blueprint.title] ?? blueprint.description}
+              </FieldHint>
+            )}
           </Field>
         )}
 
@@ -1241,7 +1245,7 @@ function CronEditorDialog({
               const help = blueprintSlotHelp(field)
 
               return (
-                <Field htmlFor={fieldId} key={field.name} label={field.label}>
+                <Field htmlFor={fieldId} key={field.name} label={c.blueprints.labels?.[field.label] ?? field.label}>
                   {field.name === 'deliver' ? (
                     // Use the shared, backend-sourced delivery targets (same as the
                     // manual editor) rather than the blueprint's static field.options,

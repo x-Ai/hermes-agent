@@ -1750,6 +1750,9 @@ export interface Translations {
       failedLoad: string
       emptyTitle: string
       emptyDesc: string
+      titles: Record<string, string>
+      descriptions: Record<string, string>
+      labels: Record<string, string>
     }
   }
 

@@ -1982,6 +1982,23 @@ export const ja = defineLocale({
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: 'WeCom スマートロボットの WebSocket URL。' },
       WECOM_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
       WECOM_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる WeCom ユーザー ID。カンマ区切り。' },
+      A2A_AGENT_NAME: { label: 'A2A エージェント名', help: 'このエージェントの Agent Card に公開される名前（デフォルト：ホスト名から生成）。', placeholder: 'A2A エージェント名' },
+      A2A_BEARER_TOKEN: { label: 'A2A 共有トークン（空の場合はローカルのみ）', help: 'インバウンド A2A 呼び出し用の共有トークン（IDが呼び出し元 IP にフォールバック）。トークン未設定の場合は 127.0.0.1 のみにバインドします。', placeholder: 'A2A 共有トークン（空の場合はローカルのみ）' },
+      A2A_HOST: { label: 'A2A バインドホスト（デフォルト 127.0.0.1）', help: 'インバウンドバインドホスト。デフォルト 127.0.0.1；トークン設定時かつここで選択した場合のみ 0.0.0.0 に拡張。', placeholder: 'A2A バインドホスト（デフォルト 127.0.0.1）' },
+      A2A_PORT: { label: 'A2A ポート（デフォルト 9900）', help: 'インバウンド A2A サーバーポート（デフォルト 9900）。', placeholder: 'A2A ポート（デフォルト 9900）' },
+      A2A_PEER_TOKENS: { label: 'A2A ピアトークン（name:token、カンマ区切り；または空）', help: 'ピアエージェントごとのトークン（例：alice:tok1,bob:tok2）。マッチした名前がレート制限、信頼、監査に使用される ID になります。', placeholder: 'A2A ピアトークン（name:token、カンマ区切り；または空）' },
+      A2A_HOME_CHANNEL: { label: 'A2A ホームチャンネル（または空）', help: 'deliver=a2a の場合に cron / 通知配信で使用するタスク/コンテキスト ID。' },
+      A2A_ALLOW_ALL_USERS: { label: 'すべての A2A ピアを許可', help: '認証済みの A2A ピアがこのエージェントにアクセスできるようにします（開発用のみ）。' },
+      RAFT_PROFILE: { label: 'Raft エージェントプロファイル', help: 'Raft エージェントプロファイルスラグ — 設定するとアダプターが自動有効化されます。', placeholder: 'Raft エージェントプロファイル' },
+      BUZZ_RELAY_URL: { label: 'Buzz リレー URL', help: 'Buzz コミュニティリレーのベース URL（例：https://mycommunity.communities.buzz.xyz）。', placeholder: 'Buzz リレー URL' },
+      BUZZ_PRIVATE_KEY: { label: 'Nostr 秘密鍵（nsec または hex）', help: 'エージェントの Buzz アイデンティティ用 Nostr 秘密鍵（nsec または hex）— 唯一の Buzz シークレット。' },
+      BUZZ_CLI_PATH: { label: 'buzz CLI パス（または空）', help: 'buzz CLI バイナリのパス（デフォルト：PATH の buzz、次に ~/bin/buzz）。' },
+      BUZZ_CHANNELS: { label: 'チャンネル UUID（カンマ区切り）', help: '監視するチャンネルの UUID（カンマ区切り、デフォルト：参加中のすべてのチャンネル）。' },
+      BUZZ_HOME_CHANNEL: { label: 'ホームチャンネル UUID（または空）', help: 'cron / 通知配信に使用するチャンネル UUID（デフォルト：最初の監視チャンネル）。' },
+      BUZZ_ALLOWED_USERS: { label: '許可するユーザー（カンマ区切り）', help: 'エージェントと会話できる npub または hex 公開鍵。カンマ区切り。' },
+      BUZZ_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可？（true/false）', help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。' },
+      BUZZ_TRANSPORT: { label: 'トランスポート（auto/websocket/poll）', help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。' },
+      BUZZ_POLL_INTERVAL: { label: 'ポール間隔（秒）', help: 'インバウンドポールスイープの間隔秒数（デフォルト 4）。' },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: 'すべての Telegram ユーザーを許可',
         help: '開発用のみ。すべての Telegram ユーザーがボットを利用できます。'
@@ -2223,12 +2240,6 @@ export const ja = defineLocale({
       a2a: 'A2A プロトコル経由でローカルまたはリモートで他の Hermes インスタンスやエージェントと会話します。',
       buzz: 'Nostr リレー経由で分散型 Buzz コミュニティに接続します（buzz CLI が必要）。',
       raft: 'Raft ワークスペースに外部エージェントとして参加してタスクで協力します。'
-    },
-      weixin: 'Tencent の iLink Bot API を通じて個人の WeChat アカウントを接続します。',
-      qqbot: 'QQ オープンプラットフォームの QQ ボットに Hermes を接続します。',
-      yuanbao: 'Tencent Yuanbao に Hermes を接続します。',
-      api_server: 'Hermes を OpenAI 互換 HTTP API として公開し、Open WebUI などのツールから使えるようにします。',
-      webhook: 'GitHub、GitLab などの Webhook ソースからイベントを受信します。'
     }
   },
 
