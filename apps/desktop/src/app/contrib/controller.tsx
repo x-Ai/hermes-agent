@@ -281,9 +281,7 @@ registry.registerMany([
     area: KEYBINDS_AREA,
     data: {
       id: 'layout.editMode',
-      // The keybind panel resolves this built-in id from `t.keybinds.actions`;
-      // this is only the registration fallback.
-      label: 'Toggle layout edit mode',
+      label: translateNow('zones.toggleLayoutEditMode'),
       defaults: ['mod+shift+\\'],
       run: toggleLayoutEditMode
     } satisfies KeybindContribution

@@ -3050,6 +3050,14 @@ export const en: Translations = {
       WHATSAPP_ALLOWED_USERS: {
         label: 'Allowed WhatsApp users',
         help: 'Recommended. Comma-separated phone numbers or WhatsApp IDs.'
+      },
+      LINE_HOST: {
+        label: 'Webhook host',
+        help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
+      },
+      TEAMS_HOST: {
+        label: 'Webhook host',
+        help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
       }
     },
     platformIntro: {},
