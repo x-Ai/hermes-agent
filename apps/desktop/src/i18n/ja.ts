@@ -1876,7 +1876,7 @@ export const ja = defineLocale({
       },
       LINE_CHANNEL_SECRET: { label: 'チャネルシークレット', help: 'LINE チャネルシークレット（HMAC-SHA256 Webhook 署名検証に使用）。' },
       LINE_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（デフォルト: 8646）。' },
-      LINE_HOST: { label: 'Webhook ホスト', help: 'Webhook のバインドホスト（デフォルト: 0.0.0.0）。' },
+      LINE_HOST: { label: 'Webhook ホスト', help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。' },
       LINE_PUBLIC_URL: {
         label: '公開 HTTPS ベース URL',
         help: 'LINE へ画像/音声/動画を配信するための公開 HTTPS ベース URL（例: https://my-tunnel.example.com）。バインドアドレスに直接到達できない場合、メディア送信に必須。'
@@ -1968,6 +1968,7 @@ export const ja = defineLocale({
       TEAMS_CLIENT_SECRET: { label: 'Azure AD クライアントシークレット', help: 'Azure AD アプリケーションのクライアントシークレット。' },
       TEAMS_TENANT_ID: { label: 'Azure AD テナント ID', help: 'ボットアプリケーションをホストする Azure AD テナント ID。' },
       TEAMS_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（Bot Framework デフォルト: 3978）。' },
+      TEAMS_HOST: { label: 'Webhook ホスト', help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。' },
       TEAMS_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる Teams ユーザー ID / UPN。カンマ区切り。' },
       TEAMS_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可', help: '開発用のみ。すべての Teams ユーザーがボットをトリガーできます。' },
       TEAMS_HOME_CHANNEL: { label: 'ホームチャンネル', help: 'Cron / 通知配信のデフォルトのチャット/チャンネル ID。' },

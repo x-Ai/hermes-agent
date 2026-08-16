@@ -73,6 +73,12 @@ function ClickCounter() {
 const plugin: HermesPlugin = {
   id: 'example',
   name: 'Example Plugin',
+  localizedName: {
+    zh: '示例插件',
+    'zh-hant': '範例外掛程式',
+    ja: 'サンプルプラグイン',
+    ar: 'مثال على الإضافة'
+  },
   defaultEnabled: false,
   register(ctx) {
     // Persisted count: hydrate once, write through on every change.

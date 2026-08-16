@@ -2368,7 +2368,7 @@ export const zh: Translations = {
       },
       LINE_CHANNEL_SECRET: { label: '频道密钥', help: 'LINE 频道密钥（用于 HMAC-SHA256 Webhook 签名校验）。' },
       LINE_PORT: { label: 'Webhook 端口', help: 'Webhook 监听端口（默认 8646）。' },
-      LINE_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认 0.0.0.0）。' },
+      LINE_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）。' },
       LINE_PUBLIC_URL: {
         label: '公开 HTTPS 基础 URL',
         help: '向 LINE 提供图片/音频/视频的公开 HTTPS 基础 URL（如 https://my-tunnel.example.com）。绑定地址无法直接访问时发送媒体必需。'
@@ -2442,6 +2442,7 @@ export const zh: Translations = {
       TEAMS_CLIENT_SECRET: { label: 'Azure AD 客户端密钥', help: 'Azure AD 应用客户端密钥。' },
       TEAMS_TENANT_ID: { label: 'Azure AD 租户 ID', help: '托管机器人应用的 Azure AD 租户 ID。' },
       TEAMS_PORT: { label: 'Webhook 端口', help: 'Webhook 监听端口（Bot Framework 默认 3978）。' },
+      TEAMS_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）。' },
       TEAMS_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 Teams 用户 ID / UPN，逗号分隔。' },
       TEAMS_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。任何 Teams 用户都能触发机器人。' },
       TEAMS_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认聊天/频道 ID。' },

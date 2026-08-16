@@ -1919,7 +1919,7 @@ export const zhHant = defineLocale({
       },
       LINE_CHANNEL_SECRET: { label: '頻道密鑰', help: 'LINE 頻道密鑰（用於 HMAC-SHA256 Webhook 簽章驗證）。' },
       LINE_PORT: { label: 'Webhook 連接埠', help: 'Webhook 監聽連接埠（預設 8646）。' },
-      LINE_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設 0.0.0.0）。' },
+      LINE_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面 IPv4+IPv6）。' },
       LINE_PUBLIC_URL: {
         label: '公開 HTTPS 基礎 URL',
         help: '向 LINE 提供圖片/音訊/影片的公開 HTTPS 基礎 URL（如 https://my-tunnel.example.com）。繫結位址無法直接存取時傳送媒體必需。'
@@ -1993,6 +1993,7 @@ export const zhHant = defineLocale({
       TEAMS_CLIENT_SECRET: { label: 'Azure AD 用戶端密鑰', help: 'Azure AD 應用程式用戶端密鑰。' },
       TEAMS_TENANT_ID: { label: 'Azure AD 租用戶 ID', help: '託管機器人應用程式的 Azure AD 租用戶 ID。' },
       TEAMS_PORT: { label: 'Webhook 連接埠', help: 'Webhook 監聽連接埠（Bot Framework 預設 3978）。' },
+      TEAMS_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面 IPv4+IPv6）。' },
       TEAMS_ALLOWED_USERS: { label: '允許的使用者', help: '允許與機器人對話的 Teams 使用者 ID / UPN，逗號分隔。' },
       TEAMS_ALLOW_ALL_USERS: { label: '允許所有使用者', help: '僅供開發使用。任何 Teams 使用者都能觸發機器人。' },
       TEAMS_HOME_CHANNEL: { label: '主頻道', help: 'cron / 通知傳遞的預設聊天/頻道 ID。' },
