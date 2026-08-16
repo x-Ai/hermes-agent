@@ -3347,7 +3347,20 @@ export const zhHant = defineLocale({
     saveApply: '儲存並套用',
     notExpressible: '此排列互相咬合（風車形）——暫時無法表示為巢狀分割',
     zoneCount: count => `${count} 個區域`,
-    tabCount: count => `${count} 個分頁`
+    tabCount: count => `${count} 個分頁`,
+    layoutNames: {
+      default: '預設',
+      focus: '專注',
+      'terminal-deck': '終端面板',
+      quad: '四格'
+    },
+    paneNames: {
+      sessions: '工作階段',
+      files: '檔案',
+      review: '審閱',
+      terminal: '終端',
+      workspace: '工作區'
+    }
   },
 
   assistant: {

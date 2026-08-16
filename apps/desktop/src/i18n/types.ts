@@ -2665,6 +2665,8 @@ export interface Translations {
     notExpressible: string
     zoneCount: (count: number) => string
     tabCount: (count: number) => string
+    layoutNames: Record<string, string>
+    paneNames: Record<string, string>
   }
 
   assistant: {

@@ -4050,7 +4050,20 @@ export const zh: Translations = {
     saveApply: '保存并应用',
     notExpressible: '此排列互相咬合（风车形）——暂无法表示为嵌套拆分',
     zoneCount: count => `${count} 个区域`,
-    tabCount: count => `${count} 个标签页`
+    tabCount: count => `${count} 个标签页`,
+    layoutNames: {
+      default: '默认',
+      focus: '专注',
+      'terminal-deck': '终端面板',
+      quad: '四格'
+    },
+    paneNames: {
+      sessions: '会话',
+      files: '文件',
+      review: '审阅',
+      terminal: '终端',
+      workspace: '工作区'
+    }
   },
 
   assistant: {
