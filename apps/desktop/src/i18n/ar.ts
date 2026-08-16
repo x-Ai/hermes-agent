@@ -4884,7 +4884,20 @@ export const ar = defineCompleteLocale({
     saveApply: 'حفظ وتطبيق',
     notExpressible: 'هذا الترتيب متشابك — لا يمكن تمثيله كتقسيمات متداخلة بعد',
     zoneCount: count => `${count} مناطق`,
-    tabCount: count => `${count} تبويبات`
+    tabCount: count => `${count} تبويبات`,
+    layoutNames: {
+      default: 'افتراضي',
+      focus: 'تركيز',
+      'terminal-deck': 'لوحة الطرفية',
+      quad: 'رباعي'
+    },
+    paneNames: {
+      sessions: 'الجلسات',
+      files: 'الملفات',
+      review: 'المراجعة',
+      terminal: 'الطرفية',
+      workspace: 'مساحة العمل'
+    }
   },
   contextMenu: {
     link: {

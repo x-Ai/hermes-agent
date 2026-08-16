@@ -88,7 +88,7 @@ function PresetCard({ preset }: { preset: Contribution }) {
         <span
           className={cn('truncate text-[0.68rem] font-medium', active ? 'text-foreground' : 'text-muted-foreground/80')}
         >
-          {preset.title ?? preset.id}
+          {t.zones.layoutNames?.[preset.id] ?? preset.title ?? preset.id}
         </span>
       </button>
       {isUserPreset(preset.id) && (
