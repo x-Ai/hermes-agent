@@ -4199,6 +4199,7 @@ export const zh: Translations = {
     notExpressible: '此排列互相咬合（风车形）——暂无法表示为嵌套拆分',
     zoneCount: count => `${count} 个区域`,
     tabCount: count => `${count} 个标签页`,
+    toggleLayoutEditMode: '切换布局编辑模式',
     layoutNames: {
       default: '默认',
       focus: '专注',
