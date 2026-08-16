@@ -1242,7 +1242,7 @@ function CronEditorDialog({
           <form className="grid gap-4" onSubmit={handleBlueprintSubmit}>
             {blueprint.fields.map(field => {
               const fieldId = `blueprint-${blueprint.key}-${field.name}`
-              const help = blueprintSlotHelp(field)
+              const help = blueprintSlotHelp(field, c.blueprints)
 
               return (
                 <Field htmlFor={fieldId} key={field.name} label={c.blueprints.labels?.[field.label] ?? field.label}>
@@ -1259,6 +1259,7 @@ function CronEditorDialog({
                     />
                   ) : (
                     <BlueprintSlotControl
+                      bp={c.blueprints}
                       field={field}
                       id={fieldId}
                       onChange={next => setSlotValues(prev => ({ ...prev, [field.name]: next }))}

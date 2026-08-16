@@ -1753,6 +1753,8 @@ export interface Translations {
       titles: Record<string, string>
       descriptions: Record<string, string>
       labels: Record<string, string>
+      helps: Record<string, string>
+      options: Record<string, string>
     }
   }
 

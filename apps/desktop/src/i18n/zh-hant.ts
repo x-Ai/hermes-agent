@@ -2358,6 +2358,41 @@ export const zhHant = defineLocale({
         'Meals per day?': '每日幾餐？',
         'Cooking effort?': '烹飪難度？',
         'Only notify me if the mail…': '僅在郵件…時通知我'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24小時制，如 08:00',
+        'minutes between checks': '檢查間隔（分鐘）',
+        'hours between checks — be gentle with rate limits': '檢查間隔（小時）——注意速率限制',
+        'hours between nudges': '提醒間隔（小時）',
+        'first hour of the active window (24h)': '活躍時段開始小時（24小時制）',
+        'last hour of the active window (24h)': '活躍時段結束小時（24小時制）'
+      },
+      options: {
+        everyday: '每天',
+        weekdays: '工作日',
+        weekends: '週末',
+        sunday: '週日',
+        monday: '週一',
+        tuesday: '週二',
+        wednesday: '週三',
+        thursday: '週四',
+        friday: '週五',
+        saturday: '週六',
+        'dinner only': '僅晚餐',
+        'lunch and dinner': '午餐和晚餐',
+        'all three': '三餐',
+        quick: '簡單',
+        medium: '中等',
+        ambitious: '複雜',
+        'no restrictions': '無限制',
+        vegetarian: '素食',
+        vegan: '純素',
+        'high-protein': '高蛋白',
+        'low-carb': '低碳水',
+        'on this day in history': '歷史上的今天',
+        'word of the day': '每日單詞',
+        'science fact': '科學趣聞',
+        'quote of the day': '每日名言'
       }
     }
   },

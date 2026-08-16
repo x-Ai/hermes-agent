@@ -2528,6 +2528,41 @@ export const ja = defineLocale({
         'Meals per day?': '1日の食事回数？',
         'Cooking effort?': '調理の労力？',
         'Only notify me if the mail…': 'メールが…の場合のみ通知'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24時間形式（例：08:00）',
+        'minutes between checks': 'チェック間隔（分）',
+        'hours between checks — be gentle with rate limits': 'チェック間隔（時間）——レート制限に注意',
+        'hours between nudges': 'ナッジ間隔（時間）',
+        'first hour of the active window (24h)': 'アクティブ時間帯の開始時刻（24時間制）',
+        'last hour of the active window (24h)': 'アクティブ時間帯の終了時刻（24時間制）'
+      },
+      options: {
+        everyday: '毎日',
+        weekdays: '平日',
+        weekends: '週末',
+        sunday: '日曜日',
+        monday: '月曜日',
+        tuesday: '火曜日',
+        wednesday: '水曜日',
+        thursday: '木曜日',
+        friday: '金曜日',
+        saturday: '土曜日',
+        'dinner only': '夕食のみ',
+        'lunch and dinner': '昼食と夕食',
+        'all three': '3食',
+        quick: '簡単',
+        medium: '普通',
+        ambitious: '本格的',
+        'no restrictions': '制限なし',
+        vegetarian: 'ベジタリアン',
+        vegan: 'ビーガン',
+        'high-protein': '高タンパク',
+        'low-carb': '低糖質',
+        'on this day in history': '歴史上の今日',
+        'word of the day': '今日の単語',
+        'science fact': 'サイエンスファクト',
+        'quote of the day': '今日の名言'
       }
     }
   },
