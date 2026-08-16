@@ -3285,7 +3285,20 @@ export const en: Translations = {
     saveApply: 'Save & apply',
     notExpressible: 'this arrangement interlocks (pinwheel) — not expressible as nested splits yet',
     zoneCount: count => `${count} zones`,
-    tabCount: count => `${count} tabs`
+    tabCount: count => `${count} tabs`,
+    layoutNames: {
+      default: 'Default',
+      focus: 'Focus',
+      'terminal-deck': 'Terminal deck',
+      quad: 'Quad'
+    },
+    paneNames: {
+      sessions: 'Sessions',
+      files: 'Files',
+      review: 'Review',
+      terminal: 'Terminal',
+      workspace: 'Workspace'
+    }
   },
 
   assistant: {
