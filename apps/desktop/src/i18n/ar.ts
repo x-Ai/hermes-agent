@@ -1697,7 +1697,9 @@ export const ar = defineLocale({
         'Diet?': 'قيود غذائية؟',
         'Meals per day?': 'وجبات يوميًا؟',
         'Cooking effort?': 'جهد الطهي؟',
-        'Only notify me if the mail…': 'فقط أخبرني إذا كان البريد…'
+        'Only notify me if the mail…': 'فقط أخبرني إذا كان البريد…',
+        'Learn about…': 'التعلم حول…',
+        'What kind?': 'أي نوع؟'
       },
       helps: {
         '24h local time, e.g. 08:00': 'بتوقيت محلي 24 ساعة، مثل 08:00',

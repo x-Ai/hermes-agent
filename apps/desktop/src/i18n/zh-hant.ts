@@ -2357,7 +2357,9 @@ export const zhHant = defineLocale({
         'Diet?': '飲食限制？',
         'Meals per day?': '每日幾餐？',
         'Cooking effort?': '烹飪難度？',
-        'Only notify me if the mail…': '僅在郵件…時通知我'
+        'Only notify me if the mail…': '僅在郵件…時通知我',
+        'Learn about…': '學習…',
+        'What kind?': '什麼類型？'
       },
       helps: {
         '24h local time, e.g. 08:00': '24小時制，如 08:00',

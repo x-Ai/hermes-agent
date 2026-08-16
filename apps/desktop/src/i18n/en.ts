@@ -2188,7 +2188,9 @@ export const en: Translations = {
         'Diet?': 'Diet?',
         'Meals per day?': 'Meals per day?',
         'Cooking effort?': 'Cooking effort?',
-        'Only notify me if the mail…': 'Only notify me if the mail…'
+        'Only notify me if the mail…': 'Only notify me if the mail…',
+        'Learn about…': 'Learn about…',
+        'What kind?': 'What kind?'
       },
       helps: {
         '24h local time, e.g. 08:00': '24h local time, e.g. 08:00',

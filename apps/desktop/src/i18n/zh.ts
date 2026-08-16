@@ -2901,7 +2901,9 @@ export const zh: Translations = {
         'Diet?': '饮食？',
         'Meals per day?': '每天几餐？',
         'Cooking effort?': '烹饪难度？',
-        'Only notify me if the mail…': '仅在邮件…时通知我'
+        'Only notify me if the mail…': '仅在邮件…时通知我',
+        'Learn about…': '学习…',
+        'What kind?': '什么类型？'
       },
       helps: {
         '24h local time, e.g. 08:00': '24小时制，如 08:00',
