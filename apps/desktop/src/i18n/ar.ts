@@ -1347,7 +1347,24 @@ export const ar = defineLocale({
       WHATSAPP_ALLOWED_USERS: {
         label: 'مستخدمو WhatsApp المسموح بهم',
         help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp مفصولة بفواصل.'
-      }
+      },
+      A2A_AGENT_NAME: { label: 'اسم عميل A2A', help: 'الاسم المُعلَن على بطاقة الوكيل (Agent Card) لهذا الوكيل (الافتراضي: مشتق من اسم المضيف).', placeholder: 'اسم عميل A2A' },
+      A2A_BEARER_TOKEN: { label: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)', help: 'رمز حامل مشترك لاستدعاءات A2A الواردة (تعود الهوية إلى IP المتصل). بدون أي رمز => ربط بـ 127.0.0.1 فقط.', placeholder: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)' },
+      A2A_HOST: { label: 'مضيف ربط A2A (الافتراضي 127.0.0.1)', help: 'مضيف الربط الوارد. الافتراضي 127.0.0.1؛ يتوسع إلى 0.0.0.0 فقط عند تعيين رمز حامل والموافقة هنا.', placeholder: 'مضيف ربط A2A (الافتراضي 127.0.0.1)' },
+      A2A_PORT: { label: 'منفذ A2A (الافتراضي 9900)', help: 'منفذ خادم A2A الوارد (الافتراضي 9900).', placeholder: 'منفذ A2A (الافتراضي 9900)' },
+      A2A_PEER_TOKENS: { label: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)', help: 'رموز حامل لكل نظير (مثل alice:tok1,bob:tok2). كل وكيل بعيد له بيانات اعتماد خاصة به.', placeholder: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)' },
+      A2A_HOME_CHANNEL: { label: 'قناة A2A الرئيسية (أو فارغ)', help: 'معرف المهمة/السياق المستخدم كهدف تسليم cron / الإشعارات لـ deliver=a2a.' },
+      A2A_ALLOW_ALL_USERS: { label: 'السماح لجميع أقران A2A؟ (true/false)', help: 'السماح لأي نظير A2A مصادَق عليه بالوصول إلى الوكيل (للتطوير فقط).' },
+      RAFT_PROFILE: { label: 'ملف تعريف وكيل Raft', help: 'اسم ملف تعريف وكيل Raft — يُمكِّن المحول تلقائيًا عند التعيين.', placeholder: 'ملف تعريف وكيل Raft' },
+      BUZZ_RELAY_URL: { label: 'عنوان URL مُرحِّل Buzz', help: 'عنوان URL الأساسي لمُرحِّل مجتمع Buzz (مثل https://mycommunity.communities.buzz.xyz).', placeholder: 'عنوان URL مُرحِّل Buzz' },
+      BUZZ_PRIVATE_KEY: { label: 'المفتاح الخاص لـ Nostr (nsec أو hex)', help: 'المفتاح الخاص لـ Nostr لهوية Buzz للوكيل (nsec أو hex) — السر الوحيد لـ Buzz.' },
+      BUZZ_CLI_PATH: { label: 'مسار buzz CLI (أو فارغ)', help: "مسار ملف buzz CLI الثنائي (الافتراضي: 'buzz' على PATH، ثم ~/bin/buzz)." },
+      BUZZ_CHANNELS: { label: 'معرفات UUID للقنوات (مفصولة بفواصل)', help: 'معرفات UUID للقنوات المراد مراقبتها، مفصولة بفواصل (الافتراضي: جميع القنوات المنضمة إليها).' },
+      BUZZ_HOME_CHANNEL: { label: 'معرف UUID القناة الرئيسية (أو فارغ)', help: 'معرف UUID للقناة لتسليم cron / الإشعارات (الافتراضي: القناة الأولى المراقَبة).' },
+      BUZZ_ALLOWED_USERS: { label: 'المستخدمون المسموح بهم (مفصولون بفواصل)', help: 'npubs أو مفاتيح hex العامة المسموح لها بالتحدث إلى الوكيل، مفصولة بفواصل.' },
+      BUZZ_ALLOW_ALL_USERS: { label: 'السماح لجميع المستخدمين؟ (true/false)', help: 'السماح لأي عضو في المجتمع بالتحدث إلى الوكيل (true/false).' },
+      BUZZ_TRANSPORT: { label: 'طريقة النقل (auto/websocket/poll)', help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.' },
+      BUZZ_POLL_INTERVAL: { label: 'ثواني فاصل الاستطلاع', help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).' }
     },
     platformIntro: {
       telegram:

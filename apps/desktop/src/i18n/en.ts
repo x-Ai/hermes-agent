@@ -1750,7 +1750,24 @@ export const en: Translations = {
       WHATSAPP_ALLOWED_USERS: {
         label: 'Allowed WhatsApp users',
         help: 'Recommended. Comma-separated phone numbers or WhatsApp IDs.'
-      }
+      },
+      A2A_AGENT_NAME: { label: 'A2A agent name', help: 'Name advertised on this agent\'s Agent Card (default: hostname-derived).', placeholder: 'A2A agent name' },
+      A2A_BEARER_TOKEN: { label: 'A2A shared bearer token (or empty for localhost-only)', help: 'Shared bearer token for inbound A2A calls (identity falls back to caller IP). With no token of any kind => bind to 127.0.0.1 only (no remote access).', placeholder: 'A2A shared bearer token (or empty for localhost-only)' },
+      A2A_HOST: { label: 'A2A bind host (default 127.0.0.1)', help: 'Inbound bind host. Defaults to 127.0.0.1; only widens to 0.0.0.0 when a bearer token is set AND you opt in here.', placeholder: 'A2A bind host (default 127.0.0.1)' },
+      A2A_PORT: { label: 'A2A port (default 9900)', help: 'Inbound A2A server port (default 9900).', placeholder: 'A2A port (default 9900)' },
+      A2A_PEER_TOKENS: { label: 'A2A per-peer tokens (name:token, comma-separated; or empty)', help: "Per-peer bearer tokens ('alice:tok1,bob:tok2'). Each remote agent gets its own credential; the matched name is the authenticated identity used for rate limiting, trust, and audit.", placeholder: 'A2A per-peer tokens (name:token, comma-separated; or empty)' },
+      A2A_HOME_CHANNEL: { label: 'A2A home channel (or empty)', help: 'Task/context id used as the cron / notification delivery target for deliver=a2a.' },
+      A2A_ALLOW_ALL_USERS: { label: 'Allow all A2A peers? (true/false)', help: 'Allow any authenticated A2A peer to reach the agent (dev only).' },
+      RAFT_PROFILE: { label: 'Raft agent profile', help: 'Raft agent profile slug — auto-enables the adapter when set.', placeholder: 'Raft agent profile' },
+      BUZZ_RELAY_URL: { label: 'Buzz relay URL', help: 'Base URL of the Buzz community relay (e.g. https://mycommunity.communities.buzz.xyz).', placeholder: 'Buzz relay URL' },
+      BUZZ_PRIVATE_KEY: { label: 'Nostr private key (nsec or hex)', help: "Nostr private key for the agent's Buzz identity (nsec or hex) — the only Buzz secret." },
+      BUZZ_CLI_PATH: { label: 'buzz CLI path (or empty)', help: "Path to the buzz CLI binary (default: 'buzz' on PATH, then ~/bin/buzz)." },
+      BUZZ_CHANNELS: { label: 'Channel UUIDs (comma-separated)', help: 'Comma-separated channel UUIDs to watch (default: all joined channels).' },
+      BUZZ_HOME_CHANNEL: { label: 'Home channel UUID (or empty)', help: 'Channel UUID for cron / notification delivery (defaults to the first watched channel).' },
+      BUZZ_ALLOWED_USERS: { label: 'Allowed users (comma-separated)', help: 'Comma-separated npubs or hex pubkeys allowed to talk to the agent.' },
+      BUZZ_ALLOW_ALL_USERS: { label: 'Allow all users? (true/false)', help: 'Allow any community member to talk to the agent (true/false).' },
+      BUZZ_TRANSPORT: { label: 'Transport (auto/websocket/poll)', help: 'Inbound transport: auto (WebSocket w/ poll fallback, default), websocket, or poll.' },
+      BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' }
     },
     platformIntro: {
       telegram:
@@ -2120,12 +2137,12 @@ export const en: Translations = {
         'On-this-day discovery': 'On-this-day discovery'
       },
       descriptions: {
-        'Morning briefing': 'A short daily briefing: today's calendar, weather, and any pending urgent items.',
+        'Morning briefing': "A short daily briefing: today's calendar, weather, and any pending urgent items.",
         'Important-mail monitor': 'Checks your inbox periodically and alerts only when something truly needs attention.',
-        'Weekly review': 'Weekly recap: what got done, what's pending, and what's coming up.',
+        'Weekly review': "Weekly recap: what got done, what's pending, and what's coming up.",
         'Workday start reminder': 'Workday reminder with your agenda and top priorities.',
         'Custom reminder': 'Custom recurring reminder on your schedule.',
-        'Evening wind-down': 'End-of-day check: a glance at tomorrow's schedule and what to prepare tonight.',
+        'Evening wind-down': "End-of-day check: a glance at tomorrow's schedule and what to prepare tonight.",
         'Topic news digest': 'Periodic digest on topics you care about — deduplicated so only truly new items surface.',
         'Bills & renewals reminder': 'Advance warning before recurring payments, subscription renewals, or due dates — so nothing auto-charges unexpectedly.',
         'Price & availability watch': 'Monitor exact products, flights, hotels, or listings and alert when price or availability conditions are met.',

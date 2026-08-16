@@ -2448,7 +2448,24 @@ export const zh: Translations = {
       TEAMS_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Teams 主页频道的显示名称。' },
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企业微信智能机器人 WebSocket URL。' },
       WECOM_HOME_CHANNEL: { label: '主页会话 ID', help: 'cron / 通知投递的默认聊天 ID。' },
-      WECOM_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的企业微信用户 ID，逗号分隔。' }
+      WECOM_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的企业微信用户 ID，逗号分隔。' },
+      A2A_AGENT_NAME: { label: 'A2A 代理名称', help: '在此代理的 Agent Card 上公布的名称（默认：主机名派生）。', placeholder: 'A2A 代理名称' },
+      A2A_BEARER_TOKEN: { label: 'A2A 共享令牌（空则仅限本地）', help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP）。不设任何令牌则仅绑定 127.0.0.1。', placeholder: 'A2A 共享令牌（空则仅限本地）' },
+      A2A_HOST: { label: 'A2A 绑定主机（默认 127.0.0.1）', help: '入站绑定主机。默认 127.0.0.1；仅在设置了令牌且在此处选择时才扩展到 0.0.0.0。', placeholder: 'A2A 绑定主机（默认 127.0.0.1）' },
+      A2A_PORT: { label: 'A2A 端口（默认 9900）', help: '入站 A2A 服务器端口（默认 9900）。', placeholder: 'A2A 端口（默认 9900）' },
+      A2A_PEER_TOKENS: { label: 'A2A 对等令牌（name:token，逗号分隔；或留空）', help: '每个对等代理的令牌（如 alice:tok1,bob:tok2）。匹配的名称用于限速、信任和审计。', placeholder: 'A2A 对等令牌（name:token，逗号分隔；或留空）' },
+      A2A_HOME_CHANNEL: { label: 'A2A 主页频道（或留空）', help: 'cron / 通知投递时 deliver=a2a 使用的任务/上下文 ID。' },
+      A2A_ALLOW_ALL_USERS: { label: '允许所有 A2A 对等代理', help: '允许任何已认证的 A2A 对等代理访问此代理（仅限开发）。' },
+      RAFT_PROFILE: { label: 'Raft 代理 profile', help: 'Raft 代理 profile slug — 设置后自动启用适配器。', placeholder: 'Raft 代理 profile' },
+      BUZZ_RELAY_URL: { label: 'Buzz 中继 URL', help: 'Buzz 社区中继的基础 URL（如 https://mycommunity.communities.buzz.xyz）。', placeholder: 'Buzz 中继 URL' },
+      BUZZ_PRIVATE_KEY: { label: 'Nostr 私钥（nsec 或 hex）', help: '代理 Buzz 身份的 Nostr 私钥（nsec 或 hex）——唯一的 Buzz 密钥。' },
+      BUZZ_CLI_PATH: { label: 'buzz CLI 路径（或留空）', help: 'buzz CLI 二进制文件路径（默认：PATH 中的 buzz，然后是 ~/bin/buzz）。' },
+      BUZZ_CHANNELS: { label: '频道 UUID（逗号分隔）', help: '要监听的频道 UUID，逗号分隔（默认：所有已加入的频道）。' },
+      BUZZ_HOME_CHANNEL: { label: '主页频道 UUID（或留空）', help: 'cron / 通知投递的频道 UUID（默认使用第一个监听的频道）。' },
+      BUZZ_ALLOWED_USERS: { label: '允许的用户（逗号分隔）', help: '允许与代理对话的 npub 或 hex 公钥，逗号分隔。' },
+      BUZZ_ALLOW_ALL_USERS: { label: '允许所有用户？（true/false）', help: '允许任何社区成员与代理对话（true/false）。' },
+      BUZZ_TRANSPORT: { label: '传输方式（auto/websocket/poll）', help: '入站传输方式：auto（WebSocket 带轮询回退，默认）、websocket 或 poll。' },
+      BUZZ_POLL_INTERVAL: { label: '轮询间隔秒数', help: '入站轮询扫描间隔秒数（默认 4）。' }
     },
     platformIntro: {
       telegram:
