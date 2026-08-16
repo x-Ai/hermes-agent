@@ -1272,7 +1272,7 @@ providers:
     auth_scheme: bearer           # optional — see below
 ```
 
-Each entry accepts: `api` (the endpoint base URL — `base_url`/`url` are accepted aliases), `name` (optional display name; defaults to the dict key), `key_env` or inline `api_key`, `transport` (`chat_completions` / `anthropic_messages` / `codex_responses`), `auth_scheme` (`bearer` / `x-api-key` for Anthropic-compatible endpoints), `default_model`, `models`, `context_length`, `discover_models`, `extra_body`, `extra_headers`, `ssl_ca_cert` / `ssl_verify`, and `enabled: false` to hide an entry without deleting it.
+Each entry accepts: `api` (the endpoint base URL — `base_url`/`url` are accepted aliases), `name` (optional display name; defaults to the dict key), `key_env` or inline `api_key` or `key_cmd` (see below), `transport` (`chat_completions` / `anthropic_messages` / `codex_responses`), `auth_scheme` (`bearer` / `x-api-key` for Anthropic-compatible endpoints), `default_model`, `models`, `context_length`, `discover_models`, `extra_body`, `extra_headers`, `ssl_ca_cert` / `ssl_verify`, and `enabled: false` to hide an entry without deleting it.
 
 **Auth header style for Anthropic-compatible proxies (`auth_scheme`).** Third-party gateways that speak the Anthropic Messages protocol are split on authentication: some expect Anthropic's native `x-api-key` header, others only accept `Authorization: Bearer`. Hermes auto-detects the right style for well-known hosts (MiniMax, Azure AI Foundry, Palantir Foundry, Nous Portal), but it can't know about your self-hosted relay — if yours requires Bearer, requests fail with HTTP 401/403 at session start. Set `auth_scheme` on the provider entry to pin it:
 
@@ -1281,6 +1281,26 @@ Each entry accepts: `api` (the endpoint base URL — `base_url`/`url` are accept
 - unset — auto-detect (default)
 
 Matching is by hostname (including subdomains), so the setting also covers a bare `model.base_url` pointing at the same relay host. `auth_scheme` only affects `transport: anthropic_messages` (legacy `api_mode`) endpoints; OpenAI-compatible endpoints always use Bearer.
+
+#### Command-minted credentials (`key_cmd`)
+
+Enterprise gateways often issue short-lived bearer tokens (SSO/OIDC brokers, cloud IAM, internal auth proxies) rather than static API keys, so a token copied into `.env` goes stale mid-session and requests start returning 401. `key_cmd` names a command that *prints* a token; Hermes runs it and caches the result until shortly before expiry, so long sessions keep working with no restart:
+
+```yaml
+providers:
+  my-gateway:
+    base_url: "https://gateway.internal.example.com/v1"
+    api_mode: chat_completions
+    key_cmd: "my-auth-cli print-token --profile prod"
+```
+
+Works with any helper that prints a token — `databricks auth token`, `gcloud auth print-access-token`, `az account get-access-token`, `vault read`, or Claude Code-style `apiKeyHelper` scripts.
+
+The command must print **only** the token on stdout: either bare, or as JSON with an `access_token` field (`expires_in` is honored; absolute `expiry`/`expiresOn` ISO timestamps too). Multi-line output is rejected rather than guessed at. If no expiry is advertised, the token is re-minted on a bounded window.
+
+Precedence: an explicit `--api-key` flag still wins; otherwise `key_cmd` beats a static `api_key`/`key_env` on the same entry. The minted credential applies to the main agent turn and to auxiliary tasks (title generation, compression, vision, embedding) alike.
+
+Not to be confused with `secrets.command`, which runs a helper **once at startup** to populate env vars process-wide. Use that for a vault/keychain helper handing back many secrets; use `key_cmd` when one provider's credential must be re-minted *during* a session.
 
 :::note Legacy format
 Older configs used a top-level `custom_providers:` list instead. It still works — Hermes reads both — and `hermes update` auto-migrates it to the `providers:` dict (config v12). Field names differ slightly in the dict format: legacy `model` is `default_model`, and legacy `api_mode` is `transport`.
