@@ -1816,14 +1816,14 @@ export const ja = defineLocale({
         help: '推奨。カンマ区切りの Slack ユーザー ID。'
       },
       MATTERMOST_URL: { label: 'サーバー URL', placeholder: 'https://mattermost.example.com' },
-      MATTERMOST_TOKEN: { label: 'ボットトークン' },
+      MATTERMOST_TOKEN: { label: 'ボットトークン', help: 'Mattermost ボットトークンまたは個人アクセストークン' },
       MATTERMOST_ALLOWED_USERS: {
         label: '許可するユーザー ID',
         help: '推奨。カンマ区切りの Mattermost ユーザー ID。'
       },
-      MATRIX_HOMESERVER: { label: 'ホームサーバー URL', placeholder: 'https://matrix.org' },
-      MATRIX_ACCESS_TOKEN: { label: 'アクセストークン' },
-      MATRIX_USER_ID: { label: 'ボットユーザー ID', placeholder: '@hermes:example.org' },
+      MATRIX_HOMESERVER: { label: 'ホームサーバー URL', placeholder: 'https://matrix.org', help: 'Matrix ホームサーバー URL（例：https://matrix.org）' },
+      MATRIX_ACCESS_TOKEN: { label: 'アクセストークン', help: 'Matrix アクセストークン（パスワードログインより優先）' },
+      MATRIX_USER_ID: { label: 'ボットユーザー ID', placeholder: '@hermes:example.org', help: 'Matrix ユーザー ID（例：@hermes:example.org）' },
       MATRIX_ALLOWED_USERS: {
         label: '許可する Matrix ユーザー ID',
         help: '推奨。@user:server 形式のカンマ区切りユーザー ID。'
