@@ -964,6 +964,9 @@ export interface Translations {
         description: string
       }
       loading: string
+      /** Localized descriptions for provider groups, keyed by provider name.
+       *  Changed/unknown names fall back to the English text in PROVIDER_GROUPS. */
+      providerDescriptions: Record<string, string>
     }
     sessions: {
       loading: string

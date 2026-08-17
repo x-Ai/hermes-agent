@@ -1113,7 +1113,8 @@ export const en: Translations = {
         title: 'Local / custom endpoint',
         description: 'Point Hermes at any OpenAI-compatible endpoint (Zyphra, vLLM, llama.cpp, Ollama, etc).'
       },
-      loading: 'Loading providers...'
+      loading: 'Loading providers...',
+      providerDescriptions: {}
     },
     sessions: {
       loading: 'Loading archived sessions…',
