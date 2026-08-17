@@ -134,6 +134,7 @@ terminal:
   backend: docker
   docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
   docker_mount_cwd_to_workspace: false  # 将启动目录挂载到 /workspace
+  docker_workspace_per_session: false   # 跟随各会话选择的项目目录
   docker_run_as_host_user: false   # 参见下方"以宿主用户身份运行容器"
   docker_forward_env:              # 转发到容器的环境变量
     - "GITHUB_TOKEN"
@@ -412,6 +413,59 @@ terminal:
 - `true` 使沙箱直接访问您启动 Hermes 的目录
 
 仅在您有意希望容器处理实时宿主文件时才选择加入。
+
+### 可选：跟随你在 Hermes 中选择的项目目录
+
+`docker_mount_cwd_to_workspace` 挂载的是 Hermes **启动时**所在的目录。当你在 Hermes 内部选择项目时（桌面端的文件夹选择器、ACP 客户端切换项目根目录），那就是错误的目录。第二个开关让挂载跟随当前会话选中的目录：
+
+```yaml
+terminal:
+  backend: docker
+  docker_mount_cwd_to_workspace: true   # 必需 —— 这一项才会产生挂载
+  docker_workspace_per_session: true    # 让该挂载跟随会话
+```
+
+容器的 `/workspace` 绑定挂载在 `docker run` 时就固定了，之后无法更改，因此**每个项目目录会有自己的容器**。切换项目就是切换容器；切回来则复用原来那个，其中安装好的包和运行中的后台进程都还在。空闲容器由与其他 Hermes 容器相同的生命周期规则回收（参见**容器生命周期**）。
+
+两个开关都必需。单独打开 `docker_workspace_per_session` 不起作用，因为没有 `docker_mount_cwd_to_workspace` 就没有可跟随的绑定挂载。
+
+启用前值得了解的影响：
+
+- **它会按项目继承上面的安全权衡。** 你选择的每个目录都会变成沙箱内可写的宿主目录。
+- **容器数量随你接触的项目数增长。** 这正是切回来能瞬间恢复的原因，但每个容器都持有自己的镜像层和包状态。
+- **审批提示会跟随挂载。** 在任何挂载了宿主目录的会话中，危险命令都会失去沙箱快速通道 —— 这是正确的姿态，因为此时沙箱已不再是边界。
+- **在 Linux 上请同时设置 `docker_run_as_host_user: true`**，否则项目目录里会出现 root 所有的文件。（在 Windows 上它是空操作，由 Docker Desktop 负责映射。）
+
+如果你希望所有工作共用一个容器，或者你主要从 CLI 使用 Hermes（启动目录本就是项目目录），请保持关闭。
+
+#### Singularity 有同样的一对开关
+
+Singularity/Apptainer 后端支持完全相同的两个选择加入项，用 `--bind` 而非 `-v` 实现。两组开关刻意相互独立——打开 Docker 的那对不会影响 Singularity：
+
+```yaml
+terminal:
+  backend: singularity
+  singularity_mount_cwd_to_workspace: true
+  singularity_workspace_per_session: true
+```
+
+上文的所有说明原样适用：两个开关都必需、每个项目目录一个实例、挂载目录在沙箱内可写宿主文件、挂载期间危险命令失去沙箱快速通道。
+
+#### 修改项目在沙箱内的落点
+
+容器内挂载目标默认 `/workspace`，可按后端配置为完整绝对路径：
+
+```yaml
+terminal:
+  docker_workspace_mount_path: "/root/workspace"       # 默认 /workspace
+  singularity_workspace_mount_path: "/mnt/project"     # 默认 /workspace
+```
+
+取值会被规范化（`/root//workspace/` → `/root/workspace`）；相对路径、`/`、以及沙箱内部挂载点（`/root`、`/home`、`/tmp`、`/var/tmp`、`/run`——它们下面的嵌套路径没问题）会回落默认值并打印警告。
+
+不存在"热改挂载"：挂载在沙箱创建时就固定了。取而代之，挂载目标是沙箱身份的一部分——改完配置后，下一次工具调用会得到一个挂在新路径上的全新沙箱（工作目录、后端探测、文件工具全部自动跟随），旧沙箱由常规的空闲/孤儿回收机制清理。改回去时如果原沙箱还在，会直接复用。
+
+**Modal 和 Daytona 刻意没有挂载选项。** 它们的沙箱运行在远端云机器上，你的本地文件系统在那里不存在——没有任何东西可以绑定挂载。它们改为同步上传技能和凭据文件的**副本**（参见文件同步机制），这是一种权衡完全不同的能力，而不是缺了一个开关。
 
 ### 持久 Shell
 

@@ -66,11 +66,16 @@ describe('voice field option coverage', () => {
     expect(FREE_INPUT_KEYS.has('stt.provider')).toBe(false)
   })
 
-  it('every free-input voice key that lives in the Voice section has suggestions or is intentionally bare', () => {
+  it('every voice-domain free-input key lives in the Voice section', () => {
     // Free-input keys don't *require* ENUM_OPTIONS (an empty datalist is
-    // fine), but any that do declare options must be actual Voice-section
-    // fields — a typo'd key here would silently do nothing.
+    // fine), but any voice-domain key here must be an actual Voice-section
+    // field — a typo'd key would silently do nothing. Non-voice free-input
+    // keys (delegation.*) are owned by other sections and exempt.
     for (const key of FREE_INPUT_KEYS) {
+      if (!/^(tts|stt|voice)\./.test(key)) {
+        continue
+      }
+
       expect(voiceKeys, key).toContain(key)
     }
   })

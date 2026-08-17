@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import {
   activateCustomEndpoint,
   deleteCustomEndpoint,
@@ -13,7 +14,6 @@ import {
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Globe, Loader2, Plus, Save, Trash2, Zap } from '@/lib/icons'
-import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
 import type { CustomEndpoint, CustomEndpointUpdate, CustomEndpointValidationResponse } from '@/types/hermes'
 
@@ -26,6 +26,10 @@ interface CustomEndpointsSettingsProps {
 
 interface EndpointForm {
   apiKey: string
+  /** '' = OpenAI-compatible (the default wire). */
+  apiMode: string
+  /** '' = auto-detect; only sent meaningfully with the Anthropic wire. */
+  authScheme: string
   baseUrl: string
   contextLength: string
   discoverModels: boolean
@@ -33,29 +37,55 @@ interface EndpointForm {
   makeDefault: boolean
   model: string
   name: string
+  /** '' = no override (SDK default). New endpoints prefill DEFAULT_USER_AGENT. */
+  userAgent: string
 }
+
+// A mainstream desktop-Chrome User-Agent. Custom relays / WAFs routinely 403
+// the OpenAI SDK's default agent (e.g. "OpenAI/Python …" or "python-httpx");
+// a standard browser agent is the safe, non-fingerprinted default. Users can
+// override it per endpoint, or clear it to fall back to the SDK default.
+const DEFAULT_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
 
 const EMPTY_FORM: EndpointForm = {
   apiKey: '',
+  apiMode: '',
+  authScheme: '',
   baseUrl: '',
   contextLength: '',
   discoverModels: true,
   id: '',
   makeDefault: true,
   model: '',
-  name: ''
+  name: '',
+  userAgent: DEFAULT_USER_AGENT
 }
+
+// The wires the editor knows ('' = Auto: leave protocol detection to the
+// runtime). Hand-written modes outside this list still round-trip: the editor
+// shows them as an extra segment and OMITS api_mode from the save payload, so
+// the backend preserves the entry untouched (unknown values are rejected 422).
+const KNOWN_API_MODES = ['', 'chat_completions', 'codex_responses', 'anthropic_messages'] as const
+
+const isKnownApiMode = (mode: string): boolean => (KNOWN_API_MODES as readonly string[]).includes(mode)
 
 function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
   return {
     apiKey: '',
+    apiMode: endpoint.api_mode ?? '',
+    authScheme: endpoint.auth_scheme ?? '',
     baseUrl: endpoint.base_url,
     contextLength: endpoint.context_length ? String(endpoint.context_length) : '',
     discoverModels: endpoint.discover_models,
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
     model: endpoint.model,
-    name: endpoint.name
+    name: endpoint.name,
+    // Show exactly what's stored — '' means "no override", not "reset to
+    // default" — so an intentional clear round-trips instead of being
+    // silently re-filled with DEFAULT_USER_AGENT on the next edit.
+    userAgent: endpoint.user_agent ?? ''
   }
 }
 
@@ -68,9 +98,20 @@ function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate 
     base_url: form.baseUrl.trim(),
     model: form.model.trim(),
     api_key: form.apiKey.trim() || undefined,
+    // Omitted (not '') for hand-written modes the editor doesn't know — the
+    // backend preserves omitted fields but rejects unknown values.
+    api_mode: isKnownApiMode(form.apiMode) ? form.apiMode : undefined,
+    auth_scheme: isKnownApiMode(form.apiMode)
+      ? form.apiMode === 'anthropic_messages'
+        ? form.authScheme
+        : ''
+      : undefined,
     context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
     discover_models: form.discoverModels,
     make_default: form.makeDefault,
+    // Always sent as a string: non-empty pins the agent, '' clears any
+    // override back to the SDK default.
+    user_agent: form.userAgent.trim(),
     models: models?.length ? models : undefined
   }
 }
@@ -86,10 +127,26 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const [endpoints, setEndpoints] = useState<CustomEndpoint[]>([])
   const [form, setForm] = useState<EndpointForm>(EMPTY_FORM)
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([])
+  // Which existing endpoint the form is editing (null = "add" mode). Kept
+  // separate from form.id: the backend upserts by id, so an edited id would
+  // silently CREATE a second endpoint instead of renaming — in edit mode the
+  // id field is therefore locked, and this flag (not a typed-in id) is what
+  // decides edit-vs-add.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   async function refresh() {
     const data = await getCustomEndpoints()
     setEndpoints(data.endpoints)
+  }
+
+  // Reset the editor into "add" mode and put the cursor in the name field —
+  // focus also scrolls the form into view when the list above is long.
+  function startNewEndpoint() {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setDiscoveredModels([])
+    requestAnimationFrame(() => nameInputRef.current?.focus())
   }
 
   useEffect(() => {
@@ -107,6 +164,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         const current = data.endpoints.find(endpoint => endpoint.is_current) ?? data.endpoints[0]
 
         if (current) {
+          setEditingId(current.id)
           setForm(formFromEndpoint(current))
           setDiscoveredModels(current.models)
         }
@@ -134,6 +192,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       const saved = response.endpoints.find(endpoint => endpoint.id === response.id)
 
       if (saved) {
+        setEditingId(saved.id)
         setForm(formFromEndpoint(saved))
         setDiscoveredModels(saved.models)
       }
@@ -182,7 +241,12 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
         notify({
           kind: 'success',
-          message: response.models.length ? ce.reachableWithModels(response.models.length) : ce.reachable
+          message:
+            response.message_code === 'no_model_catalog'
+              ? ce.noModelCatalog
+              : response.models.length
+                ? ce.reachableWithModels(response.models.length)
+                : ce.reachable
         })
       } else {
         notify({
@@ -222,7 +286,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       const response = await deleteCustomEndpoint(endpoint.id)
       setEndpoints(response.endpoints)
 
-      if (form.id === endpoint.id) {
+      if (editingId === endpoint.id) {
+        setEditingId(null)
         setForm(EMPTY_FORM)
         setDiscoveredModels([])
       }
@@ -255,6 +320,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                   <button
                     className="min-w-0 text-left"
                     onClick={() => {
+                      setEditingId(endpoint.id)
                       setForm(formFromEndpoint(endpoint))
                       setDiscoveredModels(endpoint.models)
                     }}
@@ -310,7 +376,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         </section>
 
         <section>
-          <SectionHeading icon={Plus} title={form.id ? ce.editTitle : ce.addTitle} />
+          <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -318,16 +384,19 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 <Input
                   onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
                   placeholder="Axet Proxy"
+                  ref={nameInputRef}
                   value={form.name}
                 />
               </label>
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.providerIdLabel}
                 <Input
+                  disabled={Boolean(editingId)}
                   onChange={event => setForm(current => ({ ...current, id: event.target.value }))}
                   placeholder="axet-proxy"
                   value={form.id}
                 />
+                <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.providerIdHint}</span>
               </label>
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -338,6 +407,48 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 value={form.baseUrl}
               />
             </label>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.apiModeLabel}
+              <SegmentedControl
+                onChange={value =>
+                  setForm(current => ({
+                    ...current,
+                    apiMode: value,
+                    // The auth pin only means something on the Anthropic
+                    // wire; leaving it set would silently re-apply if the
+                    // user later switched back.
+                    authScheme: value === 'anthropic_messages' ? current.authScheme : ''
+                  }))
+                }
+                options={[
+                  { id: '', label: ce.apiModeAuto },
+                  { id: 'chat_completions', label: ce.apiModeChat },
+                  { id: 'codex_responses', label: ce.apiModeResponses },
+                  { id: 'anthropic_messages', label: ce.apiModeMessages },
+                  // A hand-written mode outside the known set stays visible;
+                  // saving with it selected omits api_mode so it round-trips.
+                  ...(isKnownApiMode(form.apiMode) ? [] : [{ id: form.apiMode, label: form.apiMode }])
+                ]}
+                value={form.apiMode}
+              />
+            </div>
+            {form.apiMode === 'anthropic_messages' && (
+              <div className="grid gap-1.5 text-xs text-muted-foreground">
+                {ce.authSchemeLabel}
+                <SegmentedControl
+                  onChange={value =>
+                    setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))
+                  }
+                  options={[
+                    { id: 'auto', label: ce.authSchemeAuto },
+                    { id: 'bearer', label: 'Authorization: Bearer' },
+                    { id: 'x-api-key', label: 'x-api-key' }
+                  ]}
+                  value={form.authScheme || 'auto'}
+                />
+                <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.defaultModelLabel}
@@ -367,10 +478,19 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               {ce.apiKeyLabel}
               <Input
                 onChange={event => setForm(current => ({ ...current, apiKey: event.target.value }))}
-                placeholder={form.id ? ce.keyKeepPlaceholder : ce.keyOptionalPlaceholder}
+                placeholder={editingId ? ce.keyKeepPlaceholder : ce.keyOptionalPlaceholder}
                 type="password"
                 value={form.apiKey}
               />
+            </label>
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.userAgentLabel}
+              <Input
+                onChange={event => setForm(current => ({ ...current, userAgent: event.target.value }))}
+                placeholder={DEFAULT_USER_AGENT}
+                value={form.userAgent}
+              />
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.userAgentHint}</span>
             </label>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <label className="flex items-center gap-2">
@@ -402,11 +522,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 {t.common.save}
               </Button>
               <Button
-                className={cn(!form.id && 'hidden')}
-                onClick={() => {
-                  setForm(EMPTY_FORM)
-                  setDiscoveredModels([])
-                }}
+                className={!editingId ? 'hidden' : undefined}
+                onClick={startNewEndpoint}
                 type="button"
                 variant="ghost"
               >

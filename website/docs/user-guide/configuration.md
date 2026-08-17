@@ -239,6 +239,7 @@ terminal:
   backend: docker
   docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
   docker_mount_cwd_to_workspace: false  # Mount launch dir into /workspace
+  docker_workspace_per_session: false   # Follow each session's project dir
   docker_run_as_host_user: false   # See "Running container as host user" below
   docker_forward_env:              # Host env vars to forward into container
     - "GITHUB_TOKEN"
@@ -325,6 +326,11 @@ Every key under `terminal:` has an env-var override of the form `TERMINAL_<KEY_U
 | `TERMINAL_DOCKER_VOLUMES` | `docker_volumes` | JSON array of `"host:container[:ro]"` strings |
 | `TERMINAL_DOCKER_EXTRA_ARGS` | `docker_extra_args` | JSON array |
 | `TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE` | `docker_mount_cwd_to_workspace` | `true` / `false` |
+| `TERMINAL_DOCKER_WORKSPACE_PER_SESSION` | `docker_workspace_per_session` | `true` / `false` — needs `..._MOUNT_CWD_TO_WORKSPACE=true` |
+| `TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE` | `singularity_mount_cwd_to_workspace` | `true` / `false` — Singularity twin (`--bind`) |
+| `TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION` | `singularity_workspace_per_session` | `true` / `false` — needs the Singularity mount flag |
+| `TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH` | `docker_workspace_mount_path` | Full in-container mount target — default `/workspace` |
+| `TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH` | `singularity_workspace_mount_path` | Full in-container mount target — default `/workspace` |
 | `TERMINAL_DOCKER_RUN_AS_HOST_USER` | `docker_run_as_host_user` | `true` / `false` |
 | `TERMINAL_DOCKER_NETWORK` | `docker_network` | `true` / `false` — default `true`; `false` = `--network=none` |
 | `TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES` | `docker_persist_across_processes` | `true` / `false` — default `true` |
@@ -579,6 +585,58 @@ Security tradeoff:
 - `true` gives the sandbox direct access to the directory you launched Hermes from
 
 Use the opt-in only when you intentionally want the container to work on live host files.
+
+### Optional: Follow the Project Directory You Picked
+
+`docker_mount_cwd_to_workspace` mounts the directory Hermes was *launched* from. That is the wrong directory when you pick projects inside Hermes — the Desktop app's folder picker, or an ACP client switching its project root. A second opt-in makes the mount follow the directory the current session selected:
+
+```yaml
+terminal:
+  backend: docker
+  docker_mount_cwd_to_workspace: true   # required — this is what creates a mount
+  docker_workspace_per_session: true    # make that mount follow the session
+```
+
+A container's `/workspace` bind mount is fixed at `docker run` time and cannot be changed afterwards, so **each project directory gets its own container**. Switching projects switches containers; switching back reuses the original one with its installed packages and background processes still alive. Idle containers are reclaimed by the same lifecycle rules as any other Hermes container (see **Container lifecycle**).
+
+Both flags are required. `docker_workspace_per_session` on its own does nothing, because without `docker_mount_cwd_to_workspace` there is no bind mount to follow.
+
+Consequences worth knowing before you turn this on:
+- **It inherits the security trade-off above, per project.** Every directory you pick becomes host-writable from inside the sandbox.
+- **Container count grows with the number of projects you touch.** This is what makes switching back instant, but each container holds its own image layer and package state.
+- **Approval prompts follow the mount.** Dangerous commands lose the sandbox fast-path in any session that has a host directory mounted, which is the correct posture — the sandbox is no longer the boundary.
+- **On Linux, add `docker_run_as_host_user: true`** unless you want root-owned files appearing in your project directories. (It is a no-op on Windows, where Docker Desktop handles the mapping.)
+
+Leave this off if you want one container for everything, or if you drive Hermes from the CLI where the launch directory is already the project directory.
+
+#### Singularity has the same pair of switches
+
+The Singularity/Apptainer backend supports the identical opt-ins, implemented with `--bind` instead of `-v`. The switches are deliberately independent — enabling the Docker pair does not affect Singularity:
+
+```yaml
+terminal:
+  backend: singularity
+  singularity_mount_cwd_to_workspace: true
+  singularity_workspace_per_session: true
+```
+
+Everything above applies unchanged: both flags required, one instance per project directory, host-writable mount, and dangerous-command approvals lose the sandbox fast-path while a host directory is mounted.
+
+#### Changing where the project lands inside the sandbox
+
+The in-container mount target defaults to `/workspace` and is configurable per backend as a full absolute path:
+
+```yaml
+terminal:
+  docker_workspace_mount_path: "/root/workspace"       # default: /workspace
+  singularity_workspace_mount_path: "/mnt/project"     # default: /workspace
+```
+
+The value is normalized (`/root//workspace/` → `/root/workspace`); relative paths, `/`, and sandbox-internal mount points (`/root`, `/home`, `/tmp`, `/var/tmp`, `/run` — nested paths under them are fine) fall back to the default with a warning.
+
+There is no hot-remount: a mount is fixed when the sandbox is created. Instead, the target is part of the sandbox's identity — after you change it, the next tool call gets a fresh sandbox mounted at the new path (and the working directory, backend probe, and file tools all follow automatically), while the old sandbox ages out through the normal idle/orphan reapers. Change it back and the original sandbox is reused if it still exists.
+
+**Modal and Daytona have no mount option, by design.** Their sandboxes run on remote cloud machines where your local filesystem does not exist — nothing can be bind-mounted. They sync uploaded *copies* of skills and credential files instead (see the file-sync mechanism), which is a different capability with different trade-offs, not a missing switch.
 
 ### Persistent Shell
 

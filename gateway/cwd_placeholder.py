@@ -23,14 +23,17 @@ def resolve_placeholder_terminal_cwd(
     messaging_cwd: str | None,
     docker_mount_cwd_to_workspace: bool,
     home_fallback: str,
+    singularity_mount_cwd_to_workspace: bool = False,
 ) -> str | None:
     """Return the ``TERMINAL_CWD`` value to set, or ``None`` to leave it unset.
 
     Cases:
       - **local** + placeholder → ``MESSAGING_CWD`` or ``home_fallback``
-      - **docker** + placeholder + mount on + host ``MESSAGING_CWD`` → host path
-        (for ``terminal_tool`` ``/workspace`` mapping)
-      - **docker** + placeholder + mount off → ``None`` (sandbox default)
+      - **docker/singularity** + placeholder + that backend's mount opt-in on +
+        host ``MESSAGING_CWD`` → host path (for ``terminal_tool``'s
+        ``/workspace`` mapping)
+      - **docker/singularity** + placeholder + mount off → ``None`` (sandbox
+        default)
       - other non-local backends + placeholder → ``None``
     """
     if configured_cwd and configured_cwd not in CWD_PLACEHOLDERS:
@@ -41,7 +44,10 @@ def resolve_placeholder_terminal_cwd(
         messaging = (messaging_cwd or "").strip()
         return messaging or home_fallback
 
-    if backend == "docker" and docker_mount_cwd_to_workspace:
+    mount_on = (backend == "docker" and docker_mount_cwd_to_workspace) or (
+        backend == "singularity" and singularity_mount_cwd_to_workspace
+    )
+    if mount_on:
         messaging = (messaging_cwd or "").strip()
         if messaging and messaging not in CWD_PLACEHOLDERS:
             return messaging

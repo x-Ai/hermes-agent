@@ -2595,6 +2595,16 @@ def _terminal_task_cwd(session: dict | None) -> str:
     ``terminal.backend`` is consulted as a fallback so the non-local cwd
     resolution path is taken even when the dashboard entrypoint did not call
     ``apply_terminal_config_to_env`` on its own ``os.environ``.
+
+    Docker/Singularity with per-session workspace mounting
+    (``terminal.docker_workspace_per_session`` /
+    ``terminal.singularity_workspace_per_session``) are the exception to the
+    exception: there the session's cwd is a real *host* directory that gets
+    bind-mounted into the sandbox's ``/workspace``, so it must survive to the
+    terminal layer instead of being replaced by the process-wide
+    ``TERMINAL_CWD``.  ``resolve_workspace_mount`` does the host-path →
+    ``/workspace`` translation there; handing it the wrong directory is exactly
+    what makes the Desktop folder picker a no-op under those backends.
     """
     return _terminal_task_cwd_with_source(session)[0]
 
@@ -2632,22 +2642,70 @@ def _terminal_task_cwd_with_source(session: dict | None) -> tuple[str, str]:
         # session's picker wrote, not this session's choice.
         if session and session.get("explicit_cwd") and session.get("cwd"):
             return str(session["cwd"]), "session"
-        raw = os.environ.get("TERMINAL_CWD", "").strip()
-        if not raw:
-            try:
-                terminal_cfg = _load_cfg().get("terminal", {})
-                if isinstance(terminal_cfg, dict):
-                    raw = str(terminal_cfg.get("cwd") or "").strip()
-            except Exception:
-                raw = ""
-        if raw and raw not in {".", "auto", "cwd"}:
-            return raw, "process"
-        if backend == "ssh":
-            return "~", "process"
+        # When the backend bind-mounts each session's own workspace, skip the
+        # process-global TERMINAL_CWD — that env var is whatever the last
+        # picker wrote, not this session's project directory.
+        if not _backend_follows_session_workspace(backend):
+            raw = os.environ.get("TERMINAL_CWD", "").strip()
+            if not raw:
+                try:
+                    terminal_cfg = _load_cfg().get("terminal", {})
+                    if isinstance(terminal_cfg, dict):
+                        raw = str(terminal_cfg.get("cwd") or "").strip()
+                except Exception:
+                    raw = ""
+            if raw and raw not in {".", "auto", "cwd"}:
+                return raw, "process"
+            if backend == "ssh":
+                return "~", "process"
 
     if session and session.get("cwd"):
         return str(session["cwd"]), "session"
     return _completion_cwd(), "process"
+
+
+# Per-backend (mount opt-in, per-session opt-in) flag pairs for backends that
+# can bind-mount a host directory. Modal/Daytona are absent on purpose — their
+# sandboxes live on remote machines and sync copies instead of mounting.
+_WORKSPACE_FOLLOW_FLAGS = {
+    "docker": (
+        ("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "docker_mount_cwd_to_workspace"),
+        ("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "docker_workspace_per_session"),
+    ),
+    "singularity": (
+        ("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "singularity_mount_cwd_to_workspace"),
+        ("TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION", "singularity_workspace_per_session"),
+    ),
+}
+
+
+def _backend_follows_session_workspace(backend: str) -> bool:
+    """Return True when *backend* bind-mounts each session's own workspace cwd.
+
+    Both the backend's ``*_mount_cwd_to_workspace`` and
+    ``*_workspace_per_session`` must be on: the first is what creates a bind
+    mount at all, the second is what makes that mount follow the directory this
+    session selected. Env vars win over config so a launcher's explicit bridge
+    stays authoritative, matching ``terminal_tool``'s own resolution —
+    including the shared truthy set, so a value like ``on`` cannot be read as
+    enabled here and disabled there.
+    """
+    flag_pair = _WORKSPACE_FOLLOW_FLAGS.get(backend)
+    if flag_pair is None:
+        return False
+
+    def _flag(env_var: str, cfg_key: str) -> bool:
+        raw = os.environ.get(env_var)
+        if raw is None:
+            try:
+                terminal_cfg = _load_cfg().get("terminal", {})
+                raw = terminal_cfg.get(cfg_key) if isinstance(terminal_cfg, dict) else None
+            except Exception:
+                raw = None
+        return is_truthy_value(raw)
+
+    (mount_env, mount_key), (per_session_env, per_session_key) = flag_pair
+    return _flag(mount_env, mount_key) and _flag(per_session_env, per_session_key)
 
 
 # Git working-tree probing (run git, resolve roots, fold worktrees) lives in a
@@ -5505,6 +5563,35 @@ def _project_info_for_cwd(cwd: str) -> dict | None:
         return None
 
 
+def _reportable_provider(provider, *, base_url=None, model=None) -> str:
+    """Upgrade the bare ``custom`` billing class to a durable ``custom:<name>``
+    identity before it reaches any UI surface.
+
+    ``agent.provider`` for a named ``providers:`` endpoint is the *resolved
+    billing class* — the literal string ``custom`` — which no client can map
+    back to the endpoint: the model catalog rows carry the endpoint id, so the
+    desktop composer falls through every display fallback and renders
+    "custom: <model>" (the after-restart regression). Recovery reuses the same
+    helper the session-restore path already relies on: base_url reverse-lookup
+    first, then the entry serving the model, then the configured provider.
+    Unrecoverable values (a genuine ad-hoc endpoint with no config entry) pass
+    through unchanged.
+    """
+    text = str(provider or "").strip()
+    if text.lower() != "custom":
+        return text
+    try:
+        from hermes_cli.runtime_provider import canonical_custom_identity
+
+        healed = canonical_custom_identity(
+            base_url=base_url or None, model=model or None
+        )
+    except Exception:
+        logger.debug("bare custom provider identity recovery failed", exc_info=True)
+        healed = None
+    return healed or text
+
+
 def _session_info(agent, session: dict | None = None) -> dict:
     if session is None:
         for candidate in _sessions.values():
@@ -5556,6 +5643,7 @@ def _session_info(agent, session: dict | None = None) -> dict:
     pending_switch = (session or {}).get("pending_model_switch") or {}
     pending_model = str(pending_switch.get("display_model") or "").strip()
     pending_provider = str(pending_switch.get("display_provider") or "").strip()
+    info_model = pending_model or mirror.get("model", getattr(agent, "model", ""))
     # Epoch seconds the current turn started, or None when idle. Lets the
     # desktop preserve the turn-elapsed timer across session switches (cold
     # resume path) instead of resetting it to 0:00.
@@ -5567,9 +5655,12 @@ def _session_info(agent, session: dict | None = None) -> dict:
     )
 
     info: dict = {
-        "model": pending_model or mirror.get("model", getattr(agent, "model", "")),
-        "provider": pending_provider
-        or mirror.get("provider", getattr(agent, "provider", "")),
+        "model": info_model,
+        "provider": pending_provider or _reportable_provider(
+            mirror.get("provider", getattr(agent, "provider", "")),
+            base_url=mirror.get("base_url") or getattr(agent, "base_url", None),
+            model=info_model,
+        ),
         "reasoning_effort": reasoning_effort,
         "service_tier": service_tier,
         "fast": service_tier == "priority",
@@ -8354,6 +8445,7 @@ def _lazy_resume_info(
     *,
     model: str = "",
     provider: str = "",
+    base_url: str = "",
     profile: str | None = None,
 ) -> dict:
     """session.info for a not-yet-built session (the shape session.create
@@ -8370,7 +8462,12 @@ def _lazy_resume_info(
         "profile_name": _response_profile_name(profile),
     }
     if provider:
-        info["provider"] = provider
+        # A bare "custom" can survive restore when the row kept its base_url
+        # (routable as an ad-hoc endpoint, so restore keeps it) — upgrade it
+        # for display the same way built-session session.info does.
+        info["provider"] = _reportable_provider(
+            provider, base_url=base_url or None, model=model or None
+        )
     return info
 
 

@@ -570,6 +570,41 @@ def _is_deepseek_anthropic_endpoint(base_url: str | None) -> bool:
     return "/anthropic" in normalized.rstrip("/").lower()
 
 
+def _configured_auth_scheme(base_url: str | None) -> str | None:
+    """Return the user-configured auth scheme for *base_url*, or None.
+
+    Third-party Anthropic-compatible relays are split between Authorization:
+    Bearer and Anthropic's native x-api-key, and the built-in allowlist in
+    :func:`_requires_bearer_auth` can only ever cover the well-known hosts.
+    Users can pin the header style for their own endpoint by setting
+    ``auth_scheme: bearer`` (or ``x-api-key``) on the matching ``providers:``
+    / ``custom_providers:`` entry in config.yaml.
+
+    Matching is by hostname (exact host or subdomain) — the same granularity
+    the built-in allowlist uses — so the setting covers every path variant on
+    the relay host, including a bare ``model.base_url`` pointing at it.
+    Config-read failures fail open to None (auto-detect) so a broken YAML can
+    never change existing auth behavior.
+    """
+    if not base_url:
+        return None
+    try:
+        from hermes_cli.config import get_compatible_custom_providers
+        entries = get_compatible_custom_providers()
+    except Exception:
+        return None
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        scheme = str(entry.get("auth_scheme") or "").strip().lower()
+        if scheme not in ("bearer", "x-api-key"):
+            continue
+        entry_host = base_url_hostname(str(entry.get("base_url") or ""))
+        if entry_host and base_url_host_matches(str(base_url), entry_host):
+            return scheme
+    return None
+
+
 def _is_nous_portal_endpoint(base_url: str | None) -> bool:
     """Return True for Nous Portal's Anthropic Messages route.
 
@@ -610,6 +645,10 @@ def _requires_bearer_auth(base_url: str | None) -> bool:
     MiniMax's global and China Anthropic-compatible endpoints, Azure AI
     Foundry's Anthropic-style endpoint, Palantir Foundry's LLM proxy, and Nous
     Portal's Messages route follow this pattern.
+
+    An explicit ``auth_scheme`` on the endpoint's config.yaml provider entry
+    wins over the built-in allowlist in both directions (force Bearer for an
+    unknown relay, or force x-api-key for a host the allowlist would match).
     """
     if _is_nous_portal_endpoint(base_url):
         return True
@@ -617,6 +656,11 @@ def _requires_bearer_auth(base_url: str | None) -> bool:
     if not normalized:
         return False
     normalized = normalized.rstrip("/").lower()
+    configured = _configured_auth_scheme(normalized)
+    if configured == "bearer":
+        return True
+    if configured == "x-api-key":
+        return False
     return (
         normalized.startswith(("https://api.minimax.io/anthropic", "https://api.minimaxi.com/anthropic"))
         or "azure.com" in normalized
@@ -790,6 +834,42 @@ def _build_anthropic_client_with_bearer_hook(
     return client
 
 
+def _apply_custom_provider_headers_to_kwargs(kwargs: Dict[str, Any], base_url: Optional[str]) -> None:
+    """Merge a matching custom provider's ``extra_headers`` onto the client's
+    ``default_headers`` (Anthropic-wire parity with the OpenAI client path).
+
+    The OpenAI client path applies per-provider ``extra_headers`` via
+    ``apply_custom_provider_extra_headers_to_client_kwargs`` so a user can, e.g.,
+    override the ``User-Agent`` to get past a relay/WAF that 403s SDK agents.
+    The Anthropic SDK path never did, so a custom ``User-Agent`` configured on
+    an ``anthropic_messages`` endpoint was silently ignored and the SDK's own
+    ``Anthropic/Python`` agent went on the wire. This closes that gap.
+
+    User-configured headers are the most specific level, so they win over the
+    betas / SDK identity set above — matched case-insensitively so a
+    hand-written ``user-agent`` doesn't coexist with the SDK's ``User-Agent``.
+    No-op when the base_url matches no entry or it declares no headers.
+
+    SECURITY: extra_headers values may carry credentials — never log them.
+    """
+    if not base_url:
+        return
+    try:
+        from hermes_cli.config import get_custom_provider_extra_headers
+        extra = get_custom_provider_extra_headers(base_url)
+    except Exception:
+        return
+    if not extra:
+        return
+    incoming_lower = {k.lower() for k in extra}
+    merged = {
+        k: v for k, v in (kwargs.get("default_headers") or {}).items()
+        if k.lower() not in incoming_lower
+    }
+    merged.update(extra)
+    kwargs["default_headers"] = merged
+
+
 def build_anthropic_client(
     api_key,
     base_url: str = None,
@@ -933,6 +1013,11 @@ def build_anthropic_client(
         headers.setdefault("X-Title", "Hermes Agent")
         headers.setdefault("User-Agent", f"HermesAgent/{_HERMES_VERSION}")
         kwargs["default_headers"] = headers
+
+    # Let a matching custom provider override headers (e.g. a browser
+    # User-Agent to pass a relay's WAF). Applies to every static-key branch
+    # above; provider values win over the betas/UA/OpenCode defaults just set.
+    _apply_custom_provider_headers_to_kwargs(kwargs, base_url)
 
     client = _anthropic_sdk.Anthropic(**kwargs)
     # Bearer-only construction leaves ``api_key`` unset, so the SDK fills it

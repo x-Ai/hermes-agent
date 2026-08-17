@@ -59,6 +59,18 @@ class CustomEndpointUpdate(BaseModel):
     context_length: Optional[int] = None
     discover_models: bool = True
     make_default: bool = False
+    # API protocol + auth header style (see providers.md "auth_scheme").
+    # None = field absent (older clients) — the write path leaves whatever the
+    # entry already carries. Empty string = explicit "OpenAI-compatible" /
+    # "auto-detect" selection — the write path clears the config keys.
+    api_mode: Optional[str] = None
+    auth_scheme: Optional[str] = None
+    # HTTP User-Agent for this endpoint, stored inside ``extra_headers`` so it
+    # rides the existing per-provider header merge onto the live API client.
+    # None = field absent (older clients) — preserve whatever the entry carries.
+    # Empty string = clear the override (back to the SDK default). Non-empty =
+    # pin the given agent.
+    user_agent: Optional[str] = None
     models: Optional[List[str]] = None
 
 

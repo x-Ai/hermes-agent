@@ -347,24 +347,46 @@ describe('toChatMessages', () => {
       },
       {
         role: 'user',
+        content: 'serialized delegation context payload',
+        display_kind: 'async_delegation_complete',
+        // SQLite can return persisted JSON metadata as a serialized string.
+        display_metadata: JSON.stringify({
+          delegation_id: 'deleg_f6415f5b',
+          task_count: 1,
+          completed_count: 1,
+          failed_count: 0
+        }) as unknown as { delegation_id: string; task_count: number },
+        timestamp: 6
+      },
+      {
+        role: 'user',
         content: '[System note: Your previous turn was interrupted mid-run…]\n\noriginal prompt',
         display_kind: 'auto_continue',
-        timestamp: 6
+        timestamp: 7
       },
       {
         role: 'user',
         content: "[System: The user has changed the assistant's personality…]",
         display_kind: 'personality_switch',
-        timestamp: 7
+        timestamp: 8
       }
     ])
 
-    expect(messages.map(message => message.role)).toEqual(['user', 'assistant', 'system', 'system', 'system', 'system'])
+    expect(messages.map(message => message.role)).toEqual([
+      'user',
+      'assistant',
+      'system',
+      'system',
+      'system',
+      'system',
+      'system'
+    ])
     expect(messages.map(chatMessageText)).toEqual([
       'real user turn',
       'real assistant reply',
       'model changed',
       'background agent work finished',
+      '1 background agent finished',
       'resumed interrupted turn',
       'personality changed'
     ])

@@ -1419,6 +1419,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
         _resolve_container_task_id,
         _resolve_task_host_cwd,
         _is_unusable_container_cwd,
+        _resolve_workspace_mount_for_task,
         _CONTAINER_BACKENDS,
     )
     import time
@@ -1501,6 +1502,18 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
             except Exception:
                 recorded_cwd = None
             cwd = overrides.get("cwd") or recorded_cwd or config["cwd"]
+            # Per-session workspace mounting: the resolved cwd is a *host*
+            # directory to bind-mount, not a container workdir. Translate it to
+            # a mount source plus the in-sandbox workdir before the guard below
+            # runs, or the guard discards it and the file tools search the wrong
+            # tree — the same class of silent-empty-results bug as #54447, just
+            # from the opposite direction. Shared resolver: the mount must match
+            # the cwd the container identity was keyed on.
+            host_cwd = config.get("host_cwd")
+            mount_source, container_cwd = _resolve_workspace_mount_for_task(raw_task_id, config)
+            if mount_source:
+                host_cwd = mount_source
+                cwd = container_cwd
             # Re-apply the container cwd guard that _get_env_config() already
             # ran on config["cwd"] (see #50636).  A per-task cwd override
             # registered by the gateway/TUI/ACP for workspace tracking is a
@@ -1533,6 +1546,8 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
                     "vercel_runtime": config.get("vercel_runtime", ""),
                     "docker_volumes": config.get("docker_volumes", []),
                     "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
+                    "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
+                    "workspace_mount_path": config.get("workspace_mount_path", "/workspace"),
                     "docker_forward_env": config.get("docker_forward_env", []),
                     "docker_run_as_host_user": config.get("docker_run_as_host_user", False),
                     "docker_network": config.get("docker_network", True),
@@ -1563,7 +1578,7 @@ def _get_file_ops(task_id: str = "default") -> ShellFileOperations:
                 container_config=container_config,
                 local_config=local_config,
                 task_id=task_id,
-                host_cwd=_resolve_task_host_cwd(config, raw_task_id),
+                host_cwd=host_cwd if mount_source else _resolve_task_host_cwd(config, raw_task_id),
             )
 
             with _env_lock:

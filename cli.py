@@ -458,6 +458,11 @@ def load_cli_config() -> Dict[str, Any]:
             "daytona_image": "nikolaik/python-nodejs:python3.11-nodejs20",
             "docker_volumes": [],  # host:container volume mounts for Docker backend
             "docker_mount_cwd_to_workspace": False,  # explicit opt-in only; default off for sandbox isolation
+            "docker_workspace_per_session": False,  # follow each session's project dir (one container per dir)
+            "singularity_mount_cwd_to_workspace": False,  # Singularity twin of the Docker opt-in (--bind)
+            "singularity_workspace_per_session": False,  # Singularity twin; one instance per project dir
+            "docker_workspace_mount_path": "/workspace",  # in-container mount target (full path)
+            "singularity_workspace_mount_path": "/workspace",  # in-container mount target (full path)
         },
         "browser": {
             "inactivity_timeout": 120,  # Auto-cleanup inactive browser sessions after 2 min
@@ -680,6 +685,11 @@ def load_cli_config() -> Dict[str, Any]:
         "docker_extra_args": "TERMINAL_DOCKER_EXTRA_ARGS",
         "docker_shm_size": "TERMINAL_DOCKER_SHM_SIZE",
         "docker_mount_cwd_to_workspace": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+        "docker_workspace_per_session": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
+        "singularity_mount_cwd_to_workspace": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
+        "singularity_workspace_per_session": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
+        "docker_workspace_mount_path": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
+        "singularity_workspace_mount_path": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
         "docker_network": "TERMINAL_DOCKER_NETWORK",
         "docker_run_as_host_user": "TERMINAL_DOCKER_RUN_AS_HOST_USER",
         "docker_persist_across_processes": "TERMINAL_DOCKER_PERSIST_ACROSS_PROCESSES",

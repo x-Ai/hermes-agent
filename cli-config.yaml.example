@@ -219,6 +219,23 @@ model:
 #       gpt-5.4:
 #         stale_timeout_seconds: 1800  # Longer non-stream stale timeout for slow large-context turns
 
+# Auth header style for Anthropic-compatible endpoints (optional).
+# Third-party relays speaking the Anthropic Messages protocol are split on
+# authentication: some expect Anthropic's native x-api-key header, others only
+# accept Authorization: Bearer. Hermes auto-detects well-known hosts (MiniMax,
+# Azure AI Foundry, Palantir Foundry); pin auth_scheme on the providers: /
+# custom_providers: entry for a self-hosted gateway it can't know about.
+# Matching is by hostname, so the pin also covers a bare model.base_url
+# pointing at the same relay host. Only affects api_mode: anthropic_messages;
+# OpenAI-compatible endpoints always use Bearer. Unset = auto-detect.
+#
+# custom_providers:
+#   my-anthropic-relay:
+#     base_url: https://relay.internal.example.com/anthropic
+#     key_env: MY_RELAY_API_KEY
+#     api_mode: anthropic_messages
+#     auth_scheme: bearer            # or "x-api-key"
+
 # =============================================================================
 # Unified Timeouts (operation deadlines)
 # =============================================================================
@@ -332,6 +349,8 @@ terminal:
   #   profile - force HERMES_HOME/home for strict per-profile CLI config isolation
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
+  docker_workspace_per_session: false   # Mount the project dir each session picked (Desktop folder picker) instead of the launch cwd. Needs the flag above; one container per project.
+  docker_workspace_mount_path: "/workspace"  # Full in-container mount target. Changing it applies to the NEXT container.
   lifetime_seconds: 300
   # sudo_password: "hunter2"  # Optional: pipe a sudo password via sudo -S. SECURITY WARNING: plaintext.
   # sudo_password: ""         # Explicit empty password: try empty and never open the interactive sudo prompt.
@@ -363,6 +382,11 @@ terminal:
 #   lifetime_seconds: 300
 #   docker_image: "nikolaik/python-nodejs:python3.11-nodejs20"
 #   docker_mount_cwd_to_workspace: true   # Explicit opt-in: mount your launch cwd into /workspace
+#   # Optional: follow the project directory the current session picked (the
+#   # Desktop folder picker, an ACP client's project root) instead of only the
+#   # launch cwd. Requires the flag above. Each project directory gets its own
+#   # container, because a container's /workspace mount is fixed at creation.
+#   docker_workspace_per_session: true
 #   # Optional: run the container as your host user's uid:gid so files written
 #   # into bind-mounted dirs are owned by you, not root. Drops SETUID/SETGID
 #   # caps too since no gosu privilege drop is needed. Leave off if your
@@ -392,6 +416,14 @@ terminal:
 #   timeout: 180
 #   lifetime_seconds: 300
 #   singularity_image: "docker://nikolaik/python-nodejs:python3.11-nodejs20"
+#   # Same two opt-ins as the Docker backend, implemented with --bind.
+#   # SECURITY: off by default — a mounted project dir is host-writable
+#   # from inside the sandbox.
+#   singularity_mount_cwd_to_workspace: true   # mount the launch cwd into /workspace
+#   singularity_workspace_per_session: true    # follow each session's project dir; one instance per project
+#   singularity_workspace_mount_path: "/workspace"  # full in-container bind target; applies to the NEXT instance
+#   # (Modal/Daytona have no mount option: they run on remote cloud machines
+#   # and sync uploaded copies of skills/credentials instead.)
 
 # -----------------------------------------------------------------------------
 # OPTION 5: Modal cloud execution

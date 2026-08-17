@@ -908,10 +908,22 @@ export interface Translations {
       addTitle: string
       nameLabel: string
       providerIdLabel: string
+      providerIdHint: string
       urlLabel: string
+      apiModeLabel: string
+      apiModeAuto: string
+      apiModeChat: string
+      apiModeResponses: string
+      apiModeMessages: string
+      authSchemeLabel: string
+      authSchemeAuto: string
+      authSchemeHint: string
+      noModelCatalog: string
       defaultModelLabel: string
       contextLabel: string
       apiKeyLabel: string
+      userAgentLabel: string
+      userAgentHint: string
       contextAuto: string
       keyKeepPlaceholder: string
       keyOptionalPlaceholder: string
@@ -1978,6 +1990,16 @@ export interface Translations {
     bodies: Readonly<Record<string, readonly string[]>>
   }
 
+  // Empty-chat intro copy, keyed by personality ("none" is the neutral pool).
+  // An empty record means "use the built-in English pool (intro-copy.jsonl)".
+  // A locale that ships pools keeps the same randomized-per-mount behavior;
+  // personalities without a localized pool fall back to the locale's "none"
+  // pool, then to the English jsonl. Technical terms (git, diff, PR, ...)
+  // stay untranslated inside the localized copy.
+  intro: {
+    bodies: Readonly<Record<string, readonly string[]>>
+  }
+
   composer: {
     message: string
     addContext: string
@@ -2650,6 +2672,12 @@ export interface Translations {
     closeToRight: string
     closeAll: string
     newSessionTab: string
+    split: (dir: string) => string
+    move: (dir: string) => string
+    dirUp: string
+    dirDown: string
+    dirLeft: string
+    dirRight: string
     pluginDisabled: (pluginId: string) => string
     pluginDisabledBody: string
     missingPane: (paneId: string) => string

@@ -157,6 +157,10 @@ export interface MemoryProviderConfig {
 
 export interface CustomEndpoint {
   api_key_preview?: null | string
+  /** API protocol pin ('' = OpenAI wire). Absent on older backends. */
+  api_mode?: string
+  /** Anthropic-wire auth pin ('' = auto-detect). Absent on older backends. */
+  auth_scheme?: string
   base_url: string
   context_length?: null | number
   discover_models: boolean
@@ -167,6 +171,8 @@ export interface CustomEndpoint {
   models: string[]
   name: string
   source?: string
+  /** Pinned HTTP User-Agent ('' = no override). Absent on older backends. */
+  user_agent?: string
 }
 
 export interface CustomEndpointsResponse {
@@ -182,6 +188,11 @@ export interface CustomEndpointsResponse {
 
 export interface CustomEndpointUpdate {
   api_key?: string
+  /** '' selects the OpenAI wire (clears the pin); older backends ignore it. */
+  api_mode?: string
+  /** '' selects auto-detect (clears the pin); only meaningful with
+   *  api_mode 'anthropic_messages'. */
+  auth_scheme?: string
   base_url: string
   context_length?: number
   discover_models?: boolean
@@ -190,6 +201,8 @@ export interface CustomEndpointUpdate {
   model: string
   models?: string[]
   name: string
+  /** '' clears the override (SDK default); older backends ignore it. */
+  user_agent?: string
 }
 
 export interface CustomEndpointValidationResponse {
@@ -197,8 +210,10 @@ export interface CustomEndpointValidationResponse {
   http_status?: number
   /** English fallback text; prefer `message_code` for localized display. */
   message: string
-  /** Stable identifier for localization; absent on older backends. */
-  message_code?: 'auth_rejected' | 'http_error' | 'missing_url' | 'unreachable'
+  /** Stable identifier for localization; absent on older backends.
+   *  `no_model_catalog` arrives with ok=true — an Anthropic-wire endpoint
+   *  that is reachable but exposes no /models catalog. */
+  message_code?: 'auth_rejected' | 'http_error' | 'missing_url' | 'no_model_catalog' | 'unreachable'
   models: string[]
   ok: boolean
   reachable: boolean

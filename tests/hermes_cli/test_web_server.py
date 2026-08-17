@@ -1597,6 +1597,456 @@ class TestWebServerEndpoints:
         }
         save_config(cfg)
 
+    def test_set_model_main_honors_an_explicitly_supplied_api_key(self):
+        """A key in the request must win over the provider entry's stored one.
+
+        The entry-key fallback exists so switching to a configured provider
+        picks up its credential. Applying it unconditionally discards a key the
+        caller is rotating in — and ``model.api_key`` outranks the environment
+        at client construction (#62269), so the stale key keeps authenticating
+        while the UI reports the change saved.
+        """
+        from hermes_cli.config import load_config
+
+        self._seed_custom_provider_with_key()
+
+        resp = self.client.post(
+            "/api/model/set",
+            json={
+                "scope": "main",
+                "provider": "acme",
+                "model": "acme/m1",
+                "api_key": "sk-new-rotated",
+            },
+        )
+        assert resp.status_code == 200
+        assert load_config()["model"]["api_key"] == "sk-new-rotated"
+
+    def test_set_model_main_falls_back_to_the_provider_entry_key(self):
+        """With no key in the request the stored one is still adopted."""
+        from hermes_cli.config import load_config
+
+        self._seed_custom_provider_with_key()
+
+        resp = self.client.post(
+            "/api/model/set",
+            json={"scope": "main", "provider": "acme", "model": "acme/m1"},
+        )
+        assert resp.status_code == 200
+        model_cfg = load_config()["model"]
+        assert model_cfg["api_key"] == "sk-stored-old"
+        # The sibling base_url fill is unaffected.
+        assert model_cfg["base_url"] == "https://llm.acme.corp/v1"
+
+    def test_custom_endpoint_edit_preserves_hand_written_provider_fields(self):
+        """The panel edits a few fields; it does not own the whole entry.
+
+        A ``providers.<name>`` block can carry keys the dashboard has no field
+        for — ``api_mode``, ``key_env``, ``extra_headers`` (which may carry
+        credentials), ``request_overrides``. Rebuilding the entry from scratch
+        on an unrelated edit silently dropped all of them, leaving a provider
+        that no longer authenticates or speaks the right protocol.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/model-1",
+                "api_mode": "responses",
+                "key_env": "ACME_API_KEY",
+                "extra_headers": {"X-Org-Id": "org_123"},
+                "request_overrides": {"reasoning_effort": "high"},
+                "models": {
+                    "acme/model-1": {"context_length": 200000},
+                    "acme/model-2": {"context_length": 400000},
+                },
+            }
+        }
+        save_config(cfg)
+
+        # The user opens the panel and only switches the default model.
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/model-2",
+            },
+        )
+        assert resp.status_code == 200
+
+        entry = load_config()["providers"]["acme"]
+        assert entry["api_mode"] == "responses"
+        assert entry["key_env"] == "ACME_API_KEY"
+        assert entry["extra_headers"] == {"X-Org-Id": "org_123"}
+        assert entry["request_overrides"] == {"reasoning_effort": "high"}
+        # The edit still applies.
+        assert entry["model"] == "acme/model-2"
+
+    def test_custom_endpoint_saves_user_agent_into_extra_headers(self):
+        """A pinned User-Agent rides ``extra_headers`` (so it reaches the live
+        client through the existing per-provider header merge) and is echoed
+        back for the editor to round-trip.
+        """
+        from hermes_cli.config import load_config
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "proxy",
+                "name": "Proxy",
+                "base_url": "https://relay.example.com/v1",
+                "model": "gpt-5.4",
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["proxy"]
+        assert entry["extra_headers"]["User-Agent"] == (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0"
+        )
+
+        echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "proxy")
+        assert echoed["user_agent"] == (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0"
+        )
+
+    def test_custom_endpoint_user_agent_preserves_other_headers_and_dedupes_case(self):
+        """Setting the UA must keep unrelated (possibly credential-bearing)
+        headers and must not leave a case-variant ``user-agent`` shadowing the
+        canonical key."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"CF-Access-Client-Id": "secret", "user-agent": "old-ua"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "user_agent": "new-ua",
+            },
+        )
+
+        headers = load_config()["providers"]["acme"]["extra_headers"]
+        assert headers["CF-Access-Client-Id"] == "secret"
+        assert headers["User-Agent"] == "new-ua"
+        assert "user-agent" not in headers
+
+    def test_custom_endpoint_empty_user_agent_clears_override(self):
+        """An explicit empty string clears the UA; when it was the only header
+        the whole ``extra_headers`` block is dropped."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"User-Agent": "pinned"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "user_agent": "",
+            },
+        )
+
+        assert "extra_headers" not in load_config()["providers"]["acme"]
+
+    def test_custom_endpoint_absent_user_agent_preserves_existing(self):
+        """An older client that omits the field leaves the stored UA intact."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "extra_headers": {"User-Agent": "keep-me"},
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+            },
+        )
+
+        assert load_config()["providers"]["acme"]["extra_headers"]["User-Agent"] == "keep-me"
+
+    def test_custom_endpoint_edit_keeps_the_other_models(self):
+        """The panel names one default model; it doesn't enumerate the catalogue."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/model-1",
+                "models": {
+                    "acme/model-1": {"context_length": 200000},
+                    "acme/model-2": {"context_length": 400000},
+                },
+            }
+        }
+        save_config(cfg)
+
+        self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/model-2",
+            },
+        )
+
+        models = load_config()["providers"]["acme"]["models"]
+        assert sorted(models) == ["acme/model-1", "acme/model-2"]
+        assert models["acme/model-1"]["context_length"] == 200000
+
+    def test_custom_endpoint_saves_anthropic_protocol_and_auth_pins(self):
+        """Explicit modes persist to the v12 canonical ``transport`` key.
+
+        The legacy ``api_mode`` spelling is dropped on write so entries
+        converge on one spelling, and the response echoes the pins for the
+        editor to round-trip.
+        """
+        from hermes_cli.config import load_config
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "bearer",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["relay"]
+        assert entry["transport"] == "anthropic_messages"
+        assert "api_mode" not in entry
+        assert entry["auth_scheme"] == "bearer"
+
+        echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "relay")
+        assert echoed["api_mode"] == "anthropic_messages"
+        assert echoed["auth_scheme"] == "bearer"
+
+    def test_custom_endpoint_canonicalizes_legacy_api_mode_spelling(self):
+        """An explicit save migrates a hand-written legacy ``api_mode`` to
+        ``transport``, and a non-Anthropic wire drops the auth pin (it only
+        means something on the Anthropic wire)."""
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "acme": {
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "bearer",
+                "models": {"acme/m1": {}},
+            }
+        }
+        save_config(cfg)
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "chat_completions",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["acme"]
+        assert entry["transport"] == "chat_completions"
+        assert "api_mode" not in entry
+        assert "auth_scheme" not in entry
+
+    def test_custom_endpoint_auto_selection_clears_protocol_pins(self):
+        """Explicit Auto ('') clears both protocol spellings and the auth pin.
+
+        A stale auth pin would silently apply again if the user later switched
+        the protocol back.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["providers"] = {
+            "relay": {
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "transport": "anthropic_messages",
+                "auth_scheme": "x-api-key",
+                "models": {"claude-fable-5": {}},
+            }
+        }
+        save_config(cfg)
+
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "",
+                "auth_scheme": "",
+            },
+        )
+
+        assert resp.status_code == 200
+        entry = load_config()["providers"]["relay"]
+        assert "transport" not in entry
+        assert "api_mode" not in entry
+        assert "auth_scheme" not in entry
+
+    def test_custom_endpoint_rejects_unknown_api_mode(self):
+        """Modes outside the recognized set fail loudly instead of writing a
+        value the runtime adapters would silently ignore. (The editor omits
+        the field for hand-written modes it doesn't know, which the
+        preserves-hand-written-fields test covers.)"""
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "acme",
+                "name": "Acme",
+                "base_url": "https://llm.acme.corp/v1",
+                "model": "acme/m1",
+                "api_mode": "responses",
+            },
+        )
+
+        assert resp.status_code == 422
+        assert "api_mode" in resp.json()["detail"]
+
+    def test_custom_endpoint_rejects_invalid_auth_scheme(self):
+        """A typo'd auth_scheme must fail loudly, not silently break auth."""
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "relay",
+                "name": "Relay",
+                "base_url": "https://relay.example.com/anthropic",
+                "model": "claude-fable-5",
+                "api_mode": "anthropic_messages",
+                "auth_scheme": "basic",
+            },
+        )
+
+        assert resp.status_code == 422
+        assert "auth_scheme" in resp.json()["detail"]
+
+    def test_validate_anthropic_endpoint_probes_with_both_auth_headers(self):
+        """Anthropic-wire validation sends both header styles + the version
+        header, and treats a missing /models catalog as reachable, since many
+        Anthropic-compatible relays don't implement one.
+        """
+        from unittest.mock import MagicMock, patch
+
+        probe = MagicMock()
+        probe.status_code = 404
+        probe.is_success = False
+        client = MagicMock()
+        client.__enter__ = MagicMock(return_value=client)
+        client.__exit__ = MagicMock(return_value=False)
+        client.get.return_value = probe
+
+        with patch("httpx.Client", return_value=client):
+            resp = self.client.post(
+                "/api/providers/custom-endpoints/validate",
+                json={
+                    "name": "Relay",
+                    "base_url": "https://relay.example.com/anthropic",
+                    "model": "claude-fable-5",
+                    "api_key": "sk-relay",
+                    "api_mode": "anthropic_messages",
+                    "auth_scheme": "bearer",
+                },
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is True
+        assert data["message_code"] == "no_model_catalog"
+
+        headers = client.get.call_args.kwargs["headers"]
+        assert headers["Authorization"] == "Bearer sk-relay"
+        assert headers["x-api-key"] == "sk-relay"
+        assert headers["anthropic-version"] == "2023-06-01"
+
+    def test_validate_openai_endpoint_keeps_404_an_error(self):
+        """The OpenAI wire requires /models — a 404 there stays a failure."""
+        from unittest.mock import MagicMock, patch
+
+        probe = MagicMock()
+        probe.status_code = 404
+        probe.is_success = False
+        client = MagicMock()
+        client.__enter__ = MagicMock(return_value=client)
+        client.__exit__ = MagicMock(return_value=False)
+        client.get.return_value = probe
+
+        with patch("httpx.Client", return_value=client):
+            resp = self.client.post(
+                "/api/providers/custom-endpoints/validate",
+                json={
+                    "name": "Proxy",
+                    "base_url": "http://127.0.0.1:8081/v1",
+                    "model": "gpt-5.4",
+                },
+            )
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is False
+        assert data["message_code"] == "http_error"
 
     def test_deleting_the_active_custom_endpoint_clears_its_model_mirror(self):
         """Deleting an endpoint must not leave its credential running the agent.
@@ -1837,6 +2287,92 @@ class TestWebServerEndpoints:
         self.client.post("/api/providers/custom-endpoints/legacy/activate", json={})
         model_cfg = load_config()["model"]
         assert model_cfg["api_key"] == "sk-legacy"
+
+    def test_hand_written_non_ascii_endpoint_id_saves_activates_and_deletes(self):
+        """Hand-written ``providers`` keys can be non-ASCII (e.g. Chinese).
+
+        The slug round-trip is lossy for those — ``_custom_endpoint_id``
+        collapses a fully non-ASCII key to the ``"custom"`` fallback — so
+        save/activate/delete must resolve the exact raw key first. The old
+        slug-only lookup 404'd on delete/activate ("custom endpoint not
+        found") and split saves into a new slugged duplicate entry.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        save_config({
+            "model": {"provider": "自定义", "default": "m-1", "base_url": "http://127.0.0.1:9931/v1"},
+            "providers": {
+                "自定义": {
+                    "base_url": "http://127.0.0.1:9931/v1",
+                    "model": "m-1",
+                    "api_key": "sk-hand",
+                }
+            },
+        })
+
+        # The list echoes the raw key.
+        listed = self.client.get("/api/providers/custom-endpoints").json()["endpoints"]
+        assert [e["id"] for e in listed] == ["自定义"]
+
+        # Saving under the raw id updates in place instead of splitting into
+        # a slugged duplicate.
+        resp = self.client.post(
+            "/api/providers/custom-endpoints",
+            json={
+                "id": "自定义",
+                "name": "自定义",
+                "base_url": "http://127.0.0.1:9931/v1",
+                "model": "m-2",
+            },
+        )
+        assert resp.status_code == 200
+        providers = load_config()["providers"]
+        assert list(providers) == ["自定义"]
+        assert providers["自定义"]["model"] == "m-2"
+
+        # Activate and delete resolve the same raw key instead of 404ing.
+        assert self.client.post(
+            "/api/providers/custom-endpoints/自定义/activate", json={}
+        ).status_code == 200
+        assert self.client.request(
+            "DELETE", "/api/providers/custom-endpoints/自定义"
+        ).status_code == 200
+
+        cfg = load_config()
+        assert "自定义" not in (cfg.get("providers") or {})
+        model_cfg = cfg.get("model") or {}
+        assert not model_cfg.get("provider"), "deleted endpoint still routed as the main provider"
+
+    def test_set_model_main_preserves_base_url_for_named_custom_provider(self):
+        """Selecting a named custom endpoint from the Desktop model picker
+        should keep its endpoint URL attached to model config.
+        """
+        from hermes_cli.config import load_config, save_config
+
+        save_config({
+            "model": {"provider": "nous", "default": "hermes-4"},
+            "providers": {
+                "axet-proxy": {
+                    "name": "Axet Proxy",
+                    "base_url": "http://127.0.0.1:8081/v1",
+                    "api_key": "sk-local",
+                    "model": "gpt-5.4",
+                    "models": {"gpt-5.4": {}},
+                }
+            },
+        })
+
+        resp = self.client.post(
+            "/api/model/set",
+            json={"scope": "main", "provider": "axet-proxy", "model": "gpt-5.4"},
+        )
+
+        assert resp.status_code == 200
+        model_cfg = load_config()["model"]
+        assert model_cfg["provider"] == "axet-proxy"
+        assert model_cfg["default"] == "gpt-5.4"
+        assert model_cfg["base_url"] == "http://127.0.0.1:8081/v1"
+        assert model_cfg["api_key"] == "sk-local"
 
     def test_get_sessions_rejects_negative_limit(self):
         """limit=-1 must be rejected (422), not passed through to SQLite as

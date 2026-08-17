@@ -1235,6 +1235,8 @@ def _probe_remote_backend(env_type: str) -> str | None:
                 "modal_mode": config.get("modal_mode", "auto"),
                 "docker_volumes": config.get("docker_volumes", []),
                 "docker_mount_cwd_to_workspace": config.get("docker_mount_cwd_to_workspace", False),
+                "singularity_mount_cwd_to_workspace": config.get("singularity_mount_cwd_to_workspace", False),
+                "workspace_mount_path": config.get("workspace_mount_path", "/workspace"),
                 "docker_forward_env": config.get("docker_forward_env", []),
                 "docker_env": config.get("docker_env", {}),
                 "docker_run_as_host_user": config.get("docker_run_as_host_user", False),

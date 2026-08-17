@@ -353,6 +353,12 @@ export const ENUM_OPTIONS: Record<string, string[]> = {
 // names faster than this list updates. The ENUM_OPTIONS above become
 // suggestions rather than a gate for these keys.
 export const FREE_INPUT_KEYS = new Set([
+  // Subagent routing is open-world (any built-in provider name or model id is
+  // typeable); the datalist carries custom-endpoint suggestions when
+  // delegation.use_custom_endpoints is on. See delegationProviderOptions /
+  // delegationModelOptions in helpers.ts.
+  'delegation.model',
+  'delegation.provider',
   'tts.edge.voice',
   'tts.openai.model',
   'tts.openai.voice',
@@ -401,7 +407,13 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     persistentShell: 'Persistent Shell',
     envPassthrough: 'Environment Passthrough',
     dockerImage: 'Docker Image',
+    dockerMountCwdToWorkspace: 'Mount Project Into Docker',
+    dockerWorkspacePerSession: 'Follow Each Session’s Project',
+    dockerWorkspaceMountPath: 'Docker Mount Path',
     singularityImage: 'Singularity Image',
+    singularityMountCwdToWorkspace: 'Mount Project Into Singularity',
+    singularityWorkspacePerSession: 'Follow Each Session’s Project (Singularity)',
+    singularityWorkspaceMountPath: 'Singularity Mount Path',
     modalImage: 'Modal Image',
     daytonaImage: 'Daytona Image'
   },
@@ -530,6 +542,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   delegation: {
     model: 'Subagent Model',
     provider: 'Subagent Provider',
+    useCustomEndpoints: 'Suggest Custom Endpoints for Subagents',
     maxIterations: 'Subagent Turn Limit',
     maxConcurrentChildren: 'Parallel Subagents',
     childTimeoutSeconds: 'Subagent Timeout',
@@ -563,12 +576,33 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     persistentShell: 'Keep shell state between commands when the backend supports it.',
     envPassthrough: 'Environment variables to pass into tool execution.',
     dockerImage: 'Container image used when the execution backend is Docker.',
+    dockerMountCwdToWorkspace:
+      'Bind-mount the project folder into the Docker sandbox at /workspace. Off keeps the sandbox fully isolated.',
+    dockerWorkspacePerSession:
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own container.',
+    dockerWorkspaceMountPath:
+      'Full in-container path where the project is mounted. Default /workspace. Changes apply to the next container.',
     singularityImage: 'Image used when the execution backend is Singularity.',
-    modalImage: 'Image used when the execution backend is Modal.',
-    daytonaImage: 'Image used when the execution backend is Daytona.'
+    singularityMountCwdToWorkspace:
+      'Bind-mount the project folder into the Singularity sandbox at /workspace. Off keeps the sandbox fully isolated.',
+    singularityWorkspacePerSession:
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own instance.',
+    singularityWorkspaceMountPath:
+      'Full in-container path where the project is bound. Default /workspace. Changes apply to the next instance.',
+    modalImage:
+      'Image used when the execution backend is Modal. Runs in the cloud: project folders are synced as copies, not mounted.',
+    daytonaImage:
+      'Image used when the execution backend is Daytona. Runs in the cloud: project folders are synced as copies, not mounted.'
   },
   codeExecution: {
     mode: 'How strictly code execution is scoped to the current project.'
+  },
+  delegation: {
+    model: 'Model for delegated subagents. Empty inherits the parent model.',
+    provider:
+      'Provider for delegated subagents — a built-in name or a custom endpoint id. Empty inherits the parent.',
+    useCustomEndpoints:
+      'Offer your custom endpoints in the subagent provider list, and their discovered models in the model list.'
   },
   fileReadMaxChars: 'Maximum characters Hermes can read from one file request.',
   approvals: {
@@ -746,7 +780,16 @@ export const SECTIONS: DesktopConfigSection[] = [
       'terminal.backend',
       'terminal.timeout',
       'terminal.docker_image',
+      // Paired on purpose: per_session does nothing unless mount_cwd is on, so
+      // showing one without the other reads as a broken toggle.
+      'terminal.docker_mount_cwd_to_workspace',
+      'terminal.docker_workspace_per_session',
+      'terminal.docker_workspace_mount_path',
       'terminal.singularity_image',
+      // Same pairing rule as the Docker trio above.
+      'terminal.singularity_mount_cwd_to_workspace',
+      'terminal.singularity_workspace_per_session',
+      'terminal.singularity_workspace_mount_path',
       'terminal.modal_image',
       'terminal.daytona_image',
       'tool_output.max_bytes',
@@ -757,6 +800,10 @@ export const SECTIONS: DesktopConfigSection[] = [
       'agent.api_max_retries',
       'agent.service_tier',
       'agent.tool_use_enforcement',
+      // The switch precedes the two fields it feeds: with it on, provider
+      // suggests the configured custom endpoints and model suggests the
+      // selected endpoint's discovered catalog.
+      'delegation.use_custom_endpoints',
       'delegation.model',
       'delegation.provider',
       'delegation.max_iterations',

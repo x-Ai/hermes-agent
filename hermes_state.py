@@ -10135,6 +10135,41 @@ class SessionDB(SessionSearchMixin, SessionSchemaMixin, SessionPortabilityMixin)
 
         return self._execute_write(_do)
 
+    def _hydrate_message_row(self, row, *, caller: str) -> Dict[str, Any]:
+        """Turn a raw ``messages`` row into a JSON-hydrated dict.
+
+        Shared by :meth:`get_messages`, :meth:`get_messages_around`, and
+        :meth:`get_anchored_view` — the three read paths that return the raw
+        row shape (all columns, dict(row)) rather than the trimmed OpenAI
+        conversation shape :meth:`_rows_to_conversation` builds. Decodes
+        ``content`` and JSON-deserializes the ``tool_calls`` /
+        ``display_metadata`` TEXT columns, dropping either to a safe empty
+        value (``[]`` / ``None``) on a decode failure instead of handing the
+        caller a raw string. ``caller`` is folded into the warning log line
+        so a bad row is traceable to the read path that hit it.
+
+        Before ``display_metadata`` was added here, only ``tool_calls`` was
+        hydrated in these three paths — the drift that produced #70586
+        (the desktop renderer's ``'task_count' in message.display_metadata``
+        check crashing on the un-hydrated string). Route every new
+        JSON-TEXT column through this helper rather than adding another
+        one-off block per read path.
+        """
+        msg = dict(row)
+        if "content" in msg:
+            msg["content"] = self._decode_content(msg["content"])
+        if msg.get("tool_calls"):
+            try:
+                msg["tool_calls"] = json.loads(msg["tool_calls"])
+            except (json.JSONDecodeError, TypeError):
+                logger.warning("Failed to deserialize tool_calls in %s, falling back to []", caller)
+                msg["tool_calls"] = []
+        if msg.get("display_metadata") is not None:
+            # _decode_display_metadata owns the hard cases: double-encoded rows
+            # written before the encode guard landed, and non-object payloads.
+            msg["display_metadata"] = self._decode_display_metadata(msg["display_metadata"])
+        return msg
+
     def get_messages(
         self,
         session_id: str,
@@ -10251,18 +10286,7 @@ class SessionDB(SessionSearchMixin, SessionSchemaMixin, SessionPortabilityMixin)
                 rows.reverse()
         result = []
         for row in rows:
-            msg = dict(row)
-            if "content" in msg:
-                msg["content"] = self._decode_content(msg["content"])
-            if msg.get("tool_calls"):
-                try:
-                    msg["tool_calls"] = json.loads(msg["tool_calls"])
-                except (json.JSONDecodeError, TypeError):
-                    logger.warning("Failed to deserialize tool_calls in get_messages, falling back to []")
-                    msg["tool_calls"] = []
-            if msg.get("display_metadata") is not None:
-                msg["display_metadata"] = self._decode_display_metadata(msg["display_metadata"])
-            result.append(msg)
+            result.append(self._hydrate_message_row(row, caller="get_messages"))
         return result
 
     def find_pr_url_messages(self, session_ids: List[str]) -> List[Dict[str, Any]]:
@@ -10343,22 +10367,7 @@ class SessionDB(SessionSearchMixin, SessionSchemaMixin, SessionPortabilityMixin)
 
         # before_rows is DESC; reverse so it's ASC, then concatenate after_rows.
         rows = list(reversed(before_rows)) + list(after_rows)
-        result = []
-        for row in rows:
-            msg = dict(row)
-            if "content" in msg:
-                msg["content"] = self._decode_content(msg["content"])
-            if msg.get("tool_calls"):
-                try:
-                    msg["tool_calls"] = json.loads(msg["tool_calls"])
-                except (json.JSONDecodeError, TypeError):
-                    logger.warning(
-                        "Failed to deserialize tool_calls in get_messages_around, falling back to []"
-                    )
-                    msg["tool_calls"] = []
-            if msg.get("display_metadata") is not None:
-                msg["display_metadata"] = self._decode_display_metadata(msg["display_metadata"])
-            result.append(msg)
+        result = [self._hydrate_message_row(row, caller="get_messages_around") for row in rows]
 
         # before_rows includes the anchor itself; subtract 1 for the count of
         # messages strictly before the anchor in the returned slice.
