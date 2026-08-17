@@ -1819,6 +1819,7 @@ export const zh: Translations = {
       terminal: '终端/命令执行与进程管理工具',
       todo: '多步骤工作的任务规划与跟踪',
       tts: '文字转语音：用 Edge TTS（免费）、ElevenLabs、OpenAI 或 xAI 将文字转为音频',
+      stt: '语音转文字：语音转写（网关语音消息与语音模式）',
       video: '视频分析与理解工具（选择启用，不在默认工具集中）',
       video_gen:
         '视频生成工具。单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频。提供方专属的编辑/扩展工作流可能以独立工具出现。通过 hermes tools → Video Generation 配置。',

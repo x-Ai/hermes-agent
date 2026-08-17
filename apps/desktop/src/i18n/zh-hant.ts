@@ -1400,6 +1400,7 @@ export const zhHant = defineLocale({
       terminal: '終端機/命令執行與程序管理工具',
       todo: '多步驟工作的任務規劃與追蹤',
       tts: '文字轉語音：用 Edge TTS（免費）、ElevenLabs、OpenAI 或 xAI 將文字轉為音訊',
+      stt: '語音轉文字：語音轉寫（閘道器語音訊息與語音模式）',
       video: '影片分析與理解工具（選擇啟用，不在預設工具集中）',
       video_gen:
         '影片生成工具。單一 video_generate 工具涵蓋文生影片（僅提示詞）和圖生影片（提示詞 + image_url），以及參考生影片。供應商專屬的編輯/延伸工作流程可能以獨立工具出現。透過 hermes tools → Video Generation 設定。',
