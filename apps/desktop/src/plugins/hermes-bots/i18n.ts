@@ -182,6 +182,81 @@ type BotsMessages = {
   // Empty states
   noAgentsYet: string
   createFirstTeammate: string
+
+  // Error messages - MCP Setup
+  couldNotAddServer: string
+  noTargetProfile: string
+  failedToSet: (key: string) => string
+  serverTestFailed: string
+  couldNotStartOAuth: string
+  completeSignIn: string
+  oauthFailed: string
+  configured: (name: string) => string
+  authenticated: (name: string) => string
+
+  // Error messages - Avatar
+  avatarGenerationFailed: string
+  generationFailed: string
+  couldNotLoadPet: string
+  imageTooLarge: string
+
+  // Error messages - Bot operations
+  duplicateFailed: string
+  advancedConfigFailed: string
+  couldNotCreateProfile: string
+  couldNotCreateAgent: string
+  couldNotDeleteProfile: (name: string) => string
+  couldNotReach: (source: string) => string
+
+  // Error messages - Sessions
+  couldNotOpenSession: string
+  couldNotLoadSessionsError: string
+
+  // Error messages - Cronjobs
+  cronjobUpdateFailed: string
+  couldNotRefreshCronjobs: string
+
+  // Success messages
+  created: (name: string, original?: string) => string
+  updated: (name: string) => string
+  pinned: (name: string, isPinned: boolean) => string
+  duplicating: (name: string) => string
+  skillInstalled: (name: string) => string
+  draftDiscarded: (name: string) => string
+  cronjobScheduled: (name: string) => string
+  groupCreated: (name: string, count: number) => string
+
+  // Partial success/warnings
+  savedLocallyRemoteFailed: string
+  savedLocallyDescFailed: string
+  someSectionsFailed: (sections: string) => string
+
+  // Instructions
+  openBotsPane: string
+  scrollForMore: (shown: number, total: number) => string
+
+  // MCP Setup UI
+  setUpCheckmark: string
+  noImageModel: string
+  restartGateway: string
+
+  // Provider & Model
+  provider: string
+  model: string
+  providerCustom: string
+  modelCustom: string
+
+  // Advanced
+  dayOfMonth: string
+  runsAtTopOfHour: (cap: string) => string
+
+  // Misc
+  conversation: string
+  remoteSource: string
+  untitledCronjob: string
+  installing: (name: string) => string
+  installAndAdd: (name: string) => string
+  hitAddToAgent: string
 }
 
 // 占位符：暂时使用英文作为默认翻译，后续会逐步添加完整的翻译
@@ -342,7 +417,82 @@ const en: BotsMessages = {
   added: '✓ added',
 
   noAgentsYet: 'No agents yet',
-  createFirstTeammate: 'Create your first teammate.'
+  createFirstTeammate: 'Create your first teammate.',
+
+  // Error messages - MCP Setup
+  couldNotAddServer: 'Could not add server',
+  noTargetProfile: 'No target profile',
+  failedToSet: k => `Failed to set ${k}`,
+  serverTestFailed: 'Server test failed after setup',
+  couldNotStartOAuth: 'Could not start OAuth',
+  completeSignIn: 'Complete sign-in in your browser...',
+  oauthFailed: 'OAuth failed',
+  configured: name => `${name} configured`,
+  authenticated: name => `${name} authenticated`,
+
+  // Error messages - Avatar
+  avatarGenerationFailed: 'Avatar generation failed',
+  generationFailed: 'generation failed',
+  couldNotLoadPet: 'Could not load that pet — try another.',
+  imageTooLarge: 'Image too large (max 15MB).',
+
+  // Error messages - Bot operations
+  duplicateFailed: 'Duplicate failed',
+  advancedConfigFailed: 'Advanced configuration failed',
+  couldNotCreateProfile: 'Could not create the profile yet',
+  couldNotCreateAgent: 'Could not create the agent.',
+  couldNotDeleteProfile: name => `Could not delete profile ${name}.`,
+  couldNotReach: source => `Could not reach ${source}`,
+
+  // Error messages - Sessions
+  couldNotOpenSession: 'Could not open session',
+  couldNotLoadSessionsError: 'Could not load sessions for this profile.',
+
+  // Error messages - Cronjobs
+  cronjobUpdateFailed: 'Cronjob update failed',
+  couldNotRefreshCronjobs: 'Could not refresh cronjobs. Showing the last list we had.',
+
+  // Success messages
+  created: (name, original) => original ? `Created ${name} — full copy of ${original}` : `Created ${name}`,
+  updated: name => `${name} updated`,
+  pinned: (name, isPinned) => `${name} ${isPinned ? 'pinned to top' : 'unpinned'}`,
+  duplicating: name => `Duplicating ${name}…`,
+  skillInstalled: name => `Skill "${name}" installed`,
+  draftDiscarded: name => `Draft agent "${name}" discarded`,
+  cronjobScheduled: name => `Cronjob "${name}" scheduled`,
+  groupCreated: (name, count) => `"${name}" created with ${count} bots`,
+
+  // Partial success/warnings
+  savedLocallyRemoteFailed: 'Saved look locally; remote persistence failed',
+  savedLocallyDescFailed: 'Saved look locally; description update failed',
+  someSectionsFailed: sections => `Some sections failed: ${sections}`,
+
+  // Instructions
+  openBotsPane: 'Open the Bots pane and hit "New Agent".',
+  scrollForMore: (shown, total) => `Scroll for more (${shown} of ${total})`,
+
+  // MCP Setup UI
+  setUpCheckmark: 'set up ✓',
+  noImageModel: 'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".',
+  restartGateway: 'Restart gateway',
+
+  // Provider & Model
+  provider: 'Provider',
+  model: 'Model',
+  providerCustom: 'Provider (Custom)',
+  modelCustom: 'Model (Custom)',
+
+  // Advanced
+  dayOfMonth: 'Day of month',
+  runsAtTopOfHour: cap => `Runs at the top of every hour${cap}`,
+
+  // Misc
+  conversation: 'Conversation',
+  remoteSource: 'Remote source',
+  untitledCronjob: 'Untitled cronjob',
+  installing: name => `Installing "${name}"…`,
+  installAndAdd: name => `Install "${name}" and add it to the list above`,
+  hitAddToAgent: 'Hit "+ Add to this Agent" on any skill — it installs and appears in the list above. Drag the corner to resize.'
 }
 
 const zh: BotsMessages = {
@@ -502,7 +652,82 @@ const zh: BotsMessages = {
   added: '✓ 已添加',
 
   noAgentsYet: '尚无代理',
-  createFirstTeammate: '创建你的第一个队友。'
+  createFirstTeammate: '创建你的第一个队友。',
+
+  // Error messages - MCP Setup
+  couldNotAddServer: '无法添加服务器',
+  noTargetProfile: '无目标资料',
+  failedToSet: k => `设置 ${k} 失败`,
+  serverTestFailed: '设置后服务器测试失败',
+  couldNotStartOAuth: '无法启动 OAuth',
+  completeSignIn: '在浏览器中完成登录…',
+  oauthFailed: 'OAuth 失败',
+  configured: name => `${name} 已配置`,
+  authenticated: name => `${name} 已认证`,
+
+  // Error messages - Avatar
+  avatarGenerationFailed: '头像生成失败',
+  generationFailed: '生成失败',
+  couldNotLoadPet: '无法加载该宠物 — 请尝试其他。',
+  imageTooLarge: '图片过大（最大 15MB）。',
+
+  // Error messages - Bot operations
+  duplicateFailed: '复制失败',
+  advancedConfigFailed: '高级配置失败',
+  couldNotCreateProfile: '尚无法创建资料',
+  couldNotCreateAgent: '无法创建代理。',
+  couldNotDeleteProfile: name => `无法删除资料 ${name}。`,
+  couldNotReach: source => `无法访问 ${source}`,
+
+  // Error messages - Sessions
+  couldNotOpenSession: '无法打开会话',
+  couldNotLoadSessionsError: '无法加载此资料的会话。',
+
+  // Error messages - Cronjobs
+  cronjobUpdateFailed: '定时任务更新失败',
+  couldNotRefreshCronjobs: '无法刷新定时任务。显示上次的列表。',
+
+  // Success messages
+  created: (name, original) => original ? `已创建 ${name} — ${original} 的完整副本` : `已创建 ${name}`,
+  updated: name => `${name} 已更新`,
+  pinned: (name, isPinned) => `${name} ${isPinned ? '已置顶' : '已取消置顶'}`,
+  duplicating: name => `正在复制 ${name}…`,
+  skillInstalled: name => `技能"${name}"已安装`,
+  draftDiscarded: name => `草稿代理"${name}"已丢弃`,
+  cronjobScheduled: name => `定时任务"${name}"已调度`,
+  groupCreated: (name, count) => `"${name}"已创建，包含 ${count} 个 Bot`,
+
+  // Partial success/warnings
+  savedLocallyRemoteFailed: '已在本地保存外观；远程持久化失败',
+  savedLocallyDescFailed: '已在本地保存外观；描述更新失败',
+  someSectionsFailed: sections => `部分区块失败：${sections}`,
+
+  // Instructions
+  openBotsPane: '打开 Bots 面板并点击"新建代理"。',
+  scrollForMore: (shown, total) => `滚动查看更多（${shown} / ${total}）`,
+
+  // MCP Setup UI
+  setUpCheckmark: '已设置 ✓',
+  noImageModel: '无可用的图像模型。如果你刚刚启用了一个（或更新了 Hermes），请重启网关：Ctrl+K → "重启网关"。',
+  restartGateway: '重启网关',
+
+  // Provider & Model
+  provider: '提供商',
+  model: '模型',
+  providerCustom: '提供商（自定义）',
+  modelCustom: '模型（自定义）',
+
+  // Advanced
+  dayOfMonth: '每月的日期',
+  runsAtTopOfHour: cap => `在每小时的整点运行${cap}`,
+
+  // Misc
+  conversation: '对话',
+  remoteSource: '远程来源',
+  untitledCronjob: '无标题定时任务',
+  installing: name => `正在安装"${name}"…`,
+  installAndAdd: name => `安装"${name}"并添加到上面的列表`,
+  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中。拖动角落调整大小。'
 }
 
 export const BOTS_LOCALES: PluginLocaleBundles = { en, zh }
@@ -688,6 +913,81 @@ export function useBots() {
 
     // Empty states
     noAgentsYet: t('noAgentsYet'),
-    createFirstTeammate: t('createFirstTeammate')
+    createFirstTeammate: t('createFirstTeammate'),
+
+    // Error messages - MCP Setup
+    couldNotAddServer: t('couldNotAddServer'),
+    noTargetProfile: t('noTargetProfile'),
+    failedToSet: (key: string) => t('failedToSet', key),
+    serverTestFailed: t('serverTestFailed'),
+    couldNotStartOAuth: t('couldNotStartOAuth'),
+    completeSignIn: t('completeSignIn'),
+    oauthFailed: t('oauthFailed'),
+    configured: (name: string) => t('configured', name),
+    authenticated: (name: string) => t('authenticated', name),
+
+    // Error messages - Avatar
+    avatarGenerationFailed: t('avatarGenerationFailed'),
+    generationFailed: t('generationFailed'),
+    couldNotLoadPet: t('couldNotLoadPet'),
+    imageTooLarge: t('imageTooLarge'),
+
+    // Error messages - Bot operations
+    duplicateFailed: t('duplicateFailed'),
+    advancedConfigFailed: t('advancedConfigFailed'),
+    couldNotCreateProfile: t('couldNotCreateProfile'),
+    couldNotCreateAgent: t('couldNotCreateAgent'),
+    couldNotDeleteProfile: (name: string) => t('couldNotDeleteProfile', name),
+    couldNotReach: (source: string) => t('couldNotReach', source),
+
+    // Error messages - Sessions
+    couldNotOpenSession: t('couldNotOpenSession'),
+    couldNotLoadSessionsError: t('couldNotLoadSessionsError'),
+
+    // Error messages - Cronjobs
+    cronjobUpdateFailed: t('cronjobUpdateFailed'),
+    couldNotRefreshCronjobs: t('couldNotRefreshCronjobs'),
+
+    // Success messages
+    created: (name: string, original?: string) => t('created', name, original),
+    updated: (name: string) => t('updated', name),
+    pinned: (name: string, isPinned: boolean) => t('pinned', name, isPinned),
+    duplicating: (name: string) => t('duplicating', name),
+    skillInstalled: (name: string) => t('skillInstalled', name),
+    draftDiscarded: (name: string) => t('draftDiscarded', name),
+    cronjobScheduled: (name: string) => t('cronjobScheduled', name),
+    groupCreated: (name: string, count: number) => t('groupCreated', name, count),
+
+    // Partial success/warnings
+    savedLocallyRemoteFailed: t('savedLocallyRemoteFailed'),
+    savedLocallyDescFailed: t('savedLocallyDescFailed'),
+    someSectionsFailed: (sections: string) => t('someSectionsFailed', sections),
+
+    // Instructions
+    openBotsPane: t('openBotsPane'),
+    scrollForMore: (shown: number, total: number) => t('scrollForMore', shown, total),
+
+    // MCP Setup UI
+    setUpCheckmark: t('setUpCheckmark'),
+    noImageModel: t('noImageModel'),
+    restartGateway: t('restartGateway'),
+
+    // Provider & Model
+    provider: t('provider'),
+    model: t('model'),
+    providerCustom: t('providerCustom'),
+    modelCustom: t('modelCustom'),
+
+    // Advanced
+    dayOfMonth: t('dayOfMonth'),
+    runsAtTopOfHour: (cap: string) => t('runsAtTopOfHour', cap),
+
+    // Misc
+    conversation: t('conversation'),
+    remoteSource: t('remoteSource'),
+    untitledCronjob: t('untitledCronjob'),
+    installing: (name: string) => t('installing', name),
+    installAndAdd: (name: string) => t('installAndAdd', name),
+    hitAddToAgent: t('hitAddToAgent')
   }
 }
