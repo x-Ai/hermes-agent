@@ -16,7 +16,7 @@
  */
 
 import * as sdk from '@hermes/plugin-sdk'
-import { BOTS_LOCALES } from './i18n.ts'
+import { BOTS_LOCALES, useBots } from './i18n.ts'
 import {
   atom,
   Button,

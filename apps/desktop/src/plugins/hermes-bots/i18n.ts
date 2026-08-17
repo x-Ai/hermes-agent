@@ -5,7 +5,7 @@
  * never touching core en.ts.
  */
 
-import { type PluginLocaleBundles } from '@hermes/plugin-sdk'
+import { type PluginLocaleBundles, usePluginI18n } from '@hermes/plugin-sdk'
 
 type BotsMessages = {
   // Common actions
@@ -241,8 +241,8 @@ const en: BotsMessages = {
   removeImage: 'Remove image — use shape',
   describeAvatar: 'Describe your avatar…',
   generating: 'Generating…',
-  leaveBlankGenerate: 'Leave blank to generate from the agent's name and description.',
-  choosePet: 'Pick a pet as this agent's profile picture.',
+  leaveBlankGenerate: "Leave blank to generate from the agent's name and description.",
+  choosePet: "Pick a pet as this agent's profile picture.",
   removePet: 'Remove — back to shape avatar',
   noPetsMatch: 'No pets match.',
   noPets: 'No pets in the petdex gallery. Run `hermes pets` to explore.',
@@ -506,3 +506,188 @@ const zh: BotsMessages = {
 }
 
 export const BOTS_LOCALES: PluginLocaleBundles = { en, zh }
+
+/**
+ * Reactive i18n hook for BOTS components.
+ * Returns typed message accessors instead of raw t(key).
+ */
+export function useBots() {
+  const t = usePluginI18n('hermes-bots')
+
+  return {
+    // Common actions
+    cancel: t('cancel'),
+    save: t('save'),
+    create: t('create'),
+    delete: t('delete'),
+    back: t('back'),
+    close: t('close'),
+    retry: t('retry'),
+    send: t('send'),
+
+    // Bot roster
+    bots: t('bots'),
+    noBots: t('noBots'),
+    noBotsDesc: t('noBotsDesc'),
+    searchBots: t('searchBots'),
+    noBotsMatch: (query: string) => t('noBotsMatch', query),
+    newAgent: t('newAgent'),
+    newGroupChat: t('newGroupChat'),
+    activityToastsOn: t('activityToastsOn'),
+    activityToastsOff: t('activityToastsOff'),
+    botChatsHidden: t('botChatsHidden'),
+    botChatsShown: t('botChatsShown'),
+    retryNow: t('retryNow'),
+
+    // Bot actions
+    editProfile: t('editProfile'),
+    duplicate: t('duplicate'),
+    newChatWithAgent: t('newChatWithAgent'),
+    pin: t('pin'),
+    unpin: t('unpin'),
+    pinnedTitle: t('pinnedTitle'),
+    sessions: t('sessions'),
+    moveToGroup: t('moveToGroup'),
+    group: (name: string) => t('group', name),
+
+    // Bot chat
+    botChat: t('botChat'),
+    activeNow: t('activeNow'),
+    needsYou: t('needsYou'),
+    openChat: t('openChat'),
+    chatNeverResets: t('chatNeverResets'),
+    chatNeverResetsDesc: t('chatNeverResetsDesc'),
+
+    // Profile editing
+    editProfileTitle: t('editProfileTitle'),
+    name: t('name'),
+    title: t('title'),
+    description: t('description'),
+    whatHelp: t('whatHelp'),
+    advanced: t('advanced'),
+    advancedConfig: t('advancedConfig'),
+    saving: t('saving'),
+
+    // Avatar
+    bot: t('bot'),
+    generate: t('generate'),
+    upload: t('upload'),
+    pet: t('pet'),
+    removeImage: t('removeImage'),
+    describeAvatar: t('describeAvatar'),
+    generating: t('generating'),
+    leaveBlankGenerate: t('leaveBlankGenerate'),
+    choosePet: t('choosePet'),
+    removePet: t('removePet'),
+    noPetsMatch: t('noPetsMatch'),
+    noPets: t('noPets'),
+    chooseImage: t('chooseImage'),
+
+    // New agent dialog
+    newAgentTitle: t('newAgentTitle'),
+    newAgentDesc: t('newAgentDesc'),
+    namePlaceholder: t('namePlaceholder'),
+    titlePlaceholder: t('titlePlaceholder'),
+    descPlaceholder: t('descPlaceholder'),
+    general: t('general'),
+    capabilities: t('capabilities'),
+    skills: t('skills'),
+    toolsets: t('toolsets'),
+    tools: t('tools'),
+    mcp: t('mcp'),
+    cloneFromProfile: t('cloneFromProfile'),
+    freshProfile: t('freshProfile'),
+    createEmpty: t('createEmpty'),
+    filterSkills: t('filterSkills'),
+    noMcpServers: t('noMcpServers'),
+    creating: t('creating'),
+    createAgent: t('createAgent'),
+
+    // Cronjobs
+    cronjobs: t('cronjobs'),
+    newCronjob: t('newCronjob'),
+    cronjobName: t('cronjobName'),
+    instruction: t('instruction'),
+    instructionPlaceholder: t('instructionPlaceholder'),
+    whenToRun: t('whenToRun'),
+    stopAfter: t('stopAfter'),
+    runs: t('runs'),
+    scheduling: t('scheduling'),
+    createCronjob: t('createCronjob'),
+    couldNotLoad: t('couldNotLoad'),
+    cronjobsDesc: t('cronjobsDesc'),
+
+    // Schedule options
+    once: t('once'),
+    hourly: t('hourly'),
+    daily: t('daily'),
+    weekdays: t('weekdays'),
+    weekly: t('weekly'),
+    monthly: t('monthly'),
+    interval: t('interval'),
+    advancedSchedule: t('advancedSchedule'),
+    minutesFromNow: t('minutesFromNow'),
+    hoursFromNow: t('hoursFromNow'),
+    daysFromNow: t('daysFromNow'),
+    minutes: t('minutes'),
+    hours: t('hours'),
+    days: t('days'),
+
+    // Weekdays
+    monday: t('monday'),
+    tuesday: t('tuesday'),
+    wednesday: t('wednesday'),
+    thursday: t('thursday'),
+    friday: t('friday'),
+    saturday: t('saturday'),
+    sunday: t('sunday'),
+
+    // Sessions
+    filterSessions: t('filterSessions'),
+    couldNotLoadSessions: t('couldNotLoadSessions'),
+    noSessionsMatch: t('noSessionsMatch'),
+    noSessions: t('noSessions'),
+    untitledSession: t('untitledSession'),
+    noMessages: t('noMessages'),
+
+    // Group chat
+    newGroupChatTitle: t('newGroupChatTitle'),
+    searchBotsToAdd: t('searchBotsToAdd'),
+    removeFromSelection: t('removeFromSelection'),
+    groupName: t('groupName'),
+    sayToGroup: t('sayToGroup'),
+    roomWorking: t('roomWorking'),
+
+    // Group management
+    moveToGroupTitle: t('moveToGroupTitle'),
+    moveToGroupDesc: t('moveToGroupDesc'),
+    newGroupPlaceholder: t('newGroupPlaceholder'),
+    groupNameLabel: t('groupNameLabel'),
+
+    // Delete confirmation
+    deleteBotTitle: t('deleteBotTitle'),
+    deleteBotDesc: (name: string, path: string) => t('deleteBotDesc', name, path),
+    deleting: t('deleting'),
+    deleted: t('deleted'),
+    deletedProfile: (name: string) => t('deletedProfile', name),
+
+    // Status messages
+    needsSetup: (requires: string) => t('needsSetup', requires),
+    setUp: t('setUp'),
+    saveAndTest: t('saveAndTest'),
+    working: t('working'),
+    setupFailed: (message?: string) => t('setupFailed', message),
+
+    // Skills Hub
+    skillsHub: t('skillsHub'),
+    hermesSkillsHub: t('hermesSkillsHub'),
+    searchHub: t('searchHub'),
+    searching: t('searching'),
+    noHubSkills: t('noHubSkills'),
+    added: t('added'),
+
+    // Empty states
+    noAgentsYet: t('noAgentsYet'),
+    createFirstTeammate: t('createFirstTeammate')
+  }
+}
