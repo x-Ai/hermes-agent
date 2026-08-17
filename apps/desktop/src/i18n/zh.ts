@@ -791,7 +791,19 @@ export const zh: Translations = {
         autoTts: '自动朗读助手回复。'
       },
       tts: {
-        provider: '文本转语音（TTS）提供方。'
+        provider: '文本转语音（TTS）提供方。',
+        xai: {
+          voiceId: 'xAI 语音 ID（如 eve）或自定义语音 ID。',
+          language: '语言代码（如 en、pt-BR），或填 "auto" 自动检测。',
+          speed: '播放速度：0.7 = 较慢，1.0 = 正常，1.5 = 较快。',
+          autoSpeechTags: '让 LLM 在合成前自动插入表情音频标签（如 [laughing]、[sighs]）。',
+          optimizeStreamingLatency: '延迟与质量权衡：0 = 最佳质量，2 = 最低延迟。',
+          sampleRate: '音频采样率（Hz）：越高音质越好，文件越大。',
+          bitRate: 'MP3 比特率（bps），仅在编解码器为 mp3 时生效。'
+        },
+        neutts: {
+          device: 'NeuTTS 的本地推理设备。'
+        }
       },
       stt: {
         enabled: '启用本地或提供方支持的语音转写。',
@@ -1437,7 +1449,34 @@ export const zh: Translations = {
         title: '本地 / 自定义端点',
         description: '将 Hermes 指向任意 OpenAI 兼容端点（Zyphra、vLLM、llama.cpp、Ollama 等）。'
       },
-      loading: '正在加载提供方...'
+      loading: '正在加载提供方...',
+      providerDescriptions: {
+        'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
+        'Fireworks AI': 'OpenAI 兼容的直连模型 API',
+        'OpenRouter': '聚合数百个前沿模型的中转服务',
+        'Anthropic': 'Claude API 访问（Sonnet、Opus、Haiku）',
+        'xAI': 'Grok 系列模型（SuperGrok/Premium+ 请使用 OAuth）',
+        'Gemini': 'Google AI Studio（Gemini 1.5 / 2.0 / 2.5）',
+        'DeepSeek': 'DeepSeek 直连 API（V3.x、R1）',
+        'DashScope (Qwen)': '阿里云 DashScope——Qwen 与多家厂商模型',
+        'GLM / Z.AI': '智谱 GLM-4.6 与 Z.AI 托管端点',
+        'Kimi / Moonshot': 'Moonshot Kimi K2 / 代码端点',
+        'Kimi (China)': 'Moonshot 中国大陆端点',
+        'MiniMax': 'MiniMax-M2 与 Hailuo 国际端点',
+        'MiniMax (China)': 'MiniMax 中国大陆端点',
+        'Hugging Face': 'Inference Providers——经 router.huggingface.co 使用 20+ 开源模型',
+        'OpenCode Zen': '按需访问精选代码模型',
+        'OpenCode Go': '每月 10 美元订阅，使用开源代码模型',
+        'NVIDIA NIM': 'build.nvidia.com 或你自己的本地 NIM 端点',
+        'Ollama Cloud': 'ollama.com 上的云托管开源模型',
+        'LM Studio': '本地 LM Studio 服务器（兼容 OpenAI）',
+        'StepFun': 'StepFun Step Plan 代码模型',
+        'Xiaomi MiMo': 'MiMo-V2.5 与小米自研模型',
+        'Arcee AI': 'Arcee 托管的小型与中型模型',
+        'GMI Cloud': 'GMI Cloud GPU + 模型推理服务',
+        'Azure Foundry': 'Azure AI Foundry 自定义端点（兼容 OpenAI / Anthropic）',
+        'AWS Bedrock': '通过 AWS 配置文件 + 区域进行认证'
+      }
     },
     sessions: {
       loading: '正在加载已归档会话…',
@@ -1564,7 +1603,23 @@ export const zh: Translations = {
         'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
           'grok-imagine-image——文生图与图像编辑；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期。',
         'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期。'
+          'grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期。',
+        'faster-whisper on-device, no API key': '本地 faster-whisper 转写，无需 API 密钥',
+        'Managed OpenAI transcription billed to your subscription': '托管 OpenAI 转写，计入你的订阅',
+        'voice transcription (gateway voice messages voice mode)': '语音转写（网关语音消息与语音模式）',
+        'whisper-1, gpt-4o-transcribe, gpt-transcribe': 'whisper-1、gpt-4o-transcribe、gpt-transcribe',
+        'Live STT catalog from api.deepinfra.com': '来自 api.deepinfra.com 的实时 STT 目录',
+        'Whisper large-v3 family — very fast': 'Whisper large-v3 系列——速度极快',
+        'Whisper via OpenRouter API': '经 OpenRouter API 使用 Whisper',
+        'grok-stt — uses xAI Grok OAuth or XAI_API_KEY': 'grok-stt——使用 xAI Grok OAuth 或 XAI_API_KEY',
+        'scribe_v2 — diarization + audio-event tagging': 'scribe_v2——说话人区分 + 音频事件标注',
+        'New SOTA web harness (CLI 3.0)': '全新最优 web 执行引擎 (CLI 3.0)',
+        'No paid tier needed — uses Brave\'s free API.': '无需付费套餐——使用 Brave 免费 API。',
+        'Ultra-low-latency streaming': '极低延迟流式输出',
+        'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Wan 2.2 — text-to-video & image-to-video':
+          'LTX、Pixverse、Seedance 2.0/2.5/Mini、Veo 3.1、MiniMax H3、FLUX 3、Kling 4K、Happy Horse、Wan 2.2——文生视频与图生视频',
+        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana-2, nano-banana-pro, etc. — text-to-image & image editing':
+          '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana-2、nano-banana-pro 等——文生图与图像编辑'
       },
       activeBackend: '当前后端',
       activeBackendHint: '这是你当前使用的后端',

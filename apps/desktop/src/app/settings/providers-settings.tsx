@@ -61,7 +61,7 @@ export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 //   2. Desktop prefix match (`providerGroup`) — legacy fallback for provider
 //      env vars that predate the backend tagging.
 // Only entries that resolve to neither (the "Other" bucket) are skipped.
-function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGroup[] {
+function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>, providerDescriptions: Record<string, string>): ProviderKeyGroup[] {
   const buckets = new Map<string, [string, EnvVarInfo][]>()
 
   for (const [key, info] of Object.entries(vars)) {
@@ -102,7 +102,7 @@ function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGr
       advanced: entries
         .filter(([k, i]) => k !== primary[0] && (!isKeyVar(k, i) || i.is_set))
         .sort(([a], [b]) => a.localeCompare(b)),
-      description: meta?.description ?? primary[1].description,
+      description: providerDescriptions[name] ?? meta?.description ?? primary[1].description,
       docsUrl: meta?.docsUrl ?? primary[1].url ?? undefined,
       hasAnySet: entries.some(([, i]) => i.is_set),
       name,
@@ -439,7 +439,7 @@ export function ProvidersSettings({
   // providers there's nothing for the "Accounts" view to show, so fall to keys.
   const showApiKeys = view === 'keys' || (!hasOauth && view !== 'custom-endpoints')
 
-  const keyGroups = buildProviderKeyGroups(vars)
+  const keyGroups = buildProviderKeyGroups(vars, p.providerDescriptions)
 
   if (showApiKeys) {
     const q = normalize(keyQuery)
