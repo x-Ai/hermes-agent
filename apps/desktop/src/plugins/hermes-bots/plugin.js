@@ -16,6 +16,7 @@
  */
 
 import * as sdk from '@hermes/plugin-sdk'
+import { BOTS_LOCALES } from './i18n.ts'
 import {
   atom,
   Button,
@@ -6656,6 +6657,7 @@ export default {
   description: 'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
   register(ctx) {
     pluginCtx = ctx
+    ctx.i18n.register(BOTS_LOCALES)
     startFaceClock()
 
     // @-mention autocomplete: typing "@rese…" in ANY composer offers the
