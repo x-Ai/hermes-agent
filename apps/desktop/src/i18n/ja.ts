@@ -1451,6 +1451,7 @@ export const ja = defineLocale({
       terminal: 'ターミナル/コマンド実行とプロセス管理ツール',
       todo: '複数ステップの作業のためのタスク計画と追跡',
       tts: 'テキスト読み上げ: Edge TTS（無料）、ElevenLabs、OpenAI、xAI でテキストを音声に変換',
+      stt: '音声テキスト変換：音声書き起こし（ゲートウェイ音声メッセージと音声モード）',
       video: '動画の分析・理解ツール（オプトイン、デフォルトツールセット外）',
       video_gen:
         '動画生成ツール。単一の video_generate ツールがテキストから動画（プロンプトのみ）と画像から動画（プロンプト + image_url）、参照から動画をカバーします。プロバイダー固有の編集/延長ワークフローは別ツールとして現れる場合があります。hermes tools → Video Generation で設定。',

@@ -1270,8 +1270,12 @@ export const en: Translations = {
     noToolsetsTitle: 'No toolsets found',
     noToolsetsDesc: 'Try a broader search query.',
     noDescription: 'No description.',
-    toolsetDescriptions: {},
-    toolsetLabels: {},
+    toolsetDescriptions: {
+      stt: 'voice transcription (gateway voice messages + voice mode)'
+    },
+    toolsetLabels: {
+      stt: 'Speech-to-Text'
+    },
     configured: 'Configured',
     needsKeys: 'Needs keys',
     visionModelHint:

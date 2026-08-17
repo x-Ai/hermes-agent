@@ -976,6 +976,12 @@ export const ar = defineLocale({
     noToolsetsTitle: 'لا توجد مجموعات أدوات',
     noToolsetsDesc: 'ستظهر مجموعات الأدوات المتاحة هنا.',
     noDescription: 'لا يوجد وصف',
+    toolsetDescriptions: {
+      stt: 'تحويل الصوت إلى نص (رسائل صوتية وأوضاع صوتية للبوابة)'
+    },
+    toolsetLabels: {
+      stt: 'تحويل الكلام إلى نص'
+    },
     configured: 'مضبوط',
     needsKeys: 'يحتاج مفاتيح',
     toolsetsEnabled: (enabled, total) => `${enabled} من ${total} مفعلة`,
