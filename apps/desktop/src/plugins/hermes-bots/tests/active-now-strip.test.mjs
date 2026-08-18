@@ -76,8 +76,9 @@ test('roster without profiles never throws', () => {
 
 test('ActiveNowStrip renders above the roster, is a live region, and is click-accessible', () => {
   // Strip is placed between the pane header and the search field.
-  const headerEnd = source.indexOf("children: 'Bots'")
-  const searchField = source.indexOf("placeholder: 'Search bots…'")
+  const botsPane = source.indexOf('function BotsPane(')
+  const headerEnd = source.indexOf('children: b.bots', botsPane)
+  const searchField = source.indexOf('placeholder: b.searchBots,', botsPane)
   assert.ok(headerEnd >= 0 && searchField > headerEnd)
 
   const stripStart = source.indexOf('jsx(ActiveNowStrip')
@@ -87,10 +88,10 @@ test('ActiveNowStrip renders above the roster, is a live region, and is click-ac
   assert.match(source, /'aria-live': 'polite'/)
   // Chips are real buttons (keyboard/click accessible), reuse BotFace, and
   // open the canonical chat via the same path as roster rows.
-  assert.match(source, /jsx\('button', \{\s*type: 'button',\s*title: `Open \$\{label\}'s chat`/)
+  assert.match(source, /jsx\(\s*'button',\s*\{\s*type: 'button',\s*title: b\.openAgentChat\(label\)/)
   // The key rides as jsx()'s third argument — the ONLY form React treats as
   // a list key; a `key:` prop leaves chips unkeyed (index identity).
-  assert.match(source, /\}, bot\.name\)\s*\}\)\s*\]\s*\}\)\s*\}\s*\/\*\* Assign a bot to a group/s)
+  assert.match(source, /\},\s*bot\.name\s*\)/)
   assert.match(source, /jsx\(BotFace,\s*\{[\s\S]*?mood: 'work'/)
   assert.match(source, /openBotCanonicalChat\(bot\.name, allMeta\[bot\.name\]\?\.chat\)/)
 })

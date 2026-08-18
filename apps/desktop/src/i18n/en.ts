@@ -1285,6 +1285,7 @@ export const en: Translations = {
     noToolsetsDesc: 'Try a broader search query.',
     noDescription: 'No description.',
     toolsetDescriptions: {
+      a2a: 'A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — bidirectional inter-agent communication using the open Linux Foundation standard. Outbound tools discover peers, fetch Agent Cards, and send JSON-RPC tasks. The inbound adapter exposes Hermes at /.well-known/agent-card.json and routes tasks into its live gateway session with full memory and context. Localhost-only binding is used when no bearer token is configured; inbound text is filtered, outbound credentials are scrubbed, and exchanges are audit-logged outside context compaction. Uses only the Python standard library; no a2a-sdk dependency is required.',
       stt: 'voice transcription (gateway voice messages + voice mode)'
     },
     toolsetLabels: {
@@ -1851,7 +1852,7 @@ export const en: Translations = {
       yuanbao: 'Connect Hermes to Tencent Yuanbao.',
       api_server: 'Expose Hermes as an OpenAI-compatible HTTP API for tools like Open WebUI.',
       webhook: 'Receive events from webhook sources like GitHub, GitLab.',
-      a2a: 'Talk to other Hermes instances or agents locally or remotely via A2A protocol.',
+      a2a: "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication.\n\nOUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...).\n\nINBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone.\n\nSecurity is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts.\n\nPure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.",
       buzz: 'Connect to decentralized Buzz community via Nostr relays (requires buzz CLI).',
       raft: 'Join a Raft workspace as an external agent to collaborate on tasks.'
     }

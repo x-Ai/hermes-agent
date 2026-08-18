@@ -124,21 +124,20 @@ test('sessions workspace: an in-flight open cannot restore selection after gatew
 
 test('source contract: the primary bot click keeps canonical chat while Sessions is secondary', () => {
   assert.match(pluginSource, /const open = async \(\) => \{[\s\S]*openBotCanonicalChat\(bot\.name, meta\?\.chat\)/)
-  assert.match(pluginSource, /openBotSessionsWorkspace\(bot\)[\s\S]*children: 'Sessions'/)
+  assert.match(pluginSource, /openBotSessionsWorkspace\(bot\)[\s\S]*children: b\.sessions/)
 })
 
 test('source contract: workspaces disclose the bounded recent-session inventory', () => {
   assert.match(pluginSource, /queryKey: \[ID, 'profile-sessions', botName, gatewayGeneration\]/)
   assert.match(pluginSource, /enabled: Boolean\(botName\)/)
   assert.match(pluginSource, /host\.request\('session\.list', \{ profile: botName, limit: PROFILE_SESSION_LIST_LIMIT \}\)/)
-  assert.match(pluginSource, /Showing the \$\{PROFILE_SESSION_LIST_LIMIT\} most recent sessions\./)
-  assert.match(pluginSource, /No matching sessions in the \$\{PROFILE_SESSION_LIST_LIMIT\} most recent\./)
+  assert.match(pluginSource, /b\.showingRecentSessions\(PROFILE_SESSION_LIST_LIMIT\)/)
+  assert.match(pluginSource, /b\.noMatchingRecentSessions\(PROFILE_SESSION_LIST_LIMIT\)/)
   assert.doesNotMatch(pluginSource, /children: 'Activate profile'/)
   assert.match(pluginSource, /host\.state\.gateway\.listen\(handleSessionsGatewayTransition\)/)
 })
 
 test('source contract: session controls expose filter and selection state to assistive technology', () => {
-  assert.match(pluginSource, /'aria-label': 'Filter sessions'/)
+  assert.match(pluginSource, /'aria-label': b\.filterSessions/)
   assert.match(pluginSource, /'aria-current': active \? 'page' : undefined/)
 })
-

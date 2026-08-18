@@ -224,7 +224,7 @@ test('turn transport is gateway-native (session RPCs) and hostile text rides ver
   // Hostile text is a JSON string in an RPC param — never a shell string.
   assert.equal(call.prompt.includes('hello "there" `whoami` $(id)'), true)
   // The per-group session is created with the room title.
-  assert.match(pluginSource, /title,\n/)
+  assert.match(pluginSource, /title,\r?\n/)
   assert.match(pluginSource, /const title = `Group: \$\{group\}`/)
 })
 
@@ -239,7 +239,7 @@ test('log trimming keeps watermarks consistent', () => {
 
 test('source contract: workspace + header affordance + prompt rules are wired', () => {
   assert.match(pluginSource, /function GroupChatWorkspace\(/)
-  assert.match(pluginSource, /Open chat/)
+  assert.match(pluginSource, /children: b\.openChat/)
   assert.match(pluginSource, /reply with exactly "\(pass\)"/i)
   assert.match(pluginSource, /\[Group chat: "\$\{groupName\}"\]/)
 })

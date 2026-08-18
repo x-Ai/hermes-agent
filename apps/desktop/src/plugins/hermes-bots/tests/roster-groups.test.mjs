@@ -93,5 +93,5 @@ test('knownGroups: unique, trimmed, alphabetical', () => {
 test('source contract: the roster render is sectioned and the row menu offers grouping', () => {
   assert.match(pluginSource, /groupRoster\(filteredRoster, allMeta\)\.flatMap/)
   assert.match(pluginSource, /onGroup: setGrouping/)
-  assert.match(pluginSource, /'Move to group…'/)
+  assert.match(pluginSource, /children: b\.moveToGroup/)
 })

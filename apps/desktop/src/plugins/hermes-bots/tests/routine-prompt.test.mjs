@@ -132,7 +132,7 @@ test('security: upgrade pauses persisted delegated routines before they can exec
     ['cron.manage', { action: 'list', include_disabled: true }]
   ])
   assert.match(pluginSource, /disabled: busy \|\| legacyUnsafe/)
-  assert.match(pluginSource, /Paused for security: delete and recreate this legacy cronjob/)
+  assert.match(pluginSource, /b\.legacyCronjobPaused/)
 
   const recreated = runtime.__routines.routinePrompt('research', title, instruction, 'default')
   assert.equal(runtime.__routines.isLegacyDelegatedRoutine({ ...persisted, prompt_preview: recreated.slice(0, 100) }), false)

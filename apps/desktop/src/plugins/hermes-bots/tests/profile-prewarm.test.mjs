@@ -50,6 +50,7 @@ function renderBotRow(name = 'alpha') {
     ACTIVE_WINDOW_S: 90,
     A2A_PREFIX_RE: /^$/,
     useEffect: () => undefined,
+    useBots: () => new Proxy({}, { get: (_target, key) => key }),
     useState: initial => [typeof initial === 'function' ? initial() : initial, () => undefined],
     host: {
       state: { gateway: atom('open'), profile: atom('default') },

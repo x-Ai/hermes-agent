@@ -16,7 +16,7 @@
  */
 
 import * as sdk from '@hermes/plugin-sdk'
-import { BOTS_LOCALES, useBots } from './i18n.ts'
+import { BOTS_LOCALES, useBots as useBotsI18n } from './i18n.ts'
 import {
   atom,
   Button,
@@ -74,8 +74,123 @@ const ROSTER_KEY = [ID, 'roster']
 const ROUTINES_KEY = [ID, 'routines']
 const NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/
 
+// Direct-file plugin tests and older standalone loaders evaluate plugin.js
+// after removing imports. Keep that compatibility path inert in production;
+// the real hook is always present in the bundled desktop renderer.
+const BOT_FUNCTION_MESSAGES = new Set([
+  'agentCreated',
+  'agentExists',
+  'appearanceAndRole',
+  'authenticated',
+  'botsCount',
+  'catalogFrom',
+  'configured',
+  'couldNotCleanDraft',
+  'couldNotDeleteProfile',
+  'couldNotReach',
+  'createGroup',
+  'created',
+  'cronjobScheduled',
+  'deleteBotDesc',
+  'deletedProfile',
+  'draftDiscarded',
+  'everyDays',
+  'everyHours',
+  'everyMinutes',
+  'failedToSet',
+  'group',
+  'groupChatTitle',
+  'groupCreated',
+  'inGroup',
+  'installAndAdd',
+  'installing',
+  'installingFailed',
+  'lastMessageFrom',
+  'livesOn',
+  'messageGroup',
+  'messageGroupPlaceholder',
+  'movedToGroup',
+  'needsSetup',
+  'newActivityFor',
+  'newMessageFor',
+  'nextRun',
+  'noBotsMatch',
+  'noMatchingRecentSessions',
+  'onceShort',
+  'openAgentChat',
+  'openGroupChat',
+  'pinned',
+  'pickBotsForRoom',
+  'profileSessions',
+  'recurringTaskDesc',
+  'removeFromGroup',
+  'removedFromGroup',
+  'rosterUnavailable',
+  'runsDaily',
+  'runsHourly',
+  'runsInterval',
+  'runsMonthly',
+  'runsOnce',
+  'runsWeekdays',
+  'runsWeekly',
+  'scrollForMore',
+  'searchPets',
+  'setupFailed',
+  'showingRecentSessions',
+  'skillInstalled',
+  'skillsEnabled',
+  'someSectionsFailed',
+  'toolsetsEnabled',
+  'totalRuns',
+  'updated'
+])
+
+function useBots() {
+  if (typeof useBotsI18n === 'function') {
+    return useBotsI18n()
+  }
+
+  return new Proxy(
+    {},
+    {
+      get: (_target, key) =>
+        BOT_FUNCTION_MESSAGES.has(key) ? (...args) => args.filter(Boolean).join(' ') : String(key)
+    }
+  )
+}
+
 /** Captured in register() so components can reach plugin storage. */
 let pluginCtx = null
+
+/** Imperative translator for handlers and stores. React surfaces use the
+ * reactive useBots hook so an in-app language switch repaints immediately. */
+const BOT_IMPERATIVE_FALLBACKS = {
+  bot: 'Bot',
+  chatNeverResets: 'This chat never resets',
+  chatNeverResetsDesc:
+    'Bot chats are one continuous conversation — compacting instead. For a throwaway session with this agent, use Sessions mode.',
+  couldNotDeleteProfile: name => `Could not delete profile ${name}.`,
+  cronjobInstructionNul: 'Cronjob instruction cannot contain NUL (U+0000).',
+  cronjobNameNul: 'Cronjob name cannot contain NUL (U+0000).',
+  cronjobs: 'Cronjobs',
+  desktopCannotOpenSessions: 'This Hermes Desktop build cannot open stored sessions',
+  generationFailed: 'Generation failed',
+  imageTooLarge: 'Image too large (15MB max).',
+  newAgent: 'New Agent',
+  noFreeDuplicateName: 'No free name available for the duplicate.',
+  openBotsPane: 'Open the Bots pane and click "New Agent".',
+  pluginName: 'Bots'
+}
+const bt = (key, ...args) => {
+  const translated = pluginCtx?.i18n?.t?.(key, ...args)
+
+  if (translated != null) {
+    return translated
+  }
+
+  const fallback = BOT_IMPERATIVE_FALLBACKS[key]
+  return typeof fallback === 'function' ? fallback(...args) : (fallback ?? key)
+}
 
 /** Live roster snapshot for imperative handlers (context menus). */
 const $lastRoster = atom([])
@@ -108,7 +223,12 @@ function setActivityToasts(enabled) {
 
 /** Detect new inbound activity from a fresh roster: last_active moved past
  *  the watermark for a bot whose chat isn't on screen -> unread + toast. */
-function trackInboundActivity(roster) {
+function trackInboundActivity(roster, messages) {
+  const copy = messages || {
+    newMessageFor: name => `\uD83E\uDD16 New message for ${name}`,
+    newActivityFor: name => `${name} has new activity`,
+    openChatToSee: 'Open the chat to see it.'
+  }
   const seeding = !watermarksSeeded
   watermarksSeeded = true
 
@@ -139,8 +259,8 @@ function trackInboundActivity(roster) {
 
       host.notify({
         kind: 'info',
-        title: inbound ? `\uD83E\uDD16 New message for ${label}` : `${label} has new activity`,
-        message: preview.slice(0, 140) || 'Open the chat to see it.'
+        title: inbound ? copy.newMessageFor(label) : copy.newActivityFor(label),
+        message: preview.slice(0, 140) || copy.openChatToSee
       })
     }
   }
@@ -452,10 +572,7 @@ function mergeServerMeta(roster) {
       // Server metadata is authoritative for the canonical chat pointer.
       // Without this deletion sync, ctx.storage resurrects stale sessions
       // after the server pin is cleared and even after a full app restart.
-      if (
-        Object.prototype.hasOwnProperty.call(mine, 'chat') &&
-        !Object.prototype.hasOwnProperty.call(server, 'chat')
-      ) {
+      if (Object.prototype.hasOwnProperty.call(mine, 'chat') && !Object.prototype.hasOwnProperty.call(server, 'chat')) {
         delete merged.chat
       }
 
@@ -497,7 +614,7 @@ async function duplicateBot(bot, roster) {
   }
 
   if (!name) {
-    throw new Error('No free name for the duplicate.')
+    throw new Error(bt('noFreeDuplicateName'))
   }
 
   await host.request('profiles.create', {
@@ -542,7 +659,7 @@ async function deleteBot(bot) {
     })
 
     if (result?.blocked || result?.code !== 0) {
-      throw new Error(result?.hint || result?.output || `Could not delete profile ${bot.name}.`)
+      throw new Error(result?.hint || result?.output || bt('couldNotDeleteProfile', bot.name))
     }
   }
 
@@ -706,7 +823,13 @@ function shapeNode(shape, color, botName = 'agent') {
   }
 
   const stroke = { fill: color, stroke: color, strokeWidth: 7, strokeLinejoin: 'round' }
-  const edge = { fill: 'none', stroke: 'rgba(0,0,0,0.4)', strokeWidth: 1.4, strokeLinejoin: 'round', strokeLinecap: 'round' }
+  const edge = {
+    fill: 'none',
+    stroke: 'rgba(0,0,0,0.4)',
+    strokeWidth: 1.4,
+    strokeLinejoin: 'round',
+    strokeLinecap: 'round'
+  }
   const face = { fill: color, stroke: 'rgba(0,0,0,0.4)', strokeWidth: 1.4, strokeLinejoin: 'round' }
 
   switch (shape) {
@@ -857,8 +980,8 @@ function svgArc(x1, y1, rx, ry, fa, fs, x2, y2) {
   if (fa === fs) {
     sq = -sq
   }
-  const cx = sq * (rx * dy / ry) + (x1 + x2) / 2
-  const cy = sq * (-ry * dx / rx) + (y1 + y2) / 2
+  const cx = sq * ((rx * dy) / ry) + (x1 + x2) / 2
+  const cy = sq * ((-ry * dx) / rx) + (y1 + y2) / 2
   const ang = (ux, uy, vx, vy) => {
     const n = Math.hypot(ux, uy) * Math.hypot(vx, vy) || 1
     let a = Math.acos(Math.max(-1, Math.min(1, (ux * vx + uy * vy) / n)))
@@ -898,9 +1021,9 @@ function sampleCloudRing(steps) {
   const len4 = 19
   const total = len1 + len2 + len3 + len4
   const n = Math.max(64, steps)
-  const n1 = Math.max(8, Math.round(n * len1 / total))
-  const n2 = Math.max(10, Math.round(n * len2 / total))
-  const n3 = Math.max(10, Math.round(n * len3 / total))
+  const n1 = Math.max(8, Math.round((n * len1) / total))
+  const n2 = Math.max(10, Math.round((n * len2) / total))
+  const n3 = Math.max(10, Math.round((n * len3) / total))
   const n4 = Math.max(4, n - n1 - n2 - n3)
   const pts = []
   pts.push(...sampleArc(a1, n1))
@@ -945,7 +1068,7 @@ function sampleFaceRing(shape, steps = 52) {
       rx = ry = 16 / d
     } else if (kind === 'triangle' || kind === 'tetrahedron' || kind === 'wedge') {
       const u = (a + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)
-      const sector = (u / (Math.PI * 2 / 3)) % 1
+      const sector = (u / ((Math.PI * 2) / 3)) % 1
       rx = ry = 13.5 / Math.max(0.42, Math.cos((sector - 0.5) * 1.9))
     } else if (kind === 'hexagon' || kind === 'hex' || kind === 'icosahedron' || kind === 'dodecahedron') {
       const seg = Math.PI / 3
@@ -1077,7 +1200,10 @@ function paintMathFace(svg, t) {
   }
 
   if (shut) {
-    shut.setAttribute('d', `M${eyeL - 2.6} ${eyeY} L${eyeL + 2.6} ${eyeY} M${eyeR - 2.6} ${eyeY} L${eyeR + 2.6} ${eyeY}`)
+    shut.setAttribute(
+      'd',
+      `M${eyeL - 2.6} ${eyeY} L${eyeL + 2.6} ${eyeY} M${eyeR - 2.6} ${eyeY} L${eyeR + 2.6} ${eyeY}`
+    )
     shut.setAttribute('opacity', pose.blink ? '1' : '0')
   }
 
@@ -1194,9 +1320,10 @@ function BotFace({ shape, color, image, size = 36, name = 'agent', mood = 'idle'
     children: [
       jsx('path', {
         'data-hb-body': '1',
-        d: shape === 'cloud'
-          ? 'M11 32 a7.5 7.5 0 0 1 -1 -14.9 A9.5 9.5 0 0 1 29 12.5 A7 7 0 0 1 30 32 Z'
-          : ringToPath(ring),
+        d:
+          shape === 'cloud'
+            ? 'M11 32 a7.5 7.5 0 0 1 -1 -14.9 A9.5 9.5 0 0 1 29 12.5 A7 7 0 0 1 30 32 Z'
+            : ringToPath(ring),
         fill: color
       }),
       jsxs('g', {
@@ -1262,6 +1389,7 @@ async function mcpSetupSupported() {
 }
 
 function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
+  const b = useBots()
   // entry: { name, requires:[env keys], auth?, fromCatalog, installed }
   // profile may be null at first (New Agent: the profile isn't created yet).
   // ensureProfile() lazily creates it on the first setup action and returns the
@@ -1324,7 +1452,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
       const add = await mcpRpc('mcp.servers.add', { profile, name: entry.name, preset: entry.name })
       if (!add.ok) {
         setPhase('error')
-        setMessage(add.error || 'Could not add server')
+        setMessage(add.error || b.couldNotAddServer)
         return
       }
     }
@@ -1336,7 +1464,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
     const profile = profileRef.current
     if (!profile) {
       setPhase('error')
-      setMessage('No target profile')
+      setMessage(b.noTargetProfile)
       return
     }
     for (const k of requires) {
@@ -1347,7 +1475,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
       const r = await mcpRpc('mcp.servers.set_api_key', { profile, name: entry.name, env_var: k, value: val })
       if (!r.ok) {
         setPhase('error')
-        setMessage(r.error || ('Failed to set ' + k))
+        setMessage(r.error || b.failedToSet(k))
         return
       }
     }
@@ -1355,11 +1483,11 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
     const t = await mcpRpc('mcp.servers.test', { profile, name: entry.name })
     if (t.ok && t.result && (t.result.ok || (t.result.result && t.result.result.ok))) {
       setPhase('done')
-      host.notify({ kind: 'success', message: entry.name + ' configured' })
+      host.notify({ kind: 'success', message: b.configured(entry.name) })
       onDone && onDone()
     } else {
       setPhase('error')
-      setMessage((t.result && (t.result.error || (t.result.result && t.result.result.error))) || 'Server test failed after setup')
+      setMessage((t.result && (t.result.error || (t.result.result && t.result.result.error))) || b.serverTestFailed)
     }
   }
 
@@ -1375,7 +1503,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
       const add = await mcpRpc('mcp.servers.add', { profile, name: entry.name, preset: entry.name })
       if (!add.ok) {
         setPhase('error')
-        setMessage(add.error || 'Could not add server')
+        setMessage(add.error || b.couldNotAddServer)
         return
       }
     }
@@ -1385,7 +1513,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
     const sessionId = payload && payload.session_id
     if (!start.ok || !authUrl || !sessionId) {
       setPhase('error')
-      setMessage((start.error) || 'Could not start OAuth')
+      setMessage(start.error || b.couldNotStartOAuth)
       return
     }
     // Open the auth URL in the native browser, same as provider OAuth.
@@ -1401,7 +1529,7 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
       /* fall through to poll; user can open the URL from the toast */
     }
     setPhase('oauth')
-    setMessage('Complete sign-in in your browser...')
+    setMessage(b.completeSignIn)
     pollRef.current = setInterval(async () => {
       const poll = await mcpRpc('mcp.servers.oauth.poll', { profile, name: entry.name, session_id: sessionId })
       const pd = poll.result && (poll.result.result || poll.result)
@@ -1410,13 +1538,13 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
         clearInterval(pollRef.current)
         pollRef.current = null
         setPhase('done')
-        host.notify({ kind: 'success', message: entry.name + ' authenticated' })
+        host.notify({ kind: 'success', message: b.authenticated(entry.name) })
         onDone && onDone()
       } else if (status === 'error') {
         clearInterval(pollRef.current)
         pollRef.current = null
         setPhase('error')
-        setMessage((pd && pd.error_message) || 'OAuth failed')
+        setMessage((pd && pd.error_message) || b.oauthFailed)
       }
     }, 2000)
   }
@@ -1424,53 +1552,68 @@ function McpSetupButton({ profile, entry, onDone, ensureProfile }) {
   if (supported === false) {
     return jsx('span', {
       className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
-      children: 'needs setup (' + requires.join(', ') + ') \u2014 restart the gateway to enable in-app setup'
+      children: b.needsSetup(requires.join(', '))
     })
   }
   if (phase === 'done') {
-    return jsx('span', { className: 'ml-1.5 text-[0.65rem] text-(--ui-success,#22c55e)', children: 'set up \u2713' })
+    return jsx('span', { className: 'ml-1.5 text-[0.65rem] text-(--ui-success,#22c55e)', children: b.setUpCheckmark })
   }
   if (phase === 'keys') {
     return jsxs('div', {
       className: 'mt-1 grid gap-1',
       children: [
         ...requires.map(k =>
-          jsx(Input, {
-            key: k,
-            type: 'password',
-            className: 'h-6 text-[0.7rem]',
-            placeholder: k,
-            value: keyValues[k] || '',
-            onChange: e => setKeyValues(prev => ({ ...prev, [k]: e.target.value }))
-          }, k)
+          jsx(
+            Input,
+            {
+              key: k,
+              type: 'password',
+              className: 'h-6 text-[0.7rem]',
+              placeholder: k,
+              value: keyValues[k] || '',
+              onChange: e => setKeyValues(prev => ({ ...prev, [k]: e.target.value }))
+            },
+            k
+          )
         ),
         jsxs('div', {
           className: 'flex gap-1',
           children: [
-            jsx(Button, { size: 'xs', variant: 'secondary', onClick: () => void submitKeys(), children: 'Save & test' }),
-            jsx(Button, { size: 'xs', variant: 'ghost', onClick: () => setPhase('idle'), children: 'Cancel' })
+            jsx(Button, {
+              size: 'xs',
+              variant: 'secondary',
+              onClick: () => void submitKeys(),
+              children: b.saveAndTest
+            }),
+            jsx(Button, { size: 'xs', variant: 'ghost', onClick: () => setPhase('idle'), children: b.cancel })
           ]
         })
       ]
     })
   }
   if (phase === 'oauth') {
-    return jsx('span', { className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)', children: message || 'Authorizing\u2026' })
+    return jsx('span', {
+      className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
+      children: message || b.authorizing
+    })
   }
   if (phase === 'busy') {
-    return jsx('span', { className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)', children: 'Working\u2026' })
+    return jsx('span', { className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)', children: b.working })
   }
   if (phase === 'error') {
     return jsxs('span', {
       className: 'ml-1.5 text-[0.65rem] text-(--ui-danger,#ef4444)',
-      children: [(message || 'Setup failed') + ' ', jsx('button', { className: 'underline', onClick: () => setPhase('idle'), children: 'retry' })]
+      children: [
+        b.setupFailed(message) + ' ',
+        jsx('button', { className: 'underline', onClick: () => setPhase('idle'), children: b.retry })
+      ]
     })
   }
   // idle
   return jsx('button', {
     className: 'ml-1.5 text-[0.65rem] text-(--ui-accent,#4f9cf9) underline',
     onClick: () => void (isOAuth ? beginOAuth() : beginKeys()),
-    children: isOAuth ? 'Sign in\u2026' : 'Set up\u2026'
+    children: isOAuth ? b.signIn : b.setUpAction
   })
 }
 
@@ -1530,7 +1673,7 @@ function pickImageFromDevice() {
       }
 
       if (file.size > 15_000_000) {
-        host.notify({ kind: 'error', message: 'Image too large (max 15MB).' })
+        host.notify({ kind: 'error', message: bt('imageTooLarge') })
         return resolve(null)
       }
 
@@ -1576,7 +1719,7 @@ async function generateAvatarImage(bot, title, description) {
   })
 
   if (!res?.success) {
-    throw new Error(res?.error || 'generation failed')
+    throw new Error(res?.error || bt('generationFailed'))
   }
 
   // image_data (data URL) works over local AND remote gateways; the raw
@@ -1589,6 +1732,7 @@ async function generateAvatarImage(bot, title, description) {
  *  `grid-cols-7` are NOT in the app's precompiled CSS, which collapsed
  *  this into a single vertical column. */
 function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generateSeed }) {
+  const b = useBots()
   const pickerName = generateSeed?.name || 'agent'
   const imagen = useValue($imagenAvailable)
   const [tab, setTab] = useState('bot')
@@ -1635,7 +1779,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
             })
 
             if (!res?.success) {
-              throw new Error(res?.error || 'generation failed')
+              throw new Error(res?.error || b.generationFailed)
             }
 
             return res.image_data || res.image
@@ -1646,7 +1790,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
         onImage(await normalizeAvatarImage(img))
       }
     } catch (err) {
-      host.notifyError(err, 'Avatar generation failed')
+      host.notifyError(err, b.avatarGenerationFailed)
     } finally {
       setGenBusy(false)
     }
@@ -1675,7 +1819,12 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
       // Tab pills: Bot | Generate | Upload | Pet
       jsxs('div', {
         className: 'flex items-center gap-1',
-        children: [tabButton('bot', 'Bot'), tabButton('generate', 'Generate'), tabButton('upload', 'Upload'), tabButton('pet', 'Pet')]
+        children: [
+          tabButton('bot', b.bot),
+          tabButton('generate', b.generate),
+          tabButton('upload', b.upload),
+          tabButton('pet', b.pet)
+        ]
       }),
 
       image && tab !== 'generate'
@@ -1684,7 +1833,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
             variant: 'ghost',
             size: 'sm',
             onClick: () => onImage(null),
-            children: 'Remove image — use shape'
+            children: b.removeImage
           })
         : null,
 
@@ -1753,7 +1902,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
               children: [
                 jsx(Textarea, {
                   className: 'min-h-16 text-xs',
-                  placeholder: 'Describe your avatar…',
+                  placeholder: b.describeAvatar,
                   value: describe,
                   onChange: event => setDescribe(event.target.value)
                 }),
@@ -1767,23 +1916,20 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                     genBusy
                       ? jsx(GlyphSpinner, { spinner: 'breathe', className: 'mr-1 text-[0.8rem]' })
                       : jsx(Codicon, { name: 'sparkle', className: 'mr-1 text-[0.8rem]' }),
-                    genBusy ? 'Generating…' : 'Generate'
+                    genBusy ? b.generating : b.generate
                   ]
                 }),
                 describe.trim()
                   ? null
                   : jsx('div', {
                       className: 'text-center text-[0.65rem] text-(--ui-text-quaternary)',
-                      children: 'Leave blank to generate from the agent\u2019s name and description.'
+                      children: b.leaveBlankGenerate
                     })
               ]
             })
           : jsx('div', {
               className: 'px-2 py-3 text-center text-xs leading-5 text-(--ui-text-tertiary)',
-              children:
-                imagen === false
-                  ? 'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".'
-                  : 'Checking image backend…'
+              children: imagen === false ? b.noImageModel : b.working
             })
         : null,
 
@@ -1793,7 +1939,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
             variant: 'secondary',
             className: 'w-full justify-center',
             onClick: upload,
-            children: [jsx(Codicon, { name: 'device-camera', className: 'mr-1 text-[0.8rem]' }), 'Choose an image…']
+            children: [jsx(Codicon, { name: 'device-camera', className: 'mr-1 text-[0.8rem]' }), b.chooseImage]
           })
         : null,
 
@@ -1878,7 +2024,12 @@ function PetThumb({ spriteUrl, size = 40 }) {
 
   if (!icon) {
     return jsx('div', {
-      style: { width: size, height: size, borderRadius: 6, background: 'var(--chrome-action-hover, rgba(255,255,255,0.06))' }
+      style: {
+        width: size,
+        height: size,
+        borderRadius: 6,
+        background: 'var(--chrome-action-hover, rgba(255,255,255,0.06))'
+      }
     })
   }
 
@@ -1890,6 +2041,7 @@ function PetThumb({ spriteUrl, size = 40 }) {
 }
 
 function PetTab({ image, onImage }) {
+  const b = useBots()
   // Selection is dialog-local: committed by the dialog's Save like any
   // uploaded/generated image (a direct meta write here gets clobbered by
   // Save's own image state).
@@ -1915,7 +2067,7 @@ function PetTab({ image, onImage }) {
   if (!pets.length) {
     return jsx('div', {
       className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-      children: 'No pets in the petdex gallery. Run `hermes pets` to explore.'
+      children: b.noPets
     })
   }
 
@@ -1943,11 +2095,11 @@ function PetTab({ image, onImage }) {
     children: [
       jsx('div', {
         className: 'text-center text-[0.65rem] text-(--ui-text-quaternary)',
-        children: 'Pick a pet as this agent’s profile picture.'
+        children: b.choosePet
       }),
       jsx(Input, {
         className: 'h-7 text-xs',
-        placeholder: `Search ${pets.length} pets…`,
+        placeholder: b.searchPets(pets.length),
         value: query,
         onChange: event => {
           setQuery(event.target.value)
@@ -1964,13 +2116,13 @@ function PetTab({ image, onImage }) {
               setSelectedSlug(null)
               onImage(null)
             },
-            children: 'Remove — back to shape avatar'
+            children: b.removePet
           })
         : null,
       filtered.length === 0
         ? jsx('div', {
             className: 'py-3 text-center text-xs text-(--ui-text-quaternary)',
-            children: 'No pets match.'
+            children: b.noPetsMatch
           })
         : jsxs('div', {
             onScroll,
@@ -2001,7 +2153,7 @@ function PetTab({ image, onImage }) {
                             onImage(icon)
                           } else {
                             setSelectedSlug(null)
-                            host.notify({ kind: 'error', message: 'Could not load that pet — try another.' })
+                            host.notify({ kind: 'error', message: b.couldNotLoadPet })
                           }
                         })
                       },
@@ -2020,7 +2172,7 @@ function PetTab({ image, onImage }) {
               limit < ranked.length
                 ? jsx('div', {
                     className: 'py-2 text-center text-[0.65rem] text-(--ui-text-quaternary)',
-                    children: `Scroll for more (${limit} of ${ranked.length})`
+                    children: b.scrollForMore(limit, ranked.length)
                   })
                 : null
             ]
@@ -2671,11 +2823,12 @@ async function runGroupChatMemberTurn(group, member, prompt) {
         const msg = messages[i]
 
         if (msg?.role === 'assistant') {
-          const text = typeof msg.content === 'string'
-            ? msg.content
-            : Array.isArray(msg.content)
-              ? msg.content.map(p => (typeof p === 'string' ? p : p?.text || '')).join('')
-              : msg?.text || ''
+          const text =
+            typeof msg.content === 'string'
+              ? msg.content
+              : Array.isArray(msg.content)
+                ? msg.content.map(p => (typeof p === 'string' ? p : p?.text || '')).join('')
+                : msg?.text || ''
 
           return String(text).trim()
         }
@@ -2842,7 +2995,11 @@ function messagingProtocolSection(name, roster) {
     'into it, like a DM. To message a teammate, run:',
     '',
     '```',
-    'hermes -p <agent-name> chat --in ~ -c "Bot Chat" --create-if-missing -Q -q "Message from \uD83E\uDD16 ' + handle + ' (@' + handle + '): your message"',
+    'hermes -p <agent-name> chat --in ~ -c "Bot Chat" --create-if-missing -Q -q "Message from \uD83E\uDD16 ' +
+      handle +
+      ' (@' +
+      handle +
+      '): your message"',
     '',
     'Run the send with background=true and notify_on_complete=true on the',
     'terminal tool, then finish your turn — the reply arrives later as a',
@@ -3004,7 +3161,11 @@ function generatedSessionTitle(session, preview) {
   if (!cleaned) {
     return raw || 'Conversation'
   }
-  const words = cleaned.split(/\s+/).slice(0, 5).join(' ').replace(/[,;:.]+$/, '')
+  const words = cleaned
+    .split(/\s+/)
+    .slice(0, 5)
+    .join(' ')
+    .replace(/[,;:.]+$/, '')
   if (!words) {
     return raw || 'Conversation'
   }
@@ -3032,6 +3193,7 @@ function activeBots(roster, activeProfile, gatewayState, now = Date.now()) {
 // ── bot row ──────────────────────────────────────────────────────────────────
 
 function BotRow({ bot, onDelete, onEdit, onGroup }) {
+  const b = useBots()
   const activeProfile = useValue(host.state.profile)
   const meta = useValue($botMeta)[bot.name]
   const last = bot.last_session
@@ -3052,7 +3214,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
   // DM previews read like DMs: strip the delivery prefix, keep the message.
   const displayPreview = fromBot
     ? (last?.preview || '').replace(A2A_PREFIX_RE, '').trim() || '…'
-    : last?.preview || bot.description || 'No conversations yet — say hi'
+    : last?.preview || bot.description || b.noConversations
 
   const warm = () => {
     // Multi-source row: pre-dial the agent's OWN source (feature-detected).
@@ -3093,10 +3255,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
     // canonical-chat flow after that — one forever chat per bot, per source.
     if (bot.remoteSource) {
       if (typeof host.ensureAgent !== 'function') {
-        host.notifyError?.(
-          new Error('Update Hermes Desktop to chat with agents on other connections.'),
-          bot.connectionLabel || 'Remote source'
-        )
+        host.notifyError?.(new Error(b.updateForRemoteAgents), bot.connectionLabel || b.remoteSource)
 
         return
       }
@@ -3104,7 +3263,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
       try {
         await host.ensureAgent(bot.connectionId, bot.name)
       } catch (error) {
-        host.notifyError?.(error, `Could not reach ${bot.connectionLabel || 'the remote source'}`)
+        host.notifyError?.(error, b.couldNotReach(bot.connectionLabel || b.remoteSourceLabel))
 
         return
       }
@@ -3154,7 +3313,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
                   meta?.pinned
                     ? jsx('span', {
                         className: 'shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)',
-                        title: 'Pinned',
+                        title: b.pinnedTitle,
                         children: '📌'
                       })
                     : null,
@@ -3172,7 +3331,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
                     ? jsx('span', {
                         className:
                           'shrink-0 rounded bg-(--chrome-action-hover) px-1 font-mono text-[0.625rem] text-(--ui-text-tertiary)',
-                        title: `Lives on ${bot.connectionLabel}`,
+                        title: b.livesOn(bot.connectionLabel),
                         children: bot.connectionLabel
                       })
                     : null
@@ -3181,13 +3340,13 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
               unread
                 ? jsx('span', {
                     className: 'size-2 shrink-0 rounded-full bg-(--ui-accent,#4f9cf9)',
-                    'aria-label': 'unread'
+                    'aria-label': b.unread
                   })
                 : null,
               activeNow
                 ? jsx('span', {
                     className: 'hermes-bots-pulse size-1.5 shrink-0 rounded-full bg-(--ui-accent,#4f9cf9)',
-                    title: 'Active in the last 90s'
+                    title: b.activeRecently
                   })
                 : null,
               last
@@ -3211,7 +3370,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
                 ? jsxs('span', {
                     className:
                       'flex shrink-0 items-center gap-1 rounded-full bg-(--chrome-action-hover) px-1.5 py-px text-[0.625rem] font-medium text-(--ui-accent,#4f9cf9)',
-                    title: `Last message came from @${fromBot} (bot-to-bot)`,
+                    title: b.lastMessageFrom(fromBot),
                     children: ['🤖', `@${fromBot}`]
                   })
                 : null
@@ -3233,32 +3392,32 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
               saveBotMeta(bot.name, { pinned: !pinned })
               host.notify({
                 kind: 'info',
-                message: `${displayName(bot, meta)} ${pinned ? 'unpinned' : 'pinned to top'}`
+                message: b.pinned(displayName(bot, meta), !pinned)
               })
             },
-            children: meta?.pinned ? 'Unpin' : 'Pin to top'
+            children: meta?.pinned ? b.unpin : b.pin
           }),
           jsx(ContextMenuSeparator, {}),
           jsx(ContextMenuItem, {
             onSelect: () => openBotSessionsWorkspace(bot),
-            children: 'Sessions'
+            children: b.sessions
           }),
-          jsx(ContextMenuItem, { onSelect: () => onEdit(bot), children: 'Edit Profile' }),
+          jsx(ContextMenuItem, { onSelect: () => onEdit(bot), children: b.editProfile }),
           jsx(ContextMenuItem, {
             onSelect: () => onGroup(bot),
-            children: meta?.group ? `Group: ${meta.group}…` : 'Move to group…'
+            children: meta?.group ? b.group(meta.group) : b.moveToGroup
           }),
           jsx(ContextMenuItem, {
             onSelect: () => {
-              host.notify({ kind: 'info', message: `Duplicating ${displayName(bot, meta)}…` })
+              host.notify({ kind: 'info', message: b.duplicating(displayName(bot, meta)) })
               duplicateBot(bot, $lastRoster.get())
                 .then(name => {
                   queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
-                  host.notify({ kind: 'success', message: `Created ${name} — full copy of ${bot.name}` })
+                  host.notify({ kind: 'success', message: b.created(name, bot.name) })
                 })
-                .catch(err => host.notifyError(err, 'Duplicate failed'))
+                .catch(err => host.notifyError(err, b.duplicateFailed))
             },
-            children: 'Duplicate'
+            children: b.duplicate
           }),
           jsx(ContextMenuSeparator, {}),
           jsx(ContextMenuItem, {
@@ -3269,7 +3428,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
                 host.newChat(bot.name)
               }
             },
-            children: 'New chat with this agent'
+            children: b.newChatWithAgent
           }),
           bot.is_default ? null : jsx(ContextMenuSeparator, {}),
           bot.is_default
@@ -3277,7 +3436,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
             : jsx(ContextMenuItem, {
                 onSelect: () => onDelete(bot),
                 variant: 'destructive',
-                children: 'Delete'
+                children: b.delete
               })
         ]
       })
@@ -3301,7 +3460,8 @@ function useModelOptions() {
  * same data the core model picker shows. `value = {provider, model}`;
  * onChange receives the merged patch.
  */
-function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) {
+function ModelPicker({ value, onChange, placeholderModel }) {
+  const b = useBots()
   const { data, isLoading, error } = useModelOptions()
 
   // Hooks are ALWAYS declared up front, before any conditional return.
@@ -3309,8 +3469,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
   const NONE = '__default__'
   const CUSTOM = '__custom__'
   const providers = (data?.providers || []).filter(p => p && p.slug)
-  const isKnown =
-    !value.provider || value.provider === NONE || providers.some(p => p.slug === value.provider)
+  const isKnown = !value.provider || value.provider === NONE || providers.some(p => p.slug === value.provider)
   const [useFreeText, setUseFreeText] = useState(!isKnown)
 
   if (isLoading) {
@@ -3326,7 +3485,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
       style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' },
       children: [
         labeled(
-          'Provider',
+          b.provider,
           jsx(Input, {
             placeholder: 'omnirouter / 9router / nous \u2026',
             value: value.provider,
@@ -3334,7 +3493,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
           })
         ),
         labeled(
-          'Model',
+          b.model,
           jsx(Input, {
             placeholder: 'antigravity/gemini-3.6-flash-high',
             value: value.model,
@@ -3353,7 +3512,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
           style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' },
           children: [
             labeled(
-              'Provider (Custom)',
+              b.providerCustom,
               jsx(Input, {
                 placeholder: 'e.g. omnirouter, inferx, 9router',
                 value: value.provider,
@@ -3361,7 +3520,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
               })
             ),
             labeled(
-              'Model (Custom)',
+              b.modelCustom,
               jsx(Input, {
                 placeholder: 'e.g. antigravity/gemini-3.6-flash-high',
                 value: value.model,
@@ -3375,7 +3534,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
           size: 'sm',
           className: 'h-6 self-start text-xs text-(--ui-text-tertiary)',
           onClick: () => setUseFreeText(false),
-          children: '← Back to dropdowns'
+          children: b.backToDropdowns
         })
       ]
     })
@@ -3390,7 +3549,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
     style: { display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '10px' },
     children: [
       labeled(
-        'Provider',
+        b.provider,
         jsxs(Select, {
           value: value.provider || NONE,
           onValueChange: v => {
@@ -3400,9 +3559,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
               setUseFreeText(true)
             } else {
               const prov = providers.find(p => p.slug === v)
-              const provModels = (prov?.models || []).map(m =>
-                typeof m === 'string' ? m : m.id || m.name || ''
-              )
+              const provModels = (prov?.models || []).map(m => (typeof m === 'string' ? m : m.id || m.name || ''))
               const first = provModels[0] || ''
               onChange({
                 provider: v,
@@ -3414,22 +3571,18 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
             jsx(SelectTrigger, { className: 'h-8 rounded-md', children: jsx(SelectValue, {}) }),
             jsxs(SelectContent, {
               children: [
-                jsx(SelectItem, { value: NONE, children: 'Inherit (launch profile)' }),
+                jsx(SelectItem, { value: NONE, children: b.inheritLaunchProfile }),
                 ...providers.map(p =>
-                  jsx(
-                    SelectItem,
-                    { value: p.slug, children: p.name ? `${p.name} (${p.slug})` : p.slug },
-                    p.slug
-                  )
+                  jsx(SelectItem, { value: p.slug, children: p.name ? `${p.name} (${p.slug})` : p.slug }, p.slug)
                 ),
-                jsx(SelectItem, { value: CUSTOM, children: '✏️ Enter manually…' })
+                jsx(SelectItem, { value: CUSTOM, children: b.enterManually })
               ]
             })
           ]
         })
       ),
       labeled(
-        'Model',
+        b.model,
         activeProvider && models.length > 0
           ? jsxs(Select, {
               value: value.model || (models[0] ?? ''),
@@ -3442,7 +3595,7 @@ function ModelPicker({ value, onChange, placeholderModel = 'gateway default' }) 
               ]
             })
           : jsx(Input, {
-              placeholder: placeholderModel || 'e.g. model name',
+              placeholder: placeholderModel || b.gatewayDefault || b.modelNameExample,
               value: value.model,
               onChange: event => onChange({ model: event.target.value })
             })
@@ -3491,6 +3644,7 @@ function CheckList({ items, onToggle, columns = 2 }) {
 }
 
 function AdvancedProfileConfig({ bot, state, setState }) {
+  const b = useBots()
   const [loaded, setLoaded] = useState(false)
   const [unsupported, setUnsupported] = useState(false)
   const [skillFilter, setSkillFilter] = useState('')
@@ -3533,7 +3687,7 @@ function AdvancedProfileConfig({ bot, state, setState }) {
   if (unsupported) {
     return jsx('div', {
       className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-      children: 'Full configuration needs a newer gateway (restart it after updating Hermes).'
+      children: b.fullConfigNeedsNewGateway
     })
   }
 
@@ -3590,7 +3744,7 @@ function AdvancedProfileConfig({ bot, state, setState }) {
           onChange: patch => setState(prev => ({ ...prev, dirtyModel: true, ...patch }))
         }),
         labeled(
-          'Capabilities (applies immediately — skills, tools, MCP)',
+          b.capabilitiesImmediate,
           jsx('div', {
             className: 'overflow-hidden rounded-md border border-(--ui-stroke-secondary)',
             style: { height: 460, minHeight: 300, resize: 'vertical', overflow: 'auto' },
@@ -3598,7 +3752,7 @@ function AdvancedProfileConfig({ bot, state, setState }) {
           })
         ),
         labeled(
-          'SOUL.md (persona + agent-messaging protocol)',
+          b.soulConfig,
           jsx(Textarea, {
             className: 'min-h-28 font-mono text-xs leading-5',
             value: state.soul,
@@ -3617,13 +3771,13 @@ function AdvancedProfileConfig({ bot, state, setState }) {
         onChange: patch => setState(prev => ({ ...prev, dirtyModel: true, ...patch }))
       }),
       labeled(
-        `Skills (${enabledSkills}/${state.skills.length} enabled)`,
+        b.skillsEnabled(enabledSkills, state.skills.length),
         jsxs('div', {
           className: 'grid gap-1.5 rounded-md border border-(--ui-stroke-secondary) p-2',
           children: [
             jsx(Input, {
               className: 'h-7 text-xs',
-              placeholder: 'Filter skills…',
+              placeholder: b.filterSkills,
               value: skillFilter,
               onChange: event => setSkillFilter(event.target.value)
             }),
@@ -3645,7 +3799,7 @@ function AdvancedProfileConfig({ bot, state, setState }) {
         })
       ),
       labeled(
-        `Toolsets (${enabledToolsets}/${state.toolsets.length} enabled — unchecking all restores the default)`,
+        b.toolsetsEnabled(enabledToolsets, state.toolsets.length),
         jsx('div', {
           className: 'rounded-md border border-(--ui-stroke-secondary) p-2',
           children: jsx(ScrollArea, {
@@ -3688,76 +3842,80 @@ function AdvancedProfileConfig({ bot, state, setState }) {
         })
       ),
       labeled(
-        'MCP servers',
+        b.mcpServers,
         jsx('div', {
           className: 'overflow-hidden rounded-md border border-(--ui-stroke-secondary)',
           // The REAL MCP tab core Settings renders — per-server enable + OAuth
           // sign-in + API-key setup + live probes — scoped to this bot's profile.
           // Feature-detected: older desktop builds without the SDK export fall
           // back to the plugin's own checkbox list + inline setup buttons.
-          children: McpTab && typeof host.getGateway === 'function'
-            ? jsx('div', {
-                style: { minHeight: 220, maxHeight: 360 },
-                children: jsx(McpTab, { gateway: host.getGateway(), profile: bot })
-              })
-            : mcpList.length === 0
+          children:
+            McpTab && typeof host.getGateway === 'function'
               ? jsx('div', {
-                  className: 'px-1 py-2 text-center text-xs text-(--ui-text-tertiary)',
-                  children: 'No MCP servers configured or in the catalog.'
+                  style: { minHeight: 220, maxHeight: 360 },
+                  children: jsx(McpTab, { gateway: host.getGateway(), profile: bot })
                 })
-              : jsx(ScrollArea, {
-                  className: 'hermes-scroll-cap',
-                  style: { maxHeight: 180 },
-                  children: jsx('div', {
-                    className: 'grid gap-1 p-2',
-                    children: mcpList.map(m => {
-                      const needsSetup = m.fromCatalog && !m.installed && ((m.requires || []).length > 0 || (m.auth || '').toLowerCase() === 'oauth')
-                      return jsxs(
-                        'label',
-                        {
-                          className: 'flex items-start gap-2 text-xs text-(--ui-text-secondary)',
-                          children: [
-                            jsx(Checkbox, {
-                              checked: !!m.enabled,
-                              disabled: needsSetup,
-                              onCheckedChange: value => toggleMcp(m.name, Boolean(value))
-                            }),
-                            jsxs('span', {
-                              className: 'min-w-0',
-                              children: [
-                                jsx('span', { children: m.name }),
-                                m.fromCatalog && !needsSetup
-                                  ? jsx('span', {
-                                      className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
-                                      children: m.installed ? 'catalog · installed' : 'catalog'
-                                    })
-                                  : null,
-                                needsSetup
-                                  ? jsx(McpSetupButton, {
-                                      profile: bot,
-                                      entry: m,
-                                      onDone: () => toggleMcp(m.name, true)
-                                    })
-                                  : null,
-                                m.description
-                                  ? jsx('div', {
-                                      className: 'truncate text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                                      children: m.description
-                                    })
-                                  : null
-                              ]
-                            })
-                          ]
-                        },
-                        m.name
-                      )
+              : mcpList.length === 0
+                ? jsx('div', {
+                    className: 'px-1 py-2 text-center text-xs text-(--ui-text-tertiary)',
+                    children: b.noMcpServers
+                  })
+                : jsx(ScrollArea, {
+                    className: 'hermes-scroll-cap',
+                    style: { maxHeight: 180 },
+                    children: jsx('div', {
+                      className: 'grid gap-1 p-2',
+                      children: mcpList.map(m => {
+                        const needsSetup =
+                          m.fromCatalog &&
+                          !m.installed &&
+                          ((m.requires || []).length > 0 || (m.auth || '').toLowerCase() === 'oauth')
+                        return jsxs(
+                          'label',
+                          {
+                            className: 'flex items-start gap-2 text-xs text-(--ui-text-secondary)',
+                            children: [
+                              jsx(Checkbox, {
+                                checked: !!m.enabled,
+                                disabled: needsSetup,
+                                onCheckedChange: value => toggleMcp(m.name, Boolean(value))
+                              }),
+                              jsxs('span', {
+                                className: 'min-w-0',
+                                children: [
+                                  jsx('span', { children: m.name }),
+                                  m.fromCatalog && !needsSetup
+                                    ? jsx('span', {
+                                        className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
+                                        children: m.installed ? b.catalogInstalled : b.catalog
+                                      })
+                                    : null,
+                                  needsSetup
+                                    ? jsx(McpSetupButton, {
+                                        profile: bot,
+                                        entry: m,
+                                        onDone: () => toggleMcp(m.name, true)
+                                      })
+                                    : null,
+                                  m.description
+                                    ? jsx('div', {
+                                        className: 'truncate text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
+                                        children: m.description
+                                      })
+                                    : null
+                                ]
+                              })
+                            ]
+                          },
+                          m.name
+                        )
+                      })
                     })
                   })
-                })
         })
       ),
       labeled(
-        'SOUL.md (persona + agent-messaging protocol)',
+        b.soulConfig,
         jsx(Textarea, {
           className: 'min-h-28 font-mono text-xs leading-5',
           value: state.soul,
@@ -3779,6 +3937,7 @@ const HUB_ORIGIN = 'https://hermes-agent.nousresearch.com'
 const HUB_PICKER_URL = HUB_ORIGIN + '/docs/skills?embed=picker'
 
 function HubSkillsSection({ forProfile, onInstalled }) {
+  const b = useBots()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
@@ -3869,13 +4028,13 @@ function HubSkillsSection({ forProfile, onInstalled }) {
         ...(forProfile ? { profile: forProfile } : {})
       })
       setInstalled(prev => ({ ...prev, [label]: true }))
-      host.notify({ kind: 'success', message: `Skill "${label}" installed` })
+      host.notify({ kind: 'success', message: b.skillInstalled(label) })
 
       if (typeof onInstalled === 'function') {
         onInstalled(label)
       }
     } catch (err) {
-      host.notifyError(err, `Installing "${label}" failed`)
+      host.notifyError(err, b.installingFailed(label))
     } finally {
       setInstalling(null)
     }
@@ -3891,13 +4050,13 @@ function HubSkillsSection({ forProfile, onInstalled }) {
         children: [
           jsx('div', {
             className: 'text-[0.7rem] font-medium text-(--ui-text-secondary)',
-            children: 'Skills Hub'
+            children: b.skillsHub
           }),
           jsx('button', {
             type: 'button',
             className: 'text-[0.65rem] text-(--ui-text-quaternary) hover:text-(--ui-text-secondary)',
             onClick: () => setBrowseHub(v => !v),
-            children: browseHub ? 'hide the hub browser' : 'browse the full hub ▾'
+            children: browseHub ? b.hideHubBrowser : b.browseFullHub
           })
         ]
       }),
@@ -3925,7 +4084,7 @@ function HubSkillsSection({ forProfile, onInstalled }) {
                 },
                 children: jsx('iframe', {
                   src: HUB_PICKER_URL,
-                  title: 'Hermes Skills Hub',
+                  title: b.hermesSkillsHub,
                   ref: frameRef,
                   style: {
                     width: '133.34%',
@@ -3940,10 +4099,7 @@ function HubSkillsSection({ forProfile, onInstalled }) {
               }),
               jsx('div', {
                 className: 'px-1 text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                children:
-                  installing
-                    ? `Installing "${installing}"…`
-                    : 'Hit "+ Add to this Agent" on any skill — it installs and appears in the list above. Drag the corner to resize.'
+                children: installing ? b.installing(installing) : b.hitAddToAgent
               })
             ]
           })
@@ -3953,7 +4109,7 @@ function HubSkillsSection({ forProfile, onInstalled }) {
         children: [
           jsx(Input, {
             className: 'h-7 flex-1 text-xs',
-            placeholder: 'Search the hub (community + well-known sources)…',
+            placeholder: b.searchHub,
             value: query,
             onChange: event => setQuery(event.target.value),
             onKeyDown: event => {
@@ -3968,14 +4124,14 @@ function HubSkillsSection({ forProfile, onInstalled }) {
             variant: 'secondary',
             disabled: searching || !query.trim(),
             onClick: () => void search(),
-            children: searching ? 'Searching…' : 'Search'
+            children: searching ? b.searchingShort : b.search
           })
         ]
       }),
       searching
         ? jsx('div', {
             className: 'px-1 text-[0.65rem] text-(--ui-text-quaternary)',
-            children: 'Searching community + well-known sources — can take ~10s…'
+            children: b.searching
           })
         : null,
       results === null
@@ -3983,7 +4139,7 @@ function HubSkillsSection({ forProfile, onInstalled }) {
         : results.length === 0
           ? jsx('div', {
               className: 'px-1 py-1.5 text-[0.7rem] text-(--ui-text-quaternary)',
-              children: 'No hub skills matched.'
+              children: b.noHubSkills
             })
           : jsx(ScrollArea, {
               className: 'hermes-scroll-cap',
@@ -4011,14 +4167,14 @@ function HubSkillsSection({ forProfile, onInstalled }) {
                         installed[r.name]
                           ? jsx('span', {
                               className: 'shrink-0 text-[0.65rem] text-(--ui-text-tertiary)',
-                              children: '✓ added'
+                              children: b.added
                             })
                           : jsx(Button, {
                               size: 'sm',
                               variant: 'ghost',
                               className: 'shrink-0 px-2 font-semibold',
                               disabled: installing !== null,
-                              title: `Install "${r.name}" and add it to the list above`,
+                              title: b.installAndAdd(r.name),
                               onClick: () => void install(r.name),
                               children: installing === r.name ? '…' : '+'
                             })
@@ -4121,6 +4277,7 @@ function labeled(label, control) {
 }
 
 function EditProfileDialog({ bot, open, onClose }) {
+  const b = useBots()
   const metaAll = useValue($botMeta)
   const meta = bot ? metaAll[bot.name] : null
   const appearance = bot ? botAppearance(bot.name, meta) : { shape: 'circle', color: AVATAR_COLORS[3] }
@@ -4175,7 +4332,7 @@ function EditProfileDialog({ bot, open, onClose }) {
     const lookFailed = persistence.serverOutcome === 'failed'
 
     if (lookFailed) {
-      host.notify({ kind: 'error', message: 'Saved look locally; remote persistence failed' })
+      host.notify({ kind: 'error', message: b.savedLocallyRemoteFailed })
     }
     if (persistence.serverOutcome === 'persisted') {
       queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
@@ -4189,7 +4346,7 @@ function EditProfileDialog({ bot, open, onClose }) {
         })
         queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
       } catch (err) {
-        host.notifyError(err, 'Saved look locally; description update failed')
+        host.notifyError(err, b.savedLocallyDescFailed)
       }
     }
 
@@ -4200,16 +4357,16 @@ function EditProfileDialog({ bot, open, onClose }) {
 
         if (failed.length) {
           advancedFailed = true
-          host.notify({ kind: 'error', message: `Some sections failed: ${failed.map(([k]) => k).join(', ')}` })
+          host.notify({ kind: 'error', message: b.someSectionsFailed(failed.map(([k]) => k).join(', ')) })
         }
       } catch (err) {
         advancedFailed = true
-        host.notifyError(err, 'Advanced configuration failed')
+        host.notifyError(err, b.advancedConfigFailed)
       }
     }
 
     if (!advancedFailed && !lookFailed) {
-      host.notify({ kind: 'success', message: `${displayName(bot, { title })} updated` })
+      host.notify({ kind: 'success', message: b.updated(displayName(bot, { title })) })
     }
     setBusy(false)
     onClose()
@@ -4227,8 +4384,8 @@ function EditProfileDialog({ bot, open, onClose }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: 'Edit Profile' }),
-            jsx(DialogDescription, { children: `Appearance and role for ${displayName(bot, null)} (${bot.name}).` })
+            jsx(DialogTitle, { children: b.editProfileTitle }),
+            jsx(DialogDescription, { children: b.appearanceAndRole(displayName(bot, null), bot.name) })
           ]
         }),
         jsxs('div', {
@@ -4248,7 +4405,7 @@ function EditProfileDialog({ bot, open, onClose }) {
               generateSeed: { name: bot.name, title, description }
             }),
             labeled(
-              'Title',
+              b.title,
               jsx(Input, {
                 placeholder: displayName(bot, null),
                 value: title,
@@ -4256,10 +4413,10 @@ function EditProfileDialog({ bot, open, onClose }) {
               })
             ),
             labeled(
-              'Description',
+              b.description,
               jsx(Textarea, {
                 className: 'min-h-16',
-                placeholder: 'What should this agent help with?',
+                placeholder: b.whatHelp,
                 value: description,
                 onChange: event => setDescription(event.target.value)
               })
@@ -4271,7 +4428,7 @@ function EditProfileDialog({ bot, open, onClose }) {
               onClick: () => setAdvanced(v => !v),
               children: [
                 jsx(Codicon, { name: advanced ? 'chevron-down' : 'chevron-right', className: 'text-[0.8rem]' }),
-                'Advanced — model, skills, toolsets, SOUL.md'
+                b.advancedConfig
               ]
             }),
             advanced
@@ -4284,8 +4441,8 @@ function EditProfileDialog({ bot, open, onClose }) {
         }),
         jsxs(DialogFooter, {
           children: [
-            jsx(Button, { variant: 'ghost', disabled: busy, onClick: onClose, children: 'Cancel' }),
-            jsx(Button, { disabled: busy, onClick: submit, children: busy ? 'Saving…' : 'Save' })
+            jsx(Button, { variant: 'ghost', disabled: busy, onClick: onClose, children: b.cancel }),
+            jsx(Button, { disabled: busy, onClick: submit, children: busy ? b.saving : b.save })
           ]
         })
       ]
@@ -4296,6 +4453,7 @@ function EditProfileDialog({ bot, open, onClose }) {
 // ── create dialog ────────────────────────────────────────────────────────────
 
 function CreateAgentDialog({ open, onClose, roster }) {
+  const b = useBots()
   const [name, setName] = useState('')
   // Create mode: the profile is created LAZILY. Capability toggles are staged in
   // component state; the profile is materialized either on Create (submit) or on
@@ -4352,8 +4510,8 @@ function CreateAgentDialog({ open, onClose, roster }) {
     createdRef.current = null
     flightRef.current = null
     void deleteBot({ name: draft })
-      .then(() => host.notify({ kind: 'success', message: `Draft agent "${draft}" discarded` }))
-      .catch(err => host.notifyError(err, `Could not clean up draft profile "${draft}"`))
+      .then(() => host.notify({ kind: 'success', message: b.draftDiscarded(draft) }))
+      .catch(err => host.notifyError(err, b.couldNotCleanDraft(draft)))
   }
 
   const reset = () => {
@@ -4427,11 +4585,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
 
   const toggleCap = (kind, name, enabled) => {
     setDirtyCaps(prev => ({ ...prev, [kind === 'mcp' ? 'mcp' : kind]: true }))
-    setCaps(prev =>
-      prev
-        ? { ...prev, [kind]: prev[kind].map(x => (x.name === name ? { ...x, enabled } : x)) }
-        : prev
-    )
+    setCaps(prev => (prev ? { ...prev, [kind]: prev[kind].map(x => (x.name === name ? { ...x, enabled } : x)) } : prev))
   }
 
   // Materialize the profile exactly once. createdRef stores the finished slug
@@ -4484,8 +4638,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
         }
         if (dirtyCaps.toolsets && caps) {
           const en = caps.toolsets.filter(t => t.enabled)
-          capPayload.enabled_toolsets =
-            en.length === caps.toolsets.length || en.length === 0 ? [] : en.map(t => t.name)
+          capPayload.enabled_toolsets = en.length === caps.toolsets.length || en.length === 0 ? [] : en.map(t => t.name)
         }
         if (dirtyCaps.mcp && caps) {
           capPayload.enabled_mcp_servers = caps.mcp.filter(m => m.enabled).map(m => m.name)
@@ -4497,7 +4650,14 @@ function CreateAgentDialog({ open, onClose, roster }) {
         /* capability application is best-effort */
       }
 
-      saveBotMeta(slug, { shape, color, image, imageKind: image ? 'photo' : 'shape', title: title.trim(), created: Date.now() })
+      saveBotMeta(slug, {
+        shape,
+        color,
+        image,
+        imageKind: image ? 'photo' : 'shape',
+        title: title.trim(),
+        created: Date.now()
+      })
       queryClient.invalidateQueries({ queryKey: ROSTER_KEY })
       return slug
     })
@@ -4517,11 +4677,11 @@ function CreateAgentDialog({ open, onClose, roster }) {
       const slugCreated = await ensureAgentCreated()
       if (!slugCreated) {
         setBusy(false)
-        setError('Could not create the agent.')
+        setError(b.couldNotCreateAgent)
         return
       }
 
-      host.notify({ kind: 'success', message: `Agent "${displayName({ name: slug, title })}" created` })
+      host.notify({ kind: 'success', message: b.agentCreated(displayName({ name: slug, title })) })
       reset()
       onClose()
       $selectedBot.set(slug)
@@ -4568,9 +4728,9 @@ function CreateAgentDialog({ open, onClose, roster }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: 'New Agent' }),
+            jsx(DialogTitle, { children: b.newAgentTitle }),
             jsx(DialogDescription, {
-              children: 'A named teammate with its own memory, skills, and chat. It can message your other agents.'
+              children: b.newAgentDesc
             })
           ]
         }),
@@ -4591,10 +4751,10 @@ function CreateAgentDialog({ open, onClose, roster }) {
               generateSeed: { name: slug || 'agent', title, description }
             }),
             labeled(
-              'Name',
+              b.name,
               jsx(Input, {
                 autoFocus: true,
-                placeholder: 'inbox-triage',
+                placeholder: b.namePlaceholder,
                 value: name,
                 onChange: event => setName(event.target.value)
               })
@@ -4602,22 +4762,22 @@ function CreateAgentDialog({ open, onClose, roster }) {
             taken
               ? jsx('div', {
                   className: 'text-xs text-(--ui-accent)',
-                  children: `An agent named "${slug}" already exists.`
+                  children: b.agentExists(slug)
                 })
               : null,
             labeled(
-              'Title',
+              b.title,
               jsx(Input, {
-                placeholder: 'Inbox Triage',
+                placeholder: b.titlePlaceholder,
                 value: title,
                 onChange: event => setTitle(event.target.value)
               })
             ),
             labeled(
-              'Description',
+              b.description,
               jsx(Textarea, {
                 className: 'min-h-16',
-                placeholder: 'What should this Bot help with?',
+                placeholder: b.descPlaceholder,
                 value: description,
                 onChange: event => setDescription(event.target.value)
               })
@@ -4636,7 +4796,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
               },
               children: [
                 jsx(Codicon, { name: advanced ? 'chevron-down' : 'chevron-right', className: 'text-[0.8rem]' }),
-                'Advanced'
+                b.advanced
               ]
             }),
             advanced
@@ -4649,14 +4809,14 @@ function CreateAgentDialog({ open, onClose, roster }) {
                       // one live tab replaces the three staged checklists.
                       children: (SkillsView
                         ? [
-                            ['general', 'General'],
-                            ['capabilities', 'Capabilities']
+                            ['general', b.general],
+                            ['capabilities', b.capabilities]
                           ]
                         : [
-                            ['general', 'General'],
-                            ['skills', 'Skills'],
-                            ['toolsets', 'Tools'],
-                            ['mcp', 'MCP']
+                            ['general', b.general],
+                            ['skills', b.skills],
+                            ['toolsets', b.toolsets],
+                            ['mcp', b.mcp]
                           ]
                       ).map(([id, label]) =>
                         jsx(
@@ -4678,7 +4838,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                 // the MCP setup buttons use).
                                 void ensureAgentCreated()
                                   .then(created => created && setCreatedForCaps(created))
-                                  .catch(err => host.notifyError(err, 'Could not create the profile yet'))
+                                  .catch(err => host.notifyError(err, b.couldNotCreateProfile))
                               } else if (id !== 'general') {
                                 ensureCaps()
                               }
@@ -4694,7 +4854,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
                           className: 'grid gap-3.5',
                           children: [
                             labeled(
-                              'Clone from profile',
+                              b.cloneFromProfile,
                               jsxs(Select, {
                                 value: cloneFrom,
                                 onValueChange: value => {
@@ -4711,7 +4871,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                     children: [
                                       jsx(SelectItem, {
                                         value: '__none__',
-                                        children: 'Fresh profile (bundled skills)'
+                                        children: b.freshProfile
                                       }),
                                       ...roster.map(b => jsx(SelectItem, { value: b.name, children: b.name }, b.name))
                                     ]
@@ -4729,14 +4889,13 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                   setModel(patch.model)
                                 }
                               },
-                              placeholderModel: 'inherited from launch profile'
+                              placeholderModel: b.inheritedFromLaunchProfile
                             }),
                             labeled(
-                              'SOUL.md (optional — replaces the generated persona)',
+                              b.soulOptional,
                               jsx(Textarea, {
                                 className: 'min-h-24 font-mono text-xs leading-5',
-                                placeholder:
-                                  'Leave blank to auto-generate from name/title/description + agent-messaging roster.',
+                                placeholder: b.soulPlaceholder,
                                 value: soul,
                                 onChange: event => setSoul(event.target.value)
                               })
@@ -4748,13 +4907,12 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                   checked: shareAuth,
                                   onCheckedChange: value => setShareAuth(Boolean(value))
                                 }),
-                                'Share keys & accounts with the main profile'
+                                b.shareKeys
                               ]
                             }),
                             jsx('div', {
                               className: 'pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)',
-                              children:
-                                'Subscriptions, OAuth logins, and API keys stay shared (not copied), so token refreshes never invalidate each other. Uncheck for an isolated snapshot copy.'
+                              children: b.shareKeysDesc
                             }),
                             jsxs('label', {
                               className: 'flex items-center gap-2 text-xs text-(--ui-text-secondary)',
@@ -4763,7 +4921,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                   checked: noSkills,
                                   onCheckedChange: value => setNoSkills(Boolean(value))
                                 }),
-                                'Create empty (skip bundled skills)'
+                                b.createEmptyLabel
                               ]
                             })
                           ]
@@ -4772,9 +4930,7 @@ function CreateAgentDialog({ open, onClose, roster }) {
                         ? !valid || taken
                           ? jsx('div', {
                               className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-                              children: taken
-                                ? 'That name is taken — pick another before configuring capabilities.'
-                                : 'Name the agent first — a draft profile is created when you open this tab (discarded if you cancel).'
+                              children: taken ? b.nameTakenForCapabilities : b.nameFirstForCapabilities
                             })
                           : !createdForCaps
                             ? jsx('div', {
@@ -4793,168 +4949,169 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                 // immediately — no staging needed.
                                 children: jsx(SkillsView, { embedded: true, fixedProfile: createdForCaps })
                               })
-                      : capsFailed
-                        ? jsx('div', {
-                            className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-                            children:
-                              'Capability catalog needs a newer gateway (restart it after updating Hermes).'
-                          })
-                        : !caps
+                        : capsFailed
                           ? jsx('div', {
-                              className: 'flex justify-center py-4',
-                              children: jsx(GlyphSpinner, {
-                                spinner: 'breathe',
-                                className: 'text-(--ui-text-tertiary)'
-                              })
+                              className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
+                              children: b.capabilityCatalogNeedsGateway
                             })
-                          : advTab === 'skills'
-                            ? noSkills
-                              ? jsx('div', {
-                                  className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-                                  children: '“Create empty” is checked — no bundled skills will be installed.'
+                          : !caps
+                            ? jsx('div', {
+                                className: 'flex justify-center py-4',
+                                children: jsx(GlyphSpinner, {
+                                  spinner: 'breathe',
+                                  className: 'text-(--ui-text-tertiary)'
                                 })
-                              : jsxs('div', {
-                                  className: 'grid gap-1.5',
-                                  children: [
-                                    jsx(Input, {
-                                      className: 'h-7 text-xs',
-                                      placeholder: 'Filter skills…',
-                                      value: capFilter,
-                                      onChange: event => setCapFilter(event.target.value)
-                                    }),
-                                    jsx(ScrollArea, {
-                                      className: 'hermes-scroll-cap',
-                                      style: { maxHeight: 200 },
-                                      children: jsx(CheckList, {
-                                        items: capFilter.trim()
-                                          ? caps.skills.filter(s =>
-                                              s.name.toLowerCase().includes(capFilter.trim().toLowerCase())
-                                            )
-                                          : caps.skills,
-                                        onToggle: (name, enabled) => toggleCap('skills', name, enabled),
-                                        columns: 2
-                                      })
-                                    }),
-                                    jsx('div', {
-                                      className: 'text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                                      children: `Catalog from ${caps.source} — unchecked skills are disabled after creation.`
-                                    }),
-                                    jsx(HubSkillsSection, {
-                                      forProfile: null,
-                                      onInstalled: name =>
-                                        setCaps(prev =>
-                                          !prev || prev.skills.some(s => s.name === name)
-                                            ? prev
-                                            : { ...prev, skills: [...prev.skills, { name, enabled: true }] }
-                                        )
-                                    })
-                                  ]
-                                })
-                            : advTab === 'toolsets'
-                              ? jsxs('div', {
-                                  className: 'grid gap-1.5',
-                                  children: [
-                                    jsx(ScrollArea, {
-                                      className: 'hermes-scroll-cap',
-                                      style: { maxHeight: 200 },
-                                      children: jsx(CheckList, {
-                                        items: caps.toolsets,
-                                        onToggle: (name, enabled) => toggleCap('toolsets', name, enabled),
-                                        columns: 2
-                                      })
-                                    }),
-                                    jsx('div', {
-                                      className: 'text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                                      children: 'Leaving all (or none) checked keeps the default toolset behavior.'
-                                    })
-                                  ]
-                                })
-                              : caps.mcp.length === 0
+                              })
+                            : advTab === 'skills'
+                              ? noSkills
                                 ? jsx('div', {
                                     className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
-                                    children: 'No MCP servers configured or in the catalog.'
+                                    children: b.createEmpty
                                   })
                                 : jsxs('div', {
+                                    className: 'grid gap-1.5',
+                                    children: [
+                                      jsx(Input, {
+                                        className: 'h-7 text-xs',
+                                        placeholder: b.filterSkills,
+                                        value: capFilter,
+                                        onChange: event => setCapFilter(event.target.value)
+                                      }),
+                                      jsx(ScrollArea, {
+                                        className: 'hermes-scroll-cap',
+                                        style: { maxHeight: 200 },
+                                        children: jsx(CheckList, {
+                                          items: capFilter.trim()
+                                            ? caps.skills.filter(s =>
+                                                s.name.toLowerCase().includes(capFilter.trim().toLowerCase())
+                                              )
+                                            : caps.skills,
+                                          onToggle: (name, enabled) => toggleCap('skills', name, enabled),
+                                          columns: 2
+                                        })
+                                      }),
+                                      jsx('div', {
+                                        className: 'text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
+                                        children: b.catalogFrom(caps.source)
+                                      }),
+                                      jsx(HubSkillsSection, {
+                                        forProfile: null,
+                                        onInstalled: name =>
+                                          setCaps(prev =>
+                                            !prev || prev.skills.some(s => s.name === name)
+                                              ? prev
+                                              : { ...prev, skills: [...prev.skills, { name, enabled: true }] }
+                                          )
+                                      })
+                                    ]
+                                  })
+                              : advTab === 'toolsets'
+                                ? jsxs('div', {
                                     className: 'grid gap-1.5',
                                     children: [
                                       jsx(ScrollArea, {
                                         className: 'hermes-scroll-cap',
                                         style: { maxHeight: 200 },
-                                        children: jsx('div', {
-                                          className: 'grid gap-1',
-                                          children: caps.mcp.map(m => {
-                                            const needsSetup =
-                                              m.fromCatalog && !m.installed && ((m.requires || []).length > 0 || (m.auth || '').toLowerCase() === 'oauth')
-
-                                            return jsxs(
-                                              'label',
-                                              {
-                                                className: 'flex items-start gap-2 text-xs text-(--ui-text-secondary)',
-                                                children: [
-                                                  jsx(Checkbox, {
-                                                    checked: !!m.enabled,
-                                                    disabled: needsSetup,
-                                                    onCheckedChange: value => toggleCap('mcp', m.name, Boolean(value))
-                                                  }),
-                                                  jsxs('span', {
-                                                    className: 'min-w-0',
-                                                    children: [
-                                                      jsx('span', { children: m.name }),
-                                                      m.fromCatalog && !needsSetup
-                                                        ? jsx('span', {
-                                                            className: 'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
-                                                            children: m.installed
-                                                              ? 'catalog · installed'
-                                                              : 'catalog'
-                                                          })
-                                                        : null,
-                                                      needsSetup
-                                                        ? jsx(McpSetupButton, {
-                                                            profile: createdRef.current,
-                                                            entry: m,
-                                                            ensureProfile: ensureAgentCreated,
-                                                            onDone: () => {
-                                                              // Setup done: mark installed so the row's
-                                                              // checkbox un-disables, and enable it.
-                                                              setCaps(prev =>
-                                                                prev
-                                                                  ? {
-                                                                      ...prev,
-                                                                      mcp: prev.mcp.map(x =>
-                                                                        x.name === m.name
-                                                                          ? { ...x, installed: true, enabled: true }
-                                                                          : x
-                                                                      )
-                                                                    }
-                                                                  : prev
-                                                              )
-                                                              setDirtyCaps(prev => ({ ...prev, mcp: true }))
-                                                            }
-                                                          })
-                                                        : null,
-                                                      m.description
-                                                        ? jsx('div', {
-                                                            className:
-                                                              'truncate text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                                                            children: m.description
-                                                          })
-                                                        : null
-                                                    ]
-                                                  })
-                                                ]
-                                              },
-                                              m.name
-                                            )
-                                          })
+                                        children: jsx(CheckList, {
+                                          items: caps.toolsets,
+                                          onToggle: (name, enabled) => toggleCap('toolsets', name, enabled),
+                                          columns: 2
                                         })
                                       }),
                                       jsx('div', {
                                         className: 'text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
-                                        children:
-                                          'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).'
+                                        children: b.defaultToolsetBehavior
                                       })
                                     ]
                                   })
+                                : caps.mcp.length === 0
+                                  ? jsx('div', {
+                                      className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
+                                      children: b.noMcpServers
+                                    })
+                                  : jsxs('div', {
+                                      className: 'grid gap-1.5',
+                                      children: [
+                                        jsx(ScrollArea, {
+                                          className: 'hermes-scroll-cap',
+                                          style: { maxHeight: 200 },
+                                          children: jsx('div', {
+                                            className: 'grid gap-1',
+                                            children: caps.mcp.map(m => {
+                                              const needsSetup =
+                                                m.fromCatalog &&
+                                                !m.installed &&
+                                                ((m.requires || []).length > 0 ||
+                                                  (m.auth || '').toLowerCase() === 'oauth')
+
+                                              return jsxs(
+                                                'label',
+                                                {
+                                                  className:
+                                                    'flex items-start gap-2 text-xs text-(--ui-text-secondary)',
+                                                  children: [
+                                                    jsx(Checkbox, {
+                                                      checked: !!m.enabled,
+                                                      disabled: needsSetup,
+                                                      onCheckedChange: value => toggleCap('mcp', m.name, Boolean(value))
+                                                    }),
+                                                    jsxs('span', {
+                                                      className: 'min-w-0',
+                                                      children: [
+                                                        jsx('span', { children: m.name }),
+                                                        m.fromCatalog && !needsSetup
+                                                          ? jsx('span', {
+                                                              className:
+                                                                'ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)',
+                                                              children: m.installed ? b.catalogInstalled : b.catalog
+                                                            })
+                                                          : null,
+                                                        needsSetup
+                                                          ? jsx(McpSetupButton, {
+                                                              profile: createdRef.current,
+                                                              entry: m,
+                                                              ensureProfile: ensureAgentCreated,
+                                                              onDone: () => {
+                                                                // Setup done: mark installed so the row's
+                                                                // checkbox un-disables, and enable it.
+                                                                setCaps(prev =>
+                                                                  prev
+                                                                    ? {
+                                                                        ...prev,
+                                                                        mcp: prev.mcp.map(x =>
+                                                                          x.name === m.name
+                                                                            ? { ...x, installed: true, enabled: true }
+                                                                            : x
+                                                                        )
+                                                                      }
+                                                                    : prev
+                                                                )
+                                                                setDirtyCaps(prev => ({ ...prev, mcp: true }))
+                                                              }
+                                                            })
+                                                          : null,
+                                                        m.description
+                                                          ? jsx('div', {
+                                                              className:
+                                                                'truncate text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
+                                                              children: m.description
+                                                            })
+                                                          : null
+                                                      ]
+                                                    })
+                                                  ]
+                                                },
+                                                m.name
+                                              )
+                                            })
+                                          })
+                                        }),
+                                        jsx('div', {
+                                          className: 'text-[0.65rem] leading-4 text-(--ui-text-quaternary)',
+                                          children: b.configuredServersDesc
+                                        })
+                                      ]
+                                    })
                   ]
                 })
               : null,
@@ -4976,12 +5133,12 @@ function CreateAgentDialog({ open, onClose, roster }) {
                 reset()
                 onClose()
               },
-              children: 'Cancel'
+              children: b.cancel
             }),
             jsx(Button, {
               disabled: busy || !valid || taken,
               onClick: submit,
-              children: busy ? 'Creating…' : 'Create Agent'
+              children: busy ? b.creating : b.createAgent
             })
           ]
         })
@@ -5099,11 +5256,11 @@ function shellDoubleQuote(value) {
 
 function routineInputError(title, instruction) {
   if (String(title).includes('\0')) {
-    return 'Cronjob name cannot contain NUL (U+0000).'
+    return bt('cronjobNameNul')
   }
 
   if (String(instruction).includes('\0')) {
-    return 'Cronjob instruction cannot contain NUL (U+0000).'
+    return bt('cronjobInstructionNul')
   }
 
   return null
@@ -5121,17 +5278,17 @@ function routinePrompt(bot, title, instruction, activeProfile) {
     `If the command fails, report the error instead.`
   )
 }
-function scheduleLabel(schedule) {
+function scheduleLabel(schedule, b) {
   const once = /^once in (.+)$/.exec(schedule || '')
 
   if (once) {
-    return `Once (${once[1]})`
+    return b.onceShort(once[1], '')
   }
 
   const bare = /^(\d+)([mhd])$/.exec(schedule || '')
 
   if (bare) {
-    return `Once (${bare[1]}${bare[2]})`
+    return b.onceShort(bare[1], bare[2])
   }
 
   const match = /^every (\d+)m$/.exec(schedule || '')
@@ -5141,21 +5298,22 @@ function scheduleLabel(schedule) {
 
     if (minutes % 1440 === 0) {
       const d = minutes / 1440
-      return d === 1 ? 'Daily' : `Every ${d} days`
+      return b.everyDays(d)
     }
 
     if (minutes % 60 === 0) {
       const h = minutes / 60
-      return h === 1 ? 'Hourly' : `Every ${h}h`
+      return b.everyHours(h)
     }
 
-    return `Every ${minutes}m`
+    return b.everyMinutes(minutes)
   }
 
   return schedule || ''
 }
 
 function RoutineRow({ job, profile }) {
+  const b = useBots()
   const [busy, setBusy] = useState(false)
   // Optimistic overlay: null = trust server state. Set immediately on
   // toggle so the switch responds even before the refetch lands.
@@ -5184,7 +5342,7 @@ function RoutineRow({ job, profile }) {
       await invalidateRoutineOwner(profile)
     } catch (err) {
       setPendingActive(null)
-      host.notifyError(err, 'Cronjob update failed')
+      host.notifyError(err, b.cronjobUpdateFailed)
     } finally {
       setBusy(false)
     }
@@ -5213,7 +5371,7 @@ function RoutineRow({ job, profile }) {
             onCheckedChange: value => act(value ? 'resume' : 'pause')
           }),
           jsx(Tip, {
-            label: 'Delete cronjob',
+            label: b.deleteCronjob,
             children: jsx('button', {
               type: 'button',
               disabled: busy,
@@ -5231,11 +5389,12 @@ function RoutineRow({ job, profile }) {
           jsxs('span', {
             className:
               'inline-flex items-center gap-1 rounded-full border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.65rem] text-(--ui-text-tertiary)',
-            children: [jsx(Codicon, { name: 'calendar', className: 'text-[0.7rem]' }), scheduleLabel(job.schedule)]
+            children: [jsx(Codicon, { name: 'calendar', className: 'text-[0.7rem]' }), scheduleLabel(job.schedule, b)]
           }),
           jsx('span', {
             className: 'truncate text-[0.65rem] text-(--ui-text-quaternary)',
-            children: active && job.next_run_at ? `next ${relativeTime(new Date(job.next_run_at).getTime())}` : 'paused'
+            children:
+              active && job.next_run_at ? b.nextRun(relativeTime(new Date(job.next_run_at).getTime())) : b.paused
           })
         ]
       }),
@@ -5243,7 +5402,7 @@ function RoutineRow({ job, profile }) {
         ? jsx('div', {
             className:
               'rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.65rem] leading-4 text-(--ui-accent)',
-            children: 'Paused for security: delete and recreate this legacy cronjob before running it again.'
+            children: b.legacyCronjobPaused
           })
         : null
     ]
@@ -5253,26 +5412,8 @@ function RoutineRow({ job, profile }) {
 // Structured schedule picker: frequency first, then only the detail that
 // frequency needs (time of day, weekday, day of month, interval). Emits a
 // Hermes-native schedule string; Advanced exposes it raw.
-const FREQUENCIES = [
-  { id: 'once', label: 'Once, in\u2026' },
-  { id: 'hourly', label: 'Every hour' },
-  { id: 'daily', label: 'Every day' },
-  { id: 'weekdays', label: 'Weekdays' },
-  { id: 'weekly', label: 'Every week' },
-  { id: 'monthly', label: 'Every month' },
-  { id: 'interval', label: 'Interval' },
-  { id: 'advanced', label: 'Advanced\u2026' }
-]
-
-const WEEKDAYS = [
-  { id: '1', label: 'Monday' },
-  { id: '2', label: 'Tuesday' },
-  { id: '3', label: 'Wednesday' },
-  { id: '4', label: 'Thursday' },
-  { id: '5', label: 'Friday' },
-  { id: '6', label: 'Saturday' },
-  { id: '0', label: 'Sunday' }
-]
+const FREQUENCY_IDS = ['once', 'hourly', 'daily', 'weekdays', 'weekly', 'monthly', 'interval', 'advanced']
+const WEEKDAY_IDS = ['1', '2', '3', '4', '5', '6', '0']
 
 const TIMES = (() => {
   const out = []
@@ -5314,33 +5455,33 @@ function composeSchedule(state) {
   }
 }
 
-function scheduleSummary(state) {
+function scheduleSummary(state, b, weekdayOptions) {
   const t = TIMES.find(x => x.id === state.time)
   const tl = t ? t.label : '9:00 AM'
 
-  const unitWord = u => (u === 'm' ? 'minute(s)' : u === 'd' ? 'day(s)' : 'hour(s)')
+  const unitWord = u => (u === 'm' ? b.minutes : u === 'd' ? b.days : b.hours)
   const cap =
     state.freq !== 'once' && String(state.repeatN || '').trim()
-      ? `, ${Math.max(1, parseInt(state.repeatN, 10) || 1)} time(s) total`
+      ? b.totalRuns(String(Math.max(1, parseInt(state.repeatN, 10) || 1)))
       : ''
 
   switch (state.freq) {
     case 'once':
-      return `Runs once, ${Math.max(1, parseInt(state.onceN, 10) || 1)} ${unitWord(state.onceUnit)} from now`
+      return b.runsOnce(String(Math.max(1, parseInt(state.onceN, 10) || 1)), unitWord(state.onceUnit))
     case 'hourly':
-      return 'Runs at the top of every hour' + cap
+      return b.runsHourly(cap)
     case 'daily':
-      return `Runs every day at ${tl}` + cap
+      return b.runsDaily(tl) + cap
     case 'weekdays':
-      return `Runs Monday\u2013Friday at ${tl}` + cap
+      return b.runsWeekdays(tl) + cap
     case 'weekly':
-      return `Runs every ${(WEEKDAYS.find(w => w.id === state.weekday) || WEEKDAYS[0]).label} at ${tl}` + cap
+      return b.runsWeekly((weekdayOptions.find(w => w.id === state.weekday) || weekdayOptions[0]).label, tl) + cap
     case 'monthly':
-      return `Runs on day ${state.monthday || '1'} of each month at ${tl}` + cap
+      return b.runsMonthly(state.monthday || '1', tl) + cap
     case 'interval':
-      return `Runs every ${Math.max(1, parseInt(state.intervalN, 10) || 1)} ${unitWord(state.intervalUnit)}` + cap
+      return b.runsInterval(String(Math.max(1, parseInt(state.intervalN, 10) || 1)), unitWord(state.intervalUnit)) + cap
     default:
-      return 'Raw schedule \u2014 every Nm/Nh/Nd or 5-field cron'
+      return b.rawSchedule
   }
 }
 
@@ -5358,8 +5499,15 @@ function pickerSelect(value, onChange, options) {
 }
 
 function SchedulePicker({ state, setState }) {
+  const b = useBots()
   const upd = patch => setState(prev => ({ ...prev, ...patch }))
   const needsTime = ['daily', 'weekdays', 'weekly', 'monthly'].includes(state.freq)
+  const frequencyOptions = FREQUENCY_IDS.map(id => ({
+    id,
+    label: id === 'advanced' ? b.advancedSchedule : b[id]
+  }))
+  const weekdayLabels = [b.monday, b.tuesday, b.wednesday, b.thursday, b.friday, b.saturday, b.sunday]
+  const weekdayOptions = WEEKDAY_IDS.map((id, index) => ({ id, label: weekdayLabels[index] }))
 
   return jsxs('div', {
     className: 'grid gap-2',
@@ -5367,7 +5515,7 @@ function SchedulePicker({ state, setState }) {
       jsxs('div', {
         style: { display: 'grid', gridTemplateColumns: needsTime ? '1fr 1fr' : '1fr', gap: '8px' },
         children: [
-          pickerSelect(state.freq, v => upd({ freq: v }), FREQUENCIES),
+          pickerSelect(state.freq, v => upd({ freq: v }), frequencyOptions),
           needsTime ? pickerSelect(state.time, v => upd({ time: v }), TIMES) : null
         ]
       }),
@@ -5382,19 +5530,17 @@ function SchedulePicker({ state, setState }) {
                 onChange: event => upd({ onceN: event.target.value.replace(/[^0-9]/g, '').slice(0, 4) })
               }),
               pickerSelect(state.onceUnit, v => upd({ onceUnit: v }), [
-                { id: 'm', label: 'minutes from now' },
-                { id: 'h', label: 'hours from now' },
-                { id: 'd', label: 'days from now' }
+                { id: 'm', label: b.minutesFromNow },
+                { id: 'h', label: b.hoursFromNow },
+                { id: 'd', label: b.daysFromNow }
               ])
             ]
           })
         : null,
-      state.freq === 'weekly'
-        ? pickerSelect(state.weekday, v => upd({ weekday: v }), WEEKDAYS)
-        : null,
+      state.freq === 'weekly' ? pickerSelect(state.weekday, v => upd({ weekday: v }), weekdayOptions) : null,
       state.freq === 'monthly'
         ? labeled(
-            'Day of month',
+            b.dayOfMonth,
             jsx(Input, {
               className: 'h-8',
               placeholder: '1',
@@ -5414,9 +5560,9 @@ function SchedulePicker({ state, setState }) {
                 onChange: event => upd({ intervalN: event.target.value.replace(/[^0-9]/g, '').slice(0, 4) })
               }),
               pickerSelect(state.intervalUnit, v => upd({ intervalUnit: v }), [
-                { id: 'm', label: 'minutes' },
-                { id: 'h', label: 'hours' },
-                { id: 'd', label: 'days' }
+                { id: 'm', label: b.minutes },
+                { id: 'h', label: b.hours },
+                { id: 'd', label: b.days }
               ])
             ]
           })
@@ -5433,30 +5579,42 @@ function SchedulePicker({ state, setState }) {
         ? jsxs('div', {
             className: 'flex items-center gap-2',
             children: [
-              jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: 'Stop after' }),
+              jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: b.stopAfter }),
               jsx(Input, {
                 className: 'h-7 w-16 text-xs',
                 placeholder: '\u221e',
                 value: state.repeatN,
                 onChange: event => upd({ repeatN: event.target.value.replace(/[^0-9]/g, '').slice(0, 4) })
               }),
-              jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: 'runs (blank = forever)' })
+              jsx('span', { className: 'text-xs text-(--ui-text-tertiary)', children: b.runs })
             ]
           })
         : null,
       jsx('div', {
         className: 'text-[0.65rem] text-(--ui-text-quaternary)',
-        children: `${scheduleSummary(state)} \u00b7 ${composeSchedule(state) || '\u2014'}`
+        children: `${scheduleSummary(state, b, weekdayOptions)} \u00b7 ${composeSchedule(state) || '\u2014'}`
       })
     ]
   })
 }
 
 function defaultScheduleState() {
-  return { freq: 'daily', time: '9:0', weekday: '1', monthday: '1', intervalN: '2', intervalUnit: 'h', onceN: '30', onceUnit: 'm', repeatN: '', raw: '' }
+  return {
+    freq: 'daily',
+    time: '9:0',
+    weekday: '1',
+    monthday: '1',
+    intervalN: '2',
+    intervalUnit: 'h',
+    onceN: '30',
+    onceUnit: 'm',
+    repeatN: '',
+    raw: ''
+  }
 }
 
 function CreateRoutineDialog({ bot, open, onClose }) {
+  const b = useBots()
   const [name, setName] = useState('')
   const [instruction, setInstruction] = useState('')
   const [sched, setSched] = useState(defaultScheduleState())
@@ -5507,7 +5665,7 @@ function CreateRoutineDialog({ bot, open, onClose }) {
         ...(continuity ? { continuity: true } : {})
       })
       await invalidateRoutineOwner(bot)
-      host.notify({ kind: 'success', message: `Cronjob "${title}" scheduled` })
+      host.notify({ kind: 'success', message: b.cronjobScheduled(title) })
       reset()
       onClose()
     } catch (err) {
@@ -5529,9 +5687,9 @@ function CreateRoutineDialog({ bot, open, onClose }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: 'New Cronjob' }),
+            jsx(DialogTitle, { children: b.newCronjob }),
             jsx(DialogDescription, {
-              children: `A recurring task ${displayName({ name: bot }, $botMeta.get()[bot])} runs on a schedule. Runs land in its own chat history.`
+              children: b.recurringTaskDesc(displayName({ name: bot }, $botMeta.get()[bot]))
             })
           ]
         }),
@@ -5539,24 +5697,24 @@ function CreateRoutineDialog({ bot, open, onClose }) {
           className: 'grid gap-3.5',
           children: [
             labeled(
-              'Name',
+              b.name,
               jsx(Input, {
                 autoFocus: true,
-                placeholder: 'Name this cronjob',
+                placeholder: b.cronjobName,
                 value: name,
                 onChange: event => setName(event.target.value)
               })
             ),
             labeled(
-              'Instruction',
+              b.instruction,
               jsx(Textarea, {
                 className: 'min-h-20',
-                placeholder: 'What should this cronjob do each time it runs?',
+                placeholder: b.instructionPlaceholder,
                 value: instruction,
                 onChange: event => setInstruction(event.target.value)
               })
             ),
-            labeled('When to run', jsx(SchedulePicker, { state: sched, setState: setSched })),
+            labeled(b.whenToRun, jsx(SchedulePicker, { state: sched, setState: setSched })),
             jsxs('label', {
               className: 'flex items-center gap-2 text-xs text-(--ui-text-tertiary) cursor-pointer select-none',
               children: [
@@ -5566,7 +5724,7 @@ function CreateRoutineDialog({ bot, open, onClose }) {
                   checked: continuity,
                   onChange: event => setContinuity(event.target.checked)
                 }),
-                'Continuity: each run sees the previous run\u2019s output (dedupe, continue where it left off)'
+                b.continuity
               ]
             }),
             error
@@ -5586,12 +5744,12 @@ function CreateRoutineDialog({ bot, open, onClose }) {
                 reset()
                 onClose()
               },
-              children: 'Cancel'
+              children: b.cancel
             }),
             jsx(Button, {
               disabled: busy || !name.trim() || !instruction.trim() || !schedule.trim(),
               onClick: submit,
-              children: busy ? 'Scheduling…' : 'Create Cronjob'
+              children: busy ? b.scheduling : b.createCronjob
             })
           ]
         })
@@ -5601,6 +5759,7 @@ function CreateRoutineDialog({ bot, open, onClose }) {
 }
 
 function RoutinesPane() {
+  const b = useBots()
   const selected = useValue($selectedBot)
   const gatewayProfile = useValue(host.state.profile)
   // The tile maps to the bot you're chatting with: the live gateway profile
@@ -5624,9 +5783,7 @@ function RoutinesPane() {
     $lastJobs.set(view.live)
   }
   const jobs = view.jobs
-  const staleNotice = error && !view.live && view.all.length
-    ? 'Could not refresh cronjobs. Showing the last list we had.'
-    : null
+  const staleNotice = error && !view.live && view.all.length ? b.couldNotRefreshCronjobs : null
 
   return jsxs('div', {
     className: 'flex h-full flex-col',
@@ -5655,12 +5812,12 @@ function RoutinesPane() {
               }),
               jsx('div', {
                 className: 'text-[0.65rem] uppercase tracking-wider text-(--ui-text-quaternary)',
-                children: 'Cronjobs'
+                children: b.cronjobs
               })
             ]
           }),
           jsx(Tip, {
-            label: 'New Cronjob',
+            label: b.newCronjob,
             children: jsx('button', {
               type: 'button',
               className:
@@ -5674,7 +5831,8 @@ function RoutinesPane() {
       jsx('div', { className: 'mx-3 border-t border-(--ui-stroke-secondary)' }),
       staleNotice
         ? jsx('div', {
-            className: 'mx-3 mt-2 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.6875rem] text-(--ui-text-tertiary)',
+            className:
+              'mx-3 mt-2 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.6875rem] text-(--ui-text-tertiary)',
             children: staleNotice
           })
         : null,
@@ -5690,40 +5848,40 @@ function RoutinesPane() {
                 jsx(Codicon, { name: 'warning', className: 'text-[1.6rem] text-(--ui-text-quaternary)' }),
                 jsx('div', {
                   className: 'text-xs leading-5 text-(--ui-text-tertiary)',
-                  children: 'Could not load cronjobs. The list may still be there.'
+                  children: b.couldNotLoad
                 }),
                 jsx(Button, {
                   variant: 'secondary',
                   size: 'sm',
                   onClick: () => void refetch(),
-                  children: 'Retry'
+                  children: b.retryLabel
                 })
               ]
             })
-        : jobs.length === 0
-          ? jsxs('div', {
-              className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
-              children: [
-                jsx(Codicon, { name: 'calendar', className: 'text-[1.6rem] text-(--ui-text-quaternary)' }),
-                jsx('div', {
-                  className: 'text-xs leading-5 text-(--ui-text-tertiary)',
-                  children: 'Cronjobs are recurring tasks this agent runs on a schedule.'
-                }),
-                jsx(Button, {
-                  variant: 'secondary',
-                  size: 'sm',
-                  onClick: openCreate,
-                  children: 'Create Cronjob'
-                })
-              ]
-            })
-          : jsx(ScrollArea, {
-              className: 'min-h-0 flex-1',
-              children: jsx('div', {
-                className: 'grid gap-1.5 px-2.5 py-2',
-                children: jobs.map(job => jsx(RoutineRow, { job, profile: bot }, job.job_id))
+          : jobs.length === 0
+            ? jsxs('div', {
+                className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
+                children: [
+                  jsx(Codicon, { name: 'calendar', className: 'text-[1.6rem] text-(--ui-text-quaternary)' }),
+                  jsx('div', {
+                    className: 'text-xs leading-5 text-(--ui-text-tertiary)',
+                    children: b.cronjobsDesc
+                  }),
+                  jsx(Button, {
+                    variant: 'secondary',
+                    size: 'sm',
+                    onClick: openCreate,
+                    children: b.createCronjob
+                  })
+                ]
               })
-            }),
+            : jsx(ScrollArea, {
+                className: 'min-h-0 flex-1',
+                children: jsx('div', {
+                  className: 'grid gap-1.5 px-2.5 py-2',
+                  children: jobs.map(job => jsx(RoutineRow, { job, profile: bot }, job.job_id))
+                })
+              }),
       jsx(CreateRoutineDialog, {
         key: createTarget,
         bot: createTarget,
@@ -5748,7 +5906,9 @@ function openBotSessionsWorkspace(bot) {
 }
 
 function filterProfileSessions(sessions, query) {
-  const needle = String(query || '').trim().toLowerCase()
+  const needle = String(query || '')
+    .trim()
+    .toLowerCase()
   const rows = Array.isArray(sessions) ? sessions : []
   if (!needle) return rows
   return rows.filter(session =>
@@ -5772,7 +5932,7 @@ async function openProfileSession(botName, storedId, gatewayGeneration) {
   const id = String(storedId || '')
   if (!NAME_RE.test(profile) || !id || gatewayGeneration !== $sessionsGatewayGeneration.get()) return
   if (typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error(bt('desktopCannotOpenSessions'))
   }
   await host.openSession(id, { profile })
   if (gatewayGeneration !== $sessionsGatewayGeneration.get()) return
@@ -5780,10 +5940,14 @@ async function openProfileSession(botName, storedId, gatewayGeneration) {
 }
 
 function ProfileSessionRow({ session, botName, active, gatewayGeneration }) {
+  const b = useBots()
   return jsxs('button', {
     type: 'button',
     'aria-current': active ? 'page' : undefined,
-    onClick: () => void openProfileSession(botName, session.id, gatewayGeneration).catch(err => host.notifyError(err, 'Could not open session')),
+    onClick: () =>
+      void openProfileSession(botName, session.id, gatewayGeneration).catch(err =>
+        host.notifyError(err, b.couldNotOpenSession)
+      ),
     className: cn(
       'flex w-full flex-col gap-0.5 overflow-hidden rounded-md px-2 py-1.5 text-left transition-colors',
       'hover:bg-(--chrome-action-hover)',
@@ -5792,17 +5956,18 @@ function ProfileSessionRow({ session, botName, active, gatewayGeneration }) {
     children: [
       jsx('span', {
         className: 'truncate text-[0.8125rem] font-medium',
-        children: session.title || 'Untitled session'
+        children: session.title || b.untitledSession
       }),
       jsx('div', {
         className: 'truncate text-[0.7rem] text-(--ui-text-tertiary)',
-        children: session.preview || session.source || 'No messages yet'
+        children: session.preview || session.source || b.noMessages
       })
     ]
   })
 }
 
 function ProfileSessionsWorkspace({ bot }) {
+  const b = useBots()
   const gatewayGeneration = useValue($sessionsGatewayGeneration)
   const { data, isLoading, error } = useProfileSessions(bot.name, gatewayGeneration)
   const selectedByProfile = useValue($botSelectedSessions)
@@ -5819,11 +5984,11 @@ function ProfileSessionsWorkspace({ bot }) {
         variant: 'ghost',
         size: 'sm',
         onClick: () => $botSessionsWorkspace.set(null),
-        children: 'Back'
+        children: b.back
       }),
       jsx('div', {
         className: 'min-w-0 flex-1 truncate text-sm font-semibold',
-        children: `${displayName(bot, $botMeta.get()[bot.name])} sessions`
+        children: b.profileSessions(displayName(bot, $botMeta.get()[bot.name]))
       })
     ]
   })
@@ -5835,8 +6000,8 @@ function ProfileSessionsWorkspace({ bot }) {
       jsx('div', {
         className: 'px-2 pb-2',
         children: jsx(Input, {
-          'aria-label': 'Filter sessions',
-          placeholder: 'Filter sessions…',
+          'aria-label': b.filterSessions,
+          placeholder: b.filterSessions,
           value: query,
           onChange: event => setQuery(event.target.value)
         })
@@ -5844,7 +6009,7 @@ function ProfileSessionsWorkspace({ bot }) {
       inventoryBounded
         ? jsx('div', {
             className: 'px-2.5 pb-2 text-[0.65rem] text-(--ui-text-quaternary)',
-            children: `Showing the ${PROFILE_SESSION_LIST_LIMIT} most recent sessions.`
+            children: b.showingRecentSessions(PROFILE_SESSION_LIST_LIMIT)
           })
         : null,
       isLoading
@@ -5855,26 +6020,32 @@ function ProfileSessionsWorkspace({ bot }) {
         : error
           ? jsx('div', {
               className: 'px-3 py-3 text-xs text-(--ui-text-tertiary)',
-              children: 'Could not load sessions for this profile.'
+              children: b.couldNotLoadSessions
             })
           : jsx(ScrollArea, {
               className: 'min-h-0 flex-1',
               children: jsx('div', {
                 className: 'grid gap-0.5 px-1.5 pb-2',
                 children: sessions.length
-                  ? sessions.map(session => jsx(ProfileSessionRow, {
-                      session,
-                      botName: bot.name,
-                      active: selectedId === session.id,
-                      gatewayGeneration
-                    }, session.id))
+                  ? sessions.map(session =>
+                      jsx(
+                        ProfileSessionRow,
+                        {
+                          session,
+                          botName: bot.name,
+                          active: selectedId === session.id,
+                          gatewayGeneration
+                        },
+                        session.id
+                      )
+                    )
                   : jsx('div', {
                       className: 'px-2 py-3 text-center text-xs text-(--ui-text-tertiary)',
                       children: query.trim()
                         ? inventoryBounded
-                          ? `No matching sessions in the ${PROFILE_SESSION_LIST_LIMIT} most recent.`
-                          : 'No sessions match that filter.'
-                        : 'No stored sessions yet.'
+                          ? b.noMatchingRecentSessions(PROFILE_SESSION_LIST_LIMIT)
+                          : b.noSessionsMatch
+                        : b.noSessions
                     })
               })
             })
@@ -5890,6 +6061,7 @@ function ProfileSessionsWorkspace({ bot }) {
  *  chip opens that bot's canonical Bot Chat. Omitted entirely when nothing
  *  is active, and never reorders the roster below it. */
 function ActiveNowStrip({ roster, activeProfile, gatewayState, metaByName, onOpen }) {
+  const b = useBots()
   const active = activeBots(roster, activeProfile, gatewayState)
 
   if (!active.length) {
@@ -5899,12 +6071,12 @@ function ActiveNowStrip({ roster, activeProfile, gatewayState, metaByName, onOpe
   return jsxs('div', {
     role: 'status',
     'aria-live': 'polite',
-    'aria-label': 'Active now',
+    'aria-label': b.activeNow,
     className: 'flex flex-wrap items-center gap-1.5 px-2.5 pb-1.5',
     children: [
       jsx('span', {
         className: 'text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)',
-        children: 'Active now'
+        children: b.activeNow
       }),
       ...active.map(bot => {
         const meta = metaByName?.[bot.name]
@@ -5912,29 +6084,33 @@ function ActiveNowStrip({ roster, activeProfile, gatewayState, metaByName, onOpe
         const photo = Boolean(image && !isBackfilledFacePng(image))
         const label = displayName(bot, meta)
 
-        return jsx('button', {
-          type: 'button',
-          title: `Open ${label}'s chat`,
-          className: cn(
-            'flex items-center gap-1.5 rounded-md bg-(--chrome-action-hover) px-1.5 py-1 text-left transition-colors',
-            'hover:bg-(--chrome-action-hover) hover:text-foreground'
-          ),
-          onClick: () => onOpen(bot),
-          children: [
-            jsx(BotFace, {
-              shape,
-              color,
-              image: photo ? image : null,
-              size: 24,
-              name: bot.name,
-              mood: 'work'
-            }),
-            jsx('span', {
-              className: 'max-w-28 truncate text-xs font-medium',
-              children: label
-            })
-          ]
-        }, bot.name)
+        return jsx(
+          'button',
+          {
+            type: 'button',
+            title: b.openAgentChat(label),
+            className: cn(
+              'flex items-center gap-1.5 rounded-md bg-(--chrome-action-hover) px-1.5 py-1 text-left transition-colors',
+              'hover:bg-(--chrome-action-hover) hover:text-foreground'
+            ),
+            onClick: () => onOpen(bot),
+            children: [
+              jsx(BotFace, {
+                shape,
+                color,
+                image: photo ? image : null,
+                size: 24,
+                name: bot.name,
+                mood: 'work'
+              }),
+              jsx('span', {
+                className: 'max-w-28 truncate text-xs font-medium',
+                children: label
+              })
+            ]
+          },
+          bot.name
+        )
       })
     ]
   })
@@ -5944,6 +6120,7 @@ function ActiveNowStrip({ roster, activeProfile, gatewayState, metaByName, onOpe
  *  the input creates a new one. The group is a bot-meta field, so it syncs
  *  cross-machine via ui_meta like pin/title. */
 function GroupDialog({ bot, onClose }) {
+  const b = useBots()
   const meta = useValue($botMeta)
   const [name, setName] = useState('')
   const current = (meta[bot?.name]?.group || '').trim()
@@ -5954,8 +6131,8 @@ function GroupDialog({ bot, onClose }) {
     host.notify({
       kind: 'info',
       message: group
-        ? `${displayName(bot, meta[bot.name])} moved to “${group}”`
-        : `${displayName(bot, meta[bot.name])} removed from its group`
+        ? b.movedToGroup(displayName(bot, meta[bot.name]), group)
+        : b.removedFromGroup(displayName(bot, meta[bot.name]))
     })
     onClose()
   }
@@ -5972,9 +6149,9 @@ function GroupDialog({ bot, onClose }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: 'Move to group' }),
+            jsx(DialogTitle, { children: b.moveToGroupTitle }),
             jsx(DialogDescription, {
-              children: 'Groups render as labeled sections in the Bots roster and sync to every machine.'
+              children: b.moveToGroupDesc
             })
           ]
         }),
@@ -5982,12 +6159,16 @@ function GroupDialog({ bot, onClose }) {
           ? jsx('div', {
               className: 'flex flex-wrap gap-1.5',
               children: groups.map(group =>
-                jsx(Button, {
-                  variant: group === current ? 'default' : 'secondary',
-                  size: 'sm',
-                  onClick: () => assign(group),
-                  children: group
-                }, group)
+                jsx(
+                  Button,
+                  {
+                    variant: group === current ? 'default' : 'secondary',
+                    size: 'sm',
+                    onClick: () => assign(group),
+                    children: group
+                  },
+                  group
+                )
               )
             })
           : null,
@@ -6004,11 +6185,11 @@ function GroupDialog({ bot, onClose }) {
           children: [
             jsx(Input, {
               autoFocus: true,
-              placeholder: groups.length ? 'New group…' : 'Group name (e.g. Research)',
+              placeholder: groups.length ? b.newGroup : b.newGroupPlaceholder,
               value: name,
               onChange: event => setName(event.target.value)
             }),
-            jsx(Button, { type: 'submit', size: 'sm', disabled: !name.trim(), children: 'Create' })
+            jsx(Button, { type: 'submit', size: 'sm', disabled: !name.trim(), children: b.create })
           ]
         }),
         current
@@ -6017,7 +6198,7 @@ function GroupDialog({ bot, onClose }) {
               size: 'sm',
               className: 'justify-self-start',
               onClick: () => assign(null),
-              children: `Remove from “${current}”`
+              children: b.removeFromGroup(current)
             })
           : null
       ]
@@ -6030,6 +6211,7 @@ function GroupDialog({ bot, onClose }) {
  *  `group` meta field, so the room appears in the roster and syncs
  *  cross-machine via ui_meta exactly like Move-to-group. */
 function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
+  const b = useBots()
   const allMeta = useValue($botMeta)
   const [query, setQuery] = useState('')
   const [checked, setChecked] = useState({})
@@ -6049,7 +6231,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
   const atCap = selected.length >= GROUP_CHAT_MAX_MEMBERS
   const placeholder = selected.length
     ? selected.map(bot => displayName(bot, allMeta[bot.name])).join(', ')
-    : 'Group name'
+    : b.groupName
   const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length)
 
   const create = () => {
@@ -6063,7 +6245,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
       void saveBotMeta(bot.name, { group: groupName })
     }
 
-    host.notify({ kind: 'info', message: `“${groupName}” created with ${selected.length} bots` })
+    host.notify({ kind: 'info', message: b.groupCreated(groupName, selected.length) })
     onClose()
     onCreated?.(groupName)
   }
@@ -6080,18 +6262,18 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: 'New Group Chat' }),
+            jsx(DialogTitle, { children: b.newGroupChatTitle }),
             jsx(DialogDescription, {
-              children: `Pick 2–${GROUP_CHAT_MAX_MEMBERS} bots. The room lives in the Bots roster and syncs to every machine.`
+              children: b.pickBotsForRoom(GROUP_CHAT_MAX_MEMBERS)
             })
           ]
         }),
         jsx(SearchField, {
-          'aria-label': 'Search bots to add',
+          'aria-label': b.searchBotsToAdd,
           autoFocus: true,
           containerClassName: 'w-full',
           inputClassName: 'w-full',
-          placeholder: 'Search bots to add…',
+          placeholder: b.searchBotsToAdd,
           value: query,
           onChange: setQuery
         }),
@@ -6099,14 +6281,21 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
           ? jsx('div', {
               className: 'flex flex-wrap gap-1',
               children: selected.map(bot =>
-                jsxs('button', {
-                  type: 'button',
-                  className:
-                    'flex items-center gap-1 rounded-full bg-(--chrome-action-hover) py-0.5 pl-2 pr-1.5 text-[0.6875rem] text-(--ui-text-secondary) transition-colors hover:text-foreground',
-                  title: 'Remove from selection',
-                  onClick: () => setChecked(prev => ({ ...prev, [bot.name]: false })),
-                  children: [displayName(bot, allMeta[bot.name]), jsx(Codicon, { name: 'close', className: 'text-[0.6rem]' })]
-                }, bot.name)
+                jsxs(
+                  'button',
+                  {
+                    type: 'button',
+                    className:
+                      'flex items-center gap-1 rounded-full bg-(--chrome-action-hover) py-0.5 pl-2 pr-1.5 text-[0.6875rem] text-(--ui-text-secondary) transition-colors hover:text-foreground',
+                    title: b.removeFromSelection,
+                    onClick: () => setChecked(prev => ({ ...prev, [bot.name]: false })),
+                    children: [
+                      displayName(bot, allMeta[bot.name]),
+                      jsx(Codicon, { name: 'close', className: 'text-[0.6rem]' })
+                    ]
+                  },
+                  bot.name
+                )
               )
             })
           : null,
@@ -6122,40 +6311,47 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
                   const disabled = !isChecked && atCap
                   const currentGroup = (meta?.group || '').trim()
 
-                  return jsxs('label', {
-                    className: cn(
-                      'flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-(--chrome-action-hover)',
-                      disabled && 'cursor-not-allowed opacity-50'
-                    ),
-                    children: [
-                      jsx(BotFace, {
-                        shape,
-                        color,
-                        image: image && !isBackfilledFacePng(image) ? image : null,
-                        size: 24,
-                        name: bot.name
-                      }),
-                      jsxs('div', {
-                        className: 'min-w-0 flex-1',
-                        children: [
-                          jsx('div', { className: 'truncate text-xs text-foreground', children: displayName(bot, meta) }),
-                          jsx('div', {
-                            className: 'truncate text-[0.625rem] text-(--ui-text-quaternary)',
-                            children: currentGroup ? `@${bot.name} · in “${currentGroup}”` : `@${bot.name}`
-                          })
-                        ]
-                      }),
-                      jsx(Checkbox, {
-                        checked: isChecked,
-                        disabled,
-                        onCheckedChange: value => setChecked(prev => ({ ...prev, [bot.name]: Boolean(value) }))
-                      })
-                    ]
-                  }, bot.name)
+                  return jsxs(
+                    'label',
+                    {
+                      className: cn(
+                        'flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-(--chrome-action-hover)',
+                        disabled && 'cursor-not-allowed opacity-50'
+                      ),
+                      children: [
+                        jsx(BotFace, {
+                          shape,
+                          color,
+                          image: image && !isBackfilledFacePng(image) ? image : null,
+                          size: 24,
+                          name: bot.name
+                        }),
+                        jsxs('div', {
+                          className: 'min-w-0 flex-1',
+                          children: [
+                            jsx('div', {
+                              className: 'truncate text-xs text-foreground',
+                              children: displayName(bot, meta)
+                            }),
+                            jsx('div', {
+                              className: 'truncate text-[0.625rem] text-(--ui-text-quaternary)',
+                              children: currentGroup ? b.inGroup(bot.name, currentGroup) : `@${bot.name}`
+                            })
+                          ]
+                        }),
+                        jsx(Checkbox, {
+                          checked: isChecked,
+                          disabled,
+                          onCheckedChange: value => setChecked(prev => ({ ...prev, [bot.name]: Boolean(value) }))
+                        })
+                      ]
+                    },
+                    bot.name
+                  )
                 })
               : jsx('div', {
                   className: 'px-1.5 py-3 text-center text-xs text-(--ui-text-tertiary)',
-                  children: query.trim() ? `No bots match “${query.trim()}”` : 'No bots yet — create agents first.'
+                  children: query.trim() ? b.noBotsMatch(query.trim()) : b.noBotsYetCreateFirst
                 })
           })
         }),
@@ -6165,7 +6361,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
             create()
           },
           children: jsx(Input, {
-            'aria-label': 'Group name',
+            'aria-label': b.groupName,
             maxLength: 64,
             placeholder,
             value: name,
@@ -6174,12 +6370,12 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
         }),
         jsxs(DialogFooter, {
           children: [
-            jsx(Button, { variant: 'secondary', onClick: onClose, children: 'Cancel' }),
+            jsx(Button, { variant: 'secondary', onClick: onClose, children: b.cancel }),
             jsx(Button, {
               disabled: !canCreate,
-              title: selected.length < 2 ? 'Pick at least 2 bots' : undefined,
+              title: selected.length < 2 ? b.pickAtLeastTwo : undefined,
               onClick: create,
-              children: `Create Group${selected.length ? ` (${selected.length})` : ''}`
+              children: b.createGroup(selected.length)
             })
           ]
         })
@@ -6192,6 +6388,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
  *  attribution, a composer that drives the round-robin, and a working
  *  indicator while member turns run. */
 function GroupChatWorkspace({ group, members }) {
+  const b = useBots()
   const rooms = useValue($groupChats)
   const allMeta = useValue($botMeta)
   const room = rooms[group] || { log: [], running: false }
@@ -6204,15 +6401,15 @@ function GroupChatWorkspace({ group, members }) {
         variant: 'ghost',
         size: 'sm',
         onClick: () => $groupChatWorkspace.set(null),
-        children: 'Back'
+        children: b.back
       }),
       jsx('div', {
         className: 'min-w-0 flex-1 truncate text-sm font-semibold',
-        children: `${group} — group chat`
+        children: b.groupChatTitle(group)
       }),
       jsx('span', {
         className: 'shrink-0 text-[0.65rem] text-(--ui-text-quaternary)',
-        children: `${members.length} bots`
+        children: b.botsCount(members.length)
       })
     ]
   })
@@ -6225,7 +6422,11 @@ function GroupChatWorkspace({ group, members }) {
     }
 
     setDraft('')
-    sendToGroupChat(group, members.map(b => ({ name: b.name, title: allMeta[b.name]?.title || '' })), text)
+    sendToGroupChat(
+      group,
+      members.map(b => ({ name: b.name, title: allMeta[b.name]?.title || '' })),
+      text
+    )
   }
 
   return jsxs('div', {
@@ -6242,47 +6443,59 @@ function GroupChatWorkspace({ group, members }) {
                   const isUser = entry.from.kind === 'user'
                   const meta = isUser ? null : allMeta[entry.from.name]
                   const label = isUser
-                    ? 'You'
+                    ? b.you
                     : meta?.title
                       ? `${meta.title} (@${entry.from.name})`
                       : `@${entry.from.name}`
 
-                  return jsxs('div', {
-                    className: isUser ? 'rounded-md bg-(--chrome-action-hover) px-2 py-1.5' : 'px-2 py-1',
-                    children: [
-                      jsxs('div', {
-                        className: 'flex items-baseline gap-2',
-                        children: [
-                          jsx('span', {
-                            className: isUser
-                              ? 'text-[0.7rem] font-semibold text-foreground'
-                              : 'text-[0.7rem] font-semibold text-(--ui-accent,#4f9cf9)',
-                            children: label
-                          }),
-                          jsx('span', {
-                            className: 'text-[0.625rem] text-(--ui-text-quaternary)',
-                            children: relativeTime(entry.at)
-                          })
-                        ]
-                      }),
-                      jsx('div', {
-                        className: 'whitespace-pre-wrap text-xs text-(--ui-text-secondary)',
-                        children: entry.text
-                      })
-                    ]
-                  }, `${entry.at}:${index}`)
+                  return jsxs(
+                    'div',
+                    {
+                      className: isUser ? 'rounded-md bg-(--chrome-action-hover) px-2 py-1.5' : 'px-2 py-1',
+                      children: [
+                        jsxs('div', {
+                          className: 'flex items-baseline gap-2',
+                          children: [
+                            jsx('span', {
+                              className: isUser
+                                ? 'text-[0.7rem] font-semibold text-foreground'
+                                : 'text-[0.7rem] font-semibold text-(--ui-accent,#4f9cf9)',
+                              children: label
+                            }),
+                            jsx('span', {
+                              className: 'text-[0.625rem] text-(--ui-text-quaternary)',
+                              children: relativeTime(entry.at)
+                            })
+                          ]
+                        }),
+                        jsx('div', {
+                          className: 'whitespace-pre-wrap text-xs text-(--ui-text-secondary)',
+                          children: entry.text
+                        })
+                      ]
+                    },
+                    `${entry.at}:${index}`
+                  )
                 })
               : [
-                  jsx('div', {
-                    className: 'px-2 py-4 text-center text-xs text-(--ui-text-tertiary)',
-                    children: 'Say something — every bot in this group hears the room.'
-                  }, 'empty')
+                  jsx(
+                    'div',
+                    {
+                      className: 'px-2 py-4 text-center text-xs text-(--ui-text-tertiary)',
+                      children: b.sayToGroup
+                    },
+                    'empty'
+                  )
                 ]),
             room.running
-              ? jsx('div', {
-                  className: 'px-2 py-1 text-[0.7rem] italic text-(--ui-text-quaternary)',
-                  children: 'The room is working…'
-                }, 'working')
+              ? jsx(
+                  'div',
+                  {
+                    className: 'px-2 py-1 text-[0.7rem] italic text-(--ui-text-quaternary)',
+                    children: b.roomWorking
+                  },
+                  'working'
+                )
               : null
           ]
         })
@@ -6297,12 +6510,12 @@ function GroupChatWorkspace({ group, members }) {
           },
           children: [
             jsx(Input, {
-              'aria-label': `Message ${group}`,
-              placeholder: `Message ${group}… (@name to direct, @everyone for all)`,
+              'aria-label': b.messageGroup(group),
+              placeholder: b.messageGroupPlaceholder(group),
               value: draft,
               onChange: event => setDraft(event.target.value)
             }),
-            jsx(Button, { type: 'submit', size: 'sm', disabled: !draft.trim(), children: 'Send' })
+            jsx(Button, { type: 'submit', size: 'sm', disabled: !draft.trim(), children: b.send })
           ]
         })
       })
@@ -6311,6 +6524,7 @@ function GroupChatWorkspace({ group, members }) {
 }
 
 function BotsPane() {
+  const b = useBots()
   const { data, error, isLoading, refetch } = useRoster()
   const gatewayState = useValue(host.state.gateway)
   const gatewayUp = gatewayState === 'open'
@@ -6371,13 +6585,12 @@ function BotsPane() {
     $lastRoster.set(roster)
     mergeServerMeta(live)
     pullServerAvatars(live)
-    trackInboundActivity(live)
+    trackInboundActivity(live, b)
     backfillMessagingProtocol(live)
   }
 
-  const staleNotice = error && !live && roster.length
-    ? 'Roster refresh failed — showing the last good list.' + (gatewayUp ? '' : ' Waiting for the gateway to reconnect…')
-    : null
+  const staleNotice =
+    error && !live && roster.length ? b.rosterRefreshFailed + (gatewayUp ? '' : ` ${b.waitingForGateway}`) : null
   const sessionsWorkspaceBot = roster.find(bot => bot.name === sessionsWorkspaceName)
 
   if (sessionsWorkspaceBot) {
@@ -6400,13 +6613,13 @@ function BotsPane() {
         children: [
           jsx('span', {
             className: 'text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)',
-            children: 'Bots'
+            children: b.bots
           }),
           jsxs('div', {
             className: 'flex items-center gap-0.5',
             children: [
               jsx(Tip, {
-                label: activityToasts ? 'Activity toasts on — click to silence' : 'Activity toasts off — click to enable',
+                label: activityToasts ? b.activityToastsOn : b.activityToastsOff,
                 children: jsx('button', {
                   type: 'button',
                   className:
@@ -6416,7 +6629,7 @@ function BotsPane() {
                 })
               }),
               jsx(Tip, {
-                label: hideBotChats ? 'Bot Chats hidden from Sessions — click to show' : 'Bot Chats shown in Sessions — click to hide',
+                label: hideBotChats ? b.botChatsHidden : b.botChatsShown,
                 children: jsx('button', {
                   type: 'button',
                   className:
@@ -6428,12 +6641,12 @@ function BotsPane() {
               jsxs(DropdownMenu, {
                 children: [
                   jsx(Tip, {
-                    label: 'New…',
+                    label: b.newMenu,
                     children: jsx(DropdownMenuTrigger, {
                       asChild: true,
                       children: jsx('button', {
                         type: 'button',
-                        'aria-label': 'New agent or group chat',
+                        'aria-label': b.newAgentOrGroup,
                         className:
                           'flex size-6 items-center justify-center rounded-md text-(--ui-text-tertiary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground',
                         children: jsx(Codicon, { name: 'add' })
@@ -6445,12 +6658,12 @@ function BotsPane() {
                     children: [
                       jsxs(DropdownMenuItem, {
                         onSelect: () => setCreateOpen(true),
-                        children: [jsx(Codicon, { name: 'hubot', className: 'mr-1.5' }), 'New Agent']
+                        children: [jsx(Codicon, { name: 'hubot', className: 'mr-1.5' }), b.newAgent]
                       }),
                       jsxs(DropdownMenuItem, {
                         disabled: roster.length < 2,
                         onSelect: () => setGroupCreateOpen(true),
-                        children: [jsx(Codicon, { name: 'organization', className: 'mr-1.5' }), 'New Group Chat']
+                        children: [jsx(Codicon, { name: 'organization', className: 'mr-1.5' }), b.newGroupChat]
                       })
                     ]
                   })
@@ -6486,10 +6699,10 @@ function BotsPane() {
         ? jsx('div', {
             className: 'px-2.5 pb-1.5',
             children: jsx(SearchField, {
-              'aria-label': 'Search bots',
+              'aria-label': b.searchBots,
               containerClassName: 'w-full',
               inputClassName: 'w-full',
-              placeholder: 'Search bots…',
+              placeholder: b.searchBots,
               value: query,
               onChange: setQuery
             })
@@ -6497,7 +6710,8 @@ function BotsPane() {
         : null,
       staleNotice
         ? jsx('div', {
-            className: 'mx-2.5 mb-1 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.6875rem] text-(--ui-text-tertiary)',
+            className:
+              'mx-2.5 mb-1 rounded-md bg-(--chrome-action-hover) px-2 py-1.5 text-[0.6875rem] text-(--ui-text-tertiary)',
             children: staleNotice
           })
         : null,
@@ -6512,23 +6726,23 @@ function BotsPane() {
               children: [
                 jsx('div', {
                   children: gatewayUp
-                    ? `Roster unavailable: ${error instanceof Error ? error.message : 'gateway error'}. If your gateway predates profiles.list, update Hermes and restart the gateway.`
-                    : 'Waiting for the gateway connection… (remote gateways can take a few seconds; retries automatically)'
+                    ? b.rosterUnavailable(error instanceof Error ? error.message : b.gatewayError)
+                    : b.waitingForGateway
                 }),
                 jsx(Button, {
                   variant: 'secondary',
                   size: 'sm',
                   className: 'justify-self-start',
                   onClick: () => void refetch(),
-                  children: 'Retry now'
+                  children: b.retryNow
                 })
               ]
             })
           : roster.length === 0
             ? jsx(EmptyState, {
                 icon: 'hubot',
-                title: 'No agents yet',
-                description: 'Create your first teammate.'
+                title: b.noAgentsYet,
+                description: b.createFirstTeammate
               })
             : filteredRoster.length === 0
               ? jsx('div', {
@@ -6536,7 +6750,7 @@ function BotsPane() {
                   className:
                     'flex flex-1 items-center justify-center px-4 text-center text-xs text-(--ui-text-tertiary)',
                   role: 'status',
-                  children: `No bots match “${query.trim()}”`
+                  children: b.noBotsMatch(query.trim())
                 })
               : jsx(ScrollArea, {
                   className: 'hermes-bots-roster min-h-0 flex-1',
@@ -6544,38 +6758,42 @@ function BotsPane() {
                     className: 'grid w-full min-w-0 gap-0.5 px-1.5 pb-2',
                     children: groupRoster(filteredRoster, allMeta).flatMap(section => [
                       section.group
-                        ? jsxs('div', {
-                            className: 'mt-2 flex items-center gap-2 px-1 pb-0.5 first:mt-0.5',
-                            children: [
-                              jsx('span', {
-                                className:
-                                  'shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)',
-                                children: section.group
-                              }),
-                              jsx('div', { className: 'h-px min-w-0 flex-1 bg-(--ui-stroke-secondary)' }),
-                              groupNeedsYou[section.group]
-                                ? jsx('span', {
-                                    className:
-                                      'shrink-0 rounded-full bg-(--ui-accent,#4f9cf9) px-1.5 text-[0.6rem] font-semibold text-white',
-                                    title: 'A bot in this room needs your input',
-                                    children: 'needs you'
-                                  })
-                                : null,
-                              section.bots.length > 1 && section.bots.length <= GROUP_CHAT_MAX_MEMBERS
-                                ? jsx('button', {
-                                    type: 'button',
-                                    className:
-                                      'shrink-0 rounded px-1 text-[0.625rem] font-medium text-(--ui-text-tertiary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground',
-                                    title: `Open the ${section.group} group chat`,
-                                    onClick: () => {
-                                      $groupNeedsYou.set({ ...$groupNeedsYou.get(), [section.group]: false })
-                                      $groupChatWorkspace.set(section.group)
-                                    },
-                                    children: 'Open chat'
-                                  })
-                                : null
-                            ]
-                          }, `group:${section.group}`)
+                        ? jsxs(
+                            'div',
+                            {
+                              className: 'mt-2 flex items-center gap-2 px-1 pb-0.5 first:mt-0.5',
+                              children: [
+                                jsx('span', {
+                                  className:
+                                    'shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)',
+                                  children: section.group
+                                }),
+                                jsx('div', { className: 'h-px min-w-0 flex-1 bg-(--ui-stroke-secondary)' }),
+                                groupNeedsYou[section.group]
+                                  ? jsx('span', {
+                                      className:
+                                        'shrink-0 rounded-full bg-(--ui-accent,#4f9cf9) px-1.5 text-[0.6rem] font-semibold text-white',
+                                      title: b.groupNeedsYouTitle,
+                                      children: b.needsYou
+                                    })
+                                  : null,
+                                section.bots.length > 1 && section.bots.length <= GROUP_CHAT_MAX_MEMBERS
+                                  ? jsx('button', {
+                                      type: 'button',
+                                      className:
+                                        'shrink-0 rounded px-1 text-[0.625rem] font-medium text-(--ui-text-tertiary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground',
+                                      title: b.openGroupChat(section.group),
+                                      onClick: () => {
+                                        $groupNeedsYou.set({ ...$groupNeedsYou.get(), [section.group]: false })
+                                        $groupChatWorkspace.set(section.group)
+                                      },
+                                      children: b.openChat
+                                    })
+                                  : null
+                              ]
+                            },
+                            `group:${section.group}`
+                          )
                         : null,
                       ...section.bots.map(bot =>
                         jsx(BotRow, { bot, onDelete: setDeleting, onEdit: setEditing, onGroup: setGrouping }, bot.name)
@@ -6589,7 +6807,7 @@ function BotsPane() {
           className: 'w-full justify-center gap-1.5',
           variant: 'secondary',
           onClick: () => setCreateOpen(true),
-          children: [jsx(Codicon, { name: 'add' }), 'New Agent']
+          children: [jsx(Codicon, { name: 'add' }), b.newAgent]
         })
       }),
       jsx(CreateAgentDialog, {
@@ -6617,22 +6835,12 @@ function BotsPane() {
       grouping ? jsx(GroupDialog, { bot: grouping, onClose: () => setGrouping(null) }) : null,
       jsx(ConfirmDialog, {
         open: Boolean(deleting),
-        title: 'Delete bot and profile?',
-        description: deleting
-          ? jsxs('span', {
-              children: [
-                'This will permanently delete the bot ',
-                jsx('span', { className: 'font-medium text-foreground', children: deleting.name }),
-                ' and its associated Hermes profile at ',
-                jsx('span', { className: 'font-mono text-xs', children: deleting.path }),
-                '. This cannot be undone.'
-              ]
-            })
-          : null,
+        title: b.deleteBotTitle,
+        description: deleting ? b.deleteBotDesc(deleting.name, deleting.path) : null,
         destructive: true,
-        confirmLabel: 'Delete',
-        busyLabel: 'Deleting…',
-        doneLabel: 'Deleted',
+        confirmLabel: b.delete,
+        busyLabel: b.deleting,
+        doneLabel: b.deleted,
         onClose: () => setDeleting(null),
         onConfirm: async () => {
           if (!deleting) {
@@ -6642,7 +6850,7 @@ function BotsPane() {
           const name = deleting.name
           await deleteBot(deleting)
           await refetch()
-          host.notify({ kind: 'success', message: `Deleted profile ${name}` })
+          host.notify({ kind: 'success', message: b.deletedProfile(name) })
         }
       })
     ]
@@ -6654,10 +6862,15 @@ function BotsPane() {
 export default {
   id: ID,
   name: 'Bots',
-  description: 'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
+  description:
+    'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
   register(ctx) {
     pluginCtx = ctx
-    ctx.i18n.register(BOTS_LOCALES)
+    // Standalone plugin hosts predating the scoped i18n door still load Bot
+    // Mode; current desktop hosts register the reactive locale bundle.
+    if (ctx.i18n?.register && typeof BOTS_LOCALES !== 'undefined') {
+      ctx.i18n.register(BOTS_LOCALES)
+    }
     startFaceClock()
 
     // @-mention autocomplete: typing "@rese…" in ANY composer offers the
@@ -6699,7 +6912,7 @@ export default {
             items.push({
               insert: `@${handle}`,
               display: `@${handle}`,
-              meta: `Bot · ${display}${source}`
+              meta: `${bt('bot')} · ${display}${source}`
             })
           }
 
@@ -6713,7 +6926,8 @@ export default {
     if (!document.getElementById('hermes-bots-keyframes')) {
       const style = document.createElement('style')
       style.id = 'hermes-bots-keyframes'
-      style.textContent = '@keyframes hermes-bots-bob { from { transform: translateY(0); } to { transform: translateY(-3px); } }'
+      style.textContent =
+        '@keyframes hermes-bots-bob { from { transform: translateY(0); } to { transform: translateY(-3px); } }'
       document.head.appendChild(style)
     }
 
@@ -6802,7 +7016,7 @@ export default {
     ctx.register({
       id: 'pane',
       area: 'panes',
-      title: 'Bots',
+      title: bt('pluginName'),
       // dock: explicit adoption gesture. Without it the tree adopts a
       // same-placement pane by CENTER-STACKING it into the sessions zone —
       // and when that zone's header is hidden (lone-pane auto-hide is the
@@ -6819,7 +7033,7 @@ export default {
     ctx.register({
       id: 'routines',
       area: 'panes',
-      title: 'Cronjobs',
+      title: bt('cronjobs'),
       data: {
         placement: 'main',
         dock: { pane: 'workspace', pos: 'right' },
@@ -6833,10 +7047,10 @@ export default {
       area: PALETTE_AREA,
       data: {
         id: `${ID}.new-agent`,
-        label: 'New Agent…',
+        label: `${bt('newAgent')}…`,
         keywords: ['bot', 'agent', 'profile', 'teammate', 'create'],
         run: () => {
-          host.notify({ kind: 'info', message: 'Open the Bots pane and hit “New Agent”.' })
+          host.notify({ kind: 'info', message: bt('openBotsPane') })
         }
       }
     })
@@ -6869,10 +7083,8 @@ export default {
             if (activeBot && pinnedId && currentId && String(currentId) === String(pinnedId)) {
               host.notify({
                 kind: 'info',
-                title: 'This chat never resets',
-                message:
-                  'Bot chats are one continuous conversation — compacting instead. ' +
-                  'For a throwaway session with this agent, use Sessions mode.'
+                title: bt('chatNeverResets'),
+                message: bt('chatNeverResetsDesc')
               })
 
               return { ...draft, text: '/compact' }
@@ -6924,14 +7136,30 @@ export default {
           // names come from the gateway — every interpolated value must stay
           // shell-literal, same class as the routine-prompt fix (#21).
           const note =
-            '\n\n[@mention handoff — for each mentioned agent (' + mentioned.map(botHandle).join(', ') + '): ' +
-            'COMPOSE a message from you (' + senderName + ') to that agent conveying what the user wants — do not forward this text verbatim (avoid double quotes in your composed message). Send it with exactly one terminal call, run with background=true AND notify_on_complete=true (the recipient may take minutes; the user must not be blocked):\n' +
-            mentioned.map(n => '`hermes -p ' + shellQuote(n) + ' chat --in ~ -c "Bot Chat" --create-if-missing -Q -q "Message from \uD83E\uDD16 ' + shellDoubleQuote(senderName) + ' (@' + shellDoubleQuote(botHandle(active)) + '): <your composed message>"`').join('\n') +
+            '\n\n[@mention handoff — for each mentioned agent (' +
+            mentioned.map(botHandle).join(', ') +
+            '): ' +
+            'COMPOSE a message from you (' +
+            senderName +
+            ') to that agent conveying what the user wants — do not forward this text verbatim (avoid double quotes in your composed message). Send it with exactly one terminal call, run with background=true AND notify_on_complete=true (the recipient may take minutes; the user must not be blocked):\n' +
+            mentioned
+              .map(
+                n =>
+                  '`hermes -p ' +
+                  shellQuote(n) +
+                  ' chat --in ~ -c "Bot Chat" --create-if-missing -Q -q "Message from \uD83E\uDD16 ' +
+                  shellDoubleQuote(senderName) +
+                  ' (@' +
+                  shellDoubleQuote(botHandle(active)) +
+                  '): <your composed message>"`'
+              )
+              .join('\n') +
             '\nAfter dispatching, tell the user the message was sent and END YOUR TURN — do not wait or poll; when the background process completes, its notification carries the reply — relay it then, attributed to that agent. ' +
             'Relay the reply back to the user, attributed to that agent.]'
 
           return { ...draft, text: text + note }
-        }      }
+        }
+      }
     })
   }
 }

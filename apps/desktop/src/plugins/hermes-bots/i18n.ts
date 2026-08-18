@@ -17,6 +17,10 @@ type BotsMessages = {
   close: string
   retry: string
   send: string
+  retryLabel: string
+  signIn: string
+  setUpAction: string
+  authorizing: string
 
   // Bot roster
   bots: string
@@ -31,6 +35,15 @@ type BotsMessages = {
   botChatsHidden: string
   botChatsShown: string
   retryNow: string
+  newMenu: string
+  newAgentOrGroup: string
+  rosterRefreshFailed: string
+  waitingForGateway: string
+  rosterUnavailable: (message: string) => string
+  gatewayError: string
+  newMessageFor: (name: string) => string
+  newActivityFor: (name: string) => string
+  openChatToSee: string
 
   // Bot actions
   editProfile: string
@@ -42,6 +55,14 @@ type BotsMessages = {
   sessions: string
   moveToGroup: string
   group: (name: string) => string
+  unread: string
+  activeRecently: string
+  openAgentChat: (name: string) => string
+  noConversations: string
+  updateForRemoteAgents: string
+  remoteSourceLabel: string
+  livesOn: (source: string) => string
+  lastMessageFrom: (name: string) => string
 
   // Bot chat
   botChat: string
@@ -60,6 +81,7 @@ type BotsMessages = {
   advanced: string
   advancedConfig: string
   saving: string
+  appearanceAndRole: (displayName: string, profile: string) => string
 
   // Avatar
   bot: string
@@ -75,6 +97,20 @@ type BotsMessages = {
   noPetsMatch: string
   noPets: string
   chooseImage: string
+  searchPets: (count: number) => string
+  inheritLaunchProfile: string
+  enterManually: string
+  backToDropdowns: string
+  gatewayDefault: string
+  fullConfigNeedsNewGateway: string
+  capabilitiesImmediate: string
+  soulConfig: string
+  skillsEnabled: (enabled: number, total: number) => string
+  toolsetsEnabled: (enabled: number, total: number) => string
+  mcpServers: string
+  catalog: string
+  catalogInstalled: string
+  modelNameExample: string
 
   // New agent dialog
   newAgentTitle: string
@@ -95,6 +131,21 @@ type BotsMessages = {
   noMcpServers: string
   creating: string
   createAgent: string
+  agentCreated: (name: string) => string
+  couldNotCleanDraft: (name: string) => string
+  catalogFrom: (source: string) => string
+  defaultToolsetBehavior: string
+  agentExists: (name: string) => string
+  inheritedFromLaunchProfile: string
+  soulOptional: string
+  soulPlaceholder: string
+  shareKeys: string
+  shareKeysDesc: string
+  createEmptyLabel: string
+  nameTakenForCapabilities: string
+  nameFirstForCapabilities: string
+  capabilityCatalogNeedsGateway: string
+  configuredServersDesc: string
 
   // Cronjobs
   cronjobs: string
@@ -109,6 +160,18 @@ type BotsMessages = {
   createCronjob: string
   couldNotLoad: string
   cronjobsDesc: string
+  recurringTaskDesc: (name: string) => string
+  continuity: string
+  deleteCronjob: string
+  legacyCronjobPaused: string
+  cronjobNameNul: string
+  cronjobInstructionNul: string
+  paused: string
+  nextRun: (time: string) => string
+  onceShort: (amount: string, unit: string) => string
+  everyDays: (count: number) => string
+  everyHours: (count: number) => string
+  everyMinutes: (count: number) => string
 
   // Schedule options
   once: string
@@ -125,6 +188,15 @@ type BotsMessages = {
   minutes: string
   hours: string
   days: string
+  rawSchedule: string
+  runsOnce: (amount: string, unit: string) => string
+  runsHourly: (cap: string) => string
+  runsDaily: (time: string) => string
+  runsWeekdays: (time: string) => string
+  runsWeekly: (day: string, time: string) => string
+  runsMonthly: (day: string, time: string) => string
+  runsInterval: (amount: string, unit: string) => string
+  totalRuns: (count: string) => string
 
   // Weekdays
   monday: string
@@ -142,6 +214,10 @@ type BotsMessages = {
   noSessions: string
   untitledSession: string
   noMessages: string
+  profileSessions: (name: string) => string
+  showingRecentSessions: (count: number) => string
+  noMatchingRecentSessions: (count: number) => string
+  desktopCannotOpenSessions: string
 
   // Group chat
   newGroupChatTitle: string
@@ -150,12 +226,28 @@ type BotsMessages = {
   groupName: string
   sayToGroup: string
   roomWorking: string
+  pickBotsForRoom: (max: number) => string
+  noBotsYetCreateFirst: string
+  pickAtLeastTwo: string
+  createGroup: (count?: number) => string
+  groupChatTitle: (name: string) => string
+  botsCount: (count: number) => string
+  you: string
+  messageGroup: (name: string) => string
+  messageGroupPlaceholder: (name: string) => string
 
   // Group management
   moveToGroupTitle: string
   moveToGroupDesc: string
   newGroupPlaceholder: string
   groupNameLabel: string
+  newGroup: string
+  removeFromGroup: (name: string) => string
+  movedToGroup: (bot: string, group: string) => string
+  removedFromGroup: (bot: string) => string
+  groupNeedsYouTitle: string
+  openGroupChat: (name: string) => string
+  inGroup: (handle: string, group: string) => string
 
   // Delete confirmation
   deleteBotTitle: string
@@ -176,6 +268,7 @@ type BotsMessages = {
   hermesSkillsHub: string
   searchHub: string
   searching: string
+  searchingShort: string
   noHubSkills: string
   added: string
 
@@ -202,6 +295,7 @@ type BotsMessages = {
 
   // Error messages - Bot operations
   duplicateFailed: string
+  noFreeDuplicateName: string
   advancedConfigFailed: string
   couldNotCreateProfile: string
   couldNotCreateAgent: string
@@ -257,9 +351,16 @@ type BotsMessages = {
   installing: (name: string) => string
   installAndAdd: (name: string) => string
   hitAddToAgent: string
+  search: string
+  hideHubBrowser: string
+  browseFullHub: string
+  installingFailed: (name: string) => string
+
+  // Plugin chrome / metadata
+  pluginName: string
+  pluginDescription: string
 }
 
-// 占位符：暂时使用英文作为默认翻译，后续会逐步添加完整的翻译
 const en: BotsMessages = {
   cancel: 'Cancel',
   save: 'Save',
@@ -269,6 +370,10 @@ const en: BotsMessages = {
   close: 'Close',
   retry: 'retry',
   send: 'Send',
+  retryLabel: 'Retry',
+  signIn: 'Sign in…',
+  setUpAction: 'Set up…',
+  authorizing: 'Authorizing…',
 
   bots: 'BOTS',
   noBots: 'No agents yet',
@@ -282,6 +387,16 @@ const en: BotsMessages = {
   botChatsHidden: 'Bot Chats hidden from Sessions — click to show',
   botChatsShown: 'Bot Chats shown in Sessions — click to hide',
   retryNow: 'Retry now',
+  newMenu: 'New…',
+  newAgentOrGroup: 'New agent or group chat',
+  rosterRefreshFailed: 'Roster refresh failed — showing the last good list.',
+  waitingForGateway: 'Waiting for the gateway to reconnect…',
+  rosterUnavailable: message =>
+    `Roster unavailable: ${message}. If your gateway predates profiles.list, update Hermes and restart the gateway.`,
+  gatewayError: 'gateway error',
+  newMessageFor: name => `🤖 New message for ${name}`,
+  newActivityFor: name => `${name} has new activity`,
+  openChatToSee: 'Open the chat to see it.',
 
   editProfile: 'Edit Profile',
   duplicate: 'Duplicate',
@@ -292,13 +407,22 @@ const en: BotsMessages = {
   sessions: 'Sessions',
   moveToGroup: 'Move to group…',
   group: name => `Group: ${name}…`,
+  unread: 'unread',
+  activeRecently: 'Active in the last 90s',
+  openAgentChat: name => `Open ${name}'s chat`,
+  noConversations: 'No conversations yet — say hi',
+  updateForRemoteAgents: 'Update Hermes Desktop to chat with agents on other connections.',
+  remoteSourceLabel: 'the remote source',
+  livesOn: source => `Lives on ${source}`,
+  lastMessageFrom: name => `Last message came from @${name} (bot-to-bot)`,
 
   botChat: 'Bot Chat',
   activeNow: 'Active now',
   needsYou: 'needs you',
   openChat: 'Open chat',
   chatNeverResets: 'This chat never resets',
-  chatNeverResetsDesc: 'Bot chats are one continuous conversation — compacting instead. For a throwaway session with this agent, use Sessions mode.',
+  chatNeverResetsDesc:
+    'Bot chats are one continuous conversation — compacting instead. For a throwaway session with this agent, use Sessions mode.',
 
   editProfileTitle: 'Edit Profile',
   name: 'Name',
@@ -308,6 +432,7 @@ const en: BotsMessages = {
   advanced: 'Advanced',
   advancedConfig: 'Advanced — model, skills, toolsets, SOUL.md',
   saving: 'Saving…',
+  appearanceAndRole: (displayName, profile) => `Appearance and role for ${displayName} (${profile}).`,
 
   bot: 'Bot',
   generate: 'Generate',
@@ -322,6 +447,20 @@ const en: BotsMessages = {
   noPetsMatch: 'No pets match.',
   noPets: 'No pets in the petdex gallery. Run `hermes pets` to explore.',
   chooseImage: 'Choose an image…',
+  searchPets: count => `Search ${count} pets…`,
+  inheritLaunchProfile: 'Inherit (launch profile)',
+  enterManually: '✏️ Enter manually…',
+  backToDropdowns: '← Back to dropdowns',
+  gatewayDefault: 'gateway default',
+  fullConfigNeedsNewGateway: 'Full configuration needs a newer gateway (restart it after updating Hermes).',
+  capabilitiesImmediate: 'Capabilities (applies immediately — skills, tools, MCP)',
+  soulConfig: 'SOUL.md (persona + agent-messaging protocol)',
+  skillsEnabled: (enabled, total) => `Skills (${enabled}/${total} enabled)`,
+  toolsetsEnabled: (enabled, total) => `Toolsets (${enabled}/${total} enabled — unchecking all restores the default)`,
+  mcpServers: 'MCP servers',
+  catalog: 'catalog',
+  catalogInstalled: 'catalog · installed',
+  modelNameExample: 'e.g. model name',
 
   newAgentTitle: 'New Agent',
   newAgentDesc: 'A named teammate with its own memory, skills, and chat. It can message your other agents.',
@@ -341,6 +480,24 @@ const en: BotsMessages = {
   noMcpServers: 'No MCP servers configured or in the catalog.',
   creating: 'Creating…',
   createAgent: 'Create Agent',
+  agentCreated: name => `Agent "${name}" created`,
+  couldNotCleanDraft: name => `Could not clean up draft profile "${name}"`,
+  catalogFrom: source => `Catalog from ${source} — unchecked skills are disabled after creation.`,
+  defaultToolsetBehavior: 'Leaving all (or none) checked keeps the default toolset behavior.',
+  agentExists: name => `An agent named "${name}" already exists.`,
+  inheritedFromLaunchProfile: 'inherited from launch profile',
+  soulOptional: 'SOUL.md (optional — replaces the generated persona)',
+  soulPlaceholder: 'Leave blank to auto-generate from name/title/description + agent-messaging roster.',
+  shareKeys: 'Share keys & accounts with the main profile',
+  shareKeysDesc:
+    'Subscriptions, OAuth logins, and API keys stay shared (not copied), so token refreshes never invalidate each other. Uncheck for an isolated snapshot copy.',
+  createEmptyLabel: 'Create empty (skip bundled skills)',
+  nameTakenForCapabilities: 'That name is taken — pick another before configuring capabilities.',
+  nameFirstForCapabilities:
+    'Name the agent first — a draft profile is created when you open this tab (discarded if you cancel).',
+  capabilityCatalogNeedsGateway: 'Capability catalog needs a newer gateway (restart it after updating Hermes).',
+  configuredServersDesc:
+    'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).',
 
   cronjobs: 'Cronjobs',
   newCronjob: 'New Cronjob',
@@ -354,6 +511,18 @@ const en: BotsMessages = {
   createCronjob: 'Create Cronjob',
   couldNotLoad: 'Could not load cronjobs. The list may still be there.',
   cronjobsDesc: 'Cronjobs are recurring tasks this agent runs on a schedule.',
+  recurringTaskDesc: name => `A recurring task ${name} runs on a schedule. Runs land in its own chat history.`,
+  continuity: 'Continuity: each run sees the previous run’s output (dedupe, continue where it left off)',
+  deleteCronjob: 'Delete cronjob',
+  legacyCronjobPaused: 'Paused for security: delete and recreate this legacy cronjob before running it again.',
+  cronjobNameNul: 'Cronjob name cannot contain NUL (U+0000).',
+  cronjobInstructionNul: 'Cronjob instruction cannot contain NUL (U+0000).',
+  paused: 'paused',
+  nextRun: time => `next ${time}`,
+  onceShort: (amount, unit) => `Once (${amount}${unit})`,
+  everyDays: count => (count === 1 ? 'Daily' : `Every ${count} days`),
+  everyHours: count => (count === 1 ? 'Hourly' : `Every ${count}h`),
+  everyMinutes: count => `Every ${count}m`,
 
   once: 'Once, in…',
   hourly: 'Every hour',
@@ -369,6 +538,15 @@ const en: BotsMessages = {
   minutes: 'minutes',
   hours: 'hours',
   days: 'days',
+  rawSchedule: 'Raw schedule — every Nm/Nh/Nd or 5-field cron',
+  runsOnce: (amount, unit) => `Runs once, ${amount} ${unit} from now`,
+  runsHourly: cap => `Runs at the top of every hour${cap}`,
+  runsDaily: time => `Runs every day at ${time}`,
+  runsWeekdays: time => `Runs Monday–Friday at ${time}`,
+  runsWeekly: (day, time) => `Runs every ${day} at ${time}`,
+  runsMonthly: (day, time) => `Runs on day ${day} of each month at ${time}`,
+  runsInterval: (amount, unit) => `Runs every ${amount} ${unit}`,
+  totalRuns: count => `, ${count} time(s) total`,
 
   monday: 'Monday',
   tuesday: 'Tuesday',
@@ -384,6 +562,10 @@ const en: BotsMessages = {
   noSessions: 'No stored sessions yet.',
   untitledSession: 'Untitled session',
   noMessages: 'No messages yet',
+  profileSessions: name => `${name} sessions`,
+  showingRecentSessions: count => `Showing the ${count} most recent sessions.`,
+  noMatchingRecentSessions: count => `No matching sessions in the ${count} most recent.`,
+  desktopCannotOpenSessions: 'This Hermes Desktop version cannot open stored sessions',
 
   newGroupChatTitle: 'New Group Chat',
   searchBotsToAdd: 'Search bots to add…',
@@ -391,14 +573,31 @@ const en: BotsMessages = {
   groupName: 'Group name',
   sayToGroup: 'Say something — every bot in this group hears the room.',
   roomWorking: 'The room is working…',
+  pickBotsForRoom: max => `Pick 2–${max} bots. The room lives in the Bots roster and syncs to every machine.`,
+  noBotsYetCreateFirst: 'No bots yet — create agents first.',
+  pickAtLeastTwo: 'Pick at least 2 bots',
+  createGroup: count => `Create Group${count ? ` (${count})` : ''}`,
+  groupChatTitle: name => `${name} — group chat`,
+  botsCount: count => `${count} bots`,
+  you: 'You',
+  messageGroup: name => `Message ${name}`,
+  messageGroupPlaceholder: name => `Message ${name}… (@name to direct, @everyone for all)`,
 
   moveToGroupTitle: 'Move to group',
   moveToGroupDesc: 'Groups render as labeled sections in the BOTS roster and sync to every machine.',
   newGroupPlaceholder: 'Group name (e.g. Research)',
   groupNameLabel: 'Group name',
+  newGroup: 'New group…',
+  removeFromGroup: name => `Remove from “${name}”`,
+  movedToGroup: (bot, group) => `${bot} moved to “${group}”`,
+  removedFromGroup: bot => `${bot} removed from its group`,
+  groupNeedsYouTitle: 'A bot in this room needs your input',
+  openGroupChat: name => `Open the ${name} group chat`,
+  inGroup: (handle, group) => `@${handle} · in “${group}”`,
 
   deleteBotTitle: 'Delete bot and profile?',
-  deleteBotDesc: (name, path) => `This will permanently delete the bot ${name} and its associated Hermes profile at ${path}. This cannot be undone.`,
+  deleteBotDesc: (name, path) =>
+    `This will permanently delete the bot ${name} and its associated Hermes profile at ${path}. This cannot be undone.`,
   deleting: 'Deleting…',
   deleted: 'Deleted',
   deletedProfile: name => `Deleted profile ${name}`,
@@ -413,6 +612,7 @@ const en: BotsMessages = {
   hermesSkillsHub: 'Hermes Skills Hub',
   searchHub: 'Search the hub (community + well-known sources)…',
   searching: 'Searching community + well-known sources — can take ~10s…',
+  searchingShort: 'Searching…',
   noHubSkills: 'No hub skills matched.',
   added: '✓ added',
 
@@ -438,6 +638,7 @@ const en: BotsMessages = {
 
   // Error messages - Bot operations
   duplicateFailed: 'Duplicate failed',
+  noFreeDuplicateName: 'No free name for the duplicate.',
   advancedConfigFailed: 'Advanced configuration failed',
   couldNotCreateProfile: 'Could not create the profile yet',
   couldNotCreateAgent: 'Could not create the agent.',
@@ -453,7 +654,7 @@ const en: BotsMessages = {
   couldNotRefreshCronjobs: 'Could not refresh cronjobs. Showing the last list we had.',
 
   // Success messages
-  created: (name, original) => original ? `Created ${name} — full copy of ${original}` : `Created ${name}`,
+  created: (name, original) => (original ? `Created ${name} — full copy of ${original}` : `Created ${name}`),
   updated: name => `${name} updated`,
   pinned: (name, isPinned) => `${name} ${isPinned ? 'pinned to top' : 'unpinned'}`,
   duplicating: name => `Duplicating ${name}…`,
@@ -473,7 +674,8 @@ const en: BotsMessages = {
 
   // MCP Setup UI
   setUpCheckmark: 'set up ✓',
-  noImageModel: 'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".',
+  noImageModel:
+    'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".',
   restartGateway: 'Restart gateway',
 
   // Provider & Model
@@ -492,7 +694,15 @@ const en: BotsMessages = {
   untitledCronjob: 'Untitled cronjob',
   installing: name => `Installing "${name}"…`,
   installAndAdd: name => `Install "${name}" and add it to the list above`,
-  hitAddToAgent: 'Hit "+ Add to this Agent" on any skill — it installs and appears in the list above. Drag the corner to resize.'
+  hitAddToAgent:
+    'Hit "+ Add to this Agent" on any skill — it installs and appears in the list above. Drag the corner to resize.',
+  search: 'Search',
+  hideHubBrowser: 'hide the hub browser',
+  browseFullHub: 'browse the full hub ▾',
+  installingFailed: name => `Installing "${name}" failed`,
+  pluginName: 'Bots',
+  pluginDescription:
+    'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.'
 }
 
 const zh: BotsMessages = {
@@ -504,8 +714,12 @@ const zh: BotsMessages = {
   close: '关闭',
   retry: '重试',
   send: '发送',
+  retryLabel: '重试',
+  signIn: '登录…',
+  setUpAction: '设置…',
+  authorizing: '正在授权…',
 
-  bots: 'BOTS',
+  bots: '智能体',
   noBots: '尚无代理',
   noBotsDesc: '创建你的第一个队友。',
   searchBots: '搜索 Bot…',
@@ -517,6 +731,16 @@ const zh: BotsMessages = {
   botChatsHidden: 'Bot 聊天已从会话中隐藏 — 点击显示',
   botChatsShown: 'Bot 聊天已在会话中显示 — 点击隐藏',
   retryNow: '立即重试',
+  newMenu: '新建…',
+  newAgentOrGroup: '新建代理或群聊',
+  rosterRefreshFailed: '智能体列表刷新失败，正在显示上次成功加载的列表。',
+  waitingForGateway: '正在等待网关重新连接…',
+  rosterUnavailable: message =>
+    `智能体列表不可用：${message}。如果网关版本早于 profiles.list，请更新 Hermes 并重启网关。`,
+  gatewayError: '网关错误',
+  newMessageFor: name => `🤖 ${name} 收到新消息`,
+  newActivityFor: name => `${name} 有新动态`,
+  openChatToSee: '打开聊天即可查看。',
 
   editProfile: '编辑资料',
   duplicate: '复制',
@@ -527,6 +751,14 @@ const zh: BotsMessages = {
   sessions: '会话',
   moveToGroup: '移至分组…',
   group: name => `分组：${name}…`,
+  unread: '未读',
+  activeRecently: '最近 90 秒内活跃',
+  openAgentChat: name => `打开 ${name} 的聊天`,
+  noConversations: '尚无对话，来打个招呼吧',
+  updateForRemoteAgents: '请更新 Hermes Desktop，以便与其他连接上的代理聊天。',
+  remoteSourceLabel: '远程来源',
+  livesOn: source => `位于 ${source}`,
+  lastMessageFrom: name => `上一条消息来自 @${name}（Bot 间通信）`,
 
   botChat: 'Bot 聊天',
   activeNow: '当前活跃',
@@ -543,6 +775,7 @@ const zh: BotsMessages = {
   advanced: '高级',
   advancedConfig: '高级 — 模型、技能、工具集、SOUL.md',
   saving: '保存中…',
+  appearanceAndRole: (displayName, profile) => `${displayName}（${profile}）的外观和角色设置。`,
 
   bot: 'Bot',
   generate: '生成',
@@ -557,6 +790,20 @@ const zh: BotsMessages = {
   noPetsMatch: '没有匹配的宠物。',
   noPets: '宠物图鉴中没有宠物。运行 `hermes pets` 来探索。',
   chooseImage: '选择图片…',
+  searchPets: count => `搜索 ${count} 个宠物…`,
+  inheritLaunchProfile: '继承（启动资料）',
+  enterManually: '✏️ 手动输入…',
+  backToDropdowns: '← 返回下拉选项',
+  gatewayDefault: '网关默认值',
+  fullConfigNeedsNewGateway: '完整配置需要更新版本的网关（更新 Hermes 后请重启网关）。',
+  capabilitiesImmediate: '能力（立即应用：技能、工具、MCP）',
+  soulConfig: 'SOUL.md（角色设定 + 代理消息协议）',
+  skillsEnabled: (enabled, total) => `技能（已启用 ${enabled}/${total}）`,
+  toolsetsEnabled: (enabled, total) => `工具集（已启用 ${enabled}/${total}；全部取消勾选将恢复默认值）`,
+  mcpServers: 'MCP 服务器',
+  catalog: '目录',
+  catalogInstalled: '目录 · 已安装',
+  modelNameExample: '例如：模型名称',
 
   newAgentTitle: '新建代理',
   newAgentDesc: '一个拥有自己记忆、技能和聊天的具名队友。它可以向你的其他代理发送消息。',
@@ -576,6 +823,23 @@ const zh: BotsMessages = {
   noMcpServers: '未配置或目录中没有 MCP 服务器。',
   creating: '创建中…',
   createAgent: '创建代理',
+  agentCreated: name => `已创建代理“${name}”`,
+  couldNotCleanDraft: name => `无法清理草稿资料“${name}”`,
+  catalogFrom: source => `目录来源：${source}。创建后将禁用未勾选的技能。`,
+  defaultToolsetBehavior: '全部勾选或全部不勾选时，将保留默认工具集行为。',
+  agentExists: name => `名为“${name}”的代理已存在。`,
+  inheritedFromLaunchProfile: '继承自启动资料',
+  soulOptional: 'SOUL.md（可选，将替换自动生成的角色设定）',
+  soulPlaceholder: '留空将根据名称、标题、描述和代理消息名单自动生成。',
+  shareKeys: '与主资料共享密钥和账号',
+  shareKeysDesc:
+    '订阅、OAuth 登录和 API 密钥保持共享而非复制，因此令牌刷新不会使其他资料失效。取消勾选可创建隔离的快照副本。',
+  createEmptyLabel: '创建空白资料（跳过内置技能）',
+  nameTakenForCapabilities: '该名称已被占用，请先选择其他名称再配置能力。',
+  nameFirstForCapabilities: '请先为代理命名；打开此标签时会创建草稿资料（取消时将删除）。',
+  capabilityCatalogNeedsGateway: '能力目录需要更新版本的网关（更新 Hermes 后请重启网关）。',
+  configuredServersDesc:
+    '已配置的服务器会从主资料复制；目录条目来自内置 MCP 菜单。需要 API 密钥的条目会先进入设置流程（凭据遵循共享密钥设置）。',
 
   cronjobs: '定时任务',
   newCronjob: '新建定时任务',
@@ -589,6 +853,18 @@ const zh: BotsMessages = {
   createCronjob: '创建定时任务',
   couldNotLoad: '无法加载定时任务。列表可能仍然存在。',
   cronjobsDesc: '定时任务是此代理按计划运行的重复性任务。',
+  recurringTaskDesc: name => `${name} 会按计划运行重复任务，运行结果保存在自己的聊天记录中。`,
+  continuity: '连续运行：每次运行都能看到上一次的输出（去重，并从上次中断处继续）',
+  deleteCronjob: '删除定时任务',
+  legacyCronjobPaused: '出于安全考虑已暂停：请删除并重新创建此旧版定时任务后再运行。',
+  cronjobNameNul: '定时任务名称不能包含 NUL（U+0000）。',
+  cronjobInstructionNul: '定时任务指令不能包含 NUL（U+0000）。',
+  paused: '已暂停',
+  nextRun: time => `下次运行：${time}`,
+  onceShort: (amount, unit) => `一次（${amount}${unit}）`,
+  everyDays: count => (count === 1 ? '每天' : `每 ${count} 天`),
+  everyHours: count => (count === 1 ? '每小时' : `每 ${count} 小时`),
+  everyMinutes: count => `每 ${count} 分钟`,
 
   once: '一次性，在…',
   hourly: '每小时',
@@ -604,6 +880,15 @@ const zh: BotsMessages = {
   minutes: '分钟',
   hours: '小时',
   days: '天',
+  rawSchedule: '原始计划 — every Nm/Nh/Nd 或 5 段式 cron',
+  runsOnce: (amount, unit) => `${amount} ${unit}后运行一次`,
+  runsHourly: cap => `每小时整点运行${cap}`,
+  runsDaily: time => `每天 ${time} 运行`,
+  runsWeekdays: time => `周一至周五 ${time} 运行`,
+  runsWeekly: (day, time) => `每${day} ${time} 运行`,
+  runsMonthly: (day, time) => `每月 ${day} 日 ${time} 运行`,
+  runsInterval: (amount, unit) => `每 ${amount} ${unit}运行`,
+  totalRuns: count => `，共运行 ${count} 次`,
 
   monday: '星期一',
   tuesday: '星期二',
@@ -619,6 +904,10 @@ const zh: BotsMessages = {
   noSessions: '尚无存储的会话。',
   untitledSession: '无标题会话',
   noMessages: '尚无消息',
+  profileSessions: name => `${name} 的会话`,
+  showingRecentSessions: count => `显示最近 ${count} 个会话。`,
+  noMatchingRecentSessions: count => `最近 ${count} 个会话中没有匹配项。`,
+  desktopCannotOpenSessions: '当前 Hermes Desktop 版本无法打开已存储的会话',
 
   newGroupChatTitle: '新建群聊',
   searchBotsToAdd: '搜索要添加的 Bot…',
@@ -626,11 +915,27 @@ const zh: BotsMessages = {
   groupName: '群组名称',
   sayToGroup: '说点什么 — 此群组中的每个 Bot 都能听到。',
   roomWorking: '房间正在工作…',
+  pickBotsForRoom: max => `选择 2–${max} 个 Bot。群聊会显示在智能体列表中，并同步到所有设备。`,
+  noBotsYetCreateFirst: '尚无 Bot，请先创建代理。',
+  pickAtLeastTwo: '请至少选择 2 个 Bot',
+  createGroup: count => `创建群聊${count ? `（${count}）` : ''}`,
+  groupChatTitle: name => `${name} — 群聊`,
+  botsCount: count => `${count} 个 Bot`,
+  you: '你',
+  messageGroup: name => `给 ${name} 发消息`,
+  messageGroupPlaceholder: name => `给 ${name} 发消息…（@名称可定向发送，@everyone 可发送给所有成员）`,
 
   moveToGroupTitle: '移至分组',
   moveToGroupDesc: '分组会在 BOTS 名单中显示为标签区块，并同步到每台设备。',
   newGroupPlaceholder: '群组名称（例如：研究）',
   groupNameLabel: '群组名称',
+  newGroup: '新建分组…',
+  removeFromGroup: name => `从“${name}”中移除`,
+  movedToGroup: (bot, group) => `${bot} 已移至“${group}”`,
+  removedFromGroup: bot => `${bot} 已移出分组`,
+  groupNeedsYouTitle: '此群聊中的一个 Bot 需要你输入内容',
+  openGroupChat: name => `打开 ${name} 群聊`,
+  inGroup: (handle, group) => `@${handle} · 位于“${group}”`,
 
   deleteBotTitle: '删除 Bot 和资料？',
   deleteBotDesc: (name, path) => `这将永久删除 Bot ${name} 及其在 ${path} 的关联 Hermes 资料。此操作无法撤销。`,
@@ -648,6 +953,7 @@ const zh: BotsMessages = {
   hermesSkillsHub: 'Hermes 技能中心',
   searchHub: '搜索技能中心（社区 + 知名来源）…',
   searching: '正在搜索社区 + 知名来源 — 可能需要约 10 秒…',
+  searchingShort: '搜索中…',
   noHubSkills: '没有匹配的技能中心技能。',
   added: '✓ 已添加',
 
@@ -673,6 +979,7 @@ const zh: BotsMessages = {
 
   // Error messages - Bot operations
   duplicateFailed: '复制失败',
+  noFreeDuplicateName: '没有可用于副本的名称。',
   advancedConfigFailed: '高级配置失败',
   couldNotCreateProfile: '尚无法创建资料',
   couldNotCreateAgent: '无法创建代理。',
@@ -688,7 +995,7 @@ const zh: BotsMessages = {
   couldNotRefreshCronjobs: '无法刷新定时任务。显示上次的列表。',
 
   // Success messages
-  created: (name, original) => original ? `已创建 ${name} — ${original} 的完整副本` : `已创建 ${name}`,
+  created: (name, original) => (original ? `已创建 ${name} — ${original} 的完整副本` : `已创建 ${name}`),
   updated: name => `${name} 已更新`,
   pinned: (name, isPinned) => `${name} ${isPinned ? '已置顶' : '已取消置顶'}`,
   duplicating: name => `正在复制 ${name}…`,
@@ -727,7 +1034,16 @@ const zh: BotsMessages = {
   untitledCronjob: '无标题定时任务',
   installing: name => `正在安装"${name}"…`,
   installAndAdd: name => `安装"${name}"并添加到上面的列表`,
-  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中。拖动角落调整大小。'
+  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中。拖动角落调整大小。',
+
+  search: '搜索',
+  hideHubBrowser: '隐藏技能中心浏览器',
+  browseFullHub: '浏览完整技能中心 ▾',
+  installingFailed: name => `安装“${name}”失败`,
+
+  pluginName: '智能体',
+  pluginDescription:
+    'Bot 模式为每个代理提供一个固定聊天，并包含头像、定时任务、群聊和 Bot 间通信。此功能随应用提供，可在不需要时禁用。'
 }
 
 export const BOTS_LOCALES: PluginLocaleBundles = { en, zh }
@@ -749,6 +1065,10 @@ export function useBots() {
     close: t('close'),
     retry: t('retry'),
     send: t('send'),
+    retryLabel: t('retryLabel'),
+    signIn: t('signIn'),
+    setUpAction: t('setUpAction'),
+    authorizing: t('authorizing'),
 
     // Bot roster
     bots: t('bots'),
@@ -763,6 +1083,15 @@ export function useBots() {
     botChatsHidden: t('botChatsHidden'),
     botChatsShown: t('botChatsShown'),
     retryNow: t('retryNow'),
+    newMenu: t('newMenu'),
+    newAgentOrGroup: t('newAgentOrGroup'),
+    rosterRefreshFailed: t('rosterRefreshFailed'),
+    waitingForGateway: t('waitingForGateway'),
+    rosterUnavailable: (message: string) => t('rosterUnavailable', message),
+    gatewayError: t('gatewayError'),
+    newMessageFor: (name: string) => t('newMessageFor', name),
+    newActivityFor: (name: string) => t('newActivityFor', name),
+    openChatToSee: t('openChatToSee'),
 
     // Bot actions
     editProfile: t('editProfile'),
@@ -774,6 +1103,14 @@ export function useBots() {
     sessions: t('sessions'),
     moveToGroup: t('moveToGroup'),
     group: (name: string) => t('group', name),
+    unread: t('unread'),
+    activeRecently: t('activeRecently'),
+    openAgentChat: (name: string) => t('openAgentChat', name),
+    noConversations: t('noConversations'),
+    updateForRemoteAgents: t('updateForRemoteAgents'),
+    remoteSourceLabel: t('remoteSourceLabel'),
+    livesOn: (source: string) => t('livesOn', source),
+    lastMessageFrom: (name: string) => t('lastMessageFrom', name),
 
     // Bot chat
     botChat: t('botChat'),
@@ -792,6 +1129,7 @@ export function useBots() {
     advanced: t('advanced'),
     advancedConfig: t('advancedConfig'),
     saving: t('saving'),
+    appearanceAndRole: (displayName: string, profile: string) => t('appearanceAndRole', displayName, profile),
 
     // Avatar
     bot: t('bot'),
@@ -807,6 +1145,20 @@ export function useBots() {
     noPetsMatch: t('noPetsMatch'),
     noPets: t('noPets'),
     chooseImage: t('chooseImage'),
+    searchPets: (count: number) => t('searchPets', count),
+    inheritLaunchProfile: t('inheritLaunchProfile'),
+    enterManually: t('enterManually'),
+    backToDropdowns: t('backToDropdowns'),
+    gatewayDefault: t('gatewayDefault'),
+    fullConfigNeedsNewGateway: t('fullConfigNeedsNewGateway'),
+    capabilitiesImmediate: t('capabilitiesImmediate'),
+    soulConfig: t('soulConfig'),
+    skillsEnabled: (enabled: number, total: number) => t('skillsEnabled', enabled, total),
+    toolsetsEnabled: (enabled: number, total: number) => t('toolsetsEnabled', enabled, total),
+    mcpServers: t('mcpServers'),
+    catalog: t('catalog'),
+    catalogInstalled: t('catalogInstalled'),
+    modelNameExample: t('modelNameExample'),
 
     // New agent dialog
     newAgentTitle: t('newAgentTitle'),
@@ -827,6 +1179,21 @@ export function useBots() {
     noMcpServers: t('noMcpServers'),
     creating: t('creating'),
     createAgent: t('createAgent'),
+    agentCreated: (name: string) => t('agentCreated', name),
+    couldNotCleanDraft: (name: string) => t('couldNotCleanDraft', name),
+    catalogFrom: (source: string) => t('catalogFrom', source),
+    defaultToolsetBehavior: t('defaultToolsetBehavior'),
+    agentExists: (name: string) => t('agentExists', name),
+    inheritedFromLaunchProfile: t('inheritedFromLaunchProfile'),
+    soulOptional: t('soulOptional'),
+    soulPlaceholder: t('soulPlaceholder'),
+    shareKeys: t('shareKeys'),
+    shareKeysDesc: t('shareKeysDesc'),
+    createEmptyLabel: t('createEmptyLabel'),
+    nameTakenForCapabilities: t('nameTakenForCapabilities'),
+    nameFirstForCapabilities: t('nameFirstForCapabilities'),
+    capabilityCatalogNeedsGateway: t('capabilityCatalogNeedsGateway'),
+    configuredServersDesc: t('configuredServersDesc'),
 
     // Cronjobs
     cronjobs: t('cronjobs'),
@@ -841,6 +1208,18 @@ export function useBots() {
     createCronjob: t('createCronjob'),
     couldNotLoad: t('couldNotLoad'),
     cronjobsDesc: t('cronjobsDesc'),
+    recurringTaskDesc: (name: string) => t('recurringTaskDesc', name),
+    continuity: t('continuity'),
+    deleteCronjob: t('deleteCronjob'),
+    legacyCronjobPaused: t('legacyCronjobPaused'),
+    cronjobNameNul: t('cronjobNameNul'),
+    cronjobInstructionNul: t('cronjobInstructionNul'),
+    paused: t('paused'),
+    nextRun: (time: string) => t('nextRun', time),
+    onceShort: (amount: string, unit: string) => t('onceShort', amount, unit),
+    everyDays: (count: number) => t('everyDays', count),
+    everyHours: (count: number) => t('everyHours', count),
+    everyMinutes: (count: number) => t('everyMinutes', count),
 
     // Schedule options
     once: t('once'),
@@ -857,6 +1236,15 @@ export function useBots() {
     minutes: t('minutes'),
     hours: t('hours'),
     days: t('days'),
+    rawSchedule: t('rawSchedule'),
+    runsOnce: (amount: string, unit: string) => t('runsOnce', amount, unit),
+    runsHourly: (cap: string) => t('runsHourly', cap),
+    runsDaily: (time: string) => t('runsDaily', time),
+    runsWeekdays: (time: string) => t('runsWeekdays', time),
+    runsWeekly: (day: string, time: string) => t('runsWeekly', day, time),
+    runsMonthly: (day: string, time: string) => t('runsMonthly', day, time),
+    runsInterval: (amount: string, unit: string) => t('runsInterval', amount, unit),
+    totalRuns: (count: string) => t('totalRuns', count),
 
     // Weekdays
     monday: t('monday'),
@@ -874,6 +1262,10 @@ export function useBots() {
     noSessions: t('noSessions'),
     untitledSession: t('untitledSession'),
     noMessages: t('noMessages'),
+    profileSessions: (name: string) => t('profileSessions', name),
+    showingRecentSessions: (count: number) => t('showingRecentSessions', count),
+    noMatchingRecentSessions: (count: number) => t('noMatchingRecentSessions', count),
+    desktopCannotOpenSessions: t('desktopCannotOpenSessions'),
 
     // Group chat
     newGroupChatTitle: t('newGroupChatTitle'),
@@ -882,12 +1274,28 @@ export function useBots() {
     groupName: t('groupName'),
     sayToGroup: t('sayToGroup'),
     roomWorking: t('roomWorking'),
+    pickBotsForRoom: (max: number) => t('pickBotsForRoom', max),
+    noBotsYetCreateFirst: t('noBotsYetCreateFirst'),
+    pickAtLeastTwo: t('pickAtLeastTwo'),
+    createGroup: (count?: number) => t('createGroup', count),
+    groupChatTitle: (name: string) => t('groupChatTitle', name),
+    botsCount: (count: number) => t('botsCount', count),
+    you: t('you'),
+    messageGroup: (name: string) => t('messageGroup', name),
+    messageGroupPlaceholder: (name: string) => t('messageGroupPlaceholder', name),
 
     // Group management
     moveToGroupTitle: t('moveToGroupTitle'),
     moveToGroupDesc: t('moveToGroupDesc'),
     newGroupPlaceholder: t('newGroupPlaceholder'),
     groupNameLabel: t('groupNameLabel'),
+    newGroup: t('newGroup'),
+    removeFromGroup: (name: string) => t('removeFromGroup', name),
+    movedToGroup: (bot: string, group: string) => t('movedToGroup', bot, group),
+    removedFromGroup: (bot: string) => t('removedFromGroup', bot),
+    groupNeedsYouTitle: t('groupNeedsYouTitle'),
+    openGroupChat: (name: string) => t('openGroupChat', name),
+    inGroup: (handle: string, group: string) => t('inGroup', handle, group),
 
     // Delete confirmation
     deleteBotTitle: t('deleteBotTitle'),
@@ -908,6 +1316,7 @@ export function useBots() {
     hermesSkillsHub: t('hermesSkillsHub'),
     searchHub: t('searchHub'),
     searching: t('searching'),
+    searchingShort: t('searchingShort'),
     noHubSkills: t('noHubSkills'),
     added: t('added'),
 
@@ -934,6 +1343,7 @@ export function useBots() {
 
     // Error messages - Bot operations
     duplicateFailed: t('duplicateFailed'),
+    noFreeDuplicateName: t('noFreeDuplicateName'),
     advancedConfigFailed: t('advancedConfigFailed'),
     couldNotCreateProfile: t('couldNotCreateProfile'),
     couldNotCreateAgent: t('couldNotCreateAgent'),
@@ -988,6 +1398,13 @@ export function useBots() {
     untitledCronjob: t('untitledCronjob'),
     installing: (name: string) => t('installing', name),
     installAndAdd: (name: string) => t('installAndAdd', name),
-    hitAddToAgent: t('hitAddToAgent')
+    hitAddToAgent: t('hitAddToAgent'),
+    search: t('search'),
+    hideHubBrowser: t('hideHubBrowser'),
+    browseFullHub: t('browseFullHub'),
+    installingFailed: (name: string) => t('installingFailed', name),
+
+    pluginName: t('pluginName'),
+    pluginDescription: t('pluginDescription')
   }
 }

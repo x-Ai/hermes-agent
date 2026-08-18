@@ -9,7 +9,7 @@ const pluginSource = readFileSync(new URL('../plugin.js', import.meta.url), 'utf
 const OPTIONAL_CAPABILITY_EXPORTS = new Set(['McpTab', 'ToolsetConfigPanel', 'SkillsView'])
 
 function sdkNamedImports(source) {
-  const match = source.match(/import\s+\{([\s\S]*?)\}\s+from '@hermes\/plugin-sdk'/)
+  const match = source.match(/^import\s+\{\r?\n([\s\S]*?)^\}\s+from '@hermes\/plugin-sdk'$/m)
 
   assert.ok(match, 'plugin.js must retain the mandatory named SDK import')
 
@@ -80,7 +80,10 @@ test('legacy SDK without optional capability exports still links Bot Mode', asyn
   t.after(() => rmSync(root, { recursive: true, force: true }))
 
   writeFileSync(join(root, 'package.json'), '{"type":"module"}\n')
-  writeFileSync(pluginPath, pluginSource)
+  writeFileSync(
+    pluginPath,
+    pluginSource.replace(/^import \{ BOTS_LOCALES, useBots as useBotsI18n \} from '\.\/i18n\.ts'\r?\n/m, '')
+  )
   writeLegacySdk(root)
   writeReactStubs(root)
 

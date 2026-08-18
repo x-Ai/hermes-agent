@@ -1766,6 +1766,7 @@ export const zh: Translations = {
     noToolsetsDesc: '尝试更宽泛的搜索词。',
     noDescription: '暂无描述。',
     toolsetDescriptions: {
+      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）协议 v1.0 支持——使用 Linux 基金会开放标准进行双向代理间通信。出站工具可发现对等代理、获取 Agent Card，并通过 JSON-RPC 发送任务；入站适配器在 /.well-known/agent-card.json 暴露 Hermes，并将任务路由到拥有完整记忆和上下文的实时网关会话。未配置 bearer token 时仅绑定 localhost；入站文本会经过过滤，出站凭据会被清理，所有交换都会在上下文压缩流程之外进行审计记录。仅使用 Python 标准库，无需 a2a-sdk 依赖。',
       browser: '用于网页交互的浏览器自动化（导航、点击、输入、滚动、iframe、长按），并带用于查找 URL 的网页搜索',
       clarify: '向用户提出澄清问题（选择题或开放式）',
       code_execution: '运行以编程方式调用工具的 Python 脚本（减少 LLM 往返）',
@@ -1840,6 +1841,7 @@ export const zh: Translations = {
       video_gen: '视频生成',
       x_search: 'X (Twitter) 搜索',
       tts: '文字转语音',
+      stt: '语音转文字',
       skills: '技能',
       todo: '任务规划',
       memory: '记忆',
@@ -2617,7 +2619,7 @@ export const zh: Translations = {
       yuanbao: '把 Hermes 接入腾讯元宝。',
       api_server: '把 Hermes 暴露为兼容 OpenAI 的 HTTP API，供 Open WebUI 等工具使用。',
       webhook: '接收来自 GitHub、GitLab 等 Webhook 源的事件。',
-      a2a: '通过 A2A 协议与其他 Hermes 实例或代理进行本地或远程通信。',
+      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）协议 v1.0 支持 —— Linux 基金会开放标准的双向代理间通信。\n\n出站（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让代理获取其他代理的 Agent Card 并通过 JSON-RPC 发送任务 —— 可与任何 A2A 兼容的对等端（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）协作。\n\n入站（平台适配器）：将 Hermes 暴露为可被 A2A 发现的代理。Agent Card 在 /.well-known/agent-card.json 提供服务（v1.0 规范路径；旧版 agent.json 也响应），传入任务被路由到代理的实时网关会话中，就像任何其他平台一样 —— 因此回复的代理与正在与用户对话的是同一个，拥有完整的内存和上下文，而不是一次性克隆。\n\n安全性默认开启：未配置令牌则仅绑定 localhost。入站任务文本经过提示注入过滤器；出站文本清除凭证形式的字符串；每次交换都经过审计日志记录并持久化到磁盘，在上下文压缩管道之外，因此对话在压缩和重启后仍然存活。\n\n纯标准库传输（http.server + urllib）—— 无需 a2a-sdk 依赖。',
       buzz: '通过 Nostr 中继连接去中心化的 Buzz 社区（需要 buzz CLI）。',
       raft: '作为外部代理加入 Raft 工作区以协作处理任务。'
     }
