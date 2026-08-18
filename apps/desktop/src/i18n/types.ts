@@ -325,7 +325,6 @@ export interface Translations {
       providerApiKeys: string
       providerCustomEndpoints: string
       gateway: string
-      connections: string
       apiKeys: string
       keybinds: string
       keysTools: string
@@ -352,6 +351,7 @@ export interface Translations {
       agent: {
         title: string
         blurb: string
+        appliesTo: string
         empty: string
         loadFailed: string
         portable: string
@@ -480,6 +480,9 @@ export interface Translations {
       heading: string
       version: (value: string) => string
       versionUnavailable: string
+      bundleOutOfSync: string
+      bundleOutOfSyncDesc: string
+      bundleOutOfSyncAction: string
       updates: string
       checkNow: string
       checking: string
@@ -602,6 +605,12 @@ export interface Translations {
       headerValueSaved: string
       headerAdd: string
       headerRemove: string
+      duplicateLocal: string
+      duplicateUrl: (label: string) => string
+      duplicateSsh: (label: string) => string
+      sameBackendHint: (label: string) => string
+      localAddHint: string
+      cloudAddHint: string
       save: string
       saving: string
       cancel: string
@@ -614,10 +623,14 @@ export interface Translations {
       title: string
       envOverride: string
       intro: string
-      appliesTo: string
       allProfiles: string
       defaultConnection: string
       profileConnection: (profile: string) => string
+      profileOverridesTitle: string
+      profileOverridesDesc: string
+      overrideEdit: string
+      overrideEditing: string
+      overrideSelectHint: string
       envOverrideTitle: string
       envOverrideDesc: string
       modeTitle: string
@@ -750,6 +763,10 @@ export interface Translations {
      *  panel's field hint (falls back to `description`). Missing keys keep the
      *  backend English. */
     envKeys: Record<string, { description?: string; prompt?: string }>
+    profileScope: {
+      appliesTo: string
+      editsProfile: (profile: string) => string
+    }
     mcp: {
       loading: string
       failedLoad: string
