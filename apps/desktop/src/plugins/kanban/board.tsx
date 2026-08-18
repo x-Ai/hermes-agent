@@ -90,6 +90,7 @@ import {
   Avatar,
   columnHelp,
   columnLabel,
+  displayProfileName,
   errText,
   FIELD_LABEL,
   isLockedTarget,
@@ -158,6 +159,7 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
   // The agent on the hook for a queued card: the explicit assignee, else the
   // auto-default (ready), else the specifier that rewrites triage cards.
   const attached = task.assignee || (task.status === 'ready' ? fallback : task.status === 'triage' ? orchestrator : '')
+  const attachedLabel = displayProfileName(k, attached)
 
   const meta = columnMeta(task.status)
 
@@ -171,17 +173,17 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
             task.status === 'review'
               ? k.reviewChecking
               : task.assignee
-                ? k.attachedTip(attached)
+                ? k.attachedTip(attachedLabel)
                 : task.status === 'triage'
-                  ? k.orchestratorTip(attached)
-                  : k.autoAssignTip(attached)
+                  ? k.orchestratorTip(attachedLabel)
+                  : k.autoAssignTip(attachedLabel)
           }
         >
           <span className="inline-flex min-w-0 cursor-help items-center gap-1 font-medium" style={{ color: meta.tone }}>
             <Avatar name={attached} size="1.125rem" />
             <span className="truncate">
               {!task.assignee && '→ '}
-              {attached}
+              {attachedLabel}
             </span>
           </span>
         </Tip>
@@ -467,7 +469,7 @@ function Column({
               <div className="flex flex-col gap-2" key={assignee}>
                 <div className="flex items-center gap-1.5 px-1 pt-1 text-[0.625rem] text-(--ui-text-quaternary)">
                   {assignee !== UNASSIGNED_LANE && <Avatar name={assignee} size="0.875rem" />}
-                  {assignee}
+                  {displayProfileName(k, assignee)}
                   <span className="tabular-nums">{tasks.length}</span>
                 </div>
                 {tasks.map(task => (
@@ -738,12 +740,12 @@ function NewTaskDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_PARENT}>{k.defaultOption(resolvedDefault)}</SelectItem>
+                <SelectItem value={NO_PARENT}>{k.defaultOption(displayProfileName(k, resolvedDefault))}</SelectItem>
                 {(roster?.profiles ?? [])
                   .filter(profile => profile.name !== resolvedDefault)
                   .map(profile => (
                     <SelectItem key={profile.name} value={profile.name}>
-                      {profile.name}
+                      {displayProfileName(k, profile.name)}
                     </SelectItem>
                   ))}
                 <SelectItem value={PARKED}>{k.parkedOption}</SelectItem>
@@ -909,7 +911,7 @@ function FilterMenu({
         {board.assignees.map(name => (
           <DropdownMenuItem key={name} onSelect={() => onAssignee(name)}>
             <Avatar name={name} size="0.875rem" />
-            {name}
+            {displayProfileName(k, name)}
             {check(assignee === name)}
           </DropdownMenuItem>
         ))}
@@ -1044,7 +1046,7 @@ function SelectionBar({
                 onSelect={() => bulk.mutate({ assignee: profile.name, reclaim_first: true })}
               >
                 <Avatar name={profile.name} size="0.875rem" />
-                {profile.name}
+                {displayProfileName(k, profile.name)}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

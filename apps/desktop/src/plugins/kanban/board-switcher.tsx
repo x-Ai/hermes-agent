@@ -34,7 +34,7 @@ import { useEffect, useState } from 'react'
 
 import { $boardSlug, BOARDS_KEY, createBoard, fetchBoards, fetchProjects, PROJECTS_KEY, updateBoard } from './api'
 import type { BoardMeta } from './types'
-import { errText, FIELD_LABEL, useKanban } from './ui'
+import { displayBoardName, errText, FIELD_LABEL, storedBoardName, useKanban } from './ui'
 
 const NO_PROJECT = '__none__'
 
@@ -140,15 +140,15 @@ function BoardSettingsDialog({ board, onClose }: { board: BoardMeta | null; onCl
 
   useEffect(() => {
     if (board) {
-      setName(board.name || '')
+      setName(displayBoardName(k, board))
       setProject(board.project_id || '')
     }
-  }, [board])
+  }, [board, k])
 
   const save = useMutation({
     // Slug is immutable; send name + project_id ('' clears the scope, which
     // also drops the mirrored default_workdir on the backend).
-    mutationFn: () => updateBoard(board!.slug, { name: name.trim(), project_id: project }),
+    mutationFn: () => updateBoard(board!.slug, { name: storedBoardName(k, board!, name), project_id: project }),
     onError: err => host.notify({ kind: 'error', message: errText(err) }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: BOARDS_KEY })
@@ -160,7 +160,7 @@ function BoardSettingsDialog({ board, onClose }: { board: BoardMeta | null; onCl
     <Dialog onOpenChange={o => !o && onClose()} open={Boolean(board)}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{board ? k.boardSettingsFor(board.name || board.slug) : k.boardSettings}</DialogTitle>
+          <DialogTitle>{board ? k.boardSettingsFor(displayBoardName(k, board)) : k.boardSettings}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
           <label className="flex flex-col gap-1">
@@ -196,7 +196,7 @@ export function BoardSwitcher() {
 
   const currentSlug = slug || boards.current
   const current = boards.boards.find(meta => meta.slug === currentSlug)
-  const label = current?.name || current?.slug || k.board
+  const label = current ? displayBoardName(k, current) : k.board
 
   return (
     <>
@@ -216,7 +216,7 @@ export function BoardSwitcher() {
               key={meta.slug}
               onSelect={() => $boardSlug.set(meta.slug === boards.current ? '' : meta.slug)}
             >
-              {meta.name || meta.slug}
+              {displayBoardName(k, meta)}
               {typeof meta.total === 'number' && (
                 <span className="text-[0.625rem] tabular-nums text-(--ui-text-quaternary)">{meta.total}</span>
               )}

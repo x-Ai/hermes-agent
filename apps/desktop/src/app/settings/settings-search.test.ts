@@ -83,7 +83,7 @@ describe('settings search index', () => {
 
     const entries = buildCredentialSearchEntries(
       vars,
-      { settings: 'Settings', tools: 'Tools' },
+      { envKeys: {}, settings: 'Settings', tools: 'Tools' },
       { settings: Settings2, tools: Wrench }
     )
 
@@ -115,12 +115,40 @@ describe('settings search index', () => {
         BRAVE_SEARCH_API_KEY: envVar('tool', { description: 'Search public web pages.' }),
         FIRECRAWL_API_KEY: envVar('tool', { description: 'Extract public web pages.' })
       },
-      { settings: 'Settings', tools: 'Tools' },
+      { envKeys: {}, settings: 'Settings', tools: 'Tools' },
       { settings: Settings2, tools: Wrench }
     )
 
     expect(filterSettingsSearchEntries(entries, 'brave tools')[0]?.id).toBe('credential:BRAVE_SEARCH_API_KEY')
     expect(filterSettingsSearchEntries(entries, 'firecrawl extract')[0]?.id).toBe('credential:FIRECRAWL_API_KEY')
     expect(filterSettingsSearchEntries(entries, 'brave extract')).toEqual([])
+  })
+
+  it('indexes localized setting labels and descriptions when available', () => {
+    const entries = buildCredentialSearchEntries(
+      {
+        SUDO_PASSWORD: envVar('setting', {
+          description: 'Sudo password for terminal commands requiring root access'
+        })
+      },
+      {
+        envKeys: {
+          SUDO_PASSWORD: {
+            description: '终端命令需要 root 权限时使用的 sudo 密码',
+            prompt: 'sudo 密码'
+          }
+        },
+        settings: '设置',
+        tools: '工具'
+      },
+      { settings: Settings2, tools: Wrench }
+    )
+
+    expect(entries[0]).toMatchObject({
+      context: '设置',
+      description: '终端命令需要 root 权限时使用的 sudo 密码',
+      label: 'sudo 密码'
+    })
+    expect(filterSettingsSearchEntries(entries, '终端 root')).toHaveLength(1)
   })
 })

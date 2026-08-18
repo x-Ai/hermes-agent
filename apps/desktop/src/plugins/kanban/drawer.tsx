@@ -60,6 +60,7 @@ import {
   Avatar,
   Callout,
   columnLabel,
+  displayProfileName,
   duration,
   errText,
   isLockedTarget,
@@ -107,7 +108,7 @@ function eventText(event: KanbanEvent, k: KanbanText): { detail?: string; label:
 
   switch (event.kind) {
     case 'created':
-      return { label: k.evtCreated(col('status') ?? '', str('assignee') ?? '') }
+      return { label: k.evtCreated(col('status') ?? '', displayProfileName(k, str('assignee') ?? '')) }
     case 'status': {
       const reason = str('reason')
 
@@ -120,7 +121,7 @@ function eventText(event: KanbanEvent, k: KanbanText): { detail?: string; label:
     case 'assigned': {
       const assignee = str('assignee')
 
-      return { label: assignee ? k.evtAssignedTo(assignee) : k.evtUnassigned }
+      return { label: assignee ? k.evtAssignedTo(displayProfileName(k, assignee)) : k.evtUnassigned }
     }
 
     case 'commented':
@@ -253,7 +254,7 @@ function AssigneeMenu({
           {current ? (
             <>
               <Avatar name={current} size="0.875rem" />
-              <span className="truncate">{current}</span>
+              <span className="truncate">{displayProfileName(k, current)}</span>
             </>
           ) : (
             <span className="text-(--ui-text-quaternary)">{k.unassigned}</span>
@@ -265,7 +266,7 @@ function AssigneeMenu({
         {(roster?.profiles ?? []).map(profile => (
           <DropdownMenuItem key={profile.name} onSelect={() => onReassign(profile.name)}>
             <Avatar name={profile.name} size="0.875rem" />
-            {profile.name}
+            {displayProfileName(k, profile.name)}
             {profile.name === current && <Codicon className="ml-auto" name="check" size="0.8rem" />}
           </DropdownMenuItem>
         ))}
@@ -909,7 +910,9 @@ export function TaskDrawer({
                             <Badge size="xs" variant={failed ? 'destructive' : 'muted'}>
                               {run.outcome ?? run.status}
                             </Badge>
-                            {run.profile && <span className="text-(--ui-text-tertiary)">{run.profile}</span>}
+                            {run.profile && (
+                              <span className="text-(--ui-text-tertiary)">{displayProfileName(k, run.profile)}</span>
+                            )}
                             {duration(run.started_at, run.ended_at) && (
                               <span className="text-(--ui-text-quaternary)">
                                 {duration(run.started_at, run.ended_at)}

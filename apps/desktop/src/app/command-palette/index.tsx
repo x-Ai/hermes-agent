@@ -541,7 +541,7 @@ export function CommandPalette() {
 }
 
 function CommandPaletteBody({ onExited }: { onExited: () => void }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const pendingPage = useStore($commandPalettePage)
   const pendingSeed = useStore($commandPaletteSeed)
   const bindings = useStore($bindings)
@@ -868,7 +868,12 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
                   id: item.key,
                   keepOpen: item.keepOpen,
                   keywords: item.keywords,
-                  label: item.id === 'layout.editMode' ? t.zones.toggleLayoutEditMode : item.label,
+                  label:
+                    item.id === 'layout.editMode'
+                      ? t.zones.toggleLayoutEditMode
+                      : typeof item.label === 'function'
+                        ? item.label(locale)
+                        : item.label,
                   run: item.run
                 }
               })
@@ -995,6 +1000,7 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
     contributedItems,
     dismissedAutoProjects,
     go,
+    locale,
     projectTree,
     selectTick,
     settingsSectionLabel,

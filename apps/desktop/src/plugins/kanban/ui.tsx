@@ -18,12 +18,21 @@ import {
 import { type ReactNode, useEffect, useState } from 'react'
 
 import { fetchOrchestration, ORCHESTRATION_KEY } from './api'
-import { columnLabel, useKanban } from './i18n'
+import { columnLabel, displayProfileName, useKanban } from './i18n'
 import { columnMeta, type KanbanTask } from './types'
 
 // Plugin-scoped i18n lives in ./i18n; re-exported so components import strings
 // and chrome from one place (./ui).
-export { columnHelp, columnLabel, type KanbanText, lockedReason, useKanban } from './i18n'
+export {
+  columnHelp,
+  columnLabel,
+  displayBoardName,
+  displayProfileName,
+  type KanbanText,
+  lockedReason,
+  storedBoardName,
+  useKanban
+} from './i18n'
 
 /** One-shot "open the new-task dialog in this lane" request, so a command that
  *  fires from ANYWHERE (keybind, palette) can reach the board page without the
@@ -166,7 +175,9 @@ function initials(name: string): string {
 export function Avatar({ name, size = '1.25rem' }: { name: string; size?: string }) {
   // Same identity hue the rest of the app uses (profileColor); default/empty
   // profiles are neutral. Soft tag fill + colored glyph, per the app's tags.
+  const k = useKanban()
   const color = profileColor(name)
+  const label = displayProfileName(k, name)
 
   return (
     <span
@@ -178,9 +189,9 @@ export function Avatar({ name, size = '1.25rem' }: { name: string; size?: string
         height: size,
         width: size
       }}
-      title={name}
+      title={label}
     >
-      {initials(name)}
+      {initials(label)}
     </span>
   )
 }

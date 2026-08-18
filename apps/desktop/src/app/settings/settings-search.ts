@@ -47,6 +47,7 @@ interface ConfigSearchCopy {
 }
 
 interface CredentialSearchCopy {
+  envKeys: Record<string, { description?: string; prompt?: string }>
   settings: string
   tools: string
 }
@@ -132,11 +133,11 @@ export function buildCredentialSearchEntries(
       return [
         {
           context: view === 'tools' ? copy.tools : copy.settings,
-          description: info.description || undefined,
+          description: copy.envKeys[key]?.description || info.description || undefined,
           icon: icons[view],
           id: `credential:${key}`,
           keywords: [key, info.url ?? '', ...(Array.isArray(info.tools) ? info.tools : [])],
-          label: credentialRowLabel(key, info),
+          label: copy.envKeys[key]?.prompt || credentialRowLabel(key, info),
           target: {
             key,
             keysView: view,

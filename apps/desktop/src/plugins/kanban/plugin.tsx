@@ -126,7 +126,7 @@ const plugin: HermesPlugin = {
         id: 'nav',
         area: SIDEBAR_NAV_AREA,
         order: 50,
-        data: { codicon: 'project', label: 'Kanban', path: '/kanban' } satisfies SidebarNavContribution
+        data: { codicon: 'project', label: () => ctx.i18n.t('nav'), path: '/kanban' } satisfies SidebarNavContribution
       },
       {
         id: 'count',
@@ -139,7 +139,7 @@ const plugin: HermesPlugin = {
         area: PALETTE_AREA,
         data: {
           id: 'kanban.open',
-          label: 'Kanban: Open board',
+          label: () => ctx.i18n.t('openBoard'),
           keywords: ['kanban', 'board', 'tasks', 'agents'],
           run: () => host.navigate('/kanban')
         } satisfies PaletteContribution
@@ -150,7 +150,7 @@ const plugin: HermesPlugin = {
         data: {
           id: 'kanban.newTask',
           action: 'kanban.newTask',
-          label: ctx.i18n.t('newTaskCommand'),
+          label: () => ctx.i18n.t('newTaskCommand'),
           keywords: ['kanban', 'task', 'new', 'create', 'triage'],
           run: newTask
         } satisfies PaletteContribution

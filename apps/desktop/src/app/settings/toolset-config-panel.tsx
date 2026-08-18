@@ -520,8 +520,8 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               </span>
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
                 {model.speed && <span>{model.speed}</span>}
-                {model.strengths && <span>{model.strengths}</span>}
-                {model.price && <span className="font-mono">{model.price}</span>}
+                {model.strengths && <span>{copy.modelDescriptions[model.id] ?? model.strengths}</span>}
+                {model.price && <span className="font-mono">{copy.modelPrices[model.id] ?? model.price}</span>}
               </span>
             </button>
           )

@@ -31,7 +31,7 @@ import {
   saveProfileDescription
 } from './api'
 import type { KanbanProfile } from './types'
-import { errText, FIELD_LABEL, useKanban } from './ui'
+import { displayProfileName, errText, FIELD_LABEL, useKanban } from './ui'
 
 const DEFAULT_SENTINEL = '__default__'
 
@@ -59,7 +59,7 @@ function ProfilePicker({
           <SelectItem value={DEFAULT_SENTINEL}>{k.defaultParen}</SelectItem>
           {profiles.map(profile => (
             <SelectItem key={profile.name} value={profile.name}>
-              {profile.name}
+              {displayProfileName(k, profile.name)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -96,7 +96,7 @@ function ProfileDescriptionRow({ profile }: { profile: KanbanProfile }) {
   return (
     <div className="flex items-center gap-2">
       <span className="w-24 shrink-0 truncate text-[0.75rem] font-medium text-(--ui-text-secondary)">
-        {profile.name}
+        {displayProfileName(k, profile.name)}
         {profile.is_default && (
           <span className="ml-1 text-[0.625rem] text-(--ui-text-quaternary)">{k.defaultParen}</span>
         )}

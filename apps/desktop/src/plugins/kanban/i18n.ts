@@ -10,6 +10,10 @@ import { useMemo } from 'react'
 
 type KanbanMessages = {
   nav: string
+  /** Localized presentation of Hermes' reserved built-in names. The raw
+   *  `default` identity still goes to the backend. */
+  defaultBoardName: string
+  defaultProfileName: string
   openBoard: string
   /** Command label — shows in the ⌘K palette AND as the keybind panel row,
    *  so it carries the "Kanban: " prefix the palette convention wants. */
@@ -200,6 +204,8 @@ type KanbanMessages = {
 
 export const en: KanbanMessages = {
   nav: 'Kanban',
+  defaultBoardName: 'Default',
+  defaultProfileName: 'default',
   openBoard: 'Kanban: Open board',
   newTaskCommand: 'Kanban: New task',
   countTip: (running, ready) => `Kanban — ${running} running, ${ready} ready`,
@@ -402,6 +408,8 @@ export const en: KanbanMessages = {
 
 const ja: KanbanMessages = {
   nav: 'カンバン',
+  defaultBoardName: 'デフォルト',
+  defaultProfileName: 'デフォルト',
   openBoard: 'カンバン: ボードを開く',
   newTaskCommand: 'カンバン: 新しいタスク',
   countTip: (running, ready) => `カンバン — 実行中 ${running}、待機 ${ready}`,
@@ -603,6 +611,8 @@ const ja: KanbanMessages = {
 
 const zh: KanbanMessages = {
   nav: '看板',
+  defaultBoardName: '默认',
+  defaultProfileName: '默认',
   openBoard: '看板：打开面板',
   newTaskCommand: '看板：新建任务',
   countTip: (running, ready) => `看板 — 运行中 ${running}、就绪 ${ready}`,
@@ -801,6 +811,8 @@ const zh: KanbanMessages = {
 
 const zhHant: KanbanMessages = {
   nav: '看板',
+  defaultBoardName: '預設',
+  defaultProfileName: '預設',
   openBoard: '看板：開啟面板',
   newTaskCommand: '看板：新增任務',
   countTip: (running, ready) => `看板 — 執行中 ${running}、就緒 ${ready}`,
@@ -1034,6 +1046,36 @@ export function useKanban(): KanbanText {
   const t = usePluginI18n('kanban')
 
   return useMemo(() => bind(t, en), [t])
+}
+
+/** Hermes reserves `default` as the built-in profile identity. Localize only
+ *  its presentation; callers must keep using the raw name for keys/writes. */
+export const displayProfileName = (k: Pick<KanbanText, 'defaultProfileName'>, name: string) =>
+  name === 'default' ? k.defaultProfileName : name
+
+/** The default board's slug is stable, while its stock English name is only
+ *  presentation. Localize the stock name but preserve a real user rename. */
+export function displayBoardName(
+  k: Pick<KanbanText, 'defaultBoardName'>,
+  board: { name?: null | string; slug: string }
+): string {
+  const raw = board.name || board.slug
+
+  return board.slug === 'default' && (raw === 'Default' || raw === 'default') ? k.defaultBoardName : raw
+}
+
+/** Convert the localized stock name shown in the editable settings field back
+ *  to its stored value. A real user rename passes through unchanged. */
+export function storedBoardName(
+  k: Pick<KanbanText, 'defaultBoardName'>,
+  board: { name?: null | string; slug: string },
+  draft: string
+): string {
+  const trimmed = draft.trim()
+  const raw = board.name || board.slug
+  const hasStockDefaultName = board.slug === 'default' && (raw === 'Default' || raw === 'default')
+
+  return hasStockDefaultName && trimmed === k.defaultBoardName ? raw : trimmed
 }
 
 // Column labels/help live in i18n; unknown backend statuses fall back to the id.

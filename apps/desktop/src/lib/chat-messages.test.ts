@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
 import type { SessionMessage } from '@/types/hermes'
 
 import type { ChatMessage, ChatMessagePart } from './chat-messages'
@@ -17,6 +18,8 @@ import {
   toChatMessages,
   upsertToolPart
 } from './chat-messages'
+
+afterEach(() => setRuntimeI18nLocale('en'))
 
 describe('toChatMessages', () => {
   it('rebuilds the full command from a gateway tool row carrying args', () => {
@@ -414,6 +417,22 @@ describe('toChatMessages', () => {
 
     expect(read).not.toThrow()
     expect(chatMessageText(read()[0])).toBe(expected)
+  })
+
+  it('localizes completed background-agent timeline events', () => {
+    setRuntimeI18nLocale('zh')
+
+    const messages = toChatMessages([
+      {
+        role: 'user',
+        content: 'opaque delegation context payload',
+        display_kind: 'async_delegation_complete',
+        display_metadata: { delegation_id: 'deleg_1', task_count: 4 },
+        timestamp: 1
+      }
+    ])
+
+    expect(chatMessageText(messages[0])).toBe('4 个后台代理已完成')
   })
 })
 

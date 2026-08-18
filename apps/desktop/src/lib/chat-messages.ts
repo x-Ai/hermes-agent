@@ -1,6 +1,7 @@
 import type { ThreadMessageLike } from '@assistant-ui/react'
 import { type BillingBlock, skillInvocationText } from '@hermes/shared'
 
+import { translateNow } from '@/i18n'
 import { extractImageRefs } from '@/lib/embedded-images'
 import { dedupeGeneratedImageEchoesInParts } from '@/lib/generated-images'
 import { mediaDisplayLabel, mediaMarkdownHref } from '@/lib/media'
@@ -466,23 +467,23 @@ export function messageReactions(metadata: SessionMessage['display_metadata']): 
 
 function timelineDisplayContent(message: SessionMessage, content: string): string {
   if (message.display_kind === 'model_switch') {
-    return 'model changed'
+    return translateNow('timelineEvents.modelChanged')
   }
 
   if (message.display_kind === 'auto_continue') {
-    return 'resumed interrupted turn'
+    return translateNow('timelineEvents.resumedInterruptedTurn')
   }
 
   if (message.display_kind === 'personality_switch') {
-    return 'personality changed'
+    return translateNow('timelineEvents.personalityChanged')
   }
 
   if (message.display_kind === 'async_delegation_complete') {
     const count = timelineTaskCount(message.display_metadata)
 
     return count === undefined
-      ? 'background agent work finished'
-      : `${count} background agent${count === 1 ? '' : 's'} finished`
+      ? translateNow('timelineEvents.backgroundAgentWorkFinished')
+      : translateNow('timelineEvents.backgroundAgentsFinished', count)
   }
 
   return content

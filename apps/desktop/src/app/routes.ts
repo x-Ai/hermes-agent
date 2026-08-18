@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { noteActiveTreeGroup, revealTreePane } from '@/components/pane-shell/tree/store'
 import { registry } from '@/contrib/registry'
+import type { Locale } from '@/i18n'
 
 type NavigateLike = (to: string, options?: { replace?: boolean }) => void
 
@@ -114,7 +115,8 @@ export const SIDEBAR_NAV_AREA = 'sidebar.nav'
 export interface SidebarNavContribution {
   /** Codicon name, e.g. `'project'`. */
   codicon: string
-  label: string
+  /** Function form resolves against the live locale instead of boot locale. */
+  label: string | ((locale: Locale) => string)
   /** Route to navigate to (usually a contributed page's path). */
   path: string
 }

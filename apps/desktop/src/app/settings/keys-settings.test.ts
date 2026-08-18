@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { zh } from '@/i18n/zh'
 import type { EnvVarInfo } from '@/types/hermes'
 
-import { localizedCredentialInfo } from './keys-settings'
+import { localizedCredentialInfo, localizedCredentialLabel } from './keys-settings'
 
 const backendInfo: EnvVarInfo = {
   advanced: false,
@@ -28,6 +28,7 @@ describe('localizedCredentialInfo', () => {
       url: backendInfo.url
     })
     expect(backendInfo.description).toBe('Sudo password for terminal commands requiring root access')
+    expect(localizedCredentialLabel('SUDO_PASSWORD', localized, zh.settings.envKeys)).toBe('sudo 密码')
   })
 
   it('keeps backend copy for plugin-provided settings with no locale entry', () => {

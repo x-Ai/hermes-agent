@@ -46,6 +46,14 @@ export function localizedCredentialInfo(
   return description ? { ...info, description } : info
 }
 
+export function localizedCredentialLabel(
+  key: string,
+  info: EnvVarInfo,
+  envKeys: Translations['settings']['envKeys']
+): string {
+  return envKeys[key]?.prompt || credentialRowLabel(key, info)
+}
+
 const credentialElementId = (key: string) => `credential-key-${key}`
 
 export function KeysSettings({ view }: KeysSettingsProps) {
@@ -102,7 +110,7 @@ export function KeysSettings({ view }: KeysSettingsProps) {
         <div className="grid gap-2">
           {entries.map(([key, info]) => {
             const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys)
-            const label = credentialRowLabel(key, localizedInfo)
+            const label = localizedCredentialLabel(key, localizedInfo, t.settings.envKeys)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>

@@ -309,7 +309,7 @@ export function ChatSidebar({
   onManageCronJob,
   onTriggerCronJob
 }: ChatSidebarProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const s = t.sidebar
   const { pathname } = useLocation()
   // Contributed nav rows (plugins pairing a page with a sidebar entry) render
@@ -326,17 +326,18 @@ export function ChatSidebar({
         }
 
         const codicon = data.codicon || 'plug'
+        const label = typeof data.label === 'function' ? data.label(locale) : data.label
 
         return [
           {
             id: c.id,
-            label: data.label,
+            label,
             icon: (props: { className?: string }) => <Codicon name={codicon} {...props} />,
             route: data.path
           }
         ]
       }),
-    [navContributions]
+    [locale, navContributions]
   )
 
   const panesFlipped = useStore($panesFlipped)

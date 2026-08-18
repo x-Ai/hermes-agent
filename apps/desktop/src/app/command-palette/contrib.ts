@@ -5,6 +5,7 @@
  */
 
 import { useContributions } from '@/contrib/react/use-contributions'
+import type { Locale } from '@/i18n'
 import type { IconComponent } from '@/lib/icons'
 
 export const PALETTE_AREA = 'palette'
@@ -12,7 +13,9 @@ export const PALETTE_AREA = 'palette'
 /** Payload of a `palette` data contribution. */
 export interface PaletteContribution {
   id: string
-  label: string
+  /** A function keeps boot-time/plugin contributions reactive to locale
+   *  changes instead of freezing the language used during registration. */
+  label: string | ((locale: Locale) => string)
   /** Keybind action id — its live combo renders as the hotkey hint. */
   action?: string
   icon?: IconComponent

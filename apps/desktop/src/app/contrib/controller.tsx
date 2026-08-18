@@ -272,7 +272,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'plugins.reload',
-      label: 'Reload desktop plugins',
+      label: () => translateNow('paletteCommands.reloadDesktopPlugins'),
       keywords: ['plugins', 'reload', 'refresh', 'desktop'],
       run: () => void discoverRuntimePlugins()
     } satisfies PaletteContribution
@@ -295,7 +295,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'layout.reset',
-      label: 'Reset layout',
+      label: () => translateNow('paletteCommands.resetLayout'),
       icon: LayoutDashboard,
       keywords: ['layout', 'reset', 'default', 'panes'],
       run: resetLayoutTree
@@ -305,7 +305,7 @@ registry.registerMany([
   // ⌘K is the guaranteed door in (alongside the rebindable ⌘⇧S).
   paletteToggle({
     id: 'view.toggleStatusbar',
-    label: 'Toggle status bar',
+    label: () => translateNow('paletteCommands.toggleStatusBar'),
     action: 'view.toggleStatusbar',
     icon: PanelBottom,
     keywords: ['status bar', 'statusbar', 'bottom bar', 'hide', 'show', 'chrome'],
@@ -318,7 +318,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'keybinds.panel',
-      label: 'Keyboard shortcuts',
+      label: () => translateNow('paletteCommands.keyboardShortcuts'),
       keywords: ['keybinds', 'shortcuts', 'hotkeys', 'keyboard'],
       run: () => window.dispatchEvent(new CustomEvent('hermes:open-keybinds'))
     } satisfies PaletteContribution
@@ -331,7 +331,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.export',
-      label: 'Export profile…',
+      label: () => translateNow('paletteCommands.exportProfile'),
       icon: Upload,
       keywords: ['profile', 'export', 'share', 'bundle', 'theme', 'settings', 'backup'],
       run: () => void runExportProfileFlow()
@@ -342,7 +342,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.import',
-      label: 'Import profile…',
+      label: () => translateNow('paletteCommands.importProfile'),
       icon: Download,
       keywords: ['profile', 'import', 'share', 'bundle', 'archive', 'restore'],
       run: () => void runImportProfileFlow()
@@ -593,7 +593,7 @@ bindToolPaneCollapse(
 registry.register(
   paletteToggle({
     id: 'view.showTerminal',
-    label: 'Toggle terminal',
+    label: () => translateNow('paletteCommands.toggleTerminal'),
     action: 'view.showTerminal',
     icon: Terminal,
     keywords: ['terminal', 'shell', 'console', 'pty'],
@@ -660,7 +660,7 @@ $logsOpen.listen(syncLogsPane)
 registry.register(
   paletteToggle({
     id: 'logs.toggle',
-    label: 'Toggle logs',
+    label: () => translateNow('paletteCommands.toggleLogs'),
     icon: FileText,
     keywords: ['logs', 'agent log', 'tail', 'debug'],
     // On-screen, not the store's boolean. Summon-only keeps the two in step
@@ -679,7 +679,7 @@ registry.register(
 registry.register(
   paletteToggle({
     id: 'session.yolo',
-    label: 'Toggle yolo',
+    label: () => translateNow('paletteCommands.toggleYolo'),
     icon: Zap,
     keywords: ['yolo', 'approvals', 'auto-approve', 'bypass', 'dangerous', 'commands'],
     get: () => $yoloActive.get(),

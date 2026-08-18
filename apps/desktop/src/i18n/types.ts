@@ -295,6 +295,26 @@ export interface Translations {
     actions: Record<string, string>
   }
 
+  paletteCommands: {
+    reloadDesktopPlugins: string
+    resetLayout: string
+    toggleStatusBar: string
+    keyboardShortcuts: string
+    exportProfile: string
+    importProfile: string
+    toggleTerminal: string
+    toggleLogs: string
+    toggleYolo: string
+  }
+
+  timelineEvents: {
+    modelChanged: string
+    resumedInterruptedTurn: string
+    personalityChanged: string
+    backgroundAgentWorkFinished: string
+    backgroundAgentsFinished: (count: number) => string
+  }
+
   // Find-in-page bar (⌘F). `close` reuses common.close.
   findInPage: {
     next: string
@@ -763,8 +783,8 @@ export interface Translations {
     /** Localized copy for env-var credential fields, keyed by the env var name.
      *  `description` overlays the backend's English description everywhere the
      *  Keys/Providers surfaces render it; `prompt` overlays the toolset config
-     *  panel's field hint (falls back to `description`). Missing keys keep the
-     *  backend English. */
+     *  panel's field hint and the Settings credential label (falls back to
+     *  `description`). Missing keys keep the backend copy. */
     envKeys: Record<string, { description?: string; prompt?: string }>
     search: {
       placeholder: string
@@ -1098,6 +1118,9 @@ export interface Translations {
       modelSelectedTitle: string
       modelSelectedMessage: (model: string) => string
       failedSelectModel: (model: string) => string
+      /** Backend model ids stay raw; these maps localize catalog prose only. */
+      modelDescriptions: Record<string, string>
+      modelPrices: Record<string, string>
       terminalBackend: {
         sectionTitle: string
         loading: string
@@ -1110,6 +1133,9 @@ export interface Translations {
         selectedMessage: (backend: string) => string
         failedSelect: (backend: string) => string
         needsSetupHint: string
+        /** Backend names/details are protocol data and remain raw over the API. */
+        descriptions: Record<string, string>
+        details: Record<string, string>
       }
       computerUse: {
         checking: string
@@ -2005,6 +2031,24 @@ export interface Translations {
     statusDivider: {
       working: string
       done: string
+    }
+    filterMenu: {
+      ariaLabel: string
+      grouping: string
+      ordering: string
+      show: string
+      inboxStyle: string
+      filters: string
+      status: string
+      pullRequest: string
+      profile: string
+      project: string
+      archived: string
+      resetToDefaults: string
+      expandAll: string
+      collapseAll: string
+      markAllRead: string
+      options: Record<string, string>
     }
     markAllRead: string
   }

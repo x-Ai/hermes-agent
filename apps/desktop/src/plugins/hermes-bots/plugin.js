@@ -9287,7 +9287,7 @@ export default {
       area: PALETTE_AREA,
       data: {
         id: `${ID}.new-agent`,
-        label: `${bt('newAgent')}…`,
+        label: () => `${bt('newAgent')}…`,
         keywords: ['bot', 'agent', 'profile', 'teammate', 'create'],
         run: () => {
           host.notify({ kind: 'info', message: bt('openBotsPane') })

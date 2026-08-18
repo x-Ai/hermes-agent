@@ -345,6 +345,26 @@ export const en: Translations = {
     }
   },
 
+  paletteCommands: {
+    reloadDesktopPlugins: 'Reload desktop plugins',
+    resetLayout: 'Reset layout',
+    toggleStatusBar: 'Toggle status bar',
+    keyboardShortcuts: 'Keyboard shortcuts',
+    exportProfile: 'Export profile…',
+    importProfile: 'Import profile…',
+    toggleTerminal: 'Toggle terminal',
+    toggleLogs: 'Toggle logs',
+    toggleYolo: 'Toggle yolo'
+  },
+
+  timelineEvents: {
+    modelChanged: 'model changed',
+    resumedInterruptedTurn: 'resumed interrupted turn',
+    personalityChanged: 'personality changed',
+    backgroundAgentWorkFinished: 'background agent work finished',
+    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
+  },
+
   findInPage: {
     next: 'Next match',
     previous: 'Previous match'
@@ -1250,6 +1270,8 @@ export const en: Translations = {
       modelSelectedTitle: 'Model selected',
       modelSelectedMessage: model => `${model} applies to new sessions.`,
       failedSelectModel: model => `Failed to select ${model}`,
+      modelDescriptions: {},
+      modelPrices: {},
       terminalBackend: {
         sectionTitle: 'Execution backend',
         loading: 'Checking execution backends…',
@@ -1261,7 +1283,9 @@ export const en: Translations = {
         selectedTitle: 'Backend selected',
         selectedMessage: backend => `Terminal commands now run via ${backend}. Applies to new sessions.`,
         failedSelect: backend => `Failed to select ${backend}`,
-        needsSetupHint: 'You can select this backend now — commands will fail until setup is complete.'
+        needsSetupHint: 'You can select this backend now — commands will fail until setup is complete.',
+        descriptions: {},
+        details: {}
       },
       computerUse: {
         checking: 'Checking Computer Use status…',
@@ -2502,6 +2526,44 @@ export const en: Translations = {
     statusDivider: {
       working: 'Working',
       done: 'Done'
+    },
+    filterMenu: {
+      ariaLabel: 'Filters',
+      grouping: 'Grouping',
+      ordering: 'Ordering',
+      show: 'Show',
+      inboxStyle: 'Inbox style',
+      filters: 'Filters',
+      status: 'Status',
+      pullRequest: 'Pull request',
+      profile: 'Profile',
+      project: 'Project',
+      archived: 'Archived',
+      resetToDefaults: 'Reset to defaults',
+      expandAll: 'Expand all',
+      collapseAll: 'Collapse all',
+      markAllRead: 'Mark all as read',
+      options: {
+        updated: 'Updated',
+        project: 'Project',
+        status: 'Status',
+        profile: 'Profile',
+        created: 'Created',
+        tokens: 'Tokens',
+        cost: 'Cost',
+        manual: 'Manual',
+        preview: 'Preview',
+        pr: 'PR',
+        open: 'Open',
+        draft: 'Draft',
+        merged: 'Merged',
+        closed: 'Closed',
+        noPr: 'No PR',
+        needsInput: 'Needs input',
+        working: 'Working',
+        unread: 'Unread',
+        idle: 'Idle'
+      }
     },
     markAllRead: 'Mark all as read'
   },
