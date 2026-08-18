@@ -225,6 +225,12 @@ export const ja = defineLocale({
     openStarmap: 'メモリグラフを開く'
   },
 
+  keybinds: {
+    actions: {
+      'layout.editMode': 'レイアウト編集モードを切り替え'
+    }
+  },
+
   language: {
     label: '言語',
     description: 'デスクトップインターフェイスの言語を選択します。',

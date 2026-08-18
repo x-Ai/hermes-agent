@@ -302,6 +302,7 @@ export const zh: Translations = {
       'view.findNext': '查找下一个',
       'view.findPrevious': '查找上一个',
       'appearance.toggleMode': '切换浅色/深色',
+      'layout.editMode': '切换布局编辑模式',
       'profile.default': '切换到默认配置',
       'profile.switch.1': '切换到配置 1',
       'profile.switch.2': '切换到配置 2',

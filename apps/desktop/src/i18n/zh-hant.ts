@@ -219,6 +219,12 @@ export const zhHant = defineLocale({
     openStarmap: '開啟記憶圖譜'
   },
 
+  keybinds: {
+    actions: {
+      'layout.editMode': '切換版面編輯模式'
+    }
+  },
+
   language: {
     label: '語言',
     description: '選擇桌面介面的語言。',

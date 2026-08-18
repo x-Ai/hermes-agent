@@ -307,6 +307,7 @@ export const en: Translations = {
       'view.findNext': 'Find next match',
       'view.findPrevious': 'Find previous match',
       'appearance.toggleMode': 'Toggle light / dark',
+      'layout.editMode': 'Toggle layout edit mode',
       'profile.default': 'Switch to default profile',
       'profile.switch.1': 'Switch to profile 1',
       'profile.switch.2': 'Switch to profile 2',

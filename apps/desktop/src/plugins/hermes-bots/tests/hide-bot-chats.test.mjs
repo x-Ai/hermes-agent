@@ -49,6 +49,7 @@ test('group member session.create is unconditionally hidden too', () => {
   const fn = source.slice(source.indexOf('async function ensureGroupChatSession('), source.indexOf('const GROUP_TURN_TIMEOUT_MS'))
   assert.match(fn, /hidden: true/)
   assert.equal(source.includes('$hideBotChats'), false, 'the old pref atom must be gone')
+  assert.doesNotMatch(source, /\b(?:hideBotChats|setHideBotChats)\b/, 'stale pref UI must not crash BotsPane')
 })
 
 test('hideOwnedBotSessions sweeps canonical chats AND room member sessions', async () => {

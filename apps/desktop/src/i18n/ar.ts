@@ -253,6 +253,7 @@ export const ar = defineLocale({
       'view.closePreviewTab': 'إغلاق علامة تبويب المعاينة',
       'view.flipPanes': 'تبديل جانبي الشريط الجانبي',
       'appearance.toggleMode': 'تبديل الفاتح / الداكن',
+      'layout.editMode': 'تبديل وضع تحرير التخطيط',
       'profile.default': 'الانتقال إلى الملف الشخصي الافتراضي',
       'profile.switch.1': 'الانتقال إلى الملف الشخصي 1',
       'profile.switch.2': 'الانتقال إلى الملف الشخصي 2',

@@ -52,6 +52,14 @@ describe('desktop i18n runtime translator', () => {
     )
   })
 
+  it('localizes the contributed layout-edit shortcut in the keybinds panel', () => {
+    expect(TRANSLATIONS.en.keybinds.actions['layout.editMode']).toBe('Toggle layout edit mode')
+    expect(TRANSLATIONS.zh.keybinds.actions['layout.editMode']).toBe('切换布局编辑模式')
+    expect(TRANSLATIONS['zh-hant'].keybinds.actions['layout.editMode']).toBe('切換版面編輯模式')
+    expect(TRANSLATIONS.ja.keybinds.actions['layout.editMode']).toBe('レイアウト編集モードを切り替え')
+    expect(TRANSLATIONS.ar.keybinds.actions['layout.editMode']).toBe('تبديل وضع تحرير التخطيط')
+  })
+
   it('keeps translated settings field copy addressable from schema keys', () => {
     const field = ['display', 'show_reasoning'].join('.')
 

@@ -8173,16 +8173,6 @@ function BotsPane() {
                     })
                   })
                 : null,
-              jsx(Tip, {
-                label: hideBotChats ? b.botChatsHidden : b.botChatsShown,
-                children: jsx('button', {
-                  type: 'button',
-                  className:
-                    'flex size-6 items-center justify-center rounded-md text-(--ui-text-tertiary) transition-colors hover:bg-(--chrome-action-hover) hover:text-foreground',
-                  onClick: () => void setHideBotChats(!hideBotChats),
-                  children: jsx(Codicon, { name: hideBotChats ? 'eye-closed' : 'eye' })
-                })
-              }),
               jsxs(DropdownMenu, {
                 children: [
                   jsx(Tip, {
