@@ -432,8 +432,8 @@ test('disband: a running room leaves an epoch-bumped empty tombstone so in-fligh
 
 test('source contract: workspace header offers disband behind a ConfirmDialog', () => {
   assert.match(pluginSource, /function disbandGroupChat\(/)
-  assert.match(pluginSource, /Disband group chat\?/)
-  assert.match(pluginSource, /title: `Disband the \$\{group\} group chat`/)
+  assert.match(pluginSource, /title: b\.disbandGroupChatTitle/)
+  assert.match(pluginSource, /title: b\.disbandGroupChat\(group\)/)
 })
 
 test('default profile speaks as Hermes in room transcripts, not @default', () => {

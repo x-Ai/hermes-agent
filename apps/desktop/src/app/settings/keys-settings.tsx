@@ -2,6 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useI18n } from '@/i18n'
+import type { Translations } from '@/i18n'
 import { $settingsScopeOverride } from '@/store/settings-scope'
 import type { EnvVarInfo } from '@/types/hermes'
 
@@ -29,6 +30,20 @@ export type KeysView = (typeof KEYS_VIEWS)[number]
 const VIEW_CATEGORIES: Record<KeysView, readonly string[]> = {
   settings: ['setting', 'messaging'],
   tools: ['tool']
+}
+
+/** Overlay renderer-owned copy on backend credential metadata. The backend
+ * remains authoritative for behavior and URLs; descriptions are presentation
+ * copy and follow the active desktop locale. Unknown keys retain backend copy
+ * so plugin-provided settings continue to degrade gracefully. */
+export function localizedCredentialInfo(
+  key: string,
+  info: EnvVarInfo,
+  envKeys: Translations['settings']['envKeys']
+): EnvVarInfo {
+  const description = envKeys[key]?.description
+
+  return description ? { ...info, description } : info
 }
 
 export function KeysSettings({ view }: KeysSettingsProps) {
@@ -81,17 +96,18 @@ export function KeysSettings({ view }: KeysSettingsProps) {
       {visible.map(group => (
         <div className="grid gap-2" key={group.category}>
           {group.entries.map(([key, info]: [string, EnvVarInfo]) => {
-            const label = credentialRowLabel(key, info)
+            const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys)
+            const label = credentialRowLabel(key, localizedInfo)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={`credential-key-${key}`} key={key}>
                 <CredentialKeyCard
                   expanded={openKey === key}
-                  info={info}
+                  info={localizedInfo}
                   label={label}
                   onExpand={() => setOpenKey(key)}
                   onToggle={() => setOpenKey(prev => (prev === key ? null : key))}
-                  placeholder={credentialPlaceholder(key, info, label)}
+                  placeholder={credentialPlaceholder(key, localizedInfo, label)}
                   rowProps={rowProps}
                   varKey={key}
                 />

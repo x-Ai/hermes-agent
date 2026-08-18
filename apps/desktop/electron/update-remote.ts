@@ -1,7 +1,8 @@
 /**
  * Pure helpers for choosing a remote URL during passive update checks.
  *
- * A public install can end up with `origin=git@github.com:NousResearch/hermes-agent.git`.
+ * This customized build tracks `x-Ai/hermes-agent` as its canonical update
+ * source. A public install can end up with `origin=git@github.com:x-Ai/hermes-agent.git`.
  * If the user's GitHub SSH key is FIDO2/passkey-backed, a background `git fetch
  * origin` triggers an unexplained hardware-touch prompt. For passive checks
  * against the official repo we substitute the public HTTPS `ls-remote` path,
@@ -12,8 +13,9 @@
  * testable without booting Electron (main.ts requires('electron') at load).
  */
 
-const OFFICIAL_REPO_HTTPS_URL = 'https://github.com/NousResearch/hermes-agent.git'
-const OFFICIAL_REPO_CANONICAL = 'github.com/nousresearch/hermes-agent'
+const OFFICIAL_REPO_HTTPS_URL = 'https://github.com/x-Ai/hermes-agent.git'
+const OFFICIAL_REPO_CANONICAL = 'github.com/x-ai/hermes-agent'
+const LEGACY_OFFICIAL_REPO_CANONICAL = 'github.com/nousresearch/hermes-agent'
 
 // Normalize common GitHub remote URL forms to `host/owner/repo` (lowercased,
 // no trailing slash, no .git suffix) so SSH and HTTPS forms of the same repo
@@ -62,4 +64,19 @@ function isOfficialSshRemote(url) {
   return isSshRemote(url) && canonicalGitHubRemote(url) === OFFICIAL_REPO_CANONICAL
 }
 
-export { canonicalGitHubRemote, isOfficialSshRemote, isSshRemote, OFFICIAL_REPO_CANONICAL, OFFICIAL_REPO_HTTPS_URL }
+// Existing managed installs may still point at the original public repository.
+// Retarget only that exact legacy remote; arbitrary forks and private remotes
+// remain user-owned and are never rewritten.
+function canonicalUpdateRemoteReplacement(url) {
+  return canonicalGitHubRemote(url) === LEGACY_OFFICIAL_REPO_CANONICAL ? OFFICIAL_REPO_HTTPS_URL : null
+}
+
+export {
+  canonicalGitHubRemote,
+  canonicalUpdateRemoteReplacement,
+  isOfficialSshRemote,
+  isSshRemote,
+  LEGACY_OFFICIAL_REPO_CANONICAL,
+  OFFICIAL_REPO_CANONICAL,
+  OFFICIAL_REPO_HTTPS_URL
+}

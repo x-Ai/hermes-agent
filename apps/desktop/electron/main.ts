@@ -310,7 +310,11 @@ import {
 } from './update-count'
 import { waitForUpdateClearance } from './update-gate'
 import { readLiveUpdateMarker, updateHandoffConflict, writeUpdateMarker } from './update-marker'
-import { isOfficialSshRemote, OFFICIAL_REPO_HTTPS_URL } from './update-remote'
+import {
+  canonicalUpdateRemoteReplacement,
+  isOfficialSshRemote,
+  OFFICIAL_REPO_HTTPS_URL
+} from './update-remote'
 import {
   collectRelaunchArgs,
   observeUpdaterHandoff,
@@ -2689,6 +2693,29 @@ async function getOriginUrl(updateRoot) {
   return origin.code === 0 ? origin.stdout.trim() : ''
 }
 
+async function ensureCanonicalUpdateOrigin(updateRoot) {
+  const current = await getOriginUrl(updateRoot)
+  const replacement = canonicalUpdateRemoteReplacement(current)
+
+  if (!replacement) {
+    return current
+  }
+
+  const changed = await runGit(['remote', 'set-url', 'origin', replacement], { cwd: updateRoot })
+
+  if (changed.code === 0) {
+    rememberLog(`[updates] migrated origin from ${current} to ${replacement}`)
+
+    return replacement
+  }
+
+  rememberLog(
+    `[updates] could not migrate origin from ${current}: ${firstLine(changed.stderr) || 'git failed'}`
+  )
+
+  return current
+}
+
 function emitUpdateProgress(payload) {
   const merged = { stage: 'idle', message: '', percent: null, error: null, ...payload, at: Date.now() }
   rememberLog(`[updates] ${merged.stage}: ${merged.message || merged.error || ''}`)
@@ -2741,6 +2768,8 @@ async function checkUpdates() {
       branch
     }
   }
+
+  await ensureCanonicalUpdateOrigin(updateRoot)
 
   branch = await resolveHealedBranch(updateRoot, branch)
   const originUrl = await getOriginUrl(updateRoot)
@@ -3447,6 +3476,7 @@ async function applyUpdates(opts: { stopSafeBlockers?: boolean } = {}) {
   updateInFlight = true
 
   try {
+    await ensureCanonicalUpdateOrigin(resolveUpdateRoot())
     const updater = resolveUpdaterBinary()
 
     if (!updater && !IS_WINDOWS) {

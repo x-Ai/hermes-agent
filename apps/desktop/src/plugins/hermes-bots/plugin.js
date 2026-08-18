@@ -86,6 +86,7 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'agentCreatedOn',
   'agentExists',
   'agentExistsOn',
+  'addedToGroup',
   'appearanceAndRole',
   'authenticated',
   'botsCount',
@@ -108,9 +109,11 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'everyMinutes',
   'failedToSet',
   'group',
+  'groups',
   'groupChatTitle',
   'groupCreated',
   'inGroup',
+  'inGroups',
   'installAndAdd',
   'installing',
   'installingFailed',
@@ -138,6 +141,7 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'recurringTaskDesc',
   'removeFromGroup',
   'removedFromGroup',
+  'removedFromNamedGroup',
   'rosterUnavailable',
   'remoteAgentLocationHint',
   'remoteMentionHint',
@@ -7277,13 +7281,6 @@ function RoutinesPane() {
                 })
               ]
             })
-          : jsx(ScrollArea, {
-              className: 'min-h-0 flex-1',
-              children: jsx('div', {
-                className: 'grid gap-1.5 px-2.5 py-2',
-                children: jobs.map(job => jsx(RoutineRow, { job, profile: bot }, job.job_id))
-
-              })
             : jsx(ScrollArea, {
                 className: 'min-h-0 flex-1',
                 children: jsx('div', {
@@ -8663,8 +8660,14 @@ function BotsPane() {
 export default {
   id: ID,
   name: 'Bots',
+  localizedName: {
+    zh: '智能体'
+  },
   description:
     'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
+  localizedDescription: {
+    zh: '智能体模式——为每个智能体提供独立聊天，支持头像、定时任务、群聊和智能体间消息。此功能随应用内置；如不需要，可在此处禁用。'
+  },
   register(ctx) {
     pluginCtx = ctx
     // Standalone plugin hosts predating the scoped i18n door still load Bot
