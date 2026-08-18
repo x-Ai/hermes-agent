@@ -45,8 +45,7 @@ function load({ toastsOn = false } = {}) {
     .replace(/^const \{ McpTab, ToolsetConfigPanel \} = sdk\r?\n/m, '')
     .replace(/^import .* from 'react'\r?\n/m, '')
     .replace(/^import .* from 'react\/jsx-runtime'\r?\n/m, '')
-    .replace('export default {', 'globalThis.plugin = {')
-    .concat(`
+    .replace('export default {', 'globalThis.plugin = {').concat(`
 globalThis.__hide = {
   isBotHidden,
   fallbackSelectionAfterHide,
@@ -86,15 +85,14 @@ test('hide: saveBotMeta persists hidden:true locally and ships it in server ui_m
 test('roster: hidden bots are filtered out; remote-source rows of the same name stay visible', () => {
   const t = load()
   t.$botMeta.set({ ghost: { hidden: true } })
-  const roster = [
-    { name: 'default' },
-    { name: 'ghost' },
-    { name: 'ghost', remoteSource: true, connectionId: 'mini' }
-  ]
+  const roster = [{ name: 'default' }, { name: 'ghost' }, { name: 'ghost', remoteSource: true, connectionId: 'mini' }]
   const meta = t.$botMeta.get()
   const visible = roster.filter(bot => !t.isBotHidden(bot, meta))
 
-  assert.equal(JSON.stringify(visible.map(b => `${b.remoteSource ? 'r:' : ''}${b.name}`)), JSON.stringify(['default', 'r:ghost']))
+  assert.equal(
+    JSON.stringify(visible.map(b => `${b.remoteSource ? 'r:' : ''}${b.name}`)),
+    JSON.stringify(['default', 'r:ghost'])
+  )
 })
 
 test('unhide: hidden:false clears locally AND survives a mergeServerMeta round-trip', async () => {
@@ -200,10 +198,13 @@ test('shape: header eye toggle renders only when at least one bot is hidden', ()
 })
 
 test('shape: revealed hidden rows are dimmed and flagged with the eye-closed glyph', () => {
-  const botRow = pluginSource.slice(pluginSource.indexOf('function BotRow('), pluginSource.indexOf('// ── model picker'))
+  const botRow = pluginSource.slice(
+    pluginSource.indexOf('function BotRow('),
+    pluginSource.indexOf('// ── model picker')
+  )
   assert.match(botRow, /meta\?\.hidden && 'opacity-60'/)
   assert.match(botRow, /name: 'eye-closed'/)
-  assert.match(botRow, /children: meta\?\.hidden \? 'Unhide Bot' : 'Hide Bot'/)
+  assert.match(botRow, /children: meta\?\.hidden \? b\.unhideBot : b\.hideBot/)
   assert.match(botRow, /saveBotMeta\(bot\.name, \{ hidden: !hidden \}\)/)
 })
 
@@ -213,7 +214,7 @@ test('shape: hiding never filters mentions, group flows, or the meta/activity sw
   // which is derived from the unfiltered roster, not visibleRoster.
   assert.match(pluginSource, /const activeSourceRoster = roster\.filter\(bot => !bot\.remoteSource\)/)
   assert.match(pluginSource, /mergeServerMeta\(activeSourceRoster\)/)
-  assert.match(pluginSource, /trackInboundActivity\(activeSourceRoster\)/)
+  assert.match(pluginSource, /trackInboundActivity\(activeSourceRoster, b\)/)
   // Mention resolution never consults the hidden flag.
   const mentions = pluginSource.slice(
     pluginSource.indexOf('function resolveRosterMentions('),

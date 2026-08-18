@@ -30,7 +30,12 @@ function load(turnScript) {
     host: {
       request: async (method, params) => {
         if (method === 'session.create') {
-          return { session_id: `rt-${params.profile}`, stored_session_id: `sid-${params.profile}`, message_count: 0, messages: [] }
+          return {
+            session_id: `rt-${params.profile}`,
+            stored_session_id: `sid-${params.profile}`,
+            message_count: 0,
+            messages: []
+          }
         }
         if (method === 'session.resume') {
           const profile = params.profile
@@ -73,7 +78,11 @@ function load(turnScript) {
   return { ...context.__gc, calls, storageWrites }
 }
 
-const MEMBERS = [{ name: 'research', title: '' }, { name: 'builder', title: '' }, { name: 'ops', title: 'The Ops' }]
+const MEMBERS = [
+  { name: 'research', title: '' },
+  { name: 'builder', title: '' },
+  { name: 'ops', title: 'The Ops' }
+]
 
 function roomLog(gc, group) {
   return (gc.$groupChats.get()[group] || { log: [] }).log
@@ -122,7 +131,14 @@ test('a member @-mentioned by another bot joins the NEXT round', async () => {
     return '(pass)'
   })
 
-  gc.sendToGroupChat('Core', [{ name: 'research', title: '' }, { name: 'builder', title: '' }], '@research thoughts?')
+  gc.sendToGroupChat(
+    'Core',
+    [
+      { name: 'research', title: '' },
+      { name: 'builder', title: '' }
+    ],
+    '@research thoughts?'
+  )
   await new Promise(resolve => setTimeout(resolve, 0))
   await new Promise(resolve => setImmediate(resolve))
   // Drain the async loop: poll until running flips false.
@@ -131,8 +147,14 @@ test('a member @-mentioned by another bot joins the NEXT round', async () => {
   }
 
   const texts = roomLog(gc, 'Core').map(e => `${e.from.name}: ${e.text}`)
-  assert.equal(texts.some(t => t.startsWith('research:')), true)
-  assert.equal(texts.some(t => t.startsWith('builder: On it')), true)
+  assert.equal(
+    texts.some(t => t.startsWith('research:')),
+    true
+  )
+  assert.equal(
+    texts.some(t => t.startsWith('builder: On it')),
+    true
+  )
 })
 
 test('settle: everyone passing ends the room turn with only the user message logged', async () => {
@@ -228,7 +250,7 @@ test('turn transport is gateway-native (session RPCs) and hostile text rides ver
   // Hostile text is a JSON string in an RPC param — never a shell string.
   assert.equal(call.prompt.includes('hello "there" `whoami` $(id)'), true)
   // The per-group session is created with the room title.
-  assert.match(pluginSource, /title,\n/)
+  assert.match(pluginSource, /title,\r?\n/)
   assert.match(pluginSource, /const title = `Group: \$\{group\}`/)
 })
 
@@ -248,6 +270,7 @@ test('source contract: workspace + main-window door + prompt rules are wired', (
   assert.match(pluginSource, /function openGroupChat\(/)
   assert.match(pluginSource, /typeof host\.openWorkspace === 'function'/)
   assert.match(pluginSource, /\$groupChatWorkspace\.set\(group\)/)
+  assert.match(pluginSource, /children: b\.back/)
   assert.match(pluginSource, /reply with exactly "\(pass\)"/i)
   assert.match(pluginSource, /\[Group chat: "\$\{groupName\}"\]/)
 })
@@ -313,8 +336,9 @@ test('disband: a running room leaves an epoch-bumped empty tombstone so in-fligh
 
 test('source contract: workspace header offers disband behind a ConfirmDialog', () => {
   assert.match(pluginSource, /function disbandGroupChat\(/)
-  assert.match(pluginSource, /Disband group chat\?/)
-  assert.match(pluginSource, /title: `Disband the \$\{group\} group chat`/)
+  assert.match(pluginSource, /title: b\.disbandGroupChatTitle/)
+  assert.match(pluginSource, /title: b\.disbandGroupChat\(group\)/)
+  assert.match(pluginSource, /confirmLabel: b\.disband/)
 })
 
 test('default profile speaks as Hermes in room transcripts, not @default', () => {
@@ -334,7 +358,10 @@ test('turn prompt addresses the default profile as @hermes', () => {
   const gc = load(() => '(pass)')
   const prompt = gc.buildGroupChatTurnPrompt({
     groupName: 'Core',
-    members: [{ name: 'default', title: '' }, { name: 'builder', title: '' }],
+    members: [
+      { name: 'default', title: '' },
+      { name: 'builder', title: '' }
+    ],
     viewer: { name: 'default', title: '' },
     deltaLines: []
   })
@@ -343,7 +370,10 @@ test('turn prompt addresses the default profile as @hermes', () => {
 
   const peerView = gc.buildGroupChatTurnPrompt({
     groupName: 'Core',
-    members: [{ name: 'default', title: '' }, { name: 'builder', title: '' }],
+    members: [
+      { name: 'default', title: '' },
+      { name: 'builder', title: '' }
+    ],
     viewer: { name: 'builder', title: '' },
     deltaLines: []
   })
@@ -352,7 +382,10 @@ test('turn prompt addresses the default profile as @hermes', () => {
 
 test('mention routing: @hermes resolves to the default member', () => {
   const gc = load(() => '(pass)')
-  const members = [{ name: 'default', title: '' }, { name: 'builder', title: '' }]
+  const members = [
+    { name: 'default', title: '' },
+    { name: 'builder', title: '' }
+  ]
   const parsed = gc.parseGroupChatMentions('@hermes take a look', members)
   assert.equal(parsed.mentioned.has('default'), true)
   assert.equal(parsed.mentioned.size, 1)
@@ -364,7 +397,10 @@ test('source contract: workspace speaker labels use displayName with a click-to-
   // …and clicking a speaker reveals the full disambiguated handle, with the
   // gateway/device name appended for cross-connection speakers.
   assert.match(pluginSource, /setRevealedSpeaker\(revealed \? null : entryKey\)/)
-  assert.match(pluginSource, /\$\{display\}\$\{entry\.from\.source \? `-\$\{entry\.from\.source\}` : ''\} \(@\$\{botHandle\(entry\.from\.name, member \|\| undefined\)\}\)/)
+  assert.match(
+    pluginSource,
+    /\$\{display\}\$\{entry\.from\.source \? `-\$\{entry\.from\.source\}` : ''\} \(@\$\{botHandle\(entry\.from\.name, member \|\| undefined\)\}\)/
+  )
 })
 
 test('source contract: room messages carry the speaker avatar via the roster appearance pipeline', () => {
@@ -376,7 +412,10 @@ test('source contract: room messages carry the speaker avatar via the roster app
   // image/pet honored, backfilled PNG dropped so the math face animates).
   assert.match(workspace, /botAppearance\(entry\.from\.name, meta\)/)
   assert.match(workspace, /image && !isBackfilledFacePng\(image\)/)
-  assert.match(workspace, /jsx\(BotFace, \{\s*shape,\s*color,\s*image: photo \? image : null,\s*size: 24,\s*name: entry\.from\.name/)
+  assert.match(
+    workspace,
+    /jsx\(BotFace, \{\s*shape,\s*color,\s*image: photo \? image : null,\s*size: 24,\s*name: entry\.from\.name/
+  )
 
   // Header shows the member faces (capped) with a names tooltip.
   assert.match(workspace, /members\.slice\(0, 6\)\.map\(/)

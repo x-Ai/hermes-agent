@@ -1417,6 +1417,7 @@ export const ja = defineLocale({
     noToolsetsDesc: '検索キーワードを広げてください。',
     noDescription: '説明はありません。',
     toolsetDescriptions: {
+      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 対応です。Linux Foundation のオープン標準を使った双方向のエージェント間通信を提供します。アウトバウンドツールはピアの検出、Agent Card の取得、JSON-RPC タスクの送信を行います。インバウンドアダプターは /.well-known/agent-card.json で Hermes を公開し、完全なメモリとコンテキストを持つライブゲートウェイセッションへタスクをルーティングします。bearer token が未設定の場合は localhost のみにバインドし、入力テキストのフィルタリング、出力認証情報の除去、コンテキスト圧縮外での監査ログ記録を行います。Python 標準ライブラリのみを使用し、a2a-sdk は不要です。',
       browser: 'ウェブ操作のためのブラウザ自動化（ナビゲート、クリック、入力、スクロール、iframe、長押し）と URL 検索用のウェブ検索',
       clarify: 'ユーザーに確認の質問をします（選択式または自由回答）',
       code_execution: 'ツールをプログラム的に呼び出す Python スクリプトを実行します（LLM の往復を削減）',
@@ -1492,6 +1493,7 @@ export const ja = defineLocale({
       video_gen: '動画生成',
       x_search: 'X (Twitter) 検索',
       tts: 'テキスト読み上げ',
+      stt: '音声テキスト変換',
       skills: 'スキル',
       todo: 'タスク計画',
       memory: 'メモリ',
@@ -2256,7 +2258,7 @@ export const ja = defineLocale({
       yuanbao: 'Tencent Yuanbao に Hermes を接続します。',
       api_server: 'Open WebUI などのツール向けに Hermes を OpenAI 互換 HTTP API として公開します。',
       webhook: 'GitHub、GitLab などの webhook ソースからイベントを受信します。',
-      a2a: 'A2A プロトコル経由でローカルまたはリモートで他の Hermes インスタンスやエージェントと会話します。',
+      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 サポート —— Linux Foundation のエージェント間通信オープン標準の双方向対応。\n\nアウトバウンド（クライアントツール）：a2a_discover、a2a_call、a2a_list、a2a_history、a2a_orchestrate により、エージェントが他のエージェントの Agent Card を取得し、JSON-RPC 経由でタスクを送信できます —— 任意の A2A 準拠ピア（Hermes、LangChain、CrewAI、Google ADK、OpenClaw など）と連携可能。\n\nインバウンド（プラットフォームアダプター）：Hermes を A2A で発見可能なエージェントとして公開します。Agent Card は /.well-known/agent-card.json で提供され（v1.0 標準パス；レガシー agent.json も応答）、受信タスクは他のプラットフォームと同様にエージェントのライブゲートウェイセッションにルーティングされます —— そのため応答するエージェントは、完全なメモリとコンテキストを持ってユーザーと会話している同じエージェントであり、使い捨てのクローンではありません。\n\nセキュリティはデフォルトで有効：ベアラートークン未設定 => localhost のみにバインド。インバウンドタスクテキストはプロンプトインジェクションフィルターを通過；アウトバウンドテキストは認証情報形式の文字列をスクラブ；すべての交換は監査ログに記録され、コンテキスト圧縮パイプラインの外でディスクに永続化されるため、会話は圧縮と再起動後も存続します。\n\n純粋な標準ライブラリトランスポート（http.server + urllib）—— a2a-sdk 依存関係不要。',
       buzz: 'Nostr リレー経由で分散型 Buzz コミュニティに接続します（buzz CLI が必要）。',
       raft: 'Raft ワークスペースに外部エージェントとして参加してタスクで協力します。'
     }

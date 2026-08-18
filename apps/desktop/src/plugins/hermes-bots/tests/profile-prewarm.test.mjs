@@ -61,6 +61,14 @@ function renderBotRow(input = 'alpha') {
     ACTIVE_WINDOW_S: 90,
     A2A_PREFIX_RE: /^$/,
     useEffect: () => undefined,
+    useBots: () =>
+      new Proxy(
+        {},
+        {
+          get: (_target, key) =>
+            ['livesOn', 'remoteMentionHint', 'couldNotReach'].includes(key) ? (...args) => args.join(' ') : key
+        }
+      ),
     useState: initial => [typeof initial === 'function' ? initial() : initial, () => undefined],
     host: {
       state: { gateway: atom('open'), profile: atom('default') },
@@ -185,6 +193,14 @@ test('behavior: remote default does not open this-device chat when the source di
     ACTIVE_WINDOW_S: 90,
     A2A_PREFIX_RE: /^$/,
     useEffect: () => undefined,
+    useBots: () =>
+      new Proxy(
+        {},
+        {
+          get: (_target, key) =>
+            ['livesOn', 'remoteMentionHint', 'couldNotReach'].includes(key) ? (...args) => args.join(' ') : key
+        }
+      ),
     useState: initial => [typeof initial === 'function' ? initial() : initial, () => undefined],
     host: {
       state: { gateway: atom('open'), profile: atom('default') },
@@ -192,7 +208,9 @@ test('behavior: remote default does not open this-device chat when the source di
       activeConnectionId: () => 'local',
       warmAgent: () => undefined,
       warmProfile: () => undefined,
-      request: async () => ({ profiles: [{ name: 'default', ui_meta: { 'hermes-bots': { chat: 'this-device-chat' } } }] }),
+      request: async () => ({
+        profiles: [{ name: 'default', ui_meta: { 'hermes-bots': { chat: 'this-device-chat' } } }]
+      }),
       notify: () => undefined,
       notifyError: (_err, msg) => errors.push(msg)
     },

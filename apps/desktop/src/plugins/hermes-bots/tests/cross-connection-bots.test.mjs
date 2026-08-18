@@ -147,7 +147,7 @@ test('room lines and turn prompts badge cross-connection speakers with their dev
 })
 
 test('source contract: New Agent has a Create on picker that routes creation to the target backend', () => {
-  assert.match(pluginSource, /'Create on'/)
+  assert.match(pluginSource, /labeled\(\s*b\.createOn,/)
   assert.match(pluginSource, /const \[targetConnection, setTargetConnection\] = useState\(''\)/)
   // Creation and configuration go through the target door, not bare host.request.
   assert.match(pluginSource, /await requestForTarget\('profiles\.create', \{/)

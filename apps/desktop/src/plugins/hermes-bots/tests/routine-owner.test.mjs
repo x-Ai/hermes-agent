@@ -57,10 +57,12 @@ test('routine creation keeps its captured owner while another bot becomes active
 test('routine mutation invalidates only its immutable owner cache', async () => {
   const runtime = load()
   await runtime.__routineOwners.invalidateRoutineOwner('ops')
-  assert.deepEqual(plain(runtime.invalidations), [{
-    queryKey: ['hermes-bots', 'routines', 'ops'],
-    exact: true
-  }])
+  assert.deepEqual(plain(runtime.invalidations), [
+    {
+      queryKey: ['hermes-bots', 'routines', 'ops'],
+      exact: true
+    }
+  ])
 })
 
 test('source contract: row mutations invalidate the profile that owned the request', () => {
@@ -81,7 +83,7 @@ test('source contract: create mutations and dialog state retain one owner', () =
   assert.match(pluginSource, /const createTarget = routineCreateTarget\(createOwner, bot\)/)
   // key must be the jsx() THIRD argument (a `key:` prop is silently ignored
   // by the react/jsx-runtime and the dialog would keep stale per-bot state).
-  assert.match(pluginSource, /jsx\(CreateRoutineDialog, \{[\s\S]*?\}, createTarget\)/)
+  assert.match(pluginSource, /jsx\(\s*CreateRoutineDialog,\s*\{[\s\S]*?\},\s*createTarget\s*\)/)
   assert.doesNotMatch(pluginSource, /key: createTarget/)
   assert.match(pluginSource, /bot: createTarget/)
   assert.doesNotMatch(pluginSource, /setCreateOwner\(owner =>/)

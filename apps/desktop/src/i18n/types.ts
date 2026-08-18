@@ -2007,15 +2007,7 @@ export interface Translations {
     bodies: Readonly<Record<string, readonly string[]>>
   }
 
-  // Empty-chat intro copy, keyed by personality ("none" is the neutral pool).
-  // An empty record means "use the built-in English pool (intro-copy.jsonl)".
-  // A locale that ships pools keeps the same randomized-per-mount behavior;
-  // personalities without a localized pool fall back to the locale's "none"
-  // pool, then to the English jsonl. Technical terms (git, diff, PR, ...)
-  // stay untranslated inside the localized copy.
-  intro: {
-    bodies: Readonly<Record<string, readonly string[]>>
-  }
+
 
   composer: {
     message: string

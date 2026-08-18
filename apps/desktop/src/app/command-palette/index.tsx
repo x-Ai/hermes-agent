@@ -841,19 +841,23 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
         ? [
             {
               heading: cc.commands,
-              items: contributedItems.map(item => ({
-                action: item.action,
+              items: contributedItems.map(item => {
                 // Read on mount and after every select (the deps below), so a
                 // row that reports state can't show the state it just left.
-                detail: item.detail?.(),
-                detailVariant: item.detailVariant,
-                icon: item.icon ?? Zap,
-                id: item.key,
-                keepOpen: item.keepOpen,
-                keywords: item.keywords,
-                label: item.label,
-                run: item.run
-              }))
+                const detail = item.detail?.()
+
+                return {
+                  action: item.action,
+                  detail: detail === 'on' ? t.common.on : detail === 'off' ? t.common.off : detail,
+                  detailVariant: item.detailVariant,
+                  icon: item.icon ?? Zap,
+                  id: item.key,
+                  keepOpen: item.keepOpen,
+                  keywords: item.keywords,
+                  label: item.id === 'layout.editMode' ? t.zones.toggleLayoutEditMode : item.label,
+                  run: item.run
+                }
+              })
             }
           ]
         : []),

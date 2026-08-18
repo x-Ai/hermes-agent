@@ -12,6 +12,7 @@ function loadOpenPath({ openSession, request }) {
   const saved = []
   const requests = []
   const context = {
+    bt: (key, ...args) => `${key}: ${args.join(' ')}`,
     host: {
       openSession,
       request: async (method, params) => {
@@ -23,9 +24,7 @@ function loadOpenPath({ openSession, request }) {
     $hideBotChats: { get: () => false },
     window: { setTimeout: callback => callback() }
   }
-  const section = source
-    .slice(start, end)
-    .concat('\nglobalThis.__open = { openBotCanonicalChat };\n')
+  const section = source.slice(start, end).concat('\nglobalThis.__open = { openBotCanonicalChat };\n')
 
   assert.notEqual(start, -1, 'canonical creation section is missing')
   assert.notEqual(end, -1, 'canonical creation section delimiter is missing')
@@ -47,8 +46,11 @@ test('grandfather: no pin + history opens and pins THAT session, no new chat', a
 
   assert.equal(result, 'hist-1')
   assert.deepEqual(runtime.saved, [{ name: 'ops', patch: { chat: 'hist-1' } }])
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
-    'must not mint a new chat when the previewed session can be adopted')
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    false,
+    'must not mint a new chat when the previewed session can be adopted'
+  )
 })
 
 test('grandfather: no pin + no history keeps the creation flow', async () => {
@@ -61,7 +63,10 @@ test('grandfather: no pin + no history keeps the creation flow', async () => {
   const result = await runtime.openBotCanonicalChat('ops', null, null)
 
   assert.equal(result, 'stored-1')
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), true)
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    true
+  )
 })
 
 test('grandfather: adoption open failure falls back to creation without pinning', async () => {
@@ -76,8 +81,11 @@ test('grandfather: adoption open failure falls back to creation without pinning'
   const result = await runtime.openBotCanonicalChat('ops', null, HISTORY)
 
   assert.equal(result, 'stored-2')
-  assert.equal(runtime.saved.some(s => s.patch?.chat === 'hist-1'), false,
-    'a failed adoption must not persist the dead id as the pin')
+  assert.equal(
+    runtime.saved.some(s => s.patch?.chat === 'hist-1'),
+    false,
+    'a failed adoption must not persist the dead id as the pin'
+  )
 })
 
 // ── precise pin verification (no session.list pagination/hidden semantics) ─
@@ -88,13 +96,20 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
     request: async method => {
       if (method === 'profiles.list') {
         return {
-          profiles: [{
-            name: 'ops',
-            preferred_session: {
-              id: 'pin-1', resolved_id: 'pin-1', title: 'Bot Chat',
-              preview: 'latest', started_at: 1, last_active: 2, message_count: 3
+          profiles: [
+            {
+              name: 'ops',
+              preferred_session: {
+                id: 'pin-1',
+                resolved_id: 'pin-1',
+                title: 'Bot Chat',
+                preview: 'latest',
+                started_at: 1,
+                last_active: 2,
+                message_count: 3
+              }
             }
-          }]
+          ]
         }
       }
       return {}
@@ -105,25 +120,40 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
 
   assert.equal(result, 'pin-1')
   assert.equal(runtime.saved.length, 0, 'a live pin must not be rewritten')
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false)
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    false
+  )
   // The pin is verified through the precise resolver, never session.list.
-  assert.equal(runtime.requests.some(r => r.method === 'session.list'), false)
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.list'),
+    false
+  )
 })
 
 test('pin: compression-rotated pin opens the live tip, keeps the durable pin', async () => {
   const opened = []
   const runtime = loadOpenPath({
-    openSession: async id => { opened.push(id) },
+    openSession: async id => {
+      opened.push(id)
+    },
     request: async method => {
       if (method === 'profiles.list') {
         return {
-          profiles: [{
-            name: 'ops',
-            preferred_session: {
-              id: 'root-1', resolved_id: 'tip-9', title: 'Bot Chat',
-              preview: 'post-compression', started_at: 1, last_active: 9, message_count: 42
+          profiles: [
+            {
+              name: 'ops',
+              preferred_session: {
+                id: 'root-1',
+                resolved_id: 'tip-9',
+                title: 'Bot Chat',
+                preview: 'post-compression',
+                started_at: 1,
+                last_active: 9,
+                message_count: 42
+              }
             }
-          }]
+          ]
         }
       }
       return {}
@@ -152,7 +182,10 @@ test('pin: definitively gone pin re-pins to the previewed session, not rows[0]',
 
   assert.equal(result, 'hist-1')
   assert.deepEqual(runtime.saved, [{ name: 'ops', patch: { chat: 'hist-1' } }])
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false)
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    false
+  )
 })
 
 test('pin: gone pin + no history clears the pin and creates', async () => {
@@ -181,17 +214,26 @@ test('pin: gone pin + no history clears the pin and creates', async () => {
 test('pin: precise hit but failed open keeps the pin and reports', async () => {
   const notes = []
   const runtime = loadOpenPath({
-    openSession: async () => { throw new Error('socket hiccup') },
+    openSession: async () => {
+      throw new Error('socket hiccup')
+    },
     request: async method => {
       if (method === 'profiles.list') {
         return {
-          profiles: [{
-            name: 'ops',
-            preferred_session: {
-              id: 'pin-1', resolved_id: 'pin-1', title: 'Bot Chat',
-              preview: 'latest', started_at: 1, last_active: 2, message_count: 3
+          profiles: [
+            {
+              name: 'ops',
+              preferred_session: {
+                id: 'pin-1',
+                resolved_id: 'pin-1',
+                title: 'Bot Chat',
+                preview: 'latest',
+                started_at: 1,
+                last_active: 2,
+                message_count: 3
+              }
             }
-          }]
+          ]
         }
       }
       return {}
@@ -203,8 +245,11 @@ test('pin: precise hit but failed open keeps the pin and reports', async () => {
 
   assert.equal(result, 'pin-1')
   assert.equal(runtime.saved.length, 0, 'a confirmed-live pin must survive a transient open failure')
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
-    'must not fork the forever-chat on a hiccup')
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    false,
+    'must not fork the forever-chat on a hiccup'
+  )
   assert.equal(notes.length, 1, 'the user gets told the open failed')
 })
 
@@ -223,8 +268,11 @@ test('transient: profiles.list failure keeps the pin when the direct open works'
 
   assert.equal(result, 'pin-1')
   assert.equal(runtime.saved.length, 0, 'a hiccup must not clear or rewrite the pin')
-  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
-    'a hiccup must not mint a replacement chat')
+  assert.equal(
+    runtime.requests.some(r => r.method === 'session.create'),
+    false,
+    'a hiccup must not mint a replacement chat'
+  )
 })
 
 test('transient: profiles.list failure + failed direct open clears pin and creates', async () => {
@@ -280,10 +328,9 @@ function loadHelpers() {
 test('preferredSessionIds: collects only live pins', () => {
   // vm-realm objects fail assert.deepEqual prototype checks — compare via JSON.
   const collect = meta => JSON.parse(JSON.stringify(loadHelpers().__preferredSessionIds(meta)))
-  assert.deepEqual(
-    collect({ ops: { chat: 'pin-1' }, scribe: { chat: null }, chef: { title: 'Chef' } }),
-    { ops: 'pin-1' }
-  )
+  assert.deepEqual(collect({ ops: { chat: 'pin-1' }, scribe: { chat: null }, chef: { title: 'Chef' } }), {
+    ops: 'pin-1'
+  })
   assert.deepEqual(collect({}), {})
   assert.deepEqual(collect(undefined), {})
 })

@@ -50,7 +50,10 @@ test('hint: explains hidden jobs when store has jobs but none match the bot', ()
     { name: '[bot:research] Digest', job_id: '2' },
     { name: 'untagged job', job_id: '3' }
   ]
-  const hint = load().__api.routineFilterHint(all, [])
+  const hint = load().__api.routineFilterHint(all, [], {
+    routineFilterHint:
+      'Cronjobs exist in this profile but none are tagged for this bot. Name a job "[bot:<name>] …" to show it here.'
+  })
   assert.ok(hint)
   assert.match(hint, /tagged for this bot/)
 })

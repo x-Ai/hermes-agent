@@ -113,7 +113,7 @@ test('source contract: the roster is a flat list of bot + group rows and the row
   assert.match(pluginSource, /rosterRows\.map\(row =>/)
   assert.match(pluginSource, /function GroupRow\(/)
   assert.match(pluginSource, /onGroup: setGrouping/)
-  assert.match(pluginSource, /'Move to group…'/)
+  assert.match(pluginSource, /children: b\.moveToGroup/)
 })
 
 test('source contract: group rows carry the needs-you badge and open via openGroupChat', () => {

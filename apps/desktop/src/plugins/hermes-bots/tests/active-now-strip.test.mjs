@@ -14,10 +14,7 @@ function loadActiveBots() {
   assert.ok(start >= 0 && end > start, 'activeBots block must remain extractable')
 
   const context = {}
-  vm.runInNewContext(
-    `${source.slice(start, end)}\nglobalThis.__activeBots = activeBots;`,
-    context
-  )
+  vm.runInNewContext(`${source.slice(start, end)}\nglobalThis.__activeBots = activeBots;`, context)
 
   return context.__activeBots
 }
@@ -26,8 +23,8 @@ function loadActiveBots() {
 const NOW = 1_000_000_000_000
 
 const roster = [
-  { name: 'researcher', last_session: { last_active: (NOW / 1000) - 10 } },
-  { name: 'scribe', last_session: { last_active: (NOW / 1000) - 400 } },
+  { name: 'researcher', last_session: { last_active: NOW / 1000 - 10 } },
+  { name: 'scribe', last_session: { last_active: NOW / 1000 - 400 } },
   { name: 'analyst', last_session: null }
 ]
 
@@ -55,14 +52,17 @@ test('activeBots preserves roster order and never hides other bots', () => {
   // Mixed window: only researcher qualifies, but the output stays in input
   // order and the full roster object is untouched.
   const active = activeBots(roster, 'default', 'open', NOW)
-  assert.deepEqual(active.map(bot => bot.name), ['researcher'])
+  assert.deepEqual(
+    active.map(bot => bot.name),
+    ['researcher']
+  )
   assert.equal(roster.length, 3)
 })
 
 test('activeBots returns an empty list when nothing is active', () => {
   const activeBots = loadActiveBots()
   const quiet = [
-    { name: 'scribe', last_session: { last_active: (NOW / 1000) - 400 } },
+    { name: 'scribe', last_session: { last_active: NOW / 1000 - 400 } },
     { name: 'analyst', last_session: null }
   ]
   assert.deepEqual(activeBots(quiet, 'default', 'open', NOW), [])
@@ -76,8 +76,9 @@ test('roster without profiles never throws', () => {
 
 test('ActiveNowStrip renders above the roster, is a live region, and is click-accessible', () => {
   // Strip is placed between the pane header and the search field.
-  const headerEnd = source.indexOf("children: 'Bots'")
-  const searchField = source.indexOf("placeholder: 'Search bots…'")
+  const botsPane = source.indexOf('function BotsPane(')
+  const headerEnd = source.indexOf('children: b.bots', botsPane)
+  const searchField = source.indexOf('placeholder: b.searchBots,', botsPane)
   assert.ok(headerEnd >= 0 && searchField > headerEnd)
 
   const stripStart = source.indexOf('jsx(ActiveNowStrip')
@@ -87,10 +88,10 @@ test('ActiveNowStrip renders above the roster, is a live region, and is click-ac
   assert.match(source, /'aria-live': 'polite'/)
   // Chips are real buttons (keyboard/click accessible), reuse BotFace, and
   // open the canonical chat via the same path as roster rows.
-  assert.match(source, /jsx\('button', \{\s*type: 'button',\s*title: `Open \$\{label\}'s chat`/)
+  assert.match(source, /jsx\(\s*'button',\s*\{\s*type: 'button',\s*title: b\.openAgentChat\(label\)/)
   // The key rides as jsx()'s third argument — the ONLY form React treats as
   // a list key; a `key:` prop leaves chips unkeyed (index identity).
-  assert.match(source, /\}, botRosterKey\(bot\)\)\s*\}\)\s*\]\s*\}\)\s*\}\s*\/\*\* Assign a bot to a group/s)
+  assert.match(source, /\},\s*botRosterKey\(bot\)\s*\)/)
   assert.match(source, /jsx\(BotFace,\s*\{[\s\S]*?mood: 'work'/)
   assert.match(source, /let pinnedChat = botRosterMeta\(bot, allMeta\)\?\.chat/)
   assert.match(source, /await prepareBotSource\(bot, pinnedChat\)/)
