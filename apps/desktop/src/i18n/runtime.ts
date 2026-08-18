@@ -61,6 +61,13 @@ export function getRuntimeI18nLocale(): Locale {
   return runtimeLocale
 }
 
+/** Resolve app copy for an explicit locale. Contribution renderers pass their
+ * current locale to label callbacks, so this avoids depending on the runtime
+ * locale effect having completed before the first paint. */
+export function translateForLocale(locale: Locale, key: string, ...args: unknown[]): string {
+  return translateFrom(l => TRANSLATIONS[l], locale, key, args)
+}
+
 export function translateNow(key: string, ...args: unknown[]): string {
-  return translateFrom(locale => TRANSLATIONS[locale], runtimeLocale, key, args)
+  return translateForLocale(runtimeLocale, key, ...args)
 }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { setRuntimeI18nLocale, translateNow } from '@/i18n'
+import { setRuntimeI18nLocale, translateForLocale } from '@/i18n'
 
 import { zh } from './zh'
 
@@ -104,11 +104,10 @@ describe('Simplified Chinese localization regressions', () => {
     expect(copy.details['Set DAYTONA_API_KEY to use the Daytona backend.']).toContain('请设置')
   })
 
-  it('resolves contribution labels from the active runtime locale', () => {
-    const label = () => translateNow('paletteCommands.resetLayout')
+  it('resolves contribution labels from the renderer locale', () => {
+    const label = (locale: 'en' | 'zh') => translateForLocale(locale, 'paletteCommands.resetLayout')
 
-    expect(label()).toBe('Reset layout')
-    setRuntimeI18nLocale('zh')
-    expect(label()).toBe('重置布局')
+    expect(label('en')).toBe('Reset layout')
+    expect(label('zh')).toBe('重置布局')
   })
 })

@@ -126,7 +126,11 @@ const plugin: HermesPlugin = {
         id: 'nav',
         area: SIDEBAR_NAV_AREA,
         order: 50,
-        data: { codicon: 'project', label: () => ctx.i18n.t('nav'), path: '/kanban' } satisfies SidebarNavContribution
+        data: {
+          codicon: 'project',
+          label: locale => ctx.i18n.tFor(locale, 'nav'),
+          path: '/kanban'
+        } satisfies SidebarNavContribution
       },
       {
         id: 'count',
@@ -139,7 +143,7 @@ const plugin: HermesPlugin = {
         area: PALETTE_AREA,
         data: {
           id: 'kanban.open',
-          label: () => ctx.i18n.t('openBoard'),
+          label: locale => ctx.i18n.tFor(locale, 'openBoard'),
           keywords: ['kanban', 'board', 'tasks', 'agents'],
           run: () => host.navigate('/kanban')
         } satisfies PaletteContribution
@@ -150,7 +154,7 @@ const plugin: HermesPlugin = {
         data: {
           id: 'kanban.newTask',
           action: 'kanban.newTask',
-          label: () => ctx.i18n.t('newTaskCommand'),
+          label: locale => ctx.i18n.tFor(locale, 'newTaskCommand'),
           keywords: ['kanban', 'task', 'new', 'create', 'triage'],
           run: newTask
         } satisfies PaletteContribution
@@ -162,7 +166,7 @@ const plugin: HermesPlugin = {
           id: 'kanban.newTask',
           category: 'view',
           defaults: ['mod+alt+n'],
-          label: ctx.i18n.t('newTaskCommand'),
+          label: locale => ctx.i18n.tFor(locale, 'newTaskCommand'),
           run: newTask
         } satisfies KeybindContribution
       }

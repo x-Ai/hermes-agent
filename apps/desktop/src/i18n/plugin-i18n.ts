@@ -43,6 +43,9 @@ export interface PluginI18n {
   /** Module-level translator against the app's active locale (mirrors
    *  `translateNow`). Non-reactive — in React prefer `usePluginI18n`. */
   t: PluginTranslate
+  /** Translate for an explicit locale. Use this in contribution label
+   *  callbacks, which receive the renderer's current locale. */
+  tFor: (locale: Locale, key: string, ...args: unknown[]) => string
 }
 
 const registry = new Map<string, Map<Locale, PluginMessages>>()
@@ -96,7 +99,8 @@ export function translatePlugin(pluginId: string, locale: Locale, key: string, a
 export function createPluginI18n(pluginId: string, track: (dispose: () => void) => () => void): PluginI18n {
   return {
     register: bundles => track(registerPluginLocales(pluginId, bundles)),
-    t: (key, ...args) => translatePlugin(pluginId, getRuntimeI18nLocale(), key, args)
+    t: (key, ...args) => translatePlugin(pluginId, getRuntimeI18nLocale(), key, args),
+    tFor: (locale, key, ...args) => translatePlugin(pluginId, locale, key, args)
   }
 }
 

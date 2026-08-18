@@ -64,6 +64,14 @@ describe('plugin locale registry', () => {
     setRuntimeI18nLocale('ja')
     expect(i18n.t('greet')).toBe('こんにちは')
   })
+
+  it('ctx.i18n.tFor resolves contribution labels from the supplied locale', () => {
+    const i18n = createPluginI18n('contribution-plugin', noopTrack)
+    i18n.register({ en: { nav: 'Board' }, zh: { nav: '看板' } })
+
+    expect(i18n.tFor('zh', 'nav')).toBe('看板')
+    expect(i18n.t('nav')).toBe('Board')
+  })
 })
 
 function Probe({ pluginId }: { pluginId: string }) {

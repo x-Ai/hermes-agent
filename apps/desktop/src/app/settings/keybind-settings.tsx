@@ -33,7 +33,7 @@ import {
 import { SettingsContent } from './primitives'
 
 export function KeybindSettings() {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const bindings = useStore($bindings)
   const k = t.keybinds
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set())
@@ -73,11 +73,12 @@ export function KeybindSettings() {
         return false
       }
 
-      const label = k.actions[action.id] ?? action.id
+      const contributedLabel = typeof action.label === 'function' ? action.label(locale) : action.label
+      const label = k.actions[action.id] ?? contributedLabel ?? action.id
 
       return label.toLowerCase().includes(lower) || action.id.includes(lower)
     })
-  }, [actionList, isSearching, query, k.actions])
+  }, [actionList, isSearching, query, k.actions, locale])
 
   const filteredReadonly = useMemo(() => {
     if (!isSearching) {
@@ -190,7 +191,7 @@ function CategoryHeader({ label, onToggle, open }: { label: string; onToggle: ()
 }
 
 function KeybindRow({ action }: { action: KeybindActionMeta }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const k = t.keybinds
   const bindings = useStore($bindings)
   const capture = useStore($capture)
@@ -200,7 +201,8 @@ function KeybindRow({ action }: { action: KeybindActionMeta }) {
   // the default instead of the user's rebinding for a plugin/contrib action.
   const combos = bindingsFor(action.id, bindings)
   const capturing = capture === action.id
-  const label = k.actions[action.id] ?? action.label ?? action.id
+  const contributedLabel = typeof action.label === 'function' ? action.label(locale) : action.label
+  const label = k.actions[action.id] ?? contributedLabel ?? action.id
   const isDefault = arraysEqual(combos, [...action.defaults])
 
   const conflict = combos

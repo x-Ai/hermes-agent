@@ -38,7 +38,7 @@ import { Slot } from '@/contrib/react/slot'
 import { useContributions } from '@/contrib/react/use-contributions'
 import { registry } from '@/contrib/registry'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
-import { translateNow } from '@/i18n'
+import { translateForLocale } from '@/i18n'
 import { NEW_SESSION_TITLE, sessionTitle as storedSessionTitle } from '@/lib/chat-runtime'
 import { Download, FileText, LayoutDashboard, PanelBottom, Terminal, Upload, Zap } from '@/lib/icons'
 import { type KeybindContribution, KEYBINDS_AREA } from '@/lib/keybinds/actions'
@@ -251,14 +251,14 @@ registry.registerMany([
     area: KEYBINDS_AREA,
     data: {
       id: 'layout.editMode',
-      label: translateNow('zones.toggleLayoutEditMode'),
+      label: locale => translateForLocale(locale, 'zones.toggleLayoutEditMode'),
       defaults: ['mod+shift+\\'],
       run: toggleLayoutEditMode
     } satisfies KeybindContribution
   },
   paletteToggle({
     id: 'layout.editMode',
-    label: translateNow('zones.toggleLayoutEditMode'),
+    label: locale => translateForLocale(locale, 'zones.toggleLayoutEditMode'),
     action: 'layout.editMode',
     icon: LayoutDashboard,
     keywords: ['layout', 'zones', 'panes', 'edit', 'rearrange'],
@@ -272,7 +272,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'plugins.reload',
-      label: () => translateNow('paletteCommands.reloadDesktopPlugins'),
+      label: locale => translateForLocale(locale, 'paletteCommands.reloadDesktopPlugins'),
       keywords: ['plugins', 'reload', 'refresh', 'desktop'],
       run: () => void discoverRuntimePlugins()
     } satisfies PaletteContribution
@@ -295,7 +295,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'layout.reset',
-      label: () => translateNow('paletteCommands.resetLayout'),
+      label: locale => translateForLocale(locale, 'paletteCommands.resetLayout'),
       icon: LayoutDashboard,
       keywords: ['layout', 'reset', 'default', 'panes'],
       run: resetLayoutTree
@@ -305,7 +305,7 @@ registry.registerMany([
   // ⌘K is the guaranteed door in (alongside the rebindable ⌘⇧S).
   paletteToggle({
     id: 'view.toggleStatusbar',
-    label: () => translateNow('paletteCommands.toggleStatusBar'),
+    label: locale => translateForLocale(locale, 'paletteCommands.toggleStatusBar'),
     action: 'view.toggleStatusbar',
     icon: PanelBottom,
     keywords: ['status bar', 'statusbar', 'bottom bar', 'hide', 'show', 'chrome'],
@@ -318,7 +318,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'keybinds.panel',
-      label: () => translateNow('paletteCommands.keyboardShortcuts'),
+      label: locale => translateForLocale(locale, 'paletteCommands.keyboardShortcuts'),
       keywords: ['keybinds', 'shortcuts', 'hotkeys', 'keyboard'],
       run: () => window.dispatchEvent(new CustomEvent('hermes:open-keybinds'))
     } satisfies PaletteContribution
@@ -331,7 +331,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.export',
-      label: () => translateNow('paletteCommands.exportProfile'),
+      label: locale => translateForLocale(locale, 'paletteCommands.exportProfile'),
       icon: Upload,
       keywords: ['profile', 'export', 'share', 'bundle', 'theme', 'settings', 'backup'],
       run: () => void runExportProfileFlow()
@@ -342,7 +342,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.import',
-      label: () => translateNow('paletteCommands.importProfile'),
+      label: locale => translateForLocale(locale, 'paletteCommands.importProfile'),
       icon: Download,
       keywords: ['profile', 'import', 'share', 'bundle', 'archive', 'restore'],
       run: () => void runImportProfileFlow()
@@ -593,7 +593,7 @@ bindToolPaneCollapse(
 registry.register(
   paletteToggle({
     id: 'view.showTerminal',
-    label: () => translateNow('paletteCommands.toggleTerminal'),
+    label: locale => translateForLocale(locale, 'paletteCommands.toggleTerminal'),
     action: 'view.showTerminal',
     icon: Terminal,
     keywords: ['terminal', 'shell', 'console', 'pty'],
@@ -660,7 +660,7 @@ $logsOpen.listen(syncLogsPane)
 registry.register(
   paletteToggle({
     id: 'logs.toggle',
-    label: () => translateNow('paletteCommands.toggleLogs'),
+    label: locale => translateForLocale(locale, 'paletteCommands.toggleLogs'),
     icon: FileText,
     keywords: ['logs', 'agent log', 'tail', 'debug'],
     // On-screen, not the store's boolean. Summon-only keeps the two in step
@@ -679,7 +679,7 @@ registry.register(
 registry.register(
   paletteToggle({
     id: 'session.yolo',
-    label: () => translateNow('paletteCommands.toggleYolo'),
+    label: locale => translateForLocale(locale, 'paletteCommands.toggleYolo'),
     icon: Zap,
     keywords: ['yolo', 'approvals', 'auto-approve', 'bypass', 'dangerous', 'commands'],
     get: () => $yoloActive.get(),

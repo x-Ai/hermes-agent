@@ -6,6 +6,7 @@
 // add a hotkey, add a row here and a handler there — nothing else.
 
 import { registry } from '@/contrib/registry'
+import type { Locale } from '@/i18n'
 
 import { IS_MAC } from './combo'
 
@@ -25,7 +26,7 @@ export interface KeybindActionMeta {
   /** Default combos. Empty = shipped unbound (user can assign one). */
   defaults: readonly string[]
   /** Display label for CONTRIBUTED actions (built-ins use i18n). */
-  label?: string
+  label?: string | ((locale: Locale) => string)
 }
 
 // Positional switch slots for *named* profiles: ⌘1…⌘9 for profiles 1-9, then
@@ -190,7 +191,7 @@ export interface KeybindContribution {
   category?: KeybindCategory
   /** Default combos (canonical form, e.g. `mod+shift+\\`). Empty = unbound. */
   defaults?: readonly string[]
-  label: string
+  label: string | ((locale: Locale) => string)
   run: () => void
 }
 
