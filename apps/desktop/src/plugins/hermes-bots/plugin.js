@@ -719,6 +719,18 @@ function mergeServerMeta(roster) {
         delete merged.chat
       }
 
+      // Canonical multi-group metadata is authoritative for the compatibility
+      // scalar too. A server-side `group: null` is represented by omission,
+      // so retaining the local scalar would resurrect a membership that another
+      // desktop just removed.
+      if (
+        Array.isArray(server.groups) &&
+        Object.prototype.hasOwnProperty.call(mine, 'group') &&
+        !Object.prototype.hasOwnProperty.call(server, 'group')
+      ) {
+        delete merged.group
+      }
+
       if (JSON.stringify(next[bot.name] || null) !== JSON.stringify(merged)) {
         next[bot.name] = merged
         changed = true
@@ -2568,7 +2580,28 @@ function mergeMultiSourceRoster(local, union, activeConnectionId, previous = [])
   // This-device shadow of default.
   const liveProvided = arguments.length >= 3
   const liveId = String(activeConnectionId || '').trim()
-  const activeId = liveId || (liveProvided ? '' : String(union?.primaryConnectionId || '').trim())
+  let activeId = liveId || (liveProvided ? '' : String(union?.primaryConnectionId || '').trim())
+
+  // Migrated remote-primary windows can still expose a legacy remote
+  // descriptor without connectionId. That produces a null live id even
+  // though profiles.list is answering from the registry primary. Infer the
+  // primary only when its inventory matches the rich rows and the local
+  // inventory does not. A genuinely local window has a matching local row,
+  // so it keeps the null-is-local behavior used after clicking This device.
+  if (!activeId && liveProvided) {
+    const primaryId = String(union?.primaryConnectionId || '').trim()
+    const richNames = new Set(localProfiles.map(profile => String(profile?.name || '').trim()).filter(Boolean))
+    const localMatches = agents.some(
+      agent => agent?.connectionKind === 'local' && richNames.has(String(agent?.profile || '').trim())
+    )
+    const primaryMatches = agents.some(
+      agent => String(agent?.connectionId || '').trim() === primaryId && richNames.has(String(agent?.profile || '').trim())
+    )
+
+    if (!localMatches && primaryId && primaryMatches) {
+      activeId = primaryId
+    }
+  }
   const activeByName = new Map()
 
   // Treat the rich list as one row per active-source profile. Clone every
@@ -3299,6 +3332,46 @@ function stripPreviewMarkdown(text) {
     .trim()
 }
 
+/** Canonical multi-group read with legacy scalar compatibility. Profiles that
+ *  predate `groups` still fall back to `group`; once the canonical array exists,
+ *  it is authoritative. Writes keep `group` as a first-membership projection so
+ *  older desktops can still display one room without corrupting the array. */
+function botGroups(meta) {
+  const groups = []
+  const seen = new Set()
+  const values = Array.isArray(meta?.groups) ? meta.groups : [meta?.group]
+
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      continue
+    }
+
+    const group = value.trim()
+
+    if (group && !seen.has(group)) {
+      seen.add(group)
+      groups.push(group)
+    }
+  }
+
+  return groups
+}
+
+function groupMembershipPatch(meta, group, enabled) {
+  const name = String(group || '').trim()
+  let groups = botGroups(meta)
+
+  if (enabled) {
+    if (name && !groups.includes(name)) {
+      groups = [...groups, name]
+    }
+  } else {
+    groups = groups.filter(existing => existing !== name)
+  }
+
+  return { groups, group: groups[0] || null }
+}
+
 /** Group chats that should hold a roster row: every group named in bot meta
  *  (local members) plus every room record that still has stored members or
  *  log — cross-connection rooms whose members can't ride bot-meta. */
@@ -3327,7 +3400,7 @@ function groupLastActivity(room) {
  *  Prefers the LIVE roster row for a stored descriptor when present. */
 function groupChatMemberBots(group, roster, metaByName) {
   const local = (roster || []).filter(
-    bot => !bot.remoteSource && (botRosterMeta(bot, metaByName)?.group || '').trim() === group
+    bot => !bot.remoteSource && botGroups(botRosterMeta(bot, metaByName)).includes(group)
   )
   const stored = ($groupChats.get()[group] || {}).members || []
   const seated = new Set(local.map(botRosterKey))
@@ -3347,14 +3420,27 @@ function groupChatMemberBots(group, roster, metaByName) {
   return [...local, ...remote]
 }
 
-/** Existing group names, alphabetical — feeds the Move-to-group dialog. */
+/** Persist source-qualified identities for every selected member. The active
+ *  source's row may become remote after a connection switch, so retaining it
+ *  here is what keeps the same room intact across machines. */
+function durableGroupChatMembers(bots) {
+  return (bots || []).map(bot => ({
+    name: bot.name,
+    handle: bot.handle || bot.name,
+    connectionId: bot.connectionId,
+    connectionKind: bot.connectionKind,
+    connectionLabel: bot.connectionLabel,
+    remoteSource: true,
+    sourceScoped: true
+  }))
+}
+
+/** Existing group names, alphabetical — feeds the Manage-groups dialog. */
 function knownGroups(metaByName) {
   const names = new Set()
 
   for (const meta of Object.values(metaByName || {})) {
-    const group = (meta?.group || '').trim()
-
-    if (group) {
+    for (const group of botGroups(meta)) {
       names.add(group)
     }
   }
@@ -3581,8 +3667,8 @@ function updateGroupChat(group, mutate) {
         // with the pre-turn message baseline. Survives reloads so finished
         // work is still harvested after a window restart.
         stranded: room.stranded || {},
-        // Cross-connection member descriptors — remote bots can't ride
-        // bot-meta, so the room record carries who they are.
+        // Source-qualified member descriptors keep the room whole when the
+        // active connection changes and today's local members become remote.
         members: Array.isArray(room.members) ? room.members : []
       }
     }
@@ -3595,13 +3681,12 @@ function updateGroupChat(group, mutate) {
   return next
 }
 
-/** Soft-disband a group chat: clear every member's group assignment (the
- *  grouping is bot-meta, so the disband syncs cross-machine via ui_meta),
- *  drop the room log from the atom + plugin storage, and close the room view
- *  if it's open. The members' per-group gateway sessions ("Group: <name>")
- *  are intentionally KEPT — they stay reachable through each bot's session
- *  browser. */
-async function disbandGroupChat(group, memberNames) {
+/** Soft-disband a group chat: remove only this group from every local member's
+ *  membership list (the metadata syncs cross-machine via ui_meta), drop the
+ *  room log from the atom + plugin storage, and close the room view if it's
+ *  open. Other group memberships and the members' per-group gateway sessions
+ *  ("Group: <name>") are intentionally KEPT. */
+async function disbandGroupChat(group, members) {
   // Invalidate any in-flight round-robin FIRST: bump the epoch so a running
   // drive bails at its next member boundary instead of appending to a room
   // the user just discarded.
@@ -3636,7 +3721,12 @@ async function disbandGroupChat(group, memberNames) {
 
     for (const [name, room] of Object.entries($groupChats.get())) {
       if (name !== group && Array.isArray(room.log)) {
-        durable[name] = { log: room.log, watermarks: room.watermarks, sessions: room.sessions || {} }
+        durable[name] = {
+          log: room.log,
+          watermarks: room.watermarks,
+          sessions: room.sessions || {},
+          members: Array.isArray(room.members) ? room.members : []
+        }
       }
     }
 
@@ -3645,11 +3735,16 @@ async function disbandGroupChat(group, memberNames) {
     /* storage unavailable — the atom reset above still empties the room */
   }
 
-  // Ungroup the members last. saveBotMeta never throws (local storage +
+  // Remove this membership last. saveBotMeta never throws (local storage +
   // best-effort profiles.configure per member), so a flaky gateway can't
   // strand the disband halfway with the room log already gone.
-  for (const name of memberNames) {
-    await saveBotMeta(name, { group: null })
+  for (const member of members) {
+    if (!member?.name || member.remoteSource) {
+      continue
+    }
+
+    const meta = $botMeta.get()[member.name] || {}
+    await saveBotMeta(member.name, groupMembershipPatch(meta, group, false))
   }
 }
 
@@ -4268,6 +4363,7 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
   const b = useBots()
   const activeProfile = useValue(host.state.profile)
   const meta = botRosterMeta(bot, useValue($botMeta))
+  const groups = botGroups(meta)
   const last = bot.last_session
   const isActive = !bot.remoteSource && bot.name === activeProfile
   const { shape, color, image } = botAppearance(bot.name, meta)
@@ -4522,11 +4618,15 @@ function BotRow({ bot, onDelete, onEdit, onGroup }) {
             onSelect: () => openBotSessionsWorkspace(bot),
             children: b.sessions
           }),
+
           jsx(ContextMenuItem, { onSelect: () => onEdit(bot), children: b.editProfile }),
-          jsx(ContextMenuItem, {
-            onSelect: () => onGroup(bot),
-            children: meta?.group ? b.group(meta.group) : b.moveToGroup
-          }),
+          !bot.remoteSource
+            ? jsx(ContextMenuItem, {
+                onSelect: () => onGroup(bot),
+                children: groups.length ? b.groups(groups.join(', ')) : b.manageGroups
+              })
+            : null,
+
           jsx(ContextMenuItem, {
             onSelect: () => {
               host.notify({ kind: 'info', message: b.duplicating(displayName(bot, meta)) })
@@ -7154,22 +7254,35 @@ function RoutinesPane() {
                 })
               ]
             })
-          : jobs.length === 0
-            ? jsxs('div', {
-                className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
-                children: [
-                  jsx(Codicon, { name: 'calendar', className: 'text-[1.6rem] text-(--ui-text-quaternary)' }),
-                  jsx('div', {
-                    className: 'text-xs leading-5 text-(--ui-text-tertiary)',
-                    children: filterHint ? filterHint : b.cronjobsDesc
-                  }),
-                  jsx(Button, {
-                    variant: 'secondary',
-                    size: 'sm',
-                    onClick: openCreate,
-                    children: filterHint ? b.createCronjobForBot : b.createCronjob
-                  })
-                ]
+
+        : jobs.length === 0
+          ? jsxs('div', {
+              className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
+              children: [
+                // No generic placeholder here: an icon + "cronjobs are…" blurb and the
+                // create button both just said "empty" (Teknium, Aug 2026). The hint
+                // text stays only when jobs exist but are hidden by the bot filter —
+                // that carries real information, not an empty-state marker.
+                filterHint
+                  ? jsx('div', {
+                      className: 'text-xs leading-5 text-(--ui-text-tertiary)',
+                      children: filterHint
+                    })
+                  : null,
+                jsx(Button, {
+                  variant: 'secondary',
+                  size: 'sm',
+                  onClick: openCreate,
+                  children: filterHint ? b.createCronjobForBot : b.createCronjob
+                })
+              ]
+            })
+          : jsx(ScrollArea, {
+              className: 'min-h-0 flex-1',
+              children: jsx('div', {
+                className: 'grid gap-1.5 px-2.5 py-2',
+                children: jobs.map(job => jsx(RoutineRow, { job, profile: bot }, job.job_id))
+
               })
             : jsx(ScrollArea, {
                 className: 'min-h-0 flex-1',
@@ -7420,25 +7533,26 @@ function ActiveNowStrip({ roster, activeProfile, gatewayState, metaByName, onOpe
   })
 }
 
-/** Assign a bot to a group (or clear it). Existing groups are one-click;
- *  the input creates a new one. The group is a bot-meta field, so it syncs
- *  cross-machine via ui_meta like pin/title. */
+/** Assign a bot to a group-chat membership without replacing its others.
+ *  Existing groups are independent toggles; the input creates and joins a new
+ *  one. Canonical groups + the legacy scalar projection ride ui_meta. */
 function GroupDialog({ bot, onClose }) {
   const b = useBots()
   const meta = useValue($botMeta)
   const [name, setName] = useState('')
-  const current = (meta[bot?.name]?.group || '').trim()
+  const current = botGroups(meta[bot?.name])
   const groups = knownGroups(meta)
 
-  const assign = group => {
-    saveBotMeta(bot.name, { group: group || null })
+  const setMembership = (group, enabled) => {
+    saveBotMeta(bot.name, groupMembershipPatch(meta[bot.name], group, enabled))
     host.notify({
       kind: 'info',
-      message: group
-        ? b.movedToGroup(displayName(bot, meta[bot.name]), group)
-        : b.removedFromGroup(displayName(bot, meta[bot.name]))
+
+      message: enabled
+        ? b.addedToGroup(displayName(bot, meta[bot.name]), group)
+        : b.removedFromNamedGroup(displayName(bot, meta[bot.name]), group)
+
     })
-    onClose()
   }
 
   return jsx(Dialog, {
@@ -7453,27 +7567,38 @@ function GroupDialog({ bot, onClose }) {
       children: [
         jsxs(DialogHeader, {
           children: [
-            jsx(DialogTitle, { children: b.moveToGroupTitle }),
+
+            jsx(DialogTitle, { children: b.manageGroupsTitle }),
             jsx(DialogDescription, {
-              children: b.moveToGroupDesc
+              children: b.manageGroupsDesc
+
             })
           ]
         }),
         groups.length
           ? jsx('div', {
-              className: 'flex flex-wrap gap-1.5',
-              children: groups.map(group =>
-                jsx(
-                  Button,
+
+              className: 'grid gap-1.5',
+              children: groups.map(group => {
+                const enabled = current.includes(group)
+
+                return jsxs(
+                  'label',
                   {
-                    variant: group === current ? 'default' : 'secondary',
-                    size: 'sm',
-                    onClick: () => assign(group),
-                    children: group
+                    className:
+                      'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-(--chrome-action-hover)',
+                    children: [
+                      jsx(Checkbox, {
+                        checked: enabled,
+                        onCheckedChange: checked => setMembership(group, checked === true)
+                      }),
+                      jsx('span', { children: group })
+                    ]
                   },
                   group
                 )
-              )
+              })
+
             })
           : null,
         jsxs('form', {
@@ -7483,7 +7608,8 @@ function GroupDialog({ bot, onClose }) {
             const trimmed = name.trim()
 
             if (trimmed) {
-              assign(trimmed)
+              setMembership(trimmed, true)
+              setName('')
             }
           },
           children: [
@@ -7493,16 +7619,20 @@ function GroupDialog({ bot, onClose }) {
               value: name,
               onChange: event => setName(event.target.value)
             }),
-            jsx(Button, { type: 'submit', size: 'sm', disabled: !name.trim(), children: b.create })
+
+            jsx(Button, { type: 'submit', size: 'sm', disabled: !name.trim(), children: b.createAndJoin })
+
           ]
         }),
-        current
+        current.length
           ? jsx(Button, {
               variant: 'ghost',
               size: 'sm',
               className: 'justify-self-start',
-              onClick: () => assign(null),
-              children: b.removeFromGroup(current)
+
+              onClick: () => saveBotMeta(bot.name, { groups: [], group: null }),
+              children: b.removeFromAllGroups
+
             })
           : null
       ]
@@ -7511,9 +7641,9 @@ function GroupDialog({ bot, onClose }) {
 }
 
 /** Discord-style group chat creation: pick 2+ bots via checkboxes (with
- *  search), name the group, create. Assignment is the existing per-bot
- *  `group` meta field, so the room appears in the roster and syncs
- *  cross-machine via ui_meta exactly like Move-to-group. */
+ *  search), name the group, create. Assignment appends to each local bot's
+ *  group membership list, so the room appears in the roster and syncs
+ *  cross-machine via ui_meta without replacing its other groups. */
 function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
   const b = useBots()
   const allMeta = useValue($botMeta)
@@ -7553,9 +7683,7 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
     const taken = new Set(Object.keys($groupChats.get()))
 
     for (const meta of Object.values($botMeta.get() || {})) {
-      const existing = String(meta?.group || '').trim()
-
-      if (existing) {
+      for (const existing of botGroups(meta)) {
         taken.add(existing)
       }
     }
@@ -7572,31 +7700,19 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
 
     for (const bot of selected) {
       if (!bot.remoteSource) {
-        void saveBotMeta(bot.name, { group: groupName })
+        void saveBotMeta(bot.name, groupMembershipPatch(botRosterMeta(bot, allMeta), groupName, true))
       }
     }
 
-    // Members from OTHER connections can't ride bot-meta (it is scoped to
-    // the active gateway and name-keyed). Their descriptors live on the room
-    // record instead, so the roster merge can seat them every refresh.
-    const remoteMembers = selected
-      .filter(bot => bot.remoteSource)
-      .map(bot => ({
-        name: bot.name,
-        handle: bot.handle || bot.name,
-        connectionId: bot.connectionId,
-        connectionKind: bot.connectionKind,
-        connectionLabel: bot.connectionLabel,
-        remoteSource: true,
-        sourceScoped: true
-      }))
+    // Persist every machine identity, including today's active source. That
+    // member becomes remote after a source switch and cannot rely on the new
+    // gateway's name-keyed bot metadata to remain seated in this room.
+    const roomMembers = durableGroupChatMembers(selected)
 
-    if (remoteMembers.length) {
-      updateGroupChat(groupName, room => {
-        room.members = remoteMembers
-        return room
-      })
-    }
+    updateGroupChat(groupName, room => {
+      room.members = roomMembers
+      return room
+    })
 
     host.notify({ kind: 'info', message: b.groupCreated(groupName, selected.length) })
     onClose()
@@ -7617,7 +7733,9 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
           children: [
             jsx(DialogTitle, { children: b.newGroupChatTitle }),
             jsx(DialogDescription, {
+
               children: b.pickBotsForRoom(GROUP_CHAT_MAX_MEMBERS)
+
             })
           ]
         }),
@@ -7662,51 +7780,45 @@ function CreateGroupChatDialog({ open, roster, onClose, onCreated }) {
                   const { shape, color, image } = botAppearance(bot.name, meta)
                   const isChecked = Boolean(checked[botRosterKey(bot)])
                   const disabled = !isChecked && atCap
-                  const currentGroup = (meta?.group || '').trim()
+                  const currentGroups = botGroups(meta)
 
-                  return jsxs(
-                    'label',
-                    {
-                      className: cn(
-                        'flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-(--chrome-action-hover)',
-                        disabled && 'cursor-not-allowed opacity-50'
-                      ),
-                      children: [
-                        jsx(BotFace, {
-                          shape,
-                          color,
-                          image: image && !isBackfilledFacePng(image) ? image : null,
-                          size: 24,
-                          name: bot.name
-                        }),
-                        jsxs('div', {
-                          className: 'min-w-0 flex-1',
-                          children: [
-                            jsx('div', {
-                              className: 'truncate text-xs text-foreground',
-                              children: displayName(bot, meta)
-                            }),
-                            jsx('div', {
-                              className: 'truncate text-[0.625rem] text-(--ui-text-quaternary)',
-                              children: [
-                                currentGroup
-                                  ? b.inGroup(botHandle(bot.name, bot), currentGroup)
-                                  : `@${botHandle(bot.name, bot)}`,
-                                bot.remoteSource && bot.connectionLabel ? ` · ${bot.connectionLabel}` : ''
-                              ].join('')
-                            })
-                          ]
-                        }),
-                        jsx(Checkbox, {
-                          checked: isChecked,
-                          disabled,
-                          onCheckedChange: value =>
-                            setChecked(prev => ({ ...prev, [botRosterKey(bot)]: Boolean(value) }))
-                        })
-                      ]
-                    },
-                    botRosterKey(bot)
-                  )
+
+                  return jsxs('label', {
+                    className: cn(
+                      'flex cursor-pointer items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-(--chrome-action-hover)',
+                      disabled && 'cursor-not-allowed opacity-50'
+                    ),
+                    children: [
+                      jsx(BotFace, {
+                        shape,
+                        color,
+                        image: image && !isBackfilledFacePng(image) ? image : null,
+                        size: 24,
+                        name: bot.name
+                      }),
+                      jsxs('div', {
+                        className: 'min-w-0 flex-1',
+                        children: [
+                          jsx('div', { className: 'truncate text-xs text-foreground', children: displayName(bot, meta) }),
+                          jsx('div', {
+                            className: 'truncate text-[0.625rem] text-(--ui-text-quaternary)',
+                            children: [
+                              currentGroups.length
+                                ? b.inGroups(botHandle(bot.name, bot), currentGroups)
+                                : `@${botHandle(bot.name, bot)}`,
+                              bot.remoteSource && bot.connectionLabel ? ` · ${bot.connectionLabel}` : ''
+                            ].join('')
+                          })
+                        ]
+                      }),
+                      jsx(Checkbox, {
+                        checked: isChecked,
+                        disabled,
+                        onCheckedChange: value => setChecked(prev => ({ ...prev, [botRosterKey(bot)]: Boolean(value) }))
+                      })
+                    ]
+                  }, botRosterKey(bot))
+
                 })
               : jsx('div', {
                   className: 'px-1.5 py-3 text-center text-xs text-(--ui-text-tertiary)',
@@ -7983,11 +8095,10 @@ function GroupChatWorkspace({ group, members, onBack }) {
         doneLabel: b.disbanded,
         onClose: () => setConfirmDisband(false),
         onConfirm: async () => {
-          await disbandGroupChat(
-            group,
-            members.map(bot => bot.name)
-          )
+
+          await disbandGroupChat(group, members)
           host.notify({ kind: 'success', message: b.disbandedGroup(group) })
+
         }
       })
     ]

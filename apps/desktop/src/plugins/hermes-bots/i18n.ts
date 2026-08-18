@@ -61,6 +61,8 @@ type BotsMessages = {
   sessions: string
   moveToGroup: string
   group: (name: string) => string
+  manageGroups: string
+  groups: (names: string) => string
   unread: string
   activeRecently: string
   openAgentChat: (name: string) => string
@@ -267,6 +269,12 @@ type BotsMessages = {
   // Group management
   moveToGroupTitle: string
   moveToGroupDesc: string
+  manageGroupsTitle: string
+  manageGroupsDesc: string
+  createAndJoin: string
+  removeFromAllGroups: string
+  addedToGroup: (bot: string, group: string) => string
+  removedFromNamedGroup: (bot: string, group: string) => string
   newGroupPlaceholder: string
   groupNameLabel: string
   newGroup: string
@@ -276,6 +284,7 @@ type BotsMessages = {
   groupNeedsYouTitle: string
   openGroupChat: (name: string) => string
   inGroup: (handle: string, group: string) => string
+  inGroups: (handle: string, groups: string[]) => string
 
   // Delete confirmation
   deleteBotTitle: string
@@ -445,6 +454,8 @@ const en: BotsMessages = {
   sessions: 'Sessions',
   moveToGroup: 'Move to group…',
   group: name => `Group: ${name}…`,
+  manageGroups: 'Manage groups…',
+  groups: names => `Groups: ${names}…`,
   unread: 'unread',
   activeRecently: 'Active in the last 90s',
   openAgentChat: name => `Open ${name}'s chat`,
@@ -626,7 +637,8 @@ const en: BotsMessages = {
   groupName: 'Group name',
   sayToGroup: 'Say something — every bot in this group hears the room.',
   roomWorking: 'The room is working…',
-  pickBotsForRoom: max => `Pick 2–${max} bots. The room lives in the Bots roster and syncs to every machine.`,
+  pickBotsForRoom: max =>
+    `Pick 2–${max} bots. Local memberships sync through each Bot profile; cross-machine members stay scoped to this room.`,
   noBotsYetCreateFirst: 'No bots yet — create agents first.',
   pickAtLeastTwo: 'Pick at least 2 bots',
   createGroup: count => `Create Group${count ? ` (${count})` : ''}`,
@@ -638,7 +650,7 @@ const en: BotsMessages = {
   disbandGroupChat: name => `Disband the ${name} group chat`,
   disbandGroupChatTitle: 'Disband group chat?',
   disbandGroupChatDesc: (name, count) =>
-    `This removes the ${name} grouping from its ${count} bots and clears the shared room log. The bots themselves and their “Group: ${name}” sessions are kept — you can still open those from each bot’s session browser.`,
+    `This removes the ${name} membership from its ${count} bots and clears the shared room log. The bots, their other groups, and their “Group: ${name}” sessions are kept.`,
   disband: 'Disband',
   disbanding: 'Disbanding…',
   disbanded: 'Disbanded',
@@ -648,6 +660,12 @@ const en: BotsMessages = {
 
   moveToGroupTitle: 'Move to group',
   moveToGroupDesc: 'Groups render as labeled sections in the BOTS roster and sync to every machine.',
+  manageGroupsTitle: 'Manage groups',
+  manageGroupsDesc: 'A bot can join multiple group chats. Memberships sync to every machine.',
+  createAndJoin: 'Create & join',
+  removeFromAllGroups: 'Remove from all groups',
+  addedToGroup: (bot, group) => `${bot} added to “${group}”`,
+  removedFromNamedGroup: (bot, group) => `${bot} removed from “${group}”`,
   newGroupPlaceholder: 'Group name (e.g. Research)',
   groupNameLabel: 'Group name',
   newGroup: 'New group…',
@@ -657,6 +675,7 @@ const en: BotsMessages = {
   groupNeedsYouTitle: 'A bot in this room needs your input',
   openGroupChat: name => `Open the ${name} group chat`,
   inGroup: (handle, group) => `@${handle} · in “${group}”`,
+  inGroups: (handle, groups) => `@${handle} · in ${groups.map(group => `“${group}”`).join(', ')}`,
 
   deleteBotTitle: 'Delete bot and profile?',
   deleteBotDesc: (name, path) =>
@@ -824,6 +843,8 @@ const zh: BotsMessages = {
   sessions: '会话',
   moveToGroup: '移至分组…',
   group: name => `分组：${name}…`,
+  manageGroups: '管理分组…',
+  groups: names => `分组：${names}…`,
   unread: '未读',
   activeRecently: '最近 90 秒内活跃',
   openAgentChat: name => `打开 ${name} 的聊天`,
@@ -1002,7 +1023,8 @@ const zh: BotsMessages = {
   groupName: '群组名称',
   sayToGroup: '说点什么 — 此群组中的每个 Bot 都能听到。',
   roomWorking: '房间正在工作…',
-  pickBotsForRoom: max => `选择 2–${max} 个 Bot。群聊会显示在智能体列表中，并同步到所有设备。`,
+  pickBotsForRoom: max =>
+    `选择 2–${max} 个 Bot。本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
   noBotsYetCreateFirst: '尚无 Bot，请先创建代理。',
   pickAtLeastTwo: '请至少选择 2 个 Bot',
   createGroup: count => `创建群聊${count ? `（${count}）` : ''}`,
@@ -1014,7 +1036,7 @@ const zh: BotsMessages = {
   disbandGroupChat: name => `解散 ${name} 群聊`,
   disbandGroupChatTitle: '解散群聊？',
   disbandGroupChatDesc: (name, count) =>
-    `这会移除 ${count} 个 Bot 的“${name}”分组并清除共享房间记录。Bot 本身及其“分组：${name}”会话会保留，仍可从各 Bot 的会话浏览器中打开。`,
+    `这会移除 ${count} 个 Bot 的“${name}”成员关系并清除共享房间记录。Bot、本身所属的其他分组以及“分组：${name}”会话都会保留。`,
   disband: '解散',
   disbanding: '正在解散…',
   disbanded: '已解散',
@@ -1024,6 +1046,12 @@ const zh: BotsMessages = {
 
   moveToGroupTitle: '移至分组',
   moveToGroupDesc: '分组会在 BOTS 名单中显示为标签区块，并同步到每台设备。',
+  manageGroupsTitle: '管理分组',
+  manageGroupsDesc: '一个 Bot 可以加入多个群聊，成员关系会同步到所有设备。',
+  createAndJoin: '创建并加入',
+  removeFromAllGroups: '从所有分组中移除',
+  addedToGroup: (bot, group) => `${bot} 已加入“${group}”`,
+  removedFromNamedGroup: (bot, group) => `${bot} 已从“${group}”中移除`,
   newGroupPlaceholder: '群组名称（例如：研究）',
   groupNameLabel: '群组名称',
   newGroup: '新建分组…',
@@ -1033,6 +1061,7 @@ const zh: BotsMessages = {
   groupNeedsYouTitle: '此群聊中的一个 Bot 需要你输入内容',
   openGroupChat: name => `打开 ${name} 群聊`,
   inGroup: (handle, group) => `@${handle} · 位于“${group}”`,
+  inGroups: (handle, groups) => `@${handle} · 位于${groups.map(group => `“${group}”`).join('、')}`,
 
   deleteBotTitle: '删除 Bot 和资料？',
   deleteBotDesc: (name, path) => `这将永久删除 Bot ${name} 及其在 ${path} 的关联 Hermes 资料。此操作无法撤销。`,
@@ -1210,6 +1239,8 @@ export function useBots() {
     sessions: t('sessions'),
     moveToGroup: t('moveToGroup'),
     group: (name: string) => t('group', name),
+    manageGroups: t('manageGroups'),
+    groups: (names: string) => t('groups', names),
     unread: t('unread'),
     activeRecently: t('activeRecently'),
     openAgentChat: (name: string) => t('openAgentChat', name),
@@ -1416,6 +1447,12 @@ export function useBots() {
     // Group management
     moveToGroupTitle: t('moveToGroupTitle'),
     moveToGroupDesc: t('moveToGroupDesc'),
+    manageGroupsTitle: t('manageGroupsTitle'),
+    manageGroupsDesc: t('manageGroupsDesc'),
+    createAndJoin: t('createAndJoin'),
+    removeFromAllGroups: t('removeFromAllGroups'),
+    addedToGroup: (bot: string, group: string) => t('addedToGroup', bot, group),
+    removedFromNamedGroup: (bot: string, group: string) => t('removedFromNamedGroup', bot, group),
     newGroupPlaceholder: t('newGroupPlaceholder'),
     groupNameLabel: t('groupNameLabel'),
     newGroup: t('newGroup'),
@@ -1425,6 +1462,7 @@ export function useBots() {
     groupNeedsYouTitle: t('groupNeedsYouTitle'),
     openGroupChat: (name: string) => t('openGroupChat', name),
     inGroup: (handle: string, group: string) => t('inGroup', handle, group),
+    inGroups: (handle: string, groups: string[]) => t('inGroups', handle, groups),
 
     // Delete confirmation
     deleteBotTitle: t('deleteBotTitle'),
