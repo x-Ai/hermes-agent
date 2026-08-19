@@ -359,11 +359,12 @@ export function TreeGroup({
     targetPane
   }
 
-  // NO body double-click toggle: virtualized content (the thread) recreates
-  // its nodes between clicks, so the gesture was hopelessly unreliable. The
-  // bar's lifecycle is explicit instead — gaining a tab sticky-shows it
-  // (insertAtGroup pins headerHidden false), the main tab's context menu
-  // hides it, and full-page views veto it via paneChrome.headerVeto.
+  // The virtualized body cannot reliably own a double-click (its DOM can be
+  // replaced between presses), so a hidden header leaves behind a stable,
+  // narrow top-edge handle. This is the inverse gesture/affordance that keeps
+  // "hide header" recoverable without changing the active pane.
+  const headerRecoverable =
+    !isEmpty && !verticalCollapse && !headerVisible && !paneChrome(active).headerVeto && node.headerHidden === true
 
   return (
     <div
@@ -389,6 +390,18 @@ export function TreeGroup({
           className="pointer-events-none absolute z-10 [-webkit-app-region:drag]"
           style={{ height: wcOverlap.height, left: wcOverlap.x, top: wcOverlap.y, width: wcOverlap.width }}
         />
+      )}
+
+      {headerRecoverable && (
+        <button
+          aria-label={t.zones.showHeader}
+          className="group/header-reveal absolute inset-x-0 top-0 z-20 h-1 cursor-pointer bg-transparent focus-visible:h-2 focus-visible:bg-(--ui-stroke-focus)"
+          onClick={() => setTreeGroupHeaderHidden(node.id, false)}
+          title={t.zones.showHeader}
+          type="button"
+        >
+          <span className="absolute inset-x-0 top-0 h-px bg-(--ui-stroke-secondary) opacity-0 transition-opacity group-hover/header-reveal:opacity-100" />
+        </button>
       )}
 
       {/* Minimized in a ROW: a narrow vertical rail — same PaneTab shell as

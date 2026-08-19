@@ -34,6 +34,7 @@ import {
   removePane,
   reorderPanesInGroup as reorderPanesInGroupOp,
   setActivePane as setActivePaneOp,
+  setAllGroupHeadersHidden,
   setGroupHeaderHidden as setGroupHeaderHiddenOp,
   setGroupMinimized,
   setSplitWeights as setSplitWeightsOp,
@@ -1852,6 +1853,16 @@ export function setTreeGroupHeaderHidden(groupId: string, headerHidden: boolean)
 
   if (tree) {
     commit(setGroupHeaderHiddenOp(tree, groupId, headerHidden))
+  }
+}
+
+/** Restore every manually hidden zone header in one atomic layout write. This
+ *  is the global recovery door used outside the header itself. */
+export function showAllTreeGroupHeaders() {
+  const tree = $layoutTree.get()
+
+  if (tree) {
+    commit(setAllGroupHeadersHidden(tree, false))
   }
 }
 

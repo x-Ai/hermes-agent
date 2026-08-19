@@ -1,5 +1,7 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import type { StatusResponse } from '@/types/hermes'
 
 const mocks = vi.hoisted(() => ({
   notifyError: vi.fn(),
@@ -18,6 +20,12 @@ vi.mock('@/i18n', () => ({
   useI18n: () => ({
     t: {
       commandCenter: { restartGateway: 'Restart gateway' },
+      messaging: {
+        states: {
+          connected: '已连接',
+          disconnected: '已断开'
+        }
+      },
       shell: {
         gatewayMenu: {
           checkingInference: 'Checking inference',
@@ -52,14 +60,32 @@ vi.mock('@/store/system-actions', () => ({
 
 import { GatewayMenuPanel } from './gateway-menu-panel'
 
-const renderPanel = (gatewayState: string) =>
+const statusWithPlatform = (state: string): StatusResponse => ({
+  active_sessions: 0,
+  config_path: '',
+  config_version: 0,
+  env_path: '',
+  gateway_exit_reason: null,
+  gateway_health_url: null,
+  gateway_pid: null,
+  gateway_platforms: { webhook: { state, updated_at: '' } },
+  gateway_running: true,
+  gateway_state: 'running',
+  gateway_updated_at: '',
+  hermes_home: '',
+  latest_config_version: 0,
+  release_date: '',
+  version: ''
+})
+
+const renderPanel = (gatewayState: string, platformState?: string) =>
   render(
     <GatewayMenuPanel
       gatewayState={gatewayState}
       inferenceStatus={null}
       onClose={vi.fn()}
       onOpenSystem={vi.fn()}
-      statusSnapshot={null}
+      statusSnapshot={platformState ? statusWithPlatform(platformState) : null}
     />
   )
 
@@ -97,5 +123,18 @@ describe('GatewayMenuPanel reconnect action', () => {
     await act(async () => undefined)
 
     expect(screen.queryByRole('button', { name: 'Reconnect gateway' })).toBeNull()
+  })
+
+  it.each([
+    ['Connected', '已连接'],
+    ['Disconnected', '已断开']
+  ])('normalizes and localizes a platform state reported as %s', async (state, label) => {
+    renderPanel('open', state)
+    await act(async () => undefined)
+
+    const platformRow = screen.getByText('webhook').closest('li')
+    expect(platformRow).toBeTruthy()
+    expect(within(platformRow!).getByText(label)).toBeTruthy()
+    expect(within(platformRow!).queryByText(state)).toBeNull()
   })
 })

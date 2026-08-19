@@ -1219,6 +1219,7 @@ export const ar = defineLocale({
     states: {
       connected: 'متصل',
       connecting: 'جار الاتصال',
+      disconnected: 'غير متصل',
       disabled: 'معطّل',
       fatal: 'خطأ',
       gateway_stopped: 'تم إيقاف بوابة المراسلة',

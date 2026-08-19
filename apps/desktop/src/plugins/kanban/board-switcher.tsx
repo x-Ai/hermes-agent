@@ -166,7 +166,11 @@ function BoardSettingsDialog({ board, onClose }: { board: BoardMeta | null; onCl
           <label className="flex flex-col gap-1">
             <span className={FIELD_LABEL}>{k.name}</span>
             <Input onChange={event => setName(event.target.value)} placeholder={k.boardNamePlaceholder} value={name} />
-            {board && <span className="text-[0.6875rem] text-(--ui-text-quaternary)">{k.slug(board.slug)}</span>}
+            {board && (
+              <span className="text-[0.6875rem] text-(--ui-text-quaternary)" title={board.slug}>
+                {k.slug(displayBoardName(k, { name: board.slug, slug: board.slug }))}
+              </span>
+            )}
           </label>
           <ProjectPicker onChange={setProject} value={project} />
         </div>

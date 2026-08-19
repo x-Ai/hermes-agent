@@ -1789,6 +1789,7 @@ export const en: Translations = {
     states: {
       connected: 'Connected',
       connecting: 'Connecting',
+      disconnected: 'Disconnected',
       disabled: 'Disabled',
       fatal: 'Error',
       gateway_stopped: 'Messaging gateway stopped',

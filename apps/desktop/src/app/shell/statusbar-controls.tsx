@@ -2,6 +2,10 @@ import { useStore } from '@nanostores/react'
 import { type ComponentProps, memo, type ReactNode, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { SETTINGS_ROUTE } from '@/app/routes'
+import { hasHiddenGroupHeaders } from '@/components/pane-shell/tree/model'
+import { $layoutTree, showAllTreeGroupHeaders } from '@/components/pane-shell/tree/store'
+import { Codicon } from '@/components/ui/codicon'
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -11,7 +15,15 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { Tip, TipKeybindLabel, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ContribRender } from '@/contrib/react/boundary'
 import { useI18n } from '@/i18n'
@@ -92,6 +104,7 @@ interface StatusbarControlsProps extends ComponentProps<'footer'> {
 export function StatusbarControls({ className, leftItems = [], items = [], ...props }: StatusbarControlsProps) {
   const navigate = useNavigate()
   const hiddenIds = useStore($statusbarHiddenIds)
+  const toggles = useMemo(() => statusbarToggleItems(leftItems, items), [items, leftItems])
 
   const visible = (item: StatusbarItem) =>
     !item.hidden && (item.lockedVisible || !item.toggleLabel || !hiddenIds.includes(item.id))
@@ -116,16 +129,33 @@ export function StatusbarControls({ className, leftItems = [], items = [], ...pr
               <StatusbarItemView item={item} key={`left:${item.id}`} navigate={navigate} />
             ))}
           </div>
-          <div className="flex min-w-0 items-stretch gap-0.5 overflow-x-clip">
-            {items.filter(visible).map(item => (
-              <StatusbarItemView item={item} key={`right:${item.id}`} navigate={navigate} />
-            ))}
+          <div className="flex min-w-0 items-stretch gap-0.5">
+            <div className="flex min-w-0 items-stretch gap-0.5 overflow-x-clip">
+              {items.filter(visible).map(item => (
+                <StatusbarItemView item={item} key={`right:${item.id}`} navigate={navigate} />
+              ))}
+            </div>
+            <StatusbarCustomizationButton hiddenIds={hiddenIds} navigate={navigate} toggles={toggles} />
           </div>
         </footer>
       </ContextMenuTrigger>
-      <StatusbarVisibilityMenu hiddenIds={hiddenIds} items={items} leftItems={leftItems} />
+      <StatusbarVisibilityMenu hiddenIds={hiddenIds} toggles={toggles} />
     </ContextMenu>
   )
+}
+
+function statusbarToggleItems(leftItems: readonly StatusbarItem[], items: readonly StatusbarItem[]) {
+  const seen = new Set<string>()
+
+  return [...leftItems, ...items].filter(item => {
+    if (!item.toggleLabel || seen.has(item.id)) {
+      return false
+    }
+
+    seen.add(item.id)
+
+    return true
+  })
 }
 
 /** Right-click the bar to choose what it shows. Lists every item that named
@@ -134,32 +164,13 @@ export function StatusbarControls({ className, leftItems = [], items = [], ...pr
  *  bottom — VS Code puts it on the same context menu. */
 function StatusbarVisibilityMenu({
   hiddenIds,
-  items,
-  leftItems
+  toggles
 }: {
   hiddenIds: readonly string[]
-  items: readonly StatusbarItem[]
-  leftItems: readonly StatusbarItem[]
+  toggles: readonly StatusbarItem[]
 }) {
   const { t } = useI18n()
   const copy = t.shell.statusbar
-
-  // Deduped by id: an item can legitimately appear in both clusters across
-  // renders (contributions move sides), and a repeated checkbox would let one
-  // row's toggle silently contradict the other's.
-  const toggles = useMemo(() => {
-    const seen = new Set<string>()
-
-    return [...leftItems, ...items].filter(item => {
-      if (!item.toggleLabel || seen.has(item.id)) {
-        return false
-      }
-
-      seen.add(item.id)
-
-      return true
-    })
-  }, [items, leftItems])
 
   return (
     <ContextMenuContent className="w-52">
@@ -201,6 +212,73 @@ function StatusbarVisibilityMenu({
         <StatusbarHideHint />
       </ContextMenuItem>
     </ContextMenuContent>
+  )
+}
+
+/** A visible door to the same controls that used to be discoverable only by
+ *  right-clicking a five-pixel bar. It also restores pane headers after their
+ *  own chrome has been hidden, so no visibility preference removes its inverse. */
+function StatusbarCustomizationButton({
+  hiddenIds,
+  navigate,
+  toggles
+}: {
+  hiddenIds: readonly string[]
+  navigate: ReturnType<typeof useNavigate>
+  toggles: readonly StatusbarItem[]
+}) {
+  const { t } = useI18n()
+  const tree = useStore($layoutTree)
+  const copy = t.shell.statusbar
+  const hasHiddenHeaders = tree ? hasHiddenGroupHeaders(tree) : false
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label={copy.customizeTitle}
+          className={cn(STATUSBAR_ACTION_CLASS, 'w-6 shrink-0 justify-center px-0')}
+          title={copy.customizeTitle}
+          type="button"
+        >
+          <Codicon name="settings-gear" size="0.75rem" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel>{copy.customizeTitle}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {toggles.map(item => (
+          <DropdownMenuCheckboxItem
+            checked={item.lockedVisible || !hiddenIds.includes(item.id)}
+            disabled={item.lockedVisible}
+            key={item.id}
+            onCheckedChange={checked => setStatusbarItemVisible(item.id, checked)}
+            onSelect={event => event.preventDefault()}
+          >
+            <span className="truncate">{item.toggleLabel}</span>
+          </DropdownMenuCheckboxItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled={!hasHiddenHeaders} onSelect={showAllTreeGroupHeaders}>
+          <Codicon name="eye" size="0.75rem" />
+          <span className="truncate">{t.zones.showHeader}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={isStatusbarLayoutDefault(hiddenIds)} onSelect={resetStatusbarLayout}>
+          <Codicon name="discard" size="0.75rem" />
+          <span className="truncate">{copy.resetStatusbar}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={toggleStatusbarVisible}>
+          <Codicon name="layout-statusbar" size="0.75rem" />
+          <span className="truncate">{copy.hideStatusbar}</span>
+          <StatusbarHideHint />
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => navigate(SETTINGS_ROUTE)}>
+          <Codicon name="settings-gear" size="0.75rem" />
+          <span className="truncate">{t.titlebar.openSettings}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

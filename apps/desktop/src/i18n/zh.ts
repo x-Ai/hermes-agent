@@ -2499,6 +2499,7 @@ export const zh: Translations = {
     states: {
       connected: '已连接',
       connecting: '连接中',
+      disconnected: '已断开',
       disabled: '已禁用',
       fatal: '错误',
       gateway_stopped: '消息网关已停止',

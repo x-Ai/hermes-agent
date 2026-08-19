@@ -8,6 +8,7 @@ describe('Kanban reserved-name localization', () => {
 
     expect(zh.nav).toBe('看板')
     expect(displayBoardName(zh, { name: 'Default', slug: 'default' })).toBe('默认')
+    expect(displayBoardName(zh, { name: 'default', slug: 'default' })).toBe('默认')
     expect(displayProfileName(zh, 'default')).toBe('默认')
     expect(storedBoardName(zh, { name: 'Default', slug: 'default' }, '默认')).toBe('Default')
   })

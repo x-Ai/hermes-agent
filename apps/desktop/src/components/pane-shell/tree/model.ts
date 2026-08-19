@@ -34,8 +34,8 @@ export interface GroupNode {
   /** Collapsed to header strip (chevron restores). */
   minimized?: boolean
   /**
-   * Header hidden entirely (double-click the header to hide, double-click the
-   * zone's top edge to bring it back). Minimize always shows the header —
+   * Header hidden entirely (double-click the header to hide, click the zone's
+   * stable top-edge handle to bring it back). Minimize always shows the header —
    * a minimized group IS its header.
    */
   headerHidden?: boolean
@@ -111,6 +111,10 @@ export function findGroupOfPane(node: LayoutNode, paneId: string): GroupNode | n
 
 export function allPaneIds(node: LayoutNode): string[] {
   return node.type === 'group' ? [...node.panes] : node.children.flatMap(allPaneIds)
+}
+
+export function hasHiddenGroupHeaders(node: LayoutNode): boolean {
+  return node.type === 'group' ? node.headerHidden === true : node.children.some(hasHiddenGroupHeaders)
 }
 
 /** The split whose DIRECT child carries `childId`, or null. */
@@ -532,6 +536,10 @@ export function setGroupMinimized(root: LayoutNode, groupId: string, minimized: 
 
 export function setGroupHeaderHidden(root: LayoutNode, groupId: string, headerHidden: boolean): LayoutNode {
   return mapGroups(root, g => (g.id === groupId ? { ...g, headerHidden } : g))
+}
+
+export function setAllGroupHeadersHidden(root: LayoutNode, headerHidden: boolean): LayoutNode {
+  return mapGroups(root, group => (group.headerHidden === headerHidden ? group : { ...group, headerHidden }))
 }
 
 function replaceNode(node: LayoutNode, id: string, make: (g: GroupNode) => LayoutNode): LayoutNode {
