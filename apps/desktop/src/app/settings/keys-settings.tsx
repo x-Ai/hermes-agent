@@ -2,7 +2,9 @@ import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useI18n } from '@/i18n'
+import type { Translations } from '@/i18n'
 import { $settingsRequestProfile } from '@/store/settings-scope'
+import type { EnvVarInfo } from '@/types/hermes'
 
 import { CredentialKeyCard, credentialPlaceholder, credentialRowLabel } from './credential-key-ui'
 import { useEnvCredentials } from './env-credentials'
@@ -28,6 +30,21 @@ export type KeysView = (typeof KEYS_VIEWS)[number]
 const VIEW_CATEGORIES: Record<KeysView, readonly string[]> = {
   settings: ['setting', 'messaging'],
   tools: ['tool']
+}
+
+/** Overlay renderer-owned copy on backend credential metadata. Generic keys
+ * use settings.envKeys; messaging-derived settings reuse the platform field
+ * help. The backend remains authoritative for behavior and URLs. Unknown keys
+ * retain backend copy so plugin-provided settings degrade gracefully. */
+export function localizedCredentialInfo(
+  key: string,
+  info: EnvVarInfo,
+  envKeys: Translations['settings']['envKeys'],
+  fieldCopy: Translations['messaging']['fieldCopy']
+): EnvVarInfo {
+  const description = envKeys[key]?.description || fieldCopy[key]?.help
+
+  return description ? { ...info, description } : info
 }
 
 const credentialElementId = (key: string) => `credential-key-${key}`
@@ -87,13 +104,18 @@ export function KeysSettings({ view }: KeysSettingsProps) {
       {entries.length > 0 ? (
         <div className="grid gap-2">
           {entries.map(([key, info]) => {
-            const label = credentialRowLabel(key, info)
+            const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys, t.messaging.fieldCopy)
+            // Credential names are configuration identifiers, not prose. Keep
+            // them stable across locales; only their explanatory copy is
+            // localized on the Settings page.
+            const label = credentialRowLabel(key, localizedInfo)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>
                 <CredentialKeyCard
+                  descriptionAlwaysVisible={view === 'settings'}
                   expanded={openKey === key}
-                  info={info}
+                  info={localizedInfo}
                   label={label}
                   onExpand={() => setOpenKey(key)}
                   onToggle={() => setOpenKey(prev => (prev === key ? null : key))}
