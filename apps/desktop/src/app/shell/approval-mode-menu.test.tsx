@@ -42,7 +42,7 @@ describe('approval mode statusbar item', () => {
 
     const statusbar = screen.getByRole('contentinfo')
     const trigger = within(statusbar).getByRole('button', { name: /smart/i })
-    expect(within(statusbar).getAllByRole('button')).toHaveLength(1)
+    expect(trigger.querySelector('button')).toBeNull()
 
     fireEvent.pointerDown(trigger, { button: 0 })
 

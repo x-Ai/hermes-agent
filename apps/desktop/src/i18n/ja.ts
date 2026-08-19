@@ -3510,6 +3510,7 @@ export const ja = defineCompleteLocale({
     states: {
       connected: '接続済み',
       connecting: '接続中',
+      disconnected: '切断済み',
       disabled: '無効',
       fatal: 'エラー',
       gateway_stopped: 'メッセージングゲートウェイが停止中',

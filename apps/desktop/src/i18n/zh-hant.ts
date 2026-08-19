@@ -3348,6 +3348,7 @@ export const zhHant = defineCompleteLocale({
     states: {
       connected: '已連線',
       connecting: '連線中',
+      disconnected: '已中斷',
       disabled: '已停用',
       fatal: '錯誤',
       gateway_stopped: '訊息閘道已停止',
