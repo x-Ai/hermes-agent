@@ -1641,7 +1641,12 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
     from hermes_cli.config import get_compatible_custom_providers
     from hermes_cli.models import _KNOWN_PROVIDER_NAMES, normalize_provider
     from hermes_cli.model_normalize import normalize_model_for_provider
-    from hermes_cli.providers import resolve_custom_provider, resolve_user_provider
+    from hermes_cli.providers import (
+        custom_provider_slug,
+        is_saved_custom_endpoint,
+        resolve_custom_provider,
+        resolve_user_provider,
+    )
 
     prov_in = (provider or "").strip()
     model_in = (model or "").strip()
@@ -1664,6 +1669,30 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
         get_compatible_custom_providers(cfg) if isinstance(cfg, dict) else [],
     )
     if user_provider is not None:
+        # ``providers:`` normally keeps its declared bare id for backwards
+        # compatibility. A bare id that is ALSO a canonical built-in (notably
+        # ``xai``), however, is ambiguous and the runtime intentionally gives
+        # explicit bare names to the built-in. Persist the canonical custom
+        # identity in that one collision case so readiness checks and fresh
+        # sessions resolve the endpoint's key_env instead of XAI_API_KEY.
+        try:
+            from hermes_cli.auth import PROVIDER_REGISTRY
+
+            provider_entry = (
+                user_providers.get(user_provider.id)
+                if isinstance(user_providers, dict)
+                else None
+            )
+            if (
+                user_provider.id.strip().lower() in PROVIDER_REGISTRY
+                and is_saved_custom_endpoint(provider_entry)
+            ):
+                return (
+                    custom_provider_slug(user_provider.name, user_provider.id),
+                    model_in,
+                )
+        except Exception:
+            pass
         return user_provider.id, model_in
     if custom_provider is not None:
         return custom_provider.id, model_in

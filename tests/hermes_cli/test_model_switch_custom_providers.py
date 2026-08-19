@@ -141,6 +141,34 @@ def test_providers_singular_model_does_not_suppress_ollama_native_discovery(monk
     assert ollama["models"] == ["qwen3:latest", "llama3.2:latest"]
 
 
+def test_user_provider_colliding_with_builtin_uses_custom_slug(monkeypatch):
+    """A configured endpoint named xai must not select the built-in xAI route."""
+    monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
+    monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})
+
+    providers = list_authenticated_providers(
+        current_provider="xai",
+        current_base_url="https://gateway.example.test/v1",
+        user_providers={
+            "xai": {
+                "name": "Private xAI-compatible endpoint",
+                "base_url": "https://gateway.example.test/v1",
+                "key_env": "HERMES_CUSTOM_XAI_API_KEY",
+                "model": "grok-custom",
+                "discover_models": False,
+            }
+        },
+        custom_providers=[],
+        max_models=50,
+        probe_custom_providers=False,
+    )
+
+    row = next(provider for provider in providers if provider.get("is_user_defined"))
+    assert row["slug"] == "custom:xai"
+    assert row["is_current"] is True
+    assert row["models"] == ["grok-custom"]
+
+
 def test_list_authenticated_providers_can_skip_custom_provider_live_probe(monkeypatch):
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
     monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})

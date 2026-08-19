@@ -91,6 +91,21 @@ def load_picker_context() -> ConfigContext:
         current_model = model_cfg.get("default", model_cfg.get("name", "")) or ""
         current_provider = model_cfg.get("provider", "") or ""
         current_base_url = model_cfg.get("base_url", "") or ""
+
+        # Keep the catalog's current identity aligned with runtime resolution.
+        # In particular, a saved custom endpoint may deliberately use a key
+        # that collides with a built-in (``providers.xai``). The disk config
+        # can carry the legacy bare ``model.provider: xai`` plus the custom
+        # base_url; resolve_requested_provider recovers that as ``custom:xai``.
+        # Without applying the same recovery here the picker marks BOTH the
+        # custom row and the unconfigured built-in xAI row as current.
+        if current_provider:
+            try:
+                from hermes_cli.runtime_provider import resolve_requested_provider
+
+                current_provider = resolve_requested_provider()
+            except Exception:
+                pass
     else:
         # config.model can be a bare string in older configs.
         current_model = str(model_cfg) if model_cfg else ""

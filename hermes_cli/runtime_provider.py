@@ -45,9 +45,13 @@ from hermes_cli.config import (
     load_config,
     normalize_extra_headers,
 )
-from hermes_cli.providers import custom_provider_aliases, custom_provider_slug
+from hermes_cli.providers import (
+    custom_provider_aliases,
+    custom_provider_slug,
+    is_official_openai_host,
+    is_saved_custom_endpoint,
+)
 from hermes_constants import OPENROUTER_BASE_URL
-from hermes_cli.providers import is_official_openai_host
 from utils import base_url_host_matches, base_url_hostname, env_int
 
 
@@ -621,7 +625,41 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
     model_cfg = _get_model_config()
     cfg_provider = model_cfg.get("provider")
     if isinstance(cfg_provider, str) and cfg_provider.strip():
-        return cfg_provider.strip().lower()
+        configured = cfg_provider.strip().lower()
+
+        # A user-defined ``providers.<name>`` entry may share a canonical
+        # built-in id (for example ``providers.xai``). Explicit ``requested``
+        # values must keep meaning "the built-in" — named custom endpoints do
+        # not shadow them — but the persisted model selection also carries the
+        # endpoint URL. When that URL belongs to ``providers.<name>``, recover
+        # the routable ``custom:<name>`` identity. Without this, a working
+        # custom endpoint is checked as the built-in and setup.runtime_check
+        # incorrectly asks for XAI_API_KEY instead of its configured key_env.
+        cfg_base_url = str(model_cfg.get("base_url") or "").strip()
+        if cfg_base_url:
+            try:
+                canonical_builtin = auth_mod.resolve_provider(configured)
+            except AuthError:
+                canonical_builtin = None
+
+            if canonical_builtin == configured:
+                providers = load_config().get("providers")
+                saved_entry = providers.get(configured) if isinstance(providers, dict) else None
+                custom_identity = custom_provider_slug(configured, configured)
+                custom_base_url = str(
+                    (saved_entry or {}).get("base_url")
+                    or (saved_entry or {}).get("url")
+                    or (saved_entry or {}).get("api")
+                    or ""
+                ).strip()
+                if (
+                    is_saved_custom_endpoint(saved_entry)
+                    and _normalize_base_url_for_match(custom_base_url)
+                    == _normalize_base_url_for_match(cfg_base_url)
+                ):
+                    return custom_identity
+
+        return configured
 
     # Prefer the persisted config selection over any stale shell/.env
     # provider override so chat uses the endpoint the user last saved.

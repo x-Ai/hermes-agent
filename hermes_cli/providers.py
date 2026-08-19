@@ -815,6 +815,28 @@ def custom_provider_slug(display_name: str, provider_key: str = "") -> str:
     return normalized if normalized.startswith("custom:") else f"custom:{normalized}"
 
 
+def is_saved_custom_endpoint(entry: Any) -> bool:
+    """Whether a ``providers:`` row was created by custom-endpoint setup.
+
+    Built-in/plugin providers also use the ``providers:`` namespace, so the
+    mere presence of a base URL is not enough to classify a row as custom.
+    Custom endpoint setup gives its secret a collision-safe
+    ``HERMES_CUSTOM_*_API_KEY`` identity; that marker distinguishes a user
+    endpoint named e.g. ``xai`` from configuration for the built-in xAI
+    provider without inspecting the secret itself.
+    """
+    if not isinstance(entry, dict):
+        return False
+
+    key_env = (
+        str(entry.get("key_env") or entry.get("api_key_env") or "")
+        .strip()
+        .upper()
+    )
+
+    return key_env.startswith("HERMES_CUSTOM_") and key_env.endswith("_API_KEY")
+
+
 def custom_provider_aliases(
     display_name: str,
     provider_key: str = "",

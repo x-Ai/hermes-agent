@@ -37,6 +37,7 @@ from hermes_cli.providers import (
     get_label,
     host_mandated_api_mode,
     is_aggregator,
+    is_saved_custom_endpoint,
     resolve_provider_full,
 )
 from hermes_cli.model_normalize import (
@@ -3220,7 +3221,15 @@ def list_authenticated_providers(
             # config — these are hidden from the picker.
             if not is_provider_enabled(ep_cfg):
                 continue
-            if ep_name.lower() in seen_slugs:
+            # A user endpoint can share a canonical built-in id (for example
+            # ``providers.xai``). It must remain a separate, routable row under
+            # ``custom:xai``; otherwise the picker emits bare ``xai`` and the
+            # runtime correctly interprets that as the built-in provider. For
+            # non-colliding entries preserve the historical bare slug.
+            provider_id_collides = (
+                ep_name.strip().lower() in _auth_registry and is_saved_custom_endpoint(ep_cfg)
+            )
+            if ep_name.lower() in seen_slugs and not provider_id_collides:
                 continue
             display_name = ep_cfg.get("name", "") or ep_name
             api_url = (
@@ -3292,7 +3301,11 @@ def list_authenticated_providers(
                         break
                 if _cut_at is not None and _cut_at >= 2:
                     grp_display = " ".join(_toks[:_cut_at]).strip()
-                grp_slug = ep_name  # primary slug is the first ep_name encountered
+                grp_slug = (
+                    custom_provider_slug(display_name, str(ep_name))
+                    if provider_id_collides
+                    else ep_name
+                )  # primary slug is the first ep_name encountered
                 ep_groups[group_key] = {
                     "slug": grp_slug,
                     "name": grp_display or display_name,

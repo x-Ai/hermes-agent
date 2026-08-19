@@ -19,6 +19,24 @@ def test_providers_block_keeps_declared_bare_slug():
     assert result == ("commandcode", "vendor/model-a")
 
 
+def test_provider_key_colliding_with_builtin_gets_durable_custom_slug():
+    result = _normalize(
+        {
+            "providers": {
+                "xai": {
+                    "name": "Private xAI-compatible endpoint",
+                    "base_url": "https://gateway.example.test/v1",
+                    "key_env": "HERMES_CUSTOM_XAI_API_KEY",
+                }
+            }
+        },
+        "xai",
+        "grok-custom",
+    )
+
+    assert result == ("custom:xai", "grok-custom")
+
+
 def test_custom_provider_name_canonicalizes_to_durable_slug():
     config = {
         "custom_providers": [
