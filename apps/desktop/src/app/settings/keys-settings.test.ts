@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { zh } from '@/i18n/zh'
 import type { EnvVarInfo } from '@/types/hermes'
 
-import { localizedCredentialInfo, localizedCredentialLabel } from './keys-settings'
+import { credentialRowLabel } from './credential-key-ui'
+import { localizedCredentialInfo } from './keys-settings'
 
 const backendInfo: EnvVarInfo = {
   advanced: false,
@@ -18,7 +19,7 @@ const backendInfo: EnvVarInfo = {
 
 describe('localizedCredentialInfo', () => {
   it('replaces backend description copy without changing credential behavior metadata', () => {
-    const localized = localizedCredentialInfo('SUDO_PASSWORD', backendInfo, zh.settings.envKeys)
+    const localized = localizedCredentialInfo('SUDO_PASSWORD', backendInfo, zh.settings.envKeys, zh.messaging.fieldCopy)
 
     expect(localized.description).toContain('终端命令')
     expect(localized).toMatchObject({
@@ -28,10 +29,23 @@ describe('localizedCredentialInfo', () => {
       url: backendInfo.url
     })
     expect(backendInfo.description).toBe('Sudo password for terminal commands requiring root access')
-    expect(localizedCredentialLabel('SUDO_PASSWORD', localized, zh.settings.envKeys)).toBe('sudo 密码')
+    expect(credentialRowLabel('SUDO_PASSWORD', localized)).toBe('SUDO PASSWORD')
   })
 
   it('keeps backend copy for plugin-provided settings with no locale entry', () => {
-    expect(localizedCredentialInfo('PLUGIN_SETTING', backendInfo, zh.settings.envKeys)).toBe(backendInfo)
+    expect(localizedCredentialInfo('PLUGIN_SETTING', backendInfo, zh.settings.envKeys, zh.messaging.fieldCopy)).toBe(
+      backendInfo
+    )
+  })
+
+  it('reuses localized messaging help for settings rows owned by a platform', () => {
+    const info = {
+      ...backendInfo,
+      description: 'Default space for cron / notification delivery.'
+    }
+
+    expect(
+      localizedCredentialInfo('GOOGLE_CHAT_HOME_CHANNEL', info, zh.settings.envKeys, zh.messaging.fieldCopy).description
+    ).toContain('通知投递')
   })
 })

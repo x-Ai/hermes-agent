@@ -1356,61 +1356,47 @@ export const zh: Translations = {
       AIRTABLE_API_KEY: { description: 'Airtable 个人访问令牌（airtable 技能使用）' },
       TENOR_API_KEY: { description: '用于 GIF 搜索的 Tenor API 密钥（gif-search 技能使用）' },
       SUDO_PASSWORD: {
-        prompt: 'sudo 密码',
         description: '终端命令需要 root 权限时使用的 sudo 密码；设为显式空字符串表示直接尝试空密码而不提示'
       },
       HERMES_PREFILL_MESSAGES_FILE: {
-        prompt: '预填消息文件路径',
         description: '用于 few-shot 预热的临时预填消息 JSON 文件路径'
       },
       HERMES_EPHEMERAL_SYSTEM_PROMPT: {
-        prompt: '临时系统提示词',
         description: '在 API 调用时注入的临时系统提示词（永不写入会话）'
       },
       RAFT_PROFILE: { description: 'Raft 代理配置档案 slug——设置后自动启用适配器' },
       GATEWAY_ALLOW_ALL_USERS: {
-        prompt: '允许所有用户',
         description: '允许所有用户与消息机器人交互（true/false）。默认 false。'
       },
       API_SERVER_ENABLED: {
-        prompt: '启用 API 服务器',
         description: '启用 OpenAI 兼容 API 服务器（true/false），供 Open WebUI、LobeChat 等前端连接。'
       },
       API_SERVER_KEY: {
-        prompt: 'API 服务器认证密钥',
         description: 'API 服务器的 Bearer 认证令牌。启用服务器时必填，否则服务器将拒绝启动。'
       },
       API_SERVER_PORT: {
-        prompt: 'API 服务器端口',
         description: 'API 服务器的端口（默认 8642）。'
       },
       API_SERVER_HOST: {
-        prompt: 'API 服务器主机地址',
         description: 'API 服务器的主机/绑定地址（默认 127.0.0.1）。即使仅绑定本机回环地址，仍需 API_SERVER_KEY。'
       },
       API_SERVER_MODEL_NAME: {
-        prompt: 'API 服务器模型名称',
         description: '在 /v1/models 中公布的模型名称。默认使用配置档名，默认配置档则使用 hermes-agent；适用于 OpenWebUI 等多用户环境。'
       },
       GATEWAY_PROXY_URL: {
-        prompt: '远程 Hermes API 服务器 URL',
         description:
           '要转发消息的远程 Hermes API 服务器 URL（代理模式）。设置后网关只处理平台收发——所有代理工作委托给远程服务器。适用于中继到宿主机代理的 Docker E2EE 容器。也可通过 config.yaml 的 gateway.proxy_url 配置。'
       },
       GATEWAY_PROXY_KEY: {
-        prompt: '远程 API 服务器认证密钥',
         description: '与远程 Hermes API 服务器认证用的 Bearer 令牌（代理模式）。必须与远程主机的 API_SERVER_KEY 一致。'
       },
       WEBHOOK_ENABLED: {
-        prompt: '启用 Webhook',
         description: '启用 Webhook 平台适配器，用于接收 GitHub、GitLab 等服务的事件。'
       },
       WEBHOOK_PORT: {
-        prompt: 'Webhook 端口',
         description: 'Webhook HTTP 服务器端口（默认 8644）。'
       },
       WEBHOOK_SECRET: {
-        prompt: 'Webhook 密钥',
         description: '用于验证 Webhook 签名的全局 HMAC 密钥（可在 config.yaml 中按路由覆盖）。'
       }
     },
@@ -2558,11 +2544,14 @@ export const zh: Translations = {
       DISCORD_HOME_CHANNEL: { label: '主页频道 ID', help: 'bot 主动发送消息的频道（cron 输出、提醒等）。' },
       DISCORD_HOME_CHANNEL_NAME: { label: '主页频道名称', help: '日志和状态输出中显示的主页频道名称。' },
       BLUEBUBBLES_ALLOW_ALL_USERS: { label: '允许所有 iMessage 用户', help: '为 true 时跳过 BlueBubbles 允许列表。' },
-      MATTERMOST_ALLOW_ALL_USERS: { label: '允许所有 Mattermost 用户' },
-      MATTERMOST_HOME_CHANNEL: { label: '主页频道' },
-      QQ_ALLOW_ALL_USERS: { label: '允许所有 QQ 用户' },
+      MATTERMOST_ALLOW_ALL_USERS: {
+        label: '允许所有 Mattermost 用户',
+        help: '允许所有 Mattermost 用户绕过允许列表与机器人交互。'
+      },
+      MATTERMOST_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认 Mattermost 频道 ID。' },
+      QQ_ALLOW_ALL_USERS: { label: '允许所有 QQ 用户', help: '允许所有 QQ 用户绕过允许列表与机器人交互（true/false）。' },
       QQBOT_HOME_CHANNEL: { label: 'QQ 主页频道', help: 'cron 投递的默认频道或群组。' },
-      QQBOT_HOME_CHANNEL_NAME: { label: 'QQ 主页频道名称' },
+      QQBOT_HOME_CHANNEL_NAME: { label: 'QQ 主页频道名称', help: 'QQ 主页频道的显示名称。' },
       SLACK_BOT_TOKEN: {
         label: 'Slack bot 令牌',
         help: '安装 Slack 应用后，在 OAuth & Permissions 中找到 bot 令牌',

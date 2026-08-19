@@ -32,26 +32,19 @@ const VIEW_CATEGORIES: Record<KeysView, readonly string[]> = {
   tools: ['tool']
 }
 
-/** Overlay renderer-owned copy on backend credential metadata. The backend
- * remains authoritative for behavior and URLs; descriptions are presentation
- * copy and follow the active desktop locale. Unknown keys retain backend copy
- * so plugin-provided settings continue to degrade gracefully. */
+/** Overlay renderer-owned copy on backend credential metadata. Generic keys
+ * use settings.envKeys; messaging-derived settings reuse the platform field
+ * help. The backend remains authoritative for behavior and URLs. Unknown keys
+ * retain backend copy so plugin-provided settings degrade gracefully. */
 export function localizedCredentialInfo(
   key: string,
   info: EnvVarInfo,
-  envKeys: Translations['settings']['envKeys']
+  envKeys: Translations['settings']['envKeys'],
+  fieldCopy: Translations['messaging']['fieldCopy']
 ): EnvVarInfo {
-  const description = envKeys[key]?.description
+  const description = envKeys[key]?.description || fieldCopy[key]?.help
 
   return description ? { ...info, description } : info
-}
-
-export function localizedCredentialLabel(
-  key: string,
-  info: EnvVarInfo,
-  envKeys: Translations['settings']['envKeys']
-): string {
-  return envKeys[key]?.prompt || credentialRowLabel(key, info)
 }
 
 const credentialElementId = (key: string) => `credential-key-${key}`
@@ -109,12 +102,16 @@ export function KeysSettings({ view }: KeysSettingsProps) {
       {entries.length > 0 ? (
         <div className="grid gap-2">
           {entries.map(([key, info]) => {
-            const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys)
-            const label = localizedCredentialLabel(key, localizedInfo, t.settings.envKeys)
+            const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys, t.messaging.fieldCopy)
+            // Credential names are configuration identifiers, not prose. Keep
+            // them stable across locales; only their explanatory copy is
+            // localized on the Settings page.
+            const label = credentialRowLabel(key, localizedInfo)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>
                 <CredentialKeyCard
+                  descriptionAlwaysVisible={view === 'settings'}
                   expanded={openKey === key}
                   info={localizedInfo}
                   label={label}

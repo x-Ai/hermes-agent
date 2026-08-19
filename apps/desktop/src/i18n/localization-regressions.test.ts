@@ -75,8 +75,8 @@ describe('Simplified Chinese localization regressions', () => {
 
   it('covers every global setting rendered under Tools & Keys', () => {
     for (const key of GLOBAL_SETTING_KEYS) {
-      expect(zh.settings.envKeys[key]?.prompt, `${key} label`).toBeTruthy()
       expect(zh.settings.envKeys[key]?.description, `${key} description`).toBeTruthy()
+      expect(zh.settings.envKeys[key]?.prompt, `${key} label stays unlocalized`).toBeUndefined()
     }
   })
 
