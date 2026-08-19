@@ -55,19 +55,33 @@ const PILL_TONE: Record<StatusTone, string> = {
   bad: 'bg-destructive/10 text-destructive'
 }
 
-const stateLabel = (state: null | string | undefined, m: Translations['messaging']) =>
-  state ? m.states[state] || state.replace(/_/g, ' ') : m.unknown
+/** Runtime adapters are not all equally strict about status casing. Normalize
+ *  at the UI boundary so `Connected`, `CONNECTED`, and `connected` all use the
+ *  same localized label (and tone) instead of leaking backend text. */
+const stateKey = (state: null | string | undefined) =>
+  state
+    ?.trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_') || ''
+
+const stateLabel = (state: null | string | undefined, m: Translations['messaging']) => {
+  const key = stateKey(state)
+
+  return key ? m.states[key] || key.replace(/_/g, ' ') : m.unknown
+}
 
 function stateTone({ enabled, state }: MessagingPlatformInfo): StatusTone {
   if (!enabled) {
     return 'muted'
   }
 
-  if (state === 'connected') {
+  const key = stateKey(state)
+
+  if (key === 'connected') {
     return 'good'
   }
 
-  if (state === 'fatal' || state === 'startup_failed') {
+  if (key === 'fatal' || key === 'startup_failed') {
     return 'bad'
   }
 

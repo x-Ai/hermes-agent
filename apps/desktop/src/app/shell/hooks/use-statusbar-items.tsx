@@ -13,7 +13,18 @@ import { Codicon } from '@/components/ui/codicon'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { useI18n } from '@/i18n'
 import { displayPath, pathLeaf } from '@/lib/display-path'
-import { Activity, AlertCircle, Clock, Command, FolderOpen, Globe, Hash, Loader2, Terminal } from '@/lib/icons'
+import {
+  Activity,
+  AlertCircle,
+  Clock,
+  Command,
+  FolderOpen,
+  Globe,
+  Hash,
+  Loader2,
+  Settings,
+  Terminal
+} from '@/lib/icons'
 import type { RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { contextBarLabel, LiveDuration, usageContextLabel } from '@/lib/statusbar'
 import { useStoreSelector } from '@/lib/use-session-slice'
@@ -86,6 +97,7 @@ export function useStatusbarItems({
   toggleCommandCenter
 }: StatusbarItemsOptions) {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const copy = t.shell.statusbar
   const fileMenu = t.fileMenu
   const primaryActiveSessionId = useStore($activeSessionId)
@@ -569,6 +581,19 @@ export function useStatusbarItems({
         toggleLabel: copy.toggleApprovalMode
       },
       {
+        actionId: 'nav.settings',
+        className: 'w-7 justify-center px-0',
+        icon: <Settings className="size-3.5" />,
+        id: 'settings',
+        // Settings is the recovery surface for every configurable status-bar
+        // and shell option. Keep a stable bottom-bar entry even when titlebar
+        // chrome is unavailable or obscured by native window controls.
+        lockedVisible: true,
+        onSelect: () => navigate(SETTINGS_ROUTE),
+        title: t.titlebar.openSettings,
+        variant: 'action'
+      },
+      {
         actionId: 'view.showTerminal',
         className: `w-7 justify-center px-0${terminalShowing ? ' bg-accent/55 text-foreground' : ''}`,
         hidden: !chatOpen,
@@ -594,8 +619,10 @@ export function useStatusbarItems({
       contextUsage,
       copy,
       gaugeUsage,
+      navigate,
       sessionStartedAt,
       gatewayState,
+      t.titlebar.openSettings,
       terminalShowing,
       turnStartedAt
     ]

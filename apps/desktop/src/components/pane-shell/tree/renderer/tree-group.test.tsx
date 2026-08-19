@@ -73,4 +73,33 @@ describe('TreeGroup', () => {
 
     expect(toggle('Restore').querySelector('i')!.className).toContain('codicon-chevron-up')
   })
+
+  it('keeps close chrome on a lone browser tile even when its persisted header was hidden', () => {
+    disposePane = registry.register({
+      area: 'panes',
+      data: { placement: 'main' },
+      id: 'preview-tile:url:test',
+      render: () => <div>Browser</div>,
+      title: 'Browser'
+    })
+    vi.stubGlobal('CSS', { escape: (value: string) => value })
+
+    render(
+      <TreeGroup
+        node={{
+          active: 'preview-tile:url:test',
+          headerHidden: true,
+          id: 'browser-zone',
+          panes: ['preview-tile:url:test'],
+          type: 'group'
+        }}
+        parentAxis="row"
+      />
+    )
+
+    const zone = globalThis.document.querySelector('[data-tree-group="browser-zone"]')
+
+    expect(zone?.getAttribute('data-zone-header')).toBe('true')
+    expect(zone?.querySelector('button[aria-label="Close"]')).toBeTruthy()
+  })
 })

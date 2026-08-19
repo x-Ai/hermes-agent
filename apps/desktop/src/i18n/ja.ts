@@ -3236,6 +3236,7 @@ export const ja = defineLocale({
     getKey: 'キーを取得',
     replaceCurrent: '現在の値を置き換え',
     pasteApiKey: 'API キーを貼り付け',
+    directApiAccess: provider => `${provider} の API に直接アクセスします。`,
     couldNotSave: '認証情報を保存できませんでした。',
     connecting: '接続中',
     update: '更新',

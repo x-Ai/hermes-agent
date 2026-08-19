@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider } from '@/i18n'
 import type { MessagingPlatformInfo } from '@/types/hermes'
 
 const getMessagingPlatforms = vi.fn()
@@ -71,19 +72,34 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-async function renderMessaging() {
+async function renderMessaging(locale?: 'zh') {
   const { MessagingView } = await import('./index')
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
-      <MemoryRouter>
-        <MessagingView />
-      </MemoryRouter>
+      <I18nProvider configClient={null} initialLocale={locale}>
+        <MemoryRouter>
+          <MessagingView />
+        </MemoryRouter>
+      </I18nProvider>
     )
   })
 
   return result!
 }
+
+describe('MessagingView platform state', () => {
+  it('normalizes adapter casing before looking up the localized state', async () => {
+    getMessagingPlatforms.mockResolvedValue({
+      platforms: [platform({ enabled: true, id: 'webhook', name: 'Webhook', state: 'Connected' })]
+    })
+
+    await renderMessaging('zh')
+
+    expect(await screen.findByText('已连接')).toBeTruthy()
+    expect(screen.queryByText('Connected')).toBeNull()
+  })
+})
 
 describe('MessagingView setup-guide link', () => {
   it('hides the setup-guide button for a plugin platform with no docs URL', async () => {

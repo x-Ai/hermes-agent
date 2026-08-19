@@ -3044,6 +3044,7 @@ export const zhHant = defineLocale({
     getKey: '取得金鑰',
     replaceCurrent: '取代目前值',
     pasteApiKey: '貼上 API 金鑰',
+    directApiAccess: provider => `透過 API 直接存取 ${provider}。`,
     couldNotSave: '無法儲存憑證。',
     connecting: '連線中',
     update: '更新',

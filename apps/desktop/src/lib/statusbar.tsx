@@ -46,7 +46,7 @@ export function usageContextLabel(usage: UsageStats): string {
     return `${compactNumber(usage.context_used ?? 0)}/${compactNumber(usage.context_max)}`
   }
 
-  return usage.total > 0 ? `${compactNumber(usage.total)} tok` : ''
+  return usage.total > 0 ? `${compactNumber(usage.total)} Token` : ''
 }
 
 export function contextBarLabel(usage: UsageStats): string {

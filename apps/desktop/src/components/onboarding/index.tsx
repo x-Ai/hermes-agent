@@ -56,7 +56,6 @@ interface DesktopOnboardingOverlayProps {
 }
 
 export interface ApiKeyOption {
-  description?: string
   docsUrl: string
   envKey: string
   id: string
@@ -162,7 +161,6 @@ function useApiKeyCatalog(): ApiKeyOption[] {
         id: row.slug,
         name: row.name,
         envKey,
-        description: `Direct API access to ${row.name}.`,
         docsUrl: ''
       })
     }
@@ -602,7 +600,16 @@ export function ApiKeyForm({
   // or unusual key can't block the user from continuing.
   const canSave = value.trim().length >= 1
   const optionCopy = t.onboarding.apiKeyOptions[option.id]
-  const optionDescription = optionCopy?.description ?? option.description
+
+  // Dynamic providers arrive from the backend with English catalog copy. Use
+  // the same localized provider descriptions as Settings first, then a
+  // localized generic sentence for new/unknown providers. This keeps the
+  // onboarding surface translated without requiring a release every time a
+  // provider is added upstream.
+  const optionDescription =
+    optionCopy?.description ??
+    t.settings.providers.providerDescriptions[option.name] ??
+    t.onboarding.directApiAccess(option.name)
 
   const submit = async () => {
     if (!canSave || saving) {

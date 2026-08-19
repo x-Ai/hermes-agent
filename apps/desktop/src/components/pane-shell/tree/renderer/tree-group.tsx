@@ -272,7 +272,11 @@ export function TreeGroup({
 
   // A full-page view (headerVeto) suppresses the strip while it's the active
   // pane — a page is not a tab-able surface; the bar returns with the chat.
-  const headerHidden = paneChrome(active).headerVeto || (node.headerHidden ?? (shown.length <= 1 && !forceLoneHeader))
+  // A persisted/manual `headerHidden:true` must not override the safety rule
+  // for a lone closeable tile. Otherwise a browser/page/session split becomes
+  // a dead zone with no tab, close button, or drag handle after its header was
+  // hidden once. Full-page `headerVeto` remains the explicit exception.
+  const headerHidden = paneChrome(active).headerVeto || (!forceLoneHeader && (node.headerHidden ?? shown.length <= 1))
 
   // A group collapses ALONG its parent split's axis. In a row that means the
   // WIDTH collapses — a full-width horizontal header would strand a tall

@@ -2482,6 +2482,7 @@ export interface Translations {
     getKey: string
     replaceCurrent: string
     pasteApiKey: string
+    directApiAccess: (provider: string) => string
     localApiKeyPlaceholder: string
     couldNotSave: string
     connecting: string
