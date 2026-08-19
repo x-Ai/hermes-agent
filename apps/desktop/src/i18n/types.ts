@@ -213,6 +213,7 @@ export interface Translations {
       memoryProviderSettingsSaveFailed: (label: string) => string
       modelChangeFailed: string
       onboardingReadyTitle: string
+      openBrowserWindowFailed: string
       openNewWindowFailed: string
       openSessionTerminalFailed: string
       openSessionWindowFailed: string
@@ -224,6 +225,7 @@ export interface Translations {
       petHatchingFailedTitle: string
       petReopenTryAgain: string
       pluginLoadFailed: (origin: string) => string
+      pluginRegisterFailed: (name: string) => string
       pluginsFolderOpenFailed: string
       pluginsFolderResolveFailed: string
       pluginsFolderUnavailable: string

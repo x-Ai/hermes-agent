@@ -259,7 +259,10 @@ export async function openBrowserInNewWindow(tabId: string): Promise<boolean> {
     return false
   }
 
-  return runWindowOpen(() => window.hermesDesktop.openBrowserWindow(tabId), 'Could not pop out browser')
+  return runWindowOpen(
+    () => window.hermesDesktop.openBrowserWindow(tabId),
+    translateNow('notifications.toast.openBrowserWindowFailed')
+  )
 }
 
 // Resume a session in the user's own terminal emulator, running the TUI there.

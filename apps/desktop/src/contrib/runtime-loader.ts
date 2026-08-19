@@ -34,6 +34,7 @@
 
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n/runtime'
 import { installPluginSdk, sdkImportMap } from '@/sdk/runtime'
 import { notifyError } from '@/store/notifications'
 
@@ -349,7 +350,7 @@ export async function loadRuntimePlugin(
       disposers.forEach(dispose => dispose())
       loaded.delete(plugin.id)
       console.error(`[plugins] ${plugin.id} failed to register (${origin})`, error)
-      notifyError(error, `Plugin "${record.name}" failed to register`)
+      notifyError(error, translateNow('notifications.toast.pluginRegisterFailed', record.name))
       publishPlugin({ ...record, status: 'error', error: error instanceof Error ? error.message : String(error) })
     }
 
@@ -399,7 +400,7 @@ export async function loadRuntimePlugin(
     return plugin.id
   } catch (error) {
     console.error(`[plugins] runtime load failed (${origin})`, error)
-    notifyError(error, `Plugin "${origin}" failed to load`)
+    notifyError(error, translateNow('notifications.toast.pluginLoadFailed', origin))
     publishPlugin({
       id: origin,
       name: origin,
@@ -595,7 +596,7 @@ async function loadDiskPlugin(entry: DiskPlugin): Promise<boolean> {
     // file vanishing mid-read, where false lets the caller reconcile/unload.
     if (error instanceof PluginSourceOversizeError) {
       console.error(`[plugins] ${entry.origin}: ${error.message}`)
-      notifyError(error, `Plugin "${entry.origin}" failed to load`)
+      notifyError(error, translateNow('notifications.toast.pluginLoadFailed', entry.origin))
       publishPlugin({
         id: entry.origin,
         name: entry.origin,

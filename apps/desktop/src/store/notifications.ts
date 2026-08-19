@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { translateNow } from '@/i18n'
+import { getRuntimeI18nLocale, translateNow } from '@/i18n'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { isLocalBackendSlotWaitTimeout, requestPoolLimitsSettings } from '@/store/pool-limits'
 import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'
@@ -184,6 +184,14 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     summarize: () => translateNow('notifications.errors.microphonePermission')
   },
   {
+    test: msg => /target user message is no longer in session history/i.test(msg),
+    summarize: () => translateNow('notifications.errors.restoreTargetMissing')
+  },
+  {
+    test: msg => /ordinal-only truncation is unsafe for durable session history/i.test(msg),
+    summarize: () => translateNow('notifications.errors.restoreTargetUnsafe')
+  },
+  {
     test: msg => isOutOfSyncRpcParams(msg),
     summarize: () => translateNow('notifications.errors.rpcOutOfSync'),
     action: () => RECOVERY_ACTIONS.openUpdates()
@@ -200,6 +208,10 @@ function summarizeErrorMessage(message: string, fallback: string) {
 
   if (rule) {
     return { action: rule.action?.(message), message: rule.summarize(message) }
+  }
+
+  if (getRuntimeI18nLocale() !== 'en') {
+    return { action: undefined, message: fallback }
   }
 
   return { action: undefined, message: message.length > 180 ? fallback : message || fallback }

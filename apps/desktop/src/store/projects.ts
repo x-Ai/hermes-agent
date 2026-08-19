@@ -18,7 +18,7 @@ import { persistentAtom } from '@/lib/persisted'
 import { revealFile } from '@/store/file-actions'
 import { $gateway, activeGateway, ensureActiveGatewayOpen } from '@/store/gateway'
 import { $sidebarShowAllSessions, setSidebarAgentsGrouped } from '@/store/layout'
-import { notify } from '@/store/notifications'
+import { notify, notifyError } from '@/store/notifications'
 import {
   $activeGatewayProfile,
   $profileScope,
@@ -1459,7 +1459,7 @@ export async function openFolderAsProject(dir?: string): Promise<void> {
     } catch (err) {
       // Stale backend (no projects.* RPC) or a failed write: still open the
       // folder as a plain workspace session below — the project row can wait.
-      notify({ kind: 'warning', message: err instanceof Error ? err.message : String(err) })
+      notifyError(err, translateNow('sidebar.projects.createFailed'))
     }
   }
 
