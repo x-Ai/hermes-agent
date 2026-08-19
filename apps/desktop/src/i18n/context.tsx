@@ -114,14 +114,9 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
     writeStoredLocale(locale)
     setRuntimeI18nLocale(locale)
     applyDocumentLocale(locale)
-
-    // Native main-process surfaces (the right-click context menu) label
-    // themselves from the renderer's language, not the OS locale.
-    if (typeof window !== 'undefined') {
-      window.hermesDesktop?.setUiLanguage?.(locale)
-    }
   }, [locale])
 
+  // eslint-disable-next-line no-restricted-syntax -- tracks whether rollback is safe across async config loads
   useEffect(() => {
     if (!configClient) {
       return

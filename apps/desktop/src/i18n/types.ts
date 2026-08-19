@@ -101,6 +101,9 @@ export interface Translations {
     revealInSidebar: string
     copyPath: string
     copyRelativePath: string
+    download: string
+    downloadSaved: string
+    downloadFailed: string
     rename: string
     delete: string
     renameTitle: string
@@ -676,7 +679,12 @@ export interface Translations {
       title: string
       intro: string
       stagedNote: string
+      launchModeTitle: string
+      launchModeDesc: string
+      searchPlaceholder: string
+      noSearchResults: string
       loadFailed: string
+      currentPill: string
       primaryPill: string
       managedPill: string
       addConnection: string
@@ -1718,6 +1726,8 @@ export interface Translations {
     allProfiles: string
     showAllProfiles: string
     switchToProfile: (name: string) => string
+    switchToConnection: (name: string) => string
+    switchConnectionFailed: (name: string) => string
     manageProfiles: string
     connectGateway: string
     actions: string
@@ -2861,6 +2871,30 @@ export interface Translations {
     paneNames: Record<string, string>
   }
 
+  contextMenu: {
+    link: {
+      openInApp: string
+      openExternal: string
+      copyUrl: string
+      copyResolvedUrl: string
+    }
+    image: {
+      copyImage: string
+      copyImageAddress: string
+      saveImageAs: string
+    }
+    edit: {
+      cut: string
+      paste: string
+      selectAll: string
+      addToDictionary: string
+    }
+    page: {
+      copyPageUrl: string
+      inspectElement: string
+    }
+  }
+
   assistant: {
     thread: {
       loadingSession: string
@@ -2926,6 +2960,9 @@ export interface Translations {
       skip: string
       skipped: string
       continueLabel: string
+      confirmAndContinueLabel: string
+      answeredBadge: string
+      questionProgress: (answered: number, total: number) => string
       lateAnswer: (question: string, choice: string) => string
       lateAnswerTip: string
       lateAnswerHint: string
