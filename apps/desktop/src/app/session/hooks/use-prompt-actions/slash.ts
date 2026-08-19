@@ -517,7 +517,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
             durationMs: 0,
             id: noticeId,
             kind: 'info',
-            message: focusTopic ? `compressing context for: ${focusTopic}` : 'compressing context...'
+            message: focusTopic ? copy.compressingContextFor(focusTopic) : copy.compressingContext
           })
 
           try {

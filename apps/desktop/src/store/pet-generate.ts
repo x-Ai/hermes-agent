@@ -1,5 +1,6 @@
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
 import { persistBoolean, persistString, storedBoolean, storedString } from '@/lib/storage'
 import { capitalize } from '@/lib/text'
 import { $gateway } from '@/store/gateway'
@@ -225,7 +226,12 @@ function notifyPetGenDone(title: string, message: string, kind: 'error' | 'succe
     return
   }
 
-  notify({ kind, title, message, action: { label: 'View', onClick: openPetGenerate } })
+  notify({
+    kind,
+    title,
+    message,
+    action: { label: translateNow('notifications.toast.view'), onClick: openPetGenerate }
+  })
   // Pet generation isn't tied to a chat session — mark it global so the OS
   // notification fires whenever the user is away, even with no active session
   // (the common case: generating from the command center with no conversation).
@@ -431,7 +437,11 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
     $petGenDrafts.set(result.drafts)
     $petGenSelected.set(result.drafts[0]?.index ?? 0)
     $petGenStatus.set('ready')
-    notifyPetGenDone('Pet drafts ready', 'Your pet looks finished — pick one to hatch.', 'success')
+    notifyPetGenDone(
+      translateNow('notifications.toast.petDraftsReadyTitle'),
+      translateNow('notifications.toast.petDraftsReadyMessage'),
+      'success'
+    )
 
     return true
   } catch (e) {
@@ -444,7 +454,11 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
     } else {
       $petGenStatus.set('error')
       $petGenError.set(e instanceof Error ? e.message : 'Could not generate pet drafts.')
-      notifyPetGenDone('Pet generation failed', 'Reopen to try again.', 'error')
+      notifyPetGenDone(
+        translateNow('notifications.toast.petGenerationFailedTitle'),
+        translateNow('notifications.toast.petReopenTryAgain'),
+        'error'
+      )
     }
 
     return false
@@ -550,7 +564,11 @@ export async function hatchSelected(request: GatewayRequest, options: HatchOptio
 
     $petGenPreview.set({ ...result.pet, enabled: true })
     $petGenStatus.set('preview')
-    notifyPetGenDone('Your pet hatched', 'Reopen to name and adopt it.', 'success')
+    notifyPetGenDone(
+      translateNow('notifications.toast.petHatchedTitle'),
+      translateNow('notifications.toast.petHatchedMessage'),
+      'success'
+    )
 
     return true
   } catch (e) {
@@ -560,7 +578,11 @@ export async function hatchSelected(request: GatewayRequest, options: HatchOptio
 
     $petGenStatus.set('error')
     $petGenError.set(e instanceof Error ? e.message : 'Could not hatch the pet.')
-    notifyPetGenDone('Hatching failed', 'Reopen to try again.', 'error')
+    notifyPetGenDone(
+      translateNow('notifications.toast.petHatchingFailedTitle'),
+      translateNow('notifications.toast.petReopenTryAgain'),
+      'error'
+    )
 
     return false
   } finally {

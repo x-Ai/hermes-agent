@@ -11,6 +11,7 @@ import {
   submitOAuthCode,
   validateProviderCredential
 } from '@/hermes'
+import { translateNow } from '@/i18n'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
 import { evaluateRuntimeReadiness, type RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { setMainModelAssignment } from '@/store/cron-model-impact'
@@ -192,18 +193,22 @@ function shouldPreserveConfiguredOnFallback(runtime: RuntimeReadinessResult, sta
 }
 
 function notifyReady(provider: string) {
-  notify({ kind: 'success', title: 'Hermes is ready', message: `${provider} connected.` })
+  notify({
+    kind: 'success',
+    title: translateNow('notifications.toast.onboardingReadyTitle'),
+    message: translateNow('notifications.toast.providerConnected', provider)
+  })
 }
 
 // Human-friendly labels for tools auto-routed through the Nous Tool Gateway,
 // mirroring hermes_cli/nous_subscription._GATEWAY_TOOL_LABELS so the GUI and
 // CLI describe the same thing.
-const GATEWAY_TOOL_LABELS: Record<string, string> = {
-  browser: 'browser automation',
-  image_gen: 'image generation',
-  tts: 'text-to-speech',
-  video_gen: 'video generation',
-  web: 'web search & extract'
+const GATEWAY_TOOL_KEYS: Record<string, string> = {
+  browser: 'browser',
+  image_gen: 'image_gen',
+  tts: 'tts',
+  video_gen: 'video_gen',
+  web: 'web'
 }
 
 // When switching to Nous auto-routes unconfigured tools through the Tool
@@ -214,14 +219,17 @@ function notifyGatewayTools(tools: string[] | undefined) {
     return
   }
 
-  const labels = tools.map(t => GATEWAY_TOOL_LABELS[t] ?? t)
-  const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
+  const labels = tools.map(tool => {
+    const key = GATEWAY_TOOL_KEYS[tool]
+
+    return key ? translateNow(`notifications.toast.toolGatewayTools.${key}`) : tool
+  })
 
   notify({
     durationMs: 8000,
     kind: 'info',
-    message: `${list} now run through your Nous subscription — no separate API keys needed.`,
-    title: 'Tool Gateway enabled'
+    message: translateNow('notifications.toast.toolGatewayEnabledMessage', labels),
+    title: translateNow('notifications.toast.toolGatewayEnabledTitle')
   })
 }
 
@@ -559,9 +567,8 @@ export async function refreshOnboarding(ctx: OnboardingContext) {
     notify({
       id: 'runtime-not-ready',
       kind: 'error',
-      title: 'Runtime not ready',
-      message:
-        'Hermes Desktop could not verify the running backend on startup. Some features may be unavailable until the gateway is reachable.'
+      title: translateNow('notifications.toast.runtimeNotReadyTitle'),
+      message: translateNow('notifications.toast.runtimeNotReadyMessage')
     })
 
     return false
@@ -811,7 +818,7 @@ export async function saveOnboardingApiKey(
 
     return { ok: true }
   } catch (error) {
-    notifyError(error, `Could not save ${label}`)
+    notifyError(error, translateNow('notifications.toast.providerSaveFailed', label))
 
     return { ok: false, message: errMessage(error) }
   }
@@ -887,7 +894,7 @@ export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: strin
 
     return { ok: true }
   } catch (error) {
-    notifyError(error, 'Could not save local endpoint')
+    notifyError(error, translateNow('notifications.toast.localEndpointSaveFailed'))
 
     return { ok: false, message: errMessage(error) }
   }
@@ -917,7 +924,7 @@ export async function setOnboardingModel(model: string) {
       setFlow({ ...current, currentModel: model, saving: false })
     }
   } catch (error) {
-    notifyError(error, 'Could not change model')
+    notifyError(error, translateNow('notifications.toast.modelChangeFailed'))
     const current = $desktopOnboarding.get().flow
 
     if (current.status === 'confirming_model') {

@@ -98,6 +98,7 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'agentExistsOn',
   'addedToGroup',
   'appearanceAndRole',
+  'attachmentTooLarge',
   'authenticated',
   'botsCount',
   'catalogFrom',
@@ -119,6 +120,7 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'everyMinutes',
   'failedToSet',
   'group',
+  'groupAlreadyExists',
   'groups',
   'groupChatTitle',
   'groupCreated',
@@ -197,6 +199,8 @@ let pluginCtx = null
 /** Imperative translator for handlers and stores. React surfaces use the
  * reactive useBots hook so an in-app language switch repaints immediately. */
 const BOT_IMPERATIVE_FALLBACKS = {
+  attachment: 'attachment',
+  attachmentTooLarge: name => `${name}: too large (max 15MB).`,
   bot: 'Bot',
   chatNeverResets: 'This chat never resets',
   chatNeverResetsDesc:
@@ -209,6 +213,8 @@ const BOT_IMPERATIVE_FALLBACKS = {
   cronjobs: 'Cronjobs',
   desktopCannotOpenSessions: 'This Hermes Desktop build cannot open stored sessions',
   generationFailed: 'Generation failed',
+  groupAlreadyExists: name => `A group named “${name}” already exists.`,
+  groupPictureGenerationFailed: 'Group picture generation failed',
   imageTooLarge: 'Image too large (15MB max).',
   newAgent: 'New Agent',
   noFreeDuplicateName: 'No free name available for the duplicate.',
@@ -2121,7 +2127,7 @@ async function filesToGroupAttachments(files) {
     }
 
     if (file.size > 15_000_000) {
-      host.notify({ kind: 'error', message: `${file.name || 'attachment'}: too large (max 15MB).` })
+      host.notify({ kind: 'error', message: bt('attachmentTooLarge', file.name || bt('attachment')) })
       continue
     }
 
@@ -4079,7 +4085,7 @@ async function renameGroupChat(oldName, newName, members) {
   taken.delete(oldName)
 
   if (taken.has(next)) {
-    host.notify({ kind: 'error', message: `A group named “${next}” already exists.` })
+    host.notify({ kind: 'error', message: bt('groupAlreadyExists', next) })
     return null
   }
 
@@ -8176,7 +8182,7 @@ function GroupImageControls({ image, onImage, seedName, seedMembers }) {
         onImage(await normalizeAvatarImage(img))
       }
     } catch (err) {
-      host.notifyError(err, 'Group picture generation failed')
+      host.notifyError(err, bt('groupPictureGenerationFailed'))
     } finally {
       setBusy(false)
     }

@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { translateNow } from '@/i18n'
+import { getRuntimeI18nLocale, translateNow } from '@/i18n'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
 
 export type NotificationKind = 'error' | 'warning' | 'info' | 'success'
@@ -138,6 +138,14 @@ const ERROR_SUMMARIES: { test: (msg: string) => boolean; summarize: (msg: string
   {
     test: msg => /microphone permission/i.test(msg),
     summarize: () => translateNow('notifications.errors.microphonePermission')
+  },
+  {
+    test: msg => /target user message is no longer in session history/i.test(msg),
+    summarize: () => translateNow('notifications.errors.restoreTargetMissing')
+  },
+  {
+    test: msg => /ordinal-only truncation is unsafe for durable session history/i.test(msg),
+    summarize: () => translateNow('notifications.errors.restoreTargetUnsafe')
   }
 ]
 
@@ -146,6 +154,14 @@ function summarizeErrorMessage(message: string, fallback: string) {
 
   if (rule) {
     return rule.summarize(message)
+  }
+
+  // Backend exceptions are protocol/debug data, not UI copy. In a localized
+  // interface keep that raw text available under Details, but make the toast's
+  // primary message the caller's localized fallback. English retains the
+  // concise raw error as before.
+  if (getRuntimeI18nLocale() !== 'en') {
+    return fallback
   }
 
   return message.length > 180 ? fallback : message || fallback

@@ -981,7 +981,7 @@ describe('usePromptActions /compress', () => {
     )
 
     const submitted = handle!.submitTextRaw('/compress')
-    await waitFor(() => expect($notifications.get().some(item => item.message === 'compressing context...')).toBe(true))
+    await waitFor(() => expect($notifications.get().some(item => item.message === 'Compressing context…')).toBe(true))
     resolveCompress({ messages: [{ content: 'compressed transcript', role: 'system' }] })
     await submitted
   })

@@ -7,6 +7,7 @@
 
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 
 /** Ship default; must match DATA_URL_READ_DEFAULT_MAX_MB in hardening.ts. */
@@ -65,7 +66,7 @@ export async function setDataUrlReadMaxMb(maxMb: number): Promise<number> {
     // Leave the atom at the last known-good value and surface the failure —
     // an optimistic set here would show a cap that was never persisted and
     // silently reverts on restart.
-    notifyError(error, 'Could not save the max attachment size')
+    notifyError(error, translateNow('notifications.toast.attachmentLimitSaveFailed'))
 
     return $dataUrlReadMaxMb.get()
   }

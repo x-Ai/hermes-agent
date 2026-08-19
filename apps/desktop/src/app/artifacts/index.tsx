@@ -114,6 +114,7 @@ interface ArtifactsViewProps extends React.ComponentProps<'section'> {
 export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, ...props }: ArtifactsViewProps) {
   const { t } = useI18n()
   const a = t.artifacts
+  const toast = t.notifications.toast
   const navigate = useNavigate()
   const [artifacts, setArtifacts] = useState<ArtifactRecord[] | null>(null)
   const [query, setQuery] = useState('')
@@ -151,8 +152,8 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         const otherFailures = failures.length - safeLimitFailures
 
         const detail = [
-          safeLimitFailures ? `${safeLimitFailures} exceeded the safe transcript load limit.` : '',
-          otherFailures ? `${otherFailures} could not be read.` : ''
+          safeLimitFailures ? toast.artifactSafeLimitExceeded(safeLimitFailures) : '',
+          otherFailures ? toast.artifactUnreadable(otherFailures) : ''
         ]
           .filter(Boolean)
           .join(' ')
@@ -161,7 +162,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           id: 'artifacts-partial-load',
           kind: 'warning',
           title: a.failedLoad,
-          message: `Skipped ${failures.length} of ${sessions.length} recent sessions while indexing artifacts.`,
+          message: toast.artifactPartialLoad(failures.length, sessions.length),
           detail,
           durationMs: 10_000
         })
@@ -175,7 +176,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
       refreshInFlightRef.current = false
       setRefreshing(false)
     }
-  }, [a])
+  }, [a, toast])
 
   useRefreshHotkey(refreshArtifacts)
 

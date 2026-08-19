@@ -177,6 +177,46 @@ export interface Translations {
     updateReadyMessage: (count: number) => string
     updateReadyMessageUnknown: string
     seeWhatsNew: string
+    toast: {
+      artifactPartialLoad: (failed: number, total: number) => string
+      artifactSafeLimitExceeded: (count: number) => string
+      artifactUnreadable: (count: number) => string
+      attachmentLimitSaveFailed: string
+      localEndpointSaveFailed: string
+      memoryConnectionStartFailed: string
+      memoryFieldSaveFailed: (label: string) => string
+      memoryProviderSavedMessage: string
+      memoryProviderSavedTitle: (label: string) => string
+      memoryProviderSettingsSaveFailed: (label: string) => string
+      modelChangeFailed: string
+      onboardingReadyTitle: string
+      openNewWindowFailed: string
+      openSessionTerminalFailed: string
+      openSessionWindowFailed: string
+      petDraftsReadyMessage: string
+      petDraftsReadyTitle: string
+      petGenerationFailedTitle: string
+      petHatchedMessage: string
+      petHatchedTitle: string
+      petHatchingFailedTitle: string
+      petReopenTryAgain: string
+      pluginLoadFailed: (origin: string) => string
+      pluginsFolderOpenFailed: string
+      pluginsFolderResolveFailed: string
+      pluginsFolderUnavailable: string
+      pluginsHomeUnavailable: string
+      processStopFailed: string
+      providerConnected: (provider: string) => string
+      providerSaveFailed: (label: string) => string
+      reactionFailed: string
+      runtimeNotReadyMessage: string
+      runtimeNotReadyTitle: string
+      toolGatewayEnabledMessage: (labels: string[]) => string
+      toolGatewayEnabledTitle: string
+      toolGatewayTools: Record<'browser' | 'image_gen' | 'tts' | 'video_gen' | 'web', string>
+      unknownError: string
+      view: string
+    }
     mcp: {
       needsAuthTitle: string
       needsAuthMessage: (name: string) => string
@@ -195,6 +235,8 @@ export interface Translations {
       openaiRejectedApiKey: string
       openaiRejectedApiKeyWithStatus: (status: string) => string
       openaiTtsNeedsKey: string
+      restoreTargetMissing: string
+      restoreTargetUnsafe: string
     }
     voice: {
       configureSpeechToText: string
@@ -2851,6 +2893,7 @@ export interface Translations {
       restorePrevious: string
       restoreCheckpoint: string
       restoreFromHere: string
+      restoreFailed: string
       restoreTitle: string
       restoreBody: string
       restoreConfirm: string
@@ -2976,6 +3019,8 @@ export interface Translations {
 
   desktop: {
     audioReadFailed: string
+    compressingContext: string
+    compressingContextFor: (topic: string) => string
     sessionUnavailable: string
     createSessionFailed: string
     promptFailed: string

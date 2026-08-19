@@ -326,12 +326,16 @@ type BotsMessages = {
 
   // Error messages - Avatar
   avatarGenerationFailed: string
+  attachment: string
+  attachmentTooLarge: (name: string) => string
   generationFailed: string
+  groupPictureGenerationFailed: string
   couldNotLoadPet: string
   imageTooLarge: string
 
   // Error messages - Bot operations
   duplicateFailed: string
+  groupAlreadyExists: (name: string) => string
   noFreeDuplicateName: string
   advancedConfigFailed: string
   couldNotCreateProfile: string
@@ -714,12 +718,16 @@ const en: BotsMessages = {
 
   // Error messages - Avatar
   avatarGenerationFailed: 'Avatar generation failed',
+  attachment: 'attachment',
+  attachmentTooLarge: name => `${name}: too large (max 15MB).`,
   generationFailed: 'generation failed',
+  groupPictureGenerationFailed: 'Group picture generation failed',
   couldNotLoadPet: 'Could not load that pet — try another.',
   imageTooLarge: 'Image too large (max 15MB).',
 
   // Error messages - Bot operations
   duplicateFailed: 'Duplicate failed',
+  groupAlreadyExists: name => `A group named “${name}” already exists.`,
   noFreeDuplicateName: 'No free name for the duplicate.',
   advancedConfigFailed: 'Advanced configuration failed',
   couldNotCreateProfile: 'Could not create the profile yet',
@@ -1099,12 +1107,16 @@ const zh: BotsMessages = {
 
   // Error messages - Avatar
   avatarGenerationFailed: '头像生成失败',
+  attachment: '附件',
+  attachmentTooLarge: name => `${name}过大（最大 15MB）。`,
   generationFailed: '生成失败',
+  groupPictureGenerationFailed: '群组图片生成失败',
   couldNotLoadPet: '无法加载该宠物 — 请尝试其他。',
   imageTooLarge: '图片过大（最大 15MB）。',
 
   // Error messages - Bot operations
   duplicateFailed: '复制失败',
+  groupAlreadyExists: name => `已存在名为“${name}”的群组。`,
   noFreeDuplicateName: '没有可用于副本的名称。',
   advancedConfigFailed: '高级配置失败',
   couldNotCreateProfile: '尚无法创建资料',
@@ -1504,12 +1516,16 @@ export function useBots() {
 
     // Error messages - Avatar
     avatarGenerationFailed: t('avatarGenerationFailed'),
+    attachment: t('attachment'),
+    attachmentTooLarge: (name: string) => t('attachmentTooLarge', name),
     generationFailed: t('generationFailed'),
+    groupPictureGenerationFailed: t('groupPictureGenerationFailed'),
     couldNotLoadPet: t('couldNotLoadPet'),
     imageTooLarge: t('imageTooLarge'),
 
     // Error messages - Bot operations
     duplicateFailed: t('duplicateFailed'),
+    groupAlreadyExists: (name: string) => t('groupAlreadyExists', name),
     noFreeDuplicateName: t('noFreeDuplicateName'),
     advancedConfigFailed: t('advancedConfigFailed'),
     couldNotCreateProfile: t('couldNotCreateProfile'),

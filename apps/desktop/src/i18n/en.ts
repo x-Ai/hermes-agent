@@ -133,6 +133,57 @@ export const en: Translations = {
     updateReadyMessage: count => `${count} new change${count === 1 ? '' : 's'} available.`,
     updateReadyMessageUnknown: 'A new update is available.',
     seeWhatsNew: "See what's new",
+    toast: {
+      artifactPartialLoad: (failed, total) => `Skipped ${failed} of ${total} recent sessions while indexing artifacts.`,
+      artifactSafeLimitExceeded: count => `${count} exceeded the safe transcript load limit.`,
+      artifactUnreadable: count => `${count} could not be read.`,
+      attachmentLimitSaveFailed: 'Could not save the max attachment size',
+      localEndpointSaveFailed: 'Could not save local endpoint',
+      memoryConnectionStartFailed: 'Failed to start connection',
+      memoryFieldSaveFailed: label => `Failed to save ${label}`,
+      memoryProviderSavedMessage: 'Memory provider configuration updated.',
+      memoryProviderSavedTitle: label => `${label} saved`,
+      memoryProviderSettingsSaveFailed: label => `Failed to save ${label} settings`,
+      modelChangeFailed: 'Could not change model',
+      onboardingReadyTitle: 'Hermes is ready',
+      openNewWindowFailed: 'Could not open a new window',
+      openSessionTerminalFailed: 'Could not open chat in a terminal',
+      openSessionWindowFailed: 'Could not open chat in a new window',
+      petDraftsReadyMessage: 'Your pet looks finished — pick one to hatch.',
+      petDraftsReadyTitle: 'Pet drafts ready',
+      petGenerationFailedTitle: 'Pet generation failed',
+      petHatchedMessage: 'Reopen to name and adopt it.',
+      petHatchedTitle: 'Your pet hatched',
+      petHatchingFailedTitle: 'Hatching failed',
+      petReopenTryAgain: 'Reopen to try again.',
+      pluginLoadFailed: origin => `Plugin "${origin}" failed to load`,
+      pluginsFolderOpenFailed: 'Could not open the plugins folder',
+      pluginsFolderResolveFailed: 'Could not resolve the plugins folder',
+      pluginsFolderUnavailable: 'Desktop plugins are unavailable',
+      pluginsHomeUnavailable: 'The backend did not report its home directory',
+      processStopFailed: 'Could not stop the process',
+      providerConnected: provider => `${provider} connected.`,
+      providerSaveFailed: label => `Could not save ${label}`,
+      reactionFailed: 'Could not react',
+      runtimeNotReadyMessage:
+        'Hermes Desktop could not verify the running backend on startup. Some features may be unavailable until the gateway is reachable.',
+      runtimeNotReadyTitle: 'Runtime not ready',
+      toolGatewayEnabledMessage: labels => {
+        const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels.at(-1)}`
+
+        return `${list} now run through your Nous subscription — no separate API keys needed.`
+      },
+      toolGatewayEnabledTitle: 'Tool Gateway enabled',
+      toolGatewayTools: {
+        browser: 'browser automation',
+        image_gen: 'image generation',
+        tts: 'text-to-speech',
+        video_gen: 'video generation',
+        web: 'web search & extract'
+      },
+      unknownError: 'Unknown error',
+      view: 'View'
+    },
     mcp: {
       needsAuthTitle: 'MCP server needs re-authentication',
       needsAuthMessage: name => `${name} MCP needs re-authentication.`,
@@ -151,7 +202,10 @@ export const en: Translations = {
       microphonePermission: 'Microphone permission was denied.',
       openaiRejectedApiKey: 'OpenAI rejected the API key.',
       openaiRejectedApiKeyWithStatus: status => `OpenAI rejected the API key (${status} invalid_api_key).`,
-      openaiTtsNeedsKey: 'OpenAI TTS needs VOICE_TOOLS_OPENAI_KEY or OPENAI_API_KEY.'
+      openaiTtsNeedsKey: 'OpenAI TTS needs VOICE_TOOLS_OPENAI_KEY or OPENAI_API_KEY.',
+      restoreTargetMissing:
+        'The target message is no longer in this session history. Refresh the session and try again.',
+      restoreTargetUnsafe: 'This checkpoint cannot be restored safely. Refresh the session and try again.'
     },
     voice: {
       configureSpeechToText: 'Configure speech-to-text to use voice mode.',
@@ -3497,6 +3551,7 @@ export const en: Translations = {
       restorePrevious: 'Restore previous checkpoint',
       restoreCheckpoint: 'Restore checkpoint',
       restoreFromHere: 'Restore checkpoint — rerun from this prompt',
+      restoreFailed: 'Restore failed',
       restoreTitle: 'Restore to this checkpoint?',
       restoreBody:
         'Everything after this prompt is removed from the conversation, and the prompt runs again from here.',
@@ -3659,6 +3714,8 @@ export const en: Translations = {
 
   desktop: {
     audioReadFailed: 'Could not read recorded audio',
+    compressingContext: 'Compressing context…',
+    compressingContextFor: topic => `Compressing context for: ${topic}`,
     sessionUnavailable: 'Session unavailable',
     createSessionFailed: 'Could not create a new session',
     promptFailed: 'Prompt failed',

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/hermes'
+import { useI18n } from '@/i18n'
 import { Check, ExternalLink, Loader2 } from '@/lib/icons'
 import { notifyError } from '@/store/notifications'
 import type { MemoryProviderOAuthStatus } from '@/types/hermes'
@@ -13,6 +14,7 @@ const POLL_TIMEOUT_MS = 120_000
 // backend-driven: the status route 404s for providers without an oauth_flow
 // module, so non-OAuth providers render nothing.
 export function MemoryConnect({ profile = null, provider }: { profile?: null | string; provider: string }) {
+  const toast = useI18n().t.notifications.toast
   const [capable, setCapable] = useState<'no' | 'unknown' | 'yes'>('unknown')
   const [connected, setConnected] = useState(false)
   const [auth, setAuth] = useState<MemoryProviderOAuthStatus['auth']>(null)
@@ -76,7 +78,7 @@ export function MemoryConnect({ profile = null, provider }: { profile?: null | s
     } catch (err) {
       setPhase('error')
       setDetail('Could not start the connection.')
-      notifyError(err, 'Failed to start connection')
+      notifyError(err, toast.memoryConnectionStartFailed)
 
       return
     }
@@ -113,7 +115,7 @@ export function MemoryConnect({ profile = null, provider }: { profile?: null | s
         }
       })()
     }, POLL_MS)
-  }, [profile, provider, stop])
+  }, [profile, provider, stop, toast.memoryConnectionStartFailed])
 
   const cancel = useCallback(() => {
     stop()

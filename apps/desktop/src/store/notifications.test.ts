@@ -1,9 +1,12 @@
 import { beforeEach, expect, test } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
+
 import { $notifications, clearNotifications, isDiskFullErrorMessage, notifyError } from './notifications'
 
 beforeEach(() => {
   clearNotifications()
+  setRuntimeI18nLocale('en')
 })
 
 function lastMessage(): string {
@@ -54,4 +57,26 @@ test('session storage write failure is treated as disk-full class', () => {
   )
 
   expect(lastMessage()).toMatch(/Disk full/i)
+})
+
+test('restore target drift is summarized in the active locale', () => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error('target user message is no longer in session history'), '恢复失败')
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: '恢复失败',
+    message: '目标消息已不在此会话历史中。请刷新会话后重试',
+    detail: 'target user message is no longer in session history'
+  })
+})
+
+test('localized toasts keep unknown backend errors in detail instead of the primary message', () => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error('opaque backend diagnostic'), '操作失败')
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: '操作失败',
+    message: '操作失败',
+    detail: 'opaque backend diagnostic'
+  })
 })
