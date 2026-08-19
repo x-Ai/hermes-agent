@@ -168,12 +168,47 @@ export function exitProjectScope(): void {
   $projectScope.set(ALL_PROJECTS)
 }
 
-// A project's working root: its primary folder, else the first repo that has
-// one. Empty for the path-less Home bucket. (The sidebar's `projectTreeCwd` is
-// the same rule over the same tree — this is the store-side copy so the store
-// doesn't reach into the sidebar's React module.)
-export const projectRootCwd = (project: SidebarProjectTree | undefined): string =>
-  (project?.path || project?.repos?.find(repo => repo.path)?.path || '').trim()
+// A project's working root. The authoritative projects list owns declared
+// folders, while the tree is a lazily refreshed presentation cache. Prefer the
+// tree's primary/repo path, then fall back to the persisted primary/first
+// folder so a stale or not-yet-hydrated tree cannot turn a project launch into
+// a detached Home session.
+export function projectRootCwd(project: SidebarProjectTree | undefined): string {
+  const treeCwd = (project?.path || project?.repos?.find(repo => repo.path)?.path || '').trim()
+
+  if (treeCwd || !project || project.isAuto || project.isNoProject) {
+    return treeCwd
+  }
+
+  const persisted = $projects.get().find(candidate => candidate.id === project.id)
+
+  return (
+    persisted?.primary_path ||
+    persisted?.folders.find(folder => folder.is_primary)?.path ||
+    persisted?.folders[0]?.path ||
+    ''
+  ).trim()
+}
+
+// Resolve by identity as well as by the current tree node. This covers startup
+// and refresh gaps where the durable project row is already present but its
+// tree node has not arrived yet.
+export function projectCwdForId(id: string): string {
+  const fromTree = projectRootCwd($projectTree.get().find(node => node.id === id))
+
+  if (fromTree) {
+    return fromTree
+  }
+
+  const persisted = $projects.get().find(project => project.id === id)
+
+  return (
+    persisted?.primary_path ||
+    persisted?.folders.find(folder => folder.is_primary)?.path ||
+    persisted?.folders[0]?.path ||
+    ''
+  ).trim()
+}
 
 // ⌘K "go to project": flip the sidebar into grouped mode and enter the project
 // — a pure scope switch, same as clicking the overview row (never spends main).
@@ -189,7 +224,7 @@ export function goToProject(id: string, options?: { newSession?: boolean }): voi
     return
   }
 
-  const cwd = projectRootCwd($projectTree.get().find(node => node.id === id))
+  const cwd = projectCwdForId(id)
 
   if (cwd) {
     requestStartWorkSession(cwd, undefined, { openTab: true })
@@ -202,14 +237,14 @@ export function goToProject(id: string, options?: { newSession?: boolean }): voi
 //
 // Priority (first hit wins):
 //   1. Explicit sidebar project scope (drilled into a project / Home bucket)
-//   2. Configured default project dir / remote remembered cwd (detached otherwise)
+//   2. The durable active project (also applies from the project overview)
+//   3. Configured default project dir / remote remembered cwd (detached otherwise)
 //
-// The "active project" is just an atom ($projectScope) — so inside a project a
-// new session (cmd-n, the trunk "+") starts at that project's root (its primary
-// repo = the default-branch checkout). Outside one it does NOT inherit the chat
-// you were looking at: after a restart that's the just-resumed session, whose
-// stored cwd is often a home-dir fallback, so every new chat landed there
-// instead of the configured default (#71873, #80213, #77496).
+// A concrete scope is immediate view intent; the durable active id is the
+// project-level default selected by project creation / "Set active". Therefore
+// cmd-n and the tab-strip "+" keep the project even from the overview. Neither
+// rule inherits the chat being viewed: after a restart that can be a resumed
+// session with a stale home-dir cwd (#71873, #80213, #77496).
 export function resolveNewSessionCwd(): string {
   const scope = $projectScope.get()
 
@@ -220,7 +255,17 @@ export function resolveNewSessionCwd(): string {
   }
 
   if (scope !== ALL_PROJECTS) {
-    const cwd = projectRootCwd($projectTree.get().find(node => node.id === scope))
+    const cwd = projectCwdForId(scope)
+
+    if (cwd) {
+      return cwd
+    }
+  }
+
+  const activeId = $activeProjectId.get()
+
+  if (activeId) {
+    const cwd = projectCwdForId(activeId)
 
     if (cwd) {
       return cwd
@@ -542,7 +587,7 @@ export async function moveSessionToProject(
   projectId: string,
   profile?: null | string
 ): Promise<void> {
-  const cwd = projectRootCwd($projectTree.get().find(node => node.id === projectId))
+  const cwd = projectCwdForId(projectId)
 
   if (!cwd) {
     throw new Error(translateNow('sidebar.projects.moveNoFolder'))
