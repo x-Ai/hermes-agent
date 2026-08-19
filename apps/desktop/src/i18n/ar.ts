@@ -4836,6 +4836,7 @@ export const ar = defineCompleteLocale({
     getKey: 'الحصول على مفتاح',
     replaceCurrent: 'استبدال القيمة الحالية',
     pasteApiKey: 'ألصق مفتاح API',
+    directApiAccess: provider => `وصول مباشر إلى ${provider} عبر واجهة API.`,
     localApiKeyPlaceholder: 'مفتاح API (اختياري — فقط إذا كانت نقطة النهاية تتطلبه)',
     couldNotSave: 'تعذر حفظ بيانات الاعتماد.',
     connecting: 'جار الاتصال',

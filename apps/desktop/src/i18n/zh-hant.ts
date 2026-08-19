@@ -5470,6 +5470,7 @@ export const zhHant = defineCompleteLocale({
     getKey: '取得金鑰',
     replaceCurrent: '取代目前值',
     pasteApiKey: '貼上 API 金鑰',
+    directApiAccess: provider => `直接透過 API 存取 ${provider}。`,
     localApiKeyPlaceholder: 'API 金鑰（可選 — 僅當您的端點需要時）',
     couldNotSave: '無法儲存憑證。',
     connecting: '連線中',

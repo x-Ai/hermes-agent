@@ -5818,6 +5818,7 @@ export const ja = defineCompleteLocale({
     getKey: 'キーを取得',
     replaceCurrent: '現在の値を置き換え',
     pasteApiKey: 'API キーを貼り付け',
+    directApiAccess: provider => `${provider} の API に直接アクセスします。`,
     localApiKeyPlaceholder: 'API キー (オプション - エンドポイントで必要な場合のみ)',
     couldNotSave: '認証情報を保存できませんでした。',
     connecting: '接続中',

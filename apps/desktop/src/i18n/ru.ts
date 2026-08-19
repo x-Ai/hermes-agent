@@ -4971,6 +4971,7 @@ export const ru = defineCompleteLocale({
     getKey: 'Получить ключ',
     replaceCurrent: 'Заменить текущее значение',
     pasteApiKey: 'Вставьте API-ключ',
+    directApiAccess: provider => `Прямой доступ к API ${provider}.`,
     localApiKeyPlaceholder: 'API-ключ (необязательно — только если ваш endpoint его требует)',
     couldNotSave: 'Не удалось сохранить учётные данные.',
     connecting: 'Подключение',
