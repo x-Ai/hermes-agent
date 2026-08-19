@@ -5,6 +5,7 @@ import { Codicon } from '@/components/ui/codicon'
 import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { projectRootCwd } from '@/store/projects'
 
 import {
   SIDEBAR_LEAD_ICON_SIZE,
@@ -96,6 +97,12 @@ export function ProjectOverviewRow({
   const rowRef = useRef<HTMLDivElement>(null)
   const fetched = (previewSessions ?? []).slice(0, PROJECT_PREVIEW_COUNT)
   const preview = renderRows ? (fetched.length ? fetched : latestProjectSessions(project, PROJECT_PREVIEW_COUNT)) : []
+  // Freshly created multi-folder projects do not necessarily have an explicit
+  // primary_path. Their backend tree node therefore carries `path: null` while
+  // its seeded repo nodes still carry every project folder. Use the same
+  // primary-or-first-folder rule as every other project launch path, or the
+  // overview "+" creates a detached chat that is filed under Home.
+  const newSessionCwd = projectRootCwd(project) || null
 
   const lead = reorderable ? (
     <SidebarRowGrab
@@ -120,7 +127,7 @@ export function ProjectOverviewRow({
               for. */}
           {!project.isNoProject && <ProjectMenu anchorRef={rowRef} isActive={isActive} project={project} />}
           {onNewSession && (
-            <WorkspaceAddButton label={s.newSessionIn(project.label)} onClick={() => onNewSession(project.path)} />
+            <WorkspaceAddButton label={s.newSessionIn(project.label)} onClick={() => onNewSession(newSessionCwd)} />
           )}
         </>
       }

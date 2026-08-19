@@ -87,6 +87,20 @@ describe('ProjectOverviewRow', () => {
     expect(onNewSession).toHaveBeenCalledWith(null)
   })
 
+  it('starts a folder-backed project in its first repo when primary_path is unset', () => {
+    const onNewSession = vi.fn()
+    const projectWithoutPrimary = {
+      ...project,
+      path: null,
+      repos: [{ groups: [], id: '/work/app', label: 'app', path: '/work/app', sessionCount: 0 }]
+    }
+
+    render(<ProjectOverviewRow onNewSession={onNewSession} project={projectWithoutPrimary} />)
+    fireEvent.click(screen.getByRole('button', { name: `New session in ${projectWithoutPrimary.label}` }))
+
+    expect(onNewSession).toHaveBeenCalledWith('/work/app')
+  })
+
   it('tags the row with data-sessions-project so a skin can target one project', () => {
     const { container } = render(<ProjectOverviewRow project={project} />)
 

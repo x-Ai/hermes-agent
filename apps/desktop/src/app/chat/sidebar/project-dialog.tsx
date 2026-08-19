@@ -124,7 +124,13 @@ export function ProjectDialog() {
     // A project owns sessions by folder (cwd-prefix), so creation requires at
     // least one — a folder-less project couldn't hold a session anyway.
     if (mode === 'create' && trimmed && folders.length) {
-      await runSubmit(() => createProject({ folders, idea: idea.trim() || undefined, name: trimmed, use: true }))
+      // The first selected folder is the initial working root. Persist it as
+      // primary as well as in `folders`; otherwise the refreshed project tree
+      // reports `path: null`, and launching a session from the project overview
+      // loses its cwd and lands under Home.
+      await runSubmit(() =>
+        createProject({ folders, idea: idea.trim() || undefined, name: trimmed, primaryPath: folders[0], use: true })
+      )
     }
   }
 

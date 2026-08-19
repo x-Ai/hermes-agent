@@ -1,10 +1,15 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type * as Nanostores from 'nanostores'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { createProject } from '@/store/projects'
+
 import { ProjectDialog } from './project-dialog'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+})
 
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
@@ -83,5 +88,24 @@ describe('ProjectDialog', () => {
 
     const button = await screen.findByRole('button', { name: 'Remove folder' })
     expect(tipTrigger(button)).toBeTruthy()
+  })
+
+  it('uses the first folder as the initial project workspace', async () => {
+    render(<ProjectDialog />)
+
+    fireEvent.change(screen.getByPlaceholderText('Project name'), { target: { value: 'Hermes' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add folder' }))
+    await screen.findByText('/Users/test/my-folder')
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() =>
+      expect(createProject).toHaveBeenCalledWith({
+        folders: ['/Users/test/my-folder'],
+        idea: undefined,
+        name: 'Hermes',
+        primaryPath: '/Users/test/my-folder',
+        use: true
+      })
+    )
   })
 })
