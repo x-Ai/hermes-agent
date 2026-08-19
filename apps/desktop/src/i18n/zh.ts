@@ -946,6 +946,9 @@ export const zh: Translations = {
         enabled: '启用本地或提供方支持的语音转写',
         provider: '语音转文本（STT）提供方',
         echoTranscripts: '将语音消息的原始 🎙️ 转写文本发回聊天',
+        local: {
+          model: '本地 faster-whisper 转写所使用的模型大小。模型越大通常越准确，但需要更多内存和处理时间。'
+        },
         elevenlabs: {
           languageCode: '可选的 ISO-639-3 语言代码。留空让 ElevenLabs 自动检测。'
         }
@@ -1304,9 +1307,30 @@ export const zh: Translations = {
       ANTHROPIC_API_KEY: { description: 'Anthropic API 密钥' },
       ANTHROPIC_TOKEN: { description: 'Anthropic API 密钥' },
       CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API 密钥' },
+      ANTHROPIC_BASE_URL: { description: 'Anthropic 基础 URL 覆盖' },
+      ACTUAL_API_KEY: { description: 'Actual Computer 推理密钥（ac_...）' },
+      ACTUAL_BASE_URL: {
+        description: 'Actual Computer 基础 URL 覆盖；使用本地离线守护进程时设为 http://127.0.0.1:8080'
+      },
+      COMMANDCODE_API_KEY: { description: 'CommandCode API 密钥（一个密钥可使用 GOAT/Pro/Max/Provider 套餐的 30 多个模型）' },
+      COMMANDCODE_BASE_URL: { description: 'CommandCode 基础 URL 覆盖' },
+      COPILOT_GITHUB_TOKEN: { description: 'GitHub Copilot 访问令牌（也可使用 GITHUB_TOKEN 或 gh 登录令牌）' },
+      GH_TOKEN: { description: 'GitHub CLI 访问令牌，可用于 GitHub Copilot' },
+      COPILOT_API_BASE_URL: { description: 'GitHub Copilot 基础 URL 覆盖' },
+      AI_GATEWAY_API_KEY: { description: 'Vercel AI Gateway API 密钥' },
+      AI_GATEWAY_BASE_URL: { description: 'Vercel AI Gateway 基础 URL 覆盖' },
+      TOKENHUB_API_KEY: { description: '腾讯 TokenHub API 密钥（通过 tokenhub.tencentmaas.com 使用混元 3 预览版）' },
+      TOKENHUB_BASE_URL: { description: '腾讯 TokenHub 基础 URL 覆盖' },
+      MODEL_API_KEY: { description: 'Meta Model API 密钥' },
+      META_API_KEY: { description: 'Meta Model API 密钥' },
+      META_MODEL_API_KEY: { description: 'Meta Model API 密钥' },
+      META_BASE_URL: { description: 'Meta Model API 基础 URL 覆盖' },
+      OPENAI_API_KEY: { description: 'OpenAI API 密钥（api.openai.com）' },
+      OPENAI_BASE_URL: { description: 'OpenAI API 基础 URL 覆盖' },
       DEEPINFRA_API_KEY: { description: 'DeepInfra API 密钥' },
       DEEPINFRA_BASE_URL: { description: 'DeepInfra 基础 URL 覆盖' },
       KILOCODE_API_KEY: { description: 'Kilocode API 密钥' },
+      KILOCODE_BASE_URL: { description: 'Kilo Code 基础 URL 覆盖' },
       KIMI_CODING_API_KEY: { description: 'Kimi Coding API 密钥' },
       NOVITA_API_KEY: { description: 'NovitaAI API 密钥' },
       NOVITA_BASE_URL: { description: 'NovitaAI 基础 URL 覆盖' },
@@ -1683,7 +1707,15 @@ export const zh: Translations = {
         'Arcee AI': 'Arcee 托管的小型与中型模型',
         'GMI Cloud': 'GMI Cloud GPU + 模型推理服务',
         'Azure Foundry': 'Azure AI Foundry 自定义端点（兼容 OpenAI / Anthropic）',
-        'AWS Bedrock': '通过 AWS 配置文件 + 区域进行认证'
+        'AWS Bedrock': '通过 AWS 配置文件 + 区域进行认证',
+        'Actual Computer': 'Actual Computer 托管推理，或通过本地离线守护进程运行模型',
+        'CommandCode': '通过一个 API 密钥使用 30 多个模型',
+        'GitHub Copilot': '使用 GitHub 令牌或 gh 登录令牌访问 Copilot 模型',
+        'Kilo Code': '通过 Kilo Gateway API 访问多种模型',
+        'Meta Model API': 'Meta 超级智能实验室的 Muse Spark 系列模型',
+        'OpenAI API': '通过 api.openai.com 和 API 密钥直接访问 OpenAI 模型',
+        'Tencent TokenHub': '通过腾讯 TokenHub 使用混元 3 预览版',
+        'Vercel AI Gateway': '聚合多个模型提供方的 Vercel AI Gateway'
       }
     },
     sessions: {

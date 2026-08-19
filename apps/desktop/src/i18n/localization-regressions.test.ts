@@ -56,6 +56,36 @@ const MEDIA_MODEL_IDS = [
   'happy-horse'
 ] as const
 
+const PROVIDER_CARD_NAMES = [
+  'Actual Computer',
+  'CommandCode',
+  'GitHub Copilot',
+  'Kilo Code',
+  'Meta Model API',
+  'OpenAI API',
+  'Tencent TokenHub',
+  'Vercel AI Gateway'
+] as const
+
+const PROVIDER_ENV_KEYS = [
+  'ACTUAL_API_KEY',
+  'ACTUAL_BASE_URL',
+  'AI_GATEWAY_API_KEY',
+  'AI_GATEWAY_BASE_URL',
+  'ANTHROPIC_BASE_URL',
+  'COMMANDCODE_API_KEY',
+  'COMMANDCODE_BASE_URL',
+  'COPILOT_GITHUB_TOKEN',
+  'COPILOT_API_BASE_URL',
+  'KILOCODE_BASE_URL',
+  'MODEL_API_KEY',
+  'META_BASE_URL',
+  'OPENAI_API_KEY',
+  'OPENAI_BASE_URL',
+  'TOKENHUB_API_KEY',
+  'TOKENHUB_BASE_URL'
+] as const
+
 afterEach(() => setRuntimeI18nLocale('en'))
 
 describe('Simplified Chinese localization regressions', () => {
@@ -77,6 +107,18 @@ describe('Simplified Chinese localization regressions', () => {
     for (const key of GLOBAL_SETTING_KEYS) {
       expect(zh.settings.envKeys[key]?.description, `${key} description`).toBeTruthy()
       expect(zh.settings.envKeys[key]?.prompt, `${key} label stays unlocalized`).toBeUndefined()
+    }
+  })
+
+  it('localizes the voice model and provider-card descriptions', () => {
+    expect(zh.settings.fieldDescriptions['stt.local.model']).toMatch(/[\u3400-\u9fff]/u)
+
+    for (const name of PROVIDER_CARD_NAMES) {
+      expect(zh.settings.providers.providerDescriptions[name], `${name} description`).toMatch(/[\u3400-\u9fff]/u)
+    }
+
+    for (const key of PROVIDER_ENV_KEYS) {
+      expect(zh.settings.envKeys[key]?.description, `${key} description`).toMatch(/[\u3400-\u9fff]/u)
     }
   })
 

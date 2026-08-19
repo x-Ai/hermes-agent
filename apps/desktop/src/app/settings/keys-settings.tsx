@@ -111,7 +111,6 @@ export function KeysSettings({ view }: KeysSettingsProps) {
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>
                 <CredentialKeyCard
-                  descriptionAlwaysVisible={view === 'settings'}
                   expanded={openKey === key}
                   info={localizedInfo}
                   label={label}
