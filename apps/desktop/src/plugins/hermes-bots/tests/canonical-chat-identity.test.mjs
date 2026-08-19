@@ -69,7 +69,7 @@ test('grandfather: no pin + no history keeps the creation flow', async () => {
   )
 })
 
-test('grandfather: adoption open failure falls back to creation without pinning', async () => {
+test('grandfather: adoption hydration failure surfaces without forking a replacement chat', async () => {
   const runtime = loadOpenPath({
     openSession: async id => {
       if (id === 'hist-1') throw new Error('session vanished')
@@ -78,21 +78,19 @@ test('grandfather: adoption open failure falls back to creation without pinning'
       method === 'session.create' ? { stored_session_id: 'stored-2', session_id: 'runtime-2' } : {}
   })
 
-  const result = await runtime.openBotCanonicalChat('ops', null, HISTORY)
-
-  assert.equal(result, 'stored-2')
-  assert.equal(
-    runtime.saved.some(s => s.patch?.chat === 'hist-1'),
-    false,
-    'a failed adoption must not persist the dead id as the pin'
-  )
+  await assert.rejects(runtime.openBotCanonicalChat('ops', null, HISTORY), /session vanished/)
+  assert.equal(runtime.saved.some(s => s.patch?.chat === 'hist-1'), false,
+    'a failed adoption must not persist the dead id as the pin')
+  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
+    'a transient hydration failure must not fork the canonical chat')
 })
 
 // ── precise pin verification (no session.list pagination/hidden semantics) ─
 
 test('pin: preferred_session present opens the resolved session and keeps the pin', async () => {
+  const opened = []
   const runtime = loadOpenPath({
-    openSession: async () => undefined,
+    openSession: async (id, options) => { opened.push({ id, options }) },
     request: async method => {
       if (method === 'profiles.list') {
         return {
@@ -119,6 +117,15 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
   const result = await runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY)
 
   assert.equal(result, 'pin-1')
+  assert.deepEqual(JSON.parse(JSON.stringify(opened)), [{
+    id: 'pin-1',
+    options: {
+      profile: 'ops',
+      intent: 'main',
+      awaitHydration: true,
+      expectHistory: true
+    }
+  }])
   assert.equal(runtime.saved.length, 0, 'a live pin must not be rewritten')
   assert.equal(
     runtime.requests.some(r => r.method === 'session.create'),
@@ -211,8 +218,7 @@ test('pin: gone pin + no history clears the pin and creates', async () => {
   ])
 })
 
-test('pin: precise hit but failed open keeps the pin and reports', async () => {
-  const notes = []
+test('pin: precise hit but failed hydration keeps the pin and surfaces the failure', async () => {
   const runtime = loadOpenPath({
     openSession: async () => {
       throw new Error('socket hiccup')
@@ -239,18 +245,11 @@ test('pin: precise hit but failed open keeps the pin and reports', async () => {
       return {}
     }
   })
-  runtime.host.notifyError = (error, title) => notes.push({ error: String(error), title })
 
-  const result = await runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY)
-
-  assert.equal(result, 'pin-1')
+  await assert.rejects(runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY), /socket hiccup/)
   assert.equal(runtime.saved.length, 0, 'a confirmed-live pin must survive a transient open failure')
-  assert.equal(
-    runtime.requests.some(r => r.method === 'session.create'),
-    false,
-    'must not fork the forever-chat on a hiccup'
-  )
-  assert.equal(notes.length, 1, 'the user gets told the open failed')
+  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
+    'must not fork the forever-chat on a hiccup')
 })
 
 // ── transient failures must never destroy the pin ──────────────────────────
@@ -275,10 +274,8 @@ test('transient: profiles.list failure keeps the pin when the direct open works'
   )
 })
 
-test('transient: profiles.list failure + failed direct open clears pin and creates', async () => {
+test('transient: profiles.list failure + failed direct open preserves pin and surfaces Retry', async () => {
   const runtime = loadOpenPath({
-    // Only the stale PIN's open is rejected; the creation flow's own
-    // openSession calls must succeed.
     openSession: async id => {
       if (id === 'pin-1') throw new Error('resume rejected')
     },
@@ -289,13 +286,10 @@ test('transient: profiles.list failure + failed direct open clears pin and creat
     }
   })
 
-  const result = await runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY)
-
-  assert.equal(result, 'stored-4')
-  assert.deepEqual(runtime.saved, [
-    { name: 'ops', patch: { chat: null } },
-    { name: 'ops', patch: { chat: 'stored-4' } }
-  ])
+  await assert.rejects(runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY), /resume rejected/)
+  assert.deepEqual(runtime.saved, [], 'an inconclusive outage must never clear the canonical pin')
+  assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
+    'an inconclusive outage must never fork the canonical chat')
 })
 
 // ── preferred_session_ids request shaping (pure helper) ────────────────────
