@@ -157,10 +157,8 @@ function CredentialDocsLink({ href }: { href: string }) {
   )
 }
 
-/** One credential row. Credential views collapse supporting copy; settings
- * views may keep descriptions visible while leaving docs links collapsible. */
+/** One credential row — collapsible; description and docs link expand on click. */
 export function CredentialKeyCard({
-  descriptionAlwaysVisible = false,
   expanded,
   info,
   label,
@@ -172,9 +170,7 @@ export function CredentialKeyCard({
 }: CredentialKeyCardProps) {
   const docsUrl = info.url?.trim()
   const description = info.description?.trim()
-  const expandable = Boolean(docsUrl || (description && !descriptionAlwaysVisible))
-  const showDescription = Boolean(description && (descriptionAlwaysVisible || expanded))
-  const showDocs = Boolean(docsUrl && expanded)
+  const expandable = Boolean(description || docsUrl)
 
   return (
     <div
@@ -240,15 +236,15 @@ export function CredentialKeyCard({
           <KeyField expanded={expanded} info={info} placeholder={placeholder} rowProps={rowProps} varKey={varKey} />
         </div>
 
-        {(showDescription || showDocs) && (
+        {expandable && expanded && (
           <div className="grid gap-3 @2xl:col-span-2" onClick={e => e.stopPropagation()}>
-            {showDescription && (
+            {description && (
               <p className="text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
                 {description}
               </p>
             )}
 
-            {showDocs && docsUrl && <CredentialDocsLink href={docsUrl} />}
+            {docsUrl && <CredentialDocsLink href={docsUrl} />}
           </div>
         )}
       </div>
@@ -382,7 +378,6 @@ export function credentialRowLabel(varKey: string, info: EnvVarInfo): string {
 }
 
 interface CredentialKeyCardProps {
-  descriptionAlwaysVisible?: boolean
   expanded: boolean
   info: EnvVarInfo
   label: string

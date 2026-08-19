@@ -30,12 +30,11 @@ const rowProps: KeyRowProps = {
 describe('CredentialKeyCard', () => {
   afterEach(cleanup)
 
-  it('keeps setting descriptions visible while the row is collapsed', () => {
+  it('shows the localized description after a setting row is expanded', () => {
     render(
       <I18nProvider configClient={null} initialLocale="zh">
         <CredentialKeyCard
-          descriptionAlwaysVisible
-          expanded={false}
+          expanded
           info={info}
           label="Sudo Password"
           onExpand={vi.fn()}
@@ -49,10 +48,9 @@ describe('CredentialKeyCard', () => {
 
     expect(screen.getByText('Sudo Password')).toBeTruthy()
     expect(screen.getByText('本地化后的设置说明')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Sudo Password/ })).toBeNull()
   })
 
-  it('preserves collapsed descriptions for credential rows by default', () => {
+  it('keeps descriptions hidden while a setting row is collapsed', () => {
     render(
       <I18nProvider configClient={null} initialLocale="zh">
         <CredentialKeyCard

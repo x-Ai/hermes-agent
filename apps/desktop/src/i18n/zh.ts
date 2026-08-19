@@ -1474,6 +1474,9 @@ export const zh = defineCompleteLocale({
       stt: {
         enabled: '启用本地或提供方支持的语音转写',
         echoTranscripts: '将语音消息的原始 🎙️ 转写文本发回聊天',
+        local: {
+          model: '本地 faster-whisper 转写所使用的模型大小。模型越大通常越准确，但需要更多内存和处理时间。'
+        },
         elevenlabs: {
           languageCode: '可选的 ISO-639-3 语言代码。留空让 ElevenLabs 自动检测'
         }
