@@ -1,6 +1,7 @@
 import { atom } from 'nanostores'
 
 import { translateNow } from '@/i18n'
+import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 import { persistBoolean, persistString, storedBoolean, storedString } from '@/lib/storage'
 import { capitalize } from '@/lib/text'
 import { $gateway } from '@/store/gateway'
@@ -181,12 +182,6 @@ export const $petGenPreview = atom<PetInfo | null>(null)
 export const $petGenInput = atom('')
 export const $petGenRefImage = atom<string | null>(null)
 export const $petGenRefName = atom('')
-
-function isMissingMethod(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error)
-
-  return /method not found|-32601|unknown method|no such method/i.test(message)
-}
 
 /** Clear all generation state (before a fresh run). */
 export function resetPetGen(): void {
@@ -449,7 +444,7 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
       return false
     }
 
-    if (isMissingMethod(e)) {
+    if (isMissingRpcMethod(e)) {
       $petGenStatus.set('stale')
     } else {
       $petGenStatus.set('error')
