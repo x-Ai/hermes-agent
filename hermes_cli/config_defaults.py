@@ -195,13 +195,11 @@ DEFAULT_CONFIG = {
         # compounds over a long conversation.  Costs ~70 tokens in the cached
         # system prompt.  Set False to disable globally.
         "parallel_tool_call_guidance": True,
-        # Local-environment toolchain probe — surfaces Python/pip/uv/PEP-668
-        # state in the system prompt when something non-default is detected
-        # (e.g. python3 has no pip module, pip→python version mismatch, PEP
-        # 668 enforcement without uv).  Costs zero tokens when the env is
-        # clean (probe emits nothing).  Skipped for remote terminal backends
-        # (docker/modal/ssh — they have their own probe).  Set False to
-        # disable entirely.
+        # Execution-environment probes used by the system prompt. Locally this
+        # surfaces non-default Python/pip/uv/PEP-668 state; remote backends run
+        # a bounded live OS/user/cwd probe. Container probes are disposable and
+        # never inherit workspace mounts or persistence. Set False to use the
+        # static remote-backend description and skip local probing entirely.
         "environment_probe": True,
         # Bot Mode teammate-messaging protocol section (silent unless a
         # profile is managed by the desktop's Bot Mode).

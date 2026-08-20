@@ -85,6 +85,29 @@ describe('Container persistence setting localization', () => {
   })
 })
 
+describe('Execution environment probe setting localization', () => {
+  it('ships a label and description in every desktop locale', () => {
+    const englishDescription = fieldCopyForSchemaKey(
+      TRANSLATIONS.en.settings.fieldDescriptions,
+      'agent.environment_probe'
+    )
+
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      expect(
+        fieldCopyForSchemaKey(copy.settings.fieldLabels, 'agent.environment_probe'),
+        `${locale} label`
+      ).toBeTruthy()
+
+      const description = fieldCopyForSchemaKey(copy.settings.fieldDescriptions, 'agent.environment_probe')
+      expect(description, `${locale} description`).toBeTruthy()
+
+      if (locale !== 'en') {
+        expect(description, `${locale} description falls back to English`).not.toBe(englishDescription)
+      }
+    }
+  })
+})
+
 const PROVIDER_CARD_NAMES = [
   'Actual Computer',
   'CommandCode',

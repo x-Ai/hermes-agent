@@ -67,6 +67,26 @@ describe('settings helpers', () => {
     expect(getNested(config, 'terminal.container_persistent')).toBe(true)
   })
 
+  it('surfaces the execution-environment probe toggle in Advanced', () => {
+    const advanced = SECTIONS.find(section => section.id === 'advanced')
+    const config: HermesConfigRecord = { agent: { environment_probe: true } }
+
+    expect(advanced?.keys).toContain('agent.environment_probe')
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'agent.environment_probe')).toBe(
+      'Execution Environment Probe'
+    )
+    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'agent.environment_probe')).toBeTruthy()
+
+    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get(
+      'agent.environment_probe'
+    )
+
+    expect(field?.type).toBe('boolean')
+    expect(setNested(config, 'agent.environment_probe', false)).toEqual({
+      agent: { environment_probe: false }
+    })
+  })
+
   it('does not shadow the backend schema options for memory.provider', () => {
     // memory.provider options are discovery-driven and served by the backend
     // config schema (merged per-request); enumOptionsFor must return undefined

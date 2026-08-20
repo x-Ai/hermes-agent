@@ -398,7 +398,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     imageInputMode: 'Image Attachments',
     apiMaxRetries: 'API Retries',
     serviceTier: 'Service Tier',
-    toolUseEnforcement: 'Tool-Use Enforcement'
+    toolUseEnforcement: 'Tool-Use Enforcement',
+    environmentProbe: 'Execution Environment Probe'
   },
   terminal: {
     cwd: 'Working Directory',
@@ -570,7 +571,9 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   timezone: 'IANA timezone identifier. Blank uses the system timezone.',
   agent: {
     imageInputMode: 'Controls how image attachments are sent to the model.',
-    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.'
+    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
+    environmentProbe:
+      'Probe execution-environment details for new sessions. Container backends use a temporary sandbox that is automatically removed after probing; off uses a static description.'
   },
   terminal: {
     cwd: 'Default project folder for tool and terminal work.',
@@ -804,6 +807,7 @@ export const SECTIONS: DesktopConfigSection[] = [
       'agent.api_max_retries',
       'agent.service_tier',
       'agent.tool_use_enforcement',
+      'agent.environment_probe',
       // The switch precedes the two fields it feeds: with it on, provider
       // suggests the configured custom endpoints and model suggests the
       // selected endpoint's discovered catalog.

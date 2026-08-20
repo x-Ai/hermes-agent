@@ -1083,11 +1083,18 @@ Instead, when the budget is actually exhausted (500/500), Hermes injects one mes
 agent:
   max_turns: 500               # Max iterations per conversation turn (default: 500)
   api_max_retries: 3           # Retries per provider before fallback engages (default: 3)
+  environment_probe: true      # Live execution-environment details in new-session prompts
 ```
 
 When the iteration budget is fully exhausted, the CLI shows a notification to the user: `⚠ Iteration budget reached (500/500) — response may be incomplete`.
 
 `agent.api_max_retries` controls how many times Hermes retries a provider API call on transient errors (rate limits, connection drops, 5xx) **before** fallback-provider switching engages. The default is `3` — four attempts total. If you have [fallback providers](/user-guide/features/fallback-providers) configured and want to fail over faster, drop this to `0` so the first transient error on your primary immediately hands off to the fallback instead of churning retries against the flaky endpoint.
+
+`agent.environment_probe` controls the factual environment probe used when a
+new session's system prompt is built. Local execution inspects Python tooling;
+remote container backends inspect their OS, user, home, and working directory in
+a disposable sandbox with no project mount, then remove it immediately. Set the
+option to `false` to skip live probing and use the static backend description.
 
 ## Wall-Clock Run Budget
 

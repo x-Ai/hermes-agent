@@ -463,7 +463,8 @@ export const zhHant = defineLocale({
         imageInputMode: '圖片附件',
         apiMaxRetries: 'API 重試次數',
         serviceTier: '服務層級',
-        toolUseEnforcement: '工具使用強制'
+        toolUseEnforcement: '工具使用強制',
+        environmentProbe: '執行環境探測'
       },
       terminal: {
         cwd: '工作目錄',
@@ -630,7 +631,8 @@ export const zhHant = defineLocale({
       timezone: 'Hermes 需要本機時間上下文時使用。留空則使用系統時區。',
       agent: {
         imageInputMode: '控制圖片附件如何傳送給模型。',
-        maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。'
+        maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。',
+        environmentProbe: '為新工作階段探測執行環境詳細資料。容器後端使用探測後自動移除的暫時沙箱；關閉時使用靜態描述。'
       },
       terminal: {
         cwd: '工具與終端機操作的預設專案資料夾。',

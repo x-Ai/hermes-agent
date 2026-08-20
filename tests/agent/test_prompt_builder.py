@@ -841,6 +841,9 @@ class TestEnvironmentHints:
                     ),
                 }
 
+            def cleanup(self):
+                created["cleaned"] = True
+
         created = {}
 
         def _fake_create_environment(*, env_type, **kwargs):
@@ -857,6 +860,130 @@ class TestEnvironmentHints:
         assert line is not None
         assert "Linux 6.8.0" in line
         assert "root" in line
+        assert created.get("cleaned") is True
+
+    @pytest.mark.parametrize(
+        "backend",
+        ["docker", "singularity", "modal", "daytona", "vercel_sandbox"],
+    )
+    def test_container_backend_probe_is_ephemeral_and_unmounted(self, monkeypatch, backend):
+        """A factual prompt probe must not become a second user workspace."""
+        import agent.prompt_builder as _pb
+        import tools.terminal_tool as _tt
+
+        _pb._clear_backend_probe_cache()
+        created = {}
+
+        class _FakeEnv:
+            def execute(self, cmd, timeout=None):
+                return {
+                    "returncode": 0,
+                    "output": "os=Linux\nkernel=6.8\nhome=/root\ncwd=/workspace\nuser=root\n",
+                }
+
+            def cleanup(self):
+                created["cleanup_calls"] = created.get("cleanup_calls", 0) + 1
+
+            def wait_for_cleanup(self, timeout):
+                created["cleanup_wait"] = timeout
+                return True
+
+        def _fake_create_environment(*, env_type, **kwargs):
+            created.update(env_type=env_type, **kwargs)
+            return _FakeEnv()
+
+        monkeypatch.setattr(
+            _tt,
+            "_get_env_config",
+            lambda: {
+                "docker_image": "docker-image",
+                "singularity_image": "singularity-image",
+                "modal_image": "modal-image",
+                "daytona_image": "daytona-image",
+                "container_persistent": True,
+                "docker_persist_across_processes": True,
+                "docker_mount_cwd_to_workspace": True,
+                "singularity_mount_cwd_to_workspace": True,
+                "docker_volumes": ["/host:/workspace"],
+                "docker_forward_env": ["TOKEN"],
+                "docker_env": {"TOKEN": "secret"},
+                "host_cwd": "/host/project",
+            },
+        )
+        monkeypatch.setattr(_tt, "_create_environment", _fake_create_environment)
+
+        assert _pb._probe_remote_backend(backend) is not None
+
+        config = created["container_config"]
+        assert created["env_type"] == backend
+        assert created["host_cwd"] is None
+        assert config["container_persistent"] is False
+        assert config["docker_persist_across_processes"] is False
+        assert config["docker_mount_cwd_to_workspace"] is False
+        assert config["singularity_mount_cwd_to_workspace"] is False
+        assert config["docker_volumes"] == []
+        assert config["docker_forward_env"] == []
+        assert config["docker_env"] == {}
+        assert created["cleanup_calls"] == 1
+        assert created["cleanup_wait"] == 30
+
+    def test_container_backend_probe_cleans_up_after_execute_failure(self, monkeypatch):
+        import agent.prompt_builder as _pb
+        import tools.terminal_tool as _tt
+
+        _pb._clear_backend_probe_cache()
+        cleaned = []
+
+        class _FailingEnv:
+            def execute(self, cmd, timeout=None):
+                raise RuntimeError("probe failed")
+
+            def cleanup(self):
+                cleaned.append(True)
+
+        monkeypatch.setattr(_tt, "_get_env_config", lambda: {"docker_image": "image"})
+        monkeypatch.setattr(_tt, "_create_environment", lambda **kwargs: _FailingEnv())
+
+        assert _pb._probe_remote_backend("docker") is None
+        assert cleaned == [True]
+
+    def test_container_backend_cleanup_failure_does_not_hide_probe_result(self, monkeypatch):
+        import agent.prompt_builder as _pb
+        import tools.terminal_tool as _tt
+
+        _pb._clear_backend_probe_cache()
+
+        class _CleanupFailingEnv:
+            def execute(self, cmd, timeout=None):
+                return {
+                    "returncode": 0,
+                    "output": "os=Linux\nkernel=6.8\nhome=/root\ncwd=/workspace\nuser=root\n",
+                }
+
+            def cleanup(self):
+                raise RuntimeError("cleanup failed")
+
+        monkeypatch.setattr(_tt, "_get_env_config", lambda: {"singularity_image": "image"})
+        monkeypatch.setattr(_tt, "_create_environment", lambda **kwargs: _CleanupFailingEnv())
+
+        result = _pb._probe_remote_backend("singularity")
+        assert result is not None
+        assert "OS: Linux 6.8" in result
+
+    def test_disabled_remote_probe_uses_static_description_without_starting_backend(self, monkeypatch):
+        import agent.prompt_builder as _pb
+
+        monkeypatch.setenv("TERMINAL_ENV", "docker")
+        monkeypatch.setattr(
+            _pb,
+            "_probe_remote_backend",
+            lambda _backend: pytest.fail("disabled probe must not start a backend"),
+        )
+
+        result = _pb.build_environment_hints(environment_probe_enabled=False)
+
+        assert "Live backend probing is disabled" in result
+        assert "Terminal backend: docker" in result
 
 
     def test_environment_hint_from_env_var_is_appended(self, monkeypatch):
@@ -1056,5 +1183,3 @@ class TestParallelToolCallGuidance:
 # =========================================================================
 # Budget warning history stripping
 # =========================================================================
-
-

@@ -980,6 +980,12 @@ skills:
 # Agent Behavior
 # =============================================================================
 agent:
+  # Probe execution-environment details for the system prompt (default: true).
+  # Local probes inspect Python tooling. Remote container probes use a
+  # disposable, unmounted sandbox that is removed immediately. Set false to
+  # use a static remote-backend description and skip local probing.
+  environment_probe: true
+
   # Maximum tool-calling iterations per conversation (default: 500)
   # Higher = more room for complex tasks, but costs more tokens
   # Recommended: 20-30 for focused tasks, 50-100 for open exploration

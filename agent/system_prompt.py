@@ -571,7 +571,9 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # Environment hints (WSL, Termux, etc.) — tell the agent about the
     # execution environment so it can translate paths and adapt behavior.
     # Stable for the lifetime of the process.
-    _env_hints = _r.build_environment_hints()
+    _env_hints = _r.build_environment_hints(
+        environment_probe_enabled=getattr(agent, "_environment_probe", True),
+    )
     if _env_hints:
         stable_parts.append(_env_hints)
 
@@ -611,7 +613,8 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # NOTHING when the environment is clean (no token cost).  Skipped
     # entirely for remote terminal backends (the host's Python state is
     # irrelevant when tools run inside docker/modal/ssh).  Gated by
-    # config.yaml ``agent.environment_probe`` (default True).
+    # config.yaml ``agent.environment_probe`` (default True). The same toggle
+    # gates the live remote-backend probe in build_environment_hints above.
     if getattr(agent, "_environment_probe", True):
         try:
             from tools.env_probe import get_environment_probe_line

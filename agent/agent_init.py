@@ -1974,10 +1974,9 @@ def init_agent(
     # single turn; the runtime already executes such batches concurrently.
     agent._parallel_tool_call_guidance = bool(_agent_section.get("parallel_tool_call_guidance", True))
 
-    # Local Python toolchain probe toggle.  Default True.  When False,
-    # the probe is skipped entirely (no subprocess calls, no system-prompt
-    # line).  Useful for users on exotic setups where the probe heuristics
-    # are noisy.
+    # Execution-environment probe toggle. Default True. When False, both the
+    # local Python toolchain probe and the live remote-backend probe are
+    # skipped; remote backends use their static prompt description instead.
     agent._environment_probe = bool(_agent_section.get("environment_probe", True))
     # Warm the probe off-thread: it shells out to python3/pip (~0.5s of
     # subprocess round-trips) and its result lands in the FIRST system

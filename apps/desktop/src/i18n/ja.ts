@@ -475,7 +475,8 @@ export const ja = defineLocale({
         imageInputMode: '画像添付',
         apiMaxRetries: 'API 再試行回数',
         serviceTier: 'サービス階層',
-        toolUseEnforcement: 'ツール使用の強制'
+        toolUseEnforcement: 'ツール使用の強制',
+        environmentProbe: '実行環境のプローブ'
       },
       terminal: {
         cwd: '作業ディレクトリ',
@@ -643,7 +644,9 @@ export const ja = defineLocale({
         'Hermes がローカル時刻のコンテキストを必要とするときに使用します。空欄ならシステムのタイムゾーンを使います。',
       agent: {
         imageInputMode: '画像添付をモデルへ送る方法を制御します。',
-        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。'
+        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
+        environmentProbe:
+          '新しいセッションの実行環境を調べます。コンテナバックエンドではプローブ後に自動削除される一時サンドボックスを使い、オフの場合は静的な説明を使います。'
       },
       terminal: {
         cwd: 'ツールとターミナル作業のデフォルトプロジェクトフォルダーです。',

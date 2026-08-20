@@ -713,7 +713,8 @@ export const zh: Translations = {
         imageInputMode: '图片附件',
         apiMaxRetries: 'API 重试次数',
         serviceTier: '服务等级',
-        toolUseEnforcement: '工具调用强制'
+        toolUseEnforcement: '工具调用强制',
+        environmentProbe: '执行环境探测'
       },
       terminal: {
         cwd: '工作目录',
@@ -881,7 +882,8 @@ export const zh: Translations = {
       agent: {
         imageInputMode: '控制图片附件如何发送给模型',
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
-        serviceTier: 'API 服务等级（OpenAI/Anthropic）。'
+        serviceTier: 'API 服务等级（OpenAI/Anthropic）。',
+        environmentProbe: '为新会话探测执行环境详情。容器后端使用探测后自动销毁的临时沙箱；关闭时使用静态描述。'
       },
       delegation: {
         model: '委派子智能体使用的模型。留空则继承父智能体的模型',

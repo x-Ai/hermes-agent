@@ -29,6 +29,14 @@ def _make_agent(**overrides):
     return SimpleNamespace(**base)
 
 
+def test_environment_probe_toggle_reaches_environment_hint_builder():
+    agent = _make_agent(_environment_probe=False)
+    with patch("run_agent.build_environment_hints", return_value="") as build_hints:
+        build_system_prompt_parts(agent)
+
+    build_hints.assert_called_once_with(environment_probe_enabled=False)
+
+
 def _captured_context_cwd(agent):
     """The cwd build_system_prompt_parts hands to build_context_files_prompt."""
     captured = {}

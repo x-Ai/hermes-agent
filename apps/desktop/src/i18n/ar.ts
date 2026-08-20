@@ -519,6 +519,7 @@ export const ar = defineLocale({
       'agent.apiMaxRetries': 'محاولات API',
       'agent.serviceTier': 'مستوى الخدمة',
       'agent.toolUseEnforcement': 'فرض استخدام الأدوات',
+      'agent.environmentProbe': 'فحص بيئة التنفيذ',
       'terminal.cwd': 'مجلد العمل',
       'terminal.backend': 'خلفية التنفيذ',
       'terminal.timeout': 'مهلة الأوامر',
@@ -604,6 +605,8 @@ export const ar = defineLocale({
       timezone: 'تستخدم عندما يحتاج Hermes إلى سياق الوقت المحلي. اتركها فارغة لاستخدام منطقة النظام.',
       'agent.imageInputMode': 'يتحكم في طريقة إرسال مرفقات الصور إلى النموذج.',
       'agent.maxTurns': 'الحد الأعلى لدورات استدعاء الأدوات قبل أن يوقف Hermes التشغيل.',
+      'agent.environmentProbe':
+        'يفحص تفاصيل بيئة التنفيذ للجلسات الجديدة. تستخدم الخلفيات الحاوية بيئة مؤقتة تُحذف تلقائياً بعد الفحص؛ وعند إيقافه يُستخدم وصف ثابت.',
       'terminal.cwd': 'مجلد المشروع الافتراضي لعمل الأدوات والطرفية.',
       'terminal.persistentShell': 'يحافظ على حالة الصدفة بين الأوامر عندما تدعمها الخلفية.',
       'terminal.envPassthrough': 'متغيرات البيئة التي تمرر إلى تنفيذ الأدوات.',

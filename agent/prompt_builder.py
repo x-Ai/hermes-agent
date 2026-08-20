@@ -1258,6 +1258,15 @@ _WINDOWS_BASH_SHELL_HINT = (
 )
 
 
+_EPHEMERAL_PROBE_BACKENDS = frozenset({
+    "docker",
+    "singularity",
+    "modal",
+    "daytona",
+    "vercel_sandbox",
+})
+
+
 def _probe_remote_backend(env_type: str) -> str | None:
     """Run a tiny introspection command inside the active terminal backend.
 
@@ -1281,6 +1290,7 @@ def _probe_remote_backend(env_type: str) -> str | None:
         _BACKEND_PROBE_CACHE[cache_key] = ""
         return None
 
+    env = None
     try:
         config = _get_env_config()
         # Build the environment the same way tools/terminal_tool.py does for a
@@ -1329,6 +1339,23 @@ def _probe_remote_backend(env_type: str) -> str | None:
                 "docker_orphan_reaper": config.get("docker_orphan_reaper", True),
             }
 
+            # A system-prompt probe is an observation, not a workspace. It must
+            # never inherit the user's long-lived container lifecycle or bind
+            # their launch/project directory merely to run uname/whoami/pwd.
+            # Every container backend below implements cleanup() for a
+            # non-persistent environment, so the finally block can release the
+            # probe without changing normal project-container semantics.
+            if env_type in _EPHEMERAL_PROBE_BACKENDS:
+                container_config.update({
+                    "container_persistent": False,
+                    "docker_persist_across_processes": False,
+                    "docker_mount_cwd_to_workspace": False,
+                    "singularity_mount_cwd_to_workspace": False,
+                    "docker_volumes": [],
+                    "docker_forward_env": [],
+                    "docker_env": {},
+                })
+
         env = _create_environment(
             env_type=env_type,
             image=image,
@@ -1337,7 +1364,7 @@ def _probe_remote_backend(env_type: str) -> str | None:
             ssh_config=ssh_config,
             container_config=container_config,
             task_id="prompt-backend-probe",
-            host_cwd=config.get("host_cwd"),
+            host_cwd=None if env_type in _EPHEMERAL_PROBE_BACKENDS else config.get("host_cwd"),
         )
         # Single-line POSIX probe — works on any Unixy backend. Wrapped in
         # `2>/dev/null` so a missing binary doesn't pollute the output.
@@ -1360,6 +1387,17 @@ def _probe_remote_backend(env_type: str) -> str | None:
         logger.debug("Backend probe failed: %s", e)
         _BACKEND_PROBE_CACHE[cache_key] = ""
         return None
+    finally:
+        if env is not None and env_type in _EPHEMERAL_PROBE_BACKENDS:
+            try:
+                env.cleanup()
+                wait_for_cleanup = getattr(env, "wait_for_cleanup", None)
+                if callable(wait_for_cleanup) and not wait_for_cleanup(timeout=30):
+                    logger.warning("Backend probe cleanup did not finish within 30 seconds")
+            except Exception:
+                # Environment hints are best-effort. Cleanup failures belong in
+                # diagnostics and must not make prompt construction fail.
+                logger.debug("Backend probe cleanup failed", exc_info=True)
 
     # Parse key=value lines back into a tidy summary.
     parsed: dict[str, str] = {}
@@ -1393,7 +1431,7 @@ def _clear_backend_probe_cache() -> None:
     _BACKEND_PROBE_CACHE.clear()
 
 
-def build_environment_hints() -> str:
+def build_environment_hints(*, environment_probe_enabled: bool = True) -> str:
     """Return environment-specific guidance for the system prompt.
 
     Always emits a factual block describing the execution environment:
@@ -1451,7 +1489,7 @@ def build_environment_hints() -> str:
             hints.append(_WINDOWS_BASH_SHELL_HINT)
     else:
         # --- Remote backend block (host info suppressed) ---
-        probe = _probe_remote_backend(backend)
+        probe = _probe_remote_backend(backend) if environment_probe_enabled else None
         if probe:
             hints.append(
                 f"Terminal backend: {backend}. Your `terminal`, `read_file`, "
@@ -1465,12 +1503,16 @@ def build_environment_hints() -> str:
             description = _BACKEND_FALLBACK_DESCRIPTIONS.get(
                 backend, f"a {backend} environment (likely Linux)"
             )
+            probe_status = (
+                "Live backend probing is disabled, so the sandbox's current "
+                if not environment_probe_enabled
+                else "The backend probe didn't respond at prompt-build time, so the sandbox's current "
+            )
             hints.append(
                 f"Terminal backend: {backend}. Your `terminal`, `read_file`, "
                 f"`write_file`, `patch`, and `search_files` tools all operate "
                 f"inside {description} — NOT on the machine where Hermes "
-                f"itself runs. The backend probe didn't respond at "
-                f"prompt-build time, so the sandbox's current user, $HOME, "
+                f"itself runs. {probe_status}user, $HOME, "
                 f"and working directory are unknown from here. If you need "
                 f"them, probe directly with a terminal call like "
                 f"`uname -a && whoami && pwd`."
