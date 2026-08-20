@@ -521,6 +521,7 @@ export const ar = defineLocale({
       'terminal.timeout': 'مهلة الأوامر',
       'terminal.persistentShell': 'صدفة مستمرة',
       'terminal.envPassthrough': 'تمرير متغيرات البيئة',
+      'terminal.containerPersistent': 'نظام ملفات حاوية دائم',
       'terminal.dockerImage': 'صورة Docker',
       'terminal.singularityImage': 'صورة Singularity',
       'terminal.modalImage': 'صورة Modal',
@@ -603,6 +604,8 @@ export const ar = defineLocale({
       'terminal.cwd': 'مجلد المشروع الافتراضي لعمل الأدوات والطرفية.',
       'terminal.persistentShell': 'يحافظ على حالة الصدفة بين الأوامر عندما تدعمها الخلفية.',
       'terminal.envPassthrough': 'متغيرات البيئة التي تمرر إلى تنفيذ الأدوات.',
+      'terminal.containerPersistent':
+        'يحتفظ بحالة نظام ملفات الحاوية بين الجلسات. تسري التغييرات بعد إعادة تشغيل الخلفية ولا تحذف الحاوية أو المثيل الحالي.',
       'terminal.dockerImage': 'صورة الحاوية المستخدمة عند اختيار Docker كخلفية تنفيذ.',
       'terminal.singularityImage': 'الصورة المستخدمة عند اختيار Singularity.',
       'terminal.modalImage': 'الصورة المستخدمة عند اختيار Modal.',

@@ -33,6 +33,40 @@ describe('settings helpers', () => {
     expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'desktop.repo_scan_exclude_paths')).toBeTruthy()
   })
 
+  it('surfaces the shared container persistence switch without replacing terminal config', () => {
+    const advanced = SECTIONS.find(section => section.id === 'advanced')
+
+    const config: HermesConfigRecord = {
+      terminal: {
+        backend: 'singularity',
+        container_persistent: true,
+        singularity_image: 'docker://example/image:latest'
+      }
+    }
+
+    expect(advanced?.keys).toContain('terminal.container_persistent')
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'terminal.container_persistent')).toBe(
+      'Persistent Container Filesystem'
+    )
+    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'terminal.container_persistent')).toBeTruthy()
+
+    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get(
+      'terminal.container_persistent'
+    )
+
+    const next = setNested(config, 'terminal.container_persistent', false)
+
+    expect(field?.type).toBe('boolean')
+    expect(next).toEqual({
+      terminal: {
+        backend: 'singularity',
+        container_persistent: false,
+        singularity_image: 'docker://example/image:latest'
+      }
+    })
+    expect(getNested(config, 'terminal.container_persistent')).toBe(true)
+  })
+
   it('does not shadow the backend schema options for memory.provider', () => {
     // memory.provider options are discovery-driven and served by the backend
     // config schema (merged per-request); enumOptionsFor must return undefined

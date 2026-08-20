@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
 import { setRuntimeI18nLocale, translateForLocale } from '@/i18n'
 
+import { TRANSLATIONS } from './catalog'
 import { zh } from './zh'
 
 const GLOBAL_SETTING_KEYS = [
@@ -55,6 +57,33 @@ const MEDIA_MODEL_IDS = [
   'kling-v3-4k',
   'happy-horse'
 ] as const
+
+describe('Container persistence setting localization', () => {
+  it('ships a label and description in every desktop locale', () => {
+    const englishDescription = fieldCopyForSchemaKey(
+      TRANSLATIONS.en.settings.fieldDescriptions,
+      'terminal.container_persistent'
+    )
+
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      expect(
+        fieldCopyForSchemaKey(copy.settings.fieldLabels, 'terminal.container_persistent'),
+        `${locale} label`
+      ).toBeTruthy()
+
+      const description = fieldCopyForSchemaKey(
+        copy.settings.fieldDescriptions,
+        'terminal.container_persistent'
+      )
+
+      expect(description, `${locale} description`).toBeTruthy()
+
+      if (locale !== 'en') {
+        expect(description, `${locale} description falls back to English`).not.toBe(englishDescription)
+      }
+    }
+  })
+})
 
 const PROVIDER_CARD_NAMES = [
   'Actual Computer',

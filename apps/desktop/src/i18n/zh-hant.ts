@@ -468,6 +468,7 @@ export const zhHant = defineLocale({
         timeout: '指令逾時',
         persistentShell: '持久化 Shell',
         envPassthrough: '環境變數傳遞',
+        containerPersistent: '持久化容器檔案系統',
         dockerImage: 'Docker 映像',
         dockerMountCwdToWorkspace: '將專案目錄掛載進 Docker',
         dockerWorkspacePerSession: '跟隨各工作階段選擇的專案',
@@ -631,7 +632,9 @@ export const zhHant = defineLocale({
       terminal: {
         cwd: '工具與終端機操作的預設專案資料夾。',
         persistentShell: '後端支援時，在指令之間保留 Shell 狀態。',
-        envPassthrough: '傳入工具執行的環境變數。'
+        envPassthrough: '傳入工具執行的環境變數。',
+        containerPersistent:
+          '跨工作階段保留容器檔案系統狀態。變更會在後端重新啟動後生效，且不會銷毀目前的容器或執行個體。'
       },
       codeExecution: {
         mode: '程式碼執行被限制在目前專案中的嚴格程度。'

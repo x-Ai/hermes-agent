@@ -480,6 +480,7 @@ export const ja = defineLocale({
         timeout: 'コマンドタイムアウト',
         persistentShell: '永続シェル',
         envPassthrough: '環境変数の引き継ぎ',
+        containerPersistent: 'コンテナファイルシステムを永続化',
         dockerImage: 'Docker イメージ',
         dockerMountCwdToWorkspace: 'プロジェクトを Docker にマウント',
         dockerWorkspacePerSession: 'セッションごとのプロジェクトに追従',
@@ -644,7 +645,9 @@ export const ja = defineLocale({
       terminal: {
         cwd: 'ツールとターミナル作業のデフォルトプロジェクトフォルダーです。',
         persistentShell: 'バックエンドが対応している場合、コマンド間でシェル状態を保持します。',
-        envPassthrough: 'ツール実行へ渡す環境変数です。'
+        envPassthrough: 'ツール実行へ渡す環境変数です。',
+        containerPersistent:
+          'セッションをまたいでコンテナのファイルシステム状態を保持します。変更はバックエンドの再起動後に反映され、現在のコンテナやインスタンスは削除されません。'
       },
       codeExecution: {
         mode: 'コード実行を現在のプロジェクトにどれだけ厳密に制限するかを設定します。'

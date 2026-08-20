@@ -406,6 +406,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     timeout: 'Command Timeout',
     persistentShell: 'Persistent Shell',
     envPassthrough: 'Environment Passthrough',
+    containerPersistent: 'Persistent Container Filesystem',
     dockerImage: 'Docker Image',
     dockerMountCwdToWorkspace: 'Mount Project Into Docker',
     dockerWorkspacePerSession: 'Follow Each Session’s Project',
@@ -575,6 +576,8 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     cwd: 'Default project folder for tool and terminal work.',
     persistentShell: 'Keep shell state between commands when the backend supports it.',
     envPassthrough: 'Environment variables to pass into tool execution.',
+    containerPersistent:
+      'Keep container filesystem state across Hermes sessions. Changes apply after the backend restarts and do not destroy the current container or instance.',
     dockerImage: 'Container image used when the execution backend is Docker.',
     dockerMountCwdToWorkspace:
       'Bind-mount the project folder into the Docker sandbox at /workspace. Off keeps the sandbox fully isolated.',
@@ -779,6 +782,7 @@ export const SECTIONS: DesktopConfigSection[] = [
       'toolsets',
       'terminal.backend',
       'terminal.timeout',
+      'terminal.container_persistent',
       'terminal.docker_image',
       // Paired on purpose: per_session does nothing unless mount_cwd is on, so
       // showing one without the other reads as a broken toggle.
