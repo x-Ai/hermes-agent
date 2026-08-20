@@ -188,6 +188,7 @@ import { createMediaProtocolHandler, MEDIA_PROTOCOL } from './media-protocol'
 import {
   oauthGuardMayHardFail,
   oauthSessionIsLive,
+  resolveGatedDownloadAuth,
   resolveJsonBody,
   resolveOauthRestAuth,
   resolveReadinessProbeAuth
@@ -3809,16 +3810,20 @@ async function handOffWindowsBootstrapRecovery(reason) {
   const venvHermes = path.join(venvBin, IS_WINDOWS ? 'hermes.exe' : 'hermes')
   const venvPython = path.join(venvBin, IS_WINDOWS ? 'python.exe' : 'python')
 
-  // Choose the gentle in-place --update when ANY real-install signal is present,
-  // not just the `hermes.exe` console-script shim. That shim is generated at the
-  // END of venv setup and is absent in exactly the interrupted/quarantined states
-  // this recovery exists to heal — gating on it alone forced the destructive
-  // --repair (full venv recreate) and drove reinstall loops. The venv interpreter
-  // and the bootstrap-complete marker are present earlier and are better signals.
-  const haveRealInstall =
-    fileExists(venvPython) || fileExists(venvHermes) || fileExists(path.join(updateRoot, '.hermes-bootstrap-complete'))
-
-  const updaterArgs = chooseUpdaterArgs(haveRealInstall, branch)
+  // The updater invokes the venv's Hermes launcher, which in turn requires the
+  // venv interpreter. A bootstrap-complete marker proves only that setup once
+  // finished; it can outlive a manually removed or quarantined venv. Sending a
+  // marker-only install through --update dead-ends at "Could not find the hermes
+  // CLI" instead of rebuilding the runtime, so only a runnable pair gets the
+  // gentle update path. Partial or missing runtimes go through full repair.
+  const updaterArgs = chooseUpdaterArgs(
+    {
+      hasBootstrapMarker: fileExists(path.join(updateRoot, '.hermes-bootstrap-complete')),
+      hasVenvHermes: fileExists(venvHermes),
+      hasVenvPython: fileExists(venvPython)
+    },
+    branch
+  )
 
   await releaseBackendLockForUpdate(updateRoot)
 
@@ -4884,7 +4889,8 @@ function fetchJson(url, token, options: any = {}) {
 // Token-auth download that streams the response body straight to a
 // user-selected destination (via finalizeGatewayDownload) instead of buffering
 // the whole file in memory. The connect timeout is cleared once headers arrive
-// so a slow save dialog or a large stream doesn't trip it.
+// so a slow save dialog or a large stream doesn't trip it. `options.bearer`
+// switches the header to Authorization (RFC 8252 native flow), matching fetchJson.
 function downloadViaTokenToFile(url, token, ctx, options: any = {}) {
   return new Promise((resolve, reject) => {
     let parsed
@@ -4910,9 +4916,9 @@ function downloadViaTokenToFile(url, token, ctx, options: any = {}) {
       parsed,
       {
         method: 'GET',
-        headers: {
-          'X-Hermes-Session-Token': token
-        }
+        headers: options.bearer
+          ? { Authorization: `Bearer ${options.bearer}` }
+          : { 'X-Hermes-Session-Token': token }
       },
       res => {
         // Headers arrived — the connection phase is done. Drop the idle timeout
@@ -7276,6 +7282,13 @@ function readGatewayErrorText(res): Promise<string> {
   })
 }
 
+async function gatedFileAuth(connection) {
+  const nativeAt =
+    connection.authMode === 'oauth' ? await ensureNativeAccessToken(connection.baseUrl).catch(() => null) : null
+
+  return resolveGatedDownloadAuth(connection.authMode, nativeAt, connection.token)
+}
+
 async function saveGatewayFile(payload: any = {}) {
   const filePath = gatewayFilePath(payload.path)
 
@@ -7298,9 +7311,17 @@ async function saveGatewayFile(payload: any = {}) {
   const url = `${connection.baseUrl}${requestPath}`
 
   try {
-    return await (connection.authMode === 'oauth'
-      ? downloadViaOauthSessionToFile(url, ctx)
-      : downloadViaTokenToFile(url, connection.token, ctx))
+    const auth = await gatedFileAuth(connection)
+
+    if (auth.kind === 'bearer') {
+      return await downloadViaTokenToFile(url, auth.token, ctx, { bearer: auth.token })
+    }
+
+    if (auth.kind === 'cookie') {
+      return await downloadViaOauthSessionToFile(url, ctx)
+    }
+
+    return await downloadViaTokenToFile(url, auth.token, ctx)
   } catch (error) {
     // Desktop and the remote gateway update independently. A gateway predating
     // /api/fs/download 404s here; fall back (ONLY on 404) to the older capped
@@ -7325,10 +7346,16 @@ async function saveGatewayFileViaDataUrl(connection, profile, filePath, ctx: any
   )
 
   const url = `${connection.baseUrl}${requestPath}`
+  const auth = await gatedFileAuth(connection)
+  let json: any
 
-  const json = (
-    connection.authMode === 'oauth' ? await fetchJsonViaOauthSession(url) : await fetchJson(url, connection.token)
-  ) as any
+  if (auth.kind === 'bearer') {
+    json = await fetchJson(url, null, { bearer: auth.token })
+  } else if (auth.kind === 'cookie') {
+    json = await fetchJsonViaOauthSession(url)
+  } else {
+    json = await fetchJson(url, auth.token)
+  }
 
   const dataUrl = json?.dataUrl
 
@@ -12162,8 +12189,11 @@ registerPetOverlayIpc({
 })
 
 // --- HUD mode (chrome-free floating chat) — see hud-ipc.ts. ---------------
-registerHudIpc({
+const hudIpc = registerHudIpc({
   isMac: IS_MAC,
+  isWindows: IS_WINDOWS,
+  glassSupported: GLASS_SUPPORTED,
+  getTranslucencyState: () => translucencyState,
   getHudWindow: () => hudWindow,
   openHudWindow,
   closeHudWindow,
@@ -12171,6 +12201,7 @@ registerHudIpc({
     hudSessionId = value
   }
 })
+
 ipcMain.handle('hermes:bootstrap:reset', async () => {
   // Renderer's "Reload and retry" path. Clear the latched failure and
   // reset connection state so the next startHermes() call restarts the
@@ -13922,6 +13953,12 @@ ipcMain.on('hermes:translucency', (_event, payload) => {
   }
 
   scheduleTranslucencyWrite()
+
+  // The HUD's frost reads the same setting but answers on its own terms (see
+  // hudFrostFor) — and it is a transparent window, so it is deliberately not
+  // in the chat fan-out below. It self-diffs, so an unrelated change costs
+  // nothing native.
+  hudIpc.applyHudFrost()
 
   if (changed.backing || changed.material || changed.opacity) {
     for (const win of BrowserWindow.getAllWindows()) {

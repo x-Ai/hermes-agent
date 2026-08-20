@@ -316,6 +316,7 @@ export interface Translations {
     swapSidebarSides: string
     hideRightSidebar: string
     showRightSidebar: string
+    unreadSessions: (count: number) => string
     muteHaptics: string
     unmuteHaptics: string
     openSettings: string
@@ -524,6 +525,8 @@ export interface Translations {
       }
       backdropTitle: string
       backdropDesc: string
+      introSplashTitle: string
+      introSplashDesc: string
       reactionsTitle: string
       reactionsDesc: string
       composerPopoutTitle: string
@@ -2179,6 +2182,7 @@ export interface Translations {
     endShort: string
     stopDictation: string
     transcribingDictation: string
+    voiceControls: string
     voiceDictation: string
     speakReplies: string
     stopSpeakingReplies: string

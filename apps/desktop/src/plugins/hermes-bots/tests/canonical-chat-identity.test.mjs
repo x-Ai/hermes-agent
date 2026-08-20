@@ -32,7 +32,7 @@ function loadOpenPath({ openSession, request }) {
   return { ...context.__open, saved, requests, host: context.host }
 }
 
-const HISTORY = { id: 'hist-1', title: 'Weekly review', preview: 'history preview', last_active: 1000 }
+const HISTORY = { id: 'hist-1', title: 'Bot Chat', preview: 'history preview', last_active: 1000 }
 
 // ── grandfather: no pin + existing history adopts the previewed session ────
 
@@ -51,6 +51,23 @@ test('grandfather: no pin + history opens and pins THAT session, no new chat', a
     false,
     'must not mint a new chat when the previewed session can be adopted'
   )
+})
+
+test('safety: no pin + ordinary latest history creates a Bot Chat instead of claiming it', async () => {
+  const runtime = loadOpenPath({
+    openSession: async () => undefined,
+    request: async method =>
+      method === 'session.create'
+        ? { stored_session_id: 'safe-bot-chat', session_id: 'safe-bot-chat-runtime' }
+        : {}
+  })
+
+  const ordinary = { ...HISTORY, id: 'ordinary-1', title: '生产调度会优化' }
+  const result = await runtime.openBotCanonicalChat('ops', null, ordinary)
+
+  assert.equal(result, 'safe-bot-chat')
+  assert.deepEqual(runtime.saved, [{ name: 'ops', patch: { chat: 'safe-bot-chat' } }])
+  assert.equal(runtime.requests.some(r => r.method === 'session.create'), true)
 })
 
 test('grandfather: no pin + no history keeps the creation flow', async () => {
@@ -100,7 +117,8 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
               preferred_session: {
                 id: 'pin-1',
                 resolved_id: 'pin-1',
-                title: 'Bot Chat',
+                root_title: 'Bot Chat',
+                title: 'Bot Chat (continued)',
                 preview: 'latest',
                 started_at: 1,
                 last_active: 2,
@@ -124,7 +142,8 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
       intent: 'main',
       awaitHydration: true,
       expectHistory: true,
-      keepAllProfilesScope: false
+      keepAllProfilesScope: true,
+      retryHydrationTimeoutOnce: true
     }
   }])
   assert.equal(runtime.saved.length, 0, 'a live pin must not be rewritten')
@@ -137,6 +156,32 @@ test('pin: preferred_session present opens the resolved session and keeps the pi
     runtime.requests.some(r => r.method === 'session.list'),
     false
   )
+})
+
+test('safety: a pinned ordinary session is rejected and replaced with a Bot Chat', async () => {
+  const runtime = loadOpenPath({
+    openSession: async () => undefined,
+    request: async method => {
+      if (method === 'profiles.list') {
+        return {
+          profiles: [{
+            name: 'ops',
+            preferred_session: { id: 'ordinary-3', resolved_id: 'ordinary-3', title: '生产调度会优化' }
+          }]
+        }
+      }
+      if (method === 'session.create') return { stored_session_id: 'safe-pinned-chat', session_id: 'safe-pinned-runtime' }
+      return {}
+    }
+  })
+
+  const result = await runtime.openBotCanonicalChat('ops', 'ordinary-3', HISTORY)
+
+  assert.equal(result, 'safe-pinned-chat')
+  assert.deepEqual(runtime.saved, [
+    { name: 'ops', patch: { chat: null } },
+    { name: 'ops', patch: { chat: 'safe-pinned-chat' } }
+  ])
 })
 
 test('pin: compression-rotated pin opens the live tip, keeps the durable pin', async () => {
@@ -154,6 +199,7 @@ test('pin: compression-rotated pin opens the live tip, keeps the durable pin', a
               preferred_session: {
                 id: 'root-1',
                 resolved_id: 'tip-9',
+                root_title: 'Bot Chat',
                 title: 'Bot Chat',
                 preview: 'post-compression',
                 started_at: 1,
@@ -194,6 +240,27 @@ test('pin: definitively gone pin re-pins to the previewed session, not rows[0]',
     runtime.requests.some(r => r.method === 'session.create'),
     false
   )
+})
+
+test('safety: a dead pin does not re-anchor on an ordinary latest session', async () => {
+  const runtime = loadOpenPath({
+    openSession: async () => undefined,
+    request: async method => {
+      if (method === 'profiles.list') return { profiles: [{ name: 'ops', preferred_session: null }] }
+      if (method === 'session.create') return { stored_session_id: 'safe-replacement', session_id: 'safe-replacement-runtime' }
+      return {}
+    }
+  })
+
+  const ordinary = { ...HISTORY, id: 'ordinary-2', title: '生产调度会优化' }
+  const result = await runtime.openBotCanonicalChat('ops', 'dead-pin', ordinary)
+
+  assert.equal(result, 'safe-replacement')
+  assert.deepEqual(runtime.saved, [
+    { name: 'ops', patch: { chat: null } },
+    { name: 'ops', patch: { chat: 'safe-replacement' } }
+  ])
+  assert.equal(runtime.requests.some(r => r.method === 'session.create'), true)
 })
 
 test('pin: gone pin + no history clears the pin and creates', async () => {
@@ -251,6 +318,63 @@ test('pin: precise hit but failed hydration keeps the pin and surfaces the failu
   assert.equal(runtime.saved.length, 0, 'a confirmed-live pin must survive a transient open failure')
   assert.equal(runtime.requests.some(r => r.method === 'session.create'), false,
     'must not fork the forever-chat on a hiccup')
+})
+
+test('pin: a waking-backend hydration timeout asks the SDK to retry internally', async () => {
+  // The internal retry-and-succeed behavior lives in host.openSession itself
+  // (apps/desktop/src/sdk/index.ts) now, because only that layer sees the
+  // $resumeExhaustedSessionId latch that the core stranded-session overlay
+  // reads — a plugin-side retry can silently resolve while that overlay stays
+  // latched (hermes-agent#89617). This harness stubs host.openSession with a
+  // bare mock, so it can only prove the plugin ASKS for the retry, not that
+  // the overlay never appears; see profile-routing.test.ts for that.
+  const opts = []
+  const runtime = loadOpenPath({
+    openSession: async (id, options) => { opts.push(options) },
+    request: async method => {
+      if (method === 'profiles.list') {
+        return {
+          profiles: [{
+            name: 'ops',
+            preferred_session: {
+              id: 'pin-1', resolved_id: 'pin-1', title: 'Bot Chat',
+              preview: 'latest', started_at: 1, last_active: 2, message_count: 3
+            }
+          }]
+        }
+      }
+      return {}
+    }
+  })
+
+  const result = await runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY)
+
+  assert.equal(result, 'pin-1')
+  assert.equal(opts.length, 1)
+  assert.equal(opts[0].retryHydrationTimeoutOnce, true, 'the SDK must own the hydration-timeout retry')
+})
+
+test('pin: a persistent hydration timeout still surfaces the failure', async () => {
+  const runtime = loadOpenPath({
+    openSession: async () => { throw new Error("Timed out loading ops's session history.") },
+    request: async method => {
+      if (method === 'profiles.list') {
+        return {
+          profiles: [{
+            name: 'ops',
+            preferred_session: {
+              id: 'pin-1', resolved_id: 'pin-1', title: 'Bot Chat',
+              preview: 'latest', started_at: 1, last_active: 2, message_count: 3
+            }
+          }]
+        }
+      }
+      return {}
+    }
+  })
+
+  await assert.rejects(runtime.openBotCanonicalChat('ops', 'pin-1', HISTORY), /Timed out loading/)
+  assert.equal(runtime.saved.length, 0, 'a confirmed-live pin must survive a persistent hydration timeout')
 })
 
 // ── transient failures must never destroy the pin ──────────────────────────
