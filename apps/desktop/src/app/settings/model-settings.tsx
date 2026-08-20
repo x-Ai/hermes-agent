@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -6,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import {
+  getApiRequestProfile,
   getAuxiliaryModels,
   getGlobalModelInfo,
   getGlobalModelOptions,
@@ -26,6 +28,7 @@ import type {
 import { useI18n } from '@/i18n'
 import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'
+import { modelOptionsProfileQueryKey } from '@/lib/model-options'
 import { DEFAULT_REASONING_EFFORT, REASONING_EFFORT_VALUES } from '@/lib/reasoning-effort'
 import { cn } from '@/lib/utils'
 import { setMainModelAssignment } from '@/store/cron-model-impact'
@@ -145,6 +148,9 @@ export const moaConfigComplete = (config: MoaConfigResponse): boolean =>
       moaSlotComplete(preset.aggregator)
   )
 
+const moaHasEnabledPreset = (config: MoaConfigResponse): boolean =>
+  Object.values(config.presets).some(preset => preset.enabled !== false)
+
 interface StaleAuxWarningProps {
   applying: boolean
   onReset: () => void
@@ -192,6 +198,7 @@ interface ModelSettingsProps {
 }
 
 export function ModelSettings({ onMainModelChanged, scopeProfile = null }: ModelSettingsProps) {
+  const queryClient = useQueryClient()
   const { t } = useI18n()
   const m = t.settings.model
   const [loading, setLoading] = useState(true)
@@ -202,6 +209,10 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
   const [selectedModel, setSelectedModel] = useState('')
   const [auxiliary, setAuxiliary] = useState<AuxiliaryModelsResponse | null>(null)
   const [moa, setMoa] = useState<MoaConfigResponse | null>(null)
+  // The normalized MoA response contains an enabled default even before the
+  // user has saved MoA. The explicit-only model catalog is authoritative for
+  // whether that virtual provider is actually exposed in chat pickers.
+  const [moaPickerVisible, setMoaPickerVisible] = useState(false)
   const [selectedMoaPreset, setSelectedMoaPreset] = useState('')
   const [newMoaPresetName, setNewMoaPresetName] = useState('')
   // agent.* defaults round-trip through the shared config cache (read → write
@@ -252,6 +263,9 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
 
         setMainModel({ model: modelInfo.model, provider: modelInfo.provider })
         setProviders(modelOptions.providers || [])
+        setMoaPickerVisible(
+          (modelOptions.providers || []).some(provider => (provider.slug || '').toLowerCase() === 'moa')
+        )
 
         if (replaceSelection) {
           setSelectedProvider(modelInfo.provider)
@@ -378,6 +392,12 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
   // Guard against stale save responses overwriting newer state.
   const moaSaveGeneration = useRef(0)
 
+  const invalidateMoaPickerCatalog = useCallback(() => {
+    const profile = scopeProfile ?? getApiRequestProfile()
+
+    void queryClient.invalidateQueries({ queryKey: modelOptionsProfileQueryKey(profile) })
+  }, [queryClient, scopeProfile])
+
   // Quiet debounced persist for inline MoA edits — mirrors the config page's
   // autosave so slot/aggregator tweaks save themselves, matching the
   // preset-level ops (set default / add / delete) that already persist on
@@ -402,11 +422,18 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
         return
       }
 
+      // An enabled normalized default is not picker-visible until this first
+      // complete write makes it explicit. Reflect the intent immediately; the
+      // confirmed save refreshes every session-scoped catalog below.
+      setMoaPickerVisible(moaHasEnabledPreset(next))
+
       moaSaveTimer.current = window.setTimeout(() => {
         void saveMoaModels(next, scopeProfile)
           .then(saved => {
             if (moaSaveGeneration.current === generation) {
               setMoa(saved)
+              setMoaPickerVisible(moaHasEnabledPreset(saved))
+              invalidateMoaPickerCatalog()
             }
           })
           .catch(err => {
@@ -416,7 +443,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
           })
       }, 600)
     },
-    [scopeProfile]
+    [invalidateMoaPickerCatalog, scopeProfile]
   )
 
   const updateMoaPreset = useCallback(
@@ -479,13 +506,15 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
         }
 
         setMoa(saved)
+        setMoaPickerVisible(moaHasEnabledPreset(saved))
+        invalidateMoaPickerCatalog()
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err))
       } finally {
         setApplying(false)
       }
     },
-    [scopeProfile]
+    [invalidateMoaPickerCatalog, scopeProfile]
   )
 
   const auxiliaryTaskLabel = useCallback((key: string) => m.tasks[key]?.label ?? key, [m.tasks])
@@ -1063,7 +1092,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
             <label className="flex items-center gap-2 rounded-sm border border-border px-2 py-1 text-xs">
               {m.moa.enabled}
               <Switch
-                checked={currentMoaPreset.enabled !== false}
+                checked={moaPickerVisible && currentMoaPreset.enabled !== false}
                 disabled={applying}
                 onCheckedChange={checked => updateMoaPreset(prev => ({ ...prev, enabled: checked }))}
                 size="xs"

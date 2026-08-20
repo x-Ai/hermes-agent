@@ -45,9 +45,14 @@ interface ModelOptionsRequest {
 }
 
 export function modelOptionsQueryKey(profile: null | string | undefined, sessionId?: null | string) {
+  return [...modelOptionsProfileQueryKey(profile), sessionId || 'global'] as const
+}
+
+/** Prefix shared by every model-options cache entry for one profile. */
+export function modelOptionsProfileQueryKey(profile: null | string | undefined) {
   const profileKey = (profile ?? '').trim() || 'default'
 
-  return ['model-options', profileKey, sessionId || 'global'] as const
+  return ['model-options', profileKey] as const
 }
 
 function hasSelectableModels(options: ModelOptionsResponse | null | undefined): boolean {

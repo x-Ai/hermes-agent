@@ -2,7 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { getGlobalModelOptions } from '@/hermes'
 
-import { manualPickRemoved, modelOptionsQueryKey, requestModelOptions } from './model-options'
+import {
+  manualPickRemoved,
+  modelOptionsProfileQueryKey,
+  modelOptionsQueryKey,
+  requestModelOptions
+} from './model-options'
 
 const globalOptions = { model: 'hermes-4', provider: 'nous', providers: [] }
 
@@ -128,6 +133,10 @@ describe('modelOptionsQueryKey', () => {
 
   it('keeps session catalogs inside the owning profile namespace', () => {
     expect(modelOptionsQueryKey(' compass ', 'session-1')).toEqual(['model-options', 'compass', 'session-1'])
+  })
+
+  it('exposes a profile prefix that covers global and live-session catalogs', () => {
+    expect(modelOptionsProfileQueryKey(' compass ')).toEqual(['model-options', 'compass'])
   })
 })
 

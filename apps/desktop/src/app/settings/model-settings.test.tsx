@@ -89,7 +89,7 @@ async function renderModelSettings() {
   const { ModelSettings } = await import('./model-settings')
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
-  return render(
+  const result = render(
     // The aux-task deep-link highlight reads useSearchParams, so the page
     // needs a router context in tests (the app provides HashRouter at root).
     <MemoryRouter>
@@ -98,6 +98,8 @@ async function renderModelSettings() {
       </QueryClientProvider>
     </MemoryRouter>
   )
+
+  return { ...result, client }
 }
 
 describe('ModelSettings', () => {
@@ -429,6 +431,12 @@ describe('ModelSettings MoA preset editor', () => {
           slug: 'openrouter',
           models: ['deepseek/deepseek-v4-pro', 'anthropic/claude-opus-4.8'],
           authenticated: true
+        },
+        {
+          name: 'Mixture of Agents',
+          slug: 'moa',
+          models: ['default'],
+          authenticated: true
         }
       ]
     })
@@ -537,6 +545,52 @@ describe('ModelSettings MoA preset editor', () => {
           })
         })
       )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not paint the unsaved default as picker-enabled and exposes it after the first save', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+
+    try {
+      getGlobalModelOptions.mockResolvedValueOnce({
+        providers: [
+          {
+            name: 'Nous',
+            slug: 'nous',
+            models: ['hermes-4'],
+            authenticated: true
+          },
+          {
+            name: 'OpenRouter',
+            slug: 'openrouter',
+            models: ['deepseek/deepseek-v4-pro', 'anthropic/claude-opus-4.8'],
+            authenticated: true
+          }
+        ]
+      })
+
+      const { client } = await renderModelSettings()
+      const invalidate = vi.spyOn(client, 'invalidateQueries')
+      const enabled = await screen.findByRole('switch', { name: 'Enabled' })
+
+      // normalize_moa_config({}) has enabled:true, but explicit-only model
+      // options omit MoA until the user actually saves that default.
+      expect(enabled.getAttribute('aria-checked')).toBe('false')
+
+      fireEvent.click(enabled)
+      expect(enabled.getAttribute('aria-checked')).toBe('true')
+      await vi.advanceTimersByTimeAsync(700)
+
+      expect(saveMoaModels).toHaveBeenCalledWith(
+        expect.objectContaining({
+          presets: expect.objectContaining({
+            default: expect.objectContaining({ enabled: true })
+          })
+        })
+      )
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['model-options', 'default'] })
     } finally {
       vi.useRealTimers()
     }
