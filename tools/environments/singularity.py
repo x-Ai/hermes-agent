@@ -5,8 +5,10 @@ Supports configurable resource limits and optional filesystem persistence
 via writable overlay directories that survive across sessions.
 """
 
+import hashlib
 import logging
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -25,6 +27,35 @@ from tools.environments.base import (
 logger = logging.getLogger(__name__)
 
 _SNAPSHOT_STORE = get_hermes_home() / "singularity_snapshots.json"
+
+_INSTANCE_NAME_UNSAFE_RE = re.compile(r"[^A-Za-z0-9_]")
+
+
+def _get_active_profile_name() -> str:
+    """Return the profile that owns a persistent instance."""
+    try:
+        from hermes_cli.profiles import get_active_profile_name
+
+        return get_active_profile_name() or "default"
+    except Exception:
+        return "default"
+
+
+def _persistent_instance_name(task_id: str, profile_name: str) -> str:
+    """Return a stable, user-scoped rendezvous name for an instance.
+
+    ``instance list`` followed by a randomly named ``instance start`` is a
+    cross-process check-then-create race. Apptainer instance names are unique
+    for a user, so a deterministic name makes ``instance start`` the atomic
+    winner election when overlapping Hermes backends initialize the same
+    project.
+    """
+    task_text = str(task_id or "default")
+    profile_text = str(profile_name or "default")
+    readable = _INSTANCE_NAME_UNSAFE_RE.sub("_", task_text)[:24].strip("_") or "task"
+    identity = f"{task_text}\0{profile_text}"
+    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()[:16]
+    return f"hermes_{readable}_{digest}"
 
 
 def _find_singularity_executable() -> str:
@@ -183,10 +214,16 @@ class SingularityEnvironment(BaseEnvironment):
         super().__init__(cwd=cwd, timeout=timeout)
         self.executable = _ensure_singularity_available()
         self.image = _get_or_build_sif(image, self.executable)
-        self.instance_id = f"hermes_{uuid.uuid4().hex[:12]}"
-        self._instance_started = False
         self._persistent = persistent_filesystem
         self._task_id = task_id
+        self._profile_name = _get_active_profile_name()
+        self.instance_id = (
+            _persistent_instance_name(task_id, self._profile_name)
+            if self._persistent
+            else f"hermes_{uuid.uuid4().hex[:12]}"
+        )
+        self._instance_started = False
+        self._instance_reused = False
         self._overlay_dir: Optional[Path] = None
         self._cpu = cpu
         self._memory = memory
@@ -219,7 +256,45 @@ class SingularityEnvironment(BaseEnvironment):
         self._start_instance()
         self.init_session()
 
+    def _instance_is_running(self) -> bool:
+        """Return whether our exact user-owned instance is currently listed."""
+        try:
+            result = subprocess.run(
+                [self.executable, "instance", "list", self.instance_id],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=15,
+                stdin=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+
+        if result.returncode != 0:
+            return False
+
+        # ``instance list <glob>`` still prints the header when there is no
+        # match. Instance names contain no whitespace, so the first table
+        # column is an exact and version-compatible membership check for both
+        # Apptainer and legacy Singularity.
+        return any(
+            fields and fields[0] == self.instance_id
+            for fields in (line.split() for line in result.stdout.splitlines())
+        )
+
     def _start_instance(self):
+        if self._persistent and self._instance_is_running():
+            self._instance_started = True
+            self._instance_reused = True
+            logger.info(
+                "Reusing Singularity instance %s (task=%s, profile=%s)",
+                self.instance_id,
+                self._task_id,
+                self._profile_name,
+            )
+            return
+
         cmd = [self.executable, "instance", "start"]
         cmd.extend(["--containall", "--no-home"])
 
@@ -258,11 +333,38 @@ class SingularityEnvironment(BaseEnvironment):
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120, stdin=subprocess.DEVNULL)
             if result.returncode != 0:
+                # Another backend may have won the deterministic-name race
+                # after our preflight list but before this start. Do not rely
+                # on localized/version-specific stderr; verify the winner by
+                # querying the exact instance name.
+                if self._persistent and self._instance_is_running():
+                    self._instance_started = True
+                    self._instance_reused = True
+                    logger.info(
+                        "Joined concurrently created Singularity instance %s "
+                        "(task=%s, profile=%s)",
+                        self.instance_id,
+                        self._task_id,
+                        self._profile_name,
+                    )
+                    return
                 raise RuntimeError(f"Failed to start instance: {result.stderr}")
             self._instance_started = True
             logger.info("Singularity instance %s started (persistent=%s)",
                         self.instance_id, self._persistent)
         except subprocess.TimeoutExpired:
+            # The timed-out launcher may have crossed the point where the
+            # background instance became visible, or a sibling backend may
+            # have won while it was blocked. Prefer the verified running
+            # instance over reporting a false startup failure.
+            if self._persistent and self._instance_is_running():
+                self._instance_started = True
+                self._instance_reused = True
+                logger.info(
+                    "Recovered timed-out Singularity start via running instance %s",
+                    self.instance_id,
+                )
+                return
             raise RuntimeError("Instance start timed out")
 
     def _run_bash(self, cmd_string: str, *, login: bool = False,
@@ -281,9 +383,17 @@ class SingularityEnvironment(BaseEnvironment):
 
         return _popen_bash(cmd, stdin_data)
 
-    def cleanup(self):
-        """Stop the instance. If persistent, the overlay dir survives."""
-        if self._instance_started:
+    def cleanup(self, *, force_remove: bool = False):
+        """Release this handle, preserving shared persistent instances.
+
+        A persistent instance is shared across Hermes backend processes. A
+        normal session/idle/atexit cleanup must therefore not stop it out from
+        under another process. ``force_remove=True`` remains the explicit
+        teardown path. Non-persistent instances retain their prior stop-on-
+        cleanup behavior.
+        """
+        should_stop = self._instance_started and (force_remove or not self._persistent)
+        if should_stop:
             try:
                 subprocess.run(
                     [self.executable, "instance", "stop", self.instance_id],
@@ -293,7 +403,10 @@ class SingularityEnvironment(BaseEnvironment):
                 logger.info("Singularity instance %s stopped", self.instance_id)
             except Exception as e:
                 logger.warning("Failed to stop Singularity instance %s: %s", self.instance_id, e)
-            self._instance_started = False
+
+        # Always detach the Python handle. A later environment construction
+        # rechecks Apptainer's user-scoped instance registry.
+        self._instance_started = False
 
         if self._persistent and self._overlay_dir:
             snapshots = _load_snapshots()

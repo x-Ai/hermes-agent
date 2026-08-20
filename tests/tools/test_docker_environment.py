@@ -573,6 +573,17 @@ def test_label_sanitizer_rejects_invalid_characters():
     assert len(docker_env._sanitize_label_value(long_value)) == 63
 
 
+def test_persistent_container_name_is_stable_and_identity_scoped():
+    """The daemon-wide name is the atomic rendezvous key across processes."""
+    first = docker_env._persistent_container_name("ws-project", "default", "off")
+    assert first == docker_env._persistent_container_name("ws-project", "default", "off")
+    assert first != docker_env._persistent_container_name("ws-other", "default", "off")
+    assert first != docker_env._persistent_container_name("ws-project", "work", "off")
+    assert first != docker_env._persistent_container_name("ws-project", "default", "on")
+    assert first.startswith("hermes-ws-project-")
+    assert len(first) <= 63
+
+
 def test_run_command_sanitizes_unsafe_task_id(monkeypatch):
     """A task_id containing characters Docker rejects in label values must be
     sanitized before reaching ``docker run --label``; otherwise the daemon
@@ -685,6 +696,54 @@ def test_reuse_attaches_to_running_container_without_docker_run(monkeypatch):
     )
 
 
+def test_concurrent_persistent_create_joins_name_race_winner(monkeypatch):
+    """Two backend processes may both pass the label probe before either runs.
+
+    Docker's deterministic-name conflict elects one winner. The loser must join
+    it and, critically, must not execute the generic failed-run cleanup that
+    would remove the winner's live container.
+    """
+    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+    monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
+    docker_env._cgroup_limits_ok = True
+    calls = []
+    ps_calls = 0
+
+    def _run(cmd, **kwargs):
+        nonlocal ps_calls
+        calls.append((list(cmd) if isinstance(cmd, list) else cmd, kwargs))
+        if isinstance(cmd, list) and len(cmd) >= 2:
+            sub = cmd[1]
+            if sub == "version":
+                return subprocess.CompletedProcess(cmd, 0, stdout="ok", stderr="")
+            if sub == "ps":
+                ps_calls += 1
+                if ps_calls == 1:
+                    return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+                return subprocess.CompletedProcess(
+                    cmd, 0, stdout="winner-cid\trunning\t<no value>\n", stderr="",
+                )
+            if sub == "run":
+                raise subprocess.CalledProcessError(
+                    125,
+                    cmd,
+                    output="",
+                    stderr=(
+                        'docker: Error response from daemon: Conflict. The container name '
+                        '"/hermes-ws-shared-abc" is already in use by container "winner-cid".'
+                    ),
+                )
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(docker_env.subprocess, "run", _run)
+
+    env = _make_dummy_env(task_id="ws-shared", persist_across_processes=True)
+
+    assert env._container_id == "winner-cid"
+    assert len([c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["run"]]) == 1
+    assert not [c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["rm"]]
+
+
 def test_egress_enabled_does_not_reuse_pre_egress_container(monkeypatch):
     """A container created before egress was enabled lacks the proxy env vars
     and CA mount.  Reusing it would silently bypass the credential firewall."""
@@ -767,6 +826,30 @@ def test_reuse_starts_stopped_container_before_attaching(monkeypatch):
     assert not run_invocations, "should not docker run when reusing an exited container"
 
 
+def test_failed_reuse_start_removes_blocker_before_fresh_run(monkeypatch):
+    """A deterministic-name container that cannot start must not block repair."""
+    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+    monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
+    docker_env._cgroup_limits_ok = True
+    calls = _mock_subprocess_run_with_reuse(
+        monkeypatch, ps_state="exited", start_succeeds=False,
+    )
+
+    env = _make_dummy_env(task_id="reuse-start-failed")
+
+    assert env._container_id == "fresh-cid"
+    rm_invocations = [
+        c for c in calls
+        if isinstance(c[0], list) and len(c[0]) >= 2 and c[0][1] == "rm"
+    ]
+    assert rm_invocations and rm_invocations[0][0][-1] == "reused-cid"
+    run_invocations = [
+        c for c in calls
+        if isinstance(c[0], list) and len(c[0]) >= 2 and c[0][1] == "run"
+    ]
+    assert len(run_invocations) == 1
+
+
 def test_failed_docker_run_cleans_up_orphaned_container(monkeypatch):
     """When ``docker run`` fails (e.g. exit 125), the partially-created
     container must be removed by name.
@@ -843,6 +926,48 @@ def test_docker_run_timeout_cleans_up_orphaned_container(monkeypatch):
     rm_cmd = cleanup_calls[0]
     assert rm_cmd[1] == "rm" and rm_cmd[2] == "-f"
     assert rm_cmd[3].startswith("hermes-"), "should remove the container by its generated name"
+
+
+def test_recovery_joins_concurrent_recreation_winner(monkeypatch):
+    """Out-of-band recovery uses the same cross-process arbitration path."""
+    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+    monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
+    _mock_subprocess_run(monkeypatch)
+    env = _make_dummy_env(task_id="ws-recovery", persist_across_processes=True)
+    env._container_id = "gone-cid"
+
+    calls = []
+    ps_calls = 0
+
+    def _run(cmd, **kwargs):
+        nonlocal ps_calls
+        calls.append((list(cmd) if isinstance(cmd, list) else cmd, kwargs))
+        if isinstance(cmd, list) and len(cmd) >= 2:
+            sub = cmd[1]
+            if sub == "ps":
+                ps_calls += 1
+                if ps_calls == 1:
+                    return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+                return subprocess.CompletedProcess(
+                    cmd, 0, stdout="recovery-winner\trunning\t<no value>\n", stderr="",
+                )
+            if sub == "run":
+                raise subprocess.CalledProcessError(
+                    125,
+                    cmd,
+                    output="",
+                    stderr=(
+                        "docker: Error response from daemon: Conflict. The container name "
+                        "is already in use by container recovery-winner"
+                    ),
+                )
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(docker_env.subprocess, "run", _run)
+
+    assert env._recreate_container() is True
+    assert env._container_id == "recovery-winner"
+    assert not [c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["rm"]]
 
 
 def test_find_reusable_handles_empty_label_string(monkeypatch):

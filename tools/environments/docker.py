@@ -14,6 +14,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -128,6 +129,39 @@ def _sanitize_label_value(value: str) -> str:
     cleaned = _LABEL_VALUE_OK_RE.sub("_", value)
     cleaned = cleaned[:63] or "unknown"
     return cleaned
+
+
+def _persistent_container_name(
+    task_label: str,
+    profile_label: str,
+    egress_label: str,
+) -> str:
+    """Return the cross-process rendezvous name for a reusable container.
+
+    Label lookup alone is a check-then-create race: two Hermes backend
+    processes can both observe no matching container and then each run a
+    differently named one.  Docker container names are daemon-wide and
+    atomically unique, so persistent containers use a deterministic name for
+    the exact same identity that label-based reuse matches.
+
+    Keep a short task prefix for operators reading ``docker ps`` and hash the
+    full tuple so long/truncated label values cannot push the name over Docker's
+    limit or collide across profiles / egress postures.
+    """
+    readable = (task_label[:24].strip("._-") or "task")
+    identity = f"{task_label}\0{profile_label}\0{egress_label}"
+    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()[:16]
+    return f"hermes-{readable}-{digest}"
+
+
+def _is_container_name_conflict(exc: subprocess.CalledProcessError) -> bool:
+    """Return True when ``docker run`` lost the deterministic-name race."""
+    detail = "\n".join(
+        str(value or "") for value in (getattr(exc, "stderr", ""), getattr(exc, "output", ""))
+    ).lower()
+    return "container name" in detail and (
+        "already in use" in detail or "conflict" in detail
+    )
 
 
 def _get_active_profile_name() -> str:
@@ -867,6 +901,97 @@ class DockerEnvironment(BaseEnvironment):
         """Keep explicit docker_forward_env values out of shared snapshots."""
         return tuple(self._forward_env)
 
+    def _wait_for_racing_container(
+        self,
+        task_label: str,
+        profile_label: str,
+        egress_label: str,
+        *,
+        attempts: int = 50,
+        delay: float = 0.1,
+    ) -> Optional[str]:
+        """Wait briefly for the process that won ``docker run`` to finish.
+
+        Docker reserves a container name before the winning ``docker run`` has
+        necessarily reached the running state.  The losing process must not
+        remove or start that container; it waits for the winner and then joins
+        it through the same label-scoped reuse query used at normal startup.
+        """
+        for attempt in range(attempts):
+            existing = self._find_reusable_container(
+                task_label, profile_label, egress_label,
+            )
+            if existing is not None:
+                container_id, state = existing
+                if state == "running":
+                    return container_id
+            if attempt + 1 < attempts:
+                time.sleep(delay)
+        return None
+
+    def _run_new_container(
+        self,
+        run_cmd: list[str],
+        *,
+        container_name: str,
+        task_label: str,
+        profile_label: str,
+        egress_label: str,
+        race_safe: bool,
+    ) -> tuple[str, bool]:
+        """Run a container, or join the concurrent process that won the race.
+
+        Returns ``(container_id, joined_race_winner)``.  Ordinary failures keep
+        the existing orphan cleanup behavior.  A deterministic-name conflict is
+        different: removing that name would delete the *other process's live
+        container*, so the loser waits for and adopts it instead.
+        """
+        try:
+            result = subprocess.run(
+                run_cmd,
+                capture_output=True,
+                text=True, encoding='utf-8', errors='replace',
+                timeout=120,  # image pull may take a while
+                check=True,
+                stdin=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError as exc:
+            if race_safe and _is_container_name_conflict(exc):
+                container_id = self._wait_for_racing_container(
+                    task_label, profile_label, egress_label,
+                )
+                if container_id:
+                    logger.info(
+                        "Joined concurrently created container %s "
+                        "(task=%s, profile=%s)",
+                        container_id[:12], task_label, profile_label,
+                    )
+                    return container_id, True
+                logger.error(
+                    "Container name %s was claimed concurrently, but no running "
+                    "container with the expected labels became available",
+                    container_name,
+                )
+                raise
+            self._cleanup_failed_container(container_name, exc)
+            raise
+        except subprocess.TimeoutExpired as exc:
+            self._cleanup_failed_container(container_name, exc)
+            raise
+        return result.stdout.strip(), False
+
+    def _cleanup_failed_container(self, container_name: str, exc: Exception) -> None:
+        """Remove a container object left behind by a failed ``docker run``."""
+        logger.warning(
+            "docker run failed for %s, cleaning up orphaned container: %s",
+            container_name, exc,
+        )
+        subprocess.run(
+            [self._docker_exe, "rm", "-f", container_name],
+            capture_output=True, timeout=10,
+            stdin=subprocess.DEVNULL,
+        )
+
     def __init__(
         self,
         image: str,
@@ -1372,8 +1497,6 @@ class DockerEnvironment(BaseEnvironment):
         )
         logger.info("Docker run_args: %s", all_run_args)
 
-        # Start the container directly via `docker run -d`.
-        container_name = f"hermes-{uuid.uuid4().hex[:8]}"
         # Labels make hermes-created containers identifiable to:
         #   * the orphan reaper (`hermes-agent=1` for the global sweep filter)
         #   * future cross-process reuse (`hermes-task-id`, `hermes-profile`)
@@ -1383,6 +1506,16 @@ class DockerEnvironment(BaseEnvironment):
         # container-start time and never changes for the container's lifetime.
         profile_name = _sanitize_label_value(_get_active_profile_name())
         task_label = _sanitize_label_value(task_id)
+        # Persistent containers need a daemon-wide, atomic rendezvous point.
+        # Process-local locks in terminal_tool prevent duplicate creation inside
+        # one backend, while this deterministic name closes the same race across
+        # overlapping Desktop/backend processes. Ephemeral containers retain
+        # random names because they deliberately do not participate in reuse.
+        container_name = (
+            _persistent_container_name(task_label, profile_name, egress_label)
+            if persist_across_processes
+            else f"hermes-{uuid.uuid4().hex[:8]}"
+        )
         label_args = [
             "--label", "hermes-agent=1",
             "--label", f"hermes-task-id={task_label}",
@@ -1473,9 +1606,29 @@ class DockerEnvironment(BaseEnvironment):
                     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
                         logger.warning(
                             "Failed to start existing container %s (state=%s): "
-                            "%s — falling back to a fresh container.",
+                            "%s — removing the unusable container before "
+                            "falling back to a fresh one.",
                             container_id[:12], state, e,
                         )
+                        # Reusable containers now have a deterministic name.
+                        # Leaving a stopped/created container whose start failed
+                        # would make the fallback docker run collide with that
+                        # same name forever. It cannot satisfy this identity, so
+                        # remove it before the fresh creation attempt.
+                        try:
+                            subprocess.run(
+                                [self._docker_exe, "rm", "-f", container_id],
+                                capture_output=True,
+                                text=True, encoding="utf-8", errors="replace",
+                                timeout=30,
+                                check=False,
+                                stdin=subprocess.DEVNULL,
+                            )
+                        except (subprocess.TimeoutExpired, OSError) as remove_exc:
+                            logger.warning(
+                                "Failed to remove unusable container %s: %s",
+                                container_id[:12], remove_exc,
+                            )
                         self._container_id = None
                 if self._container_id:
                     logger.info(
@@ -1500,35 +1653,16 @@ class DockerEnvironment(BaseEnvironment):
                 "sleep", "infinity",  # no fixed lifetime — idle reaper handles cleanup
             ]
             logger.debug("Starting container: %s", ' '.join(run_cmd))
-            try:
-                result = subprocess.run(
-                    run_cmd,
-                    capture_output=True,
-                    text=True, encoding='utf-8', errors='replace',
-                    timeout=120,  # image pull may take a while
-                    check=True,
-                    stdin=subprocess.DEVNULL,
-                )
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-                # Docker may create the container object before `docker run`
-                # fails to start it (e.g. exit code 125 when the daemon isn't
-                # ready, or a timeout mid-pull). That orphan is left in
-                # "Created" state — which the exited-only orphan reaper
-                # (reap_orphan_containers, status=exited) never catches, so it
-                # leaks permanently. Remove it by its known name before
-                # re-raising. See #7439.
-                logger.warning(
-                    "docker run failed for %s, cleaning up orphaned container: %s",
-                    container_name, e,
-                )
-                subprocess.run(
-                    [self._docker_exe, "rm", "-f", container_name],
-                    capture_output=True, timeout=10,
-                    stdin=subprocess.DEVNULL,
-                )
-                raise
-            self._container_id = result.stdout.strip()
-            logger.info("Started container %s (%s)", container_name, self._container_id[:12])
+            self._container_id, joined_race = self._run_new_container(
+                run_cmd,
+                container_name=container_name,
+                task_label=task_label,
+                profile_label=profile_name,
+                egress_label=egress_label,
+                race_safe=persist_across_processes,
+            )
+            if not joined_race:
+                logger.info("Started container %s (%s)", container_name, self._container_id[:12])
 
         # Build the init-time env forwarding args used to seed the snapshot.
         self._init_env_args = self._build_init_env_args()
@@ -1701,8 +1835,15 @@ class DockerEnvironment(BaseEnvironment):
                 logger.error("Recovery: no saved image name, cannot recreate container")
                 return False
             try:
-                import uuid as _uuid
-                new_name = f"hermes-{_uuid.uuid4().hex[:8]}"
+                new_name = (
+                    _persistent_container_name(
+                        task_label,
+                        profile_label,
+                        self._labels.get(_EGRESS_LABEL_KEY, "off"),
+                    )
+                    if self._persist_across_processes
+                    else f"hermes-{uuid.uuid4().hex[:8]}"
+                )
                 init_args = [] if self._image_uses_s6_init else ["--init"]
                 label_args = []
                 for k, v in self._labels.items():
@@ -1717,16 +1858,25 @@ class DockerEnvironment(BaseEnvironment):
                     self._image,
                     "sleep", "infinity",
                 ]
-                result = subprocess.run(
-                    run_cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120, check=True,
-                    stdin=subprocess.DEVNULL,
+                self._container_id, joined_race = self._run_new_container(
+                    run_cmd,
+                    container_name=new_name,
+                    task_label=task_label,
+                    profile_label=profile_label,
+                    egress_label=self._labels.get(_EGRESS_LABEL_KEY, "off"),
+                    race_safe=self._persist_across_processes,
                 )
-                self._container_id = result.stdout.strip()
                 self._container_name = new_name
-                logger.info(
-                    "Recovery: created fresh container %s (%s)",
-                    new_name, self._container_id[:12],
-                )
+                if joined_race:
+                    logger.info(
+                        "Recovery: joined concurrently recreated container %s",
+                        self._container_id[:12],
+                    )
+                else:
+                    logger.info(
+                        "Recovery: created fresh container %s (%s)",
+                        new_name, self._container_id[:12],
+                    )
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as e:
                 logger.error("Recovery: failed to create new container: %s", e)
                 return False
