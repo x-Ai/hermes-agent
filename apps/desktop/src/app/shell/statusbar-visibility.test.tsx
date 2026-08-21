@@ -3,7 +3,6 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { StatusbarControls, type StatusbarItem } from '@/app/shell/statusbar-controls'
-import { group } from '@/components/pane-shell/tree/model'
 import { $layoutTree } from '@/components/pane-shell/tree/store'
 import {
   $statusbarHiddenIds,
@@ -89,18 +88,6 @@ describe('statusbar item visibility', () => {
 
     expect($statusbarHiddenIds.get()).not.toContain('cron')
     expect(within(statusbar).getByText('Cron')).toBeTruthy()
-  })
-
-  it('restores hidden pane headers from the status-bar settings menu', async () => {
-    $layoutTree.set(group(['workspace'], { headerHidden: true, id: 'workspace-zone' }))
-    bar([item('gateway-health', 'Gateway')])
-
-    fireEvent.pointerDown(screen.getByRole('button', { name: /show in status bar/i }), { button: 0 })
-    const row = await screen.findByRole('menuitem', { name: /show header/i })
-    expect(row.getAttribute('data-disabled')).toBeNull()
-    fireEvent.click(row)
-
-    expect($layoutTree.get()).toMatchObject({ headerHidden: false, id: 'workspace-zone' })
   })
 
   it('never lets the user hide a locked item (system icon / update pill)', async () => {

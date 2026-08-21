@@ -27,10 +27,12 @@ function render(ui: ReactNode) {
 function terminalGroup(minimized: boolean): GroupNode {
   return {
     active: 'terminal',
-    headerHidden: false,
     id: 'terminal-zone',
     minimized,
     panes: ['terminal'],
+    // The chevron lives in the strip, so this zone has to be showing one. A
+    // lone unregistered pane is on auto and would render none.
+    tabStrip: 'always',
     type: 'group'
   }
 }
@@ -74,7 +76,7 @@ describe('TreeGroup', () => {
     expect(toggle('Restore').querySelector('i')!.className).toContain('codicon-chevron-up')
   })
 
-  it('keeps close chrome on a lone browser tile even when its persisted header was hidden', () => {
+  it('keeps close chrome on a lone browser tile even when its tab strip is explicitly hidden', () => {
     disposePane = registry.register({
       area: 'panes',
       data: { placement: 'main' },
@@ -88,9 +90,9 @@ describe('TreeGroup', () => {
       <TreeGroup
         node={{
           active: 'preview-tile:url:test',
-          headerHidden: true,
           id: 'browser-zone',
           panes: ['preview-tile:url:test'],
+          tabStrip: 'never',
           type: 'group'
         }}
         parentAxis="row"

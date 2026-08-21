@@ -173,6 +173,9 @@ type BotsMessages = {
   instruction: string
   instructionPlaceholder: string
   whenToRun: string
+  sendResultsTo: string
+  runHistoryOnly: string
+  botChatResponds: (name: string) => string
   stopAfter: string
   runs: string
   scheduling: string
@@ -570,6 +573,9 @@ const en: BotsMessages = {
   instruction: 'Instruction',
   instructionPlaceholder: 'What should this cronjob do each time it runs?',
   whenToRun: 'When to run',
+  sendResultsTo: 'Send results to',
+  runHistoryOnly: 'Run history only',
+  botChatResponds: name => `${name}\u2019s chat (bot responds)`,
   stopAfter: 'Stop after',
   runs: 'runs (blank = forever)',
   scheduling: 'Scheduling…',
@@ -654,7 +660,7 @@ const en: BotsMessages = {
   disbandGroupChat: name => `Disband the ${name} group chat`,
   disbandGroupChatTitle: 'Disband group chat?',
   disbandGroupChatDesc: (name, count) =>
-    `This removes the ${name} membership from its ${count} bots and clears the shared room log. The bots, their other groups, and their “Group: ${name}” sessions are kept.`,
+    `This removes the ${name} grouping from its ${count} bots and clears the shared room log. The bots themselves and their per-group sessions are kept.`,
   disband: 'Disband',
   disbanding: 'Disbanding…',
   disbanded: 'Disbanded',
@@ -960,6 +966,9 @@ const zh: BotsMessages = {
   instruction: '指令',
   instructionPlaceholder: '此定时任务每次运行时应该做什么？',
   whenToRun: '运行时间',
+  sendResultsTo: '发送结果至',
+  runHistoryOnly: '仅保存到运行历史',
+  botChatResponds: name => `${name} 的聊天（Bot 会响应）`,
   stopAfter: '停止条件',
   runs: '次运行（留空=永久）',
   scheduling: '调度中…',
@@ -1031,8 +1040,7 @@ const zh: BotsMessages = {
   groupName: '群组名称',
   sayToGroup: '说点什么 — 此群组中的每个 Bot 都能听到。',
   roomWorking: '房间正在工作…',
-  pickBotsForRoom: max =>
-    `选择 2–${max} 个 Bot。本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
+  pickBotsForRoom: max => `选择 2–${max} 个 Bot。本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
   noBotsYetCreateFirst: '尚无 Bot，请先创建代理。',
   pickAtLeastTwo: '请至少选择 2 个 Bot',
   createGroup: count => `创建群聊${count ? `（${count}）` : ''}`,
@@ -1044,7 +1052,7 @@ const zh: BotsMessages = {
   disbandGroupChat: name => `解散 ${name} 群聊`,
   disbandGroupChatTitle: '解散群聊？',
   disbandGroupChatDesc: (name, count) =>
-    `这会移除 ${count} 个 Bot 的“${name}”成员关系并清除共享房间记录。Bot、本身所属的其他分组以及“分组：${name}”会话都会保留。`,
+    `这会从 ${count} 个 Bot 中移除“${name}”群组并清除共享房间记录。Bot 本身及其各群组会话都会保留。`,
   disband: '解散',
   disbanding: '正在解散…',
   disbanded: '已解散',
@@ -1363,6 +1371,9 @@ export function useBots() {
     instruction: t('instruction'),
     instructionPlaceholder: t('instructionPlaceholder'),
     whenToRun: t('whenToRun'),
+    sendResultsTo: t('sendResultsTo'),
+    runHistoryOnly: t('runHistoryOnly'),
+    botChatResponds: (name: string) => t('botChatResponds', name),
     stopAfter: t('stopAfter'),
     runs: t('runs'),
     scheduling: t('scheduling'),
@@ -1446,7 +1457,7 @@ export function useBots() {
     you: t('you'),
     messageGroup: (name: string) => t('messageGroup', name),
     messageGroupPlaceholder: (name: string) => t('messageGroupPlaceholder', name),
-    disbandGroupChat: t('disbandGroupChat'),
+    disbandGroupChat: (name: string) => t('disbandGroupChat', name),
     disbandGroupChatTitle: t('disbandGroupChatTitle'),
     disbandGroupChatDesc: (name: string, count: number) => t('disbandGroupChatDesc', name, count),
     disband: t('disband'),

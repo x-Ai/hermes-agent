@@ -3,8 +3,6 @@ import { type ComponentProps, memo, type ReactNode, useMemo, useState } from 're
 import { useNavigate } from 'react-router'
 
 import { SETTINGS_ROUTE } from '@/app/routes'
-import { hasHiddenGroupHeaders } from '@/components/pane-shell/tree/model'
-import { $layoutTree, showAllTreeGroupHeaders } from '@/components/pane-shell/tree/store'
 import { Codicon } from '@/components/ui/codicon'
 import {
   ContextMenu,
@@ -228,9 +226,7 @@ function StatusbarCustomizationButton({
   toggles: readonly StatusbarItem[]
 }) {
   const { t } = useI18n()
-  const tree = useStore($layoutTree)
   const copy = t.shell.statusbar
-  const hasHiddenHeaders = tree ? hasHiddenGroupHeaders(tree) : false
 
   return (
     <DropdownMenu>
@@ -259,10 +255,6 @@ function StatusbarCustomizationButton({
           </DropdownMenuCheckboxItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled={!hasHiddenHeaders} onSelect={showAllTreeGroupHeaders}>
-          <Codicon name="eye" size="0.75rem" />
-          <span className="truncate">{t.zones.showHeader}</span>
-        </DropdownMenuItem>
         <DropdownMenuItem disabled={isStatusbarLayoutDefault(hiddenIds)} onSelect={resetStatusbarLayout}>
           <Codicon name="discard" size="0.75rem" />
           <span className="truncate">{copy.resetStatusbar}</span>
