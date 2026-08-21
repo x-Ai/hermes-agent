@@ -1305,7 +1305,9 @@ export const zh: Translations = {
       OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen 基础 URL 覆盖' },
       OPENCODE_GO_API_KEY: { description: 'OpenCode Go API 密钥（10 美元/月订阅使用开源模型）' },
       OPENCODE_GO_BASE_URL: { description: 'OpenCode Go 基础 URL 覆盖' },
-      HF_TOKEN: { description: '用于 Inference Providers 的 Hugging Face 令牌（经 router.huggingface.co 访问 20+ 开源模型）' },
+      HF_TOKEN: {
+        description: '用于 Inference Providers 的 Hugging Face 令牌（经 router.huggingface.co 访问 20+ 开源模型）'
+      },
       HF_BASE_URL: { description: 'Hugging Face Inference Providers 基础 URL 覆盖' },
       OLLAMA_API_KEY: { description: 'Ollama Cloud API 密钥（ollama.com——云端托管的开源模型）' },
       OLLAMA_BASE_URL: { description: 'Ollama Cloud 基础 URL 覆盖（默认 https://ollama.com/v1）' },
@@ -1327,7 +1329,9 @@ export const zh: Translations = {
       ACTUAL_BASE_URL: {
         description: 'Actual Computer 基础 URL 覆盖；使用本地离线守护进程时设为 http://127.0.0.1:8080'
       },
-      COMMANDCODE_API_KEY: { description: 'CommandCode API 密钥（一个密钥可使用 GOAT/Pro/Max/Provider 套餐的 30 多个模型）' },
+      COMMANDCODE_API_KEY: {
+        description: 'CommandCode API 密钥（一个密钥可使用 GOAT/Pro/Max/Provider 套餐的 30 多个模型）'
+      },
       COMMANDCODE_BASE_URL: { description: 'CommandCode 基础 URL 覆盖' },
       COPILOT_GITHUB_TOKEN: { description: 'GitHub Copilot 访问令牌（也可使用 GITHUB_TOKEN 或 gh 登录令牌）' },
       GH_TOKEN: { description: 'GitHub CLI 访问令牌，可用于 GitHub Copilot' },
@@ -1358,8 +1362,12 @@ export const zh: Translations = {
         description:
           '仅 Nous 订阅者使用的共享工具网关域名后缀，用于推导供应商主机，例如 nousresearch.com -> firecrawl-gateway.nousresearch.com'
       },
-      TOOL_GATEWAY_SCHEME: { description: '仅 Nous 订阅者使用的共享工具网关 URL 协议（默认 https，本地网关测试可设 http）' },
-      TOOL_GATEWAY_USER_TOKEN: { description: '工具网关请求使用的 Nous 订阅者访问令牌（可选；默认从 Hermes 认证存储读取）' },
+      TOOL_GATEWAY_SCHEME: {
+        description: '仅 Nous 订阅者使用的共享工具网关 URL 协议（默认 https，本地网关测试可设 http）'
+      },
+      TOOL_GATEWAY_USER_TOKEN: {
+        description: '工具网关请求使用的 Nous 订阅者访问令牌（可选；默认从 Hermes 认证存储读取）'
+      },
       TAVILY_API_KEY: { description: '用于 AI 原生网页搜索与提取的 Tavily API 密钥' },
       SEARXNG_URL: { description: '你的 SearXNG 实例 URL，用于免费自托管网页搜索' },
       BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 订阅令牌（免费档：每月 2,000 次查询）' },
@@ -1367,7 +1375,9 @@ export const zh: Translations = {
       BROWSERBASE_PROJECT_ID: { description: 'Browserbase 项目 ID（可选——仅云端浏览器需要）' },
       BROWSER_USE_API_KEY: { description: '云端浏览器的 Browser Use API 密钥（可选——本地浏览器无需此项）' },
       FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl 浏览器会话 TTL（秒，可选，默认 300）' },
-      AGENT_BROWSER_ENGINE: { description: '本地模式浏览器引擎：auto（默认 Chrome）、lightpanda（更快，无截图）、chrome' },
+      AGENT_BROWSER_ENGINE: {
+        description: '本地模式浏览器引擎：auto（默认 Chrome）、lightpanda（更快，无截图）、chrome'
+      },
       CAMOFOX_URL: { description: '本地反检测浏览的 Camofox 浏览器服务器 URL（如 http://localhost:9377）' },
       CAMOFOX_API_KEY: { description: '发送到远程/启用鉴权的 Camofox 服务器的可选 Bearer 令牌' },
       FAL_KEY: { description: '用于图像与视频生成的 FAL API 密钥' },
@@ -1420,7 +1430,8 @@ export const zh: Translations = {
         description: 'API 服务器的主机/绑定地址（默认 127.0.0.1）。即使仅绑定本机回环地址，仍需 API_SERVER_KEY。'
       },
       API_SERVER_MODEL_NAME: {
-        description: '在 /v1/models 中公布的模型名称。默认使用配置档名，默认配置档则使用 hermes-agent；适用于 OpenWebUI 等多用户环境。'
+        description:
+          '在 /v1/models 中公布的模型名称。默认使用配置档名，默认配置档则使用 hermes-agent；适用于 OpenWebUI 等多用户环境。'
       },
       GATEWAY_PROXY_URL: {
         description:
@@ -1516,8 +1527,7 @@ export const zh: Translations = {
       disableTool: tool => `禁用 ${tool}`,
       noOutput: '暂无输出',
       deepLinkTitle: '添加 MCP 服务器？',
-      deepLinkDescription:
-        '一个链接请求将此 MCP 服务器添加到 Hermes。请检查下方的完整配置——它来自该链接，而非 Hermes',
+      deepLinkDescription: '一个链接请求将此 MCP 服务器添加到 Hermes。请检查下方的完整配置——它来自该链接，而非 Hermes',
       deepLinkStdioWarning: '此服务器会使用下方所示命令在你的电脑上运行本地进程。仅在信任其来源时继续',
       deepLinkConfirm: '添加服务器',
       deepLinkNameInvalid: '名称须为 1-64 个字母、数字、点、连字符或下划线',
@@ -1700,16 +1710,16 @@ export const zh: Translations = {
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
         'Fireworks AI': 'OpenAI 兼容的直连模型 API',
-        'OpenRouter': '聚合数百个前沿模型的中转服务',
-        'Anthropic': 'Claude API 访问（Sonnet、Opus、Haiku）',
-        'xAI': 'Grok 系列模型（SuperGrok/Premium+ 请使用 OAuth）',
-        'Gemini': 'Google AI Studio（Gemini 1.5 / 2.0 / 2.5）',
-        'DeepSeek': 'DeepSeek 直连 API（V3.x、R1）',
+        OpenRouter: '聚合数百个前沿模型的中转服务',
+        Anthropic: 'Claude API 访问（Sonnet、Opus、Haiku）',
+        xAI: 'Grok 系列模型（SuperGrok/Premium+ 请使用 OAuth）',
+        Gemini: 'Google AI Studio（Gemini 1.5 / 2.0 / 2.5）',
+        DeepSeek: 'DeepSeek 直连 API（V3.x、R1）',
         'DashScope (Qwen)': '阿里云 DashScope——Qwen 与多家厂商模型',
         'GLM / Z.AI': '智谱 GLM-4.6 与 Z.AI 托管端点',
         'Kimi / Moonshot': 'Moonshot Kimi K2 / 代码端点',
         'Kimi (China)': 'Moonshot 中国大陆端点',
-        'MiniMax': 'MiniMax-M2 与 Hailuo 国际端点',
+        MiniMax: 'MiniMax-M2 与 Hailuo 国际端点',
         'MiniMax (China)': 'MiniMax 中国大陆端点',
         'Hugging Face': 'Inference Providers——经 router.huggingface.co 使用 20+ 开源模型',
         'OpenCode Zen': '按需访问精选代码模型',
@@ -1717,14 +1727,14 @@ export const zh: Translations = {
         'NVIDIA NIM': 'build.nvidia.com 或你自己的本地 NIM 端点',
         'Ollama Cloud': 'ollama.com 上的云托管开源模型',
         'LM Studio': '本地 LM Studio 服务器（兼容 OpenAI）',
-        'StepFun': 'StepFun Step Plan 代码模型',
+        StepFun: 'StepFun Step Plan 代码模型',
         'Xiaomi MiMo': 'MiMo-V2.5 与小米自研模型',
         'Arcee AI': 'Arcee 托管的小型与中型模型',
         'GMI Cloud': 'GMI Cloud GPU + 模型推理服务',
         'Azure Foundry': 'Azure AI Foundry 自定义端点（兼容 OpenAI / Anthropic）',
         'AWS Bedrock': '通过 AWS 配置文件 + 区域进行认证',
         'Actual Computer': 'Actual Computer 托管推理，或通过本地离线守护进程运行模型',
-        'CommandCode': '通过一个 API 密钥使用 30 多个模型',
+        CommandCode: '通过一个 API 密钥使用 30 多个模型',
         'GitHub Copilot': '使用 GitHub 令牌或 gh 登录令牌访问 Copilot 模型',
         'Kilo Code': '通过 Kilo Gateway API 访问多种模型',
         'Meta Model API': 'Meta 超级智能实验室的 Muse Spark 系列模型',
@@ -1828,7 +1838,8 @@ export const zh: Translations = {
           '通过 Grok 的 web_search 工具进行智能体式网页搜索——使用 xAI Grok OAuth 或 XAI_API_KEY',
         'Cloud browser with remote execution': '支持远程执行的云端浏览器',
         'Cloud browser with stealth and proxies': '带隐身与代理的云端浏览器',
-        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com': 'FLUX、Qwen-Image 等——来自 api.deepinfra.com 的实时目录',
+        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
+          'FLUX、Qwen-Image 等——来自 api.deepinfra.com 的实时目录',
         'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
           '免费、尊重隐私的元搜索。把 SEARXNG_URL 指向你的实例',
         'Free-tier API key — 2k queries/mo, search only.': '免费档 API 密钥——每月 2000 次查询，仅搜索',
@@ -1869,13 +1880,13 @@ export const zh: Translations = {
         'grok-stt — uses xAI Grok OAuth or XAI_API_KEY': 'grok-stt——使用 xAI Grok OAuth 或 XAI_API_KEY',
         'scribe_v2 — diarization + audio-event tagging': 'scribe_v2——说话人区分 + 音频事件标注',
         'New SOTA web harness (CLI 3.0)': '全新最优 web 执行引擎 (CLI 3.0)',
-        'No paid tier needed — uses Brave\'s free API.': '无需付费套餐——使用 Brave 免费 API',
+        "No paid tier needed — uses Brave's free API.": '无需付费套餐——使用 Brave 免费 API',
         'Ultra-low-latency streaming': '极低延迟流式输出',
         'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Wan 2.2 — text-to-video & image-to-video':
           'LTX、Pixverse、Seedance 2.0/2.5/Mini、Veo 3.1、MiniMax H3、FLUX 3、Kling 4K、Happy Horse、Wan 2.2——文生视频与图生视频',
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana-2, nano-banana-pro, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana-2、nano-banana-pro 等——文生图与图像编辑',
-        'A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent\'s Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent\'s live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.':
+        "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.":
           'A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent——实现 Linux 基金会开放标准的双向智能体间通信。OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务——兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）。INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体。Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径；旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样——因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体。默认开启安全机制：未配置 bearer token 则仅绑定 localhost。入站任务文本会经过提示注入过滤；出站文本会清洗凭据型字符串；每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续。纯标准库传输（http.server + urllib）——无需 a2a-sdk 依赖。'
       },
       activeBackend: '当前后端',
@@ -2011,8 +2022,7 @@ export const zh: Translations = {
         details: {
           'Docker CLI not found — install Docker Desktop or docker-ce.':
             '未找到 Docker CLI——请安装 Docker Desktop 或 docker-ce。',
-          'Docker daemon not reachable — start Docker and retry.':
-            '无法连接 Docker 守护进程——请启动 Docker 后重试。',
+          'Docker daemon not reachable — start Docker and retry.': '无法连接 Docker 守护进程——请启动 Docker 后重试。',
           'Docker daemon not responding (timed out).': 'Docker 守护进程无响应（已超时）。',
           'Neither singularity nor apptainer found on PATH.': 'PATH 中未找到 singularity 或 apptainer。',
           'Modal credentials not found — set MODAL_TOKEN_ID and MODAL_TOKEN_SECRET (or run `modal setup`).':
@@ -2093,7 +2103,8 @@ export const zh: Translations = {
       feishu_drive: '飞书 / Lark 文档评论操作（列出、回复、添加）',
       file: '文件操作工具：读取、写入、补丁（支持模糊匹配）和搜索（内容 + 文件）',
       'hermes-acp': '编辑器集成（VS Code、Zed、JetBrains）——面向编码的工具，不含消息、音频或澄清 UI',
-      'hermes-api-server': '兼容 OpenAI 的 API 服务器——通过 HTTP 访问全部代理工具（不含 clarify、send_message 等交互式 UI 工具）',
+      'hermes-api-server':
+        '兼容 OpenAI 的 API 服务器——通过 HTTP 访问全部代理工具（不含 clarify、send_message 等交互式 UI 工具）',
       'hermes-bluebubbles': 'BlueBubbles iMessage 机器人工具集——通过本地 BlueBubbles 服务器使用 Apple iMessage',
       'hermes-cli': '完整交互式 CLI 工具集——全部默认工具外加定时任务管理',
       'hermes-cron': '默认 cron 工具集——与 hermes-cli 相同的核心工具；由 hermes tools 控制',
@@ -2597,7 +2608,10 @@ export const zh: Translations = {
         help: '允许所有 Mattermost 用户绕过允许列表与机器人交互。'
       },
       MATTERMOST_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认 Mattermost 频道 ID。' },
-      QQ_ALLOW_ALL_USERS: { label: '允许所有 QQ 用户', help: '允许所有 QQ 用户绕过允许列表与机器人交互（true/false）。' },
+      QQ_ALLOW_ALL_USERS: {
+        label: '允许所有 QQ 用户',
+        help: '允许所有 QQ 用户绕过允许列表与机器人交互（true/false）。'
+      },
       QQBOT_HOME_CHANNEL: { label: 'QQ 主页频道', help: 'cron 投递的默认频道或群组。' },
       QQBOT_HOME_CHANNEL_NAME: { label: 'QQ 主页频道名称', help: 'QQ 主页频道的显示名称。' },
       SLACK_BOT_TOKEN: {
@@ -2614,9 +2628,17 @@ export const zh: Translations = {
       MATTERMOST_URL: { label: '服务器 URL', placeholder: 'https://mattermost.example.com' },
       MATTERMOST_TOKEN: { label: 'Bot 令牌', help: 'Mattermost Bot 令牌或个人访问令牌' },
       MATTERMOST_ALLOWED_USERS: { label: '允许的用户 ID', help: '推荐。逗号分隔的 Mattermost 用户 ID。' },
-      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org', help: 'Matrix homeserver URL（如 https://matrix.org）' },
+      MATRIX_HOMESERVER: {
+        label: 'Homeserver URL',
+        placeholder: 'https://matrix.org',
+        help: 'Matrix homeserver URL（如 https://matrix.org）'
+      },
       MATRIX_ACCESS_TOKEN: { label: '访问令牌', help: 'Matrix 访问令牌（优先于密码登录）' },
-      MATRIX_USER_ID: { label: 'Bot 用户 ID', placeholder: '@hermes:example.org', help: 'Matrix 用户 ID（如 @hermes:example.org）' },
+      MATRIX_USER_ID: {
+        label: 'Bot 用户 ID',
+        placeholder: '@hermes:example.org',
+        help: 'Matrix 用户 ID（如 @hermes:example.org）'
+      },
       MATRIX_ALLOWED_USERS: { label: '允许的 Matrix 用户 ID', help: '推荐。@user:server 格式的逗号分隔用户 ID。' },
       SIGNAL_HTTP_URL: {
         label: 'Signal 桥接 URL',
@@ -2628,7 +2650,10 @@ export const zh: Translations = {
       WHATSAPP_ENABLED: { label: '启用 WhatsApp 桥接', help: '由下方开关自动设置。除非确知需要，否则请勿改动。' },
       WHATSAPP_MODE: { label: '桥接模式' },
       WHATSAPP_ALLOWED_USERS: { label: '允许的 WhatsApp 用户', help: '推荐。逗号分隔的电话号码或 WhatsApp ID。' },
-      TELEGRAM_ALLOW_ALL_USERS: { label: '允许所有 Telegram 用户', help: '仅用于开发。任何 Telegram 用户都能触发机器人。' },
+      TELEGRAM_ALLOW_ALL_USERS: {
+        label: '允许所有 Telegram 用户',
+        help: '仅用于开发。任何 Telegram 用户都能触发机器人。'
+      },
       TELEGRAM_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID。' },
       TELEGRAM_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Telegram 主页频道的显示名称。' },
       SLACK_ALLOW_ALL_USERS: { label: '允许所有 Slack 用户', help: '仅用于开发。任何 Slack 用户都能触发机器人。' },
@@ -2638,7 +2663,10 @@ export const zh: Translations = {
         label: '线程内需要 @提及',
         help: 'Slack 线程回复需要显式 @提及；顶层自由响应频道不受影响。'
       },
-      MATTERMOST_ALLOWED_CHANNELS: { label: '允许的频道 ID', help: '设置后机器人只在这些频道响应（白名单），逗号分隔。' },
+      MATTERMOST_ALLOWED_CHANNELS: {
+        label: '允许的频道 ID',
+        help: '设置后机器人只在这些频道响应（白名单），逗号分隔。'
+      },
       MATTERMOST_FREE_RESPONSE_CHANNELS: {
         label: '自由响应频道 ID',
         help: '机器人无需 @提及即可响应的 Mattermost 频道 ID，逗号分隔。'
@@ -2671,7 +2699,10 @@ export const zh: Translations = {
         help: '在 Matrix 房间中需要 @提及（默认 true）。设为 false 可响应所有消息。'
       },
       WHATSAPP_DM_POLICY: { label: '私信策略', help: 'WhatsApp 私信的授权方式。' },
-      WHATSAPP_ALLOW_ALL_USERS: { label: '允许所有 WhatsApp 用户', help: '仅用于开发。任何 WhatsApp 用户都能触发机器人。' },
+      WHATSAPP_ALLOW_ALL_USERS: {
+        label: '允许所有 WhatsApp 用户',
+        help: '仅用于开发。任何 WhatsApp 用户都能触发机器人。'
+      },
       WHATSAPP_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID。' },
       WHATSAPP_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'WhatsApp 主页频道的显示名称。' },
       BLUEBUBBLES_SERVER_URL: {
@@ -2679,9 +2710,19 @@ export const zh: Translations = {
         help: '用于 iMessage 集成的 BlueBubbles 服务器 URL',
         placeholder: 'http://192.168.1.10:1234'
       },
-      BLUEBUBBLES_PASSWORD: { label: '服务器密码', help: 'BlueBubbles 服务器密码（BlueBubbles Server → 设置 → API）。' },
-      BLUEBUBBLES_ALLOWED_USERS: { label: '允许的 iMessage 地址', help: '推荐。逗号分隔的 iMessage 地址（邮箱或电话号码）。' },
-      HASS_URL: { label: 'Home Assistant URL', help: 'Home Assistant 基础 URL', placeholder: 'http://homeassistant.local:8123' },
+      BLUEBUBBLES_PASSWORD: {
+        label: '服务器密码',
+        help: 'BlueBubbles 服务器密码（BlueBubbles Server → 设置 → API）。'
+      },
+      BLUEBUBBLES_ALLOWED_USERS: {
+        label: '允许的 iMessage 地址',
+        help: '推荐。逗号分隔的 iMessage 地址（邮箱或电话号码）。'
+      },
+      HASS_URL: {
+        label: 'Home Assistant URL',
+        help: 'Home Assistant 基础 URL',
+        placeholder: 'http://homeassistant.local:8123'
+      },
       HASS_TOKEN: { label: '长期访问令牌', help: 'Home Assistant 长期访问令牌。' },
       EMAIL_ADDRESS: { label: '邮箱地址', help: '邮箱账户地址。' },
       EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱账户密码 / 应用专用密码。' },
@@ -2701,7 +2742,10 @@ export const zh: Translations = {
       },
       DINGTALK_HOME_CHANNEL: { label: '主页会话 ID', help: 'cron / 通知投递的默认会话 ID。' },
       DINGTALK_HOME_CHANNEL_NAME: { label: '主页会话名称', help: '钉钉主页会话的显示名称。' },
-      DINGTALK_WEBHOOK_URL: { label: '群机器人 Webhook URL', help: '用于跨平台 / cron 投递的固定群机器人 Webhook URL（可选）。' },
+      DINGTALK_WEBHOOK_URL: {
+        label: '群机器人 Webhook URL',
+        help: '用于跨平台 / cron 投递的固定群机器人 Webhook URL（可选）。'
+      },
       FEISHU_APP_ID: { label: 'App ID', help: '飞书 / Lark 应用的 App ID。' },
       FEISHU_APP_SECRET: { label: 'App Secret', help: '飞书 / Lark 应用的 App Secret。' },
       FEISHU_ENCRYPT_KEY: { label: '加密密钥 (Encrypt Key)', help: '飞书 / Lark 事件加密密钥。' },
@@ -2717,8 +2761,14 @@ export const zh: Translations = {
       WECOM_CALLBACK_CORP_SECRET: { label: '应用 Secret', help: '企业微信回调模式的应用 Secret。' },
       WECOM_CALLBACK_AGENT_ID: { label: '应用 Agent ID', help: '企业微信回调模式的应用 Agent ID。' },
       WECOM_CALLBACK_TOKEN: { label: '回调 Token', help: '企业微信回调校验 Token。' },
-      WECOM_CALLBACK_ENCODING_AES_KEY: { label: 'EncodingAESKey', help: '用于消息加解密的企业微信回调 EncodingAESKey。' },
-      WEIXIN_ACCOUNT_ID: { label: 'iLink Bot 账号 ID', help: '通过 hermes gateway setup 扫码登录获得的 iLink Bot 账号 ID。' },
+      WECOM_CALLBACK_ENCODING_AES_KEY: {
+        label: 'EncodingAESKey',
+        help: '用于消息加解密的企业微信回调 EncodingAESKey。'
+      },
+      WEIXIN_ACCOUNT_ID: {
+        label: 'iLink Bot 账号 ID',
+        help: '通过 hermes gateway setup 扫码登录获得的 iLink Bot 账号 ID。'
+      },
       WEIXIN_TOKEN: { label: 'iLink Bot 令牌', help: '通过 hermes gateway setup 扫码登录获得的 iLink Bot 令牌。' },
       WEIXIN_BASE_URL: {
         label: 'iLink API 基础 URL',
@@ -2748,8 +2798,15 @@ export const zh: Translations = {
       },
       WEBHOOK_ENABLED: { label: '启用 Webhook', help: '启用 Webhook 平台适配器，接收来自 GitHub、GitLab 等的事件。' },
       WEBHOOK_PORT: { label: '端口', help: 'Webhook HTTP 服务器端口（默认 8644）。' },
-      WEBHOOK_SECRET: { label: '签名密钥', help: '用于 Webhook 签名校验的全局 HMAC 密钥（可在 config.yaml 中按路由覆盖）。' },
-      IRC_SERVER: { label: 'IRC 服务器', help: 'IRC 服务器主机名（如 irc.libera.chat）', placeholder: 'irc.libera.chat' },
+      WEBHOOK_SECRET: {
+        label: '签名密钥',
+        help: '用于 Webhook 签名校验的全局 HMAC 密钥（可在 config.yaml 中按路由覆盖）。'
+      },
+      IRC_SERVER: {
+        label: 'IRC 服务器',
+        help: 'IRC 服务器主机名（如 irc.libera.chat）',
+        placeholder: 'irc.libera.chat'
+      },
       IRC_CHANNEL: { label: 'IRC 频道', help: '要加入的 IRC 频道（如 #hermes）。' },
       IRC_NICKNAME: { label: '机器人昵称', help: '机器人在 IRC 上的昵称（默认 hermes-bot）。' },
       IRC_SERVER_PASSWORD: { label: '服务器密码', help: 'IRC 服务器密码（如需要）。' },
@@ -2772,7 +2829,10 @@ export const zh: Translations = {
         label: 'HTTP 事件服务账号邮箱',
         help: 'HTTP 事件 Bearer 令牌期望的 Google 服务账号邮箱。'
       },
-      GOOGLE_CHAT_PROJECT_ID: { label: 'GCP 项目 ID', help: '可选 Pub/Sub 入站模式的 GCP 项目 ID。回退到 GOOGLE_CLOUD_PROJECT。' },
+      GOOGLE_CHAT_PROJECT_ID: {
+        label: 'GCP 项目 ID',
+        help: '可选 Pub/Sub 入站模式的 GCP 项目 ID。回退到 GOOGLE_CLOUD_PROJECT。'
+      },
       GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub 订阅名', help: '拉取模式入站事件的可选 Pub/Sub 订阅路径。' },
       GOOGLE_CHAT_ALLOWED_USERS: { label: '允许的用户邮箱', help: '允许与机器人交互的用户邮箱，逗号分隔。' },
       GOOGLE_CHAT_HOME_CHANNEL: { label: '主页空间 ID', help: 'cron / 通知投递的默认空间（如 spaces/AAAA...）。' },
@@ -2790,7 +2850,10 @@ export const zh: Translations = {
       LINE_ALLOWED_USERS: { label: '允许的用户 ID', help: '允许私信机器人的 LINE 用户 ID（U 开头），逗号分隔。' },
       LINE_ALLOWED_GROUPS: { label: '允许的群组 ID', help: '机器人会响应的 LINE 群组 ID（C 开头），逗号分隔。' },
       LINE_ALLOWED_ROOMS: { label: '允许的聊天室 ID', help: '机器人会响应的 LINE 聊天室 ID（R 开头），逗号分隔。' },
-      LINE_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许任何 LINE 用户与机器人对话（停用允许列表）。' },
+      LINE_ALLOW_ALL_USERS: {
+        label: '允许所有用户',
+        help: '仅用于开发。允许任何 LINE 用户与机器人对话（停用允许列表）。'
+      },
       LINE_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认用户/群组/聊天室 ID。' },
       LINE_SLOW_RESPONSE_THRESHOLD: {
         label: '慢响应阈值（秒）',
@@ -2805,16 +2868,34 @@ export const zh: Translations = {
       NTFY_ALLOW_ALL_USERS: { label: '允许所有主题', help: '仅用于开发。允许任何主题与机器人对话（停用允许列表）。' },
       NTFY_HOME_CHANNEL: { label: '主页主题', help: 'cron / 通知投递的默认主题。' },
       NTFY_HOME_CHANNEL_NAME: { label: '主页主题名称', help: '主页频道的显示名称（默认使用主题名）。' },
-      PHOTON_PROJECT_ID: { label: 'Spectrum 项目 ID', help: 'Spectrum 项目 ID（项目的 spectrumProjectId；由 hermes photon setup 设置）。' },
-      PHOTON_PROJECT_SECRET: { label: '项目密钥', help: '与 Spectrum 项目 ID 配对的项目密钥（由 hermes photon setup 设置）。' },
+      PHOTON_PROJECT_ID: {
+        label: 'Spectrum 项目 ID',
+        help: 'Spectrum 项目 ID（项目的 spectrumProjectId；由 hermes photon setup 设置）。'
+      },
+      PHOTON_PROJECT_SECRET: {
+        label: '项目密钥',
+        help: '与 Spectrum 项目 ID 配对的项目密钥（由 hermes photon setup 设置）。'
+      },
       PHOTON_SIDECAR_PORT: { label: 'Sidecar 控制端口', help: 'Node sidecar 控制与入站通道的回环端口（默认 8789）。' },
-      PHOTON_SIDECAR_AUTOSTART: { label: '自动启动 Sidecar', help: '连接时自动拉起 Node sidecar（true/false，默认 true）。' },
+      PHOTON_SIDECAR_AUTOSTART: {
+        label: '自动启动 Sidecar',
+        help: '连接时自动拉起 Node sidecar（true/false，默认 true）。'
+      },
       PHOTON_NODE_BIN: { label: 'Node 可执行文件路径', help: 'node 二进制的路径（默认取 PATH 中的 node）。' },
-      PHOTON_DASHBOARD_HOST: { label: 'Dashboard 主机', help: 'Photon Dashboard API 主机（默认 https://app.photon.codes）。' },
-      PHOTON_SPECTRUM_HOST: { label: 'Spectrum API 主机', help: 'Photon Spectrum API 主机（默认 https://spectrum.photon.codes）。' },
+      PHOTON_DASHBOARD_HOST: {
+        label: 'Dashboard 主机',
+        help: 'Photon Dashboard API 主机（默认 https://app.photon.codes）。'
+      },
+      PHOTON_SPECTRUM_HOST: {
+        label: 'Spectrum API 主机',
+        help: 'Photon Spectrum API 主机（默认 https://spectrum.photon.codes）。'
+      },
       PHOTON_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 E.164 电话号码，逗号分隔。' },
       PHOTON_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许任何发送者触发机器人（停用允许列表）。' },
-      PHOTON_REQUIRE_MENTION: { label: '群聊需要提及', help: '忽略群聊消息，除非命中提及唤醒词（true/false，默认 false）。' },
+      PHOTON_REQUIRE_MENTION: {
+        label: '群聊需要提及',
+        help: '忽略群聊消息，除非命中提及唤醒词（true/false，默认 false）。'
+      },
       PHOTON_MENTION_PATTERNS: {
         label: '群聊提及模式',
         help: '群聊的提及唤醒词正则（JSON 列表或逗号/换行分隔；默认使用 Hermes 唤醒词）。'
@@ -2836,9 +2917,15 @@ export const zh: Translations = {
         label: '启用回应表情',
         help: '用 👀/👍/👎 回应消息表示处理状态，并把机器人消息上的回应转给代理（true/false，默认 false）。'
       },
-      SIMPLEX_WS_URL: { label: '守护进程 WebSocket URL', help: 'simplex-chat 守护进程的 WebSocket URL（如 ws://127.0.0.1:5225）。' },
+      SIMPLEX_WS_URL: {
+        label: '守护进程 WebSocket URL',
+        help: 'simplex-chat 守护进程的 WebSocket URL（如 ws://127.0.0.1:5225）。'
+      },
       SIMPLEX_ALLOWED_USERS: { label: '允许的联系人 ID', help: '允许与机器人对话的 SimpleX 联系人 ID，逗号分隔。' },
-      SIMPLEX_ALLOW_ALL_USERS: { label: '允许所有联系人', help: '仅用于开发。允许任何联系人与机器人对话（停用允许列表）。' },
+      SIMPLEX_ALLOW_ALL_USERS: {
+        label: '允许所有联系人',
+        help: '仅用于开发。允许任何联系人与机器人对话（停用允许列表）。'
+      },
       SIMPLEX_AUTO_ACCEPT: { label: '自动接受联系人请求', help: '自动接受收到的联系人请求（默认 true）。' },
       SIMPLEX_GROUP_ALLOWED: {
         label: '允许的群组 ID',
@@ -2864,38 +2951,94 @@ export const zh: Translations = {
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企业微信智能机器人 WebSocket URL。' },
       WECOM_HOME_CHANNEL: { label: '主页会话 ID', help: 'cron / 通知投递的默认聊天 ID。' },
       WECOM_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的企业微信用户 ID，逗号分隔。' },
-      A2A_AGENT_NAME: { label: 'A2A 代理名称', help: '在此代理的 Agent Card 上公布的名称（默认：主机名派生）', placeholder: 'A2A 代理名称' },
-      A2A_BEARER_TOKEN: { label: 'A2A 共享令牌（空则仅限本地）', help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP）。不设任何令牌则仅绑定 127.0.0.1', placeholder: 'A2A 共享令牌（空则仅限本地）' },
-      A2A_HOST: { label: 'A2A 绑定主机（默认 127.0.0.1）', help: '入站绑定主机。默认 127.0.0.1；仅在设置了令牌且在此处选择时才扩展到 0.0.0.0', placeholder: 'A2A 绑定主机（默认 127.0.0.1）' },
-      A2A_PORT: { label: 'A2A 端口（默认 9900）', help: '入站 A2A 服务器端口（默认 9900）', placeholder: 'A2A 端口（默认 9900）' },
-      A2A_PEER_TOKENS: { label: 'A2A 对等令牌（name:token，逗号分隔；或留空）', help: '每个对等代理的令牌（如 alice:tok1,bob:tok2）。匹配的名称用于限速、信任和审计', placeholder: 'A2A 对等令牌（name:token，逗号分隔；或留空）' },
-      A2A_HOME_CHANNEL: { label: 'A2A 主页频道（或留空）', help: 'cron / 通知投递时 deliver=a2a 使用的任务/上下文 ID。' },
-      A2A_ALLOW_ALL_USERS: { label: '允许所有 A2A 对等代理', help: '允许任何已认证的 A2A 对等代理访问此代理（仅限开发）。' },
-      RAFT_PROFILE: { label: 'Raft 代理 profile', help: 'Raft 代理 profile slug — 设置后自动启用适配器', placeholder: 'Raft 代理 profile' },
-      BUZZ_RELAY_URL: { label: 'Buzz 中继 URL', help: 'Buzz 社区中继的基础 URL（如 https://mycommunity.communities.buzz.xyz）', placeholder: 'Buzz 中继 URL' },
-      BUZZ_PRIVATE_KEY: { label: 'Nostr 私钥（nsec 或 hex）', help: '代理 Buzz 身份的 Nostr 私钥（nsec 或 hex）——唯一的 Buzz 密钥。' },
-      BUZZ_CLI_PATH: { label: 'buzz CLI 路径（或留空）', help: 'buzz CLI 二进制文件路径（默认：PATH 中的 buzz，然后是 ~/bin/buzz）。' },
-      BUZZ_CHANNELS: { label: '频道 UUID（逗号分隔）', help: '要监听的频道 UUID，逗号分隔（默认：所有已加入的频道）。' },
-      BUZZ_HOME_CHANNEL: { label: '主页频道 UUID（或留空）', help: 'cron / 通知投递的频道 UUID（默认使用第一个监听的频道）。' },
+      A2A_AGENT_NAME: {
+        label: 'A2A 代理名称',
+        help: '在此代理的 Agent Card 上公布的名称（默认：主机名派生）',
+        placeholder: 'A2A 代理名称'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A 共享令牌（空则仅限本地）',
+        help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP）。不设任何令牌则仅绑定 127.0.0.1',
+        placeholder: 'A2A 共享令牌（空则仅限本地）'
+      },
+      A2A_HOST: {
+        label: 'A2A 绑定主机（默认 127.0.0.1）',
+        help: '入站绑定主机。默认 127.0.0.1；仅在设置了令牌且在此处选择时才扩展到 0.0.0.0',
+        placeholder: 'A2A 绑定主机（默认 127.0.0.1）'
+      },
+      A2A_PORT: {
+        label: 'A2A 端口（默认 9900）',
+        help: '入站 A2A 服务器端口（默认 9900）',
+        placeholder: 'A2A 端口（默认 9900）'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A 对等令牌（name:token，逗号分隔；或留空）',
+        help: '每个对等代理的令牌（如 alice:tok1,bob:tok2）。匹配的名称用于限速、信任和审计',
+        placeholder: 'A2A 对等令牌（name:token，逗号分隔；或留空）'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A 主页频道（或留空）',
+        help: 'cron / 通知投递时 deliver=a2a 使用的任务/上下文 ID。'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: '允许所有 A2A 对等代理',
+        help: '允许任何已认证的 A2A 对等代理访问此代理（仅限开发）。'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft 代理 profile',
+        help: 'Raft 代理 profile slug — 设置后自动启用适配器',
+        placeholder: 'Raft 代理 profile'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz 中继 URL',
+        help: 'Buzz 社区中继的基础 URL（如 https://mycommunity.communities.buzz.xyz）',
+        placeholder: 'Buzz 中继 URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr 私钥（nsec 或 hex）',
+        help: '代理 Buzz 身份的 Nostr 私钥（nsec 或 hex）——唯一的 Buzz 密钥。'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI 路径（或留空）',
+        help: 'buzz CLI 二进制文件路径（默认：PATH 中的 buzz，然后是 ~/bin/buzz）。'
+      },
+      BUZZ_CHANNELS: {
+        label: '频道 UUID（逗号分隔）',
+        help: '要监听的频道 UUID，逗号分隔（默认：所有已加入的频道）。'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: '主页频道 UUID（或留空）',
+        help: 'cron / 通知投递的频道 UUID（默认使用第一个监听的频道）。'
+      },
       BUZZ_ALLOWED_USERS: { label: '允许的用户（逗号分隔）', help: '允许与代理对话的 npub 或 hex 公钥，逗号分隔。' },
-      BUZZ_ALLOW_ALL_USERS: { label: '允许所有用户？（true/false）', help: '允许任何社区成员与代理对话（true/false）。' },
-      BUZZ_TRANSPORT: { label: '传输方式（auto/websocket/poll）', help: '入站传输方式：auto（WebSocket 带轮询回退，默认）、websocket 或 poll。' },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: '允许所有用户？（true/false）',
+        help: '允许任何社区成员与代理对话（true/false）。'
+      },
+      BUZZ_TRANSPORT: {
+        label: '传输方式（auto/websocket/poll）',
+        help: '入站传输方式：auto（WebSocket 带轮询回退，默认）、websocket 或 poll。'
+      },
       BUZZ_POLL_INTERVAL: { label: '轮询间隔秒数', help: '入站轮询扫描间隔秒数（默认 4）。' },
-      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON（或留空）', help: '用于 NIP-42 WebSocket 认证的可选 NIP-OA 所有者证明 auth tag JSON。' },
-      BUZZ_CREDENTIALS_FILE: { label: '凭证文件路径（或留空）', help: '保存 nsec 的 JSON 凭证文件（当 BUZZ_PRIVATE_KEY 未设置时作为回退）。' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON（或留空）',
+        help: '用于 NIP-42 WebSocket 认证的可选 NIP-OA 所有者证明 auth tag JSON。'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: '凭证文件路径（或留空）',
+        help: '保存 nsec 的 JSON 凭证文件（当 BUZZ_PRIVATE_KEY 未设置时作为回退）。'
+      }
     },
     platformIntro: {
       telegram:
         '在 Telegram 中，与 @BotFather 对话，运行 /newbot，复制它给你的令牌。然后从 @userinfobot 获取你的数字用户 ID',
-      discord:
-        '打开 Discord 开发者门户，创建应用，添加 Bot，然后复制其令牌。用正确的权限范围把机器人邀请到你的服务器',
+      discord: '打开 Discord 开发者门户，创建应用，添加 Bot，然后复制其令牌。用正确的权限范围把机器人邀请到你的服务器',
       slack: '创建 Slack 应用，启用 Socket Mode，安装到你的工作区，然后复制 bot 令牌和 app 级令牌',
       mattermost: '在你的 Mattermost 服务器上，创建机器人账户或个人访问令牌，然后在此粘贴服务器 URL 和令牌',
       matrix: '用机器人账户登录你的 homeserver，然后复制访问令牌、用户 ID 和 homeserver URL',
       signal: '在可访问的位置运行 signal-cli REST 桥接，然后把 Hermes 指向该 URL 和已注册的电话号码',
       whatsapp: '启动 Hermes 自带的 WhatsApp 桥接，首次运行时扫描二维码，然后启用该平台',
-      bluebubbles:
-        '在装有 iMessage 的 Mac 上运行 BlueBubbles Server，暴露其 API，然后用服务器密码把 Hermes 指向该 URL',
+      bluebubbles: '在装有 iMessage 的 Mac 上运行 BlueBubbles Server，暴露其 API，然后用服务器密码把 Hermes 指向该 URL',
       homeassistant: '在 Home Assistant 中打开你的个人资料并创建长期访问令牌。把它连同你的 HA URL 一起粘贴到这里',
       email: '使用专用邮箱。对于 Gmail/Workspace,创建应用专用密码并使用 imap.gmail.com / smtp.gmail.com',
       sms: '从 Twilio 控制台获取你的 Account SID 和 Auth Token，以及一个可发送短信的电话号码',
@@ -2906,8 +3049,7 @@ export const zh: Translations = {
       weixin:
         '运行 `hermes gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码。Hermes 会通过腾讯 iLink Bot API 连接并保存凭据',
       qqbot: '在 QQ 开放平台 (q.qq.com) 注册一个应用，复制 App ID 和 Client Secret',
-      api_server:
-        '把 Hermes 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port',
+      api_server: '把 Hermes 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port',
       webhook: '运行一个 HTTP 服务器，供其他工具 (GitHub、GitLab、自定义应用)POST。用 secret 验证签名',
       a2a: '无需额外依赖（仅 stdlib）。设置共享令牌或对等令牌以允许其他 Hermes 实例通过 A2A 协议连接',
       buzz: '需要 buzz CLI 工具（https://github.com/block/buzz）在 PATH 或 BUZZ_CLI_PATH。通过 Nostr 中继连接 Buzz 社区',
@@ -3708,7 +3850,6 @@ export const zh: Translations = {
     }
   },
 
-
   composer: {
     message: '消息',
     addContext: '添加上下文',
@@ -3989,8 +4130,7 @@ export const zh: Translations = {
     copy: '复制',
     copied: '已复制',
     done: '完成',
-    applyingBody:
-      'Hermes 更新器会在自己的窗口中接管，并在完成后自动重新打开 Hermes。更新期间请不要自行重新打开 Hermes',
+    applyingBody: 'Hermes 更新器会在自己的窗口中接管，并在完成后自动重新打开 Hermes。更新期间请不要自行重新打开 Hermes',
     applyingBodyBackend: '远程后端正在应用更新并将重启。恢复后 Hermes 会自动重新连接',
     applyingClose: '此窗口会在更新期间关闭，随后 Hermes 会自动重新打开',
     errorTitle: '更新未完成',

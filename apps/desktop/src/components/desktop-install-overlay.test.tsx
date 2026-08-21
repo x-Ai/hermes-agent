@@ -13,6 +13,7 @@ class TestResizeObserver {
 }
 
 vi.stubGlobal('ResizeObserver', TestResizeObserver)
+
 Element.prototype.scrollIntoView = function scrollIntoView() {}
 
 function bootstrapState(overrides: Partial<DesktopBootstrapState> = {}): DesktopBootstrapState {

@@ -1396,38 +1396,109 @@ export const ar = defineLocale({
         label: 'مستخدمو WhatsApp المسموح بهم',
         help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp مفصولة بفواصل.'
       },
-      A2A_AGENT_NAME: { label: 'اسم عميل A2A', help: 'الاسم المُعلَن على بطاقة الوكيل (Agent Card) لهذا الوكيل (الافتراضي: مشتق من اسم المضيف).', placeholder: 'اسم عميل A2A' },
-      A2A_BEARER_TOKEN: { label: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)', help: 'رمز حامل مشترك لاستدعاءات A2A الواردة (تعود الهوية إلى IP المتصل). بدون أي رمز => ربط بـ 127.0.0.1 فقط.', placeholder: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)' },
-      A2A_HOST: { label: 'مضيف ربط A2A (الافتراضي 127.0.0.1)', help: 'مضيف الربط الوارد. الافتراضي 127.0.0.1؛ يتوسع إلى 0.0.0.0 فقط عند تعيين رمز حامل والموافقة هنا.', placeholder: 'مضيف ربط A2A (الافتراضي 127.0.0.1)' },
-      A2A_PORT: { label: 'منفذ A2A (الافتراضي 9900)', help: 'منفذ خادم A2A الوارد (الافتراضي 9900).', placeholder: 'منفذ A2A (الافتراضي 9900)' },
-      A2A_PEER_TOKENS: { label: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)', help: 'رموز حامل لكل نظير (مثل alice:tok1,bob:tok2). كل وكيل بعيد له بيانات اعتماد خاصة به.', placeholder: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)' },
-      A2A_HOME_CHANNEL: { label: 'قناة A2A الرئيسية (أو فارغ)', help: 'معرف المهمة/السياق المستخدم كهدف تسليم cron / الإشعارات لـ deliver=a2a.' },
-      A2A_ALLOW_ALL_USERS: { label: 'السماح لجميع أقران A2A؟ (true/false)', help: 'السماح لأي نظير A2A مصادَق عليه بالوصول إلى الوكيل (للتطوير فقط).' },
-      RAFT_PROFILE: { label: 'ملف تعريف وكيل Raft', help: 'اسم ملف تعريف وكيل Raft — يُمكِّن المحول تلقائيًا عند التعيين.', placeholder: 'ملف تعريف وكيل Raft' },
-      BUZZ_RELAY_URL: { label: 'عنوان URL مُرحِّل Buzz', help: 'عنوان URL الأساسي لمُرحِّل مجتمع Buzz (مثل https://mycommunity.communities.buzz.xyz).', placeholder: 'عنوان URL مُرحِّل Buzz' },
-      BUZZ_PRIVATE_KEY: { label: 'المفتاح الخاص لـ Nostr (nsec أو hex)', help: 'المفتاح الخاص لـ Nostr لهوية Buzz للوكيل (nsec أو hex) — السر الوحيد لـ Buzz.' },
-      BUZZ_CLI_PATH: { label: 'مسار buzz CLI (أو فارغ)', help: "مسار ملف buzz CLI الثنائي (الافتراضي: 'buzz' على PATH، ثم ~/bin/buzz)." },
-      BUZZ_CHANNELS: { label: 'معرفات UUID للقنوات (مفصولة بفواصل)', help: 'معرفات UUID للقنوات المراد مراقبتها، مفصولة بفواصل (الافتراضي: جميع القنوات المنضمة إليها).' },
-      BUZZ_HOME_CHANNEL: { label: 'معرف UUID القناة الرئيسية (أو فارغ)', help: 'معرف UUID للقناة لتسليم cron / الإشعارات (الافتراضي: القناة الأولى المراقَبة).' },
-      BUZZ_ALLOWED_USERS: { label: 'المستخدمون المسموح بهم (مفصولون بفواصل)', help: 'npubs أو مفاتيح hex العامة المسموح لها بالتحدث إلى الوكيل، مفصولة بفواصل.' },
-      BUZZ_ALLOW_ALL_USERS: { label: 'السماح لجميع المستخدمين؟ (true/false)', help: 'السماح لأي عضو في المجتمع بالتحدث إلى الوكيل (true/false).' },
-      BUZZ_TRANSPORT: { label: 'طريقة النقل (auto/websocket/poll)', help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.' },
-      BUZZ_POLL_INTERVAL: { label: 'ثواني فاصل الاستطلاع', help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).' },
-      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (أو فارغ)', help: 'علامة NIP-OA لاعتماد المالك الاختيارية لمصادقة NIP-42 WebSocket.' },
-      BUZZ_CREDENTIALS_FILE: { label: 'مسار ملف الاعتمادات (أو فارغ)', help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).' },
-      LINE_HOST: { label: 'مضيف Webhook', help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).' },
-      TEAMS_HOST: { label: 'مضيف Webhook', help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).' },
+      A2A_AGENT_NAME: {
+        label: 'اسم عميل A2A',
+        help: 'الاسم المُعلَن على بطاقة الوكيل (Agent Card) لهذا الوكيل (الافتراضي: مشتق من اسم المضيف).',
+        placeholder: 'اسم عميل A2A'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)',
+        help: 'رمز حامل مشترك لاستدعاءات A2A الواردة (تعود الهوية إلى IP المتصل). بدون أي رمز => ربط بـ 127.0.0.1 فقط.',
+        placeholder: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)'
+      },
+      A2A_HOST: {
+        label: 'مضيف ربط A2A (الافتراضي 127.0.0.1)',
+        help: 'مضيف الربط الوارد. الافتراضي 127.0.0.1؛ يتوسع إلى 0.0.0.0 فقط عند تعيين رمز حامل والموافقة هنا.',
+        placeholder: 'مضيف ربط A2A (الافتراضي 127.0.0.1)'
+      },
+      A2A_PORT: {
+        label: 'منفذ A2A (الافتراضي 9900)',
+        help: 'منفذ خادم A2A الوارد (الافتراضي 9900).',
+        placeholder: 'منفذ A2A (الافتراضي 9900)'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)',
+        help: 'رموز حامل لكل نظير (مثل alice:tok1,bob:tok2). كل وكيل بعيد له بيانات اعتماد خاصة به.',
+        placeholder: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'قناة A2A الرئيسية (أو فارغ)',
+        help: 'معرف المهمة/السياق المستخدم كهدف تسليم cron / الإشعارات لـ deliver=a2a.'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'السماح لجميع أقران A2A؟ (true/false)',
+        help: 'السماح لأي نظير A2A مصادَق عليه بالوصول إلى الوكيل (للتطوير فقط).'
+      },
+      RAFT_PROFILE: {
+        label: 'ملف تعريف وكيل Raft',
+        help: 'اسم ملف تعريف وكيل Raft — يُمكِّن المحول تلقائيًا عند التعيين.',
+        placeholder: 'ملف تعريف وكيل Raft'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'عنوان URL مُرحِّل Buzz',
+        help: 'عنوان URL الأساسي لمُرحِّل مجتمع Buzz (مثل https://mycommunity.communities.buzz.xyz).',
+        placeholder: 'عنوان URL مُرحِّل Buzz'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'المفتاح الخاص لـ Nostr (nsec أو hex)',
+        help: 'المفتاح الخاص لـ Nostr لهوية Buzz للوكيل (nsec أو hex) — السر الوحيد لـ Buzz.'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'مسار buzz CLI (أو فارغ)',
+        help: "مسار ملف buzz CLI الثنائي (الافتراضي: 'buzz' على PATH، ثم ~/bin/buzz)."
+      },
+      BUZZ_CHANNELS: {
+        label: 'معرفات UUID للقنوات (مفصولة بفواصل)',
+        help: 'معرفات UUID للقنوات المراد مراقبتها، مفصولة بفواصل (الافتراضي: جميع القنوات المنضمة إليها).'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'معرف UUID القناة الرئيسية (أو فارغ)',
+        help: 'معرف UUID للقناة لتسليم cron / الإشعارات (الافتراضي: القناة الأولى المراقَبة).'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: 'المستخدمون المسموح بهم (مفصولون بفواصل)',
+        help: 'npubs أو مفاتيح hex العامة المسموح لها بالتحدث إلى الوكيل، مفصولة بفواصل.'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'السماح لجميع المستخدمين؟ (true/false)',
+        help: 'السماح لأي عضو في المجتمع بالتحدث إلى الوكيل (true/false).'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'طريقة النقل (auto/websocket/poll)',
+        help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.'
+      },
+      BUZZ_POLL_INTERVAL: {
+        label: 'ثواني فاصل الاستطلاع',
+        help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).'
+      },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON (أو فارغ)',
+        help: 'علامة NIP-OA لاعتماد المالك الاختيارية لمصادقة NIP-42 WebSocket.'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: 'مسار ملف الاعتمادات (أو فارغ)',
+        help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).'
+      },
+      LINE_HOST: {
+        label: 'مضيف Webhook',
+        help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).'
+      },
+      TEAMS_HOST: {
+        label: 'مضيف Webhook',
+        help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).'
+      }
     },
     platformIntro: {
       telegram:
         'في Telegram، تحدث إلى @BotFather، وقم بتشغيل /newbot، انسخ الرمز الذي يعطيك إياه. ثم احصل على معرّف مستخدمك الرقمي من @userinfobot.',
       discord:
         'افتح بوابة مطوري Discord، أنشئ تطبيقًا، أضف Bot، وانسخ رمزه. قم بدعوة البوت إلى خادمك بالنطاقات الصحيحة.',
-      slack:
-        'أنشئ تطبيق Slack، فعّل Socket Mode، ثبّته في مساحة العمل الخاصة بك، وانسخ رمز البوت ورمز مستوى التطبيق.',
+      slack: 'أنشئ تطبيق Slack، فعّل Socket Mode، ثبّته في مساحة العمل الخاصة بك، وانسخ رمز البوت ورمز مستوى التطبيق.',
       mattermost: 'أنشئ حساب بوت أو رمز وصول شخصي على خادم Mattermost الخاص بك، ثم الصق رابط الخادم والرمز هنا.',
-      matrix: 'سجّل الدخول إلى الخادم الرئيسي باستخدام حساب البوت، وانسخ رمز الوصول ومعرّف المستخدم ورابط الخادم الرئيسي.',
-      signal: 'قم بتشغيل جسر signal-cli REST في موقع يمكن الوصول إليه، ثم وجّه Hermes إلى هذا الرابط ورقم الهاتف المسجل.',
+      matrix:
+        'سجّل الدخول إلى الخادم الرئيسي باستخدام حساب البوت، وانسخ رمز الوصول ومعرّف المستخدم ورابط الخادم الرئيسي.',
+      signal:
+        'قم بتشغيل جسر signal-cli REST في موقع يمكن الوصول إليه، ثم وجّه Hermes إلى هذا الرابط ورقم الهاتف المسجل.',
       whatsapp: 'قم بتشغيل جسر WhatsApp المدمج في Hermes، امسح رمز QR عند التشغيل الأول، ثم فعّل المنصة.',
       bluebubbles:
         'قم بتشغيل خادم BlueBubbles على Mac يحتوي على iMessage، اكشف API الخاص به، ثم وجّه Hermes إلى هذا الرابط مع كلمة مرور الخادم.',
@@ -1439,13 +1510,15 @@ export const ar = defineLocale({
       feishu: 'أنشئ تطبيق Feishu / Lark، قم بإعداد قدرات البوت، وانسخ App ID و App secret ومفتاح تشفير الأحداث.',
       wecom:
         'أضف بوت مجموعة في WeCom، وانسخ مفتاح webhook الخاص به كـ WECOM_BOT_ID. إرسال فقط — للاتجاهين استخدم خيار WeCom (التطبيق).',
-      wecom_callback: 'قم بإعداد تطبيق WeCom الذاتي، اكشف رابط callback الخاص به، وقدم corp ID و secret و agent ID و AES key.',
+      wecom_callback:
+        'قم بإعداد تطبيق WeCom الذاتي، اكشف رابط callback الخاص به، وقدم corp ID و secret و agent ID و AES key.',
       weixin:
         'قم بتشغيل `hermes gateway setup`، اختر Weixin، ثم امسح وأكّد رمز QR باستخدام حساب WeChat الشخصي الخاص بك. سيتصل Hermes عبر Tencent iLink Bot API ويحفظ بيانات الاعتماد.',
       qqbot: 'سجّل تطبيقًا على منصة QQ المفتوحة (q.qq.com)، وانسخ App ID و Client Secret.',
       api_server:
         'اكشف Hermes كـ API متوافق مع OpenAI. قم بتعيين مفتاح مصادقة، ثم وجّه Open WebUI / LobeChat وغيرها إلى host:port.',
-      webhook: 'قم بتشغيل خادم HTTP حتى تتمكن الأدوات الأخرى (GitHub، GitLab، التطبيقات المخصصة) من POST. تحقق من التوقيعات باستخدام السر.',
+      webhook:
+        'قم بتشغيل خادم HTTP حتى تتمكن الأدوات الأخرى (GitHub، GitLab، التطبيقات المخصصة) من POST. تحقق من التوقيعات باستخدام السر.',
       a2a: 'لا توجد تبعيات خارجية (المكتبة القياسية فقط). قم بتعيين رمز مشترك أو رمز نظير للسماح لمثيلات Hermes الأخرى بالاتصال عبر بروتوكول A2A.',
       buzz: 'يتطلب أداة buzz CLI (https://github.com/block/buzz) في PATH أو BUZZ_CLI_PATH. اتصل بمجتمع Buzz عبر Nostr relay.',
       raft: 'انضم إلى مساحة عمل Raft كوكيل خارجي.'
@@ -1717,9 +1790,12 @@ export const ar = defineLocale({
         'Custom reminder': 'تذكير متكرر مخصص حسب جدولك الزمني.',
         'Evening wind-down': 'فحص نهاية اليوم: ما هو قادم غدًا وما تحتاج إعداده الليلة.',
         'Topic news digest': 'ملخص منتظم حول المواضيع التي تهتم بها — فقط العناصر الجديدة حقًا بعد إلغاء التكرار.',
-        'Bills & renewals reminder': 'تحذير مسبق قبل المدفوعات المتكررة أو تجديدات الاشتراك أو تواريخ الاستحقاق — تجنب الرسوم المفاجئة.',
-        'Price & availability watch': 'راقب منتجات أو رحلات أو فنادق أو قوائم محددة، تنبيه عندما يتطابق السعر أو التوفر مع معاييرك.',
-        'Competitor news watch': 'تتبع الأخبار الكبيرة من شركات محددة — إطلاق منتجات، تسعير، تمويل، ملفات — مع ملخص مقتبس.',
+        'Bills & renewals reminder':
+          'تحذير مسبق قبل المدفوعات المتكررة أو تجديدات الاشتراك أو تواريخ الاستحقاق — تجنب الرسوم المفاجئة.',
+        'Price & availability watch':
+          'راقب منتجات أو رحلات أو فنادق أو قوائم محددة، تنبيه عندما يتطابق السعر أو التوفر مع معاييرك.',
+        'Competitor news watch':
+          'تتبع الأخبار الكبيرة من شركات محددة — إطلاق منتجات، تسعير، تمويل، ملفات — مع ملخص مقتبس.',
         'Habit check-in': 'تذكيرات منتظمة للحفاظ على العادة والتفكير في الإكمال.',
         'Hydration & movement nudge': 'تذكيرات منتظمة طوال اليوم للشرب والوقوف والتمدد.',
         'Weekly meal plan': 'خطة وجبات أسبوعية مصممة حسب نظامك الغذائي ووقت الطهي، مع قائمة تسوق مجمعة.',

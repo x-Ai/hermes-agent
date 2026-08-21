@@ -44,7 +44,10 @@ export function cleanBlueprintFieldError(message: string): string {
 // save only" vs. This desktop), and the DeliverSelect is self-explanatory —
 // skip it for the deliver slot.
 export function blueprintSlotHelp(field: AutomationBlueprintField, bp?: BlueprintsCopy): string | undefined {
-  if (!field.help || field.type === 'text' || isDeliverField(field)) return undefined
+  if (!field.help || field.type === 'text' || isDeliverField(field)) {
+    return undefined
+  }
+
   return bp?.helps?.[field.help] ?? field.help
 }
 
@@ -90,8 +93,7 @@ export function BlueprintSlotControl({
       id={id}
       onChange={event => onChange(event.target.value)}
       placeholder={
-        (field.help ? (bp?.helps?.[field.help] ?? field.help) : null) ||
-        (bp?.labels?.[field.label] ?? field.label)
+        (field.help ? (bp?.helps?.[field.help] ?? field.help) : null) || (bp?.labels?.[field.label] ?? field.label)
       }
       type="text"
       value={value}

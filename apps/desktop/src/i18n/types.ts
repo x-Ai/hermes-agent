@@ -2157,8 +2157,6 @@ export interface Translations {
     bodies: Readonly<Record<string, readonly string[]>>
   }
 
-
-
   composer: {
     message: string
     addContext: string

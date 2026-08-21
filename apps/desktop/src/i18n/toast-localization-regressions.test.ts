@@ -102,6 +102,7 @@ describe('toast localization regressions', () => {
       const visit = (node: ts.Node) => {
         if (ts.isCallExpression(node)) {
           const name = calleeName(node.expression)
+
           const values =
             name === 'notifyError'
               ? node.arguments.slice(1)

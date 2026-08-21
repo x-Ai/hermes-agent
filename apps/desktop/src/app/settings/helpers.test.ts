@@ -45,14 +45,10 @@ describe('settings helpers', () => {
     }
 
     expect(advanced?.keys).toContain('terminal.container_persistent')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'terminal.container_persistent')).toBe(
-      'Persistent Container Filesystem'
-    )
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'terminal.container_persistent')).toBe('Persistent Container Filesystem')
     expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'terminal.container_persistent')).toBeTruthy()
 
-    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get(
-      'terminal.container_persistent'
-    )
+    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get('terminal.container_persistent')
 
     const next = setNested(config, 'terminal.container_persistent', false)
 
@@ -72,14 +68,10 @@ describe('settings helpers', () => {
     const config: HermesConfigRecord = { agent: { environment_probe: true } }
 
     expect(advanced?.keys).toContain('agent.environment_probe')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'agent.environment_probe')).toBe(
-      'Execution Environment Probe'
-    )
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'agent.environment_probe')).toBe('Execution Environment Probe')
     expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'agent.environment_probe')).toBeTruthy()
 
-    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get(
-      'agent.environment_probe'
-    )
+    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get('agent.environment_probe')
 
     expect(field?.type).toBe('boolean')
     expect(setNested(config, 'agent.environment_probe', false)).toEqual({

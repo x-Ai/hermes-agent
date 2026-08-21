@@ -13,6 +13,7 @@ class TestResizeObserver {
 }
 
 vi.stubGlobal('ResizeObserver', TestResizeObserver)
+
 Element.prototype.scrollIntoView = function scrollIntoView() {}
 
 // Remote-backend users hit a hard boot failure that isn't OAuth reauth (token

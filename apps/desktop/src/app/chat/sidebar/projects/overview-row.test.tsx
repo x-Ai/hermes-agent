@@ -89,6 +89,7 @@ describe('ProjectOverviewRow', () => {
 
   it('starts a folder-backed project in its first repo when primary_path is unset', () => {
     const onNewSession = vi.fn()
+
     const projectWithoutPrimary = {
       ...project,
       path: null,

@@ -1228,9 +1228,7 @@ function CronEditorDialog({
               </SelectContent>
             </Select>
             {blueprint?.description && (
-              <FieldHint>
-                {c.blueprints.descriptions?.[blueprint.title] ?? blueprint.description}
-              </FieldHint>
+              <FieldHint>{c.blueprints.descriptions?.[blueprint.title] ?? blueprint.description}</FieldHint>
             )}
           </Field>
         )}

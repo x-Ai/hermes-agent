@@ -1192,7 +1192,8 @@ export const en: Translations = {
       addTitle: 'Add Endpoint',
       nameLabel: 'Name',
       providerIdLabel: 'Provider ID',
-      providerIdHint: 'Identifier stored as the provider key in config.yaml — fixed after creation; use New endpoint for a different ID.',
+      providerIdHint:
+        'Identifier stored as the provider key in config.yaml — fixed after creation; use New endpoint for a different ID.',
       urlLabel: 'Endpoint URL',
       apiModeLabel: 'API Protocol',
       apiModeAuto: 'Auto',
@@ -1227,7 +1228,8 @@ export const en: Translations = {
       uninstalling: 'Uninstalling…',
       confirmYes: 'Yes, uninstall',
       heading: 'Uninstall Hermes',
-      chooseBody: 'Choose how much to remove. The app closes to finish the job; reopen the installer any time to come back.',
+      chooseBody:
+        'Choose how much to remove. The app closes to finish the job; reopen the installer any time to come back.',
       startFailed: 'Uninstall could not start.',
       options: {
         gui: {
@@ -1237,7 +1239,8 @@ export const en: Translations = {
         },
         lite: {
           title: 'Uninstall GUI + agent, keep my data',
-          description: 'Remove the app and the Hermes agent, but keep config, chats, and secrets for a future reinstall.',
+          description:
+            'Remove the app and the Hermes agent, but keep config, chats, and secrets for a future reinstall.',
           consequence: 'the Chat GUI and the Hermes agent (config, chats, and secrets are kept)'
         },
         full: {
@@ -1916,9 +1919,17 @@ export const en: Translations = {
         label: 'Allowed user IDs',
         help: 'Recommended. Comma-separated Mattermost user IDs.'
       },
-      MATRIX_HOMESERVER: { label: 'Homeserver URL', placeholder: 'https://matrix.org', help: 'Matrix homeserver URL (e.g. https://matrix.org)' },
+      MATRIX_HOMESERVER: {
+        label: 'Homeserver URL',
+        placeholder: 'https://matrix.org',
+        help: 'Matrix homeserver URL (e.g. https://matrix.org)'
+      },
       MATRIX_ACCESS_TOKEN: { label: 'Access token', help: 'Matrix access token (preferred over password login)' },
-      MATRIX_USER_ID: { label: 'Bot user ID', placeholder: '@hermes:example.org', help: 'Matrix user ID (e.g. @hermes:example.org)' },
+      MATRIX_USER_ID: {
+        label: 'Bot user ID',
+        placeholder: '@hermes:example.org',
+        help: 'Matrix user ID (e.g. @hermes:example.org)'
+      },
       MATRIX_ALLOWED_USERS: {
         label: 'Allowed Matrix user IDs',
         help: 'Recommended. Comma-separated user IDs in @user:server format.'
@@ -1939,53 +1950,132 @@ export const en: Translations = {
         label: 'Allowed WhatsApp users',
         help: 'Recommended. Comma-separated phone numbers or WhatsApp IDs.'
       },
-      A2A_AGENT_NAME: { label: 'A2A agent name', help: 'Name advertised on this agent\'s Agent Card (default: hostname-derived).', placeholder: 'A2A agent name' },
-      A2A_BEARER_TOKEN: { label: 'A2A shared bearer token (or empty for localhost-only)', help: 'Shared bearer token for inbound A2A calls (identity falls back to caller IP). With no token of any kind => bind to 127.0.0.1 only (no remote access).', placeholder: 'A2A shared bearer token (or empty for localhost-only)' },
-      A2A_HOST: { label: 'A2A bind host (default 127.0.0.1)', help: 'Inbound bind host. Defaults to 127.0.0.1; only widens to 0.0.0.0 when a bearer token is set AND you opt in here.', placeholder: 'A2A bind host (default 127.0.0.1)' },
-      A2A_PORT: { label: 'A2A port (default 9900)', help: 'Inbound A2A server port (default 9900).', placeholder: 'A2A port (default 9900)' },
-      A2A_PEER_TOKENS: { label: 'A2A per-peer tokens (name:token, comma-separated; or empty)', help: "Per-peer bearer tokens ('alice:tok1,bob:tok2'). Each remote agent gets its own credential; the matched name is the authenticated identity used for rate limiting, trust, and audit.", placeholder: 'A2A per-peer tokens (name:token, comma-separated; or empty)' },
-      A2A_HOME_CHANNEL: { label: 'A2A home channel (or empty)', help: 'Task/context id used as the cron / notification delivery target for deliver=a2a.' },
-      A2A_ALLOW_ALL_USERS: { label: 'Allow all A2A peers? (true/false)', help: 'Allow any authenticated A2A peer to reach the agent (dev only).' },
-      RAFT_PROFILE: { label: 'Raft agent profile', help: 'Raft agent profile slug — auto-enables the adapter when set.', placeholder: 'Raft agent profile' },
-      BUZZ_RELAY_URL: { label: 'Buzz relay URL', help: 'Base URL of the Buzz community relay (e.g. https://mycommunity.communities.buzz.xyz).', placeholder: 'Buzz relay URL' },
-      BUZZ_PRIVATE_KEY: { label: 'Nostr private key (nsec or hex)', help: "Nostr private key for the agent's Buzz identity (nsec or hex) — the only Buzz secret." },
-      BUZZ_CLI_PATH: { label: 'buzz CLI path (or empty)', help: "Path to the buzz CLI binary (default: 'buzz' on PATH, then ~/bin/buzz)." },
-      BUZZ_CHANNELS: { label: 'Channel UUIDs (comma-separated)', help: 'Comma-separated channel UUIDs to watch (default: all joined channels).' },
-      BUZZ_HOME_CHANNEL: { label: 'Home channel UUID (or empty)', help: 'Channel UUID for cron / notification delivery (defaults to the first watched channel).' },
-      BUZZ_ALLOWED_USERS: { label: 'Allowed users (comma-separated)', help: 'Comma-separated npubs or hex pubkeys allowed to talk to the agent.' },
-      BUZZ_ALLOW_ALL_USERS: { label: 'Allow all users? (true/false)', help: 'Allow any community member to talk to the agent (true/false).' },
-      BUZZ_TRANSPORT: { label: 'Transport (auto/websocket/poll)', help: 'Inbound transport: auto (WebSocket w/ poll fallback, default), websocket, or poll.' },
+      A2A_AGENT_NAME: {
+        label: 'A2A agent name',
+        help: "Name advertised on this agent's Agent Card (default: hostname-derived).",
+        placeholder: 'A2A agent name'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A shared bearer token (or empty for localhost-only)',
+        help: 'Shared bearer token for inbound A2A calls (identity falls back to caller IP). With no token of any kind => bind to 127.0.0.1 only (no remote access).',
+        placeholder: 'A2A shared bearer token (or empty for localhost-only)'
+      },
+      A2A_HOST: {
+        label: 'A2A bind host (default 127.0.0.1)',
+        help: 'Inbound bind host. Defaults to 127.0.0.1; only widens to 0.0.0.0 when a bearer token is set AND you opt in here.',
+        placeholder: 'A2A bind host (default 127.0.0.1)'
+      },
+      A2A_PORT: {
+        label: 'A2A port (default 9900)',
+        help: 'Inbound A2A server port (default 9900).',
+        placeholder: 'A2A port (default 9900)'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A per-peer tokens (name:token, comma-separated; or empty)',
+        help: "Per-peer bearer tokens ('alice:tok1,bob:tok2'). Each remote agent gets its own credential; the matched name is the authenticated identity used for rate limiting, trust, and audit.",
+        placeholder: 'A2A per-peer tokens (name:token, comma-separated; or empty)'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A home channel (or empty)',
+        help: 'Task/context id used as the cron / notification delivery target for deliver=a2a.'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'Allow all A2A peers? (true/false)',
+        help: 'Allow any authenticated A2A peer to reach the agent (dev only).'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft agent profile',
+        help: 'Raft agent profile slug — auto-enables the adapter when set.',
+        placeholder: 'Raft agent profile'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz relay URL',
+        help: 'Base URL of the Buzz community relay (e.g. https://mycommunity.communities.buzz.xyz).',
+        placeholder: 'Buzz relay URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr private key (nsec or hex)',
+        help: "Nostr private key for the agent's Buzz identity (nsec or hex) — the only Buzz secret."
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI path (or empty)',
+        help: "Path to the buzz CLI binary (default: 'buzz' on PATH, then ~/bin/buzz)."
+      },
+      BUZZ_CHANNELS: {
+        label: 'Channel UUIDs (comma-separated)',
+        help: 'Comma-separated channel UUIDs to watch (default: all joined channels).'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'Home channel UUID (or empty)',
+        help: 'Channel UUID for cron / notification delivery (defaults to the first watched channel).'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: 'Allowed users (comma-separated)',
+        help: 'Comma-separated npubs or hex pubkeys allowed to talk to the agent.'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'Allow all users? (true/false)',
+        help: 'Allow any community member to talk to the agent (true/false).'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'Transport (auto/websocket/poll)',
+        help: 'Inbound transport: auto (WebSocket w/ poll fallback, default), websocket, or poll.'
+      },
       BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' },
-      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON (or empty)', help: 'Optional NIP-OA owner-attestation auth tag JSON for NIP-42 WebSocket auth.' },
-      BUZZ_CREDENTIALS_FILE: { label: 'Credentials file path (or empty)', help: 'JSON credentials file holding the nsec (fallback when BUZZ_PRIVATE_KEY is unset).' },
-      LINE_HOST: { label: 'Webhook host', help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).' },
-      TEAMS_HOST: { label: 'Webhook host', help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON (or empty)',
+        help: 'Optional NIP-OA owner-attestation auth tag JSON for NIP-42 WebSocket auth.'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: 'Credentials file path (or empty)',
+        help: 'JSON credentials file holding the nsec (fallback when BUZZ_PRIVATE_KEY is unset).'
+      },
+      LINE_HOST: {
+        label: 'Webhook host',
+        help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
+      },
+      TEAMS_HOST: {
+        label: 'Webhook host',
+        help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
+      }
     },
     platformIntro: {
       telegram:
         'In Telegram, talk to @BotFather, run /newbot, and copy the token it gives you. Then get your numeric user ID from @userinfobot.',
       discord:
         'Open the Discord Developer Portal, create an application, add a Bot, then copy its token. Invite the bot to your server with proper permission scopes.',
-      slack: 'Create a Slack app, enable Socket Mode, install it to your workspace, then copy the bot token and app-level token.',
-      mattermost: 'On your Mattermost server, create a bot account or personal access token, then paste the server URL and token here.',
-      matrix: 'Log in to your homeserver with the bot account, then copy the access token, user ID, and homeserver URL.',
-      signal: 'Run a signal-cli REST bridge at an accessible location, then point Hermes at that URL and a registered phone number.',
-      whatsapp: 'Start the bundled WhatsApp bridge with Hermes, scan the QR code on first run, then enable the platform.',
+      slack:
+        'Create a Slack app, enable Socket Mode, install it to your workspace, then copy the bot token and app-level token.',
+      mattermost:
+        'On your Mattermost server, create a bot account or personal access token, then paste the server URL and token here.',
+      matrix:
+        'Log in to your homeserver with the bot account, then copy the access token, user ID, and homeserver URL.',
+      signal:
+        'Run a signal-cli REST bridge at an accessible location, then point Hermes at that URL and a registered phone number.',
+      whatsapp:
+        'Start the bundled WhatsApp bridge with Hermes, scan the QR code on first run, then enable the platform.',
       bluebubbles:
         'Run BlueBubbles Server on a Mac with iMessage, expose its API, then point Hermes at that URL with the server password.',
-      homeassistant: 'Open your profile in Home Assistant and create a long-lived access token. Paste it here along with your HA URL.',
-      email: 'Use a dedicated mailbox. For Gmail/Workspace, create an app-specific password and use imap.gmail.com / smtp.gmail.com.',
+      homeassistant:
+        'Open your profile in Home Assistant and create a long-lived access token. Paste it here along with your HA URL.',
+      email:
+        'Use a dedicated mailbox. For Gmail/Workspace, create an app-specific password and use imap.gmail.com / smtp.gmail.com.',
       sms: 'Get your Account SID and Auth Token from the Twilio console, along with an SMS-enabled phone number.',
-      dingtalk: 'Create a DingTalk application in the developer console, then copy the Client ID (App key) and Client Secret here.',
-      feishu: 'Create a Feishu / Lark app, configure bot capabilities, and copy the App ID, App secret, and event encryption key.',
-      wecom: 'Add a group bot in WeCom, copy its webhook key as WECOM_BOT_ID. Send-only — for two-way use the WeCom (App) option.',
-      wecom_callback: 'Set up a WeCom self-built app, expose its callback URL, and provide the corp ID, secret, agent ID, and AES key.',
+      dingtalk:
+        'Create a DingTalk application in the developer console, then copy the Client ID (App key) and Client Secret here.',
+      feishu:
+        'Create a Feishu / Lark app, configure bot capabilities, and copy the App ID, App secret, and event encryption key.',
+      wecom:
+        'Add a group bot in WeCom, copy its webhook key as WECOM_BOT_ID. Send-only — for two-way use the WeCom (App) option.',
+      wecom_callback:
+        'Set up a WeCom self-built app, expose its callback URL, and provide the corp ID, secret, agent ID, and AES key.',
       weixin:
         'Run `hermes gateway setup`, choose Weixin, then scan and confirm the QR code with your personal WeChat account. Hermes will connect via Tencent iLink Bot API and save credentials.',
       qqbot: 'Register an application on QQ Open Platform (q.qq.com), copy the App ID and Client Secret.',
       api_server:
         'Expose Hermes as an OpenAI-compatible API. Set an auth key, then point Open WebUI / LobeChat etc. at host:port.',
-      webhook: 'Run an HTTP server for other tools (GitHub, GitLab, custom apps) to POST to. Verify signatures with a secret.',
+      webhook:
+        'Run an HTTP server for other tools (GitHub, GitLab, custom apps) to POST to. Verify signatures with a secret.',
       a2a: 'No external dependencies (stdlib only). Set a shared token or peer tokens to allow other Hermes instances to connect via A2A protocol.',
       buzz: 'Requires buzz CLI tool (https://github.com/block/buzz) in PATH or BUZZ_CLI_PATH. Connects to Buzz community via Nostr relays.',
       raft: 'Join a Raft workspace as an external agent.'
@@ -1993,7 +2083,8 @@ export const en: Translations = {
     platformDescription: {
       telegram: 'Use Hermes in Telegram private chats, groups, and topics.',
       discord: 'Connect Hermes to Discord DMs, channels, and threads.',
-      slack: 'Use Hermes in Slack via Socket Mode. The bot only responds to connected users after adding allowed Slack member IDs.',
+      slack:
+        'Use Hermes in Slack via Socket Mode. The bot only responds to connected users after adding allowed Slack member IDs.',
       mattermost: 'Connect Hermes to Mattermost channels and DMs.',
       matrix: 'Use Hermes in Matrix rooms and DMs.',
       signal: 'Connect via signal-cli REST bridge.',
@@ -2335,21 +2426,26 @@ export const en: Translations = {
       },
       descriptions: {
         'Morning briefing': "A short daily briefing: today's calendar, weather, and any pending urgent items.",
-        'Important-mail monitor': 'Checks your inbox periodically and alerts only when something truly needs attention.',
+        'Important-mail monitor':
+          'Checks your inbox periodically and alerts only when something truly needs attention.',
         'Weekly review': "Weekly recap: what got done, what's pending, and what's coming up.",
         'Workday start reminder': 'Workday reminder with your agenda and top priorities.',
         'Custom reminder': 'Custom recurring reminder on your schedule.',
         'Evening wind-down': "End-of-day check: a glance at tomorrow's schedule and what to prepare tonight.",
         'Topic news digest': 'Periodic digest on topics you care about — deduplicated so only truly new items surface.',
-        'Bills & renewals reminder': 'Advance warning before recurring payments, subscription renewals, or due dates — so nothing auto-charges unexpectedly.',
-        'Price & availability watch': 'Monitor exact products, flights, hotels, or listings and alert when price or availability conditions are met.',
-        'Competitor news watch': 'Track notable news about specified companies — launches, pricing, funding, filings — with cited summaries.',
+        'Bills & renewals reminder':
+          'Advance warning before recurring payments, subscription renewals, or due dates — so nothing auto-charges unexpectedly.',
+        'Price & availability watch':
+          'Monitor exact products, flights, hotels, or listings and alert when price or availability conditions are met.',
+        'Competitor news watch':
+          'Track notable news about specified companies — launches, pricing, funding, filings — with cited summaries.',
         'Habit check-in': 'Periodic reminder to maintain a habit and reflect on completion.',
         'Hydration & movement nudge': 'Periodic reminders throughout the day to drink water, stand up, and stretch.',
         'Weekly meal plan': 'Weekly meal plan with a merged shopping list, tailored to your diet and cooking time.',
         'Daily learning drip': 'One small lesson per day on a topic you want to learn — builds up over time.',
         'Gratitude & reflection prompt': 'Daily or weekly reflection prompt to note gratitudes and insights.',
-        'On-this-day discovery': 'Interesting events from history that happened on this day — personalized to your interests.'
+        'On-this-day discovery':
+          'Interesting events from history that happened on this day — personalized to your interests.'
       },
       labels: {
         'What time?': 'What time?',

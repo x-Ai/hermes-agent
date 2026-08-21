@@ -818,8 +818,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
   // show the localized label (matching the MoA section heading) while keeping
   // real vendor names (OpenAI, Gemini, …) untranslated.
   const providerLabel = useCallback(
-    (provider: ModelOptionProvider) =>
-      (provider.slug || '').toLowerCase() === 'moa' ? m.moa.title : provider.name,
+    (provider: ModelOptionProvider) => ((provider.slug || '').toLowerCase() === 'moa' ? m.moa.title : provider.name),
     [m.moa.title]
   )
 
