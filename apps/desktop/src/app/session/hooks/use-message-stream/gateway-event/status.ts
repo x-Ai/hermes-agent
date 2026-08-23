@@ -17,6 +17,17 @@ import { clearActiveSessionTodos } from '@/store/todos'
 
 import type { GatewayEventContext } from './types'
 
+const PRE_READY_ERROR_COPY = {
+  'Session no longer running before the agent was ready': 'notifications.errors.sessionStoppedBeforeAgentReady',
+  'Turn cancelled before the agent was ready': 'notifications.errors.turnCancelledBeforeAgentReady'
+} as const
+
+function localizeGatewayErrorMessage(message: string): string {
+  const key = PRE_READY_ERROR_COPY[message as keyof typeof PRE_READY_ERROR_COPY]
+
+  return key ? translateNow(key) : message
+}
+
 /** status.update / review.summary / notification.show / notification.clear /
  *  error — the status-and-notice tail of the dispatcher. */
 export function handleStatusEvent(ctx: GatewayEventContext): boolean {
@@ -120,9 +131,12 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
   if (event.type === 'error') {
     const rawErrorMessage = payload?.message || translateNow('notifications.gatewayErrorFallback')
     const looksLikeProviderSetup = isProviderSetupErrorMessage(rawErrorMessage)
+
     // Provider-setup failures arrive as backend English. Localize every
     // user-facing surface while keeping detection on the original text.
-    const errorMessage = looksLikeProviderSetup ? translateNow('desktop.providerCredentialRequired') : rawErrorMessage
+    const errorMessage = looksLikeProviderSetup
+      ? translateNow('desktop.providerCredentialRequired')
+      : localizeGatewayErrorMessage(rawErrorMessage)
 
     // A turn that errors out has also ended — drop any open blocking prompt
     // for this session so an approval/sudo/secret overlay can't linger past

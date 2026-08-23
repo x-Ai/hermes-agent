@@ -204,7 +204,9 @@ export const zh: Translations = {
       openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API key (${status} invalid_api_key)`,
       openaiTtsNeedsKey: 'OpenAI TTS 需要 VOICE_TOOLS_OPENAI_KEY 或 OPENAI_API_KEY。',
       restoreTargetMissing: '目标消息已不在此会话历史中。请刷新会话后重试',
-      restoreTargetUnsafe: '无法安全恢复此检查点。请刷新会话后重试'
+      restoreTargetUnsafe: '无法安全恢复此检查点。请刷新会话后重试',
+      sessionStoppedBeforeAgentReady: '智能体就绪前会话已停止',
+      turnCancelledBeforeAgentReady: '智能体就绪前，本轮对话已取消'
     },
     voice: {
       configureSpeechToText: '配置语音转文字后即可使用语音模式',

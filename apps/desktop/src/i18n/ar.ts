@@ -167,7 +167,9 @@ export const ar = defineLocale({
       microphonePermission: 'تم رفض إذن الميكروفون.',
       openaiRejectedApiKey: 'رفض OpenAI مفتاح API.',
       openaiRejectedApiKeyWithStatus: status => `رفض OpenAI مفتاح API (${status} invalid_api_key).`,
-      openaiTtsNeedsKey: 'يتطلب OpenAI TTS المفتاح VOICE_TOOLS_OPENAI_KEY أو OPENAI_API_KEY.'
+      openaiTtsNeedsKey: 'يتطلب OpenAI TTS المفتاح VOICE_TOOLS_OPENAI_KEY أو OPENAI_API_KEY.',
+      sessionStoppedBeforeAgentReady: 'توقفت الجلسة قبل أن يصبح الوكيل جاهزًا.',
+      turnCancelledBeforeAgentReady: 'أُلغيت الجولة قبل أن يصبح الوكيل جاهزًا.'
     },
     voice: {
       configureSpeechToText: 'اضبط تحويل الكلام إلى نص لاستخدام وضع الصوت.',

@@ -215,7 +215,9 @@ export const en: Translations = {
       openaiTtsNeedsKey: 'OpenAI TTS needs VOICE_TOOLS_OPENAI_KEY or OPENAI_API_KEY.',
       restoreTargetMissing:
         'The target message is no longer in this session history. Refresh the session and try again.',
-      restoreTargetUnsafe: 'This checkpoint cannot be restored safely. Refresh the session and try again.'
+      restoreTargetUnsafe: 'This checkpoint cannot be restored safely. Refresh the session and try again.',
+      sessionStoppedBeforeAgentReady: 'The session stopped before the agent was ready.',
+      turnCancelledBeforeAgentReady: 'Turn cancelled before the agent was ready.'
     },
     voice: {
       configureSpeechToText: 'Configure speech-to-text to use voice mode.',

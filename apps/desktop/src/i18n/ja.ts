@@ -162,7 +162,9 @@ export const ja = defineLocale({
       microphonePermission: 'マイクのアクセス許可が拒否されました。',
       openaiRejectedApiKey: 'OpenAI が API キーを拒否しました。',
       openaiRejectedApiKeyWithStatus: status => `OpenAI が API キーを拒否しました (${status} invalid_api_key)。`,
-      openaiTtsNeedsKey: 'OpenAI TTS には VOICE_TOOLS_OPENAI_KEY または OPENAI_API_KEY が必要です。'
+      openaiTtsNeedsKey: 'OpenAI TTS には VOICE_TOOLS_OPENAI_KEY または OPENAI_API_KEY が必要です。',
+      sessionStoppedBeforeAgentReady: 'エージェントの準備が整う前にセッションが停止しました。',
+      turnCancelledBeforeAgentReady: 'エージェントの準備が整う前にターンがキャンセルされました。'
     },
     voice: {
       configureSpeechToText: '音声モードを使用するには音声認識を設定してください。',

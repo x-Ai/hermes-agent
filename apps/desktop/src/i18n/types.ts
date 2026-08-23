@@ -245,6 +245,8 @@ export interface Translations {
       openaiTtsNeedsKey: string
       restoreTargetMissing: string
       restoreTargetUnsafe: string
+      sessionStoppedBeforeAgentReady: string
+      turnCancelledBeforeAgentReady: string
     }
     voice: {
       configureSpeechToText: string

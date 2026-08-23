@@ -1,6 +1,7 @@
 import { act, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
 import { textPart } from '@/lib/chat-messages'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { $notifications, clearNotifications } from '@/store/notifications'
@@ -29,11 +30,13 @@ function seedOptimisticFirstMessage() {
 
 describe('useMessageStream agent-init error surfacing (#63078)', () => {
   beforeEach(() => {
+    setRuntimeI18nLocale('en')
     clearNotifications()
   })
 
   afterEach(() => {
     cleanup()
+    setRuntimeI18nLocale('en')
     clearNotifications()
     vi.restoreAllMocks()
   })
@@ -75,6 +78,7 @@ describe('useMessageStream agent-init error surfacing (#63078)', () => {
   })
 
   it('renders the pre-ready cancel error event (#65567 server emit) visibly', () => {
+    setRuntimeI18nLocale('zh')
     mountStream()
     seedOptimisticFirstMessage()
 
@@ -87,7 +91,8 @@ describe('useMessageStream agent-init error surfacing (#63078)', () => {
     )
 
     const state = stream.state()
-    expect(state.messages.some(m => m.role === 'assistant' && m.error?.includes('cancelled'))).toBe(true)
+    expect(state.messages.some(m => m.role === 'assistant' && m.error === '智能体就绪前，本轮对话已取消')).toBe(true)
+    expect($notifications.get().some(n => n.message === '智能体就绪前，本轮对话已取消')).toBe(true)
     expect(state.messages.some(m => m.id === 'user-123-abc')).toBe(true)
     expect(state.busy).toBe(false)
   })
