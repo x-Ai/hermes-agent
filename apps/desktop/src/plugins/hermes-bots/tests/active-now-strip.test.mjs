@@ -107,10 +107,10 @@ test('botActivitySession keeps last_session when it is the fresher one', () => {
   assert.equal(botActivitySession(bot).id, 'scratch')
 })
 
-test('botActivitySession degrades to whichever side exists (older gateways / no pin)', () => {
+test('botActivitySession degrades to whichever session summary exists on an older gateway', () => {
   const botActivitySession = loadBotActivitySession()
   assert.equal(botActivitySession({ last_session: { id: 'only', last_active: 1 } }).id, 'only')
-  assert.equal(botActivitySession({ canonical_session: { id: 'pin', last_active: 1 } }).id, 'pin')
+  assert.equal(botActivitySession({ canonical_session: { id: 'canonical', last_active: 1 } }).id, 'canonical')
   assert.equal(botActivitySession({}), null)
   assert.equal(botActivitySession(null), null)
 })
@@ -176,13 +176,22 @@ test('ActiveNowStrip renders above the roster, is a live region, and is click-ac
 
   // Live region announces membership changes politely.
   assert.match(source, /'aria-live': 'polite'/)
-  // Chips are real buttons (keyboard/click accessible), reuse BotFace, and
-  // open the canonical chat via the same path as roster rows.
-  assert.match(source, /jsx\(\s*'button',\s*\{\s*type: 'button',\s*title: b\.openAgentChat\(label\)/)
-  // The key rides as jsx()'s third argument — the ONLY form React treats as
-  // a list key; a `key:` prop leaves chips unkeyed (index identity).
-  assert.match(source, /\},\s*botRosterKey\(bot\)\s*\)/)
+  // Chips use the shared Tip component, remain keyboard/click accessible,
+  // and open the canonical chat via the same path as roster rows.
+  assert.match(source, /label: b\.openAgentChat\(label\)/)
+  assert.match(source, /'aria-label': b\.openAgentChat\(label\)/)
+  // The key rides as jsx()'s third argument so React keeps chip identity.
+  assert.match(source, /botRosterKey\(bot\)\s*\)\s*\}\)\s*\]\s*\}\)\s*\}\s*\/\*\* Assign a bot to a group/s)
   assert.match(source, /jsx\(BotFace,\s*\{[\s\S]*?mood: 'work'/)
-    assert.match(source, /await prepareBotSource\(bot\)/)
-  assert.match(source, /bot\.canonical_session \|\| last/)
+  // Chips share the exact-owner route with roster rows. That route activates the
+  // owner source, then resolves the profile's canonical name registry; no
+  // renderer pointer or preview-derived session id participates.
+  assert.match(source, /onOpen: bot => void openRosterBot\(bot\)/)
+
+  const openStart = source.indexOf('async function openRosterBot(')
+  assert.ok(openStart >= 0)
+  const open = source.slice(openStart, openStart + 3200)
+
+  assert.match(open, /await prepareBotSource\(bot\)/)
+  assert.match(open, /await openBotCanonicalChat\(bot\)/)
 })
