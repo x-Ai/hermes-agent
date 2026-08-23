@@ -50,6 +50,8 @@ type BotsMessages = {
   newMessageFor: (name: string) => string
   newActivityFor: (name: string) => string
   openChatToSee: string
+  thisDevice: string
+  hermesGateway: string
 
   // Bot actions
   editProfile: string
@@ -82,6 +84,7 @@ type BotsMessages = {
   activeNow: string
   needsYou: string
   openChat: string
+  openContinuousChatDescription: string
   chatNeverResets: string
   chatNeverResetsDesc: string
 
@@ -463,6 +466,8 @@ const en: BotsMessages = {
   newMessageFor: name => `🤖 New message for ${name}`,
   newActivityFor: name => `${name} has new activity`,
   openChatToSee: 'Open the chat to see it.',
+  thisDevice: 'This device',
+  hermesGateway: 'Hermes gateway',
 
   editProfile: 'Edit Profile',
   duplicate: 'Duplicate',
@@ -493,6 +498,8 @@ const en: BotsMessages = {
   activeNow: 'Active now',
   needsYou: 'needs you',
   openChat: 'Open chat',
+  openContinuousChatDescription:
+    'Open this bot’s continuous chat. Its background work keeps running when you switch away.',
   chatNeverResets: 'This chat never resets',
   chatNeverResetsDesc:
     'Bot chats are one continuous conversation — compacting instead. For a throwaway session with this agent, use Sessions mode.',
@@ -871,6 +878,8 @@ const zh: BotsMessages = {
   newMessageFor: name => `🤖 ${name} 收到新消息`,
   newActivityFor: name => `${name} 有新动态`,
   openChatToSee: '打开聊天即可查看。',
+  thisDevice: '此设备',
+  hermesGateway: 'Hermes 网关',
 
   editProfile: '编辑资料',
   duplicate: '复制',
@@ -901,6 +910,7 @@ const zh: BotsMessages = {
   activeNow: '当前活跃',
   needsYou: '需要你',
   openChat: '打开聊天',
+  openContinuousChatDescription: '打开此 Bot 的连续聊天。切换到其他页面后，其后台工作仍会继续运行',
   chatNeverResets: '此聊天永不重置',
   chatNeverResetsDesc: 'Bot 聊天是一次连续对话——采用压缩而非重置。如需与此代理进行一次性会话，请使用会话模式。',
 
@@ -1284,6 +1294,8 @@ export function useBots() {
     newMessageFor: (name: string) => t('newMessageFor', name),
     newActivityFor: (name: string) => t('newActivityFor', name),
     openChatToSee: t('openChatToSee'),
+    thisDevice: t('thisDevice'),
+    hermesGateway: t('hermesGateway'),
 
     // Bot actions
     editProfile: t('editProfile'),
@@ -1316,6 +1328,7 @@ export function useBots() {
     activeNow: t('activeNow'),
     needsYou: t('needsYou'),
     openChat: t('openChat'),
+    openContinuousChatDescription: t('openContinuousChatDescription'),
     chatNeverResets: t('chatNeverResets'),
     chatNeverResetsDesc: t('chatNeverResetsDesc'),
 

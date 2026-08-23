@@ -961,7 +961,7 @@ test('an unavailable owner offers retry instead of a dead Open chat button', () 
   const start = pluginSource.indexOf('function BotsHomeView(')
   const view = pluginSource.slice(start, pluginSource.indexOf('function closeBotsHomeWorkspace('))
 
-  assert.match(view, /unavailable && !sourceRemoved\s*\n\s*\? jsx\(Button, \{[\s\S]{0,200}?children: 'Retry'/)
+  assert.match(view, /unavailable && !sourceRemoved\s*\n\s*\? jsx\(Button, \{[\s\S]{0,200}?children: b\.retryLabel/)
   // Retry re-polls the roster; it must not activate or route anything.
   assert.match(view, /queryClient\.invalidateQueries\(\{ queryKey: ROSTER_KEY \}\)/)
   assert.doesNotMatch(view, /ensureAgent|requestProfile|newChat/)
@@ -975,8 +975,8 @@ test('an available remote owner offers the same direct chat action', () => {
   const start = pluginSource.indexOf('function BotsHomeView(')
   const view = pluginSource.slice(start, pluginSource.indexOf('function closeBotsHomeWorkspace('))
 
-  assert.match(view, /children: 'Open chat'/)
-  assert.match(view, /Open this bot’s continuous chat/)
+  assert.match(view, /children: b\.openChat/)
+  assert.match(view, /:\s*b\.openContinuousChatDescription/)
   assert.doesNotMatch(view, /Copy @/)
   assert.doesNotMatch(view, /remoteCopy/)
   assert.doesNotMatch(view, /Mention it from any Bot Chat/)

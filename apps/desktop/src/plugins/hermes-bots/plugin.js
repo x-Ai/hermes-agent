@@ -8133,7 +8133,10 @@ function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }) {
       : previewSession?.preview || ''
   )
   const handle = botHandle(bot.name, bot)
-  const gatewayLabel = bot.connectionLabel || (bot.connectionId === 'local' ? 'This device' : '')
+  const gatewayLabel =
+    bot.connectionLabel === 'This device'
+      ? b.thisDevice
+      : bot.connectionLabel || (bot.connectionId === 'local' ? b.thisDevice : '')
   const showDetailsRow = Boolean(showHandle || displayPreview || fromBot)
   const rowTooltip = [displayName(bot, meta), `@${handle}`, gatewayLabel, sourceStatus.label]
     .filter(Boolean)
@@ -13180,6 +13183,7 @@ function reconcileRosterSelection(roster, sources, metaByName) {
 }
 
 function BotsHomeView() {
+  const b = useBots()
   const roster = useValue($lastRoster)
   const sources = useValue($lastSources)
   const selectedKey = useValue($selectedRosterKey)
@@ -13215,7 +13219,10 @@ function BotsHomeView() {
   // A ghost is reconstructed from a persisted owner key while its gateway is
   // offline. That proves the profile name, not its public mention handle.
   const handle = bot.ghost ? '' : botHandle(bot.name, bot)
-  const gateway = bot.connectionLabel || (bot.connectionId === 'local' ? 'This device' : 'Hermes gateway')
+  const gateway =
+    bot.connectionLabel === 'This device'
+      ? b.thisDevice
+      : bot.connectionLabel || (bot.connectionId === 'local' ? b.thisDevice : b.hermesGateway)
   const gatewayKind = bot.connectionKind || (bot.connectionId === 'local' ? 'local' : 'remote')
   const { shape, color, image } = botAppearance(bot.name, meta)
   const photo = image && !isBackfilledFacePng(image) ? image : null
@@ -13303,7 +13310,7 @@ function BotsHomeView() {
                 ? sourceRemoved
                   ? `${gateway} was removed. Choose another bot from the sidebar.`
                   : `${gateway} is unavailable. Retry when it is back online.`
-                : 'Open this bot’s continuous chat. Its background work keeps running when you switch away.'
+                : b.openContinuousChatDescription
             }),
             unavailable && !sourceRemoved
               ? jsx(Button, {
@@ -13311,14 +13318,14 @@ function BotsHomeView() {
                   size: 'sm',
                   className: 'mt-5',
                   onClick: retrySource,
-                  children: 'Retry'
+                  children: b.retryLabel
                 })
               : jsx(Button, {
                   variant: 'secondary',
                   size: 'sm',
                   className: 'mt-5',
                   onClick: () => void openRosterBot(bot),
-                  children: 'Open chat'
+                  children: b.openChat
                 })
           ]
         })
