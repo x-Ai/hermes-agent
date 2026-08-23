@@ -62,7 +62,10 @@ export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 //   2. Desktop prefix match (`providerGroup`) — legacy fallback for provider
 //      env vars that predate the backend tagging.
 // Only entries that resolve to neither (the "Other" bucket) are skipped.
-function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>, providerDescriptions: Record<string, string>): ProviderKeyGroup[] {
+function buildProviderKeyGroups(
+  vars: Record<string, EnvVarInfo>,
+  providerDescriptions: Record<string, string>
+): ProviderKeyGroup[] {
   const buckets = new Map<string, [string, EnvVarInfo][]>()
 
   for (const [key, info] of Object.entries(vars)) {

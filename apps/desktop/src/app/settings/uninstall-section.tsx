@@ -158,7 +158,9 @@ export function UninstallSection() {
                   <Trash2 className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0">
                     <span className="block text-sm font-medium text-foreground">{u.options[opt.mode].title}</span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">{u.options[opt.mode].description}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {u.options[opt.mode].description}
+                    </span>
                   </span>
                 </button>
               ))}

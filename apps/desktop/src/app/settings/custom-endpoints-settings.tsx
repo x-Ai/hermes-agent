@@ -218,12 +218,16 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     switch (response.message_code) {
       case 'missing_url':
         return ce.enterUrlFirst
+
       case 'unreachable':
         return ce.unreachable(form.baseUrl.trim())
+
       case 'auth_rejected':
         return ce.authRejected
+
       case 'http_error':
         return ce.httpError(response.http_status ?? '?')
+
       default:
         return response.message || ce.validationFailed
     }
@@ -437,9 +441,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               <div className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.authSchemeLabel}
                 <SegmentedControl
-                  onChange={value =>
-                    setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))
-                  }
+                  onChange={value => setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))}
                   options={[
                     { id: 'auto', label: ce.authSchemeAuto },
                     { id: 'bearer', label: 'Authorization: Bearer' },

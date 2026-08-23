@@ -605,8 +605,7 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   },
   delegation: {
     model: 'Model for delegated subagents. Empty inherits the parent model.',
-    provider:
-      'Provider for delegated subagents — a built-in name or a custom endpoint id. Empty inherits the parent.',
+    provider: 'Provider for delegated subagents — a built-in name or a custom endpoint id. Empty inherits the parent.',
     useCustomEndpoints:
       'Offer your custom endpoints in the subagent provider list, and their discovered models in the model list.'
   },

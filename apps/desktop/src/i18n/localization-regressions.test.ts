@@ -71,10 +71,7 @@ describe('Container persistence setting localization', () => {
         `${locale} label`
       ).toBeTruthy()
 
-      const description = fieldCopyForSchemaKey(
-        copy.settings.fieldDescriptions,
-        'terminal.container_persistent'
-      )
+      const description = fieldCopyForSchemaKey(copy.settings.fieldDescriptions, 'terminal.container_persistent')
 
       expect(description, `${locale} description`).toBeTruthy()
 

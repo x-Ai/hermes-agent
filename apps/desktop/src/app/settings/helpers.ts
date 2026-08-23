@@ -454,6 +454,7 @@ export function delegationModelOptions(config: HermesConfigRecord): string[] | u
   for (const entry of customEndpointEntries(config)) {
     const idNorm = normalizeProviderName(entry.id)
     const nameNorm = normalizeProviderName(entry.name)
+
     const candidates = new Set(
       [idNorm, nameNorm, idNorm && `custom:${idNorm}`, nameNorm && `custom:${nameNorm}`].filter(Boolean)
     )

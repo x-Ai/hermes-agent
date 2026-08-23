@@ -105,6 +105,13 @@ export const ja = defineLocale({
       signOutAndSignIn: 'サインアウトして再サインイン',
       remoteFailureHint:
         '「ゲートウェイ設定」でゲートウェイの URL とサインインを確認するか、ローカルゲートウェイに切り替えてください。',
+      cloudDownTitle: 'Nous Cloud エージェントが停止しています',
+      cloudDownDescription:
+        'このゲートウェイが接続している Nous 管理のクラウドエージェントがサーバーエラーを返しています。ここから再起動することはできません。ステータスを確認するか、ローカルゲートウェイに切り替えるか、サポートに連絡してください。',
+      cloudDownHint:
+        '下のボタンから Nous Portal（インスタンスの状態と操作）を開くか、Discord でサポートを受けられます。',
+      cloudDownCheckPortal: 'Portal のステータスを確認',
+      cloudDownDiscord: 'Discord でサポートを受ける',
       hideRecentLogs: '最近のログを非表示',
       showRecentLogs: '最近のログを表示',
       signedInTitle: 'サインインしました',
@@ -212,6 +219,30 @@ export const ja = defineLocale({
     title: '請求',
     paymentAndCredits: '支払いとクレジット',
     usage: '使用量'
+  },
+
+  sendDiagnostics: {
+    title: 'Nous に診断情報を送信',
+    privacyNotice:
+      'デバッグバンドルを Nous 内部ストレージにアップロードします（公開ペーストではありません）。システム情報（OS、バージョン、プロバイダー、設定済み API キーの種類 — キー自体は含まれません）と、エージェント/ゲートウェイ/デスクトップの完全なログ（各最大 512 KB。会話内容、ツール出力、ファイルパスを含む可能性が高い）が含まれます。シークレットはアップロード前にマスクされます。閲覧できるのは Nous スタッフと許可された Discord モデレーターのみで、14 日後に自動削除されます。',
+    upload: 'アップロード',
+    uploading: 'アップロード中…',
+    cancel: 'キャンセル',
+    close: '閉じる',
+    copyLink: 'リンクをコピー',
+    uploadIdFallback: id => `表示リンクが返されませんでした — サポートにアップロード ID ${id} をお伝えください`,
+    doneTitle: '診断情報を送信しました',
+    doneDescription:
+      'バンドルは非公開でアップロードされました。サポートスレッドで以下のリンクを共有すると、チームがログを確認できます。',
+    failedTitle: 'アップロードに失敗しました',
+    failedHint:
+      'ターミナルから `hermes debug share --nous` を実行するか、`hermes debug share --local` でアップロードせずにレポートを表示することもできます。',
+    handoffLead: '続きは次の場所で:',
+    links: {
+      github: 'GitHub Issues',
+      portal: 'Nous Portal サポート',
+      discord: 'Discord'
+    }
   },
 
   titlebar: {
@@ -800,7 +831,8 @@ export const ja = defineLocale({
       remoteAuthHint:
         'ホスト型ゲートウェイは OAuth またはユーザー名とパスワードを使用します。自己ホスト型はセッショントークンを使用する場合があります。',
       cloudTitle: 'Hermes Cloud',
-      cloudDesc: 'Hermes Cloud に一度サインインすれば、アカウント上のエージェントから選べます。URL の貼り付けは不要です。',
+      cloudDesc:
+        'Hermes Cloud に一度サインインすれば、アカウント上のエージェントから選べます。URL の貼り付けは不要です。',
       cloudSignInTitle: 'Hermes Cloud',
       cloudSignIn: 'Hermes Cloud にサインイン',
       cloudSignedIn: 'Hermes Cloud にサインイン済み',
@@ -943,7 +975,9 @@ export const ja = defineLocale({
       XAI_API_KEY: { description: 'xAI API キー' },
       XAI_BASE_URL: { description: 'xAI ベース URL の上書き' },
       NVIDIA_API_KEY: { description: 'NVIDIA NIM API キー（build.nvidia.com またはローカル NIM エンドポイント）' },
-      NVIDIA_BASE_URL: { description: 'NVIDIA NIM ベース URL の上書き（ローカル NIM の http://localhost:8000/v1 など）' },
+      NVIDIA_BASE_URL: {
+        description: 'NVIDIA NIM ベース URL の上書き（ローカル NIM の http://localhost:8000/v1 など）'
+      },
       LM_API_KEY: { description: '認証を有効にした LM Studio ローカルサーバー用の Bearer トークン' },
       LM_BASE_URL: { description: 'LM Studio ベース URL の上書き' },
       GLM_API_KEY: { description: 'Z.AI / GLM API キー（ZAI_API_KEY / Z_AI_API_KEY としても認識）' },
@@ -967,14 +1001,19 @@ export const ja = defineLocale({
       DEEPSEEK_API_KEY: { description: 'DeepSeek 直接アクセス用の API キー' },
       DEEPSEEK_BASE_URL: { description: 'カスタム DeepSeek API ベース URL（上級者向け）' },
       DASHSCOPE_API_KEY: { description: 'Alibaba Cloud DashScope API キー（Qwen + マルチプロバイダーモデル）' },
-      DASHSCOPE_BASE_URL: { description: 'カスタム DashScope ベース URL（デフォルト: coding-intl の OpenAI 互換エンドポイント）' },
+      DASHSCOPE_BASE_URL: {
+        description: 'カスタム DashScope ベース URL（デフォルト: coding-intl の OpenAI 互換エンドポイント）'
+      },
       HERMES_QWEN_BASE_URL: { description: 'Qwen Portal ベース URL の上書き（デフォルト: https://portal.qwen.ai/v1）' },
       OPENCODE_ZEN_API_KEY: { description: 'OpenCode Zen API キー（従量課金で厳選モデルを利用）' },
       OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen ベース URL の上書き' },
-      OPENCODE_GO_API_KEY: { description: 'OpenCode Go API キー（月額 10 ドルのサブスクリプションでオープンモデルを利用）' },
+      OPENCODE_GO_API_KEY: {
+        description: 'OpenCode Go API キー（月額 10 ドルのサブスクリプションでオープンモデルを利用）'
+      },
       OPENCODE_GO_BASE_URL: { description: 'OpenCode Go ベース URL の上書き' },
       HF_TOKEN: {
-        description: 'Inference Providers 用の Hugging Face トークン（router.huggingface.co 経由で 20+ のオープンモデル）'
+        description:
+          'Inference Providers 用の Hugging Face トークン（router.huggingface.co 経由で 20+ のオープンモデル）'
       },
       HF_BASE_URL: { description: 'Hugging Face Inference Providers ベース URL の上書き' },
       OLLAMA_API_KEY: { description: 'Ollama Cloud API キー（ollama.com — クラウドホストのオープンモデル）' },
@@ -1008,22 +1047,31 @@ export const ja = defineLocale({
           'Nous 購読者専用の共有ツールゲートウェイのドメインサフィックス。ベンダーホストの導出に使用（例: nousresearch.com -> firecrawl-gateway.nousresearch.com）'
       },
       TOOL_GATEWAY_SCHEME: {
-        description: 'Nous 購読者専用の共有ツールゲートウェイの URL スキーム（デフォルト https、ローカルテストでは http）'
+        description:
+          'Nous 購読者専用の共有ツールゲートウェイの URL スキーム（デフォルト https、ローカルテストでは http）'
       },
       TOOL_GATEWAY_USER_TOKEN: {
-        description: 'ツールゲートウェイリクエスト用の Nous 購読者アクセストークン（任意。省略時は Hermes 認証ストアから取得）'
+        description:
+          'ツールゲートウェイリクエスト用の Nous 購読者アクセストークン（任意。省略時は Hermes 認証ストアから取得）'
       },
       TAVILY_API_KEY: { description: 'AI ネイティブなウェブ検索と抽出のための Tavily API キー' },
       SEARXNG_URL: { description: '無料セルフホストのウェブ検索用 SearXNG インスタンスの URL' },
       BRAVE_SEARCH_API_KEY: { description: 'Brave Search API サブスクリプショントークン（無料枠: 月 2,000 クエリ）' },
-      BROWSERBASE_API_KEY: { description: 'クラウドブラウザ用の Browserbase API キー（任意 — ローカルブラウザには不要）' },
+      BROWSERBASE_API_KEY: {
+        description: 'クラウドブラウザ用の Browserbase API キー（任意 — ローカルブラウザには不要）'
+      },
       BROWSERBASE_PROJECT_ID: { description: 'Browserbase プロジェクト ID（任意 — クラウドブラウザのみ必要）' },
-      BROWSER_USE_API_KEY: { description: 'クラウドブラウザ用の Browser Use API キー（任意 — ローカルブラウザには不要）' },
+      BROWSER_USE_API_KEY: {
+        description: 'クラウドブラウザ用の Browser Use API キー（任意 — ローカルブラウザには不要）'
+      },
       FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl ブラウザセッションの TTL（秒、任意、デフォルト 300）' },
       AGENT_BROWSER_ENGINE: {
-        description: 'ローカルモードのブラウザエンジン: auto（デフォルト Chrome）、lightpanda（高速、スクリーンショットなし）、chrome'
+        description:
+          'ローカルモードのブラウザエンジン: auto（デフォルト Chrome）、lightpanda（高速、スクリーンショットなし）、chrome'
       },
-      CAMOFOX_URL: { description: 'ローカル検出回避ブラウジング用の Camofox ブラウザサーバー URL（例: http://localhost:9377）' },
+      CAMOFOX_URL: {
+        description: 'ローカル検出回避ブラウジング用の Camofox ブラウザサーバー URL（例: http://localhost:9377）'
+      },
       CAMOFOX_API_KEY: { description: 'リモート/認証付き Camofox サーバーへ送る任意の Bearer トークン' },
       FAL_KEY: { description: '画像・動画生成のための FAL API キー' },
       KREA_API_KEY: { description: 'Krea 2 画像生成のための Krea API キー（Medium + Large）' },
@@ -1034,11 +1082,15 @@ export const ja = defineLocale({
       HONCHO_API_KEY: { description: 'AI ネイティブ永続メモリのための Honcho API キー' },
       HONCHO_BASE_URL: { description: 'セルフホスト Honcho インスタンスのベース URL（API キー不要）' },
       HINDSIGHT_API_KEY: { description: 'グラフ対応の永続メモリのための Hindsight API キー' },
-      HINDSIGHT_API_URL: { description: 'Hindsight API のベース URL（デフォルト: https://api.hindsight.vectorize.io）' },
+      HINDSIGHT_API_URL: {
+        description: 'Hindsight API のベース URL（デフォルト: https://api.hindsight.vectorize.io）'
+      },
       SUPERMEMORY_API_KEY: { description: '会話スコープの永続メモリのための Supermemory API キー' },
       MEM0_API_KEY: { description: 'セマンティック永続メモリのための Mem0 Platform API キー' },
       RETAINDB_API_KEY: { description: '永続メモリのための RetainDB API キー' },
-      RETAINDB_BASE_URL: { description: 'セルフホスト RetainDB インスタンスのベース URL（デフォルト: https://api.retaindb.com）' },
+      RETAINDB_BASE_URL: {
+        description: 'セルフホスト RetainDB インスタンスのベース URL（デフォルト: https://api.retaindb.com）'
+      },
       BRV_API_KEY: { description: 'ByteRover API キー（任意、クラウド同期用 — デフォルトはローカル優先）' },
       OPENVIKING_API_KEY: { description: 'OpenViking API キー（ローカル開発モードでは空欄可）' },
       OPENVIKING_ENDPOINT: { description: 'OpenViking サーバー URL（デフォルト: http://127.0.0.1:1933）' },
@@ -1050,11 +1102,18 @@ export const ja = defineLocale({
       AIRTABLE_API_KEY: { description: 'Airtable 個人アクセストークン（airtable スキルで使用）' },
       TENOR_API_KEY: { description: 'GIF 検索のための Tenor API キー（gif-search スキルで使用）' },
       SUDO_PASSWORD: {
-        description: 'root 権限が必要なターミナルコマンドで使う sudo パスワード。明示的な空文字を設定するとプロンプトなしで空を試します'
+        description:
+          'root 権限が必要なターミナルコマンドで使う sudo パスワード。明示的な空文字を設定するとプロンプトなしで空を試します'
       },
-      HERMES_PREFILL_MESSAGES_FILE: { description: 'few-shot プライミング用の一時プリフィルメッセージ JSON ファイルのパス' },
-      HERMES_EPHEMERAL_SYSTEM_PROMPT: { description: 'API 呼び出し時に注入される一時システムプロンプト（セッションには保存されません）' },
-      RAFT_PROFILE: { description: 'Raft エージェントプロファイルの slug — 設定するとアダプターが自動で有効になります' },
+      HERMES_PREFILL_MESSAGES_FILE: {
+        description: 'few-shot プライミング用の一時プリフィルメッセージ JSON ファイルのパス'
+      },
+      HERMES_EPHEMERAL_SYSTEM_PROMPT: {
+        description: 'API 呼び出し時に注入される一時システムプロンプト（セッションには保存されません）'
+      },
+      RAFT_PROFILE: {
+        description: 'Raft エージェントプロファイルの slug — 設定するとアダプターが自動で有効になります'
+      },
       GATEWAY_ALLOW_ALL_USERS: {
         description: 'すべてのユーザーにメッセージングボットとの対話を許可します（true/false）。デフォルト: false。'
       },
@@ -1337,7 +1396,8 @@ export const ja = defineLocale({
         'Search + extract in one provider.': '検索 + 抽出を 1 つのプロバイダーで。',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           'ddgs Python パッケージによる検索 — API キー不要（任意の抽出プロバイダーと併用可）',
-        'Semantic + neural web search with content extraction.': 'セマンティック + ニューラルのウェブ検索とコンテンツ抽出。',
+        'Semantic + neural web search with content extraction.':
+          'セマンティック + ニューラルのウェブ検索とコンテンツ抽出。',
         'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
           'Wan、p-video など — api.deepinfra.com のライブカタログ。テキストから動画・画像から動画',
         'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
@@ -1421,7 +1481,8 @@ export const ja = defineLocale({
         ready: '準備完了',
         notReady: '未準備',
         unknown: '不明',
-        readyMessage: 'コンピュータ操作の準備ができました。エージェントにアプリのキャプチャやクリック操作を依頼できます。',
+        readyMessage:
+          'コンピュータ操作の準備ができました。エージェントにアプリのキャプチャやクリック操作を依頼できます。',
         grantPermissions: '権限を付与',
         waitingApproval: '承認を待機中…',
         grantFailed: '権限をリクエストできませんでした',
@@ -1448,10 +1509,12 @@ export const ja = defineLocale({
     noDescription: '説明はありません。',
     toolsetDescriptions: {
       a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 対応です。Linux Foundation のオープン標準を使った双方向のエージェント間通信を提供します。アウトバウンドツールはピアの検出、Agent Card の取得、JSON-RPC タスクの送信を行います。インバウンドアダプターは /.well-known/agent-card.json で Hermes を公開し、完全なメモリとコンテキストを持つライブゲートウェイセッションへタスクをルーティングします。bearer token が未設定の場合は localhost のみにバインドし、入力テキストのフィルタリング、出力認証情報の除去、コンテキスト圧縮外での監査ログ記録を行います。Python 標準ライブラリのみを使用し、a2a-sdk は不要です。',
-      browser: 'ウェブ操作のためのブラウザ自動化（ナビゲート、クリック、入力、スクロール、iframe、長押し）と URL 検索用のウェブ検索',
+      browser:
+        'ウェブ操作のためのブラウザ自動化（ナビゲート、クリック、入力、スクロール、iframe、長押し）と URL 検索用のウェブ検索',
       clarify: 'ユーザーに確認の質問をします（選択式または自由回答）',
       code_execution: 'ツールをプログラム的に呼び出す Python スクリプトを実行します（LLM の往復を削減）',
-      coding: 'コーディング向けツールセット: ファイル、ターミナル、検索、ウェブドキュメント、スキル、Todo、委任、ビジョン、ブラウザ',
+      coding:
+        'コーディング向けツールセット: ファイル、ターミナル、検索、ウェブドキュメント、スキル、Todo、委任、ビジョン、ブラウザ',
       computer_use:
         'cua-driver によるバックグラウンドのデスクトップ操作（macOS/Windows/Linux）— スクリーンショット、マウス、キーボード、スクロール、ドラッグ。ユーザーのカーソルやキーボードフォーカスを奪いません。ツール対応のあらゆるモデルで動作します。',
       context_engine: 'アクティブなコンテキストエンジンが公開するランタイムツール',
@@ -1463,16 +1526,19 @@ export const ja = defineLocale({
       feishu_doc: 'Feishu / Lark ドキュメントの内容を読み取ります',
       feishu_drive: 'Feishu / Lark ドキュメントのコメント操作（一覧、返信、追加）',
       file: 'ファイル操作ツール: 読み取り、書き込み、パッチ（あいまい一致対応）、検索（内容 + ファイル）',
-      'hermes-acp': 'エディター統合（VS Code、Zed、JetBrains）— メッセージング・音声・確認 UI を除いたコーディング向けツール',
+      'hermes-acp':
+        'エディター統合（VS Code、Zed、JetBrains）— メッセージング・音声・確認 UI を除いたコーディング向けツール',
       'hermes-api-server':
         'OpenAI 互換 API サーバー — HTTP 経由で全エージェントツールにアクセス（clarify や send_message などの対話型 UI ツールは除く）',
-      'hermes-bluebubbles': 'BlueBubbles iMessage ボットツールセット — ローカルの BlueBubbles サーバー経由の Apple iMessage',
+      'hermes-bluebubbles':
+        'BlueBubbles iMessage ボットツールセット — ローカルの BlueBubbles サーバー経由の Apple iMessage',
       'hermes-cli': '完全な対話型 CLI ツールセット — すべてのデフォルトツールと Cron ジョブ管理',
       'hermes-cron': 'デフォルトの Cron ツールセット — hermes-cli と同じコアツール。hermes tools で制御',
       'hermes-dingtalk': 'DingTalk ボットツールセット — エンタープライズメッセージングプラットフォーム（フルアクセス）',
       'hermes-discord': 'Discord ボットツールセット — フルアクセス（ターミナルは危険コマンド承認の安全チェック付き）',
       'hermes-email': 'メールボットツールセット — メール (IMAP/SMTP) で Hermes と対話',
-      'hermes-feishu': 'Feishu / Lark ボットツールセット — Feishu / Lark 経由のエンタープライズメッセージング（フルアクセス）',
+      'hermes-feishu':
+        'Feishu / Lark ボットツールセット — Feishu / Lark 経由のエンタープライズメッセージング（フルアクセス）',
       'hermes-gateway': 'ゲートウェイツールセット — すべてのメッセージングプラットフォームツールの統合',
       'hermes-homeassistant': 'Home Assistant ボットツールセット — スマートホームのイベント監視と制御',
       'hermes-matrix': 'Matrix ボットツールセット — 分散型暗号化メッセージング（フルアクセス）',
@@ -1872,9 +1938,17 @@ export const ja = defineLocale({
         label: '許可するユーザー ID',
         help: '推奨。カンマ区切りの Mattermost ユーザー ID。'
       },
-      MATRIX_HOMESERVER: { label: 'ホームサーバー URL', placeholder: 'https://matrix.org', help: 'Matrix ホームサーバー URL（例：https://matrix.org）' },
+      MATRIX_HOMESERVER: {
+        label: 'ホームサーバー URL',
+        placeholder: 'https://matrix.org',
+        help: 'Matrix ホームサーバー URL（例：https://matrix.org）'
+      },
       MATRIX_ACCESS_TOKEN: { label: 'アクセストークン', help: 'Matrix アクセストークン（パスワードログインより優先）' },
-      MATRIX_USER_ID: { label: 'ボットユーザー ID', placeholder: '@hermes:example.org', help: 'Matrix ユーザー ID（例：@hermes:example.org）' },
+      MATRIX_USER_ID: {
+        label: 'ボットユーザー ID',
+        placeholder: '@hermes:example.org',
+        help: 'Matrix ユーザー ID（例：@hermes:example.org）'
+      },
       MATRIX_ALLOWED_USERS: {
         label: '許可する Matrix ユーザー ID',
         help: '推奨。@user:server 形式のカンマ区切りユーザー ID。'
@@ -1898,21 +1972,37 @@ export const ja = defineLocale({
         label: '許可する WhatsApp ユーザー',
         help: '推奨。カンマ区切りの電話番号または WhatsApp ID。'
       },
-      IRC_SERVER: { label: 'IRC サーバー', help: 'IRC サーバーのホスト名（例: irc.libera.chat）。', placeholder: 'irc.libera.chat' },
+      IRC_SERVER: {
+        label: 'IRC サーバー',
+        help: 'IRC サーバーのホスト名（例: irc.libera.chat）。',
+        placeholder: 'irc.libera.chat'
+      },
       IRC_CHANNEL: { label: 'IRC チャンネル', help: '参加する IRC チャンネル（例: #hermes）。' },
       IRC_NICKNAME: { label: 'ボットのニックネーム', help: 'IRC 上のボットのニックネーム（デフォルト: hermes-bot）。' },
       IRC_SERVER_PASSWORD: { label: 'サーバーパスワード', help: 'IRC サーバーのパスワード（必要な場合）。' },
       IRC_NICKSERV_PASSWORD: { label: 'NickServ パスワード', help: 'ニックネーム認証用の NickServ パスワード。' },
       IRC_PORT: { label: 'IRC ポート', help: 'IRC サーバーのポート（デフォルト: TLS は 6697、非 TLS は 6667）。' },
-      IRC_USE_TLS: { label: 'TLS を使用', help: 'IRC 接続に TLS を使用（1/true/yes で有効。ポート 6697 ではデフォルト有効）。' },
+      IRC_USE_TLS: {
+        label: 'TLS を使用',
+        help: 'IRC 接続に TLS を使用（1/true/yes で有効。ポート 6697 ではデフォルト有効）。'
+      },
       IRC_ALLOWED_USERS: { label: '許可するニックネーム', help: 'ボットと会話できる IRC ニックネーム。カンマ区切り。' },
-      IRC_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可', help: '開発用のみ。チャンネル内の誰でもボットと会話できます。' },
-      IRC_HOME_CHANNEL: { label: 'ホームチャンネル', help: 'Cron / 通知配信のチャンネル（デフォルトは IRC_CHANNEL）。' },
+      IRC_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。チャンネル内の誰でもボットと会話できます。'
+      },
+      IRC_HOME_CHANNEL: {
+        label: 'ホームチャンネル',
+        help: 'Cron / 通知配信のチャンネル（デフォルトは IRC_CHANNEL）。'
+      },
       GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
         label: 'サービスアカウント JSON',
         help: 'サービスアカウント JSON キーのパス（またはインライン JSON）。空欄なら Cloud Run / GCE のアプリケーションデフォルト認証情報 (ADC) を使用し、GOOGLE_APPLICATION_CREDENTIALS にフォールバックします。'
       },
-      GOOGLE_CHAT_HTTP_EVENTS_URL: { label: 'HTTP イベントコールバック URL', help: 'Chat メッセージイベント用の認証済み HTTP エンドポイント。' },
+      GOOGLE_CHAT_HTTP_EVENTS_URL: {
+        label: 'HTTP イベントコールバック URL',
+        help: 'Chat メッセージイベント用の認証済み HTTP エンドポイント。'
+      },
       GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
         label: 'HTTP イベントトークンのオーディエンス',
         help: 'Google 署名の HTTP イベント Bearer トークンに期待するオーディエンス。デフォルトは GOOGLE_CHAT_HTTP_EVENTS_URL。'
@@ -1925,28 +2015,55 @@ export const ja = defineLocale({
         label: 'GCP プロジェクト ID',
         help: '任意の Pub/Sub 受信モード用 GCP プロジェクト ID。GOOGLE_CLOUD_PROJECT にフォールバック。'
       },
-      GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub サブスクリプション名', help: 'プルモード受信イベント用の任意の Pub/Sub サブスクリプションパス。' },
-      GOOGLE_CHAT_ALLOWED_USERS: { label: '許可するユーザーメール', help: 'ボットと対話できるユーザーのメールアドレス。カンマ区切り。' },
-      GOOGLE_CHAT_HOME_CHANNEL: { label: 'ホームスペース ID', help: 'Cron / 通知配信のデフォルトスペース（例: spaces/AAAA...）。' },
+      GOOGLE_CHAT_SUBSCRIPTION_NAME: {
+        label: 'Pub/Sub サブスクリプション名',
+        help: 'プルモード受信イベント用の任意の Pub/Sub サブスクリプションパス。'
+      },
+      GOOGLE_CHAT_ALLOWED_USERS: {
+        label: '許可するユーザーメール',
+        help: 'ボットと対話できるユーザーのメールアドレス。カンマ区切り。'
+      },
+      GOOGLE_CHAT_HOME_CHANNEL: {
+        label: 'ホームスペース ID',
+        help: 'Cron / 通知配信のデフォルトスペース（例: spaces/AAAA...）。'
+      },
       LINE_CHANNEL_ACCESS_TOKEN: {
         label: 'チャネルアクセストークン',
         help: 'LINE チャネルの長期アクセストークン（LINE Developers コンソール > Messaging API > チャネルアクセストークン）。'
       },
-      LINE_CHANNEL_SECRET: { label: 'チャネルシークレット', help: 'LINE チャネルシークレット（HMAC-SHA256 Webhook 署名検証に使用）。' },
+      LINE_CHANNEL_SECRET: {
+        label: 'チャネルシークレット',
+        help: 'LINE チャネルシークレット（HMAC-SHA256 Webhook 署名検証に使用）。'
+      },
       LINE_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（デフォルト: 8646）。' },
-      LINE_HOST: { label: 'Webhook ホスト', help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。' },
+      LINE_HOST: {
+        label: 'Webhook ホスト',
+        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
+      },
       LINE_PUBLIC_URL: {
         label: '公開 HTTPS ベース URL',
         help: 'LINE へ画像/音声/動画を配信するための公開 HTTPS ベース URL（例: https://my-tunnel.example.com）。バインドアドレスに直接到達できない場合、メディア送信に必須。'
       },
-      LINE_ALLOWED_USERS: { label: '許可するユーザー ID', help: 'ボットに DM できる LINE ユーザー ID（U で始まる）。カンマ区切り。' },
-      LINE_ALLOWED_GROUPS: { label: '許可するグループ ID', help: 'ボットが応答する LINE グループ ID（C で始まる）。カンマ区切り。' },
-      LINE_ALLOWED_ROOMS: { label: '許可するルーム ID', help: 'ボットが応答する LINE ルーム ID（R で始まる）。カンマ区切り。' },
+      LINE_ALLOWED_USERS: {
+        label: '許可するユーザー ID',
+        help: 'ボットに DM できる LINE ユーザー ID（U で始まる）。カンマ区切り。'
+      },
+      LINE_ALLOWED_GROUPS: {
+        label: '許可するグループ ID',
+        help: 'ボットが応答する LINE グループ ID（C で始まる）。カンマ区切り。'
+      },
+      LINE_ALLOWED_ROOMS: {
+        label: '許可するルーム ID',
+        help: 'ボットが応答する LINE ルーム ID（R で始まる）。カンマ区切り。'
+      },
       LINE_ALLOW_ALL_USERS: {
         label: 'すべてのユーザーを許可',
         help: '開発用のみ。すべての LINE ユーザーがボットと会話できます（許可リストを無効化）。'
       },
-      LINE_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトのユーザー/グループ/ルーム ID。' },
+      LINE_HOME_CHANNEL: {
+        label: 'ホームチャンネル ID',
+        help: 'Cron / 通知配信のデフォルトのユーザー/グループ/ルーム ID。'
+      },
       LINE_SLOW_RESPONSE_THRESHOLD: {
         label: '低速応答しきい値（秒）',
         help: '低速 LLM ポストバックボタンが作動するまでの秒数（デフォルト: 45。0 で無効化し常に Push フォールバック）。'
@@ -1955,24 +2072,48 @@ export const ja = defineLocale({
       NTFY_SERVER_URL: { label: 'サーバー URL', help: 'ntfy サーバーの URL（デフォルト: https://ntfy.sh）。' },
       NTFY_TOKEN: { label: '認証トークン', help: 'Bearer トークンまたは Basic 認証用の user:pass（任意）。' },
       NTFY_PUBLISH_TOPIC: { label: '発行トピック', help: '返信を発行するトピック（デフォルトは NTFY_TOPIC）。' },
-      NTFY_MARKDOWN: { label: 'Markdown を有効化', help: 'X-Markdown: true ヘッダー付きで返信を送信（true/false、デフォルト: false）。' },
+      NTFY_MARKDOWN: {
+        label: 'Markdown を有効化',
+        help: 'X-Markdown: true ヘッダー付きで返信を送信（true/false、デフォルト: false）。'
+      },
       NTFY_ALLOWED_USERS: { label: '許可するトピック名', help: '許可するトピック名（許可リスト）。カンマ区切り。' },
       NTFY_ALLOW_ALL_USERS: {
         label: 'すべてのトピックを許可',
         help: '開発用のみ。あらゆるトピックがボットと会話できます（許可リストを無効化）。'
       },
       NTFY_HOME_CHANNEL: { label: 'ホームトピック', help: 'Cron / 通知配信のデフォルトトピック。' },
-      NTFY_HOME_CHANNEL_NAME: { label: 'ホームトピック名', help: 'ホームチャンネルの表示名（デフォルトはトピック名）。' },
+      NTFY_HOME_CHANNEL_NAME: {
+        label: 'ホームトピック名',
+        help: 'ホームチャンネルの表示名（デフォルトはトピック名）。'
+      },
       PHOTON_PROJECT_ID: {
         label: 'Spectrum プロジェクト ID',
         help: 'Spectrum プロジェクト ID（プロジェクトの spectrumProjectId。hermes photon setup で設定）。'
       },
-      PHOTON_PROJECT_SECRET: { label: 'プロジェクトシークレット', help: 'Spectrum プロジェクト ID と対になるシークレット（hermes photon setup で設定）。' },
-      PHOTON_SIDECAR_PORT: { label: 'サイドカー制御ポート', help: 'Node サイドカーの制御 + 受信チャネル用ループバックポート（デフォルト 8789）。' },
-      PHOTON_SIDECAR_AUTOSTART: { label: 'サイドカーを自動起動', help: '接続時に Node サイドカーを起動（true/false、デフォルト true）。' },
-      PHOTON_NODE_BIN: { label: 'Node 実行ファイルのパス', help: 'node バイナリのパス（デフォルト: PATH 上の node）。' },
-      PHOTON_DASHBOARD_HOST: { label: 'Dashboard ホスト', help: 'Photon Dashboard API ホスト（デフォルト https://app.photon.codes）。' },
-      PHOTON_SPECTRUM_HOST: { label: 'Spectrum API ホスト', help: 'Photon Spectrum API ホスト（デフォルト https://spectrum.photon.codes）。' },
+      PHOTON_PROJECT_SECRET: {
+        label: 'プロジェクトシークレット',
+        help: 'Spectrum プロジェクト ID と対になるシークレット（hermes photon setup で設定）。'
+      },
+      PHOTON_SIDECAR_PORT: {
+        label: 'サイドカー制御ポート',
+        help: 'Node サイドカーの制御 + 受信チャネル用ループバックポート（デフォルト 8789）。'
+      },
+      PHOTON_SIDECAR_AUTOSTART: {
+        label: 'サイドカーを自動起動',
+        help: '接続時に Node サイドカーを起動（true/false、デフォルト true）。'
+      },
+      PHOTON_NODE_BIN: {
+        label: 'Node 実行ファイルのパス',
+        help: 'node バイナリのパス（デフォルト: PATH 上の node）。'
+      },
+      PHOTON_DASHBOARD_HOST: {
+        label: 'Dashboard ホスト',
+        help: 'Photon Dashboard API ホスト（デフォルト https://app.photon.codes）。'
+      },
+      PHOTON_SPECTRUM_HOST: {
+        label: 'Spectrum API ホスト',
+        help: 'Photon Spectrum API ホスト（デフォルト https://spectrum.photon.codes）。'
+      },
       PHOTON_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる E.164 電話番号。カンマ区切り。' },
       PHOTON_ALLOW_ALL_USERS: {
         label: 'すべてのユーザーを許可',
@@ -2003,18 +2144,30 @@ export const ja = defineLocale({
         label: 'リアクションタップバックを有効化',
         help: '処理状況として 👀/👍/👎 をタップバックし、ボットメッセージへのタップバックをエージェントに転送します（true/false、デフォルト false）。'
       },
-      SIMPLEX_WS_URL: { label: 'デーモン WebSocket URL', help: 'simplex-chat デーモンの WebSocket URL（例: ws://127.0.0.1:5225）。' },
-      SIMPLEX_ALLOWED_USERS: { label: '許可する連絡先 ID', help: 'ボットと会話できる SimpleX 連絡先 ID。カンマ区切り。' },
+      SIMPLEX_WS_URL: {
+        label: 'デーモン WebSocket URL',
+        help: 'simplex-chat デーモンの WebSocket URL（例: ws://127.0.0.1:5225）。'
+      },
+      SIMPLEX_ALLOWED_USERS: {
+        label: '許可する連絡先 ID',
+        help: 'ボットと会話できる SimpleX 連絡先 ID。カンマ区切り。'
+      },
       SIMPLEX_ALLOW_ALL_USERS: {
         label: 'すべての連絡先を許可',
         help: '開発用のみ。あらゆる連絡先がボットと会話できます（許可リストを無効化）。'
       },
-      SIMPLEX_AUTO_ACCEPT: { label: '連絡先リクエストを自動承認', help: '受信した連絡先リクエストを自動承認します（デフォルト: true）。' },
+      SIMPLEX_AUTO_ACCEPT: {
+        label: '連絡先リクエストを自動承認',
+        help: '受信した連絡先リクエストを自動承認します（デフォルト: true）。'
+      },
       SIMPLEX_GROUP_ALLOWED: {
         label: '許可するグループ ID',
         help: 'ボットが参加する SimpleX グループ ID（カンマ区切り）、または * で任意のグループを許可。省略するとグループメッセージを完全に無視します（より安全なデフォルト — さもないとグループ内のボットは全メンバーのトラフィックを処理します）。'
       },
-      SIMPLEX_HOME_CHANNEL: { label: 'ホーム連絡先/グループ ID', help: 'Cron / 通知配信のデフォルト連絡先/グループ ID。' },
+      SIMPLEX_HOME_CHANNEL: {
+        label: 'ホーム連絡先/グループ ID',
+        help: 'Cron / 通知配信のデフォルト連絡先/グループ ID。'
+      },
       SIMPLEX_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'ホームチャンネルの表示名（デフォルトは ID）。' },
       HERMES_SIMPLEX_TEXT_BATCH_DELAY: {
         label: 'テキストバッチ遅延（秒）',
@@ -2022,37 +2175,116 @@ export const ja = defineLocale({
       },
       SMS_ALLOWED_USERS: { label: '許可する番号', help: 'ボットと会話できる電話番号。カンマ区切り。' },
       SMS_HOME_CHANNEL: { label: 'ホーム番号', help: 'Cron / 通知配信のデフォルト電話番号。' },
-      TEAMS_CLIENT_ID: { label: 'Azure AD クライアント ID', help: 'Azure AD アプリケーション（Bot Framework）のクライアント ID。' },
-      TEAMS_CLIENT_SECRET: { label: 'Azure AD クライアントシークレット', help: 'Azure AD アプリケーションのクライアントシークレット。' },
-      TEAMS_TENANT_ID: { label: 'Azure AD テナント ID', help: 'ボットアプリケーションをホストする Azure AD テナント ID。' },
+      TEAMS_CLIENT_ID: {
+        label: 'Azure AD クライアント ID',
+        help: 'Azure AD アプリケーション（Bot Framework）のクライアント ID。'
+      },
+      TEAMS_CLIENT_SECRET: {
+        label: 'Azure AD クライアントシークレット',
+        help: 'Azure AD アプリケーションのクライアントシークレット。'
+      },
+      TEAMS_TENANT_ID: {
+        label: 'Azure AD テナント ID',
+        help: 'ボットアプリケーションをホストする Azure AD テナント ID。'
+      },
       TEAMS_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（Bot Framework デフォルト: 3978）。' },
-      TEAMS_HOST: { label: 'Webhook ホスト', help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。' },
-      TEAMS_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる Teams ユーザー ID / UPN。カンマ区切り。' },
-      TEAMS_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可', help: '開発用のみ。すべての Teams ユーザーがボットをトリガーできます。' },
+      TEAMS_HOST: {
+        label: 'Webhook ホスト',
+        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
+      },
+      TEAMS_ALLOWED_USERS: {
+        label: '許可するユーザー',
+        help: 'ボットと会話できる Teams ユーザー ID / UPN。カンマ区切り。'
+      },
+      TEAMS_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。すべての Teams ユーザーがボットをトリガーできます。'
+      },
       TEAMS_HOME_CHANNEL: { label: 'ホームチャンネル', help: 'Cron / 通知配信のデフォルトのチャット/チャンネル ID。' },
       TEAMS_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Teams ホームチャンネルの表示名。' },
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: 'WeCom スマートロボットの WebSocket URL。' },
       WECOM_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
       WECOM_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる WeCom ユーザー ID。カンマ区切り。' },
-      A2A_AGENT_NAME: { label: 'A2A エージェント名', help: 'このエージェントの Agent Card に公開される名前（デフォルト：ホスト名から生成）。', placeholder: 'A2A エージェント名' },
-      A2A_BEARER_TOKEN: { label: 'A2A 共有トークン（空の場合はローカルのみ）', help: 'インバウンド A2A 呼び出し用の共有トークン（IDが呼び出し元 IP にフォールバック）。トークン未設定の場合は 127.0.0.1 のみにバインドします。', placeholder: 'A2A 共有トークン（空の場合はローカルのみ）' },
-      A2A_HOST: { label: 'A2A バインドホスト（デフォルト 127.0.0.1）', help: 'インバウンドバインドホスト。デフォルト 127.0.0.1；トークン設定時かつここで選択した場合のみ 0.0.0.0 に拡張。', placeholder: 'A2A バインドホスト（デフォルト 127.0.0.1）' },
-      A2A_PORT: { label: 'A2A ポート（デフォルト 9900）', help: 'インバウンド A2A サーバーポート（デフォルト 9900）。', placeholder: 'A2A ポート（デフォルト 9900）' },
-      A2A_PEER_TOKENS: { label: 'A2A ピアトークン（name:token、カンマ区切り；または空）', help: 'ピアエージェントごとのトークン（例：alice:tok1,bob:tok2）。マッチした名前がレート制限、信頼、監査に使用される ID になります。', placeholder: 'A2A ピアトークン（name:token、カンマ区切り；または空）' },
-      A2A_HOME_CHANNEL: { label: 'A2A ホームチャンネル（または空）', help: 'deliver=a2a の場合に cron / 通知配信で使用するタスク/コンテキスト ID。' },
-      A2A_ALLOW_ALL_USERS: { label: 'すべての A2A ピアを許可', help: '認証済みの A2A ピアがこのエージェントにアクセスできるようにします（開発用のみ）。' },
-      RAFT_PROFILE: { label: 'Raft エージェントプロファイル', help: 'Raft エージェントプロファイルスラグ — 設定するとアダプターが自動有効化されます。', placeholder: 'Raft エージェントプロファイル' },
-      BUZZ_RELAY_URL: { label: 'Buzz リレー URL', help: 'Buzz コミュニティリレーのベース URL（例：https://mycommunity.communities.buzz.xyz）。', placeholder: 'Buzz リレー URL' },
-      BUZZ_PRIVATE_KEY: { label: 'Nostr 秘密鍵（nsec または hex）', help: 'エージェントの Buzz アイデンティティ用 Nostr 秘密鍵（nsec または hex）— 唯一の Buzz シークレット。' },
-      BUZZ_CLI_PATH: { label: 'buzz CLI パス（または空）', help: 'buzz CLI バイナリのパス（デフォルト：PATH の buzz、次に ~/bin/buzz）。' },
-      BUZZ_CHANNELS: { label: 'チャンネル UUID（カンマ区切り）', help: '監視するチャンネルの UUID（カンマ区切り、デフォルト：参加中のすべてのチャンネル）。' },
-      BUZZ_HOME_CHANNEL: { label: 'ホームチャンネル UUID（または空）', help: 'cron / 通知配信に使用するチャンネル UUID（デフォルト：最初の監視チャンネル）。' },
-      BUZZ_ALLOWED_USERS: { label: '許可するユーザー（カンマ区切り）', help: 'エージェントと会話できる npub または hex 公開鍵。カンマ区切り。' },
-      BUZZ_ALLOW_ALL_USERS: { label: 'すべてのユーザーを許可？（true/false）', help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。' },
-      BUZZ_TRANSPORT: { label: 'トランスポート（auto/websocket/poll）', help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。' },
+      A2A_AGENT_NAME: {
+        label: 'A2A エージェント名',
+        help: 'このエージェントの Agent Card に公開される名前（デフォルト：ホスト名から生成）。',
+        placeholder: 'A2A エージェント名'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A 共有トークン（空の場合はローカルのみ）',
+        help: 'インバウンド A2A 呼び出し用の共有トークン（IDが呼び出し元 IP にフォールバック）。トークン未設定の場合は 127.0.0.1 のみにバインドします。',
+        placeholder: 'A2A 共有トークン（空の場合はローカルのみ）'
+      },
+      A2A_HOST: {
+        label: 'A2A バインドホスト（デフォルト 127.0.0.1）',
+        help: 'インバウンドバインドホスト。デフォルト 127.0.0.1；トークン設定時かつここで選択した場合のみ 0.0.0.0 に拡張。',
+        placeholder: 'A2A バインドホスト（デフォルト 127.0.0.1）'
+      },
+      A2A_PORT: {
+        label: 'A2A ポート（デフォルト 9900）',
+        help: 'インバウンド A2A サーバーポート（デフォルト 9900）。',
+        placeholder: 'A2A ポート（デフォルト 9900）'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A ピアトークン（name:token、カンマ区切り；または空）',
+        help: 'ピアエージェントごとのトークン（例：alice:tok1,bob:tok2）。マッチした名前がレート制限、信頼、監査に使用される ID になります。',
+        placeholder: 'A2A ピアトークン（name:token、カンマ区切り；または空）'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A ホームチャンネル（または空）',
+        help: 'deliver=a2a の場合に cron / 通知配信で使用するタスク/コンテキスト ID。'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'すべての A2A ピアを許可',
+        help: '認証済みの A2A ピアがこのエージェントにアクセスできるようにします（開発用のみ）。'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft エージェントプロファイル',
+        help: 'Raft エージェントプロファイルスラグ — 設定するとアダプターが自動有効化されます。',
+        placeholder: 'Raft エージェントプロファイル'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz リレー URL',
+        help: 'Buzz コミュニティリレーのベース URL（例：https://mycommunity.communities.buzz.xyz）。',
+        placeholder: 'Buzz リレー URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr 秘密鍵（nsec または hex）',
+        help: 'エージェントの Buzz アイデンティティ用 Nostr 秘密鍵（nsec または hex）— 唯一の Buzz シークレット。'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI パス（または空）',
+        help: 'buzz CLI バイナリのパス（デフォルト：PATH の buzz、次に ~/bin/buzz）。'
+      },
+      BUZZ_CHANNELS: {
+        label: 'チャンネル UUID（カンマ区切り）',
+        help: '監視するチャンネルの UUID（カンマ区切り、デフォルト：参加中のすべてのチャンネル）。'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'ホームチャンネル UUID（または空）',
+        help: 'cron / 通知配信に使用するチャンネル UUID（デフォルト：最初の監視チャンネル）。'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: '許可するユーザー（カンマ区切り）',
+        help: 'エージェントと会話できる npub または hex 公開鍵。カンマ区切り。'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可？（true/false）',
+        help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'トランスポート（auto/websocket/poll）',
+        help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。'
+      },
       BUZZ_POLL_INTERVAL: { label: 'ポール間隔（秒）', help: 'インバウンドポールスイープの間隔秒数（デフォルト 4）。' },
-      BUZZ_AUTH_TAG: { label: 'NIP-OA auth tag JSON（または空）', help: 'NIP-42 WebSocket 認証用のオプション NIP-OA 所有者証明 auth tag JSON。' },
-      BUZZ_CREDENTIALS_FILE: { label: '認証情報ファイルパス（または空）', help: 'nsec を保持する JSON 認証情報ファイル（BUZZ_PRIVATE_KEY 未設定時のフォールバック）。' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON（または空）',
+        help: 'NIP-42 WebSocket 認証用のオプション NIP-OA 所有者証明 auth tag JSON。'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: '認証情報ファイルパス（または空）',
+        help: 'nsec を保持する JSON 認証情報ファイル（BUZZ_PRIVATE_KEY 未設定時のフォールバック）。'
+      },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: 'すべての Telegram ユーザーを許可',
         help: '開発用のみ。すべての Telegram ユーザーがボットを利用できます。'
@@ -2063,7 +2295,10 @@ export const ja = defineLocale({
         label: 'すべての Slack ユーザーを許可',
         help: '開発用のみ。すべての Slack ユーザーがボットを利用できます。'
       },
-      SLACK_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトチャンネル ID（C で始まる）。' },
+      SLACK_HOME_CHANNEL: {
+        label: 'ホームチャンネル ID',
+        help: 'Cron / 通知配信のデフォルトチャンネル ID（C で始まる）。'
+      },
       SLACK_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Slack ホームチャンネルの表示名。' },
       SLACK_THREAD_REQUIRE_MENTION: {
         label: 'スレッド内で @メンションを必須にする',
@@ -2104,7 +2339,10 @@ export const ja = defineLocale({
       },
       MATRIX_HOME_CHANNEL: { label: 'ホームルーム ID', help: 'Cron / 通知配信のデフォルトルーム ID。' },
       MATRIX_HOME_CHANNEL_NAME: { label: 'ホームルーム名', help: 'Matrix ホームルームの表示名。' },
-      MATRIX_PASSWORD: { label: 'Matrix パスワード', help: 'Matrix アカウントのパスワード（アクセストークンの代替）。' },
+      MATRIX_PASSWORD: {
+        label: 'Matrix パスワード',
+        help: 'Matrix アカウントのパスワード（アクセストークンの代替）。'
+      },
       MATRIX_RECOVERY_KEY: {
         label: 'リカバリーキー',
         help: 'デバイスキーのローテーション後にクロス署名検証へ使うリカバリーキー（Element: 設定 → セキュリティ → リカバリーキー）。'
@@ -2141,7 +2379,11 @@ export const ja = defineLocale({
       HASS_TOKEN: { label: '長期アクセストークン', help: 'Home Assistant の長期アクセストークン。' },
       EMAIL_ADDRESS: { label: 'メールアドレス', help: 'メールアカウントのアドレス。' },
       EMAIL_PASSWORD: { label: 'メールパスワード', help: 'メールアカウントのパスワード / アプリパスワード。' },
-      EMAIL_IMAP_HOST: { label: 'IMAP ホスト', help: '受信ポーリングに使う IMAP ホスト。', placeholder: 'imap.gmail.com' },
+      EMAIL_IMAP_HOST: {
+        label: 'IMAP ホスト',
+        help: '受信ポーリングに使う IMAP ホスト。',
+        placeholder: 'imap.gmail.com'
+      },
       EMAIL_SMTP_HOST: { label: 'SMTP ホスト', help: '送信に使う SMTP ホスト。', placeholder: 'smtp.gmail.com' },
       EMAIL_ALLOWED_USERS: {
         label: '許可するメールアドレス',
@@ -2167,7 +2409,10 @@ export const ja = defineLocale({
       FEISHU_APP_ID: { label: 'App ID', help: 'Feishu / Lark アプリの App ID。' },
       FEISHU_APP_SECRET: { label: 'App Secret', help: 'Feishu / Lark アプリの App Secret。' },
       FEISHU_ENCRYPT_KEY: { label: '暗号化キー (Encrypt Key)', help: 'Feishu / Lark のイベント暗号化キー。' },
-      FEISHU_VERIFICATION_TOKEN: { label: '検証トークン (Verification Token)', help: 'Feishu / Lark のイベント検証トークン。' },
+      FEISHU_VERIFICATION_TOKEN: {
+        label: '検証トークン (Verification Token)',
+        help: 'Feishu / Lark のイベント検証トークン。'
+      },
       FEISHU_ALLOWED_USERS: {
         label: '許可するユーザー ID',
         help: '推奨。ボットと会話できる Feishu ユーザー ID。カンマ区切り。'
@@ -2181,7 +2426,10 @@ export const ja = defineLocale({
       FEISHU_HOME_CHANNEL_NAME: { label: 'ホームチャット名', help: 'Feishu ホームチャットの表示名。' },
       WECOM_BOT_ID: { label: 'ボット ID', help: 'WeCom スマートロボットのボット ID。' },
       WECOM_SECRET: { label: 'ボット Secret', help: 'WeCom スマートロボットの secret。' },
-      WECOM_CALLBACK_CORP_ID: { label: '企業 ID (Corp ID)', help: 'WeCom コールバックモードの企業 ID（自社構築アプリ）。' },
+      WECOM_CALLBACK_CORP_ID: {
+        label: '企業 ID (Corp ID)',
+        help: 'WeCom コールバックモードの企業 ID（自社構築アプリ）。'
+      },
       WECOM_CALLBACK_CORP_SECRET: { label: 'アプリ Secret', help: 'WeCom コールバックモードのアプリ Secret。' },
       WECOM_CALLBACK_AGENT_ID: { label: 'アプリ Agent ID', help: 'WeCom コールバックモードのアプリ Agent ID。' },
       WECOM_CALLBACK_TOKEN: { label: 'コールバックトークン', help: 'WeCom コールバック検証トークン。' },
@@ -2203,9 +2451,18 @@ export const ja = defineLocale({
       },
       QQ_APP_ID: { label: 'App ID', help: 'QQ オープンプラットフォーム (q.qq.com) のボット App ID。' },
       QQ_CLIENT_SECRET: { label: 'Client Secret', help: 'QQ オープンプラットフォームのボット Client Secret。' },
-      QQ_ALLOWED_USERS: { label: '許可する QQ ユーザー', help: '推奨。ボットを利用できる QQ ユーザー ID。カンマ区切り。' },
-      QQ_GROUP_ALLOWED_USERS: { label: '許可する QQ グループ', help: 'ボットと対話できる QQ グループ ID。カンマ区切り。' },
-      QQ_SANDBOX: { label: 'サンドボックスモード', help: '開発テスト用に QQ サンドボックスモードを有効にします（true/false）。' },
+      QQ_ALLOWED_USERS: {
+        label: '許可する QQ ユーザー',
+        help: '推奨。ボットを利用できる QQ ユーザー ID。カンマ区切り。'
+      },
+      QQ_GROUP_ALLOWED_USERS: {
+        label: '許可する QQ グループ',
+        help: 'ボットと対話できる QQ グループ ID。カンマ区切り。'
+      },
+      QQ_SANDBOX: {
+        label: 'サンドボックスモード',
+        help: '開発テスト用に QQ サンドボックスモードを有効にします（true/false）。'
+      },
       API_SERVER_ENABLED: {
         label: 'API サーバーを有効にする',
         help: 'OpenAI 互換の API サーバーを有効にします（true/false）。Open WebUI や LobeChat などのフロントエンドが接続できます。'
@@ -2242,9 +2499,12 @@ export const ja = defineLocale({
         'Slack アプリを作成し、Socket Mode を有効にしてワークスペースにインストールし、ボットトークンとアプリレベルトークンをコピーします。',
       mattermost:
         'Mattermost サーバーでボットアカウントまたはパーソナルアクセストークンを作成し、サーバー URL とトークンをここに貼り付けます。',
-      matrix: 'ボットアカウントでホームサーバーにサインインし、アクセストークン、ユーザー ID、ホームサーバー URL をコピーします。',
-      signal: '到達可能な場所で signal-cli REST ブリッジを実行し、その URL と登録済みの電話番号を Hermes に設定します。',
-      whatsapp: 'Hermes 同梱の WhatsApp ブリッジを起動し、初回実行時に QR コードをスキャンしてからプラットフォームを有効にします。',
+      matrix:
+        'ボットアカウントでホームサーバーにサインインし、アクセストークン、ユーザー ID、ホームサーバー URL をコピーします。',
+      signal:
+        '到達可能な場所で signal-cli REST ブリッジを実行し、その URL と登録済みの電話番号を Hermes に設定します。',
+      whatsapp:
+        'Hermes 同梱の WhatsApp ブリッジを起動し、初回実行時に QR コードをスキャンしてからプラットフォームを有効にします。',
       bluebubbles:
         'iMessage が使える Mac で BlueBubbles Server を実行して API を公開し、サーバーパスワードとともに Hermes をその URL に向けます。',
       homeassistant:
@@ -2252,8 +2512,10 @@ export const ja = defineLocale({
       email:
         '専用メールボックスを使ってください。Gmail/Workspace ではアプリパスワードを作成し、imap.gmail.com / smtp.gmail.com を使用します。',
       sms: 'Twilio コンソールから Account SID と Auth Token、SMS 送信可能な電話番号を取得します。',
-      dingtalk: '開発者コンソールで DingTalk アプリを作成し、Client ID (App key) と Client Secret をここにコピーします。',
-      feishu: 'Feishu / Lark アプリを作成し、ボット機能を設定して、App ID、App secret、イベント暗号化キーをコピーします。',
+      dingtalk:
+        '開発者コンソールで DingTalk アプリを作成し、Client ID (App key) と Client Secret をここにコピーします。',
+      feishu:
+        'Feishu / Lark アプリを作成し、ボット機能を設定して、App ID、App secret、イベント暗号化キーをコピーします。',
       wecom:
         'WeCom でグループロボットを追加し、その webhook key を WECOM_BOT_ID としてコピーします。送信専用です — 双方向には WeCom (アプリ) を使ってください。',
       wecom_callback:
@@ -2272,7 +2534,8 @@ export const ja = defineLocale({
     platformDescription: {
       telegram: 'Telegram の DM、グループ、トピックで Hermes を使います。',
       discord: 'Discord の DM、チャンネル、スレッドに Hermes を接続します。',
-      slack: 'Socket Mode 経由で Slack から Hermes を使います。許可する Slack メンバー ID を追加すると接続済みボットが応答します。',
+      slack:
+        'Socket Mode 経由で Slack から Hermes を使います。許可する Slack メンバー ID を追加すると接続済みボットが応答します。',
       mattermost: 'Mattermost のチャンネルとダイレクトメッセージに Hermes を接続します。',
       matrix: 'Matrix のルームとダイレクトメッセージで Hermes を使います。',
       signal: 'signal-cli REST ブリッジ経由で接続します。',
@@ -2552,10 +2815,14 @@ export const ja = defineLocale({
         'Workday start reminder': '議題と最優先事項を含む勤務日リマインダー。',
         'Custom reminder': 'スケジュールに基づくカスタム繰り返しリマインダー。',
         'Evening wind-down': '終日チェック：明日のスケジュールと今夜準備すべきことの一覧。',
-        'Topic news digest': '関心のあるトピックに関する定期的なダイジェスト — 重複排除されて本当に新しいアイテムだけが表示されます。',
-        'Bills & renewals reminder': '定期支払い、サブスクリプション更新、または期限日の前に事前警告 — 予期しない自動請求を防ぎます。',
-        'Price & availability watch': '正確な商品、フライト、ホテル、またはリストを監視し、価格または在庫状況の条件が満たされたときに通知します。',
-        'Competitor news watch': '指定企業に関する注目すべきニュースを追跡 — 製品発売、価格設定、資金調達、申告 — 引用付き要約。',
+        'Topic news digest':
+          '関心のあるトピックに関する定期的なダイジェスト — 重複排除されて本当に新しいアイテムだけが表示されます。',
+        'Bills & renewals reminder':
+          '定期支払い、サブスクリプション更新、または期限日の前に事前警告 — 予期しない自動請求を防ぎます。',
+        'Price & availability watch':
+          '正確な商品、フライト、ホテル、またはリストを監視し、価格または在庫状況の条件が満たされたときに通知します。',
+        'Competitor news watch':
+          '指定企業に関する注目すべきニュースを追跡 — 製品発売、価格設定、資金調達、申告 — 引用付き要約。',
         'Habit check-in': '習慣を維持し、完了を振り返るための定期的なリマインダー。',
         'Hydration & movement nudge': '日中に定期的に水を飲み、立ち上がり、ストレッチするためのリマインダー。',
         'Weekly meal plan': 'あなたの食事と調理時間に合わせた、統合された買い物リスト付きの週間食事計画。',
@@ -3313,7 +3580,8 @@ export const ja = defineLocale({
     addProvider: 'プロバイダーを追加',
     loadFailed: 'モデルを読み込めませんでした',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
-    moaWarning: 'アグリゲーターが選択されたモデルとして応答します。各呼び出しの前に、リファレンスモデルが分析を提供します。',
+    moaWarning:
+      'アグリゲーターが選択されたモデルとして応答します。各呼び出しの前に、リファレンスモデルが分析を提供します。',
     pro: 'Pro',
     proNeedsSubscription: 'Pro モデルには有料の Nous サブスクリプションが必要です。',
     free: '無料',
@@ -3702,6 +3970,24 @@ export const ja = defineLocale({
       branchNewChat: '新しいチャットでブランチ',
       react: 'リアクション',
       dismissError: 'エラーを閉じる',
+      errorLayers: {
+        auth: '認証エラー',
+        billing: 'クレジット不足',
+        disk: 'ディスク容量不足',
+        endpoint: 'カスタムエンドポイントのエラー',
+        gateway: 'ゲートウェイのエラー',
+        generic: 'ターンが失敗しました',
+        provider: 'プロバイダーのエラー',
+        runtime: 'ローカルランタイムのエラー',
+        streaming: 'ストリーミング接続のエラー'
+      },
+      errorRetry: '再試行',
+      errorSwitchProvider: 'プロバイダーを切り替え',
+      errorOpenLogs: 'ログを開く',
+      errorOpenLogsFailed: 'ログフォルダを開けませんでした',
+      errorOpenDesktopLogs: 'デスクトップのログを開く',
+      errorCopyDiagnostics: 'エラー詳細をコピー',
+      errorSendDiagnostics: '診断情報を送信',
       filesChanged: count => `${count} 件のファイルを変更`,
       reviewChanges: 'レビュー',
       readAloudFailed: '読み上げに失敗しました',

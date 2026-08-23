@@ -251,7 +251,9 @@ export function ProfileRail() {
           <ProfilePill
             active={isAll || onDefault}
             glyph={isAll ? 'layers' : 'home'}
-            label={onDefault ? p.showAllProfiles : p.switchToProfile(displayEntityName(profileLabel(defaultProfile), t))}
+            label={
+              onDefault ? p.showAllProfiles : p.switchToProfile(displayEntityName(profileLabel(defaultProfile), t))
+            }
             onSelect={() => (onDefault ? setShowAllProfiles(true) : selectProfile(defaultProfile.name))}
           />
         ) : (

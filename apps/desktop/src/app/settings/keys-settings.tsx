@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useI18n } from '@/i18n'
 import type { Translations } from '@/i18n'
-import { $settingsScopeOverride } from '@/store/settings-scope'
+import { $settingsRequestProfile } from '@/store/settings-scope'
 import type { EnvVarInfo } from '@/types/hermes'
 
 import { CredentialKeyCard, credentialPlaceholder, credentialRowLabel } from './credential-key-ui'
@@ -52,8 +52,10 @@ const credentialElementId = (key: string) => `credential-key-${key}`
 export function KeysSettings({ view }: KeysSettingsProps) {
   const { t } = useI18n()
   // Shared settings "Applies to" scope: fetch + edit the selected profile's
-  // env store instead of the active one (null → active, the default path).
-  const scopeProfile = useStore($settingsScopeOverride)
+  // env store instead of the active one (undefined → active, the default
+  // path — request-shaped so the API helpers never see a primary-targeting
+  // null).
+  const scopeProfile = useStore($settingsRequestProfile)
   const { rowProps, vars } = useEnvCredentials(scopeProfile)
   const [openKey, setOpenKey] = useState<null | string>(null)
 

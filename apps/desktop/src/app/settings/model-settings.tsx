@@ -193,11 +193,13 @@ interface ModelSettingsProps {
   /** Notified after the main model is applied, so live UI stores can sync. */
   onMainModelChanged?: (provider: string, model: string) => void
   /** Shared settings "Applies to" scope: a concrete profile to edit instead of
-   *  the app's active one, or null to follow the active profile (default). */
-  scopeProfile?: null | string
+   *  the app's active one, or undefined to follow the active profile (default).
+   *  Request-shaped on purpose — the API helpers treat `null` as "deliberately
+   *  target the primary/default backend", so this prop never carries null. */
+  scopeProfile?: string
 }
 
-export function ModelSettings({ onMainModelChanged, scopeProfile = null }: ModelSettingsProps) {
+export function ModelSettings({ onMainModelChanged, scopeProfile }: ModelSettingsProps) {
   const queryClient = useQueryClient()
   const { t } = useI18n()
   const m = t.settings.model
@@ -573,7 +575,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
       setConfig(next)
 
       try {
-        await saveHermesConfig(next, scopeProfile ?? undefined)
+        await saveHermesConfig(next, scopeProfile)
       } catch (err) {
         setConfig(prev)
         notifyError(err, m.defaultsFailed)
@@ -818,8 +820,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile = null }: Model
   // show the localized label (matching the MoA section heading) while keeping
   // real vendor names (OpenAI, Gemini, …) untranslated.
   const providerLabel = useCallback(
-    (provider: ModelOptionProvider) =>
-      (provider.slug || '').toLowerCase() === 'moa' ? m.moa.title : provider.name,
+    (provider: ModelOptionProvider) => ((provider.slug || '').toLowerCase() === 'moa' ? m.moa.title : provider.name),
     [m.moa.title]
   )
 
