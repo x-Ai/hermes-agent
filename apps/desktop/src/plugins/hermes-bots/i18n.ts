@@ -103,6 +103,17 @@ type BotsMessages = {
   pet: string
   removeImage: string
   describeAvatar: string
+  avatarAuto: string
+  avatarAutoTitle: string
+  avatarRandomize: string
+  avatarUnlockTitle: string
+  avatarLockTitle: string
+  avatarUnlock: string
+  avatarLockFace: string
+  avatarLockedHint: string
+  avatarFollowsNameHint: string
+  avatarClassicShapes: string
+  avatarBlobTitle: string
   generating: string
   leaveBlankGenerate: string
   choosePet: string
@@ -168,6 +179,7 @@ type BotsMessages = {
 
   // Cronjobs
   cronjobs: string
+  cronjobsUnavailableUntilRoster: string
   newCronjob: string
   cronjobName: string
   instruction: string
@@ -501,6 +513,17 @@ const en: BotsMessages = {
   pet: 'Pet',
   removeImage: 'Remove image — use shape',
   describeAvatar: 'Describe your avatar…',
+  avatarAuto: 'Auto',
+  avatarAutoTitle: 'Auto — the name decides',
+  avatarRandomize: 'Randomize',
+  avatarUnlockTitle: 'Unlock — the face follows the agent’s name again',
+  avatarLockTitle: 'Keep this exact face even if the name changes',
+  avatarUnlock: 'Unlock',
+  avatarLockFace: 'Lock face',
+  avatarLockedHint: 'Face locked — renaming won’t change it.',
+  avatarFollowsNameHint: 'Face follows the name.',
+  avatarClassicShapes: 'Classic shapes',
+  avatarBlobTitle: 'Blob face — drawn from the agent’s name',
   generating: 'Generating…',
   leaveBlankGenerate: "Leave blank to generate from the agent's name and description.",
   choosePet: "Pick a pet as this agent's profile picture.",
@@ -568,6 +591,7 @@ const en: BotsMessages = {
     'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).',
 
   cronjobs: 'Cronjobs',
+  cronjobsUnavailableUntilRoster: 'Cronjobs are unavailable until this agent appears in the roster.',
   newCronjob: 'New Cronjob',
   cronjobName: 'Name this cronjob',
   instruction: 'Instruction',
@@ -890,12 +914,23 @@ const zh: BotsMessages = {
   saving: '保存中…',
   appearanceAndRole: (displayName, profile) => `${displayName}（${profile}）的外观和角色设置。`,
 
-  bot: 'Bot',
+  bot: '形象',
   generate: '生成',
   upload: '上传',
   pet: '宠物',
   removeImage: '移除图片 — 使用形状',
   describeAvatar: '描述你的头像…',
+  avatarAuto: '自动',
+  avatarAutoTitle: '自动 — 由代理名称决定',
+  avatarRandomize: '随机生成',
+  avatarUnlockTitle: '解锁 — 头像将重新随代理名称变化',
+  avatarLockTitle: '即使名称改变，也保留当前头像',
+  avatarUnlock: '解锁',
+  avatarLockFace: '锁定头像',
+  avatarLockedHint: '头像已锁定 — 重命名不会改变它。',
+  avatarFollowsNameHint: '头像随名称变化。',
+  avatarClassicShapes: '经典形状',
+  avatarBlobTitle: 'Blob 头像 — 根据代理名称生成',
   generating: '生成中…',
   leaveBlankGenerate: '留空可根据代理的名称和描述自动生成。',
   choosePet: '选择一个宠物作为此代理的头像。',
@@ -961,6 +996,7 @@ const zh: BotsMessages = {
     '已配置的服务器会从主资料复制；目录条目来自内置 MCP 菜单。需要 API 密钥的条目会先进入设置流程（凭据遵循共享密钥设置）。',
 
   cronjobs: '定时任务',
+  cronjobsUnavailableUntilRoster: '此代理出现在智能体列表中后才能使用定时任务。',
   newCronjob: '新建定时任务',
   cronjobName: '为此定时任务命名',
   instruction: '指令',
@@ -1301,6 +1337,17 @@ export function useBots() {
     pet: t('pet'),
     removeImage: t('removeImage'),
     describeAvatar: t('describeAvatar'),
+    avatarAuto: t('avatarAuto'),
+    avatarAutoTitle: t('avatarAutoTitle'),
+    avatarRandomize: t('avatarRandomize'),
+    avatarUnlockTitle: t('avatarUnlockTitle'),
+    avatarLockTitle: t('avatarLockTitle'),
+    avatarUnlock: t('avatarUnlock'),
+    avatarLockFace: t('avatarLockFace'),
+    avatarLockedHint: t('avatarLockedHint'),
+    avatarFollowsNameHint: t('avatarFollowsNameHint'),
+    avatarClassicShapes: t('avatarClassicShapes'),
+    avatarBlobTitle: t('avatarBlobTitle'),
     generating: t('generating'),
     leaveBlankGenerate: t('leaveBlankGenerate'),
     choosePet: t('choosePet'),
@@ -1366,6 +1413,7 @@ export function useBots() {
 
     // Cronjobs
     cronjobs: t('cronjobs'),
+    cronjobsUnavailableUntilRoster: t('cronjobsUnavailableUntilRoster'),
     newCronjob: t('newCronjob'),
     cronjobName: t('cronjobName'),
     instruction: t('instruction'),

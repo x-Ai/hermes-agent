@@ -2436,7 +2436,9 @@ export const zhHant = defineLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: '電子郵件'
+      email: '電子郵件',
+      botChat: 'Bot 聊天',
+      defaultProfile: '預設'
     },
     scheduleLabels: {
       daily: '每天',

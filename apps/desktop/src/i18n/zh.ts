@@ -3296,7 +3296,9 @@ export const zh: Translations = {
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: '电子邮件'
+      email: '电子邮件',
+      botChat: 'Bot 聊天',
+      defaultProfile: '默认'
     },
     scheduleLabels: {
       daily: '每天',

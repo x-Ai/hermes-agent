@@ -3678,7 +3678,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                         'button',
                         {
                           type: 'button',
-                          title: k || 'Auto — the name decides',
+                          title: k || b.avatarAutoTitle,
                           className: cn(
                             'flex items-center justify-center rounded-md transition-colors hover:bg-(--chrome-action-hover)',
                             k === kind && !image && 'ring-1 ring-(--ui-accent)'
@@ -3690,7 +3690,10 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                           },
                           children: k
                             ? jsx(BotFace, { shape: blobShapeString(seedPart, k), color, size: 32, name: pickerName })
-                            : jsx('span', { className: 'text-[0.6rem] text-(--ui-text-tertiary)', children: 'Auto' })
+                            : jsx('span', {
+                                className: 'text-[0.6rem] text-(--ui-text-tertiary)',
+                                children: b.avatarAuto
+                              })
                         },
                         k || 'auto'
                       )
@@ -3707,26 +3710,27 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                           onImage(null)
                           onShape(blobShapeString(Math.random().toString(36).slice(2, 10), kind))
                         },
-                        children: [jsx(Codicon, { name: 'refresh', className: 'mr-1 text-[0.8rem]' }), 'Randomize']
+                        children: [
+                          jsx(Codicon, { name: 'refresh', className: 'mr-1 text-[0.8rem]' }),
+                          b.avatarRandomize
+                        ]
                       }),
                       jsxs(Button, {
                         type: 'button',
                         variant: 'ghost',
                         size: 'sm',
-                        title: locked
-                          ? 'Unlock — the face follows the agent\u2019s name again'
-                          : 'Keep this exact face even if the name changes',
+                        title: locked ? b.avatarUnlockTitle : b.avatarLockTitle,
                         onClick: () => onShape(blobShapeString(locked ? '' : pickerName, kind)),
                         children: [
                           jsx(Codicon, { name: locked ? 'unlock' : 'lock', className: 'mr-1 text-[0.8rem]' }),
-                          locked ? 'Unlock' : 'Lock face'
+                          locked ? b.avatarUnlock : b.avatarLockFace
                         ]
                       })
                     ]
                   }),
                   jsx('div', {
                     className: 'text-center text-[0.65rem] text-(--ui-text-quaternary)',
-                    children: locked ? 'Face locked — renaming won\u2019t change it.' : 'Face follows the name.'
+                    children: locked ? b.avatarLockedHint : b.avatarFollowsNameHint
                   }),
                   jsx(Button, {
                     type: 'button',
@@ -3734,7 +3738,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                     size: 'sm',
                     className: 'text-(--ui-text-tertiary)',
                     onClick: () => onShape(defaultShapeFor(pickerName)),
-                    children: 'Classic shapes'
+                    children: b.avatarClassicShapes
                   })
                 ]
               })
@@ -3754,7 +3758,7 @@ function AvatarPicker({ shape, color, image, onShape, onColor, onImage, generate
                       'button',
                       {
                         type: 'button',
-                        title: s === 'blobatar' ? 'Blob face — drawn from the agent\u2019s name' : undefined,
+                        title: s === 'blobatar' ? b.avatarBlobTitle : undefined,
                         className: cn(
                           'flex items-center justify-center rounded-md transition-colors hover:bg-(--chrome-action-hover)',
                           s === shape && !image && 'ring-1 ring-(--ui-accent)'
@@ -9707,7 +9711,7 @@ function RoutinesPane() {
   if (!owner) {
     return jsx('div', {
       className: 'flex h-full items-center justify-center px-4 text-center text-xs text-(--ui-text-tertiary)',
-      children: 'Cronjobs are unavailable until this agent appears in the roster.'
+      children: b.cronjobsUnavailableUntilRoster
     })
   }
 

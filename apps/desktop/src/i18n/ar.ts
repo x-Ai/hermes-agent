@@ -1686,7 +1686,9 @@ export const ar = defineLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'البريد الإلكتروني'
+      email: 'البريد الإلكتروني',
+      botChat: 'دردشة البوت',
+      defaultProfile: 'افتراضي'
     },
     scheduleLabels: {
       daily: 'يوميا',

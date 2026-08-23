@@ -2676,7 +2676,9 @@ export const ja = defineLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'メール'
+      email: 'メール',
+      botChat: 'Bot チャット',
+      defaultProfile: 'デフォルト'
     },
     scheduleLabels: {
       daily: '毎日',

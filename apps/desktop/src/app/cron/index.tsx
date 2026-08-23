@@ -956,7 +956,17 @@ function CronJobRuns({
 // platforms → their delivery label, anything else → the backend name. Configured
 // platforms without a cron home channel get a "set a home channel first" hint.
 function deliverTargetLabel(target: CronDeliveryTarget, c: Translations['cron']): string {
-  const base = target.id === 'local' ? c.deliveryLabels.local : (c.deliveryLabels[target.id] ?? target.name)
+  let base: string
+
+  if (target.id === 'local') {
+    base = c.deliveryLabels.local
+  } else if (target.id.startsWith('bot-chat:')) {
+    const profile = target.id.slice('bot-chat:'.length) || 'default'
+    const profileLabel = profile === 'default' ? c.deliveryLabels.defaultProfile : profile
+    base = `${c.deliveryLabels.botChat} (${profileLabel})`
+  } else {
+    base = c.deliveryLabels[target.id] ?? target.name
+  }
 
   return target.id !== 'local' && !target.home_target_set ? `${base} — ${c.deliverNeedsHomeChannel}` : base
 }

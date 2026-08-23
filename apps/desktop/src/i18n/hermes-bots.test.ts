@@ -17,6 +17,12 @@ describe('Hermes Bots i18n', () => {
     expect(translatePlugin('hermes-bots', 'zh', 'bots', [])).toBe('智能体')
     expect(translatePlugin('hermes-bots', 'zh', 'searchBots', [])).toBe('搜索 Bot…')
     expect(translatePlugin('hermes-bots', 'zh', 'newCronjob', [])).toBe('新建定时任务')
+    expect(translatePlugin('hermes-bots', 'zh', 'bot', [])).toBe('形象')
+    expect(translatePlugin('hermes-bots', 'zh', 'avatarRandomize', [])).toBe('随机生成')
+    expect(translatePlugin('hermes-bots', 'zh', 'avatarLockFace', [])).toBe('锁定头像')
+    expect(translatePlugin('hermes-bots', 'zh', 'cronjobsUnavailableUntilRoster', [])).toBe(
+      '此代理出现在智能体列表中后才能使用定时任务。'
+    )
     expect(translatePlugin('hermes-bots', 'zh', 'noBotsMatch', ['研究'])).toBe('没有匹配"研究"的 Bot')
   })
 
