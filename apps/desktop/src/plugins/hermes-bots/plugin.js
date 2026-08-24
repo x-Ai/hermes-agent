@@ -191,6 +191,29 @@ const BOT_FUNCTION_MESSAGES = new Set([
   'updated'
 ])
 
+const BOT_COMPONENT_FALLBACKS = {
+  active: 'Active',
+  close: 'Close',
+  cronjobDetails: 'Cronjob details',
+  deliversTo: 'Delivers to',
+  everyDays: count => (count === 1 ? 'Daily' : `Every ${count} days`),
+  everyHours: count => (count === 1 ? 'Hourly' : `Every ${count}h`),
+  everyMinutes: count => `Every ${count}m`,
+  instruction: 'Instruction',
+  lastResult: 'Last result',
+  lastRun: 'Last run',
+  model: 'Model',
+  nextRunLabel: 'Next run',
+  onceShort: (amount, unit) => `Once (${amount}${unit})`,
+  paused: 'Paused',
+  repeat: 'Repeat',
+  routineDetailDescription: 'What this cronjob runs, and when it runs next.',
+  schedule: 'Schedule',
+  scheduleRaw: 'Schedule (raw)',
+  status: 'Status',
+  workingDirectory: 'Working directory'
+}
+
 function useBots() {
   if (typeof useBotsI18n === 'function') {
     return useBotsI18n()
@@ -199,8 +222,13 @@ function useBots() {
   return new Proxy(
     {},
     {
-      get: (_target, key) =>
-        BOT_FUNCTION_MESSAGES.has(key) ? (...args) => args.filter(Boolean).join(' ') : String(key)
+      get: (_target, key) => {
+        const fallback = BOT_COMPONENT_FALLBACKS[key]
+        if (fallback !== undefined) {
+          return fallback
+        }
+        return BOT_FUNCTION_MESSAGES.has(key) ? (...args) => args.filter(Boolean).join(' ') : String(key)
+      }
     }
   )
 }
@@ -465,6 +493,10 @@ const $botsHomeFronted = atom(false)
 
 let botsHomeClose = null
 let suppressBotsHomeReopen = false
+// Latched while a re-front attempt has not yet been answered with visibility.
+// Cleared the moment the home is actually fronted, and whenever the tab is
+// retired — a fresh open starts the budget over. See openBotsHomeWorkspace.
+let botsHomeRefrontTried = false
 
 function saveSelectedRosterBot(bot) {
   const key = botRosterKey(bot)
@@ -1749,8 +1781,17 @@ async function drainRelayOutboxes() {
           clearBotAttention(attentionKey)
           await postReply({ reply: String(res?.reply || '') })
         } catch (error) {
-          noteBotAttention(attentionKey, error?.message || error)
-          await postReply({ error: String(error?.message || error || 'delivery failed') })
+          // #93091: bot_relay.deliver classifies the failed turn and ships the
+          // typed code in the JSON-RPC error's `data.reason`; forward it into
+          // the sender-side reply file so the waiter (and the sending agent)
+          // get the machine-readable cause, and prefer it for the badge —
+          // classified codes beat free-text re-parsing.
+          const reason = String(error?.data?.reason || '').trim()
+          noteBotAttention(attentionKey, reason || error?.message || error)
+          await postReply({
+            error: String(error?.message || error || 'delivery failed'),
+            ...(reason ? { reason } : {})
+          })
         }
       }
     }
@@ -2248,10 +2289,23 @@ function hideOwnedBotSessions() {
 // user's real conversation inside a bot profile keeps whatever title the
 // user gave it and is never touched.
 const BOT_MODE_SWEEP_TITLES = new Set(['Bot Chat', 'Agent Inbox'])
+const BOT_MODE_SWEEP_MIN_AGE_SECONDS = 5 * 60
 
 function isBotModeSweepTitle(title) {
   const t = String(title || '').trim()
   return BOT_MODE_SWEEP_TITLES.has(t) || t.startsWith('Group: ')
+}
+
+function isBotModeSweepCandidate(row, nowSeconds = Date.now() / 1000) {
+  const startedAt = Number(row?.started_at)
+  return (
+    row &&
+    row.id &&
+    isBotModeSweepTitle(row.title) &&
+    Number.isFinite(startedAt) &&
+    startedAt > 0 &&
+    nowSeconds - startedAt >= BOT_MODE_SWEEP_MIN_AGE_SECONDS
+  )
 }
 
 /** Ownership-based sweep: the id-based sweep above only covers sessions the
@@ -2261,12 +2315,17 @@ function isBotModeSweepTitle(title) {
  *  profile) — and those ids the plugin never learns. So: enumerate each
  *  roster bot's OWN profile sessions (only bot profiles — a non-bot profile
  *  is never listed, so its sessions are never touched) and hide any VISIBLE
- *  row whose title is Bot Mode plumbing. session.list without include_hidden
- *  returns only visible rows, which keeps the sweep naturally idempotent.
+ *  row whose title is Bot Mode plumbing and whose creation grace period has
+ *  elapsed. The grace period protects a new desktop draft while its first-turn
+ *  title is pending; after five minutes an unchanged plumbing title is treated
+ *  as Bot Mode-owned. session.list supplies epoch seconds; missing, malformed,
+ *  millisecond, or future timestamps fail closed and stay visible. session.list
+ *  without include_hidden returns only visible rows, which keeps the sweep
+ *  naturally idempotent.
  *  Remote-source bots route to their own connection via requestForBot.
  *  Feature-detected + fire-and-forget: older gateways without per-profile
  *  session.list / session.set_hidden simply reject and the sweep no-ops. */
-async function sweepBotProfileSessions() {
+async function sweepBotProfileSessions(nowSeconds = Date.now() / 1000) {
   const cached = $lastRoster.get()
   let roster = Array.isArray(cached) && cached.length ? cached : null
 
@@ -2297,7 +2356,7 @@ async function sweepBotProfileSessions() {
 
         await Promise.all(
           rows
-            .filter(row => row && row.id && isBotModeSweepTitle(row.title))
+            .filter(row => isBotModeSweepCandidate(row, nowSeconds))
             .map(row =>
               Promise.resolve(
                 requestForBot(bot, 'session.set_hidden', { session_id: row.id, hidden: true, profile: name })
@@ -6138,6 +6197,62 @@ function groupMembershipPatch(meta, group, enabled) {
   return { groups, group: groups[0] || null }
 }
 
+/** Build the exact metadata cleanup for a room disband. The rendered member
+ *  list is only a presentation snapshot and can already be empty on a remote
+ *  connection while bot metadata still names the room. Durable room members
+ *  and the full roster recover source-qualified owners; every remaining
+ *  metadata record is still cleared locally, but an unresolved scoped key is
+ *  never guessed into a server route. */
+function groupDisbandMetadataPlan(group, members, room, roster, metaByName) {
+  const owners = new Map()
+  const patches = new Map()
+
+  const rememberOwner = (owner, required = false) => {
+    if (!owner?.name) {
+      return
+    }
+
+    let key
+    try {
+      key = botMetaKey(owner)
+    } catch {
+      return
+    }
+
+    const meta = metaByName?.[key] || botRosterMeta(owner, metaByName) || {}
+    if (!required && !botGroups(meta).includes(group)) {
+      return
+    }
+
+    if (!owners.has(key)) {
+      owners.set(key, owner)
+    }
+    patches.set(key, groupMembershipPatch(meta, group, false))
+  }
+
+  for (const owner of members || []) {
+    rememberOwner(owner, true)
+  }
+  for (const owner of room?.members || []) {
+    rememberOwner(owner, true)
+  }
+  for (const owner of roster || []) {
+    rememberOwner(owner)
+  }
+
+  // Metadata itself is the final source of a metadata-only `0 bots` row.
+  // Clear every record that names the room even when its exact server owner is
+  // temporarily absent from the roster. Known owners still get a routed
+  // profiles.configure write below; unknown scoped records remain local-only.
+  for (const [key, meta] of Object.entries(metaByName || {})) {
+    if (botGroups(meta).includes(group)) {
+      patches.set(key, groupMembershipPatch(meta, group, false))
+    }
+  }
+
+  return { owners, patches }
+}
+
 /** Group chats that should hold a roster row: every group named in bot meta
  *  (local members) plus every room record that still has stored members or
  *  log — cross-connection rooms whose members can't ride bot-meta. */
@@ -6561,6 +6676,26 @@ async function disbandGroupChat(group, members) {
   // the user just discarded.
   const all = { ...$groupChats.get() }
   const prior = all[group] || {}
+  const metaBefore = $botMeta.get()
+  const cleanup = groupDisbandMetadataPlan(group, members, prior, $lastRoster.get(), metaBefore)
+  let metadataPersistence = Promise.resolve()
+
+  if (cleanup.patches.size) {
+    const nextMeta = { ...metaBefore }
+
+    for (const [key, patch] of cleanup.patches) {
+      nextMeta[key] = { ...(nextMeta[key] || {}), ...patch }
+      noteBotMetaWrite(key)
+    }
+
+    // Paint the deletion before any remote write can stall. This also removes
+    // orphaned legacy metadata that cannot safely be routed to a source.
+    $botMeta.set(nextMeta)
+    metadataPersistence = persistBotMetaSnapshot(
+      nextMeta,
+      botMetaV2Active || Object.keys(nextMeta).some(key => key.includes('::'))
+    )
+  }
 
   delete all[group]
   // Keep a runtime-only tombstone while a drive may still be mid-turn; it
@@ -6619,17 +6754,16 @@ async function disbandGroupChat(group, members) {
     /* storage unavailable — the atom reset above still empties the room */
   }
   scheduleGroupChatServerSync($groupChats.get(), { allowEmpty: true, deletedRooms: [group] })
+  await metadataPersistence
 
-  // Remove this membership last. saveBotMeta never throws (local storage +
-  // best-effort profiles.configure per member), so a flaky gateway can't
-  // strand the disband halfway with the room log already gone.
-  for (const member of members) {
-    if (!member?.name) {
-      continue
+  // Persist the cleanup to every exact owner we can prove. saveBotMeta never
+  // throws (local storage + best-effort profiles.configure per owner), so a
+  // flaky gateway cannot strand the local disband halfway.
+  for (const [key, owner] of cleanup.owners) {
+    const patch = cleanup.patches.get(key)
+    if (patch) {
+      await saveBotMeta(owner, patch)
     }
-
-    const meta = botRosterMeta(member, $botMeta.get()) || {}
-    await saveBotMeta(member, groupMembershipPatch(meta, group, false))
   }
 
   // Converge on server truth: the cached roster still carries the pre-disband
@@ -6845,6 +6979,17 @@ async function ensureGroupChatSession(group, member) {
   const known = room.sessions && room.sessions[key]
 
   // Try resuming what we know (stored sid first, then title lookup).
+  //
+  // FAIL CLOSED on a transient lookup failure — mirrors the sibling fix in
+  // findExistingCanonicalChat (87b645f52c). session.resume signals "this
+  // target genuinely doesn't exist" with JSON-RPC code 4007; every other
+  // failure (network blip, the backend still warming up after a restart,
+  // an oversized-resume refusal) means the real session might still be
+  // there and must not be read as "no session, mint a new one" — that
+  // forks the member's real history, and the fork silently overwrites
+  // room.sessions[key] so the old session becomes unreachable from the
+  // room. Only a genuine 4007 on BOTH targets means there truly is nothing
+  // to resume yet, so the loop falls through to session.create below.
   for (const target of [known, title]) {
     if (!target || target === true) {
       continue
@@ -6870,8 +7015,12 @@ async function ensureGroupChatSession(group, member) {
 
         return { runtime: res.session_id, stored }
       }
-    } catch {
-      /* fall through to create */
+    } catch (error) {
+      if (error?.code !== 4007) {
+        const detail = error instanceof Error && error.message ? ` (${error.message})` : ''
+        throw new Error(`Could not check ${member?.name || 'member'}'s group session${detail} — not starting a new one`)
+      }
+      /* genuinely doesn't exist (4007) — try the next target / fall through to create */
     }
   }
 
@@ -9066,6 +9215,10 @@ function HubSkillsSection({ forProfile, onInstalled }) {
             value: query,
             onChange: event => setQuery(event.target.value),
             onKeyDown: event => {
+              // IME guard: Enter confirming a composed word must not search.
+              if (event.nativeEvent?.isComposing || event.keyCode === 229) {
+                return
+              }
               if (event.key === 'Enter') {
                 event.preventDefault()
                 void search()
@@ -10457,7 +10610,118 @@ function scheduleLabel(schedule, b) {
   return schedule || ''
 }
 
-function RoutineRow({ job, owner }) {
+/** Absolute + relative rendering of a cron timestamp, or null when the job
+ *  has never carried one (a job that has not run yet has no `last_run_at`). */
+function routineTimestamp(value) {
+  const ms = value ? new Date(value).getTime() : Number.NaN
+  return Number.isFinite(ms) ? `${relativeTime(ms)} · ${new Date(ms).toLocaleString()}` : null
+}
+
+/** The facts `cron.manage list` already sends with every job, as label/value
+ *  rows. Pure so the detail contract is testable without a renderer, and so
+ *  the dialog cannot invent a field the gateway never sent: an absent value
+ *  drops its row instead of rendering "undefined". */
+function routineDetailRows(job, b = BOT_COMPONENT_FALLBACKS) {
+  const paused = job?.enabled === false || job?.state === 'paused'
+  const label = scheduleLabel(job?.schedule, b)
+  const raw = String(job?.schedule || '').trim()
+
+  return [
+    [b.status, paused ? b.paused : b.active],
+    [b.schedule, label],
+    // `scheduleLabel` humanizes "every 1440m" and cron expressions; keep the
+    // raw string when it says something the label dropped.
+    [b.scheduleRaw, raw && raw !== label ? raw : null],
+    [b.repeat, job?.repeat],
+    [b.nextRunLabel, paused ? null : routineTimestamp(job?.next_run_at)],
+    [b.lastRun, routineTimestamp(job?.last_run_at)],
+    [b.lastResult, job?.last_status],
+    [b.deliversTo, job?.deliver],
+    [b.model, job?.model],
+    [b.workingDirectory, job?.workdir]
+  ]
+    .filter(([, value]) => typeof value === 'string' && value.trim())
+    .map(([name, value]) => ({ label: name, value: value.trim() }))
+}
+
+/** Why a job is not doing what the user expects. The row only ever showed
+ *  "paused"; the scheduler's own reason and the last fire/delivery failures
+ *  had no surface in Bot Mode at all. */
+function routineDetailIssue(job) {
+  const reasons = [job?.last_fire_error, job?.last_delivery_error, job?.paused_reason]
+  const first = reasons.find(value => typeof value === 'string' && value.trim())
+
+  return first ? first.trim() : null
+}
+
+/** Read-only inspector for one cronjob, rendered from the list payload the
+ *  pane already holds — no extra RPC, and no second mutation path beside the
+ *  row's own switch and delete. */
+function RoutineDetailDialog({ job, onClose, open }) {
+  const b = useBots()
+  const rows = job ? routineDetailRows(job, b) : []
+  const issue = job ? routineDetailIssue(job) : null
+  const instruction = String(job?.prompt_preview || '').trim()
+
+  return jsx(Dialog, {
+    open: Boolean(open && job),
+    onOpenChange: value => {
+      if (!value) {
+        onClose()
+      }
+    },
+    children: jsxs(DialogContent, {
+      className: 'max-w-md',
+      children: [
+        jsxs(DialogHeader, {
+          children: [
+            jsx(DialogTitle, { className: 'truncate', children: routineTitle(job) }),
+            jsx(DialogDescription, { children: b.routineDetailDescription })
+          ]
+        }),
+        jsxs('div', {
+          className: 'grid gap-3.5',
+          children: [
+            issue
+              ? jsx('div', {
+                  className:
+                    'rounded-md border border-(--ui-stroke-secondary) px-3 py-2 text-xs leading-5 text-(--ui-accent)',
+                  children: issue
+                })
+              : null,
+            jsx('div', {
+              className: 'grid gap-1.5',
+              children: rows.map(row =>
+                jsxs('div', {
+                  className: 'flex items-baseline justify-between gap-3 text-xs',
+                  children: [
+                    jsx('span', { className: 'shrink-0 text-(--ui-text-tertiary)', children: row.label }),
+                    jsx('span', { className: 'min-w-0 truncate text-right', children: row.value })
+                  ]
+                }, row.label)
+              )
+            }),
+            instruction
+              ? labeled(
+                  b.instruction,
+                  jsx('div', {
+                    className:
+                      'max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-md border border-(--ui-stroke-secondary) px-3 py-2 text-xs leading-5 text-(--ui-text-secondary)',
+                    children: instruction
+                  })
+                )
+              : null
+          ]
+        }),
+        jsx(DialogFooter, {
+          children: jsx(Button, { variant: 'secondary', onClick: onClose, children: b.close })
+        })
+      ]
+    })
+  })
+}
+
+function RoutineRow({ job, onOpen, owner }) {
   const b = useBots()
   const profile = typeof owner === 'string' ? owner : owner?.name
   const [busy, setBusy] = useState(false)
@@ -10503,13 +10767,24 @@ function RoutineRow({ job, owner }) {
       jsxs('div', {
         className: 'flex items-center gap-2',
         children: [
-          jsx('span', {
-            'aria-hidden': true,
-            className: cn('size-1.5 shrink-0 rounded-full', active ? 'bg-emerald-500' : 'bg-(--ui-text-quaternary)')
-          }),
-          jsx('span', {
-            className: cn('min-w-0 flex-1 truncate text-xs font-medium', !active && 'text-(--ui-text-tertiary)'),
-            children: routineTitle(job)
+          // The row's own button, not a click handler on the card: the switch
+          // and delete control are siblings, so opening the details can never
+          // swallow a toggle (and a nested button would be invalid markup).
+          jsxs('button', {
+            type: 'button',
+            title: b.cronjobDetails,
+            className: 'flex min-w-0 flex-1 items-center gap-2 text-left transition-colors hover:text-foreground',
+            onClick: () => onOpen?.(job),
+            children: [
+              jsx('span', {
+                'aria-hidden': true,
+                className: cn('size-1.5 shrink-0 rounded-full', active ? 'bg-emerald-500' : 'bg-(--ui-text-quaternary)')
+              }),
+              jsx('span', {
+                className: cn('min-w-0 flex-1 truncate text-xs font-medium', !active && 'text-(--ui-text-tertiary)'),
+                children: routineTitle(job)
+              })
+            ]
           }),
           jsx(Switch, {
             checked: active,
@@ -10985,6 +11260,10 @@ function RoutinesPane() {
   const { data, error, isLoading, refetch } = useRoutines(owner)
   const [createOpen, setCreateOpen] = useState(false)
   const [createOwner, setCreateOwner] = useState(null)
+  // Hold the id, not the record: the 20s poll replaces every job object, and
+  // an open inspector must follow the live row (next run, pause, last error)
+  // instead of freezing the snapshot that was on screen when it opened.
+  const [detailJobId, setDetailJobId] = useState(null)
   const createTarget = owner ? routineCreateTarget(createOwner, bot) : null
 
   const openCreate = () => {
@@ -11008,6 +11287,7 @@ function RoutinesPane() {
     $lastJobs.set(view.live)
   }
   const jobs = view.jobs
+  const detailJob = detailJobId ? jobs.find(job => job.job_id === detailJobId) || null : null
   const staleNotice = error && !view.live && view.all.length ? b.couldNotRefreshCronjobs : null
   const filterHint = routineFilterHint(view.all, jobs, b)
 
@@ -11084,35 +11364,42 @@ function RoutinesPane() {
                 })
               ]
             })
-          : jobs.length === 0
-            ? jsxs('div', {
-                className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
-                children: [
-                  // No generic placeholder here: an icon + "cronjobs are…" blurb and the
-                  // create button both just said "empty" (Teknium, Aug 2026). The hint
-                  // text stays only when jobs exist but are hidden by the bot filter —
-                  // that carries real information, not an empty-state marker.
-                  filterHint
-                    ? jsx('div', {
-                        className: 'text-xs leading-5 text-(--ui-text-tertiary)',
-                        children: filterHint
-                      })
-                    : null,
-                  jsx(Button, {
-                    variant: 'secondary',
-                    size: 'sm',
-                    onClick: openCreate,
-                    children: filterHint ? b.createCronjobForBot : b.createCronjob
-                  })
-                ]
-              })
-            : jsx(ScrollArea, {
-                className: 'min-h-0 flex-1',
-                children: jsx('div', {
-                  className: 'grid gap-1.5 px-2.5 py-2',
-                  children: jobs.map(job => jsx(RoutineRow, { job, owner }, job.job_id))
+        : jobs.length === 0
+          ? jsxs('div', {
+              className: 'flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center',
+              children: [
+                // No generic placeholder here: an icon + "cronjobs are…" blurb and the
+                // create button both just said "empty" (Teknium, Aug 2026). The hint
+                // text stays only when jobs exist but are hidden by the bot filter —
+                // that carries real information, not an empty-state marker.
+                filterHint
+                  ? jsx('div', {
+                      className: 'text-xs leading-5 text-(--ui-text-tertiary)',
+                      children: filterHint
+                    })
+                  : null,
+                jsx(Button, {
+                  variant: 'secondary',
+                  size: 'sm',
+                  onClick: openCreate,
+                  children: filterHint ? b.createCronjobForBot : b.createCronjob
                 })
-              }),
+              ]
+            })
+          : jsx(ScrollArea, {
+              className: 'min-h-0 flex-1',
+              children: jsx('div', {
+                className: 'grid gap-1.5 px-2.5 py-2',
+                children: jobs.map(job =>
+                  jsx(RoutineRow, { job, onOpen: opened => setDetailJobId(opened.job_id), owner }, job.job_id)
+                )
+              })
+            }),
+      jsx(RoutineDetailDialog, {
+        job: detailJob,
+        open: Boolean(detailJob),
+        onClose: () => setDetailJobId(null)
+      }),
       jsx(
         CreateRoutineDialog,
         {
@@ -11897,6 +12184,14 @@ function GroupMentionInput({ members, onChange, onSubmitDraft, value, ...inputPr
         },
         onClick: event => refreshToken(event.target),
         onKeyDown: event => {
+          // IME composition guard (same as the core composer): Enter here
+          // confirms the composed Chinese/Japanese/Korean text — it must not
+          // insert a mention nor submit the draft. nativeEvent.isComposing
+          // covers Chromium; keyCode 229 covers macOS Chinese IMEs that fire
+          // Enter after compositionend with isComposing already false.
+          if (event.nativeEvent?.isComposing || event.keyCode === 229) {
+            return
+          }
           if (open) {
             if (event.key === 'ArrowDown') {
               event.preventDefault()
@@ -12090,6 +12385,10 @@ function GroupClarifyCard({ entry, members }) {
                         setDrafts(prev => ({ ...prev, [q.qid]: value }))
                       },
                       onKeyDown: event => {
+                        // IME guard: Enter confirming a composed word must not submit.
+                        if (event.nativeEvent?.isComposing || event.keyCode === 229) {
+                          return
+                        }
                         if (event.key === 'Enter' && questions.length === 1) {
                           event.preventDefault()
                           void submit()
@@ -13342,6 +13641,10 @@ function closeBotsHomeWorkspace() {
   const close = botsHomeClose
   botsHomeClose = null
   suppressBotsHomeReopen = true
+  // Retiring the tab ends the current attempt's budget: the next open is a
+  // new surface, and it gets its own re-front chance. The re-front path sets
+  // the latch again AFTER calling us, so this cannot erase its own attempt.
+  botsHomeRefrontTried = false
 
   try {
     close()
@@ -13429,10 +13732,27 @@ function openBotsHomeWorkspace(explicit = false) {
   // and each of those either legitimately claims the center or cleared it.
   if (botsHomeClose) {
     if (botsHomeVisible()) {
+      botsHomeRefrontTried = false
+
+      return true
+    }
+
+    // A re-front is a close + re-open, so it REMOUNTS the whole Bots view.
+    // That is affordable once, against the backgrounded-tab case above. It is
+    // not affordable per signal: the shell does not always answer a reveal
+    // with the active slot (revealTreePane returns early for a pane in
+    // $hiddenTreePanes without activating it; a minimized zone and a pane the
+    // tree never adopted are never visible either). Pinned in one of those
+    // states the old code re-fronted on every passive pass — sidebar flips,
+    // focus churn and group changes all reach here — and the view strobed.
+    // One attempt proves whether this shell will front the tab; if it will
+    // not, keep the surface and wait for a signal that changes the answer.
+    if (botsHomeRefrontTried && !explicit) {
       return true
     }
 
     closeBotsHomeWorkspace()
+    botsHomeRefrontTried = true
   }
 
   try {
@@ -13449,6 +13769,15 @@ function openBotsHomeWorkspace(explicit = false) {
         }
       }
     })
+
+    // The reveal has already either granted the tab its zone's active slot or
+    // refused it, so settle the re-front budget on that answer directly rather
+    // than waiting for a visibility notification to schedule another pass. A
+    // computed store stays silent when the value does not change, so on the
+    // shells that refuse, no such pass is coming.
+    if (botsHomeVisible()) {
+      botsHomeRefrontTried = false
+    }
 
     return typeof botsHomeClose === 'function'
   } catch {

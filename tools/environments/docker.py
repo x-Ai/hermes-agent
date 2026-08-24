@@ -23,6 +23,7 @@ from tools.environments.base import (
     BaseEnvironment,
     EnvironmentConnectionError,
     _popen_bash,
+    sanitize_task_id_for_path,
 )
 from tools.environments.local import (
     _HERMES_PROVIDER_ENV_BLOCKLIST,
@@ -162,6 +163,13 @@ def _is_container_name_conflict(exc: subprocess.CalledProcessError) -> bool:
     return "container name" in detail and (
         "already in use" in detail or "conflict" in detail
     )
+
+
+# The task_id -> host-directory-name mapping is shared with every backend
+# that persists per-task state on the host filesystem (Singularity overlays
+# use the same helper), so the whole bug class is fixed in one place:
+# tools.environments.base.sanitize_task_id_for_path.
+_sandbox_dir_name = sanitize_task_id_for_path
 
 
 def _get_active_profile_name() -> str:
@@ -1112,7 +1120,9 @@ class DockerEnvironment(BaseEnvironment):
         self._home_dir: Optional[str] = None
         writable_args = []
         if self._persistent:
-            sandbox = get_sandbox_dir() / "docker" / task_id
+            # _sandbox_dir_name(): a raw session-key task_id carries colons,
+            # which `-v` reads as extra spec fields (exit 125).
+            sandbox = get_sandbox_dir() / "docker" / _sandbox_dir_name(task_id)
             self._home_dir = str(sandbox / "home")
             os.makedirs(self._home_dir, exist_ok=True)
             writable_args.extend([

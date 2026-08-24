@@ -198,6 +198,18 @@ type BotsMessages = {
   createCronjobForBot: string
   routineFilterHint: string
   couldNotLoad: string
+  cronjobDetails: string
+  routineDetailDescription: string
+  active: string
+  status: string
+  schedule: string
+  scheduleRaw: string
+  repeat: string
+  nextRunLabel: string
+  lastRun: string
+  lastResult: string
+  deliversTo: string
+  workingDirectory: string
   cronjobsDesc: string
   recurringTaskDesc: (name: string) => string
   continuity: string
@@ -615,6 +627,18 @@ const en: BotsMessages = {
   routineFilterHint:
     'Cronjobs exist in this profile but none are tagged for this bot. Name a job "[bot:<name>] …" to show it here, or see them in Cron below.',
   couldNotLoad: 'Could not load cronjobs. The list may still be there.',
+  cronjobDetails: 'Cronjob details',
+  routineDetailDescription: 'What this cronjob runs, and when it runs next.',
+  active: 'Active',
+  status: 'Status',
+  schedule: 'Schedule',
+  scheduleRaw: 'Schedule (raw)',
+  repeat: 'Repeat',
+  nextRunLabel: 'Next run',
+  lastRun: 'Last run',
+  lastResult: 'Last result',
+  deliversTo: 'Delivers to',
+  workingDirectory: 'Working directory',
   cronjobsDesc: 'Cronjobs are recurring tasks this agent runs on a schedule.',
   recurringTaskDesc: name => `A recurring task ${name} runs on a schedule. Runs land in its own chat history.`,
   continuity: 'Continuity: each run sees the previous run’s output (dedupe, continue where it left off)',
@@ -1023,6 +1047,18 @@ const zh: BotsMessages = {
   routineFilterHint:
     '此资料中存在定时任务，但没有标记为属于当前 Bot。请将任务命名为“[bot:<名称>] …”以在此显示，或在下方的定时任务页面中查看',
   couldNotLoad: '无法加载定时任务。列表可能仍然存在',
+  cronjobDetails: '定时任务详情',
+  routineDetailDescription: '查看此定时任务的内容及下次运行时间',
+  active: '已启用',
+  status: '状态',
+  schedule: '计划',
+  scheduleRaw: '原始计划',
+  repeat: '重复',
+  nextRunLabel: '下次运行',
+  lastRun: '上次运行',
+  lastResult: '上次结果',
+  deliversTo: '发送至',
+  workingDirectory: '工作目录',
   cronjobsDesc: '定时任务是此代理按计划运行的重复性任务',
   recurringTaskDesc: name => `${name} 会按计划运行重复任务，运行结果保存在自己的聊天记录中。`,
   continuity: '连续运行：每次运行都能看到上一次的输出（去重，并从上次中断处继续）',
@@ -1442,6 +1478,18 @@ export function useBots() {
     createCronjobForBot: t('createCronjobForBot'),
     routineFilterHint: t('routineFilterHint'),
     couldNotLoad: t('couldNotLoad'),
+    cronjobDetails: t('cronjobDetails'),
+    routineDetailDescription: t('routineDetailDescription'),
+    active: t('active'),
+    status: t('status'),
+    schedule: t('schedule'),
+    scheduleRaw: t('scheduleRaw'),
+    repeat: t('repeat'),
+    nextRunLabel: t('nextRunLabel'),
+    lastRun: t('lastRun'),
+    lastResult: t('lastResult'),
+    deliversTo: t('deliversTo'),
+    workingDirectory: t('workingDirectory'),
     cronjobsDesc: t('cronjobsDesc'),
     recurringTaskDesc: (name: string) => t('recurringTaskDesc', name),
     continuity: t('continuity'),
