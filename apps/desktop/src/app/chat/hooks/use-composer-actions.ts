@@ -397,7 +397,7 @@ export function useComposerActions({
   const pickContextPaths = useCallback(
     async (kind: 'file' | 'folder') => {
       const paths = await selectDesktopPaths({
-        title: kind === 'file' ? 'Add files as context' : 'Add folders as context',
+        title: t.composer.addContext,
         defaultPath: currentCwd || undefined,
         directories: kind === 'folder'
       })
@@ -419,7 +419,7 @@ export function useComposerActions({
         })
       }
     },
-    [attachToMain, currentCwd]
+    [attachToMain, currentCwd, t.composer.addContext]
   )
 
   const insertContextPathInlineRef = useCallback(

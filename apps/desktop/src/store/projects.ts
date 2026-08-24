@@ -403,7 +403,7 @@ function projectParams(
   profile: null | string = projectProfile()
 ): Record<string, unknown> {
   if (!profile) {
-    throw new Error('Projects are unavailable while viewing all profiles')
+    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
   }
 
   return { ...params, profile }
@@ -430,7 +430,7 @@ async function activeProjectsContext(): Promise<ActiveProjectsContext> {
   const profile = projectProfile()
 
   if (!profile) {
-    throw new Error('Projects are unavailable while viewing all profiles')
+    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
   }
 
   let gateway = activeGateway()
@@ -1389,6 +1389,7 @@ export async function copyPath(path: null | string): Promise<void> {
 // mode opens the native dialog. Returns the absolute path, or null if cancelled.
 export async function pickProjectFolder(): Promise<null | string> {
   const [dir] = await selectDesktopPaths({
+    title: translateNow('sidebar.projects.addFolderTitle'),
     defaultPath: (await desktopDefaultCwd())?.cwd,
     directories: true,
     multiple: false

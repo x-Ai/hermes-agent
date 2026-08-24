@@ -2086,6 +2086,7 @@ export interface Translations {
       copyPath: string
       removeFromSidebar: string
       createFailed: string
+      unavailableAllProfiles: string
       staleBackend: string
       deleteConfirm: string
       startWork: string
