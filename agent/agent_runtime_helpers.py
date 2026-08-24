@@ -771,6 +771,19 @@ def repair_message_sequence(agent, messages: List[Dict]) -> int:
             and merged[-1].get("role") == "user"
         ):
             prev = merged[-1]
+            # A summary carrier followed by a new user row is a deliberate
+            # durable shape after retry/rewind.  Do not absorb the fresh ask
+            # into the already-persisted carrier: mutating that dict can make
+            # the only in-memory copy diverge from its durable row.  Provider
+            # sanitizers merge copies later when strict alternation requires
+            # it, without rewriting either durable message.
+            from agent.context_compressor import split_user_originated_turn
+
+            handoff, _ = split_user_originated_turn(prev)
+            if handoff is not None:
+                merged.append(msg)
+                continue
+
             prev_content = prev.get("content", "")
             new_content = msg.get("content", "")
             # Only merge plain-text content; leave multimodal (list)
@@ -1428,8 +1441,6 @@ def drop_thinking_only_and_merge_users(
         )
     ]
     dropped = len(messages) - len(kept)
-    if dropped == 0:
-        return messages
 
     # Pass 2: merge any newly-adjacent user messages.
     merged: List[Dict[str, Any]] = []
@@ -1478,6 +1489,9 @@ def drop_thinking_only_and_merge_users(
             merges += 1
         else:
             merged.append(m)
+
+    if dropped == 0 and merges == 0:
+        return messages
 
     _ra().logger.debug(
         "Pre-call sanitizer: dropped %d thinking-only assistant turn(s), "
@@ -2650,7 +2664,6 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
             client_kwargs["default_headers"] = existing
     except Exception:
         _ra().logger.debug("Copilot default-header guard skipped", exc_info=True)
-
     # OpenCode Free: the tier is served ANONYMOUSLY — any bearer the relay
     # doesn't recognize (including placeholders) is a 401. Route every
     # opencode-free client through the shared keyless header policy: an
@@ -2662,6 +2675,16 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
         _existing = dict(client_kwargs.get("default_headers") or {})
         _existing.update(opencode_zen_free_headers())
         client_kwargs["default_headers"] = _existing
+
+    # All primary construction and recovery paths must identify Hermes to the
+    # official Codex endpoint, including snapshots with custom header overrides.
+    from agent.auxiliary_client import _apply_required_codex_headers
+
+    _apply_required_codex_headers(
+        client_kwargs,
+        access_token=client_kwargs.get("api_key", ""),
+        base_url=str(client_kwargs.get("base_url", "")),
+    )
     # Uses the module-level `OpenAI` name, resolved lazily on first
     # access via __getattr__ below. Tests patch via `run_agent.OpenAI`.
     client = _ra().OpenAI(**client_kwargs)

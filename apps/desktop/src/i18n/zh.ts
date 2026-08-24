@@ -311,6 +311,7 @@ export const zh: Translations = {
     openStarmap: '打开记忆图谱',
     enterHud: 'HUD 模式',
     exitHud: '退出 HUD 模式',
+    resetHudLayout: '重置 HUD 大小和位置',
     layoutEditor: '布局编辑器',
     layoutEditorTitle: mod => `布局编辑器 — ${mod} 点击重置布局`
   },
@@ -380,6 +381,7 @@ export const zh: Translations = {
       'view.prevTerminal': '上一个终端',
       'view.closeTerminal': '关闭终端',
       'view.terminalSelection': '将终端选区发送到输入框',
+      'view.selectionToComposer': '将选区发送到输入框',
       'view.terminalCopy': '复制终端选区',
       'view.terminalPaste': '粘贴到终端',
       'view.closeTab': '关闭标签',
@@ -4716,6 +4718,7 @@ export const zh: Translations = {
     closeToRight: '关闭右侧',
     closeAll: '全部关闭',
     newSessionTab: '新建会话标签',
+    newTab: '新建标签页',
     split: dir => `向${dir}拆分`,
     move: dir => `向${dir}移动`,
     dirUp: '上',

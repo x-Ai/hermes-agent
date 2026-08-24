@@ -352,6 +352,7 @@ export interface Translations {
     openStarmap: string
     enterHud: string
     exitHud: string
+    resetHudLayout: string
     layoutEditor: string
     layoutEditorTitle: (modifier: string) => string
   }
@@ -2912,6 +2913,7 @@ export interface Translations {
     closeToRight: string
     closeAll: string
     newSessionTab: string
+    newTab: string
     split: (dir: string) => string
     move: (dir: string) => string
     dirUp: string

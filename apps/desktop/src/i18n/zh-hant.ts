@@ -253,7 +253,8 @@ export const zhHant = defineLocale({
     muteHaptics: '靜音觸感回饋',
     unmuteHaptics: '開啟觸感回饋',
     openSettings: '開啟設定',
-    openStarmap: '開啟記憶圖譜'
+    openStarmap: '開啟記憶圖譜',
+    resetHudLayout: '重設 HUD 大小和位置'
   },
 
   keybinds: {
@@ -3637,6 +3638,7 @@ export const zhHant = defineLocale({
     closeToRight: '關閉右側',
     closeAll: '全部關閉',
     newSessionTab: '新增工作階段分頁',
+    newTab: '新增分頁',
     split: dir => `向${dir}分割`,
     move: dir => `向${dir}移動`,
     dirUp: '上',

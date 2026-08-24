@@ -261,7 +261,8 @@ export const ja = defineLocale({
     muteHaptics: '触覚フィードバックをオフ',
     unmuteHaptics: '触覚フィードバックをオン',
     openSettings: '設定を開く',
-    openStarmap: 'メモリグラフを開く'
+    openStarmap: 'メモリグラフを開く',
+    resetHudLayout: 'HUD のサイズと位置をリセット'
   },
 
   keybinds: {
@@ -3916,6 +3917,7 @@ export const ja = defineLocale({
     closeToRight: '右側を閉じる',
     closeAll: 'すべて閉じる',
     newSessionTab: '新しいセッションタブ',
+    newTab: '新しいタブ',
     split: dir => `${dir}に分割`,
     move: dir => `${dir}へ移動`,
     dirUp: '上',
