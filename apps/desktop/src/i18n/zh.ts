@@ -3129,7 +3129,7 @@ export const zh: Translations = {
     empty: '暂无 Webhook 订阅',
     disabledTitle: 'Webhook 接收器已禁用',
     disabledBody:
-      'Webhook 是独立的网关平台。在此启用以接受传入的 HTTP 事件；仅当订阅投递到 Telegram、Discord、Slack 或其他渠道时才需要聊天渠道',
+      'Webhook 是独立的网关平台，在此启用以接受传入的 HTTP 事件；仅当订阅投递到 Telegram、Discord、Slack 或其他渠道时才需要聊天渠道',
     enable: '启用 Webhook',
     enabling: '正在启用…',
     enabled: (name: string) => `已启用："${name}"`,
@@ -3260,7 +3260,7 @@ export const zh: Translations = {
     notSet: '未设置',
     soulDesc: '内置于此配置档案的系统提示词与人格指令',
     soulOptional: '可选',
-    soulPlaceholder: mode => `此配置档案的系统提示词 / 人格说明。\n留空则保留${mode}默认值`,
+    soulPlaceholder: mode => `此配置档案的系统提示词 / 人格说明，留空则保留${mode}默认值`,
     soulPlaceholderCloned: '克隆的',
     soulPlaceholderEmpty: '空的',
     unsavedChanges: '有未保存的更改',
