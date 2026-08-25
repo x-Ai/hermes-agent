@@ -138,6 +138,11 @@ const PROVIDER_ENV_KEYS = [
 afterEach(() => setRuntimeI18nLocale('en'))
 
 describe('Simplified Chinese localization regressions', () => {
+  it('keeps the Fast model-row badge distinct from the localized option label', () => {
+    expect(zh.shell.modelMenu.fast).toBe('Fast')
+    expect(zh.shell.modelOptions.fast).toBe('快速')
+  })
+
   it('renders compact task ages as complete relative-time phrases', () => {
     expect(`5${zh.sidebar.row.ageHour}`).toBe('5小时前')
     expect(`2${zh.sidebar.row.ageDay}`).toBe('2天前')
