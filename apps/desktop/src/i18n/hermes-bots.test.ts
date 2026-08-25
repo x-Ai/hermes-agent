@@ -23,7 +23,7 @@ describe('Hermes Bots i18n', () => {
     expect(translatePlugin('hermes-bots', 'zh', 'thisDevice', [])).toBe('此设备')
     expect(translatePlugin('hermes-bots', 'zh', 'openChat', [])).toBe('打开聊天')
     expect(translatePlugin('hermes-bots', 'zh', 'openContinuousChatDescription', [])).toBe(
-      '打开此 Bot 的连续聊天。切换到其他页面后，其后台工作仍会继续运行'
+      '打开此 Bot 的连续聊天，切换到其他页面后，其后台工作仍会继续运行'
     )
     expect(translatePlugin('hermes-bots', 'zh', 'cronjobsUnavailableUntilRoster', [])).toBe(
       '此代理出现在智能体列表中后才能使用定时任务'

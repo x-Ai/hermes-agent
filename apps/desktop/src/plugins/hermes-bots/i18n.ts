@@ -934,9 +934,9 @@ const zh: BotsMessages = {
   activeNow: '当前活跃',
   needsYou: '需要你',
   openChat: '打开聊天',
-  openContinuousChatDescription: '打开此 Bot 的连续聊天。切换到其他页面后，其后台工作仍会继续运行',
+  openContinuousChatDescription: '打开此 Bot 的连续聊天，切换到其他页面后，其后台工作仍会继续运行',
   chatNeverResets: '此聊天永不重置',
-  chatNeverResetsDesc: 'Bot 聊天是一次连续对话——采用压缩而非重置。如需与此代理进行一次性会话，请使用会话模式',
+  chatNeverResetsDesc: 'Bot 聊天是一次连续对话——采用压缩而非重置，如需与此代理进行一次性会话，请使用会话模式',
 
   editProfileTitle: '编辑资料',
   name: '名称',
@@ -946,7 +946,7 @@ const zh: BotsMessages = {
   advanced: '高级',
   advancedConfig: '高级 — 模型、技能、工具集、SOUL.md',
   saving: '保存中…',
-  appearanceAndRole: (displayName, profile) => `${displayName}（${profile}）的外观和角色设置。`,
+  appearanceAndRole: (displayName, profile) => `${displayName}（${profile}）的外观和角色设置`,
 
   bot: '形象',
   generate: '生成',
@@ -1045,7 +1045,7 @@ const zh: BotsMessages = {
   createCronjob: '创建定时任务',
   createCronjobForBot: '为此 Bot 创建定时任务',
   routineFilterHint:
-    '此资料中存在定时任务，但没有标记为属于当前 Bot。请将任务命名为“[bot:<名称>] …”以在此显示，或在下方的定时任务页面中查看',
+    '此资料中存在定时任务，但没有标记为属于当前 Bot，请将任务命名为“[bot:<名称>] …”以在此显示，或在下方的定时任务页面中查看',
   couldNotLoad: '无法加载定时任务。列表可能仍然存在',
   cronjobDetails: '定时任务详情',
   routineDetailDescription: '查看此定时任务的内容及下次运行时间',
@@ -1122,7 +1122,7 @@ const zh: BotsMessages = {
   groupName: '群组名称',
   sayToGroup: '说点什么 — 此群组中的每个 Bot 都能听到',
   roomWorking: '房间正在工作…',
-  pickBotsForRoom: max => `选择 2–${max} 个 Bot。本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
+  pickBotsForRoom: max => `选择 2–${max} 个 Bot，本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
   noBotsYetCreateFirst: '尚无 Bot，请先创建代理',
   pickAtLeastTwo: '请至少选择 2 个 Bot',
   createGroup: count => `创建群聊${count ? `（${count}）` : ''}`,
@@ -1134,7 +1134,7 @@ const zh: BotsMessages = {
   disbandGroupChat: name => `解散 ${name} 群聊`,
   disbandGroupChatTitle: '解散群聊？',
   disbandGroupChatDesc: (name, count) =>
-    `这会从 ${count} 个 Bot 中移除“${name}”群组并清除共享房间记录。Bot 本身及其各群组会话都会保留。`,
+    `这会从 ${count} 个 Bot 中移除“${name}”群组并清除共享房间记录，Bot 本身及其各群组会话都会保留`,
   disband: '解散',
   disbanding: '正在解散…',
   disbanded: '已解散',
@@ -1162,7 +1162,7 @@ const zh: BotsMessages = {
   inGroups: (handle, groups) => `@${handle} · 位于${groups.map(group => `“${group}”`).join('、')}`,
 
   deleteBotTitle: '删除 Bot 和资料？',
-  deleteBotDesc: (name, path) => `这将永久删除 Bot ${name} 及其在 ${path} 的关联 Hermes 资料。此操作无法撤销。`,
+  deleteBotDesc: (name, path) => `这将永久删除 Bot ${name} 及其在 ${path} 的关联 Hermes 资料，此操作无法撤销`,
   deleting: '删除中…',
   deleted: '已删除',
   deletedProfile: name => `已删除资料 ${name}`,
@@ -1247,7 +1247,7 @@ const zh: BotsMessages = {
 
   // MCP Setup UI
   setUpCheckmark: '已设置 ✓',
-  noImageModel: '无可用的图像模型。如果你刚刚启用了一个（或更新了 Hermes），请重启网关：Ctrl+K → "重启网关"',
+  noImageModel: '无可用的图像模型，如果你刚刚启用了一个（或更新了 Hermes），请重启网关：Ctrl+K → "重启网关"',
   restartGateway: '重启网关',
 
   // Provider & Model
@@ -1266,7 +1266,7 @@ const zh: BotsMessages = {
   untitledCronjob: '无标题定时任务',
   installing: name => `正在安装"${name}"…`,
   installAndAdd: name => `安装"${name}"并添加到上面的列表`,
-  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中。拖动角落调整大小',
+  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中，拖动角落调整大小',
 
   search: '搜索',
   hideHubBrowser: '隐藏技能中心浏览器',
@@ -1275,7 +1275,7 @@ const zh: BotsMessages = {
 
   pluginName: '智能体',
   pluginDescription:
-    'Bot 模式为每个代理提供一个固定聊天，并包含头像、定时任务、群聊和 Bot 间通信。此功能随应用提供，可在不需要时禁用。'
+    'Bot 模式为每个代理提供一个固定聊天，并包含头像、定时任务、群聊和 Bot 间通信，此功能随应用提供，可在不需要时禁用'
 }
 
 export const BOTS_LOCALES: PluginLocaleBundles = { en, zh }
