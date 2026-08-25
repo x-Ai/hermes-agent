@@ -685,6 +685,9 @@ export const en: Translations = {
       reactionsDesc: 'iMessage-style emoji tapbacks — react to messages, and Hermes can react to yours.',
       composerPopoutTitle: 'Floating Composer',
       composerPopoutDesc: 'Allow dragging the composer out of its dock. Turn this off to keep it locked at the bottom.',
+      vibeHeartsTitle: 'Vibe Hearts',
+      vibeHeartsDesc:
+        'Floating hearts when you say thanks, ily, good bot, or send a heart. Separate from Message Reactions above.',
       embedsTitle: 'Inline Embeds',
       embedsDesc:
         'Rich previews load from third-party sites (YouTube, X, …). Ask shows a placeholder until you allow each one; Always loads them automatically; Off keeps plain links.',
@@ -1193,7 +1196,6 @@ export const en: Translations = {
       },
       tasks: {
         vision: { label: 'Vision', hint: 'Image analysis' },
-        web_extract: { label: 'Web extract', hint: 'Page summarization' },
         compression: { label: 'Compression', hint: 'Context compaction' },
         skills_hub: { label: 'Skills hub', hint: 'Skill search' },
         approval: { label: 'Approval', hint: 'Smart auto-approve' },
