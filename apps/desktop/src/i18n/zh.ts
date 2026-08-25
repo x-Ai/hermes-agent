@@ -590,7 +590,7 @@ export const zh: Translations = {
       testSent: '测试已发送。如果没有出现，请检查系统通知权限和专注模式／勿扰模式',
       testUnsupported: '此系统不支持原生通知',
       completionSoundTitle: '完成提示音',
-      completionSoundDesc: '智能体回合结束时播放。可在此选择预设并预览',
+      completionSoundDesc: '智能体回合结束时播放，可在此选择预设并预览',
       completionSoundPreview: '预览'
     },
     sections: {
@@ -618,30 +618,30 @@ export const zh: Translations = {
     },
     appearance: {
       title: '外观',
-      intro: '这些是仅桌面端的显示偏好。模式控制明暗；主题控制强调色与对话界面样式',
+      intro: '这些是仅桌面端的显示偏好，模式控制明暗；主题控制强调色与对话界面样式',
       themeSearchPlaceholder: '搜索你的主题或 VS Code 商店…',
       colorMode: '颜色模式',
       colorModeDesc: '选择固定模式，或让 Hermes 跟随系统设置',
       toolViewTitle: '工具调用显示',
-      toolViewDesc: '产品模式隐藏原始工具数据；技术模式显示完整输入/输出',
+      toolViewDesc: '产品模式隐藏原始工具数据，技术模式显示完整输入/输出',
       reasoningCollapsedTitle: '默认折叠推理过程',
       reasoningCollapsedDesc: '保留流式推理内容，但在您打开前保持折叠',
       uiScaleTitle: '界面缩放',
       uiScaleDesc: (percent: number) =>
-        `缩放整个应用的文字和界面。也可使用 Cmd/Ctrl 加 +、- 或 0 调整。当前：${percent}%`,
+        `缩放整个应用的文字和界面，也可使用 Cmd/Ctrl 加 +、- 或 0 调整。当前：${percent}%`,
       sessionDensityTitle: '会话列表密度',
       sessionDensityDesc: '选择侧边栏会话标题下方显示的信息量',
       sessionDensityCompact: '紧凑',
       sessionDensityComfortable: '舒适',
       sessionDensityDetailed: '详细',
       tabStripTitle: '标签栏',
-      tabStripDesc: '在分区上方显示标签。自动模式会在分区只有一个面板时隐藏标签',
+      tabStripDesc: '在分区上方显示标签，自动模式会在分区只有一个面板时隐藏标签',
       tabStripAuto: '自动',
       tabStripAlways: '始终',
       tabStripNever: '从不',
       terminalFontTitle: '终端字体',
       terminalFontDesc:
-        '选择已安装的字体用于桌面端终端。Nerd Font 可正确显示 Powerlevel10k 和 Shell 图标；留空则使用内置的 JetBrains Mono',
+        '选择已安装的字体用于桌面端终端，Nerd Font 可正确显示 Powerlevel10k 和 Shell 图标；留空则使用内置的 JetBrains Mono',
       terminalFontPlaceholder: 'MesloLGS NF 或 CSS 字体栈',
       terminalFontPreview: '字形预览',
       terminalFontReset: '使用默认字体',
@@ -671,7 +671,7 @@ export const zh: Translations = {
       reactionsTitle: '消息回应',
       reactionsDesc: 'iMessage 风格的表情回应 — 你可以给消息添加回应，Hermes 也能回应你的消息',
       composerPopoutTitle: '悬浮输入框',
-      composerPopoutDesc: '允许将输入框拖出底部停靠区。关闭后，输入框会锁定在底部',
+      composerPopoutDesc: '允许将输入框拖出底部停靠区，关闭后，输入框会锁定在底部',
       vibeHeartsTitle: '心情爱心',
       vibeHeartsDesc: '当你说谢谢、爱你、good bot 或发送爱心时飘出的爱心。与上方的消息回应是两回事',
       embedsTitle: '内嵌预览',
@@ -686,7 +686,7 @@ export const zh: Translations = {
       technical: '技术',
       technicalDesc: '包含原始工具参数/结果及底层细节',
       themeTitle: '主题',
-      themeDesc: '仅桌面端调色板。所选模式叠加其上',
+      themeDesc: '仅桌面端调色板，所选模式叠加其上',
       themeProfileNote: profile => `已为「${profile}」配置文件保存——每个配置文件保留各自的主题`,
       installTitle: '从 VS Code 安装',
       installDesc: '粘贴 Marketplace 扩展 ID（例如 dracula-theme.theme-dracula），将其配色主题转换为桌面调色板',
@@ -918,19 +918,19 @@ export const zh: Translations = {
       },
       desktop: {
         repoScanEnabled: '扫描本地文件夹，并在"项目"中显示 Git 代码仓库',
-        repoScanRoots: '要扫描的文件夹。留空时扫描主目录',
+        repoScanRoots: '要扫描的文件夹，留空时扫描主目录',
         repoScanExcludePaths: '发现代码仓库时跳过这些文件夹及其子目录'
       },
-      timezone: '当 Hermes 需要本地时间上下文时使用。留空则使用系统时区',
+      timezone: '当 Hermes 需要本地时间上下文时使用，留空则使用系统时区',
       agent: {
         imageInputMode: '控制图片附件如何发送给模型',
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
         serviceTier: 'API 服务等级（OpenAI/Anthropic）',
-        environmentProbe: '为新会话探测执行环境详情。容器后端使用探测后自动销毁的临时沙箱；关闭时使用静态描述'
+        environmentProbe: '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱；关闭时使用静态描述'
       },
       delegation: {
-        model: '委派子智能体使用的模型。留空则继承父智能体的模型',
-        provider: '委派子智能体使用的提供方——内置名称或自定义端点 id。留空则继承父智能体',
+        model: '委派子智能体使用的模型，留空则继承父智能体的模型',
+        provider: '委派子智能体使用的提供方——内置名称或自定义端点 id，留空则继承父智能体',
         useCustomEndpoints: '在子智能体提供方列表中提供你的自定义端点，并在模型列表中提供该端点已发现的模型',
         reasoningEffort: '委派子智能体使用的推理力度'
       },
@@ -939,17 +939,17 @@ export const zh: Translations = {
         backend: '终端执行后端',
         persistentShell: '当后端支持时，在命令之间保留 Shell 状态',
         envPassthrough: '传入工具执行的环境变量',
-        containerPersistent: '跨会话保留容器文件系统状态。修改将在后端重启后生效，且不会销毁当前容器或实例',
+        containerPersistent: '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
         dockerImage: '执行后端为 Docker 时使用的容器镜像',
-        dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace。关闭时沙箱完全隔离',
+        dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace，关闭时沙箱完全隔离',
         dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的容器',
-        dockerWorkspaceMountPath: '项目在容器内的完整挂载路径，默认 /workspace。修改后对下一个容器生效',
+        dockerWorkspaceMountPath: '项目在容器内的完整挂载路径，默认 /workspace，修改后对下一个容器生效',
         singularityImage: '执行后端为 Singularity 时使用的镜像',
-        singularityMountCwdToWorkspace: '把项目目录绑定挂载到 Singularity 沙箱的 /workspace。关闭时沙箱完全隔离',
-        singularityWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的实例',
-        singularityWorkspaceMountPath: '项目在沙箱内的完整绑定路径，默认 /workspace。修改后对下一个实例生效',
-        modalImage: '执行后端为 Modal 时使用的镜像。运行在云端：项目目录以副本方式同步，无法挂载',
-        daytonaImage: '执行后端为 Daytona 时使用的镜像。运行在云端：项目目录以副本方式同步，无法挂载'
+        singularityMountCwdToWorkspace: '把项目目录绑定挂载到 Singularity 沙箱的 /workspace，关闭时沙箱完全隔离',
+        singularityWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立的实例',
+        singularityWorkspaceMountPath: '项目在沙箱内的完整绑定路径，默认 /workspace，修改后对下一个实例生效',
+        modalImage: '执行后端为 Modal 时使用的镜像，运行在云端：项目目录以副本方式同步，无法挂载',
+        daytonaImage: '执行后端为 Daytona 时使用的镜像，运行在云端：项目目录以副本方式同步，无法挂载'
       },
       codeExecution: {
         mode: '代码执行被限定到当前项目的严格程度'
@@ -1061,12 +1061,12 @@ export const zh: Translations = {
       toolsetsWipeConfirm:
         '确定移除所有已启用的工具集吗？这将禁用记忆、终端、网络搜索、委派以及大多数其他工具，直到你重新启用它们',
       keepAwakeTitle: '保持电脑唤醒',
-      keepAwakeDesc: '阻止本机休眠，让长时间或通宵运行继续进行。屏幕仍可变暗',
+      keepAwakeDesc: '阻止本机休眠，让长时间或通宵运行继续进行，屏幕仍可变暗',
       disableF12Title: '禁用 F12 开发者工具',
       disableF12Desc: '阻止 F12 打开开发者工具。Ctrl+Shift+I（Mac 上为 Cmd+Opt+I）仍然可用',
       attachmentSizeTitle: '预览 / 图片加载大小上限',
       attachmentSizeDesc:
-        '桌面端为预览和图片附件加载本地文件的大小上限（MB）。默认为 16。远程非图片附件使用单独的 256 MB 上限。设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
+        '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
       attachmentSizeUnit: 'MB',
       attachmentSizeLabel: '预览 / 图片加载大小上限（MB）'
     },
@@ -1077,7 +1077,7 @@ export const zh: Translations = {
       shortcutDesc: '至少需要一个修饰键，例如 CommandOrControl+Shift+Space',
       active: '快捷键已生效',
       takenBy: '此快捷键已被其他应用占用，请换一个',
-      invalidShortcut: '不是有效的快捷键。请至少包含一个修饰键'
+      invalidShortcut: '不是有效的快捷键，请至少包含一个修饰键'
     },
     credentials: {
       pasteKey: '粘贴密钥',
@@ -1564,8 +1564,8 @@ export const zh: Translations = {
       disableTool: tool => `禁用 ${tool}`,
       noOutput: '暂无输出',
       deepLinkTitle: '添加 MCP 服务器？',
-      deepLinkDescription: '一个链接请求将此 MCP 服务器添加到 Hermes。请检查下方的完整配置——它来自该链接，而非 Hermes',
-      deepLinkStdioWarning: '此服务器会使用下方所示命令在你的电脑上运行本地进程。仅在信任其来源时继续',
+      deepLinkDescription: '一个链接请求将此 MCP 服务器添加到 Hermes，请检查下方的完整配置——它来自该链接，而非 Hermes',
+      deepLinkStdioWarning: '此服务器会使用下方所示命令在你的电脑上运行本地进程，仅在信任其来源时继续',
       deepLinkConfirm: '添加服务器',
       deepLinkNameInvalid: '名称须为 1-64 个字母、数字、点、连字符或下划线',
       deepLinkNameConflict: name => `已存在名为 ${name} 的服务器——请改用其他名称或取消`,
@@ -1583,7 +1583,7 @@ export const zh: Translations = {
     },
     model: {
       loading: '正在加载模型配置...',
-      appliesDesc: '应用于新会话。可在输入框的模型选择器中临时切换当前对话',
+      appliesDesc: '应用于新会话，可在输入框的模型选择器中临时切换当前对话',
       provider: '提供方',
       model: '模型',
       applying: '应用中...',
@@ -1593,7 +1593,7 @@ export const zh: Translations = {
       defaultsFailed: '保存模型默认值失败',
       auxiliaryTitle: '辅助模型',
       resetAllToMain: '全部重置为主模型',
-      auxiliaryDesc: '辅助任务默认使用主模型。你可以为任意任务指定专用模型',
+      auxiliaryDesc: '辅助任务默认使用主模型，你可以为任意任务指定专用模型',
       setToMain: '设为主模型',
       change: '更改',
       autoUseMain: '自动 · 使用主模型',
@@ -1612,7 +1612,7 @@ export const zh: Translations = {
       oauthHint: name => `${name} 通过浏览器登录 — Hermes 会为你完成整个流程`,
       moa: {
         title: '混合智能体 (MOA)',
-        description: '配置以模型形式出现在"混合智能体"提供方下的命名预设。聚合模型是实际应答的模型',
+        description: '配置以模型形式出现在"混合智能体"提供方下的命名预设，聚合模型是实际应答的模型',
         presetPlaceholder: '预设',
         enabled: '启用',
         setDefault: '设为默认',
@@ -1663,7 +1663,7 @@ export const zh: Translations = {
       addTitle: '添加端点',
       nameLabel: '名称',
       providerIdLabel: '提供方 ID',
-      providerIdHint: '作为提供方标识符写入 config.yaml——创建后不可更改；需要不同 ID 请新建端点',
+      providerIdHint: '作为提供方标识符写入 config.yaml——创建后不可更改，需要不同 ID 请新建端点',
       urlLabel: '端点 URL',
       apiModeLabel: 'API 协议',
       apiModeAuto: '自动',
@@ -1698,12 +1698,12 @@ export const zh: Translations = {
       uninstalling: '正在卸载…',
       confirmYes: '是的，卸载',
       heading: '卸载 Hermes',
-      chooseBody: '选择要移除的范围。应用会关闭以完成卸载；随时可以重新打开安装器回来',
+      chooseBody: '选择要移除的范围，应用会关闭以完成卸载，随时可以重新打开安装器回来',
       startFailed: '卸载无法启动',
       options: {
         gui: {
           title: '仅卸载聊天界面 (GUI)',
-          description: '移除这个桌面应用。Hermes 智能体、你的配置和聊天记录都会保留',
+          description: '移除这个桌面应用，Hermes 智能体、你的配置和聊天记录都会保留',
           consequence: '桌面聊天界面（此应用及其数据）'
         },
         lite: {
@@ -1721,7 +1721,7 @@ export const zh: Translations = {
     providers: {
       connectAccount: '连接账号',
       haveApiKey: '改用 API 密钥？',
-      intro: '使用订阅登录，无需复制 API 密钥。Hermes 会在应用中为你完成浏览器登录',
+      intro: '使用订阅登录，无需复制 API 密钥，Hermes 会在应用中为你完成浏览器登录',
       connected: '已连接',
       collapse: '收起',
       connectAnother: '连接其他提供方',
@@ -1793,12 +1793,12 @@ export const zh: Translations = {
       deleteConfirm: title => `永久删除"${title}"？此操作无法撤销`,
       autoArchiveTitle: '自动归档闲置会话',
       autoArchiveDesc:
-        '自动归档你一段时间未使用的会话。已置顶的会话永远不会被归档，也不会删除任何内容——归档的会话会移动到这里',
+        '自动归档你一段时间未使用的会话，已置顶的会话永远不会被归档，也不会删除任何内容——归档的会话会移动到这里',
       autoArchiveDaysLabel: '归档前',
       autoArchiveDaysUnit: '天无活动',
       autoArchiveFailed: '无法更新自动归档设置',
       defaultDirTitle: '默认项目目录',
-      defaultDirDesc: '新会话默认从此文件夹开始，除非你选择其他目录。留空则使用你的 home 目录',
+      defaultDirDesc: '新会话默认从此文件夹开始，除非你选择其他目录，留空则使用你的 Home 目录',
       defaultDirUpdated: '默认项目目录已更新',
       defaultsTo: label => `默认使用 ${label}`,
       change: '更改',
