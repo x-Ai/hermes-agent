@@ -193,5 +193,5 @@ test('ActiveNowStrip renders above the roster, is a live region, and is click-ac
   const open = source.slice(openStart, openStart + 3200)
 
   assert.match(open, /await prepareBotSource\(bot\)/)
-  assert.match(open, /await openBotCanonicalChat\(bot\)/)
+  assert.match(open, /await openBotCanonicalChat\(bot, \(\) => generation === botOpenGeneration\)/)
 })

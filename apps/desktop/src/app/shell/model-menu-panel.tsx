@@ -64,7 +64,8 @@ export function ModelMenuPanel({ gateway, onSelectModel, profile = 'default', re
   // never repaint that fallback once the catalog resolved.
   const modelOptions = useQuery({
     queryKey: modelOptionsQueryKey(profile, activeSessionId),
-    queryFn: (): Promise<ModelOptionsResponse> => requestModelOptions({ gateway, sessionId: activeSessionId })
+    queryFn: (): Promise<ModelOptionsResponse> =>
+      requestModelOptions({ gateway, profile, request: requestGateway, sessionId: activeSessionId })
   })
 
   const { model: optionsModel, provider: optionsProvider } = currentPickerSelection(
@@ -86,7 +87,13 @@ export function ModelMenuPanel({ gateway, onSelectModel, profile = 'default', re
     try {
       const queryKey = modelOptionsQueryKey(profile, activeSessionId)
 
-      const next = await requestModelOptions({ gateway, refresh: true, sessionId: activeSessionId })
+      const next = await requestModelOptions({
+        gateway,
+        profile,
+        refresh: true,
+        request: requestGateway,
+        sessionId: activeSessionId
+      })
 
       queryClient.setQueryData<ModelOptionsResponse>(queryKey, next)
     } catch {
@@ -229,6 +236,7 @@ export function ModelMenuPanel({ gateway, onSelectModel, profile = 'default', re
       gateway={gateway}
       includeMoa
       profile={profile}
+      request={requestGateway}
       sessionId={activeSessionId}
     />
   )
