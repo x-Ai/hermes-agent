@@ -357,6 +357,7 @@ export const ja = defineLocale({
       appearance: '外観',
       workspace: 'ワークスペース',
       safety: '安全性',
+      browser: 'ブラウザー',
       memory: 'メモリとコンテキスト',
       voice: '音声',
       advanced: '詳細'
@@ -561,7 +562,8 @@ export const ja = defineLocale({
       },
       browser: {
         allowPrivateUrls: 'ブラウザーのプライベート URL',
-        autoLocalForPrivateUrls: 'プライベート URL にはローカルブラウザーを使用'
+        autoLocalForPrivateUrls: 'プライベート URL にはローカルブラウザーを使用',
+        useRealProfile: '実際のブラウザープロファイルを使用'
       },
       checkpoints: {
         enabled: 'ファイルチェックポイント',
@@ -709,6 +711,10 @@ export const ja = defineLocale({
       },
       security: {
         redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。'
+      },
+      browser: {
+        useRealProfile:
+          'ローカルブラウジングで実際のログイン状態を使用します。Hermes は既定のブラウザーのプロファイル（Cookie、ログイン情報、設定）を管理対象のスナップショットにコピーし、同梱の Chromium で操作します。使用中のプロファイルを直接開くことはなく、コピーは実行のたびに元のプロファイルから更新されます。クラウドブラウザーのバックエンドが設定されている場合でも、エージェントは必要に応じて実際のプロファイルを使うローカルセッションを開けます。対応するのは Chromium ベースのブラウザー（Chrome、Edge、Brave、Chromium）のみです。既定のブラウザーが Chromium ベースでない場合は、明確なエラーメッセージを表示します。既定ではオフです。'
       },
       checkpoints: {
         enabled: 'ファイル編集前にロールバック用スナップショットを作成します。'

@@ -416,6 +416,7 @@ export const ar = defineLocale({
       appearance: 'المظهر',
       workspace: 'مساحة العمل',
       safety: 'الأمان',
+      browser: 'المتصفح',
       memory: 'الذاكرة والسياق',
       voice: 'الصوت',
       advanced: 'متقدم'
@@ -578,6 +579,7 @@ export const ar = defineLocale({
       'security.allowPrivateUrls': 'السماح بالروابط الخاصة',
       'browser.allowPrivateUrls': 'روابط المتصفح الخاصة',
       'browser.autoLocalForPrivateUrls': 'متصفح محلي للروابط الخاصة',
+      'browser.useRealProfile': 'استخدام ملف تعريف المتصفح الحقيقي',
       'checkpoints.enabled': 'نقاط حفظ الملفات',
       'checkpoints.maxSnapshots': 'حد نقاط الحفظ',
       'voice.recordKey': 'اختصار الصوت',
@@ -656,6 +658,8 @@ export const ar = defineLocale({
       'approvals.mode': 'كيف يتعامل Hermes مع الأوامر التي تحتاج موافقة صريحة.',
       'approvals.timeout': 'مدة انتظار طلبات الموافقة قبل انتهاء المهلة.',
       'security.redactSecrets': 'يخفي الأسرار المكتشفة من المحتوى المرئي للنموذج قدر الإمكان.',
+      'browser.useRealProfile':
+        'يستخدم التصفح المحلي جلسات تسجيل دخولك الحقيقية. ينسخ Hermes ملف تعريف متصفحك الافتراضي (ملفات تعريف الارتباط وتسجيلات الدخول والتفضيلات) إلى لقطة مُدارة، ثم يتحكم فيها باستخدام Chromium المرفق. لا يفتح ملفك النشط مباشرة أبدا، ويحدّث النسخة منه عند كل تشغيل. كما يتيح للوكيل فتح جلسة محلية تستخدم ملفك الحقيقي عند الطلب، حتى عند إعداد خلفية متصفح سحابية. لا تُدعم إلا المتصفحات المبنية على Chromium (Chrome وEdge وBrave وChromium)، ويعرض Hermes رسالة واضحة إذا لم يكن المتصفح الافتراضي مبنيا على Chromium. متوقف افتراضيا.',
       'checkpoints.enabled': 'ينشئ لقطات رجوع قبل تعديلات الملفات.',
       'memory.memoryEnabled': 'يحفظ ذكريات دائمة يمكن أن تساعد الجلسات القادمة.',
       'memory.userProfileEnabled': 'يحافظ على ملف مختصر لتفضيلات المستخدم.',

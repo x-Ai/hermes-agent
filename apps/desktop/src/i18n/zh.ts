@@ -599,6 +599,7 @@ export const zh: Translations = {
       appearance: '外观',
       workspace: '工作区',
       safety: '安全',
+      browser: '浏览器',
       memory: '记忆与上下文',
       voice: '语音',
       advanced: '高级'
@@ -798,7 +799,8 @@ export const zh: Translations = {
       },
       browser: {
         allowPrivateUrls: '浏览器私有 URL',
-        autoLocalForPrivateUrls: '私有 URL 使用本地浏览器'
+        autoLocalForPrivateUrls: '私有 URL 使用本地浏览器',
+        useRealProfile: '使用我的真实浏览器配置文件'
       },
       checkpoints: {
         enabled: '文件检查点',
@@ -961,6 +963,10 @@ export const zh: Translations = {
       },
       security: {
         redactSecrets: '尽可能从模型可见内容中隐藏检测到的密钥'
+      },
+      browser: {
+        useRealProfile:
+          '本地浏览会使用你真实的登录状态。Hermes 会将默认浏览器的配置文件（Cookie、登录状态和偏好设置）复制到托管快照中，再通过随附的 Chromium 驱动该快照；它绝不会直接打开你正在使用的配置文件，并会在每次运行时从原配置刷新副本。即使已配置云端浏览器后端，也允许智能体按需打开使用真实配置文件的本地会话。仅支持基于 Chromium 的浏览器（Chrome、Edge、Brave、Chromium）；若默认浏览器不是 Chromium 内核，将显示明确的错误信息。默认关闭。'
       },
       checkpoints: {
         enabled: '在文件编辑前创建可回滚的快照'

@@ -105,6 +105,33 @@ describe('Execution environment probe setting localization', () => {
   })
 })
 
+describe('Real browser profile setting localization', () => {
+  it('ships its section, label, and description in every desktop locale', () => {
+    const englishSection = TRANSLATIONS.en.settings.sections.browser
+    const englishLabel = fieldCopyForSchemaKey(TRANSLATIONS.en.settings.fieldLabels, 'browser.use_real_profile')
+
+    const englishDescription = fieldCopyForSchemaKey(
+      TRANSLATIONS.en.settings.fieldDescriptions,
+      'browser.use_real_profile'
+    )
+
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      const label = fieldCopyForSchemaKey(copy.settings.fieldLabels, 'browser.use_real_profile')
+      const description = fieldCopyForSchemaKey(copy.settings.fieldDescriptions, 'browser.use_real_profile')
+
+      expect(copy.settings.sections.browser, `${locale} section`).toBeTruthy()
+      expect(label, `${locale} label`).toBeTruthy()
+      expect(description, `${locale} description`).toBeTruthy()
+
+      if (locale !== 'en') {
+        expect(copy.settings.sections.browser, `${locale} section falls back to English`).not.toBe(englishSection)
+        expect(label, `${locale} label falls back to English`).not.toBe(englishLabel)
+        expect(description, `${locale} description falls back to English`).not.toBe(englishDescription)
+      }
+    }
+  })
+})
+
 const PROVIDER_CARD_NAMES = [
   'Actual Computer',
   'CommandCode',
