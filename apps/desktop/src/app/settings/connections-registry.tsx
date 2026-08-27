@@ -551,7 +551,7 @@ export function ConnectionsRegistrySection() {
         const reachable = result.ok === true || result.reachable === true
 
         if (reachable) {
-          notify({ title: conn.label, message: s.testOk })
+          notify({ title: conn.kind === 'local' ? s.kindLocal : conn.label, message: s.testOk })
         } else {
           notifyError(new Error(result.error || conn.label), s.testFailed)
         }
@@ -561,7 +561,7 @@ export function ConnectionsRegistrySection() {
         setTestingId(null)
       }
     },
-    [bridge, s.testFailed, s.testOk]
+    [bridge, s.kindLocal, s.testFailed, s.testOk]
   )
 
   // Fan out `hermes update` to every eligible source; per-connection results

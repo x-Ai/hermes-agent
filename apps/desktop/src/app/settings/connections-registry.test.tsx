@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopConnectionsRegistry } from '@/global'
+import { I18nProvider } from '@/i18n'
+import { $notifications, clearNotifications } from '@/store/notifications'
 import { $connection } from '@/store/session'
 
 import {
@@ -63,6 +65,7 @@ beforeEach(() => {
 
 afterEach(() => {
   $connection.set(null)
+  clearNotifications()
   cleanup()
   vi.clearAllMocks()
 })
@@ -289,13 +292,18 @@ describe('ConnectionsRegistrySection', () => {
     expect(search.closest<HTMLElement>('.border-t')?.style.minHeight).toBe('')
   })
 
-  it('tests a connection through the bridge', async () => {
-    render(<ConnectionsRegistrySection />)
+  it('tests a connection through the bridge with a localized local label', async () => {
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <ConnectionsRegistrySection />
+      </I18nProvider>
+    )
 
     await waitFor(() => expect(screen.getByText('Homelab')).toBeTruthy())
-    fireEvent.click(screen.getAllByText('Test')[0])
+    fireEvent.click(screen.getAllByText('测试')[0])
 
-    await waitFor(() => expect(test).toHaveBeenCalled())
+    await waitFor(() => expect(test).toHaveBeenCalledWith('local'))
+    expect($notifications.get()[0]).toMatchObject({ message: '可访问', title: '本地' })
   })
 })
 
