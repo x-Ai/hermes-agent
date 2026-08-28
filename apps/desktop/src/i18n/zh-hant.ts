@@ -562,6 +562,7 @@ export const zhHant = defineLocale({
       voice: {
         recordKey: '語音快捷鍵',
         maxRecordingSeconds: '最長錄音時間',
+        clientDirect: '用戶端直連',
         autoTts: '朗讀回覆'
       },
       stt: {

@@ -814,6 +814,7 @@ export const zh: Translations = {
       voice: {
         recordKey: '语音快捷键',
         maxRecordingSeconds: '最长录音时长',
+        clientDirect: '客户端直连',
         autoTts: '朗读回复'
       },
       stt: {

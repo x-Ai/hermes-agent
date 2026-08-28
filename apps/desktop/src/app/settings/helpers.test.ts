@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { TRANSLATIONS } from '@/i18n'
 import type { HermesConfigRecord } from '@/types/hermes'
 
 import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
@@ -154,6 +155,22 @@ describe('settings helpers', () => {
       expect(fieldCopyForSchemaKey(copy, 'display.show_reasoning')).toBe('Reasoning Blocks')
       expect(fieldCopyForSchemaKey(copy, 'tool_output.max_line_length')).toBe('Line Length Limit')
       expect(fieldCopyForSchemaKey(copy, 'file_read_max_chars')).toBe('Legacy File Read Limit')
+    })
+
+    it('localizes the client-direct voice label in every supported locale', () => {
+      const english = fieldCopyForSchemaKey(TRANSLATIONS.en.settings.fieldLabels, 'voice.client_direct')
+
+      expect(english).toBeTruthy()
+
+      for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
+        const label = fieldCopyForSchemaKey(translations.settings.fieldLabels, 'voice.client_direct')
+
+        expect(label, locale).toBeTruthy()
+
+        if (locale !== 'en') {
+          expect(label, locale).not.toBe(english)
+        }
+      }
     })
 
     it('rejects duplicate flattened paths', () => {

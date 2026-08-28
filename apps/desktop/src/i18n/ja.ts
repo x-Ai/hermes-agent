@@ -578,6 +578,7 @@ export const ja = defineLocale({
       voice: {
         recordKey: '音声ショートカット',
         maxRecordingSeconds: '最大録音時間',
+        clientDirect: 'クライアント直接接続',
         autoTts: '応答を読み上げる'
       },
       stt: {

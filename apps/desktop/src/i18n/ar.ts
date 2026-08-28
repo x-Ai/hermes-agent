@@ -590,6 +590,7 @@ export const ar = defineLocale({
       'checkpoints.maxSnapshots': 'حد نقاط الحفظ',
       'voice.recordKey': 'اختصار الصوت',
       'voice.maxRecordingSeconds': 'أقصى مدة للتسجيل',
+      'voice.clientDirect': 'اتصال العميل المباشر',
       'voice.autoTts': 'قراءة الردود صوتياً',
       'stt.enabled': 'تحويل الكلام إلى نص',
       'stt.provider': 'مزود تحويل الكلام إلى نص',

@@ -451,6 +451,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   voice: {
     recordKey: 'Voice Shortcut',
     maxRecordingSeconds: 'Max Recording Length',
+    clientDirect: 'Direct Voice Connection',
     autoTts: 'Read Responses Aloud'
   },
   stt: {
