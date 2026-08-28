@@ -38,16 +38,17 @@ export const CONTEXT_SPLIT_KIT: SplitMenuKit = {
 }
 
 // Ordered so the default (right) sits first, one hop away.
-const SPLIT_DIRS: { dir: SplitDir; icon: string; label: string }[] = [
-  { dir: 'right', icon: 'arrow-right', label: 'Right' },
-  { dir: 'bottom', icon: 'arrow-down', label: 'Down' },
-  { dir: 'left', icon: 'arrow-left', label: 'Left' },
-  { dir: 'top', icon: 'arrow-up', label: 'Up' }
+const SPLIT_DIRS: { dir: SplitDir; icon: string }[] = [
+  { dir: 'right', icon: 'arrow-right' },
+  { dir: 'bottom', icon: 'arrow-down' },
+  { dir: 'left', icon: 'arrow-left' },
+  { dir: 'top', icon: 'arrow-up' }
 ]
 
 interface SplitSubmenuProps {
   kit: SplitMenuKit
   label: string
+  directionLabels: Record<SplitDir, string>
   onSplit: (dir: SplitDir) => void
   disabled?: boolean
   /** Dismiss the owning menu after the row's default (right) split — the
@@ -59,7 +60,7 @@ interface SplitSubmenuProps {
  * "Open in split ▸": clicking the row splits right (the common case), and the
  * submenu picks any edge. Shared by session rows and page nav rows.
  */
-export function SplitSubmenu({ close, disabled, kit, label, onSplit }: SplitSubmenuProps) {
+export function SplitSubmenu({ close, directionLabels, disabled, kit, label, onSplit }: SplitSubmenuProps) {
   const { Item, Sub, SubContent, SubTrigger } = kit
 
   const split = (dir: SplitDir) => {
@@ -80,10 +81,10 @@ export function SplitSubmenu({ close, disabled, kit, label, onSplit }: SplitSubm
         <span>{label}</span>
       </SubTrigger>
       <SubContent>
-        {SPLIT_DIRS.map(({ dir, icon, label: dirLabel }) => (
+        {SPLIT_DIRS.map(({ dir, icon }) => (
           <Item key={dir} onSelect={() => split(dir)}>
             <Codicon name={icon} size="0.875rem" />
-            <span>{dirLabel}</span>
+            <span>{directionLabels[dir]}</span>
           </Item>
         ))}
       </SubContent>

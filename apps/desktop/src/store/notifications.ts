@@ -111,6 +111,10 @@ const ERROR_SUMMARIES: { test: (msg: string) => boolean; summarize: (msg: string
     summarize: () => translateNow('notifications.errors.gatewayAuthFailed')
   },
   {
+    test: msg => /invalid external url/i.test(msg),
+    summarize: () => translateNow('notifications.errors.invalidExternalUrl')
+  },
+  {
     test: msg => /incorrect api key provided/i.test(msg) || /['"]code['"]\s*:\s*['"]invalid_api_key['"]/i.test(msg),
     summarize: msg => {
       const status = msg.match(/(?:error code|status(?:Code)?)[^\d]*(\d{3})/i)?.[1]

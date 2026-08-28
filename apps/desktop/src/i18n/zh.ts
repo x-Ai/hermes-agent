@@ -200,6 +200,7 @@ export const zh: Translations = {
       elevenLabsRejectedKey: 'ElevenLabs 拒绝了该 API key (401)',
       diskFull: '磁盘已满 — 请腾出一些空间后再试',
       gatewayAuthFailed: '网关认证失败 — 请检查你的 API_SERVER_KEY',
+      invalidExternalUrl: '外部链接无效',
       methodNotAllowed: '桌面后端拒绝了该请求 (405 Method Not Allowed)。请尝试重启 Hermes Desktop',
       microphonePermission: '麦克风权限已被拒绝',
       openaiRejectedApiKey: 'OpenAI 拒绝了该 API key',
@@ -3774,6 +3775,7 @@ export const zh: Translations = {
       hideTabBar: '隐藏标签栏',
       openInNewTab: '在新标签页中打开',
       openInSplit: '在分屏中打开',
+      splitDirections: { right: '右侧', bottom: '下方', left: '左侧', top: '上方' },
       copyIdFailed: '无法复制会话 ID',
 
       sessionActions: '会话操作',

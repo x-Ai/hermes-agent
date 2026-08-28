@@ -159,6 +159,7 @@ export const ja = defineLocale({
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
       diskFull: 'ディスク容量不足です — 空きを作ってからもう一度お試しください。',
       gatewayAuthFailed: 'ゲートウェイ認証に失敗しました — API_SERVER_KEY を確認してください。',
+      invalidExternalUrl: '外部 URL が無効です。',
       methodNotAllowed:
         'デスクトップバックエンドがそのリクエストを拒否しました (405 Method Not Allowed)。Hermes Desktop を再起動してください。',
       microphonePermission: 'マイクのアクセス許可が拒否されました。',
@@ -3130,6 +3131,8 @@ export const ja = defineLocale({
       archive: 'アーカイブ',
       newWindow: '新しいウィンドウ',
       openInTerminal: 'ターミナルで開く',
+      openInSplit: '分割表示で開く',
+      splitDirections: { right: '右', bottom: '下', left: '左', top: '上' },
       copyIdFailed: 'セッション ID をコピーできませんでした',
 
       sessionActions: 'セッションアクション',

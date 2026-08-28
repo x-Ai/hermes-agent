@@ -241,6 +241,7 @@ export interface Translations {
       elevenLabsRejectedKey: string
       diskFull: string
       gatewayAuthFailed: string
+      invalidExternalUrl: string
       methodNotAllowed: string
       microphonePermission: string
       openaiRejectedApiKey: string
@@ -2188,6 +2189,7 @@ export interface Translations {
       hideTabBar: string
       openInNewTab: string
       openInSplit: string
+      splitDirections: Record<'bottom' | 'left' | 'right' | 'top', string>
       copyIdFailed: string
       sessionActions: string
       sessionRunning: string

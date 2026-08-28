@@ -11295,7 +11295,16 @@ function CreateAgentDialog({ open, onClose, roster }) {
                                         value: '__none__',
                                         children: b.freshProfile
                                       }),
-                                      ...roster.map(b => jsx(SelectItem, { value: b.name, children: b.name }, b.name))
+                                      ...roster.map(profile =>
+                                        jsx(
+                                          SelectItem,
+                                          {
+                                            value: profile.name,
+                                            children: profile.name === 'default' ? b.defaultProfileName : profile.name
+                                          },
+                                          profile.name
+                                        )
+                                      )
                                     ]
                                   })
                                 ]

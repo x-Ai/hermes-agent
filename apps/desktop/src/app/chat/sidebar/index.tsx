@@ -1560,6 +1560,7 @@ export function ChatSidebar({
                         <ContextMenuTrigger asChild>{button}</ContextMenuTrigger>
                         <ContextMenuContent aria-label={s.nav[item.id] ?? item.label}>
                           <SplitSubmenu
+                            directionLabels={s.row.splitDirections}
                             kit={CONTEXT_SPLIT_KIT}
                             label={s.row.openInSplit}
                             onSplit={dir => {

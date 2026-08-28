@@ -153,6 +153,7 @@ type BotsMessages = {
   mcp: string
   cloneFromProfile: string
   cloneFromProfileOn: (target: string) => string
+  defaultProfileName: string
   createOn: string
   currentConnection: (name: string) => string
   remoteAgentLocationHint: (target: string) => string
@@ -578,6 +579,7 @@ const en: BotsMessages = {
   mcp: 'MCP',
   cloneFromProfile: 'Clone from profile',
   cloneFromProfileOn: target => `Clone from profile (on ${target})`,
+  defaultProfileName: 'Default',
   createOn: 'Create on',
   currentConnection: name => `${name} (current)`,
   remoteAgentLocationHint: target =>
@@ -998,12 +1000,13 @@ const zh: BotsMessages = {
   toolsets: '工具',
   tools: '工具',
   mcp: 'MCP',
-  cloneFromProfile: '从资料克隆',
-  cloneFromProfileOn: target => `从资料克隆（位于 ${target}）`,
+  cloneFromProfile: '从配置档克隆',
+  cloneFromProfileOn: target => `从配置档克隆（位于 ${target}）`,
+  defaultProfileName: '默认',
   createOn: '创建位置',
   currentConnection: name => `${name}（当前）`,
   remoteAgentLocationHint: target => `代理将在 ${target} 上创建，并作为连接智能体显示在列表中；聊天会路由到该设备。`,
-  freshProfile: '全新资料（内置技能）',
+  freshProfile: '全新配置档（内置技能）',
   createEmpty: '已勾选"创建空白" — 不会安装内置技能',
   filterSkills: '筛选技能…',
   noMcpServers: '未配置或目录中没有 MCP 服务器',
@@ -1433,6 +1436,7 @@ export function useBots() {
     mcp: t('mcp'),
     cloneFromProfile: t('cloneFromProfile'),
     cloneFromProfileOn: (target: string) => t('cloneFromProfileOn', target),
+    defaultProfileName: t('defaultProfileName'),
     createOn: t('createOn'),
     currentConnection: (name: string) => t('currentConnection', name),
     remoteAgentLocationHint: (target: string) => t('remoteAgentLocationHint', target),

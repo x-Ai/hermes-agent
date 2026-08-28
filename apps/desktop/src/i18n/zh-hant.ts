@@ -154,6 +154,7 @@ export const zhHant = defineLocale({
       elevenLabsRejectedKey: 'ElevenLabs 拒絕了該 API 金鑰 (401)。',
       diskFull: '磁碟已滿 — 請騰出一些空間後再試。',
       gatewayAuthFailed: '閘道認證失敗 — 請檢查你的 API_SERVER_KEY。',
+      invalidExternalUrl: '外部連結無效',
       methodNotAllowed: '桌面後端拒絕了該請求 (405 Method Not Allowed)。請嘗試重新啟動 Hermes Desktop。',
       microphonePermission: '麥克風權限已被拒絕。',
       openaiRejectedApiKey: 'OpenAI 拒絕了該 API 金鑰。',
@@ -2876,6 +2877,8 @@ export const zhHant = defineLocale({
       archive: '封存',
       newWindow: '新視窗',
       openInTerminal: '在終端機中開啟',
+      openInSplit: '在分割畫面中開啟',
+      splitDirections: { right: '右側', bottom: '下方', left: '左側', top: '上方' },
       copyIdFailed: '無法複製工作階段 ID',
 
       sessionActions: '工作階段動作',

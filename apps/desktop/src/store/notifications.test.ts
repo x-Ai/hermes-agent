@@ -59,6 +59,17 @@ test('session storage write failure is treated as disk-full class', () => {
   expect(lastMessage()).toMatch(/Disk full/i)
 })
 
+test('invalid external URLs are summarized in the active locale', () => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error('Invalid external URL'), '打开链接失败')
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: '打开链接失败',
+    message: '外部链接无效',
+    detail: 'Invalid external URL'
+  })
+})
+
 test('restore target drift is summarized in the active locale', () => {
   setRuntimeI18nLocale('zh')
   notifyError(new Error('target user message is no longer in session history'), '恢复失败')

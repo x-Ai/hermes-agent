@@ -64,7 +64,7 @@ function ProjectPicker({ onChange, value }: { onChange: (id: string) => void; va
       </Select>
       <span className="text-[0.6875rem] leading-relaxed text-(--ui-text-quaternary)">
         {k.projectHintPre}
-        <span className="font-mono">{k.projectHintCmd}</span>.
+        <span className="font-mono">{k.projectHintCmd}</span>
       </span>
     </label>
   )

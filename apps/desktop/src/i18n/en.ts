@@ -209,6 +209,7 @@ export const en: Translations = {
       elevenLabsRejectedKey: 'ElevenLabs rejected the API key (401).',
       diskFull: 'Disk full — free some space, then try again.',
       gatewayAuthFailed: 'Gateway authentication failed — check your API_SERVER_KEY.',
+      invalidExternalUrl: 'Invalid external URL',
       methodNotAllowed:
         'The desktop backend rejected that request (405 Method Not Allowed). Try restarting Hermes Desktop.',
       microphonePermission: 'Microphone permission was denied.',
@@ -2808,6 +2809,7 @@ export const en: Translations = {
       hideTabBar: 'Hide tab bar',
       openInNewTab: 'Open in new tab',
       openInSplit: 'Open in split',
+      splitDirections: { right: 'Right', bottom: 'Down', left: 'Left', top: 'Up' },
       copyIdFailed: 'Could not copy session ID',
       sessionActions: 'Session actions',
       sessionRunning: 'Session running',
