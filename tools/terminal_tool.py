@@ -2596,6 +2596,43 @@ def get_active_env(task_id: str):
         return _active_environments.get(lookup) or _active_environments.get(task_id)
 
 
+def get_session_execution_cwd(session_key: Optional[str]) -> Optional[str]:
+    """Return *session_key*'s cwd in the execution backend's namespace.
+
+    Surface adapters register host workspaces as session cwd records before a
+    Docker/Singularity sandbox exists. Those host paths are useful for choosing
+    a bind mount, but they are not valid paths for tools running inside the
+    sandbox. Delegation needs the translated value before a child makes its
+    first tool call so relative file operations start in the mounted workspace.
+
+    Local/SSH/managed backends keep the recorded value unchanged. For a
+    container backend, an already-valid in-sandbox cwd wins; otherwise an
+    actually resolved workspace bind maps to its configured mount target, and
+    the backend's sanitized default cwd is the final fallback.
+    """
+    recorded = get_session_cwd(session_key)
+    config = _get_env_config()
+    env_type = str(config.get("env_type") or "local").strip().lower()
+    if not _is_container_backend(env_type):
+        return recorded
+    if recorded and not _is_unusable_container_cwd(recorded):
+        return recorded
+
+    # Per-session workspace mounting owns both halves of the mapping when it
+    # is enabled. Docker's non-persistent session isolation has a second mount
+    # path through _resolve_task_host_cwd(), so consult that too.
+    mount_source, container_cwd = _resolve_workspace_mount_for_task(
+        session_key, config
+    )
+    if mount_source and container_cwd:
+        return container_cwd
+    if _resolve_task_host_cwd(config, session_key):
+        return str(config.get("workspace_mount_path") or "/workspace")
+
+    fallback = config.get("cwd")
+    return str(fallback) if isinstance(fallback, str) and fallback.strip() else None
+
+
 def ensure_task_env(task_id: Optional[str] = None):
     """Lazily create and cache the sandbox env for *task_id* if none is active.
 

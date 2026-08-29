@@ -46,6 +46,9 @@ from tools.terminal_tool import set_approval_callback as _set_subagent_approval_
 from utils import base_url_hostname, is_truthy_value
 
 
+_WORKSPACE_CONTEXT_UNSET = object()
+
+
 # Tools that children must never have access to
 DELEGATE_BLOCKED_TOOLS = frozenset(
     [
@@ -1175,6 +1178,7 @@ def _build_child_system_prompt(
     context: Optional[str] = None,
     *,
     workspace_path: Optional[str] = None,
+    context_workspace_path: Any = _WORKSPACE_CONTEXT_UNSET,
     role: str = "leaf",
     max_spawn_depth: int = 2,
     child_depth: int = 1,
@@ -1206,16 +1210,28 @@ def _build_child_system_prompt(
         # skip_context_files=True (their prompt is this focused one), so
         # without this a subagent works in a repo without the repo's own
         # conventions unless it thinks to go read them. SOUL.md is skipped —
-        # identity belongs to the parent. workspace_path comes only from
-        # explicit sources (_resolve_workspace_hint: TERMINAL_CWD / agent cwd
-        # hints, never bare getcwd), so the #64590 install-tree-fallback leak
-        # doesn't apply here. Best-effort: on any failure the child prompt is
-        # simply built without the block.
+        # identity belongs to the parent. The path shown to the child and the
+        # path readable by this controller are deliberately separate: with a
+        # Docker/Singularity bind mount the child operates at /workspace (or
+        # the configured target), while context files still live at the
+        # host-side mount source. Direct callers that omit
+        # context_workspace_path keep the historical one-path behaviour.
+        # Best-effort: on any failure the child prompt is simply built without
+        # the block.
+        _context_workspace = (
+            workspace_path
+            if context_workspace_path is _WORKSPACE_CONTEXT_UNSET
+            else context_workspace_path
+        )
         try:
             from agent.prompt_builder import build_context_files_prompt
 
-            _ctx_files = build_context_files_prompt(
-                cwd=str(workspace_path), skip_soul=True
+            _ctx_files = (
+                build_context_files_prompt(
+                    cwd=str(_context_workspace), skip_soul=True
+                )
+                if _context_workspace
+                else ""
             )
         except Exception:
             logger.debug(
@@ -1276,20 +1292,37 @@ def _build_child_system_prompt(
     return "\n".join(parts)
 
 
-def _resolve_workspace_hint(parent_agent) -> Optional[str]:
-    """Best-effort local workspace hint for child prompts.
+def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
+    """Best-effort host workspace used to load child context files.
 
     We only inject a path when we have a concrete absolute directory. This avoids
-    teaching subagents a fake container path while still helping them avoid
-    guessing `/workspace/...` for local repo tasks.
+    falling back to Hermes' own install directory when a surface did not attach
+    a workspace.
     """
+    registered_workspace = None
+    try:
+        from tools.terminal_tool import resolve_task_overrides
+
+        raw_parent_task_id = getattr(parent_agent, "_current_task_id", None)
+        parent_task_id = (
+            raw_parent_task_id if isinstance(raw_parent_task_id, str) else None
+        )
+        registered_workspace = resolve_task_overrides(parent_task_id).get("cwd")
+    except Exception:
+        logger.debug(
+            "subagent: registered host workspace resolution failed", exc_info=True
+        )
     candidates = [
-        os.getenv("TERMINAL_CWD"),
+        # A session-attached workspace must beat the process-global launch cwd:
+        # Desktop/TUI workspace switching updates the former per session while
+        # TERMINAL_CWD can still describe a previous conversation.
+        registered_workspace,
         getattr(
             getattr(parent_agent, "_subdirectory_hints", None), "working_dir", None
         ),
         getattr(parent_agent, "terminal_cwd", None),
         getattr(parent_agent, "cwd", None),
+        os.getenv("TERMINAL_CWD"),
     ]
     for candidate in candidates:
         if not candidate:
@@ -1301,6 +1334,55 @@ def _resolve_workspace_hint(parent_agent) -> Optional[str]:
         if os.path.isabs(text) and os.path.isdir(text):
             return text
     return None
+
+
+def _resolve_workspace_hint(parent_agent) -> Optional[str]:
+    """Return the workspace path in the child's execution namespace.
+
+    Local children use the host path directly. Docker/Singularity children
+    share the parent's sandbox, so a host path mounted into that sandbox must
+    be expressed as the in-container target (normally ``/workspace``). Giving
+    a child the host spelling makes its prompt and relative file-tool base point
+    at a path that does not exist in its execution backend.
+    """
+    host_hint = _resolve_host_workspace_hint(parent_agent)
+    try:
+        from tools.terminal_tool import (
+            _get_env_config,
+            _is_container_backend,
+            _is_unusable_container_cwd,
+            get_session_cwd,
+            get_session_execution_cwd,
+        )
+
+        config = _get_env_config()
+        env_type = str(config.get("env_type") or "local").strip().lower()
+        if _is_container_backend(env_type):
+            parent_task_id = getattr(parent_agent, "_current_task_id", None)
+            recorded_cwd = get_session_cwd(parent_task_id)
+            mount_enabled = (
+                env_type == "docker"
+                and bool(config.get("docker_mount_cwd_to_workspace"))
+            ) or (
+                env_type == "singularity"
+                and bool(config.get("singularity_mount_cwd_to_workspace"))
+            )
+            # An explicit session cwd or host hint proves this is a real
+            # workspace-bearing parent. Without either, do not label the
+            # container's generic /root as a repository workspace. A host
+            # spelling only qualifies when this backend is actually configured
+            # to mount it; otherwise the repository is not reachable there.
+            if (
+                recorded_cwd and not _is_unusable_container_cwd(recorded_cwd)
+            ) or (host_hint and mount_enabled):
+                execution_cwd = get_session_execution_cwd(parent_task_id)
+                if execution_cwd:
+                    return execution_cwd
+    except Exception:
+        logger.debug(
+            "subagent: execution workspace resolution failed", exc_info=True
+        )
+    return host_hint
 
 
 def _strip_blocked_tools(toolsets: List[str]) -> List[str]:
@@ -1728,10 +1810,12 @@ def _build_child_agent(
         child_toolsets.append("delegation")
 
     workspace_hint = _resolve_workspace_hint(parent_agent)
+    context_workspace_hint = _resolve_host_workspace_hint(parent_agent)
     child_prompt = _build_child_system_prompt(
         goal,
         context,
         workspace_path=workspace_hint,
+        context_workspace_path=context_workspace_hint,
         role=effective_role,
         max_spawn_depth=max_spawn,
         child_depth=child_depth,
@@ -2711,20 +2795,22 @@ def _run_single_child(
 
         child_task_id = _subagent_id or f"subagent-{task_index}-{_uuid.uuid4().hex[:8]}"
         parent_task_id = getattr(parent_agent, "_current_task_id", None)
-        # Seed the child's session-cwd record from the parent's (cwd rearch):
-        # children share the parent's container, and today they inherit the
-        # parent's live env.cwd implicitly. Seeding at spawn preserves that
-        # starting directory while keeping the child's subsequent `cd`s
-        # isolated in its own record (a child's cd no longer bleeds back into
-        # the parent once readers flip to the record store).
+        # Seed the child's session-cwd record from the parent's (cwd rearch).
+        # Children share the parent's container, but a surface may record the
+        # parent cwd using the HOST spelling of a bind mount. Translate it to
+        # the execution namespace before seeding so the child's first relative
+        # file operation starts at /workspace (or the configured target).
+        # Subsequent child `cd`s stay isolated in the child's own record.
         try:
             from tools.terminal_tool import (
-                get_session_cwd,
+                get_session_execution_cwd,
                 record_session_cwd,
                 register_container_alias,
             )
 
-            record_session_cwd(child_task_id, get_session_cwd(parent_task_id))
+            record_session_cwd(
+                child_task_id, get_session_execution_cwd(parent_task_id)
+            )
             # Per-session container isolation (docker + container_persistent:
             # false) keys containers by session task_id. The child must share
             # the PARENT's container — register the alias so the child's
