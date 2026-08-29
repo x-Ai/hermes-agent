@@ -45,6 +45,7 @@ import {
   updateCronJob
 } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle } from '@/lib/icons'
 import { requestModelOptions } from '@/lib/model-options'
 import { asText } from '@/lib/text'
@@ -1141,6 +1142,11 @@ function CronEditorDialog({
     provider => provider.authenticated !== false && (provider.models ?? []).length > 0
   )
 
+  // The MoA virtual provider exposes preset keys as models. Keep the raw key
+  // in the Select value while localizing the reserved built-in `default` name.
+  const modelLabel = (provider: string, model: string) =>
+    provider.trim().toLowerCase() === 'moa' ? displayEntityName(model, t) : model
+
   // A previously pinned model that has since left the catalog (provider
   // removed / model retired) would render Radix's blank trigger. Keep the
   // stored pin visible and re-selectable rather than silently dropping it.
@@ -1357,7 +1363,10 @@ function CronEditorDialog({
                     <SelectItem value={MODEL_DEFAULT_VALUE}>{c.modelDefault}</SelectItem>
                     {!modelChoiceKnown && (
                       <SelectItem className="font-mono" value={modelChoice}>
-                        {modelChoice.slice(modelChoice.indexOf(':') + 1)}
+                        {modelLabel(
+                          modelChoice.slice(0, modelChoice.indexOf(':')),
+                          modelChoice.slice(modelChoice.indexOf(':') + 1)
+                        )}
                       </SelectItem>
                     )}
                     {modelProviders.map(provider => (
@@ -1369,7 +1378,7 @@ function CronEditorDialog({
                             key={`${provider.slug}:${model}`}
                             value={`${provider.slug}:${model}`}
                           >
-                            {model}
+                            {modelLabel(provider.slug, model)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
