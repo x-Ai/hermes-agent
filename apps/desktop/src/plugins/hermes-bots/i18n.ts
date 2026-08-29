@@ -1,1721 +1,1091 @@
 /**
- * Plugin-scoped i18n for hermes-bots — Bot Mode localization.
+ * Plugin-scoped i18n for Bot Mode — bundles registered under the plugin id via
+ * `ctx.i18n.register`, never touching core `en.ts`. Mirrors the kanban plugin:
+ * `usePluginI18n` returns a stringly-typed `t(key, …)`, and `useBots()` binds it
+ * to the message SHAPE so components keep typed `b.roster.search` access.
  *
- * Bundles shipped under the plugin id via ctx.i18n.register,
- * never touching core en.ts.
+ * Only strings Bot Mode OWNS live here. Generic verbs (Cancel, Delete, Remove,
+ * Retry, Close, Loading…) and shared vocabulary core already ships in every
+ * locale — weekday names, Daily/Hourly, Scheduled jobs — resolve against core
+ * via `useI18n()` / `translateNow()`. Duplicating those here would be a
+ * second, worse translation that drifts.
+ *
+ * Three kinds of literal deliberately stay hardcoded, and none of them is a
+ * missed key:
+ *
+ *  - **Prompts sent to a model**, not shown as chrome: the room-picture image
+ *    prompt and the scheduled-routine instruction. They are addressed to the
+ *    model, which reads English best.
+ *  - **Syntax and identifiers**: cron expressions and their examples, React
+ *    keys, workspace ids.
+ *  - **`'You'`**, the author marker on room-log entries. It is persisted into
+ *    the log and compared as a sentinel (`group-activity.ts`), so translating
+ *    it in place would break both. Localizing it needs the marker and its
+ *    rendering split apart — worth doing, not doable as a rename.
+ *
+ * Locales follow kanban: `en` / `ja` / `zh` / `zh-hant`. Arabic falls through
+ * the resolution chain (active locale → this plugin's `en` → the key) the
+ * same way a missing string in any locale does. Nouns match core: ボット /
+ * 机器人 / 機器人, プロファイル / 配置档案 / 設定檔, ゲートウェイ / 网关 / 閘道.
  */
 
-import { type PluginLocaleBundles, usePluginI18n } from '@hermes/plugin-sdk'
+import { type PluginLocaleBundles, type PluginTranslate, usePluginI18n } from '@hermes/plugin-sdk'
+import { useMemo } from 'react'
+
+import { getPluginCtx } from './shared'
 
 type BotsMessages = {
-  // Common actions
-  cancel: string
-  save: string
-  create: string
-  delete: string
-  back: string
-  close: string
-  retry: string
-  send: string
-  retryLabel: string
-  signIn: string
-  setUpAction: string
-  authorizing: string
+  /** Left rail: the bot + group-chat roster. */
+  roster: {
+    search: string
+    searchPlaceholder: string
+    newBotOrGroup: string
+    groupChats: string
+    emptyTitle: string
+    emptyDesc: string
+    noMatchQuery: (query: string) => string
+    noMatchQueryOn: (query: string, gateway: string) => string
+    noMatchFiltersOn: (gateway: string) => string
+    noMatchFilters: string
+    clearFilters: string
+    allHidden: string
+    allHiddenDesc: string
+    showHidden: string
+    noHiddenMatch: string
+    hiddenFromRoster: string
+    pinned: string
+    needsAttention: string
+    needsInput: string
+    /** The kind filter's three options, in menu order. */
+    botsAndGroups: string
+    botsOnly: string
+    groupsOnly: string
+    /** The activity filter's four options, in menu order. */
+    anyActivity: string
+    activeNow: string
+    recentlyActive: string
+    older: string
+    /** How a row's owning gateway is doing — see `botSourceStatus`. */
+    gatewayRemoved: string
+    onDemand: string
+    ready: string
+    statusUnknown: string
+    unavailable: string
+    retryNow: string
+    rosterUnavailable: (reason: string) => string
+    waitingForGateway: string
+  }
+  /** Creating, editing and removing a bot. */
+  bot: {
+    newTitle: string
+    cloneFromProfile: string
+    cloneFromProfileOn: (target: string) => string
+    defaultProfileName: string
+    freshProfile: string
+    editTitle: string
+    editMenu: string
+    helpPromptPlaceholder: string
+    descriptionHint: string
+    newChatWith: string
+    /** Re-opens the forever-chat on purpose. A plain row click only returns to
+     *  the tabs already open, so a closed Bot Chat needs an explicit ask. */
+    openBotChat: string
+    duplicate: string
+    duplicateFailed: string
+    deleteTitle: string
+    removeFromAllGroups: string
+    createFirstHint: string
+    createFailed: string
+    advanced: string
+    advancedHint: string
+    advancedFailed: string
+    openAnotherChatUnsupported: string
+    remoteConnectionsUnsupported: string
+    /** Stands under the bot's name in a chat it has not spoken in yet. */
+    chatEmpty: string
+    /** First line of a brand-new bot's forever-chat — see `kickoffText`. */
+    kickoff: string
+  }
+  /** Avatar picker: shapes, blobs, pets, uploads, generation. */
+  avatar: {
+    classicShapes: string
+    blobFromName: string
+    unlockFollowsName: string
+    randomize: string
+    /** The picker's four tabs, in order. */
+    tabBot: string
+    tabGenerate: string
+    upload: string
+    tabPet: string
+    removeImage: string
+    removeBackToShape: string
+    describePlaceholder: string
+    describeHint: string
+    matchTheName: string
+    pickPet: string
+    petLoadFailed: string
+    imageTooLarge: string
+    generationFailed: string
+    savedLocally: string
+    savedLocallyDescriptionFailed: string
+    generate: string
+    generating: string
+  }
+  /** Group chats: the room, its composer, threads and activity feed. */
+  group: {
+    newTitle: string
+    manageDesc: string
+    manageTitle: string
+    settingsTitle: string
+    settingsDesc: string
+    nameLabel: string
+    searchToAdd: string
+    searchToAddPlaceholder: string
+    removeFromSelection: string
+    disbandTitle: string
+    deleteTitle: string
+    deleteAction: string
+    composerPlaceholder: string
+    attachHint: string
+    newThread: string
+    reply: string
+    replyInThread: string
+    replyInThreadPlaceholder: string
+    openThread: string
+    collapseThread: string
+    collapseThreadLabel: string
+    activity: string
+    noActivityYet: string
+    showActivity: string
+    hideActivity: string
+    stop: string
+    stopHint: string
+    needsYourInput: string
+    pictureGenerationFailed: string
+    nameTaken: (name: string) => string
+    memberCount: (count: number) => string
+    settingsHint: (group: string) => string
+    settingsLabel: (group: string) => string
+    disbandHint: (group: string) => string
+    disbandLabel: (group: string) => string
+    disbandAction: string
+    disbanding: string
+    disbandDone: string
+    disbanded: (group: string) => string
+    /** Wraps the bolded group name, so the name can lead the sentence in
+     *  languages that put it there — see core's cron.deleteDesc* pair. */
+    disbandDescPrefix: string
+    disbandDescSuffix: (count: number) => string
+    stopped: (group: string) => string
+    removeAttachment: string
+    threadFallback: string
+    replyCount: (replies: number) => string
+    dropToThread: string
+    dropToRoom: string
+    waitingForAnswer: string
+    memberThinking: (name: string) => string
+    roomWorking: string
+    messageRoom: (group: string) => string
+    newThreadPlaceholder: (group: string) => string
+    everyoneMeta: string
+    commandApproval: string
+    answerFailed: (handle: string, error: string) => string
+    wantsToRunCommand: (handle: string) => string
+    asks: (handle: string) => string
+    answerTo: (member: string) => string
+  }
+  /** Skills hub + MCP setup surfaces embedded in the bot editor. */
+  tools: {
+    skillsHub: string
+    filterSkills: string
+    searchHub: string
+    noMcpServers: string
+  }
 
-  // Bot roster
-  bots: string
-  noBots: string
-  noBotsDesc: string
-  searchBots: string
-  noBotsMatch: (query: string) => string
-  newAgent: string
-  newGroupChat: string
-  activityToastsOn: string
-  activityToastsOff: string
-  botChatsHidden: string
-  botChatsShown: string
-  hideHiddenBotsAgain: string
-  showHiddenBotsCount: (count: number) => string
-  hideHiddenBots: string
-  showHiddenBots: string
-  hiddenBotUnread: string
-  allBotsHidden: string
-  retryNow: string
-  newMenu: string
-  newAgentOrGroup: string
-  rosterRefreshFailed: string
-  waitingForGateway: string
-  rosterUnavailable: (message: string) => string
-  gatewayError: string
-  newMessageFor: (name: string) => string
-  newActivityFor: (name: string) => string
-  openChatToSee: string
-  thisDevice: string
-  hermesGateway: string
-
-  // Bot actions
-  editProfile: string
-  duplicate: string
-  newChatWithAgent: string
-  pin: string
-  unpin: string
-  pinnedTitle: string
-  sessions: string
-  moveToGroup: string
-  group: (name: string) => string
-  manageGroups: string
-  groups: (names: string) => string
-  unread: string
-  activeRecently: string
-  openAgentChat: (name: string) => string
-  noConversations: string
-  updateForRemoteAgents: string
-  remoteSourceLabel: string
-  livesOn: (source: string) => string
-  lastMessageFrom: (name: string) => string
-  hiddenFromRoster: string
-  hideBot: string
-  unhideBot: string
-  botHidden: (name: string) => string
-  botUnhidden: (name: string) => string
-
-  // Bot chat
-  botChat: string
-  activeNow: string
-  needsYou: string
-  openChat: string
-  openContinuousChatDescription: string
-  chatNeverResets: string
-  chatNeverResetsDesc: string
-
-  // Profile editing
-  editProfileTitle: string
-  name: string
-  title: string
-  description: string
-  whatHelp: string
-  advanced: string
-  advancedConfig: string
-  saving: string
-  appearanceAndRole: (displayName: string, profile: string) => string
-
-  // Avatar
-  bot: string
-  generate: string
-  upload: string
-  pet: string
-  removeImage: string
-  describeAvatar: string
-  avatarAuto: string
-  avatarAutoTitle: string
-  avatarRandomize: string
-  avatarUnlockTitle: string
-  avatarLockTitle: string
-  avatarUnlock: string
-  avatarLockFace: string
-  avatarLockedHint: string
-  avatarFollowsNameHint: string
-  avatarClassicShapes: string
-  avatarBlobTitle: string
-  generating: string
-  leaveBlankGenerate: string
-  choosePet: string
-  removePet: string
-  noPetsMatch: string
-  noPets: string
-  chooseImage: string
-  searchPets: (count: number) => string
-  inheritLaunchProfile: string
-  enterManually: string
-  backToDropdowns: string
-  gatewayDefault: string
-  fullConfigNeedsNewGateway: string
-  capabilitiesImmediate: string
-  soulConfig: string
-  skillsEnabled: (enabled: number, total: number) => string
-  toolsetsEnabled: (enabled: number, total: number) => string
-  mcpServers: string
-  catalog: string
-  catalogInstalled: string
-  modelNameExample: string
-
-  // New agent dialog
-  newAgentTitle: string
-  newAgentDesc: string
-  namePlaceholder: string
-  titlePlaceholder: string
-  descPlaceholder: string
-  general: string
-  capabilities: string
-  skills: string
-  toolsets: string
-  tools: string
-  mcp: string
-  cloneFromProfile: string
-  cloneFromProfileOn: (target: string) => string
-  defaultProfileName: string
-  createOn: string
-  currentConnection: (name: string) => string
-  remoteAgentLocationHint: (target: string) => string
-  freshProfile: string
-  createEmpty: string
-  filterSkills: string
-  noMcpServers: string
-  creating: string
-  createAgent: string
-  agentCreated: (name: string) => string
-  agentCreatedOn: (name: string, target: string) => string
-  couldNotCleanDraft: (name: string) => string
-  catalogFrom: (source: string) => string
-  defaultToolsetBehavior: string
-  agentExists: (name: string) => string
-  agentExistsOn: (name: string, target: string) => string
-  inheritedFromLaunchProfile: string
-  soulOptional: string
-  soulPlaceholder: string
-  shareKeys: string
-  shareKeysDesc: string
-  createEmptyLabel: string
-  nameTakenForCapabilities: string
-  nameFirstForCapabilities: string
-  capabilityCatalogNeedsGateway: string
-  configuredServersDesc: string
-
-  // Cronjobs
-  cronjobs: string
-  cronjobsUnavailableUntilRoster: string
-  newCronjob: string
-  cronjobName: string
-  instruction: string
-  instructionPlaceholder: string
-  whenToRun: string
-  sendResultsTo: string
-  runHistoryOnly: string
-  botChatResponds: (name: string) => string
-  stopAfter: string
-  runs: string
-  scheduling: string
-  createCronjob: string
-  createCronjobForBot: string
-  routineFilterHint: string
-  couldNotLoad: string
-  cronjobDetails: string
-  routineDetailDescription: string
-  active: string
-  status: string
-  schedule: string
-  scheduleRaw: string
-  repeat: string
-  nextRunLabel: string
-  lastRun: string
-  lastResult: string
-  deliversTo: string
-  workingDirectory: string
-  cronjobsDesc: string
-  recurringTaskDesc: (name: string) => string
-  continuity: string
-  deleteCronjob: string
-  legacyCronjobPaused: string
-  cronjobNameNul: string
-  cronjobInstructionNul: string
-  paused: string
-  nextRun: (time: string) => string
-  onceShort: (amount: string, unit: string) => string
-  everyDays: (count: number) => string
-  everyHours: (count: number) => string
-  everyMinutes: (count: number) => string
-
-  // Schedule options
-  once: string
-  hourly: string
-  daily: string
-  weekdays: string
-  weekly: string
-  monthly: string
-  interval: string
-  advancedSchedule: string
-  minutesFromNow: string
-  hoursFromNow: string
-  daysFromNow: string
-  minutes: string
-  hours: string
-  days: string
-  rawSchedule: string
-  runsOnce: (amount: string, unit: string) => string
-  runsHourly: (cap: string) => string
-  runsDaily: (time: string) => string
-  runsWeekdays: (time: string) => string
-  runsWeekly: (day: string, time: string) => string
-  runsMonthly: (day: string, time: string) => string
-  runsInterval: (amount: string, unit: string) => string
-  totalRuns: (count: string) => string
-
-  // Weekdays
-  monday: string
-  tuesday: string
-  wednesday: string
-  thursday: string
-  friday: string
-  saturday: string
-  sunday: string
-
-  // Sessions
-  filterSessions: string
-  couldNotLoadSessions: string
-  noSessionsMatch: string
-  noSessions: string
-  untitledSession: string
-  noMessages: string
-  profileSessions: (name: string) => string
-  showingRecentSessions: (count: number) => string
-  noMatchingRecentSessions: (count: number) => string
-  desktopCannotOpenSessions: string
-
-  // Group chat
-  newGroupChatTitle: string
-  searchBotsToAdd: string
-  removeFromSelection: string
-  groupName: string
-  sayToGroup: string
-  roomWorking: string
-  pickBotsForRoom: (max: number) => string
-  noBotsYetCreateFirst: string
-  pickAtLeastTwo: string
-  createGroup: (count?: number) => string
-  groupChatTitle: (name: string) => string
-  botsCount: (count: number) => string
-  you: string
-  messageGroup: (name: string) => string
-  messageGroupPlaceholder: (name: string) => string
-  disbandGroupChat: (name: string) => string
-  disbandGroupChatTitle: string
-  disbandGroupChatDesc: (name: string, count: number) => string
-  disband: string
-  disbanding: string
-  disbanded: string
-  disbandedGroup: (name: string) => string
-  hideFullHandle: string
-  showFullHandle: string
-
-  // Group management
-  moveToGroupTitle: string
-  moveToGroupDesc: string
-  manageGroupsTitle: string
-  manageGroupsDesc: string
-  createAndJoin: string
-  removeFromAllGroups: string
-  addedToGroup: (bot: string, group: string) => string
-  removedFromNamedGroup: (bot: string, group: string) => string
-  newGroupPlaceholder: string
-  groupNameLabel: string
-  newGroup: string
-  removeFromGroup: (name: string) => string
-  movedToGroup: (bot: string, group: string) => string
-  removedFromGroup: (bot: string) => string
-  groupNeedsYouTitle: string
-  openGroupChat: (name: string) => string
-  inGroup: (handle: string, group: string) => string
-  inGroups: (handle: string, groups: string[]) => string
-
-  // Delete confirmation
-  deleteBotTitle: string
-  deleteBotDesc: (name: string, path: string) => string
-  deleting: string
-  deleted: string
-  deletedProfile: (name: string) => string
-
-  // Status messages
-  needsSetup: (requires: string) => string
-  setUp: string
-  saveAndTest: string
-  working: string
-  setupFailed: (message?: string) => string
-
-  // Skills Hub
-  skillsHub: string
-  hermesSkillsHub: string
-  searchHub: string
-  searching: string
-  searchingShort: string
-  noHubSkills: string
-  added: string
-
-  // Empty states
-  noAgentsYet: string
-  createFirstTeammate: string
-
-  // Error messages - MCP Setup
-  couldNotAddServer: string
-  noTargetProfile: string
-  failedToSet: (key: string) => string
-  serverTestFailed: string
-  couldNotStartOAuth: string
-  completeSignIn: string
-  oauthFailed: string
-  configured: (name: string) => string
-  authenticated: (name: string) => string
-
-  // Error messages - Avatar
-  avatarGenerationFailed: string
-  attachment: string
-  attachmentTooLarge: (name: string) => string
-  generationFailed: string
-  groupPictureGenerationFailed: string
-  couldNotLoadPet: string
-  imageTooLarge: string
-
-  // Error messages - Bot operations
-  duplicateFailed: string
-  groupAlreadyExists: (name: string) => string
-  noFreeDuplicateName: string
-  advancedConfigFailed: string
-  couldNotCreateProfile: string
-  couldNotCreateAgent: string
-  couldNotDeleteProfile: (name: string) => string
-  couldNotReach: (source: string) => string
-  couldNotOpenAgentChat: (name: string) => string
-  remoteMessaged: (handle: string, source: string) => string
-  remoteNoReply: (handle: string, source: string) => string
-  remoteMentionHint: (handle: string) => string
-
-  // Error messages - Sessions
-  couldNotOpenSession: string
-  couldNotLoadSessionsError: string
-
-  // Error messages - Cronjobs
-  cronjobUpdateFailed: string
-  couldNotRefreshCronjobs: string
-
-  // Success messages
-  created: (name: string, original?: string) => string
-  updated: (name: string) => string
-  pinned: (name: string, isPinned: boolean) => string
-  duplicating: (name: string) => string
-  skillInstalled: (name: string) => string
-  draftDiscarded: (name: string) => string
-  cronjobScheduled: (name: string) => string
-  groupCreated: (name: string, count: number) => string
-
-  // Partial success/warnings
-  savedLocallyRemoteFailed: string
-  savedLocallyDescFailed: string
-  someSectionsFailed: (sections: string) => string
-
-  // Instructions
-  openBotsPane: string
-  scrollForMore: (shown: number, total: number) => string
-
-  // MCP Setup UI
-  setUpCheckmark: string
-  noImageModel: string
-  restartGateway: string
-
-  // Provider & Model
-  provider: string
-  model: string
-  providerCustom: string
-  modelCustom: string
-
-  // Advanced
-  dayOfMonth: string
-  runsAtTopOfHour: (cap: string) => string
-
-  // Misc
-  conversation: string
-  remoteSource: string
-  untitledCronjob: string
-  installing: (name: string) => string
-  installAndAdd: (name: string) => string
-  hitAddToAgent: string
-  search: string
-  hideHubBrowser: string
-  browseFullHub: string
-  installingFailed: (name: string) => string
-
-  // Plugin chrome / metadata
-  pluginName: string
-  pluginDescription: string
+  /** Bot-scoped scheduled jobs. Generic scheduling chrome (weekday names,
+   *  Daily/Hourly, the job verbs) resolves against core's `cron` section. */
+  cron: {
+    filterHint: string
+    needsRosterFirst: string
+    staleNotice: string
+    readFailure: string
+    createDesc: (bot: string) => string
+    instruction: string
+    whenToRun: string
+    dayOfMonth: string
+    sendResultsTo: string
+    runHistoryOnly: string
+    botChatTarget: (bot: string) => string
+    continuity: string
+    onceIn: (when: string) => string
+    everyNDays: (days: number) => string
+    everyNHours: (hours: number) => string
+    everyNMinutes: (minutes: number) => string
+    /** The frequency picker's eight options, in menu order. */
+    freqOnce: string
+    freqHourly: string
+    freqDaily: string
+    freqWeekdays: string
+    freqWeekly: string
+    freqMonthly: string
+    freqInterval: string
+    freqAdvanced: string
+    unitMinutes: string
+    unitHours: string
+    unitDays: string
+    /** One-line plain-language read-back of the picker's current state. */
+    runsOnce: (count: number, unit: string) => string
+    runsHourly: string
+    runsDaily: (time: string) => string
+    runsWeekdays: (time: string) => string
+    runsWeekly: (day: string, time: string) => string
+    runsMonthly: (day: string, time: string) => string
+    runsInterval: (count: number, unit: string) => string
+    runsRaw: string
+    timesTotal: (count: number) => string
+  }
 }
 
 const en: BotsMessages = {
-  cancel: 'Cancel',
-  save: 'Save',
-  create: 'Create',
-  delete: 'Delete',
-  back: 'Back',
-  close: 'Close',
-  retry: 'retry',
-  send: 'Send',
-  retryLabel: 'Retry',
-  signIn: 'Sign in…',
-  setUpAction: 'Set up…',
-  authorizing: 'Authorizing…',
+  roster: {
+    search: 'Search bots and group chats',
+    searchPlaceholder: 'Search bots and group chats…',
+    newBotOrGroup: 'New bot or group chat',
+    groupChats: 'Group chats',
+    emptyTitle: 'No bots yet',
+    emptyDesc: 'Create your first bot.',
+    noMatchQuery: query => `No bots or group chats match “${query}”`,
+    noMatchQueryOn: (query, gateway) => `No bots or group chats match “${query}” on ${gateway}`,
+    noMatchFiltersOn: gateway => `No bots or group chats match these filters on ${gateway}`,
+    noMatchFilters: 'No bots or group chats match these filters.',
+    clearFilters: 'Clear filters',
+    allHidden: 'All bots are hidden',
+    allHiddenDesc: 'They keep working and retain their history.',
+    showHidden: 'Show hidden bots',
+    noHiddenMatch: 'No hidden bots match these filters.',
+    hiddenFromRoster: 'Hidden from the roster',
+    pinned: 'Pinned',
+    needsAttention: 'needs attention',
+    needsInput: 'Needs your input',
+    botsAndGroups: 'Bots and group chats',
+    botsOnly: 'Bots only',
+    groupsOnly: 'Group chats only',
+    anyActivity: 'Any activity',
+    activeNow: 'Active now',
+    recentlyActive: 'Recently active',
+    older: 'Older',
+    gatewayRemoved: 'Gateway removed',
+    onDemand: 'On demand',
+    ready: 'Ready',
+    statusUnknown: 'Status unknown',
+    unavailable: 'Unavailable',
+    retryNow: 'Retry now',
+    rosterUnavailable: reason =>
+      `Roster unavailable: ${reason}. If your gateway predates profiles.list, update Hermes and restart the gateway.`,
+    waitingForGateway:
+      'Waiting for the gateway connection… (remote gateways can take a few seconds; retries automatically)'
+  },
+  bot: {
+    newTitle: 'New bot',
+    cloneFromProfile: 'Clone from profile',
+    cloneFromProfileOn: target => `Clone from profile (on ${target})`,
+    defaultProfileName: 'Default',
+    freshProfile: 'Fresh profile (bundled skills)',
+    editTitle: 'Edit profile',
+    editMenu: 'Edit…',
+    helpPromptPlaceholder: 'What should this bot help with?',
+    descriptionHint: 'Leave blank to generate from the bot’s name and description.',
+    newChatWith: 'New chat with this bot',
+    openBotChat: 'Open Bot Chat',
+    duplicate: 'Duplicate',
+    duplicateFailed: 'Duplicate failed',
+    deleteTitle: 'Delete bot and profile?',
+    removeFromAllGroups: 'Remove from all groups',
+    createFirstHint: 'Open the Bots pane and hit “New Bot”.',
+    createFailed: 'Could not create the profile yet',
+    advanced: 'Advanced',
+    advancedHint: 'Advanced — model, skills, toolsets, SOUL.md',
+    advancedFailed: 'Advanced configuration failed',
+    openAnotherChatUnsupported: 'Update Hermes Desktop to open another Bot chat.',
+    remoteConnectionsUnsupported: 'Update Hermes Desktop to chat with bots on other connections.',
+    chatEmpty: 'Say something to get started.',
+    kickoff: 'Hey, tell me about yourself!'
+  },
+  avatar: {
+    classicShapes: 'Classic shapes',
+    blobFromName: 'Blob face — drawn from the bot’s name',
+    unlockFollowsName: 'Unlock — the face follows the bot’s name again',
+    randomize: 'Randomize',
+    tabBot: 'Bot',
+    tabGenerate: 'Generate',
+    upload: 'Upload',
+    tabPet: 'Pet',
+    removeImage: 'Remove image — use shape',
+    removeBackToShape: 'Remove — back to shape avatar',
+    describePlaceholder: 'Describe your avatar…',
+    describeHint: 'Leave blank to auto-generate from name/title/description + agent-messaging roster.',
+    matchTheName: 'Match the name',
+    pickPet: 'Pick a pet as this bot’s profile picture.',
+    petLoadFailed: 'Could not load that pet — try another.',
+    imageTooLarge: 'Image too large (max 15MB).',
+    generationFailed: 'Avatar generation failed',
+    savedLocally: 'Saved look locally; remote persistence failed',
+    savedLocallyDescriptionFailed: 'Saved look locally; description update failed',
+    generate: 'Generate',
+    generating: 'Generating…'
+  },
+  group: {
+    newTitle: 'New group chat',
+    manageDesc: 'A bot can join multiple group chats. Memberships sync to every machine.',
+    manageTitle: 'Manage groups',
+    settingsTitle: 'Group settings',
+    settingsDesc: 'Rename the group or set a room picture. Members and history are kept.',
+    nameLabel: 'Group name',
+    searchToAdd: 'Search bots to add',
+    searchToAddPlaceholder: 'Search bots to add…',
+    removeFromSelection: 'Remove from selection',
+    disbandTitle: 'Disband group chat?',
+    deleteTitle: 'Delete group chat?',
+    deleteAction: 'Delete',
+    composerPlaceholder: 'Say something — every bot in this group hears the room.',
+    attachHint: 'Attach files — every responding bot sees them',
+    newThread: 'New Thread',
+    reply: 'Reply',
+    replyInThread: 'Reply in thread',
+    replyInThreadPlaceholder: 'Reply in thread…',
+    openThread: 'Open this thread',
+    collapseThread: 'Collapse thread',
+    collapseThreadLabel: 'Collapse this thread',
+    activity: 'Activity',
+    noActivityYet: 'No activity in this turn yet.',
+    showActivity: 'Show room activity',
+    hideActivity: 'Hide room activity',
+    stop: 'Stop',
+    stopHint: 'Stop this run — interrupts the member on turn and holds the rest',
+    needsYourInput: 'A bot in this group chat needs your input',
+    pictureGenerationFailed: 'Group picture generation failed',
+    nameTaken: name => `A group named “${name}” already exists.`,
+    memberCount: count => `${count} bots`,
+    settingsHint: group => `Group settings — rename ${group} or set a room picture`,
+    settingsLabel: group => `Group settings for ${group}`,
+    disbandHint: group => `Disband the ${group} group chat`,
+    disbandLabel: group => `Disband ${group}`,
+    disbandAction: 'Disband',
+    disbanding: 'Disbanding…',
+    disbandDone: 'Disbanded',
+    disbanded: group => `Disbanded “${group}”`,
+    disbandDescPrefix: 'This removes the ',
+    disbandDescSuffix: count =>
+      ` grouping from its ${count} bots and clears the shared room log. The bots themselves and their per-group sessions are kept.`,
+    stopped: group => `Stopped ${group} — remaining turns are held until you resume`,
+    removeAttachment: 'Remove attachment',
+    threadFallback: 'Thread',
+    replyCount: replies => `${replies} ${replies === 1 ? 'reply' : 'replies'}`,
+    dropToThread: 'Drop to attach to this thread reply',
+    dropToRoom: 'Drop to attach — every responding bot sees it',
+    waitingForAnswer: 'Waiting for your answer…',
+    memberThinking: name => `${name} is thinking…`,
+    roomWorking: 'The room is working…',
+    messageRoom: group => `Message ${group}`,
+    newThreadPlaceholder: group => `New thread in ${group}… (@name to direct, @everyone for all)`,
+    everyoneMeta: 'Every bot in the room',
+    commandApproval: 'command approval',
+    answerFailed: (handle, error) => `Could not send the answer to @${handle}: ${error}`,
+    wantsToRunCommand: handle => `@${handle} wants to run a command:`,
+    asks: handle => `@${handle} asks:`,
+    answerTo: member => `Answer @${member}`
+  },
+  tools: {
+    skillsHub: 'Hermes Skills Hub',
+    filterSkills: 'Filter skills…',
+    searchHub: 'Search the hub (community + well-known sources)…',
+    noMcpServers: 'No MCP servers configured or in the catalog.'
+  },
+  cron: {
+    filterHint:
+      'Scheduled jobs exist in this profile but none are tagged for this bot. Name a job "[bot:<name>] …" to show it here, or see them in Cron below.',
+    needsRosterFirst: 'This bot has to appear in the roster first.',
+    staleNotice: 'Could not refresh scheduled jobs. Showing the last list we had.',
+    readFailure: 'The list may still be there — this was a read failure, not a delete.',
+    createDesc: bot => `A recurring task ${bot} runs on a schedule. Runs land in its own chat history.`,
+    instruction: 'Instruction',
+    whenToRun: 'When to run',
+    dayOfMonth: 'Day of month',
+    sendResultsTo: 'Send results to',
+    runHistoryOnly: 'Run history only',
+    botChatTarget: bot => `${bot}’s chat (bot responds)`,
+    continuity: 'Continuity: each run sees the previous run’s output (dedupe, continue where it left off)',
+    onceIn: when => `Once (${when})`,
+    everyNDays: days => `Every ${days} days`,
+    everyNHours: hours => `Every ${hours}h`,
+    everyNMinutes: minutes => `Every ${minutes}m`,
+    freqOnce: 'Once, in…',
+    freqHourly: 'Every hour',
+    freqDaily: 'Every day',
+    freqWeekdays: 'Weekdays',
+    freqWeekly: 'Every week',
+    freqMonthly: 'Every month',
+    freqInterval: 'Interval',
+    freqAdvanced: 'Advanced…',
+    unitMinutes: 'minute(s)',
+    unitHours: 'hour(s)',
+    unitDays: 'day(s)',
+    runsOnce: (count, unit) => `Runs once, ${count} ${unit} from now`,
+    runsHourly: 'Runs at the top of every hour',
+    runsDaily: time => `Runs every day at ${time}`,
+    runsWeekdays: time => `Runs Monday–Friday at ${time}`,
+    runsWeekly: (day, time) => `Runs every ${day} at ${time}`,
+    runsMonthly: (day, time) => `Runs on day ${day} of each month at ${time}`,
+    runsInterval: (count, unit) => `Runs every ${count} ${unit}`,
+    runsRaw: 'Raw schedule — every Nm/Nh/Nd or 5-field cron',
+    timesTotal: count => `, ${count} time(s) total`
+  }
+}
 
-  bots: 'BOTS',
-  noBots: 'No agents yet',
-  noBotsDesc: 'Create your first teammate.',
-  searchBots: 'Search bots…',
-  noBotsMatch: query => `No bots match "${query}"`,
-  newAgent: 'New Agent',
-  newGroupChat: 'New Group Chat',
-  activityToastsOn: 'Activity toasts on — click to silence',
-  activityToastsOff: 'Activity toasts off — click to enable',
-  botChatsHidden: 'Bot Chats hidden from Sessions — click to show',
-  botChatsShown: 'Bot Chats shown in Sessions — click to hide',
-  hideHiddenBotsAgain: 'Hide hidden bots again',
-  showHiddenBotsCount: count => `Show ${count} hidden bot${count === 1 ? '' : 's'}`,
-  hideHiddenBots: 'Hide hidden bots',
-  showHiddenBots: 'Show hidden bots',
-  hiddenBotUnread: 'A hidden bot has unread activity',
-  allBotsHidden: 'All bots are hidden — use the eye button above to show them.',
-  retryNow: 'Retry now',
-  newMenu: 'New…',
-  newAgentOrGroup: 'New agent or group chat',
-  rosterRefreshFailed: 'Roster refresh failed — showing the last good list.',
-  waitingForGateway: 'Waiting for the gateway to reconnect…',
-  rosterUnavailable: message =>
-    `Roster unavailable: ${message}. If your gateway predates profiles.list, update Hermes and restart the gateway.`,
-  gatewayError: 'gateway error',
-  newMessageFor: name => `🤖 New message for ${name}`,
-  newActivityFor: name => `${name} has new activity`,
-  openChatToSee: 'Open the chat to see it.',
-  thisDevice: 'This device',
-  hermesGateway: 'Hermes gateway',
-
-  editProfile: 'Edit Profile',
-  duplicate: 'Duplicate',
-  newChatWithAgent: 'New chat with this agent',
-  pin: 'Pin to top',
-  unpin: 'Unpin',
-  pinnedTitle: 'Pinned',
-  sessions: 'Sessions',
-  moveToGroup: 'Move to group…',
-  group: name => `Group: ${name}…`,
-  manageGroups: 'Manage groups…',
-  groups: names => `Groups: ${names}…`,
-  unread: 'unread',
-  activeRecently: 'Active in the last 90s',
-  openAgentChat: name => `Open ${name}'s chat`,
-  noConversations: 'No conversations yet — say hi',
-  updateForRemoteAgents: 'Update Hermes Desktop to chat with agents on other connections.',
-  remoteSourceLabel: 'the remote source',
-  livesOn: source => `Lives on ${source}`,
-  lastMessageFrom: name => `Last message came from @${name} (bot-to-bot)`,
-  hiddenFromRoster: 'Hidden from the roster',
-  hideBot: 'Hide Bot',
-  unhideBot: 'Unhide Bot',
-  botHidden: name => `${name} hidden — use the eye button in the Bots header to see hidden bots`,
-  botUnhidden: name => `${name} is back in the roster`,
-
-  botChat: 'Bot Chat',
-  activeNow: 'Active now',
-  needsYou: 'needs you',
-  openChat: 'Open chat',
-  openContinuousChatDescription:
-    'Open this bot’s continuous chat. Its background work keeps running when you switch away.',
-  chatNeverResets: 'This chat never resets',
-  chatNeverResetsDesc:
-    'Bot chats are one continuous conversation — compacting instead. For a throwaway session with this agent, use Sessions mode.',
-
-  editProfileTitle: 'Edit Profile',
-  name: 'Name',
-  title: 'Title',
-  description: 'Description',
-  whatHelp: 'What should this agent help with?',
-  advanced: 'Advanced',
-  advancedConfig: 'Advanced — model, skills, toolsets, SOUL.md',
-  saving: 'Saving…',
-  appearanceAndRole: (displayName, profile) => `Appearance and role for ${displayName} (${profile}).`,
-
-  bot: 'Bot',
-  generate: 'Generate',
-  upload: 'Upload',
-  pet: 'Pet',
-  removeImage: 'Remove image — use shape',
-  describeAvatar: 'Describe your avatar…',
-  avatarAuto: 'Auto',
-  avatarAutoTitle: 'Auto — the name decides',
-  avatarRandomize: 'Randomize',
-  avatarUnlockTitle: 'Unlock — the face follows the agent’s name again',
-  avatarLockTitle: 'Keep this exact face even if the name changes',
-  avatarUnlock: 'Unlock',
-  avatarLockFace: 'Lock face',
-  avatarLockedHint: 'Face locked — renaming won’t change it.',
-  avatarFollowsNameHint: 'Face follows the name.',
-  avatarClassicShapes: 'Classic shapes',
-  avatarBlobTitle: 'Blob face — drawn from the agent’s name',
-  generating: 'Generating…',
-  leaveBlankGenerate: "Leave blank to generate from the agent's name and description.",
-  choosePet: "Pick a pet as this agent's profile picture.",
-  removePet: 'Remove — back to shape avatar',
-  noPetsMatch: 'No pets match.',
-  noPets: 'No pets in the petdex gallery. Run `hermes pets` to explore.',
-  chooseImage: 'Choose an image…',
-  searchPets: count => `Search ${count} pets…`,
-  inheritLaunchProfile: 'Inherit (launch profile)',
-  enterManually: '✏️ Enter manually…',
-  backToDropdowns: '← Back to dropdowns',
-  gatewayDefault: 'gateway default',
-  fullConfigNeedsNewGateway: 'Full configuration needs a newer gateway (restart it after updating Hermes).',
-  capabilitiesImmediate: 'Capabilities (applies immediately — skills, tools, MCP)',
-  soulConfig: 'SOUL.md (persona + agent-messaging protocol)',
-  skillsEnabled: (enabled, total) => `Skills (${enabled}/${total} enabled)`,
-  toolsetsEnabled: (enabled, total) => `Toolsets (${enabled}/${total} enabled — unchecking all restores the default)`,
-  mcpServers: 'MCP servers',
-  catalog: 'catalog',
-  catalogInstalled: 'catalog · installed',
-  modelNameExample: 'e.g. model name',
-
-  newAgentTitle: 'New Agent',
-  newAgentDesc: 'A named teammate with its own memory, skills, and chat. It can message your other agents.',
-  namePlaceholder: 'inbox-triage',
-  titlePlaceholder: 'Inbox Triage',
-  descPlaceholder: 'What should this Bot help with?',
-  general: 'General',
-  capabilities: 'Capabilities',
-  skills: 'Skills',
-  toolsets: 'Tools',
-  tools: 'Tools',
-  mcp: 'MCP',
-  cloneFromProfile: 'Clone from profile',
-  cloneFromProfileOn: target => `Clone from profile (on ${target})`,
-  defaultProfileName: 'Default',
-  createOn: 'Create on',
-  currentConnection: name => `${name} (current)`,
-  remoteAgentLocationHint: target =>
-    `The agent is created on ${target} and appears in the roster as a Connections bot. Chat routes to that machine.`,
-  freshProfile: 'Fresh profile (bundled skills)',
-  createEmpty: '"Create empty" is checked — no bundled skills will be installed.',
-  filterSkills: 'Filter skills…',
-  noMcpServers: 'No MCP servers configured or in the catalog.',
-  creating: 'Creating…',
-  createAgent: 'Create Agent',
-  agentCreated: name => `Agent "${name}" created`,
-  agentCreatedOn: (name, target) => `Agent "${name}" created on ${target}`,
-  couldNotCleanDraft: name => `Could not clean up draft profile "${name}"`,
-  catalogFrom: source => `Catalog from ${source} — unchecked skills are disabled after creation.`,
-  defaultToolsetBehavior: 'Leaving all (or none) checked keeps the default toolset behavior.',
-  agentExists: name => `An agent named "${name}" already exists.`,
-  agentExistsOn: (name, target) => `An agent named "${name}" already exists on ${target}.`,
-  inheritedFromLaunchProfile: 'inherited from launch profile',
-  soulOptional: 'SOUL.md (optional — replaces the generated persona)',
-  soulPlaceholder: 'Leave blank to auto-generate from name/title/description + agent-messaging roster.',
-  shareKeys: 'Share keys & accounts with the main profile',
-  shareKeysDesc:
-    'Subscriptions, OAuth logins, and API keys stay shared (not copied), so token refreshes never invalidate each other. Uncheck for an isolated snapshot copy.',
-  createEmptyLabel: 'Create empty (skip bundled skills)',
-  nameTakenForCapabilities: 'That name is taken — pick another before configuring capabilities.',
-  nameFirstForCapabilities:
-    'Name the agent first — a draft profile is created when you open this tab (discarded if you cancel).',
-  capabilityCatalogNeedsGateway: 'Capability catalog needs a newer gateway (restart it after updating Hermes).',
-  configuredServersDesc:
-    'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).',
-
-  cronjobs: 'Cronjobs',
-  cronjobsUnavailableUntilRoster: 'Cronjobs are unavailable until this agent appears in the roster.',
-  newCronjob: 'New Cronjob',
-  cronjobName: 'Name this cronjob',
-  instruction: 'Instruction',
-  instructionPlaceholder: 'What should this cronjob do each time it runs?',
-  whenToRun: 'When to run',
-  sendResultsTo: 'Send results to',
-  runHistoryOnly: 'Run history only',
-  botChatResponds: name => `${name}\u2019s chat (bot responds)`,
-  stopAfter: 'Stop after',
-  runs: 'runs (blank = forever)',
-  scheduling: 'Scheduling…',
-  createCronjob: 'Create Cronjob',
-  createCronjobForBot: 'Create a cronjob for this bot',
-  routineFilterHint:
-    'Cronjobs exist in this profile but none are tagged for this bot. Name a job "[bot:<name>] …" to show it here, or see them in Cron below.',
-  couldNotLoad: 'Could not load cronjobs. The list may still be there.',
-  cronjobDetails: 'Cronjob details',
-  routineDetailDescription: 'What this cronjob runs, and when it runs next.',
-  active: 'Active',
-  status: 'Status',
-  schedule: 'Schedule',
-  scheduleRaw: 'Schedule (raw)',
-  repeat: 'Repeat',
-  nextRunLabel: 'Next run',
-  lastRun: 'Last run',
-  lastResult: 'Last result',
-  deliversTo: 'Delivers to',
-  workingDirectory: 'Working directory',
-  cronjobsDesc: 'Cronjobs are recurring tasks this agent runs on a schedule.',
-  recurringTaskDesc: name => `A recurring task ${name} runs on a schedule. Runs land in its own chat history.`,
-  continuity: 'Continuity: each run sees the previous run’s output (dedupe, continue where it left off)',
-  deleteCronjob: 'Delete cronjob',
-  legacyCronjobPaused: 'Paused for security: delete and recreate this legacy cronjob before running it again.',
-  cronjobNameNul: 'Cronjob name cannot contain NUL (U+0000).',
-  cronjobInstructionNul: 'Cronjob instruction cannot contain NUL (U+0000).',
-  paused: 'paused',
-  nextRun: time => `next ${time}`,
-  onceShort: (amount, unit) => `Once (${amount}${unit})`,
-  everyDays: count => (count === 1 ? 'Daily' : `Every ${count} days`),
-  everyHours: count => (count === 1 ? 'Hourly' : `Every ${count}h`),
-  everyMinutes: count => `Every ${count}m`,
-
-  once: 'Once, in…',
-  hourly: 'Every hour',
-  daily: 'Every day',
-  weekdays: 'Weekdays',
-  weekly: 'Every week',
-  monthly: 'Every month',
-  interval: 'Interval',
-  advancedSchedule: 'Advanced…',
-  minutesFromNow: 'minutes from now',
-  hoursFromNow: 'hours from now',
-  daysFromNow: 'days from now',
-  minutes: 'minutes',
-  hours: 'hours',
-  days: 'days',
-  rawSchedule: 'Raw schedule — every Nm/Nh/Nd or 5-field cron',
-  runsOnce: (amount, unit) => `Runs once, ${amount} ${unit} from now`,
-  runsHourly: cap => `Runs at the top of every hour${cap}`,
-  runsDaily: time => `Runs every day at ${time}`,
-  runsWeekdays: time => `Runs Monday–Friday at ${time}`,
-  runsWeekly: (day, time) => `Runs every ${day} at ${time}`,
-  runsMonthly: (day, time) => `Runs on day ${day} of each month at ${time}`,
-  runsInterval: (amount, unit) => `Runs every ${amount} ${unit}`,
-  totalRuns: count => `, ${count} time(s) total`,
-
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-
-  filterSessions: 'Filter sessions…',
-  couldNotLoadSessions: 'Could not load sessions for this profile.',
-  noSessionsMatch: 'No sessions match that filter.',
-  noSessions: 'No stored sessions yet.',
-  untitledSession: 'Untitled session',
-  noMessages: 'No messages yet',
-  profileSessions: name => `${name} sessions`,
-  showingRecentSessions: count => `Showing the ${count} most recent sessions.`,
-  noMatchingRecentSessions: count => `No matching sessions in the ${count} most recent.`,
-  desktopCannotOpenSessions: 'This Hermes Desktop version cannot open stored sessions',
-
-  newGroupChatTitle: 'New Group Chat',
-  searchBotsToAdd: 'Search bots to add…',
-  removeFromSelection: 'Remove from selection',
-  groupName: 'Group name',
-  sayToGroup: 'Say something — every bot in this group hears the room.',
-  roomWorking: 'The room is working…',
-  pickBotsForRoom: max =>
-    `Pick 2–${max} bots. Local memberships sync through each Bot profile; cross-machine members stay scoped to this room.`,
-  noBotsYetCreateFirst: 'No bots yet — create agents first.',
-  pickAtLeastTwo: 'Pick at least 2 bots',
-  createGroup: count => `Create Group${count ? ` (${count})` : ''}`,
-  groupChatTitle: name => `${name} — group chat`,
-  botsCount: count => `${count} bots`,
-  you: 'You',
-  messageGroup: name => `Message ${name}`,
-  messageGroupPlaceholder: name => `Message ${name}… (@name to direct, @everyone for all)`,
-  disbandGroupChat: name => `Disband the ${name} group chat`,
-  disbandGroupChatTitle: 'Disband group chat?',
-  disbandGroupChatDesc: (name, count) =>
-    `This removes the ${name} grouping from its ${count} bots and clears the shared room log. The bots themselves and their per-group sessions are kept.`,
-  disband: 'Disband',
-  disbanding: 'Disbanding…',
-  disbanded: 'Disbanded',
-  disbandedGroup: name => `Disbanded “${name}”`,
-  hideFullHandle: 'Hide full handle',
-  showFullHandle: 'Show full handle',
-
-  moveToGroupTitle: 'Move to group',
-  moveToGroupDesc: 'Groups render as labeled sections in the BOTS roster and sync to every machine.',
-  manageGroupsTitle: 'Manage groups',
-  manageGroupsDesc: 'A bot can join multiple group chats. Memberships sync to every machine.',
-  createAndJoin: 'Create & join',
-  removeFromAllGroups: 'Remove from all groups',
-  addedToGroup: (bot, group) => `${bot} added to “${group}”`,
-  removedFromNamedGroup: (bot, group) => `${bot} removed from “${group}”`,
-  newGroupPlaceholder: 'Group name (e.g. Research)',
-  groupNameLabel: 'Group name',
-  newGroup: 'New group…',
-  removeFromGroup: name => `Remove from “${name}”`,
-  movedToGroup: (bot, group) => `${bot} moved to “${group}”`,
-  removedFromGroup: bot => `${bot} removed from its group`,
-  groupNeedsYouTitle: 'A bot in this room needs your input',
-  openGroupChat: name => `Open the ${name} group chat`,
-  inGroup: (handle, group) => `@${handle} · in “${group}”`,
-  inGroups: (handle, groups) => `@${handle} · in ${groups.map(group => `“${group}”`).join(', ')}`,
-
-  deleteBotTitle: 'Delete bot and profile?',
-  deleteBotDesc: (name, path) =>
-    `This will permanently delete the bot ${name} and its associated Hermes profile at ${path}. This cannot be undone.`,
-  deleting: 'Deleting…',
-  deleted: 'Deleted',
-  deletedProfile: name => `Deleted profile ${name}`,
-
-  needsSetup: requires => `needs setup (${requires}) — restart the gateway to enable in-app setup`,
-  setUp: 'set up ✓',
-  saveAndTest: 'Save & test',
-  working: 'Working…',
-  setupFailed: message => message || 'Setup failed',
-
-  skillsHub: 'Skills Hub',
-  hermesSkillsHub: 'Hermes Skills Hub',
-  searchHub: 'Search the hub (community + well-known sources)…',
-  searching: 'Searching community + well-known sources — can take ~10s…',
-  searchingShort: 'Searching…',
-  noHubSkills: 'No hub skills matched.',
-  added: '✓ added',
-
-  noAgentsYet: 'No agents yet',
-  createFirstTeammate: 'Create your first teammate.',
-
-  // Error messages - MCP Setup
-  couldNotAddServer: 'Could not add server',
-  noTargetProfile: 'No target profile',
-  failedToSet: k => `Failed to set ${k}`,
-  serverTestFailed: 'Server test failed after setup',
-  couldNotStartOAuth: 'Could not start OAuth',
-  completeSignIn: 'Complete sign-in in your browser...',
-  oauthFailed: 'OAuth failed',
-  configured: name => `${name} configured`,
-  authenticated: name => `${name} authenticated`,
-
-  // Error messages - Avatar
-  avatarGenerationFailed: 'Avatar generation failed',
-  attachment: 'attachment',
-  attachmentTooLarge: name => `${name}: too large (max 15MB).`,
-  generationFailed: 'generation failed',
-  groupPictureGenerationFailed: 'Group picture generation failed',
-  couldNotLoadPet: 'Could not load that pet — try another.',
-  imageTooLarge: 'Image too large (max 15MB).',
-
-  // Error messages - Bot operations
-  duplicateFailed: 'Duplicate failed',
-  groupAlreadyExists: name => `A group named “${name}” already exists.`,
-  noFreeDuplicateName: 'No free name for the duplicate.',
-  advancedConfigFailed: 'Advanced configuration failed',
-  couldNotCreateProfile: 'Could not create the profile yet',
-  couldNotCreateAgent: 'Could not create the agent.',
-  couldNotDeleteProfile: name => `Could not delete profile ${name}.`,
-  couldNotReach: source => `Could not reach ${source}`,
-  couldNotOpenAgentChat: name => `Could not open ${name}'s chat — try again`,
-  remoteMessaged: (handle, source) => `Messaged @${handle} on ${source} — will relay the reply here.`,
-  remoteNoReply: (handle, source) => `No reply from @${handle} yet — check its Bot Chat on ${source}.`,
-  remoteMentionHint: handle => `Stay in this chat and @${handle} to message them. Gateway stays on this device.`,
-
-  // Error messages - Sessions
-  couldNotOpenSession: 'Could not open session',
-  couldNotLoadSessionsError: 'Could not load sessions for this profile.',
-
-  // Error messages - Cronjobs
-  cronjobUpdateFailed: 'Cronjob update failed',
-  couldNotRefreshCronjobs: 'Could not refresh cronjobs. Showing the last list we had.',
-
-  // Success messages
-  created: (name, original) => (original ? `Created ${name} — full copy of ${original}` : `Created ${name}`),
-  updated: name => `${name} updated`,
-  pinned: (name, isPinned) => `${name} ${isPinned ? 'pinned to top' : 'unpinned'}`,
-  duplicating: name => `Duplicating ${name}…`,
-  skillInstalled: name => `Skill "${name}" installed`,
-  draftDiscarded: name => `Draft agent "${name}" discarded`,
-  cronjobScheduled: name => `Cronjob "${name}" scheduled`,
-  groupCreated: (name, count) => `"${name}" created with ${count} bots`,
-
-  // Partial success/warnings
-  savedLocallyRemoteFailed: 'Saved look locally; remote persistence failed',
-  savedLocallyDescFailed: 'Saved look locally; description update failed',
-  someSectionsFailed: sections => `Some sections failed: ${sections}`,
-
-  // Instructions
-  openBotsPane: 'Open the Bots pane and hit "New Agent".',
-  scrollForMore: (shown, total) => `Scroll for more (${shown} of ${total})`,
-
-  // MCP Setup UI
-  setUpCheckmark: 'set up ✓',
-  noImageModel:
-    'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".',
-  restartGateway: 'Restart gateway',
-
-  // Provider & Model
-  provider: 'Provider',
-  model: 'Model',
-  providerCustom: 'Provider (Custom)',
-  modelCustom: 'Model (Custom)',
-
-  // Advanced
-  dayOfMonth: 'Day of month',
-  runsAtTopOfHour: cap => `Runs at the top of every hour${cap}`,
-
-  // Misc
-  conversation: 'Conversation',
-  remoteSource: 'Remote source',
-  untitledCronjob: 'Untitled cronjob',
-  installing: name => `Installing "${name}"…`,
-  installAndAdd: name => `Install "${name}" and add it to the list above`,
-  hitAddToAgent:
-    'Hit "+ Add to this Agent" on any skill — it installs and appears in the list above. Drag the corner to resize.',
-  search: 'Search',
-  hideHubBrowser: 'hide the hub browser',
-  browseFullHub: 'browse the full hub ▾',
-  installingFailed: name => `Installing "${name}" failed`,
-  pluginName: 'Bots',
-  pluginDescription:
-    'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.'
+const ja: BotsMessages = {
+  roster: {
+    search: 'ボットとグループチャットを検索',
+    searchPlaceholder: 'ボットとグループチャットを検索…',
+    newBotOrGroup: '新しいボットまたはグループチャット',
+    groupChats: 'グループチャット',
+    emptyTitle: 'ボットはまだありません',
+    emptyDesc: '最初のボットを作成しましょう。',
+    noMatchQuery: query => `「${query}」に一致するボットやグループチャットはありません`,
+    noMatchQueryOn: (query, gateway) => `${gateway} に「${query}」に一致するボットやグループチャットはありません`,
+    noMatchFiltersOn: gateway => `${gateway} にこれらのフィルタに一致するボットやグループチャットはありません`,
+    noMatchFilters: 'これらのフィルタに一致するボットやグループチャットはありません。',
+    clearFilters: 'フィルタをクリア',
+    allHidden: 'すべてのボットが非表示です',
+    allHiddenDesc: '非表示でも動作を続け、履歴も残ります。',
+    showHidden: '非表示のボットを表示',
+    noHiddenMatch: 'これらのフィルタに一致する非表示ボットはありません。',
+    hiddenFromRoster: '名簿から非表示',
+    pinned: 'ピン留め',
+    needsAttention: '要対応',
+    needsInput: '入力が必要です',
+    botsAndGroups: 'ボットとグループチャット',
+    botsOnly: 'ボットのみ',
+    groupsOnly: 'グループチャットのみ',
+    anyActivity: 'すべてのアクティビティ',
+    activeNow: '現在アクティブ',
+    recentlyActive: '最近アクティブ',
+    older: '以前',
+    gatewayRemoved: 'ゲートウェイが削除されました',
+    onDemand: 'オンデマンド',
+    ready: '準備完了',
+    statusUnknown: '状態不明',
+    unavailable: '利用できません',
+    retryNow: '今すぐ再試行',
+    rosterUnavailable: reason =>
+      `名簿を取得できません: ${reason}。ゲートウェイが profiles.list より前の場合は、Hermes を更新してゲートウェイを再起動してください。`,
+    waitingForGateway: 'ゲートウェイ接続を待っています…（リモートは数秒かかることがあります。自動で再試行します）'
+  },
+  bot: {
+    newTitle: '新しいボット',
+    cloneFromProfile: 'プロファイルから複製',
+    cloneFromProfileOn: target => `${target} 上のプロファイルから複製`,
+    defaultProfileName: 'デフォルト',
+    freshProfile: '新規プロファイル（同梱スキル）',
+    editTitle: 'プロファイルを編集',
+    editMenu: '編集…',
+    helpPromptPlaceholder: 'このボットは何を手伝いますか？',
+    descriptionHint: '空欄のままにすると、ボットの名前と説明から生成します。',
+    newChatWith: 'このボットと新しいチャット',
+    openBotChat: 'ボットチャットを開く',
+    duplicate: '複製',
+    duplicateFailed: '複製に失敗しました',
+    deleteTitle: 'ボットとプロファイルを削除しますか？',
+    removeFromAllGroups: 'すべてのグループから外す',
+    createFirstHint: 'ボットパネルを開いて「新しいボット」を押してください。',
+    createFailed: 'プロファイルをまだ作成できませんでした',
+    advanced: '詳細設定',
+    advancedHint: '詳細設定 — モデル、スキル、ツールセット、SOUL.md',
+    advancedFailed: '詳細設定に失敗しました',
+    openAnotherChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
+    remoteConnectionsUnsupported: '他の接続上のボットとチャットするには Hermes Desktop を更新してください。',
+    chatEmpty: '何か書いて始めましょう。',
+    kickoff: 'こんにちは、自己紹介をしてください！'
+  },
+  avatar: {
+    classicShapes: 'クラシックシェイプ',
+    blobFromName: 'ブロブ顔 — ボットの名前から描画',
+    unlockFollowsName: 'ロック解除 — 顔がボットの名前に再び追従します',
+    randomize: 'ランダム',
+    tabBot: 'ボット',
+    tabGenerate: '生成',
+    upload: 'アップロード',
+    tabPet: 'ペット',
+    removeImage: '画像を削除してシェイプを使う',
+    removeBackToShape: '削除 — シェイプアバターに戻す',
+    describePlaceholder: 'アバターを説明…',
+    describeHint: '空欄のままにすると、名前・タイトル・説明と agent-messaging の名簿から自動生成します。',
+    matchTheName: '名前に合わせる',
+    pickPet: 'このボットのプロフィール画像としてペットを選びます。',
+    petLoadFailed: 'そのペットを読み込めませんでした。別のペットを試してください。',
+    imageTooLarge: '画像が大きすぎます（最大 15MB）。',
+    generationFailed: 'アバターの生成に失敗しました',
+    savedLocally: '見た目はローカルに保存されましたが、リモートへの保存に失敗しました',
+    savedLocallyDescriptionFailed: '見た目はローカルに保存されましたが、説明の更新に失敗しました',
+    generate: '生成',
+    generating: '生成中…'
+  },
+  group: {
+    newTitle: '新しいグループチャット',
+    manageDesc: 'ボットは複数のグループチャットに参加できます。メンバーシップはすべてのマシンに同期されます。',
+    manageTitle: 'グループを管理',
+    settingsTitle: 'グループ設定',
+    settingsDesc: 'グループ名の変更や部屋の画像の設定ができます。メンバーと履歴は保持されます。',
+    nameLabel: 'グループ名',
+    searchToAdd: '追加するボットを検索',
+    searchToAddPlaceholder: '追加するボットを検索…',
+    removeFromSelection: '選択から外す',
+    disbandTitle: 'グループチャットを解散しますか？',
+    deleteTitle: 'グループチャットを削除しますか？',
+    deleteAction: '削除',
+    composerPlaceholder: '何か書いてください — このグループのすべてのボットが部屋の内容を受け取ります。',
+    attachHint: 'ファイルを添付 — 応答するすべてのボットが見ます',
+    newThread: '新しいスレッド',
+    reply: '返信',
+    replyInThread: 'スレッドで返信',
+    replyInThreadPlaceholder: 'スレッドで返信…',
+    openThread: 'このスレッドを開く',
+    collapseThread: 'スレッドを折りたたむ',
+    collapseThreadLabel: 'このスレッドを折りたたむ',
+    activity: 'アクティビティ',
+    noActivityYet: 'このターンのアクティビティはまだありません。',
+    showActivity: '部屋のアクティビティを表示',
+    hideActivity: '部屋のアクティビティを隠す',
+    stop: '停止',
+    stopHint: 'この実行を停止 — ターン中のメンバーを中断し、残りを保留します',
+    needsYourInput: 'このグループチャットのボットが入力を待っています',
+    pictureGenerationFailed: 'グループ画像の生成に失敗しました',
+    nameTaken: name => `「${name}」という名前のグループはすでに存在します。`,
+    memberCount: count => `ボット${count}体`,
+    settingsHint: group => `グループ設定 — ${group}の名前変更やルーム画像の設定`,
+    settingsLabel: group => `${group}のグループ設定`,
+    disbandHint: group => `${group}グループチャットを解散`,
+    disbandLabel: group => `${group}を解散`,
+    disbandAction: '解散',
+    disbanding: '解散中…',
+    disbandDone: '解散しました',
+    disbanded: group => `「${group}」を解散しました`,
+    disbandDescPrefix: '',
+    disbandDescSuffix: count =>
+      `のグループ分けをボット${count}体から解除し、共有ルームログを消去します。ボット自体と各グループのセッションは保持されます。`,
+    stopped: group => `${group}を停止しました — 残りのターンは再開するまで保留されます`,
+    removeAttachment: '添付を削除',
+    threadFallback: 'スレッド',
+    replyCount: replies => `返信${replies}件`,
+    dropToThread: 'ドロップしてこのスレッド返信に添付',
+    dropToRoom: 'ドロップして添付 — 応答するすべてのボットが見られます',
+    waitingForAnswer: 'あなたの回答を待っています…',
+    memberThinking: name => `${name}が考えています…`,
+    roomWorking: 'ルームが作業中です…',
+    messageRoom: group => `${group}にメッセージ`,
+    newThreadPlaceholder: group => `${group}で新しいスレッド…（@名前で個別、@everyoneで全員）`,
+    everyoneMeta: 'ルーム内のすべてのボット',
+    commandApproval: 'コマンドの承認',
+    answerFailed: (handle, error) => `@${handle}に回答を送信できませんでした: ${error}`,
+    wantsToRunCommand: handle => `@${handle}がコマンドを実行しようとしています:`,
+    asks: handle => `@${handle}からの質問:`,
+    answerTo: member => `@${member}に回答`
+  },
+  tools: {
+    skillsHub: 'Hermes スキルハブ',
+    filterSkills: 'スキルを絞り込み…',
+    searchHub: 'ハブを検索（コミュニティと既知のソース）…',
+    noMcpServers: '設定済みまたはカタログ内の MCP サーバーはありません。'
+  },
+  cron: {
+    filterHint:
+      'このプロファイルには定期実行ジョブがありますが、このボット向けのタグが付いたものはありません。ジョブ名を「[bot:<名前>] …」にするとここに表示されます。下のCronでも確認できます。',
+    needsRosterFirst: 'このボットは先に名簿に表示される必要があります。',
+    staleNotice: '定期実行ジョブを更新できませんでした。最後に取得したリストを表示しています。',
+    readFailure: 'リストはまだ存在している可能性があります — これは読み取りの失敗で、削除ではありません。',
+    createDesc: bot => `${bot}がスケジュールに沿って実行する定期タスクです。実行結果は専用のチャット履歴に残ります。`,
+    instruction: '指示',
+    whenToRun: '実行するタイミング',
+    dayOfMonth: '日付',
+    sendResultsTo: '結果の送信先',
+    runHistoryOnly: '実行履歴のみ',
+    botChatTarget: bot => `${bot}のチャット（ボットが応答）`,
+    continuity: '継続: 各実行が前回の出力を参照します（重複を避け、続きから実行）',
+    onceIn: when => `1回のみ（${when}）`,
+    everyNDays: days => `${days}日ごと`,
+    everyNHours: hours => `${hours}時間ごと`,
+    everyNMinutes: minutes => `${minutes}分ごと`,
+    freqOnce: '1回のみ、…後',
+    freqHourly: '毎時',
+    freqDaily: '毎日',
+    freqWeekdays: '平日',
+    freqWeekly: '毎週',
+    freqMonthly: '毎月',
+    freqInterval: '間隔',
+    freqAdvanced: '詳細…',
+    unitMinutes: '分',
+    unitHours: '時間',
+    unitDays: '日',
+    runsOnce: (count, unit) => `今から${count}${unit}後に1回実行します`,
+    runsHourly: '毎時0分に実行します',
+    runsDaily: time => `毎日${time}に実行します`,
+    runsWeekdays: time => `月曜〜金曜の${time}に実行します`,
+    runsWeekly: (day, time) => `毎週${day}の${time}に実行します`,
+    runsMonthly: (day, time) => `毎月${day}日の${time}に実行します`,
+    runsInterval: (count, unit) => `${count}${unit}ごとに実行します`,
+    runsRaw: '生のスケジュール — Nm/Nh/Nd または5フィールドのcron',
+    timesTotal: count => `、合計${count}回`
+  }
 }
 
 const zh: BotsMessages = {
-  cancel: '取消',
-  save: '保存',
-  create: '创建',
-  delete: '删除',
-  back: '返回',
-  close: '关闭',
-  retry: '重试',
-  send: '发送',
-  retryLabel: '重试',
-  signIn: '登录…',
-  setUpAction: '设置…',
-  authorizing: '正在授权…',
-
-  bots: '智能体',
-  noBots: '尚无代理',
-  noBotsDesc: '创建你的第一个队友',
-  searchBots: '搜索 Bot…',
-  noBotsMatch: query => `没有匹配"${query}"的 Bot`,
-  newAgent: '新建代理',
-  newGroupChat: '新建群聊',
-  activityToastsOn: '活动通知已开启 — 点击静音',
-  activityToastsOff: '活动通知已关闭 — 点击启用',
-  botChatsHidden: 'Bot 聊天已从会话中隐藏 — 点击显示',
-  botChatsShown: 'Bot 聊天已在会话中显示 — 点击隐藏',
-  hideHiddenBotsAgain: '再次隐藏已隐藏的 Bot',
-  showHiddenBotsCount: count => `显示 ${count} 个已隐藏的 Bot`,
-  hideHiddenBots: '隐藏已隐藏的 Bot',
-  showHiddenBots: '显示已隐藏的 Bot',
-  hiddenBotUnread: '有一个已隐藏的 Bot 存在未读动态',
-  allBotsHidden: '所有 Bot 均已隐藏，请使用上方的眼睛按钮显示它们',
-  retryNow: '立即重试',
-  newMenu: '新建…',
-  newAgentOrGroup: '新建代理或群聊',
-  rosterRefreshFailed: '智能体列表刷新失败，正在显示上次成功加载的列表',
-  waitingForGateway: '正在等待网关重新连接…',
-  rosterUnavailable: message =>
-    `智能体列表不可用：${message}。如果网关版本早于 profiles.list，请更新 Hermes 并重启网关。`,
-  gatewayError: '网关错误',
-  newMessageFor: name => `🤖 ${name} 收到新消息`,
-  newActivityFor: name => `${name} 有新动态`,
-  openChatToSee: '打开聊天即可查看',
-  thisDevice: '此设备',
-  hermesGateway: 'Hermes 网关',
-
-  editProfile: '编辑资料',
-  duplicate: '复制',
-  newChatWithAgent: '与此代理新建聊天',
-  pin: '置顶',
-  unpin: '取消置顶',
-  pinnedTitle: '已置顶',
-  sessions: '会话',
-  moveToGroup: '移至分组…',
-  group: name => `分组：${name}…`,
-  manageGroups: '管理分组…',
-  groups: names => `分组：${names}…`,
-  unread: '未读',
-  activeRecently: '最近 90 秒内活跃',
-  openAgentChat: name => `打开 ${name} 的聊天`,
-  noConversations: '尚无对话，来打个招呼吧',
-  updateForRemoteAgents: '请更新 Hermes Desktop，以便与其他连接上的代理聊天',
-  remoteSourceLabel: '远程来源',
-  livesOn: source => `位于 ${source}`,
-  lastMessageFrom: name => `上一条消息来自 @${name}（Bot 间通信）`,
-  hiddenFromRoster: '已从智能体列表中隐藏',
-  hideBot: '隐藏 Bot',
-  unhideBot: '取消隐藏 Bot',
-  botHidden: name => `${name} 已隐藏，可使用智能体列表标题栏中的眼睛按钮查看`,
-  botUnhidden: name => `${name} 已重新显示在智能体列表中`,
-
-  botChat: 'Bot 聊天',
-  activeNow: '当前活跃',
-  needsYou: '需要你',
-  openChat: '打开聊天',
-  openContinuousChatDescription: '打开此 Bot 的连续聊天，切换到其他页面后，其后台工作仍会继续运行',
-  chatNeverResets: '此聊天永不重置',
-  chatNeverResetsDesc: 'Bot 聊天是一次连续对话——采用压缩而非重置，如需与此代理进行一次性会话，请使用会话模式',
-
-  editProfileTitle: '编辑资料',
-  name: '名称',
-  title: '标题',
-  description: '描述',
-  whatHelp: '此代理应该帮助什么？',
-  advanced: '高级',
-  advancedConfig: '高级 — 模型、技能、工具集、SOUL.md',
-  saving: '保存中…',
-  appearanceAndRole: (displayName, profile) => `${displayName}（${profile}）的外观和角色设置`,
-
-  bot: '形象',
-  generate: '生成',
-  upload: '上传',
-  pet: '宠物',
-  removeImage: '移除图片 — 使用形状',
-  describeAvatar: '描述你的头像…',
-  avatarAuto: '自动',
-  avatarAutoTitle: '自动 — 由代理名称决定',
-  avatarRandomize: '随机生成',
-  avatarUnlockTitle: '解锁 — 头像将重新随代理名称变化',
-  avatarLockTitle: '即使名称改变，也保留当前头像',
-  avatarUnlock: '解锁',
-  avatarLockFace: '锁定头像',
-  avatarLockedHint: '头像已锁定 — 重命名不会改变它',
-  avatarFollowsNameHint: '头像随名称变化',
-  avatarClassicShapes: '经典形状',
-  avatarBlobTitle: 'Blob 头像 — 根据代理名称生成',
-  generating: '生成中…',
-  leaveBlankGenerate: '留空可根据代理的名称和描述自动生成',
-  choosePet: '选择一个宠物作为此代理的头像',
-  removePet: '移除 — 恢复形状头像',
-  noPetsMatch: '没有匹配的宠物',
-  noPets: '宠物图鉴中没有宠物。运行 `hermes pets` 来探索',
-  chooseImage: '选择图片…',
-  searchPets: count => `搜索 ${count} 个宠物…`,
-  inheritLaunchProfile: '继承（启动资料）',
-  enterManually: '✏️ 手动输入…',
-  backToDropdowns: '← 返回下拉选项',
-  gatewayDefault: '网关默认值',
-  fullConfigNeedsNewGateway: '完整配置需要更新版本的网关（更新 Hermes 后请重启网关）',
-  capabilitiesImmediate: '能力（立即应用：技能、工具、MCP）',
-  soulConfig: 'SOUL.md（角色设定 + 代理消息协议）',
-  skillsEnabled: (enabled, total) => `技能（已启用 ${enabled}/${total}）`,
-  toolsetsEnabled: (enabled, total) => `工具集（已启用 ${enabled}/${total}；全部取消勾选将恢复默认值）`,
-  mcpServers: 'MCP 服务器',
-  catalog: '目录',
-  catalogInstalled: '目录 · 已安装',
-  modelNameExample: '例如：模型名称',
-
-  newAgentTitle: '新建代理',
-  newAgentDesc: '一个拥有自己记忆、技能和聊天的具名队友。它可以向你的其他代理发送消息',
-  namePlaceholder: 'inbox-triage',
-  titlePlaceholder: '收件箱分类',
-  descPlaceholder: '此 Bot 应该帮助什么？',
-  general: '常规',
-  capabilities: '能力',
-  skills: '技能',
-  toolsets: '工具',
-  tools: '工具',
-  mcp: 'MCP',
-  cloneFromProfile: '从配置档克隆',
-  cloneFromProfileOn: target => `从配置档克隆（位于 ${target}）`,
-  defaultProfileName: '默认',
-  createOn: '创建位置',
-  currentConnection: name => `${name}（当前）`,
-  remoteAgentLocationHint: target => `代理将在 ${target} 上创建，并作为连接智能体显示在列表中；聊天会路由到该设备。`,
-  freshProfile: '全新配置档（内置技能）',
-  createEmpty: '已勾选"创建空白" — 不会安装内置技能',
-  filterSkills: '筛选技能…',
-  noMcpServers: '未配置或目录中没有 MCP 服务器',
-  creating: '创建中…',
-  createAgent: '创建代理',
-  agentCreated: name => `已创建代理“${name}”`,
-  agentCreatedOn: (name, target) => `已在 ${target} 上创建代理“${name}”`,
-  couldNotCleanDraft: name => `无法清理草稿资料“${name}”`,
-  catalogFrom: source => `目录来源：${source}。创建后将禁用未勾选的技能。`,
-  defaultToolsetBehavior: '全部勾选或全部不勾选时，将保留默认工具集行为',
-  agentExists: name => `名为“${name}”的代理已存在。`,
-  agentExistsOn: (name, target) => `${target} 上已存在名为“${name}”的代理。`,
-  inheritedFromLaunchProfile: '继承自启动资料',
-  soulOptional: 'SOUL.md（可选，将替换自动生成的角色设定）',
-  soulPlaceholder: '留空将根据名称、标题、描述和代理消息名单自动生成',
-  shareKeys: '与主资料共享密钥和账号',
-  shareKeysDesc:
-    '订阅、OAuth 登录和 API 密钥保持共享而非复制，因此令牌刷新不会使其他资料失效。取消勾选可创建隔离的快照副本',
-  createEmptyLabel: '创建空白资料（跳过内置技能）',
-  nameTakenForCapabilities: '该名称已被占用，请先选择其他名称再配置能力',
-  nameFirstForCapabilities: '请先为代理命名；打开此标签时会创建草稿资料（取消时将删除）',
-  capabilityCatalogNeedsGateway: '能力目录需要更新版本的网关（更新 Hermes 后请重启网关）',
-  configuredServersDesc:
-    '已配置的服务器会从主资料复制；目录条目来自内置 MCP 菜单。需要 API 密钥的条目会先进入设置流程（凭据遵循共享密钥设置）',
-
-  cronjobs: '定时任务',
-  cronjobsUnavailableUntilRoster: '此代理出现在智能体列表中后才能使用定时任务',
-  newCronjob: '新建定时任务',
-  cronjobName: '为此定时任务命名',
-  instruction: '指令',
-  instructionPlaceholder: '此定时任务每次运行时应该做什么？',
-  whenToRun: '运行时间',
-  sendResultsTo: '发送结果至',
-  runHistoryOnly: '仅保存到运行历史',
-  botChatResponds: name => `${name} 的聊天（Bot 会响应）`,
-  stopAfter: '停止条件',
-  runs: '次运行（留空=永久）',
-  scheduling: '调度中…',
-  createCronjob: '创建定时任务',
-  createCronjobForBot: '为此 Bot 创建定时任务',
-  routineFilterHint:
-    '此资料中存在定时任务，但没有标记为属于当前 Bot，请将任务命名为“[bot:<名称>] …”以在此显示，或在下方的定时任务页面中查看',
-  couldNotLoad: '无法加载定时任务。列表可能仍然存在',
-  cronjobDetails: '定时任务详情',
-  routineDetailDescription: '查看此定时任务的内容及下次运行时间',
-  active: '已启用',
-  status: '状态',
-  schedule: '计划',
-  scheduleRaw: '原始计划',
-  repeat: '重复',
-  nextRunLabel: '下次运行',
-  lastRun: '上次运行',
-  lastResult: '上次结果',
-  deliversTo: '发送至',
-  workingDirectory: '工作目录',
-  cronjobsDesc: '定时任务是此代理按计划运行的重复性任务',
-  recurringTaskDesc: name => `${name} 会按计划运行重复任务，运行结果保存在自己的聊天记录中。`,
-  continuity: '连续运行：每次运行都能看到上一次的输出（去重，并从上次中断处继续）',
-  deleteCronjob: '删除定时任务',
-  legacyCronjobPaused: '出于安全考虑已暂停：请删除并重新创建此旧版定时任务后再运行',
-  cronjobNameNul: '定时任务名称不能包含 NUL（U+0000）',
-  cronjobInstructionNul: '定时任务指令不能包含 NUL（U+0000）',
-  paused: '已暂停',
-  nextRun: time => `下次运行：${time}`,
-  onceShort: (amount, unit) => `一次（${amount}${unit}）`,
-  everyDays: count => (count === 1 ? '每天' : `每 ${count} 天`),
-  everyHours: count => (count === 1 ? '每小时' : `每 ${count} 小时`),
-  everyMinutes: count => `每 ${count} 分钟`,
-
-  once: '一次性，在…',
-  hourly: '每小时',
-  daily: '每天',
-  weekdays: '工作日',
-  weekly: '每周',
-  monthly: '每月',
-  interval: '间隔',
-  advancedSchedule: '高级…',
-  minutesFromNow: '分钟后',
-  hoursFromNow: '小时后',
-  daysFromNow: '天后',
-  minutes: '分钟',
-  hours: '小时',
-  days: '天',
-  rawSchedule: '原始计划 — every Nm/Nh/Nd 或 5 段式 cron',
-  runsOnce: (amount, unit) => `${amount} ${unit}后运行一次`,
-  runsHourly: cap => `每小时整点运行${cap}`,
-  runsDaily: time => `每天 ${time} 运行`,
-  runsWeekdays: time => `周一至周五 ${time} 运行`,
-  runsWeekly: (day, time) => `每${day} ${time} 运行`,
-  runsMonthly: (day, time) => `每月 ${day} 日 ${time} 运行`,
-  runsInterval: (amount, unit) => `每 ${amount} ${unit}运行`,
-  totalRuns: count => `，共运行 ${count} 次`,
-
-  monday: '星期一',
-  tuesday: '星期二',
-  wednesday: '星期三',
-  thursday: '星期四',
-  friday: '星期五',
-  saturday: '星期六',
-  sunday: '星期日',
-
-  filterSessions: '筛选会话…',
-  couldNotLoadSessions: '无法加载此资料的会话',
-  noSessionsMatch: '没有匹配该筛选的会话',
-  noSessions: '尚无存储的会话',
-  untitledSession: '无标题会话',
-  noMessages: '尚无消息',
-  profileSessions: name => `${name} 的会话`,
-  showingRecentSessions: count => `显示最近 ${count} 个会话。`,
-  noMatchingRecentSessions: count => `最近 ${count} 个会话中没有匹配项。`,
-  desktopCannotOpenSessions: '当前 Hermes Desktop 版本无法打开已存储的会话',
-
-  newGroupChatTitle: '新建群聊',
-  searchBotsToAdd: '搜索要添加的 Bot…',
-  removeFromSelection: '从选择中移除',
-  groupName: '群组名称',
-  sayToGroup: '说点什么 — 此群组中的每个 Bot 都能听到',
-  roomWorking: '房间正在工作…',
-  pickBotsForRoom: max => `选择 2–${max} 个 Bot，本地成员关系通过各 Bot 资料同步；跨设备成员仅归属于此群聊。`,
-  noBotsYetCreateFirst: '尚无 Bot，请先创建代理',
-  pickAtLeastTwo: '请至少选择 2 个 Bot',
-  createGroup: count => `创建群聊${count ? `（${count}）` : ''}`,
-  groupChatTitle: name => `${name} — 群聊`,
-  botsCount: count => `${count} 个 Bot`,
-  you: '你',
-  messageGroup: name => `给 ${name} 发消息`,
-  messageGroupPlaceholder: name => `给 ${name} 发消息…（@名称可定向发送，@everyone 可发送给所有成员）`,
-  disbandGroupChat: name => `解散 ${name} 群聊`,
-  disbandGroupChatTitle: '解散群聊？',
-  disbandGroupChatDesc: (name, count) =>
-    `这会从 ${count} 个 Bot 中移除“${name}”群组并清除共享房间记录，Bot 本身及其各群组会话都会保留`,
-  disband: '解散',
-  disbanding: '正在解散…',
-  disbanded: '已解散',
-  disbandedGroup: name => `已解散“${name}”`,
-  hideFullHandle: '隐藏完整账号',
-  showFullHandle: '显示完整账号',
-
-  moveToGroupTitle: '移至分组',
-  moveToGroupDesc: '分组会在 BOTS 名单中显示为标签区块，并同步到每台设备',
-  manageGroupsTitle: '管理分组',
-  manageGroupsDesc: '一个 Bot 可以加入多个群聊，成员关系会同步到所有设备',
-  createAndJoin: '创建并加入',
-  removeFromAllGroups: '从所有分组中移除',
-  addedToGroup: (bot, group) => `${bot} 已加入“${group}”`,
-  removedFromNamedGroup: (bot, group) => `${bot} 已从“${group}”中移除`,
-  newGroupPlaceholder: '群组名称（例如：研究）',
-  groupNameLabel: '群组名称',
-  newGroup: '新建分组…',
-  removeFromGroup: name => `从“${name}”中移除`,
-  movedToGroup: (bot, group) => `${bot} 已移至“${group}”`,
-  removedFromGroup: bot => `${bot} 已移出分组`,
-  groupNeedsYouTitle: '此群聊中的一个 Bot 需要你输入内容',
-  openGroupChat: name => `打开 ${name} 群聊`,
-  inGroup: (handle, group) => `@${handle} · 位于“${group}”`,
-  inGroups: (handle, groups) => `@${handle} · 位于${groups.map(group => `“${group}”`).join('、')}`,
-
-  deleteBotTitle: '删除 Bot 和资料？',
-  deleteBotDesc: (name, path) => `这将永久删除 Bot ${name} 及其在 ${path} 的关联 Hermes 资料，此操作无法撤销`,
-  deleting: '删除中…',
-  deleted: '已删除',
-  deletedProfile: name => `已删除资料 ${name}`,
-
-  needsSetup: requires => `需要设置（${requires}）— 重启网关以启用应用内设置`,
-  setUp: '已设置 ✓',
-  saveAndTest: '保存并测试',
-  working: '工作中…',
-  setupFailed: message => message || '设置失败',
-
-  skillsHub: '技能中心',
-  hermesSkillsHub: 'Hermes 技能中心',
-  searchHub: '搜索技能中心（社区 + 知名来源）…',
-  searching: '正在搜索社区 + 知名来源 — 可能需要约 10 秒…',
-  searchingShort: '搜索中…',
-  noHubSkills: '没有匹配的技能中心技能',
-  added: '✓ 已添加',
-
-  noAgentsYet: '尚无代理',
-  createFirstTeammate: '创建你的第一个队友',
-
-  // Error messages - MCP Setup
-  couldNotAddServer: '无法添加服务器',
-  noTargetProfile: '无目标资料',
-  failedToSet: k => `设置 ${k} 失败`,
-  serverTestFailed: '设置后服务器测试失败',
-  couldNotStartOAuth: '无法启动 OAuth',
-  completeSignIn: '在浏览器中完成登录…',
-  oauthFailed: 'OAuth 失败',
-  configured: name => `${name} 已配置`,
-  authenticated: name => `${name} 已认证`,
-
-  // Error messages - Avatar
-  avatarGenerationFailed: '头像生成失败',
-  attachment: '附件',
-  attachmentTooLarge: name => `${name}过大（最大 15MB）。`,
-  generationFailed: '生成失败',
-  groupPictureGenerationFailed: '群组图片生成失败',
-  couldNotLoadPet: '无法加载该宠物 — 请尝试其他',
-  imageTooLarge: '图片过大（最大 15MB）',
-
-  // Error messages - Bot operations
-  duplicateFailed: '复制失败',
-  groupAlreadyExists: name => `已存在名为“${name}”的群组。`,
-  noFreeDuplicateName: '没有可用于副本的名称',
-  advancedConfigFailed: '高级配置失败',
-  couldNotCreateProfile: '尚无法创建资料',
-  couldNotCreateAgent: '无法创建代理',
-  couldNotDeleteProfile: name => `无法删除资料 ${name}。`,
-  couldNotReach: source => `无法访问 ${source}`,
-  couldNotOpenAgentChat: name => `无法打开 ${name} 的聊天，请重试`,
-  remoteMessaged: (handle, source) => `已在 ${source} 上向 @${handle} 发送消息，回复会转发到此处。`,
-  remoteNoReply: (handle, source) => `@${handle} 暂无回复，请在 ${source} 上查看其 Bot 聊天。`,
-  remoteMentionHint: handle => `留在当前聊天并使用 @${handle} 向其发送消息；网关仍保持在当前设备。`,
-
-  // Error messages - Sessions
-  couldNotOpenSession: '无法打开会话',
-  couldNotLoadSessionsError: '无法加载此资料的会话',
-
-  // Error messages - Cronjobs
-  cronjobUpdateFailed: '定时任务更新失败',
-  couldNotRefreshCronjobs: '无法刷新定时任务。显示上次的列表',
-
-  // Success messages
-  created: (name, original) => (original ? `已创建 ${name} — ${original} 的完整副本` : `已创建 ${name}`),
-  updated: name => `${name} 已更新`,
-  pinned: (name, isPinned) => `${name} ${isPinned ? '已置顶' : '已取消置顶'}`,
-  duplicating: name => `正在复制 ${name}…`,
-  skillInstalled: name => `技能"${name}"已安装`,
-  draftDiscarded: name => `草稿代理"${name}"已丢弃`,
-  cronjobScheduled: name => `定时任务"${name}"已调度`,
-  groupCreated: (name, count) => `"${name}"已创建，包含 ${count} 个 Bot`,
-
-  // Partial success/warnings
-  savedLocallyRemoteFailed: '已在本地保存外观；远程持久化失败',
-  savedLocallyDescFailed: '已在本地保存外观；描述更新失败',
-  someSectionsFailed: sections => `部分区块失败：${sections}`,
-
-  // Instructions
-  openBotsPane: '打开 Bots 面板并点击"新建代理"',
-  scrollForMore: (shown, total) => `滚动查看更多（${shown} / ${total}）`,
-
-  // MCP Setup UI
-  setUpCheckmark: '已设置 ✓',
-  noImageModel: '无可用的图像模型，如果你刚刚启用了一个（或更新了 Hermes），请重启网关：Ctrl+K → "重启网关"',
-  restartGateway: '重启网关',
-
-  // Provider & Model
-  provider: '提供商',
-  model: '模型',
-  providerCustom: '提供商（自定义）',
-  modelCustom: '模型（自定义）',
-
-  // Advanced
-  dayOfMonth: '每月的日期',
-  runsAtTopOfHour: cap => `在每小时的整点运行${cap}`,
-
-  // Misc
-  conversation: '对话',
-  remoteSource: '远程来源',
-  untitledCronjob: '无标题定时任务',
-  installing: name => `正在安装"${name}"…`,
-  installAndAdd: name => `安装"${name}"并添加到上面的列表`,
-  hitAddToAgent: '点击任何技能上的"+ 添加到此代理" — 它将安装并出现在上面的列表中，拖动角落调整大小',
-
-  search: '搜索',
-  hideHubBrowser: '隐藏技能中心浏览器',
-  browseFullHub: '浏览完整技能中心 ▾',
-  installingFailed: name => `安装“${name}”失败`,
-
-  pluginName: '智能体',
-  pluginDescription:
-    'Bot 模式为每个代理提供一个固定聊天，并包含头像、定时任务、群聊和 Bot 间通信，此功能随应用提供，可在不需要时禁用'
+  roster: {
+    search: '搜索机器人和群聊',
+    searchPlaceholder: '搜索机器人和群聊…',
+    newBotOrGroup: '新建机器人或群聊',
+    groupChats: '群聊',
+    emptyTitle: '还没有机器人',
+    emptyDesc: '创建你的第一个机器人。',
+    noMatchQuery: query => `没有机器人或群聊匹配“${query}”`,
+    noMatchQueryOn: (query, gateway) => `${gateway} 上没有机器人或群聊匹配“${query}”`,
+    noMatchFiltersOn: gateway => `${gateway} 上没有机器人或群聊匹配这些筛选条件`,
+    noMatchFilters: '没有机器人或群聊匹配这些筛选条件。',
+    clearFilters: '清除筛选',
+    allHidden: '所有机器人都已隐藏',
+    allHiddenDesc: '它们会继续运行，并保留各自的历史。',
+    showHidden: '显示已隐藏的机器人',
+    noHiddenMatch: '没有已隐藏的机器人匹配这些筛选条件。',
+    hiddenFromRoster: '已从名单中隐藏',
+    pinned: '已置顶',
+    needsAttention: '需要处理',
+    needsInput: '需要你输入',
+    botsAndGroups: '机器人和群聊',
+    botsOnly: '仅机器人',
+    groupsOnly: '仅群聊',
+    anyActivity: '任何活动',
+    activeNow: '正在活动',
+    recentlyActive: '最近活跃',
+    older: '更早',
+    gatewayRemoved: '网关已移除',
+    onDemand: '按需',
+    ready: '就绪',
+    statusUnknown: '状态未知',
+    unavailable: '不可用',
+    retryNow: '立即重试',
+    rosterUnavailable: reason => `无法获取名单：${reason}。如果网关早于 profiles.list，请更新 Hermes 并重启网关。`,
+    waitingForGateway: '正在等待网关连接…（远程网关可能需要几秒；会自动重试）'
+  },
+  bot: {
+    newTitle: '新建机器人',
+    cloneFromProfile: '从配置档克隆',
+    cloneFromProfileOn: target => `从配置档克隆（位于 ${target}）`,
+    defaultProfileName: '默认',
+    freshProfile: '全新配置档（内置技能）',
+    editTitle: '编辑配置档案',
+    editMenu: '编辑…',
+    helpPromptPlaceholder: '这个机器人应该帮你做什么？',
+    descriptionHint: '留空则根据机器人的名称和描述生成。',
+    newChatWith: '与此机器人开新聊天',
+    openBotChat: '打开机器人聊天',
+    duplicate: '复制',
+    duplicateFailed: '复制失败',
+    deleteTitle: '删除机器人和配置档案？',
+    removeFromAllGroups: '从所有群组中移除',
+    createFirstHint: '打开机器人面板，点击“新建机器人”。',
+    createFailed: '暂时无法创建配置档案',
+    advanced: '高级',
+    advancedHint: '高级 — 模型、技能、工具集、SOUL.md',
+    advancedFailed: '高级配置失败',
+    openAnotherChatUnsupported: '请更新 Hermes Desktop 以打开另一个机器人聊天。',
+    remoteConnectionsUnsupported: '请更新 Hermes Desktop 以与其他连接上的机器人聊天。',
+    chatEmpty: '说点什么开始吧。',
+    kickoff: '你好，介绍一下你自己吧！'
+  },
+  avatar: {
+    classicShapes: '经典形状',
+    blobFromName: '斑点脸 — 根据机器人名称绘制',
+    unlockFollowsName: '解锁 — 面孔再次跟随机器人名称',
+    randomize: '随机',
+    tabBot: '机器人',
+    tabGenerate: '生成',
+    upload: '上传',
+    tabPet: '宠物',
+    removeImage: '移除图片，改用形状',
+    removeBackToShape: '移除 — 回到形状头像',
+    describePlaceholder: '描述你的头像…',
+    describeHint: '留空则根据名称/标题/描述和 agent-messaging 名册自动生成。',
+    matchTheName: '匹配名称',
+    pickPet: '选择一只宠物作为此机器人的头像。',
+    petLoadFailed: '无法加载该宠物 — 请换一只试试。',
+    imageTooLarge: '图片过大（最大 15MB）。',
+    generationFailed: '头像生成失败',
+    savedLocally: '外观已保存在本地；远程持久化失败',
+    savedLocallyDescriptionFailed: '外观已保存在本地；描述更新失败',
+    generate: '生成',
+    generating: '生成中…'
+  },
+  group: {
+    newTitle: '新建群聊',
+    manageDesc: '一个机器人可以加入多个群聊。成员关系会同步到每台设备。',
+    manageTitle: '管理群组',
+    settingsTitle: '群组设置',
+    settingsDesc: '重命名群组或设置房间图片。成员和历史都会保留。',
+    nameLabel: '群组名称',
+    searchToAdd: '搜索要添加的机器人',
+    searchToAddPlaceholder: '搜索要添加的机器人…',
+    removeFromSelection: '从选择中移除',
+    disbandTitle: '解散群聊？',
+    deleteTitle: '删除群聊？',
+    deleteAction: '删除',
+    composerPlaceholder: '说点什么 — 这个群里的每个机器人都会听到。',
+    attachHint: '附加文件 — 每个回应的机器人都能看到',
+    newThread: '新帖子',
+    reply: '回复',
+    replyInThread: '在帖子中回复',
+    replyInThreadPlaceholder: '在帖子中回复…',
+    openThread: '打开此帖子',
+    collapseThread: '收起帖子',
+    collapseThreadLabel: '收起此帖子',
+    activity: '活动',
+    noActivityYet: '本回合还没有活动。',
+    showActivity: '显示房间活动',
+    hideActivity: '隐藏房间活动',
+    stop: '停止',
+    stopHint: '停止本次运行 — 中断当前回合的成员，并暂停其余成员',
+    needsYourInput: '此群聊中有机器人需要你输入',
+    pictureGenerationFailed: '群组图片生成失败',
+    nameTaken: name => `已存在名为“${name}”的群聊。`,
+    memberCount: count => `${count} 个机器人`,
+    settingsHint: group => `群聊设置 — 重命名 ${group} 或设置房间图片`,
+    settingsLabel: group => `${group} 的群聊设置`,
+    disbandHint: group => `解散 ${group} 群聊`,
+    disbandLabel: group => `解散 ${group}`,
+    disbandAction: '解散',
+    disbanding: '正在解散…',
+    disbandDone: '已解散',
+    disbanded: group => `已解散“${group}”`,
+    disbandDescPrefix: '',
+    disbandDescSuffix: count =>
+      ` 的分组将从 ${count} 个机器人中移除，并清空共享房间日志。机器人本身及其各群聊会话都会保留。`,
+    stopped: group => `已停止 ${group} — 其余轮次将保留到你恢复为止`,
+    removeAttachment: '移除附件',
+    threadFallback: '讨论串',
+    replyCount: replies => `${replies} 条回复`,
+    dropToThread: '拖放以附加到此讨论串回复',
+    dropToRoom: '拖放以附加 — 每个回应的机器人都能看到',
+    waitingForAnswer: '等待你的回答…',
+    memberThinking: name => `${name} 正在思考…`,
+    roomWorking: '房间正在处理…',
+    messageRoom: group => `发消息给 ${group}`,
+    newThreadPlaceholder: group => `在 ${group} 中开启新讨论串…（@名称指定，@everyone 全体）`,
+    everyoneMeta: '房间里的所有机器人',
+    commandApproval: '命令批准',
+    answerFailed: (handle, error) => `无法将回答发送给 @${handle}：${error}`,
+    wantsToRunCommand: handle => `@${handle} 想执行一个命令：`,
+    asks: handle => `@${handle} 的提问：`,
+    answerTo: member => `回答 @${member}`
+  },
+  tools: {
+    skillsHub: 'Hermes 技能中心',
+    filterSkills: '筛选技能…',
+    searchHub: '搜索技能中心（社区和常见来源）…',
+    noMcpServers: '未配置 MCP 服务器，目录中也没有。'
+  },
+  cron: {
+    filterHint:
+      '此配置档案中有定时任务，但没有一个标记给这个机器人。将任务命名为“[bot:<名称>] …”即可显示在这里，也可以在下方的 Cron 中查看。',
+    needsRosterFirst: '这个机器人需要先出现在名册中。',
+    staleNotice: '无法刷新定时任务。显示的是上一次获取的列表。',
+    readFailure: '列表可能仍然存在 — 这是一次读取失败，不是删除。',
+    createDesc: bot => `由 ${bot} 按计划运行的重复任务。运行结果会保存在它自己的聊天记录中。`,
+    instruction: '指令',
+    whenToRun: '运行时间',
+    dayOfMonth: '每月日期',
+    sendResultsTo: '结果发送到',
+    runHistoryOnly: '仅运行历史',
+    botChatTarget: bot => `${bot} 的聊天（机器人会回应）`,
+    continuity: '连续性：每次运行都能看到上次的输出（去重，从上次的地方继续）',
+    onceIn: when => `一次（${when}）`,
+    everyNDays: days => `每 ${days} 天`,
+    everyNHours: hours => `每 ${hours} 小时`,
+    everyNMinutes: minutes => `每 ${minutes} 分钟`,
+    freqOnce: '一次，在…之后',
+    freqHourly: '每小时',
+    freqDaily: '每天',
+    freqWeekdays: '工作日',
+    freqWeekly: '每周',
+    freqMonthly: '每月',
+    freqInterval: '间隔',
+    freqAdvanced: '高级…',
+    unitMinutes: '分钟',
+    unitHours: '小时',
+    unitDays: '天',
+    runsOnce: (count, unit) => `从现在起 ${count} ${unit}后运行一次`,
+    runsHourly: '每小时整点运行',
+    runsDaily: time => `每天 ${time} 运行`,
+    runsWeekdays: time => `周一至周五 ${time} 运行`,
+    runsWeekly: (day, time) => `每${day} ${time} 运行`,
+    runsMonthly: (day, time) => `每月 ${day} 日 ${time} 运行`,
+    runsInterval: (count, unit) => `每 ${count} ${unit}运行`,
+    runsRaw: '原始计划 — every Nm/Nh/Nd 或 5 段 cron',
+    timesTotal: count => `，共 ${count} 次`
+  }
 }
 
-export const BOTS_LOCALES: PluginLocaleBundles = { en, zh }
+const zhHant: BotsMessages = {
+  roster: {
+    search: '搜尋機器人和群組聊天',
+    searchPlaceholder: '搜尋機器人和群組聊天…',
+    newBotOrGroup: '新增機器人或群組聊天',
+    groupChats: '群組聊天',
+    emptyTitle: '還沒有機器人',
+    emptyDesc: '建立你的第一個機器人。',
+    noMatchQuery: query => `沒有機器人或群組聊天符合「${query}」`,
+    noMatchQueryOn: (query, gateway) => `${gateway} 上沒有機器人或群組聊天符合「${query}」`,
+    noMatchFiltersOn: gateway => `${gateway} 上沒有機器人或群組聊天符合這些篩選條件`,
+    noMatchFilters: '沒有機器人或群組聊天符合這些篩選條件。',
+    clearFilters: '清除篩選',
+    allHidden: '所有機器人都已隱藏',
+    allHiddenDesc: '它們會繼續運作，並保留各自的歷史。',
+    showHidden: '顯示已隱藏的機器人',
+    noHiddenMatch: '沒有已隱藏的機器人符合這些篩選條件。',
+    hiddenFromRoster: '已從名單中隱藏',
+    pinned: '已釘選',
+    needsAttention: '需要處理',
+    needsInput: '需要您的輸入',
+    botsAndGroups: '機器人和群組聊天',
+    botsOnly: '僅機器人',
+    groupsOnly: '僅群組聊天',
+    anyActivity: '任何活動',
+    activeNow: '目前活躍',
+    recentlyActive: '最近活躍',
+    older: '更早',
+    gatewayRemoved: '閘道已移除',
+    onDemand: '隨需',
+    ready: '就緒',
+    statusUnknown: '狀態未知',
+    unavailable: '不可用',
+    retryNow: '立即重試',
+    rosterUnavailable: reason => `無法取得名單：${reason}。如果閘道早於 profiles.list，請更新 Hermes 並重新啟動閘道。`,
+    waitingForGateway: '正在等待閘道連線…（遠端閘道可能需要幾秒；會自動重試）'
+  },
+  bot: {
+    newTitle: '新增機器人',
+    cloneFromProfile: '從設定檔複製',
+    cloneFromProfileOn: target => `從設定檔複製（位於 ${target}）`,
+    defaultProfileName: '預設',
+    freshProfile: '全新設定檔（內建技能）',
+    editTitle: '編輯設定檔',
+    editMenu: '編輯…',
+    helpPromptPlaceholder: '這個機器人應該幫你做什麼？',
+    descriptionHint: '留空則依機器人的名稱和描述產生。',
+    newChatWith: '與此機器人開新聊天',
+    openBotChat: '開啟機器人聊天',
+    duplicate: '複製',
+    duplicateFailed: '複製失敗',
+    deleteTitle: '刪除機器人和設定檔？',
+    removeFromAllGroups: '從所有群組中移除',
+    createFirstHint: '開啟機器人面板，點「新增機器人」。',
+    createFailed: '暫時無法建立設定檔',
+    advanced: '進階',
+    advancedHint: '進階 — 模型、技能、工具集、SOUL.md',
+    advancedFailed: '進階設定失敗',
+    openAnotherChatUnsupported: '請更新 Hermes Desktop 以開啟另一個機器人聊天。',
+    remoteConnectionsUnsupported: '請更新 Hermes Desktop 以與其他連線上的機器人聊天。',
+    chatEmpty: '說點什麼開始吧。',
+    kickoff: '你好，介紹一下你自己吧！'
+  },
+  avatar: {
+    classicShapes: '經典形狀',
+    blobFromName: '斑點臉 — 依機器人名稱繪製',
+    unlockFollowsName: '解鎖 — 面孔再次跟隨機器人名稱',
+    randomize: '隨機',
+    tabBot: '機器人',
+    tabGenerate: '生成',
+    upload: '上傳',
+    tabPet: '寵物',
+    removeImage: '移除圖片，改用形狀',
+    removeBackToShape: '移除 — 回到形狀頭像',
+    describePlaceholder: '描述你的頭像…',
+    describeHint: '留空則依名稱／標題／描述與 agent-messaging 名冊自動產生。',
+    matchTheName: '符合名稱',
+    pickPet: '選擇一隻寵物作為此機器人的頭像。',
+    petLoadFailed: '無法載入該寵物 — 請換一隻試試。',
+    imageTooLarge: '圖片過大（最大 15MB）。',
+    generationFailed: '頭像產生失敗',
+    savedLocally: '外觀已儲存在本機；遠端持久化失敗',
+    savedLocallyDescriptionFailed: '外觀已儲存在本機；描述更新失敗',
+    generate: '生成',
+    generating: '生成中…'
+  },
+  group: {
+    newTitle: '新增群組聊天',
+    manageDesc: '一個機器人可以加入多個群組聊天。成員關係會同步到每台裝置。',
+    manageTitle: '管理群組',
+    settingsTitle: '群組設定',
+    settingsDesc: '重新命名群組或設定房間圖片。成員和歷史都會保留。',
+    nameLabel: '群組名稱',
+    searchToAdd: '搜尋要加入的機器人',
+    searchToAddPlaceholder: '搜尋要加入的機器人…',
+    removeFromSelection: '從選取中移除',
+    disbandTitle: '解散群組聊天？',
+    deleteTitle: '刪除群組聊天？',
+    deleteAction: '刪除',
+    composerPlaceholder: '說點什麼 — 這個群組裡的每個機器人都會聽到。',
+    attachHint: '附加檔案 — 每個回應的機器人都能看到',
+    newThread: '新討論串',
+    reply: '回覆',
+    replyInThread: '在討論串中回覆',
+    replyInThreadPlaceholder: '在討論串中回覆…',
+    openThread: '開啟此討論串',
+    collapseThread: '收合討論串',
+    collapseThreadLabel: '收合此討論串',
+    activity: '活動',
+    noActivityYet: '本回合還沒有活動。',
+    showActivity: '顯示房間活動',
+    hideActivity: '隱藏房間活動',
+    stop: '停止',
+    stopHint: '停止本次執行 — 中斷目前回合的成員，並暫停其餘成員',
+    needsYourInput: '此群組聊天中有機器人需要您的輸入',
+    pictureGenerationFailed: '群組圖片產生失敗',
+    nameTaken: name => `已存在名為「${name}」的群組聊天。`,
+    memberCount: count => `${count} 個機器人`,
+    settingsHint: group => `群組設定 — 重新命名 ${group} 或設定房間圖片`,
+    settingsLabel: group => `${group} 的群組設定`,
+    disbandHint: group => `解散 ${group} 群組聊天`,
+    disbandLabel: group => `解散 ${group}`,
+    disbandAction: '解散',
+    disbanding: '正在解散…',
+    disbandDone: '已解散',
+    disbanded: group => `已解散「${group}」`,
+    disbandDescPrefix: '',
+    disbandDescSuffix: count =>
+      ` 的分組將從 ${count} 個機器人中移除，並清空共享房間日誌。機器人本身及其各群組工作階段都會保留。`,
+    stopped: group => `已停止 ${group} — 其餘回合將保留到你恢復為止`,
+    removeAttachment: '移除附件',
+    threadFallback: '討論串',
+    replyCount: replies => `${replies} 則回覆`,
+    dropToThread: '拖放以附加到此討論串回覆',
+    dropToRoom: '拖放以附加 — 每個回應的機器人都能看到',
+    waitingForAnswer: '等待你的回答…',
+    memberThinking: name => `${name} 正在思考…`,
+    roomWorking: '房間正在處理…',
+    messageRoom: group => `傳訊息給 ${group}`,
+    newThreadPlaceholder: group => `在 ${group} 中開啟新討論串…（@名稱指定，@everyone 全體）`,
+    everyoneMeta: '房間裡的所有機器人',
+    commandApproval: '命令核准',
+    answerFailed: (handle, error) => `無法將回答傳送給 @${handle}：${error}`,
+    wantsToRunCommand: handle => `@${handle} 想執行一個命令：`,
+    asks: handle => `@${handle} 的提問：`,
+    answerTo: member => `回覆 @${member}`
+  },
+  tools: {
+    skillsHub: 'Hermes 技能中心',
+    filterSkills: '篩選技能…',
+    searchHub: '搜尋技能中心（社群和常見來源）…',
+    noMcpServers: '未設定 MCP 伺服器，目錄中也沒有。'
+  },
+  cron: {
+    filterHint:
+      '此設定檔中有排程工作，但沒有任何一個標記給這個機器人。將工作命名為「[bot:<名稱>] …」即可顯示在這裡，也可以在下方的 Cron 中查看。',
+    needsRosterFirst: '這個機器人需要先出現在名冊中。',
+    staleNotice: '無法重新整理排程工作。顯示的是上一次取得的清單。',
+    readFailure: '清單可能仍然存在 — 這是一次讀取失敗，不是刪除。',
+    createDesc: bot => `由 ${bot} 按排程執行的重複工作。執行結果會保存在它自己的聊天紀錄中。`,
+    instruction: '指示',
+    whenToRun: '執行時間',
+    dayOfMonth: '每月日期',
+    sendResultsTo: '結果傳送到',
+    runHistoryOnly: '僅執行紀錄',
+    botChatTarget: bot => `${bot} 的聊天（機器人會回應）`,
+    continuity: '連續性：每次執行都能看到上次的輸出（去重，從上次的地方繼續）',
+    onceIn: when => `一次（${when}）`,
+    everyNDays: days => `每 ${days} 天`,
+    everyNHours: hours => `每 ${hours} 小時`,
+    everyNMinutes: minutes => `每 ${minutes} 分鐘`,
+    freqOnce: '一次，在…之後',
+    freqHourly: '每小時',
+    freqDaily: '每天',
+    freqWeekdays: '工作日',
+    freqWeekly: '每週',
+    freqMonthly: '每月',
+    freqInterval: '間隔',
+    freqAdvanced: '進階…',
+    unitMinutes: '分鐘',
+    unitHours: '小時',
+    unitDays: '天',
+    runsOnce: (count, unit) => `從現在起 ${count} ${unit}後執行一次`,
+    runsHourly: '每小時整點執行',
+    runsDaily: time => `每天 ${time} 執行`,
+    runsWeekdays: time => `週一至週五 ${time} 執行`,
+    runsWeekly: (day, time) => `每${day} ${time} 執行`,
+    runsMonthly: (day, time) => `每月 ${day} 日 ${time} 執行`,
+    runsInterval: (count, unit) => `每 ${count} ${unit}執行`,
+    runsRaw: '原始排程 — every Nm/Nh/Nd 或 5 段 cron',
+    timesTotal: count => `，共 ${count} 次`
+  }
+}
 
-/**
- * Reactive i18n hook for BOTS components.
- * Returns typed message accessors instead of raw t(key).
- */
-export function useBots() {
+/** Registered via `ctx.i18n.register` at plugin load (disposer tracked). */
+export const BOTS_LOCALES: PluginLocaleBundles = { en, ja, zh, 'zh-hant': zhHant }
+
+// Bind the message SHAPE to a plugin translator: string leaves resolve now,
+// function leaves forward their args through t(path, …).
+type Bound<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => string
+    ? (...args: A) => string
+    : T[K] extends object
+      ? Bound<T[K]>
+      : string
+}
+
+function bind<T extends object>(t: PluginTranslate, template: T, prefix = ''): Bound<T> {
+  const out = {} as Record<string, unknown>
+
+  for (const [key, value] of Object.entries(template)) {
+    const path = prefix ? `${prefix}.${key}` : key
+    out[key] =
+      typeof value === 'function'
+        ? (...args: unknown[]) => t(path, ...args)
+        : value && typeof value === 'object'
+          ? bind(t, value as object, path)
+          : t(path)
+  }
+
+  return out as Bound<T>
+}
+
+export type BotsText = Bound<BotsMessages>
+
+/** The Bot Mode strings for the active locale — one hook every component reads. */
+export function useBots(): BotsText {
   const t = usePluginI18n('hermes-bots')
 
-  return {
-    // Common actions
-    cancel: t('cancel'),
-    save: t('save'),
-    create: t('create'),
-    delete: t('delete'),
-    back: t('back'),
-    close: t('close'),
-    retry: t('retry'),
-    send: t('send'),
-    retryLabel: t('retryLabel'),
-    signIn: t('signIn'),
-    setUpAction: t('setUpAction'),
-    authorizing: t('authorizing'),
+  return useMemo(() => bind(t, en), [t])
+}
 
-    // Bot roster
-    bots: t('bots'),
-    noBots: t('noBots'),
-    noBotsDesc: t('noBotsDesc'),
-    searchBots: t('searchBots'),
-    noBotsMatch: (query: string) => t('noBotsMatch', query),
-    newAgent: t('newAgent'),
-    newGroupChat: t('newGroupChat'),
-    activityToastsOn: t('activityToastsOn'),
-    activityToastsOff: t('activityToastsOff'),
-    botChatsHidden: t('botChatsHidden'),
-    botChatsShown: t('botChatsShown'),
-    hideHiddenBotsAgain: t('hideHiddenBotsAgain'),
-    showHiddenBotsCount: (count: number) => t('showHiddenBotsCount', count),
-    hideHiddenBots: t('hideHiddenBots'),
-    showHiddenBots: t('showHiddenBots'),
-    hiddenBotUnread: t('hiddenBotUnread'),
-    allBotsHidden: t('allBotsHidden'),
-    retryNow: t('retryNow'),
-    newMenu: t('newMenu'),
-    newAgentOrGroup: t('newAgentOrGroup'),
-    rosterRefreshFailed: t('rosterRefreshFailed'),
-    waitingForGateway: t('waitingForGateway'),
-    rosterUnavailable: (message: string) => t('rosterUnavailable', message),
-    gatewayError: t('gatewayError'),
-    newMessageFor: (name: string) => t('newMessageFor', name),
-    newActivityFor: (name: string) => t('newActivityFor', name),
-    openChatToSee: t('openChatToSee'),
-    thisDevice: t('thisDevice'),
-    hermesGateway: t('hermesGateway'),
+/** Resolve a dotted path against the English bundle — the floor for a read
+ *  that beats `ctx.i18n` into existence, so an unresolved key never ships as
+ *  the literal `cron.runsHourly`. */
+function english(key: string, ...args: unknown[]): string {
+  const leaf = key.split('.').reduce<unknown>((node, part) => (node as Record<string, unknown>)?.[part], en)
 
-    // Bot actions
-    editProfile: t('editProfile'),
-    duplicate: t('duplicate'),
-    newChatWithAgent: t('newChatWithAgent'),
-    pin: t('pin'),
-    unpin: t('unpin'),
-    pinnedTitle: t('pinnedTitle'),
-    sessions: t('sessions'),
-    moveToGroup: t('moveToGroup'),
-    group: (name: string) => t('group', name),
-    manageGroups: t('manageGroups'),
-    groups: (names: string) => t('groups', names),
-    unread: t('unread'),
-    activeRecently: t('activeRecently'),
-    openAgentChat: (name: string) => t('openAgentChat', name),
-    noConversations: t('noConversations'),
-    updateForRemoteAgents: t('updateForRemoteAgents'),
-    remoteSourceLabel: t('remoteSourceLabel'),
-    livesOn: (source: string) => t('livesOn', source),
-    lastMessageFrom: (name: string) => t('lastMessageFrom', name),
-    hiddenFromRoster: t('hiddenFromRoster'),
-    hideBot: t('hideBot'),
-    unhideBot: t('unhideBot'),
-    botHidden: (name: string) => t('botHidden', name),
-    botUnhidden: (name: string) => t('botUnhidden', name),
+  return typeof leaf === 'function' ? (leaf as (...a: unknown[]) => string)(...args) : String(leaf ?? key)
+}
 
-    // Bot chat
-    botChat: t('botChat'),
-    activeNow: t('activeNow'),
-    needsYou: t('needsYou'),
-    openChat: t('openChat'),
-    openContinuousChatDescription: t('openContinuousChatDescription'),
-    chatNeverResets: t('chatNeverResets'),
-    chatNeverResetsDesc: t('chatNeverResetsDesc'),
+let bound: { text: BotsText; translate: PluginTranslate } | null = null
 
-    // Profile editing
-    editProfileTitle: t('editProfileTitle'),
-    name: t('name'),
-    title: t('title'),
-    description: t('description'),
-    whatHelp: t('whatHelp'),
-    advanced: t('advanced'),
-    advancedConfig: t('advancedConfig'),
-    saving: t('saving'),
-    appearanceAndRole: (displayName: string, profile: string) => t('appearanceAndRole', displayName, profile),
+/** `useBots` for the module-level functions a hook can't reach — the schedule
+ *  summarizers and label helpers that render inside components but aren't
+ *  components. Non-reactive on its own; every caller is invoked during a
+ *  render that a core `useI18n()` already subscribes to, so a locale switch
+ *  still repaints. Cached on translator identity: `bind` walks the whole tree,
+ *  and these run per row. */
+export function botsText(): BotsText {
+  const translate = getPluginCtx()?.i18n?.t ?? english
 
-    // Avatar
-    bot: t('bot'),
-    generate: t('generate'),
-    upload: t('upload'),
-    pet: t('pet'),
-    removeImage: t('removeImage'),
-    describeAvatar: t('describeAvatar'),
-    avatarAuto: t('avatarAuto'),
-    avatarAutoTitle: t('avatarAutoTitle'),
-    avatarRandomize: t('avatarRandomize'),
-    avatarUnlockTitle: t('avatarUnlockTitle'),
-    avatarLockTitle: t('avatarLockTitle'),
-    avatarUnlock: t('avatarUnlock'),
-    avatarLockFace: t('avatarLockFace'),
-    avatarLockedHint: t('avatarLockedHint'),
-    avatarFollowsNameHint: t('avatarFollowsNameHint'),
-    avatarClassicShapes: t('avatarClassicShapes'),
-    avatarBlobTitle: t('avatarBlobTitle'),
-    generating: t('generating'),
-    leaveBlankGenerate: t('leaveBlankGenerate'),
-    choosePet: t('choosePet'),
-    removePet: t('removePet'),
-    noPetsMatch: t('noPetsMatch'),
-    noPets: t('noPets'),
-    chooseImage: t('chooseImage'),
-    searchPets: (count: number) => t('searchPets', count),
-    inheritLaunchProfile: t('inheritLaunchProfile'),
-    enterManually: t('enterManually'),
-    backToDropdowns: t('backToDropdowns'),
-    gatewayDefault: t('gatewayDefault'),
-    fullConfigNeedsNewGateway: t('fullConfigNeedsNewGateway'),
-    capabilitiesImmediate: t('capabilitiesImmediate'),
-    soulConfig: t('soulConfig'),
-    skillsEnabled: (enabled: number, total: number) => t('skillsEnabled', enabled, total),
-    toolsetsEnabled: (enabled: number, total: number) => t('toolsetsEnabled', enabled, total),
-    mcpServers: t('mcpServers'),
-    catalog: t('catalog'),
-    catalogInstalled: t('catalogInstalled'),
-    modelNameExample: t('modelNameExample'),
-
-    // New agent dialog
-    newAgentTitle: t('newAgentTitle'),
-    newAgentDesc: t('newAgentDesc'),
-    namePlaceholder: t('namePlaceholder'),
-    titlePlaceholder: t('titlePlaceholder'),
-    descPlaceholder: t('descPlaceholder'),
-    general: t('general'),
-    capabilities: t('capabilities'),
-    skills: t('skills'),
-    toolsets: t('toolsets'),
-    tools: t('tools'),
-    mcp: t('mcp'),
-    cloneFromProfile: t('cloneFromProfile'),
-    cloneFromProfileOn: (target: string) => t('cloneFromProfileOn', target),
-    defaultProfileName: t('defaultProfileName'),
-    createOn: t('createOn'),
-    currentConnection: (name: string) => t('currentConnection', name),
-    remoteAgentLocationHint: (target: string) => t('remoteAgentLocationHint', target),
-    freshProfile: t('freshProfile'),
-    createEmpty: t('createEmpty'),
-    filterSkills: t('filterSkills'),
-    noMcpServers: t('noMcpServers'),
-    creating: t('creating'),
-    createAgent: t('createAgent'),
-    agentCreated: (name: string) => t('agentCreated', name),
-    agentCreatedOn: (name: string, target: string) => t('agentCreatedOn', name, target),
-    couldNotCleanDraft: (name: string) => t('couldNotCleanDraft', name),
-    catalogFrom: (source: string) => t('catalogFrom', source),
-    defaultToolsetBehavior: t('defaultToolsetBehavior'),
-    agentExists: (name: string) => t('agentExists', name),
-    agentExistsOn: (name: string, target: string) => t('agentExistsOn', name, target),
-    inheritedFromLaunchProfile: t('inheritedFromLaunchProfile'),
-    soulOptional: t('soulOptional'),
-    soulPlaceholder: t('soulPlaceholder'),
-    shareKeys: t('shareKeys'),
-    shareKeysDesc: t('shareKeysDesc'),
-    createEmptyLabel: t('createEmptyLabel'),
-    nameTakenForCapabilities: t('nameTakenForCapabilities'),
-    nameFirstForCapabilities: t('nameFirstForCapabilities'),
-    capabilityCatalogNeedsGateway: t('capabilityCatalogNeedsGateway'),
-    configuredServersDesc: t('configuredServersDesc'),
-
-    // Cronjobs
-    cronjobs: t('cronjobs'),
-    cronjobsUnavailableUntilRoster: t('cronjobsUnavailableUntilRoster'),
-    newCronjob: t('newCronjob'),
-    cronjobName: t('cronjobName'),
-    instruction: t('instruction'),
-    instructionPlaceholder: t('instructionPlaceholder'),
-    whenToRun: t('whenToRun'),
-    sendResultsTo: t('sendResultsTo'),
-    runHistoryOnly: t('runHistoryOnly'),
-    botChatResponds: (name: string) => t('botChatResponds', name),
-    stopAfter: t('stopAfter'),
-    runs: t('runs'),
-    scheduling: t('scheduling'),
-    createCronjob: t('createCronjob'),
-    createCronjobForBot: t('createCronjobForBot'),
-    routineFilterHint: t('routineFilterHint'),
-    couldNotLoad: t('couldNotLoad'),
-    cronjobDetails: t('cronjobDetails'),
-    routineDetailDescription: t('routineDetailDescription'),
-    active: t('active'),
-    status: t('status'),
-    schedule: t('schedule'),
-    scheduleRaw: t('scheduleRaw'),
-    repeat: t('repeat'),
-    nextRunLabel: t('nextRunLabel'),
-    lastRun: t('lastRun'),
-    lastResult: t('lastResult'),
-    deliversTo: t('deliversTo'),
-    workingDirectory: t('workingDirectory'),
-    cronjobsDesc: t('cronjobsDesc'),
-    recurringTaskDesc: (name: string) => t('recurringTaskDesc', name),
-    continuity: t('continuity'),
-    deleteCronjob: t('deleteCronjob'),
-    legacyCronjobPaused: t('legacyCronjobPaused'),
-    cronjobNameNul: t('cronjobNameNul'),
-    cronjobInstructionNul: t('cronjobInstructionNul'),
-    paused: t('paused'),
-    nextRun: (time: string) => t('nextRun', time),
-    onceShort: (amount: string, unit: string) => t('onceShort', amount, unit),
-    everyDays: (count: number) => t('everyDays', count),
-    everyHours: (count: number) => t('everyHours', count),
-    everyMinutes: (count: number) => t('everyMinutes', count),
-
-    // Schedule options
-    once: t('once'),
-    hourly: t('hourly'),
-    daily: t('daily'),
-    weekdays: t('weekdays'),
-    weekly: t('weekly'),
-    monthly: t('monthly'),
-    interval: t('interval'),
-    advancedSchedule: t('advancedSchedule'),
-    minutesFromNow: t('minutesFromNow'),
-    hoursFromNow: t('hoursFromNow'),
-    daysFromNow: t('daysFromNow'),
-    minutes: t('minutes'),
-    hours: t('hours'),
-    days: t('days'),
-    rawSchedule: t('rawSchedule'),
-    runsOnce: (amount: string, unit: string) => t('runsOnce', amount, unit),
-    runsHourly: (cap: string) => t('runsHourly', cap),
-    runsDaily: (time: string) => t('runsDaily', time),
-    runsWeekdays: (time: string) => t('runsWeekdays', time),
-    runsWeekly: (day: string, time: string) => t('runsWeekly', day, time),
-    runsMonthly: (day: string, time: string) => t('runsMonthly', day, time),
-    runsInterval: (amount: string, unit: string) => t('runsInterval', amount, unit),
-    totalRuns: (count: string) => t('totalRuns', count),
-
-    // Weekdays
-    monday: t('monday'),
-    tuesday: t('tuesday'),
-    wednesday: t('wednesday'),
-    thursday: t('thursday'),
-    friday: t('friday'),
-    saturday: t('saturday'),
-    sunday: t('sunday'),
-
-    // Sessions
-    filterSessions: t('filterSessions'),
-    couldNotLoadSessions: t('couldNotLoadSessions'),
-    noSessionsMatch: t('noSessionsMatch'),
-    noSessions: t('noSessions'),
-    untitledSession: t('untitledSession'),
-    noMessages: t('noMessages'),
-    profileSessions: (name: string) => t('profileSessions', name),
-    showingRecentSessions: (count: number) => t('showingRecentSessions', count),
-    noMatchingRecentSessions: (count: number) => t('noMatchingRecentSessions', count),
-    desktopCannotOpenSessions: t('desktopCannotOpenSessions'),
-
-    // Group chat
-    newGroupChatTitle: t('newGroupChatTitle'),
-    searchBotsToAdd: t('searchBotsToAdd'),
-    removeFromSelection: t('removeFromSelection'),
-    groupName: t('groupName'),
-    sayToGroup: t('sayToGroup'),
-    roomWorking: t('roomWorking'),
-    pickBotsForRoom: (max: number) => t('pickBotsForRoom', max),
-    noBotsYetCreateFirst: t('noBotsYetCreateFirst'),
-    pickAtLeastTwo: t('pickAtLeastTwo'),
-    createGroup: (count?: number) => t('createGroup', count),
-    groupChatTitle: (name: string) => t('groupChatTitle', name),
-    botsCount: (count: number) => t('botsCount', count),
-    you: t('you'),
-    messageGroup: (name: string) => t('messageGroup', name),
-    messageGroupPlaceholder: (name: string) => t('messageGroupPlaceholder', name),
-    disbandGroupChat: (name: string) => t('disbandGroupChat', name),
-    disbandGroupChatTitle: t('disbandGroupChatTitle'),
-    disbandGroupChatDesc: (name: string, count: number) => t('disbandGroupChatDesc', name, count),
-    disband: t('disband'),
-    disbanding: t('disbanding'),
-    disbanded: t('disbanded'),
-    disbandedGroup: (name: string) => t('disbandedGroup', name),
-    hideFullHandle: t('hideFullHandle'),
-    showFullHandle: t('showFullHandle'),
-
-    // Group management
-    moveToGroupTitle: t('moveToGroupTitle'),
-    moveToGroupDesc: t('moveToGroupDesc'),
-    manageGroupsTitle: t('manageGroupsTitle'),
-    manageGroupsDesc: t('manageGroupsDesc'),
-    createAndJoin: t('createAndJoin'),
-    removeFromAllGroups: t('removeFromAllGroups'),
-    addedToGroup: (bot: string, group: string) => t('addedToGroup', bot, group),
-    removedFromNamedGroup: (bot: string, group: string) => t('removedFromNamedGroup', bot, group),
-    newGroupPlaceholder: t('newGroupPlaceholder'),
-    groupNameLabel: t('groupNameLabel'),
-    newGroup: t('newGroup'),
-    removeFromGroup: (name: string) => t('removeFromGroup', name),
-    movedToGroup: (bot: string, group: string) => t('movedToGroup', bot, group),
-    removedFromGroup: (bot: string) => t('removedFromGroup', bot),
-    groupNeedsYouTitle: t('groupNeedsYouTitle'),
-    openGroupChat: (name: string) => t('openGroupChat', name),
-    inGroup: (handle: string, group: string) => t('inGroup', handle, group),
-    inGroups: (handle: string, groups: string[]) => t('inGroups', handle, groups),
-
-    // Delete confirmation
-    deleteBotTitle: t('deleteBotTitle'),
-    deleteBotDesc: (name: string, path: string) => t('deleteBotDesc', name, path),
-    deleting: t('deleting'),
-    deleted: t('deleted'),
-    deletedProfile: (name: string) => t('deletedProfile', name),
-
-    // Status messages
-    needsSetup: (requires: string) => t('needsSetup', requires),
-    setUp: t('setUp'),
-    saveAndTest: t('saveAndTest'),
-    working: t('working'),
-    setupFailed: (message?: string) => t('setupFailed', message),
-
-    // Skills Hub
-    skillsHub: t('skillsHub'),
-    hermesSkillsHub: t('hermesSkillsHub'),
-    searchHub: t('searchHub'),
-    searching: t('searching'),
-    searchingShort: t('searchingShort'),
-    noHubSkills: t('noHubSkills'),
-    added: t('added'),
-
-    // Empty states
-    noAgentsYet: t('noAgentsYet'),
-    createFirstTeammate: t('createFirstTeammate'),
-
-    // Error messages - MCP Setup
-    couldNotAddServer: t('couldNotAddServer'),
-    noTargetProfile: t('noTargetProfile'),
-    failedToSet: (key: string) => t('failedToSet', key),
-    serverTestFailed: t('serverTestFailed'),
-    couldNotStartOAuth: t('couldNotStartOAuth'),
-    completeSignIn: t('completeSignIn'),
-    oauthFailed: t('oauthFailed'),
-    configured: (name: string) => t('configured', name),
-    authenticated: (name: string) => t('authenticated', name),
-
-    // Error messages - Avatar
-    avatarGenerationFailed: t('avatarGenerationFailed'),
-    attachment: t('attachment'),
-    attachmentTooLarge: (name: string) => t('attachmentTooLarge', name),
-    generationFailed: t('generationFailed'),
-    groupPictureGenerationFailed: t('groupPictureGenerationFailed'),
-    couldNotLoadPet: t('couldNotLoadPet'),
-    imageTooLarge: t('imageTooLarge'),
-
-    // Error messages - Bot operations
-    duplicateFailed: t('duplicateFailed'),
-    groupAlreadyExists: (name: string) => t('groupAlreadyExists', name),
-    noFreeDuplicateName: t('noFreeDuplicateName'),
-    advancedConfigFailed: t('advancedConfigFailed'),
-    couldNotCreateProfile: t('couldNotCreateProfile'),
-    couldNotCreateAgent: t('couldNotCreateAgent'),
-    couldNotDeleteProfile: (name: string) => t('couldNotDeleteProfile', name),
-    couldNotReach: (source: string) => t('couldNotReach', source),
-    couldNotOpenAgentChat: (name: string) => t('couldNotOpenAgentChat', name),
-    remoteMessaged: (name: string, source: string) => t('remoteMessaged', name, source),
-    remoteNoReply: (name: string, source: string) => t('remoteNoReply', name, source),
-    remoteMentionHint: (name: string) => t('remoteMentionHint', name),
-
-    // Error messages - Sessions
-    couldNotOpenSession: t('couldNotOpenSession'),
-    couldNotLoadSessionsError: t('couldNotLoadSessionsError'),
-
-    // Error messages - Cronjobs
-    cronjobUpdateFailed: t('cronjobUpdateFailed'),
-    couldNotRefreshCronjobs: t('couldNotRefreshCronjobs'),
-
-    // Success messages
-    created: (name: string, original?: string) => t('created', name, original),
-    updated: (name: string) => t('updated', name),
-    pinned: (name: string, isPinned: boolean) => t('pinned', name, isPinned),
-    duplicating: (name: string) => t('duplicating', name),
-    skillInstalled: (name: string) => t('skillInstalled', name),
-    draftDiscarded: (name: string) => t('draftDiscarded', name),
-    cronjobScheduled: (name: string) => t('cronjobScheduled', name),
-    groupCreated: (name: string, count: number) => t('groupCreated', name, count),
-
-    // Partial success/warnings
-    savedLocallyRemoteFailed: t('savedLocallyRemoteFailed'),
-    savedLocallyDescFailed: t('savedLocallyDescFailed'),
-    someSectionsFailed: (sections: string) => t('someSectionsFailed', sections),
-
-    // Instructions
-    openBotsPane: t('openBotsPane'),
-    scrollForMore: (shown: number, total: number) => t('scrollForMore', shown, total),
-
-    // MCP Setup UI
-    setUpCheckmark: t('setUpCheckmark'),
-    noImageModel: t('noImageModel'),
-    restartGateway: t('restartGateway'),
-
-    // Provider & Model
-    provider: t('provider'),
-    model: t('model'),
-    providerCustom: t('providerCustom'),
-    modelCustom: t('modelCustom'),
-
-    // Advanced
-    dayOfMonth: t('dayOfMonth'),
-    runsAtTopOfHour: (cap: string) => t('runsAtTopOfHour', cap),
-
-    // Misc
-    conversation: t('conversation'),
-    remoteSource: t('remoteSource'),
-    untitledCronjob: t('untitledCronjob'),
-    installing: (name: string) => t('installing', name),
-    installAndAdd: (name: string) => t('installAndAdd', name),
-    hitAddToAgent: t('hitAddToAgent'),
-    search: t('search'),
-    hideHubBrowser: t('hideHubBrowser'),
-    browseFullHub: t('browseFullHub'),
-    installingFailed: (name: string) => t('installingFailed', name),
-
-    pluginName: t('pluginName'),
-    pluginDescription: t('pluginDescription')
+  if (bound?.translate !== translate) {
+    bound = { text: bind(translate, en), translate }
   }
+
+  return bound.text
 }
