@@ -4981,7 +4981,7 @@ export const zh: Translations = {
       statusError: '错误',
       statusRecovered: '已恢复',
       statusDone: '完成',
-      memoryWriteNoted: '已记下记忆写入',
+      memoryWriteNoted: '已记录内存写入操作',
       actions: {
         read: '已读取',
         reading: '正在读取',
