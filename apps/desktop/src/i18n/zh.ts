@@ -973,7 +973,7 @@ export const zh: Translations = {
       },
       browser: {
         useRealProfile:
-          '本地浏览会使用你真实的登录状态。Hermes 会将默认浏览器的配置文件（Cookie、登录状态和偏好设置）复制到托管快照中，再通过随附的 Chromium 驱动该快照；它绝不会直接打开你正在使用的配置文件，并会在每次运行时从原配置刷新副本。即使已配置云端浏览器后端，也允许智能体按需打开使用真实配置文件的本地会话。仅支持基于 Chromium 的浏览器（Chrome、Edge、Brave、Chromium）；若默认浏览器不是 Chromium 内核，将显示明确的错误信息。默认关闭。'
+          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置（Cookie、登录、偏好）到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新。即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器（Chrome/Edge/Brave/Chromium），否则报错。此选项默认关闭'
       },
       checkpoints: {
         enabled: '在文件编辑前创建可回滚的快照'
