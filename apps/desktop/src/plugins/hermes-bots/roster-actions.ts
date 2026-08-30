@@ -17,6 +17,7 @@ import { $groupChats, $groupChatWorkspace } from './group-chat'
 import { openGroupChat } from './group-chat-view'
 import { liveGroupChatNames } from './group-membership'
 import { closeGroupChatMainTab } from './group-panes'
+import { botsText } from './i18n'
 import { displayName } from './labels'
 import { botRosterMeta, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
 import { botCanonicalSessionId } from './row-helpers'
@@ -92,14 +93,15 @@ export function trackInboundActivity(roster: RosterRow[]) {
     // Toasts are opt-in: the unread mark is recorded above regardless, but the
     // per-message notification fires only when the user enabled it.
     if ($activityToasts.get()) {
+      const b = botsText()
       const meta = botRosterMeta(bot, $botMeta.get())
       const label = displayName(bot, meta)
       const preview = (activity?.preview || '').trim()
       const inbound = /^Message from/i.test(preview)
       host.notify({
         kind: 'info',
-        title: inbound ? `\uD83E\uDD16 New message for ${label}` : `${label} has new activity`,
-        message: preview.slice(0, 140) || 'Open the chat to see it.'
+        title: inbound ? b.roster.newMessageFor(label) : b.roster.newActivityFor(label),
+        message: preview.slice(0, 140) || b.roster.openChatToSee
       })
     }
   }
@@ -154,7 +156,7 @@ export async function openRosterBot(bot: RosterRow, { canonical = false } = {}):
 
   haptic('tap')
   saveSelectedRosterBot(bot)
-  setBotsWorkspaceOwner(botWorkspaceOwnerKey(bot), bot)
+  setBotsWorkspaceOwner(botWorkspaceOwnerKey(bot), bot, botsText().bot.workspaceSelectionRequired)
   const dismissedGroup = bot.remoteSource ? null : dismissGroupChatForLocalBotOpen()
 
   if (!dismissedGroup) {
@@ -212,7 +214,8 @@ export async function openRosterBot(bot: RosterRow, { canonical = false } = {}):
     if (generation === getBotOpenGeneration()) {
       $openBotChat.set(null)
       restorePreviousGroup()
-      notifyBotOpenFailure(error, bot, `Could not reach ${bot.connectionLabel || 'the gateway'}`)
+      const b = botsText()
+      notifyBotOpenFailure(error, bot, b.roster.couldNotReach(bot.connectionLabel || b.roster.gatewayFallback))
     }
 
     return false
@@ -249,7 +252,7 @@ export async function openRosterBot(bot: RosterRow, { canonical = false } = {}):
     if (generation === getBotOpenGeneration()) {
       $openBotChat.set(null)
       restorePreviousGroup()
-      notifyBotOpenFailure(error, bot, `Could not open ${displayName(bot, meta)}'s chat — try again`)
+      notifyBotOpenFailure(error, bot, botsText().roster.couldNotOpenChat(displayName(bot, meta)))
     }
 
     return false

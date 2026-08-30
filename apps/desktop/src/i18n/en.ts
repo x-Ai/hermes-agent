@@ -2908,6 +2908,8 @@ export const en: Translations = {
 
   composer: {
     message: 'Message',
+    botSelectionRequired: 'Select a bot before starting another chat.',
+    botChatUnsupported: 'Update Hermes Desktop to open another bot chat.',
     addContext: 'Add context',
     wakingProfile: profile => `Waking up ${profile}…`,
     placeholderStarting: 'Starting Hermes...',
@@ -3808,6 +3810,29 @@ export const en: Translations = {
       showEarlier: 'Show earlier messages',
       loadingResponse: 'Hermes is loading a response',
       operationInterrupted: 'Operation interrupted.',
+      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
+        `Operation interrupted during retry (${reason}, attempt ${attempt}/${maxAttempts}).`,
+      operationInterruptedHandlingApiError: (errorType, detail) =>
+        `Operation interrupted: handling API error (${errorType}: ${detail}).`,
+      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
+        `Operation interrupted: retrying API call after error (retry ${retry}/${maxRetries}).`,
+      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
+        `Operation interrupted: retrying empty response from model (retry ${retry}/${maxRetries}).`,
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: durationSeconds => `fast response (${durationSeconds}s) — likely rate limited`,
+        rateLimited: 'rate limited by upstream provider (429)',
+        responseTime: durationSeconds => `response time ${durationSeconds}s`,
+        slowResponseLikelyUpstreamTimeout: durationSeconds =>
+          `slow response (${durationSeconds}s) — likely upstream timeout`,
+        upstreamError: (code, durationSeconds) => `upstream error (code ${code}, ${durationSeconds}s)`,
+        upstreamGatewayTimedOut: durationSeconds => `upstream gateway timeout (504, ${durationSeconds}s)`,
+        upstreamProviderOverloaded: code => `upstream provider overloaded (${code})`,
+        upstreamProviderTimedOut: durationSeconds =>
+          `upstream provider timed out (Cloudflare 524, ${durationSeconds}s)`,
+        upstreamServerError: (code, durationSeconds) => `upstream server error (${code}, ${durationSeconds}s)`
+      },
+      operationInterruptedWaitingForModel: elapsedSeconds =>
+        `Operation interrupted: waiting for model response (${elapsedSeconds}s elapsed).`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Will resume when the background task finishes'
@@ -3944,6 +3969,8 @@ export const en: Translations = {
       statusDone: 'Done',
       memoryWriteNoted: 'Memory write noted',
       failedToWriteFile: detail => `Failed to write file: ${detail}`,
+      sensitiveSystemPathWriteRefused: path =>
+        `Refusing to write to sensitive system path: ${path}\nUse the terminal tool with sudo if you need to modify system files.`,
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
         delegate: {

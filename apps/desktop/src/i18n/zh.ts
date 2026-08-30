@@ -2005,7 +2005,7 @@ export const zh: Translations = {
       nousAuthFailed: 'Nous Portal 登录未完成',
       noApiKeyRequired: '不需要 API 密钥',
       postSetupHint: step => `此后端需要一次性安装 (${step})。将在此机器上执行，可能需要几分钟`,
-      postSetupInstalledHint: '已安装。仅在出现问题时才需要重新运行安装',
+      postSetupInstalledHint: '已安装，仅在出现问题时才需要重新运行安装',
       postSetupRun: '运行设置',
       postSetupRerun: '重新运行设置',
       postSetupInstalled: '已安装',
@@ -4013,6 +4013,8 @@ export const zh: Translations = {
 
   composer: {
     message: '消息',
+    botSelectionRequired: '请先选择一个机器人，再开始新的聊天。',
+    botChatUnsupported: '请更新 Hermes Desktop 以打开另一个机器人聊天。',
     addContext: '添加上下文',
     wakingProfile: profile => `正在唤醒 ${profile}…`,
     placeholderStarting: '正在启动 Hermes…',
@@ -4892,7 +4894,28 @@ export const zh: Translations = {
       loadingSession: '正在加载会话',
       showEarlier: '显示更早的消息',
       loadingResponse: 'Hermes 正在加载回复',
-      operationInterrupted: '操作已中断。',
+      operationInterrupted: '操作已中断',
+      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
+        `操作已中断：重试过程中（${reason}，第 ${attempt}/${maxAttempts} 次尝试）`,
+      operationInterruptedHandlingApiError: (errorType, detail) =>
+        `操作已中断：正在处理 API 错误（${errorType}：${detail}）`,
+      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
+        `操作已中断：API 调用出错后正在重试（第 ${retry}/${maxRetries} 次）`,
+      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
+        `操作已中断：正在重试模型的空响应（第 ${retry}/${maxRetries} 次）`,
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: durationSeconds => `响应较快（${durationSeconds} 秒）——可能受到限流`,
+        rateLimited: '上游提供商限流（429）',
+        responseTime: durationSeconds => `响应耗时 ${durationSeconds} 秒`,
+        slowResponseLikelyUpstreamTimeout: durationSeconds => `响应较慢（${durationSeconds} 秒）——可能是上游超时`,
+        upstreamError: (code, durationSeconds) => `上游错误（代码 ${code}，${durationSeconds} 秒）`,
+        upstreamGatewayTimedOut: durationSeconds => `上游网关超时（504，${durationSeconds} 秒）`,
+        upstreamProviderOverloaded: code => `上游提供商过载（${code}）`,
+        upstreamProviderTimedOut: durationSeconds => `上游提供商超时（Cloudflare 524，${durationSeconds} 秒）`,
+        upstreamServerError: (code, durationSeconds) => `上游服务器错误（${code}，${durationSeconds} 秒）`
+      },
+      operationInterruptedWaitingForModel: elapsedSeconds =>
+        `操作已中断：正在等待模型响应（已等待 ${elapsedSeconds} 秒）`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '后台任务完成后将自动继续' : `${count} 个后台任务完成后将自动继续`,
       thinking: '思考中',
@@ -5026,6 +5049,8 @@ export const zh: Translations = {
       statusDone: '完成',
       memoryWriteNoted: '已记录内存写入操作',
       failedToWriteFile: detail => `写入文件失败：${detail}`,
+      sensitiveSystemPathWriteRefused: path =>
+        `拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`,
       countLabel: (count, noun, displayNoun) => `${count} ${TOOL_COUNT_UNITS[noun] ?? displayNoun}`,
       runSummary: {
         delegate: {
@@ -5074,7 +5099,7 @@ export const zh: Translations = {
       },
       titleTemplates: {
         actionCommand: (action, command) => `${action} ${command}`,
-        actionQuoted: (action, value) => `${action}"${value}"`,
+        actionQuoted: (action, value) => `${action} "${value}"`,
         actionTarget: (action, target) => `${action} ${target}`,
         prefixedDone: (prefix, action) => `${prefix}${action}`,
         runningPrefixedTool: (prefix, action) => `正在运行${prefix}${action}`,

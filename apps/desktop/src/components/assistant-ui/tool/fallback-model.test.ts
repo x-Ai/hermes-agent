@@ -73,6 +73,25 @@ describe('buildToolView localized errors', () => {
       expect(view.subtitle).toBe(`${prefix}${diagnostic}`)
     }
   )
+
+  it('localizes the sensitive-system-path refusal while preserving the path', () => {
+    setRuntimeI18nLocale('zh')
+    const path = '/etc/nginx/sites-available/xf-loose'
+
+    const view = buildToolView(
+      part({
+        args: { path },
+        isError: true,
+        result: {
+          error: `Refusing to write to sensitive system path: ${path}\nUse the terminal tool with sudo if you need to modify system files.`
+        },
+        toolName: 'write_file'
+      }),
+      ''
+    )
+
+    expect(view.subtitle).toBe(`拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`)
+  })
 })
 
 describe('buildToolView localized counts', () => {
@@ -189,6 +208,21 @@ describe('buildToolView web-search query', () => {
     expect(view.searchHits).toEqual([
       { snippet: 'Desktop docs', title: 'Hermes docs', url: 'https://example.com/docs' }
     ])
+  })
+
+  it('separates the Simplified Chinese action from the quoted query', () => {
+    setRuntimeI18nLocale('zh')
+
+    const view = buildToolView(
+      part({
+        args: { query: 'nginx location priority' },
+        result: { web: [] },
+        toolName: 'web_search'
+      }),
+      ''
+    )
+
+    expect(view.title).toBe('已搜索 "nginx location priority"')
   })
 })
 

@@ -2280,6 +2280,8 @@ export interface Translations {
 
   composer: {
     message: string
+    botSelectionRequired: string
+    botChatUnsupported: string
     addContext: string
     wakingProfile: (profile: string) => string
     placeholderStarting: string
@@ -3047,6 +3049,22 @@ export interface Translations {
       showEarlier: string
       loadingResponse: string
       operationInterrupted: string
+      operationInterruptedDuringRetry: (reason: string, attempt: string, maxAttempts: string) => string
+      operationInterruptedHandlingApiError: (errorType: string, detail: string) => string
+      operationInterruptedRetryingApiCall: (retry: string, maxRetries: string) => string
+      operationInterruptedRetryingEmptyResponse: (retry: string, maxRetries: string) => string
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: (durationSeconds: string) => string
+        rateLimited: string
+        responseTime: (durationSeconds: string) => string
+        slowResponseLikelyUpstreamTimeout: (durationSeconds: string) => string
+        upstreamError: (code: string, durationSeconds: string) => string
+        upstreamGatewayTimedOut: (durationSeconds: string) => string
+        upstreamProviderOverloaded: (code: string) => string
+        upstreamProviderTimedOut: (durationSeconds: string) => string
+        upstreamServerError: (code: string, durationSeconds: string) => string
+      }
+      operationInterruptedWaitingForModel: (elapsedSeconds: string) => string
       resumeWhenBackgroundDone: (count: number) => string
       thinking: string
       thought: string
@@ -3181,6 +3199,7 @@ export interface Translations {
       /** Over-budget / rejected memory write title — not "Saved to memory". */
       memoryWriteNoted: string
       failedToWriteFile: (detail: string) => string
+      sensitiveSystemPathWriteRefused: (path: string) => string
       countLabel: (count: number, noun: string, displayNoun: string) => string
       runSummary: {
         delegate: ToolRunCategoryCopy

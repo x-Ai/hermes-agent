@@ -2162,6 +2162,8 @@ export const ar = defineLocale({
   },
   composer: {
     message: 'الرسالة',
+    botSelectionRequired: 'اختر روبوتًا قبل بدء محادثة أخرى.',
+    botChatUnsupported: 'حدّث Hermes Desktop لفتح محادثة روبوت أخرى.',
     wakingProfile: profile => `جار إيقاظ ${profile}`,
     placeholderStarting: 'جار بدء Hermes...',
     placeholderReconnecting: 'جار إعادة الاتصال...',
@@ -2933,6 +2935,30 @@ export const ar = defineLocale({
       loadingSession: 'جار تحميل الجلسة...',
       showEarlier: 'عرض الرسائل الأقدم',
       loadingResponse: 'جار تحميل الرد...',
+      operationInterrupted: 'تمت مقاطعة العملية.',
+      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
+        `تمت مقاطعة العملية أثناء إعادة المحاولة (${reason}، المحاولة ${attempt}/${maxAttempts}).`,
+      operationInterruptedHandlingApiError: (errorType, detail) =>
+        `تمت مقاطعة العملية أثناء معالجة خطأ API (${errorType}: ${detail}).`,
+      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
+        `تمت مقاطعة العملية أثناء إعادة محاولة استدعاء API بعد خطأ (المحاولة ${retry}/${maxRetries}).`,
+      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
+        `تمت مقاطعة العملية أثناء إعادة محاولة استجابة فارغة من النموذج (المحاولة ${retry}/${maxRetries}).`,
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: durationSeconds =>
+          `استجابة سريعة (${durationSeconds} ث) — يُرجح وجود تقييد للمعدل`,
+        rateLimited: 'تقييد المعدل من موفر المنبع (429)',
+        responseTime: durationSeconds => `زمن الاستجابة ${durationSeconds} ث`,
+        slowResponseLikelyUpstreamTimeout: durationSeconds =>
+          `استجابة بطيئة (${durationSeconds} ث) — يُرجح انتهاء مهلة المنبع`,
+        upstreamError: (code, durationSeconds) => `خطأ في المنبع (الرمز ${code}، ${durationSeconds} ث)`,
+        upstreamGatewayTimedOut: durationSeconds => `انتهت مهلة بوابة المنبع (504، ${durationSeconds} ث)`,
+        upstreamProviderOverloaded: code => `موفر المنبع محمّل فوق طاقته (${code})`,
+        upstreamProviderTimedOut: durationSeconds => `انتهت مهلة موفر المنبع (Cloudflare 524، ${durationSeconds} ث)`,
+        upstreamServerError: (code, durationSeconds) => `خطأ في خادم المنبع (${code}، ${durationSeconds} ث)`
+      },
+      operationInterruptedWaitingForModel: elapsedSeconds =>
+        `تمت مقاطعة العملية: في انتظار استجابة النموذج (انقضت ${elapsedSeconds} ث).`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? 'سيُستأنف عند انتهاء المهمة الخلفية' : `سيُستأنف عند انتهاء ${count} مهام خلفية`,
       thinking: 'يفكر...',
@@ -3037,6 +3063,8 @@ export const ar = defineLocale({
       statusDone: 'تم',
       memoryWriteNoted: 'تم تسجيل كتابة الذاكرة',
       failedToWriteFile: detail => `فشل في كتابة الملف: ${detail}`,
+      sensitiveSystemPathWriteRefused: path =>
+        `رُفضت الكتابة إلى مسار نظام حساس: ${path}\nإذا كنت بحاجة إلى تعديل ملفات النظام، فاستخدم أداة الطرفية مع sudo.`,
       actions: {
         read: 'قراءة',
         reading: 'جار القراءة',

@@ -91,7 +91,7 @@ function routineBot(job: RoutineJob | null | undefined): null | string {
 }
 
 function routineTitle(job: RoutineJob | null | undefined): string {
-  return (job?.name || '').replace(BOT_TAG_RE, '') || 'Untitled job'
+  return (job?.name || '').replace(BOT_TAG_RE, '') || botsText().cron.untitledJob
 }
 
 export function isLegacyDelegatedRoutine(job: RoutineJob | null | undefined): boolean {
@@ -257,11 +257,11 @@ function shellQuote(value: unknown): string {
 
 export function routineInputError(title: string, instruction: string): null | string {
   if (String(title).includes('\0')) {
-    return 'Job name cannot contain NUL (U+0000).'
+    return botsText().cron.nameNulError
   }
 
   if (String(instruction).includes('\0')) {
-    return 'Job instruction cannot contain NUL (U+0000).'
+    return botsText().cron.instructionNulError
   }
 
   return null
@@ -336,6 +336,7 @@ function routineTimestamp(value: string | undefined): null | string {
  *  the dialog cannot invent a field the gateway never sent: an absent value
  *  drops its row instead of rendering "undefined". */
 export function routineDetailRows(job: RoutineJob | null | undefined): Array<{ label: string; value: string }> {
+  const c = botsText().cron
   const paused = job?.enabled === false || job?.state === 'paused'
   const label = scheduleLabel(job?.schedule)
   const raw = String(job?.schedule || '').trim()
@@ -345,18 +346,18 @@ export function routineDetailRows(job: RoutineJob | null | undefined): Array<{ l
   // that narrowing into the map, so the rows are typed as filtered.
   return (
     [
-      ['Status', paused ? 'Paused' : 'Active'],
-      ['Schedule', label],
+      [c.statusLabel, paused ? c.pausedLabel : c.activeLabel],
+      [c.scheduleLabel, label],
       // `scheduleLabel` humanizes "every 1440m" and cron expressions; keep the
       // raw string when it says something the label dropped.
-      ['Schedule (raw)', raw && raw !== label ? raw : null],
-      ['Repeat', job?.repeat],
-      ['Next run', paused ? null : routineTimestamp(job?.next_run_at)],
-      ['Last run', routineTimestamp(job?.last_run_at)],
-      ['Last result', job?.last_status],
-      ['Delivers to', job?.deliver],
-      ['Model', job?.model],
-      ['Working directory', job?.workdir]
+      [c.scheduleRawLabel, raw && raw !== label ? raw : null],
+      [c.repeatLabel, job?.repeat],
+      [c.nextRunLabel, paused ? null : routineTimestamp(job?.next_run_at)],
+      [c.lastRunLabel, routineTimestamp(job?.last_run_at)],
+      [c.lastResultLabel, job?.last_status],
+      [c.deliversToLabel, job?.deliver],
+      [c.modelLabel, job?.model],
+      [c.workingDirectoryLabel, job?.workdir]
     ] as Array<[string, string]>
   )
     .filter(([, value]) => typeof value === 'string' && value.trim())
@@ -404,7 +405,7 @@ export function RoutineDetailDialog({ job, onClose, open }: RoutineDetailDialogP
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="truncate">{routineTitle(job)}</DialogTitle>
-          <DialogDescription>What this job runs, and when it runs next.</DialogDescription>
+          <DialogDescription>{b.cron.detailDescription}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3.5">
           {issue ? (
@@ -448,6 +449,7 @@ interface RoutineRowProps {
 }
 
 export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
+  const b = useBots()
   const { t } = useI18n()
   const c = t.cron
   const profile = typeof owner === 'string' ? owner : owner?.name
@@ -551,7 +553,7 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
       </div>
       {legacyUnsafe ? (
         <div className="rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.65rem] leading-4 text-(--ui-accent)">
-          Paused for security: delete and recreate this legacy job before running it again.
+          {b.cron.legacyPaused}
         </div>
       ) : null}
     </div>
@@ -776,15 +778,15 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             [
               {
                 id: 'm',
-                label: 'minutes from now'
+                label: b.cron.minutesFromNow
               },
               {
                 id: 'h',
-                label: 'hours from now'
+                label: b.cron.hoursFromNow
               },
               {
                 id: 'd',
-                label: 'days from now'
+                label: b.cron.daysFromNow
               }
             ]
           )}
@@ -864,7 +866,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
       ) : null}
       {state.freq !== 'once' && state.freq !== 'advanced' ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-(--ui-text-tertiary)">Stop after</span>
+          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.stopAfter}</span>
           <Input
             className="h-7 w-16 text-xs"
             onChange={event =>
@@ -875,7 +877,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             placeholder="∞"
             value={state.repeatN}
           />
-          <span className="text-xs text-(--ui-text-tertiary)">runs (blank = forever)</span>
+          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.runsForeverHint}</span>
         </div>
       ) : null}
       <div className="text-[0.65rem] text-(--ui-text-quaternary)">{`${scheduleSummary(state)} \u00b7 ${composeSchedule(state) || '\u2014'}`}</div>

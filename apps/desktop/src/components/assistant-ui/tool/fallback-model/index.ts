@@ -656,10 +656,18 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   const extractedError = extractToolErrorMessage(part.result)
 
   const localize = (message: string): string => {
-    const prefix = 'Failed to write file:'
+    const failedWritePrefix = 'Failed to write file:'
 
-    return message.startsWith(prefix)
-      ? translateNow('assistant.tool.failedToWriteFile', message.slice(prefix.length).trimStart())
+    const sensitiveSystemPath = message.match(
+      /^Refusing to write to sensitive system path: ([^\r\n]+)\r?\nUse the terminal tool with sudo if you need to modify system files\.$/
+    )
+
+    if (sensitiveSystemPath) {
+      return translateNow('assistant.tool.sensitiveSystemPathWriteRefused', sensitiveSystemPath[1])
+    }
+
+    return message.startsWith(failedWritePrefix)
+      ? translateNow('assistant.tool.failedToWriteFile', message.slice(failedWritePrefix.length).trimStart())
       : message
   }
 

@@ -42,6 +42,7 @@ import { onGatewayEvent } from '@/contrib/events'
 import { registry } from '@/contrib/registry'
 import type { WorkspaceMode } from '@/contrib/types'
 import { deleteProfile, getLogs, getStatus, hermesApi, type HermesGateway } from '@/hermes'
+import { translateNow } from '@/i18n'
 import {
   $gateway,
   activeGatewayConnectionId,
@@ -1173,7 +1174,7 @@ export const host = {
   newChat: (profile?: null | string | PluginProfileRoute, options: PluginNewChatOptions = {}): void => {
     if (options.workspaceMode === 'bots') {
       if (!profile || typeof profile === 'string' || !options.workspaceOwnerKey) {
-        notify({ kind: 'error', message: 'Select a Bot before starting another chat.' })
+        notify({ kind: 'error', message: translateNow('composer.botSelectionRequired') })
 
         return
       }
@@ -1183,7 +1184,7 @@ export const host = {
       const openTab = $newSessionTabAction.get()
 
       if (!openTab) {
-        notify({ kind: 'error', message: 'Update Hermes Desktop to open another Bot chat.' })
+        notify({ kind: 'error', message: translateNow('composer.botChatUnsupported') })
 
         return
       }

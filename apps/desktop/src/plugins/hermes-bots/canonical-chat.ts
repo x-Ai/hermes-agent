@@ -12,6 +12,7 @@ import * as sdk from '@hermes/plugin-sdk'
 import { host } from '@hermes/plugin-sdk'
 
 import { $botMeta, botMetaKey, botOwner, persistBotMetaSnapshot } from './data'
+import { botsText } from './i18n'
 import { backendTargetProfile, botConnectionRoute, botRosterMeta, botWorkspaceOwnerKey, requestForBot } from './routing'
 import type { RpcErrorLike } from './routing'
 import { getPluginCtx } from './shared'
@@ -82,7 +83,7 @@ async function openStoredBotChat(
   summary: CanonicalChatRow
 ): Promise<string> {
   if (!storedId || typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error(botsText().bot.storedSessionsUnsupported)
   }
 
   const { bot, name, route } = botOwner(owner)
@@ -157,11 +158,12 @@ function botModeGatewayNeedsUpdate(error: unknown) {
 
 export function notifyBotOpenFailure(error: unknown, bot: RosterRow, fallbackMessage: string) {
   if (botModeGatewayNeedsUpdate(error)) {
-    const gateway = bot.connectionLabel || bot.connectionId || 'this gateway'
+    const b = botsText()
+    const gateway = bot.connectionLabel || bot.connectionId || b.roster.gatewayFallback
     host.notify?.({
       kind: 'error',
-      title: 'Update this gateway to use Bot Mode',
-      message: `Update ${gateway}, then try again.`
+      title: b.bot.updateGatewayTitle,
+      message: b.bot.updateGatewayMessage(gateway)
     })
 
     return

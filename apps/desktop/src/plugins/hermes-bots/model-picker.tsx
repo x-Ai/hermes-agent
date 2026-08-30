@@ -20,6 +20,7 @@ import {
 import { useState } from 'react'
 
 import { labeled } from './dialog-parts'
+import { useBots } from './i18n'
 import { botRouteKey, requestForBot, resolveBotConnectionRoute } from './routing'
 import { ID } from './shared'
 import type { RosterRow } from './types'
@@ -116,7 +117,8 @@ interface ModelPickerProps {
   value: ModelSelection
 }
 
-export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'gateway default' }: ModelPickerProps) {
+export function ModelPicker({ bot = null, value, onChange, placeholderModel = '' }: ModelPickerProps) {
+  const b = useBots()
   const { data, isLoading, error } = useModelOptions(bot)
 
   // Hooks are ALWAYS declared up front, before any conditional return.
@@ -140,7 +142,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
     return (
       <div className="grid grid-cols-2 gap-2.5">
         {labeled(
-          'Provider',
+          b.tools.provider,
           <Input
             onChange={event =>
               onChange({
@@ -152,7 +154,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
           />
         )}
         {labeled(
-          'Model',
+          b.tools.model,
           <Input
             onChange={event =>
               onChange({
@@ -172,7 +174,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2.5">
           {labeled(
-            'Provider (Custom)',
+            b.tools.providerCustom,
             <Input
               onChange={event =>
                 onChange({
@@ -184,7 +186,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
             />
           )}
           {labeled(
-            'Model (Custom)',
+            b.tools.modelCustom,
             <Input
               onChange={event =>
                 onChange({
@@ -202,7 +204,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
           size="sm"
           variant="ghost"
         >
-          ← Back to dropdowns
+          {b.tools.backToDropdowns}
         </Button>
       </div>
     )
@@ -217,7 +219,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
   return (
     <div className="grid grid-cols-[1fr_1.4fr] gap-2.5">
       {labeled(
-        'Provider',
+        b.tools.provider,
         <Select
           onValueChange={v => {
             if (v === NONE) {
@@ -243,18 +245,18 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>Inherit (launch profile)</SelectItem>
+            <SelectItem value={NONE}>{b.tools.inheritLaunchProfile}</SelectItem>
             {providers.map(p => (
               <SelectItem key={p.slug} value={p.slug}>
                 {p.name ? `${p.name} (${p.slug})` : p.slug}
               </SelectItem>
             ))}
-            <SelectItem value={CUSTOM}>✏️ Enter manually…</SelectItem>
+            <SelectItem value={CUSTOM}>{b.tools.enterManually}</SelectItem>
           </SelectContent>
         </Select>
       )}
       {labeled(
-        'Model',
+        b.tools.model,
         activeProvider && models.length > 0 ? (
           <Select
             onValueChange={v =>
@@ -282,7 +284,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'g
                 model: event.target.value
               })
             }
-            placeholder={placeholderModel || 'e.g. model name'}
+            placeholder={placeholderModel || b.tools.gatewayDefault}
             value={value.model}
           />
         )

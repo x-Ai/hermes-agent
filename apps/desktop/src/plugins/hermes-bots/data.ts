@@ -1099,7 +1099,11 @@ export function newBotChat(bot: RosterRow) {
   }
 
   const ownerKey = botWorkspaceOwnerKey(bot)
-  setBotsWorkspaceOwner(ownerKey, bot)
+  setBotsWorkspaceOwner(
+    ownerKey,
+    bot,
+    getPluginCtx()?.i18n?.t('bot.workspaceSelectionRequired') ?? 'Select a bot or group first.'
+  )
   host.newChat(route, {
     workspaceMode: 'bots',
     workspaceOwnerKey: ownerKey

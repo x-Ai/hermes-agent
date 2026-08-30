@@ -13,6 +13,7 @@ import { MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
 import { McpSetupTool } from '@/components/assistant-ui/mcp-setup-tool'
 import { AgentDeliveryNotice, deliveryTargetFromCommand } from '@/components/assistant-ui/thread/agent-delivery'
 import { TimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
+import { localizeAssistantTranscriptText } from '@/components/assistant-ui/thread/transcript-localization'
 import { DelegateTool } from '@/components/assistant-ui/tool/delegate'
 import { ToolFallback, ToolGroupSlot } from '@/components/assistant-ui/tool/fallback'
 import { formatElapsed, useElapsedSeconds, useMeasuredDuration } from '@/components/chat/activity-timer'
@@ -113,10 +114,6 @@ const ChainToolFallback: FC<TimelineToolCallProps> = props => {
 
 type TimelineTextPartProps = TextMessagePartProps & { completedAt?: number; timestamp?: number }
 
-function localizeAssistantTranscriptText(text: string, operationInterrupted: string): string {
-  return text.trim() === 'Operation interrupted.' ? operationInterrupted : text
-}
-
 const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, status, text, timestamp }) => {
   const { t } = useI18n()
 
@@ -125,7 +122,7 @@ const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, status, 
       <TimelineTimestamp className="mb-0.5 block" completedAt={completedAt} timestamp={timestamp} />
       <MarkdownTextContent
         isRunning={status.type === 'running'}
-        text={localizeAssistantTranscriptText(text, t.assistant.thread.operationInterrupted)}
+        text={localizeAssistantTranscriptText(text, t.assistant.thread)}
       />
     </>
   )

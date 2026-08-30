@@ -93,6 +93,19 @@ export default {
   name: 'Bots',
   description:
     'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
+  localizedName: {
+    zh: '机器人',
+    'zh-hant': '機器人',
+    ja: 'ボット',
+    ar: 'الروبوتات'
+  },
+  localizedDescription: {
+    zh: '机器人模式——每个智能体拥有一个独立对话，并提供头像、例行任务、群聊和机器人间通信。此功能随应用内置；如不需要，可在此停用。',
+    'zh-hant':
+      '機器人模式——每個智慧體各有一個獨立聊天，並提供頭像、例行工作、群組聊天與機器人間通訊。此功能隨應用程式內建；如不需要，可在此停用。',
+    ja: 'ボットモード — エージェントごとに1つのチャットを用意し、アバター、ルーチン、グループチャット、ボット間メッセージングを提供します。アプリに同梱されています。不要な場合はここで無効にできます。',
+    ar: 'وضع الروبوتات — محادثة مستقلة لكل وكيل، مع صور رمزية وإجراءات دورية ومحادثات جماعية ومراسلة بين الروبوتات. هذه الميزة مضمّنة مع التطبيق، ويمكن تعطيلها هنا إذا لم تكن مطلوبة.'
+  },
   register(ctx: PluginContext) {
     setPluginCtx(ctx)
     const disposeLocales = ctx.i18n.register(BOTS_LOCALES)
@@ -478,13 +491,13 @@ export default {
           // a selected row too orphaned to route (setBotsWorkspaceOwner's
           // blocked target).
           if (group) {
-            setBotsWorkspaceOwner(
-              groupWorkspaceOwnerKey(group),
-              null,
-              'New group conversations start in the group composer.'
-            )
+            setBotsWorkspaceOwner(groupWorkspaceOwnerKey(group), null, ctx.i18n.t('group.newConversationHint'))
           } else if (selected) {
-            setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)
+            setBotsWorkspaceOwner(
+              botWorkspaceOwnerKey(selected),
+              selected,
+              ctx.i18n.t('bot.workspaceSelectionRequired')
+            )
           }
         } else {
           // Strand any owner wake still dialing. Its SDK open will fail the
@@ -621,7 +634,7 @@ export default {
       area: PALETTE_AREA,
       data: {
         id: `${ID}.new-agent`,
-        label: 'New Bot…',
+        label: `${ctx.i18n.t('bot.newTitle')}…`,
         keywords: ['bot', 'agent', 'profile', 'teammate', 'create'],
         run: () => {
           host.notify({
@@ -671,10 +684,8 @@ export default {
             if (activeBot && isCanonicalChatOnScreen(row, host.state.focusedStoredSessionId.get())) {
               host.notify({
                 kind: 'info',
-                title: 'This chat never resets',
-                message:
-                  'Bot chats are one continuous conversation — compacting instead. ' +
-                  'For a throwaway session with this bot, use Sessions mode.'
+                title: ctx.i18n.t('bot.chatNeverResetsTitle'),
+                message: ctx.i18n.t('bot.chatNeverResetsMessage')
               })
 
               return {

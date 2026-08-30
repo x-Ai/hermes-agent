@@ -63,6 +63,10 @@ describe('an SDK without the optional capability exports', () => {
 
     expect(plugin.id).toBe('hermes-bots')
     expect(typeof plugin.register).toBe('function')
+    expect(plugin.localizedName.zh).toBe('机器人')
+    expect(plugin.localizedDescription.zh).toBe(
+      '机器人模式——每个智能体拥有一个独立对话，并提供头像、例行任务、群聊和机器人间通信。此功能随应用内置；如不需要，可在此停用。'
+    )
   })
 
   it('leaves the SkillsView connection-routing capability off', async () => {

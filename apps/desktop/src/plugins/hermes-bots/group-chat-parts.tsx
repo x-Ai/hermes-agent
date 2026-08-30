@@ -374,6 +374,7 @@ interface GroupClarifyCardProps {
  *    closed choice. Answer sends via the member's own source. */
 export function GroupClarifyCard({ entry, members }: GroupClarifyCardProps) {
   const b = useBots()
+  const { t } = useI18n()
   const { group } = entry
   const isApproval = entry.kind === 'approval'
   const member = members.find(m => groupMemberKey(m) === entry.memberKey) || members.find(m => m.name === entry.member)
@@ -541,7 +542,7 @@ export function GroupClarifyCard({ entry, members }: GroupClarifyCardProps) {
                   void submit()
                 }
               }}
-              placeholder={q.choices.length ? 'Or type your own answer…' : 'Type your answer…'}
+              placeholder={q.choices.length ? b.group.ownAnswerPlaceholder : b.group.answerPlaceholder}
               value={drafts[q.qid] || ''}
             />
           )}
@@ -549,7 +550,7 @@ export function GroupClarifyCard({ entry, members }: GroupClarifyCardProps) {
       ))}
       <div className="flex justify-end">
         <Button disabled={sending || !allAnswered || !member} onClick={() => void submit()} size="sm">
-          {sending ? 'Sending…' : isApproval ? 'Respond' : 'Answer'}
+          {sending ? b.group.sending : isApproval ? t.common.send : b.group.answerTo(botHandle(entry.member, member))}
         </Button>
       </div>
     </div>

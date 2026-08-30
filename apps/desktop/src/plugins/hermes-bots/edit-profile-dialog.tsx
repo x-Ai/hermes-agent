@@ -214,7 +214,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
             shape={shape}
           />
           {labeled(
-            'Title',
+            b.bot.titleLabel,
             <Input
               onChange={event => setTitle(event.target.value)}
               placeholder={displayName(bot, null)}
@@ -222,7 +222,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
             />
           )}
           {labeled(
-            'Description',
+            b.bot.descriptionLabel,
             <Textarea
               className="min-h-16"
               onChange={event => setDescription(event.target.value)}

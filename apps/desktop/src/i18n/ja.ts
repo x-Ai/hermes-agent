@@ -3188,6 +3188,8 @@ export const ja = defineLocale({
 
   composer: {
     message: 'メッセージ',
+    botSelectionRequired: '先にボットを選択してから、新しいチャットを開始してください。',
+    botChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
     wakingProfile: profile => `${profile} を起動中…`,
     placeholderStarting: 'Hermes を起動中...',
     placeholderReconnecting: 'Hermes に再接続中…',
@@ -4039,6 +4041,30 @@ export const ja = defineLocale({
       loadingSession: 'セッションを読み込み中',
       showEarlier: '以前のメッセージを表示',
       loadingResponse: 'Hermes が応答を読み込み中',
+      operationInterrupted: '操作が中断されました。',
+      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
+        `操作が中断されました：再試行中（${reason}、試行 ${attempt}/${maxAttempts}）。`,
+      operationInterruptedHandlingApiError: (errorType, detail) =>
+        `操作が中断されました：API エラーの処理中（${errorType}: ${detail}）。`,
+      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
+        `操作が中断されました：API 呼び出しエラー後の再試行中（再試行 ${retry}/${maxRetries}）。`,
+      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
+        `操作が中断されました：モデルの空の応答を再試行中（再試行 ${retry}/${maxRetries}）。`,
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: durationSeconds => `応答が速い（${durationSeconds}秒）— レート制限の可能性`,
+        rateLimited: '上流プロバイダーによるレート制限（429）',
+        responseTime: durationSeconds => `応答時間 ${durationSeconds}秒`,
+        slowResponseLikelyUpstreamTimeout: durationSeconds =>
+          `応答が遅い（${durationSeconds}秒）— 上流タイムアウトの可能性`,
+        upstreamError: (code, durationSeconds) => `上流エラー（コード ${code}、${durationSeconds}秒）`,
+        upstreamGatewayTimedOut: durationSeconds => `上流ゲートウェイのタイムアウト（504、${durationSeconds}秒）`,
+        upstreamProviderOverloaded: code => `上流プロバイダーが過負荷（${code}）`,
+        upstreamProviderTimedOut: durationSeconds =>
+          `上流プロバイダーのタイムアウト（Cloudflare 524、${durationSeconds}秒）`,
+        upstreamServerError: (code, durationSeconds) => `上流サーバーエラー（${code}、${durationSeconds}秒）`
+      },
+      operationInterruptedWaitingForModel: elapsedSeconds =>
+        `操作が中断されました：モデルの応答を待機中（${elapsedSeconds}秒経過）。`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'バックグラウンドタスクの完了後に再開します'
@@ -4149,6 +4175,8 @@ export const ja = defineLocale({
       statusDone: '完了',
       memoryWriteNoted: 'メモリへの書き込みを記録',
       failedToWriteFile: detail => `ファイルへの書き込みに失敗しました：${detail}`,
+      sensitiveSystemPathWriteRefused: path =>
+        `機密性の高いシステムパスへの書き込みを拒否しました：${path}\nシステムファイルを変更する必要がある場合は、ターミナルツールで sudo を使用してください。`,
       actions: {
         read: '読み取り完了',
         reading: '読み取り中',

@@ -238,7 +238,7 @@ describe('the clone-from default', () => {
     const cloneFrom = () =>
       screen.getByText('Clone from profile').parentElement!.querySelector('[role="combobox"]') as HTMLElement
 
-    expect(cloneFrom().textContent).toBe('default')
+    expect(cloneFrom().textContent).toBe('Default')
 
     fireEvent.click(cloneFrom())
     fireEvent.click(await screen.findByRole('option', { name: /Fresh profile/ }))
@@ -250,6 +250,6 @@ describe('the clone-from default', () => {
     // Second open: the picker must read `default` again, or every agent after
     // the first silently starts from a bare profile.
     fireEvent.click(screen.getByRole('button', { name: /Advanced/ }))
-    expect(cloneFrom().textContent).toBe('default')
+    expect(cloneFrom().textContent).toBe('Default')
   })
 })

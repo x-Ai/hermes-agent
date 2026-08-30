@@ -509,16 +509,13 @@ export function BotsPane() {
       const selected = selectedRosterBot(roster, $selectedRosterKey.get())
 
       if ($botsPaneVisible.get() && !$groupChatWorkspace.get() && selected) {
-        setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)
+        setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected, b.bot.workspaceSelectionRequired)
       }
     }
-  }, [data, error, selectionHydrated, roster, sourceSnapshot, allMeta])
+  }, [data, error, selectionHydrated, roster, sourceSnapshot, allMeta, b.bot.workspaceSelectionRequired])
 
   const staleNotice =
-    error && !live && roster.length
-      ? 'Roster refresh failed — showing the last good list.' +
-        (gatewayUp ? '' : ' Waiting for the gateway to reconnect…')
-      : null
+    error && !live && roster.length ? b.roster.refreshFailed + (gatewayUp ? '' : b.roster.reconnecting) : null
 
   const groupChatMembers = groupChatName ? groupChatMemberBots(groupChatName, roster, allMeta) : []
 
@@ -592,7 +589,7 @@ export function BotsPane() {
       <div className="flex min-w-0 items-center gap-1.5 px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
         <GatewayKindGlyph kind={section.option?.kind} />
         <span className="min-w-0 flex-1 truncate">
-          {section.option?.label || section.option?.connectionId || 'Current gateway'}
+          {section.option?.label || section.option?.connectionId || b.roster.currentGateway}
         </span>
         <span className="shrink-0 font-normal tabular-nums">{section.rows.length}</span>
       </div>
@@ -604,12 +601,10 @@ export function BotsPane() {
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 px-2.5 pt-2.5 pb-1.5">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
-          Bots
+          {b.roster.title}
         </span>
         <div className="flex items-center gap-0.5">
-          <Tip
-            label={activityToasts ? 'Activity toasts on — click to silence' : 'Activity toasts off — click to enable'}
-          >
+          <Tip label={activityToasts ? b.roster.activityToastsOn : b.roster.activityToastsOff}>
             <Button
               className="rounded-md text-(--ui-text-tertiary) hover:text-foreground"
               onClick={() => setActivityToasts(!activityToasts)}
@@ -620,7 +615,7 @@ export function BotsPane() {
             </Button>
           </Tip>
           <DropdownMenu>
-            <Tip label="New…">
+            <Tip label={b.roster.newMenu}>
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={b.roster.newBotOrGroup}
@@ -662,10 +657,10 @@ export function BotsPane() {
           )}
           {showRosterFilters ? (
             <DropdownMenu key={'roster-filters'}>
-              <Tip label={activeFilterCount ? `Filters (${activeFilterCount} active)` : 'Filter roster'}>
+              <Tip label={activeFilterCount ? b.roster.filtersActive(activeFilterCount) : b.roster.filter}>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label={activeFilterCount ? `Filter roster, ${activeFilterCount} active` : 'Filter roster'}
+                    aria-label={activeFilterCount ? b.roster.filterActive(activeFilterCount) : b.roster.filter}
                     className={cn(
                       'size-7 shrink-0 rounded-md text-(--ui-text-tertiary) hover:text-foreground',
                       activeFilterCount && 'text-(--ui-accent)'
@@ -708,7 +703,7 @@ export function BotsPane() {
                 {gatewayOptions.length > 1 ? (
                   <DropdownMenuItem onSelect={() => setGatewayFilter('all')}>
                     <Codicon className="mr-1.5" name="globe" />
-                    <span className="min-w-0 flex-1">All gateways</span>
+                    <span className="min-w-0 flex-1">{b.roster.allGateways}</span>
                     {gatewayFilter === 'all' ? <Codicon name="check" /> : null}
                   </DropdownMenuItem>
                 ) : null}
@@ -767,7 +762,7 @@ export function BotsPane() {
         <div className="grid gap-2 px-3 py-4 text-xs text-(--ui-text-tertiary)">
           <div>
             {gatewayUp
-              ? b.roster.rosterUnavailable(error instanceof Error ? error.message : 'gateway error')
+              ? b.roster.rosterUnavailable(error instanceof Error ? error.message : b.roster.gatewayError)
               : b.roster.waitingForGateway}
           </div>
           <Button className="justify-self-start" onClick={() => void refetch()} size="sm" variant="secondary">
@@ -825,7 +820,7 @@ export function BotsPane() {
                 {hasRosterConstraint ? (
                   <div className="flex w-full items-center gap-1 px-2 py-1.5 text-[0.6875rem] font-medium text-(--ui-text-tertiary)">
                     <Codicon name="eye-closed" />
-                    <span>Hidden</span>
+                    <span>{b.roster.hiddenLabel}</span>
                     <span className="text-(--ui-text-quaternary)">{matchingHiddenBots.length}</span>
                   </div>
                 ) : (
@@ -835,7 +830,7 @@ export function BotsPane() {
                     onClick={() => $showHiddenBots.set(!hiddenExpanded)}
                   >
                     <DisclosureCaret open={hiddenExpanded} />
-                    <span>Hidden</span>
+                    <span>{b.roster.hiddenLabel}</span>
                     <span className="text-(--ui-text-quaternary)">{hiddenBots.length}</span>
                   </RowButton>
                 )}
@@ -880,20 +875,11 @@ export function BotsPane() {
       />
       {grouping ? <GroupDialog bot={grouping} onClose={() => setGrouping(null)} /> : null}
       <ConfirmDialog
-        busyLabel="Deleting…"
+        busyLabel={b.bot.deleting}
         confirmLabel={t.common.delete}
-        description={
-          deleting ? (
-            <span>
-              {'This will permanently delete the bot '}
-              <span className="font-medium text-foreground">{deleting.name}</span>
-              {' and its associated Hermes profile at '}
-              <span className="font-mono text-xs">{deleting.path}</span>. This cannot be undone.
-            </span>
-          ) : null
-        }
+        description={deleting ? b.bot.deleteDescription(deleting.name, deleting.path) : null}
         destructive
-        doneLabel="Deleted"
+        doneLabel={b.bot.deleted}
         onClose={() => setDeleting(null)}
         onConfirm={async () => {
           if (!deleting) {
@@ -905,22 +891,22 @@ export function BotsPane() {
           await refetch()
           host.notify({
             kind: 'success',
-            message: `Deleted profile ${name}`
+            message: b.bot.deletedProfile(name)
           })
         }}
         open={Boolean(deleting)}
         title={b.bot.deleteTitle}
       />
       <ConfirmDialog
-        busyLabel="Deleting…"
+        busyLabel={b.group.disbanding}
         confirmLabel={b.group.deleteAction}
         description={
           deletingGroup
-            ? `This removes “${deletingGroup.name}” from its bots and clears the shared room log. The bots and their individual chats are kept.`
+            ? `${b.group.disbandDescPrefix}${deletingGroup.name}${b.group.disbandDescSuffix(deletingGroup.members.length)}`
             : null
         }
         destructive
-        doneLabel="Deleted"
+        doneLabel={b.group.disbandDone}
         onClose={() => setDeletingGroup(null)}
         onConfirm={async () => {
           if (!deletingGroup) {
@@ -930,7 +916,7 @@ export function BotsPane() {
           await disbandGroupChat(deletingGroup.name, deletingGroup.members)
           host.notify({
             kind: 'success',
-            message: `Deleted group “${deletingGroup.name}”`
+            message: b.group.disbanded(deletingGroup.name)
           })
         }}
         open={Boolean(deletingGroup)}

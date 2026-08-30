@@ -2933,6 +2933,8 @@ export const zhHant = defineLocale({
 
   composer: {
     message: '訊息',
+    botSelectionRequired: '請先選擇一個機器人，再開始新的聊天。',
+    botChatUnsupported: '請更新 Hermes Desktop 以開啟另一個機器人聊天。',
     wakingProfile: profile => `正在喚醒 ${profile}…`,
     placeholderStarting: '正在啟動 Hermes...',
     placeholderReconnecting: '正在重新連線至 Hermes…',
@@ -3757,6 +3759,28 @@ export const zhHant = defineLocale({
       loadingSession: '正在載入工作階段',
       showEarlier: '顯示較早的訊息',
       loadingResponse: 'Hermes 正在載入回覆',
+      operationInterrupted: '操作已中斷。',
+      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
+        `操作已中斷：重試過程中（${reason}，第 ${attempt}/${maxAttempts} 次嘗試）。`,
+      operationInterruptedHandlingApiError: (errorType, detail) =>
+        `操作已中斷：正在處理 API 錯誤（${errorType}：${detail}）。`,
+      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
+        `操作已中斷：API 呼叫出錯後正在重試（第 ${retry}/${maxRetries} 次）。`,
+      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
+        `操作已中斷：正在重試模型的空回應（第 ${retry}/${maxRetries} 次）。`,
+      operationInterruptedRetryReasons: {
+        fastResponseLikelyRateLimited: durationSeconds => `回應較快（${durationSeconds} 秒）——可能受到限流`,
+        rateLimited: '上游供應商限流（429）',
+        responseTime: durationSeconds => `回應耗時 ${durationSeconds} 秒`,
+        slowResponseLikelyUpstreamTimeout: durationSeconds => `回應較慢（${durationSeconds} 秒）——可能是上游逾時`,
+        upstreamError: (code, durationSeconds) => `上游錯誤（代碼 ${code}，${durationSeconds} 秒）`,
+        upstreamGatewayTimedOut: durationSeconds => `上游閘道逾時（504，${durationSeconds} 秒）`,
+        upstreamProviderOverloaded: code => `上游供應商過載（${code}）`,
+        upstreamProviderTimedOut: durationSeconds => `上游供應商逾時（Cloudflare 524，${durationSeconds} 秒）`,
+        upstreamServerError: (code, durationSeconds) => `上游伺服器錯誤（${code}，${durationSeconds} 秒）`
+      },
+      operationInterruptedWaitingForModel: elapsedSeconds =>
+        `操作已中斷：正在等待模型回應（已等待 ${elapsedSeconds} 秒）。`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '背景工作完成後將自動繼續' : `${count} 個背景工作完成後將自動繼續`,
       thinking: '思考中',
@@ -3865,6 +3889,8 @@ export const zhHant = defineLocale({
       statusDone: '完成',
       memoryWriteNoted: '已記下記憶寫入',
       failedToWriteFile: detail => `寫入檔案失敗：${detail}`,
+      sensitiveSystemPathWriteRefused: path =>
+        `拒絕寫入敏感系統路徑：${path}\n如需修改系統檔案，請使用終端機工具並透過 sudo 執行。`,
       actions: {
         read: '已讀取',
         reading: '正在讀取',

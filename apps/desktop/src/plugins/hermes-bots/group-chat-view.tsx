@@ -464,6 +464,7 @@ interface GroupChatWorkspaceProps {
 
 export function GroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
   const b = useBots()
+  const { t } = useI18n()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
 
@@ -650,15 +651,15 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
     .sort((a, b) => (a.at || 0) - (b.at || 0))
 
   const availableMembers = members.filter(member => botSourceStatus(member).available).length
-  const availabilityLabel = `${availableMembers} of ${members.length} available`
+  const availabilityLabel = b.group.availableCount(availableMembers, members.length)
 
   const memberNames =
-    members.map(b => displayName(b, botRosterMeta(b, allMeta))).join(', ') || 'No bots in this group chat'
+    members.map(bot => displayName(bot, botRosterMeta(bot, allMeta))).join(', ') || b.group.noBotsInGroup
 
   const header = (
     <div className="flex items-center gap-2 px-2.5 pt-2.5 pb-2">
       <Button onClick={() => (onBack ? onBack() : $groupChatWorkspace.set(null))} size="sm" variant="ghost">
-        Back
+        {t.common.back}
       </Button>
       {/* Room picture (set via Group settings) leads the title when present. */}
       {room.image ? (
@@ -1008,7 +1009,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
                 className="text-left text-[0.7rem] font-semibold text-(--ui-accent)"
                 onClick={() => setRevealedSpeaker(revealed ? null : entryKey)}
                 size="inline"
-                title={revealed ? 'Hide full handle' : 'Show full handle'}
+                title={revealed ? b.group.hideFullHandle : b.group.showFullHandle}
                 variant="text"
               >
                 {label}
@@ -1038,18 +1039,18 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
                   <div
                     className="flex items-center gap-1 rounded-md border border-(--ui-stroke-secondary) px-1.5 py-1 text-[0.65rem] text-(--ui-text-tertiary)"
                     key={`${entryKey}:img:${imgIndex}`}
-                    title={img.name || 'attached file'}
+                    title={img.name || b.group.attachedFile}
                   >
                     <Codicon className="text-[0.8rem]" name={img.kind === 'pdf' ? 'file-pdf' : 'file'} />
-                    <span className="max-w-48 truncate">{img.name || 'attached file'}</span>
+                    <span className="max-w-48 truncate">{img.name || b.group.attachedFile}</span>
                   </div>
                 ) : (
                   <img
-                    alt={img.name || 'attached image'}
+                    alt={img.name || b.group.attachedImage}
                     className="max-h-40 max-w-60 rounded-md border border-(--ui-stroke-secondary) object-contain"
                     key={`${entryKey}:img:${imgIndex}`}
                     src={img.data}
-                    title={img.name || 'attached image'}
+                    title={img.name || b.group.attachedImage}
                   />
                 )
               )}
@@ -1379,7 +1380,7 @@ export function openGroupChat(group: string): void {
     [group]: false
   })
   const ownerKey = groupWorkspaceOwnerKey(group)
-  setBotsWorkspaceOwner(ownerKey, null, 'New group conversations start in the group composer.')
+  setBotsWorkspaceOwner(ownerKey, null, botsText().group.newConversationHint)
 
   if (typeof host.openWorkspace === 'function') {
     try {

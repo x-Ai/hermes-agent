@@ -113,16 +113,63 @@ describe('AssistantMessage branch button visibility (bug #2 fix)', () => {
 })
 
 describe('localized backend transcript copy', () => {
-  it('renders the interruption sentinel in the active locale', async () => {
+  const renderInterrupted = async (text: string, expected: string) => {
     const assistant = {
       ...assistantMessage(),
-      content: [{ text: 'Operation interrupted.', type: 'text' }]
+      content: [{ text, type: 'text' }]
     } as unknown as ThreadMessage
 
     render(<Harness assistant={assistant} locale="zh" />)
 
-    expect(await screen.findByText('操作已中断。')).toBeTruthy()
-    expect(screen.queryByText('Operation interrupted.')).toBeNull()
+    expect(await screen.findByText(expected)).toBeTruthy()
+    expect(screen.queryByText(text)).toBeNull()
+  }
+
+  it.each([
+    ['generic', 'Operation interrupted.', '操作已中断'],
+    [
+      'waiting for the model',
+      'Operation interrupted: waiting for model response (2.2s elapsed).',
+      '操作已中断：正在等待模型响应（已等待 2.2 秒）'
+    ],
+    [
+      'during an invalid-response retry',
+      'Operation interrupted during retry (upstream provider timed out (Cloudflare 524, 12s), attempt 2/4).',
+      '操作已中断：重试过程中（上游提供商超时（Cloudflare 524，12 秒），第 2/4 次尝试）'
+    ],
+    [
+      'while handling an API error',
+      'Operation interrupted: handling API error (TimeoutError: request timed out).',
+      '操作已中断：正在处理 API 错误（TimeoutError：request timed out）'
+    ],
+    [
+      'while retrying an API call',
+      'Operation interrupted: retrying API call after error (retry 3/5).',
+      '操作已中断：API 调用出错后正在重试（第 3/5 次）'
+    ],
+    [
+      'while retrying an empty response',
+      'Operation interrupted: retrying empty response from model (retry 1/2).',
+      '操作已中断：正在重试模型的空响应（第 1/2 次）'
+    ]
+  ])('localizes the %s interruption sentinel', async (_label, text, expected) => {
+    await renderInterrupted(text, expected)
+  })
+
+  it.each([
+    ['upstream gateway timeout (504, 12s)', '上游网关超时（504，12 秒）'],
+    ['rate limited by upstream provider (429)', '上游提供商限流（429）'],
+    ['upstream server error (502, 12s)', '上游服务器错误（502，12 秒）'],
+    ['upstream provider overloaded (529)', '上游提供商过载（529）'],
+    ['upstream error (code 418, 12s)', '上游错误（代码 418，12 秒）'],
+    ['fast response (1.2s) — likely rate limited', '响应较快（1.2 秒）——可能受到限流'],
+    ['slow response (61s) — likely upstream timeout', '响应较慢（61 秒）——可能是上游超时'],
+    ['response time 12.3s', '响应耗时 12.3 秒']
+  ])('localizes the emitted retry reason “%s”', async (reason, localizedReason) => {
+    await renderInterrupted(
+      `Operation interrupted during retry (${reason}, attempt 2/4).`,
+      `操作已中断：重试过程中（${localizedReason}，第 2/4 次尝试）`
+    )
   })
 })
 
