@@ -3433,13 +3433,29 @@ def terminal_tool(
 
         assert env is not None  # all creation failure paths return above
 
-        # The session key that drives cwd records: get_current_session_key()'s
-        # contextvar doesn't cross tool-worker threads, so fall back to the raw
-        # task_id (which IS the session_key for the top-level agent) — a
-        # stable, thread-safe anchor.
+        # Approval/completion routing and cwd ownership normally share one
+        # session key, but delegated children are the exception.  A child must
+        # retain the parent's routing key so approvals and background-process
+        # notifications still reach the user; its cwd was deliberately seeded
+        # under the child's raw task id so sibling agents cannot overwrite one
+        # another in their shared Docker/Singularity container.  Keep those two
+        # identities separate here.  The ContextVar is propagated into detached
+        # child workers, so simply preferring it would discard the child seed
+        # and resurrect any stale parent cwd.
         from tools.approval import get_current_session_key
 
-        session_key = get_current_session_key(default="") or (task_id or "")
+        routing_session_key = get_current_session_key(default="") or (task_id or "")
+        try:
+            from agent.delegation_context import is_delegated_child_context
+
+            delegated_child = is_delegated_child_context()
+        except Exception:
+            delegated_child = False
+        cwd_session_key = (
+            str(task_id)
+            if delegated_child and task_id
+            else routing_session_key
+        )
 
         # Hard-block: gateway lifecycle commands (systemctl/launchctl/hermes
         # restart|stop|uninstall targeting hermes-gateway) must never run inside the
@@ -3476,13 +3492,13 @@ def terminal_tool(
                     ),
                     "status": "error",
                 }, ensure_ascii=False)
-            guard_cwd_base = get_session_cwd(session_key)
+            guard_cwd_base = get_session_cwd(cwd_session_key)
             if guard_cwd_base is None:
                 guard_cwd_base = getattr(env, "cwd", None) or cwd
             guard_cwd = _resolve_command_cwd(
                 workdir=workdir,
                 default_cwd=guard_cwd_base,
-                session_key=session_key,
+                session_key=cwd_session_key,
                 env_type=env_type,
             )
 
@@ -3585,7 +3601,7 @@ def terminal_tool(
             guard_cwd = _resolve_command_cwd(
                 workdir=workdir,
                 default_cwd=cwd,
-                session_key=session_key,
+                session_key=cwd_session_key,
             )
             _self_repo_hit, _self_repo_msg = (
                 detect_self_repo_git_mutation(command, guard_cwd)
@@ -3665,7 +3681,8 @@ def terminal_tool(
                 "EOF."
             )
 
-        # The session key is already computed above the gateway guard.
+        # The routing and cwd session keys are already computed above the
+        # gateway guard.
         if background:
             # Spawn a tracked background process via the process registry.
             # For local backends: uses subprocess.Popen with output buffering.
@@ -3675,7 +3692,7 @@ def terminal_tool(
             effective_cwd = _resolve_command_cwd(
                 workdir=workdir,
                 default_cwd=cwd,
-                session_key=session_key,
+                session_key=cwd_session_key,
                 env_type=env_type,
             )
             try:
@@ -3684,7 +3701,7 @@ def terminal_tool(
                         command=command,
                         cwd=effective_cwd,
                         task_id=effective_task_id,
-                        session_key=session_key,
+                        session_key=routing_session_key,
                         env_vars=env.env if hasattr(env, 'env') else None,
                         use_pty=effective_pty,
                     )
@@ -3694,7 +3711,7 @@ def terminal_tool(
                         command=command,
                         cwd=effective_cwd,
                         task_id=effective_task_id,
-                        session_key=session_key,
+                        session_key=routing_session_key,
                     )
 
                 result_data = {
@@ -3901,7 +3918,7 @@ def terminal_tool(
                         process_registry.pending_watchers.append({
                             "session_id": proc_session.id,
                             "check_interval": 5,
-                            "session_key": session_key,
+                            "session_key": routing_session_key,
                             "platform": proc_session.watcher_platform,
                             "chat_id": proc_session.watcher_chat_id,
                             "user_id": proc_session.watcher_user_id,
@@ -3948,7 +3965,7 @@ def terminal_tool(
                     command_cwd = _resolve_command_cwd(
                         workdir=workdir,
                         default_cwd=cwd,
-                        session_key=session_key,
+                        session_key=cwd_session_key,
                         env_type=env_type,
                     )
                     execute_kwargs = {
@@ -4012,7 +4029,7 @@ def terminal_tool(
             # another session's directory. Recording it silently re-homes this
             # session into a directory the user never opened.
             if not workdir and (result or {}).get("cwd_observed"):
-                record_session_cwd(session_key, getattr(env, "cwd", None))
+                record_session_cwd(cwd_session_key, getattr(env, "cwd", None))
 
             # Extract output
             output = result.get("output", "")

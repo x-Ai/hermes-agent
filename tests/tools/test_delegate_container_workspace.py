@@ -6,13 +6,16 @@ container spelling (normally ``/workspace``).  These tests cover both the
 child prompt and the task-id/cwd seed used by terminal and file tools.
 """
 
+import json
 from pathlib import PurePosixPath
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from agent.delegation_context import delegated_child_context
 from tools import file_tools, terminal_tool
+from tools.approval import reset_current_session_key, set_current_session_key
 from tools.delegate_tool import (
     _build_child_system_prompt,
     _resolve_host_workspace_hint,
@@ -165,3 +168,70 @@ def test_run_single_child_seeds_relative_file_tools_at_container_mount(
         )
 
     assert result["status"] == "completed"
+
+
+@pytest.mark.parametrize("backend", sorted(_BACKEND_MOUNT_FLAG))
+def test_delegated_terminal_uses_child_cwd_not_parent_routing_key(
+    monkeypatch, tmp_path, backend
+):
+    """Approval routing identity must not override a child's cwd identity.
+
+    Detached children intentionally inherit the parent's approval/session
+    ContextVars so dangerous-command prompts and completion delivery still
+    reach the user.  Their terminal cwd is different state: it is seeded under
+    the child's raw task id.  Using the inherited routing key for cwd lookup
+    makes a stale parent path override that seed and lets sibling children
+    overwrite one another's cwd in their shared container.
+    """
+    workspace = tmp_path / "project"
+    workspace.mkdir()
+    _configure_mounted_backend(monkeypatch, backend, workspace, "/workspace")
+
+    parent_routing_key = "parent-route"
+    child_task_id = "mounted-child"
+    stale_parent_cwd = "/workspace/removed-parent-directory"
+    child_cwd = "/workspace"
+    child_settled_cwd = "/workspace/child-subdirectory"
+    terminal_tool.record_session_cwd(parent_routing_key, stale_parent_cwd)
+    terminal_tool.record_session_cwd(child_task_id, child_cwd)
+
+    class FakeSharedContainer:
+        env = {}
+        cwd = child_cwd
+        executed_cwd = None
+
+        def execute(self, command, **kwargs):
+            self.executed_cwd = kwargs.get("cwd")
+            self.cwd = child_settled_cwd
+            return {
+                "output": "ok",
+                "returncode": 0,
+                "cwd_observed": True,
+            }
+
+    shared = FakeSharedContainer()
+    monkeypatch.setattr(
+        terminal_tool, "_resolve_container_task_id", lambda _task_id: "shared"
+    )
+    monkeypatch.setattr(terminal_tool, "_active_environments", {"shared": shared})
+    monkeypatch.setattr(terminal_tool, "_last_activity", {})
+    monkeypatch.setattr(terminal_tool, "_start_cleanup_thread", lambda: None)
+    monkeypatch.setattr(
+        terminal_tool,
+        "_check_all_guards",
+        lambda command, env_type, **kwargs: {"approved": True},
+    )
+
+    routing_token = set_current_session_key(parent_routing_key)
+    try:
+        with delegated_child_context("child-session"):
+            result = json.loads(
+                terminal_tool.terminal_tool("pwd", task_id=child_task_id)
+            )
+    finally:
+        reset_current_session_key(routing_token)
+
+    assert result["exit_code"] == 0
+    assert shared.executed_cwd == child_cwd
+    assert terminal_tool.get_session_cwd(parent_routing_key) == stale_parent_cwd
+    assert terminal_tool.get_session_cwd(child_task_id) == child_settled_cwd
