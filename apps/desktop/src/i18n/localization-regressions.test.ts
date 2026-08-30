@@ -187,6 +187,10 @@ describe('Simplified Chinese localization regressions', () => {
     expect(`3${zh.sidebar.row.ageMin}`).toBe('3分钟前')
   })
 
+  it('keeps process exit codes in conventional English', () => {
+    expect(zh.statusStack.exit(-1)).toBe('Exit code -1')
+  })
+
   it('covers the command palette and task-list filter menu', () => {
     expect(zh.paletteCommands.reloadDesktopPlugins).toBe('重新加载桌面插件')
     expect(zh.paletteCommands.resetLayout).toBe('重置布局')

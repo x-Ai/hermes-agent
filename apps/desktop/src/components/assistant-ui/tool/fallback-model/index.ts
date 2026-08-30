@@ -655,16 +655,26 @@ function extractSearchResults(result: unknown, limit = 6): SearchResultRow[] {
 function toolErrorText(part: ToolPart, result: Record<string, unknown>): string {
   const extractedError = extractToolErrorMessage(part.result)
 
+  const localize = (message: string): string => {
+    const prefix = 'Failed to write file:'
+
+    return message.startsWith(prefix)
+      ? translateNow('assistant.tool.failedToWriteFile', message.slice(prefix.length).trimStart())
+      : message
+  }
+
   if (part.isError) {
-    return extractedError || (typeof part.result === 'string' && part.result.trim()) || 'Tool returned an error.'
+    return localize(
+      extractedError || (typeof part.result === 'string' && part.result.trim()) || 'Tool returned an error.'
+    )
   }
 
   if (typeof result.error === 'string' && result.error.trim()) {
-    return result.error.trim()
+    return localize(result.error.trim())
   }
 
   if (extractedError) {
-    return extractedError
+    return localize(extractedError)
   }
 
   if (result.success === false || result.ok === false) {

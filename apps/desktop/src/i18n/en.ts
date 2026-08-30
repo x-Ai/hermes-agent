@@ -3941,6 +3941,35 @@ export const en: Translations = {
       statusRecovered: 'Recovered',
       statusDone: 'Done',
       memoryWriteNoted: 'Memory write noted',
+      failedToWriteFile: detail => `Failed to write file: ${detail}`,
+      runSummary: {
+        delegate: {
+          count: (count, live) => `${live ? 'Delegating' : 'Delegated'} ${count} ${count === 1 ? 'task' : 'tasks'}`,
+          present: 'Delegating',
+          target: (target, live) => `${live ? 'Delegating' : 'Delegated'} ${target}`
+        },
+        edit: {
+          count: (count, live) => `${live ? 'Editing' : 'Edited'} ${count} ${count === 1 ? 'file' : 'files'}`,
+          present: 'Editing',
+          target: (target, live) => `${live ? 'Editing' : 'Edited'} ${target}`
+        },
+        explore: {
+          count: (count, live) => `${live ? 'Exploring' : 'Explored'} ${count} ${count === 1 ? 'file' : 'files'}`,
+          present: 'Exploring',
+          target: (target, live) => `${live ? 'Exploring' : 'Explored'} ${target}`
+        },
+        other: {
+          count: (count, live) => `${live ? 'Using' : 'Used'} ${count} ${count === 1 ? 'tool' : 'tools'}`,
+          present: 'Using',
+          target: (target, live) => `${live ? 'Using' : 'Used'} ${target}`
+        },
+        run: {
+          count: (count, live) => `${live ? 'Running' : 'Ran'} ${count} ${count === 1 ? 'command' : 'commands'}`,
+          present: 'Running',
+          target: (target, live) => `${live ? 'Running' : 'Ran'} ${target}`
+        },
+        separator: ', '
+      },
       actions: {
         read: 'Read',
         reading: 'Reading',

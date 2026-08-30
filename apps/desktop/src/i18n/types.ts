@@ -40,6 +40,12 @@ interface ToolTitleCopy {
   pendingAction: string
 }
 
+interface ToolRunCategoryCopy {
+  count: (count: number, live: boolean) => string
+  present: string
+  target: (target: string, live: boolean) => string
+}
+
 interface ModeOptionCopy {
   label: string
   description: string
@@ -3172,6 +3178,15 @@ export interface Translations {
       statusDone: string
       /** Over-budget / rejected memory write title — not "Saved to memory". */
       memoryWriteNoted: string
+      failedToWriteFile: (detail: string) => string
+      runSummary: {
+        delegate: ToolRunCategoryCopy
+        edit: ToolRunCategoryCopy
+        explore: ToolRunCategoryCopy
+        other: ToolRunCategoryCopy
+        run: ToolRunCategoryCopy
+        separator: string
+      }
       actions: {
         read: string
         reading: string

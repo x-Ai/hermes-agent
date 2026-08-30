@@ -1,3 +1,4 @@
+import { translateNow } from '@/i18n'
 import { summarizeShellCommand } from '@/lib/summarize-command'
 import { firstStringField } from '@/lib/text'
 
@@ -24,14 +25,6 @@ type RunCategory = 'delegate' | 'edit' | 'explore' | 'other' | 'run'
 // Clause order is fixed so the same run always reads the same way, whichever
 // category happens to be live.
 const CATEGORY_ORDER: readonly RunCategory[] = ['edit', 'explore', 'run', 'delegate', 'other']
-
-const CATEGORY_COPY: Record<RunCategory, { noun: [string, string]; past: string; present: string }> = {
-  delegate: { noun: ['task', 'tasks'], past: 'Delegated', present: 'Delegating' },
-  edit: { noun: ['file', 'files'], past: 'Edited', present: 'Editing' },
-  explore: { noun: ['file', 'files'], past: 'Explored', present: 'Exploring' },
-  other: { noun: ['tool', 'tools'], past: 'Used', present: 'Using' },
-  run: { noun: ['command', 'commands'], past: 'Ran', present: 'Running' }
-}
 
 const EXPLORE_TOOLS = new Set([
   'list_files',
@@ -73,7 +66,7 @@ function isPending(tool: ToolCallLike): boolean {
  * described in the same words from the moment the model drafts it.
  */
 export function toolPresentVerb(toolName: string): string {
-  return CATEGORY_COPY[toolCategory(toolName)].present
+  return translateNow(`assistant.tool.runSummary.${toolCategory(toolName)}.present`)
 }
 
 /** The thing a tool acted on, as the header should name it. */
@@ -96,15 +89,13 @@ function toolTarget(tool: ToolCallLike): string {
  * command line only earns its space while it's the thing you're waiting on.
  */
 function clause(category: RunCategory, tools: ToolCallLike[], live: boolean): string {
-  const copy = CATEGORY_COPY[category]
-  const verb = live ? copy.present : copy.past
   const target = tools.length === 1 ? toolTarget(tools[0]) : ''
 
   if (target && (live || category !== 'run')) {
-    return `${verb} ${target}`
+    return translateNow(`assistant.tool.runSummary.${category}.target`, target, live)
   }
 
-  return `${verb} ${tools.length} ${copy.noun[tools.length === 1 ? 0 : 1]}`
+  return translateNow(`assistant.tool.runSummary.${category}.count`, tools.length, live)
 }
 
 function lowerFirst(text: string): string {
@@ -153,5 +144,7 @@ export function summarizeToolRun(tools: readonly ToolCallLike[], live: boolean):
     return group ? [clause(category, group, category === liveCategory)] : []
   })
 
-  return clauses.map((text, index) => (index === 0 ? text : lowerFirst(text))).join(', ')
+  return clauses
+    .map((text, index) => (index === 0 ? text : lowerFirst(text)))
+    .join(translateNow('assistant.tool.runSummary.separator'))
 }

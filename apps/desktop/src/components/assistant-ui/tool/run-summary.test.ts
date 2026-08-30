@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+
+import { setRuntimeI18nLocale } from '@/i18n'
 
 import { summarizeToolRun, type ToolCallLike } from './run-summary'
 
@@ -12,6 +14,8 @@ const ran = (command: string) => tool('terminal', { command }, { exit_code: 0 })
 
 const settled = (tools: ToolCallLike[]) => summarizeToolRun(tools, false)
 const running = (tools: ToolCallLike[]) => summarizeToolRun(tools, true)
+
+afterEach(() => setRuntimeI18nLocale('en'))
 
 // A run only ever holds ephemeral activity: reads, searches, commands. File
 // edits and other cards are split out before a run is summarized, so there is
@@ -56,5 +60,12 @@ describe('summarizeToolRun', () => {
   // or it narrates work that stopped happening and never offers its toggle.
   it('reads a run the turn left unresolved as finished', () => {
     expect(settled([read('a.ts'), tool('search_files', { query: 'toolRuns' })])).toBe('Explored 2 files')
+  })
+
+  it('uses the runtime locale for settled and live summaries', () => {
+    setRuntimeI18nLocale('zh')
+
+    expect(settled([read('a.ts'), read('b.ts'), ran('pwd')])).toBe('探索了 2 个文件，运行了 1 条命令')
+    expect(running([read('a.ts'), tool('read_file', { path: 'b.ts' })])).toBe('正在探索 2 个文件')
   })
 })

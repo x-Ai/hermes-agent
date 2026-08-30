@@ -48,6 +48,26 @@ describe('buildToolView image handling', () => {
   })
 })
 
+describe('buildToolView localized errors', () => {
+  it('localizes the write-file failure prefix while preserving the shell diagnostic', () => {
+    setRuntimeI18nLocale('zh')
+
+    const diagnostic = 'bash: line 4: cd: G:\\XenForo: No such file or directory'
+
+    const view = buildToolView(
+      part({
+        args: { path: 'G:\\XenForo\\config.php' },
+        isError: true,
+        result: { error: `Failed to write file: ${diagnostic}` },
+        toolName: 'write_file'
+      }),
+      ''
+    )
+
+    expect(view.subtitle).toBe(`写入文件失败：${diagnostic}`)
+  })
+})
+
 describe('buildToolView terminal exit-code status', () => {
   const terminal = (result: Record<string, unknown>) => buildToolView(part({ result, toolName: 'terminal' }), '')
 

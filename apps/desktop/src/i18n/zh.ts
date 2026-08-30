@@ -4186,7 +4186,7 @@ export const zh: Translations = {
     running: '运行中',
     stop: '停止',
     dismiss: '关闭',
-    exit: code => `退出码 ${code}`,
+    exit: code => `Exit code ${code}`,
     coding: {
       title: '工作区',
       noBranch: '无分支',
@@ -5008,6 +5008,35 @@ export const zh: Translations = {
       statusRecovered: '已恢复',
       statusDone: '完成',
       memoryWriteNoted: '已记录内存写入操作',
+      failedToWriteFile: detail => `写入文件失败：${detail}`,
+      runSummary: {
+        delegate: {
+          count: (count, live) => `${live ? '正在委派' : '委派了'} ${count} 个任务`,
+          present: '正在委派',
+          target: (target, live) => `${live ? '正在委派' : '委派了'} ${target}`
+        },
+        edit: {
+          count: (count, live) => `${live ? '正在编辑' : '编辑了'} ${count} 个文件`,
+          present: '正在编辑',
+          target: (target, live) => `${live ? '正在编辑' : '编辑了'} ${target}`
+        },
+        explore: {
+          count: (count, live) => `${live ? '正在探索' : '探索了'} ${count} 个文件`,
+          present: '正在探索',
+          target: (target, live) => `${live ? '正在探索' : '探索了'} ${target}`
+        },
+        other: {
+          count: (count, live) => `${live ? '正在使用' : '使用了'} ${count} 个工具`,
+          present: '正在使用',
+          target: (target, live) => `${live ? '正在使用' : '使用了'} ${target}`
+        },
+        run: {
+          count: (count, live) => `${live ? '正在运行' : '运行了'} ${count} 条命令`,
+          present: '正在运行',
+          target: (target, live) => `${live ? '正在运行' : '运行了'} ${target}`
+        },
+        separator: '，'
+      },
       actions: {
         read: '已读取',
         reading: '正在读取',
