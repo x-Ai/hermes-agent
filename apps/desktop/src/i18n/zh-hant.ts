@@ -3764,6 +3764,14 @@ export const zhHant = defineLocale({
   },
 
   assistant: {
+    systemNotices: {
+      fileMutationFailure: count =>
+        `⚠️ 檔案修改校驗：本回合有 ${count} 個檔案未被修改，即使上文可能有不同表述。請執行 \`git status\` 或 \`read_file\` 確認。`,
+      failedToWriteFile: '寫入檔案失敗：',
+      failed: '失敗',
+      andMore: count => `另有 ${count} 個`,
+      noReply: detail => `⚠️ 未產生回覆：${detail}`
+    },
     thread: {
       loadingSession: '正在載入工作階段',
       showEarlier: '顯示較早的訊息',

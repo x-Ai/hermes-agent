@@ -4899,6 +4899,14 @@ export const zh: Translations = {
   },
 
   assistant: {
+    systemNotices: {
+      fileMutationFailure: count =>
+        `⚠️ 文件修改校验：本轮有 ${count} 个文件未被修改，即使上文可能有不同表述。请运行 \`git status\` 或 \`read_file\` 确认。`,
+      failedToWriteFile: '写入文件失败：',
+      failed: '失败',
+      andMore: count => `另有 ${count} 个`,
+      noReply: detail => `⚠️ 未生成回复：${detail}`
+    },
     thread: {
       loadingSession: '正在加载会话',
       showEarlier: '显示更早的消息',

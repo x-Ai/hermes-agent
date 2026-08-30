@@ -4046,6 +4046,14 @@ export const ja = defineLocale({
   },
 
   assistant: {
+    systemNotices: {
+      fileMutationFailure: count =>
+        `⚠️ ファイル変更の検証: 上記の説明にかかわらず、このターンで ${count} 個のファイルは変更されませんでした。\`git status\` または \`read_file\` で確認してください。`,
+      failedToWriteFile: 'ファイルへの書き込みに失敗:',
+      failed: '失敗',
+      andMore: count => `他 ${count} 件`,
+      noReply: detail => `⚠️ 応答なし: ${detail}`
+    },
     thread: {
       loadingSession: 'セッションを読み込み中',
       showEarlier: '以前のメッセージを表示',

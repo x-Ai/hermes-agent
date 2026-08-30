@@ -3050,6 +3050,13 @@ export interface Translations {
   }
 
   assistant: {
+    systemNotices: {
+      fileMutationFailure: (count: number) => string
+      failedToWriteFile: string
+      failed: string
+      andMore: (count: number) => string
+      noReply: (detail: string) => string
+    }
     thread: {
       loadingSession: string
       showEarlier: string

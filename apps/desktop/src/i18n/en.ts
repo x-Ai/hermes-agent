@@ -3814,6 +3814,14 @@ export const en: Translations = {
   },
 
   assistant: {
+    systemNotices: {
+      fileMutationFailure: count =>
+        `⚠️ File-mutation verifier: ${count} file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run \`git status\` or \`read_file\` to confirm.`,
+      failedToWriteFile: 'Failed to write file:',
+      failed: 'failed',
+      andMore: count => `and ${count} more`,
+      noReply: detail => `⚠️ No reply: ${detail}`
+    },
     thread: {
       loadingSession: 'Loading session',
       showEarlier: 'Show earlier messages',

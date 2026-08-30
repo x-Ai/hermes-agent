@@ -2939,6 +2939,14 @@ export const ar = defineLocale({
     }
   },
   assistant: {
+    systemNotices: {
+      fileMutationFailure: count =>
+        `⚠️ التحقق من تعديل الملفات: لم يُعدَّل ${count} ملفًا في هذه الجولة رغم أي صياغة أعلاه قد توحي بغير ذلك. شغّل \`git status\` أو \`read_file\` للتأكد.`,
+      failedToWriteFile: 'تعذرت كتابة الملف:',
+      failed: 'فشل',
+      andMore: count => `و${count} أخرى`,
+      noReply: detail => `⚠️ لا يوجد رد: ${detail}`
+    },
     thread: {
       loadingSession: 'جار تحميل الجلسة...',
       showEarlier: 'عرض الرسائل الأقدم',
