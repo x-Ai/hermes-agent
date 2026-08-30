@@ -57,7 +57,7 @@ import {
   liveGroupChatNames
 } from './group-membership'
 import { useBots } from './i18n'
-import { botProfileIdentity, displayName } from './labels'
+import { botProfileIdentity, displayName, localizedProfileName } from './labels'
 import { McpSetupButton } from './mcp-setup'
 import { ModelPicker } from './model-picker'
 import type {
@@ -760,9 +760,9 @@ export function CreateAgentDialog({ open, onClose, roster }: CreateAgentDialogPr
                         {/* The roster lists THIS window's profiles; the only clone
                             source guaranteed to exist on another machine is its
                             own default, so a remote target offers that or fresh. */}
-                        {(remoteTarget ? [{ name: 'default' }] : roster).map(b => (
-                          <SelectItem key={b.name} value={b.name}>
-                            {b.name}
+                        {(remoteTarget ? [{ name: 'default' }] : roster).map(profileRow => (
+                          <SelectItem key={profileRow.name} value={profileRow.name}>
+                            {localizedProfileName(profileRow.name, b.bot.defaultProfileName)}
                           </SelectItem>
                         ))}
                       </SelectContent>

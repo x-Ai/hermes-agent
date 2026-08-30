@@ -76,6 +76,7 @@ type BotsMessages = {
     waitingForGateway: string
     hidden: string
     allGateways: string
+    currentGateway: string
     title: string
     activityToastsOn: string
     activityToastsOff: string
@@ -144,6 +145,10 @@ type BotsMessages = {
     attentionBlocked: string
     duplicate: string
     duplicateFailed: string
+    noFreeDuplicateName: string
+    defaultProfileCannotDelete: string
+    sourceScopedDeleteUnsupported: string
+    couldNotDeleteProfile: (name: string) => string
     duplicating: (name: string) => string
     duplicated: (name: string, source: string) => string
     draftDiscarded: (name: string) => string
@@ -160,6 +165,7 @@ type BotsMessages = {
     advancedFailed: string
     openAnotherChatUnsupported: string
     remoteConnectionsUnsupported: string
+    workspaceSelectionRequired: string
     /** Bot-open failure toasts (canonical-chat.ts notifyBotOpenFailure). The
      *  raw RPC/connection error travels in the toast `detail`, never here. */
     openNeedsUpdateTitle: string
@@ -272,6 +278,9 @@ type BotsMessages = {
     deleteAction: string
     composerPlaceholder: string
     slashCommandsUnsupported: string
+    attachmentFallback: string
+    pastedImage: string
+    attachmentTooLarge: (name: string) => string
     attachHint: string
     newThread: string
     reply: string
@@ -488,6 +497,7 @@ const en: BotsMessages = {
       'Waiting for the gateway connection… (remote gateways can take a few seconds; retries automatically)',
     hidden: 'Hidden',
     allGateways: 'All gateways',
+    currentGateway: 'Current gateway',
     title: 'Bots',
     activityToastsOn: 'Activity toasts on — click to silence',
     activityToastsOff: 'Activity toasts off — click to enable',
@@ -553,6 +563,10 @@ const en: BotsMessages = {
     attentionBlocked: 'Bot is blocked — see its last message',
     duplicate: 'Duplicate',
     duplicateFailed: 'Duplicate failed',
+    noFreeDuplicateName: 'No free name for the duplicate.',
+    defaultProfileCannotDelete: 'The default profile cannot be deleted.',
+    sourceScopedDeleteUnsupported: 'This Hermes Desktop version cannot delete a profile on that connection.',
+    couldNotDeleteProfile: name => `Could not delete profile ${name}.`,
     deleteTitle: 'Delete bot and profile?',
     removeFromAllGroups: 'Remove from all groups',
     createFirstHint: 'Open the Bots pane and hit “New Bot”.',
@@ -562,6 +576,7 @@ const en: BotsMessages = {
     advancedFailed: 'Advanced configuration failed',
     openAnotherChatUnsupported: 'Update Hermes Desktop to open another Bot chat.',
     remoteConnectionsUnsupported: 'Update Hermes Desktop to chat with bots on other connections.',
+    workspaceSelectionRequired: 'Select a bot or group first.',
     openNeedsUpdateTitle: 'This bot lives on an older Hermes',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}, then try again.`,
     openUnreachableTitle: 'Hermes couldn’t reach the computer this bot runs on',
@@ -683,6 +698,9 @@ const en: BotsMessages = {
     composerPlaceholder: 'Say something — every bot in this group hears the room.',
     slashCommandsUnsupported:
       'Slash commands are not supported in group chats. Open an individual bot chat to use them.',
+    attachmentFallback: 'attachment',
+    pastedImage: 'pasted image',
+    attachmentTooLarge: name => `${name}: too large (max 15MB).`,
     attachHint: 'Attach files — every responding bot sees them',
     newThread: 'New Thread',
     reply: 'Reply',
@@ -894,6 +912,7 @@ const ja: BotsMessages = {
     waitingForGateway: 'ゲートウェイ接続を待っています…（リモートは数秒かかることがあります。自動で再試行します）',
     hidden: '隠し',
     allGateways: 'すべてのゲートウェイ',
+    currentGateway: '現在のゲートウェイ',
     title: 'ボット',
     activityToastsOn: 'アクティビティ通知はオン — クリックでミュート',
     activityToastsOff: 'アクティビティ通知はオフ — クリックで有効化',
@@ -959,6 +978,10 @@ const ja: BotsMessages = {
     attentionBlocked: 'ボットがブロックされています — 最後のメッセージを確認してください',
     duplicate: '複製',
     duplicateFailed: '複製に失敗しました',
+    noFreeDuplicateName: '複製に使える名前がありません。',
+    defaultProfileCannotDelete: 'デフォルトプロファイルは削除できません。',
+    sourceScopedDeleteUnsupported: 'このバージョンの Hermes Desktop では、その接続上のプロファイルを削除できません。',
+    couldNotDeleteProfile: name => `プロファイル ${name} を削除できませんでした。`,
     deleteTitle: 'ボットとプロファイルを削除しますか？',
     removeFromAllGroups: 'すべてのグループから外す',
     createFirstHint: 'ボットパネルを開いて「新しいボット」を押してください。',
@@ -968,6 +991,7 @@ const ja: BotsMessages = {
     advancedFailed: '詳細設定に失敗しました',
     openAnotherChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
     remoteConnectionsUnsupported: '他の接続上のボットとチャットするには Hermes Desktop を更新してください。',
+    workspaceSelectionRequired: '先にボットまたはグループを選択してください。',
     openNeedsUpdateTitle: 'このボットは古い Hermes 上で動いています',
     openNeedsUpdateMessage: connectionLabel => `${connectionLabel} を更新してから、もう一度お試しください。`,
     openUnreachableTitle: 'このボットが動いているコンピューターに Hermes が接続できませんでした',
@@ -1090,6 +1114,9 @@ const ja: BotsMessages = {
     composerPlaceholder: '何か書いてください — このグループのすべてのボットが部屋の内容を受け取ります。',
     slashCommandsUnsupported:
       'グループチャットではスラッシュコマンドを使用できません。個別のボットチャットを開いて使用してください。',
+    attachmentFallback: '添付ファイル',
+    pastedImage: '貼り付けた画像',
+    attachmentTooLarge: name => `${name}：サイズが大きすぎます（最大15MB）。`,
     attachHint: 'ファイルを添付 — 応答するすべてのボットが見ます',
     newThread: '新しいスレッド',
     reply: '返信',
@@ -1301,6 +1328,7 @@ const zh: BotsMessages = {
     waitingForGateway: '正在等待网关连接…（远程网关可能需要几秒；会自动重试）',
     hidden: '隐藏',
     allGateways: '所有网关',
+    currentGateway: '当前网关',
     title: '智能体',
     activityToastsOn: '活动通知已开启 — 点击静音',
     activityToastsOff: '活动通知已关闭 — 点击启用',
@@ -1363,6 +1391,10 @@ const zh: BotsMessages = {
     attentionBlocked: '机器人已被阻止 — 请查看其最后一条消息',
     duplicate: '复制',
     duplicateFailed: '复制失败',
+    noFreeDuplicateName: '没有可用于副本的名称。',
+    defaultProfileCannotDelete: '无法删除默认配置档案。',
+    sourceScopedDeleteUnsupported: '当前版本的 Hermes Desktop 无法删除该连接上的配置档案。',
+    couldNotDeleteProfile: name => `无法删除配置档案 ${name}。`,
     deleteTitle: '删除智能体和配置档案？',
     removeFromAllGroups: '从所有群组中移除',
     createFirstHint: '打开智能体面板，点击“新建智能体”。',
@@ -1372,6 +1404,7 @@ const zh: BotsMessages = {
     advancedFailed: '高级配置失败',
     openAnotherChatUnsupported: '请更新 Hermes Desktop 以打开另一个智能体聊天。',
     remoteConnectionsUnsupported: '请更新 Hermes Desktop 以与其他连接上的智能体聊天。',
+    workspaceSelectionRequired: '请先选择一个智能体或群聊。',
     openNeedsUpdateTitle: '这个机器人运行在较旧的 Hermes 上',
     openNeedsUpdateMessage: connectionLabel => `请更新 ${connectionLabel}，然后重试。`,
     openUnreachableTitle: 'Hermes 无法连接到运行这个机器人的电脑',
@@ -1487,6 +1520,9 @@ const zh: BotsMessages = {
     deleteAction: '删除',
     composerPlaceholder: '说点什么 — 这个群里的每个智能体都会听到。',
     slashCommandsUnsupported: '群聊不支持 Slash 命令。请在单个智能体聊天中使用。',
+    attachmentFallback: '附件',
+    pastedImage: '粘贴的图片',
+    attachmentTooLarge: name => `${name}过大（最大 15MB）。`,
     attachHint: '附加文件 — 每个回应的智能体都能看到',
     newThread: '新帖子',
     reply: '回复',
@@ -1694,6 +1730,7 @@ const zhHant: BotsMessages = {
     waitingForGateway: '正在等待閘道連線…（遠端閘道可能需要幾秒；會自動重試）',
     hidden: '隱藏',
     allGateways: '所有閘道',
+    currentGateway: '目前閘道',
     title: '智慧體',
     activityToastsOn: '活動通知已開啟 — 點選靜音',
     activityToastsOff: '活動通知已關閉 — 點選啟用',
@@ -1756,6 +1793,10 @@ const zhHant: BotsMessages = {
     attentionBlocked: '機器人被封鎖——請查看它的最後一則訊息',
     duplicate: '複製',
     duplicateFailed: '複製失敗',
+    noFreeDuplicateName: '沒有可用於副本的名稱。',
+    defaultProfileCannotDelete: '無法刪除預設設定檔。',
+    sourceScopedDeleteUnsupported: '目前版本的 Hermes Desktop 無法刪除該連線上的設定檔。',
+    couldNotDeleteProfile: name => `無法刪除設定檔 ${name}。`,
     deleteTitle: '刪除智慧體和設定檔？',
     removeFromAllGroups: '從所有群組中移除',
     createFirstHint: '開啟智慧體面板，點「新增智慧體」。',
@@ -1765,6 +1806,7 @@ const zhHant: BotsMessages = {
     advancedFailed: '進階設定失敗',
     openAnotherChatUnsupported: '請更新 Hermes Desktop 以開啟另一個智慧體聊天。',
     remoteConnectionsUnsupported: '請更新 Hermes Desktop 以與其他連線上的智慧體聊天。',
+    workspaceSelectionRequired: '請先選擇一個智慧體或群組聊天。',
     openNeedsUpdateTitle: '這個機器人運行在較舊的 Hermes 上',
     openNeedsUpdateMessage: connectionLabel => `更新${connectionLabel}然後再試一次。`,
     openUnreachableTitle: 'Hermes 無法連接這個機器人運行的電腦',
@@ -1881,6 +1923,9 @@ const zhHant: BotsMessages = {
     deleteAction: '刪除',
     composerPlaceholder: '說點什麼 — 這個群組裡的每個智慧體都會聽到。',
     slashCommandsUnsupported: '群組聊天不支援 Slash 命令。請在個別智慧體聊天中使用。',
+    attachmentFallback: '附件',
+    pastedImage: '貼上的圖片',
+    attachmentTooLarge: name => `${name}過大（最大 15MB）。`,
     attachHint: '附加檔案 — 每個回應的智慧體都能看到',
     newThread: '新討論串',
     reply: '回覆',
@@ -2089,6 +2134,7 @@ const ru: BotsMessages = {
       'Ожидание подключения шлюза ... (удаленные шлюзы могут занять несколько секунд; повторные попытки автоматически)',
     hidden: 'Скрытый',
     allGateways: 'Все шлюзы',
+    currentGateway: 'Текущий шлюз',
     title: 'Боты',
     activityToastsOn: 'Активность тосты на - нажмите, чтобы молчать',
     activityToastsOff: 'Активность тосты - клик, чтобы включить',
@@ -2155,6 +2201,10 @@ const ru: BotsMessages = {
     attentionBlocked: 'Бот заблокирован — см. его последнее сообщение',
     duplicate: 'Дублировать',
     duplicateFailed: 'Дубликат провалился',
+    noFreeDuplicateName: 'Не удалось подобрать свободное имя для копии.',
+    defaultProfileCannotDelete: 'Профиль по умолчанию удалить нельзя.',
+    sourceScopedDeleteUnsupported: 'Эта версия Hermes Desktop не может удалить профиль в данном подключении.',
+    couldNotDeleteProfile: name => `Не удалось удалить профиль ${name}.`,
     deleteTitle: 'Удалить бот и профиль?',
     removeFromAllGroups: 'Удалить из всех групп',
     createFirstHint: 'Откройте панель Ботс и нажмите «Новый Бот».',
@@ -2164,6 +2214,7 @@ const ru: BotsMessages = {
     advancedFailed: 'Продвинутая конфигурация провалилась',
     openAnotherChatUnsupported: 'Обновите рабочий стол Hermes, чтобы открыть еще один чат.',
     remoteConnectionsUnsupported: 'Обновите Hermes Desktop для общения с ботами по другим соединениям.',
+    workspaceSelectionRequired: 'Сначала выберите бота или групповой чат.',
     openNeedsUpdateTitle: 'Этот бот живет на старом Hermes',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}тогда попробуйте еще раз.`,
     openUnreachableTitle: 'Hermes не смог добраться до компьютера, на котором работает этот бот',
@@ -2289,6 +2340,9 @@ const ru: BotsMessages = {
     composerPlaceholder: 'Скажи что-нибудь — каждый бот в этой группе слышит комнату.',
     slashCommandsUnsupported:
       'Команды Slash не поддерживаются в групповых чатах. Откройте индивидуальный бот-чат, чтобы использовать их.',
+    attachmentFallback: 'вложение',
+    pastedImage: 'вставленное изображение',
+    attachmentTooLarge: name => `${name}: файл слишком большой (максимум 15 МБ).`,
     attachHint: 'Прикрепление файлов — каждый бот видит их',
     newThread: 'Новый Thread',
     reply: 'Ответить',
@@ -2503,6 +2557,7 @@ const ar: BotsMessages = {
     waitingForGateway: 'تنتظر اتصال البوابة... (البوابات البعيدة يمكن أن تأخذ بضع ثواني؛ إعادة التفتيش تلقائيا)',
     hidden: 'مخفٍ',
     allGateways: 'جميع البوابات',
+    currentGateway: 'البوابة الحالية',
     title: 'الروبوتات',
     activityToastsOn: '- نقر الصمت',
     activityToastsOff: 'النشاط - النقر للتمكين',
@@ -2568,6 +2623,10 @@ const ar: BotsMessages = {
     attentionBlocked: 'حُرِقَت السفينة - شاهد رسالتها الأخيرة',
     duplicate: 'ازدواج',
     duplicateFailed: 'الفشل المزدوج',
+    noFreeDuplicateName: 'لا يوجد اسم متاح للنسخة.',
+    defaultProfileCannotDelete: 'لا يمكن حذف الملف الشخصي الافتراضي.',
+    sourceScopedDeleteUnsupported: 'لا يستطيع هذا الإصدار من Hermes Desktop حذف ملف شخصي على ذلك الاتصال.',
+    couldNotDeleteProfile: name => `تعذّر حذف الملف الشخصي ${name}.`,
     deleteTitle: 'تُحذف الأحذية والملف؟?',
     removeFromAllGroups: 'نقل من جميع الفئات',
     createFirstHint: 'افتحوا مقلاة بوتس واضربوا " بوت الجديدة " .',
@@ -2577,6 +2636,7 @@ const ar: BotsMessages = {
     advancedFailed: 'فشل التكوين المتقدم',
     openAnotherChatUnsupported: 'تحديث Hermes Desktop لفتح دردشة أخرى.',
     remoteConnectionsUnsupported: 'حدّث Hermes Desktop للدردشة مع الروبوتات على اتصالات أخرى.',
+    workspaceSelectionRequired: 'اختر روبوتاً أو محادثة جماعية أولاً.',
     openNeedsUpdateTitle: 'هذا الحذاء يعيش في زكس كيتر ميكروز',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}حاول مرة أخرى.`,
     openUnreachableTitle: "Hermes couldn't reach the computer this bot runs on",
@@ -2695,6 +2755,9 @@ const ar: BotsMessages = {
     deleteAction: 'تحذف',
     composerPlaceholder: 'قل شيئاً كل شخص في هذه المجموعة يسمع الغرفة.',
     slashCommandsUnsupported: 'أوامر الاصطدام لا تدعم في المحادثات الجماعية افتحي دردشة فردية لأستخدمها.',
+    attachmentFallback: 'مرفق',
+    pastedImage: 'صورة ملصقة',
+    attachmentTooLarge: name => `${name}: الملف كبير جداً (الحد الأقصى 15 ميغابايت).`,
     attachHint: 'الملفات المُرسلة - كل مُرسلة تراها',
     newThread: 'خيط جديد',
     reply: 'الرد',
