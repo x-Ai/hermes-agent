@@ -89,7 +89,13 @@ export function isDiskFullErrorMessage(message: string): boolean {
   )
 }
 
-const ERROR_SUMMARIES: { test: (msg: string) => boolean; summarize: (msg: string) => string }[] = [
+interface ErrorSummaryRule {
+  hideDetail?: boolean
+  summarize: (msg: string) => string
+  test: (msg: string) => boolean
+}
+
+const ERROR_SUMMARIES: ErrorSummaryRule[] = [
   {
     // Disk full / ENOSPC — session DB write, backend crash, or any path that
     // bubbles "no space left" / SQLITE_FULL through notifyError. Match before
@@ -97,6 +103,18 @@ const ERROR_SUMMARIES: { test: (msg: string) => boolean; summarize: (msg: string
     // instead of a silent send or a raw errno dump.
     test: isDiskFullErrorMessage,
     summarize: () => translateNow('notifications.errors.diskFull')
+  },
+  {
+    // Canonical file endpoints use this stable error shape. It is user-facing
+    // state, not a diagnostic: localize the prefix, preserve an optional path,
+    // and do not repeat the raw English form under Details.
+    test: msg => /^file not found(?:\s*:\s*.*)?$/i.test(msg.trim()),
+    summarize: msg => {
+      const target = /^file not found\s*:\s*(.*)$/i.exec(msg.trim())?.[1]?.trim() ?? ''
+
+      return translateNow('notifications.errors.fileNotFound', target)
+    },
+    hideDetail: true
   },
   {
     // The backend's provider-setup error ("No inference provider configured.
@@ -153,11 +171,11 @@ const ERROR_SUMMARIES: { test: (msg: string) => boolean; summarize: (msg: string
   }
 ]
 
-function summarizeErrorMessage(message: string, fallback: string) {
+function summarizeErrorMessage(message: string, fallback: string): { hideDetail: boolean; message: string } {
   const rule = ERROR_SUMMARIES.find(r => r.test(message))
 
   if (rule) {
-    return rule.summarize(message)
+    return { hideDetail: Boolean(rule.hideDetail), message: rule.summarize(message) }
   }
 
   // Backend exceptions are protocol/debug data, not UI copy. In a localized
@@ -165,10 +183,10 @@ function summarizeErrorMessage(message: string, fallback: string) {
   // primary message the caller's localized fallback. English retains the
   // concise raw error as before.
   if (getRuntimeI18nLocale() !== 'en') {
-    return fallback
+    return { hideDetail: false, message: fallback }
   }
 
-  return message.length > 180 ? fallback : message || fallback
+  return { hideDetail: false, message: message.length > 180 ? fallback : message || fallback }
 }
 
 // Exported so flows that surface errors inline (e.g. ConfirmDialog's onConfirm
@@ -181,7 +199,10 @@ export function readableError(error: unknown, fallback: string): { message: stri
   const summary = summarizeErrorMessage(detail, fallback)
   const knownRestoreTargetDrift = /target user message is no longer in session history/i.test(detail)
 
-  return { message: summary, detail: detail === summary || knownRestoreTargetDrift ? undefined : detail }
+  return {
+    message: summary.message,
+    detail: summary.hideDetail || detail === summary.message || knownRestoreTargetDrift ? undefined : detail
+  }
 }
 
 export function notify(input: NotificationInput): string {

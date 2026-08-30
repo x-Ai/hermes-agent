@@ -622,7 +622,9 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     timeout: 'How long approval prompts wait before timing out.'
   },
   security: {
-    redactSecrets: 'Hide detected secrets from model-visible content when possible.'
+    redactSecrets: 'Hide detected secrets from model-visible content when possible.',
+    allowPrivateUrls:
+      'Allow URL-fetching tools to access localhost and private-network addresses. Cloud metadata endpoints remain blocked.'
   },
   checkpoints: {
     enabled: 'Create rollback snapshots before file edits.'

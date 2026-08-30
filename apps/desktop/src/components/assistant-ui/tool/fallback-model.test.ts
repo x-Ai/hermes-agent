@@ -49,23 +49,30 @@ describe('buildToolView image handling', () => {
 })
 
 describe('buildToolView localized errors', () => {
-  it('localizes the write-file failure prefix while preserving the shell diagnostic', () => {
-    setRuntimeI18nLocale('zh')
+  it.each([
+    ['zh', '写入文件失败：'],
+    ['zh-hant', '寫入檔案失敗：'],
+    ['ja', 'ファイルへの書き込みに失敗しました：'],
+    ['ar', 'فشل في كتابة الملف: ']
+  ] as const)(
+    'localizes the write-file failure prefix in %s while preserving the shell diagnostic',
+    (locale, prefix) => {
+      setRuntimeI18nLocale(locale)
+      const diagnostic = 'bash: line 4: cd: G:\\XenForo: No such file or directory'
 
-    const diagnostic = 'bash: line 4: cd: G:\\XenForo: No such file or directory'
+      const view = buildToolView(
+        part({
+          args: { path: 'G:\\XenForo\\config.php' },
+          isError: true,
+          result: { error: `Failed to write file: ${diagnostic}` },
+          toolName: 'write_file'
+        }),
+        ''
+      )
 
-    const view = buildToolView(
-      part({
-        args: { path: 'G:\\XenForo\\config.php' },
-        isError: true,
-        result: { error: `Failed to write file: ${diagnostic}` },
-        toolName: 'write_file'
-      }),
-      ''
-    )
-
-    expect(view.subtitle).toBe(`写入文件失败：${diagnostic}`)
-  })
+      expect(view.subtitle).toBe(`${prefix}${diagnostic}`)
+    }
+  )
 })
 
 describe('buildToolView localized counts', () => {

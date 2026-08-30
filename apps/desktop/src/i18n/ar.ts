@@ -165,6 +165,7 @@ export const ar = defineLocale({
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',
+      fileNotFound: target => (target ? `لم يتم العثور على الملف: ${target}` : 'لم يتم العثور على الملف.'),
       invalidExternalUrl: 'عنوان URL الخارجي غير صالح.',
       methodNotAllowed: 'رفضت خلفية سطح المكتب هذا الطلب (405 Method Not Allowed). جرب إعادة تشغيل Hermes Desktop.',
       microphonePermission: 'تم رفض إذن الميكروفون.',
@@ -666,6 +667,8 @@ export const ar = defineLocale({
       'approvals.mode': 'كيف يتعامل Hermes مع الأوامر التي تحتاج موافقة صريحة.',
       'approvals.timeout': 'مدة انتظار طلبات الموافقة قبل انتهاء المهلة.',
       'security.redactSecrets': 'يخفي الأسرار المكتشفة من المحتوى المرئي للنموذج قدر الإمكان.',
+      'security.allowPrivateUrls':
+        'يسمح لأدوات جلب عناوين URL بالوصول إلى المضيف المحلي وعناوين الشبكات الخاصة. تظل نقاط نهاية بيانات تعريف السحابة محظورة.',
       'browser.useRealProfile':
         'يستخدم التصفح المحلي جلسات تسجيل دخولك الحقيقية. ينسخ Hermes ملف تعريف متصفحك الافتراضي (ملفات تعريف الارتباط وتسجيلات الدخول والتفضيلات) إلى لقطة مُدارة، ثم يتحكم فيها باستخدام Chromium المرفق. لا يفتح ملفك النشط مباشرة أبدا، ويحدّث النسخة منه عند كل تشغيل. كما يتيح للوكيل فتح جلسة محلية تستخدم ملفك الحقيقي عند الطلب، حتى عند إعداد خلفية متصفح سحابية. لا تُدعم إلا المتصفحات المبنية على Chromium (Chrome وEdge وBrave وChromium)، ويعرض Hermes رسالة واضحة إذا لم يكن المتصفح الافتراضي مبنيا على Chromium. متوقف افتراضيا.',
       'checkpoints.enabled': 'ينشئ لقطات رجوع قبل تعديلات الملفات.',
@@ -3033,6 +3036,7 @@ export const ar = defineLocale({
       statusRecovered: 'تم الاسترداد',
       statusDone: 'تم',
       memoryWriteNoted: 'تم تسجيل كتابة الذاكرة',
+      failedToWriteFile: detail => `فشل في كتابة الملف: ${detail}`,
       actions: {
         read: 'قراءة',
         reading: 'جار القراءة',

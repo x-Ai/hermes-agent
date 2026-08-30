@@ -70,6 +70,26 @@ test('invalid external URLs are summarized in the active locale', () => {
   })
 })
 
+test('canonical file-not-found errors are localized without repeating raw English details', () => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error('File not found'), '下载失败')
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: '下载失败',
+    message: '找不到文件'
+  })
+  expect($notifications.get()[0]?.detail).toBeUndefined()
+
+  clearNotifications()
+  notifyError(new Error('File not found: /srv/report.pdf'), '下载失败')
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: '下载失败',
+    message: '找不到文件：/srv/report.pdf'
+  })
+  expect($notifications.get()[0]?.detail).toBeUndefined()
+})
+
 test('restore target drift is summarized in the active locale', () => {
   setRuntimeI18nLocale('zh')
   notifyError(new Error('target user message is no longer in session history'), '恢复失败')

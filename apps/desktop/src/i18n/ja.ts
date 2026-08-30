@@ -158,6 +158,7 @@ export const ja = defineLocale({
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
       diskFull: 'ディスク容量不足です — 空きを作ってからもう一度お試しください。',
+      fileNotFound: target => (target ? `ファイルが見つかりません：${target}` : 'ファイルが見つかりません'),
       gatewayAuthFailed: 'ゲートウェイ認証に失敗しました — API_SERVER_KEY を確認してください。',
       invalidExternalUrl: '外部 URL が無効です。',
       methodNotAllowed:
@@ -718,7 +719,9 @@ export const ja = defineLocale({
         timeout: '承認プロンプトがタイムアウトするまで待つ時間です。'
       },
       security: {
-        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。'
+        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。',
+        allowPrivateUrls:
+          'URL 取得ツールによる localhost とプライベートネットワークアドレスへのアクセスを許可します。クラウドメタデータのエンドポイントは引き続きブロックされます。'
       },
       browser: {
         useRealProfile:
@@ -4145,6 +4148,7 @@ export const ja = defineLocale({
       statusRecovered: '回復しました',
       statusDone: '完了',
       memoryWriteNoted: 'メモリへの書き込みを記録',
+      failedToWriteFile: detail => `ファイルへの書き込みに失敗しました：${detail}`,
       actions: {
         read: '読み取り完了',
         reading: '読み取り中',

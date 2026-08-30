@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
 import { $notifications, clearNotifications } from '@/store/notifications'
 
 vi.mock('@/lib/media', () => ({
@@ -24,6 +25,7 @@ describe('downloadRemoteFile', () => {
   beforeEach(() => {
     clearNotifications()
     downloadGatewayMediaFile.mockReset()
+    setRuntimeI18nLocale('en')
   })
 
   afterEach(() => {
@@ -54,5 +56,18 @@ describe('downloadRemoteFile', () => {
 
     expect($notifications.get()[0]?.kind).toBe('error')
     expect($notifications.get()[0]?.title).toBe('Download failed')
+  })
+
+  it('localizes a missing remote file without repeating the backend error', async () => {
+    setRuntimeI18nLocale('zh')
+    downloadGatewayMediaFile.mockRejectedValue(new Error('File not found'))
+
+    await downloadRemoteFile('/home/linux/project/missing.md')
+
+    expect($notifications.get()[0]).toMatchObject({
+      title: '下载失败',
+      message: '找不到文件'
+    })
+    expect($notifications.get()[0]?.detail).toBeUndefined()
   })
 })

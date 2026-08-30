@@ -213,6 +213,7 @@ export const zh: Translations = {
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY',
       elevenLabsRejectedKey: 'ElevenLabs 拒绝了该 API key (401)',
       diskFull: '磁盘已满 — 请腾出一些空间后再试',
+      fileNotFound: target => (target ? `找不到文件：${target}` : '找不到文件'),
       gatewayAuthFailed: '网关认证失败 — 请检查你的 API_SERVER_KEY',
       invalidExternalUrl: '外部链接无效',
       methodNotAllowed: '桌面后端拒绝了该请求 (405 Method Not Allowed)。请尝试重启 Hermes Desktop',
@@ -983,7 +984,8 @@ export const zh: Translations = {
         timeout: '审批提示在超时前等待的时长'
       },
       security: {
-        redactSecrets: '尽可能从模型可见内容中隐藏检测到的密钥'
+        redactSecrets: '尽可能从模型可见内容中隐藏检测到的密钥',
+        allowPrivateUrls: '允许 URL 获取工具访问 localhost 和私有网络地址；云元数据端点始终保持阻止'
       },
       browser: {
         useRealProfile:

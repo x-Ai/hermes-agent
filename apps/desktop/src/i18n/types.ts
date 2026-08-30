@@ -246,6 +246,7 @@ export interface Translations {
       elevenLabsNeedsKey: string
       elevenLabsRejectedKey: string
       diskFull: string
+      fileNotFound: (target: string) => string
       gatewayAuthFailed: string
       invalidExternalUrl: string
       methodNotAllowed: string

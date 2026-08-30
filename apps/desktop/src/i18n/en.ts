@@ -208,6 +208,7 @@ export const en: Translations = {
       elevenLabsNeedsKey: 'ElevenLabs STT needs ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs rejected the API key (401).',
       diskFull: 'Disk full — free some space, then try again.',
+      fileNotFound: target => (target ? `File not found: ${target}` : 'File not found'),
       gatewayAuthFailed: 'Gateway authentication failed — check your API_SERVER_KEY.',
       invalidExternalUrl: 'Invalid external URL',
       methodNotAllowed:

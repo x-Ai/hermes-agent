@@ -153,6 +153,7 @@ export const zhHant = defineLocale({
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY。',
       elevenLabsRejectedKey: 'ElevenLabs 拒絕了該 API 金鑰 (401)。',
       diskFull: '磁碟已滿 — 請騰出一些空間後再試。',
+      fileNotFound: target => (target ? `找不到檔案：${target}` : '找不到檔案'),
       gatewayAuthFailed: '閘道認證失敗 — 請檢查你的 API_SERVER_KEY。',
       invalidExternalUrl: '外部連結無效',
       methodNotAllowed: '桌面後端拒絕了該請求 (405 Method Not Allowed)。請嘗試重新啟動 Hermes Desktop。',
@@ -700,7 +701,8 @@ export const zhHant = defineLocale({
         timeout: '批准提示逾時前等待的時間。'
       },
       security: {
-        redactSecrets: '盡可能從模型可見內容中隱藏偵測到的密鑰。'
+        redactSecrets: '盡可能從模型可見內容中隱藏偵測到的密鑰。',
+        allowPrivateUrls: '允許 URL 擷取工具存取 localhost 與私有網路位址；雲端中繼資料端點仍一律封鎖。'
       },
       browser: {
         useRealProfile:
@@ -3862,6 +3864,7 @@ export const zhHant = defineLocale({
       statusRecovered: '已復原',
       statusDone: '完成',
       memoryWriteNoted: '已記下記憶寫入',
+      failedToWriteFile: detail => `寫入檔案失敗：${detail}`,
       actions: {
         read: '已讀取',
         reading: '正在讀取',

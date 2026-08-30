@@ -34,6 +34,33 @@ describe('settings helpers', () => {
     expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'desktop.repo_scan_exclude_paths')).toBeTruthy()
   })
 
+  it('surfaces the global private-URL opt-out in Safety with localized warning copy', () => {
+    const safety = SECTIONS.find(section => section.id === 'safety')
+    const schema = { 'security.allow_private_urls': { type: 'boolean' as const } }
+    const config: HermesConfigRecord = { security: { allow_private_urls: false } }
+
+    expect(safety?.keys).toContain('security.allow_private_urls')
+    expect(new Map(sectionFieldEntries(schema, config).get('safety') ?? []).get('security.allow_private_urls')).toEqual(
+      {
+        type: 'boolean'
+      }
+    )
+    expect(setNested(config, 'security.allow_private_urls', true)).toEqual({
+      security: { allow_private_urls: true }
+    })
+
+    for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
+      expect(
+        fieldCopyForSchemaKey(translations.settings.fieldLabels, 'security.allow_private_urls'),
+        locale
+      ).toBeTruthy()
+      expect(
+        fieldCopyForSchemaKey(translations.settings.fieldDescriptions, 'security.allow_private_urls'),
+        locale
+      ).toBeTruthy()
+    }
+  })
+
   it('surfaces the shared container persistence switch without replacing terminal config', () => {
     const advanced = SECTIONS.find(section => section.id === 'advanced')
 
