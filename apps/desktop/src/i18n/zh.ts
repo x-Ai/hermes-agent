@@ -2,6 +2,20 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import type { Translations } from './types'
 
+const TOOL_COUNT_UNITS: Record<string, string> = {
+  document: '个文档',
+  entry: '条记录',
+  file: '个文件',
+  item: '项',
+  match: '个匹配项',
+  result: '个结果',
+  row: '行',
+  search: '次搜索',
+  source: '个来源',
+  step: '个步骤',
+  todo: '项任务'
+}
+
 export const zh: Translations = {
   common: {
     apply: '应用',
@@ -4876,6 +4890,7 @@ export const zh: Translations = {
       loadingSession: '正在加载会话',
       showEarlier: '显示更早的消息',
       loadingResponse: 'Hermes 正在加载回复',
+      operationInterrupted: '操作已中断。',
       resumeWhenBackgroundDone: count =>
         count === 1 ? '后台任务完成后将自动继续' : `${count} 个后台任务完成后将自动继续`,
       thinking: '思考中',
@@ -5009,6 +5024,7 @@ export const zh: Translations = {
       statusDone: '完成',
       memoryWriteNoted: '已记录内存写入操作',
       failedToWriteFile: detail => `写入文件失败：${detail}`,
+      countLabel: (count, noun, displayNoun) => `${count} ${TOOL_COUNT_UNITS[noun] ?? displayNoun}`,
       runSummary: {
         delegate: {
           count: (count, live) => `${live ? '正在委派' : '委派了'} ${count} 个任务`,

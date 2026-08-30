@@ -3806,6 +3806,7 @@ export const en: Translations = {
       loadingSession: 'Loading session',
       showEarlier: 'Show earlier messages',
       loadingResponse: 'Hermes is loading a response',
+      operationInterrupted: 'Operation interrupted.',
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Will resume when the background task finishes'
@@ -3942,6 +3943,7 @@ export const en: Translations = {
       statusDone: 'Done',
       memoryWriteNoted: 'Memory write noted',
       failedToWriteFile: detail => `Failed to write file: ${detail}`,
+      countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
         delegate: {
           count: (count, live) => `${live ? 'Delegating' : 'Delegated'} ${count} ${count === 1 ? 'task' : 'tasks'}`,

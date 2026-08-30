@@ -9,7 +9,7 @@ import { useStore } from '@nanostores/react'
 import { type ComponentProps, type FC, type ReactNode, useEffect, useRef, useState } from 'react'
 
 import { ClarifyTool } from '@/components/assistant-ui/clarify-tool'
-import { MarkdownText, MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
+import { MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
 import { McpSetupTool } from '@/components/assistant-ui/mcp-setup-tool'
 import { AgentDeliveryNotice, deliveryTargetFromCommand } from '@/components/assistant-ui/thread/agent-delivery'
 import { TimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
@@ -113,12 +113,23 @@ const ChainToolFallback: FC<TimelineToolCallProps> = props => {
 
 type TimelineTextPartProps = TextMessagePartProps & { completedAt?: number; timestamp?: number }
 
-const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, timestamp }) => (
-  <>
-    <TimelineTimestamp className="mb-0.5 block" completedAt={completedAt} timestamp={timestamp} />
-    <MarkdownText />
-  </>
-)
+function localizeAssistantTranscriptText(text: string, operationInterrupted: string): string {
+  return text.trim() === 'Operation interrupted.' ? operationInterrupted : text
+}
+
+const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, status, text, timestamp }) => {
+  const { t } = useI18n()
+
+  return (
+    <>
+      <TimelineTimestamp className="mb-0.5 block" completedAt={completedAt} timestamp={timestamp} />
+      <MarkdownTextContent
+        isRunning={status.type === 'running'}
+        text={localizeAssistantTranscriptText(text, t.assistant.thread.operationInterrupted)}
+      />
+    </>
+  )
+}
 
 const ThinkingDisclosure: FC<{
   children: ReactNode

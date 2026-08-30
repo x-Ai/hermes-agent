@@ -68,6 +68,23 @@ describe('buildToolView localized errors', () => {
   })
 })
 
+describe('buildToolView localized counts', () => {
+  it('localizes the session-search title and item count', () => {
+    setRuntimeI18nLocale('zh')
+
+    const view = buildToolView(
+      part({
+        result: { items: [{ id: 1 }, { id: 2 }, { id: 3 }] },
+        toolName: 'session_search_recall'
+      }),
+      ''
+    )
+
+    expect(view.title).toBe('已搜索会话历史')
+    expect(view.countLabel).toBe('3 项')
+  })
+})
+
 describe('buildToolView terminal exit-code status', () => {
   const terminal = (result: Record<string, unknown>) => buildToolView(part({ result, toolName: 'terminal' }), '')
 

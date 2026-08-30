@@ -8,6 +8,7 @@ import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime }
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { I18nProvider } from '@/i18n'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
 import { stubThreadEnvironment } from '../test-utils'
@@ -70,9 +71,11 @@ function assistantMessage(): ThreadMessage {
 
 function Harness({
   assistant = assistantMessage(),
+  locale = 'en',
   onBranchInNewChat
 }: {
   assistant?: ThreadMessage
+  locale?: string
   onBranchInNewChat?: (messageId: string) => void
 }) {
   const runtime = useExternalStoreRuntime<ThreadMessage>({
@@ -82,9 +85,11 @@ function Harness({
   })
 
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
-      <Thread onBranchInNewChat={onBranchInNewChat} />
-    </AssistantRuntimeProvider>
+    <I18nProvider configClient={null} initialLocale={locale}>
+      <AssistantRuntimeProvider runtime={runtime}>
+        <Thread onBranchInNewChat={onBranchInNewChat} />
+      </AssistantRuntimeProvider>
+    </I18nProvider>
   )
 }
 
@@ -104,6 +109,20 @@ describe('AssistantMessage branch button visibility (bug #2 fix)', () => {
     await screen.findByText('done')
 
     expect(screen.queryByRole('button', { name: 'Branch in new chat' })).toBeNull()
+  })
+})
+
+describe('localized backend transcript copy', () => {
+  it('renders the interruption sentinel in the active locale', async () => {
+    const assistant = {
+      ...assistantMessage(),
+      content: [{ text: 'Operation interrupted.', type: 'text' }]
+    } as unknown as ThreadMessage
+
+    render(<Harness assistant={assistant} locale="zh" />)
+
+    expect(await screen.findByText('操作已中断。')).toBeTruthy()
+    expect(screen.queryByText('Operation interrupted.')).toBeNull()
   })
 })
 

@@ -68,4 +68,17 @@ describe('summarizeToolRun', () => {
     expect(settled([read('a.ts'), read('b.ts'), ran('pwd')])).toBe('探索了 2 个文件，运行了 1 条命令')
     expect(running([read('a.ts'), tool('read_file', { path: 'b.ts' })])).toBe('正在探索 2 个文件')
   })
+
+  it('localizes the exact mixed activity summaries shown in the desktop transcript', () => {
+    setRuntimeI18nLocale('zh')
+
+    const used = () => tool('custom_tool', {}, { description: 'done' })
+
+    expect(settled([ran('a'), ran('b'), used(), used()])).toBe('运行了 2 条命令，使用了 2 个工具')
+    expect(
+      settled([read('F77-VERIFICATION.md'), ran('a'), ran('b'), ran('c'), ran('d'), ran('e'), used(), used()])
+    ).toBe('探索了 F77-VERIFICATION.md，运行了 5 条命令，使用了 2 个工具')
+    expect(settled([used(), used()])).toBe('使用了 2 个工具')
+    expect(running([ran('a'), ran('b')])).toBe('正在运行 2 条命令')
+  })
 })

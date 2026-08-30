@@ -179,8 +179,9 @@ export function readableError(error: unknown, fallback: string): { message: stri
   const cleaned = cleanErrorText(unwrapped)
   const detail = cleaned.match(/"detail"\s*:\s*"([^"]+)"/)?.[1] ?? cleaned
   const summary = summarizeErrorMessage(detail, fallback)
+  const knownRestoreTargetDrift = /target user message is no longer in session history/i.test(detail)
 
-  return { message: summary, detail: detail === summary ? undefined : detail }
+  return { message: summary, detail: detail === summary || knownRestoreTargetDrift ? undefined : detail }
 }
 
 export function notify(input: NotificationInput): string {

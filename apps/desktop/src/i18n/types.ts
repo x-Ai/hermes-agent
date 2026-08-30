@@ -3045,6 +3045,7 @@ export interface Translations {
       loadingSession: string
       showEarlier: string
       loadingResponse: string
+      operationInterrupted: string
       resumeWhenBackgroundDone: (count: number) => string
       thinking: string
       thought: string
@@ -3179,6 +3180,7 @@ export interface Translations {
       /** Over-budget / rejected memory write title — not "Saved to memory". */
       memoryWriteNoted: string
       failedToWriteFile: (detail: string) => string
+      countLabel: (count: number, noun: string, displayNoun: string) => string
       runSummary: {
         delegate: ToolRunCategoryCopy
         edit: ToolRunCategoryCopy
