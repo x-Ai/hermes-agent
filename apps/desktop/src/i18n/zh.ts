@@ -1440,6 +1440,7 @@ export const zh: Translations = {
         description: '工具网关请求使用的 Nous 订阅者访问令牌（可选；默认从 Hermes 认证存储读取）'
       },
       TAVILY_API_KEY: { description: '用于 AI 原生网页搜索与提取的 Tavily API 密钥' },
+      HASS_TOKEN: { description: 'Home Assistant 长期访问令牌' },
       SEARXNG_URL: { description: '你的 SearXNG 实例 URL，用于免费自托管网页搜索' },
       BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 订阅令牌（免费档：每月 2,000 次查询）' },
       BROWSERBASE_API_KEY: { description: '云端浏览器的 Browserbase API 密钥（可选——本地浏览器无需此项）' },
@@ -1916,6 +1917,8 @@ export const zh: Translations = {
         'Free-tier API key — 2k queries/mo, search only.': '免费档 API 密钥——每月 2000 次查询，仅搜索',
         'Full search + extract; supports direct API and Nous tool-gateway routing.':
           '完整的搜索 + 提取；支持直连 API 和 Nous 工具网关路由',
+        'Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.':
+          '完整的搜索与提取；支持免密钥云服务、直连 API 和 Nous 工具网关路由',
         'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
           '经 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
         'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
@@ -1923,14 +1926,28 @@ export const zh: Translations = {
         'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
           'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse——文生视频与图生视频',
         'Objective-tuned search + parallel page extraction.': '面向目标调优的搜索 + 并行页面提取',
+        "Objective-tuned search + page extraction on Parallel's anonymous free tier. Rate-limited under burst load.":
+          '通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取。突发负载下会受到速率限制',
+        'Objective-tuned search + parallel page extraction via the Parallel SDK. Unthrottled, guaranteed service.':
+          '通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取。无速率限制，服务有保障',
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等——文生图与图像编辑',
         'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
           '经 Nous Portal 的参考图像生成（OpenRouter 支撑）',
         'Search + extract in one provider.': '搜索 + 提取一体的提供方',
+        'Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.':
+          '搜索与提取。无需密钥即可使用；设置 TAVILY_API_KEY 可获得更高限额',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '通过 ddgs Python 包搜索——无需 API 密钥（可搭配任意提取提供方）',
         'Semantic + neural web search with content extraction.': '语义 + 神经网络网页搜索，带内容提取',
+        "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.":
+          '通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取。突发负载下会受到速率限制',
+        'Semantic + neural web search with content extraction via the Exa SDK. Unthrottled, guaranteed service.':
+          '通过 Exa SDK 进行语义与神经网络网页搜索及内容提取。无速率限制，服务有保障',
+        "Independent web index for AI apps — fast search + page fetch on Keenable's anonymous free tier.":
+          '面向 AI 应用的独立网页索引——通过 Keenable 匿名免费套餐提供快速搜索与页面抓取',
+        'Independent web index for AI apps. Keyed access with higher limits and guaranteed service.':
+          '面向 AI 应用的独立网页索引。密钥访问具有更高限额和服务保障',
         'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
           'Wan、p-video 等——来自 api.deepinfra.com 的实时目录；文生视频与图生视频',
         'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':

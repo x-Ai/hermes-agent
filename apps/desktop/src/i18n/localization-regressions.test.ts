@@ -162,6 +162,17 @@ const PROVIDER_ENV_KEYS = [
   'TOKENHUB_BASE_URL'
 ] as const
 
+const WEB_PROVIDER_TAGS = [
+  'Semantic + neural web search with content extraction via the Exa SDK. Unthrottled, guaranteed service.',
+  "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.",
+  'Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.',
+  "Independent web index for AI apps — fast search + page fetch on Keenable's anonymous free tier.",
+  'Independent web index for AI apps. Keyed access with higher limits and guaranteed service.',
+  "Objective-tuned search + page extraction on Parallel's anonymous free tier. Rate-limited under burst load.",
+  'Objective-tuned search + parallel page extraction via the Parallel SDK. Unthrottled, guaranteed service.',
+  'Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.'
+] as const
+
 afterEach(() => setRuntimeI18nLocale('en'))
 
 describe('Simplified Chinese localization regressions', () => {
@@ -200,6 +211,14 @@ describe('Simplified Chinese localization regressions', () => {
 
     for (const key of PROVIDER_ENV_KEYS) {
       expect(zh.settings.envKeys[key]?.description, `${key} description`).toMatch(/[\u3400-\u9fff]/u)
+    }
+  })
+
+  it('localizes the current web-provider setup copy', () => {
+    expect(zh.settings.envKeys.HASS_TOKEN?.description).toMatch(/[\u3400-\u9fff]/u)
+
+    for (const tag of WEB_PROVIDER_TAGS) {
+      expect(zh.settings.toolsets.tagCopy[tag], tag).toMatch(/[\u3400-\u9fff]/u)
     }
   })
 
