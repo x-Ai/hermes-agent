@@ -253,7 +253,7 @@ describe('materializing the draft profile', () => {
     fireEvent.click(cloneFrom)
     expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual([
       'Fresh profile (bundled skills)',
-      'default'
+      'Default'
     ])
     fireEvent.click(screen.getByRole('option', { name: /Fresh profile/ }))
 

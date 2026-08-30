@@ -18,7 +18,7 @@ import { openGroupChat } from './group-chat-view'
 import { liveGroupChatNames } from './group-membership'
 import { closeGroupChatMainTab } from './group-panes'
 import { botsText } from './i18n'
-import { displayName } from './labels'
+import { localizedDisplayName } from './labels'
 import { botRosterMeta, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
 import { botCanonicalSessionId } from './row-helpers'
 import { bumpBotOpenGeneration, getBotOpenGeneration, getPluginCtx } from './shared'
@@ -113,8 +113,9 @@ export function trackInboundActivity(roster: RosterRow[]) {
     lastToastedPreview.set(key, preview)
 
     if ($activityToasts.get()) {
+      const b = botsText()
       const meta = botRosterMeta(bot, $botMeta.get())
-      const label = displayName(bot, meta)
+      const label = localizedDisplayName(bot, meta, b.bot.defaultProfileName)
       const inbound = /^Message from/i.test(preview)
       const copy = botsText().roster
       host.notify({
@@ -321,7 +322,9 @@ export async function openRosterBot(bot: RosterRow): Promise<boolean> {
     if (generation === getBotOpenGeneration()) {
       $openBotChat.set(null)
       restorePreviousGroup()
-      notifyBotOpenFailure(error, bot, 'open', displayName(bot, meta))
+      const b = botsText()
+      const label = localizedDisplayName(bot, meta, b.bot.defaultProfileName)
+      notifyBotOpenFailure(error, bot, 'open', label)
     }
 
     return false

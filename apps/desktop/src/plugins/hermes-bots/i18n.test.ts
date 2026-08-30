@@ -42,14 +42,14 @@ describe('BOTS_LOCALES', () => {
     const samples = [
       'roster.activityToastsOn',
       'roster.newMenu',
-      'bot.newDescription',
+      'bot.description',
       'bot.nameLabel',
-      'bot.createAction',
+      'bot.createBot',
       'avatar.lockFace',
       'group.manageTitle',
       'tools.skillsHub',
       'cron.stopAfter',
-      'cron.runsForeverHint'
+      'cron.runsForever'
     ] as const
 
     const enByPath = Object.fromEntries(leafEntries(en))
