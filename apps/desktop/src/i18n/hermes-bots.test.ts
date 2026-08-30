@@ -25,6 +25,13 @@ describe('Hermes Bots i18n', () => {
     expect(translatePlugin('hermes-bots', 'zh', 'bot.createAction', [])).toBe('创建智能体')
     expect(translatePlugin('hermes-bots', 'zh', 'bot.openBotChat', [])).toBe('打开智能体聊天')
     expect(translatePlugin('hermes-bots', 'zh', 'bot.deleteTitle', [])).toBe('删除智能体和配置档案？')
+    expect(translatePlugin('hermes-bots', 'zh', 'bot.duplicated', ['默认 2', '默认'])).toBe(
+      '已创建 默认 2 — 默认 的完整副本'
+    )
+    expect(translatePlugin('hermes-bots', 'zh', 'bot.deletedProfile', ['默认 2'])).toBe('已删除配置档案 默认 2')
+    expect(translatePlugin('hermes-bots', 'zh', 'bot.editDescription', ['Hermes', '默认'])).toBe(
+      'Hermes 的外观与角色（配置档案：默认）'
+    )
     expect(translatePlugin('hermes-bots', 'zh', 'roster.couldNotOpenChat', ['默认 2'])).toBe(
       '无法打开“默认 2”的聊天 — 请重试'
     )

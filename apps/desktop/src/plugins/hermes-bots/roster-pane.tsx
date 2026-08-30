@@ -62,6 +62,7 @@ import { groupChatMemberBots, groupChatNames, groupLastActivity } from './group-
 import { $groupMainTabsRev, shouldRenderGroupChatInPane } from './group-panes'
 import { $showHiddenBots, isBotHidden, isBotPinned } from './hidden-bots'
 import { useBots } from './i18n'
+import { localizedProfileName } from './labels'
 import { deleteBot, mergeServerMeta, pullServerAvatars } from './profile-ops'
 import { $activityToasts, setActivityToasts, trackInboundActivity } from './roster-actions'
 import {
@@ -891,7 +892,7 @@ export function BotsPane() {
           await refetch()
           host.notify({
             kind: 'success',
-            message: b.bot.deletedProfile(name)
+            message: b.bot.deletedProfile(localizedProfileName(name, b.bot.defaultProfileName))
           })
         }}
         open={Boolean(deleting)}

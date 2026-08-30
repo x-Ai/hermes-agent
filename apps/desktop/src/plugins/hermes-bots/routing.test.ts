@@ -15,7 +15,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { displayName, localizedDisplayName } from './labels'
+import { displayName, localizedDisplayName, localizedProfileName } from './labels'
 import {
   aliasIdentityFor,
   beginAliasRouteIndex,
@@ -71,6 +71,13 @@ describe('localized generated profile names', () => {
     expect(localizedDisplayName({ display_name: 'My Default 2', name: 'default-2' }, null, '默认')).toBe('My Default 2')
     expect(localizedDisplayName({ name: 'research-assistant' }, null, '默认')).toBe('Research Assistant')
     expect(localizedDisplayName({ name: 'default' }, null, '默认')).toBe('Hermes')
+  })
+
+  it('translates the built-in profile slug family without changing arbitrary slugs', () => {
+    expect(localizedProfileName('default', '默认')).toBe('默认')
+    expect(localizedProfileName('default-2', '默认')).toBe('默认 2')
+    expect(localizedProfileName('default_12', '預設')).toBe('預設 12')
+    expect(localizedProfileName('research-assistant', '默认')).toBe('research-assistant')
   })
 })
 

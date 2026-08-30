@@ -93,6 +93,26 @@ export function localizedDisplayName(
   return `${defaultProfileName.trim()} ${generated[1]}`
 }
 
+/** User-facing form of a profile slug. Keep arbitrary profile identities
+ * byte-for-byte (they are useful when troubleshooting), but translate the
+ * built-in `default` family that Desktop itself generates. */
+export function localizedProfileName(name: string, defaultProfileName: string): string {
+  const raw = String(name || '').trim()
+  const localizedDefault = defaultProfileName.trim()
+
+  if (!localizedDefault) {
+    return raw
+  }
+
+  if (/^default$/i.test(raw)) {
+    return localizedDefault
+  }
+
+  const numbered = /^default[-_ ]+(\d+)$/i.exec(raw)
+
+  return numbered ? `${localizedDefault} ${numbered[1]}` : raw
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

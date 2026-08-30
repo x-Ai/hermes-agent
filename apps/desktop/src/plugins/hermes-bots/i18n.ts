@@ -156,7 +156,10 @@ type BotsMessages = {
     defaultProfileName: string
     freshProfile: string
     editTitle: string
+    editDescription: (name: string, profile: string) => string
     editMenu: string
+    updated: (name: string) => string
+    advancedSectionsFailed: (sections: string) => string
     helpPromptPlaceholder: string
     descriptionHint: string
     newChatWith: string
@@ -587,7 +590,10 @@ const en: BotsMessages = {
     defaultProfileName: 'Default',
     freshProfile: 'Fresh profile (bundled skills)',
     editTitle: 'Edit profile',
+    editDescription: (name, profile) => `Appearance and role for ${name} (${profile}).`,
     editMenu: 'Edit…',
+    updated: name => `${name} updated`,
+    advancedSectionsFailed: sections => `Some sections failed: ${sections}`,
     helpPromptPlaceholder: 'What should this bot help with?',
     descriptionHint: 'Leave blank to generate from the bot’s name and description.',
     newChatWith: 'New chat with this bot',
@@ -1009,7 +1015,10 @@ const ja: BotsMessages = {
     defaultProfileName: 'デフォルト',
     freshProfile: '新規プロファイル（同梱スキル）',
     editTitle: 'プロファイルを編集',
+    editDescription: (name, profile) => `${name} の外観と役割（プロファイル：${profile}）。`,
     editMenu: '編集…',
+    updated: name => `${name}を更新しました`,
+    advancedSectionsFailed: sections => `一部の項目を更新できませんでした：${sections}`,
     helpPromptPlaceholder: 'このボットは何を手伝いますか？',
     descriptionHint: '空欄のままにすると、ボットの名前と説明から生成します。',
     newChatWith: 'このボットと新しいチャット',
@@ -1426,7 +1435,10 @@ const zh: BotsMessages = {
     defaultProfileName: '默认',
     freshProfile: '全新配置档（内置技能）',
     editTitle: '编辑配置档案',
+    editDescription: (name, profile) => `${name} 的外观与角色（配置档案：${profile}）`,
     editMenu: '编辑…',
+    updated: name => `${name} 已更新`,
+    advancedSectionsFailed: sections => `部分配置更新失败：${sections}`,
     helpPromptPlaceholder: '这个智能体应该帮你做什么？',
     descriptionHint: '留空则根据智能体的名称和描述生成。',
     newChatWith: '与此智能体开新聊天',
@@ -1838,7 +1850,10 @@ const zhHant: BotsMessages = {
     defaultProfileName: '預設',
     freshProfile: '全新設定檔（內建技能）',
     editTitle: '編輯設定檔',
+    editDescription: (name, profile) => `${name} 的外觀與角色（設定檔：${profile}）`,
     editMenu: '編輯…',
+    updated: name => `${name} 已更新`,
+    advancedSectionsFailed: sections => `部分設定更新失敗：${sections}`,
     helpPromptPlaceholder: '這個智慧體應該幫你做什麼？',
     descriptionHint: '留空則依智慧體的名稱和描述產生。',
     newChatWith: '與此智慧體開新聊天',

@@ -55,7 +55,7 @@ import { $groupChats, $groupChatWorkspace } from './group-chat'
 import { botGroups, groupLastActivity } from './group-membership'
 import { fallbackSelectionAfterHide, isBotHidden, isBotPinned } from './hidden-bots'
 import { useBots } from './i18n'
-import { localizedDisplayName, stripPreviewMarkdown } from './labels'
+import { localizedDisplayName, localizedProfileName, stripPreviewMarkdown } from './labels'
 import { duplicateBot } from './profile-ops'
 import { openRosterBot } from './roster-actions'
 import { botRosterMeta, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
@@ -366,7 +366,10 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
                 })
                 host.notify({
                   kind: 'success',
-                  message: b.bot.duplicated(name, bot.name)
+                  message: b.bot.duplicated(
+                    localizedProfileName(name, b.bot.defaultProfileName),
+                    localizedProfileName(bot.name, b.bot.defaultProfileName)
+                  )
                 })
               })
               .catch(err => host.notifyError(err, b.bot.duplicateFailed))
