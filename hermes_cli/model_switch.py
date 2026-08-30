@@ -628,6 +628,7 @@ class ModelSwitchResult:
     provider_label: str = ""
     resolved_via_alias: str = ""
     capabilities: Optional[ModelCapabilities] = None
+    runtime_capabilities: Optional[dict[str, bool]] = None
     model_info: Optional[ModelInfo] = None
     is_global: bool = False
 
@@ -1851,6 +1852,7 @@ def switch_model(
     api_key = current_api_key
     base_url = current_base_url
     api_mode = ""
+    runtime_capabilities: dict[str, bool] = {}
     ollama_headers: dict[str, str] = {}
     validation_headers: dict[str, str] = {}
     suppress_ollama_headers = False
@@ -1895,6 +1897,7 @@ def switch_model(
                 api_key = runtime.get("api_key", "") or _ukey
                 base_url = runtime.get("base_url", "") or _user_pdef.base_url
                 api_mode = runtime.get("api_mode", "")
+                runtime_capabilities = runtime.get("capabilities") or {}
                 validation_headers = runtime.get("extra_headers") or validation_headers
             except Exception:
                 api_key = _ukey
@@ -1913,6 +1916,7 @@ def switch_model(
                 api_key = runtime.get("api_key", "")
                 base_url = runtime.get("base_url", "")
                 api_mode = runtime.get("api_mode", "")
+                runtime_capabilities = runtime.get("capabilities") or {}
                 validation_headers = runtime.get("extra_headers") or validation_headers
             except Exception as e:
                 return ModelSwitchResult(
@@ -1973,6 +1977,7 @@ def switch_model(
                 api_key = runtime.get("api_key", "")
                 base_url = runtime.get("base_url", "")
                 api_mode = runtime.get("api_mode", "")
+                runtime_capabilities = runtime.get("capabilities") or {}
                 validation_headers = runtime.get("extra_headers") or validation_headers
             except Exception:
                 pass
@@ -2175,6 +2180,13 @@ def switch_model(
 
     # --- Get capabilities (legacy) ---
     capabilities = get_model_capabilities(target_provider, new_model, allow_network=True)
+    from agent.native_compaction import resolve_native_compaction_capabilities
+    runtime_capabilities = resolve_native_compaction_capabilities(
+        model=new_model,
+        base_url=base_url,
+        provider=target_provider,
+        is_codex_backend=target_provider.strip().lower() == "openai-codex",
+    )
 
     # --- Get full model info from models.dev ---
     model_info = get_model_info(target_provider, new_model, allow_network=True)
@@ -2217,6 +2229,11 @@ def switch_model(
         provider_label=provider_label,
         resolved_via_alias=resolved_alias,
         capabilities=capabilities,
+        runtime_capabilities={
+            key: value
+            for key, value in runtime_capabilities.items()
+            if isinstance(key, str) and isinstance(value, bool)
+        },
         model_info=model_info,
         is_global=is_global,
     )

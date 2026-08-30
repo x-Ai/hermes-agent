@@ -1367,7 +1367,9 @@ def skill_view(
                 candidates = project_candidates
 
         if len(candidates) > 1:
-            paths = [str(smd) for _, smd in candidates]
+            # Paths are part of the JSON tool contract, so keep their wire
+            # representation stable across operating systems.
+            paths = [smd.as_posix() for _, smd in candidates]
             logging.getLogger(__name__).warning(
                 "Skill name collision for '%s': %d candidates — %s",
                 name, len(candidates), "; ".join(paths),
@@ -1542,7 +1544,11 @@ def skill_view(
                     },
                     ensure_ascii=False,
                 )
-            if not target_file.exists():
+            # Gate on is_file(), not exists(): a directory (e.g. requesting
+            # 'references' bare) must take the not-found listing branch, not
+            # fall through to read_text() and surface a raw [Errno 21]
+            # "Is a directory" OS error. Matches the plugin-skill branch above.
+            if not target_file.is_file():
                 # List available files in the skill directory, organized by type
                 available_files = {
                     "references": [],
@@ -1555,7 +1561,7 @@ def skill_view(
                 # Scan for all readable files
                 for f in skill_dir.rglob("*"):
                     if f.is_file() and f.name != "SKILL.md":
-                        rel = str(f.relative_to(skill_dir))
+                        rel = f.relative_to(skill_dir).as_posix()
                         if rel.startswith("references/"):
                             available_files["references"].append(rel)
                         elif rel.startswith("templates/"):
@@ -1701,10 +1707,14 @@ def skill_view(
             linked_files["scripts"] = script_files
 
         try:
-            rel_path = str(skill_md.relative_to(active_skills_dir))
+            rel_path = skill_md.relative_to(active_skills_dir).as_posix()
         except ValueError:
             # External skill — use path relative to the skill's own parent dir
-            rel_path = str(skill_md.relative_to(skill_md.parent.parent)) if skill_md.parent.parent else skill_md.name
+            rel_path = (
+                skill_md.relative_to(skill_md.parent.parent).as_posix()
+                if skill_md.parent.parent
+                else skill_md.name
+            )
         skill_name = frontmatter.get(
             "name", skill_md.stem if not skill_dir else skill_dir.name
         )
