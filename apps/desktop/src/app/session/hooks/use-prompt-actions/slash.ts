@@ -356,9 +356,9 @@ export function useSlashCommand(deps: SlashCommandDeps) {
             const queueKey = resolveComposerSessionKey(storedSessionId, $sessions.get()) || storedSessionId || sessionId
 
             if (enqueueQueuedPrompt(queueKey, { attachments: [], text: message, displayText })) {
-              renderSlashOutput('session busy — message queued to send when the current turn finishes')
+              renderSlashOutput(copy.sessionBusyQueuedCommand)
             } else {
-              renderSlashOutput('session busy — /interrupt the current turn before sending this command')
+              renderSlashOutput(copy.sessionBusyInterruptCommand)
             }
 
             return
@@ -861,11 +861,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
 
             setSessions(prev => prev.map(s => (s.id === sessionId ? { ...s, title: finalTitle || null } : s)))
             await refreshSessions().catch(() => undefined)
-            renderSlashOutput(
-              finalTitle
-                ? `Session title set: ${finalTitle}${queued ? ' (queued while session initializes)' : ''}`
-                : 'Session title cleared.'
-            )
+            renderSlashOutput(finalTitle ? copy.sessionTitleSet(finalTitle, queued) : copy.sessionTitleCleared)
           } catch (err) {
             renderSlashOutput(`error: ${err instanceof Error ? err.message : String(err)}`)
           }

@@ -1,6 +1,7 @@
 import type { AppendMessage } from '@assistant-ui/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 
 import {
@@ -36,6 +37,7 @@ import {
 afterEach(() => {
   clearSessionRecentlyInterrupted()
   clearSubmitInFlight()
+  setRuntimeI18nLocale('en')
 })
 
 describe('recent interrupt cooldown', () => {
@@ -493,6 +495,15 @@ describe('renderRpcResult', () => {
       expect(renderRpcResult({ status: 'rejected', text: 'whatever' }, 'steer')).toBe(
         'Steer rejected — agent declined input'
       )
+    })
+
+    it('localizes queued and rejected steer status at the desktop renderer boundary', () => {
+      setRuntimeI18nLocale('zh')
+
+      expect(renderRpcResult({ status: 'queued', text: '跳过文档' }, 'steer')).toBe(
+        '已引导 · “跳过文档”已排队，将在下一次工具调用时送达'
+      )
+      expect(renderRpcResult({ status: 'rejected', text: 'whatever' }, 'steer')).toBe('引导未生效——代理未接受该输入')
     })
   })
 

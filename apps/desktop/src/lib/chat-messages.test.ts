@@ -512,6 +512,12 @@ describe('renderMediaTags', () => {
     expect(renderMediaTags('MEDIA:/tmp/demo.mp4')).toBe('[Video: demo.mp4](#media:%2Ftmp%2Fdemo.mp4)')
   })
 
+  it('localizes the display label while preserving the MEDIA protocol target', () => {
+    setRuntimeI18nLocale('zh')
+
+    expect(renderMediaTags('MEDIA:/tmp/demo.mp4')).toBe('[视频：demo.mp4](#media:%2Ftmp%2Fdemo.mp4)')
+  })
+
   it('renders streamed assistant media once the tag is complete', () => {
     const parts = appendAssistantTextPart(appendAssistantTextPart([], 'ok\nMEDIA:'), '/tmp/voice.mp3')
     const text = chatMessageText({ id: 'a', role: 'assistant', parts })

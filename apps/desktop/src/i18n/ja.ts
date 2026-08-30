@@ -46,6 +46,14 @@ export const ja = defineLocale({
     off: 'オフ'
   },
 
+  media: {
+    displayLabel: (kind, name) => {
+      const labels = { audio: '音声', file: 'ファイル', image: '画像', video: '動画' }
+
+      return `${labels[kind]}：${name}`
+    }
+  },
+
   fileMenu: {
     revealFinder: 'Finder で表示',
     revealExplorer: 'エクスプローラーで表示',
@@ -4072,6 +4080,11 @@ export const ja = defineLocale({
         `${provider} の${kind === 'output' ? '出力' : '応答'}を待っています — ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
           kind === 'output' ? '。モデルがまだ思考中の可能性もあります' : ''
         }${reconnectSeconds ? `。${reconnectSeconds} 秒経過時に自動で再接続します` : ''}）`,
+      summarizingThread: '会話を整理中',
+      moaAggregating: 'MoA で集約中…',
+      moaReference: (label, index, count) =>
+        `参照モデル${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
+      moaReferencesProgress: (done, total, label) => `MoA 参照進捗 ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'バックグラウンドタスクの完了後に再開します'
@@ -4328,6 +4341,16 @@ export const ja = defineLocale({
     nothingToBranch: 'ブランチするものがありません',
     branchNeedsChat: 'ブランチする前にチャットを開始または再開してください。',
     sessionBusy: 'セッションが使用中',
+    sessionBusyQueuedCommand:
+      '現在のタスクを実行中です。メッセージはキューに追加され、このターンの完了後に自動送信されます',
+    sessionBusyInterruptCommand:
+      '現在のタスクを実行中です。/interrupt でこのターンを停止してからコマンドを送信してください',
+    steerQueued: text => `誘導済み ·「${text}」はキューに追加され、次のツール呼び出し時に送られます`,
+    steerQueuedNextToolCall: '次のツール呼び出しを誘導しました',
+    steerRejected: '誘導できませんでした — エージェントが入力を受け付けませんでした',
+    sessionTitleSet: (title, queued) =>
+      `セッションタイトルを設定しました：${title}${queued ? '（セッションの初期化後に適用されます）' : ''}`,
+    sessionTitleCleared: 'セッションタイトルを消去しました。',
     branchStopCurrent: 'このチャットをブランチする前に現在のターンを停止してください。',
     branchNoText: 'このメッセージにはブランチするテキストがありません。',
     branchTitle: n => `下書き: ブランチ #${n}`,

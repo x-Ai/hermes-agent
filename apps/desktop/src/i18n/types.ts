@@ -103,6 +103,10 @@ export interface Translations {
     off: string
   }
 
+  media: {
+    displayLabel: (kind: 'audio' | 'file' | 'image' | 'video', name: string) => string
+  }
+
   fileMenu: {
     revealFinder: string
     revealExplorer: string
@@ -3074,6 +3078,10 @@ export interface Translations {
         kind: 'output' | 'response',
         reconnectSeconds: string | null
       ) => string
+      summarizingThread: string
+      moaAggregating: string
+      moaReference: (label: string, index?: number, count?: number) => string
+      moaReferencesProgress: (done: number, total: number, label: string) => string
       resumeWhenBackgroundDone: (count: number) => string
       thinking: string
       thought: string
@@ -3302,6 +3310,13 @@ export interface Translations {
     nothingToBranch: string
     branchNeedsChat: string
     sessionBusy: string
+    sessionBusyQueuedCommand: string
+    sessionBusyInterruptCommand: string
+    steerQueued: (text: string) => string
+    steerQueuedNextToolCall: string
+    steerRejected: string
+    sessionTitleSet: (title: string, queued: boolean) => string
+    sessionTitleCleared: string
     branchStopCurrent: string
     branchNoText: string
     branchTitle: (n: number) => string

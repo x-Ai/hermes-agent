@@ -1,6 +1,7 @@
 import { act, cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { setRuntimeI18nLocale } from '@/i18n'
 import type { RpcEvent } from '@/types/hermes'
 
 import { type MessageStreamHarness, renderMessageStream } from './test-harness'
@@ -18,6 +19,7 @@ function emit(type: RpcEvent['type'], payload: RpcEvent['payload'] = {}) {
 
 afterEach(() => {
   cleanup()
+  setRuntimeI18nLocale('en')
   vi.restoreAllMocks()
 })
 
@@ -72,5 +74,20 @@ describe('useMessageStream moa.progress / moa.phase surfacing', () => {
     expect(text).toContain('Reference 1/1 — model-a')
     expect(text).not.toContain('MoA refs')
     expect(text).not.toContain('aggregating')
+  })
+
+  it('localizes structured MoA progress while preserving event and model identifiers', () => {
+    setRuntimeI18nLocale('zh')
+    mountStream()
+
+    emit('message.start')
+    emit('moa.progress', { label: 'model-a', refs_done: 1, refs_total: 1 })
+    expect(stream.reasoningText()).toContain('MoA 参考进度 1/1 — model-a')
+
+    emit('moa.phase', { phase: 'aggregator', refs_done: 1, refs_total: 1 })
+    expect(stream.reasoningText()).toContain('MoA 正在汇总…')
+
+    emit('moa.reference', { count: 1, index: 1, label: 'model-a', text: 'advice-a' })
+    expect(stream.reasoningText()).toContain('参考模型 1/1 — model-a')
   })
 })

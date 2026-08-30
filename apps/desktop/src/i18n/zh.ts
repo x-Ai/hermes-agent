@@ -60,6 +60,14 @@ export const zh: Translations = {
     off: '关'
   },
 
+  media: {
+    displayLabel: (kind, name) => {
+      const labels = { audio: '音频', file: '文件', image: '图片', video: '视频' }
+
+      return `${labels[kind]}：${name}`
+    }
+  },
+
   fileMenu: {
     revealFinder: '在访达中显示',
     revealExplorer: '在文件资源管理器中显示',
@@ -4923,6 +4931,11 @@ export const zh: Translations = {
         `正在等待 ${provider} ${kind === 'output' ? '输出' : '响应'}——已持续 ${elapsedSeconds} 秒（服务商可能响应较慢或负载过高${
           kind === 'output' ? '，模型也可能仍在思考' : ''
         }${reconnectSeconds ? `；若持续无${kind === 'output' ? '输出' : '响应'}，将在 ${reconnectSeconds} 秒时自动重连` : ''}）`,
+      summarizingThread: '正在整理对话',
+      moaAggregating: 'MoA 正在汇总…',
+      moaReference: (label, index, count) =>
+        `参考模型${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
+      moaReferencesProgress: (done, total, label) => `MoA 参考进度 ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '后台任务完成后将自动继续' : `${count} 个后台任务完成后将自动继续`,
       thinking: '思考中',
@@ -5194,6 +5207,13 @@ export const zh: Translations = {
     nothingToBranch: '没有可分支的内容',
     branchNeedsChat: '分支前请先开始或恢复一个对话',
     sessionBusy: '会话忙碌中',
+    sessionBusyQueuedCommand: '当前任务仍在运行，消息已加入队列，将在本轮结束后自动发送',
+    sessionBusyInterruptCommand: '当前任务仍在运行，请先使用 /interrupt 停止本轮，再发送此命令',
+    steerQueued: text => `已引导 · “${text}”已排队，将在下一次工具调用时送达`,
+    steerQueuedNextToolCall: '已引导下一次工具调用',
+    steerRejected: '引导未生效——代理未接受该输入',
+    sessionTitleSet: (title, queued) => `会话标题已设置为：${title}${queued ? '（将在会话初始化后应用）' : ''}`,
+    sessionTitleCleared: '会话标题已清除',
     branchStopCurrent: '分支此对话前请先停止当前回合',
     branchNoText: '此消息没有可用于分支的文本',
     branchTitle: n => `草稿：分支 #${n}`,

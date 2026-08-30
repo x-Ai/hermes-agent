@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { __resetElapsedTimerRegistryForTests } from '@/components/chat/activity-timer'
 import { I18nProvider } from '@/i18n'
+import { $compactingSessions, setSessionCompacting } from '@/store/compaction'
 import { $providerWaitSessions, setSessionProviderWait } from '@/store/provider-wait'
 import { $activeSessionId, $turnStartedAt } from '@/store/session'
 
@@ -31,6 +32,7 @@ describe('ResponseLoadingIndicator timer', () => {
     cleanup()
     $activeSessionId.set(null)
     $turnStartedAt.set(null)
+    $compactingSessions.set({})
     $providerWaitSessions.set({})
     __resetElapsedTimerRegistryForTests()
     vi.restoreAllMocks()
@@ -93,6 +95,16 @@ describe('ResponseLoadingIndicator timer', () => {
         '正在等待 kimi-k3 输出——已持续 57 秒（服务商可能响应较慢或负载过高，模型也可能仍在思考；若持续无输出，将在 900 秒时自动重连）'
       )
     ).toBeTruthy()
+  })
+
+  it('localizes the structured compaction status without translating the protocol marker', () => {
+    $activeSessionId.set('session-a')
+    $turnStartedAt.set(Date.now())
+    setSessionCompacting('session-a', true)
+
+    renderIndicator('zh')
+
+    expect(screen.getByText('正在整理对话')).toBeTruthy()
   })
 })
 

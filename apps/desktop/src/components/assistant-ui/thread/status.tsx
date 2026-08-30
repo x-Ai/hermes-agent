@@ -46,9 +46,6 @@ const StatusRow: FC<{ children: ReactNode; label: string } & React.ComponentProp
   </div>
 )
 
-// Fixed label while auto-compaction runs — decoupled from backend status text.
-const COMPACTION_LABEL = 'Summarizing thread'
-
 const HintText: FC<{ children: ReactNode }> = ({ children }) => (
   <span className={cn(SCAFFOLD_LABEL_CLASS, 'shimmer min-w-0 flex-1 truncate')}>{children}</span>
 )
@@ -118,7 +115,7 @@ function useStatusHint(
   }, [name])
 
   if (compacting) {
-    return COMPACTION_LABEL
+    return threadCopy.summarizingThread
   }
 
   if (providerWait) {

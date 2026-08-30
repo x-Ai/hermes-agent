@@ -547,10 +547,10 @@ export function renderRpcResult(response: unknown, name: string): string {
     const text = typeof r.text === 'string' ? r.text : ''
 
     if (r.status === 'queued') {
-      return text ? `Steered · "${text}" queued for next tool call` : 'Steered next tool call'
+      return text ? translateNow('desktop.steerQueued', text) : translateNow('desktop.steerQueuedNextToolCall')
     }
 
-    return 'Steer rejected — agent declined input'
+    return translateNow('desktop.steerRejected')
   }
 
   // process.stop — { killed: number }

@@ -46,6 +46,14 @@ export const zhHant = defineLocale({
     off: '關閉'
   },
 
+  media: {
+    displayLabel: (kind, name) => {
+      const labels = { audio: '音訊', file: '檔案', image: '圖片', video: '影片' }
+
+      return `${labels[kind]}：${name}`
+    }
+  },
+
   fileMenu: {
     revealFinder: '在 Finder 中顯示',
     revealExplorer: '在檔案總管中顯示',
@@ -3788,6 +3796,11 @@ export const zhHant = defineLocale({
         `正在等待 ${provider} ${kind === 'output' ? '輸出' : '回應'}——已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
           kind === 'output' ? '，模型也可能仍在思考' : ''
         }${reconnectSeconds ? `；若持續無${kind === 'output' ? '輸出' : '回應'}，將在 ${reconnectSeconds} 秒時自動重新連線` : ''}）`,
+      summarizingThread: '正在整理對話',
+      moaAggregating: 'MoA 正在彙整…',
+      moaReference: (label, index, count) =>
+        `參考模型${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
+      moaReferencesProgress: (done, total, label) => `MoA 參考進度 ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '背景工作完成後將自動繼續' : `${count} 個背景工作完成後將自動繼續`,
       thinking: '思考中',
@@ -4007,6 +4020,13 @@ export const zhHant = defineLocale({
     nothingToBranch: '沒有可分支的內容',
     branchNeedsChat: '分支前請先開始或繼續一個聊天。',
     sessionBusy: '工作階段忙碌中',
+    sessionBusyQueuedCommand: '目前任務仍在執行，訊息已加入佇列，將在本回合結束後自動傳送',
+    sessionBusyInterruptCommand: '目前任務仍在執行，請先使用 /interrupt 停止本回合，再傳送此指令',
+    steerQueued: text => `已引導 ·「${text}」已排入佇列，將在下一次工具呼叫時送達`,
+    steerQueuedNextToolCall: '已引導下一次工具呼叫',
+    steerRejected: '引導未生效——代理未接受此輸入',
+    sessionTitleSet: (title, queued) => `工作階段標題已設為：${title}${queued ? '（將在工作階段初始化後套用）' : ''}`,
+    sessionTitleCleared: '工作階段標題已清除。',
     branchStopCurrent: '分支此聊天前請先停止目前回合。',
     branchNoText: '此訊息沒有可用於分支的文字。',
     branchTitle: n => `草稿：分支 #${n}`,

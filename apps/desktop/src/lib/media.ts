@@ -1,5 +1,5 @@
+import { translateNow } from '@/i18n'
 import { readDesktopFileDataUrl } from '@/lib/desktop-fs'
-import { capitalize } from '@/lib/text'
 import { $connection } from '@/store/session'
 
 export type MediaKind = 'audio' | 'image' | 'video' | 'file'
@@ -225,5 +225,5 @@ export function mediaDisplayLabel(path: string): string {
   const escaped = mediaName(path).replace(/[[\]\\]/g, '\\$&')
   const kind = mediaKind(path)
 
-  return `${capitalize(kind)}: ${escaped}`
+  return translateNow('media.displayLabel', kind, escaped)
 }

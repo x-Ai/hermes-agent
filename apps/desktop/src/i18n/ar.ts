@@ -61,6 +61,13 @@ export const ar = defineLocale({
     on: 'مفعل',
     off: 'معطل'
   },
+  media: {
+    displayLabel: (kind, name) => {
+      const labels = { audio: 'صوت', file: 'ملف', image: 'صورة', video: 'فيديو' }
+
+      return `${labels[kind]}: ${name}`
+    }
+  },
   fileMenu: {
     revealFinder: 'إظهار في Finder',
     revealExplorer: 'إظهار في File Explorer',
@@ -2966,6 +2973,11 @@ export const ar = defineLocale({
         `في انتظار ${kind === 'output' ? 'مخرجات' : 'استجابة'} ${provider} — انقضت ${elapsedSeconds} ث (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
           kind === 'output' ? '، أو قد يظل النموذج يفكر' : ''
         }${reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند ${reconnectSeconds} ث` : ''})`,
+      summarizingThread: 'جار تنظيم المحادثة',
+      moaAggregating: 'جار التجميع عبر MoA…',
+      moaReference: (label, index, count) =>
+        `النموذج المرجعي${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
+      moaReferencesProgress: (done, total, label) => `تقدم مراجع MoA ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? 'سيُستأنف عند انتهاء المهمة الخلفية' : `سيُستأنف عند انتهاء ${count} مهام خلفية`,
       thinking: 'يفكر...',
@@ -3270,6 +3282,15 @@ export const ar = defineLocale({
     nothingToBranch: 'لا يوجد ما يمكن تفريعه',
     branchNeedsChat: 'يحتاج التفريع إلى محادثة',
     sessionBusy: 'الجلسة مشغولة',
+    sessionBusyQueuedCommand:
+      'المهمة الحالية ما زالت قيد التشغيل. أُضيفت الرسالة إلى قائمة الانتظار وستُرسل تلقائياً بعد انتهاء الجولة الحالية',
+    sessionBusyInterruptCommand:
+      'المهمة الحالية ما زالت قيد التشغيل. استخدم /interrupt لإيقاف الجولة قبل إرسال هذا الأمر',
+    steerQueued: text => `تم التوجيه · أُضيف «${text}» إلى قائمة الانتظار وسيُرسل عند استدعاء الأداة التالي`,
+    steerQueuedNextToolCall: 'تم توجيه استدعاء الأداة التالي',
+    steerRejected: 'تعذّر التوجيه — لم يقبل الوكيل الإدخال',
+    sessionTitleSet: (title, queued) => `تم تعيين عنوان الجلسة: ${title}${queued ? ' (سيُطبق بعد تهيئة الجلسة)' : ''}`,
+    sessionTitleCleared: 'تم مسح عنوان الجلسة.',
     branchStopCurrent: 'أوقف الدور الحالي قبل التفريع',
     branchNoText: 'لا يوجد نص للتفريع',
     branchTitle: n => `مسودة: تفريع #${n}`,

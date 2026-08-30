@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getSession } from '@/hermes'
+import { I18nProvider } from '@/i18n'
 import { textPart } from '@/lib/chat-messages'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { $composerAttachments, $composerDraft, type ComposerAttachment, setComposerDraft } from '@/store/composer'
@@ -1312,13 +1313,15 @@ describe('usePromptActions slash.exec dispatch payloads', () => {
 
     let handle: HarnessHandle | null = null
     await actRender(
-      <Harness
-        busyRef={busyRef}
-        onReady={h => (handle = h)}
-        onSeedState={s => states.push(s)}
-        refreshSessions={async () => undefined}
-        requestGateway={requestGateway}
-      />
+      <I18nProvider configClient={null} initialLocale="zh">
+        <Harness
+          busyRef={busyRef}
+          onReady={h => (handle = h)}
+          onSeedState={s => states.push(s)}
+          refreshSessions={async () => undefined}
+          requestGateway={requestGateway}
+        />
+      </I18nProvider>
     )
 
     await handle!.submitText('/goal ship the release notes')
@@ -1342,7 +1345,7 @@ describe('usePromptActions slash.exec dispatch payloads', () => {
     // The notice still renders, and the busy line reports a queue, not a demand
     // to /interrupt.
     expect(renderedText).toContain('⊙ Goal set (20-turn budget): ship the release notes')
-    expect(renderedText).toContain('queued')
+    expect(renderedText).toContain('当前任务仍在运行，消息已加入队列，将在本轮结束后自动发送')
 
     dropSessionState(RUNTIME_SESSION_ID)
     $queuedPromptsBySession.set({})

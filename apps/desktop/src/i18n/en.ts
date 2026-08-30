@@ -46,6 +46,14 @@ export const en: Translations = {
     off: 'Off'
   },
 
+  media: {
+    displayLabel: (kind, name) => {
+      const labels = { audio: 'Audio', file: 'File', image: 'Image', video: 'Video' }
+
+      return `${labels[kind]}: ${name}`
+    }
+  },
+
   fileMenu: {
     revealFinder: 'Reveal in Finder',
     revealExplorer: 'Reveal in File Explorer',
@@ -3840,6 +3848,11 @@ export const en: Translations = {
         `Waiting for ${provider} ${kind} — ${elapsedSeconds}s elapsed (the provider may be slow or overloaded${
           kind === 'output' ? ', or the model may still be thinking' : ''
         }${reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s` : ''})`,
+      summarizingThread: 'Summarizing thread',
+      moaAggregating: 'MoA aggregating…',
+      moaReference: (label, index, count) =>
+        `Reference${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
+      moaReferencesProgress: (done, total, label) => `MoA refs ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Will resume when the background task finishes'
@@ -4128,6 +4141,14 @@ export const en: Translations = {
     nothingToBranch: 'Nothing to branch',
     branchNeedsChat: 'Start or resume a chat before branching.',
     sessionBusy: 'Session busy',
+    sessionBusyQueuedCommand: 'Session busy — message queued to send when the current turn finishes',
+    sessionBusyInterruptCommand: 'Session busy — /interrupt the current turn before sending this command',
+    steerQueued: text => `Steered · "${text}" queued for next tool call`,
+    steerQueuedNextToolCall: 'Steered next tool call',
+    steerRejected: 'Steer rejected — agent declined input',
+    sessionTitleSet: (title, queued) =>
+      `Session title set: ${title}${queued ? ' (queued while session initializes)' : ''}`,
+    sessionTitleCleared: 'Session title cleared.',
     branchStopCurrent: 'Stop the current turn before branching this chat.',
     branchNoText: 'This message has no text to branch from.',
     branchTitle: n => `Draft: Branch #${n}`,
