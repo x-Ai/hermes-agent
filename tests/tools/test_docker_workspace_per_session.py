@@ -88,6 +88,8 @@ def _clean_overrides():
         tt.clear_task_env_overrides(key)
     with tt._session_cwd_lock:
         tt._session_cwd.clear()
+    with tt._container_alias_lock:
+        tt._container_aliases.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +216,56 @@ class TestContainerIdentityFollowsWorkspace:
         tt.register_task_env_overrides("sess-a", {"cwd": str(a)})
         tt.register_task_env_overrides("sess-c", {"cwd": str(a) + os.sep})
         assert tt._resolve_container_task_id("sess-a") == tt._resolve_container_task_id("sess-c")
+
+    def test_subagent_alias_resolves_parent_workspace_container(
+        self, projects, per_session_on, monkeypatch
+    ):
+        """A child whose cwd is already translated to /workspace must still
+        reuse the parent's workspace-keyed sandbox.
+
+        Delegation records the child's execution cwd as the in-container path
+        and separately registers child -> parent container ownership.  The
+        workspace identity resolver must follow that ownership before trying
+        to derive a host mount from the child's /workspace spelling; otherwise
+        it falls through to the default sandbox and mounts the process cwd.
+        """
+        monkeypatch.setenv("TERMINAL_CONTAINER_PERSISTENT", "true")
+        project, _ = projects
+        parent = "parent-session"
+        child = "subagent-child"
+        grandchild = "subagent-grandchild"
+
+        tt.register_task_env_overrides(parent, {"cwd": str(project)})
+        tt.record_session_cwd(child, "/workspace")
+        tt.record_session_cwd(grandchild, "/workspace")
+        tt.register_container_alias(child, parent)
+        tt.register_container_alias(grandchild, child)
+
+        parent_key = tt._resolve_container_task_id(parent)
+        assert parent_key.startswith("ws-")
+        assert tt._resolve_container_task_id(child) == parent_key
+        assert tt._resolve_container_task_id(grandchild) == parent_key
+
+        parent_env = object()
+        monkeypatch.setitem(tt._active_environments, parent_key, parent_env)
+        assert tt.get_active_env(child) is parent_env
+        assert tt.get_active_env(grandchild) is parent_env
+
+    def test_subagent_explicit_isolation_override_beats_parent_alias(
+        self, projects, per_session_on
+    ):
+        """RL/benchmark children asking for their own image remain isolated."""
+        project, _ = projects
+        parent = "parent-session"
+        child = "isolated-subagent"
+        image_key = f"{per_session_on}_image"
+
+        tt.register_task_env_overrides(parent, {"cwd": str(project)})
+        tt.register_task_env_overrides(child, {image_key: "custom:latest"})
+        tt.register_container_alias(child, parent)
+
+        assert tt._resolve_container_task_id(child) == child
+        assert tt._resolve_container_task_id(parent).startswith("ws-")
 
     @pytest.mark.parametrize("backend", sorted(_BACKEND_FLAGS))
     def test_opt_in_off_collapses_every_session_to_default(self, projects, monkeypatch, backend):

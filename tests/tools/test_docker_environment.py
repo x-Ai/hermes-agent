@@ -1,6 +1,7 @@
 import logging
 import os
 from io import StringIO
+import shutil
 import subprocess
 
 import pytest
@@ -301,9 +302,13 @@ def test_wrapped_exec_scopes_explicit_forward_env_across_profiles(monkeypatch, t
     from agent import secret_scope as ss
 
     env = _make_execute_only_env(forward_env=["EXPLICIT_TOKEN"])
-    env.cwd = str(tmp_path)
-    env._snapshot_path = str(tmp_path / "snapshot.sh")
-    env._cwd_file = str(tmp_path / "cwd.txt")
+    # These are container-side paths.  Keep them POSIX-relative and start the
+    # fake container process in tmp_path: passing a native ``C:\\...`` path to
+    # WSL/Git Bash does not model Docker and can be rewritten into a different
+    # filename before ``cd`` fails with 126.
+    env.cwd = "."
+    env._snapshot_path = "snapshot.sh"
+    env._cwd_file = "cwd.txt"
     env._snapshot_passthrough_names = set()
     (tmp_path / "snapshot.sh").write_text(
         "export EXPLICIT_TOKEN=stale-from-previous-profile\n",
@@ -316,15 +321,39 @@ def test_wrapped_exec_scopes_explicit_forward_env_across_profiles(monkeypatch, t
         """Execute the generated docker exec command in a real local bash."""
         container_index = cmd.index(env._container_id)
         child_env = os.environ.copy()
+        forwarded_names = []
         index = 2
         while index < container_index:
             assert cmd[index] == "-e"
             key, value = cmd[index + 1].split("=", 1)
             child_env[key] = value
+            forwarded_names.append(key)
             index += 2
+        if os.name == "nt" and forwarded_names:
+            # ``bash.exe`` is commonly the WSL launcher on Windows.  WSL only
+            # imports explicitly listed Windows variables, whereas real
+            # ``docker exec -e`` places every value in the container env.
+            existing_wslenv = child_env.get("WSLENV", "")
+            child_env["WSLENV"] = ":".join(
+                [*forwarded_names, *filter(None, [existing_wslenv])]
+            )
         assert cmd[container_index + 1 : container_index + 3] == ["bash", "-c"]
+        bash_argv = ["bash"]
+        if os.name == "nt":
+            bash_exe = shutil.which("bash")
+            system_root = os.environ.get("SystemRoot", r"C:\Windows")
+            legacy_wsl_bash = os.path.join(system_root, "System32", "bash.exe")
+            if bash_exe and os.path.normcase(bash_exe) == os.path.normcase(legacy_wsl_bash):
+                # The legacy launcher corrupts quoting in multiline ``-c``
+                # arguments (notably ``$tmp`` expansions). ``wsl --exec``
+                # preserves the argv boundary used by a real container exec.
+                bash_argv = [
+                    os.path.join(system_root, "System32", "wsl.exe"),
+                    "--exec",
+                    "bash",
+                ]
         return subprocess.Popen(
-            ["bash", "-c", cmd[container_index + 3]],
+            [*bash_argv, "-c", cmd[container_index + 3]],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             stdin=subprocess.PIPE if stdin_data is not None else subprocess.DEVNULL,
@@ -332,6 +361,7 @@ def test_wrapped_exec_scopes_explicit_forward_env_across_profiles(monkeypatch, t
             encoding="utf-8",
             errors="replace",
             env=child_env,
+            cwd=tmp_path,
         )
 
     monkeypatch.setattr(docker_env, "_popen_bash", _run_fake_docker_exec)
@@ -631,12 +661,16 @@ def test_persistent_bind_mounts_survive_a_session_key_task_id(monkeypatch, tmp_p
     assert len(mounts) == 2, f"expected /root and /workspace binds; got {specs}"
     for spec in mounts:
         source, _, target = spec.rpartition(":")
-        assert ":" not in source, (
+        drive, source_tail = os.path.splitdrive(source)
+        assert ":" not in source_tail, (
             f"bind source still contains a colon, docker run would fail with "
             f"'too many colons': {spec}"
         )
-        # Docker splits on ':' — a sane spec has exactly source:target.
-        assert spec.count(":") == 1, f"spec is not a two-field bind: {spec}"
+        # A native Windows source legitimately contributes the ``C:`` drive
+        # separator.  Only task-id colons beyond that would add Docker fields.
+        assert spec.count(":") == 1 + bool(drive), (
+            f"spec contains a non-drive source colon: {spec}"
+        )
         assert target in {"/root", "/workspace"}
 
 

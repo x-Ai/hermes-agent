@@ -1545,12 +1545,16 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     session to spin up its own container.  Only overrides containing
     backend-specific image keys or ``env_type`` trigger isolation.
 
+    ``delegate_task`` children keep sharing the parent's container via the
+    alias registry (``register_container_alias``), regardless of which
+    identity mode selected that container. The alias target is resolved
+    recursively so a workspace-keyed parent yields its ``ws-*`` key, while a
+    session-isolated parent keeps its raw task id.
+
     Per-session container isolation (docker + ``container_persistent:
     false``): each session's task_id is its own container key, so a fresh
     chat gets a fresh sandbox with only ITS mounts — a previous session's
     workspace can no longer appear in a new session's container.
-    ``delegate_task`` children keep sharing the parent's container via the
-    alias registry (``register_container_alias``).
 
     The other exception is per-session workspace mounting
     (``terminal.docker_workspace_per_session`` /
@@ -1563,8 +1567,17 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """
     if task_id and _has_isolation_overrides(task_id):
         return task_id
+    if task_id:
+        alias_target = _resolve_container_alias(task_id)
+        if alias_target != task_id:
+            # Resolve the parent's FULL identity instead of returning its raw
+            # task id. With workspace-per-session mounting the parent lives
+            # under a ws-* key, while the child only records the translated
+            # in-container cwd (/workspace) and cannot derive that host-path
+            # key itself. Nested delegation collapses through the same path.
+            return _resolve_container_task_id(alias_target)
     if task_id and _session_isolation_enabled():
-        return _resolve_container_alias(task_id)
+        return task_id
     # Deliberately outside the override-registry guard above: the cwd that keys
     # the sandbox comes from the same chain that feeds the mount
     # (:func:`_workspace_cwd_for_task`), and that chain also reads the recorded
