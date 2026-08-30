@@ -3912,6 +3912,22 @@ export const zhHant = defineLocale({
       failedToWriteFile: detail => `寫入檔案失敗：${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `拒絕寫入敏感系統路徑：${path}\n如需修改系統檔案，請使用終端機工具並透過 sudo 執行。`,
+      returnedError: '工具傳回錯誤',
+      returnedSuccessFalse: '工具傳回 success=false',
+      returnedStatus: status => `工具傳回「${status}」狀態`,
+      commandFailedWithExitCode: exitCode => `指令執行失敗，結束碼為 ${exitCode}`,
+      clarifyErrors: {
+        questionsMustBeArray: 'questions 參數必須是由問題物件組成的陣列',
+        questionsLimit: limit => `questions 參數最多支援 ${limit} 項`,
+        questionMustBeObject: index => `questions[${index}] 必須是包含 question 欄位的物件`,
+        questionMustNotBeEmpty: index => `questions[${index}].question 必須是非空白文字`,
+        choicesMustBeArray: field => `${field} 必須是陣列`,
+        choicesMustBeStringArray: 'choices 參數必須是字串陣列',
+        noQuestion:
+          '未提供問題。請在 questions 陣列中至少傳入一個物件並填寫 question；choices 和 multi_select 為選填欄位',
+        unavailable: '目前環境無法使用澄清問題工具',
+        inputFailed: detail => `取得使用者輸入失敗：${detail}`
+      },
       actions: {
         read: '已讀取',
         reading: '正在讀取',

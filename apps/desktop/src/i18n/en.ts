@@ -3992,6 +3992,22 @@ export const en: Translations = {
       failedToWriteFile: detail => `Failed to write file: ${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `Refusing to write to sensitive system path: ${path}\nUse the terminal tool with sudo if you need to modify system files.`,
+      returnedError: 'Tool returned an error.',
+      returnedSuccessFalse: 'Tool returned success=false.',
+      returnedStatus: status => `Tool returned status "${status}".`,
+      commandFailedWithExitCode: exitCode => `Command failed with exit code ${exitCode}.`,
+      clarifyErrors: {
+        questionsMustBeArray: 'The questions parameter must be an array of question objects.',
+        questionsLimit: limit => `The questions parameter supports at most ${limit} items.`,
+        questionMustBeObject: index => `questions[${index}] must be an object containing a question field.`,
+        questionMustNotBeEmpty: index => `questions[${index}].question must be non-empty text.`,
+        choicesMustBeArray: field => `${field} must be an array.`,
+        choicesMustBeStringArray: 'The choices parameter must be an array of strings.',
+        noQuestion:
+          'No question was provided. Add at least one object to questions with a question field; choices and multi_select are optional.',
+        unavailable: 'The clarification tool is unavailable in this context.',
+        inputFailed: detail => `Could not get user input: ${detail}`
+      },
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
         delegate: {

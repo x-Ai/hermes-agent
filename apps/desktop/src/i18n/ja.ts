@@ -4198,6 +4198,23 @@ export const ja = defineLocale({
       failedToWriteFile: detail => `ファイルへの書き込みに失敗しました：${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `機密性の高いシステムパスへの書き込みを拒否しました：${path}\nシステムファイルを変更する必要がある場合は、ターミナルツールで sudo を使用してください。`,
+      returnedError: 'ツールがエラーを返しました。',
+      returnedSuccessFalse: 'ツールが success=false を返しました。',
+      returnedStatus: status => `ツールがステータス「${status}」を返しました。`,
+      commandFailedWithExitCode: exitCode => `コマンドは終了コード ${exitCode} で失敗しました。`,
+      clarifyErrors: {
+        questionsMustBeArray: 'questions パラメーターは質問オブジェクトの配列である必要があります。',
+        questionsLimit: limit => `questions パラメーターに指定できる項目は最大 ${limit} 件です。`,
+        questionMustBeObject: index =>
+          `questions[${index}] は question フィールドを含むオブジェクトである必要があります。`,
+        questionMustNotBeEmpty: index => `questions[${index}].question には空でないテキストを指定してください。`,
+        choicesMustBeArray: field => `${field} は配列である必要があります。`,
+        choicesMustBeStringArray: 'choices パラメーターは文字列の配列である必要があります。',
+        noQuestion:
+          '質問が指定されていません。questions に question フィールドを含むオブジェクトを 1 件以上追加してください。choices と multi_select は省略できます。',
+        unavailable: 'この環境では確認質問ツールを利用できません。',
+        inputFailed: detail => `ユーザー入力を取得できませんでした：${detail}`
+      },
       actions: {
         read: '読み取り完了',
         reading: '読み取り中',

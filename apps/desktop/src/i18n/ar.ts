@@ -3085,6 +3085,22 @@ export const ar = defineLocale({
       failedToWriteFile: detail => `فشل في كتابة الملف: ${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `رُفضت الكتابة إلى مسار نظام حساس: ${path}\nإذا كنت بحاجة إلى تعديل ملفات النظام، فاستخدم أداة الطرفية مع sudo.`,
+      returnedError: 'أرجعت الأداة خطأ.',
+      returnedSuccessFalse: 'أرجعت الأداة success=false.',
+      returnedStatus: status => `أرجعت الأداة الحالة «${status}».`,
+      commandFailedWithExitCode: exitCode => `فشل تنفيذ الأمر برمز الخروج ${exitCode}.`,
+      clarifyErrors: {
+        questionsMustBeArray: 'يجب أن تكون المعلمة questions مصفوفة من كائنات الأسئلة.',
+        questionsLimit: limit => `تدعم المعلمة questions عددًا أقصاه ${limit} من العناصر.`,
+        questionMustBeObject: index => `يجب أن يكون questions[${index}] كائنًا يحتوي على الحقل question.`,
+        questionMustNotBeEmpty: index => `يجب أن يحتوي questions[${index}].question على نص غير فارغ.`,
+        choicesMustBeArray: field => `يجب أن يكون ${field} مصفوفة.`,
+        choicesMustBeStringArray: 'يجب أن تكون المعلمة choices مصفوفة من السلاسل النصية.',
+        noQuestion:
+          'لم يُحدَّد سؤال. أضف كائنًا واحدًا على الأقل إلى questions مع الحقل question؛ أما choices وmulti_select فاختياريان.',
+        unavailable: 'أداة طلب التوضيح غير متاحة في هذا السياق.',
+        inputFailed: detail => `تعذّر الحصول على إدخال المستخدم: ${detail}`
+      },
       actions: {
         read: 'قراءة',
         reading: 'جار القراءة',

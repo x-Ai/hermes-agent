@@ -92,6 +92,57 @@ describe('buildToolView localized errors', () => {
 
     expect(view.subtitle).toBe(`拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`)
   })
+
+  it.each([
+    ['zh', 'questions 参数必须是一个由问题对象组成的数组'],
+    ['zh-hant', 'questions 參數必須是由問題物件組成的陣列'],
+    ['ja', 'questions パラメーターは質問オブジェクトの配列である必要があります。'],
+    ['ar', 'يجب أن تكون المعلمة questions مصفوفة من كائنات الأسئلة.']
+  ] as const)('localizes the clarify batch-shape error in %s', (locale, expected) => {
+    setRuntimeI18nLocale(locale)
+
+    const view = buildToolView(
+      part({
+        isError: true,
+        result: { error: 'questions must be an array of question objects.' },
+        toolName: 'clarify'
+      }),
+      ''
+    )
+
+    expect(view.subtitle).toBe(expected)
+  })
+
+  it.each([
+    ['questions supports at most 5 items.', 'questions 参数最多支持 5 项'],
+    ["questions[2] must be an object with a 'question'.", 'questions[2] 必须是包含 question 字段的对象'],
+    ['questions[1].question must be non-empty text.', 'questions[1].question 必须是非空文本'],
+    ['questions[3].choices must be a list.', 'questions[3].choices 必须是数组'],
+    ['choices must be a list of strings.', 'choices 参数必须是字符串数组'],
+    [
+      "No question provided. Pass questions=[{question: '...', choices?: [...], multi_select?: bool}, ...] — a single question is a one-entry array.",
+      '未提供问题。请在 questions 数组中至少传入一个对象并填写 question；choices 和 multi_select 为可选字段'
+    ],
+    ['Clarify tool is not available in this execution context.', '当前环境无法使用澄清问题工具'],
+    ['Failed to get user input: renderer disconnected', '获取用户输入失败：renderer disconnected']
+  ] as const)('localizes related clarify validation error: %s', (source, expected) => {
+    setRuntimeI18nLocale('zh')
+
+    const view = buildToolView(part({ isError: true, result: { error: source }, toolName: 'clarify' }), '')
+
+    expect(view.subtitle).toBe(expected)
+  })
+
+  it('localizes generic desktop tool-error fallbacks', () => {
+    setRuntimeI18nLocale('zh')
+
+    expect(buildToolView(part({ isError: true, result: {} }), '').subtitle).toBe('工具返回了错误')
+    expect(buildToolView(part({ result: { success: false } }), '').subtitle).toBe('工具返回 success=false')
+    expect(buildToolView(part({ result: { status: 'failed' } }), '').subtitle).toBe('工具返回了“failed”状态')
+    expect(buildToolView(part({ result: { exit_code: 127 }, toolName: 'terminal' }), '').subtitle).toBe(
+      '命令执行失败，退出码为 127'
+    )
+  })
 })
 
 describe('buildToolView localized counts', () => {

@@ -5072,6 +5072,22 @@ export const zh: Translations = {
       failedToWriteFile: detail => `写入文件失败：${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`,
+      returnedError: '工具返回了错误',
+      returnedSuccessFalse: '工具返回 success=false',
+      returnedStatus: status => `工具返回了“${status}”状态`,
+      commandFailedWithExitCode: exitCode => `命令执行失败，退出码为 ${exitCode}`,
+      clarifyErrors: {
+        questionsMustBeArray: 'questions 参数必须是一个由问题对象组成的数组',
+        questionsLimit: limit => `questions 参数最多支持 ${limit} 项`,
+        questionMustBeObject: index => `questions[${index}] 必须是包含 question 字段的对象`,
+        questionMustNotBeEmpty: index => `questions[${index}].question 必须是非空文本`,
+        choicesMustBeArray: field => `${field} 必须是数组`,
+        choicesMustBeStringArray: 'choices 参数必须是字符串数组',
+        noQuestion:
+          '未提供问题。请在 questions 数组中至少传入一个对象并填写 question；choices 和 multi_select 为可选字段',
+        unavailable: '当前环境无法使用澄清问题工具',
+        inputFailed: detail => `获取用户输入失败：${detail}`
+      },
       countLabel: (count, noun, displayNoun) => `${count} ${TOOL_COUNT_UNITS[noun] ?? displayNoun}`,
       runSummary: {
         delegate: {

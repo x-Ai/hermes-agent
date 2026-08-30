@@ -655,6 +655,52 @@ function extractSearchResults(result: unknown, limit = 6): SearchResultRow[] {
     .slice(0, limit)
 }
 
+function localizeClarifyError(message: string): string {
+  if (message === 'questions must be an array of question objects.') {
+    return translateNow('assistant.tool.clarifyErrors.questionsMustBeArray')
+  }
+
+  const limit = message.match(/^questions supports at most (\d+) items\.$/)
+
+  if (limit) {
+    return translateNow('assistant.tool.clarifyErrors.questionsLimit', Number(limit[1]))
+  }
+
+  const questionObject = message.match(/^questions\[(\d+)\] must be an object with a 'question'\.$/)
+
+  if (questionObject) {
+    return translateNow('assistant.tool.clarifyErrors.questionMustBeObject', Number(questionObject[1]))
+  }
+
+  const questionText = message.match(/^questions\[(\d+)\]\.question must be non-empty text\.$/)
+
+  if (questionText) {
+    return translateNow('assistant.tool.clarifyErrors.questionMustNotBeEmpty', Number(questionText[1]))
+  }
+
+  const questionChoices = message.match(/^(questions\[\d+\]\.choices) must be a list\.$/)
+
+  if (questionChoices) {
+    return translateNow('assistant.tool.clarifyErrors.choicesMustBeArray', questionChoices[1])
+  }
+
+  if (message === 'choices must be a list of strings.') {
+    return translateNow('assistant.tool.clarifyErrors.choicesMustBeStringArray')
+  }
+
+  if (message.startsWith('No question provided.')) {
+    return translateNow('assistant.tool.clarifyErrors.noQuestion')
+  }
+
+  if (message === 'Clarify tool is not available in this execution context.') {
+    return translateNow('assistant.tool.clarifyErrors.unavailable')
+  }
+
+  const inputFailure = message.match(/^Failed to get user input:\s*([\s\S]+)$/)
+
+  return inputFailure ? translateNow('assistant.tool.clarifyErrors.inputFailed', inputFailure[1]) : message
+}
+
 function toolErrorText(part: ToolPart, result: Record<string, unknown>): string {
   const extractedError = extractToolErrorMessage(part.result)
 
@@ -669,6 +715,10 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
       return translateNow('assistant.tool.sensitiveSystemPathWriteRefused', sensitiveSystemPath[1])
     }
 
+    if (part.toolName === 'clarify') {
+      return localizeClarifyError(message)
+    }
+
     return message.startsWith(failedWritePrefix)
       ? translateNow('assistant.tool.failedToWriteFile', message.slice(failedWritePrefix.length).trimStart())
       : message
@@ -676,7 +726,9 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
 
   if (part.isError) {
     return localize(
-      extractedError || (typeof part.result === 'string' && part.result.trim()) || 'Tool returned an error.'
+      extractedError ||
+        (typeof part.result === 'string' && part.result.trim()) ||
+        translateNow('assistant.tool.returnedError')
     )
   }
 
@@ -689,11 +741,15 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   }
 
   if (result.success === false || result.ok === false) {
-    return firstStringField(result, ['message', 'reason', 'detail']) || 'Tool returned success=false.'
+    const detail = firstStringField(result, ['message', 'reason', 'detail'])
+
+    return detail ? localize(detail) : translateNow('assistant.tool.returnedSuccessFalse')
   }
 
   if (typeof result.status === 'string' && /\b(error|failed|failure)\b/i.test(result.status)) {
-    return firstStringField(result, ['message', 'reason', 'detail']) || `Tool returned status "${result.status}".`
+    const detail = firstStringField(result, ['message', 'reason', 'detail'])
+
+    return detail ? localize(detail) : translateNow('assistant.tool.returnedStatus', result.status)
   }
 
   // A non-zero exit code alone is a weak failure signal: grep returns 1 on
@@ -708,7 +764,7 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   if (exit !== null && exit !== 0) {
     const hasOutput = Boolean(firstStringField(result, ['output', 'stdout', 'stderr', 'output_preview'])?.trim())
 
-    return hasOutput ? '' : `Command failed with exit code ${exit}.`
+    return hasOutput ? '' : translateNow('assistant.tool.commandFailedWithExitCode', exit)
   }
 
   return ''

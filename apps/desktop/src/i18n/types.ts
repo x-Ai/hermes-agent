@@ -3219,6 +3219,21 @@ export interface Translations {
       memoryWriteNoted: string
       failedToWriteFile: (detail: string) => string
       sensitiveSystemPathWriteRefused: (path: string) => string
+      returnedError: string
+      returnedSuccessFalse: string
+      returnedStatus: (status: string) => string
+      commandFailedWithExitCode: (exitCode: number) => string
+      clarifyErrors: {
+        questionsMustBeArray: string
+        questionsLimit: (limit: number) => string
+        questionMustBeObject: (index: number) => string
+        questionMustNotBeEmpty: (index: number) => string
+        choicesMustBeArray: (field: string) => string
+        choicesMustBeStringArray: string
+        noQuestion: string
+        unavailable: string
+        inputFailed: (detail: string) => string
+      }
       countLabel: (count: number, noun: string, displayNoun: string) => string
       runSummary: {
         delegate: ToolRunCategoryCopy
