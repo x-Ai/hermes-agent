@@ -1317,6 +1317,15 @@ export interface Translations {
         approveTitle: string
         approveMessage: string
       }
+      browserRealProfile: {
+        label: string
+        description: string
+        enabledTitle: string
+        enabledMessage: string
+        disabledTitle: string
+        disabledMessage: string
+        failedSave: string
+      }
     }
   }
 

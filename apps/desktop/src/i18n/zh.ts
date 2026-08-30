@@ -1116,8 +1116,7 @@ export const zh: Translations = {
     connections: {
       title: '已注册网关',
       intro: '管理本机以及通过远程、SSH 或 Hermes Cloud 连接可访问的每个 Hermes 网关',
-      stagedNote:
-        '可在“会话”侧边栏切换网关。配置档案、聊天、消息和定时任务归属于各自网关；其他网关上的工作会继续运行',
+      stagedNote: '可在“会话”侧边栏切换网关。配置档案、聊天、消息和定时任务归属于各自网关；其他网关上的工作会继续运行',
       launchModeTitle: '启动时返回上次使用网关的会话视图',
       launchModeDesc: '关闭时，会话将在主网关上打开',
       searchPlaceholder: '搜索网关…',
@@ -2137,6 +2136,16 @@ export const zh: Translations = {
         grantFailed: '无法请求权限',
         approveTitle: '请在系统设置中批准',
         approveMessage: 'macOS 将显示一个归属于 CuaDriver 的权限对话框。批准后返回此处'
+      },
+      browserRealProfile: {
+        label: '使用我的真实浏览器配置文件',
+        description:
+          '将默认浏览器的登录信息和 Cookie 复制到托管快照中，代理使用该快照进行浏览。绝不会直接打开你的真实配置文件。将应用于新会话。',
+        enabledTitle: '真实配置文件浏览：已开启',
+        enabledMessage: '新会话将使用默认浏览器配置文件的快照进行浏览。',
+        disabledTitle: '真实配置文件浏览：已关闭',
+        disabledMessage: '配置文件快照将被删除；新会话使用干净的浏览器。',
+        failedSave: '无法保存真实配置文件设置'
       }
     }
   },

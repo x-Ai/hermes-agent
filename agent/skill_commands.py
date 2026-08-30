@@ -381,7 +381,7 @@ def _build_skill_message(
             if subdir_path.exists():
                 for f in sorted(subdir_path.rglob("*")):
                     if f.is_file() and not f.is_symlink():
-                        rel = str(f.relative_to(skill_dir))
+                        rel = f.relative_to(skill_dir).as_posix()
                         supporting.append(rel)
 
     if supporting and skill_dir:
@@ -391,9 +391,12 @@ def _build_skill_message(
             # Skill is from an external dir — use the skill name instead
             skill_view_target = skill_dir.name
         parts.append("")
-        parts.append("[This skill has supporting files:]")
+        parts.append(
+            "[This skill has supporting files (paths relative to the skill "
+            "directory above):]"
+        )
         for sf in supporting:
-            parts.append(f"- {sf}  ->  {skill_dir / sf}")
+            parts.append(f"- {Path(sf).as_posix()}")
         parts.append(
             f'\nLoad any of these with skill_view(name="{skill_view_target}", '
             f'file_path="<path>"), or run scripts directly by absolute path '

@@ -1436,6 +1436,16 @@ export const zhHant = defineLocale({
         grantFailed: '無法要求權限',
         approveTitle: '請在系統設定中核准',
         approveMessage: 'macOS 將顯示一個歸屬於 CuaDriver 的權限對話框。核准後返回此處。'
+      },
+      browserRealProfile: {
+        label: '使用我的真實瀏覽器設定檔',
+        description:
+          '將預設瀏覽器的登入資訊與 Cookie 複製到受管理的快照中，代理使用該快照進行瀏覽。絕不會直接開啟你的真實設定檔。將套用於新工作階段。',
+        enabledTitle: '真實設定檔瀏覽：已開啟',
+        enabledMessage: '新工作階段將使用預設瀏覽器設定檔的快照進行瀏覽。',
+        disabledTitle: '真實設定檔瀏覽：已關閉',
+        disabledMessage: '設定檔快照將被刪除；新工作階段使用乾淨的瀏覽器。',
+        failedSave: '無法儲存真實設定檔設定'
       }
     }
   },

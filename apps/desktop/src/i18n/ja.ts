@@ -1514,6 +1514,16 @@ export const ja = defineLocale({
         grantFailed: '権限をリクエストできませんでした',
         approveTitle: 'システム設定で承認してください',
         approveMessage: 'macOS に CuaDriver に帰属する権限ダイアログが表示されます。承認後、ここに戻ってください。'
+      },
+      browserRealProfile: {
+        label: '実際のブラウザプロファイルを使用',
+        description:
+          '既定ブラウザのログイン情報と Cookie を管理されたスナップショットにコピーし、エージェントはそれを使ってブラウジングします。実際のプロファイルが直接開かれることはありません。新しいセッションに適用されます。',
+        enabledTitle: '実プロファイルブラウジング：オン',
+        enabledMessage: '新しいセッションは既定ブラウザプロファイルのスナップショットでブラウジングします。',
+        disabledTitle: '実プロファイルブラウジング：オフ',
+        disabledMessage: 'プロファイルのスナップショットは削除され、新しいセッションはクリーンなブラウザを使用します。',
+        failedSave: '実プロファイル設定を保存できませんでした'
       }
     }
   },
