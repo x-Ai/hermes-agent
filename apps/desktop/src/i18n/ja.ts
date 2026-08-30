@@ -1650,6 +1650,7 @@ export const ja = defineLocale({
     toolsetsEnabled: (enabled, total) => `${enabled}/${total} ツールセットが有効`,
     configureToolset: label => `${label} を設定`,
     toggleToolset: (label, enabled) => `${label} ツールセットを${enabled ? 'オン' : 'オフ'}にする`,
+    toolsCount: count => `${count} 個のツール`,
     skillsLoadFailed: 'スキルの読み込みに失敗しました',
     toolsetsRefreshFailed: 'ツールセットの更新に失敗しました',
     skillEnabled: 'スキルを有効にしました',
@@ -4065,6 +4066,12 @@ export const ja = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作が中断されました：モデルの応答を待機中（${elapsedSeconds}秒経過）。`,
+      providerReconnecting: (elapsedSeconds, kind) =>
+        `プロバイダーから${kind === 'output' ? '出力' : '応答'}がないまま ${elapsedSeconds} 秒経過したため、再接続しています…`,
+      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `${provider} の${kind === 'output' ? '出力' : '応答'}を待っています — ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
+          kind === 'output' ? '。モデルがまだ思考中の可能性もあります' : ''
+        }${reconnectSeconds ? `。${reconnectSeconds} 秒経過時に自動で再接続します` : ''}）`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'バックグラウンドタスクの完了後に再開します'
@@ -4146,6 +4153,7 @@ export const ja = defineLocale({
       continueLabel: '続行',
       confirmAndContinueLabel: '確定して続行',
       answeredBadge: '回答済み',
+      recommendedSuffix: '（おすすめ）',
       questionProgress: (answered, total) => `${total}問中${answered}問回答済み`,
       lateAnswer: (question, choice) => `「${question}」について — 私の回答: ${choice}`,
       lateAnswerTip: 'この回答をフォローアップメッセージとして下書きします',
@@ -4198,7 +4206,8 @@ export const ja = defineLocale({
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `「${value}」を${action}`,
         actionTarget: (action, target) => `${target} を${action}`,
-        prefixedDone: (prefix, action) => `${prefix} ${action}`,
+        completedTool: action => `${action}を実行しました`,
+        prefixedDone: (prefix, action) => `${prefix} ${action}を実行しました`,
         runningPrefixedTool: (prefix, action) => `${prefix} ${action}を実行中`,
         runningTool: action => `${action}を実行中`
       },
@@ -4247,6 +4256,11 @@ export const ja = defineLocale({
           done: 'セッション履歴を検索しました',
           pending: 'セッション履歴を検索中',
           pendingAction: '検索中'
+        },
+        skill_view: {
+          done: 'スキルを読み込みました',
+          pending: 'スキルを読み込み中',
+          pendingAction: '読み込み中'
         },
         terminal: { done: 'コマンドを実行しました', pending: 'コマンドを実行中', pendingAction: '実行中' },
         todo: { done: 'Todo を更新しました', pending: 'Todo を更新中', pendingAction: '更新中' },

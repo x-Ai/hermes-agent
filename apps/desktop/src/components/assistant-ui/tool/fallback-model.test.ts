@@ -111,6 +111,38 @@ describe('buildToolView localized counts', () => {
   })
 })
 
+describe('buildToolView localized skill loading', () => {
+  it('describes skill_view by its loading action instead of its implementation name', () => {
+    setRuntimeI18nLocale('zh')
+
+    const pending = buildToolView(part({ result: undefined, toolName: 'skill_view' }), '')
+    const done = buildToolView(part({ result: { success: true }, toolName: 'skill_view' }), '')
+
+    expect(pending.title).toBe('正在加载技能')
+    expect(done.title).toBe('已加载技能')
+  })
+})
+
+describe('buildToolView localized protocol-tool fallback', () => {
+  it('humanizes an unknown stable tool id and applies the localized running template', () => {
+    setRuntimeI18nLocale('zh')
+
+    const pending = buildToolView(part({ result: undefined, toolName: 'drive_preview' }), '')
+    const done = buildToolView(part({ result: { success: true }, toolName: 'drive_preview' }), '')
+
+    expect(pending.title).toBe('正在运行 Drive Preview')
+    expect(done.title).toBe('已运行 Drive Preview')
+  })
+
+  it('adds the localized completed-action prefix to computer-use calls', () => {
+    setRuntimeI18nLocale('zh')
+
+    const view = buildToolView(part({ result: { success: true }, toolName: 'computer_use' }), '')
+
+    expect(view.title).toBe('已运行 Computer Use')
+  })
+})
+
 describe('buildToolView terminal exit-code status', () => {
   const terminal = (result: Record<string, unknown>) => buildToolView(part({ result, toolName: 'terminal' }), '')
 

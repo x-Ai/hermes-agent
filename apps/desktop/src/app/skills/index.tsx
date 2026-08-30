@@ -887,7 +887,7 @@ export function SkillsView({
                   }
                 >
                   {visibleToolsets.map(toolset => {
-                    const label = toolsetDisplayLabel(toolset)
+                    const label = toolsetDisplayLabel(toolset, t)
                     const calls = toolCalls ? toolsetCalls(toolset, toolCalls) : null
 
                     return (
@@ -902,12 +902,12 @@ export function SkillsView({
                           ) : calls > 0 ? (
                             `×${compactNumber(calls)}`
                           ) : (
-                            `${toolNames(toolset).length} tools`
+                            t.skills.toolsCount(toolNames(toolset).length)
                           )
                         }
                         onSelect={() => setSelectedToolset(toolset.name)}
                         onToggle={checked => void handleToggleToolset(toolset, checked)}
-                        subtitle={asText(toolset.description)}
+                        subtitle={toolsetDescription(toolset, t)}
                         title={label}
                         toggleLabel={t.skills.toggleToolset(label, !toolset.enabled)}
                       />

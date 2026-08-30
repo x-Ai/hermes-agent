@@ -2297,6 +2297,7 @@ export const zh: Translations = {
     toolsetsEnabled: (enabled, total) => `已启用 ${enabled}/${total} 个工具集`,
     configureToolset: label => `配置 ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? '开启' : '关闭'} ${label} 工具集`,
+    toolsCount: count => `${count} 个工具`,
     skillsLoadFailed: '技能加载失败',
     toolsetsRefreshFailed: '工具集刷新失败',
     skillEnabled: '技能已启用',
@@ -4916,6 +4917,12 @@ export const zh: Translations = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作已中断：正在等待模型响应（已等待 ${elapsedSeconds} 秒）`,
+      providerReconnecting: (elapsedSeconds, kind) =>
+        `服务商持续 ${elapsedSeconds} 秒未返回${kind === 'output' ? '输出' : '响应'}，正在重新连接…`,
+      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `正在等待 ${provider} ${kind === 'output' ? '输出' : '响应'}——已持续 ${elapsedSeconds} 秒（服务商可能响应较慢或负载过高${
+          kind === 'output' ? '，模型也可能仍在思考' : ''
+        }${reconnectSeconds ? `；若持续无${kind === 'output' ? '输出' : '响应'}，将在 ${reconnectSeconds} 秒时自动重连` : ''}）`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '后台任务完成后将自动继续' : `${count} 个后台任务完成后将自动继续`,
       thinking: '思考中',
@@ -4998,6 +5005,7 @@ export const zh: Translations = {
       continueLabel: '继续',
       confirmAndContinueLabel: '确认并继续',
       answeredBadge: '已回答',
+      recommendedSuffix: '（推荐）',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
       lateAnswer: (question, choice) => `关于"${question}" — 我的回答: ${choice}`,
       lateAnswerTip: '将此回答起草为后续消息',
@@ -5101,8 +5109,9 @@ export const zh: Translations = {
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `${action} "${value}"`,
         actionTarget: (action, target) => `${action} ${target}`,
-        prefixedDone: (prefix, action) => `${prefix}${action}`,
-        runningPrefixedTool: (prefix, action) => `正在运行${prefix}${action}`,
+        completedTool: action => `已运行 ${action}`,
+        prefixedDone: (prefix, action) => `已运行 ${prefix} ${action}`,
+        runningPrefixedTool: (prefix, action) => `正在运行 ${prefix} ${action}`,
         runningTool: action => `正在运行 ${action}`
       },
       titles: {
@@ -5123,6 +5132,7 @@ export const zh: Translations = {
         read_file: { done: '已读取文件', pending: '正在读取文件', pendingAction: '正在读取' },
         search_files: { done: '已搜索文件', pending: '正在搜索文件', pendingAction: '正在搜索' },
         session_search_recall: { done: '已搜索会话历史', pending: '正在搜索会话历史', pendingAction: '正在搜索' },
+        skill_view: { done: '已加载技能', pending: '正在加载技能', pendingAction: '正在加载' },
         terminal: { done: '已运行命令', pending: '正在运行命令', pendingAction: '正在运行' },
         todo: { done: '已更新待办', pending: '正在更新待办', pendingAction: '正在更新' },
         vision_analyze: { done: '已分析图片', pending: '正在分析图片', pendingAction: '正在分析' },

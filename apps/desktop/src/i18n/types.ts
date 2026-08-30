@@ -27,6 +27,7 @@ export type ToolTitleKey =
   | 'read_file'
   | 'search_files'
   | 'session_search_recall'
+  | 'skill_view'
   | 'terminal'
   | 'todo'
   | 'vision_analyze'
@@ -1365,6 +1366,7 @@ export interface Translations {
     toolsetsEnabled: (enabled: number, total: number) => string
     configureToolset: (label: string) => string
     toggleToolset: (label: string, enabled: boolean) => string
+    toolsCount: (count: number) => string
     skillsLoadFailed: string
     toolsetsRefreshFailed: string
     skillEnabled: string
@@ -3065,6 +3067,13 @@ export interface Translations {
         upstreamServerError: (code: string, durationSeconds: string) => string
       }
       operationInterruptedWaitingForModel: (elapsedSeconds: string) => string
+      providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
+      providerWaiting: (
+        provider: string,
+        elapsedSeconds: string,
+        kind: 'output' | 'response',
+        reconnectSeconds: string | null
+      ) => string
       resumeWhenBackgroundDone: (count: number) => string
       thinking: string
       thought: string
@@ -3147,6 +3156,8 @@ export interface Translations {
       continueLabel: string
       confirmAndContinueLabel: string
       answeredBadge: string
+      /** Display-only suffix for the backend's canonical `(Recommended)` marker. */
+      recommendedSuffix: string
       questionProgress: (answered: number, total: number) => string
       lateAnswer: (question: string, choice: string) => string
       lateAnswerTip: string
@@ -3230,6 +3241,7 @@ export interface Translations {
         actionCommand: (action: string, command: string) => string
         actionQuoted: (action: string, value: string) => string
         actionTarget: (action: string, target: string) => string
+        completedTool: (action: string) => string
         prefixedDone: (prefix: string, action: string) => string
         runningPrefixedTool: (prefix: string, action: string) => string
         runningTool: (action: string) => string

@@ -43,16 +43,16 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function clarifyTree(ui: ReactNode) {
+function clarifyTree(ui: ReactNode, locale: 'en' | 'zh' = 'en') {
   return (
-    <I18nProvider configClient={null} initialLocale="en">
+    <I18nProvider configClient={null} initialLocale={locale}>
       {ui}
     </I18nProvider>
   )
 }
 
-function renderClarify(ui: ReactNode) {
-  return render(clarifyTree(ui))
+function renderClarify(ui: ReactNode, locale: 'en' | 'zh' = 'en') {
+  return render(clarifyTree(ui, locale))
 }
 
 function settledClarifyProps(
@@ -470,7 +470,7 @@ describe('ClarifyTool recommended option', () => {
     const recommended = screen.getByRole('button', { name: /staging/ })
 
     // The label rides in its own muted span so the option text still reads first.
-    expect(recommended.querySelector('.text-\\(--ui-text-tertiary\\)')?.textContent).toBe('(Recommended)')
+    expect(recommended.querySelector('.text-\\(--ui-text-tertiary\\)')?.textContent).toBe(' (Recommended)')
 
     fireEvent.click(recommended)
     fireEvent.keyDown(window, { key: 'Enter' })
@@ -483,6 +483,28 @@ describe('ClarifyTool recommended option', () => {
         request_id: 'request-1'
       })
     })
+  })
+
+  it('localizes and deduplicates a model-authored Chinese recommendation suffix', () => {
+    const choices = ['授权浏览器，自动化深度渗透（推荐） (Recommended)', '仅做静态分析']
+
+    $activeSessionId.set('session-1')
+    $gateway.set({ request: vi.fn().mockResolvedValue({ ok: true }) } as never)
+    setClarifyRequest({
+      choices,
+      multiSelect: false,
+      question: '选择分析方式',
+      requestId: 'request-1',
+      sessionId: 'session-1'
+    })
+    renderClarify(<ClarifyTool {...liveClarifyProps(choices)} />, 'zh')
+
+    const recommended = screen.getByRole('button', { name: /授权浏览器/ })
+    const badge = recommended.querySelector('.text-\\(--ui-text-tertiary\\)')
+
+    expect(badge?.textContent).toBe('（推荐）')
+    expect(recommended.textContent?.match(/推荐/g)).toHaveLength(1)
+    expect(recommended.textContent).not.toContain('Recommended')
   })
 })
 

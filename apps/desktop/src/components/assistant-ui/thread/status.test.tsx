@@ -8,9 +8,9 @@ import { $activeSessionId, $turnStartedAt } from '@/store/session'
 
 import { ResponseLoadingIndicator } from './status'
 
-function renderIndicator() {
+function renderIndicator(initialLocale = 'en') {
   return render(
-    <I18nProvider configClient={null} initialLocale="en">
+    <I18nProvider configClient={null} initialLocale={initialLocale}>
       <ResponseLoadingIndicator />
     </I18nProvider>
   )
@@ -64,11 +64,35 @@ describe('ResponseLoadingIndicator timer', () => {
   it('names a prolonged provider wait in the existing response status row', () => {
     $activeSessionId.set('session-a')
     $turnStartedAt.set(Date.now())
-    setSessionProviderWait('session-a', '⏳ waiting on local-model — 30s with no output yet')
+    setSessionProviderWait(
+      'session-a',
+      '⏳ waiting on local-model — 30s with no output yet (provider may be slow or overloaded, or the model is thinking; auto-reconnect at 900s)'
+    )
 
     renderIndicator()
 
-    expect(screen.getByText('⏳ waiting on local-model — 30s with no output yet')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Waiting for local-model output — 30s elapsed (the provider may be slow or overloaded, or the model may still be thinking; automatically reconnecting at 900s)'
+      )
+    ).toBeTruthy()
+  })
+
+  it('localizes the shared provider-wait protocol text at the renderer boundary', () => {
+    $activeSessionId.set('session-a')
+    $turnStartedAt.set(Date.now())
+    setSessionProviderWait(
+      'session-a',
+      '⏳ waiting on kimi-k3 — 57s with no output yet (provider may be slow or overloaded, or the model is thinking; auto-reconnect at 900s)'
+    )
+
+    renderIndicator('zh')
+
+    expect(
+      screen.getByText(
+        '正在等待 kimi-k3 输出——已持续 57 秒（服务商可能响应较慢或负载过高，模型也可能仍在思考；若持续无输出，将在 900 秒时自动重连）'
+      )
+    ).toBeTruthy()
   })
 })
 

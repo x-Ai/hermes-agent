@@ -1565,6 +1565,7 @@ export const zhHant = defineLocale({
     toolsetsEnabled: (enabled, total) => `已啟用 ${enabled}/${total} 個工具集`,
     configureToolset: label => `設定 ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? '開啟' : '關閉'} ${label} 工具集`,
+    toolsCount: count => `${count} 個工具`,
     skillsLoadFailed: '技能載入失敗',
     toolsetsRefreshFailed: '工具集重新整理失敗',
     skillEnabled: '技能已啟用',
@@ -3781,6 +3782,12 @@ export const zhHant = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作已中斷：正在等待模型回應（已等待 ${elapsedSeconds} 秒）。`,
+      providerReconnecting: (elapsedSeconds, kind) =>
+        `供應商持續 ${elapsedSeconds} 秒未傳回${kind === 'output' ? '輸出' : '回應'}，正在重新連線…`,
+      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `正在等待 ${provider} ${kind === 'output' ? '輸出' : '回應'}——已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
+          kind === 'output' ? '，模型也可能仍在思考' : ''
+        }${reconnectSeconds ? `；若持續無${kind === 'output' ? '輸出' : '回應'}，將在 ${reconnectSeconds} 秒時自動重新連線` : ''}）`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? '背景工作完成後將自動繼續' : `${count} 個背景工作完成後將自動繼續`,
       thinking: '思考中',
@@ -3860,6 +3867,7 @@ export const zhHant = defineLocale({
       continueLabel: '繼續',
       confirmAndContinueLabel: '確認並繼續',
       answeredBadge: '已回答',
+      recommendedSuffix: '（推薦）',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
       lateAnswer: (question, choice) => `關於「${question}」 — 我的回答: ${choice}`,
       lateAnswerTip: '將此回答起草為後續訊息',
@@ -3912,8 +3920,9 @@ export const zhHant = defineLocale({
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `${action}「${value}」`,
         actionTarget: (action, target) => `${action} ${target}`,
-        prefixedDone: (prefix, action) => `${prefix}${action}`,
-        runningPrefixedTool: (prefix, action) => `正在執行${prefix}${action}`,
+        completedTool: action => `已執行 ${action}`,
+        prefixedDone: (prefix, action) => `已執行 ${prefix} ${action}`,
+        runningPrefixedTool: (prefix, action) => `正在執行 ${prefix} ${action}`,
         runningTool: action => `正在執行 ${action}`
       },
       titles: {
@@ -3938,6 +3947,7 @@ export const zhHant = defineLocale({
           pending: '正在搜尋工作階段歷史',
           pendingAction: '正在搜尋'
         },
+        skill_view: { done: '已載入技能', pending: '正在載入技能', pendingAction: '正在載入' },
         terminal: { done: '已執行指令', pending: '正在執行指令', pendingAction: '正在執行' },
         todo: { done: '已更新待辦', pending: '正在更新待辦', pendingAction: '正在更新' },
         vision_analyze: { done: '已分析圖片', pending: '正在分析圖片', pendingAction: '正在分析' },

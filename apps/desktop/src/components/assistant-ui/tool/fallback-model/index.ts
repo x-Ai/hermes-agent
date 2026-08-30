@@ -200,6 +200,9 @@ const TOOL_META: Record<ToolTitleKey, ToolMetaSpec> = {
     icon: 'search',
     tone: 'agent'
   },
+  skill_view: {
+    tone: 'default'
+  },
   terminal: {
     icon: 'terminal',
     tone: 'terminal'
@@ -265,7 +268,7 @@ function toolMeta(name: string): ToolMeta {
   }
 
   return {
-    done: action,
+    done: translateNow('assistant.tool.titleTemplates.completedTool', action),
     pending: translateNow('assistant.tool.titleTemplates.runningTool', action),
     pendingAction: translateNow('assistant.tool.actions.running'),
     tone: 'default'

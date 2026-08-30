@@ -31,7 +31,6 @@ import {
   type ClarifyRequest,
   clearClarifyRequest,
   normalizeChoices,
-  RECOMMENDED_LABEL,
   sessionClarifyRequest,
   warnDroppedChoices
 } from '@/store/clarify'
@@ -164,15 +163,25 @@ const letterFor = (index: number): string => String.fromCharCode(65 + index)
 // The backend tags the agent's preferred option (`mark_recommended`); the card
 // renders the label in tertiary text so the option itself still reads first.
 function ChoiceLabel({ choice }: { choice: string }) {
+  const { t } = useI18n()
   const bare = bareChoice(choice)
 
   if (bare === choice) {
     return <>{choice}</>
   }
 
+  // The wire marker remains stable and English across every Hermes surface;
+  // only its presentation is localized here. Models occasionally write the
+  // localized suffix themselves before the backend appends its canonical
+  // marker, so fold the two into one muted badge instead of rendering a
+  // doubled `（推荐） (Recommended)` label.
+  const localizedMarker = t.assistant.clarify.recommendedSuffix.trim()
+  const visibleChoice = bare.endsWith(localizedMarker) ? bare.slice(0, -localizedMarker.length).trimEnd() : bare
+
   return (
     <>
-      {bare} <span className="text-(--ui-text-tertiary)">{RECOMMENDED_LABEL}</span>
+      {visibleChoice}
+      <span className="text-(--ui-text-tertiary)">{t.assistant.clarify.recommendedSuffix}</span>
     </>
   )
 }

@@ -6,6 +6,7 @@ import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as HermesApi from '@/hermes'
+import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 
 const getSkills = vi.fn()
@@ -64,17 +65,19 @@ function toolset(overrides: Record<string, unknown> = {}) {
   }
 }
 
-async function renderSkills() {
+async function renderSkills(initialLocale = 'en') {
   const { SkillsView } = await import('./index')
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
       // SkillsView reads skills/toolsets via useQuery, so it needs a provider.
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/skills?tab=toolsets']}>
-          <SkillsView />
-        </MemoryRouter>
-      </QueryClientProvider>
+      <I18nProvider configClient={null} initialLocale={initialLocale}>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={['/skills?tab=toolsets']}>
+            <SkillsView />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nProvider>
     )
   })
 
@@ -135,6 +138,31 @@ describe('SkillsView toolset management', { timeout: 60_000 }, () => {
     // of the emoji rather than a single-match text lookup.
     await screen.findByRole('switch', { name: 'Turn Cron Jobs toolset off' })
     expect(screen.queryByText(/⏰/)).toBeNull()
+  })
+
+  it('localizes every built-in toolset switch field while preserving the stable toolset id', async () => {
+    getToolsets.mockResolvedValue([
+      toolset({
+        name: 'terminal',
+        label: 'Terminal & Processes',
+        description: 'terminal, process',
+        tools: ['terminal', 'process']
+      })
+    ])
+
+    await renderSkills('zh')
+
+    const sw = await screen.findByRole('switch', { name: '关闭 终端与进程 工具集' })
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+    expect(screen.getAllByText('终端与进程').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('终端/命令执行与进程管理工具').length).toBeGreaterThan(0)
+    expect(screen.getByText('2 个工具')).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(sw)
+    })
+
+    await waitFor(() => expect(setToolsetEnabled).toHaveBeenCalledWith('terminal', false, 'default'))
   })
 
   it('renders the provider config panel inline for the selected toolset', async () => {

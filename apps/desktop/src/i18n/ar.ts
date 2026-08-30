@@ -1074,6 +1074,7 @@ export const ar = defineLocale({
     toolsetsEnabled: (enabled, total) => `${enabled} من ${total} مفعلة`,
     configureToolset: label => `ضبط ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? 'تشغيل' : 'إيقاف'} ${label}`,
+    toolsCount: count => `${count} ${count === 1 ? 'أداة' : 'أدوات'}`,
     skillsLoadFailed: 'فشل تحميل المهارات',
     toolsetsRefreshFailed: 'فشل تحديث مجموعات الأدوات',
     skillEnabled: 'تم تفعيل المهارة',
@@ -2959,6 +2960,12 @@ export const ar = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `تمت مقاطعة العملية: في انتظار استجابة النموذج (انقضت ${elapsedSeconds} ث).`,
+      providerReconnecting: (elapsedSeconds, kind) =>
+        `لم يرسل الموفّر ${kind === 'output' ? 'مخرجات' : 'استجابة'} منذ ${elapsedSeconds} ث — جار إعادة الاتصال…`,
+      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `في انتظار ${kind === 'output' ? 'مخرجات' : 'استجابة'} ${provider} — انقضت ${elapsedSeconds} ث (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
+          kind === 'output' ? '، أو قد يظل النموذج يفكر' : ''
+        }${reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند ${reconnectSeconds} ث` : ''})`,
       resumeWhenBackgroundDone: count =>
         count === 1 ? 'سيُستأنف عند انتهاء المهمة الخلفية' : `سيُستأنف عند انتهاء ${count} مهام خلفية`,
       thinking: 'يفكر...',
@@ -3037,6 +3044,7 @@ export const ar = defineLocale({
       continueLabel: 'متابعة',
       confirmAndContinueLabel: 'تأكيد ومتابعة',
       answeredBadge: 'تمت الإجابة',
+      recommendedSuffix: ' (موصى به)',
       questionProgress: (answered, total) => `تمت الإجابة على ${answered} من ${total}`
     },
     tool: {
@@ -3085,7 +3093,8 @@ export const ar = defineLocale({
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `${action} “${value}”`,
         actionTarget: (action, target) => `${action} ${target}`,
-        prefixedDone: (prefix, action) => `${prefix} ${action}`,
+        completedTool: action => `تم تشغيل ${action}`,
+        prefixedDone: (prefix, action) => `تم تشغيل ${prefix} ${action}`,
         runningPrefixedTool: (prefix, action) => `جار تشغيل ${prefix.toLowerCase()} ${action.toLowerCase()}`,
         runningTool: action => `جار تشغيل ${action.toLowerCase()}`
       },
@@ -3174,6 +3183,11 @@ export const ar = defineLocale({
           done: 'تم البحث في سجل الجلسة',
           pending: 'جار البحث في سجل الجلسة',
           pendingAction: 'جار البحث'
+        },
+        skill_view: {
+          done: 'تم تحميل المهارة',
+          pending: 'جار تحميل المهارة',
+          pendingAction: 'جار التحميل'
         },
         terminal: {
           done: 'تم تشغيل الأمر',

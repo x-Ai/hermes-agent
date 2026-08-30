@@ -1539,6 +1539,7 @@ export const en: Translations = {
     toolsetsEnabled: (enabled, total) => `${enabled}/${total} toolsets enabled`,
     configureToolset: label => `Configure ${label}`,
     toggleToolset: (label, enabled) => `Turn ${label} toolset ${enabled ? 'on' : 'off'}`,
+    toolsCount: count => `${count} ${count === 1 ? 'tool' : 'tools'}`,
     skillsLoadFailed: 'Skills failed to load',
     toolsetsRefreshFailed: 'Toolsets failed to refresh',
     skillEnabled: 'Skill enabled',
@@ -3833,6 +3834,12 @@ export const en: Translations = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `Operation interrupted: waiting for model response (${elapsedSeconds}s elapsed).`,
+      providerReconnecting: (elapsedSeconds, kind) =>
+        `No ${kind} from the provider after ${elapsedSeconds}s — reconnecting…`,
+      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `Waiting for ${provider} ${kind} — ${elapsedSeconds}s elapsed (the provider may be slow or overloaded${
+          kind === 'output' ? ', or the model may still be thinking' : ''
+        }${reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s` : ''})`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Will resume when the background task finishes'
@@ -3918,6 +3925,7 @@ export const en: Translations = {
       continueLabel: 'Continue',
       confirmAndContinueLabel: 'Confirm and continue',
       answeredBadge: 'Answered',
+      recommendedSuffix: ' (Recommended)',
       questionProgress: (answered, total) => `${answered} of ${total} answered`,
       lateAnswer: (question, choice) => `Re: "${question}" — my answer: ${choice}`,
       lateAnswerTip: 'Draft this answer as a follow-up message',
@@ -4021,7 +4029,8 @@ export const en: Translations = {
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `${action} “${value}”`,
         actionTarget: (action, target) => `${action} ${target}`,
-        prefixedDone: (prefix, action) => `${prefix} ${action}`,
+        completedTool: action => `Ran ${action}`,
+        prefixedDone: (prefix, action) => `Ran ${prefix.toLowerCase()} ${action.toLowerCase()}`,
         runningPrefixedTool: (prefix, action) => `Running ${prefix.toLowerCase()} ${action.toLowerCase()}`,
         runningTool: action => `Running ${action.toLowerCase()}`
       },
@@ -4055,6 +4064,7 @@ export const en: Translations = {
           pending: 'Searching session history',
           pendingAction: 'Searching'
         },
+        skill_view: { done: 'Loaded skill', pending: 'Loading skill', pendingAction: 'Loading' },
         terminal: { done: 'Ran command', pending: 'Running command', pendingAction: 'Running' },
         todo: { done: 'Updated todos', pending: 'Updating todos', pendingAction: 'Updating' },
         vision_analyze: { done: 'Analyzed image', pending: 'Analyzing image', pendingAction: 'Analyzing' },
