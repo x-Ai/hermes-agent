@@ -94,15 +94,15 @@ export default {
   description:
     'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
   localizedName: {
-    zh: '机器人',
-    'zh-hant': '機器人',
+    zh: '智能体',
+    'zh-hant': '智慧體',
     ja: 'ボット',
     ar: 'الروبوتات'
   },
   localizedDescription: {
-    zh: '机器人模式——每个智能体拥有一个独立对话，并提供头像、例行任务、群聊和机器人间通信。此功能随应用内置；如不需要，可在此停用。',
+    zh: '智能体模式——每个智能体拥有一个独立对话，并提供头像、例行任务、群聊和智能体间通信。此功能随应用内置；如不需要，可在此停用。',
     'zh-hant':
-      '機器人模式——每個智慧體各有一個獨立聊天，並提供頭像、例行工作、群組聊天與機器人間通訊。此功能隨應用程式內建；如不需要，可在此停用。',
+      '智慧體模式——每個智慧體各有一個獨立聊天，並提供頭像、例行工作、群組聊天與智慧體間通訊。此功能隨應用程式內建；如不需要，可在此停用。',
     ja: 'ボットモード — エージェントごとに1つのチャットを用意し、アバター、ルーチン、グループチャット、ボット間メッセージングを提供します。アプリに同梱されています。不要な場合はここで無効にできます。',
     ar: 'وضع الروبوتات — محادثة مستقلة لكل وكيل، مع صور رمزية وإجراءات دورية ومحادثات جماعية ومراسلة بين الروبوتات. هذه الميزة مضمّنة مع التطبيق، ويمكن تعطيلها هنا إذا لم تكن مطلوبة.'
   },
@@ -372,7 +372,7 @@ export default {
     ctx.register({
       id: 'pane',
       area: 'panes',
-      title: 'Bots',
+      title: ctx.i18n.t('roster.title'),
       // dock: explicit adoption gesture — CENTER-STACK into the sessions zone
       // so the sidebar grows a SESSIONS | BOTS tab strip instead of splitting
       // two cramped panes down the column. Center is safe now: insertAtGroup

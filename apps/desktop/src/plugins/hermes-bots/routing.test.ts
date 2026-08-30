@@ -15,7 +15,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { displayName } from './labels'
+import { displayName, localizedDisplayName } from './labels'
 import {
   aliasIdentityFor,
   beginAliasRouteIndex,
@@ -61,6 +61,17 @@ beforeEach(() => {
   vi.clearAllMocks()
   hostMock.state.connectionId.get.mockReturnValue('local')
   indexAliasRoutes([])
+})
+
+describe('localized generated profile names', () => {
+  it('translates only the automatic Default prefix and preserves profile identity', () => {
+    expect(localizedDisplayName({ name: 'default-2' }, null, '默认')).toBe('默认 2')
+    expect(localizedDisplayName({ name: 'default-12' }, null, '預設')).toBe('預設 12')
+    expect(localizedDisplayName({ name: 'default-2' }, { title: 'Research' }, '默认')).toBe('Research')
+    expect(localizedDisplayName({ display_name: 'My Default 2', name: 'default-2' }, null, '默认')).toBe('My Default 2')
+    expect(localizedDisplayName({ name: 'research-assistant' }, null, '默认')).toBe('Research Assistant')
+    expect(localizedDisplayName({ name: 'default' }, null, '默认')).toBe('Hermes')
+  })
 })
 
 describe('alias identity survives the hosted handoff (#89131)', () => {

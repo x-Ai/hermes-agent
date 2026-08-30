@@ -18,7 +18,7 @@ import { openGroupChat } from './group-chat-view'
 import { liveGroupChatNames } from './group-membership'
 import { closeGroupChatMainTab } from './group-panes'
 import { botsText } from './i18n'
-import { displayName } from './labels'
+import { localizedDisplayName } from './labels'
 import { botRosterMeta, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
 import { botCanonicalSessionId } from './row-helpers'
 import { bumpBotOpenGeneration, getBotOpenGeneration, getPluginCtx } from './shared'
@@ -95,7 +95,8 @@ export function trackInboundActivity(roster: RosterRow[]) {
     if ($activityToasts.get()) {
       const b = botsText()
       const meta = botRosterMeta(bot, $botMeta.get())
-      const label = displayName(bot, meta)
+      const defaultProfileName = getPluginCtx()?.i18n?.t('bot.defaultProfileName') || b.bot.defaultProfileName
+      const label = localizedDisplayName(bot, meta, defaultProfileName)
       const preview = (activity?.preview || '').trim()
       const inbound = /^Message from/i.test(preview)
       host.notify({
@@ -252,7 +253,10 @@ export async function openRosterBot(bot: RosterRow, { canonical = false } = {}):
     if (generation === getBotOpenGeneration()) {
       $openBotChat.set(null)
       restorePreviousGroup()
-      notifyBotOpenFailure(error, bot, botsText().roster.couldNotOpenChat(displayName(bot, meta)))
+      const b = botsText()
+      const defaultProfileName = getPluginCtx()?.i18n?.t('bot.defaultProfileName') || b.bot.defaultProfileName
+      const label = localizedDisplayName(bot, meta, defaultProfileName)
+      notifyBotOpenFailure(error, bot, b.roster.couldNotOpenChat(label))
     }
 
     return false

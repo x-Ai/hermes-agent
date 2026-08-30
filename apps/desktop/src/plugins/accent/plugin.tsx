@@ -27,7 +27,7 @@ const plugin: HermesPlugin = {
     zh: '强调色选择器'
   },
   localizedDescription: {
-    zh: '从状态栏中的 OKLCH 颜色选择器选取主题强调色；调色板会实时重新生成。此工具仅供主题创作使用——所选颜色不会被保存。'
+    zh: '从状态栏中的 OKLCH 颜色选择器选取主题强调色；调色板会实时重新生成。此工具仅供主题创作使用 — 所选颜色不会被保存'
   },
   defaultEnabled: false,
   register(ctx) {

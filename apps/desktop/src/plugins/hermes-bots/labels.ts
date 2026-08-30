@@ -63,6 +63,36 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
   return raw.replace(/\b\w/g, ch => ch.toUpperCase())
 }
 
+/** Localize only the automatic title derived from numbered default profiles.
+ *
+ * `default-2` is an internal profile/route identity and must remain unchanged
+ * in handles and RPCs. When no user-authored title exists, though, the roster
+ * used to expose its mechanically title-cased form (`Default 2`) inside an
+ * otherwise localized interface. Keep `displayName()` stable for identity,
+ * search, prompts, and persisted group descriptors; presentation surfaces
+ * opt into this wrapper with their locale's `defaultProfileName` copy. */
+export function localizedDisplayName(
+  bot: Partial<RosterRow>,
+  meta: BotMeta | null | undefined,
+  defaultProfileName: string
+): string {
+  const display = displayName(bot, meta)
+  const generated = /^default[-_ ]+(\d+)$/i.exec((bot.name || '').trim())
+
+  if (
+    !generated ||
+    meta?.title?.trim() ||
+    bot.display_name?.trim() ||
+    bot.title?.trim() ||
+    aliasIdentityFor(bot) ||
+    !defaultProfileName.trim()
+  ) {
+    return display
+  }
+
+  return `${defaultProfileName.trim()} ${generated[1]}`
+}
+
 export function slugify(value: string) {
   return value
     .toLowerCase()

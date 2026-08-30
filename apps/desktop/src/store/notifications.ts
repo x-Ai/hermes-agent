@@ -117,6 +117,18 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     hideDetail: true
   },
   {
+    // The shared gateway client emits these fixed transport messages. They
+    // describe one user-facing state, not useful diagnostic payload, so map
+    // the entire class to localized copy and do not repeat raw English under
+    // Details in non-English interfaces.
+    test: msg =>
+      /^(?:Hermes gateway connection closed|Could not connect to Hermes gateway|Hermes gateway is not connected)$/i.test(
+        msg.trim()
+      ),
+    summarize: () => translateNow('prompts.gatewayDisconnected'),
+    hideDetail: true
+  },
+  {
     // The backend's provider-setup error ("No inference provider configured.
     // Run 'hermes model' …", code no_provider_configured) reaches many
     // surfaces through notifyError; show the same localized copy the

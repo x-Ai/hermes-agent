@@ -90,6 +90,25 @@ test('canonical file-not-found errors are localized without repeating raw Englis
   expect($notifications.get()[0]?.detail).toBeUndefined()
 })
 
+test('gateway transport errors are localized without repeating raw English details', () => {
+  setRuntimeI18nLocale('zh')
+
+  for (const raw of [
+    'Hermes gateway connection closed',
+    'Could not connect to Hermes gateway',
+    'Hermes gateway is not connected'
+  ]) {
+    clearNotifications()
+    notifyError(new Error(raw), '无法打开“默认 2”的聊天 — 请重试')
+
+    expect($notifications.get()[0]).toMatchObject({
+      title: '无法打开“默认 2”的聊天 — 请重试',
+      message: 'Hermes 网关未连接'
+    })
+    expect($notifications.get()[0]?.detail).toBeUndefined()
+  }
+})
+
 test('restore target drift is summarized in the active locale', () => {
   setRuntimeI18nLocale('zh')
   notifyError(new Error('target user message is no longer in session history'), '恢复失败')

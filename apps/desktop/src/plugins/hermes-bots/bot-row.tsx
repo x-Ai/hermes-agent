@@ -55,7 +55,7 @@ import { $groupChats, $groupChatWorkspace } from './group-chat'
 import { botGroups, groupLastActivity } from './group-membership'
 import { fallbackSelectionAfterHide, isBotHidden, isBotPinned } from './hidden-bots'
 import { useBots } from './i18n'
-import { displayName, stripPreviewMarkdown } from './labels'
+import { localizedDisplayName, stripPreviewMarkdown } from './labels'
 import { duplicateBot } from './profile-ops'
 import { openRosterBot } from './roster-actions'
 import { botRosterMeta, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
@@ -93,6 +93,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
   const activeGroup = useValue($groupChatWorkspace)
   const allMeta = useValue($botMeta)
   const meta = botRosterMeta(bot, allMeta)
+  const label = localizedDisplayName(bot, meta, b.bot.defaultProfileName)
   const hidden = isBotHidden(bot, allMeta)
   const pinned = isBotPinned(bot, allMeta)
   const sourceStatus = botSourceStatus(bot)
@@ -182,9 +183,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
   const gatewayLabel = bot.connectionLabel || (bot.connectionId === 'local' ? b.roster.thisDevice : '')
   const showDetailsRow = Boolean(showHandle || displayPreview || fromBot)
 
-  const rowTooltip = [displayName(bot, meta), `@${handle}`, gatewayLabel, sourceStatus.label]
-    .filter(Boolean)
-    .join(' · ')
+  const rowTooltip = [label, `@${handle}`, gatewayLabel, sourceStatus.label].filter(Boolean).join(' · ')
 
   const warm = () => {
     // Multi-source row: pre-dial the agent's OWN source (feature-detected).
@@ -253,7 +252,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
               </Tip>
             ) : null}
             <Tip label={rowTooltip}>
-              <span className="min-w-0 truncate text-[0.8125rem] font-medium">{displayName(bot, meta)}</span>
+              <span className="min-w-0 truncate text-[0.8125rem] font-medium">{label}</span>
             </Tip>
           </div>
           {attention ? (
@@ -304,7 +303,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
                 })
                 host.notify({
                   kind: 'info',
-                  message: b.bot.pinChanged(displayName(bot, current), !pinned)
+                  message: b.bot.pinChanged(localizedDisplayName(bot, current, b.bot.defaultProfileName), !pinned)
                 })
               })
               .catch(error => host.notifyError?.(error, b.bot.metadataLoadFailed))
@@ -327,7 +326,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
 
                 host.notify({
                   kind: 'info',
-                  message: b.bot.hiddenChanged(displayName(bot, current), !hidden)
+                  message: b.bot.hiddenChanged(localizedDisplayName(bot, current, b.bot.defaultProfileName), !hidden)
                 })
               })
               .catch(error => host.notifyError?.(error, b.bot.metadataLoadFailed))
@@ -358,7 +357,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, showHandle }: BotRowPro
           onSelect={() => {
             host.notify({
               kind: 'info',
-              message: b.bot.duplicating(displayName(bot, meta))
+              message: b.bot.duplicating(label)
             })
             duplicateBot(bot, $lastRoster.get())
               .then(name => {
