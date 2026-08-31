@@ -99,6 +99,90 @@ def test_explicit_openai_mode_wins_over_anthropic_provider_for_cache_semantics()
     assert normalized.prompt_tokens == 600_000
 
 
+def test_custom_anthropic_gateway_total_input_uses_request_hint():
+    """Custom Messages gateways may use OpenAI-style inclusive input totals."""
+    usage = SimpleNamespace(
+        input_tokens=600_000,
+        output_tokens=1_000,
+        cache_read_input_tokens=580_000,
+        cache_creation_input_tokens=5_000,
+    )
+
+    normalized = normalize_usage(
+        usage,
+        provider="custom",
+        api_mode="anthropic_messages",
+        prompt_tokens_hint=598_000,
+    )
+
+    assert normalized.input_tokens == 15_000
+    assert normalized.cache_read_tokens == 580_000
+    assert normalized.cache_write_tokens == 5_000
+    assert normalized.prompt_tokens == 600_000
+    assert normalized.total_tokens == 601_000
+
+
+def test_custom_anthropic_gateway_keeps_disjoint_input_when_hint_matches_sum():
+    """A standards-compliant custom endpoint must retain native semantics."""
+    usage = SimpleNamespace(
+        input_tokens=600_000,
+        output_tokens=1_000,
+        cache_read_input_tokens=580_000,
+        cache_creation_input_tokens=5_000,
+    )
+
+    normalized = normalize_usage(
+        usage,
+        provider="custom",
+        api_mode="anthropic_messages",
+        prompt_tokens_hint=1_183_000,
+    )
+
+    assert normalized.input_tokens == 600_000
+    assert normalized.cache_read_tokens == 580_000
+    assert normalized.cache_write_tokens == 5_000
+    assert normalized.prompt_tokens == 1_185_000
+
+
+def test_official_anthropic_ignores_inclusive_looking_hint():
+    """Anthropic's documented usage buckets remain unconditionally disjoint."""
+    usage = SimpleNamespace(
+        input_tokens=600_000,
+        output_tokens=1_000,
+        cache_read_input_tokens=580_000,
+    )
+
+    normalized = normalize_usage(
+        usage,
+        provider="anthropic",
+        api_mode="anthropic_messages",
+        prompt_tokens_hint=600_000,
+    )
+
+    assert normalized.input_tokens == 600_000
+    assert normalized.cache_read_tokens == 580_000
+    assert normalized.prompt_tokens == 1_180_000
+
+
+def test_anthropic_gateway_explicit_prompt_total_is_authoritative():
+    usage = SimpleNamespace(
+        input_tokens=600_000,
+        prompt_tokens=600_000,
+        output_tokens=1_000,
+        cache_read_input_tokens=580_000,
+    )
+
+    normalized = normalize_usage(
+        usage,
+        provider="custom",
+        api_mode="anthropic_messages",
+    )
+
+    assert normalized.input_tokens == 20_000
+    assert normalized.cache_read_tokens == 580_000
+    assert normalized.prompt_tokens == 600_000
+
+
 
 
 

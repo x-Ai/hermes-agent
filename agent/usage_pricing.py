@@ -1295,6 +1295,7 @@ def normalize_usage(
     *,
     provider: Optional[str] = None,
     api_mode: Optional[str] = None,
+    prompt_tokens_hint: Optional[int] = None,
 ) -> CanonicalUsage:
     """Normalize raw API response usage into canonical token buckets.
 
@@ -1305,7 +1306,10 @@ def normalize_usage(
 
     In both Codex and OpenAI modes, input_tokens is derived by subtracting cache
     tokens from the total — the API contract is that input/prompt totals include
-    cached tokens and the details object breaks them out.
+    cached tokens and the details object breaks them out. Native Anthropic uses
+    disjoint buckets. Some Anthropic-compatible gateways instead expose
+    ``input_tokens`` as the total while retaining Anthropic's cache field names;
+    a caller-provided rough prompt hint disambiguates that non-standard shape.
     """
     if not response_usage:
         return CanonicalUsage()
@@ -1321,12 +1325,67 @@ def normalize_usage(
     # double-counted. Provider inference remains as a compatibility fallback
     # for older callers (notably auxiliary accounting) that do not pass a mode.
     if mode == "anthropic_messages" or (not mode and provider_name == "anthropic"):
-        input_tokens = _usage_count(_usage_get(response_usage, "input_tokens", 0))
+        reported_input_tokens = _usage_count(
+            _usage_get(response_usage, "input_tokens", 0)
+        )
         output_tokens = _usage_count(_usage_get(response_usage, "output_tokens", 0))
         cache_read_tokens = _usage_count(_usage_get(response_usage, "cache_read_input_tokens", 0))
         cache_write_tokens = _usage_count(
             _usage_get(response_usage, "cache_creation_input_tokens", 0)
         )
+        cache_tokens = cache_read_tokens + cache_write_tokens
+
+        # Anthropic's official Messages API reports three disjoint input
+        # buckets. Compatibility gateways are not uniform: some translate an
+        # OpenAI-style total into ``input_tokens`` but preserve Anthropic's
+        # top-level cache counters as subsets. Prefer an explicit
+        # ``prompt_tokens`` total when a gateway supplies one. Otherwise, for
+        # non-Anthropic providers only, compare the two possible totals with
+        # the rough size of the request Hermes actually sent. This keeps the
+        # official API contract deterministic while allowing custom Messages
+        # endpoints to self-correct without a provider-name allowlist.
+        reported_prompt_total = _usage_count(
+            _usage_get(response_usage, "prompt_tokens", 0)
+        )
+        input_includes_cache = bool(reported_prompt_total)
+        if (
+            not input_includes_cache
+            and mode == "anthropic_messages"
+            and provider_name != "anthropic"
+            and cache_tokens > 0
+            and reported_input_tokens >= cache_tokens
+        ):
+            try:
+                hint = int(prompt_tokens_hint or 0)
+            except (TypeError, ValueError):
+                hint = 0
+            if hint > 0:
+                inclusive_error = abs(reported_input_tokens - hint)
+                disjoint_error = abs(
+                    reported_input_tokens + cache_tokens - hint
+                )
+                # Require a material win so small tokenizer/estimator drift
+                # cannot flip a standards-compliant endpoint into total mode.
+                margin = max(1_024, int(hint * 0.05))
+                input_includes_cache = (
+                    inclusive_error + margin < disjoint_error
+                )
+
+        if input_includes_cache:
+            prompt_total = reported_prompt_total or reported_input_tokens
+            input_tokens = max(0, prompt_total - cache_tokens)
+            logger.debug(
+                "Anthropic-compatible usage treats input_tokens as total: "
+                "provider=%s prompt_total=%s cache_read=%s cache_write=%s "
+                "hint=%s",
+                provider_name or "unknown",
+                prompt_total,
+                cache_read_tokens,
+                cache_write_tokens,
+                prompt_tokens_hint,
+            )
+        else:
+            input_tokens = reported_input_tokens
     elif mode == "codex_responses":
         input_total = _usage_count(_usage_get(response_usage, "input_tokens", 0))
         output_tokens = _usage_count(_usage_get(response_usage, "output_tokens", 0))

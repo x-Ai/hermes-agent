@@ -2970,6 +2970,9 @@ def init_agent(
     # until the first response with usage; invalidated on compaction and
     # session switches so stale anchors can never suppress compression.
     agent._usage_anchor = None
+    # Independent, unanchored estimate for the request currently in flight.
+    # Used only to disambiguate non-standard compatibility-gateway usage.
+    agent._current_request_prompt_tokens_hint = None
 
     # Cumulative token usage for the session
     agent.session_prompt_tokens = 0

@@ -805,6 +805,7 @@ class AIAgent:
         # transcript — a fresh/branched/resumed session must fall back to
         # full estimation until its first provider response re-anchors.
         self._usage_anchor = None
+        self._current_request_prompt_tokens_hint = None
         
         # Turn counter (added after reset_session_state was first written — #2635)
         self._user_turn_count = 0
@@ -2891,7 +2892,14 @@ class AIAgent:
             return None
         from dataclasses import asdict
 
-        cu = normalize_usage(raw_usage, provider=self.provider, api_mode=self.api_mode)
+        cu = normalize_usage(
+            raw_usage,
+            provider=self.provider,
+            api_mode=self.api_mode,
+            prompt_tokens_hint=getattr(
+                self, "_current_request_prompt_tokens_hint", None
+            ),
+        )
         summary = asdict(cu)
         summary.pop("raw_usage", None)
         summary["prompt_tokens"] = cu.prompt_tokens

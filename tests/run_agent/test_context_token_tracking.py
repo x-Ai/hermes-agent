@@ -100,6 +100,28 @@ def test_anthropic_cache_read_only(monkeypatch):
     assert agent.context_compressor.last_prompt_tokens == 17686  # 5+17666+15
 
 
+def test_custom_anthropic_total_input_is_not_double_counted(monkeypatch):
+    """A custom Messages gateway can report cache as a subset of input."""
+    monkeypatch.setattr(
+        "agent.conversation_loop._midturn_request_pressure_tokens",
+        lambda *args, **kwargs: 600_000,
+    )
+    agent = _make_agent(
+        monkeypatch,
+        "anthropic_messages",
+        "custom",
+        lambda: _anthropic_resp(600_000, 10, cache_read=580_000),
+    )
+
+    agent.run_conversation("hi")
+
+    assert agent.context_compressor.last_prompt_tokens == 600_000
+    assert agent.session_prompt_tokens == 600_000
+    assert agent.session_input_tokens == 20_000
+    assert agent.session_cache_read_tokens == 580_000
+    assert agent._usage_anchor["prompt_tokens"] == 600_000
+
+
 # -- OpenAI Chat Completions: cache details are subsets of prompt_tokens --
 
 def test_openai_prompt_tokens_unchanged(monkeypatch):

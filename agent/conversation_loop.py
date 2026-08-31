@@ -2694,6 +2694,13 @@ def run_conversation(
         request_pressure_tokens = _midturn_request_pressure_tokens(
             agent, api_messages, effective_system or "", approx_tokens
         )
+        # Keep the unanchored request estimate for usage-shape
+        # disambiguation. Some Anthropic-compatible gateways report
+        # ``input_tokens`` as an OpenAI-style total while retaining
+        # Anthropic's cache field names; comparing against this independent
+        # estimate prevents a stale/bad usage anchor from reinforcing itself.
+        rough_request_pressure_tokens = request_pressure_tokens
+        agent._current_request_prompt_tokens_hint = rough_request_pressure_tokens
         # Usage-anchored override: when the last provider response's exact
         # usage is still valid for the durable transcript, replace the
         # whole-history heuristic with anchor + delta-estimate. The anchor's
@@ -4235,6 +4242,7 @@ def run_conversation(
                         response.usage,
                         provider=agent.provider,
                         api_mode=agent.api_mode,
+                        prompt_tokens_hint=rough_request_pressure_tokens,
                     )
                     # Aggregator-only usage is retained for cost pricing: MoA
                     # advisor tokens must be priced at each advisor's OWN model
