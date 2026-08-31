@@ -2797,6 +2797,8 @@ export const zhHant = defineCompleteLocale({
     skillUpdated: '技能已更新',
     edit: '編輯',
     archive: '封存',
+    archiveSkillTitle: name => `封存 ${name}？`,
+    archiveSkillDescription: '技能將被封存，並可透過 `hermes curator restore` 還原。',
     skillArchivedTitle: '技能已封存',
     skillArchivedMessage: '可透過 hermes curator restore 還原。',
     tabPlugins: '外掛',

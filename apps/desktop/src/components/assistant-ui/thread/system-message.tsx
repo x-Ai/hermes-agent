@@ -12,6 +12,8 @@ import { useI18n } from '@/i18n'
 import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
+import { localizeReviewSummaryDetail } from './review-summary-localization'
+
 const SLASH_STATUS_RE = /^slash:(?<command>\/[^\n]+)\n(?<output>[\s\S]*)$/
 const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
 const REVIEW_NOTE_RE = /^review:(?<label>[^:\n]+):?\s*(?<detail>[\s\S]*)$/
@@ -94,7 +96,7 @@ export const SystemMessage: FC = () => {
   const reviewNote = text.match(REVIEW_NOTE_RE)
 
   if (reviewNote?.groups) {
-    const detail = reviewNote.groups.detail.trim()
+    const detail = localizeReviewSummaryDetail(reviewNote.groups.detail.trim(), t.assistant.thread.reviewSummary)
 
     return (
       <MessagePrimitive.Root
@@ -106,7 +108,7 @@ export const SystemMessage: FC = () => {
           <ToolIcon className="text-(--tool-memory-legendary-icon)" name="brain" size="0.875rem" />
         </span>
         <span className={cn(SCAFFOLD_LABEL_CLASS, 'tool-memory-legendary-title shrink-0 text-transparent')}>
-          {reviewNote.groups.label.trim()}
+          {t.assistant.thread.reviewSummary.label}
         </span>
         {detail && (
           <span className={cn(SCAFFOLD_LABEL_CLASS, 'tool-memory-legendary-meta min-w-0 wrap-anywhere')}>{detail}</span>

@@ -273,7 +273,12 @@ function IdleView({
     )
   }
 
-  const groups = buildCommitChangelog(commits)
+  const groups = buildCommitChangelog(commits, {
+    fallbackItem: u.changelogFallback,
+    fallbackLabel: u.changelogFallbackTitle,
+    labels: u.changelogGroups
+  })
+
   const shownItems = totalItems(groups)
   const remaining = Math.max(0, behind - shownItems)
 

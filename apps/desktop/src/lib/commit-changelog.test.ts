@@ -80,6 +80,20 @@ describe('buildCommitChangelog', () => {
     expect(groups).toEqual([{ id: 'other', items: ['Improvements and fixes'], label: 'In this update' }])
   })
 
+  it('accepts localized group and fallback copy without changing commit parsing', () => {
+    expect(buildCommitChangelog([{ summary: 'fix: jitter' }], { labels: { fixed: '问题修复' } })[0]).toMatchObject({
+      items: ['Jitter'],
+      label: '问题修复'
+    })
+
+    expect(
+      buildCommitChangelog([{ summary: 'chore: bump' }], {
+        fallbackItem: '改进与修复',
+        fallbackLabel: '本次更新'
+      })
+    ).toEqual([{ id: 'other', items: ['改进与修复'], label: '本次更新' }])
+  })
+
   it('dedupes identical subjects and caps the items per group', () => {
     const groups = buildCommitChangelog(
       [

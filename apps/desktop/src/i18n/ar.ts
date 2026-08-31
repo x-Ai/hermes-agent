@@ -2517,6 +2517,8 @@ export const ar = defineCompleteLocale({
     skillUpdated: 'تحديث المهارات',
     edit: 'تحرير',
     archive: 'أرشفة',
+    archiveSkillTitle: name => `أرشفة ${name}؟`,
+    archiveSkillDescription: 'تُؤرشف المهارة ويمكن استعادتها باستخدام `hermes curator restore`.',
     skillArchivedTitle: 'تمت أرشفة المهارة',
     skillArchivedMessage: 'يمكن استعادتها باستخدام hermes curator restore.',
     tabPlugins: 'الإضافات',

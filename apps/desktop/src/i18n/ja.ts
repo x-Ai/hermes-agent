@@ -2942,6 +2942,8 @@ export const ja = defineCompleteLocale({
     skillUpdated: 'スキルを更新しました',
     edit: '編集',
     archive: 'アーカイブ',
+    archiveSkillTitle: name => `${name} をアーカイブしますか？`,
+    archiveSkillDescription: 'スキルはアーカイブされ、`hermes curator restore` で復元できます。',
     skillArchivedTitle: 'スキルをアーカイブしました',
     skillArchivedMessage: 'hermes curator restore で復元できます。',
     tabPlugins: 'プラグイン',

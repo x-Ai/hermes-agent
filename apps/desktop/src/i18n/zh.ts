@@ -3287,6 +3287,8 @@ export const zh = defineCompleteLocale({
     skillUpdated: '技能已更新',
     edit: '编辑',
     archive: '归档',
+    archiveSkillTitle: name => `归档 ${name}？`,
+    archiveSkillDescription: '技能将被归档，并可通过 `hermes curator restore` 恢复',
     skillArchivedTitle: '技能已归档',
     skillArchivedMessage: '可通过 hermes curator restore 恢复',
     tabPlugins: '插件',

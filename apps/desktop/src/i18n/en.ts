@@ -2385,6 +2385,8 @@ export const en: Translations = {
     skillUpdated: 'Skill updated',
     edit: 'Edit',
     archive: 'Archive',
+    archiveSkillTitle: name => `Archive ${name}?`,
+    archiveSkillDescription: 'The skill is archived and can be restored with `hermes curator restore`.',
     skillArchivedTitle: 'Skill archived',
     skillArchivedMessage: 'Restorable via hermes curator restore.',
     tabPlugins: 'Plugins',

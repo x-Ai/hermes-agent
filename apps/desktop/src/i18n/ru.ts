@@ -2750,6 +2750,8 @@ export const ru = defineCompleteLocale({
     skillUpdated: 'Навык обновлён',
     edit: 'Изменить',
     archive: 'В архив',
+    archiveSkillTitle: name => `Архивировать ${name}?`,
+    archiveSkillDescription: 'Навык будет архивирован; его можно восстановить командой `hermes curator restore`.',
     skillArchivedTitle: 'Навык в архиве',
     skillArchivedMessage: 'Восстановить через hermes curator restore.',
     tabPlugins: 'Плагины',

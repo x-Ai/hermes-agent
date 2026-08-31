@@ -1956,6 +1956,8 @@ export interface Translations {
     skillUpdated: string
     edit: string
     archive: string
+    archiveSkillTitle: (name: string) => string
+    archiveSkillDescription: string
     skillArchivedTitle: string
     skillArchivedMessage: string
     tabPlugins: string
