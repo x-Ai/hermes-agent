@@ -801,6 +801,8 @@ export interface ContextBreakdown {
   context_used: number
   estimated_total: number
   model?: string
+  /** False while a deferred session is still constructing its AIAgent. */
+  ready?: boolean
 }
 
 export interface AnalyticsDailyEntry {

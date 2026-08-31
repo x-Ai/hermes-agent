@@ -28,6 +28,7 @@ const breakdown: ContextBreakdown = {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
@@ -58,24 +59,36 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
   })
 
-  it('lets an in-flight baseline request finish when the turn becomes busy', async () => {
-    let resolveRequest: ((value: ContextBreakdown) => void) | undefined
-
-    const requestGateway = vi
-      .fn()
-      .mockImplementation(() => new Promise<ContextBreakdown>(resolve => (resolveRequest = resolve)))
+  it('starts a fresh read when the turn becomes busy', async () => {
+    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
+    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
 
     const { rerender, result } = renderHook(
       ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
       { initialProps: { busy: false } }
     )
 
+    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
     rerender({ busy: true })
-    resolveRequest?.(breakdown)
 
     await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
     expect(result.current.loading).toBe(false)
-    expect(requestGateway).toHaveBeenCalledTimes(1)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries an unavailable deferred-agent snapshot during a long turn', async () => {
+    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
+    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
+
+    const { result } = renderHook(() =>
+      useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' })
+    )
+
+    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
+    expect(result.current.loading).toBe(true)
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2), { timeout: 1_000 })
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    expect(result.current.loading).toBe(false)
   })
 
   it('refetches the authoritative breakdown when a turn ends', async () => {
@@ -148,6 +161,23 @@ describe('ContextUsagePanel', () => {
     expect(projected?.context_used).toBe(148_000)
     expect(projected?.context_percent).toBe(54)
     expect(projected?.estimated_total).toBe(140_000)
+  })
+
+  it('does not mislabel live usage as conversation while the deferred agent is unavailable', () => {
+    const unavailable: ContextBreakdown = {
+      ...breakdown,
+      categories: [],
+      context_used: 0,
+      estimated_total: 0,
+      ready: false
+    }
+
+    const projected = projectLiveContextBreakdown(unavailable, {
+      ...usage,
+      context_used: 185_600
+    })
+
+    expect(projected?.categories).toEqual([])
   })
 
   it('renders the usage it is handed, so the popover matches the bar', () => {

@@ -1739,6 +1739,8 @@ def _(rid, params: dict) -> dict:
     agent = session.get("agent")
     if agent is None:
         usage = _session_usage_snapshot(session) or _get_usage(None)
+        ready_event = session.get("agent_ready")
+        agent_ready = ready_event is None or ready_event.is_set()
         return _ok(
             rid,
             {
@@ -1748,6 +1750,10 @@ def _(rid, params: dict) -> dict:
                 "context_used": usage.get("context_used", 0) or 0,
                 "estimated_total": usage.get("context_used", 0) or usage.get("total", 0) or 0,
                 "model": _metadata_mirror(session).get("model", ""),
+                # Distinguish a deferred agent that is still being built from
+                # a settled topology where category attribution is simply not
+                # available. Desktop retries only the former while a turn runs.
+                "ready": agent_ready,
             },
         )
     with session["history_lock"]:
@@ -1756,6 +1762,7 @@ def _(rid, params: dict) -> dict:
         from agent.context_breakdown import compute_session_context_breakdown
 
         payload = compute_session_context_breakdown(agent, history)
+        payload["ready"] = True
     except Exception as exc:
         return _err(rid, 5000, f"Could not compute context breakdown: {exc}")
     return _ok(rid, payload)

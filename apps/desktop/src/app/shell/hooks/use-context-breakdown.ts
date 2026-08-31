@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { ContextBreakdown } from '@/types/hermes'
 
@@ -20,72 +20,72 @@ interface ContextBreakdownOptions {
  *  hasn't spoken yet. It is a read-only chars/4 pass: no provider call, no
  *  prompt-cache impact.
  *
- *  The initial request is allowed to finish when a turn starts: its category
- *  snapshot becomes the baseline that live `session.usage` ticks advance in
- *  the statusbar. Refetches when the focused session changes and when a turn
- *  ends for an authoritative reconciliation. Held keyed by the session it
+ *  A new session is created before its deferred AIAgent is ready. The first
+ *  request can therefore return an explicitly unavailable category snapshot.
+ *  When a turn is running, retry that cheap read with bounded backoff until the
+ *  agent exists; otherwise the live occupancy delta would be mislabeled as one
+ *  giant Conversation bucket for the whole turn. Busy transitions and turn
+ *  completion also trigger an immediate read. Held keyed by the session it
  *  describes so switching sessions drops the previous numbers instead of
  *  painting them under the new session's name. */
 export function useContextBreakdown({ busy, enabled, requestGateway, sessionId }: ContextBreakdownOptions) {
   const [fetched, setFetched] = useState<{ breakdown: ContextBreakdown; sessionId: string } | null>(null)
   const [loading, setLoading] = useState(false)
-  const [busySessionId, setBusySessionId] = useState<null | string>(busy ? sessionId : null)
-  const requestGenerationRef = useRef(0)
-
-  const invalidateRequests = useCallback(() => {
-    requestGenerationRef.current += 1
-  }, [])
-
-  const fetchBreakdown = useCallback(() => {
-    if (!enabled || !sessionId) {
-      return
-    }
-
-    const requestGeneration = requestGenerationRef.current + 1
-    requestGenerationRef.current = requestGeneration
-    setLoading(true)
-
-    void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
-      .then(breakdown => {
-        if (requestGenerationRef.current === requestGeneration && breakdown) {
-          setFetched({ breakdown, sessionId })
-        }
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (requestGenerationRef.current === requestGeneration) {
-          setLoading(false)
-        }
-      })
-  }, [enabled, requestGateway, sessionId])
 
   useEffect(() => {
     if (!enabled || !sessionId) {
-      invalidateRequests()
       setLoading(false)
 
       return
     }
 
+    let cancelled = false
+    let retryCount = 0
+    let retryTimer: null | ReturnType<typeof setTimeout> = null
+
+    const fetchBreakdown = () => {
+      setLoading(true)
+
+      void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
+        .then(breakdown => {
+          if (cancelled || !breakdown) {
+            return
+          }
+
+          setFetched({ breakdown, sessionId })
+
+          // `ready` is explicit on current gateways. Treat an empty legacy
+          // payload the same way so a new desktop can recover against the
+          // immediately preceding backend contract too.
+          const categoriesReady = breakdown.ready !== false && breakdown.categories.length > 0
+
+          if (busy && !categoriesReady) {
+            const delay = Math.min(2_000, 250 * 2 ** retryCount)
+            retryCount += 1
+            retryTimer = setTimeout(fetchBreakdown, delay)
+
+            return
+          }
+
+          setLoading(false)
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setLoading(false)
+          }
+        })
+    }
+
     fetchBreakdown()
 
     return () => {
-      invalidateRequests()
-    }
-  }, [enabled, fetchBreakdown, invalidateRequests, sessionId])
+      cancelled = true
 
-  useEffect(() => {
-    if (busy && sessionId && busySessionId !== sessionId) {
-      setBusySessionId(sessionId)
-
-      return
+      if (retryTimer !== null) {
+        clearTimeout(retryTimer)
+      }
     }
-
-    if (!busy && busySessionId === sessionId) {
-      setBusySessionId(null)
-      fetchBreakdown()
-    }
-  }, [busy, busySessionId, fetchBreakdown, sessionId])
+  }, [busy, enabled, requestGateway, sessionId])
 
   return {
     breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,

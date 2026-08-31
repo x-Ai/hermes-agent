@@ -24,6 +24,13 @@ export function projectLiveContextBreakdown(
     return breakdown
   }
 
+  // An empty snapshot means the deferred agent was not ready yet. Never turn
+  // its live total into a fake Conversation-only breakdown; the fetch hook is
+  // retrying and the panel should keep saying that details are loading.
+  if (breakdown.ready === false || breakdown.categories.length === 0) {
+    return breakdown
+  }
+
   const contextUsed = usage.context_used
   const delta = contextUsed - breakdown.context_used
   const contextMax = usage.context_max ?? breakdown.context_max
