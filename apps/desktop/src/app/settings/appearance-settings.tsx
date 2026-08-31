@@ -49,7 +49,7 @@ import {
 import { $vibeHeartsEnabled, setVibeHeartsEnabled } from '@/store/vibe-hearts-enabled'
 import { $zoomPercent, setZoomPercent } from '@/store/zoom'
 import { getBaseColors, useTheme } from '@/themes/context'
-import { installVscodeThemeFromMarketplace } from '@/themes/install'
+import { describeThemeInstallError, installVscodeThemeFromMarketplace } from '@/themes/install'
 import type { DesktopTheme } from '@/themes/types'
 import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/user-themes'
 
@@ -170,7 +170,7 @@ function MarketplaceThemeResults({
       triggerHaptic('crisp')
       onInstalled(theme.name)
     } catch (e) {
-      setError(e instanceof Error ? e.message : copy.error)
+      setError(describeThemeInstallError(e, copy))
     } finally {
       setInstallingId(null)
     }
@@ -182,7 +182,7 @@ function MarketplaceThemeResults({
 
   const header = (
     <p className="mb-2 mt-4 text-[length:var(--conversation-caption-font-size)] font-medium text-(--ui-text-tertiary)">
-      From the VS Code Marketplace
+      {t.settings.appearance.marketplaceThemeSource}
     </p>
   )
 
@@ -485,7 +485,7 @@ export function AppearanceSettings() {
                   {filteredThemes.length === 0 ? (
                     needle ? (
                       <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                        No installed themes match "{query.trim()}".
+                        {a.noInstalledThemeMatches(query.trim())}
                       </p>
                     ) : null
                   ) : (

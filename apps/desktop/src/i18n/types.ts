@@ -531,6 +531,8 @@ export interface Translations {
       title: string
       intro: string
       themeSearchPlaceholder: string
+      noInstalledThemeMatches: (query: string) => string
+      marketplaceThemeSource: string
       colorMode: string
       colorModeDesc: string
       toolViewTitle: string
@@ -1576,6 +1578,8 @@ export interface Translations {
       placeholder: string
       loading: string
       error: string
+      installError: string
+      invalidColorTheme: string
       empty: string
       install: string
       installing: string

@@ -389,6 +389,9 @@ export const ja = defineLocale({
       title: '外観',
       intro:
         'デスクトップ専用の表示設定です。モードは明るさ、テーマはアクセントカラーとチャット面のスタイルを制御します。',
+      themeSearchPlaceholder: 'テーマまたは VS Code Marketplace を検索…',
+      noInstalledThemeMatches: query => `インストール済みテーマに「${query}」と一致するものはありません。`,
+      marketplaceThemeSource: 'VS Code Marketplace の検索結果',
       colorMode: 'カラーモード',
       colorModeDesc: '固定モードを選ぶか、Hermes をシステム設定に合わせます。',
       toolViewTitle: 'ツール呼び出しの表示',
@@ -1803,6 +1806,8 @@ export const ja = defineLocale({
       placeholder: 'VS Code Marketplace を検索...',
       loading: 'Marketplace を検索中...',
       error: 'Marketplace に接続できませんでした。',
+      installError: 'そのテーマをインストールできませんでした。',
+      invalidColorTheme: 'このテーマには「colors」設定がないため、有効な VS Code カラーテーマではありません。',
       empty: '一致するテーマがありません。',
       install: 'インストール',
       installing: 'インストール中...',

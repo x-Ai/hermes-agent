@@ -51,6 +51,16 @@ export interface ConvertResult {
   derived: string[]
 }
 
+/** A contributed theme file that cannot be converted into a VS Code color
+ * theme. Callers use the type instead of matching an English error message so
+ * renderer surfaces can provide localized copy. */
+export class InvalidVscodeColorThemeError extends Error {
+  constructor() {
+    super('Theme has no "colors" map — not a VS Code color theme.')
+    this.name = 'InvalidVscodeColorThemeError'
+  }
+}
+
 /** Tolerant slug: lowercase, alnum + dashes, deduped, `vsc-` namespaced. */
 export function vscodeThemeSlug(name: string): string {
   const base = name
@@ -206,7 +216,7 @@ export function convertVscodeColorTheme(raw: VscodeColorTheme, opts: ConvertOpti
   const colors = raw.colors && typeof raw.colors === 'object' ? (raw.colors as Record<string, unknown>) : null
 
   if (!colors) {
-    throw new Error('Theme has no "colors" map — not a VS Code color theme.')
+    throw new InvalidVscodeColorThemeError()
   }
 
   const derived: string[] = []

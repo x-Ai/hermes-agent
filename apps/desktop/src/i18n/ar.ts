@@ -455,6 +455,9 @@ export const ar = defineLocale({
     appearance: {
       title: 'المظهر',
       intro: 'خصص مظهر Hermes Desktop.',
+      themeSearchPlaceholder: 'ابحث في سماتك أو VS Code Marketplace…',
+      noInstalledThemeMatches: query => `لا توجد سمة مثبتة تطابق ”${query}“.`,
+      marketplaceThemeSource: 'من VS Code Marketplace',
       colorMode: 'نمط الألوان',
       colorModeDesc: 'اختر الوضع الفاتح أو الداكن أو اتبع النظام.',
       toolViewTitle: 'عرض الأدوات',
@@ -1183,6 +1186,8 @@ export const ar = defineLocale({
       placeholder: 'البحث في VS Code Marketplace...',
       loading: 'جار البحث في Marketplace...',
       error: 'تعذّر الوصول إلى Marketplace.',
+      installError: 'تعذّر تثبيت هذه السمة.',
+      invalidColorTheme: 'لا تحتوي السمة على إعداد ”colors“، لذا فهي ليست سمة ألوان VS Code صالحة.',
       empty: 'لا توجد سمات مطابقة.',
       install: 'تثبيت',
       installing: 'جار التثبيت...',

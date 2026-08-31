@@ -176,6 +176,15 @@ const WEB_PROVIDER_TAGS = [
 afterEach(() => setRuntimeI18nLocale('en'))
 
 describe('Simplified Chinese localization regressions', () => {
+  it('localizes Marketplace theme discovery and conversion failures', () => {
+    expect(zh.settings.appearance.noInstalledThemeMatches('Trae Theme')).toBe(
+      '已安装的主题中没有与“Trae Theme”匹配的项目'
+    )
+    expect(zh.settings.appearance.marketplaceThemeSource).toBe('来自 VS Code Marketplace')
+    expect(zh.commandCenter.installTheme.installError).toBe('无法安装该主题')
+    expect(zh.commandCenter.installTheme.invalidColorTheme).toMatch(/不是有效的 VS Code 颜色主题/u)
+  })
+
   it('keeps the Fast model-row badge distinct from the localized option label', () => {
     expect(zh.shell.modelMenu.fast).toBe('Fast')
     expect(zh.shell.modelOptions.fast).toBe('快速')

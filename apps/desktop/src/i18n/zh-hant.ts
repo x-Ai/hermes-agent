@@ -379,6 +379,9 @@ export const zhHant = defineLocale({
     appearance: {
       title: '外觀',
       intro: '這些是僅限桌面端的顯示偏好。模式控制亮度；主題控制強調色與聊天介面樣式。',
+      themeSearchPlaceholder: '搜尋你的主題或 VS Code Marketplace…',
+      noInstalledThemeMatches: query => `已安裝的主題中沒有符合「${query}」的項目。`,
+      marketplaceThemeSource: '來自 VS Code Marketplace',
       colorMode: '色彩模式',
       colorModeDesc: '選擇固定模式，或讓 Hermes 跟隨系統設定。',
       toolViewTitle: '工具呼叫顯示',
@@ -1718,6 +1721,8 @@ export const zhHant = defineLocale({
       placeholder: '搜尋 VS Code Marketplace...',
       loading: '正在搜尋 Marketplace...',
       error: '無法連接到 Marketplace。',
+      installError: '無法安裝該主題。',
+      invalidColorTheme: '該主題缺少「colors」設定，因此不是有效的 VS Code 色彩主題。',
       empty: '沒有符合的主題。',
       install: '安裝',
       installing: '安裝中...',
