@@ -70,6 +70,35 @@ def test_normalize_usage_openai_reads_top_level_anthropic_cache_fields():
     assert normalized.output_tokens == 200
 
 
+def test_explicit_openai_mode_wins_over_anthropic_provider_for_cache_semantics():
+    """An Anthropic model can be reached through an OpenAI-compatible wire.
+
+    ``prompt_tokens`` is the total on that wire and the cache counters are
+    subsets. The provider label must not force native Messages semantics and
+    turn a 600K cached prompt into 1.18M tokens.
+    """
+    usage = SimpleNamespace(
+        prompt_tokens=600_000,
+        completion_tokens=1_000,
+        prompt_tokens_details=SimpleNamespace(cached_tokens=580_000),
+        # Some compatibility gateways preserve Anthropic-style aliases too;
+        # these must not change the explicit chat-completions interpretation.
+        input_tokens=600_000,
+        output_tokens=1_000,
+        cache_read_input_tokens=580_000,
+    )
+
+    normalized = normalize_usage(
+        usage,
+        provider="anthropic",
+        api_mode="chat_completions",
+    )
+
+    assert normalized.input_tokens == 20_000
+    assert normalized.cache_read_tokens == 580_000
+    assert normalized.prompt_tokens == 600_000
+
+
 
 
 
@@ -569,6 +598,8 @@ def test_normalize_usage_handles_dict_openai_chat_completions():
     assert result.output_tokens == 100
     assert result.cache_read_tokens == 200
     assert result.input_tokens == 500 - 200  # prompt_total - cache_read
+    assert result.prompt_tokens == 500
+    assert result.total_tokens == 600
     assert result.reasoning_tokens == 30
 
 
@@ -642,9 +673,17 @@ def test_normalize_usage_mapping_anthropic_fields():
 
     normalized = normalize_usage(usage, provider="anthropic", api_mode="anthropic_messages")
 
+    assert normalized.input_tokens == 80
     assert normalized.cache_read_tokens == 50
     assert normalized.cache_write_tokens == 10
+    assert normalized.prompt_tokens == 140
     assert normalized.reasoning_tokens == 7
+
+    # Older auxiliary-accounting callers omit api_mode; the provider-name
+    # fallback must retain native Messages semantics for that compatibility
+    # path even though an explicit non-native mode now takes precedence.
+    inferred = normalize_usage(usage, provider="anthropic")
+    assert inferred.prompt_tokens == 140
 
 
 def test_normalize_usage_mapping_codex_fields():
@@ -663,6 +702,8 @@ def test_normalize_usage_mapping_codex_fields():
     assert normalized.input_tokens == 30
     assert normalized.cache_read_tokens == 60
     assert normalized.cache_write_tokens == 10
+    assert normalized.prompt_tokens == 100
+    assert normalized.total_tokens == 120
     assert normalized.reasoning_tokens == 5
 
 
@@ -719,6 +760,8 @@ def test_normalize_usage_codex_responses_reads_cache_write_tokens():
     assert normalized.cache_read_tokens == 1920
     assert normalized.cache_write_tokens == 50
     assert normalized.input_tokens == 2006 - 1920 - 50
+    assert normalized.prompt_tokens == 2006
+    assert normalized.total_tokens == 2406
 
 
 def test_normalize_usage_codex_responses_falls_back_to_cache_creation_tokens():

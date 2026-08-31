@@ -100,24 +100,61 @@ def test_anthropic_cache_read_only(monkeypatch):
     assert agent.context_compressor.last_prompt_tokens == 17686  # 5+17666+15
 
 
-# -- OpenAI: prompt_tokens already total --
+# -- OpenAI Chat Completions: cache details are subsets of prompt_tokens --
 
 def test_openai_prompt_tokens_unchanged(monkeypatch):
     resp = lambda: SimpleNamespace(
         choices=[SimpleNamespace(index=0, message=SimpleNamespace(
             role="assistant", content="ok", tool_calls=None, reasoning_content=None,
         ), finish_reason="stop")],
-        usage=SimpleNamespace(prompt_tokens=5000, completion_tokens=100, total_tokens=5100),
+        usage=SimpleNamespace(
+            prompt_tokens=5000,
+            completion_tokens=100,
+            total_tokens=5100,
+            prompt_tokens_details=SimpleNamespace(
+                cached_tokens=4500,
+                cache_write_tokens=200,
+            ),
+        ),
         model="gpt-4o",
     )
     agent = _make_agent(monkeypatch, "chat_completions", "openrouter", resp)
     agent.run_conversation("hi")
     assert agent.context_compressor.last_prompt_tokens == 5000
+    assert agent.session_prompt_tokens == 5000
+    assert agent.session_input_tokens == 300
+    assert agent.session_cache_read_tokens == 4500
+    assert agent.session_cache_write_tokens == 200
+    assert agent.session_total_tokens == 5100
 
 
-# -- Codex: no cache fields, getattr returns 0 --
+# -- OpenAI Responses: cache details are subsets of input_tokens --
 
-def test_codex_no_cache_fields(monkeypatch):
+def test_responses_input_tokens_unchanged(monkeypatch):
+    resp = lambda: SimpleNamespace(
+        output=[SimpleNamespace(type="message", content=[SimpleNamespace(type="output_text", text="ok")])],
+        usage=SimpleNamespace(
+            input_tokens=3000,
+            output_tokens=50,
+            total_tokens=3050,
+            input_tokens_details=SimpleNamespace(
+                cached_tokens=2700,
+                cache_write_tokens=100,
+            ),
+        ),
+        status="completed", model="gpt-5-codex",
+    )
+    agent = _make_agent(monkeypatch, "codex_responses", "openai-codex", resp)
+    agent.run_conversation("hi")
+    assert agent.context_compressor.last_prompt_tokens == 3000
+    assert agent.session_prompt_tokens == 3000
+    assert agent.session_input_tokens == 200
+    assert agent.session_cache_read_tokens == 2700
+    assert agent.session_cache_write_tokens == 100
+    assert agent.session_total_tokens == 3050
+
+
+def test_responses_without_cache_details(monkeypatch):
     resp = lambda: SimpleNamespace(
         output=[SimpleNamespace(type="message", content=[SimpleNamespace(type="output_text", text="ok")])],
         usage=SimpleNamespace(input_tokens=3000, output_tokens=50, total_tokens=3050),
@@ -126,3 +163,6 @@ def test_codex_no_cache_fields(monkeypatch):
     agent = _make_agent(monkeypatch, "codex_responses", "openai-codex", resp)
     agent.run_conversation("hi")
     assert agent.context_compressor.last_prompt_tokens == 3000
+    assert agent.session_input_tokens == 3000
+    assert agent.session_cache_read_tokens == 0
+    assert agent.session_cache_write_tokens == 0

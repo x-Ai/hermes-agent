@@ -1313,7 +1313,14 @@ def normalize_usage(
     provider_name = (provider or "").strip().lower()
     mode = (api_mode or "").strip().lower()
 
-    if mode == "anthropic_messages" or provider_name == "anthropic":
+    # The wire protocol owns the usage-field semantics. Anthropic's native
+    # Messages API reports disjoint input/cache buckets, but Anthropic models
+    # reached through an explicitly configured OpenAI-compatible route report
+    # a total prompt count with cache buckets as subsets. Do not let the
+    # provider label override that explicit route or cache-heavy prompts are
+    # double-counted. Provider inference remains as a compatibility fallback
+    # for older callers (notably auxiliary accounting) that do not pass a mode.
+    if mode == "anthropic_messages" or (not mode and provider_name == "anthropic"):
         input_tokens = _usage_count(_usage_get(response_usage, "input_tokens", 0))
         output_tokens = _usage_count(_usage_get(response_usage, "output_tokens", 0))
         cache_read_tokens = _usage_count(_usage_get(response_usage, "cache_read_input_tokens", 0))

@@ -86,7 +86,7 @@ class TestRunConversationCodexPath:
         assert result["codex_thread_id"] == "thread-stub-1"
         assert result["codex_turn_id"] == "turn-stub-1"
 
-    def test_codex_app_server_token_usage_updates_session_accounting(self, monkeypatch):
+    def test_codex_app_server_cache_subsets_are_not_double_counted(self, monkeypatch):
         def fake_run_turn(self, user_input: str, **kwargs):
             return TurnResult(
                 final_text="done",
@@ -94,9 +94,13 @@ class TestRunConversationCodexPath:
                 turn_id="turn-usage-1",
                 thread_id="thread-usage-1",
                 token_usage_last={
-                    "totalTokens": 130,
+                    # App-server follows Responses semantics: cached reads and
+                    # writes are subsets of inputTokens, while reasoning is a
+                    # subset of outputTokens.
+                    "totalTokens": 105,
                     "inputTokens": 80,
                     "cachedInputTokens": 20,
+                    "cacheWriteInputTokens": 10,
                     "outputTokens": 25,
                     "reasoningOutputTokens": 5,
                 },
@@ -112,28 +116,28 @@ class TestRunConversationCodexPath:
             result = agent.run_conversation("hello")
 
         assert result["api_calls"] == 1
-        assert result["prompt_tokens"] == 100
+        assert result["prompt_tokens"] == 80
         assert result["completion_tokens"] == 25
-        assert result["total_tokens"] == 130
-        assert result["input_tokens"] == 80
+        assert result["total_tokens"] == 105
+        assert result["input_tokens"] == 50
         assert result["output_tokens"] == 25
         assert result["cache_read_tokens"] == 20
-        assert result["cache_write_tokens"] == 0
+        assert result["cache_write_tokens"] == 10
         assert result["reasoning_tokens"] == 5
-        assert result["last_prompt_tokens"] == 100
+        assert result["last_prompt_tokens"] == 80
 
         assert agent.session_api_calls == 1
-        assert agent.session_prompt_tokens == 100
+        assert agent.session_prompt_tokens == 80
         assert agent.session_completion_tokens == 25
-        assert agent.session_total_tokens == 130
-        assert agent.session_input_tokens == 80
+        assert agent.session_total_tokens == 105
+        assert agent.session_input_tokens == 50
         assert agent.session_output_tokens == 25
         assert agent.session_cache_read_tokens == 20
-        assert agent.session_cache_write_tokens == 0
+        assert agent.session_cache_write_tokens == 10
         assert agent.session_reasoning_tokens == 5
-        assert agent.context_compressor.last_prompt_tokens == 100
+        assert agent.context_compressor.last_prompt_tokens == 80
         assert agent.context_compressor.last_completion_tokens == 25
-        assert agent.context_compressor.last_total_tokens == 130
+        assert agent.context_compressor.last_total_tokens == 105
         assert agent.context_compressor.context_length == 200000
 
     def test_native_codex_compaction_updates_bookkeeping(self, monkeypatch):
