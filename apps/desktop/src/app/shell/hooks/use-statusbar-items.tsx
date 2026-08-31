@@ -239,6 +239,7 @@ export function useStatusbarItems({
 
   const { breakdown: contextBreakdown, loading: contextBreakdownLoading } = useContextBreakdown({
     busy,
+    compressionCount: currentUsage.compressions,
     enabled: !contextItemHidden,
     requestGateway,
     sessionId: activeSessionId

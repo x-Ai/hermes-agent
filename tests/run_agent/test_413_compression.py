@@ -485,6 +485,7 @@ class TestPreflightCompression:
         # its output differs from the cached prompt here, so the rebuilt
         # prompt wins.
         assert new_system_prompt == "new system prompt"
+        assert agent._session_messages is compressed
         build_prompt.assert_called_once()
         assert events == [
             ("lifecycle", COMPACTION_STATUS),

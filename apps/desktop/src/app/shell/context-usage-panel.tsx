@@ -13,9 +13,9 @@ interface ContextUsagePanelProps {
 
 /** Project a previously fetched category snapshot onto the latest measured
  * context occupancy. System/tool/rule buckets are stable for the session, so
- * growth between provider calls belongs to the conversation bucket. The
- * backend refetch at turn end replaces this projection with an authoritative
- * breakdown (including compaction changes). */
+ * Conversation is the residual of the current window after those buckets --
+ * never an accumulated delta from an older snapshot. This remains correct
+ * across repeated projections and in-place compactions. */
 export function projectLiveContextBreakdown(
   breakdown: ContextBreakdown | null,
   usage: UsageStats
@@ -32,13 +32,14 @@ export function projectLiveContextBreakdown(
   }
 
   const contextUsed = usage.context_used
-  const delta = contextUsed - breakdown.context_used
   const contextMax = usage.context_max ?? breakdown.context_max
 
-  if (delta === 0 && contextMax === breakdown.context_max) {
-    return breakdown
-  }
+  const nonConversationTotal = breakdown.categories.reduce(
+    (total, category) => total + (category.id === 'conversation' ? 0 : category.tokens),
+    0
+  )
 
+  const conversationTokens = Math.max(0, contextUsed - nonConversationTotal)
   let foundConversation = false
 
   const categories = breakdown.categories.map(category => {
@@ -48,15 +49,15 @@ export function projectLiveContextBreakdown(
 
     foundConversation = true
 
-    return { ...category, tokens: Math.max(0, category.tokens + delta) }
+    return { ...category, tokens: conversationTokens }
   })
 
-  if (!foundConversation && delta > 0) {
+  if (!foundConversation && conversationTokens > 0) {
     categories.push({
       color: 'var(--context-usage-conversation)',
       id: 'conversation',
       label: 'Conversation',
-      tokens: delta
+      tokens: conversationTokens
     })
   }
 
@@ -66,7 +67,7 @@ export function projectLiveContextBreakdown(
     context_max: contextMax,
     context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
     context_used: contextUsed,
-    estimated_total: Math.max(0, breakdown.estimated_total + delta)
+    estimated_total: nonConversationTotal + conversationTokens
   }
 }
 

@@ -1758,6 +1758,19 @@ def _(rid, params: dict) -> dict:
         )
     with session["history_lock"]:
         history = list(session.get("history", []))
+
+    # ``session["history"]`` is committed only when the outer prompt turn
+    # finishes.  A long tool loop, however, keeps its current transcript on
+    # the agent and can compact that list several times before then.  Reading
+    # the committed snapshot here made every mid-turn breakdown start from the
+    # pre-turn Conversation count while ``session.usage`` reported the new
+    # provider prompt.  The desktop then repeatedly projected that mismatch as
+    # Conversation growth (and restarted it after every compaction).  Prefer
+    # the agent-owned list whenever it exists; the copied fallback remains the
+    # source of truth for a resumed agent that has not run in this process.
+    live_history = getattr(agent, "_session_messages", None)
+    if isinstance(live_history, list) and live_history:
+        history = list(live_history)
     try:
         from agent.context_breakdown import compute_session_context_breakdown
 

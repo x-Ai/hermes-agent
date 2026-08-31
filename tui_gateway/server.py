@@ -7233,9 +7233,15 @@ def _get_usage(agent) -> dict:
         if last_prompt < 0:
             last_prompt = 0
         ctx_max = getattr(comp, "context_length", 0) or 0
+        if ctx_max:
+            usage["context_max"] = ctx_max
+            # An in-place compaction deliberately invalidates the old prompt
+            # measurement until the next provider response.  Mark that gap so
+            # merge-based clients can discard the pre-compaction occupancy
+            # instead of continuing to display it as the new window grows.
+            usage["context_pending"] = not bool(last_prompt)
         if ctx_max and last_prompt:
             usage["context_used"] = last_prompt
-            usage["context_max"] = ctx_max
             usage["context_percent"] = max(0, min(100, round(last_prompt / ctx_max * 100)))
         usage["compressions"] = getattr(comp, "compression_count", 0) or 0
     # Cache-hit ratio + rolling latency/throughput for the TUI status bar.

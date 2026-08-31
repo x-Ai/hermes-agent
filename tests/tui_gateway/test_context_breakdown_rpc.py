@@ -71,3 +71,37 @@ def test_live_agent_marks_the_computed_breakdown_ready(session, monkeypatch):
 
     assert result["ready"] is True
     assert result["categories"] == payload["categories"]
+
+
+def test_running_breakdown_uses_agent_live_messages_not_pre_turn_history(session, monkeypatch):
+    sid, record = session
+    stale = [{"role": "user", "content": "before turn"}]
+    live = stale + [
+        {"role": "assistant", "content": "tool call"},
+        {"role": "tool", "content": "large live result"},
+    ]
+    record["history"] = stale
+    record["agent"] = type("Agent", (), {"_session_messages": live})()
+    record["agent_ready"].set()
+    captured = {}
+
+    def _compute(_agent, history):
+        captured["history"] = history
+        return {
+            "categories": [],
+            "context_max": 1_000,
+            "context_percent": 0,
+            "context_used": 0,
+            "estimated_total": 0,
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(
+        "agent.context_breakdown.compute_session_context_breakdown",
+        _compute,
+    )
+
+    _call(sid)
+
+    assert captured["history"] == live
+    assert captured["history"] is not live

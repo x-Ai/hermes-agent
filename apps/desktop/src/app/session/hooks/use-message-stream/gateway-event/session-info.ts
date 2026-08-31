@@ -31,6 +31,7 @@ import { finalizeInterruptedMessages } from '../../use-prompt-actions/rewind'
 import { hasSessionInfoStatePatch, PRE_TURN_LIVE_SETTLE_GRACE_MS, sessionInfoStatePatch } from '../utils'
 
 import type { GatewayEventContext } from './types'
+import { mergeUsageSnapshot } from './usage-snapshot'
 
 /**
  * Whether a `session.info` payload's `stored_session_id` may be treated as the
@@ -402,7 +403,7 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
     }
 
     if (payload?.usage && (!explicitSid || isActiveEvent)) {
-      setCurrentUsage(current => ({ ...current, ...payload.usage }))
+      setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
     }
 
     requestDesktopOnboardingForCredentialWarning(payload?.credential_warning)
@@ -434,11 +435,14 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
       // while the primary-only global mirrors the active session.
       updateSessionState(sessionId, state => ({
         ...state,
-        usage: { calls: 0, input: 0, output: 0, total: 0, ...state.usage, ...payload.usage }
+        usage: mergeUsageSnapshot(
+          { calls: 0, input: 0, output: 0, total: 0, ...state.usage },
+          payload.usage
+        )
       }))
 
       if (isActiveEvent) {
-        setCurrentUsage(current => ({ ...current, ...payload.usage }))
+        setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
       }
     }
 

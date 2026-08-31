@@ -104,6 +104,28 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
   })
 
+  it('refetches the live transcript after each in-place compression', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
+
+    const { rerender } = renderHook(
+      ({ compressionCount }) =>
+        useContextBreakdown({
+          busy: true,
+          compressionCount,
+          enabled: true,
+          requestGateway,
+          sessionId: 'runtime-1'
+        }),
+      { initialProps: { compressionCount: 0 } }
+    )
+
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    rerender({ compressionCount: 1 })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
+    rerender({ compressionCount: 2 })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(3))
+  })
+
   it('refetches on a session switch and never reports the previous session numbers', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
@@ -157,10 +179,36 @@ describe('ContextUsagePanel', () => {
     })
 
     expect(projected?.categories.find(category => category.id === 'system_prompt')?.tokens).toBe(20_000)
-    expect(projected?.categories.find(category => category.id === 'conversation')?.tokens).toBe(120_000)
+    expect(projected?.categories.find(category => category.id === 'conversation')?.tokens).toBe(128_000)
     expect(projected?.context_used).toBe(148_000)
     expect(projected?.context_percent).toBe(54)
-    expect(projected?.estimated_total).toBe(140_000)
+    expect(projected?.estimated_total).toBe(148_000)
+  })
+
+  it('re-baselines conversation from the current window after compression', () => {
+    const baseline: ContextBreakdown = {
+      ...breakdown,
+      categories: [
+        { color: 'gray', id: 'system_prompt', label: 'System prompt', tokens: 20_000 },
+        { color: 'teal', id: 'conversation', label: 'Conversation', tokens: 500_000 }
+      ],
+      context_used: 520_000,
+      estimated_total: 520_000
+    }
+
+    const compressed = projectLiveContextBreakdown(baseline, {
+      ...usage,
+      context_used: 90_000
+    })
+
+    const regrown = projectLiveContextBreakdown(compressed, {
+      ...usage,
+      context_used: 153_600
+    })
+
+    expect(compressed?.categories.find(category => category.id === 'conversation')?.tokens).toBe(70_000)
+    expect(regrown?.categories.find(category => category.id === 'conversation')?.tokens).toBe(133_600)
+    expect(regrown?.estimated_total).toBe(153_600)
   })
 
   it('does not mislabel live usage as conversation while the deferred agent is unavailable', () => {

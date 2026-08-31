@@ -19236,6 +19236,8 @@ def test_get_usage_clamps_post_compression_sentinel():
     usage = server._get_usage(agent)
     assert "context_used" not in usage
     assert "context_percent" not in usage
+    assert usage["context_max"] == 1_048_576
+    assert usage["context_pending"] is True
 
 
 # ---------------------------------------------------------------------------

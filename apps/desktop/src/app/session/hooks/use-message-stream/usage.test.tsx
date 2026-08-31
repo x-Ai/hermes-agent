@@ -71,6 +71,35 @@ describe('useMessageStream status-bar usage scoping', () => {
     })
   })
 
+  it('clears stale current-window occupancy while compression awaits provider usage', () => {
+    sessionStates = new Map([
+      [
+        SID,
+        {
+          ...createClientSessionState(),
+          usage: { ...BASELINE, context_max: 1_000_000, context_percent: 52, context_used: 520_000 }
+        }
+      ]
+    ])
+    $currentUsage.set({ ...BASELINE, context_max: 1_000_000, context_percent: 52, context_used: 520_000 })
+    mountStream()
+
+    act(() =>
+      stream.handleEvent({
+        payload: {
+          usage: { compressions: 1, context_max: 1_000_000, context_pending: true, input: 600_000, total: 610_000 }
+        },
+        session_id: SID,
+        type: 'session.usage'
+      })
+    )
+
+    expect($currentUsage.get().context_used).toBeUndefined()
+    expect($currentUsage.get().context_percent).toBeUndefined()
+    expect($currentUsage.get().compressions).toBe(1)
+    expect(sessionStates.get(SID)?.usage?.context_used).toBeUndefined()
+  })
+
   it('applies message.complete usage from the focused session', () => {
     mountStream()
 

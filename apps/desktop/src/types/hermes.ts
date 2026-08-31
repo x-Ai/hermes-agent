@@ -737,7 +737,11 @@ export interface SessionRuntimeInfo {
 
 export interface UsageStats {
   calls: number
+  /** Number of current-session context compactions completed by the backend. */
+  compressions?: number
   context_max?: number
+  /** True while a compaction has invalidated occupancy pending provider usage. */
+  context_pending?: boolean
   context_percent?: number
   context_used?: number
   cost_usd?: number

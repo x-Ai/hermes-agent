@@ -8402,6 +8402,13 @@ class AIAgent:
                         # while `messages` now points at the adopted snapshot,
                         # so both lists need the post-publish marker sync.
                         _sync_persisted_markers(session_messages, result_messages)
+                    # Publish the admitted compressed transcript immediately.
+                    # The conversation loop adopts this same returned list,
+                    # while live gateway reads use ``_session_messages``. If
+                    # this pointer stays on the pre-compression list until a
+                    # later persist/tool boundary, the context breakdown can
+                    # briefly recount the old window after compaction.
+                    self._session_messages = result_messages
             # compress_context ran on a daemon pool worker thread; the session
             # id rotation updated hermes_logging._session_context (a
             # threading.local) on the WORKER thread, not this one. Propagate
