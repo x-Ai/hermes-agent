@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { ConnectionSwitcher } from '@/app/chat/sidebar/connection-switcher'
 import type { CommandCenterSection } from '@/app/command-center'
 import { useApprovalModeStatusbarItem } from '@/app/shell/approval-mode-menu'
-import { ContextUsagePanel } from '@/app/shell/context-usage-panel'
+import { ContextUsagePanel, projectLiveContextBreakdown } from '@/app/shell/context-usage-panel'
 import { GatewayMenuPanel } from '@/app/shell/gateway-menu-panel'
 import { useContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
 import { $paneVisible, togglePaneVisible } from '@/components/pane-shell/tree/store'
@@ -244,24 +244,41 @@ export function useStatusbarItems({
     sessionId: activeSessionId
   })
 
-  // The breakdown wins whenever we have one, for two reasons: it reports the
-  // MEASURED occupancy once the backend has it (falling back to the estimate
-  // only before that), and it is keyed to the session it describes. The global
-  // `$currentUsage` is neither — a resumed session reports no context fields,
-  // and the store merges rather than replaces, so the PREVIOUS session's gauge
-  // numbers survive the switch. Mid-turn there's no breakdown by design and
-  // the streamed usage carries the gauge.
-  const gaugeUsage = useMemo<UsageStats>(
-    () =>
-      contextBreakdown
-        ? {
-            ...currentUsage,
-            context_max: contextBreakdown.context_max,
-            context_percent: contextBreakdown.context_percent,
-            context_used: contextBreakdown.context_used
-          }
-        : currentUsage,
-    [contextBreakdown, currentUsage]
+  // A keyed breakdown is the cold/resume baseline. While a turn runs (and
+  // while its final reconciliation is loading), live `session.usage` ticks
+  // take precedence so the meter advances after every internal provider call
+  // instead of freezing until message.complete. Outside that window the keyed
+  // breakdown protects session switches from stale global usage.
+  const gaugeUsage = useMemo<UsageStats>(() => {
+    if (!contextBreakdown) {
+      return currentUsage
+    }
+
+    const preferLive = (busy || contextBreakdownLoading) && typeof currentUsage.context_used === 'number'
+
+    if (preferLive) {
+      const contextMax = currentUsage.context_max ?? contextBreakdown.context_max
+      const contextUsed = currentUsage.context_used ?? contextBreakdown.context_used
+
+      return {
+        ...currentUsage,
+        context_max: contextMax,
+        context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
+        context_used: contextUsed
+      }
+    }
+
+    return {
+      ...currentUsage,
+      context_max: contextBreakdown.context_max,
+      context_percent: contextBreakdown.context_percent,
+      context_used: contextBreakdown.context_used
+    }
+  }, [busy, contextBreakdown, contextBreakdownLoading, currentUsage])
+
+  const displayedContextBreakdown = useMemo(
+    () => projectLiveContextBreakdown(contextBreakdown, gaugeUsage),
+    [contextBreakdown, gaugeUsage]
   )
 
   const contextUsage = useMemo(() => usageContextLabel(gaugeUsage), [gaugeUsage])
@@ -552,7 +569,11 @@ export function useStatusbarItems({
         menuAlign: 'end',
         menuClassName: 'w-auto border-(--ui-stroke-secondary) p-0',
         menuContent: (
-          <ContextUsagePanel breakdown={contextBreakdown} loading={contextBreakdownLoading} usage={gaugeUsage} />
+          <ContextUsagePanel
+            breakdown={displayedContextBreakdown}
+            loading={contextBreakdownLoading}
+            usage={gaugeUsage}
+          />
         ),
         toggleLabel: copy.toggleContextUsage,
         variant: 'menu'
@@ -591,7 +612,7 @@ export function useStatusbarItems({
       chatOpen,
       clientVersionItem,
       contextBar,
-      contextBreakdown,
+      displayedContextBreakdown,
       contextBreakdownLoading,
       contextUsage,
       copy,

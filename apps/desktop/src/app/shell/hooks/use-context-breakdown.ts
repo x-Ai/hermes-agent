@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ContextBreakdown } from '@/types/hermes'
 
@@ -20,41 +20,72 @@ interface ContextBreakdownOptions {
  *  hasn't spoken yet. It is a read-only chars/4 pass: no provider call, no
  *  prompt-cache impact.
  *
- *  Refetches when the focused session changes and when a turn ends (the
- *  transcript just grew). Held keyed by the session it describes so switching
- *  sessions drops the previous numbers instead of painting them under the new
- *  session's name. */
+ *  The initial request is allowed to finish when a turn starts: its category
+ *  snapshot becomes the baseline that live `session.usage` ticks advance in
+ *  the statusbar. Refetches when the focused session changes and when a turn
+ *  ends for an authoritative reconciliation. Held keyed by the session it
+ *  describes so switching sessions drops the previous numbers instead of
+ *  painting them under the new session's name. */
 export function useContextBreakdown({ busy, enabled, requestGateway, sessionId }: ContextBreakdownOptions) {
   const [fetched, setFetched] = useState<{ breakdown: ContextBreakdown; sessionId: string } | null>(null)
   const [loading, setLoading] = useState(false)
+  const [busySessionId, setBusySessionId] = useState<null | string>(busy ? sessionId : null)
+  const requestGenerationRef = useRef(0)
 
-  useEffect(() => {
-    // Mid-turn the transcript changes on every delta and the gateway already
-    // streams measured usage, so an estimate would be both stale and wasteful.
-    if (!enabled || !sessionId || busy) {
+  const invalidateRequests = useCallback(() => {
+    requestGenerationRef.current += 1
+  }, [])
+
+  const fetchBreakdown = useCallback(() => {
+    if (!enabled || !sessionId) {
       return
     }
 
-    let cancelled = false
+    const requestGeneration = requestGenerationRef.current + 1
+    requestGenerationRef.current = requestGeneration
     setLoading(true)
 
     void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
       .then(breakdown => {
-        if (!cancelled && breakdown) {
+        if (requestGenerationRef.current === requestGeneration && breakdown) {
           setFetched({ breakdown, sessionId })
         }
       })
       .catch(() => undefined)
       .finally(() => {
-        if (!cancelled) {
+        if (requestGenerationRef.current === requestGeneration) {
           setLoading(false)
         }
       })
+  }, [enabled, requestGateway, sessionId])
+
+  useEffect(() => {
+    if (!enabled || !sessionId) {
+      invalidateRequests()
+      setLoading(false)
+
+      return
+    }
+
+    fetchBreakdown()
 
     return () => {
-      cancelled = true
+      invalidateRequests()
     }
-  }, [busy, enabled, requestGateway, sessionId])
+  }, [enabled, fetchBreakdown, invalidateRequests, sessionId])
+
+  useEffect(() => {
+    if (busy && sessionId && busySessionId !== sessionId) {
+      setBusySessionId(sessionId)
+
+      return
+    }
+
+    if (!busy && busySessionId === sessionId) {
+      setBusySessionId(null)
+      fetchBreakdown()
+    }
+  }, [busy, busySessionId, fetchBreakdown, sessionId])
 
   return {
     breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,

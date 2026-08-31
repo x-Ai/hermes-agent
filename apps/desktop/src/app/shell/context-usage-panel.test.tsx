@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
-import { ContextUsagePanel } from './context-usage-panel'
+import { ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
 import { useContextBreakdown } from './hooks/use-context-breakdown'
 
 const usage: UsageStats = {
@@ -58,12 +58,37 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
   })
 
-  it('skips the estimate mid-turn — the gateway streams measured usage then', () => {
+  it('lets an in-flight baseline request finish when the turn becomes busy', async () => {
+    let resolveRequest: ((value: ContextBreakdown) => void) | undefined
+
+    const requestGateway = vi
+      .fn()
+      .mockImplementation(() => new Promise<ContextBreakdown>(resolve => (resolveRequest = resolve)))
+
+    const { rerender, result } = renderHook(
+      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { busy: false } }
+    )
+
+    rerender({ busy: true })
+    resolveRequest?.(breakdown)
+
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    expect(result.current.loading).toBe(false)
+    expect(requestGateway).toHaveBeenCalledTimes(1)
+  })
+
+  it('refetches the authoritative breakdown when a turn ends', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
-    renderHook(() => useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' }))
+    const { rerender } = renderHook(
+      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { busy: true } }
+    )
 
-    expect(requestGateway).not.toHaveBeenCalled()
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    rerender({ busy: false })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
   })
 
   it('refetches on a session switch and never reports the previous session numbers', async () => {
@@ -101,6 +126,30 @@ describe('useContextBreakdown', () => {
 })
 
 describe('ContextUsagePanel', () => {
+  it('projects live context growth into the conversation category', () => {
+    const baseline: ContextBreakdown = {
+      ...breakdown,
+      categories: [
+        { color: 'gray', id: 'system_prompt', label: 'System prompt', tokens: 20_000 },
+        { color: 'teal', id: 'conversation', label: 'Conversation', tokens: 100_000 }
+      ],
+      context_used: 128_000,
+      estimated_total: 120_000
+    }
+
+    const projected = projectLiveContextBreakdown(baseline, {
+      ...usage,
+      context_max: 272_000,
+      context_used: 148_000
+    })
+
+    expect(projected?.categories.find(category => category.id === 'system_prompt')?.tokens).toBe(20_000)
+    expect(projected?.categories.find(category => category.id === 'conversation')?.tokens).toBe(120_000)
+    expect(projected?.context_used).toBe(148_000)
+    expect(projected?.context_percent).toBe(54)
+    expect(projected?.estimated_total).toBe(140_000)
+  })
+
   it('renders the usage it is handed, so the popover matches the bar', () => {
     render(<ContextUsagePanel breakdown={breakdown} loading={false} usage={usage} />)
 

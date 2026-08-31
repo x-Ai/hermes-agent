@@ -11,6 +11,58 @@ interface ContextUsagePanelProps {
   usage: UsageStats
 }
 
+/** Project a previously fetched category snapshot onto the latest measured
+ * context occupancy. System/tool/rule buckets are stable for the session, so
+ * growth between provider calls belongs to the conversation bucket. The
+ * backend refetch at turn end replaces this projection with an authoritative
+ * breakdown (including compaction changes). */
+export function projectLiveContextBreakdown(
+  breakdown: ContextBreakdown | null,
+  usage: UsageStats
+): ContextBreakdown | null {
+  if (!breakdown || typeof usage.context_used !== 'number' || usage.context_used < 0) {
+    return breakdown
+  }
+
+  const contextUsed = usage.context_used
+  const delta = contextUsed - breakdown.context_used
+  const contextMax = usage.context_max ?? breakdown.context_max
+
+  if (delta === 0 && contextMax === breakdown.context_max) {
+    return breakdown
+  }
+
+  let foundConversation = false
+
+  const categories = breakdown.categories.map(category => {
+    if (category.id !== 'conversation') {
+      return category
+    }
+
+    foundConversation = true
+
+    return { ...category, tokens: Math.max(0, category.tokens + delta) }
+  })
+
+  if (!foundConversation && delta > 0) {
+    categories.push({
+      color: 'var(--context-usage-conversation)',
+      id: 'conversation',
+      label: 'Conversation',
+      tokens: delta
+    })
+  }
+
+  return {
+    ...breakdown,
+    categories,
+    context_max: contextMax,
+    context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
+    context_used: contextUsed,
+    estimated_total: Math.max(0, breakdown.estimated_total + delta)
+  }
+}
+
 /** Presentational: the breakdown is fetched by the statusbar (see
  *  `useContextBreakdown`) because the gauge's own label needs it, so the
  *  popover opens with its numbers already in hand. `usage` is the gauge's
