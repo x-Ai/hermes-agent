@@ -3097,6 +3097,8 @@ export const ar = defineLocale({
       returnedSuccessFalse: 'أرجعت الأداة success=false.',
       returnedStatus: status => `أرجعت الأداة الحالة «${status}».`,
       commandFailedWithExitCode: exitCode => `فشل تنفيذ الأمر برمز الخروج ${exitCode}.`,
+      sessionKernelTimedOut: (timeoutSeconds, remote) =>
+        `انتهت مهلة الخلية بعد ${timeoutSeconds} ثانية؛ تم إنهاء نواة ${remote ? 'الجلسة البعيدة' : 'الجلسة'} وفُقدت حالتها. سيبدأ استدعاء execute_code التالي بنواة جديدة.`,
       clarifyErrors: {
         questionsMustBeArray: 'يجب أن تكون المعلمة questions مصفوفة من كائنات الأسئلة.',
         questionsLimit: limit => `تدعم المعلمة questions عددًا أقصاه ${limit} من العناصر.`,

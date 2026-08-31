@@ -4210,6 +4210,8 @@ export const ja = defineLocale({
       returnedSuccessFalse: 'ツールが success=false を返しました。',
       returnedStatus: status => `ツールがステータス「${status}」を返しました。`,
       commandFailedWithExitCode: exitCode => `コマンドは終了コード ${exitCode} で失敗しました。`,
+      sessionKernelTimedOut: (timeoutSeconds, remote) =>
+        `セルは ${timeoutSeconds} 秒後にタイムアウトしました。${remote ? 'リモート' : ''}セッションカーネルは終了され、その状態は失われました。次の execute_code 呼び出しでは新しいカーネルが起動します。`,
       clarifyErrors: {
         questionsMustBeArray: 'questions パラメーターは質問オブジェクトの配列である必要があります。',
         questionsLimit: limit => `questions パラメーターに指定できる項目は最大 ${limit} 件です。`,

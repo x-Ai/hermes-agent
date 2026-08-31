@@ -4004,6 +4004,8 @@ export const en: Translations = {
       returnedSuccessFalse: 'Tool returned success=false.',
       returnedStatus: status => `Tool returned status "${status}".`,
       commandFailedWithExitCode: exitCode => `Command failed with exit code ${exitCode}.`,
+      sessionKernelTimedOut: (timeoutSeconds, remote) =>
+        `Cell timed out after ${timeoutSeconds}s; the ${remote ? 'remote ' : ''}session kernel was killed and its state was lost. The next execute_code call starts a fresh kernel.`,
       clarifyErrors: {
         questionsMustBeArray: 'The questions parameter must be an array of question objects.',
         questionsLimit: limit => `The questions parameter supports at most ${limit} items.`,

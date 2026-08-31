@@ -93,6 +93,52 @@ describe('buildToolView localized errors', () => {
     expect(view.subtitle).toBe(`拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`)
   })
 
+  it('localizes a session-kernel timeout only at the Desktop execute_code render boundary', () => {
+    setRuntimeI18nLocale('zh')
+
+    const raw =
+      'Cell timed out after 300s; the session kernel was killed and its state was lost. The next execute_code call starts a fresh kernel.'
+
+    const localized =
+      '执行单元在 300 秒后超时；会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。'
+
+    const codeView = buildToolView(
+      part({
+        isError: true,
+        result: { error: raw, output: `⏰ ${raw}`, status: 'timeout' },
+        toolName: 'execute_code'
+      }),
+      ''
+    )
+
+    expect(codeView.subtitle).toBe(localized)
+    expect(codeView.detail).toBe(`${localized}\n\n⏰ ${localized}`)
+
+    const terminalView = buildToolView(part({ isError: true, result: { error: raw }, toolName: 'terminal' }), '')
+
+    expect(terminalView.subtitle).toBe(raw)
+  })
+
+  it('localizes the remote-kernel timeout variant and preserves unknown backend text', () => {
+    setRuntimeI18nLocale('zh')
+
+    const raw =
+      'Cell timed out after 42s; the remote session kernel was killed and its state was lost. The next call starts fresh.'
+
+    const localized =
+      '执行单元在 42 秒后超时；远程会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。'
+
+    expect(buildToolView(part({ isError: true, result: { error: raw }, toolName: 'execute_code' }), '').subtitle).toBe(
+      localized
+    )
+
+    const unknown = 'Cell timed out with a future kernel protocol.'
+
+    expect(
+      buildToolView(part({ isError: true, result: { error: unknown }, toolName: 'execute_code' }), '').subtitle
+    ).toBe(unknown)
+  })
+
   it.each([
     ['zh', 'questions 参数必须是一个由问题对象组成的数组'],
     ['zh-hant', 'questions 參數必須是由問題物件組成的陣列'],

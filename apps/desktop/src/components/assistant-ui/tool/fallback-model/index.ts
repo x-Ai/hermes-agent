@@ -701,6 +701,22 @@ function localizeClarifyError(message: string): string {
   return inputFailure ? translateNow('assistant.tool.clarifyErrors.inputFailed', inputFailure[1]) : message
 }
 
+const EXECUTE_CODE_SESSION_TIMEOUT_PATTERN =
+  /Cell timed out after (\d+(?:\.\d+)?)s; the (remote )?session kernel was killed and its state was lost\. The next (?:execute_code )?call starts (?:a fresh kernel|fresh)\./g
+
+/**
+ * execute_code lifecycle errors are shared wire text for every Hermes surface.
+ * Desktop parses the stable backend form and rebuilds only its rendered copy;
+ * unknown forms remain verbatim so a backend wording change stays visible.
+ */
+function localizeExecuteCodeResultText(message: string): string {
+  return message.replace(
+    EXECUTE_CODE_SESSION_TIMEOUT_PATTERN,
+    (_match, timeoutSeconds: string, remotePrefix: string | undefined) =>
+      translateNow('assistant.tool.sessionKernelTimedOut', timeoutSeconds, Boolean(remotePrefix))
+  )
+}
+
 function toolErrorText(part: ToolPart, result: Record<string, unknown>): string {
   const extractedError = extractToolErrorMessage(part.result)
 
@@ -717,6 +733,10 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
 
     if (part.toolName === 'clarify') {
       return localizeClarifyError(message)
+    }
+
+    if (part.toolName === 'execute_code') {
+      return localizeExecuteCodeResultText(message)
     }
 
     return message.startsWith(failedWritePrefix)
@@ -1164,7 +1184,9 @@ function toolDetailText(
       : ''
 
     if (output || lines) {
-      return [output, lines].filter(Boolean).join('\n')
+      const detail = [output, lines].filter(Boolean).join('\n')
+
+      return part.toolName === 'execute_code' ? localizeExecuteCodeResultText(detail) : detail
     }
 
     // A terminal row with no output already shows its command in the `$`

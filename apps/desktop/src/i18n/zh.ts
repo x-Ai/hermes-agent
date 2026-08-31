@@ -5084,6 +5084,8 @@ export const zh: Translations = {
       returnedSuccessFalse: '工具返回 success=false',
       returnedStatus: status => `工具返回了“${status}”状态`,
       commandFailedWithExitCode: exitCode => `命令执行失败，退出码为 ${exitCode}`,
+      sessionKernelTimedOut: (timeoutSeconds, remote) =>
+        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。`,
       clarifyErrors: {
         questionsMustBeArray: 'questions 参数必须是一个由问题对象组成的数组',
         questionsLimit: limit => `questions 参数最多支持 ${limit} 项`,

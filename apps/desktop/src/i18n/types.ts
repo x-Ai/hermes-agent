@@ -3230,6 +3230,7 @@ export interface Translations {
       returnedSuccessFalse: string
       returnedStatus: (status: string) => string
       commandFailedWithExitCode: (exitCode: number) => string
+      sessionKernelTimedOut: (timeoutSeconds: string, remote: boolean) => string
       clarifyErrors: {
         questionsMustBeArray: string
         questionsLimit: (limit: number) => string

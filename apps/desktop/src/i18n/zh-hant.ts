@@ -3924,6 +3924,8 @@ export const zhHant = defineLocale({
       returnedSuccessFalse: '工具傳回 success=false',
       returnedStatus: status => `工具傳回「${status}」狀態`,
       commandFailedWithExitCode: exitCode => `指令執行失敗，結束碼為 ${exitCode}`,
+      sessionKernelTimedOut: (timeoutSeconds, remote) =>
+        `執行單元在 ${timeoutSeconds} 秒後逾時；${remote ? '遠端' : ''}工作階段核心已被終止，其狀態已遺失。下一次 execute_code 呼叫將啟動全新的核心。`,
       clarifyErrors: {
         questionsMustBeArray: 'questions 參數必須是由問題物件組成的陣列',
         questionsLimit: limit => `questions 參數最多支援 ${limit} 項`,
