@@ -235,6 +235,48 @@ def test_grep_pcre_pattern_with_grouped_root_delete_text_stays_safe():
     assert detect_hardline_command(command) == (False, None)
 
 
+@pytest.mark.parametrize(
+    "command",
+    [
+        'echo "$(grep -oiE \'<title>[^<]*</title>\' /tmp/page.html)"',
+        'echo "`grep -oiE \'<title>[^<]*</title>\' /tmp/page.html`"',
+        'printf "%s\\n" "$(grep -P \'(?:safe|warning)\' audit.log | head -1)"',
+        'echo "$(printf \'%s\' "$(grep -P \'safe|warning\' audit.log)")"',
+        (
+            'for page in first second; do result="$(grep -oiE '
+            "'<title>[^<]*</title>' /tmp/page.html | head -1)\"; "
+            'echo "$result"; done'
+        ),
+    ],
+)
+def test_grep_inside_double_quoted_command_substitution_is_not_malformed(command):
+    """The outer double quote resumes after ``$()``; it is not grep syntax."""
+    assert detect_hardline_command(command) == (False, None)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        'echo "$(grep -P safe audit.log; rm -rf /)"',
+        'echo "$(grep -P safe audit.log && sudo reboot)"',
+        'echo "`grep -P safe audit.log; rm -rf /`"',
+    ],
+)
+def test_hardline_command_after_nested_grep_stays_blocked(command):
+    """Bounding grep parsing must not hide later commands in the substitution."""
+    hardline, description = detect_hardline_command(command)
+    assert hardline is True
+    assert description
+
+
+def test_malformed_nested_grep_still_fails_closed():
+    command = 'echo "$(grep -P \'unterminated audit.log)"'
+    assert detect_hardline_command(command) == (
+        True,
+        "command parser limit or malformed executable payload",
+    )
+
+
 def test_interpreter_heredoc_keeps_legacy_approval_key_compatibility():
     from tools.approval import _approval_key_aliases
 

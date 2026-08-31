@@ -1604,30 +1604,36 @@ def _command_parser_limit_exceeded(command: str) -> bool:
     return False
 
 
-def _shell_tokens_with_spans(segment: str, start: int):
+def _shell_tokens_with_spans(
+    segment: str, start: int, end: int | None = None
+):
     """Return shell words as ``(value, start, end, quoted)`` or ``None``.
 
     This deliberately small lexer never expands shell syntax.  It exists to
     preserve source spans, which ``shlex`` does not expose, while deciding
-    which *quoted* grep operand is data rather than another command.
+    which *quoted* grep operand is data rather than another command. ``end``
+    bounds parsing to the command's owning substitution, so an outer quote
+    that resumes after ``$(...)`` is not mistaken for a new, unterminated
+    quote in the nested command.
     """
+    limit = len(segment) if end is None else min(end, len(segment))
     tokens = []
     i = start
-    while i < len(segment):
-        while i < len(segment) and segment[i].isspace():
+    while i < limit:
+        while i < limit and segment[i].isspace():
             i += 1
-        if i >= len(segment):
+        if i >= limit:
             break
         token_start = i
         value = []
         quote = None
-        while i < len(segment) and (quote or not segment[i].isspace()):
+        while i < limit and (quote or not segment[i].isspace()):
             char = segment[i]
             if quote:
                 if char == quote:
                     quote = None
                     i += 1
-                elif char == "\\" and quote == '"' and i + 1 < len(segment):
+                elif char == "\\" and quote == '"' and i + 1 < limit:
                     value.append(segment[i + 1])
                     i += 2
                 else:
@@ -1637,7 +1643,7 @@ def _shell_tokens_with_spans(segment: str, start: int):
                 quote = char
                 i += 1
             elif char == "\\":
-                if i + 1 >= len(segment):
+                if i + 1 >= limit:
                     return None
                 value.append(segment[i + 1])
                 i += 2
@@ -1678,12 +1684,12 @@ def _quoted_grep_pattern_spans(command: str) -> tuple[list[tuple[int, int]], boo
     for segment in _iter_top_level_shell_segments(command):
         segment_at = command.find(segment, offset)
         offset = segment_at + len(segment)
-        for start, _, word in _iter_shell_command_word_spans(segment):
+        for start, _, word, context_end in _iter_shell_command_word_contexts(segment):
             if os.path.basename(_deobfuscate_shell_word_for_detection(word)).lower() not in {
                 "grep", "egrep",
             }:
                 continue
-            tokens = _shell_tokens_with_spans(segment, start)
+            tokens = _shell_tokens_with_spans(segment, start, context_end)
             if tokens is None:
                 return [], True
             args = tokens[1:]
@@ -2216,8 +2222,15 @@ def _deobfuscate_shell_word_for_detection(word: str) -> str:
     return deobfuscated
 
 
-def _iter_shell_command_starts(command: str):
-    starts = [0]
+def _iter_shell_command_contexts(command: str):
+    """Yield command starts with the end of their owning parse context.
+
+    A command inside ``$(...)`` or backticks has its own shell parse context.
+    Returning that boundary lets focused tokenizers avoid consuming syntax
+    that belongs to the outer command, while the start-only compatibility
+    wrapper below preserves the existing hardline command-position behavior.
+    """
+    contexts = [(0, len(command))]
 
     def scan(start: int, end: int) -> None:
         quote: str | None = None
@@ -2239,14 +2252,16 @@ def _iter_shell_command_starts(command: str):
                     continue
                 if command.startswith("$(", i):
                     nested_end = _scan_dollar_paren_end(command, i)
-                    starts.append(i + 2)
-                    scan(i + 2, nested_end - 1 if nested_end is not None else end)
+                    content_end = nested_end - 1 if nested_end is not None else end
+                    contexts.append((i + 2, content_end))
+                    scan(i + 2, content_end)
                     i = nested_end if nested_end is not None else end
                     continue
                 if ch == "`":
                     nested_end = _scan_backtick_end(command, i)
-                    starts.append(i + 1)
-                    scan(i + 1, nested_end - 1 if nested_end is not None else end)
+                    content_end = nested_end - 1 if nested_end is not None else end
+                    contexts.append((i + 1, content_end))
+                    scan(i + 1, content_end)
                     i = nested_end if nested_end is not None else end
                     continue
                 i += 1
@@ -2260,23 +2275,25 @@ def _iter_shell_command_starts(command: str):
                 continue
             if command.startswith("$(", i):
                 nested_end = _scan_dollar_paren_end(command, i)
-                starts.append(i + 2)
-                scan(i + 2, nested_end - 1 if nested_end is not None else end)
+                content_end = nested_end - 1 if nested_end is not None else end
+                contexts.append((i + 2, content_end))
+                scan(i + 2, content_end)
                 i = nested_end if nested_end is not None else end
                 continue
             if ch == "`":
                 nested_end = _scan_backtick_end(command, i)
-                starts.append(i + 1)
-                scan(i + 1, nested_end - 1 if nested_end is not None else end)
+                content_end = nested_end - 1 if nested_end is not None else end
+                contexts.append((i + 1, content_end))
+                scan(i + 1, content_end)
                 i = nested_end if nested_end is not None else end
                 continue
             if ch in ("(", "{"):
-                starts.append(i + 1)
+                contexts.append((i + 1, end))
             elif ch in ";\n":
-                starts.append(i + 1)
+                contexts.append((i + 1, end))
             elif ch in "&|":
                 repeated = i + 1 < end and command[i + 1] == ch
-                starts.append(i + 2 if repeated else i + 1)
+                contexts.append((i + 2 if repeated else i + 1, end))
                 if repeated:
                     i += 1
             i += 1
@@ -2284,11 +2301,16 @@ def _iter_shell_command_starts(command: str):
     scan(0, len(command))
 
     seen: set[int] = set()
-    for start in starts:
+    for start, end in contexts:
         start = _skip_shell_whitespace(command, start)
-        if start < len(command) and start not in seen:
+        if start < end and start not in seen:
             seen.add(start)
-            yield start
+            yield start, end
+
+
+def _iter_shell_command_starts(command: str):
+    for start, _ in _iter_shell_command_contexts(command):
+        yield start
 
 
 def _mark_command_starts(command: str) -> str:
@@ -2367,9 +2389,9 @@ def _mask_quoted_newlines(command: str) -> str:
     return "".join(out)
 
 
-def _iter_shell_command_word_spans(command: str):
-    """Yield command-position words that may be executable names."""
-    for command_start in _iter_shell_command_starts(command):
+def _iter_shell_command_word_contexts(command: str):
+    """Yield command-position words plus their owning context boundary."""
+    for command_start, context_end in _iter_shell_command_contexts(command):
         pos = command_start
         prefix_words = 0
         skip_wrapper_options = False
@@ -2395,7 +2417,7 @@ def _iter_shell_command_word_spans(command: str):
                 prefix_words += 1
                 continue
 
-            yield (word_start, word_end, word)
+            yield (word_start, word_end, word, context_end)
             prefix_words += 1
 
             if lower_word in _COMMAND_WRAPPER_WORDS:
@@ -2407,6 +2429,12 @@ def _iter_shell_command_word_spans(command: str):
                 pos = word_end
                 continue
             break
+
+
+def _iter_shell_command_word_spans(command: str):
+    """Yield command-position words that may be executable names."""
+    for word_start, word_end, word, _ in _iter_shell_command_word_contexts(command):
+        yield word_start, word_end, word
 
 
 def _command_detection_variants(command: str):
