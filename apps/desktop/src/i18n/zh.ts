@@ -3612,6 +3612,8 @@ export const zh = defineCompleteLocale({
       placeholder: '搜索 VS Code Marketplace...',
       loading: '正在搜索 Marketplace...',
       error: '无法连接到 Marketplace',
+      installError: '无法安装该主题',
+      invalidColorTheme: '该主题缺少“colors”配置，因此不是有效的 VS Code 颜色主题',
       empty: '没有匹配的主题',
       install: '安装',
       installing: '安装中...',

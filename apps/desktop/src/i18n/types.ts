@@ -2079,6 +2079,8 @@ export interface Translations {
       placeholder: string
       loading: string
       error: string
+      installError: string
+      invalidColorTheme: string
       empty: string
       install: string
       installing: string

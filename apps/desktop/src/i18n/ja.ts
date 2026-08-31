@@ -3313,6 +3313,8 @@ export const ja = defineCompleteLocale({
       placeholder: 'VS Code Marketplace を検索...',
       loading: 'Marketplace を検索中...',
       error: 'Marketplace に接続できませんでした。',
+      installError: 'そのテーマをインストールできませんでした。',
+      invalidColorTheme: 'このテーマには「colors」設定がないため、有効な VS Code カラーテーマではありません。',
       empty: '一致するテーマがありません。',
       install: 'インストール',
       installing: 'インストール中...',

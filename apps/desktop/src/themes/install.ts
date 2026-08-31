@@ -11,10 +11,22 @@ import type { DesktopMarketplaceThemeResult } from '@/global'
 
 import type { DesktopTheme } from './types'
 import { installUserTheme } from './user-themes'
-import { convertVscodeColorTheme, parseVscodeTheme, vscodeThemeSlug } from './vscode'
+import { convertVscodeColorTheme, InvalidVscodeColorThemeError, parseVscodeTheme, vscodeThemeSlug } from './vscode'
 
 /** A `publisher.extension` id, e.g. `dracula-theme.theme-dracula`. */
 export const MARKETPLACE_ID_RE = /^[\w-]+\.[\w-]+$/
+
+interface ThemeInstallErrorCopy {
+  installError: string
+  invalidColorTheme: string
+}
+
+/** Keep low-level parser/converter messages out of the UI. Known failures get
+ * a specific localized explanation; everything else gets the localized safe
+ * fallback rather than leaking an English exception from Electron. */
+export function describeThemeInstallError(error: unknown, copy: ThemeInstallErrorCopy): string {
+  return error instanceof InvalidVscodeColorThemeError ? copy.invalidColorTheme : copy.installError
+}
 
 /** Parse + convert + persist a pasted VS Code theme JSON. */
 export function installVscodeThemeFromText(text: string, opts?: { label?: string; source?: string }): DesktopTheme {

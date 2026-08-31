@@ -3184,6 +3184,8 @@ export const zhHant = defineCompleteLocale({
       placeholder: '搜尋 VS Code Marketplace...',
       loading: '正在搜尋 Marketplace...',
       error: '無法連接到 Marketplace。',
+      installError: '無法安裝該主題。',
+      invalidColorTheme: '該主題缺少「colors」設定，因此不是有效的 VS Code 色彩主題。',
       empty: '沒有符合的主題。',
       install: '安裝',
       installing: '安裝中...',

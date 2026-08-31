@@ -2697,6 +2697,8 @@ export const en: Translations = {
       placeholder: 'Search the VS Code Marketplace...',
       loading: 'Searching the Marketplace...',
       error: 'Could not reach the Marketplace.',
+      installError: 'Could not install that theme.',
+      invalidColorTheme: 'Theme has no “colors” map, so it is not a valid VS Code color theme.',
       empty: 'No matching themes.',
       install: 'Install',
       installing: 'Installing...',

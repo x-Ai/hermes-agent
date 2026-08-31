@@ -2687,6 +2687,8 @@ export const ar = defineCompleteLocale({
       placeholder: 'البحث في VS Code Marketplace...',
       loading: 'جار البحث في Marketplace...',
       error: 'تعذّر الوصول إلى Marketplace.',
+      installError: 'تعذّر تثبيت هذه السمة.',
+      invalidColorTheme: 'لا تحتوي السمة على إعداد ”colors“، لذا فهي ليست سمة ألوان VS Code صالحة.',
       empty: 'لا توجد سمات مطابقة.',
       install: 'تثبيت',
       installing: 'جار التثبيت...',

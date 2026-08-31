@@ -58,7 +58,7 @@ import { $userBubbleTransparency, setUserBubbleTransparency } from '@/store/user
 import { $vibeHeartsEnabled, setVibeHeartsEnabled } from '@/store/vibe-hearts-enabled'
 import { $zoomPercent, setZoomPercent } from '@/store/zoom'
 import { getBaseColors, useTheme } from '@/themes/context'
-import { installVscodeThemeFromMarketplace } from '@/themes/install'
+import { describeThemeInstallError, installVscodeThemeFromMarketplace } from '@/themes/install'
 import type { DesktopTheme } from '@/themes/types'
 import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/user-themes'
 
@@ -228,7 +228,7 @@ function MarketplaceThemeResults({
       triggerHaptic('crisp')
       onInstalled(theme.name)
     } catch (e) {
-      setError(e instanceof Error ? e.message : copy.error)
+      setError(describeThemeInstallError(e, copy))
     } finally {
       setInstallingId(null)
     }
