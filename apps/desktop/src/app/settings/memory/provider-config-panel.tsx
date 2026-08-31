@@ -22,7 +22,9 @@ function seedValues(config: MemoryProviderConfig): Record<string, string> {
 }
 
 export function ProviderConfigPanel({ profile, provider }: { profile?: string; provider: string }) {
-  const toast = useI18n().t.notifications.toast
+  const { t } = useI18n()
+  const toast = t.notifications.toast
+  const copy = t.settings.memoryProvider
   const [config, setConfig] = useState<MemoryProviderConfig | null>(null)
   const [loadError, setLoadError] = useState<null | string>(null)
   const [values, setValues] = useState<Record<string, string>>({})
@@ -40,9 +42,9 @@ export function ProviderConfigPanel({ profile, provider }: { profile?: string; p
       setLoadError(null)
     } catch (err) {
       setConfig(null)
-      setLoadError(err instanceof Error ? err.message : 'Memory provider settings failed to load')
+      setLoadError(err instanceof Error ? err.message : copy.loadFailedFallback)
     }
-  }, [profile, provider])
+  }, [copy.loadFailedFallback, profile, provider])
 
   useEffect(() => {
     setConfig(null)
@@ -89,16 +91,16 @@ export function ProviderConfigPanel({ profile, provider }: { profile?: string; p
       return (
         <div className="flex items-center justify-between gap-3 py-2">
           <span className="text-[length:var(--conversation-caption-font-size)] text-muted-foreground">
-            Memory provider settings failed to load: {loadError}
+            {copy.loadFailed(loadError)}
           </span>
           <Button onClick={() => void refresh()} size="sm" type="button" variant="secondary">
-            Retry
+            {t.common.retry}
           </Button>
         </div>
       )
     }
 
-    return <PageLoader className="min-h-24" label="Loading memory provider settings..." />
+    return <PageLoader className="min-h-24" label={copy.loading} />
   }
 
   const inlineFields = config.fields.filter(field => field.inline)
@@ -116,16 +118,16 @@ export function ProviderConfigPanel({ profile, provider }: { profile?: string; p
         >
           <DisclosureCaret open={expanded} />
           <span className="text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
-            {config.label} settings
+            {copy.settingsTitle(config.label)}
           </span>
           {secretFields.map(field => (
-            <Pill key={field.key}>{field.is_set ? `${field.label} set` : `${field.label} not set`}</Pill>
+            <Pill key={field.key}>{field.is_set ? copy.fieldSet(field.label) : copy.fieldNotSet(field.label)}</Pill>
           ))}
         </button>
         {hasFullConfig && (
           <Button onClick={() => setShowModal(true)} size="sm" type="button" variant="secondary">
             <SlidersHorizontal className="size-3.5" />
-            Full config…
+            {copy.fullConfig}
           </Button>
         )}
       </div>

@@ -156,6 +156,8 @@ function AccountRow({ billing, row }: { billing?: BillingStateResponse; row: Bil
 }
 
 function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: BillingAccountRowView }) {
+  const { t } = useI18n()
+
   const presets = useMemo(
     () =>
       billing.charge_presets.map((amount, index) => ({
@@ -193,7 +195,7 @@ function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: B
             value={amount}
           />
           <Input
-            aria-label="Custom credit amount"
+            aria-label={t.billingPage.customCreditAmount}
             containerClassName="w-16"
             disabled={controlsDisabled}
             inputMode="decimal"
@@ -212,7 +214,7 @@ function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: B
             value={amount}
           />
           <Button disabled={!canBuy} onClick={startBuy} size="xs" type="button" variant="secondary">
-            Buy
+            {t.billingPage.buy}
           </Button>
         </div>
       }
@@ -257,7 +259,7 @@ function BuyCreditsOutcome({
   if (busy) {
     return (
       <div className="mt-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-        Processing… checking settlement
+        {t.billingPage.processingSettlement}
       </div>
     )
   }
@@ -269,7 +271,7 @@ function BuyCreditsOutcome({
   if (outcome.kind === 'success') {
     return (
       <div className="mt-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-        {formatMoney(outcome.amountUsd ?? amount)} added. Balance is refreshing.
+        {t.billingPage.creditsAdded(formatMoney(outcome.amountUsd ?? amount))}
       </div>
     )
   }
@@ -299,7 +301,7 @@ function BuyCreditsOutcome({
       </span>
       {outcome.action?.type === 'retry' && (
         <Button onClick={onRetry} size="sm" type="button" variant="outline">
-          Retry
+          {t.common.retry}
         </Button>
       )}
       {outcome.action?.type === 'step_up' && <StepUpInlineAction flow={stepUp} />}
@@ -314,8 +316,10 @@ function BuyCreditsOutcome({
 }
 
 function UsageBar({ bar, fallbackLabel }: { bar?: BillingUsageRowView['bar']; fallbackLabel: string }) {
+  const { t } = useI18n()
+
   const resolvedBar = bar ?? {
-    label: `${fallbackLabel} usage`,
+    label: t.billingPage.usageFallback(fallbackLabel),
     state: 'neutral',
     tone: 'topup',
     value: 0
@@ -377,20 +381,22 @@ function BillingFixtureSelect({
   onValueChange: (value: BillingFixtureSelection) => void
   value: BillingFixtureSelection
 }) {
+  const { t } = useI18n()
+
   return (
     <div className="flex items-center gap-1.5 text-(--ui-text-tertiary)">
       <Wrench className="size-3.5 shrink-0" />
-      <span className="text-xs font-normal">preview</span>
+      <span className="text-xs font-normal">{t.billingPage.preview}</span>
       <Select onValueChange={value => onValueChange(value as BillingFixtureSelection)} value={value}>
         <SelectTrigger
-          aria-label="Billing preview fixture (dev only)"
+          aria-label={t.billingPage.previewFixture}
           className="h-7 w-36 border-dashed border-(--ui-stroke-secondary) bg-transparent px-2 text-xs font-normal text-(--ui-text-tertiary) shadow-none hover:bg-(--ui-bg-tertiary) focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-(--ui-bg-tertiary)"
           size="sm"
         >
           <SelectValue />
         </SelectTrigger>
         <SelectContent align="end">
-          <SelectItem value="live">live</SelectItem>
+          <SelectItem value="live">{t.billingPage.live}</SelectItem>
           {BILLING_DEV_FIXTURE_NAMES.map(name => (
             <SelectItem key={name} value={name}>
               {name}
@@ -462,11 +468,6 @@ function BillingSettingsContent({
   const { t } = useI18n()
   const [subView, setSubView] = useRouteEnumParam<BillingSubView>('bview', BILLING_VIEWS, 'overview')
 
-  // The hook keeps the English label as the row identity (tests and keys rely
-  // on it); presentation localizes here.
-  const summaryLabel = (label: 'Auto-refill' | 'Balance' | 'Plan') =>
-    label === 'Balance' ? t.billingPage.balance : label === 'Plan' ? t.billingPage.plan : t.billingPage.autoRefill
-
   // Fixture mode flows through the SAME query path — the simulated api (supplied by
   // BillingApiProvider in the DEV wrapper) backs these fetches — so there is no
   // fixture short-circuit here.
@@ -519,7 +520,7 @@ function BillingSettingsContent({
       <div className="@container mb-6">
         <div className="grid gap-3 @2xl:grid-cols-3">
           {view.summary.map(item => (
-            <SummaryCard key={item.label} label={summaryLabel(item.label)} tone={item.tone} value={item.value} />
+            <SummaryCard key={item.label} label={item.label} tone={item.tone} value={item.value} />
           ))}
         </div>
       </div>
@@ -554,7 +555,7 @@ function BillingSettingsContent({
 
       {
         // no endpoint yet — NAS capability-board gap
-        FEATURE_BILLING_INVOICES ? <SectionHeading icon={BarChart3} title="Invoices" /> : null
+        FEATURE_BILLING_INVOICES ? <SectionHeading icon={BarChart3} title={t.billingPage.invoices} /> : null
       }
     </SettingsContent>
   )

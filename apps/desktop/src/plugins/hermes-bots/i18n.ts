@@ -104,6 +104,7 @@ type BotsMessages = {
     newDescription: string
     nameLabel: string
     titleLabel: string
+    titlePlaceholder: string
     descriptionLabel: string
     creating: string
     createAction: string
@@ -531,6 +532,7 @@ const en: BotsMessages = {
     newDescription: 'A named teammate with its own memory, skills, and chat. It can message your other agents.',
     nameLabel: 'Name',
     titleLabel: 'Title',
+    titlePlaceholder: 'Inbox Triage',
     descriptionLabel: 'Description',
     creating: 'Creating…',
     createAction: 'Create Bot',
@@ -960,6 +962,7 @@ const ja: BotsMessages = {
       '独自のメモリ、スキル、チャットを持つ名前付きのチームメイトです。他のエージェントにメッセージを送れます。',
     nameLabel: '名前',
     titleLabel: 'タイトル',
+    titlePlaceholder: '受信トレイの整理',
     descriptionLabel: '説明',
     creating: '作成中…',
     createAction: 'ボットを作成',
@@ -1386,6 +1389,7 @@ const zh: BotsMessages = {
     newDescription: '一个拥有自己记忆、技能和聊天的具名队友。它可以向你的其他智能体发送消息',
     nameLabel: '名称',
     titleLabel: '标题',
+    titlePlaceholder: '收件箱整理',
     descriptionLabel: '描述',
     creating: '创建中…',
     createAction: '创建智能体',
@@ -1804,6 +1808,7 @@ const zhHant: BotsMessages = {
     newDescription: '一個擁有自己記憶、技能和聊天的具名隊友。它可以向你的其他智慧體傳送訊息。',
     nameLabel: '名稱',
     titleLabel: '標題',
+    titlePlaceholder: '收件匣整理',
     descriptionLabel: '描述',
     creating: '建立中…',
     createAction: '建立智慧體',

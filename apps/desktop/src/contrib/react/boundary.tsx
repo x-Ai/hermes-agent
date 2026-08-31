@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { ErrorState } from '@/components/ui/error-state'
 import { Tip } from '@/components/ui/tooltip'
+import { useI18n } from '@/i18n'
 
 interface ContribBoundaryProps {
   children: ReactNode
@@ -36,6 +37,8 @@ export function ContribRender({ render }: ContribRenderProps) {
  * every other failure, not a raw stack dump.
  */
 export function ContribBoundary({ children, id, variant = 'pane' }: ContribBoundaryProps) {
+  const { t } = useI18n()
+
   return (
     <ErrorBoundary
       fallback={({ error, reset }) =>
@@ -52,10 +55,10 @@ export function ContribBoundary({ children, id, variant = 'pane' }: ContribBound
           </Tip>
         ) : (
           <div className="grid h-full place-items-center p-6">
-            <ErrorState description={error.message} title={`“${id}” failed to render`}>
+            <ErrorState description={error.message} title={t.common.failedToRender(id)}>
               <Button className="justify-self-center" onClick={reset} size="sm" variant="outline">
                 <Codicon name="refresh" size="0.8rem" />
-                Retry
+                {t.common.retry}
               </Button>
             </ErrorState>
           </div>

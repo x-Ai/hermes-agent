@@ -676,7 +676,11 @@ export function CreateAgentDialog({ open, onClose, roster }: CreateAgentDialogPr
           ) : null}
           {labeled(
             b.bot.titleLabel,
-            <Input onChange={event => setTitle(event.target.value)} placeholder="Inbox Triage" value={title} />
+            <Input
+              onChange={event => setTitle(event.target.value)}
+              placeholder={b.bot.titlePlaceholder}
+              value={title}
+            />
           )}
           {labeled(
             b.bot.descriptionLabel,

@@ -85,19 +85,28 @@ export interface Translations {
     error: string
     expand: string
     failed: string
+    failedToRender: (name: string) => string
     formatJson: string
     free: string
     loading: string
+    loadingStatus: string
+    moreActions: string
     notSet: string
+    openFullView: string
     refresh: string
     remove: string
     replace: string
     retry: string
+    reset: string
     run: string
+    search: string
     send: string
     set: string
+    showOptions: string
     skip: string
     update: string
+    zoomIn: string
+    zoomOut: string
     tryHint: (term: string) => string
     on: string
     off: string
@@ -329,6 +338,127 @@ export interface Translations {
     connectNousTitle: string
     connectNousBody: string
     openPortalArrow: string
+    customCreditAmount: string
+    buy: string
+    processingSettlement: string
+    creditsAdded: (amount: string) => string
+    usageFallback: (label: string) => string
+    invoices: string
+    preview: string
+    previewFixture: string
+    live: string
+    openVerification: string
+    dismiss: string
+    waitingVerification: string
+    verifyToContinue: string
+    autoRefillUpdated: string
+    autoRefillOff: string
+    threshold: string
+    reloadTo: string
+    autoRefillThresholdLabel: string
+    autoRefillReloadToLabel: string
+    turnOffConfirm: string
+    turnOff: string
+    disable: string
+    manage: string
+    checkingChange: string
+    changeBlocked: string
+    alreadyOnPlan: (name: string) => string
+    scheduledChange: (name: string, date: string, creditsDelta: string | null) => string
+    cannotSchedule: string
+    tryAgain: string
+    scheduling: string
+    confirmDowngrade: string
+    downgrade: string
+    currentPlan: string
+    scheduled: string
+    perMonth: (price: string) => string
+    backToBilling: string
+    plans: string
+    noPlans: string
+    undoing: string
+    undo: string
+    addCardArrow: string
+    noPaymentMethodTitle: string
+    noCardBody: string
+    enabled: string
+    subscriptionUnavailable: string
+    changesToOn: (name: string, date: string) => string
+    cancelsOn: (date: string) => string
+    renewsOn: (date: string) => string
+    noActiveSubscription: string
+    changePlan: string
+    viewPlans: string
+    adjustPlanArrow: string
+    creditsPerMonth: (amount: string) => string
+    chooseArrow: string
+    addPaymentMethod: string
+    paymentMethod: string
+    manageCardDescription: string
+    cardSourceAutoRefill: string
+    cardSourceCustomerDefault: string
+    cardSourceSubscription: string
+    buyCreditsNow: string
+    singleChargeDescription: string
+    autoRefillDescription: string
+    manageAutoRefillPortal: string
+    enableAutoRefillPortal: string
+    differentCard: string
+    reconcileArrow: string
+    reconcileAutoRefill: (card: string) => string
+    refillWhenLow: string
+    autoRefillChargeDescription: (reloadTo: string, threshold: string) => string
+    creditsLeft: (remaining: string, total: string) => string
+    creditsOver: (remaining: string, total: string, over: string) => string
+    subscriptionCreditsRemaining: string
+    resetsOn: (date: string) => string
+    subscriptionCredits: string
+    doesNotExpire: string
+    topUpCredits: string
+    monthlySpendCapUsed: string
+    amountUsed: (spent: string, limit: string) => string
+    defaultCeiling: string
+    monthlyRemoteSpending: string
+    monthlySpendCap: string
+    refusal: {
+      consentTitle: string
+      consentMessage: string
+      scopeTitle: string
+      scopeMessage: string
+      revokedTitle: string
+      revokedByAdmin: string
+      revokedByUser: string
+      revokedReconnect: (actor: string) => string
+      sessionTitle: string
+      sessionMessage: string
+      remoteSpendingOffTitle: string
+      remoteSpendingOffMessage: string
+      roleTitle: string
+      roleMessage: string
+      freshTopUpTitle: string
+      freshTopUpMessage: string
+      noSavedCardTitle: string
+      noSavedCardMessage: string
+      orgAccessTitle: string
+      orgAccessMessage: string
+      monthlyCapTitle: string
+      monthlyCapRemaining: (remaining: string) => string
+      monthlyCapMessage: string
+      rateLimitTitle: string
+      rateLimitMessage: (minutes?: number) => string
+      stripeTitle: string
+      stripeMessage: (minutes?: number) => string
+      planLimitTitle: string
+      planLimitMessage: string
+      endpointTitle: string
+      endpointMessage: string
+      timeoutTitle: string
+      timeoutMessage: string
+      transportTitle: string
+      transportMessage: string
+      genericTitle: string
+      genericMessage: string
+    }
   }
 
   sendDiagnostics: {
@@ -420,6 +550,21 @@ export interface Translations {
     switchTo: string
     searchPlaceholder: string
     noResults: string
+  }
+
+  quickEntry: {
+    label: string
+    askPlaceholder: string
+    disconnectedPlaceholder: string
+    sendTo: string
+    targetSession: string
+    currentChat: string
+    newSession: string
+  }
+
+  petOverlay: {
+    messagePlaceholder: string
+    openInHermes: string
   }
 
   settings: {
@@ -525,6 +670,32 @@ export interface Translations {
       completionSoundPreview: string
     }
     sections: Record<string, string>
+    memoryProvider: {
+      loadFailed: (detail: string) => string
+      loadFailedFallback: string
+      loading: string
+      settingsTitle: (label: string) => string
+      fieldSet: (label: string) => string
+      fieldNotSet: (label: string) => string
+      fullConfig: string
+      fullConfigTitle: (label: string) => string
+      fullConfigDescription: (label: string, profile: string) => string
+      reference: (label: string) => string
+      otherGroup: string
+      saveChanges: string
+      fieldAbout: (label: string) => string
+      leaveBlankToKeep: string
+      valueSet: string
+      connectionStartFailed: string
+      connectionTimedOut: string
+      connectionFailed: string
+      connectViaOAuth: string
+      reconnect: string
+      connect: string
+      apiKeySet: string
+      oauthSet: string
+      waitingForConsent: string
+    }
     searchPlaceholder: Record<'about' | 'config' | 'gateway' | 'keys' | 'mcp' | 'sessions', string>
     modeOptions: Record<'light' | 'dark' | 'system', ModeOptionCopy>
     appearance: {
@@ -1399,6 +1570,9 @@ export interface Translations {
     skillUpdated: string
     edit: string
     archive: string
+    archiveSkillTitle: (name: string) => string
+    archiveSkillDescription: string
+    archiveFailed: string
     skillArchivedTitle: string
     skillArchivedMessage: string
     hub: {
@@ -1457,6 +1631,17 @@ export interface Translations {
     close: string
     refresh: string
     memory: string
+    skill: string
+    pauseTimeline: string
+    playTimeline: string
+    timelineScrubber: string
+    ageLegend: string
+    editNode: (kind: 'memory' | 'skill') => string
+    archiveSkill: string
+    deleteMemory: string
+    editTitle: (label: string) => string
+    deleteTitle: (label: string) => string
+    deleteMemoryDescription: string
     filterAll: string
     filterUsed: string
     filterLearned: string
@@ -1571,6 +1756,14 @@ export interface Translations {
       referenceImageInvalid: string
       adopt: string
       startOver: string
+      hatchingProgress: string
+      referenceFallback: string
+      removeReference: string
+      unavailableTitle: string
+      unavailableDesc: string
+      setupImageGeneration: string
+      getKeyFrom: string
+      addReference: string
     }
     installTheme: {
       title: string
@@ -2500,6 +2693,9 @@ export interface Translations {
     updateNow: string
     maybeLater: string
     moreChanges: (count: number) => string
+    changelogGroups: Record<'new' | 'fixed' | 'faster' | 'improved' | 'other', string>
+    changelogFallbackTitle: string
+    changelogFallback: string
     manualTitle: string
     manualBody: string
     manualPickedUp: string
@@ -3061,10 +3257,55 @@ export interface Translations {
       andMore: (count: number) => string
       noReply: (detail: string) => string
     }
+    media: {
+      gatewayFetchFailed: (name: string) => string
+      openMediaFile: (kind: 'audio' | 'video') => string
+      openNamed: (name: string) => string
+      loadingNamed: (name: string) => string
+      couldNotLoad: (name: string) => string
+      openImage: string
+      imageFallbackName: string
+    }
+    embeds: {
+      load: (label: string) => string
+      alwaysAllow: (label: string) => string
+      holdToZoom: string
+      failedToLoad: (label: string) => string
+      openDiagram: string
+      embedTitle: (label: string) => string
+    }
     thread: {
       loadingSession: string
+      openSessionFailed: string
       showEarlier: string
       loadingResponse: string
+      steered: string
+      messagingAgent: (name: string) => string
+      messagedAgent: (name: string) => string
+      messageFrom: (name: string) => string
+      showMessage: string
+      repliedTo: (name: string) => string
+      showReply: string
+      processOutput: string
+      emojiSearch: string
+      emojiLoading: string
+      emojiEmpty: string
+      moreEmoji: string
+      removeReaction: (emoji: string) => string
+      reactedByHermes: string
+      conversationTimeline: string
+      reviewSummary: {
+        label: string
+        memoryUpdated: string
+        memoryCreated: string
+        userProfileUpdated: string
+        skillCreated: string
+        skillNamedCreated: (name: string, detail?: string) => string
+        skillNamedPatched: (name: string, detail?: string) => string
+        skillNamedRewritten: (name: string, detail?: string) => string
+        memoryLabel: string
+        userProfileLabel: string
+      }
       operationInterrupted: string
       operationInterruptedDuringRetry: (reason: string, attempt: string, maxAttempts: string) => string
       operationInterruptedHandlingApiError: (errorType: string, detail: string) => string
@@ -3218,6 +3459,8 @@ export interface Translations {
       outputAlt: string
       rawResponse: string
       copyActivity: string
+      toolPayload: string
+      searchResults: string
       recoveredOne: string
       recoveredMany: (count: number) => string
       failedOne: string
@@ -3364,6 +3607,7 @@ export interface Translations {
     restartToSaveImages: string
     imageDownloadFailed: string
     openImage: string
+    generatedImageAlt: string
     downloadImage: string
     savingImage: string
     imagePreviewFailed: string

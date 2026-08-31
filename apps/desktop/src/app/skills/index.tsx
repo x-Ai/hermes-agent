@@ -728,10 +728,10 @@ export function SkillsView({
 
     return (profilesData?.profiles ?? []).map(p => ({
       key: p.name,
-      label: p.is_default ? 'Hermes (default)' : p.name,
+      label: p.is_default ? `Hermes (${t.common.defaultName})` : p.name,
       value: p.name
     }))
-  }, [multiConnection, profilesData, rosterData])
+  }, [multiConnection, profilesData, rosterData, t.common.defaultName])
 
   // The selector's current value must match one option's value exactly. On the
   // roster path an ambient (non-override) scope is the active gateway's

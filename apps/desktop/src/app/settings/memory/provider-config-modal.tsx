@@ -28,11 +28,11 @@ function seedAll(config: MemoryProviderConfig): Record<string, string> {
 }
 
 // Group fields in declared order, preserving first-seen group sequence.
-function groupFields(fields: MemoryProviderField[]): [string, MemoryProviderField[]][] {
+function groupFields(fields: MemoryProviderField[], otherGroup: string): [string, MemoryProviderField[]][] {
   const groups: [string, MemoryProviderField[]][] = []
 
   for (const field of fields) {
-    const name = field.group || 'Other'
+    const name = field.group || otherGroup
     const bucket = groups.find(([key]) => key === name)
 
     if (bucket) {
@@ -60,7 +60,9 @@ export function ProviderConfigModal({
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
 }) {
-  const toast = useI18n().t.notifications.toast
+  const { t } = useI18n()
+  const toast = t.notifications.toast
+  const copy = t.settings.memoryProvider
   const activeProfile = useStore($activeGatewayProfile)
   const [values, setValues] = useState<Record<string, string>>({})
   const [seeded, setSeeded] = useState<Record<string, string>>({})
@@ -101,11 +103,8 @@ export function ProviderConfigModal({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent bodyClassName="dt-portal-scrollbar" className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle icon={SlidersHorizontal}>{config.label} — full configuration</DialogTitle>
-          <DialogDescription>
-            Every {config.label} option for the <span className="font-medium">{profile ?? activeProfile}</span> profile.
-            Blank fields fall back to the resolved host or built-in default.
-          </DialogDescription>
+          <DialogTitle icon={SlidersHorizontal}>{copy.fullConfigTitle(config.label)}</DialogTitle>
+          <DialogDescription>{copy.fullConfigDescription(config.label, profile ?? activeProfile)}</DialogDescription>
           {config.docs_url && (
             <a
               className="inline-flex w-fit items-center gap-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-accent-secondary) underline-offset-4 transition-colors hover:underline"
@@ -117,14 +116,14 @@ export function ProviderConfigModal({
               rel="noreferrer"
               target="_blank"
             >
-              {config.label} configuration reference
+              {copy.reference(config.label)}
               <ExternalLink className="size-3" />
             </a>
           )}
         </DialogHeader>
 
         <div className="min-w-0">
-          {groupFields(config.fields).map(([group, fields]) => (
+          {groupFields(config.fields, copy.otherGroup).map(([group, fields]) => (
             <section className="mt-6 first:mt-2" key={group}>
               <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-[0.68rem] uppercase tracking-wide text-(--ui-accent-secondary)">
                 {group}
@@ -153,12 +152,12 @@ export function ProviderConfigModal({
         <DialogFooter>
           <DialogClose asChild>
             <Button size="sm" type="button" variant="ghost">
-              Cancel
+              {t.common.cancel}
             </Button>
           </DialogClose>
           <Button disabled={saving} onClick={() => void save()} size="sm">
             {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save />}
-            Save changes
+            {copy.saveChanges}
           </Button>
         </DialogFooter>
       </DialogContent>
