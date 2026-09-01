@@ -180,6 +180,10 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
   {
     test: msg => /ordinal-only truncation is unsafe for durable session history/i.test(msg),
     summarize: () => translateNow('notifications.errors.restoreTargetUnsafe')
+  },
+  {
+    test: msg => /Restart required:/i.test(msg),
+    summarize: () => translateNow('notifications.errors.codeSkewRestartRequired')
   }
 ]
 

@@ -327,7 +327,8 @@ export const ar = defineLocale({
       openaiRejectedApiKeyWithStatus: status => `رفض OpenAI مفتاح API (${status} invalid_api_key).`,
       openaiTtsNeedsKey: 'يتطلب OpenAI TTS المفتاح VOICE_TOOLS_OPENAI_KEY أو OPENAI_API_KEY.',
       sessionStoppedBeforeAgentReady: 'توقفت الجلسة قبل أن يصبح الوكيل جاهزًا.',
-      turnCancelledBeforeAgentReady: 'أُلغيت الجولة قبل أن يصبح الوكيل جاهزًا.'
+      turnCancelledBeforeAgentReady: 'أُلغيت الجولة قبل أن يصبح الوكيل جاهزًا.',
+      codeSkewRestartRequired: 'بعد التحديث ما زال هذا الخلفية يشغّل كودا قديما. أعد تشغيله لتحميل الكود الجديد.'
     },
     voice: {
       configureSpeechToText: 'اضبط تحويل الكلام إلى نص لاستخدام وضع الصوت.',
@@ -1115,6 +1116,11 @@ export const ar = defineLocale({
       reasoning: 'الاستدلال',
       reasoningOff: 'إيقاف',
       defaultsFailed: 'فشل حفظ افتراضيات النموذج',
+      loadFailed: 'تعذر تحميل النماذج',
+      restartRequired: 'بعد التحديث ما زال هذا الخلفية يشغّل كودا قديما. أعد تشغيله لتحميل الكود الجديد.',
+      restartBackend: 'إعادة تشغيل الخلفية',
+      restartingBackend: 'جار إعادة تشغيل الخلفية...',
+      restartFailed: 'تعذر إعادة تشغيل الخلفية',
       auxiliaryTitle: 'النماذج المساعدة',
       resetAllToMain: 'إعادة تعيين الكل إلى النموذج الرئيسي',
       auxiliaryDesc: 'تعمل المهام المساعدة على النموذج الرئيسي افتراضيا. عيّن نموذجا مخصصا لأي مهمة لتجاوز ذلك.',
