@@ -1964,7 +1964,33 @@ export const zh: Translations = {
         }
       }
     },
+    poolLimits: {
+      warmBackends: '保持运行的机器人后端数量',
+      warmBackendsDescription:
+        '保持运行以便快速切换的机器人后端数量。数量越多，切换越快，内存占用也越高（每个后端约 60 MB）。修改后立即生效。',
+      idleTimeout: '后端空闲超时',
+      idleTimeoutDescription:
+        '未使用的机器人后端在关闭前保持运行的时长。调大此值，可避免每隔几分钟切回机器人时都要等待重新启动。',
+      idleTimeoutAria: '后端空闲超时（毫秒）',
+      milliseconds: '毫秒'
+    },
     localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          '综合表现最佳的智能体模型；支持图像理解；长上下文下依然快速',
+        'Frontier-scale model; needs a very large GPU to run well': '前沿大模型；需要显存容量很大的 GPU 才能流畅运行',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          '更大规模的混合专家模型，支持多词元预测和图像理解',
+        'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'
+      } as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `推荐版本（${quant}）——此引擎针对该量化类型进行了优化；可完全在 GPU 上运行${largeWindow ? '，并支持较大的上下文窗口' : ''}`,
+      compactBuild: quant => `适合本机的紧凑版本（${quant}）——超出显存容量，需要使用系统内存，运行较慢`,
+      fitTooLarge: (quant, size) => `即使是最紧凑的版本（${quant}，${size}），也超出了显存与系统内存的总容量`,
+      fitNeedsMemory: '所需内存超出本机容量',
+      fitFullContext: context => `以完整的 ${context} 上下文运行`,
+      fitGrowingContext: (start, max) => `上下文从 ${start} 开始，随使用逐步扩展至 ${max}`,
+      fitSpilled: detail => `${detail}（超出显存容量，需要使用系统内存，运行较慢）`,
       title: '本地模型',
       runtimeTitle: '本地运行时',
       runtimeReady: backend => `就绪 · ${backend}`,

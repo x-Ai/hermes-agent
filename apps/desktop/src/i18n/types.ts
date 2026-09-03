@@ -1338,7 +1338,24 @@ export interface Translations {
       startFailed: string
       options: Record<'full' | 'gui' | 'lite', { title: string; description: string; consequence: string }>
     }
+    poolLimits: {
+      warmBackends: string
+      warmBackendsDescription: string
+      idleTimeout: string
+      idleTimeoutDescription: string
+      idleTimeoutAria: string
+      milliseconds: string
+    }
     localModels: {
+      /** Exact source descriptions: refreshed/unknown catalog copy falls back unchanged. */
+      catalogDescriptions: Record<string, string>
+      recommendedBuild: (quant: string, largeWindow: boolean) => string
+      compactBuild: (quant: string) => string
+      fitTooLarge: (quant: string, size: string) => string
+      fitNeedsMemory: string
+      fitFullContext: (context: string) => string
+      fitGrowingContext: (start: string, max: string) => string
+      fitSpilled: (detail: string) => string
       title: string
       runtimeTitle: string
       runtimeReady: (backend: string) => string

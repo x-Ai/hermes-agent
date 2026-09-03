@@ -506,6 +506,36 @@ export const ar = defineLocale({
     openInHermes: 'فتح في Hermes'
   },
   settings: {
+    poolLimits: {
+      warmBackends: 'عدد العمليات الخلفية للبوتات التي تبقى قيد التشغيل',
+      warmBackendsDescription:
+        'عدد العمليات الخلفية للبوتات التي تبقى قيد التشغيل للتبديل الفوري. زيادة العدد تسرّع التبديل وتزيد استهلاك الذاكرة (نحو 60 MB لكل عملية). تُطبّق التغييرات فوراً.',
+      idleTimeout: 'مهلة خمول العملية الخلفية',
+      idleTimeoutDescription:
+        'مدة بقاء العملية الخلفية لبوت غير مستخدم قيد التشغيل قبل إيقافها. زد المدة لتجنب انتظار إعادة التشغيل عند العودة إلى البوت كل بضع دقائق.',
+      idleTimeoutAria: 'مهلة خمول العملية الخلفية بالمللي ثانية',
+      milliseconds: 'مللي ثانية'
+    },
+    localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          'أفضل نموذج وكيل شامل؛ يفهم الصور؛ ويحافظ على السرعة مع السياق الطويل',
+        'Frontier-scale model; needs a very large GPU to run well':
+          'نموذج متقدم واسع النطاق؛ يتطلب ذاكرة GPU كبيرة جداً ليعمل بسلاسة',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          'نموذج مزيج خبراء أكبر مع توقع رموز متعددة؛ يفهم الصور',
+        'Frontier-class model for machines with 128GB+ memory': 'نموذج متقدم للأجهزة المزودة بذاكرة 128 GB أو أكثر'
+      },
+      recommendedBuild: (quant, largeWindow) =>
+        `الإصدار الموصى به (${quant}) — نوع التكميم الذي حُسّن له هذا المحرك؛ يعمل بالكامل على GPU${largeWindow ? ' مع نافذة سياق كبيرة' : ''}`,
+      compactBuild: quant =>
+        `إصدار مدمج مناسب لهذا الجهاز (${quant}) — يتجاوز ذاكرة GPU ويستخدم ذاكرة النظام، لذا يعمل ببطء أكبر`,
+      fitTooLarge: (quant, size) => `حتى أصغر إصدار (${quant}، ${size}) يتجاوز مجموع ذاكرة GPU وذاكرة النظام`,
+      fitNeedsMemory: 'يتطلب ذاكرة أكبر من المتوفرة في هذا الجهاز',
+      fitFullContext: context => `يعمل بسياقه الكامل البالغ ${context}`,
+      fitGrowingContext: (start, max) => `يبدأ السياق من ${start} ويتوسع نحو ${max} مع الاستخدام`,
+      fitSpilled: detail => `${detail} (يتجاوز ذاكرة GPU ويستخدم ذاكرة النظام، لذا يعمل ببطء أكبر)`
+    },
     closeSettings: 'إغلاق الإعدادات',
     exportConfig: 'تصدير الإعدادات',
     importConfig: 'استيراد الإعدادات',

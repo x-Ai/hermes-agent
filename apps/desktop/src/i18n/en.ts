@@ -1521,7 +1521,26 @@ export const en: Translations = {
         }
       }
     },
+    poolLimits: {
+      warmBackends: 'Warm Bot Backends',
+      warmBackendsDescription:
+        'How many bot backends stay running for instant switching. Higher = faster switches, more memory (~60MB per backend). Applies immediately.',
+      idleTimeout: 'Backend Idle Timeout',
+      idleTimeoutDescription:
+        'How long an unused bot backend stays warm before it is shut down. Raise this so bots you revisit every few minutes never pay a cold start.',
+      idleTimeoutAria: 'Backend idle timeout in milliseconds',
+      milliseconds: 'ms'
+    },
     localModels: {
+      catalogDescriptions: {} as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `Recommended build (${quant}) — the quant class this engine is optimized for; runs fully on your GPU${largeWindow ? ' with a large context window' : ''}`,
+      compactBuild: quant => `Compact build sized for this machine (${quant}) — larger than GPU memory, runs slower`,
+      fitTooLarge: (quant, size) => `even the most compact build (${quant}, ${size}) exceeds GPU + system memory`,
+      fitNeedsMemory: 'Needs more memory than this machine has',
+      fitFullContext: context => `runs at its full ${context} context`,
+      fitGrowingContext: (start, max) => `starts at ${start} and grows toward ${max} as you use it`,
+      fitSpilled: detail => `${detail} (larger than your GPU memory — runs slower)`,
       title: 'Local Models',
       runtimeTitle: 'Local runtime',
       runtimeReady: backend => `Ready · ${backend}`,

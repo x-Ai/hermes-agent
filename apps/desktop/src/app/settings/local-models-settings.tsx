@@ -49,6 +49,7 @@ import {
 import { notify, notifyError } from '@/store/notifications'
 import type { LocalCatalogModel, LocalHardware, LocalModelsStatus } from '@/types/hermes'
 
+import { localizeLocalModelText } from './local-models-localization'
 import { ListRow, Pill, SettingsContent, SettingsSection, SettingsSkeleton } from './primitives'
 
 function ProgressBar({ percent }: { percent: number | undefined }) {
@@ -661,7 +662,7 @@ export function LocalModelsSettings() {
                 }
                 description={
                   <>
-                    {model.description}
+                    {localizeLocalModelText(model.description, copy)}
 
                     <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       {/* Memory: the traffic light. Green = runs fully on
@@ -669,21 +670,21 @@ export function LocalModelsSettings() {
                           slower); red = doesn't fit this machine at all.
                           Detail prose lives in the tooltip. */}
                       {!model.fits ? (
-                        <Tip label={model.fit_detail ?? model.fit_summary}>
+                        <Tip label={localizeLocalModelText(model.fit_detail ?? model.fit_summary, copy)}>
                           <Pill tone="destructive">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillTooBig}
                           </Pill>
                         </Tip>
                       ) : model.spilled ? (
-                        <Tip label={model.quant_reason ?? model.fit_summary}>
+                        <Tip label={localizeLocalModelText(model.quant_reason ?? model.fit_summary, copy)}>
                           <Pill tone="warn">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillUsesRam}
                           </Pill>
                         </Tip>
                       ) : (
-                        <Tip label={model.quant_reason ?? model.fit_summary}>
+                        <Tip label={localizeLocalModelText(model.quant_reason ?? model.fit_summary, copy)}>
                           <Pill tone="success">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillFitsGpu}

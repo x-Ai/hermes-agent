@@ -1416,7 +1416,34 @@ export const zhHant = defineLocale({
         curator: { label: '策展器', hint: '技能使用審查' }
       }
     },
+    poolLimits: {
+      warmBackends: '保持執行的機器人後端數量',
+      warmBackendsDescription:
+        '保持執行以便快速切換的機器人後端數量。數量越多，切換越快，記憶體用量也越高（每個後端約 60 MB）。修改後立即生效。',
+      idleTimeout: '後端閒置逾時',
+      idleTimeoutDescription:
+        '未使用的機器人後端在關閉前保持執行的時間。調高此值，可避免每隔幾分鐘切回機器人時都要等待重新啟動。',
+      idleTimeoutAria: '後端閒置逾時（毫秒）',
+      milliseconds: '毫秒'
+    },
     localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          '綜合表現最佳的智慧體模型；支援圖像理解；長上下文下依然快速',
+        'Frontier-scale model; needs a very large GPU to run well':
+          '前沿大型模型；需要顯示記憶體容量很大的 GPU 才能流暢執行',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          '更大規模的混合專家模型，支援多詞元預測和圖像理解',
+        'Frontier-class model for machines with 128GB+ memory': '前沿級模型，適合配備 128 GB 及以上記憶體的機器'
+      } as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `推薦版本（${quant}）——此引擎針對該量化類型進行了最佳化；可完全在 GPU 上執行${largeWindow ? '，並支援較大的上下文視窗' : ''}`,
+      compactBuild: quant => `適合本機的精簡版本（${quant}）——超出顯示記憶體容量，需要使用系統記憶體，執行較慢`,
+      fitTooLarge: (quant, size) => `即使是最精簡的版本（${quant}，${size}），也超出了顯示記憶體與系統記憶體的總容量`,
+      fitNeedsMemory: '所需記憶體超出本機容量',
+      fitFullContext: context => `以完整的 ${context} 上下文執行`,
+      fitGrowingContext: (start, max) => `上下文從 ${start} 開始，隨使用逐步擴展至 ${max}`,
+      fitSpilled: detail => `${detail}（超出顯示記憶體容量，需要使用系統記憶體，執行較慢）`,
       title: '本地模型',
       runtimeTitle: '本地執行環境',
       runtimeReady: backend => `就緒 · ${backend}`,

@@ -1495,7 +1495,36 @@ export const ja = defineLocale({
         curator: { label: 'キュレーター', hint: 'スキル使用レビュー' }
       }
     },
+    poolLimits: {
+      warmBackends: '起動を維持するボットバックエンド数',
+      warmBackendsDescription:
+        '素早く切り替えられるよう、起動したままにするボットバックエンドの数です。増やすと切り替えが速くなりますが、メモリ使用量も増えます（バックエンドごとに約 60 MB）。変更はすぐに反映されます。',
+      idleTimeout: 'バックエンドのアイドルタイムアウト',
+      idleTimeoutDescription:
+        '未使用のボットバックエンドを終了するまで起動しておく時間です。長くすると、数分おきにボットに戻った際の再起動待ちを避けられます。',
+      idleTimeoutAria: 'バックエンドのアイドルタイムアウト（ミリ秒）',
+      milliseconds: 'ミリ秒'
+    },
     localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          '総合力に優れたエージェントモデル。画像に対応し、長いコンテキストでも高速',
+        'Frontier-scale model; needs a very large GPU to run well':
+          '最先端の大規模モデル。快適な動作には非常に大容量の GPU メモリが必要',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          'マルチトークン予測を備えた、より大規模な混合エキスパートモデル。画像に対応',
+        'Frontier-class model for machines with 128GB+ memory': '128 GB 以上のメモリを搭載したマシン向けの最先端モデル'
+      } as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `推奨ビルド（${quant}）— このエンジンが最適化されている量子化形式です。${largeWindow ? '大きなコンテキストウィンドウで、' : ''}すべて GPU 上で動作します`,
+      compactBuild: quant =>
+        `このマシン向けのコンパクトなビルド（${quant}）— GPU メモリに収まらず、システムメモリを使うため動作が遅くなります`,
+      fitTooLarge: (quant, size) =>
+        `最もコンパクトなビルド（${quant}、${size}）でも、GPU メモリとシステムメモリの合計容量を超えます`,
+      fitNeedsMemory: 'このマシンの容量を超えるメモリが必要です',
+      fitFullContext: context => `最大の ${context} コンテキストで動作します`,
+      fitGrowingContext: (start, max) => `コンテキストは ${start} から始まり、使用に応じて ${max} まで拡張されます`,
+      fitSpilled: detail => `${detail}（GPU メモリに収まらず、システムメモリを使うため動作が遅くなります）`,
       title: 'ローカルモデル',
       runtimeTitle: 'ローカルランタイム',
       runtimeReady: backend => `準備完了 · ${backend}`,
