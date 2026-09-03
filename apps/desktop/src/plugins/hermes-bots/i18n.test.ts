@@ -49,6 +49,8 @@ describe('BOTS_LOCALES', () => {
       'group.manageTitle',
       'tools.skillsHub',
       'cron.stopAfter',
+      'cron.resultDeliveryFailed',
+      'cron.resultBlockedConfig',
       'cron.runsForeverHint'
     ] as const
 

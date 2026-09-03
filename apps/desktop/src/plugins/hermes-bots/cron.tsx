@@ -331,6 +331,37 @@ function routineTimestamp(value: string | undefined): null | string {
   return Number.isFinite(ms) ? `${relativeTime(ms)} · ${new Date(ms).toLocaleString()}` : null
 }
 
+/** The scheduler's `last_status` literals, spelled out for the inspector. The
+ *  set is closed on the gateway side, so every literal is named here — an
+ *  unknown one is passed through verbatim rather than hidden. `delivery_failed`
+ *  means the agent run succeeded but the brief never reached its target; it
+ *  must read as a failure, not as a run result the user can trust. */
+export function routineLastResult(status: string | null | undefined): null | string {
+  const raw = String(status || '').trim()
+  const c = botsText().cron
+
+  if (!raw) {
+    return null
+  }
+
+  switch (raw) {
+    case 'ok':
+      return c.resultSucceeded
+
+    case 'error':
+      return c.resultFailed
+
+    case 'delivery_failed':
+      return c.resultDeliveryFailed
+
+    case 'blocked_config':
+      return c.resultBlockedConfig
+
+    default:
+      return raw
+  }
+}
+
 /** The facts `cron.manage list` already sends with every job, as label/value
  *  rows. Pure so the detail contract is testable without a renderer, and so
  *  the dialog cannot invent a field the gateway never sent: an absent value
@@ -354,7 +385,7 @@ export function routineDetailRows(job: RoutineJob | null | undefined): Array<{ l
       [c.repeatLabel, job?.repeat],
       [c.nextRunLabel, paused ? null : routineTimestamp(job?.next_run_at)],
       [c.lastRunLabel, routineTimestamp(job?.last_run_at)],
-      [c.lastResultLabel, job?.last_status],
+      [c.lastResultLabel, routineLastResult(job?.last_status)],
       [c.deliversToLabel, job?.deliver],
       [c.modelLabel, job?.model],
       [c.workingDirectoryLabel, job?.workdir]

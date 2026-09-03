@@ -12,13 +12,9 @@ import {
   $projectScope,
   $projectsRpcAvailable,
   $projectTree,
-  $removedSessionIds,
-  $sessionMutationsInFlight,
   $worktreeRefreshToken,
   ALL_PROJECTS,
-  beginSessionMutation,
   createProject,
-  endSessionMutation,
   enterProject,
   exitProjectScope,
   fetchProjectSessions,
@@ -31,9 +27,15 @@ import {
   refreshWorktrees,
   resolveNewSessionCwd,
   scanAndRecordRepos,
-  startWorkInRepo,
-  tombstoneSessions
+  startWorkInRepo
 } from './projects'
+import {
+  $removedSessionIds,
+  $sessionMutationsInFlight,
+  beginSessionMutation,
+  endSessionMutation,
+  tombstoneSessions
+} from './session-removal'
 
 vi.mock('@/i18n', () => ({
   translateNow: (key: string) => key
@@ -177,6 +179,9 @@ describe('projects RPC profile forwarding', () => {
 describe('resolveNewSessionCwd', () => {
   beforeEach(() => {
     $projectScope.set(ALL_PROJECTS)
+    $activeProjectId.set(null)
+    $projects.set([])
+    $projectTree.set([])
     applyConfiguredDefaultProjectDir('/home/user/configured')
     $currentCwd.set('')
     $selectedStoredSessionId.set(null)
@@ -189,6 +194,9 @@ describe('resolveNewSessionCwd', () => {
   afterEach(() => {
     applyConfiguredDefaultProjectDir(null)
     $projectScope.set(ALL_PROJECTS)
+    $activeProjectId.set(null)
+    $projects.set([])
+    $projectTree.set([])
     $currentCwd.set('')
     $selectedStoredSessionId.set(null)
     $sessions.set([])
@@ -204,6 +212,30 @@ describe('resolveNewSessionCwd', () => {
 
   it('still falls back to the configured default outside Home', () => {
     expect(resolveNewSessionCwd()).toBe('/home/user/configured')
+  })
+
+  it('keeps the durable active project from the overview before its tree loads', () => {
+    $activeProjectId.set('active')
+    $projects.set([{ id: 'active', primary_path: '/repos/active', folders: [] } as never])
+
+    expect(resolveNewSessionCwd()).toBe('/repos/active')
+  })
+
+  it('prefers an explicitly scoped project over the durable active project', () => {
+    $activeProjectId.set('active')
+    $projects.set([{ id: 'active', primary_path: '/repos/active', folders: [] } as never])
+    $projectTree.set([{ id: 'scoped', label: 'Scoped', path: '/repos/scoped', repos: [], sessionCount: 0 }])
+    $projectScope.set('scoped')
+
+    expect(resolveNewSessionCwd()).toBe('/repos/scoped')
+  })
+
+  it('keeps Home detached even when a durable active project exists', () => {
+    $activeProjectId.set('active')
+    $projects.set([{ id: 'active', primary_path: '/repos/active', folders: [] } as never])
+    $projectScope.set(NO_PROJECT_ID)
+
+    expect(resolveNewSessionCwd()).toBe('')
   })
 
   it('does not inherit the focused session workspace — new chat uses the configured default', () => {
