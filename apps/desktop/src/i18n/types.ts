@@ -1612,6 +1612,15 @@ export interface Translations {
       importConfirmMany: (count: number) => string
     }
     localModels: {
+      /** Exact source descriptions: refreshed/unknown catalog copy falls back unchanged. */
+      catalogDescriptions: Record<string, string>
+      recommendedBuild: (quant: string, largeWindow: boolean) => string
+      compactBuild: (quant: string) => string
+      fitTooLarge: (quant: string, size: string) => string
+      fitNeedsMemory: string
+      fitFullContext: (context: string) => string
+      fitGrowingContext: (start: string, max: string) => string
+      fitSpilled: (detail: string) => string
       title: string
       runtimeTitle: string
       runtimeReady: (backend: string) => string

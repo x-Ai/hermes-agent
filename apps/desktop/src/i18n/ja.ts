@@ -2159,6 +2159,25 @@ export const ja = defineCompleteLocale({
       backendIdleTimeoutTitle: 'バックエンドアイドルタイムアウト'
     },
     localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          '総合力に優れたエージェントモデル。画像に対応し、長いコンテキストでも高速',
+        'Frontier-scale model; needs a very large GPU to run well':
+          '最先端の大規模モデル。快適な動作には非常に大容量の GPU メモリが必要',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          'マルチトークン予測を備えた、より大規模な混合エキスパートモデル。画像に対応',
+        'Frontier-class model for machines with 128GB+ memory': '128 GB 以上のメモリを搭載したマシン向けの最先端モデル'
+      } as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `推奨ビルド（${quant}）— このエンジンが最適化されている量子化形式です。${largeWindow ? '大きなコンテキストウィンドウで、' : ''}すべて GPU 上で動作します`,
+      compactBuild: quant =>
+        `このマシン向けのコンパクトなビルド（${quant}）— GPU メモリに収まらず、システムメモリを使うため動作が遅くなります`,
+      fitTooLarge: (quant, size) =>
+        `最もコンパクトなビルド（${quant}、${size}）でも、GPU メモリとシステムメモリの合計容量を超えます`,
+      fitNeedsMemory: 'このマシンの容量を超えるメモリが必要です',
+      fitFullContext: context => `最大の ${context} コンテキストで動作します`,
+      fitGrowingContext: (start, max) => `コンテキストは ${start} から始まり、使用に応じて ${max} まで拡張されます`,
+      fitSpilled: detail => `${detail}（GPU メモリに収まらず、システムメモリを使うため動作が遅くなります）`,
       title: 'ローカルモデル',
       runtimeTitle: 'ローカルランタイム',
       runtimeReady: backend => `準備完了 · ${backend}`,

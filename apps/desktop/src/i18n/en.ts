@@ -1887,6 +1887,15 @@ export const en: Translations = {
       backendIdleTimeoutTitle: 'Backend Idle Timeout'
     },
     localModels: {
+      catalogDescriptions: {} as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `Recommended build (${quant}) — the quant class this engine is optimized for; runs fully on your GPU${largeWindow ? ' with a large context window' : ''}`,
+      compactBuild: quant => `Compact build sized for this machine (${quant}) — larger than GPU memory, runs slower`,
+      fitTooLarge: (quant, size) => `even the most compact build (${quant}, ${size}) exceeds GPU + system memory`,
+      fitNeedsMemory: 'Needs more memory than this machine has',
+      fitFullContext: context => `runs at its full ${context} context`,
+      fitGrowingContext: (start, max) => `starts at ${start} and grows toward ${max} as you use it`,
+      fitSpilled: detail => `${detail} (larger than your GPU memory — runs slower)`,
       title: 'Local Models',
       runtimeTitle: 'Local runtime',
       runtimeReady: backend => `Ready · ${backend}`,
