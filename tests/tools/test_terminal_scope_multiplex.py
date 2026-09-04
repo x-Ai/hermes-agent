@@ -24,6 +24,7 @@ from tools.terminal_scope import (
     set_terminal_scope,
     terminal_env,
 )
+from tools import browser_tool_cloud as bt_cloud
 
 _LAUNCH_CWD = "/home/launch-user/private"
 _LAUNCH_VOLUMES = '["/host/secret:/data:rw"]'
@@ -67,7 +68,6 @@ def test_no_scope_keeps_process_env_behavior():
 def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monkeypatch, backend):
     """Fork workspace options must obey the upstream authoritative scope too."""
     import tools.terminal_tool as tt
-    from tools.terminal_scope import terminal_scope
 
     project = tmp_path / "project"
     project.mkdir()
@@ -82,7 +82,8 @@ def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monk
         f"{prefix}_WORKSPACE_PER_SESSION": "on",
         f"{prefix}_WORKSPACE_MOUNT_PATH": "/scoped-workspace",
     }
-    with terminal_scope(policy):
+    token = set_terminal_scope(policy)
+    try:
         config = tt._get_env_config()
         assert config["workspace_per_session"] is True
         assert tt._workspace_per_session_enabled() is True
@@ -90,11 +91,19 @@ def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monk
         assert config["cwd"] == "/scoped-workspace"
         assert tt.resolve_workspace_mount(str(project)) == (str(project), "/scoped-workspace")
         scoped_key = tt._workspace_container_key(str(project))
-    with terminal_scope({**policy, f"{prefix}_WORKSPACE_MOUNT_PATH": "/other-workspace"}):
+    finally:
+        reset_terminal_scope(token)
+    token = set_terminal_scope({**policy, f"{prefix}_WORKSPACE_MOUNT_PATH": "/other-workspace"})
+    try:
         assert tt._workspace_container_key(str(project)) != scoped_key
-    with terminal_scope({"TERMINAL_ENV": backend}):
+    finally:
+        reset_terminal_scope(token)
+    token = set_terminal_scope({"TERMINAL_ENV": backend})
+    try:
         assert tt._workspace_per_session_enabled() is False
         assert tt._workspace_mount_path() == "/workspace"
+    finally:
+        reset_terminal_scope(token)
 
 
 def test_scoped_read_never_falls_through_to_process_env():
@@ -128,7 +137,7 @@ def test_routed_turn_reads_every_terminal_consumer_from_profile(
     import tools.terminal_tool as tt
     from agent import runtime_cwd
     from gateway.platforms import base as gbase
-    from tools import browser_tool, env_probe, file_tools
+    from tools import browser_tool, env_probe, file_tools_paths
 
     b_cwd = tmp_path / "b-work"
     b_cwd.mkdir()
@@ -148,9 +157,9 @@ def test_routed_turn_reads_every_terminal_consumer_from_profile(
         assert not any(
             "alpha-shared" in c for c in gbase._docker_sandbox_dir_candidates("agent:bee:x")
         )
-        assert file_tools._configured_terminal_cwd() == str(b_cwd)
+        assert file_tools_paths._configured_terminal_cwd() == str(b_cwd)
         assert runtime_cwd.resolve_agent_cwd() == b_cwd
-        assert browser_tool._is_local_backend() is True
+        assert bt_cloud._is_local_backend() is True
         # env_probe bails out with "" for remote backends; a local profile
         # must not be treated as remote just because the launch env is docker.
         assert env_probe._resolve_terminal_backend() == "local"

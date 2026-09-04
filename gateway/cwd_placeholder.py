@@ -12,10 +12,6 @@ from __future__ import annotations
 CWD_PLACEHOLDERS = frozenset({".", "auto", "cwd"})
 
 
-def _truthy_env(value: str | None) -> bool:
-    return (value or "").strip().lower() in {"true", "1", "yes"}
-
-
 def resolve_placeholder_terminal_cwd(
     *,
     configured_cwd: str,
@@ -27,29 +23,21 @@ def resolve_placeholder_terminal_cwd(
 ) -> str | None:
     """Return the ``TERMINAL_CWD`` value to set, or ``None`` to leave it unset.
 
-    Cases:
-      - **local** + placeholder → ``MESSAGING_CWD`` or ``home_fallback``
-      - **docker/singularity** + placeholder + that backend's mount opt-in on +
-        host ``MESSAGING_CWD`` → host path (for ``terminal_tool``'s
-        ``/workspace`` mapping)
-      - **docker/singularity** + placeholder + mount off → ``None`` (sandbox
-        default)
-      - other non-local backends + placeholder → ``None``
+    local + placeholder → ``MESSAGING_CWD`` or ``home_fallback``; docker +
+    placeholder + mount on + host ``MESSAGING_CWD`` → that host path (for the
+    ``/workspace`` mapping); any other non-local backend → ``None`` (sandbox default).
     """
     if configured_cwd and configured_cwd not in CWD_PLACEHOLDERS:
         return configured_cwd
-
     backend = (terminal_backend or "local").strip().lower()
+    messaging = (messaging_cwd or "").strip()
     if backend == "local":
-        messaging = (messaging_cwd or "").strip()
         return messaging or home_fallback
-
-    mount_on = (backend == "docker" and docker_mount_cwd_to_workspace) or (
+    mount_on = (
+        backend == "docker" and docker_mount_cwd_to_workspace
+    ) or (
         backend == "singularity" and singularity_mount_cwd_to_workspace
     )
-    if mount_on:
-        messaging = (messaging_cwd or "").strip()
-        if messaging and messaging not in CWD_PLACEHOLDERS:
-            return messaging
-
+    if mount_on and messaging and messaging not in CWD_PLACEHOLDERS:
+        return messaging
     return None

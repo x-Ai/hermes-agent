@@ -15,7 +15,7 @@ import pytest
 
 from agent.delegation_context import delegated_child_context
 from tools import file_tools, terminal_tool
-from tools.approval import reset_current_session_key, set_current_session_key
+from tools.approval_context import reset_current_session_key, set_current_session_key
 from tools.delegate_tool import (
     _build_child_system_prompt,
     _resolve_host_workspace_hint,

@@ -11,18 +11,14 @@ import type * as HermesSdk from '@hermes/plugin-sdk'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { registerPluginLocales } from '@/i18n/plugin-i18n'
-
-import { BOTS_LOCALES } from './i18n'
+import { translateBots } from './i18n-test-helper'
 import type { RoutineJob } from './types'
 
 // Radix calls these on open; jsdom doesn't implement them.
 beforeAll(() => {
-  const dispose = registerPluginLocales('hermes-bots', BOTS_LOCALES)
   Element.prototype.scrollIntoView = vi.fn()
   Element.prototype.hasPointerCapture = vi.fn(() => false)
   Element.prototype.releasePointerCapture = vi.fn()
-  return dispose
 })
 
 const { request } = vi.hoisted(() => ({ request: vi.fn(async () => ({})) }))
@@ -30,7 +26,13 @@ const { request } = vi.hoisted(() => ({ request: vi.fn(async () => ({})) }))
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
   const sdk = await importOriginal<typeof HermesSdk>()
 
-  return { ...sdk, host: { ...sdk.host, request } }
+  return {
+    ...sdk,
+    host: { ...sdk.host, request },
+    // Production registers the plugin bundle through ctx.i18n; tests keep the
+    // plugin boundary intact by resolving its local bundle through this stub.
+    usePluginI18n: () => translateBots
+  }
 })
 
 const { RoutineDetailDialog, RoutineRow, routineDetailIssue, routineDetailRows, routineLastResult } =

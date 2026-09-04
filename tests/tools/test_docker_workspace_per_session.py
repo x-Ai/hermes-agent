@@ -34,6 +34,7 @@ if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 import tools.terminal_tool as tt
+from tools.terminal_tool_lifecycle import get_active_env
 
 _WINDOWS = os.name == "nt"
 
@@ -248,8 +249,8 @@ class TestContainerIdentityFollowsWorkspace:
 
         parent_env = object()
         monkeypatch.setitem(tt._active_environments, parent_key, parent_env)
-        assert tt.get_active_env(child) is parent_env
-        assert tt.get_active_env(grandchild) is parent_env
+        assert get_active_env(child) is parent_env
+        assert get_active_env(grandchild) is parent_env
 
     def test_subagent_explicit_isolation_override_beats_parent_alias(
         self, projects, per_session_on
@@ -863,13 +864,16 @@ class TestEveryToolResolvesOneMount:
         monkeypatch.setenv("TERMINAL_CWD", str(global_dir))
 
         import tools.file_tools as ft
+        from tools import terminal_tool_backends
 
         class _Captured(Exception):
             def __init__(self, kwargs):
                 self.kwargs = kwargs
 
         monkeypatch.setattr(
-            tt, "_create_environment", lambda **kwargs: (_ for _ in ()).throw(_Captured(kwargs))
+            terminal_tool_backends,
+            "_create_environment",
+            lambda **kwargs: (_ for _ in ()).throw(_Captured(kwargs)),
         )
 
         def _resolve(trigger, task_id):
