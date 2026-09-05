@@ -316,6 +316,9 @@ export const ar = defineLocale({
       view: 'عرض'
     },
     errors: {
+      agentInitUnknownProvider: provider =>
+        `فشلت تهيئة الوكيل: المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
+      fastModeUnavailable: 'الوضع السريع غير متاح لهذا النموذج.',
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',

@@ -23,6 +23,15 @@ const PRE_READY_ERROR_COPY = {
 } as const
 
 function localizeGatewayErrorMessage(message: string): string {
+  const unknownProvider =
+    /^agent init failed: Unknown provider '([^']+)'\.\s+Check 'hermes model' for available providers,\s+or run 'hermes doctor' to diagnose config issues\.$/i.exec(
+      message.trim()
+    )
+
+  if (unknownProvider) {
+    return translateNow('notifications.errors.agentInitUnknownProvider', unknownProvider[1])
+  }
+
   const key = PRE_READY_ERROR_COPY[message as keyof typeof PRE_READY_ERROR_COPY]
 
   return key ? translateNow(key) : message

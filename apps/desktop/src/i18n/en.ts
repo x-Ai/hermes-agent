@@ -222,6 +222,9 @@ export const en: Translations = {
       view: 'View'
     },
     errors: {
+      agentInitUnknownProvider: provider =>
+        `Agent initialization failed: Unknown provider '${provider}'. Check 'hermes model' for available providers, or run 'hermes doctor' to diagnose config issues.`,
+      fastModeUnavailable: 'Fast mode is not available for this model.',
       elevenLabsNeedsKey: 'ElevenLabs STT needs ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs rejected the API key (401).',
       diskFull: 'Disk full — free some space, then try again.',

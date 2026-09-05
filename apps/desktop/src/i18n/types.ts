@@ -257,6 +257,8 @@ export interface Translations {
       view: string
     }
     errors: {
+      agentInitUnknownProvider: (provider: string) => string
+      fastModeUnavailable: string
       elevenLabsNeedsKey: string
       elevenLabsRejectedKey: string
       diskFull: string

@@ -97,6 +97,11 @@ interface ErrorSummaryRule {
 
 const ERROR_SUMMARIES: ErrorSummaryRule[] = [
   {
+    test: msg => /^fast mode is not available for this model$/i.test(msg.trim()),
+    summarize: () => translateNow('notifications.errors.fastModeUnavailable'),
+    hideDetail: true
+  },
+  {
     // Disk full / ENOSPC — session DB write, backend crash, or any path that
     // bubbles "no space left" / SQLITE_FULL through notifyError. Match before
     // generic length truncation so the user gets a clear "free space" toast

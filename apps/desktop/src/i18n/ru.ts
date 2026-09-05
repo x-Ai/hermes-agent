@@ -163,6 +163,9 @@ export const ru = defineLocale({
       view: 'Просмотр'
     },
     errors: {
+      agentInitUnknownProvider: provider =>
+        `Не удалось инициализировать агента: неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
+      fastModeUnavailable: 'Быстрый режим недоступен для этой модели.',
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
       diskFull: 'Диск заполнен — освободите место и повторите.',

@@ -166,6 +166,9 @@ export const zhHant = defineLocale({
       view: '檢視'
     },
     errors: {
+      agentInitUnknownProvider: provider =>
+        `代理程式初始化失敗：未知的供應商「${provider}」。請執行「hermes model」查看可用的供應商，或執行「hermes doctor」診斷設定問題。`,
+      fastModeUnavailable: '此模型不支援快速模式。',
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY。',
       elevenLabsRejectedKey: 'ElevenLabs 拒絕了該 API 金鑰 (401)。',
       diskFull: '磁碟已滿 — 請騰出一些空間後再試。',
