@@ -21,6 +21,26 @@ import { clearActiveSessionTodos } from '@/store/todos'
 
 import type { GatewayEventContext } from './types'
 
+const PRE_READY_ERROR_COPY = {
+  'Session no longer running before the agent was ready': 'notifications.errors.sessionStoppedBeforeAgentReady',
+  'Turn cancelled before the agent was ready': 'notifications.errors.turnCancelledBeforeAgentReady'
+} as const
+
+function localizeGatewayErrorMessage(message: string): string {
+  const unknownProvider =
+    /^agent init failed: Unknown provider '([^']+)'\.\s+Check 'hermes model' for available providers,\s+or run 'hermes doctor' to diagnose config issues\.$/i.exec(
+      message.trim()
+    )
+
+  if (unknownProvider) {
+    return translateNow('notifications.errors.agentInitUnknownProvider', unknownProvider[1])
+  }
+
+  const key = PRE_READY_ERROR_COPY[message as keyof typeof PRE_READY_ERROR_COPY]
+
+  return key ? translateNow(key) : message
+}
+
 /** status.update / review.summary / notification.show / notification.clear /
  *  error — the status-and-notice tail of the dispatcher. */
 export function handleStatusEvent(ctx: GatewayEventContext): boolean {
@@ -176,8 +196,11 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
   }
 
   if (event.type === 'error') {
-    const errorMessage = payload?.message || 'Hermes reported an error'
-    const looksLikeProviderSetup = isProviderSetupErrorMessage(errorMessage)
+    const rawErrorMessage = payload?.message || translateNow('notifications.gatewayErrorFallback')
+    const looksLikeProviderSetup = isProviderSetupErrorMessage(rawErrorMessage)
+    const errorMessage = looksLikeProviderSetup
+      ? translateNow('desktop.providerCredentialRequired')
+      : localizeGatewayErrorMessage(rawErrorMessage)
 
     // The gateway's `error` event carries no error_surface (prompt_turn.py
     // emits it for pre-turn refusals). Recover the two codes it CAN mean from
@@ -185,9 +208,9 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
     // as a classified turn: a live-owner refusal (SESSION_NOT_OWNED, #106217)
     // is deterministic — Retry hits the same wall, only a new chat helps —
     // and disk-full is a machine problem, not a provider one.
-    const surface: ErrorSurface | null = isSessionNotOwnedError(new Error(errorMessage))
+    const surface: ErrorSurface | null = isSessionNotOwnedError(new Error(rawErrorMessage))
       ? { code: 'SESSION_NOT_OWNED', layer: 'gateway', retryable: false }
-      : isDiskFullErrorMessage(errorMessage)
+      : isDiskFullErrorMessage(rawErrorMessage)
         ? { code: 'disk_full', layer: 'disk', retryable: false }
         : null
 
@@ -226,7 +249,7 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
     if (looksLikeProviderSetup) {
       requestDesktopOnboarding(errorMessage)
     } else if (surface?.code === 'disk_full') {
-      notifyError(new Error(errorMessage), translateNow('notifications.errors.diskFull'))
+      notifyError(new Error(rawErrorMessage), translateNow('notifications.errors.diskFull'))
     } else {
       // Toast globally, not just when the failing thread is focused: a
       // turn-ending error (e.g. out of funds) blocks every thread, so the
@@ -238,8 +261,8 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
       // No Retry action: assistant-ui's reload is per-thread, and for the
       // codes recovered above a retry would fail identically anyway.
       notify({
-        detail: surface ? errorMessage : undefined,
-        id: `gateway-error:${errorMessage}`,
+        detail: surface ? rawErrorMessage : undefined,
+        id: `gateway-error:${rawErrorMessage}`,
         kind: 'error',
         message: toastMessage,
         title: translateNow('assistant.thread.errorToastTitle')

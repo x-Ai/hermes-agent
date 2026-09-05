@@ -130,11 +130,18 @@ const STORAGE_CODE_RE = /['"]code['"]\s*:\s*['"](storage_[a-z_]+|disk_full)['"]/
 interface ErrorSummaryRule {
   test: (msg: string) => boolean
   summarize: (msg: string) => string
+  /** Hide raw protocol text when the localized summary fully explains it. */
+  hideDetail?: boolean
   /** Recovery button attached to the toast when this rule matches. */
   action?: (msg: string) => NotificationAction
 }
 
 const ERROR_SUMMARIES: ErrorSummaryRule[] = [
+  {
+    test: msg => /^fast mode is not available for this model$/i.test(msg.trim()),
+    summarize: () => translateNow('notifications.errors.fastModeUnavailable'),
+    hideDetail: true
+  },
   {
     // Disk full / ENOSPC — session DB write, backend crash, or any path that
     // bubbles "no space left" / SQLITE_FULL through notifyError. Match before
@@ -207,14 +214,18 @@ function summarizeErrorMessage(message: string, fallback: string) {
   const rule = ERROR_SUMMARIES.find(r => r.test(message))
 
   if (rule) {
-    return { action: rule.action?.(message), message: rule.summarize(message) }
+    return {
+      action: rule.action?.(message),
+      hideDetail: Boolean(rule.hideDetail),
+      message: rule.summarize(message)
+    }
   }
 
   if (getRuntimeI18nLocale() !== 'en') {
-    return { action: undefined, message: fallback }
+    return { action: undefined, hideDetail: false, message: fallback }
   }
 
-  return { action: undefined, message: message.length > 180 ? fallback : message || fallback }
+  return { action: undefined, hideDetail: false, message: message.length > 180 ? fallback : message || fallback }
 }
 
 // Exported so flows that surface errors inline (e.g. ConfirmDialog's onConfirm
@@ -229,7 +240,11 @@ export function readableError(
   const detail = cleaned.match(/"detail"\s*:\s*"([^"]+)"/)?.[1] ?? cleaned
   const summary = summarizeErrorMessage(detail, fallback)
 
-  return { message: summary.message, detail: detail === summary.message ? undefined : detail, action: summary.action }
+  return {
+    message: summary.message,
+    detail: summary.hideDetail || detail === summary.message ? undefined : detail,
+    action: summary.action
+  }
 }
 
 export function notify(input: NotificationInput): string {
