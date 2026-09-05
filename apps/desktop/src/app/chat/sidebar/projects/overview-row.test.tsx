@@ -2,12 +2,20 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { startNewSessionDrag } from '@/app/chat/new-session-drag'
 import type { SessionInfo } from '@/hermes'
 
 import { ProjectOverviewRow } from './overview-row'
 import type { SidebarProjectTree } from './workspace-groups'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.clearAllMocks()
+})
+
+vi.mock('@/app/chat/new-session-drag', () => ({
+  startNewSessionDrag: vi.fn()
+}))
 
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
@@ -87,8 +95,9 @@ describe('ProjectOverviewRow', () => {
     expect(onNewSession).toHaveBeenCalledWith(null)
   })
 
-  it('starts a folder-backed project in its first repo when primary_path is unset', () => {
+  it('uses the first repo for both click and drag when primary_path is unset', () => {
     const onNewSession = vi.fn()
+    const onNewSessionSplit = vi.fn()
 
     const projectWithoutPrimary = {
       ...project,
@@ -96,10 +105,29 @@ describe('ProjectOverviewRow', () => {
       repos: [{ groups: [], id: '/work/app', label: 'app', path: '/work/app', sessionCount: 0 }]
     }
 
-    render(<ProjectOverviewRow onNewSession={onNewSession} project={projectWithoutPrimary} />)
-    fireEvent.click(screen.getByRole('button', { name: `New session in ${projectWithoutPrimary.label}` }))
+    render(
+      <ProjectOverviewRow
+        onNewSession={onNewSession}
+        onNewSessionSplit={onNewSessionSplit}
+        project={projectWithoutPrimary}
+      />
+    )
+    const button = screen.getByRole('button', { name: `New session in ${projectWithoutPrimary.label}` })
+
+    fireEvent.click(button)
 
     expect(onNewSession).toHaveBeenCalledWith('/work/app')
+
+    fireEvent.pointerDown(button, { button: 0, clientX: 20, clientY: 20 })
+    const [create, , options] = vi.mocked(startNewSessionDrag).mock.calls[0]!
+
+    expect(options?.cwd).toBe('/work/app')
+    create({ anchor: 'workspace', dir: 'right' })
+    expect(onNewSessionSplit).toHaveBeenCalledWith('right', {
+      anchor: 'workspace',
+      before: undefined,
+      cwd: '/work/app'
+    })
   })
 
   it('tags the row with data-sessions-project so a skin can target one project', () => {

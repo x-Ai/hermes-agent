@@ -96,7 +96,15 @@ def _scan_context_content(content: str, filename: str) -> str:
 def _find_git_root(start: Path) -> Optional[Path]:
     """Nearest ancestor (or *start* itself) containing ``.git``, else None."""
     current = start.resolve()
-    return next((p for p in (current, *current.parents) if (p / ".git").exists()), None)
+    # A parent the process may not stat (locked-down /home on shared hosts) is "no .git here", not a crash.
+    return next((p for p in (current, *current.parents) if _exists_or_denied(p / ".git")), None)
+
+
+def _exists_or_denied(path: Path) -> bool:
+    try:
+        return path.exists()
+    except OSError:
+        return False
 
 
 def _find_hermes_md(cwd: Path) -> Optional[Path]:
@@ -657,7 +665,12 @@ PLATFORM_HINTS = {
         "height live, width from the content's first measured span — lay content flush left with no centering wrappers "
         "or it measures full-bleed. Widgets talk back: data-hermes-send=\"prompt\" on any clickable element (or "
         "window.hermes.send(\"prompt\")) sends that prompt as a hidden user turn — answer it by updating the widget's "
-        "file, not with prose."
+        "file, not with prose. Property/rental listings render as browsable cards: emit a ```listing fence "
+        "holding JSON — one object, or an array to compare several — with address (required), price, beds, "
+        "baths, size, note (why it is worth a look), facts[] (short specs), catches[] (risks to verify), "
+        "images[] (direct https photo URLs, in listing order — the first is the hero), and links[] "
+        "({label, url} detail pages, never a search-results URL). Use it for every property you present, "
+        "including follow-ups and re-rankings, so listings stay comparable."
     ),
     "sms": (
         "You are communicating via SMS. Keep responses concise and use plain text only — no markdown, no "
@@ -839,15 +852,6 @@ def _tenv_read(name: str, default: str = "") -> str:
 
 
 _BACKEND_IMAGE_KEYS = {b: f"{b}_image" for b in ("docker", "singularity", "modal", "daytona")}
-# (config key, default) pairs forwarded to _create_environment's container_config.
-_CONTAINER_CONFIG_DEFAULTS = (
-    ("container_cpu", 1), ("container_memory", 5120), ("container_disk", 51200), ("container_persistent", True),
-    ("modal_mode", "auto"), ("docker_volumes", []), ("docker_mount_cwd_to_workspace", False),
-    ("singularity_mount_cwd_to_workspace", False), ("workspace_mount_path", "/workspace"),
-    ("docker_forward_env", []), ("docker_env", {}), ("docker_run_as_host_user", False), ("docker_extra_args", []),
-    ("docker_shm_size", "1g"), ("docker_persist_across_processes", True), ("docker_shared_container_key", ""),
-    ("docker_orphan_reaper", True),
-)
 _EPHEMERAL_PROBE_BACKENDS = frozenset({
     "docker", "singularity", "modal", "daytona", "vercel_sandbox",
 })
@@ -861,13 +865,13 @@ _BACKEND_PROBE_CMD = (
 
 def _run_backend_probe(env_type: str, terminal_tool) -> str:
     """Execute the probe command inside a freshly built backend; "" when it yields nothing."""
-    from tools.terminal_tool_backends import _create_environment, _ssh_config_from_config
+    from tools.terminal_tool_backends import _container_config_from_config, _create_environment, _ssh_config_from_config
     from tools.terminal_tool_lifecycle import _cleanup_env
 
     config = terminal_tool._get_env_config()
-    # Mirrors tools/terminal_tool.py's live-command assembly (`_create_environment` is the factory).
+    # Share the live-command config shaper so network and operator settings cannot drift.
     container_config = (
-        {k: config.get(k, d) for k, d in _CONTAINER_CONFIG_DEFAULTS}
+        _container_config_from_config(config)
         if terminal_tool._is_container_backend(env_type)
         else None
     )
