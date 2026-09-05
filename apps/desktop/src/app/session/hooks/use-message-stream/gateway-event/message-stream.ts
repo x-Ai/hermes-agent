@@ -384,10 +384,7 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
       // let a background tile's turn overwrite the primary's count.
       updateSessionState(sessionId, state => ({
         ...state,
-        usage: mergeUsageSnapshot(
-          { calls: 0, input: 0, output: 0, total: 0, ...state.usage },
-          payload.usage
-        )
+        usage: mergeUsageSnapshot({ calls: 0, input: 0, output: 0, total: 0, ...state.usage }, payload.usage)
       }))
 
       if (isActiveEvent) {

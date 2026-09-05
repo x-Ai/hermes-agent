@@ -433,10 +433,7 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
       // while the primary-only global mirrors the active session.
       updateSessionState(sessionId, state => ({
         ...state,
-        usage: mergeUsageSnapshot(
-          { calls: 0, input: 0, output: 0, total: 0, ...state.usage },
-          payload.usage
-        )
+        usage: mergeUsageSnapshot({ calls: 0, input: 0, output: 0, total: 0, ...state.usage }, payload.usage)
       }))
 
       if (isActiveEvent) {

@@ -389,11 +389,7 @@ import {
 } from './update-count'
 import { waitForUpdateClearance } from './update-gate'
 import { readLiveUpdateMarker, updateHandoffConflict, writeUpdateMarker } from './update-marker'
-import {
-  canonicalUpdateRemoteReplacement,
-  isOfficialSshRemote,
-  OFFICIAL_REPO_HTTPS_URL
-} from './update-remote'
+import { canonicalUpdateRemoteReplacement, isOfficialSshRemote, OFFICIAL_REPO_HTTPS_URL } from './update-remote'
 import {
   collectRelaunchArgs,
   observeUpdaterHandoff,
@@ -3052,9 +3048,7 @@ async function ensureCanonicalUpdateOrigin(updateRoot) {
     return replacement
   }
 
-  rememberLog(
-    `[updates] could not migrate origin from ${current}: ${firstLine(changed.stderr) || 'git failed'}`
-  )
+  rememberLog(`[updates] could not migrate origin from ${current}: ${firstLine(changed.stderr) || 'git failed'}`)
 
   return current
 }
