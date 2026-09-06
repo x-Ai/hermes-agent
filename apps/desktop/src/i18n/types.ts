@@ -258,6 +258,7 @@ export interface Translations {
     }
     errors: {
       agentInitUnknownProvider: (provider: string) => string
+      unknownProvider: (provider: string) => string
       fastModeUnavailable: string
       elevenLabsNeedsKey: string
       elevenLabsRejectedKey: string

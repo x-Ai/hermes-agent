@@ -174,6 +174,8 @@ export const ja = defineLocale({
     errors: {
       agentInitUnknownProvider: provider =>
         `エージェントの初期化に失敗しました：不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
+      unknownProvider: provider =>
+        `不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
       fastModeUnavailable: 'このモデルでは高速モードを利用できません。',
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',

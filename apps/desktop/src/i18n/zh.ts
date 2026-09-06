@@ -228,6 +228,8 @@ export const zh: Translations = {
     errors: {
       agentInitUnknownProvider: provider =>
         `智能体初始化失败：未知的提供商"${provider}"，请运行"hermes model"查看可用的提供商，或运行"hermes doctor"诊断配置问题`,
+      unknownProvider: provider =>
+        `未知的提供商「${provider}」。请运行「hermes model」查看可用的提供商，或运行「hermes doctor」诊断配置问题。`,
       fastModeUnavailable: '此模型不支持快速模式',
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY',
       elevenLabsRejectedKey: 'ElevenLabs 拒绝了该 API key (401)',

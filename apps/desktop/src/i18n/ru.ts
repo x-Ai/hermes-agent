@@ -165,6 +165,8 @@ export const ru = defineLocale({
     errors: {
       agentInitUnknownProvider: provider =>
         `Не удалось инициализировать агента: неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
+      unknownProvider: provider =>
+        `Неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
       fastModeUnavailable: 'Быстрый режим недоступен для этой модели.',
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
@@ -3625,6 +3627,8 @@ export const ru = defineLocale({
     createSessionFailed: 'Не удалось создать новый сеанс',
     promptFailed: 'Промпт не удался',
     providerCredentialRequired: 'Добавьте учётные данные провайдера перед отправкой первого сообщения.',
+    readinessChecksDisagree:
+      'setup.status сообщает, что учётные данные настроены, но определить рабочую конфигурацию по-прежнему не удалось.',
     emptySlashCommand: 'пустая слэш-команда',
     desktopCommands: 'Команды desktop',
     skillCommandsAvailable: count =>

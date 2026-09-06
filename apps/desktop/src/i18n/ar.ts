@@ -318,6 +318,8 @@ export const ar = defineLocale({
     errors: {
       agentInitUnknownProvider: provider =>
         `فشلت تهيئة الوكيل: المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
+      unknownProvider: provider =>
+        `المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
       fastModeUnavailable: 'الوضع السريع غير متاح لهذا النموذج.',
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
@@ -3603,6 +3605,7 @@ export const ar = defineLocale({
     createSessionFailed: 'فشل إنشاء الجلسة',
     promptFailed: 'فشل إرسال الرسالة',
     providerCredentialRequired: 'مطلوب اعتماد المزود',
+    readinessChecksDisagree: 'يشير setup.status إلى إعداد بيانات الاعتماد، لكن تحديد إعداد التشغيل ما زال يفشل.',
     emptySlashCommand: 'أمر slash فارغ',
     desktopCommands: 'أوامر سطح المكتب',
     skillCommandsAvailable: count => `${count} أمر مهارة متاح`,

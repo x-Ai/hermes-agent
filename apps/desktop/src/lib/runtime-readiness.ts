@@ -1,4 +1,5 @@
 import { translateNow } from '@/i18n'
+import { localizeProviderErrorMessage } from '@/lib/provider-setup-errors'
 
 export interface SetupStatusSnapshot {
   provider_configured?: boolean
@@ -56,7 +57,7 @@ function toErrorMessage(error: unknown): null | string {
 function normalizeMessage(value: null | string | undefined): null | string {
   const next = value?.trim()
 
-  return next ? next : null
+  return next ? localizeProviderErrorMessage(next) : null
 }
 
 async function requestWithFallback<T>(
