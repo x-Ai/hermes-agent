@@ -181,6 +181,7 @@ export const ja = defineLocale({
       fileNotFound: target => (target ? `ファイルが見つかりません：${target}` : 'ファイルが見つかりません'),
       gatewayAuthFailed: 'ゲートウェイ認証に失敗しました — API_SERVER_KEY を確認してください。',
       invalidExternalUrl: '外部 URL が無効です。',
+      invalidPreviewUrl: 'プレビュー URL が無効です。',
       methodNotAllowed:
         'デスクトップバックエンドがそのリクエストを拒否しました (405 Method Not Allowed)。Hermes Desktop を再起動してください。',
       microphonePermission: 'マイクのアクセス許可が拒否されました。',

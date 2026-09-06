@@ -231,6 +231,7 @@ export const en: Translations = {
       fileNotFound: target => (target ? `File not found: ${target}` : 'File not found'),
       gatewayAuthFailed: 'Gateway authentication failed — check your API_SERVER_KEY.',
       invalidExternalUrl: 'Invalid external URL',
+      invalidPreviewUrl: 'Invalid preview URL',
       methodNotAllowed:
         'The desktop backend rejected that request (405 Method Not Allowed). Try restarting Hermes Desktop.',
       microphonePermission: 'Microphone permission was denied.',

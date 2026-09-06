@@ -324,6 +324,7 @@ export const ar = defineLocale({
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',
       fileNotFound: target => (target ? `لم يتم العثور على الملف: ${target}` : 'لم يتم العثور على الملف.'),
       invalidExternalUrl: 'عنوان URL الخارجي غير صالح.',
+      invalidPreviewUrl: 'عنوان URL للمعاينة غير صالح.',
       methodNotAllowed: 'رفضت خلفية سطح المكتب هذا الطلب (405 Method Not Allowed). جرب إعادة تشغيل Hermes Desktop.',
       microphonePermission: 'تم رفض إذن الميكروفون.',
       openaiRejectedApiKey: 'رفض OpenAI مفتاح API.',

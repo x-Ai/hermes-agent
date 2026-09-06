@@ -150,6 +150,11 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     summarize: () => translateNow('notifications.errors.invalidExternalUrl')
   },
   {
+    test: msg => /^invalid preview url$/i.test(msg.trim()),
+    summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
+    hideDetail: true
+  },
+  {
     test: msg => /incorrect api key provided/i.test(msg) || /['"]code['"]\s*:\s*['"]invalid_api_key['"]/i.test(msg),
     summarize: msg => {
       const status = msg.match(/(?:error code|status(?:Code)?)[^\d]*(\d{3})/i)?.[1]

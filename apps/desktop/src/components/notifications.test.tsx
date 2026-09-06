@@ -1,5 +1,5 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import { clearNotifications, notify } from '@/store/notifications'
@@ -47,4 +47,36 @@ describe('toast titles', () => {
     expect(title.className).toMatch(/\boverflow-y-auto\b/)
     expect(screen.getByText(DETAIL)).toBeTruthy()
   })
+
+  it.each(['default', 'bottom-right'] as const)(
+    'renders matching title and message only once in the %s stack while keeping details and actions',
+    placement => {
+      const onClick = vi.fn()
+      notify({
+        kind: 'error',
+        title: LONG_TITLE,
+        message: LONG_TITLE,
+        detail: DETAIL,
+        meta: 'Additional context',
+        action: { label: 'Retry', onClick },
+        placement
+      })
+
+      render(
+        <I18nProvider configClient={null} initialLocale="en">
+          <NotificationStack />
+        </I18nProvider>
+      )
+
+      expect(screen.getAllByText(LONG_TITLE)).toHaveLength(1)
+      expect(screen.getByText(LONG_TITLE).getAttribute('title')).toBe(LONG_TITLE)
+      expect(screen.getByText(DETAIL)).toBeTruthy()
+      expect(screen.getByText('Additional context')).toBeTruthy()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+      expect(onClick).toHaveBeenCalledOnce()
+      expect(screen.queryByRole('alert')).toBeNull()
+    }
+  )
 })

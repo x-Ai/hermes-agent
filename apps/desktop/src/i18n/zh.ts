@@ -235,6 +235,7 @@ export const zh: Translations = {
       fileNotFound: target => (target ? `找不到文件：${target}` : '找不到文件'),
       gatewayAuthFailed: '网关认证失败 — 请检查你的 API_SERVER_KEY',
       invalidExternalUrl: '外部链接无效',
+      invalidPreviewUrl: '预览链接无效',
       methodNotAllowed: '桌面后端拒绝了该请求 (405 Method Not Allowed)。请尝试重启 Hermes Desktop',
       microphonePermission: '麦克风权限已被拒绝',
       openaiRejectedApiKey: 'OpenAI 拒绝了该 API key',

@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 
-import { setRuntimeI18nLocale } from '@/i18n'
+import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 
 import { $notifications, clearNotifications, isDiskFullErrorMessage, notifyError } from './notifications'
 
@@ -69,6 +69,31 @@ test('invalid external URLs are summarized in the active locale', () => {
     detail: 'Invalid external URL'
   })
 })
+
+test.each(['en', 'zh', 'zh-hant', 'ja', 'ar', 'ru'] as const)(
+  'preview URL errors use the %s translation without repeating raw details',
+  locale => {
+    setRuntimeI18nLocale(locale)
+    const copy = TRANSLATIONS[locale]
+
+    for (const raw of [
+      'Invalid preview URL',
+      "Error invoking remote method 'hermes:openPreviewInBrowser': Error: Invalid preview URL"
+    ]) {
+      notifyError(new Error(raw), copy.rightSidebar.previewUnavailable)
+
+      expect($notifications.get()[0]).toMatchObject({
+        title: copy.rightSidebar.previewUnavailable,
+        message: copy.notifications.errors.invalidPreviewUrl
+      })
+      expect($notifications.get()[0]?.detail).toBeUndefined()
+
+      if (locale !== 'en') {
+        expect(lastMessage()).not.toBe(TRANSLATIONS.en.notifications.errors.invalidPreviewUrl)
+      }
+    }
+  }
+)
 
 test('canonical file-not-found errors are localized without repeating raw English details', () => {
   setRuntimeI18nLocale('zh')

@@ -265,6 +265,7 @@ export interface Translations {
       fileNotFound: (target: string) => string
       gatewayAuthFailed: string
       invalidExternalUrl: string
+      invalidPreviewUrl: string
       methodNotAllowed: string
       microphonePermission: string
       openaiRejectedApiKey: string

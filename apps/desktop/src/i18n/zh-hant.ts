@@ -175,6 +175,7 @@ export const zhHant = defineLocale({
       fileNotFound: target => (target ? `找不到檔案：${target}` : '找不到檔案'),
       gatewayAuthFailed: '閘道認證失敗 — 請檢查你的 API_SERVER_KEY。',
       invalidExternalUrl: '外部連結無效',
+      invalidPreviewUrl: '預覽連結無效',
       methodNotAllowed: '桌面後端拒絕了該請求 (405 Method Not Allowed)。請嘗試重新啟動 Hermes Desktop。',
       microphonePermission: '麥克風權限已被拒絕。',
       openaiRejectedApiKey: 'OpenAI 拒絕了該 API 金鑰。',
