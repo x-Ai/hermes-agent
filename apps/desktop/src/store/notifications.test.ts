@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 
+import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { en } from '@/i18n/en'
 
 import { $notifications, clearNotifications, isDiskFullErrorMessage, notifyError } from './notifications'
@@ -7,6 +8,7 @@ import { $backendRestartRequest, $routeRequest } from './recovery-requests'
 
 beforeEach(() => {
   clearNotifications()
+  setRuntimeI18nLocale('en')
 })
 
 function lastMessage(): string {
@@ -92,6 +94,17 @@ test('session storage write failure is treated as disk-full class', () => {
   )
 
   expect(lastMessage()).toMatch(/Disk full/i)
+})
+
+test('preview URL errors use localized copy without repeating raw details', () => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error('Invalid preview URL'), TRANSLATIONS.zh.rightSidebar.previewUnavailable)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.rightSidebar.previewUnavailable,
+    message: TRANSLATIONS.zh.notifications.errors.invalidPreviewUrl,
+    detail: undefined
+  })
 })
 
 test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', () => {

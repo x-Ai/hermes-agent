@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
+import { en } from '@/i18n/en'
 import { $notifications, clearNotifications, notify, notifyError } from '@/store/notifications'
 import { $poolLimitsSettingsRequest } from '@/store/pool-limits'
 import { stubResizeObserver } from '@/test/jsdom'
@@ -72,6 +73,35 @@ describe('toast titles', () => {
     expect(screen.getByText(DETAIL)).toBeTruthy()
   })
 
+  it.each(['default', 'bottom-right'] as const)(
+    'renders matching title and message only once in the %s stack',
+    async placement => {
+      const onClick = vi.fn()
+      notify({
+        kind: 'error',
+        title: LONG_TITLE,
+        message: LONG_TITLE,
+        detail: DETAIL,
+        meta: 'Additional context',
+        action: { label: 'Retry', onClick },
+        placement
+      })
+
+      render(
+        <I18nProvider configClient={null} initialLocale="en">
+          <NotificationStack />
+        </I18nProvider>
+      )
+
+      expect(screen.getAllByText(LONG_TITLE)).toHaveLength(1)
+      expect(screen.getByText(DETAIL)).toBeTruthy()
+      expect(screen.getByText('Additional context')).toBeTruthy()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+      await waitFor(() => expect(onClick).toHaveBeenCalledOnce())
+    }
+  )
+
   it('makes a local pool-slot timeout actionable without changing ordinary errors', () => {
     notifyError(
       new Error(
@@ -86,7 +116,7 @@ describe('toast titles', () => {
       </I18nProvider>
     )
 
-    expect(screen.getByText(/Too many bots are running at once/)).toBeTruthy()
+    expect(screen.getByText(en.desktop.poolSlotTimeoutBody)).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Open Advanced Settings' }))
 

@@ -243,7 +243,9 @@ export function toastTitleClassName() {
 function NotificationItem({ notification, stack }: { notification: AppNotification; stack: CardStackAction }) {
   const styles = tone[notification.kind]
   const Icon = styles.icon
+  const hasMessage = Boolean(notification.message && notification.message !== notification.title)
   const hasDetail = Boolean(notification.detail && notification.detail !== notification.message)
+  const hasDescription = hasMessage || notification.meta || hasDetail || notification.action || notification.secondaryAction
   const { t } = useI18n()
   const copy = t.notifications
 
@@ -271,47 +273,49 @@ function NotificationItem({ notification, stack }: { notification: AppNotificati
             {notification.title}
           </AlertTitle>
         )}
-        <AlertDescription className="col-start-auto">
-          <p className="m-0 wrap-break-word">{renderMessage(notification.message, accent)}</p>
-          {notification.meta && <p className="m-0 text-xs text-muted-foreground tabular-nums">{notification.meta}</p>}
-          {hasDetail && <NotificationDetail detail={notification.detail || ''} />}
-          {(notification.action || notification.secondaryAction) && (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {notification.action && (
-                <Button
-                  disabled={stack.busy || !stack.active}
-                  onClick={() => {
-                    void stack.depart(() => {
-                      notification.action?.onClick()
-                      dismissNotification(notification.id)
-                    })
-                  }}
-                  size="sm"
-                  type="button"
-                  variant="default"
-                >
-                  {notification.action.label}
-                </Button>
-              )}
-              {notification.secondaryAction && (
-                <Button
-                  disabled={stack.busy || !stack.active}
-                  onClick={() => {
-                    void stack.depart(() => {
-                      notification.secondaryAction?.onClick()
-                      dismissNotification(notification.id)
-                    })
-                  }}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  {notification.secondaryAction.label}
-                </Button>
-              )}
-            </div>
-          )}
-        </AlertDescription>
+        {hasDescription && (
+          <AlertDescription className="col-start-auto">
+            {hasMessage && <p className="m-0 wrap-break-word">{renderMessage(notification.message, accent)}</p>}
+            {notification.meta && <p className="m-0 text-xs text-muted-foreground tabular-nums">{notification.meta}</p>}
+            {hasDetail && <NotificationDetail detail={notification.detail || ''} />}
+            {(notification.action || notification.secondaryAction) && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {notification.action && (
+                  <Button
+                    disabled={stack.busy || !stack.active}
+                    onClick={() => {
+                      void stack.depart(() => {
+                        notification.action?.onClick()
+                        dismissNotification(notification.id)
+                      })
+                    }}
+                    size="sm"
+                    type="button"
+                    variant="default"
+                  >
+                    {notification.action.label}
+                  </Button>
+                )}
+                {notification.secondaryAction && (
+                  <Button
+                    disabled={stack.busy || !stack.active}
+                    onClick={() => {
+                      void stack.depart(() => {
+                        notification.secondaryAction?.onClick()
+                        dismissNotification(notification.id)
+                      })
+                    }}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    {notification.secondaryAction.label}
+                  </Button>
+                )}
+              </div>
+            )}
+          </AlertDescription>
+        )}
       </div>
       <Button
         aria-label={copy.dismiss}

@@ -164,6 +164,11 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     action: () => RECOVERY_ACTIONS.openGateways()
   },
   {
+    test: msg => /^invalid preview url$/i.test(msg.trim()),
+    summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
+    hideDetail: true
+  },
+  {
     test: msg => /incorrect api key provided/i.test(msg) || /['"]code['"]\s*:\s*['"]invalid_api_key['"]/i.test(msg),
     summarize: () => translateNow('notifications.errors.openaiRejectedApiKey'),
     action: () => RECOVERY_ACTIONS.openKeys('OPENAI_API_KEY')
