@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 
 import { translateNow } from '@/i18n'
+import { localizeApiErrorMessage } from '@/lib/api-error-messages'
 import {
   appendAssistantTextPart,
   appendReasoningPart,
@@ -589,7 +590,8 @@ export function useMessageStream({
         const finalText = renderMediaTags(text).trim()
         // Structured failure from the terminal frame wins over the legacy text
         // heuristic ("Error: <provider detail>" texts don't match the regexes).
-        const completionError = failure?.error ?? completionErrorText(finalText)
+        const rawCompletionError = failure?.error ?? completionErrorText(finalText)
+        const completionError = rawCompletionError ? localizeApiErrorMessage(rawCompletionError) : rawCompletionError
         // A partial failure's `text` is streamed output the user should keep,
         // not the error string — settle it like a normal reply AND mark the
         // bubble failed, instead of stripping the text.
@@ -790,8 +792,11 @@ export function useMessageStream({
         void hydrateFromStoredSession(3, completedState.storedSessionId, sessionId)
       }
 
+      const notificationText =
+        !failure?.partial && (failure || completionErrorText(text)) ? localizeApiErrorMessage(text) : text
+
       dispatchNativeNotification({
-        body: text.slice(0, 140) || translateNow('notifications.native.turnDoneBody'),
+        body: notificationText.slice(0, 140) || translateNow('notifications.native.turnDoneBody'),
         kind: 'turnDone',
         sessionId,
         title: translateNow('notifications.native.turnDoneTitle')

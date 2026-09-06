@@ -177,6 +177,8 @@ export const ja = defineLocale({
       unknownProvider: provider =>
         `不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
       fastModeUnavailable: 'このモデルでは高速モードを利用できません。',
+      apiRetriesExhausted: retries => `API 呼び出しは ${retries} 回再試行しても失敗しました`,
+      resetsIn: remaining => `リセットまで：${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
       diskFull: 'ディスク容量不足です — 空きを作ってからもう一度お試しください。',

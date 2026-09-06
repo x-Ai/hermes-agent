@@ -321,6 +321,8 @@ export const ar = defineLocale({
       unknownProvider: provider =>
         `المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
       fastModeUnavailable: 'الوضع السريع غير متاح لهذا النموذج.',
+      apiRetriesExhausted: retries => `فشل استدعاء API بعد ${retries} محاولات إعادة`,
+      resetsIn: remaining => `الوقت المتبقي لإعادة التعيين: ${remaining}`,
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',

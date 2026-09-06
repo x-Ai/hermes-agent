@@ -258,6 +258,8 @@ export interface Translations {
     }
     errors: {
       agentInitUnknownProvider: (provider: string) => string
+      apiRetriesExhausted: (retries: string) => string
+      resetsIn: (remaining: string) => string
       unknownProvider: (provider: string) => string
       fastModeUnavailable: string
       elevenLabsNeedsKey: string
@@ -299,7 +301,7 @@ export interface Translations {
       unavailable: string
     }
     // Native OS notification copy (titles + generic fallback bodies). Dynamic
-    // bodies (the agent's reply, a command, an error) are passed through raw.
+    // bodies keep upstream text; known error framing is localized before truncation.
     native: {
       approvalTitle: string
       approveAction: string

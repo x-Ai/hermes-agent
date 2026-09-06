@@ -1,4 +1,5 @@
 import { translateNow } from '@/i18n'
+import { localizeApiErrorMessage } from '@/lib/api-error-messages'
 import { textPart } from '@/lib/chat-messages'
 import { coerceGatewayText } from '@/lib/chat-runtime'
 import { isProviderSetupErrorMessage, localizeProviderErrorMessage } from '@/lib/provider-setup-errors'
@@ -25,7 +26,7 @@ const PRE_READY_ERROR_COPY = {
 function localizeGatewayErrorMessage(message: string): string {
   const key = PRE_READY_ERROR_COPY[message as keyof typeof PRE_READY_ERROR_COPY]
 
-  return key ? translateNow(key) : localizeProviderErrorMessage(message)
+  return key ? translateNow(key) : localizeApiErrorMessage(localizeProviderErrorMessage(message))
 }
 
 /** status.update / review.summary / notification.show / notification.clear /

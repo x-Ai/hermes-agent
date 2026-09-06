@@ -227,6 +227,8 @@ export const en: Translations = {
       unknownProvider: provider =>
         `Unknown provider '${provider}'. Check 'hermes model' for available providers, or run 'hermes doctor' to diagnose config issues.`,
       fastModeUnavailable: 'Fast mode is not available for this model.',
+      apiRetriesExhausted: retries => `API call failed after ${retries} retries`,
+      resetsIn: remaining => `It resets in ${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT needs ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs rejected the API key (401).',
       diskFull: 'Disk full — free some space, then try again.',

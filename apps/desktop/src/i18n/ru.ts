@@ -168,6 +168,8 @@ export const ru = defineLocale({
       unknownProvider: provider =>
         `Неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
       fastModeUnavailable: 'Быстрый режим недоступен для этой модели.',
+      apiRetriesExhausted: retries => `Вызов API завершился ошибкой после ${retries} повторных попыток`,
+      resetsIn: remaining => `До сброса: ${remaining}`,
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
       diskFull: 'Диск заполнен — освободите место и повторите.',
