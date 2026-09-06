@@ -110,10 +110,11 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     summarize: () => translateNow('notifications.errors.diskFull')
   },
   {
-    // Canonical file endpoints use this stable error shape. It is user-facing
-    // state, not a diagnostic: localize the prefix, preserve an optional path,
-    // and do not repeat the raw English form under Details.
-    test: msg => /^file not found(?:\s*:\s*.*)?$/i.test(msg.trim()),
+    // File endpoints and Electron previews report the same missing-file state.
+    // Preserve an optional path without repeating raw English under Details.
+    test: msg =>
+      /^file not found(?:\s*:\s*.*)?$/i.test(msg.trim()) ||
+      /^(?:text|file) preview failed:\s*file does not exist\.?$/i.test(msg.trim()),
     summarize: msg => {
       const target = /^file not found\s*:\s*(.*)$/i.exec(msg.trim())?.[1]?.trim() ?? ''
 

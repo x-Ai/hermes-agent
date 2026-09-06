@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { onComposerAttachImagesRequest } from '@/app/chat/composer/focus'
+import { I18nProvider, setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { $connection, $selectedStoredSessionId } from '@/store/session'
 
 import { forgetPreviewConsole, previewConsoleState } from './preview-console-store'
@@ -43,6 +44,7 @@ describe('PreviewPane console state', () => {
     cleanup()
     $connection.set(null)
     $selectedStoredSessionId.set(null)
+    setRuntimeI18nLocale('en')
     vi.unstubAllGlobals()
   })
 
@@ -590,6 +592,56 @@ describe('PreviewPane console state', () => {
     expect(rendered.container.querySelector('iframe')).toBeNull()
     expect(createObjectURL).not.toHaveBeenCalled()
   })
+
+  it.each(['en', 'zh', 'zh-hant', 'ja', 'ar', 'ru'] as const)(
+    'localizes missing-file previews in %s while preserving unknown diagnostics',
+    async locale => {
+      const copy = TRANSLATIONS[locale]
+      const readFileText = vi.fn()
+      const readFileDataUrl = vi.fn()
+      $connection.set({ mode: 'local' } as never)
+      vi.stubGlobal('window', { ...window, hermesDesktop: { readFileText, readFileDataUrl } })
+
+      for (const previewKind of ['text', 'image', 'pdf'] as const) {
+        const purpose = previewKind === 'text' ? 'Text preview' : 'File preview'
+        const method = previewKind === 'text' ? 'readFileText' : 'readFileDataUrl'
+        const read = previewKind === 'text' ? readFileText : readFileDataUrl
+        const missing = `Error invoking remote method 'hermes:${method}': Error: ${purpose} failed: file does not exist.`
+        const unknown = 'Unrecognized preview diagnostic: volume unavailable'
+
+        for (const raw of [missing, unknown]) {
+          read.mockRejectedValue(new Error(raw))
+
+          const rendered = render(
+            <I18nProvider configClient={null} initialLocale={locale}>
+              <PreviewPane
+                target={{
+                  kind: 'file',
+                  label: 'missing',
+                  path: '/tmp/missing',
+                  previewKind,
+                  source: '/tmp/missing',
+                  url: 'file:///tmp/missing'
+                }}
+              />
+            </I18nProvider>
+          )
+
+          await waitFor(
+            () => {
+              expect(rendered.getByText(copy.preview.unavailable)).toBeTruthy()
+              expect(
+                rendered.getByText(raw === missing ? copy.notifications.errors.fileNotFound('') : raw)
+              ).toBeTruthy()
+            },
+            { container: rendered.container }
+          )
+          expect(rendered.container.textContent).not.toContain('Error invoking remote method')
+          rendered.unmount()
+        }
+      }
+    }
+  )
 
   it('retries a restored PDF when the filesystem connection becomes remote', async () => {
     const filePath = '/remote/spec.pdf'
