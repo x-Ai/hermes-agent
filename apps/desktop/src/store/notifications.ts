@@ -164,6 +164,17 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     action: () => RECOVERY_ACTIONS.openGateways()
   },
   {
+    test: msg =>
+      /^file not found(?:\s*:\s*.*)?$/i.test(msg.trim()) ||
+      /^(?:text|file) preview failed:\s*file does not exist\.?$/i.test(msg.trim()),
+    summarize: msg => {
+      const target = /^file not found\s*:\s*(.*)$/i.exec(msg.trim())?.[1]?.trim() ?? ''
+
+      return translateNow('notifications.errors.fileNotFound', target)
+    },
+    hideDetail: true
+  },
+  {
     test: msg => /^invalid preview url$/i.test(msg.trim()),
     summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
     hideDetail: true

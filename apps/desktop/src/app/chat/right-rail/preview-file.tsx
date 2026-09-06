@@ -35,6 +35,7 @@ import { isComposerChord } from '@/lib/keybinds/chords'
 import { shikiLanguageForFilename } from '@/lib/markdown-code'
 import { normalizeFilePreviewMath } from '@/lib/markdown-preprocess'
 import { cn } from '@/lib/utils'
+import { readableError } from '@/store/notifications'
 import type { PreviewTarget } from '@/store/preview'
 import { setPreviewDirty } from '@/store/preview-edit'
 import { $connection, $currentCwd } from '@/store/session'
@@ -1019,7 +1020,7 @@ export function LocalFilePreview({ reloadKey, target }: { reloadKey: number; tar
   }
 
   if (state.error) {
-    return <PreviewEmptyState body={state.error} title={t.preview.unavailable} />
+    return <PreviewEmptyState body={readableError(state.error, state.error).message} title={t.preview.unavailable} />
   }
 
   if (pdfError) {
