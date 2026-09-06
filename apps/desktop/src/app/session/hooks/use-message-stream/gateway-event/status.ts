@@ -5,7 +5,7 @@ import { textPart } from '@/lib/chat-messages'
 import { coerceGatewayText } from '@/lib/chat-runtime'
 import type { ErrorSurface } from '@/lib/error-surface'
 import { errorCardText } from '@/lib/error-surface-copy'
-import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
+import { isProviderSetupErrorMessage, localizeProviderErrorMessage } from '@/lib/provider-setup-errors'
 import { type AgentNoticePayload, clearAgentNotice, nativeNoticeInput, showAgentNotice } from '@/store/agent-notices'
 import { clearClarifyRequest } from '@/store/clarify'
 import { reconcileSessionCompacting, setSessionCompacting } from '@/store/compaction'
@@ -27,18 +27,9 @@ const PRE_READY_ERROR_COPY = {
 } as const
 
 function localizeGatewayErrorMessage(message: string): string {
-  const unknownProvider =
-    /^agent init failed: Unknown provider '([^']+)'\.\s+Check 'hermes model' for available providers,\s+or run 'hermes doctor' to diagnose config issues\.$/i.exec(
-      message.trim()
-    )
-
-  if (unknownProvider) {
-    return translateNow('notifications.errors.agentInitUnknownProvider', unknownProvider[1])
-  }
-
   const key = PRE_READY_ERROR_COPY[message as keyof typeof PRE_READY_ERROR_COPY]
 
-  return key ? translateNow(key) : message
+  return key ? translateNow(key) : localizeProviderErrorMessage(message)
 }
 
 /** status.update / review.summary / notification.show / notification.clear /

@@ -1,3 +1,6 @@
+import { translateNow } from '@/i18n'
+import { localizeProviderErrorMessage } from '@/lib/provider-setup-errors'
+
 export interface SetupStatusSnapshot {
   provider_configured?: boolean
   /** Additive launch-profile fields (newer backends only; absent on older
@@ -57,7 +60,7 @@ export type RuntimeReadinessDisplay = 'checking' | 'needs_setup' | 'ready' | 'un
 
 export type RuntimeReadinessRequester = <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
 
-const DEFAULT_NOT_READY_REASON = 'Add a provider credential before sending your first message.'
+const defaultNotReadyReason = () => translateNow('desktop.providerCredentialRequired')
 
 function toErrorMessage(error: unknown): null | string {
   if (error instanceof Error) {
@@ -78,7 +81,7 @@ function toErrorMessage(error: unknown): null | string {
 function normalizeMessage(value: null | string | undefined): null | string {
   const next = value?.trim()
 
-  return next ? next : null
+  return next ? localizeProviderErrorMessage(next) : null
 }
 
 async function requestWithFallback<T>(
@@ -116,7 +119,7 @@ export function interpretRuntimeReadiness(
   signals: RuntimeReadinessSignals,
   options: RuntimeReadinessOptions = {}
 ): RuntimeReadinessResult {
-  const defaultReason = options.defaultReason ?? DEFAULT_NOT_READY_REASON
+  const defaultReason = options.defaultReason ?? defaultNotReadyReason()
   const unknownReady = options.unknownReady ?? false
 
   const setupConfigured =
@@ -151,7 +154,7 @@ export function interpretRuntimeReadiness(
     let reason = runtimeFailure ?? defaultReason
 
     if (checksDisagree && setupConfigured) {
-      reason = `${reason} setup.status reports configured credentials, but runtime resolution still failed.`
+      reason = `${reason} ${translateNow('desktop.readinessChecksDisagree')}`
     }
 
     return {
