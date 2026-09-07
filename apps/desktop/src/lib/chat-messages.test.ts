@@ -498,6 +498,7 @@ describe('toChatMessages', () => {
     ])
 
     expect(chatMessageText(messages[0])).toBe('4 个后台代理已完成')
+    expect(messages[0].displayKind).toBe('async_delegation_complete')
   })
 })
 

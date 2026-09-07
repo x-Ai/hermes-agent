@@ -11,6 +11,7 @@ import { useMessageReactions } from '@/components/assistant-ui/thread/use-messag
 import { UserMessageText } from '@/components/assistant-ui/thread/user-message-text'
 import { SCAFFOLD_GLYPH_CLASS, SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
 import { Codicon } from '@/components/ui/codicon'
+import { ToolIcon } from '@/components/ui/tool-icon'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
@@ -294,8 +295,8 @@ export const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
     >
       <div className={cn(open && 'border-b border-(--ui-stroke-tertiary) px-2 py-1.5')}>
         <ScaffoldRow onToggle={expandable ? () => setOpen(value => !value) : undefined} open={open}>
-          <span className={cn(SCAFFOLD_GLYPH_CLASS, 'self-center')}>
-            <Codicon className="text-(--ui-text-tertiary)" name="terminal" size="0.875rem" />
+          <span className={cn(SCAFFOLD_GLYPH_CLASS, 'self-center')} data-slot="aui_process-notification-icon">
+            <ToolIcon className="text-(--ui-text-tertiary)" name="terminal" size="0.875rem" />
           </span>
           <span className={cn(SCAFFOLD_LABEL_CLASS, 'wrap-anywhere')}>{headline}</span>
         </ScaffoldRow>
@@ -446,7 +447,7 @@ export const UserMessage: FC<{
   if (PROCESS_NOTIFICATION_RE.test(messageText.trim())) {
     return (
       <MessagePrimitive.Root
-        className="flex w-full min-w-0 flex-col items-stretch"
+        className="flex w-full min-w-0 flex-col items-stretch pl-(--message-text-indent)"
         data-role="user"
         data-slot="aui_user-message-root"
       >

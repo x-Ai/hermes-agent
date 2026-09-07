@@ -437,11 +437,12 @@ describe('chatMessagesEquivalent', () => {
     expect(chatMessagesEquivalent(msg('1', 'user', 'Hello'), msg('1', 'user', 'Hello'))).toBe(true)
   })
 
-  it('returns false when a visible message timestamp changes', () => {
+  it('returns false when visible message metadata changes', () => {
     const before = { ...msg('1', 'user', 'Hello'), timestamp: 10 }
     const after = { ...before, timestamp: 11 }
 
     expect(chatMessagesEquivalent(before, after)).toBe(false)
+    expect(chatMessagesEquivalent(before, { ...before, displayKind: 'async_delegation_complete' })).toBe(false)
   })
 
   it('returns false when text part content differs', () => {

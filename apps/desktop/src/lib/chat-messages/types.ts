@@ -18,6 +18,10 @@ export type ChatMessage = {
   id: string
   role: SessionMessage['role']
   parts: ChatMessagePart[]
+  /** Backend-owned presentation kind for timeline rows. Kept separate from
+   *  localized display text so renderers never have to infer semantics from
+   *  prose. */
+  displayKind?: SessionMessage['display_kind']
   timestamp?: number
   completedAt?: number
   pending?: boolean

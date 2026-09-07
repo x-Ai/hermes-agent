@@ -152,6 +152,7 @@ const _chatMessageFieldsExhaustive: {
 const COMPARED_FIELDS = [
   'id',
   'role',
+  'displayKind',
   'pending',
   'error',
   // Structured failure layer — drives the error card's title and action row,
@@ -263,6 +264,7 @@ export function chatMessagesEquivalent(a: ChatMessage, b: ChatMessage): boolean 
   if (
     a.id !== b.id ||
     a.role !== b.role ||
+    a.displayKind !== b.displayKind ||
     a.pending !== b.pending ||
     a.error !== b.error ||
     // Structural compare — the descriptor arrives as a fresh object per

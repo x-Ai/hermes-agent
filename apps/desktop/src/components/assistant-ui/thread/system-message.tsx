@@ -21,6 +21,12 @@ export const SystemMessage: FC = () => {
   const copy = t.assistant.thread
   const text = useAuiState(s => messageContentText(s.message.content))
 
+  const displayKind = useAuiState(s => {
+    const value = (s.message.metadata?.custom as { displayKind?: unknown } | undefined)?.displayKind
+
+    return typeof value === 'string' ? value : undefined
+  })
+
   if (!text) {
     return null
   }
@@ -98,6 +104,23 @@ export const SystemMessage: FC = () => {
           </>
         )}{' '}
         <MessageTimelineTimestamp className={cn(multiline ? 'mt-0.5 block' : 'ml-1.5')} />
+      </MessagePrimitive.Root>
+    )
+  }
+
+  // Delegation completion is operational output in the transcript, so it
+  // belongs on the same left reading edge as tool activity and replies. Keep
+  // the other terse timeline statuses centered: their distinct display kind,
+  // not their localized wording, selects this layout.
+  if (displayKind === 'async_delegation_complete') {
+    return (
+      <MessagePrimitive.Root
+        className="w-full max-w-full self-start px-(--message-text-indent) py-0.5 text-left text-[0.6875rem] leading-5 text-muted-foreground/55"
+        data-role="system"
+        data-slot="aui_system-message-root"
+      >
+        <LinkifiedText className="whitespace-pre-wrap" explicitOnly pretty={false} text={text} />{' '}
+        <MessageTimelineTimestamp className="ml-1.5" />
       </MessagePrimitive.Root>
     )
   }

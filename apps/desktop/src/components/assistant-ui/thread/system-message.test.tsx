@@ -2,6 +2,7 @@ import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime }
 import { cleanup, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import { toRuntimeMessage } from '@/lib/chat-runtime'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
 import { stubThreadEnvironment } from '../test-utils'
@@ -14,14 +15,14 @@ $displayTimestamps.set(true)
 const timestamp = new Date('2026-05-01T00:00:00.000Z')
 stubThreadEnvironment()
 
-function Harness({ text }: { text: string }) {
-  const message = {
+function Harness({ displayKind, text }: { displayKind?: string; text: string }) {
+  const message = toRuntimeMessage({
     id: 'system-1',
     role: 'system',
-    content: [{ type: 'text', text }],
-    createdAt: timestamp,
-    metadata: { custom: { timelineTimestamp: timestamp.getTime() / 1000 } }
-  } as unknown as ThreadMessage
+    parts: [{ type: 'text', text }],
+    timestamp: timestamp.getTime() / 1000,
+    ...(displayKind ? { displayKind } : {})
+  })
 
   const runtime = useExternalStoreRuntime<ThreadMessage>({
     messages: [message],
@@ -63,5 +64,29 @@ describe('system message timestamp text separation', () => {
     const { container } = render(<Harness text="steer:rerun tests" />)
 
     expectTimestampSeparated(container, 'rerun tests')
+  })
+})
+
+describe('system timeline placement', () => {
+  it('places delegation completion output on the left reading edge', () => {
+    const { container } = render(
+      <Harness displayKind="async_delegation_complete" text="4 background agents finished" />
+    )
+
+    const row = container.querySelector('[data-role="system"]')
+
+    expect(row?.classList.contains('self-start')).toBe(true)
+    expect(row?.classList.contains('text-left')).toBe(true)
+    expect(row?.classList.contains('px-(--message-text-indent)')).toBe(true)
+    expect(row?.classList.contains('self-center')).toBe(false)
+    expect(row?.classList.contains('text-center')).toBe(false)
+  })
+
+  it('keeps ordinary one-line timeline statuses centered', () => {
+    const { container } = render(<Harness text="model changed" />)
+    const row = container.querySelector('[data-role="system"]')
+
+    expect(row?.classList.contains('self-center')).toBe(true)
+    expect(row?.classList.contains('text-center')).toBe(true)
   })
 })
