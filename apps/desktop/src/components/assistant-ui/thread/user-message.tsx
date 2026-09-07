@@ -233,7 +233,7 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
   )
 }
 
-const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
+export const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
   const { t } = useI18n()
   const body = text.replace(/^\[IMPORTANT:\s*/, '').replace(/\]$/, '')
   const newline = body.indexOf('\n')
@@ -241,7 +241,10 @@ const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
   const detail = newline === -1 ? '' : body.slice(newline + 1).trim()
 
   return (
-    <div className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60">
+    <div
+      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-start py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60"
+      data-slot="aui_process-notification"
+    >
       <span className="flex items-center gap-1.5">
         <Codicon className="shrink-0 text-muted-foreground/55" name="terminal" size="0.75rem" />
         <span className="wrap-anywhere">{headline}</span>
@@ -373,7 +376,8 @@ export const UserMessage: FC<{
   useResizeObserver(measureClamp, clampInnerRef)
 
   // Injected background-process notification, not a human prompt — render the
-  // compact system-style notice (after all hooks above have run).
+  // compact notice in the assistant reading column (after all hooks above
+  // have run). Centering operational output makes it float between replies.
   if (PROCESS_NOTIFICATION_RE.test(messageText.trim())) {
     return (
       <MessagePrimitive.Root
@@ -382,7 +386,7 @@ export const UserMessage: FC<{
         data-slot="aui_user-message-root"
       >
         <ProcessNotificationNote text={messageText.trim()} />
-        <MessageTimelineTimestamp className="self-center" />
+        <MessageTimelineTimestamp className="self-start pl-[1.3125rem]" />
       </MessagePrimitive.Root>
     )
   }
