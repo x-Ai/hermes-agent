@@ -40,6 +40,7 @@ import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { PluginSlot } from "@/plugins";
 import { ModelPickerDialog } from "@/components/ModelPickerDialog";
 import { ModelReloadConfirm } from "@/components/ModelReloadConfirm";
@@ -824,7 +825,7 @@ function MoaModelsModal({
             >
               {presetNames.map(name => (
                 <option key={name} value={name}>
-                  {name}
+                  {localizeDefaultIdentifier(name, t.profiles.defaultBadge)}
                 </option>
               ))}
             </select>
@@ -855,7 +856,10 @@ function MoaModelsModal({
           </div>
 
           <div className="text-xs text-text-secondary">
-            {copy.defaultPreset}: <span className="font-mono">{draft.default_preset}</span>
+            {copy.defaultPreset}:{" "}
+            <span className="font-mono">
+              {localizeDefaultIdentifier(draft.default_preset, t.profiles.defaultBadge)}
+            </span>
           </div>
 
           <div className="space-y-2">

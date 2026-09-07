@@ -68,6 +68,29 @@
     return str;
   }
 
+  function localizedDefaultName(t) {
+    const label = t && t.profiles && t.profiles.defaultBadge;
+    return (typeof label === "string" && label) ? label : null;
+  }
+
+  function localizeProfileName(t, name) {
+    const value = String(name || "");
+    return value === "default" ? (localizedDefaultName(t) || value) : value;
+  }
+
+  function isBuiltInDefaultBoardName(board) {
+    const value = String((board && (board.name || board.slug)) || "");
+    return !!board && board.slug === "default" && (value === "Default" || value === "default");
+  }
+
+  function localizeBoardName(t, board) {
+    const value = String((board && (board.name || board.slug)) || "");
+    if (isBuiltInDefaultBoardName(board)) {
+      return localizedDefaultName(t) || value;
+    }
+    return value;
+  }
+
   // ``fetchJSON`` throws ``Error("<status>: <raw body>")`` on non-2xx, and
   // FastAPI bodies look like ``{"detail":"<message>"}``.  Pull the
   // human-readable message out so banners/toasts don't have to leak HTTP
@@ -1448,7 +1471,7 @@
                 h("span", { className: "hermes-kanban-attention-row-title" },
                   task.title || tx(t, "untitled", "(untitled)")),
                 h("span", { className: "hermes-kanban-attention-row-meta" },
-                  task.assignee ? "@" + task.assignee : tx(t, "unassigned", "unassigned"),
+                  task.assignee ? "@" + localizeProfileName(t, task.assignee) : tx(t, "unassigned", "unassigned"),
                   " \u00b7 ",
                   kinds.length > 0 ? kinds.join(", ") : tx(t, "diagnostic", "diagnostic"),
                 ),
@@ -1629,7 +1652,7 @@
           setMsg({
             ok: true,
             text: tx(t, "reassignedMessage", "Reassigned {id} to {profile}.",
-              { id: task.id, profile: reassignProfile }),
+              { id: task.id, profile: localizeProfileName(t, reassignProfile) }),
           });
           if (onRefresh) onRefresh();
         }).catch(function (err) {
@@ -1692,7 +1715,7 @@
             },
               h("option", { value: "" }, "(unassigned)"),
               (assignees || []).map(function (a) {
-                return h("option", { key: a, value: a }, a);
+                return h("option", { key: a, value: a }, localizeProfileName(t, a));
               }),
             ),
           )
@@ -1846,7 +1869,9 @@
         body: JSON.stringify({ description: description }),
       }).then(function () {
         loadAll();
-        setMsg({ ok: true, text: tx(t, "descriptionSaved", "Description saved for {name}.", { name: name }) });
+        setMsg({ ok: true, text: tx(t, "descriptionSaved", "Description saved for {name}.", {
+          name: localizeProfileName(t, name),
+        }) });
       }).catch(function (err) {
         setMsg({ ok: false, text: tx(t, "saveFailed", "Save failed: {error}", {
           error: err.message || String(err),
@@ -1867,7 +1892,9 @@
       }).then(function (res) {
         if (res && res.ok) {
           loadAll();
-          setMsg({ ok: true, text: tx(t, "autoDescriptionSaved", "Generated a description for {name}.", { name: name }) });
+          setMsg({ ok: true, text: tx(t, "autoDescriptionSaved", "Generated a description for {name}.", {
+            name: localizeProfileName(t, name),
+          }) });
         } else {
           setMsg({
             ok: false,
@@ -1936,8 +1963,10 @@
     }
 
     const profileOptions = profiles.map(function (p) {
-      const tag = p.is_default ? " " + tx(t, "defaultSuffix", "(default)") : "";
-      return h(SelectOption, { key: p.name, value: p.name }, p.name + tag);
+      const tag = p.is_default && p.name !== "default"
+        ? " " + tx(t, "defaultSuffix", "(default)")
+        : "";
+      return h(SelectOption, { key: p.name, value: p.name }, localizeProfileName(t, p.name) + tag);
     });
 
     return h(Card, { className: "p-3" },
@@ -1966,11 +1995,15 @@
               saveSettings({ orchestrator_profile: v });
             })),
               h(SelectOption, { value: "" },
-                tx(t, "defaultValue", "(default: {name})", { name: settings.active_profile || "default" })),
+                tx(t, "defaultValue", "(default: {name})", {
+                  name: localizeProfileName(t, settings.active_profile || "default"),
+                })),
               profileOptions,
             ),
             h("div", { className: "text-[10px] text-muted-foreground" },
-              tx(t, "resolved", "Resolved: {name}", { name: settings.resolved_orchestrator_profile || "default" })),
+              tx(t, "resolved", "Resolved: {name}", {
+                name: localizeProfileName(t, settings.resolved_orchestrator_profile || "default"),
+              })),
             h("div", { className: "text-[10px] text-muted-foreground" },
               tx(t, "orchestratorHint", "Owns the root task after fan-out and wakes to judge completion. Configure task decomposition under auxiliary.kanban_decomposer.")),
           ),
@@ -1984,11 +2017,15 @@
               saveSettings({ default_assignee: v });
             })),
               h(SelectOption, { value: "" },
-                tx(t, "defaultValue", "(default: {name})", { name: settings.active_profile || "default" })),
+                tx(t, "defaultValue", "(default: {name})", {
+                  name: localizeProfileName(t, settings.active_profile || "default"),
+                })),
               profileOptions,
             ),
             h("div", { className: "text-[10px] text-muted-foreground" },
-              tx(t, "resolved", "Resolved: {name}", { name: settings.resolved_default_assignee || "default" })),
+              tx(t, "resolved", "Resolved: {name}", {
+                name: localizeProfileName(t, settings.resolved_default_assignee || "default"),
+              })),
           ),
           h("div", { className: "flex flex-col gap-1" },
             h(Label, { className: "text-xs text-muted-foreground" },
@@ -2047,8 +2084,10 @@
     return h("div", { className: "flex flex-col gap-1 border-l-2 pl-2",
       style: { borderColor: p.description ? "#888" : "#cc6" } },
       h("div", { className: "flex items-center gap-2 text-xs" },
-        h("span", { className: "font-medium" }, p.name),
-        p.is_default ? h("span", { className: "text-[10px] text-muted-foreground" }, tx(t, "defaultSuffix", "(default)")) : null,
+        h("span", { className: "font-medium" }, localizeProfileName(t, p.name)),
+        p.is_default && p.name !== "default"
+          ? h("span", { className: "text-[10px] text-muted-foreground" }, tx(t, "defaultSuffix", "(default)"))
+          : null,
         p.description_auto && p.description
           ? h("span", { className: "text-[10px] text-yellow-600" }, tx(t, "autoReview", "auto — review"))
           : null,
@@ -2128,9 +2167,10 @@
               title: tx(t, "switchBoardHint", "Boards are independent work streams with separate tasks, tenants, and assignees."),
             }, selectChangeHandler(function (v) { if (v) props.onSwitch(v); })),
               list.map(function (b) {
+                const name = localizeBoardName(t, b);
                 const label = b.total > 0
-                  ? `${b.name || b.slug} · ${b.total}`
-                  : (b.name || b.slug);
+                  ? `${name} · ${b.total}`
+                  : name;
                 return h(SelectOption, { key: b.slug, value: b.slug }, label);
               }),
             ),
@@ -2335,7 +2375,8 @@
   function BoardSettingsDialog(props) {
     const { t } = useI18n();
     const b = props.board || {};
-    const [name, setName] = useState(b.name || "");
+    const originalDisplayName = localizeBoardName(t, b);
+    const [name, setName] = useState(originalDisplayName);
     const [description, setDescription] = useState(b.description || "");
     const [projectDirectory, setProjectDirectory] = useState(b.default_workdir || "");
     const [submitting, setSubmitting] = useState(false);
@@ -2347,8 +2388,11 @@
       setErr(null);
       // Send default_workdir unconditionally: "" clears it on the server,
       // a path sets it (validated server-side: absolute + existing dir).
+      const trimmedName = name.trim();
+      const unchangedBuiltInDefault = isBuiltInDefaultBoardName(b)
+        && trimmedName === originalDisplayName;
       props.onSave({
-        name: name.trim() || undefined,
+        name: unchangedBuiltInDefault ? undefined : (trimmedName || undefined),
         description: description.trim() || undefined,
         default_workdir: projectDirectory.trim(),
       }).catch(function (e) {
@@ -2368,7 +2412,7 @@
       },
         h("div", { className: "hermes-kanban-dialog-title" },
           tx(t, "boardSettingsTitleFor", "Board settings — {name}",
-            { name: b.name || b.slug || "default" })),
+            { name: localizeBoardName(t, b) || localizeProfileName(t, "default") })),
         h("div", { className: "flex flex-col gap-3" },
           h("div", { className: "flex flex-col gap-1" },
             h(Label, { className: "text-xs" }, tx(t, "displayName", "Display name")),
@@ -2465,7 +2509,7 @@
         }, selectChangeHandler(props.setAssigneeFilter)),
           h(SelectOption, { value: "" }, tx(t, "allProfiles", "All profiles")),
           assignees.map(function (a) {
-            return h(SelectOption, { key: a, value: a }, a);
+            return h(SelectOption, { key: a, value: a }, localizeProfileName(t, a));
           }),
         ),
       ),
@@ -2595,7 +2639,7 @@
           h(SelectOption, { value: "" }, tx(t, "reassignPlaceholder", "— reassign —")),
           h(SelectOption, { value: "__none__" }, tx(t, "unassign", "(unassign)")),
           props.assignees.map(function (a) {
-            return h(SelectOption, { key: a, value: a }, a);
+            return h(SelectOption, { key: a, value: a }, localizeProfileName(t, a));
           }),
         ),
         h(Button, {
@@ -2948,7 +2992,7 @@
             ? lanes.map(function (lane) {
                 return h("div", { key: lane.assignee, className: "hermes-kanban-lane" },
                   h("div", { className: "hermes-kanban-lane-head" },
-                    h("span", { className: "hermes-kanban-lane-name" }, lane.assignee),
+                    h("span", { className: "hermes-kanban-lane-name" }, localizeProfileName(t, lane.assignee)),
                     h("span", { className: "hermes-kanban-lane-count" }, lane.tasks.length),
                   ),
                   lane.tasks.map(function (tk) {
@@ -3142,7 +3186,8 @@
           h("div", { className: "hermes-kanban-card-row hermes-kanban-card-meta" },
             t.assignee
               ? h("span", { className: "hermes-kanban-assignee",
-                            title: `Assigned to Hermes profile @${t.assignee}` }, "@", t.assignee)
+                            title: `Assigned to Hermes profile @${localizeProfileName(i18n, t.assignee)}` },
+                  "@", localizeProfileName(i18n, t.assignee))
               : h("span", { className: "hermes-kanban-unassigned",
                             title: needsAssignee
                               ? tx(i18n, "needsAssigneeHint", "Dependencies are satisfied, but the dispatcher skips this task until you assign a profile.")
@@ -4133,7 +4178,7 @@
             h("span", { className: "hermes-kanban-run-outcome" },
               r.ended_at ? (r.outcome || r.status || tx(t, "ended", "ended")) : tx(t, "active", "active")),
             h("span", { className: "hermes-kanban-run-profile" },
-              r.profile ? `@${r.profile}` : tx(t, "noProfile", "(no profile)")),
+              r.profile ? `@${localizeProfileName(t, r.profile)}` : tx(t, "noProfile", "(no profile)")),
             h("span", { className: "hermes-kanban-run-elapsed" }, fmtElapsed(r)),
             h("span", { className: "hermes-kanban-run-ago" },
               timeAgo ? timeAgo(r.started_at) : ""),
@@ -4260,7 +4305,9 @@
           className: "hermes-kanban-meta-value hermes-kanban-editable",
           onClick: function () { setEditing(true); },
           title: tx(t, "clickToEditAssignee", "Click to edit assignee"),
-        }, props.task.assignee || tx(t, "unassigned", "unassigned")),
+        }, props.task.assignee
+          ? localizeProfileName(t, props.task.assignee)
+          : tx(t, "unassigned", "unassigned")),
       );
     }
     const save = function () {

@@ -27,6 +27,8 @@ import { buildMcpServerCreate, type McpTransport } from "@/lib/mcp-server-create
 import { completeMcpDashboardOAuth } from "@/lib/mcp-dashboard-oauth";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeEnvDescription } from "@/i18n/env-metadata";
+import { localizeMcpSetup, localizeMcpTestError } from "@/i18n/mcp-metadata";
 
 function isHttpUrl(value: string): boolean {
   return /^https?:\/\//i.test(value.trim());
@@ -43,7 +45,7 @@ const TRANSPORT_TONE: Record<string, "success" | "warning" | "secondary"> = {
 };
 
 export default function McpPage() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const copy = getDashboardCopy(t).mcp;
   const [servers, setServers] = useState<McpServer[]>([]);
   const [catalog, setCatalog] = useState<McpCatalogEntry[]>([]);
@@ -167,7 +169,7 @@ export default function McpPage() {
           "success"
         );
       } else {
-        showToast(`${server.name}: ${result.error ?? copy.connectionFailed}`, "error");
+        showToast(`${server.name}: ${localizeMcpTestError(result, copy, locale)}`, "error");
       }
     } catch (e) {
       showToast(`${t.status.error}: ${e}`, "error");
@@ -274,7 +276,13 @@ export default function McpPage() {
       item => item.required && !(installEnv[item.name] ?? "").trim()
     );
     if (missing.length > 0) {
-      showToast(copy.required.replace("{name}", missing[0].prompt), "error");
+      showToast(
+        copy.required.replace(
+          "{name}",
+          localizeEnvDescription(missing[0].name, missing[0].prompt, locale)
+        ),
+        "error"
+      );
       return;
     }
     const envMap: Record<string, string> = {};
@@ -523,7 +531,7 @@ export default function McpPage() {
               {installEntry.required_env.map(item => (
                 <div className="grid gap-2" key={item.name}>
                   <Label htmlFor={`install-env-${item.name}`}>
-                    {item.prompt}
+                    {localizeEnvDescription(item.name, item.prompt, locale)}
                     {item.required ? " *" : ""}
                   </Label>
                   <Input
@@ -623,7 +631,9 @@ export default function McpPage() {
                               )}
                         </p>
                       ) : (
-                        <p className="text-destructive">{result.error ?? copy.connectionFailed}</p>
+                        <p className="text-destructive">
+                          {localizeMcpTestError(result, copy, locale)}
+                        </p>
                       )}
                     </div>
                   )}
@@ -789,7 +799,9 @@ export default function McpPage() {
                   {entry.post_install && (
                     <details className="mt-1 text-xs text-muted-foreground">
                       <summary className="cursor-pointer select-none">{copy.setupNotes}</summary>
-                      <p className="mt-1 whitespace-pre-wrap">{entry.post_install.trim()}</p>
+                      <p className="mt-1 whitespace-pre-wrap">
+                        {localizeMcpSetup(entry.name, entry.post_install, locale)}
+                      </p>
                     </details>
                   )}
                   {entryDiags.map((d, i) => (

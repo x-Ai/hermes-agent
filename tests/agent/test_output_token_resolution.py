@@ -164,11 +164,13 @@ def test_optional_chat_and_responses_limits_are_omitted_when_unconfigured():
     [
         ("chat_completions", SimpleNamespace(choices=[SimpleNamespace(finish_reason="length")])),
         ("anthropic_messages", SimpleNamespace(stop_reason="max_tokens")),
+        ("bedrock_converse", SimpleNamespace(
+            choices=[SimpleNamespace(finish_reason="length")])),
         ("codex_responses", SimpleNamespace(
             status="incomplete", incomplete_details=SimpleNamespace(reason="max_output_tokens"))),
     ],
 )
-def test_standard_output_truncations_are_terminal_responses(api_mode, response):
+def test_provider_reported_output_limits_are_standard_truncations(api_mode, response):
     assert is_standard_output_truncation(SimpleNamespace(api_mode=api_mode), response) is True
 
 

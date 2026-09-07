@@ -6,6 +6,9 @@
 # interpolation and identifiers keep working.  tests/agent/test_i18n.py asserts
 # key parity and placeholder parity against en.yaml.
 
+agent:
+  output_truncated_no_visible: "تم اقتطاع الاستجابة عند حد رموز الإخراج لدى المزوّد قبل إنتاج أي نص مرئي."
+
 approval:
   dangerous_header: "⚠️  أمر خطير: {description}"
   choose_long:     "      [o] مرة  |  [s] الجلسة  |  [a] دائمًا  |  [d] رفض"

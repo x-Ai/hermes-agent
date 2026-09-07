@@ -170,9 +170,14 @@ async def test_mcp_server(name: str, profile: Optional[str] = None):
     try:  # probe blocks on a dedicated MCP event loop — keep it off the FastAPI loop
         tools, token_present = await asyncio.to_thread(_probe_scoped)
     except Exception as exc:
-        return {"ok": False, "error": str(exc), "tools": []}
+        return {"ok": False, "code": "connection_error", "error": str(exc), "tools": []}
     if not token_present:
-        return {"ok": False, "error": "OAuth authentication required — no token found.", "tools": []}
+        return {
+            "ok": False,
+            "code": "oauth_required",
+            "error": "OAuth authentication required — no token found.",
+            "tools": [],
+        }
     # Optional per-tool schema size (chars) for the desktop's cost overlay;
     # failed probes simply omit it.
     schema_chars = details.get("schema_chars") or {}

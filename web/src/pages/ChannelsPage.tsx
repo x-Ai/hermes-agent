@@ -41,7 +41,8 @@ import { getDashboardCopy, type DashboardCopy } from "@/i18n/dashboard";
 import {
   localizeChannelDescription,
   localizeChannelFieldDescription,
-  localizeChannelFieldLabel
+  localizeChannelFieldLabel,
+  localizeChannelTestResult
 } from "@/i18n/channel-metadata";
 import type { Locale } from "@/i18n/types";
 
@@ -265,7 +266,10 @@ export default function ChannelsPage() {
     setTestingId(platform.id);
     try {
       const res = await api.testMessagingPlatform(platform.id);
-      showToast(`${platform.name}: ${res.message}`, res.ok ? "success" : "error");
+      showToast(
+        `${platform.name}: ${localizeChannelTestResult(platform.name, res, copy, locale)}`,
+        res.ok ? "success" : "error"
+      );
     } catch (e) {
       showToast(`${copy.error}: ${e}`, "error");
     } finally {

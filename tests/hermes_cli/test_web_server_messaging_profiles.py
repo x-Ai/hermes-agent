@@ -88,6 +88,20 @@ class TestProfileScopedMessagingReads:
         )
         assert resp.status_code == 404
 
+    def test_platform_test_returns_stable_localization_code(
+        self, client, isolated_profiles
+    ):
+        resp = client.post(
+            "/api/messaging/platforms/telegram/test",
+            params={"profile": "worker_alpha"},
+        )
+
+        assert resp.status_code == 200
+        payload = resp.json()
+        assert payload["code"] == "disabled"
+        assert payload["state"] == "disabled"
+        assert payload["message"]  # retained for older Dashboard clients
+
     def test_scoped_read_returns_profile_path_command_and_startup_failure(
         self, client, isolated_profiles, monkeypatch
     ):
@@ -267,4 +281,3 @@ class TestMultiplexPortBindingGuard:
                 json={"clear_env": [api_server["env_vars"][0]["key"]]},
             )
             assert resp.status_code == 200
-

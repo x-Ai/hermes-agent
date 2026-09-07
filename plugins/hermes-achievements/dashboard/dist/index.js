@@ -66,7 +66,7 @@
         const ladder = achievement.tiers.map(function (tier) {
           return localizedTier(t, tier.name) + " " + tier.threshold;
         }).join("，");
-        criteria += " " + criteriaCopy.tier_ladder + "：" + ladder + "。";
+        criteria += "\n" + criteriaCopy.tier_ladder + "：" + ladder + "。";
       }
     }
     return Object.assign({}, achievement, {

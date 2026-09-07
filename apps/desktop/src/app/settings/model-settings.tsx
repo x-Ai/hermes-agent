@@ -1321,6 +1321,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile }: ModelSetting
               />
             ))}
             <Button
+              className="justify-self-end"
               disabled={applying}
               onClick={() =>
                 updateMoaPreset(prev => ({

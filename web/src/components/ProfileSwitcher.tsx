@@ -6,6 +6,7 @@ import {
 } from "@nous-research/ui/ui/components/select";
 import { useProfileScope } from "@/contexts/useProfileScope";
 import { useI18n } from "@/i18n";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,14 +24,17 @@ export function ProfileSwitcher({ collapsed }: ProfileSwitcherProps) {
     () =>
       (t.app.currentProfileOption ?? "this dashboard ({name})").replace(
         "{name}",
-        currentProfile || "default",
+        localizeDefaultIdentifier(currentProfile || "default", t.profiles.defaultBadge),
       ),
-    [currentProfile, t.app.currentProfileOption],
+    [currentProfile, t.app.currentProfileOption, t.profiles.defaultBadge],
   );
 
   if (profiles.length < 2) return null;
 
-  const managed = profile || currentProfile || "default";
+  const managed = localizeDefaultIdentifier(
+    profile || currentProfile || "default",
+    t.profiles.defaultBadge,
+  );
   const isOther = !!profile && profile !== currentProfile;
   const managingLabel = t.app.managingProfile ?? "Managing profile";
 
@@ -70,7 +74,7 @@ export function ProfileSwitcher({ collapsed }: ProfileSwitcherProps) {
           .filter((name) => name !== currentProfile)
           .map((name) => (
             <SelectOption key={name} value={name}>
-              {name}
+              {localizeDefaultIdentifier(name, t.profiles.defaultBadge)}
             </SelectOption>
           ))}
       </Select>

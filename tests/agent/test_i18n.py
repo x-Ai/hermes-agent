@@ -120,6 +120,10 @@ def test_t_missing_key_in_non_english_falls_back_to_english(tmp_path, monkeypatc
         i18n.reset_language_cache()
 
 
+def test_empty_output_truncation_notice_is_localized_in_chinese():
+    assert i18n.t("agent.output_truncated_no_visible", lang="zh") == (
+        "响应在生成可见文本之前达到提供方的输出 Token 上限，已被截断。"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -138,5 +142,3 @@ def test_locales_dir_env_override_ignored_when_missing(tmp_path, monkeypatch):
     assert result != tmp_path / "does-not-exist"
     # In a source checkout this is the repo-root locales dir.
     assert result.name == "locales"
-
-

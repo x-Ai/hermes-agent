@@ -41,6 +41,7 @@ import { Input } from "@nous-research/ui/ui/components/input";
 import { Label } from "@nous-research/ui/ui/components/label";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 import { Segmented } from "@nous-research/ui/ui/components/segmented";
@@ -489,10 +490,6 @@ function splitJobKey(key: string): { profile: string; id: string } {
   return { profile: key.slice(0, idx) || "default", id: key.slice(idx + 1) };
 }
 
-function profileLabel(profile: string): string {
-  return profile === "default" ? "default" : profile;
-}
-
 const STATUS_TONE: Record<string, "success" | "warning" | "destructive"> = {
   enabled: "success",
   scheduled: "success",
@@ -936,7 +933,7 @@ export default function CronPage() {
                 >
                   {profiles.map(profile => (
                     <SelectOption key={profile.name} value={profile.name}>
-                      {profileLabel(profile.name)}
+                      {localizeDefaultIdentifier(profile.name, copy.default)}
                     </SelectOption>
                   ))}
                 </Select>
@@ -1057,7 +1054,7 @@ export default function CronPage() {
                 <SelectOption value="all">{copy.allProfiles}</SelectOption>
                 {profiles.map(profile => (
                   <SelectOption key={profile.name} value={profile.name}>
-                    {profileLabel(profile.name)}
+                    {localizeDefaultIdentifier(profile.name, copy.default)}
                   </SelectOption>
                 ))}
               </Select>
@@ -1116,7 +1113,7 @@ export default function CronPage() {
                         </Badge>
                       )}
                       <Badge tone="outline">
-                        {profile === "default" ? copy.default : profileLabel(profile)}
+                        {localizeDefaultIdentifier(profile, copy.default)}
                       </Badge>
                       {deliver && deliver !== "local" && (
                         <Badge tone="outline">{deliveryLabels[deliver] ?? deliver}</Badge>

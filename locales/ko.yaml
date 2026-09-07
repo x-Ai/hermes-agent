@@ -1,6 +1,9 @@
 # Hermes 정적 메시지 카탈로그 -- 한국어
 # See locales/en.yaml for the source of truth; keep keys in sync.
 
+agent:
+  output_truncated_no_visible: "표시할 텍스트가 생성되기 전에 제공자의 출력 토큰 한도에 도달하여 응답이 잘렸습니다."
+
 auth:
   no_provider_configured: "No inference provider configured. Run 'hermes model' to choose a provider and model, or set an API key (OPENROUTER_API_KEY, OPENAI_API_KEY, etc.) in ~/.hermes/.env."
 

@@ -61,6 +61,10 @@ import { cn } from "@/lib/utils";
 import { Input } from "@nous-research/ui/ui/components/input";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import {
+  localizeToolsetDescription,
+  localizeToolsetLabel
+} from "@/i18n/toolset-metadata";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 
@@ -357,13 +361,20 @@ export default function SkillsPage() {
 
   const filteredToolsets = useMemo(() => {
     return toolsets.filter(
-      ts =>
-        !search ||
-        ts.name.toLowerCase().includes(lowerSearch) ||
-        ts.label.toLowerCase().includes(lowerSearch) ||
-        ts.description.toLowerCase().includes(lowerSearch)
+      ts => {
+        const label = localizeToolsetLabel(ts.name, ts.label || ts.name, locale);
+        const description = localizeToolsetDescription(ts.name, ts.description, locale);
+        return (
+          !search ||
+          ts.name.toLowerCase().includes(lowerSearch) ||
+          ts.label.toLowerCase().includes(lowerSearch) ||
+          ts.description.toLowerCase().includes(lowerSearch) ||
+          label.toLowerCase().includes(lowerSearch) ||
+          description.toLowerCase().includes(lowerSearch)
+        );
+      }
     );
-  }, [toolsets, search, lowerSearch]);
+  }, [toolsets, search, lowerSearch, locale]);
 
   /* ---- Loading ---- */
   if (loading) {
@@ -556,7 +567,12 @@ export default function SkillsPage() {
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredToolsets.map(ts => {
                     const TsIcon = toolsetIcon(ts.name);
-                    const labelText = ts.label.trim() || ts.name;
+                    const labelText = localizeToolsetLabel(ts.name, ts.label || ts.name, locale);
+                    const descriptionText = localizeToolsetDescription(
+                      ts.name,
+                      ts.description,
+                      locale
+                    );
 
                     return (
                       <Card key={ts.name} className="relative rounded-none">
@@ -573,7 +589,9 @@ export default function SkillsPage() {
                                   {ts.enabled ? t.common.active : t.common.inactive}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-text-secondary mb-2">{ts.description}</p>
+                              <p className="text-xs text-text-secondary mb-2">
+                                {descriptionText}
+                              </p>
                               {ts.enabled && !ts.configured && (
                                 <p className="text-xs text-amber-300 mb-2">
                                   {t.skills.setupNeeded}

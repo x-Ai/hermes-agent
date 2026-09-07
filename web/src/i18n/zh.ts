@@ -47,10 +47,10 @@ export const zh: Translations = {
     messaging: "消息平台",
     gateway: "网关",
     gatewayHint:
-      "消息平台、API 服务器和 Webhook 在“消息平台”页面中配置。此处为网关范围设置（代理/中继模式与全局允许列表）。",
+      "消息平台、API 服务器和 Webhook 在\"消息平台\"页面中配置。此处为网关范围设置（代理/中继模式与全局允许列表）",
     pluginLoadFailed:
-      "无法加载此插件的脚本。请检查网络请求（dashboard-plugins/…）以及服务器上的插件路径。",
-    pluginNotRegistered: "插件脚本未调用 register()，或执行出错。请打开浏览器控制台查看详情。"
+      "无法加载此插件的脚本。请检查网络请求（dashboard-plugins/…）以及服务器上的插件路径",
+    pluginNotRegistered: "插件脚本未调用 register()，或执行出错。请打开浏览器控制台查看详情"
   },
 
   app: {
@@ -103,13 +103,13 @@ export const zh: Translations = {
     managingProfile: "正在管理配置",
     currentProfileOption: "当前管理面板（{name}）",
     managingProfileBanner:
-      "正在管理配置“{name}”——配置、密钥、技能、MCP、模型和新对话都会应用到该配置。",
+      "正在管理配置\"{name}\"——配置、密钥、技能、MCP、模型和新对话都会应用到该配置",
     memoryOomRestartBanner:
-      "代理意外重启，很可能是因为内存耗尽。长会话和大量并发任务会增加内存占用。",
-    memoryCriticalBanner: "代理内存即将耗尽，可能会重启。请考虑关闭空闲会话或增加内存。",
-    memoryElevatedBanner: "代理当前可用内存较低。",
-    diskCriticalBanner: "代理磁盘空间即将耗尽，新消息、记忆和设置可能无法保存。",
-    diskElevatedBanner: "代理磁盘使用量较高，请考虑清理旧会话或扩充存储空间。",
+      "代理意外重启，很可能是因为内存耗尽。长会话和大量并发任务会增加内存占用",
+    memoryCriticalBanner: "代理内存即将耗尽，可能会重启。请考虑关闭空闲会话或增加内存",
+    memoryElevatedBanner: "代理当前可用内存较低",
+    diskCriticalBanner: "代理磁盘空间即将耗尽，新消息、记忆和设置可能无法保存",
+    diskElevatedBanner: "代理磁盘使用量较高，请考虑清理旧会话或扩充存储空间",
     diskFreeLabel: "剩余 {count} MB",
     dismiss: "关闭"
   },
@@ -137,7 +137,7 @@ export const zh: Translations = {
     recentSessions: "最近会话",
     restartGateway: "重启网关",
     restartGatewayConfirmMessage:
-      "这会重启 Hermes 网关进程，已连接的平台和活动会话随后将重新连接。",
+      "这会重启 Hermes 网关进程，已连接的平台和活动会话随后将重新连接",
     restartGatewayConfirmTitle: "重启网关？",
     restartingGateway: "正在重启网关…",
     running: "运行中",
@@ -148,7 +148,7 @@ export const zh: Translations = {
     stopped: "已停止",
     updateHermes: "更新 Hermes",
     updateHermesConfirmMessage:
-      "这会运行 hermes update，并在完成后重启网关；在此之前，活动会话会保留其提示词缓存。",
+      "这会运行 hermes update，并在完成后重启网关；在此之前，活动会话会保留其提示词缓存",
     updateHermesConfirmNow: "立即更新",
     updateHermesConfirmTitle: "更新 Hermes？",
     updatingHermes: "正在更新 Hermes…",
@@ -174,13 +174,13 @@ export const zh: Translations = {
     failedToLoad: "加载会话失败",
     deleteSession: "删除会话",
     confirmDeleteTitle: "删除会话？",
-    confirmDeleteMessage: "此操作将永久删除对话及其所有消息，无法恢复。",
+    confirmDeleteMessage: "此操作将永久删除对话及其所有消息，无法恢复",
     sessionDeleted: "会话已删除",
     failedToDelete: "删除会话失败",
     deleteEmpty: "删除空会话",
     deleteEmptyConfirmTitle: "删除空会话？",
     deleteEmptyConfirmMessage:
-      "这将永久删除 {count} 个没有消息的会话。活动和已归档的会话将被跳过。此操作无法撤销。",
+      "这将永久删除 {count} 个没有消息的会话。活动和已归档的会话将被跳过。此操作无法撤销",
     emptySessionsDeleted: "已删除 {count} 个空会话",
     failedToDeleteEmpty: "删除空会话失败",
     selectSession: "选择会话",
@@ -189,7 +189,7 @@ export const zh: Translations = {
     selectedCount: "已选择 {count} 个",
     deleteSelected: "删除 {count} 个",
     deleteSelectedConfirmTitle: "删除 {count} 个会话？",
-    deleteSelectedConfirmMessage: "此操作将永久删除所选的 {count} 个会话及其所有消息。无法撤销。",
+    deleteSelectedConfirmMessage: "此操作将永久删除所选的 {count} 个会话及其所有消息。无法撤销",
     selectedSessionsDeleted: "已删除 {count} 个会话",
     failedToDeleteSelected: "删除所选会话失败",
     resumeInChat: "在对话中继续",
@@ -253,7 +253,7 @@ export const zh: Translations = {
   },
 
   cron: {
-    confirmDeleteMessage: "将从此计划移除该任务，此操作无法撤销。",
+    confirmDeleteMessage: "将从此计划移除该任务，此操作无法撤销",
     confirmDeleteTitle: "删除定时任务？",
     newJob: "新建定时任务",
     nameOptional: "名称（可选）",
@@ -282,7 +282,7 @@ export const zh: Translations = {
       onceAt: "执行时间",
       customLabel: "cron 表达式",
       customPlaceholder: "0 9 * * *",
-      customHint: "五字段 cron 表达式（分、时、日、月、星期）。",
+      customHint: "五字段 cron 表达式（分、时、日、月、星期）",
       preview: "发送为",
       previewEmpty: "（未完成）"
     },
@@ -298,7 +298,7 @@ export const zh: Translations = {
     },
     deliverTo: "投递至",
     scheduledJobs: "已调度任务",
-    noJobs: "暂无定时任务。在上方创建一个。",
+    noJobs: "暂无定时任务。在上方创建一个",
     last: "上次",
     next: "下次",
     pause: "暂停",
@@ -311,7 +311,7 @@ export const zh: Translations = {
       slack: "Slack",
       email: "邮件",
       needsHomeChannel: "请先设置主页频道",
-      noneConfigured: "尚未配置消息平台。请先在“消息平台”中完成设置，以便投递报告。"
+      noneConfigured: "尚未配置消息平台。请先在\"消息平台\"中完成设置，以便投递报告"
     }
   },
 
@@ -320,12 +320,12 @@ export const zh: Translations = {
     name: "名称",
     namePlaceholder: "例如：coder, writer 等",
     nameRequired: "名称必填",
-    nameRule: "仅允许小写字母、数字、下划线和短横线；首字符必须是字母或数字；最多 64 个字符。",
+    nameRule: "仅允许小写字母、数字、下划线和短横线；首字符必须是字母或数字；最多 64 个字符",
     invalidName: "多Agent配置名称非法",
     cloneFrom: "从配置文件克隆",
     cloneFromNone: "无（空白）",
     allProfiles: "多Agent配置列表",
-    noProfiles: "暂无多Agent配置。",
+    noProfiles: "暂无多Agent配置",
     defaultBadge: "默认",
     hasEnv: "已配置 env",
     model: "模型",
@@ -341,7 +341,7 @@ export const zh: Translations = {
     copyFailed: "复制失败",
     confirmDeleteTitle: "删除多Agent配置？",
     confirmDeleteMessage:
-      "将永久删除多Agent配置 '{name}' — 包括配置、密钥、记忆、会话、技能、定时任务。此操作无法撤销。",
+      "将永久删除多Agent配置 '{name}' — 包括配置、密钥、记忆、会话、技能、定时任务。此操作无法撤销",
     created: "已创建",
     deleted: "已删除",
     renamed: "已重命名",
@@ -351,10 +351,10 @@ export const zh: Translations = {
     activeSet: "已设为活动配置",
     gatewayRunning: "网关运行中",
     gatewayStopped: "网关已停止",
-    gatewayRunningWarning: "此配置的网关正在运行——切换时将停止它。",
+    gatewayRunningWarning: "此配置的网关正在运行——切换时将停止它",
     aliasBadge: "别名",
     description: "说明",
-    descriptionPlaceholder: "此配置擅长什么？用于按角色路由看板任务。",
+    descriptionPlaceholder: "此配置擅长什么？用于按角色路由看板任务",
     noDescription: "暂无说明",
     editDescription: "编辑说明",
     descriptionSaved: "说明已保存",
@@ -373,11 +373,11 @@ export const zh: Translations = {
     modelNone: "暂无已验证的提供商——请先设置密钥",
     editModel: "更换模型",
     modelSaved: "模型已更新",
-    modelSaveAfterCreateFailed: "配置已创建，但模型未能保存——请在配置编辑器中重新设置。",
+    modelSaveAfterCreateFailed: "配置已创建，但模型未能保存——请在配置编辑器中重新设置",
     modelSelect: "选择模型",
     actions: "操作",
     manageSkills: "管理技能和工具",
-    activeSetHint: "Dashboard 已切换为管理 {name}。新的 CLI 和网关运行也会使用此配置。",
+    activeSetHint: "Dashboard 已切换为管理 {name}。新的 CLI 和网关运行也会使用此配置",
     build: "构建"
   },
 
@@ -388,12 +388,12 @@ export const zh: Translations = {
     enableAfterInstall: "安装后启用",
     enableRuntime: "启用",
     forceReinstall: "强制重装（先删除已有目录）",
-    headline: "发现、安装、启用和更新 Hermes 插件（对齐 `hermes plugins` CLI）。",
+    headline: "发现、安装、启用和更新 Hermes 插件（对齐 `hermes plugins` CLI）",
     identifierLabel: "Git 地址或 owner/repo",
     inactive: "未启用",
     installBtn: "安装",
     installHeading: "从 GitHub / Git 地址安装",
-    installHint: "使用 owner/repo 简写或完整的 https:// / git@ 克隆地址。",
+    installHint: "使用 owner/repo 简写或完整的 https:// / git@ 克隆地址",
     memoryProviderLabel: "记忆提供方",
     missingEnvWarn: "在「密钥」页面设置以下变量后再运行插件：",
     noDashboardTab: "无仪表盘标签",
@@ -403,15 +403,15 @@ export const zh: Translations = {
     providerDefaults: "内置 / 默认",
     providersHeading: "运行时提供方插件",
     providersHint:
-      "写入 config.yaml：memory.provider（留空为内置）、context.engine。下次会话生效。",
+      "写入 config.yaml：memory.provider（留空为内置）、context.engine。下次会话生效",
     refreshDashboard: "重新扫描仪表盘扩展",
     removeConfirm: "从 ~/.hermes/plugins/ 删除此插件？",
-    removeHint: "仅可移除用户安装在 ~/.hermes/plugins 下的插件。",
+    removeHint: "仅可移除用户安装在 ~/.hermes/plugins 下的插件",
     rescanHeading: "SPA 插件注册表",
-    rescanHint: "在磁盘新增文件后扫描，使侧边栏载入新 manifest。",
+    rescanHint: "在磁盘新增文件后扫描，使侧边栏载入新 manifest",
     runtimeHeading: "网关运行时（YAML 插件）",
     saveProviders: "保存提供方设置",
-    savedProviders: "提供方设置已保存。",
+    savedProviders: "提供方设置已保存",
     sourceBadge: "来源",
     authRequired: "需要认证",
     authRequiredHint: "运行此命令以完成认证：",
@@ -429,19 +429,19 @@ export const zh: Translations = {
     categories: "分类",
     filters: "筛选",
     noSkills: "未找到技能。技能从 ~/.hermes/skills/ 加载",
-    noSkillsMatch: "没有匹配的技能。",
+    noSkillsMatch: "没有匹配的技能",
     skillCount: "{count} 个技能",
     resultCount: "{count} 个结果",
-    noDescription: "暂无描述。",
+    noDescription: "暂无描述",
     toolsets: "工具集",
     toolsetLabel: "{name} 工具集",
-    noToolsetsMatch: "没有匹配的工具集。",
+    noToolsetsMatch: "没有匹配的工具集",
     setupNeeded: "需要配置",
     disabledForCli: "CLI 已禁用",
     more: "还有 {count} 个",
     profileSelector: "配置",
     currentProfile: "当前（{name}）",
-    managingProfile: "正在管理配置“{name}”——此处开关应用于该配置，而非管理面板自身。"
+    managingProfile: "正在管理配置\"{name}\"——此处开关应用于该配置，而非管理面板自身"
   },
 
   config: {
@@ -453,7 +453,7 @@ export const zh: Translations = {
     resetDefaults: "恢复默认值",
     resetScopeTooltip: "将{scope}恢复为默认值",
     confirmResetScope:
-      "确定要将{scope}的所有设置恢复为默认值吗？此操作仅更新表单，在按下「保存」按钮前不会写入 config.yaml。",
+      "确定要将{scope}的所有设置恢复为默认值吗？此操作仅更新表单，在按下「保存」按钮前不会写入 config.yaml",
     resetScopeToast: "{scope}已恢复为默认值 — 请检查并保存以生效",
     rawYaml: "原始 YAML 配置",
     searchResults: "搜索结果",
@@ -483,12 +483,12 @@ export const zh: Translations = {
       discord: "Discord",
       auxiliary: "辅助"
     },
-    resetFieldsDescription: "这会将 {count} 个字段恢复为默认值。"
+    resetFieldsDescription: "这会将 {count} 个字段恢复为默认值"
   },
 
   env: {
-    changesNote: "更改会立即保存到磁盘。活跃会话将自动获取新密钥。",
-    confirmClearMessage: "该变量的已存值将从 .env 文件中删除。无法在此界面撤销。",
+    changesNote: "更改会立即保存到磁盘，活跃会话将自动获取新密钥",
+    confirmClearMessage: "该变量的已存值将从 .env 文件中删除，无法在此界面撤销",
     confirmClearTitle: "清除此密钥？",
     description: "管理存储在以下位置的 API 密钥和凭据",
     hideAdvanced: "隐藏高级选项",
@@ -507,52 +507,52 @@ export const zh: Translations = {
     hideValue: "隐藏值",
     customTitle: "自定义密钥",
     customHint:
-      "存储在 .env 中、Hermes 无法识别的任意环境变量。可用于为技能、MCP 服务器或你自己的工具注入环境变量。",
+      "存储在 .env 中、Hermes 无法识别的任意环境变量，可用于为技能、MCP 服务器或你自己的工具注入环境变量",
     customConfigured: "已设置 {count} 个自定义密钥",
     addCustomKey: "添加自定义密钥",
     customKeyName: "变量名",
     customKeyNamePlaceholder: "例如 MY_SERVICE_API_KEY",
     add: "添加",
-    invalidKeyName: "只能使用字母、数字和下划线（必须以字母或下划线开头）。"
+    invalidKeyName: "只能使用字母、数字和下划线（必须以字母或下划线开头）"
   },
 
   oauth: {
     title: "提供商登录（OAuth）",
     providerLogins: "提供商登录（OAuth）",
     description:
-      "已连接 {connected}/{total} 个 OAuth 提供商。仪表板支持的流程请使用「登录」；CLI 命令仍可用于外部或备用设置。",
+      "已连接 {connected}/{total} 个 OAuth 提供商。仪表板支持的流程请使用「登录」，CLI 命令仍可用于外部或备用设置",
     connected: "已连接",
     expired: "已过期",
-    notConnected: "未连接。可用时请使用「登录」，或在终端中运行 {command}。",
-    runInTerminal: "在终端中。",
-    noProviders: "未检测到支持 OAuth 的提供商。",
+    notConnected: "未连接。可用时请使用「登录」，或在终端中运行 {command}",
+    runInTerminal: "在终端中",
+    noProviders: "未检测到支持 OAuth 的提供商",
     login: "登录",
     disconnect: "断开连接",
     managedExternally: "外部管理",
     token: "令牌",
     copied: "已复制 ✓",
     copyCode: "复制代码",
-    copyFailed: "无法自动复制。请选中代码并手动复制。",
+    copyFailed: "无法自动复制。请选中代码并手动复制",
     cli: "复制",
     copyCliCommand: "复制 CLI 命令（用于外部/备用方式）",
     connect: "连接",
     sessionExpires: "会话将在 {time} 后过期",
     sessionExpiredNoError:
-      "登录已过期，且未能连接到提供方。这通常意味着登录页面在打开的标签页中卡住了（服务端问题）——请在该标签页完成登录，然后点击重试。如果仍然失败，请改用 API 密钥或 CLI。",
+      "登录已过期，且未能连接到提供方，这通常意味着登录页面在打开的标签页中卡住了（服务端问题）——请在该标签页完成登录，然后点击重试。如果仍然失败，请改用 API 密钥或 CLI",
     initiatingLogin: "正在启动登录流程…",
     exchangingCode: "正在交换令牌…",
     connectedClosing: "已连接！正在关闭…",
-    loginFailed: "登录失败。",
-    sessionExpired: "会话已过期。点击重试以开始新的登录。",
+    loginFailed: "登录失败",
+    sessionExpired: "会话已过期。点击重试以开始新的登录",
     reOpenAuth: "重新打开授权页面",
     reOpenVerification: "重新打开验证页面",
     submitCode: "提交代码",
     pasteCode: "粘贴授权代码（包含 #state 后缀也可以）",
     waitingAuth: "等待您在浏览器中授权…",
     enterCodePrompt: "已在新标签页中打开。如果需要，请输入以下代码：",
-    pkceStep1: "已在新标签页打开 claude.ai。请登录并点击「授权」。",
-    pkceStep2: "复制授权后显示的授权代码。",
-    pkceStep3: "将代码粘贴到下方并提交。",
+    pkceStep1: "已在新标签页打开 claude.ai。请登录并点击「授权」",
+    pkceStep2: "复制授权后显示的授权代码",
+    pkceStep3: "将代码粘贴到下方并提交",
     flowLabels: {
       pkce: "浏览器登录（PKCE）",
       device_code: "设备代码",
@@ -581,8 +581,8 @@ export const zh: Translations = {
       kicker: "代理玩家积分",
       title: "Hermes 成就",
       subtitle:
-        "从真实会话历史中获得的 Hermes 可收集徽章。已知尚未达成的成就显示为「已发现」；秘密成就在首次出现匹配行为之前保持隐藏。",
-      scan_subtitle: "正在扫描 Hermes 会话历史。在历史记录较多时，首次扫描可能需要 5–10 秒。"
+        "从真实会话历史中获得的可收集徽章，已知尚但未达成显示为「已发现」，秘密成就在首次出现匹配行之前保持隐藏",
+      scan_subtitle: "正在扫描 Hermes 会话历史。在历史记录较多时，首次扫描可能需要 5–10 秒"
     },
     actions: {
       rescan: "重新扫描"
@@ -616,22 +616,22 @@ export const zh: Translations = {
     },
     scan: {
       building_headline: "正在构建成就档案…",
-      building_detail: "正在读取会话、工具调用、模型元数据和解锁状态。",
+      building_detail: "正在读取会话、工具调用、模型元数据和解锁状态",
       starting_headline: "正在开始成就扫描…",
       progress_detail:
-        "已扫描 {scanned} / {total} 个会话 · {pct}%。随着更多历史流入，徽章会陆续解锁。",
-      idle_detail: "正在读取会话、工具调用、模型元数据和解锁状态。徽章解锁后将在此显示。"
+        "已扫描 {scanned} / {total} 个会话 · {pct}%。随着更多历史流入，徽章会陆续解锁",
+      idle_detail: "正在读取会话、工具调用、模型元数据和解锁状态。徽章解锁后将在此显示"
     },
     guide: {
       tiers_header: "等级",
       secret_header: "秘密成就",
       secret_body:
-        "秘密成就会隐藏其确切触发条件。一旦 Hermes 检测到相关信号，卡片将变为「已发现」并显示其要求。",
+        "秘密成就会隐藏其确切触发条件，一旦 Hermes 检测到相关信号，卡片将变为「已发现」并达成条件",
       scan_status_header: "扫描状态",
       scan_status_body:
-        "Hermes 正在对本地历史进行一次扫描，之后卡片会自动出现。即使这需要几秒钟，也没有卡住。",
+        "Hermes 正在对本地历史进行一次扫描，之后卡片会自动出现。即使这需要几秒钟，也没有卡住",
       what_scanned_header: "扫描内容",
-      what_scanned_body: "会话、工具调用、模型元数据、错误、成就和本地解锁状态。"
+      what_scanned_body: "会话、工具调用、模型元数据、错误、成就和本地解锁状态"
     },
     card: {
       share_title: "分享此成就",
@@ -647,9 +647,9 @@ export const zh: Translations = {
       header: "最近解锁"
     },
     empty: {
-      no_secrets_header: "本次扫描中已没有隐藏的秘密。",
+      no_secrets_header: "本次扫描中已没有隐藏的秘密",
       no_secrets_body:
-        "提示：秘密通常源于异常失败或高级用户行为模式 —— 端口冲突、权限阻拦、缺少环境变量、YAML 错误、Docker 冲突、回滚或检查点使用、缓存命中，或在大量红色错误后做出的小小修复。"
+        "提示：秘密通常源于异常失败或高级用户行为模式 —— 端口冲突、权限阻拦、缺少环境变量、YAML 错误、Docker 冲突、回滚或检查点使用、缓存命中，或在大量红色错误后做出的小小修复"
     },
     filters: {
       all_categories: "全部",
@@ -664,20 +664,20 @@ export const zh: Translations = {
       close: "关闭",
       rendering: "渲染中…",
       card_alt: "{name} 分享卡片",
-      error_generic: "发生错误。",
+      error_generic: "发生错误",
       x_title: "在 X 中打开预填好的帖子",
       x_button: "在 X 上分享",
       copy_title: "复制图片以粘贴到你的帖子中",
       copy_button: "复制图片",
       copied: "已复制 ✓",
       download_button: "下载 PNG",
-      hint: "「在 X 上分享」会在新标签页中打开预填好的帖子。如果想附上 1200×630 的徽章，请先点击「复制图片」—— X 允许你直接粘贴到推文编辑器中。「下载 PNG」会将文件保存下来，可在任意位置使用。",
-      clipboard_unsupported: "此浏览器不支持复制剪贴板图片 —— 请改用「下载」。",
-      tweet_text: "刚刚在 Hermes Agent 中解锁了 {tier_part}“{name}” ☤",
+      hint: "「在 X 上分享」会在新标签页中打开预填好的帖子。如果想附上 1200×630 的徽章，请先点击「复制图片」—— X 允许你直接粘贴到推文编辑器中。「下载 PNG」会将文件保存下来，可在任意位置使用",
+      clipboard_unsupported: "此浏览器不支持复制剪贴板图片 —— 请改用「下载」",
+      tweet_text: "刚刚在 Hermes Agent 中解锁了 {tier_part}\"{name}\" ☤",
       image_tier: "{tier}级",
       image_unlocked: "◆ 已解锁",
       image_achievement_fallback: "成就",
-      image_render_failed: "无法生成成就图片。"
+      image_render_failed: "无法生成成就图片"
     },
     category_labels: {
       "Agent Autonomy": "代理自主性",
@@ -697,182 +697,182 @@ export const zh: Translations = {
       Olympian: "奥林匹斯"
     },
     criteria_localization: {
-      secret: "秘密条件：Hermes 在会话历史中检测到首次相关行为后才会揭示具体要求。",
-      matching: "要求：完成与此成就匹配的 Hermes 行为。",
+      secret: "秘密条件：Hermes 在会话历史中检测到首次相关行为后才会揭示具体要求",
+      matching: "要求：完成与此成就匹配的 Hermes 行为",
       requirement: "达成条件",
       tier_ladder: "等级门槛"
     },
     catalog: {
       let_him_cook: {
         name: "放手让它做",
-        description: "在一次会话中让 Hermes 完成一条足够长的自主工具链。"
+        description: "在一次会话中让 Hermes 完成一条足够长的自主工具链"
       },
       autonomous_avalanche: {
         name: "自主雪崩",
-        description: "在多次会话中累计大量 Hermes 工具调用。"
+        description: "在多次会话中累计大量 Hermes 工具调用"
       },
       toolchain_maxxer: {
         name: "工具链拉满",
-        description: "在一次会话中使用种类丰富的 Hermes 工具。"
+        description: "在一次会话中使用种类丰富的 Hermes 工具"
       },
       full_send: {
         name: "全力出击",
-        description: "在一次真实任务中同时使用终端、文件和网页或浏览器。"
+        description: "在一次真实任务中同时使用终端、文件和网页或浏览器"
       },
-      subagent_commander: { name: "子代理指挥官", description: "协调委派给多个代理的工作。" },
+      subagent_commander: { name: "子代理指挥官", description: "协调委派给多个代理的工作" },
       background_process_enjoyer: {
         name: "后台进程爱好者",
-        description: "启动或控制足够多的长时间运行进程。"
+        description: "启动或控制足够多的长时间运行进程"
       },
       cron_necromancer: {
         name: "定时任务召魂师",
-        description: "让计划中的自主任务一次次重新运行。"
+        description: "让计划中的自主任务一次次重新运行"
       },
       red_text_connoisseur: {
         name: "红字鉴赏家",
-        description: "经历足够多的错误，培养对红色报错的品味。"
+        description: "经历足够多的错误，培养对红色报错的品味"
       },
       stack_trace_sommelier: {
         name: "堆栈追踪品鉴师",
-        description: "成批品读异常追踪，而不是偶尔尝一口。"
+        description: "成批品读异常追踪，而不是偶尔尝一口"
       },
-      actually_read_the_logs: { name: "真的读了日志", description: "反复检查日志，而不是靠猜。" },
+      actually_read_the_logs: { name: "真的读了日志", description: "反复检查日志，而不是靠猜" },
       port_3000_taken: {
         name: "3000 端口已占用",
-        description: "多次遇到开发服务器端口冲突，直到习以为常。"
+        description: "多次遇到开发服务器端口冲突，直到习以为常"
       },
-      permission_denied_any_percent: { name: "权限拒绝速通", description: "飞快撞上各种权限墙。" },
+      permission_denied_any_percent: { name: "权限拒绝速通", description: "飞快撞上各种权限墙" },
       dependency_hell_tourist: {
         name: "依赖地狱游客",
-        description: "软件包安装失败了，但生活总能继续。"
+        description: "软件包安装失败了，但生活总能继续"
       },
       the_fix_was_restarting: {
         name: "重启就修好了",
-        description: "在一连串错误后靠重启解决问题，足以成为一门技术。"
+        description: "在一连串错误后靠重启解决问题，足以成为一门技术"
       },
       forgot_the_env_var: {
         name: "忘了环境变量",
-        description: "因为缺少环境变量而导致身份验证或配置失败。"
+        description: "因为缺少环境变量而导致身份验证或配置失败"
       },
-      yaml_colon_incident: { name: "YAML 冒号事故", description: "被配置语法狠狠咬了一口。" },
+      yaml_colon_incident: { name: "YAML 冒号事故", description: "被配置语法狠狠咬了一口" },
       docker_name_collision: {
         name: "Docker 名称冲突",
-        description: "容器名称已经存在——果然如此。"
+        description: "容器名称已经存在——果然如此"
       },
-      supposed_to_be_quick: { name: "说好很快的", description: "一个小需求变成了一整场远征。" },
+      supposed_to_be_quick: { name: "说好很快的", description: "一个小需求变成了一整场远征" },
       one_more_small_change: {
         name: "再改一个小地方",
-        description: "一次会话里改了太多文件，让“小改动”名不副实。"
+        description: "一次会话里改了太多文件，让\"小改动\"名不副实"
       },
-      vibe_architect: { name: "氛围架构师", description: "在一次项目会话中触及广泛的代码区域。" },
-      pixel_goblin: { name: "像素小妖", description: "持续进行前端、CSS、SVG 或视觉细节调整。" },
+      vibe_architect: { name: "氛围架构师", description: "在一次项目会话中触及广泛的代码区域" },
+      pixel_goblin: { name: "像素小妖", description: "持续进行前端、CSS、SVG 或视觉细节调整" },
       ship_first_ask_later: {
         name: "先发布再说",
-        description: "在完成一条庞大工具链后进行 Git 操作。"
+        description: "在完成一条庞大工具链后进行 Git 操作"
       },
-      css_exorcist: { name: "CSS 驱魔师", description: "反复把界面里的样式恶魔赶出去。" },
+      css_exorcist: { name: "CSS 驱魔师", description: "反复把界面里的样式恶魔赶出去" },
       one_character_fix: {
         name: "只改一个字符",
-        description: "在一堆错误后只需一个微小修改——痛苦又美妙。"
+        description: "在一堆错误后只需一个微小修改——痛苦又美妙"
       },
-      skillsmith: { name: "技能锻造师", description: "深度使用 Hermes 技能，留下自己的痕迹。" },
+      skillsmith: { name: "技能锻造师", description: "深度使用 Hermes 技能，留下自己的痕迹" },
       skill_issue_skill_created: {
         name: "有问题？写个技能",
-        description: "把流程固化成可复用技能，而不是一遍遍重复。"
+        description: "把流程固化成可复用技能，而不是一遍遍重复"
       },
-      memory_keeper: { name: "记忆守护者", description: "使用记忆或 Mnemosyne 保存持久知识。" },
-      memory_palace: { name: "记忆宫殿", description: "构建一条扎实的持久记忆轨迹。" },
-      context_dragon: { name: "上下文巨龙", description: "反复触及压缩、超长上下文或令牌压力。" },
-      gateway_dweller: { name: "网关常住民", description: "长期使用连接到网关的 Hermes 工作流。" },
+      memory_keeper: { name: "记忆守护者", description: "使用记忆或 Mnemosyne 保存持久知识" },
+      memory_palace: { name: "记忆宫殿", description: "构建一条扎实的持久记忆轨迹" },
+      context_dragon: { name: "上下文巨龙", description: "反复触及压缩、超长上下文或令牌压力" },
+      gateway_dweller: { name: "网关常住民", description: "长期使用连接到网关的 Hermes 工作流" },
       plugin_goblin: {
         name: "插件小妖",
-        description: "频繁使用或开发插件，连 Dashboard 都注意到了。"
+        description: "频繁使用或开发插件，连 Dashboard 都注意到了"
       },
-      rollback_wizard: { name: "回滚巫师", description: "施展回滚或检查点恢复魔法。" },
+      rollback_wizard: { name: "回滚巫师", description: "施展回滚或检查点恢复魔法" },
       rabbit_hole_certified: {
         name: "兔子洞认证",
-        description: "搜索或提取大量网页内容，完成一场研究螺旋。"
+        description: "搜索或提取大量网页内容，完成一场研究螺旋"
       },
       citation_goblin: {
         name: "引用小妖",
-        description: "提取足够多的网页，变成一名小小图书管理员。"
+        description: "提取足够多的网页，变成一名小小图书管理员"
       },
-      docs_archaeologist: { name: "文档考古学家", description: "一次又一次深入挖掘文档资料。" },
-      browser_possession: { name: "浏览器附身", description: "反复通过自动化接管浏览器。" },
-      terminal_goblin: { name: "终端小妖", description: "在命令行世界里投入大量时间。" },
-      patch_wizard: { name: "补丁巫师", description: "使用精准补丁随心修改文件。" },
-      file_archaeologist: { name: "文件考古学家", description: "通过读取与搜索深入挖掘文件系统。" },
+      docs_archaeologist: { name: "文档考古学家", description: "一次又一次深入挖掘文档资料" },
+      browser_possession: { name: "浏览器附身", description: "反复通过自动化接管浏览器" },
+      terminal_goblin: { name: "终端小妖", description: "在命令行世界里投入大量时间" },
+      patch_wizard: { name: "补丁巫师", description: "使用精准补丁随心修改文件" },
+      file_archaeologist: { name: "文件考古学家", description: "通过读取与搜索深入挖掘文件系统" },
       image_whisperer: {
         name: "图像低语者",
-        description: "大量使用图像生成或视觉工具开展视觉工作。"
+        description: "大量使用图像生成或视觉工具开展视觉工作"
       },
-      voice_of_the_machine: { name: "机器之声", description: "反复使用文本转语音或语音工具。" },
-      model_hopper: { name: "模型跳跳客", description: "频繁切换或查看提供商与模型，已成为习惯。" },
+      voice_of_the_machine: { name: "机器之声", description: "反复使用文本转语音或语音工具" },
+      model_hopper: { name: "模型跳跳客", description: "频繁切换或查看提供商与模型，已成为习惯" },
       openrouter_enjoyer: {
         name: "OpenRouter 爱好者",
-        description: "反复通过 OpenRouter 路由模型任务。"
+        description: "反复通过 OpenRouter 路由模型任务"
       },
       codex_conjurer: {
         name: "Codex 召唤师",
-        description: "频繁召唤 Codex 风格的协助，仿佛一种仪式。"
+        description: "频繁召唤 Codex 风格的协助，仿佛一种仪式"
       },
       multi_model_mage: {
         name: "多模型法师",
-        description: "在 Hermes 历史记录中使用多种不同模型。"
+        description: "在 Hermes 历史记录中使用多种不同模型"
       },
       five_model_flight: {
         name: "五模型巡游",
-        description: "至少尝试五种不同的大模型，而不是只钟情第一个回答者。"
+        description: "至少尝试五种不同的大模型，而不是只钟情第一个回答者"
       },
       provider_polyglot: {
         name: "提供商多语者",
-        description: "在 Hermes 历史记录中使用多个提供商的模型。"
+        description: "在 Hermes 历史记录中使用多个提供商的模型"
       },
       model_sommelier: {
         name: "模型品鉴师",
-        description: "体验足够多的模型与提供商会话，形成自己的偏好。"
+        description: "体验足够多的模型与提供商会话，形成自己的偏好"
       },
       claude_confidant: {
         name: "Claude 知己",
-        description: "反复把 Claude 风格的推理带入工作流。"
+        description: "反复把 Claude 风格的推理带入工作流"
       },
       gemini_cartographer: {
         name: "Gemini 制图师",
-        description: "探索足够多的 Gemini 工作流，熟悉这片地形。"
+        description: "探索足够多的 Gemini 工作流，熟悉这片地形"
       },
       open_weights_pilgrim: {
         name: "开放权重朝圣者",
-        description: "通过 Hermes 会话真正使用本地或开放权重模型。"
+        description: "通过 Hermes 会话真正使用本地或开放权重模型"
       },
       toolset_cartographer: {
         name: "工具集制图师",
-        description: "有意识地探索 Hermes 工具集，而不是把工具混作一团。"
+        description: "有意识地探索 Hermes 工具集，而不是把工具混作一团"
       },
       config_surgeon: {
         name: "配置外科医生",
-        description: "从容处理真实配置文件、清单、环境文件和 Dashboard 设置。"
+        description: "从容处理真实配置文件、清单、环境文件和 Dashboard 设置"
       },
       rebase_acrobat: {
         name: "变基杂技师",
-        description: "处理真实的 Git 历史手术：变基、冲突、合并、拉取与推送。"
+        description: "处理真实的 Git 历史手术：变基、冲突、合并、拉取与推送"
       },
       test_suite_tamer: {
         name: "测试套件驯兽师",
-        description: "运行足够多的验证命令，让绿色通过成为日常仪式。"
+        description: "运行足够多的验证命令，让绿色通过成为日常仪式"
       },
       screenshot_hunter: {
         name: "截图猎人",
-        description: "捕获、检查并打磨视觉证据，而不是只说它能用。"
+        description: "捕获、检查并打磨视觉证据，而不是只说它能用"
       },
-      marathon_operator: { name: "马拉松操作员", description: "累计运行大量 Hermes 会话。" },
+      marathon_operator: { name: "马拉松操作员", description: "累计运行大量 Hermes 会话" },
       weekend_warrior: {
         name: "周末战士",
-        description: "经常在周末运行 Hermes，把它变成一种生活方式。"
+        description: "经常在周末运行 Hermes，把它变成一种生活方式"
       },
-      night_shift_operator: { name: "夜班操作员", description: "反复在深夜或黎明前运行会话。" },
+      night_shift_operator: { name: "夜班操作员", description: "反复在深夜或黎明前运行会话" },
       cache_hit_appreciator: {
         name: "缓存命中鉴赏家",
-        description: "注意到并受益于提示词缓存行为。"
+        description: "注意到并受益于提示词缓存行为"
       }
     }
   },
@@ -880,17 +880,17 @@ export const zh: Translations = {
   kanban: {
     loading: "正在加载看板…",
     loadFailed: "加载看板失败：",
-    loadFailedHint: "后端会在首次读取时自动创建 kanban.db。如果问题持续，请检查仪表盘日志。",
+    loadFailedHint: "后端会在首次读取时自动创建 kanban.db。如果问题持续，请检查仪表盘日志",
     board: "看板",
     newBoard: "+ 新建看板",
     newBoardTitle: "新建看板",
     newBoardDescription:
-      "看板可以将不相关的工作流分开——每个项目、代码库或域一个看板。一个看板上的工作者不会看到另一个看板的任务。",
+      "看板可以将不相关的工作流分开——每个项目、代码库或域一个看板。一个看板上的工作者不会看到另一个看板的任务",
     slug: "标识",
     slugHint: "— 小写字母、连字符，例如 atm10-server",
-    confirmDoneMany: "将 {n} 个任务标记为完成？工作者声明将被释放，依赖它们的子任务会变为就绪。",
-    confirmArchiveMany: "归档 {n} 个任务？它们会从默认看板视图中消失。",
-    confirmBlockedMany: "将 {n} 个任务标记为阻塞？工作者声明将被释放。",
+    confirmDoneMany: "将 {n} 个任务标记为完成？工作者声明将被释放，依赖它们的子任务会变为就绪",
+    confirmArchiveMany: "归档 {n} 个任务？它们会从默认看板视图中消失",
+    confirmBlockedMany: "将 {n} 个任务标记为阻塞？工作者声明将被释放",
     displayName: "显示名称",
     displayNameHint: "（可选）",
     description: "描述",
@@ -920,7 +920,7 @@ export const zh: Translations = {
     noTasks: "— 无任务 —",
     unassigned: "未分配",
     needsAssignee: "需要负责人",
-    needsAssigneeHint: "依赖项已满足，但在分配配置之前，调度器会跳过此任务。",
+    needsAssigneeHint: "依赖项已满足，但在分配配置之前，调度器会跳过此任务",
     untitled: "（无标题）",
     loadingDetail: "加载中…",
     addComment: "添加评论…（按回车提交）",
@@ -966,7 +966,7 @@ export const zh: Translations = {
     reassign: "重新分配",
     renderingError: "看板标签页发生渲染错误",
     reloadView: "重新加载视图",
-    wsAuthFailed: "WebSocket 认证失败 — 请刷新页面以更新会话令牌。",
+    wsAuthFailed: "WebSocket 认证失败 — 请刷新页面以更新会话令牌",
     markDone: "将 {n} 个任务标记为完成？",
     markArchived: "归档 {n} 个任务？",
     warning: "警告",
@@ -978,7 +978,7 @@ export const zh: Translations = {
     sendingUpdates: "正在发送更新到",
     sendNotifications: "发送完成 / 阻塞 / 放弃通知到",
     archiveBoardConfirm:
-      "归档看板 '{name}'？它将被移动到 boards/_archived/ 以便稍后恢复。此看板上的任务将不再出现在 UI 中的任何地方。",
+      "归档看板 '{name}'？它将被移动到 boards/_archived/ 以便稍后恢复。此看板上的任务将不再出现在 UI 中的任何地方",
     archiveBoardTitle: "归档此看板",
     boardSwitcherHint: "看板可以将不相关的工作流分开",
     taskCreatedWarning: "任务已创建，但：",
@@ -986,12 +986,12 @@ export const zh: Translations = {
     bulkFailed: "批量操作：",
     completionBlockedHallucination: "⚠ 完成被阻塞 — 幽灵卡片 ID",
     suspectedHallucinatedReferences: "⚠ 文本引用了幽灵卡片 ID",
-    pickProfileFirst: "请先选择一个配置。",
-    unblockedMessage: "已解除阻塞 {id}。任务已准备好进入下一轮调度。",
+    pickProfileFirst: "请先选择一个配置",
+    unblockedMessage: "已解除阻塞 {id}。任务已准备好进入下一轮调度",
     unblockFailed: "解除阻塞失败：",
-    reclaimedMessage: "已收回 {id}。任务已回到就绪状态。",
+    reclaimedMessage: "已收回 {id}。任务已回到就绪状态",
     reclaimFailed: "收回失败：",
-    reassignedMessage: "已将 {id} 重新分配给 {profile}。",
+    reassignedMessage: "已将 {id} 重新分配给 {profile}",
     reassignFailed: "重新分配失败：",
     selectForBulk: "选择以进行批量操作",
     clickToEdit: "点击编辑",
@@ -1019,12 +1019,12 @@ export const zh: Translations = {
       done: "已完成",
       archived: "已归档"
     },
-    confirmDone: "将此任务标记为完成？工作者将被释放，依赖的子任务将变为就绪。",
-    confirmArchive: "归档此任务？它将从默认看板视图中消失。",
-    confirmBlocked: "将此任务标记为阻塞？工作者将被释放。",
-    confirmScheduled: "将此任务移至“已调度”？请将它用于明确的时间延迟，而不是等待人工输入。",
-    completionSummary: "{label} 的完成摘要。这将作为任务结果存储。",
-    completionSummaryRequired: "在将任务标记为完成之前，必须提供完成摘要。",
+    confirmDone: "将此任务标记为完成？工作者将被释放，依赖的子任务将变为就绪",
+    confirmArchive: "归档此任务？它将从默认看板视图中消失",
+    confirmBlocked: "将此任务标记为阻塞？工作者将被释放",
+    confirmScheduled: "将此任务移至\"已调度\"？请将它用于明确的时间延迟，而不是等待人工输入",
+    completionSummary: "{label} 的完成摘要。这将作为任务结果存储",
+    completionSummaryRequired: "在将任务标记为完成之前，必须提供完成摘要",
     triagePlaceholder: "粗略想法 — AI 将完善规格…",
     taskTitlePlaceholder: "新任务标题…",
     specifier: "规范制定者",
@@ -1048,26 +1048,26 @@ export const zh: Translations = {
     boardSettings: "设置",
     boardSettingsTitle: "看板设置——名称、描述和新任务继承的默认项目目录",
     boardSettingsTitleFor: "看板设置——{name}",
-    projectDirectoryOverrideHint: "新任务会继承此工作区默认值；仍可在创建任务时单独覆盖。",
+    projectDirectoryOverrideHint: "新任务会继承此工作区默认值；仍可在创建任务时单独覆盖",
     saving: "保存中…",
-    commentHint: "评论会在工作者下次运行或调用 kanban_show() 时送达，无需先阻塞任务。",
+    commentHint: "评论会在工作者下次运行或调用 kanban_show() 时送达，无需先阻塞任务",
     commentHintTitle:
-      "评论是与任务工作者沟通的通道，会立即进入对应任务。仅在需要工作者停止并等待输入时才将任务标记为阻塞。",
+      "评论是与任务工作者沟通的通道，会立即进入对应任务。仅在需要工作者停止并等待输入时才将任务标记为阻塞",
     clearFilters: "清除筛选",
     orchestrationSettings: "编排设置",
     orchestrationLabel: "编排：",
     orchestrationAuto: "自动",
     orchestrationManual: "手动",
     loadingMode: "正在加载模式…",
-    orchestrationAutoTitle: "自动编排会在每次调度时自动拆分新的待分类任务。点击切换为手动模式。",
+    orchestrationAutoTitle: "自动编排会在每次调度时自动拆分新的待分类任务。点击切换为手动模式",
     orchestrationManualTitle:
-      "手动模式下，任务会保留在待分类列，直到你手动拆分。点击切换为自动模式。",
-    configureOrchestration: "配置看板编排器、默认负责人和配置描述。",
+      "手动模式下，任务会保留在待分类列，直到你手动拆分。点击切换为自动模式",
+    configureOrchestration: "配置看板编排器、默认负责人和配置描述",
     settingsLoadFailed: "加载失败：{error}",
-    settingsSaved: "设置已保存。",
+    settingsSaved: "设置已保存",
     saveFailed: "保存失败：{error}",
-    descriptionSaved: "已保存 {name} 的描述。",
-    autoDescriptionSaved: "已为 {name} 生成描述。",
+    descriptionSaved: "已保存 {name} 的描述",
+    autoDescriptionSaved: "已为 {name} 生成描述",
     autoGenerateFailed: "描述生成失败：{error}",
     unknownError: "未知错误",
     reload: "重新加载",
@@ -1076,14 +1076,14 @@ export const zh: Translations = {
     defaultValue: "（默认：{name}）",
     resolved: "实际使用：{name}",
     orchestratorHint:
-      "任务拆分后由此配置拥有根任务，并在需要判断完成时唤醒。拆分模型请在 auxiliary.kanban_decomposer 中配置。",
+      "任务拆分后由此配置拥有根任务，并在需要判断完成时唤醒。拆分模型请在 auxiliary.kanban_decomposer 中配置",
     orchestrationMode: "编排模式",
     autoDecompose: "自动拆分待分类任务",
-    autoModeHint: "调度器会自动拆分新的待分类任务。",
-    manualModeHint: "待分类任务会保持原位，直到你选择“拆分”。",
+    autoModeHint: "调度器会自动拆分新的待分类任务",
+    manualModeHint: "待分类任务会保持原位，直到你选择\"拆分\"",
     profileDescriptions: "配置描述",
-    profileDescriptionsHint: "描述会引导任务路由。可自动生成，也可手动编辑保存。",
-    noProfilesInstalled: "尚未安装配置。",
+    profileDescriptionsHint: "描述会引导任务路由。可自动生成，也可手动编辑保存",
+    noProfilesInstalled: "尚未安装配置",
     defaultSuffix: "（默认）",
     autoReview: "自动生成——请审阅",
     noProfileDescription: "⚠ 暂无描述",
@@ -1092,56 +1092,56 @@ export const zh: Translations = {
     autoDescriptionTitle: "根据此配置的技能和模型自动生成描述",
     generating: "生成中…",
     autoGenerate: "⚗ 自动生成",
-    clearFiltersTitle: "清除当前所有筛选条件（搜索、租户、负责人和已归档任务）。",
+    clearFiltersTitle: "清除当前所有筛选条件（搜索、租户、负责人和已归档任务）",
     hideUntilReload: "隐藏到下次重新加载页面",
     copyCommandPrompt: "复制此命令：",
     docsTitle: "在新标签页中打开 Hermes Kanban 文档",
     docsLabel: "Hermes Kanban 文档",
     switchBoard: "切换 Kanban 看板",
-    switchBoardHint: "各看板是相互独立的工作流，分别拥有自己的任务、租户和负责人。",
+    switchBoardHint: "各看板是相互独立的工作流，分别拥有自己的任务、租户和负责人",
     taskCount: "{count} 个任务",
     boardDescriptionPlaceholder: "这个看板用于处理什么？",
     projectDirectory: "项目目录",
     recommended: "（推荐）",
     projectDirectoryPlaceholder: "项目文件夹的绝对路径",
-    projectDirectoryHint: "Git 项目使用保留的工作树；其他文件夹直接使用该目录。仅临时任务可留空。",
-    projectDirectoryPurpose: "设置任务文件的默认位置，以便保留项目输出。",
-    searchTitle: "在所有列中按 ID、标题或描述模糊匹配任务。",
-    assigneeFilterTitle: "按分配给任务的 Hermes 配置筛选。",
-    showArchivedTitle: "显示默认隐藏的已归档任务。",
-    lanesByProfileTitle: "按负责人配置分组“进行中”列。",
-    nudgeTitle: "立即唤醒调度器领取就绪任务，无需等待下一次调度。",
-    bulkTodoTitle: "将所选任务移至“待办”。",
-    bulkReadyTitle: "将所选任务移至“就绪”，以便调度器领取。",
-    bulkBlockedTitle: "阻塞所选任务并释放活动声明。",
-    bulkUnblockTitle: "解除所选任务的阻塞并移至“就绪”。",
-    bulkCompleteTitle: "将所选任务标记为完成、释放任务声明并解除依赖子任务的阻塞。",
-    bulkArchiveTitle: "归档所选任务，同时保留数据库记录。",
-    bulkDeleteTitle: "永久删除所选任务。此操作无法撤销。",
-    bulkPriorityTitle: "设置所选任务的优先级；优先级越高越先被领取。",
-    bulkReassignTitle: "将所选任务分配给其他 Hermes 配置，或取消分配。",
-    bulkAssigneeTitle: "将所选负责人应用到全部所选任务。",
+    projectDirectoryHint: "Git 项目使用保留的工作树；其他文件夹直接使用该目录。仅临时任务可留空",
+    projectDirectoryPurpose: "设置任务文件的默认位置，以便保留项目输出",
+    searchTitle: "在所有列中按 ID、标题或描述模糊匹配任务",
+    assigneeFilterTitle: "按分配给任务的 Hermes 配置筛选",
+    showArchivedTitle: "显示默认隐藏的已归档任务",
+    lanesByProfileTitle: "按负责人配置分组\"进行中\"列",
+    nudgeTitle: "立即唤醒调度器领取就绪任务，无需等待下一次调度",
+    bulkTodoTitle: "将所选任务移至\"待办\"",
+    bulkReadyTitle: "将所选任务移至\"就绪\"，以便调度器领取",
+    bulkBlockedTitle: "阻塞所选任务并释放活动声明",
+    bulkUnblockTitle: "解除所选任务的阻塞并移至\"就绪\"",
+    bulkCompleteTitle: "将所选任务标记为完成、释放任务声明并解除依赖子任务的阻塞",
+    bulkArchiveTitle: "归档所选任务，同时保留数据库记录",
+    bulkDeleteTitle: "永久删除所选任务。此操作无法撤销",
+    bulkPriorityTitle: "设置所选任务的优先级；优先级越高越先被领取",
+    bulkReassignTitle: "将所选任务分配给其他 Hermes 配置，或取消分配",
+    bulkAssigneeTitle: "将所选负责人应用到全部所选任务",
     confirmUnblockedMany: "解除 {n} 个任务的阻塞？",
     reassignPlaceholder: "— 重新分配 —",
     unassign: "（取消分配）",
-    reclaimFirstTitle: "重新分配前先收回活动声明。",
+    reclaimFirstTitle: "重新分配前先收回活动声明",
     reclaimFirst: "先收回声明",
-    selectAllVisibleTitle: "选择各列中所有可见卡片。",
+    selectAllVisibleTitle: "选择各列中所有可见卡片",
     selectAllVisible: "选择全部可见项",
-    clearSelectionTitle: "取消选择全部任务并隐藏此工具栏。",
+    clearSelectionTitle: "取消选择全部任务并隐藏此工具栏",
     selectColumnTitle: "选择此列中的全部任务",
-    selectColumnLabel: "选择“{column}”列中的全部任务",
+    selectColumnLabel: "选择\"{column}\"列中的全部任务",
     columnTaskCount: "此列有 {count} 个任务",
-    noProfileAssigned: "未分配配置。",
-    assigneeHelp: "选择 Hermes 配置；也可留空，由调度器在任务就绪后选择。",
-    specifierHelp: "选择用于完善此任务规范的 Hermes 配置；也可留空以自动选择。",
-    priorityHelp: "调度器会优先领取高优先级任务；0 为默认值。",
-    skillsHelp: "除内置 kanban-worker 技能外，再为工作者加载这些技能。",
-    parentHelp: "可选父任务；父任务标记为完成前，子任务会保持阻塞。",
-    workspaceModeTitle: "选择任务完成后临时删除还是保留任务文件。",
-    temporaryWorkspaceWarning: "任务完成时会删除此工作区及其中剩余的文件。",
-    completionSummaryHint: "此完成摘要将保存为任务结果。",
-    noFinalResult: "没有记录最终结果。请在运行历史、日志或子任务中查看工作者输出。",
+    noProfileAssigned: "未分配配置",
+    assigneeHelp: "选择 Hermes 配置；也可留空，由调度器在任务就绪后选择",
+    specifierHelp: "选择用于完善此任务规范的 Hermes 配置；也可留空以自动选择",
+    priorityHelp: "调度器会优先领取高优先级任务；0 为默认值",
+    skillsHelp: "除内置 kanban-worker 技能外，再为工作者加载这些技能",
+    parentHelp: "可选父任务；父任务标记为完成前，子任务会保持阻塞",
+    workspaceModeTitle: "选择任务完成后临时删除还是保留任务文件",
+    temporaryWorkspaceWarning: "任务完成时会删除此工作区及其中剩余的文件",
+    completionSummaryHint: "此完成摘要将保存为任务结果",
+    noFinalResult: "没有记录最终结果。请在运行历史、日志或子任务中查看工作者输出",
     refreshLog: "刷新日志",
     editDescriptionTitle: "编辑描述",
     specifying: "正在完善规范…",
@@ -1154,9 +1154,9 @@ export const zh: Translations = {
     singleTaskNoFanout: "保留为单个任务（未拆分）",
     decomposeFailed: "拆分失败：{error}",
     retitledSuffix: " — 已重命名为：{title}",
-    newBoardButtonTitle: "为独立的工作流创建新看板。",
-    tenantFilterTitle: "租户是任务的自由格式标签，可在任务抽屉或通过 kanban_create 设置。",
-    forceReloadTitle: "从数据库重新加载看板。",
+    newBoardButtonTitle: "为独立的工作流创建新看板",
+    tenantFilterTitle: "租户是任务的自由格式标签，可在任务抽屉或通过 kanban_create 设置",
+    forceReloadTitle: "从数据库重新加载看板",
     selectedTasks: "选中的 {n} 个任务",
     thisTask: "此任务",
     confirm: "确认",
@@ -1180,8 +1180,8 @@ export const zh: Translations = {
     workspaceDir: "目录 — 保留",
     goalMode: "目标模式",
     goalMaxTurns: "最大轮数（默认 20）",
-    goalModeHelp: "目标模式会让工作者在同一会话中持续执行，直到任务通过判断或耗尽轮数预算。",
-    goalMaxTurnsHelp: "目标循环的轮数预算；留空则使用后端默认值。",
+    goalModeHelp: "目标模式会让工作者在同一会话中持续执行，直到任务通过判断或耗尽轮数预算",
+    goalMaxTurnsHelp: "目标循环的轮数预算；留空则使用后端默认值",
     goalModeValue: "已开启（最多 {count} 轮）",
     goalModeOn: "已开启",
     attachments: "附件",
@@ -1191,9 +1191,9 @@ export const zh: Translations = {
     removeAttachment: "移除附件",
     confirmRemoveAttachment: "移除此附件？",
     finalResult: "最终结果（运行摘要）",
-    doneParentNote: "这是编排器或父任务卡片，请在子任务结果中查看实质工作内容。",
+    doneParentNote: "这是编排器或父任务卡片，请在子任务结果中查看实质工作内容",
     childResults: "子任务结果",
-    noChildResult: "尚未记录结果。",
+    noChildResult: "尚未记录结果",
     model: "模型",
     modelProfileDefault: "使用配置默认值",
     clickToEditModel: "点击覆盖此任务下次运行使用的模型",
@@ -1203,8 +1203,8 @@ export const zh: Translations = {
     trash: {
       confirmTitle: "删除任务？",
       confirmManyTitle: "删除 {n} 个任务？",
-      confirm: "永久删除此任务？此操作无法撤销。",
-      confirmMany: "永久删除选中的 {n} 个任务？此操作无法撤销。",
+      confirm: "永久删除此任务？此操作无法撤销",
+      confirmMany: "永久删除选中的 {n} 个任务？此操作无法撤销",
       dropHint: "拖放到此处删除"
     }
   }

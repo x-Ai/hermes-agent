@@ -1,6 +1,9 @@
 # Hermes 静态消息目录 -- 中文（简体）
 # See locales/en.yaml for the source of truth; keep keys in sync.
 
+agent:
+  output_truncated_no_visible: "响应在生成可见文本之前达到提供方的输出 Token 上限，已被截断。"
+
 auth:
   no_provider_configured: "未配置推理提供方。运行 'hermes model' 选择提供方和模型，或在 ~/.hermes/.env 中设置 API 密钥（OPENROUTER_API_KEY、OPENAI_API_KEY 等）。"
 
@@ -485,4 +488,3 @@ platforms:
     qqbot: "将 Hermes 连接到 QQ 开放平台的 QQ 机器人。"
     api_server: "将 Hermes 暴露为兼容 OpenAI 的 HTTP API，供 Open WebUI 等工具使用。"
     webhook: "接收来自 GitHub、GitLab 和其他 webhook 源的事件。"
-

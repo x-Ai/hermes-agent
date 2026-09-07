@@ -1,6 +1,7 @@
 import { Users } from "lucide-react";
 import { useProfileScope } from "@/contexts/useProfileScope";
 import { useI18n } from "@/i18n";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 
 /**
  * App-wide amber banner shown while the global switcher targets a profile
@@ -20,7 +21,10 @@ export function ProfileScopeBanner() {
         {(
           t.app.managingProfileBanner ??
           "Managing profile “{name}” — config, keys, skills, MCPs, model, and new chats apply to that profile."
-        ).replace("{name}", profile)}
+        ).replace(
+          "{name}",
+          localizeDefaultIdentifier(profile, t.profiles.defaultBadge)
+        )}
       </span>
     </div>
   );

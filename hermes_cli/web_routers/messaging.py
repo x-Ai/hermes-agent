@@ -879,18 +879,45 @@ async def test_messaging_platform(platform_id: str, profile: Optional[str] = Non
 
     payload = await asyncio.to_thread(_run)
 
-    def result(ok: bool, message: str) -> dict[str, Any]:
-        return {"ok": ok, "state": payload["state"], "message": message}
+    def result(ok: bool, code: str, message: str, **details: Any) -> dict[str, Any]:
+        # ``message`` is retained for older dashboard clients and diagnostics.  New clients
+        # translate the stable code instead of trying to recognize English prose.
+        return {
+            "ok": ok,
+            "state": payload["state"],
+            "code": code,
+            "message": message,
+            **details,
+        }
 
     if not payload["enabled"]:
-        return result(False, f"{entry['name']} is disabled. Enable it, then restart the gateway.")
+        return result(
+            False,
+            "disabled",
+            f"{entry['name']} is disabled. Enable it, then restart the gateway.",
+        )
     if not payload["configured"]:
         missing = [field["key"] for field in payload["env_vars"] if field["required"] and not field["is_set"]]
-        return result(False, f"Missing required setup: {', '.join(missing)}" if missing else "Platform setup is incomplete.")
+        if missing:
+            return result(
+                False,
+                "missing_required_setup",
+                f"Missing required setup: {', '.join(missing)}",
+                missing=missing,
+            )
+        return result(False, "setup_incomplete", "Platform setup is incomplete.")
     if not payload["gateway_running"]:
-        return result(False, "Gateway is not running. Restart the gateway to connect this platform.")
+        return result(
+            False,
+            "gateway_not_running",
+            "Gateway is not running. Restart the gateway to connect this platform.",
+        )
     if payload["state"] == "connected":
-        return result(True, f"{entry['name']} is connected.")
+        return result(True, "connected", f"{entry['name']} is connected.")
     if payload.get("error_message"):
-        return result(False, payload["error_message"])
-    return result(False, "Setup looks complete, but the gateway has not reported a connection yet. Restart the gateway.")
+        return result(False, "connection_error", payload["error_message"])
+    return result(
+        False,
+        "awaiting_connection",
+        "Setup looks complete, but the gateway has not reported a connection yet. Restart the gateway.",
+    )

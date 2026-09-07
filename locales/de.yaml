@@ -1,6 +1,9 @@
 # Hermes-Katalog für statische Meldungen -- Deutsch
 # See locales/en.yaml for the source of truth; keep keys in sync.
 
+agent:
+  output_truncated_no_visible: "Die Antwort wurde am Ausgabetoken-Limit des Anbieters abgeschnitten, bevor sichtbarer Text erzeugt wurde."
+
 auth:
   no_provider_configured: "No inference provider configured. Run 'hermes model' to choose a provider and model, or set an API key (OPENROUTER_API_KEY, OPENAI_API_KEY, etc.) in ~/.hermes/.env."
 

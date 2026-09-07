@@ -184,6 +184,24 @@ def test_codex_max_output_incomplete_preserves_partial_without_retry(monkeypatch
     assert len(calls) == 1
 
 
+def test_codex_max_output_without_visible_text_is_terminal(monkeypatch):
+    agent = _build_agent(monkeypatch)
+    calls = []
+
+    def _respond(api_kwargs):
+        calls.append(api_kwargs)
+        return _codex_max_output_incomplete_response()
+
+    monkeypatch.setattr(agent, "_interruptible_api_call", _respond)
+    result = agent.run_conversation("hello")
+
+    assert result["completed"] is True
+    assert result["partial"] is True
+    assert "output-token limit" in result["final_response"]
+    assert result["api_calls"] == 1
+    assert len(calls) == 1
+
+
 def _codex_commentary_message_response(text: str):
     return SimpleNamespace(
         output=[

@@ -6,7 +6,7 @@ and ends the turn without replaying the request.
 
 We don't exercise the full agent loop here (it's 3000 lines of inference,
 streaming, plugin hooks, etc.) — instead we verify the normalization
-adapter produces exactly the shape the continuation block now consumes.
+adapter produces exactly the shape the finalization block consumes.
 """
 
 from __future__ import annotations
@@ -51,9 +51,9 @@ class TestTruncatedAnthropicResponseNormalization:
         )
         nr = get_transport("anthropic_messages").normalize_response(response)
 
-        # The continuation block checks these two attributes:
-        #   assistant_message.content  → appended to truncated_response_parts
-        #   assistant_message.tool_calls → guards the text-retry branch
+        # The finalization block checks these two attributes:
+        #   assistant_message.content  → preserved as the partial response
+        #   assistant_message.tool_calls → prevents incomplete tool execution
         assert nr.content is not None
         assert "partial response" in nr.content
         assert not nr.tool_calls, (
@@ -75,17 +75,19 @@ class TestTruncatedAnthropicResponseNormalization:
 
 
 class TestContinuationLogicBranching:
-    """Only synthetic/network truncations retain continuation recovery."""
+    """Provider-declared output limits share the standard truncation contract."""
 
-    def test_anthropic_max_tokens_is_a_standard_terminal_truncation(self):
+    def test_anthropic_max_tokens_is_a_standard_truncation(self):
         from agent.turn_response_check import is_standard_output_truncation
 
         response = _make_anthropic_response([_make_anthropic_text_block("partial")])
         assert is_standard_output_truncation(
             SimpleNamespace(api_mode="anthropic_messages"), response) is True
 
-    def test_bedrock_length_remains_synthetic_recovery(self):
+    def test_bedrock_max_tokens_is_a_standard_truncation(self):
         from agent.turn_response_check import is_standard_output_truncation
 
         assert is_standard_output_truncation(
-            SimpleNamespace(api_mode="bedrock_converse"), SimpleNamespace()) is False
+            SimpleNamespace(api_mode="bedrock_converse"),
+            SimpleNamespace(choices=[SimpleNamespace(finish_reason="length")]),
+        ) is True

@@ -1,6 +1,9 @@
 # Hermes 静的メッセージカタログ -- 日本語
 # See locales/en.yaml for the source of truth; keep keys in sync.
 
+agent:
+  output_truncated_no_visible: "表示可能なテキストが生成される前に、プロバイダーの出力トークン上限に達して応答が打ち切られました。"
+
 auth:
   no_provider_configured: "推論プロバイダーが設定されていません。'hermes model' を実行してプロバイダーとモデルを選択するか、~/.hermes/.env に API キー（OPENROUTER_API_KEY、OPENAI_API_KEY など）を設定してください。"
 

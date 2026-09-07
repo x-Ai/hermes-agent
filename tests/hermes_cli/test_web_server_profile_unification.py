@@ -164,6 +164,7 @@ class TestProfileScopedMcp:
         assert resp.status_code == 200
         body = resp.json()
         assert body["ok"] is False
+        assert body["code"] == "oauth_required"
         assert "oauth" in body["error"].lower()
 
         # With a token present, the same probe is genuinely authenticated.

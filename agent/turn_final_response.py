@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Dict, Optional
 
+from agent.i18n import t
 from agent.message_metadata import append_message
 from agent.turn_empty_response import recover_empty_response
 from agent.turn_stop_gates import apply_stop_gates
@@ -88,7 +89,7 @@ def finish_text_response(
         agent._dropped_toolcall_retries = 0
         final_response = agent._strip_think_blocks(final_response).strip()
         if not final_response:
-            final_response = "Response truncated at the provider's output-token limit before visible text was produced."
+            final_response = t("agent.output_truncated_no_visible")
             assistant_message.content = final_response
         final_msg = agent._build_assistant_message(assistant_message, "length")
         while (

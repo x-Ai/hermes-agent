@@ -14,6 +14,13 @@ import { Toast } from "@nous-research/ui/ui/components/toast";
 import { cn, themedBody } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import {
+  localizeToolsetBadge,
+  localizeToolsetDescription,
+  localizeToolsetEnvPrompt,
+  localizeToolsetLabel,
+  localizeToolsetProviderTag
+} from "@/i18n/toolset-metadata";
 
 interface Props {
   /** The toolset whose backends are being configured. */
@@ -33,7 +40,7 @@ interface Props {
  * post-setup install hook (npm/pip/binary) with a live log tail.
  */
 export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Props) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const copy = getDashboardCopy(t).skills;
   const { toast, showToast } = useToast();
   const [config, setConfig] = useState<ToolsetConfig | null>(null);
@@ -125,7 +132,10 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       setEnabled(next);
       showToast(
         copy.toolsetToggled
-          .replace("{name}", toolset.label || toolset.name)
+          .replace(
+            "{name}",
+            localizeToolsetLabel(toolset.name, toolset.label || toolset.name, locale)
+          )
           .replace("{state}", next ? copy.enabled : copy.disabled),
         "success"
       );
@@ -200,7 +210,16 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
     }
   };
 
-  const labelText = toolset.label?.trim() || toolset.name;
+  const labelText = localizeToolsetLabel(
+    toolset.name,
+    toolset.label?.trim() || toolset.name,
+    locale
+  );
+  const descriptionText = localizeToolsetDescription(
+    toolset.name,
+    toolset.description,
+    locale
+  );
   const platformText = toolset.platform_label?.trim() || toolset.platform;
 
   return createPortal(
@@ -234,7 +253,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
               {enabled ? copy.active : copy.inactive}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">{toolset.description}</p>
+          <p className="text-xs text-muted-foreground mt-1">{descriptionText}</p>
           <div className="mt-3 flex items-center gap-2">
             <Switch
               checked={enabled}
@@ -276,7 +295,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                       <span className="font-medium text-sm">{provider.name}</span>
                       {provider.badge && (
                         <Badge tone="secondary" className="text-xs">
-                          {provider.badge}
+                          {localizeToolsetBadge(provider.badge, locale)}
                         </Badge>
                       )}
                       {provider.requires_nous_auth && (
@@ -305,7 +324,9 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                     )}
                   </div>
                   {provider.tag && (
-                    <p className="text-xs text-muted-foreground mt-1">{provider.tag}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {localizeToolsetProviderTag(provider.tag, locale)}
+                    </p>
                   )}
 
                   {/* API key inputs */}
@@ -328,7 +349,9 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                             type="password"
                             className="h-8 rounded-none text-xs font-mono"
                             placeholder={
-                              isSet[ev.key] ? copy.savedPlaceholder : ev.prompt || ev.key
+                              isSet[ev.key]
+                                ? copy.savedPlaceholder
+                                : localizeToolsetEnvPrompt(ev.key, ev.prompt || ev.key, locale)
                             }
                             value={drafts[ev.key] ?? ""}
                             onChange={e =>
@@ -338,6 +361,11 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                               }))
                             }
                           />
+                          {(ev.prompt || ev.key) && (
+                            <p className="text-xs text-muted-foreground">
+                              {localizeToolsetEnvPrompt(ev.key, ev.prompt || ev.key, locale)}
+                            </p>
+                          )}
                           {ev.url && (
                             <a
                               href={ev.url}

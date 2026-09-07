@@ -4490,6 +4490,25 @@ class TestRunConversation:
         assert result["api_calls"] == 1
         agent._interruptible_api_call.assert_called_once()
 
+    def test_bedrock_length_stop_preserves_partial_without_retry(self, agent):
+        self._setup_agent(agent)
+        agent.api_mode = "bedrock_converse"
+        response = _mock_response(
+            content="Partial Bedrock answer", finish_reason="length")
+        agent._interruptible_api_call = MagicMock(return_value=response)
+
+        with (
+            patch.object(agent, "_persist_session"),
+            patch.object(agent, "_save_trajectory"),
+            patch.object(agent, "_cleanup_task_resources"),
+        ):
+            result = agent.run_conversation("hello")
+
+        assert result["final_response"] == "Partial Bedrock answer"
+        assert result["partial"] is True
+        assert result["api_calls"] == 1
+        agent._interruptible_api_call.assert_called_once()
+
     def test_ollama_glm_stop_after_tools_without_terminal_boundary_requests_continuation(self, agent):
         """Local Ollama-hosted GLM (no :cloud suffix) misreports truncated output as stop."""
         self._setup_agent(agent)

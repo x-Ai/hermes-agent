@@ -144,10 +144,10 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4 px-6 pb-6">
         {!isEdit && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid min-w-0 gap-1.5">
               <Label htmlFor="skill-editor-name">{copy.name}</Label>
               <Input
                 id="skill-editor-name"
@@ -157,7 +157,7 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
                 onChange={e => setName(e.target.value)}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid min-w-0 gap-1.5">
               <Label htmlFor="skill-editor-category">{copy.categoryOptional}</Label>
               <Input
                 id="skill-editor-category"

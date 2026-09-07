@@ -1530,6 +1530,7 @@ export interface McpServerCreate {
 
 export interface McpTestResult {
   ok: boolean;
+  code?: "connection_error" | "oauth_required";
   error?: string;
   tools: Array<{ name: string; description: string }>;
 }
@@ -1596,7 +1597,9 @@ export interface MessagingPlatformUpdate {
 export interface MessagingPlatformTestResult {
   ok: boolean;
   state: string;
+  code?: string;
   message: string;
+  missing?: string[];
 }
 
 export interface PairingUser {
