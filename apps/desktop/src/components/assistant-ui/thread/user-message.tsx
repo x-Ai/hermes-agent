@@ -1,6 +1,7 @@
 import { ActionBarPrimitive, BranchPickerPrimitive, MessagePrimitive, useAuiState } from '@assistant-ui/react'
 import { type FC, type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
+import { AnsiText } from '@/components/assistant-ui/ansi-text'
 import { DirectiveContent } from '@/components/assistant-ui/directive-text'
 import { messageAttachmentRefs, messageContentText } from '@/components/assistant-ui/thread/content'
 import { ReactionBadge, ReactionPicker } from '@/components/assistant-ui/thread/message-reactions'
@@ -8,6 +9,7 @@ import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timel
 import { type RestoreMessageTarget } from '@/components/assistant-ui/thread/types'
 import { useMessageReactions } from '@/components/assistant-ui/thread/use-message-reactions'
 import { UserMessageText } from '@/components/assistant-ui/thread/user-message-text'
+import { SCAFFOLD_GLYPH_CLASS, SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
 import { Codicon } from '@/components/ui/codicon'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { useI18n } from '@/i18n'
@@ -233,34 +235,97 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
   )
 }
 
-export const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
-  const { t } = useI18n()
+interface ProcessNotificationContent {
+  command: string
+  headline: string
+  metadata: string
+  output: string
+}
+
+export function parseProcessNotification(text: string): ProcessNotificationContent {
   const body = text.replace(/^\[IMPORTANT:\s*/, '').replace(/\]$/, '')
-  const newline = body.indexOf('\n')
-  const headline = (newline === -1 ? body : body.slice(0, newline)).trim()
-  const detail = newline === -1 ? '' : body.slice(newline + 1).trim()
+  const [headline = '', ...detailLines] = body.split('\n')
+  const commandIndex = detailLines.findIndex(line => /^Command:\s*/i.test(line))
+
+  const outputIndex = detailLines.findIndex(
+    (line, index) => index > commandIndex && /^(?:Matched output|Output):/i.test(line)
+  )
+
+  const outputLabel = outputIndex >= 0 ? detailLines[outputIndex].match(/^(?:Matched output|Output):\s*(.*)$/i) : null
+
+  const command =
+    commandIndex >= 0
+      ? detailLines
+          .slice(commandIndex, outputIndex >= 0 ? outputIndex : commandIndex + 1)
+          .map((line, index) => (index === 0 ? line.replace(/^Command:\s*/i, '') : line))
+          .join('\n')
+          .trim()
+      : ''
+
+  const metadata = detailLines
+    .slice(0, commandIndex >= 0 ? commandIndex : Math.max(outputIndex, 0))
+    .join('\n')
+    .trim()
+
+  const output =
+    outputIndex >= 0
+      ? [outputLabel?.[1] ?? '', ...detailLines.slice(outputIndex + 1)].join('\n').trim()
+      : detailLines
+          .slice(commandIndex >= 0 ? commandIndex + 1 : 0)
+          .join('\n')
+          .trim()
+
+  return { command, headline: headline.trim(), metadata, output }
+}
+
+export const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
+  const { command, headline, metadata, output } = parseProcessNotification(text)
+  const expandable = Boolean(command || metadata || output)
+  const [open, setOpen] = useState(false)
 
   return (
     <div
-      className="flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-start py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60"
+      className={cn(
+        'group/process-notification w-full min-w-0 max-w-full self-start overflow-hidden text-[length:var(--conversation-tool-font-size)] text-(--ui-text-tertiary)',
+        open && 'rounded-[0.3125rem] border border-(--ui-stroke-tertiary)'
+      )}
+      data-conversation-scaffold=""
       data-slot="aui_process-notification"
     >
-      <span className="flex items-center gap-1.5">
-        <Codicon className="shrink-0 text-muted-foreground/55" name="terminal" size="0.75rem" />
-        <span className="wrap-anywhere">{headline}</span>
-      </span>
-      {detail && (
-        <details className="pl-[1.3125rem]">
-          <summary className="cursor-pointer select-none text-muted-foreground/45 hover:text-muted-foreground/70">
-            {t.assistant.thread.processOutput}
-          </summary>
-          <pre
-            className="mt-0.5 max-h-48 overflow-auto whitespace-pre-wrap font-mono text-[0.625rem] leading-4 text-muted-foreground/55"
-            data-selectable-text="true"
-          >
-            {detail}
-          </pre>
-        </details>
+      <div className={cn(open && 'border-b border-(--ui-stroke-tertiary) px-2 py-1.5')}>
+        <ScaffoldRow onToggle={expandable ? () => setOpen(value => !value) : undefined} open={open}>
+          <span className={cn(SCAFFOLD_GLYPH_CLASS, 'self-center')}>
+            <Codicon className="text-(--ui-text-tertiary)" name="terminal" size="0.875rem" />
+          </span>
+          <span className={cn(SCAFFOLD_LABEL_CLASS, 'wrap-anywhere')}>{headline}</span>
+        </ScaffoldRow>
+      </div>
+      {open && expandable && (
+        <div className="grid w-full min-w-0 max-w-full gap-1.5 overflow-hidden p-1.5">
+          {metadata && <p className="px-2 text-[0.7rem] leading-relaxed text-(--ui-text-tertiary)">{metadata}</p>}
+          {command && (
+            <div
+              className="flex min-w-0 items-center rounded-[0.25rem] border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed"
+              data-slot="aui_process-notification-command"
+            >
+              <code className="min-w-0 flex-1 whitespace-pre-wrap wrap-anywhere text-(--ui-text-secondary)">
+                <span aria-hidden className="select-none text-(--ui-accent-secondary)">
+                  ${' '}
+                </span>
+                {command}
+              </code>
+            </div>
+          )}
+          {output && (
+            <pre
+              className="max-h-48 max-w-full overflow-auto whitespace-pre-wrap wrap-anywhere bg-transparent px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed text-(--ui-text-secondary)"
+              data-selectable-text="true"
+              data-slot="aui_process-notification-result"
+            >
+              <AnsiText text={output} />
+            </pre>
+          )}
+        </div>
       )}
     </div>
   )
@@ -386,7 +451,7 @@ export const UserMessage: FC<{
         data-slot="aui_user-message-root"
       >
         <ProcessNotificationNote text={messageText.trim()} />
-        <MessageTimelineTimestamp className="self-start pl-[1.3125rem]" />
+        <MessageTimelineTimestamp className="self-start pl-5" />
       </MessagePrimitive.Root>
     )
   }
