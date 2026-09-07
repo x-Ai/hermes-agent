@@ -895,22 +895,24 @@ def _run_backend_probe(env_type: str, terminal_tool) -> str:
         container_config=container_config,
         task_id="prompt-backend-probe",
         host_cwd=None if env_type in _EPHEMERAL_PROBE_BACKENDS else config.get("host_cwd"),
+        # Only ssh honors this: an isolated ControlMaster socket and no remote dir setup / file sync /
+        # snapshot. A normal SSHEnvironment would upload the whole ~/.hermes tree just to run `uname`,
+        # and its later __del__ would sync_back() and close the master shared with the agent's own env.
+        probe_only=True,
     )
     try:
         result = env.execute(_BACKEND_PROBE_CMD, timeout=4)
     finally:
         # One-shot `uname`; without teardown the backend leaves a second idle sandbox
         # (task_id="prompt-backend-probe") running for the whole process next to the agent's own.
-        # ssh is left alone: no task-scoped sandbox, and its cleanup() closes a ControlMaster socket
-        # (keyed by user@host:port) shared with the agent's real environment; ControlPersist expires it.
-        if env_type in _EPHEMERAL_PROBE_BACKENDS:
-            try:
-                _cleanup_env(env, force_remove=True)
+        try:
+            _cleanup_env(env, force_remove=True)
+            if env_type in _EPHEMERAL_PROBE_BACKENDS:
                 wait_for_cleanup = getattr(env, "wait_for_cleanup", None)
                 if callable(wait_for_cleanup) and not wait_for_cleanup(timeout=30):
                     logger.warning("Backend probe cleanup did not finish within 30 seconds")
-            except Exception:
-                logger.debug("Backend probe cleanup failed", exc_info=True)
+        except Exception:
+            logger.debug("Backend probe cleanup failed", exc_info=True)
     if result.get("returncode") != 0:
         logger.debug("Backend probe returned non-zero: %r", result)
         return ""
@@ -1484,6 +1486,11 @@ def load_soul_md(context_length: Optional[int] = None, home_override: "Path | No
         return None
     try:
         content = (_read_text_with_timeout(soul_path) or "").strip()
+        if content:
+            # Plugin-era desktop builds appended a frozen Bot Mode roster to SOUL.md; the server
+            # now injects the live section in Bot Chat only, so the copy is dead weight everywhere.
+            from tools.bot_mode_probe import strip_legacy_protocol
+            content = strip_legacy_protocol(content).strip()
         if not content:
             return None
         return _truncate_content(_scan_context_content(content, "SOUL.md"), "SOUL.md", context_length=context_length,

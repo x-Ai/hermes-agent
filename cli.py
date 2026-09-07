@@ -295,7 +295,7 @@ _TERMINAL_ENV_MAPPINGS = {
         "docker_shm_size", "docker_mount_cwd_to_workspace", "docker_network", "docker_run_as_host_user",
         "docker_workspace_per_session", "singularity_mount_cwd_to_workspace",
         "singularity_workspace_per_session", "docker_workspace_mount_path",
-        "singularity_workspace_mount_path",
+        "singularity_workspace_mount_path", "docker_snap_compat",
         "docker_persist_across_processes", "docker_shared_container_key", "docker_orphan_reaper",
         "sandbox_dir", "persistent_shell",
     )
@@ -3414,6 +3414,9 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMix
             claim = claim_event_delivery(event, consumer)
             if claim is None:
                 continue
+            if event.get("type") == "async_delegation":
+                from tools.process_registry_notifications import SubagentNotification
+                synthetic_message = SubagentNotification(synthetic_message, event)
             self._pending_input.put(synthetic_message)
             complete_event_delivery(event, claim)
 
@@ -3476,6 +3479,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMix
             self._check_termios_drift,
             lambda: self._drain_process_notifications("cli-idle"),
             self._maybe_fire_loop_tick,
+            self._maybe_resume_parked_goal,
         ):
             with suppress(Exception):
                 step()
@@ -3494,6 +3498,8 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMix
 
     def _tui_process_one_input(self, user_input):
         """Route one submitted input: file drop, /resume pick, ! shell, slash command, or a chat turn."""
+        from tools.process_registry_notifications import SubagentNotification
+        notification_preview = user_input if isinstance(user_input, SubagentNotification) else None
         user_input, is_voice_input, is_seeded_query = self._tui_unwrap_input(user_input)
         if not user_input:
             return
@@ -3540,7 +3546,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMix
         if isinstance(user_input, str) and _PASTE_REF_RE.search(user_input):
             user_input = self._expand_paste_references(user_input)
         print()
-        self._print_user_message_preview(user_input)
+        self._print_user_message_preview(notification_preview or user_input)
 
         if submit_images:
             n = len(submit_images)
@@ -3551,7 +3557,7 @@ class HermesCLI(CLIAgentSetupMixin, CLICommandsMixin, CLIBillingMixin, CLITuiMix
         self._turn_summary_begin()
         self._app.invalidate()
         try:
-            self.chat(user_input, images=submit_images or None, voice_input=is_voice_input)
+            self.chat(notification_preview or user_input, images=submit_images or None, voice_input=is_voice_input)
         finally:
             self._tui_after_turn()
 
