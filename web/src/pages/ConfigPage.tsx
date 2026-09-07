@@ -37,6 +37,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { configFieldSuggestions } from "@/lib/config-field-suggestions";
 import { getNestedValue, setNestedValue } from "@/lib/nested";
 import { useToast } from "@nous-research/ui/hooks/use-toast";
 import { Toast } from "@nous-research/ui/ui/components/toast";
@@ -391,6 +392,7 @@ export default function ConfigPage() {
             <AutoField
               schemaKey={key}
               schema={s}
+              suggestions={configFieldSuggestions(key, config)}
               value={getNestedValue(config, key)}
               onChange={v => setConfig(setNestedValue(config, key, v))}
             />

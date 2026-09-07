@@ -831,6 +831,22 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
   usd: '美元'
 }
 
+const EN_FULL_LABELS: Record<string, string> = {
+  'agent.output_truncation_retries': 'Output-Limit Retries',
+  'agent.environment_probe': 'Execution Environment Probe',
+  'terminal.container_persistent': 'Persistent Container Filesystem',
+  'terminal.docker_mount_cwd_to_workspace': 'Mount Project Into Docker',
+  'terminal.docker_workspace_per_session': 'Follow Each Session’s Project',
+  'terminal.docker_workspace_mount_path': 'Docker Mount Path',
+  'terminal.singularity_mount_cwd_to_workspace': 'Mount Project Into Singularity',
+  'terminal.singularity_workspace_per_session': 'Follow Each Session’s Project (Singularity)',
+  'terminal.singularity_workspace_mount_path': 'Singularity Mount Path',
+  'delegation.use_custom_endpoints': 'Suggest Custom Endpoints for Subagents',
+  'delegation.model': 'Subagent Model',
+  'delegation.provider': 'Subagent Provider',
+  'voice.client_direct': 'Direct Voice Connection'
+}
+
 const ZH_FULL_LABELS: Record<string, string> = {
   model: '默认模型',
   model_context_length: '模型上下文长度',
@@ -846,6 +862,7 @@ const ZH_FULL_LABELS: Record<string, string> = {
   'agent.max_turns': '最大智能体步数',
   'agent.image_input_mode': '图片附件',
   'agent.api_max_retries': 'API 重试次数',
+  'agent.output_truncation_retries': '输出上限重试次数',
   'agent.service_tier': '快速模式',
   'agent.tool_use_enforcement': '工具调用强制',
   'agent.environment_probe': '执行环境探测',
@@ -879,6 +896,10 @@ const ZH_FULL_LABELS: Record<string, string> = {
   'browser.allow_private_urls': '浏览器私有 URL',
   'browser.auto_local_for_private_urls': '私有 URL 使用本地浏览器',
   'browser.use_real_profile': '使用我的真实浏览器配置文件',
+  'delegation.use_custom_endpoints': '子智能体建议自定义端点',
+  'delegation.model': '子智能体模型',
+  'delegation.provider': '子智能体提供商',
+  'voice.client_direct': '客户端直连',
   'updates.non_interactive_local_changes': '非交互更新时的本地更改处理方式',
   'updates.auto_switch_parked_branch': '自动切换停放分支',
   'updates.parked_branch_strategy': '停放分支策略',
@@ -908,12 +929,14 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'desktop.repo_scan_exclude_paths': '发现代码仓库时跳过这些文件夹及其子目录',
   'agent.max_turns': 'Hermes 停止一次运行前工具调用轮次的上限',
   'agent.image_input_mode': '控制图片附件如何发送给模型',
-  'agent.environment_probe': '为新会话探测执行环境详情；关闭时使用静态描述',
+  'agent.output_truncation_retries':
+    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。每次重试都会重新发送同一提示，并可能再次计费。建议保留为 0；最大值为 3。',
+  'agent.environment_probe': '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述',
   'terminal.backend': '终端执行后端',
   'terminal.cwd': '工具与终端操作的默认项目目录',
   'terminal.persistent_shell': '当后端支持时，在命令之间保留 Shell 状态',
   'terminal.env_passthrough': '传入工具执行的环境变量',
-  'terminal.container_persistent': '跨会话保留容器文件系统状态；修改将在后端重启后生效',
+  'terminal.container_persistent': '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
   'terminal.docker_image': '执行后端为 Docker 时使用的容器镜像',
   'terminal.docker_mount_cwd_to_workspace': '把项目目录绑定挂载到 Docker 沙箱的 /workspace；关闭时沙箱完全隔离',
   'terminal.docker_workspace_per_session': '使用各会话自己选择的目录，而不只是启动目录；每个项目会有独立容器',
@@ -952,6 +975,9 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'human_delay.mode': '模拟输入延迟模式',
   'logging.level': 'agent.log 的日志级别',
   'agent.service_tier': '快速模式：fast 表示始终启用；auto 表示每轮开始的若干秒启用；cold 表示仅第一轮启用。',
+  'delegation.use_custom_endpoints': '在子智能体提供商字段中提供你的自定义端点，并在模型字段中提供该端点已发现的模型',
+  'delegation.model': '用于委派子智能体的模型。留空则继承父智能体模型',
+  'delegation.provider': '用于委派子智能体的内置提供商名称或自定义端点 ID。留空则继承父智能体',
   'delegation.reasoning_effort': '委派给后台代理时使用的推理强度',
   'updates.non_interactive_local_changes':
     '聊天应用或网关更新 Hermes 时，如何处理未提交的本地源码更改。stash 会保留并在更新后重新应用；discard 会丢弃这些更改。终端更新不受此设置影响，始终会询问。',
@@ -1022,6 +1048,8 @@ function translatePart(part: string): string {
 
 export function localizeConfigLabel(schemaKey: string, locale: Locale): string {
   if (locale !== 'zh') {
+    const full = EN_FULL_LABELS[schemaKey]
+    if (full) return full
     const raw = schemaKey.split('.').pop() ?? schemaKey
     return humanizeEnglish(raw)
   }

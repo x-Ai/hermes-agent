@@ -47,6 +47,12 @@ export {
   DATA_URL_READ_MIN_MAX_MB
 } from './data-url-read-max'
 export {
+  type HermesConfigRecord as DelegationConfigRecord,
+  delegationCustomEndpointsEnabled,
+  delegationModelOptions,
+  delegationProviderOptions
+} from './delegation-suggestions'
+export {
   type ConnectionState,
   type GatewayClientOptions,
   type GatewayEvent,

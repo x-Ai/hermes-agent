@@ -74,10 +74,76 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "description": "Context window override (0 = auto-detect from model metadata)",
         "category": "general",
     },
+    "agent.output_truncation_retries": {
+        "type": "number",
+        "description": (
+            "Retry only when the provider reports an output-token limit before producing "
+            "visible text. Each retry resends the same prompt and may be billed again. "
+            "Leave at 0 (recommended); maximum 3."
+        ),
+        "options": [0, 1, 2, 3],
+    },
+    "agent.environment_probe": {
+        "type": "boolean",
+        "description": (
+            "Probe execution-environment details for new sessions. Container backends use "
+            "a temporary sandbox that is automatically removed after probing; off uses a "
+            "static description."
+        ),
+    },
     "terminal.backend": _select(
         "Terminal execution backend",
         "local", "docker", "ssh", "modal", "daytona", "vercel_sandbox", "singularity",
     ),
+    "terminal.container_persistent": {
+        "type": "boolean",
+        "description": (
+            "Keep container filesystem state across Hermes sessions. Changes apply after "
+            "the backend restarts and do not destroy the current container or instance."
+        ),
+    },
+    "terminal.docker_mount_cwd_to_workspace": {
+        "type": "boolean",
+        "description": (
+            "Bind-mount the project folder into the Docker sandbox at /workspace. "
+            "Off keeps the sandbox fully isolated."
+        ),
+    },
+    "terminal.docker_workspace_per_session": {
+        "type": "boolean",
+        "description": (
+            "Use the folder each session picked instead of only the launch folder. "
+            "Every project gets its own container."
+        ),
+    },
+    "terminal.docker_workspace_mount_path": {
+        "type": "string",
+        "description": (
+            "Full in-container path where the project is mounted. Default /workspace. "
+            "Changes apply to the next container."
+        ),
+    },
+    "terminal.singularity_mount_cwd_to_workspace": {
+        "type": "boolean",
+        "description": (
+            "Bind-mount the project folder into the Singularity sandbox at /workspace. "
+            "Off keeps the sandbox fully isolated."
+        ),
+    },
+    "terminal.singularity_workspace_per_session": {
+        "type": "boolean",
+        "description": (
+            "Use the folder each session picked instead of only the launch folder. "
+            "Every project gets its own instance."
+        ),
+    },
+    "terminal.singularity_workspace_mount_path": {
+        "type": "string",
+        "description": (
+            "Full in-container path where the project is bound. Default /workspace. "
+            "Changes apply to the next instance."
+        ),
+    },
     # sync with _SUPPORTED_VERCEL_RUNTIMES in terminal_tool.py
     "terminal.vercel_runtime": _select("Vercel Sandbox runtime", "node24", "node22", "python3.13"),
     "terminal.modal_mode": _select("Modal sandbox mode", "sandbox", "function"),
@@ -130,6 +196,24 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "Reasoning effort for delegated subagents",
         "", "minimal", "low", "medium", "high", "xhigh", "max", "ultra",
     ),
+    "delegation.use_custom_endpoints": {
+        "type": "boolean",
+        "description": (
+            "Offer your custom endpoints in the subagent provider field, and their "
+            "discovered models in the model field."
+        ),
+    },
+    "delegation.model": {
+        "type": "string",
+        "description": "Model for delegated subagents. Empty inherits the parent model.",
+    },
+    "delegation.provider": {
+        "type": "string",
+        "description": (
+            "Provider for delegated subagents — a built-in name or a custom endpoint id. "
+            "Empty inherits the parent."
+        ),
+    },
     "updates.non_interactive_local_changes": _select(
         "When the chat app / gateway updates Hermes (no terminal prompt), "
         "what to do with uncommitted local source edits. 'stash' keeps them "

@@ -109,9 +109,10 @@ function NestedValueEditor({
   );
 }
 
-export function AutoField({ schemaKey, schema, value, onChange }: AutoFieldProps) {
+export function AutoField({ schemaKey, schema, suggestions, value, onChange }: AutoFieldProps) {
   const { locale } = useI18n();
   const label = localizeConfigLabel(schemaKey, locale);
+  const options = Array.isArray(schema.options) ? schema.options.map(String) : undefined;
 
   if (isRecord(value) || (Array.isArray(value) && value.some(item => isRecord(item)))) {
     return (
@@ -135,13 +136,15 @@ export function AutoField({ schemaKey, schema, value, onChange }: AutoFieldProps
     );
   }
 
-  if (schema.type === "select") {
-    const options = (schema.options as string[]) ?? [];
+  if (options) {
     return (
       <div className="grid gap-1.5">
         <Label className="text-sm">{label}</Label>
         <FieldHint locale={locale} schema={schema} schemaKey={schemaKey} />
-        <Select value={String(value ?? "")} onValueChange={v => onChange(v)}>
+        <Select
+          value={String(value ?? "")}
+          onValueChange={v => onChange(schema.type === "number" ? Number(v) : v)}
+        >
           {options.map(opt => (
             <SelectOption key={opt} value={opt}>
               {localizeConfigOption(opt, locale)}
@@ -211,6 +214,27 @@ export function AutoField({ schemaKey, schema, value, onChange }: AutoFieldProps
     );
   }
 
+  if (suggestions && suggestions.length > 0) {
+    const suggestionsId = `config-suggestions-${schemaKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+    return (
+      <div className="grid gap-1.5">
+        <Label className="text-sm">{label}</Label>
+        <FieldHint locale={locale} schema={schema} schemaKey={schemaKey} />
+        <Input
+          autoComplete="off"
+          list={suggestionsId}
+          value={String(value ?? "")}
+          onChange={e => onChange(e.target.value)}
+        />
+        <datalist id={suggestionsId}>
+          {suggestions.map(suggestion => (
+            <option key={suggestion} value={suggestion} />
+          ))}
+        </datalist>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-1.5">
       <Label className="text-sm">{label}</Label>
@@ -223,6 +247,7 @@ export function AutoField({ schemaKey, schema, value, onChange }: AutoFieldProps
 interface AutoFieldProps {
   schemaKey: string;
   schema: Record<string, unknown>;
+  suggestions?: string[];
   value: unknown;
   onChange: (v: unknown) => void;
 }

@@ -29,6 +29,12 @@ describe("dashboard config metadata localization", () => {
   });
 
   it("uses the curated Desktop wording for primary settings", () => {
+    expect(localizeConfigLabel("agent.output_truncation_retries", "en")).toBe(
+      "Output-Limit Retries"
+    );
+    expect(localizeConfigLabel("delegation.use_custom_endpoints", "zh")).toBe(
+      "子智能体建议自定义端点"
+    );
     expect(localizeConfigLabel("terminal.docker_mount_cwd_to_workspace", "zh")).toBe(
       "将项目目录挂载进 Docker"
     );
