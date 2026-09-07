@@ -133,7 +133,7 @@ from agent.codex_responses_adapter import (
     _summarize_user_message_for_log,
 )
 from agent.tool_guardrails import ToolGuardrailDecision, append_toolguard_guidance, toolguard_synthetic_result
-from utils import base_url_host_matches, base_url_hostname, env_float, model_forces_max_completion_tokens
+from utils import base_url_host_matches, base_url_hostname, env_float
 
 
 _MAX_TOOL_WORKERS = 8
@@ -256,7 +256,8 @@ class AIAgent(
         notice_callback: callable = None, notice_clear_callback: callable = None,
         event_callback: Optional[Callable[[str, dict], None]] = None,
         reaction_callback: Optional[Callable[[str], None]] = None,
-        max_tokens: int = None, reasoning_config: Dict[str, Any] = None, service_tier: str = None,
+        max_tokens: int = None, max_tokens_source: str = None,
+        reasoning_config: Dict[str, Any] = None, service_tier: str = None,
         request_overrides: Dict[str, Any] = None, prefill_messages: List[Dict[str, Any]] = None,
         platform: str = None, user_id: str = None, user_id_alt: str = None, user_name: str = None,
         chat_id: str = None, chat_name: str = None, chat_type: str = None, thread_id: str = None,
@@ -649,10 +650,8 @@ class AIAgent(
         return AIAgent._model_requires_responses_api(model)
 
     def _max_tokens_param(self, value: int) -> dict:
-        """``max_completion_tokens`` for newer OpenAI families (and Azure / Copilot serving them), else
-        ``max_tokens``. URL-first, then model-name fallback for third-party endpoints fronting those models."""
-        if (self._is_direct_openai_url() or self._is_azure_openai_url() or self._is_github_copilot_url()
-                or model_forces_max_completion_tokens(self.model)):
+        """Choose the chat token field from the target endpoint, never from a model-name guess."""
+        if self._is_direct_openai_url() or self._is_azure_openai_url() or self._is_github_copilot_url():
             return {"max_completion_tokens": value}
         return {"max_tokens": value}
 

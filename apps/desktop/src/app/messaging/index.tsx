@@ -864,7 +864,10 @@ const PLATFORM_INTRO: Record<string, string> = {
 }
 
 const introCopy = (platform: MessagingPlatformInfo, m: Translations['messaging']) =>
-  m.platformIntro[platform.id] || PLATFORM_INTRO[platform.id] || platform.description
+  m.platformIntro[platform.id] ||
+  m.platformDescription[platform.id] ||
+  PLATFORM_INTRO[platform.id] ||
+  platform.description
 
 function MessagingField({
   edits,

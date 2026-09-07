@@ -27,6 +27,8 @@ import { useEffect, useState } from "react";
 import { api, type AuthMeResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
+import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 
 interface AuthWidgetProps {
   className?: string;
@@ -41,6 +43,8 @@ function truncateUserId(id: string): string {
 }
 
 export function AuthWidget({ className }: AuthWidgetProps) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).auth;
   const [me, setMe] = useState<AuthMeResponse | null>(null);
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,15 +52,14 @@ export function AuthWidget({ className }: AuthWidgetProps) {
   // Loopback / --insecure mode: the auth gate is off, so /api/auth/me is a
   // guaranteed 401. Don't fire the request at all — it only produces console
   // noise ("Failed to load resource: 401") on every dashboard load.
-  const gated =
-    typeof window !== "undefined" && !!window.__HERMES_AUTH_REQUIRED__;
+  const gated = typeof window !== "undefined" && !!window.__HERMES_AUTH_REQUIRED__;
 
   useEffect(() => {
     if (!gated) return;
     let cancelled = false;
     api
       .getAuthMe()
-      .then((data) => {
+      .then(data => {
         if (cancelled) return;
         setMe(data);
       })
@@ -72,12 +75,12 @@ export function AuthWidget({ className }: AuthWidgetProps) {
           setHidden(true);
           return;
         }
-        setError("auth status unavailable");
+        setError(copy.unavailable);
       });
     return () => {
       cancelled = true;
     };
-  }, [gated]);
+  }, [copy.unavailable, gated]);
 
   // Nothing to show in ungated mode — there is no logged-in identity.
   if (!gated) return null;
@@ -89,7 +92,7 @@ export function AuthWidget({ className }: AuthWidgetProps) {
       <div
         className={cn(
           "px-5 py-2 text-[0.65rem] tracking-[0.05em] text-muted-foreground/70",
-          className,
+          className
         )}
       >
         {error}
@@ -102,10 +105,7 @@ export function AuthWidget({ className }: AuthWidgetProps) {
     // when the data arrives.
     return (
       <div
-        className={cn(
-          "h-9 px-5 py-2 text-[0.65rem] text-muted-foreground/40",
-          className,
-        )}
+        className={cn("h-9 px-5 py-2 text-[0.65rem] text-muted-foreground/40", className)}
         aria-busy="true"
       >
         …
@@ -129,17 +129,17 @@ export function AuthWidget({ className }: AuthWidgetProps) {
         "px-5 py-2",
         "border-t border-current/10",
         "text-[0.65rem] tracking-[0.05em]",
-        className,
+        className
       )}
       role="status"
-      aria-label={`Logged in as ${label}`}
+      aria-label={copy.loggedInAs.replace("{name}", label)}
     >
       <div className="flex min-w-0 flex-col">
         <span className="truncate font-mono text-foreground/90" title={me.user_id}>
           {label}
         </span>
         <span className="truncate text-muted-foreground/70">
-          via {me.provider}
+          {copy.via.replace("{provider}", me.provider)}
         </span>
       </div>
       <button
@@ -148,10 +148,10 @@ export function AuthWidget({ className }: AuthWidgetProps) {
         className={cn(
           "shrink-0 rounded p-1.5 text-muted-foreground/70",
           "transition-colors hover:bg-current/10 hover:text-foreground",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current/40",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current/40"
         )}
-        aria-label="Log out"
-        title="Log out"
+        aria-label={copy.logOut}
+        title={copy.logOut}
       >
         <LogOut className="h-3.5 w-3.5" />
       </button>

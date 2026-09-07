@@ -1522,6 +1522,9 @@ export const en: Translations = {
       noModelCatalog: 'Endpoint is reachable. It does not expose a model catalog.',
       defaultModelLabel: 'Default Model',
       contextLabel: 'Context',
+      maxOutputLabel: 'Max Output Tokens',
+      maxOutputHint:
+        'Provider limit sent with each request. Leave blank to use /models discovery or the protocol default; set it if the endpoint reports “Provider exceeded max output tokens.”',
       apiKeyLabel: 'API Key',
       userAgentLabel: 'User-Agent',
       userAgentHint:

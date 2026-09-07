@@ -60,9 +60,9 @@ export function ChatSessionList({
   profile,
   className,
   onPicked,
-  onNewChat,
+  onNewChat
 }: ChatSessionListProps) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const [, setSearchParams] = useSearchParams();
   const [sessions, setSessions] = useState<SessionInfo[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -86,18 +86,18 @@ export function ChatSessionList({
     setError(null);
     api
       .getSessions(SESSION_LIMIT, 0, scopeKey, "recent")
-      .then((res) => {
+      .then(res => {
         if (reqRef.current !== myReq) return;
         setSessions(res.sessions);
       })
       .catch((e: Error) => {
         if (reqRef.current !== myReq) return;
-        setError(e.message || "failed to load sessions");
+        setError(e.message || t.sessions.failedToLoad || "Failed to load sessions");
       })
       .finally(() => {
         if (reqRef.current === myReq) setLoading(false);
       });
-  }, [scopeKey]);
+  }, [scopeKey, t.sessions.failedToLoad]);
 
   useEffect(() => {
     // Dashboard data surfaces fetch from an effect on mount + scope change;
@@ -108,7 +108,7 @@ export function ChatSessionList({
     // `reloadNonce` is a manual refetch trigger (Refresh button / row pick).
   }, [load, reloadNonce]);
 
-  const reload = useCallback(() => setReloadNonce((n) => n + 1), []);
+  const reload = useCallback(() => setReloadNonce(n => n + 1), []);
 
   // Picking a row sets `/chat?resume=<id>`. Re-picking the row already in
   // the terminal is a no-op (avoids a needless PTY teardown).
@@ -117,15 +117,15 @@ export function ChatSessionList({
       onPicked?.();
       if (id === activeSessionId) return;
       setSearchParams(
-        (prev) => {
+        prev => {
           const next = new URLSearchParams(prev);
           next.set("resume", id);
           return next;
         },
-        { replace: false },
+        { replace: false }
       );
     },
-    [activeSessionId, onPicked, setSearchParams],
+    [activeSessionId, onPicked, setSearchParams]
   );
 
   // "New chat" prefers ChatPage's robust handler (clears resume + forces a
@@ -140,12 +140,12 @@ export function ChatSessionList({
       return;
     }
     setSearchParams(
-      (prev) => {
+      prev => {
         const next = new URLSearchParams(prev);
         next.delete("resume");
         return next;
       },
-      { replace: false },
+      { replace: false }
     );
   }, [onNewChat, onPicked, setSearchParams]);
 
@@ -179,7 +179,7 @@ export function ChatSessionList({
     }
     return (
       <div className="flex flex-col gap-0.5">
-        {sessions.map((s) => {
+        {sessions.map(s => {
           const isActive = s.id === activeSessionId;
           return (
             <ListItem
@@ -191,18 +191,20 @@ export function ChatSessionList({
                 "normal-case tracking-normal",
                 isActive
                   ? "bg-primary/10 text-foreground border-l-2 border-primary"
-                  : "text-text-secondary hover:bg-midground/5 hover:text-foreground",
+                  : "text-text-secondary hover:bg-midground/5 hover:text-foreground"
               )}
             >
               <span className="w-full truncate text-sm font-medium">
                 {rowLabel(s, t.sessions.untitledSession)}
               </span>
               <span className="flex w-full items-center gap-1.5 text-[0.6875rem] text-text-tertiary">
-                <span>{timeAgo(s.last_active)}</span>
+                <span>{timeAgo(s.last_active, locale)}</span>
                 {s.message_count > 0 && (
                   <>
                     <span aria-hidden>·</span>
-                    <span>{s.message_count} msgs</span>
+                    <span>
+                      {s.message_count} {t.common.msgs}
+                    </span>
                   </>
                 )}
                 {s.source && s.source !== "cli" && (
@@ -221,10 +223,7 @@ export function ChatSessionList({
 
   return (
     <aside
-      className={cn(
-        "flex h-full w-full min-w-0 shrink-0 flex-col overflow-hidden",
-        className,
-      )}
+      className={cn("flex h-full w-full min-w-0 shrink-0 flex-col overflow-hidden", className)}
     >
       <div className="flex items-center justify-between gap-2 px-2 pb-2">
         <span className="text-display text-xs tracking-wider text-text-tertiary">
@@ -252,9 +251,7 @@ export function ChatSessionList({
         {t.sessions.newChat}
       </Button>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-1">
-        {content}
-      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-1">{content}</div>
     </aside>
   );
 }

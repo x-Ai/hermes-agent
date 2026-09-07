@@ -13,6 +13,8 @@ import { cn, themedBody } from "@/lib/utils";
 import { fuzzyRank } from "@/lib/fuzzy";
 import { queryMatchesProviderOnly } from "@/lib/model-picker-filter";
 import { modelSearchText } from "@/lib/model-search-text";
+import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 
 /**
  * Two-stage model picker modal.
@@ -79,10 +81,7 @@ interface Props {
     provider: string;
     model: string;
     persistGlobal: boolean;
-  }):
-    | Promise<ExpensiveModelConfirmResponse | void>
-    | ExpensiveModelConfirmResponse
-    | void;
+  }): Promise<ExpensiveModelConfirmResponse | void> | ExpensiveModelConfirmResponse | void;
 
   onClose(): void;
   title?: string;
@@ -91,16 +90,10 @@ interface Props {
 }
 
 export function ModelPickerDialog(props: Props) {
-  const {
-    gw,
-    sessionId,
-    onSubmit,
-    loader,
-    onApply,
-    onClose,
-    title = "Switch Model",
-    alwaysGlobal = false,
-  } = props;
+  const { gw, sessionId, onSubmit, loader, onApply, onClose, title, alwaysGlobal = false } = props;
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).models;
+  const dialogTitle = title ?? copy.switchModel;
   const standalone = !!loader && !!onApply;
 
   const [providers, setProviders] = useState<ModelOptionProvider[]>([]);
@@ -114,8 +107,7 @@ export function ModelPickerDialog(props: Props) {
   const [persistGlobal, setPersistGlobal] = useState(alwaysGlobal);
   const [applying, setApplying] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [pendingConfirm, setPendingConfirm] =
-    useState<PendingExpensiveConfirm | null>(null);
+  const [pendingConfirm, setPendingConfirm] = useState<PendingExpensiveConfirm | null>(null);
   const closedRef = useRef(false);
 
   const applyOptions = (r: ModelOptionsResponse) => {
@@ -123,9 +115,9 @@ export function ModelPickerDialog(props: Props) {
     setProviders(next);
     setCurrentModel(String(r?.model ?? ""));
     setCurrentProviderSlug(String(r?.provider ?? ""));
-    setSelectedSlug((prev) => {
-      if (prev && next.some((p) => p.slug === prev)) return prev;
-      return (next.find((p) => p.is_current) ?? next[0])?.slug ?? "";
+    setSelectedSlug(prev => {
+      if (prev && next.some(p => p.slug === prev)) return prev;
+      return (next.find(p => p.is_current) ?? next[0])?.slug ?? "";
     });
     setSelectedModel("");
   };
@@ -133,30 +125,27 @@ export function ModelPickerDialog(props: Props) {
   const requestOptions = (refresh = false) =>
     standalone
       ? (loader as (options?: { refresh?: boolean }) => Promise<ModelOptionsResponse>)({
-          refresh,
+          refresh
         })
-      : (gw as GatewayClient).request<ModelOptionsResponse>(
-          "model.options",
-          {
-            ...(sessionId ? { session_id: sessionId } : {}),
-            ...(refresh ? { refresh: true } : {}),
-            // Dashboard picker mirrors the TUI: full provider universe with
-            // setup warnings. The backend now defaults to the configured
-            // subset (#56974), so opt into unconfigured rows explicitly.
-            include_unconfigured: true,
-          },
-        );
+      : (gw as GatewayClient).request<ModelOptionsResponse>("model.options", {
+          ...(sessionId ? { session_id: sessionId } : {}),
+          ...(refresh ? { refresh: true } : {}),
+          // Dashboard picker mirrors the TUI: full provider universe with
+          // setup warnings. The backend now defaults to the configured
+          // subset (#56974), so opt into unconfigured rows explicitly.
+          include_unconfigured: true
+        });
 
   const refreshOptions = () => {
     setError(null);
     setRefreshing(true);
 
     requestOptions(true)
-      .then((r) => {
+      .then(r => {
         if (closedRef.current) return;
         applyOptions(r);
       })
-      .catch((e) => {
+      .catch(e => {
         if (closedRef.current) return;
         setError(e instanceof Error ? e.message : String(e));
       })
@@ -171,11 +160,11 @@ export function ModelPickerDialog(props: Props) {
     closedRef.current = false;
 
     requestOptions()
-      .then((r) => {
+      .then(r => {
         if (closedRef.current) return;
         applyOptions(r);
       })
-      .catch((e) => {
+      .catch(e => {
         if (closedRef.current) return;
         setError(e instanceof Error ? e.message : String(e));
       })
@@ -204,14 +193,11 @@ export function ModelPickerDialog(props: Props) {
   }, [onClose]);
 
   const selectedProvider = useMemo(
-    () => providers.find((p) => p.slug === selectedSlug) ?? null,
-    [providers, selectedSlug],
+    () => providers.find(p => p.slug === selectedSlug) ?? null,
+    [providers, selectedSlug]
   );
 
-  const models = useMemo(
-    () => selectedProvider?.models ?? [],
-    [selectedProvider],
-  );
+  const models = useMemo(() => selectedProvider?.models ?? [], [selectedProvider]);
 
   const trimmedQuery = query.trim();
 
@@ -227,11 +213,11 @@ export function ModelPickerDialog(props: Props) {
     const ranked = fuzzyRank(
       providers,
       trimmedQuery,
-      (p) => `${p.name} ${p.slug} ${(p.models ?? []).join(" ")}`,
-    ).map((r) => r.item);
+      p => `${p.name} ${p.slug} ${(p.models ?? []).join(" ")}`
+    ).map(r => r.item);
     if (trimmedQuery) return ranked;
-    const withModels = ranked.filter((p) => (p.models ?? []).length > 0);
-    const withoutModels = ranked.filter((p) => (p.models ?? []).length === 0);
+    const withModels = ranked.filter(p => (p.models ?? []).length > 0);
+    const withoutModels = ranked.filter(p => (p.models ?? []).length === 0);
     return [...withModels, ...withoutModels];
   }, [providers, trimmedQuery]);
 
@@ -243,7 +229,7 @@ export function ModelPickerDialog(props: Props) {
   // case; a query that also matches a model id keeps filtering normally.
   const queryMatchesSelectedProviderOnly = useMemo(
     () => queryMatchesProviderOnly(selectedProvider, models, trimmedQuery),
-    [trimmedQuery, selectedProvider, models],
+    [trimmedQuery, selectedProvider, models]
   );
 
   // Fuzzy-ranked models carrying the matched character positions so the model
@@ -251,23 +237,21 @@ export function ModelPickerDialog(props: Props) {
   // for brand-less wire ids (e.g. Kimi Coding `k3` ↔ search "kimi").
   const filteredModels = useMemo(
     () =>
-      fuzzyRank(
-        models,
-        queryMatchesSelectedProviderOnly ? "" : trimmedQuery,
-        modelSearchText,
-      ).map((r) => ({
-        model: r.item,
-        // Positions may land in alias suffixes — keep only in-id highlights.
-        positions: r.positions.filter((i) => i >= 0 && i < r.item.length),
-      })),
-    [models, trimmedQuery, queryMatchesSelectedProviderOnly],
+      fuzzyRank(models, queryMatchesSelectedProviderOnly ? "" : trimmedQuery, modelSearchText).map(
+        r => ({
+          model: r.item,
+          // Positions may land in alias suffixes — keep only in-id highlights.
+          positions: r.positions.filter(i => i >= 0 && i < r.item.length)
+        })
+      ),
+    [models, trimmedQuery, queryMatchesSelectedProviderOnly]
   );
 
   const canConfirm = !!selectedProvider && !!selectedModel && !applying;
 
   const applySelection = async (
     confirmExpensiveModel = false,
-    forced?: PendingExpensiveConfirm,
+    forced?: PendingExpensiveConfirm
   ) => {
     const providerSlug = forced?.provider ?? selectedProvider?.slug ?? "";
     const model = forced?.model ?? selectedModel;
@@ -282,17 +266,14 @@ export function ModelPickerDialog(props: Props) {
           confirmExpensiveModel,
           provider: providerSlug,
           model,
-          persistGlobal: shouldPersistGlobal,
+          persistGlobal: shouldPersistGlobal
         });
         if (result?.confirm_required) {
           setPendingConfirm({
             provider: providerSlug,
             model,
             persistGlobal: shouldPersistGlobal,
-            message:
-              result.confirm_message ||
-              result.warning ||
-              "This model has unusually high known pricing.",
+            message: result.confirm_message || result.warning || copy.expensiveDescription
           });
           return;
         }
@@ -310,17 +291,14 @@ export function ModelPickerDialog(props: Props) {
           confirm_expensive_model: confirmExpensiveModel,
           key: "model",
           session_id: sessionId,
-          value: `${model} --provider ${providerSlug}${global}`,
+          value: `${model} --provider ${providerSlug}${global}`
         });
         if (result?.confirm_required) {
           setPendingConfirm({
             provider: providerSlug,
             model,
             persistGlobal: shouldPersistGlobal,
-            message:
-              result.confirm_message ||
-              result.warning ||
-              "This model has unusually high known pricing.",
+            message: result.confirm_message || result.warning || copy.expensiveDescription
           });
           return;
         }
@@ -352,18 +330,23 @@ export function ModelPickerDialog(props: Props) {
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={e => e.target === e.currentTarget && onClose()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="model-picker-title"
     >
-      <div className={cn(themedBody, "relative w-full max-w-3xl max-h-[80vh] border border-border bg-card shadow-2xl flex flex-col")}>
+      <div
+        className={cn(
+          themedBody,
+          "relative w-full max-w-3xl max-h-[80vh] border border-border bg-card shadow-2xl flex flex-col"
+        )}
+      >
         <Button
           ghost
           size="icon"
           onClick={onClose}
           className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
-          aria-label="Close"
+          aria-label={t.common.close}
         >
           <X />
         </Button>
@@ -373,10 +356,10 @@ export function ModelPickerDialog(props: Props) {
             id="model-picker-title"
             className="font-mondwest text-display text-base tracking-wider"
           >
-            {title}
+            {dialogTitle}
           </h2>
           <p className="text-xs text-muted-foreground mt-1 font-mono">
-            current: {currentModel || "(unknown)"}
+            {copy.current}: {currentModel || `(${copy.unknown})`}
             {currentProviderSlug && ` · ${currentProviderSlug}`}
           </p>
         </header>
@@ -386,9 +369,9 @@ export function ModelPickerDialog(props: Props) {
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               autoFocus
-              placeholder="Filter providers and models…"
+              placeholder={copy.filterProvidersModels}
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={e => setQuery(e.target.value)}
               className="pl-7 h-8 text-sm"
             />
           </div>
@@ -402,7 +385,7 @@ export function ModelPickerDialog(props: Props) {
             total={providers.length}
             selectedSlug={selectedSlug}
             query={trimmedQuery}
-            onSelect={(slug) => {
+            onSelect={slug => {
               setSelectedSlug(slug);
               setSelectedModel("");
             }}
@@ -416,13 +399,13 @@ export function ModelPickerDialog(props: Props) {
             currentModel={currentModel}
             currentProviderSlug={currentProviderSlug}
             onSelect={setSelectedModel}
-            onConfirm={(m) => {
+            onConfirm={m => {
               setSelectedModel(m);
               void applySelection(false, {
                 provider: selectedProvider?.slug ?? "",
                 model: m,
                 persistGlobal,
-                message: "",
+                message: ""
               });
             }}
           />
@@ -430,53 +413,45 @@ export function ModelPickerDialog(props: Props) {
 
         <footer className="border-t border-border p-3 flex items-center justify-between gap-3 flex-wrap">
           {alwaysGlobal ? (
-            <span className="text-xs text-muted-foreground">
-              Saves to config.yaml — applies to new sessions.
-            </span>
+            <span className="text-xs text-muted-foreground">{copy.appliesNewSessions}</span>
           ) : (
             <div className="flex items-center gap-2">
               <Checkbox
                 checked={persistGlobal}
                 id="model-picker-persist-global"
-                onCheckedChange={(checked) =>
-                  setPersistGlobal(checked === true)
-                }
+                onCheckedChange={checked => setPersistGlobal(checked === true)}
               />
 
               <Label
                 className="font-mondwest normal-case tracking-normal text-xs text-muted-foreground cursor-pointer"
                 htmlFor="model-picker-persist-global"
               >
-                Persist globally (otherwise this session only)
+                {copy.persistGlobally}
               </Label>
             </div>
           )}
 
           <div className="flex items-center gap-2 ml-auto">
-            <Button
-              outlined
-              onClick={refreshOptions}
-              disabled={applying || loading || refreshing}
-            >
+            <Button outlined onClick={refreshOptions} disabled={applying || loading || refreshing}>
               {refreshing ? <Spinner /> : <RefreshCw className="h-3.5 w-3.5" />}
-              Refresh Models
+              {copy.refreshModels}
             </Button>
             <Button outlined onClick={onClose} disabled={applying}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button onClick={confirm} disabled={!canConfirm}>
-              {applying ? <Spinner /> : "Switch"}
+              {applying ? <Spinner /> : copy.switch}
             </Button>
           </div>
         </footer>
       </div>
       <ConfirmDialog
         open={!!pendingConfirm}
-        title="Expensive Model Warning"
+        title={copy.expensiveWarning}
         description={pendingConfirm?.message}
         destructive
-        confirmLabel="Switch anyway"
-        cancelLabel="Cancel"
+        confirmLabel={copy.switchAnyway}
+        cancelLabel={t.common.cancel}
         loading={applying}
         onCancel={() => setPendingConfirm(null)}
         onConfirm={() => {
@@ -487,7 +462,7 @@ export function ModelPickerDialog(props: Props) {
         }}
       />
     </div>,
-    document.body,
+    document.body
   );
 }
 
@@ -502,7 +477,7 @@ function ProviderColumn({
   total,
   selectedSlug,
   query,
-  onSelect,
+  onSelect
 }: {
   loading: boolean;
   error: string | null;
@@ -512,11 +487,13 @@ function ProviderColumn({
   query: string;
   onSelect(slug: string): void;
 }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).models;
   return (
     <div className="border-r border-border overflow-y-auto">
       {loading && (
         <div className="flex items-center gap-2 p-4 text-xs text-muted-foreground">
-          <Spinner className="text-xs" /> loading…
+          <Spinner className="text-xs" /> {copy.loadingOptions}
         </div>
       )}
 
@@ -524,32 +501,30 @@ function ProviderColumn({
 
       {!loading && !error && providers.length === 0 && (
         <div className="p-4 text-xs text-muted-foreground italic">
-          {query
-            ? "no matches"
-            : total === 0
-              ? "no authenticated providers"
-              : "no matches"}
+          {query ? copy.noMatches : total === 0 ? copy.noAuthenticatedProviders : copy.noMatches}
         </div>
       )}
 
-      {providers.map((p) => {
+      {providers.map(p => {
         const active = p.slug === selectedSlug;
         return (
           <ListItem
             key={p.slug}
             active={active}
             onClick={() => onSelect(p.slug)}
-            className={`items-start text-xs border-l-2 ${
-              active ? "border-l-primary" : "border-l-transparent"
-            }`}
+            className={`items-start text-xs border-l-2 ${active ? "border-l-primary" : "border-l-transparent"}`}
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-medium truncate">{p.name}</span>
-                {p.is_current && <CurrentTag />}
+                {p.is_current && <CurrentTag label={copy.current} />}
               </div>
               <div className="text-xs text-text-secondary font-mono truncate">
-                {p.slug} · {p.total_models ?? p.models?.length ?? 0} models
+                {p.slug} ·{" "}
+                {copy.modelCount.replace(
+                  "{count}",
+                  String(p.total_models ?? p.models?.length ?? 0)
+                )}
               </div>
             </div>
           </ListItem>
@@ -571,7 +546,7 @@ function ModelColumn({
   currentModel,
   currentProviderSlug,
   onSelect,
-  onConfirm,
+  onConfirm
 }: {
   provider: ModelOptionProvider | null;
   models: { model: string; positions: number[] }[];
@@ -582,12 +557,12 @@ function ModelColumn({
   onSelect(model: string): void;
   onConfirm(model: string): void;
 }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).models;
   if (!provider) {
     return (
       <div className="overflow-y-auto">
-        <div className="p-4 text-xs text-muted-foreground italic">
-          pick a provider →
-        </div>
+        <div className="p-4 text-xs text-muted-foreground italic">{copy.pickProvider}</div>
       </div>
     );
   }
@@ -602,15 +577,12 @@ function ModelColumn({
 
       {models.length === 0 ? (
         <div className="p-4 text-xs text-muted-foreground italic">
-          {allModels.length
-            ? "no models match your filter"
-            : "no models listed for this provider"}
+          {allModels.length ? copy.noModelsMatch : copy.noModelsProvider}
         </div>
       ) : (
         models.map(({ model: m, positions }) => {
           const active = m === selectedModel;
-          const isCurrent =
-            m === currentModel && provider.slug === currentProviderSlug;
+          const isCurrent = m === currentModel && provider.slug === currentProviderSlug;
 
           return (
             <ListItem
@@ -626,7 +598,7 @@ function ModelColumn({
               <span className="flex-1 truncate">
                 <HighlightedText text={m} positions={positions} />
               </span>
-              {isCurrent && <CurrentTag />}
+              {isCurrent && <CurrentTag label={copy.current} />}
             </ListItem>
           );
         })
@@ -635,12 +607,8 @@ function ModelColumn({
   );
 }
 
-function CurrentTag() {
-  return (
-    <span className="text-display text-xs tracking-wider text-primary shrink-0">
-      current
-    </span>
-  );
+function CurrentTag({ label }: { label: string }) {
+  return <span className="text-display text-xs tracking-wider text-primary shrink-0">{label}</span>;
 }
 
 /**
@@ -648,13 +616,7 @@ function CurrentTag() {
  * see which characters their fuzzy query matched. Positions are indices into
  * `text`; out-of-range indices are ignored.
  */
-function HighlightedText({
-  text,
-  positions,
-}: {
-  text: string;
-  positions: number[];
-}) {
+function HighlightedText({ text, positions }: { text: string; positions: number[] }) {
   if (!positions.length) {
     return <>{text}</>;
   }
@@ -673,7 +635,7 @@ function HighlightedText({
           </mark>
         ) : (
           <span key={i}>{ch}</span>
-        ),
+        )
       )}
     </>
   );

@@ -255,7 +255,11 @@ def _discover_named_custom_models(provider_info: dict, api_key: str, configured_
     if live_models:
         with contextlib.suppress(Exception):
             from hermes_cli.model_switch_providers import _save_discovered_models_to_config
-            _save_discovered_models_to_config(base_url, live_models, api_mode=api_mode, headers=extra_headers or None)
+            save_kwargs = {"api_mode": api_mode, "headers": extra_headers or None}
+            model_metadata = getattr(live_models, "model_metadata", None)
+            if model_metadata:
+                save_kwargs["model_metadata"] = model_metadata
+            _save_discovered_models_to_config(base_url, live_models, **save_kwargs)
     return models, native_catalog_empty
 
 

@@ -19,7 +19,7 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
 export const zh: Translations = {
   sessionImport: {
     title: '从其他应用继续',
-    subtitle: '将对话导入 Hermes，接着上次的进度继续。',
+    subtitle: '将对话导入 Hermes，接着上次的进度继续',
     action: '导入会话',
     readingFrom: '读取自',
     connectedComputer: '已连接的计算机',
@@ -28,27 +28,27 @@ export const zh: Translations = {
     search: '搜索已加载的会话',
     scanning: '正在查找对话',
     scanError: '无法查找会话',
-    scanHelp: '请检查后端连接并重试。旧版后端可能需要更新。',
+    scanHelp: '请检查后端连接并重试。旧版后端可能需要更新',
     empty: '未找到对话',
-    emptyHelp: '此后端上的 Claude Code 和 Codex 会话将显示在这里。',
+    emptyHelp: '此后端上的 Claude Code 和 Codex 会话将显示在这里',
     noMatches: '没有匹配的对话',
-    searchHelp: '尝试其他标题或文件夹，或加载更多会话。',
-    skipped: '部分日志为空、无法读取或过大，已跳过。',
+    searchHelp: '尝试其他标题或文件夹，或加载更多会话',
+    skipped: '部分日志为空、无法读取或过大，已跳过',
     more: '加载更多会话',
     messages: '条消息',
     choose: '继续一段对话',
-    chooseHelp: '选择会话，在导入 Hermes 前查看历史记录。',
+    chooseHelp: '选择会话，在导入 Hermes 前查看历史记录',
     previewLoading: '正在打开预览',
     previewError: '预览不可用',
-    previewHelp: '源文件可能已移动或更改。请刷新列表后重试。',
-    previewLimit: '预览已缩短，便于阅读。导入时会复制完整对话。',
+    previewHelp: '源文件可能已移动或更改。请刷新列表后重试',
+    previewLimit: '预览已缩短，便于阅读。导入时会复制完整对话',
     you: '你',
-    snapshot: '此对话已导入 Hermes。打开现有副本即可继续。',
-    copyNotice: '复制对话文本，不更改源文件。不包含工具输出和推理内容。',
+    snapshot: '此对话已导入 Hermes，打开现有副本即可继续',
+    copyNotice: '复制对话文本，不更改源文件，不包含工具输出和推理内容',
     importing: '正在导入…',
     open: '在 Hermes 中打开',
     continue: '在 Hermes 中继续',
-    importError: '无法导入此对话。'
+    importError: '无法导入此对话'
   },
   common: {
     apply: '应用',
@@ -262,7 +262,7 @@ export const zh: Translations = {
       agentInitUnknownProvider: provider =>
         `智能体初始化失败：未知的提供商"${provider}"，请运行"hermes model"查看可用的提供商，或运行"hermes doctor"诊断配置问题`,
       unknownProvider: provider =>
-        `未知的提供商「${provider}」。请运行「hermes model」查看可用的提供商，或运行「hermes doctor」诊断配置问题。`,
+        `未知的提供商「${provider}」。请运行「hermes model」查看可用的提供商，或运行「hermes doctor」诊断配置问题`,
       fastModeUnavailable: '此模型不支持快速模式',
       apiRetriesExhausted: retries => `API 调用重试 ${retries} 次后仍失败`,
       resetsIn: remaining => `重置倒计时：${remaining}`,
@@ -282,7 +282,7 @@ export const zh: Translations = {
       restoreTargetUnsafe: '无法安全恢复此检查点。请刷新会话后重试',
       sessionStoppedBeforeAgentReady: '智能体就绪前会话已停止',
       turnCancelledBeforeAgentReady: '智能体就绪前，本轮对话已取消',
-      codeSkewRestartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码。'
+      codeSkewRestartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码'
     },
     voice: {
       configureSpeechToText: '配置语音转文字后即可使用语音模式',
@@ -391,8 +391,8 @@ export const zh: Translations = {
     noCardBody: '添加银行卡前，购买充值额度和自动充值将保持禁用。请前往门户添加银行卡',
     enabled: '已启用',
     subscriptionUnavailable: '暂时无法获取订阅详情，但仍可打开门户',
-    changesToOn: (name, date) => `将于 ${date} 更改为 ${name}。`,
-    cancelsOn: date => `将于 ${date} 取消。`,
+    changesToOn: (name, date) => `将于 ${date} 更改为 ${name}`,
+    cancelsOn: date => `将于 ${date} 取消`,
     renewsOn: date => `续订日期：${date}`,
     noActiveSubscription: '当前没有有效订阅——付费模型将消耗充值额度',
     changePlan: '更改套餐',
@@ -415,7 +415,7 @@ export const zh: Translations = {
     reconcileArrow: '核对 ↗',
     reconcileAutoRefill: card => `自动充值使用${card}扣款——请前往门户核对`,
     refillWhenLow: '余额不足时充值',
-    autoRefillChargeDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动充值至 ${reloadTo}。`,
+    autoRefillChargeDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动充值至 ${reloadTo}`,
     creditsLeft: (remaining, total) => `剩余 ${remaining}，共 ${total}`,
     creditsOver: (remaining, total, over) => `剩余 ${remaining}，共 ${total} · 超出 ${over}`,
     subscriptionCreditsRemaining: '剩余订阅额度',
@@ -436,7 +436,7 @@ export const zh: Translations = {
       revokedTitle: '远程消费已停止',
       revokedByAdmin: '管理员已停止此终端的远程消费',
       revokedByUser: '你已停止此终端的远程消费',
-      revokedReconnect: actor => `${actor}请在“设置 → 网关”中重新连接，以重新授权此设备。`,
+      revokedReconnect: actor => `${actor}请在“设置 → 网关”中重新连接，以重新授权此设备`,
       sessionTitle: '会话已退出登录',
       sessionMessage: '你的会话已退出登录。请在“设置 → 网关”中重新登录',
       remoteSpendingOffTitle: '远程消费已关闭',
@@ -450,11 +450,11 @@ export const zh: Translations = {
       orgAccessTitle: '组织访问被拒绝',
       orgAccessMessage: '此令牌未绑定到你可管理的组织',
       monthlyCapTitle: '已达到月度消费上限',
-      monthlyCapRemaining: remaining => `🔴 已达到月度消费上限——剩余额度 $${remaining}。`,
+      monthlyCapRemaining: remaining => `🔴 已达到月度消费上限——剩余额度 $${remaining}`,
       monthlyCapMessage: '🔴 已达到月度消费上限',
       rateLimitTitle: '当前扣款请求过多',
       rateLimitMessage: minutes =>
-        `🟡 当前扣款请求过多${minutes ? `（约 ${minutes} 分钟后重试）` : ''}。这不是付款失败。`,
+        `🟡 当前扣款请求过多${minutes ? `（约 ${minutes} 分钟后重试）` : ''}。这不是付款失败`,
       stripeTitle: 'Stripe 暂时出现问题',
       stripeMessage: minutes => `Stripe 暂时出现问题——请稍后重试${minutes ? `（约 ${minutes} 分钟后）` : ''}`,
       planLimitTitle: '已达到每日套餐更改上限',
@@ -466,7 +466,7 @@ export const zh: Translations = {
       transportTitle: '计费连接失败',
       transportMessage: '计费请求在到达网关前失败',
       genericTitle: '计费请求失败',
-      genericMessage: '计费请求失败。'
+      genericMessage: '计费请求失败'
     }
   },
 
@@ -1445,7 +1445,7 @@ export const zh: Translations = {
       title: '网关连接',
       envOverride: '环境变量覆盖',
       intro:
-        'Hermes Desktop 默认会启动自己的本地网关。当你希望此应用控制另一台机器上或可信代理后的现有 Hermes 后端时，可以使用远程网关。网关连接属于本机级设置，profile 是从所连接的网关中发现的',
+        'Hermes Desktop 默认会启动自己的本地网关，当你希望此应用控制另一台机器上或可信代理后的现有 Hermes 后端时，可以使用远程网关。网关连接属于本机级设置，profile 是从所连接的网关中发现的',
       envOverrideTitle: '环境变量正在控制此桌面会话',
       envOverrideDesc: '取消设置 HERMES_DESKTOP_REMOTE_URL 和 HERMES_DESKTOP_REMOTE_TOKEN 后才会使用下面保存的设置',
       modeTitle: '连接模式',
@@ -1498,21 +1498,21 @@ export const zh: Translations = {
       authSignedInOauth: '此网关使用 OAuth，你已登录，会话会自动刷新',
       authNeedsPassword: '此网关使用用户名和密码。请登录以授权此桌面应用',
       authNeedsOauth: provider => `此网关使用 OAuth，请使用 ${provider} 登录以授权此桌面应用`,
-      tokenTitle: '会话 token',
-      tokenDesc: '用于 REST 和 WebSocket 访问的 dashboard 会话 token，留空则保留已保存的 token',
-      existingToken: value => `现有 token ${value}`,
+      tokenTitle: '会话 Token',
+      tokenDesc: '用于 REST 和 WebSocket 访问的 dashboard 会话 token，留空则保留已保存的 Token',
+      existingToken: value => `现有 Token ${value}`,
       savedToken: '已保存',
-      pasteSessionToken: '粘贴会话 token',
+      pasteSessionToken: '粘贴会话 Token',
       plainTextConfirmTitle: '以明文存储网关 token？',
       plainTextConfirmDesc:
-        '在此设备上未找到操作系统的密钥环服务，因此 token 将以未加密的明文保存在应用的连接设置文件中，以该用户身份运行的任何进程都可读取，请安装或启用 GNOME Keyring 或 KWallet 以进行加密存储',
+        '在此设备上未找到操作系统的密钥环服务，因此 Token 将以未加密的明文保存在应用的连接设置文件中，以该用户身份运行的任何进程都可读取，请安装或启用 GNOME Keyring 或 KWallet 以进行加密存储',
       plainTextConfirmAction: '以明文保存',
       plainTextStoredTitle: 'Token 以明文存储',
       plainTextStoredDesc:
-        '安全存储不可用，因此已保存的 token 以未加密方式存储在此设备上应用的连接设置文件中，请安装或启用 GNOME Keyring 或 KWallet 以对其加密',
+        '安全存储不可用，因此已保存的 Token 以未加密方式存储在此设备上应用的连接设置文件中，请安装或启用 GNOME Keyring 或 KWallet 以对其加密',
       keychainEncryptionTitle: '使用系统钥匙串加密已保存的机密',
       keychainEncryptionDesc:
-        '默认关闭。开启后，网关 token 和登录凭据将使用系统钥匙串（Keychain Access、GNOME Keyring 或 Windows DPAPI）加密——系统可能会请求授权或密码，关闭时，它们以仅当前用户可读的普通文件形式存储',
+        '默认关闭。开启后，网关 Token 和登录凭据将使用系统钥匙串（Keychain Access、GNOME Keyring 或 Windows DPAPI）加密——系统可能会请求授权或密码，关闭时，它们以仅当前用户可读的普通文件形式存储',
       keychainEncryptionFailed: '无法更改机密加密设置',
       testRemote: '测试远程',
       saveForRestart: '保存到下次重启',
@@ -1522,9 +1522,9 @@ export const zh: Translations = {
       openLogs: '打开日志',
       incompleteTitle: '远程网关配置不完整',
       incompleteSignIn: '切换到远程前，请输入远程 URL 并完成登录',
-      incompleteToken: '切换到远程前，请输入远程 URL 和会话 token',
+      incompleteToken: '切换到远程前，请输入远程 URL 和会话 Token',
       incompleteSignInTest: '测试前，请输入远程 URL 并完成登录',
-      incompleteTokenTest: '测试前，请输入远程 URL 和会话 token',
+      incompleteTokenTest: '测试前，请输入远程 URL 和会话 Token',
       enterUrlFirst: '请先输入远程 URL',
       restartingTitle: '网关连接正在重启',
       savedTitle: '网关设置已保存',
@@ -1965,6 +1965,9 @@ export const zh: Translations = {
       noModelCatalog: '端点可达。该端点未提供模型目录',
       defaultModelLabel: '默认模型',
       contextLabel: '上下文',
+      maxOutputLabel: '最大输出 Token',
+      maxOutputHint:
+        '每次请求发送的提供方输出上限。留空则使用 /models 自动发现值或协议默认值；端点报告“Provider exceeded max output tokens.”时可在此设置',
       apiKeyLabel: 'API 密钥',
       userAgentLabel: 'User-Agent',
       userAgentHint:
@@ -2021,7 +2024,7 @@ export const zh: Translations = {
         'Best all-round agent model; sees images; long context stays fast':
           '综合表现最佳的智能体模型；支持图像理解；长上下文下依然快速',
         'Frontier-scale model; needs a very large GPU to run well': '前沿大模型；需要显存容量很大的 GPU 才能流畅运行',
-        'Bigger mixture-of-experts with multi-token prediction; sees images':
+        'Bigger mixture-of-experts with multi-Token prediction; sees images':
           '更大规模的混合专家模型，支持多词元预测和图像理解',
         'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'
       } as Record<string, string>,
@@ -2038,19 +2041,19 @@ export const zh: Translations = {
       runtimeReady: backend => `就绪 · ${backend}`,
       serverRunning: '运行中',
       runtimeInstalled: '已安装 llama.cpp 运行时',
-      runtimeInstalledDetail: (tag, backend) => `构建 ${tag}，${backend} 后端。Hermes 会为您启动并管理服务器。`,
+      runtimeInstalledDetail: (tag, backend) => `构建 ${tag}，${backend} 后端。Hermes 会为您启动并管理服务器`,
       installTitle: '安装本地运行时',
-      installDetail: '下载 llama.cpp 推理引擎（几百 MB）。下载的模型完全在本机运行——无需账号，数据不会离开您的电脑',
+      installDetail: '下载 llama.cpp 推理引擎（几百 MB），下载的模型完全在本机运行——无需账号，数据不会离开您的电脑',
       installAction: '安装运行时',
       installing: '正在安装运行时…',
       installFailed: '运行时安装失败',
       quickstartTitle: '在本机运行模型',
       quickstartDetail: (model, size) =>
-        `一键完成所有设置：本地引擎、${model}（需下载 ${size}），并设为新会话的默认模型。数据不会离开这台电脑。`,
-      quickstartDetailReady: model => `一键将 ${model} 设为新会话的默认模型。所有内容都在本机运行。`,
+        `一键完成所有设置：本地引擎、${model}（需下载 ${size}），并设为新会话的默认模型，并且数据不会离开这台电脑`,
+      quickstartDetailReady: model => `一键将 ${model} 设为新会话的默认模型。所有内容都在本机运行`,
       quickstartAction: '为我设置',
       quickstartConfigure: '自定义…',
-      quickstartDoneToast: model => `${model} 已就绪——新会话将在本机运行。`,
+      quickstartDoneToast: model => `${model} 已就绪——新会话将在本机运行`,
       quickstartFailed: '本地模型设置失败',
       quickstartStageEngine: '引擎',
       quickstartStageModel: '模型',
@@ -2066,23 +2069,23 @@ export const zh: Translations = {
         'best-quality-resident': '在完全驻留 GPU 且保持全速的模型中质量最高。推荐会在质量与该硬件的预计速度之间权衡',
         'speed-gated-quality': '有更高质量的模型可以装入这台机器，但受内存带宽限制响应会太慢——这是保持流畅的最佳模型',
         'fastest-resident': '没有模型能在该硬件上达到全速；这是完全驻留 GPU 内存中最快的一个',
-        'least-painful-spilled': '没有模型能完全装入 GPU 内存——这是从系统内存运行表现最好的一个。'
+        'least-painful-spilled': '没有模型能完全装入 GPU 内存——这是从系统内存运行表现最好的一个'
       } as Record<string, string>,
       downloaded: '已下载',
       downloadAction: size => `下载 · ${size}`,
       downloadProgress: (done, total) => `正在下载 ${done} / ${total}`,
-      downloadDoneToast: model => `${model} 已就绪。`,
+      downloadDoneToast: model => `${model} 已就绪`,
       installDoneToast: '本地运行时已安装就绪',
       useAction: '使用',
       activePill: '默认',
       updateTitle: '引擎有可用更新',
       updateDetail: (next, current) =>
-        `新的 llama.cpp 构建（${next}）可以安装——当前为 ${current}。下载期间模型仍可正常使用。`,
+        `新的 llama.cpp 构建（${next}）可以安装——当前为 ${current}。下载期间模型仍可正常使用`,
       updateAction: '更新引擎',
       updating: '正在更新引擎…',
       upToDateTitle: '引擎已是最新',
-      upToDateDetail: (tag, backend) => `正在运行 llama.cpp ${tag}（${backend}）——Hermes 提供的最新构建。`,
-      updateToast: next => `本地引擎有新构建（${next}）。可在 设置 → 本地模型 中更新。`,
+      upToDateDetail: (tag, backend) => `正在运行 llama.cpp ${tag}（${backend}）——Hermes 提供的最新构建`,
+      updateToast: next => `本地引擎有新构建（${next}）。可在 设置 → 本地模型 中更新`,
       activeDetail: '新对话使用此模型——发送首条消息时加载',
       activeNotLoaded: '首条消息时加载',
       loadedPill: '已加载',
@@ -2103,7 +2106,7 @@ export const zh: Translations = {
       serverStartFailed: '无法启动本地服务器',
       activating: '启动中…',
       activateFailed: model => `无法切换到 ${model}`,
-      activateDoneToast: model => `新对话将使用 ${model}。`,
+      activateDoneToast: model => `新对话将使用 ${model}`,
       downloadFailed: model => `${model} 下载失败`,
       pillFitsGpu: '完全在 GPU 上运行',
       pillUsesRam: '使用系统内存',
@@ -2135,7 +2138,7 @@ export const zh: Translations = {
       pillVision: '识图',
       deleteAction: '删除模型',
       deleteConfirm: model => `从磁盘删除 ${model}？`,
-      deleted: model => `已删除 ${model}。`,
+      deleted: model => `已删除 ${model}`,
       deleteFailed: '删除失败'
     },
     providers: {
@@ -2255,7 +2258,10 @@ export const zh: Translations = {
       badgeTokens: {
         recommended: '推荐',
         free: '免费',
+        'free tier': '免费档',
+        'key optional': '密钥可选',
         local: '本地',
+        'no Chromium': '无需 Chromium',
         'self-hosted': '自托管',
         paid: '付费',
         preview: '预览',
@@ -2304,12 +2310,19 @@ export const zh: Translations = {
           '完整的搜索 + 提取；支持直连 API 和 Nous 工具网关路由',
         'Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.':
           '完整的搜索与提取；支持免密钥云服务、直连 API 和 Nous 工具网关路由',
+        'Gemini Flash Image, gpt-image-2, Krea 2, Qwen Image 3 & more via OpenRouter; uses OPENROUTER_API_KEY':
+          '通过 OpenRouter 使用 Gemini Flash Image、gpt-image-2、Krea 2、Qwen Image 3 等模型；需要 OPENROUTER_API_KEY',
         'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
           '经 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
+        'Image API model (from live OpenRouter catalog)': '图像 API 模型（来自 OpenRouter 实时目录）',
+        'Image-output model (from live OpenRouter catalog)': '图像输出模型（来自 OpenRouter 实时目录）',
         'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
           'Krea 2 基础模型——Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。风格迁移、情绪板、参考引导生成。可直连密钥或经托管 Nous 订阅网关',
         'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
           'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse——文生视频与图生视频',
+        'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Grok Imagine, Gemini Omni — text-to-video & image-to-video':
+          'LTX、Pixverse、Seedance 2.0/2.5/Mini、Veo 3.1、MiniMax H3、FLUX 3、Kling 4K、Happy Horse、Grok Imagine、Gemini Omni——文生视频与图生视频',
+        'Muse Image via Meta Model API (api.meta.ai)': '通过 Meta Model API（api.meta.ai）使用 Muse Image',
         'Objective-tuned search + parallel page extraction.': '面向目标调优的搜索 + 并行页面提取',
         "Objective-tuned search + page extraction on Parallel's anonymous free tier. Rate-limited under burst load.":
           '通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取。突发负载下会受到速率限制',
@@ -2317,11 +2330,15 @@ export const zh: Translations = {
           '通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取。无速率限制，服务有保障',
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等——文生图与图像编辑',
+        'Perplexity Search API — ranked, date-stamped web results plus query-relevant page snippets for extract.':
+          'Perplexity 搜索 API——提供按相关性排序且带日期的网页结果，并为内容提取返回与查询相关的页面摘要',
         'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
           '经 Nous Portal 的参考图像生成（OpenRouter 支撑）',
         'Search + extract in one provider.': '搜索 + 提取一体的提供方',
         'Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.':
           '搜索与提取。无需密钥即可使用；设置 TAVILY_API_KEY 可获得更高限额',
+        'Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.':
+          '搜索与提取。可选择免密钥使用；设置 TAVILY_API_KEY 可获得更高限额',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '通过 ddgs Python 包搜索——无需 API 密钥（可搭配任意提取提供方）',
         'Semantic + neural web search with content extraction.': '语义 + 神经网络网页搜索，带内容提取',
@@ -2355,12 +2372,14 @@ export const zh: Translations = {
         'New SOTA web harness (CLI 3.0)': '全新最优 web 执行引擎 (CLI 3.0)',
         "No paid tier needed — uses Brave's free API.": '无需付费套餐——使用 Brave 免费 API',
         'Ultra-low-latency streaming': '极低延迟流式输出',
+        'Zig headless browser spawned by Hermes, text-only (no screenshots)':
+          '由 Hermes 启动的 Zig 无头浏览器，仅支持文本（不支持截图）',
         'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Wan 2.2 — text-to-video & image-to-video':
           'LTX、Pixverse、Seedance 2.0/2.5/Mini、Veo 3.1、MiniMax H3、FLUX 3、Kling 4K、Happy Horse、Wan 2.2——文生视频与图生视频',
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana-2, nano-banana-pro, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana-2、nano-banana-pro 等——文生图与图像编辑',
-        "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.":
-          'A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent——实现 Linux 基金会开放标准的双向智能体间通信。OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务——兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）。INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体。Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径；旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样——因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体。默认开启安全机制：未配置 bearer token 则仅绑定 localhost。入站任务文本会经过提示注入过滤；出站文本会清洗凭据型字符串；每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续。纯标准库传输（http.server + urllib）——无需 a2a-sdk 依赖'
+        "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer Token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.":
+          'A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent——实现 Linux 基金会开放标准的双向智能体间通信。OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务——兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）。INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体。Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径；旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样——因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体。默认开启安全机制：未配置 bearer Token 则仅绑定 localhost。入站任务文本会经过提示注入过滤；出站文本会清洗凭据型字符串；每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续。纯标准库传输（http.server + urllib）——无需 a2a-sdk 依赖'
       },
       activeBackend: '当前后端',
       activeBackendHint: '这是你当前使用的后端',
@@ -2405,6 +2424,12 @@ export const zh: Translations = {
       modelSelectedMessage: model => `${model} 将应用于新会话`,
       failedSelectModel: model => `选择 ${model} 失败`,
       modelDescriptions: {
+        'grok-imagine-image': '生成快速、质量出色',
+        'grok-imagine-image-2.0': '擅长文字与版式；小字号清晰可读；质量最佳',
+        'grok-imagine-image-quality': '保真度和细节更高；速度比标准模型慢',
+        'gpt-image-2-low': '迭代最快，成本最低',
+        'gpt-image-2-medium': '均衡表现——默认选项',
+        'gpt-image-2-high': '保真度最高，提示词遵循能力最强',
         'fal-ai/flux-2/klein/9b': '快速生成，文字清晰',
         'fal-ai/flux-2-pro': '影棚级写实效果',
         'fal-ai/z-image/turbo': '中英双语，60 亿参数',
@@ -2439,6 +2464,9 @@ export const zh: Translations = {
         'happy-horse': '阿里巴巴。新模型，公开文档较少，采用保守默认设置'
       },
       modelPrices: {
+        'gpt-image-2-low': '价格因用量而异',
+        'gpt-image-2-medium': '价格因用量而异',
+        'gpt-image-2-high': '价格因用量而异',
         'fal-ai/flux-2/klein/9b': '$0.006/百万像素',
         'fal-ai/flux-2-pro': '$0.03/百万像素',
         'fal-ai/z-image/turbo': '$0.005/百万像素',
@@ -2579,7 +2607,7 @@ export const zh: Translations = {
     noToolsetsDesc: '尝试更宽泛的搜索词',
     noDescription: '暂无描述',
     toolsetDescriptions: {
-      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）协议 v1.0 支持——使用 Linux 基金会开放标准进行双向代理间通信。出站工具可发现对等代理、获取 Agent Card，并通过 JSON-RPC 发送任务；入站适配器在 /.well-known/agent-card.json 暴露 Hermes，并将任务路由到拥有完整记忆和上下文的实时网关会话。未配置 bearer token 时仅绑定 localhost；入站文本会经过过滤，出站凭据会被清理，所有交换都会在上下文压缩流程之外进行审计记录。仅使用 Python 标准库，无需 a2a-sdk 依赖',
+      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）协议 v1.0 支持——使用 Linux 基金会开放标准进行双向代理间通信。出站工具可发现对等代理、获取 Agent Card，并通过 JSON-RPC 发送任务；入站适配器在 /.well-known/agent-card.json 暴露 Hermes，并将任务路由到拥有完整记忆和上下文的实时网关会话。未配置 bearer Token 时仅绑定 localhost；入站文本会经过过滤，出站凭据会被清理，所有交换都会在上下文压缩流程之外进行审计记录。仅使用 Python 标准库，无需 a2a-sdk 依赖',
       browser: '用于网页交互的浏览器自动化（导航、点击、输入、滚动、iframe、长按），并带用于查找 URL 的网页搜索',
       clarify: '向用户提出澄清问题（选择题或开放式）',
       code_execution: '运行以编程方式调用工具的 Python 脚本（减少 LLM 往返）',
@@ -2639,6 +2667,7 @@ export const zh: Translations = {
       video_gen:
         '视频生成工具：单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频。提供方专属的编辑/扩展工作流可能以独立工具出现，通过 hermes tools → Video Generation 配置',
       vision: '图像分析与视觉工具',
+      web: '网页搜索与内容提取',
       x_search:
         '通过 xAI 内置的 x_search Responses 工具搜索 X (Twitter) 帖子和线程，配置 xAI 凭据（SuperGrok OAuth 或 XAI_API_KEY）后可用，默认关闭；在 hermes tools → X (Twitter) Search 中启用',
       yuanbao: '元宝平台工具——群信息、成员查询、私聊、贴纸'
@@ -3547,6 +3576,14 @@ export const zh: Translations = {
       BUZZ_CREDENTIALS_FILE: {
         label: '凭证文件路径（或留空）',
         help: '保存 nsec 的 JSON 凭证文件（当 BUZZ_PRIVATE_KEY 未设置时作为回退）'
+      },
+      BUZZ_REPLY_IN_THREAD: {
+        label: '在线程中回复？（true/false）',
+        help: '在触发消息下方以线程形式回复（true/false，默认 true）；设为 false 时直接发布到频道时间线'
+      },
+      PHOTON_READ_RECEIPTS: {
+        label: '发送已读回执？（true/false）',
+        help: '转发给 Hermes 后，将收到的 iMessage 标记为已读（true/false，默认 true）'
       }
     },
     platformIntro: {
@@ -3590,6 +3627,15 @@ export const zh: Translations = {
       dingtalk: '把 Hermes 接入钉钉群',
       feishu: '在飞书 / Lark 中使用 Hermes',
       google_chat: '通过 Cloud Pub/Sub 把 Hermes 接入 Google Chat',
+      photon: '通过 Photon 托管的 Spectrum 平台在 iMessage 中使用 Hermes',
+      irc: '在 IRC 频道（或私信）与 Hermes 之间中继消息',
+      line: '通过 LINE Messaging API Webhook 在 LINE 中使用 Hermes',
+      teams: '通过 Bot Framework 把 Hermes 接入 Microsoft Teams 聊天',
+      ntfy: '通过 ntfy 推送主题（ntfy.sh 或自托管）与 Hermes 对话',
+      simplex: '通过本地 simplex-chat 守护进程在 SimpleX Chat 中与 Hermes 对话',
+      whatsapp_cloud: '通过 Meta 托管的 WhatsApp Cloud API 使用 Hermes（无需本地桥接）',
+      relay: '由 Hermes Relay 连接器提供的通用中继适配器',
+      msgraph_webhook: '接收 Microsoft Graph 变更通知（Teams 会议、Outlook 等）',
       wecom: '仅发送的企业微信群机器人（webhook 方式）',
       wecom_callback: '通过回调应用实现企业微信双向集成',
       weixin: '通过腾讯 iLink Bot API 连接个人微信账号',
@@ -3725,7 +3771,7 @@ export const zh: Translations = {
       removeFailed: '无法移除远程连接',
       authFailedTitle: '远程主机拒绝了已保存的令牌',
       authFailedMessage: (profile: string, host: string) =>
-        `${host} 拒绝了为 ${profile} 保存的令牌。它可能已在远程端被更改。`,
+        `${host} 拒绝了为 ${profile} 保存的令牌。它可能已在远程端被更改`,
       updateToken: '输入新令牌…'
     },
     actions: '操作',
@@ -4628,7 +4674,7 @@ export const zh: Translations = {
       resumeNow: '立即恢复',
       clearGoal: '清除目标',
       clearGoalConfirmTitle: '清除目标？',
-      clearGoalConfirmBody: '确定要清除当前活跃的目标吗？此操作无法撤销。',
+      clearGoalConfirmBody: '确定要清除当前活跃的目标吗？此操作无法撤销',
       copyCriterion: index => `复制条件 ${index}`,
       removeCriterion: index => `移除条件 ${index}`,
       removeCriterionConfirmTitle: index => `移除条件 ${index}？`,
@@ -4675,7 +4721,7 @@ export const zh: Translations = {
       loopPromptLabel: '提示词',
       loopCadenceLabel: '节奏',
       loopUntilLabel: '终止条件',
-      loopDeferredNotice: '活跃目标当前正在控制会话。',
+      loopDeferredNotice: '活跃目标当前正在控制会话',
       loopAwaitingResponse: '等待响应中',
       heartbeatActive: '心跳活跃',
       heartbeatPaused: '心跳暂停',
@@ -4963,7 +5009,7 @@ export const zh: Translations = {
     getKey: '获取密钥',
     replaceCurrent: '替换当前值',
     pasteApiKey: '粘贴 API 密钥',
-    directApiAccess: provider => `直接通过 API 访问 ${provider}。`,
+    directApiAccess: provider => `直接通过 API 访问 ${provider}`,
     localApiKeyPlaceholder: 'API 密钥（可选 — 仅当端点需要时填写）',
     couldNotSave: '无法保存凭据',
     connecting: '连接中',
@@ -5022,7 +5068,7 @@ export const zh: Translations = {
     proNeedsSubscription: 'Pro 模型需要付费 Nous 订阅',
     free: '免费',
     freeTier: '免费层',
-    priceTitle: '每百万 token 的输入/输出价格',
+    priceTitle: '每百万 Token 的输入/输出价格',
     wasPrice: '原价'
   },
 
@@ -5132,8 +5178,8 @@ export const zh: Translations = {
       toggleTokensPerSecond: '每秒 Token 数',
       toggleVersion: '版本与更新',
       toggleWorkspace: '工作区',
-      cacheHitRateTitle: '本会话的提示缓存命中率 — 缓存 Token 更便宜，越高越省',
-      tokensPerSecondTitle: '每秒输出 Token 数，取最近 10 次模型调用的平均值',
+      cacheHitRateTitle: '本会话的提示缓存命中率',
+      tokensPerSecondTitle: '每秒输出 Token 数，取最近 10 次模型调用平均值',
       agents: '代理',
       closeAgents: '关闭代理',
       openAgents: '打开代理',
@@ -5154,7 +5200,7 @@ export const zh: Translations = {
         gpuUtilization: 'GPU 利用率',
         gpuMemory: '显存',
         ram: '内存',
-        unifiedNote: '统一内存 — GPU 与系统共享此内存池',
+        unifiedNote: '统一内存 — GPU与系统共享',
         toggle: '系统资源'
       },
       contextUsagePanel: {
@@ -5428,7 +5474,7 @@ export const zh: Translations = {
   assistant: {
     systemNotices: {
       fileMutationFailure: count =>
-        `⚠️ 文件修改校验：本轮有 ${count} 个文件未被修改，即使上文可能有不同表述。请运行 \`git status\` 或 \`read_file\` 确认。`,
+        `⚠️ 文件修改校验：本轮有 ${count} 个文件未被修改，即使上文可能有不同表述。请运行 \`git status\` 或 \`read_file\` 确认`,
       failedToWriteFile: '写入文件失败：',
       failed: '失败',
       andMore: count => `另有 ${count} 个`,
@@ -5661,7 +5707,7 @@ export const zh: Translations = {
       returnedStatus: status => `工具返回了“${status}”状态`,
       commandFailedWithExitCode: exitCode => `命令执行失败，退出码为 ${exitCode}`,
       sessionKernelTimedOut: (timeoutSeconds, remote) =>
-        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。`,
+        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核`,
       clarifyErrors: {
         questionsMustBeArray: 'questions 参数必须是一个由问题对象组成的数组',
         questionsLimit: limit => `questions 参数最多支持 ${limit} 项`,
@@ -5862,35 +5908,35 @@ export const zh: Translations = {
     items: {
       'new-session': {
         title: '从头开始',
-        text: '新对话拥有独立的上下文、终端和工作目录。'
+        text: '新对话拥有独立的上下文、终端和工作目录'
       },
       skills: {
         title: '教一次就够',
-        text: '技能是一组说明文件，Hermes 会在需要时自行加载。'
+        text: '技能是一组说明文件，Hermes 会在需要时自行加载'
       },
       messaging: {
         title: '离开电脑也能用',
-        text: '接入 Telegram、Discord、Slack 等 — 同一个智能体，同一份记忆。'
+        text: '接入 Telegram、Discord、Slack 等 — 同一个智能体，同一份记忆'
       },
       artifacts: {
         title: 'Hermes 做过的一切',
-        text: '所有会话里的图片、文件和链接，都汇总在这里。'
+        text: '所有会话里的图片、文件和链接，都汇总在这里'
       },
       cron: {
         title: '会自己运行的任务',
-        text: '让一条提示按小时、按夜间，或按 cron 表达式定时执行。'
+        text: '让一条提示按小时、按夜间，或按 cron 表达式定时执行'
       },
       'command-palette': {
         title: '一个输入框搞定一切',
-        text: '会话、设置、技能和命令都能从命令面板找到。'
+        text: '会话、设置、技能和命令都能从命令面板找到'
       },
       profiles: {
         title: '配置文件彼此独立',
-        text: '每个都是独立的 Hermes — 自己的密钥、记忆和会话。'
+        text: '每个都是独立的 Hermes — 自己的密钥、记忆和会话'
       },
       'composer-mentions': {
         title: '附件与命令',
-        text: '输入 @ 把文件带入对话，输入 / 运行命令。'
+        text: '输入 @ 把文件带入对话，输入 / 运行命令'
       },
       'local-setup': {
         title: '这台电脑可以本地运行模型',
@@ -5899,7 +5945,7 @@ export const zh: Translations = {
       },
       'right-pane': {
         title: '工作面板',
-        text: '文件、终端、审阅和内置浏览器都在侧边面板里。'
+        text: '文件、终端、审阅和内置浏览器都在侧边面板里'
       }
     }
   },

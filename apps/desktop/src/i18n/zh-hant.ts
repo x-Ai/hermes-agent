@@ -486,6 +486,11 @@ export const zhHant = defineLocale({
     resetConfirm: '要將所有設定恢復為 Hermes 預設值嗎？',
     exportFailed: '匯出失敗',
     resetFailed: '重設失敗',
+    customEndpoints: {
+      maxOutputLabel: '最大輸出 Token',
+      maxOutputHint:
+        '每次請求傳送的提供方輸出上限。留空時使用 /models 自動探索值或協定預設值；端點回報「Provider exceeded max output tokens.」時可在此設定'
+    },
     nav: {
       providers: '提供方',
       providerAccounts: '帳號',

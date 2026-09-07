@@ -4420,8 +4420,8 @@ class TestRunConversation:
 
 
 
-    def test_length_finish_reason_requests_continuation(self, agent):
-        """Normal truncation (partial real content) triggers continuation."""
+    def test_length_finish_reason_preserves_partial_without_retry(self, agent):
+        """A standard length stop is a successful partial turn, not a replay trigger."""
         self._setup_agent(agent)
         first = _mock_response(content="Part 1 ", finish_reason="length")
         second = _mock_response(content="Part 2", finish_reason="stop")
@@ -4435,15 +4435,12 @@ class TestRunConversation:
             result = agent.run_conversation("hello")
 
         assert result["completed"] is True
-        assert result["api_calls"] == 2
-        assert result["final_response"] == "Part 1 Part 2"
+        assert result["partial"] is True
+        assert result["api_calls"] == 1
+        assert result["final_response"] == "Part 1"
+        agent.client.chat.completions.create.assert_called_once()
 
-        second_call_messages = agent.client.chat.completions.create.call_args_list[1].kwargs["messages"]
-        assert second_call_messages[-1]["role"] == "user"
-        assert "truncated by the output length limit" in second_call_messages[-1]["content"]
-
-    def test_length_continuation_preserves_large_provider_default_output_cap(self, agent):
-        """Continuation retries must not shrink a higher provider default cap."""
+    def test_length_stop_does_not_replay_large_provider_default_output_cap(self, agent):
         self._setup_agent(agent)
         agent.max_tokens = None
         requested_caps = []
@@ -4469,8 +4466,29 @@ class TestRunConversation:
             result = agent.run_conversation("hello")
 
         assert result["completed"] is True
-        assert result["final_response"] == "Part 1 Part 2"
-        assert requested_caps == [65536, 65536]
+        assert result["partial"] is True
+        assert result["final_response"] == "Part 1"
+        assert requested_caps == [65536]
+
+    def test_anthropic_max_tokens_stop_preserves_partial_without_retry(self, agent):
+        self._setup_agent(agent)
+        agent.api_mode = "anthropic_messages"
+        response = SimpleNamespace(
+            content=[SimpleNamespace(type="text", text="Partial Anthropic answer")],
+            stop_reason="max_tokens", usage=None, model="glm-5.2")
+        agent._interruptible_api_call = MagicMock(return_value=response)
+
+        with (
+            patch.object(agent, "_persist_session"),
+            patch.object(agent, "_save_trajectory"),
+            patch.object(agent, "_cleanup_task_resources"),
+        ):
+            result = agent.run_conversation("hello")
+
+        assert result["final_response"] == "Partial Anthropic answer"
+        assert result["partial"] is True
+        assert result["api_calls"] == 1
+        agent._interruptible_api_call.assert_called_once()
 
     def test_ollama_glm_stop_after_tools_without_terminal_boundary_requests_continuation(self, agent):
         """Local Ollama-hosted GLM (no :cloud suffix) misreports truncated output as stop."""
@@ -4547,14 +4565,10 @@ class TestRunConversation:
             result = agent.run_conversation("hello")
 
         # Should return immediately — no continuation, only 1 API call
-        assert result["completed"] is False
+        assert result["completed"] is True
+        assert result["partial"] is True
         assert result["api_calls"] == 1
-        assert "reasoning" in result["error"].lower()
-        assert "output tokens" in result["error"].lower()
-        # Should have a user-friendly response (not None)
-        assert result["final_response"] is not None
-        assert "Thinking Budget Exhausted" in result["final_response"]
-        assert "/reasoning" in result["final_response"]
+        assert "output-token limit" in result["final_response"]
 
 
     def test_length_with_tool_calls_returns_partial_without_executing_tools(self, agent):
@@ -4575,15 +4589,13 @@ class TestRunConversation:
         ):
             result = agent.run_conversation("write the report")
 
-        assert result["completed"] is False
+        assert result["completed"] is True
         assert result["partial"] is True
-        assert "truncated due to output length limit" in result["error"]
+        assert result["api_calls"] == 1
+        assert "output-token limit" in result["final_response"]
         mock_handle_function_call.assert_not_called()
 
-    def test_truncated_tool_call_retries_once_before_refusing(self, agent):
-        """When tool call args are truncated, the agent retries the API call
-        (up to 3 times). If a retry succeeds (valid JSON args), tool execution
-        proceeds."""
+    def test_standard_truncated_tool_call_is_not_replayed_or_executed(self, agent):
         self._setup_agent(agent)
         agent.valid_tool_names.add("write_file")
         bad_tc = _mock_tool_call(
@@ -4608,17 +4620,16 @@ class TestRunConversation:
             patch.object(agent, "_save_trajectory"),
             patch.object(agent, "_cleanup_task_resources"),
         ):
-            # First call: truncated → retry. Second: valid → execute tool.
-            # Third: final text response.
             final_resp = _mock_response(content="Done!", finish_reason="stop")
             agent.client.chat.completions.create.side_effect = [
                 truncated_resp, good_resp, final_resp,
             ]
             result = agent.run_conversation("write the report")
 
-        # Tool was executed on the retry (good_resp)
-        mock_hfc.assert_called_once()
-        assert result["final_response"] == "Done!"
+        mock_hfc.assert_not_called()
+        assert result["api_calls"] == 1
+        assert result["partial"] is True
+        assert "output-token limit" in result["final_response"]
 
     def test_stub_stall_mid_tool_call_recovers_within_3_retries(self, agent):
         """A network stream stall mid tool-call (PARTIAL_STREAM_STUB_ID) must
@@ -4929,6 +4940,38 @@ class TestRunConversation:
         assert result["completed"] is True
         assert second_call["max_tokens"] <= 65_472
         assert agent.context_compressor.context_length == 200_000
+
+    def test_generic_output_cap_error_retries_once_before_api_retry_budget(self, agent):
+        """The one semantic recovery is independent of ordinary API retries;
+        a repeated deterministic error terminates without widening that budget."""
+        self._setup_agent(agent)
+        agent.api_mode = "chat_completions"
+        agent.provider = "custom"
+        agent.requested_provider = "custom:cursor2api"
+        agent.base_url = "https://cursor2api.example/v1"
+        agent.model = "glm-5.2"
+        agent.max_tokens = 128_000
+        agent.max_tokens_source = "explicit"
+        agent._api_max_retries = 1
+
+        error = RuntimeError("Provider exceeded max output tokens.")
+        agent.client.chat.completions.create.side_effect = [error, error]
+
+        with (
+            patch.object(agent, "_persist_session"),
+            patch.object(agent, "_save_trajectory"),
+            patch.object(agent, "_cleanup_task_resources"),
+        ):
+            result = agent.run_conversation("hello")
+
+        assert result["completed"] is False
+        assert result["failed"] is True
+        assert "one controlled recovery attempt" in result["error"]
+        requested = [
+            call.kwargs["max_tokens"]
+            for call in agent.client.chat.completions.create.call_args_list
+        ]
+        assert requested == [128_000, 64_000]
 
     def test_output_cap_retry_when_gateway_wraps_error_as_rate_limit(self, agent):
         """Some relays wrap the upstream max-output 400 as HTTP 429. The

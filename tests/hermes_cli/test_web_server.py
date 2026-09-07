@@ -1882,6 +1882,43 @@ class TestWebServerEndpoints:
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/138.0.0.0"
         )
 
+    def test_custom_endpoint_round_trips_and_clears_provider_output_limit(self):
+        """Desktop owns the provider output limit without disturbing older clients."""
+        from hermes_cli.config import get_compatible_custom_providers, load_config
+
+        payload = {
+            "id": "cursor2api",
+            "name": "Cursor2API",
+            "base_url": "https://cursor.example.com/v1",
+            "model": "glm-5.2",
+            "max_output_tokens": 128000,
+        }
+        resp = self.client.post("/api/providers/custom-endpoints", json=payload)
+
+        assert resp.status_code == 200
+        assert load_config()["providers"]["cursor2api"]["max_output_tokens"] == 128000
+        echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "cursor2api")
+        assert echoed["max_output_tokens"] == 128000
+        normalized = next(
+            e for e in get_compatible_custom_providers() if e.get("provider_key") == "cursor2api"
+        )
+        assert normalized["max_output_tokens"] == 128000
+
+        older_client_payload = dict(payload)
+        older_client_payload.pop("max_output_tokens")
+        preserved = self.client.post("/api/providers/custom-endpoints", json=older_client_payload)
+
+        assert preserved.status_code == 200
+        assert load_config()["providers"]["cursor2api"]["max_output_tokens"] == 128000
+
+        payload["max_output_tokens"] = None
+        cleared = self.client.post("/api/providers/custom-endpoints", json=payload)
+
+        assert cleared.status_code == 200
+        assert "max_output_tokens" not in load_config()["providers"]["cursor2api"]
+        echoed = next(e for e in cleared.json()["endpoints"] if e["id"] == "cursor2api")
+        assert echoed["max_output_tokens"] is None
+
     def test_custom_endpoint_user_agent_preserves_other_headers_and_dedupes_case(self):
         """Setting the UA must keep unrelated (possibly credential-bearing)
         headers and must not leave a case-variant ``user-agent`` shadowing the
@@ -2186,6 +2223,65 @@ class TestWebServerEndpoints:
         assert headers["Authorization"] == "Bearer sk-relay"
         assert headers["x-api-key"] == "sk-relay"
         assert headers["anthropic-version"] == "2023-06-01"
+
+    def test_validate_saved_endpoint_uses_its_profile_scoped_key(self):
+        """A blank edit field reuses the saved key from the requested profile."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        from hermes_cli import profiles as profiles_mod
+
+        worker_home = profiles_mod.get_profile_dir("worker")
+        worker_home.mkdir(parents=True)
+        endpoint = {
+            "id": "proxy",
+            "name": "Proxy",
+            "base_url": "https://llm.example.com/v1",
+            "model": "model-1",
+        }
+
+        assert self.client.post(
+            "/api/providers/custom-endpoints?profile=worker",
+            json={**endpoint, "api_key": "sk-worker-secret"},
+        ).status_code == 200
+        # The same key-env name exists in the default profile and is saved
+        # second, so a process-global environment fallback would use the wrong
+        # credential. Validation must prefer the requested profile's .env.
+        assert self.client.post(
+            "/api/providers/custom-endpoints",
+            json={**endpoint, "api_key": "sk-default-secret"},
+        ).status_code == 200
+
+        probe = MagicMock()
+        probe.status_code = 200
+        probe.is_success = True
+        probe.json.return_value = {"data": []}
+        client = MagicMock()
+        client.__aenter__ = AsyncMock(return_value=client)
+        client.__aexit__ = AsyncMock(return_value=False)
+        client.get = AsyncMock(return_value=probe)
+
+        with patch("httpx.AsyncClient", return_value=client):
+            resp = self.client.post(
+                "/api/providers/custom-endpoints/validate?profile=worker",
+                json=endpoint,
+            )
+
+        assert resp.status_code == 200
+        assert resp.json()["ok"] is True
+        assert client.get.call_args.kwargs["headers"]["Authorization"] == (
+            "Bearer sk-worker-secret"
+        )
+
+        # An endpoint id is not authority to forward its credential elsewhere.
+        # Unsaved URL edits remain testable only when the user supplies a key.
+        with patch("httpx.AsyncClient", return_value=client):
+            changed = self.client.post(
+                "/api/providers/custom-endpoints/validate?profile=worker",
+                json={**endpoint, "base_url": "https://other.example.com/v1"},
+            )
+
+        assert changed.status_code == 200
+        assert "Authorization" not in client.get.call_args.kwargs["headers"]
 
     def test_validate_openai_endpoint_keeps_404_an_error(self):
         """The OpenAI wire requires /models — a 404 there stays a failure."""

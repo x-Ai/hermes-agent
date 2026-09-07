@@ -58,6 +58,9 @@ def finish_text_response(
     from agent.conversation_loop import (
         _CODEX_ACK_CONTINUATION_NUDGE, _DROPPED_TOOLCALL_NUDGE_CONTENT, _join_truncated_parts
     )
+    standard_output_truncation = bool(
+        getattr(agent, "_standard_output_truncation_pending", False))
+    agent._standard_output_truncation_pending = False
 
     def _verdict(action: str, result: Optional[Dict[str, Any]] = None) -> FinalResponseVerdict:
         return FinalResponseVerdict(
@@ -76,6 +79,35 @@ def finish_text_response(
     # Unmute: _mute_post_response from a housekeeping tool turn must not silence
     # empty-response warnings on the final response path.
     agent._mute_post_response = False
+
+    if standard_output_truncation:
+        # A protocol-level length stop is a successful terminal response, including the
+        # reasoning-only/empty case. Never feed it into empty-response or continuation retries.
+        agent._empty_content_retries = 0
+        agent._thinking_prefill_retries = 0
+        agent._dropped_toolcall_retries = 0
+        final_response = agent._strip_think_blocks(final_response).strip()
+        if not final_response:
+            final_response = "Response truncated at the provider's output-token limit before visible text was produced."
+            assistant_message.content = final_response
+        final_msg = agent._build_assistant_message(assistant_message, "length")
+        while (
+            messages and isinstance(messages[-1], dict)
+            and any(messages[-1].get(flag) for flag in _EPHEMERAL_SCAFFOLDING_FLAGS)
+        ):
+            messages.pop()
+        agent._emit_pending_fallback_notice()
+        agent._clear_status_buffer()
+        append_message(messages, final_msg)
+        try:
+            agent._flush_messages_to_session_db(messages, conversation_history)
+        except Exception:
+            logger.warning(
+                "standard-truncation turn flush failed (session=%s); relying on finalization retry",
+                getattr(agent, "session_id", None) or "none", exc_info=True,
+            )
+        _turn_exit_reason = "partial_text_response(finish_reason=length)"
+        return _verdict("break")
 
     # Think-block-only / empty content: recovery path.
     if not agent._has_content_after_think_block(final_response):
@@ -121,12 +153,13 @@ def finish_text_response(
     # Said-continue-but-stopped guard: no tool calls but the short reply TAILS with an
     # announced next action. Reuses the SAME bounded continuation counter (max 2 per turn).
     _stall_continue_intent = (
-        bool(getattr(agent, "_stall_guards", True))
+        not standard_output_truncation
+        and bool(getattr(agent, "_stall_guards", True))
         and agent.valid_tool_names
         and codex_ack_continuations < 2
         and trailing_continue_intent(agent._strip_think_blocks(final_response or ""))
     )
-    if _stall_continue_intent or (
+    if _stall_continue_intent or (not standard_output_truncation and (
         _ack_mode != "off"
         and agent.valid_tool_names
         and codex_ack_continuations < 2
@@ -134,7 +167,7 @@ def finish_text_response(
             user_message=user_message, assistant_content=final_response, messages=messages,
             require_workspace=(_ack_mode == "codex_only"),
         )
-    ):
+    )):
         if _stall_continue_intent:
             logger.info(
                 "Stall guard: turn ending on trailing continue-"

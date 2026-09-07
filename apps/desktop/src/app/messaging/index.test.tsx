@@ -103,6 +103,41 @@ describe('MessagingView', () => {
     expect(screen.queryByText('Connected')).toBeNull()
   })
 
+  it('localizes plugin descriptions, credential guidance, and field placeholders', async () => {
+    const englishDescription = "Use Hermes through iMessage via Photon's managed Spectrum platform."
+    const localizedDescription = '通过 Photon 托管的 Spectrum 平台在 iMessage 中使用 Hermes'
+    getMessagingPlatforms.mockResolvedValue({
+      platforms: [
+        platform({
+          description: englishDescription,
+          env_vars: [
+            {
+              advanced: false,
+              description: 'Mark inbound iMessages read after forwarding to Hermes (true/false, default true)',
+              is_password: false,
+              is_set: false,
+              key: 'PHOTON_READ_RECEIPTS',
+              prompt: 'Send read receipts? (true/false)',
+              redacted_value: null,
+              required: true,
+              url: null
+            }
+          ],
+          id: 'photon',
+          name: 'iMessage via Photon'
+        })
+      ]
+    })
+
+    await renderMessaging('zh')
+
+    expect((await screen.findAllByText(localizedDescription)).length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText(englishDescription)).toBeNull()
+    expect(screen.getAllByText('发送已读回执？（true/false）').length).toBeGreaterThan(0)
+    expect(screen.getAllByPlaceholderText('发送已读回执？（true/false）').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/转发给 Hermes 后，将收到的 iMessage 标记为已读/u).length).toBeGreaterThan(0)
+  })
+
   it('follows the active profile instead of targeting primary when there is no override', async () => {
     const { $settingsScopeOverride } = await import('@/store/settings-scope')
 

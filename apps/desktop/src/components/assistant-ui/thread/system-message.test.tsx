@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { toRuntimeMessage } from '@/lib/chat-runtime'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
-import { stubThreadEnvironment } from '../test-utils'
+import { assistantMessage, stubThreadEnvironment, ThreadRuntime, userMessage } from '../test-utils'
 
 import { Thread } from '.'
 
@@ -80,6 +80,29 @@ describe('system timeline placement', () => {
     expect(row?.classList.contains('px-(--message-text-indent)')).toBe(true)
     expect(row?.classList.contains('self-center')).toBe(false)
     expect(row?.classList.contains('text-center')).toBe(false)
+    expect(row?.getAttribute('data-display-kind')).toBe('async_delegation_complete')
+  })
+
+  it('keeps the first delegation completion adjacent to a footer-bearing assistant message', () => {
+    const completion = toRuntimeMessage({
+      id: 'system-1',
+      role: 'system',
+      parts: [{ type: 'text', text: '4 background agents finished' }],
+      timestamp: timestamp.getTime() / 1000,
+      displayKind: 'async_delegation_complete'
+    })
+
+    const { container } = render(
+      <ThreadRuntime messages={[userMessage(), assistantMessage(), completion]}>
+        <Thread />
+      </ThreadRuntime>
+    )
+
+    const assistant = container.querySelector('[data-slot="aui_assistant-message-root"]')
+    const system = container.querySelector('[data-display-kind="async_delegation_complete"]')
+
+    expect(assistant?.querySelector('[data-slot="aui_assistant-footer"]')).toBeTruthy()
+    expect(assistant?.nextElementSibling).toBe(system)
   })
 
   it('keeps ordinary one-line timeline statuses centered', () => {

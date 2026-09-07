@@ -1,6 +1,8 @@
 import type { Translations } from "./types";
+import { dashboardEn } from "./dashboard";
 
 export const en: Translations = {
+  dashboard: dashboardEn,
   common: {
     save: "Save",
     saving: "Saving...",
@@ -49,7 +51,7 @@ export const en: Translations = {
     pluginLoadFailed:
       "Could not load this plugin’s script. Check the Network tab (dashboard-plugins/…) and the server’s plugin path.",
     pluginNotRegistered:
-      "The plugin’s script did not call register(), or the script errored. Open the browser console for details.",
+      "The plugin’s script did not call register(), or the script errored. Open the browser console for details."
   },
 
   app: {
@@ -58,7 +60,7 @@ export const en: Translations = {
     closeNavigation: "Close navigation",
     closeModelTools: "Close model and tools",
     footer: {
-      org: "Nous Research",
+      org: "Nous Research"
     },
     activeSessionsLabel: "Active Sessions:",
     gatewayStatusLabel: "Gateway Status:",
@@ -67,7 +69,7 @@ export const en: Translations = {
       off: "Off",
       running: "Running",
       starting: "Starting",
-      stopped: "Stopped",
+      stopped: "Stopped"
     },
     nav: {
       analytics: "Analytics",
@@ -82,6 +84,12 @@ export const en: Translations = {
       plugins: "Plugins",
       sessions: "Sessions",
       skills: "Skills",
+      files: "Files",
+      mcp: "MCP",
+      channels: "Channels",
+      webhooks: "Webhooks",
+      pairing: "Pairing",
+      system: "System"
     },
     modelToolsSheetSubtitle: "& tools",
     modelToolsSheetTitle: "Model",
@@ -106,7 +114,8 @@ export const en: Translations = {
       "Your agent's disk is almost full. New messages, memories, and settings may fail to save.",
     diskElevatedBanner:
       "Your agent's disk is filling up. Consider clearing old sessions or expanding its storage.",
-    dismiss: "Dismiss",
+    diskFreeLabel: "{count} MB free",
+    dismiss: "Dismiss"
   },
 
   status: {
@@ -147,7 +156,7 @@ export const en: Translations = {
     updateHermesConfirmNow: "Update now",
     updateHermesConfirmTitle: "Update Hermes?",
     updatingHermes: "Updating Hermes…",
-    waitingForOutput: "Waiting for output…",
+    waitingForOutput: "Waiting for output…"
   },
 
   sessions: {
@@ -166,6 +175,7 @@ export const en: Translations = {
     startConversation: "Start a conversation to see it here",
     noMessages: "No messages",
     untitledSession: "Untitled session",
+    failedToLoad: "Failed to load sessions",
     deleteSession: "Delete session",
     confirmDeleteTitle: "Delete session?",
     confirmDeleteMessage:
@@ -196,8 +206,8 @@ export const en: Translations = {
       user: "User",
       assistant: "Assistant",
       system: "System",
-      tool: "Tool",
-    },
+      tool: "Tool"
+    }
   },
 
   analytics: {
@@ -223,7 +233,7 @@ export const en: Translations = {
     tokens: "Tokens",
     perDayAvg: "/day avg",
     acrossModels: "across {count} models",
-    inOut: "{input} in / {output} out",
+    inOut: "{input} in / {output} out"
   },
 
   models: {
@@ -235,7 +245,7 @@ export const en: Translations = {
     apiCalls: "API calls",
     toolCalls: "tool calls",
     noModelsData: "No model usage data for this period",
-    startSession: "Start a session to see model data here",
+    startSession: "Start a session to see model data here"
   },
 
   logs: {
@@ -245,12 +255,11 @@ export const en: Translations = {
     level: "Level",
     component: "Component",
     lines: "Lines",
-    noLogLines: "No log lines found",
+    noLogLines: "No log lines found"
   },
 
   cron: {
-    confirmDeleteMessage:
-      "This removes the job from the schedule. This cannot be undone.",
+    confirmDeleteMessage: "This removes the job from the schedule. This cannot be undone.",
     confirmDeleteTitle: "Delete scheduled job?",
     newJob: "New Cron Job",
     nameOptional: "Name (optional)",
@@ -279,10 +288,9 @@ export const en: Translations = {
       onceAt: "Run at",
       customLabel: "Cron expression",
       customPlaceholder: "0 9 * * *",
-      customHint:
-        "Five-field cron expression (minute, hour, day, month, weekday).",
+      customHint: "Five-field cron expression (minute, hour, day, month, weekday).",
       preview: "Sends as",
-      previewEmpty: "(incomplete)",
+      previewEmpty: "(incomplete)"
     },
     scheduleDescribe: {
       none: "—",
@@ -292,7 +300,7 @@ export const en: Translations = {
       dailyAt: "Daily at {time}",
       weeklyAt: "Weekly on {days} at {time}",
       monthlyAt: "Monthly on the {day} at {time}",
-      onceAt: "Once at {time}",
+      onceAt: "Once at {time}"
     },
     deliverTo: "Deliver to",
     scheduledJobs: "Scheduled Jobs",
@@ -310,8 +318,8 @@ export const en: Translations = {
       email: "Email",
       needsHomeChannel: "set a home channel first",
       noneConfigured:
-        "No messaging platforms configured. Set one up under Channels to deliver reports.",
-    },
+        "No messaging platforms configured. Set one up under Channels to deliver reports."
+    }
   },
 
   profiles: {
@@ -351,12 +359,10 @@ export const en: Translations = {
     activeSet: "Active profile set",
     gatewayRunning: "Gateway running",
     gatewayStopped: "Gateway stopped",
-    gatewayRunningWarning:
-      "This profile's gateway is running — it will be stopped.",
+    gatewayRunningWarning: "This profile's gateway is running — it will be stopped.",
     aliasBadge: "alias",
     description: "Description",
-    descriptionPlaceholder:
-      "What is this profile good at? Used to route kanban tasks by role.",
+    descriptionPlaceholder: "What is this profile good at? Used to route kanban tasks by role.",
     noDescription: "No description",
     editDescription: "Edit description",
     descriptionSaved: "Description saved",
@@ -375,8 +381,14 @@ export const en: Translations = {
     modelNone: "No authenticated providers — set a key first",
     editModel: "Change model",
     modelSaved: "Model updated",
+    modelSaveAfterCreateFailed:
+      "Profile created, but the model could not be saved — set it from the profile editor.",
     modelSelect: "Select a model",
     actions: "Actions",
+    manageSkills: "Manage skills & tools",
+    activeSetHint:
+      "Dashboard switched to manage {name}. New CLI and gateway runs use this profile too.",
+    build: "Build"
   },
 
   pluginsPage: {
@@ -386,13 +398,13 @@ export const en: Translations = {
     enableAfterInstall: "Enable after install",
     enableRuntime: "Enable",
     forceReinstall: "Force reinstall (delete existing folder first)",
-    headline:
-      "Discover, install, enable, and update Hermes plugins (`hermes plugins` parity).",
+    headline: "Discover, install, enable, and update Hermes plugins (`hermes plugins` parity).",
     identifierLabel: "Git URL or owner/repo",
     inactive: "inactive",
     installBtn: "Install",
     installHeading: "Install from GitHub / Git URL",
-    installHint: "Use owner/repo shorthand or a full https:// or git@ clone URL. For a plugin in a subdirectory, append the path: owner/repo/path/to/plugin (or <url>#path/to/plugin).",
+    installHint:
+      "Use owner/repo shorthand or a full https:// or git@ clone URL. For a plugin in a subdirectory, append the path: owner/repo/path/to/plugin (or <url>#path/to/plugin).",
     memoryProviderLabel: "Memory provider",
     missingEnvWarn: "Set these in Keys before the plugin can run:",
     noDashboardTab: "No dashboard tab",
@@ -407,7 +419,8 @@ export const en: Translations = {
     removeConfirm: "Remove this plugin from ~/.hermes/plugins/?",
     removeHint: "Only user-installed plugins under ~/.hermes/plugins can be removed.",
     rescanHeading: "SPA plugin registry",
-    rescanHint: "Rescan after adding files on disk so the dashboard sidebar picks up new manifests.",
+    rescanHint:
+      "Rescan after adding files on disk so the dashboard sidebar picks up new manifests.",
     runtimeHeading: "Gateway runtime (YAML plugins)",
     saveProviders: "Save provider settings",
     savedProviders: "Provider settings saved.",
@@ -417,7 +430,7 @@ export const en: Translations = {
     updateGit: "Git pull",
     versionBadge: "Version",
     showInSidebar: "Show in sidebar",
-    hideFromSidebar: "Hide from sidebar",
+    hideFromSidebar: "Hide from sidebar"
   },
 
   skills: {
@@ -441,7 +454,7 @@ export const en: Translations = {
     profileSelector: "Profile",
     currentProfile: "current ({name})",
     managingProfile:
-      "Managing profile \u201c{name}\u201d — toggles apply to that profile, not this dashboard\u2019s.",
+      "Managing profile \u201c{name}\u201d — toggles apply to that profile, not this dashboard\u2019s."
   },
 
   config: {
@@ -452,7 +465,8 @@ export const en: Translations = {
     importConfig: "Import config from JSON",
     resetDefaults: "Reset to defaults",
     resetScopeTooltip: "Reset {scope} to defaults",
-    confirmResetScope: "Reset all {scope} settings to their defaults? This only updates the form — changes aren't written to config.yaml until you press Save.",
+    confirmResetScope:
+      "Reset all {scope} settings to their defaults? This only updates the form — changes aren't written to config.yaml until you press Save.",
     resetScopeToast: "{scope} reset to defaults — review and Save to persist",
     rawYaml: "Raw YAML Configuration",
     searchResults: "Search Results",
@@ -480,12 +494,14 @@ export const en: Translations = {
       stt: "Speech-to-Text",
       logging: "Logging",
       discord: "Discord",
-      auxiliary: "Auxiliary",
+      auxiliary: "Auxiliary"
     },
+    resetFieldsDescription: "This will reset {count} field(s) to their default values."
   },
 
   env: {
-    changesNote: "Changes are saved to disk immediately. Active sessions pick up new keys automatically.",
+    changesNote:
+      "Changes are saved to disk immediately. Active sessions pick up new keys automatically.",
     confirmClearMessage:
       "The stored value for this variable will be removed from your .env file. This cannot be undone from the UI.",
     confirmClearTitle: "Clear this key?",
@@ -505,13 +521,15 @@ export const en: Translations = {
     showValue: "Show real value",
     hideValue: "Hide value",
     customTitle: "Custom Keys",
-    customHint: "Arbitrary environment variables stored in your .env that Hermes doesn't recognise. Use these to inject env vars for skills, MCP servers, or your own tooling.",
+    customHint:
+      "Arbitrary environment variables stored in your .env that Hermes doesn't recognise. Use these to inject env vars for skills, MCP servers, or your own tooling.",
     customConfigured: "{count} custom key{s} set",
     addCustomKey: "Add a custom key",
     customKeyName: "Variable name",
     customKeyNamePlaceholder: "e.g. MY_SERVICE_API_KEY",
     add: "Add",
-    invalidKeyName: "Use letters, numbers and underscores only (must start with a letter or underscore).",
+    invalidKeyName:
+      "Use letters, numbers and underscores only (must start with a letter or underscore)."
   },
 
   oauth: {
@@ -527,6 +545,7 @@ export const en: Translations = {
     login: "Login",
     disconnect: "Disconnect",
     managedExternally: "Managed externally",
+    token: "token",
     copied: "Copied ✓",
     copyCode: "Copy code",
     copyFailed: "Could not copy automatically. Select the code and copy it manually.",
@@ -553,13 +572,13 @@ export const en: Translations = {
     flowLabels: {
       pkce: "Browser login (PKCE)",
       device_code: "Device code",
-      external: "External CLI",
+      external: "External CLI"
     },
-    expiresIn: "expires in {time}",
+    expiresIn: "expires in {time}"
   },
 
   language: {
-    switchTo: "Switch language",
+    switchTo: "Switch language"
   },
 
   theme: {
@@ -570,7 +589,7 @@ export const en: Translations = {
     fontDefaultHint: "Use the active theme's font",
     fontSans: "Sans",
     fontSerif: "Serif",
-    fontMono: "Mono",
+    fontMono: "Mono"
   },
 
   achievements: {
@@ -580,10 +599,10 @@ export const en: Translations = {
       subtitle:
         "Collectible Hermes badges earned from real session history. Known unfinished achievements are shown as Discovered; Secret achievements stay hidden until the first matching behavior appears.",
       scan_subtitle:
-        "Scanning Hermes session history. First scan can take 5–10 seconds on large histories.",
+        "Scanning Hermes session history. First scan can take 5–10 seconds on large histories."
     },
     actions: {
-      rescan: "Rescan",
+      rescan: "Rescan"
     },
     stats: {
       unlocked: "Unlocked",
@@ -596,31 +615,30 @@ export const en: Translations = {
       highest_tier_hint: "Copper → Silver → Gold → Diamond → Olympian",
       latest: "Latest",
       latest_hint_empty: "run Hermes more",
-      none_yet: "None yet",
+      none_yet: "None yet"
     },
     state: {
       unlocked: "Unlocked",
       discovered: "Discovered",
-      secret: "Secret",
+      secret: "Secret"
     },
     tier: {
       target: "Target {tier}",
       hidden: "Hidden",
       complete: "Complete",
-      objective: "Objective",
+      objective: "Objective"
     },
     progress: {
-      hidden: "hidden",
+      hidden: "hidden"
     },
     scan: {
       building_headline: "Building achievement profile…",
-      building_detail:
-        "Reading sessions, tool calls, model metadata, and unlock state.",
+      building_detail: "Reading sessions, tool calls, model metadata, and unlock state.",
       starting_headline: "Starting achievement scan…",
       progress_detail:
         "Scanned {scanned} of {total} sessions · {pct}%. Badges unlock as more history streams in.",
       idle_detail:
-        "Reading sessions, tool calls, model metadata, and unlock state. Badges appear here as they unlock.",
+        "Reading sessions, tool calls, model metadata, and unlock state. Badges appear here as they unlock."
     },
     guide: {
       tiers_header: "Tiers",
@@ -632,7 +650,7 @@ export const en: Translations = {
         "Hermes is scanning local history once, then cards will appear automatically. Nothing is stuck if this takes a few seconds.",
       what_scanned_header: "What is scanned",
       what_scanned_body:
-        "Sessions, tool calls, model metadata, errors, achievements, and local unlock state.",
+        "Sessions, tool calls, model metadata, errors, achievements, and local unlock state."
     },
     card: {
       share_title: "Share this achievement",
@@ -642,22 +660,22 @@ export const en: Translations = {
       what_counts: "What counts",
       evidence_label: "Evidence",
       evidence_session_fallback: "session",
-      no_evidence: "No evidence yet",
+      no_evidence: "No evidence yet"
     },
     latest: {
-      header: "Recent unlocks",
+      header: "Recent unlocks"
     },
     empty: {
       no_secrets_header: "No hidden secrets left in this scan.",
       no_secrets_body:
-        "Clue: secrets usually start from unusual failure or power-user patterns — port conflicts, permission walls, missing env vars, YAML mistakes, Docker collisions, rollback/checkpoint use, cache hits, or tiny fixes after lots of red text.",
+        "Clue: secrets usually start from unusual failure or power-user patterns — port conflicts, permission walls, missing env vars, YAML mistakes, Docker collisions, rollback/checkpoint use, cache hits, or tiny fixes after lots of red text."
     },
     filters: {
       all_categories: "All",
       visibility_all: "all",
       visibility_unlocked: "unlocked",
       visibility_discovered: "discovered",
-      visibility_secret: "secret",
+      visibility_secret: "secret"
     },
     share: {
       dialog_label: "Share achievement",
@@ -672,12 +690,15 @@ export const en: Translations = {
       copy_button: "Copy image",
       copied: "Copied ✓",
       download_button: "Download PNG",
-      hint:
-        "Share on X opens a pre-filled post in a new tab. Click Copy image first if you want the 1200×630 badge attached — X lets you paste it right into the tweet composer. Download PNG saves the file for use anywhere.",
+      hint: "Share on X opens a pre-filled post in a new tab. Click Copy image first if you want the 1200×630 badge attached — X lets you paste it right into the tweet composer. Download PNG saves the file for use anywhere.",
       clipboard_unsupported:
         "Clipboard image copy not supported in this browser — use Download instead.",
-      tweet_text: "Just unlocked {tier_part}\"{name}\" in Hermes Agent ☤",
-    },
+      tweet_text: 'Just unlocked {tier_part}"{name}" in Hermes Agent ☤',
+      image_tier: "{tier} tier",
+      image_unlocked: "◆ Unlocked",
+      image_achievement_fallback: "Achievement",
+      image_render_failed: "Could not render the achievement image."
+    }
   },
 
   kanban: {
@@ -737,8 +758,7 @@ export const en: Translations = {
     runHistory: "Run history",
     workerLog: "Worker log",
     loadingLog: "Loading log…",
-    noWorkerLog:
-      "— no worker log yet (task hasn't spawned or log was rotated away) —",
+    noWorkerLog: "— no worker log yet (task hasn't spawned or log was rotated away) —",
     noDescription: "— no description —",
     noComments: "— no comments —",
     edit: "edit",
@@ -769,8 +789,7 @@ export const en: Translations = {
     reassign: "Reassign",
     renderingError: "Kanban tab hit a rendering error",
     reloadView: "Reload view",
-    wsAuthFailed:
-      "WebSocket auth failed — reload the page to refresh the session token.",
+    wsAuthFailed: "WebSocket auth failed — reload the page to refresh the session token.",
     markDone: "Mark {n} task(s) as done?",
     markArchived: "Archive {n} task(s)?",
     warning: "Warning",
@@ -808,8 +827,9 @@ export const en: Translations = {
       ready: "Ready",
       running: "In Progress",
       blocked: "Blocked",
+      review: "Review",
       done: "Done",
-      archived: "Archived",
+      archived: "Archived"
     },
     columnHelp: {
       triage: "Raw ideas — a specifier will flesh out the spec",
@@ -818,38 +838,31 @@ export const en: Translations = {
       ready: "Dependencies satisfied; assign a profile to dispatch",
       running: "Claimed by a worker — in-flight",
       blocked: "Worker asked for human input",
+      review: "Implementation complete — awaiting review",
       done: "Completed",
-      archived: "Archived",
+      archived: "Archived"
     },
     confirmDone:
       "Mark this task as done? The worker's claim is released and dependent children become ready.",
-    confirmArchive:
-      "Archive this task? It disappears from the default board view.",
-    confirmBlocked:
-      "Mark this task as blocked? The worker's claim is released.",
+    confirmArchive: "Archive this task? It disappears from the default board view.",
+    confirmBlocked: "Mark this task as blocked? The worker's claim is released.",
     confirmScheduled:
       "Move this task to Scheduled? Use this for known time delays rather than human blockers.",
     confirmDoneMany:
       "Mark {n} tasks as done? The workers' claims are released and dependent children become ready.",
-    confirmArchiveMany:
-      "Archive {n} tasks? They disappear from the default board view.",
-    confirmBlockedMany:
-      "Mark {n} tasks as blocked? The workers' claims are released.",
-    completionSummary:
-      "Completion summary for {label}. This is stored as the task result.",
-    completionSummaryRequired:
-      "Completion summary is required before marking a task done.",
+    confirmArchiveMany: "Archive {n} tasks? They disappear from the default board view.",
+    confirmBlockedMany: "Mark {n} tasks as blocked? The workers' claims are released.",
+    completionSummary: "Completion summary for {label}. This is stored as the task result.",
+    completionSummaryRequired: "Completion summary is required before marking a task done.",
     triagePlaceholder: "Rough idea — AI will spec it…",
     taskTitlePlaceholder: "New task title…",
     specifier: "specifier",
     assigneePlaceholder: "assignee",
     priority: "Priority",
-    skillsPlaceholder:
-      "skills (optional, comma-separated): translation, github-code-review",
+    skillsPlaceholder: "skills (optional, comma-separated): translation, github-code-review",
     noParent: "— no parent —",
     workspacePathDir: "workspace path (required, e.g. ~/projects/my-app)",
-    workspacePathOptional:
-      "workspace path (optional, derived from assignee if blank)",
+    workspacePathOptional: "workspace path (optional, derived from assignee if blank)",
     logTruncated: "(showing last 100 KB — full log at ",
     logAt: ")",
     newTaskTitle: "New task — {column}",
@@ -872,9 +885,176 @@ export const en: Translations = {
       "Comments reach the worker on its next run or kanban_show() — no need to block the task first.",
     commentHintTitle:
       "Comments are the channel for talking to a task's worker. They land on the thread immediately — no need to block the task first. A running worker picks the thread up on its next kanban_show() or respawn; blocking is only for when you want the worker to STOP and wait for your input.",
+    clearFilters: "Clear filters",
+    orchestrationSettings: "Orchestration settings",
+    orchestrationLabel: "Orchestration:",
+    orchestrationAuto: "Auto",
+    orchestrationManual: "Manual",
+    loadingMode: "Loading mode…",
+    orchestrationAutoTitle:
+      "Automatic orchestration decomposes new triage tasks on every dispatcher tick. Click to switch to manual mode.",
+    orchestrationManualTitle:
+      "In manual mode, triage tasks remain in place until you decompose each card. Click to switch to automatic mode.",
+    configureOrchestration:
+      "Configure the Kanban orchestrator, default assignee, and profile descriptions.",
+    settingsLoadFailed: "Failed to load: {error}",
+    settingsSaved: "Settings saved.",
+    saveFailed: "Save failed: {error}",
+    descriptionSaved: "Description saved for {name}.",
+    autoDescriptionSaved: "Generated a description for {name}.",
+    autoGenerateFailed: "Description generation failed: {error}",
+    unknownError: "unknown error",
+    reload: "Reload",
+    orchestratorProfile: "Orchestrator profile",
+    defaultAssignee: "Default assignee",
+    defaultValue: "(default: {name})",
+    resolved: "Resolved: {name}",
+    orchestratorHint:
+      "Owns the root task after fan-out and wakes to judge completion. Configure task decomposition under auxiliary.kanban_decomposer.",
+    orchestrationMode: "Orchestration mode",
+    autoDecompose: "Automatically decompose triage tasks",
+    autoModeHint: "The dispatcher decomposes new triage tasks automatically.",
+    manualModeHint: "Triage tasks remain in triage until you choose Decompose.",
+    profileDescriptions: "Profile descriptions",
+    profileDescriptionsHint:
+      "Descriptions guide task routing. Generate one automatically or edit and save it.",
+    noProfilesInstalled: "No profiles installed.",
+    defaultSuffix: "(default)",
+    autoReview: "auto — review",
+    noProfileDescription: "⚠ no description",
+    profileDescriptionPlaceholder: "What is this profile good at?",
+    saveDescriptionTitle: "Save this user-authored description",
+    autoDescriptionTitle: "Generate a description from this profile’s skills and model",
+    generating: "Generating…",
+    autoGenerate: "⚗ Auto",
+    clearFiltersTitle: "Clear all active filters (search, tenant, assignee, and archived tasks).",
+    hideUntilReload: "Hide until the next page reload",
+    copyCommandPrompt: "Copy this command:",
+    docsTitle: "Open Hermes Kanban documentation in a new tab",
+    docsLabel: "Hermes Kanban documentation",
+    switchBoard: "Switch Kanban board",
+    switchBoardHint:
+      "Boards are independent work streams with separate tasks, tenants, and assignees.",
+    taskCount: "{count} task(s)",
+    boardDescriptionPlaceholder: "What belongs on this board?",
+    projectDirectory: "Project directory",
+    recommended: "(recommended)",
+    projectDirectoryPlaceholder: "Absolute path to the project folder",
+    projectDirectoryHint:
+      "Git projects use preserved worktrees. Other folders use the directory directly. Leave blank only for temporary work.",
+    projectDirectoryPurpose:
+      "Sets the default location for task files so project output is preserved.",
+    searchTitle: "Fuzzy-match tasks by ID, title, or description across all columns.",
+    assigneeFilterTitle: "Filter by the named Hermes profile assigned to a task.",
+    showArchivedTitle: "Include archived tasks; they are hidden by default.",
+    lanesByProfileTitle: "Group the in-progress column by assigned profile.",
+    nudgeTitle:
+      "Wake the dispatcher now to claim ready tasks instead of waiting for the next tick.",
+    bulkTodoTitle: "Move selected tasks to Todo.",
+    bulkReadyTitle: "Move selected tasks to Ready so the dispatcher can claim them.",
+    bulkBlockedTitle: "Block selected tasks and release active claims.",
+    bulkUnblockTitle: "Unblock selected tasks and move them to Ready.",
+    bulkCompleteTitle:
+      "Mark selected tasks as done, release their claims, and unblock dependent children.",
+    bulkArchiveTitle: "Archive selected tasks while keeping them in the database.",
+    bulkDeleteTitle: "Permanently delete selected tasks. This cannot be undone.",
+    bulkPriorityTitle: "Set priority on selected tasks. Higher-priority tasks are claimed first.",
+    bulkReassignTitle:
+      "Reassign selected tasks to another Hermes profile, or remove their assignment.",
+    bulkAssigneeTitle: "Apply the selected assignee to every selected task.",
+    confirmUnblockedMany: "Unblock {n} task(s)?",
+    reassignPlaceholder: "— reassign —",
+    unassign: "(unassign)",
+    reclaimFirstTitle: "Reclaim active claims before reassigning.",
+    reclaimFirst: "Reclaim first",
+    selectAllVisibleTitle: "Select every visible card across columns.",
+    selectAllVisible: "Select all visible",
+    clearSelectionTitle: "Deselect all tasks and hide this bar.",
+    selectColumnTitle: "Select every task in this column",
+    selectColumnLabel: "Select all tasks in {column}",
+    columnTaskCount: "{count} task(s) in this column",
+    noProfileAssigned: "No profile assigned.",
+    assigneeHelp:
+      "Choose a Hermes profile, or leave blank so the dispatcher picks when the task is Ready.",
+    specifierHelp:
+      "Choose the Hermes profile that will specify this task, or leave blank for automatic selection.",
+    priorityHelp: "Higher-priority tasks are claimed first by the dispatcher. 0 is the default.",
+    skillsHelp:
+      "Load these skills into the worker in addition to the built-in kanban-worker skill.",
+    parentHelp: "Optional parent task. The child stays blocked until the parent is marked done.",
+    workspaceModeTitle: "Choose whether task files are temporary or preserved after completion.",
+    temporaryWorkspaceWarning:
+      "This workspace and any remaining files are deleted when the task completes.",
+    completionSummaryHint: "This completion summary is stored as the task result.",
+    noFinalResult:
+      "No final result was recorded. Check Run History, Logs, or Child Tasks for worker output.",
+    refreshLog: "Refresh log",
+    editDescriptionTitle: "Edit description",
+    specifying: "Specifying…",
+    specify: "✨ Specify",
+    specified: "Specified",
+    specifyFailed: "Specify failed: {error}",
+    decomposing: "Decomposing…",
+    decompose: "⚗ Decompose",
+    decomposedInto: "Decomposed into {count} children: {ids}",
+    singleTaskNoFanout: "Single task (no fanout)",
+    decomposeFailed: "Decompose failed: {error}",
+    retitledSuffix: " — retitled: {title}",
+    newBoardButtonTitle: "Create a new board for a separate work stream.",
+    tenantFilterTitle:
+      "Tenants are free-form task tags. Set them in the task drawer or with kanban_create.",
+    forceReloadTitle: "Reload the board from the database.",
+    selectedTasks: "{n} selected tasks",
+    thisTask: "this task",
+    confirm: "Confirm",
+    ok: "OK",
+    delete: "Delete",
+    confirmTitle: "Confirm change",
+    bulkConfirmTitle: "Apply bulk change",
+    confirmStatusTitle: {
+      done: "Complete task?",
+      archived: "Archive task?",
+      blocked: "Block task?"
+    },
+    confirmStatusLabel: {
+      done: "Complete",
+      archived: "Archive",
+      blocked: "Block"
+    },
+    setPriority: "Set priority",
+    workspaceScratch: "Temporary — deleted on completion",
+    workspaceWorktree: "Git worktree — preserved",
+    workspaceDir: "Directory — preserved",
+    goalMode: "Goal mode",
+    goalMaxTurns: "maximum turns (default 20)",
+    goalModeHelp:
+      "Goal mode keeps the worker in the same session until the task is accepted or the turn budget is exhausted.",
+    goalMaxTurnsHelp: "Turn budget for the goal loop. Blank uses the backend default.",
+    goalModeValue: "On (maximum {count} turns)",
+    goalModeOn: "On",
+    attachments: "Attachments",
+    uploading: "Uploading…",
+    uploadFile: "Upload file",
+    noAttachments: "— no attachments —",
+    removeAttachment: "Remove attachment",
+    confirmRemoveAttachment: "Remove this attachment?",
+    finalResult: "Final result (run summary)",
+    doneParentNote:
+      "This card is an orchestrator or parent task. Review child results for the substantive work.",
+    childResults: "Child results",
+    noChildResult: "No result recorded yet.",
+    model: "Model",
+    modelProfileDefault: "profile default",
+    clickToEditModel: "Click to override the model for this task’s next run",
+    modelFreeTextPlaceholder: "model name (empty = profile default)",
+    modelLoading: "loading models…",
+    modelProfileDefaultOption: "(profile default)",
     trash: {
       confirmTitle: "Delete task?",
       confirmManyTitle: "Delete {n} tasks?",
-    },
-  },
+      confirm: "Permanently delete this task? This cannot be undone.",
+      confirmMany: "Permanently delete {n} selected tasks? This cannot be undone.",
+      dropHint: "Drop to delete"
+    }
+  }
 };

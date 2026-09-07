@@ -6,8 +6,8 @@ free models, Ollama Cloud, custom OpenAI-compatible endpoints) truncated long
 generations with `finish_reason="length"`.
 
 Precedence verified here:
-    HERMES_MAX_TOKENS env  >  model.max_tokens  >  per-provider
-    max_output_tokens  >  None
+    HERMES_MAX_TOKENS / model.max_tokens  >  provider model max_output_tokens
+    >  provider max_output_tokens  >  None
 """
 
 import importlib
@@ -72,6 +72,7 @@ def test_top_level_max_tokens_propagates(isolated_home):
     grun = fresh_gateway()
     kw = grun._resolve_runtime_agent_kwargs()
     assert kw["max_tokens"] == 16384
+    assert kw["max_tokens_source"] == "explicit"
 
 
 def test_per_provider_max_output_tokens_fallback(isolated_home):
@@ -93,5 +94,27 @@ def test_per_provider_max_output_tokens_fallback(isolated_home):
     grun = fresh_gateway()
     kw = grun._resolve_runtime_agent_kwargs()
     assert kw["max_tokens"] == 12000
+    assert kw["max_tokens_source"] == "provider"
 
 
+def test_custom_provider_per_model_output_limit_wins(isolated_home):
+    write_cfg, fresh_gateway = isolated_home
+    write_cfg(
+        """
+        model:
+          default: glm-5.2
+          provider: mylocal
+        providers:
+          mylocal:
+            api: http://localhost:11434/v1
+            api_key: sk-test
+            max_output_tokens: 12000
+            models:
+              glm-5.2:
+                max_output_tokens: 128000
+        """
+    )
+    grun = fresh_gateway()
+    kw = grun._resolve_runtime_agent_kwargs()
+    assert kw["max_tokens"] == 128000
+    assert kw["max_tokens_source"] == "model"

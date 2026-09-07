@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 
-import { stubThreadEnvironment, ThreadRuntime, userMessage } from '../test-utils'
+import { assistantMessage, stubThreadEnvironment, ThreadRuntime, userMessage } from '../test-utils'
 
 import { parseProcessNotification, ProcessNotificationNote } from './user-message'
 
@@ -63,6 +63,22 @@ describe('background process notification placement', () => {
     const root = container.querySelector('[data-slot="aui_user-message-root"]')
 
     expect(root?.classList.contains('pl-(--message-text-indent)')).toBe(true)
+  })
+
+  it('exposes the adjacent message-group hooks that collapse the preceding action-bar gap', () => {
+    const { container } = render(
+      <I18nProvider configClient={null} initialLocale="en">
+        <ThreadRuntime messages={[assistantMessage(), userMessage('process-1', notification)]}>
+          <Thread />
+        </ThreadRuntime>
+      </I18nProvider>
+    )
+
+    const groups = container.querySelectorAll('[data-slot="aui_message-group"]')
+
+    expect(groups).toHaveLength(2)
+    expect(groups[0]?.querySelector('[data-slot="aui_assistant-footer"]')).toBeTruthy()
+    expect(groups[1]?.querySelector('[data-slot="aui_process-notification"]')).toBeTruthy()
   })
 
   it('separates watch metadata, command and matched content', () => {

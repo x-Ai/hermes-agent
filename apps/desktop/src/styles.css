@@ -2099,6 +2099,22 @@ body.guest-pointer-lock :is(webview, iframe) {
   margin-top: calc(var(--scaffold-block-gap) - var(--conversation-turn-gap));
 }
 
+/* A settled assistant reply reserves 2.25rem for its hover-only action bar.
+   Background-process and delegation-completion rows are operational
+   continuations of that reply, so letting them start below the invisible bar
+   creates a conspicuous blank band. Pull only the FIRST adjacent operational
+   row into that reserved space; later notices retain the normal turn rhythm. */
+:is(
+  [data-slot='aui_message-group']:has([data-slot='aui_assistant-footer'])
+    + [data-slot='aui_message-group']:has(
+      :is([data-slot='aui_process-notification'], [data-display-kind='async_delegation_complete'])
+    ),
+  [data-slot='aui_assistant-message-root']:has([data-slot='aui_assistant-footer'])
+    + [data-slot='aui_system-message-root'][data-display-kind='async_delegation_complete']
+) {
+  margin-top: -2.25rem;
+}
+
 /* Message action bars — flat icon hits with default dim; only the hovered/focused control is full-strength.
    The reaction slot lives OUTSIDE the bar (a landed emoji must not ride the
    bar's hover fade) but is still one of these controls visually. */

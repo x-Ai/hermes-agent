@@ -126,6 +126,12 @@ def _get_anthropic_max_output(model: str) -> int:
     return _ANTHROPIC_OUTPUT_LIMITS[best_key] if best_key else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
 
 
+def _get_known_anthropic_max_output(model: str) -> Optional[int]:
+    m = model.lower().replace(".", "-")
+    best_key = max((key for key in _ANTHROPIC_OUTPUT_LIMITS if key in m), key=len, default=None)
+    return _ANTHROPIC_OUTPUT_LIMITS[best_key] if best_key else None
+
+
 def _resolve_positive_anthropic_max_tokens(value) -> Optional[int]:
     """``value`` floored to a positive int, or None when it is not a finite positive number.
     Anthropic 400s on max_tokens that are 0, negative, fractional or non-finite; the ``max_tokens
@@ -141,11 +147,17 @@ def _resolve_positive_anthropic_max_tokens(value) -> Optional[int]:
     return int(value) if int(value) > 0 else None  # int() truncates toward zero for floats
 
 
-def _resolve_anthropic_messages_max_tokens(requested, model: str, context_length: Optional[int] = None) -> int:
+def _resolve_anthropic_messages_max_tokens(
+    requested, model: str, context_length: Optional[int] = None, base_url: Optional[str] = None,
+) -> int:
     """``requested`` when it is a positive finite number, else the model's output ceiling. Raises
     ValueError if neither is positive. The context-window clamp is the caller's job so the
     positive-value contract stays endpoint-agnostic."""
-    resolved = _resolve_positive_anthropic_max_tokens(requested) or _get_anthropic_max_output(model)
+    resolved = _resolve_positive_anthropic_max_tokens(requested) or _get_known_anthropic_max_output(model)
+    if resolved is None:
+        # Messages requires max_tokens. Keep the historical future-Claude fallback on Anthropic,
+        # but do not impose 128K on an unknown model served by a custom compatible endpoint.
+        resolved = 16_384 if _is_third_party_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
     if resolved > 0:
         return resolved
     raise ValueError(
@@ -598,7 +610,8 @@ def build_anthropic_kwargs(
     if not _is_nous_portal_endpoint(base_url):
         model = normalize_model_name(model, preserve_dots=preserve_dots)
     # Non-positive/non-finite values fail locally instead of 400-ing upstream.
-    effective_max_tokens = _resolve_anthropic_messages_max_tokens(max_tokens, model, context_length=context_length)
+    effective_max_tokens = _resolve_anthropic_messages_max_tokens(
+        max_tokens, model, context_length=context_length, base_url=base_url)
     if context_length and effective_max_tokens > context_length:
         effective_max_tokens = max(context_length - 1, 1)
     to_wire = _oauth_wire_namer(anthropic_tools) if is_oauth else None

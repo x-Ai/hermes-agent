@@ -56,7 +56,6 @@ _API_MODE_ALIASES = {
 _FALSE_WORDS = frozenset({"false", "0", "no", "off"})
 _TRUE_WORDS = frozenset({"true", "1", "yes", "on"})
 
-
 def _canonical_api_mode(api_mode: str) -> str:
     """Map alias ``api_mode`` spellings to canonical transport names (unknown pass through)."""
     cleaned = api_mode.strip()
@@ -107,6 +106,7 @@ _CAMEL_ALIASES: Dict[str, str] = {
     "apiKeyEnv": "key_env",  # OpenClaw-compatible + docs variant
     "defaultModel": "default_model",
     "contextLength": "context_length",
+    "maxOutputTokens": "max_output_tokens",
     "rateLimitDelay": "rate_limit_delay",
     "authScheme": "auth_scheme"}
 
@@ -117,7 +117,8 @@ _KNOWN_PROVIDER_KEYS = {
     "provider",
     "name", "api", "url", "base_url", "api_key", "key_env", "api_key_env", "key_cmd",
     "api_mode", "transport", "model", "default_model", "models", "models_discovered",
-    "context_length", "rate_limit_delay", "request_timeout_seconds", "stale_timeout_seconds",
+    "context_length", "max_output_tokens", "max_tokens", "rate_limit_delay",
+    "request_timeout_seconds", "stale_timeout_seconds",
     "discover_models", "extra_body", "extra_headers", "capabilities", "ssl_ca_cert", "ssl_verify",
     "auth_scheme"}
 
@@ -254,6 +255,8 @@ def _normalize_custom_provider_entry(
 
     for field, ok in (
         ("context_length", lambda v: isinstance(v, int) and v > 0),
+        ("max_output_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
+        ("max_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
         ("rate_limit_delay", lambda v: isinstance(v, (int, float)) and v >= 0),
         ("discover_models", lambda v: isinstance(v, bool)),
     ):
@@ -296,6 +299,7 @@ def _custom_provider_entry_to_provider_config(
     provider_entry: Dict[str, Any] = {"api": normalized["base_url"]}
     for field in (
         "name", "api_key", "key_env", "models", "models_discovered", "context_length",
+        "max_output_tokens", "max_tokens",
         "rate_limit_delay", "discover_models", "extra_body", "extra_headers",
         "ssl_ca_cert", "ssl_verify", "auth_scheme"):
         if field in normalized:

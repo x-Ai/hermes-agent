@@ -1346,8 +1346,12 @@ _swr_refresh_lock = threading.Lock()
 
 
 def _cache_entry(fp: str, models: list[str], at: Optional[float] = None) -> dict:
-    """One provider row of the disk cache: credential fingerprint, write time, model ids."""
-    return {"fp": fp, "at": time.time() if at is None else at, "models": list(models)}
+    """One provider row of the disk cache: credential fingerprint, model ids and capabilities."""
+    entry = {"fp": fp, "at": time.time() if at is None else at, "models": list(models)}
+    metadata = getattr(models, "model_metadata", None)
+    if isinstance(metadata, dict) and metadata:
+        entry["model_metadata"] = metadata
+    return entry
 
 
 def _ollama_native_probe_reachable() -> bool:
@@ -2101,11 +2105,44 @@ def github_model_reasoning_efforts(
     return _github_reasoning_efforts_for_model_id(str(model_id or normalized))
 
 
+class DiscoveredModelList(list[str]):
+    """List-compatible discovered catalog with per-model capability metadata attached."""
+
+    def __init__(self, models=(), *, model_metadata: Optional[dict[str, dict[str, int]]] = None):
+        super().__init__(models)
+        self.model_metadata = dict(model_metadata or {})
+
+
+def _positive_output_limit(value: Any) -> Optional[int]:
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
+def _models_from_catalog(data: Any) -> DiscoveredModelList:
+    """Keep IDs plus advertised output limits; never reinterpret context length as output size."""
+    model_ids: list[str] = []
+    metadata: dict[str, dict[str, int]] = {}
+    rows = data.get("data", []) if isinstance(data, dict) else []
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        model_id = row.get("id")
+        if not isinstance(model_id, str) or not model_id:
+            continue
+        model_ids.append(model_id)
+        capabilities = row.get("capabilities")
+        raw_limit = capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None
+        limit = _positive_output_limit(raw_limit)
+        if limit is not None:
+            metadata[model_id] = {"max_output_tokens": limit}
+    return DiscoveredModelList(model_ids, model_metadata=metadata)
+
+
 def _probe_result(
     models, probed_url, resolved_base_url, suggested_base_url=None, used_fallback=False
 ) -> dict[str, Any]:
     return {
         "models": models,
+        "model_metadata": dict(getattr(models, "model_metadata", {}) or {}),
         "probed_url": probed_url,
         "resolved_base_url": resolved_base_url,
         "suggested_base_url": suggested_base_url,
@@ -2162,7 +2199,7 @@ def probe_api_models(
         except Exception:
             continue
         return _probe_result(
-            [m.get("id", "") for m in data.get("data", [])], url, candidate_base.rstrip("/"),
+            _models_from_catalog(data), url, candidate_base.rstrip("/"),
             alternate_base if alternate_base != candidate_base else normalized, is_fallback)
     return _probe_result(
         None, tried[0] if tried else normalized.rstrip("/") + "/models", normalized,
@@ -2342,6 +2379,11 @@ def cached_fetch_api_models(
     def _live():
         return fetch_api_models(api_key, base_url, timeout=timeout, api_mode=api_mode, headers=headers)
 
+    def _from_cache(row: dict) -> DiscoveredModelList:
+        metadata = row.get("model_metadata")
+        return DiscoveredModelList(
+            row["models"], model_metadata=metadata if isinstance(metadata, dict) else None)
+
     normalized_url = str(base_url or "").strip().rstrip("/").lower()
     if not normalized_url:  # nothing to key the cache on
         return None if cache_only else _live()
@@ -2355,12 +2397,12 @@ def cached_fetch_api_models(
 
     if cache_only:
         # Same trust window as the SWR tier below, minus the revalidation.
-        return list(entry["models"]) if valid and now - entry["at"] < _PROVIDER_MODELS_STALE_SERVE_MAX else None
+        return _from_cache(entry) if valid and now - entry["at"] < _PROVIDER_MODELS_STALE_SERVE_MAX else None
 
     if valid:
         age = now - entry["at"]
         if age < ttl_seconds:
-            return list(entry["models"])
+            return _from_cache(entry)
         if age < _PROVIDER_MODELS_STALE_SERVE_MAX:
             # Stale-while-revalidate: serve now, refresh off-thread for the next open.
             def _refresh_custom():
@@ -2368,15 +2410,15 @@ def cached_fetch_api_models(
                 return _cache_entry(fp, live) if live else None
 
             _spawn_swr_refresh(cache_key, _refresh_custom)
-            return list(entry["models"])
+            return _from_cache(entry)
 
     live = _live()
     if live:
         _store_cache_entry(cache_key, _cache_entry(fp, live, now), cache)
-        return list(live)
+        return live
     # Live returned nothing (offline, timeout, auth hiccup): a stale same-fingerprint entry beats it.
     if _cache_entry_valid(entry, fp):
-        return list(entry["models"])
+        return _from_cache(entry)
     return live
 
 

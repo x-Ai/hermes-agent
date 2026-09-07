@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-  useCallback,
-  useRef,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
   AlertTriangle,
@@ -30,21 +23,18 @@ import {
   Upload,
   Pencil,
   Check,
-  Archive,
+  Archive
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatSessionPruneResult } from "@/lib/session-prune";
 import { shouldRefreshSessions } from "@/lib/session-refresh";
-import {
-  importSummary,
-  parseImportSessions,
-} from "@/lib/session-import";
+import { importSummary, parseImportSessions } from "@/lib/session-import";
 import type {
   SessionInfo,
   SessionMessage,
   SessionSearchResult,
   SessionStoreStats,
-  StatusResponse,
+  StatusResponse
 } from "@/lib/api";
 import { timeAgo } from "@/lib/utils";
 import { Markdown } from "@/components/Markdown";
@@ -66,36 +56,36 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@nous-research/ui/ui/components/dialog";
 import { useSystemActions } from "@/contexts/useSystemActions";
 import { useToast } from "@nous-research/ui/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 import { isDashboardEmbeddedChatEnabled } from "@/lib/dashboard-flags";
 
-const SOURCE_CONFIG: Record<string, { icon: typeof Terminal; color: string }> =
-  {
-    cli: { icon: Terminal, color: "text-primary" },
-    tui: { icon: Terminal, color: "text-primary" },
-    telegram: { icon: MessageCircle, color: "text-[oklch(0.65_0.15_250)]" },
-    discord: { icon: Hash, color: "text-[oklch(0.65_0.15_280)]" },
-    slack: { icon: MessageSquare, color: "text-[oklch(0.7_0.15_155)]" },
-    whatsapp: { icon: Globe, color: "text-success" },
-    whatsapp_cloud: { icon: Globe, color: "text-success" },
-    signal: { icon: MessageCircle, color: "text-success" },
-    matrix: { icon: MessageCircle, color: "text-[oklch(0.65_0.15_250)]" },
-    email: { icon: MessageSquare, color: "text-[oklch(0.7_0.15_155)]" },
-    sms: { icon: MessageCircle, color: "text-success" },
-    cron: { icon: Clock, color: "text-warning" },
-    tool: { icon: Play, color: "text-warning" },
-    api_server: { icon: Globe, color: "text-muted-foreground" },
-    acp: { icon: Database, color: "text-muted-foreground" },
-    hermes_flow: { icon: Play, color: "text-warning" },
-    vulcan_delegate: { icon: Play, color: "text-warning" },
-    webhook: { icon: Globe, color: "text-warning" },
-  };
+const SOURCE_CONFIG: Record<string, { icon: typeof Terminal; color: string }> = {
+  cli: { icon: Terminal, color: "text-primary" },
+  tui: { icon: Terminal, color: "text-primary" },
+  telegram: { icon: MessageCircle, color: "text-[oklch(0.65_0.15_250)]" },
+  discord: { icon: Hash, color: "text-[oklch(0.65_0.15_280)]" },
+  slack: { icon: MessageSquare, color: "text-[oklch(0.7_0.15_155)]" },
+  whatsapp: { icon: Globe, color: "text-success" },
+  whatsapp_cloud: { icon: Globe, color: "text-success" },
+  signal: { icon: MessageCircle, color: "text-success" },
+  matrix: { icon: MessageCircle, color: "text-[oklch(0.65_0.15_250)]" },
+  email: { icon: MessageSquare, color: "text-[oklch(0.7_0.15_155)]" },
+  sms: { icon: MessageCircle, color: "text-success" },
+  cron: { icon: Clock, color: "text-warning" },
+  tool: { icon: Play, color: "text-warning" },
+  api_server: { icon: Globe, color: "text-muted-foreground" },
+  acp: { icon: Database, color: "text-muted-foreground" },
+  hermes_flow: { icon: Play, color: "text-warning" },
+  vulcan_delegate: { icon: Play, color: "text-warning" },
+  webhook: { icon: Globe, color: "text-warning" }
+};
 
 const AUTOMATION_SESSION_SOURCES = [
   "cron",
@@ -104,7 +94,7 @@ const AUTOMATION_SESSION_SOURCES = [
   "acp",
   "hermes_flow",
   "vulcan_delegate",
-  "webhook",
+  "webhook"
 ];
 const AUTOMATION_SESSION_SOURCE_SET = new Set(AUTOMATION_SESSION_SOURCES);
 const NO_MATCHING_SESSION_SOURCE = "__hermes_dashboard_no_matching_source__";
@@ -116,19 +106,19 @@ function isAutomationSource(source: string): boolean {
   return AUTOMATION_SESSION_SOURCE_SET.has(source);
 }
 
-function sourceBelongsToCategory(
-  source: string,
-  category: SessionFilterCategory,
-): boolean {
+function sourceBelongsToCategory(source: string, category: SessionFilterCategory): boolean {
   if (category === "all") return true;
   if (category === "automation") return isAutomationSource(source);
   return !isAutomationSource(source);
 }
 
-function sourceLabel(source: string): string {
+function sourceLabel(
+  source: string,
+  copy: ReturnType<typeof getDashboardCopy>["sessions"]
+): string {
   switch (source) {
     case "api_server":
-      return "API server";
+      return copy.sourceLabels.apiServer;
     case "acp":
       return "ACP";
     case "cli":
@@ -148,20 +138,20 @@ function sourceLabel(source: string): string {
     case "sms":
       return "SMS";
     case "cron":
-      return "Cron";
+      return copy.sourceLabels.cron;
     case "tool":
-      return "Tool";
+      return copy.sourceLabels.tool;
     case "hermes_flow":
-      return "Hermes Flow";
+      return copy.sourceLabels.hermesFlow;
     case "vulcan_delegate":
-      return "Vulcan delegate";
+      return copy.sourceLabels.vulcanDelegate;
     case "webhook":
       return "Webhook";
     default:
       return source
         .split("_")
         .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
         .join(" ");
   }
 }
@@ -181,7 +171,7 @@ function SnippetHighlight({ snippet }: { snippet: string }) {
     parts.push(
       <mark key={i++} className="bg-warning/30 text-warning px-0.5">
         {match[1]}
-      </mark>,
+      </mark>
     );
     last = regex.lastIndex;
   }
@@ -196,7 +186,7 @@ function SnippetHighlight({ snippet }: { snippet: string }) {
 }
 
 function ToolCallBlock({
-  toolCall,
+  toolCall
 }: {
   toolCall: { id: string; function: { name: string; arguments: string } };
 }) {
@@ -218,14 +208,8 @@ function ToolCallBlock({
         aria-expanded={open}
         className="px-3 py-2 text-xs text-warning hover:bg-warning/10 hover:text-warning"
       >
-        {open ? (
-          <ChevronDown className="h-3 w-3" />
-        ) : (
-          <ChevronRight className="h-3 w-3" />
-        )}
-        <span className="font-mono-ui font-medium">
-          {toolCall.function.name}
-        </span>
+        {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        <span className="font-mono-ui font-medium">{toolCall.function.name}</span>
         <span className="text-warning/50 ml-auto">{toolCall.id}</span>
       </ListItem>
       {open && (
@@ -253,7 +237,7 @@ function ToolCallBlock({
 const COMPACTION_PREFIXES = [
   "[CONTEXT COMPACTION — REFERENCE ONLY]",
   "[CONTEXT COMPACTION - REFERENCE ONLY]",
-  "[CONTEXT SUMMARY]:",
+  "[CONTEXT SUMMARY]:"
 ] as const;
 
 // Marker the compressor inserts between a merged summary and the
@@ -277,52 +261,41 @@ interface CompactionSplit {
 
 function splitCompactionContent(content: string): CompactionSplit | null {
   const head = content.trimStart();
-  if (!COMPACTION_PREFIXES.some((p) => head.startsWith(p))) return null;
+  if (!COMPACTION_PREFIXES.some(p => head.startsWith(p))) return null;
   const markerIdx = content.indexOf(COMPACTION_END_MARKER);
   if (markerIdx < 0) {
     return { summary: content, remainder: "" };
   }
   return {
     summary: content.slice(0, markerIdx),
-    remainder: content
-      .slice(markerIdx + COMPACTION_END_MARKER.length)
-      .replace(/^\s+/, ""),
+    remainder: content.slice(markerIdx + COMPACTION_END_MARKER.length).replace(/^\s+/, "")
   };
 }
 
+function MessageBubble({ msg, highlight }: { msg: SessionMessage; highlight?: string }) {
+  const { locale, t } = useI18n();
+  const copy = getDashboardCopy(t).sessions;
 
-function MessageBubble({
-  msg,
-  highlight,
-}: {
-  msg: SessionMessage;
-  highlight?: string;
-}) {
-  const { t } = useI18n();
-
-  const ROLE_STYLES: Record<
-    string,
-    { bg: string; text: string; label: string }
-  > = {
+  const ROLE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
     user: {
       bg: "bg-primary/10",
       text: "text-primary",
-      label: t.sessions.roles.user,
+      label: t.sessions.roles.user
     },
     assistant: {
       bg: "bg-success/10",
       text: "text-success",
-      label: t.sessions.roles.assistant,
+      label: t.sessions.roles.assistant
     },
     system: {
       bg: "bg-muted",
       text: "text-muted-foreground",
-      label: t.sessions.roles.system,
+      label: t.sessions.roles.system
     },
     tool: {
       bg: "bg-warning/10",
       text: "text-warning",
-      label: t.sessions.roles.tool,
+      label: t.sessions.roles.tool
     },
     // Compaction handoffs render as faded system-style metadata with a
     // distinctive label so they can't be mistaken for real assistant
@@ -330,8 +303,8 @@ function MessageBubble({
     compaction: {
       bg: "bg-muted/50",
       text: "text-muted-foreground italic",
-      label: "Context handoff",
-    },
+      label: copy.contextHandoff
+    }
   };
 
   // When a compaction handoff is merged into the front of the first
@@ -342,21 +315,16 @@ function MessageBubble({
   // rows here so the operator's actual answer survives as a readable
   // bubble next to the (clearly-labelled) handoff metadata (#29824).
   const compactionSplit =
-    typeof msg.content === "string"
-      ? splitCompactionContent(msg.content)
-      : null;
+    typeof msg.content === "string" ? splitCompactionContent(msg.content) : null;
 
   if (compactionSplit && compactionSplit.remainder) {
     return (
       <>
-        <MessageBubble
-          msg={{ ...msg, content: compactionSplit.summary }}
-          highlight={highlight}
-        />
+        <MessageBubble msg={{ ...msg, content: compactionSplit.summary }} highlight={highlight} />
         <MessageBubble
           msg={{
             ...msg,
-            content: compactionSplit.remainder,
+            content: compactionSplit.remainder
             // The remainder is the original assistant reply that the
             // compressor pre-pended the summary to — render with the
             // normal assistant styling, NOT the muted handoff style.
@@ -372,7 +340,7 @@ function MessageBubble({
   const isCompaction = compactionSplit !== null;
   const style = isCompaction
     ? ROLE_STYLES.compaction
-    : ROLE_STYLES[msg.role] ?? ROLE_STYLES.system;
+    : (ROLE_STYLES[msg.role] ?? ROLE_STYLES.system);
   const label = isCompaction
     ? ROLE_STYLES.compaction.label
     : msg.tool_name
@@ -384,12 +352,11 @@ function MessageBubble({
     if (!highlight || !msg.content) return false;
     const content = msg.content.toLowerCase();
     const terms = highlight.toLowerCase().split(/\s+/).filter(Boolean);
-    return terms.some((term) => content.includes(term));
+    return terms.some(term => content.includes(term));
   })();
 
   // Split search query into terms for inline highlighting
-  const highlightTerms =
-    isHit && highlight ? highlight.split(/\s+/).filter(Boolean) : undefined;
+  const highlightTerms = isHit && highlight ? highlight.split(/\s+/).filter(Boolean) : undefined;
 
   return (
     <div
@@ -404,9 +371,7 @@ function MessageBubble({
           </Badge>
         )}
         {msg.timestamp && (
-          <span className="text-xs text-text-tertiary">
-            {timeAgo(msg.timestamp)}
-          </span>
+          <span className="text-xs text-text-tertiary">{timeAgo(msg.timestamp, locale)}</span>
         )}
       </div>
       {msg.content &&
@@ -419,7 +384,7 @@ function MessageBubble({
         ))}
       {msg.tool_calls && msg.tool_calls.length > 0 && (
         <div className="mt-1">
-          {msg.tool_calls.map((tc) => (
+          {msg.tool_calls.map(tc => (
             <ToolCallBlock key={tc.id} toolCall={tc} />
           ))}
         </div>
@@ -429,13 +394,7 @@ function MessageBubble({
 }
 
 /** Message list with auto-scroll to first search hit. */
-function MessageList({
-  messages,
-  highlight,
-}: {
-  messages: SessionMessage[];
-  highlight?: string;
-}) {
+function MessageList({ messages, highlight }: { messages: SessionMessage[]; highlight?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -451,10 +410,7 @@ function MessageList({
   }, [messages, highlight]);
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-2"
-    >
+    <div ref={containerRef} className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-2">
       {messages.map((msg, i) => (
         <MessageBubble key={i} msg={msg} highlight={highlight} />
       ))}
@@ -473,14 +429,15 @@ function SessionRow({
   onDelete,
   onRename,
   onExport,
-  resumeInChatEnabled,
+  resumeInChatEnabled
 }: SessionRowProps) {
   const [messages, setMessages] = useState<SessionMessage[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(session.title ?? "");
   const [renameSaving, setRenameSaving] = useState(false);
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const copy = getDashboardCopy(t).sessions;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -488,10 +445,10 @@ function SessionRow({
     let cancelled = false;
     api
       .getSessionMessages(session.id, session.profile)
-      .then((resp) => {
+      .then(resp => {
         if (!cancelled) setMessages(resp.messages);
       })
-      .catch((err) => {
+      .catch(err => {
         if (!cancelled) setError(String(err));
       });
     return () => {
@@ -501,7 +458,7 @@ function SessionRow({
 
   const sourceKey = session.source?.split(":")[0];
   const sourceInfo = (session.source
-    ? SOURCE_CONFIG[session.source] ?? (sourceKey ? SOURCE_CONFIG[sourceKey] : null)
+    ? (SOURCE_CONFIG[session.source] ?? (sourceKey ? SOURCE_CONFIG[sourceKey] : null))
     : null) ?? { icon: Globe, color: "text-muted-foreground" };
   const SourceIcon = sourceInfo.icon;
   const hasTitle = session.title && session.title !== "Untitled";
@@ -525,7 +482,7 @@ function SessionRow({
     <>
       <Badge tone="outline" className="text-xs">
         <SourceIcon className={`mr-1 h-3 w-3 ${sourceInfo.color}`} />
-        {session.source ? sourceLabel(session.source) : "local"}
+        {session.source ? sourceLabel(session.source, copy) : copy.local}
       </Badge>
 
       {resumeInChatEnabled && (
@@ -535,7 +492,7 @@ function SessionRow({
           className="text-muted-foreground hover:text-success"
           aria-label={t.sessions.resumeInChat}
           title={t.sessions.resumeInChat}
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             navigate(`/chat?resume=${encodeURIComponent(session.id)}`);
           }}
@@ -548,15 +505,11 @@ function SessionRow({
         ghost
         size="icon"
         className="text-muted-foreground hover:text-foreground"
-        aria-label="Rename session"
-        title="Rename session"
-        onClick={(e) => {
+        aria-label={copy.rename}
+        title={copy.rename}
+        onClick={e => {
           e.stopPropagation();
-          setRenameValue(
-            session.title && session.title !== "Untitled"
-              ? session.title
-              : "",
-          );
+          setRenameValue(session.title && session.title !== "Untitled" ? session.title : "");
           setRenaming(true);
         }}
       >
@@ -567,9 +520,9 @@ function SessionRow({
         ghost
         size="icon"
         className="text-muted-foreground hover:text-foreground"
-        aria-label="Export session"
-        title="Export session JSON"
-        onClick={(e) => {
+        aria-label={copy.export}
+        title={copy.export}
+        onClick={e => {
           e.stopPropagation();
           onExport(session.id);
         }}
@@ -582,7 +535,7 @@ function SessionRow({
         destructive
         size="icon"
         aria-label={t.sessions.deleteSession}
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation();
           onDelete();
         }}
@@ -640,17 +593,17 @@ function SessionRow({
                 {renaming ? (
                   <div
                     className="flex min-w-0 flex-1 items-center gap-1.5"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={e => e.stopPropagation()}
                   >
                     <Input
                       autoFocus
                       value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onKeyDown={(e) => {
+                      onChange={e => setRenameValue(e.target.value)}
+                      onKeyDown={e => {
                         if (e.key === "Enter") void submitRename();
                         else if (e.key === "Escape") setRenaming(false);
                       }}
-                      placeholder="Session title"
+                      placeholder={copy.sessionTitle}
                       className="h-7 min-w-0 flex-1 py-0 text-sm"
                       disabled={renameSaving}
                     />
@@ -658,23 +611,19 @@ function SessionRow({
                       ghost
                       size="icon"
                       className="text-muted-foreground hover:text-success"
-                      aria-label="Save title"
-                      title="Save title"
+                      aria-label={copy.saveTitle}
+                      title={copy.saveTitle}
                       disabled={renameSaving}
                       onClick={() => void submitRename()}
                     >
-                      {renameSaving ? (
-                        <Spinner className="text-sm" />
-                      ) : (
-                        <Check />
-                      )}
+                      {renameSaving ? <Spinner className="text-sm" /> : <Check />}
                     </Button>
                     <Button
                       ghost
                       size="icon"
                       className="text-muted-foreground hover:text-foreground"
-                      aria-label="Cancel rename"
-                      title="Cancel rename"
+                      aria-label={copy.cancelRename}
+                      title={copy.cancelRename}
                       disabled={renameSaving}
                       onClick={() => setRenaming(false)}
                     >
@@ -720,19 +669,15 @@ function SessionRow({
                   </>
                 )}
                 <span className="text-border">&#183;</span>
-                <span className="shrink-0">{timeAgo(session.last_active)}</span>
+                <span className="shrink-0">{timeAgo(session.last_active, locale)}</span>
               </div>
               {snippet && <SnippetHighlight snippet={snippet} />}
             </div>
 
-            <div className="hidden shrink-0 items-center gap-2 sm:flex">
-              {actionButtons}
-            </div>
+            <div className="hidden shrink-0 items-center gap-2 sm:flex">{actionButtons}</div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:hidden">
-            {actionButtons}
-          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:hidden">{actionButtons}</div>
         </div>
       </div>
 
@@ -743,9 +688,7 @@ function SessionRow({
               <Spinner className="text-xl text-primary" />
             </div>
           )}
-          {error && (
-            <p className="text-sm text-destructive py-4 text-center">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive py-4 text-center">{error}</p>}
           {messages && messages.length === 0 && (
             <p className="text-sm text-muted-foreground py-4 text-center">
               {t.sessions.noMessages}
@@ -769,7 +712,7 @@ function SessionsPagination({
   compact = false,
   onPageChange,
   page,
-  total,
+  total
 }: SessionsPaginationProps) {
   const { t } = useI18n();
   const pageCount = Math.ceil(total / PAGE_SIZE);
@@ -780,8 +723,7 @@ function SessionsPagination({
     >
       {!compact && (
         <span className="text-xs text-muted-foreground">
-          {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)}{" "}
-          {t.common.of} {total}
+          {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} {t.common.of} {total}
         </span>
       )}
 
@@ -819,9 +761,7 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [searchResults, setSearchResults] = useState<
-    SessionSearchResult[] | null
-  >(null);
+  const [searchResults, setSearchResults] = useState<SessionSearchResult[] | null>(null);
   const [searching, setSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
@@ -829,13 +769,12 @@ export default function SessionsPage() {
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [overviewSessions, setOverviewSessions] = useState<SessionInfo[]>([]);
   const [view, setView] = useState<SessionsView>("overview");
-  const [sessionCategory, setSessionCategory] =
-    useState<SessionFilterCategory>("chats");
+  const [sessionCategory, setSessionCategory] = useState<SessionFilterCategory>("chats");
   const [sourceSelectionsByCategory, setSourceSelectionsByCategory] =
     useState<SourceSelectionsByCategory>({
       chats: null,
       automation: null,
-      all: null,
+      all: null
     });
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
   const sourceMenuRef = useRef<HTMLDivElement | null>(null);
@@ -870,24 +809,22 @@ export default function SessionsPage() {
   const [pruning, setPruning] = useState(false);
   const [importingSessions, setImportingSessions] = useState(false);
   const { toast, showToast } = useToast();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const copy = getDashboardCopy(t).sessions;
   const { setAfterTitle, setEnd } = usePageHeader();
   const { activeAction, actionStatus, dismissLog } = useSystemActions();
   const resumeInChatEnabled = isDashboardEmbeddedChatEnabled();
   const selectedSources = sourceSelectionsByCategory[sessionCategory];
 
   const pinnedSourceSelections = useMemo(
-    () =>
-      Object.values(sourceSelectionsByCategory).flatMap(
-        (selection) => selection ?? [],
-      ),
-    [sourceSelectionsByCategory],
+    () => Object.values(sourceSelectionsByCategory).flatMap(selection => selection ?? []),
+    [sourceSelectionsByCategory]
   );
 
   const allSourceOptions = useMemo(() => {
     const entries = Object.entries(stats?.by_source ?? {}).sort(
       ([aSource, aCount], [bSource, bCount]) =>
-        bCount - aCount || sourceLabel(aSource).localeCompare(sourceLabel(bSource)),
+        bCount - aCount || sourceLabel(aSource, copy).localeCompare(sourceLabel(bSource, copy))
     );
     const seen = new Set(entries.map(([source]) => source));
     for (const source of pinnedSourceSelections) {
@@ -897,11 +834,11 @@ export default function SessionsPage() {
       }
     }
     return entries;
-  }, [pinnedSourceSelections, stats]);
+  }, [copy, pinnedSourceSelections, stats]);
 
   const allSourceNames = useMemo(
     () => allSourceOptions.map(([source]) => source),
-    [allSourceOptions],
+    [allSourceOptions]
   );
 
   const sessionQueryOptions = useMemo(() => {
@@ -915,18 +852,14 @@ export default function SessionsPage() {
         return { source: selectedSources[0] };
       }
       const selected = new Set(selectedSources);
-      const excludedSources = allSourceNames.filter(
-        (source) => !selected.has(source),
-      );
+      const excludedSources = allSourceNames.filter(source => !selected.has(source));
       return excludedSources.length > 0 ? { excludeSources: excludedSources } : {};
     }
     if (sessionCategory === "chats") {
       return { excludeSources: AUTOMATION_SESSION_SOURCES };
     }
     if (sessionCategory === "automation") {
-      const excludedSources = allSourceNames.filter(
-        (source) => !isAutomationSource(source),
-      );
+      const excludedSources = allSourceNames.filter(source => !isAutomationSource(source));
       return excludedSources.length > 0
         ? { excludeSources: excludedSources }
         : { sources: AUTOMATION_SESSION_SOURCES };
@@ -935,16 +868,13 @@ export default function SessionsPage() {
   }, [selectedSources, sessionCategory, allSourceNames]);
 
   const categoryDefaultSources = useMemo(() => {
-    return allSourceNames.filter((source) =>
-      sourceBelongsToCategory(source, sessionCategory),
-    );
+    return allSourceNames.filter(source => sourceBelongsToCategory(source, sessionCategory));
   }, [sessionCategory, allSourceNames]);
 
   const sourceOptions = useMemo(() => {
     const selected = new Set(selectedSources ?? []);
     return allSourceOptions.filter(
-      ([source]) =>
-        sourceBelongsToCategory(source, sessionCategory) || selected.has(source),
+      ([source]) => sourceBelongsToCategory(source, sessionCategory) || selected.has(source)
     );
   }, [allSourceOptions, selectedSources, sessionCategory]);
 
@@ -952,38 +882,38 @@ export default function SessionsPage() {
 
   const selectedSourceSet = useMemo(
     () => new Set(effectiveSelectedSources),
-    [effectiveSelectedSources],
+    [effectiveSelectedSources]
   );
 
   const defaultSourceFilterLabel = useMemo(() => {
-    if (sessionCategory === "chats") return "Any chat source";
-    if (sessionCategory === "automation") return "Any automation source";
+    if (sessionCategory === "chats") return copy.anyChatSource;
+    if (sessionCategory === "automation") return copy.anyAutomationSource;
     return t.sessions.anySource;
-  }, [sessionCategory, t.sessions.anySource]);
+  }, [copy.anyAutomationSource, copy.anyChatSource, sessionCategory, t.sessions.anySource]);
 
   const sourceMenuTitle = useMemo(() => {
-    if (sessionCategory === "chats") return "Chat sources";
-    if (sessionCategory === "automation") return "Automation sources";
+    if (sessionCategory === "chats") return copy.chatSources;
+    if (sessionCategory === "automation") return copy.automationSources;
     return t.sessions.sourceFilter;
-  }, [sessionCategory, t.sessions.sourceFilter]);
+  }, [copy.automationSources, copy.chatSources, sessionCategory, t.sessions.sourceFilter]);
 
   const sourceFilterLabel = useMemo(() => {
     if (selectedSources === null) {
       return defaultSourceFilterLabel;
     }
     if (selectedSources.length === 0) {
-      return "No sources";
+      return copy.noSources;
     }
     if (selectedSources.length === 1) {
-      return sourceLabel(selectedSources[0]);
+      return sourceLabel(selectedSources[0], copy);
     }
-    return `${selectedSources.length} sources`;
-  }, [defaultSourceFilterLabel, selectedSources]);
+    return `${selectedSources.length} ${copy.sources}`;
+  }, [copy, defaultSourceFilterLabel, selectedSources]);
 
   const refreshEmptyCount = useCallback(() => {
     api
       .getEmptySessionsCount()
-      .then((r) => setEmptyCount(r.count))
+      .then(r => setEmptyCount(r.count))
       .catch(() => {});
   }, []);
 
@@ -1000,7 +930,7 @@ export default function SessionsPage() {
     setAfterTitle(
       <Badge tone="secondary" className="text-xs tabular-nums">
         {total}
-      </Badge>,
+      </Badge>
     );
     return () => {
       setAfterTitle(null);
@@ -1009,19 +939,14 @@ export default function SessionsPage() {
 
   useEffect(() => {
     setEnd(
-      <Button
-        outlined
-        size="sm"
-        onClick={() => setPruneOpen(true)}
-        prefix={<Archive />}
-      >
-        Prune old sessions
-      </Button>,
+      <Button outlined size="sm" onClick={() => setPruneOpen(true)} prefix={<Archive />}>
+        {copy.prune}
+      </Button>
     );
     return () => {
       setEnd(null);
     };
-  }, [setEnd]);
+  }, [copy.prune, setEnd]);
 
   useEffect(() => {
     if (!sourceMenuOpen) return;
@@ -1038,29 +963,30 @@ export default function SessionsPage() {
     };
   }, [sourceMenuOpen]);
 
-  const loadSessions = useCallback((p: number, silent = false) => {
-    // ``silent`` skips the loading spinner so background refreshes
-    // (triggered when the overview poll detects a new session from
-    // another process) don't flicker the whole page or drop the user's
-    // scroll position.
-    const requestId = silent
-      ? sessionsRequestRef.current
-      : sessionsRequestRef.current + 1;
-    if (!silent) sessionsRequestRef.current = requestId;
-    if (!silent) setLoading(true);
-    api
-      .getSessions(PAGE_SIZE, p * PAGE_SIZE, sessionQueryOptions)
-      .then((resp) => {
-        if (requestId !== sessionsRequestRef.current) return;
-        setSessions(resp.sessions);
-        setTotal(resp.total);
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (requestId !== sessionsRequestRef.current) return;
-        if (!silent) setLoading(false);
-      });
-  }, [sessionQueryOptions]);
+  const loadSessions = useCallback(
+    (p: number, silent = false) => {
+      // ``silent`` skips the loading spinner so background refreshes
+      // (triggered when the overview poll detects a new session from
+      // another process) don't flicker the whole page or drop the user's
+      // scroll position.
+      const requestId = silent ? sessionsRequestRef.current : sessionsRequestRef.current + 1;
+      if (!silent) sessionsRequestRef.current = requestId;
+      if (!silent) setLoading(true);
+      api
+        .getSessions(PAGE_SIZE, p * PAGE_SIZE, sessionQueryOptions)
+        .then(resp => {
+          if (requestId !== sessionsRequestRef.current) return;
+          setSessions(resp.sessions);
+          setTotal(resp.total);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (requestId !== sessionsRequestRef.current) return;
+          if (!silent) setLoading(false);
+        });
+    },
+    [sessionQueryOptions]
+  );
 
   const loadStats = useCallback(() => {
     api
@@ -1076,28 +1002,24 @@ export default function SessionsPage() {
       setImportingSessions(true);
       try {
         const text = await file.text();
-        const importedSessions = parseImportSessions(text);
+        const importedSessions = parseImportSessions(text, locale);
         const result = await api.importSessions(importedSessions);
-        showToast(`Import complete: ${importSummary(result)}`, "success");
+        showToast(
+          copy.importComplete.replace("{summary}", importSummary(result, locale)),
+          "success"
+        );
         clearSelection();
         loadSessions(page, true);
         loadStats();
         refreshEmptyCount();
       } catch (error) {
-        showToast(`Import failed: ${error}`, "error");
+        showToast(copy.importFailed.replace("{error}", String(error)), "error");
       } finally {
         setImportingSessions(false);
         if (importInputRef.current) importInputRef.current.value = "";
       }
     },
-    [
-      clearSelection,
-      loadSessions,
-      loadStats,
-      page,
-      refreshEmptyCount,
-      showToast,
-    ],
+    [clearSelection, loadSessions, loadStats, locale, page, refreshEmptyCount, showToast]
   );
 
   useEffect(() => {
@@ -1133,13 +1055,13 @@ export default function SessionsPage() {
     const loadOverview = () => {
       api
         .getStatus()
-        .then((nextStatus) => {
+        .then(nextStatus => {
           if (!cancelled) setStatus(nextStatus);
         })
         .catch(() => {});
       api
         .getSessions(50, 0, sessionQueryOptions)
-        .then((r) => {
+        .then(r => {
           if (cancelled) return;
           setOverviewSessions(r.sessions);
           // The dashboard server and a terminal CLI are separate
@@ -1183,7 +1105,7 @@ export default function SessionsPage() {
       setPage(p);
       clearSelection();
     },
-    [clearSelection],
+    [clearSelection]
   );
   const updateSearch = useCallback(
     (value: string) => {
@@ -1191,14 +1113,14 @@ export default function SessionsPage() {
       if (value.trim()) setView("list");
       clearSelection();
     },
-    [clearSelection],
+    [clearSelection]
   );
   const switchView = useCallback(
     (next: SessionsView) => {
       setView(next);
       clearSelection();
     },
-    [clearSelection],
+    [clearSelection]
   );
 
   const updateSessionCategory = useCallback(
@@ -1209,12 +1131,12 @@ export default function SessionsPage() {
       setExpandedId(null);
       clearSelection();
     },
-    [clearSelection],
+    [clearSelection]
   );
 
   const toggleSourceFilter = useCallback(
     (source: string) => {
-      setSourceSelectionsByCategory((currentByCategory) => {
+      setSourceSelectionsByCategory(currentByCategory => {
         const current = currentByCategory[sessionCategory];
         const next = new Set(current ?? categoryDefaultSources);
         if (next.has(source)) {
@@ -1224,23 +1146,23 @@ export default function SessionsPage() {
         }
         const nextSelection = sourceOptions
           .map(([optionSource]) => optionSource)
-          .filter((optionSource) => next.has(optionSource));
+          .filter(optionSource => next.has(optionSource));
         return {
           ...currentByCategory,
-          [sessionCategory]: nextSelection,
+          [sessionCategory]: nextSelection
         };
       });
       setPage(0);
       setExpandedId(null);
       clearSelection();
     },
-    [categoryDefaultSources, clearSelection, sessionCategory, sourceOptions],
+    [categoryDefaultSources, clearSelection, sessionCategory, sourceOptions]
   );
 
   const clearSourceFilters = useCallback(() => {
-    setSourceSelectionsByCategory((currentByCategory) => ({
+    setSourceSelectionsByCategory(currentByCategory => ({
       ...currentByCategory,
-      [sessionCategory]: null,
+      [sessionCategory]: null
     }));
     setPage(0);
     setExpandedId(null);
@@ -1264,7 +1186,7 @@ export default function SessionsPage() {
       setSearchResults(null);
       api
         .searchSessions(search.trim(), sessionQueryOptions)
-        .then((resp) => setSearchResults(resp.results))
+        .then(resp => setSearchResults(resp.results))
         .catch(() => setSearchResults(null))
         .finally(() => setSearching(false));
     }, 300);
@@ -1281,8 +1203,8 @@ export default function SessionsPage() {
   // hits the process store — a delete then "succeeds" as already_absent).
   // Search rows carry no stamp: undefined falls back to the management profile.
   const rowProfile = useCallback(
-    (id: string) => sessions.find((s) => s.id === id)?.profile,
-    [sessions],
+    (id: string) => sessions.find(s => s.id === id)?.profile,
+    [sessions]
   );
 
   const sessionDelete = useConfirmDelete({
@@ -1290,12 +1212,12 @@ export default function SessionsPage() {
       async (id: string) => {
         try {
           await api.deleteSession(id, rowProfile(id));
-          setSessions((prev) => prev.filter((s) => s.id !== id));
-          setTotal((prev) => prev - 1);
+          setSessions(prev => prev.filter(s => s.id !== id));
+          setTotal(prev => prev - 1);
           if (expandedId === id) setExpandedId(null);
           // Drop the deleted ID from any active bulk-select set — it
           // can't bulk-delete a row that's already gone.
-          setSelectedIds((prev) => {
+          setSelectedIds(prev => {
             if (!prev.has(id)) return prev;
             const next = new Set(prev);
             next.delete(id);
@@ -1319,9 +1241,9 @@ export default function SessionsPage() {
         showToast,
         loadStats,
         t.sessions.sessionDeleted,
-        t.sessions.failedToDelete,
-      ],
-    ),
+        t.sessions.failedToDelete
+      ]
+    )
   });
 
   /** Toggle one row's selection. When ``event.shiftKey`` is true AND we
@@ -1335,7 +1257,7 @@ export default function SessionsPage() {
     (event: React.MouseEvent, index: number, visibleList: SessionInfo[]) => {
       const id = visibleList[index]?.id;
       if (!id) return;
-      setSelectedIds((prev) => {
+      setSelectedIds(prev => {
         const next = new Set(prev);
         const wasSelected = next.has(id);
         const willSelect = !wasSelected;
@@ -1346,8 +1268,7 @@ export default function SessionsPage() {
         // visible list — in those cases fall through to a plain toggle
         // (the click also resets the anchor below).
         if (event.shiftKey && anchor !== null && anchor < visibleList.length) {
-          const [lo, hi] =
-            anchor <= index ? [anchor, index] : [index, anchor];
+          const [lo, hi] = anchor <= index ? [anchor, index] : [index, anchor];
           for (let i = lo; i <= hi; i++) {
             const rowId = visibleList[i]?.id;
             if (!rowId) continue;
@@ -1366,11 +1287,11 @@ export default function SessionsPage() {
       // shift-click should anchor from here, not from two steps back.
       lastClickedIndexRef.current = index;
     },
-    [],
+    []
   );
 
   const selectAllOnPage = useCallback((visibleList: SessionInfo[]) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
       for (const s of visibleList) next.add(s.id);
       return next;
@@ -1390,14 +1311,11 @@ export default function SessionsPage() {
       const owners = new Set(ids.map(rowProfile));
       const resp = await api.bulkDeleteSessions(
         ids,
-        owners.size === 1 ? [...owners][0] : undefined,
+        owners.size === 1 ? [...owners][0] : undefined
       );
       showToast(
-        t.sessions.selectedSessionsDeleted.replace(
-          "{count}",
-          String(resp.deleted),
-        ),
-        "success",
+        t.sessions.selectedSessionsDeleted.replace("{count}", String(resp.deleted)),
+        "success"
       );
       setDeleteSelectedOpen(false);
       // Drop deleted rows out of the visible list immediately rather
@@ -1405,8 +1323,8 @@ export default function SessionsPage() {
       // pagination stays correct, and so any rows the reload pulls in
       // from later pages render in place.
       const deletedSet = new Set(ids);
-      setSessions((prev) => prev.filter((s) => !deletedSet.has(s.id)));
-      setTotal((prev) => Math.max(0, prev - resp.deleted));
+      setSessions(prev => prev.filter(s => !deletedSet.has(s.id)));
+      setTotal(prev => Math.max(0, prev - resp.deleted));
       if (expandedId && deletedSet.has(expandedId)) setExpandedId(null);
       clearSelection();
       loadSessions(page);
@@ -1426,7 +1344,7 @@ export default function SessionsPage() {
     selectedIds,
     showToast,
     t.sessions.failedToDeleteSelected,
-    t.sessions.selectedSessionsDeleted,
+    t.sessions.selectedSessionsDeleted
   ]);
 
   const handleDeleteEmpty = useCallback(async () => {
@@ -1439,11 +1357,8 @@ export default function SessionsPage() {
       // the delete — e.g. an active session just ended without sending
       // any messages).
       showToast(
-        t.sessions.emptySessionsDeleted.replace(
-          "{count}",
-          String(resp.deleted),
-        ),
-        "success",
+        t.sessions.emptySessionsDeleted.replace("{count}", String(resp.deleted)),
+        "success"
       );
       setDeleteEmptyOpen(false);
       // Reload the current page so any newly-vanished empty sessions
@@ -1462,26 +1377,22 @@ export default function SessionsPage() {
     refreshEmptyCount,
     showToast,
     t.sessions.emptySessionsDeleted,
-    t.sessions.failedToDeleteEmpty,
+    t.sessions.failedToDeleteEmpty
   ]);
 
   const handleRename = useCallback(
     async (id: string, title: string) => {
       try {
         await api.renameSession(id, title, rowProfile(id));
-        setSessions((prev) =>
-          prev.map((s) => (s.id === id ? { ...s, title } : s)),
-        );
-        setOverviewSessions((prev) =>
-          prev.map((s) => (s.id === id ? { ...s, title } : s)),
-        );
-        showToast("Session renamed", "success");
+        setSessions(prev => prev.map(s => (s.id === id ? { ...s, title } : s)));
+        setOverviewSessions(prev => prev.map(s => (s.id === id ? { ...s, title } : s)));
+        showToast(copy.renamed, "success");
         loadStats();
       } catch {
-        showToast("Failed to rename session", "error");
+        showToast(copy.renameFailed, "error");
       }
     },
-    [rowProfile, showToast, loadStats],
+    [rowProfile, showToast, loadStats]
   );
 
   const handleExport = useCallback(
@@ -1492,8 +1403,8 @@ export default function SessionsPage() {
           headers: {
             "X-Hermes-Session-Token":
               (window as unknown as { __HERMES_SESSION_TOKEN__?: string })
-                .__HERMES_SESSION_TOKEN__ ?? "",
-          },
+                .__HERMES_SESSION_TOKEN__ ?? ""
+          }
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
@@ -1504,35 +1415,35 @@ export default function SessionsPage() {
         a.click();
         URL.revokeObjectURL(url);
       } catch {
-        showToast("Failed to export session", "error");
+        showToast(copy.exportFailed, "error");
       }
     },
-    [rowProfile, showToast],
+    [rowProfile, showToast]
   );
 
   const handlePrune = useCallback(async () => {
     const days = parseInt(pruneDays, 10);
     if (!Number.isFinite(days) || days < 0) {
-      showToast("Enter a valid number of days", "error");
+      showToast(copy.invalidDays, "error");
       return;
     }
     setPruning(true);
     try {
       const resp = await api.pruneSessions(days);
-      showToast(formatSessionPruneResult(resp), "success");
+      showToast(formatSessionPruneResult(resp, locale), "success");
       setPruneOpen(false);
       loadSessions(0);
       setPage(0);
       loadStats();
     } catch {
-      showToast("Failed to prune sessions", "error");
+      showToast(copy.pruneFailed, "error");
     } finally {
       setPruning(false);
     }
-  }, [pruneDays, showToast, loadSessions, loadStats]);
+  }, [copy.invalidDays, copy.pruneFailed, loadSessions, loadStats, locale, pruneDays, showToast]);
 
   const pendingSession = sessionDelete.pendingId
-    ? sessions.find((s) => s.id === sessionDelete.pendingId)
+    ? sessions.find(s => s.id === sessionDelete.pendingId)
     : null;
 
   // Build snippet map from search results (session_id → snippet)
@@ -1546,16 +1457,11 @@ export default function SessionsPage() {
 
   const filtered = searchResults ?? sessions;
 
-  const platformEntries = status
-    ? Object.entries(status.gateway_platforms ?? {})
-    : [];
-  const recentSessions = overviewSessions
-    .filter((s) => !s.is_active)
-    .slice(0, 5);
+  const platformEntries = status ? Object.entries(status.gateway_platforms ?? {}) : [];
+  const recentSessions = overviewSessions.filter(s => !s.is_active).slice(0, 5);
 
   const isSearching = Boolean(search.trim());
-  const showOverviewTab =
-    platformEntries.length > 0 || recentSessions.length > 0;
+  const showOverviewTab = platformEntries.length > 0 || recentSessions.length > 0;
   const showList = view === "list" || isSearching || !showOverviewTab;
   const showPagination = showList && !isSearching && total > PAGE_SIZE;
 
@@ -1564,20 +1470,18 @@ export default function SessionsPage() {
     if (status.gateway_state === "startup_failed") {
       alerts.push({
         message: t.status.gatewayFailedToStart,
-        detail: status.gateway_exit_reason ?? undefined,
+        detail: status.gateway_exit_reason ?? undefined
       });
     }
     const failedPlatformEntries = platformEntries.filter(
-      ([, info]) => info.state === "fatal" || info.state === "disconnected",
+      ([, info]) => info.state === "fatal" || info.state === "disconnected"
     );
     for (const [name, info] of failedPlatformEntries) {
       const stateLabel =
-        info.state === "fatal"
-          ? t.status.platformError
-          : t.status.platformDisconnected;
+        info.state === "fatal" ? t.status.platformError : t.status.platformDisconnected;
       alerts.push({
         message: `${name.charAt(0).toUpperCase() + name.slice(1)} ${stateLabel}`,
-        detail: info.error_message ?? undefined,
+        detail: info.error_message ?? undefined
       });
     }
   }
@@ -1599,7 +1503,7 @@ export default function SessionsPage() {
         type="file"
         accept=".json,.jsonl,application/json,application/x-ndjson"
         className="hidden"
-        onChange={(event) => void handleImportSessions(event.currentTarget.files)}
+        onChange={event => void handleImportSessions(event.currentTarget.files)}
       />
 
       <DeleteConfirmDialog
@@ -1620,10 +1524,7 @@ export default function SessionsPage() {
         onCancel={() => setDeleteEmptyOpen(false)}
         onConfirm={handleDeleteEmpty}
         title={t.sessions.deleteEmptyConfirmTitle}
-        description={t.sessions.deleteEmptyConfirmMessage.replace(
-          "{count}",
-          String(emptyCount),
-        )}
+        description={t.sessions.deleteEmptyConfirmMessage.replace("{count}", String(emptyCount))}
         loading={deletingEmpty}
       />
 
@@ -1631,56 +1532,43 @@ export default function SessionsPage() {
         open={deleteSelectedOpen}
         onCancel={() => setDeleteSelectedOpen(false)}
         onConfirm={handleDeleteSelected}
-        title={t.sessions.deleteSelectedConfirmTitle.replace(
-          "{count}",
-          String(selectedIds.size),
-        )}
+        title={t.sessions.deleteSelectedConfirmTitle.replace("{count}", String(selectedIds.size))}
         description={t.sessions.deleteSelectedConfirmMessage.replace(
           "{count}",
-          String(selectedIds.size),
+          String(selectedIds.size)
         )}
         loading={deletingSelected}
       />
 
       <Dialog
         open={pruneOpen}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           if (!pruning) setPruneOpen(open);
         }}
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Prune old sessions</DialogTitle>
-            <DialogDescription>
-              Permanently remove archived sessions whose last activity is older
-              than the given number of days. Active sessions are never pruned.
-            </DialogDescription>
+            <DialogTitle>{copy.prune}</DialogTitle>
+            <DialogDescription>{copy.pruneConfirm}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="prune-days"
-              className="text-xs font-medium text-muted-foreground"
-            >
-              Older than (days)
+            <label htmlFor="prune-days" className="text-xs font-medium text-muted-foreground">
+              {copy.pruneDays}
             </label>
             <Input
               id="prune-days"
               type="number"
               min={0}
               value={pruneDays}
-              onChange={(e) => setPruneDays(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setPruneDays(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === "Enter") void handlePrune();
               }}
               disabled={pruning}
             />
           </div>
           <DialogFooter>
-            <Button
-              outlined
-              onClick={() => setPruneOpen(false)}
-              disabled={pruning}
-            >
+            <Button outlined onClick={() => setPruneOpen(false)} disabled={pruning}>
               {t.common.cancel}
             </Button>
             <Button
@@ -1690,7 +1578,7 @@ export default function SessionsPage() {
               className="gap-1.5"
             >
               {pruning && <Spinner className="text-sm" />}
-              Prune
+              {copy.prune}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1699,35 +1587,33 @@ export default function SessionsPage() {
       {stats && (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border border-border bg-background-base/40 px-4 py-3">
           <div className="flex flex-col">
-            <span className="text-lg font-semibold tabular-nums leading-none">
-              {stats.total}
-            </span>
-            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-lg font-semibold tabular-nums leading-none">{stats.total}</span>
+            <span className="text-xs text-muted-foreground">{copy.total}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold tabular-nums leading-none text-success">
               {stats.active_store}
             </span>
-            <span className="text-xs text-muted-foreground">Active in store</span>
+            <span className="text-xs text-muted-foreground">{copy.activeInStore}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold tabular-nums leading-none">
               {stats.archived}
             </span>
-            <span className="text-xs text-muted-foreground">Archived</span>
+            <span className="text-xs text-muted-foreground">{copy.archived}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-semibold tabular-nums leading-none">
               {stats.messages}
             </span>
-            <span className="text-xs text-muted-foreground">Messages</span>
+            <span className="text-xs text-muted-foreground">{copy.messages}</span>
           </div>
           {Object.keys(stats.by_source).length > 0 && (
             <div className="flex flex-col">
               <span className="text-lg font-semibold tabular-nums leading-none">
                 {Object.keys(stats.by_source).length}
               </span>
-              <span className="text-xs text-muted-foreground">Sources</span>
+              <span className="text-xs text-muted-foreground">{copy.sources}</span>
             </div>
           )}
         </div>
@@ -1740,13 +1626,9 @@ export default function SessionsPage() {
             <div className="flex flex-col gap-2 min-w-0">
               {alerts.map((alert, i) => (
                 <div key={i}>
-                  <p className="text-sm font-medium text-destructive">
-                    {alert.message}
-                  </p>
+                  <p className="text-sm font-medium text-destructive">{alert.message}</p>
                   {alert.detail && (
-                    <p className="text-xs text-destructive/70 mt-0.5">
-                      {alert.detail}
-                    </p>
+                    <p className="text-xs text-destructive/70 mt-0.5">{alert.detail}</p>
                   )}
                 </div>
               ))}
@@ -1770,9 +1652,7 @@ export default function SessionsPage() {
               )}
 
               <span className="text-xs font-mondwest tracking-[0.12em] truncate">
-                {activeAction === "restart"
-                  ? t.status.restartGateway
-                  : t.status.updateHermes}
+                {activeAction === "restart" ? t.status.restartGateway : t.status.updateHermes}
               </span>
 
               <Badge
@@ -1830,7 +1710,7 @@ export default function SessionsPage() {
               options={[
                 { value: "chats", label: t.sessions.filterChats },
                 { value: "automation", label: t.sessions.filterAutomation },
-                { value: "all", label: t.sessions.filterAll },
+                { value: "all", label: t.sessions.filterAll }
               ]}
             />
 
@@ -1847,26 +1727,19 @@ export default function SessionsPage() {
                 className="h-8 min-w-[10rem] max-w-[14rem] justify-between text-xs"
                 aria-label={t.sessions.sourceFilter}
                 aria-expanded={sourceMenuOpen}
-                onClick={() => setSourceMenuOpen((open) => !open)}
+                onClick={() => setSourceMenuOpen(open => !open)}
               >
                 <span className="min-w-0 truncate">{sourceFilterLabel}</span>
               </Button>
 
               {sourceMenuOpen && (
-                <div
-                  className="absolute left-0 top-full z-30 mt-1 w-[18rem] max-w-[calc(100vw-2rem)] border border-border bg-background-base shadow-lg"
-                >
+                <div className="absolute left-0 top-full z-30 mt-1 w-[18rem] max-w-[calc(100vw-2rem)] border border-border bg-background-base shadow-lg">
                   <div className="flex items-center justify-between gap-2 border-b border-border px-2 py-1.5">
                     <span className="min-w-0 truncate text-xs text-muted-foreground">
                       {sourceMenuTitle}
                     </span>
                     {selectedSources !== null && (
-                      <Button
-                        ghost
-                        size="xs"
-                        onClick={clearSourceFilters}
-                        className="shrink-0"
-                      >
+                      <Button ghost size="xs" onClick={clearSourceFilters} className="shrink-0">
                         {t.common.clear}
                       </Button>
                     )}
@@ -1880,8 +1753,7 @@ export default function SessionsPage() {
                       sourceOptions.map(([source, count]) => {
                         const selected = selectedSourceSet.has(source);
                         const SourceIcon = SOURCE_CONFIG[source]?.icon ?? Terminal;
-                        const sourceColor =
-                          SOURCE_CONFIG[source]?.color ?? "text-muted-foreground";
+                        const sourceColor = SOURCE_CONFIG[source]?.color ?? "text-muted-foreground";
 
                         return (
                           <div
@@ -1890,11 +1762,11 @@ export default function SessionsPage() {
                           >
                             <Checkbox
                               checked={selected}
-                              onClick={(event) => {
+                              onClick={event => {
                                 event.stopPropagation();
                                 toggleSourceFilter(source);
                               }}
-                              aria-label={`${t.sessions.sourceFilter}: ${sourceLabel(source)}`}
+                              aria-label={`${t.sessions.sourceFilter}: ${sourceLabel(source, copy)}`}
                             />
                             <button
                               type="button"
@@ -1903,7 +1775,7 @@ export default function SessionsPage() {
                             >
                               <SourceIcon className={`h-3.5 w-3.5 shrink-0 ${sourceColor}`} />
                               <span className="min-w-0 flex-1 truncate">
-                                {sourceLabel(source)}
+                                {sourceLabel(source, copy)}
                               </span>
                               <span className="shrink-0 tabular-nums text-muted-foreground">
                                 {count}
@@ -1926,7 +1798,7 @@ export default function SessionsPage() {
                 onChange={switchView}
                 options={[
                   { value: "overview", label: t.sessions.overview },
-                  { value: "list", label: t.sessions.history },
+                  { value: "list", label: t.sessions.history }
                 ]}
               />
             )}
@@ -1941,7 +1813,7 @@ export default function SessionsPage() {
                 <Input
                   placeholder={t.sessions.searchPlaceholder}
                   value={search}
-                  onChange={(e) => updateSearch(e.target.value)}
+                  onChange={e => updateSearch(e.target.value)}
                   className="h-8 py-0 pr-7 pl-8 text-xs leading-none"
                 />
                 {search && (
@@ -1982,13 +1854,11 @@ export default function SessionsPage() {
                 className="shrink-0"
                 disabled={importingSessions}
                 onClick={() => importInputRef.current?.click()}
-                aria-label="Import exported sessions"
-                title="Import exported session JSON or JSONL"
+                aria-label={copy.import}
+                title={copy.importTitle}
                 prefix={importingSessions ? <Spinner /> : <Upload />}
               >
-                <span className="font-mondwest normal-case text-xs">
-                  Import sessions
-                </span>
+                <span className="font-mondwest normal-case text-xs">{copy.import}</span>
               </Button>
             )}
           </div>
@@ -2009,18 +1879,12 @@ export default function SessionsPage() {
         <div
           className="flex flex-wrap items-center gap-2 border border-primary/30 bg-primary/[0.06] px-3 py-2"
           role="region"
-          aria-label={t.sessions.selectedCount.replace(
-            "{count}",
-            String(selectedIds.size),
-          )}
+          aria-label={t.sessions.selectedCount.replace("{count}", String(selectedIds.size))}
         >
           <span className="font-mondwest normal-case text-xs text-primary tabular-nums">
-            {t.sessions.selectedCount.replace(
-              "{count}",
-              String(selectedIds.size),
-            )}
+            {t.sessions.selectedCount.replace("{count}", String(selectedIds.size))}
           </span>
-          {filtered.some((s) => !selectedIds.has(s.id)) && (
+          {filtered.some(s => !selectedIds.has(s.id)) && (
             <Button
               ghost
               size="sm"
@@ -2040,9 +1904,7 @@ export default function SessionsPage() {
             aria-label={t.sessions.clearSelection}
             title={t.sessions.clearSelection}
           >
-            <span className="font-mondwest normal-case text-xs">
-              {t.sessions.clearSelection}
-            </span>
+            <span className="font-mondwest normal-case text-xs">{t.sessions.clearSelection}</span>
           </Button>
           <Button
             outlined
@@ -2050,21 +1912,12 @@ export default function SessionsPage() {
             size="sm"
             className="ml-auto"
             onClick={() => setDeleteSelectedOpen(true)}
-            aria-label={t.sessions.deleteSelected.replace(
-              "{count}",
-              String(selectedIds.size),
-            )}
-            title={t.sessions.deleteSelected.replace(
-              "{count}",
-              String(selectedIds.size),
-            )}
+            aria-label={t.sessions.deleteSelected.replace("{count}", String(selectedIds.size))}
+            title={t.sessions.deleteSelected.replace("{count}", String(selectedIds.size))}
             prefix={<Trash2 />}
           >
             <span className="font-mondwest normal-case text-xs">
-              {t.sessions.deleteSelected.replace(
-                "{count}",
-                String(selectedIds.size),
-              )}
+              {t.sessions.deleteSelected.replace("{count}", String(selectedIds.size))}
             </span>
           </Button>
         </div>
@@ -2082,9 +1935,7 @@ export default function SessionsPage() {
                   : t.sessions.noSessions}
             </p>
             {!search && sessionCategory === "chats" && selectedSources === null && (
-              <p className="text-xs mt-1 text-text-tertiary">
-                {t.sessions.startConversation}
-              </p>
+              <p className="text-xs mt-1 text-text-tertiary">{t.sessions.startConversation}</p>
             )}
           </div>
         ) : (
@@ -2098,12 +1949,8 @@ export default function SessionsPage() {
                   searchQuery={search || undefined}
                   isExpanded={expandedId === s.id}
                   isSelected={selectedIds.has(s.id)}
-                  onToggle={() =>
-                    setExpandedId((prev) => (prev === s.id ? null : s.id))
-                  }
-                  onSelectClick={(event) =>
-                    handleSelectClick(event, index, filtered)
-                  }
+                  onToggle={() => setExpandedId(prev => (prev === s.id ? null : s.id))}
+                  onSelectClick={event => handleSelectClick(event, index, filtered)}
                   onDelete={() => sessionDelete.requestDelete(s.id)}
                   onRename={handleRename}
                   onExport={handleExport}
@@ -2113,19 +1960,13 @@ export default function SessionsPage() {
             </div>
 
             {showPagination && (
-              <SessionsPagination
-                page={page}
-                total={total}
-                onPageChange={goToPage}
-              />
+              <SessionsPagination page={page} total={total} onPageChange={goToPage} />
             )}
           </>
         )
       ) : (
         <div className="flex min-w-0 flex-col gap-4">
-          {platformEntries.length > 0 && status && (
-            <PlatformsCard platforms={platformEntries} />
-          )}
+          {platformEntries.length > 0 && status && <PlatformsCard platforms={platformEntries} />}
 
           {recentSessions.length > 0 && (
             <Card className="min-w-0 max-w-full overflow-hidden">
@@ -2139,7 +1980,7 @@ export default function SessionsPage() {
               </CardHeader>
 
               <CardContent className="grid min-w-0 gap-3">
-                {recentSessions.map((s) => (
+                {recentSessions.map(s => (
                   <div
                     key={s.id}
                     className="flex min-w-0 max-w-full flex-col gap-2 border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -2148,23 +1989,16 @@ export default function SessionsPage() {
                       <span
                         className={`font-mondwest normal-case min-w-0 truncate text-sm ${s.title ? "font-medium" : "text-muted-foreground italic"}`}
                       >
-                        {s.title ??
-                          (s.preview
-                            ? s.preview.slice(0, 60)
-                            : t.common.untitled)}
+                        {s.title ?? (s.preview ? s.preview.slice(0, 60) : t.common.untitled)}
                       </span>
 
                       <span className="min-w-0 break-words text-xs text-muted-foreground">
                         {s.model && (
                           <>
-                            <span className="font-mono-ui">
-                              {s.model.split("/").pop()}
-                            </span>{" "}
-                            ·{" "}
+                            <span className="font-mono-ui">{s.model.split("/").pop()}</span> ·{" "}
                           </>
                         )}
-                        {s.message_count} {t.common.msgs} ·{" "}
-                        {timeAgo(s.last_active)}
+                        {s.message_count} {t.common.msgs} · {timeAgo(s.last_active, locale)}
                       </span>
 
                       {s.preview && s.title && (
@@ -2174,12 +2008,9 @@ export default function SessionsPage() {
                       )}
                     </div>
 
-                    <Badge
-                      tone="outline"
-                      className="shrink-0 self-start text-xs sm:self-center"
-                    >
+                    <Badge tone="outline" className="shrink-0 self-start text-xs sm:self-center">
                       <Database className="mr-1 h-3 w-3" />
-                      {s.source ? sourceLabel(s.source) : "local"}
+                      {s.source ? sourceLabel(s.source, copy) : copy.local}
                     </Badge>
                   </div>
                 ))}

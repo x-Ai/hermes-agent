@@ -40,6 +40,9 @@ class CustomEndpointUpdate(BaseModel):
     model: str
     api_key: Optional[str] = None
     context_length: Optional[int] = None
+    # Provider-level output limit. Omitted preserves an existing value; null
+    # clears it so model discovery / the transport default can take over.
+    max_output_tokens: Optional[int] = None
     discover_models: bool = True
     make_default: bool = False
     # API protocol + auth header style (see providers.md "auth_scheme").
@@ -516,4 +519,3 @@ class _PluginProvidersPutBody(BaseModel):
 
 class _PluginVisibilityBody(BaseModel):
     hidden: bool
-

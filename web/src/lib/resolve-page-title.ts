@@ -1,6 +1,20 @@
 import type { Translations } from "@/i18n/types";
 
-const BUILTIN: Record<string, keyof Translations["app"]["nav"]> = {
+type BuiltinNavKey =
+  | "analytics"
+  | "chat"
+  | "config"
+  | "cron"
+  | "documentation"
+  | "keys"
+  | "logs"
+  | "models"
+  | "profiles"
+  | "plugins"
+  | "sessions"
+  | "skills";
+
+const BUILTIN: Record<string, BuiltinNavKey> = {
   "/chat": "chat",
   "/sessions": "sessions",
   "/analytics": "analytics",
@@ -12,31 +26,34 @@ const BUILTIN: Record<string, keyof Translations["app"]["nav"]> = {
   "/profiles": "profiles",
   "/config": "config",
   "/env": "keys",
-  "/docs": "documentation",
+  "/docs": "documentation"
 };
 
 // Built-in routes without an i18n nav key. Keep these in sync with the
 // sidebar labels in App.tsx — the naive capitalize fallback below mangles
 // initialisms ("/mcp" → "Mcp") and can't match multi-word labels.
-const BUILTIN_LITERAL: Record<string, string> = {
-  "/files": "Files",
-  "/mcp": "MCP",
-  "/channels": "Channels",
-  "/webhooks": "Webhooks",
-  "/pairing": "Pairing",
-  "/system": "System",
+const BUILTIN_LITERAL: Record<
+  string,
+  { key: "files" | "mcp" | "channels" | "webhooks" | "pairing" | "system"; fallback: string }
+> = {
+  "/files": { key: "files", fallback: "Files" },
+  "/mcp": { key: "mcp", fallback: "MCP" },
+  "/channels": { key: "channels", fallback: "Channels" },
+  "/webhooks": { key: "webhooks", fallback: "Webhooks" },
+  "/pairing": { key: "pairing", fallback: "Pairing" },
+  "/system": { key: "system", fallback: "System" }
 };
 
 export function resolvePageTitle(
   pathname: string,
   t: Translations,
-  pluginTabs: { path: string; label: string }[],
+  pluginTabs: { path: string; label: string }[]
 ): string {
   const normalized = pathname.replace(/\/$/, "") || "/";
   if (normalized === "/") {
     return t.app.nav.sessions;
   }
-  const plugin = pluginTabs.find((p) => p.path === normalized);
+  const plugin = pluginTabs.find(p => p.path === normalized);
   if (plugin) {
     return plugin.label;
   }
@@ -46,7 +63,7 @@ export function resolvePageTitle(
   }
   const literal = BUILTIN_LITERAL[normalized];
   if (literal) {
-    return literal;
+    return t.app.nav[literal.key] ?? literal.fallback;
   }
   // Derive title from pathname: "/profiles" → "Profiles"
   const segment = normalized.slice(1);

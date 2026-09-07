@@ -121,6 +121,15 @@ def normalize_model_response(
     the post-response hooks and continuation guards, in the original order."""
     assistant_message = normalize_response_for_agent(agent, response)
     finish_reason = assistant_message.finish_reason
+    standard_output_truncation = bool(
+        getattr(agent, "_standard_output_truncation_pending", False))
+
+    if standard_output_truncation:
+        # A server-declared length stop is a successful partial response. Incomplete tool arguments
+        # are not executable, but visible text is retained and finalized as the assistant answer.
+        assistant_message.tool_calls = None
+        finish_reason = "length"
+        assistant_message.finish_reason = "length"
 
     def _verdict(action: str, result: Optional[Dict[str, Any]] = None) -> ResponseIntakeVerdict:
         return ResponseIntakeVerdict(
@@ -152,7 +161,7 @@ def normalize_model_response(
 
     # Incomplete <REASONING_SCRATCHPAD> (opened, never closed): the model ran out of
     # output tokens mid-reasoning — retry up to 2 times, then save as partial.
-    if has_incomplete_scratchpad(content or ""):
+    if has_incomplete_scratchpad(content or "") and not standard_output_truncation:
         agent._incomplete_scratchpad_retries += 1
         agent._buffer_vprint("⚠️  Incomplete <REASONING_SCRATCHPAD> detected (opened but never closed)")
         if agent._incomplete_scratchpad_retries <= 2:

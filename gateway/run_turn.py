@@ -69,7 +69,7 @@ class GatewayTurnMixin:
             override_runtime = {
                 k: override.get(k) for k in (
                     "provider", "requested_provider", "api_key", "base_url", "api_mode",
-                    "max_tokens", "credential_pool", "request_overrides", "capabilities",
+                    "max_tokens", "max_tokens_source", "credential_pool", "request_overrides", "capabilities",
                 )
             }
             override_runtime["capabilities"] = dict(override_runtime["capabilities"] or {})
@@ -166,7 +166,7 @@ class GatewayTurnMixin:
         runtime = {
             k: runtime_kwargs.get(k) for k in (
                 "api_key", "base_url", "provider", "requested_provider", "api_mode", "command", "args",
-                "credential_pool", "max_tokens", "capabilities",
+                "credential_pool", "max_tokens", "max_tokens_source", "capabilities",
             )
         }
         runtime["args"] = list(runtime["args"] or [])

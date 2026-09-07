@@ -42,9 +42,7 @@ const DISK_LIVE_TRIGGERS = ["disk_critical", "disk_elevated"];
 
 function readDismissed(): string[] {
   try {
-    const parsed: unknown = JSON.parse(
-      sessionStorage.getItem(STORAGE_KEY) ?? "[]",
-    );
+    const parsed: unknown = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]");
     // Pre-incident-key builds stored a bare trigger string; JSON.parse
     // throws on those, landing in the catch — a clean reset, not a crash.
     return Array.isArray(parsed)
@@ -64,15 +62,10 @@ function writeDismissed(entries: string[]) {
 }
 
 function entryMatches(triggers: string[]) {
-  return (entry: string) =>
-    triggers.some((sev) => entry === sev || entry.startsWith(`${sev}:`));
+  return (entry: string) => triggers.some(sev => entry === sev || entry.startsWith(`${sev}:`));
 }
 
-export function MemoryPressureBanner({
-  status,
-}: {
-  status: StatusResponse | null;
-}) {
+export function MemoryPressureBanner({ status }: { status: StatusResponse | null }) {
   const { t } = useI18n();
   const memory = status?.memory;
   const disk = status?.disk;
@@ -99,10 +92,9 @@ export function MemoryPressureBanner({
     if (pressure === "ok") recovered.push(entryMatches(MEMORY_LIVE_TRIGGERS));
     if (diskPressure === "ok") recovered.push(entryMatches(DISK_LIVE_TRIGGERS));
     if (recovered.length > 0) {
-      const isRecovered = (entry: string) =>
-        recovered.some((match) => match(entry));
+      const isRecovered = (entry: string) => recovered.some(match => match(entry));
       if (dismissed.some(isRecovered)) {
-        const next = dismissed.filter((entry) => !isRecovered(entry));
+        const next = dismissed.filter(entry => !isRecovered(entry));
         writeDismissed(next);
         setDismissed(next);
       }
@@ -124,14 +116,13 @@ export function MemoryPressureBanner({
   // A missing boot_id (degraded payload / pre-NS-656 image) degrades to a
   // shared per-severity bucket — old behavior, never a crash.
   const keyFor = (trig: string) => `${trig}:${memory?.boot_id ?? "unknown"}`;
-  const trigger =
-    activeTriggers.find((trig) => !dismissed.includes(keyFor(trig))) ?? null;
+  const trigger = activeTriggers.find(trig => !dismissed.includes(keyFor(trig))) ?? null;
   const dismissKey = trigger ? keyFor(trigger) : null;
 
   if (!trigger || !dismissKey) return null;
 
   const dismiss = () => {
-    setDismissed((prev) => {
+    setDismissed(prev => {
       const next = prev.includes(dismissKey) ? prev : [...prev, dismissKey];
       writeDismissed(next);
       return next;
@@ -140,7 +131,9 @@ export function MemoryPressureBanner({
 
   const critical = trigger === "critical" || trigger === "disk_critical";
   const diskFreeLabel =
-    disk?.free_mb != null ? ` (${Math.round(disk.free_mb)} MB free)` : "";
+    disk?.free_mb != null
+      ? ` (${(t.app.diskFreeLabel ?? "{count} MB free").replace("{count}", String(Math.round(disk.free_mb)))})`
+      : "";
   const message =
     trigger === "disk_critical"
       ? `${
@@ -158,8 +151,7 @@ export function MemoryPressureBanner({
           : critical
             ? (t.app.memoryCriticalBanner ??
               "Your agent is almost out of memory and may restart. Consider closing idle sessions or upgrading its memory.")
-            : (t.app.memoryElevatedBanner ??
-              "Your agent is running low on memory.");
+            : (t.app.memoryElevatedBanner ?? "Your agent is running low on memory.");
 
   return (
     <div

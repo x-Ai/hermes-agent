@@ -2171,8 +2171,10 @@ def _resolve_runtime_agent_kwargs() -> dict:
         resolve_runtime_provider, format_runtime_provider_error, _get_model_config)
     from hermes_cli.auth import AuthError, is_rate_limited_auth_error
 
+    model_cfg = _get_model_config()
+    target_model = model_cfg.get("default") if isinstance(model_cfg, dict) else None
     try:
-        runtime = resolve_runtime_provider()
+        runtime = resolve_runtime_provider(target_model=target_model)
     except AuthError as auth_exc:
         # Rate-limit cap vs real auth failure: both use the fallback chain; the log must not mislabel.
         # Distinguish a transient rate-limit/quota cap (credentials are fine, re-auth cannot help) from a
@@ -2188,27 +2190,31 @@ def _resolve_runtime_agent_kwargs() -> dict:
     except Exception as exc:
         raise RuntimeError(format_runtime_provider_error(exc)) from exc
 
-    model_cfg = _get_model_config()
     max_tokens = None
+    max_tokens_source = None
     _env_mt = os.environ.get("HERMES_MAX_TOKENS")
     if _env_mt:
         with suppress(ValueError, TypeError):
             max_tokens = int(_env_mt)
+            max_tokens_source = "explicit"
     elif isinstance(model_cfg, dict):
         mt = model_cfg.get("max_tokens")
         max_tokens = mt if isinstance(mt, int) else None
-    # Per-provider max_output_tokens applies only when global model.max_tokens is unset (global wins).
+        if max_tokens is not None:
+            max_tokens_source = "explicit"
     if max_tokens is None:
-        _runtime_mot = runtime.get("max_output_tokens")
-        if isinstance(_runtime_mot, int) and _runtime_mot > 0:
-            max_tokens = _runtime_mot
-
+        runtime_limit = runtime.get("max_output_tokens")
+        if isinstance(runtime_limit, int) and runtime_limit > 0:
+            max_tokens = runtime_limit
+            max_tokens_source = runtime.get("max_output_tokens_source") or "provider"
     capabilities = runtime.get("capabilities")
     capabilities = (
         {k: v for k, v in capabilities.items() if isinstance(k, str) and isinstance(v, bool)}
         if isinstance(capabilities, dict) else {})
 
-    return {**_runtime_agent_kwargs(runtime), "max_tokens": max_tokens, "capabilities": capabilities}
+    return {
+        **_runtime_agent_kwargs(runtime), "max_tokens": max_tokens,
+        "max_tokens_source": max_tokens_source, "capabilities": capabilities}
 
 
 def _runtime_agent_kwargs(runtime: dict) -> dict:
@@ -2308,11 +2314,15 @@ def _resolve_runtime_agent_kwargs_for_provider(provider: str) -> dict:
         runtime = resolve_runtime_provider(requested=provider)
     except Exception as exc:
         raise RuntimeError(format_runtime_provider_error(exc)) from exc
+    runtime_limit = runtime.get("max_output_tokens")
+    has_runtime_limit = isinstance(runtime_limit, int) and not isinstance(runtime_limit, bool) and runtime_limit > 0
     return {
         **_runtime_agent_kwargs(runtime),
         "request_overrides": dict(runtime.get("request_overrides") or {}),
         "capabilities": dict(runtime.get("capabilities") or {}),
-        "max_tokens": runtime.get("max_output_tokens")}
+        "max_tokens": runtime_limit if has_runtime_limit else None,
+        "max_tokens_source": (
+            runtime.get("max_output_tokens_source") or "provider") if has_runtime_limit else None}
 
 
 def _deep_merge_request_overrides(base: Optional[dict], override: Optional[dict]) -> dict:

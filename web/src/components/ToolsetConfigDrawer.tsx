@@ -2,11 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ExternalLink, Loader2, Terminal, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type {
-  ToolsetConfig,
-  ToolsetInfo,
-  ToolsetProvider,
-} from "@/lib/api";
+import type { ToolsetConfig, ToolsetInfo, ToolsetProvider } from "@/lib/api";
 import { useToast } from "@nous-research/ui/hooks/use-toast";
 import { Button } from "@nous-research/ui/ui/components/button";
 import { Input } from "@nous-research/ui/ui/components/input";
@@ -16,6 +12,8 @@ import { Switch } from "@nous-research/ui/ui/components/switch";
 import { Spinner } from "@nous-research/ui/ui/components/spinner";
 import { Toast } from "@nous-research/ui/ui/components/toast";
 import { cn, themedBody } from "@/lib/utils";
+import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 
 interface Props {
   /** The toolset whose backends are being configured. */
@@ -35,6 +33,8 @@ interface Props {
  * post-setup install hook (npm/pip/binary) with a live log tail.
  */
 export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Props) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   const { toast, showToast } = useToast();
   const [config, setConfig] = useState<ToolsetConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
     // async .then/.catch/.finally callbacks.
     return api
       .getToolsetConfig(toolset.name, profile)
-      .then((cfg) => {
+      .then(cfg => {
         setConfig(cfg);
         setActiveProvider(cfg.active_provider);
         const seed: Record<string, boolean> = {};
@@ -73,7 +73,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
         }
         setIsSet(seed);
       })
-      .catch(() => showToast("Failed to load toolset config", "error"))
+      .catch(() => showToast(copy.loadToolsetFailed, "error"))
       .finally(() => setLoading(false));
   }, [toolset.name, profile, showToast]);
 
@@ -98,10 +98,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
         } else {
           setPostSetupRunning(false);
           const ok = st.exit_code === 0;
-          showToast(
-            ok ? "Post-setup complete" : "Post-setup finished with errors",
-            ok ? "success" : "error",
-          );
+          showToast(ok ? copy.postSetupComplete : copy.postSetupErrors, ok ? "success" : "error");
           // Refresh — a backend may now report itself configured/available.
           void loadConfig();
           onChanged();
@@ -109,7 +106,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       } catch {
         if (!cancelled) {
           setPostSetupRunning(false);
-          showToast("Lost track of the post-setup process", "error");
+          showToast(copy.postSetupLost, "error");
         }
       }
     };
@@ -127,12 +124,14 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       await api.toggleToolset(toolset.name, next, profile);
       setEnabled(next);
       showToast(
-        `${toolset.label || toolset.name} ${next ? "enabled" : "disabled"}`,
-        "success",
+        copy.toolsetToggled
+          .replace("{name}", toolset.label || toolset.name)
+          .replace("{state}", next ? copy.enabled : copy.disabled),
+        "success"
       );
       onChanged();
     } catch {
-      showToast("Failed to toggle toolset", "error");
+      showToast(copy.toggleFailed, "error");
     } finally {
       setToggling(false);
     }
@@ -143,13 +142,10 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
     try {
       await api.selectToolsetProvider(toolset.name, provider.name, profile);
       setActiveProvider(provider.name);
-      showToast(`Provider set to ${provider.name}`, "success");
+      showToast(copy.providerSet.replace("{name}", provider.name), "success");
       onChanged();
     } catch (e) {
-      showToast(
-        e instanceof Error ? e.message : "Failed to select provider",
-        "error",
-      );
+      showToast(e instanceof Error ? e.message : copy.providerFailed, "error");
     } finally {
       setSelecting(null);
     }
@@ -162,31 +158,28 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       if (v && v.trim()) env[e.key] = v.trim();
     }
     if (Object.keys(env).length === 0) {
-      showToast("Enter at least one value to save", "error");
+      showToast(copy.enterValue, "error");
       return;
     }
     setSavingProvider(provider.name);
     try {
       const res = await api.saveToolsetEnv(toolset.name, env, profile);
-      setIsSet((prev) => ({ ...prev, ...res.is_set }));
+      setIsSet(prev => ({ ...prev, ...res.is_set }));
       // Clear saved drafts so the inputs reset to the "saved" placeholder.
-      setDrafts((prev) => {
+      setDrafts(prev => {
         const next = { ...prev };
         for (const k of res.saved) delete next[k];
         return next;
       });
       showToast(
         res.saved.length
-          ? `Saved ${res.saved.length} key${res.saved.length > 1 ? "s" : ""}`
-          : "Nothing to save",
-        "success",
+          ? copy.keysSaved.replace("{count}", String(res.saved.length))
+          : copy.nothingToSave,
+        "success"
       );
       onChanged();
     } catch (e) {
-      showToast(
-        e instanceof Error ? e.message : "Failed to save keys",
-        "error",
-      );
+      showToast(e instanceof Error ? e.message : copy.saveKeysFailed, "error");
     } finally {
       setSavingProvider(null);
     }
@@ -200,13 +193,10 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
     try {
       await api.runToolsetPostSetup(toolset.name, provider.post_setup, profile);
       // Bump the trigger so the poll effect (re)starts tailing the log.
-      setPostSetupTrigger((n) => n + 1);
+      setPostSetupTrigger(n => n + 1);
     } catch (e) {
       setPostSetupRunning(false);
-      showToast(
-        e instanceof Error ? e.message : "Failed to start post-setup",
-        "error",
-      );
+      showToast(e instanceof Error ? e.message : copy.startSetupFailed, "error");
     }
   };
 
@@ -216,14 +206,14 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 p-4"
-      onMouseDown={(e) => {
+      onMouseDown={e => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         className={cn(
           themedBody,
-          "relative w-full max-w-2xl max-h-[85vh] border border-border bg-card shadow-2xl flex flex-col",
+          "relative w-full max-w-2xl max-h-[85vh] border border-border bg-card shadow-2xl flex flex-col"
         )}
       >
         <Button
@@ -231,7 +221,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
           size="xs"
           className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t.common.close}
         >
           <X />
         </Button>
@@ -239,27 +229,23 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
         {/* Header — toolset identity + enable toggle */}
         <header className="p-5 pb-3 border-b border-border">
           <div className="flex items-center gap-3 pr-8">
-            <span className="font-mondwest text-display text-base tracking-wider">
-              {labelText}
-            </span>
+            <span className="font-mondwest text-display text-base tracking-wider">{labelText}</span>
             <Badge tone={enabled ? "success" : "outline"} className="text-xs">
-              {enabled ? "Active" : "Inactive"}
+              {enabled ? copy.active : copy.inactive}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {toolset.description}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">{toolset.description}</p>
           <div className="mt-3 flex items-center gap-2">
             <Switch
               checked={enabled}
-              onCheckedChange={(v) => void handleToggle(v)}
+              onCheckedChange={v => void handleToggle(v)}
               disabled={toggling}
-              aria-label={`Enable toolset for ${platformText}`}
+              aria-label={copy.enableFor.replace("{platform}", platformText)}
             />
             <span className="text-xs text-muted-foreground">
               {enabled
-                ? `Enabled for ${platformText}`
-                : `Disabled for ${platformText}`}
+                ? copy.enabledFor.replace("{platform}", platformText)
+                : copy.disabledFor.replace("{platform}", platformText)}
             </span>
           </div>
         </header>
@@ -271,30 +257,23 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
               <Spinner />
             </div>
           ) : !config?.has_category ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">
-              This toolset has no configurable backends — toggle it on or off
-              above. It works with no provider selection or API keys.
-            </p>
+            <p className="text-sm text-muted-foreground py-6 text-center">{copy.noBackends}</p>
           ) : config.providers.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">
-              No providers are available for this toolset in this install.
-            </p>
+            <p className="text-sm text-muted-foreground py-6 text-center">{copy.noProviders}</p>
           ) : (
-            config.providers.map((provider) => {
+            config.providers.map(provider => {
               const isActive = provider.name === activeProvider;
               return (
                 <div
                   key={provider.name}
                   className={cn(
                     "border border-border p-3",
-                    isActive && "border-emerald-500/60 bg-emerald-500/5",
+                    isActive && "border-emerald-500/60 bg-emerald-500/5"
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-medium text-sm">
-                        {provider.name}
-                      </span>
+                      <span className="font-medium text-sm">{provider.name}</span>
                       {provider.badge && (
                         <Badge tone="secondary" className="text-xs">
                           {provider.badge}
@@ -308,7 +287,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                     </div>
                     {isActive ? (
                       <Badge tone="success" className="text-xs shrink-0">
-                        <Check className="h-3 w-3 mr-0.5" /> Selected
+                        <Check className="h-3 w-3 mr-0.5" /> {copy.selected}
                       </Badge>
                     ) : (
                       <Button
@@ -320,32 +299,27 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                         {selecting === provider.name ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          "Select"
+                          copy.select
                         )}
                       </Button>
                     )}
                   </div>
                   {provider.tag && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {provider.tag}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">{provider.tag}</p>
                   )}
 
                   {/* API key inputs */}
                   {provider.env_vars.length > 0 && (
                     <div className="mt-3 space-y-2.5">
-                      {provider.env_vars.map((ev) => (
+                      {provider.env_vars.map(ev => (
                         <div key={ev.key} className="space-y-1">
                           <div className="flex items-center justify-between gap-2">
-                            <Label
-                              htmlFor={`env-${ev.key}`}
-                              className="text-xs font-mono"
-                            >
+                            <Label htmlFor={`env-${ev.key}`} className="text-xs font-mono">
                               {ev.key}
                             </Label>
                             {isSet[ev.key] && (
                               <Badge tone="success" className="text-xs">
-                                Saved
+                                {copy.saved}
                               </Badge>
                             )}
                           </div>
@@ -354,15 +328,13 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                             type="password"
                             className="h-8 rounded-none text-xs font-mono"
                             placeholder={
-                              isSet[ev.key]
-                                ? "•••••••• (saved — leave blank to keep)"
-                                : ev.prompt || ev.key
+                              isSet[ev.key] ? copy.savedPlaceholder : ev.prompt || ev.key
                             }
                             value={drafts[ev.key] ?? ""}
-                            onChange={(e) =>
-                              setDrafts((prev) => ({
+                            onChange={e =>
+                              setDrafts(prev => ({
                                 ...prev,
-                                [ev.key]: e.target.value,
+                                [ev.key]: e.target.value
                               }))
                             }
                           />
@@ -373,7 +345,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                             >
-                              <ExternalLink className="h-3 w-3" /> Get a key
+                              <ExternalLink className="h-3 w-3" /> {copy.getKey}
                             </a>
                           )}
                         </div>
@@ -386,7 +358,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                         {savingProvider === provider.name ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
                         ) : (
-                          "Save keys"
+                          copy.saveKeys
                         )}
                       </Button>
                     </div>
@@ -396,12 +368,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                   {provider.post_setup && (
                     <div className="mt-3 border-t border-border pt-3">
                       <p className="text-xs text-muted-foreground mb-1.5">
-                        This backend needs a one-time install
-                        {" "}
-                        <span className="font-mono">
-                          ({provider.post_setup})
-                        </span>
-                        . Runs on this host — may take a few minutes.
+                        {copy.oneTimeInstall.replace("{command}", provider.post_setup)}
                       </p>
                       <Button
                         size="sm"
@@ -409,23 +376,21 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
                         className={cn(
                           postSetupRunning &&
                             postSetupKey === provider.post_setup &&
-                            "[&_svg]:animate-spin",
+                            "[&_svg]:animate-spin"
                         )}
                         onClick={() => void handleRunPostSetup(provider)}
                         disabled={postSetupRunning}
                         prefix={
-                          postSetupRunning &&
-                          postSetupKey === provider.post_setup ? (
+                          postSetupRunning && postSetupKey === provider.post_setup ? (
                             <Loader2 />
                           ) : (
                             <Terminal />
                           )
                         }
                       >
-                        {postSetupRunning &&
-                        postSetupKey === provider.post_setup
-                          ? "Installing…"
-                          : "Run setup"}
+                        {postSetupRunning && postSetupKey === provider.post_setup
+                          ? copy.installing
+                          : copy.runSetup}
                       </Button>
                     </div>
                   )}
@@ -440,14 +405,14 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
               <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border bg-muted/30">
                 <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-xs font-mono text-muted-foreground">
-                  post-setup: {postSetupKey}
+                  {copy.postSetup}: {postSetupKey}
                 </span>
                 {postSetupRunning && (
                   <Loader2 className="h-3 w-3 animate-spin ml-auto text-muted-foreground" />
                 )}
               </div>
               <pre className="max-h-48 overflow-y-auto p-3 text-xs font-mono whitespace-pre-wrap text-text-secondary">
-                {postSetupLog.length ? postSetupLog.join("\n") : "Starting…"}
+                {postSetupLog.length ? postSetupLog.join("\n") : copy.starting}
               </pre>
             </div>
           )}
@@ -455,6 +420,6 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       </div>
       <Toast toast={toast} />
     </div>,
-    document.body,
+    document.body
   );
 }

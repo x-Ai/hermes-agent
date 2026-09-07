@@ -1,12 +1,8 @@
-"""Regression test for anthropic_messages truncation continuation.
+"""Regression tests for Anthropic standard output truncation.
 
 When an Anthropic response hits ``stop_reason: max_tokens`` (mapped to
-``finish_reason == 'length'`` in run_agent), the agent must retry with
-a continuation prompt — the same behavior it has always had for
-chat_completions and bedrock_converse.  Before this PR, the
-``if self.api_mode in ('chat_completions', 'bedrock_converse'):`` guard
-silently dropped Anthropic-wire truncations on the floor, returning a
-half-finished response with no retry.
+``finish_reason == 'length'`` in run_agent), Hermes keeps the partial response
+and ends the turn without replaying the request.
 
 We don't exercise the full agent loop here (it's 3000 lines of inference,
 streaming, plugin hooks, etc.) — instead we verify the normalization
@@ -16,9 +12,6 @@ adapter produces exactly the shape the continuation block now consumes.
 from __future__ import annotations
 
 from types import SimpleNamespace
-
-import pytest
-
 
 def _make_anthropic_text_block(text: str) -> SimpleNamespace:
     return SimpleNamespace(type="text", text=text)
@@ -50,7 +43,7 @@ class TestTruncatedAnthropicResponseNormalization:
     """AnthropicTransport.normalize_response() gives us the shape _build_assistant_message expects."""
 
     def test_text_only_truncation_produces_text_content_no_tool_calls(self):
-        """Pure-text Anthropic truncation → continuation path should fire."""
+        """Pure-text Anthropic truncation remains available as a partial response."""
         from agent.transports import get_transport
 
         response = _make_anthropic_response(
@@ -64,8 +57,7 @@ class TestTruncatedAnthropicResponseNormalization:
         assert nr.content is not None
         assert "partial response" in nr.content
         assert not nr.tool_calls, (
-            "Pure-text truncation must have no tool_calls so the text-continuation "
-            "branch (not the tool-retry branch) fires"
+            "Pure-text truncation must not invent tool calls"
         )
         assert nr.finish_reason == "length", "max_tokens stop_reason must map to OpenAI-style 'length'"
 
@@ -83,15 +75,17 @@ class TestTruncatedAnthropicResponseNormalization:
 
 
 class TestContinuationLogicBranching:
-    """Symbolic check that the api_mode gate now includes anthropic_messages."""
+    """Only synthetic/network truncations retain continuation recovery."""
 
-    @pytest.mark.parametrize("api_mode", ["chat_completions", "bedrock_converse", "anthropic_messages"])
-    def test_all_three_api_modes_hit_continuation_branch(self, api_mode):
-        # The guard in run_agent.py is:
-        #   if self.api_mode in ("chat_completions", "bedrock_converse", "anthropic_messages"):
-        assert api_mode in {"chat_completions", "bedrock_converse", "anthropic_messages"}
+    def test_anthropic_max_tokens_is_a_standard_terminal_truncation(self):
+        from agent.turn_response_check import is_standard_output_truncation
 
-    def test_codex_responses_still_excluded(self):
-        # codex_responses has its own truncation path (not continuation-based)
-        # and should NOT be routed through the shared block.
-        assert "codex_responses" not in {"chat_completions", "bedrock_converse", "anthropic_messages"}
+        response = _make_anthropic_response([_make_anthropic_text_block("partial")])
+        assert is_standard_output_truncation(
+            SimpleNamespace(api_mode="anthropic_messages"), response) is True
+
+    def test_bedrock_length_remains_synthetic_recovery(self):
+        from agent.turn_response_check import is_standard_output_truncation
+
+        assert is_standard_output_truncation(
+            SimpleNamespace(api_mode="bedrock_converse"), SimpleNamespace()) is False

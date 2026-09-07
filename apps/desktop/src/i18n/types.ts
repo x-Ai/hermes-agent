@@ -1355,6 +1355,8 @@ export interface Translations {
       noModelCatalog: string
       defaultModelLabel: string
       contextLabel: string
+      maxOutputLabel: string
+      maxOutputHint: string
       apiKeyLabel: string
       userAgentLabel: string
       userAgentHint: string
@@ -1582,8 +1584,9 @@ export interface Translations {
        *  Backend badges are ` · `-joined token lists; unknown tokens render
        *  as-is, so new backend tokens degrade to English. */
       badgeTokens: Record<string, string>
-      /** Localized provider tag lines keyed by the backend's exact English
-       *  text — changed/unknown copy falls back to the original. */
+      /** Localized backend prose keyed by its exact English text (provider
+       *  tags and shared live-catalog model descriptions). Changed/unknown
+       *  copy falls back to the original. */
       tagCopy: Record<string, string>
       activeBackend: string
       activeBackendHint: string

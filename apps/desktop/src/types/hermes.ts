@@ -182,6 +182,8 @@ export interface CustomEndpoint {
   has_api_key: boolean
   id: string
   is_current?: boolean
+  /** Provider-level output cap. Null/absent means automatic resolution. */
+  max_output_tokens?: null | number
   model: string
   models: string[]
   name: string
@@ -213,6 +215,8 @@ export interface CustomEndpointUpdate {
   discover_models?: boolean
   id?: string
   make_default?: boolean
+  /** Positive value pins the provider cap; null clears it back to auto. */
+  max_output_tokens?: null | number
   model: string
   models?: string[]
   name: string

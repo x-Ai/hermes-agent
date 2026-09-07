@@ -1690,6 +1690,8 @@ def _resolve_context_length(agent, _agent_cfg, base_url):
     _config_max_tokens = _model_section.get("max_tokens")
     if agent.max_tokens is None and _config_max_tokens is not None:
         agent.max_tokens = _positive_int(_config_max_tokens, reject=(bool,))
+        if agent.max_tokens is not None:
+            agent.max_tokens_source = "explicit"
         if agent.max_tokens is None:
             _warn_invalid_config_int(
                 "model.max_tokens in config.yaml", _config_max_tokens,
@@ -2169,7 +2171,7 @@ _PASSTHROUGH_PARAMS = (
     # Toolset filtering
     "enabled_toolsets", "disabled_toolsets",
     # Model response configuration (None = provider/model default)
-    "max_tokens", "reasoning_config", "service_tier",
+    "max_tokens", "max_tokens_source", "reasoning_config", "service_tier",
 )
 # Gateway identity params stored as ``agent._<name>``. gateway_session_key is the stable
 # per-chat key (e.g. agent:main:telegram:dm:123).
@@ -2211,6 +2213,7 @@ def init_agent(
     notice_callback: callable = None, notice_clear_callback: callable = None,
     event_callback: Optional[Callable[[str, dict], None]] = None,
     reaction_callback: Optional[Callable[[str], None]] = None, max_tokens: int = None,
+    max_tokens_source: str = None,
     reasoning_config: Dict[str, Any] = None, service_tier: str = None,
     request_overrides: Dict[str, Any] = None, prefill_messages: List[Dict[str, Any]] = None,
     platform: str = None, user_id: str = None, user_id_alt: str = None, user_name: str = None,

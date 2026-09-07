@@ -18,6 +18,11 @@ export type Locale =
   | "ar";
 
 export interface Translations {
+  /** Browser-dashboard-only copy. Missing locales fall back to English in the
+   * presentation layer; CLI strings and command output are deliberately not
+   * part of this bundle. */
+  dashboard?: import("./dashboard").DashboardCopy;
+
   // ── Common ──
   common: {
     save: string;
@@ -100,6 +105,12 @@ export interface Translations {
       plugins: string;
       sessions: string;
       skills: string;
+      files?: string;
+      mcp?: string;
+      channels?: string;
+      webhooks?: string;
+      pairing?: string;
+      system?: string;
     };
     modelToolsSheetSubtitle: string;
     modelToolsSheetTitle: string;
@@ -122,6 +133,7 @@ export interface Translations {
     /** NS-656 disk-usage banner — optional, English fallback. */
     diskCriticalBanner?: string;
     diskElevatedBanner?: string;
+    diskFreeLabel?: string;
     dismiss?: string;
   };
 
@@ -182,6 +194,7 @@ export interface Translations {
     startConversation: string;
     noMessages: string;
     untitledSession: string;
+    failedToLoad?: string;
     deleteSession: string;
     confirmDeleteTitle: string;
     confirmDeleteMessage: string;
@@ -429,10 +442,12 @@ export interface Translations {
     modelNone?: string;
     editModel?: string;
     modelSaved?: string;
+    modelSaveAfterCreateFailed?: string;
     modelSelect?: string;
     actions?: string;
     manageSkills?: string;
     activeSetHint?: string;
+    build?: string;
   };
 
   // ── Skills page ──
@@ -499,6 +514,7 @@ export interface Translations {
       discord: string;
       auxiliary: string;
     };
+    resetFieldsDescription?: string;
   };
 
   // ── Env / Keys page ──
@@ -544,6 +560,7 @@ export interface Translations {
     login: string;
     disconnect: string;
     managedExternally: string;
+    token?: string;
     copied: string;
     copyCode: string;
     copyFailed: string;
@@ -686,6 +703,20 @@ export interface Translations {
       hint: string;
       clipboard_unsupported: string;
       tweet_text: string;
+      image_tier?: string;
+      image_unlocked?: string;
+      image_achievement_fallback?: string;
+      image_render_failed?: string;
+    };
+    /** Dashboard-only catalog metadata returned by the achievements plugin API. */
+    catalog?: Record<string, { name: string; description: string }>;
+    category_labels?: Record<string, string>;
+    tier_labels?: Record<string, string>;
+    criteria_localization?: {
+      secret: string;
+      matching: string;
+      requirement: string;
+      tier_ladder: string;
     };
   };
 
@@ -812,6 +843,7 @@ export interface Translations {
       ready: string;
       running: string;
       blocked: string;
+      review?: string;
       done: string;
       archived: string;
     };
@@ -822,6 +854,7 @@ export interface Translations {
       ready: string;
       running: string;
       blocked: string;
+      review?: string;
       done: string;
       archived: string;
     };
@@ -865,11 +898,159 @@ export interface Translations {
     saving?: string;
     commentHint?: string;
     commentHintTitle?: string;
+    clearFilters?: string;
+    orchestrationSettings?: string;
+    orchestrationLabel?: string;
+    orchestrationAuto?: string;
+    orchestrationManual?: string;
+    loadingMode?: string;
+    orchestrationAutoTitle?: string;
+    orchestrationManualTitle?: string;
+    configureOrchestration?: string;
+    settingsLoadFailed?: string;
+    settingsSaved?: string;
+    saveFailed?: string;
+    descriptionSaved?: string;
+    autoDescriptionSaved?: string;
+    autoGenerateFailed?: string;
+    unknownError?: string;
+    reload?: string;
+    orchestratorProfile?: string;
+    defaultAssignee?: string;
+    defaultValue?: string;
+    resolved?: string;
+    orchestratorHint?: string;
+    orchestrationMode?: string;
+    autoDecompose?: string;
+    autoModeHint?: string;
+    manualModeHint?: string;
+    profileDescriptions?: string;
+    profileDescriptionsHint?: string;
+    noProfilesInstalled?: string;
+    defaultSuffix?: string;
+    autoReview?: string;
+    noProfileDescription?: string;
+    profileDescriptionPlaceholder?: string;
+    saveDescriptionTitle?: string;
+    autoDescriptionTitle?: string;
+    generating?: string;
+    autoGenerate?: string;
+    clearFiltersTitle?: string;
+    hideUntilReload?: string;
+    copyCommandPrompt?: string;
+    docsTitle?: string;
+    docsLabel?: string;
+    switchBoard?: string;
+    switchBoardHint?: string;
+    taskCount?: string;
+    boardDescriptionPlaceholder?: string;
+    projectDirectory?: string;
+    recommended?: string;
+    projectDirectoryPlaceholder?: string;
+    projectDirectoryHint?: string;
+    projectDirectoryPurpose?: string;
+    searchTitle?: string;
+    assigneeFilterTitle?: string;
+    showArchivedTitle?: string;
+    lanesByProfileTitle?: string;
+    nudgeTitle?: string;
+    bulkTodoTitle?: string;
+    bulkReadyTitle?: string;
+    bulkBlockedTitle?: string;
+    bulkUnblockTitle?: string;
+    bulkCompleteTitle?: string;
+    bulkArchiveTitle?: string;
+    bulkDeleteTitle?: string;
+    bulkPriorityTitle?: string;
+    bulkReassignTitle?: string;
+    bulkAssigneeTitle?: string;
+    confirmUnblockedMany?: string;
+    reassignPlaceholder?: string;
+    unassign?: string;
+    reclaimFirstTitle?: string;
+    reclaimFirst?: string;
+    selectAllVisibleTitle?: string;
+    selectAllVisible?: string;
+    clearSelectionTitle?: string;
+    selectColumnTitle?: string;
+    selectColumnLabel?: string;
+    columnTaskCount?: string;
+    noProfileAssigned?: string;
+    assigneeHelp?: string;
+    specifierHelp?: string;
+    priorityHelp?: string;
+    skillsHelp?: string;
+    parentHelp?: string;
+    workspaceModeTitle?: string;
+    temporaryWorkspaceWarning?: string;
+    completionSummaryHint?: string;
+    noFinalResult?: string;
+    refreshLog?: string;
+    editDescriptionTitle?: string;
+    specifying?: string;
+    specify?: string;
+    specified?: string;
+    specifyFailed?: string;
+    decomposing?: string;
+    decompose?: string;
+    decomposedInto?: string;
+    singleTaskNoFanout?: string;
+    decomposeFailed?: string;
+    retitledSuffix?: string;
+    newBoardButtonTitle?: string;
+    tenantFilterTitle?: string;
+    forceReloadTitle?: string;
+    selectedTasks?: string;
+    thisTask?: string;
+    confirm?: string;
+    ok?: string;
+    delete?: string;
+    confirmTitle?: string;
+    bulkConfirmTitle?: string;
+    confirmStatusTitle?: {
+      done?: string;
+      archived?: string;
+      blocked?: string;
+    };
+    confirmStatusLabel?: {
+      done?: string;
+      archived?: string;
+      blocked?: string;
+    };
+    setPriority?: string;
+    workspaceScratch?: string;
+    workspaceWorktree?: string;
+    workspaceDir?: string;
+    goalMode?: string;
+    goalMaxTurns?: string;
+    goalModeHelp?: string;
+    goalMaxTurnsHelp?: string;
+    goalModeValue?: string;
+    goalModeOn?: string;
+    attachments?: string;
+    uploading?: string;
+    uploadFile?: string;
+    noAttachments?: string;
+    removeAttachment?: string;
+    confirmRemoveAttachment?: string;
+    finalResult?: string;
+    doneParentNote?: string;
+    childResults?: string;
+    noChildResult?: string;
+    model?: string;
+    modelProfileDefault?: string;
+    clickToEditModel?: string;
+    modelFreeTextPlaceholder?: string;
+    modelLoading?: string;
+    modelProfileDefaultOption?: string;
     // Optional in-app confirm-dialog strings for the trash/delete flow;
     // non-English locales fall back to the English literals in the bundle.
     trash?: {
       confirmTitle?: string;
       confirmManyTitle?: string;
+      confirm?: string;
+      confirmMany?: string;
+      dropHint?: string;
     };
   };
 }

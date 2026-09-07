@@ -25,7 +25,8 @@ logger = logging.getLogger("gateway.run")
 
 # Override fields layered onto runtime kwargs when non-None (partial overrides don't clobber defaults).
 _OVERRIDE_APPLY_KEYS = (
-    "provider", "requested_provider", "api_key", "base_url", "api_mode", "credential_pool", "capabilities", "max_tokens",
+    "provider", "requested_provider", "api_key", "base_url", "api_mode", "credential_pool", "capabilities",
+    "max_tokens", "max_tokens_source",
 )
 
 
@@ -168,7 +169,9 @@ class GatewayAgentCacheMixin:
             # falls back to env resolution and layers model/provider.
             try:
                 runtime = _resolve_runtime_agent_kwargs_for_provider(provider)
-                for k in ("api_key", "api_mode", "credential_pool", "requested_provider", "max_tokens"):
+                for k in (
+                    "api_key", "api_mode", "credential_pool", "requested_provider",
+                    "max_tokens", "max_tokens_source"):
                     override[k] = runtime.get(k)
                 override["request_overrides"] = dict(runtime.get("request_overrides") or {})
                 override["capabilities"] = dict(runtime.get("capabilities") or {})

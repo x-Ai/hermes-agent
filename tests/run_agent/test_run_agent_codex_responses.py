@@ -167,6 +167,23 @@ def _codex_max_output_incomplete_response(text: str = ""):
     )
 
 
+def test_codex_max_output_incomplete_preserves_partial_without_retry(monkeypatch):
+    agent = _build_agent(monkeypatch)
+    calls = []
+
+    def _respond(api_kwargs):
+        calls.append(api_kwargs)
+        return _codex_max_output_incomplete_response("Partial Responses answer")
+
+    monkeypatch.setattr(agent, "_interruptible_api_call", _respond)
+    result = agent.run_conversation("hello")
+
+    assert result["final_response"] == "Partial Responses answer"
+    assert result["partial"] is True
+    assert result["api_calls"] == 1
+    assert len(calls) == 1
+
+
 def _codex_commentary_message_response(text: str):
     return SimpleNamespace(
         output=[

@@ -36,6 +36,7 @@ interface EndpointForm {
   discoverModels: boolean
   id: string
   makeDefault: boolean
+  maxOutputTokens: string
   model: string
   name: string
   /** '' = no override (SDK default). New endpoints prefill DEFAULT_USER_AGENT. */
@@ -58,6 +59,7 @@ const EMPTY_FORM: EndpointForm = {
   discoverModels: true,
   id: '',
   makeDefault: true,
+  maxOutputTokens: '',
   model: '',
   name: '',
   userAgent: DEFAULT_USER_AGENT
@@ -81,6 +83,7 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
     discoverModels: endpoint.discover_models,
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
+    maxOutputTokens: endpoint.max_output_tokens ? String(endpoint.max_output_tokens) : '',
     model: endpoint.model,
     name: endpoint.name,
     // Show exactly what's stored — '' means "no override", not "reset to
@@ -92,6 +95,7 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
 
 function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate {
   const contextLength = Number.parseInt(form.contextLength, 10)
+  const maxOutputTokens = Number.parseInt(form.maxOutputTokens, 10)
 
   return {
     id: form.id.trim() || undefined,
@@ -110,6 +114,9 @@ function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate 
     context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
     discover_models: form.discoverModels,
     make_default: form.makeDefault,
+    // Null is intentional: it lets an edit clear a stored provider override.
+    // Omission remains reserved for older clients so the backend can preserve it.
+    max_output_tokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? maxOutputTokens : null,
     // Always sent as a string: non-empty pins the agent, '' clears any
     // override back to the SDK default.
     user_agent: form.userAgent.trim(),
@@ -311,6 +318,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   }
 
   const allModelOptions = Array.from(new Set([...discoveredModels, form.model].filter(Boolean)))
+
   const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim()
 
   return (
@@ -383,7 +391,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         <section>
           <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid items-start gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.nameLabel}
                 <Input
@@ -452,7 +460,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
+            <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.defaultModelLabel}
                 <Input
@@ -477,6 +485,16 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 />
               </label>
             </div>
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.maxOutputLabel}
+              <Input
+                inputMode="numeric"
+                onChange={event => setForm(current => ({ ...current, maxOutputTokens: event.target.value }))}
+                placeholder={ce.contextAuto}
+                value={form.maxOutputTokens}
+              />
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.maxOutputHint}</span>
+            </label>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.apiKeyLabel}
               <Input

@@ -62,15 +62,27 @@ def _lift_model_capabilities(entry: Dict[str, Any], model: Optional[str], result
         result["capabilities"] = capabilities
 
 
-def _lift_max_output_tokens(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
-    """``max_output_tokens`` or ``max_tokens`` on a provider entry pins its own output limit;
-    gateway/CLI map it onto ``AIAgent.max_tokens`` only when top-level ``model.max_tokens`` is
-    unset, so the documented global key still wins."""
-    for key in ("max_output_tokens", "max_tokens"):
-        value = entry.get(key)
-        if isinstance(value, int) and value > 0:
-            result["max_output_tokens"] = value
-            return
+def _lift_max_output_tokens(
+    entry: Dict[str, Any], result: Dict[str, Any], model: Optional[str] = None,
+) -> None:
+    """Lift the route's output limit, with an exact per-model entry winning over provider scope.
+
+    ``max_tokens`` remains accepted as the legacy spelling.  Context length is deliberately not
+    consulted: an input window is not an output capability.
+    """
+    models = entry.get("models")
+    model_config = models.get(model) if isinstance(models, dict) and model else None
+    for source in (model_config, entry):
+        if not isinstance(source, dict):
+            continue
+        for key in ("max_output_tokens", "max_tokens"):
+            value = source.get(key)
+            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+                result["max_output_tokens"] = value
+                result["max_output_tokens_source"] = (
+                    "discovered" if source is model_config and entry.get("models_discovered") is True
+                    else "model" if source is model_config else "provider")
+                return
 
 
 def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
@@ -83,6 +95,8 @@ def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
 def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *, provider_key: str, key_env: str,
                                api_mode: Optional[str]) -> None:
     """Copy the optional fields shared by ``providers:`` and legacy ``custom_providers:`` entries."""
+    from hermes_cli.config_providers import _normalize_provider_models
+
     if key_env:
         result["key_env"] = key_env
     if provider_key:
@@ -93,6 +107,11 @@ def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *,
     _lift_extra_headers(entry, result)
     if api_mode:
         result["api_mode"] = api_mode
+    models, legacy_discovered = _normalize_provider_models(entry.get("models"))
+    if models:
+        result["models"] = models
+    if entry.get("models_discovered") is True or legacy_discovered:
+        result["models_discovered"] = True
     _lift_max_output_tokens(entry, result)
     _lift_model_capabilities(entry, None, result)
 
@@ -376,8 +395,7 @@ def _apply_custom_provider_extras(custom_provider: Dict[str, Any], target_model:
     if model_name:
         result["model"] = model_name
     _lift_model_capabilities(custom_provider, model_name, result)
-    if isinstance(custom_provider.get("max_output_tokens"), int):
-        result["max_output_tokens"] = custom_provider["max_output_tokens"]
+    _lift_max_output_tokens(custom_provider, result, model_name)
     if custom_provider.get("extra_headers"):
         result["extra_headers"] = dict(custom_provider["extra_headers"])
     request_overrides = _custom_provider_request_overrides(custom_provider)

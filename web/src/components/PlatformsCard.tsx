@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@nous-research/ui/ui/c
 import { useI18n } from "@/i18n";
 
 export function PlatformsCard({ platforms }: PlatformsCardProps) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const platformStateBadge: Record<
     string,
     { tone: "success" | "warning" | "destructive" | "outline"; label: string }
@@ -14,7 +14,7 @@ export function PlatformsCard({ platforms }: PlatformsCardProps) {
     connected: { tone: "success", label: t.status.connected },
     disconnected: { tone: "warning", label: t.status.disconnected },
     disabled: { tone: "outline", label: t.status.disabled ?? "Disabled" },
-    fatal: { tone: "destructive", label: t.status.error },
+    fatal: { tone: "destructive", label: t.status.error }
   };
 
   return (
@@ -22,9 +22,7 @@ export function PlatformsCard({ platforms }: PlatformsCardProps) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Radio className="h-5 w-5 text-muted-foreground" />
-          <CardTitle className="text-base">
-            {t.status.connectedPlatforms}
-          </CardTitle>
+          <CardTitle className="text-base">{t.status.connectedPlatforms}</CardTitle>
         </div>
       </CardHeader>
 
@@ -32,7 +30,7 @@ export function PlatformsCard({ platforms }: PlatformsCardProps) {
         {platforms.map(([name, info]) => {
           const display = platformStateBadge[info.state] ?? {
             tone: "outline" as const,
-            label: info.state,
+            label: info.state
           };
           const IconComponent =
             info.state === "connected"
@@ -69,9 +67,7 @@ export function PlatformsCard({ platforms }: PlatformsCardProps) {
                   {info.error_message && (
                     <span
                       className={`font-mondwest normal-case text-xs ${
-                        info.state === "disabled"
-                          ? "text-muted-foreground"
-                          : "text-destructive"
+                        info.state === "disabled" ? "text-muted-foreground" : "text-destructive"
                       }`}
                     >
                       {info.error_message}
@@ -80,16 +76,13 @@ export function PlatformsCard({ platforms }: PlatformsCardProps) {
 
                   {info.updated_at && (
                     <span className="font-mondwest normal-case text-xs text-muted-foreground">
-                      {t.status.lastUpdate}: {isoTimeAgo(info.updated_at)}
+                      {t.status.lastUpdate}: {isoTimeAgo(info.updated_at, locale)}
                     </span>
                   )}
                 </div>
               </div>
 
-              <Badge
-                tone={display.tone}
-                className="shrink-0 self-start sm:self-center"
-              >
+              <Badge tone={display.tone} className="shrink-0 self-start sm:self-center">
                 {display.tone === "success" && (
                   <span className="mr-1 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
                 )}

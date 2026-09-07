@@ -981,6 +981,8 @@ def _normalize_codex_response(response: Any, *, issuer_kind: Optional[str] = Non
     response_status = _lower_or_none(getattr(response, "status", None))
     incomplete_reason = str(_field(getattr(response, "incomplete_details", None), "reason", "") or "").strip().lower()
     response_incomplete_content_filter = response_status == "incomplete" and incomplete_reason == "content_filter"
+    response_incomplete_output_limit = response_status == "incomplete" and incomplete_reason in {
+        "max_output_tokens", "length"}
     output = getattr(response, "output", None)
     if not isinstance(output, list) or not output:
         # Codex can deliver the whole answer via stream events with an empty output.
@@ -990,8 +992,8 @@ def _normalize_codex_response(response: Any, *, issuer_kind: Optional[str] = Non
             msg = "Codex response has empty output but output_text is present (%d chars); synthesizing output item."
             logger.debug(msg, len(out_text))
             content: List[Any] = [SimpleNamespace(type="output_text", text=out_text)]
-        elif response_incomplete_content_filter:
-            # Provider safety block, not a partial answer: finish content_filter, not incomplete.
+        elif response_incomplete_content_filter or response_incomplete_output_limit:
+            # A provider-declared terminal status is valid even when no visible text survived.
             content = []
         else:
             raise RuntimeError("Responses API returned no output items")
@@ -1043,7 +1045,9 @@ def _normalize_codex_response(response: Any, *, issuer_kind: Optional[str] = Non
     trusted_final = (
         response_status == "completed" and issuer_kind not in ("codex_backend", "xai_responses", "github_responses")
     )
-    if tool_calls:
+    if response_incomplete_output_limit:
+        finish_reason = "length"
+    elif tool_calls:
         finish_reason = "tool_calls"
     elif response_incomplete_content_filter:
         finish_reason = "content_filter"

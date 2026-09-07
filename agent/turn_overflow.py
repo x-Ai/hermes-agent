@@ -366,6 +366,25 @@ def _recover_context_length(st: _Recovery, _retry: TurnRetryState, error_msg: st
     if available_out is not None:
         return _clamp_output_cap(st, _retry, available_out, old_ctx)
 
+    if "provider exceeded max output tokens" in error_msg.lower():
+        recovered = _retry.output_cap_recovery_attempted
+        return st.fail_turn(
+            (
+                "Provider exceeded its output-token limit after one controlled recovery attempt."
+                if recovered else
+                "Provider exceeded its output-token limit at the minimum explicit budget."
+            ),
+            notices=(
+                (
+                    "❌ The provider repeated its output-token error after Hermes reduced the explicit budget once."
+                    if recovered else
+                    "❌ Hermes cannot reduce the explicit output budget below one token."
+                ),
+                "   💡 Configure max_output_tokens or lower the session max_tokens.",
+            ),
+            compression_exhausted=False,
+        )
+
     # Output-cap error with unparseable budget: compression can't help (input already
     # fits) and would death-loop on the same 400. Fail fast.
     if is_output_cap_error(error_msg):

@@ -1199,7 +1199,17 @@ class TestCodexValidateResponse:
 
 
 
-    @pytest.mark.parametrize("reason", ["max_output_tokens", "length", "", None])
+    @pytest.mark.parametrize("reason", ["max_output_tokens", "length"])
+    def test_empty_output_standard_truncation_is_valid(self, transport, reason):
+        r = SimpleNamespace(
+            status="incomplete",
+            incomplete_details=SimpleNamespace(reason=reason),
+            output=[],
+            output_text="",
+        )
+        assert transport.validate_response(r) is True
+
+    @pytest.mark.parametrize("reason", ["", None])
     def test_empty_output_other_incomplete_reasons_remain_invalid(self, transport, reason):
         r = SimpleNamespace(
             status="incomplete",

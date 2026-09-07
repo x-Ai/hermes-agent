@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
+import { localizedBadge, localizedModelDescription } from '@/app/settings/toolset-config-panel'
 import { setRuntimeI18nLocale, translateForLocale } from '@/i18n'
 
 import { TRANSLATIONS } from './catalog'
@@ -56,6 +57,29 @@ const MEDIA_MODEL_IDS = [
   'gemini-omni-flash',
   'kling-v3-4k',
   'happy-horse'
+] as const
+
+const SCREENSHOT_MESSAGING_PLATFORM_IDS = [
+  'google_chat',
+  'yuanbao',
+  'photon',
+  'irc',
+  'line',
+  'teams',
+  'ntfy',
+  'simplex',
+  'whatsapp_cloud',
+  'relay',
+  'msgraph_webhook'
+] as const
+
+const SCREENSHOT_MODEL_IDS = [
+  'grok-imagine-image',
+  'grok-imagine-image-2.0',
+  'grok-imagine-image-quality',
+  'gpt-image-2-low',
+  'gpt-image-2-medium',
+  'gpt-image-2-high'
 ] as const
 
 describe('Container persistence setting localization', () => {
@@ -163,6 +187,12 @@ const PROVIDER_ENV_KEYS = [
 ] as const
 
 const WEB_PROVIDER_TAGS = [
+  'Perplexity Search API — ranked, date-stamped web results plus query-relevant page snippets for extract.',
+  'Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.',
+  'Zig headless browser spawned by Hermes, text-only (no screenshots)',
+  'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Grok Imagine, Gemini Omni — text-to-video & image-to-video',
+  'Muse Image via Meta Model API (api.meta.ai)',
+  'Gemini Flash Image, gpt-image-2, Krea 2, Qwen Image 3 & more via OpenRouter; uses OPENROUTER_API_KEY',
   'Semantic + neural web search with content extraction via the Exa SDK. Unthrottled, guaranteed service.',
   "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.",
   'Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.',
@@ -229,9 +259,40 @@ describe('Simplified Chinese localization regressions', () => {
 
   it('localizes the current web-provider setup copy', () => {
     expect(zh.settings.envKeys.HASS_TOKEN?.description).toMatch(/[\u3400-\u9fff]/u)
+    expect(zh.skills.toolsetDescriptions.web).toMatch(/[\u3400-\u9fff]/u)
 
     for (const tag of WEB_PROVIDER_TAGS) {
       expect(zh.settings.toolsets.tagCopy[tag], tag).toMatch(/[\u3400-\u9fff]/u)
+    }
+
+    expect(localizedBadge('free tier · key optional · no Chromium', zh.settings.toolsets.badgeTokens)).toBe(
+      '免费档 · 密钥可选 · 无需 Chromium'
+    )
+    expect(
+      localizedModelDescription(
+        { id: 'live/openrouter-model', strengths: 'Image API model (from live OpenRouter catalog)' },
+        zh.settings.toolsets.modelDescriptions,
+        zh.settings.toolsets.tagCopy
+      )
+    ).toBe('图像 API 模型（来自 OpenRouter 实时目录）')
+  })
+
+  it('localizes the messaging and media copy shown in the reported screens', () => {
+    for (const id of SCREENSHOT_MESSAGING_PLATFORM_IDS) {
+      expect(zh.messaging.platformDescription[id], `${id} description`).toMatch(/[\u3400-\u9fff]/u)
+    }
+
+    for (const key of ['BUZZ_REPLY_IN_THREAD', 'PHOTON_READ_RECEIPTS']) {
+      expect(zh.messaging.fieldCopy[key]?.label, `${key} label`).toMatch(/[\u3400-\u9fff]/u)
+      expect(zh.messaging.fieldCopy[key]?.help, `${key} help`).toMatch(/[\u3400-\u9fff]/u)
+    }
+
+    for (const id of SCREENSHOT_MODEL_IDS) {
+      expect(zh.settings.toolsets.modelDescriptions[id], `${id} description`).toMatch(/[\u3400-\u9fff]/u)
+    }
+
+    for (const id of ['gpt-image-2-low', 'gpt-image-2-medium', 'gpt-image-2-high']) {
+      expect(zh.settings.toolsets.modelPrices[id], `${id} price`).toMatch(/[\u3400-\u9fff]/u)
     }
   })
 

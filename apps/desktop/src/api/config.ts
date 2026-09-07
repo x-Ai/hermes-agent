@@ -176,6 +176,7 @@ export function saveCustomEndpoint(endpoint: CustomEndpointUpdate): Promise<Cust
 
 export function validateCustomEndpoint(endpoint: CustomEndpointUpdate): Promise<CustomEndpointValidationResponse> {
   return hermesApi<CustomEndpointValidationResponse>({
+    ...profileScoped(),
     path: '/api/providers/custom-endpoints/validate',
     method: 'POST',
     body: endpoint

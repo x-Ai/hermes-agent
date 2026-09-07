@@ -24,11 +24,9 @@ import { Brain } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api } from "@/lib/api";
-import {
-  EFFORT_OPTIONS,
-  normalizeEffort,
-  VALID_EFFORTS,
-} from "@/lib/reasoning-effort";
+import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
+import { EFFORT_OPTIONS, normalizeEffort, VALID_EFFORTS } from "@/lib/reasoning-effort";
 
 interface ReasoningPickerProps {
   /** Current model string from config — re-reads the saved effort when it
@@ -47,8 +45,10 @@ export function ReasoningPicker({
   currentModel,
   profile,
   refreshKey = 0,
-  onChanged,
+  onChanged
 }: ReasoningPickerProps) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).chat;
   const [effort, setEffort] = useState("medium");
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,7 +60,7 @@ export function ReasoningPicker({
     lastFetchKeyRef.current = fetchKey;
     void api
       .getConfig(profile)
-      .then((cfg) => {
+      .then(cfg => {
         const agent = (cfg?.agent as Record<string, unknown> | undefined) ?? {};
         setEffort(normalizeEffort(agent.reasoning_effort));
         setLoaded(true);
@@ -82,7 +82,7 @@ export function ReasoningPicker({
       // object the agent boots from.
       void api
         .getConfig(profile)
-        .then((cfg) => {
+        .then(cfg => {
           const base = (cfg ?? {}) as Record<string, unknown>;
           const agent =
             base.agent && typeof base.agent === "object"
@@ -99,14 +99,14 @@ export function ReasoningPicker({
         })
         .finally(() => setSaving(false));
     },
-    [effort, onChanged, profile],
+    [effort, onChanged, profile]
   );
 
   return (
     <div className="flex items-center gap-2 px-3 py-2 text-xs">
       <div className="flex items-center gap-1.5 text-text-tertiary">
         <Brain className="h-3.5 w-3.5" />
-        <span className="text-display tracking-wider">reasoning</span>
+        <span className="text-display tracking-wider">{copy.reasoning}</span>
       </div>
       <Select
         className="ml-auto min-w-0"
@@ -114,9 +114,9 @@ export function ReasoningPicker({
         onValueChange={onSelect}
         value={effort}
       >
-        {EFFORT_OPTIONS.map((opt) => (
+        {EFFORT_OPTIONS.map(opt => (
           <SelectOption key={opt.value} value={opt.value}>
-            {opt.label}
+            {copy.reasoningEfforts[opt.value as keyof typeof copy.reasoningEfforts] ?? opt.label}
           </SelectOption>
         ))}
       </Select>

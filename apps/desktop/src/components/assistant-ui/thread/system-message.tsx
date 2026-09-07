@@ -116,6 +116,7 @@ export const SystemMessage: FC = () => {
     return (
       <MessagePrimitive.Root
         className="w-full max-w-full self-start px-(--message-text-indent) py-0.5 text-left text-[0.6875rem] leading-5 text-muted-foreground/55"
+        data-display-kind="async_delegation_complete"
         data-role="system"
         data-slot="aui_system-message-root"
       >

@@ -20,7 +20,10 @@ from hermes_cli.web_server_profiles import (
     _approval_mode_of, _broadcast_gateway_session_info, _is_other_profile, _parse_model_ids,
 )
 from fastapi import HTTPException, Request
-from hermes_cli.config import DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, custom_endpoint_key_env, coerce_provider_id, find_provider_entry, redact_key, _deep_merge
+from hermes_cli.config import (
+    DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, custom_endpoint_key_env,
+    coerce_provider_id, find_provider_entry, redact_key, _deep_merge,
+)
 from hermes_cli.web_models import ConfigUpdate, EnvVarUpdate, EnvVarDelete, EnvVarReveal, CustomEndpointUpdate
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -315,6 +318,49 @@ def _resolve_custom_endpoint_key(providers: Any, endpoint_id: str) -> Optional[s
     return matches[0] if len(matches) == 1 else None
 
 
+def _stored_custom_endpoint_api_key(endpoint_id: str, base_url: str) -> str:
+    """Resolve a saved key only for its configured destination."""
+    cfg = load_config()
+    providers = cfg.get("providers")
+    provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
+    _stored, entry = find_provider_entry(providers, provider_key)
+
+    # A legacy ``model.provider: custom`` entry is surfaced by the same editor
+    # as a read-only direct-config row, so its saved credential must support
+    # the same blank-input validation flow.
+    if entry is None and endpoint_id == "custom":
+        model_cfg = cfg.get("model")
+        if (
+            isinstance(model_cfg, dict)
+            and str(model_cfg.get("provider") or "").strip().lower() == "custom"
+        ):
+            entry = model_cfg
+
+    if not isinstance(entry, dict):
+        return ""
+    stored_base_url = str(
+        entry.get("base_url") or entry.get("url") or entry.get("api") or ""
+    ).strip().rstrip("/")
+    if stored_base_url != base_url:
+        return ""
+
+    # Runtime provider resolution is secret-scope aware. Install that same
+    # scope here so multiplexed profiles cannot fall through to another
+    # profile's process environment, while single-profile deployments retain
+    # their normal environment fallback.
+    from agent.secret_scope import (
+        build_profile_secret_scope, reset_secret_scope, set_secret_scope,
+    )
+    from hermes_cli.fallback_config import resolve_entry_api_key
+    from hermes_constants import get_hermes_home
+
+    secret_token = set_secret_scope(build_profile_secret_scope(get_hermes_home()))
+    try:
+        return str(resolve_entry_api_key(entry) or "").strip()
+    finally:
+        reset_secret_scope(secret_token)
+
+
 def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
     models: List[str] = []
     raw_models = entry.get("models")
@@ -373,6 +419,7 @@ def _endpoint_row(
     return {
         "id": endpoint_id, "name": name, "base_url": base_url, "model": model, "models": models,
         "context_length": context_length, "discover_models": discover_models,
+        "max_output_tokens": key_entry.get("max_output_tokens"),
         "has_api_key": has_api_key, "api_key_preview": api_key_preview,
         "is_current": is_current, "source": source,
         "api_mode": "" if raw_mode == "auto" else raw_mode,
@@ -510,7 +557,13 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
     if body.context_length and body.context_length > 0:
         entry["context_length"] = int(body.context_length)
         entry["models"][model]["context_length"] = int(body.context_length)
-
+    if "max_output_tokens" in body.model_fields_set:
+        if body.max_output_tokens is None:
+            entry.pop("max_output_tokens", None)
+        elif body.max_output_tokens > 0:
+            entry["max_output_tokens"] = int(body.max_output_tokens)
+        else:
+            raise HTTPException(status_code=422, detail="max_output_tokens must be a positive integer or null")
     # API keys never belong in config.yaml: write to .env and reference it via
     # ``key_env`` — the indirection built-in providers use and that
     # runtime_provider.py resolves at load time.
@@ -684,7 +737,7 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
 
 
 @router.post("/api/providers/custom-endpoints/validate")
-async def validate_custom_endpoint(body: CustomEndpointUpdate):
+async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
     """Probe a custom endpoint by calling its model-catalog URL."""
     import httpx
 
@@ -699,6 +752,10 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate):
     url = base_url + "/models"
     headers = {"Accept": "application/json"}
     api_key = (body.api_key or "").strip()
+    if not api_key and (body.id or "").strip():
+        api_key = await scoped_to_thread(
+            profile, lambda: _stored_custom_endpoint_api_key(body.id.strip(), base_url)
+        )
     if anthropic_wire:
         headers["anthropic-version"] = "2023-06-01"
         if api_key:

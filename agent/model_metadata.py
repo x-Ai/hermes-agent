@@ -822,7 +822,7 @@ def fetch_model_metadata(force_refresh: bool = False) -> Dict[str, Dict[str, Any
 
 def _endpoint_model_entry(model: Dict[str, Any], model_id: str, context_length: Optional[int]) -> Dict[str, Any]:
     """Cache entry for one ``/models`` item; optional keys are set only when known."""
-    optional = (("context_length", context_length), ("max_completion_tokens", _extract_first_int(model, _MAX_COMPLETION_KEYS)), ("pricing", _extract_pricing(model) or None))
+    optional = (("context_length", context_length), ("max_output_tokens", _extract_first_int(model, _MAX_COMPLETION_KEYS)), ("pricing", _extract_pricing(model) or None))
     return {"name": model.get("name", model_id), **{k: v for k, v in optional if v is not None}}
 
 
@@ -1170,7 +1170,8 @@ def is_output_cap_error(error_msg: str) -> bool:
     error_lower = error_msg.lower()
     # An error that ALSO describes an oversized INPUT is a genuine overflow — compression can fix it.
     return (
-        any(p in error_lower for p in ("max_tokens", "max_output_tokens", "max_completion_tokens"))
+        any(p in error_lower for p in (
+            "max_tokens", "max_output_tokens", "max_completion_tokens", "max output tokens"))
         and _any_phrase_group(error_lower, _OUTPUT_CAP_SIGNALS)
         and not any(p in error_lower for p in _INPUT_OVERFLOW_SIGNALS)
     )

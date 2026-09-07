@@ -28,7 +28,8 @@ _UNCAPPED_PICKER_PROVIDERS: frozenset[str] = frozenset({"opencode-zen", "opencod
 
 def _save_discovered_models_to_config(
     api_url: str, model_ids: list[str], *, api_mode: Optional[str] = None,
-    headers: Optional[dict[str, str]] = None) -> None:
+    headers: Optional[dict[str, str]] = None,
+    model_metadata: Optional[dict[str, dict[str, int]]] = None) -> None:
     """Persist a successful ``/v1/models`` probe into the matching ``custom_providers`` entry.
 
     Matches by base_url (slash-normalised), api_mode and headers. A failed config write is
@@ -39,34 +40,41 @@ def _save_discovered_models_to_config(
     try:
         from hermes_cli.config import load_config, save_config
         cfg = load_config()
-        providers = cfg.get("custom_providers") or []
-        if not isinstance(providers, list):
-            return
+        legacy_providers = cfg.get("custom_providers") or []
+        named_providers = cfg.get("providers") or {}
+        if not isinstance(legacy_providers, list):
+            legacy_providers = []
+        if not isinstance(named_providers, dict):
+            named_providers = {}
+        providers = legacy_providers + [entry for entry in named_providers.values() if isinstance(entry, dict)]
 
         norm_url = api_url.strip().rstrip("/").lower()
         changed = False
         for entry in providers:
             if not isinstance(entry, dict):
                 continue
-            entry_url = (entry.get("base_url", "") or entry.get("url", "")).strip()
+            entry_url = (entry.get("base_url", "") or entry.get("url", "") or entry.get("api", "")).strip()
             if entry_url.rstrip("/").lower() != norm_url or _entry_api_mode(entry) != api_mode:
                 continue
             if headers is not None and _extra_headers_from_config(entry) != headers:
                 continue
-            if not _discovered_catalog_stale(entry, model_ids):
+            if not _discovered_catalog_stale(entry, model_ids, model_metadata):
                 continue
-            entry["models"] = {model_id: {} for model_id in model_ids}
+            metadata = model_metadata if isinstance(model_metadata, dict) else {}
+            entry["models"] = {
+                model_id: dict(metadata.get(model_id) or {}) for model_id in model_ids}
             entry["models_discovered"] = True
             changed = True
 
         if changed:
-            cfg["custom_providers"] = providers
             save_config(cfg)
     except Exception:
         pass
 
 
-def _discovered_catalog_stale(entry: dict, model_ids: list[str]) -> bool:
+def _discovered_catalog_stale(
+    entry: dict, model_ids: list[str], model_metadata: Optional[dict[str, dict[str, int]]] = None,
+) -> bool:
     """Whether a live probe may overwrite ``entry["models"]``.
 
     A ``models`` mapping or list of dicts is user-curated per-model metadata — never replaced.
@@ -77,7 +85,9 @@ def _discovered_catalog_stale(entry: dict, model_ids: list[str]) -> bool:
     legacy_discovered = isinstance(existing, dict) and existing.get("__discovered_model_catalog__") is True
     entry_discovered = entry.get("models_discovered") is True or legacy_discovered
     if isinstance(existing, dict):
-        return entry_discovered and (legacy_discovered or list(existing) != model_ids)
+        expected = {
+            model_id: dict((model_metadata or {}).get(model_id) or {}) for model_id in model_ids}
+        return entry_discovered and (legacy_discovered or existing != expected)
     if isinstance(existing, list):
         return not any(isinstance(m, dict) for m in existing) and existing != model_ids
     return True
@@ -993,8 +1003,12 @@ def _lap_custom_provider_rows(b: _PickerBuild, custom_providers: list) -> None:
             grp["models"] = discovered
             if probe_live:  # a successful live probe persists the catalog for no-probe surfaces
                 try:
-                    _save_discovered_models_to_config(
-                        api_url, discovered, api_mode=grp.get("api_mode"), headers=grp.get("extra_headers") or None)
+                    save_kwargs = {
+                        "api_mode": grp.get("api_mode"), "headers": grp.get("extra_headers") or None}
+                    model_metadata = getattr(discovered, "model_metadata", None)
+                    if model_metadata:
+                        save_kwargs["model_metadata"] = model_metadata
+                    _save_discovered_models_to_config(api_url, discovered, **save_kwargs)
                 except Exception:
                     pass
         b.add_endpoint_row(slug, grp["name"], grp["api_url"], grp["models"], is_current, native_catalog_empty)

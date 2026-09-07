@@ -636,7 +636,7 @@ class ResponsesApiTransport(ProviderTransport):
         )
 
     def validate_response(self, response: Any) -> bool:
-        """True if response.output is a non-empty list, or a terminal content_filter refusal.
+        """True if output is non-empty, or the server declared a terminal incomplete reason.
 
         An incomplete/content_filter response with no output must reach normalization,
         not a retry. Does NOT check output_text fallback — the caller handles that.
@@ -649,7 +649,8 @@ class ResponsesApiTransport(ProviderTransport):
         status = str(getattr(response, "status", "") or "").strip().lower()
         details = getattr(response, "incomplete_details", None)
         raw_reason = details.get("reason") if isinstance(details, dict) else getattr(details, "reason", "")
-        return status == "incomplete" and str(raw_reason or "").strip().lower() == "content_filter"
+        return status == "incomplete" and str(raw_reason or "").strip().lower() in {
+            "content_filter", "max_output_tokens", "length"}
 
     def preflight_kwargs(
         self, api_kwargs: Any, *, allow_stream: bool = False, is_github_responses: bool = False,

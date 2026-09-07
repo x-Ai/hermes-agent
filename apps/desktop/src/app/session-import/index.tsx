@@ -10,6 +10,7 @@ import { Loader } from '@/components/ui/loader'
 import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { cn } from '@/lib/utils'
 import { setSessionOwnerHint } from '@/store/session'
 import type { SessionOwnerRoute } from '@/store/session-request-router'
@@ -143,7 +144,7 @@ export function SessionImportView({ owner, onClose, onOpenSession }: SessionImpo
             </span>
             <span className="inline-flex items-center gap-2">
               <Codicon name="account" />
-              {copy.destination} {owner.targetProfile ?? owner.profile}
+              {copy.destination} {displayEntityName(owner.targetProfile ?? owner.profile, t)}
             </span>
           </div>
         </header>

@@ -1,11 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import {
-  ShieldCheck,
-  ShieldOff,
-  ExternalLink,
-  RefreshCw,
-  Terminal,
-} from "lucide-react";
+import { ShieldCheck, ShieldOff, ExternalLink, RefreshCw, Terminal } from "lucide-react";
 import { api, type OAuthProvider } from "@/lib/api";
 import { Button } from "@nous-research/ui/ui/components/button";
 import { CopyButton } from "@nous-research/ui/ui/components/command-block";
@@ -15,12 +9,13 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
+  CardTitle
 } from "@nous-research/ui/ui/components/card";
 import { Badge } from "@nous-research/ui/ui/components/badge";
 import { ConfirmDialog } from "@nous-research/ui/ui/components/confirm-dialog";
 import { OAuthLoginModal } from "@/components/OAuthLoginModal";
 import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 
 interface Props {
   onError?: (msg: string) => void;
@@ -29,7 +24,7 @@ interface Props {
 
 function formatExpiresAt(
   expiresAt: string | null | undefined,
-  expiresInTemplate: string,
+  expiresInTemplate: string
 ): string | null {
   if (!expiresAt) return null;
   try {
@@ -54,9 +49,9 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loginFor, setLoginFor] = useState<OAuthProvider | null>(null);
-  const [disconnectTarget, setDisconnectTarget] =
-    useState<OAuthProvider | null>(null);
+  const [disconnectTarget, setDisconnectTarget] = useState<OAuthProvider | null>(null);
   const { t } = useI18n();
+  const copy = getDashboardCopy(t).oauth;
 
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
@@ -65,10 +60,10 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
     setLoading(true);
     api
       .getOAuthProviders()
-      .then((resp) => setProviders(resp.providers))
-      .catch((e) => onErrorRef.current?.(`Failed to load providers: ${e}`))
+      .then(resp => setProviders(resp.providers))
+      .catch(e => onErrorRef.current?.(copy.loadProvidersFailed.replace("{error}", String(e))))
       .finally(() => setLoading(false));
-  }, []);
+  }, [copy.loadProvidersFailed]);
 
   useEffect(() => {
     refresh();
@@ -79,17 +74,16 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
     setDisconnectTarget(null);
     try {
       await api.disconnectOAuthProvider(provider.id);
-      onSuccess?.(`${provider.name} ${t.oauth.disconnect.toLowerCase()}ed`);
+      onSuccess?.(copy.disconnected.replace("{name}", provider.name));
       refresh();
     } catch (e) {
-      onError?.(`${t.oauth.disconnect} failed: ${e}`);
+      onError?.(copy.disconnectFailed.replace("{error}", String(e)));
     } finally {
       setBusyId(null);
     }
   };
 
-  const connectedCount =
-    providers?.filter((p) => p.status.logged_in).length ?? 0;
+  const connectedCount = providers?.filter(p => p.status.logged_in).length ?? 0;
   const totalCount = providers?.length ?? 0;
 
   return (
@@ -98,9 +92,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base">
-              {t.oauth.providerLogins}
-            </CardTitle>
+            <CardTitle className="text-base">{t.oauth.providerLogins}</CardTitle>
           </div>
           <Button
             ghost
@@ -126,22 +118,14 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
           </div>
         )}
         {providers && providers.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            {t.oauth.noProviders}
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t.oauth.noProviders}</p>
         )}
         <div className="flex flex-col divide-y divide-border">
-          {providers?.map((p) => {
-            const expiresLabel = formatExpiresAt(
-              p.status.expires_at,
-              t.oauth.expiresIn,
-            );
+          {providers?.map(p => {
+            const expiresLabel = formatExpiresAt(p.status.expires_at, t.oauth.expiresIn);
             const isBusy = busyId === p.id;
             return (
-              <div
-                key={p.id}
-                className="flex items-center justify-between gap-4 py-3"
-              >
+              <div key={p.id} className="flex items-center justify-between gap-4 py-3">
                 <div className="flex items-start gap-3 min-w-0 flex-1">
                   {p.status.logged_in ? (
                     <ShieldCheck className="h-5 w-5 text-success shrink-0 mt-0.5" />
@@ -151,10 +135,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                   <div className="flex flex-col min-w-0 gap-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{p.name}</span>
-                      <Badge
-                        tone="outline"
-                        className="text-xs tracking-wide"
-                      >
+                      <Badge tone="outline" className="text-xs tracking-wide">
                         {t.oauth.flowLabels[p.flow]}
                       </Badge>
                       {p.status.logged_in && (
@@ -175,13 +156,10 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                     </div>
                     {p.status.logged_in && p.status.token_preview && (
                       <span className="truncate text-xs font-mono-ui text-text-secondary">
-                        <span className="text-text-tertiary">token </span>
+                        <span className="text-text-tertiary">{t.oauth.token ?? "token"} </span>
                         {p.status.token_preview}
                         {p.status.source_label && (
-                          <span className="text-text-tertiary">
-                            {" "}
-                            · {p.status.source_label}
-                          </span>
+                          <span className="text-text-tertiary"> · {p.status.source_label}</span>
                         )}
                       </span>
                     )}
@@ -206,9 +184,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                       </>
                     )}
                     {p.status.error && (
-                      <span className="text-xs text-destructive">
-                        {p.status.error}
-                      </span>
+                      <span className="text-xs text-destructive">{p.status.error}</span>
                     )}
                   </div>
                 </div>
@@ -220,7 +196,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex"
-                      title={`Open ${p.name} docs`}
+                      title={copy.openDocs.replace("{name}", p.name)}
                     >
                       <Button ghost size="icon">
                         <ExternalLink />
@@ -228,11 +204,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                     </a>
                   )}
                   {!p.status.logged_in && p.flow !== "external" && (
-                    <Button
-                      size="sm"
-                      className="uppercase"
-                      onClick={() => setLoginFor(p)}
-                    >
+                    <Button size="sm" className="uppercase" onClick={() => setLoginFor(p)}>
                       {t.oauth.login}
                     </Button>
                   )}
@@ -267,8 +239,8 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
             setLoginFor(null);
             refresh();
           }}
-          onSuccess={(msg) => onSuccess?.(msg)}
-          onError={(msg) => onError?.(msg)}
+          onSuccess={msg => onSuccess?.(msg)}
+          onError={msg => onError?.(msg)}
         />
       )}
       <ConfirmDialog
@@ -278,7 +250,10 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
           if (disconnectTarget) void handleDisconnect(disconnectTarget);
         }}
         title={`${t.oauth.disconnect} ${disconnectTarget?.name ?? ""}?`}
-        description={`This will remove the stored OAuth tokens for ${disconnectTarget?.name ?? "this provider"}. You will need to re-authenticate to use it again.`}
+        description={copy.disconnectDescription.replace(
+          "{name}",
+          disconnectTarget?.name ?? copy.thisProvider
+        )}
         destructive
         confirmLabel={t.oauth.disconnect}
       />

@@ -30,6 +30,7 @@ import type {
   ToolProvider,
   ToolProviderStatus,
   ToolsetConfig,
+  ToolsetModel,
   ToolsetModelsResponse
 } from '@/types/hermes'
 
@@ -66,6 +67,17 @@ export function localizedBadge(badge: string, tokens: Record<string, string>): s
       return (starred ? '★ ' : '') + (tokens[token] || token)
     })
     .join(' · ')
+}
+
+/** Model ids are stable for bundled catalogs, while live catalogs only offer
+ *  shared backend prose. Prefer the id-specific translation, then the exact
+ *  prose overlay used by provider tags, before preserving unknown copy. */
+export function localizedModelDescription(
+  model: Pick<ToolsetModel, 'id' | 'strengths'>,
+  modelDescriptions: Record<string, string>,
+  prose: Record<string, string>
+): string {
+  return modelDescriptions[model.id] ?? prose[model.strengths] ?? model.strengths
 }
 
 /**
@@ -522,7 +534,9 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               </span>
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
                 {model.speed && <span>{model.speed}</span>}
-                {model.strengths && <span>{copy.modelDescriptions[model.id] ?? model.strengths}</span>}
+                {model.strengths && (
+                  <span>{localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy)}</span>
+                )}
                 {model.price && <span className="font-mono">{copy.modelPrices[model.id] ?? model.price}</span>}
               </span>
             </button>

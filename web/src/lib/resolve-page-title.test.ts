@@ -18,9 +18,9 @@ const t = {
       profiles: "Profiles",
       plugins: "Plugins",
       sessions: "Sessions",
-      skills: "Skills",
-    },
-  },
+      skills: "Skills"
+    }
+  }
 } as unknown as Translations;
 
 describe("resolvePageTitle", () => {
@@ -39,10 +39,22 @@ describe("resolvePageTitle", () => {
     expect(resolvePageTitle("/files", t, [])).toBe("Files");
   });
 
+  it("uses translated labels for the dashboard-only built-in routes", () => {
+    const localized = {
+      ...t,
+      app: {
+        ...t.app,
+        nav: { ...t.app.nav, files: "文件", mcp: "MCP", channels: "消息平台", system: "系统" }
+      }
+    } as Translations;
+
+    expect(resolvePageTitle("/files", localized, [])).toBe("文件");
+    expect(resolvePageTitle("/channels", localized, [])).toBe("消息平台");
+    expect(resolvePageTitle("/system", localized, [])).toBe("系统");
+  });
+
   it("prefers plugin tab labels", () => {
-    expect(
-      resolvePageTitle("/kanban", t, [{ path: "/kanban", label: "Kanban" }]),
-    ).toBe("Kanban");
+    expect(resolvePageTitle("/kanban", t, [{ path: "/kanban", label: "Kanban" }])).toBe("Kanban");
   });
 
   it("falls back to capitalized path segment for unknown routes", () => {

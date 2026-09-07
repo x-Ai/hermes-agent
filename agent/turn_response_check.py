@@ -43,8 +43,7 @@ class ResponseCheckVerdict:
 
 
 def _codex_finish_reason(response: Any) -> str:
-    """Responses API max-output exhaustion is a normal Codex incomplete turn: route it to
-    the Codex continuation path (``"incomplete"``), not the length rollback."""
+    """Map Responses status to Hermes finish reasons."""
     status = getattr(response, "status", None)
     if isinstance(status, str):
         status = status.strip().lower()
@@ -56,10 +55,29 @@ def _codex_finish_reason(response: Any) -> str:
     if incomplete_reason is not None:
         incomplete_reason = str(incomplete_reason).strip().lower()
     if status == "incomplete" and incomplete_reason in {"max_output_tokens", "length"}:
-        return "incomplete"
+        return "length"
     if status == "incomplete" and incomplete_reason == "content_filter":
         return "content_filter"
     return "stop"
+
+
+def is_standard_output_truncation(agent: Any, response: Any) -> bool:
+    """Whether a successful protocol response explicitly reports normal output exhaustion."""
+    from hermes_constants import PARTIAL_STREAM_STUB_ID
+
+    if getattr(response, "id", "") == PARTIAL_STREAM_STUB_ID:
+        return False
+    if agent.api_mode == "anthropic_messages":
+        return str(getattr(response, "stop_reason", "") or "").strip().lower() == "max_tokens"
+    if agent.api_mode == "codex_responses":
+        status = str(getattr(response, "status", "") or "").strip().lower()
+        details = getattr(response, "incomplete_details", None)
+        reason = details.get("reason") if isinstance(details, dict) else getattr(details, "reason", "")
+        return status == "incomplete" and str(reason or "").strip().lower() in {
+            "max_output_tokens", "length"}
+    choices = getattr(response, "choices", None)
+    first = choices[0] if isinstance(choices, list) and choices else None
+    return str(getattr(first, "finish_reason", "") or "").strip().lower() == "length"
 
 
 def _derive_finish_reason(agent: Any, response: Any, messages: Any) -> str:
@@ -141,6 +159,11 @@ def check_api_response(
 
     agent._turn_received_provider_response = True
     finish_reason = _derive_finish_reason(agent, response, messages)
+    standard_output_truncation = is_standard_output_truncation(agent, response)
+    # Preserve the fragment through normal response intake/finalization, but never execute a
+    # possibly incomplete tool call and never route the HTTP-200 result through retry recovery.
+    # Store this on the agent: SDK response models may reject arbitrary attribute assignment.
+    agent._standard_output_truncation_pending = standard_output_truncation
 
     # HTTP-200 refusals are deterministic: one fallback try, else return the refusal.
     if finish_reason == "content_filter":
@@ -160,7 +183,7 @@ def check_api_response(
         compression_attempts = 0
         return _verdict("break")
 
-    if finish_reason == "length":
+    if finish_reason == "length" and not standard_output_truncation:
         _tv = recover_from_truncation(
             agent, response, finish_reason, _retry, messages=messages,
             conversation_history=conversation_history, api_kwargs=api_kwargs,
