@@ -231,9 +231,11 @@ export const PROVIDER_GROUPS: ProviderPrefix[] = [
 // Schema-side select overrides for desktop-relevant enum fields whose
 // backend schema only declares a string type.
 export const ENUM_OPTIONS: Record<string, string[]> = {
-  // Paid replay budget for provider-declared output exhaustion. A closed list
-  // keeps the Desktop control aligned with the runtime's 0..3 clamp.
+  // Paid replay budgets. Closed lists keep Desktop aligned with the runtime's 0..3 clamps.
   'agent.output_truncation_retries': ['0', '1', '2', '3'],
+  'agent.post_tool_empty_retries': ['0', '1', '2', '3'],
+  'agent.thinking_prefill_retries': ['0', '1', '2', '3'],
+  'agent.empty_response_retries': ['0', '1', '2', '3'],
   'agent.image_input_mode': ['auto', 'native', 'text'],
   'approvals.mode': ['manual', 'smart', 'off'],
   'code_execution.mode': ['project', 'strict'],
@@ -402,6 +404,9 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     imageInputMode: 'Image Attachments',
     apiMaxRetries: 'API Retries',
     outputTruncationRetries: 'Output-Limit Retries',
+    postToolEmptyRetries: 'Post-Tool Empty Retries',
+    thinkingPrefillRetries: 'Thinking Prefill Retries',
+    emptyResponseRetries: 'Empty Response Retries',
     serviceTier: 'Service Tier',
     toolUseEnforcement: 'Tool-Use Enforcement',
     environmentProbe: 'Execution Environment Probe'
@@ -585,6 +590,12 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
     outputTruncationRetries:
       'Retry only when the provider reports an output-token limit before producing visible text. Each retry resends the same prompt and may be billed again. Leave at 0 (recommended); maximum 3.',
+    postToolEmptyRetries:
+      'Send a continuation nudge when the model returns no visible text after tool calls. Each retry may be billed again. Set 0 to disable; maximum 3.',
+    thinkingPrefillRetries:
+      'Prefill a reasoning-only response so the model can continue into visible text. Each retry may be billed again. Set 0 to disable; maximum 3.',
+    emptyResponseRetries:
+      'Retry after the earlier recovery layers still produce no visible text. Each retry may be billed again; the cost guard can stop earlier. Set 0 to disable; maximum 3.',
     environmentProbe:
       'Probe execution-environment details for new sessions. Container backends use a temporary sandbox that is automatically removed after probing; off uses a static description.'
   },
@@ -825,6 +836,9 @@ export const SECTIONS: DesktopConfigSection[] = [
       'agent.max_turns',
       'agent.api_max_retries',
       'agent.output_truncation_retries',
+      'agent.post_tool_empty_retries',
+      'agent.thinking_prefill_retries',
+      'agent.empty_response_retries',
       'agent.service_tier',
       'agent.tool_use_enforcement',
       'agent.environment_probe',

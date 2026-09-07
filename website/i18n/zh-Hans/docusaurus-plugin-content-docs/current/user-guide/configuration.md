@@ -770,6 +770,9 @@ agent:
   max_turns: 500               # 每次对话轮次的最大迭代次数（默认：500）
   api_max_retries: 3           # 回退启动前每个 provider 的重试次数（默认：3）
   output_truncation_retries: 0 # 达到输出上限且无可见文本时的付费重试次数（0-3）
+  post_tool_empty_retries: 1   # 工具调用后无可见文本时的继续提示次数（0-3）
+  thinking_prefill_retries: 2  # 仅思考响应的预填充重试次数（0-3）
+  empty_response_retries: 3    # 最后的普通空响应重试次数（0-3）
 ```
 
 当迭代预算完全耗尽时，CLI 向用户显示通知：`⚠ Iteration budget reached (500/500) — response may be incomplete`。
@@ -777,6 +780,12 @@ agent:
 `agent.api_max_retries` 控制 Hermes 在回退 provider 切换启动**之前**对瞬时错误（速率限制、连接断开、5xx）重试 provider API 调用的次数。默认为 `3` —— 总共四次尝试。如果您配置了[回退 providers](/user-guide/features/fallback-providers) 并希望更快地故障转移，请将其降至 `0`，这样主 provider 上的第一个瞬时错误会立即切换到回退，而不是对不稳定的端点进行重试。
 
 `agent.output_truncation_retries` 与 API 错误重试相互独立。它仅在提供方明确报告已达到输出 Token 上限、并且尚未生成可见文本时生效。默认值 `0` 会立即返回截断提示；设为 `1` 到 `3` 会按该次数重新发送完整的同一提示，每次都可能重复计费。Desktop 可在**设置 → 高级**中、紧邻“API 重试次数”进行配置。
+
+其余无可见输出的三层恢复分别由 `agent.post_tool_empty_retries`、
+`agent.thinking_prefill_retries` 和 `agent.empty_response_retries` 控制。它们按该顺序运行，
+默认次数依次为 `1`、`2`、`3`；任意一项设为 `0` 只会关闭对应恢复层。
+每次重试都可能重新计费。空响应成本保护可能在达到配置次数前提前停止，
+但绝不会增加重试次数。Desktop 和 Dashboard 都在其他重试选项旁显示这三个选择器。
 
 ### API 超时
 

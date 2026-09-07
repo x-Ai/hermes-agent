@@ -83,6 +83,30 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
         ),
         "options": [0, 1, 2, 3],
     },
+    "agent.post_tool_empty_retries": {
+        "type": "number",
+        "description": (
+            "Retry with a continuation nudge when the model returns no visible text after "
+            "tool calls. 0 disables this recovery layer; maximum 3."
+        ),
+        "options": [0, 1, 2, 3],
+    },
+    "agent.thinking_prefill_retries": {
+        "type": "number",
+        "description": (
+            "Retry by prefilling a reasoning-only response so the model can produce visible "
+            "text. 0 disables this recovery layer; maximum 3."
+        ),
+        "options": [0, 1, 2, 3],
+    },
+    "agent.empty_response_retries": {
+        "type": "number",
+        "description": (
+            "Retry a response containing no visible text after earlier recovery layers. "
+            "The cost guard may stop earlier. 0 disables this recovery layer; maximum 3."
+        ),
+        "options": [0, 1, 2, 3],
+    },
     "agent.environment_probe": {
         "type": "boolean",
         "description": (

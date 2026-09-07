@@ -2,8 +2,8 @@
 
 Runs when the model returned no visible text after ``<think>`` blocks. Ladder order is
 load-bearing: partial-stream recovery → reuse prior turn content (housekeeping tools only)
-→ one post-tool-call nudge → thinking-only prefill continuation (×2) → empty-response
-retries (budgeted, deterministic-empty short-circuit) → fallback provider → terminal
+→ budgeted post-tool-call nudges → budgeted thinking-only prefill continuation →
+empty-response retries (budgeted, deterministic-empty short-circuit) → fallback provider → terminal
 ``(empty)`` sentinel. Nothing here imports ``agent.conversation_loop`` at module level.
 """
 
@@ -55,10 +55,7 @@ def _retry_empty(
         _empty_guard.record_empty_attempt(
             agent, finish_reason=finish_reason, response=response, observed_generation=observed_generation,
         )
-    budget = (
-        _empty_guard.empty_retry_budget(agent, response)
-        if empty_candidate else _empty_guard.DEFAULT_EMPTY_RETRY_BUDGET
-    )
+    budget = _empty_guard.empty_retry_budget(agent, response)
     deterministic = empty_candidate and _empty_guard.deterministic_empty(agent)
     if not (empty_candidate and agent._empty_content_retries < budget and not deterministic):
         return None, None, deterministic
@@ -69,9 +66,10 @@ def _retry_empty(
         "Empty response (no content or reasoning) — retry %d/%d in %.1fs (model=%s)",
         n, budget, wait_time, agent.model,
     )
+    configured_budget = _empty_guard.configured_empty_retry_budget(agent)
     _budget_note = (
         " — high-cost request, reduced retry budget"
-        if budget < _empty_guard.DEFAULT_EMPTY_RETRY_BUDGET else ""
+        if budget < configured_budget else ""
     )
     agent._buffer_status(
         f"⚠️ Empty response from model — retrying ({n}/{budget}) in {wait_time:.0f}s{_budget_note}"
@@ -192,22 +190,31 @@ def recover_empty_response(
         agent._response_was_previewed = True
         return _verdict("break")
 
-    # Post-tool-call empty (no prior content, or only mid-task narration): nudge once.
+    # Post-tool-call empty (no prior content, or only mid-task narration): nudge within
+    # the independently configured budget.
     _prior_was_tool = any(m.get("role") == "tool" for m in messages[-5:])
     # Ollama puts <think> in content, not reasoning_content, so _has_structured misses
     # it; detect here to route to prefill.
     _has_inline_thinking = bool(_INLINE_THINK_RE.search(final_response or ""))
+    _post_tool_budget = getattr(agent, "_post_tool_empty_retry_budget", 1)
     if (
         _prior_was_tool
-        and not getattr(agent, "_post_tool_empty_retried", False)
+        and getattr(agent, "_post_tool_empty_retry_count", 0) < _post_tool_budget
         and not _has_inline_thinking  # thinking model still working — let prefill handle
     ):
-        agent._post_tool_empty_retried = True
+        agent._post_tool_empty_retry_count = getattr(agent, "_post_tool_empty_retry_count", 0) + 1
+        _post_tool_retry = agent._post_tool_empty_retry_count
         # Clear stale narration so it doesn't resurface on a later empty response.
         agent._last_content_with_tools = None
         agent._last_content_tools_all_housekeeping = False
-        logger.info("Empty response after tool calls — nudging model " "to continue processing")
-        agent._buffer_status("⚠️ Model returned empty after tool calls — " "nudging to continue")
+        logger.info(
+            "Empty response after tool calls — nudging model to continue processing (%d/%d)",
+            _post_tool_retry, _post_tool_budget,
+        )
+        agent._buffer_status(
+            "⚠️ Model returned empty after tool calls — nudging to continue "
+            f"({_post_tool_retry}/{_post_tool_budget})"
+        )
         # tool → assistant("(empty)") → user keeps the sequence valid.
         _nudge_msg = agent._build_assistant_message(assistant_message, finish_reason)
         _nudge_msg["content"] = "(empty)"
@@ -226,14 +233,16 @@ def recover_empty_response(
         or getattr(assistant_message, "reasoning_details", None)
         or _has_inline_thinking
     )
-    if _has_structured and agent._thinking_prefill_retries < 2:
+    _thinking_prefill_budget = getattr(agent, "_thinking_prefill_retry_budget", 2)
+    if _has_structured and agent._thinking_prefill_retries < _thinking_prefill_budget:
         agent._thinking_prefill_retries += 1
         logger.info(
-            "Thinking-only response (no visible content) — prefilling to continue (%d/2)",
-            agent._thinking_prefill_retries,
+            "Thinking-only response (no visible content) — prefilling to continue (%d/%d)",
+            agent._thinking_prefill_retries, _thinking_prefill_budget,
         )
         agent._buffer_status(
-            f"↻ Thinking-only response — prefilling to continue ({agent._thinking_prefill_retries}/2)"
+            "↻ Thinking-only response — prefilling to continue "
+            f"({agent._thinking_prefill_retries}/{_thinking_prefill_budget})"
         )
         interim_msg = agent._build_assistant_message(assistant_message, "incomplete")
         interim_msg["_thinking_prefill"] = True
@@ -244,7 +253,8 @@ def recover_empty_response(
     # Empty-response retries: truly empty replies AND reasoning-only replies after
     # prefill exhaustion.
     _truly_empty = not agent._strip_think_blocks(final_response).strip()
-    _empty_candidate = _truly_empty and (not _has_structured or agent._thinking_prefill_retries >= 2)
+    _empty_candidate = _truly_empty and (
+        not _has_structured or agent._thinking_prefill_retries >= _thinking_prefill_budget)
     action, interrupt_result, _deterministic_empty = _retry_empty(
         agent, response, finish_reason, _empty_candidate, messages=messages,
         conversation_history=conversation_history, api_call_count=api_call_count,

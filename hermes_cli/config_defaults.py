@@ -108,13 +108,18 @@ DEFAULT_CONFIG = {
         # was reached before any visible text was produced. Each retry resends the same paid
         # request, so 0 is the safe default; values above 3 are clamped at agent init.
         "output_truncation_retries": 0,
+        # Independent recovery budgets for responses with no visible text. 0 disables
+        # that layer; defaults preserve the existing one/two/three-step ladder.
+        "post_tool_empty_retries": 1,
+        "thinking_prefill_retries": 2,
+        "empty_response_retries": 3,
         # Empty-response retry guard. Empty retries re-send the full input at full price; this stops
         # re-billing deterministic empties (unsignaled refusals, zero output tokens) while failing
         # open on ambiguous evidence (missing usage, any tokens, model/provider change).
         "empty_response_guard": {
-            "enabled": True,  # False = legacy fixed 3 retries unconditionally
-            # When one empty attempt's estimated input cost >= this USD, the streak's retry budget
-            # drops from 3 to 1. Unknown pricing / missing usage leaves it untouched.
+            "enabled": True,  # False disables adaptive early-stop/cost reduction
+            # When one empty attempt's estimated input cost >= this USD, the streak's configured
+            # retry budget drops to at most 1. Unknown pricing / missing usage leaves it untouched.
             "cost_threshold_usd": 0.25,
         },
         # Fast mode: "" / "normal" (off), "fast" (always), "auto" (first fast_auto_seconds of every

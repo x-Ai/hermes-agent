@@ -32,6 +32,12 @@ describe("dashboard config metadata localization", () => {
     expect(localizeConfigLabel("agent.output_truncation_retries", "en")).toBe(
       "Output-Limit Retries"
     );
+    expect(localizeConfigLabel("agent.empty_response_retries", "en")).toBe(
+      "Empty Response Retries"
+    );
+    expect(localizeConfigLabel("agent.thinking_prefill_retries", "zh")).toBe(
+      "思考预填充重试次数"
+    );
     expect(localizeConfigLabel("delegation.use_custom_endpoints", "zh")).toBe(
       "子智能体建议自定义端点"
     );

@@ -1175,6 +1175,9 @@ agent:
                                # "unlimited"/"inf"/"infinity"/"infinite"/0/-1 = no limit
   api_max_retries: 3           # Retries per provider before fallback engages (default: 3)
   output_truncation_retries: 0 # Paid replays after an output limit with no visible text (0-3)
+  post_tool_empty_retries: 1   # Continuation nudges after tools return no visible text (0-3)
+  thinking_prefill_retries: 2  # Prefill retries for reasoning-only responses (0-3)
+  empty_response_retries: 3    # Final ordinary empty-response retries (0-3)
   environment_probe: true      # Live execution-environment details in new-session prompts
 ```
 
@@ -1183,6 +1186,14 @@ agent:
 `agent.api_max_retries` controls how many times Hermes retries a provider API call on transient errors (rate limits, connection drops, 5xx) **before** fallback-provider switching engages. The default is `3` — four attempts total. If you have [fallback providers](/user-guide/features/fallback-providers) configured and want to fail over faster, drop this to `0` so the first transient error on your primary immediately hands off to the fallback instead of churning retries against the flaky endpoint.
 
 `agent.output_truncation_retries` is separate from API-error retries. It applies only when the provider explicitly reports that its output-token limit was reached before any visible text was produced. The default `0` returns the truncation notice immediately. Values from `1` to `3` replay the same full prompt that many times, and every replay may be billed again. Desktop exposes the bounded selector under **Settings → Advanced**, next to API Retries.
+
+The remaining no-visible-output recovery layers are independently bounded by
+`agent.post_tool_empty_retries`, `agent.thinking_prefill_retries`, and
+`agent.empty_response_retries`. They run in that order with defaults `1`, `2`, and `3`;
+set any value to `0` to disable only that layer. Every retry may resend the full paid
+input. The empty-response cost guard may stop the final layer before its configured
+limit, but never increases it. Desktop and Dashboard expose all three selectors beside
+the other retry controls.
 
 `agent.environment_probe` controls the factual environment probe used when a
 new session's system prompt is built. Local execution inspects Python tooling;

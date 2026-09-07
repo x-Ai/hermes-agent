@@ -833,6 +833,9 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
 
 const EN_FULL_LABELS: Record<string, string> = {
   'agent.output_truncation_retries': 'Output-Limit Retries',
+  'agent.post_tool_empty_retries': 'Post-Tool Empty Retries',
+  'agent.thinking_prefill_retries': 'Thinking Prefill Retries',
+  'agent.empty_response_retries': 'Empty Response Retries',
   'agent.environment_probe': 'Execution Environment Probe',
   'terminal.container_persistent': 'Persistent Container Filesystem',
   'terminal.docker_mount_cwd_to_workspace': 'Mount Project Into Docker',
@@ -863,6 +866,9 @@ const ZH_FULL_LABELS: Record<string, string> = {
   'agent.image_input_mode': '图片附件',
   'agent.api_max_retries': 'API 重试次数',
   'agent.output_truncation_retries': '输出上限重试次数',
+  'agent.post_tool_empty_retries': '工具后空响应重试次数',
+  'agent.thinking_prefill_retries': '思考预填充重试次数',
+  'agent.empty_response_retries': '空响应重试次数',
   'agent.service_tier': '快速模式',
   'agent.tool_use_enforcement': '工具调用强制',
   'agent.environment_probe': '执行环境探测',
@@ -931,6 +937,12 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'agent.image_input_mode': '控制图片附件如何发送给模型',
   'agent.output_truncation_retries':
     '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。每次重试都会重新发送同一提示，并可能再次计费。建议保留为 0；最大值为 3。',
+  'agent.post_tool_empty_retries':
+    '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+  'agent.thinking_prefill_retries':
+    '模型只返回思考而没有可见文本时，预填充该思考以继续生成。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+  'agent.empty_response_retries':
+    '前置恢复层仍未产生可见文本时重试。每次都可能重复计费，成本保护可能提前停止；设为 0 可关闭，最多 3 次。',
   'agent.environment_probe': '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述',
   'terminal.backend': '终端执行后端',
   'terminal.cwd': '工具与终端操作的默认项目目录',

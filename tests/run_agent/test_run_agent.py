@@ -3640,6 +3640,56 @@ class TestRunConversation:
         assert "structured reasoning answer" in result["final_response"]
         assert result["api_calls"] == 6  # 1 original + 2 prefill + 3 retries
 
+    def test_zero_prefill_and_empty_budgets_disable_both_recovery_layers(self, agent):
+        self._setup_agent(agent)
+        agent._thinking_prefill_retry_budget = 0
+        agent._empty_response_retry_budget = 0
+        empty_resp = _mock_response(
+            content=None,
+            finish_reason="stop",
+            reasoning_content="reasoning without a visible answer",
+        )
+        agent.client.chat.completions.create.side_effect = [
+            empty_resp,
+            _mock_response(content="must not be requested", finish_reason="stop"),
+        ]
+
+        with (
+            patch.object(agent, "_persist_session"),
+            patch.object(agent, "_save_trajectory"),
+            patch.object(agent, "_cleanup_task_resources"),
+        ):
+            result = agent.run_conversation("answer me")
+
+        assert result["turn_exit_reason"] == "empty_response_exhausted"
+        assert result["api_calls"] == 1
+
+    def test_zero_post_tool_and_empty_budgets_disable_both_recovery_layers(self, agent):
+        self._setup_agent(agent)
+        agent._post_tool_empty_retry_budget = 0
+        agent._empty_response_retry_budget = 0
+        tool_response = _mock_response(
+            content=None,
+            finish_reason="tool_calls",
+            tool_calls=[_mock_tool_call(name="web_search", arguments="{}", call_id="c1")],
+        )
+        agent.client.chat.completions.create.side_effect = [
+            tool_response,
+            _mock_response(content=None, finish_reason="stop"),
+            _mock_response(content="must not be requested", finish_reason="stop"),
+        ]
+
+        with (
+            patch("model_tools.handle_function_call", return_value="search result"),
+            patch.object(agent, "_persist_session"),
+            patch.object(agent, "_save_trajectory"),
+            patch.object(agent, "_cleanup_task_resources"),
+        ):
+            result = agent.run_conversation("search something")
+
+        assert result["turn_exit_reason"] == "empty_response_exhausted"
+        assert result["api_calls"] == 2
+
 
     def test_truly_empty_response_stops_after_repeated_empty(self, agent):
         """Repeated empty responses stop after one retry and return an explanation."""
@@ -3693,8 +3743,8 @@ class TestRunConversation:
 
     def test_guard_disabled_via_config_restores_legacy_retries(self, agent):
         """NS-503: agent.empty_response_guard.enabled: false in config.yaml
-        (resolved to _empty_guard_enabled at init) restores the legacy
-        fixed 3-retry behaviour even for deterministic empties."""
+        (resolved to _empty_guard_enabled at init) uses the configured retry
+        budget without deterministic-empty or cost-based early stopping."""
         self._setup_agent(agent)
         agent.base_url = "http://127.0.0.1:1234/v1"
         agent._empty_guard_enabled = False  # as set by agent_init from config

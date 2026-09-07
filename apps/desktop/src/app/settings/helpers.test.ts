@@ -108,23 +108,28 @@ describe('settings helpers', () => {
     })
   })
 
-  it('surfaces a bounded paid-retry budget beside the API retry setting in Advanced', () => {
+  it('surfaces independent bounded paid-retry budgets beside API retries in Advanced', () => {
     const advanced = SECTIONS.find(section => section.id === 'advanced')
     const apiRetryIndex = advanced?.keys.indexOf('agent.api_max_retries') ?? -1
-    const outputRetryIndex = advanced?.keys.indexOf('agent.output_truncation_retries') ?? -1
 
-    expect(outputRetryIndex).toBe(apiRetryIndex + 1)
-    expect(enumOptionsFor('agent.output_truncation_retries', 0, {})).toEqual(['0', '1', '2', '3'])
+    const retryKeys = [
+      'agent.output_truncation_retries',
+      'agent.post_tool_empty_retries',
+      'agent.thinking_prefill_retries',
+      'agent.empty_response_retries'
+    ]
+
+    expect(advanced?.keys.slice(apiRetryIndex + 1, apiRetryIndex + 5)).toEqual(retryKeys)
+
+    for (const key of retryKeys) {
+      expect(enumOptionsFor(key, 0, {})).toEqual(['0', '1', '2', '3'])
+    }
 
     for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
-      expect(
-        fieldCopyForSchemaKey(translations.settings.fieldLabels, 'agent.output_truncation_retries'),
-        locale
-      ).toBeTruthy()
-      expect(
-        fieldCopyForSchemaKey(translations.settings.fieldDescriptions, 'agent.output_truncation_retries'),
-        locale
-      ).toBeTruthy()
+      for (const key of retryKeys) {
+        expect(fieldCopyForSchemaKey(translations.settings.fieldLabels, key), `${locale}:${key}`).toBeTruthy()
+        expect(fieldCopyForSchemaKey(translations.settings.fieldDescriptions, key), `${locale}:${key}`).toBeTruthy()
+      }
     }
   })
 

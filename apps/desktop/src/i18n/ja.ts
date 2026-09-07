@@ -779,6 +779,9 @@ export const ja = defineLocale({
         imageInputMode: '画像添付',
         apiMaxRetries: 'API 再試行回数',
         outputTruncationRetries: '出力上限の再試行回数',
+        postToolEmptyRetries: 'ツール後の空応答再試行回数',
+        thinkingPrefillRetries: '推論プリフィル再試行回数',
+        emptyResponseRetries: '空応答の再試行回数',
         serviceTier: 'サービス階層',
         toolUseEnforcement: 'ツール使用の強制',
         environmentProbe: '実行環境のプローブ'
@@ -954,6 +957,12 @@ export const ja = defineLocale({
         maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
         outputTruncationRetries:
           'プロバイダーが出力トークン上限を報告し、表示可能なテキストが生成されなかった場合のみ再試行します。再試行ごとに同じプロンプトが再送信され、再度課金される可能性があります。0（推奨）のままにしてください。最大 3 回です。',
+        postToolEmptyRetries:
+          'ツール呼び出し後に表示可能なテキストが返らない場合、続行を促します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
+        thinkingPrefillRetries:
+          '推論だけの応答をプリフィルし、表示可能なテキストへ続行します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
+        emptyResponseRetries:
+          '先行する回復層の後も表示可能なテキストがない場合に再試行します。再課金の可能性があり、コストガードが早期終了することがあります。0 で無効、最大 3 回です。',
         environmentProbe:
           '新しいセッションの実行環境を調べます。コンテナバックエンドではプローブ後に自動削除される一時サンドボックスを使い、オフの場合は静的な説明を使います。'
       },

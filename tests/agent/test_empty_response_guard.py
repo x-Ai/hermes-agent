@@ -195,6 +195,18 @@ class TestEmptyRetryBudget:
             == guard.REDUCED_EMPTY_RETRY_BUDGET
         )
 
+    def test_configured_budget_is_respected_before_cost_reduction(self, monkeypatch):
+        monkeypatch.setattr(guard, "_estimate_attempt_cost", lambda a, r: None)
+        assert guard.empty_retry_budget(
+            _agent(_empty_response_retry_budget=0), _response()) == 0
+        assert guard.empty_retry_budget(
+            _agent(_empty_response_retry_budget=2), _response()) == 2
+
+        monkeypatch.setattr(
+            guard, "_estimate_attempt_cost", lambda a, r: Decimal("0.80"))
+        assert guard.empty_retry_budget(
+            _agent(_empty_response_retry_budget=2), _response()) == 1
+
     def test_default_budget_below_threshold(self, monkeypatch):
         monkeypatch.setattr(
             guard, "_estimate_attempt_cost", lambda a, r: Decimal("0.01")
@@ -233,13 +245,14 @@ class TestEmptyRetryBudget:
             == guard.DEFAULT_COST_THRESHOLD_USD
         )
 
-    def test_guard_disabled_keeps_default_budget(self, monkeypatch):
+    def test_guard_disabled_keeps_configured_budget(self, monkeypatch):
         monkeypatch.setattr(
             guard, "_estimate_attempt_cost", lambda a, r: Decimal("9.99")
         )
         assert (
-            guard.empty_retry_budget(_agent(_empty_guard_enabled=False), _response())
-            == guard.DEFAULT_EMPTY_RETRY_BUDGET
+            guard.empty_retry_budget(
+                _agent(_empty_guard_enabled=False, _empty_response_retry_budget=2), _response())
+            == 2
         )
 
     def test_pricing_exception_fails_open(self):

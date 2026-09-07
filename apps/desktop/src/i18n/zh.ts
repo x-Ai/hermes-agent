@@ -1008,6 +1008,9 @@ export const zh: Translations = {
         imageInputMode: '图片附件',
         apiMaxRetries: 'API 重试次数',
         outputTruncationRetries: '输出上限重试次数',
+        postToolEmptyRetries: '工具后空响应重试次数',
+        thinkingPrefillRetries: '思考预填充重试次数',
+        emptyResponseRetries: '空响应重试次数',
         serviceTier: '服务等级',
         toolUseEnforcement: '工具调用强制',
         environmentProbe: '执行环境探测'
@@ -1182,6 +1185,12 @@ export const zh: Translations = {
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
         outputTruncationRetries:
           '仅在提供方明确因输出 Token 上限截断且没有生成可见文本时重试。每次都会重新发送同一提示并可能重复计费；建议设为 0，最多 3 次。',
+        postToolEmptyRetries:
+          '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+        thinkingPrefillRetries:
+          '模型只返回思考而没有可见文本时，预填充该思考以继续生成。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+        emptyResponseRetries:
+          '前置恢复层仍未产生可见文本时重试。每次都可能重复计费，成本保护可能提前停止；设为 0 可关闭，最多 3 次。',
         serviceTier: 'API 服务等级（OpenAI/Anthropic）',
         environmentProbe: '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述'
       },

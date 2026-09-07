@@ -348,6 +348,11 @@ def _parse_config_int(raw: Any, default: int) -> int:
         return default
 
 
+def _bounded_retry_count(raw: Any, default: int) -> int:
+    """Configurable paid-retry budget: integer 0..3, malformed values use ``default``."""
+    return min(max(_parse_config_int(raw, default), 0), 3)
+
+
 def _cfg_flag(cfg: Dict[str, Any], key: str, default: bool) -> bool:
     """Legacy string-set truthiness used by the ``compression`` section."""
     return str(cfg.get(key, default)).lower() in {"true", "1", "yes"}
@@ -1360,17 +1365,16 @@ def _apply_agent_section(agent, _agent_cfg):
         _api_retries = 3
     agent._api_max_retries = _api_retries
 
-    # Provider-declared output exhaustion is deterministic often enough that replaying the
-    # full paid request must be explicit opt-in. Keep the independently-counted budget small;
-    # malformed values fail closed to the zero-retry default.
-    try:
-        _output_truncation_raw = _agent_section.get("output_truncation_retries", 0)
-        if isinstance(_output_truncation_raw, bool):
-            raise ValueError
-        _output_truncation_retries = int(_output_truncation_raw)
-    except (TypeError, ValueError):
-        _output_truncation_retries = 0
-    agent._output_truncation_retries = min(max(_output_truncation_retries, 0), 3)
+    # Every no-visible-output recovery layer has its own small paid replay budget. 0 disables
+    # the layer; malformed values preserve the shipped default (output truncation fails closed).
+    agent._output_truncation_retries = _bounded_retry_count(
+        _agent_section.get("output_truncation_retries", 0), 0)
+    agent._post_tool_empty_retry_budget = _bounded_retry_count(
+        _agent_section.get("post_tool_empty_retries", 1), 1)
+    agent._thinking_prefill_retry_budget = _bounded_retry_count(
+        _agent_section.get("thinking_prefill_retries", 2), 2)
+    agent._empty_response_retry_budget = _bounded_retry_count(
+        _agent_section.get("empty_response_retries", 3), 3)
 
 
 def _positive_int(raw: Any, *, reject: tuple = ()) -> Optional[int]:

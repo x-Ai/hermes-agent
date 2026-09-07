@@ -12,8 +12,8 @@ Two independent guards, both failing OPEN to legacy behaviour:
    remaining retries and go straight to the fallback chain. Missing usage or
    ``output_tokens > 0`` (think-block stripping, whitespace, flaky decoding) never classifies.
 2. Cost-aware budget: when one empty attempt's estimated input cost exceeds the threshold
-   (default $0.25), the retry budget drops from 3 to 1. Unknown pricing / missing usage /
-   included routes leave it untouched.
+   (default $0.25), the configured retry budget drops to at most 1. Unknown pricing /
+   missing usage / included routes leave it untouched.
 
 1. **Deterministic-empty detection** — two consecutive empty attempts from
    the same (model, provider, finish_reason) are treated as deterministic
@@ -25,7 +25,7 @@ Two independent guards, both failing OPEN to legacy behaviour:
 
 2. **Cost-aware retry budget** — when the estimated input cost of a
    single empty attempt exceeds the configured threshold (default
-   $0.25), the empty-retry budget for this streak drops from 3 to 1.
+   $0.25), the empty-retry budget for this streak drops to at most 1.
    Unknown pricing, missing usage, or included/subscription routes
    leave the budget untouched.
 
@@ -33,9 +33,10 @@ Configured via the additive ``agent.empty_response_guard`` section in
 ``config.yaml`` (resolved once at agent init by ``agent_init``)::
 
     agent:
+      empty_response_retries: 3 # 0..3; 0 disables ordinary empty retries
       empty_response_guard:
-        enabled: true            # false = legacy fixed 3-retry behaviour
-        cost_threshold_usd: 0.25 # per-attempt cost that halves the budget
+        enabled: true            # false disables early-stop/cost reduction
+        cost_threshold_usd: 0.25 # high-cost attempts reduce the budget to at most one
 
 Per project policy, no ``HERMES_*`` environment variables are involved —
 ``.env`` is reserved for credentials; behavioural settings live in
@@ -230,15 +231,23 @@ def deterministic_empty(agent: Any) -> bool:
     return same_signature and (usage_proves_empty or response_proves_empty)
 
 
+def configured_empty_retry_budget(agent: Any) -> int:
+    """Configured ordinary empty-response retries, normalized to the supported 0..3 range."""
+    configured = getattr(agent, "_empty_response_retry_budget", DEFAULT_EMPTY_RETRY_BUDGET)
+    if not isinstance(configured, int) or isinstance(configured, bool):
+        configured = DEFAULT_EMPTY_RETRY_BUDGET
+    return min(max(configured, 0), 3)
+
+
 def empty_retry_budget(agent: Any, response: Any) -> int:
-    """Empty-retry budget for the current streak (3, or 1 when a single attempt is
-    estimated to cost more than the configured threshold)."""
+    """Configured empty-retry budget, reduced to at most 1 for a high-cost attempt."""
+    configured = configured_empty_retry_budget(agent)
     if not guard_enabled(agent):
-        return DEFAULT_EMPTY_RETRY_BUDGET
+        return configured
     cost = _estimate_attempt_cost(agent, response)
     if cost is not None and cost >= _cost_threshold_usd(agent):
-        return REDUCED_EMPTY_RETRY_BUDGET
-    return DEFAULT_EMPTY_RETRY_BUDGET
+        return min(configured, REDUCED_EMPTY_RETRY_BUDGET)
+    return configured
 
 
 def streak_cost_usd(agent: Any) -> Optional[Decimal]:
