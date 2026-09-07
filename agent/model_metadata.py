@@ -1170,8 +1170,7 @@ def is_output_cap_error(error_msg: str) -> bool:
     error_lower = error_msg.lower()
     # An error that ALSO describes an oversized INPUT is a genuine overflow — compression can fix it.
     return (
-        any(p in error_lower for p in (
-            "max_tokens", "max_output_tokens", "max_completion_tokens", "max output tokens"))
+        any(p in error_lower for p in ("max_tokens", "max_output_tokens", "max_completion_tokens"))
         and _any_phrase_group(error_lower, _OUTPUT_CAP_SIGNALS)
         and not any(p in error_lower for p in _INPUT_OVERFLOW_SIGNALS)
     )

@@ -4960,38 +4960,6 @@ class TestRunConversation:
         assert second_call["max_tokens"] <= 65_472
         assert agent.context_compressor.context_length == 200_000
 
-    def test_generic_output_cap_error_retries_once_before_api_retry_budget(self, agent):
-        """The one semantic recovery is independent of ordinary API retries;
-        a repeated deterministic error terminates without widening that budget."""
-        self._setup_agent(agent)
-        agent.api_mode = "chat_completions"
-        agent.provider = "custom"
-        agent.requested_provider = "custom:cursor2api"
-        agent.base_url = "https://cursor2api.example/v1"
-        agent.model = "glm-5.2"
-        agent.max_tokens = 128_000
-        agent.max_tokens_source = "explicit"
-        agent._api_max_retries = 1
-
-        error = RuntimeError("Provider exceeded max output tokens.")
-        agent.client.chat.completions.create.side_effect = [error, error]
-
-        with (
-            patch.object(agent, "_persist_session"),
-            patch.object(agent, "_save_trajectory"),
-            patch.object(agent, "_cleanup_task_resources"),
-        ):
-            result = agent.run_conversation("hello")
-
-        assert result["completed"] is False
-        assert result["failed"] is True
-        assert "one controlled recovery attempt" in result["error"]
-        requested = [
-            call.kwargs["max_tokens"]
-            for call in agent.client.chat.completions.create.call_args_list
-        ]
-        assert requested == [128_000, 64_000]
-
     def test_output_cap_retry_when_gateway_wraps_error_as_rate_limit(self, agent):
         """Some relays wrap the upstream max-output 400 as HTTP 429. The
         parseable output cap must still route into the output-cap handler

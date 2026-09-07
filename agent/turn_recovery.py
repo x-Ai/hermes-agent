@@ -456,36 +456,15 @@ def _recover_format_errors(
 def recover_after_classification(
     agent: Any, api_error: Exception, classified: Any, _retry: TurnRetryState, *,
     status_code: Optional[int], error_context: Any, messages: List[Dict[str, Any]],
-    api_messages: Any, api_kwargs: Any,
+    api_messages: Any,
 ) -> Tuple[bool, bool]:
     """One-shot recovery chain that runs AFTER ``classify_api_error`` and before the
     generic retry path. Order is load-bearing (each branch may ``return`` early):
-    generic output-cap reduction → Nous paid-entitlement refresh → credential-pool
-    rotation → image shrink →
+    Nous paid-entitlement refresh → credential-pool rotation → image shrink →
     multimodal-tool-content strip → corrupt-image strip → Anthropic OAuth 1M-beta
     disable → per-provider 401 credential refresh → format-recovery strips.
     Returns ``(retry_now, recovered_with_pool)``; the latter feeds the Nous rate-limit guard."""
     from agent.conversation_loop import _is_nous_inference_route
-
-    # Some relays replace a normal truncated response with this generic API
-    # error and omit the actual model ceiling. Repair the request once by
-    # halving the output budget. A repeated error is deterministic and falls
-    # through to the output-cap terminal path instead of consuming ordinary
-    # API retries or extending their ceiling.
-    if (
-        "provider exceeded max output tokens" in str(api_error).lower()
-        and not _retry.output_cap_recovery_attempted
-    ):
-        requested = agent._requested_output_cap_from_api_kwargs(api_kwargs)
-        if requested is None or requested > 1:
-            safe_out = max(1, requested // 2) if requested is not None else 4_096
-            _retry.output_cap_recovery_attempted = True
-            agent._ephemeral_max_output_tokens = safe_out
-            agent._buffer_vprint(
-                "⚠️  Provider reported output exhaustion as an API error — retrying once "
-                f"with an explicit max output budget of {safe_out:,}."
-            )
-            return True, False
 
     if (
         classified.reason == FailoverReason.billing
@@ -1322,7 +1301,6 @@ def route_classified_error(
     _is_output_cap_error = (
         is_output_cap_error(error_msg)
         or parse_available_output_tokens_from_error(error_msg) is not None
-        or "provider exceeded max output tokens" in error_msg.lower()
     )
     if (
         classified.reason in _OVERFLOW_REASONS

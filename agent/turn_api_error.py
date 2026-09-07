@@ -127,7 +127,7 @@ def handle_api_error(
 
     _recovered, recovered_with_pool = recover_after_classification(
         agent, api_error, classified, _retry, status_code=status_code, error_context=error_context,
-        messages=messages, api_messages=api_messages, api_kwargs=api_kwargs,
+        messages=messages, api_messages=api_messages,
     )
     if _recovered:
         return _verdict("continue")

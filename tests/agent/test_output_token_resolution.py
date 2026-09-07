@@ -5,15 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from agent.error_classifier import FailoverReason, classify_api_error
 from agent.output_tokens import resolve_output_token_limit
 from agent.transports.codex import ResponsesApiTransport
 from agent.transports.anthropic import AnthropicTransport
 from agent.transports.chat_completions import ChatCompletionsTransport
-from agent.turn_overflow import recover_from_overflow
-from agent.turn_recovery import recover_after_classification
 from agent.turn_response_check import is_standard_output_truncation
-from agent.turn_retry_state import TurnRetryState
 from run_agent import AIAgent
 
 
@@ -172,64 +168,3 @@ def test_optional_chat_and_responses_limits_are_omitted_when_unconfigured():
 )
 def test_provider_reported_output_limits_are_standard_truncations(api_mode, response):
     assert is_standard_output_truncation(SimpleNamespace(api_mode=api_mode), response) is True
-
-
-class _ErrorAgent:
-    log_prefix = ""
-    base_url = "https://cursor2api.example/v1"
-    provider = "custom"
-    model = "glm-5.2"
-    tools = []
-    context_compressor = SimpleNamespace(context_length=200_000)
-    requested_provider = ""
-    _custom_providers = []
-
-    def __init__(self):
-        self.notices = []
-        self._ephemeral_max_output_tokens = None
-
-    def _requested_output_cap_from_api_kwargs(self, kwargs):
-        return kwargs.get("max_output_tokens")
-
-    def _buffer_vprint(self, message):
-        self.notices.append(message)
-
-    def _flush_status_buffer(self):
-        pass
-
-    def _vprint(self, *_args, **_kwargs):
-        pass
-
-    def _persist_session(self, *_args):
-        pass
-
-
-def _terminal_generic_output_error(agent, retry_state):
-    return recover_from_overflow(
-        agent, RuntimeError("Provider exceeded max output tokens."),
-        SimpleNamespace(reason=FailoverReason.context_overflow), retry_state,
-        status_code=500, error_msg="provider exceeded max output tokens.",
-        wrapped_output_cap_budget=None, messages=[], api_messages=[], system_message="",
-        active_system_prompt="", conversation_history=[], approx_tokens=0,
-        compression_attempts=0, max_compression_attempts=3, api_call_count=1,
-        effective_task_id=None)
-
-
-def test_generic_output_cap_error_gets_only_one_smaller_retry():
-    error = RuntimeError("Provider exceeded max output tokens.")
-    classified = classify_api_error(error)
-    assert classified.reason == FailoverReason.context_overflow
-    agent = _ErrorAgent()
-    retry_state = TurnRetryState()
-    recovered, recovered_with_pool = recover_after_classification(
-        agent, error, classified, retry_state, status_code=500, error_context=None,
-        messages=[], api_messages=[], api_kwargs={"max_output_tokens": 128_000},
-    )
-    assert recovered is True
-    assert recovered_with_pool is False
-    assert agent._ephemeral_max_output_tokens == 64_000
-    assert retry_state.output_cap_recovery_attempted is True
-
-    second = _terminal_generic_output_error(agent, retry_state)
-    assert second.action == "return"
-    assert second.result["failed"] is True
