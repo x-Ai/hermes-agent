@@ -1360,6 +1360,18 @@ def _apply_agent_section(agent, _agent_cfg):
         _api_retries = 3
     agent._api_max_retries = _api_retries
 
+    # Provider-declared output exhaustion is deterministic often enough that replaying the
+    # full paid request must be explicit opt-in. Keep the independently-counted budget small;
+    # malformed values fail closed to the zero-retry default.
+    try:
+        _output_truncation_raw = _agent_section.get("output_truncation_retries", 0)
+        if isinstance(_output_truncation_raw, bool):
+            raise ValueError
+        _output_truncation_retries = int(_output_truncation_raw)
+    except (TypeError, ValueError):
+        _output_truncation_retries = 0
+    agent._output_truncation_retries = min(max(_output_truncation_retries, 0), 3)
+
 
 def _positive_int(raw: Any, *, reject: tuple = ()) -> Optional[int]:
     """``int(raw)`` when positive, else None. ``reject`` lists types refused outright (bool, float)."""

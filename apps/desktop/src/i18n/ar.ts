@@ -834,6 +834,7 @@ export const ar = defineLocale({
       'agent.maxTurns': 'الحد الأقصى لخطوات الوكيل',
       'agent.imageInputMode': 'مرفقات الصور',
       'agent.apiMaxRetries': 'محاولات API',
+      'agent.outputTruncationRetries': 'إعادات المحاولة عند حد الإخراج',
       'agent.serviceTier': 'مستوى الخدمة',
       'agent.toolUseEnforcement': 'فرض استخدام الأدوات',
       'agent.environmentProbe': 'فحص بيئة التنفيذ',
@@ -924,6 +925,8 @@ export const ar = defineLocale({
       timezone: 'تستخدم عندما يحتاج Hermes إلى سياق الوقت المحلي. اتركها فارغة لاستخدام منطقة النظام.',
       'agent.imageInputMode': 'يتحكم في طريقة إرسال مرفقات الصور إلى النموذج.',
       'agent.maxTurns': 'الحد الأعلى لدورات استدعاء الأدوات قبل أن يوقف Hermes التشغيل.',
+      'agent.outputTruncationRetries':
+        'أعد المحاولة فقط عندما يبلّغ المزوّد عن بلوغ حد رموز الإخراج قبل إنتاج نص ظاهر. تعيد كل محاولة إرسال الطلب نفسه وقد تُحتسب تكلفته مجدداً. اتركها 0 (موصى به)، والحد الأقصى 3.',
       'agent.environmentProbe':
         'يفحص تفاصيل بيئة التنفيذ للجلسات الجديدة. تستخدم الخلفيات الحاوية بيئة مؤقتة تُحذف تلقائياً بعد الفحص؛ وعند إيقافه يُستخدم وصف ثابت.',
       'terminal.cwd': 'مجلد المشروع الافتراضي لعمل الأدوات والطرفية.',

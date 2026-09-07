@@ -54,11 +54,8 @@ def _codex_finish_reason(response: Any) -> str:
         incomplete_reason = getattr(incomplete_details, "reason", None)
     if incomplete_reason is not None:
         incomplete_reason = str(incomplete_reason).strip().lower()
-    # TEMP DIAGNOSTIC (2026-09-08): bypass provider-declared output exhaustion so
-    # the response falls through to Hermes' empty-response recovery during the
-    # Cursor2API/GLM-5.2 investigation. Restore after the manual comparison test.
-    # if status == "incomplete" and incomplete_reason in {"max_output_tokens", "length"}:
-    #     return "length"
+    if status == "incomplete" and incomplete_reason in {"max_output_tokens", "length"}:
+        return "length"
     if status == "incomplete" and incomplete_reason == "content_filter":
         return "content_filter"
     return "stop"
@@ -73,14 +70,11 @@ def is_standard_output_truncation(agent: Any, response: Any) -> bool:
     if agent.api_mode == "anthropic_messages":
         return str(getattr(response, "stop_reason", "") or "").strip().lower() == "max_tokens"
     if agent.api_mode == "codex_responses":
-        # TEMP DIAGNOSTIC (2026-09-08): do not route Responses
-        # incomplete/max_output_tokens through the terminal truncation path.
-        # status = str(getattr(response, "status", "") or "").strip().lower()
-        # details = getattr(response, "incomplete_details", None)
-        # reason = details.get("reason") if isinstance(details, dict) else getattr(details, "reason", "")
-        # return status == "incomplete" and str(reason or "").strip().lower() in {
-        #     "max_output_tokens", "length"}
-        return False
+        status = str(getattr(response, "status", "") or "").strip().lower()
+        details = getattr(response, "incomplete_details", None)
+        reason = details.get("reason") if isinstance(details, dict) else getattr(details, "reason", "")
+        return status == "incomplete" and str(reason or "").strip().lower() in {
+            "max_output_tokens", "length"}
     choices = getattr(response, "choices", None)
     first = choices[0] if isinstance(choices, list) and choices else None
     return str(getattr(first, "finish_reason", "") or "").strip().lower() == "length"

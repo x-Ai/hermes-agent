@@ -39,6 +39,7 @@ class FinalResponseVerdict:
     codex_ack_continuations: Any
     truncated_response_parts: Any
     length_continue_retries: Any
+    output_truncation_retries: Any
     _pending_verification_response: Any
     _pending_verification_response_previewed: Any
     result: Optional[Dict[str, Any]] = None
@@ -49,7 +50,7 @@ def finish_text_response(
     api_messages: Any, conversation_history: Any, api_call_count: Any, user_message: Any,
     active_system_prompt: Any, final_response: Any, _turn_exit_reason: Any,
     _preflight_compression_blocked: Any, codex_ack_continuations: Any,
-    truncated_response_parts: Any, length_continue_retries: Any,
+    truncated_response_parts: Any, length_continue_retries: Any, output_truncation_retries: Any,
     _pending_verification_response: Any, _pending_verification_response_previewed: Any,
 ) -> FinalResponseVerdict:
     """Finish (or defer) a text-only assistant response in the original guard order. Every
@@ -71,6 +72,7 @@ def finish_text_response(
             codex_ack_continuations=codex_ack_continuations,
             truncated_response_parts=truncated_response_parts,
             length_continue_retries=length_continue_retries,
+            output_truncation_retries=output_truncation_retries,
             _pending_verification_response=_pending_verification_response,
             _pending_verification_response_previewed=_pending_verification_response_previewed,
             result=result,
@@ -83,11 +85,26 @@ def finish_text_response(
 
     if standard_output_truncation:
         # A protocol-level length stop is a successful terminal response, including the
-        # reasoning-only/empty case. Never feed it into empty-response or continuation retries.
+        # reasoning-only/empty case. Never feed it into the generic empty-response or
+        # continuation ladders: an explicit opt-in owns the exact number of paid replays.
         agent._empty_content_retries = 0
         agent._thinking_prefill_retries = 0
         agent._dropped_toolcall_retries = 0
         final_response = agent._strip_think_blocks(final_response).strip()
+        retry_budget = getattr(agent, "_output_truncation_retries", 0)
+        if not final_response and output_truncation_retries < retry_budget:
+            output_truncation_retries += 1
+            logger.warning(
+                "Provider output limit reached before visible text — retry %d/%d "
+                "(model=%s provider=%s); the full request may be billed again",
+                output_truncation_retries, retry_budget, agent.model, agent.provider,
+            )
+            agent._emit_status(
+                "⚠️ Provider output limit reached before visible text — retrying "
+                f"({output_truncation_retries}/{retry_budget}); this resends the full paid request"
+            )
+            final_response = None
+            return _verdict("continue")
         if not final_response:
             final_response = t("agent.output_truncated_no_visible")
             assistant_message.content = final_response

@@ -104,6 +104,10 @@ DEFAULT_CONFIG = {
         # whole call; the OpenAI SDK also retries transient errors (max_retries=2). Set 1 for fast
         # failover to fallback providers; raise to tolerate longer provider hiccups.
         "api_max_retries": 3,
+        # Retries when a successful protocol response explicitly says the output-token cap
+        # was reached before any visible text was produced. Each retry resends the same paid
+        # request, so 0 is the safe default; values above 3 are clamped at agent init.
+        "output_truncation_retries": 0,
         # Empty-response retry guard. Empty retries re-send the full input at full price; this stops
         # re-billing deterministic empties (unsignaled refusals, zero output tokens) while failing
         # open on ambiguous evidence (missing usage, any tokens, model/provider change).

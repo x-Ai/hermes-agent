@@ -1007,6 +1007,7 @@ export const zh: Translations = {
         maxTurns: '最大智能体步数',
         imageInputMode: '图片附件',
         apiMaxRetries: 'API 重试次数',
+        outputTruncationRetries: '输出上限重试次数',
         serviceTier: '服务等级',
         toolUseEnforcement: '工具调用强制',
         environmentProbe: '执行环境探测'
@@ -1179,6 +1180,8 @@ export const zh: Translations = {
       agent: {
         imageInputMode: '控制图片附件如何发送给模型',
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
+        outputTruncationRetries:
+          '仅在提供方明确因输出 Token 上限截断且没有生成可见文本时重试。每次都会重新发送同一提示并可能重复计费；建议设为 0，最多 3 次。',
         serviceTier: 'API 服务等级（OpenAI/Anthropic）',
         environmentProbe: '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述'
       },

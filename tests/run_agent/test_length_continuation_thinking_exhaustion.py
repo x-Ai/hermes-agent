@@ -1,9 +1,10 @@
 """Regression tests for provider-declared output-limit truncations.
 
-A normal protocol response with ``finish_reason="length"`` is terminal. Hermes
-preserves visible partial text and surfaces a localized fallback when reasoning
-consumed the entire output budget. It must not replay the request, inject a
-continuation prompt, raise the output cap, or change the reasoning configuration.
+A normal protocol response with ``finish_reason="length"`` is terminal by default.
+Hermes preserves visible partial text and surfaces a localized fallback when reasoning
+consumed the entire output budget. An explicit, bounded config may replay a no-visible-
+text result, but no path injects a continuation prompt, raises the output cap, or changes
+the reasoning configuration.
 """
 
 from __future__ import annotations
@@ -174,7 +175,27 @@ class TestThinkingOnlyTruncation:
         ] == ["write me a long report"]
         assert loop_agent._ephemeral_reasoning_off is False
 
+    def test_opt_in_retries_exactly_the_configured_number(self, loop_agent):
+        loop_agent._output_truncation_retries = 2
+        loop_agent.client.chat.completions.create.side_effect = [
+            _thinking_only_length_response(),
+            _thinking_only_length_response(),
+            _full_response("answer after two paid retries"),
+            _full_response("must not be requested"),
+        ]
+
+        result = _run(loop_agent, "write me a long report")
+
+        assert result["completed"] is True
+        assert result["final_response"] == "answer after two paid retries"
+        assert len(loop_agent.client.chat.completions.create.call_args_list) == 3
+        assert [
+            m.get("content") for m in result["messages"] if m.get("role") == "user"
+        ] == ["write me a long report"], "Paid replays must not inject retry scaffolding."
+        assert loop_agent._ephemeral_reasoning_off is False
+
     def test_visible_output_limit_preserves_partial_text(self, loop_agent):
+        loop_agent._output_truncation_retries = 2
         loop_agent.client.chat.completions.create.side_effect = [
             _truncated_text_response("visible partial answer"),
             _full_response("must not be requested"),

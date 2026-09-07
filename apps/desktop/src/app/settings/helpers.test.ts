@@ -108,6 +108,26 @@ describe('settings helpers', () => {
     })
   })
 
+  it('surfaces a bounded paid-retry budget beside the API retry setting in Advanced', () => {
+    const advanced = SECTIONS.find(section => section.id === 'advanced')
+    const apiRetryIndex = advanced?.keys.indexOf('agent.api_max_retries') ?? -1
+    const outputRetryIndex = advanced?.keys.indexOf('agent.output_truncation_retries') ?? -1
+
+    expect(outputRetryIndex).toBe(apiRetryIndex + 1)
+    expect(enumOptionsFor('agent.output_truncation_retries', 0, {})).toEqual(['0', '1', '2', '3'])
+
+    for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
+      expect(
+        fieldCopyForSchemaKey(translations.settings.fieldLabels, 'agent.output_truncation_retries'),
+        locale
+      ).toBeTruthy()
+      expect(
+        fieldCopyForSchemaKey(translations.settings.fieldDescriptions, 'agent.output_truncation_retries'),
+        locale
+      ).toBeTruthy()
+    }
+  })
+
   it('does not shadow the backend schema options for memory.provider', () => {
     // memory.provider options are discovery-driven and served by the backend
     // config schema (merged per-request); enumOptionsFor must return undefined

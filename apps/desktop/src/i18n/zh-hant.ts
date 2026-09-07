@@ -754,6 +754,7 @@ export const zhHant = defineLocale({
         maxTurns: '最大代理步數',
         imageInputMode: '圖片附件',
         apiMaxRetries: 'API 重試次數',
+        outputTruncationRetries: '輸出上限重試次數',
         serviceTier: '服務層級',
         toolUseEnforcement: '工具使用強制',
         environmentProbe: '執行環境探測'
@@ -926,6 +927,8 @@ export const zhHant = defineLocale({
       agent: {
         imageInputMode: '控制圖片附件如何傳送給模型。',
         maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。',
+        outputTruncationRetries:
+          '僅在提供方明確因輸出 Token 上限截斷且未產生可見文字時重試。每次都會重新傳送相同提示並可能重複計費；建議設為 0，最多 3 次。',
         environmentProbe: '為新工作階段探測執行環境詳細資料。容器後端使用探測後自動移除的暫時沙箱；關閉時使用靜態描述。'
       },
       terminal: {

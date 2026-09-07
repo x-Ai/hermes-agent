@@ -231,6 +231,9 @@ export const PROVIDER_GROUPS: ProviderPrefix[] = [
 // Schema-side select overrides for desktop-relevant enum fields whose
 // backend schema only declares a string type.
 export const ENUM_OPTIONS: Record<string, string[]> = {
+  // Paid replay budget for provider-declared output exhaustion. A closed list
+  // keeps the Desktop control aligned with the runtime's 0..3 clamp.
+  'agent.output_truncation_retries': ['0', '1', '2', '3'],
   'agent.image_input_mode': ['auto', 'native', 'text'],
   'approvals.mode': ['manual', 'smart', 'off'],
   'code_execution.mode': ['project', 'strict'],
@@ -398,6 +401,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     maxTurns: 'Max Agent Steps',
     imageInputMode: 'Image Attachments',
     apiMaxRetries: 'API Retries',
+    outputTruncationRetries: 'Output-Limit Retries',
     serviceTier: 'Service Tier',
     toolUseEnforcement: 'Tool-Use Enforcement',
     environmentProbe: 'Execution Environment Probe'
@@ -579,6 +583,8 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   agent: {
     imageInputMode: 'Controls how image attachments are sent to the model.',
     maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
+    outputTruncationRetries:
+      'Retry only when the provider reports an output-token limit before producing visible text. Each retry resends the same prompt and may be billed again. Leave at 0 (recommended); maximum 3.',
     environmentProbe:
       'Probe execution-environment details for new sessions. Container backends use a temporary sandbox that is automatically removed after probing; off uses a static description.'
   },
@@ -818,6 +824,7 @@ export const SECTIONS: DesktopConfigSection[] = [
       'checkpoints.max_snapshots',
       'agent.max_turns',
       'agent.api_max_retries',
+      'agent.output_truncation_retries',
       'agent.service_tier',
       'agent.tool_use_enforcement',
       'agent.environment_probe',

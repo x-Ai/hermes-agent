@@ -778,6 +778,7 @@ export const ja = defineLocale({
         maxTurns: '最大エージェントステップ',
         imageInputMode: '画像添付',
         apiMaxRetries: 'API 再試行回数',
+        outputTruncationRetries: '出力上限の再試行回数',
         serviceTier: 'サービス階層',
         toolUseEnforcement: 'ツール使用の強制',
         environmentProbe: '実行環境のプローブ'
@@ -951,6 +952,8 @@ export const ja = defineLocale({
       agent: {
         imageInputMode: '画像添付をモデルへ送る方法を制御します。',
         maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
+        outputTruncationRetries:
+          'プロバイダーが出力トークン上限を報告し、表示可能なテキストが生成されなかった場合のみ再試行します。再試行ごとに同じプロンプトが再送信され、再度課金される可能性があります。0（推奨）のままにしてください。最大 3 回です。',
         environmentProbe:
           '新しいセッションの実行環境を調べます。コンテナバックエンドではプローブ後に自動削除される一時サンドボックスを使い、オフの場合は静的な説明を使います。'
       },

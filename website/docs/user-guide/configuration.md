@@ -1174,12 +1174,15 @@ agent:
                                # Set a positive integer to cap; "none"/"null"/
                                # "unlimited"/"inf"/"infinity"/"infinite"/0/-1 = no limit
   api_max_retries: 3           # Retries per provider before fallback engages (default: 3)
+  output_truncation_retries: 0 # Paid replays after an output limit with no visible text (0-3)
   environment_probe: true      # Live execution-environment details in new-session prompts
 ```
 
 `agent.max_turns` is **unlimited by default** — the turn cap caused more problems than it solved (silent mid-task truncation), so out of the box Hermes runs a conversation turn to completion. To impose a cap, set a positive integer. To be explicit about "no limit", any of these case-insensitive spellings work: `"none"`, `"null"`, `"unlimited"`, `"infinite"`, `"infinity"`, `"inf"`, `0`, `-1` (they resolve to a `sys.maxsize` sentinel so the loop never exits on a turn count).
 
 `agent.api_max_retries` controls how many times Hermes retries a provider API call on transient errors (rate limits, connection drops, 5xx) **before** fallback-provider switching engages. The default is `3` — four attempts total. If you have [fallback providers](/user-guide/features/fallback-providers) configured and want to fail over faster, drop this to `0` so the first transient error on your primary immediately hands off to the fallback instead of churning retries against the flaky endpoint.
+
+`agent.output_truncation_retries` is separate from API-error retries. It applies only when the provider explicitly reports that its output-token limit was reached before any visible text was produced. The default `0` returns the truncation notice immediately. Values from `1` to `3` replay the same full prompt that many times, and every replay may be billed again. Desktop exposes the bounded selector under **Settings → Advanced**, next to API Retries.
 
 `agent.environment_probe` controls the factual environment probe used when a
 new session's system prompt is built. Local execution inspects Python tooling;
