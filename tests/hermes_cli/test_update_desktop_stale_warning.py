@@ -4,9 +4,9 @@
 an early warning, then still ended with ``✓ Update complete!``. The Python
 side moved on; the Electron app stayed on the previous build.
 
-``_rebuild_desktop_after_update`` returns False only when a rebuild was
-attempted and failed. The final banner then prints ``⚠ Update partially
-complete`` instead of the success line, and gateway mode writes ``1`` to
+``_rebuild_desktop_after_update`` returns False when a required rebuild cannot
+complete. The final banner then prints ``⚠ Update partially complete``
+instead of the success line, and gateway mode writes ``1`` to
 ``.update_exit_code``.
 """
 
@@ -96,6 +96,48 @@ def test_up_to_date_desktop_returns_true_without_spawning(desktop_env):
     calls["build_needed"] = False
     assert _run(desktop_dir) is True
     assert calls["builds"] == 0
+
+
+def test_stale_desktop_provisions_managed_node_when_npm_is_missing(
+    desktop_env, monkeypatch
+):
+    desktop_dir, calls = desktop_env
+    monkeypatch.setattr(
+        update_cmd._m(), "_resolve_node_runtime_npm", staticmethod(lambda: None)
+    )
+    provisioned = []
+    monkeypatch.setattr(
+        "hermes_constants.bootstrap_hermes_managed_node",
+        lambda: provisioned.append(True) or "C:/Hermes/node/npm.cmd",
+    )
+    monkeypatch.setattr(
+        update_cmd._m(),
+        "_run_logged_subprocess",
+        staticmethod(
+            lambda *a, **k: calls.__setitem__("builds", calls["builds"] + 1)
+            or _Result(0)
+        ),
+    )
+
+    assert _run(desktop_dir) is True
+    assert provisioned == [True]
+    assert calls["builds"] == 1
+
+
+def test_stale_desktop_reports_failure_when_managed_node_provisioning_fails(
+    desktop_env, monkeypatch, capsys
+):
+    desktop_dir, calls = desktop_env
+    monkeypatch.setattr(
+        update_cmd._m(), "_resolve_node_runtime_npm", staticmethod(lambda: None)
+    )
+    monkeypatch.setattr(
+        "hermes_constants.bootstrap_hermes_managed_node", lambda: None
+    )
+
+    assert _run(desktop_dir) is False
+    assert calls["builds"] == 0
+    assert "Desktop build failed" in capsys.readouterr().out
 
 
 def test_desktop_never_installed_returns_true(tmp_path, monkeypatch):

@@ -812,8 +812,8 @@ def _desktop_app_present(desktop_dir: Path) -> bool:
 def _rebuild_desktop_after_update(
     desktop_dir: Path, *, had_desktop_app_before_update: bool) -> bool:
     """Rebuild an installed Desktop app when its source or artifact changed. Returns ``False``
-    only when a rebuild was attempted and failed (caller withholds ``✓ Update complete!`` and
-    writes a failing ``.update_exit_code`` in gateway mode); every other outcome is ``True``.
+    when a required rebuild cannot complete (caller withholds ``✓ Update complete!`` and writes
+    a failing ``.update_exit_code`` in gateway mode); every other outcome is ``True``.
 
     See #88251.
     """
@@ -821,8 +821,7 @@ def _rebuild_desktop_after_update(
     # The release tree is git-ignored and can vanish mid-update; pre-update presence suffices.
     # Never make people who never used Desktop pay for an Electron build.
     has_desktop_app = had_desktop_app_before_update or _desktop_app_present(desktop_dir)
-    if not (
-        (desktop_dir / "package.json").exists() and _m()._resolve_node_runtime_npm() and has_desktop_app):
+    if not (desktop_dir / "package.json").exists() or not has_desktop_app:
         return True
 
     print("→ Checking if desktop app needs rebuilding...")
@@ -837,6 +836,16 @@ def _rebuild_desktop_after_update(
     if skip_desktop_build:
         print("  ✓ Desktop app up to date")
         return True
+
+    npm = _m()._resolve_node_runtime_npm()
+    if not npm:
+        print("→ Provisioning Hermes-managed Node.js for the Desktop rebuild...")
+        from hermes_constants import bootstrap_hermes_managed_node
+        npm = bootstrap_hermes_managed_node()
+    if not npm:
+        print("  ⚠ Desktop build failed (Node.js/npm is unavailable)")
+        print("    Hermes could not provision its managed Node.js runtime; run `hermes doctor` and retry.")
+        return False
 
     desktop_build_cmd = [sys.executable, "-m", "hermes_cli.main", "desktop", "--build-only"]
     # Capture the loud build output into update.log; retry once on failure (still-settling

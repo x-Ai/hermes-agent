@@ -3,6 +3,7 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import struct
+import sys
 
 from hermes_cli.main_desktop import (
     _HTML_TAG_WITH_URL,
@@ -81,3 +82,20 @@ def verify_windows_desktop_update(project_root: Path) -> None:
     _verify_packaged_entry(executable.parent / "resources")
     if _desktop_build_needed(desktop, project_root, source_mode=False):
         raise RuntimeError("The updated Desktop build is stale, unstamped, or incomplete")
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Verify the install root supplied by the handoff, independent of its cwd."""
+    args = sys.argv[1:] if argv is None else argv
+    if len(args) != 1:
+        raise SystemExit("usage: python -m hermes_cli.desktop_update_verify <install-root>")
+
+    # Keep the receipt boundary's original runtime-import check as well as the
+    # packaged Desktop checks below.
+    import hermes_cli.main  # noqa: F401
+
+    verify_windows_desktop_update(Path(args[0]).resolve())
+
+
+if __name__ == "__main__":
+    main()

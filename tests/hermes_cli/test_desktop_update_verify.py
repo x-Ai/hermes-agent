@@ -38,6 +38,20 @@ def test_readable_packaged_entry_passes(bundle):
     verify.verify_windows_desktop_update(root)
 
 
+def test_command_verifies_explicit_install_root_not_working_directory(tmp_path, monkeypatch):
+    install_root = tmp_path / 'hermes-agent'
+    unrelated_cwd = tmp_path / 'launcher-cwd'
+    install_root.mkdir()
+    unrelated_cwd.mkdir()
+    checked = []
+    monkeypatch.chdir(unrelated_cwd)
+    monkeypatch.setattr(verify, 'verify_windows_desktop_update', checked.append)
+
+    verify.main([str(install_root)])
+
+    assert checked == [install_root.resolve()]
+
+
 @pytest.mark.parametrize('damage', ['archive', 'truncated', 'entry', 'empty-index', 'unreadable-index', 'no-module'])
 def test_current_stamp_does_not_hide_damaged_output(bundle, damage):
     root, archive, dist = bundle
