@@ -2121,7 +2121,8 @@ body.guest-pointer-lock :is(webview, iframe) {
    Background-process and delegation-completion rows are operational
    continuations of that reply, so letting them start below the invisible bar
    creates a conspicuous blank band. Pull only the FIRST adjacent operational
-   row into that reserved space; later notices retain the normal turn rhythm. */
+   row into that reserved space, but top it back up from the pair gap to the
+   normal block gap; later notices retain the normal turn rhythm. */
 :is(
   [data-slot='aui_message-group']:has([data-slot='aui_assistant-footer'])
     + [data-slot='aui_message-group']:has(
@@ -2130,7 +2131,7 @@ body.guest-pointer-lock :is(webview, iframe) {
   [data-slot='aui_assistant-message-root']:has([data-slot='aui_assistant-footer'])
     + [data-slot='aui_system-message-root'][data-display-kind='async_delegation_complete']
 ) {
-  margin-top: -2.25rem;
+  margin-top: calc(-2.25rem + var(--turn-block-gap) - var(--conversation-turn-gap));
 }
 
 /* Message action bars — flat icon hits with default dim; only the hovered/focused control is full-strength.
