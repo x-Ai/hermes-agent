@@ -447,7 +447,7 @@ export const UserMessage: FC<{
   if (PROCESS_NOTIFICATION_RE.test(messageText.trim())) {
     return (
       <MessagePrimitive.Root
-        className="flex w-full min-w-0 flex-col items-stretch pl-(--message-text-indent)"
+        className="flex w-full min-w-0 flex-col items-stretch pt-(--conversation-turn-gap) pl-(--message-text-indent)"
         data-role="user"
         data-slot="aui_user-message-root"
       >

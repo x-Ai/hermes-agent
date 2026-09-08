@@ -51,7 +51,7 @@ describe('background process notification placement', () => {
     expect(container.querySelector('summary')).toBeNull()
   })
 
-  it('uses the same reading-column indent as assistant tool rows', () => {
+  it('keeps reading-column alignment and breathing room above the notice', () => {
     const { container } = render(
       <I18nProvider configClient={null} initialLocale="en">
         <ThreadRuntime messages={[userMessage('process-1', notification)]}>
@@ -63,6 +63,7 @@ describe('background process notification placement', () => {
     const root = container.querySelector('[data-slot="aui_user-message-root"]')
 
     expect(root?.classList.contains('pl-(--message-text-indent)')).toBe(true)
+    expect(root?.classList.contains('pt-(--conversation-turn-gap)')).toBe(true)
   })
 
   it('exposes the adjacent message-group hooks that collapse the preceding action-bar gap', () => {
