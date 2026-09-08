@@ -140,28 +140,6 @@ class TestRunConversationCodexPath:
         assert agent.context_compressor.last_total_tokens == 105
         assert agent.context_compressor.context_length == 200000
 
-    def test_codex_reported_window_does_not_replace_session_override(self, monkeypatch):
-        def fake_run_turn(self, user_input: str, **kwargs):
-            return TurnResult(
-                final_text="done",
-                projected_messages=[{"role": "assistant", "content": "done"}],
-                turn_id="turn-context-1",
-                thread_id="thread-context-1",
-                token_usage_last={"inputTokens": 10, "outputTokens": 2},
-                model_context_window=200_000,
-            )
-
-        monkeypatch.setattr(CodexAppServerSession, "run_turn", fake_run_turn)
-        monkeypatch.setattr(
-            CodexAppServerSession, "ensure_started", lambda self: "thread-context-1"
-        )
-        agent = _make_codex_agent(context_length_override=120_000)
-
-        with patch.object(agent, "_spawn_background_review", return_value=None):
-            agent.run_conversation("hello")
-
-        assert agent.context_compressor.context_length == 120_000
-
     def test_native_codex_compaction_updates_bookkeeping(self, monkeypatch):
         def fake_run_turn(self, user_input: str, **kwargs):
             return TurnResult(

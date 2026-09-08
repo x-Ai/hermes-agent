@@ -1342,7 +1342,7 @@ _PROVIDER_MODELS_CACHE_TTL = 3600  # 1h
 # Bump when the custom-endpoint catalog collector learns new capability fields. Rows without
 # this marker predate capability collection; a current row with no ``model_metadata`` means
 # the endpoint was probed and did not advertise any supported metadata.
-_PROVIDER_MODELS_METADATA_SCHEMA_VERSION = 3
+_PROVIDER_MODELS_METADATA_SCHEMA_VERSION = 2
 # Stale-while-revalidate window: an expired same-credentials entry is served IMMEDIATELY while a
 # daemon thread refreshes the disk cache; beyond this bound the caller blocks on a live fetch.
 # Catalogs change on release timescales, so hour-old data beats stalling every picker surface.
@@ -1559,22 +1559,18 @@ def cached_provider_model_ids(
     if not force_refresh and _cache_entry_valid(entry, fp, allow_empty=is_ollama):
         age = now - entry["at"]
         if age < ttl_seconds:
-            return DiscoveredModelList(
-                entry["models"], model_metadata=entry.get("model_metadata")
-                if isinstance(entry.get("model_metadata"), dict) else None)
+            return list(entry["models"])
         # Empty native catalogs are authoritative only for the short native TTL — never served
         # through the stale window. Non-empty stale rows are served immediately (SWR) so picker
         # opens never block on serial /v1/models round-trips.
         if entry["models"] and age < _PROVIDER_MODELS_STALE_SERVE_MAX:
             _spawn_swr_refresh(normalized)
-            return DiscoveredModelList(
-                entry["models"], model_metadata=entry.get("model_metadata")
-                if isinstance(entry.get("model_metadata"), dict) else None)
+            return list(entry["models"])
 
     live = provider_model_ids(normalized, force_refresh=force_refresh)
     if live:
         _store_cache_entry(normalized, _cache_entry(fp, live, now), cache)
-        return DiscoveredModelList(live, model_metadata=getattr(live, "model_metadata", None))
+        return list(live)
 
     if is_ollama:
         if _ollama_native_probe_reachable():
@@ -1585,17 +1581,13 @@ def cached_provider_model_ids(
         # the picker during a transient outage.
         same_creds = isinstance(entry, dict) and entry.get("fp") == fp
         if same_creds and isinstance(entry.get("models"), list) and entry["models"]:
-            return DiscoveredModelList(
-                entry["models"], model_metadata=entry.get("model_metadata")
-                if isinstance(entry.get("model_metadata"), dict) else None)
+            return list(entry["models"])
         return []
     # Live returned nothing: a stale same-fingerprint entry beats an empty result — minus account-gated
     # models, which only a successful discovery may advertise (the entry itself is untouched, so the
     # next successful fetch restores them).
     if _cache_entry_valid(entry, fp):
-        models = [model for model in entry["models"] if not _model_requires_account_discovery(normalized, model)]
-        metadata = entry.get("model_metadata") if isinstance(entry.get("model_metadata"), dict) else None
-        return DiscoveredModelList(models, model_metadata=metadata)
+        return [model for model in entry["models"] if not _model_requires_account_discovery(normalized, model)]
     return []
 
 
@@ -2136,7 +2128,7 @@ def github_model_reasoning_efforts(
 class DiscoveredModelList(list[str]):
     """List-compatible discovered catalog with per-model capability metadata attached."""
 
-    def __init__(self, models=(), *, model_metadata: Optional[dict[str, dict[str, Any]]] = None):
+    def __init__(self, models=(), *, model_metadata: Optional[dict[str, dict[str, int]]] = None):
         super().__init__(models)
         self.model_metadata = dict(model_metadata or {})
 
@@ -2145,25 +2137,10 @@ def _positive_output_limit(value: Any) -> Optional[int]:
     return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
 
 
-def _advertised_context_windows(row: dict, capabilities: dict) -> list[int]:
-    """Distinct context tiers explicitly advertised by a Models API row."""
-    values: list[Any] = []
-    for owner in (capabilities, row):
-        declared = owner.get("context_windows")
-        if isinstance(declared, list):
-            values.extend(declared)
-        values.extend((owner.get("context_window"), owner.get("max_context_window")))
-    windows: list[int] = []
-    for value in values:
-        if isinstance(value, int) and not isinstance(value, bool) and value > 0 and value not in windows:
-            windows.append(value)
-    return windows if len(windows) > 1 else []
-
-
 def _models_from_catalog(data: Any) -> DiscoveredModelList:
     """Keep IDs plus advertised output limits; never reinterpret context length as output size."""
     model_ids: list[str] = []
-    metadata: dict[str, dict[str, Any]] = {}
+    metadata: dict[str, dict[str, int]] = {}
     rows = data.get("data", []) if isinstance(data, dict) else []
     for row in rows if isinstance(rows, list) else []:
         if not isinstance(row, dict):
@@ -2173,9 +2150,8 @@ def _models_from_catalog(data: Any) -> DiscoveredModelList:
             continue
         model_ids.append(model_id)
         capabilities = row.get("capabilities")
-        capabilities = capabilities if isinstance(capabilities, dict) else {}
         candidates = (
-            capabilities.get("max_output_tokens"),
+            capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None,
             row.get("max_output_tokens"),
             # Anthropic-compatible Models APIs advertise the per-response
             # limit under top-level ``max_tokens``.
@@ -2185,13 +2161,8 @@ def _models_from_catalog(data: Any) -> DiscoveredModelList:
             row.get("max_completion_tokens"),
         )
         limit = next((value for raw in candidates if (value := _positive_output_limit(raw)) is not None), None)
-        model_meta: dict[str, Any] = {}
         if limit is not None:
-            model_meta["max_output_tokens"] = limit
-        if windows := _advertised_context_windows(row, capabilities):
-            model_meta["context_windows"] = windows
-        if model_meta:
-            metadata[model_id] = model_meta
+            metadata[model_id] = {"max_output_tokens": limit}
     return DiscoveredModelList(model_ids, model_metadata=metadata)
 
 

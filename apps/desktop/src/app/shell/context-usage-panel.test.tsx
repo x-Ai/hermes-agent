@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
-import { ContextUsagePanel, projectLiveContextBreakdown, resolveContextGaugeUsage } from './context-usage-panel'
+import { ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
 import { useContextBreakdown } from './hooks/use-context-breakdown'
 
 const usage: UsageStats = {
@@ -74,28 +74,6 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
     expect(result.current.loading).toBe(false)
     expect(requestGateway).toHaveBeenCalledTimes(2)
-  })
-
-  it('refreshes the keyed breakdown when the live context window changes', async () => {
-    const requestGateway = vi.fn().mockResolvedValue(breakdown)
-
-    const { rerender } = renderHook(
-      ({ contextMax }) =>
-        useContextBreakdown({
-          busy: false,
-          contextMax,
-          enabled: true,
-          requestGateway,
-          sessionId: 'runtime-1'
-        }),
-      { initialProps: { contextMax: 272_000 } }
-    )
-
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
-
-    rerender({ contextMax: 872_000 })
-
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
   })
 
   it('retries an unavailable deferred-agent snapshot during a long turn', async () => {
@@ -183,23 +161,6 @@ describe('useContextBreakdown', () => {
 })
 
 describe('ContextUsagePanel', () => {
-  it('recalculates idle usage immediately when the selected context window changes', () => {
-    const staleSessionUsage = resolveContextGaugeUsage({ ...usage, context_max: 872_000 }, breakdown, {
-      busy: false,
-      loading: false
-    })
-
-    const resolved = resolveContextGaugeUsage({ ...usage, context_max: 872_000 }, breakdown, {
-      busy: false,
-      loading: true
-    })
-
-    expect(staleSessionUsage.context_max).toBe(272_000)
-    expect(resolved.context_max).toBe(872_000)
-    expect(resolved.context_used).toBe(128_200)
-    expect(resolved.context_percent).toBe(15)
-  })
-
   it('projects live context growth into the conversation category', () => {
     const baseline: ContextBreakdown = {
       ...breakdown,

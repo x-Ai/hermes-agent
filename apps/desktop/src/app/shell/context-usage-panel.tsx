@@ -11,51 +11,6 @@ interface ContextUsagePanelProps {
   usage: UsageStats
 }
 
-/** Merge the latest session usage with a keyed category snapshot. The
- * snapshot remains the idle baseline across session switches, except when a
- * live config change reports a different context window. In that case the
- * selected window must take effect immediately even before the categories
- * are fetched again. */
-export function resolveContextGaugeUsage(
-  usage: UsageStats,
-  breakdown: ContextBreakdown | null,
-  options: { busy: boolean; loading: boolean }
-): UsageStats {
-  if (!breakdown) {
-    return usage
-  }
-
-  const contextWindowChanged =
-    typeof usage.context_max === 'number' && usage.context_max > 0 && usage.context_max !== breakdown.context_max
-
-  const preferLive =
-    (options.loading && contextWindowChanged) ||
-    ((options.busy || options.loading) && typeof usage.context_used === 'number')
-
-  if (preferLive) {
-    const contextMax = usage.context_max ?? breakdown.context_max
-    const contextUsed = usage.context_used ?? breakdown.context_used
-
-    return {
-      ...usage,
-      context_estimated: usage.context_estimated ?? breakdown.context_estimated,
-      context_max: contextMax,
-      context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
-      context_source: usage.context_source ?? breakdown.context_source,
-      context_used: contextUsed
-    }
-  }
-
-  return {
-    ...usage,
-    context_estimated: breakdown.context_estimated,
-    context_max: breakdown.context_max,
-    context_percent: breakdown.context_percent,
-    context_source: breakdown.context_source,
-    context_used: breakdown.context_used
-  }
-}
-
 /** Project a previously fetched category snapshot onto the latest measured
  * context occupancy. System/tool/rule buckets are stable for the session, so
  * Conversation is the residual of the current window after those buckets --

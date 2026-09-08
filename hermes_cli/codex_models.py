@@ -7,7 +7,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -50,27 +50,9 @@ _FORWARD_COMPAT_TEMPLATE_MODELS: List[tuple[str, tuple[str, ...]]] = [
     ("gpt-5.3-codex-spark", ("gpt-5.3-codex",))]
 
 
-class CodexModelList(list[str]):
-    """List-compatible Codex catalog with upstream per-model metadata."""
-
-    def __init__(self, models=(), *, model_metadata: Optional[dict[str, dict[str, Any]]] = None):
-        super().__init__(models)
-        self.model_metadata = dict(model_metadata or {})
-
-
-def _catalog(model_ids, metadata: Optional[dict[str, dict[str, Any]]] = None) -> CodexModelList:
-    """Preserve metadata for the ids that survived a catalog transform."""
-    source = metadata if metadata is not None else getattr(model_ids, "model_metadata", {})
-    ids = list(model_ids)
-    return CodexModelList(ids, model_metadata={
-        model_id: dict(source.get(model_id) or {}) for model_id in ids
-        if isinstance(source, dict) and source.get(model_id)
-    })
-
-
 def _dedupe(model_ids) -> List[str]:
     """Order-preserving dedupe."""
-    return _catalog(dict.fromkeys(model_ids), getattr(model_ids, "model_metadata", None))
+    return list(dict.fromkeys(model_ids))
 
 
 def _add_forward_compat_models(model_ids: List[str]) -> List[str]:
@@ -82,7 +64,7 @@ def _add_forward_compat_models(model_ids: List[str]) -> List[str]:
         if synthetic_model not in seen and any(template in seen for template in template_models):
             ordered.append(synthetic_model)
             seen.add(synthetic_model)
-    return _catalog(ordered, getattr(model_ids, "model_metadata", None))
+    return ordered
 
 
 def _add_context_variants(model_ids: List[str]) -> List[str]:
@@ -95,7 +77,6 @@ def _add_context_variants(model_ids: List[str]) -> List[str]:
     from agent.model_metadata import CODEX_CONTEXT_VARIANT_SUFFIX, has_codex_context_variant
 
     out: List[str] = []
-    metadata = dict(getattr(model_ids, "model_metadata", {}) or {})
     present = set(model_ids)
     for model_id in model_ids:
         out.append(model_id)
@@ -104,16 +85,7 @@ def _add_context_variants(model_ids: List[str]) -> List[str]:
             continue
         if has_codex_context_variant(model_id):
             out.append(variant)
-            # Offline fallback catalogs do not carry the account-scoped values,
-            # but the existence of the verified variant is itself a two-tier
-            # declaration. Live/cache metadata below replaces 900K with the
-            # exact upstream max (currently 872K) when it is available.
-            base_meta = dict(metadata.get(model_id) or {})
-            if not base_meta.get("context_windows"):
-                base_meta["context_windows"] = [272_000, 900_000]
-                metadata[model_id] = base_meta
-            metadata[variant] = dict(base_meta)
-    return _catalog(out, metadata)
+    return out
 
 
 def _finalize_codex_models(model_ids: List[str]) -> List[str]:
@@ -126,10 +98,7 @@ def _drop_undiscovered_astra(model_ids: List[str]) -> List[str]:
     ``models_cache.json`` or a ``config.toml`` default is a compatibility hint, not entitlement."""
     from agent.reasoning_effort import is_astra_model
 
-    return _catalog(
-        [model for model in model_ids if not is_astra_model(model)],
-        getattr(model_ids, "model_metadata", None),
-    )
+    return [model for model in model_ids if not is_astra_model(model)]
 
 
 def _extract_chatgpt_account_id(access_token: str) -> Optional[str]:
@@ -161,7 +130,6 @@ def _ranked_slugs(entries: object) -> List[str]:
     OAuth-backed Codex backend still accepts slugs marked false there (gpt-5.3-codex-spark).
     """
     sortable = []
-    metadata: dict[str, dict[str, Any]] = {}
     for item in entries:
         if not isinstance(item, dict):
             continue
@@ -173,17 +141,10 @@ def _ranked_slugs(entries: object) -> List[str]:
             continue
         priority = item.get("priority")
         rank = int(priority) if isinstance(priority, (int, float)) else 10_000
-        model_id = slug.strip()
-        sortable.append((rank, model_id))
-        windows = []
-        for raw in (item.get("context_window"), item.get("max_context_window")):
-            if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0 and raw not in windows:
-                windows.append(raw)
-        if len(windows) > 1:
-            metadata[model_id] = {"context_windows": windows}
+        sortable.append((rank, slug.strip()))
 
     sortable.sort()
-    return _catalog(dict.fromkeys(slug for _, slug in sortable), metadata)
+    return _dedupe(slug for _, slug in sortable)
 
 
 def _fetch_models_from_api(access_token: str) -> List[str]:
@@ -243,9 +204,6 @@ def get_codex_model_ids(access_token: Optional[str] = None) -> List[str]:
         if api_models:
             return _finalize_codex_models(api_models)
     default_model = _read_default_model(codex_home)
-    cached_models = _read_cache_models(codex_home)
-    combined = _catalog(
-        _dedupe([*([default_model] if default_model else []), *cached_models, *DEFAULT_CODEX_MODELS]),
-        getattr(cached_models, "model_metadata", None),
-    )
-    return _finalize_codex_models(_drop_undiscovered_astra(combined))
+    return _finalize_codex_models(_drop_undiscovered_astra(_dedupe([
+        *([default_model] if default_model else []), *_read_cache_models(codex_home),
+        *DEFAULT_CODEX_MODELS])))

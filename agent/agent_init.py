@@ -1755,17 +1755,8 @@ def _resolve_context_length(agent, _agent_cfg, base_url):
         if _config_context_length is None:
             _warn_invalid_custom_provider_context_length(agent, _custom_providers)
 
-    # A desktop/TUI context-tier pick is scoped to this conversation and wins
-    # over the profile default or endpoint hint. It is passed at construction
-    # rather than written to config.yaml, so another concurrent session can
-    # choose a different tier for the same model.
-    if agent._session_context_length_override is not None:
-        _config_context_length = agent._session_context_length_override
-
     # Persisted for switch_model / fallback AFTER the custom_providers branch (per-model overrides).
     agent._config_context_length = _config_context_length
-    if agent._session_context_length_override is not None:
-        agent._session_init_model_config["context_length"] = agent._session_context_length_override
 
     _lmstudio_runtime_context_length = agent._ensure_lmstudio_runtime_loaded(_config_context_length)
     if agent._lmstudio_load_was_unverified(_lmstudio_runtime_context_length):
@@ -2249,7 +2240,6 @@ def init_agent(
     checkpoint_max_snapshots: int = 20, checkpoint_max_total_size_mb: int = 500,
     checkpoint_max_file_size_mb: int = 10, pass_session_id: bool = False,
     requested_provider: str = None, capabilities: Optional[Dict[str, bool]] = None,
-    context_length_override: int = None,
 ):
     """Initialize the AI Agent (body of :meth:`AIAgent.__init__`).
 
@@ -2259,7 +2249,6 @@ def init_agent(
       openrouter_min_coding_score: coding-score floor for ``openrouter/pareto-code`` only.
       clarify_callback: ``(question, choices) -> str``; None → the clarify tool errors.
       reasoning_config: None → ``{"enabled": True, "effort": "medium"}`` on OpenRouter.
-      context_length_override: positive per-conversation context tier; never writes config.yaml.
       prefill_messages: priming history. Anthropic Sonnet/Opus 4.6+ 400 on a trailing
         assistant message — use structured outputs there instead.
       skip_context_files: skip SOUL.md/.hermes.md/AGENTS.md/CLAUDE.md/.cursorrules injection;
@@ -2313,7 +2302,6 @@ def init_agent(
     agent.request_overrides = dict(request_overrides or {})
     agent.prefill_messages = prefill_messages or []  # Prefilled conversation turns
     agent._force_ascii_payload = False
-    agent._session_context_length_override = _positive_int(context_length_override, reject=(bool,))
 
     _init_prompt_cache_config(agent)
     _init_turn_state(agent, run_budget_seconds)

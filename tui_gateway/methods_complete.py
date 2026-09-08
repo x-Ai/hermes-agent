@@ -282,16 +282,9 @@ def _(rid, params: dict) -> dict:
     from hermes_cli.inventory import build_model_options_payload
     # A spawned agent owns the live provider/model/base_url; empty attributes must
     # NOT clobber disk config (with_overrides is truthy-only).
-    agent = _session_agent(params)
-    payload = build_model_options_payload(
-        _model_picker_context(agent), explicit_only=bool(params.get("explicit_only")),
-        include_unconfigured=bool(params.get("include_unconfigured")), refresh=bool(params.get("refresh")))
-    compressor = getattr(agent, "context_compressor", None)
-    if compressor is not None:
-        context_length = getattr(compressor, "context_length", None)
-        if isinstance(context_length, int) and not isinstance(context_length, bool) and context_length > 0:
-            payload["context_length"] = context_length
-    return _ok(rid, payload)
+    return _ok(rid, build_model_options_payload(
+        _model_picker_context(_session_agent(params)), explicit_only=bool(params.get("explicit_only")),
+        include_unconfigured=bool(params.get("include_unconfigured")), refresh=bool(params.get("refresh"))))
 
 
 @method("model.save_key")

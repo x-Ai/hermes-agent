@@ -8,11 +8,10 @@ import { sessionTileDelegate } from './session-states'
 
 const STORAGE_KEY = 'hermes.desktop.model-presets'
 
-/** Per-model reasoning/fast/context preset, remembered globally across sessions and
+/** Per-model reasoning/fast preset, remembered globally across sessions and
  *  re-applied to the session whenever that model is selected. Unset dimensions
  *  fall back to the Hermes default (medium effort, no fast). */
 export interface ModelPreset {
-  contextLength?: number | null
   effort?: string
   fast?: boolean
 }
@@ -62,7 +61,7 @@ export function setModelPreset(provider: string, model: string, patch: ModelPres
  *  `primary: false` scopes the optimistic write to the tile's session slice —
  *  a tile's picker must not clobber the primary composer's effort/fast. */
 export async function applyModelPreset(
-  { contextLength, effort, fast }: ModelPreset,
+  { effort, fast }: ModelPreset,
   ctx: { failMessage: string; primary?: boolean; request: RequestGateway; sessionId: null | string }
 ): Promise<void> {
   if (ctx.primary ?? true) {
@@ -92,10 +91,6 @@ export async function applyModelPreset(
 
     if (fast !== undefined) {
       await ctx.request('config.set', { key: 'fast', session_id: ctx.sessionId, value: fast ? 'fast' : 'normal' })
-    }
-
-    if (typeof contextLength === 'number') {
-      await ctx.request('config.set', { key: 'context_length', session_id: ctx.sessionId, value: contextLength })
     }
   } catch (err) {
     notifyError(err, ctx.failMessage)

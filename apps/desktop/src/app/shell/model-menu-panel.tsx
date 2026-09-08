@@ -64,11 +64,6 @@ export function ModelMenuPanel({
   const modelPresets = useStore($modelPresets)
   const touchesPrimary = view.kind === 'primary'
 
-  const [contextSelection, setContextSelection] = useState<{
-    key: string
-    value: number | null
-  } | null>(null)
-
   // Subscribe to the SAME query the menu runs (identical key ⇒ React Query
   // dedupes, no second fetch). It must be a live subscription, not a cache
   // peek: with no model in the session store yet, currentPickerSelection falls
@@ -84,17 +79,6 @@ export function ModelMenuPanel({
     { model: currentModel, provider: currentProvider },
     modelOptions.data
   )
-
-  const optionsPresetModel = optionsModel.replace(/-fast$/i, '').replace(/-900k$/i, '')
-  const contextKey = `${activeSessionId ?? 'draft'}\u0000${optionsProvider}\u0000${optionsPresetModel}`
-  const currentPreset = modelPresets[modelPresetKey(optionsProvider, optionsPresetModel)]
-
-  const currentContextLength =
-    contextSelection?.key === contextKey
-      ? contextSelection.value
-      : activeSessionId
-        ? modelOptions.data?.context_length
-        : currentPreset?.contextLength
 
   // Explicit "Refresh Models": re-fetch the catalog with refresh:true so the
   // backend busts its 1h provider-model disk cache and re-pulls each provider's
@@ -197,47 +181,11 @@ export function ModelMenuPanel({
     }
   }
 
-  const patchContextLength = async (
-    next: number,
-    previous: number | null | undefined,
-    provider: string,
-    model: string
-  ) => {
-    const key = `${activeSessionId ?? 'draft'}\u0000${provider}\u0000${model}`
-    setContextSelection({ key, value: next })
-
-    if (touchesPrimary) {
-      // A context tier belongs to a concrete model. Pin the currently shown
-      // model so a fresh session can carry this draft-only choice.
-      markComposerSelectionManual()
-    }
-
-    if (!activeSessionId) {
-      return
-    }
-
-    try {
-      await requestGateway('config.set', { key: 'context_length', session_id: activeSessionId, value: next })
-      queryClient.setQueryData<ModelOptionsResponse>(
-        modelOptionsQueryKey(profile, activeSessionId, ownerConnectionId),
-        current => (current ? { ...current, context_length: next } : current)
-      )
-    } catch (err) {
-      setContextSelection({ key, value: previous ?? null })
-      setModelPreset(provider, model, { contextLength: previous ?? null })
-      notifyError(err, t.shell.modelOptions.updateFailed)
-    }
-  }
-
   const controller: ModelMenuController = {
     // Selecting a model row restores that model's remembered preset onto the
     // session (effort/fast). applyModelPreset owns the batched gateway write.
     applyPreset: (preset, row) => {
       setModelPreset(row.provider, row.model, preset)
-      setContextSelection({
-        key: `${activeSessionId ?? 'draft'}\u0000${row.provider}\u0000${row.model}`,
-        value: preset.contextLength ?? null
-      })
 
       void applyModelPreset(preset, {
         failMessage: t.shell.modelOptions.updateFailed,
@@ -248,7 +196,6 @@ export function ModelMenuPanel({
     },
 
     current: {
-      contextLength: currentContextLength,
       effort: currentReasoningEffort,
       fast: currentFastMode,
       model: optionsModel,
@@ -268,7 +215,7 @@ export function ModelMenuPanel({
       // provider::model, not per-surface — a tile edit re-applies to that model
       // everywhere); the active model also gets it pushed onto its OWN session.
       // Non-active edits stay preset-only — no model switch, no session write.
-      if (patch.contextLength !== undefined || patch.effort !== undefined || patch.fast !== undefined) {
+      if (patch.effort !== undefined || patch.fast !== undefined) {
         setModelPreset(row.provider, row.model, patch)
       }
 
@@ -283,13 +230,7 @@ export function ModelMenuPanel({
       if (patch.fast !== undefined) {
         void patchFast(patch.fast, row.provider, row.model)
       }
-
-      if (patch.contextLength !== undefined) {
-        void patchContextLength(patch.contextLength, currentContextLength, row.provider, row.model)
-      }
-    },
-
-    supportsContextOptions: true
+    }
   }
 
   return (

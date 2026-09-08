@@ -3980,7 +3980,6 @@ export const zhHant = defineLocale({
       options: '選項',
       thinking: '思考',
       fast: '快速',
-      contextWindow: '上下文視窗',
       effort: '推理強度',
       minimal: '最小',
       low: '低',

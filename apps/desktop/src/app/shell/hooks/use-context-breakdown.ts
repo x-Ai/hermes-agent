@@ -5,7 +5,6 @@ import type { ContextBreakdown } from '@/types/hermes'
 interface ContextBreakdownOptions {
   busy: boolean
   compressionCount?: number
-  contextMax?: number
   enabled: boolean
   requestGateway: <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
   sessionId: null | string
@@ -33,7 +32,6 @@ interface ContextBreakdownOptions {
 export function useContextBreakdown({
   busy,
   compressionCount,
-  contextMax,
   enabled,
   requestGateway,
   sessionId
@@ -94,7 +92,7 @@ export function useContextBreakdown({
         clearTimeout(retryTimer)
       }
     }
-  }, [busy, compressionCount, contextMax, enabled, requestGateway, sessionId])
+  }, [busy, compressionCount, enabled, requestGateway, sessionId])
 
   return {
     breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,

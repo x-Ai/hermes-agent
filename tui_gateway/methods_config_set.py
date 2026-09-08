@@ -194,59 +194,6 @@ def _set_fast(rid, params, key, value, session):
     return _kv(rid, key, nv)
 
 
-@_cfgset_guarded
-def _set_context_length(rid, params, key, value, session):
-    """Apply one upstream-advertised context tier to this conversation."""
-    if session is None:
-        return _err(rid, 4002, "context length requires a session")
-    if isinstance(value, bool):
-        return _err(rid, 4002, "context length must be a positive integer")
-    try:
-        context_length = int(value)
-    except (TypeError, ValueError):
-        return _err(rid, 4002, "context length must be a positive integer")
-    if context_length <= 0:
-        return _err(rid, 4002, "context length must be a positive integer")
-
-    agent = session.get("agent")
-    if agent is None:
-        override = session.get("model_override")
-        if not isinstance(override, dict) or not override.get("model"):
-            return _err(rid, 4002, "context length is not available without a selected model")
-        session["model_override"] = {**override, "context_length": context_length}
-        return _kv(rid, key, context_length)
-
-    compressor = getattr(agent, "context_compressor", None)
-    if compressor is None or not hasattr(compressor, "update_model"):
-        return _err(rid, 4002, "context length is not supported by this context engine")
-    compressor.update_model(
-        model=getattr(agent, "model", ""), context_length=context_length,
-        base_url=getattr(agent, "base_url", ""), api_key=getattr(agent, "api_key", ""),
-        provider=getattr(agent, "provider", ""), api_mode=getattr(agent, "api_mode", ""),
-    )
-    agent._config_context_length = context_length
-    agent._session_context_length_override = context_length
-    init_config = getattr(agent, "_session_init_model_config", None)
-    if isinstance(init_config, dict):
-        init_config["context_length"] = context_length
-    primary = getattr(agent, "_primary_runtime", None)
-    if isinstance(primary, dict):
-        primary["compressor_context_length"] = context_length
-        primary["compressor_threshold_tokens"] = getattr(compressor, "threshold_tokens", 0)
-
-    override = session.get("model_override")
-    if not isinstance(override, dict):
-        override = {
-            "model": getattr(agent, "model", ""), "provider": getattr(agent, "requested_provider", None)
-            or getattr(agent, "provider", None), "base_url": getattr(agent, "base_url", None),
-            "api_mode": getattr(agent, "api_mode", None),
-        }
-    session["model_override"] = {**override, "context_length": context_length}
-    _persist_live_session_runtime(session)
-    _emit_session_info(params.get("session_id", ""), session)
-    return _kv(rid, key, context_length)
-
-
 def _set_busy(rid, params, key, value, session):
     if _word(value) in {"", "status"}:
         return _kv(rid, key, _load_busy_input_mode())
@@ -499,8 +446,7 @@ def _set_display_toggle(rid, params, key, value, session):
 # ── dispatch
 
 _CONFIG_SETTERS = {
-    "model": _set_model, "fast": _set_fast, "context_length": _set_context_length,
-    "busy": _set_busy, "verbose": _set_verbose, "focus": _set_focus,
+    "model": _set_model, "fast": _set_fast, "busy": _set_busy, "verbose": _set_verbose, "focus": _set_focus,
     "approval_mode": _set_approval_mode, "approvals.mode": _set_word, "yolo": _set_yolo,
     "reasoning": _set_reasoning, "details_mode": _set_word, "thinking_mode": _set_word,
     "density": _set_toggle, "battery": _set_toggle, "theme": _set_word,

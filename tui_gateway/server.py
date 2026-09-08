@@ -1504,12 +1504,7 @@ def _stored_session_runtime_overrides(row: dict | None) -> dict:
         # Same dict-shaped override live /model switches use, so a DB-restored session keeps custom endpoint
         # metadata across resume and rebuilds (/new). Raw api_key is never persisted/restored.
         overrides["model_override"] = {
-            "model": model, "provider": provider or None, "base_url": base_url or None, "api_mode": api_mode or None,
-            **({"context_length": context_length} if (
-                isinstance(context_length := model_config.get("context_length"), int)
-                and not isinstance(context_length, bool) and context_length > 0
-            ) else {}),
-        }
+            "model": model, "provider": provider or None, "base_url": base_url or None, "api_mode": api_mode or None}
     if provider:
         overrides["provider_override"] = provider
     if isinstance(reasoning_config, dict):
@@ -1540,7 +1535,6 @@ def _runtime_model_config(agent, existing: dict | None = None) -> dict:
         # An empty dict is still a real (present) reasoning config.
         "reasoning_config": reasoning_config if isinstance(reasoning_config, dict) else None,
         "service_tier": getattr(agent, "service_tier", None),
-        "context_length": getattr(agent, "_session_context_length_override", None),
     }
     for key, value in live.items():
         if value or isinstance(value, dict):
@@ -1997,9 +1991,8 @@ def _current_profile_name() -> str:
 # Monotonic GUI<->backend contract version: the desktop refuses a backend reporting less (or none) with a
 # one-click "update to align" prompt; bump whenever the desktop's backend contract changes. v2 file.attach;
 # v3 approvals.mode RPCs + session.info reconciliation; v4 session.create fast=false = explicit normal tier;
-# v5 ws_max_size >16 MiB file.attach frames; v6 plugins.manage rows carry the canonical registry key;
-# v7 model.options/config.set carry session-scoped selectable context lengths.
-DESKTOP_BACKEND_CONTRACT = 7
+# v5 ws_max_size >16 MiB file.attach frames; v6 plugins.manage rows carry the canonical registry key.
+DESKTOP_BACKEND_CONTRACT = 6
 
 
 def _session_usage_snapshot(session: dict | None) -> dict:
@@ -2315,8 +2308,6 @@ def _make_agent(
         verbose_logging=False,  # DEBUG agent logging; independent of tool_progress_mode
         reasoning_config=(
             reasoning_config_override if reasoning_config_override is not None else _load_reasoning_config(str(model or ""))),
-        context_length_override=(
-            model_override.get("context_length") if isinstance(model_override, dict) else None),
         service_tier=service_tier_override if service_tier_override is not None else _load_service_tier(),
         enabled_toolsets=_load_enabled_toolsets(platform),
         # OpenRouter provider_routing prefs (gateway + CLI parity).

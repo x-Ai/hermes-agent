@@ -238,9 +238,6 @@ def _workdir_row_model_config(session: dict) -> tuple[str, dict]:
     override = raw if isinstance(raw := session.get("model_override"), dict) else {}
     row_model = str(override.get("model") or "").strip() or _resolve_model()
     model_config: dict = {k: str(v) for k in ("model", "provider", "base_url", "api_mode") if (v := override.get(k))}
-    if (isinstance(context_length := override.get("context_length"), int)
-            and not isinstance(context_length, bool) and context_length > 0):
-        model_config["context_length"] = context_length
     # A RESOLVED provider "custom" (named ``providers:``/``custom_providers:`` entry) persisted bare here is the origin
     # of "No LLM provider configured" rows (resume routes to OpenRouter with no key). Recover the durable
     # ``custom:<name>`` identity (matches _runtime_model_config).

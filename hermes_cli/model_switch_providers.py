@@ -30,9 +30,7 @@ _UNCAPPED_PICKER_PROVIDERS: frozenset[str] = frozenset({"opencode-zen", "opencod
 
 def _save_discovered_models_to_config(
     api_url: str, model_ids: list[str], *, api_mode: Optional[str] = None,
-    headers: Optional[dict[str, str]] = None,
-    model_metadata: Optional[dict[str, dict[str, Any]]] = None,
-    credential_identity: str | None = None) -> None:
+    headers: Optional[dict[str, str]] = None, credential_identity: str | None = None) -> None:
     """Persist a successful ``/v1/models`` probe into the matching ``custom_providers`` entry.
 
     Matches by base_url (slash-normalised), api_mode and headers. A failed config write is
@@ -78,7 +76,7 @@ def _save_discovered_models_to_config(
 
 
 def _discovered_catalog_stale(
-    entry: dict, model_ids: list[str], model_metadata: Optional[dict[str, dict[str, Any]]] = None,
+    entry: dict, model_ids: list[str], model_metadata: Optional[dict[str, dict[str, int]]] = None,
 ) -> bool:
     """Whether a live probe may overwrite ``entry["models"]``.
 
@@ -666,17 +664,10 @@ class _PickerBuild:
     def add_builtin_row(
         self, slug: str, name: str, is_current: bool, model_ids: list, source: str, *, uncapped_ok: bool = True,
     ) -> None:
-        shown = _cap_models(model_ids, self.max_models, slug if uncapped_ok else "")
-        metadata = getattr(model_ids, "model_metadata", None)
-        row = {
+        self.results.append({
             "slug": slug, "name": name, "is_current": is_current, "is_user_defined": False,
-            "models": shown, "total_models": len(model_ids), "source": source}
-        if isinstance(metadata, dict):
-            row["model_metadata"] = {
-                model_id: dict(metadata[model_id]) for model_id in shown
-                if isinstance(metadata.get(model_id), dict)
-            }
-        self.results.append(row)
+            "models": _cap_models(model_ids, self.max_models, slug if uncapped_ok else ""),
+            "total_models": len(model_ids), "source": source})
         self.seen_slugs.add(slug.lower())
         self.record_builtin_endpoint(slug)
 
@@ -684,18 +675,10 @@ class _PickerBuild:
         self, slug: str, name: str, api_url: str, models: list, is_current: bool, native_catalog_empty: bool,
         *, source: str = "user-config", shown: list | None = None) -> None:
         """Append a user-defined endpoint row (sections 3, 3b, 4)."""
-        visible = models if shown is None else shown
-        metadata = getattr(models, "model_metadata", None)
-        row = {
+        self.results.append({
             "slug": slug, "name": name, "is_current": is_current, "is_user_defined": True,
-            "models": visible, "total_models": len(models), "source": source,
-            "api_url": api_url, "native_catalog_empty": native_catalog_empty}
-        if isinstance(metadata, dict):
-            row["model_metadata"] = {
-                model_id: dict(metadata[model_id]) for model_id in visible
-                if isinstance(metadata.get(model_id), dict)
-            }
-        self.results.append(row)
+            "models": models if shown is None else shown, "total_models": len(models), "source": source,
+            "api_url": api_url, "native_catalog_empty": native_catalog_empty})
         self.seen_slugs.add(slug.lower())
 
     def record_section3_pair(self, name: str, url_norm: str) -> bool:
@@ -746,13 +729,7 @@ def _lap_builtin_rows(b: _PickerBuild, data: dict, user_providers: dict) -> None
         # emit it later because this row owns the slug.
         configured = user_providers.get(hermes_id) if isinstance(user_providers, dict) else None
         configured_models = _declared_model_ids(configured.get("models")) if isinstance(configured, dict) else []
-        discovered_metadata = getattr(model_ids, "model_metadata", None)
-        merged_model_ids = list(dict.fromkeys([*configured_models, *model_ids]))
-        if isinstance(discovered_metadata, dict):
-            from hermes_cli.models import DiscoveredModelList
-            model_ids = DiscoveredModelList(merged_model_ids, model_metadata=discovered_metadata)
-        else:
-            model_ids = merged_model_ids
+        model_ids = list(dict.fromkeys([*configured_models, *model_ids]))
         pinfo = get_provider_info(mdev_id)
         display_name = pconfig.name if pconfig and pconfig.name else (pinfo.name if pinfo else mdev_id)
         b.add_builtin_row(

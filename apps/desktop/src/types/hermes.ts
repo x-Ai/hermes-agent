@@ -470,16 +470,11 @@ export interface ModelCapabilities {
    *  provider catalog), so the Thinking toggle must not be offered. Absent
    *  when the catalog doesn't say. */
   can_disable_reasoning?: boolean
-  /** Selectable context-window tiers explicitly advertised by the upstream.
-   *  Omitted when the catalog exposes only one (non-selectable) window. */
-  context_windows?: number[]
   fast: boolean
   reasoning: boolean
 }
 
 export interface ModelOptionsResponse {
-  /** Effective context window for the requested live session. */
-  context_length?: number
   model?: string
   provider?: string
   providers?: ModelOptionProvider[]

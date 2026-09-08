@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 
-def _build_agent(model_cfg, custom_providers=None, model=None, context_length_override=None):
+def _build_agent(model_cfg, custom_providers=None, model=None):
     """Build an AIAgent with the given model config."""
     cfg = {"model": model_cfg}
     if custom_providers is not None:
@@ -28,7 +28,6 @@ def _build_agent(model_cfg, custom_providers=None, model=None, context_length_ov
             quiet_mode=True,
             skip_context_files=True,
             skip_memory=True,
-            context_length_override=context_length_override,
         )
     return agent
 
@@ -43,23 +42,6 @@ def test_valid_integer_context_length_no_warning():
     # No warning about invalid context_length
     for c in mock_logger.warning.call_args_list:
         assert "Invalid" not in str(c)
-
-
-def test_session_context_tier_overrides_profile_default():
-    """A session can choose another advertised tier without rewriting config."""
-    agent = _build_agent(
-        {
-            "default": "gpt-5.6-sol",
-            "provider": "custom",
-            "base_url": "http://localhost:4000/v1",
-            "context_length": 272_000,
-        },
-        context_length_override=872_000,
-    )
-
-    assert agent._config_context_length == 872_000
-    assert agent.context_compressor.context_length == 872_000
-    assert agent._session_init_model_config["context_length"] == 872_000
 
 
 def test_string_k_suffix_context_length_warns():
