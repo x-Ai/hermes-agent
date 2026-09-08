@@ -1859,13 +1859,15 @@ body.guest-pointer-lock :is(webview, iframe) {
   color: inherit;
 }
 
-/* Artifact fences are operational transcript rows, not prose paragraphs.
-   Keep the wrapper on the same compact rhythm as adjacent tool activity; the
-   row itself owns the shared scaffold line box and typography. */
+/* Streamdown groups parsed blocks with `space-y-4`, but adjacent artifact rows
+   are operational transcript lines rather than prose paragraphs. Match their
+   gap to the turn rhythm below the last row (for example, the next thinking
+   disclosure) without tightening ordinary code blocks or surrounding prose. */
 [data-slot='aui_assistant-message-content']
   .aui-md
-  [data-streamdown='code-block']:has([data-slot='aui_artifact-card']) {
-  margin-block: var(--tool-row-gap) 0 !important;
+  [data-slot='aui_artifact-card']
+  + [data-slot='aui_artifact-card'] {
+  margin-top: var(--conversation-turn-gap) !important;
 }
 
 [data-slot='aui_assistant-message-content'] .aui-md [data-streamdown='code-block']:has(.aui-prose-fence) {

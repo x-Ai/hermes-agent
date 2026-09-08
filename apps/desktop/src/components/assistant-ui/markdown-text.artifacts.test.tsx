@@ -34,6 +34,10 @@ function fenced(language: string, body: string): string {
   return `Here you go:\n\n\`\`\`${language}\n${body}\n\`\`\`\n`
 }
 
+function bareFenced(language: string, body: string): string {
+  return `\`\`\`${language}\n${body}\n\`\`\``
+}
+
 // End-to-end for the artifact path: a substantial ```html fence in assistant
 // markdown must come out of preprocessMarkdown -> Streamdown -> SyntaxHighlighter
 // as an artifact card (registered in the store), while small fences keep the
@@ -86,7 +90,7 @@ describe('MarkdownTextContent artifacts', () => {
     const { container } = render(
       <MarkdownTextContent
         isRunning={false}
-        text={`${fenced('json', jsonVersion(1))}\n${fenced('json', jsonVersion(2))}`}
+        text={`${bareFenced('json', jsonVersion(1))}\n\n${bareFenced('json', jsonVersion(2))}`}
       />
     )
 
@@ -98,6 +102,7 @@ describe('MarkdownTextContent artifacts', () => {
     const rows = [...container.querySelectorAll<HTMLElement>('[data-slot="aui_artifact-card"]')]
 
     expect(rows).toHaveLength(2)
+    expect(rows[0]?.nextElementSibling).toBe(rows[1])
 
     for (const row of rows) {
       expect(row.hasAttribute('data-conversation-scaffold')).toBe(true)
