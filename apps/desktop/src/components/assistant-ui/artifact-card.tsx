@@ -5,7 +5,6 @@ import { useEffect, useMemo } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
 import { CodeCardIcon } from '@/components/chat/code-card'
-import { WIDGET_SHELL_CLASS } from '@/components/chat/widget-shell'
 import { useI18n } from '@/i18n'
 import type { ArtifactDetection } from '@/lib/artifact-detect'
 import { codiconForLanguage } from '@/lib/markdown-code'
@@ -30,9 +29,9 @@ function detectionIcon(detection: ArtifactDetection): string {
 
 /**
  * Transcript stand-in for a fenced block that was promoted to an artifact.
- * Replaces the wall of code with a compact, openable card: icon, title, kind,
- * version badge. While the fence is still streaming
- * it shows a shimmer + line count instead of the growing source.
+ * Replaces the wall of code with a compact, openable file-like row: icon,
+ * title, version, and source line count. While the fence is still streaming
+ * it shows a shimmer instead of the growing source.
  *
  * Registration is automatic on completion (so version history accumulates
  * even if the user never opens the card) but opening the rail is strictly
@@ -72,6 +71,7 @@ export function ArtifactCard({ code, detection, streaming = false }: ArtifactCar
   const lineCount = useMemo(() => trimmed.split('\n').length, [trimmed])
   const kindLabel = copy.kind[detection.kind]
   const versionCount = record?.versions.length ?? 0
+  const versionIndex = record?.versions.findIndex(version => version.content === trimmed) ?? -1
   const title = (record?.title || detection.title || kindLabel).trim() || kindLabel
 
   const open = () => {
@@ -96,40 +96,44 @@ export function ArtifactCard({ code, detection, streaming = false }: ArtifactCar
 
   return (
     <button
+      aria-label={`${copy.open}: ${title}`}
       className={cn(
-        WIDGET_SHELL_CLASS,
-        'group/artifact my-1.5 flex w-full max-w-md items-center gap-2.5 overflow-hidden text-left',
-        streaming ? 'cursor-default' : 'cursor-pointer'
+        'group/artifact my-0.5 flex w-full max-w-md items-center gap-2 overflow-hidden rounded-md px-1 py-1.5 text-left transition-colors duration-150',
+        streaming
+          ? 'cursor-default'
+          : 'cursor-pointer hover:bg-(--ui-row-hover-background) focus-visible:bg-(--ui-row-hover-background) focus-visible:outline-none'
       )}
       data-slot="aui_artifact-card"
       disabled={streaming}
       onClick={open}
       type="button"
     >
-      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted/55 text-muted-foreground">
-        <CodeCardIcon className="text-[1rem]" name={detectionIcon(detection)} />
+      <span className="grid size-5 shrink-0 place-items-center text-muted-foreground/60 transition-colors group-hover/artifact:text-muted-foreground">
+        <CodeCardIcon className="text-[1rem] text-inherit" name={detectionIcon(detection)} />
       </span>
-      <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            'block truncate text-[length:var(--conversation-text-font-size)] font-medium text-foreground',
-            streaming && 'shimmer text-foreground/55'
+      <span
+        className={cn(
+          'min-w-0 truncate text-[length:var(--conversation-text-font-size)] font-normal text-muted-foreground/75 transition-colors group-hover/artifact:text-foreground',
+          streaming && 'shimmer'
+        )}
+      >
+        {title}
+      </span>
+      {streaming ? (
+        <span className="shrink-0 text-[length:var(--conversation-tool-font-size)] text-muted-foreground/55">
+          {copy.generating(lineCount)}
+        </span>
+      ) : (
+        <>
+          {versionCount > 1 && versionIndex >= 0 && (
+            <span className="shrink-0 font-mono text-[0.6875rem] tabular-nums text-muted-foreground/45">
+              {copy.versionBadge(versionIndex + 1, versionCount)}
+            </span>
           )}
-        >
-          {title}
-        </span>
-        <span className="block truncate text-[length:var(--conversation-tool-font-size)] text-muted-foreground">
-          {streaming
-            ? copy.generating(lineCount)
-            : versionCount > 1
-              ? `${kindLabel} · ${copy.versionBadge(versionCount)}`
-              : kindLabel}
-        </span>
-      </span>
-      {!streaming && (
-        <span className="shrink-0 text-[length:var(--conversation-tool-font-size)] font-medium text-muted-foreground opacity-0 transition-opacity group-hover/artifact:opacity-100">
-          {copy.open}
-        </span>
+          <span className="shrink-0 font-mono text-[0.75rem] tabular-nums text-emerald-600 dark:text-emerald-400">
+            +{lineCount}
+          </span>
+        </>
       )}
     </button>
   )

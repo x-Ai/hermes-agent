@@ -4828,7 +4828,7 @@ export const ja = defineCompleteLocale({
       svg: 'グラフィック'
     },
     generating: lines => `生成中… ${lines} 行`,
-    versionBadge: count => `${count} 個のバージョン`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: '開く'
   },
   artifactPreview: {

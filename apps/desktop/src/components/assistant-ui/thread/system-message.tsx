@@ -9,6 +9,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { LogView } from '@/components/ui/log-view'
 import { ToolIcon } from '@/components/ui/tool-icon'
 import { useI18n } from '@/i18n'
+import { localizeAsyncDelegationResultText } from '@/lib/api-error-messages'
 import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
@@ -64,7 +65,7 @@ export const BackgroundResult: FC<BackgroundResultProps> = ({ text, report, proc
 }
 
 export const SystemMessage: FC = () => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const text = useAuiState(s => messageContentText(s.message.content))
   const asyncResult = useAuiState(s => s.message.metadata.custom?.asyncResult)
   const processResult = useAuiState(s => s.message.metadata.custom?.asyncResultKind === 'process')
@@ -82,7 +83,13 @@ export const SystemMessage: FC = () => {
       >
         <BackgroundResult
           process={processResult}
-          report={typeof asyncResult === 'string' ? asyncResult : ''}
+          report={
+            typeof asyncResult === 'string'
+              ? processResult
+                ? asyncResult
+                : localizeAsyncDelegationResultText(asyncResult, locale)
+              : ''
+          }
           text={text}
         />
       </MessagePrimitive.Root>

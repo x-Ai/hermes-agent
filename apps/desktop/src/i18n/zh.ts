@@ -5009,7 +5009,7 @@ export const zh = defineCompleteLocale({
       svg: '图形'
     },
     generating: lines => `生成中… ${lines} 行`,
-    versionBadge: count => `${count} 个版本`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: '打开'
   },
   artifactPreview: {

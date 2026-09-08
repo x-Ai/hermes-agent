@@ -3987,7 +3987,7 @@ export const ru = defineCompleteLocale({
       svg: 'Графика'
     },
     generating: lines => `Генерация… ${lines} ${RU_NOUN(lines, 'строка', 'строки', 'строк')}`,
-    versionBadge: count => `${count} ${RU_NOUN(count, 'версия', 'версии', 'версий')}`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'Открыть'
   },
   artifactPreview: {

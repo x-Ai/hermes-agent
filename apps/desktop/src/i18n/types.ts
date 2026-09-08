@@ -3794,7 +3794,7 @@ export interface Translations {
   artifactCard: {
     kind: Record<'code' | 'html' | 'svg', string>
     generating: (lines: number) => string
-    versionBadge: (count: number) => string
+    versionBadge: (current: number, total: number) => string
     open: string
   }
   artifactPreview: {

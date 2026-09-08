@@ -3862,7 +3862,7 @@ export const ar = defineCompleteLocale({
       svg: 'رسم'
     },
     generating: lines => `جارٍ الإنشاء… ${lines} سطرًا`,
-    versionBadge: count => `${count} إصدارات`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'فتح'
   },
   artifactPreview: {

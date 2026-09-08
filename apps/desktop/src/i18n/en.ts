@@ -3742,7 +3742,7 @@ export const en: Translations = {
       svg: 'Graphic'
     },
     generating: lines => `Generating… ${lines} lines`,
-    versionBadge: count => `${count} versions`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'Open'
   },
   artifactPreview: {

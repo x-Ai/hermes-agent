@@ -4511,7 +4511,7 @@ export const zhHant = defineCompleteLocale({
       svg: '圖形'
     },
     generating: lines => `產生中… ${lines} 行`,
-    versionBadge: count => `${count} 個版本`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: '開啟'
   },
   artifactPreview: {

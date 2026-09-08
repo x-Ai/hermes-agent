@@ -19,6 +19,17 @@ const HTML_DOC = `<!doctype html>
 
 const SMALL_SNIPPET = 'const x = 1'
 
+function jsonVersion(version: number): string {
+  return JSON.stringify(
+    {
+      version,
+      entries: Array.from({ length: 24 }, (_, index) => ({ id: index + 1, enabled: index % 2 === 0 }))
+    },
+    null,
+    2
+  )
+}
+
 function fenced(language: string, body: string): string {
   return `Here you go:\n\n\`\`\`${language}\n${body}\n\`\`\`\n`
 }
@@ -69,6 +80,20 @@ describe('MarkdownTextContent artifacts', () => {
     render(<MarkdownTextContent isRunning={false} text={fenced('js', SMALL_SNIPPET)} />)
 
     expect(await screen.findByRole('button', { name: 'Copy code' })).toBeTruthy()
+  })
+
+  it('keeps repeated artifact rows and labels each version', async () => {
+    render(
+      <MarkdownTextContent
+        isRunning={false}
+        text={`${fenced('json', jsonVersion(1))}\n${fenced('json', jsonVersion(2))}`}
+      />
+    )
+
+    expect(await screen.findAllByRole('button', { name: /json/i })).toHaveLength(2)
+    expect(await screen.findByText('v1/2')).toBeTruthy()
+    expect(screen.getByText('v2/2')).toBeTruthy()
+    expect(screen.getAllByText(/^\+\d+$/)).toHaveLength(2)
   })
 
   it('does not register while the message is still streaming', async () => {
