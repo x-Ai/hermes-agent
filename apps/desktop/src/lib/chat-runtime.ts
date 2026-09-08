@@ -462,7 +462,8 @@ export function toRuntimeMessage(message: ChatMessage): ThreadMessage {
       metadata: {
         custom: {
           ...timelineMeta,
-          ...(message.displayKind ? { displayKind: message.displayKind } : {})
+          ...(message.displayKind ? { displayKind: message.displayKind } : {}),
+          ...(message.asyncResult ? { asyncResult: message.asyncResult } : {})
         }
       }
     } as ThreadMessage

@@ -22,6 +22,8 @@ export type ChatMessage = {
    *  localized display text so renderers never have to infer semantics from
    *  prose. */
   displayKind?: SessionMessage['display_kind']
+  /** Result body only; the system text remains the compact completion label. */
+  asyncResult?: string
   timestamp?: number
   completedAt?: number
   pending?: boolean

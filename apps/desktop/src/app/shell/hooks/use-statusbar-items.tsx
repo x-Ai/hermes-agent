@@ -276,16 +276,20 @@ export function useStatusbarItems({
 
       return {
         ...currentUsage,
+        context_estimated: currentUsage.context_estimated ?? contextBreakdown.context_estimated,
         context_max: contextMax,
         context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
+        context_source: currentUsage.context_source ?? contextBreakdown.context_source,
         context_used: contextUsed
       }
     }
 
     return {
       ...currentUsage,
+      context_estimated: contextBreakdown.context_estimated,
       context_max: contextBreakdown.context_max,
       context_percent: contextBreakdown.context_percent,
+      context_source: contextBreakdown.context_source,
       context_used: contextBreakdown.context_used
     }
   }, [busy, contextBreakdown, contextBreakdownLoading, currentUsage])

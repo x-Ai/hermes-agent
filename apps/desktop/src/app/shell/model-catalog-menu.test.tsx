@@ -108,7 +108,16 @@ describe('the catalog owns model curation', () => {
     fireEvent.change(input, { target: { value: 'gemini-3.1' } })
 
     await vi.waitFor(() => {
-      expect(screen.queryByText(/Gemini 3\.1 Pro/i)).not.toBeNull()
+      // The fold makes this id-style query highlight the spaced label: the
+      // row renders as <mark>Gemini 3.1</mark> + ' Pro'.
+      expect(screen.getByText('Gemini 3.1', { selector: 'mark' })).toBeDefined()
+      // Display name is "Gemini 3.1 pro" (no title-case for gemini ids); the
+      // row label span carries it (plus the effort meta suffix).
+      expect(
+        screen.getByText((_, element) =>
+          Boolean(element?.classList.contains('truncate') && (element?.textContent ?? '').startsWith('Gemini 3.1 pro'))
+        )
+      ).toBeDefined()
     })
   })
 
@@ -116,7 +125,7 @@ describe('the catalog owns model curation', () => {
     renderMenu()
     await screen.findByText(/Gemini 3\.1 Pro/i)
 
-    fireEvent.click(screen.getByText('Edit models…'))
+    fireEvent.click(screen.getByText(/Edit models…/i))
 
     expect($modelVisibilityOpen.get()).toBe(true)
   })

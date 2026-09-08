@@ -15,7 +15,7 @@ import { displayEntityName } from '@/lib/display-name'
 import { Search } from '@/lib/icons'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
-import { normalize } from '@/lib/text'
+import { foldIncludes, normalize } from '@/lib/text'
 import {
   $visibleModels,
   collapseModelFamilies,
@@ -83,9 +83,10 @@ export function ModelVisibilityDialog({
 
   const matches = (provider: ModelOptionProvider, model: string) =>
     !q ||
-    `${model} ${provider.name} ${provider.slug} ${displayModelName(model)} ${displayEntityName(model, t)}`
-      .toLowerCase()
-      .includes(q)
+    foldIncludes(
+      `${model} ${provider.name} ${provider.slug} ${displayModelName(model)} ${displayEntityName(model, t)}`,
+      q
+    )
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -139,6 +140,7 @@ export function ModelVisibilityDialog({
                     >
                       <span className="min-w-0 truncate">
                         <HighlightMatches
+                          foldSeparators
                           query={search}
                           text={isMoaProvider(provider) ? t.settings.model.moa.title : provider.name}
                         />
@@ -168,7 +170,7 @@ export function ModelVisibilityDialog({
                           key={key}
                         >
                           <span className="min-w-0 flex-1 truncate">
-                            <HighlightMatches query={search} text={name} />
+                            <HighlightMatches foldSeparators query={search} text={name} />
                             {tag ? <span className="text-(--ui-text-tertiary)"> {tag}</span> : null}
                           </span>
                           <Switch

@@ -84,7 +84,6 @@ def _lift_max_output_tokens(
                     else "model" if source is model_config else "provider")
                 return
 
-
 def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
     """Copy a validated ``extra_headers`` dict. SECURITY: values carry credentials — never log."""
     extra_headers = _rp().normalize_extra_headers(entry.get("extra_headers"))
@@ -387,7 +386,7 @@ def _custom_provider_request_overrides(custom_provider: Dict[str, Any]) -> Dict[
 
 
 def _apply_custom_provider_extras(custom_provider: Dict[str, Any], target_model: Optional[str], result: Dict[str, Any]) -> None:
-    """Copy model / capabilities / max_output_tokens / extra_headers / request_overrides onto a
+    """Copy model / capabilities / extra_headers / request_overrides onto a
     resolved custom runtime. An explicit ``target_model`` wins over the provider's configured
     default (auxiliary slots / background-review resolve a concrete model and must not fall back to
     ``default_model``). ``extra_headers`` may carry credentials — NEVER log them."""

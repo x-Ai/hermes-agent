@@ -1159,6 +1159,8 @@ def _(rid, params: dict, session: dict) -> dict:
             "context_percent": usage.get("context_percent", 0) or 0,
             "context_used": usage.get("context_used", 0) or 0,
             "estimated_total": usage.get("context_used", 0) or usage.get("total", 0) or 0,
+            "context_estimated": usage.get("context_estimated", False),
+            "context_source": usage.get("context_source", "provider_usage"),
             "model": _metadata_mirror(session).get("model", ""),
             "ready": agent_ready})
     with session["history_lock"]:
