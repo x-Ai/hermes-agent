@@ -4247,6 +4247,7 @@ export const ja = defineLocale({
       options: 'オプション',
       thinking: '思考',
       fast: '高速',
+      contextWindow: 'コンテキストウィンドウ',
       effort: '努力度',
       minimal: '最小',
       low: '低',

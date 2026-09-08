@@ -3064,6 +3064,7 @@ export const ar = defineLocale({
       options: 'الخيارات',
       thinking: 'التفكير',
       fast: 'سريع',
+      contextWindow: 'نافذة السياق',
       effort: 'الجهد',
       minimal: 'أدنى',
       low: 'منخفض',

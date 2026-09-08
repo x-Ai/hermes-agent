@@ -92,7 +92,10 @@ def test_fetch_from_api_keeps_supported_in_api_false_models(monkeypatch):
         def json(self):
             return {
                 "models": [
-                    {"slug": "gpt-5.5", "priority": 0, "supported_in_api": True},
+                    {
+                        "slug": "gpt-5.5", "priority": 0, "supported_in_api": True,
+                        "context_window": 272_000, "max_context_window": 872_000,
+                    },
                     {"slug": "gpt-5.3-codex-spark", "priority": 7, "supported_in_api": False},
                     {"slug": "gpt-5-internal", "priority": 99, "visibility": "hidden"},
                 ]
@@ -108,6 +111,7 @@ def test_fetch_from_api_keeps_supported_in_api_false_models(monkeypatch):
     models = codex_models._fetch_models_from_api(access_token="tok")
 
     assert "gpt-5.5" in models
+    assert models.model_metadata["gpt-5.5"]["context_windows"] == [272_000, 872_000]
     assert "gpt-5.3-codex-spark" in models
     assert "gpt-5-internal" not in models
 

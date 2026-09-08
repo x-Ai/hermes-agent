@@ -156,3 +156,21 @@ def test_catalog_failure_never_breaks_the_picker(monkeypatch):
     caps = rows[0]["capabilities"]["deepseek/deepseek-v4-pro"]
     assert "supported_efforts" not in caps
     assert caps["reasoning"] is True
+
+
+def test_multiple_upstream_context_windows_reach_picker_capabilities(monkeypatch):
+    """A real multi-tier declaration becomes one model option; a singleton does not."""
+    monkeypatch.setattr(models_mod, "model_supports_fast_mode", lambda model: False)
+    rows = [{
+        "slug": "openai-codex",
+        "models": ["gpt-5.6-sol", "gpt-5.5"],
+        "model_metadata": {
+            "gpt-5.6-sol": {"context_windows": [272_000, 872_000]},
+            "gpt-5.5": {"context_windows": [272_000]},
+        },
+    }]
+
+    inv._apply_capabilities(rows)
+
+    assert rows[0]["capabilities"]["gpt-5.6-sol"]["context_windows"] == [272_000, 872_000]
+    assert "context_windows" not in rows[0]["capabilities"]["gpt-5.5"]

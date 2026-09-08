@@ -13,8 +13,13 @@ describe('model presets', () => {
   it('round-trips a preset and merges patches without dropping prior fields', () => {
     setModelPreset('anthropic', 'claude-opus-4-8', { effort: 'high' })
     setModelPreset('anthropic', 'claude-opus-4-8', { fast: true })
+    setModelPreset('anthropic', 'claude-opus-4-8', { contextLength: 500_000 })
 
-    expect(getModelPreset('anthropic', 'claude-opus-4-8')).toEqual({ effort: 'high', fast: true })
+    expect(getModelPreset('anthropic', 'claude-opus-4-8')).toEqual({
+      contextLength: 500_000,
+      effort: 'high',
+      fast: true
+    })
   })
 
   it('returns an empty preset for unknown models', () => {
@@ -34,10 +39,13 @@ describe('model presets', () => {
       return {} as T
     }
 
-    await applyModelPreset({ effort: 'high' }, { failMessage: 'x', request, sessionId: 's1' })
+    await applyModelPreset({ contextLength: 872_000, effort: 'high' }, { failMessage: 'x', request, sessionId: 's1' })
     await applyModelPreset({}, { failMessage: 'x', request, sessionId: 's1' })
 
-    expect(calls).toEqual([{ method: 'config.set', params: { key: 'reasoning', session_id: 's1', value: 'high' } }])
+    expect(calls).toEqual([
+      { method: 'config.set', params: { key: 'reasoning', session_id: 's1', value: 'high' } },
+      { method: 'config.set', params: { key: 'context_length', session_id: 's1', value: 872_000 } }
+    ])
   })
 
   it('applies a fresh-draft preset locally without mutating gateway config', async () => {

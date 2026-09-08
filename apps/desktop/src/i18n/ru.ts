@@ -3218,6 +3218,7 @@ export const ru = defineLocale({
       options: 'Опции',
       thinking: 'Размышление',
       fast: 'Быстрая',
+      contextWindow: 'Контекстное окно',
       effort: 'Усилия',
       minimal: 'Минимально',
       low: 'Низкое',

@@ -151,6 +151,8 @@ def build_models_payload(
     if featured:
         _apply_featured(rows)
     _apply_custom_aliases(rows)
+    for row in rows:
+        row.pop("model_metadata", None)
 
     return {"providers": rows, "model": ctx.current_model, "provider": ctx.current_provider}
 
@@ -291,6 +293,7 @@ def _apply_capabilities(rows: list[dict]) -> None:
     for row in rows:
         slug = row.get("slug") or ""
         caps: dict[str, dict[str, Any]] = {}
+        model_metadata = row.get("model_metadata") if isinstance(row.get("model_metadata"), dict) else {}
         read_reasoning_catalog = _reasoning_catalog_reader(slug.lower())
 
         for model in row.get("models") or []:
@@ -304,6 +307,16 @@ def _apply_capabilities(rows: list[dict]) -> None:
                     reasoning = True
 
             entry: dict[str, Any] = {"fast": bool(model_supports_fast_mode(model)), "reasoning": reasoning}
+
+            metadata = model_metadata.get(model) if isinstance(model_metadata.get(model), dict) else {}
+            raw_windows = metadata.get("context_windows")
+            if isinstance(raw_windows, list):
+                windows = list(dict.fromkeys(
+                    value for value in raw_windows
+                    if isinstance(value, int) and not isinstance(value, bool) and value > 0
+                ))
+                if len(windows) > 1:
+                    entry["context_windows"] = windows
 
             if reasoning and read_reasoning_catalog is not None:
                 try:

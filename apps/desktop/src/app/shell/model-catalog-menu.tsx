@@ -62,6 +62,7 @@ export const ModelMenuCloseContext = createContext<() => void>(() => {})
 /** One model choice, everything a caller needs to act on a selection.
  *  `effort` is '' for "inherit the default" and 'none' for thinking off. */
 export interface ModelChoice {
+  contextLength?: number | null
   effort: string
   fast: boolean
   model: string
@@ -81,16 +82,29 @@ export interface ModelMenuController {
    *  `setOptions` because it is one atomic "apply this model's preset" write,
    *  not a user editing one control — surfaces that write through to a session
    *  need to batch it. Values are already capability-gated by the menu. */
-  applyPreset: (preset: { effort?: string; fast?: boolean }, row: { model: string; provider: string }) => void
+  applyPreset: (
+    preset: { contextLength?: number | null; effort?: string; fast?: boolean },
+    row: { model: string; provider: string }
+  ) => void
   current: ModelChoice
-  presetFor: (provider: string, model: string) => { effort?: string; fast?: boolean }
+  presetFor: (
+    provider: string,
+    model: string
+  ) => {
+    contextLength?: number | null
+    effort?: string
+    fast?: boolean
+  }
   /** Commit a model row. Return false to abort (a failed session switch). */
   select: (model: string, provider: string) => Promise<boolean | void> | void
   /** Edit ONE option on a row. `isActive` says whether it's the current model. */
   setOptions: (
-    patch: { effort?: string; fast?: boolean },
+    patch: { contextLength?: number; effort?: string; fast?: boolean },
     row: { isActive: boolean; model: string; provider: string }
   ) => void
+  /** Detached override surfaces can omit this because their worker contract
+   *  cannot carry a per-session context tier. */
+  supportsContextOptions?: boolean
 }
 
 interface ModelCatalogMenuProps {
@@ -293,6 +307,12 @@ export function ModelCatalogMenu({
   const selectFamily = async (family: ModelFamily, provider: ModelOptionProvider) => {
     const caps = provider.capabilities?.[family.id]
     const preset = controller.presetFor(provider.slug, family.id)
+    const contextWindows = caps?.context_windows ?? []
+
+    const presetContext =
+      typeof preset.contextLength === 'number' && contextWindows.includes(preset.contextLength)
+        ? preset.contextLength
+        : contextWindows[0]
 
     // Variant-fast models (no speed param) express "fast" as a separate `-fast`
     // id, so honor the remembered preset by selecting that sibling. Param-fast
@@ -306,6 +326,8 @@ export function ModelCatalogMenu({
 
     controller.applyPreset(
       {
+        contextLength:
+          controller.supportsContextOptions && contextWindows.length > 1 ? (presetContext ?? null) : undefined,
         effort: (caps?.reasoning ?? true) ? (preset.effort ?? defaultEffort) : undefined,
         fast: (caps?.fast ?? false) ? (preset.fast ?? false) : undefined
       },
@@ -354,13 +376,19 @@ export function ModelCatalogMenu({
     row.kind === 'moa'
       ? current.provider === 'moa' && row.preset === current.model
       : isCurrentProvider(row.provider, current.provider) &&
-        (row.family.id === current.model || row.family.fastId === current.model)
+        (row.family.id === current.model ||
+          row.family.fastId === current.model ||
+          row.family.contextId === current.model)
 
   const autoIndex = q
     ? kbRows.length > 0
       ? 0
       : -1
-    : kbRows.findIndex(row => rowIsCurrent(row) || (row.kind === 'family' && row.family.fastId === current.model))
+    : kbRows.findIndex(
+        row =>
+          rowIsCurrent(row) ||
+          (row.kind === 'family' && (row.family.fastId === current.model || row.family.contextId === current.model))
+      )
 
   const kbIndex = kbOverride !== null && kbOverride < kbRows.length ? kbOverride : autoIndex
   const kbActiveKey = kbIndex >= 0 ? kbRows[kbIndex].key : null
@@ -388,7 +416,7 @@ export function ModelCatalogMenu({
       return
     }
 
-    if (!rowIsCurrent(row) && row.family.fastId !== current.model) {
+    if (!rowIsCurrent(row) && row.family.fastId !== current.model && row.family.contextId !== current.model) {
       void selectFamily(row.family, row.provider)
     }
 
@@ -496,7 +524,9 @@ export function ModelCatalogMenu({
                     // way this one family row represents both.
                     const activeId =
                       isCurrentProvider(group.provider, current.provider) &&
-                      (current.model === family.id || current.model === family.fastId)
+                      (current.model === family.id ||
+                        current.model === family.fastId ||
+                        current.model === family.contextId)
                         ? current.model
                         : null
 
@@ -516,6 +546,10 @@ export function ModelCatalogMenu({
                     const preset = controller.presetFor(group.provider.slug, family.id)
                     const effEffort = isCurrent ? current.effort : (preset.effort ?? '')
                     const effFast = isCurrent ? current.fast : (preset.fast ?? false)
+
+                    const effContextLength = isCurrent
+                      ? current.contextLength
+                      : (preset.contextLength ?? caps?.context_windows?.[0])
 
                     const fastControl: FastControl = resolveFastControl(
                       activeId ?? family.id,
@@ -584,6 +618,8 @@ export function ModelCatalogMenu({
                         </DropdownMenuSubTrigger>
                         <ModelEditSubmenu
                           canDisableReasoning={caps?.can_disable_reasoning}
+                          contextLength={effContextLength}
+                          contextWindows={controller.supportsContextOptions ? caps?.context_windows : undefined}
                           defaultEffort={defaultEffort}
                           effort={effEffort}
                           fastControl={fastControl}
@@ -731,7 +767,7 @@ function groupModels(
 
     const matches = (family: ModelFamily) =>
       foldIncludes(
-        `${family.id} ${family.fastId ?? ''} ${provider.name} ${provider.slug} ${displayModelName(family.id)}`,
+        `${family.id} ${family.fastId ?? ''} ${family.contextId ?? ''} ${provider.name} ${provider.slug} ${displayModelName(family.id)}`,
         q
       )
 
@@ -754,7 +790,10 @@ function groupModels(
     // SEARCHING the pin is skipped: a query means "show me matches".
     const activeId =
       !q && isCurrentProvider(provider, current.provider) && current.model
-        ? allFamilies.find(family => family.id === current.model || family.fastId === current.model)?.id
+        ? allFamilies.find(
+            family =>
+              family.id === current.model || family.fastId === current.model || family.contextId === current.model
+          )?.id
         : undefined
 
     const families = allFamilies.filter(family => shown.has(family.id) || family.id === activeId)

@@ -3192,6 +3192,7 @@ export interface Translations {
       options: string
       thinking: string
       fast: string
+      contextWindow: string
       effort: string
       minimal: string
       low: string

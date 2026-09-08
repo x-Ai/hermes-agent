@@ -24,12 +24,14 @@ afterEach(() => {
 
 // Render the submenu inside an open menu/sub so its content (switches) mounts.
 function renderSubmenu(opts: {
+  contextLength?: number
+  contextWindows?: number[]
   defaultEffort?: string
   effort?: string
   fastControl: FastControl
   isActive?: boolean
   onSelectModel?: (model: string) => void
-  onSetOptions: (patch: { effort?: string; fast?: boolean }) => void
+  onSetOptions: (patch: { contextLength?: number; effort?: string; fast?: boolean }) => void
   reasoning: boolean
 }) {
   return render(
@@ -38,6 +40,8 @@ function renderSubmenu(opts: {
         <DropdownMenuSub open>
           <DropdownMenuSubTrigger>edit</DropdownMenuSubTrigger>
           <ModelEditSubmenu
+            contextLength={opts.contextLength}
+            contextWindows={opts.contextWindows}
             defaultEffort={opts.defaultEffort ?? 'medium'}
             effort={opts.effort ?? 'medium'}
             fastControl={opts.fastControl}
@@ -60,6 +64,21 @@ function renderSubmenu(opts: {
 // ever writes directly again, picking an effort for a kanban card would reach
 // over and change the user's live chat.
 describe('ModelEditSubmenu reports edits without performing them', () => {
+  it('offers every upstream context tier and reports the selected window', () => {
+    const onSetOptions = vi.fn()
+    renderSubmenu({
+      contextLength: 272_000,
+      contextWindows: [272_000, 872_000],
+      fastControl: { kind: 'none' },
+      onSetOptions,
+      reasoning: false
+    })
+
+    fireEvent.click(screen.getByRole('menuitemradio', { name: '872K' }))
+
+    expect(onSetOptions).toHaveBeenCalledWith({ contextLength: 872_000 })
+  })
+
   it('param fast: reports the toggle', () => {
     const onSetOptions = vi.fn()
     renderSubmenu({ fastControl: { kind: 'param', on: true }, onSetOptions, reasoning: false })

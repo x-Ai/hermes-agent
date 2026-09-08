@@ -63,6 +63,10 @@ interface ModelEditSubmenuProps {
    *  routes, whose upstream rejects a disable — the toggle is hidden rather
    *  than offered as a control that silently does nothing. */
   canDisableReasoning?: boolean
+  /** Effective tier for this row (live when active, remembered otherwise). */
+  contextLength?: number | null
+  /** Multiple upstream-advertised tiers. One value is not a menu. */
+  contextWindows?: readonly number[]
   /** The profile's configured default effort — what an unset row inherits.
    *  Passed in (not read from a store) so this submenu stays pure. */
   defaultEffort: string
@@ -81,7 +85,7 @@ interface ModelEditSubmenuProps {
    *  session, a preset store, or the gateway itself — the owning surface's
    *  controller decides what an edit means. That's what lets the same submenu
    *  drive a live chat session and a detached per-task override. */
-  onSetOptions: (patch: { effort?: string; fast?: boolean }) => void
+  onSetOptions: (patch: { contextLength?: number; effort?: string; fast?: boolean }) => void
   /** This row's provider slug. */
   provider: string
   /** Whether this model supports reasoning effort. */
@@ -103,6 +107,8 @@ export function ModelEditSubmenu(props: ModelEditSubmenuProps) {
 
 function ModelEditSubmenuBody({
   canDisableReasoning,
+  contextLength,
+  contextWindows,
   defaultEffort,
   effort,
   fastControl,
@@ -140,7 +146,14 @@ function ModelEditSubmenuBody({
   const hasFast = fastControl.kind !== 'none'
   const fastOn = fastControl.kind === 'none' ? false : fastControl.on
 
-  return !hasFast && !reasoning ? (
+  const windows = [...new Set(contextWindows?.filter(value => Number.isInteger(value) && value > 0) ?? [])].sort(
+    (left, right) => left - right
+  )
+
+  const hasContextOptions = windows.length > 1
+  const selectedContext = contextLength && windows.includes(contextLength) ? contextLength : windows[0]
+
+  return !hasFast && !reasoning && !hasContextOptions ? (
     <div className="px-2.5 py-3 text-xs text-(--ui-text-tertiary)">{copy.noOptions}</div>
   ) : (
     <>
@@ -162,6 +175,27 @@ function ModelEditSubmenuBody({
           <Switch checked={fastOn} className="ml-auto" onCheckedChange={setFast} size="xs" />
         </DropdownMenuItem>
       ) : null}
+      {hasContextOptions ? (
+        <>
+          <DropdownMenuSeparator className="mx-0" />
+          <DropdownMenuLabel className={dropdownMenuSectionLabel}>{copy.contextWindow}</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            onValueChange={value => onSetOptions({ contextLength: Number(value) })}
+            value={String(selectedContext)}
+          >
+            {windows.map(value => (
+              <DropdownMenuRadioItem
+                className={dropdownMenuRow}
+                key={value}
+                onSelect={event => event.preventDefault()}
+                value={String(value)}
+              >
+                {formatContextWindow(value)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </>
+      ) : null}
       {reasoning ? (
         <>
           <DropdownMenuSeparator className="mx-0" />
@@ -182,4 +216,16 @@ function ModelEditSubmenuBody({
       ) : null}
     </>
   )
+}
+
+export function formatContextWindow(tokens: number): string {
+  if (tokens >= 1_000_000 && tokens % 1_000_000 === 0) {
+    return `${tokens / 1_000_000}M`
+  }
+
+  if (tokens >= 1_000 && tokens % 1_000 === 0) {
+    return `${tokens / 1_000}K`
+  }
+
+  return new Intl.NumberFormat().format(tokens)
 }

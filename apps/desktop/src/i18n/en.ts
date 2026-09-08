@@ -3978,6 +3978,7 @@ export const en: Translations = {
       options: 'Options',
       thinking: 'Thinking',
       fast: 'Fast',
+      contextWindow: 'Context window',
       effort: 'Effort',
       minimal: 'Minimal',
       low: 'Low',

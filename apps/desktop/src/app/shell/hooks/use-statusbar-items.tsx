@@ -5,7 +5,11 @@ import { useNavigate } from 'react-router'
 import { ConnectionSwitcher } from '@/app/chat/sidebar/connection-switcher'
 import type { CommandCenterSection } from '@/app/command-center'
 import { useApprovalModeStatusbarItem } from '@/app/shell/approval-mode-menu'
-import { ContextUsagePanel, projectLiveContextBreakdown } from '@/app/shell/context-usage-panel'
+import {
+  ContextUsagePanel,
+  projectLiveContextBreakdown,
+  resolveContextGaugeUsage
+} from '@/app/shell/context-usage-panel'
 import { GatewayMenuPanel } from '@/app/shell/gateway-menu-panel'
 import { useContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
 import { useSystemResourcesStatusbarItem } from '@/app/shell/system-resources-statusbar'
@@ -253,46 +257,23 @@ export function useStatusbarItems({
   const { breakdown: contextBreakdown, loading: contextBreakdownLoading } = useContextBreakdown({
     busy,
     compressionCount: currentUsage.compressions,
+    contextMax: currentUsage.context_max,
     enabled: !contextItemHidden,
     requestGateway,
     sessionId: activeSessionId
   })
 
-  // A keyed breakdown is the cold/resume baseline. While a turn runs (and
-  // while its final reconciliation is loading), live `session.usage` ticks
-  // take precedence so the meter advances after every internal provider call
-  // instead of freezing until message.complete. Outside that window the keyed
-  // breakdown protects session switches from stale global usage.
-  const gaugeUsage = useMemo<UsageStats>(() => {
-    if (!contextBreakdown) {
-      return currentUsage
-    }
-
-    const preferLive = (busy || contextBreakdownLoading) && typeof currentUsage.context_used === 'number'
-
-    if (preferLive) {
-      const contextMax = currentUsage.context_max ?? contextBreakdown.context_max
-      const contextUsed = currentUsage.context_used ?? contextBreakdown.context_used
-
-      return {
-        ...currentUsage,
-        context_estimated: currentUsage.context_estimated ?? contextBreakdown.context_estimated,
-        context_max: contextMax,
-        context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
-        context_source: currentUsage.context_source ?? contextBreakdown.context_source,
-        context_used: contextUsed
-      }
-    }
-
-    return {
-      ...currentUsage,
-      context_estimated: contextBreakdown.context_estimated,
-      context_max: contextBreakdown.context_max,
-      context_percent: contextBreakdown.context_percent,
-      context_source: contextBreakdown.context_source,
-      context_used: contextBreakdown.context_used
-    }
-  }, [busy, contextBreakdown, contextBreakdownLoading, currentUsage])
+  // A keyed breakdown is the cold/resume baseline. Live usage takes precedence
+  // during turns and as soon as a context-window selection changes the
+  // denominator, so the idle meter also reflects the chosen tier immediately.
+  const gaugeUsage = useMemo<UsageStats>(
+    () =>
+      resolveContextGaugeUsage(currentUsage, contextBreakdown, {
+        busy,
+        loading: contextBreakdownLoading
+      }),
+    [busy, contextBreakdown, contextBreakdownLoading, currentUsage]
+  )
 
   const displayedContextBreakdown = useMemo(
     () => projectLiveContextBreakdown(contextBreakdown, gaugeUsage),

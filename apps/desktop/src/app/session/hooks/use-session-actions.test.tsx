@@ -24,6 +24,7 @@ import { $clarifyRequests, clearClarifyRequest, setClarifyRequest } from '@/stor
 import { clearSessionDraft, stashSessionDraft, takeSessionDraft } from '@/store/composer'
 import { requestGatewayForAgent, requestGatewayForProfile } from '@/store/gateway'
 import { $pinnedSessionIds } from '@/store/layout'
+import { $modelPresets, setModelPreset } from '@/store/model-presets'
 import { $activeGatewayProfile, $newChatProfile, $newChatRoute, $profiles, ensureGatewayProfile } from '@/store/profile'
 import { $projectScope, $projectTree, ALL_PROJECTS } from '@/store/projects'
 import {
@@ -734,6 +735,7 @@ describe('createBackendSessionForSend profile routing', () => {
     $currentFastMode.set(false)
     $currentModel.set('')
     $currentProvider.set('')
+    $modelPresets.set({})
     setCurrentModelSource('')
     $currentReasoningEffort.set('')
     setNewChatWorkspaceTarget(undefined)
@@ -810,6 +812,17 @@ describe('createBackendSessionForSend profile routing', () => {
       model: 'anthropic/claude-opus-5',
       provider: 'anthropic'
     })
+  })
+
+  it('sends the selected model context tier as a per-session override', async () => {
+    const params = await createWith(() => {
+      setCurrentModel('gpt-5.6-sol')
+      setCurrentProvider('openai-codex')
+      setCurrentModelSource('manual')
+      setModelPreset('openai-codex', 'gpt-5.6-sol', { contextLength: 872_000 })
+    })
+
+    expect(params).toMatchObject({ context_length: 872_000, model: 'gpt-5.6-sol' })
   })
 
   // An unset source is the first-run/cleared state — nothing the user picked,

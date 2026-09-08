@@ -84,6 +84,12 @@ describe('model visibility', () => {
     expect(families.map(f => f.id)).toEqual(['claude-opus-4-5'])
   })
 
+  it('folds a large-context alias into the base model options row', () => {
+    const families = collapseModelFamilies(['gpt-5.6-sol', 'gpt-5.6-sol-900k'])
+
+    expect(families).toEqual([{ contextId: 'gpt-5.6-sol-900k', fastId: null, id: 'gpt-5.6-sol' }])
+  })
+
   it('keeps a date-pinned snapshot standing alone when it has no alias', () => {
     const families = collapseModelFamilies(['claude-opus-4-5-20251101', 'claude-haiku-4-5-20251001'])
 

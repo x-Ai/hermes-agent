@@ -25,9 +25,10 @@ export const emptyProviderSentinelKey = (provider: string): string =>
 /** Check whether a stored key is a provider-hidden sentinel. */
 export const isProviderSentinel = (key: string): boolean => key.endsWith('::')
 
-/** A model and its optional `…-fast` sibling, collapsed into one logical row.
- *  `id` is the canonical (base) model; `fastId` is the fast variant if present. */
+/** A model and its optional fast/large-context siblings, collapsed into one
+ *  logical row. `id` is the canonical base model. */
 export interface ModelFamily {
+  contextId: string | null
   fastId: string | null
   id: string
 }
@@ -50,6 +51,11 @@ export function collapseModelFamilies(models: readonly string[]): ModelFamily[] 
       continue
     }
 
+    if (/-900k$/i.test(model) && present.has(model.replace(/-900k$/i, ''))) {
+      // Large context is an option on the base model, not a second model row.
+      continue
+    }
+
     if (/-\d{8}$/.test(model) && present.has(model.replace(/-\d{8}$/, ''))) {
       // A date-pinned snapshot superseded by its rolling alias — drop the dupe.
       continue
@@ -57,11 +63,17 @@ export function collapseModelFamilies(models: readonly string[]): ModelFamily[] 
 
     const fastId = `${model}-fast`
     const hasFast = present.has(fastId)
-    families.push({ fastId: hasFast ? fastId : null, id: model })
+    const contextId = `${model}-900k`
+    const hasContextVariant = present.has(contextId)
+    families.push({ contextId: hasContextVariant ? contextId : null, fastId: hasFast ? fastId : null, id: model })
     consumed.add(model)
 
     if (hasFast) {
       consumed.add(fastId)
+    }
+
+    if (hasContextVariant) {
+      consumed.add(contextId)
     }
   }
 

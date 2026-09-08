@@ -276,12 +276,15 @@ def _seed_branch_row(record: dict, key: str, parent_session_id: str, history: li
 
 
 def _create_overrides(params: dict) -> tuple:
-    """PER-SESSION (model, reasoning, service_tier) overrides from the composer — never a global config
+    """PER-SESSION (model, context, reasoning, service_tier) overrides from the composer — never a global config
     write. ``fast`` presence is the contract: omitted inherits, true pins priority, false pins normal ("")."""
     create_model = _str_param(params, "model")
     model_override = None
     if create_model:
         model_override = {"model": create_model, "provider": _str_param(params, "provider") or None}
+        raw_context = params.get("context_length")
+        if isinstance(raw_context, int) and not isinstance(raw_context, bool) and raw_context > 0:
+            model_override["context_length"] = raw_context
     reasoning_override = None
     if effort := _str_param(params, "reasoning_effort"):
         with contextlib.suppress(Exception):

@@ -5108,6 +5108,7 @@ export const zh: Translations = {
       options: '选项',
       thinking: '思考',
       fast: '快速',
+      contextWindow: '上下文窗口',
       effort: '推理强度',
       minimal: '最小',
       low: '低',

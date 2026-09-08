@@ -132,8 +132,15 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
         cc.threshold_percent = cc._effective_threshold_percent(cc.context_length, base)
     except Exception:
         cc.threshold_percent = pct
-    raw_ctx = model_cfg.get("context_length")
-    if raw_ctx is not None:
+    session_ctx = getattr(agent, "_session_context_length_override", None)
+    if isinstance(session_ctx, int) and not isinstance(session_ctx, bool) and session_ctx > 0:
+        # The picker tier is conversation-scoped and must survive the normal
+        # per-turn config hot reload. Profile edits still apply to sessions
+        # that have not selected their own tier.
+        cc._config_context_length = session_ctx
+        with contextlib.suppress(Exception):
+            cc.context_length = session_ctx
+    elif (raw_ctx := model_cfg.get("context_length")) is not None:
         with contextlib.suppress(TypeError, ValueError):
             if (new_ctx := int(raw_ctx)) > 0:
                 cc._config_context_length = new_ctx

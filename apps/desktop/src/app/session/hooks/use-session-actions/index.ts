@@ -36,6 +36,7 @@ import {
 } from '@/store/gateway'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $pinnedSessionIds } from '@/store/layout'
+import { getModelPreset } from '@/store/model-presets'
 import { clearNotifications, notify, notifyError } from '@/store/notifications'
 import {
   $activeGatewayProfile,
@@ -275,7 +276,7 @@ function reconcileAuthoritativeMessages(
   return reconcileAuthoritativeChatMessages(toChatMessages(authoritativeMessages), previousMessages, liveProjection)
 }
 
-// `session.create` params from the current profile + sticky-UI model/effort/fast,
+// `session.create` params from the current profile + sticky-UI model/options,
 // ensuring the gateway is on that profile first. Shared by the primary send path
 // and the "open in split" tile path; `cwd` is the one thing that differs (the
 // live composer cwd for a send, the resolved new-session cwd for a fresh tile).
@@ -284,7 +285,7 @@ function reconcileAuthoritativeMessages(
 // mode one backend serves every profile, so an omitted profile silently lands the
 // chat on the launch (default) profile — the "rubberbands back to default" bug.
 // A no-op for single-profile/local-pooled users (a backend resolves its own launch
-// profile to None). Effort/fast still ride as per-session overrides. Model and
+// profile to None). Effort/fast/context still ride as per-session overrides. Model and
 // provider only ride when the composer source is 'manual' — a default-sourced
 // value is a mirror of Settings → Model and must not pin the new chat.
 async function desktopSessionCreateParams(
@@ -308,6 +309,13 @@ async function desktopSessionCreateParams(
     provider: isManualSelection ? $currentProvider.get().trim() : ''
   }
 
+  const presetModel = selection.model.replace(/-fast$/i, '').replace(/-900k$/i, '')
+
+  const contextLength = selection.model
+    ? (getModelPreset(selection.provider, selection.model).contextLength ??
+      getModelPreset(selection.provider, presetModel).contextLength)
+    : undefined
+
   const profile = capturedRoute?.profile || $newChatProfile.get() || normalizeProfileKey($activeGatewayProfile.get())
 
   if (capturedRoute) {
@@ -325,6 +333,7 @@ async function desktopSessionCreateParams(
       ? { model: selection.model, ...(selection.provider ? { provider: selection.provider } : {}) }
       : {}),
     ...(selection.effort ? { reasoning_effort: selection.effort } : {}),
+    ...(typeof contextLength === 'number' ? { context_length: contextLength } : {}),
     fast: selection.fast
   }
 }
