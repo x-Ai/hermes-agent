@@ -262,6 +262,7 @@ export const en: Translations = {
         `Unknown provider '${provider}'. Check 'hermes model' for available providers, or run 'hermes doctor' to diagnose config issues.`,
       fastModeUnavailable: 'Fast mode is not available for this model.',
       apiRetriesExhausted: retries => `API call failed after ${retries} retries`,
+      invalidApiResponseAfterRetries: (retries, detail) => `Invalid API response after ${retries} retries: ${detail}`,
       resetsIn: remaining => `It resets in ${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT needs ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs rejected the API key (401).',
@@ -3118,7 +3119,7 @@ export const en: Translations = {
   artifactCard: {
     kind: { code: 'Code', html: 'Interactive page', svg: 'Graphic' },
     generating: lines => `Generating… ${lines} lines`,
-    versionBadge: count => `${count} versions`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'Open'
   },
 
@@ -4419,6 +4420,8 @@ export const en: Translations = {
       showEarlier: 'Show earlier messages',
       loadingResponse: 'Hermes is loading a response',
       steered: 'steered',
+      asyncDelegationFailure: detail => `(failed: ${detail})`,
+      asyncDelegationPartialOutput: 'Partial output:',
       messagingAgent: name => `Messaging ${name}…`,
       messagedAgent: name => `Messaged ${name}`,
       messageFrom: name => `Message from ${name}`,

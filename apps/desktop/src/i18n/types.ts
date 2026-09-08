@@ -292,6 +292,7 @@ export interface Translations {
     errors: {
       agentInitUnknownProvider: (provider: string) => string
       apiRetriesExhausted: (retries: string) => string
+      invalidApiResponseAfterRetries: (retries: string, detail: string) => string
       resetsIn: (remaining: string) => string
       unknownProvider: (provider: string) => string
       fastModeUnavailable: string
@@ -2480,7 +2481,7 @@ export interface Translations {
   artifactCard: {
     kind: Record<'code' | 'html' | 'svg', string>
     generating: (lines: number) => string
-    versionBadge: (count: number) => string
+    versionBadge: (current: number, total: number) => string
     open: string
   }
 
@@ -3615,6 +3616,8 @@ export interface Translations {
       showEarlier: string
       loadingResponse: string
       steered: string
+      asyncDelegationFailure: (detail: string) => string
+      asyncDelegationPartialOutput: string
       messagingAgent: (name: string) => string
       messagedAgent: (name: string) => string
       messageFrom: (name: string) => string

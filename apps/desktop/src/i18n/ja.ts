@@ -211,6 +211,7 @@ export const ja = defineLocale({
         `不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
       fastModeUnavailable: 'このモデルでは高速モードを利用できません。',
       apiRetriesExhausted: retries => `API 呼び出しは ${retries} 回再試行しても失敗しました`,
+      invalidApiResponseAfterRetries: (retries, detail) => `API レスポンスが無効です（${retries} 回再試行）：${detail}`,
       resetsIn: remaining => `リセットまで：${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
@@ -3473,7 +3474,7 @@ export const ja = defineLocale({
   artifactCard: {
     kind: { code: 'コード', html: 'インタラクティブページ', svg: 'グラフィック' },
     generating: lines => `生成中… ${lines} 行`,
-    versionBadge: count => `${count} 個のバージョン`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: '開く'
   },
 
@@ -4658,6 +4659,8 @@ export const ja = defineLocale({
       showEarlier: '以前のメッセージを表示',
       loadingResponse: 'Hermes が応答を読み込み中',
       steered: '指示を変更',
+      asyncDelegationFailure: detail => `（失敗：${detail}）`,
+      asyncDelegationPartialOutput: '部分出力：',
       messagingAgent: name => `${name} にメッセージを送信中…`,
       messagedAgent: name => `${name} にメッセージを送信しました`,
       messageFrom: name => `${name} からのメッセージ`,

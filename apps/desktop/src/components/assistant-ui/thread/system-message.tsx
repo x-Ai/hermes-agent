@@ -8,6 +8,7 @@ import { SCAFFOLD_LABEL_CLASS } from '@/components/chat/scaffold-row'
 import { Codicon } from '@/components/ui/codicon'
 import { ToolIcon } from '@/components/ui/tool-icon'
 import { useI18n } from '@/i18n'
+import { localizeAsyncDelegationResultText } from '@/lib/api-error-messages'
 import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
@@ -18,7 +19,7 @@ const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
 const REVIEW_NOTE_RE = /^review:(?<label>[^:\n]+):?\s*(?<detail>[\s\S]*)$/
 
 export const SystemMessage: FC = () => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const copy = t.assistant.thread
   const text = useAuiState(s => messageContentText(s.message.content))
   const asyncResult = useAuiState(s => s.message.metadata.custom?.asyncResult)
@@ -43,7 +44,7 @@ export const SystemMessage: FC = () => {
         <div className="text-[0.6875rem] leading-5 text-muted-foreground/55">
           {text} <MessageTimelineTimestamp />
         </div>
-        <MarkdownTextContent isRunning={false} text={asyncResult} />
+        <MarkdownTextContent isRunning={false} text={localizeAsyncDelegationResultText(asyncResult, locale)} />
       </MessagePrimitive.Root>
     )
   }

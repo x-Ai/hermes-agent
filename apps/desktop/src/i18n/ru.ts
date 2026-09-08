@@ -203,6 +203,8 @@ export const ru = defineLocale({
         `Неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
       fastModeUnavailable: 'Быстрый режим недоступен для этой модели.',
       apiRetriesExhausted: retries => `Вызов API завершился ошибкой после ${retries} повторных попыток`,
+      invalidApiResponseAfterRetries: (retries, detail) =>
+        `Недопустимый ответ API после ${retries} повторных попыток: ${detail}`,
       resetsIn: remaining => `До сброса: ${remaining}`,
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
@@ -2452,7 +2454,7 @@ export const ru = defineLocale({
   artifactCard: {
     kind: { code: 'Код', html: 'Интерактивная страница', svg: 'Графика' },
     generating: lines => `Генерация… ${lines} ${RU_NOUN(lines, 'строка', 'строки', 'строк')}`,
-    versionBadge: count => `${count} ${RU_NOUN(count, 'версия', 'версии', 'версий')}`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'Открыть'
   },
 
@@ -3584,6 +3586,8 @@ export const ru = defineLocale({
       loadingSession: 'Загрузка сеанса',
       showEarlier: 'Показать ранние сообщения',
       loadingResponse: 'Hermes загружает ответ',
+      asyncDelegationFailure: detail => `(ошибка: ${detail})`,
+      asyncDelegationPartialOutput: 'Частичный вывод:',
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Продолжится, когда фоновая задача завершится'

@@ -205,6 +205,7 @@ export const zhHant = defineLocale({
         `未知的供應商「${provider}」。請執行「hermes model」查看可用的供應商，或執行「hermes doctor」診斷設定問題。`,
       fastModeUnavailable: '此模型不支援快速模式。',
       apiRetriesExhausted: retries => `API 呼叫重試 ${retries} 次後仍失敗`,
+      invalidApiResponseAfterRetries: (retries, detail) => `API 回應無效，重試 ${retries} 次後仍失敗：${detail}`,
       resetsIn: remaining => `重設倒數：${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT 需要 ELEVENLABS_API_KEY。',
       elevenLabsRejectedKey: 'ElevenLabs 拒絕了該 API 金鑰 (401)。',
@@ -3203,7 +3204,7 @@ export const zhHant = defineLocale({
   artifactCard: {
     kind: { code: '程式碼', html: '互動頁面', svg: '圖形' },
     generating: lines => `產生中… ${lines} 行`,
-    versionBadge: count => `${count} 個版本`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: '開啟'
   },
 
@@ -4356,6 +4357,8 @@ export const zhHant = defineLocale({
       showEarlier: '顯示較早的訊息',
       loadingResponse: 'Hermes 正在載入回覆',
       steered: '已引導',
+      asyncDelegationFailure: detail => `（失敗：${detail}）`,
+      asyncDelegationPartialOutput: '部分輸出：',
       messagingAgent: name => `正在向 ${name} 傳送訊息…`,
       messagedAgent: name => `已向 ${name} 傳送訊息`,
       messageFrom: name => `來自 ${name} 的訊息`,

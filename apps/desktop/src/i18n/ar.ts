@@ -355,6 +355,8 @@ export const ar = defineLocale({
         `المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
       fastModeUnavailable: 'الوضع السريع غير متاح لهذا النموذج.',
       apiRetriesExhausted: retries => `فشل استدعاء API بعد ${retries} محاولات إعادة`,
+      invalidApiResponseAfterRetries: (retries, detail) =>
+        `استجابة API غير صالحة بعد ${retries} محاولات إعادة: ${detail}`,
       resetsIn: remaining => `الوقت المتبقي لإعادة التعيين: ${remaining}`,
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
@@ -2325,7 +2327,7 @@ export const ar = defineLocale({
   artifactCard: {
     kind: { code: 'كود', html: 'صفحة تفاعلية', svg: 'رسم' },
     generating: lines => `جارٍ الإنشاء… ${lines} سطرًا`,
-    versionBadge: count => `${count} إصدارات`,
+    versionBadge: (current, total) => `v${current}/${total}`,
     open: 'فتح'
   },
 
@@ -3406,6 +3408,8 @@ export const ar = defineLocale({
       showEarlier: 'عرض الرسائل الأقدم',
       loadingResponse: 'جار تحميل الرد...',
       steered: 'تم التوجيه',
+      asyncDelegationFailure: detail => `(فشل: ${detail})`,
+      asyncDelegationPartialOutput: 'الناتج الجزئي:',
       messagingAgent: name => `جار مراسلة ${name}…`,
       messagedAgent: name => `تمت مراسلة ${name}`,
       messageFrom: name => `رسالة من ${name}`,
