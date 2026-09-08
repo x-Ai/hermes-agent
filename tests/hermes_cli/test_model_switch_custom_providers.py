@@ -1630,6 +1630,7 @@ def test_model_flow_named_custom_persists_discovered_models(monkeypatch):
             {
                 "api_mode": "anthropic_messages",
                 "headers": {"X-Tenant": "dragomes"},
+                "credential_identity": "sk-test",
             },
         )
     ], (
