@@ -37,14 +37,20 @@ export const SystemMessage: FC = () => {
   if (typeof asyncResult === 'string' && asyncResult) {
     return (
       <MessagePrimitive.Root
-        className="flex w-full min-w-0 flex-col gap-2 self-start py-1"
+        className="flex w-full min-w-0 flex-col gap-2 self-start"
+        data-display-kind={displayKind}
         data-role="system"
         data-slot="aui_system-message-root"
       >
-        <div className="text-[0.6875rem] leading-5 text-muted-foreground/55">
+        <div
+          className={cn(SCAFFOLD_LABEL_CLASS, 'px-(--message-text-indent) text-muted-foreground/55')}
+          data-slot="aui_async-result-heading"
+        >
           {text} <MessageTimelineTimestamp />
         </div>
-        <MarkdownTextContent isRunning={false} text={localizeAsyncDelegationResultText(asyncResult, locale)} />
+        <div data-slot="aui_assistant-message-content">
+          <MarkdownTextContent isRunning={false} text={localizeAsyncDelegationResultText(asyncResult, locale)} />
+        </div>
       </MessagePrimitive.Root>
     )
   }
@@ -133,7 +139,11 @@ export const SystemMessage: FC = () => {
   if (displayKind === 'async_delegation_complete') {
     return (
       <MessagePrimitive.Root
-        className="w-full max-w-full self-start px-(--message-text-indent) py-0.5 text-left text-[0.6875rem] leading-5 text-muted-foreground/55"
+        className={cn(
+          SCAFFOLD_LABEL_CLASS,
+          'w-full max-w-full self-start px-(--message-text-indent) text-left text-muted-foreground/55'
+        )}
+        data-conversation-scaffold=""
         data-display-kind="async_delegation_complete"
         data-role="system"
         data-slot="aui_system-message-root"

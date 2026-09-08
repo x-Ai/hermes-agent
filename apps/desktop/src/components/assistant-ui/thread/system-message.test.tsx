@@ -15,12 +15,13 @@ $displayTimestamps.set(true)
 const timestamp = new Date('2026-05-01T00:00:00.000Z')
 stubThreadEnvironment()
 
-function Harness({ displayKind, text }: { displayKind?: string; text: string }) {
+function Harness({ asyncResult, displayKind, text }: { asyncResult?: string; displayKind?: string; text: string }) {
   const message = toRuntimeMessage({
     id: 'system-1',
     role: 'system',
     parts: [{ type: 'text', text }],
     timestamp: timestamp.getTime() / 1000,
+    ...(asyncResult ? { asyncResult } : {}),
     ...(displayKind ? { displayKind } : {})
   })
 
@@ -78,9 +79,32 @@ describe('system timeline placement', () => {
     expect(row?.classList.contains('self-start')).toBe(true)
     expect(row?.classList.contains('text-left')).toBe(true)
     expect(row?.classList.contains('px-(--message-text-indent)')).toBe(true)
+    expect(row?.hasAttribute('data-conversation-scaffold')).toBe(true)
+    expect(row?.classList.contains('text-[length:var(--conversation-tool-font-size)]')).toBe(true)
+    expect(row?.classList.contains('leading-(--conversation-line-height)')).toBe(true)
     expect(row?.classList.contains('self-center')).toBe(false)
     expect(row?.classList.contains('text-center')).toBe(false)
     expect(row?.getAttribute('data-display-kind')).toBe('async_delegation_complete')
+  })
+
+  it('aligns an async report heading and partial output to the assistant reading edge', () => {
+    const { container } = render(
+      <Harness
+        asyncResult="Partial output"
+        displayKind="async_delegation_complete"
+        text="4 background agents finished"
+      />
+    )
+
+    const root = container.querySelector('[data-role="system"]')
+    const heading = root?.querySelector('[data-slot="aui_async-result-heading"]')
+    const output = root?.querySelector('[data-slot="aui_assistant-message-content"]')
+
+    expect(heading?.classList.contains('px-(--message-text-indent)')).toBe(true)
+    expect(heading?.classList.contains('text-[length:var(--conversation-tool-font-size)]')).toBe(true)
+    expect(heading?.classList.contains('leading-(--conversation-line-height)')).toBe(true)
+    expect(root?.getAttribute('data-display-kind')).toBe('async_delegation_complete')
+    expect(output).toBeTruthy()
   })
 
   it('keeps the first delegation completion adjacent to a footer-bearing assistant message', () => {

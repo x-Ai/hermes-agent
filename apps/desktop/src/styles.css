@@ -1859,6 +1859,15 @@ body.guest-pointer-lock :is(webview, iframe) {
   color: inherit;
 }
 
+/* Artifact fences are operational transcript rows, not prose paragraphs.
+   Keep the wrapper on the same compact rhythm as adjacent tool activity; the
+   row itself owns the shared scaffold line box and typography. */
+[data-slot='aui_assistant-message-content']
+  .aui-md
+  [data-streamdown='code-block']:has([data-slot='aui_artifact-card']) {
+  margin-block: var(--tool-row-gap) 0 !important;
+}
+
 [data-slot='aui_assistant-message-content'] .aui-md [data-streamdown='code-block']:has(.aui-prose-fence) {
   margin-block: 0 !important;
 }

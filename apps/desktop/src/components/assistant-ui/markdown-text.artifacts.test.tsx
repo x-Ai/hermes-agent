@@ -83,7 +83,7 @@ describe('MarkdownTextContent artifacts', () => {
   })
 
   it('keeps repeated artifact rows and labels each version', async () => {
-    render(
+    const { container } = render(
       <MarkdownTextContent
         isRunning={false}
         text={`${fenced('json', jsonVersion(1))}\n${fenced('json', jsonVersion(2))}`}
@@ -94,6 +94,21 @@ describe('MarkdownTextContent artifacts', () => {
     expect(await screen.findByText('v1/2')).toBeTruthy()
     expect(screen.getByText('v2/2')).toBeTruthy()
     expect(screen.getAllByText(/^\+\d+$/)).toHaveLength(2)
+
+    const rows = [...container.querySelectorAll<HTMLElement>('[data-slot="aui_artifact-card"]')]
+
+    expect(rows).toHaveLength(2)
+
+    for (const row of rows) {
+      expect(row.hasAttribute('data-conversation-scaffold')).toBe(true)
+      expect(row.classList.contains('h-(--conversation-line-height)')).toBe(true)
+      expect(row.querySelector('[data-slot="aui_artifact-card-glyph"]')?.classList.contains('size-3.5')).toBe(true)
+      expect(
+        row
+          .querySelector('[data-slot="aui_artifact-card-title"]')
+          ?.classList.contains('text-[length:var(--conversation-tool-font-size)]')
+      ).toBe(true)
+    }
   })
 
   it('does not register while the message is still streaming', async () => {
