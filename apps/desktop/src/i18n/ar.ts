@@ -987,7 +987,6 @@ export const ar = defineLocale({
       updateReady: count => `${count} تحديث متاح`,
       updateReadyUnknown: 'تحديث جديد جاهز.',
       lastChecked: age => `آخر تحقق ${age}`,
-      justNowSuffix: 'الآن',
       automaticUpdates: 'التحديثات التلقائية',
       automaticUpdatesDesc: 'اسمح لـ Hermes بالتحقق من التحديثات وتثبيتها.',
       branchCommit: (branch, commit) => `${branch} عند ${commit}`,

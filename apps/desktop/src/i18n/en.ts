@@ -1025,7 +1025,6 @@ export const en: Translations = {
       updateReady: count => `A new update is ready (${count} change${count === 1 ? '' : 's'} included).`,
       updateReadyUnknown: 'A new update is ready.',
       lastChecked: age => `Last checked ${age}`,
-      justNowSuffix: ' · just now',
       automaticUpdates: 'Automatic updates',
       automaticUpdatesDesc:
         'Hermes checks for updates automatically in the background and lets you know when one is ready.',

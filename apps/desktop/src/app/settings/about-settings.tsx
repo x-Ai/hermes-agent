@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
@@ -53,7 +53,6 @@ export function AboutSettings() {
   const status = useStore($updateStatus)
   const apply = useStore($updateApply)
   const checking = useStore($updateChecking)
-  const [justChecked, setJustChecked] = useState(false)
 
   // The version atom is loaded once at app boot, which makes About show a
   // stale number after a self-update (the running binary is current, the
@@ -69,12 +68,6 @@ export function AboutSettings() {
   const updateAvailable = behind > 0 || Boolean(status?.updateAvailable)
   const supported = status?.supported !== false
   const applying = apply.applying || apply.stage === 'restart'
-
-  const handleCheck = async () => {
-    setJustChecked(false)
-    const next = await checkUpdates()
-    setJustChecked(Boolean(next))
-  }
 
   let statusLine: string
   let statusTone: 'idle' | 'available' | 'error' = 'idle'
@@ -176,17 +169,14 @@ export function AboutSettings() {
             )}
             <div className="min-w-0">
               <p className="font-medium">{statusLine}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {a.lastChecked(relativeTime(status?.fetchedAt, a))}
-                {justChecked && !checking ? a.justNowSuffix : ''}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{a.lastChecked(relativeTime(status?.fetchedAt, a))}</p>
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-4">
             <Button
               disabled={checking || applying || !supported}
-              onClick={() => void handleCheck()}
+              onClick={() => void checkUpdates()}
               size="sm"
               variant="textStrong"
             >

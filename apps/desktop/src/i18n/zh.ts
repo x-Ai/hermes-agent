@@ -1306,7 +1306,6 @@ export const zh: Translations = {
       updateReady: count => `已准备好新更新 (包含 ${count} 项更改)`,
       updateReadyUnknown: '新更新已就绪',
       lastChecked: age => `上次检查:${age}`,
-      justNowSuffix: ' · 刚刚',
       automaticUpdates: '自动更新',
       automaticUpdatesDesc: 'Hermes 会在后台自动检查更新，可用时会通知你',
       branchCommit: (branch, commit) => `分支 ${branch} · 提交 ${commit}`,

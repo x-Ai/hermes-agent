@@ -892,7 +892,6 @@ export interface Translations {
       updateReady: (count: number) => string
       updateReadyUnknown: string
       lastChecked: (age: string) => string
-      justNowSuffix: string
       automaticUpdates: string
       automaticUpdatesDesc: string
       branchCommit: (branch: string, commit: string) => string

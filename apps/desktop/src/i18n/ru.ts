@@ -1027,7 +1027,6 @@ export const ru = defineLocale({
         `Готово новое обновление (включено ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}).`,
       updateReadyUnknown: 'Готово новое обновление.',
       lastChecked: age => `Проверено ${age}`,
-      justNowSuffix: ' · только что',
       automaticUpdates: 'Автоматические обновления',
       automaticUpdatesDesc: 'Hermes автоматически проверяет обновления в фоне и сообщает, когда они готовы.',
       branchCommit: (branch, commit) => `Ветка ${branch} · Коммит ${commit}`,
