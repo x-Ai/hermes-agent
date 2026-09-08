@@ -1938,7 +1938,8 @@ body.guest-pointer-lock :is(webview, iframe) {
 
 /* Fade scaffolding so the prose reading column stays primary. Each surface
    opts in with `data-conversation-scaffold` — thinking header, tool row, run
-   summary, live status line — instead of being named by its own selector here.
+   summary, live status line, injected process notice — instead of being named
+   by its own selector here.
    Spelling them out individually is how the status line came to sit a shade
    brighter than the rows either side of it.
 
@@ -1947,7 +1948,10 @@ body.guest-pointer-lock :is(webview, iframe) {
    one row (an open diff) could not stay lit while its siblings dimmed. Hence
    the tool group wrapper carries no mark and each row inside it carries its
    own — no two marked elements nest, so the fade never compounds. */
-[data-slot='aui_assistant-message-content'] [data-conversation-scaffold] {
+:is(
+  [data-slot='aui_assistant-message-content'] [data-conversation-scaffold],
+  [data-slot='aui_process-notification'][data-conversation-scaffold]
+) {
   opacity: 0.67;
   transition: opacity 120ms ease-out;
 }
@@ -1955,7 +1959,10 @@ body.guest-pointer-lock :is(webview, iframe) {
 /* Lift on hover or *keyboard* focus only. `:focus-within` also matches the
    focus a mouse click leaves on the disclosure toggle, which kept a row lit
    after you clicked to collapse it; `:has(:focus-visible)` excludes that. */
-[data-slot='aui_assistant-message-content'] [data-conversation-scaffold]:is(:hover, :has(:focus-visible)) {
+:is(
+  [data-slot='aui_assistant-message-content'] [data-conversation-scaffold],
+  [data-slot='aui_process-notification'][data-conversation-scaffold]
+):is(:hover, :has(:focus-visible)) {
   opacity: 1;
 }
 

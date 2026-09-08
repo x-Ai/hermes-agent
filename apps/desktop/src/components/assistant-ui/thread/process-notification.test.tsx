@@ -1,3 +1,5 @@
+import '@/styles.css'
+
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -64,6 +66,22 @@ describe('background process notification placement', () => {
 
     expect(root?.classList.contains('pl-(--message-text-indent)')).toBe(true)
     expect(root?.classList.contains('pt-(--conversation-turn-gap)')).toBe(true)
+  })
+
+  it('uses the same resting color depth as completed tool scaffolding', () => {
+    const { container } = render(
+      <>
+        <div data-slot="aui_assistant-message-content">
+          <div data-conversation-scaffold="" data-testid="completed-tool" />
+        </div>
+        <Harness />
+      </>
+    )
+
+    const completedTool = container.querySelector('[data-testid="completed-tool"]')!
+    const notice = container.querySelector('[data-slot="aui_process-notification"]')!
+
+    expect(getComputedStyle(notice).opacity).toBe(getComputedStyle(completedTool).opacity)
   })
 
   it('exposes the adjacent message-group hooks that collapse the preceding action-bar gap', () => {
