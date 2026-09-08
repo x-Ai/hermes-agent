@@ -1979,7 +1979,7 @@ export const zh: Translations = {
       contextLabel: '上下文',
       maxOutputLabel: '最大输出 Token',
       maxOutputHint:
-        '每次请求发送的提供方输出上限。留空则使用 /models 自动发现值或协议默认值，端点报告“Provider exceeded max output tokens.”时可在此设置',
+        '每次请求发送的提供方输出上限。留空则使用 /models 自动发现值或协议默认值',
       apiKeyLabel: 'API 密钥',
       userAgentLabel: 'User-Agent',
       userAgentHint:

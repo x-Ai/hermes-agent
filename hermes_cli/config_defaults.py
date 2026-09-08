@@ -712,8 +712,11 @@ DEFAULT_CONFIG = {
         # OpenAI-compatible request fields. Vision: download_timeout = image HTTP download (s).
         "vision": _aux(120, download_timeout=30),
         # web_extract and session_search no longer use an aux LLM; leftover blocks in user config
-        # are ignored. Compression: raise timeout for local models.
-        "compression": _aux(120),
+        # are ignored. Compression: raise timeout for local models. A positive max_output_tokens
+        # is an independent task budget on Responses/Anthropic routes (clamped to the advertised
+        # model ceiling); 0 preserves the provider's default output policy. Other wires retain
+        # the explicitly certified ``reasoning_effort: none`` fast-lane behavior.
+        "compression": _aux(120, max_output_tokens=0),
         "skills_hub": _aux(30),
         "approval": _aux(30),   # classifier — a fast/cheap model is recommended
         # /review reviewer: a full subagent on the async delegation rail, credentials resolved like

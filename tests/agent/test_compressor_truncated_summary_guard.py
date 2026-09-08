@@ -83,6 +83,20 @@ class TestGenerateSummaryTruncationGuard:
         # The partial text must never be stored for iterative updates.
         assert c._previous_summary is None or "cut o" not in (c._previous_summary or "")
 
+    @pytest.mark.parametrize("finish_reason", ["incomplete", "content_filter"])
+    def test_other_incomplete_terminal_states_are_rejected(self, finish_reason):
+        with patch("agent.context_compressor.get_model_context_length", return_value=100000):
+            c = ContextCompressor(model="test", quiet_mode=True)
+        with patch(
+            "agent.context_compressor.call_llm",
+            return_value=_mock_response("partial summary", finish_reason),
+        ):
+            result = c._generate_summary(_msgs(2))
+
+        assert result is None
+        assert c._last_summary_truncated_failure is True
+        assert "partial summary" not in (c._previous_summary or "")
+
     def test_length_stop_falls_back_to_main_model_once(self):
         """With a distinct aux summary model, a length stop retries once on
         the main model (which may have a larger output budget) and succeeds."""

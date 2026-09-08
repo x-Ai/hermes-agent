@@ -390,6 +390,42 @@ class TestBuildCallKwargsMaxTokens:
         assert kwargs["max_tokens"] == 1234
         assert "max_completion_tokens" not in kwargs
 
+    def test_responses_task_budget_becomes_max_output_tokens_on_wire(self):
+        from agent.auxiliary_client import _CodexCompletionsAdapter, _build_call_kwargs
+
+        base_url = "https://responses.example/v1"
+        call_kwargs = _build_call_kwargs(
+            provider="custom", model="small-title-model",
+            messages=[{"role": "user", "content": "title this"}],
+            max_tokens=64, base_url=base_url, task="title_generation",
+            api_mode="codex_responses",
+        )
+        responses_kwargs, _, _ = _CodexCompletionsAdapter(
+            SimpleNamespace(base_url=base_url), "small-title-model",
+        )._build_responses_kwargs(call_kwargs)
+
+        assert responses_kwargs["max_output_tokens"] == 64
+        assert not ({"max_tokens", "max_completion_tokens"} & responses_kwargs.keys())
+
+    def test_responses_without_task_budget_keeps_output_limit_omitted(self):
+        from agent.auxiliary_client import _CodexCompletionsAdapter, _build_call_kwargs
+
+        base_url = "https://responses.example/v1"
+        call_kwargs = _build_call_kwargs(
+            provider="custom", model="unknown-model",
+            messages=[{"role": "user", "content": "summarize"}],
+            max_tokens=None, base_url=base_url, task="compression",
+            api_mode="codex_responses",
+        )
+        responses_kwargs, _, _ = _CodexCompletionsAdapter(
+            SimpleNamespace(base_url=base_url), "unknown-model",
+        )._build_responses_kwargs(call_kwargs)
+
+        assert not (
+            {"max_tokens", "max_completion_tokens", "max_output_tokens"}
+            & responses_kwargs.keys()
+        )
+
 
     # ── MoA task should honor max_tokens on ALL providers (#reference_max_tokens) ──
 
@@ -3760,6 +3796,29 @@ class TestCodexAuxiliaryAdapterNullOutputRecovery:
 
 
 class TestCodexAuxiliaryAdapterCompletedResponse:
+    def test_preserves_output_limit_incomplete_status_as_length(self):
+        incomplete = SimpleNamespace(
+            status="incomplete",
+            incomplete_details=SimpleNamespace(reason="max_output_tokens"),
+            usage=None,
+            output=[SimpleNamespace(
+                type="message",
+                content=[SimpleNamespace(type="output_text", text="partial summary")],
+            )],
+        )
+
+        class FakeResponses:
+            def create(self, **_kwargs):
+                return incomplete
+
+        fake_client = SimpleNamespace(
+            base_url="https://responses.example/v1", responses=FakeResponses())
+        response = _CodexCompletionsAdapter(fake_client, "reasoning-model").create(
+            messages=[{"role": "user", "content": "summarize"}], timeout=5)
+
+        assert response.choices[0].message.content == "partial summary"
+        assert response.choices[0].finish_reason == "length"
+
     def test_accepts_completed_response_when_stream_was_requested(self):
         completed = SimpleNamespace(
             status="completed",

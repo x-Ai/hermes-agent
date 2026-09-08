@@ -1339,6 +1339,10 @@ def provider_model_ids(provider: Optional[str], *, force_refresh: bool = False) 
 # ---------------------------------------------------------------------------
 
 _PROVIDER_MODELS_CACHE_TTL = 3600  # 1h
+# Bump when the custom-endpoint catalog collector learns new capability fields. Rows without
+# this marker predate capability collection; a current row with no ``model_metadata`` means
+# the endpoint was probed and did not advertise any supported metadata.
+_PROVIDER_MODELS_METADATA_SCHEMA_VERSION = 2
 # Stale-while-revalidate window: an expired same-credentials entry is served IMMEDIATELY while a
 # daemon thread refreshes the disk cache; beyond this bound the caller blocks on a live fetch.
 # Catalogs change on release timescales, so hour-old data beats stalling every picker surface.
@@ -1351,7 +1355,12 @@ _swr_refresh_lock = threading.Lock()
 
 def _cache_entry(fp: str, models: list[str], at: Optional[float] = None) -> dict:
     """One provider row of the disk cache: credential fingerprint, model ids and capabilities."""
-    entry = {"fp": fp, "at": time.time() if at is None else at, "models": list(models)}
+    entry = {
+        "fp": fp,
+        "at": time.time() if at is None else at,
+        "models": list(models),
+        "metadata_schema_version": _PROVIDER_MODELS_METADATA_SCHEMA_VERSION,
+    }
     metadata = getattr(models, "model_metadata", None)
     if isinstance(metadata, dict) and metadata:
         entry["model_metadata"] = metadata
@@ -2141,8 +2150,17 @@ def _models_from_catalog(data: Any) -> DiscoveredModelList:
             continue
         model_ids.append(model_id)
         capabilities = row.get("capabilities")
-        raw_limit = capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None
-        limit = _positive_output_limit(raw_limit)
+        candidates = (
+            capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None,
+            row.get("max_output_tokens"),
+            # Anthropic-compatible Models APIs advertise the per-response
+            # limit under top-level ``max_tokens``.
+            row.get("max_tokens"),
+            # Compatibility catalogs occasionally retain Chat Completions'
+            # newer spelling. It is still an output limit, never a context size.
+            row.get("max_completion_tokens"),
+        )
+        limit = next((value for raw in candidates if (value := _positive_output_limit(raw)) is not None), None)
         if limit is not None:
             metadata[model_id] = {"max_output_tokens": limit}
     return DiscoveredModelList(model_ids, model_metadata=metadata)
@@ -2366,17 +2384,30 @@ def _custom_endpoint_fingerprint(
 
 
 def _cache_entry_valid(
-    entry: Any, fp: str, *, allow_empty: bool = False) -> "TypeGuard[dict[str, Any]]":
-    """Well-formed cache row for fingerprint *fp*. Requires a numeric ``at`` so corrupt disk state
-    degrades to a cache miss instead of raising; empty model lists are valid only when the caller
-    opts into an authoritative empty catalog."""
+    entry: Any, fp: str, *, allow_empty: bool = False,
+    require_metadata_schema: bool = False,
+) -> "TypeGuard[dict[str, Any]]":
+    """Well-formed cache row for fingerprint *fp*. Capability readers can additionally require
+    the current metadata schema; an absent marker then means "refresh", while a current marker
+    with absent metadata means "the provider advertised no supported capability"."""
     return (
         isinstance(entry, dict)
         and entry.get("fp") == fp
         and isinstance(entry.get("models"), list)
         and (allow_empty or bool(entry["models"]))
         and isinstance(entry.get("at"), (int, float))
-        and not isinstance(entry.get("at"), bool))
+        and not isinstance(entry.get("at"), bool)
+        and (
+            not require_metadata_schema
+            or (
+                type(entry.get("metadata_schema_version")) is int
+                and entry["metadata_schema_version"] == _PROVIDER_MODELS_METADATA_SCHEMA_VERSION
+                and (
+                    "model_metadata" not in entry
+                    or isinstance(entry.get("model_metadata"), dict)
+                )
+            )
+        ))
 
 
 def cached_fetch_api_models(
@@ -2404,7 +2435,8 @@ def cached_fetch_api_models(
     cache = _load_provider_models_cache()
     entry = cache.get(cache_key)
     now = time.time()
-    valid = not force_refresh and _cache_entry_valid(entry, fp)
+    valid = not force_refresh and _cache_entry_valid(
+        entry, fp, require_metadata_schema=True)
 
     if cache_only:
         # Same trust window as the SWR tier below, minus the revalidation.
@@ -2428,7 +2460,7 @@ def cached_fetch_api_models(
         _store_cache_entry(cache_key, _cache_entry(fp, live, now), cache)
         return live
     # Live returned nothing (offline, timeout, auth hiccup): a stale same-fingerprint entry beats it.
-    if _cache_entry_valid(entry, fp):
+    if _cache_entry_valid(entry, fp, require_metadata_schema=True):
         return _from_cache(entry)
     return live
 

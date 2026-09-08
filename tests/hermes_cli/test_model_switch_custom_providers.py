@@ -1803,11 +1803,8 @@ def _seed_custom_model_cache(monkeypatch, models, *, age_seconds=10):
 
     fp = models_mod._custom_endpoint_fingerprint("", None, None)
     cache = {
-        f"custom:{_LOCAL_ENDPOINT}": {
-            "fp": fp,
-            "at": time.time() - age_seconds,
-            "models": list(models),
-        }
+        f"custom:{_LOCAL_ENDPOINT}": models_mod._cache_entry(
+            fp, list(models), at=time.time() - age_seconds)
     }
     monkeypatch.setattr(models_mod, "_load_provider_models_cache", lambda: cache)
 
@@ -2088,11 +2085,8 @@ def test_api_mode_rows_do_not_share_a_cached_catalog(monkeypatch):
     # Only the OpenAI-mode probe (api_mode=None) is on disk.
     fp = models_mod._custom_endpoint_fingerprint("sk-shared", None, None)
     cache = {
-        f"custom:{_SHARED_PROXY_URL}": {
-            "fp": fp,
-            "at": time.time() - 10,
-            "models": list(openai_catalog),
-        }
+        f"custom:{_SHARED_PROXY_URL}": models_mod._cache_entry(
+            fp, list(openai_catalog), at=time.time() - 10)
     }
     monkeypatch.setattr(models_mod, "_load_provider_models_cache", lambda: cache)
 

@@ -1,6 +1,5 @@
 """Contract tests for the opt-in non-reasoning compression fast lane."""
 
-import time
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -104,9 +103,11 @@ def test_summary_model_override_is_certified_against_the_effective_model():
 def test_compression_latency_records_delayed_first_provider_chunk():
     from agent.auxiliary_client import _notify_aux_progress, call_llm
 
+    clock = [100.0]
+
     class _DelayedSemaphore:
         def acquire(self):
-            time.sleep(0.01)
+            clock[0] += 0.01
 
         def release(self):
             pass
@@ -117,7 +118,7 @@ def test_compression_latency_records_delayed_first_provider_chunk():
     client.base_url = "http://127.0.0.1:11434/v1"
 
     def _chunks():
-        time.sleep(0.02)
+        clock[0] += 0.02
         yield SimpleNamespace(
             id="chunk-1",
             model="qwen3:8b",
@@ -138,6 +139,7 @@ def test_compression_latency_records_delayed_first_provider_chunk():
     client.chat.completions.create.side_effect = lambda **_kwargs: _chunks()
 
     with (
+        patch("agent.auxiliary_client.time.monotonic", side_effect=lambda: clock[0]),
         patch("agent.auxiliary_client._acquire_sync_aux_semaphore", return_value=_DelayedSemaphore()),
         patch("agent.auxiliary_client._get_cached_client", side_effect=_resolve_client),
     ):
@@ -182,6 +184,41 @@ def test_certified_fast_lane_ignores_legacy_cap_and_preserves_reasoning():
     request = client.chat.completions.create.call_args.kwargs
     assert "max_tokens" not in request
     assert request["extra_body"]["reasoning"] == {"enabled": False}
+
+
+def test_reasoning_responses_compression_uses_independent_budget_clamped_to_model_limit():
+    from agent.output_tokens import compression_output_budget
+
+    config = {
+        "provider": "custom:responses-gateway",
+        "model": "reasoning-model",
+        "api_mode": "codex_responses",
+        "reasoning_effort": "high",
+        "max_output_tokens": 200_000,
+    }
+    with patch("agent.output_tokens._compression_route_output_limit", return_value=131_072):
+        budget = compression_output_budget(
+            "compression", max_tokens=None,
+            actual_provider="custom:responses-gateway", actual_model="reasoning-model",
+            base_url="https://responses.example/v1", api_key="key",
+            api_mode="codex_responses", route_config=config, task_config=config)
+
+    assert budget == 131_072
+
+
+def test_responses_compression_without_task_budget_preserves_provider_default():
+    from agent.output_tokens import compression_output_budget
+
+    config = {"provider": "auto", "model": "", "max_output_tokens": 0}
+    with patch("agent.output_tokens._compression_route_output_limit") as discover:
+        budget = compression_output_budget(
+            "compression", max_tokens=None,
+            actual_provider="custom:responses-gateway", actual_model="reasoning-model",
+            base_url="https://responses.example/v1", api_key="key",
+            api_mode="codex_responses", route_config=config, task_config=config)
+
+    assert budget is None
+    discover.assert_not_called()
 
 
 def test_uncertified_effective_primary_route_does_not_receive_fast_cap():
@@ -253,6 +290,7 @@ def test_legacy_boolean_cap_does_not_bypass_route_certification():
 def test_bedrock_converse_ttfp_waits_for_the_nonstreaming_response():
     from agent.auxiliary_client import BedrockAuxiliaryClient, call_llm
 
+    clock = [100.0]
     config = {
         "provider": "auto",
         "model": "",
@@ -271,10 +309,11 @@ def test_bedrock_converse_ttfp_waits_for_the_nonstreaming_response():
     timings = {}
 
     def _delayed_converse(**_kwargs):
-        time.sleep(0.02)
+        clock[0] += 0.02
         return response
 
     with (
+        patch("agent.auxiliary_client.time.monotonic", side_effect=lambda: clock[0]),
         patch("agent.auxiliary_client._get_auxiliary_task_config", return_value=config),
         patch(
             "agent.auxiliary_client._get_cached_client",

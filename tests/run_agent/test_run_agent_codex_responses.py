@@ -148,18 +148,24 @@ def _codex_incomplete_message_response(text: str):
     )
 
 
-def _codex_max_output_incomplete_response(text: str = ""):
+def _codex_max_output_incomplete_response(text: str = "", *, reasoning_only: bool = False):
+    output = []
+    if reasoning_only:
+        output.append(SimpleNamespace(
+            type="reasoning",
+            id="rs_output_limit",
+            encrypted_content="enc_output_limit",
+            summary=[SimpleNamespace(type="summary_text", text="Still reasoning")],
+            status="incomplete",
+        ))
     content = []
     if text:
         content.append(SimpleNamespace(type="output_text", text=text))
+    output.append(
+        SimpleNamespace(type="message", status="incomplete", content=content)
+    )
     return SimpleNamespace(
-        output=[
-            SimpleNamespace(
-                type="message",
-                status="incomplete",
-                content=content,
-            )
-        ],
+        output=output,
         usage=SimpleNamespace(input_tokens=270_000, output_tokens=1, total_tokens=270_001),
         status="incomplete",
         incomplete_details=SimpleNamespace(reason="max_output_tokens"),
@@ -190,7 +196,7 @@ def test_codex_max_output_without_visible_text_is_terminal(monkeypatch):
 
     def _respond(api_kwargs):
         calls.append(api_kwargs)
-        return _codex_max_output_incomplete_response()
+        return _codex_max_output_incomplete_response(reasoning_only=True)
 
     monkeypatch.setattr(agent, "_interruptible_api_call", _respond)
     result = agent.run_conversation("hello")

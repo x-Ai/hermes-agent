@@ -23,7 +23,9 @@ import pytest
 
 class TestCachedFetchApiModels:
     def _entry(self, models, age_seconds, fp="fp"):
-        return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
+        from hermes_cli.models import _cache_entry
+
+        return _cache_entry(fp, list(models), at=time.time() - age_seconds)
 
     def test_fresh_entry_served_without_live_fetch(self):
         import hermes_cli.models as mod
@@ -135,7 +137,9 @@ class TestCacheOnly:
     never a live fetch, never a background revalidation."""
 
     def _entry(self, models, age_seconds, fp="fp"):
-        return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
+        from hermes_cli.models import _cache_entry
+
+        return _cache_entry(fp, list(models), at=time.time() - age_seconds)
 
     def _call(self, cache, *, fp="fp", **kwargs):
         import hermes_cli.models as mod
@@ -283,7 +287,9 @@ class TestSalvageFollowups:
     parity with cached_provider_model_ids, and corrupt-cache degradation."""
 
     def _entry(self, models, age_seconds, fp="fp"):
-        return {"fp": fp, "at": time.time() - age_seconds, "models": list(models)}
+        from hermes_cli.models import _cache_entry
+
+        return _cache_entry(fp, list(models), at=time.time() - age_seconds)
 
     def test_expired_entry_within_stale_window_is_served_and_refreshed_off_thread(self):
         """TTL-expired (but < stale-serve max) entries must be served

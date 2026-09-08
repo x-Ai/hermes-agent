@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
 from hermes_cli.providers import custom_provider_aliases
 from hermes_cli.route_identity import normalize_route_base_url
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -20,7 +23,7 @@ def _positive_int(value: Any) -> Optional[int]:
 
 
 def _configured_entries(
-    entries: Any, *, base_url: str, requested_provider: str,
+    entries: Any, *, base_url: str, requested_provider: str, api_mode: str = "",
 ) -> Iterable[dict[str, Any]]:
     if not isinstance(entries, list):
         return ()
@@ -31,12 +34,19 @@ def _configured_entries(
     ]
     requested = str(requested_provider or "").strip().lower()
     if requested and requested not in {"auto", "custom"}:
-        scoped = [
+        candidates = [
             entry for entry in candidates
             if requested in custom_provider_aliases(
                 str(entry.get("name") or ""), str(entry.get("provider_key") or ""))
         ]
-        return scoped
+    mode = str(api_mode or "").strip().lower()
+    if mode:
+        mode_scoped = [
+            entry for entry in candidates
+            if str(entry.get("api_mode") or entry.get("transport") or "").strip().lower() == mode
+        ]
+        if mode_scoped:
+            return mode_scoped
     return candidates
 
 
@@ -62,7 +72,8 @@ def _limit_from_discovered_metadata(metadata: Any, model: str) -> Optional[int]:
 
 def resolve_output_token_limit(
     *, explicit: Any, model: str, base_url: str, provider: str = "",
-    requested_provider: str = "", custom_providers: Any = None, api_key: str = "",
+    requested_provider: str = "", api_mode: str = "", custom_providers: Any = None,
+    api_key: str = "",
     discover: bool = True,
 ) -> OutputTokenLimit:
     """Resolve explicit > model > provider > discovered capability > transport default."""
@@ -71,7 +82,8 @@ def resolve_output_token_limit(
         return OutputTokenLimit(value, "explicit")
 
     entries = list(_configured_entries(
-        custom_providers, base_url=base_url, requested_provider=requested_provider))
+        custom_providers, base_url=base_url, requested_provider=requested_provider,
+        api_mode=api_mode))
     saved_discovered: Optional[int] = None
     for entry in entries:
         models = entry.get("models")
@@ -86,9 +98,6 @@ def resolve_output_token_limit(
         value = _limit_from_mapping(entry)
         if value is not None:
             return OutputTokenLimit(value, "provider")
-    if saved_discovered is not None:
-        return OutputTokenLimit(saved_discovered, "discovered")
-
     route_is_custom = bool(entries) or str(provider or "").strip().lower() == "custom" or (
         str(requested_provider or "").strip().lower().startswith("custom:"))
     if discover and route_is_custom and model and base_url:
@@ -104,10 +113,13 @@ def resolve_output_token_limit(
                 getattr(catalog, "model_metadata", None), model)
             if value is not None:
                 return OutputTokenLimit(value, "discovered")
-            if catalog is not None:
-                # The provider-aware probe answered authoritatively. Do not immediately issue a
-                # second request with generic Bearer auth when the catalog advertised no limit.
-                return OutputTokenLimit(None, "transport_default")
+            if catalog is None and saved_discovered is not None:
+                # The persisted config catalog keeps the route usable offline, but it must
+                # not suppress the TTL/schema-aware endpoint cache when the provider is up.
+                return OutputTokenLimit(saved_discovered, "discovered")
+            # This configured route is authoritative even when its provider-aware probe failed.
+            # A generic second probe could use the wrong auth mode/headers for the same URL.
+            return OutputTokenLimit(None, "transport_default")
 
         from agent.model_metadata import fetch_endpoint_model_metadata
 
@@ -116,7 +128,77 @@ def resolve_output_token_limit(
         value = _limit_from_discovered_metadata(metadata, model)
         if value is not None:
             return OutputTokenLimit(value, "discovered")
+    if saved_discovered is not None:
+        return OutputTokenLimit(saved_discovered, "discovered")
     return OutputTokenLimit(None, "transport_default")
+
+
+def configured_compression_output_budget(config: Any) -> Optional[int]:
+    """Positive ``auxiliary.compression.max_output_tokens`` value, excluding bool drift."""
+    raw_cap = config.get("max_output_tokens") if isinstance(config, dict) else None
+    try:
+        cap = 0 if isinstance(raw_cap, bool) else int(raw_cap or 0)
+    except (TypeError, ValueError):
+        cap = 0
+    return cap if cap > 0 else None
+
+
+def _compression_route_output_limit(
+    *, actual_provider: str, actual_model: Optional[str], base_url: str,
+    api_key: Any, api_mode: Optional[str],
+) -> Optional[int]:
+    """Resolve a compression route's advertised ceiling through the endpoint cache."""
+    mode = str(api_mode or "").strip().lower()
+    if mode not in {"codex_responses", "anthropic_messages"}:
+        return None
+    try:
+        from hermes_cli.config import load_config_readonly
+        from hermes_cli.config_providers import get_compatible_custom_providers
+
+        custom_providers = get_compatible_custom_providers(load_config_readonly())
+        resolved = resolve_output_token_limit(
+            explicit=None, model=str(actual_model or ""), base_url=str(base_url or ""),
+            provider=str(actual_provider or ""), requested_provider=str(actual_provider or ""),
+            api_mode=mode, custom_providers=custom_providers,
+            api_key=api_key if isinstance(api_key, str) else "",
+        )
+        return resolved.value
+    except (ImportError, OSError, TypeError, ValueError):
+        logger.debug("Compression output-limit discovery failed", exc_info=True)
+        return None
+
+
+def compression_output_budget(
+    task: Optional[str], *, max_tokens: Optional[int],
+    actual_provider: str, actual_model: Optional[str], base_url: str, api_key: Any,
+    api_mode: Optional[str], route_config: dict[str, Any], task_config: dict[str, Any],
+) -> Optional[int]:
+    """Explicit caller > configured task/fallback budget clamped to route ceiling.
+
+    Responses and Anthropic compression may use an independent task budget even for a
+    reasoning model. An omitted budget preserves the provider's default policy instead
+    of turning a discovered capability ceiling into a requested generation size.
+    Fallbacks resolve their own route when a budget was configured.
+    """
+    if task != "compression" or max_tokens is not None:
+        return max_tokens
+
+    mode = str(api_mode or "").strip().lower()
+    if mode not in {"codex_responses", "anthropic_messages"}:
+        return None
+    configured_budget = (
+        configured_compression_output_budget(route_config)
+        or configured_compression_output_budget(task_config)
+    )
+    if configured_budget is None:
+        return None
+    route_limit = _compression_route_output_limit(
+        actual_provider=actual_provider, actual_model=actual_model, base_url=base_url,
+        api_key=api_key, api_mode=mode,
+    )
+    if route_limit is not None:
+        return min(configured_budget, route_limit)
+    return configured_budget
 
 
 def output_token_limit_for_agent(agent) -> Optional[int]:
@@ -129,6 +211,7 @@ def output_token_limit_for_agent(agent) -> Optional[int]:
         base_url=str(getattr(agent, "base_url", "") or ""),
         provider=str(getattr(agent, "provider", "") or ""),
         requested_provider=str(getattr(agent, "requested_provider", "") or ""),
+        api_mode=str(getattr(agent, "api_mode", "") or ""),
         custom_providers=getattr(agent, "_custom_providers", None),
         api_key=getattr(agent, "api_key", ""),
     ).value

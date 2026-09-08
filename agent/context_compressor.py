@@ -3238,8 +3238,8 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # error, rather than replacing real context with an empty summary.
         if not content.strip():
             raise RuntimeError(f"Context compression LLM returned empty content {where}")
-        # A finish_reason of "length" means the summarizer hit its output token cap mid-generation: the text
-        # present is PARTIAL. Persisting a partial summary as the compaction checkpoint silently truncates
+        # Any non-terminal Responses outcome means the summary is partial or policy-filtered. Persisting it
+        # as the compaction checkpoint silently truncates
         # the conversation's memory — the cut-off text replaces the real middle turns AND is fed back into
         # every subsequent iterative update prompt, compounding the loss across compactions. Treat it as a
         # failure so it routes through the same main-model fallback + abort machinery as other degraded
@@ -3248,10 +3248,11 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # tail of the merge and feed the cut-off text into every later micro-compact pass. Leave the
         # exchange unabsorbed instead; a later pass retries it. (Same class as _generate_summary's guard;
         # pi#7048.)
-        if _response_finish_reason(response) == "length":
+        finish_reason = _response_finish_reason(response)
+        if finish_reason in {"length", "incomplete", "content_filter"}:
             raise RuntimeError(
-                f"Context compression summary was truncated ({_TRUNCATED_SUMMARY_MARKER}): generation hit the output "
-                f"token cap and the summary is incomplete {where}"
+                f"Context compression summary was truncated ({_TRUNCATED_SUMMARY_MARKER}): generation ended with "
+                f"finish_reason={finish_reason} and the summary is incomplete {where}"
             )
         return content
 

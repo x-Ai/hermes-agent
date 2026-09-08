@@ -585,6 +585,10 @@ class ResponsesApiTransport(ProviderTransport):
         if params.get("request_overrides"):
             kwargs.update(params["request_overrides"])
 
+        # Responses has one output-budget field. Normalize legacy OpenAI-compatible
+        # override names here so no request can carry conflicting token caps.
+        legacy_max_tokens = kwargs.pop("max_tokens", None)
+        legacy_completion_tokens = kwargs.pop("max_completion_tokens", None)
         _sanitize_astra_request_kwargs(kwargs, model, params.get("base_url"))
 
         _bound_prompt_cache_key_field(kwargs)
@@ -606,6 +610,8 @@ class ResponsesApiTransport(ProviderTransport):
             kwargs.pop("timeout", None)
 
         if is_codex_backend:
+            # ChatGPT's private Codex backend rejects all output-budget kwargs.
+            kwargs.pop("max_output_tokens", None)
             # SDK kwarg -> HTTP headers. ``session_id`` = raw physical id (transcript
             # identity); ``x-client-request-id`` mirrors the body cache key so both agree.
             headers = {
@@ -615,8 +621,19 @@ class ResponsesApiTransport(ProviderTransport):
             headers = {k: v for k, v in headers.items() if v}
             if headers:
                 _merge_extra_headers(kwargs, **headers)
-        elif params.get("max_tokens") is not None:
-            kwargs["max_output_tokens"] = params["max_tokens"]
+        else:
+            output_budget = params.get("max_tokens")
+            if output_budget is None:
+                output_budget = kwargs.get("max_output_tokens")
+            if output_budget is None:
+                output_budget = (
+                    legacy_completion_tokens
+                    if legacy_completion_tokens is not None else legacy_max_tokens
+                )
+            if output_budget is not None:
+                kwargs["max_output_tokens"] = output_budget
+            else:
+                kwargs.pop("max_output_tokens", None)
 
         if is_xai_responses and session_id:
             # Scoped like the body key so cron fires don't each pin a different xAI backend server.

@@ -101,6 +101,21 @@ class TestCodexBuildKwargs:
         assert kw["reasoning"]["effort"] == "none"
         assert kw["temperature"] == 0.4
 
+    def test_standard_output_budget_override_is_preserved_without_legacy_fields(self, transport):
+        kw = transport.build_kwargs(
+            model="custom-responses-model",
+            messages=[{"role": "user", "content": "Hi"}],
+            tools=[],
+            request_overrides={
+                "max_output_tokens": 512,
+                "max_tokens": 128,
+                "max_completion_tokens": 256,
+            },
+        )
+
+        assert kw["max_output_tokens"] == 512
+        assert not ({"max_tokens", "max_completion_tokens"} & kw.keys())
+
     def test_900k_context_variant_suffix_stripped_on_wire(self, transport):
         """``-900k`` large-context picker variants are Hermes-side aliases —
         the Codex backend only knows the base slug, so build_kwargs must
