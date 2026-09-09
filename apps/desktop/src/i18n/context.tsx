@@ -107,6 +107,8 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
   const [saveError, setSaveError] = useState<Error | null>(null)
   const localeRef = useRef(locale)
   const hasPersistedLanguageRef = useRef(false)
+  // A user choice must win over a late startup config read.
+  const userLocaleRef = useRef(false)
 
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
@@ -123,48 +125,66 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
     }
 
     let cancelled = false
+    let retryTimer: ReturnType<typeof setTimeout> | null = null
+    let retryCount = 0
+    const MAX_LOCALE_RETRIES = 10
+    const LOCALE_RETRY_DELAY_MS = 3_000
 
-    setIsLoadingConfig(true)
-    setConfigLoadError(null)
+    const loadLocale = () => {
+      setIsLoadingConfig(true)
+      setConfigLoadError(null)
 
-    configClient
-      .getConfig()
-      .then(config => {
-        if (cancelled) {
-          return
-        }
+      return configClient
+        .getConfig()
+        .then(config => {
+          if (cancelled || userLocaleRef.current) {
+            return
+          }
 
-        const configured = getConfigDisplayLanguage(config)
+          const configured = getConfigDisplayLanguage(config)
 
-        if (isSupportedLocaleValue(configured)) {
-          hasPersistedLanguageRef.current = true
-          setLocaleState(normalizeLocale(configured))
+          if (isSupportedLocaleValue(configured)) {
+            hasPersistedLanguageRef.current = true
+            setLocaleState(normalizeLocale(configured))
+          } else {
+            hasPersistedLanguageRef.current = false
 
-          return
-        }
+            if (configured != null && configured !== '') {
+              setLocaleState(DEFAULT_LOCALE)
+            }
+          }
+        })
+        .catch(error => {
+          if (cancelled || userLocaleRef.current) {
+            return
+          }
 
-        hasPersistedLanguageRef.current = false
-
-        if (configured == null || configured === '') {
-          return
-        }
-
-        setLocaleState(DEFAULT_LOCALE)
-      })
-      .catch(error => {
-        if (!cancelled) {
           hasPersistedLanguageRef.current = false
           setConfigLoadError(toError(error))
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsLoadingConfig(false)
-        }
-      })
+          // Keep the system/cached language while a startup race is retried.
+
+          if (retryCount < MAX_LOCALE_RETRIES) {
+            retryCount += 1
+            retryTimer = setTimeout(() => {
+              void loadLocale()
+            }, LOCALE_RETRY_DELAY_MS)
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsLoadingConfig(false)
+          }
+        })
+    }
+
+    void loadLocale()
 
     return () => {
       cancelled = true
+
+      if (retryTimer) {
+        clearTimeout(retryTimer)
+      }
     }
   }, [configClient, initialLocale])
 
@@ -172,6 +192,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
     async (next: Locale) => {
       const previousLocale = localeRef.current
 
+      userLocaleRef.current = true
       setSaveError(null)
       setLocaleState(next)
 
@@ -196,7 +217,6 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
         if (hasPersistedLanguageRef.current) {
           setLocaleState(previousLocale)
           setSaveError(nextError)
-
           throw nextError
         }
       } finally {

@@ -41,6 +41,7 @@ import { isSecondaryWindow } from '@/store/windows'
 import { MessageRenderBoundary } from '../message-render-boundary'
 
 import { resolveShowEarlierAction, useTranscriptWindow } from './transcript-window'
+import { useMessagesBelow } from './use-messages-below'
 
 type ThreadMessageComponents = ComponentProps<typeof ThreadPrimitive.MessageByIndex>['components']
 
@@ -990,6 +991,8 @@ const ThreadMessageListInner: FC<ThreadMessageListProps> = ({
       )),
     [visibleGroups, components, structuralSignature, tailStart]
   )
+
+  useMessagesBelow({ contentRef, scrollRef, isAtBottom, paneVisible, rows, sessionKey })
 
   return (
     <div

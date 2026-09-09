@@ -204,7 +204,7 @@ def test_legacy_catalog_refreshes_with_selected_provider_and_persists_metadata(
     assert kwargs["max_output_tokens"] == 131_072
     assert not ({"max_tokens", "max_completion_tokens"} & kwargs.keys())
 
-    saved = json.loads(cache_path.read_text(encoding="utf-8"))[f"custom:{url}"]
+    saved = json.loads(cache_path.read_text(encoding="utf-8"))[f"custom:{url}#{fp}"]
     assert saved["metadata_schema_version"] == models_mod._PROVIDER_MODELS_METADATA_SCHEMA_VERSION
     assert saved["model_metadata"]["glm-5.2"]["max_output_tokens"] == 131_072
 
@@ -220,7 +220,7 @@ def test_current_catalog_without_output_limit_uses_transport_default_without_rep
     fp = models_mod._custom_endpoint_fingerprint(api_key, "codex_responses", headers)
     cache_path = tmp_path / "provider_models_cache.json"
     cache_path.write_text(json.dumps({
-        f"custom:{url}": models_mod._cache_entry(
+        f"custom:{url}#{fp}": models_mod._cache_entry(
             fp, models_mod.DiscoveredModelList(["model-with-no-cap"]), at=time.time()),
     }), encoding="utf-8")
     monkeypatch.setattr(models_mod, "_provider_models_cache_path", lambda: cache_path)

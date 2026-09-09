@@ -30,7 +30,8 @@ _UNCAPPED_PICKER_PROVIDERS: frozenset[str] = frozenset({"opencode-zen", "opencod
 
 def _save_discovered_models_to_config(
     api_url: str, model_ids: list[str], *, api_mode: Optional[str] = None,
-    headers: Optional[dict[str, str]] = None, credential_identity: str | None = None) -> None:
+    headers: Optional[dict[str, str]] = None, credential_identity: str | None = None,
+    model_metadata: Optional[dict[str, dict[str, int]]] = None) -> None:
     """Persist a successful ``/v1/models`` probe into the matching ``custom_providers`` entry.
 
     Matches by base_url (slash-normalised), api_mode and headers. A failed config write is

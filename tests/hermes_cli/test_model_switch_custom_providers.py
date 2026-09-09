@@ -1804,7 +1804,7 @@ def _seed_custom_model_cache(monkeypatch, models, *, age_seconds=10):
 
     fp = models_mod._custom_endpoint_fingerprint("", None, None)
     cache = {
-        f"custom:{_LOCAL_ENDPOINT}": models_mod._cache_entry(
+        f"custom:{_LOCAL_ENDPOINT}#{fp}": models_mod._cache_entry(
             fp, list(models), at=time.time() - age_seconds)
     }
     monkeypatch.setattr(models_mod, "_load_provider_models_cache", lambda: cache)
@@ -2086,7 +2086,7 @@ def test_api_mode_rows_do_not_share_a_cached_catalog(monkeypatch):
     # Only the OpenAI-mode probe (api_mode=None) is on disk.
     fp = models_mod._custom_endpoint_fingerprint("sk-shared", None, None)
     cache = {
-        f"custom:{_SHARED_PROXY_URL}": models_mod._cache_entry(
+        f"custom:{_SHARED_PROXY_URL}#{fp}": models_mod._cache_entry(
             fp, list(openai_catalog), at=time.time() - 10)
     }
     monkeypatch.setattr(models_mod, "_load_provider_models_cache", lambda: cache)
@@ -2153,11 +2153,14 @@ def test_auto_saved_catalog_round_trips_without_pinning(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(config_mod, "CONFIG_PATH", str(cfg_path), raising=False)
 
-    _save_discovered_models_to_config(_LOCAL_ENDPOINT, list(_LOCAL_CATALOG))
+    metadata = {_LOCAL_CATALOG[0]: {"max_output_tokens": 131_072}}
+    _save_discovered_models_to_config(
+        _LOCAL_ENDPOINT, list(_LOCAL_CATALOG), model_metadata=metadata)
 
     saved = yaml.safe_load(cfg_path.read_text())["custom_providers"][0]
     assert saved["models_discovered"] is True
     assert list(saved["models"]) == _LOCAL_CATALOG
+    assert saved["models"][_LOCAL_CATALOG[0]] == metadata[_LOCAL_CATALOG[0]]
     assert not any(m.startswith("__") for m in saved["models"]), (
         "sentinel keys must never appear inside the user-facing models mapping"
     )

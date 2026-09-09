@@ -739,8 +739,6 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
 @router.post("/api/providers/custom-endpoints/validate")
 async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
     """Probe a custom endpoint by calling its model-catalog URL."""
-    import httpx
-
     base_url = (body.base_url or "").strip().rstrip("/")
     if not base_url:
         return {
@@ -768,7 +766,7 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional
         headers["User-Agent"] = user_agent
 
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(8.0)) as client:
+        async with _endpoint_probe_client(url, 8.0) as client:
             resp = await client.get(url, headers=headers)
     except Exception:
         return {
@@ -794,6 +792,16 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional
         }
 
     return {"ok": True, "reachable": True, "message": "", "models": _parse_model_ids(resp)}
+
+
+def _endpoint_probe_client(url: str, timeout: float):
+    """httpx client for a user-entered endpoint probe. Local endpoints (loopback, LAN, Tailscale)
+    ignore ``HTTP(S)_PROXY``: httpx honours the env/system proxy but not its bypass list, so a
+    system proxy (Clash on Windows, corporate) answered the ``127.0.0.1`` probe with its own error
+    page and the GUI reported "advertised no models" while the CLI saw the model (#63472)."""
+    import httpx
+    from agent.model_metadata import is_local_endpoint
+    return httpx.AsyncClient(timeout=httpx.Timeout(timeout), trust_env=not is_local_endpoint(url))
 
 
 @router.post("/api/providers/validate")
@@ -823,11 +831,16 @@ async def validate_provider_credential(body: EnvVarUpdate, request: Request):
         api_key = (body.api_key or "").strip()
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else None
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(8.0)) as client:
+            async with _endpoint_probe_client(url, 8.0) as client:
                 resp = await client.get(url, headers=headers)
-            return {"ok": True, "reachable": True, "message": "", "models": _parse_model_ids(resp)}
         except Exception:
             return {"ok": False, "reachable": False, "message": f"Could not reach {url}."}
+        models = _parse_model_ids(resp)
+        if not models and not resp.is_success:
+            # A proxy/gateway error page parses as "no models"; name the status instead so the
+            # GUI does not tell the user to "start a model" on a server that answered.
+            return {"ok": False, "reachable": True, "message": f"{url} answered HTTP {resp.status_code}.", "models": []}
+        return {"ok": True, "reachable": True, "message": "", "models": models}
 
     probe = _CREDENTIAL_PROBES.get(key)
     if not probe:

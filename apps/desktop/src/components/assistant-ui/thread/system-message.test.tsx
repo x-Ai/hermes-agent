@@ -1,5 +1,5 @@
 import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime } from '@assistant-ui/react'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { toRuntimeMessage } from '@/lib/chat-runtime'
@@ -48,6 +48,28 @@ function expectTimestampSeparated(container: HTMLElement, precedingText: string)
 
 afterEach(cleanup)
 
+describe('background report disclosure', () => {
+  it('keeps result bodies out of the transcript until opened and removes them when collapsed', () => {
+    const report = '{"blockers":[{"title":"Local-model readiness uses the wrong endpoint"}]}'
+    const { container, getByRole } = render(<Harness asyncResult={report} text="2 background agents finished" />)
+
+    expect(container.textContent).not.toContain('blockers')
+    expectTimestampSeparated(container, '2 background agents finished')
+    const toggle = getByRole('button', { name: '2 background agents finished' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    const output = container.querySelector('[data-slot="aui_assistant-message-content"]')
+    expect(output).toBeTruthy()
+    expect(container.textContent).toContain(report)
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(container.textContent).not.toContain('blockers')
+  })
+})
+
 describe('system message timestamp text separation', () => {
   it('separates an ordinary system row timestamp in accessible and copied text', () => {
     const { container } = render(<Harness text="Review saved." />)
@@ -88,7 +110,7 @@ describe('system timeline placement', () => {
   })
 
   it('aligns an async report heading and partial output to the assistant reading edge', () => {
-    const { container } = render(
+    const { container, getByRole } = render(
       <Harness
         asyncResult="Partial output"
         displayKind="async_delegation_complete"
@@ -98,12 +120,13 @@ describe('system timeline placement', () => {
 
     const root = container.querySelector('[data-role="system"]')
     const heading = root?.querySelector('[data-slot="aui_async-result-heading"]')
-    const output = root?.querySelector('[data-slot="aui_assistant-message-content"]')
 
     expect(heading?.classList.contains('px-(--message-text-indent)')).toBe(true)
     expect(heading?.classList.contains('text-[length:var(--conversation-tool-font-size)]')).toBe(true)
     expect(heading?.classList.contains('leading-(--conversation-line-height)')).toBe(true)
     expect(root?.getAttribute('data-display-kind')).toBe('async_delegation_complete')
+    fireEvent.click(getByRole('button', { name: '4 background agents finished' }))
+    const output = root?.querySelector('[data-slot="aui_assistant-message-content"]')
     expect(output).toBeTruthy()
   })
 
