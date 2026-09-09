@@ -1515,6 +1515,15 @@ def _stored_session_runtime_overrides(row: dict | None) -> dict:
             base_url = ""  # the healed identity owns a registered endpoint; the snapshot URL must not override it
         else:
             provider = ""
+    # Named custom endpoints are editable in Settings.  Their current transport is authoritative
+    # when a paused/history session is resumed; otherwise the row's old api_mode would override a
+    # protocol change made after that session's last turn.
+    if provider and provider.lower().startswith("custom:"):
+        try:
+            from hermes_cli.runtime_provider import current_custom_provider_api_mode
+            api_mode = current_custom_provider_api_mode(provider, model=model) or api_mode
+        except Exception:
+            logger.debug("current custom endpoint api_mode lookup failed", exc_info=True)
     if model:
         # Same dict-shaped override live /model switches use, so a DB-restored session keeps custom endpoint
         # metadata across resume and rebuilds (/new). Raw api_key is never persisted/restored.

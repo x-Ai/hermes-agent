@@ -4284,6 +4284,48 @@ def test_config_sync_skips_session_pinned_by_model_command(monkeypatch):
     server._sync_agent_model_with_config("sid", session)
 
 
+def test_config_sync_refreshes_named_custom_protocol(monkeypatch):
+    import hermes_cli.runtime_provider as runtime_provider
+
+    monkeypatch.setattr(runtime_provider, "load_config", lambda: {
+        "providers": {
+            "gmi": {
+                "name": "GMI Cloud",
+                "base_url": "https://api.gmi.example/v1",
+                "transport": "anthropic_messages",
+                "model": "shared-model",
+            }
+        }
+    })
+    calls = []
+
+    class Agent:
+        model = "shared-model"
+        provider = "custom"
+        base_url = "https://api.gmi.example/v1"
+        api_key = "key"
+        api_mode = "chat_completions"
+
+        def switch_model(self, **kwargs):
+            calls.append(kwargs)
+            self.api_mode = kwargs["api_mode"]
+
+    session = {
+        "agent": Agent(),
+        "model_override": {
+            "model": "shared-model", "provider": "custom:gmi", "api_mode": "chat_completions"
+        },
+        "config_model_seen": ("shared-model", ""),
+    }
+    monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"default": "shared-model"}})
+    monkeypatch.setattr(server, "_emit_session_info", lambda *_args: None)
+
+    server._sync_agent_model_with_config("sid", session)
+
+    assert calls and calls[0]["api_mode"] == "anthropic_messages"
+    assert session["model_override"]["api_mode"] == "anthropic_messages"
+
+
 def test_config_sync_noop_when_config_unchanged(monkeypatch):
     _patch_config_model(monkeypatch, "old/model")
     session = _sync_test_session(config_model_seen=("old/model", ""))

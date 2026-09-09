@@ -118,6 +118,29 @@ def test_restore_session_model_swaps_running_agent_in_place():
     assert calls["new_model"] == "glm-4.7"
 
 
+def test_stored_custom_endpoint_protocol_is_refreshed_on_resume(monkeypatch):
+    """A same-named custom endpoint may change wire protocol after a session was saved."""
+    import hermes_cli.runtime_provider as runtime_provider
+
+    monkeypatch.setattr(runtime_provider, "load_config", lambda: {
+        "providers": {
+            "gmi": {
+                "name": "GMI Cloud",
+                "base_url": "https://api.gmi.example/v1",
+                "transport": "anthropic_messages",
+                "model": "shared-model",
+            }
+        }
+    })
+    stub = _make_stub(model="ambient-model")
+    stub._restore_session_model(_row(model="shared-model", model_config={
+        "provider": "custom:gmi",
+        "base_url": "https://api.gmi.example/v1",
+        "api_mode": "chat_completions",
+    }))
+    assert stub.api_mode == "anthropic_messages"
+
+
 # ── _persist_model_switch_to_session ────────────────────────────────
 
 

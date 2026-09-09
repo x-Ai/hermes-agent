@@ -438,6 +438,7 @@ from hermes_cli.runtime_provider_custom import (  # noqa: E402,F401
     _lift_model_capabilities, _normalize_base_url_for_match, _normalize_custom_provider_name, _resolve_named_custom_runtime,
     _try_resolve_from_custom_pool, canonical_custom_identity, find_custom_provider_identity,
     find_custom_provider_identity_by_model, has_named_custom_provider, is_routable_provider,
+    current_custom_provider_api_mode,
 )
 from hermes_cli.runtime_provider_backends import (  # noqa: E402,F401
     _is_external_process_provider, _resolve_azure_foundry_runtime, _resolve_bedrock_runtime,

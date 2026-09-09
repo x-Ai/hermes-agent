@@ -289,7 +289,10 @@ def _sync_agent_model_with_config(sid: str, session: dict) -> None:
     """Adopt a config.yaml model change at turn start (like gateways do per message). Sessions
     pinned with /model keep their choice; a failed switch keeps the current model."""
     agent = session.get("agent")
-    if agent is None or session.get("model_override"):
+    if agent is None:
+        return
+    _sync_named_custom_endpoint_protocol(sid, session, agent)
+    if session.get("model_override"):
         return
     target = _config_model_target()
     if not target[0]:
@@ -312,6 +315,50 @@ def _sync_agent_model_with_config(sid: str, session: dict) -> None:
             persist_override=False)
     except Exception as e:
         _emit("error", sid, {"message": f"Could not switch to configured model {model}: {e}"})
+
+
+def _sync_named_custom_endpoint_protocol(sid: str, session: dict, agent) -> None:
+    """Refresh a parked session when its named custom endpoint's wire protocol was edited.
+
+    The agent keeps a transport-specific client and prompt cache, so changing only ``api_mode`` on
+    disk is insufficient for a session that remains resident between turns. Rebuild that transport
+    in place at the turn boundary, while leaving the session's model/provider pin untouched.
+    """
+    override = session.get("model_override")
+    provider = override.get("provider") if isinstance(override, dict) else None
+    model = str(getattr(agent, "model", "") or "").strip()
+    if not provider:
+        provider = getattr(agent, "provider", "")
+    provider = str(provider or "").strip()
+    if provider.lower() == "custom":
+        try:
+            from hermes_cli.runtime_provider import canonical_custom_identity
+            provider = canonical_custom_identity(
+                base_url=getattr(agent, "base_url", "") or None, model=model or None
+            ) or provider
+        except Exception:
+            pass
+    if not provider.lower().startswith("custom:"):
+        return
+    try:
+        from hermes_cli.runtime_provider import current_custom_provider_api_mode
+        current_mode = current_custom_provider_api_mode(provider, model=model)
+    except Exception:
+        current_mode = None
+    if not current_mode or current_mode == getattr(agent, "api_mode", ""):
+        return
+    try:
+        agent.switch_model(
+            new_model=model, new_provider=provider, api_key=getattr(agent, "api_key", "") or "",
+            base_url=getattr(agent, "base_url", "") or "", api_mode=current_mode,
+        )
+        if isinstance(override, dict):
+            override["api_mode"] = current_mode
+        _persist_live_session_runtime(session)
+        _persist_live_session_system_prompt(session)
+        _emit_session_info(sid, session)
+    except Exception as exc:
+        logger.warning("Could not refresh custom endpoint protocol for %s: %s", sid, exc)
 
 
 def _pending_switch_selection_warning(model: str, provider: str) -> str | None:

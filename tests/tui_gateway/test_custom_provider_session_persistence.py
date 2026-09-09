@@ -156,6 +156,34 @@ class TestResumeRoundTrip:
         assert kwargs["base_url"] == MIMO_URL
         assert kwargs["api_key"] == MIMO_KEY
 
+    def test_resume_uses_current_named_endpoint_protocol(self, monkeypatch):
+        """Editing a saved endpoint's transport must affect parked sessions on resume."""
+        config = {
+            "providers": {
+                "gmi": {
+                    "name": "GMI Cloud",
+                    "base_url": "https://api.gmi.example/v1",
+                    "transport": "anthropic_messages",
+                    "api_key": MIMO_KEY,
+                    "model": "shared-model",
+                }
+            }
+        }
+        monkeypatch.setattr(rp, "load_config", lambda: config)
+
+        from tui_gateway.server import _stored_session_runtime_overrides
+
+        row = {
+            "model": "shared-model",
+            "model_config": json.dumps({
+                "provider": "custom:gmi",
+                "base_url": config["providers"]["gmi"]["base_url"],
+                "api_mode": "chat_completions",
+            }),
+        }
+        overrides = _stored_session_runtime_overrides(row)
+        assert overrides["model_override"]["api_mode"] == "anthropic_messages"
+
     def test_legacy_row_with_bare_custom_heals_via_base_url(self, monkeypatch):
         """Rows persisted BEFORE the fix stored provider="custom"; the
         rebuild must recover the entry identity from the stored base_url."""
@@ -845,5 +873,4 @@ class TestRuntimeModelConfigDropsStaleKeys:
         config = _runtime_model_config(_agent_like(provider="nous"), None)
 
         assert config == {"model": "deepseek/deepseek-v4-flash-0731", "provider": "nous"}
-
 

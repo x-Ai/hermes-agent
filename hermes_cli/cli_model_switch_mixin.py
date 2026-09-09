@@ -42,9 +42,17 @@ def stored_session_route(session_meta, *, current_model, current_provider):
     base_url = runtime.get("base_url") or None
     provider = _heal_bare_custom_provider(runtime.get("provider") or None, base_url=base_url, model=stored_model)
     provider_changed = bool(provider) and provider != current_provider
+    api_mode = runtime.get("api_mode") or None
+    if provider and provider.lower().startswith("custom:"):
+        try:
+            from hermes_cli.runtime_provider import current_custom_provider_api_mode
+            api_mode = current_custom_provider_api_mode(provider, model=stored_model) or api_mode
+        except Exception:
+            # Keep the durable route if the endpoint is temporarily unreadable.
+            pass
     if stored_model == current_model and not provider_changed:
         return None
-    return stored_model, provider, base_url, (runtime.get("api_mode") or None), provider_changed
+    return stored_model, provider, base_url, api_mode, provider_changed
 
 
 def _heal_bare_custom_provider(provider, *, base_url, model):

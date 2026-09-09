@@ -215,6 +215,35 @@ def has_named_custom_provider(requested_provider: str) -> bool:
         return False
 
 
+def current_custom_provider_api_mode(
+    requested_provider: str, *, model: Optional[str] = None,
+) -> Optional[str]:
+    """Return the protocol currently configured for a named custom endpoint.
+
+    Session rows intentionally retain the route that was used when they were written, but a
+    saved endpoint's transport is editable in Settings.  On resume, the endpoint definition is
+    authoritative for named ``custom:<id>`` providers; otherwise an old ``api_mode`` would keep
+    overriding the newly selected wire protocol.  ``None`` means the provider is not a named
+    custom endpoint (or it no longer exists), so callers can keep the persisted route behavior.
+    """
+    requested = _clean(requested_provider).lower()
+    if not requested.startswith("custom:"):
+        return None
+    try:
+        entry = _get_named_custom_provider(requested_provider)
+    except Exception:
+        return None
+    if not entry:
+        return None
+    mode = _rp()._parse_api_mode(entry.get("api_mode"))
+    if mode:
+        return mode
+    base_url = _entry_url(entry)
+    if not base_url:
+        return None
+    return _rp()._fallback_api_mode(requested_provider, base_url, _clean(model))
+
+
 # ── identity recovery (bare "custom" -> durable ``custom:<name>``) ─────────────────────────
 
 
