@@ -1481,6 +1481,38 @@ body.guest-pointer-lock :is(webview, iframe) {
   }
 }
 
+/* Radix Select injects unlayered styles that hide its viewport scrollbar.
+   This unlayered, more-specific rule keeps long model lists visibly scrollable. */
+.dt-select-scrollbar[data-radix-select-viewport] {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--dt-scrollbar-thumb) 38%, transparent) transparent;
+  -ms-overflow-style: auto;
+}
+
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar {
+  display: block;
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar-track,
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--dt-scrollbar-thumb) 38%, transparent);
+  border-radius: 9999rem;
+}
+
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--dt-scrollbar-thumb) 60%, transparent);
+}
+
+.dt-select-scrollbar[data-radix-select-viewport]::-webkit-scrollbar-button {
+  display: none;
+}
+
 /* Bottom clearance lives on [data-slot='aui_composer-clearance'] —
    virtualized items unmount, so :nth-last-child can't fire reliably. */
 

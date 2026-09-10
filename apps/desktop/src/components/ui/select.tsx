@@ -66,7 +66,7 @@ function SelectContent({
           className={cn(
             'p-1',
             position === 'popper' &&
-              'dt-portal-scrollbar w-full min-w-(--radix-select-trigger-width) max-h-(--radix-select-content-available-height) [scrollbar-gutter:stable]'
+              'dt-select-scrollbar w-full min-w-(--radix-select-trigger-width) max-h-[min(18rem,var(--radix-select-content-available-height))] overscroll-contain [scrollbar-gutter:stable]'
           )}
         >
           {children}
