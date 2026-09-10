@@ -3215,6 +3215,7 @@ export const zh: Translations = {
       subtitle: '两种方式都会连接一个由你控制的机器人，凭据仅保存在此 Hermes 安装中。',
       quickSetup: '快速设置',
       recommended: '推荐',
+      qrCodeAlt: 'Telegram 设置二维码',
       quickHelp: '扫描二维码并在 Telegram 中确认。Hermes 会自动创建机器人并识别你的 Telegram 用户 ID。',
       createWithQr: '通过二维码创建',
       starting: '正在启动…',

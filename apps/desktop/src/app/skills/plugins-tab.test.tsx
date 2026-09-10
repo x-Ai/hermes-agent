@@ -2,7 +2,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { $pluginRecords } from '@/contrib/plugins-store'
+import { I18nProvider, setRuntimeI18nLocale } from '@/i18n'
 import { $agentPlugins, $agentPluginsStatus } from '@/store/agent-plugins'
+import { $notifications, clearNotifications } from '@/store/notifications'
 import { $paneHeightOverride, setPaneHeightOverride } from '@/store/panes'
 import { $pluginInstallRequest, closePluginInstallRequest } from '@/store/plugin-install-request'
 
@@ -15,15 +17,29 @@ vi.mock('@/app/gateway/hooks/use-gateway-request', () => ({
 }))
 
 describe('PluginsTab', () => {
+  let originalHermesDesktop: unknown
+
   beforeEach(() => {
+    originalHermesDesktop = window.hermesDesktop
     $pluginRecords.set({})
     $agentPlugins.set([])
     $agentPluginsStatus.set('ready')
+    clearNotifications()
     closePluginInstallRequest()
     requestGateway.mockClear()
   })
 
-  afterEach(cleanup)
+  afterEach(() => {
+    cleanup()
+    clearNotifications()
+    setRuntimeI18nLocale('en')
+
+    if (originalHermesDesktop === undefined) {
+      delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
+    } else {
+      ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = originalHermesDesktop
+    }
+  })
 
   it('lists the scoped profile agent plugins with toggles', () => {
     $agentPlugins.set([
@@ -83,6 +99,51 @@ describe('PluginsTab', () => {
     expect(screen.getByRole('switch', { name: 'Desktop: Media Studio' }).getAttribute('aria-checked')).toBe('true')
     expect(screen.getByRole('switch', { name: 'Agent: Media Studio' }).getAttribute('aria-checked')).toBe('false')
     expect(screen.getAllByText('Agent in workbot').length).toBeGreaterThan(0)
+  })
+
+  it('renders desktop plugin metadata in the active locale', () => {
+    $pluginRecords.set({
+      media: {
+        id: 'media',
+        name: 'Media Studio',
+        description: 'Create and edit media.',
+        localizedName: { zh: '媒体工作室' },
+        localizedDescription: { zh: '创建和编辑媒体。' },
+        kind: 'disk',
+        status: 'loaded'
+      }
+    })
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('媒体工作室')).toBeTruthy()
+    expect(screen.getByText('创建和编辑媒体。')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: '桌面: 媒体工作室' })).toBeTruthy()
+  })
+
+  it('reports plugin-folder errors in the active locale', async () => {
+    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
+      desktopPluginsRoot: vi.fn(async () => '')
+    }
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '打开插件文件夹' }))
+
+    await waitFor(() => {
+      expect($notifications.get()[0]).toMatchObject({
+        message: '无法确定插件文件夹位置',
+        title: '无法确定插件文件夹位置'
+      })
+    })
   })
 
   it('offers "Install here" for a desktop half whose agent half is not in the selected profile', async () => {

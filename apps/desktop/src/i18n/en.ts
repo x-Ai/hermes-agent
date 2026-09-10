@@ -2441,6 +2441,7 @@ export const en: Translations = {
       subtitle: 'Both options connect a bot you control and save its credentials only to this Hermes installation.',
       quickSetup: 'Quick setup',
       recommended: 'Recommended',
+      qrCodeAlt: 'Telegram setup QR code',
       quickHelp:
         'Scan a QR code and confirm in Telegram. Hermes creates the bot and detects your Telegram user ID automatically.',
       createWithQr: 'Create with QR',

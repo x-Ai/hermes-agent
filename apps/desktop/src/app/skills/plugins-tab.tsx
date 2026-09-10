@@ -17,7 +17,7 @@ import { Tip } from '@/components/ui/tooltip'
 import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/plugins-store'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
 import type { ProfileScope } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -98,7 +98,10 @@ async function revealPluginsDir() {
     const dir = await window.hermesDesktop?.desktopPluginsRoot?.()
 
     if (!dir) {
-      notifyError('Desktop plugins are unavailable', 'Could not resolve the plugins folder')
+      notifyError(
+        translateNow('notifications.toast.pluginsFolderUnavailable'),
+        translateNow('notifications.toast.pluginsFolderResolveFailed')
+      )
 
       return
     }
@@ -106,10 +109,13 @@ async function revealPluginsDir() {
     const result = await window.hermesDesktop?.openDir?.(dir)
 
     if (result && !result.ok) {
-      notifyError(result.error ?? 'unknown error', 'Could not open the plugins folder')
+      notifyError(
+        result.error ?? translateNow('notifications.toast.unknownError'),
+        translateNow('notifications.toast.pluginsFolderOpenFailed')
+      )
     }
   } catch (err) {
-    notifyError(err, 'Could not resolve the plugins folder')
+    notifyError(err, translateNow('notifications.toast.pluginsFolderResolveFailed'))
   }
 }
 
@@ -229,11 +235,13 @@ function PackageRow({
   onAgentToggle: (row: AgentPluginRow, enable: boolean) => void
   onAgentUpdate: (row: AgentPluginRow) => void
 }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const p = t.skills.plugins
   const d = t.settings.plugins
   const desktop = pkg.desktop
   const agent = pkg.agent
+  const displayName = desktop?.localizedName?.[locale] ?? pkg.name
+  const displayDescription = desktop?.localizedDescription?.[locale] ?? pkg.description
   const desktopOn = desktop ? desktop.status !== 'disabled' : false
   const agentOn = agent?.status === 'enabled'
   const agentToggleable = Boolean(agent?.key)
@@ -248,21 +256,21 @@ function PackageRow({
       <div className="flex min-w-0 flex-1 items-start gap-2" role="cell">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
-            <span>{pkg.name}</span>
+            <span>{displayName}</span>
             {agent?.version && <span className="text-(--ui-text-quaternary)">v{agent.version}</span>}
             <KindBadge kind={pkg.kind} />
             <ProvenancePill pkg={pkg} />
             {agent?.portable && <Pill>{p.portableBadge}</Pill>}
             {desktop?.status === 'error' && <Pill tone="primary">{d.failed}</Pill>}
           </div>
-          {(desktop?.status === 'error' ? desktop.error : pkg.description) && (
+          {(desktop?.status === 'error' ? desktop.error : displayDescription) && (
             <div
               className={cn(
                 'mt-0.5 text-[length:var(--conversation-caption-font-size)] break-words',
                 desktop?.status === 'error' ? 'text-(--ui-danger,#f87171)' : 'text-(--ui-text-tertiary)'
               )}
             >
-              {desktop?.status === 'error' ? desktop.error : pkg.description}
+              {desktop?.status === 'error' ? desktop.error : displayDescription}
             </div>
           )}
         </div>
@@ -286,7 +294,7 @@ function PackageRow({
       <HalfCell label={p.halfDesktop}>
         {desktop ? (
           <Switch
-            aria-label={`${p.halfDesktop}: ${pkg.name}`}
+            aria-label={`${p.halfDesktop}: ${displayName}`}
             checked={desktopOn}
             onCheckedChange={on => {
               triggerHaptic('selection')
@@ -319,7 +327,7 @@ function PackageRow({
             {busy && <Loader2 className="size-3.5 animate-spin text-(--ui-text-tertiary)" />}
             {agentToggleable ? (
               <Switch
-                aria-label={`${p.halfAgent}: ${pkg.name}`}
+                aria-label={`${p.halfAgent}: ${displayName}`}
                 checked={agentOn}
                 disabled={busy}
                 onCheckedChange={on => onAgentToggle(agent, on)}
@@ -327,7 +335,7 @@ function PackageRow({
             ) : (
               <Tip label={p.legacyBackend}>
                 <span>
-                  <Switch aria-label={`${p.halfAgent}: ${pkg.name}`} checked={agentOn} disabled />
+                  <Switch aria-label={`${p.halfAgent}: ${displayName}`} checked={agentOn} disabled />
                 </span>
               </Tip>
             )}

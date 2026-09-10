@@ -2185,6 +2185,7 @@ export interface Translations {
       subtitle: string
       quickSetup: string
       recommended: string
+      qrCodeAlt: string
       quickHelp: string
       createWithQr: string
       starting: string

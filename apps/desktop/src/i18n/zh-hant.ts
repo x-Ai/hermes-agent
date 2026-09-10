@@ -2253,6 +2253,7 @@ export const zhHant = defineLocale({
       subtitle: '兩種方式都會連接由你控制的機器人，憑證僅儲存在此 Hermes 安裝中。',
       quickSetup: '快速設定',
       recommended: '推薦',
+      qrCodeAlt: 'Telegram 設定 QR 碼',
       quickHelp: '掃描 QR 碼並在 Telegram 中確認。Hermes 會自動建立機器人並偵測你的 Telegram 使用者 ID。',
       createWithQr: '以 QR 碼建立',
       starting: '正在啟動…',

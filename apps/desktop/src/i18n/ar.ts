@@ -1631,6 +1631,7 @@ export const ar = defineLocale({
       subtitle: 'كلا الخيارين يربط بوتًا تتحكم به ويحفظ بياناته في هذا التثبيت من Hermes فقط.',
       quickSetup: 'إعداد سريع',
       recommended: 'موصى به',
+      qrCodeAlt: 'رمز QR لإعداد Telegram',
       quickHelp: 'امسح رمز QR وأكّد في Telegram. سينشئ Hermes البوت ويكتشف معرّف مستخدم Telegram الخاص بك تلقائيًا.',
       createWithQr: 'إنشاء عبر QR',
       starting: 'جارٍ البدء…',

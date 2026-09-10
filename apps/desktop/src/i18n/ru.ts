@@ -2021,6 +2021,7 @@ export const ru = defineLocale({
         'Оба способа подключают бота под вашим контролем и сохраняют его данные только в этой установке Hermes.',
       quickSetup: 'Быстрая настройка',
       recommended: 'Рекомендуется',
+      qrCodeAlt: 'QR-код для настройки Telegram',
       quickHelp:
         'Отсканируйте QR-код и подтвердите в Telegram. Hermes создаст бота и определит ваш Telegram ID автоматически.',
       createWithQr: 'Создать по QR',
