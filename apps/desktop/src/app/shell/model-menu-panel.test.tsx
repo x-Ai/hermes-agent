@@ -95,7 +95,7 @@ describe('ModelMenuPanel MoA presets', () => {
     const { content, onSelectModel } = renderPanel()
 
     // moaOptions is async (useQuery) — wait for the preset row to mount.
-    const row = await content.findByText('BeastMode')
+    const row = await content.findByText('MoA: BeastMode')
     fireEvent.click(row)
 
     // #54670: must route through the persistent model-switch path
@@ -109,7 +109,7 @@ describe('ModelMenuPanel MoA presets', () => {
     $currentModel.set('BeastMode')
     const { content } = renderPanel()
 
-    const row = await content.findByText('BeastMode')
+    const row = await content.findByText('MoA: BeastMode')
     // The check codicon renders as a sibling within the same row item.
     const item = row.closest('[role="menuitem"]') ?? row.parentElement
     expect(item?.querySelector('.codicon-check')).not.toBeNull()
@@ -118,7 +118,7 @@ describe('ModelMenuPanel MoA presets', () => {
   it('keeps the virtual moa provider out of the main model groups (presets section only)', async () => {
     const { content } = renderPanel()
 
-    await content.findByText('BeastMode')
+    await content.findByText('MoA: BeastMode')
 
     // The provider group header would read "Mixture of Agents"; the presets
     // section header reads "MOA presets". Only the latter should exist.
@@ -135,7 +135,7 @@ describe('ModelMenuPanel MoA presets', () => {
     $activeSessionId.set('')
     const { onSelectModel, content } = renderPanel()
 
-    const row = await content.findByText('BeastMode')
+    const row = await content.findByText('MoA: BeastMode')
     fireEvent.click(row)
 
     // Pre-session picks are UI state shipped on the next session.create — the
@@ -267,15 +267,15 @@ describe('ModelMenuPanel search', () => {
   it('filters MoA presets by the query instead of leaving them as phantom first matches', async () => {
     const { content, onSelectModel } = renderPanel()
 
-    await content.findByText('BeastMode')
+    await content.findByText('MoA: BeastMode')
 
     const input = screen.getByRole('textbox', { name: 'Search models' })
     fireEvent.change(input, { target: { value: 'beast' } })
 
     await vi.waitFor(() => {
-      expect(rowWithText(content, /^BeastMode$/)).not.toBeNull()
+      expect(rowWithText(content, /MoA: BeastMode/)).not.toBeNull()
     })
-    expect(rowWithText(content, /^default$/)).toBeNull()
+    expect(rowWithText(content, /MoA: Default/)).toBeNull()
 
     // The surviving preset IS the first row, so Enter commits it.
     fireEvent.keyDown(input, { key: 'Enter' })
@@ -463,6 +463,65 @@ describe('ModelMenuPanel provider collapse', () => {
     await vi.waitFor(() => {
       expect(getGlobalModelOptions).toHaveBeenCalledTimes(2)
     })
+    expect(onSelectModel).not.toHaveBeenCalled()
+  })
+
+  it('does not rewrite the provider when Refresh Models lists the same model id elsewhere', async () => {
+    $currentProvider.set('zhipu')
+    $currentModel.set('glm-4.5-air')
+
+    const catalog = {
+      model: 'glm-4.5-air',
+      provider: 'zhipu',
+      providers: [
+        { models: ['glm-4.5-air', 'gpt-5.5'], name: 'OpenRouter', slug: 'openrouter' },
+        { models: ['glm-4.5-air', 'glm-5-turbo'], name: '智谱2', slug: 'zhipu' },
+        MOA_PROVIDER
+      ]
+    }
+
+    getGlobalModelOptions.mockResolvedValue(catalog)
+
+    const { content, onSelectModel } = renderPanel()
+
+    await content.findAllByText(/Glm 4\.5 Air/i)
+    fireEvent.click(await content.findByRole('menuitem', { name: /^Refresh models$/i }))
+
+    await vi.waitFor(() => {
+      expect(getGlobalModelOptions).toHaveBeenCalledTimes(2)
+    })
+    expect(onSelectModel).not.toHaveBeenCalled()
+  })
+
+  it('marks only the matching provider row current when two providers share a model id', async () => {
+    $currentProvider.set('zhipu')
+    $currentModel.set('glm-4.5-air')
+    getGlobalModelOptions.mockResolvedValue({
+      model: 'glm-4.5-air',
+      provider: 'zhipu',
+      providers: [
+        { models: ['glm-4.5-air', 'gpt-5.5'], name: 'OpenRouter', slug: 'openrouter' },
+        { models: ['glm-4.5-air', 'glm-5-turbo'], name: '智谱2', slug: 'zhipu' },
+        MOA_PROVIDER
+      ]
+    })
+
+    const { content, onSelectModel } = renderPanel()
+
+    const rows = await content.findAllByText(/Glm 4\.5 Air/i)
+    const items = [...new Set(rows.map(row => row.closest('[role="menuitem"]')))]
+
+    expect(items).toHaveLength(2)
+
+    const checked = items.filter(item => item?.querySelector('.codicon-check'))
+    expect(checked).toHaveLength(1)
+    expect(checked[0]?.closest('[role="group"]')?.textContent).toContain('智谱2')
+    expect(
+      items.find(item => !item?.querySelector('.codicon-check'))?.closest('[role="group"]')?.textContent
+    ).toContain('OpenRouter')
+
+    const input = screen.getByRole('textbox', { name: 'Search models' })
+    fireEvent.keyDown(input, { key: 'Enter' })
     expect(onSelectModel).not.toHaveBeenCalled()
   })
 })
