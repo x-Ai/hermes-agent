@@ -65,7 +65,8 @@ function SelectContent({
         <SelectPrimitive.Viewport
           className={cn(
             'p-1',
-            position === 'popper' && 'h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width)'
+            position === 'popper' &&
+              'w-full min-w-(--radix-select-trigger-width) max-h-(--radix-select-content-available-height)'
           )}
         >
           {children}

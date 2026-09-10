@@ -1328,11 +1328,14 @@ def _resolve_switch_credentials(st: _Switch) -> Optional[ModelSwitchResult]:
         if da is not None and da.base_url:
             _apply_direct_alias_endpoint(st, da)
 
-    # Fills an empty mode (alias cleared it) and overrides a STALE mode carried from previous
-    # session state when the host mandates one wire protocol (e.g. gpt-5.x on api.openai.com
-    # would otherwise 400 on tools+reasoning).
+    # Fills an empty mode (alias cleared it). Named custom endpoints are user-configured routes:
+    # their explicit protocol must survive even when the URL happens to match a host with a
+    # built-in protocol preference. URL mandates only repair an empty/stale mode outside that
+    # custom-endpoint path.
     mandated_mode = host_mandated_api_mode(st.base_url)
-    if mandated_mode is not None:
+    target_provider_norm = st.target_provider.strip().lower()
+    is_named_custom = target_provider_norm == "custom" or target_provider_norm.startswith("custom:")
+    if mandated_mode is not None and not (is_named_custom and st.api_mode):
         st.api_mode = mandated_mode
     st.api_mode = st.api_mode or determine_api_mode(st.target_provider, st.base_url)
     return None

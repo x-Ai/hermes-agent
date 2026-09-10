@@ -151,13 +151,13 @@ def _fallback_api_mode(provider: str, base_url: str, model: str = "") -> str:
 
 
 def _resolve_plain_custom_api_mode(model_cfg: Dict[str, Any], base_url: str) -> str:
-    """api_mode for legacy/plain ``provider: custom`` endpoints — conservative by default: only
-    direct OpenAI/xAI/Meta URLs imply Responses; named custom providers opt in via ``api_mode``."""
+    """api_mode for legacy/plain ``provider: custom`` endpoints.
+
+    An explicit mode is authoritative. URL detection is only the fallback for the automatic
+    setting, so a relay can intentionally expose a different protocol from its hostname.
+    """
     configured_mode = _parse_api_mode(model_cfg.get("api_mode"))
     detected_mode = _detect_api_mode_for_url(base_url)
-    if configured_mode == "codex_responses" and detected_mode != "codex_responses":
-        logger.info("Ignoring persisted custom api_mode=codex_responses for non-OpenAI endpoint %s", base_url or "(unknown)")
-        configured_mode = None
     return configured_mode or detected_mode or "chat_completions"
 
 

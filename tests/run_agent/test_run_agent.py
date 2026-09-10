@@ -5653,6 +5653,23 @@ class TestMaxTokensParam:
 class TestGpt5ApiModeRouting:
     """Verify provider-specific GPT-5 API-mode routing."""
 
+    @pytest.mark.parametrize(
+        "selected_mode",
+        [None, "chat_completions", "codex_responses", "anthropic_messages"],
+    )
+    def test_named_custom_gpt5_auto_routing_respects_explicit_mode(self, agent, selected_mode):
+        """GPT-5 auto-selects Responses; an explicit wire always wins."""
+        from agent.agent_init import _finalize_routing, _resolve_api_mode
+
+        agent.provider = "custom:relay"
+        agent.base_url = "https://relay.example/v1"
+        agent.model = "codex-ccmax/gpt-5.6-luna"
+
+        _resolve_api_mode(agent, selected_mode, agent.provider, agent.base_url)
+        _finalize_routing(agent, selected_mode, credential_pool=None)
+
+        assert agent.api_mode == (selected_mode or "codex_responses")
+
     def test_azure_gpt5_stays_on_chat_completions(self, agent):
         """Azure serves gpt-5.x on /chat/completions — must not upgrade to codex_responses."""
         agent.base_url = "https://my-resource.openai.azure.com/openai/v1"

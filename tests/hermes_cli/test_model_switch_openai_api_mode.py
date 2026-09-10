@@ -100,6 +100,46 @@ def test_generic_endpoint_keeps_explicit_api_mode():
     assert host_mandated_api_mode("https://api.openai.com/v1") == "codex_responses"
     assert host_mandated_api_mode("https://api.anthropic.com") == "anthropic_messages"
 
+
+def test_named_custom_endpoint_preserves_explicit_api_mode_on_mandated_host():
+    """A named custom endpoint's selected wire wins over URL-based auto detection."""
+    results = []
+    for selected_mode in ("chat_completions", "codex_responses", "anthropic_messages"):
+        with (
+            patch("hermes_cli.model_switch.resolve_alias", return_value=None),
+            patch("hermes_cli.model_switch.list_provider_models", return_value=[]),
+            patch(
+                "hermes_cli.runtime_provider.resolve_runtime_provider",
+                return_value={
+                    "api_key": "sk-test",
+                    "base_url": "https://api.openai.com/v1",
+                    "api_mode": selected_mode,
+                },
+            ),
+            patch("hermes_cli.models_validate.validate_requested_model", return_value=_MOCK_VALIDATION),
+            patch("hermes_cli.model_switch.get_model_info", return_value=None),
+            patch("hermes_cli.model_switch.get_model_capabilities", return_value=None),
+            patch("hermes_cli.models.detect_provider_for_model", return_value=None),
+        ):
+            result = switch_model(
+                raw_input="gpt-5.6-luna",
+                current_provider="openrouter",
+                current_model="old-model",
+                explicit_provider="custom:relay",
+                custom_providers=[
+                    {
+                        "name": "relay",
+                        "base_url": "https://api.openai.com/v1",
+                        "api_mode": selected_mode,
+                        "model": "gpt-5.6-luna",
+                    }
+                ],
+            )
+            assert result.success, result.error_message
+            results.append(result.api_mode)
+
+    assert results == ["chat_completions", "codex_responses", "anthropic_messages"]
+
 def test_stale_chat_overridden_on_meta_direct():
     """Stale chat_completions on api.meta.ai → codex_responses (like openai direct).
 
