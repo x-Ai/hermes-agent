@@ -156,7 +156,7 @@ function installAgentHalfHere(record: PluginRecord, profile: null | string) {
 }
 
 function KindBadge({ kind }: { kind: PackageKind }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const p = t.skills.plugins
 
   return (
@@ -251,11 +251,13 @@ function PackageRow({
   onAgentRemove: (row: AgentPluginRow) => void
   onDesktopRemove: (record: PluginRecord) => void
 }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const p = t.skills.plugins
   const d = t.settings.plugins
   const desktop = pkg.desktop
   const agent = pkg.agent
+  const displayName = desktop?.localizedName?.[locale] ?? pkg.name
+  const displayDescription = desktop?.localizedDescription?.[locale] ?? pkg.description
   // Manifest `config_schema` → an inline settings form under the row (#46600, #87934).
   const settingsFields = agent?.settings_schema ?? []
   const hasSettings = Boolean(agent?.key) && settingsFields.length > 0
@@ -289,21 +291,21 @@ function PackageRow({
         <div className="flex min-w-0 flex-1 items-start gap-2" role="cell">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
-              <span>{pkg.name}</span>
+              <span>{displayName}</span>
               {agent?.version && <span className="text-(--ui-text-quaternary)">v{agent.version}</span>}
               <KindBadge kind={pkg.kind} />
               <ProvenancePill pkg={pkg} />
               {agent?.portable && <Pill>{p.portableBadge}</Pill>}
               {desktop?.status === 'error' && <Pill tone="primary">{d.failed}</Pill>}
             </div>
-            {(desktop?.status === 'error' ? desktop.error : pkg.description) && (
+            {(desktop?.status === 'error' ? desktop.error : displayDescription) && (
               <div
                 className={cn(
                   'mt-0.5 text-[length:var(--conversation-caption-font-size)] break-words',
                   desktop?.status === 'error' ? 'text-(--ui-danger,#f87171)' : 'text-(--ui-text-tertiary)'
                 )}
               >
-                {desktop?.status === 'error' ? desktop.error : pkg.description}
+                {desktop?.status === 'error' ? desktop.error : displayDescription}
               </div>
             )}
           </div>
@@ -322,10 +324,10 @@ function PackageRow({
             a config_schema get one. */}
           <span className="flex size-7 shrink-0 items-center justify-center">
             {hasSettings && (
-              <Tip label={p.settingsToggle(pkg.name)}>
+              <Tip label={p.settingsToggle(displayName)}>
                 <Button
                   aria-expanded={settingsOpen}
-                  aria-label={p.settingsToggle(pkg.name)}
+                  aria-label={p.settingsToggle(displayName)}
                   className={cn(settingsOpen && 'text-foreground')}
                   onClick={() => setSettingsOpen(open => !open)}
                   size="icon"
@@ -341,9 +343,9 @@ function PackageRow({
             the row is a standalone desktop plugin. */}
           <span className="flex size-7 shrink-0 items-center justify-center">
             {agent && agentRemovable ? (
-              <Tip label={p.uninstallTip(pkg.name, scopeLabel)}>
+              <Tip label={p.uninstallTip(displayName, scopeLabel)}>
                 <Button
-                  aria-label={`${p.uninstall}: ${pkg.name}`}
+                  aria-label={`${p.uninstall}: ${displayName}`}
                   className="text-(--ui-text-tertiary) hover:text-(--ui-danger,#f87171)"
                   disabled={busy}
                   onClick={() => onAgentRemove(agent)}
@@ -354,9 +356,9 @@ function PackageRow({
                 </Button>
               </Tip>
             ) : desktop && desktopRemovable ? (
-              <Tip label={p.uninstallDesktopTip(pkg.name)}>
+              <Tip label={p.uninstallDesktopTip(displayName)}>
                 <Button
-                  aria-label={`${p.uninstall}: ${pkg.name}`}
+                  aria-label={`${p.uninstall}: ${displayName}`}
                   className="text-(--ui-text-tertiary) hover:text-(--ui-danger,#f87171)"
                   onClick={() => onDesktopRemove(desktop)}
                   size="icon"
@@ -376,7 +378,7 @@ function PackageRow({
         <HalfCell label={p.halfDesktop}>
           {desktop ? (
             <Switch
-              aria-label={`${p.halfDesktop}: ${pkg.name}`}
+              aria-label={`${p.halfDesktop}: ${displayName}`}
               checked={desktopOn}
               onCheckedChange={on => {
                 triggerHaptic('selection')
@@ -411,7 +413,7 @@ function PackageRow({
               {busy && <Loader2 className="size-3.5 animate-spin text-(--ui-text-tertiary)" />}
               {agentToggleable ? (
                 <Switch
-                  aria-label={`${p.halfAgent}: ${pkg.name}`}
+                  aria-label={`${p.halfAgent}: ${displayName}`}
                   checked={agentOn}
                   disabled={busy}
                   onCheckedChange={on => onAgentToggle(agent, on)}
@@ -419,7 +421,7 @@ function PackageRow({
               ) : (
                 <Tip label={p.legacyBackend}>
                   <span>
-                    <Switch aria-label={`${p.halfAgent}: ${pkg.name}`} checked={agentOn} disabled />
+                    <Switch aria-label={`${p.halfAgent}: ${displayName}`} checked={agentOn} disabled />
                   </span>
                 </Tip>
               )}
@@ -455,12 +457,12 @@ function PackageRow({
                 values: changes.values,
                 secrets: changes.secrets,
                 writeSecret: (env, value) => setEnvVar(env, value, profile),
-                failMessage: p.settingsForm.saveFailed(pkg.name),
+                failMessage: p.settingsForm.saveFailed(displayName),
                 profile: scope
               })
 
               if (ok) {
-                notify({ kind: 'success', message: p.settingsForm.saved(pkg.name) })
+                notify({ kind: 'success', message: p.settingsForm.saved(displayName) })
               }
 
               return ok

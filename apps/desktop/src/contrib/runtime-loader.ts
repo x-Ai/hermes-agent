@@ -336,6 +336,8 @@ export async function loadRuntimePlugin(
       id: plugin.id,
       name: plugin.name ?? plugin.id,
       description: plugin.description,
+      localizedName: plugin.localizedName,
+      localizedDescription: plugin.localizedDescription,
       kind: options.kind ?? 'disk',
       file: options.file,
       packageName: options.packageName,

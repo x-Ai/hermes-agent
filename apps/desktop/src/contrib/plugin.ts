@@ -132,6 +132,10 @@ export interface HermesPlugin {
   name?: string
   /** One-liner for the settings inventory (what the plugin adds). */
   description?: string
+  /** Localized name keyed by locale. Falls back to `name`. */
+  localizedName?: Partial<Record<string, string>>
+  /** Localized description keyed by locale. Falls back to `description`. */
+  localizedDescription?: Partial<Record<string, string>>
   /** Registers on load when the user hasn't chosen (default true). Set false
    *  for opt-in plugins: they inventory in Capabilities ▸ Plugins, off until the
    *  user flips the switch. */
