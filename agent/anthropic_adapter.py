@@ -421,6 +421,9 @@ def _new_sdk_client(sdk, kwargs: Dict[str, Any], headers: Dict[str, str]):
     if headers:
         kwargs["default_headers"] = headers
     client = sdk.Anthropic(**kwargs)
+    if _is_third_party_anthropic_endpoint(kwargs.get("base_url")):
+        from agent.anthropic_streaming import AnthropicSSEDecoder
+        client._make_sse_decoder = AnthropicSSEDecoder
     if "auth_token" in kwargs and "api_key" not in kwargs:
         client.api_key = None
     return client
