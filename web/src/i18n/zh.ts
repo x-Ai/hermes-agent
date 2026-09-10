@@ -418,7 +418,21 @@ export const zh: Translations = {
     updateGit: "git pull",
     versionBadge: "版本",
     showInSidebar: "在侧边栏显示",
-    hideFromSidebar: "从侧边栏隐藏"
+    hideFromSidebar: "从侧边栏隐藏",
+    catalogHeading: "插件目录",
+    catalogHint:
+      "由 Nous 审核并固定到确切提交的精选插件，可从此处安装经过审核的版本。",
+    catalogSearchPlaceholder: "搜索插件目录…",
+    catalogEmpty: "没有匹配的目录条目",
+    catalogEmptyDocsLink: "了解 Hermes 插件",
+    catalogInstallBtn: "安装",
+    catalogInstalledBadge: "已安装 ✓",
+    catalogUpdateBtn: "有可用更新",
+    catalogRemovedBadge: "已移除",
+    catalogConfirmTitle: "安装此插件？",
+    catalogConfirmInstallNote: "插件安装后默认禁用，请在安装后启用。",
+    catalogRequiresEnv: "需要环境变量",
+    removedFromCatalog: "已从目录移除"
   },
 
   skills: {

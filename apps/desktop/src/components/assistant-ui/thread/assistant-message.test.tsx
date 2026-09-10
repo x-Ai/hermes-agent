@@ -6,7 +6,7 @@
 // supplied, matching how onDismissError/onRestoreToMessage already behave.
 import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime } from '@assistant-ui/react'
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import { $displayTimestamps } from '@/store/display-timestamps'
@@ -17,6 +17,19 @@ import { formatTimelineRange, formatTimelineTimestamp } from './timestamp'
 
 import { Thread } from '.'
 
+const requestFreshSession = vi.hoisted(() => vi.fn())
+const startManualProviderOAuth = vi.hoisted(() => vi.fn())
+
+vi.mock('@/store/profile', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  requestFreshSession: () => requestFreshSession()
+}))
+
+vi.mock('@/store/onboarding', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  startManualProviderOAuth: (...args: unknown[]) => startManualProviderOAuth(...args)
+}))
+
 // Timeline timestamps render only when `display.timestamps` is enabled.
 $displayTimestamps.set(true)
 
@@ -26,6 +39,8 @@ stubThreadEnvironment()
 
 afterEach(() => {
   cleanup()
+  requestFreshSession.mockClear()
+  startManualProviderOAuth.mockClear()
 })
 
 function userMessage(): ThreadMessage {
@@ -65,6 +80,57 @@ function assistantMessage(): ThreadMessage {
       unstable_data: [],
       steps: [],
       custom: { timelineCompletedAt: completedAt, timelineTimestamp: createdAt.getTime() / 1000 }
+    }
+  } as unknown as ThreadMessage
+}
+
+function ownershipRefusalMessage(): ThreadMessage {
+  return {
+    id: 'assistant-error-1',
+    role: 'assistant',
+    content: [],
+    status: {
+      type: 'incomplete',
+      reason: 'error',
+      error:
+        'Session 20260909_095312_6b93f5 already has a live owner (tui, pid 32977, lease age 22m). ' +
+        'Attach through a compatible owner, or close the session in its owning surface before resuming here.'
+    },
+    createdAt,
+    metadata: {
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+      // What submit.ts stamps on a 4090 / SESSION_NOT_OWNED refusal.
+      custom: { errorSurface: { layer: 'gateway', code: 'SESSION_NOT_OWNED', retryable: false } }
+    }
+  } as unknown as ThreadMessage
+}
+
+function oauthExpiredMessage(): ThreadMessage {
+  return {
+    id: 'assistant-error-2',
+    role: 'assistant',
+    content: [],
+    status: { type: 'incomplete', reason: 'error', error: 'HTTP 401: User not found.' },
+    createdAt,
+    metadata: {
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+      // What agent/error_surface.py stamps on a rejected OAuth grant.
+      custom: {
+        errorSurface: {
+          authKind: 'oauth',
+          code: 'auth',
+          layer: 'auth',
+          provider: 'nous',
+          providerLabel: 'Nous Portal',
+          retryable: false
+        }
+      }
     }
   } as unknown as ThreadMessage
 }
@@ -170,6 +236,31 @@ describe('localized backend transcript copy', () => {
       `Operation interrupted during retry (${reason}, attempt 2/4).`,
       `操作已中断：重试过程中（${localizedReason}，第 2/4 次尝试）`
     )
+  })
+})
+
+describe('ownership refusal recovery (#106217)', () => {
+  it('offers Start new session and suppresses Retry for live-owner refusals', async () => {
+    render(<Harness assistant={ownershipRefusalMessage()} />)
+
+    expect(await screen.findByRole('button', { name: 'Start new session' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+
+    screen.getByRole('button', { name: 'Start new session' }).click()
+    expect(requestFreshSession).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('expired OAuth grant recovery', () => {
+  it('explains the expiry and re-runs that provider sign-in in one click', async () => {
+    render(<Harness assistant={oauthExpiredMessage()} />)
+
+    expect(await screen.findByText(/Nous Portal sign-in has expired/)).toBeTruthy()
+    // Signing in changes the outcome, so Retry stays as the follow-up click.
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+
+    screen.getByRole('button', { name: 'Sign in to Nous Portal again' }).click()
+    expect(startManualProviderOAuth).toHaveBeenCalledWith('nous', undefined)
   })
 })
 
