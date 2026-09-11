@@ -1656,6 +1656,7 @@ export interface Translations {
       noModelCatalog: string
       defaultModelLabel: string
       contextLabel: string
+      contextHint: string
       maxOutputLabel: string
       maxOutputHint: string
       apiKeyLabel: string

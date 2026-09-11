@@ -1307,7 +1307,8 @@ providers:
         context_length: 65536
 ```
 
-`hermes model` will prompt for context length when configuring a custom endpoint. Leave it blank for auto-detection.
+Hermes Desktop lists every model discovered for a custom endpoint and lets you set these values independently.
+Leave a model blank — or clear its saved value — to restore automatic detection for that exact endpoint/model pair.
 
 :::tip When to set this manually
 - You're using Ollama with a custom `num_ctx` that's lower than the model's maximum

@@ -37,7 +37,11 @@ class CustomEndpointUpdate(BaseModel):
     base_url: str
     model: str
     api_key: Optional[str] = None
-    context_length: Optional[int] = None
+    # Per-model total context windows. A positive integer pins the exact model;
+    # null removes that model's override so runtime discovery becomes authoritative again.
+    # The whole field remains optional because the validation endpoint and unrelated edits
+    # do not own model context state.
+    model_context_lengths: Optional[Dict[str, Optional[int]]] = None
     # Provider-level output limit. Omitted preserves an existing value; null
     # clears it so model discovery / the transport default can take over.
     max_output_tokens: Optional[int] = None

@@ -1044,9 +1044,13 @@ class TurnRunner:
         ctx = self._ctx
         runner = self._runner
         skip_context_files = self._skip_context_files(platform_key)
+        cache_keys = dict(runner._extract_cache_busting_config(ctx.user_config) or {})
+        cache_keys["model.active_provider_context_length"] = runner._active_provider_context_length(
+            turn_route["model"], turn_route["runtime"], ctx.user_config
+        )
         sig = runner._agent_config_signature(
             turn_route["model"], turn_route["runtime"], ctx.enabled_toolsets, combined_ephemeral,
-            cache_keys=runner._extract_cache_busting_config(ctx.user_config),
+            cache_keys=cache_keys,
             user_id=getattr(ctx.source, "user_id", None),
             user_id_alt=getattr(ctx.source, "user_id_alt", None),
             skip_context_files=skip_context_files,

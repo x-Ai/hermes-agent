@@ -45,7 +45,11 @@ const SAVED_ENDPOINT: CustomEndpoint = {
   is_current: true,
   max_output_tokens: 128000,
   model: 'gmi/model-1',
-  models: ['gmi/model-1'],
+  model_context_lengths: {
+    'gmi/model-1': 204800,
+    'gmi/model-2': 1048576
+  },
+  models: ['gmi/model-1', 'gmi/model-2'],
   name: 'GMI Cloud MaaS',
   source: 'providers'
 }
@@ -112,15 +116,30 @@ describe('CustomEndpointsSettings', () => {
     )
   })
 
-  it('round-trips provider output limits through the save payload', async () => {
+  it('round-trips output limits and clears one model context back to auto', async () => {
     mocks.get.mockResolvedValue({ ...EMPTY_RESPONSE, endpoints: [SAVED_ENDPOINT] })
     renderSettings()
 
     const maxOutput = await screen.findByLabelText(/Max Output Tokens/)
     expect(maxOutput).toHaveProperty('value', '128000')
     fireEvent.change(maxOutput, { target: { value: '64000' } })
+    const firstContext = screen.getByLabelText('Model Context: gmi/model-1')
+    const secondContext = screen.getByLabelText('Model Context: gmi/model-2')
+    expect(firstContext).toHaveProperty('value', '204800')
+    expect(secondContext).toHaveProperty('value', '1048576')
+    fireEvent.change(firstContext, { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ max_output_tokens: 64000 })))
+    await waitFor(() =>
+      expect(mocks.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          max_output_tokens: 64000,
+          model_context_lengths: {
+            'gmi/model-1': null,
+            'gmi/model-2': 1048576
+          }
+        })
+      )
+    )
   })
 })

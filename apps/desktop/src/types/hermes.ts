@@ -213,7 +213,6 @@ export interface CustomEndpoint {
   /** Anthropic-wire auth pin ('' = auto-detect). Absent on older backends. */
   auth_scheme?: string
   base_url: string
-  context_length?: null | number
   discover_models: boolean
   has_api_key: boolean
   id: string
@@ -221,6 +220,8 @@ export interface CustomEndpoint {
   /** Provider-level output cap. Null/absent means automatic resolution. */
   max_output_tokens?: null | number
   model: string
+  /** Explicit total context windows keyed by exact model id. Missing = auto. */
+  model_context_lengths: Record<string, number>
   models: string[]
   name: string
   source?: string
@@ -247,13 +248,14 @@ export interface CustomEndpointUpdate {
    *  api_mode 'anthropic_messages'. */
   auth_scheme?: string
   base_url: string
-  context_length?: number
   discover_models?: boolean
   id?: string
   make_default?: boolean
   /** Positive value pins the provider cap; null clears it back to auto. */
   max_output_tokens?: null | number
   model: string
+  /** Positive values pin a model; null removes its override back to auto. */
+  model_context_lengths?: Record<string, null | number>
   models?: string[]
   name: string
   /** '' clears the override (SDK default); older backends ignore it. */

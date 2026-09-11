@@ -66,6 +66,23 @@ class GatewayAgentCacheMixin:
             out[f"memory.{key}"] = value
         return out
 
+    @staticmethod
+    def _active_provider_context_length(
+        model: str, runtime: dict, user_config: dict | None
+    ) -> Optional[int]:
+        """Exact context override for the active route.
+
+        Only this scalar joins the cache signature: hashing the full providers map would
+        evict every conversation when an unrelated endpoint or model is edited.
+        """
+        from hermes_cli.config import get_custom_provider_context_length
+
+        return get_custom_provider_context_length(
+            model,
+            str(runtime.get("base_url") or ""),
+            config=user_config if isinstance(user_config, dict) else {},
+        )
+
     # Kept for the process lifetime: loading a provider imports its plugin module, and this runs on every inbound message.
     _MEMORY_IDENTITY_PROVIDER_MEMO: dict[str, Any] = {}
 

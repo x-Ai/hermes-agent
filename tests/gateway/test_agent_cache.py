@@ -126,6 +126,38 @@ class TestAgentConfigSignature:
         )
         assert sig1 != sig2
 
+    def test_provider_context_cache_value_is_scoped_to_the_active_model(self):
+        from gateway.run import GatewayRunner
+
+        runtime = {"api_key": "k", "base_url": "https://proxy.example/v1", "provider": "acme"}
+        config = {
+            "providers": {
+                "acme": {
+                    "base_url": runtime["base_url"],
+                    "models": {
+                        "model-a": {"context_length": 204800},
+                        "model-b": {"context_length": 1048576},
+                    },
+                }
+            }
+        }
+        active = GatewayRunner._active_provider_context_length("model-a", runtime, config)
+        changed_other = {
+            "providers": {
+                "acme": {
+                    "base_url": runtime["base_url"],
+                    "models": {
+                        "model-a": {"context_length": 204800},
+                        "model-b": {"context_length": 200000},
+                    },
+                }
+            }
+        }
+
+        assert active == 204800
+        assert GatewayRunner._active_provider_context_length("model-a", runtime, changed_other) == active
+        assert GatewayRunner._active_provider_context_length("model-b", runtime, changed_other) == 200000
+
 
     def test_cache_keys_key_order_does_not_matter(self):
         """Signature must be stable regardless of dict key insertion order."""

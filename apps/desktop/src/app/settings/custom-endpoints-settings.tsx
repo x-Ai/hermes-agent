@@ -32,12 +32,13 @@ interface EndpointForm {
   /** '' = auto-detect; only sent meaningfully with the Anthropic wire. */
   authScheme: string
   baseUrl: string
-  contextLength: string
   discoverModels: boolean
   id: string
   makeDefault: boolean
   maxOutputTokens: string
   model: string
+  /** Editable values keyed by exact model id; '' means automatic discovery. */
+  modelContextLengths: Record<string, string>
   name: string
   /** '' = no override (SDK default). New endpoints prefill DEFAULT_USER_AGENT. */
   userAgent: string
@@ -55,12 +56,12 @@ const EMPTY_FORM: EndpointForm = {
   apiMode: '',
   authScheme: '',
   baseUrl: '',
-  contextLength: '',
   discoverModels: true,
   id: '',
   makeDefault: true,
   maxOutputTokens: '',
   model: '',
+  modelContextLengths: {},
   name: '',
   userAgent: DEFAULT_USER_AGENT
 }
@@ -79,12 +80,14 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
     apiMode: endpoint.api_mode ?? '',
     authScheme: endpoint.auth_scheme ?? '',
     baseUrl: endpoint.base_url,
-    contextLength: endpoint.context_length ? String(endpoint.context_length) : '',
     discoverModels: endpoint.discover_models,
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
     maxOutputTokens: endpoint.max_output_tokens ? String(endpoint.max_output_tokens) : '',
     model: endpoint.model,
+    modelContextLengths: Object.fromEntries(
+      Object.entries(endpoint.model_context_lengths).map(([model, contextLength]) => [model, String(contextLength)])
+    ),
     name: endpoint.name,
     // Show exactly what's stored — '' means "no override", not "reset to
     // default" — so an intentional clear round-trips instead of being
@@ -94,8 +97,16 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
 }
 
 function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate {
-  const contextLength = Number.parseInt(form.contextLength, 10)
   const maxOutputTokens = Number.parseInt(form.maxOutputTokens, 10)
+  const modelIds = Array.from(new Set([...(models ?? []), form.model].map(model => model.trim()).filter(Boolean)))
+
+  const modelContextLengths = Object.fromEntries(
+    modelIds.map(model => {
+      const contextLength = Number(form.modelContextLengths[model])
+
+      return [model, Number.isSafeInteger(contextLength) && contextLength > 0 ? contextLength : null]
+    })
+  )
 
   return {
     id: form.id.trim() || undefined,
@@ -111,12 +122,12 @@ function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate 
         ? form.authScheme
         : ''
       : undefined,
-    context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
     discover_models: form.discoverModels,
     make_default: form.makeDefault,
     // Null is intentional: it lets an edit clear a stored provider override.
     // Omission remains reserved for older clients so the backend can preserve it.
     max_output_tokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? maxOutputTokens : null,
+    model_context_lengths: modelContextLengths,
     // Always sent as a string: non-empty pins the agent, '' clears any
     // override back to the SDK default.
     user_agent: form.userAgent.trim(),
@@ -244,7 +255,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     try {
       setTesting(true)
       const response = await validateCustomEndpoint(toPayload(form))
-      setDiscoveredModels(response.models)
+      setDiscoveredModels(current => Array.from(new Set([...current, ...response.models])))
 
       if (response.ok) {
         if (!form.model && response.models[0]) {
@@ -319,7 +330,17 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
   const allModelOptions = Array.from(new Set([...discoveredModels, form.model].filter(Boolean)))
 
-  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim()
+  const hasInvalidContextLength = Object.values(form.modelContextLengths).some(value => {
+    if (!value.trim()) {
+      return false
+    }
+
+    const parsed = Number(value)
+
+    return !Number.isSafeInteger(parsed) || parsed <= 0
+  })
+
+  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidContextLength
 
   return (
     <SettingsContent>
@@ -460,30 +481,52 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
               </div>
             )}
-            <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
-                {ce.defaultModelLabel}
-                <Input
-                  list="custom-endpoint-models"
-                  onChange={event => setForm(current => ({ ...current, model: event.target.value }))}
-                  placeholder="gpt-5.4"
-                  value={form.model}
-                />
-                <datalist id="custom-endpoint-models">
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.defaultModelLabel}
+              <Input
+                list="custom-endpoint-models"
+                onChange={event => setForm(current => ({ ...current, model: event.target.value }))}
+                placeholder="gpt-5.4"
+                value={form.model}
+              />
+              <datalist id="custom-endpoint-models">
+                {allModelOptions.map(model => (
+                  <option key={model} value={model} />
+                ))}
+              </datalist>
+            </label>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              <span>{ce.contextLabel}</span>
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.contextHint}</span>
+              {allModelOptions.length > 0 && (
+                <div className="max-h-64 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
                   {allModelOptions.map(model => (
-                    <option key={model} value={model} />
+                    <label className="grid items-center gap-3 p-2 sm:grid-cols-[minmax(0,1fr)_12rem]" key={model}>
+                      <span className="truncate font-mono text-[0.72rem] text-foreground" title={model}>
+                        {model}
+                      </span>
+                      <Input
+                        aria-label={`${ce.contextLabel}: ${model}`}
+                        inputMode="numeric"
+                        min={1}
+                        onChange={event =>
+                          setForm(current => ({
+                            ...current,
+                            modelContextLengths: {
+                              ...current.modelContextLengths,
+                              [model]: event.target.value
+                            }
+                          }))
+                        }
+                        placeholder={ce.contextAuto}
+                        step={1}
+                        type="number"
+                        value={form.modelContextLengths[model] ?? ''}
+                      />
+                    </label>
                   ))}
-                </datalist>
-              </label>
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
-                {ce.contextLabel}
-                <Input
-                  inputMode="numeric"
-                  onChange={event => setForm(current => ({ ...current, contextLength: event.target.value }))}
-                  placeholder={ce.contextAuto}
-                  value={form.contextLength}
-                />
-              </label>
+                </div>
+              )}
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.maxOutputLabel}

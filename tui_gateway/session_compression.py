@@ -9,7 +9,18 @@ import contextlib
 from .method_ctx import bind_module
 
 
-def _tui_compression_config_signature(cfg: dict | None) -> tuple:
+def _custom_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
+    """Resolve the active endpoint/model override without touching unrelated providers."""
+    from hermes_cli.config import get_custom_provider_context_length
+
+    return get_custom_provider_context_length(
+        getattr(agent, "model", "") or "",
+        getattr(agent, "base_url", "") or "",
+        config=cfg,
+    )
+
+
+def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tuple:
     """Stable snapshot of compression/context keys that must apply next turn: the messaging-gateway
     cache-busting extract plus ``idle_compact_after_seconds``/``tail_mode`` (live-TUI-only keys)."""
     from gateway.run import GatewayRunner
@@ -17,6 +28,8 @@ def _tui_compression_config_signature(cfg: dict | None) -> tuple:
     picked = {k: v for k, v in keys.items() if k.startswith("compression.") or k == "model.context_length"}
     compression = cfg.get("compression") if isinstance(cfg, dict) and isinstance(cfg.get("compression"), dict) else {}
     picked.update({f"compression.{k}": compression.get(k) for k in ("idle_compact_after_seconds", "tail_mode")})
+    if agent is not None:
+        picked["model.active_provider_context_length"] = _custom_context_length_for_agent(agent, cfg or {})
     return tuple(sorted(picked.items()))
 
 
@@ -135,15 +148,21 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     except Exception:
         cc.threshold_percent = pct
     raw_ctx = model_cfg.get("context_length")
-    if raw_ctx is not None:
-        with contextlib.suppress(TypeError, ValueError):
-            if (new_ctx := int(raw_ctx)) > 0:
-                cc._config_context_length = new_ctx
-                with contextlib.suppress(Exception):
-                    cc.context_length = new_ctx
+    try:
+        parsed_ctx = int(raw_ctx) if raw_ctx is not None else 0
+        new_ctx = parsed_ctx if parsed_ctx > 0 else None
+    except (TypeError, ValueError):
+        new_ctx = None
+    if new_ctx is None:
+        new_ctx = _custom_context_length_for_agent(agent, cfg)
+    agent._config_context_length = new_ctx
+    if new_ctx is not None:
+        cc._config_context_length = new_ctx
+        with contextlib.suppress(Exception):
+            cc.context_length = new_ctx
     elif getattr(cc, "_config_context_length", None) is not None:
-        # model.context_length removed: drop the override and force re-inference from model metadata on
-        # next access (construction's deferred resolution); re-applies the small-context floor too.
+        # The global or exact endpoint/model setting was removed: drop the override and force
+        # re-inference from model metadata on next access.
         cc._config_context_length = cc._resolved_context_length = None
     cc.threshold_tokens_cap = cc._coerce_threshold_tokens_cap(compression.get("threshold_tokens"))
     # Invalidate the cached trigger so the next preflight re-derives from percent/window, then the cap.
@@ -161,7 +180,7 @@ def _sync_agent_compression_with_config(sid: str, session: dict) -> None:
     if agent is None:
         return
     cfg = _load_cfg() or {}
-    signature = _tui_compression_config_signature(cfg)
+    signature = _tui_compression_config_signature(cfg, agent)
     seen = session.get("config_compression_seen")
     session["config_compression_seen"] = signature
     if signature == seen:

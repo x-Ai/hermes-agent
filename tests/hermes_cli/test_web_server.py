@@ -2069,6 +2069,47 @@ class TestWebServerEndpoints:
         assert sorted(models) == ["acme/model-1", "acme/model-2"]
         assert models["acme/model-1"]["context_length"] == 200000
 
+    def test_custom_endpoint_persists_each_model_context_and_clears_one_to_auto(self):
+        """Desktop model rows are independent and null deletes only that model's override."""
+        from hermes_cli.config import load_config
+
+        payload = {
+            "id": "acme",
+            "name": "Acme",
+            "base_url": "https://llm.acme.corp/v1",
+            "model": "acme/model-1",
+            "models": ["acme/model-1", "acme/model-2"],
+            "model_context_lengths": {
+                "acme/model-1": 204800,
+                "acme/model-2": 1048576,
+            },
+        }
+        saved = self.client.post("/api/providers/custom-endpoints", json=payload)
+
+        assert saved.status_code == 200
+        entry = load_config()["providers"]["acme"]
+        assert "context_length" not in entry
+        assert entry["models"]["acme/model-1"]["context_length"] == 204800
+        assert entry["models"]["acme/model-2"]["context_length"] == 1048576
+        echoed = next(e for e in saved.json()["endpoints"] if e["id"] == "acme")
+        assert echoed["model_context_lengths"] == {
+            "acme/model-1": 204800,
+            "acme/model-2": 1048576,
+        }
+
+        payload["model_context_lengths"] = {
+            "acme/model-1": None,
+            "acme/model-2": 1048576,
+        }
+        cleared = self.client.post("/api/providers/custom-endpoints", json=payload)
+
+        assert cleared.status_code == 200
+        entry = load_config()["providers"]["acme"]
+        assert "context_length" not in entry["models"]["acme/model-1"]
+        assert entry["models"]["acme/model-2"]["context_length"] == 1048576
+        echoed = next(e for e in cleared.json()["endpoints"] if e["id"] == "acme")
+        assert echoed["model_context_lengths"] == {"acme/model-2": 1048576}
+
     def test_custom_endpoint_saves_anthropic_protocol_and_auth_pins(self):
         """Explicit modes persist to the v12 canonical ``transport`` key.
 

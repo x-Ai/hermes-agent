@@ -22,6 +22,7 @@ def _session_with_compressor(**compression_ctor):
         **compression_ctor,
     )
     agent = SimpleNamespace(
+        base_url="https://llm.acme.corp/v1",
         model="gpt-5.6-sol",
         provider="openai-codex",
         context_compressor=compressor,
@@ -36,7 +37,7 @@ def _session_with_compressor(**compression_ctor):
     }, compressor
 
 
-def test_live_threshold_tokens_applies_on_next_turn_without_rebuild(monkeypatch):
+def test_live_threshold_and_provider_model_context_apply_on_next_turn_without_rebuild(monkeypatch):
     session, compressor = _session_with_compressor()
     stale = compressor.threshold_tokens
     assert stale > 100_000
@@ -48,7 +49,12 @@ def test_live_threshold_tokens_applies_on_next_turn_without_rebuild(monkeypatch)
             "model": {
                 "default": "gpt-5.6-sol",
                 "provider": "openai-codex",
-                "context_length": 272_000,
+            },
+            "providers": {
+                "acme": {
+                    "base_url": "https://llm.acme.corp/v1",
+                    "models": {"gpt-5.6-sol": {"context_length": 320_000}},
+                }
             },
             "compression": {
                 "threshold_tokens": 100_000,
@@ -63,6 +69,8 @@ def test_live_threshold_tokens_applies_on_next_turn_without_rebuild(monkeypatch)
     server._sync_agent_compression_with_config("sid-95151", session)
 
     assert session["agent"] is live_agent
+    assert live_agent._config_context_length == 320_000
+    assert compressor.context_length == 320_000
     assert compressor.threshold_tokens == 100_000
     assert compressor.proactive_prune_tokens == 48_000
     assert compressor.tail_mode == "lean"
@@ -106,7 +114,7 @@ def test_unchanged_compression_config_is_noop(monkeypatch):
         "compression": {"threshold_tokens": 100_000},
     }
     monkeypatch.setattr(server, "_load_cfg", lambda: cfg)
-    session["config_compression_seen"] = server._tui_compression_config_signature(cfg)
+    session["config_compression_seen"] = server._tui_compression_config_signature(cfg, session["agent"])
 
     compressor.threshold_tokens = 99_999
     server._sync_agent_compression_with_config("sid-95151", session)

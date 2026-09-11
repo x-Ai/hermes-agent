@@ -1644,7 +1644,8 @@ export const en: Translations = {
         'Anthropic-compatible relays are split on authentication: some expect the native x-api-key header, others only accept Authorization: Bearer. Auto-detect covers well-known hosts; pin the scheme if your relay rejects requests with 401/403.',
       noModelCatalog: 'Endpoint is reachable. It does not expose a model catalog.',
       defaultModelLabel: 'Default Model',
-      contextLabel: 'Context',
+      contextLabel: 'Model Context',
+      contextHint: 'Set the total context window for each model. Leave a value blank to use automatic discovery.',
       maxOutputLabel: 'Max Output Tokens',
       maxOutputHint:
         'Provider limit sent with each request. Leave blank to use /models discovery or the protocol default; set it if the endpoint reports “Provider exceeded max output tokens.”',

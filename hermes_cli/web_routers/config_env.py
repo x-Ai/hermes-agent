@@ -385,6 +385,35 @@ def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
     return [model for model in models if model and not (model in seen or seen.add(model))]
 
 
+def _model_context_lengths_from_custom_endpoint_entry(
+    entry: Dict[str, Any], models: List[str]
+) -> Dict[str, int]:
+    """Context values the Desktop editor should show for each model.
+
+    Exact model settings are canonical. The old entry-level value is expanded in the
+    response so the next Desktop save can normalize it into explicit model settings
+    without changing the effective window of any model already known to the endpoint.
+    """
+    try:
+        inherited = int(entry.get("context_length"))
+    except (TypeError, ValueError):
+        inherited = 0
+
+    result: Dict[str, int] = {}
+    model_configs = entry.get("models")
+    for model in models:
+        model_cfg = model_configs.get(model) if isinstance(model_configs, dict) else None
+        try:
+            exact = int(model_cfg.get("context_length")) if isinstance(model_cfg, dict) else 0
+        except (TypeError, ValueError):
+            exact = 0
+        if exact > 0:
+            result[model] = exact
+        elif inherited > 0:
+            result[model] = inherited
+    return result
+
+
 def _api_key_display(entry: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
     """Return ``(has_api_key, preview)`` for a provider or model config block.
 
@@ -421,14 +450,15 @@ def _config_api_key_is_env_ref(endpoint_id: str) -> bool:
 
 
 def _endpoint_row(
-    endpoint_id: str, name: str, base_url: str, model: str, models: List[str], context_length,
+    endpoint_id: str, name: str, base_url: str, model: str, models: List[str],
+    model_context_lengths: Dict[str, int],
     discover_models: bool, key_entry: Dict[str, Any], is_current: bool, source: str,
 ) -> Dict[str, Any]:
     has_api_key, api_key_preview = _api_key_display(key_entry)
     raw_mode = str(key_entry.get("api_mode") or key_entry.get("transport") or "").strip().lower()
     return {
         "id": endpoint_id, "name": name, "base_url": base_url, "model": model, "models": models,
-        "context_length": context_length, "discover_models": discover_models,
+        "model_context_lengths": model_context_lengths, "discover_models": discover_models,
         "max_output_tokens": key_entry.get("max_output_tokens"),
         "has_api_key": has_api_key, "api_key_preview": api_key_preview,
         "is_current": is_current, "source": source,
@@ -473,14 +503,18 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             endpoints.append(_endpoint_row(
                 endpoint_id, str(raw_entry.get("name") or endpoint_id), base_url,
                 str(raw_entry.get("model") or raw_entry.get("default_model") or (models[0] if models else "")),
-                models, raw_entry.get("context_length"), bool(raw_entry.get("discover_models", True)),
+                models, _model_context_lengths_from_custom_endpoint_entry(raw_entry, models),
+                bool(raw_entry.get("discover_models", True)),
                 raw_entry, endpoint_id == current_provider, "providers",
             ))
 
     if current_provider.lower() == "custom" and current_base_url and not any(e["id"] == "custom" for e in endpoints):
         endpoints.insert(0, _endpoint_row(
             "custom", "Custom", current_base_url, current_model, [current_model] if current_model else [],
-            model_cfg.get("context_length"), True, model_cfg, True, "direct-config",
+            _model_context_lengths_from_custom_endpoint_entry(
+                model_cfg, [current_model] if current_model else []
+            ),
+            True, model_cfg, True, "direct-config",
         ))
 
     return {
@@ -563,10 +597,28 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
             continue
         current = models_map.get(model_id)
         models_map[model_id] = dict(current) if isinstance(current, dict) else {}
+    if body.model_context_lengths is not None:
+        # Desktop owns exact per-model context settings. Removing the provider-wide
+        # fallback is what makes an empty model row mean automatic discovery instead
+        # of silently inheriting the old endpoint value.
+        entry.pop("context_length", None)
+        for raw_model_id, raw_context_length in body.model_context_lengths.items():
+            model_id = str(raw_model_id).strip()
+            if not model_id:
+                raise HTTPException(status_code=422, detail="model context id must not be empty")
+            current = models_map.get(model_id)
+            model_cfg = dict(current) if isinstance(current, dict) else {}
+            if raw_context_length is None:
+                model_cfg.pop("context_length", None)
+            elif raw_context_length > 0:
+                model_cfg["context_length"] = int(raw_context_length)
+            else:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"context length for {model_id!r} must be a positive integer or null",
+                )
+            models_map[model_id] = model_cfg
     entry["models"] = models_map
-    if body.context_length and body.context_length > 0:
-        entry["context_length"] = int(body.context_length)
-        entry["models"][model]["context_length"] = int(body.context_length)
     if "max_output_tokens" in body.model_fields_set:
         if body.max_output_tokens is None:
             entry.pop("max_output_tokens", None)
