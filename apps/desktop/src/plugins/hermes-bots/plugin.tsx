@@ -101,9 +101,24 @@ interface ComposerDraftPayload {
 
 export default {
   id: ID,
-  name: translateNow('common.bots'),
+  name: 'Bots',
   description:
     'Bot Mode — a one-chat-per-agent roster with avatars, routines, group chats, and bot-to-bot messaging. Ships with the app; disable here if unwanted.',
+  localizedName: {
+    zh: '智能体',
+    'zh-hant': '智慧體',
+    ja: 'ボット',
+    ru: 'Боты',
+    ar: 'الروبوتات'
+  },
+  localizedDescription: {
+    zh: '智能体模式 — 每个智能体拥有一个独立对话，并提供头像、例行任务、群聊和智能体间通信，此功能随应用内置，如不需要，可在此停用',
+    'zh-hant':
+      '智慧體模式——每個智慧體各有一個獨立聊天，並提供頭像、例行工作、群組聊天與智慧體間通訊。此功能隨應用程式內建；如不需要，可在此停用',
+    ja: 'ボットモード — エージェントごとに1つのチャットを用意し、アバター、ルーチン、グループチャット、ボット間メッセージングを提供します。アプリに同梱されています。不要な場合はここで無効にできます。',
+    ru: 'Режим ботов: отдельный чат для каждого агента, аватары, расписания, групповые чаты и обмен сообщениями между ботами. Встроен в приложение; при необходимости его можно отключить здесь.',
+    ar: 'وضع الروبوتات — محادثة مستقلة لكل وكيل، مع صور رمزية وإجراءات دورية ومحادثات جماعية ومراسلة بين الروبوتات. هذه الميزة مضمّنة مع التطبيق، ويمكن تعطيلها هنا إذا لم تكن مطلوبة.'
+  },
   register(ctx: PluginContext) {
     setPluginCtx(ctx)
     // The user's own roster sections. Read once at register; every mutation

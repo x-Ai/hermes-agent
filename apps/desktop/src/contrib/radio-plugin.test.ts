@@ -40,7 +40,12 @@ describe('bundled Radio plugin', () => {
     const initialStyles = document.head.querySelectorAll('style').length
 
     discoverBundledPlugins()
-    expect($pluginRecords.get().radio).toMatchObject({ kind: 'bundled', status: 'disabled' })
+    expect($pluginRecords.get().radio).toMatchObject({
+      kind: 'bundled',
+      localizedName: { zh: '电台' },
+      localizedDescription: { zh: '免费在线电台，支持置顶电台、搜索及随音频变化的波形显示' },
+      status: 'disabled'
+    })
     expect(registry.getArea('statusBar.right').some(item => item.source === 'plugin:radio')).toBe(false)
     expect(document.head.querySelectorAll('style').length).toBe(initialStyles)
 

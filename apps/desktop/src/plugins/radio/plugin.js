@@ -640,6 +640,16 @@ export default {
   id: ID,
   name: 'Radio',
   description: 'Free live radio with pinned stations, search, and an audio-reactive waveform.',
+  localizedName: {
+    ja: 'ラジオ',
+    zh: '电台',
+    'zh-hant': '電台'
+  },
+  localizedDescription: {
+    ja: 'お気に入り登録、検索、音声に反応する波形表示を備えた無料のライブ配信ラジオ。',
+    zh: '免费在线电台，支持置顶电台、搜索及随音频变化的波形显示',
+    'zh-hant': '免費線上電台，支援釘選電台、搜尋及隨音訊變化的波形顯示。'
+  },
   defaultEnabled: false,
   register(ctx) {
     ctx.i18n.register(LOCALES)
