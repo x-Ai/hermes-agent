@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
+import { localizeLocalModelText } from '@/app/settings/local-models-localization'
 import {
   localizedBadge,
   localizedModelDescription,
@@ -8,6 +9,8 @@ import {
   localizedModelSpeed
 } from '@/app/settings/toolset-config-panel'
 import { setRuntimeI18nLocale, translateForLocale } from '@/i18n'
+
+import localRuntimeCatalog from '../../../../hermes_cli/local_runtime/catalog.json'
 
 import { TRANSLATIONS } from './catalog'
 import { zh } from './zh'
@@ -249,6 +252,23 @@ describe('Real browser profile setting localization', () => {
         expect(copy.settings.sections.browser, `${locale} section falls back to English`).not.toBe(englishSection)
         expect(label, `${locale} label falls back to English`).not.toBe(englishLabel)
         expect(description, `${locale} description falls back to English`).not.toBe(englishDescription)
+      }
+    }
+  })
+})
+
+describe('Local model catalog localization', () => {
+  it('localizes every bundled model description in every non-English desktop locale', () => {
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      if (locale === 'en') {
+        continue
+      }
+
+      for (const model of localRuntimeCatalog.models) {
+        expect(
+          localizeLocalModelText(model.description, copy.settings.localModels),
+          `${locale} description for ${model.id}`
+        ).not.toBe(model.description)
       }
     }
   })

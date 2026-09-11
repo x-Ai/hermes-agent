@@ -2159,7 +2159,7 @@ export const zh: Translations = {
         'Best all-round agent model; sees images; long context stays fast':
           '综合表现最佳的智能体模型，支持图像理解，长上下文下依然快速',
         'Frontier-scale model; needs a very large GPU to run well': '前沿大模型，需要显存容量很大的 GPU 才能流畅运行',
-        'Bigger mixture-of-experts with multi-Token prediction; sees images':
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
           '更大规模的混合专家模型，支持多词元预测和图像理解',
         'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'
       } as Record<string, string>,
