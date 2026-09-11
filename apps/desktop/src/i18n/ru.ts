@@ -4928,6 +4928,11 @@ export const ru = defineCompleteLocale({
   onboarding: {
     headerTitle: 'Настроим для вас Hermes Agent',
     headerDesc: 'Подключите провайдера модели, чтобы начать общение. Большинство вариантов — в один клик.',
+    providerTitles: {
+      anthropic: 'Ключ API Anthropic',
+      'claude-code': 'Anthropic OAuth: для подписки требуются дополнительные кредиты использования',
+      'openai-codex': 'Подписка ChatGPT или Codex'
+    },
     preparingInstall: 'Hermes завершает установку. Обычно это занимает меньше минуты при первом запуске.',
     starting: 'Запускаем Hermes…',
     lookingUpProviders: 'Ищем провайдеров...',

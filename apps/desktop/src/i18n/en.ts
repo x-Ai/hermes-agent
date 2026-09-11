@@ -4693,6 +4693,11 @@ export const en: Translations = {
   onboarding: {
     headerTitle: "Let's get you setup with Hermes Agent",
     headerDesc: 'Connect a model provider to start chatting. Most options take one click.',
+    providerTitles: {
+      anthropic: 'Anthropic API Key',
+      'claude-code': 'Anthropic OAuth: Required Extra Usage Credits to Use Subscription',
+      'openai-codex': 'ChatGPT or Codex Subscription'
+    },
     preparingInstall: 'Hermes is finishing install. This usually takes under a minute on first run.',
     starting: 'Starting Hermes…',
     lookingUpProviders: 'Looking up providers...',

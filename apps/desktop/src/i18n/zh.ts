@@ -2324,12 +2324,12 @@ export const zh = defineCompleteLocale({
       },
       loading: '正在加载提供方...',
       providerLabels: {
-        alibaba: 'Alibaba Cloud DashScope',
-        'alibaba-cn': 'Alibaba Cloud DashScope（中国大陆）',
-        'alibaba-token-plan': 'Alibaba Cloud（Token Plan）',
-        'alibaba-token-plan-cn': 'Alibaba Cloud（Token Plan，中国大陆）',
-        'alibaba-coding-plan': 'Alibaba Cloud（Coding Plan）',
-        'alibaba-coding-plan-cn': 'Alibaba Cloud（Coding Plan，中国大陆）'
+        alibaba: '阿里云 DashScope',
+        'alibaba-cn': '阿里云 DashScope（中国大陆）',
+        'alibaba-token-plan': '阿里云（Token Plan）',
+        'alibaba-token-plan-cn': '阿里云（Token Plan，中国大陆）',
+        'alibaba-coding-plan': '阿里云（Coding Plan）',
+        'alibaba-coding-plan-cn': '阿里云（Coding Plan，中国大陆）'
       },
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
@@ -5926,6 +5926,11 @@ export const zh = defineCompleteLocale({
   onboarding: {
     headerTitle: '开始设置 Hermes Agent',
     headerDesc: '连接模型提供方即可开始对话，大多数选项只需一次点击',
+    providerTitles: {
+      anthropic: 'Anthropic API 密钥',
+      'claude-code': 'Anthropic OAuth：需额外用量额度才能使用订阅',
+      'openai-codex': 'ChatGPT 或 Codex 订阅'
+    },
     preparingInstall: 'Hermes 正在完成安装。首次运行通常不到一分钟',
     starting: '正在启动 Hermes…',
     lookingUpProviders: '正在查找提供方...',

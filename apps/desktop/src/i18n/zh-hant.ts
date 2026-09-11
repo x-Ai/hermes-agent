@@ -5429,6 +5429,11 @@ export const zhHant = defineCompleteLocale({
   onboarding: {
     headerTitle: '開始設定 Hermes Agent',
     headerDesc: '連線模型提供方即可開始聊天。大多數選項只需一次點擊。',
+    providerTitles: {
+      anthropic: 'Anthropic API 金鑰',
+      'claude-code': 'Anthropic OAuth：需額外用量額度才能使用訂閱',
+      'openai-codex': 'ChatGPT 或 Codex 訂閱'
+    },
     preparingInstall: 'Hermes 正在完成安裝。首次執行通常不到一分鐘。',
     starting: '正在啟動 Hermes…',
     lookingUpProviders: '正在查詢提供方...',

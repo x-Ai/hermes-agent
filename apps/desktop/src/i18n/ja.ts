@@ -5776,6 +5776,11 @@ export const ja = defineCompleteLocale({
   onboarding: {
     headerTitle: 'Hermes Agent のセットアップをしましょう',
     headerDesc: 'チャットを始めるにはモデルプロバイダーを接続してください。ほとんどのオプションはワンクリックです。',
+    providerTitles: {
+      anthropic: 'Anthropic API キー',
+      'claude-code': 'Anthropic OAuth：サブスクリプション利用には追加使用クレジットが必要',
+      'openai-codex': 'ChatGPT または Codex サブスクリプション'
+    },
     preparingInstall: 'Hermes はインストールを完了中です。初回実行では通常 1 分以内に完了します。',
     starting: 'Hermes を起動中…',
     lookingUpProviders: 'プロバイダーを検索中...',

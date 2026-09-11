@@ -4794,6 +4794,11 @@ export const ar = defineCompleteLocale({
   onboarding: {
     headerTitle: 'لنُعِدّ لك Hermes Agent',
     headerDesc: 'اربط مزوّد نماذج لبدء المحادثة. معظم الخيارات تتطلب نقرة واحدة.',
+    providerTitles: {
+      anthropic: 'مفتاح Anthropic API',
+      'claude-code': 'Anthropic OAuth: يلزم رصيد استخدام إضافي لاستخدام الاشتراك',
+      'openai-codex': 'اشتراك ChatGPT أو Codex'
+    },
     preparingInstall: 'يُكمل Hermes التثبيت. عادة ما يستغرق ذلك أقل من دقيقة في أول تشغيل.',
     starting: 'جار بدء Hermes...',
     lookingUpProviders: 'جار البحث عن المزوّدين...',

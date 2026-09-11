@@ -4041,6 +4041,7 @@ export interface Translations {
   onboarding: {
     headerTitle: string
     headerDesc: string
+    providerTitles: Record<string, string>
     preparingInstall: string
     starting: string
     lookingUpProviders: string
