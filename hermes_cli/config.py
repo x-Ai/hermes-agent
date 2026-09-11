@@ -640,13 +640,15 @@ from hermes_cli.config_defaults import DEFAULT_CONFIG, OPTIONAL_ENV_VARS  # noqa
 from hermes_cli.config_providers import (  # noqa: E402,F401  (re-exported; callers/tests use hermes_cli.config.<name>)
     _API_MODE_ALIASES, _CAMEL_ALIASES, _KNOWN_PROVIDER_KEYS, _PROVIDER_NORMALIZE_WARNED,
     _canonical_api_mode, _coerce_ssl_verify, _custom_provider_entry_to_provider_config,
-    _entries_for_route, _normalize_custom_provider_entry, _normalize_provider_models,
+    _entries_for_route, _normalize_custom_provider_entry, _normalize_model_token_limits,
+    _normalize_provider_models,
     _pick_provider_base_url, _route_model_cfg, _warn_once_per_provider,
     apply_custom_provider_extra_headers_to_client_kwargs,
     apply_custom_provider_tls_to_client_kwargs, coerce_provider_id, find_provider_entry,
     get_compatible_custom_providers, get_custom_provider_context_length,
     get_custom_provider_extra_headers, get_custom_provider_model_capability,
-    get_custom_provider_tls_settings, is_provider_enabled, normalize_extra_headers,
+    get_custom_provider_tls_settings, get_custom_provider_token_limits,
+    is_provider_enabled, normalize_extra_headers,
     providers_dict_to_custom_providers, stringify_provider_map)
 # Back-compat re-exports — :mod:`hermes_cli.personality` owns personality/overlay semantics.
 from hermes_cli.personality import (  # noqa: E402,F401
@@ -1047,8 +1049,8 @@ _KNOWN_ROOT_KEYS = frozenset(DEFAULT_CONFIG.keys()) | _EXTRA_KNOWN_ROOT_KEYS
 # Valid fields inside a custom_providers list entry (key_env is read at runtime by
 # runtime_provider.py and auxiliary_client.py).
 _VALID_CUSTOM_PROVIDER_FIELDS = {
-    "name", "base_url", "api_key", "api_mode", "model", "models",
-    "context_length", "max_output_tokens",
+    "name", "base_url", "api_key", "api_mode", "model", "models", "model_token_limits",
+    "context_length", "max_input_tokens", "max_output_tokens",
     "rate_limit_delay", "extra_body",
     "ssl_ca_cert", "ssl_verify", "key_env"}
 

@@ -53,7 +53,13 @@ def test_live_threshold_and_provider_model_context_apply_on_next_turn_without_re
             "providers": {
                 "acme": {
                     "base_url": "https://llm.acme.corp/v1",
-                    "models": {"gpt-5.6-sol": {"context_length": 320_000}},
+                    "model_token_limits": {
+                        "gpt-5.6-sol": {
+                            "context_length": 320_000,
+                            "max_input_tokens": 180_000,
+                            "max_output_tokens": 32_000,
+                        }
+                    },
                 }
             },
             "compression": {
@@ -71,6 +77,10 @@ def test_live_threshold_and_provider_model_context_apply_on_next_turn_without_re
     assert session["agent"] is live_agent
     assert live_agent._config_context_length == 320_000
     assert compressor.context_length == 320_000
+    assert compressor.max_input_tokens == 180_000
+    assert compressor.max_tokens == 32_000
+    assert live_agent.max_tokens == 32_000
+    assert live_agent.max_tokens_source == "model"
     assert compressor.threshold_tokens == 100_000
     assert compressor.proactive_prune_tokens == 48_000
     assert compressor.tail_mode == "lean"

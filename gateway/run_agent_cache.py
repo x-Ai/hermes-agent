@@ -72,12 +72,21 @@ class GatewayAgentCacheMixin:
     ) -> Optional[int]:
         """Exact context override for the active route.
 
-        Only this scalar joins the cache signature: hashing the full providers map would
+        Only active-model values join the cache signature: hashing the full providers map would
         evict every conversation when an unrelated endpoint or model is edited.
         """
-        from hermes_cli.config import get_custom_provider_context_length
+        return GatewayAgentCacheMixin._active_provider_token_limits(
+            model, runtime, user_config
+        ).get("context_length")
 
-        return get_custom_provider_context_length(
+    @staticmethod
+    def _active_provider_token_limits(
+        model: str, runtime: dict, user_config: dict | None
+    ) -> dict[str, int]:
+        """Exact context/input/output overrides that affect the active agent's budgets."""
+        from hermes_cli.config_providers import get_custom_provider_token_limits
+
+        return get_custom_provider_token_limits(
             model,
             str(runtime.get("base_url") or ""),
             config=user_config if isinstance(user_config, dict) else {},

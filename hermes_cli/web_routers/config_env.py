@@ -385,32 +385,57 @@ def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
     return [model for model in models if model and not (model in seen or seen.add(model))]
 
 
-def _model_context_lengths_from_custom_endpoint_entry(
-    entry: Dict[str, Any], models: List[str]
-) -> Dict[str, int]:
-    """Context values the Desktop editor should show for each model.
-
-    Exact model settings are canonical. The old entry-level value is expanded in the
-    response so the next Desktop save can normalize it into explicit model settings
-    without changing the effective window of any model already known to the endpoint.
-    """
-    try:
-        inherited = int(entry.get("context_length"))
-    except (TypeError, ValueError):
-        inherited = 0
-
-    result: Dict[str, int] = {}
-    model_configs = entry.get("models")
-    for model in models:
-        model_cfg = model_configs.get(model) if isinstance(model_configs, dict) else None
+def _positive_model_limit(mapping: Any, *keys: str) -> Optional[int]:
+    if not isinstance(mapping, dict):
+        return None
+    for key in keys:
+        value = mapping.get(key)
+        if isinstance(value, bool):
+            continue
         try:
-            exact = int(model_cfg.get("context_length")) if isinstance(model_cfg, dict) else 0
+            parsed = int(value)
         except (TypeError, ValueError):
-            exact = 0
-        if exact > 0:
-            result[model] = exact
-        elif inherited > 0:
-            result[model] = inherited
+            continue
+        if parsed > 0:
+            return parsed
+    return None
+
+
+def _model_token_limits_from_custom_endpoint_entry(
+    entry: Dict[str, Any], models: List[str]
+) -> Dict[str, Dict[str, int]]:
+    """Exact model limits for Desktop, expanding legacy provider-wide values for migration."""
+    fields = {
+        "context_length": ("context_length",),
+        "max_input_tokens": ("max_input_tokens",),
+        "max_output_tokens": ("max_output_tokens", "max_tokens"),
+    }
+    inherited = {
+        field: _positive_model_limit(entry, *aliases)
+        for field, aliases in fields.items()
+    }
+    result: Dict[str, Dict[str, int]] = {}
+    override_configs = entry.get("model_token_limits")
+    model_configs = entry.get("models")
+    models_are_discovered = entry.get("models_discovered") is True
+    for model in models:
+        override_cfg = override_configs.get(model) if isinstance(override_configs, dict) else None
+        model_cfg = (
+            model_configs.get(model)
+            if isinstance(model_configs, dict) and not models_are_discovered
+            else None
+        )
+        limits: Dict[str, int] = {}
+        for field, aliases in fields.items():
+            value = (
+                _positive_model_limit(override_cfg, *aliases)
+                or _positive_model_limit(model_cfg, *aliases)
+                or inherited[field]
+            )
+            if value is not None:
+                limits[field] = value
+        if limits:
+            result[model] = limits
     return result
 
 
@@ -451,14 +476,20 @@ def _config_api_key_is_env_ref(endpoint_id: str) -> bool:
 
 def _endpoint_row(
     endpoint_id: str, name: str, base_url: str, model: str, models: List[str],
-    model_context_lengths: Dict[str, int],
+    model_token_limits: Dict[str, Dict[str, int]],
     discover_models: bool, key_entry: Dict[str, Any], is_current: bool, source: str,
 ) -> Dict[str, Any]:
     has_api_key, api_key_preview = _api_key_display(key_entry)
     raw_mode = str(key_entry.get("api_mode") or key_entry.get("transport") or "").strip().lower()
     return {
         "id": endpoint_id, "name": name, "base_url": base_url, "model": model, "models": models,
-        "model_context_lengths": model_context_lengths, "discover_models": discover_models,
+        "model_token_limits": model_token_limits,
+        "model_context_lengths": {
+            model_id: limits["context_length"]
+            for model_id, limits in model_token_limits.items()
+            if "context_length" in limits
+        },
+        "discover_models": discover_models,
         "max_output_tokens": key_entry.get("max_output_tokens"),
         "has_api_key": has_api_key, "api_key_preview": api_key_preview,
         "is_current": is_current, "source": source,
@@ -503,7 +534,7 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             endpoints.append(_endpoint_row(
                 endpoint_id, str(raw_entry.get("name") or endpoint_id), base_url,
                 str(raw_entry.get("model") or raw_entry.get("default_model") or (models[0] if models else "")),
-                models, _model_context_lengths_from_custom_endpoint_entry(raw_entry, models),
+                models, _model_token_limits_from_custom_endpoint_entry(raw_entry, models),
                 bool(raw_entry.get("discover_models", True)),
                 raw_entry, endpoint_id == current_provider, "providers",
             ))
@@ -511,7 +542,7 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
     if current_provider.lower() == "custom" and current_base_url and not any(e["id"] == "custom" for e in endpoints):
         endpoints.insert(0, _endpoint_row(
             "custom", "Custom", current_base_url, current_model, [current_model] if current_model else [],
-            _model_context_lengths_from_custom_endpoint_entry(
+            _model_token_limits_from_custom_endpoint_entry(
                 model_cfg, [current_model] if current_model else []
             ),
             True, model_cfg, True, "direct-config",
@@ -584,7 +615,7 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         "name": name, "base_url": base_url, "model": model,
         "discover_models": bool(body.discover_models),
     })
-    # Same for the model map, so existing models keep their context lengths.
+    # Same for the discovered/model metadata map, so capabilities and catalogue entries survive.
     # ``body.models`` is the catalogue the panel's Test button discovered;
     # without it only the hand-typed model survived Save. A payload with no
     # ``models`` (older UI) still ensures the named default is present.
@@ -597,7 +628,62 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
             continue
         current = models_map.get(model_id)
         models_map[model_id] = dict(current) if isinstance(current, dict) else {}
-    if body.model_context_lengths is not None:
+    if body.model_token_limits is not None:
+        limit_fields = {
+            "context_length": ("context_length",),
+            "max_input_tokens": ("max_input_tokens",),
+            "max_output_tokens": ("max_output_tokens", "max_tokens"),
+        }
+        owned_fields = {
+            field
+            for limits in body.model_token_limits.values()
+            for field in limits.model_fields_set
+            if field in limit_fields
+        }
+        # A canonical per-model payload owns each included axis. Drop the old provider-wide
+        # fallback so clearing every row truly restores automatic resolution for that axis.
+        for field in owned_fields:
+            for legacy_key in limit_fields[field]:
+                entry.pop(legacy_key, None)
+        existing_overrides = entry.get("model_token_limits")
+        overrides_map: Dict[str, Any] = (
+            dict(existing_overrides) if isinstance(existing_overrides, dict) else {}
+        )
+        models_are_discovered = entry.get("models_discovered") is True
+        for raw_model_id, limits in body.model_token_limits.items():
+            model_id = str(raw_model_id).strip()
+            if not model_id:
+                raise HTTPException(status_code=422, detail="model token-limit id must not be empty")
+            current = models_map.get(model_id)
+            model_cfg = dict(current) if isinstance(current, dict) else {}
+            current_override = overrides_map.get(model_id)
+            model_override = dict(current_override) if isinstance(current_override, dict) else {}
+            for field in limits.model_fields_set:
+                if field not in limit_fields:
+                    continue
+                value = getattr(limits, field)
+                if value is None:
+                    model_override.pop(field, None)
+                elif isinstance(value, int) and not isinstance(value, bool) and value > 0:
+                    model_override[field] = int(value)
+                else:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"{field} for {model_id!r} must be a positive integer or null",
+                    )
+                if not models_are_discovered:
+                    for legacy_key in limit_fields[field]:
+                        model_cfg.pop(legacy_key, None)
+            models_map[model_id] = model_cfg
+            if model_override:
+                overrides_map[model_id] = model_override
+            else:
+                overrides_map.pop(model_id, None)
+        if overrides_map:
+            entry["model_token_limits"] = overrides_map
+        else:
+            entry.pop("model_token_limits", None)
+    elif body.model_context_lengths is not None:
         # Desktop owns exact per-model context settings. Removing the provider-wide
         # fallback is what makes an empty model row mean automatic discovery instead
         # of silently inheriting the old endpoint value.
@@ -619,7 +705,7 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
                 )
             models_map[model_id] = model_cfg
     entry["models"] = models_map
-    if "max_output_tokens" in body.model_fields_set:
+    if body.model_token_limits is None and "max_output_tokens" in body.model_fields_set:
         if body.max_output_tokens is None:
             entry.pop("max_output_tokens", None)
         elif body.max_output_tokens > 0:

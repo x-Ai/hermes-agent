@@ -1925,6 +1925,7 @@ class TestWebServerEndpoints:
         assert load_config()["providers"]["cursor2api"]["max_output_tokens"] == 128000
         echoed = next(e for e in resp.json()["endpoints"] if e["id"] == "cursor2api")
         assert echoed["max_output_tokens"] == 128000
+        assert echoed["model_token_limits"]["glm-5.2"]["max_output_tokens"] == 128000
         normalized = next(
             e for e in get_compatible_custom_providers() if e.get("provider_key") == "cursor2api"
         )
@@ -2069,9 +2070,10 @@ class TestWebServerEndpoints:
         assert sorted(models) == ["acme/model-1", "acme/model-2"]
         assert models["acme/model-1"]["context_length"] == 200000
 
-    def test_custom_endpoint_persists_each_model_context_and_clears_one_to_auto(self):
-        """Desktop model rows are independent and null deletes only that model's override."""
-        from hermes_cli.config import load_config
+    def test_custom_endpoint_persists_each_model_token_limit_and_clears_one_to_auto(self):
+        """Each model owns three independent limits; null restores only that exact field to auto."""
+        from agent.context_compressor import ContextCompressor
+        from hermes_cli.config import get_compatible_custom_providers, load_config
 
         payload = {
             "id": "acme",
@@ -2079,36 +2081,63 @@ class TestWebServerEndpoints:
             "base_url": "https://llm.acme.corp/v1",
             "model": "acme/model-1",
             "models": ["acme/model-1", "acme/model-2"],
-            "model_context_lengths": {
-                "acme/model-1": 204800,
-                "acme/model-2": 1048576,
+            "model_token_limits": {
+                "acme/model-1": {
+                    "context_length": 300000,
+                    "max_input_tokens": 200000,
+                    "max_output_tokens": 50000,
+                },
+                "acme/model-2": {
+                    "context_length": 1048576,
+                    "max_input_tokens": 900000,
+                    "max_output_tokens": 64000,
+                },
             },
         }
         saved = self.client.post("/api/providers/custom-endpoints", json=payload)
 
         assert saved.status_code == 200
         entry = load_config()["providers"]["acme"]
-        assert "context_length" not in entry
-        assert entry["models"]["acme/model-1"]["context_length"] == 204800
-        assert entry["models"]["acme/model-2"]["context_length"] == 1048576
-        echoed = next(e for e in saved.json()["endpoints"] if e["id"] == "acme")
-        assert echoed["model_context_lengths"] == {
-            "acme/model-1": 204800,
-            "acme/model-2": 1048576,
+        assert not ({"context_length", "max_input_tokens", "max_output_tokens"} & entry.keys())
+        assert entry["models"]["acme/model-1"] == {}
+        assert entry["model_token_limits"]["acme/model-1"] == {
+            "context_length": 300000,
+            "max_input_tokens": 200000,
+            "max_output_tokens": 50000,
         }
+        echoed = next(e for e in saved.json()["endpoints"] if e["id"] == "acme")
+        assert echoed["model_token_limits"]["acme/model-1"] == {
+            "context_length": 300000,
+            "max_input_tokens": 200000,
+            "max_output_tokens": 50000,
+        }
+        normalized = get_compatible_custom_providers()
+        compressor = ContextCompressor(
+            "acme/model-1", base_url=payload["base_url"],
+            config_context_length=300000, max_tokens=50000,
+            custom_providers=normalized, quiet_mode=True,
+        )
+        assert compressor.max_input_tokens == 200000
+        assert compressor.threshold_tokens == 150000
 
-        payload["model_context_lengths"] = {
-            "acme/model-1": None,
-            "acme/model-2": 1048576,
+        payload["model_token_limits"]["acme/model-1"] = {
+            "context_length": None,
+            "max_input_tokens": None,
+            "max_output_tokens": None,
         }
         cleared = self.client.post("/api/providers/custom-endpoints", json=payload)
 
         assert cleared.status_code == 200
         entry = load_config()["providers"]["acme"]
-        assert "context_length" not in entry["models"]["acme/model-1"]
-        assert entry["models"]["acme/model-2"]["context_length"] == 1048576
+        assert entry["models"]["acme/model-1"] == {}
+        assert entry["models"]["acme/model-2"] == {}
+        assert entry["model_token_limits"]["acme/model-2"] == {
+            "context_length": 1048576,
+            "max_input_tokens": 900000,
+            "max_output_tokens": 64000,
+        }
         echoed = next(e for e in cleared.json()["endpoints"] if e["id"] == "acme")
-        assert echoed["model_context_lengths"] == {"acme/model-2": 1048576}
+        assert "acme/model-1" not in echoed["model_token_limits"]
 
     def test_custom_endpoint_saves_anthropic_protocol_and_auth_pins(self):
         """Explicit modes persist to the v12 canonical ``transport`` key.

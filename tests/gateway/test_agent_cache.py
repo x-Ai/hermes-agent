@@ -134,8 +134,12 @@ class TestAgentConfigSignature:
             "providers": {
                 "acme": {
                     "base_url": runtime["base_url"],
-                    "models": {
-                        "model-a": {"context_length": 204800},
+                    "model_token_limits": {
+                        "model-a": {
+                            "context_length": 204800,
+                            "max_input_tokens": 160000,
+                            "max_output_tokens": 32000,
+                        },
                         "model-b": {"context_length": 1048576},
                     },
                 }
@@ -146,8 +150,12 @@ class TestAgentConfigSignature:
             "providers": {
                 "acme": {
                     "base_url": runtime["base_url"],
-                    "models": {
-                        "model-a": {"context_length": 204800},
+                    "model_token_limits": {
+                        "model-a": {
+                            "context_length": 204800,
+                            "max_input_tokens": 160000,
+                            "max_output_tokens": 32000,
+                        },
                         "model-b": {"context_length": 200000},
                     },
                 }
@@ -155,6 +163,11 @@ class TestAgentConfigSignature:
         }
 
         assert active == 204800
+        assert GatewayRunner._active_provider_token_limits("model-a", runtime, config) == {
+            "context_length": 204800,
+            "max_input_tokens": 160000,
+            "max_output_tokens": 32000,
+        }
         assert GatewayRunner._active_provider_context_length("model-a", runtime, changed_other) == active
         assert GatewayRunner._active_provider_context_length("model-b", runtime, changed_other) == 200000
 

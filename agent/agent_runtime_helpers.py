@@ -2051,6 +2051,8 @@ def _update_switch_compressor(agent, custom_providers, effective_context_length,
             agent.model, base_url=agent.base_url, api_key=ctx_api_key, provider=agent.provider,
             config_context_length=effective_context_length, custom_providers=custom_providers,
         )
+        if hasattr(agent.context_compressor, "custom_providers"):
+            agent.context_compressor.custom_providers = custom_providers
         agent.context_compressor.update_model(
             model=agent.model,
             context_length=new_context_length,

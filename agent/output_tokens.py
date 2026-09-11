@@ -86,6 +86,12 @@ def resolve_output_token_limit(
         api_mode=api_mode))
     saved_discovered: Optional[int] = None
     for entry in entries:
+        overrides = entry.get("model_token_limits")
+        model_override = overrides.get(model) if isinstance(overrides, dict) else None
+        value = _limit_from_mapping(model_override)
+        if value is not None:
+            return OutputTokenLimit(value, "model")
+    for entry in entries:
         models = entry.get("models")
         model_config = models.get(model) if isinstance(models, dict) else None
         value = _limit_from_mapping(model_config)

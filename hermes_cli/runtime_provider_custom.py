@@ -72,7 +72,9 @@ def _lift_max_output_tokens(
     """
     models = entry.get("models")
     model_config = models.get(model) if isinstance(models, dict) and model else None
-    for source in (model_config, entry):
+    overrides = entry.get("model_token_limits")
+    model_override = overrides.get(model) if isinstance(overrides, dict) and model else None
+    for source in (model_override, model_config, entry):
         if not isinstance(source, dict):
             continue
         for key in ("max_output_tokens", "max_tokens"):
@@ -81,7 +83,7 @@ def _lift_max_output_tokens(
                 result["max_output_tokens"] = value
                 result["max_output_tokens_source"] = (
                     "discovered" if source is model_config and entry.get("models_discovered") is True
-                    else "model" if source is model_config else "provider")
+                    else "provider" if source is entry else "model")
                 return
 
 def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
@@ -94,7 +96,7 @@ def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
 def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *, provider_key: str, key_env: str,
                                api_mode: Optional[str]) -> None:
     """Copy the optional fields shared by ``providers:`` and legacy ``custom_providers:`` entries."""
-    from hermes_cli.config_providers import _normalize_provider_models
+    from hermes_cli.config_providers import _normalize_model_token_limits, _normalize_provider_models
 
     if key_env:
         result["key_env"] = key_env
@@ -109,6 +111,9 @@ def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *,
     models, legacy_discovered = _normalize_provider_models(entry.get("models"))
     if models:
         result["models"] = models
+    model_token_limits = _normalize_model_token_limits(entry.get("model_token_limits"))
+    if model_token_limits:
+        result["model_token_limits"] = model_token_limits
     if entry.get("models_discovered") is True or legacy_discovered:
         result["models_discovered"] = True
     _lift_max_output_tokens(entry, result)

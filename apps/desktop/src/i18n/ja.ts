@@ -540,11 +540,12 @@ export const ja = defineLocale({
     exportFailed: '書き出しに失敗しました',
     resetFailed: 'リセットに失敗しました',
     customEndpoints: {
-      contextLabel: 'モデルコンテキスト',
-      contextHint: 'モデルごとに合計コンテキストウィンドウを設定します。空欄にすると自動検出に戻ります。',
-      maxOutputLabel: '最大出力トークン',
-      maxOutputHint:
-        '各リクエストで送信するプロバイダーの出力上限です。空欄の場合は /models の検出値またはプロトコル既定値を使用します。エンドポイントが「Provider exceeded max output tokens.」を返す場合に設定してください。'
+      contextLabel: 'モデルのトークン上限',
+      contextHint: 'モデルごとに合計コンテキスト、最大入力、最大出力を設定します。空欄にすると自動検出に戻ります。',
+      modelLabel: 'モデル',
+      contextWindowLabel: '合計コンテキスト',
+      maxInputLabel: '最大入力',
+      maxOutputLabel: '最大出力'
     },
     nav: {
       providers: 'プロバイダー',

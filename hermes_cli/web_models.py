@@ -31,6 +31,14 @@ class MemoryProviderConfigUpdate(BaseModel):
 class MemoryProviderSetupRequest(BaseModel):
     values: Dict[str, Any] = {}
 
+class CustomEndpointModelTokenLimits(BaseModel):
+    """Optional exact-model limits. ``null`` clears that field back to automatic resolution."""
+
+    context_length: Optional[int] = None
+    max_input_tokens: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+
+
 class CustomEndpointUpdate(BaseModel):
     id: str = ""
     name: str
@@ -42,6 +50,9 @@ class CustomEndpointUpdate(BaseModel):
     # The whole field remains optional because the validation endpoint and unrelated edits
     # do not own model context state.
     model_context_lengths: Optional[Dict[str, Optional[int]]] = None
+    # Canonical Desktop shape: all three independent limits live beside the exact model id.
+    # The older scalar/maps above and below remain accepted for older dashboard clients.
+    model_token_limits: Optional[Dict[str, CustomEndpointModelTokenLimits]] = None
     # Provider-level output limit. Omitted preserves an existing value; null
     # clears it so model discovery / the transport default can take over.
     max_output_tokens: Optional[int] = None

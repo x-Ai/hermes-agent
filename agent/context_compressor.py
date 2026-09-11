@@ -1811,7 +1811,9 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         if self._threshold_tokens is None:
             # Resolve the window first: it may floor threshold_percent as a side effect.
             _ctx = self.context_length
-            self._threshold_tokens = self._compute_threshold_tokens(_ctx, self.threshold_percent, self.max_tokens)
+            self._threshold_tokens = self._compute_threshold_tokens(
+                _ctx, self.threshold_percent, self.max_tokens, self.max_input_tokens
+            )
             self._apply_threshold_tokens_cap()
         return self._threshold_tokens
 
@@ -2185,6 +2187,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         runtime_changed = (model, provider, base_url, api_mode) != (self.model, self.provider, self.base_url, self.api_mode)
         self.model, self.base_url, self.api_key, self.provider, self.api_mode = model, base_url, api_key, provider, api_mode
         self.context_length = context_length
+        self.max_input_tokens = self._configured_max_input_tokens(model, base_url)
         # Re-resolve from the raw config value so a switch away from an overridden model falls back correctly.
         _config_pct = getattr(self, "_config_threshold_percent", self.threshold_percent)
         self._base_threshold_percent = resolve_model_threshold(model, self.model_thresholds, _config_pct, provider)
@@ -2193,7 +2196,9 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         # A switch that genuinely changes the output budget passes the new value explicitly. (#43547)
         if max_tokens is not None:
             self.max_tokens = self._coerce_max_tokens(max_tokens)
-        self.threshold_tokens = self._compute_threshold_tokens(context_length, self.threshold_percent, self.max_tokens)
+        self.threshold_tokens = self._compute_threshold_tokens(
+            context_length, self.threshold_percent, self.max_tokens, self.max_input_tokens
+        )
         self._apply_threshold_tokens_cap()
         # Reset to None so the property recomputes via the mode-aware path (not the legacy formula).
         self._tail_token_budget = None
@@ -2239,6 +2244,15 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
             return None
         return ivalue if ivalue > 0 else None
 
+    def _configured_max_input_tokens(self, model: str, base_url: str) -> int | None:
+        """Exact custom-route input cap, or no independent cap when the row is automatic."""
+        from hermes_cli.config_providers import get_custom_provider_token_limits
+
+        value = get_custom_provider_token_limits(
+            model, base_url, custom_providers=self.custom_providers
+        ).get("max_input_tokens")
+        return self._coerce_max_tokens(value)
+
     # Same normalization: a threshold_tokens cap is a positive int, or None for "no cap".
     _coerce_threshold_tokens_cap = _coerce_max_tokens
 
@@ -2259,10 +2273,12 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
     @staticmethod
     def _compute_threshold_tokens(
         context_length: int, threshold_percent: float, max_tokens: int | None = None,
+        max_input_tokens: int | None = None,
     ) -> int:
         """Compute the compaction trigger in tokens from the effective input budget.
-        Base is ``(context_length - max_tokens) * threshold_percent`` floored at MINIMUM_CONTEXT_LENGTH;
-        when the floor binds it is capped at 85% of the budget so small windows can still fire.
+        Base is ``min(context_length - max_tokens, max_input_tokens) * threshold_percent`` floored
+        at MINIMUM_CONTEXT_LENGTH; an absent input cap leaves the first term unchanged. When the
+        floor binds it is capped at 85% of the budget so small windows can still fire.
 
         The base value is ``effective_input_budget * threshold_percent``, floored at
         ``MINIMUM_CONTEXT_LENGTH`` so large-context models don't compress prematurely at 50%. BUT that floor
@@ -2275,11 +2291,15 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         provider) the input budget is materially smaller than the raw window, and a threshold based on the
         full window lets the session hit a provider 400 before compaction fires (#43547). The percentage and
         the degenerate-window check below both operate on the effective input budget. ``max_tokens=None``
-        (provider default) conservatively assumes no reservation (full window).
+        (provider default) conservatively assumes no reservation (full window). A positive
+        ``max_input_tokens`` independently clamps that budget for endpoints whose prompt ceiling is
+        below their combined context window.
         """
         effective_window = context_length - (max_tokens or 0)
         if effective_window <= 0:
             effective_window = context_length
+        if max_input_tokens is not None and max_input_tokens > 0:
+            effective_window = min(effective_window, max_input_tokens)
         pct_value = int(effective_window * threshold_percent)
         floored = max(pct_value, MINIMUM_CONTEXT_LENGTH)
         # The floor must not consume output headroom: cap at 85% when it is the binding term. Near-minimum windows
@@ -2336,6 +2356,9 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         self.quiet_mode = quiet_mode
         # Usable input = context_length - max_tokens; only a positive int counts as a reservation.
         self.max_tokens = self._coerce_max_tokens(max_tokens)
+        # Some endpoints expose a prompt cap below their combined context window. It is independent
+        # of the output reservation and therefore clamps, rather than replaces, the derived budget.
+        self.max_input_tokens = self._configured_max_input_tokens(model, base_url)
         # True: summary failure aborts (messages unchanged); False: insert deterministic handoff and drop middle.
         # Output-token reservation: the provider carves max_tokens out of the context window, so the usable
         # input budget is context_length - max_tokens. None = provider default => assume no reservation.

@@ -206,6 +206,12 @@ export interface MemoryProviderConfig {
   name: string
 }
 
+export interface CustomEndpointModelTokenLimits {
+  context_length?: number
+  max_input_tokens?: number
+  max_output_tokens?: number
+}
+
 export interface CustomEndpoint {
   api_key_preview?: null | string
   /** API protocol pin ('' = OpenAI wire). Absent on older backends. */
@@ -217,11 +223,13 @@ export interface CustomEndpoint {
   has_api_key: boolean
   id: string
   is_current?: boolean
-  /** Provider-level output cap. Null/absent means automatic resolution. */
+  /** @deprecated Provider-wide value returned only for migration from older configs. */
   max_output_tokens?: null | number
   model: string
   /** Explicit total context windows keyed by exact model id. Missing = auto. */
   model_context_lengths: Record<string, number>
+  /** Canonical exact-model total context, input cap and output cap. */
+  model_token_limits: Record<string, CustomEndpointModelTokenLimits>
   models: string[]
   name: string
   source?: string
@@ -251,11 +259,20 @@ export interface CustomEndpointUpdate {
   discover_models?: boolean
   id?: string
   make_default?: boolean
-  /** Positive value pins the provider cap; null clears it back to auto. */
+  /** @deprecated Older clients may still update the provider-wide cap. */
   max_output_tokens?: null | number
   model: string
   /** Positive values pin a model; null removes its override back to auto. */
   model_context_lengths?: Record<string, null | number>
+  /** Each included field pins a positive value or clears it with null. */
+  model_token_limits?: Record<
+    string,
+    {
+      context_length: null | number
+      max_input_tokens: null | number
+      max_output_tokens: null | number
+    }
+  >
   models?: string[]
   name: string
   /** '' clears the override (SDK default); older backends ignore it. */

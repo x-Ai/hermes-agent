@@ -106,6 +106,7 @@ _CAMEL_ALIASES: Dict[str, str] = {
     "apiKeyEnv": "key_env",  # OpenClaw-compatible + docs variant
     "defaultModel": "default_model",
     "contextLength": "context_length",
+    "maxInputTokens": "max_input_tokens",
     "maxOutputTokens": "max_output_tokens",
     "rateLimitDelay": "rate_limit_delay",
     "authScheme": "auth_scheme"}
@@ -116,8 +117,8 @@ _KNOWN_PROVIDER_KEYS = {
     # own config writer has historically emitted it. Accept it so self-written configs don't warn.
     "provider",
     "name", "api", "url", "base_url", "api_key", "key_env", "api_key_env", "key_cmd",
-    "api_mode", "transport", "model", "default_model", "models", "models_discovered",
-    "context_length", "max_output_tokens", "max_tokens", "rate_limit_delay",
+    "api_mode", "transport", "model", "default_model", "models", "models_discovered", "model_token_limits",
+    "context_length", "max_input_tokens", "max_output_tokens", "max_tokens", "rate_limit_delay",
     "request_timeout_seconds", "stale_timeout_seconds",
     "discover_models", "extra_body", "extra_headers", "capabilities", "ssl_ca_cert", "ssl_verify",
     "auth_scheme"}
@@ -184,6 +185,27 @@ def _normalize_provider_models(models: Any) -> Tuple[Dict[str, Any], bool]:
     return {}, discovered
 
 
+def _normalize_model_token_limits(value: Any) -> Dict[str, Dict[str, int]]:
+    """Keep only positive, exact-model token overrides from a provider entry."""
+    if not isinstance(value, dict):
+        return {}
+    result: Dict[str, Dict[str, int]] = {}
+    for raw_model, raw_limits in value.items():
+        model = str(raw_model).strip()
+        if not model or not isinstance(raw_limits, dict):
+            continue
+        limits = {
+            field: raw
+            for field in ("context_length", "max_input_tokens", "max_output_tokens")
+            if isinstance((raw := raw_limits.get(field)), int)
+            and not isinstance(raw, bool)
+            and raw > 0
+        }
+        if limits:
+            result[model] = limits
+    return result
+
+
 def _normalize_custom_provider_entry(
     entry: Any, *, provider_key: str = "") -> Optional[Dict[str, Any]]:
     """Return a runtime-compatible custom provider entry or ``None``."""
@@ -245,6 +267,7 @@ def _normalize_custom_provider_entry(
     # ``models_discovered`` marks a mapping auto-discovered by Hermes, not hand-curated.
     models_dict, discovered = _normalize_provider_models(entry.get("models"))
     _put("models", models_dict)
+    _put("model_token_limits", _normalize_model_token_limits(entry.get("model_token_limits")))
     if entry.get("models_discovered") is True or discovered:
         normalized["models_discovered"] = True
 
@@ -256,6 +279,7 @@ def _normalize_custom_provider_entry(
 
     for field, ok in (
         ("context_length", lambda v: isinstance(v, int) and v > 0),
+        ("max_input_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
         ("max_output_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
         ("max_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
         ("rate_limit_delay", lambda v: isinstance(v, (int, float)) and v >= 0),
@@ -299,7 +323,8 @@ def _custom_provider_entry_to_provider_config(
 
     provider_entry: Dict[str, Any] = {"api": normalized["base_url"]}
     for field in (
-        "name", "api_key", "key_env", "key_cmd", "models", "models_discovered", "context_length",
+        "name", "api_key", "key_env", "key_cmd", "models", "models_discovered", "model_token_limits",
+        "context_length", "max_input_tokens",
         "max_output_tokens", "max_tokens",
         "rate_limit_delay", "discover_models", "extra_body", "extra_headers",
         "ssl_ca_cert", "ssl_verify", "auth_scheme"):
@@ -505,37 +530,64 @@ def get_custom_provider_context_length(
     Before this helper existed, the lookup was duplicated in ``run_agent.py``'s startup path only; every
     other path (notably ``/model`` switch) fell back to the 128K default. See #15779.
     """
+    return get_custom_provider_token_limits(
+        model, base_url, custom_providers=custom_providers, config=config
+    ).get("context_length")
+
+
+def get_custom_provider_token_limits(
+    model: str,
+    base_url: str,
+    custom_providers: Optional[List[Dict[str, Any]]] = None,
+    config: Optional[Dict[str, Any]] = None,
+) -> Dict[str, int]:
+    """Configured total-context, input and output limits for one exact endpoint/model route."""
     from hermes_cli.config import get_compatible_custom_providers
     if not model or not base_url:
-        return None
+        return {}
     if custom_providers is None:
         try:
             custom_providers = get_compatible_custom_providers(config)
         except Exception:
             if config is None:
-                return None
+                return {}
             raw = config.get("custom_providers")
             custom_providers = raw if isinstance(raw, list) else []
 
     def _positive_int(raw: Any) -> Optional[int]:
+        if isinstance(raw, bool):
+            return None
         try:
-            ctx = int(raw)
+            value = int(raw)
         except (TypeError, ValueError):
             return None
-        return ctx if ctx > 0 else None
+        return value if value > 0 else None
 
-    for model_cfg in _route_model_cfgs(model, base_url, custom_providers, config):
-        ctx = _positive_int(model_cfg.get("context_length"))
-        if ctx is not None:
-            return ctx
-    # Entry-level ``context_length`` (a documented key) backs every model the entry serves when no
-    # per-model override exists; without it the /model switch re-derivation fell to the hardcoded
-    # catalog while a cold start honoured the same setting via model.context_length (#98387).
-    for entry in _entries_for_route(base_url, custom_providers, config):
-        ctx = _positive_int(entry.get("context_length"))
-        if ctx is not None:
-            return ctx
-    return None
+    aliases = {
+        "context_length": ("context_length",),
+        "max_input_tokens": ("max_input_tokens",),
+        "max_output_tokens": ("max_output_tokens", "max_tokens"),
+    }
+    entries = list(_entries_for_route(base_url, custom_providers, config))
+    override_cfgs = [
+        limits
+        for entry in entries
+        if isinstance((overrides := entry.get("model_token_limits")), dict)
+        and isinstance((limits := overrides.get(model)), dict)
+    ]
+    model_cfgs = [
+        model_cfg
+        for entry in entries
+        if (model_cfg := _route_model_cfg(entry, model)) is not None
+    ]
+    result: Dict[str, int] = {}
+    for field, keys in aliases.items():
+        for source in (*override_cfgs, *model_cfgs, *entries):
+            value = next((parsed for key in keys if (parsed := _positive_int(source.get(key))) is not None), None)
+            if value is not None:
+                result[field] = value
+                break
+    return result
 
 
 def get_custom_provider_model_capability(

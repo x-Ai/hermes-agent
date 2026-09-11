@@ -525,10 +525,12 @@ export const zhHant = defineLocale({
     exportFailed: '匯出失敗',
     resetFailed: '重設失敗',
     customEndpoints: {
-      contextLabel: '模型上下文',
-      contextHint: '為每個模型設定總上下文視窗。留空會使用自動探索，清除既有值也會恢復自動',
-      maxOutputLabel: '最大輸出 Token',
-      maxOutputHint: '每次請求傳送的提供方輸出上限。留空時使用 /models 自動探索值或協定預設值'
+      contextLabel: '模型 Token 限制',
+      contextHint: '可分別設定每個模型的總上下文、最大輸入和最大輸出。任一欄留空或清除都會恢復自動',
+      modelLabel: '模型',
+      contextWindowLabel: '總上下文',
+      maxInputLabel: '最大輸入',
+      maxOutputLabel: '最大輸出'
     },
     nav: {
       providers: '提供方',

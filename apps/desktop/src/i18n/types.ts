@@ -1657,8 +1657,10 @@ export interface Translations {
       defaultModelLabel: string
       contextLabel: string
       contextHint: string
+      modelLabel: string
+      contextWindowLabel: string
+      maxInputLabel: string
       maxOutputLabel: string
-      maxOutputHint: string
       apiKeyLabel: string
       userAgentLabel: string
       userAgentHint: string

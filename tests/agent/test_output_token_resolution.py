@@ -23,8 +23,9 @@ def test_output_limit_precedence_and_scoping():
     url = "https://cursor2api.example/v1"
     entries = [
         _entry(
-            "cursor2api", url, max_output_tokens=64_000,
-            models={"glm-5.2": {"max_output_tokens": 96_000}},
+            "cursor2api", url, max_output_tokens=64_000, models_discovered=True,
+            models={"glm-5.2": {"max_output_tokens": 128_000}},
+            model_token_limits={"glm-5.2": {"max_output_tokens": 96_000}},
         ),
         _entry("other", url, max_output_tokens=7_000),
     ]

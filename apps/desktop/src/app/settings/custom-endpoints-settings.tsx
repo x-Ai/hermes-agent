@@ -25,6 +25,12 @@ interface CustomEndpointsSettingsProps {
   onMainModelChanged?: (provider: string, model: string) => void
 }
 
+interface ModelTokenLimitForm {
+  contextLength: string
+  maxInputTokens: string
+  maxOutputTokens: string
+}
+
 interface EndpointForm {
   apiKey: string
   /** '' = OpenAI-compatible (the default wire). */
@@ -35,10 +41,9 @@ interface EndpointForm {
   discoverModels: boolean
   id: string
   makeDefault: boolean
-  maxOutputTokens: string
   model: string
-  /** Editable values keyed by exact model id; '' means automatic discovery. */
-  modelContextLengths: Record<string, string>
+  /** Three independent editable values per exact model id; '' means automatic discovery. */
+  modelTokenLimits: Record<string, ModelTokenLimitForm>
   name: string
   /** '' = no override (SDK default). New endpoints prefill DEFAULT_USER_AGENT. */
   userAgent: string
@@ -59,9 +64,8 @@ const EMPTY_FORM: EndpointForm = {
   discoverModels: true,
   id: '',
   makeDefault: true,
-  maxOutputTokens: '',
   model: '',
-  modelContextLengths: {},
+  modelTokenLimits: {},
   name: '',
   userAgent: DEFAULT_USER_AGENT
 }
@@ -75,6 +79,13 @@ const KNOWN_API_MODES = ['', 'chat_completions', 'codex_responses', 'anthropic_m
 const isKnownApiMode = (mode: string): boolean => (KNOWN_API_MODES as readonly string[]).includes(mode)
 
 function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
+  const modelIds = new Set([
+    endpoint.model,
+    ...endpoint.models,
+    ...Object.keys(endpoint.model_token_limits ?? {}),
+    ...Object.keys(endpoint.model_context_lengths ?? {})
+  ])
+
   return {
     apiKey: '',
     apiMode: endpoint.api_mode ?? '',
@@ -83,10 +94,20 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
     discoverModels: endpoint.discover_models,
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
-    maxOutputTokens: endpoint.max_output_tokens ? String(endpoint.max_output_tokens) : '',
     model: endpoint.model,
-    modelContextLengths: Object.fromEntries(
-      Object.entries(endpoint.model_context_lengths).map(([model, contextLength]) => [model, String(contextLength)])
+    modelTokenLimits: Object.fromEntries(
+      Array.from(modelIds).map(model => {
+        const limits = endpoint.model_token_limits?.[model]
+
+        return [
+          model,
+          {
+            contextLength: String(limits?.context_length ?? endpoint.model_context_lengths?.[model] ?? ''),
+            maxInputTokens: String(limits?.max_input_tokens ?? ''),
+            maxOutputTokens: String(limits?.max_output_tokens ?? endpoint.max_output_tokens ?? '')
+          }
+        ]
+      })
     ),
     name: endpoint.name,
     // Show exactly what's stored — '' means "no override", not "reset to
@@ -97,14 +118,26 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
 }
 
 function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate {
-  const maxOutputTokens = Number.parseInt(form.maxOutputTokens, 10)
   const modelIds = Array.from(new Set([...(models ?? []), form.model].map(model => model.trim()).filter(Boolean)))
 
-  const modelContextLengths = Object.fromEntries(
+  const modelTokenLimits = Object.fromEntries(
     modelIds.map(model => {
-      const contextLength = Number(form.modelContextLengths[model])
+      const values = form.modelTokenLimits[model]
 
-      return [model, Number.isSafeInteger(contextLength) && contextLength > 0 ? contextLength : null]
+      const positiveOrNull = (value: string | undefined): number | null => {
+        const parsed = Number(value)
+
+        return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+      }
+
+      return [
+        model,
+        {
+          context_length: positiveOrNull(values?.contextLength),
+          max_input_tokens: positiveOrNull(values?.maxInputTokens),
+          max_output_tokens: positiveOrNull(values?.maxOutputTokens)
+        }
+      ]
     })
   )
 
@@ -124,10 +157,7 @@ function toPayload(form: EndpointForm, models?: string[]): CustomEndpointUpdate 
       : undefined,
     discover_models: form.discoverModels,
     make_default: form.makeDefault,
-    // Null is intentional: it lets an edit clear a stored provider override.
-    // Omission remains reserved for older clients so the backend can preserve it.
-    max_output_tokens: Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? maxOutputTokens : null,
-    model_context_lengths: modelContextLengths,
+    model_token_limits: modelTokenLimits,
     // Always sent as a string: non-empty pins the agent, '' clears any
     // override back to the SDK default.
     user_agent: form.userAgent.trim(),
@@ -330,17 +360,46 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
   const allModelOptions = Array.from(new Set([...discoveredModels, form.model].filter(Boolean)))
 
-  const hasInvalidContextLength = Object.values(form.modelContextLengths).some(value => {
-    if (!value.trim()) {
-      return false
-    }
+  const hasInvalidTokenLimit = Object.values(form.modelTokenLimits).some(limits =>
+    Object.values(limits).some(value => {
+      if (!value.trim()) {
+        return false
+      }
 
-    const parsed = Number(value)
+      const parsed = Number(value)
 
-    return !Number.isSafeInteger(parsed) || parsed <= 0
-  })
+      return !Number.isSafeInteger(parsed) || parsed <= 0
+    })
+  )
 
-  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidContextLength
+  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidTokenLimit
+
+  const tokenLimitFields = [
+    { key: 'contextLength', label: ce.contextWindowLabel },
+    { key: 'maxInputTokens', label: ce.maxInputLabel },
+    { key: 'maxOutputTokens', label: ce.maxOutputLabel }
+  ] as const
+
+  function updateModelTokenLimit(model: string, key: keyof ModelTokenLimitForm, value: string) {
+    setForm(current => {
+      const previous = current.modelTokenLimits[model] ?? {
+        contextLength: '',
+        maxInputTokens: '',
+        maxOutputTokens: ''
+      }
+
+      return {
+        ...current,
+        modelTokenLimits: {
+          ...current.modelTokenLimits,
+          [model]: {
+            ...previous,
+            [key]: value
+          }
+        }
+      }
+    })
+  }
 
   return (
     <SettingsContent>
@@ -500,44 +559,40 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.contextHint}</span>
               {allModelOptions.length > 0 && (
                 <div className="max-h-64 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
+                  <div className="hidden gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem] sm:grid sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]">
+                    <span>{ce.modelLabel}</span>
+                    {tokenLimitFields.map(field => (
+                      <span key={field.key}>{field.label}</span>
+                    ))}
+                  </div>
                   {allModelOptions.map(model => (
-                    <label className="grid items-center gap-3 p-2 sm:grid-cols-[minmax(0,1fr)_12rem]" key={model}>
+                    <div
+                      className="grid items-center gap-2 p-2 sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]"
+                      key={model}
+                    >
                       <span className="truncate font-mono text-[0.72rem] text-foreground" title={model}>
                         {model}
                       </span>
-                      <Input
-                        aria-label={`${ce.contextLabel}: ${model}`}
-                        inputMode="numeric"
-                        min={1}
-                        onChange={event =>
-                          setForm(current => ({
-                            ...current,
-                            modelContextLengths: {
-                              ...current.modelContextLengths,
-                              [model]: event.target.value
-                            }
-                          }))
-                        }
-                        placeholder={ce.contextAuto}
-                        step={1}
-                        type="number"
-                        value={form.modelContextLengths[model] ?? ''}
-                      />
-                    </label>
+                      {tokenLimitFields.map(field => (
+                        <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
+                          <span className="sm:sr-only">{field.label}</span>
+                          <Input
+                            aria-label={`${field.label}: ${model}`}
+                            inputMode="numeric"
+                            min={1}
+                            onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
+                            placeholder={ce.contextAuto}
+                            step={1}
+                            type="number"
+                            value={form.modelTokenLimits[model]?.[field.key] ?? ''}
+                          />
+                        </label>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
-            <label className="grid gap-1.5 text-xs text-muted-foreground">
-              {ce.maxOutputLabel}
-              <Input
-                inputMode="numeric"
-                onChange={event => setForm(current => ({ ...current, maxOutputTokens: event.target.value }))}
-                placeholder={ce.contextAuto}
-                value={form.maxOutputTokens}
-              />
-              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.maxOutputHint}</span>
-            </label>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.apiKeyLabel}
               <Input

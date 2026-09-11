@@ -109,7 +109,11 @@ def test_custom_provider_per_model_output_limit_wins(isolated_home):
             api: http://localhost:11434/v1
             api_key: sk-test
             max_output_tokens: 12000
+            models_discovered: true
             models:
+              glm-5.2:
+                max_output_tokens: 64000
+            model_token_limits:
               glm-5.2:
                 max_output_tokens: 128000
         """

@@ -1048,6 +1048,11 @@ class TurnRunner:
         cache_keys["model.active_provider_context_length"] = runner._active_provider_context_length(
             turn_route["model"], turn_route["runtime"], ctx.user_config
         )
+        cache_keys["model.active_provider_token_limits"] = tuple(sorted(
+            runner._active_provider_token_limits(
+                turn_route["model"], turn_route["runtime"], ctx.user_config
+            ).items()
+        ))
         sig = runner._agent_config_signature(
             turn_route["model"], turn_route["runtime"], ctx.enabled_toolsets, combined_ephemeral,
             cache_keys=cache_keys,

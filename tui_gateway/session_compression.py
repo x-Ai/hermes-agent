@@ -9,15 +9,19 @@ import contextlib
 from .method_ctx import bind_module
 
 
-def _custom_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
-    """Resolve the active endpoint/model override without touching unrelated providers."""
-    from hermes_cli.config import get_custom_provider_context_length
+def _custom_token_limits_for_agent(agent: Any, cfg: dict) -> dict[str, int]:
+    """Resolve exact limits for the active endpoint/model without touching unrelated providers."""
+    from hermes_cli.config_providers import get_custom_provider_token_limits
 
-    return get_custom_provider_context_length(
+    return get_custom_provider_token_limits(
         getattr(agent, "model", "") or "",
         getattr(agent, "base_url", "") or "",
         config=cfg,
     )
+
+
+def _custom_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
+    return _custom_token_limits_for_agent(agent, cfg).get("context_length")
 
 
 def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tuple:
@@ -29,7 +33,9 @@ def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tu
     compression = cfg.get("compression") if isinstance(cfg, dict) and isinstance(cfg.get("compression"), dict) else {}
     picked.update({f"compression.{k}": compression.get(k) for k in ("idle_compact_after_seconds", "tail_mode")})
     if agent is not None:
-        picked["model.active_provider_context_length"] = _custom_context_length_for_agent(agent, cfg or {})
+        picked["model.active_provider_token_limits"] = tuple(sorted(
+            _custom_token_limits_for_agent(agent, cfg or {}).items()
+        ))
     return tuple(sorted(picked.items()))
 
 
@@ -113,6 +119,12 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     cc = getattr(agent, "context_compressor", None)
     if cc is None:
         return
+    from hermes_cli.config_providers import get_compatible_custom_providers
+    custom_providers = get_compatible_custom_providers(cfg)
+    agent._custom_providers = custom_providers
+    if hasattr(cc, "custom_providers"):
+        cc.custom_providers = custom_providers
+    active_limits = _custom_token_limits_for_agent(agent, cfg)
     # tail_mode: unknown/absent values land on the ctor default ("lean"), matching agent_init.
     default_tail = str(_compressor_ctor_default("tail_mode", "lean"))
     mode = str(compression.get("tail_mode", default_tail) or default_tail).strip().lower()
@@ -154,7 +166,7 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     except (TypeError, ValueError):
         new_ctx = None
     if new_ctx is None:
-        new_ctx = _custom_context_length_for_agent(agent, cfg)
+        new_ctx = active_limits.get("context_length")
     agent._config_context_length = new_ctx
     if new_ctx is not None:
         cc._config_context_length = new_ctx
@@ -164,6 +176,14 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
         # The global or exact endpoint/model setting was removed: drop the override and force
         # re-inference from model metadata on next access.
         cc._config_context_length = cc._resolved_context_length = None
+    if hasattr(cc, "max_input_tokens"):
+        cc.max_input_tokens = cc._coerce_max_tokens(active_limits.get("max_input_tokens"))
+    if str(getattr(agent, "max_tokens_source", "") or "").lower() != "explicit":
+        output_limit = active_limits.get("max_output_tokens")
+        agent.max_tokens = output_limit
+        agent.max_tokens_source = "model" if output_limit is not None else None
+        if hasattr(cc, "max_tokens"):
+            cc.max_tokens = cc._coerce_max_tokens(output_limit)
     cc.threshold_tokens_cap = cc._coerce_threshold_tokens_cap(compression.get("threshold_tokens"))
     # Invalidate the cached trigger so the next preflight re-derives from percent/window, then the cap.
     cc._threshold_tokens = cc._tail_token_budget = None
