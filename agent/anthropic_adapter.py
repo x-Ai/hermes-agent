@@ -414,18 +414,26 @@ def _build_anthropic_client_with_bearer_hook(
 
 
 def _new_sdk_client(sdk, kwargs: Dict[str, Any], headers: Dict[str, str]):
-    """``sdk.Anthropic(**kwargs)`` with ``headers`` attached. Bearer-only construction leaves
-    ``api_key`` unset, so the SDK fills it from ANTHROPIC_API_KEY (loaded from ~/.hermes/.env) and
-    sends dual auth — X-Api-Key *and* Authorization: Bearer — on every Portal/MiniMax/OAuth/Entra
-    request; clear it whenever we intentionally authenticated via auth_token."""
-    if headers:
-        kwargs["default_headers"] = headers
+    """``sdk.Anthropic(**kwargs)`` with ``headers`` attached, sending exactly ONE credential.
+
+    The SDK fills whichever of ``api_key`` / ``auth_token`` we left unset from ANTHROPIC_API_KEY /
+    ANTHROPIC_AUTH_TOKEN in the environment (both loaded from ~/.hermes/.env) and then sends dual
+    auth — x-api-key *and* Authorization: Bearer — shipping a foreign credential to Portal / MiniMax
+    / OAuth / Entra / third-party endpoints (#26970, #105774). An ``Omit()`` default header is the
+    SDK-sanctioned way to drop the other header, and unlike an attribute clear it survives
+    ``with_options()``, which re-runs the constructor and re-reads the environment."""
+    merged = dict(headers)
+    if "api_key" in kwargs and "auth_token" not in kwargs:
+        merged["Authorization"] = sdk.Omit()
+    elif "auth_token" in kwargs and "api_key" not in kwargs:
+        merged["X-Api-Key"] = sdk.Omit()
+    if merged:
+        kwargs["default_headers"] = merged
     client = sdk.Anthropic(**kwargs)
     if _is_third_party_anthropic_endpoint(kwargs.get("base_url")):
         from agent.anthropic_streaming import AnthropicSSEDecoder
+
         client._make_sse_decoder = AnthropicSSEDecoder
-    if "auth_token" in kwargs and "api_key" not in kwargs:
-        client.api_key = None
     return client
 
 

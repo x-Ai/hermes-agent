@@ -169,14 +169,16 @@ export function AboutSettings() {
             )}
             <div className="min-w-0">
               <p className="font-medium">{statusLine}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{a.lastChecked(relativeTime(status?.fetchedAt, a))}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {a.lastChecked(relativeTime(status?.fetchedAt, a))}
+              </p>
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-4">
             <Button
               disabled={checking || applying || !supported}
-              onClick={() => void checkUpdates()}
+              onClick={() => void checkUpdates({ force: true })}
               size="sm"
               variant="textStrong"
             >

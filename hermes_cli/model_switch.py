@@ -1220,6 +1220,14 @@ def _route_from_model_input(st: _Switch) -> Optional[ModelSwitchResult]:
     # Steps d.5 / e only apply while the request is still unrouted on the current provider.
     if st.resolved_alias or resolved_in_current_catalog or st.target_provider != current_provider:
         return None
+    if current_provider == "nous":
+        # The welcome host serves nous/welcome only; a model outside it needs an account or a key.
+        # Never hop to another provider on the user's behalf here (there is no key to hop to).
+        from hermes_cli.anon_auth import GUEST_MODEL, route_is_welcome_host
+        if route_is_welcome_host(st.current_base_url) and st.new_model != GUEST_MODEL:
+            return st.fail(
+                f"{st.new_model} needs a Nous account or an API key. "
+                "Use /login to sign in, or /model to pick another provider.")
     config_routed = _route_configured_provider(st)  # d.5 — deliberately NOT gated on ``not is_custom``
     if isinstance(config_routed, ModelSwitchResult):
         return config_routed
@@ -1339,14 +1347,20 @@ def _resolve_switch_credentials(st: _Switch) -> Optional[ModelSwitchResult]:
         if da is not None and da.base_url:
             _apply_direct_alias_endpoint(st, da)
 
-    # Fills an empty mode (alias cleared it). Named custom endpoints are user-configured routes:
-    # their explicit protocol must survive even when the URL happens to match a host with a
-    # built-in protocol preference. URL mandates only repair an empty/stale mode outside that
-    # custom-endpoint path.
-    mandated_mode = host_mandated_api_mode(st.base_url)
+    # Fills an empty mode (alias cleared it) and repairs a stale mode for hosts with a mandatory
+    # protocol. Named custom endpoints keep their explicit protocol, except Actual routes, which
+    # require Chat Completions.
+    from hermes_cli.providers import is_actual_route
+
     target_provider_norm = st.target_provider.strip().lower()
     is_named_custom = target_provider_norm == "custom" or target_provider_norm.startswith("custom:")
-    if mandated_mode is not None and not (is_named_custom and st.api_mode):
+    if is_actual_route(st.target_provider, st.base_url):
+        mandated_mode = "chat_completions"
+    elif is_named_custom and st.api_mode:
+        mandated_mode = None
+    else:
+        mandated_mode = host_mandated_api_mode(st.base_url)
+    if mandated_mode is not None:
         st.api_mode = mandated_mode
     st.api_mode = st.api_mode or determine_api_mode(st.target_provider, st.base_url)
     return None
