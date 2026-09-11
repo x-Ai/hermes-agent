@@ -1388,15 +1388,15 @@ export const zh: Translations = {
         provider: '语音转文本（STT）提供方',
         echoTranscripts: '将语音消息的原始 🎙️ 转写文本发回聊天',
         local: {
-          model: '本地 faster-whisper 转写所使用的模型大小。模型越大通常越准确，但需要更多内存和处理时间'
+          model: '本地 faster-whisper 转写所使用的模型大小，模型越大通常越准确，但需要更多内存和处理时间'
         },
         elevenlabs: {
-          languageCode: '可选的 ISO-639-3 语言代码。留空让 ElevenLabs 自动检测'
+          languageCode: '可选的 ISO-639-3 语言代码，留空让 ElevenLabs 自动检测'
         }
       },
       updates: {
         nonInteractiveLocalChanges:
-          'Hermes 从应用内更新时(无终端提示），保留本地源码修改（暂存）或丢弃（放弃）。通过终端更新时始终会询问'
+          'Hermes 从应用内更新时(无终端提示)，保留本地源码修改(暂存)或丢弃(放弃)，通过终端更新时始终会询问'
       }
     }),
     about: {
@@ -1405,10 +1405,10 @@ export const zh: Translations = {
       versionUnavailable: '版本不可用',
       bundleOutOfSync: '应用构建版本过旧',
       bundleOutOfSyncDesc:
-        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如智能体模式）不会显示。请运行下方的更新以重新构建应用。如果此警告仍未消除,请从最新的桌面安装程序重新安装',
+        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如智能体模式）不会显示，请运行下方的更新以重新构建应用。如果此警告仍未消除,请从最新的桌面安装程序重新安装',
       bundleOutOfSyncAction: '获取安装程序',
       bundleSwapPending: '重启以完成更新',
-      bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本。聊天记录和设置不会受到影响',
+      bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本，聊天记录和设置不会受到影响',
       bundleSwapPendingAction: '重启 Hermes',
       updates: '更新',
       checkNow: '立即检查',
@@ -1459,7 +1459,7 @@ export const zh: Translations = {
       attachmentSizeDesc:
         '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
       attachmentSizeUnit: 'MB',
-      attachmentSizeLabel: '预览 / 图片加载大小上限（MB）'
+      attachmentSizeLabel: '预览 / 图片加载大小上限(MB）'
     },
     quickEntry: {
       enabledTitle: '快速输入',
