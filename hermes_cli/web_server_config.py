@@ -608,6 +608,7 @@ def _apply_main_model_assignment(
     if api_key.strip():
         model_cfg["api_key"] = api_key.strip()
         model_cfg.pop("api", None)
+        model_cfg.pop("key_env", None)
     elif (model_cfg.get("api_key") or model_cfg.get("api")) and switched:
         clear_model_endpoint_credentials(model_cfg, clear_api_mode=False)
     if switched:
@@ -791,7 +792,11 @@ def _apply_main_assignment_sync(cfg: dict, provider: str, model: str, base_url: 
     if not base_url and isinstance(provider_entry, dict) and provider_entry.get("base_url"):
         base_url = str(provider_entry.get("base_url") or "").strip()
     model_cfg = _apply_main_model_assignment(cfg.get("model", {}), provider, model, base_url, api_key)
-    _resolve_assignment_credentials(model_cfg, provider, provider_entry)
+    # An explicitly submitted key is a rotation request and must outrank the
+    # provider entry's stored key or key_env pointer. The fallback only fills
+    # an omitted credential, matching the base_url precedence above (#62269).
+    if not api_key.strip():
+        _resolve_assignment_credentials(model_cfg, provider, provider_entry)
     cfg["model"] = model_cfg
 
     new_provider = provider.strip().lower()

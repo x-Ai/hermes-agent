@@ -2311,17 +2311,17 @@ class TestWebServerEndpoints:
 
     def test_validate_openai_endpoint_keeps_404_an_error(self):
         """The OpenAI wire requires /models — a 404 there stays a failure."""
-        from unittest.mock import MagicMock, patch
+        from unittest.mock import AsyncMock, MagicMock, patch
 
         probe = MagicMock()
         probe.status_code = 404
         probe.is_success = False
         client = MagicMock()
-        client.__enter__ = MagicMock(return_value=client)
-        client.__exit__ = MagicMock(return_value=False)
-        client.get.return_value = probe
+        client.__aenter__ = AsyncMock(return_value=client)
+        client.__aexit__ = AsyncMock(return_value=False)
+        client.get = AsyncMock(return_value=probe)
 
-        with patch("httpx.Client", return_value=client):
+        with patch("httpx.AsyncClient", return_value=client):
             resp = self.client.post(
                 "/api/providers/custom-endpoints/validate",
                 json={
