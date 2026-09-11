@@ -3,6 +3,36 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale } from './define-locale'
 
 export const ja = defineLocale({
+  connectors: {
+    title: 'アプリを接続',
+    connect: '接続',
+    skip: '今はしない',
+    cancel: '待機をやめる',
+    retry: '再試行',
+    grant: '再接続',
+    connected: '接続済み',
+    skipped: 'スキップ済み',
+    disabled: '利用不可',
+    failed: '接続できませんでした',
+    needsAuth: 'アクセスの有効期限切れ',
+    opening: 'ログインを開いています…',
+    waiting: 'ブラウザーで接続を完了してください…',
+    timeout: '認証を待っています。',
+    keepWaiting: '待機を続ける',
+    refresh: '状態を更新',
+    statusError: '接続状態を確認できませんでした。更新してください。',
+    connectError: '認証を開始できませんでした。再試行してください。',
+    unavailable: 'このセッションではコネクターを利用できません。',
+    ownerMissing: '接続を管理するには、この会話を開き直してください。',
+    search: 'アプリを検索',
+    empty: '一致するアプリはありません',
+    continue: 'チャットで続ける',
+    continueBusy: 'このターンの完了を待っています',
+    continueFailed: '続行できませんでした。再試行してください。',
+    missingResult: 'コネクターの結果がありません',
+    disclaimer: '接続は任意です。Hermes に使わせたいアプリだけを認証してください。',
+    execution: 'コネクターツール'
+  },
   sessionImport: {
     title: '別のアプリから続ける',
     subtitle: '会話をHermesに取り込み、続きを始めましょう。',
@@ -2035,18 +2065,18 @@ export const ja = defineLocale({
   skills: {
     collective: {
       notificationPreferences: {
-        title: "通知設定",
-        scope: "この組織の各クライアントで受け取る通知を管理します。手動での閲覧や共有は引き続き利用できます。",
-        on: "通知オン",
-        muted: "通知ミュート",
-        day: "1 日",
-        week: "1 週間",
-        month: "30 日",
-        forever: "無期限",
-        pending: "選択はローカルに保存され、同期待ちです。",
-        failed: "同期に失敗しました。設定を更新してから選び直してください。",
-        conflict: "別のクライアントで設定が変更されました。更新して確認してください。",
-        expired: "この選択は期限切れです。設定を更新して再試行してください。",
+        title: '通知設定',
+        scope: 'この組織の各クライアントで受け取る通知を管理します。手動での閲覧や共有は引き続き利用できます。',
+        on: '通知オン',
+        muted: '通知ミュート',
+        day: '1 日',
+        week: '1 週間',
+        month: '30 日',
+        forever: '無期限',
+        pending: '選択はローカルに保存され、同期待ちです。',
+        failed: '同期に失敗しました。設定を更新してから選び直してください。',
+        conflict: '別のクライアントで設定が変更されました。更新して確認してください。',
+        expired: 'この選択は期限切れです。設定を更新して再試行してください。'
       },
       title: 'コレクティブ・ウィズダム',
       loading: 'コレクティブ・ウィズダムを読み込み中…',
@@ -2119,11 +2149,11 @@ export const ja = defineLocale({
       submit: '下書きを提出',
       submitting: '提出中…',
       readEvery: 'すべてのファイルを確認してください。承認は下記の正確な3つのハッシュに紐づきます。',
-      publishToTeam: "チームに公開",
-      submitForApproval: "承認を申請",
-      publishLocalNotice: "確認すると、このパッケージをアップロードし、必要なチェックの後にチームへ公開します。",
-      submitLocalNotice: "確認すると、このパッケージを組織の承認に提出します。審査完了までは公開されません。",
-      reloadReview: "レビューを再読み込み",
+      publishToTeam: 'チームに公開',
+      submitForApproval: '承認を申請',
+      publishLocalNotice: '確認すると、このパッケージをアップロードし、必要なチェックの後にチームへ公開します。',
+      submitLocalNotice: '確認すると、このパッケージを組織の承認に提出します。審査完了までは公開されません。',
+      reloadReview: 'レビューを再読み込み',
       editReview:
         'ここで説明、SKILL.md、宣言的マニフェストを編集できます。保存すると新しい非公開リビジョンが作成され、スキャンが再実行されて新しいハッシュが返されます。ローカルの元スキルは書き換えません。',
       editOwnerDescription: '所有者による説明を編集',
@@ -2148,7 +2178,8 @@ export const ja = defineLocale({
       share: '共有',
       reviewPreviousPage: '前の確認ページ',
       reviewNextPage: '次の確認ページ',
-      sharePreparationNotice: '共有用のパッケージをローカルで準備します。アップロードや公開の前に、内容を確認して別途承認します。',
+      sharePreparationNotice:
+        '共有用のパッケージをローカルで準備します。アップロードや公開の前に、内容を確認して別途承認します。',
       muteNotificationsSoon: '通知をミュート（近日対応）',
       unmuteNotificationsSoon: '通知のミュートを解除（近日対応）',
       openCollective: 'コレクティブを開く',
@@ -4360,6 +4391,134 @@ export const ja = defineLocale({
     }
   },
 
+  guidedGreeting: {
+    line: 'やあ、どうぞ。Hermes です。二分だけください、あなたに合わせて整えます。それから、本当にやりたいことに取りかかりましょう。\n\nまずは、何とお呼びすればいいですか。',
+    nameSuggestion: (name: string) => `（よければ、${name} さんとお呼びします。）`
+  },
+  introReveal: {
+    skip: 'スキップ',
+    surfaces: 'デスクトップ · メッセージ · 電話 · どこでも',
+    prompt: 'Blender でヒーローキューブを作り、いくつかのマテリアルを切り替えて',
+    replyWords: [
+      '完了。',
+      'マテリアルをコンパイルし、',
+      'キューブ上でプレビューしました。',
+      'ターンテーブルを書き出しますか？'
+    ],
+    composerPlaceholder: '何でも聞いて、何でも作ろう。',
+    viewport: 'ビューポート',
+    tagline: 'どこにいても、あなたのエージェント',
+    viewportModes: {
+      standard: '標準',
+      metal: 'メタル',
+      texture: 'テクスチャ',
+      glass: 'ガラス',
+      wireframe: 'ワイヤーフレーム'
+    },
+    tools: {
+      blender: { label: 'blender-mcp', running: 'Blender に接続中…', done: 'シーンを接続' },
+      metal: { label: 'メタル', running: 'メタルをコンパイル中…', done: 'メタル · 粗さ 0.2' },
+      glass: { label: 'ガラス', running: 'ガラスをコンパイル中…', done: 'ガラス · IOR 1.45' }
+    },
+    sideAgents: {
+      research: {
+        title: 'リサーチエージェント',
+        line1: '部屋探し：新着 3 件を候補に追加',
+        line2: '↳ 内見予定を作成中…'
+      },
+      groceries: {
+        title: '買い物',
+        line1: 'リストから今週の注文を作成',
+        line2: '↳ 日曜の配達を予約済み'
+      },
+      inbox: {
+        title: '受信トレイエージェント',
+        line1: '返信を 2 件下書き、確認待ち',
+        line2: '↳ 金曜の予定を更新済み'
+      },
+      morning: {
+        title: '朝のブリーフ',
+        line1: '明日：会議 3 件、8 時に雨',
+        line2: '↳ 起床前に準備完了'
+      }
+    }
+  },
+  guidedOnboarding: {
+    done: '✓ 完了',
+    continue: '続ける',
+    skipSetup: 'セットアップをスキップ',
+    fallbackOption: '一緒に考える',
+    handoffFailed: '最初のタスクを開始できませんでした。',
+    handoffFailedRetry: '最初のタスクを開始できませんでした。再試行してセッションを確認してください。',
+    handoffStarted: title => `${title} を開始しました。セッション一覧から確認できます`,
+    handoffOpening: title => `${title} を開いています…`,
+    retryFirstBuild: '最初のタスクを再試行',
+    workingOnIt: '作業中',
+    firstBuild: '最初のタスク',
+    signpostTitle: 'Hermes はすぐ隣にいます',
+    signpostBody:
+      'ここはあなた専用のワークスペースで、プロファイルはここに並びます。先ほどの会話も残っています。手が必要なときはいつでも戻ってきてください。',
+    profileDescription: 'Hermes と初めて会った場所。初回の案内を行い、慣れるまでさりげなく見守ります。',
+    accentNames: {
+      mono: 'モノクロ',
+      githubGreen: 'GitHub グリーン',
+      cyberCyan: 'サイバーシアン',
+      nousBlue: 'Nous ブルー',
+      ultraviolet: 'ウルトラバイオレット',
+      barbiePink: 'バービーピンク',
+      electricRed: 'エレクトリックレッド',
+      safetyOrange: 'セーフティオレンジ'
+    },
+    layoutNames: { basic: 'ベーシック', elite: 'エリート' },
+    script: {
+      forkQuestion: '何を作らせたいか決まっていますか？',
+      automate: 'いつもの作業を自動化したい',
+      figure: '一緒に考えたい',
+      mind: '作りたいものがある',
+      skip: '今はスキップ',
+      somethingElse: 'ほかのこと',
+      tourQuestion: '先に中を見て回りますか？',
+      tourBasics: '基本だけ見る',
+      tourNone: '自分で見てみる',
+      tourFull: '案内して',
+      fallbackQuestion: 'どれがよさそうですか？',
+      buildReviewQuestion: '希望どおりになっていますか？',
+      buildReviewLooksRight: 'これでよい',
+      buildReviewChange: '変更したい',
+      buildReviewFurther: 'さらに進める',
+      machineRunQuestion: 'この内容を実行しますか？',
+      machineRunGoAhead: '進めて',
+      machineRunChangeList: '一覧を変更',
+      machineRunEssentials: '必要なものだけ',
+      checkpointQuestion: '次はどうしますか？',
+      computerKind: 'コンピューター',
+      machineSetupOption: kind => `${kind} のセットアップを手伝って`,
+      machineSetupTask: kind => `${kind} をセットアップ`
+    },
+    errors: {
+      firstBuildNeedsAttention: '最初のタスクを確認してください',
+      welcomeOwnerUnavailable: 'ウェルカムチャットを利用できません。開き直して最初のタスクを再試行してください。',
+      preferencesSaveFailed: '案内設定を保存できません。最初のタスクを開始する前に再試行してください。',
+      sessionOpenFailed: '最初のタスクのセッションを開けませんでした。',
+      sessionIdentityMissing:
+        '最初のタスクのセッションに永続 ID がありません。セッションを確認して再試行してください。',
+      welcomeCreateFailed: 'ウェルカムチャットを作成できませんでした。再試行してください。',
+      restoreProfileFailed: 'プロファイルを復元できませんでした',
+      welcomeNeedsAttention: 'ウェルカムチャットを確認してください',
+      welcomeStartFailed: 'ウェルカムチャットを開始できませんでした。',
+      receiptUnreadable:
+        '保存済みの最初のタスク情報を読み込めません。別のタスクを始める前にセッションを確認してください。',
+      receiptSaveFailed: '最初のタスクの復旧情報を保存できませんでした。新しい開始要求は送信していません。',
+      verifyFailed: '最初のタスクを確認できませんでした。接続が戻ったら再試行してください。',
+      unconfirmedRunning:
+        '開始は未確認ですが、最初のタスクのセッションは実行中です。アイドルになってから再試行してください。重複送信はしていません。',
+      notAcknowledged:
+        '最初のタスクの開始が確認されていません。セッションを確認して再試行してください。重複送信はしていません。',
+      notAcknowledgedStart: '最初のタスクが開始を確認しませんでした。セッションを確認して再試行してください。',
+      pluginFolderUnavailable:
+        'デスクトップのプラグインフォルダーを利用できません。最初のタスクを始める前に再試行してください。'
+    }
+  },
   install: {
     stageStates: {
       pending: '待機中',
@@ -4901,6 +5060,7 @@ export const ja = defineLocale({
     toggleLayoutEditMode: 'レイアウト編集モードを切り替え',
     layoutNames: {
       default: 'デフォルト',
+      basic: 'ベーシック',
       focus: 'フォーカス',
       'terminal-deck': 'ターミナルデッキ',
       quad: 'クワッド'

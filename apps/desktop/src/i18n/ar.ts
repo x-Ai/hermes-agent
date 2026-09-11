@@ -1,6 +1,36 @@
 import { defineLocale } from './define-locale'
 
 export const ar = defineLocale({
+  connectors: {
+    title: 'ربط تطبيقاتك',
+    connect: 'ربط',
+    skip: 'ليس الآن',
+    cancel: 'إيقاف الانتظار',
+    retry: 'إعادة المحاولة',
+    grant: 'إعادة الربط',
+    connected: 'متصل',
+    skipped: 'تم التخطي',
+    disabled: 'غير متاح',
+    failed: 'تعذر الاتصال',
+    needsAuth: 'انتهت صلاحية الوصول',
+    opening: 'جارٍ فتح تسجيل الدخول…',
+    waiting: 'أكمل الربط في المتصفح…',
+    timeout: 'ما زلنا ننتظر التفويض.',
+    keepWaiting: 'متابعة الانتظار',
+    refresh: 'تحديث الحالة',
+    statusError: 'تعذر التحقق من الاتصالات. حاول التحديث.',
+    connectError: 'تعذر بدء التفويض. حاول مرة أخرى.',
+    unavailable: 'الموصلات غير متاحة لهذه الجلسة.',
+    ownerMissing: 'أعد فتح هذه المحادثة لإدارة اتصالاتها.',
+    search: 'البحث عن تطبيق',
+    empty: 'لا توجد تطبيقات مطابقة',
+    continue: 'المتابعة في المحادثة',
+    continueBusy: 'بانتظار انتهاء هذه الجولة',
+    continueFailed: 'تعذرت المتابعة. حاول مرة أخرى.',
+    missingResult: 'نتيجة الموصل مفقودة',
+    disclaimer: 'الربط اختياري. فوّض فقط التطبيقات التي تريد أن يستخدمها Hermes.',
+    execution: 'أدوات الموصلات'
+  },
   sessionImport: {
     title: 'المتابعة من تطبيق آخر',
     subtitle: 'انقل محادثة إلى Hermes وتابع من حيث توقفت.',
@@ -1411,18 +1441,18 @@ export const ar = defineLocale({
   skills: {
     collective: {
       notificationPreferences: {
-        title: "إعدادات الإشعارات",
-        scope: "إشعاراتك الاستباقية عبر تطبيقات هذه المؤسسة. يبقى التصفح والمشاركة اليدويان متاحين.",
-        on: "الإشعارات مفعلة",
-        muted: "الإشعارات مكتومة",
-        day: "يوم واحد",
-        week: "أسبوع واحد",
-        month: "30 يومًا",
-        forever: "بلا حد زمني",
-        pending: "تم حفظ اختيارك محليًا وهو بانتظار المزامنة.",
-        failed: "فشلت المزامنة. حدّث الإعدادات قبل الاختيار مجددًا.",
-        conflict: "تغير تفضيلك في تطبيق آخر. حدّث لمراجعته.",
-        expired: "انتهت صلاحية هذا الاختيار. حدّث الإعدادات للمحاولة مجددًا.",
+        title: 'إعدادات الإشعارات',
+        scope: 'إشعاراتك الاستباقية عبر تطبيقات هذه المؤسسة. يبقى التصفح والمشاركة اليدويان متاحين.',
+        on: 'الإشعارات مفعلة',
+        muted: 'الإشعارات مكتومة',
+        day: 'يوم واحد',
+        week: 'أسبوع واحد',
+        month: '30 يومًا',
+        forever: 'بلا حد زمني',
+        pending: 'تم حفظ اختيارك محليًا وهو بانتظار المزامنة.',
+        failed: 'فشلت المزامنة. حدّث الإعدادات قبل الاختيار مجددًا.',
+        conflict: 'تغير تفضيلك في تطبيق آخر. حدّث لمراجعته.',
+        expired: 'انتهت صلاحية هذا الاختيار. حدّث الإعدادات للمحاولة مجددًا.'
       },
       title: 'الحكمة الجماعية',
       loading: 'جارٍ تحميل الحكمة الجماعية…',
@@ -1492,11 +1522,11 @@ export const ar = defineLocale({
       submit: 'إرسال المسودة',
       submitting: 'جارٍ الإرسال…',
       readEvery: 'اقرأ كل ملف. ترتبط الموافقة بالقيم الثلاث الدقيقة للتجزئة أدناه.',
-      publishToTeam: "نشر للفريق",
-      submitForApproval: "إرسال للموافقة",
-      publishLocalNotice: "يؤدي التأكيد إلى رفع هذه الحزمة كما هي ونشرها للفريق بعد اجتياز الفحوصات المطلوبة.",
-      submitLocalNotice: "يؤدي التأكيد إلى رفع هذه الحزمة كما هي لموافقة مؤسستك. لن تُنشر حتى اكتمال المراجعة.",
-      reloadReview: "إعادة تحميل المراجعة",
+      publishToTeam: 'نشر للفريق',
+      submitForApproval: 'إرسال للموافقة',
+      publishLocalNotice: 'يؤدي التأكيد إلى رفع هذه الحزمة كما هي ونشرها للفريق بعد اجتياز الفحوصات المطلوبة.',
+      submitLocalNotice: 'يؤدي التأكيد إلى رفع هذه الحزمة كما هي لموافقة مؤسستك. لن تُنشر حتى اكتمال المراجعة.',
+      reloadReview: 'إعادة تحميل المراجعة',
       editReview:
         'عدّل الوصف أو SKILL.md أو البيان التصريحي هنا. ينشئ الحفظ مراجعة خاصة جديدة ويعيد إجراء الفحوصات ويُرجع قيماً جديدة للتجزئة؛ ولا يعيد كتابة المهارة المصدر المحلية.',
       editOwnerDescription: 'تعديل الوصف الذي كتبه المالك',
@@ -3152,6 +3182,125 @@ export const ar = defineLocale({
       noReturn: 'لم تعد الواجهة الخلفية إلى الاتصال. قد لا يكون التحديث قد اكتمل — تحقق من مضيف الواجهة الخلفية.'
     }
   },
+  guidedGreeting: {
+    line: 'أهلا، تفضل بالدخول. أنا Hermes. امنحني دقيقتين لأرتب المكان حولك، ثم نبدأ بشيء تريد إنجازه فعلا.\n\nبداية، بماذا أناديك؟',
+    nameSuggestion: (name: string) => `(يمكنني أن أناديك ${name} إن كنت تفضل ذلك.)`
+  },
+  introReveal: {
+    skip: 'تخطي',
+    surfaces: 'سطح المكتب · الرسائل · الهاتف · في أي مكان',
+    prompt: 'أنشئ مكعبًا رئيسيًا في Blender وبدّل بين عدة خامات',
+    replyWords: ['تم. ', 'جُمّعت الخامات ', 'وعُرضت على المكعب. ', 'هل تريد تصدير عرض دوراني؟'],
+    composerPlaceholder: 'اسأل عن أي شيء. وابنِ أي شيء.',
+    viewport: 'منفذ العرض',
+    tagline: 'وكيلك، في كل مكان',
+    viewportModes: {
+      standard: 'قياسي',
+      metal: 'معدن',
+      texture: 'نسيج',
+      glass: 'زجاج',
+      wireframe: 'إطار سلكي'
+    },
+    tools: {
+      blender: { label: 'blender-mcp', running: 'جارٍ الاتصال بـ Blender…', done: 'تم ربط المشهد' },
+      metal: { label: 'معدن', running: 'جارٍ تجميع المعدن…', done: 'معدن · خشونة 0.2' },
+      glass: { label: 'زجاج', running: 'جارٍ تجميع الزجاج…', done: 'زجاج · معامل انكسار 1.45' }
+    },
+    sideAgents: {
+      research: {
+        title: 'وكيل البحث',
+        line1: 'البحث عن شقة: ترشيح 3 قوائم جديدة',
+        line2: '↳ جارٍ إعداد جدول الزيارات…'
+      },
+      groceries: {
+        title: 'البقالة',
+        line1: 'تم إعداد الطلب الأسبوعي من قائمتك',
+        line2: '↳ حُجز التوصيل ليوم الأحد'
+      },
+      inbox: {
+        title: 'وكيل البريد الوارد',
+        line1: 'صياغة ردّين بانتظار موافقتك',
+        line2: '↳ تم تحديث تقويم الجمعة'
+      },
+      morning: {
+        title: 'الموجز الصباحي',
+        line1: 'غدًا: 3 اجتماعات ومطر عند الثامنة',
+        line2: '↳ جاهز قبل استيقاظك'
+      }
+    }
+  },
+  guidedOnboarding: {
+    done: '✓ تم',
+    continue: 'متابعة',
+    skipSetup: 'تخطي الإعداد',
+    fallbackOption: 'لنكتشف ذلك معًا',
+    handoffFailed: 'تعذر بدء المهمة الأولى.',
+    handoffFailedRetry: 'تعذر بدء المهمة الأولى. أعد المحاولة للتحقق من جلستها.',
+    handoffStarted: title => `بدأت ${title} — ستجدها في جلساتك`,
+    handoffOpening: title => `جارٍ فتح ${title}…`,
+    retryFirstBuild: 'إعادة محاولة المهمة الأولى',
+    workingOnIt: 'جارٍ العمل عليها',
+    firstBuild: 'المهمة الأولى',
+    signpostTitle: 'Hermes ما زال بجوارك',
+    signpostBody:
+      'أنت الآن في مساحة عملك الخاصة، وهنا توجد الملفات الشخصية. ما زالت محادثتنا السابقة هنا، فارجع إليها متى احتجت إلى مساعدة.',
+    profileDescription: 'المكان الذي قابلت فيه Hermes — يرشدك في أول استخدام ثم يطمئن عليك حتى تعتاد عليه.',
+    accentNames: {
+      mono: 'أحادي',
+      githubGreen: 'أخضر GitHub',
+      cyberCyan: 'سماوي رقمي',
+      nousBlue: 'أزرق Nous',
+      ultraviolet: 'فوق بنفسجي',
+      barbiePink: 'وردي باربي',
+      electricRed: 'أحمر كهربائي',
+      safetyOrange: 'برتقالي أمان'
+    },
+    layoutNames: { basic: 'أساسي', elite: 'متقدم' },
+    script: {
+      forkQuestion: 'هل تعرف ما الذي تريد منه أن يصنعه؟',
+      automate: 'أتمتة شيء أفعله باستمرار',
+      figure: 'لنكتشف ذلك معًا',
+      mind: 'لدي فكرة محددة',
+      skip: 'تخطي هذا الآن',
+      somethingElse: 'شيء آخر',
+      tourQuestion: 'هل تريد جولة سريعة أولًا؟',
+      tourBasics: 'الأساسيات فقط',
+      tourNone: 'سأستكشف بنفسي',
+      tourFull: 'عرّفني بالمكان',
+      fallbackQuestion: 'أي خيار يبدو أفضل؟',
+      buildReviewQuestion: 'هل هذا ما تريده؟',
+      buildReviewLooksRight: 'هذا مناسب',
+      buildReviewChange: 'تغيير شيء',
+      buildReviewFurther: 'تطويره أكثر',
+      machineRunQuestion: 'هل تريد مني تنفيذ هذا؟',
+      machineRunGoAhead: 'ابدأ',
+      machineRunChangeList: 'غيّر القائمة',
+      machineRunEssentials: 'الأساسيات فقط',
+      checkpointQuestion: 'ماذا تريد بعد ذلك؟',
+      computerKind: 'الكمبيوتر',
+      machineSetupOption: kind => `ساعدني في إعداد ${kind}`,
+      machineSetupTask: kind => `إعداد ${kind}`
+    },
+    errors: {
+      firstBuildNeedsAttention: 'المهمة الأولى تحتاج إلى انتباهك',
+      welcomeOwnerUnavailable: 'محادثة الترحيب غير متاحة الآن. أعد فتحها ثم حاول بدء المهمة الأولى.',
+      preferencesSaveFailed: 'تعذر حفظ تفضيلات الإعداد. أعد المحاولة قبل بدء المهمة الأولى.',
+      sessionOpenFailed: 'تعذر فتح جلسة المهمة الأولى.',
+      sessionIdentityMissing: 'لم تُرجع جلسة المهمة الأولى معرّفًا دائمًا. تحقق من جلساتك ثم أعد المحاولة.',
+      welcomeCreateFailed: 'تعذر إنشاء محادثة الترحيب. حاول مرة أخرى.',
+      restoreProfileFailed: 'تعذرت استعادة ملفك الشخصي',
+      welcomeNeedsAttention: 'محادثة الترحيب تحتاج إلى انتباهك',
+      welcomeStartFailed: 'تعذر بدء محادثة الترحيب.',
+      receiptUnreadable: 'تعذرت قراءة سجل المهمة الأولى المحفوظ. تحقق من جلساتك قبل بدء مهمة أخرى.',
+      receiptSaveFailed: 'تعذر حفظ جلسة المهمة الأولى للاسترداد. لم يُرسل طلب بدء جديد.',
+      verifyFailed: 'تعذر التحقق من المهمة الأولى. أعد المحاولة بعد عودة الاتصال.',
+      unconfirmedRunning:
+        'لم يتأكد بدء المهمة الأولى، لكن جلستها ما زالت قيد التشغيل. أعد المحاولة بعد خمولها؛ لم يُرسل طلب مكرر.',
+      notAcknowledged: 'لم تؤكد المهمة الأولى بدءها. تحقق من جلستها ثم أعد المحاولة؛ لم يُرسل طلب مكرر.',
+      notAcknowledgedStart: 'لم تؤكد المهمة الأولى بدء التشغيل. تحقق من جلستها ثم أعد المحاولة.',
+      pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء المهمة الأولى.'
+    }
+  },
   install: {
     stageStates: {
       pending: 'قيد الانتظار',
@@ -3621,6 +3770,7 @@ export const ar = defineLocale({
     toggleLayoutEditMode: 'تبديل وضع تحرير التخطيط',
     layoutNames: {
       default: 'افتراضي',
+      basic: 'أساسي',
       focus: 'تركيز',
       'terminal-deck': 'لوحة الطرفية',
       quad: 'رباعي'

@@ -228,8 +228,8 @@ describe('localized backend transcript copy', () => {
     ['upstream server error (502, 12s)', '上游服务器错误（502，12 秒）'],
     ['upstream provider overloaded (529)', '上游提供商过载（529）'],
     ['upstream error (code 418, 12s)', '上游错误（代码 418，12 秒）'],
-    ['fast response (1.2s) — likely rate limited', '响应较快（1.2 秒）——可能受到限流'],
-    ['slow response (61s) — likely upstream timeout', '响应较慢（61 秒）——可能是上游超时'],
+    ['fast response (1.2s) — likely rate limited', '响应较快（1.2 秒） — 可能受到限流'],
+    ['slow response (61s) — likely upstream timeout', '响应较慢（61 秒） — 可能是上游超时'],
     ['response time 12.3s', '响应耗时 12.3 秒']
   ])('localizes the emitted retry reason “%s”', async (reason, localizedReason) => {
     await renderInterrupted(

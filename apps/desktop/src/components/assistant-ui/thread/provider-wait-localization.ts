@@ -6,6 +6,9 @@ type ProviderWaitKind = 'output' | 'response'
 const WAITING_PATTERN =
   /^⏳\s*waiting on (.+?) — (\d+)s with no (output|response) yet \(provider may be slow or overloaded(?:, or the model is thinking)?(?:; auto-reconnect at (\d+)s)?\)$/i
 
+const STREAM_WAITING_PATTERN =
+  /^⏳\s*waiting on (.+?) — no stream (output|response) for (\d+)s \(provider may be slow or overloaded(?:, or the model is thinking)?(?:; auto-reconnect at (\d+)s)?\)$/i
+
 const RECONNECTING_PATTERN = /^⚠\s*no (output|response) from provider (?:for|in) (\d+)s — reconnecting\.\.\.$/i
 
 /**
@@ -25,6 +28,17 @@ export function localizeProviderWaitText(text: string, copy: AssistantThreadCopy
       waiting[2],
       waiting[3].toLowerCase() as ProviderWaitKind,
       waiting[4] ?? null
+    )
+  }
+
+  const streamWaiting = trimmed.match(STREAM_WAITING_PATTERN)
+
+  if (streamWaiting) {
+    return copy.providerWaiting(
+      streamWaiting[1],
+      streamWaiting[3],
+      streamWaiting[2].toLowerCase() as ProviderWaitKind,
+      streamWaiting[4] ?? null
     )
   }
 

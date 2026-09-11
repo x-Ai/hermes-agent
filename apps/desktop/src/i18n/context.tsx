@@ -8,6 +8,8 @@ import {
   isSupportedLocaleValue,
   localeConfigValue,
   normalizeLocale,
+  readStoredLocale,
+  resolveInitialLocale,
   resolvePreferredLocale,
   writeStoredLocale
 } from './languages'
@@ -27,14 +29,16 @@ const defaultConfigClient: I18nConfigClient = {
       return Promise.resolve({})
     }
 
-    return getHermesConfigRecord()
+    // Merged defaults make an unset language indistinguishable from saved English.
+    // Older backends ignore the option and keep returning English as before.
+    return getHermesConfigRecord(undefined, { includeDefaults: false })
   },
   saveConfig: config => {
     if (typeof window === 'undefined' || !window.hermesDesktop?.api) {
       return Promise.resolve({ ok: true })
     }
 
-    return saveHermesConfig(config)
+    return saveHermesConfig(config, undefined, { preserveLanguage: true })
   }
 }
 
@@ -113,7 +117,6 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
     localeRef.current = locale
-    writeStoredLocale(locale)
     setRuntimeI18nLocale(locale)
     applyDocumentLocale(locale)
   }, [locale])
@@ -136,7 +139,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
       return configClient
         .getConfig()
-        .then(config => {
+        .then(async config => {
           if (cancelled || userLocaleRef.current) {
             return
           }
@@ -145,13 +148,47 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
           if (isSupportedLocaleValue(configured)) {
             hasPersistedLanguageRef.current = true
-            setLocaleState(normalizeLocale(configured))
-          } else {
-            hasPersistedLanguageRef.current = false
+            const savedLocale = normalizeLocale(configured)
 
-            if (configured != null && configured !== '') {
-              setLocaleState(DEFAULT_LOCALE)
-            }
+            writeStoredLocale(savedLocale)
+            setLocaleState(savedLocale)
+
+            return
+          }
+
+          hasPersistedLanguageRef.current = false
+
+          // An unsupported configured value is invalid, not a fresh install.
+          // Preserve the existing English fallback instead of treating it as
+          // permission to infer a different language from the machine.
+          if (configured != null && configured !== '') {
+            setLocaleState(DEFAULT_LOCALE)
+
+            return
+          }
+
+          // A locally cached explicit choice keeps first-run language changes
+          // usable while the backend is unavailable. Fresh installs have no
+          // cache and use Electron's native OS locale, with the browser locale
+          // as the compatibility fallback when the native bridge is absent.
+          const storedLocale = readStoredLocale()
+
+          if (storedLocale) {
+            setLocaleState(storedLocale)
+
+            return
+          }
+
+          // Keep inference unsaved so OS language changes apply on the next boot
+          // until the user explicitly picks a language.
+          const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
+
+          if (!cancelled && !userLocaleRef.current) {
+            setLocaleState(
+              machineProfile?.locale
+                ? resolveInitialLocale(undefined, machineProfile.locale)
+                : resolvePreferredLocale(initialLocale)
+            )
           }
         })
         .catch(error => {
@@ -194,6 +231,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
       userLocaleRef.current = true
       setSaveError(null)
+      writeStoredLocale(next)
       setLocaleState(next)
 
       if (!configClient) {
@@ -215,6 +253,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
         const nextError = toError(error)
 
         if (hasPersistedLanguageRef.current) {
+          writeStoredLocale(previousLocale)
           setLocaleState(previousLocale)
           setSaveError(nextError)
           throw nextError

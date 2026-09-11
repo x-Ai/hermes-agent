@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { TRANSLATIONS } from '@/i18n'
 
@@ -8,17 +8,31 @@ const copy = TRANSLATIONS.zh.assistant.thread
 
 describe('localizeProviderWaitText', () => {
   it.each([
-    [
-      '⏳ waiting on kimi-k3 — 57s with no output yet (provider may be slow or overloaded, or the model is thinking; auto-reconnect at 900s)',
-      '正在等待 kimi-k3 输出——已持续 57 秒（服务商可能响应较慢或负载过高，模型也可能仍在思考；若持续无输出，将在 900 秒时自动重连）'
-    ],
-    [
-      '⏳ waiting on gpt-5 — 30s with no response yet (provider may be slow or overloaded)',
-      '正在等待 gpt-5 响应——已持续 30 秒（服务商可能响应较慢或负载过高）'
-    ],
+    { variant: 'elapsed-first', kind: 'output' as const, elapsedSeconds: '57', reconnectSeconds: '900' },
+    { variant: 'elapsed-first', kind: 'response' as const, elapsedSeconds: '30', reconnectSeconds: null },
+    { variant: 'stream-first', kind: 'output' as const, elapsedSeconds: '61', reconnectSeconds: '347' },
+    { variant: 'stream-first', kind: 'response' as const, elapsedSeconds: '43', reconnectSeconds: null }
+  ])('passes every $variant $kind field from the wire to the locale formatter', testCase => {
+    const { variant, kind, elapsedSeconds, reconnectSeconds } = testCase
+    const modelFromWire = `model-from-wire/${variant}-${kind}-${elapsedSeconds}`
+    const thinkingSuffix = kind === 'output' ? ', or the model is thinking' : ''
+    const reconnectSuffix = reconnectSeconds ? `; auto-reconnect at ${reconnectSeconds}s` : ''
+
+    const waitDetail =
+      variant === 'stream-first' ? `no stream ${kind} for ${elapsedSeconds}s` : `${elapsedSeconds}s with no ${kind} yet`
+
+    const raw = `⏳ waiting on ${modelFromWire} — ${waitDetail} (provider may be slow or overloaded${thinkingSuffix}${reconnectSuffix})`
+    const localizedNotice = `localized:${modelFromWire}:${elapsedSeconds}:${kind}:${reconnectSeconds ?? 'none'}`
+    const providerWaiting = vi.fn(() => localizedNotice)
+
+    expect(localizeProviderWaitText(raw, { ...copy, providerWaiting })).toBe(localizedNotice)
+    expect(providerWaiting).toHaveBeenCalledWith(modelFromWire, elapsedSeconds, kind, reconnectSeconds)
+  })
+
+  it.each([
     ['⚠ no output from provider for 120s — reconnecting...', '服务商持续 120 秒未返回输出，正在重新连接…'],
     ['⚠ no response from provider in 90s — reconnecting...', '服务商持续 90 秒未返回响应，正在重新连接…']
-  ])('localizes a core provider-wait notice without changing its dynamic fields', (raw, localized) => {
+  ])('localizes a reconnect notice without changing its dynamic fields', (raw, localized) => {
     expect(localizeProviderWaitText(raw, copy)).toBe(localized)
   })
 

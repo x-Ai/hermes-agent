@@ -234,7 +234,49 @@ interface AuxTaskCopy {
   hint: string
 }
 
+interface IntroRevealToolCopy {
+  label: string
+  running: string
+  done: string
+}
+
+interface IntroRevealSideAgentCopy {
+  title: string
+  line1: string
+  line2: string
+}
+
 export interface Translations {
+  connectors: {
+    title: string
+    connect: string
+    skip: string
+    cancel: string
+    retry: string
+    grant: string
+    connected: string
+    skipped: string
+    disabled: string
+    failed: string
+    needsAuth: string
+    opening: string
+    waiting: string
+    timeout: string
+    keepWaiting: string
+    refresh: string
+    statusError: string
+    connectError: string
+    unavailable: string
+    ownerMissing: string
+    search: string
+    empty: string
+    continue: string
+    continueBusy: string
+    continueFailed: string
+    missingResult: string
+    disclaimer: string
+    execution: string
+  }
   sessionImport: {
     title: string
     subtitle: string
@@ -3373,6 +3415,97 @@ export interface Translations {
     }
   }
 
+  /** The guided first run's pre-written opening line — banked, not generated,
+   *  so the first paint costs no model time. Translated per locale because the
+   *  model is told to speak the user's language from its first real turn, and
+   *  an English opener above a Japanese reply reads as two different agents.
+   *  `nameSuggestion` offers the OS account name as a default. */
+  guidedGreeting: {
+    line: string
+    nameSuggestion: (name: string) => string
+  }
+  introReveal: {
+    skip: string
+    surfaces: string
+    prompt: string
+    replyWords: string[]
+    composerPlaceholder: string
+    viewport: string
+    tagline: string
+    viewportModes: Record<string, string>
+    tools: {
+      blender: IntroRevealToolCopy
+      metal: IntroRevealToolCopy
+      glass: IntroRevealToolCopy
+    }
+    sideAgents: {
+      research: IntroRevealSideAgentCopy
+      groceries: IntroRevealSideAgentCopy
+      inbox: IntroRevealSideAgentCopy
+      morning: IntroRevealSideAgentCopy
+    }
+  }
+  guidedOnboarding: {
+    done: string
+    continue: string
+    skipSetup: string
+    fallbackOption: string
+    handoffFailed: string
+    handoffFailedRetry: string
+    handoffStarted: (title: string) => string
+    handoffOpening: (title: string) => string
+    retryFirstBuild: string
+    workingOnIt: string
+    firstBuild: string
+    signpostTitle: string
+    signpostBody: string
+    profileDescription: string
+    accentNames: Record<string, string>
+    layoutNames: Record<string, string>
+    script: {
+      forkQuestion: string
+      automate: string
+      figure: string
+      mind: string
+      skip: string
+      somethingElse: string
+      tourQuestion: string
+      tourBasics: string
+      tourNone: string
+      tourFull: string
+      fallbackQuestion: string
+      buildReviewQuestion: string
+      buildReviewLooksRight: string
+      buildReviewChange: string
+      buildReviewFurther: string
+      machineRunQuestion: string
+      machineRunGoAhead: string
+      machineRunChangeList: string
+      machineRunEssentials: string
+      checkpointQuestion: string
+      computerKind: string
+      machineSetupOption: (kind: string) => string
+      machineSetupTask: (kind: string) => string
+    }
+    errors: {
+      firstBuildNeedsAttention: string
+      welcomeOwnerUnavailable: string
+      preferencesSaveFailed: string
+      sessionOpenFailed: string
+      sessionIdentityMissing: string
+      welcomeCreateFailed: string
+      restoreProfileFailed: string
+      welcomeNeedsAttention: string
+      welcomeStartFailed: string
+      receiptUnreadable: string
+      receiptSaveFailed: string
+      verifyFailed: string
+      unconfirmedRunning: string
+      notAcknowledged: string
+      notAcknowledgedStart: string
+      pluginFolderUnavailable: string
+    }
+  }
   install: {
     stageStates: Record<string, string>
     stageNames: Record<string, string>
@@ -3516,6 +3649,8 @@ export interface Translations {
     openModelPicker: string
     dismiss: string
     // Statusbar chip.
+    /** The status-bar chip's label: the provider name alone; the model id and the sign-in follow it. */
+    providerName: string
     statusLabel: (model: string) => string
     // Sign-in dialog.
     signIn: string

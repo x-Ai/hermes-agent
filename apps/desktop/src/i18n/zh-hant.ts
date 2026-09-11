@@ -3,6 +3,36 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale } from './define-locale'
 
 export const zhHant = defineLocale({
+  connectors: {
+    title: '連接你的應用程式',
+    connect: '連接',
+    skip: '暫時不要',
+    cancel: '停止等待',
+    retry: '重試',
+    grant: '重新連接',
+    connected: '已連接',
+    skipped: '已略過',
+    disabled: '無法使用',
+    failed: '無法連接',
+    needsAuth: '存取權已過期',
+    opening: '正在開啟登入…',
+    waiting: '請在瀏覽器中完成連接…',
+    timeout: '仍在等待授權。',
+    keepWaiting: '繼續等待',
+    refresh: '重新整理狀態',
+    statusError: '無法檢查連接，請重新整理。',
+    connectError: '無法開始授權，請重試。',
+    unavailable: '此工作階段無法使用連接器。',
+    ownerMissing: '請重新開啟此對話以管理連接。',
+    search: '尋找應用程式',
+    empty: '沒有符合的應用程式',
+    continue: '在對話中繼續',
+    continueBusy: '正在等待這一輪完成',
+    continueFailed: '無法繼續，請重試。',
+    missingResult: '缺少連接器結果',
+    disclaimer: '連接是選用功能。請只授權你希望 Hermes 使用的應用程式。',
+    execution: '連接器工具'
+  },
   sessionImport: {
     title: '從其他應用程式繼續',
     subtitle: '將對話匯入 Hermes，接著上次的進度繼續。',
@@ -496,8 +526,7 @@ export const zhHant = defineLocale({
     resetFailed: '重設失敗',
     customEndpoints: {
       maxOutputLabel: '最大輸出 Token',
-      maxOutputHint:
-        '每次請求傳送的提供方輸出上限。留空時使用 /models 自動探索值或協定預設值'
+      maxOutputHint: '每次請求傳送的提供方輸出上限。留空時使用 /models 自動探索值或協定預設值'
     },
     nav: {
       providers: '提供方',
@@ -1938,18 +1967,18 @@ export const zhHant = defineLocale({
       submitLocalNotice: '確認後將上傳此確切的套件供組織審核。審核完成前不會發布。',
       reloadReview: '重新載入審核內容',
       notificationPreferences: {
-        title: "通知設定",
-        scope: "管理此組織中跨用戶端的主動通知。手動瀏覽和分享仍可使用。",
-        on: "通知已開啟",
-        muted: "通知已靜音",
-        day: "1 天",
-        week: "1 週",
-        month: "30 天",
-        forever: "無限期",
-        pending: "選擇已儲存在本機，正在等待同步。",
-        failed: "同步失敗。請重新整理設定後重新選擇。",
-        conflict: "其他用戶端變更了偏好。請重新整理查看。",
-        expired: "此選擇已過期。請重新整理設定後再試。",
+        title: '通知設定',
+        scope: '管理此組織中跨用戶端的主動通知。手動瀏覽和分享仍可使用。',
+        on: '通知已開啟',
+        muted: '通知已靜音',
+        day: '1 天',
+        week: '1 週',
+        month: '30 天',
+        forever: '無限期',
+        pending: '選擇已儲存在本機，正在等待同步。',
+        failed: '同步失敗。請重新整理設定後重新選擇。',
+        conflict: '其他用戶端變更了偏好。請重新整理查看。',
+        expired: '此選擇已過期。請重新整理設定後再試。'
       },
       title: '集體智慧',
       loading: '正在載入集體智慧…',
@@ -4065,6 +4094,123 @@ export const zhHant = defineLocale({
     }
   },
 
+  guidedGreeting: {
+    line: '來了，進來吧。我是 Hermes。給我兩分鐘，把這裡按你的習慣整理一下，然後我們找件你真正想做的事來做。\n\n先說，我該怎麼稱呼你？',
+    nameSuggestion: (name: string) => `（如果你願意，我也可以直接叫你 ${name}。）`
+  },
+  introReveal: {
+    skip: '略過',
+    surfaces: '桌面 · 訊息 · 手機 · 隨處可用',
+    prompt: '在 Blender 中製作主視覺立方體，並輪換展示幾種材質',
+    replyWords: ['完成 — ', '材質已編譯，', '並在立方體上完成預覽。', '要匯出轉盤動畫嗎？'],
+    composerPlaceholder: '儘管提問，隨心創作。',
+    viewport: '視埠',
+    tagline: '你的智慧代理，無處不在',
+    viewportModes: {
+      standard: '標準',
+      metal: '金屬',
+      texture: '紋理',
+      glass: '玻璃',
+      wireframe: '線框'
+    },
+    tools: {
+      blender: { label: 'blender-mcp', running: '正在連接 Blender…', done: '場景已連接' },
+      metal: { label: '金屬', running: '正在編譯金屬材質…', done: '金屬 · 粗糙度 0.2' },
+      glass: { label: '玻璃', running: '正在編譯玻璃材質…', done: '玻璃 · 折射率 1.45' }
+    },
+    sideAgents: {
+      research: {
+        title: '研究智慧代理',
+        line1: '找房進度：已選出 3 個新房源',
+        line2: '↳ 正在整理看房行程…'
+      },
+      groceries: {
+        title: '日用品',
+        line1: '已依清單建立每週訂單',
+        line2: '↳ 已預約週日送達'
+      },
+      inbox: {
+        title: '收件匣智慧代理',
+        line1: '已草擬 2 封回覆，等待你確認',
+        line2: '↳ 週五行事曆已更新'
+      },
+      morning: {
+        title: '晨間簡報',
+        line1: '明天：3 場會議，8 點有雨',
+        line2: '↳ 在你醒來前準備好'
+      }
+    }
+  },
+  guidedOnboarding: {
+    done: '✓ 完成',
+    continue: '繼續',
+    skipSetup: '略過設定',
+    fallbackOption: '一起想想要做什麼',
+    handoffFailed: '無法啟動第一個任務。',
+    handoffFailedRetry: '無法啟動第一個任務，請重試並檢查其工作階段。',
+    handoffStarted: title => `${title} 已啟動，可在工作階段清單中找到`,
+    handoffOpening: title => `正在開啟 ${title}…`,
+    retryFirstBuild: '重試第一個任務',
+    workingOnIt: '正在處理',
+    firstBuild: '第一個任務',
+    signpostTitle: 'Hermes 就在隔壁',
+    signpostBody: '你現在位於自己的工作區，所有設定檔都在這裡。剛才的對話仍保留在其中，需要幫忙時隨時回來。',
+    profileDescription: '你與 Hermes 初次見面的地方 — 引導首次使用，並在你熟悉後適時跟進。',
+    accentNames: {
+      mono: '單色',
+      githubGreen: 'GitHub 綠',
+      cyberCyan: '賽博青',
+      nousBlue: 'Nous 藍',
+      ultraviolet: '紫外紫',
+      barbiePink: '芭比粉',
+      electricRed: '電光紅',
+      safetyOrange: '安全橙'
+    },
+    layoutNames: { basic: '基礎', elite: '進階' },
+    script: {
+      forkQuestion: '想好讓它做什麼了嗎？',
+      automate: '自動處理我常做的事',
+      figure: '一起想想要做什麼',
+      mind: '我已經有想法了',
+      skip: '暫時略過',
+      somethingElse: '其他事情',
+      tourQuestion: '要先四處看看嗎？',
+      tourBasics: '只看基礎功能',
+      tourNone: '我自己摸索',
+      tourFull: '帶我看看',
+      fallbackQuestion: '哪個聽起來更適合？',
+      buildReviewQuestion: '這符合你的預期嗎？',
+      buildReviewLooksRight: '符合預期',
+      buildReviewChange: '修改一些內容',
+      buildReviewFurther: '繼續完善',
+      machineRunQuestion: '要我執行這個方案嗎？',
+      machineRunGoAhead: '開始吧',
+      machineRunChangeList: '修改清單',
+      machineRunEssentials: '只做必要項',
+      checkpointQuestion: '接下來想怎麼做？',
+      computerKind: '電腦',
+      machineSetupOption: kind => `幫我設定這台 ${kind}`,
+      machineSetupTask: kind => `設定這台 ${kind}`
+    },
+    errors: {
+      firstBuildNeedsAttention: '第一個任務需要處理',
+      welcomeOwnerUnavailable: '歡迎對話暫時無法使用，請重新開啟後重試第一個任務。',
+      preferencesSaveFailed: '無法儲存引導設定，請在啟動第一個任務前重試。',
+      sessionOpenFailed: '無法開啟第一個任務的工作階段。',
+      sessionIdentityMissing: '第一個任務的工作階段未傳回永久識別碼，請檢查工作階段後重試。',
+      welcomeCreateFailed: '無法建立歡迎對話，請重試。',
+      restoreProfileFailed: '無法還原你的設定檔',
+      welcomeNeedsAttention: '歡迎對話需要處理',
+      welcomeStartFailed: '無法啟動歡迎對話。',
+      receiptUnreadable: '無法讀取已儲存的第一個任務記錄，請先檢查工作階段再啟動其他任務。',
+      receiptSaveFailed: '無法儲存第一個任務的復原資訊，尚未送出新的啟動要求。',
+      verifyFailed: '無法驗證第一個任務，請在連線恢復後重試。',
+      unconfirmedRunning: '第一個任務尚未確認啟動，但工作階段仍顯示執行中。請在其閒置後重試；沒有重複送出。',
+      notAcknowledged: '第一個任務尚未確認啟動，請檢查其工作階段後重試；沒有重複送出。',
+      notAcknowledgedStart: '第一個任務未確認啟動，請檢查其工作階段後重試。',
+      pluginFolderUnavailable: '桌面外掛程式資料夾無法使用，請在啟動第一個任務前重試。'
+    }
+  },
   install: {
     stageStates: {
       pending: '等待中',
@@ -4587,6 +4733,7 @@ export const zhHant = defineLocale({
     toggleLayoutEditMode: '切換版面編輯模式',
     layoutNames: {
       default: '預設',
+      basic: '基礎',
       focus: '專注',
       'terminal-deck': '終端面板',
       quad: '四格'

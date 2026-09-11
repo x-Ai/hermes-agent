@@ -17,6 +17,37 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
 }
 
 export const zh: Translations = {
+  connectors: {
+    title: '连接你的应用',
+    connect: '连接',
+    skip: '暂不连接',
+    cancel: '停止等待',
+    retry: '重试',
+    grant: '重新连接',
+    connected: '已连接',
+    skipped: '已跳过',
+    disabled: '不可用',
+    failed: '连接失败',
+    needsAuth: '授权已过期',
+    opening: '正在打开登录…',
+    waiting: '请在浏览器中完成连接…',
+    timeout: '仍在等待授权。',
+    keepWaiting: '继续等待',
+    refresh: '刷新状态',
+    statusError: '无法检查连接，请刷新重试。',
+    connectError: '无法开始授权，请重试。',
+    unavailable: '此会话暂时无法使用连接器。',
+    ownerMissing: '请重新打开此对话以管理连接。',
+    search: '查找应用',
+    empty: '没有匹配的应用',
+    continue: '在对话中继续',
+    continueBusy: '等待当前操作完成',
+    continueFailed: '无法继续，请重试。',
+    missingResult: '缺少连接器结果',
+    disclaimer: '连接为可选操作。请仅授权你希望 Hermes 使用的应用。',
+    execution: '连接器工具'
+  },
+
   sessionImport: {
     title: '从其他应用继续',
     subtitle: '将对话导入 Hermes，接着上次的进度继续',
@@ -2060,8 +2091,7 @@ export const zh: Translations = {
       defaultModelLabel: '默认模型',
       contextLabel: '上下文',
       maxOutputLabel: '最大输出 Token',
-      maxOutputHint:
-        '每次请求发送的提供方输出上限。留空则使用 /models 自动发现值或协议默认值',
+      maxOutputHint: '每次请求发送的提供方输出上限。留空则使用 /models 自动发现值或协议默认值',
       apiKeyLabel: 'API 密钥',
       userAgentLabel: 'User-Agent',
       userAgentHint:
@@ -2692,18 +2722,18 @@ export const zh: Translations = {
       submitLocalNotice: '确认后将上传此确切的软件包供组织审核。审核完成前不会发布。',
       reloadReview: '重新加载审核内容',
       notificationPreferences: {
-        title: "通知设置",
-        scope: "管理此组织中跨客户端的主动通知。手动浏览和分享仍可使用。",
-        on: "通知已开启",
-        muted: "通知已静音",
-        day: "1 天",
-        week: "1 周",
-        month: "30 天",
-        forever: "无限期",
-        pending: "选择已保存在本地，正在等待同步。",
-        failed: "同步失败。请刷新设置后重新选择。",
-        conflict: "其他客户端更改了偏好。请刷新查看。",
-        expired: "此选择已过期。请刷新设置后重试。",
+        title: '通知设置',
+        scope: '管理此组织中跨客户端的主动通知。手动浏览和分享仍可使用。',
+        on: '通知已开启',
+        muted: '通知已静音',
+        day: '1 天',
+        week: '1 周',
+        month: '30 天',
+        forever: '无限期',
+        pending: '选择已保存在本地，正在等待同步。',
+        failed: '同步失败。请刷新设置后重新选择。',
+        conflict: '其他客户端更改了偏好。请刷新查看。',
+        expired: '此选择已过期。请刷新设置后重试。'
       },
       title: '集体智慧',
       loading: '正在加载集体智慧…',
@@ -4915,7 +4945,7 @@ export const zh: Translations = {
     wakeWordPausedVoice: phrase => `唤醒词:"${phrase}" — 语音对话期间暂停`,
     wakeWordClickToEnable: '点击启用',
     lookupLoading: '查找中…',
-    lookupNoMatches: '没有匹配项',
+    lookupNoMatches: '没有匹配项。',
     lookupTry: '试试',
     lookupOr: '或',
     commonCommands: '常用命令',
@@ -5275,6 +5305,123 @@ export const zh: Translations = {
     }
   },
 
+  guidedGreeting: {
+    line: '来了，进来吧。我是 Hermes。给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做。\n\n先说，我该怎么称呼你？',
+    nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}。）`
+  },
+  introReveal: {
+    skip: '跳过',
+    surfaces: '桌面 · 消息 · 手机 · 随处可用',
+    prompt: '在 Blender 中制作一个主视觉立方体，并轮换展示几种材质',
+    replyWords: ['完成 — ', '材质已编译，', '并在立方体上完成预览。', '要导出转台动画吗？'],
+    composerPlaceholder: '尽管提问，随心创造。',
+    viewport: '视口',
+    tagline: '你的智能体，无处不在',
+    viewportModes: {
+      standard: '标准',
+      metal: '金属',
+      texture: '纹理',
+      glass: '玻璃',
+      wireframe: '线框'
+    },
+    tools: {
+      blender: { label: 'blender-mcp', running: '正在连接 Blender…', done: '场景已连接' },
+      metal: { label: '金属', running: '正在编译金属材质…', done: '金属 · 粗糙度 0.2' },
+      glass: { label: '玻璃', running: '正在编译玻璃材质…', done: '玻璃 · 折射率 1.45' }
+    },
+    sideAgents: {
+      research: {
+        title: '调研智能体',
+        line1: '找房进展：已筛出 3 个新房源',
+        line2: '↳ 正在整理看房日程…'
+      },
+      groceries: {
+        title: '日用品',
+        line1: '已根据清单生成每周订单',
+        line2: '↳ 已预约周日送达'
+      },
+      inbox: {
+        title: '收件箱智能体',
+        line1: '已起草 2 封回复，等待你确认',
+        line2: '↳ 日历已更新至周五'
+      },
+      morning: {
+        title: '晨间简报',
+        line1: '明天：3 场会议，8 点有雨',
+        line2: '↳ 在你醒来前准备好'
+      }
+    }
+  },
+  guidedOnboarding: {
+    done: '✓ 完成',
+    continue: '继续',
+    skipSetup: '跳过设置',
+    fallbackOption: '一起想想做什么',
+    handoffFailed: '无法启动第一个任务。',
+    handoffFailedRetry: '无法启动第一个任务，请重试并检查其会话。',
+    handoffStarted: title => `${title} 已启动，可在会话列表中找到`,
+    handoffOpening: title => `正在打开 ${title}…`,
+    retryFirstBuild: '重试第一个任务',
+    workingOnIt: '正在处理',
+    firstBuild: '第一个任务',
+    signpostTitle: 'Hermes 就在隔壁',
+    signpostBody: '你现在位于自己的工作区，所有 profile 都在这里。刚才的对话仍保留在其中，需要帮忙时随时回来。',
+    profileDescription: '你与 Hermes 初次见面的地方 — 引导首次使用，并在你熟悉后适时跟进。',
+    accentNames: {
+      mono: '单色',
+      githubGreen: 'GitHub 绿',
+      cyberCyan: '赛博青',
+      nousBlue: 'Nous 蓝',
+      ultraviolet: '紫外紫',
+      barbiePink: '芭比粉',
+      electricRed: '电光红',
+      safetyOrange: '安全橙'
+    },
+    layoutNames: { basic: '基础', elite: '高级' },
+    script: {
+      forkQuestion: '想好让它做什么了吗？',
+      automate: '自动处理我常做的事',
+      figure: '一起想想做什么',
+      mind: '我已经有想法了',
+      skip: '暂时跳过',
+      somethingElse: '其他事情',
+      tourQuestion: '要先四处看看吗？',
+      tourBasics: '只看基础功能',
+      tourNone: '我自己摸索',
+      tourFull: '带我看看',
+      fallbackQuestion: '哪个听起来更合适？',
+      buildReviewQuestion: '这符合你的预期吗？',
+      buildReviewLooksRight: '符合预期',
+      buildReviewChange: '修改一些内容',
+      buildReviewFurther: '继续完善',
+      machineRunQuestion: '要我执行这个方案吗？',
+      machineRunGoAhead: '开始吧',
+      machineRunChangeList: '修改清单',
+      machineRunEssentials: '只做必要项',
+      checkpointQuestion: '接下来想怎么做？',
+      computerKind: '电脑',
+      machineSetupOption: kind => `帮我设置这台 ${kind}`,
+      machineSetupTask: kind => `设置这台 ${kind}`
+    },
+    errors: {
+      firstBuildNeedsAttention: '第一个任务需要处理',
+      welcomeOwnerUnavailable: '欢迎对话暂时不可用，请重新打开后重试第一个任务。',
+      preferencesSaveFailed: '无法保存引导设置，请在启动第一个任务前重试。',
+      sessionOpenFailed: '无法打开第一个任务的会话。',
+      sessionIdentityMissing: '第一个任务的会话未返回持久标识，请检查会话后重试。',
+      welcomeCreateFailed: '无法创建欢迎对话，请重试。',
+      restoreProfileFailed: '无法恢复你的 profile',
+      welcomeNeedsAttention: '欢迎对话需要处理',
+      welcomeStartFailed: '无法启动欢迎对话。',
+      receiptUnreadable: '无法读取已保存的第一个任务记录，请先检查会话再启动其他任务。',
+      receiptSaveFailed: '无法保存第一个任务的恢复信息，尚未发送新的启动请求。',
+      verifyFailed: '无法验证第一个任务，请在连接恢复后重试。',
+      unconfirmedRunning: '第一个任务尚未确认启动，但会话仍显示正在运行。请在其空闲后重试；没有重复发送。',
+      notAcknowledged: '第一个任务尚未确认启动，请检查其会话后重试；没有重复发送。',
+      notAcknowledgedStart: '第一个任务未确认启动，请检查其会话后重试。',
+      pluginFolderUnavailable: '桌面插件文件夹不可用，请在启动第一个任务前重试。'
+    }
+  },
   install: {
     stageStates: {
       pending: '等待中',
@@ -5461,7 +5608,8 @@ export const zh: Translations = {
     stripBody: '打开模型选择器试用，或登录 Nous 账户。',
     openModelPicker: '打开模型选择器',
     dismiss: '关闭',
-    statusLabel: model => `Nous · 免费层 · ${model}`,
+    providerName: 'Nous',
+    statusLabel: model => `Nous · ${model}`,
     signIn: '登录',
     signInHeading: '登录 Nous 账户以解锁更多模型和工具。',
     settingUp: '正在设置免费推理…',
@@ -5875,6 +6023,7 @@ export const zh: Translations = {
     toggleLayoutEditMode: '切换布局编辑模式',
     layoutNames: {
       default: '默认',
+      basic: '基础',
       focus: '专注',
       'terminal-deck': '终端面板',
       quad: '四格'
@@ -5915,7 +6064,7 @@ export const zh: Translations = {
   assistant: {
     systemNotices: {
       fileMutationFailure: count =>
-        `⚠️ 文件修改校验：本轮有 ${count} 个文件未被修改，即使上文可能有不同表述。请运行 \`git status\` 或 \`read_file\` 确认`,
+        `⚠️ 文件修改校验：本轮有 ${count} 个文件未被修改，即使上文可能有不同表述。请运行 \`git status\` 或 \`read_file\` 确认。`,
       failedToWriteFile: '写入文件失败：',
       failed: '失败',
       andMore: count => `另有 ${count} 个`,
@@ -6150,10 +6299,10 @@ export const zh: Translations = {
         `拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`,
       returnedError: '工具返回了错误',
       returnedSuccessFalse: '工具返回 success=false',
-      returnedStatus: status => `工具返回了"${status}"状态`,
+      returnedStatus: status => `工具返回了“${status}”状态`,
       commandFailedWithExitCode: exitCode => `命令执行失败，退出码为 ${exitCode}`,
       sessionKernelTimedOut: (timeoutSeconds, remote) =>
-        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核`,
+        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。`,
       clarifyErrors: {
         questionsMustBeArray: 'questions 参数必须是一个由问题对象组成的数组',
         questionsLimit: limit => `questions 参数最多支持 ${limit} 项`,
@@ -6328,9 +6477,9 @@ export const zh: Translations = {
     sessionBusy: '会话忙碌中',
     sessionBusyQueuedCommand: '当前任务仍在运行，消息已加入队列，将在本轮结束后自动发送',
     sessionBusyInterruptCommand: '当前任务仍在运行，请先使用 /interrupt 停止本轮，再发送此命令',
-    steerQueued: text => `已引导 · "${text}"已排队，将在下一次工具调用时送达`,
+    steerQueued: text => `已引导 · “${text}”已排队，将在下一次工具调用时送达`,
     steerQueuedNextToolCall: '已引导下一次工具调用',
-    steerRejected: '引导未生效 — 代理未接受该输入',
+    steerRejected: '引导未生效——代理未接受该输入',
     sessionTitleSet: (title, queued) => `会话标题已设置为：${title}${queued ? '（将在会话初始化后应用）' : ''}`,
     sessionTitleCleared: '会话标题已清除',
     branchStopCurrent: '分支此对话前请先停止当前回合',

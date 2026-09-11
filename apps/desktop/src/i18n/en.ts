@@ -3,6 +3,37 @@ import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'
 import type { Translations } from './types'
 
 export const en: Translations = {
+  connectors: {
+    title: 'Connect your apps',
+    connect: 'Connect',
+    skip: 'Not now',
+    cancel: 'Stop waiting',
+    retry: 'Try again',
+    grant: 'Reconnect',
+    connected: 'Connected',
+    skipped: 'Skipped',
+    disabled: 'Unavailable',
+    failed: 'Could not connect',
+    needsAuth: 'Access expired',
+    opening: 'Opening sign-in…',
+    waiting: 'Finish connecting in your browser…',
+    timeout: 'Still waiting for authorization.',
+    keepWaiting: 'Keep waiting',
+    refresh: 'Refresh status',
+    statusError: 'Could not check connections. Try refreshing.',
+    connectError: 'Could not start authorization. Try again.',
+    unavailable: 'Connectors are unavailable for this session.',
+    ownerMissing: 'Reopen this conversation to manage its connections.',
+    search: 'Find an app',
+    empty: 'No matching apps',
+    continue: 'Continue in chat',
+    continueBusy: 'Waiting for this turn to finish',
+    continueFailed: 'Could not continue. Try again.',
+    missingResult: 'Missing connector result',
+    disclaimer: 'Connecting is optional. Only authorize the apps you want Hermes to use.',
+    execution: 'Connector tools'
+  },
+
   sessionImport: {
     title: 'Continue from another app',
     subtitle: 'Bring a conversation into Hermes and pick up where you left off.',
@@ -1994,18 +2025,19 @@ export const en: Translations = {
   skills: {
     collective: {
       notificationPreferences: {
-        title: "Notification settings",
-        scope: "Your proactive notifications across clients in this organization. Manual browsing and sharing remain available.",
-        on: "Notifications on",
-        muted: "Notifications muted",
-        day: "1 day",
-        week: "1 week",
-        month: "30 days",
-        forever: "Indefinitely",
-        pending: "Your choice is saved locally and waiting to sync.",
-        failed: "Sync failed. Refresh settings before choosing again.",
-        conflict: "Your preference changed on another client. Refresh to review it.",
-        expired: "This choice expired. Refresh settings to try again.",
+        title: 'Notification settings',
+        scope:
+          'Your proactive notifications across clients in this organization. Manual browsing and sharing remain available.',
+        on: 'Notifications on',
+        muted: 'Notifications muted',
+        day: '1 day',
+        week: '1 week',
+        month: '30 days',
+        forever: 'Indefinitely',
+        pending: 'Your choice is saved locally and waiting to sync.',
+        failed: 'Sync failed. Refresh settings before choosing again.',
+        conflict: 'Your preference changed on another client. Refresh to review it.',
+        expired: 'This choice expired. Refresh settings to try again.'
       },
       title: 'Collective Wisdom',
       loading: 'Loading Collective Wisdom…',
@@ -2078,8 +2110,10 @@ export const en: Translations = {
       readEvery: 'Read every file. Approval is bound to the exact three hashes below.',
       publishToTeam: 'Publish to team',
       submitForApproval: 'Submit for approval',
-      publishLocalNotice: 'Confirming uploads this exact package and publishes it to your team after the required checks.',
-      submitLocalNotice: 'Confirming uploads this exact package for your organization to approve. It stays unpublished until moderation is complete.',
+      publishLocalNotice:
+        'Confirming uploads this exact package and publishes it to your team after the required checks.',
+      submitLocalNotice:
+        'Confirming uploads this exact package for your organization to approve. It stays unpublished until moderation is complete.',
       reloadReview: 'Reload review',
       editReview:
         'Edit the description, SKILL.md, or declarative manifest here. Saving creates a new private revision, reruns scans, and returns new hashes; it does not rewrite your local source skill.',
@@ -2105,7 +2139,8 @@ export const en: Translations = {
       share: 'Share',
       reviewPreviousPage: 'Previous review page',
       reviewNextPage: 'Next review page',
-      sharePreparationNotice: 'Share prepares a local handoff package. You will review it and approve separately before anything is uploaded or published.',
+      sharePreparationNotice:
+        'Share prepares a local handoff package. You will review it and approve separately before anything is uploaded or published.',
       muteNotificationsSoon: 'Mute notifications (coming soon)',
       unmuteNotificationsSoon: 'Unmute notifications (coming soon)',
       openCollective: 'Open Collective',
@@ -4150,6 +4185,143 @@ export const en: Translations = {
     }
   },
 
+  guidedGreeting: {
+    line: "Hey, come on in. I'm Hermes. Give me two minutes to set the place up around you, then we'll put me to work on something you actually want done.\n\nFirst though, what should I call you?",
+    nameSuggestion: (name: string) => `(I can also just call you ${name}, if you prefer.)`
+  },
+  introReveal: {
+    skip: 'Skip',
+    surfaces: 'Desktop · Messages · Phone · Anywhere',
+    prompt: 'Model a hero cube in Blender and cycle it through some materials',
+    replyWords: [
+      'Done ',
+      '— ',
+      'materials ',
+      'compiled ',
+      'and ',
+      'previewed ',
+      'on ',
+      'the ',
+      'cube. ',
+      'Want ',
+      'a ',
+      'turntable ',
+      'render ',
+      'exported?'
+    ],
+    composerPlaceholder: 'Ask anything. Build anything.',
+    viewport: 'viewport',
+    tagline: 'Your agent, everywhere',
+    viewportModes: {
+      standard: 'standard',
+      metal: 'metal',
+      texture: 'texture',
+      glass: 'glass',
+      wireframe: 'wireframe'
+    },
+    tools: {
+      blender: { label: 'blender-mcp', running: 'connecting to Blender…', done: 'scene linked' },
+      metal: { label: 'metal', running: 'compiling metal…', done: 'metal · rough 0.2' },
+      glass: { label: 'glass', running: 'compiling glass…', done: 'glass · ior 1.45' }
+    },
+    sideAgents: {
+      research: {
+        title: 'research agent',
+        line1: 'Apartment hunt: 3 new listings shortlisted',
+        line2: '↳ compiling tour schedule…'
+      },
+      groceries: {
+        title: 'groceries',
+        line1: 'Weekly order built from your list',
+        line2: '↳ delivery booked for Sunday'
+      },
+      inbox: {
+        title: 'inbox agent',
+        line1: '2 replies drafted, waiting for your ok',
+        line2: '↳ calendar updated for Friday'
+      },
+      morning: {
+        title: 'morning brief',
+        line1: 'Tomorrow: 3 meetings, rain at 8',
+        line2: '↳ ready before you wake'
+      }
+    }
+  },
+  guidedOnboarding: {
+    done: '✓ Done',
+    continue: 'Continue',
+    skipSetup: 'Skip setup',
+    fallbackOption: "Let's figure it out together",
+    handoffFailed: 'The first build could not be started.',
+    handoffFailedRetry: 'The first build could not be started. Retry to check its session.',
+    handoffStarted: title => `${title} was started — find it in your sessions`,
+    handoffOpening: title => `Opening ${title}…`,
+    retryFirstBuild: 'Retry first build',
+    workingOnIt: 'Working on it',
+    firstBuild: 'First build',
+    signpostTitle: 'Hermes is still next door',
+    signpostBody:
+      "You're in your own workspace now, and this is where the profiles live. The chat we just had is still in there — come back to it whenever you want a hand.",
+    profileDescription: 'Where Hermes met you — walks your first run, then checks in as you find your feet.',
+    accentNames: {
+      mono: 'Mono',
+      githubGreen: 'GitHub green',
+      cyberCyan: 'Cyber cyan',
+      nousBlue: 'Nous blue',
+      ultraviolet: 'Ultraviolet',
+      barbiePink: 'Barbie pink',
+      electricRed: 'Electric red',
+      safetyOrange: 'Safety orange'
+    },
+    layoutNames: { basic: 'Basic', elite: 'Elite' },
+    script: {
+      forkQuestion: "Know what you'd like it to make?",
+      automate: 'Automate something I already do',
+      figure: "Let's figure it out together",
+      mind: 'I have something in mind',
+      skip: 'Skip this for now',
+      somethingElse: 'Something else',
+      tourQuestion: 'Want a look around first?',
+      tourBasics: 'Just the basics',
+      tourNone: "I'll figure it out",
+      tourFull: 'Show me around',
+      fallbackQuestion: 'What sounds better?',
+      buildReviewQuestion: 'Does this match what you wanted?',
+      buildReviewLooksRight: 'Looks right',
+      buildReviewChange: 'Change something',
+      buildReviewFurther: 'Take it further',
+      machineRunQuestion: 'Want me to run this?',
+      machineRunGoAhead: 'Go ahead',
+      machineRunChangeList: 'Change the list',
+      machineRunEssentials: 'Just the essentials',
+      checkpointQuestion: 'What do you want next?',
+      computerKind: 'computer',
+      machineSetupOption: kind => `Help me set up this ${kind}`,
+      machineSetupTask: kind => `Set up this ${kind}`
+    },
+    errors: {
+      firstBuildNeedsAttention: 'First build needs attention',
+      welcomeOwnerUnavailable: 'The welcome chat owner is not available yet. Reopen it and retry the first build.',
+      preferencesSaveFailed: 'Could not save your onboarding preferences. Retry before starting the first build.',
+      sessionOpenFailed: 'Could not open the first-build session.',
+      sessionIdentityMissing:
+        'The first-build session did not return a durable identity. Check your sessions before retrying.',
+      welcomeCreateFailed: 'The welcome chat could not be created. Please try again.',
+      restoreProfileFailed: 'Could not restore your profile',
+      welcomeNeedsAttention: 'Welcome chat needs attention',
+      welcomeStartFailed: 'The welcome chat could not start.',
+      receiptUnreadable:
+        'The saved first-build receipt could not be read. Check your sessions before starting another build.',
+      receiptSaveFailed: 'Could not save the first-build session for recovery. No new start was sent.',
+      verifyFailed: 'Could not verify the first build. Retry when the connection recovers.',
+      unconfirmedRunning:
+        'The first build has no confirmed start, but its session still reports running. Retry when it is idle; no duplicate was sent.',
+      notAcknowledged:
+        'The first build has not acknowledged its start. Check its session before retrying; no duplicate was sent.',
+      notAcknowledgedStart: 'The first build did not acknowledge starting. Check its session before retrying.',
+      pluginFolderUnavailable: 'The desktop plugin folder is unavailable. Retry before starting the first build.'
+    }
+  },
   install: {
     stageStates: {
       pending: 'Pending',
@@ -4344,7 +4516,8 @@ export const en: Translations = {
     stripBody: 'Open the model picker to try them, or sign in with a Nous account.',
     openModelPicker: 'Open model picker',
     dismiss: 'Dismiss',
-    statusLabel: model => `Nous · free tier · ${model}`,
+    providerName: 'Nous',
+    statusLabel: model => `Nous · ${model}`,
     signIn: 'Sign in',
     signInHeading: 'Sign in with a Nous account to unlock more models and tools.',
     settingUp: 'Setting up free inference…',
@@ -4761,6 +4934,7 @@ export const en: Translations = {
     toggleLayoutEditMode: 'Toggle layout edit mode',
     layoutNames: {
       default: 'Default',
+      basic: 'Basic',
       focus: 'Focus',
       'terminal-deck': 'Terminal deck',
       quad: 'Quad'

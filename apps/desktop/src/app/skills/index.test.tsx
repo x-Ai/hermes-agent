@@ -102,8 +102,11 @@ async function renderSkills(tab = 'toolsets', initialLocale = 'en') {
       </I18nProvider>
     )
   })
+
   if (vi.isFakeTimers()) {
-    await act(async () => { await vi.advanceTimersByTimeAsync(50) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50)
+    })
   }
 
   return result!
@@ -154,10 +157,7 @@ describe('SkillsView toolset management', { timeout: 60_000 }, () => {
 
     expect(await screen.findByRole('region', { name: selected })).toBeTruthy()
     expect(screen.queryByRole('region', { name: other })).toBeNull()
-    expect(navigateSpy).not.toHaveBeenCalledWith(
-      { pathname: '/skills', search: '', hash: '' },
-      { replace: true }
-    )
+    expect(navigateSpy).not.toHaveBeenCalledWith({ pathname: '/skills', search: '', hash: '' }, { replace: true })
     const otherTab = other.replace(' workspace', '')
     fireEvent.click(screen.getByRole('button', { name: otherTab }))
     expect(navigateSpy).toHaveBeenCalledWith(
@@ -173,10 +173,7 @@ describe('SkillsView toolset management', { timeout: 60_000 }, () => {
     expect(screen.queryByRole('button', { name: 'Collective' })).toBeNull()
     expect(screen.queryByRole('region', { name: 'Collective workspace' })).toBeNull()
     await waitFor(() =>
-      expect(navigateSpy).toHaveBeenCalledWith(
-        { pathname: '/skills', search: '', hash: '' },
-        { replace: true }
-      )
+      expect(navigateSpy).toHaveBeenCalledWith({ pathname: '/skills', search: '', hash: '' }, { replace: true })
     )
   })
 
@@ -196,6 +193,7 @@ describe('SkillsView toolset management', { timeout: 60_000 }, () => {
 
   it('rechecks entitlement after switching away and back while probes are pending', async () => {
     const { SkillsView } = await import('./index')
+
     const page = (profile: string) => (
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -203,6 +201,7 @@ describe('SkillsView toolset management', { timeout: 60_000 }, () => {
         </MemoryRouter>
       </QueryClientProvider>
     )
+
     const result = render(page('eligible'))
     expect(await screen.findByRole('button', { name: 'Collective' })).toBeTruthy()
 

@@ -121,6 +121,29 @@ describe('I18nProvider', () => {
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
+  it('prefers the native OS locale on a fresh install', async () => {
+    vi.stubGlobal('navigator', { language: 'en-US', languages: ['en-US'] })
+    const getMachineProfile = vi.fn().mockResolvedValue({ locale: 'zh-CN' })
+    vi.stubGlobal('hermesDesktop', { getMachineProfile })
+
+    const configClient: I18nConfigClient = {
+      getConfig: vi.fn().mockResolvedValue({}),
+      saveConfig: vi.fn()
+    }
+
+    render(
+      <I18nProvider configClient={configClient}>
+        <LanguageProbe />
+      </I18nProvider>
+    )
+
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
+
+    expect(getMachineProfile).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(window.localStorage.getItem('hermes-desktop.ui-locale')).toBeNull()
+  })
+
   it('keeps a first-run language switch when config cannot be saved yet', async () => {
     const configClient: I18nConfigClient = {
       getConfig: vi.fn().mockResolvedValue({}),
