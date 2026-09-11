@@ -1,5 +1,5 @@
 import { translateNow } from '@/i18n'
-import { readKey, writeJson } from '@/lib/storage'
+import { readKey, writeJson, writeKey } from '@/lib/storage'
 
 import type { HandoffReceipt } from './handoff-leg'
 
@@ -54,6 +54,11 @@ export function readHandoffReceipt(key: string): HandoffReceipt | null {
   }
 
   return value
+}
+
+export function quarantineHandoffReceipt(key: string): void {
+  writeKey(`${key}.unreadable`, readKey(key))
+  writeKey(key, null)
 }
 
 export function saveHandoffReceipt(key: string, receipt: HandoffReceipt): void {
