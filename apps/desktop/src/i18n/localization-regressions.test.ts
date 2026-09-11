@@ -306,7 +306,7 @@ afterEach(() => setRuntimeI18nLocale('en'))
 describe('Simplified Chinese localization regressions', () => {
   it('localizes Marketplace theme discovery and conversion failures', () => {
     expect(zh.settings.appearance.noInstalledThemeMatches('Trae Theme')).toBe(
-      '已安装的主题中没有与“Trae Theme”匹配的项目'
+      '已安装的主题中没有与"Trae Theme"匹配的项目'
     )
     expect(zh.settings.appearance.marketplaceThemeSource).toBe('来自 VS Code Marketplace')
     expect(zh.commandCenter.installTheme.installError).toBe('无法安装该主题')

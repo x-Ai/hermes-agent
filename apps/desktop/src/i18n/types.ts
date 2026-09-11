@@ -2093,6 +2093,7 @@ export interface Translations {
       toggleFailed: (name: string) => string
       legacyBackend: string
       portableBadge: string
+      sourceLabels: Record<string, string>
       catalogTitle: string
       catalogBrowse: string
       catalogHide: string

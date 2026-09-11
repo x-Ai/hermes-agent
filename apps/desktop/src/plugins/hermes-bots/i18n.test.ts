@@ -66,8 +66,11 @@ describe('BOTS_LOCALES', () => {
   })
 
   it('keeps Slash as the literal command term in Chinese group-chat guidance', () => {
-    expect(zh.group.slashCommandsUnsupported).toContain('Slash 命令')
-    expect(zhHant.group.slashCommandsUnsupported).toContain('Slash 命令')
+    for (const locale of [zh, zhHant]) {
+      const byPath = Object.fromEntries(leafEntries(locale))
+
+      expect(byPath['group.slashCommandsUnsupported']).toContain('Slash 命令')
+    }
   })
 
   it('keeps interpolator arguments in the translated string', () => {
@@ -91,10 +94,18 @@ describe('BOTS_LOCALES', () => {
       expect(attachFailedFn(file, member)).toContain(member)
     }
 
-    const englishAttachFailure = en.group.attachFailed(file, member)
+    const enByPath = Object.fromEntries(leafEntries(en))
+
+    const englishAttachFailure = (enByPath['group.attachFailed'] as (file: string, member: string) => string)(
+      file,
+      member
+    )
 
     for (const locale of [ja, zh, zhHant]) {
-      expect(locale.group.attachFailed(file, member)).not.toBe(englishAttachFailure)
+      const byPath = Object.fromEntries(leafEntries(locale))
+      const attachFailedFn = byPath['group.attachFailed'] as (file: string, member: string) => string
+
+      expect(attachFailedFn(file, member)).not.toBe(englishAttachFailure)
     }
   })
 })

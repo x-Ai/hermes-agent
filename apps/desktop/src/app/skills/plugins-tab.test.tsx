@@ -125,6 +125,30 @@ describe('PluginsTab', () => {
     expect(screen.getByRole('switch', { name: '桌面: 媒体工作室' })).toBeTruthy()
   })
 
+  it('localizes agent plugin provenance in the active locale', () => {
+    $agentPlugins.set([
+      {
+        description: 'Reports lifecycle events.',
+        key: 'orca-status',
+        name: 'orca-status',
+        source: 'user',
+        status: 'enabled',
+        version: '1.0.0'
+      }
+    ])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    const row = screen.getByTestId('plugin-row-orca-status')
+
+    expect(row.textContent).toContain('用户')
+    expect(row.textContent).not.toMatch(/\buser\b/u)
+  })
+
   it('reports plugin-folder errors in the active locale', async () => {
     ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = {
       desktopPluginsRoot: vi.fn(async () => '')

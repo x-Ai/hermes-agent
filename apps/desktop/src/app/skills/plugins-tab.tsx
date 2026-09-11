@@ -188,7 +188,7 @@ function ProvenancePill({ pkg }: { pkg: PluginPackage }) {
   }
 
   if (pkg.agent) {
-    return <Pill>{pkg.agent.source}</Pill>
+    return <Pill>{p.sourceLabels[pkg.agent.source] ?? pkg.agent.source}</Pill>
   }
 
   if (pkg.desktop) {
