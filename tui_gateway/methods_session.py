@@ -1199,6 +1199,10 @@ def _(rid, params: dict, session: dict) -> dict:
             "context_source": usage.get("context_source", "provider_usage"),
             "model": _metadata_mirror(session).get("model", ""),
             "ready": agent_ready})
+    # Settings writes are process-external to this live AIAgent. Refresh the
+    # compressor before reading it so the status bar reflects an endpoint/model
+    # context edit immediately instead of waiting for the next prompt turn.
+    _sync_agent_compression_with_config(str(params.get("session_id") or ""), session)
     with session["history_lock"]:
         history = list(session.get("history", []))
     live_history = getattr(agent, "_session_messages", None)

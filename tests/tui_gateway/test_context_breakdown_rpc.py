@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import threading
+from types import SimpleNamespace
 
 import pytest
 
+from agent.context_compressor import ContextCompressor
 from tui_gateway import server
 import tui_gateway.methods_session  # noqa: F401  (registers RPC methods)
 
@@ -105,3 +107,57 @@ def test_running_breakdown_uses_agent_live_messages_not_pre_turn_history(session
 
     assert captured["history"] == live
     assert captured["history"] is not live
+
+
+def test_live_breakdown_adopts_endpoint_context_edit_before_reporting(session, monkeypatch):
+    sid, record = session
+    compressor = ContextCompressor(
+        model="z-ai/glm-5.3",
+        config_context_length=1_310_720,
+        quiet_mode=True,
+    )
+    agent = SimpleNamespace(
+        base_url="https://med.mss.360.net/llm-new/v1",
+        model="z-ai/glm-5.3",
+        provider="custom",
+        context_compressor=compressor,
+        compression_enabled=True,
+        compression_idle_compact_after_seconds=0,
+        codex_responses_native_compaction=False,
+        codex_responses_compact_threshold=200_000,
+    )
+    record["agent"] = agent
+    record["agent_ready"].set()
+    monkeypatch.setattr(
+        server,
+        "_load_cfg",
+        lambda: {
+            "providers": {
+                "360llm": {
+                    "base_url": agent.base_url,
+                    "models": {agent.model: {"context_length": 204_800}},
+                }
+            }
+        },
+    )
+
+    def _compute(live_agent, _history):
+        maximum = live_agent.context_compressor.context_length
+        return {
+            "categories": [],
+            "context_max": maximum,
+            "context_percent": 0,
+            "context_used": 0,
+            "estimated_total": 0,
+            "model": live_agent.model,
+        }
+
+    monkeypatch.setattr(
+        "agent.context_breakdown.compute_session_context_breakdown",
+        _compute,
+    )
+
+    result = _call(sid)
+
+    assert result["context_max"] == 204_800
+    assert agent._config_context_length == 204_800

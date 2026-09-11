@@ -170,8 +170,10 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
 
 
 def _sync_agent_compression_with_config(sid: str, session: dict) -> None:
-    """Adopt compression.* / model.context_length edits at turn start (messaging gateways rebuild the
-    agent on these keys; Desktop/TUI keeps the live compressor, so it must be updated in place).
+    """Adopt compression/context edits before the next context read or turn.
+
+    Messaging gateways rebuild the agent on these keys; Desktop/TUI keeps the live
+    compressor, so it must be updated in place.
 
     Desktop/TUI only synced the model; the live compressor kept the threshold captured at agent creation
     (#95151).
