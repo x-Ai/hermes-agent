@@ -80,6 +80,19 @@ export function localizedModelDescription(
   return modelDescriptions[model.id] ?? prose[model.strengths] ?? model.strengths
 }
 
+/** Catalog model ids are protocol data; localize only their human-facing
+ *  display metadata. Unknown/live rows preserve the backend copy. */
+export function localizedModelLabel(
+  model: Pick<ToolsetModel, 'display' | 'id'>,
+  labels: Record<string, string>
+): string {
+  return labels[model.id] ?? model.display ?? model.id
+}
+
+export function localizedModelSpeed(speed: string, speeds: Record<string, string>): string {
+  return speeds[speed] ?? speed
+}
+
 /**
  * `useNavigate` throws when there is no react-router context. Inside Settings
  * (the panel's original home) there always is one, so behavior is unchanged;
@@ -522,7 +535,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               type="button"
             >
               <span className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-medium">{model.display || model.id}</span>
+                <span className="font-mono text-xs font-medium">{localizedModelLabel(model, copy.modelLabels)}</span>
                 {isSelected && (
                   <Pill tone="primary">
                     <Check className="size-3" />
@@ -533,7 +546,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
                 {saving === model.id && <Loader2 className="size-3 animate-spin" />}
               </span>
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
-                {model.speed && <span>{model.speed}</span>}
+                {model.speed && <span>{localizedModelSpeed(model.speed, copy.modelSpeeds)}</span>}
                 {model.strengths && (
                   <span>{localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy)}</span>
                 )}

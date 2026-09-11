@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
-import { localizedBadge, localizedModelDescription } from '@/app/settings/toolset-config-panel'
+import {
+  localizedBadge,
+  localizedModelDescription,
+  localizedModelLabel,
+  localizedModelSpeed
+} from '@/app/settings/toolset-config-panel'
 import { setRuntimeI18nLocale, translateForLocale } from '@/i18n'
 
 import { TRANSLATIONS } from './catalog'
@@ -45,6 +50,9 @@ const MEDIA_MODEL_IDS = [
   'microsoft/mai-image-2.5-pro',
   'google/nano-banana-2-lite',
   'fal-ai/recraft/v4.1/text-to-image',
+  'openai/gpt-image-2.5/flare/text-to-image',
+  'openai/gpt-image-2.5/sunburst/text-to-image',
+  'xai/grok-imagine-image/v2.0/text-to-image',
   'ltx-2.3',
   'pixverse-v6',
   'seedance-2.0-mini',
@@ -52,6 +60,7 @@ const MEDIA_MODEL_IDS = [
   'seedance-2.0',
   'seedance-2.5',
   'minimax-h3',
+  'minimax-h3-max',
   'flux-3',
   'grok-imagine-1.5',
   'gemini-omni-flash',
@@ -79,7 +88,86 @@ const SCREENSHOT_MODEL_IDS = [
   'grok-imagine-image-quality',
   'gpt-image-2-low',
   'gpt-image-2-medium',
-  'gpt-image-2-high'
+  'gpt-image-2-high',
+  'gpt-image-2.5-flare',
+  'gpt-image-2.5-flare-low',
+  'gpt-image-2.5-flare-medium',
+  'gpt-image-2.5-flare-high',
+  'gpt-image-2.5-flare-xhigh',
+  'gpt-image-2.5-flare-max',
+  'gpt-image-2.5-sunburst',
+  'gpt-image-2.5-sunburst-low',
+  'gpt-image-2.5-sunburst-medium',
+  'gpt-image-2.5-sunburst-high',
+  'gpt-image-2.5-sunburst-xhigh',
+  'gpt-image-2.5-sunburst-max',
+  'openai/gpt-5.4-image-2',
+  'google/gemini-3-pro-image',
+  'google/gemini-3.1-flash-lite-image',
+  'google/gemini-3.1-flash-image',
+  'openai/gpt-image-2',
+  'openai/gpt-image-1-mini',
+  'microsoft/mai-image-2.5',
+  'microsoft/mai-image-2.5-pro',
+  'x-ai/grok-imagine-image-quality',
+  'krea/krea-2-medium',
+  'krea/krea-2-medium-turbo',
+  'qwen/qwen-image-3-pro',
+  'krea-2-medium',
+  'krea-2-large',
+  'krea-2-medium-turbo',
+  'muse-image-1.0',
+  'grok-imagine-video',
+  'grok-imagine-video-1.5',
+  'black-forest-labs/FLUX-1-schnell',
+  'black-forest-labs/FLUX-2-klein-9b',
+  'PrunaAI/p-image',
+  'black-forest-labs/FLUX-1-dev',
+  'black-forest-labs/FLUX-2-pro',
+  'stabilityai/sdxl-turbo',
+  'google/nano-banana-2-lite',
+  'google/nano-banana-2',
+  'google/nano-banana-pro',
+  'Qwen/Qwen-Image-Max',
+  'Wan-AI/Wan2.6-T2I',
+  'Bria/fibo_edit',
+  'black-forest-labs/FLUX-2-klein-4b',
+  'black-forest-labs/FLUX-2-max',
+  'black-forest-labs/FLUX-2-dev',
+  'Bria/fibo',
+  'ByteDance/Seedream-4',
+  'Bria/Bria-3.2-vector',
+  'Bria/Bria-3.2',
+  'Bria/blur_background',
+  'Bria/erase_foreground',
+  'Bria/remove_background',
+  'Bria/expand',
+  'Qwen/Qwen-Image-Edit',
+  'black-forest-labs/FLUX.1-Kontext-dev',
+  'black-forest-labs/FLUX-1-Redux-dev',
+  'black-forest-labs/FLUX-1.1-pro',
+  'ByteDance/Seedance-1.5-Pro',
+  'PrunaAI/p-video',
+  'Wan-AI/Wan2.2-T2V-A14B',
+  'Pixverse/Pixverse-6-T2V',
+  'ByteDance/Seedance-2.0',
+  'Wan-AI/Wan2.6-T2V',
+  'nvidia/Cosmos3-Super',
+  'nvidia/Cosmos3-Nano',
+  'Pixverse/Pixverse-T2V-HD',
+  'Pixverse/Pixverse-T2V',
+  'google/veo-3.1-fast',
+  'google/veo-3.1'
+] as const
+
+const SCREENSHOT_PRICE_IDS = [
+  'openai/gpt-image-2.5/flare/text-to-image',
+  'gpt-image-2.5-flare',
+  'krea-2-medium',
+  'muse-image-1.0',
+  'grok-imagine-video',
+  'black-forest-labs/FLUX-1-schnell',
+  'minimax-h3-max'
 ] as const
 
 describe('Container persistence setting localization', () => {
@@ -125,6 +213,16 @@ describe('Execution environment probe setting localization', () => {
       if (locale !== 'en') {
         expect(description, `${locale} description falls back to English`).not.toBe(englishDescription)
       }
+    }
+  })
+})
+
+describe('Pool slot recovery localization', () => {
+  it('names the same localized setting that the recovery action opens', () => {
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      expect(copy.desktop.poolSlotTimeoutBody, `${locale} recovery setting label`).toContain(
+        copy.settings.poolLimits.warmBackends
+      )
     }
   })
 })
@@ -238,6 +336,19 @@ describe('Simplified Chinese localization regressions', () => {
     expect(zh.sidebar.filterMenu.markAllRead).toBe('全部标记为已读')
   })
 
+  it('keeps Slash as the literal command term throughout Simplified Chinese chrome', () => {
+    const labels = [
+      zh.keybinds.actions['composer.slash'],
+      zh.composer.hotkeyDescs['composer.slash'],
+      zh.desktop.emptySlashCommand
+    ]
+
+    for (const label of labels) {
+      expect(label).toContain('Slash 命令')
+      expect(label).not.toContain('斜杠命令')
+    }
+  })
+
   it('covers every global setting rendered under Tools & Keys', () => {
     for (const key of GLOBAL_SETTING_KEYS) {
       expect(zh.settings.envKeys[key]?.description, `${key} description`).toBeTruthy()
@@ -291,9 +402,21 @@ describe('Simplified Chinese localization regressions', () => {
       expect(zh.settings.toolsets.modelDescriptions[id], `${id} description`).toMatch(/[\u3400-\u9fff]/u)
     }
 
-    for (const id of ['gpt-image-2-low', 'gpt-image-2-medium', 'gpt-image-2-high']) {
+    for (const id of ['gpt-image-2-low', 'gpt-image-2-medium', 'gpt-image-2-high', ...SCREENSHOT_PRICE_IDS]) {
       expect(zh.settings.toolsets.modelPrices[id], `${id} price`).toMatch(/[\u3400-\u9fff]/u)
     }
+
+    expect(
+      localizedModelLabel(
+        { id: 'gpt-image-2.5-flare', display: 'GPT Image 2.5 Flare (Auto)' },
+        zh.settings.toolsets.modelLabels
+      )
+    ).toBe('GPT Image 2.5 Flare（自动）')
+    expect(localizedModelSpeed('Fast', zh.settings.toolsets.modelSpeeds)).toBe('快速')
+    expect(fieldCopyForSchemaKey(zh.settings.fieldLabels, 'tts.deepinfra.model')).toBe('DeepInfra TTS 模型')
+    expect(fieldCopyForSchemaKey(zh.settings.fieldLabels, 'tts.deepinfra.voice')).toBe('DeepInfra 语音')
+    expect(zh.skills.toolsetLabels.connections).toBe('连接')
+    expect(zh.skills.toolsetDescriptions.connections).toBe('远程连接器工具与账户授权')
   })
 
   it('uses 定时任务 consistently instead of 排程', () => {

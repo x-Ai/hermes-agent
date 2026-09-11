@@ -1933,7 +1933,9 @@ export interface Translations {
       modelSelectedTitle: string
       modelSelectedMessage: (model: string) => string
       failedSelectModel: (model: string) => string
-      /** Backend model ids stay raw; these maps localize catalog prose only. */
+      /** Backend model ids stay raw; these maps localize catalog presentation only. */
+      modelLabels: Record<string, string>
+      modelSpeeds: Record<string, string>
       modelDescriptions: Record<string, string>
       modelPrices: Record<string, string>
       terminalBackend: {

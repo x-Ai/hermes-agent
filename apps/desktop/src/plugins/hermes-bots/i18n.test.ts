@@ -65,20 +65,36 @@ describe('BOTS_LOCALES', () => {
     }
   })
 
+  it('keeps Slash as the literal command term in Chinese group-chat guidance', () => {
+    expect(zh.group.slashCommandsUnsupported).toContain('Slash 命令')
+    expect(zhHant.group.slashCommandsUnsupported).toContain('Slash 命令')
+  })
+
   it('keeps interpolator arguments in the translated string', () => {
     const sentinel = 'QUERY_SENTINEL'
     const gateway = 'GATEWAY_SENTINEL'
+    const file = 'FILE_SENTINEL'
+    const member = 'MEMBER_SENTINEL'
 
     for (const locale of [en, ja, zh, zhHant]) {
       const byPath = Object.fromEntries(leafEntries(locale))
       const queryFn = byPath['roster.noMatchQuery'] as (query: string) => string
       const bothFn = byPath['roster.noMatchQueryOn'] as (query: string, gateway: string) => string
       const reasonFn = byPath['roster.rosterUnavailable'] as (reason: string) => string
+      const attachFailedFn = byPath['group.attachFailed'] as (file: string, member: string) => string
 
       expect(queryFn(sentinel)).toContain(sentinel)
       expect(bothFn(sentinel, gateway)).toContain(sentinel)
       expect(bothFn(sentinel, gateway)).toContain(gateway)
       expect(reasonFn(sentinel)).toContain(sentinel)
+      expect(attachFailedFn(file, member)).toContain(file)
+      expect(attachFailedFn(file, member)).toContain(member)
+    }
+
+    const englishAttachFailure = en.group.attachFailed(file, member)
+
+    for (const locale of [ja, zh, zhHant]) {
+      expect(locale.group.attachFailed(file, member)).not.toBe(englishAttachFailure)
     }
   })
 })

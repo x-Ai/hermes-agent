@@ -292,6 +292,7 @@ type BotsMessages = {
     deleteAction: string
     composerPlaceholder: string
     slashCommandsUnsupported: string
+    attachFailed: (file: string, member: string) => string
     attachHint: string
     newThread: string
     reply: string
@@ -755,6 +756,7 @@ const en: BotsMessages = {
     composerPlaceholder: 'Say something — every bot in this group hears the room.',
     slashCommandsUnsupported:
       'Slash commands are not supported in group chats. Open an individual bot chat to use them.',
+    attachFailed: (file, member) => `Could not attach ${file} for ${member}`,
     attachHint: 'Attach files — every responding bot sees them',
     newThread: 'New Thread',
     reply: 'Reply',
@@ -1213,6 +1215,7 @@ const ja: BotsMessages = {
     composerPlaceholder: '何か書いてください — このグループのすべてのボットが部屋の内容を受け取ります。',
     slashCommandsUnsupported:
       'グループチャットではスラッシュコマンドを使用できません。個別のボットチャットを開いて使用してください。',
+    attachFailed: (file, member) => `${member} に ${file} を添付できませんでした`,
     attachHint: 'ファイルを添付 — 応答するすべてのボットが見ます',
     newThread: '新しいスレッド',
     reply: '返信',
@@ -1658,7 +1661,8 @@ const zh: BotsMessages = {
     deleteTitle: '删除群聊？',
     deleteAction: '删除',
     composerPlaceholder: '说点什么 — 这个群里的每个智能体都会听到。',
-    slashCommandsUnsupported: '群聊不支持斜杠命令。请打开单个智能体的聊天来使用。',
+    slashCommandsUnsupported: '群聊不支持 Slash 命令。请在单个智能体聊天中使用。',
+    attachFailed: (file, member) => `无法为 ${member} 附加 ${file}`,
     attachHint: '附加文件 — 每个回应的智能体都能看到',
     newThread: '新帖子',
     reply: '回复',
@@ -2103,7 +2107,8 @@ const zhHant: BotsMessages = {
     deleteTitle: '刪除群組聊天？',
     deleteAction: '刪除',
     composerPlaceholder: '說點什麼 — 這個群組裡的每個智慧體都會聽到。',
-    slashCommandsUnsupported: '群組聊天不支援斜線命令。請開啟個別智慧體的聊天來使用。',
+    slashCommandsUnsupported: '群組聊天不支援 Slash 命令。請在個別智慧體聊天中使用。',
+    attachFailed: (file, member) => `無法為 ${member} 附加 ${file}`,
     attachHint: '附加檔案 — 每個回應的智慧體都能看到',
     newThread: '新討論串',
     reply: '回覆',

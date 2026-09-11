@@ -623,6 +623,10 @@ describe('attachments', () => {
     expect(room.gateway.calls[0].prompt).toContain('could not be staged into your session')
     expect(room.gateway.calls[0].prompt).toContain('notes.pdf')
     expect(room.gateway.calls[0].prompt).not.toContain('Attached files staged in your session workspace:')
+    expect(room.gateway.host.notifyError).toHaveBeenCalledWith(
+      expect.any(Error),
+      'Could not attach notes.pdf for research'
+    )
   })
 
   it('appends the file.attach ref_text to the member turn prompt', async () => {

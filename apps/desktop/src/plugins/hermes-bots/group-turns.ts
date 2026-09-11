@@ -12,6 +12,7 @@ import { recordGroupActivity } from './group-activity'
 import { $groupChats, $groupClarify, appendGroupChatEntry, updateGroupChat } from './group-chat'
 import type { GroupChatRoom } from './group-chat'
 import { followGroupChat, groupMemberKey, groupSessionOwner } from './group-membership'
+import { botsText } from './i18n'
 import { botConnectionRoute, requestForBot } from './routing'
 import type { Attachment, GroupMember, GroupPrompt, GroupPromptQuestion, ProfileRoute } from './types'
 
@@ -742,7 +743,7 @@ async function stageGroupTurnAttachments(member: GroupMember, runtime: string, i
       }
     } catch (error) {
       failed.push(label)
-      host.notifyError?.(error, `Could not attach ${label} for ${member.title || member.name}`)
+      host.notifyError?.(error, botsText().group.attachFailed(label, member.title || member.name))
     }
   }
 

@@ -1959,6 +1959,8 @@ export const en: Translations = {
       modelSelectedTitle: 'Model selected',
       modelSelectedMessage: model => `${model} applies to new sessions.`,
       failedSelectModel: model => `Failed to select ${model}`,
+      modelLabels: {},
+      modelSpeeds: {},
       modelDescriptions: {},
       modelPrices: {},
       terminalBackend: {
