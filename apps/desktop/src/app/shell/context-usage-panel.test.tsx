@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { invalidateContextBreakdownForConfig } from '@/store/context-breakdown'
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
 import { ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
@@ -124,6 +125,18 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
     rerender({ compressionCount: 2 })
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(3))
+  })
+
+  it('refetches after a saved context configuration change', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
+
+    renderHook(() =>
+      useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' })
+    )
+
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    invalidateContextBreakdownForConfig()
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
   })
 
   it('refetches on a session switch and never reports the previous session numbers', async () => {

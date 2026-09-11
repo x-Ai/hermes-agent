@@ -1,5 +1,7 @@
+import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
+import { $contextBreakdownConfigRevision } from '@/store/context-breakdown'
 import type { ContextBreakdown } from '@/types/hermes'
 
 interface ContextBreakdownOptions {
@@ -38,6 +40,7 @@ export function useContextBreakdown({
 }: ContextBreakdownOptions) {
   const [fetched, setFetched] = useState<{ breakdown: ContextBreakdown; sessionId: string } | null>(null)
   const [loading, setLoading] = useState(false)
+  const configRevision = useStore($contextBreakdownConfigRevision)
 
   useEffect(() => {
     if (!enabled || !sessionId) {
@@ -92,7 +95,7 @@ export function useContextBreakdown({
         clearTimeout(retryTimer)
       }
     }
-  }, [busy, compressionCount, enabled, requestGateway, sessionId])
+  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId])
 
   return {
     breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,
