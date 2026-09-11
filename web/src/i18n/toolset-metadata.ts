@@ -34,7 +34,7 @@ const ZH_TOOLSET_LABELS: Record<string, string> = {
 
 const ZH_TOOLSET_DESCRIPTIONS: Record<string, string> = {
   a2a:
-    "Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送；入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话。未配置 Bearer Token 时仅监听 localhost；通信全程执行入站过滤、出站凭据清理及独立审计。仅依赖 Python 标准库，无需 a2a-sdk",
+    "Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理间通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送；入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话。未配置 Bearer Token 时仅监听 localhost；通信全程执行入站过滤、出站凭据清理及独立审计。仅依赖 Python 标准库，无需 a2a-sdk",
   clarify: "向用户提出澄清问题（选择题或开放式）",
   code_execution: "运行以编程方式调用工具的 Python 脚本（减少 LLM 往返）",
   coding: "面向编码的工具集：文件、终端、搜索、网页文档、技能、待办、委派、视觉、浏览器",
