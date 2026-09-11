@@ -429,12 +429,7 @@ def _new_sdk_client(sdk, kwargs: Dict[str, Any], headers: Dict[str, str]):
         merged["X-Api-Key"] = sdk.Omit()
     if merged:
         kwargs["default_headers"] = merged
-    client = sdk.Anthropic(**kwargs)
-    if _is_third_party_anthropic_endpoint(kwargs.get("base_url")):
-        from agent.anthropic_streaming import AnthropicSSEDecoder
-
-        client._make_sse_decoder = AnthropicSSEDecoder
-    return client
+    return sdk.Anthropic(**kwargs)
 
 
 def _auth_style(api_key, base_url, normalized_base_url) -> str:
