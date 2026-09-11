@@ -1459,7 +1459,7 @@ export const zh: Translations = {
       attachmentSizeDesc:
         '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
       attachmentSizeUnit: 'MB',
-      attachmentSizeLabel: '预览 / 图片加载大小上限(MB）'
+      attachmentSizeLabel: '预览 / 图片加载大小上限(MB)'
     },
     quickEntry: {
       enabledTitle: '快速输入',
@@ -1507,7 +1507,7 @@ export const zh: Translations = {
       editConnection: '编辑',
       removeConnection: '移除',
       removeConfirmTitle: '移除此连接？',
-      removeConfirmDesc: (label: string) => `"${label}"将从本应用移除。实例本身不受影响 — 你可以随时重新添加`,
+      removeConfirmDesc: (label: string) => `"${label}"将从本应用移除，实例本身不受影响 — 你可以随时重新添加`,
       makePrimary: '设为主连接',
       testConnection: '测试',
       testOk: '可访问',
@@ -1604,7 +1604,7 @@ export const zh: Translations = {
       cloudRefresh: '刷新',
       cloudConnect: '连接',
       cloudSavedTitle: '已保存的云网关',
-      cloudSavedDesc: '使用已保存的网关，不更改默认网关。在下方登录以添加实例。在已保存的连接列表中管理名称和登录',
+      cloudSavedDesc: '使用已保存的网关，不更改默认网关，在下方登录以添加实例，在已保存的连接列表中管理名称和登录',
       cloudUseSaved: '使用网关',
       cloudActive: '当前窗口正在使用',
       cloudConnecting: '正在连接…',
