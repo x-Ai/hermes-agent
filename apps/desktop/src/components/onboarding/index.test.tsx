@@ -102,6 +102,19 @@ describe('onboarding Picker', () => {
     expect(screen.queryByText('Recommended')).toBeNull()
   })
 
+  it('localizes the Codex subscription title from its stable provider id', () => {
+    setProviders([makeOAuthProvider('openai-codex', 'OpenAI Codex / ChatGPT')])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <Picker ctx={ctx} />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('ChatGPT 或 Codex 订阅')).toBeTruthy()
+    expect(screen.queryByText('ChatGPT or Codex Subscription')).toBeNull()
+  })
+
   it('offers "choose later" on first run and persists the skip', () => {
     setProviders([makeOAuthProvider('nous', 'Nous Portal')])
     render(<Picker ctx={ctx} />)

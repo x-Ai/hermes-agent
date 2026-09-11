@@ -1771,8 +1771,20 @@ export const zh: Translations = {
       AWS_PROFILE: { description: '用于 Bedrock 认证的 AWS 命名配置（来自 ~/.aws/credentials）' },
       AZURE_FOUNDRY_API_KEY: { description: '自定义 Azure 端点的 Azure Foundry API 密钥' },
       AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry 基础 URL（端点级配置请用 hermes model 设置）' },
+      RAMP_ROUTER_API_KEY: { description: 'Ramp Router API 密钥' },
+      ROUTER_API_KEY: { description: 'Ramp Router API 密钥' },
+      RAMP_ROUTER_BASE_URL: { description: 'Ramp Router 基础 URL 覆盖' },
+      NEBIUS_API_KEY: { description: 'Nebius Token Factory API 密钥' },
+      NEBIUS_TOKEN_FACTORY_API_KEY: { description: 'Nebius Token Factory API 密钥' },
+      NEBIUS_BASE_URL: { description: 'Nebius Token Factory 基础 URL 覆盖' },
+      ALIBABA_TOKEN_PLAN_API_KEY: { description: '阿里云（Token Plan）API 密钥' },
+      ALIBABA_TOKEN_PLAN_BASE_URL: { description: '阿里云（Token Plan）基础 URL 覆盖' },
+      ALIBABA_TOKEN_PLAN_CN_API_KEY: { description: '阿里云（Token Plan，中国大陆）API 密钥' },
+      ALIBABA_TOKEN_PLAN_CN_BASE_URL: { description: '阿里云（Token Plan，中国大陆）基础 URL 覆盖' },
       ALIBABA_CODING_PLAN_API_KEY: { description: '阿里云（Coding Plan）API 密钥' },
       ALIBABA_CODING_PLAN_BASE_URL: { description: '阿里云（Coding Plan）基础 URL 覆盖' },
+      ALIBABA_CODING_PLAN_CN_API_KEY: { description: '阿里云（Coding Plan，中国大陆）API 密钥' },
+      ALIBABA_CODING_PLAN_CN_BASE_URL: { description: '阿里云（Coding Plan，中国大陆）基础 URL 覆盖' },
       ANTHROPIC_API_KEY: { description: 'Anthropic API 密钥' },
       ANTHROPIC_TOKEN: { description: 'Anthropic API 密钥' },
       CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API 密钥' },
@@ -2306,6 +2318,14 @@ export const zh: Translations = {
         description: '将 Hermes 指向任意 OpenAI 兼容端点（Zyphra、vLLM、llama.cpp、Ollama 等）'
       },
       loading: '正在加载提供方...',
+      providerLabels: {
+        alibaba: '阿里云 DashScope',
+        'alibaba-cn': '阿里云 DashScope（中国大陆）',
+        'alibaba-token-plan': '阿里云（Token Plan）',
+        'alibaba-token-plan-cn': '阿里云（Token Plan，中国大陆）',
+        'alibaba-coding-plan': '阿里云（Coding Plan）',
+        'alibaba-coding-plan-cn': '阿里云（Coding Plan，中国大陆）'
+      },
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
         'Fireworks AI': 'OpenAI 兼容的直连模型 API',
@@ -5717,7 +5737,8 @@ export const zh: Translations = {
     headerDesc: '连接模型提供方即可开始对话。大多数选项只需一次点击',
     providerTitles: {
       anthropic: 'Anthropic API 密钥',
-      'claude-code': 'Anthropic OAuth：需额外用量额度才能使用订阅'
+      'claude-code': 'Anthropic OAuth：需额外用量额度才能使用订阅',
+      'openai-codex': 'ChatGPT 或 Codex 订阅'
     },
     preparingInstall: 'Hermes 正在完成安装。首次运行通常不到一分钟',
     starting: '正在启动 Hermes…',
@@ -5748,7 +5769,7 @@ export const zh: Translations = {
     getKey: '获取密钥',
     replaceCurrent: '替换当前值',
     pasteApiKey: '粘贴 API 密钥',
-    directApiAccess: provider => `直接通过 API 访问 ${provider}`,
+    directApiAccess: provider => `直接通过 API 访问 ${provider}。`,
     localApiKeyPlaceholder: 'API 密钥（可选 — 仅当端点需要时填写）',
     couldNotSave: '无法保存凭据',
     connecting: '连接中',

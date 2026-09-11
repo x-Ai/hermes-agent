@@ -1832,6 +1832,9 @@ export interface Translations {
         description: string
       }
       loading: string
+      /** Localized provider names keyed by the backend's stable provider id.
+       *  Unknown/plugin providers keep their backend-supplied display name. */
+      providerLabels: Record<string, string>
       /** Localized descriptions for provider groups, keyed by provider name.
        *  Changed/unknown names fall back to the English text in PROVIDER_GROUPS. */
       providerDescriptions: Record<string, string>

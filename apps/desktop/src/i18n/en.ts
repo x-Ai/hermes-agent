@@ -1862,6 +1862,7 @@ export const en: Translations = {
         description: 'Point Hermes at any OpenAI-compatible endpoint (Zyphra, vLLM, llama.cpp, Ollama, etc).'
       },
       loading: 'Loading providers...',
+      providerLabels: {},
       providerDescriptions: {}
     },
     sessions: {
