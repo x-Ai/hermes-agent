@@ -454,7 +454,7 @@ export function LocalModelsSettings() {
             description={
               status.server_running
                 ? copy.runtimeRunningDetail
-                : copy.runtimeInstalledDetail(status.tag, status.runtime_backend ?? 'cpu')
+                : copy.runtimeInstalledDetail(status.tag, status.runtime_backend ?? 'CPU')
             }
             title={copy.runtimeInstalled}
           />
