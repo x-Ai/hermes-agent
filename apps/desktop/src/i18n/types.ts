@@ -552,6 +552,10 @@ export interface Translations {
       transcriptionUnavailable: string
       tryRecordingAgain: string
       unavailable: string
+      liveEnded: string
+      liveError: string
+      liveDelegationFailed: string
+      liveUnavailable: (reason: string) => string
     }
     // Native OS notification copy (titles + generic fallback bodies). Dynamic
     // bodies keep upstream text; known error framing is localized before truncation.
@@ -3111,6 +3115,13 @@ export interface Translations {
     stopDictation: string
     transcribingDictation: string
     voiceControls: string
+    voiceEngine: string
+    voiceEngineChained: string
+    voiceEngineLive: string
+    voiceEngineLiveNeedsKey: string
+    voiceEngineChangeFailed: string
+    voiceEngineChainedShort: string
+    voiceEngineLiveShort: string
     voiceDictation: string
     speakReplies: string
     stopSpeakingReplies: string

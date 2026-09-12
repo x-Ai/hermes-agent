@@ -196,6 +196,11 @@ def _build_child_system_prompt(
 
 def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
     """Best-effort host workspace used for loading project context files."""
+    runtime_workspace = None
+    with _quiet("subagent: runtime workspace resolution failed", exc_info=True):
+        from agent.runtime_cwd import scope_terminal_cwd
+
+        runtime_workspace = scope_terminal_cwd()
     registered_workspace = None
     with _quiet("subagent: registered host workspace resolution failed", exc_info=True):
         from tools.terminal_tool import resolve_task_overrides
@@ -204,6 +209,7 @@ def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
         parent_task_id = raw_parent_task_id if isinstance(raw_parent_task_id, str) else None
         registered_workspace = resolve_task_overrides(parent_task_id).get("cwd")
     candidates = [
+        runtime_workspace,
         registered_workspace,
         getattr(getattr(parent_agent, "_subdirectory_hints", None), "working_dir", None),
         getattr(parent_agent, "terminal_cwd", None),
