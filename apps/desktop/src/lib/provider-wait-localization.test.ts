@@ -42,6 +42,26 @@ describe('localizeProviderWaitText', () => {
     expect(localizeProviderWaitText(raw, copy)).toBe(raw)
   })
 
+  it('localizes the same notice with or without a presentation glyph', () => {
+    const notices = [
+      '⏳ waiting on provider — retrying in 3s (attempt 1/6)',
+      '⏳ waiting on model-from-wire — 37s with no response yet (provider may be slow or overloaded)',
+      '⏳ waiting on model-from-wire — no stream output for 72s (provider may be slow or overloaded, or the model is thinking)',
+      '⏳ waiting on model-from-wire — 88s with no stream events (provider may be slow or overloaded; auto-reconnect at 417s total elapsed)',
+      '⚠ no output from provider for 137s — reconnecting...',
+      '↻ model returned reasoning with no final answer — asking it to continue (2/7)'
+    ]
+
+    for (const raw of notices) {
+      const body = raw.slice(1).trimStart()
+      const localized = localizeProviderWaitText(raw, copy)
+
+      expect(localized).not.toBe(raw)
+      expect(localizeProviderWaitText(body, copy)).toBe(localized)
+      expect(localizeProviderWaitText(`${raw[0]}\uFE0F ${body}`, copy)).toBe(localized)
+    }
+  })
+
   it('forwards recovery fields to each locale without falling back to English', () => {
     const cases = [
       {

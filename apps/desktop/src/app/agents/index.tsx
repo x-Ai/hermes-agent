@@ -10,6 +10,7 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { type Translations, useI18n } from '@/i18n'
 import { compactNumber } from '@/lib/format'
 import { AlertCircle, CheckCircle2 } from '@/lib/icons'
+import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { useEnterAnimation } from '@/lib/use-enter-animation'
 import { cn } from '@/lib/utils'
 import {
@@ -307,7 +308,7 @@ function StreamLine({
     <div className="flex min-w-0 items-baseline gap-2 text-[0.72rem] leading-relaxed" ref={enterRef}>
       <span className="flex h-[0.95rem] shrink-0 items-center">{streamGlyph(entry)}</span>
       <span className={cn('min-w-0 flex-1 wrap-anywhere', tone, isMono && 'font-mono text-[0.69rem]')}>
-        {entry.text}
+        {localizeProviderWaitText(entry.text, t.assistant.thread)}
         {active ? (
           <GlyphSpinner
             ariaLabel={t.agents.streaming}

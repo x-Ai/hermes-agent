@@ -13,6 +13,7 @@ import { Loader } from '@/components/ui/loader'
 import { StatusPulse } from '@/components/ui/status-pulse'
 import { getLocalModelsStatus } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
+import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { cn } from '@/lib/utils'
 import { $backgroundResume } from '@/store/background-delegation'
 import { sessionCompacting } from '@/store/compaction'
@@ -22,8 +23,6 @@ import { parseModelLoadWait, sessionProviderWait } from '@/store/provider-wait'
 import { $currentModel } from '@/store/session'
 import { type DraftingTool, sessionDraftingTool } from '@/store/tool-drafting'
 import type { LocalModelLoadProgress } from '@/types/hermes'
-
-import { localizeProviderWaitText } from './provider-wait-localization'
 
 // A status line is scaffolding like any other — "Editing" while the model
 // drafts a call is the same kind of line as "Explored 3 files" once it has run,
@@ -286,7 +285,9 @@ export const BackgroundResumeNotice: FC = () => {
     return null
   }
 
-  const label = resume.activity ?? t.assistant.thread.resumeWhenBackgroundDone(resume.count)
+  const label = resume.activity
+    ? localizeProviderWaitText(resume.activity, t.assistant.thread)
+    : t.assistant.thread.resumeWhenBackgroundDone(resume.count)
 
   return (
     <div

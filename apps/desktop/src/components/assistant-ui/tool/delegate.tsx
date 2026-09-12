@@ -12,6 +12,7 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { useI18n } from '@/i18n'
 import { AlertCircle, CheckCircle2 } from '@/lib/icons'
 import { displayModelName } from '@/lib/model-status-label'
+import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { useSessionSlice } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { $subagentsBySession } from '@/store/subagents'
@@ -112,7 +113,7 @@ function DelegateRowView({ row }: { row: DelegateRow }) {
                 className={cn(SCAFFOLD_LABEL_CLASS, 'text-(--conversation-scaffold-meta)', live && 'shimmer')}
                 key={`${row.id}:${index}`}
               >
-                {text}
+                {localizeProviderWaitText(text, t.assistant.thread)}
               </FadeText>
             ))}
           </ToolRunTicker>

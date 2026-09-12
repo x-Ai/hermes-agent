@@ -7,6 +7,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { useViewedInterval } from '@/hooks/use-viewed-interval'
 import { useI18n } from '@/i18n'
+import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { useSessionSlice } from '@/lib/use-session-slice'
 import { $subagentsBySession, type SubagentProgress } from '@/store/subagents'
 
@@ -49,7 +50,10 @@ export function SubagentSection({ sessionId }: SubagentSectionProps) {
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs text-(--ui-text-primary)">{item.goal}</span>
         <span className="block truncate text-[0.68rem] text-(--ui-text-tertiary)">
-          {item.stream.at(-1)?.text || (item.status === 'queued' ? t.agents.queued : t.agents.waitingActivity)}
+          {localizeProviderWaitText(
+            item.stream.at(-1)?.text || (item.status === 'queued' ? t.agents.queued : t.agents.waitingActivity),
+            t.assistant.thread
+          )}
         </span>
       </span>
       <ActivityTimerText

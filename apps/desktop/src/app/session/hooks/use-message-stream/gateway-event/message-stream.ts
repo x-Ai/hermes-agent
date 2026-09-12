@@ -7,6 +7,7 @@ import { coerceGatewayText, coerceThinkingText } from '@/lib/chat-runtime'
 import { playCompletionSound } from '@/lib/completion-sound'
 import { parseErrorSurface } from '@/lib/error-surface'
 import { triggerHaptic } from '@/lib/haptics'
+import { isProviderWaitNotice } from '@/lib/provider-wait-localization'
 import { billingCtaLabel, clearBillingBlock, runBillingRecovery, setBillingBlock } from '@/store/billing-block'
 import { clearClarifyRequest } from '@/store/clarify'
 import { setSessionCompacting } from '@/store/compaction'
@@ -18,6 +19,7 @@ import { setCurrentUsage, setTurnStartedAt } from '@/store/session'
 import { refreshSupportedSessionControlAfterTurn } from '@/store/session-control'
 import { pruneFinishedSessionSubagents } from '@/store/subagents'
 import { clearActiveSessionTodos } from '@/store/todos'
+import { isWatchWindow } from '@/store/windows'
 
 import type { GatewayEventContext } from './types'
 import { mergeUsageSnapshot } from './usage-snapshot'
@@ -201,8 +203,19 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
   }
 
   if (event.type === 'reasoning.delta') {
+    const raw = coerceGatewayText(payload?.text)
+
+    // Child watch windows receive relayed thinking callbacks as reasoning
+    // deltas. Keep complete provider notices ephemeral instead of appending
+    // consecutive status rewrites to the child's reasoning transcript.
+    if (sessionId && isWatchWindow() && isProviderWaitNotice(raw)) {
+      setSessionProviderWait(sessionId, raw)
+
+      return true
+    }
+
     if (sessionId) {
-      appendReasoningDelta(sessionId, coerceThinkingText(payload?.text), false, occurredAt)
+      appendReasoningDelta(sessionId, coerceThinkingText(raw), false, occurredAt)
     }
 
     if (isActiveEvent) {
