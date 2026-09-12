@@ -2481,6 +2481,8 @@ export interface Translations {
     restartToApply: string
     setupSaved: (name: string) => string
     restartToReconnect: string
+    appliedLive: string
+    connectingLive: string
     keyCleared: (key: string) => string
     setupUpdated: (name: string) => string
     failedUpdate: (name: string) => string
@@ -4543,6 +4545,8 @@ export interface Translations {
     imageAttach: string
     imageWriteFailed: string
     imageAttachFailed: string
+    pastedContent: string
+    pasteAttachFailed: string
     attachImages: string
     clipboard: string
     noClipboardImage: string

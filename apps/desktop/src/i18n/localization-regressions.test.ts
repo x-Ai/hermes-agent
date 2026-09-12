@@ -323,6 +323,31 @@ const WEB_PROVIDER_TAGS = [
 
 afterEach(() => setRuntimeI18nLocale('en'))
 
+describe('Live messaging and pasted attachment localization', () => {
+  it('localizes the new surface messages in every non-English locale', () => {
+    for (const [locale, copy] of Object.entries(TRANSLATIONS)) {
+      const messages = {
+        appliedLive: copy.messaging.appliedLive,
+        connectingLive: copy.messaging.connectingLive,
+        pastedContent: copy.desktop.pastedContent,
+        pasteAttachFailed: copy.desktop.pasteAttachFailed
+      }
+      const english = {
+        ...TRANSLATIONS.en.messaging,
+        ...TRANSLATIONS.en.desktop
+      }
+
+      for (const [key, message] of Object.entries(messages)) {
+        expect(message, `${locale} ${key}`).toBeTruthy()
+
+        if (locale !== 'en') {
+          expect(message, `${locale} ${key} falls back to English`).not.toBe(english[key as keyof typeof messages])
+        }
+      }
+    }
+  })
+})
+
 describe('Simplified Chinese localization regressions', () => {
   it('localizes Marketplace theme discovery and conversion failures', () => {
     expect(zh.settings.appearance.noInstalledThemeMatches('Trae Theme')).toBe(

@@ -61,7 +61,8 @@ import type {
   UpdateCheckResponse,
   CuratorStatus,
   PortalStatus,
-  DebugShareResponse
+  DebugShareResponse,
+  GatewayMigratePlan
 } from "@/lib/api";
 
 function formatBytes(n: number): string {
@@ -221,6 +222,7 @@ export default function SystemPage() {
 
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [consoleOpen, setConsoleOpen] = useState(false);
+  const [migratePlan, setMigratePlan] = useState<GatewayMigratePlan | null>(null);
 
   // Add-credential form.
   const [credProvider, setCredProvider] = useState("openrouter");
@@ -272,9 +274,10 @@ export default function SystemPage() {
       api.getPortal(),
       // Cached (non-forced) check so the version row shows update status on
       // load without a separate effect / a forced network round-trip.
-      api.checkHermesUpdate(false)
+      api.checkHermesUpdate(false),
+      api.getGatewayMigratePlan()
     ])
-      .then(([s, st, m, p, c, h, cur, prt, upd]) => {
+      .then(([s, st, m, p, c, h, cur, prt, upd, mig]) => {
         if (s.status === "fulfilled") setStatus(s.value);
         if (st.status === "fulfilled") setStats(st.value);
         if (m.status === "fulfilled") setMemory(m.value);
@@ -284,6 +287,7 @@ export default function SystemPage() {
         if (cur.status === "fulfilled") setCurator(cur.value);
         if (prt.status === "fulfilled") setPortal(prt.value);
         if (upd.status === "fulfilled") setUpdateInfo(upd.value);
+        if (mig.status === "fulfilled") setMigratePlan(mig.value);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -313,6 +317,17 @@ export default function SystemPage() {
         copy.operationFailed.replace("{name}", copy.gateway).replace("{error}", String(e)),
         "error"
       );
+    }
+  };
+
+  const migrateToMultiplex = async () => {
+    try {
+      await api.migrateGatewayToMultiplex();
+      setActiveAction("gateway-migrate");
+      showToast(copy.gatewayMigrating, "success");
+      setTimeout(loadAll, 5000);
+    } catch (e) {
+      showToast(copy.gatewayMigrationFailed.replace("{error}", String(e)), "error");
     }
   };
 
@@ -1137,6 +1152,27 @@ export default function SystemPage() {
               </Button>
             </div>
           </CardContent>
+          {migratePlan && !migratePlan.already_multiplexed && migratePlan.profiles.length > 1 && (
+            migratePlan.eligible || migratePlan.blockers.length > 0
+          ) && (
+            <CardContent className="flex flex-col gap-2 border-t border-border py-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted-foreground">{copy.gatewayMigrationDescription}</span>
+                <Button
+                  size="sm"
+                  className="uppercase"
+                  onClick={() => void migrateToMultiplex()}
+                  disabled={!migratePlan.eligible}
+                  title={migratePlan.eligible ? undefined : copy.gatewayMigrationBlocked}
+                >
+                  {copy.migrateGateway}
+                </Button>
+              </div>
+              {migratePlan.blockers.map(blocker => (
+                <div key={blocker} className="text-warning">• {blocker}</div>
+              ))}
+            </CardContent>
+          )}
         </Card>
       </section>
 

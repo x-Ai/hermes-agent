@@ -12,10 +12,13 @@ describe('review summary localization', () => {
   })
 
   it('localizes named skill actions while preserving names and detail', () => {
-    expect(localizeReviewSummaryDetail("Skill 'hermes-release' patched", copy)).toBe('技能“hermes-release”已修补')
-    expect(localizeReviewSummaryDetail("📝 Skill 'deploy' created: release workflow", copy)).toBe(
-      '技能“deploy”已创建：release workflow'
+    expect(localizeReviewSummaryDetail("Skill 'hermes-release' patched", copy)).toBe(
+      copy.skillNamedPatched('hermes-release', '')
     )
+    const created = localizeReviewSummaryDetail("📝 Skill 'deploy' created: release workflow", copy)
+    expect(created).toBe(copy.skillNamedCreated('deploy', 'release workflow'))
+    expect(created).toContain('deploy')
+    expect(created).toContain('release workflow')
   })
 
   it('localizes every action in a combined summary and preserves unknown actions', () => {

@@ -230,11 +230,15 @@ export default function ChannelsPage() {
     setSaving(true);
     try {
       const body: MessagingPlatformUpdate = { env, enabled: true };
-      await api.updateMessagingPlatform(editing.id, body);
-      showToast(copy.saved.replace("{name}", editing.name), "success");
+      const result = await api.updateMessagingPlatform(editing.id, body);
+      showToast(
+        (result.hot_served ? copy.savedConnecting : copy.saved).replace("{name}", editing.name),
+        "success"
+      );
       setEditing(null);
-      setRestartNeeded(true);
+      if (!result.hot_served) setRestartNeeded(true);
       await load();
+      if (result.hot_served) setTimeout(() => void load(), 4000);
     } catch (e) {
       showToast(copy.saveFailed.replace("{error}", String(e)), "error");
     } finally {
@@ -246,7 +250,7 @@ export default function ChannelsPage() {
     const next = !platform.enabled;
     setTogglingId(platform.id);
     try {
-      await api.updateMessagingPlatform(platform.id, { enabled: next });
+      const result = await api.updateMessagingPlatform(platform.id, { enabled: next });
       setPlatforms(prev =>
         prev.map(p =>
           p.id === platform.id
@@ -254,7 +258,8 @@ export default function ChannelsPage() {
             : p
         )
       );
-      setRestartNeeded(true);
+      if (result.hot_served) setTimeout(() => void load(), 4000);
+      else setRestartNeeded(true);
     } catch (e) {
       showToast(`${copy.error}: ${e}`, "error");
     } finally {
@@ -555,6 +560,12 @@ export default function ChannelsPage() {
                       </span>
                       {platform.error_message && (
                         <span className="text-xs text-destructive">{platform.error_message}</span>
+                      )}
+                      {platform.ingress_url && (
+                        <span className="text-xs text-muted-foreground break-all">
+                          {copy.sharedCallbackUrl}{" "}
+                          <code className="font-mono">{platform.ingress_url}</code>
+                        </span>
                       )}
                     </div>
                   </div>
