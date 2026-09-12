@@ -18,10 +18,10 @@ describe('desktop i18n runtime translator', () => {
   it('translates string paths for the active runtime locale', () => {
     setRuntimeI18nLocale('zh')
 
-    expect(translateNow('boot.ready')).toBe('Hermes 桌面版已就绪')
-    expect(translateNow('notifications.voice.noSpeechDetected')).toBe('没有检测到语音')
-    expect(translateNow('composer.lookupNoMatches')).toBe('没有匹配项。')
-    expect(translateNow('assistant.tool.statusRecovered')).toBe('已恢复')
+    expect(translateNow('boot.ready')).toBe(zh.boot.ready)
+    expect(translateNow('notifications.voice.noSpeechDetected')).toBe(zh.notifications.voice.noSpeechDetected)
+    expect(translateNow('composer.lookupNoMatches')).toBe(zh.composer.lookupNoMatches)
+    expect(translateNow('assistant.tool.statusRecovered')).toBe(zh.assistant.tool.statusRecovered)
   })
 
   it('passes arguments to function translations', () => {

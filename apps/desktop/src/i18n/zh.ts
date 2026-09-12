@@ -1,6 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import type { Translations } from './types'
+import { defineLocale } from './define-locale'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
   document: '个文档',
@@ -16,7 +16,7 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
   todo: '项任务'
 }
 
-export const zh: Translations = {
+export const zh = defineLocale({
   connectors: {
     title: '连接你的应用',
     connect: '连接',
@@ -25,6 +25,12 @@ export const zh: Translations = {
     retry: '重试',
     grant: '重新连接',
     connected: '已连接',
+    checking: '正在检查你的应用…',
+    waitingSignIn: '等待你完成登录…',
+    notConnected: '未连接',
+    notAvailable: '不可用',
+    startWith: count => `使用已连接的 ${count} 个应用开始任务`,
+    startWithout: '不连接应用，直接开始',
     skipped: '已跳过',
     disabled: '不可用',
     failed: '连接失败',
@@ -45,6 +51,14 @@ export const zh: Translations = {
     continueFailed: '无法继续，请重试',
     missingResult: '缺少连接器结果',
     disclaimer: '连接为可选操作，请仅授权你希望 Hermes 使用的应用',
+    connectTitle: app => `连接 ${app}？`,
+    describe: app => `Hermes 会在浏览器中登录 ${app}，读取任何内容前都会先询问。`,
+    skipThis: '跳过此项',
+    continueWith: count => `继续使用已选的 ${count} 个应用`,
+    noneOfThese: '都不用',
+    unavailableNow: '目前无法使用连接功能，可以稍后再设置。',
+    nothingConnectedYet: '目前尚未连接任何应用。',
+    connectWhenNeeded: '任务需要时，Hermes 会提示你连接，并在读取任何内容前先询问。',
     execution: '连接器工具'
   },
 
@@ -5216,6 +5230,7 @@ export const zh: Translations = {
     queuedPaused: count => `${count} 条排队 — 已暂停`,
     attachmentOnly: '仅附件回合',
     emptyTurn: '空回合',
+    hiddenQueued: '设置说明',
     attachments: count => `${count} 个附件`,
     editingInComposer: '正在输入框中编辑',
     editingQueuedInComposer: '正在输入框中编辑排队回合',
@@ -5543,6 +5558,16 @@ export const zh: Translations = {
     }
   },
 
+  handoffTour: {
+    profileTitle: '你的第一个任务在默认配置档案中运行',
+    profileText:
+      '这里可以切换配置档案。当前高亮的是 default，任务会话就在其中。另一个是设置配置档案，欢迎对话保存在那里。',
+    sessionsTitle: '每个配置档案都有自己的会话',
+    sessionsText:
+      '此列表属于默认配置档案。“新建会话”会在当前选中的配置档案中创建会话。在侧栏切换配置档案，列表也会随之切换。',
+    stayTitle: '随时都能找到 Hermes',
+    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可。这个对话会一直保留。'
+  },
   guidedGreeting: {
     line: '来了，进来吧。我是 Hermes。给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做。\n\n先说，我该怎么称呼你？',
     nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}。）`
@@ -5624,9 +5649,9 @@ export const zh: Translations = {
       skip: '暂时跳过',
       somethingElse: '其他事情',
       tourQuestion: '要先四处看看吗？',
-      tourBasics: '只看基础功能',
-      tourNone: '我自己摸索',
-      tourFull: '带我看看',
+      tourBasics: '快速导览',
+      tourNone: '跳过，直接开始做点东西',
+      tourFull: '完整导览',
       fallbackQuestion: '哪个听起来更合适？',
       buildReviewQuestion: '这符合你的预期吗？',
       buildReviewLooksRight: '符合预期',
@@ -6837,4 +6862,4 @@ export const zh: Translations = {
       toggle: open => `${open ? '显示' : '隐藏'}侧边栏`
     }
   }
-}
+})

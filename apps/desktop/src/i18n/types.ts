@@ -255,6 +255,12 @@ export interface Translations {
     retry: string
     grant: string
     connected: string
+    checking: string
+    waitingSignIn: string
+    notConnected: string
+    notAvailable: string
+    startWith: (count: number) => string
+    startWithout: string
     skipped: string
     disabled: string
     failed: string
@@ -275,6 +281,14 @@ export interface Translations {
     continueFailed: string
     missingResult: string
     disclaimer: string
+    connectTitle: (app: string) => string
+    describe: (app: string) => string
+    skipThis: string
+    continueWith: (count: number) => string
+    noneOfThese: string
+    unavailableNow: string
+    nothingConnectedYet: string
+    connectWhenNeeded: string
     execution: string
   }
   sessionImport: {
@@ -3147,6 +3161,7 @@ export interface Translations {
     queuedPaused: (count: number) => string
     attachmentOnly: string
     emptyTurn: string
+    hiddenQueued: string
     attachments: (count: number) => string
     editingInComposer: string
     editingQueuedInComposer: string
@@ -3442,6 +3457,14 @@ export interface Translations {
     }
   }
 
+  handoffTour: {
+    profileTitle: string
+    profileText: string
+    sessionsTitle: string
+    sessionsText: string
+    stayTitle: string
+    stayText: string
+  }
   /** The guided first run's pre-written opening line — banked, not generated,
    *  so the first paint costs no model time. Translated per locale because the
    *  model is told to speak the user's language from its first real turn, and

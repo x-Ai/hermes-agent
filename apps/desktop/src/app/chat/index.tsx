@@ -104,6 +104,7 @@ interface ChatViewProps extends Omit<React.ComponentProps<'div'>, 'onSubmit'> {
   onPickImages: () => void
   onRemoveAttachment: (id: string) => void
   onSteer: (text: string) => Promise<boolean> | boolean
+  onSteerHidden?: (text: string) => Promise<boolean> | boolean
   onSubmit: (text: string, options?: SubmitTextOptions) => Promise<boolean> | boolean
   onThreadMessagesChange: (messages: readonly ThreadMessage[]) => void
   onEdit: (message: AppendMessage) => Promise<void>
@@ -398,6 +399,7 @@ const ChatViewContent = memo(function ChatViewContent({
   onPickImages,
   onRemoveAttachment,
   onSteer,
+  onSteerHidden,
   onSubmit,
   onThreadMessagesChange,
   onEdit,
@@ -791,6 +793,7 @@ const ChatViewContent = memo(function ChatViewContent({
               onPickImages={onPickImages}
               onRemoveAttachment={onRemoveAttachment}
               onSteer={onSteer}
+              onSteerHidden={onSteerHidden}
               onSubmit={onSubmit}
               onTranscribeAudio={onTranscribeAudio}
               queueSessionKey={queueSessionKey}
