@@ -48,6 +48,7 @@ class TestSkillManageSchemaDiet(unittest.TestCase):
 
     def test_description_cuts_hold(self):
         desc = SKILL_MANAGE_SCHEMA["description"]
+        self.assertIsInstance(desc, str)
         # Maintainer-directed: no confirm-with-user coaching.
         self.assertNotIn("Confirm with the user", desc)
         # Authoring curriculum compressed to the 57-char trigger rule +

@@ -802,7 +802,7 @@ def _skill_manage_description(create_dir: str) -> str:
         "`requires_tools`, `requires_toolsets`, and `requires_plugins`; "
         "Collective Wisdom uses these declarations to prefill the reviewed "
         "System Specification and never installs dependencies automatically."
-    ),
+    )
 
 
 def _skill_manage_schema_overrides() -> dict:
