@@ -510,7 +510,7 @@ export function LocalModelsSettings() {
 
         {updateApplied && (
           <ListRow
-            description={copy.upToDateDetail(status.tag, status.runtime_backend ?? 'cpu')}
+            description={copy.upToDateDetail(status.tag, status.runtime_backend ?? 'CPU')}
             title={
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
