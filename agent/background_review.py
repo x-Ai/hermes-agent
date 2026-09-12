@@ -610,7 +610,25 @@ def _prior_tool_keys(prior_snapshot: List[Dict]) -> Tuple[set, set]:
     return ids, contents
 
 
-def _action_lines(data: Dict, detail: Dict, verbose: bool) -> List[str]:
+@dataclass
+class _SkillReviewAction:
+    name: str
+    verb: str
+    paths: List[str] = field(default_factory=list)
+    has_default: bool = False
+
+    def summary(self) -> str:
+        paths = list(self.paths)
+        if self.has_default and paths:
+            paths = list(dict.fromkeys(["SKILL.md", *paths]))
+        suffix = f" ({', '.join(paths)})" if paths else ""
+        return f"Skill '{self.name}' {self.verb}{suffix}"
+
+
+def _action_lines(
+    data: Dict, detail: Dict, verbose: bool,
+    skill_actions: Dict[Tuple[str, str], _SkillReviewAction],
+) -> List[str | _SkillReviewAction]:
     """Summary line(s) for one successful notify-tool result (``[]`` when nothing to report)."""
     if data.get("staged"):
         # The fork's own review summary is never published back, so an unattended-review
@@ -627,28 +645,24 @@ def _action_lines(data: Dict, detail: Dict, verbose: bool) -> List[str]:
         results = data.get("results")
         if not data.get("operations_applied") or not isinstance(results, list):
             return []
-        grouped: Dict[Tuple[str, str], Dict[str, Any]] = {}
+        lines: List[str | _SkillReviewAction] = []
         for result in results:
             if not isinstance(result, dict) or result.get("success") is not True:
                 continue
             verb = verbs.get(result.get("action"))
             if verb and result.get("name"):
                 key = (str(result["name"]), verb)
-                group = grouped.setdefault(key, {"paths": [], "has_default": False})
+                group = skill_actions.get(key)
+                if group is None:
+                    group = skill_actions[key] = _SkillReviewAction(*key)
+                    lines.append(group)
                 file_path = result.get("file_path")
                 if file_path:
                     path = str(file_path)
-                    if path not in group["paths"]:
-                        group["paths"].append(path)
+                    if path not in group.paths:
+                        group.paths.append(path)
                 else:
-                    group["has_default"] = True
-        lines = []
-        for (skill_name, verb), group in grouped.items():
-            paths = list(group["paths"])
-            if group["has_default"] and paths:
-                paths.insert(0, "SKILL.md")
-            path = f" ({', '.join(paths)})" if paths else ""
-            lines.append(f"Skill '{skill_name}' {verb}{path}")
+                    group.has_default = True
         return lines
     lower = message.lower()
     if not verbose and ("created" in lower or "updated" in lower or
@@ -680,7 +694,8 @@ def summarize_background_review_actions(
     verbose = mode == "verbose"
     existing_tool_call_ids, existing_tool_contents = _prior_tool_keys(prior_snapshot)
     all_tool_call_ids, call_details = _collect_review_call_details(review_messages)
-    actions: List[str] = []
+    actions: List[str | _SkillReviewAction] = []
+    skill_actions: Dict[Tuple[str, str], _SkillReviewAction] = {}
     for msg in _tool_messages(review_messages):
         tcid = msg.get("tool_call_id")
         if tcid:
@@ -696,8 +711,10 @@ def summarize_background_review_actions(
         # ``success``/``_change``.
         if not isinstance(data, dict) or not data.get("success"):
             continue
-        actions.extend(_action_lines(data, call_details.get(tcid) or {}, verbose))
-    return actions
+        actions.extend(_action_lines(data, call_details.get(tcid) or {}, verbose, skill_actions))
+    # Keep applied paths structured until every call in this review has contributed;
+    # formatting each batch first loses the shared identity behind differing suffixes.
+    return [action.summary() if isinstance(action, _SkillReviewAction) else action for action in actions]
 
 
 def build_memory_write_metadata(

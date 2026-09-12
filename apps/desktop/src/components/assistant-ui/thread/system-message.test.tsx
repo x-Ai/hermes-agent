@@ -2,6 +2,7 @@ import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime }
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider, TRANSLATIONS } from '@/i18n'
 import { toRuntimeMessage } from '@/lib/chat-runtime'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
@@ -82,6 +83,26 @@ afterEach(() => {
 })
 
 describe('background report disclosure', () => {
+  it('renders a historical review summary once per skill operation without losing the supporting file', () => {
+    const name = 'skill-from-review'
+    const file = 'references/gates-and-accounts.md'
+    const raw = `review:Self-improvement review: Skill '${name}' patched · Skill '${name}' patched (${file})`
+    const copy = TRANSLATIONS.zh.assistant.thread.reviewSummary
+    const messages = [toRuntimeMessage({ id: 'review-1', role: 'system', parts: [{ type: 'text', text: raw }] })]
+
+    const { container } = render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <ThreadRuntime messages={messages}>
+          <Thread />
+        </ThreadRuntime>
+      </I18nProvider>
+    )
+
+    const row = container.querySelector('[data-role="system"]')
+    expect(row?.textContent).toBe(`${copy.label}${copy.skillNamedPatched(name, `(SKILL.md, ${file})`)}`)
+    expect(row?.textContent?.split(name)).toHaveLength(2)
+  })
+
   it('keeps result bodies out of the transcript until opened and removes them when collapsed', () => {
     const report = '{"blockers":[{"title":"Local-model readiness uses the wrong endpoint"}]}'
     const { container, getByRole } = render(<Harness asyncResult={report} text="2 background agents finished" />)
