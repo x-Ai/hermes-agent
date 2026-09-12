@@ -3893,12 +3893,20 @@ export const ar = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `تمت مقاطعة العملية: في انتظار استجابة النموذج (انقضت ${elapsedSeconds} ث).`,
+      modelContinuing: (attempt, maxAttempts) =>
+        `أعاد النموذج تفكيرًا دون إجابة نهائية — جار طلب المتابعة (${attempt}/${maxAttempts})`,
       providerReconnecting: (elapsedSeconds, kind) =>
         `لم يرسل الموفّر ${kind === 'output' ? 'مخرجات' : 'استجابة'} منذ ${elapsedSeconds} ث — جار إعادة الاتصال…`,
+      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
+        `في انتظار الموفّر — إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
       providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
         `في انتظار ${kind === 'output' ? 'مخرجات' : 'استجابة'} ${provider} — انقضت ${elapsedSeconds} ث (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
           kind === 'output' ? '، أو قد يظل النموذج يفكر' : ''
         }${reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند ${reconnectSeconds} ث` : ''})`,
+      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `في انتظار ${provider} — انقضت ${elapsedSeconds} ث دون ${kind === 'events' ? 'أحداث بث' : 'استجابة بعد إعادة الاتصال'} (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
+          reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند بلوغ إجمالي الانتظار ${reconnectSeconds} ث` : ''
+        })`,
       summarizingThread: 'جار تنظيم المحادثة',
       moaAggregating: 'جار التجميع عبر MoA…',
       moaReference: (label, index, count) =>

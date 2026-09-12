@@ -1,7 +1,10 @@
-import { act, cleanup } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ResponseLoadingIndicator } from '@/components/assistant-ui/thread/status'
+import { I18nProvider } from '@/i18n'
 import { $providerWaitSessions } from '@/store/provider-wait'
+import { $activeSessionId } from '@/store/session'
 import { clearAllSessionStates, dropSessionState } from '@/store/session-states'
 import type { RpcEvent } from '@/types/hermes'
 
@@ -22,6 +25,7 @@ describe('provider wait visibility', () => {
 
   afterEach(() => {
     cleanup()
+    $activeSessionId.set(null)
     $providerWaitSessions.set({})
     vi.restoreAllMocks()
   })
@@ -34,6 +38,38 @@ describe('provider wait visibility', () => {
 
     emit('thinking.delta', { text: '◉_◉ cogitating...' })
     expect($providerWaitSessions.get()).toEqual({})
+  })
+
+  it('renders localized retry notices from gateway events and clears them when output resumes', () => {
+    $activeSessionId.set(SID)
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <ResponseLoadingIndicator />
+      </I18nProvider>
+    )
+
+    const notices = [
+      [
+        '⏳ waiting on provider — retrying in 41s (attempt 5/6)',
+        '正在等待服务商，41 秒后重试（第 5/6 次）'
+      ],
+      [
+        '↻ model returned reasoning with no final answer — asking it to continue (2/3)',
+        '模型仅返回了思考内容，未给出最终回答，正在请求继续（第 2/3 次）'
+      ]
+    ]
+
+    for (const [raw, localized] of notices) {
+      emit('thinking.delta', { text: raw })
+
+      expect(screen.getByRole('status', { name: localized }).textContent).toContain(localized)
+      expect(screen.queryByText(raw)).toBeNull()
+
+      emit('message.delta', { text: 'progress' })
+
+      expect(screen.queryByText(localized)).toBeNull()
+      expect($providerWaitSessions.get()).toEqual({})
+    }
   })
 
   it.each(['message.delta', 'reasoning.delta', 'tool.start', 'message.complete', 'error'] as const)(

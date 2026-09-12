@@ -3809,6 +3809,14 @@ export const ru = defineLocale({
       loadingSession: 'Загрузка сеанса',
       showEarlier: 'Показать ранние сообщения',
       loadingResponse: 'Hermes загружает ответ',
+      modelContinuing: (attempt, maxAttempts) =>
+        `Модель вернула рассуждения без итогового ответа — запрашиваем продолжение (${attempt}/${maxAttempts})`,
+      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
+        `Ожидание провайдера — повтор через ${retrySeconds} с (попытка ${attempt}/${maxAttempts})`,
+      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `Ожидание ${provider} — ${elapsedSeconds} с без ${kind === 'events' ? 'событий потока' : 'ответа после переподключения'} (провайдер может отвечать медленно или быть перегружен${
+          reconnectSeconds ? `; автоматическое переподключение через ${reconnectSeconds} с от начала ожидания` : ''
+        })`,
       asyncDelegationFailure: detail => `(ошибка: ${detail})`,
       asyncDelegationPartialOutput: 'Частичный вывод:',
       resumeWhenBackgroundDone: count =>

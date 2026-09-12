@@ -5197,12 +5197,20 @@ export const ja = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作が中断されました：モデルの応答を待機中（${elapsedSeconds}秒経過）。`,
+      modelContinuing: (attempt, maxAttempts) =>
+        `モデルが思考内容のみを返し、最終回答がないため、続きを要求しています（${attempt}/${maxAttempts}）`,
       providerReconnecting: (elapsedSeconds, kind) =>
         `プロバイダーから${kind === 'output' ? '出力' : '応答'}がないまま ${elapsedSeconds} 秒経過したため、再接続しています…`,
+      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
+        `プロバイダーを待っています — ${retrySeconds} 秒後に再試行（${attempt}/${maxAttempts} 回目）`,
       providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
         `${provider} の${kind === 'output' ? '出力' : '応答'}を待っています — ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
           kind === 'output' ? '。モデルがまだ思考中の可能性もあります' : ''
         }${reconnectSeconds ? `。${reconnectSeconds} 秒経過時に自動で再接続します` : ''}）`,
+      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `${provider} を待っています — ${kind === 'events' ? 'ストリームイベントがないまま' : '再接続後に応答がないまま'} ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
+          reconnectSeconds ? `。合計 ${reconnectSeconds} 秒経過時に自動で再接続します` : ''
+        }）`,
       summarizingThread: '会話を整理中',
       moaAggregating: 'MoA で集約中…',
       moaReference: (label, index, count) =>

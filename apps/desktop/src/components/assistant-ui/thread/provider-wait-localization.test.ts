@@ -41,4 +41,60 @@ describe('localizeProviderWaitText', () => {
 
     expect(localizeProviderWaitText(raw, copy)).toBe(raw)
   })
+
+  it('forwards recovery fields to each locale without falling back to English', () => {
+    const cases = [
+      {
+        raw: '⏳ waiting on provider — retrying in 41s (attempt 5/6)',
+        formatter: 'providerRetrying' as const,
+        fields: ['41', '5', '6']
+      },
+      {
+        raw: '⏳ waiting on provider — retrying in 0s (attempt 2/12)',
+        formatter: 'providerRetrying' as const,
+        fields: ['0', '2', '12']
+      },
+      {
+        raw: '↻ model returned reasoning with no final answer — asking it to continue (4/9)',
+        formatter: 'modelContinuing' as const,
+        fields: ['4', '9']
+      },
+      {
+        raw: '⏳ waiting on model-from-wire/events — 73s with no stream events (provider may be slow or overloaded)',
+        formatter: 'providerWaitingAfterActivity' as const,
+        fields: ['model-from-wire/events', '73', 'events', null]
+      },
+      {
+        raw: '⏳ waiting on model-from-wire/reconnect — 89s with no response after reconnect (provider may be slow or overloaded; auto-reconnect at 431s total elapsed)',
+        formatter: 'providerWaitingAfterActivity' as const,
+        fields: ['model-from-wire/reconnect', '89', 'response', '431']
+      }
+    ]
+
+    for (const { raw, formatter, fields } of cases) {
+      const localizedNotice = `localized:${fields.join(':')}`
+      const format = vi.fn(() => localizedNotice)
+
+      expect(localizeProviderWaitText(raw, { ...copy, [formatter]: format })).toBe(localizedNotice)
+      expect(format).toHaveBeenCalledWith(...fields)
+
+      const english = localizeProviderWaitText(raw, TRANSLATIONS.en.assistant.thread)
+
+      for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
+        const localized = localizeProviderWaitText(raw, translations.assistant.thread)
+
+        expect(localized).not.toBe(raw)
+
+        for (const field of fields) {
+          if (field !== null && field !== 'events' && field !== 'response') {
+            expect(localized).toContain(field)
+          }
+        }
+
+        if (locale !== 'en') {
+          expect(localized).not.toBe(english)
+        }
+      }
+    }
+  })
 })

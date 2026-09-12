@@ -5115,12 +5115,20 @@ export const en: Translations = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `Operation interrupted: waiting for model response (${elapsedSeconds}s elapsed).`,
+      modelContinuing: (attempt, maxAttempts) =>
+        `The model returned reasoning without a final answer — asking it to continue (${attempt}/${maxAttempts})`,
       providerReconnecting: (elapsedSeconds, kind) =>
         `No ${kind} from the provider after ${elapsedSeconds}s — reconnecting…`,
+      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
+        `Waiting for the provider — retrying in ${retrySeconds}s (attempt ${attempt}/${maxAttempts})`,
       providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
         `Waiting for ${provider} ${kind} — ${elapsedSeconds}s elapsed (the provider may be slow or overloaded${
           kind === 'output' ? ', or the model may still be thinking' : ''
         }${reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s` : ''})`,
+      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `Waiting for ${provider} — ${elapsedSeconds}s with no ${kind === 'events' ? 'stream events' : 'response after reconnect'} (the provider may be slow or overloaded${
+          reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s total elapsed` : ''
+        })`,
       summarizingThread: 'Summarizing thread',
       moaAggregating: 'MoA aggregating…',
       moaReference: (label, index, count) =>

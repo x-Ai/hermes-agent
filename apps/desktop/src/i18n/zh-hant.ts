@@ -4867,12 +4867,20 @@ export const zhHant = defineLocale({
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作已中斷：正在等待模型回應（已等待 ${elapsedSeconds} 秒）。`,
+      modelContinuing: (attempt, maxAttempts) =>
+        `模型僅傳回了思考內容，未提供最終回答，正在請求繼續（第 ${attempt}/${maxAttempts} 次）`,
       providerReconnecting: (elapsedSeconds, kind) =>
         `供應商持續 ${elapsedSeconds} 秒未傳回${kind === 'output' ? '輸出' : '回應'}，正在重新連線…`,
+      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
+        `正在等待供應商，${retrySeconds} 秒後重試（第 ${attempt}/${maxAttempts} 次）`,
       providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
         `正在等待 ${provider} ${kind === 'output' ? '輸出' : '回應'}——已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
           kind === 'output' ? '，模型也可能仍在思考' : ''
         }${reconnectSeconds ? `；若持續無${kind === 'output' ? '輸出' : '回應'}，將在 ${reconnectSeconds} 秒時自動重新連線` : ''}）`,
+      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
+        `正在等待 ${provider}——${kind === 'events' ? '未收到串流事件' : '重新連線後未收到回應'}已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
+          reconnectSeconds ? `；總等待時間達到 ${reconnectSeconds} 秒時自動重新連線` : ''
+        }）`,
       summarizingThread: '正在整理對話',
       moaAggregating: 'MoA 正在彙整…',
       moaReference: (label, index, count) =>

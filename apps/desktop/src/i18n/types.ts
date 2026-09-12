@@ -4220,11 +4220,19 @@ export interface Translations {
         upstreamServerError: (code: string, durationSeconds: string) => string
       }
       operationInterruptedWaitingForModel: (elapsedSeconds: string) => string
+      modelContinuing: (attempt: string, maxAttempts: string) => string
       providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
+      providerRetrying: (retrySeconds: string, attempt: string, maxAttempts: string) => string
       providerWaiting: (
         provider: string,
         elapsedSeconds: string,
         kind: 'output' | 'response',
+        reconnectSeconds: string | null
+      ) => string
+      providerWaitingAfterActivity: (
+        provider: string,
+        elapsedSeconds: string,
+        kind: 'events' | 'response',
         reconnectSeconds: string | null
       ) => string
       summarizingThread: string
