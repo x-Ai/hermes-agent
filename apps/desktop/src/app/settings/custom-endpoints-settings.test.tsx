@@ -161,4 +161,85 @@ describe('CustomEndpointsSettings', () => {
       }
     })
   })
+
+  it('keeps same-name model limits scoped to the endpoint when switching, saving and clearing', async () => {
+    const model = 'shared-model'
+    const first: CustomEndpoint = {
+      ...SAVED_ENDPOINT,
+      model,
+      model_context_lengths: {},
+      model_token_limits: { [model]: SAVED_ENDPOINT.model_token_limits[SAVED_ENDPOINT.model] },
+      models: [model]
+    }
+    const second: CustomEndpoint = {
+      ...first,
+      base_url: 'https://second.example/v1',
+      id: 'second',
+      is_current: false,
+      model_token_limits: {},
+      name: 'Second provider'
+    }
+    const secondLimits = { context_length: 96000, max_input_tokens: 80000, max_output_tokens: 16000 }
+    const savedSecond = { ...second, model_token_limits: { [model]: secondLimits } }
+    const fields = ['Total Context', 'Max Input', 'Max Output']
+    const expectLimits = (values: (number | string)[]) => {
+      fields.forEach((field, index) => {
+        expect(screen.getByLabelText(`${field}: ${model}`)).toHaveProperty('value', String(values[index]))
+      })
+    }
+
+    mocks.get.mockResolvedValue({ ...EMPTY_RESPONSE, endpoints: [first, second] })
+    mocks.save
+      .mockResolvedValueOnce({
+        ...EMPTY_RESPONSE,
+        endpoints: [first, savedSecond],
+        id: second.id,
+        ok: true
+      })
+      .mockResolvedValueOnce({
+        ...EMPTY_RESPONSE,
+        endpoints: [{ ...first, model_token_limits: {} }, savedSecond],
+        id: first.id,
+        ok: true
+      })
+    renderSettings()
+
+    await screen.findByLabelText(`Total Context: ${model}`)
+    expectLimits(Object.values(first.model_token_limits[model]))
+    fireEvent.click(screen.getByRole('button', { name: /Second provider/ }))
+    expectLimits(['', '', ''])
+    fields.forEach((field, index) => {
+      fireEvent.change(screen.getByLabelText(`${field}: ${model}`), {
+        target: { value: String(Object.values(secondLimits)[index]) }
+      })
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mocks.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: second.id, model_token_limits: { [model]: secondLimits } })
+      )
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /GMI Cloud MaaS/ }))
+    expectLimits(Object.values(first.model_token_limits[model]))
+    fields.forEach(field => {
+      fireEvent.change(screen.getByLabelText(`${field}: ${model}`), { target: { value: '' } })
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mocks.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          id: first.id,
+          model_token_limits: {
+            [model]: { context_length: null, max_input_tokens: null, max_output_tokens: null }
+          }
+        })
+      )
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Second provider/ }))
+    expectLimits(Object.values(secondLimits))
+    fireEvent.click(screen.getByRole('button', { name: /GMI Cloud MaaS/ }))
+    expectLimits(['', '', ''])
+  })
 })

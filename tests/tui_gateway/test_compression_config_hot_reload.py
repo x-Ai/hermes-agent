@@ -39,6 +39,7 @@ def _session_with_compressor(**compression_ctor):
 
 def test_live_threshold_and_provider_model_context_apply_on_next_turn_without_rebuild(monkeypatch):
     session, compressor = _session_with_compressor()
+    session["agent"].requested_provider = "custom:acme"
     stale = compressor.threshold_tokens
     assert stale > 100_000
 
@@ -181,6 +182,7 @@ def _neutral_session(**compression_ctor):
     agent = SimpleNamespace(
         model="unset-test-model",
         provider="",
+        base_url="",
         context_compressor=compressor,
         compression_enabled=True,
         compression_idle_compact_after_seconds=0,

@@ -1777,7 +1777,10 @@ def _update_fallback_context_compressor(agent) -> None:
         provider=agent.provider,
         config_context_length=getattr(agent, "_config_context_length", None),
         custom_providers=getattr(agent, "_custom_providers", None),
+        requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
     )
+    if hasattr(compressor, "requested_provider"):
+        compressor.requested_provider = getattr(agent, "requested_provider", "") or agent.provider
     compressor.update_model(  # callable api_key preserved → call_llm
         model=agent.model, context_length=fb_context_length, base_url=agent.base_url,
         api_key=getattr(agent, "api_key", ""), provider=agent.provider, api_mode=agent.api_mode,

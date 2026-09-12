@@ -1560,7 +1560,8 @@ class GatewayInboundMixin:
                 if await should_clear_context_pin_async(
                     None, None,  # model match already checked above
                     _msg_model_cfg.get("base_url"), _msg_base_url,
-                    _msg_model_cfg.get("provider"), _msg_runtime.get("provider"),
+                    _msg_model_cfg.get("provider"),
+                    _msg_runtime.get("requested_provider") or _msg_runtime.get("provider"),
                 ):
                     _msg_config_ctx = None
             except Exception:
@@ -1571,11 +1572,13 @@ class GatewayInboundMixin:
 
                 _msg_config_ctx = get_custom_provider_context_length(
                     model=_msg_model, base_url=_msg_base_url, custom_providers=_msg_custom_providers,
+                    requested_provider=_msg_runtime.get("requested_provider") or _msg_runtime.get("provider") or "",
                 ) or _msg_config_ctx
         return await get_model_context_length_async(
             _msg_model, base_url=_msg_base_url, api_key=_msg_runtime.get("api_key") or "",
             config_context_length=_msg_config_ctx, provider=_msg_runtime.get("provider") or "",
             custom_providers=_msg_custom_providers,
+            requested_provider=_msg_runtime.get("requested_provider") or _msg_runtime.get("provider") or "",
         )
 
     async def _expand_inbound_context_references(

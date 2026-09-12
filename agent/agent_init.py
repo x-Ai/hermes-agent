@@ -112,8 +112,8 @@ def _context_route_mismatch(
     """Return whether a context pin's configured route differs from runtime."""
     _norm = (lambda v: str(v or "")) if already_normalized else normalize_route_base_url
     configured_route, active_route = _norm(configured_base_url), _norm(active_base_url)
-    if configured_route:
-        return configured_route != active_route
+    if configured_route and configured_route != active_route:
+        return True
 
     configured_provider = str(configured_provider or "").strip()
     active_provider = str(active_provider or "").strip()
@@ -130,6 +130,13 @@ def _context_route_mismatch(
         from hermes_cli.providers import normalize_provider as normalize_registry_provider
         configured_provider = normalize_registry_provider(configured_provider)
         active_provider = normalize_registry_provider(active_provider)
+
+    if configured_route:
+        generic = {"", "auto", "custom"}
+        if configured_provider in generic or active_provider in generic:
+            return False
+        from hermes_cli.providers import custom_provider_aliases
+        return active_provider not in custom_provider_aliases(configured_provider)
 
     if active_route:
         configured_routes = _provider_default_routes(configured_provider)
@@ -1545,7 +1552,11 @@ def _custom_provider_configured_base_url(
     _disabled_ids: set[str] = set()
     if isinstance(_user_providers, dict):
         from hermes_cli.config import is_provider_enabled
-        for _key, _entry in _user_providers.items():
+        _keyed = [
+            (_key, _entry) for _key, _entry in _user_providers.items()
+            if _wanted in _custom_provider_runtime_ids(_key)
+        ]
+        for _key, _entry in _keyed or _user_providers.items():
             if not isinstance(_entry, dict):
                 continue
             _ids = _custom_provider_runtime_ids(_key) | _custom_provider_runtime_ids(_entry.get("name"))
@@ -1558,9 +1569,8 @@ def _custom_provider_configured_base_url(
                 )
                 if _url:
                     return _url
-    for _entry in _custom_providers:
-        if not isinstance(_entry, dict):
-            continue
+    from hermes_cli.config_providers import _token_limit_entries_for_provider
+    for _entry in _token_limit_entries_for_provider(_custom_providers, requested_provider=_wanted):
         _key_ids = _custom_provider_runtime_ids(_entry.get("provider_key"))
         if _key_ids & _disabled_ids:
             continue
@@ -1636,10 +1646,31 @@ def _scope_context_length_to_default_runtime(
             _active_runtime_model = normalize_model_for_provider(agent.model, agent.provider)
     _configured_base_url = _configured_default_base_url(_agent_cfg, _model_cfg, _custom_providers)
     _active_base_url = _active_route_url(agent, base_url)
+    from hermes_cli.config_providers import _entries_for_route, _token_limit_entries_for_provider
+    from hermes_cli.providers import custom_provider_slug
+
+    def provider_identity(value):
+        requested = str(value or "").strip().lower()
+        if requested in {"", "auto", "custom"}:
+            return requested
+        for entry in _token_limit_entries_for_provider(_custom_providers or [], requested_provider=requested):
+            name, key = str(entry.get("name") or ""), str(entry.get("provider_key") or "")
+            return custom_provider_slug(name, key)
+        return requested
+
     _route_mismatch = _context_route_mismatch(
-        _configured_base_url, _active_base_url, str(_model_cfg.get("provider") or "").strip(),
-        agent.provider, already_normalized=True,
+        _configured_base_url, _active_base_url, provider_identity(_model_cfg.get("provider")),
+        provider_identity(getattr(agent, "requested_provider", "") or agent.provider),
+        already_normalized=True,
     )
+    _requested = str(getattr(agent, "requested_provider", "") or agent.provider or "").strip().lower()
+    if (
+        not _route_mismatch
+        and _requested in {"", "auto", "custom"}
+        and str(_model_cfg.get("provider") or "").strip().lower() not in {"", "auto", "custom"}
+    ):
+        _route_entries = list(_entries_for_route(_active_base_url, _custom_providers, _agent_cfg))
+        _route_mismatch = bool(_route_entries and not _token_limit_entries_for_provider(_route_entries))
     _model_mismatch = bool(
         _configured_default_runtime_model
         and _configured_default_runtime_model != _active_runtime_model
@@ -1744,7 +1775,8 @@ def _resolve_context_length(agent, _agent_cfg, base_url):
         with suppress(Exception):
             from hermes_cli.config import get_custom_provider_context_length
             _cp_ctx_resolved = get_custom_provider_context_length(
-                model=agent.model, base_url=agent.base_url, custom_providers=_custom_providers
+                model=agent.model, base_url=agent.base_url, custom_providers=_custom_providers,
+                requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
             )
             if _cp_ctx_resolved:
                 _config_context_length = int(_cp_ctx_resolved)
@@ -1849,6 +1881,7 @@ def _build_context_engine(agent, _agent_cfg, cs, _custom_providers, _effective_c
             agent.model, base_url=agent.base_url, api_key=getattr(agent, "api_key", ""),
             config_context_length=_effective_context_length, provider=agent.provider,
             custom_providers=_custom_providers,
+            requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
         )
         # Per-model overrides BEFORE the initial update_model() so the first threshold
         # resolution already sees them.
@@ -1875,6 +1908,7 @@ def _build_context_engine(agent, _agent_cfg, cs, _custom_providers, _effective_c
             proactive_prune_min_reclaim_tokens=cs.proactive_prune_min_reclaim,
             min_tail_user_messages=cs.min_tail_users, tail_mode=cs.tail_mode,
             custom_providers=_custom_providers,
+            requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
         )
     _bind_session_state = getattr(agent.context_compressor, "bind_session_state", None)
     if callable(_bind_session_state):

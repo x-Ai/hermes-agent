@@ -17,11 +17,31 @@ def _custom_token_limits_for_agent(agent: Any, cfg: dict) -> dict[str, int]:
         getattr(agent, "model", "") or "",
         getattr(agent, "base_url", "") or "",
         config=cfg,
+        requested_provider=getattr(agent, "requested_provider", "") or getattr(agent, "provider", ""),
     )
 
 
 def _custom_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
     return _custom_token_limits_for_agent(agent, cfg).get("context_length")
+
+
+def _global_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
+    """Keep the default model's context pin scoped identically at startup and hot reload."""
+    from agent.agent_init import _scope_context_length_to_default_runtime
+    from hermes_cli.config_providers import get_compatible_custom_providers
+
+    model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
+    raw = model_cfg.get("context_length")
+    try:
+        value = int(raw) if raw is not None and not isinstance(raw, bool) else 0
+    except (TypeError, ValueError):
+        return None
+    if value <= 0:
+        return None
+    return _scope_context_length_to_default_runtime(
+        agent, cfg, model_cfg, get_compatible_custom_providers(cfg), value,
+        getattr(agent, "base_url", ""),
+    )
 
 
 def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tuple:
@@ -33,6 +53,7 @@ def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tu
     compression = cfg.get("compression") if isinstance(cfg, dict) and isinstance(cfg.get("compression"), dict) else {}
     picked.update({f"compression.{k}": compression.get(k) for k in ("idle_compact_after_seconds", "tail_mode")})
     if agent is not None:
+        picked["model.context_length"] = _global_context_length_for_agent(agent, cfg or {})
         picked["model.active_provider_token_limits"] = tuple(sorted(
             _custom_token_limits_for_agent(agent, cfg or {}).items()
         ))
@@ -101,7 +122,6 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     """
     cfg = cfg if isinstance(cfg, dict) else {}
     compression = cfg.get("compression") if isinstance(cfg.get("compression"), dict) else {}
-    model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
     enabled_raw = compression.get("enabled", True)
     agent.compression_enabled = enabled_raw if isinstance(enabled_raw, bool) else str(enabled_raw).lower() in {"true", "1", "yes"}
     agent.codex_responses_native_compaction = is_truthy_value(compression.get("codex_responses_native", False))
@@ -124,6 +144,8 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     agent._custom_providers = custom_providers
     if hasattr(cc, "custom_providers"):
         cc.custom_providers = custom_providers
+    if hasattr(cc, "requested_provider"):
+        cc.requested_provider = getattr(agent, "requested_provider", "") or getattr(agent, "provider", "")
     active_limits = _custom_token_limits_for_agent(agent, cfg)
     # tail_mode: unknown/absent values land on the ctor default ("lean"), matching agent_init.
     default_tail = str(_compressor_ctor_default("tail_mode", "lean"))
@@ -159,12 +181,7 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
         cc.threshold_percent = cc._effective_threshold_percent(cc.context_length, base)
     except Exception:
         cc.threshold_percent = pct
-    raw_ctx = model_cfg.get("context_length")
-    try:
-        parsed_ctx = int(raw_ctx) if raw_ctx is not None else 0
-        new_ctx = parsed_ctx if parsed_ctx > 0 else None
-    except (TypeError, ValueError):
-        new_ctx = None
+    new_ctx = _global_context_length_for_agent(agent, cfg)
     if new_ctx is None:
         new_ctx = active_limits.get("context_length")
     agent._config_context_length = new_ctx

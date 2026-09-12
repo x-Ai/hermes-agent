@@ -6,9 +6,6 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
-from hermes_cli.providers import custom_provider_aliases
-from hermes_cli.route_identity import normalize_route_base_url
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,20 +22,12 @@ def _positive_int(value: Any) -> Optional[int]:
 def _configured_entries(
     entries: Any, *, base_url: str, requested_provider: str, api_mode: str = "",
 ) -> Iterable[dict[str, Any]]:
-    if not isinstance(entries, list):
-        return ()
-    route = normalize_route_base_url(base_url)
-    candidates = [
-        entry for entry in entries
-        if isinstance(entry, dict) and normalize_route_base_url(entry.get("base_url")) == route
-    ]
-    requested = str(requested_provider or "").strip().lower()
-    if requested and requested not in {"auto", "custom"}:
-        candidates = [
-            entry for entry in candidates
-            if requested in custom_provider_aliases(
-                str(entry.get("name") or ""), str(entry.get("provider_key") or ""))
-        ]
+    from hermes_cli.config_providers import _token_limit_entries_for_route
+
+    candidates = _token_limit_entries_for_route(
+        base_url, entries if isinstance(entries, list) else [],
+        requested_provider=requested_provider,
+    )
     mode = str(api_mode or "").strip().lower()
     if mode:
         mode_scoped = [
@@ -82,7 +71,7 @@ def resolve_output_token_limit(
         return OutputTokenLimit(value, "explicit")
 
     entries = list(_configured_entries(
-        custom_providers, base_url=base_url, requested_provider=requested_provider,
+        custom_providers, base_url=base_url, requested_provider=requested_provider or provider,
         api_mode=api_mode))
     saved_discovered: Optional[int] = None
     for entry in entries:

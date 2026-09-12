@@ -1822,7 +1822,10 @@ def _resolve_moa_context_length(model: str, custom_providers: list | None) -> Op
     return None
 
 
-def _config_override_context_length(model: str, base_url: str, provider: str, custom_providers: list | None) -> Optional[int]:
+def _config_override_context_length(
+    model: str, base_url: str, provider: str, custom_providers: list | None,
+    requested_provider: str = "",
+) -> Optional[int]:
     """Steps 0b-0c: config-only overrides (never touch the network). 0b: EXPLICIT model_overrides
     only — fill-gap _default entries apply inside lookup_models_dev_context once the catalog has
     missed, so a _default can never preempt custom_providers or live probes. 0c: custom_providers."""
@@ -1840,7 +1843,10 @@ def _config_override_context_length(model: str, base_url: str, provider: str, cu
     if custom_providers and base_url and model:
         with contextlib.suppress(Exception):  # fall through to probing
             from hermes_cli.config import get_custom_provider_context_length
-            cp_ctx = get_custom_provider_context_length(model=model, base_url=base_url, custom_providers=custom_providers)
+            cp_ctx = get_custom_provider_context_length(
+                model=model, base_url=base_url, custom_providers=custom_providers,
+                requested_provider=requested_provider or provider,
+            )
             if cp_ctx:
                 return cp_ctx
     return None
@@ -1906,6 +1912,7 @@ def _resolve_provider_aware_context_length(model: str, base_url: str, api_key: s
 def get_model_context_length(
     model: str, base_url: str = "", api_key: str = "", config_context_length: int | None = None,
     provider: str = "", custom_providers: list | None = None,
+    requested_provider: str = "",
 ) -> int:
     """Context length for a model. Resolution order: 0 config override / MoA aggregator /
     model_overrides / custom_providers / endpoint-scoped; 1 persistent cache (Nous, LM
@@ -1920,7 +1927,7 @@ def get_model_context_length(
         ctx = _resolve_moa_context_length(model, custom_providers)
         if ctx is not None:
             return ctx
-    ctx = _config_override_context_length(model, base_url, provider, custom_providers)
+    ctx = _config_override_context_length(model, base_url, provider, custom_providers, requested_provider)
     if ctx is not None:
         return ctx
     # Malformed URLs (unmatched IPv6 bracket) make urllib.parse raise; treat them as unknown so
@@ -2009,12 +2016,13 @@ def get_model_context_length(
     return DEFAULT_FALLBACK_CONTEXT
 
 
-async def get_model_context_length_async(model: str, base_url: str = "", api_key: str = "", config_context_length: int | None = None, provider: str = "", custom_providers: list | None = None) -> int:
+async def get_model_context_length_async(model: str, base_url: str = "", api_key: str = "", config_context_length: int | None = None, provider: str = "", custom_providers: list | None = None, requested_provider: str = "") -> int:
     """get_model_context_length on a worker thread (its blocking HTTP would stall the event loop)."""
     import asyncio
     return await asyncio.to_thread(
         get_model_context_length, model, base_url=base_url, api_key=api_key,
-        config_context_length=config_context_length, provider=provider, custom_providers=custom_providers)
+        config_context_length=config_context_length, provider=provider, custom_providers=custom_providers,
+        requested_provider=requested_provider)
 
 
 # CJK/Hangul/Kana codepoints (~1 token each), counted in one C-level regex pass: Hangul

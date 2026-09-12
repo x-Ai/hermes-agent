@@ -1784,6 +1784,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
                 self.model, base_url=self.base_url, api_key=self.api_key,
                 config_context_length=self._config_context_length, provider=self.provider,
                 custom_providers=self.custom_providers,
+                requested_provider=self.requested_provider,
             )
             # Raise-only small-context floor; must run after context_length resolves and before threshold_tokens derives.
             self.threshold_percent = self._effective_threshold_percent(self._resolved_context_length, self._base_threshold_percent)
@@ -2250,7 +2251,8 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         from hermes_cli.config_providers import get_custom_provider_token_limits
 
         value = get_custom_provider_token_limits(
-            model, base_url, custom_providers=self.custom_providers
+            model, base_url, custom_providers=self.custom_providers,
+            requested_provider=self.requested_provider or self.provider,
         ).get("max_input_tokens")
         return self._coerce_max_tokens(value)
 
@@ -2322,9 +2324,10 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         model_thresholds: dict[str, float] | None = None, threshold_tokens_cap: Any = None,
         proactive_prune_tokens: int = 0, proactive_prune_min_result_chars: int = 8000,
         proactive_prune_min_reclaim_tokens: int = 4096, min_tail_user_messages: int = 1, tail_mode: str = "lean",
-        custom_providers: list | None = None,
+        custom_providers: list | None = None, requested_provider: str = "",
     ):
         self.model, self.base_url, self.api_key, self.provider, self.api_mode = model, base_url, api_key, provider, api_mode
+        self.requested_provider = requested_provider
         # "lean" = small clamped tail + verbatim-user summary section; "legacy" = 0.20*window tail.
         self.tail_mode = tail_mode if tail_mode in ("legacy", "lean") else "lean"
         # Per-model context_length overrides live in custom_providers; without them deferred

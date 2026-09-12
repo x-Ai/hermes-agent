@@ -382,7 +382,7 @@ def get_compatible_custom_providers(
         pair = (name, base_url, _norm(entry, "model"))
         if provider_key and provider_key in seen_provider_keys:
             continue
-        if name and base_url and pair in seen_name_url_pairs:
+        if not provider_key and name and base_url and pair in seen_name_url_pairs:
             continue
         compatible.append(entry)
         if provider_key:
@@ -524,15 +524,58 @@ def get_custom_provider_context_length(
     model: str,
     base_url: str,
     custom_providers: Optional[List[Dict[str, Any]]] = None,
-    config: Optional[Dict[str, Any]] = None) -> Optional[int]:
+    config: Optional[Dict[str, Any]] = None, *, requested_provider: str = "") -> Optional[int]:
     """Per-model ``context_length`` override from a route-matching entry, or ``None``.
 
     Before this helper existed, the lookup was duplicated in ``run_agent.py``'s startup path only; every
     other path (notably ``/model`` switch) fell back to the 128K default. See #15779.
     """
     return get_custom_provider_token_limits(
-        model, base_url, custom_providers=custom_providers, config=config
+        model, base_url, custom_providers=custom_providers, config=config,
+        requested_provider=requested_provider,
     ).get("context_length")
+
+
+def _token_limit_entries_for_provider(
+    entries: List[Dict[str, Any]], *, requested_provider: str = "",
+) -> List[Dict[str, Any]]:
+    """Resolve a stable provider key before display aliases, refusing ambiguous identities."""
+    from hermes_cli.providers import custom_provider_aliases, custom_provider_slug
+
+    entries = [entry for entry in entries if isinstance(entry, dict)]
+    requested = str(requested_provider or "").strip().lower()
+    if requested and requested not in {"auto", "custom"}:
+        keyed = [
+            entry for entry in entries
+            if requested in custom_provider_aliases("", str(entry.get("provider_key") or ""))
+        ]
+        entries = keyed or [
+            entry for entry in entries
+            if requested in custom_provider_aliases(
+                str(entry.get("name") or ""), str(entry.get("provider_key") or ""))
+        ]
+    identities = {
+        custom_provider_slug(str(entry.get("name") or ""), str(entry.get("provider_key") or ""))
+        for entry in entries
+    }
+    return entries if len(identities) <= 1 else []
+
+
+def _token_limit_entries_for_route(
+    base_url: str, custom_providers: Optional[List[Dict[str, Any]]],
+    config: Optional[Dict[str, Any]] = None, *, requested_provider: str = "",
+) -> List[Dict[str, Any]]:
+    """Select one provider's limits; a shared URL alone cannot identify that provider."""
+    if custom_providers is None:
+        from hermes_cli.config import get_compatible_custom_providers
+        custom_providers = get_compatible_custom_providers(config)
+    requested = str(requested_provider or "").strip().lower()
+    entries = custom_providers if isinstance(custom_providers, list) else []
+    if requested and requested not in {"auto", "custom"}:
+        # Resolve identity before the URL: a stale route must not pick another provider
+        # whose display name happens to equal the requested provider's stable key.
+        entries = _token_limit_entries_for_provider(entries, requested_provider=requested)
+    return _token_limit_entries_for_provider(list(_entries_for_route(base_url, entries, config)))
 
 
 def get_custom_provider_token_limits(
@@ -540,6 +583,7 @@ def get_custom_provider_token_limits(
     base_url: str,
     custom_providers: Optional[List[Dict[str, Any]]] = None,
     config: Optional[Dict[str, Any]] = None,
+    *, requested_provider: str = "",
 ) -> Dict[str, int]:
     """Configured total-context, input and output limits for one exact endpoint/model route."""
     from hermes_cli.config import get_compatible_custom_providers
@@ -568,7 +612,9 @@ def get_custom_provider_token_limits(
         "max_input_tokens": ("max_input_tokens",),
         "max_output_tokens": ("max_output_tokens", "max_tokens"),
     }
-    entries = list(_entries_for_route(base_url, custom_providers, config))
+    entries = _token_limit_entries_for_route(
+        base_url, custom_providers, config, requested_provider=requested_provider,
+    )
     override_cfgs = [
         limits
         for entry in entries

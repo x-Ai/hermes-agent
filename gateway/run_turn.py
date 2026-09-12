@@ -577,6 +577,7 @@ class GatewayTurnMixin:
                 self._hmwa_hygiene_read_config(hs, hs.data)
             configured_model, configured_provider, configured_base_url = hs.model, hs.provider, hs.base_url
 
+            _hyg_runtime = {}
             with suppress(Exception):
                 hs.model, _hyg_runtime = self._resolve_session_agent_runtime(
                     source=source, session_key=session_key,
@@ -585,6 +586,7 @@ class GatewayTurnMixin:
                 hs.provider = _hyg_runtime.get("provider") or hs.provider
                 hs.base_url = _hyg_runtime.get("base_url") or hs.base_url
                 hs.api_key = _hyg_runtime.get("api_key") or hs.api_key
+            _hyg_requested_provider = _hyg_runtime.get("requested_provider") or hs.provider or ""
 
             if hs.config_context_length is not None:
                 try:
@@ -592,7 +594,7 @@ class GatewayTurnMixin:
 
                     if await should_clear_context_pin_async(
                         configured_model, hs.model, configured_base_url, hs.base_url,
-                        configured_provider, hs.provider,
+                        configured_provider, _hyg_requested_provider,
                     ):
                         hs.config_context_length = None
                 except Exception:
@@ -613,6 +615,7 @@ class GatewayTurnMixin:
                             _hyg_custom_providers = []
                     _hyg_custom_ctx = _gw_gccl(
                         model=hs.model, base_url=hs.base_url, custom_providers=_hyg_custom_providers,
+                        requested_provider=_hyg_requested_provider,
                     )
                     if _hyg_custom_ctx:
                         hs.config_context_length = int(_hyg_custom_ctx)

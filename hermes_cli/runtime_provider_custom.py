@@ -144,7 +144,11 @@ def _match_new_style_provider(requested_norm: str, providers: Dict[str, Any]) ->
     """Scan ``providers:`` (new-style, keyed) for ``requested_norm``."""
     from hermes_cli.config import is_provider_enabled
     rp = _rp()
-    for ep_name, entry in providers.items():
+    keyed = [
+        (name, entry) for name, entry in providers.items()
+        if requested_norm in custom_provider_aliases("", str(name))
+    ]
+    for ep_name, entry in keyed or providers.items():
         # ``providers.<name>.enabled: false`` entries stay in config but are invisible here.
         if not isinstance(entry, dict) or not is_provider_enabled(entry):
             continue
@@ -175,7 +179,10 @@ def _match_new_style_provider(requested_norm: str, providers: Dict[str, Any]) ->
 
 def _match_legacy_custom_provider(requested_norm: str, custom_providers) -> Optional[Dict[str, Any]]:
     """Scan the legacy ``custom_providers:`` list for ``requested_norm``."""
-    for entry in custom_providers:
+    from hermes_cli.config_providers import _token_limit_entries_for_provider
+
+    identity = "custom:custom" if requested_norm == "custom" else requested_norm
+    for entry in _token_limit_entries_for_provider(custom_providers, requested_provider=identity):
         name, base_url = (entry.get("name"), entry.get("base_url")) if isinstance(entry, dict) else (None, None)
         if not isinstance(name, str) or not isinstance(base_url, str):
             continue

@@ -1162,6 +1162,8 @@ def restore_primary_runtime(agent) -> bool:
             agent._use_prompt_caching = False
             agent._use_native_cache_layout = False
         _rebuild_primary_client(agent, rt, reason="restore_primary")
+        if hasattr(agent.context_compressor, "requested_provider"):
+            agent.context_compressor.requested_provider = agent.requested_provider
         agent.context_compressor.update_model(
             model=rt["compressor_model"], context_length=rt["compressor_context_length"],
             base_url=rt["compressor_base_url"], api_key=rt["compressor_api_key"],
@@ -1841,6 +1843,9 @@ def _restore_switch_snapshot(agent, snapshot: Dict[str, Any]) -> None:
             continue  # attribute did not exist before the swap; don't fabricate it
         with contextlib.suppress(Exception):
             setattr(agent, name, value)
+    compressor = getattr(agent, "context_compressor", None)
+    if hasattr(compressor, "requested_provider"):
+        compressor.requested_provider = getattr(agent, "requested_provider", "") or agent.provider
 
 
 def _resolve_switch_destination(agent, new_model, new_provider, base_url, api_mode, capabilities, old_norm, new_norm):
@@ -2010,7 +2015,8 @@ def _resolve_switch_context_length(agent, snapshot):
         )
         custom_providers = get_compatible_custom_providers(load_config())
         intent = get_custom_provider_context_length(
-            model=agent.model, base_url=agent.base_url, custom_providers=custom_providers
+            model=agent.model, base_url=agent.base_url, custom_providers=custom_providers,
+            requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
         )
     except Exception:
         intent = None
@@ -2050,9 +2056,12 @@ def _update_switch_compressor(agent, custom_providers, effective_context_length,
         new_context_length = get_model_context_length(
             agent.model, base_url=agent.base_url, api_key=ctx_api_key, provider=agent.provider,
             config_context_length=effective_context_length, custom_providers=custom_providers,
+            requested_provider=getattr(agent, "requested_provider", "") or agent.provider,
         )
         if hasattr(agent.context_compressor, "custom_providers"):
             agent.context_compressor.custom_providers = custom_providers
+        if hasattr(agent.context_compressor, "requested_provider"):
+            agent.context_compressor.requested_provider = getattr(agent, "requested_provider", "") or agent.provider
         agent.context_compressor.update_model(
             model=agent.model,
             context_length=new_context_length,

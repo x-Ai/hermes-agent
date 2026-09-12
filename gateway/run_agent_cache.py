@@ -91,6 +91,7 @@ class GatewayAgentCacheMixin:
             model,
             str(runtime.get("base_url") or ""),
             config=user_config if isinstance(user_config, dict) else {},
+            requested_provider=str(runtime.get("requested_provider") or runtime.get("provider") or ""),
         )
 
     # Kept for the process lifetime: loading a provider imports its plugin module, and this runs on every inbound message.
