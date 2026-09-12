@@ -126,7 +126,12 @@ def normalize_model_response(
 
     if standard_output_truncation:
         # A server-declared length stop is a successful partial response. Incomplete tool arguments
-        # are not executable, but visible text is retained and finalized as the assistant answer.
+        # are not executable or replayable, but visible text is retained and finalized as the
+        # assistant answer. Preserve only the transient fact that a tool call existed so the
+        # no-visible-text recovery cannot turn a truncated action into a fresh executable action.
+        agent._standard_output_truncation_had_tool_calls = bool(
+            assistant_message.tool_calls
+        )
         assistant_message.tool_calls = None
         finish_reason = "length"
         assistant_message.finish_reason = "length"

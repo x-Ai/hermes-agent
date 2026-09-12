@@ -36,6 +36,12 @@ def _mock_response(content="a perfectly fine summary", finish_reason="stop"):
     return resp
 
 
+def _reasoning_only_response(reasoning="unfinished hidden reasoning", finish_reason="length"):
+    resp = _mock_response("", finish_reason)
+    resp.choices[0].message.reasoning_content = reasoning
+    return resp
+
+
 def _msgs(n=12):
     return [
         {"role": "user" if i % 2 == 0 else "assistant", "content": f"msg {i} " + "x" * 50}
@@ -59,6 +65,25 @@ class TestResponseFinishReason:
 
 
 class TestGenerateSummaryTruncationGuard:
+    def test_reasoning_only_length_stop_retries_once_without_reasoning(self):
+        with patch("agent.context_compressor.get_model_context_length", return_value=100000):
+            c = ContextCompressor(model="test", quiet_mode=True)
+        with patch(
+            "agent.context_compressor.call_llm",
+            side_effect=[
+                _reasoning_only_response(),
+                _mock_response("complete recovered summary", "stop"),
+            ],
+        ) as mock_call:
+            result = c._generate_summary(_msgs(2))
+
+        assert result is not None
+        assert "complete recovered summary" in result
+        assert mock_call.call_count == 2
+        retry_kwargs = mock_call.call_args_list[1].kwargs
+        assert retry_kwargs["reasoning_config"] == {"enabled": False, "effort": "none"}
+        assert retry_kwargs["max_tokens"] == 32_768
+
     def test_length_stop_is_rejected_and_aborts(self):
         """A length-stopped summary must not become a checkpoint; with no
         distinct aux model to fall back from, compression ABORTS and the
@@ -156,16 +181,21 @@ class TestGenerateSummaryTruncationGuard:
 
 
 class TestMicroSummarizeTruncationGuard:
-    def test_length_stop_discards_partial_merge(self):
+    def test_reasoning_only_length_stop_retries_then_discards_partial_merge(self):
         with patch("agent.context_compressor.get_model_context_length", return_value=100000):
             c = ContextCompressor(model="test", quiet_mode=True)
         c._micro_compact_rolling_summary = "existing rolling summary"
         with patch(
             "agent.auxiliary_client.call_llm",
-            return_value=_mock_response("partial merge tex", "length"),
-        ):
+            side_effect=[_reasoning_only_response(), _reasoning_only_response()],
+        ) as mock_call:
             result = c._micro_summarize_one("user: hi\nassistant: hello")
         assert result is None
+        assert mock_call.call_count == 2
+        assert mock_call.call_args_list[1].kwargs["reasoning_config"] == {
+            "enabled": False,
+            "effort": "none",
+        }
 
     def test_stop_finish_reason_merges(self):
         with patch("agent.context_compressor.get_model_context_length", return_value=100000):

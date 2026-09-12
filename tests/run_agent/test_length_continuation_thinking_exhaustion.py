@@ -1,10 +1,8 @@
 """Regression tests for provider-declared output-limit truncations.
 
-A normal protocol response with ``finish_reason="length"`` is terminal by default.
-Hermes preserves visible partial text and surfaces a localized fallback when reasoning
-consumed the entire output budget. An explicit, bounded config may replay a no-visible-
-text result, but no path injects a continuation prompt, raises the output cap, or changes
-the reasoning configuration.
+Hermes preserves visible partial text. When reasoning consumes the entire output budget,
+the default bounded recovery replays once with reasoning disabled (and may grow an implicit
+transport cap) without injecting a continuation message or changing the cached prefix.
 """
 
 from __future__ import annotations
@@ -25,10 +23,7 @@ class _AgentStandIn:
 
 
 class TestReasoningOffOneShotOverride:
-    """The pre-existing synthetic stream-recovery helper remains bounded.
-
-    Provider-declared output limits are covered below and never arm this flag.
-    """
+    """The shared reasoning-off recovery helper remains bounded."""
 
     def test_flag_consumed_exactly_once(self):
         from agent.chat_completion_helpers import _reasoning_config_for_wire
@@ -152,12 +147,45 @@ def _no_empty_assistant_rows(messages):
 
 
 class TestThinkingOnlyTruncation:
-    def test_thinking_only_output_limit_is_terminal(self, loop_agent, monkeypatch):
-        monkeypatch.setenv("HERMES_LANGUAGE", "zh")
+    def test_thinking_only_output_limit_retries_once_without_reasoning(self, loop_agent):
+        loop_agent.reasoning_config = {"enabled": True, "effort": "high"}
+        loop_agent._supports_reasoning_extra_body = lambda: True
         loop_agent.client.chat.completions.create.side_effect = [
+            _thinking_only_length_response(),
+            _full_response("answer after bounded recovery"),
+        ]
+        with patch(
+            "agent.output_tokens.output_token_limit_for_agent",
+            return_value=16_384,
+        ):
+            result = _run(loop_agent, "write me a long report")
+
+        assert result["completed"] is True
+        assert result["final_response"] == "answer after bounded recovery"
+        calls = loop_agent.client.chat.completions.create.call_args_list
+        assert len(calls) == 2
+        assert [
+            (call.kwargs.get("extra_body") or {}).get("reasoning") for call in calls
+        ] == [
+            {"enabled": True, "effort": "high"},
+            {"enabled": False, "effort": "none"},
+        ]
+        assert [call.kwargs.get("max_tokens") for call in calls] == [16_384, 32_768]
+        assert [
+            m.get("content") for m in result["messages"] if m.get("role") == "user"
+        ] == ["write me a long report"]
+        assert loop_agent._ephemeral_reasoning_off is False
+
+    def test_configured_retries_stop_exactly_at_the_budget(self, loop_agent, monkeypatch):
+        monkeypatch.setenv("HERMES_LANGUAGE", "zh")
+        loop_agent._output_truncation_retries = 2
+        loop_agent.client.chat.completions.create.side_effect = [
+            _thinking_only_length_response(),
+            _thinking_only_length_response(),
             _thinking_only_length_response(),
             _full_response("must not be requested"),
         ]
+
         result = _run(loop_agent, "write me a long report")
 
         assert result["completed"] is True
@@ -165,29 +193,7 @@ class TestThinkingOnlyTruncation:
         assert result["final_response"] == (
             "响应在生成可见文本之前达到提供方的输出 Token 上限，已被截断。"
         )
-        assert _no_empty_assistant_rows(result["messages"]) == [], (
-            "The localized fallback must replace an empty assistant row."
-        )
-        calls = loop_agent.client.chat.completions.create.call_args_list
-        assert len(calls) == 1, "A provider output limit must not replay the request."
-        assert [
-            m.get("content") for m in result["messages"] if m.get("role") == "user"
-        ] == ["write me a long report"]
-        assert loop_agent._ephemeral_reasoning_off is False
-
-    def test_opt_in_retries_exactly_the_configured_number(self, loop_agent):
-        loop_agent._output_truncation_retries = 2
-        loop_agent.client.chat.completions.create.side_effect = [
-            _thinking_only_length_response(),
-            _thinking_only_length_response(),
-            _full_response("answer after two paid retries"),
-            _full_response("must not be requested"),
-        ]
-
-        result = _run(loop_agent, "write me a long report")
-
-        assert result["completed"] is True
-        assert result["final_response"] == "answer after two paid retries"
+        assert _no_empty_assistant_rows(result["messages"]) == []
         assert len(loop_agent.client.chat.completions.create.call_args_list) == 3
         assert [
             m.get("content") for m in result["messages"] if m.get("role") == "user"
@@ -207,25 +213,27 @@ class TestThinkingOnlyTruncation:
         assert result["final_response"] == "visible partial answer"
         assert len(loop_agent.client.chat.completions.create.call_args_list) == 1
 
-    def test_output_limit_does_not_change_reasoning_or_cached_prefix(self, loop_agent):
+    def test_output_limit_override_is_one_shot_and_keeps_cached_prefix(self, loop_agent):
         loop_agent.reasoning_config = {"enabled": True, "effort": "high"}
         loop_agent._supports_reasoning_extra_body = lambda: True
         loop_agent.client.chat.completions.create.side_effect = [
             _thinking_only_length_response(),
+            _full_response("recovered answer"),
             _full_response("fresh turn answer"),
         ]
         first_result = _run(loop_agent, "write me a long report")
         second_result = _run(loop_agent, "start a fresh answer")
 
-        assert first_result["partial"] is True
+        assert first_result["final_response"] == "recovered answer"
         assert second_result["completed"] is True
         calls = loop_agent.client.chat.completions.create.call_args_list
-        assert len(calls) == 2
+        assert len(calls) == 3
         wire = [
             (c.kwargs.get("extra_body") or {}).get("reasoning") for c in calls
         ]
         assert wire == [
             {"enabled": True, "effort": "high"},
+            {"enabled": False, "effort": "none"},
             {"enabled": True, "effort": "high"},
         ]
         system_prompts = {

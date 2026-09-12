@@ -58,10 +58,10 @@ def _safe_int(value: Any) -> int | None:
 # attribute on the compressor: the aborted worker is detached and still alive on the pool, and the
 # compressor object is shared with it. Context is copied per worker (``propagate_context_to_thread``), so
 # the pin reaches the retry's whole synchronous call chain and cannot leak into the stalled attempt or any
-# unrelated auxiliary call. Coverage is the single ``_generate_summary`` LLM call only. That is one call per
-# compression run (its only non-recursive call site is the compress path; the two recursive calls are the
-# deliberate main-model retry that must NOT re-issue the pin). The summary call is the ONLY auxiliary LLM
-# call a lean compaction attempt makes (#96603) — there are no sibling digest calls.
+# unrelated auxiliary call. Coverage is the ``_generate_summary`` sequence only. Its prompt normally makes
+# one call; a reasoning-only output-limit stop may replay that exact prompt once on the same resolved route.
+# The recursive main-model fallback must NOT re-read the pin. Summary generation is still the ONLY auxiliary
+# LLM operation a lean compaction attempt performs (#96603) — there are no sibling digest calls.
 _SUMMARY_ROUTE_PIN: contextvars.ContextVar[Optional[Dict[str, Any]]] = (
     contextvars.ContextVar("hermes_summary_route_pin", default=None)
 )
@@ -219,6 +219,7 @@ SUMMARY_PREFIX = (
     "described here — avoid repeating it:"
 )
 LEGACY_SUMMARY_PREFIX = "[CONTEXT SUMMARY]:"
+_SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS = 32_768
 
 # Underscore prefix ON PURPOSE: wire sanitizers strip ``_``-keys; strict gateways
 # reject unknown keys, so a bare key would poison every request in the session.
@@ -3241,10 +3242,15 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         self._clear_compression_failure_cooldown()  # no cooldown — retry immediately
 
     def _call_summary_llm(self, prompt: str, prompt_started_at: float) -> str:
-        """Issue the single aux summary call; return validated content text.
+        """Issue a bounded aux summary sequence; return validated content text.
+
+        A reasoning-only output-limit stop gets one same-prompt recovery with
+        reasoning disabled and a larger output allowance. Other incomplete
+        summaries retain the fail-closed behavior.
+
         Raises RuntimeError for empty content or a length-truncated (PARTIAL) summary so the failure
         routes through main-model fallback + cooldown instead of wiping the compacted turns."""
-        # call_llm writes the route it actually selected; never pre-resolve a second, stale pair.
+        # call_llm writes the route it actually selected; never pre-resolve a stale pair.
         _aux_route: Dict[str, str] = {}
         call_kwargs: Dict[str, Any] = {
             "task": "compression",
@@ -3264,28 +3270,67 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # Without this, an incoming user message aborts the summary and compression falls back to a degraded
         # static marker, losing the real handoff (#23975). Re-entrant: a main-model retry (_generate_summary
         # recursion) re-enters harmlessly.
-        _aux_call_start = time.monotonic()
-        _latency_info: Dict[str, int] = {"prompt_build_ms": max(0, int((_aux_call_start - prompt_started_at) * 1000))}
-        call_kwargs["latency_info"] = _latency_info
-        try:
-            # Compression is atomic: shield the summary call from gateway interrupts. Re-entrant.
-            with aux_interrupt_protection():
-                response = call_llm(**call_kwargs)
-        finally:
-            route_known = bool(_aux_route.get("provider") and _aux_route.get("model"))
-            _aux_model = _aux_route.get("model") or self.summary_model or self.model or ""
-            self._record_aux_compression_call(
-                prompt_messages=call_kwargs["messages"],
-                # max_tokens is intentionally absent; .get() keeps the telemetry hook from breaking the call.
-                max_tokens=call_kwargs.get("max_tokens"),
-                duration_ms=int((time.monotonic() - _aux_call_start) * 1000),
-                aux_provider=_aux_route.get("provider") or self.provider or "",
-                aux_model=_aux_model,
-                effective_aux_context=self.context_length if route_known and _aux_model == self.model else None,
-                phase_timings=_latency_info,
-            )
+        _summary_attempts = 0
+
+        def _issue_summary(overrides: Optional[Dict[str, Any]] = None) -> Any:
+            nonlocal _aux_route, _summary_attempts
+            _aux_route = {}
+            attempt_kwargs = dict(call_kwargs)
+            attempt_kwargs.update(overrides or {})
+            attempt_kwargs["route_info"] = _aux_route
+            _aux_call_start = time.monotonic()
+            _latency_info: Dict[str, int] = {
+                "prompt_build_ms": (
+                    max(0, int((_aux_call_start - prompt_started_at) * 1000))
+                    if _summary_attempts == 0
+                    else 0
+                )
+            }
+            _summary_attempts += 1
+            attempt_kwargs["latency_info"] = _latency_info
+            try:
+                # Compression is atomic: shield the summary call from gateway interrupts. Re-entrant.
+                with aux_interrupt_protection():
+                    return call_llm(**attempt_kwargs)
+            finally:
+                route_known = bool(
+                    _aux_route.get("provider") and _aux_route.get("model")
+                )
+                _aux_model = (
+                    _aux_route.get("model") or self.summary_model or self.model or ""
+                )
+                self._record_aux_compression_call(
+                    prompt_messages=attempt_kwargs["messages"],
+                    max_tokens=attempt_kwargs.get("max_tokens"),
+                    duration_ms=int((time.monotonic() - _aux_call_start) * 1000),
+                    aux_provider=_aux_route.get("provider") or self.provider or "",
+                    aux_model=_aux_model,
+                    effective_aux_context=(
+                        self.context_length
+                        if route_known and _aux_model == self.model
+                        else None
+                    ),
+                    phase_timings=_latency_info,
+                )
+
+        response = _issue_summary()
         if self._compression_cancelled():
             raise AuxiliaryExplicitCancellation()
+        finish_reason = _response_finish_reason(response)
+        visible_content = extract_content_or_reasoning(
+            response, allow_reasoning_fallback=False
+        )
+        if finish_reason == "length" and not visible_content:
+            logger.warning(
+                "Context compression exhausted its output allowance in reasoning before "
+                "producing summary text; retrying once without reasoning"
+            )
+            response = _issue_summary({
+                "reasoning_config": {"enabled": False, "effort": "none"},
+                "max_tokens": _SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS,
+            })
+            if self._compression_cancelled():
+                raise AuxiliaryExplicitCancellation()
         # Reasoning-field fallback (DeepSeek/Qwen/Kimi put the summary in reasoning_content); capped.
         content = extract_content_or_reasoning(response, max_reasoning_chars=8000)
         where = f"(provider={self.provider or 'auto'} model={self.summary_model or self.model})"
@@ -3343,7 +3388,8 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         _pruned_skill_names = list(dict.fromkeys(
             _collect_ghosted_skill_names(turns_to_summarize) + _extract_pruned_skill_names(self._previous_summary or "")
         ))[:_MAX_PRUNED_SKILL_MARKERS]
-        # Lean mode even-samples oversized input (one bounded request, never a second).
+        # Lean mode even-samples oversized input into one bounded prompt. The exceptional
+        # reasoning-only output-limit recovery reuses that exact prompt once.
         bound = self._sample_summary_input if getattr(self, "tail_mode", "lean") == "lean" else self._bound_summary_input
         content_to_summarize = bound(self._serialize_for_summary(turns_to_summarize))
         has_user_turn = getattr(self, "_summary_has_user_turn", None)

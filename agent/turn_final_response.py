@@ -23,6 +23,34 @@ _EPHEMERAL_SCAFFOLDING_FLAGS = (
     "_thinking_prefill", "_empty_recovery_synthetic", "_empty_terminal_sentinel",
     "_dropped_toolcall_nudge",
 )
+_OUTPUT_TRUNCATION_RETRY_CAP = 65_536
+
+
+def _arm_output_truncation_retry(agent: Any, api_kwargs: Any) -> Optional[int]:
+    """Make a no-visible-output replay materially different from the failed call.
+
+    Reasoning is disabled for one request. If the transport supplied a small
+    implicit output cap, grow it geometrically up to a bounded recovery ceiling;
+    configured/discovered caps are preserved. The one-shot values are consumed
+    by request construction and never mutate the conversation or cached prefix.
+    """
+    agent._ephemeral_reasoning_off = True
+    requested_cap = agent._requested_output_cap_from_api_kwargs(api_kwargs)
+    if requested_cap is None:
+        return None
+
+    source = str(getattr(agent, "max_tokens_source", "") or "").strip().lower()
+    configured_cap = bool(getattr(agent, "max_tokens", None)) or source in {
+        "explicit", "model", "provider", "discovered",
+    }
+    retry_cap = requested_cap
+    if not configured_cap and requested_cap < _OUTPUT_TRUNCATION_RETRY_CAP:
+        retry_cap = min(
+            max(requested_cap * 2, 8_192),
+            _OUTPUT_TRUNCATION_RETRY_CAP,
+        )
+    agent._ephemeral_max_output_tokens = retry_cap
+    return retry_cap
 
 
 @dataclass
@@ -47,7 +75,8 @@ class FinalResponseVerdict:
 
 def finish_text_response(
     agent: Any, *, assistant_message: Any, response: Any, finish_reason: Any, messages: Any,
-    api_messages: Any, conversation_history: Any, api_call_count: Any, user_message: Any,
+    api_messages: Any, api_kwargs: Any, conversation_history: Any, api_call_count: Any,
+    user_message: Any,
     active_system_prompt: Any, final_response: Any, _turn_exit_reason: Any,
     _preflight_compression_blocked: Any, codex_ack_continuations: Any,
     truncated_response_parts: Any, length_continue_retries: Any, output_truncation_retries: Any,
@@ -63,6 +92,10 @@ def finish_text_response(
     standard_output_truncation = bool(
         getattr(agent, "_standard_output_truncation_pending", False))
     agent._standard_output_truncation_pending = False
+    truncation_had_tool_calls = bool(
+        getattr(agent, "_standard_output_truncation_had_tool_calls", False)
+    )
+    agent._standard_output_truncation_had_tool_calls = False
 
     def _verdict(action: str, result: Optional[Dict[str, Any]] = None) -> FinalResponseVerdict:
         return FinalResponseVerdict(
@@ -84,24 +117,31 @@ def finish_text_response(
     agent._mute_post_response = False
 
     if standard_output_truncation:
-        # A protocol-level length stop is a successful terminal response, including the
-        # reasoning-only/empty case. Never feed it into the generic empty-response or
-        # continuation ladders: an explicit opt-in owns the exact number of paid replays.
+        # Visible partial output is terminal and preserved. A reasoning-only/empty length
+        # stop never enters the generic empty-response or continuation ladders; its own
+        # bounded replay changes wire policy without changing transcript or cached prefix.
         agent._empty_content_retries = 0
         agent._thinking_prefill_retries = 0
         agent._dropped_toolcall_retries = 0
         final_response = agent._strip_think_blocks(final_response).strip()
         retry_budget = getattr(agent, "_output_truncation_retries", 0)
-        if not final_response and output_truncation_retries < retry_budget:
+        if (
+            not final_response
+            and not truncation_had_tool_calls
+            and output_truncation_retries < retry_budget
+        ):
             output_truncation_retries += 1
+            retry_cap = _arm_output_truncation_retry(agent, api_kwargs)
+            cap_note = f", retry_cap={retry_cap}" if retry_cap is not None else ""
             logger.warning(
                 "Provider output limit reached before visible text — retry %d/%d "
-                "(model=%s provider=%s); the full request may be billed again",
-                output_truncation_retries, retry_budget, agent.model, agent.provider,
+                "without reasoning%s (model=%s provider=%s); the full input may be billed again",
+                output_truncation_retries, retry_budget, cap_note, agent.model, agent.provider,
             )
             agent._emit_status(
-                "⚠️ Provider output limit reached before visible text — retrying "
-                f"({output_truncation_retries}/{retry_budget}); this resends the full paid request"
+                "⚠️ Provider output limit reached before visible text — retrying without "
+                f"reasoning ({output_truncation_retries}/{retry_budget}); "
+                "the full input may be billed again"
             )
             final_response = None
             return _verdict("continue")

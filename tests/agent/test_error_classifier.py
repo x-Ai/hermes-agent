@@ -691,6 +691,12 @@ class TestClassifyApiError:
         assert result.reason == FailoverReason.payload_too_large
         assert result.should_compress is True
 
+    def test_413_explicit_context_window_error_uses_token_recovery(self):
+        e = MockAPIError("request exceeds model context window", status_code=413)
+        result = classify_api_error(e)
+        assert result.reason == FailoverReason.context_overflow
+        assert result.should_compress is True
+
     # ── Context overflow ──
 
 

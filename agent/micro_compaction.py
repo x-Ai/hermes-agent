@@ -115,7 +115,11 @@ class MicroCompactionMixin:
 
     def _micro_summarize_one(self, exchange_text: str) -> Optional[str]:
         """Micro-summarize one exchange into the rolling summary via the aux LLM (None on failure)."""
-        from agent.auxiliary_client import aux_interrupt_protection, call_llm
+        from agent.auxiliary_client import (
+            aux_interrupt_protection,
+            call_llm,
+            extract_content_or_reasoning,
+        )
 
         call_kwargs = {
             "task": "compression",
@@ -134,6 +138,20 @@ class MicroCompactionMixin:
         try:
             with aux_interrupt_protection():
                 response = call_llm(**call_kwargs)
+                if (
+                    _cc()._response_finish_reason(response) == "length"
+                    and not extract_content_or_reasoning(
+                        response, allow_reasoning_fallback=False
+                    )
+                ):
+                    logger.warning(
+                        "micro-summarization exhausted its output cap in reasoning; "
+                        "retrying once without reasoning"
+                    )
+                    response = call_llm(
+                        **call_kwargs,
+                        reasoning_config={"enabled": False, "effort": "none"},
+                    )
         except Exception as exc:
             logger.info("micro-summarization call failed: %s", exc)
             return None

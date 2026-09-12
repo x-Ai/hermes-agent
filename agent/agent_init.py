@@ -1359,9 +1359,10 @@ def _apply_agent_section(agent, _agent_cfg):
     agent._api_max_retries = _api_retries
 
     # Every no-visible-output recovery layer has its own small paid replay budget. 0 disables
-    # the layer; malformed values preserve the shipped default (output truncation fails closed).
+    # the layer; malformed values preserve the shipped default. Output truncation gets one
+    # materially different replay (reasoning off) instead of repeating the failed wire policy.
     agent._output_truncation_retries = _bounded_retry_count(
-        _agent_section.get("output_truncation_retries", 0), 0)
+        _agent_section.get("output_truncation_retries", 1), 1)
     agent._post_tool_empty_retry_budget = _bounded_retry_count(
         _agent_section.get("post_tool_empty_retries", 1), 1)
     agent._thinking_prefill_retry_budget = _bounded_retry_count(

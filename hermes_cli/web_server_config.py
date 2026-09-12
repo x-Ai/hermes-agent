@@ -79,8 +79,8 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "type": "number",
         "description": (
             "Retry only when the provider reports an output-token limit before producing "
-            "visible text. Each retry resends the same prompt and may be billed again. "
-            "Leave at 0 (recommended); maximum 3."
+            "visible text. A retry temporarily disables reasoning and may raise an implicit "
+            "transport output cap. The full input may be billed again; default 1, maximum 3."
         ),
         "options": [0, 1, 2, 3],
     },

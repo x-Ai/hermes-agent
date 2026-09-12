@@ -4490,8 +4490,8 @@ class TestRunConversation:
         unpunctuated = SimpleNamespace(content="Based on the results the best next step is to update the config", tool_calls=None)
         assert agent._should_treat_stop_as_truncated("stop", unpunctuated, [{"role": "tool", "content": "r"}]) is False
 
-    def test_length_thinking_exhausted_skips_continuation(self, agent):
-        """When finish_reason='length' but content is only thinking, skip retries."""
+    def test_length_thinking_exhausted_retries_once_without_continuation(self, agent):
+        """Reasoning-only length stops get one replay, never a continuation prompt."""
         self._setup_agent(agent)
         resp = _mock_response(
             content="<think>internal reasoning</think>",
@@ -4506,10 +4506,9 @@ class TestRunConversation:
         ):
             result = agent.run_conversation("hello")
 
-        # Should return immediately — no continuation, only 1 API call
         assert result["completed"] is True
         assert result["partial"] is True
-        assert result["api_calls"] == 1
+        assert result["api_calls"] == 2
         assert "output-token limit" in result["final_response"]
 
 

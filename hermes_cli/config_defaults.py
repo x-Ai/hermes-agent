@@ -108,9 +108,10 @@ DEFAULT_CONFIG = {
         # failover to fallback providers; raise to tolerate longer provider hiccups.
         "api_max_retries": 3,
         # Retries when a successful protocol response explicitly says the output-token cap
-        # was reached before any visible text was produced. Each retry resends the same paid
-        # request, so 0 is the safe default; values above 3 are clamped at agent init.
-        "output_truncation_retries": 0,
+        # was reached before any visible text was produced. The default one-shot retry turns
+        # reasoning off and may grow an implicit transport cap; 0 disables it. The full input
+        # is resent and may be billed again; values above 3 are clamped at agent init.
+        "output_truncation_retries": 1,
         # Independent recovery budgets for responses with no visible text. 0 disables
         # that layer; defaults preserve the existing one/two/three-step ladder.
         "post_tool_empty_retries": 1,

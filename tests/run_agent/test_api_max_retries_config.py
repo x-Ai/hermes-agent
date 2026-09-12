@@ -47,9 +47,9 @@ def test_api_max_retries_honors_config_override():
     assert agent2._api_max_retries == 5
 
 
-def test_output_truncation_retry_budget_is_opt_in_and_bounded():
-    """Paid output-limit replays default off and cannot exceed three."""
-    assert _make_agent()._output_truncation_retries == 0
+def test_output_truncation_retry_budget_defaults_once_and_is_bounded():
+    """No-visible output exhaustion gets one recovery replay, bounded at three."""
+    assert _make_agent()._output_truncation_retries == 1
     assert _make_agent(output_truncation_retries=2)._output_truncation_retries == 2
     assert _make_agent(output_truncation_retries=-1)._output_truncation_retries == 0
     assert _make_agent(output_truncation_retries=99)._output_truncation_retries == 3
@@ -84,5 +84,4 @@ def test_empty_recovery_retry_budgets_are_independent_and_bounded():
         capped._thinking_prefill_retry_budget,
         capped._empty_response_retry_budget,
     ) == (3, 3, 3)
-
 

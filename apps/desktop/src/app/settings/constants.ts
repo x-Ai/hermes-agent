@@ -589,7 +589,7 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     imageInputMode: 'Controls how image attachments are sent to the model.',
     maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
     outputTruncationRetries:
-      'Retry only when the provider reports an output-token limit before producing visible text. Each retry resends the same prompt and may be billed again. Leave at 0 (recommended); maximum 3.',
+      'Retry only when the provider reports an output-token limit before producing visible text. A retry temporarily disables reasoning and may raise an implicit transport output cap. The full input may be billed again; default 1, maximum 3.',
     postToolEmptyRetries:
       'Send a continuation nudge when the model returns no visible text after tool calls. Each retry may be billed again. Set 0 to disable; maximum 3.',
     thinkingPrefillRetries:

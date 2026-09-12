@@ -936,7 +936,7 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'agent.max_turns': 'Hermes 停止一次运行前工具调用轮次的上限',
   'agent.image_input_mode': '控制图片附件如何发送给模型',
   'agent.output_truncation_retries':
-    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。每次重试都会重新发送同一提示，并可能再次计费。建议保留为 0；最大值为 3。',
+    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。重试会临时关闭 reasoning，并可能调高隐式传输输出上限。完整输入可能再次计费；默认 1 次，最多 3 次。',
   'agent.post_tool_empty_retries':
     '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
   'agent.thinking_prefill_retries':

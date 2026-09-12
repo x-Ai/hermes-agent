@@ -7500,12 +7500,17 @@ def _message_field(msg, name):
     return msg.get(name) if isinstance(msg, dict) else getattr(msg, name, None)
 
 
-def extract_content_or_reasoning(response, *, max_reasoning_chars: int | None = None) -> str:
+def extract_content_or_reasoning(
+    response, *, max_reasoning_chars: int | None = None,
+    allow_reasoning_fallback: bool = True,
+) -> str:
     """Extract content from an LLM response, falling back to reasoning fields.
     Order: ``content`` (inline think blocks stripped) → ``reasoning``/``reasoning_content`` →
     ``reasoning_details`` (OpenRouter array). Accepts a response or bare message;
     ``max_reasoning_chars`` bounds a reasoning fallback so unbounded chain-of-thought can't
-    become the compaction summary. Returns ``""`` if nothing found."""
+    become the compaction summary. ``allow_reasoning_fallback=False`` detects whether visible
+    content exists without mistaking hidden reasoning for an answer. Returns ``""`` if nothing
+    eligible was found."""
     msg = _coerce_llm_message(response)
     if msg is None:
         return ""
@@ -7525,6 +7530,8 @@ def extract_content_or_reasoning(response, *, max_reasoning_chars: int | None = 
         ).strip()
         if cleaned:
             return cleaned
+    if not allow_reasoning_fallback:
+        return ""
     # Content is empty or reasoning-only — try structured reasoning fields
     reasoning_parts: list[str] = []
     for field in ("reasoning", "reasoning_content"):
