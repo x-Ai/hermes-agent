@@ -1783,7 +1783,7 @@ export const zh: Translations = {
       ALIBABA_TOKEN_PLAN_CN_BASE_URL: { description: '阿里云（Token Plan，中国大陆）基础 URL 覆盖' },
       ALIBABA_CODING_PLAN_API_KEY: { description: '阿里云（Coding Plan）API 密钥' },
       ALIBABA_CODING_PLAN_BASE_URL: { description: '阿里云（Coding Plan）基础 URL 覆盖' },
-      ALIBABA_CODING_PLAN_CN_API_KEY: { description: '阿里云d（Coding Plan，中国大陆）API 密钥' },
+      ALIBABA_CODING_PLAN_CN_API_KEY: { description: '阿里云（Coding Plan，中国大陆）API 密钥' },
       ALIBABA_CODING_PLAN_CN_BASE_URL: { description: '阿里云（Coding Plan，中国大陆）基础 URL 覆盖' },
       ANTHROPIC_API_KEY: { description: 'Anthropic API 密钥' },
       ANTHROPIC_TOKEN: { description: 'Anthropic API 密钥' },
