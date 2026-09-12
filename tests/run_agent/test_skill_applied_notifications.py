@@ -39,3 +39,19 @@ def test_unapplied_skill_operations_never_notify():
     ):
         for mode in ("on", "verbose"):
             assert summarize_background_review_actions(_messages(args, data), [], mode) == []
+
+
+def test_batched_skill_operations_group_same_action_and_keep_paths():
+    name = "crushftp-audit"
+    results = [
+        {"name": name, "action": "patch", "file_path": "references/live-target-probing.md", "success": True},
+        {"name": name, "action": "patch", "file_path": "references/gates-and-accounts.md", "success": True},
+        {"name": name, "action": "write_file", "file_path": "references/extra.md", "success": True},
+    ]
+    data = {"success": True, "operations_applied": len(results), "results": results}
+    messages = _messages({"operations": results}, data)
+
+    assert summarize_background_review_actions(messages, [], "on") == [
+        "Skill 'crushftp-audit' patched (references/live-target-probing.md, references/gates-and-accounts.md)",
+        "Skill 'crushftp-audit' written (references/extra.md)",
+    ]

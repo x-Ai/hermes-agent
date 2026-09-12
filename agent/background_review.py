@@ -627,14 +627,28 @@ def _action_lines(data: Dict, detail: Dict, verbose: bool) -> List[str]:
         results = data.get("results")
         if not data.get("operations_applied") or not isinstance(results, list):
             return []
-        lines = []
+        grouped: Dict[Tuple[str, str], Dict[str, Any]] = {}
         for result in results:
             if not isinstance(result, dict) or result.get("success") is not True:
                 continue
             verb = verbs.get(result.get("action"))
             if verb and result.get("name"):
-                path = f" ({result['file_path']})" if result.get("file_path") else ""
-                lines.append(f"Skill '{result['name']}' {verb}{path}")
+                key = (str(result["name"]), verb)
+                group = grouped.setdefault(key, {"paths": [], "has_default": False})
+                file_path = result.get("file_path")
+                if file_path:
+                    path = str(file_path)
+                    if path not in group["paths"]:
+                        group["paths"].append(path)
+                else:
+                    group["has_default"] = True
+        lines = []
+        for (skill_name, verb), group in grouped.items():
+            paths = list(group["paths"])
+            if group["has_default"] and paths:
+                paths.insert(0, "SKILL.md")
+            path = f" ({', '.join(paths)})" if paths else ""
+            lines.append(f"Skill '{skill_name}' {verb}{path}")
         return lines
     lower = message.lower()
     if not verbose and ("created" in lower or "updated" in lower or
