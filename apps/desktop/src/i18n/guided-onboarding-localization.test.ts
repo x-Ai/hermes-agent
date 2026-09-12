@@ -14,9 +14,7 @@ describe('guided onboarding localization', () => {
     expect(localized.introReveal.skip).not.toBe(english.introReveal.skip)
     expect(localized.introReveal.composerPlaceholder).not.toBe(english.introReveal.composerPlaceholder)
     expect(localized.guidedOnboarding.skipSetup).not.toBe(english.guidedOnboarding.skipSetup)
-    expect(localized.guidedOnboarding.script.forkQuestion).not.toBe(
-      english.guidedOnboarding.script.forkQuestion
-    )
+    expect(localized.guidedOnboarding.script.forkQuestion).not.toBe(english.guidedOnboarding.script.forkQuestion)
     expect(localized.guidedOnboarding.errors.firstBuildNeedsAttention).not.toBe(
       english.guidedOnboarding.errors.firstBuildNeedsAttention
     )

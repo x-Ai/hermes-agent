@@ -169,9 +169,7 @@ export function AboutSettings() {
             )}
             <div className="min-w-0">
               <p className="font-medium">{statusLine}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {a.lastChecked(relativeTime(status?.fetchedAt, a))}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{a.lastChecked(relativeTime(status?.fetchedAt, a))}</p>
             </div>
           </div>
 

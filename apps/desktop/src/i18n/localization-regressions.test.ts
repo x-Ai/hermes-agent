@@ -332,6 +332,7 @@ describe('Live messaging and pasted attachment localization', () => {
         pastedContent: copy.desktop.pastedContent,
         pasteAttachFailed: copy.desktop.pasteAttachFailed
       }
+
       const english = {
         ...TRANSLATIONS.en.messaging,
         ...TRANSLATIONS.en.desktop

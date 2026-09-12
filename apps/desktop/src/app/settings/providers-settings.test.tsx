@@ -252,13 +252,7 @@ describe('ProvidersSettings', () => {
   it('localizes provider cards from stable ids and credential keys', async () => {
     const cases = [
       ['router', 'Ramp Router', 'RAMP_ROUTER_API_KEY', 'RAMP_ROUTER_BASE_URL', 'Ramp Router'],
-      [
-        'nebius-token-factory',
-        'Nebius Token Factory',
-        'NEBIUS_API_KEY',
-        'NEBIUS_BASE_URL',
-        'Nebius Token Factory'
-      ],
+      ['nebius-token-factory', 'Nebius Token Factory', 'NEBIUS_API_KEY', 'NEBIUS_BASE_URL', 'Nebius Token Factory'],
       [
         'alibaba-token-plan',
         'Alibaba Cloud (Token Plan)',

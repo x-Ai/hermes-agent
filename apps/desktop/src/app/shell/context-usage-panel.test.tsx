@@ -130,9 +130,7 @@ describe('useContextBreakdown', () => {
   it('refetches after a saved context configuration change', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
-    renderHook(() =>
-      useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' })
-    )
+    renderHook(() => useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' }))
 
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
     invalidateContextBreakdownForConfig()

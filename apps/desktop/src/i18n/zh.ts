@@ -1048,7 +1048,8 @@ export const zh = defineLocale({
       reactionsTitle: '消息回应',
       reactionsDesc: 'iMessage 风格的表情回应 — 你可以给消息添加回应，Hermes 也能回应你的消息',
       tipsTitle: '应用内提示',
-      tipsDesc: '指向应用某处的小气泡：空闲时偶尔出现，需要时 Hermes 也会给你一条，每条提示只出现一次。开始使用满 30 天后自动关闭，你可以重新开启',
+      tipsDesc:
+        '指向应用某处的小气泡：空闲时偶尔出现，需要时 Hermes 也会给你一条，每条提示只出现一次。开始使用满 30 天后自动关闭，你可以重新开启',
       tipsReset: (count: number) => `再次显示 ${count} 条提示`,
       toursTitle: '引导导览',
       toursDesc: '让 Hermes 带你熟悉应用：调暗界面并逐步高亮每个位置。开始使用满 30 天后自动关闭，你可以重新开启',

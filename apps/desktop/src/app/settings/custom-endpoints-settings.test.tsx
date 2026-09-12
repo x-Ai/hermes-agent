@@ -164,6 +164,7 @@ describe('CustomEndpointsSettings', () => {
 
   it('keeps same-name model limits scoped to the endpoint when switching, saving and clearing', async () => {
     const model = 'shared-model'
+
     const first: CustomEndpoint = {
       ...SAVED_ENDPOINT,
       model,
@@ -171,6 +172,7 @@ describe('CustomEndpointsSettings', () => {
       model_token_limits: { [model]: SAVED_ENDPOINT.model_token_limits[SAVED_ENDPOINT.model] },
       models: [model]
     }
+
     const second: CustomEndpoint = {
       ...first,
       base_url: 'https://second.example/v1',
@@ -179,9 +181,11 @@ describe('CustomEndpointsSettings', () => {
       model_token_limits: {},
       name: 'Second provider'
     }
+
     const secondLimits = { context_length: 96000, max_input_tokens: 80000, max_output_tokens: 16000 }
     const savedSecond = { ...second, model_token_limits: { [model]: secondLimits } }
     const fields = ['Total Context', 'Max Input', 'Max Output']
+
     const expectLimits = (values: (number | string)[]) => {
       fields.forEach((field, index) => {
         expect(screen.getByLabelText(`${field}: ${model}`)).toHaveProperty('value', String(values[index]))
