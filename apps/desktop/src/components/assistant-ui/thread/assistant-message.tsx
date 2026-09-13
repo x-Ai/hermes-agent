@@ -30,6 +30,7 @@ import { PreviewAttachment } from '@/components/chat/preview-attachment'
 import { Codicon } from '@/components/ui/codicon'
 import { CopyButton } from '@/components/ui/copy-button'
 import { useI18n } from '@/i18n'
+import { localizeApiErrorMessage } from '@/lib/api-error-messages'
 import { type ErrorSurface, formatErrorDiagnostics, isOAuthReauthSurface } from '@/lib/error-surface'
 import { triggerHaptic } from '@/lib/haptics'
 import {
@@ -252,7 +253,7 @@ const AssistantMessageBody: FC<AssistantMessageProps & { collapsedNotice?: null 
                 <div className="flex items-start gap-1.5">
                   <div className="min-w-0 flex-1">
                     <ErrorLayerLabel />
-                    <ErrorPrimitive.Message className="min-w-0" />
+                    <LocalizedErrorMessage />
                   </div>
                   {onDismissError && (
                     <TooltipIconButton
@@ -497,6 +498,22 @@ const SwitchProviderAction: FC<{ label: string }> = ({ label }) => {
     <button className="aui-error-action" onClick={() => navigate(`${SETTINGS_ROUTE}?tab=config:model`)} type="button">
       {label}
     </button>
+  )
+}
+
+const LocalizedErrorMessage: FC = () => {
+  const { locale } = useI18n()
+
+  const error = useAuiState(s => {
+    const status = s.message.status as { error?: unknown; type?: string } | undefined
+
+    return status?.type === 'incomplete' ? status.error : undefined
+  })
+
+  return (
+    <ErrorPrimitive.Message className="min-w-0">
+      {typeof error === 'string' ? localizeApiErrorMessage(error, locale) : undefined}
+    </ErrorPrimitive.Message>
   )
 }
 

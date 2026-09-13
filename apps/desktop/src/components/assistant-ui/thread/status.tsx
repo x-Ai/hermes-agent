@@ -13,6 +13,7 @@ import { Loader } from '@/components/ui/loader'
 import { StatusPulse } from '@/components/ui/status-pulse'
 import { getLocalModelsStatus } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
+import { localizeAgentStatusText } from '@/lib/api-error-messages'
 import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { cn } from '@/lib/utils'
 import { $backgroundResume } from '@/store/background-delegation'
@@ -278,7 +279,7 @@ export const ResponseLoadingIndicator: FC = () => {
 // the thread like every other meta line. Idle-only (gated upstream). Null when
 // nothing is parked.
 export const BackgroundResumeNotice: FC = () => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const resume = useStore($backgroundResume)
 
   if (!resume) {
@@ -286,7 +287,7 @@ export const BackgroundResumeNotice: FC = () => {
   }
 
   const label = resume.activity
-    ? localizeProviderWaitText(resume.activity, t.assistant.thread)
+    ? localizeAgentStatusText(resume.activity, locale)
     : t.assistant.thread.resumeWhenBackgroundDone(resume.count)
 
   return (

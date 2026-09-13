@@ -8,7 +8,7 @@ import { SubagentSection } from '@/app/chat/composer/status-stack/subagent-secti
 import { type MessageStreamHarness, renderMessageStream } from '@/app/session/hooks/use-message-stream/test-harness'
 import { BackgroundResumeNotice } from '@/components/assistant-ui/thread/status'
 import { DelegateTool } from '@/components/assistant-ui/tool/delegate'
-import { I18nProvider, useI18n } from '@/i18n'
+import { I18nProvider, setRuntimeI18nLocale, useI18n } from '@/i18n'
 import { $backgroundResume } from '@/store/background-delegation'
 import { $activeSessionId, $busy } from '@/store/session'
 import { $subagentsBySession } from '@/store/subagents'
@@ -30,14 +30,16 @@ interface Surface {
   name: string
   Component: ComponentType
   collapsed?: boolean
+  retainsCompleted?: boolean
 }
 
 const SURFACES: Surface[] = [
   {
     name: 'delegation tool card',
-    Component: () => <DelegateTool args={{ goal: GOAL }} toolCallId="delegation-call" />
+    Component: () => <DelegateTool args={{ goal: GOAL }} toolCallId="delegation-call" />,
+    retainsCompleted: true
   },
-  { name: 'agent activity row', Component: StreamRow },
+  { name: 'agent activity row', Component: StreamRow, retainsCompleted: true },
   { name: 'composer subagents', Component: () => <SubagentSection sessionId={SID} />, collapsed: true },
   { name: 'background resume notice', Component: BackgroundResumeNotice }
 ]
@@ -110,7 +112,47 @@ describe('delegated provider notices from gateway events', () => {
     $activeSessionId.set(null)
     $busy.set(false)
     $subagentsBySession.set({})
+    setRuntimeI18nLocale('en')
     vi.unstubAllGlobals()
+  })
+
+  it.each(
+    SURFACES.filter(surface => surface.retainsCompleted).flatMap(surface =>
+      [
+        { retries: 6, seconds: 217 },
+        { retries: 3, seconds: 175 }
+      ].map(parameters => ({ ...surface, ...parameters }))
+    )
+  )('localizes the failed child summary in $name after $retries retries and $seconds seconds', async surface => {
+    const { retries, seconds } = surface
+    const raw = `Invalid API response after ${retries} retries: slow response (${seconds}s) — likely upstream timeout`
+    const chinese = `API 响应无效，重试 ${retries} 次后仍失败：响应较慢（${seconds} 秒） — 可能是上游超时`
+    const view = renderSurface(surface)
+
+    act(() =>
+      stream.handleEvent({
+        type: 'subagent.complete',
+        session_id: SID,
+        payload: { subagent_id: CHILD, status: 'failed', summary: raw }
+      })
+    )
+
+    const rawState = $subagentsBySession.get()[SID][0]
+    expect(view.region.getByText(chinese)).toBeTruthy()
+    expect(view.region.queryByText(raw)).toBeNull()
+    expect(rawState.status).toBe('failed')
+    expect(rawState.summary).toBe(raw)
+    expect(rawState.stream.at(-1)?.text).toBe(raw)
+
+    await act(async () => fireEvent.click(view.getByRole('button', { name: 'English' })))
+
+    expect(view.region.getByText(raw)).toBeTruthy()
+    expect(view.region.queryByText(chinese)).toBeNull()
+
+    await act(async () => fireEvent.click(view.getByRole('button', { name: '中文' })))
+
+    expect(view.region.getByText(chinese)).toBeTruthy()
+    expect($subagentsBySession.get()[SID][0]).toBe(rawState)
   })
 
   it.each(SURFACES)('retranslates live retry parameters in $name without changing gateway state', async surface => {

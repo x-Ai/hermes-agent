@@ -127,14 +127,14 @@ const ChainToolFallback: FC<TimelineToolCallProps> = props => {
 type TimelineTextPartProps = TextMessagePartProps & { completedAt?: number; timestamp?: number }
 
 const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, status, text, timestamp }) => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
 
   return (
     <>
       <TimelineTimestamp className="mb-0.5 block" completedAt={completedAt} timestamp={timestamp} />
       <MarkdownTextContent
         isRunning={status.type === 'running'}
-        text={localizeAssistantTranscriptText(text, t.assistant.thread)}
+        text={localizeAssistantTranscriptText(text, t.assistant.thread, locale)}
       />
     </>
   )

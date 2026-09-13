@@ -1,4 +1,5 @@
-import type { Translations } from '@/i18n'
+import type { Locale, Translations } from '@/i18n'
+import { localizeAgentStatusText } from '@/lib/api-error-messages'
 
 type AssistantThreadCopy = Translations['assistant']['thread']
 
@@ -86,7 +87,7 @@ const INTERRUPTED_TRANSCRIPT_PATTERNS: TranscriptLocalizationPattern[] = [
   }
 ]
 
-export function localizeAssistantTranscriptText(text: string, copy: AssistantThreadCopy): string {
+export function localizeAssistantTranscriptText(text: string, copy: AssistantThreadCopy, locale: Locale): string {
   const trimmed = text.trim()
 
   for (const candidate of INTERRUPTED_TRANSCRIPT_PATTERNS) {
@@ -97,5 +98,5 @@ export function localizeAssistantTranscriptText(text: string, copy: AssistantThr
     }
   }
 
-  return text
+  return localizeAgentStatusText(text, locale)
 }
