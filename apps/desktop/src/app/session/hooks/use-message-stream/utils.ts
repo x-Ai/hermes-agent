@@ -1,3 +1,4 @@
+import { isApiRetryFailure } from '@/lib/api-error-messages'
 import type { GatewayEventPayload } from '@/lib/chat-messages'
 import { normalizePersonalityValue } from '@/lib/chat-runtime'
 import { isTodoToolName } from '@/lib/todos'
@@ -129,7 +130,6 @@ export const PRE_TURN_LIVE_SETTLE_GRACE_MS = 15_000
 // of an explicit error event. Treat matches as inline assistant errors so they
 // persist like real error events and don't get erased by hydrate fallback.
 const COMPLETION_ERROR_PATTERNS = [
-  /^API call failed after \d+ retries:/i,
   /^HTTP\s+\d{3}\b/i,
   /^(Provider|Gateway)\s+error:/i
 ]
@@ -137,7 +137,7 @@ const COMPLETION_ERROR_PATTERNS = [
 export function completionErrorText(finalText: string): string | null {
   const text = finalText.trim()
 
-  return text && COMPLETION_ERROR_PATTERNS.some(re => re.test(text)) ? text : null
+  return text && (isApiRetryFailure(text) || COMPLETION_ERROR_PATTERNS.some(re => re.test(text))) ? text : null
 }
 
 export const SUBAGENT_EVENT_TYPES = new Set([

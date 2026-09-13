@@ -37,6 +37,7 @@ import { PreviewAttachment } from '@/components/chat/preview-attachment'
 import { Codicon } from '@/components/ui/codicon'
 import { CopyButton } from '@/components/ui/copy-button'
 import { useI18n } from '@/i18n'
+import { localizeApiErrorMessage } from '@/lib/api-error-messages'
 import {
   errorRecoveryPlan,
   type ErrorSurface,
@@ -537,19 +538,20 @@ const useErrorText = () =>
   })
 
 const ErrorCardHeadline: FC = () => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const surface = useErrorSurface()
   const errorText = useErrorText()
+  const localizedErrorText = localizeApiErrorMessage(errorText, locale)
   const { body, title } = errorCardText(t.assistant.thread, surface)
 
   return (
     <>
       <div className="font-medium">{title}</div>
       <div>{body}</div>
-      {errorText && (
+      {localizedErrorText && (
         <details className="mt-0.5 min-w-0 text-[0.72rem] opacity-70">
           <summary className="cursor-pointer select-none">{t.assistant.thread.errorDetails}</summary>
-          <div className="wrap-anywhere mt-0.5 whitespace-pre-wrap font-mono">{errorText}</div>
+          <div className="wrap-anywhere mt-0.5 whitespace-pre-wrap font-mono">{localizedErrorText}</div>
         </details>
       )}
     </>

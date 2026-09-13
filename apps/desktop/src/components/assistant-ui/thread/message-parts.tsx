@@ -11,7 +11,7 @@ import { type ComponentProps, type FC, type ReactNode, useEffect, useRef, useSta
 
 import { ClarifyTool } from '@/components/assistant-ui/clarify-tool'
 import { ConnectorExecution, ConnectorTool } from '@/components/assistant-ui/connector-tool'
-import { MarkdownText, MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
+import { MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
 import { McpSetupTool } from '@/components/assistant-ui/mcp-setup-tool'
 import { AgentDeliveryNotice, deliveryTargetFromCommand } from '@/components/assistant-ui/thread/agent-delivery'
 import { TimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
@@ -30,6 +30,8 @@ import { isTodoToolName } from '@/lib/todos'
 import { useEnterAnimation } from '@/lib/use-enter-animation'
 import { cn } from '@/lib/utils'
 import { $reasoningCollapsedByDefault, $showReasoning } from '@/store/reasoning-disclosure'
+
+import { localizeAssistantTranscriptText } from './transcript-localization'
 
 type TimelineToolCallProps = ToolCallMessagePartProps & { completedAt?: number; timestamp?: number }
 
@@ -141,7 +143,8 @@ const PREVIEW_RELOCK_THRESHOLD_PX = 24
 
 type TimelineTextPartProps = TextMessagePartProps & { completedAt?: number; timestamp?: number }
 
-const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, timestamp }) => {
+const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, status, timestamp }) => {
+  const { locale, t } = useI18n()
   const { text } = useMessagePartText()
 
   // assistant-ui adds an empty continuation after a tool starts. It is not
@@ -153,7 +156,10 @@ const TimelineMarkdownText: FC<TimelineTextPartProps> = ({ completedAt, timestam
   return (
     <>
       <TimelineTimestamp className="mb-0.5 block" completedAt={completedAt} timestamp={timestamp} />
-      <MarkdownText />
+      <MarkdownTextContent
+        isRunning={status.type === 'running'}
+        text={localizeAssistantTranscriptText(text, t.assistant.thread, locale)}
+      />
     </>
   )
 }

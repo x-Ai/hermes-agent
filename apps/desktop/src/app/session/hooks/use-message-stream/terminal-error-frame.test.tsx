@@ -2,6 +2,7 @@ import { act, cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { ClientSessionState } from '@/app/types'
+import { setRuntimeI18nLocale } from '@/i18n'
 import { chatMessageText } from '@/lib/chat-messages'
 
 import { type MessageStreamHarness, renderMessageStream } from './test-harness'
@@ -33,8 +34,30 @@ function lastAssistant() {
 describe('terminal error message.complete frames', () => {
   afterEach(() => {
     cleanup()
+    setRuntimeI18nLocale('en')
     vi.restoreAllMocks()
   })
+
+  it.each([
+    { retries: 6, seconds: 217 },
+    { retries: 3, seconds: 175 }
+  ])(
+    'recognizes an unflagged invalid-response failure after $retries retries and $seconds seconds',
+    async ({ retries, seconds }) => {
+      setRuntimeI18nLocale('zh')
+      mountStream()
+      await start()
+
+      const text = `Invalid API response after ${retries} retries: slow response (${seconds}s) — likely upstream timeout`
+      await act(() => stream.handleEvent({ payload: { text }, session_id: SID, type: 'message.complete' }))
+
+      const bubble = lastAssistant()
+      expect(bubble?.error).toBe(`API 响应无效，重试 ${retries} 次后仍失败：响应较慢（${seconds} 秒） — 可能是上游超时`)
+      expect(chatMessageText(bubble!)).toBe('')
+      expect(getState().busy).toBe(false)
+      expect(getState().awaitingResponse).toBe(false)
+    }
+  )
 
   it('marks the bubble failed from the structured error field, not the text heuristic', async () => {
     mountStream()

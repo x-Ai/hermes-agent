@@ -1,4 +1,12 @@
-import { type Locale, translateForLocale, translateNow } from '@/i18n'
+import { type Locale, translateForLocale, translateNow, TRANSLATIONS } from '@/i18n'
+
+import { localizeProviderWaitText } from './provider-wait-localization'
+
+const API_RETRY_FAILURE_PATTERN = /^(?:API call failed|Invalid API response) after \d+ retries:/i
+
+export function isApiRetryFailure(message: string): boolean {
+  return API_RETRY_FAILURE_PATTERN.test(message.trim())
+}
 
 function translate(locale: Locale | undefined, key: string, ...args: unknown[]): string {
   return locale ? translateForLocale(locale, key, ...args) : translateNow(key, ...args)
@@ -38,13 +46,52 @@ export function localizeApiErrorMessage(message: string, locale?: Locale): strin
   )
 }
 
+/** Activity and persisted transcript text can also contain model output. Only
+ * a complete, unquoted status line belongs to the error translation path. */
+export function localizeAgentStatusText(message: string, locale: Locale): string {
+  if (message === message.trim() && !/[\r\n]/u.test(message) && isApiRetryFailure(message)) {
+    return localizeApiErrorMessage(message, locale)
+  }
+
+  return localizeProviderWaitText(message, TRANSLATIONS[locale].assistant.thread)
+}
+
 /** Localize producer-owned delegation framing while leaving partial model
  * output untouched. The backend stores this result as display text, so the
  * desktop translates only exact protocol lines it owns. */
 export function localizeAsyncDelegationResultText(message: string, locale?: Locale): string {
+  let fence = ''
+
   return message
-    .replace(/^\(failed: ([^\r\n]+)\)$/gim, (_, detail: string) =>
-      translate(locale, 'assistant.thread.asyncDelegationFailure', localizeApiErrorMessage(detail, locale))
-    )
-    .replace(/^Partial output:$/gm, translate(locale, 'assistant.thread.asyncDelegationPartialOutput'))
+    .split(/(\r?\n)/u)
+    .map(line => {
+      const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/u)
+
+      if (marker) {
+        if (!fence) {
+          fence = marker[1]
+        } else if (marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) {
+          fence = ''
+        }
+
+        return line
+      }
+
+      if (fence) {
+        return line
+      }
+
+      const failed = line.match(/^\(failed: ([^\r\n]+)\)$/i)
+
+      if (failed) {
+        return translate(locale, 'assistant.thread.asyncDelegationFailure', localizeApiErrorMessage(failed[1], locale))
+      }
+
+      if (line === 'Partial output:') {
+        return translate(locale, 'assistant.thread.asyncDelegationPartialOutput')
+      }
+
+      return line === line.trimStart() && isApiRetryFailure(line) ? localizeApiErrorMessage(line, locale) : line
+    })
+    .join('')
 }

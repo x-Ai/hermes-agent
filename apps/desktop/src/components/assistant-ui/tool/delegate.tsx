@@ -11,9 +11,9 @@ import { Codicon } from '@/components/ui/codicon'
 import { FadeText } from '@/components/ui/fade-text'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { useI18n } from '@/i18n'
+import { localizeAgentStatusText } from '@/lib/api-error-messages'
 import { AlertCircle, CheckCircle2 } from '@/lib/icons'
 import { displayModelName } from '@/lib/model-status-label'
-import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { useSessionSlice } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { $subagentsBySession } from '@/store/subagents'
@@ -66,7 +66,7 @@ function statusGlyph(status: DelegateRowStatus, label: string): ReactNode {
  * whatever they get up to.
  */
 function DelegateRowView({ row }: { row: DelegateRow }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const copy = t.assistant.tool
   const { sessionId } = row
   const live = isDelegateRowLive(row.status)
@@ -118,7 +118,7 @@ function DelegateRowView({ row }: { row: DelegateRow }) {
                 className={cn(SCAFFOLD_LABEL_CLASS, 'text-(--conversation-scaffold-meta)', live && 'shimmer')}
                 key={`${row.id}:${index}`}
               >
-                {localizeProviderWaitText(text, t.assistant.thread)}
+                {localizeAgentStatusText(text, locale)}
               </FadeText>
             ))}
           </ToolRunTicker>
