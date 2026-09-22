@@ -116,6 +116,7 @@ export const ar = defineLocale({
   },
   boot: {
     ready: 'Hermes Desktop جاهز',
+    connecting: 'جار الاتصال',
     desktopBootFailedWithMessage: message => `فشل تشغيل سطح المكتب: ${message}`,
     steps: {
       connectingGateway: 'جار الاتصال ببوابة سطح المكتب',
@@ -2493,6 +2494,31 @@ export const ar = defineLocale({
       skipped: 'تم التخطي',
       failed: 'فشل'
     },
+    stageNames: {
+      uv: 'تثبيت uv',
+      python: 'التحقق من Python',
+      git: 'تثبيت Git',
+      node: 'اكتشاف Node.js',
+      'system-packages': 'تثبيت حزم النظام',
+      prerequisites: 'التحقق من متطلبات النظام',
+      repo: 'تنزيل Hermes Agent',
+      repository: 'تنزيل Hermes Agent',
+      venv: 'إنشاء بيئة Python افتراضية',
+      dependencies: 'تثبيت تبعيات Python',
+      'python-deps': 'تثبيت تبعيات Python',
+      'node-deps': 'تثبيت تبعيات أداة المتصفح',
+      desktop: 'بناء تطبيق سطح المكتب',
+      path: 'تثبيت أمر hermes',
+      'config-templates': 'كتابة قوالب الإعداد',
+      config: 'إعداد التكوين والمهارات',
+      'platform-sdks': 'تثبيت حزم منصات المراسلة',
+      'bootstrap-marker': 'تسجيل اكتمال التثبيت',
+      configure: 'إعداد مفاتيح API والنماذج',
+      setup: 'إعداد مفاتيح API والإعدادات',
+      gateway: 'إعداد خدمة البوابة',
+      complete: 'إكمال التثبيت'
+    },
+    unknownError: 'خطأ غير معروف',
     oneTimeTitle: 'يحتاج Hermes إلى تثبيت لمرة واحدة',
     unsupportedDesc: platform =>
       `التثبيت التلقائي عند أول تشغيل غير متاح على ${platform} بعد. افتح الطرفية وشغّل الأمر أدناه، ثم أعد تشغيل هذا التطبيق. ستتخطى عمليات التشغيل اللاحقة هذه الخطوة.`,

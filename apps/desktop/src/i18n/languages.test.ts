@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_LOCALE, isLocale, isSupportedLocaleValue, localeConfigValue, normalizeLocale } from './languages'
+import {
+  DEFAULT_LOCALE,
+  detectSystemLocale,
+  isLocale,
+  isSupportedLocaleValue,
+  localeConfigValue,
+  normalizeLocale,
+  resolvePreferredLocale,
+  writeStoredLocale
+} from './languages'
 
 describe('desktop i18n languages', () => {
   it('normalizes supported locale aliases', () => {
@@ -51,5 +60,16 @@ describe('desktop i18n languages', () => {
     expect(localeConfigValue('ja')).toBe('ja')
     expect(localeConfigValue('ar')).toBe('ar')
     expect(localeConfigValue('ru')).toBe('ru')
+  })
+
+  it('uses a stored choice before the system locale and otherwise detects the first supported OS locale', () => {
+    localStorage.clear()
+    expect(detectSystemLocale(['de-DE', 'zh-CN'])).toBe('zh')
+    expect(resolvePreferredLocale(undefined, ['ja-JP'])).toBe('ja')
+
+    writeStoredLocale('zh-hant')
+    expect(resolvePreferredLocale(undefined, ['ja-JP'])).toBe('zh-hant')
+    expect(resolvePreferredLocale('ru-RU', ['ja-JP'])).toBe('ru')
+    localStorage.clear()
   })
 })

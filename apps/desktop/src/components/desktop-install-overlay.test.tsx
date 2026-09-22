@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopBootstrapEvent, DesktopBootstrapState, DesktopConnectionProbeResult } from '@/global'
+import { I18nProvider } from '@/i18n'
 
 import { DesktopInstallOverlay } from './desktop-install-overlay'
 
@@ -90,6 +91,25 @@ afterEach(() => {
 })
 
 describe('DesktopInstallOverlay first-run setup', () => {
+  it('renders the first-run choice in the selected locale before a backend exists', async () => {
+    localStorage.clear()
+    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('zh-CN')
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['zh-CN'])
+    installDesktopMock(
+      bootstrapState({ setupChoice: { platform: 'darwin', activeRoot: '/Users/me/.hermes/hermes-agent' } })
+    )
+
+    render(
+      <I18nProvider configClient={null}>
+        <DesktopInstallOverlay />
+      </I18nProvider>
+    )
+
+    expect(await screen.findByText('设置 Hermes Desktop')).toBeTruthy()
+    expect(screen.getByText('连接到现有 Hermes')).toBeTruthy()
+    expect(screen.getByText('本地安装 Hermes')).toBeTruthy()
+  })
+
   it('shows the remote/local choice without installer progress', async () => {
     installDesktopMock(
       bootstrapState({

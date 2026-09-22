@@ -2,6 +2,7 @@ import type { ModelOptionProvider } from '@hermes/shared'
 import { useStore } from '@nanostores/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { SetupLocaleControl } from '@/components/setup-locale-control'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
@@ -413,6 +414,7 @@ export function DesktopOnboardingOverlay({
       // `[data-glass-opaque]` in styles.css.
       data-glass-opaque=""
     >
+      {!bare ? <SetupLocaleControl className={onboarding.manual ? 'end-14' : undefined} /> : null}
       <div
         className={cn(
           'relative w-full max-w-[45rem] transition-all duration-500 ease-out',
