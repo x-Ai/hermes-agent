@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, SecretStr, StrictBool, field_validator
+from pydantic import BaseModel, Field, SecretStr, StrictBool, field_validator
 
 
 class ConfigUpdate(BaseModel):
@@ -222,6 +222,144 @@ class LearningNodeEdit(BaseModel):
     id: str
     content: str
     profile: Optional[str] = None
+
+
+class WisdomSuggestRequest(BaseModel):
+    skill: Optional[str] = None
+    local_skill_id: Optional[str] = None
+    description: Optional[str] = None
+    system_specification: Optional[Dict[str, Any]] = None
+    send_for_owner_only_server_review: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomSetupRequest(BaseModel):
+    accept_disclosure: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomScanRequest(BaseModel):
+    skill: Optional[str] = None
+    profile: Optional[str] = None
+
+
+class WisdomReviewRequest(BaseModel):
+    draft_id: str
+    acknowledge: bool = False
+    profile: Optional[str] = None
+    expected_hashes: Optional[Dict[str, str]] = None
+
+
+class WisdomPublicationRequest(BaseModel):
+    draft_id: str
+    expected_hashes: Dict[str, str]
+    publication_mode: Literal["open", "managed", "moderated"]
+    profile: Optional[str] = None
+    interaction_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+class WisdomEditedFile(BaseModel):
+    path: str = Field(min_length=1, max_length=1024)
+    content_utf8: str = Field(max_length=256 * 1024)
+
+
+class WisdomPreparedSaveRequest(BaseModel):
+    draft_id: str
+    author_description: str = Field(min_length=1, max_length=4096)
+    files: List[WisdomEditedFile] = Field(min_length=2, max_length=32)
+    profile: Optional[str] = None
+
+
+class WisdomCandidateDismissRequest(BaseModel):
+    local_skill_id: str
+    content_hash: str
+    profile: Optional[str] = None
+
+
+class WisdomCandidateEventRequest(BaseModel):
+    event_id: str
+    profile: Optional[str] = None
+
+
+class WisdomReviseRequest(BaseModel):
+    draft_id: str
+    author_description: str = Field(min_length=1, max_length=4096)
+    files: List[WisdomEditedFile] = Field(min_length=2, max_length=32)
+    expected_content_hash: str
+    expected_author_description_hash: str
+    expected_package_manifest_hash: str
+    send_for_owner_only_server_review: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomDecisionRequest(BaseModel):
+    draft_id: str
+    profile: Optional[str] = None
+
+
+class WisdomInstallPlanRequest(BaseModel):
+    reference: str
+    update_mode: Optional[Literal["MANUAL", "AUTO_WITH_NOTICE", "REQUIRED"]] = None
+    profile: Optional[str] = None
+
+
+class WisdomInstallApplyRequest(BaseModel):
+    receipt: str
+    accept_partial: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomCheckRequest(BaseModel):
+    apply_automatic: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomUpdatePlanRequest(BaseModel):
+    skill_id: str
+    profile: Optional[str] = None
+
+
+class WisdomUpdateApplyRequest(BaseModel):
+    receipt: str
+    accept_sensitive: bool = False
+    accept_partial: bool = False
+    preserve_modified: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomUninstallRequest(BaseModel):
+    skill_id: str
+    profile: Optional[str] = None
+
+
+class WisdomNotificationRequest(BaseModel):
+    mark_seen: bool = False
+    profile: Optional[str] = None
+
+
+class WisdomConsentRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    interaction_id: str = Field(min_length=1, max_length=64)
+    session_id: str = Field(min_length=1, max_length=256)
+    action: str = Field(pattern=r"^(inspect(?:\.[0-9]{1,4})?|defer|confirm|recheck|setup\.(status|recover|clear))$")
+    profile: Optional[str] = None
+
+
+class WisdomSyncRetryRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    profile: Optional[str] = None
+
+
+class WisdomMutePrepareRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    profile: Optional[str] = None
+
+
+class WisdomMuteChooseRequest(WisdomMutePrepareRequest):
+    control_id: str = Field(pattern=r"^[a-f0-9]{32}$")
+    duration: Optional[Literal["1_day", "1_week", "30_days", "forever"]]
+
 
 class DebugShareRequest(BaseModel):
     # Redaction scrubs credential-shaped tokens before logs leave the machine; opt-out only.
@@ -530,4 +668,3 @@ class _PluginProvidersPutBody(BaseModel):
 
 class _PluginVisibilityBody(BaseModel):
     hidden: bool
-
