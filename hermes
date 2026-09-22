@@ -6,6 +6,26 @@ This wrapper should behave like the installed `hermes` command, including
 subcommands such as `gateway`, `cron`, and `doctor`.
 """
 
+import os
+import sys
+from pathlib import Path
+
+
+def _managed_python_candidates(root: Path) -> tuple[Path, ...]:
+    if os.name == "nt":
+        return root / "venv" / "Scripts" / "python.exe", root / ".venv" / "Scripts" / "python.exe"
+    return root / "venv" / "bin" / "python", root / ".venv" / "bin" / "python"
+
+
+def _reexec_managed_python() -> None:
+    launcher = Path(__file__).resolve()
+    current = Path(sys.executable).resolve()
+
+    for candidate in _managed_python_candidates(launcher.parent):
+        if candidate.is_file() and os.access(candidate, os.X_OK) and candidate.resolve() != current:
+            os.execv(str(candidate), [str(candidate), str(launcher), *sys.argv[1:]])
+
 if __name__ == "__main__":
+    _reexec_managed_python()
     from hermes_cli.main import main
     main()
