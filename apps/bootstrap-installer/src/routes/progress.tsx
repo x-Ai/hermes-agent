@@ -6,14 +6,9 @@ import { useEffect, useRef, useState } from 'react'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/button'
 import { Loader } from '../components/loader'
+import { useInstallerI18n } from '../i18n'
 import { formatDuration, formatElapsed } from '../lib/format'
-import {
-  $mode,
-  $progress,
-  type BootstrapStateModel,
-  cancelInstall,
-  type StageState
-} from '../store'
+import { $mode, $progress, type BootstrapStateModel, cancelInstall, type StageState } from '../store'
 
 interface ProgressProps {
   bootstrap: BootstrapStateModel
@@ -25,6 +20,7 @@ interface ProgressProps {
  * of the product.
  */
 export default function ProgressScreen({ bootstrap }: ProgressProps) {
+  const { t } = useInstallerI18n()
   const progress = useStore($progress)
   const mode = useStore($mode)
   const [showLogs, setShowLogs] = useState(false)
@@ -51,11 +47,11 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
   }, [bootstrap.status])
 
   const isUpdate = mode === 'update'
-  const title = bootstrap.status === 'completed' ? 'Done' : isUpdate ? 'Updating Hermes' : 'Setting up Hermes Agent'
 
-  const description = isUpdate
-    ? 'Hermes is updating to the latest version — this only takes a moment.'
-    : 'This is a one-time setup. The Hermes installer is downloading dependencies and configuring your machine. Subsequent launches will skip this step.'
+  const title =
+    bootstrap.status === 'completed' ? t.progress.done : isUpdate ? t.progress.updating : t.progress.settingUp
+
+  const description = isUpdate ? t.progress.updateDescription : t.progress.installDescription
 
   const pct = Math.round(progress.fraction * 100)
 
@@ -78,7 +74,7 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
           <div className="mb-4">
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
               <span className={clsx(bootstrap.status === 'running' && 'shimmer')}>
-                {progress.done} of {progress.total} steps complete
+                {t.progress.stepsComplete(progress.done, progress.total)}
               </span>
               <span className="tabular-nums">{pct}%</span>
             </div>
@@ -94,10 +90,12 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
               muted. Running loader overhangs left so labels stay aligned; the
               terminal check/cross sits right of the label. */}
           <ol className="space-y-0.5">
-            {bootstrap.stageOrder.map((name) => {
+            {bootstrap.stageOrder.map(name => {
               const rec = bootstrap.stages[name]
 
-              if (!rec) {return null}
+              if (!rec) {
+                return null
+              }
 
               const meta =
                 rec.state === 'running' && rec.startedAt != null
@@ -110,14 +108,12 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
                 <li
                   className={clsx(
                     'flex items-center gap-2.5 px-3 py-1.5 text-sm',
-                    rec.state === 'running'
-                      ? 'font-medium text-foreground'
-                      : 'text-muted-foreground'
+                    rec.state === 'running' ? 'font-medium text-foreground' : 'text-muted-foreground'
                   )}
                   key={name}
                 >
-                  {rec.state === 'running' && <Loader className="-ml-2 size-6 shrink-0" />}
-                  <span className="flex-1 truncate">{rec.info.title}</span>
+                  {rec.state === 'running' && <Loader className="-ml-2 size-6 shrink-0" label={t.common.loading} />}
+                  <span className="flex-1 truncate">{t.progress.stageNames[name] || rec.info.title}</span>
                   {meta && <span className="text-xs tabular-nums text-muted-foreground/70">{meta}</span>}
                   <StateIcon state={rec.state ?? null} />
                 </li>
@@ -129,8 +125,8 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
         {showLogs && (
           <div className="flex w-1/2 flex-col border-l border-(--stroke-nous)">
             <div className="flex shrink-0 items-center justify-between border-b border-(--stroke-nous) px-3 py-2 text-xs">
-              <span className="font-medium text-foreground/80">Live output</span>
-              <span className="tabular-nums text-muted-foreground">{bootstrap.logs.length} lines</span>
+              <span className="font-medium text-foreground/80">{t.progress.liveOutput}</span>
+              <span className="tabular-nums text-muted-foreground">{t.progress.lines(bootstrap.logs.length)}</span>
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-2 font-mono text-[10.5px] leading-relaxed">
               {bootstrap.logs.map((entry, idx) => (
@@ -153,17 +149,17 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
       <div className="flex shrink-0 items-center justify-between border-t border-(--stroke-nous) px-6 py-3">
         <button
           className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-          onClick={() => setShowLogs((v) => !v)}
+          onClick={() => setShowLogs(v => !v)}
           type="button"
         >
           <FileText size={14} />
-          {showLogs ? 'Hide details' : 'Show details'}
+          {showLogs ? t.progress.hideDetails : t.progress.showDetails}
           <ChevronRight className={clsx('transition-transform', showLogs && 'rotate-90')} size={12} />
         </button>
 
         {bootstrap.status === 'running' && (
           <Button onClick={() => void cancelInstall()} size="sm" variant="outline">
-            Cancel
+            {t.common.cancel}
           </Button>
         )}
       </div>
@@ -189,4 +185,3 @@ function StateIcon({ state }: { state: StageState | null }) {
 
   return null
 }
-

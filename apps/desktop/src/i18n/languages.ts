@@ -144,3 +144,65 @@ export function resolveInitialLocale(saved: string | null | undefined, osLocale:
 export function localeConfigValue(locale: Locale): string {
   return LOCALE_OPTIONS.find(item => item.id === locale)?.configValue ?? DEFAULT_LOCALE
 }
+
+export const LOCALE_STORAGE_KEY = 'hermes-desktop.ui-locale'
+
+function navigatorLocales(): readonly unknown[] {
+  if (typeof navigator === 'undefined') {
+    return []
+  }
+
+  return [navigator.language, ...(navigator.languages ?? [])]
+}
+
+export function detectSystemLocale(candidates: readonly unknown[] = navigatorLocales()): Locale {
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string') {
+      continue
+    }
+
+    const locale = osPreferredLocale(candidate)
+
+    if (locale) {
+      return locale
+    }
+  }
+
+  return DEFAULT_LOCALE
+}
+
+export function readStoredLocale(): Locale | null {
+  if (typeof localStorage === 'undefined') {
+    return null
+  }
+
+  try {
+    const raw = localStorage.getItem(LOCALE_STORAGE_KEY)
+
+    return isSupportedLocaleValue(raw) ? normalizeLocale(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function writeStoredLocale(locale: Locale): void {
+  if (typeof localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // Storage is best-effort. The in-memory selection still owns this window.
+  }
+}
+
+/** First paint cannot wait for the backend. Explicit input wins, then the
+ * desktop-local choice, then the browser/OS locale. */
+export function resolvePreferredLocale(explicit?: unknown, candidates?: readonly unknown[]): Locale {
+  if (isSupportedLocaleValue(explicit)) {
+    return normalizeLocale(explicit)
+  }
+
+  return readStoredLocale() ?? detectSystemLocale(candidates)
+}

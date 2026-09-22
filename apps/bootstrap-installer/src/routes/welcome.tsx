@@ -1,6 +1,7 @@
 import { type CSSProperties } from 'react'
 
 import { HackeryButton } from '../components/hackery-button'
+import { useInstallerI18n } from '../i18n'
 import { startInstall } from '../store'
 
 /*
@@ -16,6 +17,8 @@ import { startInstall } from '../store'
  * flag. Showing %LOCALAPPDATA% to grandma is developer-brain.
  */
 export default function Welcome() {
+  const { t } = useInstallerI18n()
+
   return (
     <div className="hermes-fade-in flex h-full flex-col items-center justify-center gap-10 px-12 py-10">
       {/* Hero — same recipe the desktop's chat/intro.tsx uses */}
@@ -37,12 +40,11 @@ export default function Welcome() {
         </p>
 
         <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
-          The agent that grows with you. We&rsquo;ll set things up in the
-          background &mdash; takes a few minutes.
+          {t.welcome.tagline}
         </p>
       </div>
 
-      <HackeryButton label="Install" onClick={() => void startInstall()} />
+      <HackeryButton label={t.welcome.install} onClick={() => void startInstall()} />
     </div>
   )
 }

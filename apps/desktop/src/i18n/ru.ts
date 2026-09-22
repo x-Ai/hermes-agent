@@ -121,6 +121,7 @@ export const ru = defineLocale({
   },
   boot: {
     ready: 'Hermes Desktop готов',
+    connecting: 'ПОДКЛЮЧЕНИЕ',
     desktopBootFailedWithMessage: message => `Не удалось запустить приложение: ${message}`,
     steps: {
       connectingGateway: 'Подключение к шлюзу',
@@ -3185,6 +3186,31 @@ export const ru = defineLocale({
       skipped: 'Пропущено',
       failed: 'Ошибка'
     },
+    stageNames: {
+      uv: 'Установка uv',
+      python: 'Проверка Python',
+      git: 'Установка Git',
+      node: 'Определение Node.js',
+      'system-packages': 'Установка системных пакетов',
+      prerequisites: 'Проверка системных требований',
+      repo: 'Загрузка Hermes Agent',
+      repository: 'Загрузка Hermes Agent',
+      venv: 'Создание виртуального окружения Python',
+      dependencies: 'Установка зависимостей Python',
+      'python-deps': 'Установка зависимостей Python',
+      'node-deps': 'Установка зависимостей браузерных инструментов',
+      desktop: 'Сборка приложения',
+      path: 'Установка команды hermes',
+      'config-templates': 'Запись шаблонов конфигурации',
+      config: 'Подготовка конфигурации и навыков',
+      'platform-sdks': 'Установка SDK платформ сообщений',
+      'bootstrap-marker': 'Отметка завершения установки',
+      configure: 'Настройка ключей API и моделей',
+      setup: 'Настройка ключей API и параметров',
+      gateway: 'Настройка службы шлюза',
+      complete: 'Завершение установки'
+    },
+    unknownError: 'Неизвестная ошибка',
     oneTimeTitle: 'Hermes требует одноразовой установки',
     unsupportedDesc: platform =>
       `Автоматическая установка при первом запуске пока недоступна на ${platform}. Откройте Терминал и выполните команду ниже, затем перезапустите это приложение. При следующих запусках этот шаг будет пропущен.`,

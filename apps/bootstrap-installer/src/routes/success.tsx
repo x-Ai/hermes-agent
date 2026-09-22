@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { type CSSProperties } from 'react'
 
 import { HackeryButton } from '../components/hackery-button'
+import { useInstallerI18n } from '../i18n'
 import { launchHermesDesktop } from '../store'
 
 /*
@@ -17,6 +18,7 @@ import { launchHermesDesktop } from '../store'
  * the rejection and left the user staring at an unresponsive button.
  */
 export default function Success() {
+  const { t } = useInstallerI18n()
   const [error, setError] = useState<string | null>(null)
   const [launching, setLaunching] = useState(false)
 
@@ -48,20 +50,21 @@ export default function Success() {
           }
         >
           <span>
-            <span>Hermes is ready</span>
+            <span>{t.success.title}</span>
           </span>
-          <span aria-hidden="true">Hermes is ready</span>
+          <span aria-hidden="true">{t.success.title}</span>
         </p>
 
         <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
-          You can launch from here, or any time from your terminal with{' '}
-          <code className="font-mono text-sm text-foreground/80">hermes desktop</code>.
+          {t.success.descriptionBeforeCommand}{' '}
+          <code className="font-mono text-sm text-foreground/80">hermes desktop</code>
+          {t.success.descriptionAfterCommand}
         </p>
       </div>
 
       <HackeryButton
         disabled={launching}
-        label={launching ? 'Launching' : 'Launch'}
+        label={launching ? t.success.launching : t.success.launch}
         loading={launching}
         onClick={() => void handleLaunch()}
       />
@@ -70,7 +73,7 @@ export default function Success() {
         <div className="flex max-w-2xl items-start gap-2 text-sm" role="alert">
           <AlertCircle className="mt-0.5 shrink-0 text-destructive" size={16} />
           <div className="min-w-0">
-            <div className="font-medium text-destructive">Couldn&rsquo;t launch the desktop app</div>
+            <div className="font-medium text-destructive">{t.success.launchFailed}</div>
             <div className="mt-0.5 text-muted-foreground">{error}</div>
           </div>
         </div>

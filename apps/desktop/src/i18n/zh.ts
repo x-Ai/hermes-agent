@@ -133,6 +133,7 @@ export const zh = defineLocale({
 
   boot: {
     ready: 'Hermes 桌面版已就绪',
+    connecting: '连接中',
     desktopBootFailedWithMessage: message => `桌面启动失败：${message}`,
     steps: {
       connectingGateway: '正在连接桌面网关',
@@ -3570,6 +3571,31 @@ export const zh = defineLocale({
       skipped: '已跳过',
       failed: '失败'
     },
+    stageNames: {
+      uv: '安装 uv',
+      python: '验证 Python',
+      git: '安装 Git',
+      node: '检测 Node.js',
+      'system-packages': '安装系统软件包',
+      prerequisites: '检查系统前置条件',
+      repo: '下载 Hermes Agent',
+      repository: '下载 Hermes Agent',
+      venv: '创建 Python 虚拟环境',
+      dependencies: '安装 Python 依赖',
+      'python-deps': '安装 Python 依赖',
+      'node-deps': '安装浏览器工具依赖',
+      desktop: '构建桌面应用',
+      path: '安装 hermes 命令',
+      'config-templates': '写入配置模板',
+      config: '准备配置和技能',
+      'platform-sdks': '安装消息平台 SDK',
+      'bootstrap-marker': '标记安装完成',
+      configure: '配置 API 密钥和模型',
+      setup: '配置 API 密钥和设置',
+      gateway: '配置网关服务',
+      complete: '完成安装'
+    },
+    unknownError: '未知错误',
     oneTimeTitle: 'Hermes 需要一次性安装',
     unsupportedDesc: platform =>
       `${platform} 暂不支持自动首次启动安装。请打开终端并运行下面的命令，然后重新启动此应用。之后启动会跳过此步骤。`,

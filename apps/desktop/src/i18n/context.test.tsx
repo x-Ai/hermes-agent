@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { HermesConfigRecord } from '@/hermes'
 
@@ -25,6 +25,10 @@ function LanguageProbe({ target = 'zh' }: { target?: Locale }) {
 }
 
 describe('I18nProvider', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   afterEach(() => {
     cleanup()
     vi.restoreAllMocks()
@@ -76,7 +80,7 @@ describe('I18nProvider', () => {
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
-  it('keeps English usable when config loading fails', async () => {
+  it('keeps the first-paint locale usable when config loading fails', async () => {
     const configClient: I18nConfigClient = {
       getConfig: vi.fn().mockRejectedValue(new Error('config unavailable')),
       saveConfig: vi.fn()
@@ -90,8 +94,8 @@ describe('I18nProvider', () => {
 
     await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
 
-    expect(screen.getByTestId('locale').textContent).toBe('en')
-    expect(screen.getByTestId('label').textContent).toBe('Language')
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(screen.getByTestId('label').textContent).toBe('语言')
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
@@ -265,7 +269,7 @@ describe('I18nProvider', () => {
       </I18nProvider>
     )
 
-    // First attempt fails → settles on English (permanent-failure contract).
+    // First attempt fails, but the usable browser/OS locale remains visible.
     await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
     expect(screen.getByTestId('locale').textContent).toBe('en')
 
@@ -289,9 +293,9 @@ describe('I18nProvider', () => {
       </I18nProvider>
     )
 
-    // Flush the initial attempt: it fails and settles on English.
+    // Flush the initial attempt: failure must not erase the usable first-paint locale.
     await act(async () => {})
-    expect(screen.getByTestId('locale').textContent).toBe('en')
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
     expect(getConfig).toHaveBeenCalledTimes(1)
 
     // Budget is 10 retries at 3s each; run the whole budget to completion.

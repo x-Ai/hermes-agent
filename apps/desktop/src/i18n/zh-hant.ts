@@ -101,6 +101,7 @@ export const zhHant = defineLocale({
 
   boot: {
     ready: 'Hermes Desktop 已就緒',
+    connecting: '連線中',
     desktopBootFailedWithMessage: message => `桌面啟動失敗：${message}`,
     steps: {
       connectingGateway: '正在連線桌面閘道',
@@ -2844,6 +2845,31 @@ export const zhHant = defineLocale({
       skipped: '已略過',
       failed: '失敗'
     },
+    stageNames: {
+      uv: '安裝 uv',
+      python: '驗證 Python',
+      git: '安裝 Git',
+      node: '偵測 Node.js',
+      'system-packages': '安裝系統套件',
+      prerequisites: '檢查系統前置條件',
+      repo: '下載 Hermes Agent',
+      repository: '下載 Hermes Agent',
+      venv: '建立 Python 虛擬環境',
+      dependencies: '安裝 Python 相依套件',
+      'python-deps': '安裝 Python 相依套件',
+      'node-deps': '安裝瀏覽器工具相依套件',
+      desktop: '建置桌面應用程式',
+      path: '安裝 hermes 指令',
+      'config-templates': '寫入設定範本',
+      config: '準備設定與技能',
+      'platform-sdks': '安裝訊息平台 SDK',
+      'bootstrap-marker': '標記安裝完成',
+      configure: '設定 API 金鑰與模型',
+      setup: '設定 API 金鑰與偏好設定',
+      gateway: '設定閘道服務',
+      complete: '完成安裝'
+    },
+    unknownError: '未知錯誤',
     oneTimeTitle: 'Hermes 需要一次性安裝',
     unsupportedDesc: platform =>
       `${platform} 暫不支援自動首次啟動安裝。請開啟終端機並執行下面的指令，然後重新啟動此應用程式。之後啟動會略過此步驟。`,

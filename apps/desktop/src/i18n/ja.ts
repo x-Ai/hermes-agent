@@ -101,6 +101,7 @@ export const ja = defineLocale({
 
   boot: {
     ready: 'Hermes Desktop の準備ができました',
+    connecting: '接続中',
     desktopBootFailedWithMessage: message => `デスクトップの起動に失敗しました: ${message}`,
     steps: {
       connectingGateway: 'ライブデスクトップゲートウェイに接続中',
@@ -2871,6 +2872,31 @@ export const ja = defineLocale({
       skipped: 'スキップ',
       failed: '失敗'
     },
+    stageNames: {
+      uv: 'uv をインストール',
+      python: 'Python を確認',
+      git: 'Git をインストール',
+      node: 'Node.js を検出',
+      'system-packages': 'システムパッケージをインストール',
+      prerequisites: 'システム要件を確認',
+      repo: 'Hermes Agent をダウンロード',
+      repository: 'Hermes Agent をダウンロード',
+      venv: 'Python 仮想環境を作成',
+      dependencies: 'Python 依存関係をインストール',
+      'python-deps': 'Python 依存関係をインストール',
+      'node-deps': 'ブラウザーツールの依存関係をインストール',
+      desktop: 'デスクトップアプリをビルド',
+      path: 'hermes コマンドをインストール',
+      'config-templates': '設定テンプレートを書き込み',
+      config: '設定とスキルを準備',
+      'platform-sdks': 'メッセージング SDK をインストール',
+      'bootstrap-marker': 'インストール完了を記録',
+      configure: 'API キーとモデルを設定',
+      setup: 'API キーと設定を構成',
+      gateway: 'ゲートウェイサービスを設定',
+      complete: 'インストールを完了'
+    },
+    unknownError: '不明なエラー',
     oneTimeTitle: 'Hermes には一度限りのインストールが必要です',
     unsupportedDesc: platform =>
       `${platform} では自動の初回インストールはまだ利用できません。ターミナルを開いて以下のコマンドを実行し、このアプリを再起動してください。以降の起動ではこの手順はスキップされます。`,

@@ -1,6 +1,7 @@
 import { useStore } from '@nanostores/react'
 import { useEffect } from 'react'
 
+import { InstallerLanguageSwitcher } from './i18n'
 import Failure from './routes/failure'
 import Progress from './routes/progress'
 import Success from './routes/success'
@@ -25,6 +26,7 @@ export default function App() {
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-background text-foreground">
+      <InstallerLanguageSwitcher />
       <main className="relative z-10 flex flex-1 flex-col overflow-hidden">
         {route === 'welcome' && <Welcome />}
         {route === 'progress' && <Progress bootstrap={bootstrap} />}

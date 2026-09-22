@@ -24,6 +24,7 @@ import {
   signInLabel,
   sshFailureMessage
 } from './boot-failure-reauth'
+import { SetupLocaleControl } from './setup-locale-control'
 
 // The recovery "Gateway settings" view embeds the real Settings → Gateway panel
 // (identical URL/auth/test/save controls — no parallel form to drift). Lazy so
@@ -60,6 +61,7 @@ function BootFailureModal({ children, title }: { children: ReactNode; title?: st
             data-glass-opaque=""
           >
             <DialogPortalContainerContext.Provider value={contentNode}>
+              <SetupLocaleControl />
               {title ? <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title> : null}
               {children}
             </DialogPortalContainerContext.Provider>

@@ -3,14 +3,8 @@ import { FileText, RefreshCw } from 'lucide-react'
 import { type CSSProperties } from 'react'
 
 import { Button } from '../components/button'
-import {
-  $logPath,
-  $mode,
-  type BootstrapStateModel,
-  openLogDir,
-  startInstall,
-  startUpdate
-} from '../store'
+import { useInstallerI18n } from '../i18n'
+import { $logPath, $mode, type BootstrapStateModel, openLogDir, startInstall, startUpdate } from '../store'
 
 interface FailureProps {
   bootstrap: BootstrapStateModel
@@ -24,6 +18,7 @@ interface FailureProps {
  * shared Button tokens: Retry (primary) and Open logs (quiet text link).
  */
 export default function Failure({ bootstrap }: FailureProps) {
+  const { t } = useInstallerI18n()
   const logPath = useStore($logPath)
   const mode = useStore($mode)
   const isUpdate = mode === 'update'
@@ -42,33 +37,35 @@ export default function Failure({ bootstrap }: FailureProps) {
           }
         >
           <span>
-            <span>{isUpdate ? 'Update didn\u2019t finish' : 'Install didn\u2019t finish'}</span>
+            <span>{isUpdate ? t.failure.updateTitle : t.failure.installTitle}</span>
           </span>
-          <span aria-hidden="true">{isUpdate ? 'Update didn\u2019t finish' : 'Install didn\u2019t finish'}</span>
+          <span aria-hidden="true">{isUpdate ? t.failure.updateTitle : t.failure.installTitle}</span>
         </p>
 
         <p className="m-0 mx-auto max-w-xl text-center text-sm leading-normal tracking-tight text-muted-foreground">
-          {bootstrap.error ??
-            (isUpdate
-              ? 'Something went wrong during the update.'
-              : 'Something went wrong during installation.')}
+          {isUpdate ? t.failure.updateDescription : t.failure.installDescription}
         </p>
+        {bootstrap.error && (
+          <p className="mt-2 max-h-24 overflow-auto whitespace-pre-wrap font-mono text-xs text-muted-foreground/70">
+            {bootstrap.error}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
         <Button className="gap-1.5" onClick={() => void (isUpdate ? startUpdate() : startInstall())}>
           <RefreshCw />
-          {isUpdate ? 'Retry update' : 'Retry install'}
+          {isUpdate ? t.failure.retryUpdate : t.failure.retryInstall}
         </Button>
         <Button className="gap-1.5" onClick={() => void openLogDir()} variant="text">
           <FileText />
-          Open logs
+          {t.common.openLogs}
         </Button>
       </div>
 
       {logPath && (
         <p className="max-w-lg text-center text-xs text-muted-foreground/70">
-          Log: <code className="font-mono">{logPath}</code>
+          {t.common.log}: <code className="font-mono">{logPath}</code>
         </p>
       )}
     </div>

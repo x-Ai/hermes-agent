@@ -9,7 +9,8 @@ import {
   isSupportedLocaleValue,
   localeConfigValue,
   normalizeLocale,
-  resolveInitialLocale
+  resolvePreferredLocale,
+  writeStoredLocale
 } from './languages'
 import { setRuntimeI18nLocale } from './runtime'
 import type { Locale, Translations } from './types'
@@ -93,7 +94,7 @@ export interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, configClient = defaultConfigClient, initialLocale }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => normalizeLocale(initialLocale))
+  const [locale, setLocaleState] = useState<Locale>(() => resolvePreferredLocale(initialLocale))
   const [isLoadingConfig, setIsLoadingConfig] = useState(false)
   const [isSavingLocale, setIsSavingLocale] = useState(false)
   const [configLoadError, setConfigLoadError] = useState<Error | null>(null)
@@ -102,14 +103,17 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
   // Set once the user picks a language through setLocale: a startup read that
   // resolves (or fails) after that must never overwrite an explicit choice.
   const userLocaleRef = useRef(false)
+  const hasPersistedLanguageRef = useRef(false)
 
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
     localeRef.current = locale
+    writeStoredLocale(locale)
     setRuntimeI18nLocale(locale)
     applyDocumentLocale(locale)
   }, [locale])
 
+  // eslint-disable-next-line no-restricted-syntax -- backend ownership is non-render state used by the save callback
   useEffect(() => {
     if (!configClient) {
       return
@@ -121,10 +125,9 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
     // The desktop races its own backend at startup: the renderer mounts before
     // the backend is ready, so the first /api/config call can time out. We keep
-    // the established permanent-failure contract — a rejected config load
-    // settles on English so the UI stays usable — but bounded retries recover
-    // transient startup failures, applying the persisted display.language once
-    // the backend comes up.
+    // a rejected config load leaves the system/local first-paint locale usable,
+    // while bounded retries recover transient startup failures and apply the
+    // persisted display.language once the backend comes up.
     const MAX_LOCALE_RETRIES = 10
     const LOCALE_RETRY_DELAY_MS = 3_000
 
@@ -143,17 +146,26 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
           // A saved choice needs no machine probe and always takes precedence.
           if (isSupportedLocaleValue(saved)) {
+            hasPersistedLanguageRef.current = true
             setLocaleState(normalizeLocale(saved))
 
             return
           }
 
-          // Keep inference unsaved so OS language changes apply on the next boot
-          // until the user explicitly picks a language.
+          hasPersistedLanguageRef.current = false
+
+          if (saved != null && saved !== '') {
+            setLocaleState(DEFAULT_LOCALE)
+
+            return
+          }
+
+          // Keep backend config untouched until the user explicitly chooses a
+          // language; the desktop-local preference owns pre-backend surfaces.
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            setLocaleState(resolveInitialLocale(undefined, machineProfile?.locale))
+            setLocaleState(resolvePreferredLocale(undefined, [machineProfile?.locale]))
           }
         })
         .catch(error => {
@@ -161,8 +173,8 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
             return
           }
 
+          hasPersistedLanguageRef.current = false
           setConfigLoadError(toError(error))
-          setLocaleState(DEFAULT_LOCALE)
 
           if (retryCount < MAX_LOCALE_RETRIES) {
             retryCount += 1
@@ -210,13 +222,22 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
         if (!result.ok) {
           throw new Error('Failed to save language')
         }
+
+        hasPersistedLanguageRef.current = true
       } catch (error) {
         const nextError = toError(error)
 
-        setLocaleState(previousLocale)
         setSaveError(nextError)
 
-        throw nextError
+        // During first-run the backend does not exist yet. Keep the local
+        // selection so setup and recovery stay readable; a previously saved
+        // backend preference still retains rollback semantics.
+        if (hasPersistedLanguageRef.current) {
+          setLocaleState(previousLocale)
+          writeStoredLocale(previousLocale)
+
+          throw nextError
+        }
       } finally {
         setIsSavingLocale(false)
       }
