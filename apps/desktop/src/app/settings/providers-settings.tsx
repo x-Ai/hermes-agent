@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { RowButton } from '@/components/ui/row-button'
 import { SearchField } from '@/components/ui/search-field'
+import { Tip } from '@/components/ui/tooltip'
 import { disconnectOAuthProvider, listOAuthProviders } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { Check, ChevronDown, ChevronRight, KeyRound, Loader2, Terminal, Trash2 } from '@/lib/icons'
@@ -67,12 +68,8 @@ export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 //   2. Desktop prefix match (`providerGroup`) — legacy fallback for provider
 //      env vars that predate the backend tagging.
 // Only entries that resolve to neither (the "Other" bucket) are skipped.
-function buildProviderKeyGroups(
-  vars: Record<string, EnvVarInfo>,
-  providerDescriptions: Record<string, string>,
-  providerLabels: Record<string, string>
-): ProviderKeyGroup[] {
-  const buckets = new Map<string, { entries: [string, EnvVarInfo][]; providerId: string; sourceName: string }>()
+function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGroup[] {
+  const buckets = new Map<string, [string, EnvVarInfo][]>()
 
   for (const [key, info] of Object.entries(vars)) {
     if (info.category !== 'provider') {
@@ -81,26 +78,18 @@ function buildProviderKeyGroups(
 
     // Prefer the backend-supplied provider label/id so the Keys tab groups by
     // the same identity the CLI picker uses; fall back to the prefix guess.
-    const providerId = info.provider?.trim() || ''
-    const sourceName = info.provider_label?.trim() || providerId || providerGroup(key)
+    const name = info.provider_label?.trim() || info.provider?.trim() || providerGroup(key)
 
-    if (sourceName === 'Other') {
+    if (name === 'Other') {
       continue
     }
 
-    const identity = providerId || sourceName
-    const bucket = buckets.get(identity)
-
-    if (bucket) {
-      bucket.entries.push([key, info])
-    } else {
-      buckets.set(identity, { entries: [[key, info]], providerId, sourceName })
-    }
+    buckets.set(name, [...(buckets.get(name) ?? []), [key, info]])
   }
 
   const groups: ProviderKeyGroup[] = []
 
-  for (const [id, { entries, providerId, sourceName }] of buckets) {
+  for (const [name, entries] of buckets) {
     const primary = entries.find(([k, i]) => !i.advanced && isKeyVar(k, i)) ?? entries.find(([k, i]) => isKeyVar(k, i))
 
     if (!primary) {
@@ -110,7 +99,7 @@ function buildProviderKeyGroups(
     // Presentation overlay (priority, blurb, docs) is keyed by the prefix-based
     // group name; when the backend introduced this provider it may have no
     // overlay entry, so fall back to the backend/env metadata for display.
-    const meta = providerMeta(sourceName)
+    const meta = providerMeta(name)
 
     groups.push({
       // Advanced = the provider's non-key knobs (base URL, region, deployment).
@@ -120,14 +109,12 @@ function buildProviderKeyGroups(
       advanced: entries
         .filter(([k, i]) => k !== primary[0] && (!isKeyVar(k, i) || i.is_set))
         .sort(([a], [b]) => a.localeCompare(b)),
-      description: providerDescriptions[sourceName] ?? meta?.description ?? primary[1].description,
+      description: meta?.description ?? primary[1].description,
       docsUrl: meta?.docsUrl ?? primary[1].url ?? undefined,
       hasAnySet: entries.some(([, i]) => i.is_set),
-      id,
-      name: providerLabels[providerId] ?? sourceName,
+      name,
       primary,
-      priority: providerPriority(sourceName),
-      sourceName
+      priority: providerPriority(name)
     })
   }
 
@@ -261,7 +248,7 @@ function ConnectedProviderRow({
 }) {
   const { t } = useI18n()
   const copy = t.settings.providers
-  const title = providerTitle(provider, t)
+  const title = providerTitle(provider)
   const Trail = provider.flow === 'external' ? Terminal : ChevronRight
   // Hermes can clear this provider's creds via the API.
   const canDisconnect = provider.disconnectable ?? provider.flow !== 'external'
@@ -296,7 +283,6 @@ function ConnectedProviderRow({
             disabled={disconnecting}
             onClick={() => onDisconnect(provider)}
             size="icon-xs"
-            title={`${t.common.remove} ${title}`}
             type="button"
             variant="ghost"
           >
@@ -304,16 +290,17 @@ function ConnectedProviderRow({
           </Button>
         )}
         {terminalDisconnect && (
-          <Button
-            aria-label={`${copy.disconnect} ${title}`}
-            onClick={() => onTerminalDisconnect(provider)}
-            size="icon-xs"
-            title={copy.disconnectInTerminal}
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 className="size-3" />
-          </Button>
+          <Tip label={copy.disconnectInTerminal}>
+            <Button
+              aria-label={`${copy.disconnect} ${title}`}
+              onClick={() => onTerminalDisconnect(provider)}
+              size="icon-xs"
+              type="button"
+              variant="ghost"
+            >
+              <Trash2 className="size-3" />
+            </Button>
+          </Tip>
         )}
       </div>
     </div>
@@ -368,7 +355,6 @@ export function ProvidersSettings({
   view
 }: ProvidersSettingsProps) {
   const { t } = useI18n()
-  const p = t.settings.providers
   const scopeProfile = useStore($settingsRequestProfile)
   const { rowProps, vars } = useEnvCredentials(scopeProfile)
   const [oauthProviders, setOauthProviders] = useState<OAuthProvider[]>([])
@@ -420,7 +406,7 @@ export function ProvidersSettings({
       return
     }
 
-    const name = providerTitle(provider, t)
+    const name = providerTitle(provider)
 
     const ok = await confirm({
       confirmLabel: t.settings.providers.disconnect,
@@ -443,7 +429,7 @@ export function ProvidersSettings({
   }
 
   async function handleDisconnect(provider: OAuthProvider) {
-    const name = providerTitle(provider, t)
+    const name = providerTitle(provider)
 
     const ok = await confirm({
       confirmLabel: t.settings.providers.disconnect,
@@ -482,20 +468,14 @@ export function ProvidersSettings({
   // providers there's nothing for the "Accounts" view to show, so fall to keys.
   const showApiKeys = view === 'keys' || (!hasOauth && view !== 'custom-endpoints')
 
-  const keyGroups = buildProviderKeyGroups(vars, p.providerDescriptions, p.providerLabels)
+  const keyGroups = buildProviderKeyGroups(vars)
 
   if (showApiKeys) {
     const q = normalize(keyQuery)
 
     const visibleGroups = q
       ? keyGroups.filter(group => {
-          const haystack = [
-            group.name,
-            group.sourceName,
-            group.description ?? '',
-            group.primary[0],
-            ...group.advanced.map(([k]) => k)
-          ]
+          const haystack = [group.name, group.description ?? '', group.primary[0], ...group.advanced.map(([k]) => k)]
 
           return haystack.some(s => s.toLowerCase().includes(q))
         })
@@ -518,11 +498,11 @@ export function ProvidersSettings({
               <div className="grid gap-2">
                 {visibleGroups.map(group => (
                   <ProviderKeyRows
-                    expanded={openProvider === group.id}
+                    expanded={openProvider === group.name}
                     group={group}
-                    key={group.id}
-                    onExpand={() => setOpenProvider(group.id)}
-                    onToggle={() => setOpenProvider(prev => (prev === group.id ? null : group.id))}
+                    key={group.name}
+                    onExpand={() => setOpenProvider(group.name)}
+                    onToggle={() => setOpenProvider(prev => (prev === group.name ? null : group.name))}
                     rowProps={rowProps}
                   />
                 ))}
@@ -572,11 +552,9 @@ interface ProviderKeyGroup {
   description?: string
   docsUrl?: string
   hasAnySet: boolean
-  id: string
   name: string
   primary: [string, EnvVarInfo]
   priority: number
-  sourceName: string
 }
 
 interface ProvidersSettingsProps {

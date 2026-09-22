@@ -33,6 +33,7 @@ import {
   formatModifierToken,
   host,
   Input,
+  isSubmitEnter,
   Loader,
   SearchField,
   Select,
@@ -43,12 +44,12 @@ import {
   Switch,
   Textarea,
   Tip,
-  TITLEBAR_AREAS,
   useGrabScroll,
   useMutation,
   useQuery,
   useQueryClient,
-  useValue
+  useValue,
+  WORKSPACE_PAGE_HEADER_AREA
 } from '@hermes/plugin-sdk'
 import {
   type CSSProperties,
@@ -90,7 +91,6 @@ import {
   Avatar,
   columnHelp,
   columnLabel,
-  displayProfileName,
   errText,
   FIELD_LABEL,
   isLockedTarget,
@@ -159,7 +159,6 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
   // The agent on the hook for a queued card: the explicit assignee, else the
   // auto-default (ready), else the specifier that rewrites triage cards.
   const attached = task.assignee || (task.status === 'ready' ? fallback : task.status === 'triage' ? orchestrator : '')
-  const attachedLabel = displayProfileName(k, attached)
 
   const meta = columnMeta(task.status)
 
@@ -173,17 +172,17 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
             task.status === 'review'
               ? k.reviewChecking
               : task.assignee
-                ? k.attachedTip(attachedLabel)
+                ? k.attachedTip(attached)
                 : task.status === 'triage'
-                  ? k.orchestratorTip(attachedLabel)
-                  : k.autoAssignTip(attachedLabel)
+                  ? k.orchestratorTip(attached)
+                  : k.autoAssignTip(attached)
           }
         >
           <span className="inline-flex min-w-0 cursor-help items-center gap-1 font-medium" style={{ color: meta.tone }}>
             <Avatar name={attached} size="1.125rem" />
             <span className="truncate">
               {!task.assignee && '→ '}
-              {attachedLabel}
+              {attached}
             </span>
           </span>
         </Tip>
@@ -469,7 +468,7 @@ function Column({
               <div className="flex flex-col gap-2" key={assignee}>
                 <div className="flex items-center gap-1.5 px-1 pt-1 text-[0.625rem] text-(--ui-text-quaternary)">
                   {assignee !== UNASSIGNED_LANE && <Avatar name={assignee} size="0.875rem" />}
-                  {displayProfileName(k, assignee)}
+                  {assignee}
                   <span className="tabular-nums">{tasks.length}</span>
                 </div>
                 {tasks.map(task => (
@@ -685,7 +684,7 @@ function NewTaskDialog({
             autoFocus
             onChange={event => setTitle(event.target.value)}
             onKeyDown={event => {
-              if (event.key === 'Enter') {
+              if (isSubmitEnter(event)) {
                 event.preventDefault()
                 void submit()
               }
@@ -740,12 +739,12 @@ function NewTaskDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_PARENT}>{k.defaultOption(displayProfileName(k, resolvedDefault))}</SelectItem>
+                <SelectItem value={NO_PARENT}>{k.defaultOption(resolvedDefault)}</SelectItem>
                 {(roster?.profiles ?? [])
                   .filter(profile => profile.name !== resolvedDefault)
                   .map(profile => (
                     <SelectItem key={profile.name} value={profile.name}>
-                      {displayProfileName(k, profile.name)}
+                      {profile.name}
                     </SelectItem>
                   ))}
                 <SelectItem value={PARKED}>{k.parkedOption}</SelectItem>
@@ -911,7 +910,7 @@ function FilterMenu({
         {board.assignees.map(name => (
           <DropdownMenuItem key={name} onSelect={() => onAssignee(name)}>
             <Avatar name={name} size="0.875rem" />
-            {displayProfileName(k, name)}
+            {name}
             {check(assignee === name)}
           </DropdownMenuItem>
         ))}
@@ -1046,7 +1045,7 @@ function SelectionBar({
                 onSelect={() => bulk.mutate({ assignee: profile.name, reclaim_first: true })}
               >
                 <Avatar name={profile.name} size="0.875rem" />
-                {displayProfileName(k, profile.name)}
+                {profile.name}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -1324,8 +1323,8 @@ export function KanbanBoardPage() {
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-(--ui-surface-background)">
-      {/* Page-owned titlebar chrome: exists exactly while this page is mounted. */}
-      <Contribute area={TITLEBAR_AREAS.center} id="kanban:board-switcher">
+      {/* Page-owned header chrome: exists exactly while this page is mounted. */}
+      <Contribute area={WORKSPACE_PAGE_HEADER_AREA} id="kanban:board-switcher">
         <BoardSwitcher />
       </Contribute>
 

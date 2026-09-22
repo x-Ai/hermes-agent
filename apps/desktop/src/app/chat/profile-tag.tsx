@@ -3,7 +3,6 @@ import { useStore } from '@nanostores/react'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
-import { displayEntityName } from '@/lib/display-name'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $profileColors, normalizeProfileKey } from '@/store/profile'
 
@@ -14,10 +13,7 @@ export function ProfileTag({ className, profile }: { className?: string; profile
   const { t } = useI18n()
   const colors = useStore($profileColors)
   const key = normalizeProfileKey(profile)
-  // Localized display for the reserved "default" profile; the glyph initial
-  // below intentionally keeps the raw key (CJK display names have no a-z0-9
-  // initial to extract).
-  const label = t.sidebar.row.ownedByProfile(displayEntityName(key, t))
+  const label = t.sidebar.row.ownedByProfile(key)
 
   return (
     <Tip label={label}>

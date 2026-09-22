@@ -1,14 +1,10 @@
 import type { ComponentProps } from 'react'
 
-import { useI18n } from '@/i18n'
-
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 
 interface BrandCloseProps extends ComponentProps<'div'> {}
 
 export function BrandClose({ ref }: BrandCloseProps) {
-  const { t } = useI18n()
-
   return (
     <div
       className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-[3.2vmin] opacity-0"
@@ -32,7 +28,7 @@ export function BrandClose({ ref }: BrandCloseProps) {
           className="text-[2vmin] uppercase tracking-[0.42em] text-white/50"
           style={{ fontFamily: "'Collapse', sans-serif" }}
         >
-          {t.introReveal.tagline}
+          Your agent, everywhere
         </p>
       </div>
     </div>

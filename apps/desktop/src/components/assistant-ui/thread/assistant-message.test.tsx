@@ -5,10 +5,11 @@
 // AssistantMessage's action bar hide the button entirely when no handler is
 // supplied, matching how onDismissError/onRestoreToMessage already behave.
 import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime } from '@assistant-ui/react'
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
+import { en } from '@/i18n/en'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
 import { stubThreadEnvironment } from '../test-utils'
@@ -19,6 +20,12 @@ import { Thread } from '.'
 
 const requestFreshSession = vi.hoisted(() => vi.fn())
 const startManualProviderOAuth = vi.hoisted(() => vi.fn())
+const requestModelMenuToggle = vi.hoisted(() => vi.fn<() => boolean>(() => true))
+
+vi.mock('@/app/chat/composer/focus', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  requestModelMenuToggle: () => requestModelMenuToggle()
+}))
 
 vi.mock('@/store/profile', async importOriginal => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -41,6 +48,7 @@ afterEach(() => {
   cleanup()
   requestFreshSession.mockClear()
   startManualProviderOAuth.mockClear()
+  requestModelMenuToggle.mockReset().mockReturnValue(true)
 })
 
 function userMessage(): ThreadMessage {
@@ -135,27 +143,51 @@ function oauthExpiredMessage(): ThreadMessage {
   } as unknown as ThreadMessage
 }
 
+/** A failed turn carrying an arbitrary error_surface descriptor. */
+function failedMessage(errorSurface: Record<string, unknown>, error = 'HTTP 400: raw provider body'): ThreadMessage {
+  return {
+    id: 'assistant-error-3',
+    role: 'assistant',
+    content: [],
+    status: { type: 'incomplete', reason: 'error', error },
+    createdAt,
+    metadata: {
+      unstable_state: null,
+      unstable_annotations: [],
+      unstable_data: [],
+      steps: [],
+      custom: { errorSurface }
+    }
+  } as unknown as ThreadMessage
+}
+
+/** Renders the router's current URL so a test can assert where a deep link went. */
+function LocationProbe() {
+  const location = useLocation()
+
+  return <span data-testid="location">{`${location.pathname}${location.search}`}</span>
+}
+
 function Harness({
   assistant = assistantMessage(),
-  locale = 'en',
-  onBranchInNewChat
+  onBranchInNewChat,
+  onReload
 }: {
   assistant?: ThreadMessage
-  locale?: string
   onBranchInNewChat?: (messageId: string) => void
+  onReload?: () => Promise<void>
 }) {
   const runtime = useExternalStoreRuntime<ThreadMessage>({
     messages: [userMessage(), assistant],
     isRunning: false,
-    onNew: async () => {}
+    onNew: async () => {},
+    ...(onReload ? { onReload } : {})
   })
 
   return (
-    <I18nProvider configClient={null} initialLocale={locale}>
-      <AssistantRuntimeProvider runtime={runtime}>
-        <Thread onBranchInNewChat={onBranchInNewChat} />
-      </AssistantRuntimeProvider>
-    </I18nProvider>
+    <AssistantRuntimeProvider runtime={runtime}>
+      <Thread onBranchInNewChat={onBranchInNewChat} />
+    </AssistantRuntimeProvider>
   )
 }
 
@@ -178,67 +210,6 @@ describe('AssistantMessage branch button visibility (bug #2 fix)', () => {
   })
 })
 
-describe('localized backend transcript copy', () => {
-  const renderInterrupted = async (text: string, expected: string) => {
-    const assistant = {
-      ...assistantMessage(),
-      content: [{ text, type: 'text' }]
-    } as unknown as ThreadMessage
-
-    render(<Harness assistant={assistant} locale="zh" />)
-
-    expect(await screen.findByText(expected)).toBeTruthy()
-    expect(screen.queryByText(text)).toBeNull()
-  }
-
-  it.each([
-    ['generic', 'Operation interrupted.', '操作已中断'],
-    [
-      'waiting for the model',
-      'Operation interrupted: waiting for model response (2.2s elapsed).',
-      '操作已中断：正在等待模型响应（已等待 2.2 秒）'
-    ],
-    [
-      'during an invalid-response retry',
-      'Operation interrupted during retry (upstream provider timed out (Cloudflare 524, 12s), attempt 2/4).',
-      '操作已中断：重试过程中（上游提供商超时（Cloudflare 524，12 秒），第 2/4 次尝试）'
-    ],
-    [
-      'while handling an API error',
-      'Operation interrupted: handling API error (TimeoutError: request timed out).',
-      '操作已中断：正在处理 API 错误（TimeoutError：request timed out）'
-    ],
-    [
-      'while retrying an API call',
-      'Operation interrupted: retrying API call after error (retry 3/5).',
-      '操作已中断：API 调用出错后正在重试（第 3/5 次）'
-    ],
-    [
-      'while retrying an empty response',
-      'Operation interrupted: retrying empty response from model (retry 1/2).',
-      '操作已中断：正在重试模型的空响应（第 1/2 次）'
-    ]
-  ])('localizes the %s interruption sentinel', async (_label, text, expected) => {
-    await renderInterrupted(text, expected)
-  })
-
-  it.each([
-    ['upstream gateway timeout (504, 12s)', '上游网关超时（504，12 秒）'],
-    ['rate limited by upstream provider (429)', '上游提供商限流（429）'],
-    ['upstream server error (502, 12s)', '上游服务器错误（502，12 秒）'],
-    ['upstream provider overloaded (529)', '上游提供商过载（529）'],
-    ['upstream error (code 418, 12s)', '上游错误（代码 418，12 秒）'],
-    ['fast response (1.2s) — likely rate limited', '响应较快（1.2 秒） — 可能受到限流'],
-    ['slow response (61s) — likely upstream timeout', '响应较慢（61 秒） — 可能是上游超时'],
-    ['response time 12.3s', '响应耗时 12.3 秒']
-  ])('localizes the emitted retry reason “%s”', async (reason, localizedReason) => {
-    await renderInterrupted(
-      `Operation interrupted during retry (${reason}, attempt 2/4).`,
-      `操作已中断：重试过程中（${localizedReason}，第 2/4 次尝试）`
-    )
-  })
-})
-
 describe('ownership refusal recovery (#106217)', () => {
   it('offers Start new session and suppresses Retry for live-owner refusals', async () => {
     render(<Harness assistant={ownershipRefusalMessage()} />)
@@ -248,6 +219,221 @@ describe('ownership refusal recovery (#106217)', () => {
 
     screen.getByRole('button', { name: 'Start new session' }).click()
     expect(requestFreshSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('explains the refusal in plain words and demotes the lease text to details', async () => {
+    render(<Harness assistant={ownershipRefusalMessage()} />)
+
+    expect(await screen.findByText(/open in another Hermes window or terminal/)).toBeTruthy()
+    // The raw refusal ("live owner", "pid", "lease") is kept only inside the
+    // collapsed Details disclosure, never as the headline.
+    const raw = screen.getByText(/already has a live owner/)
+    expect(raw.closest('details')).not.toBeNull()
+  })
+})
+
+describe('code-keyed error card copy and actions', () => {
+  it('hides Retry and offers Edit message for a safety refusal', async () => {
+    render(
+      <Harness
+        assistant={failedMessage({
+          code: 'content_policy_blocked',
+          layer: 'provider',
+          provider: 'openai',
+          retryable: false
+        })}
+      />
+    )
+
+    expect(await screen.findByText('The AI service declined this request')).toBeTruthy()
+
+    // The user bubble itself is also labelled "Edit message"; assert on the
+    // card's own action button.
+    const editActions = screen
+      .getAllByRole('button', { name: 'Edit message' })
+      .filter(button => button.classList.contains('aui-error-action'))
+
+    expect(editActions).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+  })
+
+  it('offers Choose a model and no Retry when the model is not available', async () => {
+    render(
+      <Harness
+        assistant={failedMessage({ code: 'model_not_found', layer: 'provider', provider: 'openai', retryable: false })}
+      />
+    )
+
+    expect(await screen.findByRole('button', { name: 'Choose a model' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+    // The raw HTTP body is not the lead sentence.
+    expect(screen.getByText(en.assistant.thread.errorCodes.model_not_found.title as string)).toBeTruthy()
+    expect(screen.getByText(/HTTP 400/).closest('details')).not.toBeNull()
+  })
+
+  it('offers Compress conversation and Start new session for a context overflow', async () => {
+    render(<Harness assistant={failedMessage({ code: 'context_overflow', layer: 'provider', retryable: true })} />)
+
+    expect(await screen.findByText('This conversation is too long')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Compress conversation' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start new session' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+  })
+
+  it('names the provider and keeps Retry for a rate limit', async () => {
+    render(
+      <Harness
+        assistant={failedMessage(
+          { code: 'rate_limit', layer: 'provider', provider: 'openai', retryable: true },
+          'HTTP 429: {"error":{"message":"Rate limit reached"}}'
+        )}
+      />
+    )
+
+    expect(await screen.findByText('The AI service is busy')).toBeTruthy()
+    expect(screen.getByText(/openai is limiting requests right now/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+  })
+
+  it('falls back to the generic headline when no descriptor was sent (older backend)', async () => {
+    const legacy = {
+      ...failedMessage({}),
+      metadata: { unstable_state: null, unstable_annotations: [], unstable_data: [], steps: [], custom: {} }
+    } as unknown as ThreadMessage
+
+    render(<Harness assistant={legacy} />)
+
+    expect(await screen.findByText("Hermes couldn't finish this reply")).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+  })
+})
+
+describe('scheduled retry at the usage-limit reset (#98852)', () => {
+  const rateLimited = (resetsAt: number) =>
+    failedMessage(
+      { code: 'rate_limit', layer: 'provider', provider: 'openai', resetsAt, retryable: true },
+      'HTTP 429: {"error":{"message":"Rate limit reached"}}'
+    )
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('fires the same reload as Retry exactly once, at resets_at and not before', async () => {
+    const onReload = vi.fn(async () => {})
+    const resetsAt = Math.floor(Date.now() / 1000) + 600
+
+    render(<Harness assistant={rateLimited(resetsAt)} onReload={onReload} />)
+
+    const arm = await screen.findByRole('button', { name: /^Retry when the limit resets \(\d\d:\d\d\)$/ })
+
+    vi.useFakeTimers()
+    fireEvent.click(arm)
+
+    expect(screen.getByTestId('error-retry-scheduled').textContent).toMatch(/Retrying at \d\d:\d\d — in \d+m \d\ds/)
+    expect(screen.queryByRole('button', { name: /^Retry when the limit resets/ })).toBeNull()
+
+    await act(async () => vi.advanceTimersByTime(resetsAt * 1000 - Date.now() - 1_000))
+    expect(onReload).not.toHaveBeenCalled()
+
+    await act(async () => vi.advanceTimersByTime(1_000))
+    expect(onReload).toHaveBeenCalledTimes(1)
+
+    await act(async () => vi.advanceTimersByTime(3_600_000))
+    expect(onReload).toHaveBeenCalledTimes(1)
+  })
+
+  it('never fires after Cancel or unmount, and hides the button once the reset has passed', async () => {
+    const onReload = vi.fn(async () => {})
+    const resetsAt = Math.floor(Date.now() / 1000) + 600
+
+    const view = render(<Harness assistant={rateLimited(resetsAt)} onReload={onReload} />)
+    const armName = /^Retry when the limit resets/
+
+    fireEvent.click(await screen.findByRole('button', { name: armName }))
+    vi.useFakeTimers()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByTestId('error-retry-scheduled')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: armName }))
+    view.unmount()
+
+    await act(async () => vi.advanceTimersByTime(3_600_000))
+    expect(onReload).not.toHaveBeenCalled()
+    vi.useRealTimers()
+
+    render(<Harness assistant={rateLimited(Math.floor(Date.now() / 1000) - 60)} onReload={onReload} />)
+    expect(await screen.findByRole('button', { name: 'Retry' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: armName })).toBeNull()
+  })
+})
+
+describe('rejected API key recovery', () => {
+  it('names the key as the problem and deep-links Settings → Keys to that env var', async () => {
+    render(
+      <MemoryRouter>
+        <LocationProbe />
+        <Harness
+          assistant={failedMessage(
+            {
+              apiKeyEnv: 'OPENAI_API_KEY',
+              authKind: 'api_key',
+              code: 'auth',
+              layer: 'auth',
+              provider: 'openai',
+              providerLabel: 'OpenAI',
+              retryable: false
+            },
+            'HTTP 401: {"error":{"message":"Incorrect API key provided: sk-…"}}'
+          )}
+        />
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByText('OpenAI rejected your API key')).toBeTruthy()
+    // Fixing the key changes the outcome, so Retry stays as the follow-up click.
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeTruthy()
+
+    screen.getByRole('button', { name: 'Update API key' }).click()
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toMatch(/\?tab=keys&key=OPENAI_API_KEY$/))
+  })
+})
+
+describe('switch provider on a live session (#95066)', () => {
+  const billingFailure = () =>
+    failedMessage({ code: 'billing', layer: 'billing', provider: 'openai-codex', retryable: false }, 'HTTP 429: quota')
+
+  it('opens the live session model menu instead of leaving the chat for Settings', async () => {
+    render(
+      <MemoryRouter>
+        <LocationProbe />
+        <Harness assistant={billingFailure()} />
+      </MemoryRouter>
+    )
+
+    const button = await screen.findByRole('button', { name: 'Switch provider' })
+    const before = screen.getByTestId('location').textContent
+
+    button.click()
+
+    expect(requestModelMenuToggle).toHaveBeenCalledTimes(1)
+    // Still on the chat: the pick lands on THIS session through model.switch.
+    expect(screen.getByTestId('location').textContent).toBe(before)
+  })
+
+  it('falls back to Settings → Models only when no chat surface is on screen', async () => {
+    requestModelMenuToggle.mockReturnValue(false)
+    render(
+      <MemoryRouter>
+        <LocationProbe />
+        <Harness assistant={billingFailure()} />
+      </MemoryRouter>
+    )
+
+    ;(await screen.findByRole('button', { name: 'Switch provider' })).click()
+
+    expect(requestModelMenuToggle).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toMatch(/\?tab=config:model$/))
   })
 })
 

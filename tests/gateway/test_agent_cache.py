@@ -89,7 +89,7 @@ class TestAgentConfigSignature:
         monkeypatch.setattr(
             runtime_provider,
             "resolve_runtime_provider",
-            lambda target_model=None: {
+            lambda **_kw: {
                 "api_key": "test-key",
                 "base_url": "https://trusted-proxy.example/v1",
                 "provider": "custom",
@@ -125,51 +125,6 @@ class TestAgentConfigSignature:
             cache_keys={"compression.threshold": 0.75},
         )
         assert sig1 != sig2
-
-    def test_provider_context_cache_value_is_scoped_to_the_active_model(self):
-        from gateway.run import GatewayRunner
-
-        runtime = {"api_key": "k", "base_url": "https://proxy.example/v1", "provider": "acme"}
-        config = {
-            "providers": {
-                "acme": {
-                    "base_url": runtime["base_url"],
-                    "model_token_limits": {
-                        "model-a": {
-                            "context_length": 204800,
-                            "max_input_tokens": 160000,
-                            "max_output_tokens": 32000,
-                        },
-                        "model-b": {"context_length": 1048576},
-                    },
-                }
-            }
-        }
-        active = GatewayRunner._active_provider_context_length("model-a", runtime, config)
-        changed_other = {
-            "providers": {
-                "acme": {
-                    "base_url": runtime["base_url"],
-                    "model_token_limits": {
-                        "model-a": {
-                            "context_length": 204800,
-                            "max_input_tokens": 160000,
-                            "max_output_tokens": 32000,
-                        },
-                        "model-b": {"context_length": 200000},
-                    },
-                }
-            }
-        }
-
-        assert active == 204800
-        assert GatewayRunner._active_provider_token_limits("model-a", runtime, config) == {
-            "context_length": 204800,
-            "max_input_tokens": 160000,
-            "max_output_tokens": 32000,
-        }
-        assert GatewayRunner._active_provider_context_length("model-a", runtime, changed_other) == active
-        assert GatewayRunner._active_provider_context_length("model-b", runtime, changed_other) == 200000
 
 
     def test_cache_keys_key_order_does_not_matter(self):

@@ -5,8 +5,8 @@ import { PetHeartField, playVibeHearts } from '@/components/chat/vibe-hearts'
 import { PetBubble } from '@/components/pet/pet-bubble'
 import { PetSprite } from '@/components/pet/pet-sprite'
 import { type PetZoomAnchor, usePetZoomGesture } from '@/components/pet/use-pet-zoom-gesture'
-import { useI18n } from '@/i18n'
 import { Mail } from '@/lib/icons'
+import { isSubmitEnter } from '@/lib/ime'
 import { $petActivity, $petInfo, setPetInfo } from '@/store/pet'
 import { overlayWindowSize } from '@/store/pet-overlay'
 import { setAwaitingResponse, setBusy } from '@/store/session'
@@ -62,7 +62,6 @@ interface DragState {
 }
 
 export function PetOverlayApp() {
-  const { t } = useI18n()
   const info = useStore($petInfo)
   const [composerOpen, setComposerOpen] = useState(false)
   const [draft, setDraft] = useState('')
@@ -392,14 +391,14 @@ export function PetOverlayApp() {
         <input
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (isSubmitEnter(e) && !e.shiftKey) {
               e.preventDefault()
               send()
             } else if (e.key === 'Escape') {
               setComposerOpen(false)
             }
           }}
-          placeholder={t.petOverlay.messagePlaceholder}
+          placeholder="Message…"
           ref={inputRef}
           style={{
             background: 'var(--ui-bg-elevated)',
@@ -449,7 +448,7 @@ export function PetOverlayApp() {
               stopPropagation keeps a click from starting a window drag. */}
           {unread && (
             <button
-              aria-label={t.petOverlay.openInHermes}
+              aria-label="Open in Hermes"
               onClick={openApp}
               onPointerDown={e => e.stopPropagation()}
               onPointerUp={e => e.stopPropagation()}
@@ -470,7 +469,6 @@ export function PetOverlayApp() {
                 top: 0,
                 width: 24
               }}
-              title={t.petOverlay.openInHermes}
               type="button"
             >
               <Mail style={{ height: 13, width: 13 }} />

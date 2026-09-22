@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { TRANSLATIONS } from '@/i18n'
 import type { HermesConfigRecord } from '@/types/hermes'
 
 import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
 import {
   clearsEnabledToolsets,
-  delegationModelOptions,
-  delegationProviderOptions,
   diffConfig,
   enumOptionsFor,
   getNested,
@@ -35,102 +32,15 @@ describe('settings helpers', () => {
     expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'desktop.repo_scan_exclude_paths')).toBeTruthy()
   })
 
-  it('surfaces the global private-URL opt-out in Safety with localized warning copy', () => {
-    const safety = SECTIONS.find(section => section.id === 'safety')
-    const schema = { 'security.allow_private_urls': { type: 'boolean' as const } }
-    const config: HermesConfigRecord = { security: { allow_private_urls: false } }
+  it('exposes the auxiliary compression timeout in Memory & Context with user-facing copy', () => {
+    // 3-segment schema key: the label lookup must round-trip the nested
+    // auxiliary.compression.timeout path the backend schema flattens.
+    const memory = SECTIONS.find(section => section.id === 'memory')
 
-    expect(safety?.keys).toContain('security.allow_private_urls')
-    expect(new Map(sectionFieldEntries(schema, config).get('safety') ?? []).get('security.allow_private_urls')).toEqual(
-      {
-        type: 'boolean'
-      }
-    )
-    expect(setNested(config, 'security.allow_private_urls', true)).toEqual({
-      security: { allow_private_urls: true }
-    })
-
-    for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
-      expect(
-        fieldCopyForSchemaKey(translations.settings.fieldLabels, 'security.allow_private_urls'),
-        locale
-      ).toBeTruthy()
-      expect(
-        fieldCopyForSchemaKey(translations.settings.fieldDescriptions, 'security.allow_private_urls'),
-        locale
-      ).toBeTruthy()
-    }
-  })
-
-  it('surfaces the shared container persistence switch without replacing terminal config', () => {
-    const advanced = SECTIONS.find(section => section.id === 'advanced')
-
-    const config: HermesConfigRecord = {
-      terminal: {
-        backend: 'singularity',
-        container_persistent: true,
-        singularity_image: 'docker://example/image:latest'
-      }
-    }
-
-    expect(advanced?.keys).toContain('terminal.container_persistent')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'terminal.container_persistent')).toBe('Persistent Container Filesystem')
-    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'terminal.container_persistent')).toBeTruthy()
-
-    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get('terminal.container_persistent')
-
-    const next = setNested(config, 'terminal.container_persistent', false)
-
-    expect(field?.type).toBe('boolean')
-    expect(next).toEqual({
-      terminal: {
-        backend: 'singularity',
-        container_persistent: false,
-        singularity_image: 'docker://example/image:latest'
-      }
-    })
-    expect(getNested(config, 'terminal.container_persistent')).toBe(true)
-  })
-
-  it('surfaces the execution-environment probe toggle in Advanced', () => {
-    const advanced = SECTIONS.find(section => section.id === 'advanced')
-    const config: HermesConfigRecord = { agent: { environment_probe: true } }
-
-    expect(advanced?.keys).toContain('agent.environment_probe')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'agent.environment_probe')).toBe('Execution Environment Probe')
-    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'agent.environment_probe')).toBeTruthy()
-
-    const field = new Map(sectionFieldEntries({}, config).get('advanced') ?? []).get('agent.environment_probe')
-
-    expect(field?.type).toBe('boolean')
-    expect(setNested(config, 'agent.environment_probe', false)).toEqual({
-      agent: { environment_probe: false }
-    })
-  })
-
-  it('surfaces independent bounded paid-retry budgets beside API retries in Advanced', () => {
-    const advanced = SECTIONS.find(section => section.id === 'advanced')
-    const apiRetryIndex = advanced?.keys.indexOf('agent.api_max_retries') ?? -1
-
-    const retryKeys = [
-      'agent.output_truncation_retries',
-      'agent.post_tool_empty_retries',
-      'agent.thinking_prefill_retries',
-      'agent.empty_response_retries'
-    ]
-
-    expect(advanced?.keys.slice(apiRetryIndex + 1, apiRetryIndex + 5)).toEqual(retryKeys)
-
-    for (const key of retryKeys) {
-      expect(enumOptionsFor(key, 0, {})).toEqual(['0', '1', '2', '3'])
-    }
-
-    for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
-      for (const key of retryKeys) {
-        expect(fieldCopyForSchemaKey(translations.settings.fieldLabels, key), `${locale}:${key}`).toBeTruthy()
-        expect(fieldCopyForSchemaKey(translations.settings.fieldDescriptions, key), `${locale}:${key}`).toBeTruthy()
-      }
-    }
+    expect(memory?.keys).toContain('auxiliary.compression.timeout')
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'auxiliary.compression.timeout')).toBe('Compression model timeout (s)')
+    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'auxiliary.compression.timeout')).toContain('default 120')
+    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'model_context_length')).toMatch(/main model/i)
   })
 
   it('does not shadow the backend schema options for memory.provider', () => {
@@ -208,22 +118,6 @@ describe('settings helpers', () => {
       expect(fieldCopyForSchemaKey(copy, 'display.show_reasoning')).toBe('Reasoning Blocks')
       expect(fieldCopyForSchemaKey(copy, 'tool_output.max_line_length')).toBe('Line Length Limit')
       expect(fieldCopyForSchemaKey(copy, 'file_read_max_chars')).toBe('Legacy File Read Limit')
-    })
-
-    it('localizes the client-direct voice label in every supported locale', () => {
-      const english = fieldCopyForSchemaKey(TRANSLATIONS.en.settings.fieldLabels, 'voice.client_direct')
-
-      expect(english).toBeTruthy()
-
-      for (const [locale, translations] of Object.entries(TRANSLATIONS)) {
-        const label = fieldCopyForSchemaKey(translations.settings.fieldLabels, 'voice.client_direct')
-
-        expect(label, locale).toBeTruthy()
-
-        if (locale !== 'en') {
-          expect(label, locale).not.toBe(english)
-        }
-      }
     })
 
     it('rejects duplicate flattened paths', () => {
@@ -445,75 +339,6 @@ describe('settings helpers', () => {
       expect(opts).not.toContain('local_command')
       expect(opts).not.toContain('deepinfra')
       expect(opts).toContain('myasr')
-    })
-  })
-
-  describe('delegation custom-endpoint suggestions', () => {
-    const endpoints: HermesConfigRecord = {
-      providers: {
-        'my-relay': {
-          name: 'My Relay',
-          base_url: 'https://relay.example/v1',
-          model: 'default-model',
-          models: ['default-model', 'alt-model', 'third-model']
-        },
-        'map-shaped': {
-          base_url: 'https://map.example/v1',
-          // Discovered catalogs are also stored as {model: meta} maps.
-          models: { 'map-a': {}, 'map-b': {} }
-        },
-        disabled: { base_url: 'https://off.example/v1', enabled: false, models: ['x'] },
-        'not-an-endpoint': { some_other_key: true },
-        broken: 'not a dict'
-      }
-    }
-
-    const withSwitch = (config: HermesConfigRecord, on: boolean): HermesConfigRecord => ({
-      ...config,
-      delegation: { use_custom_endpoints: on, provider: getNested(config, 'delegation.provider') ?? '' }
-    })
-
-    const withProvider = (config: HermesConfigRecord, provider: string): HermesConfigRecord => ({
-      ...config,
-      delegation: { use_custom_endpoints: true, provider }
-    })
-
-    it('suggests nothing while the opt-in switch is off', () => {
-      expect(delegationProviderOptions(endpoints)).toBeUndefined()
-      expect(delegationProviderOptions(withSwitch(endpoints, false))).toBeUndefined()
-      expect(delegationModelOptions(endpoints)).toBeUndefined()
-    })
-
-    it('suggests endpoint ids when the switch is on, skipping disabled and non-endpoint entries', () => {
-      const opts = delegationProviderOptions(withSwitch(endpoints, true))
-
-      expect(opts).toEqual(['my-relay', 'map-shaped'])
-    })
-
-    it('returns undefined instead of an empty provider list', () => {
-      expect(delegationProviderOptions(withSwitch({ providers: {} }, true))).toBeUndefined()
-      expect(delegationProviderOptions(withSwitch({}, true))).toBeUndefined()
-    })
-
-    it('suggests the selected endpoint model catalog, default model first', () => {
-      const opts = delegationModelOptions(withProvider(endpoints, 'my-relay'))
-
-      expect(opts).toEqual(['default-model', 'alt-model', 'third-model'])
-    })
-
-    it('reads map-shaped discovered catalogs', () => {
-      expect(delegationModelOptions(withProvider(endpoints, 'map-shaped'))).toEqual(['map-a', 'map-b'])
-    })
-
-    it('matches the endpoint by display name and custom: spelling, like the runtime resolver', () => {
-      expect(delegationModelOptions(withProvider(endpoints, 'My Relay'))).toContain('default-model')
-      expect(delegationModelOptions(withProvider(endpoints, 'custom:my-relay'))).toContain('default-model')
-    })
-
-    it('suggests nothing for built-in provider names or an empty provider', () => {
-      expect(delegationModelOptions(withProvider(endpoints, 'openrouter'))).toBeUndefined()
-      expect(delegationModelOptions(withProvider(endpoints, ''))).toBeUndefined()
-      expect(delegationModelOptions(withProvider(endpoints, 'disabled'))).toBeUndefined()
     })
   })
 

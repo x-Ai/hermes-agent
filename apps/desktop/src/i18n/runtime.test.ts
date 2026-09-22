@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
 
 import { TRANSLATIONS } from './catalog'
-import { setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
+import { setRuntimeI18nLocale, translateNow } from './runtime'
 import { zh } from './zh'
 
 describe('desktop i18n runtime translator', () => {
@@ -18,19 +18,14 @@ describe('desktop i18n runtime translator', () => {
   it('translates string paths for the active runtime locale', () => {
     setRuntimeI18nLocale('zh')
 
-    expect(translateNow('boot.ready')).toBe(zh.boot.ready)
-    expect(translateNow('notifications.voice.noSpeechDetected')).toBe(zh.notifications.voice.noSpeechDetected)
-    expect(translateNow('composer.lookupNoMatches')).toBe(zh.composer.lookupNoMatches)
-    expect(translateNow('assistant.tool.statusRecovered')).toBe(zh.assistant.tool.statusRecovered)
+    expect(translateNow('boot.ready')).toBe('Hermes 桌面版已就绪')
+    expect(translateNow('notifications.voice.noSpeechDetected')).toBe('没有检测到语音')
+    expect(translateNow('composer.lookupNoMatches')).toBe('没有匹配项。')
+    expect(translateNow('assistant.tool.statusRecovered')).toBe('已恢复')
   })
 
   it('passes arguments to function translations', () => {
     expect(translateNow('notifications.updateReadyMessage', 2)).toBe('2 new changes available.')
-  })
-
-  it('translates an explicit locale independently of the runtime locale', () => {
-    expect(translateForLocale('zh', 'paletteCommands.resetLayout')).toBe('重置布局')
-    expect(translateNow('paletteCommands.resetLayout')).toBe('Reset layout')
   })
 
   it('translates migrated overlap keys for newly supported locales', () => {
@@ -57,19 +52,18 @@ describe('desktop i18n runtime translator', () => {
     )
   })
 
-  it('localizes the contributed layout-edit shortcut in the keybinds panel', () => {
-    expect(TRANSLATIONS.en.keybinds.actions['layout.editMode']).toBe('Toggle layout edit mode')
-    expect(TRANSLATIONS.zh.keybinds.actions['layout.editMode']).toBe('切换布局编辑模式')
-    expect(TRANSLATIONS['zh-hant'].keybinds.actions['layout.editMode']).toBe('切換版面編輯模式')
-    expect(TRANSLATIONS.ja.keybinds.actions['layout.editMode']).toBe('レイアウト編集モードを切り替え')
-    expect(TRANSLATIONS.ar.keybinds.actions['layout.editMode']).toBe('تبديل وضع تحرير التخطيط')
+  it('translates Russian model and Bot Mode labels', () => {
+    setRuntimeI18nLocale('ru')
+
+    expect(translateNow('settings.model.moaTitle')).toBe('Смесь агентов')
+    expect(translateNow('common.bots')).toBe('Боты')
   })
 
   it('keeps translated settings field copy addressable from schema keys', () => {
     const field = ['display', 'show_reasoning'].join('.')
 
     expect(fieldCopyForSchemaKey(zh.settings.fieldLabels, field)).toBe('推理过程块')
-    expect(fieldCopyForSchemaKey(zh.settings.fieldDescriptions, field)).toBe('当后端提供推理内容时予以显示')
+    expect(fieldCopyForSchemaKey(zh.settings.fieldDescriptions, field)).toBe('当后端提供推理内容时予以显示。')
   })
 
   it('falls back to English when the active locale cannot resolve a key', () => {

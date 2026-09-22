@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { setRuntimeI18nLocale } from '@/i18n'
 import { $notifications, clearNotifications } from '@/store/notifications'
 
 vi.mock('@/lib/media', () => ({
@@ -10,7 +9,7 @@ vi.mock('@/lib/media', () => ({
 const media = await import('@/lib/media')
 const downloadGatewayMediaFile = vi.mocked(media.downloadGatewayMediaFile)
 
-const { downloadRemoteFile, shouldOfferRemoteFileDownload } = await import('./file-actions')
+const { downloadRemoteFile, shouldOfferLocalReveal, shouldOfferRemoteFileDownload } = await import('./file-actions')
 
 describe('shouldOfferRemoteFileDownload', () => {
   it('is only for files on a remote backend', () => {
@@ -21,11 +20,24 @@ describe('shouldOfferRemoteFileDownload', () => {
   })
 })
 
+describe('shouldOfferLocalReveal', () => {
+  // The OS file manager can only show what is on this computer (#115167): the
+  // focused row's backend decides; the primary's mode only when it is untagged.
+  it.each([
+    ['', false, true],
+    ['', true, false],
+    ['local', true, true],
+    ['mini', false, false],
+    [undefined, true, false]
+  ])('connection %s with primaryRemote=%s -> %s', (connectionId, primaryRemote, expected) => {
+    expect(shouldOfferLocalReveal(connectionId, primaryRemote)).toBe(expected)
+  })
+})
+
 describe('downloadRemoteFile', () => {
   beforeEach(() => {
     clearNotifications()
     downloadGatewayMediaFile.mockReset()
-    setRuntimeI18nLocale('en')
   })
 
   afterEach(() => {
@@ -56,18 +68,5 @@ describe('downloadRemoteFile', () => {
 
     expect($notifications.get()[0]?.kind).toBe('error')
     expect($notifications.get()[0]?.title).toBe('Download failed')
-  })
-
-  it('localizes a missing remote file without repeating the backend error', async () => {
-    setRuntimeI18nLocale('zh')
-    downloadGatewayMediaFile.mockRejectedValue(new Error('File not found'))
-
-    await downloadRemoteFile('/home/linux/project/missing.md')
-
-    expect($notifications.get()[0]).toMatchObject({
-      title: '下载失败',
-      message: '找不到文件'
-    })
-    expect($notifications.get()[0]?.detail).toBeUndefined()
   })
 })

@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { Field } from '@/components/ui/field'
 import { en } from '@/i18n/en'
-import { zh } from '@/i18n/zh'
 
 import { DeliverCheckboxes } from './index'
 
@@ -28,34 +27,5 @@ describe('DeliverCheckboxes accessible name', () => {
     )
 
     expect(screen.getByRole('group', { name: en.cron.deliverLabel })).toBeTruthy()
-  })
-
-  it('localizes Bot Chat targets and the default profile', () => {
-    render(
-      <DeliverCheckboxes
-        c={zh.cron}
-        id="cron-deliver"
-        onChange={() => {}}
-        targets={[
-          {
-            home_env_var: null,
-            home_target_set: true,
-            id: 'bot-chat:default',
-            name: 'Bot Chat (default)'
-          },
-          {
-            home_env_var: null,
-            home_target_set: true,
-            id: 'bot-chat:research',
-            name: 'Bot Chat (research)'
-          }
-        ]}
-        value="bot-chat:default"
-      />
-    )
-
-    expect(screen.getByText('Bot 聊天 (默认)')).toBeTruthy()
-    expect(screen.getByText('Bot 聊天 (research)')).toBeTruthy()
-    expect(screen.queryByText('Bot Chat (default)')).toBeNull()
   })
 })

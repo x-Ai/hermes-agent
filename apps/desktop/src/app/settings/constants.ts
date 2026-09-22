@@ -1,3 +1,5 @@
+import { REASONING_EFFORTS } from '@hermes/shared'
+
 import {
   Box,
   Brain,
@@ -12,7 +14,6 @@ import {
   Sun,
   Wrench
 } from '@/lib/icons'
-import { REASONING_EFFORTS } from '@/lib/reasoning-effort'
 import type { ThemeMode } from '@/themes/context'
 
 // Single source of truth for built-in personality names lives in
@@ -231,11 +232,6 @@ export const PROVIDER_GROUPS: ProviderPrefix[] = [
 // Schema-side select overrides for desktop-relevant enum fields whose
 // backend schema only declares a string type.
 export const ENUM_OPTIONS: Record<string, string[]> = {
-  // Paid replay budgets. Closed lists keep Desktop aligned with the runtime's 0..3 clamps.
-  'agent.output_truncation_retries': ['0', '1', '2', '3'],
-  'agent.post_tool_empty_retries': ['0', '1', '2', '3'],
-  'agent.thinking_prefill_retries': ['0', '1', '2', '3'],
-  'agent.empty_response_retries': ['0', '1', '2', '3'],
   'agent.image_input_mode': ['auto', 'native', 'text'],
   'approvals.mode': ['manual', 'smart', 'off'],
   'code_execution.mode': ['project', 'strict'],
@@ -366,7 +362,15 @@ export const ENUM_OPTIONS: Record<string, string[]> = {
   'stt.openai.model': ['whisper-1', 'gpt-4o-mini-transcribe', 'gpt-4o-transcribe', 'gpt-transcribe'],
   'stt.mistral.model': ['voxtral-mini-latest', 'voxtral-mini-2602'],
   'tts.openai.model': ['gpt-4o-mini-tts', 'tts-1', 'tts-1-hd'],
-  'tts.elevenlabs.model_id': ['eleven_multilingual_v2', 'eleven_turbo_v2_5', 'eleven_flash_v2_5'],
+  'tts.elevenlabs.model_id': [
+    'eleven_v3',
+    'eleven_ttv_v3',
+    'eleven_multilingual_v2',
+    'eleven_turbo_v2',
+    'eleven_turbo_v2_5',
+    'eleven_flash_v2',
+    'eleven_flash_v2_5'
+  ],
   // NeuTTS local inference device.
   'tts.neutts.device': ['cpu', 'cuda', 'mps'],
   'updates.non_interactive_local_changes': ['stash', 'discard']
@@ -378,17 +382,13 @@ export const ENUM_OPTIONS: Record<string, string[]> = {
 // names faster than this list updates. The ENUM_OPTIONS above become
 // suggestions rather than a gate for these keys.
 export const FREE_INPUT_KEYS = new Set([
-  // Subagent routing is open-world (any built-in provider name or model id is
-  // typeable); the datalist carries custom-endpoint suggestions when
-  // delegation.use_custom_endpoints is on. See delegationProviderOptions /
-  // delegationModelOptions in helpers.ts.
-  'delegation.model',
-  'delegation.provider',
   'tts.edge.voice',
   'voice.gpt_live.voice',
   'tts.openai.model',
   'tts.openai.voice',
   'tts.elevenlabs.voice_id',
+  'tts.elevenlabs.model_id',
+  'stt.openai.model',
   'tts.gemini.model',
   'tts.gemini.voice',
   'tts.xai.voice_id',
@@ -406,7 +406,7 @@ export const FREE_INPUT_KEYS = new Set([
 
 export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   model: 'Default Model',
-  modelContextLength: 'Context Window',
+  modelContextLength: 'Main model context window (override)',
   fallbackProviders: 'Fallback Models',
   toolsets: 'Enabled Toolsets',
   timezone: 'Timezone',
@@ -423,13 +423,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     maxTurns: 'Max Agent Steps',
     imageInputMode: 'Image Attachments',
     apiMaxRetries: 'API Retries',
-    outputTruncationRetries: 'Output-Limit Retries',
-    postToolEmptyRetries: 'Post-Tool Empty Retries',
-    thinkingPrefillRetries: 'Thinking Prefill Retries',
-    emptyResponseRetries: 'Empty Response Retries',
     serviceTier: 'Service Tier',
-    toolUseEnforcement: 'Tool-Use Enforcement',
-    environmentProbe: 'Execution Environment Probe'
+    toolUseEnforcement: 'Tool-Use Enforcement'
   },
   terminal: {
     cwd: 'Working Directory',
@@ -437,15 +432,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     timeout: 'Command Timeout',
     persistentShell: 'Persistent Shell',
     envPassthrough: 'Environment Passthrough',
-    containerPersistent: 'Persistent Container Filesystem',
     dockerImage: 'Docker Image',
-    dockerMountCwdToWorkspace: 'Mount Project Into Docker',
-    dockerWorkspacePerSession: 'Follow Each Session’s Project',
-    dockerWorkspaceMountPath: 'Docker Mount Path',
     singularityImage: 'Singularity Image',
-    singularityMountCwdToWorkspace: 'Mount Project Into Singularity',
-    singularityWorkspacePerSession: 'Follow Each Session’s Project (Singularity)',
-    singularityWorkspaceMountPath: 'Singularity Mount Path',
     modalImage: 'Modal Image',
     daytonaImage: 'Daytona Image'
   },
@@ -480,7 +468,6 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   voice: {
     recordKey: 'Voice Shortcut',
     maxRecordingSeconds: 'Max Recording Length',
-    clientDirect: 'Direct Voice Connection',
     autoTts: 'Read Responses Aloud',
     voiceChatMode: 'Voice Chat Mode',
     gptLive: {
@@ -575,13 +562,18 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   compression: {
     enabled: 'Auto-Compression',
     threshold: 'Compression Threshold',
+    codexGpt55Autoraise: 'Codex Compression Auto-Raise',
     targetRatio: 'Compression Target',
     protectLastN: 'Protected Recent Messages'
+  },
+  auxiliary: {
+    compression: {
+      timeout: 'Compression model timeout (s)'
+    }
   },
   delegation: {
     model: 'Subagent Model',
     provider: 'Subagent Provider',
-    useCustomEndpoints: 'Suggest Custom Endpoints for Subagents',
     maxIterations: 'Subagent Turn Limit',
     maxConcurrentChildren: 'Parallel Subagents',
     childTimeoutSeconds: 'Subagent Timeout',
@@ -594,7 +586,8 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
 
 export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   model: 'Used for new chats unless you pick a different model in the composer.',
-  modelContextLength: "Leave at 0 to use the selected model's detected context window.",
+  modelContextLength:
+    "Overrides the detected context window of the MAIN chat model only (tokens). Leave at 0 to use the selected model's detected value. Does not affect auxiliary/MoA models.",
   fallbackProviders: 'Backup provider:model entries to try if the default model fails.',
   display: {
     personality: 'Default assistant style for new sessions.',
@@ -612,51 +605,19 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   },
   agent: {
     imageInputMode: 'Controls how image attachments are sent to the model.',
-    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
-    outputTruncationRetries:
-      'Retry only when the provider reports an output-token limit before producing visible text. A retry temporarily disables reasoning and may raise an implicit transport output cap. The full input may be billed again; default 1, maximum 3.',
-    postToolEmptyRetries:
-      'Send a continuation nudge when the model returns no visible text after tool calls. Each retry may be billed again. Set 0 to disable; maximum 3.',
-    thinkingPrefillRetries:
-      'Prefill a reasoning-only response so the model can continue into visible text. Each retry may be billed again. Set 0 to disable; maximum 3.',
-    emptyResponseRetries:
-      'Retry after the earlier recovery layers still produce no visible text. Each retry may be billed again; the cost guard can stop earlier. Set 0 to disable; maximum 3.',
-    environmentProbe:
-      'Probe execution-environment details for new sessions. Container backends use a temporary sandbox that is automatically removed after probing; off uses a static description.'
+    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.'
   },
   terminal: {
     cwd: 'Default project folder for tool and terminal work.',
     persistentShell: 'Keep shell state between commands when the backend supports it.',
     envPassthrough: 'Environment variables to pass into tool execution.',
-    containerPersistent:
-      'Keep container filesystem state across Hermes sessions. Changes apply after the backend restarts and do not destroy the current container or instance.',
     dockerImage: 'Container image used when the execution backend is Docker.',
-    dockerMountCwdToWorkspace:
-      'Bind-mount the project folder into the Docker sandbox at /workspace. Off keeps the sandbox fully isolated.',
-    dockerWorkspacePerSession:
-      'Use the folder each session picked instead of only the launch folder. Every project gets its own container.',
-    dockerWorkspaceMountPath:
-      'Full in-container path where the project is mounted. Default /workspace. Changes apply to the next container.',
     singularityImage: 'Image used when the execution backend is Singularity.',
-    singularityMountCwdToWorkspace:
-      'Bind-mount the project folder into the Singularity sandbox at /workspace. Off keeps the sandbox fully isolated.',
-    singularityWorkspacePerSession:
-      'Use the folder each session picked instead of only the launch folder. Every project gets its own instance.',
-    singularityWorkspaceMountPath:
-      'Full in-container path where the project is bound. Default /workspace. Changes apply to the next instance.',
-    modalImage:
-      'Image used when the execution backend is Modal. Runs in the cloud: project folders are synced as copies, not mounted.',
-    daytonaImage:
-      'Image used when the execution backend is Daytona. Runs in the cloud: project folders are synced as copies, not mounted.'
+    modalImage: 'Image used when the execution backend is Modal.',
+    daytonaImage: 'Image used when the execution backend is Daytona.'
   },
   codeExecution: {
     mode: 'How strictly code execution is scoped to the current project.'
-  },
-  delegation: {
-    model: 'Model for delegated subagents. Empty inherits the parent model.',
-    provider: 'Provider for delegated subagents — a built-in name or a custom endpoint id. Empty inherits the parent.',
-    useCustomEndpoints:
-      'Offer your custom endpoints in the subagent provider list, and their discovered models in the model list.'
   },
   fileReadMaxChars: 'Maximum characters Hermes can read from one file request.',
   approvals: {
@@ -664,9 +625,7 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     timeout: 'How long approval prompts wait before timing out.'
   },
   security: {
-    redactSecrets: 'Hide detected secrets from model-visible content when possible.',
-    allowPrivateUrls:
-      'Allow URL-fetching tools to access localhost and private-network addresses. Cloud metadata endpoints remain blocked.'
+    redactSecrets: 'Hide detected secrets from model-visible content when possible.'
   },
   checkpoints: {
     enabled: 'Create rollback snapshots before file edits.'
@@ -679,7 +638,14 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     engine: 'Strategy for managing long conversations near the context limit.'
   },
   compression: {
-    enabled: 'Summarize older context when conversations get large.'
+    enabled: 'Summarize older context when conversations get large.',
+    codexGpt55Autoraise: 'Raise compression to 85% for supported ChatGPT Codex OAuth models.'
+  },
+  auxiliary: {
+    compression: {
+      timeout:
+        'Seconds to wait for the auxiliary compression model per call (default 120). Raise for slow local models.'
+    }
   },
   voice: {
     autoTts: 'Automatically speak assistant responses.',
@@ -786,8 +752,10 @@ export const SECTIONS: DesktopConfigSection[] = [
       'context.engine',
       'compression.enabled',
       'compression.threshold',
+      'compression.codex_gpt55_autoraise',
       'compression.target_ratio',
-      'compression.protect_last_n'
+      'compression.protect_last_n',
+      'auxiliary.compression.timeout'
     ]
   },
   {
@@ -850,18 +818,8 @@ export const SECTIONS: DesktopConfigSection[] = [
       'toolsets',
       'terminal.backend',
       'terminal.timeout',
-      'terminal.container_persistent',
       'terminal.docker_image',
-      // Paired on purpose: per_session does nothing unless mount_cwd is on, so
-      // showing one without the other reads as a broken toggle.
-      'terminal.docker_mount_cwd_to_workspace',
-      'terminal.docker_workspace_per_session',
-      'terminal.docker_workspace_mount_path',
       'terminal.singularity_image',
-      // Same pairing rule as the Docker trio above.
-      'terminal.singularity_mount_cwd_to_workspace',
-      'terminal.singularity_workspace_per_session',
-      'terminal.singularity_workspace_mount_path',
       'terminal.modal_image',
       'terminal.daytona_image',
       'tool_output.max_bytes',
@@ -870,17 +828,8 @@ export const SECTIONS: DesktopConfigSection[] = [
       'checkpoints.max_snapshots',
       'agent.max_turns',
       'agent.api_max_retries',
-      'agent.output_truncation_retries',
-      'agent.post_tool_empty_retries',
-      'agent.thinking_prefill_retries',
-      'agent.empty_response_retries',
       'agent.service_tier',
       'agent.tool_use_enforcement',
-      'agent.environment_probe',
-      // The switch precedes the two fields it feeds: with it on, provider
-      // suggests the configured custom endpoints and model suggests the
-      // selected endpoint's discovered catalog.
-      'delegation.use_custom_endpoints',
       'delegation.model',
       'delegation.provider',
       'delegation.max_iterations',

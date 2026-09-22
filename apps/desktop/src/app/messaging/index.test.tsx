@@ -3,7 +3,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
 import type { MessagingPlatformInfo } from '@/types/hermes'
 
 const getMessagingPlatforms = vi.fn()
@@ -96,70 +95,28 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-async function renderMessaging(locale?: 'zh') {
-  const { MessagingView } = await import('./index')
+// Import at module scope (after the hoisted vi.mock calls) so the heavy
+// component-tree transform is paid during collection, not billed against the
+// first test's testTimeout — inside a test body it exceeded the budget on
+// loaded CI runners and cascaded the whole file (main runs 34599517793,
+// 34600757569, 34601269252). Same pattern as chat/index.test.tsx.
+const { MessagingView } = await import('./index')
+
+async function renderMessaging() {
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
-      <I18nProvider configClient={null} initialLocale={locale}>
-        <MemoryRouter>
-          <MessagingView />
-        </MemoryRouter>
-      </I18nProvider>
+      <MemoryRouter>
+        <MessagingView />
+      </MemoryRouter>
     )
   })
 
   return result!
 }
 
-describe('MessagingView', () => {
-  it('normalizes adapter casing before looking up the localized state', async () => {
-    getMessagingPlatforms.mockResolvedValue({
-      platforms: [platform({ enabled: true, id: 'webhook', name: 'Webhook', state: 'Connected' })]
-    })
-
-    await renderMessaging('zh')
-
-    expect(await screen.findByText('已连接')).toBeTruthy()
-    expect(screen.queryByText('Connected')).toBeNull()
-  })
-
-  it('localizes plugin descriptions, credential guidance, and field placeholders', async () => {
-    const englishDescription = "Use Hermes through iMessage via Photon's managed Spectrum platform."
-    const localizedDescription = '通过 Photon 托管的 Spectrum 平台在 iMessage 中使用 Hermes'
-    getMessagingPlatforms.mockResolvedValue({
-      platforms: [
-        platform({
-          description: englishDescription,
-          env_vars: [
-            {
-              advanced: false,
-              description: 'Mark inbound iMessages read after forwarding to Hermes (true/false, default true)',
-              is_password: false,
-              is_set: false,
-              key: 'PHOTON_READ_RECEIPTS',
-              prompt: 'Send read receipts? (true/false)',
-              redacted_value: null,
-              required: true,
-              url: null
-            }
-          ],
-          id: 'photon',
-          name: 'iMessage via Photon'
-        })
-      ]
-    })
-
-    await renderMessaging('zh')
-
-    expect((await screen.findAllByText(localizedDescription)).length).toBeGreaterThanOrEqual(2)
-    expect(screen.queryByText(englishDescription)).toBeNull()
-    expect(screen.getAllByText('发送已读回执？（true/false）').length).toBeGreaterThan(0)
-    expect(screen.getAllByPlaceholderText('发送已读回执？（true/false）').length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/转发给 Hermes 后，将收到的 iMessage 标记为已读/u).length).toBeGreaterThan(0)
-  })
-
-  it('follows the active profile instead of targeting primary when there is no override', async () => {
+describe('MessagingView profile scope', () => {
+  it('names the active profile explicitly instead of sending an unscoped request', async () => {
     const { $settingsScopeOverride } = await import('@/store/settings-scope')
 
     $settingsScopeOverride.set(null)
@@ -167,8 +124,11 @@ describe('MessagingView', () => {
 
     await renderMessaging()
 
-    await waitFor(() => expect(getMessagingPlatforms).toHaveBeenCalledWith(undefined))
-    expect(getPairing).toHaveBeenCalledWith(undefined)
+    // #118432: the backend resolves an omitted profile against the home it was
+    // LAUNCHED under, so "follow the active profile" has to be said out loud
+    // rather than left to the ambient fallback.
+    await waitFor(() => expect(getMessagingPlatforms).toHaveBeenCalledWith('default'))
+    expect(getPairing).toHaveBeenCalledWith('default')
   })
 })
 
@@ -225,7 +185,7 @@ describe('MessagingView pairing', () => {
       fireEvent.click(approve)
     })
 
-    await waitFor(() => expect(approvePairing).toHaveBeenCalledWith('teams', 'a1b2c3d4e5f60718', undefined))
+    await waitFor(() => expect(approvePairing).toHaveBeenCalledWith('teams', 'a1b2c3d4e5f60718', 'default'))
   })
 
   it('restores the pending row when approval fails', async () => {

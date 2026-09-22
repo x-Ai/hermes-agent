@@ -5,7 +5,7 @@ import { useEffect, useMemo } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
 import { CodeCardIcon } from '@/components/chat/code-card'
-import { SCAFFOLD_GLYPH_CLASS, SCAFFOLD_LABEL_CLASS, SCAFFOLD_META_CLASS } from '@/components/chat/scaffold-row'
+import { WIDGET_SHELL_CLASS } from '@/components/chat/widget-shell'
 import { useI18n } from '@/i18n'
 import type { ArtifactDetection } from '@/lib/artifact-detect'
 import { codiconForLanguage } from '@/lib/markdown-code'
@@ -30,9 +30,9 @@ function detectionIcon(detection: ArtifactDetection): string {
 
 /**
  * Transcript stand-in for a fenced block that was promoted to an artifact.
- * Replaces the wall of code with a compact, openable file-like row: icon,
- * title, version, and source line count. While the fence is still streaming
- * it shows a shimmer instead of the growing source.
+ * Replaces the wall of code with a compact, openable card: icon, title, kind,
+ * version badge. While the fence is still streaming
+ * it shows a shimmer + line count instead of the growing source.
  *
  * Registration is automatic on completion (so version history accumulates
  * even if the user never opens the card) but opening the rail is strictly
@@ -72,7 +72,6 @@ export function ArtifactCard({ code, detection, streaming = false }: ArtifactCar
   const lineCount = useMemo(() => trimmed.split('\n').length, [trimmed])
   const kindLabel = copy.kind[detection.kind]
   const versionCount = record?.versions.length ?? 0
-  const versionIndex = record?.versions.findIndex(version => version.content === trimmed) ?? -1
   const title = (record?.title || detection.title || kindLabel).trim() || kindLabel
 
   const open = () => {
@@ -97,59 +96,40 @@ export function ArtifactCard({ code, detection, streaming = false }: ArtifactCar
 
   return (
     <button
-      aria-label={`${copy.open}: ${title}`}
       className={cn(
-        'group/artifact flex h-(--conversation-line-height) w-fit max-w-full items-center gap-1.5 overflow-hidden rounded-sm text-left transition-colors duration-150',
-        streaming
-          ? 'cursor-default'
-          : 'cursor-pointer hover:text-foreground focus-visible:text-foreground focus-visible:outline-none'
+        WIDGET_SHELL_CLASS,
+        'group/artifact my-1.5 flex w-full max-w-md items-center gap-2.5 overflow-hidden text-left',
+        streaming ? 'cursor-default' : 'cursor-pointer'
       )}
-      data-conversation-scaffold=""
       data-slot="aui_artifact-card"
       disabled={streaming}
       onClick={open}
       type="button"
     >
-      <span
-        className={cn(
-          SCAFFOLD_GLYPH_CLASS,
-          'text-muted-foreground/60 transition-colors group-hover/artifact:text-muted-foreground'
-        )}
-        data-slot="aui_artifact-card-glyph"
-      >
-        <CodeCardIcon className="text-inherit" name={detectionIcon(detection)} />
+      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted/55 text-muted-foreground">
+        <CodeCardIcon className="text-[1rem]" name={detectionIcon(detection)} />
       </span>
-      <span
-        className={cn(
-          SCAFFOLD_LABEL_CLASS,
-          'min-w-0 truncate font-normal transition-colors group-hover/artifact:text-foreground',
-          streaming && 'shimmer'
-        )}
-        data-slot="aui_artifact-card-title"
-      >
-        {title}
-      </span>
-      {streaming ? (
-        <span className={cn(SCAFFOLD_META_CLASS, 'font-mono')} data-slot="aui_artifact-card-meta">
-          {copy.generating(lineCount)}
-        </span>
-      ) : (
-        <>
-          {versionCount > 1 && versionIndex >= 0 && (
-            <span className={cn(SCAFFOLD_META_CLASS, 'font-mono')} data-slot="aui_artifact-card-version">
-              {copy.versionBadge(versionIndex + 1, versionCount)}
-            </span>
+      <span className="min-w-0 flex-1">
+        <span
+          className={cn(
+            'block truncate text-[length:var(--conversation-text-font-size)] font-medium text-foreground',
+            streaming && 'shimmer text-foreground/55'
           )}
-          <span
-            className={cn(
-              SCAFFOLD_LABEL_CLASS,
-              'shrink-0 font-mono tabular-nums text-emerald-600 dark:text-emerald-400'
-            )}
-            data-slot="aui_artifact-card-lines"
-          >
-            +{lineCount}
-          </span>
-        </>
+        >
+          {title}
+        </span>
+        <span className="block truncate text-[length:var(--conversation-tool-font-size)] text-muted-foreground">
+          {streaming
+            ? copy.generating(lineCount)
+            : versionCount > 1
+              ? `${kindLabel} · ${copy.versionBadge(versionCount)}`
+              : kindLabel}
+        </span>
+      </span>
+      {!streaming && (
+        <span className="shrink-0 text-[length:var(--conversation-tool-font-size)] font-medium text-muted-foreground opacity-0 transition-opacity group-hover/artifact:opacity-100">
+          {copy.open}
+        </span>
       )}
     </button>
   )

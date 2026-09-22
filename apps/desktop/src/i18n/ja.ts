@@ -3,36 +3,6 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale } from './define-locale'
 
 export const ja = defineLocale({
-  connectors: {
-    title: 'アプリを接続',
-    connect: '接続',
-    skip: '今はしない',
-    cancel: '待機をやめる',
-    retry: '再試行',
-    grant: '再接続',
-    connected: '接続済み',
-    skipped: 'スキップ済み',
-    disabled: '利用不可',
-    failed: '接続できませんでした',
-    needsAuth: 'アクセスの有効期限切れ',
-    opening: 'ログインを開いています…',
-    waiting: 'ブラウザーで接続を完了してください…',
-    timeout: '認証を待っています。',
-    keepWaiting: '待機を続ける',
-    refresh: '状態を更新',
-    statusError: '接続状態を確認できませんでした。更新してください。',
-    connectError: '認証を開始できませんでした。再試行してください。',
-    unavailable: 'このセッションではコネクターを利用できません。',
-    ownerMissing: '接続を管理するには、この会話を開き直してください。',
-    search: 'アプリを検索',
-    empty: '一致するアプリはありません',
-    continue: 'チャットで続ける',
-    continueBusy: 'このターンの完了を待っています',
-    continueFailed: '続行できませんでした。再試行してください。',
-    missingResult: 'コネクターの結果がありません',
-    disclaimer: '接続は任意です。Hermes に使わせたいアプリだけを認証してください。',
-    execution: 'コネクターツール'
-  },
   sessionImport: {
     title: '別のアプリから続ける',
     subtitle: '会話をHermesに取り込み、続きを始めましょう。',
@@ -81,49 +51,32 @@ export const ja = defineLocale({
     connect: '接続',
     connecting: '接続中',
     continue: '続ける',
+    bots: 'ボット',
     copied: 'コピーしました',
     copy: 'コピー',
     copyFailed: 'コピーに失敗しました',
-    defaultName: 'デフォルト',
     delete: '削除',
     docs: 'ドキュメント',
     done: '完了',
     error: 'エラー',
     expand: '展開',
     failed: '失敗',
-    failedToRender: name => `「${name}」の表示に失敗しました`,
     formatJson: 'JSON を整形',
     free: '無料',
     loading: '読み込み中…',
-    loadingStatus: '読み込み中',
-    moreActions: 'その他の操作',
     notSet: '未設定',
-    openFullView: '全体表示を開く',
     refresh: '更新',
     remove: '削除',
     replace: '置き換え',
     retry: '再試行',
-    reset: 'リセット',
     run: '実行',
-    search: '検索',
     send: '送信',
     set: '設定',
-    showOptions: '選択肢を表示',
     skip: 'スキップ',
     update: '更新',
-    zoomIn: '拡大',
-    zoomOut: '縮小',
     tryHint: term => `「${term}」を試す`,
     on: 'オン',
     off: 'オフ'
-  },
-
-  media: {
-    displayLabel: (kind, name) => {
-      const labels = { audio: '音声', file: 'ファイル', image: '画像', video: '動画' }
-
-      return `${labels[kind]}：${name}`
-    }
   },
 
   fileMenu: {
@@ -142,12 +95,12 @@ export const ja = defineLocale({
     renameLabel: '新しい名前',
     deleteTitle: name => `${name} を削除しますか？`,
     deleteBody: 'ゴミ箱に移動します。そこから復元できます。',
-    pathCopied: 'パスをコピーしました'
+    pathCopied: 'パスをコピーしました',
+    revealMissing: 'そのフォルダーはこのコンピューターにありません'
   },
 
   boot: {
     ready: 'Hermes Desktop の準備ができました',
-    connecting: '接続中',
     desktopBootFailedWithMessage: message => `デスクトップの起動に失敗しました: ${message}`,
     steps: {
       connectingGateway: 'ライブデスクトップゲートウェイに接続中',
@@ -164,7 +117,7 @@ export const ja = defineLocale({
       desktopBootFailed: 'デスクトップの起動に失敗しました',
       gatewayConnectionLost: 'ゲートウェイへの接続が切断されました',
       gatewayConnectionLostDetail:
-        'バックグラウンドで再試行しています。読み取りや下書きは続けられます。問題が続く場合はゲートウェイ設定を開いてください。',
+        'Still retrying in the background. You can keep reading and drafting — open Gateway settings if this persists.',
       gatewaySignInRequired: 'ゲートウェイへのサインインが必要です',
       ipcBridgeUnavailable: 'デスクトップ IPC ブリッジが利用できません。'
     },
@@ -232,32 +185,21 @@ export const ja = defineLocale({
       errorTitle: 'MCP サーバーに接続できません',
       errorMessage: name => `${name} MCP のヘルスチェックに失敗しました。`,
       signIn: 'サインイン',
-      view: '表示'
+      view: '表示',
+      disable: '無効化',
+      disabledMessage: name => `${name} MCP を無効にしました。機能 → MCP からいつでも再有効化できます。`,
+      disableFailed: name => `${name} MCP を無効にできませんでした。`
     },
     errors: {
-      agentInitUnknownProvider: provider =>
-        `エージェントの初期化に失敗しました：不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
-      unknownProvider: provider =>
-        `不明なプロバイダー「${provider}」です。「hermes model」で利用可能なプロバイダーを確認するか、「hermes doctor」で設定の問題を診断してください。`,
-      fastModeUnavailable: 'このモデルでは高速モードを利用できません。',
-      apiRetriesExhausted: retries => `API 呼び出しは ${retries} 回再試行しても失敗しました`,
-      invalidApiResponseAfterRetries: (retries, detail) => `API レスポンスが無効です（${retries} 回再試行）：${detail}`,
-      resetsIn: remaining => `リセットまで：${remaining}`,
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
       diskFull: 'ディスク容量不足です — 空きを作ってからもう一度お試しください。',
-      fileNotFound: target => (target ? `ファイルが見つかりません：${target}` : 'ファイルが見つかりません'),
       gatewayAuthFailed: 'ゲートウェイ認証に失敗しました — API_SERVER_KEY を確認してください。',
-      invalidExternalUrl: '外部 URL が無効です。',
-      invalidPreviewUrl: 'プレビュー URL が無効です。',
       methodNotAllowed:
         'デスクトップバックエンドがそのリクエストを拒否しました (405 Method Not Allowed)。Hermes Desktop を再起動してください。',
       microphonePermission: 'マイクのアクセス許可が拒否されました。',
       openaiRejectedApiKey: 'OpenAI が API キーを拒否しました。',
-      openaiRejectedApiKeyWithStatus: status => `OpenAI が API キーを拒否しました (${status} invalid_api_key)。`,
       openaiTtsNeedsKey: 'OpenAI TTS には VOICE_TOOLS_OPENAI_KEY または OPENAI_API_KEY が必要です。',
-      sessionStoppedBeforeAgentReady: 'エージェントの準備が整う前にセッションが停止しました。',
-      turnCancelledBeforeAgentReady: 'エージェントの準備が整う前にターンがキャンセルされました。',
       codeSkewRestartRequired:
         'アップデート後、このバックエンドは古いコードのままです。再起動して新しいコードを読み込んでください。'
     },
@@ -283,9 +225,11 @@ export const ja = defineLocale({
     },
     native: {
       approvalTitle: '承認が必要です',
+      approvalTitleNamed: session => `承認が必要です — ${session}`,
       approveAction: '承認',
       rejectAction: '拒否',
       inputTitle: '入力が必要です',
+      inputTitleNamed: session => `入力が必要です — ${session}`,
       inputBody: 'Hermes が応答を待っています。',
       turnDoneTitle: 'Hermes が完了しました',
       turnDoneBody: '',
@@ -293,9 +237,7 @@ export const ja = defineLocale({
       backgroundDoneTitle: 'バックグラウンドタスクが完了しました',
       backgroundFailedTitle: 'バックグラウンドタスクが失敗しました',
       creditsTitle: 'クレジット'
-    },
-    gatewayErrorTitle: 'Hermes エラー',
-    gatewayErrorFallback: 'Hermes がエラーを報告しました'
+    }
   },
 
   remoteDisplayBanner: {
@@ -310,147 +252,6 @@ export const ja = defineLocale({
     openBilling: '請求を開く',
     addCredits: 'クレジットを追加',
     dismiss: '閉じる'
-  },
-
-  billingPage: {
-    title: '請求',
-    paymentAndCredits: '支払いとクレジット',
-    usage: '使用量',
-    balance: '残高',
-    plan: 'プラン',
-    autoRefill: '自動補充',
-    openPortal: 'ポータルを開く',
-    connectNousTitle: 'Nous アカウントを接続',
-    connectNousBody: 'TUI で /portal を実行するか、Nous ポータルを開いてアカウントを接続してください。',
-    openPortalArrow: 'ポータルを開く ↗',
-    customCreditAmount: '任意のクレジット金額',
-    buy: '購入',
-    processingSettlement: '処理中…決済を確認しています',
-    creditsAdded: amount => `${amount} を追加しました。残高を更新しています。`,
-    usageFallback: label => `${label} の使用量`,
-    invoices: '請求履歴',
-    preview: 'プレビュー',
-    previewFixture: '請求プレビュー用データ（開発専用）',
-    live: 'ライブ',
-    openVerification: '確認ページを開く',
-    dismiss: '閉じる',
-    waitingVerification: '確認リンクを待っています…',
-    verifyToContinue: '確認して続行',
-    autoRefillUpdated: '自動補充を更新しました。',
-    autoRefillOff: '自動補充をオフにしました。',
-    threshold: 'しきい値',
-    reloadTo: '補充後の金額',
-    autoRefillThresholdLabel: '自動補充のしきい値',
-    autoRefillReloadToLabel: '自動補充の目標額',
-    turnOffConfirm: '自動補充をオフにしますか？',
-    turnOff: 'オフにする',
-    disable: '無効にする',
-    manage: '管理',
-    checkingChange: '変更内容を確認中…',
-    changeBlocked: 'この変更はここでは実行できません。',
-    alreadyOnPlan: name => `すでに ${name} を利用中です。変更はありません。`,
-    scheduledChange: (name, date, creditsDelta) =>
-      `${date} に ${name} へ変更します。今すぐの請求はなく、それまでは現在のプランを維持します。${creditsDelta ? ` 月間クレジットの変更：${creditsDelta}。` : ''}`,
-    cannotSchedule: 'この変更はここでは予約できません。',
-    tryAgain: '再試行',
-    scheduling: '予約中…',
-    confirmDowngrade: 'ダウングレードを確定',
-    downgrade: 'ダウングレード',
-    currentPlan: '現在のプラン',
-    scheduled: '予約済み',
-    perMonth: price => `${price}/月`,
-    backToBilling: '請求に戻る',
-    plans: 'プラン',
-    noPlans: '現在変更できるプランはありません。',
-    undoing: '取り消し中…',
-    undo: '取り消す',
-    addCardArrow: 'カードを追加 ↗',
-    noPaymentMethodTitle: '支払い方法がありません',
-    noCardBody: 'カードを登録するまで、追加クレジットの購入と自動補充は無効です。ポータルでカードを追加してください。',
-    enabled: '有効',
-    subscriptionUnavailable: 'サブスクリプションの詳細を取得できませんが、ポータルは開けます。',
-    changesToOn: (name, date) => `${date} に ${name} へ変更されます。`,
-    cancelsOn: date => `${date} にキャンセルされます。`,
-    renewsOn: date => `更新日：${date}`,
-    noActiveSubscription: '有効なサブスクリプションはありません。有料モデルは追加クレジットを使用します。',
-    changePlan: 'プランを変更',
-    viewPlans: 'プランを見る',
-    adjustPlanArrow: 'プランを調整 ↗',
-    creditsPerMonth: amount => `${amount} クレジット/月`,
-    chooseArrow: '選択 ↗',
-    addPaymentMethod: '支払い方法を追加',
-    paymentMethod: '支払い方法',
-    manageCardDescription: '追加購入とサブスクリプション更新に使うカードを管理します。',
-    cardSourceAutoRefill: '自動補充カード',
-    cardSourceCustomerDefault: '顧客の既定カード',
-    cardSourceSubscription: 'サブスクリプションカード',
-    buyCreditsNow: '今すぐクレジットを購入',
-    singleChargeDescription: 'カードに一度だけ請求し、本日の残高に追加します。',
-    autoRefillDescription: '残高がしきい値を下回ったときに自動で補充します。',
-    manageAutoRefillPortal: 'ポータルで自動補充を管理してください。',
-    enableAutoRefillPortal: 'ポータルで自動補充を有効にする',
-    differentCard: '別のカード',
-    reconcileArrow: '確認 ↗',
-    reconcileAutoRefill: card => `自動補充は${card}に請求します。ポータルで確認してください`,
-    refillWhenLow: '残高低下時に補充',
-    autoRefillChargeDescription: (reloadTo, threshold) =>
-      `残高が ${threshold} を下回ると ${reloadTo} まで自動補充します。`,
-    creditsLeft: (remaining, total) => `${total} 中 ${remaining} 残り`,
-    creditsOver: (remaining, total, over) => `${total} 中 ${remaining} 残り · ${over} 超過`,
-    subscriptionCreditsRemaining: 'サブスクリプションクレジット残高',
-    resetsOn: date => `リセット日：${date}`,
-    subscriptionCredits: 'サブスクリプションクレジット',
-    doesNotExpire: '有効期限なし',
-    topUpCredits: '追加クレジット',
-    monthlySpendCapUsed: '月間利用上限の使用量',
-    amountUsed: (spent, limit) => `${limit} 中 ${spent} 使用`,
-    defaultCeiling: '既定の上限',
-    monthlyRemoteSpending: '月間リモート利用額',
-    monthlySpendCap: '月間利用上限',
-    refusal: {
-      consentTitle: 'カードの確認が必要です',
-      consentMessage: 'ポータルで、このカードを端末からの請求に使用できるよう確認してください',
-      scopeTitle: 'リモート利用の承認が必要です',
-      scopeMessage: 'リモート利用を許可する必要があります。追加購入を開始して許可した後、再試行してください。',
-      revokedTitle: 'リモート利用が停止されました',
-      revokedByAdmin: '管理者がこの端末のリモート利用を停止しました。',
-      revokedByUser: 'この端末のリモート利用を停止しました。',
-      revokedReconnect: actor => `${actor}「設定 → ゲートウェイ」から再接続し、このデバイスを再承認してください。`,
-      sessionTitle: 'セッションからログアウトしました',
-      sessionMessage: 'セッションからログアウトしました。「設定 → ゲートウェイ」から再度サインインしてください。',
-      remoteSpendingOffTitle: 'リモート利用は無効です',
-      remoteSpendingOffMessage:
-        'このアカウントではリモート利用が無効です。請求管理者がポータルの Hermes Agent ページで有効にできます。',
-      roleTitle: '管理者権限が必要です',
-      roleMessage:
-        '資金の追加には組織の管理者または所有者権限が必要です。管理者に依頼するか、ポータルで管理してください。',
-      freshTopUpTitle: '新しい追加購入を開始',
-      freshTopUpMessage: '🔴 この請求キーは別の金額ですでに使用されています。新しい追加購入を開始してください。',
-      noSavedCardTitle: '保存済みカードがありません',
-      noSavedCardMessage:
-        '💳 端末からの請求に使えるカードがありません。ポータルで設定してください（1 回限りの購入ではカードは保存されません）。',
-      orgAccessTitle: '組織へのアクセスが拒否されました',
-      orgAccessMessage: 'このトークンは管理可能な組織に紐付いていません',
-      monthlyCapTitle: '月間利用上限に達しました',
-      monthlyCapRemaining: remaining => `🔴 月間利用上限に達しました。残り枠は $${remaining} です。`,
-      monthlyCapMessage: '🔴 月間利用上限に達しました。',
-      rateLimitTitle: '現在、請求リクエストが多すぎます',
-      rateLimitMessage: minutes =>
-        `🟡 現在、請求リクエストが多すぎます${minutes ? `（約 ${minutes} 分後に再試行）` : ''}。支払いの失敗ではありません。`,
-      stripeTitle: 'Stripe で問題が発生しています',
-      stripeMessage: minutes =>
-        `Stripe で問題が発生しています。しばらくしてから再試行してください${minutes ? `（約 ${minutes} 分後）` : ''}`,
-      planLimitTitle: '1 日のプラン変更上限に達しました',
-      planLimitMessage: '1 日のプラン変更上限に達しました。明日もう一度お試しください',
-      endpointTitle: '請求エンドポイントを利用できません',
-      endpointMessage: '請求エンドポイントが JSON 以外の応答を返しました（この環境では利用できない可能性があります）。',
-      timeoutTitle: '請求リクエストがタイムアウトしました',
-      timeoutMessage: '請求リクエストがタイムアウトしました。',
-      transportTitle: '請求サービスへの接続に失敗しました',
-      transportMessage: '請求リクエストはゲートウェイに到達する前に失敗しました。',
-      genericTitle: '請求リクエストに失敗しました',
-      genericMessage: '請求リクエストに失敗しました。'
-    }
   },
 
   sendDiagnostics: {
@@ -493,12 +294,6 @@ export const ja = defineLocale({
     resetHudLayout: 'HUD のサイズと位置をリセット'
   },
 
-  keybinds: {
-    actions: {
-      'layout.editMode': 'レイアウト編集モードを切り替え'
-    }
-  },
-
   language: {
     label: '言語',
     description: 'デスクトップインターフェイスの言語を選択します。',
@@ -509,22 +304,58 @@ export const ja = defineLocale({
     noResults: '言語が見つかりません'
   },
 
-  quickEntry: {
-    label: 'クイック入力',
-    askPlaceholder: 'Hermes に質問…',
-    disconnectedPlaceholder: '未接続です — Hermes を開いて再接続してください',
-    sendTo: '送信先',
-    targetSession: '対象セッション',
-    currentChat: '現在のチャット',
-    newSession: '新しいセッション'
-  },
-
-  petOverlay: {
-    messagePlaceholder: 'メッセージ…',
-    openInHermes: 'Hermes で開く'
-  },
-
   settings: {
+    subpages: {
+      appearanceTheme: 'テーマ',
+      appearanceTypography: 'フォントと表示倍率',
+      appearanceWindowLayout: 'ウィンドウとレイアウト',
+      appearanceChatDisplay: 'チャット表示',
+      appearancePet: 'ペット',
+      appearanceGeneral: '一般',
+      modelMain: 'メインモデル',
+      modelAuxiliary: '補助モデル',
+      modelMoa: 'エージェントの協調',
+      modelFallbacks: '代替モデル',
+      chatBehavior: '動作',
+      chatAttachments: '添付ファイル',
+      workspaceProjects: 'プロジェクトと検出',
+      workspaceShell: 'シェル環境',
+      workspaceFiles: 'ファイルと実行',
+      safetyApprovals: '承認',
+      safetyPrivacy: 'プライバシーとネットワーク',
+      safetyCheckpoints: 'チェックポイント',
+      browserProfile: 'ブラウザープロファイル',
+      browserNetwork: 'ローカル・プライベート URL',
+      memoryPersistent: '永続メモリ',
+      memoryContext: 'コンテキストと圧縮',
+      voiceConversation: '音声会話',
+      voiceTranscription: '音声認識',
+      voiceSpeech: '音声合成',
+      advancedRuntime: 'エージェントの制限',
+      advancedTools: 'ツールへのアクセス',
+      advancedTerminal: 'ターミナルのバックエンド',
+      advancedOutput: '出力の制限',
+      advancedDelegation: 'サブエージェント',
+      advancedDesktop: 'デスクトップと起動',
+      gatewayConnection: 'このウィンドウ',
+      gatewayDevices: '保存済みの接続',
+      gatewayManagedUpdates: 'リモート更新',
+      gatewayManagedUpdatesUnavailable: 'リモート更新には、管理対象 SSH の更新に対応したデスクトップ版が必要です。',
+      gatewayManagedUpdatesEmpty: '保存済みの接続に SSH 接続を追加すると、ここで更新を管理できます。',
+      keyboardShortcuts: 'キー割り当て',
+      hudGesture: 'HUDジェスチャー',
+      screenCapture: '画面キャプチャ',
+      notificationAlerts: 'デスクトップ通知',
+      notificationSounds: 'サウンド',
+      archivedSessions: 'アーカイブと保持',
+      defaultDirectory: '既定のプロジェクトフォルダー',
+      vaultCredentials: '保存済みの認証情報',
+      vaultSources: 'パスワードマネージャー',
+      appUpdates: 'バージョンと更新',
+      uninstall: 'アンインストール',
+      billingOverview: '概要',
+      billingPlans: 'プラン'
+    },
     plugins: {
       installModal: {
         installFromGit: 'Git からインストール',
@@ -539,14 +370,6 @@ export const ja = defineLocale({
     resetConfirm: 'すべての設定を Hermes のデフォルトに戻しますか？',
     exportFailed: '書き出しに失敗しました',
     resetFailed: 'リセットに失敗しました',
-    customEndpoints: {
-      contextLabel: 'モデルのトークン上限',
-      contextHint: 'モデルごとに合計コンテキスト、最大入力、最大出力を設定します。空欄にすると自動検出に戻ります。',
-      modelLabel: 'モデル',
-      contextWindowLabel: '合計コンテキスト',
-      maxInputLabel: '最大入力',
-      maxOutputLabel: '最大出力'
-    },
     nav: {
       providers: 'プロバイダー',
       providerAccounts: 'アカウント',
@@ -687,40 +510,12 @@ export const ja = defineLocale({
       completionSoundDesc: 'エージェントのターン終了時に再生されます。プリセットを選んでここで試聴できます。',
       completionSoundPreview: '試聴'
     },
-    memoryProvider: {
-      loadFailed: detail => `メモリプロバイダー設定を読み込めませんでした：${detail}`,
-      loadFailedFallback: 'メモリプロバイダー設定を読み込めませんでした',
-      loading: 'メモリプロバイダー設定を読み込み中…',
-      settingsTitle: label => `${label} の設定`,
-      fieldSet: label => `${label} は設定済み`,
-      fieldNotSet: label => `${label} は未設定`,
-      fullConfig: '完全な設定…',
-      fullConfigTitle: label => `${label} — 完全な設定`,
-      fullConfigDescription: (label, profile) =>
-        `${profile} プロファイルの ${label} オプションをすべて表示します。空欄は解決済みホスト値または組み込み既定値を使用します。`,
-      reference: label => `${label} 設定リファレンス`,
-      otherGroup: 'その他',
-      saveChanges: '変更を保存',
-      fieldAbout: label => `${label} について`,
-      leaveBlankToKeep: '現在の値を保持するには空欄にします',
-      valueSet: '設定済み',
-      connectionStartFailed: '接続を開始できませんでした。',
-      connectionTimedOut: '接続がタイムアウトしました。もう一度お試しください。',
-      connectionFailed: '接続に失敗しました。',
-      connectViaOAuth: 'OAuth で接続',
-      reconnect: '再接続',
-      connect: '接続',
-      apiKeySet: 'API キー設定済み',
-      oauthSet: 'OAuth 設定済み',
-      waitingForConsent: 'ブラウザーでの承認を待っています…'
-    },
     sections: {
       model: 'モデル',
       chat: 'チャット',
       appearance: '外観',
       workspace: 'ワークスペース',
       safety: '安全性',
-      browser: 'ブラウザー',
       memory: 'メモリとコンテキスト',
       voice: '音声',
       advanced: '詳細'
@@ -742,13 +537,14 @@ export const ja = defineLocale({
       title: '外観',
       intro:
         'デスクトップ専用の表示設定です。モードは明るさ、テーマはアクセントカラーとチャット面のスタイルを制御します。',
-      themeSearchPlaceholder: 'テーマまたは VS Code Marketplace を検索…',
-      noInstalledThemeMatches: query => `インストール済みテーマに「${query}」と一致するものはありません。`,
-      marketplaceThemeSource: 'VS Code Marketplace の検索結果',
       colorMode: 'カラーモード',
       colorModeDesc: '固定モードを選ぶか、Hermes をシステム設定に合わせます。',
       toolViewTitle: 'ツール呼び出しの表示',
       toolViewDesc: 'プロダクト表示は生のツールペイロードを隠し、テクニカル表示は入出力をすべて表示します。',
+      hideCodeDiffsTitle: 'コードの差分を非表示',
+      hideCodeDiffsDesc: 'ファイル編集は追加・削除行数付きのインラインツール行で表示し、コードは表示しません。',
+      hideThreadTimelineTitle: 'スレッドのタイムラインバーを非表示',
+      hideThreadTimelineDesc: '各会話の右端にあるナビゲーションバーを非表示にします。',
       reasoningCollapsedTitle: '思考ブロックをデフォルトで折りたたむ',
       reasoningCollapsedDesc: 'ストリーミング中の推論を、開くまで折りたたんだまま利用できるようにします。',
       uiScaleTitle: 'UI スケール',
@@ -760,7 +556,8 @@ export const ja = defineLocale({
       sessionDensityComfortable: '標準',
       sessionDensityDetailed: '詳細',
       tabStripTitle: 'タブバー',
-      tabStripDesc: 'ゾーンの上にタブを表示します。自動ではペインが1つのときに隠します。',
+      tabStripDesc:
+        'ゾーンの上にタブを表示します。自動では、他にチャットやタイルのゾーンがない限り、ペインが1つのときに隠します。',
       tabStripAuto: '自動',
       tabStripAlways: '常に表示',
       tabStripNever: '表示しない',
@@ -775,6 +572,13 @@ export const ja = defineLocale({
       terminalFontPlaceholder: 'MesloLGS NF または CSS フォントスタック',
       terminalFontPreview: 'グリフのプレビュー',
       terminalFontReset: '既定値を使用',
+      chatFontTitle: 'チャットフォント',
+      chatFontDesc:
+        'チャットとアプリ全体に使うインストール済みフォントを選択します。OpenDyslexic などの読みやすいフォントに便利です。空欄ならテーマのフォントを使います。',
+      chatFontPlaceholder: 'OpenDyslexic または CSS フォントスタック',
+      chatFontPreview: 'プレビュー',
+      chatFontSample: 'いろはにほへと ちりぬるを 0123456789',
+      chatFontReset: 'テーマのフォントを使用',
       translucencyTitle: 'ウィンドウの透過',
       translucencyDesc: 'テキストも含めウィンドウ全体を透過させてデスクトップを表示します。',
       translucencyGlassDesc: 'マットガラス: デスクトップが滑らかなぼかしとして透け、テキストは鮮明なまま。',
@@ -885,7 +689,8 @@ export const ja = defineLocale({
     },
     fieldLabels: defineFieldCopy({
       model: 'デフォルトモデル',
-      modelContextLength: 'コンテキストウィンドウ',
+      modelContextLength:
+        'メインのチャットモデルのみ、検出されたコンテキストウィンドウを上書きします（トークン数）。0 のままにすると、選択したモデルから検出された値を使用します。補助モデル/MoA モデルには影響しません。',
       fallbackProviders: 'フォールバックモデル',
       toolsets: '有効なツールセット',
       timezone: 'タイムゾーン',
@@ -902,13 +707,8 @@ export const ja = defineLocale({
         maxTurns: '最大エージェントステップ',
         imageInputMode: '画像添付',
         apiMaxRetries: 'API 再試行回数',
-        outputTruncationRetries: '出力上限の再試行回数',
-        postToolEmptyRetries: 'ツール後の空応答再試行回数',
-        thinkingPrefillRetries: '推論プリフィル再試行回数',
-        emptyResponseRetries: '空応答の再試行回数',
         serviceTier: 'サービス階層',
-        toolUseEnforcement: 'ツール使用の強制',
-        environmentProbe: '実行環境のプローブ'
+        toolUseEnforcement: 'ツール使用の強制'
       },
       terminal: {
         cwd: '作業ディレクトリ',
@@ -916,15 +716,8 @@ export const ja = defineLocale({
         timeout: 'コマンドタイムアウト',
         persistentShell: '永続シェル',
         envPassthrough: '環境変数の引き継ぎ',
-        containerPersistent: 'コンテナファイルシステムを永続化',
         dockerImage: 'Docker イメージ',
-        dockerMountCwdToWorkspace: 'プロジェクトを Docker にマウント',
-        dockerWorkspacePerSession: 'セッションごとのプロジェクトに追従',
-        dockerWorkspaceMountPath: 'Docker マウントパス',
         singularityImage: 'Singularity イメージ',
-        singularityMountCwdToWorkspace: 'プロジェクトを Singularity にマウント',
-        singularityWorkspacePerSession: 'セッションごとのプロジェクトに追従（Singularity）',
-        singularityWorkspaceMountPath: 'Singularity マウントパス',
         modalImage: 'Modal イメージ',
         daytonaImage: 'Daytona イメージ'
       },
@@ -949,8 +742,7 @@ export const ja = defineLocale({
       },
       browser: {
         allowPrivateUrls: 'ブラウザーのプライベート URL',
-        autoLocalForPrivateUrls: 'プライベート URL にはローカルブラウザーを使用',
-        useRealProfile: '実際のブラウザープロファイルを使用'
+        autoLocalForPrivateUrls: 'プライベート URL にはローカルブラウザーを使用'
       },
       checkpoints: {
         enabled: 'ファイルチェックポイント',
@@ -959,12 +751,10 @@ export const ja = defineLocale({
       voice: {
         recordKey: '音声ショートカット',
         maxRecordingSeconds: '最大録音時間',
-        clientDirect: 'クライアント直接接続',
         autoTts: '応答を読み上げる'
       },
       stt: {
         enabled: '音声認識',
-        echoTranscripts: '文字起こしのエコー表示',
         provider: '音声認識プロバイダー',
         local: {
           model: 'ローカル文字起こしモデル',
@@ -1045,13 +835,18 @@ export const ja = defineLocale({
       compression: {
         enabled: '自動圧縮',
         threshold: '圧縮しきい値',
+        codexGpt55Autoraise: 'Codex 圧縮の自動引き上げ',
         targetRatio: '圧縮目標',
         protectLastN: '保護する直近メッセージ'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '圧縮モデルのタイムアウト（秒）'
+        }
       },
       delegation: {
         model: 'サブエージェントモデル',
         provider: 'サブエージェントプロバイダー',
-        useCustomEndpoints: 'サブエージェントにカスタムエンドポイントを提案',
         maxIterations: 'サブエージェントターン上限',
         maxConcurrentChildren: '並列サブエージェント',
         childTimeoutSeconds: 'サブエージェントタイムアウト',
@@ -1078,24 +873,12 @@ export const ja = defineLocale({
         'Hermes がローカル時刻のコンテキストを必要とするときに使用します。空欄ならシステムのタイムゾーンを使います。',
       agent: {
         imageInputMode: '画像添付をモデルへ送る方法を制御します。',
-        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
-        outputTruncationRetries:
-          'プロバイダーが出力トークン上限を報告し、表示可能なテキストが生成されなかった場合のみ再試行します。再試行ごとに同じプロンプトが再送信され、再度課金される可能性があります。0（推奨）のままにしてください。最大 3 回です。',
-        postToolEmptyRetries:
-          'ツール呼び出し後に表示可能なテキストが返らない場合、続行を促します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
-        thinkingPrefillRetries:
-          '推論だけの応答をプリフィルし、表示可能なテキストへ続行します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
-        emptyResponseRetries:
-          '先行する回復層の後も表示可能なテキストがない場合に再試行します。再課金の可能性があり、コストガードが早期終了することがあります。0 で無効、最大 3 回です。',
-        environmentProbe:
-          '新しいセッションの実行環境を調べます。コンテナバックエンドではプローブ後に自動削除される一時サンドボックスを使い、オフの場合は静的な説明を使います。'
+        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。'
       },
       terminal: {
         cwd: 'ツールとターミナル作業のデフォルトプロジェクトフォルダーです。',
         persistentShell: 'バックエンドが対応している場合、コマンド間でシェル状態を保持します。',
-        envPassthrough: 'ツール実行へ渡す環境変数です。',
-        containerPersistent:
-          'セッションをまたいでコンテナのファイルシステム状態を保持します。変更はバックエンドの再起動後に反映され、現在のコンテナやインスタンスは削除されません。'
+        envPassthrough: 'ツール実行へ渡す環境変数です。'
       },
       codeExecution: {
         mode: 'コード実行を現在のプロジェクトにどれだけ厳密に制限するかを設定します。'
@@ -1106,13 +889,7 @@ export const ja = defineLocale({
         timeout: '承認プロンプトがタイムアウトするまで待つ時間です。'
       },
       security: {
-        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。',
-        allowPrivateUrls:
-          'URL 取得ツールによる localhost とプライベートネットワークアドレスへのアクセスを許可します。クラウドメタデータのエンドポイントは引き続きブロックされます。'
-      },
-      browser: {
-        useRealProfile:
-          'ローカルブラウジングで実際のログイン状態を使用します。Hermes は既定のブラウザーのプロファイル（Cookie、ログイン情報、設定）を管理対象のスナップショットにコピーし、同梱の Chromium で操作します。使用中のプロファイルを直接開くことはなく、コピーは実行のたびに元のプロファイルから更新されます。クラウドブラウザーのバックエンドが設定されている場合でも、エージェントは必要に応じて実際のプロファイルを使うローカルセッションを開けます。対応するのは Chromium ベースのブラウザー（Chrome、Edge、Brave、Chromium）のみです。既定のブラウザーが Chromium ベースでない場合は、明確なエラーメッセージを表示します。既定ではオフです。'
+        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。'
       },
       checkpoints: {
         enabled: 'ファイル編集前にロールバック用スナップショットを作成します。'
@@ -1125,7 +902,13 @@ export const ja = defineLocale({
         engine: '長い会話がコンテキスト上限に近づいたときの管理戦略です。'
       },
       compression: {
-        enabled: '会話が大きくなったとき、古いコンテキストを要約します。'
+        enabled: '会話が大きくなったとき、古いコンテキストを要約します。',
+        codexGpt55Autoraise: '対応する ChatGPT Codex OAuth モデルの圧縮しきい値を 85% に引き上げます。'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '補助圧縮モデルの呼び出しごとに待機する秒数（既定 120）。遅いローカルモデルでは値を上げてください。'
+        }
       },
       voice: {
         autoTts: 'アシスタントの応答を自動で読み上げます。'
@@ -1167,6 +950,7 @@ export const ja = defineLocale({
       updateReady: count => `新しい更新の準備ができました (${count} 件の変更を含みます)。`,
       updateReadyUnknown: '新しい更新の準備ができました。',
       lastChecked: age => `前回確認: ${age}`,
+      justNowSuffix: ' · たった今',
       automaticUpdates: '自動更新',
       automaticUpdatesDesc: 'Hermes はバックグラウンドで自動的に更新を確認し、利用可能になったら通知します。',
       branchCommit: (branch, commit) => `ブランチ ${branch} · コミット ${commit}`,
@@ -1177,6 +961,11 @@ export const ja = defineLocale({
       daysAgo: count => `${count} 日前`
     },
     config: {
+      minimizeToTrayTitle: 'トレイに最小化',
+      minimizeToTrayDesc:
+        'ウィンドウの最小化やメインウィンドウを閉じる操作でシステムトレイ（macOS ではメニューバー）に隠し、Hermes を実行し続けます。終了するにはトレイメニューの「Hermes を終了」または Cmd+Q を使います。初期設定はオフで、このデバイスにのみ適用されます。',
+      minimizeToTrayUnavailable:
+        'システムトレイを利用できないため、通常どおり最小化・終了します。再試行するには一度オフにしてからオンにしてください。',
       none: 'なし',
       noneParen: '(なし)',
       builtinOnly: '内蔵のみ',
@@ -1194,6 +983,42 @@ export const ja = defineLocale({
       invalidJson: '設定 JSON が無効です',
       keepAwakeTitle: 'コンピューターをスリープさせない',
       keepAwakeDesc: '本体のスリープを防ぎ、長時間や夜通しの実行を継続します。画面は暗転できます。'
+    },
+    hudModifier: {
+      title: 'キーをタップして HUD を呼び出す',
+      description:
+        'Mac では ⌘ + Option、Windows/Linux では Ctrl + Alt を押して離すと、どのアプリからでも HUD を前面に表示できます。初期設定はオフで、このデバイスにのみ適用されます。',
+      permission:
+        'システム設定 → プライバシーとセキュリティ → 入力監視で Hermes を許可し、再試行してください。このジェスチャーはキー入力の記録や画面の撮影を行いません。',
+      unavailable:
+        'HUD ジェスチャーヘルパーを起動できなかったか、予期せず停止しました。再試行するか Hermes を再起動してください。Hermes 内の既存の HUD ショートカットは引き続き使用できます。',
+      missingHelper:
+        'この Hermes には HUD ジェスチャーヘルパーが含まれていません。Hermes を更新または再インストールしてから再試行してください。',
+      unsupportedSession:
+        'このデスクトップセッションはグローバルな修飾キータップに対応していません。Linux では X11 が必要です。Wayland には対応していません。'
+    },
+    screenshot: {
+      enabledTitle: 'スクリーンショットのショートカット',
+      enabledDesc:
+        'どのアプリからでも左右の Command キーを同時に押すと、最前面のウインドウを撮影し、Hermes の現在の下書きに添付します。自動送信はしません。初期設定はオフで、この Mac にのみ適用されます。機密情報が写る可能性があるため、送信前に添付画像を確認してください。',
+      statusTitle: 'スクリーンショットのショートカットの状態',
+      checking: 'スクリーンショットのショートカットを確認中…',
+      disabled: 'スクリーンショットのショートカットはオフです。',
+      starting: 'ショートカットの検出を開始しています。まだ使用できません。',
+      ready: 'ショートカットを使用できます。撮影した画像は現在の下書きに添付され、送信はされません。',
+      inputPermission:
+        '入力監視の許可により、他のアプリがアクティブな間も両方の Command キーを検出できます。システム設定 → プライバシーとセキュリティ → 入力監視で Hermes を許可し、ここに戻って再試行してください。',
+      screenPermission:
+        '画面収録の許可により、このショートカットを使ったときに最前面のアプリのウインドウを撮影できます。システム設定 → プライバシーとセキュリティ → 画面収録で Hermes を許可し、ここに戻って再試行してください。macOS に求められた場合は Hermes を再起動してください。',
+      openSettings: 'システム設定を開く',
+      retry: '再試行',
+      unavailable: 'スクリーンショットのショートカットは使用できません。再試行するか、オフにしてください。',
+      errorTitle: 'スクリーンショットのショートカットのエラー',
+      loadFailed: 'ショートカットの状態を読み取れませんでした。再試行して現在の設定を確認してください。',
+      saveFailed: 'ショートカットの変更を確認できませんでした。再試行して現在の設定を確認してください。',
+      permissionFailed: 'システム設定を開けませんでした。プライバシーとセキュリティを手動で開き、再試行してください。',
+      captureFailed: '最前面のウインドウを撮影できませんでした。添付も送信もされていません。',
+      contextChanged: '撮影中に現在の下書きが変わりました。画像は添付も送信もされていません。'
     },
     quickEntry: {
       enabledTitle: 'クイック入力',
@@ -1237,46 +1062,12 @@ export const ja = defineLocale({
       envOverrideTitle: '環境変数がこのデスクトップセッションを制御しています。',
       envOverrideDesc:
         '保存された設定を使用するには HERMES_DESKTOP_REMOTE_URL と HERMES_DESKTOP_REMOTE_TOKEN の設定を解除してください。',
-      modeTitle: '接続モード',
       localTitle: 'ローカルゲートウェイ',
       localDesc:
         'ローカルホストでプライベートな Hermes バックエンドを起動します。これがデフォルトで、オフラインでも動作します。',
       remoteTitle: 'リモートゲートウェイ',
-      remoteDesc: 'このデスクトップシェルをリモートの Hermes バックエンドに接続します。',
-      remoteAuthHint:
-        'ホスト型ゲートウェイは OAuth またはユーザー名とパスワードを使用します。自己ホスト型はセッショントークンを使用する場合があります。',
-      cloudTitle: 'Hermes Cloud',
-      cloudDesc:
-        'Hermes Cloud に一度サインインすれば、アカウント上のエージェントから選べます。URL の貼り付けは不要です。',
-      cloudSignInTitle: 'Hermes Cloud',
-      cloudSignIn: 'Hermes Cloud にサインイン',
-      cloudSignedIn: 'Hermes Cloud にサインイン済み',
-      cloudNeedsSignIn: 'アカウント上のエージェントを検出するには Hermes Cloud にサインインしてください。',
-      cloudSignedInDesc: 'サインイン済みです。下からエージェントを選んでください。セッションは自動的に更新されます。',
-      cloudAgentsTitle: 'あなたのエージェント',
-      cloudOrgPickerTitle: '組織を選択',
-      cloudOrgSelect: '選択',
-      cloudOrgChange: '組織を変更',
-      cloudOrgRole: role => `ロール: ${role}`,
-      cloudLoadingAgents: 'エージェントを読み込み中…',
-      cloudNoAgents: {
-        before: 'このアカウントにエージェントが見つかりません。',
-        linkText: 'Nous ポータル',
-        after: 'で作成してから更新してください。'
-      },
-      cloudRefresh: '更新',
-      cloudConnect: '接続',
-      cloudConnecting: '接続中…',
-      cloudDiscoverFailed: 'Hermes Cloud のエージェントを読み込めませんでした',
-      cloudConnectFailed: 'そのエージェントに接続できませんでした',
-      cloudSignInFailed: 'Hermes Cloud へのサインインに失敗しました',
-      cloudSignedOutTitle: 'Hermes Cloud からサインアウトしました',
-      cloudSignedOutMessage: 'Hermes Cloud セッションをクリアしました。',
-      cloudConnectedTitle: '接続済み',
-      cloudConnectedPill: '接続済み',
-      cloudConnectedTo: name => `${name} に接続しました。`,
-      cloudAgentProvisioning: 'プロビジョニング中…',
-      cloudStatusLabel: status => `ステータス: ${status}`,
+      remoteDesc:
+        'このデスクトップシェルをリモートの Hermes バックエンドに接続します。ホスト型ゲートウェイは OAuth またはユーザー名とパスワードを使用します。自己ホスト型はセッショントークンを使用する場合があります。',
       remoteUrlTitle: 'リモート URL',
       remoteUrlDesc:
         'リモートダッシュボードバックエンドのベース URL。/hermes などのパスプレフィックスもサポートしています。',
@@ -1303,11 +1094,11 @@ export const ja = defineLocale({
       pasteSessionToken: 'セッショントークンを貼り付け',
       plainTextConfirmTitle: 'ゲートウェイトークンを平文で保存しますか？',
       plainTextConfirmDesc:
-        'このマシンで OS のキーリングサービスが見つからなかったため、トークンはアプリの接続設定ファイルに暗号化されずに保存され、このユーザーとして実行される任意のプロセスから読み取れる状態になります。暗号化して保存するには、GNOME Keyring または KWallet をインストールまたは有効化してください。',
+        'このマシンで OS のキーリングサービスが見つからなかったため、トークンはアプリの接続設定ファイルに暗号化されずに保存され、このユーザーとして実行される任意のプロセスから読み取れる状態になります。暗号化して保存するには、システムのキーチェーン（Linux では GNOME Keyring または KWallet）をインストールまたは有効化してください。',
       plainTextConfirmAction: '平文で保存',
       plainTextStoredTitle: 'トークンは平文で保存されています',
       plainTextStoredDesc:
-        'セキュアストレージが利用できないため、保存済みのトークンはこのマシンのアプリの接続設定ファイルに暗号化されずに保存されています。暗号化するには GNOME Keyring または KWallet をインストールまたは有効化してください。',
+        'セキュアストレージが利用できないため、保存済みのトークンはこのマシンのアプリの接続設定ファイルに暗号化されずに保存されています。暗号化するには、システムのキーチェーン（Linux では GNOME Keyring または KWallet）をインストールまたは有効化してください。',
       keychainEncryptionTitle: 'OS キーチェーンで保存済みのシークレットを暗号化',
       keychainEncryptionDesc:
         'デフォルトはオフです。オンにすると、ゲートウェイのトークンとサインイン資格情報がシステムのキーチェーン（Keychain Access、GNOME Keyring、Windows DPAPI）で暗号化されます。システムから許可やパスワードを求められる場合があります。オフの場合は、現在のユーザーのみが読める通常ファイルとして保存されます。',
@@ -1380,170 +1171,6 @@ export const ja = defineLocale({
       loading: 'API キーと認証情報を読み込み中...',
       failedLoad: 'API キーの読み込みに失敗しました',
       empty: 'このカテゴリーにはまだ設定がありません。'
-    },
-    envKeys: {
-      NOUS_BASE_URL: { description: 'Nous Portal ベース URL の上書き' },
-      OPENROUTER_API_KEY: { description: 'OpenRouter API キー（ビジョン、ウェブ抽出ヘルパー、MOA 用）' },
-      GOOGLE_API_KEY: { description: 'Google AI Studio API キー（GEMINI_API_KEY としても認識）' },
-      GEMINI_API_KEY: { description: 'Google AI Studio API キー（GOOGLE_API_KEY のエイリアス）' },
-      GEMINI_BASE_URL: { description: 'Google AI Studio ベース URL の上書き' },
-      VERTEX_CREDENTIALS_PATH: {
-        description:
-          'Vertex AI (Gemini) 用の Google Cloud サービスアカウント JSON のパス。Vertex は静的 API キーではなく OAuth2 を使用し、Hermes はこの資格情報から短期トークンを発行します。GOOGLE_APPLICATION_CREDENTIALS、次いで ADC (gcloud auth application-default login) にフォールバックします。プロジェクト/リージョンは config.yaml の vertex: で設定します。'
-      },
-      XAI_API_KEY: { description: 'xAI API キー' },
-      XAI_BASE_URL: { description: 'xAI ベース URL の上書き' },
-      NVIDIA_API_KEY: { description: 'NVIDIA NIM API キー（build.nvidia.com またはローカル NIM エンドポイント）' },
-      NVIDIA_BASE_URL: {
-        description: 'NVIDIA NIM ベース URL の上書き（ローカル NIM の http://localhost:8000/v1 など）'
-      },
-      LM_API_KEY: { description: '認証を有効にした LM Studio ローカルサーバー用の Bearer トークン' },
-      LM_BASE_URL: { description: 'LM Studio ベース URL の上書き' },
-      GLM_API_KEY: { description: 'Z.AI / GLM API キー（ZAI_API_KEY / Z_AI_API_KEY としても認識）' },
-      ZAI_API_KEY: { description: 'Z.AI API キー（GLM_API_KEY のエイリアス）' },
-      Z_AI_API_KEY: { description: 'Z.AI API キー（GLM_API_KEY のエイリアス）' },
-      GLM_BASE_URL: { description: 'Z.AI / GLM ベース URL の上書き' },
-      KIMI_API_KEY: { description: 'Kimi / Moonshot API キー' },
-      KIMI_BASE_URL: { description: 'Kimi / Moonshot ベース URL の上書き' },
-      KIMI_CN_API_KEY: { description: 'Kimi / Moonshot 中国リージョンの API キー' },
-      STEPFUN_API_KEY: { description: 'StepFun Step Plan API キー' },
-      STEPFUN_BASE_URL: { description: 'StepFun Step Plan ベース URL の上書き' },
-      ARCEEAI_API_KEY: { description: 'Arcee AI API キー' },
-      ARCEE_BASE_URL: { description: 'Arcee AI ベース URL の上書き' },
-      GMI_API_KEY: { description: 'GMI Cloud API キー' },
-      GMI_BASE_URL: { description: 'GMI Cloud ベース URL の上書き' },
-      FIREWORKS_API_KEY: { description: 'Fireworks AI API キー' },
-      MINIMAX_API_KEY: { description: 'MiniMax API キー（インターナショナル）' },
-      MINIMAX_BASE_URL: { description: 'MiniMax ベース URL の上書き' },
-      MINIMAX_CN_API_KEY: { description: 'MiniMax API キー（中国エンドポイント）' },
-      MINIMAX_CN_BASE_URL: { description: 'MiniMax（中国）ベース URL の上書き' },
-      DEEPSEEK_API_KEY: { description: 'DeepSeek 直接アクセス用の API キー' },
-      DEEPSEEK_BASE_URL: { description: 'カスタム DeepSeek API ベース URL（上級者向け）' },
-      DASHSCOPE_API_KEY: { description: 'Alibaba Cloud DashScope API キー（Qwen + マルチプロバイダーモデル）' },
-      DASHSCOPE_BASE_URL: {
-        description: 'カスタム DashScope ベース URL（デフォルト: coding-intl の OpenAI 互換エンドポイント）'
-      },
-      HERMES_QWEN_BASE_URL: { description: 'Qwen Portal ベース URL の上書き（デフォルト: https://portal.qwen.ai/v1）' },
-      OPENCODE_ZEN_API_KEY: { description: 'OpenCode Zen API キー（従量課金で厳選モデルを利用）' },
-      OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen ベース URL の上書き' },
-      OPENCODE_GO_API_KEY: {
-        description: 'OpenCode Go API キー（月額 10 ドルのサブスクリプションでオープンモデルを利用）'
-      },
-      OPENCODE_GO_BASE_URL: { description: 'OpenCode Go ベース URL の上書き' },
-      HF_TOKEN: {
-        description:
-          'Inference Providers 用の Hugging Face トークン（router.huggingface.co 経由で 20+ のオープンモデル）'
-      },
-      HF_BASE_URL: { description: 'Hugging Face Inference Providers ベース URL の上書き' },
-      OLLAMA_API_KEY: { description: 'Ollama Cloud API キー（ollama.com — クラウドホストのオープンモデル）' },
-      OLLAMA_BASE_URL: { description: 'Ollama Cloud ベース URL の上書き（デフォルト: https://ollama.com/v1）' },
-      XIAOMI_API_KEY: { description: 'Xiaomi MiMo API キー（mimo-v2.5-pro、mimo-v2.5 などの MiMo モデル用）' },
-      XIAOMI_BASE_URL: { description: 'Xiaomi MiMo ベース URL の上書き（デフォルト: https://api.xiaomimimo.com/v1）' },
-      UPSTAGE_API_KEY: { description: 'Solar LLM モデル用の Upstage API キー' },
-      UPSTAGE_BASE_URL: { description: 'Upstage ベース URL の上書き（デフォルト: https://api.upstage.ai/v1）' },
-      AWS_REGION: { description: 'Bedrock API 呼び出しの AWS リージョン（us-east-1、eu-central-1 など）' },
-      AWS_PROFILE: { description: 'Bedrock 認証用の AWS 名前付きプロファイル（~/.aws/credentials から）' },
-      AZURE_FOUNDRY_API_KEY: { description: 'カスタム Azure エンドポイント用の Azure Foundry API キー' },
-      AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry ベース URL（エンドポイント別の設定は hermes model で）' },
-      ALIBABA_CODING_PLAN_API_KEY: { description: 'Alibaba Cloud (Coding Plan) API キー' },
-      ALIBABA_CODING_PLAN_BASE_URL: { description: 'Alibaba Cloud (Coding Plan) ベース URL の上書き' },
-      ANTHROPIC_API_KEY: { description: 'Anthropic API キー' },
-      ANTHROPIC_TOKEN: { description: 'Anthropic API キー' },
-      CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API キー' },
-      DEEPINFRA_API_KEY: { description: 'DeepInfra API キー' },
-      DEEPINFRA_BASE_URL: { description: 'DeepInfra ベース URL の上書き' },
-      KILOCODE_API_KEY: { description: 'Kilocode API キー' },
-      KIMI_CODING_API_KEY: { description: 'Kimi Coding API キー' },
-      NOVITA_API_KEY: { description: 'NovitaAI API キー' },
-      NOVITA_BASE_URL: { description: 'NovitaAI ベース URL の上書き' },
-      EXA_API_KEY: { description: 'AI ネイティブなウェブ検索とコンテンツ取得のための Exa API キー' },
-      PARALLEL_API_KEY: { description: 'AI ネイティブなウェブ検索と抽出のための Parallel API キー' },
-      FIRECRAWL_API_KEY: { description: 'ウェブ検索とスクレイピングのための Firecrawl API キー' },
-      FIRECRAWL_API_URL: { description: 'セルフホストの Firecrawl インスタンス用 API URL（任意）' },
-      FIRECRAWL_GATEWAY_URL: { description: 'Nous 購読者専用の Firecrawl ツールゲートウェイの上書き（任意）' },
-      TOOL_GATEWAY_DOMAIN: {
-        description:
-          'Nous 購読者専用の共有ツールゲートウェイのドメインサフィックス。ベンダーホストの導出に使用（例: nousresearch.com -> firecrawl-gateway.nousresearch.com）'
-      },
-      TOOL_GATEWAY_SCHEME: {
-        description:
-          'Nous 購読者専用の共有ツールゲートウェイの URL スキーム（デフォルト https、ローカルテストでは http）'
-      },
-      TOOL_GATEWAY_USER_TOKEN: {
-        description:
-          'ツールゲートウェイリクエスト用の Nous 購読者アクセストークン（任意。省略時は Hermes 認証ストアから取得）'
-      },
-      TAVILY_API_KEY: { description: 'AI ネイティブなウェブ検索と抽出のための Tavily API キー' },
-      SEARXNG_URL: { description: '無料セルフホストのウェブ検索用 SearXNG インスタンスの URL' },
-      BRAVE_SEARCH_API_KEY: { description: 'Brave Search API サブスクリプショントークン（無料枠: 月 2,000 クエリ）' },
-      BROWSERBASE_API_KEY: {
-        description: 'クラウドブラウザ用の Browserbase API キー（任意 — ローカルブラウザには不要）'
-      },
-      BROWSERBASE_PROJECT_ID: { description: 'Browserbase プロジェクト ID（任意 — クラウドブラウザのみ必要）' },
-      BROWSER_USE_API_KEY: {
-        description: 'クラウドブラウザ用の Browser Use API キー（任意 — ローカルブラウザには不要）'
-      },
-      FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl ブラウザセッションの TTL（秒、任意、デフォルト 300）' },
-      AGENT_BROWSER_ENGINE: {
-        description:
-          'ローカルモードのブラウザエンジン: auto（デフォルト Chrome）、lightpanda（高速、スクリーンショットなし）、chrome'
-      },
-      CAMOFOX_URL: {
-        description: 'ローカル検出回避ブラウジング用の Camofox ブラウザサーバー URL（例: http://localhost:9377）'
-      },
-      CAMOFOX_API_KEY: { description: 'リモート/認証付き Camofox サーバーへ送る任意の Bearer トークン' },
-      FAL_KEY: { description: '画像・動画生成のための FAL API キー' },
-      KREA_API_KEY: { description: 'Krea 2 画像生成のための Krea API キー（Medium + Large）' },
-      VOICE_TOOLS_OPENAI_KEY: { description: '音声文字起こし (Whisper) と OpenAI TTS 用の OpenAI API キー' },
-      ELEVENLABS_API_KEY: { description: '高品質音声合成と Scribe 文字起こしのための ElevenLabs API キー' },
-      MISTRAL_API_KEY: { description: 'Voxtral TTS と文字起こし (STT) のための Mistral API キー' },
-      GITHUB_TOKEN: { description: 'スキルハブ用の GitHub トークン（API レート制限の緩和、スキル公開）' },
-      HONCHO_API_KEY: { description: 'AI ネイティブ永続メモリのための Honcho API キー' },
-      HONCHO_BASE_URL: { description: 'セルフホスト Honcho インスタンスのベース URL（API キー不要）' },
-      HINDSIGHT_API_KEY: { description: 'グラフ対応の永続メモリのための Hindsight API キー' },
-      HINDSIGHT_API_URL: {
-        description: 'Hindsight API のベース URL（デフォルト: https://api.hindsight.vectorize.io）'
-      },
-      SUPERMEMORY_API_KEY: { description: '会話スコープの永続メモリのための Supermemory API キー' },
-      MEM0_API_KEY: { description: 'セマンティック永続メモリのための Mem0 Platform API キー' },
-      RETAINDB_API_KEY: { description: '永続メモリのための RetainDB API キー' },
-      RETAINDB_BASE_URL: {
-        description: 'セルフホスト RetainDB インスタンスのベース URL（デフォルト: https://api.retaindb.com）'
-      },
-      BRV_API_KEY: { description: 'ByteRover API キー（任意、クラウド同期用 — デフォルトはローカル優先）' },
-      OPENVIKING_API_KEY: { description: 'OpenViking API キー（ローカル開発モードでは空欄可）' },
-      OPENVIKING_ENDPOINT: { description: 'OpenViking サーバー URL（デフォルト: http://127.0.0.1:1933）' },
-      HERMES_LANGFUSE_PUBLIC_KEY: { description: 'Langfuse プロジェクト公開キー (pk-lf-...)' },
-      HERMES_LANGFUSE_SECRET_KEY: { description: 'Langfuse プロジェクト秘密キー (sk-lf-...)' },
-      HERMES_LANGFUSE_BASE_URL: { description: 'Langfuse サーバー URL（デフォルト: https://cloud.langfuse.com）' },
-      NOTION_API_KEY: { description: 'Notion 統合トークン（notion スキルで使用）' },
-      LINEAR_API_KEY: { description: 'Linear 個人 API キー（linear スキルで使用）' },
-      AIRTABLE_API_KEY: { description: 'Airtable 個人アクセストークン（airtable スキルで使用）' },
-      TENOR_API_KEY: { description: 'GIF 検索のための Tenor API キー（gif-search スキルで使用）' },
-      SUDO_PASSWORD: {
-        description:
-          'root 権限が必要なターミナルコマンドで使う sudo パスワード。明示的な空文字を設定するとプロンプトなしで空を試します'
-      },
-      HERMES_PREFILL_MESSAGES_FILE: {
-        description: 'few-shot プライミング用の一時プリフィルメッセージ JSON ファイルのパス'
-      },
-      HERMES_EPHEMERAL_SYSTEM_PROMPT: {
-        description: 'API 呼び出し時に注入される一時システムプロンプト（セッションには保存されません）'
-      },
-      RAFT_PROFILE: {
-        description: 'Raft エージェントプロファイルの slug — 設定するとアダプターが自動で有効になります'
-      },
-      GATEWAY_ALLOW_ALL_USERS: {
-        description: 'すべてのユーザーにメッセージングボットとの対話を許可します（true/false）。デフォルト: false。'
-      },
-      GATEWAY_PROXY_URL: {
-        description:
-          'メッセージを転送するリモート Hermes API サーバーの URL（プロキシモード）。設定するとゲートウェイはプラットフォーム I/O のみを担当し、エージェント処理はすべてリモートサーバーに委任されます。ホストエージェントに中継する Docker E2EE コンテナ向け。config.yaml の gateway.proxy_url でも設定可能。'
-      },
-      GATEWAY_PROXY_KEY: {
-        description:
-          'リモート Hermes API サーバーとの認証用 Bearer トークン（プロキシモード）。リモートホストの API_SERVER_KEY と一致させる必要があります。'
-      }
     },
     search: {
       placeholder: 'すべての設定を検索...',
@@ -1640,33 +1267,8 @@ export const ja = defineLocale({
       setToMain: 'メインに設定',
       change: '変更',
       autoUseMain: '自動 · メインモデルを使用',
+      inheritMainEffort: '継承 · メインモデルの推論強度',
       providerDefault: '(プロバイダーのデフォルト)',
-      staleAuxPrefix: (count, names) => `${count} 件の補助タスク (${names}) は引き続き `,
-      staleAuxOtherProviders: '他のプロバイダー',
-      staleAuxSuffix: ' で実行されます — メインモデルではありません。',
-      pasteKeyPlaceholder: keyEnv => `${keyEnv} を貼り付け`,
-      activate: '有効化',
-      activating: '有効化中...',
-      setUpProvider: name => `${name} を設定`,
-      needsApiKeyHint: name => `${name} には API キーが必要です — 設定するとモデルを選択できます。`,
-      oauthHint: name => `${name} はブラウザーでサインインします — Hermes がフローを代行します。`,
-      moa: {
-        title: 'Mixture of Agents',
-        description:
-          'Mixture of Agents プロバイダーの下にモデルとして表示される名前付きプリセットを設定します。アグリゲーターが実際に応答するモデルです。',
-        presetPlaceholder: 'プリセット',
-        enabled: '有効',
-        setDefault: 'デフォルトに設定',
-        deletePreset: '削除',
-        newPresetPlaceholder: '新しいプリセット名',
-        addPreset: 'プリセットを追加',
-        defaultLabel: 'デフォルト:',
-        referenceTitle: index => `リファレンス ${index}`,
-        toggleReference: (index, enabled) => `リファレンス ${index} を${enabled ? '無効にする' : '有効にする'}`,
-        removeReference: '削除',
-        addReference: 'リファレンスモデルを追加',
-        aggregatorTitle: 'アグリゲーター'
-      },
       tasks: {
         vision: { label: 'ビジョン', hint: '画像分析' },
         compression: { label: '圧縮', hint: 'コンテキストの圧縮' },
@@ -1675,39 +1277,13 @@ export const ja = defineLocale({
         mcp: { label: 'MCP', hint: 'MCP ツールルーティング' },
         title_generation: { label: 'タイトル生成', hint: 'セッションタイトル' },
         review: { label: 'レビュー', hint: '/review レビューサブエージェント' },
+        triage_specifier: { label: 'トリアージ指定', hint: 'カンバン仕様の具体化' },
+        kanban_decomposer: { label: 'カンバン分解', hint: 'タスク分解' },
+        profile_describer: { label: 'プロファイル記述', hint: 'プロファイル概要の自動生成' },
         curator: { label: 'キュレーター', hint: 'スキル使用レビュー' }
       }
     },
-    poolLimits: {
-      warmBackends: '起動を維持するボットバックエンド数',
-      warmBackendsDescription:
-        '素早く切り替えられるよう、起動したままにするボットバックエンドの数です。増やすと切り替えが速くなりますが、メモリ使用量も増えます（バックエンドごとに約 60 MB）。変更はすぐに反映されます。',
-      idleTimeout: 'バックエンドのアイドルタイムアウト',
-      idleTimeoutDescription:
-        '未使用のボットバックエンドを終了するまで起動しておく時間です。長くすると、数分おきにボットに戻った際の再起動待ちを避けられます。',
-      idleTimeoutAria: 'バックエンドのアイドルタイムアウト（ミリ秒）',
-      milliseconds: 'ミリ秒'
-    },
     localModels: {
-      catalogDescriptions: {
-        'Best all-round agent model; sees images; long context stays fast':
-          '総合力に優れたエージェントモデル。画像に対応し、長いコンテキストでも高速',
-        'Frontier-scale model; needs a very large GPU to run well':
-          '最先端の大規模モデル。快適な動作には非常に大容量の GPU メモリが必要',
-        'Bigger mixture-of-experts with multi-token prediction; sees images':
-          'マルチトークン予測を備えた、より大規模な混合エキスパートモデル。画像に対応',
-        'Frontier-class model for machines with 128GB+ memory': '128 GB 以上のメモリを搭載したマシン向けの最先端モデル'
-      } as Record<string, string>,
-      recommendedBuild: (quant, largeWindow) =>
-        `推奨ビルド（${quant}）— このエンジンが最適化されている量子化形式です。${largeWindow ? '大きなコンテキストウィンドウで、' : ''}すべて GPU 上で動作します`,
-      compactBuild: quant =>
-        `このマシン向けのコンパクトなビルド（${quant}）— GPU メモリに収まらず、システムメモリを使うため動作が遅くなります`,
-      fitTooLarge: (quant, size) =>
-        `最もコンパクトなビルド（${quant}、${size}）でも、GPU メモリとシステムメモリの合計容量を超えます`,
-      fitNeedsMemory: 'このマシンの容量を超えるメモリが必要です',
-      fitFullContext: context => `最大の ${context} コンテキストで動作します`,
-      fitGrowingContext: (start, max) => `コンテキストは ${start} から始まり、使用に応じて ${max} まで拡張されます`,
-      fitSpilled: detail => `${detail}（GPU メモリに収まらず、システムメモリを使うため動作が遅くなります）`,
       title: 'ローカルモデル',
       runtimeTitle: 'ローカルランタイム',
       runtimeReady: backend => `準備完了 · ${backend}`,
@@ -1754,9 +1330,7 @@ export const ja = defineLocale({
       updateAction: 'エンジンを更新',
       updating: 'エンジンを更新中…',
       upToDateTitle: 'エンジンは最新です',
-      upToDateDetail: (tag, backend) => `llama.cpp ${tag}（${backend}）で動作中——Hermes が提供する最新ビルドです。`,
-      updateToast: next =>
-        `ローカルエンジンの新しいビルド（${next}）があります。設定 → ローカルモデル から更新できます。`,
+      upToDateDetail: (tag, backend) => `llama.cpp ${tag}（${backend}）で動作中——設定されたビルドです。`,
       activeDetail: '新しいチャットはこのモデルを使用——最初のメッセージ送信時に読み込みます',
       activeNotLoaded: '最初のメッセージで読み込みます',
       loadedPill: '読み込み済み',
@@ -1836,8 +1410,7 @@ export const ja = defineLocale({
         title: 'ローカル / カスタムエンドポイント',
         description: 'OpenAI 互換のエンドポイント（Zyphra、vLLM、llama.cpp、Ollama など）を指定します。'
       },
-      loading: 'プロバイダーを読み込み中...',
-      providerDescriptions: {}
+      loading: 'プロバイダーを読み込み中...'
     },
     sessions: {
       loading: 'アーカイブ済みセッションを読み込み中…',
@@ -1894,83 +1467,6 @@ export const ja = defineLocale({
       ready: '準備完了',
       needsSignIn: 'サインインが必要',
       needsSetup: 'セットアップが必要',
-      badgeTokens: {
-        recommended: 'おすすめ',
-        free: '無料',
-        local: 'ローカル',
-        'self-hosted': 'セルフホスト',
-        paid: '有料',
-        preview: 'プレビュー',
-        subscription: 'サブスクリプション',
-        'no key': 'キー不要',
-        'search only': '検索のみ',
-        'optional gateway': 'ゲートウェイ任意'
-      },
-      tagCopy: {
-        '30 prebuilt voices, controllable via prompts': '30 種のプリセット音声、プロンプトで制御可能',
-        'Anti-detection browser (Firefox/Camoufox)': '検出回避ブラウザ (Firefox/Camoufox)',
-        'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
-          'cua-driver によるバックグラウンドのコンピューター操作 — カーソルやフォーカスを奪いません。あらゆるモデルで動作。',
-        'Browser login at accounts.x.ai — no API key required': 'accounts.x.ai でブラウザログイン — API キー不要',
-        'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
-          'Chatterbox、Qwen3-TTS など — api.deepinfra.com のライブカタログ',
-        'Direct xAI API billing via XAI_API_KEY': 'XAI_API_KEY による xAI API 直接課金',
-        'Good quality, no API key needed': '良好な品質、API キー不要',
-        'Grok voices — uses xAI Grok OAuth or XAI_API_KEY': 'Grok 音声 — xAI Grok OAuth または XAI_API_KEY を使用',
-        'Headless Chromium, no API key needed': 'ヘッドレス Chromium、API キー不要',
-        'High quality voices': '高品質な音声',
-        'Hosted Langfuse (cloud.langfuse.com)': 'ホスト版 Langfuse (cloud.langfuse.com)',
-        'Lightweight local ONNX TTS (~25MB), no API key': '軽量ローカル ONNX TTS（約 25MB）、API キー不要',
-        'Local neural TTS, 44 languages (voices ~20-90MB)': 'ローカルのニューラル TTS、44 言語対応（音声 約 20-90MB）',
-        'Managed Browser Use billed to your subscription': 'マネージド Browser Use、サブスクリプションに課金',
-        'Managed FAL image generation billed to your subscription': 'マネージド FAL 画像生成、サブスクリプションに課金',
-        'Managed FAL video generation billed to your subscription': 'マネージド FAL 動画生成、サブスクリプションに課金',
-        'Managed Firecrawl billed to your subscription': 'マネージド Firecrawl、サブスクリプションに課金',
-        'Managed OpenAI TTS billed to your subscription': 'マネージド OpenAI TTS、サブスクリプションに課金',
-        'Most natural voices': '最も自然な音声',
-        'Multilingual, native Opus': '多言語対応、ネイティブ Opus',
-        'PKCE OAuth — opens the setup wizard': 'PKCE OAuth — セットアップウィザードを開きます',
-        'REST API integration': 'REST API 連携',
-        'Run your own Firecrawl instance (Docker)': '自前の Firecrawl インスタンスを実行 (Docker)',
-        'Self-hosted Langfuse instance': 'セルフホストの Langfuse インスタンス',
-        "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
-          'Grok の web_search ツールによるエージェント型ウェブ検索 — xAI Grok OAuth または XAI_API_KEY を使用。',
-        'Cloud browser with remote execution': 'リモート実行対応のクラウドブラウザ',
-        'Cloud browser with stealth and proxies': 'ステルスとプロキシ対応のクラウドブラウザ',
-        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
-          'FLUX、Qwen-Image など — api.deepinfra.com のライブカタログ',
-        'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
-          '無料でプライバシーに配慮したメタ検索。SEARXNG_URL を自分のインスタンスに向けてください。',
-        'Free-tier API key — 2k queries/mo, search only.': '無料枠 API キー — 月 2,000 クエリ、検索のみ。',
-        'Full search + extract; supports direct API and Nous tool-gateway routing.':
-          'フル検索 + 抽出。直接 API と Nous ツールゲートウェイ経由の両方に対応。',
-        'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
-          'OpenRouter 経由の Gemini Flash Image など。OPENROUTER_API_KEY を使用',
-        'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
-          'Krea 2 基盤モデル — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。スタイル転送、ムードボード、参照ガイド生成。直接キーまたはマネージド Nous サブスクリプションゲートウェイ。',
-        'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
-          'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse — テキストから動画・画像から動画',
-        'Objective-tuned search + parallel page extraction.': '目的別にチューニングされた検索 + 並列ページ抽出。',
-        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
-          'flux-2-klein、flux-2-pro、gpt-image、nano-banana などから選択 — テキストから画像・画像編集',
-        'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
-          'Nous Portal 経由の参照グラウンディング画像生成（OpenRouter バックエンド）',
-        'Search + extract in one provider.': '検索 + 抽出を 1 つのプロバイダーで。',
-        'Search via the ddgs Python package — no API key (pair with any extract provider)':
-          'ddgs Python パッケージによる検索 — API キー不要（任意の抽出プロバイダーと併用可）',
-        'Semantic + neural web search with content extraction.':
-          'セマンティック + ニューラルのウェブ検索とコンテンツ抽出。',
-        'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
-          'Wan、p-video など — api.deepinfra.com のライブカタログ。テキストから動画・画像から動画',
-        'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
-          'gpt-image-2、低/中/高の品質ティア — テキストから画像・画像編集',
-        'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
-          'ChatGPT/Codex OAuth 経由の gpt-image-2 — API キー不要。テキストと画像の入力に対応',
-        'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-image — テキストから画像・画像編集。xAI Grok OAuth または XAI_API_KEY を使用。xAI Imagine ストレージが有効なため、生成メディアは自動失効しない再利用可能な公開 URL を取得します。保存ファイルと公開 URL ホスティングに xAI が課金する場合があります。`image_gen.xai.storage.enabled: false` で無効化、または `expires_after` で保持期間を変更できます。',
-        'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-video はテキスト/参照から生成、grok-imagine-video-1.5 は画像から動画。編集/延長は以前の Imagine 結果の公開 HTTPS MP4（`video` / `public_url`）を渡します。xAI Grok OAuth または XAI_API_KEY を使用。xAI Imagine ストレージが有効なため、生成メディアは自動失効しない再利用可能な公開 URL を取得します。保存ファイルと公開 URL ホスティングに xAI が課金する場合があります。`video_gen.xai.storage.enabled: false` で無効化、または `expires_after` で保持期間を変更できます。'
-      },
       activeBackend: '使用中',
       activeBackendHint: 'これが現在アクティブなバックエンドです',
       useBackend: 'このバックエンドを使う',
@@ -2017,39 +1513,13 @@ export const ja = defineLocale({
         selectedTitle: 'バックエンドを選択しました',
         selectedMessage: backend => `ターミナルコマンドは ${backend} で実行されます。新しいセッションに適用されます。`,
         failedSelect: backend => `${backend} の選択に失敗しました`,
-        needsSetupHint: 'このバックエンドは今すぐ選択できますが、セットアップが完了するまでコマンドは失敗します。'
-      },
-      computerUse: {
-        checking: 'コンピュータ操作のステータスを確認中…',
-        statusReadFailed: 'コンピュータ操作のステータスを読み取れませんでした',
-        unsupported: platform => `このプラットフォーム（${platform}）ではコンピュータ操作はサポートされていません。`,
-        installHint: 'このマシンを操作するには、下の cua-driver バックエンドをインストールしてください。',
-        installGrantHint: 'その後、ここでアクセシビリティと画面収録の権限を付与してください。',
-        platformNotes: {
-          linux: 'X11/XWayland アクセシビリティスタック経由でデスクトップを操作します——権限プロンプトはありません。',
-          win32:
-            '初回実行時に cua-driver の UIAccess ワーカーに対して Windows SmartScreen の警告が表示される場合があります——許可してください。'
-        },
-        macGrantNote:
-          '権限は Hermes ではなく CuaDriver 自身の識別子（com.trycua.driver）に付与されます——ダイアログには実際に Mac を操作するプロセスが表示されます。',
-        recheck: '再チェック',
-        accessibility: 'アクセシビリティ',
-        accessibilityHint: 'cua-driver によるクリック・キー入力の送信とアクセシビリティツリーの読み取りを許可します。',
-        screenRecording: '画面収録',
-        screenRecordingHint: 'cua-driver によるアプリウィンドウのスクリーンショット取得を許可します。',
-        driverHealth: 'ドライバーの状態',
-        granted: '許可済み',
-        notGranted: '未許可',
-        ready: '準備完了',
-        notReady: '未準備',
-        unknown: '不明',
-        readyMessage:
-          'コンピュータ操作の準備ができました。エージェントにアプリのキャプチャやクリック操作を依頼できます。',
-        grantPermissions: '権限を付与',
-        waitingApproval: '承認を待機中…',
-        grantFailed: '権限をリクエストできませんでした',
-        approveTitle: 'システム設定で承認してください',
-        approveMessage: 'macOS に CuaDriver に帰属する権限ダイアログが表示されます。承認後、ここに戻ってください。'
+        needsSetupHint: 'このバックエンドは選択されていますが、セットアップが完了するまでコマンドは失敗します。',
+        needsSetupConfirmTitle: backend => `それでも ${backend} を選択しますか？`,
+        needsSetupConfirmDescription: detail =>
+          `${detail} この変更後に開始されるセッションは、セットアップが完了するまでターミナルとファイルツールを使用できません。`,
+        needsSetupConfirmDescriptionGeneric:
+          'このバックエンドはまだセットアップされていません。この変更後に開始されるセッションは、セットアップが完了するまでターミナルとファイルツールを使用できません。',
+        needsSetupConfirmAction: 'それでも選択する'
       },
       browserRealProfile: {
         label: '実際のブラウザプロファイルを使用',
@@ -2075,205 +1545,6 @@ export const ja = defineLocale({
   },
 
   skills: {
-    collective: {
-      notificationPreferences: {
-        title: '通知設定',
-        scope: 'この組織の各クライアントで受け取る通知を管理します。手動での閲覧や共有は引き続き利用できます。',
-        on: '通知オン',
-        muted: '通知ミュート',
-        day: '1 日',
-        week: '1 週間',
-        month: '30 日',
-        forever: '無期限',
-        pending: '選択はローカルに保存され、同期待ちです。',
-        failed: '同期に失敗しました。設定を更新してから選び直してください。',
-        conflict: '別のクライアントで設定が変更されました。更新して確認してください。',
-        expired: 'この選択は期限切れです。設定を更新して再試行してください。'
-      },
-      title: 'コレクティブ・ウィズダム',
-      loading: 'コレクティブ・ウィズダムを読み込み中…',
-      unavailable: 'コレクティブ・ウィズダムは利用できません。',
-      setup: 'このプロファイルではコレクティブ・ウィズダムが設定されていません。',
-      setupDisclosure:
-        '候補の適格性評価はこのプロファイル内に保持されます。所有者が承認した非公開ドラフトの内容、作者の説明、宣言的なマニフェストのメタデータ、管理対象インストールの状態だけが Gateway に送信されます。',
-      setupAction: '理解しました — このプロファイルを設定',
-      settingUp: '設定中…',
-      scanLocal: 'ローカルスキルをスキャン',
-      orgWide: '組織全体のコレクティブ',
-      sharedSkills: count => `共有スキル ${count} 件`,
-      localCandidates: count => `適格な提案 ${count} 件`,
-      contributionWorkflow: '貢献ワークフロー',
-      potential: '提案された貢献',
-      potentialHelp:
-        '使用状況または有意な改善に基づき、Hermes がローカルで適格と判断したスキルです。レビューするまで共有されません。',
-      noSuggestions: '現在、自動適格性ルールを満たすローカルスキルはありません。',
-      browseLocal: count => `すべてのローカルスキルを表示 (${count})`,
-      browseLocalHelp:
-        '手動選択できることは、Hermes がそのスキルを使用または自動的に適格と判断したことを意味しません。',
-      ownerReview: 'あなたの貢献ドラフト',
-      ownerReviewHelp: 'あなたのレビュー待ちのドラフトと、コレクティブの承認待ちの提出です。',
-      noDrafts: '進行中の貢献ドラフトまたは提出はありません。',
-      noShared: 'この検索に一致する共有スキルはありません。',
-      noDescription: '所有者による説明はありません',
-      serverScanPassed: 'サーバースキャン合格',
-      localOnly: 'このデバイスから共有できます。',
-      qualifiedLocally: 'Hermes がこのローカルスキルを貢献候補として認識しました。',
-      qualificationFirst: organizationName =>
-        `${organizationName ? `あなたの組織（${organizationName}）` : 'あなたの組織'}では、チーム全体から役立つスキルを自動検出する Collective Wisdom が有効になっています。おめでとうございます。Hermes がチームに役立つ可能性のあるスキルを検出しました。`,
-      qualificationReturning: 'Hermes がチームに役立つ可能性のある別のスキルを検出しました。',
-      savedLocally: '非公開ドラフトがこのデバイスに保存されています。',
-      prepare: '貢献を開始',
-      continueDraft: 'ドラフトを続ける',
-      reviewExact: '詳細を表示',
-      runSetupStep: 'この手順を実行',
-      confirmSetupPrerequisite: '前提条件を確認',
-      setupCommand: '提案されたコマンド（ローカルターミナル）',
-      setupStepApprovalNotice: '確認すると、この手順のみが許可されます。認証情報をチャットに入力しないでください。',
-      openDraft: '詳細を表示',
-      draftState: state => {
-        const labels: Record<string, string> = {
-          vetting: 'サーバーレビュー中',
-          ready: 'レビュー待ち',
-          owner_approved: 'あなたが承認済み',
-          publishing: '公開中',
-          pending_moderation: 'コレクティブ管理者の承認待ち',
-          changes_requested: '変更が必要です'
-        }
-
-        return labels[state] || state.replaceAll('_', ' ')
-      },
-      authoritative: '公開とサーバースキャンの判断は Gateway が正本です。',
-      versionHistory: 'バージョン履歴',
-      versions: 'バージョン',
-      versionDetails: version => `バージョン ${version}`,
-      immutableVersion: '変更不可の公開バージョン',
-      published: date => `${date} に公開`,
-      releaseExplanation: 'サーバーの説明',
-      viewInPortal: 'Portal で表示',
-      backToSkill: 'スキルに戻る',
-      backToVersions: 'バージョン一覧に戻る',
-      prepareTitle: 'アップロード前にローカルパッケージを確認',
-      prepareNotice:
-        'ローカル候補のシグナルは含まれません。「提出」を押すまで、このプロファイルから内容は送信されません。',
-      ownerDescription: '所有者による説明',
-      systemSpecification: 'システム仕様',
-      cancel: 'キャンセル',
-      submit: '下書きを提出',
-      submitting: '提出中…',
-      readEvery: 'すべてのファイルを確認してください。承認は下記の正確な3つのハッシュに紐づきます。',
-      publishToTeam: 'チームに公開',
-      submitForApproval: '承認を申請',
-      publishLocalNotice: '確認すると、このパッケージをアップロードし、必要なチェックの後にチームへ公開します。',
-      submitLocalNotice: '確認すると、このパッケージを組織の承認に提出します。審査完了までは公開されません。',
-      reloadReview: 'レビューを再読み込み',
-      editReview:
-        'ここで説明、SKILL.md、宣言的マニフェストを編集できます。保存すると新しい非公開リビジョンが作成され、スキャンが再実行されて新しいハッシュが返されます。ローカルの元スキルは書き換えません。',
-      editOwnerDescription: '所有者による説明を編集',
-      unsavedChanges: 'これらの変更はまだスキャンされていません。承認前に保存して再スキャンしてください。',
-      saveAndRescan: '変更を保存して再スキャン',
-      savingRevision: '保存して再スキャン中…',
-      resetChanges: '編集を破棄',
-      reviewedHashes: '現在サーバーでレビュー済みのリビジョンのハッシュ',
-      ownerReviewExact: '所有者がレビューする正確な内容',
-      localOverlay: 'ローカルオーバーレイ',
-      close: '閉じる',
-      approve: '正確な内容を承認して公開',
-      publishing: '公開中…',
-      proposalTitle: 'コレクティブに公開 — 承認が必要',
-      localSuggestion: 'レビューの準備ができました',
-      preparingLocal: '編集可能なローカルレビューを準備中…',
-      whySuggested: 'Hermes がこのスキルを提案した理由',
-      sharePrompt: '共有しますか？',
-      reviewFirst: '先に確認',
-      notNow: '後で',
-      yes: 'はい',
-      share: '共有',
-      reviewPreviousPage: '前の確認ページ',
-      reviewNextPage: '次の確認ページ',
-      sharePreparationNotice:
-        '共有用のパッケージをローカルで準備します。アップロードや公開の前に、内容を確認して別途承認します。',
-      muteNotificationsSoon: '通知をミュート（近日対応）',
-      unmuteNotificationsSoon: '通知のミュートを解除（近日対応）',
-      openCollective: 'コレクティブを開く',
-      prepareExact: '確認して編集',
-      skillName: 'スキル名',
-      editDefaultsNotice:
-        'スキル名と手順を確認してください。互換性の詳細は Hermes がこのデバイスから入力済みです。調整が必要な場合のみ展開してください。',
-      detailedRequirements: '詳細な要件を編集',
-      hideDetailedRequirements: '詳細な要件を閉じる',
-      specificationNotice: '所有者による説明と宣言的なシステム仕様を確認してください。依存関係の操作は許可されません。',
-      openFullReview: '完全なレビューを開く',
-      sendPrivateReview: '下書きを提出',
-      saveLocal: '保存',
-      savingLocal: '保存中…',
-      source: 'ソース',
-      preview: 'プレビュー',
-      localDraft: 'ローカル下書き',
-      serverReviewed: 'サーバーレビュー済み',
-      serverEnforced: 'サーバーで強制',
-      localAdvisory: 'ローカル助言：提出前の独立スキャン',
-      qualificationLabel: '候補になった理由',
-      scanPassed: '問題なし',
-      reviewFindings: '要確認',
-      scanAvailable: '利用可能',
-      scanUnavailable: '利用不可',
-      reviewed: 'レビュー済み',
-      contentHash: 'コンテンツ',
-      authorDescriptionHash: '作成者の説明',
-      packageManifestHash: 'パッケージマニフェスト',
-      serverReviewNotice:
-        '下記のすべての生ファイルを確認してください。承認はサーバーが確認した正確なハッシュに紐づきます。',
-      decline: '辞退',
-      approvePublish: '承認して公開',
-      checkUpdates: count => `更新を確認${count ? `（${count}）` : ''}`,
-      checking: '確認中…',
-      refreshShared: '共有スキルを更新',
-      refreshingShared: '更新中…',
-      installReferenceLabel: 'リンクまたはスキル ID からインストール',
-      installReferencePlaceholder: 'Portal リンク、スキル ID、または skill-id@vN を貼り付け',
-      installReferenceHelp: 'Hermes はインストール前に正確なバージョンを検証し、互換性プランを表示します。',
-      reviewInstall: 'インストールを確認',
-      planningInstall: '検証中…',
-      updateModeLabel: '今後の更新',
-      updateModeDefault: '組織のデフォルトを使用',
-      updateModeManual: '手動',
-      updateModeAutomatic: '通知付き自動更新',
-      updateModeRequired: '必須',
-      updateModeHelp: 'Gateway は組織の現在のポリシーを適用します。安全性に関わる変更には引き続き承認が必要です。',
-      updateModePlan: mode => `今後の更新: ${mode}`,
-      install: 'インストール…',
-      uninstall: 'アンインストール…',
-      checkSkill: 'このスキルを確認',
-      updateAvailable: version => (version ? `v${version} に更新可能` : '更新可能'),
-      reviewUpdate: '更新を確認',
-      installed: (version, mode) => `インストール済み v${version} · ${mode}`,
-      confirmAction: action => `${action}を確認`,
-      acceptCompatibility: '互換性に関する操作を確認し、同意します。',
-      acceptSensitive: '新しい機密要件を明示的に受け入れます。',
-      preserveModified: '先に変更済みコピーを管理対象外のフォークとして保持します。',
-      alreadyCurrent: 'この管理対象スキルはすでに最新です。',
-      ownerCopyLabel: '所有者による説明（プラットフォーム未検証）',
-      serverFactsLabel: 'サーバー強制スキャンとサーバー由来の情報',
-      notifications: 'コレクティブ・ウィズダムの更新',
-      activityReady: count => `新しい通知 ${count} 件`,
-      aSkill: 'コレクティブ・ウィズダムのスキル',
-      decisionPublished: skill => `${skill} は承認され、チームと共有されました。`,
-      decisionChanges: skill => `${skill} は共有前に変更が必要です。`,
-      decisionDeclined: skill => `${skill} は共有が承認されませんでした。`,
-      decisionChanged: (skill, state) => `${skill} の貢献ステータスが ${state} に変わりました。`,
-      installedNotice: (skill, version) =>
-        `${skill}${version ? ` ${version}` : ''} をこのプロファイルにインストールしました。`,
-      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} をこのプロファイルで更新しました。`,
-      updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} の更新を利用できます。`,
-      newSkillNotice: skill => `${skill} がコレクティブに共有されました。`,
-      unavailableNotice: skill => `${skill} はこのプロファイルで利用できなくなりました。`,
-      archivedNotice: skill => `${skill} は新規インストールできなくなりました。`,
-      takedownNotice: skill => `${skill} はコレクティブから削除されました。`,
-      viewSkill: 'スキルを表示',
-      markSeen: 'すべて既読にする'
-    },
-    tabCollective: 'コレクティブ',
-    searchCollective: 'コレクティブを検索...',
     tabSkills: 'スキル',
     tabToolsets: 'ツールセット',
     tabMcp: 'MCP',
@@ -2288,102 +1559,6 @@ export const ja = defineLocale({
     noToolsetsTitle: 'ツールセットが見つかりません',
     noToolsetsDesc: '検索キーワードを広げてください。',
     noDescription: '説明はありません。',
-    toolsetDescriptions: {
-      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 対応です。Linux Foundation のオープン標準を使った双方向のエージェント間通信を提供します。アウトバウンドツールはピアの検出、Agent Card の取得、JSON-RPC タスクの送信を行います。インバウンドアダプターは /.well-known/agent-card.json で Hermes を公開し、完全なメモリとコンテキストを持つライブゲートウェイセッションへタスクをルーティングします。bearer token が未設定の場合は localhost のみにバインドし、入力テキストのフィルタリング、出力認証情報の除去、コンテキスト圧縮外での監査ログ記録を行います。Python 標準ライブラリのみを使用し、a2a-sdk は不要です。',
-      browser:
-        'ウェブ操作のためのブラウザ自動化（ナビゲート、クリック、入力、スクロール、iframe、長押し）と URL 検索用のウェブ検索',
-      clarify: 'ユーザーに確認の質問をします（選択式または自由回答）',
-      code_execution: 'ツールをプログラム的に呼び出す Python スクリプトを実行します（LLM の往復を削減）',
-      coding:
-        'コーディング向けツールセット: ファイル、ターミナル、検索、ウェブドキュメント、スキル、Todo、委任、ビジョン、ブラウザ',
-      computer_use:
-        'cua-driver によるバックグラウンドのデスクトップ操作（macOS/Windows/Linux）— スクリーンショット、マウス、キーボード、スクロール、ドラッグ。ユーザーのカーソルやキーボードフォーカスを奪いません。ツール対応のあらゆるモデルで動作します。',
-      context_engine: 'アクティブなコンテキストエンジンが公開するランタイムツール',
-      cronjob: 'Cron ジョブ管理ツール — スケジュールタスクの作成、一覧、更新、一時停止、再開、削除、実行',
-      debugging: 'デバッグとトラブルシューティングのツールキット',
-      delegation: '複雑なサブタスクのために隔離コンテキストのサブエージェントを生成します',
-      discord: 'Discord の閲覧・参加ツール（メッセージ取得、メンバー検索、スレッド作成）',
-      discord_admin: 'Discord サーバー管理（チャンネル/ロール一覧、メッセージのピン留め、ロール割り当て）',
-      feishu_doc: 'Feishu / Lark ドキュメントの内容を読み取ります',
-      feishu_drive: 'Feishu / Lark ドキュメントのコメント操作（一覧、返信、追加）',
-      file: 'ファイル操作ツール: 読み取り、書き込み、パッチ（あいまい一致対応）、検索（内容 + ファイル）',
-      'hermes-acp':
-        'エディター統合（VS Code、Zed、JetBrains）— メッセージング・音声・確認 UI を除いたコーディング向けツール',
-      'hermes-api-server':
-        'OpenAI 互換 API サーバー — HTTP 経由で全エージェントツールにアクセス（clarify や send_message などの対話型 UI ツールは除く）',
-      'hermes-bluebubbles':
-        'BlueBubbles iMessage ボットツールセット — ローカルの BlueBubbles サーバー経由の Apple iMessage',
-      'hermes-cli': '完全な対話型 CLI ツールセット — すべてのデフォルトツールと Cron ジョブ管理',
-      'hermes-cron': 'デフォルトの Cron ツールセット — hermes-cli と同じコアツール。hermes tools で制御',
-      'hermes-dingtalk': 'DingTalk ボットツールセット — エンタープライズメッセージングプラットフォーム（フルアクセス）',
-      'hermes-discord': 'Discord ボットツールセット — フルアクセス（ターミナルは危険コマンド承認の安全チェック付き）',
-      'hermes-email': 'メールボットツールセット — メール (IMAP/SMTP) で Hermes と対話',
-      'hermes-feishu':
-        'Feishu / Lark ボットツールセット — Feishu / Lark 経由のエンタープライズメッセージング（フルアクセス）',
-      'hermes-gateway': 'ゲートウェイツールセット — すべてのメッセージングプラットフォームツールの統合',
-      'hermes-homeassistant': 'Home Assistant ボットツールセット — スマートホームのイベント監視と制御',
-      'hermes-matrix': 'Matrix ボットツールセット — 分散型暗号化メッセージング（フルアクセス）',
-      'hermes-mattermost': 'Mattermost ボットツールセット — セルフホストのチームメッセージング（フルアクセス）',
-      'hermes-qqbot': 'QQBot ツールセット — 公式 Bot API v2 経由の QQ メッセージング（フルアクセス）',
-      'hermes-signal': 'Signal ボットツールセット — 暗号化メッセージングプラットフォーム（フルアクセス）',
-      'hermes-slack': 'Slack ボットツールセット — ワークスペース利用のフルアクセス（ターミナルは安全チェック付き）',
-      'hermes-sms': 'SMS ボットツールセット — SMS (Twilio) で Hermes と対話',
-      'hermes-telegram': 'Telegram ボットツールセット — 個人利用のフルアクセス（ターミナルは安全チェック付き）',
-      'hermes-webhook': 'Webhook ツールセット — 外部 Webhook イベントの受信と処理',
-      'hermes-wecom': 'WeCom ボットツールセット — エンタープライズ WeChat メッセージング（フルアクセス）',
-      'hermes-wecom-callback': 'WeCom コールバックツールセット — 企業の自社構築アプリメッセージング（フルアクセス）',
-      'hermes-weixin': 'Weixin ボットツールセット — iLink 経由の個人 WeChat メッセージング（フルアクセス）',
-      'hermes-whatsapp': 'WhatsApp ボットツールセット — Telegram に類似（個人メッセージング、より信頼度が高い）',
-      'hermes-yuanbao': 'Yuanbao メッセージングプラットフォームツールセット — グループ情報、メンバー照会、DM、スタンプ',
-      homeassistant: 'Home Assistant スマートホームの制御と監視',
-      image_gen: 'クリエイティブ生成ツール（画像）',
-      kanban:
-        'カンバンのマルチエージェント連携 — カンバンディスパッチャーから生成されたエージェント（HERMES_KANBAN_TASK 環境変数設定時）のみ有効。ディスパッチャーはデフォルトでゲートウェイ内で実行されます（config.yaml の kanban.dispatch_in_gateway 参照）。ワーカーは構造化された引き継ぎでタスクを完了し、人間の入力待ちでブロックし、長い操作中にハートビートを送り、スレッドにコメントし、ファイルを添付できます（オーケストレーターはさらにタスクの一覧・ブロック解除・分配が可能）。',
-      memory: 'セッションをまたぐ永続メモリ（個人メモ + ユーザープロファイル）',
-      project: 'デスクトッププロジェクト — 名前付きワークスペースの作成/切り替え（GUI セッションのみ）',
-      safe: 'ターミナルアクセスを除いた安全なツールキット',
-      search: 'ウェブ検索のみ（コンテンツ抽出/スクレイピングなし）',
-      session_search: '過去の会話を検索して要約付きで振り返ります',
-      skills: '専門的な指示と知識を持つスキルドキュメントへのアクセス、作成、編集、管理',
-      spotify: 'ネイティブの Spotify 再生、検索、プレイリスト、アルバム、ライブラリツール',
-      terminal: 'ターミナル/コマンド実行とプロセス管理ツール',
-      todo: '複数ステップの作業のためのタスク計画と追跡',
-      tts: 'テキスト読み上げ: Edge TTS（無料）、ElevenLabs、OpenAI、xAI でテキストを音声に変換',
-      stt: '音声テキスト変換：音声書き起こし（ゲートウェイ音声メッセージと音声モード）',
-      video: '動画の分析・理解ツール（オプトイン、デフォルトツールセット外）',
-      video_gen:
-        '動画生成ツール。単一の video_generate ツールがテキストから動画（プロンプトのみ）と画像から動画（プロンプト + image_url）、参照から動画をカバーします。プロバイダー固有の編集/延長ワークフローは別ツールとして現れる場合があります。hermes tools → Video Generation で設定。',
-      vision: '画像分析とビジョンツール',
-      x_search:
-        'xAI 内蔵の x_search Responses ツールで X (Twitter) の投稿とスレッドを検索します。xAI 資格情報（SuperGrok OAuth または XAI_API_KEY）の設定時に利用可能。デフォルトはオフ。hermes tools → X (Twitter) Search で有効化。',
-      yuanbao: 'Yuanbao プラットフォームツール — グループ情報、メンバー照会、DM、スタンプ'
-    },
-    toolsetLabels: {
-      web: 'ウェブ検索とスクレイピング',
-      browser: 'ブラウザ自動化',
-      terminal: 'ターミナルとプロセス',
-      file: 'ファイル操作',
-      code_execution: 'コード実行',
-      vision: 'ビジョン / 画像分析',
-      video: '動画分析',
-      image_gen: '画像生成',
-      video_gen: '動画生成',
-      x_search: 'X (Twitter) 検索',
-      tts: 'テキスト読み上げ',
-      stt: '音声テキスト変換',
-      skills: 'スキル',
-      todo: 'タスク計画',
-      memory: 'メモリ',
-      context_engine: 'コンテキストエンジン',
-      session_search: 'セッション検索',
-      clarify: '確認の質問',
-      delegation: 'タスク委任',
-      cronjob: 'Cron ジョブ',
-      discord: 'Discord（閲覧/参加）',
-      discord_admin: 'Discord サーバー管理',
-      yuanbao: 'Yuanbao（元宝）',
-      computer_use: 'コンピューター操作 (macOS/Windows/Linux)'
-    },
     configured: '設定済み',
     needsKeys: 'キーが必要',
     visionModelHint:
@@ -2392,7 +1567,6 @@ export const ja = defineLocale({
     toolsetsEnabled: (enabled, total) => `${enabled}/${total} ツールセットが有効`,
     configureToolset: label => `${label} を設定`,
     toggleToolset: (label, enabled) => `${label} ツールセットを${enabled ? 'オン' : 'オフ'}にする`,
-    toolsCount: count => `${count} 個のツール`,
     skillsLoadFailed: 'スキルの読み込みに失敗しました',
     toolsetsRefreshFailed: 'ツールセットの更新に失敗しました',
     skillEnabled: 'スキルを有効にしました',
@@ -2423,9 +1597,6 @@ export const ja = defineLocale({
     skillUpdated: 'スキルを更新しました',
     edit: '編集',
     archive: 'アーカイブ',
-    archiveSkillTitle: name => `${name} をアーカイブしますか？`,
-    archiveSkillDescription: 'スキルはアーカイブされ、`hermes curator restore` で復元できます。',
-    archiveFailed: 'アーカイブに失敗しました',
     skillArchivedTitle: 'スキルをアーカイブしました',
     skillArchivedMessage: 'hermes curator restore で復元できます。',
     officialCatalog: 'インストール可能',
@@ -2438,17 +1609,6 @@ export const ja = defineLocale({
     close: 'メモリグラフを閉じる',
     refresh: '更新',
     memory: 'メモリ',
-    skill: 'スキル',
-    pauseTimeline: 'タイムラインを一時停止',
-    playTimeline: 'タイムラインを再生',
-    timelineScrubber: 'タイムラインスライダー',
-    ageLegend: '中心 = 古い · 外側 = 新しい',
-    editNode: kind => `${kind === 'memory' ? 'メモリ' : 'スキル'}を編集…`,
-    archiveSkill: 'スキルをアーカイブ',
-    deleteMemory: 'メモリを削除',
-    editTitle: label => `${label} を編集`,
-    deleteTitle: label => `${label} を削除しますか？`,
-    deleteMemoryDescription: 'このメモリは完全に削除されます。',
     filterAll: 'すべて',
     filterUsed: '使用済み',
     filterLearned: '学習済み',
@@ -2557,15 +1717,7 @@ export const ja = defineLocale({
       referenceImageTooLarge: '参照画像が大きすぎます。16 MB 未満の画像を使ってください。',
       referenceImageInvalid: '参照画像を読み込めませんでした。PNG/JPG/WebP/GIF を試してください。',
       adopt: '迎え入れる',
-      startOver: 'やり直す',
-      hatchingProgress: '孵化の進行状況',
-      referenceFallback: '参照画像',
-      removeReference: '参照画像を削除',
-      unavailableTitle: '画像生成バックエンドを追加してください',
-      unavailableDesc: 'カスタムペットの孵化には、参照画像を利用できるプロバイダーが必要です。',
-      setupImageGeneration: '画像生成を設定',
-      getKeyFrom: 'キーの入手先',
-      addReference: '参照画像を追加'
+      startOver: 'やり直す'
     },
     installTheme: {
       title: 'テーマをインストール…',
@@ -2573,8 +1725,6 @@ export const ja = defineLocale({
       placeholder: 'VS Code Marketplace を検索...',
       loading: 'Marketplace を検索中...',
       error: 'Marketplace に接続できませんでした。',
-      installError: 'そのテーマをインストールできませんでした。',
-      invalidColorTheme: 'このテーマには「colors」設定がないため、有効な VS Code カラーテーマではありません。',
       empty: '一致するテーマがありません。',
       install: 'インストール',
       installing: 'インストール中...',
@@ -2593,7 +1743,7 @@ export const ja = defineLocale({
     nav: {
       newChat: { title: '新しいセッション', detail: '新しいセッションを開始' },
       settings: { title: '設定', detail: 'Hermes デスクトップを設定' },
-      skills: { title: 'スキルとツール', detail: 'スキル、ツールセット、プロバイダーを有効化' },
+      capabilities: { title: 'スキルとツール', detail: 'スキル、ツールセット、プロバイダーを有効化' },
       messaging: { title: 'メッセージング', detail: 'Telegram、Slack、Discord などを設定' },
       artifacts: { title: 'アーティファクト', detail: '生成された出力を閲覧' }
     },
@@ -2618,6 +1768,10 @@ export const ja = defineLocale({
     restartGateway: 'ゲートウェイを再起動',
     openBrowser: 'ブラウザを開く',
     gatewayRestartFailed: 'ゲートウェイの再起動に失敗しました。',
+    sharedGatewayRestartTitle: '共有ゲートウェイを再起動しますか？',
+    sharedGatewayRestartDescription: bots => `このデバイス上のすべてのボットが再接続します: ${bots}`,
+    sharedGatewayRestartConfirm: 'すべて再起動',
+    sharedGatewayRestarted: count => `共有ゲートウェイを再起動しました（${count} ボット）`,
     updateHermes: 'Hermes を更新',
     reloadWindow: 'ウィンドウを再読み込み',
     actionRunning: '実行中',
@@ -2654,7 +1808,6 @@ export const ja = defineLocale({
     states: {
       connected: '接続済み',
       connecting: '接続中',
-      disconnected: '切断済み',
       disabled: '無効',
       fatal: 'エラー',
       gateway_stopped: 'メッセージングゲートウェイが停止中',
@@ -2665,6 +1818,7 @@ export const ja = defineLocale({
     },
     unknown: '不明',
     hintPendingRestart: 'この変更を適用するにはステータスバーからゲートウェイを再起動してください。',
+    sharedListenerUrl: '共有ゲートウェイのリスナーで提供中:',
     hintGatewayStopped: 'ステータスバーからゲートウェイを起動して接続してください。',
     restartNeeded: '保存しました。新しい設定を反映するにはメッセージングゲートウェイを再起動してください。',
     restartNow: '今すぐ再起動',
@@ -2675,7 +1829,6 @@ export const ja = defineLocale({
       subtitle: 'どちらの方法でも、あなたが管理するボットを接続し、資格情報はこの Hermes にのみ保存されます。',
       quickSetup: 'クイックセットアップ',
       recommended: '推奨',
-      qrCodeAlt: 'Telegram 設定用 QR コード',
       quickHelp:
         'QR コードをスキャンして Telegram で確認します。Hermes がボットを作成し、あなたの Telegram ユーザー ID を自動検出します。',
       createWithQr: 'QR で作成',
@@ -2790,22 +1943,14 @@ export const ja = defineLocale({
         help: '推奨。カンマ区切りの Slack ユーザー ID。'
       },
       MATTERMOST_URL: { label: 'サーバー URL', placeholder: 'https://mattermost.example.com' },
-      MATTERMOST_TOKEN: { label: 'ボットトークン', help: 'Mattermost ボットトークンまたは個人アクセストークン' },
+      MATTERMOST_TOKEN: { label: 'ボットトークン' },
       MATTERMOST_ALLOWED_USERS: {
         label: '許可するユーザー ID',
         help: '推奨。カンマ区切りの Mattermost ユーザー ID。'
       },
-      MATRIX_HOMESERVER: {
-        label: 'ホームサーバー URL',
-        placeholder: 'https://matrix.org',
-        help: 'Matrix ホームサーバー URL（例：https://matrix.org）'
-      },
-      MATRIX_ACCESS_TOKEN: { label: 'アクセストークン', help: 'Matrix アクセストークン（パスワードログインより優先）' },
-      MATRIX_USER_ID: {
-        label: 'ボットユーザー ID',
-        placeholder: '@hermes:example.org',
-        help: 'Matrix ユーザー ID（例：@hermes:example.org）'
-      },
+      MATRIX_HOMESERVER: { label: 'ホームサーバー URL', placeholder: 'https://matrix.org' },
+      MATRIX_ACCESS_TOKEN: { label: 'アクセストークン' },
+      MATRIX_USER_ID: { label: 'ボットユーザー ID', placeholder: '@hermes:example.org' },
       MATRIX_ALLOWED_USERS: {
         label: '許可する Matrix ユーザー ID',
         help: '推奨。@user:server 形式のカンマ区切りユーザー ID。'
@@ -2828,593 +1973,9 @@ export const ja = defineLocale({
       WHATSAPP_ALLOWED_USERS: {
         label: '許可する WhatsApp ユーザー',
         help: '推奨。カンマ区切りの電話番号または WhatsApp ID。'
-      },
-      IRC_SERVER: {
-        label: 'IRC サーバー',
-        help: 'IRC サーバーのホスト名（例: irc.libera.chat）。',
-        placeholder: 'irc.libera.chat'
-      },
-      IRC_CHANNEL: { label: 'IRC チャンネル', help: '参加する IRC チャンネル（例: #hermes）。' },
-      IRC_NICKNAME: { label: 'ボットのニックネーム', help: 'IRC 上のボットのニックネーム（デフォルト: hermes-bot）。' },
-      IRC_SERVER_PASSWORD: { label: 'サーバーパスワード', help: 'IRC サーバーのパスワード（必要な場合）。' },
-      IRC_NICKSERV_PASSWORD: { label: 'NickServ パスワード', help: 'ニックネーム認証用の NickServ パスワード。' },
-      IRC_PORT: { label: 'IRC ポート', help: 'IRC サーバーのポート（デフォルト: TLS は 6697、非 TLS は 6667）。' },
-      IRC_USE_TLS: {
-        label: 'TLS を使用',
-        help: 'IRC 接続に TLS を使用（1/true/yes で有効。ポート 6697 ではデフォルト有効）。'
-      },
-      IRC_ALLOWED_USERS: { label: '許可するニックネーム', help: 'ボットと会話できる IRC ニックネーム。カンマ区切り。' },
-      IRC_ALLOW_ALL_USERS: {
-        label: 'すべてのユーザーを許可',
-        help: '開発用のみ。チャンネル内の誰でもボットと会話できます。'
-      },
-      IRC_HOME_CHANNEL: {
-        label: 'ホームチャンネル',
-        help: 'Cron / 通知配信のチャンネル（デフォルトは IRC_CHANNEL）。'
-      },
-      GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
-        label: 'サービスアカウント JSON',
-        help: 'サービスアカウント JSON キーのパス（またはインライン JSON）。空欄なら Cloud Run / GCE のアプリケーションデフォルト認証情報 (ADC) を使用し、GOOGLE_APPLICATION_CREDENTIALS にフォールバックします。'
-      },
-      GOOGLE_CHAT_HTTP_EVENTS_URL: {
-        label: 'HTTP イベントコールバック URL',
-        help: 'Chat メッセージイベント用の認証済み HTTP エンドポイント。'
-      },
-      GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
-        label: 'HTTP イベントトークンのオーディエンス',
-        help: 'Google 署名の HTTP イベント Bearer トークンに期待するオーディエンス。デフォルトは GOOGLE_CHAT_HTTP_EVENTS_URL。'
-      },
-      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
-        label: 'HTTP イベントサービスアカウントメール',
-        help: 'HTTP イベント Bearer トークンに期待する Google サービスアカウントのメールアドレス。'
-      },
-      GOOGLE_CHAT_PROJECT_ID: {
-        label: 'GCP プロジェクト ID',
-        help: '任意の Pub/Sub 受信モード用 GCP プロジェクト ID。GOOGLE_CLOUD_PROJECT にフォールバック。'
-      },
-      GOOGLE_CHAT_SUBSCRIPTION_NAME: {
-        label: 'Pub/Sub サブスクリプション名',
-        help: 'プルモード受信イベント用の任意の Pub/Sub サブスクリプションパス。'
-      },
-      GOOGLE_CHAT_ALLOWED_USERS: {
-        label: '許可するユーザーメール',
-        help: 'ボットと対話できるユーザーのメールアドレス。カンマ区切り。'
-      },
-      GOOGLE_CHAT_HOME_CHANNEL: {
-        label: 'ホームスペース ID',
-        help: 'Cron / 通知配信のデフォルトスペース（例: spaces/AAAA...）。'
-      },
-      LINE_CHANNEL_ACCESS_TOKEN: {
-        label: 'チャネルアクセストークン',
-        help: 'LINE チャネルの長期アクセストークン（LINE Developers コンソール > Messaging API > チャネルアクセストークン）。'
-      },
-      LINE_CHANNEL_SECRET: {
-        label: 'チャネルシークレット',
-        help: 'LINE チャネルシークレット（HMAC-SHA256 Webhook 署名検証に使用）。'
-      },
-      LINE_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（デフォルト: 8646）。' },
-      LINE_HOST: {
-        label: 'Webhook ホスト',
-        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
-      },
-      LINE_PUBLIC_URL: {
-        label: '公開 HTTPS ベース URL',
-        help: 'LINE へ画像/音声/動画を配信するための公開 HTTPS ベース URL（例: https://my-tunnel.example.com）。バインドアドレスに直接到達できない場合、メディア送信に必須。'
-      },
-      LINE_ALLOWED_USERS: {
-        label: '許可するユーザー ID',
-        help: 'ボットに DM できる LINE ユーザー ID（U で始まる）。カンマ区切り。'
-      },
-      LINE_ALLOWED_GROUPS: {
-        label: '許可するグループ ID',
-        help: 'ボットが応答する LINE グループ ID（C で始まる）。カンマ区切り。'
-      },
-      LINE_ALLOWED_ROOMS: {
-        label: '許可するルーム ID',
-        help: 'ボットが応答する LINE ルーム ID（R で始まる）。カンマ区切り。'
-      },
-      LINE_ALLOW_ALL_USERS: {
-        label: 'すべてのユーザーを許可',
-        help: '開発用のみ。すべての LINE ユーザーがボットと会話できます（許可リストを無効化）。'
-      },
-      LINE_HOME_CHANNEL: {
-        label: 'ホームチャンネル ID',
-        help: 'Cron / 通知配信のデフォルトのユーザー/グループ/ルーム ID。'
-      },
-      LINE_SLOW_RESPONSE_THRESHOLD: {
-        label: '低速応答しきい値（秒）',
-        help: '低速 LLM ポストバックボタンが作動するまでの秒数（デフォルト: 45。0 で無効化し常に Push フォールバック）。'
-      },
-      NTFY_TOPIC: { label: '購読トピック', help: '購読するトピック名（例: hermes-in）。' },
-      NTFY_SERVER_URL: { label: 'サーバー URL', help: 'ntfy サーバーの URL（デフォルト: https://ntfy.sh）。' },
-      NTFY_TOKEN: { label: '認証トークン', help: 'Bearer トークンまたは Basic 認証用の user:pass（任意）。' },
-      NTFY_PUBLISH_TOPIC: { label: '発行トピック', help: '返信を発行するトピック（デフォルトは NTFY_TOPIC）。' },
-      NTFY_MARKDOWN: {
-        label: 'Markdown を有効化',
-        help: 'X-Markdown: true ヘッダー付きで返信を送信（true/false、デフォルト: false）。'
-      },
-      NTFY_ALLOWED_USERS: { label: '許可するトピック名', help: '許可するトピック名（許可リスト）。カンマ区切り。' },
-      NTFY_ALLOW_ALL_USERS: {
-        label: 'すべてのトピックを許可',
-        help: '開発用のみ。あらゆるトピックがボットと会話できます（許可リストを無効化）。'
-      },
-      NTFY_HOME_CHANNEL: { label: 'ホームトピック', help: 'Cron / 通知配信のデフォルトトピック。' },
-      NTFY_HOME_CHANNEL_NAME: {
-        label: 'ホームトピック名',
-        help: 'ホームチャンネルの表示名（デフォルトはトピック名）。'
-      },
-      PHOTON_PROJECT_ID: {
-        label: 'Spectrum プロジェクト ID',
-        help: 'Spectrum プロジェクト ID（プロジェクトの spectrumProjectId。hermes photon setup で設定）。'
-      },
-      PHOTON_PROJECT_SECRET: {
-        label: 'プロジェクトシークレット',
-        help: 'Spectrum プロジェクト ID と対になるシークレット（hermes photon setup で設定）。'
-      },
-      PHOTON_SIDECAR_PORT: {
-        label: 'サイドカー制御ポート',
-        help: 'Node サイドカーの制御 + 受信チャネル用ループバックポート（デフォルト 8789）。'
-      },
-      PHOTON_SIDECAR_AUTOSTART: {
-        label: 'サイドカーを自動起動',
-        help: '接続時に Node サイドカーを起動（true/false、デフォルト true）。'
-      },
-      PHOTON_NODE_BIN: {
-        label: 'Node 実行ファイルのパス',
-        help: 'node バイナリのパス（デフォルト: PATH 上の node）。'
-      },
-      PHOTON_DASHBOARD_HOST: {
-        label: 'Dashboard ホスト',
-        help: 'Photon Dashboard API ホスト（デフォルト https://app.photon.codes）。'
-      },
-      PHOTON_SPECTRUM_HOST: {
-        label: 'Spectrum API ホスト',
-        help: 'Photon Spectrum API ホスト（デフォルト https://spectrum.photon.codes）。'
-      },
-      PHOTON_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる E.164 電話番号。カンマ区切り。' },
-      PHOTON_ALLOW_ALL_USERS: {
-        label: 'すべてのユーザーを許可',
-        help: '開発用のみ。あらゆる送信者がボットをトリガーできます（許可リストを無効化）。'
-      },
-      PHOTON_REQUIRE_MENTION: {
-        label: 'グループチャットでメンションを必須にする',
-        help: 'メンションのウェイクワードに一致しない限りグループチャットのメッセージを無視します（true/false、デフォルト false）。'
-      },
-      PHOTON_MENTION_PATTERNS: {
-        label: 'グループメンションパターン',
-        help: 'グループチャット用メンションウェイクワードの正規表現（JSON リストまたはカンマ/改行区切り。デフォルトは Hermes のウェイクワード）。'
-      },
-      PHOTON_HOME_CHANNEL: {
-        label: 'ホーム Photon ターゲット',
-        help: 'Cron / 通知配信のデフォルト Photon ターゲット: Spectrum スペース ID、DM GUID、または素の E.164 電話番号。'
-      },
-      PHOTON_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'ホームチャンネルの表示名。' },
-      PHOTON_TELEMETRY: {
-        label: 'Spectrum テレメトリを有効化',
-        help: 'サイドカーで Spectrum SDK テレメトリを有効にします（true/false、デフォルト false。hermes photon telemetry on|off で切り替え）。'
-      },
-      PHOTON_MARKDOWN: {
-        label: '返信を Markdown でレンダリング',
-        help: '返信を Markdown で送信します — iMessage はネイティブ表示、他の Spectrum プラットフォームはプレーンテキストに劣化（true/false、デフォルト true）。'
-      },
-      PHOTON_REACTIONS: {
-        label: 'リアクションタップバックを有効化',
-        help: '処理状況として 👀/👍/👎 をタップバックし、ボットメッセージへのタップバックをエージェントに転送します（true/false、デフォルト false）。'
-      },
-      SIMPLEX_WS_URL: {
-        label: 'デーモン WebSocket URL',
-        help: 'simplex-chat デーモンの WebSocket URL（例: ws://127.0.0.1:5225）。'
-      },
-      SIMPLEX_ALLOWED_USERS: {
-        label: '許可する連絡先 ID',
-        help: 'ボットと会話できる SimpleX 連絡先 ID。カンマ区切り。'
-      },
-      SIMPLEX_ALLOW_ALL_USERS: {
-        label: 'すべての連絡先を許可',
-        help: '開発用のみ。あらゆる連絡先がボットと会話できます（許可リストを無効化）。'
-      },
-      SIMPLEX_AUTO_ACCEPT: {
-        label: '連絡先リクエストを自動承認',
-        help: '受信した連絡先リクエストを自動承認します（デフォルト: true）。'
-      },
-      SIMPLEX_GROUP_ALLOWED: {
-        label: '許可するグループ ID',
-        help: 'ボットが参加する SimpleX グループ ID（カンマ区切り）、または * で任意のグループを許可。省略するとグループメッセージを完全に無視します（より安全なデフォルト — さもないとグループ内のボットは全メンバーのトラフィックを処理します）。'
-      },
-      SIMPLEX_HOME_CHANNEL: {
-        label: 'ホーム連絡先/グループ ID',
-        help: 'Cron / 通知配信のデフォルト連絡先/グループ ID。'
-      },
-      SIMPLEX_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'ホームチャンネルの表示名（デフォルトは ID）。' },
-      HERMES_SIMPLEX_TEXT_BATCH_DELAY: {
-        label: 'テキストバッチ遅延（秒）',
-        help: '連続して届く受信テキストを 1 つのメッセージイベントに結合する静穏期間の秒数（デフォルト: 0.8）— Telegram のテキストバッチングと同じパターン。'
-      },
-      SMS_ALLOWED_USERS: { label: '許可する番号', help: 'ボットと会話できる電話番号。カンマ区切り。' },
-      SMS_HOME_CHANNEL: { label: 'ホーム番号', help: 'Cron / 通知配信のデフォルト電話番号。' },
-      TEAMS_CLIENT_ID: {
-        label: 'Azure AD クライアント ID',
-        help: 'Azure AD アプリケーション（Bot Framework）のクライアント ID。'
-      },
-      TEAMS_CLIENT_SECRET: {
-        label: 'Azure AD クライアントシークレット',
-        help: 'Azure AD アプリケーションのクライアントシークレット。'
-      },
-      TEAMS_TENANT_ID: {
-        label: 'Azure AD テナント ID',
-        help: 'ボットアプリケーションをホストする Azure AD テナント ID。'
-      },
-      TEAMS_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（Bot Framework デフォルト: 3978）。' },
-      TEAMS_HOST: {
-        label: 'Webhook ホスト',
-        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
-      },
-      TEAMS_ALLOWED_USERS: {
-        label: '許可するユーザー',
-        help: 'ボットと会話できる Teams ユーザー ID / UPN。カンマ区切り。'
-      },
-      TEAMS_ALLOW_ALL_USERS: {
-        label: 'すべてのユーザーを許可',
-        help: '開発用のみ。すべての Teams ユーザーがボットをトリガーできます。'
-      },
-      TEAMS_HOME_CHANNEL: { label: 'ホームチャンネル', help: 'Cron / 通知配信のデフォルトのチャット/チャンネル ID。' },
-      TEAMS_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Teams ホームチャンネルの表示名。' },
-      WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: 'WeCom スマートロボットの WebSocket URL。' },
-      WECOM_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
-      WECOM_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる WeCom ユーザー ID。カンマ区切り。' },
-      A2A_AGENT_NAME: {
-        label: 'A2A エージェント名',
-        help: 'このエージェントの Agent Card に公開される名前（デフォルト：ホスト名から生成）。',
-        placeholder: 'A2A エージェント名'
-      },
-      A2A_BEARER_TOKEN: {
-        label: 'A2A 共有トークン（空の場合はローカルのみ）',
-        help: 'インバウンド A2A 呼び出し用の共有トークン（IDが呼び出し元 IP にフォールバック）。トークン未設定の場合は 127.0.0.1 のみにバインドします。',
-        placeholder: 'A2A 共有トークン（空の場合はローカルのみ）'
-      },
-      A2A_HOST: {
-        label: 'A2A バインドホスト（デフォルト 127.0.0.1）',
-        help: 'インバウンドバインドホスト。デフォルト 127.0.0.1；トークン設定時かつここで選択した場合のみ 0.0.0.0 に拡張。',
-        placeholder: 'A2A バインドホスト（デフォルト 127.0.0.1）'
-      },
-      A2A_PORT: {
-        label: 'A2A ポート（デフォルト 9900）',
-        help: 'インバウンド A2A サーバーポート（デフォルト 9900）。',
-        placeholder: 'A2A ポート（デフォルト 9900）'
-      },
-      A2A_PEER_TOKENS: {
-        label: 'A2A ピアトークン（name:token、カンマ区切り；または空）',
-        help: 'ピアエージェントごとのトークン（例：alice:tok1,bob:tok2）。マッチした名前がレート制限、信頼、監査に使用される ID になります。',
-        placeholder: 'A2A ピアトークン（name:token、カンマ区切り；または空）'
-      },
-      A2A_HOME_CHANNEL: {
-        label: 'A2A ホームチャンネル（または空）',
-        help: 'deliver=a2a の場合に cron / 通知配信で使用するタスク/コンテキスト ID。'
-      },
-      A2A_ALLOW_ALL_USERS: {
-        label: 'すべての A2A ピアを許可',
-        help: '認証済みの A2A ピアがこのエージェントにアクセスできるようにします（開発用のみ）。'
-      },
-      RAFT_PROFILE: {
-        label: 'Raft エージェントプロファイル',
-        help: 'Raft エージェントプロファイルスラグ — 設定するとアダプターが自動有効化されます。',
-        placeholder: 'Raft エージェントプロファイル'
-      },
-      BUZZ_RELAY_URL: {
-        label: 'Buzz リレー URL',
-        help: 'Buzz コミュニティリレーのベース URL（例：https://mycommunity.communities.buzz.xyz）。',
-        placeholder: 'Buzz リレー URL'
-      },
-      BUZZ_PRIVATE_KEY: {
-        label: 'Nostr 秘密鍵（nsec または hex）',
-        help: 'エージェントの Buzz アイデンティティ用 Nostr 秘密鍵（nsec または hex）— 唯一の Buzz シークレット。'
-      },
-      BUZZ_CLI_PATH: {
-        label: 'buzz CLI パス（または空）',
-        help: 'buzz CLI バイナリのパス（デフォルト：PATH の buzz、次に ~/bin/buzz）。'
-      },
-      BUZZ_CHANNELS: {
-        label: 'チャンネル UUID（カンマ区切り）',
-        help: '監視するチャンネルの UUID（カンマ区切り、デフォルト：参加中のすべてのチャンネル）。'
-      },
-      BUZZ_HOME_CHANNEL: {
-        label: 'ホームチャンネル UUID（または空）',
-        help: 'cron / 通知配信に使用するチャンネル UUID（デフォルト：最初の監視チャンネル）。'
-      },
-      BUZZ_ALLOWED_USERS: {
-        label: '許可するユーザー（カンマ区切り）',
-        help: 'エージェントと会話できる npub または hex 公開鍵。カンマ区切り。'
-      },
-      BUZZ_ALLOW_ALL_USERS: {
-        label: 'すべてのユーザーを許可？（true/false）',
-        help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。'
-      },
-      BUZZ_TRANSPORT: {
-        label: 'トランスポート（auto/websocket/poll）',
-        help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。'
-      },
-      BUZZ_POLL_INTERVAL: { label: 'ポール間隔（秒）', help: 'インバウンドポールスイープの間隔秒数（デフォルト 4）。' },
-      BUZZ_AUTH_TAG: {
-        label: 'NIP-OA auth tag JSON（または空）',
-        help: 'NIP-42 WebSocket 認証用のオプション NIP-OA 所有者証明 auth tag JSON。'
-      },
-      BUZZ_CREDENTIALS_FILE: {
-        label: '認証情報ファイルパス（または空）',
-        help: 'nsec を保持する JSON 認証情報ファイル（BUZZ_PRIVATE_KEY 未設定時のフォールバック）。'
-      },
-      TELEGRAM_ALLOW_ALL_USERS: {
-        label: 'すべての Telegram ユーザーを許可',
-        help: '開発用のみ。すべての Telegram ユーザーがボットを利用できます。'
-      },
-      TELEGRAM_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
-      TELEGRAM_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Telegram ホームチャンネルの表示名。' },
-      SLACK_ALLOW_ALL_USERS: {
-        label: 'すべての Slack ユーザーを許可',
-        help: '開発用のみ。すべての Slack ユーザーがボットを利用できます。'
-      },
-      SLACK_HOME_CHANNEL: {
-        label: 'ホームチャンネル ID',
-        help: 'Cron / 通知配信のデフォルトチャンネル ID（C で始まる）。'
-      },
-      SLACK_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Slack ホームチャンネルの表示名。' },
-      SLACK_THREAD_REQUIRE_MENTION: {
-        label: 'スレッド内で @メンションを必須にする',
-        help: 'Slack スレッドの返信に明示的な @メンションを必須にします。トップレベルの自由応答チャンネルには影響しません。'
-      },
-      MATTERMOST_ALLOWED_CHANNELS: {
-        label: '許可するチャンネル ID',
-        help: '設定するとボットはこれらのチャンネルでのみ応答します（ホワイトリスト）。カンマ区切り。'
-      },
-      MATTERMOST_FREE_RESPONSE_CHANNELS: {
-        label: '自由応答チャンネル ID',
-        help: '@メンションなしでボットが応答する Mattermost チャンネル ID。カンマ区切り。'
-      },
-      MATTERMOST_REPLY_MODE: { label: '返信モード', help: 'thread（ネスト）または off（フラット）。デフォルト: off。' },
-      MATTERMOST_REQUIRE_MENTION: {
-        label: 'チャンネル内で @メンションを必須にする',
-        help: 'Mattermost チャンネルで @メンションを必須にします（デフォルト: true）。false にするとすべてのメッセージに応答します。'
-      },
-      MATRIX_ALLOW_ALL_USERS: {
-        label: 'すべての Matrix ユーザーを許可',
-        help: '開発用のみ。すべての Matrix ユーザーがボットを利用できます。'
-      },
-      MATRIX_AUTO_THREAD: {
-        label: 'ルームでスレッドを自動作成',
-        help: 'Matrix ルームのメッセージにスレッドを自動作成します（デフォルト: true）。'
-      },
-      MATRIX_DEVICE_ID: {
-        label: 'デバイス ID',
-        help: 'E2EE 永続化のための再起動後も変わらない Matrix デバイス ID（例: HERMES_BOT）。'
-      },
-      MATRIX_DM_AUTO_THREAD: {
-        label: 'DM でスレッドを自動作成',
-        help: 'Matrix の DM にスレッドを自動作成します（デフォルト: false）。'
-      },
-      MATRIX_FREE_RESPONSE_ROOMS: {
-        label: '自由応答ルーム ID',
-        help: '@メンションなしでボットが応答する Matrix ルーム ID。カンマ区切り。'
-      },
-      MATRIX_HOME_CHANNEL: { label: 'ホームルーム ID', help: 'Cron / 通知配信のデフォルトルーム ID。' },
-      MATRIX_HOME_CHANNEL_NAME: { label: 'ホームルーム名', help: 'Matrix ホームルームの表示名。' },
-      MATRIX_PASSWORD: {
-        label: 'Matrix パスワード',
-        help: 'Matrix アカウントのパスワード（アクセストークンの代替）。'
-      },
-      MATRIX_RECOVERY_KEY: {
-        label: 'リカバリーキー',
-        help: 'デバイスキーのローテーション後にクロス署名検証へ使うリカバリーキー（Element: 設定 → セキュリティ → リカバリーキー）。'
-      },
-      MATRIX_REQUIRE_MENTION: {
-        label: 'ルームで @メンションを必須にする',
-        help: 'Matrix ルームで @メンションを必須にします（デフォルト: true）。false にするとすべてのメッセージに応答します。'
-      },
-      WHATSAPP_DM_POLICY: { label: 'DM ポリシー', help: 'WhatsApp ダイレクトメッセージの承認方法。' },
-      WHATSAPP_ALLOW_ALL_USERS: {
-        label: 'すべての WhatsApp ユーザーを許可',
-        help: '開発用のみ。すべての WhatsApp ユーザーがボットを利用できます。'
-      },
-      WHATSAPP_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
-      WHATSAPP_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'WhatsApp ホームチャンネルの表示名。' },
-      BLUEBUBBLES_SERVER_URL: {
-        label: 'サーバー URL',
-        help: 'iMessage 連携用の BlueBubbles サーバー URL。',
-        placeholder: 'http://192.168.1.10:1234'
-      },
-      BLUEBUBBLES_PASSWORD: {
-        label: 'サーバーパスワード',
-        help: 'BlueBubbles サーバーのパスワード（BlueBubbles Server → 設定 → API）。'
-      },
-      BLUEBUBBLES_ALLOWED_USERS: {
-        label: '許可する iMessage アドレス',
-        help: '推奨。カンマ区切りの iMessage アドレス（メールまたは電話番号）。'
-      },
-      HASS_URL: {
-        label: 'Home Assistant URL',
-        help: 'Home Assistant のベース URL。',
-        placeholder: 'http://homeassistant.local:8123'
-      },
-      HASS_TOKEN: { label: '長期アクセストークン', help: 'Home Assistant の長期アクセストークン。' },
-      EMAIL_ADDRESS: { label: 'メールアドレス', help: 'メールアカウントのアドレス。' },
-      EMAIL_PASSWORD: { label: 'メールパスワード', help: 'メールアカウントのパスワード / アプリパスワード。' },
-      EMAIL_IMAP_HOST: {
-        label: 'IMAP ホスト',
-        help: '受信ポーリングに使う IMAP ホスト。',
-        placeholder: 'imap.gmail.com'
-      },
-      EMAIL_SMTP_HOST: { label: 'SMTP ホスト', help: '送信に使う SMTP ホスト。', placeholder: 'smtp.gmail.com' },
-      EMAIL_ALLOWED_USERS: {
-        label: '許可するメールアドレス',
-        help: '推奨。ボットと会話できるメールアドレス。カンマ区切り。'
-      },
-      EMAIL_HOME_ADDRESS: { label: 'ホームアドレス', help: 'Cron / 通知配信のデフォルトメールアドレス。' },
-      EMAIL_SMTP_PORT: { label: 'SMTP ポート', help: 'SMTP ポート（デフォルト 587）。' },
-      TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: 'Twilio コンソールの Account SID。' },
-      TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: 'Twilio コンソールの Auth Token。' },
-      TWILIO_PHONE_NUMBER: { label: 'Twilio 電話番号', help: 'SMS を送信できる Twilio の番号（E.164 形式）。' },
-      DINGTALK_CLIENT_ID: { label: 'Client ID (App Key)', help: 'DingTalk アプリの App Key（Client ID）。' },
-      DINGTALK_CLIENT_SECRET: { label: 'Client Secret', help: 'DingTalk アプリの App Secret（Client Secret）。' },
-      DINGTALK_ALLOWED_USERS: {
-        label: '許可するユーザー',
-        help: 'ボットと会話できるスタッフ / 送信者 ID。カンマ区切り（* は全員）。'
-      },
-      DINGTALK_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルト会話 ID。' },
-      DINGTALK_HOME_CHANNEL_NAME: { label: 'ホーム会話名', help: 'DingTalk ホーム会話の表示名。' },
-      DINGTALK_WEBHOOK_URL: {
-        label: 'ロボット Webhook URL',
-        help: 'クロスプラットフォーム / Cron 配信用の固定ロボット Webhook URL（任意）。'
-      },
-      FEISHU_APP_ID: { label: 'App ID', help: 'Feishu / Lark アプリの App ID。' },
-      FEISHU_APP_SECRET: { label: 'App Secret', help: 'Feishu / Lark アプリの App Secret。' },
-      FEISHU_ENCRYPT_KEY: { label: '暗号化キー (Encrypt Key)', help: 'Feishu / Lark のイベント暗号化キー。' },
-      FEISHU_VERIFICATION_TOKEN: {
-        label: '検証トークン (Verification Token)',
-        help: 'Feishu / Lark のイベント検証トークン。'
-      },
-      FEISHU_ALLOWED_USERS: {
-        label: '許可するユーザー ID',
-        help: '推奨。ボットと会話できる Feishu ユーザー ID。カンマ区切り。'
-      },
-      FEISHU_ALLOW_ALL_USERS: {
-        label: 'すべての Feishu ユーザーを許可',
-        help: '開発用のみ。すべての Feishu ユーザーがボットを利用できます。'
-      },
-      FEISHU_DOMAIN: { label: 'ドメイン (feishu/lark)', help: 'feishu（中国版）または lark（国際版）。' },
-      FEISHU_HOME_CHANNEL: { label: 'ホームチャット ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
-      FEISHU_HOME_CHANNEL_NAME: { label: 'ホームチャット名', help: 'Feishu ホームチャットの表示名。' },
-      WECOM_BOT_ID: { label: 'ボット ID', help: 'WeCom スマートロボットのボット ID。' },
-      WECOM_SECRET: { label: 'ボット Secret', help: 'WeCom スマートロボットの secret。' },
-      WECOM_CALLBACK_CORP_ID: {
-        label: '企業 ID (Corp ID)',
-        help: 'WeCom コールバックモードの企業 ID（自社構築アプリ）。'
-      },
-      WECOM_CALLBACK_CORP_SECRET: { label: 'アプリ Secret', help: 'WeCom コールバックモードのアプリ Secret。' },
-      WECOM_CALLBACK_AGENT_ID: { label: 'アプリ Agent ID', help: 'WeCom コールバックモードのアプリ Agent ID。' },
-      WECOM_CALLBACK_TOKEN: { label: 'コールバックトークン', help: 'WeCom コールバック検証トークン。' },
-      WECOM_CALLBACK_ENCODING_AES_KEY: {
-        label: 'EncodingAESKey',
-        help: 'メッセージ暗号化用の WeCom コールバック EncodingAESKey。'
-      },
-      WEIXIN_ACCOUNT_ID: {
-        label: 'iLink Bot アカウント ID',
-        help: 'hermes gateway setup の QR ログインで取得した iLink Bot アカウント ID。'
-      },
-      WEIXIN_TOKEN: {
-        label: 'iLink Bot トークン',
-        help: 'hermes gateway setup の QR ログインで取得した iLink Bot トークン。'
-      },
-      WEIXIN_BASE_URL: {
-        label: 'iLink API ベース URL',
-        help: 'QR ログインで保存された iLink API ベース URL（デフォルト: https://ilinkai.weixin.qq.com）。'
-      },
-      QQ_APP_ID: { label: 'App ID', help: 'QQ オープンプラットフォーム (q.qq.com) のボット App ID。' },
-      QQ_CLIENT_SECRET: { label: 'Client Secret', help: 'QQ オープンプラットフォームのボット Client Secret。' },
-      QQ_ALLOWED_USERS: {
-        label: '許可する QQ ユーザー',
-        help: '推奨。ボットを利用できる QQ ユーザー ID。カンマ区切り。'
-      },
-      QQ_GROUP_ALLOWED_USERS: {
-        label: '許可する QQ グループ',
-        help: 'ボットと対話できる QQ グループ ID。カンマ区切り。'
-      },
-      QQ_SANDBOX: {
-        label: 'サンドボックスモード',
-        help: '開発テスト用に QQ サンドボックスモードを有効にします（true/false）。'
-      },
-      API_SERVER_ENABLED: {
-        label: 'API サーバーを有効にする',
-        help: 'OpenAI 互換の API サーバーを有効にします（true/false）。Open WebUI や LobeChat などのフロントエンドが接続できます。'
-      },
-      API_SERVER_KEY: {
-        label: '認証キー',
-        help: 'API サーバー認証用の Bearer トークン。API サーバーを有効にする場合は必須で、未設定だとサーバーは起動を拒否します。'
-      },
-      API_SERVER_PORT: { label: 'ポート', help: 'API サーバーのポート（デフォルト: 8642）。' },
-      API_SERVER_HOST: {
-        label: 'バインドアドレス',
-        help: 'API サーバーのバインドアドレス（デフォルト: 127.0.0.1）。ループバックのみでも認証キーは必須です。'
-      },
-      API_SERVER_MODEL_NAME: {
-        label: 'モデル名',
-        help: '/v1/models で公開されるモデル名。デフォルトはプロファイル名（デフォルトプロファイルでは hermes-agent）。OpenWebUI のマルチユーザー構成に便利です。'
-      },
-      WEBHOOK_ENABLED: {
-        label: 'Webhook を有効にする',
-        help: 'GitHub や GitLab などからイベントを受信する Webhook アダプターを有効にします。'
-      },
-      WEBHOOK_PORT: { label: 'ポート', help: 'Webhook HTTP サーバーのポート（デフォルト: 8644）。' },
-      WEBHOOK_SECRET: {
-        label: '署名シークレット',
-        help: 'Webhook 署名検証用のグローバル HMAC シークレット（config.yaml でルートごとに上書き可能）。'
       }
     },
-    platformIntro: {
-      telegram:
-        'Telegram で @BotFather に話しかけて /newbot を実行し、表示されたトークンをコピーします。次に @userinfobot から数値のユーザー ID を取得します。',
-      discord:
-        'Discord Developer Portal を開いてアプリケーションを作成し、Bot を追加してそのトークンをコピーします。適切なスコープでボットをサーバーに招待してください。',
-      slack:
-        'Slack アプリを作成し、Socket Mode を有効にしてワークスペースにインストールし、ボットトークンとアプリレベルトークンをコピーします。',
-      mattermost:
-        'Mattermost サーバーでボットアカウントまたはパーソナルアクセストークンを作成し、サーバー URL とトークンをここに貼り付けます。',
-      matrix:
-        'ボットアカウントでホームサーバーにサインインし、アクセストークン、ユーザー ID、ホームサーバー URL をコピーします。',
-      signal:
-        '到達可能な場所で signal-cli REST ブリッジを実行し、その URL と登録済みの電話番号を Hermes に設定します。',
-      whatsapp:
-        'Hermes 同梱の WhatsApp ブリッジを起動し、初回実行時に QR コードをスキャンしてからプラットフォームを有効にします。',
-      bluebubbles:
-        'iMessage が使える Mac で BlueBubbles Server を実行して API を公開し、サーバーパスワードとともに Hermes をその URL に向けます。',
-      homeassistant:
-        'Home Assistant でプロフィールを開き、長期アクセストークンを作成します。HA の URL と一緒にここに貼り付けてください。',
-      email:
-        '専用メールボックスを使ってください。Gmail/Workspace ではアプリパスワードを作成し、imap.gmail.com / smtp.gmail.com を使用します。',
-      sms: 'Twilio コンソールから Account SID と Auth Token、SMS 送信可能な電話番号を取得します。',
-      dingtalk:
-        '開発者コンソールで DingTalk アプリを作成し、Client ID (App key) と Client Secret をここにコピーします。',
-      feishu:
-        'Feishu / Lark アプリを作成し、ボット機能を設定して、App ID、App secret、イベント暗号化キーをコピーします。',
-      wecom:
-        'WeCom でグループロボットを追加し、その webhook key を WECOM_BOT_ID としてコピーします。送信専用です — 双方向には WeCom (アプリ) を使ってください。',
-      wecom_callback:
-        'WeCom の自社構築アプリを設定し、コールバック URL を公開して、corp ID、secret、agent ID、AES key を指定します。',
-      weixin:
-        '`hermes gateway setup` を実行して Weixin を選択し、個人の WeChat アカウントで QR コードをスキャンして確認します。Hermes は Tencent の iLink Bot API 経由で接続し、資格情報を保存します。',
-      qqbot: 'QQ オープンプラットフォーム (q.qq.com) でアプリを登録し、App ID と Client Secret をコピーします。',
-      api_server:
-        'Hermes を OpenAI 互換 API として公開します。認証キーを設定し、Open WebUI / LobeChat などを host:port に向けてください。',
-      webhook:
-        '他のツール (GitHub、GitLab、カスタムアプリ) が POST できる HTTP サーバーを実行します。シークレットで署名を検証します。',
-      a2a: '外部依存関係なし（標準ライブラリのみ）。共有トークンまたはピアトークンを設定して、他の Hermes インスタンスが A2A プロトコル経由で接続できるようにします。',
-      buzz: 'buzz CLI ツール (https://github.com/block/buzz) が PATH または BUZZ_CLI_PATH に必要です。Nostr リレー経由で Buzz コミュニティに接続します。',
-      raft: 'Raft ワークスペースに外部エージェントとして参加します。'
-    },
-    platformDescription: {
-      telegram: 'Telegram の DM、グループ、トピックで Hermes を使います。',
-      discord: 'Discord の DM、チャンネル、スレッドに Hermes を接続します。',
-      slack:
-        'Socket Mode 経由で Slack から Hermes を使います。許可する Slack メンバー ID を追加すると接続済みボットが応答します。',
-      mattermost: 'Mattermost のチャンネルとダイレクトメッセージに Hermes を接続します。',
-      matrix: 'Matrix のルームとダイレクトメッセージで Hermes を使います。',
-      signal: 'signal-cli REST ブリッジ経由で接続します。',
-      whatsapp: '同梱の WhatsApp ブリッジと QR 認証で Hermes を使います。',
-      bluebubbles: 'BlueBubbles サーバー経由の iMessage で Hermes を使います。',
-      homeassistant: 'Home Assistant 経由で Hermes からスマートホームを操作します。',
-      email: 'IMAP/SMTP メールボックスを通じて Hermes と会話します。',
-      sms: 'Twilio 経由でテキストメッセージを送受信します。',
-      dingtalk: 'DingTalk（釘釘）のグループに Hermes を接続します。',
-      feishu: 'Feishu / Lark の中で Hermes を使います。',
-      google_chat: 'Cloud Pub/Sub 経由で Google Chat に Hermes を接続します。',
-      wecom: 'Webhook 経由の送信専用 WeCom グループボット。',
-      wecom_callback: 'コールバックアプリによる双方向の WeCom 連携。',
-      weixin: 'Tencent iLink Bot API 経由で個人 WeChat アカウントを接続します。',
-      qqbot: 'QQ オープンプラットフォームのボットに Hermes を接続します。',
-      yuanbao: 'Tencent Yuanbao に Hermes を接続します。',
-      api_server: 'Open WebUI などのツール向けに Hermes を OpenAI 互換 HTTP API として公開します。',
-      webhook: 'GitHub、GitLab などの webhook ソースからイベントを受信します。',
-      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 サポート —— Linux Foundation のエージェント間通信オープン標準の双方向対応。\n\nアウトバウンド（クライアントツール）：a2a_discover、a2a_call、a2a_list、a2a_history、a2a_orchestrate により、エージェントが他のエージェントの Agent Card を取得し、JSON-RPC 経由でタスクを送信できます —— 任意の A2A 準拠ピア（Hermes、LangChain、CrewAI、Google ADK、OpenClaw など）と連携可能。\n\nインバウンド（プラットフォームアダプター）：Hermes を A2A で発見可能なエージェントとして公開します。Agent Card は /.well-known/agent-card.json で提供され（v1.0 標準パス；レガシー agent.json も応答）、受信タスクは他のプラットフォームと同様にエージェントのライブゲートウェイセッションにルーティングされます —— そのため応答するエージェントは、完全なメモリとコンテキストを持ってユーザーと会話している同じエージェントであり、使い捨てのクローンではありません。\n\nセキュリティはデフォルトで有効：ベアラートークン未設定 => localhost のみにバインド。インバウンドタスクテキストはプロンプトインジェクションフィルターを通過；アウトバウンドテキストは認証情報形式の文字列をスクラブ；すべての交換は監査ログに記録され、コンテキスト圧縮パイプラインの外でディスクに永続化されるため、会話は圧縮と再起動後も存続します。\n\n純粋な標準ライブラリトランスポート（http.server + urllib）—— a2a-sdk 依存関係不要。',
-      buzz: 'Nostr リレー経由で分散型 Buzz コミュニティに接続します（buzz CLI が必要）。',
-      raft: 'Raft ワークスペースに外部エージェントとして参加してタスクで協力します。'
-    }
+    platformIntro: {}
   },
 
   profiles: {
@@ -3473,6 +2034,12 @@ export const ja = defineLocale({
 
     color: 'カラー…',
     colorFor: 'カラー',
+    openInNewWindow: '新しいウィンドウで開く',
+    setAsDefault: 'デフォルトに設定',
+    defaultProfile: 'デフォルトのプロファイル',
+    defaultSet: name => `${name} をデフォルトに設定しました`,
+    defaultDescription: 'Hermes の起動時と新しいチャットに使用します。既存のセッションのプロファイルは変わりません。',
+    failedSetDefault: 'デフォルトのプロファイルを設定できませんでした',
     setColor: color => `カラー ${color} に設定`,
     autoColor: '自動',
     noProfiles: 'プロファイルが見つかりません。',
@@ -3510,7 +2077,6 @@ export const ja = defineLocale({
     deleting: '削除中...',
     createDesc: 'プロファイルは独立した Hermes 環境です：設定、スキル、SOUL.md が別々になります。',
     nameLabel: '名前',
-    namePlaceholder: '例: my-profile',
     cloneFrom: '複製元',
     cloneFromNone: 'なし（空）',
     cloneFromDesc: '選択したプロファイルから設定、スキル、SOUL.md をコピーします。',
@@ -3539,22 +2105,18 @@ export const ja = defineLocale({
     failedRename: 'プロファイルの名前変更に失敗しました'
   },
 
+  modelAssignment: {
+    saveFailed: 'Hermes はモデルの変更を保存しませんでした。',
+    confirmTitle: 'モデル選択の警告',
+    confirmDetail: 'このトレードオフを受け入れる場合のみ確認してください。',
+    confirmAction: '確認',
+    declined: 'モデル変更をキャンセルしました — データ学習ティアの警告を拒否しました。'
+  },
+
   cron: {
     close: 'Cron を閉じる',
     title: 'スケジュール済みジョブ',
     count: count => `${count} 件のジョブ`,
-    modelImpact: {
-      title: 'スケジュール済みジョブは元のモデルで実行されます',
-      message: count =>
-        `ピン留めされていない ${count} 件のスケジュール済みジョブは、作成時のモデルで引き続き実行されます。移行するにはピン留めするか cron.model を設定してください。`,
-      detailMore: (names, remaining) => `${names}、ほか ${remaining} 件`,
-      review: 'スケジュール済みジョブを確認',
-      saveFailed: 'Hermes はモデルの変更を保存しませんでした。',
-      confirmTitle: 'モデル選択の警告',
-      confirmDetail: 'このトレードオフを受け入れる場合のみ確認してください。',
-      confirmAction: '確認',
-      declined: 'モデル変更をキャンセルしました — データ学習ティアの警告を拒否しました。'
-    },
     search: 'Cron ジョブを検索...',
     loading: 'Cron ジョブを読み込み中...',
     states: {
@@ -3571,9 +2133,7 @@ export const ja = defineLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'メール',
-      botChat: 'Bot チャット',
-      defaultProfile: 'デフォルト'
+      email: 'メール'
     },
     scheduleLabels: {
       daily: '毎日',
@@ -3685,110 +2245,8 @@ export const ja = defineLocale({
       scheduled: 'ブレーンプリントをスケジュールしました',
       loading: 'ブレーンプリントを読み込み中...',
       failedLoad: 'ブレーンプリントの読み込みに失敗しました',
-      emptyTitle: '利用できるブループリントはありません',
-      emptyDesc: 'このバックエンドで利用できる自動化ブループリントはありません。',
-      titles: {
-        'Morning briefing': '朝のブリーフィング',
-        'Important-mail monitor': '重要メール監視',
-        'Weekly review': '週次レビュー',
-        'Workday start reminder': '勤務開始リマインダー',
-        'Custom reminder': 'カスタムリマインダー',
-        'Evening wind-down': '夜のまとめ',
-        'Topic news digest': 'トピックニュースダイジェスト',
-        'Bills & renewals reminder': '請求書と更新のリマインダー',
-        'Price & availability watch': '価格と在庫監視',
-        'Competitor news watch': '競合ニュース監視',
-        'Habit check-in': '習慣チェックイン',
-        'Hydration & movement nudge': '水分補給と運動の促し',
-        'Weekly meal plan': '週間食事計画',
-        'Daily learning drip': '毎日の学習',
-        'Gratitude & reflection prompt': '感謝と振り返りのプロンプト',
-        'On-this-day discovery': '今日は何の日'
-      },
-      descriptions: {
-        'Morning briefing': '毎日の簡単なブリーフィング：今日のカレンダー、天気、保留中の緊急事項。',
-        'Important-mail monitor': '定期的に受信トレイをチェックし、本当に注意が必要なときだけ通知します。',
-        'Weekly review': '週次まとめ：完了したこと、保留中のこと、これから来ること。',
-        'Workday start reminder': '議題と最優先事項を含む勤務日リマインダー。',
-        'Custom reminder': 'スケジュールに基づくカスタム繰り返しリマインダー。',
-        'Evening wind-down': '終日チェック：明日のスケジュールと今夜準備すべきことの一覧。',
-        'Topic news digest':
-          '関心のあるトピックに関する定期的なダイジェスト — 重複排除されて本当に新しいアイテムだけが表示されます。',
-        'Bills & renewals reminder':
-          '定期支払い、サブスクリプション更新、または期限日の前に事前警告 — 予期しない自動請求を防ぎます。',
-        'Price & availability watch':
-          '正確な商品、フライト、ホテル、またはリストを監視し、価格または在庫状況の条件が満たされたときに通知します。',
-        'Competitor news watch':
-          '指定企業に関する注目すべきニュースを追跡 — 製品発売、価格設定、資金調達、申告 — 引用付き要約。',
-        'Habit check-in': '習慣を維持し、完了を振り返るための定期的なリマインダー。',
-        'Hydration & movement nudge': '日中に定期的に水を飲み、立ち上がり、ストレッチするためのリマインダー。',
-        'Weekly meal plan': 'あなたの食事と調理時間に合わせた、統合された買い物リスト付きの週間食事計画。',
-        'Daily learning drip': '学びたいトピックについて毎日少しずつ学習 — 時間をかけて蓄積されます。',
-        'Gratitude & reflection prompt': '感謝と洞察を記録するための毎日または毎週の振り返りプロンプト。',
-        'On-this-day discovery': '歴史上の今日に起こった興味深い出来事 — あなたの興味に合わせてパーソナライズされます。'
-      },
-      labels: {
-        'What time?': '何時？',
-        'Where to deliver?': 'どこに配信しますか？',
-        'How often?': '頻度は？',
-        'Remind me to…': 'リマインダー内容…',
-        'Which day?': '何曜日？',
-        'Repeat on': '繰り返し',
-        'What topic?': 'トピックは？',
-        'How many bullets?': 'いくつの箇条書き？',
-        "What's due?": '何が期限ですか？',
-        'What exactly to watch?': '正確に何を監視しますか？',
-        'Alert me when…': '通知条件…',
-        'Which companies?': 'どの企業？',
-        'Which events matter?': 'どのイベントが重要？',
-        'Which habit?': 'どの習慣？',
-        'Start hour': '開始時刻',
-        'End hour': '終了時刻',
-        'Diet?': '食事制限は？',
-        'Meals per day?': '1日の食事回数？',
-        'Cooking effort?': '調理の労力？',
-        'Only notify me if the mail…': 'メールが…の場合のみ通知',
-        'Learn about…': '学ぶテーマ…',
-        'What kind?': '種類は？'
-      },
-      helps: {
-        '24h local time, e.g. 08:00': '24時間形式（例：08:00）',
-        'minutes between checks': 'チェック間隔（分）',
-        'hours between checks — be gentle with rate limits': 'チェック間隔（時間）——レート制限に注意',
-        'hours between nudges': 'ナッジ間隔（時間）',
-        'first hour of the active window (24h)': 'アクティブ時間帯の開始時刻（24時間制）',
-        'last hour of the active window (24h)': 'アクティブ時間帯の終了時刻（24時間制）'
-      },
-      options: {
-        everyday: '毎日',
-        weekdays: '平日',
-        weekends: '週末',
-        sunday: '日曜日',
-        monday: '月曜日',
-        tuesday: '火曜日',
-        wednesday: '水曜日',
-        thursday: '木曜日',
-        friday: '金曜日',
-        saturday: '土曜日',
-        'dinner only': '夕食のみ',
-        'lunch and dinner': '昼食と夕食',
-        'all three': '3食',
-        quick: '簡単',
-        medium: '普通',
-        ambitious: '本格的',
-        'no restrictions': '制限なし',
-        vegetarian: 'ベジタリアン',
-        vegan: 'ビーガン',
-        'high-protein': '高タンパク',
-        'low-carb': '低糖質',
-        'on this day in history': '歴史上の今日',
-        'word of the day': '今日の単語',
-        'science fact': 'サイエンスファクト',
-        'quote of the day': '今日の名言',
-        auto: '自動',
-        websocket: 'websocket',
-        poll: 'ポーリング'
-      }
+      emptyTitle: '利用できるブレーンプリントはありません',
+      emptyDesc: 'このバックエンドで利用できる自動化ブレーンプリントはありません。'
     }
   },
 
@@ -3830,7 +2288,7 @@ export const ja = defineLocale({
   artifactCard: {
     kind: { code: 'コード', html: 'インタラクティブページ', svg: 'グラフィック' },
     generating: lines => `生成中… ${lines} 行`,
-    versionBadge: (current, total) => `v${current}/${total}`,
+    versionBadge: count => `${count} 個のバージョン`,
     open: '開く'
   },
 
@@ -3861,7 +2319,7 @@ export const ja = defineLocale({
     },
     nav: {
       'new-session': '新しいセッション',
-      skills: 'スキルとツール',
+      capabilities: 'スキルとツール',
       messaging: 'メッセージング',
       artifacts: 'アーティファクト',
       cron: 'スケジュール済みジョブ'
@@ -3873,6 +2331,10 @@ export const ja = defineLocale({
     results: '結果',
     pinned: 'ピン留め',
     sessions: 'セッション',
+    terminal: 'ターミナル',
+    files: 'ファイル',
+    review: 'レビュー',
+    logs: 'ログ',
     cronJobs: 'Cronジョブ',
     groupAriaGrouped: 'セッションを単一リストとして表示',
     groupAriaUngrouped: 'ワークスペースごとにセッションをグループ化',
@@ -3892,6 +2354,7 @@ export const ja = defineLocale({
       sectionLabel: 'プロジェクト',
       home: 'ホーム',
       autoDiscovered: '自動検出',
+      showAllCount: count => `${count} 件のセッションをすべて表示`,
       newButton: '新規プロジェクト',
       createTitle: '新規プロジェクト',
       createDesc: 'ワークスペースに名前を付け、1つ以上のフォルダを追加します。',
@@ -3920,7 +2383,6 @@ export const ja = defineLocale({
       copyPath: 'パスをコピー',
       removeFromSidebar: 'サイドバーから削除',
       createFailed: 'プロジェクトを作成できませんでした',
-      unavailableAllProfiles: 'すべてのプロファイルを表示中はプロジェクトを使用できません',
       staleBackend:
         'プロジェクトを作成するには Hermes バックエンドを更新してください。バックエンドがこのデスクトップアプリより古いです（設定 → 更新 → バックエンド）。',
       deleteConfirm:
@@ -3978,8 +2440,6 @@ export const ja = defineLocale({
       archive: 'アーカイブ',
       newWindow: '新しいウィンドウ',
       openInTerminal: 'ターミナルで開く',
-      openInSplit: '分割表示で開く',
-      splitDirections: { right: '右', bottom: '下', left: '左', top: '上' },
       copyIdFailed: 'セッション ID をコピーできませんでした',
 
       sessionActions: 'セッションアクション',
@@ -4021,8 +2481,6 @@ export const ja = defineLocale({
 
   composer: {
     message: 'メッセージ',
-    botSelectionRequired: '先にボットを選択してから、新しいチャットを開始してください。',
-    botChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
     wakingProfile: profile => `${profile} を起動中…`,
     placeholderStarting: 'Hermes を起動中...',
     placeholderReconnecting: 'Hermes に再接続中…',
@@ -4068,9 +2526,9 @@ export const ja = defineLocale({
     speakReplies: '返信を読み上げる',
     stopSpeakingReplies: '返信の読み上げを停止',
     wakeWordListening: phrase => `ウェイクワード:「${phrase}」— 待機中`,
+    wakeWord: phrase => `ウェイクワード「${phrase}」`,
     wakeWordOff: phrase => `ウェイクワード:「${phrase}」— オフ`,
     wakeWordPausedVoice: phrase => `ウェイクワード:「${phrase}」— 音声チャット中は一時停止`,
-    wakeWordClickToEnable: 'クリックして有効化',
     lookupLoading: '検索中…',
     lookupNoMatches: '一致なし。',
     lookupTry: '試す',
@@ -4108,6 +2566,8 @@ export const ja = defineLocale({
     attachments: count => `${count} 件の添付`,
     editingInComposer: 'コンポーザーで編集中',
     editingQueuedInComposer: 'コンポーザーでキュー済みターンを編集中',
+    restoredDraftNotice: '未送信のメッセージを復元しました',
+    restoredDraftUndo: '元に戻す',
     queueEdit: '編集',
     queueSendNext: '次に送信',
     queueSteer: 'ステア — 現在のターンを今すぐ修正',
@@ -4163,6 +2623,8 @@ export const ja = defineLocale({
   },
 
   statusStack: {
+    hideStack: 'ステータススタックを隠す',
+    showStack: 'ステータススタックを表示',
     agents: 'エージェント',
     background: count => `バックグラウンド ${count} 件`,
     goalActive: '目標進行中',
@@ -4334,6 +2796,7 @@ export const ja = defineLocale({
     notAvailableTitle: '更新は利用できません',
     unsupportedMessage: 'このバージョンの Hermes はアプリ内から自分を更新できません。',
     connectionRetry: '接続を確認してもう一度試してください。',
+    gitUnusable: 'このコンピューターで Git を実行できなかったため、更新を確認できませんでした。',
     latestBody: '最新バージョンを実行しています。',
     latestBodyBackend: 'バックエンドは最新バージョンを実行しています。',
     allSetTitle: '準備完了',
@@ -4346,15 +2809,6 @@ export const ja = defineLocale({
     updateNow: '今すぐ更新',
     maybeLater: '後で',
     moreChanges: count => `さらに ${count} 件の変更が含まれています。`,
-    changelogGroups: {
-      new: '新機能',
-      fixed: '修正',
-      faster: '高速化',
-      improved: '改善',
-      other: 'その他の改善'
-    },
-    changelogFallbackTitle: 'このアップデート',
-    changelogFallback: '改善と修正',
     manualTitle: 'ターミナルから更新',
     manualBody:
       'Hermes をコマンドラインからインストールしたため、更新もそこで実行されます。これをターミナルに貼り付けてください:',
@@ -4409,130 +2863,6 @@ export const ja = defineLocale({
     line: 'やあ、どうぞ。Hermes です。二分だけください、あなたに合わせて整えます。それから、本当にやりたいことに取りかかりましょう。\n\nまずは、何とお呼びすればいいですか。',
     nameSuggestion: (name: string) => `（よければ、${name} さんとお呼びします。）`
   },
-  introReveal: {
-    skip: 'スキップ',
-    surfaces: 'デスクトップ · メッセージ · 電話 · どこでも',
-    prompt: 'Blender でヒーローキューブを作り、いくつかのマテリアルを切り替えて',
-    replyWords: [
-      '完了。',
-      'マテリアルをコンパイルし、',
-      'キューブ上でプレビューしました。',
-      'ターンテーブルを書き出しますか？'
-    ],
-    composerPlaceholder: '何でも聞いて、何でも作ろう。',
-    viewport: 'ビューポート',
-    tagline: 'どこにいても、あなたのエージェント',
-    viewportModes: {
-      standard: '標準',
-      metal: 'メタル',
-      texture: 'テクスチャ',
-      glass: 'ガラス',
-      wireframe: 'ワイヤーフレーム'
-    },
-    tools: {
-      blender: { label: 'blender-mcp', running: 'Blender に接続中…', done: 'シーンを接続' },
-      metal: { label: 'メタル', running: 'メタルをコンパイル中…', done: 'メタル · 粗さ 0.2' },
-      glass: { label: 'ガラス', running: 'ガラスをコンパイル中…', done: 'ガラス · IOR 1.45' }
-    },
-    sideAgents: {
-      research: {
-        title: 'リサーチエージェント',
-        line1: '部屋探し：新着 3 件を候補に追加',
-        line2: '↳ 内見予定を作成中…'
-      },
-      groceries: {
-        title: '買い物',
-        line1: 'リストから今週の注文を作成',
-        line2: '↳ 日曜の配達を予約済み'
-      },
-      inbox: {
-        title: '受信トレイエージェント',
-        line1: '返信を 2 件下書き、確認待ち',
-        line2: '↳ 金曜の予定を更新済み'
-      },
-      morning: {
-        title: '朝のブリーフ',
-        line1: '明日：会議 3 件、8 時に雨',
-        line2: '↳ 起床前に準備完了'
-      }
-    }
-  },
-  guidedOnboarding: {
-    done: '✓ 完了',
-    continue: '続ける',
-    skipSetup: 'セットアップをスキップ',
-    fallbackOption: '一緒に考える',
-    handoffFailed: '最初のタスクを開始できませんでした。',
-    handoffFailedRetry: '最初のタスクを開始できませんでした。再試行してセッションを確認してください。',
-    handoffStarted: title => `${title} を開始しました。セッション一覧から確認できます`,
-    handoffOpening: title => `${title} を開いています…`,
-    retryFirstBuild: '最初のタスクを再試行',
-    workingOnIt: '作業中',
-    firstBuild: '最初のタスク',
-    signpostTitle: 'Hermes はすぐ隣にいます',
-    signpostBody:
-      'ここはあなた専用のワークスペースで、プロファイルはここに並びます。先ほどの会話も残っています。手が必要なときはいつでも戻ってきてください。',
-    profileDescription: 'Hermes と初めて会った場所。初回の案内を行い、慣れるまでさりげなく見守ります。',
-    accentNames: {
-      mono: 'モノクロ',
-      githubGreen: 'GitHub グリーン',
-      cyberCyan: 'サイバーシアン',
-      nousBlue: 'Nous ブルー',
-      ultraviolet: 'ウルトラバイオレット',
-      barbiePink: 'バービーピンク',
-      electricRed: 'エレクトリックレッド',
-      safetyOrange: 'セーフティオレンジ'
-    },
-    layoutNames: { basic: 'ベーシック', elite: 'エリート' },
-    script: {
-      forkQuestion: '何を作らせたいか決まっていますか？',
-      automate: 'いつもの作業を自動化したい',
-      figure: '一緒に考えたい',
-      mind: '作りたいものがある',
-      skip: '今はスキップ',
-      somethingElse: 'ほかのこと',
-      tourQuestion: '先に中を見て回りますか？',
-      tourBasics: '基本だけ見る',
-      tourNone: '自分で見てみる',
-      tourFull: '案内して',
-      fallbackQuestion: 'どれがよさそうですか？',
-      buildReviewQuestion: '希望どおりになっていますか？',
-      buildReviewLooksRight: 'これでよい',
-      buildReviewChange: '変更したい',
-      buildReviewFurther: 'さらに進める',
-      machineRunQuestion: 'この内容を実行しますか？',
-      machineRunGoAhead: '進めて',
-      machineRunChangeList: '一覧を変更',
-      machineRunEssentials: '必要なものだけ',
-      checkpointQuestion: '次はどうしますか？',
-      computerKind: 'コンピューター',
-      machineSetupOption: kind => `${kind} のセットアップを手伝って`,
-      machineSetupTask: kind => `${kind} をセットアップ`
-    },
-    errors: {
-      firstBuildNeedsAttention: '最初のタスクを確認してください',
-      welcomeOwnerUnavailable: 'ウェルカムチャットを利用できません。開き直して最初のタスクを再試行してください。',
-      preferencesSaveFailed: '案内設定を保存できません。最初のタスクを開始する前に再試行してください。',
-      sessionOpenFailed: '最初のタスクのセッションを開けませんでした。',
-      sessionIdentityMissing:
-        '最初のタスクのセッションに永続 ID がありません。セッションを確認して再試行してください。',
-      welcomeCreateFailed: 'ウェルカムチャットを作成できませんでした。再試行してください。',
-      restoreProfileFailed: 'プロファイルを復元できませんでした',
-      welcomeNeedsAttention: 'ウェルカムチャットを確認してください',
-      welcomeStartFailed: 'ウェルカムチャットを開始できませんでした。',
-      receiptUnreadable:
-        '保存済みの最初のタスク情報を読み込めません。別のタスクを始める前にセッションを確認してください。',
-      receiptSaveFailed: '最初のタスクの復旧情報を保存できませんでした。新しい開始要求は送信していません。',
-      verifyFailed: '最初のタスクを確認できませんでした。接続が戻ったら再試行してください。',
-      unconfirmedRunning:
-        '開始は未確認ですが、最初のタスクのセッションは実行中です。アイドルになってから再試行してください。重複送信はしていません。',
-      notAcknowledged:
-        '最初のタスクの開始が確認されていません。セッションを確認して再試行してください。重複送信はしていません。',
-      notAcknowledgedStart: '最初のタスクが開始を確認しませんでした。セッションを確認して再試行してください。',
-      pluginFolderUnavailable:
-        'デスクトップのプラグインフォルダーを利用できません。最初のタスクを始める前に再試行してください。'
-    }
-  },
   install: {
     stageStates: {
       pending: '待機中',
@@ -4541,29 +2871,6 @@ export const ja = defineLocale({
       skipped: 'スキップ',
       failed: '失敗'
     },
-    stageNames: {
-      uv: 'uv をインストール',
-      python: 'Python を確認',
-      git: 'Git をインストール',
-      node: 'Node.js を検出',
-      'system-packages': 'システムパッケージをインストール',
-      prerequisites: 'システムの前提条件',
-      repository: 'Hermes Agent をダウンロード',
-      venv: 'Python 環境を作成',
-      dependencies: 'Python 依存関係をインストール',
-      'python-deps': 'Python 依存関係をインストール',
-      'node-deps': 'Node.js 依存関係をインストール',
-      desktop: 'デスクトップアプリをビルド',
-      path: 'hermes コマンドをインストール',
-      'config-templates': '設定テンプレートを書き込み',
-      config: '設定とスキルを準備',
-      'platform-sdks': 'メッセージングプラットフォーム SDK をインストール',
-      'bootstrap-marker': 'インストール完了を記録',
-      configure: 'API キーとモデルを設定',
-      setup: 'API キーと設定を構成',
-      gateway: 'ゲートウェイを設定'
-    },
-    unknownError: '不明なエラー',
     oneTimeTitle: 'Hermes には一度限りのインストールが必要です',
     unsupportedDesc: platform =>
       `${platform} では自動の初回インストールはまだ利用できません。ターミナルを開いて以下のコマンドを実行し、このアプリを再起動してください。以降の起動ではこの手順はスキップされます。`,
@@ -4635,10 +2942,6 @@ export const ja = defineLocale({
   onboarding: {
     headerTitle: 'Hermes Agent のセットアップをしましょう',
     headerDesc: 'チャットを始めるにはモデルプロバイダーを接続してください。ほとんどのオプションはワンクリックです。',
-    providerTitles: {
-      anthropic: 'Anthropic API キー',
-      'claude-code': 'Anthropic OAuth: サブスクリプション利用には追加使用クレジットが必要'
-    },
     preparingInstall: 'Hermes はインストールを完了中です。初回実行では通常 1 分以内に完了します。',
     starting: 'Hermes を起動中…',
     lookingUpProviders: 'プロバイダーを検索中...',
@@ -4675,7 +2978,6 @@ export const ja = defineLocale({
     getKey: 'キーを取得',
     replaceCurrent: '現在の値を置き換え',
     pasteApiKey: 'API キーを貼り付け',
-    directApiAccess: provider => `${provider} の API に直接アクセスします。`,
     couldNotSave: '認証情報を保存できませんでした。',
     connecting: '接続中',
     update: '更新',
@@ -4729,8 +3031,6 @@ export const ja = defineLocale({
     downloading: 'ダウンロード中',
     localDownloadsHeading: 'ローカル',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
-    moaWarning:
-      'アグリゲーターが選択されたモデルとして応答します。各呼び出しの前に、リファレンスモデルが分析を提供します。',
     pro: 'Pro',
     proNeedsSubscription: 'Pro モデルには有料の Nous サブスクリプションが必要です。',
     free: '無料',
@@ -4755,8 +3055,7 @@ export const ja = defineLocale({
       noModels: 'モデルが見つかりません',
       editModels: 'モデルを編集…',
       refreshModels: 'モデルを更新',
-      fast: '高速',
-      moaPresets: 'MOA プリセット'
+      fast: '高速'
     },
     modelOptions: {
       noOptions: 'このモデルにはオプションがありません',
@@ -4771,6 +3070,7 @@ export const ja = defineLocale({
       xhigh: '特高',
       max: '最大',
       ultra: 'ウルトラ',
+      sendsOnRoute: (level: string) => `このルートでは ${level} を送信`,
       updateFailed: 'モデルオプションの更新に失敗しました',
       fastFailed: '高速モードの更新に失敗しました'
     },
@@ -4896,6 +3196,8 @@ export const ja = defineLocale({
     openFolder: 'フォルダーを開く',
     refreshTree: 'ツリーを更新',
     collapseAll: 'すべてのフォルダーを折りたたむ',
+    showIgnored: 'gitignore されたファイルを表示',
+    hideIgnored: 'gitignore されたファイルを非表示',
     previewUnavailable: 'プレビューは利用できません',
     couldNotPreview: path => `${path} をプレビューできませんでした`,
     noProjectTitle: 'プロジェクトなし',
@@ -5038,12 +3340,6 @@ export const ja = defineLocale({
     closeAll: 'すべて閉じる',
     newSessionTab: '新しいセッションタブ',
     newTab: '新しいタブ',
-    split: dir => `${dir}に分割`,
-    move: dir => `${dir}へ移動`,
-    dirUp: '上',
-    dirDown: '下',
-    dirLeft: '左',
-    dirRight: '右',
     pluginDisabled: pluginId => `プラグイン「${pluginId}」を無効化しました`,
     pluginDisabledBody: 'スキルとツール → プラグイン で再有効化するとペインが戻ります。',
     missingPane: paneId => `ペインが見つかりません: ${paneId}`,
@@ -5070,22 +3366,7 @@ export const ja = defineLocale({
     saveApply: '保存して適用',
     notExpressible: 'この配置は互いに噛み合っています（風車型）— 入れ子の分割では表現できません',
     zoneCount: count => `${count} ゾーン`,
-    tabCount: count => `${count} 個のタブ`,
-    toggleLayoutEditMode: 'レイアウト編集モードを切り替え',
-    layoutNames: {
-      default: 'デフォルト',
-      basic: 'ベーシック',
-      focus: 'フォーカス',
-      'terminal-deck': 'ターミナルデッキ',
-      quad: 'クワッド'
-    },
-    paneNames: {
-      sessions: 'セッション',
-      files: 'ファイル',
-      review: 'レビュー',
-      terminal: 'ターミナル',
-      workspace: 'ワークスペース'
-    }
+    tabCount: count => `${count} 個のタブ`
   },
 
   contextMenu: {
@@ -5113,109 +3394,10 @@ export const ja = defineLocale({
   },
 
   assistant: {
-    systemNotices: {
-      fileMutationFailure: count =>
-        `⚠️ ファイル変更の検証: 上記の説明にかかわらず、このターンで ${count} 個のファイルは変更されませんでした。\`git status\` または \`read_file\` で確認してください。`,
-      failedToWriteFile: 'ファイルへの書き込みに失敗:',
-      failed: '失敗',
-      andMore: count => `他 ${count} 件`,
-      noReply: detail => `⚠️ 応答なし: ${detail}`
-    },
-    media: {
-      gatewayFetchFailed: name =>
-        `${name} をゲートウェイから取得できませんでした（存在しない、読み取れない、または大きすぎます）。`,
-      openMediaFile: kind => `${kind === 'audio' ? '音声' : '動画'}ファイルを開く`,
-      openNamed: name => `${name} を開く`,
-      loadingNamed: name => `${name} を読み込み中…`,
-      couldNotLoad: name => `${name} を読み込めませんでした。`,
-      openImage: '画像を開く',
-      imageFallbackName: '画像'
-    },
-    embeds: {
-      load: label => `${label} を読み込む`,
-      alwaysAllow: label => `${label} を常に許可`,
-      holdToZoom: 'Ctrl/⌘ を押しながらズーム',
-      failedToLoad: label => `${label} の埋め込みを読み込めませんでした`,
-      openDiagram: '図を開く',
-      embedTitle: label => `${label} の埋め込み`
-    },
     thread: {
       loadingSession: 'セッションを読み込み中',
-      openSessionFailed: 'このセッションを開けませんでした',
       showEarlier: '以前のメッセージを表示',
       loadingResponse: 'Hermes が応答を読み込み中',
-      steered: '指示を変更',
-      asyncDelegationFailure: detail => `（失敗：${detail}）`,
-      asyncDelegationPartialOutput: '部分出力：',
-      messagingAgent: name => `${name} にメッセージを送信中…`,
-      messagedAgent: name => `${name} にメッセージを送信しました`,
-      messageFrom: name => `${name} からのメッセージ`,
-      showMessage: 'メッセージを表示',
-      repliedTo: name => `${name} に返信しました`,
-      showReply: '返信を表示',
-      processOutput: '出力',
-      emojiSearch: '検索…',
-      emojiLoading: '絵文字を読み込み中…',
-      emojiEmpty: '絵文字が見つかりません。',
-      moreEmoji: 'その他の絵文字',
-      removeReaction: emoji => `${emoji} のリアクションを削除`,
-      reactedByHermes: 'Hermes のリアクション',
-      conversationTimeline: '会話タイムライン',
-      reviewSummary: {
-        label: '自己改善レビュー',
-        memoryUpdated: 'メモリを更新しました',
-        memoryCreated: 'メモリエントリを作成しました',
-        userProfileUpdated: 'ユーザープロファイルを更新しました',
-        skillCreated: 'スキルを作成しました',
-        skillNamedCreated: (name, detail) => `スキル「${name}」を作成しました${detail ? `：${detail}` : ''}`,
-        skillNamedPatched: (name, detail) => `スキル「${name}」を修正しました${detail ? `：${detail}` : ''}`,
-        skillNamedRewritten: (name, detail) => `スキル「${name}」を書き直しました${detail ? `：${detail}` : ''}`,
-        memoryLabel: 'メモリ',
-        userProfileLabel: 'ユーザープロファイル'
-      },
-      operationInterrupted: '操作が中断されました。',
-      operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
-        `操作が中断されました：再試行中（${reason}、試行 ${attempt}/${maxAttempts}）。`,
-      operationInterruptedHandlingApiError: (errorType, detail) =>
-        `操作が中断されました：API エラーの処理中（${errorType}: ${detail}）。`,
-      operationInterruptedRetryingApiCall: (retry, maxRetries) =>
-        `操作が中断されました：API 呼び出しエラー後の再試行中（再試行 ${retry}/${maxRetries}）。`,
-      operationInterruptedRetryingEmptyResponse: (retry, maxRetries) =>
-        `操作が中断されました：モデルの空の応答を再試行中（再試行 ${retry}/${maxRetries}）。`,
-      operationInterruptedRetryReasons: {
-        fastResponseLikelyRateLimited: durationSeconds => `応答が速い（${durationSeconds}秒）— レート制限の可能性`,
-        rateLimited: '上流プロバイダーによるレート制限（429）',
-        responseTime: durationSeconds => `応答時間 ${durationSeconds}秒`,
-        slowResponseLikelyUpstreamTimeout: durationSeconds =>
-          `応答が遅い（${durationSeconds}秒）— 上流タイムアウトの可能性`,
-        upstreamError: (code, durationSeconds) => `上流エラー（コード ${code}、${durationSeconds}秒）`,
-        upstreamGatewayTimedOut: durationSeconds => `上流ゲートウェイのタイムアウト（504、${durationSeconds}秒）`,
-        upstreamProviderOverloaded: code => `上流プロバイダーが過負荷（${code}）`,
-        upstreamProviderTimedOut: durationSeconds =>
-          `上流プロバイダーのタイムアウト（Cloudflare 524、${durationSeconds}秒）`,
-        upstreamServerError: (code, durationSeconds) => `上流サーバーエラー（${code}、${durationSeconds}秒）`
-      },
-      operationInterruptedWaitingForModel: elapsedSeconds =>
-        `操作が中断されました：モデルの応答を待機中（${elapsedSeconds}秒経過）。`,
-      modelContinuing: (attempt, maxAttempts) =>
-        `モデルが思考内容のみを返し、最終回答がないため、続きを要求しています（${attempt}/${maxAttempts}）`,
-      providerReconnecting: (elapsedSeconds, kind) =>
-        `プロバイダーから${kind === 'output' ? '出力' : '応答'}がないまま ${elapsedSeconds} 秒経過したため、再接続しています…`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `プロバイダーを待っています — ${retrySeconds} 秒後に再試行（${attempt}/${maxAttempts} 回目）`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `${provider} の${kind === 'output' ? '出力' : '応答'}を待っています — ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
-          kind === 'output' ? '。モデルがまだ思考中の可能性もあります' : ''
-        }${reconnectSeconds ? `。${reconnectSeconds} 秒経過時に自動で再接続します` : ''}）`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `${provider} を待っています — ${kind === 'events' ? 'ストリームイベントがないまま' : '再接続後に応答がないまま'} ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
-          reconnectSeconds ? `。合計 ${reconnectSeconds} 秒経過時に自動で再接続します` : ''
-        }）`,
-      summarizingThread: '会話を整理中',
-      moaAggregating: 'MoA で集約中…',
-      moaReference: (label, index, count) =>
-        `参照モデル${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
-      moaReferencesProgress: (done, total, label) => `MoA 参照進捗 ${done}/${total}${label ? ` — ${label}` : ''}`,
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'バックグラウンドタスクの完了後に再開します'
@@ -5245,6 +3427,10 @@ export const ja = defineLocale({
         streaming: 'ストリーミング接続のエラー'
       },
       errorRetry: '再試行',
+      errorLimitResets: time => `制限は ${time} にリセットされます`,
+      errorRetryAtReset: time => `制限のリセット時に再試行（${time}）`,
+      errorRetryScheduled: (time, wait) => `${time} に再試行 — 残り ${wait}`,
+      errorRetryScheduledCancel: 'キャンセル',
       errorStartNewSession: '新しいセッションを開始',
       errorSwitchProvider: 'プロバイダーを切り替え',
       errorSignInAgain: provider => `${provider} に再度サインイン`,
@@ -5301,7 +3487,6 @@ export const ja = defineLocale({
       continueLabel: '続行',
       confirmAndContinueLabel: '確定して続行',
       answeredBadge: '回答済み',
-      recommendedSuffix: '（おすすめ）',
       questionProgress: (answered, total) => `${total}問中${answered}問回答済み`,
       lateAnswer: (question, choice) => `「${question}」について — 私の回答: ${choice}`,
       lateAnswerTip: 'この回答をフォローアップメッセージとして下書きします',
@@ -5318,11 +3503,22 @@ export const ja = defineLocale({
       copyQuery: 'クエリをコピー',
       copyFile: 'ファイルをコピー',
       copyPath: 'パスをコピー',
+      failedCalls: (count: number) => `失敗したツール呼び出し: ${count}`,
+      skillActivity: {
+        loading: 'スキルを読み込み中',
+        loaded: 'スキルを読み込みました',
+        loadFailed: 'スキルの読み込みに失敗しました',
+        readingResource: 'スキルのリソースを読み込み中',
+        readResource: 'スキルのリソースを読み込みました',
+        resourceFailed: 'スキルのリソースの読み込みに失敗しました',
+        listing: 'スキル一覧を取得中',
+        listed: 'スキル一覧を取得しました',
+        listFailed: 'スキル一覧の取得に失敗しました',
+        unavailable: 'スキルの結果を取得できません'
+      },
       outputAlt: 'ツール出力',
       rawResponse: '生の応答',
       copyActivity: 'アクティビティをコピー',
-      toolPayload: 'ツールペイロード',
-      searchResults: '検索結果',
       recoveredOne: '1 つの失敗したステップの後に回復しました',
       recoveredMany: count => `${count} つの失敗したステップの後に回復しました`,
       failedOne: '1 つのステップが失敗しました',
@@ -5331,29 +3527,9 @@ export const ja = defineLocale({
       statusError: 'エラー',
       statusRecovered: '回復しました',
       statusDone: '完了',
+      resultUnavailable: '結果を取得できません',
+      resultInterrupted: '中断されました',
       memoryWriteNoted: 'メモリへの書き込みを記録',
-      failedToWriteFile: detail => `ファイルへの書き込みに失敗しました：${detail}`,
-      sensitiveSystemPathWriteRefused: path =>
-        `機密性の高いシステムパスへの書き込みを拒否しました：${path}\nシステムファイルを変更する必要がある場合は、ターミナルツールで sudo を使用してください。`,
-      returnedError: 'ツールがエラーを返しました。',
-      returnedSuccessFalse: 'ツールが success=false を返しました。',
-      returnedStatus: status => `ツールがステータス「${status}」を返しました。`,
-      commandFailedWithExitCode: exitCode => `コマンドは終了コード ${exitCode} で失敗しました。`,
-      sessionKernelTimedOut: (timeoutSeconds, remote) =>
-        `セルは ${timeoutSeconds} 秒後にタイムアウトしました。${remote ? 'リモート' : ''}セッションカーネルは終了され、その状態は失われました。次の execute_code 呼び出しでは新しいカーネルが起動します。`,
-      clarifyErrors: {
-        questionsMustBeArray: 'questions パラメーターは質問オブジェクトの配列である必要があります。',
-        questionsLimit: limit => `questions パラメーターに指定できる項目は最大 ${limit} 件です。`,
-        questionMustBeObject: index =>
-          `questions[${index}] は question フィールドを含むオブジェクトである必要があります。`,
-        questionMustNotBeEmpty: index => `questions[${index}].question には空でないテキストを指定してください。`,
-        choicesMustBeArray: field => `${field} は配列である必要があります。`,
-        choicesMustBeStringArray: 'choices パラメーターは文字列の配列である必要があります。',
-        noQuestion:
-          '質問が指定されていません。questions に question フィールドを含むオブジェクトを 1 件以上追加してください。choices と multi_select は省略できます。',
-        unavailable: 'この環境では確認質問ツールを利用できません。',
-        inputFailed: detail => `ユーザー入力を取得できませんでした：${detail}`
-      },
       actions: {
         read: '読み取り完了',
         reading: '読み取り中',
@@ -5375,8 +3551,7 @@ export const ja = defineLocale({
         actionCommand: (action, command) => `${action} ${command}`,
         actionQuoted: (action, value) => `「${value}」を${action}`,
         actionTarget: (action, target) => `${target} を${action}`,
-        completedTool: action => `${action}を実行しました`,
-        prefixedDone: (prefix, action) => `${prefix} ${action}を実行しました`,
+        prefixedDone: (prefix, action) => `${prefix} ${action}`,
         runningPrefixedTool: (prefix, action) => `${prefix} ${action}を実行中`,
         runningTool: action => `${action}を実行中`
       },
@@ -5426,11 +3601,6 @@ export const ja = defineLocale({
           pending: 'セッション履歴を検索中',
           pendingAction: '検索中'
         },
-        skill_view: {
-          done: 'スキルを読み込みました',
-          pending: 'スキルを読み込み中',
-          pendingAction: '読み込み中'
-        },
         terminal: { done: 'コマンドを実行しました', pending: 'コマンドを実行中', pendingAction: '実行中' },
         todo: { done: 'Todo を更新しました', pending: 'Todo を更新中', pendingAction: '更新中' },
         vision_analyze: { done: '画像を分析しました', pending: '画像を分析中', pendingAction: '分析中' },
@@ -5451,7 +3621,9 @@ export const ja = defineLocale({
     secretSendFailed: 'シークレットを送信できませんでした',
     sudoTitle: '管理者パスワード',
     sudoDesc:
-      'Hermes は特権コマンドを実行するために sudo パスワードが必要です。ローカルエージェントにのみ送信されます。',
+      'sudo パスワードを入力する前にコマンドを確認してください。パスワードは実行するエージェントに送信され、このセッション中キャッシュされます。',
+    sudoCommandUnavailable:
+      'エージェントからコマンドが提供されていません。会話で確認できない場合はキャンセルしてください。',
     sudoPlaceholder: 'sudo パスワード',
     secretTitle: 'シークレットが必要です',
     secretDesc: 'Hermes は続行するための認証情報が必要です。',
@@ -5490,7 +3662,6 @@ export const ja = defineLocale({
     createSessionFailed: '新しいセッションを作成できませんでした',
     promptFailed: 'プロンプトに失敗しました',
     providerCredentialRequired: '最初のメッセージを送信する前にプロバイダー認証情報を追加してください。',
-    readinessChecksDisagree: 'setup.status は資格情報が設定済みと報告していますが、ランタイム解決は失敗しました。',
     emptySlashCommand: '空のスラッシュコマンド',
     desktopCommands: 'デスクトップコマンド',
     skillCommandsAvailable: count => `${count} 件のスキルコマンドが利用可能です。`,
@@ -5520,22 +3691,12 @@ export const ja = defineLocale({
     resumeStrandedBody:
       'このセッションへの接続に失敗し、自動再試行も停止しました。ゲートウェイが実行中か確認してから、もう一度お試しください。',
     poolSlotTimeoutBody:
-      'すべてのローカルプロファイルバックエンドスロットが使用中です。「設定」→「詳細設定」で「起動を維持するボットバックエンド数」を増やすか、アイドル状態のバックエンドが解放された後に再試行してください。',
+      'すべてのローカルプロファイルバックエンドスロットが使用中です。「設定」→「詳細設定」で「Warm Bot Backends」を増やすか、アイドル状態のバックエンドが解放された後に再試行してください。',
     poolSlotTimeoutOpenSettings: '詳細設定を開く',
     resumeRetry: '再試行',
     nothingToBranch: 'ブランチするものがありません',
     branchNeedsChat: 'ブランチする前にチャットを開始または再開してください。',
     sessionBusy: 'セッションが使用中',
-    sessionBusyQueuedCommand:
-      '現在のタスクを実行中です。メッセージはキューに追加され、このターンの完了後に自動送信されます',
-    sessionBusyInterruptCommand:
-      '現在のタスクを実行中です。/interrupt でこのターンを停止してからコマンドを送信してください',
-    steerQueued: text => `誘導済み ·「${text}」はキューに追加され、次のツール呼び出し時に送られます`,
-    steerQueuedNextToolCall: '次のツール呼び出しを誘導しました',
-    steerRejected: '誘導できませんでした — エージェントが入力を受け付けませんでした',
-    sessionTitleSet: (title, queued) =>
-      `セッションタイトルを設定しました：${title}${queued ? '（セッションの初期化後に適用されます）' : ''}`,
-    sessionTitleCleared: 'セッションタイトルを消去しました。',
     branchStopCurrent: 'このチャットをブランチする前に現在のターンを停止してください。',
     branchNoText: 'このメッセージにはブランチするテキストがありません。',
     branchTitle: n => `下書き: ブランチ #${n}`,
@@ -5547,7 +3708,13 @@ export const ja = defineLocale({
     cwdStagedTitle: '作業ディレクトリがステージングされました',
     cwdStagedMessage:
       'このアクティブなセッションへの cwd の変更を適用するにはデスクトップバックエンドを再起動してください。',
+    modelSwitchConfirmBody: 'このモデル切り替えには確認が必要です。',
+    modelSwitchConfirmLabel: 'それでも切り替える',
+    modelSwitchConfirmTitle: (model: string) => `${model} に切り替えますか？`,
+    modelSwitchConfirmTitleFallback: 'モデルを切り替えますか？',
     modelSwitchFailed: 'モデルの切り替えに失敗しました',
+    modelSwitchKeepLabel: '現在のモデルを維持',
+    modelSwitchStaleNotice: '選択が変更されたため、モデルの切り替えは適用されませんでした。',
     hydrationSyncing: (profile: string) => `${profile} を同期中\u2026`,
     sessionExported: 'セッションをエクスポートしました',
     sessionExportFailed: 'セッションをエクスポートできませんでした',
@@ -5557,7 +3724,6 @@ export const ja = defineLocale({
     restartToSaveImages: '画像を保存するには Hermes Desktop を再起動してください',
     imageDownloadFailed: '画像のダウンロードに失敗しました',
     openImage: '画像を開く',
-    generatedImageAlt: '生成された画像',
     downloadImage: '画像をダウンロード',
     savingImage: '画像を保存中',
     imagePreviewFailed: '画像のプレビューに失敗しました',
@@ -5614,6 +3780,11 @@ export const ja = defineLocale({
       'composer-mentions': {
         title: 'ファイルとコマンド',
         text: '@ でファイルを会話に取り込み、/ でコマンドを実行できます。'
+      },
+      'local-runtime-update': {
+        title: 'ローカルエンジンの更新があります',
+        text: 'ローカルモデルを実行するエンジンを更新します。実行中のローカルリクエストが中断される場合があります。',
+        action: '今すぐ更新'
       },
       'local-setup': {
         title: 'このマシンはローカルでモデルを実行できます',

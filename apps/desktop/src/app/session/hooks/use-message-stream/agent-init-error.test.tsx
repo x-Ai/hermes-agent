@@ -1,7 +1,6 @@
 import { act, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { textPart } from '@/lib/chat-messages'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import { $notifications, clearNotifications } from '@/store/notifications'
@@ -30,13 +29,11 @@ function seedOptimisticFirstMessage() {
 
 describe('useMessageStream agent-init error surfacing (#63078)', () => {
   beforeEach(() => {
-    setRuntimeI18nLocale('en')
     clearNotifications()
   })
 
   afterEach(() => {
     cleanup()
-    setRuntimeI18nLocale('en')
     clearNotifications()
     vi.restoreAllMocks()
   })
@@ -74,11 +71,15 @@ describe('useMessageStream agent-init error surfacing (#63078)', () => {
     expect(state.awaitingResponse).toBe(false)
 
     // A global toast also fired (turn-ending errors are easy to miss inline).
-    expect($notifications.get().some(n => n.kind === 'error' && n.message?.includes('was not sent'))).toBe(true)
+    // The server already sends plain, actionable copy for an agent-init
+    // failure, so it IS the toast message — not demoted to a detail line
+    // under a generic gloss.
+    const toast = $notifications.get().find(n => n.kind === 'error' && n.message.includes('was not sent'))
+    expect(toast).toBeDefined()
+    expect(toast!.detail).toBeUndefined()
   })
 
   it('renders the pre-ready cancel error event (#65567 server emit) visibly', () => {
-    setRuntimeI18nLocale('zh')
     mountStream()
     seedOptimisticFirstMessage()
 
@@ -91,36 +92,8 @@ describe('useMessageStream agent-init error surfacing (#63078)', () => {
     )
 
     const state = stream.state()
-    expect(state.messages.some(m => m.role === 'assistant' && m.error === '智能体就绪前，本轮对话已取消')).toBe(true)
-    expect($notifications.get().some(n => n.message === '智能体就绪前，本轮对话已取消')).toBe(true)
+    expect(state.messages.some(m => m.role === 'assistant' && m.error?.includes('cancelled'))).toBe(true)
     expect(state.messages.some(m => m.id === 'user-123-abc')).toBe(true)
     expect(state.busy).toBe(false)
   })
-
-  it.each([false, true])(
-    'localizes unknown-provider errors with agent-init prefix=%s in transcript and toast',
-    prefixed => {
-      setRuntimeI18nLocale('zh')
-      mountStream()
-      seedOptimisticFirstMessage()
-      const copy = TRANSLATIONS.zh.notifications.errors
-      const expected = prefixed ? copy.agentInitUnknownProvider('fable') : copy.unknownProvider('fable')
-
-      act(() =>
-        stream.handleEvent({
-          payload: {
-            message: `${prefixed ? 'agent init failed: ' : ''}Unknown provider 'fable'. Check 'hermes model' for available providers, or run 'hermes doctor' to diagnose config issues.`
-          },
-          session_id: SID,
-          type: 'error'
-        })
-      )
-
-      const state = stream.state()
-      expect(state.messages.some(m => m.role === 'assistant' && m.error === expected)).toBe(true)
-      expect($notifications.get().some(n => n.message === expected)).toBe(true)
-      expect(state.messages.some(m => m.id === 'user-123-abc')).toBe(true)
-      expect(state.busy).toBe(false)
-    }
-  )
 })

@@ -3,7 +3,6 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { StatusbarControls, type StatusbarItem } from '@/app/shell/statusbar-controls'
-import { $layoutTree } from '@/components/pane-shell/tree/store'
 import {
   $statusbarHiddenIds,
   $statusbarVisible,
@@ -21,7 +20,6 @@ afterEach(() => {
   cleanup()
   $statusbarHiddenIds.set([...STATUSBAR_HIDDEN_BY_DEFAULT])
   $statusbarVisible.set(true)
-  $layoutTree.set(null)
 })
 
 const item = (id: string, label: string, extra: Partial<StatusbarItem> = {}): StatusbarItem => ({
@@ -76,16 +74,6 @@ describe('statusbar item visibility', () => {
 
     const row = await screen.findByRole('menuitemcheckbox', { name: 'Cron' })
     fireEvent.click(row)
-
-    expect($statusbarHiddenIds.get()).not.toContain('cron')
-    expect(within(statusbar).getByText('Cron')).toBeTruthy()
-  })
-
-  it('offers the same switches from the visible settings button', async () => {
-    const statusbar = bar([item('cron', 'Cron'), item('gateway-health', 'Gateway')])
-
-    fireEvent.pointerDown(screen.getByRole('button', { name: /show in status bar/i }), { button: 0 })
-    fireEvent.click(await screen.findByRole('menuitemcheckbox', { name: 'Cron' }))
 
     expect($statusbarHiddenIds.get()).not.toContain('cron')
     expect(within(statusbar).getByText('Cron')).toBeTruthy()

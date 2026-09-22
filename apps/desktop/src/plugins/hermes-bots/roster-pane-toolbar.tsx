@@ -22,6 +22,9 @@ interface renderRosterToolbarProps {
   b: ReturnType<typeof useBots>
   activityToasts: boolean
   activeSourceRoster: RosterRow[]
+  /** Full multi-source roster — the New Group Chat gate counts the same
+   *  selectable set the dialog seats (bots from every registered connection). */
+  roster: RosterRow[]
   setCreateOpen: (value: boolean) => void
   setGroupCreateOpen: (value: boolean) => void
   setSectionDialog: (
@@ -46,6 +49,7 @@ export function renderRosterToolbar({
   b,
   activityToasts,
   activeSourceRoster,
+  roster,
   setCreateOpen,
   setGroupCreateOpen,
   setSectionDialog,
@@ -67,10 +71,12 @@ export function renderRosterToolbar({
     <>
       <div className="flex items-center justify-between gap-2 px-2.5 pt-2.5 pb-1.5">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-(--ui-text-quaternary)">
-          {b.roster.title}
+          Bots
         </span>
         <div className="flex items-center gap-0.5">
-          <Tip label={activityToasts ? b.roster.activityToastsOn : b.roster.activityToastsOff}>
+          <Tip
+            label={activityToasts ? 'Activity toasts on — click to silence' : 'Activity toasts off — click to enable'}
+          >
             <Button
               className="rounded-md text-(--ui-text-tertiary) hover:text-foreground"
               onClick={() => setActivityToasts(!activityToasts)}
@@ -81,7 +87,7 @@ export function renderRosterToolbar({
             </Button>
           </Tip>
           <DropdownMenu>
-            <Tip label={b.roster.newMenu}>
+            <Tip label="New…">
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={b.roster.newBotOrGroup}
@@ -98,7 +104,12 @@ export function renderRosterToolbar({
                 <Codicon className="mr-1.5" name="hubot" />
                 {b.bot.newTitle}
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={activeSourceRoster.length < 2} onSelect={() => setGroupCreateOpen(true)}>
+              {/* Same selectable set as CreateGroupChatDialog: one local bot plus a
+                  remote-connection bot is a valid room (#101543). */}
+              <DropdownMenuItem
+                disabled={roster.filter(bot => !bot?.ghost).length < 2}
+                onSelect={() => setGroupCreateOpen(true)}
+              >
                 <Codicon className="mr-1.5" name="organization" />
                 {b.group.newTitle}
               </DropdownMenuItem>
@@ -128,10 +139,10 @@ export function renderRosterToolbar({
           )}
           {showRosterFilters ? (
             <DropdownMenu key={'roster-filters'}>
-              <Tip label={activeFilterCount ? b.roster.filtersActive(activeFilterCount) : b.roster.filter}>
+              <Tip label={activeFilterCount ? `Filters (${activeFilterCount} active)` : 'Filter roster'}>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label={activeFilterCount ? b.roster.filterActive(activeFilterCount) : b.roster.filter}
+                    aria-label={activeFilterCount ? `Filter roster, ${activeFilterCount} active` : 'Filter roster'}
                     className={cn(
                       'size-7 shrink-0 rounded-md text-(--ui-text-tertiary) hover:text-foreground',
                       activeFilterCount && 'text-(--ui-accent)'
@@ -174,7 +185,7 @@ export function renderRosterToolbar({
                 {gatewayOptions.length > 1 ? (
                   <DropdownMenuItem onSelect={() => setGatewayFilter('all')}>
                     <Codicon className="mr-1.5" name="globe" />
-                    <span className="min-w-0 flex-1">{b.roster.allGateways}</span>
+                    <span className="min-w-0 flex-1">All gateways</span>
                     {gatewayFilter === 'all' ? <Codicon name="check" /> : null}
                   </DropdownMenuItem>
                 ) : null}

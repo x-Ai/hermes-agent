@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 
 import { Codicon } from '@/components/ui/codicon'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
@@ -30,16 +30,45 @@ import {
   resetBinding
 } from '@/store/keybinds'
 
-import { SettingsContent } from './primitives'
+import { HudModifierSettings } from './hud-modifier-settings'
+import { SettingsBreadcrumbContext, SettingsContent } from './primitives'
+import { ScreenshotSettings } from './screenshot-settings'
 
-export function KeybindSettings() {
-  const { locale, t } = useI18n()
+interface KeybindSettingsProps {
+  subpage?: string
+}
+
+export function KeybindSettings({ subpage }: KeybindSettingsProps = {}) {
+  if (subpage === 'hud-gesture') {
+    return (
+      <SettingsContent>
+        <HudModifierSettings />
+      </SettingsContent>
+    )
+  }
+
+  if (subpage === 'screen-capture') {
+    return (
+      <SettingsContent>
+        <ScreenshotSettings />
+      </SettingsContent>
+    )
+  }
+
+  return <ShortcutSettings includeScreenshot={subpage === undefined} />
+}
+
+function ShortcutSettings({ includeScreenshot }: { includeScreenshot: boolean }) {
+  const { t } = useI18n()
+  const hasBreadcrumb = useContext(SettingsBreadcrumbContext)
   const bindings = useStore($bindings)
   const k = t.keybinds
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set())
-  // Subscribe so contributed actions appear/disappear live in the map.
-  useContributions(KEYBINDS_AREA)
-  const actionList = allKeybindActions()
+  // Subscribe so contributed actions appear/disappear live in the map. The
+  // snapshot feeds the list: under React Compiler an independently called
+  // allKeybindActions() stays memoized across that registration.
+  const contributions = useContributions(KEYBINDS_AREA)
+  const actionList = allKeybindActions(contributions)
   const [query, setQuery] = useState('')
 
   const openCombo = bindings[KEYBIND_PANEL_ACTION]?.[0]
@@ -73,12 +102,11 @@ export function KeybindSettings() {
         return false
       }
 
-      const contributedLabel = typeof action.label === 'function' ? action.label(locale) : action.label
-      const label = k.actions[action.id] ?? contributedLabel ?? action.id
+      const label = k.actions[action.id] ?? action.id
 
       return label.toLowerCase().includes(lower) || action.id.includes(lower)
     })
-  }, [actionList, isSearching, query, k.actions, locale])
+  }, [actionList, isSearching, query, k.actions])
 
   const filteredReadonly = useMemo(() => {
     if (!isSearching) {
@@ -98,7 +126,7 @@ export function KeybindSettings() {
     <SettingsContent>
       <div className="flex items-center justify-between gap-3 pb-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-foreground">{k.title}</h2>
+          {!hasBreadcrumb && <h2 className="text-sm font-semibold text-foreground">{k.title}</h2>}
           <p className="mt-0.5 text-[0.72rem] text-muted-foreground">
             {k.subtitle(openCombo ? formatCombo(openCombo) : '')}
           </p>
@@ -112,6 +140,11 @@ export function KeybindSettings() {
           {k.resetAll}
         </button>
       </div>
+
+      {includeScreenshot &&
+        (!isSearching || t.settings.screenshot.enabledTitle.toLowerCase().includes(query.toLowerCase())) && (
+          <ScreenshotSettings />
+        )}
 
       <div className="pb-3">
         <SearchField
@@ -191,7 +224,7 @@ function CategoryHeader({ label, onToggle, open }: { label: string; onToggle: ()
 }
 
 function KeybindRow({ action }: { action: KeybindActionMeta }) {
-  const { locale, t } = useI18n()
+  const { t } = useI18n()
   const k = t.keybinds
   const bindings = useStore($bindings)
   const capture = useStore($capture)
@@ -201,8 +234,7 @@ function KeybindRow({ action }: { action: KeybindActionMeta }) {
   // the default instead of the user's rebinding for a plugin/contrib action.
   const combos = bindingsFor(action.id, bindings)
   const capturing = capture === action.id
-  const contributedLabel = typeof action.label === 'function' ? action.label(locale) : action.label
-  const label = k.actions[action.id] ?? contributedLabel ?? action.id
+  const label = k.actions[action.id] ?? action.label ?? action.id
   const isDefault = arraysEqual(combos, [...action.defaults])
 
   const conflict = combos

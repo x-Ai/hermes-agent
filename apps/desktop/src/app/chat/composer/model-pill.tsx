@@ -11,11 +11,10 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { releaseTypingFocus } from '@/components/ui/keyboard-first'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
-import { displayEntityName } from '@/lib/display-name'
 import { ChevronDown } from '@/lib/icons'
-import { displayProviderLabel, formatModelStatusLabel } from '@/lib/model-status-label'
+import { formatModelPillLabel, providerDisplayName } from '@/lib/model-status-label'
 import { cn } from '@/lib/utils'
-import { $currentModelSource, $defaultReasoningEffort, setModelPickerOpen } from '@/store/session'
+import { $currentModelSource, setModelPickerOpen } from '@/store/session'
 
 import { onComposerModelMenuRequest } from './focus'
 import { RICH_INPUT_SLOT } from './rich-editor'
@@ -47,8 +46,7 @@ export function ModelPill({
   disabled: boolean
   model: ChatBarState['model']
 }) {
-  const { t } = useI18n()
-  const copy = t.shell.statusbar
+  const copy = useI18n().t.shell.statusbar
   // Two return branches below, one handle: only ever one of them mounts.
   const tourMarker = useTourMarker('model-pill')
   const view = useSessionView()
@@ -59,9 +57,7 @@ export function ModelPill({
   const currentModel = model.model || viewModel
   const currentProvider = model.provider || viewProvider
   const fastMode = useStore(view.$fast)
-  const reasoningEffort = useStore(view.$reasoningEffort)
   const modelSource = useStore($currentModelSource)
-  const defaultEffort = useStore($defaultReasoningEffort)
   const runtimeId = useStore(view.$runtimeId)
   const [open, setOpen] = useState(false)
   const restoreSelection = useRef<(() => void) | null>(null)
@@ -125,11 +121,6 @@ export function ModelPill({
   const pinnedOverride =
     view.kind === 'primary' && !runtimeId && modelSource === 'manual' && Boolean(currentModel.trim())
 
-  // On the moa virtual provider the "model" is a preset name, not a model id —
-  // show it verbatim (the reserved `default` preset localized) instead of
-  // letting displayModelName prettify it into e.g. "Default".
-  const isMoa = (currentProvider || '').trim().toLowerCase() === 'moa'
-
   // The model resolves a beat after the gateway/session comes up. Rather than
   // flash a literal "No model", show a quiet loader (inherits the pill text
   // color at half opacity) until a model lands.
@@ -138,14 +129,7 @@ export function ModelPill({
   ) : (
     <>
       {currentModel.trim() ? (
-        <span className="truncate">
-          {formatModelStatusLabel(currentModel, {
-            displayName: isMoa ? displayEntityName(currentModel, t) : undefined,
-            defaultEffort,
-            fastMode,
-            reasoningEffort
-          })}
-        </span>
+        <span className="truncate">{formatModelPillLabel(currentModel, { fastMode })}</span>
       ) : (
         <GlyphSpinner className="opacity-50" spinner="braille" />
       )}
@@ -170,13 +154,8 @@ export function ModelPill({
       )
     : PILL
 
-  // Custom endpoints have an opaque slug (often literally "custom") — the
-  // catalog name carries the endpoint's user-chosen name instead.
   const baseTitle = currentProvider
-    ? copy.modelTitle(
-        isMoa ? 'MOA' : displayProviderLabel(currentProvider, model.providerName),
-        (isMoa ? displayEntityName(currentModel, t) : currentModel) || copy.modelNone
-      )
+    ? copy.modelTitle(providerDisplayName(currentProvider), currentModel || copy.modelNone)
     : copy.switchModel
 
   const title = pinnedOverride ? `${baseTitle} — ${copy.modelPinned}` : baseTitle

@@ -1,10 +1,12 @@
 import { skillInvocationText } from '@hermes/shared'
+import { parseCommandDispatch, parseSlashCommand } from '@hermes/shared'
 import { type MutableRefObject, useCallback, useRef } from 'react'
 
+import { prepareDefaultNewSession } from '@/app/session/new-session-route'
 import { getProfiles } from '@/hermes'
 import type { Translations } from '@/i18n'
 import { type ChatMessage, toChatMessages } from '@/lib/chat-messages'
-import { parseCommandDispatch, parseSlashCommand, sessionTitle } from '@/lib/chat-runtime'
+import { sessionTitle } from '@/lib/chat-runtime'
 import {
   type CommandsCatalogLike,
   type DesktopActionId,
@@ -15,6 +17,7 @@ import {
   resolveDesktopCommand
 } from '@/lib/desktop-slash-commands'
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
+import { applyReasoningSlashResult, reasoningSlashParams } from '@/lib/reasoning-slash'
 import { setSessionYolo } from '@/lib/yolo-session'
 import { openCommandPalettePage } from '@/store/command-palette'
 import { setComposerDraft } from '@/store/composer'
@@ -357,7 +360,11 @@ export function useSlashCommand(deps: SlashCommandDeps) {
           })
 
           if (queued !== 'idle') {
-            renderSlashOutput(queued === 'queued' ? copy.sessionBusyQueuedCommand : copy.sessionBusyInterruptCommand)
+            renderSlashOutput(
+              queued === 'queued'
+                ? 'session busy — message queued to send when the current turn finishes'
+                : 'session busy — /interrupt the current turn before sending this command'
+            )
 
             return
           }
@@ -421,12 +428,12 @@ export function useSlashCommand(deps: SlashCommandDeps) {
 
           await handleDispatch(dispatch)
         } catch (err) {
-          // "not a quick/plugin/skill command" just means the fallback had
-          // nothing to add — the slash.exec failure (worker timeout, crash) is
+          // "not a quick/plugin/bundle/skill command" (older gateways: without
+          // "bundle/") just means the fallback had nothing to add — the slash.exec failure (worker timeout, crash) is
           // the real error, so don't bury it under the routing noise.
           const dispatchMessage = err instanceof Error ? err.message : String(err)
 
-          if (slashExecError && /not a quick\/plugin\/skill command/i.test(dispatchMessage)) {
+          if (slashExecError && /not a quick\/plugin\/(?:bundle\/)?skill command/i.test(dispatchMessage)) {
             const original = slashExecError instanceof Error ? slashExecError.message : String(slashExecError)
             renderSlashOutput(`error: /${name} failed: ${original}`)
 
@@ -490,6 +497,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
       // new branch in a dispatch ladder.
       const actionHandlers: Record<DesktopActionId, (ctx: SlashActionCtx) => Promise<void>> = {
         new: async () => {
+          prepareDefaultNewSession()
           startFreshSessionDraft()
         },
         branch: async () => {
@@ -625,7 +633,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
             durationMs: 0,
             id: noticeId,
             kind: 'info',
-            message: focusTopic ? copy.compressingContextFor(focusTopic) : copy.compressingContext
+            message: focusTopic ? `compressing context for: ${focusTopic}` : 'compressing context...'
           })
 
           try {
@@ -762,6 +770,46 @@ export function useSlashCommand(deps: SlashCommandDeps) {
             renderSlashOutput(`error: ${err instanceof Error ? err.message : String(err)}`)
           } finally {
             compressInFlightRef.current.delete(sessionId)
+          }
+        },
+        // /reasoning runs the gateway's `config.set key=reasoning` — the Ink
+        // TUI's path. Through slash.exec the display words only reached
+        // config.yaml and the Thinking gate ($showReasoning) waited for the
+        // next config refresh; the effort level was set on a throwaway CLI.
+        reasoning: async ctx => {
+          const resolved = await withSlashOutput(ctx)
+
+          if (!resolved) {
+            return
+          }
+
+          const { render: renderSlashOutput, sessionId } = resolved
+          const params = reasoningSlashParams(ctx.arg, sessionId)
+
+          try {
+            if (!params) {
+              const current = await requestGateway<{ display?: string; value?: string }>('config.get', {
+                key: 'reasoning',
+                session_id: sessionId
+              })
+
+              renderSlashOutput(`reasoning: ${current.value || 'medium'} · display ${current.display || 'hide'}`)
+
+              return
+            }
+
+            const result = await requestGateway<{ value?: string }>('config.set', params)
+
+            applyReasoningSlashResult(result.value)
+            renderSlashOutput(`reasoning: ${result.value || params.value}`)
+          } catch (err) {
+            if (isMissingRpcMethod(err)) {
+              await runExec(ctx)
+
+              return
+            }
+
+            renderSlashOutput(`error: ${err instanceof Error ? err.message : String(err)}`)
           }
         },
         // /yolo maps to the status-bar YOLO control — a per-session approval
@@ -962,7 +1010,11 @@ export function useSlashCommand(deps: SlashCommandDeps) {
 
             setSessions(prev => prev.map(s => (s.id === sessionId ? { ...s, title: finalTitle || null } : s)))
             await refreshSessions().catch(() => undefined)
-            renderSlashOutput(finalTitle ? copy.sessionTitleSet(finalTitle, queued) : copy.sessionTitleCleared)
+            renderSlashOutput(
+              finalTitle
+                ? `Session title set: ${finalTitle}${queued ? ' (queued while session initializes)' : ''}`
+                : 'Session title cleared.'
+            )
           } catch (err) {
             renderSlashOutput(`error: ${err instanceof Error ? err.message : String(err)}`)
           }

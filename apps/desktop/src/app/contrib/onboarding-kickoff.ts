@@ -15,11 +15,11 @@ import {
   SETUP_CHAT_TITLE,
   SETUP_PROFILE
 } from '@/components/onboarding-chat/setup-profile'
-import { translateNow } from '@/i18n'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 import { activeGatewayConnectionId, requestGatewayForProfile } from '@/store/gateway'
 import { loadMachineProfile } from '@/store/machine'
 import { notify } from '@/store/notifications'
+import { readOnboardingCapabilities } from '@/store/onboarding-capabilities'
 import { skipGuide } from '@/store/onboarding-gate'
 import { buildChatOnboardingSeedMessages } from '@/store/onboarding-script'
 import {
@@ -120,8 +120,6 @@ export function useOnboardingKickoff({
       takeGuideShape()
       await loadMachineProfile()
 
-      const seedMessages = buildChatOnboardingSeedMessages(pickOnboardingGreeting(), record.free_tier !== true)
-
       const guideRequest: AmbientGatewayRequest = (method, params, timeout) =>
         requestGatewayForProfile(SETUP_PROFILE, method, params, timeout)
 
@@ -141,6 +139,17 @@ export function useOnboardingKickoff({
         return true
       }
 
+      const capabilities = await readOnboardingCapabilities({
+        connectionId: previousConnectionId,
+        profile: SETUP_PROFILE
+      })
+
+      const seedMessages = buildChatOnboardingSeedMessages(
+        pickOnboardingGreeting(),
+        record.free_tier !== true,
+        capabilities
+      )
+
       const createOverrides: SessionCreateOverrides = { title: SETUP_CHAT_TITLE }
 
       if (record.free_tier) {
@@ -152,7 +161,7 @@ export function useOnboardingKickoff({
       )
 
       if (!runtimeId) {
-        throw new Error(translateNow('guidedOnboarding.errors.welcomeCreateFailed'))
+        throw new Error('The welcome chat could not be created. Please try again.')
       }
 
       const storedId = $selectedStoredSessionId.get()
@@ -183,19 +192,15 @@ export function useOnboardingKickoff({
             ? ensureGatewayAgent(previousConnectionId, previousProfile)
             : ensureGatewayProfile(previousProfile)
         ).catch(restoreError => {
-          notify({
-            kind: 'error',
-            title: translateNow('guidedOnboarding.errors.restoreProfileFailed'),
-            message: String(restoreError)
-          })
+          notify({ kind: 'error', title: 'Could not restore your profile', message: String(restoreError) })
         })
       }
 
       console.error('[setup] welcome chat could not start', error)
       notify({
         kind: 'error',
-        title: translateNow('guidedOnboarding.errors.welcomeNeedsAttention'),
-        message: error instanceof Error ? error.message : translateNow('guidedOnboarding.errors.welcomeStartFailed')
+        title: 'Welcome chat needs attention',
+        message: error instanceof Error ? error.message : 'The welcome chat could not start.'
       })
 
       return false

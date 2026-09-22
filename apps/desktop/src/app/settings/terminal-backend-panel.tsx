@@ -5,6 +5,7 @@ import { getTerminalBackends, selectTerminalBackend } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { AlertTriangle, Check, Loader2, RefreshCw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
 import type { TerminalBackendInfo, TerminalBackendsResponse } from '@/types/hermes'
 
@@ -42,8 +43,10 @@ function StatusPill({ backend }: { backend: TerminalBackendInfo }) {
  * `terminal.backend` config enum. Each backend row carries a live health probe
  * (Docker daemon reachable, SSH host configured, Modal/Daytona credentials
  * present) so users see Ready / Needs-setup guidance instead of a bare
- * dropdown. Selecting a needs-setup backend is allowed — the row shows what's
- * missing rather than blocking, matching the CLI configurator.
+ * dropdown. Selecting a needs-setup backend is still allowed (matching the CLI
+ * configurator) but goes through a confirm step first: the write persists
+ * immediately and every later session inherits a backend with no terminal or
+ * file tools, so one ambient click must not do that silently.
  */
 export function TerminalBackendPanel({ onConfiguredChange }: TerminalBackendPanelProps) {
   const { t } = useI18n()
@@ -76,6 +79,20 @@ export function TerminalBackendPanel({ onConfiguredChange }: TerminalBackendPane
     setSelecting(backend.name)
 
     try {
+      if (backend.status === 'needs_setup') {
+        const proceed = await confirm({
+          title: copy.needsSetupConfirmTitle(backend.label),
+          description: backend.detail
+            ? copy.needsSetupConfirmDescription(backend.detail)
+            : copy.needsSetupConfirmDescriptionGeneric,
+          confirmLabel: copy.needsSetupConfirmAction
+        })
+
+        if (!proceed) {
+          return
+        }
+      }
+
       await selectTerminalBackend(backend.name)
       // Mirror the backend write locally so the active highlight tracks the
       // new selection without a refetch (probes are unchanged by a select).
@@ -144,13 +161,11 @@ export function TerminalBackendPanel({ onConfiguredChange }: TerminalBackendPane
               )}
               {selecting === backend.name && <Loader2 className="size-3 animate-spin" />}
             </span>
-            <span className="text-[0.68rem] text-muted-foreground">
-              {copy.descriptions[backend.name] ?? backend.description}
-            </span>
+            <span className="text-[0.68rem] text-muted-foreground">{backend.description}</span>
             {backend.status !== 'ready' && backend.detail && (
               <span className="flex items-start gap-1 text-[0.68rem] text-amber-600 dark:text-amber-300">
                 <AlertTriangle className="mt-0.5 size-3 shrink-0" />
-                {copy.details[backend.detail] ?? backend.detail}
+                {backend.detail}
                 {backend.active && ` ${copy.needsSetupHint}`}
               </span>
             )}

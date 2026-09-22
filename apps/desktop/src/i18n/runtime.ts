@@ -1,12 +1,10 @@
+import { isRecord } from '@hermes/shared/i18n'
+
 import { TRANSLATIONS } from './catalog'
 import { DEFAULT_LOCALE } from './languages'
 import type { Locale } from './types'
 
 let runtimeLocale: Locale = DEFAULT_LOCALE
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
 
 /** Walk a dot-path (`a.b.c`) into a nested message tree. */
 function resolvePath(source: unknown, key: string): unknown {
@@ -61,13 +59,6 @@ export function getRuntimeI18nLocale(): Locale {
   return runtimeLocale
 }
 
-/** Resolve app copy for an explicit locale. Contribution renderers pass their
- * current locale to label callbacks, so this avoids depending on the runtime
- * locale effect having completed before the first paint. */
-export function translateForLocale(locale: Locale, key: string, ...args: unknown[]): string {
-  return translateFrom(l => TRANSLATIONS[l], locale, key, args)
-}
-
 export function translateNow(key: string, ...args: unknown[]): string {
-  return translateForLocale(runtimeLocale, key, ...args)
+  return translateFrom(locale => TRANSLATIONS[locale], runtimeLocale, key, args)
 }

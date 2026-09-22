@@ -1,8 +1,9 @@
 import { atom } from 'nanostores'
 
-import { getRuntimeI18nLocale, translateNow } from '@/i18n'
-import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
+import { translateNow } from '@/i18n'
+import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { isLocalBackendSlotWaitTimeout, requestPoolLimitsSettings } from '@/store/pool-limits'
+import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'
 
 export type NotificationKind = 'error' | 'warning' | 'info' | 'success'
 
@@ -26,6 +27,8 @@ export interface AppNotification {
   message: string
   detail?: string
   action?: NotificationAction
+  /** Second, quieter button beside `action` (e.g. "Disable" next to "Sign in"). */
+  secondaryAction?: NotificationAction
   onDismiss?: () => void
   createdAt: number
   placement?: NotificationPlacement
@@ -41,6 +44,7 @@ export interface NotificationInput {
   message: string
   detail?: string
   action?: NotificationAction
+  secondaryAction?: NotificationAction
   onDismiss?: () => void
   durationMs?: number
   placement?: NotificationPlacement
@@ -90,147 +94,130 @@ export function isDiskFullErrorMessage(message: string): boolean {
   )
 }
 
+/** Settings deep links the summariser can attach to a toast. */
+const KEYS_ROUTE = (envKey: string) => `/settings?tab=keys&key=${encodeURIComponent(envKey)}`
+const GATEWAY_SETTINGS_ROUTE = '/settings?tab=gateway'
+const MAINTENANCE_ROUTE = '/command-center?section=maintenance'
+
+/** One-click recoveries reused by several rules. */
+export const RECOVERY_ACTIONS = {
+  openUpdates: (): NotificationAction => ({
+    label: translateNow('notifications.updateHermes'),
+    onClick: () => void import('@/store/updates').then(({ openUpdatesWindow }) => openUpdatesWindow())
+  }),
+  restartHermes: (): NotificationAction => ({
+    label: translateNow('notifications.actions.restartHermes'),
+    onClick: requestBackendRestart
+  }),
+  openKeys: (envKey: string): NotificationAction => ({
+    label: translateNow('notifications.actions.openKeys'),
+    onClick: () => requestRoute(KEYS_ROUTE(envKey))
+  }),
+  openGateways: (): NotificationAction => ({
+    label: translateNow('notifications.actions.openGateways'),
+    onClick: () => requestRoute(GATEWAY_SETTINGS_ROUTE)
+  }),
+  openMaintenance: (): NotificationAction => ({
+    label: translateNow('notifications.actions.openMaintenance'),
+    onClick: () => requestRoute(MAINTENANCE_ROUTE)
+  })
+}
+
+/** Structured storage failure codes the backend puts in RPC/HTTP error data
+ *  (`hermes_state_errors.classify_persistence_error`). */
+const STORAGE_CODE_RE = /['"]code['"]\s*:\s*['"](storage_[a-z_]+|disk_full)['"]/i
+
 interface ErrorSummaryRule {
-  hideDetail?: boolean
-  summarize: (msg: string) => string
   test: (msg: string) => boolean
+  summarize: (msg: string) => string
+  /** Recovery button attached to the toast when this rule matches. */
+  action?: (msg: string) => NotificationAction
 }
 
 const ERROR_SUMMARIES: ErrorSummaryRule[] = [
-  {
-    test: msg => /^fast mode is not available for this model$/i.test(msg.trim()),
-    summarize: () => translateNow('notifications.errors.fastModeUnavailable'),
-    hideDetail: true
-  },
   {
     // Disk full / ENOSPC — session DB write, backend crash, or any path that
     // bubbles "no space left" / SQLITE_FULL through notifyError. Match before
     // generic length truncation so the user gets a clear "free space" toast
     // instead of a silent send or a raw errno dump.
     test: isDiskFullErrorMessage,
-    summarize: () => translateNow('notifications.errors.diskFull')
+    summarize: () => translateNow('notifications.errors.diskFull'),
+    action: () => RECOVERY_ACTIONS.openMaintenance()
   },
   {
-    // File endpoints and Electron previews report the same missing-file state.
-    // Preserve an optional path without repeating raw English under Details.
-    test: msg =>
-      /^file not found(?:\s*:\s*.*)?$/i.test(msg.trim()) ||
-      /^(?:text|file) preview failed:\s*file does not exist\.?$/i.test(msg.trim()),
-    summarize: msg => {
-      const target = /^file not found\s*:\s*(.*)$/i.exec(msg.trim())?.[1]?.trim() ?? ''
-
-      return translateNow('notifications.errors.fileNotFound', target)
-    },
-    hideDetail: true
-  },
-  {
-    // The shared gateway client emits these fixed transport messages. They
-    // describe one user-facing state, not useful diagnostic payload, so map
-    // the entire class to localized copy and do not repeat raw English under
-    // Details in non-English interfaces.
-    test: msg =>
-      /^(?:Hermes gateway connection closed|Could not connect to Hermes gateway|Hermes gateway is not connected)$/i.test(
-        msg.trim()
-      ),
-    summarize: () => translateNow('prompts.gatewayDisconnected'),
-    hideDetail: true
-  },
-  {
-    // The backend's provider-setup error ("No inference provider configured.
-    // Run 'hermes model' …", code no_provider_configured) reaches many
-    // surfaces through notifyError; show the same localized copy the
-    // submit/onboarding paths use for this condition.
-    test: msg => isProviderSetupErrorMessage(msg),
-    summarize: () => translateNow('desktop.providerCredentialRequired')
+    // Any other classified storage failure (locked, corrupt, read-only …):
+    // the Maintenance panel runs the doctor that names the fix.
+    test: msg => STORAGE_CODE_RE.test(msg),
+    summarize: () => translateNow('notifications.errors.storageFailure'),
+    action: () => RECOVERY_ACTIONS.openMaintenance()
   },
   {
     test: msg => /['"]code['"]\s*:\s*['"]gateway_auth_failed['"]/i.test(msg),
-    summarize: () => translateNow('notifications.errors.gatewayAuthFailed')
-  },
-  {
-    test: msg => /invalid external url/i.test(msg),
-    summarize: () => translateNow('notifications.errors.invalidExternalUrl')
-  },
-  {
-    test: msg => /^invalid preview url$/i.test(msg.trim()),
-    summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
-    hideDetail: true
+    summarize: () => translateNow('notifications.errors.gatewayAuthFailed'),
+    action: () => RECOVERY_ACTIONS.openGateways()
   },
   {
     test: msg => /incorrect api key provided/i.test(msg) || /['"]code['"]\s*:\s*['"]invalid_api_key['"]/i.test(msg),
-    summarize: msg => {
-      const status = msg.match(/(?:error code|status(?:Code)?)[^\d]*(\d{3})/i)?.[1]
-
-      return status
-        ? translateNow('notifications.errors.openaiRejectedApiKeyWithStatus', status)
-        : translateNow('notifications.errors.openaiRejectedApiKey')
-    }
+    summarize: () => translateNow('notifications.errors.openaiRejectedApiKey'),
+    action: () => RECOVERY_ACTIONS.openKeys('OPENAI_API_KEY')
   },
   {
     test: msg => /neither voice_tools_openai_key nor openai_api_key is set/i.test(msg),
-    summarize: () => translateNow('notifications.errors.openaiTtsNeedsKey')
+    summarize: () => translateNow('notifications.errors.openaiTtsNeedsKey'),
+    action: () => RECOVERY_ACTIONS.openKeys('OPENAI_API_KEY')
   },
   {
     test: msg => /ELEVENLABS_API_KEY not set/i.test(msg) || /ElevenLabs STT API error \(HTTP 401\)/i.test(msg),
     summarize: msg =>
       /ELEVENLABS_API_KEY not set/i.test(msg)
         ? translateNow('notifications.errors.elevenLabsNeedsKey')
-        : translateNow('notifications.errors.elevenLabsRejectedKey')
+        : translateNow('notifications.errors.elevenLabsRejectedKey'),
+    action: () => RECOVERY_ACTIONS.openKeys('ELEVENLABS_API_KEY')
   },
   {
     test: msg => /method not allowed/i.test(msg),
-    summarize: () => translateNow('notifications.errors.methodNotAllowed')
+    summarize: () => translateNow('notifications.errors.methodNotAllowed'),
+    action: () => RECOVERY_ACTIONS.restartHermes()
   },
   {
     test: msg => /microphone permission/i.test(msg),
     summarize: () => translateNow('notifications.errors.microphonePermission')
   },
   {
-    test: msg => /target user message is no longer in session history/i.test(msg),
-    summarize: () => translateNow('notifications.errors.restoreTargetMissing')
-  },
-  {
-    test: msg => /ordinal-only truncation is unsafe for durable session history/i.test(msg),
-    summarize: () => translateNow('notifications.errors.restoreTargetUnsafe')
+    test: msg => isOutOfSyncRpcParams(msg),
+    summarize: () => translateNow('notifications.errors.rpcOutOfSync'),
+    action: () => RECOVERY_ACTIONS.openUpdates()
   },
   {
     test: msg => /Restart required:/i.test(msg),
-    summarize: () => translateNow('notifications.errors.codeSkewRestartRequired')
+    summarize: () => translateNow('notifications.errors.codeSkewRestartRequired'),
+    action: () => RECOVERY_ACTIONS.restartHermes()
   }
 ]
 
-function summarizeErrorMessage(message: string, fallback: string): { hideDetail: boolean; message: string } {
+function summarizeErrorMessage(message: string, fallback: string) {
   const rule = ERROR_SUMMARIES.find(r => r.test(message))
 
   if (rule) {
-    return { hideDetail: Boolean(rule.hideDetail), message: rule.summarize(message) }
+    return { action: rule.action?.(message), message: rule.summarize(message) }
   }
 
-  // Backend exceptions are protocol/debug data, not UI copy. In a localized
-  // interface keep that raw text available under Details, but make the toast's
-  // primary message the caller's localized fallback. English retains the
-  // concise raw error as before.
-  if (getRuntimeI18nLocale() !== 'en') {
-    return { hideDetail: false, message: fallback }
-  }
-
-  return { hideDetail: false, message: message.length > 180 ? fallback : message || fallback }
+  return { action: undefined, message: message.length > 180 ? fallback : message || fallback }
 }
 
 // Exported so flows that surface errors inline (e.g. ConfirmDialog's onConfirm
 // rethrow) can reuse the same IPC-unwrapping + summarizing as notifyError.
-export function readableError(error: unknown, fallback: string): { message: string; detail?: string } {
+export function readableError(
+  error: unknown,
+  fallback: string
+): { message: string; detail?: string; action?: NotificationAction } {
   const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : fallback
   const unwrapped = raw.match(/Error invoking remote method '[^']+': Error: (.+)$/)?.[1] ?? raw
   const cleaned = cleanErrorText(unwrapped)
   const detail = cleaned.match(/"detail"\s*:\s*"([^"]+)"/)?.[1] ?? cleaned
   const summary = summarizeErrorMessage(detail, fallback)
-  const knownRestoreTargetDrift = /target user message is no longer in session history/i.test(detail)
 
-  return {
-    message: summary.message,
-    detail: summary.hideDetail || detail === summary.message || knownRestoreTargetDrift ? undefined : detail
-  }
+  return { message: summary.message, detail: detail === summary.message ? undefined : detail, action: summary.action }
 }
 
 export function notify(input: NotificationInput): string {
@@ -247,6 +234,7 @@ export function notify(input: NotificationInput): string {
     message: input.message,
     detail: input.detail,
     action: input.action,
+    secondaryAction: input.secondaryAction,
     onDismiss: input.onDismiss,
     createdAt: Date.now(),
     placement: input.placement ?? defaultPlacement(kind, input.action)
@@ -254,7 +242,8 @@ export function notify(input: NotificationInput): string {
 
   window.clearTimeout(timers.get(id))
   timers.delete(id)
-  $notifications.set([notification, ...$notifications.get().filter(item => item.id !== id)].slice(0, 4))
+  // Visual depth is capped by CardStack, not by discarding queued notifications.
+  $notifications.set([notification, ...$notifications.get().filter(item => item.id !== id)])
 
   const duration = input.durationMs ?? defaultDuration(kind)
 
@@ -268,7 +257,11 @@ export function notify(input: NotificationInput): string {
   return id
 }
 
-export function notifyError(error: unknown, fallback: string): string {
+export function notifyError(
+  error: unknown,
+  fallback: string,
+  options: { action?: NotificationAction; id?: string } = {}
+): string {
   const readable = readableError(error, fallback)
   const poolSlotTimeout = isLocalBackendSlotWaitTimeout(error)
 
@@ -278,7 +271,9 @@ export function notifyError(error: unknown, fallback: string): string {
           label: translateNow('desktop.poolSlotTimeoutOpenSettings'),
           onClick: requestPoolLimitsSettings
         }
-      : undefined,
+      : (options.action ?? readable.action),
+    // A caller that can fire again for the same cause names its toast, so the repeat replaces it.
+    id: options.id,
     kind: 'error',
     title: fallback,
     message: poolSlotTimeout ? translateNow('desktop.poolSlotTimeoutBody') : readable.message,

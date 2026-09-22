@@ -25,10 +25,13 @@
 
 import { useEffect, useState } from "react";
 import { api, type AuthMeResponse } from "@/lib/api";
+import { ApiError } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
-import { useI18n } from "@/i18n";
-import { getDashboardCopy } from "@/i18n/dashboard";
+
+/** Shown when /api/auth/me fails for a reason other than "not gated". */
+export const AUTH_STATUS_UNAVAILABLE_MESSAGE =
+  "Could not check who is signed in. Reload the page; if it persists, sign in again.";
 
 interface AuthWidgetProps {
   className?: string;
@@ -43,8 +46,6 @@ function truncateUserId(id: string): string {
 }
 
 export function AuthWidget({ className }: AuthWidgetProps) {
-  const { t } = useI18n();
-  const copy = getDashboardCopy(t).auth;
   const [me, setMe] = useState<AuthMeResponse | null>(null);
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,35 +53,34 @@ export function AuthWidget({ className }: AuthWidgetProps) {
   // Loopback / --insecure mode: the auth gate is off, so /api/auth/me is a
   // guaranteed 401. Don't fire the request at all — it only produces console
   // noise ("Failed to load resource: 401") on every dashboard load.
-  const gated = typeof window !== "undefined" && !!window.__HERMES_AUTH_REQUIRED__;
+  const gated =
+    typeof window !== "undefined" && !!window.__HERMES_AUTH_REQUIRED__;
 
   useEffect(() => {
     if (!gated) return;
     let cancelled = false;
     api
       .getAuthMe()
-      .then(data => {
+      .then((data) => {
         if (cancelled) return;
         setMe(data);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        // 401 from /api/auth/me means the gate isn't engaged in this
-        // process (loopback mode) — render nothing. fetchJSON throws an
-        // Error with the status code as a prefix; the global 401
-        // handler only redirects on the structured envelope, so a plain
-        // 401 from /api/auth/me with no envelope bubbles up here.
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.startsWith("401:") || msg.startsWith("403:")) {
+        // 401/403 from /api/auth/me means the gate isn't engaged in this
+        // process (loopback mode) — render nothing. The global 401 handler
+        // only redirects on the structured envelope, so a plain 401 from
+        // /api/auth/me with no envelope bubbles up here as an ApiError.
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
           setHidden(true);
           return;
         }
-        setError(copy.unavailable);
+        setError(AUTH_STATUS_UNAVAILABLE_MESSAGE);
       });
     return () => {
       cancelled = true;
     };
-  }, [copy.unavailable, gated]);
+  }, [gated]);
 
   // Nothing to show in ungated mode — there is no logged-in identity.
   if (!gated) return null;
@@ -91,11 +91,19 @@ export function AuthWidget({ className }: AuthWidgetProps) {
     return (
       <div
         className={cn(
-          "px-5 py-2 text-[0.65rem] tracking-[0.05em] text-muted-foreground/70",
-          className
+          "flex flex-col gap-1 px-5 py-2 text-[0.65rem] tracking-[0.05em] text-muted-foreground/70",
+          className,
         )}
+        role="status"
       >
-        {error}
+        <span>{error}</span>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="self-start underline underline-offset-2 hover:text-foreground"
+        >
+          Reload page
+        </button>
       </div>
     );
   }
@@ -105,7 +113,10 @@ export function AuthWidget({ className }: AuthWidgetProps) {
     // when the data arrives.
     return (
       <div
-        className={cn("h-9 px-5 py-2 text-[0.65rem] text-muted-foreground/40", className)}
+        className={cn(
+          "h-9 px-5 py-2 text-[0.65rem] text-muted-foreground/40",
+          className,
+        )}
         aria-busy="true"
       >
         …
@@ -129,17 +140,17 @@ export function AuthWidget({ className }: AuthWidgetProps) {
         "px-5 py-2",
         "border-t border-current/10",
         "text-[0.65rem] tracking-[0.05em]",
-        className
+        className,
       )}
       role="status"
-      aria-label={copy.loggedInAs.replace("{name}", label)}
+      aria-label={`Logged in as ${label}`}
     >
       <div className="flex min-w-0 flex-col">
         <span className="truncate font-mono text-foreground/90" title={me.user_id}>
           {label}
         </span>
         <span className="truncate text-muted-foreground/70">
-          {copy.via.replace("{provider}", me.provider)}
+          via {me.provider}
         </span>
       </div>
       <button
@@ -148,10 +159,10 @@ export function AuthWidget({ className }: AuthWidgetProps) {
         className={cn(
           "shrink-0 rounded p-1.5 text-muted-foreground/70",
           "transition-colors hover:bg-current/10 hover:text-foreground",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current/40"
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current/40",
         )}
-        aria-label={copy.logOut}
-        title={copy.logOut}
+        aria-label="Log out"
+        title="Log out"
       >
         <LogOut className="h-3.5 w-3.5" />
       </button>

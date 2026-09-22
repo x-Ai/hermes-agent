@@ -1,4 +1,3 @@
-import type { Translations } from '@/i18n'
 import { asText, normalize } from '@/lib/text'
 import type { ConfigFieldSchema, HermesConfigRecord, ToolsetInfo } from '@/types/hermes'
 
@@ -7,17 +6,13 @@ import { BUILTIN_PERSONALITIES, ENUM_OPTIONS, PROVIDER_GROUPS, SECTIONS } from '
 // Canonical implementations live in @/lib/text; re-exported here so the many
 // settings/capabilities call sites keep their import path.
 export { asText, includesQuery, prettyName } from '@/lib/text'
-export { delegationCustomEndpointsEnabled, delegationModelOptions, delegationProviderOptions } from '@hermes/shared'
 
 /** Strip leading emoji from toolset titles (CLI registry prefixes labels with icons). */
 export const stripToolsetLabel = (label: string): string =>
   label.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/u, '').trim() || label
 
-/** Toolset title for display: the localized label (skills.toolsetLabels, keyed
- *  by toolset id) when the catalog covers it, else the backend's emoji-stripped
- *  English label. Plugin toolsets simply fall through to their own label. */
-export const toolsetDisplayLabel = (toolset: Pick<ToolsetInfo, 'label' | 'name'>, t?: Translations): string =>
-  t?.skills.toolsetLabels[toolset.name] || stripToolsetLabel(asText(toolset.label || toolset.name))
+export const toolsetDisplayLabel = (toolset: Pick<ToolsetInfo, 'label' | 'name'>): string =>
+  stripToolsetLabel(asText(toolset.label || toolset.name))
 
 export const toolNames = (t: ToolsetInfo) => (Array.isArray(t.tools) ? t.tools.map(asText).filter(Boolean) : [])
 
@@ -179,7 +174,12 @@ export function voiceFieldVisible(key: string, config: HermesConfigRecord): bool
     return false
   }
 
-  return provider === String(getNested(config, `${domain}.provider`) ?? '')
+  const selected = String(getNested(config, `${domain}.provider`) ?? '')
+  // Backend defaults when the key is unset: TTS → edge, STT → local.
+  // An empty string used to hide every nested model field.
+  const fallback = domain === 'tts' ? 'edge' : 'local'
+
+  return provider === (selected || fallback)
 }
 
 export function inferFieldSchema(value: unknown): ConfigFieldSchema {

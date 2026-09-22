@@ -19,23 +19,8 @@ const HTML_DOC = `<!doctype html>
 
 const SMALL_SNIPPET = 'const x = 1'
 
-function jsonVersion(version: number): string {
-  return JSON.stringify(
-    {
-      version,
-      entries: Array.from({ length: 24 }, (_, index) => ({ id: index + 1, enabled: index % 2 === 0 }))
-    },
-    null,
-    2
-  )
-}
-
 function fenced(language: string, body: string): string {
   return `Here you go:\n\n\`\`\`${language}\n${body}\n\`\`\`\n`
-}
-
-function bareFenced(language: string, body: string): string {
-  return `\`\`\`${language}\n${body}\n\`\`\``
 }
 
 // End-to-end for the artifact path: a substantial ```html fence in assistant
@@ -84,36 +69,6 @@ describe('MarkdownTextContent artifacts', () => {
     render(<MarkdownTextContent isRunning={false} text={fenced('js', SMALL_SNIPPET)} />)
 
     expect(await screen.findByRole('button', { name: 'Copy code' })).toBeTruthy()
-  })
-
-  it('keeps repeated artifact rows and labels each version', async () => {
-    const { container } = render(
-      <MarkdownTextContent
-        isRunning={false}
-        text={`${bareFenced('json', jsonVersion(1))}\n\n${bareFenced('json', jsonVersion(2))}`}
-      />
-    )
-
-    expect(await screen.findAllByRole('button', { name: /json/i })).toHaveLength(2)
-    expect(await screen.findByText('v1/2')).toBeTruthy()
-    expect(screen.getByText('v2/2')).toBeTruthy()
-    expect(screen.getAllByText(/^\+\d+$/)).toHaveLength(2)
-
-    const rows = [...container.querySelectorAll<HTMLElement>('[data-slot="aui_artifact-card"]')]
-
-    expect(rows).toHaveLength(2)
-    expect(rows[0]?.nextElementSibling).toBe(rows[1])
-
-    for (const row of rows) {
-      expect(row.hasAttribute('data-conversation-scaffold')).toBe(true)
-      expect(row.classList.contains('h-(--conversation-line-height)')).toBe(true)
-      expect(row.querySelector('[data-slot="aui_artifact-card-glyph"]')?.classList.contains('size-3.5')).toBe(true)
-      expect(
-        row
-          .querySelector('[data-slot="aui_artifact-card-title"]')
-          ?.classList.contains('text-[length:var(--conversation-tool-font-size)]')
-      ).toBe(true)
-    }
   })
 
   it('does not register while the message is still streaming', async () => {

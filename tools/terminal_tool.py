@@ -18,12 +18,9 @@ import/patch target): ``terminal_tool_config`` (TERMINAL_* reads, ``_quiet``),
 ``terminal_tool_result`` (foreground result post-processing).
 """
 
-import hashlib
 import json
 import logging
 import os
-import posixpath
-import re
 import sys
 import time
 import threading
@@ -47,11 +44,12 @@ from tools.terminal_tool_lifecycle import (
     _evict_environment_for_task, cleanup_all_environments, ensure_task_env,
 )
 from tools.terminal_tool_config import (
-    _HOST_CWD_PREFIXES, _is_container_backend, _is_unusable_container_cwd, _parse_env_var,
+    _is_container_backend, _is_host_cwd, _is_unusable_container_cwd, _parse_env_var,
     _plugin_env_flag, _quiet, _safe_getcwd, _tenv, _tenv_bool,
 )
 from tools.terminal_tool_backends import (
     _REQUIREMENT_CHECKERS, _VERCEL_SANDBOX_DEFAULT_CWD, _check_plugin_requirements,
+    _record_unavailable_reason, terminal_backend_unavailable_reason,  # noqa: F401 — re-exported
 )
 # display_hermes_home imported lazily at call site (stale-module safety during hermes update)
 from tools.tool_backend_helpers import coerce_modal_mode, managed_nous_tools_enabled
@@ -137,29 +135,13 @@ def _docker_volume_uses_host_path(volume_spec: str) -> bool:
     )
 
 
-def _docker_has_host_access(config: Dict[str, Any],
-                            host_cwd: Optional[str] = None) -> bool:
+def _docker_has_host_access(config: Dict[str, Any]) -> bool:
     """Return True when a Docker sandbox exposes host paths through bind mounts."""
     if config.get("env_type") != "docker":
         return False
-    effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
-    if effective_host_cwd and config.get("docker_mount_cwd_to_workspace"):
+    if config.get("host_cwd") and config.get("docker_mount_cwd_to_workspace"):
         return True
     return any(_docker_volume_uses_host_path(vol) for vol in config.get("docker_volumes", []))
-
-
-def _sandbox_has_host_access(config: Dict[str, Any],
-                             host_cwd: Optional[str] = None) -> bool:
-    """Return whether the selected local sandbox can write through to the host."""
-    env_type = config.get("env_type")
-    if env_type == "docker":
-        return _docker_has_host_access(config, host_cwd)
-    if env_type == "singularity":
-        effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
-        return bool(effective_host_cwd) and bool(
-            config.get("singularity_mount_cwd_to_workspace")
-        )
-    return False
 
 
 def _check_all_guards(command: str, env_type: str,
@@ -173,90 +155,14 @@ def _check_all_guards(command: str, env_type: str,
 from tools.environments.base import EnvironmentConnectionError
 
 
-_WINDOWS_DRIVE_PATH_RE = re.compile(r"^[A-Za-z]:[\\/]")
-_MOUNT_CWD_ENV_VARS = {
-    "docker": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
-    "singularity": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
-}
-_WORKSPACE_PER_SESSION_ENV_VARS = {
-    "docker": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
-    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
-}
-_DEFAULT_WORKSPACE_MOUNT_PATH = "/workspace"
-_WORKSPACE_MOUNT_PATH_ENV_VARS = {
-    "docker": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
-    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
-}
-_SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
-_RESERVED_MOUNT_TARGETS = frozenset({"/root", "/home", "/tmp", "/var/tmp", "/run"})
-
-
-def _workspace_mount_path(env_type: Optional[str] = None) -> str:
-    """Resolve and validate the in-container project mount target."""
-    if env_type is None:
-        env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
-    env_var = _WORKSPACE_MOUNT_PATH_ENV_VARS.get(env_type)
-    raw = (_tenv(env_var) or "").strip() if env_var else ""
-    if not raw:
-        return _DEFAULT_WORKSPACE_MOUNT_PATH
-    normalized = posixpath.normpath(raw.replace("\\", "/"))
-    if not normalized.startswith("/") or normalized == "/":
-        logger.warning(
-            "Ignoring invalid %s value %r (must be an absolute in-container path other than /); using %s.",
-            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH,
-        )
-        return _DEFAULT_WORKSPACE_MOUNT_PATH
-    if normalized in _RESERVED_MOUNT_TARGETS:
-        logger.warning(
-            "Ignoring %s value %r because it collides with a sandbox-internal mount point; using %s.",
-            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH,
-        )
-        return _DEFAULT_WORKSPACE_MOUNT_PATH
-    return normalized
-
-
-def _is_sandbox_path(path: str, mount_path: str) -> bool:
-    if path.startswith(_SANDBOX_PATH_PREFIXES):
-        return True
-    return path == mount_path or path.startswith(mount_path + "/")
-
-
-def _is_host_path(cwd: str) -> bool:
-    if not cwd:
-        return False
-    if any(cwd.startswith(prefix) for prefix in _HOST_CWD_PREFIXES):
-        return True
-    return bool(_WINDOWS_DRIVE_PATH_RE.match(cwd))
-
-
-def resolve_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
-    """Return (host source, sandbox target) for a mountable host cwd."""
-    if not isinstance(raw_cwd, str) or not raw_cwd.strip():
-        return None, None
-    raw = raw_cwd.strip()
-    mount_path = _workspace_mount_path()
-    if _is_sandbox_path(raw, mount_path):
-        return None, None
-    if os.name == "nt" and raw.startswith("/"):
-        return None, None
-    candidate = os.path.abspath(os.path.expanduser(raw))
-    if _is_sandbox_path(candidate, mount_path):
-        return None, None
-    if _is_host_path(candidate):
-        return candidate, mount_path
-    if os.path.isabs(candidate) and os.path.isdir(candidate):
-        return candidate, mount_path
-    return None, None
-
-
 # Tool description for LLM
 TERMINAL_TOOL_DESCRIPTION = """Execute shell commands. The host OS, shell, and terminal backend are stated in your environment section — write commands for THAT platform. Filesystem, current working directory, and exported environment variables persist between calls.
 
 Do NOT use cat/head/tail (use read_file), grep/rg/find/ls (use search_files), sed/awk (use patch), or echo/heredoc file creation (use write_file). Reserve terminal for: builds, installs, git, processes, scripts, network, package managers — anything that needs a shell. Output is auto-truncated with the full text saved to a file — never pipe through tail/head to shorten it.
 Environment state persists: activate a virtualenv or export variables once per session, not before every command.
 
-Foreground (default): returns INSTANTLY when the command finishes, even with a high timeout — set timeout generously for long builds.
-Background: set background=true (returns a session_id); add notify=true for bounded tasks, leave silent only for servers/daemons that never exit. After starting a server, verify readiness with a health check in a separate call (no blind sleep loops); manage with process(action="poll"/"wait").
+Foreground (default): returns INSTANTLY when the command finishes, even with a high timeout — set timeout generously for long builds and fixed waits.
+Background: set background=true (returns a session_id) only for commands that must keep running independently after this tool call returns; add notify=true for bounded tasks, leave silent only for servers/daemons that never exit. Do not start sleep, timers, cooldowns, delays, or polling loops with background=true — to wait a fixed time, run the wait as a normal foreground command with a high enough timeout. After starting a server, verify readiness with a health check in a separate call (no blind sleep loops); manage with process(action="poll"/"wait").
 Working directory: use 'workdir' for per-command cwd; when a command changes the session cwd (cd, pushd), trust the result's "cwd" field instead of prefixing every command with 'cd'.
 PTY: pty=true + background=true for interactive CLIs (they hang without a terminal); drive them with process(action="write"/"submit"). Local backend only.
 """
@@ -361,28 +267,39 @@ def get_session_cwd(session_key: Optional[str]) -> Optional[str]:
         return _session_cwd.get(str(session_key or "default"))
 
 
-def get_session_execution_cwd(session_key: Optional[str]) -> Optional[str]:
-    """Return a session cwd translated into the selected backend namespace."""
-    recorded = get_session_cwd(session_key)
-    config = _get_env_config()
-    env_type = str(config.get("env_type") or "local").strip().lower()
-    if not _is_container_backend(env_type):
-        return recorded
-    if recorded and not _is_unusable_container_cwd(recorded):
-        return recorded
-    mount_source, container_cwd = _resolve_workspace_mount_for_task(session_key, config)
-    if mount_source and container_cwd:
-        return container_cwd
-    if _resolve_task_host_cwd(config, session_key):
-        return str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
-    fallback = config.get("cwd")
-    return str(fallback) if isinstance(fallback, str) and fallback.strip() else None
-
-
 def clear_session_cwd(session_key: str) -> None:
     """Drop a session's cwd record (session teardown)."""
     with _session_cwd_lock:
         _session_cwd.pop(session_key, None)
+
+
+def _sanitize_cwd_for_live_env(env: Any, new_cwd: str) -> Optional[str]:
+    """Cwd to write into a LIVE cached env, or None to leave it untouched.
+
+    On container backends a raw host path (a desktop/TUI session registering its
+    workspace, e.g. ``C:\\Users\\me`` or ``/Users/me/workspace``) cannot be the
+    in-sandbox workdir: every file-tools ``_exec`` wrapper does
+    ``builtin cd -- <env.cwd> || exit 126``, so a host cwd poisons all later
+    file operations with an unrelated ``cd:`` error. The creation paths already
+    sanitize this (``_is_unusable_container_cwd`` guards); the live-env write
+    here is the one remaining unsanitized site. When the host path is the one
+    mounted at ``/workspace`` (docker cwd passthrough), the session's directory
+    is still reachable — remap instead of discarding, mirroring the env-creation
+    remap in ``terminal_tool()``. Non-container backends apply the override
+    verbatim (ACP project-root switching must keep working).
+    """
+    env_type = getattr(env, "env_type", None)
+    if not env_type or not _is_container_backend(env_type):
+        return new_cwd
+    if not _is_unusable_container_cwd(new_cwd):
+        return new_cwd
+    host_mount = getattr(env, "host_cwd", None)
+    if isinstance(host_mount, str) and host_mount:
+        candidate = os.path.abspath(os.path.expanduser(new_cwd))
+        mounted = os.path.abspath(os.path.expanduser(host_mount))
+        if candidate == mounted:
+            return "/workspace"
+    return None
 
 
 def register_task_env_overrides(task_id: str, overrides: Dict[str, Any]):
@@ -393,7 +310,9 @@ def register_task_env_overrides(task_id: str, overrides: Dict[str, Any]):
     A ``cwd`` override takes effect immediately: it becomes the session's
     recorded cwd (until a ``cd`` changes it) and any live env's cwd is updated
     too, so env-side seeding stays consistent (ACP switching project root
-    mid-session via ``session/load``).
+    mid-session via ``session/load``). The session record keeps the RAW path
+    (host workspaces are tracked there on purpose); only the live-env write is
+    sanitized, since a host cwd can never be a container workdir.
     """
     _task_env_overrides[task_id] = overrides
 
@@ -407,7 +326,9 @@ def register_task_env_overrides(task_id: str, overrides: Dict[str, Any]):
         with _env_lock:
             env = _active_environments.get(task_id) or _active_environments.get(container_id)
         if env is not None and getattr(env, "cwd", None) is not None:
-            env.cwd = new_cwd
+            sanitized = _sanitize_cwd_for_live_env(env, new_cwd)
+            if sanitized is not None:
+                env.cwd = sanitized
 
 
 def clear_task_env_overrides(task_id: str):
@@ -509,53 +430,6 @@ def _docker_session_isolation_enabled() -> bool:
     return _session_scope().docker_session_isolated
 
 
-def _workspace_cwd_for_task(task_id: Optional[str], config_cwd: str = "") -> str:
-    """Host cwd shared by workspace identity and mount resolution."""
-    overrides = _task_env_overrides.get(task_id or "default") or {}
-    return str(overrides.get("cwd") or get_session_cwd(task_id) or config_cwd or "")
-
-
-def _resolve_workspace_per_session(env_type: str, mount_cwd_enabled: bool) -> bool:
-    per_session_var = _WORKSPACE_PER_SESSION_ENV_VARS.get(env_type)
-    return bool(
-        per_session_var
-        and mount_cwd_enabled
-        and _tenv(per_session_var, "false").strip().lower()
-        in {"true", "1", "yes", "on"}
-    )
-
-
-def _workspace_per_session_enabled() -> bool:
-    _ensure_terminal_env_bridged()
-    env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
-    mount_var = _MOUNT_CWD_ENV_VARS.get(env_type)
-    return _resolve_workspace_per_session(
-        env_type,
-        (
-            _tenv(mount_var, "false").strip().lower()
-            in {"true", "1", "yes", "on"}
-        ) if mount_var else False,
-    )
-
-
-def _workspace_container_key(host_path: str) -> str:
-    try:
-        normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
-    except OSError:
-        normalized = host_path
-    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}"
-    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
-    return f"ws-{digest[:12]}"
-
-
-def _resolve_workspace_mount_for_task(
-    task_id: Optional[str], config: Dict[str, Any]
-) -> tuple[Optional[str], Optional[str]]:
-    if not config.get("workspace_per_session"):
-        return None, None
-    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("cwd") or ""))
-
-
 def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """Map a tool-call ``task_id`` to the ``_active_environments`` key. Order matters —
     earlier branches are authoritative where they apply:
@@ -577,17 +451,9 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """
     if task_id and _has_isolation_overrides(task_id):
         return task_id
-    if task_id:
-        alias_target = _resolve_container_alias(task_id)
-        if alias_target != task_id:
-            return _resolve_container_task_id(alias_target)
     scope = _session_scope()
     if task_id and scope.session_isolated:
-        return task_id
-    if _workspace_per_session_enabled():
-        mount_source, _ = resolve_workspace_mount(_workspace_cwd_for_task(task_id))
-        if mount_source:
-            return _workspace_container_key(mount_source)
+        return _resolve_container_alias(task_id)
     # Per-session isolation: when a session key is present (the WebUI streaming layer sets it per-session,
     # the gateway per-message via contextvars), scope the container to it so switching profiles can't reuse
     # a previous profile's SSHEnvironment and silently run commands on the wrong remote host. Subagents
@@ -673,18 +539,10 @@ def _resolve_task_host_cwd(config: Dict[str, Any], task_id: Optional[str]) -> Op
     Overrides tagged ``cwd_source: "process"`` are refused for the same reason;
     ``cwd_source: "session"`` or untagged (ACP/RL) overrides mount.
     """
-    env_type = config.get("env_type")
-    if env_type == "docker":
-        if not config.get("docker_mount_cwd_to_workspace"):
-            return None
-    elif env_type == "singularity":
-        if not config.get("singularity_mount_cwd_to_workspace"):
-            return None
-    else:
+    if config.get("env_type") != "docker" or not config.get("docker_mount_cwd_to_workspace"):
         return None
     # Top-level CLI parent ("default") is a single-session process — legacy behavior.
-    isolation = env_type == "docker" and _docker_session_isolation_enabled()
-    if not isolation or _resolve_container_task_id(task_id) == "default":
+    if not _docker_session_isolation_enabled() or _resolve_container_task_id(task_id) == "default":
         return config.get("host_cwd")
     overrides = resolve_task_overrides(task_id)
     candidate = overrides.get("cwd")
@@ -692,10 +550,7 @@ def _resolve_task_host_cwd(config: Dict[str, Any], task_id: Optional[str]) -> Op
         return None
     candidate = os.path.abspath(os.path.expanduser(candidate))
     # Must exist on the host and not already be an in-container path.
-    if not os.path.isdir(candidate):
-        return None
-    mount_path = str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
-    if _is_sandbox_path(candidate, mount_path):
+    if not os.path.isdir(candidate) or candidate.startswith(("/workspace", "/root")):
         return None
     return candidate
 
@@ -757,7 +612,7 @@ def _ensure_terminal_env_bridged() -> None:
 _DEFAULT_CWD_BY_BACKEND = {"ssh": "~", "vercel_sandbox": _VERCEL_SANDBOX_DEFAULT_CWD}
 
 
-def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
+def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:
     """``(cwd, host_cwd)`` from TERMINAL_CWD for *env_type*.
 
     Container backends are sanity-checked: with Docker cwd passthrough the host
@@ -770,13 +625,14 @@ def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
     if cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
     host_cwd = None
-    if mount_cwd_active:
-        mount_source, container_cwd = resolve_workspace_mount(
-            _tenv("TERMINAL_CWD") or _safe_getcwd()
-        )
-        if mount_source:
-            host_cwd = mount_source
-            cwd = container_cwd
+    if env_type == "docker" and mount_docker_cwd:
+        candidate = os.path.abspath(os.path.expanduser(_tenv("TERMINAL_CWD") or _safe_getcwd()))
+        if (
+            _is_host_cwd(candidate)
+            or (os.path.isabs(candidate) and os.path.isdir(candidate) and not candidate.startswith(("/workspace", "/root")))
+        ):
+            host_cwd = candidate
+            cwd = "/workspace"
     elif _is_container_backend(env_type) and cwd and _is_unusable_container_cwd(cwd) and cwd != default_cwd:
         logger.info("Ignoring TERMINAL_CWD=%r for %s backend "
                     "(host/relative path won't work in sandbox). Using %r instead.",
@@ -791,14 +647,6 @@ def _get_env_config() -> Dict[str, Any]:
     _ensure_terminal_env_bridged()
     env_type = _tenv("TERMINAL_ENV", "local")
     mount_docker_cwd = _tenv_bool("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
-    mount_singularity_cwd = _tenv_bool(
-        "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "false"
-    )
-    mount_cwd_active = (
-        (env_type == "docker" and mount_docker_cwd)
-        or (env_type == "singularity" and mount_singularity_cwd)
-    )
-    workspace_per_session = _resolve_workspace_per_session(env_type, mount_cwd_active)
 
     # Container/docker-only payloads are parsed only when such a backend is
     # selected: a stale or invalid Docker value bridged from config.yaml must
@@ -819,7 +667,7 @@ def _get_env_config() -> Dict[str, Any]:
     else:
         docker_forward_env, docker_volumes, docker_env, docker_extra_args, docker_shm_size = [], [], {}, [], "1g"
 
-    cwd, host_cwd = _resolve_config_cwd(env_type, mount_cwd_active)
+    cwd, host_cwd = _resolve_config_cwd(env_type, mount_docker_cwd)
 
     return {
         "env_type": env_type,
@@ -833,9 +681,6 @@ def _get_env_config() -> Dict[str, Any]:
         "cwd": cwd,
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
-        "singularity_mount_cwd_to_workspace": mount_singularity_cwd,
-        "workspace_per_session": workspace_per_session,
-        "workspace_mount_path": _workspace_mount_path(env_type),
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),
         "lifetime_seconds": _parse_env_var("TERMINAL_LIFETIME_SECONDS", "300"),
         # SSH-specific config
@@ -1036,17 +881,13 @@ class _ApprovalVerdict:
     approved_run: bool = False
 
 
-def _run_approval_guards(command: str, env_type: str, config: Dict[str, Any], *, force: bool,
-                         host_cwd: Optional[str] = None) -> _ApprovalVerdict:
+def _run_approval_guards(command: str, env_type: str, config: Dict[str, Any], *, force: bool) -> _ApprovalVerdict:
     """Run tirith + dangerous-command guards; ``force`` skips them entirely.
     Raises :class:`_Rejected` when the command may not run (denied, or pending
     gateway approval)."""
     if force:
         return _ApprovalVerdict(approved_run=True)
-    approval = _check_all_guards(
-        command, env_type,
-        has_host_access=_sandbox_has_host_access(config, host_cwd),
-    )
+    approval = _check_all_guards(command, env_type, has_host_access=_docker_has_host_access(config))
     if not approval["approved"]:
         if approval.get("status") == "pending_approval":  # gateway ask mode
             raise _Rejected(_error_json(
@@ -1063,7 +904,8 @@ def _run_approval_guards(command: str, env_type: str, config: Dict[str, Any], *,
             f"Command denied: {desc}. "
             "Use the approval prompt to allow it, or rephrase the command."
         )
-        raise _Rejected(_error_json(approval.get("message", fallback_msg), status="blocked"))
+        raise _Rejected(_error_json(approval.get("message", fallback_msg), status="blocked",
+                                    **({"user_summary": approval["user_summary"]} if approval.get("user_summary") else {})))
     desc = approval.get("description", "flagged as dangerous")
     if approval.get("user_approved"):
         return _ApprovalVerdict(
@@ -1139,22 +981,14 @@ def _plan_execution(
     image = _select_image(env_type, overrides, config)
 
     cwd = overrides.get("cwd") or get_session_cwd(task_id) or config["cwd"]
-    host_cwd = config.get("host_cwd")
-    mount_source, container_cwd = _resolve_workspace_mount_for_task(task_id, config)
-    if mount_source:
-        host_cwd = mount_source
-        cwd = container_cwd
-    else:
-        host_cwd = _resolve_task_host_cwd(config, task_id)
+    host_cwd = _resolve_task_host_cwd(config, task_id)
     # config["cwd"] was sanitized for container backends in _get_env_config
     # but an override / session record is raw: a host path would reach
     # `docker run -w` and fail with exit 125. Re-apply the guard to the
     # resolved cwd; when the host path IS this session's mounted workspace,
     # remap to /workspace instead of discarding it.
     if _is_container_backend(env_type) and _is_unusable_container_cwd(cwd):
-        remapped = (
-            config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH
-        ) if host_cwd else config["cwd"]
+        remapped = "/workspace" if host_cwd else config["cwd"]
         if cwd != remapped:
             logger.info(
                 "Remapping host/relative cwd override %r for %s backend "
@@ -1326,6 +1160,12 @@ def _run_foreground(
     )
 
 
+# Floor for the pre-exec guard's share of the command deadline: a short command timeout
+# (1s in tests, a few seconds in practice) must not turn the guard's own cold-start cost
+# (module imports, git probes under load) into a refusal; the wedge it bounds lasted an hour.
+_PRE_EXEC_GUARD_MIN_TIMEOUT_S = 30
+
+
 def _pre_exec_block(
     command: str, *, env: Any, env_type: str, cwd: str,
     workdir: Optional[str], session_key: str,
@@ -1393,6 +1233,8 @@ def terminal_tool(
     notify_on_complete: bool = False,
     watch_patterns: Optional[List[str]] = None,
     _host_local: bool = False,
+    _completion_output_chars: int = 0,
+    heartbeat: int = 0,
 ) -> str:
     """Execute *command* in the configured terminal environment; returns a JSON string.
 
@@ -1403,7 +1245,11 @@ def terminal_tool(
     background-only flags: on conflict watch_patterns is dropped. watch_patterns
     is hard rate-limited (1 notification / 15s / process) and auto-disabled
     after repeated strikes or a lifetime cap, promoting to notify_on_complete —
-    use it only for rare one-shot signals on long-lived processes.
+    use it only for rare one-shot signals on long-lived processes. ``heartbeat`` (seconds,
+    background-only, implies notify_on_complete) emits a "still running + output since last
+    time" event every N seconds so the agent stays current on a long job without polling.
+    ``_completion_output_chars`` (internal) sizes the completion notification's output for a
+    spawner whose output is the payload (a bot DM's reply); 0 keeps the usual tail.
     ``_host_local`` forces the local backend for Hermes-owned control-plane
     children (kept in a separate env cache from the configured backend).
     """
@@ -1419,25 +1265,42 @@ def terminal_tool(
         # session_key) as a stable anchor.
         from tools.approval import get_current_session_key
 
-        routing_session_key = get_current_session_key(default="") or (task_id or "")
+        session_key = get_current_session_key(default="") or (task_id or "")
+
+        # The supervised-gateway identity probe ends in a kernel process query
+        # (psutil create_time) that has wedged for the better part of an hour on
+        # macOS; ``env.execute`` is already behind ``run_bounded_sync`` but this
+        # chain ran ahead of it, so the tool call never returned and the cron
+        # slot stayed occupied (#111922). Share the command's own deadline. A
+        # guard that never rendered a verdict fails CLOSED: these checks apply
+        # unconditionally (``force`` cannot bypass them), so the command is
+        # refused with a retryable error instead of running unguarded.
+        from agent.deadline import run_bounded_sync
+        from tools.interrupt import acting_for_tid
+
+        # The guard chain runs on the deadline worker; keep it answerable to /stop
+        # aimed at this tool thread (a remote-backend script read polls is_interrupted()).
+        guard_timeout = max(plan.effective_timeout, _PRE_EXEC_GUARD_MIN_TIMEOUT_S)
+        _acting_token = acting_for_tid.set(threading.current_thread().ident)
         try:
-            from agent.delegation_context import is_delegated_child_context
-
-            delegated_child = is_delegated_child_context()
-        except Exception:
-            delegated_child = False
-        cwd_session_key = str(task_id) if delegated_child and task_id else routing_session_key
-
-        _pre_exec_block(
-            command, env=env, env_type=env_type, cwd=cwd,
-            workdir=workdir, session_key=cwd_session_key,
-        )
+            bounded_guard = run_bounded_sync(
+                lambda: _pre_exec_block(
+                    command, env=env, env_type=env_type, cwd=cwd, workdir=workdir, session_key=session_key,
+                ),
+                guard_timeout,
+                label="terminal.pre-exec-guard",
+            )
+        finally:
+            acting_for_tid.reset(_acting_token)
+        if bounded_guard.timed_out:
+            raise _Rejected(_error_json(
+                f"Terminal pre-execution guard did not finish within {guard_timeout}s "
+                "(process-identity probe wedged); the command was not run. Retry the call.",
+                status="error",
+            ))
         # Pre-exec security checks (tirith + dangerous command detection);
         # force=True means the user already confirmed.
-        verdict = _run_approval_guards(
-            command, env_type, plan.config, force=force,
-            host_cwd=plan.host_cwd,
-        )
+        verdict = _run_approval_guards(command, env_type, plan.config, force=force)
 
         pty_disabled = pty and _command_requires_pipe_stdin(command)
         if plan.promoted_from_foreground_timeout is not None:
@@ -1447,17 +1310,19 @@ def terminal_tool(
         if background:
             result = spawn_background_process(
                 command=command, env=env, env_type=env_type, effective_task_id=effective_task_id,
-                task_id=task_id, session_key=cwd_session_key, workdir=workdir, cwd=cwd,
+                task_id=task_id, session_key=session_key, workdir=workdir, cwd=cwd,
                 effective_pty=pty and not pty_disabled, notify_on_complete=notify_on_complete,
                 watch_patterns=watch_patterns, approval_note=verdict.note,
                 pty_disabled_reason=_PTY_DISABLED_REASON if pty_disabled else None,
+                completion_output_chars=_completion_output_chars,
+                heartbeat_seconds=heartbeat,
             )
             if plan.promoted_from_foreground_timeout is not None:
                 result = _with_promoted_note(result, plan.promoted_from_foreground_timeout)
             return result
         return _run_foreground(
             command, env, plan,
-            task_id=task_id, session_id=session_id, session_key=cwd_session_key,
+            task_id=task_id, session_id=session_id, session_key=session_key,
             workdir=workdir, approval_note=verdict.note, clear_interrupt=verdict.approved_run,
         )
     except _Rejected as r:
@@ -1469,13 +1334,15 @@ def terminal_tool(
 
 
 def check_terminal_requirements() -> bool:
-    """Check if all requirements for the terminal tool are met."""
+    """Check if all requirements for the terminal tool are met. The reason for a failure is kept for
+    :func:`terminal_backend_unavailable_reason` (CLI startup notice / doctor)."""
     try:
         config = _get_env_config()
         checker = _REQUIREMENT_CHECKERS.get(config["env_type"], _check_plugin_requirements)
         return checker(config)
     except Exception as e:
         logger.error("Terminal requirements check failed: %s", e, exc_info=True)
+        _record_unavailable_reason(f"the requirements check failed: {e}")
         return False
 
 
@@ -1516,6 +1383,11 @@ TERMINAL_SCHEMA = {
                     {"type": "boolean"},
                     {"type": "array", "items": {"type": "string"}}
                 ]
+            },
+            "heartbeat": {
+                "type": "integer",
+                "minimum": 60,
+                "description": "With background=true: also notify every N seconds (min 60) with the output since the last notice. For long jobs you must react to mid-run (merge trains, full suites); implies notify=true."
             }
             # Legacy aliases (unadvertised, still accepted): notify_on_complete
             # (bool) and watch_patterns (list). notify=true|[...] maps onto
@@ -1527,6 +1399,8 @@ TERMINAL_SCHEMA = {
 
 
 def _handle_terminal(args, **kw):
+    from agent.terminal_approval_batch import validate_prepared_terminal
+    validate_prepared_terminal(args)
     # Models sometimes send execute_code's ``code`` here; name the stray
     # argument and the right tool instead of failing on command=None.
     if "command" not in args and "code" in args:
@@ -1542,11 +1416,14 @@ def _handle_terminal(args, **kw):
     notify = args.get("notify")
     notify_on_complete = args.get("notify_on_complete", False)
     watch_patterns = args.get("watch_patterns")
+    heartbeat = args.get("heartbeat") or 0
+    if not isinstance(heartbeat, int) or isinstance(heartbeat, bool) or heartbeat < 0:
+        return tool_error("heartbeat must be a whole number of seconds (min 60).")
     if not args.get("background", False):
-        if notify or watch_patterns or notify_on_complete:
+        if notify or watch_patterns or notify_on_complete or heartbeat:
             return tool_error(
-                "notify only applies to background commands (foreground "
-                "results return directly). Either drop notify, or run as "
+                "notify/heartbeat only apply to background commands (foreground "
+                "results return directly). Either drop them, or run as "
                 "terminal(command=..., background=true, notify=...)."
             )
         if args.get("pty", False):
@@ -1568,6 +1445,8 @@ def _handle_terminal(args, **kw):
                 "notify must be true/false (notify on exit) or a list of "
                 "strings (notify on output pattern match)."
             )
+    if heartbeat:
+        notify_on_complete = True  # the heartbeat rides the completion delivery path
     return terminal_tool(
         command=args.get("command"),
         background=args.get("background", False),
@@ -1578,6 +1457,7 @@ def _handle_terminal(args, **kw):
         pty=args.get("pty", False),
         notify_on_complete=notify_on_complete,
         watch_patterns=watch_patterns,
+        heartbeat=heartbeat,
     )
 
 

@@ -20,7 +20,6 @@ import {
 import { useState } from 'react'
 
 import { labeled } from './dialog-parts'
-import { useBots } from './i18n'
 import { botRouteKey, requestForBot, resolveBotConnectionRoute } from './routing'
 import { ID } from './shared'
 import type { RosterRow } from './types'
@@ -66,7 +65,7 @@ interface ModelProviderOption {
   name?: string
   slug: string
 }
-interface ModelOptionsResponse {
+interface ModelOptionsResult {
   providers?: ModelProviderOption[]
 }
 
@@ -77,7 +76,7 @@ function useModelOptions(bot: null | RosterRow = null) {
   const route = resolved?.status === 'resolved' ? resolved.route : null
   const orphaned = resolved?.status === 'owner_removed'
 
-  return useQuery<ModelOptionsResponse>({
+  return useQuery<ModelOptionsResult>({
     queryKey: [ID, 'model-options', route ? botRouteKey(route) : 'active'],
     // No forced `refresh`: forcing a network read on EVERY mount bypassed the
     // staleTime cache, so each Bots view remount (tab re-front, dialog reopen,
@@ -89,7 +88,7 @@ function useModelOptions(bot: null | RosterRow = null) {
         requestForBot(bot, 'model.options', {
           include_unconfigured: true,
           explicit_only: false
-        }) as Promise<ModelOptionsResponse>
+        }) as Promise<ModelOptionsResult>
       ),
     enabled: !orphaned,
     staleTime: 120000,
@@ -117,8 +116,7 @@ interface ModelPickerProps {
   value: ModelSelection
 }
 
-export function ModelPicker({ bot = null, value, onChange, placeholderModel = '' }: ModelPickerProps) {
-  const b = useBots()
+export function ModelPicker({ bot = null, value, onChange, placeholderModel = 'gateway default' }: ModelPickerProps) {
   const { data, isLoading, error } = useModelOptions(bot)
 
   // Hooks are ALWAYS declared up front, before any conditional return.
@@ -142,7 +140,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
     return (
       <div className="grid grid-cols-2 gap-2.5">
         {labeled(
-          b.tools.provider,
+          'Provider',
           <Input
             onChange={event =>
               onChange({
@@ -154,7 +152,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
           />
         )}
         {labeled(
-          b.tools.model,
+          'Model',
           <Input
             onChange={event =>
               onChange({
@@ -174,7 +172,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2.5">
           {labeled(
-            b.tools.providerCustom,
+            'Provider (Custom)',
             <Input
               onChange={event =>
                 onChange({
@@ -186,7 +184,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
             />
           )}
           {labeled(
-            b.tools.modelCustom,
+            'Model (Custom)',
             <Input
               onChange={event =>
                 onChange({
@@ -204,7 +202,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
           size="sm"
           variant="ghost"
         >
-          {b.tools.backToDropdowns}
+          ← Back to dropdowns
         </Button>
       </div>
     )
@@ -219,7 +217,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
   return (
     <div className="grid grid-cols-[1fr_1.4fr] gap-2.5">
       {labeled(
-        b.tools.provider,
+        'Provider',
         <Select
           onValueChange={v => {
             if (v === NONE) {
@@ -245,18 +243,18 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>{b.tools.inheritLaunchProfile}</SelectItem>
+            <SelectItem value={NONE}>Inherit (launch profile)</SelectItem>
             {providers.map(p => (
               <SelectItem key={p.slug} value={p.slug}>
                 {p.name ? `${p.name} (${p.slug})` : p.slug}
               </SelectItem>
             ))}
-            <SelectItem value={CUSTOM}>{b.tools.enterManually}</SelectItem>
+            <SelectItem value={CUSTOM}>✏️ Enter manually…</SelectItem>
           </SelectContent>
         </Select>
       )}
       {labeled(
-        b.tools.model,
+        'Model',
         activeProvider && models.length > 0 ? (
           <Select
             onValueChange={v =>
@@ -284,7 +282,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel = ''
                 model: event.target.value
               })
             }
-            placeholder={placeholderModel || b.tools.gatewayDefault}
+            placeholder={placeholderModel || 'e.g. model name'}
             value={value.model}
           />
         )

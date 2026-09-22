@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef } from 'react'
 
-import { useI18n } from '@/i18n'
+import { isSubmitEnter } from '@/lib/ime'
 import {
   initialQuickComposerState,
   QUICK_TARGET_CURRENT,
@@ -27,8 +27,6 @@ import {
  * the primary renderer's normal prompt-submit path.
  */
 export function QuickEntryApp() {
-  const { t } = useI18n()
-  const copy = t.quickEntry
   const inputRef = useRef<HTMLInputElement>(null)
 
   // The reducer returns { send, state }; this wrapper performs the side effect
@@ -113,7 +111,7 @@ export function QuickEntryApp() {
             ›
           </span>
           <input
-            aria-label={copy.label}
+            aria-label="Quick Entry"
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
@@ -126,7 +124,7 @@ export function QuickEntryApp() {
             }}
             onChange={event => dispatch({ draft: event.target.value, type: 'edit' })}
             onKeyDown={event => {
-              if (event.key === 'Enter' && !event.shiftKey) {
+              if (isSubmitEnter(event) && !event.shiftKey) {
                 event.preventDefault()
                 dispatch({ type: 'submit' })
               } else if (event.key === 'Escape') {
@@ -134,7 +132,7 @@ export function QuickEntryApp() {
                 dispatch({ type: 'dismiss' })
               }
             }}
-            placeholder={state.connected ? copy.askPlaceholder : copy.disconnectedPlaceholder}
+            placeholder={state.connected ? 'Ask Hermes…' : 'Not connected — open Hermes to reconnect'}
             ref={inputRef}
             spellCheck={false}
             style={{
@@ -161,10 +159,10 @@ export function QuickEntryApp() {
               userSelect: 'none'
             }}
           >
-            {copy.sendTo}
+            Send to
           </label>
           <select
-            aria-label={copy.targetSession}
+            aria-label="Target session"
             disabled={!state.connected}
             id="quick-entry-target"
             onChange={event => dispatch({ target: event.target.value, type: 'target' })}
@@ -185,8 +183,8 @@ export function QuickEntryApp() {
             }}
             value={state.target}
           >
-            <option value={QUICK_TARGET_CURRENT}>{copy.currentChat}</option>
-            <option value={QUICK_TARGET_NEW}>{copy.newSession}</option>
+            <option value={QUICK_TARGET_CURRENT}>Current chat</option>
+            <option value={QUICK_TARGET_NEW}>New session</option>
             {state.sessions.map(session => (
               <option key={session.id} value={session.id}>
                 {session.title}

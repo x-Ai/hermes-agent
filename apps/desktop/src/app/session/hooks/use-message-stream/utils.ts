@@ -1,4 +1,3 @@
-import { isApiRetryFailure } from '@/lib/api-error-messages'
 import type { GatewayEventPayload } from '@/lib/chat-messages'
 import { normalizePersonalityValue } from '@/lib/chat-runtime'
 import { isTodoToolName } from '@/lib/todos'
@@ -8,7 +7,16 @@ import type { ClientSessionState } from '../../../types'
 type SessionRuntimeStatePatch = Partial<
   Pick<
     ClientSessionState,
-    'branch' | 'cwd' | 'fast' | 'model' | 'personality' | 'provider' | 'reasoningEffort' | 'serviceTier' | 'yolo'
+    | 'branch'
+    | 'cwd'
+    | 'fast'
+    | 'model'
+    | 'personality'
+    | 'provider'
+    | 'reasoningEffort'
+    | 'reasoningEffortWire'
+    | 'serviceTier'
+    | 'yolo'
   >
 >
 
@@ -37,6 +45,10 @@ export function sessionInfoStatePatch(payload: GatewayEventPayload | undefined):
 
   if (typeof payload?.reasoning_effort === 'string') {
     patch.reasoningEffort = payload.reasoning_effort
+  }
+
+  if (typeof payload?.reasoning_effort_wire === 'string') {
+    patch.reasoningEffortWire = payload.reasoning_effort_wire
   }
 
   if (typeof payload?.service_tier === 'string') {
@@ -117,6 +129,7 @@ export const PRE_TURN_LIVE_SETTLE_GRACE_MS = 15_000
 // of an explicit error event. Treat matches as inline assistant errors so they
 // persist like real error events and don't get erased by hydrate fallback.
 const COMPLETION_ERROR_PATTERNS = [
+  /^API call failed after \d+ retries:/i,
   /^HTTP\s+\d{3}\b/i,
   /^(Provider|Gateway)\s+error:/i
 ]
@@ -124,7 +137,7 @@ const COMPLETION_ERROR_PATTERNS = [
 export function completionErrorText(finalText: string): string | null {
   const text = finalText.trim()
 
-  return text && (isApiRetryFailure(text) || COMPLETION_ERROR_PATTERNS.some(re => re.test(text))) ? text : null
+  return text && COMPLETION_ERROR_PATTERNS.some(re => re.test(text)) ? text : null
 }
 
 export const SUBAGENT_EVENT_TYPES = new Set([

@@ -4,73 +4,83 @@ import { type FC, useState } from 'react'
 import { MarkdownTextContent } from '@/components/assistant-ui/markdown-text'
 import { messageContentText } from '@/components/assistant-ui/thread/content'
 import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
-import { SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
+import { SCAFFOLD_GLYPH_CLASS, SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
 import { Codicon } from '@/components/ui/codicon'
+import { LogView } from '@/components/ui/log-view'
 import { ToolIcon } from '@/components/ui/tool-icon'
-import { useI18n } from '@/i18n'
-import { localizeAsyncDelegationResultText } from '@/lib/api-error-messages'
 import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
-
-import { localizeReviewSummaryDetail } from './review-summary-localization'
-import { WisdomCommandOutput } from './wisdom-command-output'
 
 const SLASH_STATUS_RE = /^slash:(?<command>\/[^\n]+)\n(?<output>[\s\S]*)$/
 const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
 const REVIEW_NOTE_RE = /^review:(?<label>[^:\n]+):?\s*(?<detail>[\s\S]*)$/
 
+interface BackgroundResultProps {
+  text: string
+  report: string
+  process?: boolean
+}
+
+export const BackgroundResult: FC<BackgroundResultProps> = ({ text, report, process }) => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div
+      className="flex w-full min-w-0 flex-col self-start py-1 pl-(--message-text-indent)"
+      data-slot="aui_background-result"
+    >
+      <div data-conversation-scaffold="">
+        <ScaffoldRow
+          onToggle={report ? () => setOpen(!open) : undefined}
+          open={open}
+          trailing={
+            <>
+              {' '}
+              <MessageTimelineTimestamp />
+            </>
+          }
+        >
+          {process && (
+            <span className={SCAFFOLD_GLYPH_CLASS}>
+              <ToolIcon className="text-(--ui-text-tertiary)" name="terminal" size="0.875rem" />
+            </span>
+          )}
+          <span className={cn(SCAFFOLD_LABEL_CLASS, 'min-w-0 truncate')}>{text}</span>
+        </ScaffoldRow>
+      </div>
+      {open &&
+        (process ? (
+          <LogView className="mt-2 max-h-80 overscroll-x-contain overscroll-y-auto">{report}</LogView>
+        ) : (
+          <div className="mt-2 max-h-80 min-w-0 max-w-full overflow-auto overscroll-x-contain overscroll-y-auto wrap-anywhere">
+            <MarkdownTextContent isRunning={false} text={report} />
+          </div>
+        ))}
+    </div>
+  )
+}
+
 export const SystemMessage: FC = () => {
-  const { locale, t } = useI18n()
-  const copy = t.assistant.thread
   const text = useAuiState(s => messageContentText(s.message.content))
   const asyncResult = useAuiState(s => s.message.metadata.custom?.asyncResult)
-  const [reportOpen, setReportOpen] = useState(false)
-
-  const displayKind = useAuiState(s => {
-    const value = (s.message.metadata?.custom as { displayKind?: unknown } | undefined)?.displayKind
-
-    return typeof value === 'string' ? value : undefined
-  })
+  const processResult = useAuiState(s => s.message.metadata.custom?.asyncResultKind === 'process')
 
   if (!text) {
     return null
   }
 
-  if (typeof asyncResult === 'string' && asyncResult) {
+  if (processResult || (typeof asyncResult === 'string' && asyncResult)) {
     return (
       <MessagePrimitive.Root
-        className="flex w-full min-w-0 flex-col self-start py-1"
-        data-display-kind={displayKind}
+        className="w-full min-w-0 self-start"
         data-role="system"
         data-slot="aui_system-message-root"
       >
-        <div data-conversation-scaffold="">
-          <ScaffoldRow
-            onToggle={() => setReportOpen(!reportOpen)}
-            open={reportOpen}
-            trailing={
-              <>
-                {' '}
-                <MessageTimelineTimestamp />
-              </>
-            }
-          >
-            <span
-              className={cn(SCAFFOLD_LABEL_CLASS, 'px-(--message-text-indent) text-muted-foreground/55')}
-              data-slot="aui_async-result-heading"
-            >
-              {text}
-            </span>
-          </ScaffoldRow>
-        </div>
-        {reportOpen && (
-          <div
-            className="mt-2 max-h-80 min-w-0 max-w-full overflow-auto overscroll-contain wrap-anywhere"
-            data-slot="aui_assistant-message-content"
-          >
-            <MarkdownTextContent isRunning={false} text={localizeAsyncDelegationResultText(asyncResult, locale)} />
-          </div>
-        )}
+        <BackgroundResult
+          process={processResult}
+          report={typeof asyncResult === 'string' ? asyncResult : ''}
+          text={text}
+        />
       </MessagePrimitive.Root>
     )
   }
@@ -82,7 +92,7 @@ export const SystemMessage: FC = () => {
   const reviewNote = text.match(REVIEW_NOTE_RE)
 
   if (reviewNote?.groups) {
-    const detail = localizeReviewSummaryDetail(reviewNote.groups.detail.trim(), copy.reviewSummary)
+    const detail = reviewNote.groups.detail.trim()
 
     return (
       <MessagePrimitive.Root
@@ -94,7 +104,7 @@ export const SystemMessage: FC = () => {
           <ToolIcon className="text-(--tool-memory-legendary-icon)" name="brain" size="0.875rem" />
         </span>
         <span className={cn(SCAFFOLD_LABEL_CLASS, 'tool-memory-legendary-title shrink-0 text-transparent')}>
-          {copy.reviewSummary.label}
+          {reviewNote.groups.label.trim()}
         </span>
         {detail && (
           <span className={cn(SCAFFOLD_LABEL_CLASS, 'tool-memory-legendary-meta min-w-0 wrap-anywhere')}>{detail}</span>
@@ -113,7 +123,7 @@ export const SystemMessage: FC = () => {
         data-slot="aui_system-message-root"
       >
         <Codicon className="text-muted-foreground/55" name="compass" size="0.75rem" />
-        <span className="text-muted-foreground/55">{copy.steered}</span>
+        <span className="text-muted-foreground/55">steered</span>
         <span className="text-muted-foreground/35">·</span>
         <span className="whitespace-pre-wrap">{steerNote.groups.text.trim()}</span> <MessageTimelineTimestamp />
       </MessagePrimitive.Root>
@@ -128,35 +138,18 @@ export const SystemMessage: FC = () => {
     // multiline output (catalogs, usage tables) needs left-aligned, wider room
     // or the column alignment breaks.
     const multiline = output.includes('\n')
-    const wisdomOutput = /^\/(?:wisdom|collective-wisdom-install)(?:\s|$)/i.test(slashStatus.groups.command)
-    const [headline, ...detailLines] = wisdomOutput ? output.split('\n') : [output]
-    const detail = detailLines.join('\n').trim()
 
     return (
       <MessagePrimitive.Root
         className={cn(
-          'self-center',
-          wisdomOutput
-            ? 'w-[min(92%,56rem)] rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) px-3 py-2 text-left text-[0.75rem] leading-[1.55] text-(--ui-text-secondary)'
-            : cn(
-                'w-[60%] max-w-[44rem] px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60',
-                multiline ? 'text-left' : 'text-center'
-              )
+          'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60',
+          multiline ? 'text-left' : 'text-center'
         )}
         data-role="system"
         data-slot="aui_system-message-root"
       >
-        <span
-          className={cn(
-            'font-mono',
-            wisdomOutput ? 'block text-[0.6875rem] text-(--ui-text-tertiary)' : 'text-muted-foreground/55'
-          )}
-        >
-          {slashStatus.groups.command}
-        </span>
-        {wisdomOutput ? (
-          <WisdomCommandOutput detail={detail} headline={headline} />
-        ) : multiline ? (
+        <span className="font-mono text-muted-foreground/55">{slashStatus.groups.command}</span>
+        {multiline ? (
           <LinkifiedText className="mt-0.5 block whitespace-pre-wrap" explicitOnly pretty={false} text={output} />
         ) : (
           <>
@@ -165,28 +158,6 @@ export const SystemMessage: FC = () => {
           </>
         )}{' '}
         <MessageTimelineTimestamp className={cn(multiline ? 'mt-0.5 block' : 'ml-1.5')} />
-      </MessagePrimitive.Root>
-    )
-  }
-
-  // Delegation completion is operational output in the transcript, so it
-  // belongs on the same left reading edge as tool activity and replies. Keep
-  // the other terse timeline statuses centered: their distinct display kind,
-  // not their localized wording, selects this layout.
-  if (displayKind === 'async_delegation_complete') {
-    return (
-      <MessagePrimitive.Root
-        className={cn(
-          SCAFFOLD_LABEL_CLASS,
-          'w-full max-w-full self-start px-(--message-text-indent) text-left text-muted-foreground/55'
-        )}
-        data-conversation-scaffold=""
-        data-display-kind="async_delegation_complete"
-        data-role="system"
-        data-slot="aui_system-message-root"
-      >
-        <LinkifiedText className="whitespace-pre-wrap" explicitOnly pretty={false} text={text} />{' '}
-        <MessageTimelineTimestamp className="ml-1.5" />
       </MessagePrimitive.Root>
     )
   }

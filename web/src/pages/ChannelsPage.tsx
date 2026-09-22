@@ -13,7 +13,7 @@ import {
   Save,
   Settings2,
   WifiOff,
-  X
+  X,
 } from "lucide-react";
 import * as QRCode from "qrcode";
 import { Badge } from "@nous-research/ui/ui/components/badge";
@@ -31,38 +31,31 @@ import type {
   MessagingPlatformEnvVar,
   MessagingPlatformUpdate,
   TelegramOnboardingStartResponse,
-  WhatsAppOnboardingStartResponse
+  WhatsAppOnboardingStartResponse,
 } from "@/lib/api";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { cn, themedBody } from "@/lib/utils";
-import { useI18n } from "@/i18n";
-import { getDashboardCopy, type DashboardCopy } from "@/i18n/dashboard";
-import {
-  localizeChannelDescription,
-  localizeChannelFieldDescription,
-  localizeChannelFieldLabel,
-  localizeChannelTestResult
-} from "@/i18n/channel-metadata";
-import type { Locale } from "@/i18n/types";
+import { errorMessage } from "@/lib/api-error";
 
 // State → badge mapping. The backend emits a small, fixed vocabulary plus
 // whatever the live gateway runtime reports (connected/disconnected/fatal).
-function stateBadge(state: string, copy: DashboardCopy["channels"]) {
-  const badges: Record<
-    string,
-    { tone: "success" | "warning" | "destructive" | "secondary" | "outline"; label: string }
-  > = {
-    connected: { tone: "success", label: copy.connected },
-    pending_restart: { tone: "warning", label: copy.pendingRestart },
-    gateway_stopped: { tone: "warning", label: copy.gatewayStopped },
-    startup_failed: { tone: "destructive", label: copy.startFailed },
-    disconnected: { tone: "warning", label: copy.disconnected },
-    not_configured: { tone: "outline", label: copy.notConfigured },
-    disabled: { tone: "secondary", label: copy.disabled },
-    fatal: { tone: "destructive", label: copy.error }
-  };
-  return badges[state] ?? { tone: "outline" as const, label: state };
+const STATE_BADGE: Record<
+  string,
+  { tone: "success" | "warning" | "destructive" | "secondary" | "outline"; label: string }
+> = {
+  connected: { tone: "success", label: "Connected" },
+  pending_restart: { tone: "warning", label: "Restart to apply" },
+  gateway_stopped: { tone: "warning", label: "Gateway stopped" },
+  startup_failed: { tone: "destructive", label: "Start failed" },
+  disconnected: { tone: "warning", label: "Disconnected" },
+  not_configured: { tone: "outline", label: "Not configured" },
+  disabled: { tone: "secondary", label: "Disabled" },
+  fatal: { tone: "destructive", label: "Error" },
+};
+
+function stateBadge(state: string) {
+  return STATE_BADGE[state] ?? { tone: "outline" as const, label: state };
 }
 
 const TELEGRAM_USER_ID_RE = /^\d+$/;
@@ -70,37 +63,31 @@ const TELEGRAM_BOT_TOKEN_RE = /^\d+:[A-Za-z0-9_-]{30,}$/;
 const SLACK_MEMBER_ID_RE = /^[UW][A-Z0-9]{2,}$/;
 const SLACK_TOKEN_PREFIXES: Record<string, string> = {
   SLACK_BOT_TOKEN: "xoxb-",
-  SLACK_APP_TOKEN: "xapp-"
+  SLACK_APP_TOKEN: "xapp-",
 };
 
-function validateMessagingEnvField(
-  field: MessagingPlatformEnvVar,
-  value: string,
-  copy: ReturnType<typeof getDashboardCopy>["channels"]
-): string | null {
+function validateMessagingEnvField(field: MessagingPlatformEnvVar, value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
   if (field.key === "TELEGRAM_BOT_TOKEN" && !TELEGRAM_BOT_TOKEN_RE.test(trimmed)) {
-    return copy.completeTelegramToken;
+    return "Paste the complete token from @BotFather (for example, 123456789:ABC…).";
   }
 
   if (field.key === "TELEGRAM_ALLOWED_USERS") {
     const invalid = trimmed
       .split(",")
-      .map(part => part.trim())
+      .map((part) => part.trim())
       .filter(Boolean)
-      .find(part => !TELEGRAM_USER_ID_RE.test(part));
+      .find((part) => !TELEGRAM_USER_ID_RE.test(part));
     if (invalid) {
-      return copy.numericTelegramId.replace("{value}", invalid);
+      return `${invalid} is not a numeric Telegram user ID.`;
     }
   }
 
   const expectedPrefix = SLACK_TOKEN_PREFIXES[field.key];
   if (expectedPrefix && !trimmed.startsWith(expectedPrefix)) {
-    return copy.mustStartWith
-      .replace("{name}", field.prompt || field.key)
-      .replace("{prefix}", expectedPrefix);
+    return `${field.prompt || field.key} must start with ${expectedPrefix}`;
   }
 
   if (field.key === "SLACK_ALLOWED_USERS") {
@@ -109,20 +96,20 @@ function validateMessagingEnvField(
     // allow-all wildcard the gateway honors.
     const parts = trimmed
       .split(",")
-      .map(part => part.trim())
+      .map((part) => part.trim())
       .filter(Boolean);
-    const invalid = parts.find(part => part !== "*" && !SLACK_MEMBER_ID_RE.test(part));
+    const invalid = parts.find((part) => part !== "*" && !SLACK_MEMBER_ID_RE.test(part));
     if (invalid) {
-      return copy.invalidSlackMember.replace("{value}", invalid);
+      return `${invalid} does not look like a Slack member ID. Use IDs like U01ABC2DEF3.`;
     }
   }
 
   return null;
 }
 
-function formatExpiry(expiresAt: string, locale: Locale): string {
+function formatExpiry(expiresAt: string): string {
   const ms = Date.parse(expiresAt) - Date.now();
-  if (!Number.isFinite(ms) || ms <= 0) return locale === "zh" ? "已过期" : "expired";
+  if (!Number.isFinite(ms) || ms <= 0) return "expired";
   const seconds = Math.ceil(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const rest = seconds % 60;
@@ -144,11 +131,11 @@ function normalizeWhatsAppMode(mode: unknown): "bot" | "self-chat" | null {
 }
 
 export default function ChannelsPage() {
-  const { locale, t } = useI18n();
-  const copy = getDashboardCopy(t).channels;
   const [platforms, setPlatforms] = useState<MessagingPlatform[]>([]);
   const [envPath, setEnvPath] = useState("~/.hermes/.env");
-  const [gatewayStartCommand, setGatewayStartCommand] = useState("hermes gateway start");
+  const [gatewayStartCommand, setGatewayStartCommand] = useState(
+    "hermes gateway start",
+  );
   const [loading, setLoading] = useState(true);
   const { toast, showToast } = useToast();
   const { setEnd } = usePageHeader();
@@ -175,13 +162,13 @@ export default function ChannelsPage() {
   const load = useCallback(() => {
     return api
       .getMessagingPlatforms()
-      .then(res => {
+      .then((res) => {
         setPlatforms(res.platforms);
         setEnvPath(res.env_path || "~/.hermes/.env");
         setGatewayStartCommand(res.gateway_start_command || "hermes gateway start");
       })
-      .catch(e => showToast(`${copy.error}: ${e}`, "error"));
-  }, [copy.error, showToast]);
+      .catch((e) => showToast(`Could not load channels: ${errorMessage(e)}`, "error"));
+  }, [showToast]);
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -189,7 +176,7 @@ export default function ChannelsPage() {
 
   const openConfig = (platform: MessagingPlatform) => {
     const initial: Record<string, string> = {};
-    platform.env_vars.forEach(v => {
+    platform.env_vars.forEach((v) => {
       initial[v.key] = "";
     });
     setDraftEnv(initial);
@@ -206,25 +193,24 @@ export default function ChannelsPage() {
       if (v.trim()) env[k] = v.trim();
     });
     if (Object.keys(env).length === 0) {
-      showToast(copy.nothingToSave, "error");
+      showToast("Nothing to save — fill in at least one field.", "error");
       return;
     }
-    const missing = editing.env_vars.filter(v => v.required && !v.is_set && !env[v.key]);
+    const missing = editing.env_vars.filter(
+      (v) => v.required && !v.is_set && !env[v.key],
+    );
     if (missing.length > 0) {
-      showToast(
-        `${localizeChannelFieldLabel(missing[0].key, missing[0].prompt || missing[0].key, locale)} *`,
-        "error"
-      );
+      showToast(`${missing[0].prompt || missing[0].key} is required`, "error");
       return;
     }
     const nextFieldErrors: Record<string, string> = {};
-    editing.env_vars.forEach(field => {
-      const message = validateMessagingEnvField(field, draftEnv[field.key] || "", copy);
+    editing.env_vars.forEach((field) => {
+      const message = validateMessagingEnvField(field, draftEnv[field.key] || "");
       if (message) nextFieldErrors[field.key] = message;
     });
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
-      showToast(copy.fixFields, "error");
+      showToast("Fix the highlighted fields before saving.", "error");
       return;
     }
     setSaving(true);
@@ -232,15 +218,17 @@ export default function ChannelsPage() {
       const body: MessagingPlatformUpdate = { env, enabled: true };
       const result = await api.updateMessagingPlatform(editing.id, body);
       showToast(
-        (result.hot_served ? copy.savedConnecting : copy.saved).replace("{name}", editing.name),
-        "success"
+        result.hot_served
+          ? `${editing.name} saved; the running gateway is connecting`
+          : `${editing.name} saved`,
+        "success",
       );
       setEditing(null);
       if (!result.hot_served) setRestartNeeded(true);
       await load();
       if (result.hot_served) setTimeout(() => void load(), 4000);
     } catch (e) {
-      showToast(copy.saveFailed.replace("{error}", String(e)), "error");
+      showToast(`Failed to save: ${errorMessage(e)}`, "error");
     } finally {
       setSaving(false);
     }
@@ -251,17 +239,17 @@ export default function ChannelsPage() {
     setTogglingId(platform.id);
     try {
       const result = await api.updateMessagingPlatform(platform.id, { enabled: next });
-      setPlatforms(prev =>
-        prev.map(p =>
+      setPlatforms((prev) =>
+        prev.map((p) =>
           p.id === platform.id
             ? { ...p, enabled: next, state: next ? "pending_restart" : "disabled" }
-            : p
-        )
+            : p,
+        ),
       );
       if (result.hot_served) setTimeout(() => void load(), 4000);
       else setRestartNeeded(true);
     } catch (e) {
-      showToast(`${copy.error}: ${e}`, "error");
+      showToast(`Could not update the channel: ${errorMessage(e)}`, "error");
     } finally {
       setTogglingId(null);
     }
@@ -271,12 +259,9 @@ export default function ChannelsPage() {
     setTestingId(platform.id);
     try {
       const res = await api.testMessagingPlatform(platform.id);
-      showToast(
-        `${platform.name}: ${localizeChannelTestResult(platform.name, res, copy, locale)}`,
-        res.ok ? "success" : "error"
-      );
+      showToast(`${platform.name}: ${res.message}`, res.ok ? "success" : "error");
     } catch (e) {
-      showToast(`${copy.error}: ${e}`, "error");
+      showToast(`Could not test the channel: ${errorMessage(e)}`, "error");
     } finally {
       setTestingId(null);
     }
@@ -286,12 +271,12 @@ export default function ChannelsPage() {
     setRestarting(true);
     try {
       await api.restartGateway();
-      showToast(copy.gatewayRestarting, "success");
+      showToast("Gateway restarting…", "success");
       setRestartNeeded(false);
       // Give the gateway a moment to come up, then refresh status.
       setTimeout(() => void load(), 4000);
     } catch (e) {
-      showToast(copy.restartFailed.replace("{error}", String(e)), "error");
+      showToast(`Failed to restart: ${errorMessage(e)}`, "error");
     } finally {
       setRestarting(false);
     }
@@ -306,14 +291,17 @@ export default function ChannelsPage() {
         disabled={restarting}
         prefix={restarting ? <Spinner /> : <RotateCw className="h-4 w-4" />}
       >
-        {restarting ? copy.restarting : copy.restartGateway}
-      </Button>
+        {restarting ? "Restarting…" : "Restart gateway"}
+      </Button>,
     );
     return () => setEnd(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [copy.restartGateway, copy.restarting, setEnd, restarting]);
+  }, [setEnd, restarting]);
 
-  const configured = useMemo(() => platforms.filter(p => p.configured).length, [platforms]);
+  const configured = useMemo(
+    () => platforms.filter((p) => p.configured).length,
+    [platforms],
+  );
 
   if (loading) {
     return (
@@ -333,7 +321,9 @@ export default function ChannelsPage() {
           <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm">
               <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
-              <span>{copy.restartSaved}</span>
+              <span>
+                Changes are saved. Restart the gateway for them to take effect.
+              </span>
             </div>
             <Button
               size="sm"
@@ -342,7 +332,7 @@ export default function ChannelsPage() {
               disabled={restarting}
               prefix={restarting ? <Spinner /> : <RotateCw className="h-4 w-4" />}
             >
-              {restarting ? copy.restarting : copy.restartNow}
+              {restarting ? "Restarting…" : "Restart now"}
             </Button>
           </CardContent>
         </Card>
@@ -352,16 +342,19 @@ export default function ChannelsPage() {
         <Card className="border-border">
           <CardContent className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
             <WifiOff className="h-4 w-4 shrink-0" />
-            <span>{copy.gatewayNotRunning.replace("{command}", gatewayStartCommand)}</span>
+            <span>
+              The gateway is not running. Configure channels here, then start the
+              gateway with <code className="font-courier">{gatewayStartCommand}</code>{" "}
+              (or the Restart button above).
+            </span>
           </CardContent>
         </Card>
       )}
 
       <p className="text-xs text-muted-foreground">
-        {copy.configuredCount
-          .replace("{configured}", String(configured))
-          .replace("{total}", String(platforms.length))}{" "}
-        {copy.credentialsHint.replace("{path}", envPath)}
+        {configured} of {platforms.length} channels configured. Credentials are
+        written to <code className="font-courier">{envPath}</code>; the
+        gateway connects each enabled channel on its next restart.
       </p>
 
       {/* Config modal */}
@@ -371,9 +364,9 @@ export default function ChannelsPage() {
           className={cn(
             "fixed inset-0 z-[100] flex min-h-dvh items-start justify-center overflow-y-auto bg-background/85 px-4",
             "pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]",
-            "sm:items-center sm:p-4"
+            "sm:items-center sm:p-4",
           )}
-          onClick={e => e.target === e.currentTarget && setEditing(null)}
+          onClick={(e) => e.target === e.currentTarget && setEditing(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="channel-config-title"
@@ -381,7 +374,7 @@ export default function ChannelsPage() {
           <div
             className={cn(
               themedBody,
-              "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col border border-border bg-card shadow-2xl sm:max-h-[90dvh]"
+              "relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col border border-border bg-card shadow-2xl sm:max-h-[90dvh]",
             )}
           >
             <Button
@@ -389,7 +382,7 @@ export default function ChannelsPage() {
               size="icon"
               onClick={() => setEditing(null)}
               className="absolute right-2 top-2 text-muted-foreground hover:text-foreground"
-              aria-label={copy.close}
+              aria-label="Close"
             >
               <X />
             </Button>
@@ -400,8 +393,8 @@ export default function ChannelsPage() {
                 className="font-mondwest text-display text-base tracking-wider"
               >
                 {editing.id === "telegram"
-                  ? copy.ownTelegramBot
-                  : copy.configurePlatform.replace("{name}", editing.name)}
+                  ? "Use your own Telegram bot"
+                  : `Configure ${editing.name}`}
               </h2>
               {editing.docs_url && (
                 <a
@@ -410,7 +403,7 @@ export default function ChannelsPage() {
                   rel="noopener noreferrer"
                   className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
-                  {editing.id === "telegram" ? copy.botFatherGuide : copy.setupGuide}
+                  {editing.id === "telegram" ? "BotFather guide" : "Setup guide"}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -419,11 +412,22 @@ export default function ChannelsPage() {
             <div className="grid gap-4 overflow-y-auto overscroll-contain p-4 sm:p-5">
               {editing.id === "telegram" && (
                 <div className="grid gap-3 text-sm text-muted-foreground">
-                  <p>{copy.telegramManualIntro}</p>
+                  <p>
+                    Connect a bot you already own, or create one in Telegram before
+                    filling in this form.
+                  </p>
                   <ol className="grid list-decimal gap-1.5 pl-5">
-                    <li>{copy.telegramStepCreate}</li>
-                    <li>{copy.telegramStepToken}</li>
-                    <li>{copy.telegramStepUser}</li>
+                    <li>
+                      Open <span className="text-foreground">@BotFather</span>, send
+                      <code className="mx-1 font-courier text-xs">/newbot</code>, and
+                      follow its prompts.
+                    </li>
+                    <li>Copy the complete bot token BotFather gives you.</li>
+                    <li>
+                      Message <span className="text-foreground">@userinfobot</span> to
+                      find your numeric Telegram user ID, then add it below for
+                      immediate access.
+                    </li>
                   </ol>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
                     <a
@@ -432,7 +436,7 @@ export default function ChannelsPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-primary hover:underline"
                     >
-                      {copy.openBotFather} <ExternalLink className="h-3 w-3" />
+                      Open @BotFather <ExternalLink className="h-3 w-3" />
                     </a>
                     <a
                       href="https://t.me/userinfobot"
@@ -440,28 +444,31 @@ export default function ChannelsPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-primary hover:underline"
                     >
-                      {copy.findUserId} <ExternalLink className="h-3 w-3" />
+                      Find my user ID <ExternalLink className="h-3 w-3" />
                     </a>
                   </div>
-                  <p className="text-xs">{copy.pairingFallback}</p>
+                  <p className="text-xs">
+                    You can leave allowed users blank. Hermes will then send new DM
+                    users a code that you approve from the Pairing page.
+                  </p>
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {localizeChannelDescription(editing.id, editing.description, locale)}
+                {editing.description}
               </p>
               {editing.env_vars.map((field: MessagingPlatformEnvVar) => (
                 <div className="grid gap-1.5" key={field.key}>
                   <div className="flex items-center gap-1.5">
                     <Label htmlFor={`field-${field.key}`}>
-                      {localizeChannelFieldLabel(field.key, field.prompt || field.key, locale)}
+                      {field.prompt || field.key}
                       {field.required ? " *" : ""}
                     </Label>
                     {field.help && (
                       <span
-                        aria-label={localizeChannelFieldDescription(field.key, field.help, locale)}
+                        aria-label={field.help}
                         className="inline-flex text-muted-foreground hover:text-foreground"
                         role="img"
-                        title={localizeChannelFieldDescription(field.key, field.help, locale)}
+                        title={field.help}
                       >
                         <Info className="h-3.5 w-3.5" />
                       </span>
@@ -469,7 +476,7 @@ export default function ChannelsPage() {
                   </div>
                   {field.description && (
                     <span className="text-xs text-muted-foreground">
-                      {localizeChannelFieldDescription(field.key, field.description, locale)}
+                      {field.description}
                     </span>
                   )}
                   <Input
@@ -477,14 +484,16 @@ export default function ChannelsPage() {
                     type={field.is_password ? "password" : "text"}
                     className="text-base leading-6 sm:text-xs sm:leading-4"
                     placeholder={
-                      field.is_set ? field.redacted_value || copy.keepConfigured : field.key
+                      field.is_set
+                        ? field.redacted_value || "•••••• (set — leave blank to keep)"
+                        : field.key
                     }
                     value={draftEnv[field.key] ?? ""}
                     aria-invalid={Boolean(fieldErrors[field.key])}
-                    onChange={e => {
+                    onChange={(e) => {
                       const nextValue = e.target.value;
-                      setDraftEnv(prev => ({ ...prev, [field.key]: nextValue }));
-                      setFieldErrors(prev => {
+                      setDraftEnv((prev) => ({ ...prev, [field.key]: nextValue }));
+                      setFieldErrors((prev) => {
                         if (!prev[field.key]) return prev;
                         const next = { ...prev };
                         delete next[field.key];
@@ -493,7 +502,9 @@ export default function ChannelsPage() {
                     }}
                   />
                   {fieldErrors[field.key] && (
-                    <span className="text-xs text-destructive">{fieldErrors[field.key]}</span>
+                    <span className="text-xs text-destructive">
+                      {fieldErrors[field.key]}
+                    </span>
                   )}
                 </div>
               ))}
@@ -505,7 +516,7 @@ export default function ChannelsPage() {
                   className="w-full sm:w-auto"
                   onClick={() => setEditing(null)}
                 >
-                  {t.common.cancel}
+                  Cancel
                 </Button>
                 <Button
                   className="w-full uppercase sm:w-auto"
@@ -514,7 +525,7 @@ export default function ChannelsPage() {
                   disabled={saving}
                   prefix={saving ? <Spinner /> : undefined}
                 >
-                  {saving ? t.common.saving : copy.saveEnable}
+                  {saving ? "Saving…" : "Save & enable"}
                 </Button>
               </div>
             </div>
@@ -524,8 +535,8 @@ export default function ChannelsPage() {
 
       {/* Platform list */}
       <div className="grid gap-3">
-        {platforms.map(platform => {
-          const badge = stateBadge(platform.state, copy);
+        {platforms.map((platform) => {
+          const badge = stateBadge(platform.state);
           const busy = togglingId === platform.id;
           const StateIcon =
             platform.state === "connected"
@@ -543,9 +554,10 @@ export default function ChannelsPage() {
                         "h-5 w-5 shrink-0 mt-0.5",
                         platform.state === "connected"
                           ? "text-success"
-                          : platform.state === "fatal" || platform.state === "startup_failed"
+                          : platform.state === "fatal" ||
+                              platform.state === "startup_failed"
                             ? "text-destructive"
-                            : "text-muted-foreground"
+                            : "text-muted-foreground",
                       )}
                     />
                     <div className="flex flex-col gap-0.5 min-w-0">
@@ -556,14 +568,16 @@ export default function ChannelsPage() {
                         <Badge tone={badge.tone}>{badge.label}</Badge>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {localizeChannelDescription(platform.id, platform.description, locale)}
+                        {platform.description}
                       </span>
                       {platform.error_message && (
-                        <span className="text-xs text-destructive">{platform.error_message}</span>
+                        <span className="text-xs text-destructive">
+                          {platform.error_message}
+                        </span>
                       )}
                       {platform.ingress_url && (
                         <span className="text-xs text-muted-foreground break-all">
-                          {copy.sharedCallbackUrl}{" "}
+                          Callback URL (shared listener):{" "}
                           <code className="font-mono">{platform.ingress_url}</code>
                         </span>
                       )}
@@ -578,7 +592,7 @@ export default function ChannelsPage() {
                         <Switch
                           checked={platform.enabled}
                           onCheckedChange={() => void handleToggle(platform)}
-                          aria-label={copy.enablePlatform.replace("{name}", platform.name)}
+                          aria-label={`Enable ${platform.name}`}
                         />
                       )}
                     </div>
@@ -588,10 +602,14 @@ export default function ChannelsPage() {
                       onClick={() => handleTest(platform)}
                       disabled={testingId === platform.id}
                       prefix={
-                        testingId === platform.id ? <Spinner /> : <PlugZap className="h-4 w-4" />
+                        testingId === platform.id ? (
+                          <Spinner />
+                        ) : (
+                          <PlugZap className="h-4 w-4" />
+                        )
                       }
                     >
-                      {copy.test}
+                      Test
                     </Button>
                     {platform.id !== "telegram" && (
                       <Button
@@ -600,7 +618,7 @@ export default function ChannelsPage() {
                         onClick={() => openConfig(platform)}
                         prefix={<Settings2 className="h-4 w-4" />}
                       >
-                        {copy.configure}
+                        Configure
                       </Button>
                     )}
                   </div>
@@ -638,7 +656,7 @@ function WhatsAppOnboardingPanel({
   onRestartNeeded,
   platform,
   setRestartNeeded,
-  showToast
+  showToast,
 }: {
   onChanged: () => Promise<void>;
   onRestartNeeded: () => void;
@@ -646,18 +664,20 @@ function WhatsAppOnboardingPanel({
   setRestartNeeded: (needed: boolean) => void;
   showToast: (message: string, type: "success" | "error") => void;
 }) {
-  const { locale, t } = useI18n();
-  const copy = getDashboardCopy(t).channels;
   const configuredMode = useMemo(
     () => normalizeWhatsAppMode(platform.whatsapp_setup?.mode),
-    [platform.whatsapp_setup?.mode]
+    [platform.whatsapp_setup?.mode],
   );
-  const [setup, setSetup] = useState<WhatsAppOnboardingStartResponse | null>(null);
+  const [setup, setSetup] = useState<WhatsAppOnboardingStartResponse | null>(
+    null,
+  );
   const [qrDataUrl, setQrDataUrl] = useState("");
-  const [phase, setPhase] = useState<"idle" | "starting" | "waiting" | "connected" | "applying">(
-    "idle"
+  const [phase, setPhase] = useState<
+    "idle" | "starting" | "waiting" | "connected" | "applying"
+  >("idle");
+  const [mode, setMode] = useState<"bot" | "self-chat">(
+    configuredMode ?? "bot",
   );
-  const [mode, setMode] = useState<"bot" | "self-chat">(configuredMode ?? "bot");
   const [allowedUsers, setAllowedUsers] = useState("");
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
@@ -673,7 +693,7 @@ function WhatsAppOnboardingPanel({
     const dataUrl = await QRCode.toDataURL(payload, {
       errorCorrectionLevel: "M",
       margin: 3,
-      width: 240
+      width: 240,
     });
     setQrDataUrl(dataUrl);
   }, []);
@@ -698,7 +718,7 @@ function WhatsAppOnboardingPanel({
           return;
         }
         if (status.status === "error") {
-          setError(status.error || copy.setupFailed);
+          setError(status.error || "WhatsApp setup failed.");
           setSetup(null);
           setQrDataUrl("");
           setPhase("idle");
@@ -709,17 +729,16 @@ function WhatsAppOnboardingPanel({
       } catch (pollError) {
         if (cancelled) return;
         const expiresAt = Date.parse(setup.expires_at);
-        const expired = Number.isFinite(expiresAt) && Date.now() >= expiresAt;
+        const expired =
+          Number.isFinite(expiresAt) && Date.now() >= expiresAt;
         if (isTerminalWhatsAppOnboardingError(pollError) || expired) {
           setSetup(null);
           setQrDataUrl("");
           setPhase("idle");
-          setError(`${copy.expired}. ${copy.pairQr}`);
+          setError("WhatsApp QR setup expired. Start a new QR setup to try again.");
           return;
         }
-        setError(
-          copy.waitingRetry.replace("{name}", "WhatsApp").replace("{error}", String(pollError))
-        );
+        setError(`Still waiting for WhatsApp. Retrying after: ${pollError}`);
         timeout = setTimeout(poll, 2000);
       }
     };
@@ -733,7 +752,7 @@ function WhatsAppOnboardingPanel({
 
   useEffect(() => {
     if (!setup) return;
-    const timer = setInterval(() => setTick(value => value + 1), 1000);
+    const timer = setInterval(() => setTick((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, [setup]);
 
@@ -751,14 +770,14 @@ function WhatsAppOnboardingPanel({
     try {
       const res = await api.startWhatsAppOnboarding({
         mode,
-        allowed_users: allowedUsers
+        allowed_users: allowedUsers,
       });
       setSetup(res);
       if (res.qr_payload) {
         await updateQr(res.qr_payload);
       }
       if (res.status === "error") {
-        setError(res.error || copy.setupFailed);
+        setError(res.error || "WhatsApp setup failed.");
         setSetup(null);
         setPhase("idle");
       } else {
@@ -783,13 +802,16 @@ function WhatsAppOnboardingPanel({
 
   const watchRestartOutcome = async () => {
     for (let i = 0; i < 20; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       try {
         const st = await api.getActionStatus("gateway-restart", 5);
         if (st.running) continue;
         if (st.exit_code !== 0 && st.exit_code !== null) {
           onRestartNeeded();
-          showToast(copy.restartFailedExit.replace("{code}", String(st.exit_code)), "error");
+          showToast(
+            `Gateway restart failed (exit ${st.exit_code}) — restart manually`,
+            "error",
+          );
         }
         return;
       } catch {
@@ -805,24 +827,18 @@ function WhatsAppOnboardingPanel({
     try {
       const result = await api.applyWhatsAppOnboarding(setup.pairing_id, {
         mode,
-        allowed_users: allowedUsers
+        allowed_users: allowedUsers,
       });
       resetSetup();
       if (result.restart_started) {
-        showToast(
-          `${copy.saved.replace("{name}", "WhatsApp")}; ${copy.gatewayRestarting}`,
-          "success"
-        );
+        showToast("WhatsApp saved; gateway restarting…", "success");
         setRestartNeeded(false);
         setTimeout(() => void onChanged(), 4000);
         void watchRestartOutcome();
       } else {
         onRestartNeeded();
         const detail = result.restart_error ? `: ${result.restart_error}` : "";
-        showToast(
-          copy.savedRestartFailed.replace("{name}", "WhatsApp").replace("{detail}", detail),
-          "error"
-        );
+        showToast(`WhatsApp saved; gateway restart failed${detail}`, "error");
       }
       await onChanged();
     } catch (applyError) {
@@ -832,43 +848,48 @@ function WhatsAppOnboardingPanel({
   };
 
   const expiresIn = useMemo(
-    () => (setup ? formatExpiry(setup.expires_at, locale) : ""),
+    () => (setup ? formatExpiry(setup.expires_at) : ""),
     // tick keeps the memo fresh without recalculating on every render branch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setup, tick]
+    [setup, tick],
   );
   const setupStatusLabel =
     setup?.status === "installing"
-      ? copy.preparing
+      ? "preparing"
       : setup?.status === "starting"
-        ? copy.setupStarting
-        : copy.waiting;
+        ? "starting"
+        : "waiting";
   const setupHelp =
     phase === "connected" || phase === "applying"
-      ? copy.whatsappFinish
+      ? "WhatsApp is linked but Hermes is not listening yet. Save and restart the gateway to finish setup."
       : setup?.status === "installing"
-        ? copy.whatsappPreparing
+        ? "Preparing the WhatsApp bridge. The QR code will appear here when it is ready."
         : setup?.status === "starting"
-          ? copy.whatsappStarting
-          : copy.whatsappScan;
+          ? "Starting the WhatsApp pairing bridge. The QR code will appear here when it is ready."
+          : "Open WhatsApp on your phone, then go to Linked Devices and scan from there. This QR is not a browser URL.";
   const linkedAccountLabel = setup?.account_phone
     ? `+${setup.account_phone}`
     : setup?.account_name || setup?.account_id || "";
   const linkedAccountDetail =
     setup?.account_phone || setup?.account_id
-      ? copy.linkedAccountDetail
-      : copy.linkedScannedAccount;
-  const linkedAccountChatUrl = setup?.account_phone ? `https://wa.me/${setup.account_phone}` : "";
-  const messageInstruction = mode === "self-chat" ? copy.selfChatInstruction : copy.botInstruction;
+      ? "This is the WhatsApp account Hermes is now logged into."
+      : "Hermes is logged into the WhatsApp account that scanned the QR code.";
+  const linkedAccountChatUrl = setup?.account_phone
+    ? `https://wa.me/${setup.account_phone}`
+    : "";
+  const messageInstruction =
+    mode === "self-chat"
+      ? "After the restart, open Message Yourself on the linked account and send Hermes a message."
+      : "After the restart, start a chat from another WhatsApp account with the linked account and send Hermes a message.";
   const hasSavedAllowedUsers = Boolean(platform.whatsapp_setup?.allowed_users_set);
   const pairingInstruction =
     mode === "self-chat" && !allowedUsers.trim()
       ? hasSavedAllowedUsers
-        ? copy.keepAllowlist
-        : copy.selfChatAllow
+        ? "Hermes will keep the saved WhatsApp allowlist."
+        : "Self-chat mode will allow the linked account automatically when you save."
       : !allowedUsers.trim() && hasSavedAllowedUsers
-        ? copy.keepAllowlist
-        : copy.pairingInstruction;
+        ? "Hermes will keep the saved WhatsApp allowlist."
+        : "If no allowed numbers were entered, Hermes replies with a pairing code. Approve it from the dashboard Pairing page.";
 
   return (
     <div className="rounded-sm border border-border bg-background/35 p-4">
@@ -881,17 +902,19 @@ function WhatsAppOnboardingPanel({
             disabled={phase === "starting" || phase === "waiting" || phase === "applying"}
             prefix={phase === "starting" ? <Spinner /> : <QrCode className="h-4 w-4" />}
           >
-            {phase === "starting" ? copy.starting : copy.pairQr}
+            {phase === "starting" ? "Starting…" : "Pair with QR"}
           </Button>
           {platform.configured && (
-            <span className="text-xs text-muted-foreground">{copy.whatsappConfigured}</span>
+            <span className="text-xs text-muted-foreground">
+              Existing WhatsApp settings are configured.
+            </span>
           )}
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="grid gap-1.5">
             <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              {copy.mode}
+              Mode
             </span>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -900,7 +923,7 @@ function WhatsAppOnboardingPanel({
                 onClick={() => setMode("bot")}
                 disabled={phase === "waiting" || phase === "applying"}
               >
-                {copy.botMode}
+                Bot
               </Button>
               <Button
                 size="sm"
@@ -908,16 +931,16 @@ function WhatsAppOnboardingPanel({
                 onClick={() => setMode("self-chat")}
                 disabled={phase === "waiting" || phase === "applying"}
               >
-                {copy.selfChat}
+                Self-chat
               </Button>
             </div>
           </div>
           <div className="grid min-w-0 flex-1 gap-1.5">
-            <Label htmlFor="whatsapp-allowed-users">{copy.allowedWhatsapp}</Label>
+            <Label htmlFor="whatsapp-allowed-users">Allowed WhatsApp numbers</Label>
             <Input
               id="whatsapp-allowed-users"
               value={allowedUsers}
-              onChange={event => setAllowedUsers(event.target.value)}
+              onChange={(event) => setAllowedUsers(event.target.value)}
               disabled={phase === "waiting" || phase === "applying"}
               placeholder="15551234567,15557654321"
             />
@@ -935,11 +958,11 @@ function WhatsAppOnboardingPanel({
             <div className="grid gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 {phase === "connected" || phase === "applying" ? (
-                  <Badge tone="success">{copy.connected}</Badge>
+                  <Badge tone="success">Connected</Badge>
                 ) : (
                   <Badge tone="warning">{setupStatusLabel}</Badge>
                 )}
-                <Badge tone={expiresIn === copy.expired ? "destructive" : "outline"}>
+                <Badge tone={expiresIn === "expired" ? "destructive" : "outline"}>
                   {expiresIn}
                 </Badge>
               </div>
@@ -947,7 +970,10 @@ function WhatsAppOnboardingPanel({
               <div className="text-sm text-muted-foreground">{setupHelp}</div>
 
               {phase === "waiting" && (
-                <div className="text-xs text-muted-foreground">{copy.unknownDmPairing}</div>
+                <div className="text-xs text-muted-foreground">
+                  After saving, unknown DMs use Hermes pairing codes unless their
+                  number is already allowed.
+                </div>
               )}
 
               {(phase === "connected" || phase === "applying") && (
@@ -955,12 +981,12 @@ function WhatsAppOnboardingPanel({
                   <div className="border border-border bg-background/45 p-3 text-sm">
                     <div className="font-medium">
                       {linkedAccountLabel
-                        ? copy.linkedAs.replace("{name}", linkedAccountLabel)
-                        : copy.whatsappLinked}
+                        ? `Linked as ${linkedAccountLabel}`
+                        : "WhatsApp device linked"}
                     </div>
                     <div className="mt-1 text-muted-foreground">{linkedAccountDetail}</div>
                     <ol className="mt-3 list-decimal space-y-1 pl-5 text-muted-foreground">
-                      <li>{copy.configureThenRestart}</li>
+                      <li>Save and restart the gateway.</li>
                       <li>{messageInstruction}</li>
                       <li>{pairingInstruction}</li>
                     </ol>
@@ -971,7 +997,7 @@ function WhatsAppOnboardingPanel({
                         target="_blank"
                         rel="noreferrer"
                       >
-                        {copy.openChat}
+                        Open chat link
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     )}
@@ -984,10 +1010,10 @@ function WhatsAppOnboardingPanel({
                       disabled={phase === "applying"}
                       prefix={phase === "applying" ? <Spinner /> : <Save className="h-4 w-4" />}
                     >
-                      {phase === "applying" ? t.common.saving : copy.saveAndRestart}
+                      {phase === "applying" ? "Saving…" : "Save and restart"}
                     </Button>
                     <Button size="sm" ghost onClick={() => void cancel()}>
-                      {t.common.cancel}
+                      Cancel
                     </Button>
                   </div>
                 </div>
@@ -996,27 +1022,33 @@ function WhatsAppOnboardingPanel({
 
             <div className="flex flex-col items-center justify-center gap-3">
               {qrDataUrl ? (
-                <img src={qrDataUrl} alt={copy.whatsappQrAlt} className="h-60 w-60 bg-white p-2" />
+                <img
+                  src={qrDataUrl}
+                  alt="WhatsApp setup QR code"
+                  className="h-60 w-60 bg-white p-2"
+                />
               ) : phase === "connected" || phase === "applying" ? (
                 <div className="flex h-60 w-60 flex-col items-center justify-center gap-2 border border-border bg-background/50 p-4 text-center">
-                  <Badge tone="success">{copy.linked}</Badge>
+                  <Badge tone="success">Linked</Badge>
                   <div className="text-sm text-muted-foreground">
-                    {linkedAccountLabel || copy.existingWhatsapp}
+                    {linkedAccountLabel || "Existing WhatsApp session found"}
                   </div>
                 </div>
               ) : (
                 <div className="flex h-60 w-60 flex-col items-center justify-center gap-3 border border-border bg-background/50 p-4 text-center">
                   <Spinner className="text-2xl" />
-                  <div className="text-xs text-muted-foreground">{copy.waitingQr}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Waiting for WhatsApp to provide a QR code…
+                  </div>
                 </div>
               )}
               {phase === "waiting" && (
                 <span className="text-center text-xs text-muted-foreground">
-                  {copy.scanLinkedDevices}
+                  Scan with WhatsApp Linked Devices, not the camera app.
                 </span>
               )}
               <Button size="sm" ghost onClick={() => void cancel()}>
-                {t.common.cancel}
+                Cancel
               </Button>
             </div>
           </div>
@@ -1032,7 +1064,7 @@ function TelegramOnboardingPanel({
   onRestartNeeded,
   platform,
   setRestartNeeded,
-  showToast
+  showToast,
 }: {
   onManualSetup: () => void;
   onChanged: () => Promise<void>;
@@ -1041,13 +1073,13 @@ function TelegramOnboardingPanel({
   setRestartNeeded: (needed: boolean) => void;
   showToast: (message: string, type: "success" | "error") => void;
 }) {
-  const { locale, t } = useI18n();
-  const copy = getDashboardCopy(t).channels;
-  const [setup, setSetup] = useState<TelegramOnboardingStartResponse | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState("");
-  const [phase, setPhase] = useState<"idle" | "starting" | "waiting" | "ready" | "applying">(
-    "idle"
+  const [setup, setSetup] = useState<TelegramOnboardingStartResponse | null>(
+    null,
   );
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [phase, setPhase] = useState<
+    "idle" | "starting" | "waiting" | "ready" | "applying"
+  >("idle");
   const [botUsername, setBotUsername] = useState<string | null>(null);
   const [allowedIds, setAllowedIds] = useState<string[]>([]);
   const [detectedOwnerId, setDetectedOwnerId] = useState<string | null>(null);
@@ -1068,7 +1100,10 @@ function TelegramOnboardingPanel({
           setPhase("ready");
           setBotUsername(status.bot_username ?? null);
           setError("");
-          if (status.owner_user_id && TELEGRAM_USER_ID_RE.test(status.owner_user_id)) {
+          if (
+            status.owner_user_id &&
+            TELEGRAM_USER_ID_RE.test(status.owner_user_id)
+          ) {
             setDetectedOwnerId(status.owner_user_id);
             setAllowedIds([status.owner_user_id]);
           }
@@ -1080,18 +1115,17 @@ function TelegramOnboardingPanel({
         if (cancelled) return;
 
         const expiresAt = Date.parse(setup.expires_at);
-        const expired = Number.isFinite(expiresAt) && Date.now() >= expiresAt;
+        const expired =
+          Number.isFinite(expiresAt) && Date.now() >= expiresAt;
         if (isTerminalTelegramOnboardingError(pollError) || expired) {
           setSetup(null);
           setQrDataUrl("");
           setPhase("idle");
-          setError(`${copy.expired}. ${copy.createQr}`);
+          setError("Telegram pairing expired. Start a new QR setup to try again.");
           return;
         }
 
-        setError(
-          copy.waitingRetry.replace("{name}", "Telegram").replace("{error}", String(pollError))
-        );
+        setError(`Still waiting for Telegram. Retrying after: ${pollError}`);
         timeout = setTimeout(poll, 2000);
       }
     };
@@ -1105,7 +1139,7 @@ function TelegramOnboardingPanel({
 
   useEffect(() => {
     if (!setup) return;
-    const timer = setInterval(() => setTick(value => value + 1), 1000);
+    const timer = setInterval(() => setTick((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, [setup]);
 
@@ -1132,7 +1166,7 @@ function TelegramOnboardingPanel({
       const dataUrl = await QRCode.toDataURL(res.qr_payload, {
         errorCorrectionLevel: "M",
         margin: 1,
-        width: 224
+        width: 224,
       });
       setSetup(res);
       setQrDataUrl(dataUrl);
@@ -1157,11 +1191,11 @@ function TelegramOnboardingPanel({
   const addAllowedId = () => {
     const trimmed = newAllowedId.trim();
     if (!TELEGRAM_USER_ID_RE.test(trimmed)) {
-      setError(copy.addAllowedUser);
+      setError("Allowed Telegram user IDs must be numeric.");
       return;
     }
     setError("");
-    setAllowedIds(ids => (ids.includes(trimmed) ? ids : [...ids, trimmed]));
+    setAllowedIds((ids) => (ids.includes(trimmed) ? ids : [...ids, trimmed]));
     setNewAllowedId("");
   };
 
@@ -1173,13 +1207,16 @@ function TelegramOnboardingPanel({
   // when the window closes" counts as success.
   const watchRestartOutcome = async () => {
     for (let i = 0; i < 20; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       try {
         const st = await api.getActionStatus("gateway-restart", 5);
         if (st.running) continue;
         if (st.exit_code !== 0 && st.exit_code !== null) {
           onRestartNeeded();
-          showToast(copy.restartFailedExit.replace("{code}", String(st.exit_code)), "error");
+          showToast(
+            `Gateway restart failed (exit ${st.exit_code}) — restart manually`,
+            "error",
+          );
         }
         return;
       } catch {
@@ -1191,49 +1228,35 @@ function TelegramOnboardingPanel({
   const apply = async () => {
     if (!setup) return;
     if (allowedIds.length === 0) {
-      setError(copy.addAllowedUser);
+      setError("Add at least one allowed Telegram user ID.");
       return;
     }
     setPhase("applying");
     setError("");
     try {
       const result = await api.applyTelegramOnboarding(setup.pairing_id, {
-        allowed_user_ids: allowedIds
+        allowed_user_ids: allowedIds,
       });
       resetSetup();
       if (result.restart_started) {
-        showToast(
-          `${copy.saved.replace("{name}", "Telegram")}; ${copy.gatewayRestarting}`,
-          "success"
-        );
+        showToast("Telegram saved; gateway restarting…", "success");
         setRestartNeeded(false);
         setTimeout(() => void onChanged(), 4000);
         void watchRestartOutcome();
       } else if (result.restart_started === undefined && result.needs_restart) {
         try {
           await api.restartGateway();
-          showToast(
-            `${copy.saved.replace("{name}", "Telegram")}; ${copy.gatewayRestarting}`,
-            "success"
-          );
+          showToast("Telegram saved; gateway restarting…", "success");
           setRestartNeeded(false);
           setTimeout(() => void onChanged(), 4000);
         } catch (restartError) {
           onRestartNeeded();
-          showToast(
-            copy.savedRestartFailed
-              .replace("{name}", "Telegram")
-              .replace("{detail}", `: ${restartError}`),
-            "error"
-          );
+          showToast(`Telegram saved; gateway restart failed: ${restartError}`, "error");
         }
       } else {
         onRestartNeeded();
         const detail = result.restart_error ? `: ${result.restart_error}` : "";
-        showToast(
-          copy.savedRestartFailed.replace("{name}", "Telegram").replace("{detail}", detail),
-          "error"
-        );
+        showToast(`Telegram saved; gateway restart failed${detail}`, "error");
       }
       await onChanged();
     } catch (applyError) {
@@ -1243,26 +1266,36 @@ function TelegramOnboardingPanel({
   };
 
   const expiresIn = useMemo(
-    () => (setup ? formatExpiry(setup.expires_at, locale) : ""),
+    () => (setup ? formatExpiry(setup.expires_at) : ""),
     // tick keeps the memo fresh without recalculating on every render branch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setup, tick]
+    [setup, tick],
   );
 
   return (
     <div className="rounded-sm border border-border bg-background/35 p-4">
       <div className="grid gap-1">
-        <span className="font-mondwest text-sm text-foreground">{copy.chooseTelegram}</span>
-        <span className="text-xs text-muted-foreground">{copy.telegramChoiceHint}</span>
+        <span className="font-mondwest text-sm text-foreground">
+          Choose how to connect your Telegram bot
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Both options connect a bot you control and save its credentials only to
+          this Hermes installation.
+        </span>
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 sm:divide-x sm:divide-border">
         <div className="grid content-start gap-3 sm:pr-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium uppercase text-foreground">{copy.quickSetup}</span>
-            <Badge tone="success">{copy.recommended}</Badge>
+            <span className="text-xs font-medium uppercase text-foreground">
+              Quick setup
+            </span>
+            <Badge tone="success">recommended</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">{copy.quickSetupHint}</p>
+          <p className="text-xs text-muted-foreground">
+            Scan a QR code and confirm in Telegram. Hermes creates the bot and
+            detects your Telegram user ID automatically.
+          </p>
           <Button
             size="sm"
             className="w-fit uppercase"
@@ -1270,13 +1303,18 @@ function TelegramOnboardingPanel({
             disabled={phase !== "idle"}
             prefix={phase === "starting" ? <Spinner /> : <QrCode className="h-4 w-4" />}
           >
-            {phase === "starting" ? copy.starting : copy.createQr}
+            {phase === "starting" ? "Starting…" : "Create with QR"}
           </Button>
         </div>
 
         <div className="grid content-start gap-3 border-t border-border pt-4 sm:border-t-0 sm:pl-4 sm:pt-0">
-          <span className="text-xs font-medium uppercase text-foreground">{copy.useOwnBot}</span>
-          <p className="text-xs text-muted-foreground">{copy.ownBotHint}</p>
+          <span className="text-xs font-medium uppercase text-foreground">
+            Use your own bot
+          </span>
+          <p className="text-xs text-muted-foreground">
+            Create a bot with @BotFather, or connect one you already have, by
+            entering its token and choosing who can use it.
+          </p>
           <Button
             size="sm"
             outlined
@@ -1285,20 +1323,23 @@ function TelegramOnboardingPanel({
             disabled={phase !== "idle"}
             prefix={<Bot className="h-4 w-4" />}
           >
-            {copy.manualSetup}
+            Manual setup
           </Button>
         </div>
       </div>
 
       {platform.configured && (
         <div className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
-          {copy.telegramConfigured}
+          Telegram credentials are already configured. A new QR setup or bot token
+          will replace the current bot when you save.
         </div>
       )}
 
       {phase !== "idle" && (
         <div className="mt-4 border-t border-border pt-4">
-          <span className="text-xs text-muted-foreground">{copy.finishQrFirst}</span>
+          <span className="text-xs text-muted-foreground">
+            Finish or cancel the current QR setup before switching methods.
+          </span>
         </div>
       )}
 
@@ -1314,7 +1355,7 @@ function TelegramOnboardingPanel({
             {(phase === "ready" || phase === "applying") && (
               <div className="grid gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="success">{copy.ready}</Badge>
+                  <Badge tone="success">Ready</Badge>
                   {botUsername && (
                     <span className="font-courier text-sm text-muted-foreground">
                       @{botUsername}
@@ -1325,20 +1366,22 @@ function TelegramOnboardingPanel({
                 <div className="grid gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                      {copy.allowedUsers}
+                      Allowed users
                     </span>
                     {detectedOwnerId && allowedIds.includes(detectedOwnerId) && (
-                      <Badge tone="success">{copy.ownerDetected}</Badge>
+                      <Badge tone="success">owner detected</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {allowedIds.map(id => (
+                    {allowedIds.map((id) => (
                       <button
                         key={id}
                         type="button"
                         className="inline-flex items-center gap-1 border border-border px-2 py-1 font-courier text-xs text-foreground hover:border-destructive/50"
                         onClick={() =>
-                          setAllowedIds(ids => ids.filter(existing => existing !== id))
+                          setAllowedIds((ids) =>
+                            ids.filter((existing) => existing !== id),
+                          )
                         }
                       >
                         {id}
@@ -1346,7 +1389,9 @@ function TelegramOnboardingPanel({
                       </button>
                     ))}
                     {allowedIds.length === 0 && (
-                      <span className="text-sm text-muted-foreground">{copy.addAllowedUser}</span>
+                      <span className="text-sm text-muted-foreground">
+                        Add at least one Telegram user ID.
+                      </span>
                     )}
                   </div>
                 </div>
@@ -1354,12 +1399,12 @@ function TelegramOnboardingPanel({
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     value={newAllowedId}
-                    onChange={event => setNewAllowedId(event.target.value)}
-                    placeholder={copy.telegramUserId}
+                    onChange={(event) => setNewAllowedId(event.target.value)}
+                    placeholder="Telegram user ID"
                     className="font-courier"
                   />
                   <Button size="sm" outlined onClick={addAllowedId} prefix={<Check />}>
-                    {t.common.create}
+                    Add
                   </Button>
                 </div>
 
@@ -1371,10 +1416,10 @@ function TelegramOnboardingPanel({
                     disabled={phase === "applying"}
                     prefix={phase === "applying" ? <Spinner /> : <Save className="h-4 w-4" />}
                   >
-                    {phase === "applying" ? t.common.saving : copy.saveAndRestart}
+                    {phase === "applying" ? "Saving…" : "Save and restart"}
                   </Button>
                   <Button size="sm" ghost onClick={() => void cancel()}>
-                    {t.common.cancel}
+                    Cancel
                   </Button>
                 </div>
               </div>
@@ -1382,12 +1427,16 @@ function TelegramOnboardingPanel({
           </div>
 
           <div className="flex flex-col items-center justify-center gap-3">
-            <img src={qrDataUrl} alt={copy.telegramQrAlt} className="h-56 w-56 bg-white p-2" />
+            <img
+              src={qrDataUrl}
+              alt="Telegram setup QR code"
+              className="h-56 w-56 bg-white p-2"
+            />
             <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-              <Badge tone={expiresIn === copy.expired ? "destructive" : "outline"}>
+              <Badge tone={expiresIn === "expired" ? "destructive" : "outline"}>
                 {expiresIn}
               </Badge>
-              {phase === "waiting" && <Badge tone="warning">{copy.waiting}</Badge>}
+              {phase === "waiting" && <Badge tone="warning">waiting</Badge>}
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               <a
@@ -1397,10 +1446,10 @@ function TelegramOnboardingPanel({
                 className="inline-flex h-8 items-center gap-1 border border-border px-3 text-xs uppercase text-foreground hover:border-foreground/40"
               >
                 <ExternalLink className="h-4 w-4" />
-                {copy.openTelegram}
+                Open Telegram
               </a>
               <Button size="sm" ghost onClick={() => void cancel()}>
-                {t.common.cancel}
+                Cancel
               </Button>
             </div>
           </div>

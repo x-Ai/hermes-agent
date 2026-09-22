@@ -8,13 +8,14 @@ import { useStore } from '@nanostores/react'
 import { requestComposerSubmit } from '@/app/chat/composer/focus'
 import { useSessionView } from '@/app/chat/session-view'
 import { Button } from '@/components/ui/button'
-import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { $onboardingAnswers, markStepCommitted } from '@/store/onboarding-answers'
 
 export interface CardProps {
   /** The directive's raw attrs, written by the model. */
   attrs: Record<string, string>
+  /** Stable transcript identity for one-time application of model-supplied choices. */
+  messageId?: string
   /** True while the surrounding turn is still streaming; the card renders but does not accept clicks. */
   locked: boolean
 }
@@ -45,7 +46,7 @@ export function useCardCommit(step: string) {
  *  a form. */
 export function CardFrame({
   children,
-  continueLabel,
+  continueLabel = 'Continue',
   disabled = false,
   done,
   locked = false,
@@ -60,8 +61,6 @@ export function CardFrame({
   locked?: boolean
   onContinue: () => void
 }) {
-  const { t } = useI18n()
-
   return (
     <div
       className={cn(
@@ -79,7 +78,7 @@ export function CardFrame({
           onClick={onContinue}
           size="sm"
         >
-          {done ? t.guidedOnboarding.done : (continueLabel ?? t.guidedOnboarding.continue)}
+          {done ? '✓ Done' : continueLabel}
         </Button>
       </div>
     </div>

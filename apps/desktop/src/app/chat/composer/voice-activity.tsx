@@ -245,7 +245,7 @@ export function VoicePlaybackActivity() {
         variant="ghost"
       >
         <VolumeX className={iconSize.xs} />
-        {t.composer.stop}
+        Stop
       </Button>
     </div>
   )

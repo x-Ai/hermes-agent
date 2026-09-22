@@ -16,6 +16,13 @@ interface ComputerUsePanelProps {
   onConfiguredChange?: () => void
 }
 
+// Per-OS one-liner shown when there's no TCC grant flow (Windows/Linux). macOS
+// drives the permission rows instead, so it has no entry here.
+const PLATFORM_NOTE: Record<string, string> = {
+  linux: 'Drives your desktop via the X11/XWayland accessibility stack — no permission prompt.',
+  win32: 'First run may trigger a Windows SmartScreen prompt for the cua-driver UIAccess worker — allow it.'
+}
+
 function tone(granted: boolean | null) {
   return granted === true ? 'primary' : 'muted'
 }
@@ -27,9 +34,6 @@ function GrantIcon({ granted }: { granted: boolean | null }) {
 }
 
 function PermissionRow({ granted, label, hint }: { granted: boolean | null; label: string; hint: string }) {
-  const { t } = useI18n()
-  const cu = t.settings.toolsets.computerUse
-
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/55 p-2.5">
       <div className="min-w-0">
@@ -38,7 +42,7 @@ function PermissionRow({ granted, label, hint }: { granted: boolean | null; labe
       </div>
       <Pill tone={tone(granted)}>
         <GrantIcon granted={granted} />
-        {granted === true ? cu.granted : granted === false ? cu.notGranted : cu.unknown}
+        {granted === true ? 'Granted' : granted === false ? 'Not granted' : 'Unknown'}
       </Pill>
     </div>
   )
@@ -59,7 +63,6 @@ function PermissionRow({ granted, label, hint }: { granted: boolean | null; labe
  */
 export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) {
   const { t } = useI18n()
-  const cu = t.settings.toolsets.computerUse
   const [status, setStatus] = useState<ComputerUseStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [granting, setGranting] = useState(false)
@@ -69,11 +72,11 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
     try {
       setStatus(await getComputerUseStatus())
     } catch (err) {
-      notifyError(err, cu.statusReadFailed)
+      notifyError(err, 'Could not read Computer Use status')
     } finally {
       setLoading(false)
     }
-  }, [cu.statusReadFailed])
+  }, [])
 
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
@@ -90,15 +93,15 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       const started = await grantComputerUsePermissions()
 
       if (!started.ok) {
-        notifyError(new Error('spawn failed'), cu.grantFailed)
+        notifyError(new Error('spawn failed'), 'Could not request permissions')
 
         return
       }
 
       notify({
         kind: 'info',
-        title: cu.approveTitle,
-        message: cu.approveMessage
+        title: 'Approve in System Settings',
+        message: 'macOS will show a permission dialog attributed to CuaDriver. Approve it, then return here.'
       })
 
       // The driver waits for the user to flip the switch — poll until it exits.
@@ -123,20 +126,20 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       }
     } catch (err) {
       if (activeRef.current) {
-        notifyError(err, cu.grantFailed)
+        notifyError(err, 'Could not request permissions')
       }
     } finally {
       if (activeRef.current) {
         setGranting(false)
       }
     }
-  }, [cu.approveMessage, cu.approveTitle, cu.grantFailed, onConfiguredChange, refresh])
+  }, [onConfiguredChange, refresh])
 
   if (loading) {
     return (
       <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
         <Loader2 className="size-3.5 animate-spin" />
-        {cu.checking}
+        Checking Computer Use status…
       </div>
     )
   }
@@ -146,14 +149,18 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
   }
 
   if (!status.platform_supported) {
-    return <p className="px-1 text-xs text-muted-foreground">{cu.unsupported(status.platform)}</p>
+    return (
+      <p className="px-1 text-xs text-muted-foreground">
+        Computer Use isn&apos;t supported on this platform ({status.platform}).
+      </p>
+    )
   }
 
   if (!status.installed) {
     return (
       <p className="px-1 text-xs text-muted-foreground">
-        {cu.installHint}
-        {status.can_grant && cu.installGrantHint}
+        Install the cua-driver backend below to drive this machine.
+        {status.can_grant && ' Then grant Accessibility and Screen Recording here.'}
       </p>
     )
   }
@@ -165,29 +172,40 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div className="min-w-0">
           {status.can_grant ? (
-            <p className="text-[0.72rem] text-muted-foreground">{cu.macGrantNote}</p>
+            <p className="text-[0.72rem] text-muted-foreground">
+              Grants attach to CuaDriver&apos;s own identity (com.trycua.driver), not Hermes — so the dialog is
+              attributed to the process that drives your Mac.
+            </p>
           ) : (
-            <p className="text-[0.72rem] text-muted-foreground">{cu.platformNotes[status.platform] ?? ''}</p>
+            <p className="text-[0.72rem] text-muted-foreground">{PLATFORM_NOTE[status.platform] ?? ''}</p>
           )}
           {status.version && <p className="text-[0.68rem] text-muted-foreground/80">{status.version}</p>}
         </div>
         <Button onClick={() => void refresh()} size="sm" variant="text">
           <RefreshCw className="size-3.5" />
-          {cu.recheck}
+          Recheck
         </Button>
       </div>
 
       {status.can_grant ? (
         <>
-          <PermissionRow granted={status.accessibility} hint={cu.accessibilityHint} label={cu.accessibility} />
-          <PermissionRow granted={status.screen_recording} hint={cu.screenRecordingHint} label={cu.screenRecording} />
+          <PermissionRow
+            granted={status.accessibility}
+            hint="Lets cua-driver post clicks, keystrokes, and read the accessibility tree."
+            label={t.settings.computerUse.accessibility}
+          />
+          <PermissionRow
+            granted={status.screen_recording}
+            hint="Lets cua-driver capture screenshots of app windows."
+            label={t.settings.computerUse.screenRecording}
+          />
         </>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/55 p-2.5">
-          <span className="text-sm font-medium">{cu.driverHealth}</span>
+          <span className="text-sm font-medium">{t.settings.computerUse.driverHealth}</span>
           <Pill tone={tone(status.ready)}>
             <GrantIcon granted={status.ready} />
-            {status.ready === true ? cu.ready : status.ready === false ? cu.notReady : cu.unknown}
+            {status.ready === true ? 'Ready' : status.ready === false ? 'Not ready' : 'Unknown'}
           </Pill>
         </div>
       )}
@@ -209,13 +227,13 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       {status.ready ? (
         <div className="flex items-center gap-1.5 px-1 text-xs text-muted-foreground">
           <Check className="size-3.5" />
-          {cu.readyMessage}
+          Computer Use is ready. Ask the agent to capture an app and click around.
         </div>
       ) : (
         status.can_grant && (
           <Button disabled={granting} onClick={() => void grant()} size="sm">
             {granting ? <Loader2 className="size-3.5 animate-spin" /> : <ExternalLink className="size-3.5" />}
-            {granting ? cu.waitingApproval : cu.grantPermissions}
+            {granting ? 'Waiting for approval…' : 'Grant permissions'}
           </Button>
         )
       )}

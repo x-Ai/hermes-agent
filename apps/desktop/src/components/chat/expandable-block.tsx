@@ -3,7 +3,6 @@
 import { type ReactNode, useCallback, useRef, useState } from 'react'
 
 import { useResizeObserver } from '@/hooks/use-resize-observer'
-import { useI18n } from '@/i18n'
 import { ChevronDown } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
@@ -13,7 +12,6 @@ interface ExpandableBlockProps {
 }
 
 export function ExpandableBlock({ children, className }: ExpandableBlockProps) {
-  const { t } = useI18n()
   const innerRef = useRef<HTMLDivElement>(null)
   const [expanded, setExpanded] = useState(false)
   const [overflowing, setOverflowing] = useState(false)
@@ -55,7 +53,7 @@ export function ExpandableBlock({ children, className }: ExpandableBlockProps) {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-7 justify-end bg-linear-to-t from-[var(--expandable-fade-from,var(--ui-chat-surface-background))] to-transparent">
           <button
             aria-expanded={expanded}
-            aria-label={expanded ? t.common.collapse : t.common.expand}
+            aria-label={expanded ? 'Collapse' : 'Expand'}
             className="pointer-events-auto flex h-7 w-9 cursor-pointer items-end justify-center pb-1 text-muted-foreground/70 transition-colors hover:text-foreground"
             onClick={() => setExpanded(v => !v)}
             type="button"

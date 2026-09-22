@@ -52,6 +52,8 @@ describe('voice field option coverage', () => {
       'tts.openai.voice',
       'tts.openai.model',
       'tts.elevenlabs.voice_id',
+      'tts.elevenlabs.model_id',
+      'stt.openai.model',
       'tts.edge.voice',
       'tts.xai.voice_id',
       'tts.piper.voice'
@@ -60,22 +62,22 @@ describe('voice field option coverage', () => {
     }
   })
 
+  it('suggests the current ElevenLabs v3 model, not just the v2 trio', () => {
+    // Mirrors tools/tts_tool_delivery.py::ELEVENLABS_MODEL_MAX_TEXT_LENGTH.
+    expect(ENUM_OPTIONS['tts.elevenlabs.model_id']).toContain('eleven_v3')
+  })
+
   it('keeps closed enums (devices, providers) out of the free-input set', () => {
     expect(FREE_INPUT_KEYS.has('tts.provider')).toBe(false)
     expect(FREE_INPUT_KEYS.has('tts.neutts.device')).toBe(false)
     expect(FREE_INPUT_KEYS.has('stt.provider')).toBe(false)
   })
 
-  it('every voice-domain free-input key lives in the Voice section', () => {
+  it('every free-input voice key that lives in the Voice section has suggestions or is intentionally bare', () => {
     // Free-input keys don't *require* ENUM_OPTIONS (an empty datalist is
-    // fine), but any voice-domain key here must be an actual Voice-section
-    // field — a typo'd key would silently do nothing. Non-voice free-input
-    // keys (delegation.*) are owned by other sections and exempt.
+    // fine), but any that do declare options must be actual Voice-section
+    // fields — a typo'd key here would silently do nothing.
     for (const key of FREE_INPUT_KEYS) {
-      if (!/^(tts|stt|voice)\./.test(key)) {
-        continue
-      }
-
       expect(voiceKeys, key).toContain(key)
     }
   })

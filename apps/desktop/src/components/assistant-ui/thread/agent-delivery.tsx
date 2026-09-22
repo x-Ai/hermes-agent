@@ -1,8 +1,8 @@
 import { type ToolCallMessagePartProps } from '@assistant-ui/react'
 import { type FC, useEffect, useState } from 'react'
 
+import { messageContentText } from '@/components/assistant-ui/thread/content'
 import { AGENT_MESSAGE_RE, agentAvatarCache, resolveAgentAvatar } from '@/components/assistant-ui/thread/user-message'
-import { useI18n } from '@/i18n'
 
 // Sender-side inter-agent delivery: `hermes -p <agent> chat … -q "Message
 // from 🤖 <sender>…"` run through the terminal tool IS the messaging
@@ -18,6 +18,68 @@ export function deliveryTargetFromCommand(command: string): null | string {
   const match = DELIVERY_COMMAND_RE.exec(command)
 
   return match ? match[2].toLowerCase() : null
+}
+
+/** `@Dr. Foo`, `scribe@laptop`, `peer/scribe` → `dr. foo` / `scribe`: the
+ *  routing alias a `message_agent` target and a "Message from" signature share. */
+function agentKey(value: unknown): string {
+  return typeof value === 'string'
+    ? value
+        .trim()
+        .replace(/^@/, '')
+        .replace(/@[^@]*$/, '')
+        .split('/')
+        .pop()!
+        .toLowerCase()
+    : ''
+}
+
+/**
+ * Did THIS bot send a `message_agent` to `sender` in the CURRENT exchange of
+ * `earlier` (the thread up to, not including, the inbound "Message from
+ * <sender>" row)? True means that row is the teammate's answer to our dispatch
+ * — the round trip is complete and the next assistant message addresses the
+ * human, not the teammate. The scan stops at the nearest earlier human row or
+ * previous inbound row from the same sender: one dispatch exempts only the
+ * answer that follows it, never every later unsolicited delivery (#85884).
+ * Matching the sender by handle OR display name (either may sign the inbound
+ * row) errs towards "expanded": a missed fold shows content, a wrong fold hides it.
+ */
+export function dispatchedTo(
+  earlier: readonly { content?: unknown; role?: string }[],
+  sender: (string | undefined)[]
+): boolean {
+  const keys = new Set(sender.map(agentKey).filter(Boolean))
+
+  if (!keys.size) {
+    return false
+  }
+
+  for (let i = earlier.length - 1; i >= 0; i--) {
+    const row = earlier[i]
+
+    if (row.role === 'user') {
+      const inbound = AGENT_MESSAGE_RE.exec(messageContentText(row.content))
+
+      if (!inbound || [inbound[1], inbound[2], inbound[3]].some(part => keys.has(agentKey(part)))) {
+        return false
+      }
+
+      continue
+    }
+
+    if (row.role !== 'assistant' || !Array.isArray(row.content)) {
+      continue
+    }
+
+    for (const part of row.content as { args?: { target?: unknown }; toolName?: string; type?: string }[]) {
+      if (part?.type === 'tool-call' && part.toolName === 'message_agent' && keys.has(agentKey(part.args?.target))) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
 
 /** Extract the recipient's reply text from the terminal result payload. */
@@ -60,7 +122,7 @@ const NOTICE_CLASS =
   'flex max-w-[min(86%,44rem)] flex-col gap-0.5 self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60'
 
 const AgentGlyph: FC<{ handle: string }> = ({ handle }) => {
-  const [avatar, setAvatar] = useState<null | string>(() => agentAvatarCache.get(handle.toLowerCase()) ?? null)
+  const [avatar, setAvatar] = useState<null | string>(() => agentAvatarCache.get(handle.toLowerCase())?.url ?? null)
 
   useEffect(() => {
     let live = true
@@ -89,8 +151,6 @@ const AgentGlyph: FC<{ handle: string }> = ({ handle }) => {
  *  command run via the terminal tool. Returns null when the command is not
  *  a delivery — caller falls through to the normal terminal row. */
 export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
-  const { t } = useI18n()
-  const copy = t.assistant.thread
   const command = typeof props.args?.command === 'string' ? props.args.command : ''
   const target = deliveryTargetFromCommand(command)
 
@@ -108,18 +168,21 @@ export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
       <div className={NOTICE_CLASS} data-slot="aui_agent-delivery-notice">
         <span className="flex items-center justify-center gap-1.5">
           <AgentGlyph handle={target} />
-          <span className="wrap-anywhere">{pending ? copy.messagingAgent(target) : copy.messagedAgent(target)}</span>
+          <span className="wrap-anywhere">
+            {pending ? 'Messaging' : 'Messaged'} {target}
+            {pending ? '…' : ''}
+          </span>
         </span>
       </div>
       {!pending && replyBody && (
         <div className={NOTICE_CLASS} data-slot="aui_agent-reply-notice">
           <span className="flex items-center justify-center gap-1.5">
             <AgentGlyph handle={target} />
-            <span className="wrap-anywhere">{copy.messageFrom(target)}</span>
+            <span className="wrap-anywhere">Message from {target}</span>
           </span>
           <details className="self-center">
             <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
-              {copy.showMessage}
+              show message
             </summary>
             <div className="mt-1 max-w-[36rem] whitespace-pre-wrap rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
               {replyBody}

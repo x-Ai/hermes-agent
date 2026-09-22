@@ -1,12 +1,11 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
 import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext } from '@/store/onboarding'
 import { makeOAuthProvider } from '@/test/oauth-provider'
 import type { OAuthProvider } from '@/types/hermes'
 
-import { ApiKeyForm, Picker } from '.'
+import { Picker } from '.'
 
 function setProviders(providers: OAuthProvider[]) {
   $desktopOnboarding.set({
@@ -102,19 +101,6 @@ describe('onboarding Picker', () => {
     expect(screen.queryByText('Recommended')).toBeNull()
   })
 
-  it('localizes the Codex subscription title from its stable provider id', () => {
-    setProviders([makeOAuthProvider('openai-codex', 'OpenAI Codex / ChatGPT')])
-
-    render(
-      <I18nProvider configClient={null} initialLocale="zh">
-        <Picker ctx={ctx} />
-      </I18nProvider>
-    )
-
-    expect(screen.getByText('ChatGPT 或 Codex 订阅')).toBeTruthy()
-    expect(screen.queryByText('ChatGPT or Codex Subscription')).toBeNull()
-  })
-
   it('offers "choose later" on first run and persists the skip', () => {
     setProviders([makeOAuthProvider('nous', 'Nous Portal')])
     render(<Picker ctx={ctx} />)
@@ -133,40 +119,5 @@ describe('onboarding Picker', () => {
     render(<Picker ctx={ctx} />)
 
     expect(screen.queryByRole('button', { name: "I'll choose a provider later" })).toBeNull()
-  })
-})
-
-describe('onboarding API-key provider descriptions', () => {
-  const option = (name: string, id: string) => ({
-    docsUrl: '',
-    envKey: `${id.toUpperCase()}_API_KEY`,
-    id,
-    name
-  })
-
-  const renderForm = (name: string, id: string) =>
-    render(
-      <I18nProvider configClient={null} initialLocale="zh">
-        <ApiKeyForm
-          canGoBack={false}
-          onBack={() => undefined}
-          onSave={async () => ({ ok: true })}
-          options={[option(name, id)]}
-        />
-      </I18nProvider>
-    )
-
-  it('uses the localized provider-specific description when one exists', () => {
-    renderForm('Actual Computer', 'actual')
-
-    expect(screen.getByText('Actual Computer 托管推理，或通过本地离线守护进程运行模型')).toBeTruthy()
-    expect(screen.queryByText('Direct API access to Actual Computer.')).toBeNull()
-  })
-
-  it('uses a localized generic description for a newly added provider', () => {
-    renderForm('Future Provider', 'future')
-
-    expect(screen.getByText('直接通过 API 访问 Future Provider。')).toBeTruthy()
-    expect(screen.queryByText('Direct API access to Future Provider.')).toBeNull()
   })
 })

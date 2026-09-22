@@ -2,7 +2,6 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { onComposerAttachImagesRequest } from '@/app/chat/composer/focus'
-import { I18nProvider, setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { $connection, $selectedStoredSessionId } from '@/store/session'
 
 import { forgetPreviewConsole, previewConsoleState } from './preview-console-store'
@@ -44,7 +43,6 @@ describe('PreviewPane console state', () => {
     cleanup()
     $connection.set(null)
     $selectedStoredSessionId.set(null)
-    setRuntimeI18nLocale('en')
     vi.unstubAllGlobals()
   })
 
@@ -151,6 +149,36 @@ describe('PreviewPane console state', () => {
     })
 
     expect(rendered.queryByRole('textbox', { name: 'Address' })).toBeNull()
+  })
+
+  it('does not offer the URL-only pop-out action for a local HTML file', async () => {
+    vi.stubGlobal('window', {
+      ...window,
+      hermesDesktop: {
+        ...window.hermesDesktop,
+        openBrowserWindow: vi.fn(async () => ({ ok: true }))
+      }
+    })
+
+    let rendered!: ReturnType<typeof render>
+    await act(async () => {
+      rendered = render(
+        <PreviewPane
+          tabId="file:/tmp/report.html"
+          target={{
+            kind: 'file',
+            label: 'report.html',
+            path: '/tmp/report.html',
+            previewKind: 'html',
+            source: '/tmp/report.html',
+            url: 'file:///tmp/report.html'
+          }}
+        />
+      )
+    })
+
+    expect(rendered.getByRole('textbox', { name: 'Address' })).toBeTruthy()
+    expect(rendered.queryByRole('button', { name: 'Pop out' })).toBeNull()
   })
 
   it('drives the webview from the bar and tracks its history', async () => {
@@ -593,56 +621,6 @@ describe('PreviewPane console state', () => {
     expect(createObjectURL).not.toHaveBeenCalled()
   })
 
-  it.each(['en', 'zh', 'zh-hant', 'ja', 'ar', 'ru'] as const)(
-    'localizes missing-file previews in %s while preserving unknown diagnostics',
-    async locale => {
-      const copy = TRANSLATIONS[locale]
-      const readFileText = vi.fn()
-      const readFileDataUrl = vi.fn()
-      $connection.set({ mode: 'local' } as never)
-      vi.stubGlobal('window', { ...window, hermesDesktop: { readFileText, readFileDataUrl } })
-
-      for (const previewKind of ['text', 'image', 'pdf'] as const) {
-        const purpose = previewKind === 'text' ? 'Text preview' : 'File preview'
-        const method = previewKind === 'text' ? 'readFileText' : 'readFileDataUrl'
-        const read = previewKind === 'text' ? readFileText : readFileDataUrl
-        const missing = `Error invoking remote method 'hermes:${method}': Error: ${purpose} failed: file does not exist.`
-        const unknown = 'Unrecognized preview diagnostic: volume unavailable'
-
-        for (const raw of [missing, unknown]) {
-          read.mockRejectedValue(new Error(raw))
-
-          const rendered = render(
-            <I18nProvider configClient={null} initialLocale={locale}>
-              <PreviewPane
-                target={{
-                  kind: 'file',
-                  label: 'missing',
-                  path: '/tmp/missing',
-                  previewKind,
-                  source: '/tmp/missing',
-                  url: 'file:///tmp/missing'
-                }}
-              />
-            </I18nProvider>
-          )
-
-          await waitFor(
-            () => {
-              expect(rendered.getByText(copy.preview.unavailable)).toBeTruthy()
-              expect(
-                rendered.getByText(raw === missing ? copy.notifications.errors.fileNotFound('') : raw)
-              ).toBeTruthy()
-            },
-            { container: rendered.container }
-          )
-          expect(rendered.container.textContent).not.toContain('Error invoking remote method')
-          rendered.unmount()
-        }
-      }
-    }
-  )
-
   it('retries a restored PDF when the filesystem connection becomes remote', async () => {
     const filePath = '/remote/spec.pdf'
     const dataUrl = 'data:application/pdf;base64,JVBERi0xLjQ='
@@ -691,5 +669,67 @@ describe('PreviewPane console state', () => {
       path: `/api/fs/read-data-url?path=${encodeURIComponent(filePath)}`,
       profile: 'macmini'
     })
+  })
+})
+
+describe('PreviewPane guest external handoff', () => {
+  // #112941: a guest page's `_blank` anchor (Streamlit's "Ask Google" button)
+  // reaches the OS browser only through the audited `hermes:openExternal` IPC.
+  const desktopWindow = window as unknown as { hermesDesktop?: Window['hermesDesktop'] }
+  const initialHermesDesktop = desktopWindow.hermesDesktop
+
+  afterEach(() => {
+    if (initialHermesDesktop) {
+      desktopWindow.hermesDesktop = initialHermesDesktop
+    } else {
+      delete desktopWindow.hermesDesktop
+    }
+  })
+
+  async function renderWebview() {
+    const openExternal = vi.fn(async () => undefined)
+    desktopWindow.hermesDesktop = { openExternal } as unknown as Window['hermesDesktop']
+
+    let rendered!: ReturnType<typeof render>
+
+    await act(async () => {
+      rendered = render(
+        <PreviewPane
+          target={{
+            kind: 'url',
+            label: 'Preview',
+            source: 'http://localhost:8501',
+            url: 'http://localhost:8501'
+          }}
+        />
+      )
+    })
+
+    return { openExternal, webview: rendered.container.querySelector('webview') as HTMLElement }
+  }
+
+  function guestMessage(webview: HTMLElement, url: string, channel = 'preview-open-external') {
+    act(() => {
+      webview.dispatchEvent(Object.assign(new Event('ipc-message'), { args: [url], channel }))
+    })
+  }
+
+  it('opens an admitted guest anchor URL through the audited OS-browser channel', async () => {
+    const { openExternal, webview } = await renderWebview()
+
+    guestMessage(webview, 'https://www.google.com/search?q=traceback')
+
+    expect(openExternal).toHaveBeenCalledExactlyOnceWith('https://www.google.com/search?q=traceback')
+  })
+
+  it('never opens non-web schemes or messages from a channel the preload does not own', async () => {
+    const { openExternal, webview } = await renderWebview()
+
+    guestMessage(webview, 'file:///etc/passwd')
+    guestMessage(webview, 'javascript:alert(1)')
+    guestMessage(webview, 'mailto:someone@example.com')
+    guestMessage(webview, 'https://example.com', 'something-else')
+
+    expect(openExternal).not.toHaveBeenCalled()
   })
 })

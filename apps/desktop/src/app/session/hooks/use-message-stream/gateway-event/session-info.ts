@@ -18,6 +18,7 @@ import {
   setCurrentFastMode,
   setCurrentPersonality,
   setCurrentReasoningEffort,
+  setCurrentReasoningEffortWire,
   setCurrentServiceTier,
   setCurrentUsage,
   setSessions,
@@ -36,7 +37,6 @@ import {
 } from '../utils'
 
 import type { GatewayEventContext } from './types'
-import { mergeUsageSnapshot } from './usage-snapshot'
 
 /**
  * Whether a `session.info` payload's `stored_session_id` may be treated as the
@@ -243,6 +243,10 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
         setCurrentReasoningEffort(payload.reasoning_effort)
       }
 
+      if (typeof payload?.reasoning_effort_wire === 'string') {
+        setCurrentReasoningEffortWire(payload.reasoning_effort_wire)
+      }
+
       if (typeof payload?.service_tier === 'string') {
         setCurrentServiceTier(payload.service_tier)
       }
@@ -401,7 +405,7 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
     }
 
     if (payload?.usage && (!explicitSid || isActiveEvent)) {
-      setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
+      setCurrentUsage(current => ({ ...current, ...payload.usage }))
     }
 
     requestDesktopOnboardingForCredentialWarning(payload?.credential_warning)
@@ -433,14 +437,11 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
       // while the primary-only global mirrors the active session.
       updateSessionState(sessionId, state => ({
         ...state,
-        usage: mergeUsageSnapshot(
-          { calls: 0, input: 0, output: 0, total: 0, ...state.usage },
-          payload.usage
-        )
+        usage: { calls: 0, input: 0, output: 0, total: 0, ...state.usage, ...payload.usage }
       }))
 
       if (isActiveEvent) {
-        setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
+        setCurrentUsage(current => ({ ...current, ...payload.usage }))
       }
     }
 

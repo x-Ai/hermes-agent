@@ -1,6 +1,7 @@
+import { applyDocumentLocale, isRecord } from '@hermes/shared/i18n'
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
-import { getHermesConfigRecord, type HermesConfigRecord, saveHermesConfig } from '@/hermes'
+import { getHermesConfigRecord, type HermesConfigRecord, retainConfigReadOrigin, saveHermesConfig } from '@/hermes'
 
 import { TRANSLATIONS } from './catalog'
 import {
@@ -8,10 +9,7 @@ import {
   isSupportedLocaleValue,
   localeConfigValue,
   normalizeLocale,
-  readStoredLocale,
-  resolveInitialLocale,
-  resolvePreferredLocale,
-  writeStoredLocale
+  resolveInitialLocale
 } from './languages'
 import { setRuntimeI18nLocale } from './runtime'
 import type { Locale, Translations } from './types'
@@ -38,12 +36,11 @@ const defaultConfigClient: I18nConfigClient = {
       return Promise.resolve({ ok: true })
     }
 
+    // No explicit scope: saveHermesConfig resolves the record's captured read
+    // origin itself (resolveConfigWriteScope), and withConfigDisplayLanguage
+    // retains that origin onto the derived record.
     return saveHermesConfig(config, undefined, { preserveLanguage: true })
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 export function getConfigDisplayLanguage(config: HermesConfigRecord): unknown {
@@ -53,28 +50,20 @@ export function getConfigDisplayLanguage(config: HermesConfigRecord): unknown {
 export function withConfigDisplayLanguage(config: HermesConfigRecord, locale: Locale): HermesConfigRecord {
   const display = isRecord(config.display) ? config.display : {}
 
-  return {
-    ...config,
-    display: {
-      ...display,
-      language: localeConfigValue(locale)
-    }
-  }
+  return retainConfigReadOrigin(
+    {
+      ...config,
+      display: {
+        ...display,
+        language: localeConfigValue(locale)
+      }
+    },
+    config
+  )
 }
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error))
-}
-
-const RTL_LOCALES = new Set<Locale>(['ar'])
-
-function applyDocumentLocale(locale: Locale) {
-  if (typeof document === 'undefined') {
-    return
-  }
-
-  document.documentElement.lang = locale
-  document.documentElement.dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr'
 }
 
 export interface I18nContextValue {
@@ -104,14 +93,14 @@ export interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, configClient = defaultConfigClient, initialLocale }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => resolvePreferredLocale(initialLocale))
+  const [locale, setLocaleState] = useState<Locale>(() => normalizeLocale(initialLocale))
   const [isLoadingConfig, setIsLoadingConfig] = useState(false)
   const [isSavingLocale, setIsSavingLocale] = useState(false)
   const [configLoadError, setConfigLoadError] = useState<Error | null>(null)
   const [saveError, setSaveError] = useState<Error | null>(null)
   const localeRef = useRef(locale)
-  const hasPersistedLanguageRef = useRef(false)
-  // A user choice must win over a late startup config read.
+  // Set once the user picks a language through setLocale: a startup read that
+  // resolves (or fails) after that must never overwrite an explicit choice.
   const userLocaleRef = useRef(false)
 
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
@@ -121,7 +110,6 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
     applyDocumentLocale(locale)
   }, [locale])
 
-  // eslint-disable-next-line no-restricted-syntax -- tracks whether rollback is safe across async config loads
   useEffect(() => {
     if (!configClient) {
       return
@@ -130,6 +118,13 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
     let cancelled = false
     let retryTimer: ReturnType<typeof setTimeout> | null = null
     let retryCount = 0
+
+    // The desktop races its own backend at startup: the renderer mounts before
+    // the backend is ready, so the first /api/config call can time out. We keep
+    // the established permanent-failure contract — a rejected config load
+    // settles on English so the UI stays usable — but bounded retries recover
+    // transient startup failures, applying the persisted display.language once
+    // the backend comes up.
     const MAX_LOCALE_RETRIES = 10
     const LOCALE_RETRY_DELAY_MS = 3_000
 
@@ -144,37 +139,11 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
             return
           }
 
-          const configured = getConfigDisplayLanguage(config)
+          const saved = getConfigDisplayLanguage(config)
 
-          if (isSupportedLocaleValue(configured)) {
-            hasPersistedLanguageRef.current = true
-            const savedLocale = normalizeLocale(configured)
-
-            writeStoredLocale(savedLocale)
-            setLocaleState(savedLocale)
-
-            return
-          }
-
-          hasPersistedLanguageRef.current = false
-
-          // An unsupported configured value is invalid, not a fresh install.
-          // Preserve the existing English fallback instead of treating it as
-          // permission to infer a different language from the machine.
-          if (configured != null && configured !== '') {
-            setLocaleState(DEFAULT_LOCALE)
-
-            return
-          }
-
-          // A locally cached explicit choice keeps first-run language changes
-          // usable while the backend is unavailable. Fresh installs have no
-          // cache and use Electron's native OS locale, with the browser locale
-          // as the compatibility fallback when the native bridge is absent.
-          const storedLocale = readStoredLocale()
-
-          if (storedLocale) {
-            setLocaleState(storedLocale)
+          // A saved choice needs no machine probe and always takes precedence.
+          if (isSupportedLocaleValue(saved)) {
+            setLocaleState(normalizeLocale(saved))
 
             return
           }
@@ -184,11 +153,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            setLocaleState(
-              machineProfile?.locale
-                ? resolveInitialLocale(undefined, machineProfile.locale)
-                : resolvePreferredLocale(initialLocale)
-            )
+            setLocaleState(resolveInitialLocale(undefined, machineProfile?.locale))
           }
         })
         .catch(error => {
@@ -196,14 +161,13 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
             return
           }
 
-          hasPersistedLanguageRef.current = false
           setConfigLoadError(toError(error))
-          // Keep the system/cached language while a startup race is retried.
+          setLocaleState(DEFAULT_LOCALE)
 
           if (retryCount < MAX_LOCALE_RETRIES) {
             retryCount += 1
             retryTimer = setTimeout(() => {
-              void loadLocale()
+              loadLocale()
             }, LOCALE_RETRY_DELAY_MS)
           }
         })
@@ -214,7 +178,7 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
         })
     }
 
-    void loadLocale()
+    loadLocale()
 
     return () => {
       cancelled = true
@@ -231,7 +195,6 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
 
       userLocaleRef.current = true
       setSaveError(null)
-      writeStoredLocale(next)
       setLocaleState(next)
 
       if (!configClient) {
@@ -247,17 +210,13 @@ export function I18nProvider({ children, configClient = defaultConfigClient, ini
         if (!result.ok) {
           throw new Error('Failed to save language')
         }
-
-        hasPersistedLanguageRef.current = true
       } catch (error) {
         const nextError = toError(error)
 
-        if (hasPersistedLanguageRef.current) {
-          writeStoredLocale(previousLocale)
-          setLocaleState(previousLocale)
-          setSaveError(nextError)
-          throw nextError
-        }
+        setLocaleState(previousLocale)
+        setSaveError(nextError)
+
+        throw nextError
       } finally {
         setIsSavingLocale(false)
       }

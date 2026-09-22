@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { DesktopMarketplaceThemeResult } from '@/global'
 
 import { luminance } from './color'
-import { buildThemeFromMarketplace, describeThemeInstallError } from './install'
-import { InvalidVscodeColorThemeError } from './vscode'
+import { buildThemeFromMarketplace } from './install'
 
 const themeJson = (type: 'light' | 'dark', background: string, foreground: string) =>
   JSON.stringify({ type, colors: { 'editor.background': background, 'editor.foreground': foreground } })
@@ -129,20 +128,5 @@ describe('buildThemeFromMarketplace', () => {
     expect(() => buildThemeFromMarketplace({ extensionId: 'x.y', displayName: 'X', themes: [] })).toThrow(
       /does not contribute/i
     )
-  })
-})
-
-describe('describeThemeInstallError', () => {
-  const copy = {
-    installError: 'localized fallback',
-    invalidColorTheme: 'localized invalid theme'
-  }
-
-  it('maps an invalid color theme to specific localized copy', () => {
-    expect(describeThemeInstallError(new InvalidVscodeColorThemeError(), copy)).toBe('localized invalid theme')
-  })
-
-  it('does not leak an unknown low-level error message', () => {
-    expect(describeThemeInstallError(new Error('raw English detail'), copy)).toBe('localized fallback')
   })
 })

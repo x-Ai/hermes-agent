@@ -19,6 +19,7 @@ import {
   GlyphSpinner,
   host,
   Input,
+  nextRunOverdueMs,
   PanelEmpty,
   queryClient,
   relativeTime,
@@ -91,7 +92,7 @@ function routineBot(job: RoutineJob | null | undefined): null | string {
 }
 
 function routineTitle(job: RoutineJob | null | undefined): string {
-  return (job?.name || '').replace(BOT_TAG_RE, '') || botsText().cron.untitledJob
+  return (job?.name || '').replace(BOT_TAG_RE, '') || 'Untitled job'
 }
 
 export function isLegacyDelegatedRoutine(job: RoutineJob | null | undefined): boolean {
@@ -257,11 +258,11 @@ function shellQuote(value: unknown): string {
 
 export function routineInputError(title: string, instruction: string): null | string {
   if (String(title).includes('\0')) {
-    return botsText().cron.nameNulError
+    return 'Job name cannot contain NUL (U+0000).'
   }
 
   if (String(instruction).includes('\0')) {
-    return botsText().cron.instructionNulError
+    return 'Job instruction cannot contain NUL (U+0000).'
   }
 
   return null
@@ -338,7 +339,6 @@ function routineTimestamp(value: string | undefined): null | string {
  *  must read as a failure, not as a run result the user can trust. */
 export function routineLastResult(status: string | null | undefined): null | string {
   const raw = String(status || '').trim()
-  const c = botsText().cron
 
   if (!raw) {
     return null
@@ -346,16 +346,16 @@ export function routineLastResult(status: string | null | undefined): null | str
 
   switch (raw) {
     case 'ok':
-      return c.resultSucceeded
+      return 'Succeeded'
 
     case 'error':
-      return c.resultFailed
+      return 'Failed'
 
     case 'delivery_failed':
-      return c.resultDeliveryFailed
+      return 'Ran, but delivery failed'
 
     case 'blocked_config':
-      return c.resultBlockedConfig
+      return 'Blocked by configuration (not run)'
 
     default:
       return raw
@@ -367,7 +367,6 @@ export function routineLastResult(status: string | null | undefined): null | str
  *  the dialog cannot invent a field the gateway never sent: an absent value
  *  drops its row instead of rendering "undefined". */
 export function routineDetailRows(job: RoutineJob | null | undefined): Array<{ label: string; value: string }> {
-  const c = botsText().cron
   const paused = job?.enabled === false || job?.state === 'paused'
   const label = scheduleLabel(job?.schedule)
   const raw = String(job?.schedule || '').trim()
@@ -377,18 +376,23 @@ export function routineDetailRows(job: RoutineJob | null | undefined): Array<{ l
   // that narrowing into the map, so the rows are typed as filtered.
   return (
     [
-      [c.statusLabel, paused ? c.pausedLabel : c.activeLabel],
-      [c.scheduleLabel, label],
+      ['Status', paused ? 'Paused' : 'Active'],
+      ['Schedule', label],
       // `scheduleLabel` humanizes "every 1440m" and cron expressions; keep the
       // raw string when it says something the label dropped.
-      [c.scheduleRawLabel, raw && raw !== label ? raw : null],
-      [c.repeatLabel, job?.repeat],
-      [c.nextRunLabel, paused ? null : routineTimestamp(job?.next_run_at)],
-      [c.lastRunLabel, routineTimestamp(job?.last_run_at)],
-      [c.lastResultLabel, routineLastResult(job?.last_status)],
-      [c.deliversToLabel, job?.deliver],
-      [c.modelLabel, job?.model],
-      [c.workingDirectoryLabel, job?.workdir]
+      ['Schedule (raw)', raw && raw !== label ? raw : null],
+      ['Repeat', job?.repeat],
+      // A slot parked past the scheduler grace is labelled overdue, never
+      // promised as a next run (#114309); the card below makes the same call.
+      [
+        job && nextRunOverdueMs(job) !== null ? 'Overdue since' : 'Next run',
+        paused ? null : routineTimestamp(job?.next_run_at)
+      ],
+      ['Last run', routineTimestamp(job?.last_run_at)],
+      ['Last result', routineLastResult(job?.last_status)],
+      ['Delivers to', job?.deliver],
+      ['Model', job?.model],
+      ['Working directory', job?.workdir]
     ] as Array<[string, string]>
   )
     .filter(([, value]) => typeof value === 'string' && value.trim())
@@ -436,7 +440,7 @@ export function RoutineDetailDialog({ job, onClose, open }: RoutineDetailDialogP
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="truncate">{routineTitle(job)}</DialogTitle>
-          <DialogDescription>{b.cron.detailDescription}</DialogDescription>
+          <DialogDescription>What this job runs, and when it runs next.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3.5">
           {issue ? (
@@ -480,7 +484,6 @@ interface RoutineRowProps {
 }
 
 export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
-  const b = useBots()
   const { t } = useI18n()
   const c = t.cron
   const profile = typeof owner === 'string' ? owner : owner?.name
@@ -528,12 +531,18 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
 
   return (
     <div
+      // `min-w-0` on the card AND on each line: a grid item's min-width defaults
+      // to `auto`, so a long nowrap title made the row as wide as its text (~530px
+      // in the 250px pane) and the pane's overflow clipped the Switch and delete
+      // control clean off the right edge, with the title hard-cut instead of
+      // ellipsized (#91623). The chain has to be unbroken — one `auto` in it
+      // re-pins the whole row.
       className={cn(
-        'group grid gap-1.5 rounded-lg border border-(--ui-stroke-secondary) p-2.5 transition-colors',
+        'group grid min-w-0 gap-1.5 rounded-lg border border-(--ui-stroke-secondary) p-2.5 transition-colors',
         'hover:border-(--ui-stroke-primary, var(--ui-stroke-secondary))'
       )}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {/* The row's own button, not a click handler on the card: the switch */
         /* and delete control are siblings, so opening the details can never */
         /* swallow a toggle (and a nested button would be invalid markup). */}
@@ -571,20 +580,23 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
           </Button>
         </Tip>
       </div>
-      <div className="flex items-center justify-between gap-2 pl-3.5">
-        <span className="inline-flex items-center gap-1 rounded-full border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.65rem] text-(--ui-text-tertiary)">
+      {/* The schedule pill and the next-run label keep their words: when the
+          pane can't fit both on one line the next-run label wraps to a second
+          line instead of being cut to "next in 4" (#89534). */}
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pl-3.5">
+        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-(--ui-stroke-secondary) px-1.5 py-0.5 text-[0.65rem] text-(--ui-text-tertiary)">
           <Codicon className="text-[0.7rem]" name="calendar" />
           {scheduleLabel(job.schedule)}
         </span>
-        <span className="truncate text-[0.65rem] text-(--ui-text-quaternary)">
+        <span className="ml-auto shrink-0 whitespace-nowrap text-[0.65rem] text-(--ui-text-quaternary)">
           {active && job.next_run_at
-            ? `${c.next} ${relativeTime(new Date(job.next_run_at).getTime())}`
+            ? `${nextRunOverdueMs(job) === null ? c.next : c.overdueSince} ${relativeTime(new Date(job.next_run_at).getTime())}`
             : c.states.paused}
         </span>
       </div>
       {legacyUnsafe ? (
         <div className="rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.65rem] leading-4 text-(--ui-accent)">
-          {b.cron.legacyPaused}
+          Paused for security: delete and recreate this legacy job before running it again.
         </div>
       ) : null}
     </div>
@@ -809,15 +821,15 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             [
               {
                 id: 'm',
-                label: b.cron.minutesFromNow
+                label: 'minutes from now'
               },
               {
                 id: 'h',
-                label: b.cron.hoursFromNow
+                label: 'hours from now'
               },
               {
                 id: 'd',
-                label: b.cron.daysFromNow
+                label: 'days from now'
               }
             ]
           )}
@@ -897,7 +909,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
       ) : null}
       {state.freq !== 'once' && state.freq !== 'advanced' ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.stopAfter}</span>
+          <span className="text-xs text-(--ui-text-tertiary)">Stop after</span>
           <Input
             className="h-7 w-16 text-xs"
             onChange={event =>
@@ -908,7 +920,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             placeholder="∞"
             value={state.repeatN}
           />
-          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.runsForeverHint}</span>
+          <span className="text-xs text-(--ui-text-tertiary)">runs (blank = forever)</span>
         </div>
       ) : null}
       <div className="text-[0.65rem] text-(--ui-text-quaternary)">{`${scheduleSummary(state)} \u00b7 ${composeSchedule(state) || '\u2014'}`}</div>

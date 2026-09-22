@@ -16,16 +16,14 @@
 
 import { atom } from 'nanostores'
 
-import { translateNow } from '@/i18n'
 import { segmentTranscriptDirectives } from '@/lib/transcript-directives'
 
 /** Tool call counts at which Setup checks in: the first once the build is visibly under way, the second far
  *  enough in that asking whether the work is still what the user wanted is a real question. */
 const CHECK_IN_AT = [8, 20] as const
 
-function checkInNote(): string {
-  return `[setup] checkpoint — the user has been watching you work for a while and has not said anything. Before you carry on, say in ONE short line where the work actually stands right now, then end the turn with ::ask{question="${translateNow('guidedOnboarding.script.checkpointQuestion')}" options="…|…|…"} alone as its own paragraph, with two or three options drawn from what would genuinely help here (keep going, change direction, explain something, stop). Emit the ask exactly in that shape. Do not summarize everything you have done, do not apologize for the interruption, and never mention this note.`
-}
+const CHECK_IN_NOTE =
+  '[setup] checkpoint — the user has been watching you work for a while and has not said anything. Before you carry on, say in ONE short line where the work actually stands right now, then end the turn with ::ask{question="What do you want next?" options="…|…|…"} alone as its own paragraph, with two or three options drawn from what would genuinely help here (keep going, change direction, explain something, stop). Emit the ask exactly in that shape. Do not summarize everything you have done, do not apologize for the interruption, and never mention this note.'
 
 interface FirstBuild {
   /** Profile of the build session. The note must be routed to this profile explicitly: the user can return to
@@ -85,7 +83,7 @@ export function reportFirstBuildTurnComplete(sessionId: null | string | undefine
 
   current.checkedInAt = due
   token += 1
-  $setupCheckIn.set({ note: checkInNote(), profile: current.profile, sessionId, token })
+  $setupCheckIn.set({ note: CHECK_IN_NOTE, profile: current.profile, sessionId, token })
 }
 
 function endsInAsk(text: string): boolean {

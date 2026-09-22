@@ -2,9 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopConnectionsRegistry } from '@/global'
-import { I18nProvider } from '@/i18n'
 import { _resetFleetRosterForTests, refreshFleetRoster } from '@/store/fleet-roster'
-import { $notifications, clearNotifications } from '@/store/notifications'
 import { $connection } from '@/store/session'
 
 import {
@@ -66,7 +64,6 @@ beforeEach(() => {
 
 afterEach(() => {
   $connection.set(null)
-  clearNotifications()
   cleanup()
   vi.clearAllMocks()
 })
@@ -91,8 +88,8 @@ describe('ConnectionsRegistrySection', () => {
     render(<ConnectionsRegistrySection />)
 
     await waitFor(() => expect(screen.getByText('Homelab')).toBeTruthy())
-    expect(screen.getByText('Local')).toBeTruthy()
-    expect(screen.getByText('App-managed')).toBeTruthy()
+    // Label and the managed pill share the copy, so expect both instances.
+    expect(screen.getAllByText('This device').length).toBeGreaterThan(0)
     expect(screen.getByText('Current')).toBeTruthy()
     expect(screen.getAllByText('Primary').length).toBeGreaterThan(0)
     expect(list).toHaveBeenCalledTimes(1)
@@ -121,6 +118,60 @@ describe('ConnectionsRegistrySection', () => {
       label: 'Spark box',
       url: 'http://spark.lan:9119'
     })
+  })
+
+  it('saves a custom remote Hermes path for SSH connections', async () => {
+    render(<ConnectionsRegistrySection />)
+
+    await waitFor(() => expect(screen.getByText('Homelab')).toBeTruthy())
+    fireEvent.click(screen.getByText('Add connection'))
+    fireEvent.click(screen.getByRole('button', { name: 'SSH' }))
+    fireEvent.change(screen.getByPlaceholderText('Homelab'), { target: { value: 'Build host' } })
+    fireEvent.change(screen.getByPlaceholderText('user@host:22'), { target: { value: 'dev@build.test:2222' } })
+    fireEvent.change(screen.getByPlaceholderText('auto-detect'), {
+      target: { value: '/opt/hermes/bin/hermes' }
+    })
+    fireEvent.click(screen.getByText('Save connection').closest('button')!)
+
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1))
+    expect(save.mock.calls[0][0]).toMatchObject({
+      host: 'dev@build.test:2222',
+      kind: 'ssh',
+      label: 'Build host',
+      remoteHermesPath: '/opt/hermes/bin/hermes'
+    })
+  })
+
+  it('clears a saved remote Hermes path back to auto-detect', async () => {
+    const sshRegistry: DesktopConnectionsRegistry = {
+      ...registry,
+      connections: [
+        registry.connections[0],
+        {
+          host: 'build.test',
+          id: 'build-host',
+          kind: 'ssh',
+          label: 'Build host',
+          remoteHermesPath: '/opt/hermes/bin/hermes',
+          tokenPreview: null,
+          tokenSet: false,
+          user: 'dev'
+        }
+      ]
+    }
+
+    list.mockResolvedValueOnce(sshRegistry)
+    render(<ConnectionsRegistrySection />)
+
+    await screen.findByText('Build host')
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const pathInput = screen.getByPlaceholderText('auto-detect') as HTMLInputElement
+    expect(pathInput.value).toBe('/opt/hermes/bin/hermes')
+    fireEvent.change(pathInput, { target: { value: '   ' } })
+    fireEvent.click(screen.getByText('Save connection').closest('button')!)
+
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1))
+    expect(save.mock.calls[0][0]).toMatchObject({ id: 'build-host', remoteHermesPath: '' })
   })
 
   it('offers every kind on create and disables Local while the managed entry exists', async () => {
@@ -308,18 +359,13 @@ describe('ConnectionsRegistrySection', () => {
     expect(search.closest<HTMLElement>('.border-t')?.style.minHeight).toBe('')
   })
 
-  it('tests a connection through the bridge with a localized local label', async () => {
-    render(
-      <I18nProvider configClient={null} initialLocale="zh">
-        <ConnectionsRegistrySection />
-      </I18nProvider>
-    )
+  it('tests a connection through the bridge', async () => {
+    render(<ConnectionsRegistrySection />)
 
     await waitFor(() => expect(screen.getByText('Homelab')).toBeTruthy())
-    fireEvent.click(screen.getAllByText('测试')[0])
+    fireEvent.click(screen.getAllByText('Test')[0])
 
-    await waitFor(() => expect(test).toHaveBeenCalledWith('local'))
-    expect($notifications.get()[0]).toMatchObject({ message: '可访问', title: '本地' })
+    await waitFor(() => expect(test).toHaveBeenCalled())
   })
 })
 

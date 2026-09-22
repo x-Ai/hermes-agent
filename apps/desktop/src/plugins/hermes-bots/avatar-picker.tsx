@@ -161,7 +161,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
                         width: 44,
                         height: 44
                       }}
-                      title={k || b.avatar.autoTitle}
+                      title={k || 'Auto — the name decides'}
                     >
                       {k ? (
                         <BotFace
@@ -171,7 +171,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
                           size={32}
                         />
                       ) : (
-                        <span className="text-[0.6rem] text-(--ui-text-tertiary)">{b.avatar.auto}</span>
+                        <span className="text-[0.6rem] text-(--ui-text-tertiary)">Auto</span>
                       )}
                     </RowButton>
                   ))}
@@ -192,16 +192,15 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
                   <Button
                     onClick={() => onShape(blobShapeString(locked ? '' : pickerName, kind))}
                     size="sm"
-                    title={locked ? b.avatar.unlockFollowsName : b.avatar.lockTitle}
                     type="button"
                     variant="ghost"
                   >
                     <Codicon className="mr-1 text-[0.8rem]" name={locked ? 'unlock' : 'lock'} />
-                    {locked ? b.avatar.unlock : b.avatar.lockFace}
+                    {locked ? 'Unlock' : 'Lock face'}
                   </Button>
                 </div>
                 <div className="text-center text-[0.65rem] text-(--ui-text-quaternary)">
-                  {locked ? b.avatar.lockedHint : b.avatar.followsNameHint}
+                  {locked ? 'Face locked — renaming won\u2019t change it.' : 'Face follows the name.'}
                 </div>
                 <Button
                   className="text-(--ui-text-tertiary)"
@@ -269,7 +268,7 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
               ) : (
                 <Codicon className="mr-1 text-[0.8rem]" name="sparkle" />
               )}
-              {genBusy ? b.avatar.generating : b.avatar.generate}
+              {genBusy ? 'Generating…' : 'Generate'}
             </Button>
             {describe.trim() ? null : (
               <div className="text-center text-[0.65rem] text-(--ui-text-quaternary)">{b.bot.descriptionHint}</div>
@@ -277,14 +276,16 @@ export function AvatarPicker({ shape, color, image, onShape, onColor, onImage, g
           </div>
         ) : (
           <div className="px-2 py-3 text-center text-xs leading-5 text-(--ui-text-tertiary)">
-            {imagen === false ? b.avatar.noImageModel : b.avatar.checkingImageBackend}
+            {imagen === false
+              ? 'No image model available. If you just enabled one (or updated Hermes), restart the gateway: Ctrl+K → "Restart gateway".'
+              : 'Checking image backend…'}
           </div>
         )
       ) : null}
       {tab === 'upload' ? (
         <Button className="w-full justify-center" onClick={upload} type="button" variant="secondary">
           <Codicon className="mr-1 text-[0.8rem]" name="device-camera" />
-          {b.avatar.chooseImage}
+          Choose an image…
         </Button>
       ) : null}
       {tab === 'pet' ? <PetTab image={image} onImage={onImage} /> : null}

@@ -15,7 +15,9 @@
  * background luminance, so surface-bound UI matches what's on screen.
  */
 
-import { ensureContrast, luminance, mix, normalizeHex, readableOn } from './color'
+import { ensureContrast, mix } from '@hermes/shared/color'
+
+import { luminance, normalizeHex, readableInk } from './color'
 import type { DesktopTerminalPalette, DesktopTheme, DesktopThemeColors } from './types'
 
 // Section headers / sidebar labels render in --theme-primary directly on the
@@ -49,16 +51,6 @@ export interface ConvertResult {
   mode: 'light' | 'dark'
   /** Workbench keys we wanted but the theme omitted (we derived fallbacks). */
   derived: string[]
-}
-
-/** A contributed theme file that cannot be converted into a VS Code color
- * theme. Callers use the type instead of matching an English error message so
- * renderer surfaces can provide localized copy. */
-export class InvalidVscodeColorThemeError extends Error {
-  constructor() {
-    super('Theme has no "colors" map — not a VS Code color theme.')
-    this.name = 'InvalidVscodeColorThemeError'
-  }
 }
 
 /** Tolerant slug: lowercase, alnum + dashes, deduped, `vsc-` namespaced. */
@@ -216,7 +208,7 @@ export function convertVscodeColorTheme(raw: VscodeColorTheme, opts: ConvertOpti
   const colors = raw.colors && typeof raw.colors === 'object' ? (raw.colors as Record<string, unknown>) : null
 
   if (!colors) {
-    throw new InvalidVscodeColorThemeError()
+    throw new Error('Theme has no "colors" map — not a VS Code color theme.')
   }
 
   const derived: string[] = []
@@ -337,7 +329,7 @@ export function convertVscodeColorTheme(raw: VscodeColorTheme, opts: ConvertOpti
     popover: elevated,
     popoverForeground: foreground,
     primary: accent,
-    primaryForeground: readableOn(accent),
+    primaryForeground: readableInk(accent),
     secondary,
     secondaryForeground: foreground,
     accent: accentSoft,
@@ -346,10 +338,10 @@ export function convertVscodeColorTheme(raw: VscodeColorTheme, opts: ConvertOpti
     input,
     ring: accent,
     midground: accent,
-    midgroundForeground: readableOn(accent),
+    midgroundForeground: readableInk(accent),
     composerRing: accent,
     destructive,
-    destructiveForeground: readableOn(destructive),
+    destructiveForeground: readableInk(destructive),
     sidebarBackground: sidebar,
     sidebarBorder: border,
     userBubble: mix(card, accent, dark ? 0.18 : 0.12),

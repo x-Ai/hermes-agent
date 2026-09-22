@@ -15,12 +15,13 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { displayName, localizedDisplayName, localizedProfileName } from './labels'
+import { displayName } from './labels'
 import {
   aliasIdentityFor,
   beginAliasRouteIndex,
   botConnectionRoute,
   botRosterMeta,
+  groupTranscriptSpeakerMeta,
   indexAliasRoutes,
   requestForBot,
   resolveBotConnectionRoute
@@ -61,24 +62,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   hostMock.state.connectionId.get.mockReturnValue('local')
   indexAliasRoutes([])
-})
-
-describe('localized generated profile names', () => {
-  it('translates only the automatic Default prefix and preserves profile identity', () => {
-    expect(localizedDisplayName({ name: 'default-2' }, null, '默认')).toBe('默认 2')
-    expect(localizedDisplayName({ name: 'default-12' }, null, '預設')).toBe('預設 12')
-    expect(localizedDisplayName({ name: 'default-2' }, { title: 'Research' }, '默认')).toBe('Research')
-    expect(localizedDisplayName({ display_name: 'My Default 2', name: 'default-2' }, null, '默认')).toBe('My Default 2')
-    expect(localizedDisplayName({ name: 'research-assistant' }, null, '默认')).toBe('Research Assistant')
-    expect(localizedDisplayName({ name: 'default' }, null, '默认')).toBe('Hermes')
-  })
-
-  it('translates the built-in profile slug family without changing arbitrary slugs', () => {
-    expect(localizedProfileName('default', '默认')).toBe('默认')
-    expect(localizedProfileName('default-2', '默认')).toBe('默认 2')
-    expect(localizedProfileName('default_12', '預設')).toBe('預設 12')
-    expect(localizedProfileName('research-assistant', '默认')).toBe('research-assistant')
-  })
 })
 
 describe('alias identity survives the hosted handoff (#89131)', () => {
@@ -279,6 +262,32 @@ describe('requestForBot rides the bot’s own source', () => {
     })
   })
 
+  it('passes a foreground spawnPriority through to host.requestProfile and keeps untagged calls at three args', async () => {
+    // #105104: the Bot Chat open is a user click. Its RPC must reach the SDK
+    // with the dial tag; passive roster warming (no options) must keep the
+    // exact call shape older shells expect.
+    hostMock.requestProfile.mockResolvedValue({})
+    const bot = { connectionId: 'local', name: 'ops', sourceScoped: true } as RosterRow
+
+    await requestForBot(bot, 'session.list', {}, { spawnPriority: 'foreground' })
+    await requestForBot(bot, 'profiles.list', {})
+
+    expect(hostMock.requestProfile).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ connectionId: 'local', profile: 'ops' }),
+      'session.list',
+      {},
+      undefined,
+      { spawnPriority: 'foreground' }
+    )
+    expect(hostMock.requestProfile).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ connectionId: 'local', profile: 'ops' }),
+      'profiles.list',
+      {}
+    )
+  })
+
   it('fails closed rather than falling back to the ambient request', async () => {
     // A scoped row whose shell predates requestProfile must NOT silently
     // execute against whichever gateway happens to be active.
@@ -302,5 +311,49 @@ describe('requestForBot rides the bot’s own source', () => {
     expect(error).toBeInstanceOf(Error)
     expect(typeof (error as Error).name).toBe('string')
     expect((error as Error).message).toBe('profile busy')
+  })
+})
+
+describe('group transcript speaker meta (#96432)', () => {
+  const localDefault = { name: 'default' } as RosterRow
+
+  const remoteDefault = {
+    name: 'default',
+    connectionId: 'spark',
+    connectionLabel: 'spark',
+    remoteSource: true,
+    sourceScoped: true
+  } as RosterRow
+
+  const allMeta = {
+    default: { title: 'Local Default', image: 'local.png' },
+    'spark::default': { title: 'Remote Default', image: 'remote.png' }
+  }
+
+  it('gives user lines no bot meta', () => {
+    expect(
+      groupTranscriptSpeakerMeta({ from: { kind: 'user', name: 'You' } }, [localDefault, remoteDefault], allMeta)
+    ).toBeNull()
+  })
+
+  it('keeps local meta for a local same-name speaker', () => {
+    const meta = groupTranscriptSpeakerMeta(
+      { from: { kind: 'member', name: 'default' } },
+      [localDefault, remoteDefault],
+      allMeta
+    )
+
+    expect(meta?.image).toBe('local.png')
+  })
+
+  it('keeps owner meta for a remote same-name speaker instead of null or the local twin', () => {
+    const meta = groupTranscriptSpeakerMeta(
+      { from: { kind: 'member', name: 'default', source: 'spark' } },
+      [localDefault, remoteDefault],
+      allMeta
+    )
+
+    expect(meta?.image).toBe('remote.png')
+    expect(meta?.title).toBe('Remote Default')
   })
 })

@@ -3,15 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { __resetElapsedTimerRegistryForTests } from '@/components/chat/activity-timer'
 import { I18nProvider } from '@/i18n'
-import { $compactingSessions, setSessionCompacting } from '@/store/compaction'
 import { $providerWaitSessions, setSessionProviderWait } from '@/store/provider-wait'
 import { $activeSessionId, $turnStartedAt } from '@/store/session'
 
 import { ResponseLoadingIndicator } from './status'
 
-function renderIndicator(initialLocale = 'en') {
+function renderIndicator() {
   return render(
-    <I18nProvider configClient={null} initialLocale={initialLocale}>
+    <I18nProvider configClient={null} initialLocale="en">
       <ResponseLoadingIndicator />
     </I18nProvider>
   )
@@ -32,7 +31,6 @@ describe('ResponseLoadingIndicator timer', () => {
     cleanup()
     $activeSessionId.set(null)
     $turnStartedAt.set(null)
-    $compactingSessions.set({})
     $providerWaitSessions.set({})
     __resetElapsedTimerRegistryForTests()
     vi.restoreAllMocks()
@@ -66,45 +64,11 @@ describe('ResponseLoadingIndicator timer', () => {
   it('names a prolonged provider wait in the existing response status row', () => {
     $activeSessionId.set('session-a')
     $turnStartedAt.set(Date.now())
-    setSessionProviderWait(
-      'session-a',
-      '⏳ waiting on local-model — 30s with no output yet (provider may be slow or overloaded, or the model is thinking; auto-reconnect at 900s)'
-    )
+    setSessionProviderWait('session-a', '⏳ waiting on local-model — 30s with no output yet')
 
     renderIndicator()
 
-    expect(
-      screen.getByText(
-        'Waiting for local-model output — 30s elapsed (the provider may be slow or overloaded, or the model may still be thinking; automatically reconnecting at 900s)'
-      )
-    ).toBeTruthy()
-  })
-
-  it('localizes the shared provider-wait protocol text at the renderer boundary', () => {
-    $activeSessionId.set('session-a')
-    $turnStartedAt.set(Date.now())
-    setSessionProviderWait(
-      'session-a',
-      '⏳ waiting on kimi-k3 — 57s with no output yet (provider may be slow or overloaded, or the model is thinking; auto-reconnect at 900s)'
-    )
-
-    renderIndicator('zh')
-
-    expect(
-      screen.getByText(
-        '正在等待 kimi-k3 输出——已持续 57 秒（服务商可能响应较慢或负载过高，模型也可能仍在思考；若持续无输出，将在 900 秒时自动重连）'
-      )
-    ).toBeTruthy()
-  })
-
-  it('localizes the structured compaction status without translating the protocol marker', () => {
-    $activeSessionId.set('session-a')
-    $turnStartedAt.set(Date.now())
-    setSessionCompacting('session-a', true)
-
-    renderIndicator('zh')
-
-    expect(screen.getByText('正在整理对话')).toBeTruthy()
+    expect(screen.getByText('⏳ waiting on local-model — 30s with no output yet')).toBeTruthy()
   })
 })
 

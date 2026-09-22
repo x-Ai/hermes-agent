@@ -459,10 +459,7 @@ export async function stopBackgroundProcess(sid: string, id: string): Promise<vo
   }
 
   if (!gateway) {
-    notifyError(
-      new Error(translateNow('prompts.gatewayDisconnected')),
-      translateNow('notifications.toast.processStopFailed')
-    )
+    notifyError(new Error('Gateway is not connected'), 'Could not stop the process')
 
     return
   }
@@ -478,7 +475,7 @@ export async function stopBackgroundProcess(sid: string, id: string): Promise<vo
       return
     }
 
-    notifyError(err, translateNow('notifications.toast.processStopFailed'))
+    notifyError(err, 'Could not stop the process')
   }
 }
 

@@ -81,17 +81,7 @@ const PLATFORM_TONE: Record<string, StatusTone> = {
   fatal: 'bad'
 }
 
-const stateKey = (state: null | string | undefined) =>
-  state
-    ?.trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, '_') || ''
-
-const prettyState = (state: string, labels?: Readonly<Record<string, string>>) => {
-  const key = stateKey(state)
-
-  return labels?.[key] || key.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())
-}
+const prettyState = (state: string) => state.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())
 
 // Strip leading "YYYY-MM-DD HH:MM:SS,mmm " and "[runtime_id] " prefixes from
 // log lines so they don't dominate the display. Full text preserved on hover.
@@ -257,8 +247,8 @@ export function GatewayMenuPanel({
               <li className="flex items-center justify-between gap-2 text-xs" key={name}>
                 <span className="truncate capitalize">{name}</span>
                 <span className="flex items-center gap-1.5 text-[0.66rem] text-muted-foreground">
-                  <StatusDot tone={PLATFORM_TONE[stateKey(platform.state)] || 'muted'} />
-                  {prettyState(platform.state, t.messaging.states)}
+                  <StatusDot tone={PLATFORM_TONE[platform.state] || 'muted'} />
+                  {prettyState(platform.state)}
                 </span>
               </li>
             ))}

@@ -53,29 +53,46 @@ export function sampleCurves(t: number) {
   }
 }
 
+export const INTRO_PROMPT = 'Model a hero cube in Blender and cycle it through some materials'
+
+export const INTRO_REPLY_WORDS =
+  'Done — materials compiled and previewed on the cube. Want a turntable render exported?'.split(' ')
+
 /** Tool activity rows that appear during the `working` beat. `doneAt` changes the trailing status from
  *  running to done. Times are absolute sequence ms, so the whole piece stays on one clock. */
 export interface IntroToolRow {
   at: number
   doneAt: number
+  doneText: string
   icon: 'browser' | 'cron' | 'terminal'
+  label: string
+  runningText: string
 }
 
 export const INTRO_TOOL_ROWS: IntroToolRow[] = [
   {
     at: 4700,
     doneAt: 6100,
-    icon: 'browser'
+    doneText: 'scene linked',
+    icon: 'browser',
+    label: 'blender-mcp',
+    runningText: 'connecting to Blender…'
   },
   {
     at: 5350,
     doneAt: 6800,
-    icon: 'terminal'
+    doneText: 'metal · rough 0.2',
+    icon: 'terminal',
+    label: 'metal',
+    runningText: 'compiling metal…'
   },
   {
     at: 6000,
     doneAt: 7300,
-    icon: 'cron'
+    doneText: 'glass · ior 1.45',
+    icon: 'cron',
+    label: 'glass',
+    runningText: 'compiling glass…'
   }
 ]
 

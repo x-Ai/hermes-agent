@@ -15,15 +15,14 @@ from hermes_cli.web_routers._common import http_failure, scoped_to_thread
 from hermes_cli.web_deps import LateState, late
 from hermes_cli.web_server_config import (
     _apply_main_model_assignment, _denormalize_config_from_web, _normalize_config_for_web, _schema_with_dynamic_provider_options,
+    _validated_main_model_selection,
 )
 from hermes_cli.web_server_profiles import (
-    _approval_mode_of, _broadcast_gateway_session_info, _is_other_profile, _parse_model_ids,
+    _approval_mode_of, _broadcast_gateway_session_info, _is_other_profile, _parse_model_entries,
 )
 from fastapi import HTTPException, Request
-from hermes_cli.config import (
-    DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, custom_endpoint_key_env,
-    coerce_provider_id, find_provider_entry, redact_key, _deep_merge,
-)
+from hermes_cli.config import DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, custom_endpoint_key_env, coerce_provider_id, find_provider_entry, get_compatible_custom_providers, redact_key, _deep_merge
+from hermes_cli.config_providers import _canonical_api_mode, _custom_provider_entry_to_provider_config
 from hermes_cli.web_models import ConfigUpdate, EnvVarUpdate, EnvVarDelete, EnvVarReveal, CustomEndpointUpdate
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -106,10 +105,11 @@ async def get_schema(profile: Optional[str] = None):
 
 
 @config_router.get("/api/egress/status")
-async def get_egress_status():
+async def get_egress_status(profile: Optional[str] = None):
     """Dashboard/Desktop-readable egress proxy status and remediation text."""
     from hermes_cli.proxy_cli import format_status_text
-    return {"text": format_status_text()}
+    with _config_profile_scope(profile):  # reads the profile's ``proxy:`` config block
+        return {"text": format_status_text()}
 
 
 @router.put("/api/config")
@@ -316,59 +316,22 @@ def _custom_endpoint_id(raw: str, fallback: str = "custom") -> str:
     return slug or fallback
 
 
-def _resolve_custom_endpoint_key(providers: Any, endpoint_id: str) -> Optional[str]:
-    """Resolve a client id to its actual ``providers`` key, preserving non-ASCII ids."""
-    if not isinstance(providers, dict):
-        return None
-    raw = str(endpoint_id or "")
-    if raw in providers:
-        return raw
-    slug = _custom_endpoint_id(raw)
-    matches = [str(key) for key in providers if _custom_endpoint_id(str(key)) == slug]
-    return matches[0] if len(matches) == 1 else None
+def _resolve_custom_endpoint_entry(providers: Any, endpoint_id: str) -> Tuple[Any, Optional[Dict[str, Any]]]:
+    """Resolve a custom endpoint id using the stored key first, then its legacy slug.
 
-
-def _stored_custom_endpoint_api_key(endpoint_id: str, base_url: str) -> str:
-    """Resolve a saved key only for its configured destination."""
-    cfg = load_config()
-    providers = cfg.get("providers")
-    provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
-    _stored, entry = find_provider_entry(providers, provider_key)
-
-    # A legacy ``model.provider: custom`` entry is surfaced by the same editor
-    # as a read-only direct-config row, so its saved credential must support
-    # the same blank-input validation flow.
-    if entry is None and endpoint_id == "custom":
-        model_cfg = cfg.get("model")
-        if (
-            isinstance(model_cfg, dict)
-            and str(model_cfg.get("provider") or "").strip().lower() == "custom"
-        ):
-            entry = model_cfg
-
-    if not isinstance(entry, dict):
-        return ""
-    stored_base_url = str(
-        entry.get("base_url") or entry.get("url") or entry.get("api") or ""
-    ).strip().rstrip("/")
-    if stored_base_url != base_url:
-        return ""
-
-    # Runtime provider resolution is secret-scope aware. Install that same
-    # scope here so multiplexed profiles cannot fall through to another
-    # profile's process environment, while single-profile deployments retain
-    # their normal environment fallback.
-    from agent.secret_scope import (
-        build_profile_secret_scope, reset_secret_scope, set_secret_scope,
-    )
-    from hermes_cli.fallback_config import resolve_entry_api_key
-    from hermes_constants import get_hermes_home
-
-    secret_token = set_secret_scope(build_profile_secret_scope(get_hermes_home()))
-    try:
-        return str(resolve_entry_api_key(entry) or "").strip()
-    finally:
-        reset_secret_scope(secret_token)
+    The list route hands Desktop the literal ``providers.<key>`` (a v11→v12
+    migration keeps dots/colons from the display name: ``local-127.0.0.1:8283``;
+    hand-written keys keep their case), so that spelling must round-trip
+    unchanged. Slugging is only the compatibility path for callers that still
+    send an unslugged display name.
+    """
+    stored_key, entry = find_provider_entry(providers, endpoint_id)
+    if entry is not None:
+        return stored_key, entry
+    normalized_key = _custom_endpoint_id(endpoint_id)
+    if normalized_key == endpoint_id:
+        return None, None
+    return find_provider_entry(providers, normalized_key)
 
 
 def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
@@ -383,60 +346,6 @@ def _models_from_custom_endpoint_entry(entry: Dict[str, Any]) -> List[str]:
 
     seen: set[str] = set()
     return [model for model in models if model and not (model in seen or seen.add(model))]
-
-
-def _positive_model_limit(mapping: Any, *keys: str) -> Optional[int]:
-    if not isinstance(mapping, dict):
-        return None
-    for key in keys:
-        value = mapping.get(key)
-        if isinstance(value, bool):
-            continue
-        try:
-            parsed = int(value)
-        except (TypeError, ValueError):
-            continue
-        if parsed > 0:
-            return parsed
-    return None
-
-
-def _model_token_limits_from_custom_endpoint_entry(
-    entry: Dict[str, Any], models: List[str]
-) -> Dict[str, Dict[str, int]]:
-    """Exact model limits for Desktop, expanding legacy provider-wide values for migration."""
-    fields = {
-        "context_length": ("context_length",),
-        "max_input_tokens": ("max_input_tokens",),
-        "max_output_tokens": ("max_output_tokens", "max_tokens"),
-    }
-    inherited = {
-        field: _positive_model_limit(entry, *aliases)
-        for field, aliases in fields.items()
-    }
-    result: Dict[str, Dict[str, int]] = {}
-    override_configs = entry.get("model_token_limits")
-    model_configs = entry.get("models")
-    models_are_discovered = entry.get("models_discovered") is True
-    for model in models:
-        override_cfg = override_configs.get(model) if isinstance(override_configs, dict) else None
-        model_cfg = (
-            model_configs.get(model)
-            if isinstance(model_configs, dict) and not models_are_discovered
-            else None
-        )
-        limits: Dict[str, int] = {}
-        for field, aliases in fields.items():
-            value = (
-                _positive_model_limit(override_cfg, *aliases)
-                or _positive_model_limit(model_cfg, *aliases)
-                or inherited[field]
-            )
-            if value is not None:
-                limits[field] = value
-        if limits:
-            result[model] = limits
-    return result
 
 
 def _api_key_display(entry: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
@@ -474,44 +383,45 @@ def _config_api_key_is_env_ref(endpoint_id: str) -> bool:
     return bool(isinstance(raw_key, str) and re.search(r"\$\{[^}]+\}", raw_key))
 
 
+_DESKTOP_API_MODES = {"chat_completions", "codex_responses", "anthropic_messages"}
+
+
+def _endpoint_api_mode(entry: Dict[str, Any]) -> str:
+    """The transport a providers entry pins (``api_mode``, or the v12 migration's ``transport``
+    spelling), canonicalized; ``""`` = runtime auto-detect. Mirrors the read order of
+    ``runtime_provider_custom._get_named_custom_provider``."""
+    raw = str(entry.get("api_mode") or entry.get("transport") or "")
+    mode = _canonical_api_mode(raw).lower()
+    return mode if mode in _DESKTOP_API_MODES else ""
+
+
 def _endpoint_row(
-    endpoint_id: str, name: str, base_url: str, model: str, models: List[str],
-    model_token_limits: Dict[str, Dict[str, int]],
+    endpoint_id: str, name: str, base_url: str, model: str, models: List[str], context_length,
     discover_models: bool, key_entry: Dict[str, Any], is_current: bool, source: str,
 ) -> Dict[str, Any]:
     has_api_key, api_key_preview = _api_key_display(key_entry)
-    raw_mode = str(key_entry.get("api_mode") or key_entry.get("transport") or "").strip().lower()
     return {
         "id": endpoint_id, "name": name, "base_url": base_url, "model": model, "models": models,
-        "model_token_limits": model_token_limits,
-        "model_context_lengths": {
-            model_id: limits["context_length"]
-            for model_id, limits in model_token_limits.items()
-            if "context_length" in limits
-        },
-        "discover_models": discover_models,
-        "max_output_tokens": key_entry.get("max_output_tokens"),
+        "api_mode": _endpoint_api_mode(key_entry),
+        "context_length": context_length, "discover_models": discover_models,
         "has_api_key": has_api_key, "api_key_preview": api_key_preview,
         "is_current": is_current, "source": source,
-        "api_mode": "" if raw_mode == "auto" else raw_mode,
-        "auth_scheme": str(key_entry.get("auth_scheme") or ""),
-        "user_agent": _extract_endpoint_user_agent(key_entry),
     }
 
 
-def _extract_endpoint_user_agent(entry: Dict[str, Any]) -> str:
-    """Read a case-insensitive User-Agent override from ``extra_headers``."""
-    headers = entry.get("extra_headers")
-    if isinstance(headers, dict):
-        for key, value in headers.items():
-            if str(key).lower() == "user-agent":
-                return str(value or "")
-    return ""
+def _model_names_provider(model_cfg: Dict[str, Any], provider_key: str, entry: Optional[Dict[str, Any]]) -> bool:
+    """True when ``model.provider`` points at this ``providers`` entry.
 
-
-_CUSTOM_ENDPOINT_API_MODES = frozenset(
-    {"chat_completions", "codex_responses", "anthropic_messages"}
-)
+    ``switch_model`` spells the active provider either as the stored key or as
+    ``custom:<lowercased name>``; the list's ``is_current`` and delete's mirror
+    detach must accept both, or a mixed-case key activates but never shows as
+    active.
+    """
+    names = {coerce_provider_id(provider_key).lower()}
+    if isinstance(entry, dict) and coerce_provider_id(entry.get("name")):
+        names.add(coerce_provider_id(entry.get("name")).lower())
+    current = str(model_cfg.get("provider") or "").strip().lower()
+    return current.removeprefix("custom:") in names
 
 
 def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -534,18 +444,38 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
             endpoints.append(_endpoint_row(
                 endpoint_id, str(raw_entry.get("name") or endpoint_id), base_url,
                 str(raw_entry.get("model") or raw_entry.get("default_model") or (models[0] if models else "")),
-                models, _model_token_limits_from_custom_endpoint_entry(raw_entry, models),
-                bool(raw_entry.get("discover_models", True)),
-                raw_entry, endpoint_id == current_provider, "providers",
+                models, raw_entry.get("context_length"), bool(raw_entry.get("discover_models", True)),
+                raw_entry, _model_names_provider(model_cfg, endpoint_id, raw_entry), "providers",
             ))
 
-    if current_provider.lower() == "custom" and current_base_url and not any(e["id"] == "custom" for e in endpoints):
+    # Legacy ``custom_providers:`` list entries the migration left behind are
+    # still routed at runtime (get_compatible_custom_providers), so they need a
+    # row too, or the panel hides an endpoint the agent can pick. Entries from
+    # ``providers:`` carry ``provider_key``; the legacy ones do not. A bare
+    # ``provider: custom`` main slot is "current" for the legacy row whose
+    # base_url it points at.
+    is_bare_custom = current_provider.lower() == "custom" and bool(current_base_url)
+    seen_ids = {e["id"] for e in endpoints}
+    for entry in get_compatible_custom_providers(cfg):
+        if entry.get("provider_key"):
+            continue
+        endpoint_id = _custom_endpoint_id(entry["name"])
+        if endpoint_id in seen_ids:
+            continue
+        seen_ids.add(endpoint_id)
+        models = _models_from_custom_endpoint_entry(entry)
+        is_current = is_bare_custom and entry["base_url"].rstrip("/") == current_base_url.rstrip("/")
+        endpoints.append(_endpoint_row(
+            endpoint_id, entry["name"], entry["base_url"],
+            str(entry.get("model") or (models[0] if models else "")), models,
+            entry.get("context_length"), bool(entry.get("discover_models", True)),
+            entry, is_current, "custom_providers",
+        ))
+
+    if is_bare_custom and not any(e["id"] == "custom" or e["is_current"] for e in endpoints):
         endpoints.insert(0, _endpoint_row(
             "custom", "Custom", current_base_url, current_model, [current_model] if current_model else [],
-            _model_token_limits_from_custom_endpoint_entry(
-                model_cfg, [current_model] if current_model else []
-            ),
-            True, model_cfg, True, "direct-config",
+            model_cfg.get("context_length"), True, model_cfg, True, "direct-config",
         ))
 
     return {
@@ -556,21 +486,32 @@ def _custom_endpoint_response(cfg: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _detach_main_model_from_provider(cfg: Dict[str, Any], provider_key: str) -> None:
+def _pop_legacy_custom_provider(cfg: Dict[str, Any], provider_key: str) -> Optional[Dict[str, Any]]:
+    """Remove and return the legacy ``custom_providers:`` list entry whose name slugs to *provider_key*."""
+    legacy = cfg.get("custom_providers")
+    if not isinstance(legacy, list):
+        return None
+    for index, entry in enumerate(legacy):
+        if isinstance(entry, dict) and _custom_endpoint_id(str(entry.get("name") or "")) == provider_key:
+            return legacy.pop(index)
+    return None
+
+
+def _detach_main_model_from_provider(cfg: Dict[str, Any], provider_key: str, entry: Optional[Dict[str, Any]] = None) -> None:
     """Drop the main-slot mirror of a provider that no longer exists.
 
     ``activate_custom_endpoint`` copies the endpoint's ``base_url`` and
     ``api_key`` onto ``model``; that mirror outranks the environment at client
     construction, so deleting the endpoint without clearing it leaves the agent
     authenticating to the deleted host with the deleted key (and the key in
-    config.yaml). Only touches ``model`` when it names the deleted provider.
+    config.yaml). Only touches ``model`` when it names the deleted provider —
+    ``switch_model`` spells that either as the stored key or as
+    ``custom:<lowercased name>``, so both spellings count.
 
     See #62269.
     """
     model_cfg = cfg.get("model")
-    if not isinstance(model_cfg, dict):
-        return
-    if str(model_cfg.get("provider") or "").strip().lower() != str(provider_key or "").strip().lower():
+    if not isinstance(model_cfg, dict) or not _model_names_provider(model_cfg, provider_key, entry):
         return
     for field in ("provider", "base_url", "api_key", "key_env"):
         model_cfg.pop(field, None)
@@ -578,9 +519,6 @@ def _detach_main_model_from_provider(cfg: Dict[str, Any], provider_key: str) -> 
 
 
 def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> Tuple[str, Dict[str, Any]]:
-    raw_id = (body.id or "").strip()
-    resolved_key = _resolve_custom_endpoint_key(cfg.get("providers"), raw_id) if raw_id else None
-    endpoint_id = resolved_key if resolved_key is not None else _custom_endpoint_id(body.id or body.name)
     name = (body.name or "").strip()
     base_url = (body.base_url or "").strip().rstrip("/")
     model = (body.model or "").strip()
@@ -601,117 +539,78 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
     providers = cfg.get("providers")
     if not isinstance(providers, dict):
         providers = {}
-    stored_key, existing = find_provider_entry(providers, endpoint_id)
+    # An edit payload carries the stored key verbatim; slugging it first would
+    # miss the entry and fork a slugged twin next to the original.
+    stored_key, existing = _resolve_custom_endpoint_entry(providers, body.id or body.name)
+    endpoint_id = coerce_provider_id(stored_key) if existing is not None else _custom_endpoint_id(body.id or body.name)
     if existing is None:
         existing = {}
 
     # Merge onto the existing entry rather than replacing it: a providers.<name>
     # block can carry hand-written keys the dashboard has no field for
-    # (``api_mode``, ``key_env``/``api_key_env``, ``extra_headers`` — possibly
-    # with credentials — ``request_overrides``); rebuilding from scratch
-    # silently dropped them on an unrelated edit.
+    # (``key_env``/``api_key_env``, ``extra_headers`` — possibly with
+    # credentials — ``request_overrides``); rebuilding from scratch silently
+    # dropped them on an unrelated edit.
     entry: Dict[str, Any] = dict(existing)
     entry.update({
         "name": name, "base_url": base_url, "model": model,
         "discover_models": bool(body.discover_models),
     })
-    # Same for the discovered/model metadata map, so capabilities and catalogue entries survive.
+    # A Responses-only or Anthropic-compatible host 404s on the runtime's
+    # Chat Completions default, so the panel pins the transport the same way
+    # ``hermes model`` does (``api_mode``; the runtime also reads the v12
+    # ``transport`` spelling, so drop it rather than let the two disagree).
+    # ``None`` = older UI payload: keep whatever is hand-written. See #93622.
+    if body.api_mode is not None:
+        entry.pop("transport", None)
+        if body.api_mode:
+            entry["api_mode"] = body.api_mode
+        else:
+            entry.pop("api_mode", None)
+    # Same for the model map, so existing models keep their context lengths.
     # ``body.models`` is the catalogue the panel's Test button discovered;
     # without it only the hand-typed model survived Save. A payload with no
     # ``models`` (older UI) still ensures the named default is present.
     # See #69988.
+    details = {d.id.strip(): d for d in (body.model_details or ()) if d.id.strip()}
     existing_models = entry.get("models")
     models_map: Dict[str, Any] = dict(existing_models) if isinstance(existing_models, dict) else {}
-    for candidate in (*(body.models or ()), model):
+    for candidate in (*(body.models or ()), *details, model):
         model_id = str(candidate).strip()
         if not model_id:
             continue
         current = models_map.get(model_id)
-        models_map[model_id] = dict(current) if isinstance(current, dict) else {}
-    if body.model_token_limits is not None:
-        limit_fields = {
-            "context_length": ("context_length",),
-            "max_input_tokens": ("max_input_tokens",),
-            "max_output_tokens": ("max_output_tokens", "max_tokens"),
-        }
-        owned_fields = {
-            field
-            for limits in body.model_token_limits.values()
-            for field in limits.model_fields_set
-            if field in limit_fields
-        }
-        # A canonical per-model payload owns each included axis. Drop the old provider-wide
-        # fallback so clearing every row truly restores automatic resolution for that axis.
-        for field in owned_fields:
-            for legacy_key in limit_fields[field]:
-                entry.pop(legacy_key, None)
-        existing_overrides = entry.get("model_token_limits")
-        overrides_map: Dict[str, Any] = (
-            dict(existing_overrides) if isinstance(existing_overrides, dict) else {}
-        )
-        models_are_discovered = entry.get("models_discovered") is True
-        for raw_model_id, limits in body.model_token_limits.items():
-            model_id = str(raw_model_id).strip()
-            if not model_id:
-                raise HTTPException(status_code=422, detail="model token-limit id must not be empty")
-            current = models_map.get(model_id)
-            model_cfg = dict(current) if isinstance(current, dict) else {}
-            current_override = overrides_map.get(model_id)
-            model_override = dict(current_override) if isinstance(current_override, dict) else {}
-            for field in limits.model_fields_set:
-                if field not in limit_fields:
-                    continue
-                value = getattr(limits, field)
-                if value is None:
-                    model_override.pop(field, None)
-                elif isinstance(value, int) and not isinstance(value, bool) and value > 0:
-                    model_override[field] = int(value)
-                else:
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"{field} for {model_id!r} must be a positive integer or null",
-                    )
-                if not models_are_discovered:
-                    for legacy_key in limit_fields[field]:
-                        model_cfg.pop(legacy_key, None)
-            models_map[model_id] = model_cfg
-            if model_override:
-                overrides_map[model_id] = model_override
-            else:
-                overrides_map.pop(model_id, None)
-        if overrides_map:
-            entry["model_token_limits"] = overrides_map
-        else:
-            entry.pop("model_token_limits", None)
-    elif body.model_context_lengths is not None:
-        # Desktop owns exact per-model context settings. Removing the provider-wide
-        # fallback is what makes an empty model row mean automatic discovery instead
-        # of silently inheriting the old endpoint value.
-        entry.pop("context_length", None)
-        for raw_model_id, raw_context_length in body.model_context_lengths.items():
-            model_id = str(raw_model_id).strip()
-            if not model_id:
-                raise HTTPException(status_code=422, detail="model context id must not be empty")
-            current = models_map.get(model_id)
-            model_cfg = dict(current) if isinstance(current, dict) else {}
-            if raw_context_length is None:
-                model_cfg.pop("context_length", None)
-            elif raw_context_length > 0:
-                model_cfg["context_length"] = int(raw_context_length)
-            else:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"context length for {model_id!r} must be a positive integer or null",
-                )
-            models_map[model_id] = model_cfg
+        row = dict(current) if isinstance(current, dict) else {}
+        detail = details.get(model_id)
+        if detail is not None:
+            # Keep the alias metadata ``/v1/models`` advertised so the catalogue
+            # still says what ``gpt-5.6-sol-high`` stands for after Save.
+            row.update({k: v.strip() for k, v in (("canonical_model", detail.canonical_model),
+                                                  ("reasoning_effort", detail.reasoning_effort)) if v and v.strip()})
+        models_map[model_id] = row
     entry["models"] = models_map
-    if body.model_token_limits is None and "max_output_tokens" in body.model_fields_set:
-        if body.max_output_tokens is None:
-            entry.pop("max_output_tokens", None)
-        elif body.max_output_tokens > 0:
-            entry["max_output_tokens"] = int(body.max_output_tokens)
-        else:
-            raise HTTPException(status_code=422, detail="max_output_tokens must be a positive integer or null")
+    # A reasoning alias is not a model the inference route accepts literally:
+    # persist the canonical model and pin its effort through the one runtime
+    # chokepoint (``agent.reasoning_overrides`` → ``resolve_reasoning_config``).
+    alias = details.get(model)
+    canonical = (alias.canonical_model or "").strip() if alias is not None else ""
+    if canonical and canonical != model:
+        from hermes_constants import parse_reasoning_effort
+        effort = (alias.reasoning_effort or "").strip().lower()
+        if parse_reasoning_effort(effort) is not None:
+            agent_cfg = cfg.get("agent") if isinstance(cfg.get("agent"), dict) else {}
+            overrides = agent_cfg.get("reasoning_overrides")
+            overrides = dict(overrides) if isinstance(overrides, dict) else {}
+            overrides[canonical] = effort
+            agent_cfg["reasoning_overrides"] = overrides
+            cfg["agent"] = agent_cfg
+        model = canonical
+        entry["model"] = model
+        models_map.setdefault(model, {})
+    if body.context_length and body.context_length > 0:
+        entry["context_length"] = int(body.context_length)
+        entry["models"][model]["context_length"] = int(body.context_length)
+
     # API keys never belong in config.yaml: write to .env and reference it via
     # ``key_env`` — the indirection built-in providers use and that
     # runtime_provider.py resolves at load time.
@@ -734,57 +633,14 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         entry["key_env"] = env_var
         entry.pop("api_key", None)
 
-    if body.api_mode is not None:
-        api_mode = body.api_mode.strip().lower()
-        if api_mode == "":
-            entry.pop("transport", None)
-            entry.pop("api_mode", None)
-            entry.pop("auth_scheme", None)
-        elif api_mode in _CUSTOM_ENDPOINT_API_MODES:
-            entry["transport"] = api_mode
-            entry.pop("api_mode", None)
-            if api_mode != "anthropic_messages":
-                entry.pop("auth_scheme", None)
-        else:
-            raise HTTPException(
-                status_code=422,
-                detail=f"api_mode must be one of {sorted(_CUSTOM_ENDPOINT_API_MODES)} or '' for auto",
-            )
-
-    if body.auth_scheme is not None:
-        auth_scheme = body.auth_scheme.strip().lower().replace("_", "-")
-        if auth_scheme in ("", "auto"):
-            entry.pop("auth_scheme", None)
-        elif auth_scheme in ("bearer", "x-api-key"):
-            entry["auth_scheme"] = auth_scheme
-        else:
-            raise HTTPException(
-                status_code=422,
-                detail="auth_scheme must be 'bearer', 'x-api-key', or 'auto'",
-            )
-
-    if body.user_agent is not None:
-        raw_headers = entry.get("extra_headers")
-        headers_map: Dict[str, Any] = dict(raw_headers) if isinstance(raw_headers, dict) else {}
-        for key in [key for key in headers_map if str(key).lower() == "user-agent"]:
-            headers_map.pop(key, None)
-        user_agent = body.user_agent.strip()
-        if user_agent:
-            headers_map["User-Agent"] = user_agent
-        if headers_map:
-            entry["extra_headers"] = headers_map
-        else:
-            entry.pop("extra_headers", None)
-
     if stored_key is not None and stored_key != endpoint_id:
         providers.pop(stored_key, None)
     providers[endpoint_id] = entry
     cfg["providers"] = providers
 
     if body.make_default:
-        cfg["model"] = _apply_main_model_assignment(
-            cfg.get("model", {}), endpoint_id, model, base_url
-        )
+        result = _validated_main_model_selection(cfg, endpoint_id, model, base_url)
+        cfg["model"] = _apply_main_model_assignment(cfg.get("model", {}), result)
         if entry.get("key_env") and isinstance(cfg["model"], dict):
             cfg["model"]["key_env"] = entry["key_env"]
             cfg["model"].pop("api_key", None)
@@ -809,7 +665,10 @@ def list_custom_endpoints(profile: Optional[str] = None):
 def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
     """Create or update a v12+ ``providers`` custom endpoint entry."""
     with http_failure("POST /api/providers/custom-endpoints failed", 500, detail="Failed to save custom endpoint"):
-        with _config_profile_scope(profile):
+        # Sync-def endpoints run on worker threads: the load→mutate→save span
+        # holds _CONFIG_MUTATION_LOCK so a concurrent config autosave cannot
+        # drop this write (or vice versa).
+        with _config_profile_scope(profile), _CONFIG_MUTATION_LOCK:
             cfg = load_config()
             endpoint_id, _entry = _write_custom_endpoint(cfg, body)
             save_config(cfg)
@@ -826,21 +685,32 @@ def activate_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
         f"POST /api/providers/custom-endpoints/{endpoint_id}/activate failed", 500,
         detail="Failed to activate custom endpoint",
     ):
-        with _config_profile_scope(profile):
+        with _config_profile_scope(profile), _CONFIG_MUTATION_LOCK:  # RMW span
             cfg = load_config()
-            providers = cfg.get("providers")
-            provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
-            _stored, entry = find_provider_entry(providers, provider_key)
+            stored_key, entry = _resolve_custom_endpoint_entry(cfg.get("providers"), endpoint_id)
             if entry is None:
-                raise HTTPException(status_code=404, detail="custom endpoint not found")
+                # A legacy ``custom_providers:`` row: the main slot names providers by
+                # key, so promote the entry to ``providers.<key>`` (the v12 shape the
+                # migration would have written) before activating it.
+                provider_key = _custom_endpoint_id(endpoint_id)
+                legacy = _pop_legacy_custom_provider(cfg, provider_key)
+                entry = _custom_provider_entry_to_provider_config(legacy, provider_key=provider_key) if legacy else None
+                if entry is None:
+                    raise HTTPException(status_code=404, detail="custom endpoint not found")
+                providers = cfg.get("providers") if isinstance(cfg.get("providers"), dict) else {}
+                providers[provider_key] = entry
+                cfg["providers"] = providers
+            else:
+                provider_key = coerce_provider_id(stored_key)
 
             models = _models_from_custom_endpoint_entry(entry)
-            model = str(entry.get("model") or (models[0] if models else "")).strip()
-            base_url = str(entry.get("base_url") or "").strip()
+            model = str(entry.get("model") or entry.get("default_model") or (models[0] if models else "")).strip()
+            base_url = str(entry.get("base_url") or entry.get("api") or "").strip()
             if not model or not base_url:
                 raise HTTPException(status_code=400, detail="custom endpoint is incomplete")
 
-            model_cfg = _apply_main_model_assignment(cfg.get("model", {}), provider_key, model, base_url)
+            model_cfg = _apply_main_model_assignment(
+                cfg.get("model", {}), _validated_main_model_selection(cfg, provider_key, model, base_url))
             if entry.get("key_env"):
                 model_cfg["key_env"] = entry["key_env"]
                 model_cfg.pop("api_key", None)
@@ -867,16 +737,20 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
         f"DELETE /api/providers/custom-endpoints/{endpoint_id} failed", 500,
         detail="Failed to delete custom endpoint",
     ):
-        with _config_profile_scope(profile):
+        with _config_profile_scope(profile), _CONFIG_MUTATION_LOCK:  # RMW span
             cfg = load_config()
             providers = cfg.get("providers")
-            provider_key = _resolve_custom_endpoint_key(providers, endpoint_id)
-            stored_key, entry = find_provider_entry(providers, provider_key)
-            if entry is None or not isinstance(providers, dict):
-                raise HTTPException(status_code=404, detail="custom endpoint not found")
-            providers.pop(stored_key, None)
-            cfg["providers"] = providers
-            _detach_main_model_from_provider(cfg, provider_key)
+            stored_key, entry = _resolve_custom_endpoint_entry(providers, endpoint_id)
+            if entry is not None and isinstance(providers, dict):
+                provider_key = coerce_provider_id(stored_key)
+                providers.pop(stored_key, None)
+                cfg["providers"] = providers
+            else:
+                # A legacy ``custom_providers:`` row is addressed by its slug.
+                provider_key = _custom_endpoint_id(endpoint_id)
+                if _pop_legacy_custom_provider(cfg, provider_key) is None:
+                    raise HTTPException(status_code=404, detail="custom endpoint not found")
+            _detach_main_model_from_provider(cfg, provider_key, entry)
             remove_env_value(custom_endpoint_key_env(provider_key))
             save_config(cfg)
             response = _custom_endpoint_response(cfg)
@@ -885,61 +759,106 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
 
 
 @router.post("/api/providers/custom-endpoints/validate")
-async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
-    """Probe a custom endpoint by calling its model-catalog URL."""
+async def validate_custom_endpoint(body: CustomEndpointUpdate):
+    """Probe a custom endpoint by calling its OpenAI-compatible /models URL."""
     base_url = (body.base_url or "").strip().rstrip("/")
     if not base_url:
-        return {
-            "ok": False, "reachable": True, "message_code": "missing_url",
-            "message": "Enter an endpoint URL first.", "models": [],
-        }
+        return {"ok": False, "reachable": True, "message": "Enter an endpoint URL first.", "models": []}
 
-    anthropic_wire = (body.api_mode or "").strip().lower() == "anthropic_messages"
-    url = base_url + "/models"
     headers = {"Accept": "application/json"}
-    api_key = (body.api_key or "").strip()
-    if not api_key and (body.id or "").strip():
-        api_key = await scoped_to_thread(
-            profile, lambda: _stored_custom_endpoint_api_key(body.id.strip(), base_url)
-        )
-    if anthropic_wire:
-        headers["anthropic-version"] = "2023-06-01"
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
-            headers["x-api-key"] = api_key
-    elif api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-    user_agent = (body.user_agent or "").strip()
-    if user_agent:
-        headers["User-Agent"] = user_agent
+    if body.api_key and body.api_key.strip():
+        headers["Authorization"] = f"Bearer {body.api_key.strip()}"
 
-    try:
-        async with _endpoint_probe_client(url, 8.0) as client:
-            resp = await client.get(url, headers=headers)
-    except Exception:
-        return {
-            "ok": False, "reachable": False, "message_code": "unreachable",
-            "message": f"Could not reach {url}.", "models": [],
-        }
-
+    resolved, resp = await _probe_openai_compatible_models(base_url, headers)
+    if resp is None:
+        return {"ok": False, "reachable": False, "message": f"Could not reach {base_url}/models.", "models": []}
     if resp.status_code in (401, 403):
-        return {
-            "ok": False, "reachable": True, "message_code": "auth_rejected",
-            "message": "The endpoint rejected the API key.", "models": [],
-        }
-    if anthropic_wire and resp.status_code in (404, 405):
-        return {
-            "ok": True, "reachable": True, "message_code": "no_model_catalog",
-            "message": "Endpoint is reachable; it does not expose a model catalog.", "models": [],
-        }
+        return {"ok": False, "reachable": True, "message": "The endpoint rejected the API key.", "models": []}
     if not resp.is_success:
-        return {
-            "ok": False, "reachable": True, "message_code": "http_error",
-            "http_status": resp.status_code,
-            "message": f"Endpoint returned HTTP {resp.status_code}.", "models": [],
-        }
+        return {"ok": False, "reachable": True, "message": f"Endpoint returned HTTP {resp.status_code}.", "models": []}
+    # ``models`` stays the bare id list older clients read; ``model_details`` keeps the
+    # alias metadata (``canonical_model`` / ``reasoning_effort``) the id list flattens.
+    entries = _parse_model_entries(resp)
+    ids = [e["id"] for e in entries]
+    # /models answering proves nothing about the transport the runtime will POST to:
+    # a Responses-only host lists models fine and 404s every /chat/completions (#93622).
+    # Probe the route the saved mode (or the runtime's URL auto-detect) actually uses, on the
+    # base that actually served /models (#65488) — that is the URL the runtime will persist.
+    mode = _canonical_api_mode(body.api_mode or "").lower() or _auto_api_mode(resolved)
+    probe_model = (body.model or "").strip() or (ids[0] if ids else "")
+    try:
+        async with _endpoint_probe_client(resolved, 8.0) as client:
+            missing = await _probe_transport_route(client, resolved, mode, probe_model, headers)
+    except Exception:
+        missing = ""  # inconclusive (see _probe_transport_route): never block on a transport error
 
-    return {"ok": True, "reachable": True, "message": "", "models": _parse_model_ids(resp)}
+    result = {"ok": True, "reachable": True, "message": "", "models": ids, "model_details": entries,
+              "transport_checked": mode, "resolved_base_url": resolved}
+    if missing:
+        result.update(ok=False, message=missing)
+    return result
+
+async def _probe_openai_compatible_models(base_url: str, headers: Optional[dict]) -> Tuple[str, Any]:
+    """GET ``{base}/models``, then ``{base}/v1/models`` (or the ``/v1``-stripped variant) when the
+    first answers a non-success. Returns ``(resolved_base_url, response)`` — the base that served the
+    model list is what the caller must PERSIST: the runtime appends ``/chat/completions`` to the saved
+    URL verbatim, so a bare host root that only "detected" via ``/v1/models`` would 404 every chat
+    (#65488). ``response`` is None when no candidate could be reached at all."""
+    base = base_url.rstrip("/")
+    alternate = base[:-3].rstrip("/") if base.lower().endswith("/v1") else base + "/v1"
+    resolved, resp = base, None
+    async with _endpoint_probe_client(base, 8.0) as client:
+        for candidate in (base, alternate):
+            try:
+                candidate_resp = await client.get(candidate + "/models", headers=headers)
+            except Exception:
+                continue
+            # Keep the most telling failure: a 401/403 from the /v1 alternate says "server is
+            # there, key rejected", which beats the typed root's 404 (wrong path).
+            if resp is None or candidate_resp.is_success or resp.status_code == 404:
+                resolved, resp = candidate, candidate_resp
+            if candidate_resp.is_success:
+                break
+    return resolved, resp
+
+
+_TRANSPORT_ROUTES = {"chat_completions": "/chat/completions", "codex_responses": "/responses",
+                     "anthropic_messages": "/messages"}
+_TRANSPORT_LABELS = {"chat_completions": "Chat Completions", "codex_responses": "Responses API",
+                     "anthropic_messages": "Anthropic Messages"}
+
+
+def _auto_api_mode(base_url: str) -> str:
+    """The transport the runtime falls back to for an endpoint without a pinned ``api_mode``
+    (same resolver as ``runtime_provider_custom._custom_runtime``)."""
+    from hermes_cli.runtime_provider import _detect_api_mode_for_url
+    return _detect_api_mode_for_url(base_url) or "chat_completions"
+
+
+async def _probe_transport_route(client, base_url: str, mode: str, model: str, headers: Dict[str, str]) -> str:
+    """POST a 1-token request to ``mode``'s route; return a failure message when the host does
+    not serve it (404/405/501), ``""`` otherwise. Any other status — 200, 400 (bad body), 401,
+    422, 429 — means the route exists, which is all the check needs to know; a network error or
+    timeout (a local server still loading the model) is inconclusive and does not block."""
+    route = _TRANSPORT_ROUTES.get(mode)
+    if route is None:
+        return ""
+    if mode == "anthropic_messages":
+        payload = {"model": model, "max_tokens": 1, "messages": [{"role": "user", "content": "hi"}]}
+        token = headers.get("Authorization", "").removeprefix("Bearer ")
+        headers = {**headers, "anthropic-version": "2023-06-01", **({"x-api-key": token} if token else {})}
+    elif mode == "codex_responses":
+        payload = {"model": model, "input": "hi", "max_output_tokens": 16}
+    else:
+        payload = {"model": model, "max_tokens": 1, "messages": [{"role": "user", "content": "hi"}]}
+    try:
+        resp = await client.post(base_url + route, json=payload, headers=headers)
+    except Exception:
+        return ""
+    if resp.status_code not in (404, 405, 501):
+        return ""
+    return (f"{base_url}/models answered, but POST {route} returned HTTP {resp.status_code}: this host "
+            f"does not serve the {_TRANSPORT_LABELS[mode]} API. Pick the API mode it does serve.")
 
 
 def _endpoint_probe_client(url: str, timeout: float):
@@ -975,20 +894,20 @@ async def validate_provider_credential(body: EnvVarUpdate, request: Request):
     # default. The optional API key is sent so servers that require auth on
     # ``/v1/models`` still enumerate instead of returning an empty list.
     if key == "OPENAI_BASE_URL":
-        url = value.rstrip("/") + "/models"
         api_key = (body.api_key or "").strip()
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else None
-        try:
-            async with _endpoint_probe_client(url, 8.0) as client:
-                resp = await client.get(url, headers=headers)
-        except Exception:
+        resolved, resp = await _probe_openai_compatible_models(value, headers)
+        url = resolved + "/models"
+        if resp is None:
             return {"ok": False, "reachable": False, "message": f"Could not reach {url}."}
-        models = _parse_model_ids(resp)
+        entries = _parse_model_entries(resp)
+        models = [e["id"] for e in entries]
         if not models and not resp.is_success:
             # A proxy/gateway error page parses as "no models"; name the status instead so the
             # GUI does not tell the user to "start a model" on a server that answered.
             return {"ok": False, "reachable": True, "message": f"{url} answered HTTP {resp.status_code}.", "models": []}
-        return {"ok": True, "reachable": True, "message": "", "models": models}
+        return {"ok": True, "reachable": True, "message": "", "models": models, "model_details": entries,
+                "resolved_base_url": resolved}
 
     probe = _CREDENTIAL_PROBES.get(key)
     if not probe:
@@ -996,6 +915,11 @@ async def validate_provider_credential(body: EnvVarUpdate, request: Request):
         return {"ok": True, "reachable": False, "message": ""}
 
     url, auth = probe
+    if key == "GEMINI_API_KEY":
+        from agent.gemini_native_adapter import normalize_gemini_base_url
+        # Normalize guarantees the version segment; the key itself never decides the surface —
+        # AQ. keys exist for both AI Studio and Vertex express mode (#115306).
+        url = normalize_gemini_base_url(url.rsplit("/models", 1)[0]) + "/models"
     headers = {"Accept": "application/json"}
     params = {}
     if auth == "bearer":

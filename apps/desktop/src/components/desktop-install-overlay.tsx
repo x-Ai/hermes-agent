@@ -20,7 +20,6 @@ import { capitalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
 
 import { FirstRunRemoteForm } from './first-run-remote-form'
-import { SetupLocaleControl } from './setup-locale-control'
 
 /**
  * DesktopInstallOverlay
@@ -59,11 +58,7 @@ interface StageRowProps {
   now: number
 }
 
-function formatStageName(name: string, titles: Record<string, string>, fallbackTitle?: string): string {
-  return titles[name] || fallbackTitle || formatStageFallback(name)
-}
-
-function formatStageFallback(name: string): string {
+function formatStageName(name: string): string {
   // 'system-packages' -> 'System packages'; 'uv' stays 'uv'
   if (name.length <= 3) {
     return name
@@ -147,7 +142,7 @@ function StageRow({ descriptor, result, now }: StageRowProps) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className={cn('truncate text-sm', state === 'running' ? 'font-medium' : 'text-muted-foreground')}>
-            {formatStageName(descriptor.name, copy.stageNames, descriptor.title)}
+            {formatStageName(descriptor.name)}
           </span>
           {state !== 'running' && <span className="flex size-4 shrink-0 items-center justify-center">{icon}</span>}
         </div>
@@ -162,10 +157,27 @@ function StageRow({ descriptor, result, now }: StageRowProps) {
   )
 }
 
-function errorMessage(err: unknown, fallback: string): string {
-  const message = err instanceof Error ? err.message : String(err || '')
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err || 'Unknown error')
+}
 
-  return message || fallback
+/** Split "lead sentence\nDetails: raw" into [lead, raw]; no marker → [text, null]. */
+export function splitFailureDetails(text: string | null): [string, string | null] {
+  const value = (text ?? '').trim()
+  const marker = value.search(/\n?\s*Details:\s*/)
+
+  if (marker < 0) {
+    return [value, null]
+  }
+
+  const lead = value.slice(0, marker).trim()
+
+  const detail = value
+    .slice(marker)
+    .replace(/^\s*Details:\s*/, '')
+    .trim()
+
+  return [lead || value, detail || null]
 }
 
 const EMPTY_STATE: DesktopBootstrapState = {
@@ -406,7 +418,6 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
   if (state.setupChoice) {
     return (
       <div className="fixed inset-0 z-(--z-setup) flex items-center justify-center bg-background/90 p-4 backdrop-blur-md">
-        <SetupLocaleControl />
         <div className="w-full max-w-2xl rounded-xl border border-(--stroke-nous) bg-card p-8 shadow-nous">
           <div className="flex items-start gap-4">
             <BrandMark className="size-11 shrink-0" />
@@ -444,7 +455,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
 
                   await desktop.continueBootstrapLocal()
                 } catch (err) {
-                  setLocalStart({ root: activeRoot, starting: false, error: errorMessage(err, copy.unknownError) })
+                  setLocalStart({ root: activeRoot, starting: false, error: errorMessage(err) })
                 }
               }}
               type="button"
@@ -487,7 +498,6 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
 
     return (
       <div className="fixed inset-0 z-(--z-setup) flex items-center justify-center bg-background/90 backdrop-blur-md">
-        <SetupLocaleControl />
         <div className="w-full max-w-xl rounded-xl border border-(--stroke-nous) bg-card p-8 shadow-nous">
           <h2 className="text-xl font-semibold tracking-tight">{copy.oneTimeTitle}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{copy.unsupportedDesc(platformLabel)}</p>
@@ -547,6 +557,9 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
 
   const totalCount = stages.length
   const failed = Boolean(state.error)
+  // Main writes a plain lead sentence and keeps the raw installer error after
+  // "Details:" (electron/bootstrap-failure-copy.ts); show them as two lines.
+  const [failureLead, failureDetail] = splitFailureDetails(state.error)
   // Count the running stage as half-done so the bar advances *during* a long
   // stage instead of sitting frozen at the last completed step while its logs
   // stream (e.g. "0 of 2" pinned at 0% for the whole first stage).
@@ -557,7 +570,6 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
 
   return (
     <div className="fixed inset-0 z-(--z-setup) flex items-center justify-center bg-background/90 backdrop-blur-md p-4">
-      <SetupLocaleControl />
       <div className="flex w-full max-w-2xl max-h-[90vh] flex-col rounded-xl border border-(--stroke-nous) bg-card shadow-nous">
         {/* Header -- always visible, never scrolls */}
         <div className="flex flex-shrink-0 items-start gap-4 p-8 pb-4">
@@ -577,14 +589,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>
                   {copy.progress(completedCount, totalCount)}
-                  {currentStage &&
-                    copy.currentStage(
-                      formatStageName(
-                        currentStage,
-                        copy.stageNames,
-                        stages.find(stage => stage.name === currentStage)?.title
-                      )
-                    )}
+                  {currentStage && copy.currentStage(formatStageName(currentStage))}
                   {currentElapsed && ` (${currentElapsed})`}
                 </span>
                 <span className="tabular-nums">{progressPct}%</span>
@@ -610,7 +615,12 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               <ErrorIcon className="mt-0.5 shrink-0" size="1rem" />
               <div className="min-w-0">
                 <div className="font-medium text-destructive">{copy.error}</div>
-                <p className="mt-0.5 whitespace-pre-wrap break-words text-foreground/90">{state.error}</p>
+                <p className="mt-0.5 whitespace-pre-wrap break-words text-foreground/90">{failureLead}</p>
+                {failureDetail ? (
+                  <p className="mt-1 whitespace-pre-wrap break-words font-mono text-xs text-muted-foreground">
+                    {failureDetail}
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
@@ -691,12 +701,19 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               </span>
               <div className="flex gap-2">
                 <Button
+                  onClick={() => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  {copy.openLogs}
+                </Button>
+                <Button
                   onClick={async () => {
                     const text = state.log
                       .map(entry => (entry.stage ? `[${entry.stage}] ${entry.line}` : entry.line))
                       .join('\n')
 
-                    const fullText = state.error ? `${copy.error}: ${state.error}\n\n${text}` : text
+                    const fullText = state.error ? `Error: ${state.error}\n\n${text}` : text
 
                     try {
                       await navigator.clipboard.writeText(fullText)

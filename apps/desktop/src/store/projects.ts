@@ -1,9 +1,10 @@
-import { atom } from 'nanostores'
+import { atom, computed } from 'nanostores'
 
 import type { NewSessionPlacement } from '@/app/chat/new-session-drag'
 import {
   liveSessionProjectId,
   NO_PROJECT_ID,
+  projectOwnerBySessionId,
   type SidebarProjectTree
 } from '@/app/chat/sidebar/projects/workspace-groups'
 import type { HermesGitBaseBranch, HermesGitBranch } from '@/global'
@@ -14,9 +15,10 @@ import { desktopGit } from '@/lib/desktop-git'
 import { isMissingRestEndpoint, isMissingRpcMethod } from '@/lib/gateway-rpc'
 import { isUnderPath } from '@/lib/path-compare'
 import { persistentAtom } from '@/lib/persisted'
+import { revealFile } from '@/store/file-actions'
 import { $gateway, activeGateway, ensureActiveGatewayOpen } from '@/store/gateway'
 import { $sidebarShowAllSessions, setSidebarAgentsGrouped } from '@/store/layout'
-import { notify, notifyError } from '@/store/notifications'
+import { notify } from '@/store/notifications'
 import {
   $activeGatewayProfile,
   $profileScope,
@@ -48,6 +50,11 @@ export const $activeProjectId = atom<null | string>(null)
 // source of project membership — the desktop no longer derives it.
 export const $projectTree = atom<SidebarProjectTree[]>([])
 export const $projectTreeLoading = atom(false)
+// Backend-resolved session -> project owner, the ONE authority the row
+// classifiers (filter, bucket, color, label) and the lane overlay share, so a
+// sibling worktree the git probe assigned to its repo project never re-files
+// under an umbrella folder by cwd.
+export const $projectOwnerBySessionId = computed($projectTree, projectOwnerBySessionId)
 
 // False when the connected backend predates the projects.* JSON-RPC surface
 // (same semver label, older install). Null until the first probe.
@@ -104,47 +111,12 @@ export function exitProjectScope(): void {
   $projectScope.set(ALL_PROJECTS)
 }
 
-// A project's working root. The authoritative projects list owns declared
-// folders, while the tree is a lazily refreshed presentation cache. Prefer the
-// tree's primary/repo path, then fall back to the persisted primary/first
-// folder so a stale or not-yet-hydrated tree cannot turn a project launch into
-// a detached Home session.
-export function projectRootCwd(project: SidebarProjectTree | undefined): string {
-  const treeCwd = (project?.path || project?.repos?.find(repo => repo.path)?.path || '').trim()
-
-  if (treeCwd || !project || project.isAuto || project.isNoProject) {
-    return treeCwd
-  }
-
-  const persisted = $projects.get().find(candidate => candidate.id === project.id)
-
-  return (
-    persisted?.primary_path ||
-    persisted?.folders.find(folder => folder.is_primary)?.path ||
-    persisted?.folders[0]?.path ||
-    ''
-  ).trim()
-}
-
-// Resolve by identity as well as by the current tree node. This covers startup
-// and refresh gaps where the durable project row is already present but its
-// tree node has not arrived yet.
-export function projectCwdForId(id: string): string {
-  const fromTree = projectRootCwd($projectTree.get().find(node => node.id === id))
-
-  if (fromTree) {
-    return fromTree
-  }
-
-  const persisted = $projects.get().find(project => project.id === id)
-
-  return (
-    persisted?.primary_path ||
-    persisted?.folders.find(folder => folder.is_primary)?.path ||
-    persisted?.folders[0]?.path ||
-    ''
-  ).trim()
-}
+// A project's working root: its primary folder, else the first repo that has
+// one. Empty for the path-less Home bucket. (The sidebar's `projectTreeCwd` is
+// the same rule over the same tree — this is the store-side copy so the store
+// doesn't reach into the sidebar's React module.)
+export const projectRootCwd = (project: SidebarProjectTree | undefined): string =>
+  (project?.path || project?.repos.find(repo => repo.path)?.path || '').trim()
 
 // ⌘K "go to project": flip the sidebar into grouped mode and enter the project
 // — a pure scope switch, same as clicking the overview row (never spends main).
@@ -160,7 +132,7 @@ export function goToProject(id: string, options?: { newSession?: boolean }): voi
     return
   }
 
-  const cwd = projectCwdForId(id)
+  const cwd = projectRootCwd($projectTree.get().find(node => node.id === id))
 
   if (cwd) {
     requestStartWorkSession(cwd, undefined, { openTab: true })
@@ -173,16 +145,16 @@ export function goToProject(id: string, options?: { newSession?: boolean }): voi
 //
 // Priority (first hit wins):
 //   1. Explicit sidebar project scope (drilled into a project / Home bucket)
-//   2. The durable active project (also applies from the project overview)
-//   3. Configured default project dir (detached otherwise — in BOTH local and
+//   2. Configured default project dir (detached otherwise — in BOTH local and
 //      remote mode; a bare new chat never inherits the sticky remembered cwd,
 //      #57911 / #84220)
 //
-// A concrete scope is immediate view intent; the durable active id is the
-// project-level default selected by project creation / "Set active". Therefore
-// cmd-n and the tab-strip "+" keep the project even from the overview. Neither
-// rule inherits the chat being viewed: after a restart that can be a resumed
-// session with a stale home-dir cwd (#71873, #80213, #77496).
+// The "active project" is just an atom ($projectScope) — so inside a project a
+// new session (cmd-n, the trunk "+") starts at that project's root (its primary
+// repo = the default-branch checkout). Outside one it does NOT inherit the chat
+// you were looking at: after a restart that's the just-resumed session, whose
+// stored cwd is often a home-dir fallback, so every new chat landed there
+// instead of the configured default (#71873, #80213, #77496).
 export function resolveNewSessionCwd(): string {
   const scope = $projectScope.get()
 
@@ -193,17 +165,7 @@ export function resolveNewSessionCwd(): string {
   }
 
   if (scope !== ALL_PROJECTS) {
-    const cwd = projectCwdForId(scope)
-
-    if (cwd) {
-      return cwd
-    }
-  }
-
-  const activeId = $activeProjectId.get()
-
-  if (activeId) {
-    const cwd = projectCwdForId(activeId)
+    const cwd = projectRootCwd($projectTree.get().find(node => node.id === scope))
 
     if (cwd) {
       return cwd
@@ -330,12 +292,23 @@ export function projectProfile(): null | string {
   return $profileScope.get() === ALL_PROFILES || profile === ALL_PROFILES ? null : profile
 }
 
+// All profiles filters the sidebar. Writes still belong to the live gateway profile.
+function writableProjectProfile(): string {
+  const profile = normalizeProfileKey($activeGatewayProfile.get())
+
+  if (!profile || profile === ALL_PROFILES) {
+    throw new Error('Projects are unavailable while viewing all profiles')
+  }
+
+  return profile
+}
+
 function projectParams(
   params: Record<string, unknown> = {},
   profile: null | string = projectProfile()
 ): Record<string, unknown> {
   if (!profile) {
-    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
+    throw new Error('Projects are unavailable while viewing all profiles')
   }
 
   return { ...params, profile }
@@ -366,7 +339,7 @@ function stillOnProjectsContext(context: ActiveProjectsContext): boolean {
 
 async function activeProjectsContext(profile = projectProfile()): Promise<ActiveProjectsContext> {
   if (!profile || profile === ALL_PROFILES) {
-    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
+    throw new Error('Projects are unavailable while viewing all profiles')
   }
 
   let gateway = activeGateway()
@@ -556,8 +529,15 @@ async function refreshProjectTreeAcrossProfiles(): Promise<void> {
 // membership match exactly.
 let projectSessionsRefreshGeneration = 0
 
-export async function fetchProjectSessions(projectId: string): Promise<SidebarProjectTree | null> {
-  const generation = ++projectSessionsRefreshGeneration
+// A drill-in only wants the LATEST request (an older one resolving late would
+// paint the wrong project), so those are `supersedable` and resolve null when
+// overtaken. A per-row "Show all" expansion is not: two rows expanding at once,
+// or a drill-in elsewhere, must not silently leave the first row collapsed.
+export async function fetchProjectSessions(
+  projectId: string,
+  { supersedable = true }: { supersedable?: boolean } = {}
+): Promise<SidebarProjectTree | null> {
+  const generation = supersedable ? ++projectSessionsRefreshGeneration : null
   const profile = projectProfile()
 
   if (!profile) {
@@ -575,14 +555,14 @@ export async function fetchProjectSessions(projectId: string): Promise<SidebarPr
       projectParams({ project_id: projectId }, context.profile)
     )
 
-    if (generation !== projectSessionsRefreshGeneration || !stillOnProjectsContext(context)) {
+    if ((generation !== null && generation !== projectSessionsRefreshGeneration) || !stillOnProjectsContext(context)) {
       return null
     }
 
     return res.project ?? null
   } catch (error) {
     if (
-      generation !== projectSessionsRefreshGeneration ||
+      (generation !== null && generation !== projectSessionsRefreshGeneration) ||
       profile !== projectProfile() ||
       (context && !stillOnProjectsContext(context))
     ) {
@@ -609,7 +589,7 @@ export async function moveSessionToProject(
   projectId: string,
   profile?: null | string
 ): Promise<void> {
-  const cwd = projectCwdForId(projectId)
+  const cwd = projectRootCwd($projectTree.get().find(node => node.id === projectId))
 
   if (!cwd) {
     throw new Error(translateNow('sidebar.projects.moveNoFolder'))
@@ -925,7 +905,7 @@ export async function createProject(input: CreateProjectInput): Promise<ProjectI
   try {
     // All profiles filters the sidebar, not the owner of a new project.
     // Capture the live route so reconnecting cannot retarget the write.
-    const context = await activeProjectsContext(normalizeProfileKey($activeGatewayProfile.get()))
+    const context = await activeProjectsContext(writableProjectProfile())
 
     res = await gatewayRequestOn<{ project: ProjectInfo | null }>(
       context.gateway,
@@ -1008,6 +988,7 @@ export async function updateProject(
   id: string,
   patch: { name?: string; color?: null | string; icon?: null | string }
 ): Promise<void> {
+  const context = await activeProjectsContext(writableProjectProfile())
   const snap = snapshotProjects()
 
   $projectTree.set(
@@ -1027,14 +1008,18 @@ export async function updateProject(
   // Backend treats null/undefined as "leave unchanged"; "" clears (stores NULL).
   // Map explicit null → "" so "no color"/"no icon" actually clear.
   await persistOrRollback(snap, () =>
-    gatewayRequest(
+    gatewayRequestOn(
+      context.gateway,
       'projects.update',
-      projectParams({
-        id,
-        ...patch,
-        ...(patch.color === null && { color: '' }),
-        ...(patch.icon === null && { icon: '' })
-      })
+      projectParams(
+        {
+          id,
+          ...patch,
+          ...(patch.color === null && { color: '' }),
+          ...(patch.icon === null && { icon: '' })
+        },
+        context.profile
+      )
     )
   )
 }
@@ -1076,6 +1061,7 @@ export async function addProjectFolder(
   path: string,
   opts: { label?: string; isPrimary?: boolean } = {}
 ): Promise<void> {
+  const context = await activeProjectsContext(writableProjectProfile())
   const snap = snapshotProjects()
   const trimmed = path.trim()
 
@@ -1106,9 +1092,10 @@ export async function addProjectFolder(
   }
 
   await persistOrRollback(snap, () =>
-    gatewayRequest(
+    gatewayRequestOn(
+      context.gateway,
       'projects.add_folder',
-      projectParams({ id, path, label: opts.label, is_primary: opts.isPrimary ?? false })
+      projectParams({ id, path, label: opts.label, is_primary: opts.isPrimary ?? false }, context.profile)
     )
   )
   reconcileProjects()
@@ -1126,13 +1113,14 @@ function openSessionBelongsToProject(projectId: string, projects: ProjectInfo[])
 
   const open = $sessions.get().find(s => sessionMatchesStoredId(s, openId))
 
-  return Boolean(open && liveSessionProjectId(open, projects) === projectId)
+  return Boolean(open && liveSessionProjectId(open, projects, $projectOwnerBySessionId.get()) === projectId)
 }
 
 // Optimistic: drop the project from the cached tree + list the instant it's
 // clicked (the entered-scope effect exits if you deleted the project you were
 // inside), reconciling from the server payload. A failed delete restores both.
 export async function deleteProject(id: string): Promise<void> {
+  const context = await activeProjectsContext(writableProjectProfile())
   const snap = snapshotProjects()
   // Capture membership BEFORE removal — the project's folders (which determine
   // ownership) are gone once it's dropped from the cache.
@@ -1152,13 +1140,26 @@ export async function deleteProject(id: string): Promise<void> {
   }
 
   await persistOrRollback(snap, async () => {
-    applyPayload(await gatewayRequest<ProjectsPayload>('projects.delete', projectParams({ id })))
+    applyPayload(
+      await gatewayRequestOn<ProjectsPayload>(
+        context.gateway,
+        'projects.delete',
+        projectParams({ id }, context.profile)
+      )
+    )
   })
   void refreshProjectTree()
 }
 
 export async function setActiveProject(id: null | string): Promise<void> {
-  const res = await gatewayRequest<{ active_id: null | string }>('projects.set_active', projectParams({ id }))
+  const context = await activeProjectsContext(writableProjectProfile())
+
+  const res = await gatewayRequestOn<{ active_id: null | string }>(
+    context.gateway,
+    'projects.set_active',
+    projectParams({ id }, context.profile)
+  )
+
   $activeProjectId.set(res.active_id ?? null)
 }
 
@@ -1392,9 +1393,11 @@ export async function removeWorktreePath(
 }
 
 // Reveal a project/worktree path in the OS file manager (git-GUI standard).
+// Routes through `revealFile` so a path that is not on this computer toasts
+// instead of silently showing nothing.
 export async function revealPath(path: null | string): Promise<void> {
   if (path) {
-    await window.hermesDesktop?.revealPath?.(path)
+    await revealFile(path)
   }
 }
 
@@ -1410,7 +1413,6 @@ export async function copyPath(path: null | string): Promise<void> {
 // mode opens the native dialog. Returns the absolute path, or null if cancelled.
 export async function pickProjectFolder(): Promise<null | string> {
   const [dir] = await selectDesktopPaths({
-    title: translateNow('sidebar.projects.addFolderTitle'),
     defaultPath: (await desktopDefaultCwd())?.cwd,
     directories: true,
     multiple: false
@@ -1457,7 +1459,7 @@ export async function openFolderAsProject(dir?: string): Promise<void> {
     } catch (err) {
       // Stale backend (no projects.* RPC) or a failed write: still open the
       // folder as a plain workspace session below — the project row can wait.
-      notifyError(err, translateNow('sidebar.projects.createFailed'))
+      notify({ kind: 'warning', message: err instanceof Error ? err.message : String(err) })
     }
   }
 

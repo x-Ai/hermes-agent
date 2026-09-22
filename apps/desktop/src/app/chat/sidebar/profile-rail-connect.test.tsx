@@ -18,7 +18,7 @@ vi.mock('react-router', () => ({
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
     t: {
-      common: { cancel: 'Cancel', defaultName: 'default' },
+      common: { cancel: 'Cancel' },
       profiles: {
         allProfiles: 'All profiles',
         connectGateway: 'Manage gateways…',
@@ -74,7 +74,7 @@ vi.mock('@/store/profile-share', () => ({
 }))
 
 vi.mock('./use-profile-prewarm', () => ({
-  useProfilePrewarm: () => ({ cancelPrewarm: vi.fn(), startPrewarm: vi.fn() })
+  useProfilePrewarm: () => ({ cancelPrewarm: vi.fn(), notePointerMove: vi.fn(), startPrewarm: vi.fn() })
 }))
 
 vi.mock('@/hermes', () => ({

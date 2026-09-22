@@ -13,7 +13,6 @@ describe('LanguageSwitcher', () => {
   afterEach(() => {
     cleanup()
     vi.restoreAllMocks()
-    window.localStorage.removeItem('hermes-desktop.ui-locale')
   })
 
   it('persists language changes through display.language config', async () => {

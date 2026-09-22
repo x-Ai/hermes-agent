@@ -6,45 +6,12 @@ from __future__ import annotations
 
 import contextlib
 
+from utils import is_truthy_value
+
 from .method_ctx import bind_module
 
 
-def _custom_token_limits_for_agent(agent: Any, cfg: dict) -> dict[str, int]:
-    """Resolve exact limits for the active endpoint/model without touching unrelated providers."""
-    from hermes_cli.config_providers import get_custom_provider_token_limits
-
-    return get_custom_provider_token_limits(
-        getattr(agent, "model", "") or "",
-        getattr(agent, "base_url", "") or "",
-        config=cfg,
-        requested_provider=getattr(agent, "requested_provider", "") or getattr(agent, "provider", ""),
-    )
-
-
-def _custom_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
-    return _custom_token_limits_for_agent(agent, cfg).get("context_length")
-
-
-def _global_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
-    """Keep the default model's context pin scoped identically at startup and hot reload."""
-    from agent.agent_init import _scope_context_length_to_default_runtime
-    from hermes_cli.config_providers import get_compatible_custom_providers
-
-    model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
-    raw = model_cfg.get("context_length")
-    try:
-        value = int(raw) if raw is not None and not isinstance(raw, bool) else 0
-    except (TypeError, ValueError):
-        return None
-    if value <= 0:
-        return None
-    return _scope_context_length_to_default_runtime(
-        agent, cfg, model_cfg, get_compatible_custom_providers(cfg), value,
-        getattr(agent, "base_url", ""),
-    )
-
-
-def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tuple:
+def _tui_compression_config_signature(cfg: dict | None) -> tuple:
     """Stable snapshot of compression/context keys that must apply next turn: the messaging-gateway
     cache-busting extract plus ``idle_compact_after_seconds``/``tail_mode`` (live-TUI-only keys)."""
     from gateway.run import GatewayRunner
@@ -52,11 +19,6 @@ def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tu
     picked = {k: v for k, v in keys.items() if k.startswith("compression.") or k == "model.context_length"}
     compression = cfg.get("compression") if isinstance(cfg, dict) and isinstance(cfg.get("compression"), dict) else {}
     picked.update({f"compression.{k}": compression.get(k) for k in ("idle_compact_after_seconds", "tail_mode")})
-    if agent is not None:
-        picked["model.context_length"] = _global_context_length_for_agent(agent, cfg or {})
-        picked["model.active_provider_token_limits"] = tuple(sorted(
-            _custom_token_limits_for_agent(agent, cfg or {}).items()
-        ))
     return tuple(sorted(picked.items()))
 
 
@@ -75,6 +37,19 @@ def _compressor_ctor_default(name: str, fallback: Any) -> Any:
         return fallback if default is inspect.Parameter.empty else default
     except Exception:
         return fallback
+
+
+def _default_threshold_tokens_cap():
+    """The cap a fresh agent build installs when the key is absent: DEFAULT_CONFIG's
+    ``compression.threshold_tokens``. agent_init reads the MERGED config, so "no key in
+    config.yaml" still installs the 256K default at construction; key removal here must
+    restore that same value. ``None`` instead would re-derive the uncapped ratio trigger
+    (500K on a 1M-window model) and the default cap would be gone after the first turn
+    (#117093). An explicit ``threshold_tokens: null`` stays ratio-only — the key is present,
+    so ``.get`` returns it untouched."""
+    from hermes_cli.config_defaults import DEFAULT_CONFIG
+
+    return (DEFAULT_CONFIG.get("compression") or {}).get("threshold_tokens")
 
 
 def _derived_default_threshold_percent(agent: Any, compression: dict) -> float:
@@ -122,6 +97,8 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     """
     cfg = cfg if isinstance(cfg, dict) else {}
     compression = cfg.get("compression") if isinstance(cfg.get("compression"), dict) else {}
+    model_cfg = cfg.get("model") if isinstance(cfg.get("model"), dict) else {}
+    from agent.agent_init import config_context_length_for_runtime, set_config_context_length
     enabled_raw = compression.get("enabled", True)
     agent.compression_enabled = enabled_raw if isinstance(enabled_raw, bool) else str(enabled_raw).lower() in {"true", "1", "yes"}
     agent.codex_responses_native_compaction = is_truthy_value(compression.get("codex_responses_native", False))
@@ -139,14 +116,6 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     cc = getattr(agent, "context_compressor", None)
     if cc is None:
         return
-    from hermes_cli.config_providers import get_compatible_custom_providers
-    custom_providers = get_compatible_custom_providers(cfg)
-    agent._custom_providers = custom_providers
-    if hasattr(cc, "custom_providers"):
-        cc.custom_providers = custom_providers
-    if hasattr(cc, "requested_provider"):
-        cc.requested_provider = getattr(agent, "requested_provider", "") or getattr(agent, "provider", "")
-    active_limits = _custom_token_limits_for_agent(agent, cfg)
     # tail_mode: unknown/absent values land on the ctor default ("lean"), matching agent_init.
     default_tail = str(_compressor_ctor_default("tail_mode", "lean"))
     mode = str(compression.get("tail_mode", default_tail) or default_tail).strip().lower()
@@ -181,36 +150,32 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
         cc.threshold_percent = cc._effective_threshold_percent(cc.context_length, base)
     except Exception:
         cc.threshold_percent = pct
-    new_ctx = _global_context_length_for_agent(agent, cfg)
-    if new_ctx is None:
-        new_ctx = active_limits.get("context_length")
-    agent._config_context_length = new_ctx
+    # Same scoping rule as construction and the switch path: the pin describes the configured default
+    # route, so a session that /model-switched elsewhere must not have it re-applied on a config save
+    # (None = absent, invalid, or scoped out).
+    new_ctx = config_context_length_for_runtime(agent, cfg)
     if new_ctx is not None:
-        cc._config_context_length = new_ctx
+        # Both cached copies: the compressor's (its own re-resolution) and the agent's
+        # (switch/fallback + every display surface). Writing one left the other stale, so the
+        # session showed a pinned ceiling while compressing against a different window (#116467).
+        set_config_context_length(agent, new_ctx)
         with contextlib.suppress(Exception):
             cc.context_length = new_ctx
     elif getattr(cc, "_config_context_length", None) is not None:
-        # The global or exact endpoint/model setting was removed: drop the override and force
-        # re-inference from model metadata on next access.
-        cc._config_context_length = cc._resolved_context_length = None
-    if hasattr(cc, "max_input_tokens"):
-        cc.max_input_tokens = cc._coerce_max_tokens(active_limits.get("max_input_tokens"))
-    if str(getattr(agent, "max_tokens_source", "") or "").lower() != "explicit":
-        output_limit = active_limits.get("max_output_tokens")
-        agent.max_tokens = output_limit
-        agent.max_tokens_source = "model" if output_limit is not None else None
-        if hasattr(cc, "max_tokens"):
-            cc.max_tokens = cc._coerce_max_tokens(output_limit)
-    cc.threshold_tokens_cap = cc._coerce_threshold_tokens_cap(compression.get("threshold_tokens"))
+        # model.context_length removed: drop the override and force re-inference from model metadata on
+        # next access (construction's deferred resolution); re-applies the small-context floor too.
+        set_config_context_length(agent, None)
+        cc._resolved_context_length = None
+    cc.threshold_tokens_cap = cc._coerce_threshold_tokens_cap(
+        compression.get("threshold_tokens", _default_threshold_tokens_cap())
+    )
     # Invalidate the cached trigger so the next preflight re-derives from percent/window, then the cap.
     cc._threshold_tokens = cc._tail_token_budget = None
 
 
 def _sync_agent_compression_with_config(sid: str, session: dict) -> None:
-    """Adopt compression/context edits before the next context read or turn.
-
-    Messaging gateways rebuild the agent on these keys; Desktop/TUI keeps the live
-    compressor, so it must be updated in place.
+    """Adopt compression.* / model.context_length edits at turn start (messaging gateways rebuild the
+    agent on these keys; Desktop/TUI keeps the live compressor, so it must be updated in place).
 
     Desktop/TUI only synced the model; the live compressor kept the threshold captured at agent creation
     (#95151).
@@ -219,7 +184,7 @@ def _sync_agent_compression_with_config(sid: str, session: dict) -> None:
     if agent is None:
         return
     cfg = _load_cfg() or {}
-    signature = _tui_compression_config_signature(cfg, agent)
+    signature = _tui_compression_config_signature(cfg)
     seen = session.get("config_compression_seen")
     session["config_compression_seen"] = signature
     if signature == seen:
@@ -260,74 +225,39 @@ def _compress_session_history(
     before_messages: list | None = None, history_version: int | None = None,
 ) -> tuple[int, dict]:
     """Single choke point for all manual-compress routes. ``focus_topic`` is the RAW argument string after
-    ``/compress``, parsed HERE (not per-route) so boundary forms (``here [N]``, ``up to here``, ``--keep N``)
-    trigger a partial compress on EVERY route instead of a FULL compress focused on the literal text.
-
-    It is parsed here with :func:`parse_partial_compress_args` so boundary-aware forms (``here [N]``, ``up
-    to here``, ``--keep N``) trigger a partial compress — head summarized, most recent ``keep_last``
-    exchanges kept verbatim — on EVERY route, mirroring cli.py's ``_manual_compress`` and
-    gateway/slash_commands.py (PR #35252).
-    """
+    ``/compress``; the shared core (``agent.conversation_compression_manual``) parses boundary forms
+    (``here [N]``, ``up to here``, ``--keep N``) so a partial compress triggers on EVERY route instead of a
+    FULL compress focused on the literal text. ``--preview`` returns without touching history."""
     from agent.conversation_compression import finalize_context_engine_compression_notification
-    from agent.model_metadata import estimate_request_tokens_rough
-    from hermes_cli.partial_compress import (
-        parse_partial_compress_args, rejoin_compressed_head_and_tail, split_history_for_partial_compress,
-    )
+    from agent.conversation_compression_manual import (
+        AGGRESSIVE_UNSUPPORTED, MIN_MESSAGES, compress_now, parse_compress_args)
     agent = session["agent"]
     # Snapshot under the lock so the LLM-bound compression call does NOT hold history_lock for the
     # request — otherwise prompt.submit etc. block on the dispatcher loop while compaction runs.
     if before_messages is None or history_version is None:
         with session["history_lock"]:
             before_messages, history_version = list(session.get("history", [])), int(session.get("history_version", 0))
-    history = before_messages
-    if len(history) < 4:
+    if len(before_messages) < MIN_MESSAGES:
         return 0, _get_usage(agent)
-    partial, keep_last, focus_topic = parse_partial_compress_args(focus_topic or "")
-    # Only the head is summarized; the last `keep_last` exchanges ride along verbatim. A degenerate
-    # split (empty tail) falls back to full compression so the user still gets an action.
-    head, tail = split_history_for_partial_compress(history, keep_last) if partial else (history, [])
-    if not tail:
-        head = history
-    if approx_tokens is None:
-        # Include system prompt + tool schemas so the figure reflects real request pressure.
-        # Include system prompt + tool schemas in the estimate — a transcript-only number understates real
-        # request pressure and can even appear to grow after compression because a dense handoff summary
-        # replaces many short turns (#6217).
-        approx_tokens = estimate_request_tokens_rough(
-            history, system_prompt=getattr(agent, "_cached_system_prompt", "") or "", tools=getattr(agent, "tools", None) or None
-        )
-    # system_message=None: passing the cached prompt (already holding the identity block) would append the
-    # identity twice. force=True: manual /compress bypasses the summary-failure cooldown like CLI/gateway.
-    # Pass system_message=None so AIAgent._compress_context rebuilds the system prompt cleanly via
-    # _build_system_prompt(None). Mirrors the CLI's _manual_compress fix for issue #15281. force=True: every
-    # caller of this helper is a manual /compress path (session.compress RPC, slash compress/compact,
-    # slash-worker mirror) — auto-compaction runs inside the agent loop, not here.
-    try:
-        compressed, _ = agent._compress_context(
-            head, None, approx_tokens=approx_tokens, focus_topic=focus_topic or None, force=True,
-            defer_context_engine_notification=True,
-        )
-    except Exception:
-        finalize_context_engine_compression_notification(agent, committed=False)
-        raise
+    request = parse_compress_args(focus_topic or "")
+    if request.aggressive:
+        raise ValueError(AGGRESSIVE_UNSUPPORTED)
+    result = compress_now(agent, before_messages, request, task_id=session.get("session_key") or "default")
+    if result.status == "preview":
+        return 0, _get_usage(agent)
     # Lock-skipped: raise so callers surface a clear message instead of "No changes from compression".
-    # Type-pinned (is True / str) because bare truthiness is fooled by MagicMock auto-attrs.
-    _lock_skipped = getattr(agent, "_compression_skipped_due_to_lock", None)
-    if _lock_skipped is True or isinstance(_lock_skipped, str):
-        agent._compression_skipped_due_to_lock = None
-        # No boundary committed; discard the pending deferred notification (exactly-once, no-op safe).
-        finalize_context_engine_compression_notification(agent, committed=False)
-        raise CompressionLockHeld(_lock_skipped if isinstance(_lock_skipped, str) else None)
-    if tail:
-        compressed = rejoin_compressed_head_and_tail(compressed, tail)
+    if result.status == "lock_skipped":
+        raise CompressionLockHeld(result.lock_holder)
+    if result.status != "compressed":
+        return 0, _get_usage(agent)
     with session["history_lock"]:
         if int(session.get("history_version", 0)) != history_version:
             # External mutation during compaction — drop the result so we don't clobber concurrent edits.
             finalize_context_engine_compression_notification(agent, committed=False)
             return 0, _get_usage(agent)
-        session["history"] = compressed
+        session["history"] = result.after_messages
         session["history_version"] = history_version + 1
-    return len(history) - len(compressed), _get_usage(agent)
+    return result.removed, _get_usage(agent)
 
 
 def _sync_session_key_after_compress(
