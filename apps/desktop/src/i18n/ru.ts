@@ -124,12 +124,23 @@ export const ru = defineLocale({
     connecting: 'ПОДКЛЮЧЕНИЕ',
     desktopBootFailedWithMessage: message => `Не удалось запустить приложение: ${message}`,
     steps: {
+      backendReady: 'Бэкенд Hermes готов',
+      connectingRemoteBackend: 'Подключение к удалённому бэкенду Hermes',
       connectingGateway: 'Подключение к шлюзу',
       loadingSettings: 'Загрузка настроек Hermes',
       loadingSessions: 'Загрузка последних сеансов',
+      resolvingBackend: 'Определение бэкенда Hermes',
+      resolvingRuntime: 'Определение среды выполнения Hermes',
+      restartingAfterUpdate: 'Перезапуск Hermes для завершения обновления…',
       retryingRemoteBackend: 'Переподключение к удалённому бэкенду Hermes…',
+      runtimeReady: 'Среда выполнения Hermes готова',
+      startingBackend: 'Запуск бэкенда Hermes',
       startingDesktopConnection: 'Запуск подключения приложения',
-      startingHermesDesktop: 'Запуск Hermes Desktop…'
+      startingHermesDesktop: 'Запуск Hermes Desktop…',
+      usingRuntime: 'Использование установленной среды Hermes',
+      waitingBackendLaunch: 'Ожидание запуска бэкенда Hermes',
+      waitingBackendReady: 'Ожидание готовности бэкенда Hermes',
+      waitingForUpdate: 'Ожидание завершения текущего обновления…'
     },
     errors: {
       backgroundExited: 'Фоновый процесс Hermes завершён.',

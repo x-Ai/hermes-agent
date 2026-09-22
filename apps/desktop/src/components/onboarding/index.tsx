@@ -41,6 +41,7 @@ import {
 import { $onboardingSurfaces, onboardingSurfaceActive } from '@/store/onboarding-presence'
 import type { OAuthProvider } from '@/types/hermes'
 
+import { localizedBootMessage } from './boot-message'
 import { DocsLink, FlowPanel, Status } from './flow'
 import { FreeTierSetupNotice } from './free-tier-setup-notice'
 import { DecodedLabel } from './glyph'
@@ -540,6 +541,7 @@ function Preparing({ boot }: { boot: DesktopBootState }) {
   const progress = Math.max(2, Math.min(100, Math.round(boot.progress)))
   const hasError = Boolean(boot.error)
   const installing = boot.phase.startsWith('runtime.')
+  const message = localizedBootMessage(boot.phase, boot.message, t.boot.steps)
 
   return (
     <div className="grid gap-3" role="status">
@@ -553,7 +555,7 @@ function Preparing({ boot }: { boot: DesktopBootState }) {
         value={progress / 100}
       />
       <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-        <span className="truncate">{boot.message}</span>
+        <span className="truncate">{message}</span>
         <span>{progress}%</span>
       </div>
       {hasError ? <p className="text-xs text-destructive">{boot.error}</p> : null}

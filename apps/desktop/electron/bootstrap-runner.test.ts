@@ -13,6 +13,7 @@ import {
   hasExistingGitCheckout,
   installedAgentInstallScript,
   installRefForStamp,
+  installScriptUrl,
   isPinnedCommit,
   resolveInstallScript,
   resolveMarkerPinnedCommit,
@@ -129,6 +130,13 @@ test('fallback install stamps use an unpinned branch ref', () => {
       hermesHome: '/tmp/home'
     }),
     ['--dir', '/tmp/hermes', '--hermes-home', '/tmp/home', '--branch', 'main']
+  )
+})
+
+test('bootstrap downloads the install script from the fork', () => {
+  assert.equal(
+    installScriptUrl('main', 'install.sh'),
+    'https://raw.githubusercontent.com/x-Ai/hermes-agent/main/scripts/install.sh'
   )
 })
 

@@ -119,12 +119,23 @@ export const ar = defineLocale({
     connecting: 'جار الاتصال',
     desktopBootFailedWithMessage: message => `فشل تشغيل سطح المكتب: ${message}`,
     steps: {
+      backendReady: 'خادم Hermes جاهز',
+      connectingRemoteBackend: 'جار الاتصال بخادم Hermes البعيد',
       connectingGateway: 'جار الاتصال ببوابة سطح المكتب',
       loadingSettings: 'جار تحميل إعدادات Hermes',
       loadingSessions: 'جار تحميل الجلسات الأخيرة',
+      resolvingBackend: 'جار تحديد خادم Hermes',
+      resolvingRuntime: 'جار تحديد بيئة تشغيل Hermes',
+      restartingAfterUpdate: 'جار إعادة تشغيل Hermes لإكمال التحديث…',
       retryingRemoteBackend: 'جارٍ إعادة الاتصال بخادم Hermes البعيد…',
+      runtimeReady: 'بيئة تشغيل Hermes جاهزة',
+      startingBackend: 'جار تشغيل خادم Hermes',
       startingDesktopConnection: 'جار بدء اتصال سطح المكتب',
-      startingHermesDesktop: 'جار تشغيل Hermes Desktop...'
+      startingHermesDesktop: 'جار تشغيل Hermes Desktop...',
+      usingRuntime: 'جار استخدام بيئة Hermes المثبتة',
+      waitingBackendLaunch: 'في انتظار تشغيل خادم Hermes',
+      waitingBackendReady: 'في انتظار جاهزية خادم Hermes',
+      waitingForUpdate: 'في انتظار اكتمال التحديث الحالي…'
     },
     errors: {
       backgroundExited: 'خرجت عملية Hermes الخلفية.',

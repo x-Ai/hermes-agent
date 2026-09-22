@@ -104,12 +104,23 @@ export const zhHant = defineLocale({
     connecting: '連線中',
     desktopBootFailedWithMessage: message => `桌面啟動失敗：${message}`,
     steps: {
+      backendReady: 'Hermes 後端已就緒',
+      connectingRemoteBackend: '正在連線遠端 Hermes 後端',
       connectingGateway: '正在連線桌面閘道',
       loadingSettings: '正在載入 Hermes 設定',
       loadingSessions: '正在載入最近工作階段',
+      resolvingBackend: '正在解析 Hermes 後端',
+      resolvingRuntime: '正在解析 Hermes 執行環境',
+      restartingAfterUpdate: '正在重新啟動 Hermes 以完成更新…',
       retryingRemoteBackend: '正在重新連線遠端 Hermes 後端…',
+      runtimeReady: 'Hermes 執行環境已就緒',
+      startingBackend: '正在啟動 Hermes 後端',
       startingDesktopConnection: '正在啟動桌面連線',
-      startingHermesDesktop: '正在啟動 Hermes Desktop…'
+      startingHermesDesktop: '正在啟動 Hermes Desktop…',
+      usingRuntime: '正在使用已安裝的 Hermes 執行環境',
+      waitingBackendLaunch: '正在等待 Hermes 後端啟動',
+      waitingBackendReady: '正在等待 Hermes 後端就緒',
+      waitingForUpdate: '正在等待目前的更新完成…'
     },
     errors: {
       backgroundExited: 'Hermes 背景程序已結束。',

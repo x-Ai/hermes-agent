@@ -139,12 +139,23 @@ export const en: Translations = {
     connecting: 'CONNECTING',
     desktopBootFailedWithMessage: message => `Desktop boot failed: ${message}`,
     steps: {
+      backendReady: 'Hermes backend is ready',
+      connectingRemoteBackend: 'Connecting to the remote Hermes backend',
       connectingGateway: 'Connecting live desktop gateway',
       loadingSettings: 'Loading Hermes settings',
       loadingSessions: 'Loading recent sessions',
+      resolvingBackend: 'Resolving Hermes backend',
+      resolvingRuntime: 'Resolving Hermes runtime',
+      restartingAfterUpdate: 'Restarting Hermes to finish the update…',
       retryingRemoteBackend: 'Reconnecting to the remote Hermes backend…',
+      runtimeReady: 'Hermes runtime is ready',
+      startingBackend: 'Starting Hermes backend',
       startingDesktopConnection: 'Starting desktop connection',
-      startingHermesDesktop: 'Starting Hermes Desktop…'
+      startingHermesDesktop: 'Starting Hermes Desktop…',
+      usingRuntime: 'Using the installed Hermes runtime',
+      waitingBackendLaunch: 'Waiting for Hermes backend to launch',
+      waitingBackendReady: 'Waiting for Hermes backend to become ready',
+      waitingForUpdate: 'Waiting for the current update to finish…'
     },
     errors: {
       backgroundExited:
