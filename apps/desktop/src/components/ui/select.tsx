@@ -65,8 +65,7 @@ function SelectContent({
         <SelectPrimitive.Viewport
           className={cn(
             'p-1',
-            position === 'popper' &&
-              'dt-select-scrollbar w-full min-w-(--radix-select-trigger-width) max-h-[min(18rem,var(--radix-select-content-available-height))] overscroll-contain [scrollbar-gutter:stable]'
+            position === 'popper' && 'h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width)'
           )}
         >
           {children}

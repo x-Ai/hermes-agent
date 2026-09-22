@@ -1,12 +1,12 @@
 import { beforeEach, expect, test } from 'vitest'
 
-import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
+import { en } from '@/i18n/en'
 
 import { $notifications, clearNotifications, isDiskFullErrorMessage, notifyError } from './notifications'
+import { $backendRestartRequest, $routeRequest } from './recovery-requests'
 
 beforeEach(() => {
   clearNotifications()
-  setRuntimeI18nLocale('en')
 })
 
 function lastMessage(): string {
@@ -14,8 +14,9 @@ function lastMessage(): string {
 }
 
 // Regression for #39365: a gateway auth 401 (bad API_SERVER_KEY) must not be
-// summarized as a provider (OpenAI/OpenRouter) API key problem.
-test('gateway_auth_failed error is summarized as gateway auth, not provider key', () => {
+// summarized as a provider (OpenAI/OpenRouter) API key problem. The toast says
+// "sign in again" in plain words and opens Gateways — no env-var names.
+test('gateway_auth_failed error is summarized as sign-in, with an Open Gateways action', () => {
   notifyError(
     new Error(
       '401 {"error": {"message": "Invalid gateway API key (API_SERVER_KEY)", "type": "gateway_auth_error", "code": "gateway_auth_failed"}}'
@@ -23,17 +24,51 @@ test('gateway_auth_failed error is summarized as gateway auth, not provider key'
     'Request failed'
   )
 
-  expect(lastMessage()).toContain('API_SERVER_KEY')
-  expect(lastMessage()).not.toMatch(/OpenAI/i)
+  expect(lastMessage()).toMatch(/sign in again/i)
+  expect(lastMessage()).not.toMatch(/API_SERVER_KEY|OpenAI|authentication failed/i)
+
+  const action = $notifications.get()[0]?.action
+  expect(action?.label).toBe(en.notifications.actions.openGateways)
+  action?.onClick()
+  expect($routeRequest.get()?.path).toBe('/settings?tab=gateway')
 })
 
-test('provider invalid_api_key error still maps to the OpenAI summary', () => {
+test('provider invalid_api_key error maps to the OpenAI summary and deep-links to Keys', () => {
   notifyError(
     new Error('401 {"error": {"message": "Incorrect API key provided", "code": "invalid_api_key"}}'),
     'Request failed'
   )
 
-  expect(lastMessage()).toMatch(/OpenAI rejected the API key/i)
+  expect(lastMessage()).toMatch(/OpenAI didn't accept your API key/i)
+  expect(lastMessage()).not.toMatch(/401|invalid_api_key/)
+  $notifications.get()[0]?.action?.onClick()
+  expect($routeRequest.get()?.path).toBe('/settings?tab=keys&key=OPENAI_API_KEY')
+})
+
+test('ELEVENLABS_API_KEY not set toasts plain copy with an Open Keys action for that key', () => {
+  notifyError(new Error('ELEVENLABS_API_KEY not set'), 'Voice failed')
+
+  expect(lastMessage()).not.toMatch(/ELEVENLABS_API_KEY|STT/)
+  $notifications.get()[0]?.action?.onClick()
+  expect($routeRequest.get()?.path).toBe('/settings?tab=keys&key=ELEVENLABS_API_KEY')
+})
+
+test('structured storage_* error codes route to Maintenance', () => {
+  notifyError(new Error('500 {"detail":{"message":"database is locked","code":"storage_locked"}}'), 'Prompt failed')
+
+  expect(lastMessage()).toMatch(/data folder/i)
+  $notifications.get()[0]?.action?.onClick()
+  expect($routeRequest.get()?.path).toBe('/command-center?section=maintenance')
+})
+
+test('405 method-not-allowed toasts a restart in plain words with a Restart Hermes action', () => {
+  const before = $backendRestartRequest.get()
+  notifyError(new Error('405 Method Not Allowed'), 'Request failed')
+
+  expect(lastMessage()).not.toMatch(/405|Method Not Allowed|backend/i)
+  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartHermes)
+  $notifications.get()[0]?.action?.onClick()
+  expect($backendRestartRequest.get()).toBe(before + 1)
 })
 
 test('disk-full / ENOSPC errors toast a free-space message', () => {
@@ -59,103 +94,6 @@ test('session storage write failure is treated as disk-full class', () => {
   expect(lastMessage()).toMatch(/Disk full/i)
 })
 
-test('invalid external URLs are summarized in the active locale', () => {
-  setRuntimeI18nLocale('zh')
-  notifyError(new Error('Invalid external URL'), '打开链接失败')
-
-  expect($notifications.get()[0]).toMatchObject({
-    title: '打开链接失败',
-    message: '外部链接无效',
-    detail: 'Invalid external URL'
-  })
-})
-
-test.each(['en', 'zh', 'zh-hant', 'ja', 'ar', 'ru'] as const)(
-  'preview URL errors use the %s translation without repeating raw details',
-  locale => {
-    setRuntimeI18nLocale(locale)
-    const copy = TRANSLATIONS[locale]
-
-    for (const raw of [
-      'Invalid preview URL',
-      "Error invoking remote method 'hermes:openPreviewInBrowser': Error: Invalid preview URL"
-    ]) {
-      notifyError(new Error(raw), copy.rightSidebar.previewUnavailable)
-
-      expect($notifications.get()[0]).toMatchObject({
-        title: copy.rightSidebar.previewUnavailable,
-        message: copy.notifications.errors.invalidPreviewUrl
-      })
-      expect($notifications.get()[0]?.detail).toBeUndefined()
-
-      if (locale !== 'en') {
-        expect(lastMessage()).not.toBe(TRANSLATIONS.en.notifications.errors.invalidPreviewUrl)
-      }
-    }
-  }
-)
-
-test('canonical file-not-found errors are localized without repeating raw English details', () => {
-  setRuntimeI18nLocale('zh')
-  notifyError(new Error('File not found'), '下载失败')
-
-  expect($notifications.get()[0]).toMatchObject({
-    title: '下载失败',
-    message: '找不到文件'
-  })
-  expect($notifications.get()[0]?.detail).toBeUndefined()
-
-  clearNotifications()
-  notifyError(new Error('File not found: /srv/report.pdf'), '下载失败')
-
-  expect($notifications.get()[0]).toMatchObject({
-    title: '下载失败',
-    message: '找不到文件：/srv/report.pdf'
-  })
-  expect($notifications.get()[0]?.detail).toBeUndefined()
-})
-
-test('gateway transport errors are localized without repeating raw English details', () => {
-  setRuntimeI18nLocale('zh')
-
-  for (const raw of [
-    'Hermes gateway connection closed',
-    'Could not connect to Hermes gateway',
-    'Hermes gateway is not connected'
-  ]) {
-    clearNotifications()
-    notifyError(new Error(raw), '无法打开“默认 2”的聊天 — 请重试')
-
-    expect($notifications.get()[0]).toMatchObject({
-      title: '无法打开“默认 2”的聊天 — 请重试',
-      message: 'Hermes 网关未连接'
-    })
-    expect($notifications.get()[0]?.detail).toBeUndefined()
-  }
-})
-
-test('restore target drift is summarized in the active locale', () => {
-  setRuntimeI18nLocale('zh')
-  notifyError(new Error('target user message is no longer in session history'), '恢复失败')
-
-  expect($notifications.get()[0]).toMatchObject({
-    title: '恢复失败',
-    message: '目标消息已不在此会话历史中。请刷新会话后重试'
-  })
-  expect($notifications.get()[0]?.detail).toBeUndefined()
-})
-
-test('localized toasts keep unknown backend errors in detail instead of the primary message', () => {
-  setRuntimeI18nLocale('zh')
-  notifyError(new Error('opaque backend diagnostic'), '操作失败')
-
-  expect($notifications.get()[0]).toMatchObject({
-    title: '操作失败',
-    message: '操作失败',
-    detail: 'opaque backend diagnostic'
-  })
-})
-
 test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', () => {
   notifyError(
     new Error(
@@ -164,7 +102,10 @@ test('code-skew 503 unwraps to a restart-required summary, not raw IPC JSON', ()
     'Could not load models'
   )
 
-  expect(lastMessage()).toMatch(/running old code after an update/i)
-  expect(lastMessage()).not.toMatch(/hermes:api/)
-  expect(lastMessage()).not.toMatch(/systemctl/)
+  expect(lastMessage()).toMatch(/still running the old version/i)
+  expect(lastMessage()).not.toMatch(/hermes:api|systemctl|backend/i)
+  const before = $backendRestartRequest.get()
+  expect($notifications.get()[0]?.action?.label).toBe(en.notifications.actions.restartHermes)
+  $notifications.get()[0]?.action?.onClick()
+  expect($backendRestartRequest.get()).toBe(before + 1)
 })

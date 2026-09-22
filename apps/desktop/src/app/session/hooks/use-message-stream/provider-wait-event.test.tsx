@@ -1,20 +1,16 @@
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import type { GatewayEvent } from '@hermes/shared'
+import { act, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ResponseLoadingIndicator } from '@/components/assistant-ui/thread/status'
-import { I18nProvider } from '@/i18n'
 import { $providerWaitSessions } from '@/store/provider-wait'
-import { $activeSessionId } from '@/store/session'
 import { clearAllSessionStates, dropSessionState } from '@/store/session-states'
-import * as windowContext from '@/store/windows'
-import type { RpcEvent } from '@/types/hermes'
 
 import { type MessageStreamHarness, renderMessageStream } from './test-harness'
 
 const SID = 'session-1'
 let stream: MessageStreamHarness
 
-function emit(type: RpcEvent['type'], payload: RpcEvent['payload'] = {}) {
+function emit(type: GatewayEvent['type'], payload: GatewayEvent['payload'] = {}) {
   act(() => stream.handleEvent({ payload, session_id: SID, type }))
 }
 
@@ -26,7 +22,6 @@ describe('provider wait visibility', () => {
 
   afterEach(() => {
     cleanup()
-    $activeSessionId.set(null)
     $providerWaitSessions.set({})
     vi.restoreAllMocks()
   })
@@ -40,46 +35,6 @@ describe('provider wait visibility', () => {
     emit('thinking.delta', { text: '◉_◉ cogitating...' })
     expect($providerWaitSessions.get()).toEqual({})
   })
-
-  it.each(['thinking.delta', 'reasoning.delta'] as const)(
-    'localizes %s wait notices and preserves real reasoning',
-    async eventType => {
-      const watchWindow = vi.spyOn(windowContext, 'isWatchWindow').mockReturnValue(eventType === 'reasoning.delta')
-      $activeSessionId.set(SID)
-      render(
-        <I18nProvider configClient={null} initialLocale="zh">
-          <ResponseLoadingIndicator />
-        </I18nProvider>
-      )
-
-      const notices = [
-        ['waiting on provider — retrying in 3s (attempt 1/6)', '正在等待服务商，3 秒后重试（第 1/6 次）'],
-        ['⏳ waiting on provider — retrying in 41s (attempt 5/6)', '正在等待服务商，41 秒后重试（第 5/6 次）'],
-        [
-          '↻ model returned reasoning with no final answer — asking it to continue (2/3)',
-          '模型仅返回了思考内容，未给出最终回答，正在请求继续（第 2/3 次）'
-        ]
-      ]
-
-      for (const [raw, localized] of notices) {
-        emit(eventType, { text: raw })
-
-        expect(screen.getByRole('status', { name: localized }).textContent).toContain(localized)
-        expect(screen.queryByText(raw)).toBeNull()
-        expect(stream.reasoningText()).toBe('')
-      }
-
-      const reasoning = 'I am examining the provider retry policy.'
-      emit('reasoning.delta', { text: reasoning })
-      await waitFor(() => expect(stream.reasoningText()).toBe(reasoning))
-      expect($providerWaitSessions.get()).toEqual({})
-
-      watchWindow.mockReturnValue(false)
-      emit('reasoning.delta', { text: notices[0][0] })
-      await waitFor(() => expect(stream.reasoningText()).toBe(`${reasoning}${notices[0][0]}`))
-      expect($providerWaitSessions.get()).toEqual({})
-    }
-  )
 
   it.each(['message.delta', 'reasoning.delta', 'tool.start', 'message.complete', 'error'] as const)(
     'clears the wait when %s proves the turn progressed or ended',

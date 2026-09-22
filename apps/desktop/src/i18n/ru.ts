@@ -24,36 +24,6 @@ const RU_NOUN = (count: number | string, one: string, few: string, many: string)
 }
 
 export const ru = defineLocale({
-  connectors: {
-    title: 'Подключите приложения',
-    connect: 'Подключить',
-    skip: 'Не сейчас',
-    cancel: 'Не ждать',
-    retry: 'Повторить',
-    grant: 'Подключить заново',
-    connected: 'Подключено',
-    skipped: 'Пропущено',
-    disabled: 'Недоступно',
-    failed: 'Не удалось подключить',
-    needsAuth: 'Доступ истёк',
-    opening: 'Открываем вход…',
-    waiting: 'Завершите подключение в браузере…',
-    timeout: 'Всё ещё ждём авторизацию.',
-    keepWaiting: 'Продолжить ждать',
-    refresh: 'Обновить статус',
-    statusError: 'Не удалось проверить подключения. Обновите статус.',
-    connectError: 'Не удалось начать авторизацию. Повторите попытку.',
-    unavailable: 'Коннекторы недоступны для этой сессии.',
-    ownerMissing: 'Откройте этот разговор заново, чтобы управлять подключениями.',
-    search: 'Найти приложение',
-    empty: 'Подходящих приложений нет',
-    continue: 'Продолжить в чате',
-    continueBusy: 'Ждём завершения текущего ответа',
-    continueFailed: 'Не удалось продолжить. Повторите попытку.',
-    missingResult: 'Нет результата коннектора',
-    disclaimer: 'Подключение необязательно. Разрешайте только те приложения, которые Hermes может использовать.',
-    execution: 'Инструменты коннекторов'
-  },
   sessionImport: {
     title: 'Продолжить из другого приложения',
     subtitle: 'Перенесите разговор в Hermes и продолжите с того места, где остановились.',
@@ -103,6 +73,7 @@ export const ru = defineLocale({
     connect: 'Подключить',
     connecting: 'Подключение',
     continue: 'Продолжить',
+    bots: 'Боты',
     copied: 'Скопировано',
     copy: 'Копировать',
     copyFailed: 'Не удалось скопировать',
@@ -145,7 +116,8 @@ export const ru = defineLocale({
     renameLabel: 'Новое имя',
     deleteTitle: name => `Удалить ${name}?`,
     deleteBody: 'Элемент будет перемещён в корзину — его можно восстановить оттуда.',
-    pathCopied: 'Путь скопирован'
+    pathCopied: 'Путь скопирован',
+    revealMissing: 'Этой папки нет на этом компьютере'
   },
   boot: {
     ready: 'Hermes Desktop готов',
@@ -224,28 +196,20 @@ export const ru = defineLocale({
       errorTitle: 'Сервер MCP недоступен',
       errorMessage: name => `MCP ${name} не прошёл проверку работоспособности.`,
       signIn: 'Войти',
-      view: 'Просмотр'
+      view: 'Просмотр',
+      disable: 'Отключить',
+      disabledMessage: name => `${name} MCP отключён. Включить снова можно в любой момент в разделе Возможности → MCP.`,
+      disableFailed: name => `Не удалось отключить ${name} MCP.`
     },
     errors: {
-      agentInitUnknownProvider: provider =>
-        `Не удалось инициализировать агента: неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
-      unknownProvider: provider =>
-        `Неизвестный провайдер «${provider}». Запустите «hermes model», чтобы посмотреть доступных провайдеров, или «hermes doctor» для диагностики проблем конфигурации.`,
-      fastModeUnavailable: 'Быстрый режим недоступен для этой модели.',
-      apiRetriesExhausted: retries => `Вызов API завершился ошибкой после ${retries} повторных попыток`,
-      invalidApiResponseAfterRetries: (retries, detail) =>
-        `Недопустимый ответ API после ${retries} повторных попыток: ${detail}`,
-      resetsIn: remaining => `До сброса: ${remaining}`,
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
       diskFull: 'Диск заполнен — освободите место и повторите.',
       gatewayAuthFailed: 'Аутентификация шлюза не удалась — проверьте API_SERVER_KEY.',
-      invalidPreviewUrl: 'Недопустимый URL предпросмотра.',
       methodNotAllowed:
         'Бэкенд приложения отклонил запрос (405 Method Not Allowed). Попробуйте перезапустить Hermes Desktop.',
       microphonePermission: 'Доступ к микрофону запрещён.',
       openaiRejectedApiKey: 'OpenAI отклонил API-ключ.',
-      openaiRejectedApiKeyWithStatus: status => `OpenAI отклонил API-ключ (${status} invalid_api_key).`,
       openaiTtsNeedsKey: 'Для TTS OpenAI нужен VOICE_TOOLS_OPENAI_KEY или OPENAI_API_KEY.'
     },
     voice: {
@@ -270,9 +234,11 @@ export const ru = defineLocale({
     },
     native: {
       approvalTitle: 'Требуется одобрение',
+      approvalTitleNamed: session => `Требуется одобрение — ${session}`,
       approveAction: 'Одобрить',
       rejectAction: 'Отклонить',
       inputTitle: 'Требуется ввод',
+      inputTitleNamed: session => `Требуется ввод — ${session}`,
       inputBody: 'Hermes ожидает ваш ответ.',
       turnDoneTitle: 'Hermes завершил',
       turnDoneBody: '',
@@ -340,7 +306,7 @@ export const ru = defineLocale({
       'nav.commandCenter': 'Открыть центр команд',
       'nav.settings': 'Открыть настройки',
       'nav.profiles': 'Открыть профили',
-      'nav.skills': 'Открыть навыки',
+      'nav.capabilities': 'Открыть навыки',
       'nav.messaging': 'Открыть мессенджеры',
       'nav.artifacts': 'Открыть артефакты',
       'nav.cron': 'Открыть запланированные задачи',
@@ -372,6 +338,7 @@ export const ru = defineLocale({
       'view.toggleReview': 'Показать / скрыть панель ревью',
       'view.toggleStatusbar': 'Показать / скрыть строку состояния',
       'view.toggleTabStrip': 'Показать / скрыть вкладки',
+      'view.toggleProfileRail': 'Показать / скрыть панель профилей',
       'view.showFiles': 'Показать браузер файлов',
       'view.showBrowser': 'Открыть браузер',
       'view.toggleHud': 'Включить / выключить режим HUD',
@@ -441,37 +408,56 @@ export const ru = defineLocale({
     noResults: 'Языки не найдены'
   },
   settings: {
-    poolLimits: {
-      warmBackends: 'Число работающих бэкендов ботов',
-      warmBackendsDescription:
-        'Сколько бэкендов ботов остаются запущенными для быстрого переключения. Чем больше, тем быстрее переключение и выше расход памяти (около 60 MB на бэкенд). Изменения применяются сразу.',
-      idleTimeout: 'Тайм-аут простоя бэкенда',
-      idleTimeoutDescription:
-        'Как долго неиспользуемый бэкенд бота остаётся запущенным до отключения. Увеличьте это время, чтобы не ждать повторного запуска при возвращении к боту каждые несколько минут.',
-      idleTimeoutAria: 'Тайм-аут простоя бэкенда в миллисекундах',
-      milliseconds: 'мс'
-    },
-    localModels: {
-      catalogDescriptions: {
-        'Best all-round agent model; sees images; long context stays fast':
-          'Лучшая универсальная модель для агента; понимает изображения; сохраняет скорость при длинном контексте',
-        'Frontier-scale model; needs a very large GPU to run well':
-          'Передовая крупная модель; для быстрой работы нужен GPU с очень большим объёмом памяти',
-        'Bigger mixture-of-experts with multi-token prediction; sees images':
-          'Более крупная модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
-        'Frontier-class model for machines with 128GB+ memory':
-          'Передовая модель для компьютеров со 128 GB памяти и более'
-      },
-      recommendedBuild: (quant, largeWindow) =>
-        `Рекомендуемая сборка (${quant}) — формат квантования, под который оптимизирован движок; полностью работает на GPU${largeWindow ? ' с большим окном контекста' : ''}`,
-      compactBuild: quant =>
-        `Компактная сборка для этого компьютера (${quant}) — превышает объём памяти GPU и использует системную память, поэтому работает медленнее`,
-      fitTooLarge: (quant, size) =>
-        `Даже самая компактная сборка (${quant}, ${size}) превышает суммарный объём памяти GPU и системной памяти`,
-      fitNeedsMemory: 'Требуется больше памяти, чем есть на этом компьютере',
-      fitFullContext: context => `работает с полным контекстом ${context}`,
-      fitGrowingContext: (start, max) => `контекст начинается с ${start} и расширяется до ${max} по мере использования`,
-      fitSpilled: detail => `${detail} (превышает объём памяти GPU и использует системную память — работает медленнее)`
+    subpages: {
+      appearanceTheme: 'Тема',
+      appearanceTypography: 'Шрифты и масштаб',
+      appearanceWindowLayout: 'Окно и расположение',
+      appearanceChatDisplay: 'Отображение чата',
+      appearancePet: 'Питомец',
+      appearanceGeneral: 'Общие',
+      modelMain: 'Основная модель',
+      modelAuxiliary: 'Вспомогательные модели',
+      modelMoa: 'Совместная работа агентов',
+      modelFallbacks: 'Резервные модели',
+      chatBehavior: 'Поведение',
+      chatAttachments: 'Вложения',
+      workspaceProjects: 'Проекты и поиск',
+      workspaceShell: 'Среда оболочки',
+      workspaceFiles: 'Файлы и выполнение',
+      safetyApprovals: 'Подтверждения',
+      safetyPrivacy: 'Приватность и сеть',
+      safetyCheckpoints: 'Контрольные точки',
+      browserProfile: 'Профиль браузера',
+      browserNetwork: 'Локальные и частные URL',
+      memoryPersistent: 'Постоянная память',
+      memoryContext: 'Контекст и сжатие',
+      voiceConversation: 'Голосовой разговор',
+      voiceTranscription: 'Речь в текст',
+      voiceSpeech: 'Текст в речь',
+      advancedRuntime: 'Ограничения агента',
+      advancedTools: 'Доступ к инструментам',
+      advancedTerminal: 'Сервер терминала',
+      advancedOutput: 'Ограничения вывода',
+      advancedDelegation: 'Субагенты',
+      advancedDesktop: 'Приложение и запуск',
+      gatewayConnection: 'Это окно',
+      gatewayDevices: 'Сохранённые подключения',
+      gatewayManagedUpdates: 'Удалённые обновления',
+      gatewayManagedUpdatesUnavailable: 'Нужна версия приложения с поддержкой управляемых обновлений SSH.',
+      gatewayManagedUpdatesEmpty: 'Добавьте SSH в сохранённые подключения, чтобы управлять его обновлениями здесь.',
+      keyboardShortcuts: 'Назначения клавиш',
+      hudGesture: 'Жест HUD',
+      screenCapture: 'Захват экрана',
+      notificationAlerts: 'Системные уведомления',
+      notificationSounds: 'Звуки',
+      archivedSessions: 'Архив и хранение',
+      defaultDirectory: 'Папка проекта по умолчанию',
+      vaultCredentials: 'Сохранённые учётные данные',
+      vaultSources: 'Менеджеры паролей',
+      appUpdates: 'Версия и обновления',
+      uninstall: 'Удаление',
+      billingOverview: 'Обзор',
+      billingPlans: 'Тарифы'
     },
     closeSettings: 'Закрыть настройки',
     exportConfig: 'Экспорт конфигурации',
@@ -515,6 +501,7 @@ export const ru = defineLocale({
         includesHeading: 'Состав пакета',
         agentLabel: 'Плагин агента',
         desktopLabel: 'UI приложения',
+        profileLabel: 'Установить для профиля',
         agentTargetLocal: (profile, dir) => `Устанавливается в локальный бэкенд ${profile} (${dir})`,
         agentTargetRemote: profile => `Устанавливается в подключённый бэкенд ${profile}`,
         desktopTarget: 'Устанавливается в локальную папку desktop-plugins этого приложения',
@@ -545,7 +532,7 @@ export const ru = defineLocale({
         desktopSuccess: name => `Плагин приложения ${name} установлен`,
         agentFailed: 'Не удалось установить плагин агента',
         desktopFailed: 'Не удалось установить плагин приложения',
-        missingEnv: vars => `Не хватает переменных окружения: ${vars}. Добавьте их в Настройки → Ключи.`
+        missingEnv: (_name, vars) => `Не хватает переменных окружения: ${vars}. Добавьте их в Настройки → Ключи.`
       }
     },
     notifications: {
@@ -599,7 +586,6 @@ export const ru = defineLocale({
       chat: 'Чат',
       appearance: 'Внешний вид',
       workspace: 'Рабочее пространство',
-      browser: 'Браузер',
       safety: 'Безопасность',
       memory: 'Память и контекст',
       voice: 'Голос',
@@ -625,6 +611,11 @@ export const ru = defineLocale({
       colorModeDesc: 'Выберите фиксированный режим или позвольте Hermes следовать настройкам системы.',
       toolViewTitle: 'Отображение вызовов инструментов',
       toolViewDesc: 'Режим «Продукт» скрывает сырые данные инструментов, «Технический» показывает полный вход/выход.',
+      hideCodeDiffsTitle: 'Скрывать изменения кода',
+      hideCodeDiffsDesc:
+        'Показывать правки файлов строками инструментов с числом добавленных и удалённых строк, без кода.',
+      hideThreadTimelineTitle: 'Скрывать полоски истории диалога',
+      hideThreadTimelineDesc: 'Скрывать полоски навигации вдоль правого края каждого диалога.',
       reasoningCollapsedTitle: 'Сворачивать «мышление» по умолчанию',
       reasoningCollapsedDesc:
         'Стриминговое рассуждение остаётся доступным, но не разворачивается, пока вы его не откроете.',
@@ -637,7 +628,8 @@ export const ru = defineLocale({
       sessionDensityComfortable: 'Комфортно',
       sessionDensityDetailed: 'Подробно',
       tabStripTitle: 'Панель вкладок',
-      tabStripDesc: 'Показывать вкладки над зоной. Автоматически скрываются, когда в зоне только одна панель.',
+      tabStripDesc:
+        'Показывать вкладки над зоной. Автоматически скрываются для одной панели, если не открыта другая зона чата или плитки.',
       tabStripAuto: 'Авто',
       tabStripAlways: 'Всегда',
       tabStripNever: 'Никогда',
@@ -651,6 +643,13 @@ export const ru = defineLocale({
       terminalFontPlaceholder: 'MesloLGS NF или CSS-стек шрифтов',
       terminalFontPreview: 'Предпросмотр глифов',
       terminalFontReset: 'Использовать по умолчанию',
+      chatFontTitle: 'Шрифт чата',
+      chatFontDesc:
+        'Выберите установленный шрифт для чата и всего интерфейса. Удобно для шрифтов повышенной читаемости, например OpenDyslexic; оставьте пустым, чтобы использовать шрифт темы.',
+      chatFontPlaceholder: 'OpenDyslexic или CSS-стек шрифтов',
+      chatFontPreview: 'Предпросмотр',
+      chatFontSample: 'Съешь же ещё этих мягких французских булок. 0123456789',
+      chatFontReset: 'Шрифт темы',
       translucencyTitle: 'Полупрозрачность окна',
       translucencyDesc:
         'Рабочий стол виден сквозь всё окно, включая текст. Отдельная настройка для светлой и тёмной тем.',
@@ -752,7 +751,8 @@ export const ru = defineLocale({
     },
     fieldLabels: defineFieldCopy({
       model: 'Модель по умолчанию',
-      modelContextLength: 'Окно контекста',
+      modelContextLength:
+        'Переопределяет обнаруженное окно контекста ТОЛЬКО основной модели чата (в токенах). Оставьте 0, чтобы использовать обнаруженное значение выбранной модели. Не влияет на вспомогательные модели и модели MoA.',
       fallbackProviders: 'Резервные модели',
       toolsets: 'Включённые наборы инструментов',
       timezone: 'Часовой пояс',
@@ -767,19 +767,13 @@ export const ru = defineLocale({
       },
       agent: {
         maxTurns: 'Макс. шагов агента',
-        environmentProbe: 'Проверка среды выполнения',
         imageInputMode: 'Вложения изображений',
         apiMaxRetries: 'Повторы API',
-        outputTruncationRetries: 'Повторы при лимите вывода',
-        postToolEmptyRetries: 'Повторы пустого ответа после инструмента',
-        thinkingPrefillRetries: 'Повторы префилла рассуждения',
-        emptyResponseRetries: 'Повторы пустого ответа',
         serviceTier: 'Уровень сервиса',
         toolUseEnforcement: 'Принудительное использование инструментов'
       },
       terminal: {
         cwd: 'Рабочий каталог',
-        containerPersistent: 'Сохранять файловую систему контейнера',
         backend: 'Бэкенд выполнения',
         timeout: 'Тайм-аут команд',
         persistentShell: 'Персистентная оболочка',
@@ -809,7 +803,6 @@ export const ru = defineLocale({
         allowPrivateUrls: 'Разрешать частные URL'
       },
       browser: {
-        useRealProfile: 'Использовать мой настоящий профиль браузера',
         allowPrivateUrls: 'Частные URL браузера',
         autoLocalForPrivateUrls: 'Локальный браузер для частных URL'
       },
@@ -820,7 +813,6 @@ export const ru = defineLocale({
       voice: {
         recordKey: 'Горячая клавиша голосового ввода',
         maxRecordingSeconds: 'Макс. длительность записи',
-        clientDirect: 'Прямое подключение клиента',
         autoTts: 'Зачитывать ответы вслух'
       },
       stt: {
@@ -910,8 +902,14 @@ export const ru = defineLocale({
       compression: {
         enabled: 'Авто-сжатие',
         threshold: 'Порог сжатия',
+        codexGpt55Autoraise: 'Автоповышение сжатия Codex',
         targetRatio: 'Целевое сжатие',
         protectLastN: 'Защищённые недавние сообщения'
+      },
+      auxiliary: {
+        compression: {
+          timeout: 'Таймаут модели сжатия (с)'
+        }
       },
       delegation: {
         model: 'Модель субагента',
@@ -942,22 +940,10 @@ export const ru = defineLocale({
       timezone: 'Идентификатор часового пояса IANA. Пустое значение — системный часовой пояс.',
       agent: {
         imageInputMode: 'Управляет тем, как вложения изображений отправляются модели.',
-        outputTruncationRetries:
-          'Повторять запрос только когда провайдер сообщает о лимите выходных токенов до появления видимого текста. Каждый повтор заново отправляет тот же запрос и может тарифицироваться повторно. Оставьте 0 (рекомендуется); максимум 3.',
-        postToolEmptyRetries:
-          'Отправлять подсказку на продолжение, если после вызова инструментов нет видимого текста. Каждый повтор может тарифицироваться. 0 — выключить; максимум 3.',
-        thinkingPrefillRetries:
-          'Подставлять ответ только с рассуждением, чтобы модель продолжила до видимого текста. Каждый повтор может тарифицироваться. 0 — выключить; максимум 3.',
-        emptyResponseRetries:
-          'Повторять, если предыдущие уровни восстановления не дали видимого текста. Возможна повторная тарификация; защита стоимости может завершить раньше. 0 — выключить; максимум 3.',
-        environmentProbe:
-          'Определять параметры среды выполнения для новых сеансов. Для контейнеров используется временная песочница, удаляемая после проверки; при отключении используется статическое описание.',
         maxTurns: 'Верхний предел ходов с вызовами инструментов, после которого Hermes останавливает запуск.'
       },
       terminal: {
         cwd: 'Папка проекта по умолчанию для инструментов и терминала.',
-        containerPersistent:
-          'Сохранять файловую систему контейнера между сеансами. Изменение вступит в силу после перезапуска бэкенда и не удалит текущий контейнер или экземпляр.',
         persistentShell: 'Сохранять состояние оболочки между командами, если бэкенд это поддерживает.',
         envPassthrough: 'Переменные окружения, которые передавать в выполнение инструментов.',
         dockerImage: 'Образ контейнера, используемый, когда бэкенд выполнения — Docker.',
@@ -967,10 +953,6 @@ export const ru = defineLocale({
       },
       codeExecution: {
         mode: 'Насколько строго выполнение кода ограничено текущим проектом.'
-      },
-      browser: {
-        useRealProfile:
-          'Использовать ваш настоящий профиль браузера с сохранёнными входами и cookie. Отключите, чтобы работать в отдельном профиле Hermes.'
       },
       fileReadMaxChars: 'Максимальное число символов, которые Hermes может прочитать из одного запроса к файлу.',
       approvals: {
@@ -991,7 +973,14 @@ export const ru = defineLocale({
         engine: 'Стратегия управления длинными диалогами у предела контекста.'
       },
       compression: {
-        enabled: 'Сжимать более старый контекст, когда диалоги становятся большими.'
+        enabled: 'Сжимать более старый контекст, когда диалоги становятся большими.',
+        codexGpt55Autoraise: 'Повышает порог сжатия до 85% для поддерживаемых моделей ChatGPT Codex OAuth.'
+      },
+      auxiliary: {
+        compression: {
+          timeout:
+            'Сколько секунд ждать вспомогательную модель сжатия за один вызов (по умолчанию 120). Увеличьте для медленных локальных моделей.'
+        }
       },
       voice: {
         autoTts: 'Автоматически зачитывать ответы ассистента.'
@@ -1047,6 +1036,7 @@ export const ru = defineLocale({
         `Готово новое обновление (включено ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}).`,
       updateReadyUnknown: 'Готово новое обновление.',
       lastChecked: age => `Проверено ${age}`,
+      justNowSuffix: ' · только что',
       automaticUpdates: 'Автоматические обновления',
       automaticUpdatesDesc: 'Hermes автоматически проверяет обновления в фоне и сообщает, когда они готовы.',
       branchCommit: (branch, commit) => `Ветка ${branch} · Коммит ${commit}`,
@@ -1057,6 +1047,11 @@ export const ru = defineLocale({
       daysAgo: count => `${count} ${RU_NOUN(count, 'день', 'дня', 'дней')} назад`
     },
     config: {
+      minimizeToTrayTitle: 'Сворачивать в трей',
+      minimizeToTrayDesc:
+        'Сворачивание окон или закрытие главного окна скрывает их в системном трее (строке меню macOS), оставляя Hermes работать. Для выхода выберите «Выйти из Hermes» в меню трея или нажмите Cmd+Q. По умолчанию выключено; действует только на этом устройстве.',
+      minimizeToTrayUnavailable:
+        'Системный трей недоступен. Окна будут сворачиваться и закрываться как обычно. Выключите и снова включите настройку, чтобы повторить попытку.',
       none: 'Нет',
       noneParen: '(нет)',
       builtinOnly: 'Только встроенные',
@@ -1085,6 +1080,43 @@ export const ru = defineLocale({
         'Насколько большой локальный файл приложение будет загружать для превью и вложений, в МБ. По умолчанию 16. Для удалённых неграфических вложений действует отдельный лимит 256 МБ. Слишком большое значение загружает весь файл в память и может подвесить или уронить приложение.',
       attachmentSizeUnit: 'МБ',
       attachmentSizeLabel: 'Макс. размер превью / загрузки изображений в мегабайтах'
+    },
+    hudModifier: {
+      title: 'Вызов HUD коротким нажатием',
+      description:
+        'Нажмите и отпустите ⌘ + Option на Mac или Ctrl + Alt на Windows/Linux, чтобы вызвать HUD из любого приложения. По умолчанию выключено; действует только на этом устройстве.',
+      permission:
+        'Разрешите Hermes в Системных настройках → Конфиденциальность и безопасность → Мониторинг ввода, затем повторите попытку. Жест не записывает нажатия клавиш и не снимает экран.',
+      unavailable:
+        'Вспомогательная программа жеста HUD не запустилась или неожиданно остановилась. Повторите попытку или перезапустите Hermes. Обычное сочетание HUD по-прежнему работает внутри Hermes.',
+      missingHelper:
+        'В этой установке Hermes отсутствует вспомогательная программа жеста HUD. Обновите или переустановите Hermes и повторите попытку.',
+      unsupportedSession:
+        'Этот сеанс рабочего стола не поддерживает глобальные нажатия модификаторов. В Linux требуется X11; Wayland не поддерживается.'
+    },
+    screenshot: {
+      enabledTitle: 'Сочетание клавиш для снимка окна',
+      enabledDesc:
+        'Нажмите обе клавиши Command одновременно в любом приложении, чтобы снять его переднее окно и прикрепить снимок к текущему черновику Hermes. Автоматической отправки нет. По умолчанию выключено; действует только на этом Mac. Окно может содержать конфиденциальные данные — проверьте вложение перед отправкой.',
+      statusTitle: 'Состояние сочетания для снимка окна',
+      checking: 'Проверка сочетания для снимка окна…',
+      disabled: 'Сочетание для снимка окна выключено.',
+      starting: 'Запускается отслеживание сочетания. Оно пока не готово.',
+      ready: 'Сочетание готово. Снимки прикрепляются к текущему черновику без отправки.',
+      inputPermission:
+        'Разрешение на мониторинг ввода позволяет Hermes распознавать обе клавиши Command, когда активно другое приложение. Разрешите Hermes доступ в Системных настройках → Конфиденциальность и безопасность → Мониторинг ввода, затем вернитесь сюда и повторите попытку.',
+      screenPermission:
+        'Разрешение на запись экрана позволяет Hermes снимать переднее окно приложения при использовании этого сочетания. Разрешите Hermes доступ в Системных настройках → Конфиденциальность и безопасность → Запись экрана, затем вернитесь сюда и повторите попытку. Перезапустите Hermes, если macOS попросит.',
+      openSettings: 'Открыть Системные настройки',
+      retry: 'Повторить',
+      unavailable: 'Сочетание для снимка окна недоступно. Повторите попытку или выключите его.',
+      errorTitle: 'Ошибка сочетания для снимка окна',
+      loadFailed: 'Не удалось прочитать состояние сочетания. Повторите попытку, чтобы проверить текущую настройку.',
+      saveFailed: 'Не удалось подтвердить изменение сочетания. Повторите попытку, чтобы проверить текущую настройку.',
+      permissionFailed:
+        'Не удалось открыть Системные настройки. Откройте раздел «Конфиденциальность и безопасность» вручную и повторите попытку.',
+      captureFailed: 'Не удалось снять переднее окно. Ничего не прикреплено и не отправлено.',
+      contextChanged: 'Текущий черновик изменился во время съёмки. Снимок не прикреплён и не отправлен.'
     },
     quickEntry: {
       enabledTitle: 'Быстрый ввод',
@@ -1258,11 +1290,11 @@ export const ru = defineLocale({
       pasteSessionToken: 'Вставьте токен сессии',
       plainTextConfirmTitle: 'Хранить токен шлюза в открытом виде?',
       plainTextConfirmDesc:
-        'Служба системного хранилища ключей на этой машине не найдена, поэтому токен будет сохранён без шифрования в файле настроек соединения приложения, и его сможет прочитать любой процесс, работающий от вашего имени. Для шифрованного хранилища установите и включите GNOME Keyring или KWallet.',
+        'Служба системного хранилища ключей на этой машине не найдена, поэтому токен будет сохранён без шифрования в файле настроек соединения приложения, и его сможет прочитать любой процесс, работающий от вашего имени. Для шифрованного хранилища установите и включите системное хранилище ключей (в Linux — GNOME Keyring или KWallet).',
       plainTextConfirmAction: 'Сохранить в открытом виде',
       plainTextStoredTitle: 'Токен сохранён в открытом виде',
       plainTextStoredDesc:
-        'Безопасное хранилище недоступно, поэтому сохранённый токен хранится без шифрования в файле настроек соединения приложения на этой машине. Установите и включите GNOME Keyring или KWallet для шифрования.',
+        'Безопасное хранилище недоступно, поэтому сохранённый токен хранится без шифрования в файле настроек соединения приложения на этой машине. Установите и включите системное хранилище ключей (в Linux — GNOME Keyring или KWallet) для шифрования.',
       testRemote: 'Проверить удалённый',
       saveForRestart: 'Сохранить до следующего перезапуска',
       saveAndReconnect: 'Сохранить и переподключиться',
@@ -1450,10 +1482,12 @@ export const ru = defineLocale({
       setToMain: 'На основную',
       change: 'Изменить',
       autoUseMain: 'авто · использовать основную модель',
+      inheritMainEffort: 'наследовать · усилие основной модели',
       providerDefault: '(по умолчанию провайдера)',
       fallbackAdd: 'Добавить запасную',
       fallbackEmpty: 'Запасных моделей нет — используется модель по умолчанию, если она не падает.',
       notInCatalog: 'нет в списке моделей этого провайдера — вызовы могут уходить на запасную.',
+      moaTitle: 'Смесь агентов',
       tasks: {
         vision: { label: 'Зрение', hint: 'Анализ изображений' },
         web_extract: { label: 'Веб-извлечение', hint: 'Суммаризация страниц' },
@@ -1604,54 +1638,18 @@ export const ru = defineLocale({
         selectedMessage: backend =>
           `Команды терминала теперь выполняются через ${backend}. Применится к новым сеансам.`,
         failedSelect: backend => `Не удалось выбрать ${backend}`,
-        needsSetupHint: 'Этот бэкенд можно выбрать сейчас — команды будут падать, пока настройка не завершена.'
+        needsSetupHint:
+          'Этот бэкенд уже выбран без завершённой настройки — команды будут завершаться ошибкой, пока настройка не будет завершена.',
+        needsSetupConfirmTitle: backend => `Всё равно выбрать ${backend}?`,
+        needsSetupConfirmDescription: detail =>
+          `${detail} Сеансы, запущенные после этого изменения, останутся без терминала и файловых инструментов, пока настройка не завершена.`,
+        needsSetupConfirmDescriptionGeneric:
+          'Этот бэкенд ещё не настроен. Сеансы, запущенные после этого изменения, останутся без терминала и файловых инструментов, пока настройка не завершена.',
+        needsSetupConfirmAction: 'Выбрать всё равно'
       }
     }
   },
   skills: {
-    collective: {
-      publishToTeam: 'Опубликовать для команды',
-      submitForApproval: 'Отправить на одобрение',
-      publishLocalNotice:
-        'Подтверждение загрузит именно этот пакет и опубликует его для команды после обязательных проверок.',
-      submitLocalNotice:
-        'Подтверждение загрузит именно этот пакет на одобрение организации. До завершения модерации он не будет опубликован.',
-      reloadReview: 'Обновить проверку',
-      notificationPreferences: {
-        title: 'Настройки уведомлений',
-        scope:
-          'Ваши инициативные уведомления во всех клиентах этой организации. Просмотр и публикация вручную остаются доступны.',
-        on: 'Уведомления включены',
-        muted: 'Уведомления отключены',
-        day: '1 день',
-        week: '1 неделя',
-        month: '30 дней',
-        forever: 'Бессрочно',
-        pending: 'Выбор сохранён локально и ожидает синхронизации.',
-        failed: 'Сбой синхронизации. Обновите настройки и выберите снова.',
-        conflict: 'Настройка изменена в другом клиенте. Обновите для проверки.',
-        expired: 'Срок действия выбора истёк. Обновите настройки и повторите.'
-      },
-      qualificationFirst: organizationName =>
-        `${organizationName ? `Ваша организация (${organizationName})` : 'Ваша организация'} включила Collective Wisdom — функцию, которая автоматически находит полезные навыки у всех участников команды. Поздравляем! Hermes обнаружил навык, который может быть полезен вашей команде.`,
-      qualificationReturning: 'Hermes обнаружил ещё один навык, который может быть полезен вашей команде.',
-      sendPrivateReview: 'Отправить черновик',
-      sharePrompt: 'Хотите поделиться?',
-      reviewFirst: 'Сначала проверить',
-      runSetupStep: 'Выполнить этот шаг',
-      confirmSetupPrerequisite: 'Подтвердить предварительное условие',
-      setupCommand: 'Предлагаемая команда (локальный терминал)',
-      setupStepApprovalNotice: 'Подтверждение разрешает только этот шаг. Не вводите учётные данные в чате.',
-      notNow: 'Не сейчас',
-      yes: 'Да',
-      share: 'Поделиться',
-      reviewPreviousPage: 'Предыдущая страница проверки',
-      reviewNextPage: 'Следующая страница проверки',
-      sharePreparationNotice:
-        'Будет подготовлен локальный пакет. Перед загрузкой или публикацией вы отдельно проверите и одобрите его.',
-      muteNotificationsSoon: 'Отключить уведомления (скоро)',
-      unmuteNotificationsSoon: 'Включить уведомления (скоро)'
-    },
     tabSkills: 'Навыки',
     tabToolsets: 'Инструменты',
     configuringProfile: 'Настраивается:',
@@ -1922,7 +1920,7 @@ export const ru = defineLocale({
     nav: {
       newChat: { title: 'Новый сеанс', detail: 'Начать новый сеанс' },
       settings: { title: 'Настройки', detail: 'Настройка Hermes desktop' },
-      skills: { title: 'Возможности', detail: 'Навыки, инструменты и MCP-серверы' },
+      capabilities: { title: 'Возможности', detail: 'Навыки, инструменты и MCP-серверы' },
       messaging: { title: 'Сообщения', detail: 'Настройка Telegram, Slack, Discord и других' },
       artifacts: { title: 'Артефакты', detail: 'Просмотр сгенерированных результатов' }
     },
@@ -1947,6 +1945,10 @@ export const ru = defineLocale({
     restartGateway: 'Перезапустить шлюз',
     openBrowser: 'Открыть браузер',
     gatewayRestartFailed: 'Не удалось перезапустить шлюз.',
+    sharedGatewayRestartTitle: 'Перезапустить общий шлюз?',
+    sharedGatewayRestartDescription: bots => `Все боты на этом устройстве переподключатся: ${bots}`,
+    sharedGatewayRestartConfirm: 'Перезапустить все',
+    sharedGatewayRestarted: count => `Общий шлюз перезапущен (ботов: ${count})`,
     updateHermes: 'Обновить Hermes',
     reloadWindow: 'Перезагрузить окно',
     actionRunning: 'выполняется',
@@ -2039,6 +2041,7 @@ export const ru = defineLocale({
     },
     unknown: 'Неизвестно',
     hintPendingRestart: 'Перезапустите шлюз из строки состояния, чтобы применить это изменение.',
+    sharedListenerUrl: 'Обслуживается общим слушателем шлюза по адресу',
     hintGatewayStopped: 'Запустите шлюз из строки состояния для подключения.',
     credentialsSet: 'Учётные данные заданы',
     needsSetup: 'Нужна настройка',
@@ -2100,7 +2103,6 @@ export const ru = defineLocale({
         'Оба способа подключают бота под вашим контролем и сохраняют его данные только в этой установке Hermes.',
       quickSetup: 'Быстрая настройка',
       recommended: 'Рекомендуется',
-      qrCodeAlt: 'QR-код для настройки Telegram',
       quickHelp:
         'Отсканируйте QR-код и подтвердите в Telegram. Hermes создаст бота и определит ваш Telegram ID автоматически.',
       createWithQr: 'Создать по QR',
@@ -2305,6 +2307,12 @@ export const ru = defineLocale({
     actions: 'Действия',
     color: 'Цвет…',
     colorFor: 'Цвет',
+    openInNewWindow: 'Открыть в новом окне',
+    setAsDefault: 'Сделать по умолчанию',
+    defaultProfile: 'Профиль по умолчанию',
+    defaultSet: name => `${name} теперь используется по умолчанию`,
+    defaultDescription: 'Используется при запуске Hermes и для новых чатов. Профили существующих сессий не меняются.',
+    failedSetDefault: 'Не удалось установить профиль по умолчанию',
     setColor: color => `Установить цвет ${color}`,
     autoColor: 'Авто',
     noProfiles: 'Профилей пока нет.',
@@ -2372,18 +2380,14 @@ export const ru = defineLocale({
     failedCreate: 'Не удалось создать профиль',
     failedRename: 'Не удалось переименовать профиль'
   },
+  modelAssignment: {
+    saveFailed: 'Hermes не сохранил это изменение модели.'
+  },
+
   cron: {
     close: 'Закрыть cron',
     title: 'Запланированные задачи',
     count: count => `${count} ${RU_PLURAL(count, 'задача', 'задачи', 'задач')}`,
-    modelImpact: {
-      title: 'Запланированные задачи остаются на исходной модели',
-      message: count =>
-        `${count} незакреплённых запланированных задач продолжат работать на модели, с которой были созданы. Закрепите их или задайте cron.model, чтобы перевести.`,
-      detailMore: (names, remaining) => `${names} и ещё ${remaining}`,
-      review: 'Проверить запланированные задачи',
-      saveFailed: 'Hermes не сохранил это изменение модели.'
-    },
     search: 'Поиск cron-задач...',
     loading: 'Загрузка cron-задач...',
     states: {
@@ -2553,7 +2557,7 @@ export const ru = defineLocale({
   artifactCard: {
     kind: { code: 'Код', html: 'Интерактивная страница', svg: 'Графика' },
     generating: lines => `Генерация… ${lines} ${RU_NOUN(lines, 'строка', 'строки', 'строк')}`,
-    versionBadge: (current, total) => `v${current}/${total}`,
+    versionBadge: count => `${count} ${RU_NOUN(count, 'версия', 'версии', 'версий')}`,
     open: 'Открыть'
   },
 
@@ -2583,7 +2587,7 @@ export const ru = defineLocale({
     },
     nav: {
       'new-session': 'Новый сеанс',
-      skills: 'Возможности',
+      capabilities: 'Возможности',
       messaging: 'Сообщения',
       artifacts: 'Артефакты',
       cron: 'Запланированные задачи'
@@ -2595,6 +2599,10 @@ export const ru = defineLocale({
     results: 'Результаты',
     pinned: 'Закреплённые',
     sessions: 'Сеансы',
+    terminal: 'Терминал',
+    files: 'Файлы',
+    review: 'Проверка',
+    logs: 'Журналы',
     cronJobs: 'Cron-задачи',
     groupAriaGrouped: 'Показать сеансы одним списком',
     groupAriaUngrouped: 'Сгруппировать сеансы по рабочим пространствам',
@@ -2683,6 +2691,7 @@ export const ru = defineLocale({
       enter: label => `Открыть ${label}`,
       reorder: label => `Изменить порядок ${label}`,
       toggle: (label, open) => `${open ? 'Показать' : 'Скрыть'} сеансы ${label}`,
+      showAllCount: count => `Показать все сессии (${count})`,
       back: 'Все проекты'
     },
     newSessionIn: label => `Новый сеанс в ${label}`,
@@ -2796,6 +2805,7 @@ export const ru = defineLocale({
     voiceDictation: 'Голосовая диктовка',
     speakReplies: 'Зачитывать ответы вслух',
     stopSpeakingReplies: 'Перестать зачитывать ответы вслух',
+    wakeWord: phrase => `Слово-пробуждение «${phrase}»`,
     wakeWordListening: phrase => `Слово-пробуждение: «${phrase}» — слушает`,
     wakeWordOff: phrase => `Слово-пробуждение: «${phrase}» — выключено`,
     wakeWordPausedVoice: phrase => `Слово-пробуждение: «${phrase}» — приостановлено во время голосового чата`,
@@ -2836,6 +2846,8 @@ export const ru = defineLocale({
     attachments: count => `${count} ${RU_NOUN(count, 'вложение', 'вложения', 'вложений')}`,
     editingInComposer: 'Редактирование в композере',
     editingQueuedInComposer: 'Редактирование хода в очереди в композере',
+    restoredDraftNotice: 'Восстановлено ваше неотправленное сообщение',
+    restoredDraftUndo: 'Отменить',
     queueEdit: 'Изменить',
     queueSendNext: 'Дальше',
     queueSteer: 'Направить — изменить текущий ход сейчас',
@@ -2927,6 +2939,8 @@ export const ru = defineLocale({
     }
   },
   statusStack: {
+    hideStack: 'Скрыть панель состояния',
+    showStack: 'Показать панель состояния',
     agents: 'Агенты',
     background: count => `${count} ${RU_NOUN(count, 'фоновая задача', 'фоновые задачи', 'фоновых задач')}`,
     goalActive: 'Цель активна',
@@ -3098,6 +3112,7 @@ export const ru = defineLocale({
     notAvailableTitle: 'Обновление недоступно',
     unsupportedMessage: 'Эта версия Hermes не может обновлять себя из приложения.',
     connectionRetry: 'Проверьте соединение и попробуйте снова.',
+    gitUnusable: 'Hermes не удалось запустить Git на этом компьютере, поэтому проверить обновления не получилось.',
     latestBody: 'У вас последняя версия.',
     latestBodyBackend: 'Бэкенд работает на последней версии.',
     allSetTitle: 'Всё готово',
@@ -3161,125 +3176,6 @@ export const ru = defineLocale({
   guidedGreeting: {
     line: 'Заходите. Я Hermes. Дайте мне пару минут — обустрою тут всё под вас, а потом займёмся тем, что вам правда нужно.\n\nДля начала: как к вам обращаться?',
     nameSuggestion: (name: string) => `(Могу звать вас просто ${name}, если так удобнее.)`
-  },
-  introReveal: {
-    skip: 'Пропустить',
-    surfaces: 'Компьютер · Сообщения · Телефон · Где угодно',
-    prompt: 'Создай главный куб в Blender и примени к нему несколько материалов',
-    replyWords: ['Готово. ', 'Материалы собраны ', 'и показаны на кубе. ', 'Экспортировать круговой рендер?'],
-    composerPlaceholder: 'Спрашивайте что угодно. Создавайте что угодно.',
-    viewport: 'окно просмотра',
-    tagline: 'Ваш агент — везде',
-    viewportModes: {
-      standard: 'обычный',
-      metal: 'металл',
-      texture: 'текстура',
-      glass: 'стекло',
-      wireframe: 'каркас'
-    },
-    tools: {
-      blender: { label: 'blender-mcp', running: 'подключаемся к Blender…', done: 'сцена подключена' },
-      metal: { label: 'металл', running: 'собираем металл…', done: 'металл · шерох. 0,2' },
-      glass: { label: 'стекло', running: 'собираем стекло…', done: 'стекло · IOR 1,45' }
-    },
-    sideAgents: {
-      research: {
-        title: 'агент-исследователь',
-        line1: 'Поиск квартиры: выбраны 3 новых варианта',
-        line2: '↳ составляем график просмотров…'
-      },
-      groceries: {
-        title: 'продукты',
-        line1: 'Недельный заказ собран по вашему списку',
-        line2: '↳ доставка назначена на воскресенье'
-      },
-      inbox: {
-        title: 'агент почты',
-        line1: 'Готовы 2 черновика ответа, ждём одобрения',
-        line2: '↳ календарь на пятницу обновлён'
-      },
-      morning: {
-        title: 'утренняя сводка',
-        line1: 'Завтра: 3 встречи, дождь в 8',
-        line2: '↳ будет готово до пробуждения'
-      }
-    }
-  },
-  guidedOnboarding: {
-    done: '✓ Готово',
-    continue: 'Продолжить',
-    skipSetup: 'Пропустить настройку',
-    fallbackOption: 'Давайте придумаем вместе',
-    handoffFailed: 'Не удалось запустить первую задачу.',
-    handoffFailedRetry: 'Не удалось запустить первую задачу. Повторите попытку, чтобы проверить её сессию.',
-    handoffStarted: title => `${title}: задача запущена и доступна в списке сессий`,
-    handoffOpening: title => `Открываем ${title}…`,
-    retryFirstBuild: 'Повторить первую задачу',
-    workingOnIt: 'Работаем над этим',
-    firstBuild: 'Первая задача',
-    signpostTitle: 'Hermes всё ещё рядом',
-    signpostBody:
-      'Теперь вы в своём рабочем пространстве, а здесь находятся профили. Наш предыдущий разговор сохранился — возвращайтесь, когда понадобится помощь.',
-    profileDescription: 'Место знакомства с Hermes — проводит через первый запуск и ненавязчиво помогает освоиться.',
-    accentNames: {
-      mono: 'Монохром',
-      githubGreen: 'Зелёный GitHub',
-      cyberCyan: 'Кибер-циан',
-      nousBlue: 'Синий Nous',
-      ultraviolet: 'Ультрафиолет',
-      barbiePink: 'Розовый Барби',
-      electricRed: 'Электрический красный',
-      safetyOrange: 'Сигнальный оранжевый'
-    },
-    layoutNames: { basic: 'Базовая', elite: 'Расширенная' },
-    script: {
-      forkQuestion: 'Уже знаете, что хотите создать?',
-      automate: 'Автоматизировать привычную задачу',
-      figure: 'Давайте придумаем вместе',
-      mind: 'У меня уже есть идея',
-      skip: 'Пока пропустить',
-      somethingElse: 'Что-нибудь другое',
-      tourQuestion: 'Сначала немного осмотреться?',
-      tourBasics: 'Только самое важное',
-      tourNone: 'Разберусь самостоятельно',
-      tourFull: 'Покажите всё',
-      fallbackQuestion: 'Что звучит лучше?',
-      buildReviewQuestion: 'Получилось так, как вы хотели?',
-      buildReviewLooksRight: 'Всё верно',
-      buildReviewChange: 'Кое-что изменить',
-      buildReviewFurther: 'Развить дальше',
-      machineRunQuestion: 'Запустить этот план?',
-      machineRunGoAhead: 'Начать',
-      machineRunChangeList: 'Изменить список',
-      machineRunEssentials: 'Только необходимое',
-      checkpointQuestion: 'Что делать дальше?',
-      computerKind: 'компьютер',
-      machineSetupOption: kind => `Помогите настроить ${kind}`,
-      machineSetupTask: kind => `Настроить ${kind}`
-    },
-    errors: {
-      firstBuildNeedsAttention: 'Первая задача требует внимания',
-      welcomeOwnerUnavailable: 'Приветственный чат пока недоступен. Откройте его снова и повторите первую задачу.',
-      preferencesSaveFailed:
-        'Не удалось сохранить настройки знакомства. Повторите попытку перед запуском первой задачи.',
-      sessionOpenFailed: 'Не удалось открыть сессию первой задачи.',
-      sessionIdentityMissing:
-        'Сессия первой задачи не вернула постоянный идентификатор. Проверьте сессии и повторите попытку.',
-      welcomeCreateFailed: 'Не удалось создать приветственный чат. Повторите попытку.',
-      restoreProfileFailed: 'Не удалось восстановить профиль',
-      welcomeNeedsAttention: 'Приветственный чат требует внимания',
-      welcomeStartFailed: 'Не удалось запустить приветственный чат.',
-      receiptUnreadable:
-        'Не удалось прочитать сохранённые данные первой задачи. Проверьте сессии перед запуском другой задачи.',
-      receiptSaveFailed: 'Не удалось сохранить сессию первой задачи для восстановления. Новый запуск не отправлен.',
-      verifyFailed: 'Не удалось проверить первую задачу. Повторите попытку после восстановления подключения.',
-      unconfirmedRunning:
-        'Запуск первой задачи не подтверждён, но её сессия всё ещё работает. Повторите попытку после остановки; дубликат не отправлен.',
-      notAcknowledged:
-        'Первая задача не подтвердила запуск. Проверьте её сессию и повторите попытку; дубликат не отправлен.',
-      notAcknowledgedStart: 'Первая задача не подтвердила начало работы. Проверьте её сессию и повторите попытку.',
-      pluginFolderUnavailable: 'Папка плагинов приложения недоступна. Повторите попытку перед запуском первой задачи.'
-    }
   },
   install: {
     stageStates: {
@@ -3478,6 +3374,7 @@ export const ru = defineLocale({
       xhigh: 'Очень высокое',
       max: 'Максимум',
       ultra: 'Ультра',
+      sendsOnRoute: (level: string) => `на этом маршруте отправляется ${level}`,
       updateFailed: 'Не удалось обновить опцию модели',
       fastFailed: 'Не удалось обновить быстрый режим'
     },
@@ -3610,6 +3507,8 @@ export const ru = defineLocale({
     openFolder: 'Открыть папку',
     refreshTree: 'Обновить дерево',
     collapseAll: 'Свернуть все папки',
+    showIgnored: 'Показать файлы из gitignore',
+    hideIgnored: 'Скрыть файлы из gitignore',
     previewUnavailable: 'Предпросмотр недоступен',
     couldNotPreview: path => `Не удалось предпросмотреть ${path}`,
     noProjectTitle: 'Проект не открыт',
@@ -3778,8 +3677,7 @@ export const ru = defineLocale({
     saveApply: 'Сохранить и применить',
     notExpressible: 'эта расстановка зацеплена (pinwheel) — пока не выразима как вложенные разделения',
     zoneCount: count => `${count} ${RU_NOUN(count, 'зона', 'зоны', 'зон')}`,
-    tabCount: count => `${count} ${RU_NOUN(count, 'вкладка', 'вкладки', 'вкладок')}`,
-    layoutNames: { basic: 'Базовая' }
+    tabCount: count => `${count} ${RU_NOUN(count, 'вкладка', 'вкладки', 'вкладок')}`
   },
   contextMenu: {
     link: {
@@ -3809,16 +3707,6 @@ export const ru = defineLocale({
       loadingSession: 'Загрузка сеанса',
       showEarlier: 'Показать ранние сообщения',
       loadingResponse: 'Hermes загружает ответ',
-      modelContinuing: (attempt, maxAttempts) =>
-        `Модель вернула рассуждения без итогового ответа — запрашиваем продолжение (${attempt}/${maxAttempts})`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `Ожидание провайдера — повтор через ${retrySeconds} с (попытка ${attempt}/${maxAttempts})`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `Ожидание ${provider} — ${elapsedSeconds} с без ${kind === 'events' ? 'событий потока' : 'ответа после переподключения'} (провайдер может отвечать медленно или быть перегружен${
-          reconnectSeconds ? `; автоматическое переподключение через ${reconnectSeconds} с от начала ожидания` : ''
-        })`,
-      asyncDelegationFailure: detail => `(ошибка: ${detail})`,
-      asyncDelegationPartialOutput: 'Частичный вывод:',
       resumeWhenBackgroundDone: count =>
         count === 1
           ? 'Продолжится, когда фоновая задача завершится'
@@ -3890,22 +3778,17 @@ export const ru = defineLocale({
       lateAnswerHint: 'Этот промпт больше не ждёт. Выберите вариант, чтобы составить его как сообщение-продолжение.'
     },
     mcpSetup: {
-      installTitle: server => `Добавить MCP-сервер ${server}?`,
-      enableTitle: server => `Включить MCP-сервер ${server}?`,
-      authorizeTitle: server => `Авторизовать MCP-сервер ${server}?`,
+      installTitle: 'Добавить MCP-серверы',
+      enableTitle: 'Включить MCP-серверы',
+      authorizeTitle: 'Авторизовать MCP-серверы',
       installAction: 'Установить',
       enableAction: 'Включить',
       authorizeAction: 'Авторизовать',
-      decline: 'Не сейчас',
-      declined: 'Отклонено',
       installed: server => `${server} установлен`,
       enabled: server => `${server} включён`,
       authorized: server => `${server} авторизован`,
       failed: server => `Настройка не удалась для ${server}`,
-      unanswered: 'Нет ответа',
       toolCount: count => `${count} ${RU_NOUN(count, 'инструмент', 'инструмента', 'инструментов')}`,
-      notInCatalog: server => `«${server}» нет в MCP-каталоге`,
-      catalogSource: 'Из каталога, одобренного Nous',
       envRequired: 'Сначала заполните обязательные учётные данные',
       sendFailed: 'Не удалось отправить ответ на настройку MCP',
       reloadFailed: 'Сервер сохранён, но перезагрузка MCP-инструментов не удалась — они загрузятся в следующем сеансе',
@@ -3922,6 +3805,19 @@ export const ru = defineLocale({
       copyQuery: 'Копировать запрос',
       copyFile: 'Копировать файл',
       copyPath: 'Копировать путь',
+      failedCalls: (count: number) => `Вызовов с ошибкой: ${count}`,
+      skillActivity: {
+        loading: 'Загружается скилл',
+        loaded: 'Загружен скилл',
+        loadFailed: 'Не удалось загрузить скилл',
+        readingResource: 'Читается ресурс скилла',
+        readResource: 'Прочитан ресурс скилла',
+        resourceFailed: 'Не удалось прочитать ресурс скилла',
+        listing: 'Загружается список скиллов',
+        listed: 'Получен список скиллов',
+        listFailed: 'Не удалось получить список скиллов',
+        unavailable: 'Результат работы со скиллом недоступен'
+      },
       outputAlt: 'Вывод инструмента',
       rawResponse: 'Сырой ответ',
       copyActivity: 'Копировать активность',
@@ -3934,6 +3830,8 @@ export const ru = defineLocale({
       statusError: 'Ошибка',
       statusRecovered: 'Восстановлено',
       statusDone: 'Готово',
+      resultUnavailable: 'Результат недоступен',
+      resultInterrupted: 'Прервано',
       memoryWriteNoted: 'Запись в память отмечена',
       actions: {
         read: 'Чтение',
@@ -4017,7 +3915,8 @@ export const ru = defineLocale({
     secretSendFailed: 'Не удалось отправить секрет',
     sudoTitle: 'Пароль администратора',
     sudoDesc:
-      'Hermes нужен ваш пароль sudo, чтобы выполнить команду с повышенными правами. Он отправляется только вашему локальному агенту.',
+      'Проверьте команду перед вводом пароля sudo. Пароль отправляется агенту, который её выполняет, и кэшируется на время сеанса.',
+    sudoCommandUnavailable: 'Агент не предоставил команду. Отмените запрос, если не можете проверить её в разговоре.',
     sudoPlaceholder: 'пароль sudo',
     secretTitle: 'Требуется секрет',
     secretDesc: 'Hermes нужны учётные данные, чтобы продолжить.',
@@ -4029,8 +3928,6 @@ export const ru = defineLocale({
     createSessionFailed: 'Не удалось создать новый сеанс',
     promptFailed: 'Промпт не удался',
     providerCredentialRequired: 'Добавьте учётные данные провайдера перед отправкой первого сообщения.',
-    readinessChecksDisagree:
-      'setup.status сообщает, что учётные данные настроены, но определить рабочую конфигурацию по-прежнему не удалось.',
     emptySlashCommand: 'пустая слэш-команда',
     desktopCommands: 'Команды desktop',
     skillCommandsAvailable: count =>
@@ -4057,7 +3954,7 @@ export const ru = defineLocale({
     resumeStrandedBody:
       'Соединение с этим сеансом оборвалось, и автоматические повторные попытки исчерпаны. Проверьте, что шлюз работает, и попробуйте снова.',
     poolSlotTimeoutBody:
-      'Все слоты локальных бэкендов профилей заняты. Увеличьте «Число работающих бэкендов ботов» в «Настройки» → «Дополнительно» или повторите попытку после освобождения неактивного бэкенда.',
+      'Все слоты локальных бэкендов профилей заняты. Увеличьте Warm Bot Backends в «Настройки» → «Дополнительно» или повторите попытку после освобождения неактивного бэкенда.',
     poolSlotTimeoutOpenSettings: 'Открыть расширенные настройки',
     resumeRetry: 'Повторить',
     nothingToBranch: 'Нечего ветвить',
@@ -4073,7 +3970,13 @@ export const ru = defineLocale({
     cwdChangeFailed: 'Изменение рабочего каталога не удалось',
     cwdStagedTitle: 'Рабочий каталог поставлен в очередь',
     cwdStagedMessage: 'Перезапустите бэкенд desktop, чтобы применить изменения cwd к этому активному сеансу.',
+    modelSwitchConfirmBody: 'Эта смена модели требует подтверждения.',
+    modelSwitchConfirmLabel: 'Всё равно переключить',
+    modelSwitchConfirmTitle: (model: string) => `Переключиться на ${model}?`,
+    modelSwitchConfirmTitleFallback: 'Сменить модель?',
     modelSwitchFailed: 'Смена модели не удалась',
+    modelSwitchKeepLabel: 'Оставить текущую модель',
+    modelSwitchStaleNotice: 'Выбор изменился — смена модели не применена.',
     sessionExported: 'Сеанс экспортирован',
     sessionExportFailed: 'Не удалось экспортировать сеанс',
     imageSaved: 'Изображение сохранено',
@@ -4088,8 +3991,6 @@ export const ru = defineLocale({
     imageAttach: 'Прикрепление изображения',
     imageWriteFailed: 'Не удалось записать изображение на диск.',
     imageAttachFailed: 'Прикрепление изображения не удалось',
-    pastedContent: 'Вставленный текст',
-    pasteAttachFailed: 'Не удалось прикрепить вставленный текст',
     attachImages: 'Прикрепить изображения',
     clipboard: 'Буфер обмена',
     noClipboardImage: 'Изображение в буфере обмена не найдено',

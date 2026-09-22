@@ -16,7 +16,6 @@ import {
   getLocalModelsStatus,
   type HFFileGroup,
   type HFSearchHit,
-  installLocalRuntime,
   listHFRepoFiles,
   quickstartLocalModels,
   searchHFModels,
@@ -41,16 +40,18 @@ import {
 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import {
+  $localRuntimeInstallStarting,
   $localRuntimeJobs,
   runningDownloadFor,
   runningRuntimeInstall,
+  startLocalRuntimeInstall,
   watchLocalRuntimeJobs
 } from '@/store/local-runtime-jobs'
 import { notify, notifyError } from '@/store/notifications'
 import type { LocalCatalogModel, LocalHardware, LocalModelsStatus } from '@/types/hermes'
 
-import { localizeLocalModelText } from './local-models-localization'
 import { ListRow, Pill, SettingsContent, SettingsSection, SettingsSkeleton } from './primitives'
+import { ActiveProfileNote } from './profile-scope'
 
 function ProgressBar({ percent }: { percent: number | undefined }) {
   return (
@@ -89,6 +90,7 @@ function fitRank(model: LocalCatalogModel): number {
 export function LocalModelsSettings() {
   const { t } = useI18n()
   const copy = t.settings.localModels
+  const installStarting = useStore($localRuntimeInstallStarting)
   const [status, setStatus] = useState<LocalModelsStatus | null>(null)
   const [hardware, setHardware] = useState<LocalHardware | null>(null)
   const [catalog, setCatalog] = useState<LocalCatalogModel[] | null>(null)
@@ -96,7 +98,7 @@ export function LocalModelsSettings() {
   const [serverBusy, setServerBusy] = useState(false)
   // Quickstart escape hatch: true once the user asks for the full pane
   // (model list, HF browser) instead of the one-button setup card.
-  const [configure, setConfigure] = useState(false)
+  const [configure, setConfigure] = useState(() => $localRuntimeInstallStarting.get())
   // Jobs live in the app-level store (they must survive this pane
   // unmounting); the pane just renders the slice it cares about.
   const jobs = useStore($localRuntimeJobs)
@@ -163,15 +165,6 @@ export function LocalModelsSettings() {
   useEffect(() => {
     refresh()
   }, [refresh, runningCount])
-
-  async function handleInstallRuntime() {
-    try {
-      await installLocalRuntime()
-      watchLocalRuntimeJobs()
-    } catch (err) {
-      notifyError(err, copy.installFailed)
-    }
-  }
 
   async function handleQuickstart() {
     try {
@@ -310,7 +303,9 @@ export function LocalModelsSettings() {
   const heroModel = catalog.find(c => c.recommended && c.fits) ?? null
   const hasRecommendation = catalog.some(c => c.recommended)
 
-  if (qJob || (needsSetup && !configure && heroModel)) {
+  const failedInstall = jobs.some(job => job.kind === 'runtime-install' && job.status === 'error')
+
+  if (qJob || (needsSetup && !configure && heroModel && !installStarting && !rJob && !failedInstall)) {
     // Stage rail derived from the job phase: engine -> model -> finish.
     const phase = qJob?.phase ?? ''
 
@@ -411,6 +406,7 @@ export function LocalModelsSettings() {
 
   return (
     <SettingsContent>
+      <ActiveProfileNote className="mb-5" />
       {/* ── Runtime ── */}
       <SettingsSection
         aside={
@@ -454,7 +450,7 @@ export function LocalModelsSettings() {
             description={
               status.server_running
                 ? copy.runtimeRunningDetail
-                : copy.runtimeInstalledDetail(status.tag, status.runtime_backend ?? 'CPU')
+                : copy.runtimeInstalledDetail(status.tag, status.runtime_backend ?? 'cpu')
             }
             title={copy.runtimeInstalled}
           />
@@ -472,7 +468,7 @@ export function LocalModelsSettings() {
         ) : (
           <ListRow
             action={
-              <Button onClick={() => void handleInstallRuntime()} size="sm">
+              <Button disabled={installStarting} onClick={() => void startLocalRuntimeInstall()} size="sm">
                 <Download />
                 {copy.installAction}
               </Button>
@@ -485,7 +481,7 @@ export function LocalModelsSettings() {
         {status.update_available && !rJob && (
           <ListRow
             action={
-              <Button onClick={() => void handleInstallRuntime()} size="sm">
+              <Button disabled={installStarting} onClick={() => void startLocalRuntimeInstall()} size="sm">
                 <Download />
                 {copy.updateAction}
               </Button>
@@ -510,7 +506,7 @@ export function LocalModelsSettings() {
 
         {updateApplied && (
           <ListRow
-            description={copy.upToDateDetail(status.tag, status.runtime_backend ?? 'CPU')}
+            description={copy.upToDateDetail(status.tag, status.runtime_backend ?? 'cpu')}
             title={
               <span className="inline-flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
@@ -683,7 +679,7 @@ export function LocalModelsSettings() {
                 }
                 description={
                   <>
-                    {localizeLocalModelText(model.description, copy)}
+                    {model.description}
 
                     <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       {/* Memory: the traffic light. Green = runs fully on
@@ -691,21 +687,21 @@ export function LocalModelsSettings() {
                           slower); red = doesn't fit this machine at all.
                           Detail prose lives in the tooltip. */}
                       {!model.fits ? (
-                        <Tip label={localizeLocalModelText(model.fit_detail ?? model.fit_summary, copy)}>
+                        <Tip label={model.fit_detail ?? model.fit_summary}>
                           <Pill tone="destructive">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillTooBig}
                           </Pill>
                         </Tip>
                       ) : model.spilled ? (
-                        <Tip label={localizeLocalModelText(model.quant_reason ?? model.fit_summary, copy)}>
+                        <Tip label={model.quant_reason ?? model.fit_summary}>
                           <Pill tone="warn">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillUsesRam}
                           </Pill>
                         </Tip>
                       ) : (
-                        <Tip label={localizeLocalModelText(model.quant_reason ?? model.fit_summary, copy)}>
+                        <Tip label={model.quant_reason ?? model.fit_summary}>
                           <Pill tone="success">
                             <Cpu className="mr-1 size-3" />
                             {copy.pillFitsGpu}

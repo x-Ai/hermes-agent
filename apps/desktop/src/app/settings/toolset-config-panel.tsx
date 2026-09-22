@@ -30,11 +30,11 @@ import type {
   ToolProvider,
   ToolProviderStatus,
   ToolsetConfig,
-  ToolsetModel,
   ToolsetModelsResponse
 } from '@/types/hermes'
 
 import { EnvVarActionsMenu, EnvVarActionsTrigger, EnvVarContextMenu } from './env-var-actions-menu'
+import { prettyName } from './helpers'
 import { Pill } from './primitives'
 import { VoiceProviderFields } from './voice-provider-fields'
 
@@ -52,46 +52,6 @@ interface ToolsetConfigPanelProps {
 /** Toolsets whose backends expose a selectable model catalog (mirrors the
  *  backend's _MODEL_CATALOG_TOOLSETS map). */
 const MODEL_CATALOG_TOOLSETS = new Set(['image_gen', 'video_gen'])
-
-/** Localize a backend provider badge — a ` · `-joined token list, optionally
- *  `★ `-prefixed (e.g. "★ recommended · free"). Each token translates through
- *  the badgeTokens catalog; unknown tokens stay English so new backend badges
- *  degrade gracefully. */
-export function localizedBadge(badge: string, tokens: Record<string, string>): string {
-  return badge
-    .split(' · ')
-    .map(part => {
-      const starred = part.startsWith('★')
-      const token = part.replace(/^★\s*/, '')
-
-      return (starred ? '★ ' : '') + (tokens[token] || token)
-    })
-    .join(' · ')
-}
-
-/** Model ids are stable for bundled catalogs, while live catalogs only offer
- *  shared backend prose. Prefer the id-specific translation, then the exact
- *  prose overlay used by provider tags, before preserving unknown copy. */
-export function localizedModelDescription(
-  model: Pick<ToolsetModel, 'id' | 'strengths'>,
-  modelDescriptions: Record<string, string>,
-  prose: Record<string, string>
-): string {
-  return modelDescriptions[model.id] ?? prose[model.strengths] ?? model.strengths
-}
-
-/** Catalog model ids are protocol data; localize only their human-facing
- *  display metadata. Unknown/live rows preserve the backend copy. */
-export function localizedModelLabel(
-  model: Pick<ToolsetModel, 'display' | 'id'>,
-  labels: Record<string, string>
-): string {
-  return labels[model.id] ?? model.display ?? model.id
-}
-
-export function localizedModelSpeed(speed: string, speeds: Record<string, string>): string {
-  return speeds[speed] ?? speed
-}
 
 /**
  * `useNavigate` throws when there is no react-router context. Inside Settings
@@ -150,10 +110,6 @@ interface EnvVarFieldProps {
 function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarFieldProps) {
   const { t } = useI18n()
   const copy = t.settings.toolsets
-  // Localized field hint: explicit prompt override, else the shared env-var
-  // description translation, else the backend's English prompt.
-  const envCopy = t.settings.envKeys[envVar.key]
-  const promptText = envCopy?.prompt || envCopy?.description || envVar.prompt
   const navigate = useOptionalNavigate()
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
@@ -244,8 +200,8 @@ function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarField
                 {isSet ? copy.set : copy.notSet}
               </Pill>
             </div>
-            {promptText && promptText !== envVar.key && (
-              <p className="mt-0.5 text-[0.7rem] text-muted-foreground">{promptText}</p>
+            {envVar.prompt && envVar.prompt !== envVar.key && (
+              <p className="mt-0.5 text-[0.7rem] text-muted-foreground">{envVar.prompt}</p>
             )}
           </div>
           {!editing && (
@@ -267,7 +223,7 @@ function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarField
               autoFocus
               className="min-w-52 flex-1 font-mono"
               onChange={e => setValue(e.target.value)}
-              placeholder={promptText || envVar.key}
+              placeholder={envVar.prompt || envVar.key}
               type={envVar.default ? 'text' : 'password'}
               value={value}
             />
@@ -374,7 +330,16 @@ function PostSetupRunner({ toolset, postSetupKey, installed = false, onComplete,
                 title: copy.postSetupCompleteTitle,
                 message: copy.postSetupCompleteMessage(postSetupKey)
               }
-            : { kind: 'error', title: copy.postSetupErrorTitle, message: copy.postSetupErrorMessage(postSetupKey) }
+            : {
+                kind: 'error',
+                title: copy.postSetupErrorTitle,
+                message: copy.postSetupErrorMessage(prettyName(postSetupKey)),
+                action: {
+                  label: copy.postSetupOpenLogs,
+                  onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+                },
+                secondaryAction: { label: copy.postSetupRunAgain, onClick: () => void run() }
+              }
         )
         onComplete?.()
       }
@@ -535,7 +500,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               type="button"
             >
               <span className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-medium">{localizedModelLabel(model, copy.modelLabels)}</span>
+                <span className="font-mono text-xs font-medium">{model.display || model.id}</span>
                 {isSelected && (
                   <Pill tone="primary">
                     <Check className="size-3" />
@@ -546,11 +511,9 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
                 {saving === model.id && <Loader2 className="size-3 animate-spin" />}
               </span>
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
-                {model.speed && <span>{localizedModelSpeed(model.speed, copy.modelSpeeds)}</span>}
-                {model.strengths && (
-                  <span>{localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy)}</span>
-                )}
-                {model.price && <span className="font-mono">{copy.modelPrices[model.id] ?? model.price}</span>}
+                {model.speed && <span>{model.speed}</span>}
+                {model.strengths && <span>{model.strengths}</span>}
+                {model.price && <span className="font-mono">{model.price}</span>}
               </span>
             </button>
           )
@@ -693,7 +656,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
       const start = await startOAuthLogin('nous', profile)
 
       if (start.flow !== 'device_code') {
-        notifyError(new Error(`unexpected flow: ${start.flow}`), copy.nousAuthFailed)
+        notifyNousAuthFailed(`unexpected flow: ${start.flow}`)
 
         return
       }
@@ -729,16 +692,28 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
         }
 
         if (polled.status !== 'pending') {
-          notifyError(new Error(polled.error_message || `Sign-in ${polled.status}`), copy.nousAuthFailed)
+          notifyNousAuthFailed(polled.error_message || `Sign-in ${polled.status}`)
 
           return
         }
       }
     } catch (err) {
       if (mountedRef.current) {
-        notifyError(err, copy.nousAuthFailed)
+        notifyNousAuthFailed(err instanceof Error ? err.message : String(err))
       }
     }
+  }
+
+  // Plain failure copy with the raw poll status under Details and a one-click
+  // retry of the same sign-in flow (desktop-26).
+  function notifyNousAuthFailed(detail: string) {
+    notify({
+      kind: 'error',
+      title: copy.nousAuthFailed,
+      message: copy.nousAuthFailedMessage,
+      detail,
+      action: { label: copy.nousAuthTryAgain, onClick: () => void signInToNousPortal() }
+    })
   }
 
   function patchEnv(key: string, isSet: boolean) {
@@ -837,7 +812,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
             >
               <span className="flex min-w-0 items-center gap-2">
                 <span className="truncate text-sm font-medium">{provider.name}</span>
-                {provider.badge && <Pill>{localizedBadge(provider.badge, copy.badgeTokens)}</Pill>}
+                {provider.badge && <Pill>{provider.badge}</Pill>}
                 {isBackendActive && (
                   <Pill tone="primary">
                     <Check className="size-3" />
@@ -860,9 +835,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
 
             {isExpanded && (
               <div className="grid gap-2 bg-muted/20 p-3">
-                {provider.tag && (
-                  <p className="text-[0.72rem] text-muted-foreground">{copy.tagCopy[provider.tag] || provider.tag}</p>
-                )}
+                {provider.tag && <p className="text-[0.72rem] text-muted-foreground">{provider.tag}</p>}
                 {(toolset !== 'web' || webCaps.length === 0) && (
                   // Explicit activation — the old row-click-selects UX gave no
                   // signal about which backend was actually in use and made
@@ -938,8 +911,11 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
                 {toolset === 'tts' && provider.tts_provider && (
                   // Voice/model settings for this backend (tts.<key>.*) —
                   // the same fields Settings → Voice renders, inline so the
-                  // Capabilities panel is a complete setup surface.
-                  <VoiceProviderFields providerKey={provider.tts_provider} section="tts" />
+                  // Capabilities panel is a complete setup surface. Profile
+                  // threaded like every other fetch in this panel: unscoped,
+                  // these fields read AND autosaved the ACTIVE profile's
+                  // config while the panel claimed to configure another.
+                  <VoiceProviderFields profile={profile} providerKey={provider.tts_provider} section="tts" />
                 )}
                 {MODEL_CATALOG_TOOLSETS.has(toolset) && (
                   <ModelCatalogPicker

@@ -81,18 +81,6 @@ const plugin: HermesPlugin = {
   id: 'kanban',
   name: 'Kanban',
   description: 'Multi-agent task board — board page, sidebar entry, and a live in-flight count in the status bar.',
-  localizedName: {
-    zh: '看板',
-    'zh-hant': '看板',
-    ja: 'かんばん',
-    ar: 'لوحة كانبان'
-  },
-  localizedDescription: {
-    zh: '多智能体任务看板 — 看板页面、侧边栏入口和状态栏实时计数',
-    'zh-hant': '多智能體任務看板——看板頁面、側邊欄入口和狀態列即時計數',
-    ja: 'マルチエージェントタスクボード — ボードページ、サイドバーエントリ、ステータスバーのリアルタイムカウント',
-    ar: 'لوحة مهام متعددة الوكلاء — صفحة اللوحة، ومدخل الشريط الجانبي، وعداد مباشر في شريط الحالة.'
-  },
   defaultEnabled: false,
   register(ctx) {
     ctx.i18n.register(KANBAN_LOCALES)
@@ -126,11 +114,7 @@ const plugin: HermesPlugin = {
         id: 'nav',
         area: SIDEBAR_NAV_AREA,
         order: 50,
-        data: {
-          codicon: 'project',
-          label: locale => ctx.i18n.tFor(locale, 'nav'),
-          path: '/kanban'
-        } satisfies SidebarNavContribution
+        data: { codicon: 'project', label: 'Kanban', path: '/kanban' } satisfies SidebarNavContribution
       },
       {
         id: 'count',
@@ -143,7 +127,7 @@ const plugin: HermesPlugin = {
         area: PALETTE_AREA,
         data: {
           id: 'kanban.open',
-          label: locale => ctx.i18n.tFor(locale, 'openBoard'),
+          label: 'Kanban: Open board',
           keywords: ['kanban', 'board', 'tasks', 'agents'],
           run: () => host.navigate('/kanban')
         } satisfies PaletteContribution
@@ -154,7 +138,7 @@ const plugin: HermesPlugin = {
         data: {
           id: 'kanban.newTask',
           action: 'kanban.newTask',
-          label: locale => ctx.i18n.tFor(locale, 'newTaskCommand'),
+          label: ctx.i18n.t('newTaskCommand'),
           keywords: ['kanban', 'task', 'new', 'create', 'triage'],
           run: newTask
         } satisfies PaletteContribution
@@ -166,7 +150,7 @@ const plugin: HermesPlugin = {
           id: 'kanban.newTask',
           category: 'view',
           defaults: ['mod+alt+n'],
-          label: locale => ctx.i18n.tFor(locale, 'newTaskCommand'),
+          label: ctx.i18n.t('newTaskCommand'),
           run: newTask
         } satisfies KeybindContribution
       }

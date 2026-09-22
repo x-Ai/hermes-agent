@@ -22,7 +22,7 @@ import { useState } from 'react'
 
 import { $lastRoster, ROSTER_KEY } from './data'
 import { labeled, ResizableFrame } from './dialog-parts'
-import { botsText, useBots } from './i18n'
+import { useBots } from './i18n'
 import { McpSetupButton } from './mcp-setup'
 import { ModelPicker } from './model-picker'
 import { botBackendProfileScope, requestForBot, resolveBotConnectionRoute } from './routing'
@@ -34,13 +34,13 @@ import type { RosterRow } from './types'
 // The Partial is the point: both are guarded at every use site because an older
 // build (or a stripped harness namespace) simply doesn't export them.
 const { McpTab, ToolsetConfigPanel }: Partial<Pick<typeof sdk, 'McpTab' | 'ToolsetConfigPanel'>> = sdk
-export const SkillsView = typeof sdk === 'undefined' ? undefined : sdk.SkillsView
-// TRUE only on builds whose SkillsView routes `fixedConnection` to the pinned
-// registry connection's backend. Older builds export SkillsView WITHOUT the
+export const CapabilitiesView = typeof sdk === 'undefined' ? undefined : sdk.CapabilitiesView
+// TRUE only on builds whose CapabilitiesView routes `fixedConnection` to the pinned
+// registry connection's backend. Older builds export CapabilitiesView WITHOUT the
 // prop — rendering it for a remote-target draft there would read/write the
 // ACTIVE gateway's skills under the remote bot's name (the wrong machine),
 // so those builds keep the staged checklists for remote targets.
-export const skillsViewRoutesConnections = Boolean(SkillsView && SkillsView.supportsFixedConnection)
+export const capabilitiesViewRoutesConnections = Boolean(CapabilitiesView && CapabilitiesView.supportsFixedConnection)
 
 // ── advanced profile config (skills / toolsets / model / SOUL) ──────────────
 //
@@ -53,6 +53,7 @@ export const skillsViewRoutesConnections = Boolean(SkillsView && SkillsView.supp
  *  through the same toggle handlers, so they share one entry type. */
 export interface CapabilityEntry {
   auth?: string
+  connector?: string | null
   description?: string
   enabled?: boolean
   fromCatalog?: boolean
@@ -184,7 +185,9 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
 
   if (unsupported) {
     return (
-      <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">{b.tools.fullConfigNeedsGateway}</div>
+      <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">
+        Full configuration needs a newer gateway (restart it after updating Hermes).
+      </div>
     )
   }
 
@@ -253,7 +256,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
   // Render THAT instead of the checkbox stand-ins; writes go straight to the
   // bot's backend, so the dirty-section staging below only carries
   // model + SOUL on these builds. Older builds keep the full checklist UI.
-  if (SkillsView && (!botRoute || skillsViewRoutesConnections)) {
+  if (CapabilitiesView && (!botRoute || capabilitiesViewRoutesConnections)) {
     return (
       <div className="grid gap-4">
         <ModelPicker
@@ -271,9 +274,9 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           }}
         />
         {labeled(
-          b.tools.capabilitiesImmediate,
+          'Capabilities (applies immediately — skills, tools, MCP)',
           <ResizableFrame height={460} minHeight={300}>
-            <SkillsView
+            <CapabilitiesView
               embedded
               fixedProfile={backendProfile}
               {...(botRoute
@@ -285,7 +288,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           </ResizableFrame>
         )}
         {labeled(
-          b.tools.soulConfig,
+          'SOUL.md (persona + agent-messaging protocol)',
           <Textarea
             className="min-h-28 font-mono text-xs leading-5"
             onChange={event =>
@@ -302,7 +305,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
     )
   }
 
-  if (bot?.sourceScoped && botRoute?.mode === 'remote' && !skillsViewRoutesConnections) {
+  if (bot?.sourceScoped && botRoute?.mode === 'remote' && !capabilitiesViewRoutesConnections) {
     return (
       <div className="grid gap-4">
         <ModelPicker
@@ -320,10 +323,10 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           }}
         />
         <div className="rounded-md border border-(--ui-stroke-secondary) px-3 py-2 text-xs text-(--ui-text-tertiary)">
-          {b.tools.remoteCapabilitiesNeedDesktop}
+          Remote capabilities require a newer desktop. Model and SOUL changes remain staged until you save.
         </div>
         {labeled(
-          b.tools.soulConfig,
+          'SOUL.md (persona + agent-messaging protocol)',
           <Textarea
             className="min-h-28 font-mono text-xs leading-5"
             onChange={event =>
@@ -357,7 +360,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
         }}
       />
       {labeled(
-        b.tools.skillsEnabled(enabledSkills, state.skills.length),
+        `Skills (${enabledSkills}/${state.skills.length} enabled)`,
         <div className="grid gap-1.5 rounded-md border border-(--ui-stroke-secondary) p-2">
           <Input
             className="h-7 text-xs"
@@ -374,7 +377,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
             <CheckList columns={2} items={visibleSkills} onToggle={toggleSkill} />
           </div>
           <HubSkillsSection
-            forProfile={backendScope}
+            bot={bot}
             onInstalled={name =>
               setState(prev =>
                 prev.skills.some(s => s.name === name)
@@ -395,7 +398,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
         </div>
       )}
       {labeled(
-        b.tools.toolsetsEnabled(enabledToolsets, state.toolsets.length),
+        `Toolsets (${enabledToolsets}/${state.toolsets.length} enabled — unchecking all restores the default)`,
         <div className="rounded-md border border-(--ui-stroke-secondary) p-2">
           <div
             className="overflow-y-auto overscroll-contain"
@@ -428,7 +431,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
         </div>
       )}
       {labeled(
-        b.tools.mcpServers,
+        'MCP servers',
         <div className="overflow-hidden rounded-md border border-(--ui-stroke-secondary)">
           {McpTab && typeof host.getGateway === 'function' ? (
             <div
@@ -466,7 +469,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
                         <span>{m.name}</span>
                         {m.fromCatalog && !needsSetup ? (
                           <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">
-                            {m.installed ? b.tools.catalogInstalled : b.tools.catalog}
+                            {m.installed ? 'catalog · installed' : 'catalog'}
                           </span>
                         ) : null}
                         {needsSetup ? (
@@ -487,7 +490,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
         </div>
       )}
       {labeled(
-        b.tools.soulConfig,
+        'SOUL.md (persona + agent-messaging protocol)',
         <Textarea
           className="min-h-28 font-mono text-xs leading-5"
           onChange={event =>
@@ -609,18 +612,18 @@ export async function applyAdvancedConfig(bot: RosterRow, state: AdvancedConfigS
   // on THIS surface too — `confirm_required` means the model section is
   // PENDING the user's confirmation, not failed. Route it through the SAME
   // shared confirm handler the core picker uses (one applier, no forked
-  // confirm logic per surface): the Confirm action resends ONLY the model
+  // confirm logic per surface): a confirmed answer resends ONLY the model
   // section with `confirm_expensive_model: true`.
   if (result?.confirm_required && payload.model && payload.provider) {
     delete merged.model
-    surfaceModelSwitchConfirm({
-      confirmLabel: botsText().tools.confirm,
+    void surfaceModelSwitchConfirm({
       confirmMessage: result.confirm_message,
-      failureMessage: botsText().tools.modelSwitchFailed,
+      failureMessage: 'Model switch failed',
       finish: () =>
         queryClient.invalidateQueries({
           queryKey: ROSTER_KEY
         }),
+      model: payload.model,
       requestConfirmed: () =>
         requestForBot(bot, 'profiles.configure', {
           name: bot.name,

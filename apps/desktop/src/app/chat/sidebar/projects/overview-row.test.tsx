@@ -1,20 +1,22 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { startNewSessionDrag } from '@/app/chat/new-session-drag'
 import type { SessionInfo } from '@/hermes'
+import type * as ProjectsStore from '@/store/projects'
 
+import type * as Model from './model'
 import { ProjectOverviewRow } from './overview-row'
 import type { SidebarProjectTree } from './workspace-groups'
 
-afterEach(() => {
-  cleanup()
-  vi.clearAllMocks()
-})
+afterEach(cleanup)
 
-vi.mock('@/app/chat/new-session-drag', () => ({
-  startNewSessionDrag: vi.fn()
+const workspaceOpen = vi.hoisted(() => ({ value: false }))
+
+const projectsStore = vi.hoisted(() => ({
+  fetchProjectSessions:
+    vi.fn<(id: string, options?: { supersedable?: boolean }) => Promise<null | SidebarProjectTree>>(),
+  projectProfile: vi.fn<() => null | string>(() => 'default')
 }))
 
 vi.mock('@/i18n', () => ({
@@ -26,6 +28,7 @@ vi.mock('@/i18n', () => ({
           enter: (label: string) => `Enter ${label}`,
           reorder: (label: string) => `Reorder ${label}`,
           toggle: (label: string, open: boolean) => `${open ? 'Show' : 'Hide'} ${label} sessions`,
+          showAllCount: (count: number) => `Show all ${count} sessions`,
           autoDiscovered: 'Auto-discovered'
         }
       }
@@ -33,10 +36,17 @@ vi.mock('@/i18n', () => ({
   })
 }))
 
-vi.mock('./model', () => ({
-  PROJECT_PREVIEW_COUNT: 3,
+vi.mock('@/store/projects', async importOriginal => ({
+  ...(await importOriginal<typeof ProjectsStore>()),
+  ...projectsStore
+}))
+
+// Keep the pure helpers real (they are the logic under test); stub only the
+// persisted open/collapse hook and the in-memory fallback preview.
+vi.mock('./model', async () => ({
+  ...(await vi.importActual<typeof Model>('./model')),
   latestProjectSessions: () => [],
-  useWorkspaceNodeOpen: () => [false, vi.fn()]
+  useWorkspaceNodeOpen: () => [workspaceOpen.value, vi.fn()]
 }))
 
 // ProjectMenu (the kebab) has its own dedicated test file — stub it here so
@@ -52,7 +62,15 @@ const project = { id: 'p1', label: 'Test D' } as unknown as SidebarProjectTree
 
 const tipTrigger = (el: HTMLElement) => el.closest('[data-slot="tooltip-trigger"]')
 
+const session = (id: string, updated: number): SessionInfo => ({ id, updated_at: updated }) as unknown as SessionInfo
+
 describe('ProjectOverviewRow', () => {
+  afterEach(() => {
+    workspaceOpen.value = false
+    projectsStore.fetchProjectSessions.mockReset()
+    projectsStore.projectProfile.mockReset().mockReturnValue('default')
+  })
+
   it('wraps the "new session" add button in a Tip with the project-scoped label', () => {
     render(<ProjectOverviewRow onNewSession={vi.fn()} project={project} />)
 
@@ -80,6 +98,63 @@ describe('ProjectOverviewRow', () => {
     expect(screen.queryByRole('button', { name: 'Show Test D sessions' })).toBeNull()
   })
 
+  // Group by → Projects previews only the 3 most-recent sessions per project;
+  // sessions 4+ need a visible, in-place way to be reached (#112406).
+  it('offers "Show all N sessions" past the preview cap and reveals the rest of the project inline', async () => {
+    workspaceOpen.value = true
+    const five = Array.from({ length: 5 }, (_, index) => session(`s${index + 1}`, 500 - index))
+    const busy = { ...project, sessionCount: 5 } as SidebarProjectTree
+    projectsStore.fetchProjectSessions.mockResolvedValue({
+      ...busy,
+      repos: [{ groups: [{ sessions: five }] }]
+    } as unknown as SidebarProjectTree)
+
+    render(
+      <ProjectOverviewRow
+        previewSessions={five.slice(0, 3)}
+        project={busy}
+        renderRows={items => <div data-testid="rows">{items.map(item => item.id).join(',')}</div>}
+      />
+    )
+
+    expect(screen.getByTestId('rows').textContent).toBe('s1,s2,s3')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 5 sessions' }))
+
+    await waitFor(() => expect(screen.getByTestId('rows').textContent).toBe('s1,s2,s3,s4,s5'))
+    expect(projectsStore.fetchProjectSessions).toHaveBeenCalledWith('p1', { supersedable: false })
+    expect(screen.queryByRole('button', { name: 'Show all 5 sessions' })).toBeNull()
+  })
+
+  // The hydrated lanes are the raw backend payload: pinned, filtered-out and
+  // just-deleted sessions must go through the same exclusion the previews did,
+  // and N must not promise rows the view hides.
+  it('"Show all" runs the hydrated lanes through the tree exclusion and counts only what it will render', async () => {
+    workspaceOpen.value = true
+    const five = Array.from({ length: 5 }, (_, index) => session(`s${index + 1}`, 500 - index))
+    const busy = { ...project, sessionCount: 5 } as SidebarProjectTree
+    projectsStore.fetchProjectSessions.mockResolvedValue({
+      ...busy,
+      repos: [{ groups: [{ sessions: five }] }]
+    } as unknown as SidebarProjectTree)
+    // s2 is pinned (renders in Pinned), s5 was just deleted.
+    const hidden = new Set(['s2', 's5'])
+
+    render(
+      <ProjectOverviewRow
+        hiddenSessionCount={hidden.size}
+        isSessionHidden={item => hidden.has(item.id)}
+        previewSessions={[five[0], five[2]]}
+        project={busy}
+        renderRows={items => <div data-testid="rows">{items.map(item => item.id).join(',')}</div>}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 3 sessions' }))
+
+    await waitFor(() => expect(screen.getByTestId('rows').textContent).toBe('s1,s3,s4'))
+  })
+
   it('offers the "new session" add button on Home, which starts one with no folder', () => {
     const home = {
       id: '__no_project__',
@@ -94,41 +169,6 @@ describe('ProjectOverviewRow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'New session in Home' }))
 
     expect(onNewSession).toHaveBeenCalledWith(null)
-  })
-
-  it('uses the first repo for both click and drag when primary_path is unset', () => {
-    const onNewSession = vi.fn()
-    const onNewSessionSplit = vi.fn()
-
-    const projectWithoutPrimary = {
-      ...project,
-      path: null,
-      repos: [{ groups: [], id: '/work/app', label: 'app', path: '/work/app', sessionCount: 0 }]
-    }
-
-    render(
-      <ProjectOverviewRow
-        onNewSession={onNewSession}
-        onNewSessionSplit={onNewSessionSplit}
-        project={projectWithoutPrimary}
-      />
-    )
-    const button = screen.getByRole('button', { name: `New session in ${projectWithoutPrimary.label}` })
-
-    fireEvent.click(button)
-
-    expect(onNewSession).toHaveBeenCalledWith('/work/app')
-
-    fireEvent.pointerDown(button, { button: 0, clientX: 20, clientY: 20 })
-    const [create, , options] = vi.mocked(startNewSessionDrag).mock.calls[0]!
-
-    expect(options?.cwd).toBe('/work/app')
-    create({ anchor: 'workspace', dir: 'right' })
-    expect(onNewSessionSplit).toHaveBeenCalledWith('right', {
-      anchor: 'workspace',
-      before: undefined,
-      cwd: '/work/app'
-    })
   })
 
   it('tags the row with data-sessions-project so a skin can target one project', () => {

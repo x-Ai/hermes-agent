@@ -12,11 +12,9 @@ import { Codicon } from '@/components/ui/codicon'
 import { Loader } from '@/components/ui/loader'
 import { StatusPulse } from '@/components/ui/status-pulse'
 import { getLocalModelsStatus } from '@/hermes'
-import { type Translations, useI18n } from '@/i18n'
-import { localizeAgentStatusText } from '@/lib/api-error-messages'
-import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
+import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
-import { $backgroundResume } from '@/store/background-delegation'
+import { sessionBackgroundResume } from '@/store/background-delegation'
 import { sessionCompacting } from '@/store/compaction'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { sessionAwaitingInput } from '@/store/prompts'
@@ -49,6 +47,9 @@ const StatusRow: FC<{ children: ReactNode; label: string } & React.ComponentProp
     {children}
   </div>
 )
+
+// Fixed label while auto-compaction runs — decoupled from backend status text.
+const COMPACTION_LABEL = 'Summarizing thread'
 
 const HintText: FC<{ children: ReactNode }> = ({ children }) => (
   <span className={cn(SCAFFOLD_LABEL_CLASS, 'shimmer min-w-0 flex-1 truncate')}>{children}</span>
@@ -191,12 +192,7 @@ const DRAFTING_REVEAL_MS = 200
  * What to call the wait, if it deserves a name. Compaction outranks a draft —
  * it's rarer, slower, and explains a transcript that looks like it reset.
  */
-function useStatusHint(
-  compacting: boolean,
-  drafting: DraftingTool | null,
-  providerWait: string,
-  threadCopy: Translations['assistant']['thread']
-): string {
+function useStatusHint(compacting: boolean, drafting: DraftingTool | null, providerWait: string): string {
   const [revealed, setRevealed] = useState(false)
   const name = drafting?.name ?? ''
 
@@ -213,11 +209,11 @@ function useStatusHint(
   }, [name])
 
   if (compacting) {
-    return threadCopy.summarizingThread
+    return COMPACTION_LABEL
   }
 
   if (providerWait) {
-    return localizeProviderWaitText(providerWait, threadCopy)
+    return providerWait
   }
 
   return revealed && name ? toolPresentVerb(name) : ''
@@ -248,7 +244,7 @@ export const ResponseLoadingIndicator: FC = () => {
   const { t } = useI18n()
   const { compacting, drafting, providerWait, turnStartedAt } = useThreadSessionStatus()
   const elapsed = useElapsedSeconds(true, undefined, turnStartedAt)
-  const hint = useStatusHint(compacting, drafting, providerWait, t.assistant.thread)
+  const hint = useStatusHint(compacting, drafting, providerWait)
   // Renderer-synthesized load bar: covers loads the backend's wait loop
   // can't narrate (gateway still initializing, or an auxiliary call — not
   // the main request — triggered the autoload). A real wait frame wins.
@@ -271,35 +267,26 @@ export const ResponseLoadingIndicator: FC = () => {
   )
 }
 
-// Parked-background affordance: a top-level delegate_task runs in the
-// background, so the parent turn ends and the app goes idle while the subagent
-// keeps working and its result re-enters as a fresh turn later. Instead of a
-// spinner (reads as "stuck"), reuse the same compact, centered system-note
-// chrome as the steer / slash-status lines (SystemMessage above) so it sits in
-// the thread like every other meta line. Idle-only (gated upstream). Null when
-// nothing is parked.
+// The parent is idle while its delegated children work. Name that wait rather
+// than echoing the child's CLI thinking spinner as if this thread were running.
 export const BackgroundResumeNotice: FC = () => {
-  const { locale, t } = useI18n()
-  const resume = useStore($backgroundResume)
+  const { t } = useI18n()
+  const view = useSessionView()
+  const sessionId = useStore(view.$runtimeId)
+  const busy = useStore(view.$busy)
+  const resume = useStore(useMemo(() => sessionBackgroundResume(sessionId), [sessionId]))
 
-  if (!resume) {
+  if (busy || !resume) {
     return null
   }
 
-  const label = resume.activity
-    ? localizeAgentStatusText(resume.activity, locale)
-    : t.assistant.thread.resumeWhenBackgroundDone(resume.count)
+  const label = t.assistant.thread.resumeWhenBackgroundDone(resume.count)
 
   return (
-    <div
-      aria-live="polite"
-      className="flex max-w-[min(86%,44rem)] items-center gap-1.5 self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/55"
-      data-slot="aui_background-resume"
-      role="status"
-    >
-      <Codicon className="text-muted-foreground/55" name="sync" size="0.75rem" />
-      <span className="shimmer min-w-0 truncate">{label}</span>
-    </div>
+    <StatusRow className="pl-(--message-text-indent)" data-slot="aui_background-resume" label={label}>
+      <Codicon name="sync" size="0.875rem" />
+      <span className={cn(SCAFFOLD_LABEL_CLASS, 'min-w-0 truncate')}>{label}</span>
+    </StatusRow>
   )
 }
 
@@ -328,7 +315,7 @@ export const TurnActivityIndicator: FC = () => {
   // the whole turn so far.
   const [quietSince, setQuietSince] = useState<number | undefined>(undefined)
   const { awaitingInput, busy, compacting, drafting, providerWait, turnStartedAt } = useThreadSessionStatus()
-  const hint = useStatusHint(compacting, drafting, providerWait, t.assistant.thread)
+  const hint = useStatusHint(compacting, drafting, providerWait)
 
   // A tool run at the tail already narrates the wait — its summary counts the
   // calls, its ticker names the current one, and it carries its own timer. A

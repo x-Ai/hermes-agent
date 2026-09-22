@@ -2,13 +2,12 @@
  * Group-chat attachments: turning picked, pasted, or dropped files into the
  * data-URL payloads a room's members are shown.
  *
- * A leaf module — it talks to the DOM, the toast host, and Bot Mode's
- * plugin-scoped copy.
+ * A leaf module — it talks to the DOM and the toast host, nothing else in Bot
+ * Mode.
  */
 
 import { host } from '@hermes/plugin-sdk'
 
-import { botsText } from './i18n'
 import type { Attachment, AttachmentKind } from './types'
 
 // ── group-chat attachments: pick/paste/drop files the room's members see ────
@@ -39,10 +38,9 @@ export async function filesToGroupAttachments(files: File[] | FileList | null | 
     }
 
     if (file.size > 15_000_000) {
-      const b = botsText()
       host.notify({
         kind: 'error',
-        message: b.group.attachmentTooLarge(file.name || b.group.attachmentFallback)
+        message: `${file.name || 'attachment'}: too large (max 15MB).`
       })
 
       continue
@@ -60,9 +58,8 @@ export async function filesToGroupAttachments(files: File[] | FileList | null | 
     }
 
     const kind = groupAttachmentKind(file)
-    const b = botsText()
     picked.push({
-      name: file.name || (kind === 'image' ? b.group.pastedImage : b.group.attachmentFallback),
+      name: file.name || (kind === 'image' ? 'pasted image' : 'attachment'),
       data: kind === 'image' ? await normalizeGroupAttachment(data) : data,
       kind
     })

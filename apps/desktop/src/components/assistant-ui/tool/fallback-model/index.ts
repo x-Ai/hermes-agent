@@ -1,9 +1,15 @@
+import { stripAnsi } from '@hermes/shared/ansi'
+
 import { type ToolTitleKey, translateNow } from '@/i18n'
 import { normalizeExternalUrl } from '@/lib/external-link'
+import { isFileMediaPath, mediaKind } from '@/lib/media'
 import { summarizeShellCommand } from '@/lib/summarize-command'
 import { capitalize, firstStringField, normalize } from '@/lib/text'
-import { isCardTool, isFileEditTool, isSilentTool } from '@/lib/tool-render-class'
+import { CONNECTION_CARD_KEY, isCardTool, isFileEditTool, isSilentTool } from '@/lib/tool-render-class'
+import { envelopeErrorText, toolResultRecord } from '@/lib/tool-result-metadata'
 import { extractToolErrorMessage, formatToolResultSummary } from '@/lib/tool-result-summary'
+
+import { skillActivityTitle } from '../skill-activity'
 
 import {
   browserExecStepLabel,
@@ -36,7 +42,7 @@ export * from './types'
 // The transcript's render budget prices a turn by the same classification, so
 // it lives in `@/lib/tool-render-class` where both sides can reach it without
 // pulling this module's formatting/i18n weight into the cost path.
-export { isCardTool, isFileEditTool, isSilentTool }
+export { CONNECTION_CARD_KEY, isCardTool, isFileEditTool, isSilentTool }
 
 export interface DiffLineStats {
   added: number
@@ -200,9 +206,6 @@ const TOOL_META: Record<ToolTitleKey, ToolMetaSpec> = {
     icon: 'search',
     tone: 'agent'
   },
-  skill_view: {
-    tone: 'default'
-  },
   terminal: {
     icon: 'terminal',
     tone: 'terminal'
@@ -268,7 +271,7 @@ function toolMeta(name: string): ToolMeta {
   }
 
   return {
-    done: translateNow('assistant.tool.titleTemplates.completedTool', action),
+    done: action,
     pending: translateNow('assistant.tool.titleTemplates.runningTool', action),
     pendingAction: translateNow('assistant.tool.actions.running'),
     tone: 'default'
@@ -412,7 +415,7 @@ function pluralizeNoun(noun: string, count: number): string {
 }
 
 function formatCountLabel(metric: CountMetric): string {
-  return translateNow('assistant.tool.countLabel', metric.count, metric.noun, pluralizeNoun(metric.noun, metric.count))
+  return `${metric.count} ${pluralizeNoun(metric.noun, metric.count)}`
 }
 
 function countMetric(count: number, noun: string): CountMetric {
@@ -656,121 +659,28 @@ function extractSearchResults(result: unknown, limit = 6): SearchResultRow[] {
     .slice(0, limit)
 }
 
-function localizeClarifyError(message: string): string {
-  if (message === 'questions must be an array of question objects.') {
-    return translateNow('assistant.tool.clarifyErrors.questionsMustBeArray')
-  }
-
-  const limit = message.match(/^questions supports at most (\d+) items\.$/)
-
-  if (limit) {
-    return translateNow('assistant.tool.clarifyErrors.questionsLimit', Number(limit[1]))
-  }
-
-  const questionObject = message.match(/^questions\[(\d+)\] must be an object with a 'question'\.$/)
-
-  if (questionObject) {
-    return translateNow('assistant.tool.clarifyErrors.questionMustBeObject', Number(questionObject[1]))
-  }
-
-  const questionText = message.match(/^questions\[(\d+)\]\.question must be non-empty text\.$/)
-
-  if (questionText) {
-    return translateNow('assistant.tool.clarifyErrors.questionMustNotBeEmpty', Number(questionText[1]))
-  }
-
-  const questionChoices = message.match(/^(questions\[\d+\]\.choices) must be a list\.$/)
-
-  if (questionChoices) {
-    return translateNow('assistant.tool.clarifyErrors.choicesMustBeArray', questionChoices[1])
-  }
-
-  if (message === 'choices must be a list of strings.') {
-    return translateNow('assistant.tool.clarifyErrors.choicesMustBeStringArray')
-  }
-
-  if (message.startsWith('No question provided.')) {
-    return translateNow('assistant.tool.clarifyErrors.noQuestion')
-  }
-
-  if (message === 'Clarify tool is not available in this execution context.') {
-    return translateNow('assistant.tool.clarifyErrors.unavailable')
-  }
-
-  const inputFailure = message.match(/^Failed to get user input:\s*([\s\S]+)$/)
-
-  return inputFailure ? translateNow('assistant.tool.clarifyErrors.inputFailed', inputFailure[1]) : message
-}
-
-const EXECUTE_CODE_SESSION_TIMEOUT_PATTERN =
-  /Cell timed out after (\d+(?:\.\d+)?)s; the (remote )?session kernel was killed and its state was lost\. The next (?:execute_code )?call starts (?:a fresh kernel|fresh)\./g
-
-/**
- * execute_code lifecycle errors are shared wire text for every Hermes surface.
- * Desktop parses the stable backend form and rebuilds only its rendered copy;
- * unknown forms remain verbatim so a backend wording change stays visible.
- */
-function localizeExecuteCodeResultText(message: string): string {
-  return message.replace(
-    EXECUTE_CODE_SESSION_TIMEOUT_PATTERN,
-    (_match, timeoutSeconds: string, remotePrefix: string | undefined) =>
-      translateNow('assistant.tool.sessionKernelTimedOut', timeoutSeconds, Boolean(remotePrefix))
-  )
-}
-
 function toolErrorText(part: ToolPart, result: Record<string, unknown>): string {
   const extractedError = extractToolErrorMessage(part.result)
 
-  const localize = (message: string): string => {
-    const failedWritePrefix = 'Failed to write file:'
-
-    const sensitiveSystemPath = message.match(
-      /^Refusing to write to sensitive system path: ([^\r\n]+)\r?\nUse the terminal tool with sudo if you need to modify system files\.$/
-    )
-
-    if (sensitiveSystemPath) {
-      return translateNow('assistant.tool.sensitiveSystemPathWriteRefused', sensitiveSystemPath[1])
-    }
-
-    if (part.toolName === 'clarify') {
-      return localizeClarifyError(message)
-    }
-
-    if (part.toolName === 'execute_code') {
-      return localizeExecuteCodeResultText(message)
-    }
-
-    return message.startsWith(failedWritePrefix)
-      ? translateNow('assistant.tool.failedToWriteFile', message.slice(failedWritePrefix.length).trimStart())
-      : message
-  }
-
   if (part.isError) {
-    return localize(
+    return (
       extractedError ||
-        (typeof part.result === 'string' && part.result.trim()) ||
-        translateNow('assistant.tool.returnedError')
+      envelopeErrorText(part.toolResultMetadata) ||
+      (typeof part.result === 'string' && part.result.trim()) ||
+      'Tool returned an error.'
     )
-  }
-
-  if (typeof result.error === 'string' && result.error.trim()) {
-    return localize(result.error.trim())
   }
 
   if (extractedError) {
-    return localize(extractedError)
+    return extractedError
   }
 
   if (result.success === false || result.ok === false) {
-    const detail = firstStringField(result, ['message', 'reason', 'detail'])
-
-    return detail ? localize(detail) : translateNow('assistant.tool.returnedSuccessFalse')
+    return firstStringField(result, ['message', 'reason', 'detail']) || 'Tool returned success=false.'
   }
 
-  if (typeof result.status === 'string' && /\b(error|failed|failure)\b/i.test(result.status)) {
-    const detail = firstStringField(result, ['message', 'reason', 'detail'])
-
-    return detail ? localize(detail) : translateNow('assistant.tool.returnedStatus', result.status)
+  if (typeof result.status === 'string' && /^(error|failed|failure|fatal|exception)$/i.test(result.status.trim())) {
+    return firstStringField(result, ['message', 'reason', 'detail']) || `Tool returned status "${result.status}".`
   }
 
   // A non-zero exit code alone is a weak failure signal: grep returns 1 on
@@ -785,15 +695,20 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   if (exit !== null && exit !== 0) {
     const hasOutput = Boolean(firstStringField(result, ['output', 'stdout', 'stderr', 'output_preview'])?.trim())
 
-    return hasOutput ? '' : translateNow('assistant.tool.commandFailedWithExitCode', exit)
+    return hasOutput ? '' : `Command failed with exit code ${exit}.`
   }
 
   return ''
 }
 
 function toolStatus(part: ToolPart, resultRecord: Record<string, unknown>): ToolStatus {
-  if (part.result === undefined) {
+  if (part.result === undefined && part.completedAt === undefined) {
     return 'running'
+  }
+
+  // A call the user stopped is expected to have no result; don't warn about it.
+  if (part.result === undefined && !part.isError) {
+    return part.interrupted ? 'notice' : 'warning'
   }
 
   // Explicit success wins over isError / nested-error heuristics. Memory writes
@@ -803,8 +718,21 @@ function toolStatus(part: ToolPart, resultRecord: Record<string, unknown>): Tool
     return 'success'
   }
 
-  if (!toolErrorText(part, resultRecord)) {
+  const error = toolErrorText(part, resultRecord)
+
+  if (!error) {
     return 'success'
+  }
+
+  // A guessed read path missing is routine exploration, not a broken tool.
+  // Keep the explanation available without a destructive alarm. Writes and
+  // permission failures deliberately do not take this path.
+  if (part.toolName === 'read_file' && /^File not found:/i.test(error)) {
+    return 'notice'
+  }
+
+  if (part.toolName === 'terminal' && error === 'Command failed with exit code 1.') {
+    return 'notice'
   }
 
   // A rejected memory write is a budget negotiation, not a failure: the store
@@ -824,6 +752,11 @@ function durationLabel(resultRecord: Record<string, unknown>): string | undefine
 }
 
 function toolPreviewTarget(toolName: string, args: Record<string, unknown>, result: Record<string, unknown>): string {
+  // Reading an existing file is not producing a deliverable.
+  if (toolName === 'read_file' || toolName === 'search_files' || toolName === 'list_files') {
+    return ''
+  }
+
   const direct =
     firstStringField(result, ['preview', 'url', 'target']) ||
     firstStringField(args, ['preview', 'url', 'target', 'path', 'file', 'filepath']) ||
@@ -855,18 +788,14 @@ function toolImageUrl(args: Record<string, unknown>, result: Record<string, unkn
     return ''
   }
 
-  // Only inline-render images the renderer can actually fetch: data URLs or
-  // remote http(s). A bare filesystem path (e.g. vision_analyze's input image)
-  // resolves against the dev-server origin and 404s — fall back to the tool's
-  // codicon instead of a broken <img>.
+  // Filesystem images are resolved by the activity renderer through the
+  // authenticated media pipeline before they reach an <img>. This matters for
+  // vision_analyze, whose input commonly lives on the local or remote gateway.
   const isDataImage = candidate.toLowerCase().startsWith('data:image/')
   const isRemoteImage = /^https?:\/\//i.test(candidate) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(candidate)
+  const isLocalImage = isFileMediaPath(candidate) && mediaKind(candidate) === 'image'
 
-  return isDataImage || isRemoteImage ? candidate : ''
-}
-
-function stripAnsi(value: string): string {
-  return value.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g'), '')
+  return isDataImage || isRemoteImage || isLocalImage ? candidate : ''
 }
 
 export function stripInlineDiffChrome(value: string): string {
@@ -1185,9 +1114,7 @@ function toolDetailText(
       : ''
 
     if (output || lines) {
-      const detail = [output, lines].filter(Boolean).join('\n')
-
-      return part.toolName === 'execute_code' ? localizeExecuteCodeResultText(detail) : detail
+      return [output, lines].filter(Boolean).join('\n')
     }
 
     // A terminal row with no output already shows its command in the `$`
@@ -1401,6 +1328,12 @@ function dynamicTitle(
   result: Record<string, unknown>,
   fallback: ToolTitleParts
 ): ToolTitleParts {
+  const skillTitle = skillActivityTitle(part)
+
+  if (skillTitle) {
+    return { title: skillTitle }
+  }
+
   const verb = (gerund: string, past: string) => (part.result === undefined ? gerund : past)
 
   const titledAction = (action: string, title: string): ToolTitleParts =>
@@ -1508,9 +1441,20 @@ function dynamicTitle(
   return fallback
 }
 
+/** Status + detected preview target only — for feeds that never render the
+ *  row (the live completion handler) and must not pay for titles/details. */
+export function toolPreviewOutcome(part: ToolPart): { previewTarget: string; status: ToolStatus } {
+  const resultRecord = toolResultRecord(part)
+
+  return {
+    previewTarget: toolPreviewTarget(part.toolName, parseMaybeObject(part.args), resultRecord),
+    status: toolStatus(part, resultRecord)
+  }
+}
+
 export function buildToolView(part: ToolPart, inlineDiff: string): ToolView {
   const argsRecord = parseMaybeObject(part.args)
-  const resultRecord = parseMaybeObject(part.result)
+  const resultRecord = toolResultRecord(part)
   const meta = toolMeta(part.toolName)
   const status = toolStatus(part, resultRecord)
   // Skip residual error-heuristic text once status is success (stale isError
@@ -1533,7 +1477,12 @@ export function buildToolView(part: ToolPart, inlineDiff: string): ToolView {
     titlePartsFromAction(baseTitle, part.result === undefined ? meta.pendingAction : undefined)
   )
 
-  const title = titleParts.title
+  const unavailable = part.result === undefined && part.completedAt !== undefined
+
+  const title = unavailable
+    ? translateNow(part.interrupted ? 'assistant.tool.resultInterrupted' : 'assistant.tool.resultUnavailable')
+    : titleParts.title
+
   const titleEnriched = title !== baseTitle
   const baseSubtitle = error || toolSubtitle(part, argsRecord, resultRecord)
 
@@ -1595,7 +1544,7 @@ export function buildToolView(part: ToolPart, inlineDiff: string): ToolView {
     status,
     subtitle,
     title,
-    titleAction: titleParts.action,
+    titleAction: unavailable ? undefined : titleParts.action,
     tone: meta.tone
   }
 }

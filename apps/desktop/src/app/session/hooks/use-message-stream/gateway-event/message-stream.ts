@@ -7,7 +7,6 @@ import { coerceGatewayText, coerceThinkingText } from '@/lib/chat-runtime'
 import { playCompletionSound } from '@/lib/completion-sound'
 import { parseErrorSurface } from '@/lib/error-surface'
 import { triggerHaptic } from '@/lib/haptics'
-import { isProviderWaitNotice } from '@/lib/provider-wait-localization'
 import { billingCtaLabel, clearBillingBlock, runBillingRecovery, setBillingBlock } from '@/store/billing-block'
 import { clearClarifyRequest } from '@/store/clarify'
 import { setSessionCompacting } from '@/store/compaction'
@@ -19,10 +18,8 @@ import { setCurrentUsage, setTurnStartedAt } from '@/store/session'
 import { refreshSupportedSessionControlAfterTurn } from '@/store/session-control'
 import { pruneFinishedSessionSubagents } from '@/store/subagents'
 import { clearActiveSessionTodos } from '@/store/todos'
-import { isWatchWindow } from '@/store/windows'
 
 import type { GatewayEventContext } from './types'
-import { mergeUsageSnapshot } from './usage-snapshot'
 
 function firstBillingLine(text: string): string {
   return (text || '').split('\n')[0]?.trim() ?? ''
@@ -203,19 +200,8 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
   }
 
   if (event.type === 'reasoning.delta') {
-    const raw = coerceGatewayText(payload?.text)
-
-    // Child watch windows receive relayed thinking callbacks as reasoning
-    // deltas. Keep complete provider notices ephemeral instead of appending
-    // consecutive status rewrites to the child's reasoning transcript.
-    if (sessionId && isWatchWindow() && isProviderWaitNotice(raw)) {
-      setSessionProviderWait(sessionId, raw)
-
-      return true
-    }
-
     if (sessionId) {
-      appendReasoningDelta(sessionId, coerceThinkingText(raw), false, occurredAt)
+      appendReasoningDelta(sessionId, coerceThinkingText(payload?.text), false, occurredAt)
     }
 
     if (isActiveEvent) {
@@ -243,10 +229,10 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     // the mixture-of-agents process is visible. Reuses the reasoning
     // disclosure rather than introducing a parallel surface.
     if (sessionId) {
-      const label = coerceGatewayText(payload?.label)
+      const label = coerceGatewayText(payload?.label) || 'reference'
       const idx = typeof payload?.index === 'number' ? payload.index : undefined
       const cnt = typeof payload?.count === 'number' ? payload.count : undefined
-      const header = `◇ ${translateNow('assistant.thread.moaReference', label, idx, cnt)}`
+      const header = idx && cnt ? `◇ Reference ${idx}/${cnt} — ${label}` : `◇ Reference — ${label}`
       const body = coerceThinkingText(payload?.text)
       const text = `${header}\n${body}\n\n`
 
@@ -296,12 +282,9 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     if (sessionId && typeof payload?.refs_done === 'number' && typeof payload?.refs_total === 'number') {
       const label = coerceGatewayText(payload?.label)
 
-      const line = `◇ ${translateNow(
-        'assistant.thread.moaReferencesProgress',
-        payload.refs_done,
-        payload.refs_total,
-        label
-      )}\n`
+      const line = label
+        ? `◇ MoA refs ${payload.refs_done}/${payload.refs_total} — ${label}\n`
+        : `◇ MoA refs ${payload.refs_done}/${payload.refs_total}\n`
 
       appendReasoningDelta(sessionId, line, payload.refs_done <= 1, occurredAt)
       flushQueuedDeltas(sessionId)
@@ -319,7 +302,7 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     // aggregator acting). Append a one-line marker; the first
     // moa.reference that follows replaces the whole block.
     if (sessionId && payload?.phase === 'aggregator') {
-      appendReasoningDelta(sessionId, `◇ ${translateNow('assistant.thread.moaAggregating')}\n`, false, occurredAt)
+      appendReasoningDelta(sessionId, '◇ MoA aggregating…\n', false, occurredAt)
       flushQueuedDeltas(sessionId)
     }
 
@@ -379,6 +362,11 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
       surfaceBillingBlock(sessionId, payload.billing)
     }
 
+    // History-commit note (e.g. a mid-turn desync) the gateway chose to surface.
+    if (typeof payload?.warning === 'string' && payload.warning.trim()) {
+      notify({ kind: 'warning', message: payload.warning })
+    }
+
     if (isActiveEvent) {
       setTurnStartedAt(null)
 
@@ -403,14 +391,11 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
       // let a background tile's turn overwrite the primary's count.
       updateSessionState(sessionId, state => ({
         ...state,
-        usage: mergeUsageSnapshot(
-          { calls: 0, input: 0, output: 0, total: 0, ...state.usage },
-          payload.usage
-        )
+        usage: { calls: 0, input: 0, output: 0, total: 0, ...state.usage, ...payload.usage }
       }))
 
       if (isActiveEvent) {
-        setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
+        setCurrentUsage(current => ({ ...current, ...payload.usage }))
       }
     }
 

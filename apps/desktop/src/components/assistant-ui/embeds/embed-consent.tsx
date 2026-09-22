@@ -3,7 +3,6 @@
 import { type CSSProperties, useState } from 'react'
 
 import { SplitButton } from '@/components/ui/split-button'
-import { useI18n } from '@/i18n'
 import { Play } from '@/lib/icons'
 import { allowProvider } from '@/store/embed-consent'
 
@@ -14,7 +13,6 @@ import type { EmbedDescriptor } from './providers/types'
 // commit button: primary "Load" (this embed) with a caret for "Always allow
 // <service>" (persisted). Global off lives in Appearance settings.
 export function EmbedFacade({ descriptor, onLoad }: { descriptor: EmbedDescriptor; onLoad: () => void }) {
-  const { t } = useI18n()
   const [choice, setChoice] = useState('once')
 
   const style: CSSProperties = descriptor.aspectRatio
@@ -22,8 +20,8 @@ export function EmbedFacade({ descriptor, onLoad }: { descriptor: EmbedDescripto
     : { height: descriptor.height ?? 320 }
 
   const actions = [
-    { id: 'once', label: t.assistant.embeds.load(descriptor.label) },
-    { id: 'always', label: t.assistant.embeds.alwaysAllow(descriptor.label) }
+    { id: 'once', label: `Load ${descriptor.label}` },
+    { id: 'always', label: `Always allow ${descriptor.label}` }
   ]
 
   return (

@@ -3,7 +3,6 @@ import { atom, type WritableAtom } from 'nanostores'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useThemeEpoch } from '@/hooks/use-theme-epoch'
-import { useI18n } from '@/i18n'
 import { createRendererLoopPauseController } from '@/lib/renderer-loop-pause'
 import { createDoubleTapDetector, isSmartZoomWheel } from '@/lib/trackpad-gestures'
 import type { StarmapGraph } from '@/types/hermes'
@@ -12,6 +11,7 @@ import { computePalette, memoryInkFor, resolveRgb, rgba } from './color'
 import { RING_OUTER, TILT, ZOOM_MAX, ZOOM_MIN } from './constants'
 import { clamp, distToSegmentSq, fitScale, fitViewport, nodeRadius } from './geometry'
 import { NodeContextMenu, type NodeMenuTarget } from './node-context-menu'
+import { shouldIgnorePlaybackHotkey } from './playback-hotkey'
 import { drawScene, drawScramble } from './render'
 import { decodeShareCode, encodeShareCode, ShareCodeError } from './share-code'
 import { ShareControls } from './share-controls'
@@ -108,7 +108,6 @@ export function StarMap({
   onImport?: (graph: StarmapGraph) => void
   onResetMap?: () => void
 }) {
-  const { t } = useI18n()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
 
@@ -447,17 +446,11 @@ export function StarMap({
   )
 
   // Spacebar toggles playback (unless typing, or the play button itself is
-  // focused — that already handles Space natively, so skip to avoid a double).
+  // focused — that already handles Space natively, so skip to avoid a double;
+  // same for focused context-menu items, which Radix renders as divs).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' && e.key !== ' ') {
-        return
-      }
-
-      const el = document.activeElement
-      const tag = el?.tagName
-
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || (el as HTMLElement | null)?.isContentEditable) {
+      if (shouldIgnorePlaybackHotkey(e, document.activeElement)) {
         return
       }
 
@@ -959,12 +952,12 @@ export function StarMap({
       {/* Legend — bottom-left, one entry per line like a conventional key. */}
       <div className="pointer-events-none absolute bottom-2 left-2 flex flex-col gap-1 text-[0.62rem] text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block size-2 rounded-full bg-[var(--theme-primary)]/80" /> {t.starmap.skill}
+          <span className="inline-block size-2 rounded-full bg-[var(--theme-primary)]/80" /> skill
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block size-2 rotate-45" style={{ backgroundColor: memoryColor }} /> {t.starmap.memory}
+          <span className="inline-block size-2 rotate-45" style={{ backgroundColor: memoryColor }} /> memory
         </span>
-        <span className="text-[0.58rem] text-muted-foreground/65">{t.starmap.ageLegend}</span>
+        <span className="text-[0.58rem] text-muted-foreground/65">core = oldest · outer = newer</span>
         <RevealLabel axis={timeAxis} revealStore={revealStore} />
       </div>
     </div>

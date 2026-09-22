@@ -1,8 +1,10 @@
 import { translateNow } from '@/i18n'
 import { summarizeShellCommand } from '@/lib/summarize-command'
 import { firstStringField } from '@/lib/text'
+import { extractToolErrorMessage } from '@/lib/tool-result-summary'
 
 import { fileEditBasename, isFileEditTool, parseMaybeObject } from './fallback-model'
+import { skillActivityTitle } from './skill-activity'
 
 /**
  * The little a summary needs from a tool call, stated structurally so both
@@ -11,6 +13,8 @@ import { fileEditBasename, isFileEditTool, parseMaybeObject } from './fallback-m
  */
 export interface ToolCallLike {
   args?: unknown
+  completedAt?: number
+  isError?: boolean
   result?: unknown
   toolCallId?: string
   toolName: string
@@ -25,6 +29,14 @@ type RunCategory = 'delegate' | 'edit' | 'explore' | 'other' | 'run'
 // Clause order is fixed so the same run always reads the same way, whichever
 // category happens to be live.
 const CATEGORY_ORDER: readonly RunCategory[] = ['edit', 'explore', 'run', 'delegate', 'other']
+
+const CATEGORY_COPY: Record<RunCategory, { noun: [string, string]; past: string; present: string }> = {
+  delegate: { noun: ['task', 'tasks'], past: 'Delegated', present: 'Delegating' },
+  edit: { noun: ['file', 'files'], past: 'Edited', present: 'Editing' },
+  explore: { noun: ['file', 'files'], past: 'Explored', present: 'Exploring' },
+  other: { noun: ['tool', 'tools'], past: 'Used', present: 'Using' },
+  run: { noun: ['command', 'commands'], past: 'Ran', present: 'Running' }
+}
 
 const EXPLORE_TOOLS = new Set([
   'list_files',
@@ -57,7 +69,7 @@ function toolCategory(toolName: string): RunCategory {
 }
 
 function isPending(tool: ToolCallLike): boolean {
-  return tool.result === undefined
+  return tool.result === undefined && tool.completedAt === undefined
 }
 
 /**
@@ -66,7 +78,11 @@ function isPending(tool: ToolCallLike): boolean {
  * described in the same words from the moment the model drafts it.
  */
 export function toolPresentVerb(toolName: string): string {
-  return translateNow(`assistant.tool.runSummary.${toolCategory(toolName)}.present`)
+  if (toolName === 'skill_view') {
+    return translateNow('assistant.tool.skillActivity.loading')
+  }
+
+  return CATEGORY_COPY[toolCategory(toolName)].present
 }
 
 /** The thing a tool acted on, as the header should name it. */
@@ -89,13 +105,15 @@ function toolTarget(tool: ToolCallLike): string {
  * command line only earns its space while it's the thing you're waiting on.
  */
 function clause(category: RunCategory, tools: ToolCallLike[], live: boolean): string {
+  const copy = CATEGORY_COPY[category]
+  const verb = live ? copy.present : copy.past
   const target = tools.length === 1 ? toolTarget(tools[0]) : ''
 
   if (target && (live || category !== 'run')) {
-    return translateNow(`assistant.tool.runSummary.${category}.target`, target, live)
+    return `${verb} ${target}`
   }
 
-  return translateNow(`assistant.tool.runSummary.${category}.count`, tools.length, live)
+  return `${verb} ${tools.length} ${copy.noun[tools.length === 1 ? 0 : 1]}`
 }
 
 function lowerFirst(text: string): string {
@@ -126,8 +144,17 @@ export function summarizeToolRun(tools: readonly ToolCallLike[], live: boolean):
   const liveCategory = narrating ? toolCategory(narrating.toolName) : null
 
   const byCategory = new Map<RunCategory, ToolCallLike[]>()
+  const skillClauses: string[] = []
 
   for (const tool of tools) {
+    const skill = skillActivityTitle(tool, live)
+
+    if (skill) {
+      skillClauses.push(skill)
+
+      continue
+    }
+
     const category = toolCategory(tool.toolName)
     const group = byCategory.get(category)
 
@@ -144,7 +171,20 @@ export function summarizeToolRun(tools: readonly ToolCallLike[], live: boolean):
     return group ? [clause(category, group, category === liveCategory)] : []
   })
 
-  return clauses
-    .map((text, index) => (index === 0 ? text : lowerFirst(text)))
-    .join(translateNow('assistant.tool.runSummary.separator'))
+  const failed = tools.filter(tool => {
+    const result = parseMaybeObject(tool.result)
+
+    // Explicit success beats stale envelope errors, as in individual rows.
+    return (
+      result.success !== true &&
+      result.ok !== true &&
+      Boolean(tool.isError || result.success === false || result.ok === false || extractToolErrorMessage(tool.result))
+    )
+  }).length
+
+  if (failed) {
+    clauses.push(translateNow('assistant.tool.failedCalls', failed))
+  }
+
+  return [...skillClauses, ...clauses].map((text, index) => (index === 0 ? text : lowerFirst(text))).join(', ')
 }

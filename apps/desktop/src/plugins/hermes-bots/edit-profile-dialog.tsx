@@ -26,7 +26,7 @@ import { AvatarPicker } from './avatar-picker'
 import { $botMeta, botSelectionKey, ROSTER_KEY, saveBotMeta } from './data'
 import { labeled } from './dialog-parts'
 import { useBots } from './i18n'
-import { displayName, localizedDisplayName, localizedProfileName } from './labels'
+import { displayName } from './labels'
 import { AdvancedProfileConfig, applyAdvancedConfig, emptyAdvancedState } from './profile-config'
 import { botRosterMeta, requestForBot } from './routing'
 import type { AvatarAppearance, RosterRow } from './types'
@@ -153,7 +153,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
           advancedFailed = true
           host.notify({
             kind: 'error',
-            message: b.bot.advancedSectionsFailed(failed.map(([k]) => k).join(', '))
+            message: `Some sections failed: ${failed.map(([k]) => k).join(', ')}`
           })
         }
       } catch (err) {
@@ -165,15 +165,9 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
     if (!advancedFailed && !lookFailed) {
       host.notify({
         kind: 'success',
-        message: b.bot.updated(
-          localizedDisplayName(
-            bot,
-            {
-              title
-            },
-            b.bot.defaultProfileName
-          )
-        )
+        message: `${displayName(bot, {
+          title
+        })} updated`
       })
     }
 
@@ -200,12 +194,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
       >
         <DialogHeader>
           <DialogTitle>{b.bot.editTitle}</DialogTitle>
-          <DialogDescription>
-            {b.bot.editDescription(
-              localizedDisplayName(bot, meta, b.bot.defaultProfileName),
-              localizedProfileName(bot.name, b.bot.defaultProfileName)
-            )}
-          </DialogDescription>
+          <DialogDescription>{`Appearance and role for ${displayName(bot, null)} (${bot.name}).`}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="flex justify-center py-1">
@@ -225,7 +214,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
             shape={shape}
           />
           {labeled(
-            b.bot.titleLabel,
+            'Title',
             <Input
               onChange={event => setTitle(event.target.value)}
               placeholder={displayName(bot, null)}
@@ -233,7 +222,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
             />
           )}
           {labeled(
-            b.bot.descriptionLabel,
+            'Description',
             <Textarea
               className="min-h-16"
               onChange={event => setDescription(event.target.value)}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { playLatch, playResolve, playSwell, playTick, startPad } from './sound'
 import {
@@ -7,6 +7,8 @@ import {
   INTRO_DEADMAN_MS,
   INTRO_EXIT_MS,
   INTRO_PACE,
+  INTRO_PROMPT,
+  INTRO_REPLY_WORDS,
   INTRO_TOOL_ROWS,
   INTRO_TOTAL_MS,
   type IntroBeat,
@@ -29,6 +31,8 @@ const SEND_T = INTRO_BEATS.find(b => b.id === 'send')!.t
 const REPLY_T = INTRO_BEATS.find(b => b.id === 'reply')!.t
 const EVERYWHERE_T = INTRO_BEATS.find(b => b.id === 'everywhere')!.t
 const BRAND_T = INTRO_BEATS.find(b => b.id === 'brand')!.t
+const TYPE_TIMES = typingSchedule(INTRO_PROMPT, 700, SEND_T - 450)
+const WORD_TIMES = streamingSchedule(INTRO_REPLY_WORDS.length, REPLY_T + 150, REPLY_T + 2400)
 
 interface Frame {
   beat: number
@@ -42,16 +46,16 @@ interface Frame {
 
 const INITIAL_FRAME: Frame = { beat: 0, replyWords: 0, tick: 0, toolDone: 0, toolShown: 0, typed: 0 }
 
-function frameAt(t: number, beat: number, typeTimes: number[], wordTimes: number[]): Frame {
+function frameAt(t: number, beat: number): Frame {
   let typed = 0
 
-  while (typed < typeTimes.length && typeTimes[typed] <= t) {
+  while (typed < TYPE_TIMES.length && TYPE_TIMES[typed] <= t) {
     typed += 1
   }
 
   let replyWords = 0
 
-  while (replyWords < wordTimes.length && wordTimes[replyWords] <= t) {
+  while (replyWords < WORD_TIMES.length && WORD_TIMES[replyWords] <= t) {
     replyWords += 1
   }
 
@@ -71,7 +75,7 @@ function frameAt(t: number, beat: number, typeTimes: number[], wordTimes: number
   return { beat, replyWords, tick: Math.floor(t / 45), toolDone, toolShown, typed }
 }
 
-export function useIntroClock(prompt: string, replyPartCount: number) {
+export function useIntroClock() {
   const glowRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
@@ -80,8 +84,6 @@ export function useIntroClock(prompt: string, replyPartCount: number) {
   const [clockLeaving, setClockLeaving] = useState(false)
   const [faded, setFaded] = useState(false)
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  const typeTimes = useMemo(() => typingSchedule(prompt, 700, SEND_T - 450), [prompt])
-  const wordTimes = useMemo(() => streamingSchedule(replyPartCount, REPLY_T + 150, REPLY_T + 2400), [replyPartCount])
 
   const skip = useCallback(() => {
     setClockLeaving(true)
@@ -152,7 +154,7 @@ export function useIntroClock(prompt: string, replyPartCount: number) {
 
       drawViewportFrame(viewportRef.current, t)
 
-      const next = frameAt(t, currentBeat, typeTimes, wordTimes)
+      const next = frameAt(t, currentBeat)
       const key = `${next.beat}:${next.typed}:${next.replyWords}:${next.toolShown}:${next.toolDone}`
 
       if (key !== lastFrameKey) {
@@ -218,7 +220,7 @@ export function useIntroClock(prompt: string, replyPartCount: number) {
       cancelAnimationFrame(raf)
       pad.stop()
     }
-  }, [reduceMotion, skip, typeTimes, wordTimes])
+  }, [reduceMotion, skip])
 
   // Esc to skip, handled here so it does not depend on the main renderer.
   useEffect(() => {

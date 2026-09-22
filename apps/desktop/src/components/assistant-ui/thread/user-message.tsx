@@ -1,21 +1,25 @@
 import { ActionBarPrimitive, BranchPickerPrimitive, MessagePrimitive, useAuiState } from '@assistant-ui/react'
 import { type FC, type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
-import { AnsiText } from '@/components/assistant-ui/ansi-text'
 import { DirectiveContent } from '@/components/assistant-ui/directive-text'
-import { messageAttachmentRefs, messageContentText } from '@/components/assistant-ui/thread/content'
+import {
+  messageAttachmentRefs,
+  messageContentText,
+  PROCESS_NOTIFICATION_RE
+} from '@/components/assistant-ui/thread/content'
 import { ReactionBadge, ReactionPicker } from '@/components/assistant-ui/thread/message-reactions'
+import { BackgroundResult } from '@/components/assistant-ui/thread/system-message'
 import { MessageTimelineTimestamp } from '@/components/assistant-ui/thread/timeline-timestamp'
 import { type RestoreMessageTarget } from '@/components/assistant-ui/thread/types'
 import { useMessageReactions } from '@/components/assistant-ui/thread/use-message-reactions'
 import { UserMessageText } from '@/components/assistant-ui/thread/user-message-text'
-import { SCAFFOLD_GLYPH_CLASS, SCAFFOLD_LABEL_CLASS, ScaffoldRow } from '@/components/chat/scaffold-row'
 import { Codicon } from '@/components/ui/codicon'
-import { ToolIcon } from '@/components/ui/tool-icon'
+import { Tip } from '@/components/ui/tooltip'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { StopFilled } from '@/lib/icons'
+import { LruCache } from '@/lib/lru-cache'
 import { cn } from '@/lib/utils'
 import { $gateway } from '@/store/gateway'
 import { notifyThreadEditOpen } from '@/store/thread-scroll'
@@ -75,29 +79,27 @@ export const USER_ACTION_ICON_BUTTON_CLASS =
 export const USER_ACTION_ICON_SIZE = '0.6875rem'
 export const StopGlyph = <StopFilled aria-hidden className="size-3.5 -translate-y-px" />
 
-// Background-process notifications are injected into the conversation as user
-// messages (the agent must react to them, and message-role alternation forbids
-// a synthetic system row mid-loop). They are NOT something the human typed, so
-// render them as a compact system-style notice instead of a user bubble.
-// Shape: see tools/process_registry.py format_process_notification().
-const PROCESS_NOTIFICATION_RE = /^\[IMPORTANT: Background process [\s\S]*\]$/
-
 // Agent-to-agent deliveries ("Message from 🤖 <sender>: …", the Bot Mode /
 // multi-profile convention; optional "(@<handle>)" carries the sender's
-// profile name for avatar resolution; legacy "[Message from agent
-// '<sender>'] …" too). They arrive on the user role because the recipient's
-// turn runs on it, but they are NOT the human speaking — render them as a
-// compact attributed timeline notice instead of a user bubble.
+// profile name for avatar resolution — a relayed sender is re-stamped
+// "(@<handle>@<connection>)" so a reply reaches the right machine (#103731);
+// legacy "[Message from agent '<sender>'] …" too). They arrive on the user
+// role because the recipient's turn runs on it, but they are NOT the human
+// speaking — render them as a compact attributed timeline notice instead of
+// a user bubble.
 export const AGENT_MESSAGE_RE =
-  /^(?:Message from (?:🤖\s*)?([^:\n(]{1,64}?)(?:\s*\(@([a-z0-9][a-z0-9_-]{0,63})\))?:\s*|\[Message from agent '([^']{1,64})'\]\s*)([\s\S]*)$/u
+  /^(?:Message from (?:🤖\s*)?([^:\n(]{1,64}?)(?:\s*\(@([a-z0-9][a-z0-9_-]{0,63})(?:@[a-zA-Z0-9][a-zA-Z0-9_-]{0,63})?\))?:\s*|\[Message from agent '([^']{1,64})'\]\s*)([\s\S]*)$/u
 
 // sender handle -> avatar data URL. Module-level so a chat full of notices
-// from one bot resolves once. Hits are cached for the window's lifetime;
-// misses only briefly (30s) — an avatar can appear at any moment (bot just
+// from one bot resolves once. Bounded LRU: handles are parsed out of message
+// text (unbounded distinct senders over a long session list) and hits hold
+// base64 avatar data URLs, so an unbounded map pins image bytes for the
+// window's lifetime. Eviction only costs a refetch.
+// Misses expire after 30s — an avatar can appear at any moment (bot just
 // created, art backfill still running), and a permanent negative cache
 // froze the 🤖 glyph until an app restart.
-export const agentAvatarCache = new Map<string, null | string>()
-const agentAvatarMissAt = new Map<string, number>()
+const AGENT_AVATAR_CACHE_MAX = 128
+export const agentAvatarCache = new LruCache<string, { at: number; url: null | string }>(AGENT_AVATAR_CACHE_MAX)
 const AVATAR_MISS_TTL_MS = 30_000
 const agentAvatarInflight = new Map<string, Promise<null | string>>()
 
@@ -108,19 +110,17 @@ export async function resolveAgentAvatar(handle: string): Promise<null | string>
     return null
   }
 
-  if (agentAvatarCache.has(key)) {
-    const hit = agentAvatarCache.get(key) ?? null
+  const hit = agentAvatarCache.get(key)
 
-    if (hit !== null) {
-      return hit
+  if (hit) {
+    if (hit.url !== null) {
+      return hit.url
     }
 
     // Negative entry: honor it only within the TTL, then re-probe.
-    if (Date.now() - (agentAvatarMissAt.get(key) ?? 0) < AVATAR_MISS_TTL_MS) {
+    if (Date.now() - hit.at < AVATAR_MISS_TTL_MS) {
       return null
     }
-
-    agentAvatarCache.delete(key)
   }
 
   const inflight = agentAvatarInflight.get(key)
@@ -170,23 +170,17 @@ export async function resolveAgentAvatar(handle: string): Promise<null | string>
 
   agentAvatarInflight.set(key, run)
   const out = await run
-  agentAvatarCache.set(key, out)
-
-  if (out === null) {
-    agentAvatarMissAt.set(key, Date.now())
-  }
+  agentAvatarCache.set(key, { at: Date.now(), url: out })
 
   return out
 }
 
 const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
-  const { t } = useI18n()
-  const copy = t.assistant.thread
   const match = AGENT_MESSAGE_RE.exec(text)
   const sender = (match?.[1] || match?.[3] || 'agent').trim()
   const handle = (match?.[2] || match?.[3] || sender).trim()
   const body = (match?.[4] || '').trim()
-  const [avatar, setAvatar] = useState<null | string>(() => agentAvatarCache.get(handle.toLowerCase()) ?? null)
+  const [avatar, setAvatar] = useState<null | string>(() => agentAvatarCache.get(handle.toLowerCase())?.url ?? null)
 
   useEffect(() => {
     let live = true
@@ -220,12 +214,12 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
             🤖
           </span>
         )}
-        <span className="wrap-anywhere">{copy.messageFrom(sender)}</span>
+        <span className="wrap-anywhere">Message from {sender}</span>
       </span>
       {body && (
         <details className="self-center">
           <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
-            {copy.showMessage}
+            show message
           </summary>
           <div className="mt-1 max-w-[36rem] rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
             <UserMessageText text={body} />
@@ -236,100 +230,13 @@ const AgentMessageNote: FC<{ text: string }> = ({ text }) => {
   )
 }
 
-interface ProcessNotificationContent {
-  command: string
-  headline: string
-  metadata: string
-  output: string
-}
-
-export function parseProcessNotification(text: string): ProcessNotificationContent {
+const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
   const body = text.replace(/^\[IMPORTANT:\s*/, '').replace(/\]$/, '')
-  const [headline = '', ...detailLines] = body.split('\n')
-  const commandIndex = detailLines.findIndex(line => /^Command:\s*/i.test(line))
+  const newline = body.indexOf('\n')
+  const headline = (newline === -1 ? body : body.slice(0, newline)).trim()
+  const detail = newline === -1 ? '' : body.slice(newline + 1).trim()
 
-  const outputIndex = detailLines.findIndex(
-    (line, index) => index > commandIndex && /^(?:Matched output|Output):/i.test(line)
-  )
-
-  const outputLabel = outputIndex >= 0 ? detailLines[outputIndex].match(/^(?:Matched output|Output):\s*(.*)$/i) : null
-
-  const command =
-    commandIndex >= 0
-      ? detailLines
-          .slice(commandIndex, outputIndex >= 0 ? outputIndex : commandIndex + 1)
-          .map((line, index) => (index === 0 ? line.replace(/^Command:\s*/i, '') : line))
-          .join('\n')
-          .trim()
-      : ''
-
-  const metadata = detailLines
-    .slice(0, commandIndex >= 0 ? commandIndex : Math.max(outputIndex, 0))
-    .join('\n')
-    .trim()
-
-  const output =
-    outputIndex >= 0
-      ? [outputLabel?.[1] ?? '', ...detailLines.slice(outputIndex + 1)].join('\n').trim()
-      : detailLines
-          .slice(commandIndex >= 0 ? commandIndex + 1 : 0)
-          .join('\n')
-          .trim()
-
-  return { command, headline: headline.trim(), metadata, output }
-}
-
-export const ProcessNotificationNote: FC<{ text: string }> = ({ text }) => {
-  const { command, headline, metadata, output } = parseProcessNotification(text)
-  const expandable = Boolean(command || metadata || output)
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div
-      className={cn(
-        'group/process-notification w-full min-w-0 max-w-full self-start overflow-hidden text-[length:var(--conversation-tool-font-size)] text-(--ui-text-tertiary)',
-        open && 'rounded-[0.3125rem] border border-(--ui-stroke-tertiary)'
-      )}
-      data-conversation-scaffold=""
-      data-slot="aui_process-notification"
-    >
-      <div className={cn(open && 'border-b border-(--ui-stroke-tertiary) px-2 py-1.5')}>
-        <ScaffoldRow onToggle={expandable ? () => setOpen(value => !value) : undefined} open={open}>
-          <span className={cn(SCAFFOLD_GLYPH_CLASS, 'self-center')} data-slot="aui_process-notification-icon">
-            <ToolIcon className="text-(--ui-text-tertiary)" name="terminal" size="0.875rem" />
-          </span>
-          <span className={cn(SCAFFOLD_LABEL_CLASS, 'wrap-anywhere')}>{headline}</span>
-        </ScaffoldRow>
-      </div>
-      {open && expandable && (
-        <div className="grid w-full min-w-0 max-w-full gap-1.5 overflow-hidden p-1.5">
-          {metadata && <p className="px-2 text-[0.7rem] leading-relaxed text-(--ui-text-tertiary)">{metadata}</p>}
-          {command && (
-            <div
-              className="flex min-w-0 items-center rounded-[0.25rem] border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed"
-              data-slot="aui_process-notification-command"
-            >
-              <code className="min-w-0 flex-1 whitespace-pre-wrap wrap-anywhere text-(--ui-text-secondary)">
-                <span aria-hidden className="select-none text-(--ui-accent-secondary)">
-                  ${' '}
-                </span>
-                {command}
-              </code>
-            </div>
-          )}
-          {output && (
-            <pre
-              className="max-h-48 max-w-full overflow-auto whitespace-pre-wrap wrap-anywhere bg-transparent px-2 py-1.5 font-mono text-[0.7rem] leading-relaxed text-(--ui-text-secondary)"
-              data-selectable-text="true"
-              data-slot="aui_process-notification-result"
-            >
-              <AnsiText text={output} />
-            </pre>
-          )}
-        </div>
-      )}
-    </div>
-  )
+  return <BackgroundResult process report={detail} text={headline} />
 }
 
 export const UserMessage: FC<{
@@ -442,17 +349,15 @@ export const UserMessage: FC<{
   useResizeObserver(measureClamp, clampInnerRef)
 
   // Injected background-process notification, not a human prompt — render the
-  // compact notice in the assistant reading column (after all hooks above
-  // have run). Centering operational output makes it float between replies.
+  // compact system-style notice (after all hooks above have run).
   if (PROCESS_NOTIFICATION_RE.test(messageText.trim())) {
     return (
       <MessagePrimitive.Root
-        className="flex w-full min-w-0 flex-col items-stretch pt-(--conversation-turn-gap) pl-(--message-text-indent)"
+        className="flex w-full min-w-0 flex-col items-stretch"
         data-role="user"
         data-slot="aui_user-message-root"
       >
         <ProcessNotificationNote text={messageText.trim()} />
-        <MessageTimelineTimestamp className="self-start pl-5" />
       </MessagePrimitive.Root>
     )
   }
@@ -563,7 +468,6 @@ export const UserMessage: FC<{
                       triggerHaptic('selection')
                       setExpanded(value => !value)
                     }}
-                    title={bodyClamped ? (expanded ? t.common.collapse : copy.expandMessage) : undefined}
                     type="button"
                   >
                     {bubbleContent}
@@ -611,33 +515,33 @@ export const UserMessage: FC<{
                           event.stopPropagation()
                           void onCancel?.()
                         }}
-                        title={copy.stop}
                         type="button"
                       >
                         {StopGlyph}
                       </button>
                     ) : (
-                      <button
-                        aria-label={copy.restoreCheckpoint}
-                        className={cn('pointer-events-auto size-6', USER_ACTION_ICON_BUTTON_CLASS)}
-                        onClick={event => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                          triggerHaptic('selection')
-                          onRequestRestoreConfirm?.(messageId, {
-                            text: messageText,
-                            userOrdinal: runtimeUserOrdinal
-                          })
-                        }}
-                        onPointerDown={event => {
-                          event.preventDefault()
-                          event.stopPropagation()
-                        }}
-                        title={copy.restoreFromHere}
-                        type="button"
-                      >
-                        <Codicon name="discard" size="0.875rem" />
-                      </button>
+                      <Tip label={copy.restoreFromHere}>
+                        <button
+                          aria-label={copy.restoreCheckpoint}
+                          className={cn('pointer-events-auto size-6', USER_ACTION_ICON_BUTTON_CLASS)}
+                          onClick={event => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            triggerHaptic('selection')
+                            onRequestRestoreConfirm?.(messageId, {
+                              text: messageText,
+                              userOrdinal: runtimeUserOrdinal
+                            })
+                          }}
+                          onPointerDown={event => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                          }}
+                          type="button"
+                        >
+                          <Codicon name="discard" size="0.875rem" />
+                        </button>
+                      </Tip>
                     )}
                   </div>
                 )}

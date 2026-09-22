@@ -1,6 +1,5 @@
 import { atom } from 'nanostores'
 
-import { translateNow } from '@/i18n'
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 import { persistBoolean, persistString, storedBoolean, storedString } from '@/lib/storage'
 import { capitalize } from '@/lib/text'
@@ -221,12 +220,7 @@ function notifyPetGenDone(title: string, message: string, kind: 'error' | 'succe
     return
   }
 
-  notify({
-    kind,
-    title,
-    message,
-    action: { label: translateNow('notifications.toast.view'), onClick: openPetGenerate }
-  })
+  notify({ kind, title, message, action: { label: 'View', onClick: openPetGenerate } })
   // Pet generation isn't tied to a chat session — mark it global so the OS
   // notification fires whenever the user is away, even with no active session
   // (the common case: generating from the command center with no conversation).
@@ -367,8 +361,9 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
   // Stream drafts in as the backend finishes each one (pet.generate.progress),
   // so the grid fills live instead of sitting on placeholders until all N land.
   const off =
-    $gateway.get()?.on<PetDraft & { token: string; count: number }>('pet.generate.progress', event => {
-      const draft = event.payload
+    $gateway.get()?.on('pet.generate.progress', event => {
+      // Shared map types this payload as an open record; the pet backend's draft shape is desktop-owned.
+      const draft = event.payload as (PetDraft & { count: number; token: string }) | undefined
 
       // Token-only init event (no draft yet): learn the token immediately so an
       // early Stop can still tell the backend to cancel this run.
@@ -432,11 +427,7 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
     $petGenDrafts.set(result.drafts)
     $petGenSelected.set(result.drafts[0]?.index ?? 0)
     $petGenStatus.set('ready')
-    notifyPetGenDone(
-      translateNow('notifications.toast.petDraftsReadyTitle'),
-      translateNow('notifications.toast.petDraftsReadyMessage'),
-      'success'
-    )
+    notifyPetGenDone('Pet drafts ready', 'Your pet looks finished — pick one to hatch.', 'success')
 
     return true
   } catch (e) {
@@ -449,11 +440,7 @@ export async function generateDrafts(request: GatewayRequest, options: GenerateO
     } else {
       $petGenStatus.set('error')
       $petGenError.set(e instanceof Error ? e.message : 'Could not generate pet drafts.')
-      notifyPetGenDone(
-        translateNow('notifications.toast.petGenerationFailedTitle'),
-        translateNow('notifications.toast.petReopenTryAgain'),
-        'error'
-      )
+      notifyPetGenDone('Pet generation failed', 'Reopen to try again.', 'error')
     }
 
     return false
@@ -504,28 +491,26 @@ export async function hatchSelected(request: GatewayRequest, options: HatchOptio
   // Stream the hatch steps (which row is drawing, then compose/save) to the egg
   // screen so a multi-minute hatch shows live progress instead of a black box.
   const offProgress =
-    $gateway
-      .get()
-      ?.on<{ event: string; state?: string; done?: string; total?: string }>('pet.hatch.progress', event => {
-        const p = event.payload
+    $gateway.get()?.on('pet.hatch.progress', event => {
+      const p = event.payload as { done?: string; event: string; state?: string; total?: string } | undefined
 
-        if (!p || !hatch.isCurrent(hatchRunId) || $petGenStatus.get() !== 'hatching') {
-          return
-        }
+      if (!p || !hatch.isCurrent(hatchRunId) || $petGenStatus.get() !== 'hatching') {
+        return
+      }
 
-        if (p.event === 'row' && p.state) {
-          $petGenStage.set({
-            phase: 'row',
-            state: p.state,
-            done: Number(p.done) || undefined,
-            total: Number(p.total) || undefined
-          })
-        } else if (p.event === 'compose') {
-          $petGenStage.set({ phase: 'compose' })
-        } else if (p.event === 'save') {
-          $petGenStage.set({ phase: 'save' })
-        }
-      }) ?? (() => {})
+      if (p.event === 'row' && p.state) {
+        $petGenStage.set({
+          phase: 'row',
+          state: p.state,
+          done: Number(p.done) || undefined,
+          total: Number(p.total) || undefined
+        })
+      } else if (p.event === 'compose') {
+        $petGenStage.set({ phase: 'compose' })
+      } else if (p.event === 'save') {
+        $petGenStage.set({ phase: 'save' })
+      }
+    }) ?? (() => {})
 
   try {
     const result = await request<{ ok: boolean; slug: string; displayName: string; pet?: PetInfo }>(
@@ -559,11 +544,7 @@ export async function hatchSelected(request: GatewayRequest, options: HatchOptio
 
     $petGenPreview.set({ ...result.pet, enabled: true })
     $petGenStatus.set('preview')
-    notifyPetGenDone(
-      translateNow('notifications.toast.petHatchedTitle'),
-      translateNow('notifications.toast.petHatchedMessage'),
-      'success'
-    )
+    notifyPetGenDone('Your pet hatched', 'Reopen to name and adopt it.', 'success')
 
     return true
   } catch (e) {
@@ -573,11 +554,7 @@ export async function hatchSelected(request: GatewayRequest, options: HatchOptio
 
     $petGenStatus.set('error')
     $petGenError.set(e instanceof Error ? e.message : 'Could not hatch the pet.')
-    notifyPetGenDone(
-      translateNow('notifications.toast.petHatchingFailedTitle'),
-      translateNow('notifications.toast.petReopenTryAgain'),
-      'error'
-    )
+    notifyPetGenDone('Hatching failed', 'Reopen to try again.', 'error')
 
     return false
   } finally {

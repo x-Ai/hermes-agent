@@ -1,7 +1,7 @@
+import { compactNumber } from '@hermes/shared'
 import { useMemo } from 'react'
 
 import { useI18n } from '@/i18n'
-import { compactNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { ContextBreakdown, ContextUsageCategory, UsageStats } from '@/types/hermes'
 
@@ -9,66 +9,6 @@ interface ContextUsagePanelProps {
   breakdown: ContextBreakdown | null
   loading: boolean
   usage: UsageStats
-}
-
-/** Project a previously fetched category snapshot onto the latest measured
- * context occupancy. System/tool/rule buckets are stable for the session, so
- * Conversation is the residual of the current window after those buckets --
- * never an accumulated delta from an older snapshot. This remains correct
- * across repeated projections and in-place compactions. */
-export function projectLiveContextBreakdown(
-  breakdown: ContextBreakdown | null,
-  usage: UsageStats
-): ContextBreakdown | null {
-  if (!breakdown || typeof usage.context_used !== 'number' || usage.context_used < 0) {
-    return breakdown
-  }
-
-  // An empty snapshot means the deferred agent was not ready yet. Never turn
-  // its live total into a fake Conversation-only breakdown; the fetch hook is
-  // retrying and the panel should keep saying that details are loading.
-  if (breakdown.ready === false || breakdown.categories.length === 0) {
-    return breakdown
-  }
-
-  const contextUsed = usage.context_used
-  const contextMax = usage.context_max ?? breakdown.context_max
-
-  const nonConversationTotal = breakdown.categories.reduce(
-    (total, category) => total + (category.id === 'conversation' ? 0 : category.tokens),
-    0
-  )
-
-  const conversationTokens = Math.max(0, contextUsed - nonConversationTotal)
-  let foundConversation = false
-
-  const categories = breakdown.categories.map(category => {
-    if (category.id !== 'conversation') {
-      return category
-    }
-
-    foundConversation = true
-
-    return { ...category, tokens: conversationTokens }
-  })
-
-  if (!foundConversation && conversationTokens > 0) {
-    categories.push({
-      color: 'var(--context-usage-conversation)',
-      id: 'conversation',
-      label: 'Conversation',
-      tokens: conversationTokens
-    })
-  }
-
-  return {
-    ...breakdown,
-    categories,
-    context_max: contextMax,
-    context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
-    context_used: contextUsed,
-    estimated_total: nonConversationTotal + conversationTokens
-  }
 }
 
 /** Presentational: the breakdown is fetched by the statusbar (see

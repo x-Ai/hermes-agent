@@ -3,6 +3,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type * as ConfigApi from '@/api/config'
+
 // Radix Select calls scrollIntoView on its items when the content opens; jsdom
 // doesn't implement it (nor hasPointerCapture / releasePointerCapture), so stub
 // them to let the dropdown open in tests.
@@ -27,7 +29,10 @@ const startManualOnboarding = vi.fn()
 const startManualProviderOAuth = vi.fn()
 let profileSwitchHandler: (() => void) | null = null
 
-vi.mock('@/hermes', () => ({
+// Keep the real read-origin helpers (WeakMap peek/bind) live: the shared
+// config hook reaches them through the barrel, and a bare mock would throw.
+vi.mock('@/hermes', async () => ({
+  ...(await vi.importActual<typeof ConfigApi>('@/api/config')),
   getGlobalModelInfo: (profile?: null | string) => getGlobalModelInfo(profile),
   getGlobalModelOptions: (opts?: unknown, profile?: null | string) => getGlobalModelOptions(opts, profile),
   getAuxiliaryModels: (profile?: null | string) => getAuxiliaryModels(profile),
@@ -90,7 +95,7 @@ async function renderModelSettings(scopeProfile?: string) {
   const { ModelSettings } = await import('./model-settings')
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
-  const result = render(
+  return render(
     // The aux-task deep-link highlight reads useSearchParams, so the page
     // needs a router context in tests (the app provides HashRouter at root).
     <MemoryRouter>
@@ -99,8 +104,6 @@ async function renderModelSettings(scopeProfile?: string) {
       </QueryClientProvider>
     </MemoryRouter>
   )
-
-  return { ...result, client }
 }
 
 describe('ModelSettings profile scope', () => {
@@ -157,7 +160,7 @@ describe('ModelSettings', () => {
       expect(screen.queryByText(/undefined/)).toBeNull()
       expect(screen.queryByText(/signs in through your browser/)).toBeNull()
 
-      fireEvent.click(await screen.findByRole('button', { name: 'Set up Provider' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Set up provider' }))
 
       expect(startManualLocalEndpoint).toHaveBeenCalledOnce()
       expect(startManualOnboarding).not.toHaveBeenCalled()
@@ -171,7 +174,7 @@ describe('ModelSettings', () => {
 
     await renderModelSettings()
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Set up Provider' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Set up provider' }))
 
     expect(startManualOnboarding).toHaveBeenCalledOnce()
     expect(startManualLocalEndpoint).not.toHaveBeenCalled()
@@ -237,7 +240,7 @@ describe('ModelSettings', () => {
 
     await waitFor(() => expect(getGlobalModelInfo).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(screen.getAllByRole('combobox')[0].textContent).toContain('Nous'))
-    expect(screen.queryByRole('button', { name: 'Set up Provider' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Set up provider' })).toBeNull()
   })
 
   it('preserves a user-defined provider endpoint when applying the main model', async () => {
@@ -288,18 +291,21 @@ describe('ModelSettings', () => {
     )
   })
 
-  it('writes the profile default speed (service_tier) when the fast switch is toggled', async () => {
+  it('writes the profile default speed (service_tier) as a sparse patch, never the cached snapshot', async () => {
+    // The cached record is a default-expanded snapshot; a CLI pin made after it
+    // loaded is not in it. Echoing the whole record back would reset that
+    // auxiliary slot to auto/'' (#95460) — only the edited key may be sent.
+    getHermesConfigRecord.mockResolvedValue({
+      agent: { reasoning_effort: 'medium', service_tier: 'normal' },
+      auxiliary: { curator: { provider: 'auto', model: '', reasoning_effort: 'high' } }
+    })
     await renderModelSettings()
     await waitFor(() => expect(getHermesConfigRecord).toHaveBeenCalled())
 
     const fastSwitch = await screen.findByRole('switch')
     fireEvent.click(fastSwitch)
 
-    await waitFor(() =>
-      expect(saveHermesConfig).toHaveBeenCalledWith(
-        expect.objectContaining({ agent: expect.objectContaining({ service_tier: 'fast' }) })
-      )
-    )
+    await waitFor(() => expect(saveHermesConfig).toHaveBeenCalledWith({ agent: { service_tier: 'fast' } }))
   })
 
   it('hides the reasoning/speed defaults when the main model reports no capabilities', async () => {
@@ -325,7 +331,45 @@ describe('ModelSettings', () => {
     await renderModelSettings()
 
     expect(await screen.findByText('Vision')).toBeTruthy()
+    // #97297 — the three canonical slots the backend serves must have rows too.
+    expect(screen.getByText('Triage specifier')).toBeTruthy()
+    expect(screen.getByText('Kanban decomposer')).toBeTruthy()
+    expect(screen.getByText('Profile describer')).toBeTruthy()
     expect(screen.getAllByText('auto · use main model').length).toBeGreaterThan(0)
+  })
+
+  it('edits auxiliary reasoning effort below the selected model and applies it with the assignment', async () => {
+    getAuxiliaryModels.mockResolvedValueOnce({
+      main: { provider: 'nous', model: 'hermes-4' },
+      tasks: [{ task: 'vision', provider: 'nous', model: 'hermes-4', base_url: '', reasoning_effort: null }]
+    })
+
+    await renderModelSettings()
+
+    expect(screen.queryByRole('combobox', { name: 'Vision reasoning effort' })).toBeNull()
+
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Change' }))[0])
+
+    const reasoningSelect = await screen.findByRole('combobox', { name: 'Vision reasoning effort' })
+    expect(reasoningSelect.compareDocumentPosition(await screen.findByRole('combobox', { name: 'Vision model' }))).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING
+    )
+
+    fireEvent.click(reasoningSelect)
+    fireEvent.click(await screen.findByRole('option', { name: 'High' }))
+
+    const applyButtons = await screen.findAllByRole('button', { name: 'Apply' })
+    fireEvent.click(applyButtons.at(-1)!)
+
+    await waitFor(() =>
+      expect(setModelAssignment).toHaveBeenCalledWith({
+        model: 'hermes-4',
+        provider: 'nous',
+        scope: 'auxiliary',
+        task: 'vision',
+        reasoning_effort: 'high'
+      })
+    )
   })
 
   it('assigns an auxiliary task to the main model via setModelAssignment', async () => {
@@ -412,6 +456,20 @@ describe('ModelSettings', () => {
     expect(await screen.findByText(/still run on/)).toBeTruthy()
   })
 
+  it('does not warn when an aux slot uses the main alias', async () => {
+    getAuxiliaryModels.mockResolvedValueOnce({
+      main: { provider: 'nous', model: 'hermes-4' },
+      tasks: [{ task: 'vision', provider: 'main', model: 'kimi-k3', base_url: '' }]
+    })
+
+    await renderModelSettings()
+    await screen.findAllByRole('button', { name: 'Set to main' })
+
+    // 'main' is a backend-supported alias that tracks the active main provider
+    // (auxiliary_client._normalize_aux_provider) — it can never be a stale pin. #97310
+    expect(screen.queryByText(/still run on/)).toBeNull()
+  })
+
   it('does not flag an aux slot pinned to a local/LAN endpoint and shows its base_url', async () => {
     getAuxiliaryModels.mockResolvedValueOnce({
       main: { provider: 'ollama-cloud', model: 'glm-5.3-flash' },
@@ -485,12 +543,6 @@ describe('ModelSettings MoA preset editor', () => {
           name: 'OpenRouter',
           slug: 'openrouter',
           models: ['deepseek/deepseek-v4-pro', 'anthropic/claude-opus-4.8'],
-          authenticated: true
-        },
-        {
-          name: 'Mixture of Agents',
-          slug: 'moa',
-          models: ['default'],
           authenticated: true
         }
       ]
@@ -605,52 +657,6 @@ describe('ModelSettings MoA preset editor', () => {
     }
   })
 
-  it('does not paint the unsaved default as picker-enabled and exposes it after the first save', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
-
-    try {
-      getGlobalModelOptions.mockResolvedValueOnce({
-        providers: [
-          {
-            name: 'Nous',
-            slug: 'nous',
-            models: ['hermes-4'],
-            authenticated: true
-          },
-          {
-            name: 'OpenRouter',
-            slug: 'openrouter',
-            models: ['deepseek/deepseek-v4-pro', 'anthropic/claude-opus-4.8'],
-            authenticated: true
-          }
-        ]
-      })
-
-      const { client } = await renderModelSettings()
-      const invalidate = vi.spyOn(client, 'invalidateQueries')
-      const enabled = await screen.findByRole('switch', { name: 'Enabled' })
-
-      // normalize_moa_config({}) has enabled:true, but explicit-only model
-      // options omit MoA until the user actually saves that default.
-      expect(enabled.getAttribute('aria-checked')).toBe('false')
-
-      fireEvent.click(enabled)
-      expect(enabled.getAttribute('aria-checked')).toBe('true')
-      await vi.advanceTimersByTimeAsync(700)
-
-      expect(saveMoaModels).toHaveBeenCalledWith(
-        expect.objectContaining({
-          presets: expect.objectContaining({
-            default: expect.objectContaining({ enabled: true })
-          })
-        })
-      )
-      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['model-options', 'default'] })
-    } finally {
-      vi.useRealTimers()
-    }
-  })
-
   it('saves a disabled reference model without removing it (per-slot enabled toggle)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
 
@@ -675,6 +681,13 @@ describe('ModelSettings MoA preset editor', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('labels the aggregator row as the acting model billed for the run', async () => {
+    await openReferenceEditor()
+
+    // The aggregator row is the slot that pays for the whole tool loop (#112359).
+    expect(screen.getByText('acting model · billed for the run')).toBeTruthy()
   })
 })
 

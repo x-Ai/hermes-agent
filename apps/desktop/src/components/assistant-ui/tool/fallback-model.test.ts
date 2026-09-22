@@ -27,12 +27,9 @@ afterEach(() => {
 })
 
 describe('buildToolView image handling', () => {
-  // vision_analyze reports the input image as a local path; an <img> pointed at
-  // a bare path resolves against the renderer origin and 404s, so we render the
-  // tool codicon instead of a broken image.
-  it('drops bare filesystem paths', () => {
-    expect(buildToolView(part({ args: { path: '/Users/me/shot.png' } }), '').imageUrl).toBe('')
-    expect(buildToolView(part({ result: { image_path: '/tmp/out.jpg' } }), '').imageUrl).toBe('')
+  it('keeps local image paths for the activity renderer to resolve', () => {
+    expect(buildToolView(part({ args: { path: '/Users/me/shot.png' } }), '').imageUrl).toBe('/Users/me/shot.png')
+    expect(buildToolView(part({ result: { image_path: '/tmp/out.jpg' } }), '').imageUrl).toBe('/tmp/out.jpg')
   })
 
   it('keeps fetchable data URLs', () => {
@@ -48,198 +45,6 @@ describe('buildToolView image handling', () => {
   })
 })
 
-describe('buildToolView localized errors', () => {
-  it.each([
-    ['zh', '写入文件失败：'],
-    ['zh-hant', '寫入檔案失敗：'],
-    ['ja', 'ファイルへの書き込みに失敗しました：'],
-    ['ar', 'فشل في كتابة الملف: ']
-  ] as const)(
-    'localizes the write-file failure prefix in %s while preserving the shell diagnostic',
-    (locale, prefix) => {
-      setRuntimeI18nLocale(locale)
-      const diagnostic = 'bash: line 4: cd: G:\\XenForo: No such file or directory'
-
-      const view = buildToolView(
-        part({
-          args: { path: 'G:\\XenForo\\config.php' },
-          isError: true,
-          result: { error: `Failed to write file: ${diagnostic}` },
-          toolName: 'write_file'
-        }),
-        ''
-      )
-
-      expect(view.subtitle).toBe(`${prefix}${diagnostic}`)
-    }
-  )
-
-  it('localizes the sensitive-system-path refusal while preserving the path', () => {
-    setRuntimeI18nLocale('zh')
-    const path = '/etc/nginx/sites-available/xf-loose'
-
-    const view = buildToolView(
-      part({
-        args: { path },
-        isError: true,
-        result: {
-          error: `Refusing to write to sensitive system path: ${path}\nUse the terminal tool with sudo if you need to modify system files.`
-        },
-        toolName: 'write_file'
-      }),
-      ''
-    )
-
-    expect(view.subtitle).toBe(`拒绝写入敏感系统路径：${path} 如需修改系统文件，请使用终端工具并通过 sudo 执行`)
-  })
-
-  it('localizes a session-kernel timeout only at the Desktop execute_code render boundary', () => {
-    setRuntimeI18nLocale('zh')
-
-    const raw =
-      'Cell timed out after 300s; the session kernel was killed and its state was lost. The next execute_code call starts a fresh kernel.'
-
-    const localized =
-      '执行单元在 300 秒后超时；会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。'
-
-    const codeView = buildToolView(
-      part({
-        isError: true,
-        result: { error: raw, output: `⏰ ${raw}`, status: 'timeout' },
-        toolName: 'execute_code'
-      }),
-      ''
-    )
-
-    expect(codeView.subtitle).toBe(localized)
-    expect(codeView.detail).toBe(`${localized}\n\n⏰ ${localized}`)
-
-    const terminalView = buildToolView(part({ isError: true, result: { error: raw }, toolName: 'terminal' }), '')
-
-    expect(terminalView.subtitle).toBe(raw)
-  })
-
-  it('localizes the remote-kernel timeout variant and preserves unknown backend text', () => {
-    setRuntimeI18nLocale('zh')
-
-    const raw =
-      'Cell timed out after 42s; the remote session kernel was killed and its state was lost. The next call starts fresh.'
-
-    const localized =
-      '执行单元在 42 秒后超时；远程会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核。'
-
-    expect(buildToolView(part({ isError: true, result: { error: raw }, toolName: 'execute_code' }), '').subtitle).toBe(
-      localized
-    )
-
-    const unknown = 'Cell timed out with a future kernel protocol.'
-
-    expect(
-      buildToolView(part({ isError: true, result: { error: unknown }, toolName: 'execute_code' }), '').subtitle
-    ).toBe(unknown)
-  })
-
-  it.each([
-    ['zh', 'questions 参数必须是一个由问题对象组成的数组'],
-    ['zh-hant', 'questions 參數必須是由問題物件組成的陣列'],
-    ['ja', 'questions パラメーターは質問オブジェクトの配列である必要があります。'],
-    ['ar', 'يجب أن تكون المعلمة questions مصفوفة من كائنات الأسئلة.']
-  ] as const)('localizes the clarify batch-shape error in %s', (locale, expected) => {
-    setRuntimeI18nLocale(locale)
-
-    const view = buildToolView(
-      part({
-        isError: true,
-        result: { error: 'questions must be an array of question objects.' },
-        toolName: 'clarify'
-      }),
-      ''
-    )
-
-    expect(view.subtitle).toBe(expected)
-  })
-
-  it.each([
-    ['questions supports at most 5 items.', 'questions 参数最多支持 5 项'],
-    ["questions[2] must be an object with a 'question'.", 'questions[2] 必须是包含 question 字段的对象'],
-    ['questions[1].question must be non-empty text.', 'questions[1].question 必须是非空文本'],
-    ['questions[3].choices must be a list.', 'questions[3].choices 必须是数组'],
-    ['choices must be a list of strings.', 'choices 参数必须是字符串数组'],
-    [
-      "No question provided. Pass questions=[{question: '...', choices?: [...], multi_select?: bool}, ...] — a single question is a one-entry array.",
-      '未提供问题。请在 questions 数组中至少传入一个对象并填写 question；choices 和 multi_select 为可选字段'
-    ],
-    ['Clarify tool is not available in this execution context.', '当前环境无法使用澄清问题工具'],
-    ['Failed to get user input: renderer disconnected', '获取用户输入失败：renderer disconnected']
-  ] as const)('localizes related clarify validation error: %s', (source, expected) => {
-    setRuntimeI18nLocale('zh')
-
-    const view = buildToolView(part({ isError: true, result: { error: source }, toolName: 'clarify' }), '')
-
-    expect(view.subtitle).toBe(expected)
-  })
-
-  it('localizes generic desktop tool-error fallbacks', () => {
-    setRuntimeI18nLocale('zh')
-
-    expect(buildToolView(part({ isError: true, result: {} }), '').subtitle).toBe('工具返回了错误')
-    expect(buildToolView(part({ result: { success: false } }), '').subtitle).toBe('工具返回 success=false')
-    expect(buildToolView(part({ result: { status: 'failed' } }), '').subtitle).toBe('工具返回了“failed”状态')
-    expect(buildToolView(part({ result: { exit_code: 127 }, toolName: 'terminal' }), '').subtitle).toBe(
-      '命令执行失败，退出码为 127'
-    )
-  })
-})
-
-describe('buildToolView localized counts', () => {
-  it('localizes the session-search title and item count', () => {
-    setRuntimeI18nLocale('zh')
-
-    const view = buildToolView(
-      part({
-        result: { items: [{ id: 1 }, { id: 2 }, { id: 3 }] },
-        toolName: 'session_search_recall'
-      }),
-      ''
-    )
-
-    expect(view.title).toBe('已搜索会话历史')
-    expect(view.countLabel).toBe('3 项')
-  })
-})
-
-describe('buildToolView localized skill loading', () => {
-  it('describes skill_view by its loading action instead of its implementation name', () => {
-    setRuntimeI18nLocale('zh')
-
-    const pending = buildToolView(part({ result: undefined, toolName: 'skill_view' }), '')
-    const done = buildToolView(part({ result: { success: true }, toolName: 'skill_view' }), '')
-
-    expect(pending.title).toBe('正在加载技能')
-    expect(done.title).toBe('已加载技能')
-  })
-})
-
-describe('buildToolView localized protocol-tool fallback', () => {
-  it('humanizes an unknown stable tool id and applies the localized running template', () => {
-    setRuntimeI18nLocale('zh')
-
-    const pending = buildToolView(part({ result: undefined, toolName: 'drive_preview' }), '')
-    const done = buildToolView(part({ result: { success: true }, toolName: 'drive_preview' }), '')
-
-    expect(pending.title).toBe('正在运行 Drive Preview')
-    expect(done.title).toBe('已运行 Drive Preview')
-  })
-
-  it('adds the localized completed-action prefix to computer-use calls', () => {
-    setRuntimeI18nLocale('zh')
-
-    const view = buildToolView(part({ result: { success: true }, toolName: 'computer_use' }), '')
-
-    expect(view.title).toBe('已运行 Computer Use')
-  })
-})
-
 describe('buildToolView terminal exit-code status', () => {
   const terminal = (result: Record<string, unknown>) => buildToolView(part({ result, toolName: 'terminal' }), '')
 
@@ -251,10 +56,9 @@ describe('buildToolView terminal exit-code status', () => {
     expect(terminal({ exit_code: 1, stdout: 'partial results' }).status).toBe('success')
   })
 
-  // No output + non-zero exit is a genuine failure worth flagging.
-  it('treats non-zero exit with no output as error', () => {
+  it('distinguishes a command failure from an empty no-match exit', () => {
     expect(terminal({ exit_code: 127, output: '' }).status).toBe('error')
-    expect(terminal({ exit_code: 1 }).status).toBe('error')
+    expect(terminal({ exit_code: 1, output: '' }).status).toBe('notice')
   })
 
   it('treats zero exit as success', () => {
@@ -281,6 +85,87 @@ describe('buildToolView terminal exit-code status', () => {
 
     expect(view.terminalCommand).toBe('npm run check --workspace=apps/desktop')
     expect(view.terminalExitCode).toBe(0)
+  })
+})
+
+describe('buildToolView error confidence', () => {
+  it('keeps routine misses and returned diagnostic data out of destructive status', () => {
+    const cases: Array<[Partial<ToolPart>, ReturnType<typeof buildToolView>['status']]> = [
+      [
+        {
+          toolName: 'read_file',
+          result: { error: 'File not found: /repo/session-view.ts', similar_files: ['/repo/session-view.tsx'] }
+        },
+        'notice'
+      ],
+      [{ toolName: 'read_file', isError: true, result: { error: 'File not found: /repo/session-view.ts' } }, 'notice'],
+      [{ toolName: 'terminal', result: { exit_code: 0, output: '{"error":"a logged failure"}' } }, 'success'],
+      [{ result: { error: 'none', message: 'No changes needed' } }, 'success'],
+      [{ result: { status: 'no error', message: 'Ready' } }, 'success'],
+      [{ result: { meta: { error: 'a previous attempt' }, data: { count: 1 } } }, 'success'],
+      [{ toolName: 'read_file', result: { error: 'Permission denied reading /repo/private.ts' } }, 'error'],
+      [{ toolName: 'patch', result: { error: 'File not found: /repo/session-view.ts' } }, 'error'],
+      [{ result: { success: false, result: { output: { error: { message: 'Connection refused' } } } } }, 'error']
+    ]
+
+    for (const [overrides, status] of cases) {
+      expect(buildToolView(part(overrides), '').status, JSON.stringify(overrides)).toBe(status)
+    }
+  })
+})
+
+describe('buildToolView envelope errors', () => {
+  it('shows the event error when the result carries no explanation', () => {
+    const view = buildToolView(
+      part({
+        isError: true,
+        result: 'partial output',
+        toolName: 'terminal',
+        toolResultMetadata: { error: 'killed by signal 9' }
+      }),
+      ''
+    )
+
+    expect(view.status).toBe('error')
+    expect(view.subtitle).toBe('killed by signal 9')
+  })
+
+  it('keeps an envelope-only read miss on the notice tier', () => {
+    const view = buildToolView(
+      part({
+        isError: true,
+        result: undefined,
+        completedAt: 5,
+        toolName: 'read_file',
+        toolResultMetadata: { error: 'File not found: /repo/missing.ts' }
+      }),
+      ''
+    )
+
+    expect(view.status).toBe('notice')
+  })
+})
+
+describe('buildToolView calls sealed without a result', () => {
+  it('warns that a lost result is unavailable', () => {
+    const view = buildToolView(part({ completedAt: 5, result: undefined, toolName: 'terminal' }), '')
+
+    expect(view.status).toBe('warning')
+    expect(view.title).toBe('Result unavailable')
+  })
+
+  it('shows a call the user interrupted as a neutral notice', () => {
+    const view = buildToolView(part({ completedAt: 5, interrupted: true, result: undefined, toolName: 'terminal' }), '')
+
+    expect(view.status).toBe('notice')
+    expect(view.title).toBe('Interrupted')
+  })
+
+  it('shows the real result when one arrived after the interruption', () => {
+    const view = buildToolView(part({ completedAt: 5, interrupted: true, result: 'ok', toolName: 'terminal' }), '')
+
+    expect(view.status).toBe('success')
+    expect(view.title).not.toBe('Interrupted')
   })
 })
 
@@ -337,21 +222,6 @@ describe('buildToolView web-search query', () => {
     expect(view.searchHits).toEqual([
       { snippet: 'Desktop docs', title: 'Hermes docs', url: 'https://example.com/docs' }
     ])
-  })
-
-  it('separates the Simplified Chinese action from the quoted query', () => {
-    setRuntimeI18nLocale('zh')
-
-    const view = buildToolView(
-      part({
-        args: { query: 'nginx location priority' },
-        result: { web: [] },
-        toolName: 'web_search'
-      }),
-      ''
-    )
-
-    expect(view.title).toBe('已搜索 "nginx location priority"')
   })
 })
 

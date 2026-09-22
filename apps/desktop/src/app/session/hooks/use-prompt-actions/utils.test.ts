@@ -1,7 +1,6 @@
 import type { AppendMessage } from '@assistant-ui/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { setRuntimeI18nLocale } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 
 import {
@@ -37,7 +36,6 @@ import {
 afterEach(() => {
   clearSessionRecentlyInterrupted()
   clearSubmitInFlight()
-  setRuntimeI18nLocale('en')
 })
 
 describe('recent interrupt cooldown', () => {
@@ -496,15 +494,6 @@ describe('renderRpcResult', () => {
         'Steer rejected — agent declined input'
       )
     })
-
-    it('localizes queued and rejected steer status at the desktop renderer boundary', () => {
-      setRuntimeI18nLocale('zh')
-
-      expect(renderRpcResult({ status: 'queued', text: '跳过文档' }, 'steer')).toBe(
-        '已引导 · “跳过文档”已排队，将在下一次工具调用时送达'
-      )
-      expect(renderRpcResult({ status: 'rejected', text: 'whatever' }, 'steer')).toBe('引导未生效——代理未接受该输入')
-    })
   })
 
   describe('process.stop', () => {
@@ -553,6 +542,29 @@ describe('renderRpcResult', () => {
 
       expect(body.split('\n')).toEqual([
         'Usage: 1 calls · 10 in / 20 out · 30 total',
+        'Nous credits: 8,420 remaining',
+        'Resets: 2026-08-01'
+      ])
+    })
+
+    it('appends account_lines before credits_lines when present', () => {
+      const body = renderRpcResult(
+        {
+          calls: 1,
+          input: 10,
+          output: 20,
+          total: 30,
+          account_lines: ['📈 Account limits', 'Provider: openai-codex (Plus)', 'Weekly: 12% used'],
+          credits_lines: ['Nous credits: 8,420 remaining', 'Resets: 2026-08-01']
+        },
+        'usage'
+      )
+
+      expect(body.split('\n')).toEqual([
+        'Usage: 1 calls · 10 in / 20 out · 30 total',
+        '📈 Account limits',
+        'Provider: openai-codex (Plus)',
+        'Weekly: 12% used',
         'Nous credits: 8,420 remaining',
         'Resets: 2026-08-01'
       ])

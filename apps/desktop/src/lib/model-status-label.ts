@@ -1,5 +1,3 @@
-import { DEFAULT_REASONING_EFFORT, reasoningEffortLabel } from '@/lib/reasoning-effort'
-
 /** Which model/provider pair a picker should mark "current". SessionView state
  *  also drives the composer label, so a complete pair there wins over an older
  *  `model.options` response. During initial hydration (or pre-session startup),
@@ -33,47 +31,25 @@ export function currentPickerSelection(
   }
 }
 
-/** Catalog display name for a provider slug. Case-insensitive, and a
- *  `custom:<id>` slug also matches the catalog row whose slug is the bare
- *  endpoint id — the backend reports the durable `custom:<id>` identity for
- *  named endpoints while the catalog rows carry the id itself. */
-export function providerCatalogName(
-  provider: string,
-  providers?: ReadonlyArray<{ name: string; slug: string }>
-): string | undefined {
-  const slug = provider.trim().toLowerCase()
-
-  if (!slug || !providers) {
-    return undefined
-  }
-
-  const bare = slug.startsWith('custom:') ? slug.slice('custom:'.length) : slug
-
-  return providers.find(entry => {
-    const entrySlug = entry.slug.trim().toLowerCase()
-
-    return entrySlug === slug || entrySlug === bare
-  })?.name
+/** Canonical provider labels shared by onboarding and the model pill. OAuth
+ * provider ids stay distinct from their direct-API counterparts so a session on
+ * `xai-oauth` never reads as the plain `xai` key path, and internal route names
+ * never reach user-facing copy. */
+export const PROVIDER_DISPLAY_NAMES: Readonly<Record<string, string>> = {
+  anthropic: 'Anthropic API Key',
+  'claude-code': 'Anthropic OAuth: Required Extra Usage Credits to Use Subscription',
+  'minimax-oauth': 'MiniMax',
+  nous: 'Nous Portal',
+  'openai-codex': 'ChatGPT or Codex Subscription',
+  'qwen-oauth': 'Qwen Code',
+  xai: 'xAI',
+  'xai-oauth': 'xAI Grok'
 }
 
-/** Provider label for the composer pill tooltip. Custom endpoints carry an
- *  opaque slug (`custom`, or a `custom:<id>` scheme for `custom_providers`
- *  entries) — prefer the catalog's display name (the endpoint's user-chosen
- *  `name`), else strip the `custom:` scheme so the endpoint id shows, else
- *  the raw slug. */
-export function displayProviderLabel(provider: string, catalogName?: string): string {
-  const slug = provider.trim()
-  const name = catalogName?.trim()
+export function providerDisplayName(provider: string): string {
+  const normalized = provider.trim().toLowerCase()
 
-  if (name) {
-    return name
-  }
-
-  if (/^custom:/i.test(slug)) {
-    return slug.slice('custom:'.length) || slug
-  }
-
-  return slug
+  return PROVIDER_DISPLAY_NAMES[normalized] ?? provider.trim()
 }
 
 /** Strip provider prefix and normalize for display. */
@@ -97,8 +73,19 @@ const VARIANT_TAGS: ReadonlyArray<readonly [RegExp, string]> = [
 const titleCase = (text: string): string => text.replace(/\b\w/g, char => char.toUpperCase()).trim()
 
 function prettifyBase(base: string): string {
+  if (/^deepseek-flash$/i.test(base)) {
+    return 'DeepSeek V4.1 Flash'
+  }
+
   if (/^claude-/i.test(base)) {
-    return titleCase(base.replace(/^claude-/i, '').replace(/-/g, ' '))
+    // Anthropic ids spell the version with hyphens (`haiku-4-5`, `fable-5-1`);
+    // the human name is dotted ("Haiku 4.5"), not "Haiku 4 5".
+    return titleCase(
+      base
+        .replace(/^claude-/i, '')
+        .replace(/(\d)-(?=\d)/g, '$1.')
+        .replace(/-/g, ' ')
+    )
   }
 
   if (/^gpt-/i.test(base)) {
@@ -141,6 +128,16 @@ export function modelDisplayParts(model: string): { name: string; tag: string } 
     }
   }
 
+  // Anthropic's `[1m]` route suffix selects the 1M-context window. It is a
+  // variant of the same model, so it renders as a tag ("Sonnet 5 · 1M") rather
+  // than raw brackets that read like an ANSI escape ("Sonnet 5[1m]").
+  const contextWindow = base.match(/\[(\d+[mk])\]$/i)
+
+  if (contextWindow) {
+    tag = tag ? `${tag} ${contextWindow[1].toUpperCase()}` : contextWindow[1].toUpperCase()
+    base = base.slice(0, -contextWindow[0].length)
+  }
+
   // Drop a trailing date-pin (`…-20251101`) — snapshot noise, not a name.
   base = base.replace(/-\d{8}$/, '')
 
@@ -152,32 +149,17 @@ export function displayModelName(model: string): string {
   return modelDisplayParts(model).name
 }
 
-/** Status bar trigger label — model name plus the live session state (effort/fast).
- *  `displayName` overrides the prettified name for ids that aren't real model ids
- *  (MoA presets are user-chosen names — shown verbatim, `default` localized).
- *  `defaultEffort` is the profile's configured level, used when the surface has
- *  no explicit effort so the label never advertises a default the agent won't use. */
-export function formatModelStatusLabel(
-  model: string,
-  options?: { displayName?: string; defaultEffort?: string; fastMode?: boolean; reasoningEffort?: string }
-): string {
-  const name = options?.displayName || displayModelName(model)
-
-  if (!model.trim()) {
-    return name
-  }
-
-  const parts: string[] = []
+/** Composer model-pill label — model name plus Fast when it applies. The
+ *  reasoning level is NOT here: it has its own pill (`ReasoningPill`), so a
+ *  long model name can no longer push the effort out of the truncating span. */
+export function formatModelPillLabel(model: string, options?: { fastMode?: boolean }): string {
+  const name = displayModelName(model)
 
   // Fast is shown when the speed=fast param is on (options.fastMode) OR the
   // active model is a `…-fast` variant (fast via a separate model id).
-  if (options?.fastMode || /-fast$/i.test(modelBaseId(model))) {
-    parts.push('Fast')
+  if (model.trim() && (options?.fastMode || /-fast$/i.test(modelBaseId(model)))) {
+    return `${name} · Fast`
   }
 
-  // Always surface the effort so the current reasoning level is visible at a
-  // glance, not just when non-default.
-  parts.push(reasoningEffortLabel(options?.reasoningEffort || options?.defaultEffort || DEFAULT_REASONING_EFFORT))
-
-  return `${name} · ${parts.join(' ')}`
+  return name
 }

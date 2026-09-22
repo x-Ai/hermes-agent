@@ -12,15 +12,7 @@ import { Toast } from "@nous-research/ui/ui/components/toast";
 import { api } from "@/lib/api";
 import type { AutomationBlueprint, AutomationBlueprintField } from "@/lib/api";
 import { cn, themedBody } from "@/lib/utils";
-import { useI18n } from "@/i18n";
-import { getDashboardCopy } from "@/i18n/dashboard";
-import {
-  localizeBlueprintDescription,
-  localizeBlueprintField,
-  localizeBlueprintTitle,
-  localizeBlueprintValue
-} from "@/i18n/blueprint-metadata";
-import type { Locale } from "@/i18n/types";
+import { errorMessage } from "@/lib/api-error";
 
 interface AutomationBlueprintsProps {
   profile: string;
@@ -39,35 +31,38 @@ function FieldInput({
   field,
   value,
   onChange,
-  locale
 }: {
   field: AutomationBlueprintField;
   value: string;
   onChange: (v: string) => void;
-  locale: Locale;
 }) {
-  const localized = localizeBlueprintField(field, locale);
   if (field.type === "enum" || field.type === "weekdays") {
     return (
-      <Select value={value} onValueChange={v => onChange(v)}>
-        {field.options.map(opt => (
+      <Select value={value} onValueChange={(v) => onChange(v)}>
+        {field.options.map((opt) => (
           <SelectOption key={opt} value={opt}>
-            {localizeBlueprintValue(opt, locale)}
+            {opt}
           </SelectOption>
         ))}
       </Select>
     );
   }
   if (field.type === "time") {
-    return <Input type="time" value={value} onChange={e => onChange(e.target.value)} />;
+    return (
+      <Input
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
   }
   // text
   return (
     <Input
       type="text"
       value={value}
-      placeholder={localized.help || localized.label}
-      onChange={e => onChange(e.target.value)}
+      placeholder={field.help || field.label}
+      onChange={(e) => onChange(e.target.value)}
     />
   );
 }
@@ -76,17 +71,13 @@ function BlueprintCard({
   blueprint,
   profile,
   showToast,
-  onCreated
+  onCreated,
 }: {
   blueprint: AutomationBlueprint;
   profile: string;
   showToast: (message: string, type: "error" | "success") => void;
   onCreated?: () => void;
 }) {
-  const { locale, t } = useI18n();
-  const dashboard = getDashboardCopy(t);
-  const copy = dashboard.cron;
-  const title = localizeBlueprintTitle(blueprint.key, blueprint.title, dashboard);
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(() => initialValues(blueprint));
   const [submitting, setSubmitting] = useState(false);
@@ -96,12 +87,9 @@ function BlueprintCard({
     setSubmitting(true);
     setError(null);
     try {
-      const job = await api.instantiateAutomationBlueprint(
-        { blueprint: blueprint.key, values },
-        profile
-      );
+      const job = await api.instantiateAutomationBlueprint({ blueprint: blueprint.key, values }, profile);
       const when = job.schedule_display ? ` — ${job.schedule_display}` : "";
-      showToast(`${copy.scheduledToast.replace("{name}", title)}${when}`, "success");
+      showToast(`${blueprint.title} scheduled${when}`, "success");
       setOpen(false);
       setValues(initialValues(blueprint));
       onCreated?.();
@@ -112,7 +100,7 @@ function BlueprintCard({
     } finally {
       setSubmitting(false);
     }
-  }, [blueprint, copy.scheduledToast, onCreated, profile, showToast, title, values]);
+  }, [blueprint, values, profile, showToast, onCreated]);
 
   return (
     <Card className={cn("overflow-hidden", themedBody)}>
@@ -121,39 +109,38 @@ function BlueprintCard({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <Wand2 className="h-4 w-4 shrink-0 opacity-70" />
-              <span className="font-medium">{title}</span>
+              <span className="font-medium">{blueprint.title}</span>
             </div>
-            <p className="mt-1 text-sm opacity-70">
-              {localizeBlueprintDescription(blueprint.key, blueprint.description, locale)}
-            </p>
+            <p className="mt-1 text-sm opacity-70">{blueprint.description}</p>
             <div className="mt-2 flex flex-wrap gap-1">
-              {blueprint.tags.map(t => (
+              {blueprint.tags.map((t) => (
                 <Badge key={t} tone="secondary">
-                  {localizeBlueprintValue(t, locale)}
+                  {t}
                 </Badge>
               ))}
             </div>
           </div>
-          <Button ghost={open} size="sm" onClick={() => setOpen(o => !o)}>
-            {open ? t.common.cancel : copy.setUp}
+          <Button
+            ghost={open}
+            size="sm"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? "Cancel" : "Set up"}
           </Button>
         </div>
 
         {open && (
           <div className="space-y-3 border-t pt-3">
-            {blueprint.fields.map(f => (
+            {blueprint.fields.map((f) => (
               <div key={f.name} className="space-y-1">
-                <Label htmlFor={`${blueprint.key}-${f.name}`}>
-                  {localizeBlueprintField(f, locale).label}
-                </Label>
+                <Label htmlFor={`${blueprint.key}-${f.name}`}>{f.label}</Label>
                 <FieldInput
                   field={f}
                   value={values[f.name] ?? ""}
-                  onChange={v => setValues(prev => ({ ...prev, [f.name]: v }))}
-                  locale={locale}
+                  onChange={(v) => setValues((prev) => ({ ...prev, [f.name]: v }))}
                 />
                 {f.help && f.type !== "text" ? (
-                  <p className="text-xs opacity-60">{localizeBlueprintField(f, locale).help}</p>
+                  <p className="text-xs opacity-60">{f.help}</p>
                 ) : null}
               </div>
             ))}
@@ -168,7 +155,7 @@ function BlueprintCard({
                 disabled={submitting}
                 prefix={submitting ? <Spinner /> : <Clock />}
               >
-                {copy.scheduleIt}
+                Schedule it
               </Button>
             </div>
           </div>
@@ -185,8 +172,6 @@ function BlueprintCard({
  * via the same create_job path as everything else.
  */
 export function AutomationBlueprints({ profile, onCreated }: AutomationBlueprintsProps) {
-  const { t } = useI18n();
-  const copy = getDashboardCopy(t).cron;
   const { toast, showToast } = useToast();
   const [blueprints, setBlueprints] = useState<AutomationBlueprint[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -195,11 +180,11 @@ export function AutomationBlueprints({ profile, onCreated }: AutomationBlueprint
     let cancelled = false;
     api
       .getAutomationBlueprints()
-      .then(r => {
+      .then((r) => {
         if (!cancelled) setBlueprints(r.blueprints);
       })
-      .catch(e => {
-        if (!cancelled) setLoadError(e instanceof Error ? e.message : String(e));
+      .catch((e) => {
+        if (!cancelled) setLoadError(errorMessage(e));
       });
     return () => {
       cancelled = true;
@@ -207,28 +192,24 @@ export function AutomationBlueprints({ profile, onCreated }: AutomationBlueprint
   }, []);
 
   if (loadError) {
-    return (
-      <p className="text-sm text-red-500">
-        {copy.loadBlueprintsFailed}: {loadError}
-      </p>
-    );
+    return <p className="text-sm text-red-500">Couldn't load blueprints: {loadError}</p>;
   }
   if (blueprints === null) {
     return (
       <div className="flex items-center gap-2 opacity-70">
-        <Spinner className="h-4 w-4" /> {copy.loadingBlueprints}
+        <Spinner className="h-4 w-4" /> Loading blueprints…
       </div>
     );
   }
   if (blueprints.length === 0) {
-    return <p className="opacity-70">{copy.noBlueprints}</p>;
+    return <p className="opacity-70">No automation blueprints available.</p>;
   }
 
   return (
     <>
       <Toast toast={toast} />
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {blueprints.map(r => (
+        {blueprints.map((r) => (
           <BlueprintCard
             key={r.key}
             blueprint={r}

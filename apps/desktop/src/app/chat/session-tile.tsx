@@ -24,6 +24,7 @@ import { useModelControls } from '@/app/session/hooks/use-model-controls'
 import { blobToDataUrl } from '@/app/session/hooks/use-prompt-actions/utils'
 import { resolveStoredSession } from '@/app/session/hooks/use-session-actions/utils'
 import { ModelMenuPanel } from '@/app/shell/model-menu-panel'
+import { ReasoningMenuPanel } from '@/app/shell/reasoning-menu-panel'
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { CenteredThreadSpinner } from '@/components/assistant-ui/thread/status'
 import { findGroupOfPane } from '@/components/pane-shell/tree/model'
@@ -148,6 +149,7 @@ function buildTileView(storedSessionId: string): SessionView {
     $model: computed($state, state => state?.model ?? ''),
     $provider: computed($state, state => state?.provider ?? ''),
     $reasoningEffort: computed($state, state => state?.reasoningEffort ?? ''),
+    $reasoningEffortWire: computed($state, state => state?.reasoningEffortWire ?? ''),
     $runtimeId,
     // Constant for the tile's lifetime — a plain atom, not a computed.
     $storedId: atom(storedSessionId),
@@ -224,9 +226,19 @@ function TileChat({
       $awaitingInput: sessionAwaitingInput(runtimeId),
       $messages: view.$messages,
       attachments,
+      connectionId: ownerRoute?.connectionId || undefined,
+      profile: ownerRoute?.targetProfile || ownerRoute?.profile || undefined,
       target: `tile:${storedSessionId}`
     }),
-    [attachments, runtimeId, storedSessionId, view.$messages]
+    [
+      attachments,
+      ownerRoute?.connectionId,
+      ownerRoute?.profile,
+      ownerRoute?.targetProfile,
+      runtimeId,
+      storedSessionId,
+      view.$messages
+    ]
   )
 
   // Tile actions must keep the persisted owner route. The ambient gateway hook
@@ -295,6 +307,27 @@ function TileChat({
     ]
   )
 
+  const reasoningMenuContent = useMemo(
+    () =>
+      gatewayOpen ? (
+        <ReasoningMenuPanel
+          onSelectModel={selectModel}
+          ownerConnectionId={ownerRoute?.connectionId || undefined}
+          profile={ownerRoute?.targetProfile || ownerRoute?.profile || activeGatewayProfile}
+          requestGateway={requestTileGateway}
+        />
+      ) : null,
+    [
+      activeGatewayProfile,
+      gatewayOpen,
+      ownerRoute?.connectionId,
+      ownerRoute?.profile,
+      ownerRoute?.targetProfile,
+      requestTileGateway,
+      selectModel
+    ]
+  )
+
   return (
     <SessionViewProvider value={view}>
       <ComposerScopeProvider value={scope}>
@@ -308,7 +341,6 @@ function TileChat({
           onAttachDroppedItems={composer.attachDroppedItems}
           onAttachImageBlob={composer.attachImageBlob}
           onAttachPastedText={composer.attachPastedText}
-          onAttachPrCommentUrl={composer.attachPrCommentUrl}
           onCancel={actions.cancelRun}
           onDeleteSelectedSession={noop}
           onDismissError={actions.dismissError}
@@ -327,6 +359,7 @@ function TileChat({
           onThreadMessagesChange={actions.handleThreadMessagesChange}
           onToggleSelectedPin={noop}
           onTranscribeAudio={tileTranscribeAudio}
+          reasoningMenuContent={reasoningMenuContent}
           requestModelOptionsForOwner={requestTileGateway}
         />
       </ComposerScopeProvider>
@@ -335,7 +368,6 @@ function TileChat({
 }
 
 export function SessionTilePane({ storedSessionId }: { storedSessionId: string }) {
-  const { t } = useI18n()
   const tiles = useStore($sessionTiles)
   const tile = tiles.find(t => t.storedSessionId === storedSessionId)
   const ownerRoute = tile?.ownerRoute
@@ -465,10 +497,10 @@ export function SessionTilePane({ storedSessionId }: { storedSessionId: string }
     return (
       <div className="grid h-full place-items-center p-4">
         <div className="max-w-[24rem] space-y-2 text-center font-mono text-[11px]">
-          <div className="text-(--ui-danger,#f87171)">{t.assistant.thread.openSessionFailed}</div>
+          <div className="text-(--ui-danger,#f87171)">Couldn't open this session</div>
           <div className="break-words text-(--ui-text-quaternary)">{tile.error}</div>
           <Button onClick={() => patchSessionTile(storedSessionId, { error: undefined })} size="sm" variant="outline">
-            {t.common.retry}
+            Retry
           </Button>
         </div>
       </div>

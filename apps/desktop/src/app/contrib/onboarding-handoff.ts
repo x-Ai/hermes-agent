@@ -18,10 +18,9 @@ import {
   retrySetupHandoff,
   SETUP_PROFILE
 } from '@/components/onboarding-chat/setup-profile'
-import { declinedLookAround, showHandoffTour } from '@/components/onboarding-chat/signpost'
+import { showHandoffTour } from '@/components/onboarding-chat/signpost'
 import { findGroupOfPane } from '@/components/pane-shell/tree/model'
 import { $layoutTree, activateTreePane } from '@/components/pane-shell/tree/store'
-import { translateNow } from '@/i18n'
 import { toChatMessages } from '@/lib/chat-messages'
 import { connectorTitle } from '@/lib/connector-tools'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
@@ -32,7 +31,6 @@ import { beginOnboardingHandoff, completeOnboardingFlow } from '@/store/onboardi
 import { $activeGatewayProfile, $newChatProfile, $newChatRoute, ensureGatewayAgent } from '@/store/profile'
 import {
   $activeSessionId,
-  $messages,
   $selectedStoredSessionId,
   forgetSessionOwnerHintsForSession,
   setActiveSessionId,
@@ -114,8 +112,8 @@ export function useOnboardingHandoff({
     } catch (error) {
       notify({
         kind: 'error',
-        title: translateNow('guidedOnboarding.errors.firstBuildNeedsAttention'),
-        message: error instanceof Error ? error.message : translateNow('guidedOnboarding.errors.receiptUnreadable')
+        title: 'First build needs attention',
+        message: error instanceof Error ? error.message : 'The first-build receipt could not be read.'
       })
     }
   }, [selectedStoredId])
@@ -133,7 +131,6 @@ export function useOnboardingHandoff({
     void (async () => {
       const setupSession = setupHandoff.guide ?? $setupSession.get()
       const connectionId = setupSession?.connectionId ?? null
-      const showTour = !declinedLookAround($messages.get())
 
       const previousNewChatProfile = $newChatProfile.get()
       const previousNewChatRoute = $newChatRoute.get()
@@ -144,7 +141,7 @@ export function useOnboardingHandoff({
 
       try {
         if (!setupSession?.storedId) {
-          throw new Error(translateNow('guidedOnboarding.errors.welcomeOwnerUnavailable'))
+          throw new Error('The welcome chat owner is not available yet. Reopen it and retry the first build.')
         }
 
         $setupSession.set(setupSession)
@@ -171,7 +168,7 @@ export function useOnboardingHandoff({
               )
 
               if (!result.saved || result.profile !== BUILD_PROFILE || result.target !== 'user') {
-                throw new Error(translateNow('guidedOnboarding.errors.preferencesSaveFailed'))
+                throw new Error('Could not save your onboarding preferences. Retry before starting the first build.')
               }
             },
             create: async () => {
@@ -193,7 +190,7 @@ export function useOnboardingHandoff({
               )
 
               if (!runtimeId) {
-                throw new Error(translateNow('guidedOnboarding.errors.sessionOpenFailed'))
+                throw new Error('Could not open the first-build session.')
               }
 
               // Ignore selection if the user navigated away during creation.
@@ -202,7 +199,9 @@ export function useOnboardingHandoff({
                 ($activeSessionId.get() === runtimeId ? $selectedStoredSessionId.get() : null)
 
               if (!storedId || storedId === setupSession.storedId) {
-                throw new Error(translateNow('guidedOnboarding.errors.sessionIdentityMissing'))
+                throw new Error(
+                  'The first-build session did not return a durable identity. Check your sessions before retrying.'
+                )
               }
 
               return { runtimeId, storedId, owner }
@@ -284,7 +283,7 @@ export function useOnboardingHandoff({
           PROMPT_SUBMIT_REQUEST_TIMEOUT_MS
         ).catch(error => console.warn('[handoff] guide note was not delivered', error))
 
-        if (showTour && $selectedStoredSessionId.get() === receipt.storedId) {
+        if ($selectedStoredSessionId.get() === receipt.storedId) {
           void showHandoffTour()
         }
       } catch (error) {
@@ -312,15 +311,15 @@ export function useOnboardingHandoff({
 
         $newChatProfile.set(previousNewChatProfile)
         $newChatRoute.set(previousNewChatRoute)
-        const message = error instanceof Error ? error.message : translateNow('guidedOnboarding.handoffFailed')
+        const message = error instanceof Error ? error.message : 'The first build could not be started.'
         $handoffError.set(message)
         $setupHandoff.set({ ...setupHandoff, phase: 'error' })
         notify({
           id: 'onboarding-handoff',
           kind: 'error',
-          title: translateNow('guidedOnboarding.errors.firstBuildNeedsAttention'),
+          title: 'First build needs attention',
           message,
-          action: { label: translateNow('guidedOnboarding.retryFirstBuild'), onClick: retrySetupHandoff }
+          action: { label: 'Retry first build', onClick: retrySetupHandoff }
         })
       }
     })()

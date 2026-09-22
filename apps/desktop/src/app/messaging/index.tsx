@@ -58,33 +58,19 @@ const PILL_TONE: Record<StatusTone, string> = {
   bad: 'bg-destructive/10 text-destructive'
 }
 
-/** Runtime adapters are not all equally strict about status casing. Normalize
- *  at the UI boundary so `Connected`, `CONNECTED`, and `connected` all use the
- *  same localized label (and tone) instead of leaking backend text. */
-const stateKey = (state: null | string | undefined) =>
-  state
-    ?.trim()
-    .toLowerCase()
-    .replace(/[\s-]+/g, '_') || ''
-
-const stateLabel = (state: null | string | undefined, m: Translations['messaging']) => {
-  const key = stateKey(state)
-
-  return key ? m.states[key] || key.replace(/_/g, ' ') : m.unknown
-}
+const stateLabel = (state: null | string | undefined, m: Translations['messaging']) =>
+  state ? m.states[state] || state.replace(/_/g, ' ') : m.unknown
 
 function stateTone({ enabled, state }: MessagingPlatformInfo): StatusTone {
   if (!enabled) {
     return 'muted'
   }
 
-  const key = stateKey(state)
-
-  if (key === 'connected') {
+  if (state === 'connected') {
     return 'good'
   }
 
-  if (key === 'fatal' || key === 'startup_failed') {
+  if (state === 'fatal' || state === 'startup_failed') {
     return 'bad'
   }
 
@@ -137,10 +123,7 @@ function fieldCopy(field: MessagingEnvVarInfo, m: Translations['messaging']) {
   return {
     label: localized.label || field.prompt || field.key,
     help: localized.help || field.description,
-    // A localized entry without an explicit placeholder falls back to its own
-    // label — not the backend's English prompt — so localized fields never
-    // show an untranslated placeholder.
-    placeholder: localized.placeholder || localized.label || field.prompt,
+    placeholder: localized.placeholder || field.prompt,
     advanced: Boolean(copy.advanced || field.advanced)
   }
 }
@@ -188,6 +171,7 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   const settleAfterUpdate = useCallback((hotServed: boolean | undefined) => {
     if (hotServed) {
       window.setTimeout(() => void refreshPlatformsRef.current(true), 4000)
+
       return
     }
 
@@ -435,7 +419,16 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
 
       if (!ok) {
         setRestartNeeded(true)
-        notifyError(new Error(m.restartFailedManual), m.restartFailedManual)
+        notify({
+          kind: 'error',
+          title: m.restartFailedManual,
+          message: m.restartFailedManualDetail,
+          action: { label: m.restartAgain, onClick: () => void runGatewayRestart() },
+          secondaryAction: {
+            label: m.openLogs,
+            onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+          }
+        })
       }
 
       void refreshPlatforms(true)
@@ -713,7 +706,7 @@ function PlatformDetail({
             )}
           </div>
           <p className="mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
-            {m.platformDescription[platform.id] || platform.description}
+            {platform.description}
           </p>
           <PlatformHint platform={platform} />
         </div>
@@ -968,10 +961,7 @@ const PLATFORM_INTRO: Record<string, string> = {
 }
 
 const introCopy = (platform: MessagingPlatformInfo, m: Translations['messaging']) =>
-  m.platformIntro[platform.id] ||
-  m.platformDescription[platform.id] ||
-  PLATFORM_INTRO[platform.id] ||
-  platform.description
+  m.platformIntro[platform.id] || PLATFORM_INTRO[platform.id] || platform.description
 
 function MessagingField({
   edits,
@@ -1043,6 +1033,19 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function PlatformHint({ platform }: { platform: MessagingPlatformInfo }) {
   const { t } = useI18n()
+
+  // A served secondary's api_server/webhook live on the shared gateway listener under
+  // /p/<profile>/: the state pill says connected, this line says where to point the client.
+  if (platform.ingress_url) {
+    return (
+      <p className="mt-2 text-xs leading-5 text-muted-foreground break-all">
+        {t.messaging.sharedListenerUrl}{' '}
+        <code className="font-mono text-foreground" data-slot="ingress-url">
+          {platform.ingress_url}
+        </code>
+      </p>
+    )
+  }
 
   if (!platform.enabled || platform.state === 'connected') {
     return null

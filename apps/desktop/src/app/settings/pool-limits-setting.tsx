@@ -18,7 +18,6 @@ const IDLE_MS_MAX = POOL_LIMITS_BOUNDS.idleMsMax
  *  changes apply live — main evicts/reaps to converge without a restart. */
 export function PoolLimitsSetting() {
   const { t } = useI18n()
-  const copy = t.settings.poolLimits
   const limits = useStore($poolLimits)
   const [maxDraft, setMaxDraft] = useState(String(limits.maxBackends))
   const [idleDraft, setIdleDraft] = useState(String(limits.idleMs))
@@ -66,7 +65,7 @@ export function PoolLimitsSetting() {
         action={
           <div className="flex items-center gap-2">
             <Input
-              aria-label={copy.warmBackends}
+              aria-label={t.settings.poolLimits.warmBotBackendsAria}
               className="w-20"
               inputMode="numeric"
               max={MAX_BACKENDS_MAX}
@@ -83,14 +82,14 @@ export function PoolLimitsSetting() {
             />
           </div>
         }
-        description={copy.warmBackendsDescription}
-        title={copy.warmBackends}
+        description="How many bot backends stay running for instant switching. Higher = faster switches, more memory (~60MB per backend). Applies immediately."
+        title={t.settings.poolLimits.warmBotBackendsTitle}
       />
       <ListRow
         action={
           <div className="flex items-center gap-2">
             <Input
-              aria-label={copy.idleTimeoutAria}
+              aria-label={t.settings.poolLimits.backendIdleTimeoutAria}
               className="w-28"
               inputMode="numeric"
               max={IDLE_MS_MAX}
@@ -105,13 +104,11 @@ export function PoolLimitsSetting() {
               type="number"
               value={idleDraft}
             />
-            <span className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-              {copy.milliseconds}
-            </span>
+            <span className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">ms</span>
           </div>
         }
-        description={copy.idleTimeoutDescription}
-        title={copy.idleTimeout}
+        description="How long an unused bot backend stays warm before it is shut down. Raise this so bots you revisit every few minutes never pay a cold start."
+        title={t.settings.poolLimits.backendIdleTimeoutTitle}
       />
     </>
   )

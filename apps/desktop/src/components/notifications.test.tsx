@@ -1,14 +1,17 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import { $notifications, clearNotifications, notify, notifyError } from '@/store/notifications'
 import { $poolLimitsSettingsRequest } from '@/store/pool-limits'
+import { stubResizeObserver } from '@/test/jsdom'
 
 import { NotificationStack, toastTitleClassName } from './notifications'
 
 const LONG_TITLE = 'This turn is no longer in server history (it may have been compressed away).'
 const DETAIL = 'target user message is no longer in session history'
+
+beforeAll(stubResizeObserver)
 
 describe('toast titles', () => {
   beforeEach(() => {
@@ -32,6 +35,24 @@ describe('toast titles', () => {
     expect(className).toMatch(/\boverflow-y-auto\b/)
   })
 
+  it.each(['default', 'bottom-right'] as const)(
+    'caps the %s toast stack at one back edge and keeps older notifications reachable',
+    async placement => {
+      for (let index = 0; index < 7; index++) {
+        notify({ id: `notice-${index}`, message: `Notice ${index}`, placement, durationMs: 0 })
+      }
+
+      render(<NotificationStack />)
+      expect(screen.getAllByRole('status')).toHaveLength(1)
+      expect(document.querySelectorAll('[data-slot="card-stack-edge"]')).toHaveLength(1)
+      fireEvent.click(screen.getByRole('button', { name: /Show.*6/ }))
+      expect(screen.getByText('Notice 0')).toBeTruthy()
+      expect(screen.getAllByRole('status')).toHaveLength(7)
+      fireEvent.click(screen.getAllByRole('button', { name: /Dismiss/ })[0])
+      await waitFor(() => expect(screen.queryByText('Notice 6')).toBeNull())
+    }
+  )
+
   it('renders the full title and body instead of truncating them', () => {
     notify({ kind: 'error', title: LONG_TITLE, message: DETAIL })
 
@@ -51,38 +72,6 @@ describe('toast titles', () => {
     expect(screen.getByText(DETAIL)).toBeTruthy()
   })
 
-  it.each(['default', 'bottom-right'] as const)(
-    'renders matching title and message only once in the %s stack while keeping details and actions',
-    placement => {
-      const onClick = vi.fn()
-      notify({
-        kind: 'error',
-        title: LONG_TITLE,
-        message: LONG_TITLE,
-        detail: DETAIL,
-        meta: 'Additional context',
-        action: { label: 'Retry', onClick },
-        placement
-      })
-
-      render(
-        <I18nProvider configClient={null} initialLocale="en">
-          <NotificationStack />
-        </I18nProvider>
-      )
-
-      expect(screen.getAllByText(LONG_TITLE)).toHaveLength(1)
-      expect(screen.getByText(LONG_TITLE).getAttribute('title')).toBe(LONG_TITLE)
-      expect(screen.getByText(DETAIL)).toBeTruthy()
-      expect(screen.getByText('Additional context')).toBeTruthy()
-
-      fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
-
-      expect(onClick).toHaveBeenCalledOnce()
-      expect(screen.queryByRole('alert')).toBeNull()
-    }
-  )
-
   it('makes a local pool-slot timeout actionable without changing ordinary errors', () => {
     notifyError(
       new Error(
@@ -97,7 +86,7 @@ describe('toast titles', () => {
       </I18nProvider>
     )
 
-    expect(screen.getByText(/All local profile backend slots are busy/)).toBeTruthy()
+    expect(screen.getByText(/Too many bots are running at once/)).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Open Advanced Settings' }))
 

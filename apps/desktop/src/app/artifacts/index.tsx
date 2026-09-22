@@ -38,7 +38,7 @@ import { notify, notifyError } from '@/store/notifications'
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
-import { openSession } from '../open-session'
+import { openSessionFromPicker } from '../open-session'
 import { PageSearchShell } from '../page-search-shell'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
@@ -114,7 +114,6 @@ interface ArtifactsViewProps extends React.ComponentProps<'section'> {
 export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, ...props }: ArtifactsViewProps) {
   const { t } = useI18n()
   const a = t.artifacts
-  const toast = t.notifications.toast
   const navigate = useNavigate()
   const [artifacts, setArtifacts] = useState<ArtifactRecord[] | null>(null)
   const [query, setQuery] = useState('')
@@ -152,8 +151,8 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         const otherFailures = failures.length - safeLimitFailures
 
         const detail = [
-          safeLimitFailures ? toast.artifactSafeLimitExceeded(safeLimitFailures) : '',
-          otherFailures ? toast.artifactUnreadable(otherFailures) : ''
+          safeLimitFailures ? `${safeLimitFailures} exceeded the safe transcript load limit.` : '',
+          otherFailures ? `${otherFailures} could not be read.` : ''
         ]
           .filter(Boolean)
           .join(' ')
@@ -162,7 +161,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           id: 'artifacts-partial-load',
           kind: 'warning',
           title: a.failedLoad,
-          message: toast.artifactPartialLoad(failures.length, sessions.length),
+          message: `Skipped ${failures.length} of ${sessions.length} recent sessions while indexing artifacts.`,
           detail,
           durationMs: 10_000
         })
@@ -176,7 +175,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
       refreshInFlightRef.current = false
       setRefreshing(false)
     }
-  }, [a, toast])
+  }, [a])
 
   useRefreshHotkey(refreshArtifacts)
 
@@ -313,7 +312,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   // every artifact cell re-render whenever the page did — and a link cell's
   // async title fetch re-rendered the page repeatedly. openArtifact is already
   // a useCallback; navigate is stable, so onOpenChat can be too.
-  const openChat = useCallback((sessionId: string) => openSession(sessionId, navigate), [navigate])
+  const openChat = useCallback((sessionId: string) => openSessionFromPicker(sessionId, navigate), [navigate])
   const cellCtx: CellCtx = useMemo(() => ({ onOpen: openArtifact, onOpenChat: openChat }), [openArtifact, openChat])
 
   return (
@@ -378,7 +377,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                       failedImage={failedImageIds.has(artifact.id)}
                       key={artifact.id}
                       onImageError={markImageFailed}
-                      onOpenChat={sessionId => openSession(sessionId, navigate)}
+                      onOpenChat={sessionId => openSessionFromPicker(sessionId, navigate)}
                     />
                   ))}
                 </div>

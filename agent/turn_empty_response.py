@@ -2,8 +2,8 @@
 
 Runs when the model returned no visible text after ``<think>`` blocks. Ladder order is
 load-bearing: partial-stream recovery → reuse prior turn content (housekeeping tools only)
-→ budgeted post-tool-call nudges → budgeted thinking-only prefill continuation →
-empty-response retries (budgeted, deterministic-empty short-circuit) → fallback provider → terminal
+→ one post-tool-call nudge → thinking-only prefill continuation (×2) → empty-response
+retries (budgeted, deterministic-empty short-circuit) → fallback provider → terminal
 ``(empty)`` sentinel. Nothing here imports ``agent.conversation_loop`` at module level.
 """
 
@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from agent import empty_response_guard as _empty_guard
 from agent.message_metadata import append_message
+from agent.turn_failure_copy import site_copy
 from agent.turn_recovery import interruptible_backoff_sleep
 
 logger = logging.getLogger("agent.conversation_loop")
@@ -55,7 +56,10 @@ def _retry_empty(
         _empty_guard.record_empty_attempt(
             agent, finish_reason=finish_reason, response=response, observed_generation=observed_generation,
         )
-    budget = _empty_guard.empty_retry_budget(agent, response)
+    budget = (
+        _empty_guard.empty_retry_budget(agent, response)
+        if empty_candidate else _empty_guard.DEFAULT_EMPTY_RETRY_BUDGET
+    )
     deterministic = empty_candidate and _empty_guard.deterministic_empty(agent)
     if not (empty_candidate and agent._empty_content_retries < budget and not deterministic):
         return None, None, deterministic
@@ -66,12 +70,11 @@ def _retry_empty(
         "Empty response (no content or reasoning) — retry %d/%d in %.1fs (model=%s)",
         n, budget, wait_time, agent.model,
     )
-    configured_budget = _empty_guard.configured_empty_retry_budget(agent)
     _budget_note = (
         " — high-cost request, reduced retry budget"
-        if budget < configured_budget else ""
+        if budget < _empty_guard.DEFAULT_EMPTY_RETRY_BUDGET else ""
     )
-    agent._buffer_status(
+    agent._buffer_diagnostic_status(
         f"⚠️ Empty response from model — retrying ({n}/{budget}) in {wait_time:.0f}s{_budget_note}"
     )
     _interrupted = interruptible_backoff_sleep(
@@ -96,7 +99,7 @@ def _terminal_empty(agent: Any, assistant_message: Any, finish_reason: str, mess
     the sentinel so later "continue" turns don't replay it and loop on empties."""
     _streak_cost = _empty_guard.streak_cost_usd(agent)
     if _streak_cost is not None:
-        agent._buffer_status(
+        agent._buffer_diagnostic_status(
             f"ℹ️ Estimated cost of these empty attempts: ~${_streak_cost:.2f} (input tokens are billed "
             f"per attempt even when no answer is produced)"
         )
@@ -115,7 +118,7 @@ def _terminal_empty(agent: Any, assistant_message: Any, finish_reason: str, mess
             agent._empty_content_retries, agent.model,
             agent.provider,
         )
-        agent._emit_status(
+        agent._emit_diagnostic_status(
             "❌ Model returned no content after all retries"
             + (" and fallback attempts." if agent._fallback_chain else
                ". No fallback providers configured.")
@@ -126,14 +129,10 @@ def _terminal_empty(agent: Any, assistant_message: Any, finish_reason: str, mess
     logger.warning(
         "Reasoning-only response (no visible content) after exhausting retries and fallback. Reasoning: %s", reasoning_preview,
     )
-    agent._emit_status(
+    agent._emit_diagnostic_status(
         "⚠️ Model produced reasoning but no visible response after all retries. Returning empty."
     )
-    return (
-        "⚠️ The model produced only internal reasoning and no final answer, despite retries"
-        + (" and fallback" if agent._fallback_chain else "")
-        + ". Its last reasoning, which may contain the answer:\n\n" + reasoning_preview
-    )
+    return site_copy("reasoning_only", model=agent.model, preview=reasoning_preview)
 
 
 def recover_empty_response(
@@ -167,7 +166,7 @@ def recover_empty_response(
             "Partial stream content delivered (%d chars) — using as final response",
             len(_recovered),
         )
-        agent._emit_status("↻ Stream interrupted — using delivered content " "as final response")
+        agent._emit_diagnostic_status("↻ Stream interrupted — using delivered content " "as final response")
         final_response = _recovered
         # A streamed fragment isn't a confirmed preview: gateway fallback delivery
         # sends the text plus the abnormal-turn explanation.
@@ -181,7 +180,7 @@ def recover_empty_response(
     if fallback and getattr(agent, '_last_content_tools_all_housekeeping', False):
         _turn_exit_reason = "fallback_prior_turn_content"
         logger.info("Empty follow-up after tool calls — using prior turn content as final response")
-        agent._emit_status("↻ Empty response after tool calls — using earlier content as final answer")
+        agent._emit_diagnostic_status("↻ Empty response after tool calls — using earlier content as final answer")
         agent._last_content_with_tools = None
         agent._last_content_tools_all_housekeeping = False
         agent._empty_content_retries = 0
@@ -190,31 +189,22 @@ def recover_empty_response(
         agent._response_was_previewed = True
         return _verdict("break")
 
-    # Post-tool-call empty (no prior content, or only mid-task narration): nudge within
-    # the independently configured budget.
+    # Post-tool-call empty (no prior content, or only mid-task narration): nudge once.
     _prior_was_tool = any(m.get("role") == "tool" for m in messages[-5:])
     # Ollama puts <think> in content, not reasoning_content, so _has_structured misses
     # it; detect here to route to prefill.
     _has_inline_thinking = bool(_INLINE_THINK_RE.search(final_response or ""))
-    _post_tool_budget = getattr(agent, "_post_tool_empty_retry_budget", 1)
     if (
         _prior_was_tool
-        and getattr(agent, "_post_tool_empty_retry_count", 0) < _post_tool_budget
+        and not getattr(agent, "_post_tool_empty_retried", False)
         and not _has_inline_thinking  # thinking model still working — let prefill handle
     ):
-        agent._post_tool_empty_retry_count = getattr(agent, "_post_tool_empty_retry_count", 0) + 1
-        _post_tool_retry = agent._post_tool_empty_retry_count
+        agent._post_tool_empty_retried = True
         # Clear stale narration so it doesn't resurface on a later empty response.
         agent._last_content_with_tools = None
         agent._last_content_tools_all_housekeeping = False
-        logger.info(
-            "Empty response after tool calls — nudging model to continue processing (%d/%d)",
-            _post_tool_retry, _post_tool_budget,
-        )
-        agent._buffer_status(
-            "⚠️ Model returned empty after tool calls — nudging to continue "
-            f"({_post_tool_retry}/{_post_tool_budget})"
-        )
+        logger.info("Empty response after tool calls — nudging model " "to continue processing")
+        agent._buffer_diagnostic_status("⚠️ Model returned empty after tool calls — " "nudging to continue")
         # tool → assistant("(empty)") → user keeps the sequence valid.
         _nudge_msg = agent._build_assistant_message(assistant_message, finish_reason)
         _nudge_msg["content"] = "(empty)"
@@ -233,16 +223,14 @@ def recover_empty_response(
         or getattr(assistant_message, "reasoning_details", None)
         or _has_inline_thinking
     )
-    _thinking_prefill_budget = getattr(agent, "_thinking_prefill_retry_budget", 2)
-    if _has_structured and agent._thinking_prefill_retries < _thinking_prefill_budget:
+    if _has_structured and agent._thinking_prefill_retries < 2:
         agent._thinking_prefill_retries += 1
         logger.info(
-            "Thinking-only response (no visible content) — prefilling to continue (%d/%d)",
-            agent._thinking_prefill_retries, _thinking_prefill_budget,
+            "Thinking-only response (no visible content) — prefilling to continue (%d/2)",
+            agent._thinking_prefill_retries,
         )
-        agent._buffer_status(
-            "↻ Thinking-only response — prefilling to continue "
-            f"({agent._thinking_prefill_retries}/{_thinking_prefill_budget})"
+        agent._buffer_diagnostic_status(
+            f"↻ Thinking-only response — prefilling to continue ({agent._thinking_prefill_retries}/2)"
         )
         interim_msg = agent._build_assistant_message(assistant_message, "incomplete")
         interim_msg["_thinking_prefill"] = True
@@ -253,8 +241,7 @@ def recover_empty_response(
     # Empty-response retries: truly empty replies AND reasoning-only replies after
     # prefill exhaustion.
     _truly_empty = not agent._strip_think_blocks(final_response).strip()
-    _empty_candidate = _truly_empty and (
-        not _has_structured or agent._thinking_prefill_retries >= _thinking_prefill_budget)
+    _empty_candidate = _truly_empty and (not _has_structured or agent._thinking_prefill_retries >= 2)
     action, interrupt_result, _deterministic_empty = _retry_empty(
         agent, response, finish_reason, _empty_candidate, messages=messages,
         conversation_history=conversation_history, api_call_count=api_call_count,
@@ -269,7 +256,7 @@ def recover_empty_response(
             "skipping remaining retries",
             agent.model, agent.provider, finish_reason,
         )
-        agent._buffer_status(
+        agent._buffer_diagnostic_status(
             "⚠️ Model is repeatedly returning empty content — skipping further retries "
             "to avoid repeat charges"
         )
@@ -280,11 +267,11 @@ def recover_empty_response(
             "Empty response after %d retries — attempting fallback (model=%s, provider=%s)",
             agent._empty_content_retries, agent.model, agent.provider,
         )
-        agent._buffer_status("⚠️ Model returning empty responses — " "switching to fallback provider...")
+        agent._buffer_diagnostic_status("⚠️ Model returning empty responses — " "switching to fallback provider...")
         if agent._try_activate_fallback():
             active_system_prompt = _sync_failover_system_message(agent, api_messages, active_system_prompt)
             agent._empty_content_retries = 0
-            agent._buffer_status(f"↻ Switched to fallback: {agent.model} " f"({agent.provider})")
+            agent._buffer_diagnostic_status(f"↻ Switched to fallback: {agent.model} " f"({agent.provider})")
             logger.info(
                 "Fallback activated after empty responses: now using %s on %s",
                 agent.model, agent.provider,

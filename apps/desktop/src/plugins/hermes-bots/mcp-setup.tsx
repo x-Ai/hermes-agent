@@ -9,8 +9,6 @@
 import { Button, host, Input, useI18n } from '@hermes/plugin-sdk'
 import { useEffect, useRef, useState } from 'react'
 
-import { useBots } from './i18n'
-
 // -- inline MCP setup (per-profile), driven by the mcp.servers.* gateway RPCs --
 // Feature-detected: if the gateway predates those RPCs the setup button hides
 // and the row falls back to the "run hermes mcp / Settings" hint. profile is
@@ -109,7 +107,6 @@ interface McpSetupButtonProps {
 
 export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSetupButtonProps) {
   const { t } = useI18n()
-  const b = useBots()
   // entry: { name, requires:[env keys], auth?, fromCatalog, installed }
   // profile may be null at first (New Bot: the profile isn't created yet).
   // ensureProfile() lazily creates it on the first setup action and returns the
@@ -184,7 +181,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
 
       if (!add.ok) {
         setPhase('error')
-        setMessage(add.error || b.tools.couldNotAddServer)
+        setMessage(add.error || 'Could not add server')
 
         return
       }
@@ -199,7 +196,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
 
     if (!target) {
       setPhase('error')
-      setMessage(b.tools.noTargetProfile)
+      setMessage('No target profile')
 
       return
     }
@@ -220,7 +217,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
 
       if (!r.ok) {
         setPhase('error')
-        setMessage(r.error || b.tools.failedToSet(k))
+        setMessage(r.error || 'Failed to set ' + k)
 
         return
       }
@@ -236,13 +233,13 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
       setPhase('done')
       host.notify({
         kind: 'success',
-        message: b.tools.configured(entry.name)
+        message: entry.name + ' configured'
       })
       onDone && onDone()
     } else {
       setPhase('error')
       setMessage(
-        (t.result && (t.result.error || (t.result.result && t.result.result.error))) || b.tools.serverTestFailed
+        (t.result && (t.result.error || (t.result.result && t.result.result.error))) || 'Server test failed after setup'
       )
     }
   }
@@ -272,7 +269,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
 
     try {
       setPhase('oauth')
-      setMessage(b.tools.completeSignIn)
+      setMessage('Complete sign-in in your browser...')
       await host.completeMcpOAuth({
         serverName: entry.name,
         profile: scope,
@@ -285,7 +282,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
       }
 
       setPhase('done')
-      host.notify({ kind: 'success', message: b.tools.authenticated(entry.name) })
+      host.notify({ kind: 'success', message: entry.name + ' authenticated' })
       onDone?.()
     } catch (error) {
       if (oauthEpoch.current !== epoch) {
@@ -300,13 +297,13 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
   if (supported === false) {
     return (
       <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">
-        {b.tools.needsSetup(requires.join(', '))}
+        {'needs setup (' + requires.join(', ') + ') \u2014 restart the gateway to enable in-app setup'}
       </span>
     )
   }
 
   if (phase === 'done') {
-    return <span className="ml-1.5 text-[0.65rem] text-(--ui-success)">{b.tools.setupDone}</span>
+    return <span className="ml-1.5 text-[0.65rem] text-(--ui-success)">set up ✓</span>
   }
 
   if (phase === 'keys') {
@@ -329,7 +326,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
         ))}
         <div className="flex gap-1">
           <Button onClick={() => void submitKeys()} size="xs" variant="secondary">
-            {b.tools.saveAndTest}
+            Save & test
           </Button>
           <Button onClick={() => setPhase('idle')} size="xs" variant="ghost">
             {t.common.cancel}
@@ -340,19 +337,19 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
   }
 
   if (phase === 'oauth') {
-    return <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">{message || b.tools.authorizing}</span>
+    return <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">{message || 'Authorizing\u2026'}</span>
   }
 
   if (phase === 'busy') {
-    return <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">{b.tools.working}</span>
+    return <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">Working…</span>
   }
 
   if (phase === 'error') {
     return (
       <span className="ml-1.5 text-[0.65rem] text-(--ui-danger,#f87171)">
-        {(message || b.tools.setupFailed) + ' '}
+        {(message || 'Setup failed') + ' '}
         <Button className="underline" onClick={() => setPhase('idle')} size="inline" variant="link">
-          {b.tools.retry}
+          retry
         </Button>
       </span>
     )
@@ -366,7 +363,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
       size="inline"
       variant="link"
     >
-      {isOAuth ? b.tools.signIn : b.tools.setUp}
+      {isOAuth ? 'Sign in\u2026' : 'Set up\u2026'}
     </Button>
   )
 }

@@ -20,7 +20,7 @@ import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Download, Loader2, Palette } from '@/lib/icons'
 import { cn } from '@/lib/utils'
-import { describeThemeInstallError, installVscodeThemeFromMarketplace } from '@/themes/install'
+import { installVscodeThemeFromMarketplace } from '@/themes/install'
 import { $marketplaceInstalls } from '@/themes/user-themes'
 
 const compactNumber = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
@@ -73,7 +73,7 @@ export function MarketplaceThemePage({ search, onPickTheme }: MarketplaceThemePa
       triggerHaptic('crisp')
       onPickTheme(theme.name)
     } catch (error) {
-      setInstallError(describeThemeInstallError(error, copy))
+      setInstallError(error instanceof Error ? error.message : copy.error)
     } finally {
       setInstallingId(null)
     }

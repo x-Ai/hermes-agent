@@ -7,26 +7,14 @@
  * The guide cannot describe this itself: the tour bridge only runs a tour for the session the user is looking
  * at, and after the handoff the guide is a background session (desktop AGENTS.md requires offering rather than
  * taking over). The app runs the same three steps instead, in the user's language, and the guide's own note in
- * the welcome chat does not mention them. The handoff skips this tour when the user declined the look around.
+ * the welcome chat does not mention them.
  */
 import { translateNow } from '@/i18n'
-import { type ChatMessage, chatMessageText } from '@/lib/chat-messages'
-import { tourDeclineOptions } from '@/store/onboarding-script'
 
 /** Tour handles (`data-tour`). A targets scan returns these same selectors, so a curated step and a
  *  model-driven step point at the same node. */
 const RAIL = '[data-tour="profile-rail"]'
 const SESSIONS = '[data-tour="sessions-sidebar"]'
-
-/** Did they wave off the look around? Read from the guide transcript, because
- *  the pick IS a user turn there and the option text is pinned by the script.
- *  The accepted decline values cover every locale so a mid-flow language
- *  switch cannot make a previous answer disappear. */
-export function declinedLookAround(messages: ChatMessage[]): boolean {
-  const declineOptions = tourDeclineOptions()
-
-  return messages.some(message => message.role === 'user' && declineOptions.has(chatMessageText(message).trim()))
-}
 
 /** Waits for a visible node. The profile rail mounts a render or two after the handoff switches profiles, and
  *  the tour engine returns a no-match for a selector that is not in the DOM yet. Returns false on timeout. */

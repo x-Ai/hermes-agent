@@ -1,12 +1,9 @@
-import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
-import { $contextBreakdownConfigRevision } from '@/store/context-breakdown'
 import type { ContextBreakdown } from '@/types/hermes'
 
 interface ContextBreakdownOptions {
   busy: boolean
-  compressionCount?: number
   enabled: boolean
   requestGateway: <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
   sessionId: null | string
@@ -23,79 +20,41 @@ interface ContextBreakdownOptions {
  *  hasn't spoken yet. It is a read-only chars/4 pass: no provider call, no
  *  prompt-cache impact.
  *
- *  A new session is created before its deferred AIAgent is ready. The first
- *  request can therefore return an explicitly unavailable category snapshot.
- *  When a turn is running, retry that cheap read with bounded backoff until the
- *  agent exists; otherwise the live occupancy delta would be mislabeled as one
- *  giant Conversation bucket for the whole turn. Busy transitions and turn
- *  completion also trigger an immediate read. Held keyed by the session it
- *  describes so switching sessions drops the previous numbers instead of
- *  painting them under the new session's name. */
-export function useContextBreakdown({
-  busy,
-  compressionCount,
-  enabled,
-  requestGateway,
-  sessionId
-}: ContextBreakdownOptions) {
+ *  Refetches when the focused session changes and when a turn ends (the
+ *  transcript just grew). Held keyed by the session it describes so switching
+ *  sessions drops the previous numbers instead of painting them under the new
+ *  session's name. */
+export function useContextBreakdown({ busy, enabled, requestGateway, sessionId }: ContextBreakdownOptions) {
   const [fetched, setFetched] = useState<{ breakdown: ContextBreakdown; sessionId: string } | null>(null)
   const [loading, setLoading] = useState(false)
-  const configRevision = useStore($contextBreakdownConfigRevision)
 
   useEffect(() => {
-    if (!enabled || !sessionId) {
-      setLoading(false)
-
+    // Mid-turn the transcript changes on every delta and the gateway already
+    // streams measured usage, so an estimate would be both stale and wasteful.
+    if (!enabled || !sessionId || busy) {
       return
     }
 
     let cancelled = false
-    let retryCount = 0
-    let retryTimer: null | ReturnType<typeof setTimeout> = null
+    setLoading(true)
 
-    const fetchBreakdown = () => {
-      setLoading(true)
-
-      void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
-        .then(breakdown => {
-          if (cancelled || !breakdown) {
-            return
-          }
-
+    void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
+      .then(breakdown => {
+        if (!cancelled && breakdown) {
           setFetched({ breakdown, sessionId })
-
-          // `ready` is explicit on current gateways. Treat an empty legacy
-          // payload the same way so a new desktop can recover against the
-          // immediately preceding backend contract too.
-          const categoriesReady = breakdown.ready !== false && breakdown.categories.length > 0
-
-          if (busy && !categoriesReady) {
-            const delay = Math.min(2_000, 250 * 2 ** retryCount)
-            retryCount += 1
-            retryTimer = setTimeout(fetchBreakdown, delay)
-
-            return
-          }
-
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) {
           setLoading(false)
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setLoading(false)
-          }
-        })
-    }
-
-    fetchBreakdown()
+        }
+      })
 
     return () => {
       cancelled = true
-
-      if (retryTimer !== null) {
-        clearTimeout(retryTimer)
-      }
     }
-  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId])
+  }, [busy, enabled, requestGateway, sessionId])
 
   return {
     breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,

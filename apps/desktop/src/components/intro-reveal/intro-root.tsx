@@ -3,7 +3,6 @@ import '@nous-research/ui/styles/fonts.css'
 import { createRoot } from 'react-dom/client'
 
 import { OverlayErrorBoundary } from '@/components/overlay-error-boundary'
-import { I18nProvider } from '@/i18n'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 
 import { IntroRevealSurface } from './intro-reveal-surface'
@@ -27,9 +26,7 @@ export function mountIntroReveal(): void {
   // StrictMode would double-start this disposable window's clock and sound.
   createRoot(root).render(
     <OverlayErrorBoundary label="intro-reveal">
-      <I18nProvider configClient={null}>
-        <IntroRevealSurface />
-      </I18nProvider>
+      <IntroRevealSurface />
     </OverlayErrorBoundary>
   )
 

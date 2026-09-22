@@ -12,7 +12,6 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { saveMemoryProviderConfig } from '@/hermes'
-import { useI18n } from '@/i18n'
 import { ExternalLink, Loader2, Save, SlidersHorizontal } from '@/lib/icons'
 import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile } from '@/store/profile'
@@ -28,11 +27,11 @@ function seedAll(config: MemoryProviderConfig): Record<string, string> {
 }
 
 // Group fields in declared order, preserving first-seen group sequence.
-function groupFields(fields: MemoryProviderField[], otherGroup: string): [string, MemoryProviderField[]][] {
+function groupFields(fields: MemoryProviderField[]): [string, MemoryProviderField[]][] {
   const groups: [string, MemoryProviderField[]][] = []
 
   for (const field of fields) {
-    const name = field.group || otherGroup
+    const name = field.group || 'Other'
     const bucket = groups.find(([key]) => key === name)
 
     if (bucket) {
@@ -60,9 +59,6 @@ export function ProviderConfigModal({
   onOpenChange: (open: boolean) => void
   onSaved: () => Promise<void> | void
 }) {
-  const { t } = useI18n()
-  const toast = t.notifications.toast
-  const copy = t.settings.memoryProvider
   const activeProfile = useStore($activeGatewayProfile)
   const [values, setValues] = useState<Record<string, string>>({})
   const [seeded, setSeeded] = useState<Record<string, string>>({})
@@ -85,15 +81,11 @@ export function ProviderConfigModal({
 
     try {
       await saveMemoryProviderConfig(provider, edited, profile)
-      notify({
-        kind: 'success',
-        title: toast.memoryProviderSavedTitle(config.label),
-        message: toast.memoryProviderSavedMessage
-      })
+      notify({ kind: 'success', title: `${config.label} saved`, message: 'Memory provider configuration updated.' })
       await onSaved()
       onOpenChange(false)
     } catch (err) {
-      notifyError(err, toast.memoryProviderSettingsSaveFailed(config.label))
+      notifyError(err, `Failed to save ${config.label} settings`)
     } finally {
       setSaving(false)
     }
@@ -103,8 +95,11 @@ export function ProviderConfigModal({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent bodyClassName="dt-portal-scrollbar" className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle icon={SlidersHorizontal}>{copy.fullConfigTitle(config.label)}</DialogTitle>
-          <DialogDescription>{copy.fullConfigDescription(config.label, profile ?? activeProfile)}</DialogDescription>
+          <DialogTitle icon={SlidersHorizontal}>{config.label} — full configuration</DialogTitle>
+          <DialogDescription>
+            Every {config.label} option for the <span className="font-medium">{profile ?? activeProfile}</span> profile.
+            Blank fields fall back to the resolved host or built-in default.
+          </DialogDescription>
           {config.docs_url && (
             <a
               className="inline-flex w-fit items-center gap-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-accent-secondary) underline-offset-4 transition-colors hover:underline"
@@ -116,14 +111,14 @@ export function ProviderConfigModal({
               rel="noreferrer"
               target="_blank"
             >
-              {copy.reference(config.label)}
+              {config.label} configuration reference
               <ExternalLink className="size-3" />
             </a>
           )}
         </DialogHeader>
 
         <div className="min-w-0">
-          {groupFields(config.fields, copy.otherGroup).map(([group, fields]) => (
+          {groupFields(config.fields).map(([group, fields]) => (
             <section className="mt-6 first:mt-2" key={group}>
               <h3 className="border-b border-(--ui-accent-secondary)/30 pb-1.5 font-mono text-[0.68rem] uppercase tracking-wide text-(--ui-accent-secondary)">
                 {group}
@@ -152,12 +147,12 @@ export function ProviderConfigModal({
         <DialogFooter>
           <DialogClose asChild>
             <Button size="sm" type="button" variant="ghost">
-              {t.common.cancel}
+              Cancel
             </Button>
           </DialogClose>
           <Button disabled={saving} onClick={() => void save()} size="sm">
             {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Save />}
-            {copy.saveChanges}
+            Save changes
           </Button>
         </DialogFooter>
       </DialogContent>

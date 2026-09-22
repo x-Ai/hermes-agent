@@ -208,12 +208,7 @@ export function useLinkTitle(url?: null | string): string {
 
 export function openExternalLink(href: string): void {
   if (href) {
-    void window.hermesDesktop?.openExternal?.(href).catch(error => {
-      void Promise.all([import('@/i18n'), import('@/store/notifications')]).then(
-        ([{ translateNow }, { notifyError }]) =>
-          notifyError(error, translateNow('notifications.errors.invalidExternalUrl'))
-      )
-    })
+    void window.hermesDesktop?.openExternal?.(href)
   }
 }
 

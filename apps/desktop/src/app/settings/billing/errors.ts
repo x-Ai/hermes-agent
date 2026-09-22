@@ -1,5 +1,3 @@
-import { translateNow } from '@/i18n'
-
 import type { BillingRefusal } from './api'
 
 export interface BillingRefusalPresentation {
@@ -11,15 +9,15 @@ export interface BillingRefusalPresentation {
 const portalAction = (url?: string): BillingRefusalPresentation['action'] => ({ type: 'portal', url })
 
 const retryMessage = (refusal: BillingRefusal): string => {
-  const minutes = refusal.retryAfter ? Math.max(1, Math.round(refusal.retryAfter / 60)) : undefined
+  const mins = refusal.retryAfter ? ` (try again in ~${Math.max(1, Math.round(refusal.retryAfter / 60))} min)` : ''
 
-  return translateNow('billingPage.refusal.rateLimitMessage', minutes)
+  return `🟡 Too many charges right now${mins}. This isn't a payment failure.`
 }
 
 const stripeRetryMessage = (refusal: BillingRefusal): string => {
-  const minutes = refusal.retryAfter ? Math.max(1, Math.round(refusal.retryAfter / 60)) : undefined
+  const mins = refusal.retryAfter ? ` (try again in ~${Math.max(1, Math.round(refusal.retryAfter / 60))} min)` : ''
 
-  return translateNow('billingPage.refusal.stripeMessage', minutes)
+  return `Stripe is having trouble — try again shortly${mins}`
 }
 
 export const resolveRefusal = (refusal: BillingRefusal): BillingRefusalPresentation => {
@@ -27,34 +25,34 @@ export const resolveRefusal = (refusal: BillingRefusal): BillingRefusalPresentat
     case 'consent_required':
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.consentMessage'),
-        title: translateNow('billingPage.refusal.consentTitle')
+        message: 'Confirm this card for terminal charges in the portal',
+        title: 'Card confirmation needed'
       }
 
     case 'insufficient_scope':
       return {
         action: { type: 'step_up' },
-        message: translateNow('billingPage.refusal.scopeMessage'),
-        title: translateNow('billingPage.refusal.scopeTitle')
+        message: 'This needs Remote Spending allowed. Start a top-up to allow it, then retry.',
+        title: 'Remote Spending needs approval'
       }
     case 'remote_spending_revoked': {
       const who =
         refusal.actor === 'admin'
-          ? translateNow('billingPage.refusal.revokedByAdmin')
-          : translateNow('billingPage.refusal.revokedByUser')
+          ? 'An admin stopped remote spending for this terminal.'
+          : 'You stopped remote spending for this terminal.'
 
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.revokedReconnect', who),
-        title: translateNow('billingPage.refusal.revokedTitle')
+        message: `${who} Reconnect from Settings → Gateway to re-authorize this device.`,
+        title: 'Remote spending was stopped'
       }
     }
 
     case 'session_revoked':
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.sessionMessage'),
-        title: translateNow('billingPage.refusal.sessionTitle')
+        message: 'Your session was logged out. Sign in again from Settings → Gateway.',
+        title: 'Session logged out'
       }
 
     case 'cli_billing_disabled':
@@ -62,36 +60,39 @@ export const resolveRefusal = (refusal: BillingRefusal): BillingRefusalPresentat
     case 'remote_spending_disabled':
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.remoteSpendingOffMessage'),
-        title: translateNow('billingPage.refusal.remoteSpendingOffTitle')
+        message:
+          "Remote spending is off for this account — a billing admin can turn it on from the portal's Hermes Agent page.",
+        title: 'Remote spending is off'
       }
 
     case 'role_required':
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.roleMessage'),
-        title: translateNow('billingPage.refusal.roleTitle')
+        message: 'Adding funds needs an org admin/owner. Ask an admin, or manage on the portal.',
+        title: 'Admin role required'
       }
 
     case 'idempotency_conflict':
       return {
         action: { type: 'none' },
-        message: translateNow('billingPage.refusal.freshTopUpMessage'),
-        title: translateNow('billingPage.refusal.freshTopUpTitle')
+        message: '🔴 That charge key was already used for a different amount. Start a fresh top-up.',
+        title: 'Start a fresh top-up'
       }
 
     case 'no_payment_method':
       return {
         action: portalAction(refusal.portalUrl),
-        message: translateNow('billingPage.refusal.noSavedCardMessage'),
-        title: translateNow('billingPage.refusal.noSavedCardTitle')
+        message:
+          '💳 No saved card for terminal charges yet. Set one up on the portal ' +
+          "(one-time credit buys don't save a reusable card).",
+        title: 'No saved card'
       }
 
     case 'org_access_denied':
       return {
         action: { type: 'none' },
-        message: translateNow('billingPage.refusal.orgAccessMessage'),
-        title: translateNow('billingPage.refusal.orgAccessTitle')
+        message: "This token isn't bound to an org you can manage",
+        title: 'Org access denied'
       }
     case 'monthly_cap_exceeded': {
       const remaining = refusal.payload?.remainingUsd
@@ -100,9 +101,9 @@ export const resolveRefusal = (refusal: BillingRefusal): BillingRefusalPresentat
         action: portalAction(refusal.portalUrl),
         message:
           remaining != null
-            ? translateNow('billingPage.refusal.monthlyCapRemaining', remaining)
-            : translateNow('billingPage.refusal.monthlyCapMessage'),
-        title: translateNow('billingPage.refusal.monthlyCapTitle')
+            ? `🔴 Monthly spend cap reached — $${remaining} headroom left.`
+            : '🔴 Monthly spend cap reached.',
+        title: 'Monthly spend cap reached'
       }
     }
 
@@ -112,49 +113,51 @@ export const resolveRefusal = (refusal: BillingRefusal): BillingRefusalPresentat
       return {
         action: { type: 'retry' },
         message: retryMessage(refusal),
-        title: translateNow('billingPage.refusal.rateLimitTitle')
+        title: 'Too many charges right now'
       }
 
     case 'stripe_unavailable':
       return {
         action: { type: 'retry' },
         message: stripeRetryMessage(refusal),
-        title: translateNow('billingPage.refusal.stripeTitle')
+        title: 'Stripe is having trouble'
       }
 
     case 'upgrade_cap_exceeded':
       return {
         action: { type: 'none' },
-        message: translateNow('billingPage.refusal.planLimitMessage'),
-        title: translateNow('billingPage.refusal.planLimitTitle')
+        message: 'Daily plan-change limit reached — try again tomorrow',
+        title: 'Daily plan-change limit reached'
       }
 
     case 'endpoint_unavailable':
       return {
         action: { type: 'retry' },
-        message: refusal.message || translateNow('billingPage.refusal.endpointMessage'),
-        title: translateNow('billingPage.refusal.endpointTitle')
+        message:
+          refusal.message ||
+          'Billing endpoint returned a non-JSON response (it may not be available on this deployment).',
+        title: 'Billing endpoint unavailable'
       }
 
     case 'timeout':
       return {
         action: { type: 'retry' },
-        message: refusal.message || translateNow('billingPage.refusal.timeoutMessage'),
-        title: translateNow('billingPage.refusal.timeoutTitle')
+        message: refusal.message || 'Billing request timed out.',
+        title: 'Billing request timed out'
       }
 
     case 'transport':
       return {
         action: { type: 'retry' },
-        message: refusal.message || translateNow('billingPage.refusal.transportMessage'),
-        title: translateNow('billingPage.refusal.transportTitle')
+        message: refusal.message || 'Billing request failed before reaching the gateway.',
+        title: 'Billing connection failed'
       }
 
     default:
       return {
         action: { type: 'none' },
-        message: refusal.message || translateNow('billingPage.refusal.genericMessage'),
-        title: translateNow('billingPage.refusal.genericTitle')
+        message: refusal.message || 'Billing request failed.',
+        title: 'Billing request failed'
       }
   }
 }

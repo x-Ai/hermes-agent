@@ -1,5 +1,3 @@
-import type { Translations } from '@/i18n'
-
 import { INTRO_BEATS } from '../timeline'
 
 import { BLUE, BLUE_FAINT, EASE, NOUS_SHADOW } from './style'
@@ -9,12 +7,11 @@ const EVERYWHERE_T = INTRO_BEATS.find(b => b.id === 'everywhere')!.t
 
 interface SideAgentsProps {
   active: boolean
-  copy: Translations['introReveal']['sideAgents']
   side: 'left' | 'right'
   tick: number
 }
 
-export function SideAgents({ active, copy, side, tick }: SideAgentsProps) {
+export function SideAgents({ active, side, tick }: SideAgentsProps) {
   const sideCard = (title: string, line1: string, line2: string, offset: string, delayMs = 0, tilt = 0) => (
     <div
       className="w-full rounded-xl p-5"
@@ -53,19 +50,33 @@ export function SideAgents({ active, copy, side, tick }: SideAgentsProps) {
   return side === 'left' ? (
     <div className="flex w-[19vw] min-w-[240px] flex-col gap-4 self-start pt-[6vh]">
       <div style={{ animation: 'intro-float-a 5.2s ease-in-out infinite alternate' }}>
-        {sideCard(copy.research.title, copy.research.line1, copy.research.line2, '26px', 0, 7)}
+        {sideCard(
+          'research agent',
+          'Apartment hunt: 3 new listings shortlisted',
+          '↳ compiling tour schedule…',
+          '26px',
+          0,
+          7
+        )}
       </div>
       <div style={{ animation: 'intro-float-b 6.1s ease-in-out infinite alternate' }}>
-        {sideCard(copy.groceries.title, copy.groceries.line1, copy.groceries.line2, '38px', 220, 7)}
+        {sideCard('groceries', 'Weekly order built from your list', '↳ delivery booked for Sunday', '38px', 220, 7)}
       </div>
     </div>
   ) : (
     <div className="flex w-[19vw] min-w-[240px] flex-col gap-4 self-end pb-[5vh]">
       <div style={{ animation: 'intro-float-c 5.7s ease-in-out infinite alternate' }}>
-        {sideCard(copy.inbox.title, copy.inbox.line1, copy.inbox.line2, '34px', 120, -7)}
+        {sideCard(
+          'inbox agent',
+          '2 replies drafted, waiting for your ok',
+          '↳ calendar updated for Friday',
+          '34px',
+          120,
+          -7
+        )}
       </div>
       <div style={{ animation: 'intro-float-a 6.6s ease-in-out infinite alternate' }}>
-        {sideCard(copy.morning.title, copy.morning.line1, copy.morning.line2, '30px', 340, -7)}
+        {sideCard('morning brief', 'Tomorrow: 3 meetings, rain at 8', '↳ ready before you wake', '30px', 340, -7)}
       </div>
     </div>
   )

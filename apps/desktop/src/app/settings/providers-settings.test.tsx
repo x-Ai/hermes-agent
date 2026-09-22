@@ -3,7 +3,6 @@ import { atom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
-import { I18nProvider } from '@/i18n'
 import { $confirmRequest } from '@/store/confirm'
 import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
 
@@ -19,7 +18,8 @@ vi.mock('@/store/profile', () => ({
   $activeGatewayProfile: atom('alpha'),
   $profiles: atom([]),
   refreshProfiles: async () => {},
-  normalizeProfileKey: (p: string | null) => p || 'default'
+  normalizeProfileKey: (p: string | null) => p || 'default',
+  profileLabel: (p: { display_name?: string; name: string }) => p.display_name || p.name
 }))
 
 vi.mock('@/hermes', () => ({
@@ -135,7 +135,9 @@ describe('ProvidersSettings', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save' }))
       await waitFor(() => expect(setEnvVar).toHaveBeenCalledWith('WIDGET_API_KEY', 'fixture-key', 'profile-b'))
       fireEvent.click(screen.getByRole('button', { name: 'profile-a' }))
-      await waitFor(() => expect(getEnvVars).toHaveBeenLastCalledWith(undefined))
+      // Back onto the app's active profile: no override is stored, but the
+      // request must still name it (#118432).
+      await waitFor(() => expect(getEnvVars).toHaveBeenLastCalledWith('profile-a'))
     } finally {
       cleanup()
       $settingsScopeOverride.set(null)
@@ -178,7 +180,7 @@ describe('ProvidersSettings', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
     })
 
-    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous', undefined))
+    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous', 'default'))
     expect(listOAuthProviders).toHaveBeenCalledTimes(2)
   })
 
@@ -203,7 +205,7 @@ describe('ProvidersSettings', () => {
       fireEvent.click(await screen.findByText('Nous Portal'))
     })
 
-    expect(startManualProviderOAuth).toHaveBeenCalledWith('nous', undefined)
+    expect(startManualProviderOAuth).toHaveBeenCalledWith('nous', 'default')
     expect(disconnectOAuthProvider).not.toHaveBeenCalled()
   })
 
@@ -247,81 +249,6 @@ describe('ProvidersSettings', () => {
     })
 
     expect(await screen.findByText('WidgetAI')).toBeTruthy()
-  })
-
-  it('localizes provider cards from stable ids and credential keys', async () => {
-    const cases = [
-      ['router', 'Ramp Router', 'RAMP_ROUTER_API_KEY', 'RAMP_ROUTER_BASE_URL', 'Ramp Router'],
-      [
-        'nebius-token-factory',
-        'Nebius Token Factory',
-        'NEBIUS_API_KEY',
-        'NEBIUS_BASE_URL',
-        'Nebius Token Factory'
-      ],
-      [
-        'alibaba-token-plan',
-        'Alibaba Cloud (Token Plan)',
-        'ALIBABA_TOKEN_PLAN_API_KEY',
-        'ALIBABA_TOKEN_PLAN_BASE_URL',
-        '阿里云（Token Plan）'
-      ],
-      [
-        'alibaba-token-plan-cn',
-        'Alibaba Cloud (Token Plan, China)',
-        'ALIBABA_TOKEN_PLAN_CN_API_KEY',
-        'ALIBABA_TOKEN_PLAN_CN_BASE_URL',
-        '阿里云（Token Plan，中国大陆）'
-      ],
-      [
-        'alibaba-coding-plan-cn',
-        'Alibaba Cloud (Coding Plan, China)',
-        'ALIBABA_CODING_PLAN_CN_API_KEY',
-        'ALIBABA_CODING_PLAN_CN_BASE_URL',
-        '阿里云（Coding Plan，中国大陆）'
-      ]
-    ] as const
-
-    const vars: Record<string, EnvVarInfo> = {}
-
-    for (const [providerId, sourceName, key, baseUrl] of cases) {
-      vars[key] = keyVar({
-        description: `${sourceName} API key`,
-        provider: providerId,
-        provider_label: sourceName,
-        url: `https://${providerId}.example/keys`
-      })
-      vars[baseUrl] = keyVar({
-        advanced: true,
-        description: `${sourceName} base URL override`,
-        is_password: false,
-        provider: providerId,
-        provider_label: sourceName
-      })
-    }
-
-    getEnvVars.mockResolvedValue(vars)
-    listOAuthProviders.mockResolvedValue({ providers: [] })
-
-    const { ProvidersSettings } = await import('./providers-settings')
-    render(
-      <I18nProvider configClient={null} initialLocale="zh">
-        <ProvidersSettings onClose={vi.fn()} onViewChange={vi.fn()} view="keys" />
-      </I18nProvider>
-    )
-
-    for (const [, sourceName, , , localizedName] of cases) {
-      const title = await screen.findByText(localizedName)
-      const separator = localizedName.startsWith('阿里云') ? '' : ' '
-
-      fireEvent.click(title)
-      expect(screen.getByText(`${localizedName}${separator}API 密钥`)).toBeTruthy()
-      expect(screen.getByText(`${localizedName}${separator}基础 URL 覆盖`)).toBeTruthy()
-
-      if (sourceName !== localizedName) {
-        expect(screen.queryByText(sourceName)).toBeNull()
-      }
-    }
   })
 
   it('orders API-key providers by priority then name, and filters them via search', async () => {

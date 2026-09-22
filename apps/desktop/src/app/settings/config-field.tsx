@@ -49,11 +49,7 @@ export function ConfigField({
     fieldCopyForSchemaKey(FIELD_LABELS, schemaKey) ??
     prettyName(schemaKey.split('.').pop() ?? schemaKey)
 
-  // Unicode-aware: keep CJK and other letters, or every localized description
-  // whose only ASCII word matches the label (e.g. "Docker 镜像" vs
-  // "执行后端为 Docker 时使用的容器镜像。") collapses to the same token and
-  // gets wrongly dropped as a duplicate of the label.
-  const normalize = (v: string) => v.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
+  const normalize = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '')
 
   const rawDescription = (
     fieldCopyForSchemaKey(t.settings.fieldDescriptions, schemaKey) ??
@@ -140,9 +136,7 @@ export function ConfigField({
   if (selectOptions) {
     return row(
       <Select
-        onValueChange={next =>
-          onChange(next === EMPTY_SELECT_VALUE ? '' : schema.type === 'number' ? Number(next) : next)
-        }
+        onValueChange={next => onChange(next === EMPTY_SELECT_VALUE ? '' : next)}
         value={String(value ?? '') || EMPTY_SELECT_VALUE}
       >
         <SelectTrigger className={CONTROL_TEXT}>

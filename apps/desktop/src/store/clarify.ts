@@ -1,6 +1,6 @@
 import { atom, computed } from 'nanostores'
 
-import { $gateway } from './gateway'
+import { respondToServerRequest } from './server-requests'
 import { $activeSessionId } from './session'
 
 export interface ClarifyQuestion {
@@ -28,8 +28,7 @@ export interface ClarifyRequest {
 /**
  * The backend labels the agent's recommended option by appending this to the
  * first choice (`tools/clarify_tool.py::mark_recommended`). The renderer never
- * writes it back — it localizes and styles the display suffix, while preserving
- * this canonical wire value and discounting it when measuring a choice so a
+ * writes it — it only styles it, and discounts it when measuring a choice so a
  * long option isn't dropped for length the label added.
  */
 export const RECOMMENDED_LABEL = '(Recommended)'
@@ -188,8 +187,8 @@ export const hasClarifyRequest = (sessionId: string | null | undefined): boolean
  * (default 5 min) — the message looks sent and nothing happens. Skipping lets
  * the tool return and the turn carry on with the user's actual words.
  *
- * An empty answer is the same thing the card's own Skip button sends, and
- * `clarify.respond` is `allow_expired`, so racing the timeout is harmless.
+ * An empty answer is the same thing the card's own Skip button sends; answering
+ * a request that already expired is a no-op, so racing the timeout is harmless.
  */
 export async function skipClarifyRequest(sessionId: string | null | undefined): Promise<boolean> {
   const request = $clarifyRequests.get()[keyFor(sessionId)]
@@ -202,12 +201,7 @@ export async function skipClarifyRequest(sessionId: string | null | undefined): 
   // leave a live card the user can answer a second time.
   clearClarifyRequest(request.requestId, request.sessionId)
 
-  try {
-    await $gateway.get()?.request('clarify.respond', { request_id: request.requestId, answer: '' })
-  } catch {
-    // The tool times out on its own; a failed skip must never swallow the
-    // message the user is actually sending.
-  }
+  respondToServerRequest(request.requestId, { answer: '' })
 
   return true
 }

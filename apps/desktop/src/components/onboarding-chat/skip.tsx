@@ -8,11 +8,9 @@
 import { useStore } from '@nanostores/react'
 
 import { $chatOnboardingSolo, skipChatOnboarding } from '@/components/onboarding-chat/assembly'
-import { useI18n } from '@/i18n'
 
 export function OnboardingSkip() {
   const solo = useStore($chatOnboardingSolo)
-  const { t } = useI18n()
 
   if (!solo) {
     return null
@@ -24,7 +22,7 @@ export function OnboardingSkip() {
       onClick={skipChatOnboarding}
       type="button"
     >
-      {t.guidedOnboarding.skipSetup}
+      Skip setup
     </button>
   )
 }

@@ -2,8 +2,6 @@
 
 import { type CSSProperties, useMemo } from 'react'
 
-import { useI18n } from '@/i18n'
-
 import type { FrameEmbed } from './providers/types'
 import { useIsDark } from './use-is-dark'
 
@@ -24,7 +22,6 @@ function spotifySrc(embedUrl: string, isDark: boolean): string {
 }
 
 export default function SpotifyEmbedRenderer({ descriptor }: { descriptor: FrameEmbed }) {
-  const { t } = useI18n()
   const isDark = useIsDark()
   const src = useMemo(() => spotifySrc(descriptor.embedUrl, isDark), [descriptor.embedUrl, isDark])
 
@@ -42,7 +39,7 @@ export default function SpotifyEmbedRenderer({ descriptor }: { descriptor: Frame
       loading="lazy"
       src={src}
       style={style}
-      title={t.assistant.embeds.embedTitle('Spotify')}
+      title="Spotify embed"
     />
   )
 }

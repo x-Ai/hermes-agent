@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 
-import { I18nProvider, type Locale } from '@/i18n'
 import { setSessionOwnerHint } from '@/store/session'
 
 import { type ForeignImportResult, foreignRequest } from './api'
@@ -36,40 +35,16 @@ const session = {
   excerpt: 'Help with imports'
 }
 
-function mount(onOpenSession = vi.fn(), viewOwner = owner, locale?: Locale) {
-  const view = <SessionImportView onClose={vi.fn()} onOpenSession={onOpenSession} owner={viewOwner} />
-
+function mount(onOpenSession = vi.fn()) {
   return {
     onOpenSession,
     ...render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        {locale ? (
-          <I18nProvider configClient={null} initialLocale={locale}>
-            {view}
-          </I18nProvider>
-        ) : (
-          view
-        )}
+        <SessionImportView onClose={vi.fn()} onOpenSession={onOpenSession} owner={owner} />
       </QueryClientProvider>
     )
   }
 }
-
-it('localizes the reserved default destination without changing its route identity', async () => {
-  const defaultOwner = { connectionId: 'workstation', profile: 'default' }
-
-  vi.mocked(foreignRequest).mockResolvedValue({ sessions: [], next_offset: null, host: 'studio', unreadable: 0 })
-  mount(vi.fn(), defaultOwner, 'zh')
-
-  expect(await screen.findByText('导入到 默认')).toBeTruthy()
-  expect(screen.queryByText('导入到 default')).toBeNull()
-  expect(foreignRequest).toHaveBeenCalledWith(
-    defaultOwner,
-    'list',
-    { offset: 0, source: null },
-    expect.any(AbortSignal)
-  )
-})
 
 it('browses without importing, then retries a failed import on the captured owner before opening', async () => {
   let attempts = 0

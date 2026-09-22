@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { getMemoryProviderOAuthStatus, startMemoryProviderOAuth } from '@/hermes'
-import { useI18n } from '@/i18n'
 import { Check, ExternalLink, Loader2 } from '@/lib/icons'
 import { notifyError } from '@/store/notifications'
 import type { MemoryProviderOAuthStatus } from '@/types/hermes'
@@ -14,9 +13,6 @@ const POLL_TIMEOUT_MS = 120_000
 // backend-driven: the status route 404s for providers without an oauth_flow
 // module, so non-OAuth providers render nothing.
 export function MemoryConnect({ profile, provider }: { profile?: string; provider: string }) {
-  const { t } = useI18n()
-  const copy = t.settings.memoryProvider
-  const toast = t.notifications.toast
   const [capable, setCapable] = useState<'no' | 'unknown' | 'yes'>('unknown')
   const [connected, setConnected] = useState(false)
   const [auth, setAuth] = useState<MemoryProviderOAuthStatus['auth']>(null)
@@ -79,8 +75,8 @@ export function MemoryConnect({ profile, provider }: { profile?: string; provide
       await startMemoryProviderOAuth(provider, profile)
     } catch (err) {
       setPhase('error')
-      setDetail(copy.connectionStartFailed)
-      notifyError(err, toast.memoryConnectionStartFailed)
+      setDetail('Could not start the connection.')
+      notifyError(err, 'Failed to start connection')
 
       return
     }
@@ -96,7 +92,7 @@ export function MemoryConnect({ profile, provider }: { profile?: string; provide
             if (Date.now() > deadline.current) {
               stop()
               setPhase('error')
-              setDetail(copy.connectionTimedOut)
+              setDetail('Timed out — try again.')
             }
 
             return
@@ -108,7 +104,7 @@ export function MemoryConnect({ profile, provider }: { profile?: string; provide
 
           if (next.state === 'error') {
             setPhase('error')
-            setDetail(next.detail || copy.connectionFailed)
+            setDetail(next.detail || 'Connection failed.')
           } else {
             setPhase('idle')
           }
@@ -117,7 +113,7 @@ export function MemoryConnect({ profile, provider }: { profile?: string; provide
         }
       })()
     }, POLL_MS)
-  }, [copy, profile, provider, stop, toast.memoryConnectionStartFailed])
+  }, [profile, provider, stop])
 
   const cancel = useCallback(() => {
     stop()
@@ -128,24 +124,24 @@ export function MemoryConnect({ profile, provider }: { profile?: string; provide
     return null
   }
 
-  const connectLabel = connected ? (auth === 'apikey' ? copy.connectViaOAuth : copy.reconnect) : copy.connect
+  const connectLabel = connected ? (auth === 'apikey' ? 'Connect via OAuth' : 'Reconnect') : 'Connect'
 
   return (
     <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
       {phase === 'idle' && connected && (
         <span className="inline-flex items-center gap-1 text-muted-foreground">
           <Check className="size-3" />
-          {auth === 'apikey' ? copy.apiKeySet : copy.oauthSet}
+          {auth === 'apikey' ? 'api key set' : 'oauth set'}
         </span>
       )}
       {phase === 'pending' ? (
         <>
           <span className="inline-flex items-center gap-1.5 text-muted-foreground">
             <Loader2 className="size-3 animate-spin" />
-            {copy.waitingForConsent}
+            Waiting for browser consent…
           </span>
           <Button className="h-auto p-0 text-xs" onClick={cancel} size="sm" type="button" variant="link">
-            {t.common.cancel}
+            Cancel
           </Button>
         </>
       ) : (

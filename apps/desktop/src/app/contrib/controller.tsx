@@ -11,7 +11,7 @@ import { InlinePreviewDirective } from '@/components/assistant-ui/inline-preview
 import { IdleMount } from '@/components/idle-mount'
 import { OnboardingChatDirective } from '@/components/onboarding-chat/directive'
 import { $layoutEditMode, toggleLayoutEditMode } from '@/components/pane-shell/edit-mode'
-import { allPaneIds, groupLeafIds } from '@/components/pane-shell/tree/model'
+import { allPaneIds } from '@/components/pane-shell/tree/model'
 import { LayoutTreeRoot } from '@/components/pane-shell/tree/renderer'
 import {
   $layoutTree,
@@ -39,16 +39,16 @@ import {
 import { $workspaceOwnerLabels, workspaceOwnerTitle } from '@/components/pane-shell/workspace-scope'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { discoverBundledPlugins } from '@/contrib/plugins'
+import { Slot } from '@/contrib/react/slot'
 import { registry } from '@/contrib/registry'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
-import { translateForLocale } from '@/i18n'
+import { LocalizedTabTitle, translateNow } from '@/i18n'
 import { NEW_SESSION_TITLE, sessionTitle as storedSessionTitle } from '@/lib/chat-runtime'
-import { Download, FileText, LayoutDashboard, PanelBottom, PanelTop, Terminal, Upload, Zap } from '@/lib/icons'
+import { Download, FileText, LayoutDashboard, PanelBottom, PanelTop, Terminal, Upload, Users, Zap } from '@/lib/icons'
 import { type KeybindContribution, KEYBINDS_AREA } from '@/lib/keybinds/actions'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 import { TRANSCRIPT_DIRECTIVE_AREA, type TranscriptDirectiveContribution } from '@/lib/transcript-directives'
 import { setYoloEnabled } from '@/lib/yolo-session'
-import { pruneComposerPopoutZones } from '@/store/composer-popout'
 import {
   $fileBrowserOpen,
   $panesFlipped,
@@ -61,6 +61,7 @@ import {
   SIDEBAR_DEFAULT_WIDTH,
   SIDEBAR_MAX_WIDTH
 } from '@/store/layout'
+import { $profileRailVisible } from '@/store/profile-rail-prefs'
 import { runExportProfileFlow, runImportProfileFlow } from '@/store/profile-share'
 import {
   $reviewOpen,
@@ -92,7 +93,7 @@ import {
 import { AppContextMenu } from '../context-menu/app-context-menu'
 import { HudShell } from '../hud/hud-shell'
 import { $terminalTakeover, setTerminalTakeover } from '../right-sidebar/store'
-import { $workspaceIsPage } from '../routes'
+import { $workspaceIsPage, WORKSPACE_PAGE_HEADER_AREA } from '../routes'
 
 import { DEFAULT_TREE, registerLayoutPresets } from './layout-presets'
 import { FilesPane, LogsPane, ReviewPaneContent } from './panes'
@@ -161,7 +162,9 @@ registry.registerMany([
   {
     id: 'sessions',
     area: 'panes',
-    title: 'sessions',
+    // String fallback only (menus, drag ghosts); the tab itself renders
+    // `tabTitle` below so the strip follows `display.language` once it loads.
+    title: translateNow('sidebar.sessions'),
     // Collapsible: leaves the grid on narrow viewports (edge overlay instead).
     // dock: where a RE-ADOPTED pane lands (healed from a stale dismissal) —
     // its default-ish spot beside main, not a random same-placement stack.
@@ -173,6 +176,8 @@ registry.registerMany([
       // Standing chrome: no close gestures at all — the tab is shown/hidden
       // (zone menu Show/Hide rows + the auto-registered ⌘K toggle below).
       hideOnly: true,
+      tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.sessions} />,
+      tabTitleText: () => translateNow('sidebar.sessions'),
       width: `${SIDEBAR_DEFAULT_WIDTH}px`,
       minWidth: `${SIDEBAR_DEFAULT_WIDTH}px`,
       maxWidth: `${SIDEBAR_MAX_WIDTH}px`
@@ -196,7 +201,8 @@ registry.registerMany([
   {
     id: 'terminal',
     area: 'panes',
-    title: 'terminal',
+    // Register-time sample; the tab renders `tabTitle` (see sessions).
+    title: translateNow('sidebar.terminal'),
     // revealOnPreset: choosing a layout that places the terminal (e.g.
     // "Terminal deck") turns takeover on so the zone actually shows, instead of
     // staying collapsed behind the ⌃` toggle. height sizes the fixed track (a
@@ -211,14 +217,16 @@ registry.registerMany([
       height: '20vh',
       maxHeight: '80vh',
       revealOnPreset: true,
-      lifecycleKeepAlive: true
+      lifecycleKeepAlive: true,
+      tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.terminal} />,
+      tabTitleText: () => translateNow('sidebar.terminal')
     },
     render: () => <WiredPane part="terminal" />
   },
   {
     id: 'files',
     area: 'panes',
-    title: 'files',
+    title: translateNow('sidebar.files'),
     // dock: re-adoption target after a stale dismissal (see sessions).
     data: {
       placement: 'right',
@@ -227,14 +235,16 @@ registry.registerMany([
       revealAliases: ['file-browser'],
       width: FILE_BROWSER_DEFAULT_WIDTH,
       minWidth: FILE_BROWSER_MIN_WIDTH,
-      maxWidth: FILE_BROWSER_MAX_WIDTH
+      maxWidth: FILE_BROWSER_MAX_WIDTH,
+      tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.files} />,
+      tabTitleText: () => translateNow('sidebar.files')
     },
     render: () => idle(<FilesPane />)
   },
   {
     id: 'review',
     area: 'panes',
-    title: 'review',
+    title: translateNow('sidebar.review'),
     // The second right sidebar: hidden until ⌘G ($reviewOpen) — bound below
     // like the other chrome toggles; its zone collapses while hidden.
     data: {
@@ -243,7 +253,9 @@ registry.registerMany([
       revealAliases: [REVIEW_PANE_ID],
       width: FILE_BROWSER_DEFAULT_WIDTH,
       minWidth: FILE_BROWSER_MIN_WIDTH,
-      maxWidth: FILE_BROWSER_MAX_WIDTH
+      maxWidth: FILE_BROWSER_MAX_WIDTH,
+      tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.review} />,
+      tabTitleText: () => translateNow('sidebar.review')
     },
     render: () => idle(<ReviewPaneContent />)
   }
@@ -269,14 +281,14 @@ registry.registerMany([
     area: KEYBINDS_AREA,
     data: {
       id: 'layout.editMode',
-      label: locale => translateForLocale(locale, 'zones.toggleLayoutEditMode'),
+      label: 'Toggle layout edit mode',
       defaults: ['mod+shift+\\'],
       run: toggleLayoutEditMode
     } satisfies KeybindContribution
   },
   paletteToggle({
     id: 'layout.editMode',
-    label: locale => translateForLocale(locale, 'zones.toggleLayoutEditMode'),
+    label: 'Toggle layout edit mode',
     action: 'layout.editMode',
     icon: LayoutDashboard,
     keywords: ['layout', 'zones', 'panes', 'edit', 'rearrange'],
@@ -290,7 +302,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'plugins.reload',
-      label: locale => translateForLocale(locale, 'paletteCommands.reloadDesktopPlugins'),
+      label: 'Reload desktop plugins',
       keywords: ['plugins', 'reload', 'refresh', 'desktop'],
       run: () => void discoverRuntimePlugins()
     } satisfies PaletteContribution
@@ -335,7 +347,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'layout.reset',
-      label: locale => translateForLocale(locale, 'paletteCommands.resetLayout'),
+      label: 'Reset layout',
       icon: LayoutDashboard,
       keywords: ['layout', 'reset', 'default', 'panes'],
       run: resetLayoutTree
@@ -345,12 +357,21 @@ registry.registerMany([
   // ⌘K is the guaranteed door in (alongside the rebindable ⌘⇧S).
   paletteToggle({
     id: 'view.toggleStatusbar',
-    label: locale => translateForLocale(locale, 'paletteCommands.toggleStatusBar'),
+    label: 'Toggle status bar',
     action: 'view.toggleStatusbar',
     icon: PanelBottom,
     keywords: ['status bar', 'statusbar', 'bottom bar', 'hide', 'show', 'chrome'],
     get: () => $statusbarVisible.get(),
     set: enabled => $statusbarVisible.set(enabled)
+  }),
+  paletteToggle({
+    id: 'view.toggleProfileRail',
+    label: 'Toggle profile rail',
+    action: 'view.toggleProfileRail',
+    icon: Users,
+    keywords: ['profile rail', 'profile bar', 'profile strip', 'profiles', 'sidebar', 'hide', 'show', 'chrome'],
+    get: () => $profileRailVisible.get(),
+    set: enabled => $profileRailVisible.set(enabled)
   }),
   paletteToggle({
     id: 'view.toggleTabStrip',
@@ -370,7 +391,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'keybinds.panel',
-      label: locale => translateForLocale(locale, 'paletteCommands.keyboardShortcuts'),
+      label: 'Keyboard shortcuts',
       keywords: ['keybinds', 'shortcuts', 'hotkeys', 'keyboard'],
       run: () => window.dispatchEvent(new CustomEvent('hermes:open-keybinds'))
     } satisfies PaletteContribution
@@ -383,7 +404,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.export',
-      label: locale => translateForLocale(locale, 'paletteCommands.exportProfile'),
+      label: 'Export profile…',
       icon: Upload,
       keywords: ['profile', 'export', 'share', 'bundle', 'theme', 'settings', 'backup'],
       run: () => void runExportProfileFlow()
@@ -394,7 +415,7 @@ registry.registerMany([
     area: PALETTE_AREA,
     data: {
       id: 'profile.import',
-      label: locale => translateForLocale(locale, 'paletteCommands.importProfile'),
+      label: 'Import profile…',
       icon: Download,
       keywords: ['profile', 'import', 'share', 'bundle', 'archive', 'restore'],
       run: () => void runImportProfileFlow()
@@ -426,15 +447,6 @@ if (!isBrowserWindow() && !isHudWindow()) {
   watchRouteTiles()
   watchPreviewTiles()
 }
-
-// Composer pop-out state is keyed by layout zone, so drop entries for zones the
-// user has since closed or merged away — otherwise a long-lived install keeps a
-// row for every split it has ever had.
-$layoutTree.subscribe(tree => {
-  if (tree) {
-    pruneComposerPopoutZones(groupLeafIds(tree))
-  }
-})
 
 // Mirror sidebar pins into the backend keep-flag so the auto-archive sweep
 // never hides a pinned chat (and pre-existing pins migrate transparently).
@@ -474,6 +486,13 @@ const syncWorkspaceTitle = () => {
       tabTitle: stored ? undefined : () => <SessionDraftTitle scope={selected} />,
       // Pages aren't tab-able: the main zone's bar stands down while one shows.
       headerVeto: $workspaceIsPage.get(),
+      // Page-owned controls take the vetoed tab row. Deliberately NOT the
+      // `titleBar.center` slot: that one stays mounted in the titlebar on every
+      // route so plugin components (and their effects) survive navigation.
+      headerContent:
+        $workspaceIsPage.get() && registry.getArea(WORKSPACE_PAGE_HEADER_AREA).length
+          ? () => <Slot area={WORKSPACE_PAGE_HEADER_AREA} />
+          : undefined,
       placement: 'main',
       minWidth: '22vw',
       tabDrag: workspaceTabDrag,
@@ -489,6 +508,7 @@ $sessions.listen(syncWorkspaceTitle)
 $botChatScopes.listen(syncWorkspaceTitle)
 $workspaceOwnerLabels.listen(syncWorkspaceTitle)
 $workspaceIsPage.listen(syncWorkspaceTitle)
+registry.subscribeArea(WORKSPACE_PAGE_HEADER_AREA, syncWorkspaceTitle)
 
 // Layout reset collapses every session tile into main as a tab (after the
 // workspace) instead of re-scattering them — pre-placed before adoption.
@@ -596,7 +616,7 @@ bindToolPaneCollapse(
 registry.register(
   paletteToggle({
     id: 'view.showTerminal',
-    label: locale => translateForLocale(locale, 'paletteCommands.toggleTerminal'),
+    label: 'Toggle terminal',
     action: 'view.showTerminal',
     icon: Terminal,
     keywords: ['terminal', 'shell', 'console', 'pty'],
@@ -620,7 +640,7 @@ const syncLogsPane = (open: boolean) => {
     unregisterLogsPane ??= registry.register({
       id: 'logs',
       area: 'panes',
-      title: 'logs',
+      title: translateNow('sidebar.logs'),
       // Same tool-panel sizing rule as the terminal above — no minHeight, so
       // the sash floors it at COLLAPSED_ZONE_PX and folds the zone to its rail
       // rather than leaving a sliver. dock: its OWN zone beside the terminal —
@@ -629,7 +649,9 @@ const syncLogsPane = (open: boolean) => {
         placement: 'bottom',
         dock: { pane: 'terminal', pos: 'right' },
         height: '20vh',
-        maxHeight: '80vh'
+        maxHeight: '80vh',
+        tabTitle: () => <LocalizedTabTitle select={t => t.sidebar.logs} />,
+        tabTitleText: () => translateNow('sidebar.logs')
       },
       render: () => idle(<LogsPane />)
     })
@@ -663,7 +685,7 @@ $logsOpen.listen(syncLogsPane)
 registry.register(
   paletteToggle({
     id: 'logs.toggle',
-    label: locale => translateForLocale(locale, 'paletteCommands.toggleLogs'),
+    label: 'Toggle logs',
     icon: FileText,
     keywords: ['logs', 'agent log', 'tail', 'debug'],
     // On-screen, not the store's boolean. Summon-only keeps the two in step
@@ -712,7 +734,7 @@ registry.register(
         registry.register(
           paletteToggle({
             id: `strip-tab.${pane.id}`,
-            label: locale => translateForLocale(locale, 'zones.toggleStripTab', title),
+            label: translateNow('zones.toggleStripTab', title),
             icon: LayoutDashboard,
             keywords: [title.toLowerCase(), 'tab', 'pane', 'sidebar', 'show', 'hide'],
             // On-screen truth, same contract as the logs toggle above.
@@ -740,7 +762,7 @@ registry.register(
 registry.register(
   paletteToggle({
     id: 'session.yolo',
-    label: locale => translateForLocale(locale, 'paletteCommands.toggleYolo'),
+    label: 'Toggle yolo',
     icon: Zap,
     keywords: ['yolo', 'approvals', 'auto-approve', 'bypass', 'dangerous', 'commands'],
     get: () => $yoloActive.get(),

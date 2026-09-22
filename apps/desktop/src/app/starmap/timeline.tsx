@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { Codicon } from '@/components/ui/codicon'
-import { useI18n } from '@/i18n'
 
 import type { TimeAxis } from './time-axis'
 
@@ -110,7 +109,6 @@ export const Timeline = memo(function Timeline({
   revealStore,
   ringStops = []
 }: TimelineProps) {
-  const { t } = useI18n()
   const trackRef = useRef<HTMLDivElement | null>(null)
   const draggingRef = useRef(false)
   const markerRefs = useRef<HTMLDivElement[]>([])
@@ -184,10 +182,8 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div className="pointer-events-auto flex w-[28rem] max-w-full items-center gap-3 [-webkit-app-region:no-drag]">
-      <style>{'@keyframes starmap-twinkle{0%,100%{opacity:var(--o,1)}50%{opacity:calc(var(--o,1) * 0.35)}}'}</style>
-
       <button
-        aria-label={playing ? t.starmap.pauseTimeline : t.starmap.playTimeline}
+        aria-label={playing ? 'Pause' : 'Play timeline'}
         className="flex size-5 shrink-0 items-center justify-center text-foreground/75 transition-colors hover:text-foreground"
         onClick={onTogglePlay}
         type="button"
@@ -196,7 +192,7 @@ export const Timeline = memo(function Timeline({
       </button>
 
       <div
-        aria-label={t.starmap.timelineScrubber}
+        aria-label="Timeline scrubber"
         aria-valuemax={100}
         aria-valuemin={0}
         aria-valuenow={Math.round(revealStore.get() * 100)}

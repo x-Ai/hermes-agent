@@ -1,6 +1,5 @@
 import { type ComponentProps, useEffect, useRef } from 'react'
 
-import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 export const LOADER_TYPES = [
@@ -318,15 +317,13 @@ const LOADER_CURVES: Record<LoaderType, LoaderCurve> = {
 
 export function Loader({
   className,
-  label,
+  label = 'Loading',
   pathSteps = 240,
   role = 'status',
   strokeScale = 1,
   type = 'rose-curve',
   ...props
 }: LoaderProps) {
-  const { t } = useI18n()
-  const resolvedLabel = label ?? t.common.loadingStatus
   const config = LOADER_CURVES[type]
   const groupRef = useRef<SVGGElement | null>(null)
   const particleRefs = useRef<Array<SVGCircleElement | null>>([])
@@ -370,7 +367,7 @@ export function Loader({
   return (
     <div
       {...props}
-      aria-label={props['aria-label'] ?? resolvedLabel}
+      aria-label={props['aria-label'] ?? label}
       className={cn('inline-grid size-10 place-items-center text-primary', className)}
       role={role}
     >

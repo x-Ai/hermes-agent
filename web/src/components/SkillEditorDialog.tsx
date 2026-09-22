@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { useI18n } from "@/i18n";
-import { getDashboardCopy } from "@/i18n/dashboard";
 import { Button } from "@nous-research/ui/ui/components/button";
 import { Input } from "@nous-research/ui/ui/components/input";
 import { Label } from "@nous-research/ui/ui/components/label";
@@ -11,8 +9,9 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@nous-research/ui/ui/components/dialog";
+import { errorMessage } from "@/lib/api-error";
 
 /* ------------------------------------------------------------------ */
 /*  SkillEditorDialog — create or edit a SKILL.md from the dashboard   */
@@ -29,10 +28,6 @@ import {
 const CREATE_TEMPLATE = `---
 name: my-skill
 description: One-line description of when to use this skill.
-metadata:
-  hermes:
-    editorial_name: My Skill
-    editorial_description: A human-readable summary of what this skill helps with.
 ---
 
 # My Skill
@@ -56,13 +51,13 @@ export function SkillEditorDialog({
   editName,
   profile,
   onClose,
-  onSaved
+  onSaved,
 }: SkillEditorDialogProps) {
   // The body is remounted via `key` every time the dialog opens or the
   // target skill changes, so all form state initializes through useState
   // initializers — no reset-on-open effect (react-hooks/set-state-in-effect).
   return (
-    <Dialog open={open} onOpenChange={o => !o && onClose()}>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl">
         {open && (
           <EditorBody
@@ -78,9 +73,12 @@ export function SkillEditorDialog({
   );
 }
 
-function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDialogProps, "open">) {
-  const { t } = useI18n();
-  const copy = getDashboardCopy(t).skills;
+function EditorBody({
+  editName,
+  profile,
+  onClose,
+  onSaved,
+}: Omit<SkillEditorDialogProps, "open">) {
   const isEdit = editName !== null;
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -94,8 +92,8 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
     let cancelled = false;
     api
       .getSkillContent(editName, profile || undefined)
-      .then(res => !cancelled && setContent(res.content))
-      .catch(e => !cancelled && setError(String(e)))
+      .then((res) => !cancelled && setContent(res.content))
+      .catch((e) => !cancelled && setError(errorMessage(e)))
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -105,11 +103,11 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
   const handleSave = async () => {
     setError(null);
     if (!isEdit && !name.trim()) {
-      setError(copy.nameRequired);
+      setError("Skill name is required.");
       return;
     }
     if (!content.trim()) {
-      setError(copy.contentRequired);
+      setError("SKILL.md content is required.");
       return;
     }
     setSaving(true);
@@ -123,15 +121,15 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
           {
             name: trimmed,
             content,
-            category: category.trim() || undefined
+            category: category.trim() || undefined,
           },
-          profile || undefined
+          profile || undefined,
         );
         onSaved(trimmed);
       }
       onClose();
     } catch (e) {
-      setError(String(e));
+      setError(errorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -141,33 +139,35 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
     <>
       <DialogHeader>
         <DialogTitle>
-          {isEdit ? copy.editTitle.replace("{name}", editName ?? "") : copy.createTitle}
+          {isEdit ? `Edit skill: ${editName}` : "New skill"}
         </DialogTitle>
         <DialogDescription>
-          {isEdit ? copy.editDescription : copy.createDescription}
+          {isEdit
+            ? "Rewrite this skill's SKILL.md. Frontmatter (name, description) is validated on save."
+            : "Author a custom skill — YAML frontmatter plus markdown instructions. It becomes available to the agent and attachable to cron jobs."}
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid gap-4 px-6 pb-6">
+      <div className="grid gap-3">
         {!isEdit && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="grid min-w-0 gap-1.5">
-              <Label htmlFor="skill-editor-name">{copy.name}</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="skill-editor-name">Name</Label>
               <Input
                 id="skill-editor-name"
                 autoFocus
                 placeholder="my-skill"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
-            <div className="grid min-w-0 gap-1.5">
-              <Label htmlFor="skill-editor-category">{copy.categoryOptional}</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="skill-editor-category">Category (optional)</Label>
               <Input
                 id="skill-editor-category"
                 placeholder="devops"
                 value={category}
-                onChange={e => setCategory(e.target.value)}
+                onChange={(e) => setCategory(e.target.value)}
               />
             </div>
           </div>
@@ -185,16 +185,20 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
               spellCheck={false}
               className="min-h-[320px] max-h-[55vh] w-full resize-y border border-border bg-background/40 px-3 py-2 font-mono text-xs leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 focus-visible:border-foreground/25"
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
             />
           )}
         </div>
 
-        {error && <p className="whitespace-pre-wrap text-xs text-destructive">{error}</p>}
+        {error && (
+          <p className="whitespace-pre-wrap text-xs text-destructive">
+            {error}
+          </p>
+        )}
 
         <div className="flex items-center justify-end gap-2">
           <Button ghost size="sm" onClick={onClose} disabled={saving}>
-            {t.common.cancel}
+            Cancel
           </Button>
           <Button
             size="sm"
@@ -203,7 +207,7 @@ function EditorBody({ editName, profile, onClose, onSaved }: Omit<SkillEditorDia
             disabled={saving || loading}
             prefix={saving ? <Spinner /> : undefined}
           >
-            {saving ? t.common.saving : isEdit ? copy.saveChanges : copy.createSkill}
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Create skill"}
           </Button>
         </div>
       </div>

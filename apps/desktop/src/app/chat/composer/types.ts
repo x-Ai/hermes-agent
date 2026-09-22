@@ -21,14 +21,16 @@ export interface ChatBarState {
   model: {
     model: string
     provider: string
-    /** Catalog display name for `provider` (e.g. a custom endpoint's
-     *  user-chosen name). Absent until the model catalog loads. */
-    providerName?: string
     canSwitch: boolean
     loading?: boolean
     quickModels?: QuickModelOption[]
     /** Reused status-bar dropdown (built with gateway + selectModel upstream). */
     modelMenuContent?: ReactNode
+    /** The reasoning pill's dropdown (same host + controller as the model menu). */
+    reasoningMenuContent?: ReactNode
+    /** False when the catalog says the active model has no reasoning control;
+     *  undefined while unknown (loading) so the pill stays put. */
+    supportsReasoning?: boolean
   }
   tools: { enabled: boolean; label: string; suggestions?: ContextSuggestion[] }
   voice: { enabled: boolean; active: boolean }
@@ -47,11 +49,8 @@ export interface ChatBarProps {
   onCancel: () => Promise<void> | void
   onAddContextRef?: (refText: string, label?: string, detail?: string) => void
   onAddUrl?: (url: string) => void
-  onAttachImageBlob?: (blob: Blob) => Promise<boolean | void> | boolean | void
+  onAttachImageBlob?: (blob: Blob, isCurrent?: () => boolean) => Promise<boolean | void> | boolean | void
   onAttachDroppedItems?: (candidates: DroppedFile[]) => Promise<boolean | void> | boolean | void
-  /** Pasted GitHub PR-comment deep link → structured review attachment.
-   *  Returns true when the paste was consumed as an attachment. */
-  onAttachPrCommentUrl?: (url: string) => boolean
   onAttachPastedText?: (text: string) => Promise<boolean> | boolean
   onPasteClipboardImage?: (opts?: { silent?: boolean }) => Promise<boolean> | void
   onPickFiles?: () => void

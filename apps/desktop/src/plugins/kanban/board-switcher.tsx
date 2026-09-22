@@ -1,8 +1,6 @@
 /**
- * Titlebar board switcher — the board page projects this into `titleBar.center`
- * (where chat shows the session-title dropdown) via `<Contribute>`, so it
- * exists exactly while the page is mounted — no route sniffing. Same chrome as
- * the session title: quiet label + chevron, menu on click.
+ * Board switcher projected through `WORKSPACE_PAGE_HEADER_AREA` into the
+ * workspace panel's tab-header space while the board page is mounted.
  */
 
 import {
@@ -21,11 +19,13 @@ import {
   DropdownMenuTrigger,
   host,
   Input,
+  isSubmitEnter,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tip,
   useI18n,
   useMutation,
   useQuery,
@@ -47,7 +47,7 @@ import {
 } from './api'
 import { runExportBoardFlow, runImportBoardFlow } from './transfer'
 import type { BoardMeta } from './types'
-import { displayBoardName, errText, FIELD_LABEL, storedBoardName, useKanban } from './ui'
+import { errText, FIELD_LABEL, useKanban } from './ui'
 
 const NO_PROJECT = '__none__'
 /** Mirrors `kanban_db.DEFAULT_BOARD` — the board that always exists. */
@@ -79,7 +79,7 @@ function ProjectPicker({ onChange, value }: { onChange: (id: string) => void; va
       </Select>
       <span className="text-[0.6875rem] leading-relaxed text-(--ui-text-quaternary)">
         {k.projectHintPre}
-        <span className="font-mono">{k.projectHintCmd}</span>
+        <span className="font-mono">{k.projectHintCmd}</span>.
       </span>
     </label>
   )
@@ -160,7 +160,7 @@ function BoardNameField({
       <Input
         autoFocus
         onChange={event => onChange(event.target.value)}
-        onKeyDown={event => event.key === 'Enter' && onEnter()}
+        onKeyDown={event => isSubmitEnter(event) && onEnter()}
         placeholder={k.boardNamePlaceholder}
         value={value}
       />
@@ -226,12 +226,11 @@ function RenameBoardDialog({ board, onClose }: { board: BoardMeta | null; onClos
 
   useEffect(() => {
     if (board) {
-      setName(displayBoardName(k, board))
+      setName(board.name || board.slug)
     }
-  }, [board, k])
+  }, [board])
 
-  const storedName = board ? storedBoardName(k, board, name) : name.trim()
-  const save = useBoardWrite(() => updateBoard(slug, { name: storedName }), onClose)
+  const save = useBoardWrite(() => updateBoard(slug, { name: name.trim() }), onClose)
   const disabled = !name.trim() || save.isPending
 
   return (
@@ -272,7 +271,7 @@ function BoardSettingsDialog({ board, onClose }: { board: BoardMeta | null; onCl
       onClose={onClose}
       onConfirm={() => save.mutate()}
       open={Boolean(board)}
-      title={board ? k.boardSettingsFor(displayBoardName(k, board)) : k.settingsDots}
+      title={board ? k.boardSettingsFor(board.name || board.slug) : k.settingsDots}
     >
       <ProjectPicker onChange={setProject} value={project} />
     </BoardDialog>
@@ -332,27 +331,36 @@ export function BoardSwitcher() {
 
   const currentSlug = slug || boards.current
   const current = boards.boards.find(meta => meta.slug === currentSlug)
-  const label = current ? displayBoardName(k, current) : k.board
+  const label = current?.name || current?.slug || k.board
 
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button className="h-7 max-w-56 gap-1.5 px-2" size="sm" variant="ghost">
-            <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium leading-none">{label}</span>
-            {typeof current?.total === 'number' && (
-              <span className="text-[0.6875rem] tabular-nums text-(--ui-text-quaternary)">{current.total}</span>
-            )}
-            <Codicon className="shrink-0 text-(--ui-text-tertiary)" name="chevron-down" size="0.8125rem" />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tip label={k.switchBoard}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              aria-label={`${k.board}: ${label}`}
+              className="h-full min-w-0 max-w-full gap-1.5 px-2"
+              size="sm"
+              variant="ghost"
+            >
+              <Codicon className="shrink-0 text-(--ui-text-tertiary)" name="project" size="0.8125rem" />
+              <span className="shrink-0 text-[0.6875rem] font-medium text-(--ui-text-tertiary)">{k.board}</span>
+              <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium leading-none">{label}</span>
+              {typeof current?.total === 'number' && (
+                <span className="text-[0.6875rem] tabular-nums text-(--ui-text-quaternary)">{current.total}</span>
+              )}
+              <Codicon className="shrink-0 text-(--ui-text-tertiary)" name="chevron-down" size="0.8125rem" />
+            </Button>
+          </DropdownMenuTrigger>
+        </Tip>
         <DropdownMenuContent align="center">
           {boards.boards.map(meta => (
             <DropdownMenuItem
               key={meta.slug}
               onSelect={() => $boardSlug.set(meta.slug === boards.current ? '' : meta.slug)}
             >
-              {displayBoardName(k, meta)}
+              {meta.name || meta.slug}
               {typeof meta.total === 'number' && (
                 <span className="text-[0.625rem] tabular-nums text-(--ui-text-quaternary)">{meta.total}</span>
               )}
