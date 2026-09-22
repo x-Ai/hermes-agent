@@ -19,6 +19,8 @@ use tokio::io::AsyncWriteExt;
 
 use crate::paths;
 
+const INSTALL_SCRIPT_REPOSITORY: &str = "x-Ai/hermes-agent";
+
 /// Identity of the install.ps1 we'll execute. Used by both the manifest
 /// fetch and the per-stage runs.
 #[derive(Debug, Clone)]
@@ -323,11 +325,7 @@ fn upgrade_cached_script(kind: ScriptKind, cached: &Path, emit_log: &impl Fn(&st
 /// packets) never errors — the whole bootstrap would hang here instead of
 /// falling back to the cached script.
 async fn download(kind: ScriptKind, commit_or_ref: &str, dest_path: &Path) -> Result<()> {
-    let url = format!(
-        "https://raw.githubusercontent.com/NousResearch/hermes-agent/{}/scripts/{}",
-        commit_or_ref,
-        kind.filename()
-    );
+    let url = install_script_url(kind, commit_or_ref);
 
     if let Some(parent) = dest_path.parent() {
         std::fs::create_dir_all(parent).with_context(|| {
@@ -391,6 +389,13 @@ async fn download(kind: ScriptKind, commit_or_ref: &str, dest_path: &Path) -> Re
     Ok(())
 }
 
+fn install_script_url(kind: ScriptKind, commit_or_ref: &str) -> String {
+    format!(
+        "https://raw.githubusercontent.com/{INSTALL_SCRIPT_REPOSITORY}/{commit_or_ref}/scripts/{}",
+        kind.filename()
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -409,6 +414,18 @@ mod tests {
         assert_eq!(sanitize_ref("bb/gui"), "bb_gui");
         assert_eq!(sanitize_ref("main"), "main");
         assert_eq!(sanitize_ref("release/1.2.3"), "release_1.2.3");
+    }
+
+    #[test]
+    fn installer_downloads_the_fork_install_script() {
+        assert_eq!(
+            install_script_url(ScriptKind::Sh, "main"),
+            "https://raw.githubusercontent.com/x-Ai/hermes-agent/main/scripts/install.sh"
+        );
+        assert_eq!(
+            install_script_url(ScriptKind::Ps1, "abc1234"),
+            "https://raw.githubusercontent.com/x-Ai/hermes-agent/abc1234/scripts/install.ps1"
+        );
     }
 
     #[test]

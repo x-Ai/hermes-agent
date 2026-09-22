@@ -193,12 +193,23 @@ export interface Translations {
     connecting: string
     desktopBootFailedWithMessage: (message: string) => string
     steps: {
+      backendReady: string
+      connectingRemoteBackend: string
       connectingGateway: string
       loadingSettings: string
       loadingSessions: string
+      resolvingBackend: string
+      resolvingRuntime: string
+      restartingAfterUpdate: string
       retryingRemoteBackend: string
+      runtimeReady: string
+      startingBackend: string
       startingDesktopConnection: string
       startingHermesDesktop: string
+      usingRuntime: string
+      waitingBackendLaunch: string
+      waitingBackendReady: string
+      waitingForUpdate: string
     }
     errors: {
       backgroundExited: string

@@ -104,12 +104,23 @@ export const ja = defineLocale({
     connecting: '接続中',
     desktopBootFailedWithMessage: message => `デスクトップの起動に失敗しました: ${message}`,
     steps: {
+      backendReady: 'Hermes バックエンドの準備ができました',
+      connectingRemoteBackend: 'リモート Hermes バックエンドに接続中',
       connectingGateway: 'ライブデスクトップゲートウェイに接続中',
       loadingSettings: 'Hermes の設定を読み込み中',
       loadingSessions: '最近のセッションを読み込み中',
+      resolvingBackend: 'Hermes バックエンドを解決中',
+      resolvingRuntime: 'Hermes ランタイムを解決中',
+      restartingAfterUpdate: '更新を完了するため Hermes を再起動中…',
       retryingRemoteBackend: 'リモート Hermes バックエンドに再接続中…',
+      runtimeReady: 'Hermes ランタイムの準備ができました',
+      startingBackend: 'Hermes バックエンドを起動中',
       startingDesktopConnection: 'デスクトップ接続を開始中',
-      startingHermesDesktop: 'Hermes Desktop を起動中…'
+      startingHermesDesktop: 'Hermes Desktop を起動中…',
+      usingRuntime: 'インストール済みの Hermes ランタイムを使用中',
+      waitingBackendLaunch: 'Hermes バックエンドの起動を待機中',
+      waitingBackendReady: 'Hermes バックエンドの準備完了を待機中',
+      waitingForUpdate: '現在の更新が完了するまで待機中…'
     },
     errors: {
       backgroundExited: 'Hermes バックグラウンドプロセスが終了しました。',

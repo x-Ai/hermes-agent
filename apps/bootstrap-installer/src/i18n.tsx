@@ -273,7 +273,7 @@ const MESSAGES: Record<InstallerLocale, InstallerCopy> = {
       done: '完成',
       settingUp: '正在设置 Hermes Agent',
       updating: '正在更新 Hermes',
-      installDescription: '这是一次性设置。Hermes 正在下载依赖并配置你的电脑，之后启动会跳过此步骤',
+      installDescription: '这是一次性设置，Hermes 正在下载依赖并配置你的电脑，之后启动会跳过此步骤',
       updateDescription: 'Hermes 正在更新到最新版本，通常很快即可完成',
       stepsComplete: (done, total) => `${done}/${total} 个步骤已完成`,
       liveOutput: '实时输出',
