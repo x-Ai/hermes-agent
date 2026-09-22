@@ -47,6 +47,7 @@ vi.mock('@hermes/plugin-sdk', async () => {
     SelectItem: ({ children }: { children: ReactNode }) => <div>{children}</div>,
     SelectTrigger: ({ children }: { children: ReactNode }) => <div>{children}</div>,
     SelectValue: () => null,
+    usePluginI18n: () => (key: string) => key,
     useQuery
   }
 })

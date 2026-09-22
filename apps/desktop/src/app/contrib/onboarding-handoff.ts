@@ -21,6 +21,7 @@ import {
 import { showHandoffTour } from '@/components/onboarding-chat/signpost'
 import { findGroupOfPane } from '@/components/pane-shell/tree/model'
 import { $layoutTree, activateTreePane } from '@/components/pane-shell/tree/store'
+import { translateNow } from '@/i18n'
 import { toChatMessages } from '@/lib/chat-messages'
 import { connectorTitle } from '@/lib/connector-tools'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
@@ -112,8 +113,8 @@ export function useOnboardingHandoff({
     } catch (error) {
       notify({
         kind: 'error',
-        title: 'First build needs attention',
-        message: error instanceof Error ? error.message : 'The first-build receipt could not be read.'
+        title: translateNow('guidedOnboarding.errors.firstBuildNeedsAttention'),
+        message: error instanceof Error ? error.message : translateNow('guidedOnboarding.errors.receiptUnreadable')
       })
     }
   }, [selectedStoredId])
@@ -141,7 +142,7 @@ export function useOnboardingHandoff({
 
       try {
         if (!setupSession?.storedId) {
-          throw new Error('The welcome chat owner is not available yet. Reopen it and retry the first build.')
+          throw new Error(translateNow('guidedOnboarding.errors.welcomeOwnerUnavailable'))
         }
 
         $setupSession.set(setupSession)
@@ -168,7 +169,7 @@ export function useOnboardingHandoff({
               )
 
               if (!result.saved || result.profile !== BUILD_PROFILE || result.target !== 'user') {
-                throw new Error('Could not save your onboarding preferences. Retry before starting the first build.')
+                throw new Error(translateNow('guidedOnboarding.errors.preferencesSaveFailed'))
               }
             },
             create: async () => {
@@ -190,7 +191,7 @@ export function useOnboardingHandoff({
               )
 
               if (!runtimeId) {
-                throw new Error('Could not open the first-build session.')
+                throw new Error(translateNow('guidedOnboarding.errors.sessionOpenFailed'))
               }
 
               // Ignore selection if the user navigated away during creation.
@@ -199,9 +200,7 @@ export function useOnboardingHandoff({
                 ($activeSessionId.get() === runtimeId ? $selectedStoredSessionId.get() : null)
 
               if (!storedId || storedId === setupSession.storedId) {
-                throw new Error(
-                  'The first-build session did not return a durable identity. Check your sessions before retrying.'
-                )
+                throw new Error(translateNow('guidedOnboarding.errors.sessionIdentityMissing'))
               }
 
               return { runtimeId, storedId, owner }
@@ -311,15 +310,15 @@ export function useOnboardingHandoff({
 
         $newChatProfile.set(previousNewChatProfile)
         $newChatRoute.set(previousNewChatRoute)
-        const message = error instanceof Error ? error.message : 'The first build could not be started.'
+        const message = error instanceof Error ? error.message : translateNow('guidedOnboarding.handoffFailed')
         $handoffError.set(message)
         $setupHandoff.set({ ...setupHandoff, phase: 'error' })
         notify({
           id: 'onboarding-handoff',
           kind: 'error',
-          title: 'First build needs attention',
+          title: translateNow('guidedOnboarding.errors.firstBuildNeedsAttention'),
           message,
-          action: { label: 'Retry first build', onClick: retrySetupHandoff }
+          action: { label: translateNow('guidedOnboarding.retryFirstBuild'), onClick: retrySetupHandoff }
         })
       }
     })()

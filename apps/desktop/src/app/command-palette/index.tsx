@@ -536,7 +536,7 @@ export function CommandPalette() {
 }
 
 function CommandPaletteBody({ onExited }: { onExited: () => void }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const pendingPage = useStore($commandPalettePage)
   const pendingSeed = useStore($commandPaletteSeed)
   const bindings = useStore($bindings)
@@ -859,19 +859,24 @@ function CommandPaletteBody({ onExited }: { onExited: () => void }) {
         ? [
             {
               heading: cc.commands,
-              items: contributedItems.map(item => ({
-                action: item.action,
+              items: contributedItems.map(item => {
                 // Read on mount and after every select (the deps below), so a
                 // row that reports state can't show the state it just left.
-                detail: item.detail?.(),
-                detailVariant: item.detailVariant,
-                icon: item.icon ?? Zap,
-                id: item.key,
-                keepOpen: item.keepOpen,
-                keywords: item.keywords,
-                label: item.label,
-                run: item.run
-              }))
+                const detail = item.detail?.()
+                const contributedLabel = typeof item.label === 'function' ? item.label(locale) : item.label
+
+                return {
+                  action: item.action,
+                  detail: detail === 'on' ? t.common.on : detail === 'off' ? t.common.off : detail,
+                  detailVariant: item.detailVariant,
+                  icon: item.icon ?? Zap,
+                  id: item.key,
+                  keepOpen: item.keepOpen,
+                  keywords: item.keywords,
+                  label: (item.action && t.keybinds.actions[item.action]) || contributedLabel,
+                  run: item.run
+                }
+              })
             }
           ]
         : []),

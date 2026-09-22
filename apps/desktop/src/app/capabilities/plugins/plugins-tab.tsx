@@ -18,7 +18,7 @@ import { Tip } from '@/components/ui/tooltip'
 import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/plugins-store'
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
 import type { ProfileScope } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
 import { CATALOG_ORIGIN, CATALOG_PICKER_URL } from '@/lib/plugin-catalog'
@@ -106,7 +106,10 @@ async function revealPluginsDir() {
     const dir = await window.hermesDesktop?.desktopPluginsRoot?.()
 
     if (!dir) {
-      notifyError('Desktop plugins are unavailable', 'Could not resolve the plugins folder')
+      notifyError(
+        translateNow('notifications.toast.pluginsFolderUnavailable'),
+        translateNow('notifications.toast.pluginsFolderResolveFailed')
+      )
 
       return
     }
@@ -114,10 +117,13 @@ async function revealPluginsDir() {
     const result = await window.hermesDesktop?.openDir?.(dir)
 
     if (result && !result.ok) {
-      notifyError(result.error ?? 'unknown error', 'Could not open the plugins folder')
+      notifyError(
+        result.error ?? translateNow('notifications.toast.unknownError'),
+        translateNow('notifications.toast.pluginsFolderOpenFailed')
+      )
     }
   } catch (err) {
-    notifyError(err, 'Could not resolve the plugins folder')
+    notifyError(err, translateNow('notifications.toast.pluginsFolderResolveFailed'))
   }
 }
 
@@ -190,7 +196,7 @@ function ProvenancePill({ pkg }: { pkg: PluginPackage }) {
   }
 
   if (pkg.agent) {
-    return <Pill>{pkg.agent.source}</Pill>
+    return <Pill>{p.sourceLabels[pkg.agent.source] ?? pkg.agent.source}</Pill>
   }
 
   if (pkg.desktop) {

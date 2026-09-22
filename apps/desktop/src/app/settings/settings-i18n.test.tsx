@@ -76,6 +76,6 @@ describe('Settings i18n', () => {
       }
     }
 
-    expect(TRANSLATIONS.ja.settings.config.showOptions).toBe(en.config.showOptions)
+    expect(TRANSLATIONS.ja.settings.config.showOptions).not.toBe(en.config.showOptions)
   })
 })

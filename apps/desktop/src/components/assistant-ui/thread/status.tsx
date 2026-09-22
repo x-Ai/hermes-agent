@@ -12,7 +12,8 @@ import { Codicon } from '@/components/ui/codicon'
 import { Loader } from '@/components/ui/loader'
 import { StatusPulse } from '@/components/ui/status-pulse'
 import { getLocalModelsStatus } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { type Translations, useI18n } from '@/i18n'
+import { localizeProviderWaitText } from '@/lib/provider-wait-localization'
 import { cn } from '@/lib/utils'
 import { sessionBackgroundResume } from '@/store/background-delegation'
 import { sessionCompacting } from '@/store/compaction'
@@ -47,9 +48,6 @@ const StatusRow: FC<{ children: ReactNode; label: string } & React.ComponentProp
     {children}
   </div>
 )
-
-// Fixed label while auto-compaction runs — decoupled from backend status text.
-const COMPACTION_LABEL = 'Summarizing thread'
 
 const HintText: FC<{ children: ReactNode }> = ({ children }) => (
   <span className={cn(SCAFFOLD_LABEL_CLASS, 'shimmer min-w-0 flex-1 truncate')}>{children}</span>
@@ -192,7 +190,12 @@ const DRAFTING_REVEAL_MS = 200
  * What to call the wait, if it deserves a name. Compaction outranks a draft —
  * it's rarer, slower, and explains a transcript that looks like it reset.
  */
-function useStatusHint(compacting: boolean, drafting: DraftingTool | null, providerWait: string): string {
+function useStatusHint(
+  compacting: boolean,
+  drafting: DraftingTool | null,
+  providerWait: string,
+  threadCopy: Translations['assistant']['thread']
+): string {
   const [revealed, setRevealed] = useState(false)
   const name = drafting?.name ?? ''
 
@@ -209,11 +212,11 @@ function useStatusHint(compacting: boolean, drafting: DraftingTool | null, provi
   }, [name])
 
   if (compacting) {
-    return COMPACTION_LABEL
+    return threadCopy.summarizingThread
   }
 
   if (providerWait) {
-    return providerWait
+    return localizeProviderWaitText(providerWait, threadCopy)
   }
 
   return revealed && name ? toolPresentVerb(name) : ''
@@ -244,7 +247,7 @@ export const ResponseLoadingIndicator: FC = () => {
   const { t } = useI18n()
   const { compacting, drafting, providerWait, turnStartedAt } = useThreadSessionStatus()
   const elapsed = useElapsedSeconds(true, undefined, turnStartedAt)
-  const hint = useStatusHint(compacting, drafting, providerWait)
+  const hint = useStatusHint(compacting, drafting, providerWait, t.assistant.thread)
   // Renderer-synthesized load bar: covers loads the backend's wait loop
   // can't narrate (gateway still initializing, or an auxiliary call — not
   // the main request — triggered the autoload). A real wait frame wins.
@@ -315,7 +318,7 @@ export const TurnActivityIndicator: FC = () => {
   // the whole turn so far.
   const [quietSince, setQuietSince] = useState<number | undefined>(undefined)
   const { awaitingInput, busy, compacting, drafting, providerWait, turnStartedAt } = useThreadSessionStatus()
-  const hint = useStatusHint(compacting, drafting, providerWait)
+  const hint = useStatusHint(compacting, drafting, providerWait, t.assistant.thread)
 
   // A tool run at the tail already narrates the wait — its summary counts the
   // calls, its ticker names the current one, and it carries its own timer. A

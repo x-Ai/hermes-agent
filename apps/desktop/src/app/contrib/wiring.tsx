@@ -891,7 +891,7 @@ export function ContribWiring({ children }: { children: ReactNode }) {
           } else {
             void ensureGatewayProfile(normalizeProfileKey(targetProfile)).catch((error: unknown) => {
               // #81094: the voice-path switch must surface its failure too.
-              notifyError(error, `Failed to switch to profile "${normalizeProfileKey(targetProfile)}"`)
+              notifyError(error, translateNow('profiles.switchFailed', normalizeProfileKey(targetProfile)))
             })
           }
         } else if (payload?.start_new_session !== false) {

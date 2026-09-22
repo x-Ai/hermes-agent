@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
 
 import { TRANSLATIONS } from './catalog'
-import { setRuntimeI18nLocale, translateNow } from './runtime'
+import { setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
 import { zh } from './zh'
 
 describe('desktop i18n runtime translator', () => {
@@ -26,6 +26,11 @@ describe('desktop i18n runtime translator', () => {
 
   it('passes arguments to function translations', () => {
     expect(translateNow('notifications.updateReadyMessage', 2)).toBe('2 new changes available.')
+  })
+
+  it('translates an explicit locale independently of the runtime locale', () => {
+    expect(translateForLocale('zh', 'paletteCommands.resetLayout')).toBe('重置布局')
+    expect(translateNow('paletteCommands.resetLayout')).toBe('Reset layout')
   })
 
   it('translates migrated overlap keys for newly supported locales', () => {
@@ -63,7 +68,7 @@ describe('desktop i18n runtime translator', () => {
     const field = ['display', 'show_reasoning'].join('.')
 
     expect(fieldCopyForSchemaKey(zh.settings.fieldLabels, field)).toBe('推理过程块')
-    expect(fieldCopyForSchemaKey(zh.settings.fieldDescriptions, field)).toBe('当后端提供推理内容时予以显示。')
+    expect(fieldCopyForSchemaKey(zh.settings.fieldDescriptions, field)).toBe('当后端提供推理内容时予以显示')
   })
 
   it('falls back to English when the active locale cannot resolve a key', () => {

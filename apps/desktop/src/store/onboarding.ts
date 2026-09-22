@@ -12,7 +12,7 @@ import {
   submitOAuthCode,
   validateProviderCredential
 } from '@/hermes'
-import { translateNow } from '@/i18n'
+import { translateNow } from '@/i18n/runtime'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
 import { evaluateRuntimeReadiness, type RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { ackFreeTierNotice, freeTierReadyPending, refreshFreeTierStatus, setFreeTierRoute } from '@/store/free-tier'
@@ -238,18 +238,22 @@ function shouldPreserveConfiguredOnFallback(runtime: RuntimeReadinessResult, sta
 }
 
 function notifyReady(provider: string) {
-  notify({ kind: 'success', title: 'Hermes is ready', message: `${provider} connected.` })
+  notify({
+    kind: 'success',
+    title: translateNow('notifications.toast.onboardingReadyTitle'),
+    message: translateNow('notifications.toast.providerConnected', provider)
+  })
 }
 
 // Human-friendly labels for tools auto-routed through the Nous Tool Gateway,
 // mirroring hermes_cli/nous_subscription._GATEWAY_TOOL_LABELS so the GUI and
 // CLI describe the same thing.
-const GATEWAY_TOOL_LABELS: Record<string, string> = {
-  browser: 'browser automation',
-  image_gen: 'image generation',
-  tts: 'text-to-speech',
-  video_gen: 'video generation',
-  web: 'web search & extract'
+const GATEWAY_TOOL_KEYS: Record<string, string> = {
+  browser: 'browser',
+  image_gen: 'image_gen',
+  tts: 'tts',
+  video_gen: 'video_gen',
+  web: 'web'
 }
 
 // When switching to Nous auto-routes unconfigured tools through the Tool
@@ -260,14 +264,17 @@ function notifyGatewayTools(tools: string[] | undefined) {
     return
   }
 
-  const labels = tools.map(t => GATEWAY_TOOL_LABELS[t] ?? t)
-  const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
+  const labels = tools.map(tool => {
+    const key = GATEWAY_TOOL_KEYS[tool]
+
+    return key ? translateNow(`notifications.toast.toolGatewayTools.${key}`) : tool
+  })
 
   notify({
     durationMs: 8000,
     kind: 'info',
-    message: `${list} now run through your Nous subscription — no separate API keys needed.`,
-    title: 'Tool Gateway enabled'
+    message: translateNow('notifications.toast.toolGatewayEnabledMessage', labels),
+    title: translateNow('notifications.toast.toolGatewayEnabledTitle')
   })
 }
 
@@ -712,9 +719,8 @@ export async function refreshOnboarding(ctx: OnboardingContext, stillWanted?: ()
     notify({
       id: 'runtime-not-ready',
       kind: 'error',
-      title: 'Runtime not ready',
-      message:
-        'Hermes Desktop could not verify the running backend on startup. Some features may be unavailable until the gateway is reachable.'
+      title: translateNow('notifications.toast.runtimeNotReadyTitle'),
+      message: translateNow('notifications.toast.runtimeNotReadyMessage')
     })
 
     return false
@@ -1030,7 +1036,7 @@ export async function saveOnboardingApiKey(
   const trimmed = value.trim()
 
   if (!trimmed) {
-    return { ok: false, message: 'Enter a value first.' }
+    return { ok: false, message: translateNow('settings.credentials.enterValueFirst') }
   }
 
   // The "Local / custom endpoint" option carries a base URL (in `value`) plus
@@ -1065,7 +1071,7 @@ export async function saveOnboardingApiKey(
 
     return { ok: true }
   } catch (error) {
-    notifyError(error, `Could not save ${label}`)
+    notifyError(error, translateNow('notifications.toast.providerSaveFailed', label))
 
     return { ok: false, message: errMessage(error) }
   }
@@ -1095,7 +1101,7 @@ export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: strin
   const key = apiKey.trim()
 
   if (!url) {
-    return { ok: false, message: 'Enter the endpoint URL first.' }
+    return { ok: false, message: translateNow('settings.customEndpoints.enterUrlFirst') }
   }
 
   // Probe connectivity + discover the served models. Any HTTP response proves
@@ -1115,23 +1121,23 @@ export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: strin
     }
 
     if (!probe.ok && probe.reachable) {
-      return { ok: false, message: probe.message || 'Could not reach that endpoint.' }
+      return { ok: false, message: probe.message || translateNow('settings.customEndpoints.validationFailed') }
     }
 
     if (!probe.reachable) {
-      return { ok: false, message: probe.message || `Could not reach ${url}.` }
+      return { ok: false, message: probe.message || translateNow('settings.customEndpoints.unreachable', url) }
     }
 
     model = (probe.models?.[0] ?? '').trim()
     resolvedUrl = probe.resolved_base_url?.trim() || url
   } catch {
-    return { ok: false, message: `Could not reach ${url}.` }
+    return { ok: false, message: translateNow('settings.customEndpoints.unreachable', url) }
   }
 
   if (!model) {
     return {
       ok: false,
-      message: `Connected to ${url}, but it advertised no models at /v1/models. Start a model on that endpoint and try again.`
+      message: translateNow('settings.customEndpoints.connectedNoModels', url)
     }
   }
 
@@ -1166,7 +1172,7 @@ export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: strin
 
     return { ok: true }
   } catch (error) {
-    notifyError(error, 'Could not save local endpoint')
+    notifyError(error, translateNow('notifications.toast.localEndpointSaveFailed'))
 
     return { ok: false, message: errMessage(error) }
   }
@@ -1221,7 +1227,7 @@ export async function setOnboardingModel(model: string, providerSlug: string, la
       return
     }
 
-    notifyError(error, 'Could not change model')
+    notifyError(error, translateNow('notifications.toast.modelChangeFailed'))
     const current = $desktopOnboarding.get().flow
 
     if (current.status === 'confirming_model') {

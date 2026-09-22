@@ -22,6 +22,7 @@ import {
   hasThreadScopedGroupSession
 } from './group-membership'
 import { GROUP_PROMPT_HEADER_PREFIX } from './group-round-prompt'
+import { botsText } from './i18n'
 import { botConnectionRoute, requestForBot } from './routing'
 import type { Attachment, GroupMember, GroupPrompt, GroupPromptQuestion, ProfileRoute } from './types'
 
@@ -902,7 +903,7 @@ async function stageGroupTurnAttachments(member: GroupMember, runtime: string, i
       }
     } catch (error) {
       failed.push(label)
-      host.notifyError?.(error, `Could not attach ${label} for ${member.title || member.name}`)
+      host.notifyError?.(error, botsText().group.attachmentFailed(label, member.title || member.name))
     }
   }
 

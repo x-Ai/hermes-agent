@@ -185,9 +185,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
 
   if (unsupported) {
     return (
-      <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">
-        Full configuration needs a newer gateway (restart it after updating Hermes).
-      </div>
+      <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">{b.bot.fullConfigNeedsNewerGateway}</div>
     )
   }
 
@@ -323,7 +321,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           }}
         />
         <div className="rounded-md border border-(--ui-stroke-secondary) px-3 py-2 text-xs text-(--ui-text-tertiary)">
-          Remote capabilities require a newer desktop. Model and SOUL changes remain staged until you save.
+          {b.bot.remoteCapabilitiesNeedNewerDesktop}
         </div>
         {labeled(
           'SOUL.md (persona + agent-messaging protocol)',

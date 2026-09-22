@@ -153,7 +153,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
           advancedFailed = true
           host.notify({
             kind: 'error',
-            message: `Some sections failed: ${failed.map(([k]) => k).join(', ')}`
+            message: b.bot.someSectionsFailed(failed.map(([k]) => k).join(', '))
           })
         }
       } catch (err) {
@@ -165,9 +165,11 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
     if (!advancedFailed && !lookFailed) {
       host.notify({
         kind: 'success',
-        message: `${displayName(bot, {
-          title
-        })} updated`
+        message: b.bot.updated(
+          displayName(bot, {
+            title
+          })
+        )
       })
     }
 

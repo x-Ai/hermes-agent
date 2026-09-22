@@ -240,7 +240,7 @@ function MarketplaceThemeResults({
 
   const header = (
     <p className="mb-2 mt-4 text-[length:var(--conversation-caption-font-size)] font-medium text-(--ui-text-tertiary)">
-      From the VS Code Marketplace
+      {t.settings.appearance.marketplaceThemeSource}
     </p>
   )
 
@@ -568,7 +568,7 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
                     {filteredThemes.length === 0 ? (
                       needle ? (
                         <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                          No installed themes match "{query.trim()}".
+                          {a.noInstalledThemeMatches(query.trim())}
                         </p>
                       ) : null
                     ) : (

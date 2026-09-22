@@ -4,6 +4,7 @@ import { JsonRpcGatewayError } from '@hermes/shared'
 
 import type { ClientSessionState } from '@/app/types'
 import type { HandoffPlan } from '@/components/onboarding-chat/setup-profile'
+import { translateNow } from '@/i18n'
 import type { SessionMessage } from '@/types/hermes'
 
 import type { AmbientGatewayRequest } from './session-rpc-dispatcher'
@@ -64,7 +65,7 @@ function verifyHandoffSnapshot(snapshot: HandoffSnapshot): asserts snapshot is H
     !Array.isArray(snapshot.messages) ||
     (snapshot.running !== true && snapshot.running !== false)
   ) {
-    throw new Error('Could not verify the first build. Retry when the connection recovers.')
+    throw new Error(translateNow('guidedOnboarding.errors.verifyFailed'))
   }
 }
 
@@ -104,15 +105,11 @@ export async function startHandoff(deps: HandoffDeps, task: HandoffTask, recover
     }
 
     if (snapshot.running) {
-      throw new Error(
-        'The first build has no confirmed start, but its session still reports running. Retry when it is idle; no duplicate was sent.'
-      )
+      throw new Error(translateNow('guidedOnboarding.errors.unconfirmedRunning'))
     }
 
     if (receipt.status === 'submitting') {
-      throw new Error(
-        'The first build has not acknowledged its start. Check its session before retrying; no duplicate was sent.'
-      )
+      throw new Error(translateNow('guidedOnboarding.errors.notAcknowledged'))
     }
   }
 
@@ -127,7 +124,7 @@ export async function startHandoff(deps: HandoffDeps, task: HandoffTask, recover
     })
 
     if (response.status !== 'streaming') {
-      throw new Error('The first build did not acknowledge starting. Check its session before retrying.')
+      throw new Error(translateNow('guidedOnboarding.errors.notAcknowledgedStart'))
     }
   } catch (error) {
     const code = error instanceof JsonRpcGatewayError ? error.code : undefined

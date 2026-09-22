@@ -3,6 +3,7 @@ import { atom, batch, computed } from 'nanostores'
 
 import type { HermesConnection } from '@/global'
 import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
+import { translateNow } from '@/i18n'
 import { sortByProfileOrder as sortProfilesByOrder } from '@/lib/profile-order'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import {
@@ -989,7 +990,7 @@ export function selectProfile(name: string): void {
     })
     .catch((error: unknown) => {
       if (!notifyRemoteOverrideAuthFailure(target, error)) {
-        notifyError(error, `Failed to switch to profile "${target}"`)
+        notifyError(error, translateNow('profiles.switchFailed', target))
       }
     })
 }
@@ -1053,7 +1054,7 @@ export function newSessionInProfile(name: string): void {
   // #81094: surface the failed dial instead of failing silently.
   void activateOnCurrentSource(target).catch((error: unknown) => {
     if (!notifyRemoteOverrideAuthFailure(target, error)) {
-      notifyError(error, `Failed to open profile "${target}"`)
+      notifyError(error, translateNow('profiles.openFailed', target))
     }
   })
 }
@@ -1079,7 +1080,7 @@ export function newSessionInAgent(route: AgentProfileRoute): void {
   requestFreshSession()
   // #81094: surface the failed dial instead of failing silently.
   void ensureGatewayAgent(captured.connectionId, captured.profile).catch((error: unknown) => {
-    notifyError(error, `Failed to open profile "${captured.profile}"`)
+    notifyError(error, translateNow('profiles.openFailed', captured.profile))
   })
 }
 

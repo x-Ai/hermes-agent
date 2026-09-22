@@ -17,6 +17,7 @@ import type { HandoffReceipt } from '@/app/contrib/handoff-leg'
 import { handoffReceiptKey, readHandoffReceipt } from '@/app/contrib/handoff-receipt'
 import type { GatewayRequest } from '@/app/session/hooks/use-prompt-actions/utils'
 import { CONNECTOR_LEAD_ORDER } from '@/components/onboarding-chat/options'
+import { translateNow } from '@/i18n'
 import { connectorTitle } from '@/lib/connector-tools'
 import { activeGatewayConnectionId } from '@/store/gateway'
 import { machineDescription } from '@/store/machine'
@@ -289,7 +290,7 @@ export function buildHandoffCompleteNote(task: string): string {
 export async function ensureSetupProfile(request: GatewayRequest): Promise<void> {
   try {
     await request('profiles.create', {
-      description: 'Where Hermes met you — walks your first run, then checks in as you find your feet.',
+      description: translateNow('guidedOnboarding.profileDescription'),
       name: SETUP_PROFILE,
       clone_from: 'default',
       share_auth: true,

@@ -1,3 +1,4 @@
+import { translateNow } from '@/i18n'
 import { readKey, writeJson, writeKey } from '@/lib/storage'
 
 import type { HandoffReceipt } from './handoff-leg'
@@ -28,9 +29,7 @@ export function readHandoffReceipt(key: string): HandoffReceipt | null {
   try {
     value = JSON.parse(raw)
   } catch {
-    throw new Error(
-      'The saved first-build receipt could not be read. Check your sessions before starting another build.'
-    )
+    throw new Error(translateNow('guidedOnboarding.errors.receiptUnreadable'))
   }
 
   // JSON cannot encode a constructor, so only a primitive string has String as its constructor here.
@@ -50,9 +49,7 @@ export function readHandoffReceipt(key: string): HandoffReceipt | null {
     !['build', 'plugin', 'machine-setup'].includes(value.plan) ||
     !['created', 'submitting', 'accepted'].includes(value.status)
   ) {
-    throw new Error(
-      'The saved first-build receipt could not be read. Check your sessions before starting another build.'
-    )
+    throw new Error(translateNow('guidedOnboarding.errors.receiptUnreadable'))
   }
 
   return value
@@ -68,7 +65,7 @@ export function saveHandoffReceipt(key: string, receipt: HandoffReceipt): void {
   writeJson(key, receipt)
 
   if (readKey(key) !== JSON.stringify(receipt)) {
-    throw new Error('Could not save the first-build session for recovery. No new start was sent.')
+    throw new Error(translateNow('guidedOnboarding.errors.receiptSaveFailed'))
   }
 
   unsavedReceipts.delete(key)

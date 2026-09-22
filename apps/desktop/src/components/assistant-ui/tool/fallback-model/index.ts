@@ -206,6 +206,9 @@ const TOOL_META: Record<ToolTitleKey, ToolMetaSpec> = {
     icon: 'search',
     tone: 'agent'
   },
+  skill_view: {
+    tone: 'default'
+  },
   terminal: {
     icon: 'terminal',
     tone: 'terminal'

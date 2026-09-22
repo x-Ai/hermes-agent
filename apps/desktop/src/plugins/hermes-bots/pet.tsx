@@ -157,11 +157,7 @@ export function PetTab({ image, onImage }: PetTabProps) {
   }
 
   if (!pets.length) {
-    return (
-      <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">
-        No pets in the petdex gallery. Run `hermes pets` to explore.
-      </div>
-    )
+    return <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">{b.avatar.noPets}</div>
   }
 
   const q = query.trim().toLowerCase()
@@ -196,7 +192,7 @@ export function PetTab({ image, onImage }: PetTabProps) {
           setQuery(event.target.value)
           setLimit(24)
         }}
-        placeholder={`Search ${pets.length} pets…`}
+        placeholder={b.avatar.petSearch(pets.length)}
         value={query}
       />
       {image && selectedSlug ? (
@@ -214,7 +210,7 @@ export function PetTab({ image, onImage }: PetTabProps) {
         </Button>
       ) : null}
       {filtered.length === 0 ? (
-        <div className="py-3 text-center text-xs text-(--ui-text-quaternary)">No pets match.</div>
+        <div className="py-3 text-center text-xs text-(--ui-text-quaternary)">{b.avatar.noPetMatches}</div>
       ) : (
         <div
           className="overflow-y-auto"

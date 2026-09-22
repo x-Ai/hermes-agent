@@ -15,6 +15,7 @@ import {
   SETUP_CHAT_TITLE,
   SETUP_PROFILE
 } from '@/components/onboarding-chat/setup-profile'
+import { translateNow } from '@/i18n'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 import { activeGatewayConnectionId, requestGatewayForProfile } from '@/store/gateway'
 import { loadMachineProfile } from '@/store/machine'
@@ -161,7 +162,7 @@ export function useOnboardingKickoff({
       )
 
       if (!runtimeId) {
-        throw new Error('The welcome chat could not be created. Please try again.')
+        throw new Error(translateNow('guidedOnboarding.errors.welcomeCreateFailed'))
       }
 
       const storedId = $selectedStoredSessionId.get()
@@ -192,15 +193,19 @@ export function useOnboardingKickoff({
             ? ensureGatewayAgent(previousConnectionId, previousProfile)
             : ensureGatewayProfile(previousProfile)
         ).catch(restoreError => {
-          notify({ kind: 'error', title: 'Could not restore your profile', message: String(restoreError) })
+          notify({
+            kind: 'error',
+            title: translateNow('guidedOnboarding.errors.restoreProfileFailed'),
+            message: String(restoreError)
+          })
         })
       }
 
       console.error('[setup] welcome chat could not start', error)
       notify({
         kind: 'error',
-        title: 'Welcome chat needs attention',
-        message: error instanceof Error ? error.message : 'The welcome chat could not start.'
+        title: translateNow('guidedOnboarding.errors.welcomeNeedsAttention'),
+        message: error instanceof Error ? error.message : translateNow('guidedOnboarding.errors.welcomeStartFailed')
       })
 
       return false

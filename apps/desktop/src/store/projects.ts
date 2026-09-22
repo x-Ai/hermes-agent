@@ -280,7 +280,7 @@ async function gatewayRequest<T>(method: string, params: Record<string, unknown>
   }
 
   if (!gateway) {
-    throw new Error('Hermes gateway is not connected')
+    throw new Error(translateNow('prompts.gatewayDisconnected'))
   }
 
   return gateway.request<T>(method, params)
@@ -297,7 +297,7 @@ function writableProjectProfile(): string {
   const profile = normalizeProfileKey($activeGatewayProfile.get())
 
   if (!profile || profile === ALL_PROFILES) {
-    throw new Error('Projects are unavailable while viewing all profiles')
+    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
   }
 
   return profile
@@ -308,7 +308,7 @@ function projectParams(
   profile: null | string = projectProfile()
 ): Record<string, unknown> {
   if (!profile) {
-    throw new Error('Projects are unavailable while viewing all profiles')
+    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
   }
 
   return { ...params, profile }
@@ -339,7 +339,7 @@ function stillOnProjectsContext(context: ActiveProjectsContext): boolean {
 
 async function activeProjectsContext(profile = projectProfile()): Promise<ActiveProjectsContext> {
   if (!profile || profile === ALL_PROFILES) {
-    throw new Error('Projects are unavailable while viewing all profiles')
+    throw new Error(translateNow('sidebar.projects.unavailableAllProfiles'))
   }
 
   let gateway = activeGateway()

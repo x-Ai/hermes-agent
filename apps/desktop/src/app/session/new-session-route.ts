@@ -1,4 +1,5 @@
 import { NO_PROJECT_ID } from '@/app/chat/sidebar/projects/workspace-groups'
+import { translateNow } from '@/i18n'
 import { $defaultProfileRoute } from '@/store/default-profile'
 import { notifyError } from '@/store/notifications'
 import {
@@ -65,6 +66,6 @@ export function prepareDefaultNewSession(): void {
     : ensureGatewayProfile(target.profile, { forceLegacyRoute: true })
 
   void activation.catch(error => {
-    notifyError(error, `Failed to open profile "${target.profile}"`)
+    notifyError(error, translateNow('profiles.openFailed', target.profile))
   })
 }

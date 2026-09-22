@@ -1,3 +1,5 @@
+import { translateNow } from '@/i18n/runtime'
+
 import { notifyError } from './notifications'
 
 // Window flag set by the Electron main process when it opens a standalone
@@ -233,7 +235,7 @@ export async function openSessionInNewWindow(sessionId: string, opts?: { watch?:
 
   await runWindowOpen(
     () => window.hermesDesktop.openSessionWindow(sessionId, { ...opts, profile }),
-    'Could not open chat in a new window'
+    translateNow('notifications.toast.openSessionWindowFailed')
   )
 }
 
@@ -244,7 +246,10 @@ export async function openNewWindow(route?: { connectionId: null | string; profi
     return
   }
 
-  await runWindowOpen(() => window.hermesDesktop.openWindow(route), 'Could not open a new window')
+  await runWindowOpen(
+    () => window.hermesDesktop.openWindow(route),
+    translateNow('notifications.toast.openNewWindowFailed')
+  )
 }
 
 /** Pop the in-app Browser into its own OS window. Returns whether the
@@ -270,6 +275,6 @@ export async function openSessionInTerminal(
 
   await runWindowOpen(
     () => window.hermesDesktop.openSessionInTerminal(sessionId, opts),
-    'Could not open chat in a terminal'
+    translateNow('notifications.toast.openSessionTerminalFailed')
   )
 }

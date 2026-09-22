@@ -17,6 +17,7 @@ import { haptic, host } from '@hermes/plugin-sdk'
 
 import { saveSelectedRosterBot } from './bot-state'
 import { prepareBotSource } from './canonical-chat'
+import { botsText } from './i18n'
 import { openRosterBot } from './roster-actions'
 import { botConnectionRoute, botWorkspaceOwnerKey, setBotsWorkspaceOwner } from './routing'
 import type { RosterRow } from './types'
@@ -72,7 +73,7 @@ export async function openBotRecentSession(bot: RosterRow): Promise<boolean> {
 
     return true
   } catch (error) {
-    host.notifyError?.(error, 'Could not open the recent session')
+    host.notifyError?.(error, botsText().bot.recentSessionOpenFailed)
 
     return false
   }

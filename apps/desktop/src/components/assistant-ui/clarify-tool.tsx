@@ -33,7 +33,6 @@ import {
   type ClarifyRequest,
   clearClarifyRequest,
   normalizeChoices,
-  RECOMMENDED_LABEL,
   sessionClarifyRequest,
   warnDroppedChoices
 } from '@/store/clarify'
@@ -169,15 +168,22 @@ const letterFor = (index: number): string => String.fromCharCode(65 + index)
 // The backend tags the agent's preferred option (`mark_recommended`); the card
 // renders the label in tertiary text so the option itself still reads first.
 function ChoiceLabel({ choice }: { choice: string }) {
+  const { t } = useI18n()
   const bare = bareChoice(choice)
 
   if (bare === choice) {
     return <>{choice}</>
   }
 
+  // The wire marker remains stable and English; only its presentation follows
+  // the active locale. Avoid doubling a suffix the model already localized.
+  const localizedMarker = t.assistant.clarify.recommendedSuffix.trim()
+  const visibleChoice = bare.endsWith(localizedMarker) ? bare.slice(0, -localizedMarker.length).trimEnd() : bare
+
   return (
     <>
-      {bare} <span className="text-(--ui-text-tertiary)">{RECOMMENDED_LABEL}</span>
+      {visibleChoice}
+      <span className="text-(--ui-text-tertiary)">{localizedMarker}</span>
     </>
   )
 }

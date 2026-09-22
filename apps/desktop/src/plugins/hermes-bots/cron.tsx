@@ -440,7 +440,7 @@ export function RoutineDetailDialog({ job, onClose, open }: RoutineDetailDialogP
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="truncate">{routineTitle(job)}</DialogTitle>
-          <DialogDescription>What this job runs, and when it runs next.</DialogDescription>
+          <DialogDescription>{b.cron.detailDescription}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3.5">
           {issue ? (
@@ -484,6 +484,7 @@ interface RoutineRowProps {
 }
 
 export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
+  const b = useBots()
   const { t } = useI18n()
   const c = t.cron
   const profile = typeof owner === 'string' ? owner : owner?.name
@@ -596,7 +597,7 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
       </div>
       {legacyUnsafe ? (
         <div className="rounded-md border border-(--ui-stroke-secondary) px-2 py-1.5 text-[0.65rem] leading-4 text-(--ui-accent)">
-          Paused for security: delete and recreate this legacy job before running it again.
+          {b.cron.legacyPaused}
         </div>
       ) : null}
     </div>
@@ -821,15 +822,15 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             [
               {
                 id: 'm',
-                label: 'minutes from now'
+                label: b.cron.minutesFromNow
               },
               {
                 id: 'h',
-                label: 'hours from now'
+                label: b.cron.hoursFromNow
               },
               {
                 id: 'd',
-                label: 'days from now'
+                label: b.cron.daysFromNow
               }
             ]
           )}
@@ -881,15 +882,15 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             [
               {
                 id: 'm',
-                label: 'minutes'
+                label: b.cron.minutes
               },
               {
                 id: 'h',
-                label: 'hours'
+                label: b.cron.hours
               },
               {
                 id: 'd',
-                label: 'days'
+                label: b.cron.days
               }
             ]
           )}
@@ -903,13 +904,13 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
               raw: event.target.value
             })
           }
-          placeholder="every 1d · every 2h · 0 9 * * * (cron)"
+          placeholder={b.cron.schedulePlaceholder}
           value={state.raw}
         />
       ) : null}
       {state.freq !== 'once' && state.freq !== 'advanced' ? (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-(--ui-text-tertiary)">Stop after</span>
+          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.stopAfter}</span>
           <Input
             className="h-7 w-16 text-xs"
             onChange={event =>
@@ -920,7 +921,7 @@ function SchedulePicker({ state, setState }: SchedulePickerProps) {
             placeholder="∞"
             value={state.repeatN}
           />
-          <span className="text-xs text-(--ui-text-tertiary)">runs (blank = forever)</span>
+          <span className="text-xs text-(--ui-text-tertiary)">{b.cron.runsForever}</span>
         </div>
       ) : null}
       <div className="text-[0.65rem] text-(--ui-text-quaternary)">{`${scheduleSummary(state)} \u00b7 ${composeSchedule(state) || '\u2014'}`}</div>

@@ -11,6 +11,7 @@ import { lazy, type ReactNode, Suspense } from 'react'
 
 import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
+import { LocalizedTabTitle, translateNow, type Translations, useI18n } from '@/i18n'
 import { $routeTiles, closeRouteTile, type RouteTile } from '@/store/route-tiles'
 
 import {
@@ -29,10 +30,25 @@ const MessagingView = lazy(async () => ({ default: (await import('../messaging')
 const ArtifactsView = lazy(async () => ({ default: (await import('../artifacts')).ArtifactsView }))
 
 // Built-in page views + their pane titles, keyed by route.
-const BUILTIN_PAGES: Record<string, { render: () => ReactNode; title: string }> = {
-  [ARTIFACTS_ROUTE]: { render: () => <ArtifactsView />, title: 'Artifacts' },
-  [MESSAGING_ROUTE]: { render: () => <MessagingView />, title: 'Messaging' },
-  [CAPABILITIES_ROUTE]: { render: () => <CapabilitiesView />, title: 'Capabilities' }
+const BUILTIN_PAGES: Record<
+  string,
+  { render: () => ReactNode; title: (translations: Translations) => string; titleKey: string }
+> = {
+  [ARTIFACTS_ROUTE]: {
+    render: () => <ArtifactsView />,
+    title: translations => translations.commandCenter.nav.artifacts.title,
+    titleKey: 'commandCenter.nav.artifacts.title'
+  },
+  [MESSAGING_ROUTE]: {
+    render: () => <MessagingView />,
+    title: translations => translations.commandCenter.nav.messaging.title,
+    titleKey: 'commandCenter.nav.messaging.title'
+  },
+  [CAPABILITIES_ROUTE]: {
+    render: () => <CapabilitiesView />,
+    title: translations => translations.commandCenter.nav.capabilities.title,
+    titleKey: 'commandCenter.nav.capabilities.title'
+  }
 }
 
 /** Humanize a route path into a tab title: `/my-atlas` → `My Atlas`. */
@@ -48,13 +64,14 @@ const humanizePath = (path: string): string =>
  *  else a humanized path — never the internal `${source}:${id}` key. */
 function routeTitle(path: string): string {
   if (BUILTIN_PAGES[path]) {
-    return BUILTIN_PAGES[path].title
+    return translateNow(BUILTIN_PAGES[path].titleKey)
   }
 
   return contributedRoutes().find(r => r.path === path)?.title ?? humanizePath(path)
 }
 
 export function RouteTilePane({ path }: { path: string }) {
+  const { t } = useI18n()
   const builtin = BUILTIN_PAGES[path]
 
   // Subscribe so a plugin page tile appears the moment its route registers.
@@ -83,7 +100,7 @@ export function RouteTilePane({ path }: { path: string }) {
 
   return (
     <div className="grid h-full place-items-center font-mono text-[11px] text-(--ui-text-quaternary)">
-      no page at {path}
+      {t.desktop.noPageAt(path)}
     </div>
   )
 }
@@ -103,6 +120,11 @@ export const watchRouteTiles = paneMirror<RouteTile>({
   dir: t => t.dir,
   minWidth: '22rem',
   title: routeTitle,
+  tabTitle: path => {
+    const builtin = BUILTIN_PAGES[path]
+
+    return builtin ? <LocalizedTabTitle select={builtin.title} /> : routeTitle(path)
+  },
   render: path => <RouteTilePane path={path} />,
   close: closeRouteTile
 })

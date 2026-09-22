@@ -3,6 +3,7 @@ import { type FC, useEffect, useState } from 'react'
 
 import { messageContentText } from '@/components/assistant-ui/thread/content'
 import { AGENT_MESSAGE_RE, agentAvatarCache, resolveAgentAvatar } from '@/components/assistant-ui/thread/user-message'
+import { useI18n } from '@/i18n'
 
 // Sender-side inter-agent delivery: `hermes -p <agent> chat … -q "Message
 // from 🤖 <sender>…"` run through the terminal tool IS the messaging
@@ -151,6 +152,7 @@ const AgentGlyph: FC<{ handle: string }> = ({ handle }) => {
  *  command run via the terminal tool. Returns null when the command is not
  *  a delivery — caller falls through to the normal terminal row. */
 export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
+  const { t } = useI18n()
   const command = typeof props.args?.command === 'string' ? props.args.command : ''
   const target = deliveryTargetFromCommand(command)
 
@@ -169,8 +171,7 @@ export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
         <span className="flex items-center justify-center gap-1.5">
           <AgentGlyph handle={target} />
           <span className="wrap-anywhere">
-            {pending ? 'Messaging' : 'Messaged'} {target}
-            {pending ? '…' : ''}
+            {pending ? t.assistant.thread.messagingAgent(target) : t.assistant.thread.messagedAgent(target)}
           </span>
         </span>
       </div>
@@ -178,11 +179,11 @@ export const AgentDeliveryNotice: FC<ToolCallMessagePartProps> = props => {
         <div className={NOTICE_CLASS} data-slot="aui_agent-reply-notice">
           <span className="flex items-center justify-center gap-1.5">
             <AgentGlyph handle={target} />
-            <span className="wrap-anywhere">Message from {target}</span>
+            <span className="wrap-anywhere">{t.assistant.thread.messageFrom(target)}</span>
           </span>
           <details className="self-center">
             <summary className="cursor-pointer select-none text-center text-muted-foreground/45 hover:text-muted-foreground/70">
-              show message
+              {t.assistant.thread.showMessage}
             </summary>
             <div className="mt-1 max-w-[36rem] whitespace-pre-wrap rounded-lg border border-(--ui-stroke-tertiary) px-3 py-2 text-left text-[0.75rem] leading-5 text-foreground/85">
               {replyBody}

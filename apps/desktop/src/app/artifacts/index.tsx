@@ -149,10 +149,11 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         ).length
 
         const otherFailures = failures.length - safeLimitFailures
+        const toast = t.notifications.toast
 
         const detail = [
-          safeLimitFailures ? `${safeLimitFailures} exceeded the safe transcript load limit.` : '',
-          otherFailures ? `${otherFailures} could not be read.` : ''
+          safeLimitFailures ? toast.artifactSafeLimitExceeded(safeLimitFailures) : '',
+          otherFailures ? toast.artifactUnreadable(otherFailures) : ''
         ]
           .filter(Boolean)
           .join(' ')
@@ -161,7 +162,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           id: 'artifacts-partial-load',
           kind: 'warning',
           title: a.failedLoad,
-          message: `Skipped ${failures.length} of ${sessions.length} recent sessions while indexing artifacts.`,
+          message: toast.artifactPartialLoad(failures.length, sessions.length),
           detail,
           durationMs: 10_000
         })
@@ -175,7 +176,7 @@ export function ArtifactsView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
       refreshInFlightRef.current = false
       setRefreshing(false)
     }
-  }, [a])
+  }, [a, t.notifications.toast])
 
   useRefreshHotkey(refreshArtifacts)
 

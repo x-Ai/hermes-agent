@@ -539,7 +539,7 @@ function GroupChatSettingsDialog({
             variant="secondary"
           >
             <Codicon name="organization" />
-            {`Manage members (${(members || []).length})…`}
+            {b.group.manageMembersCount((members || []).length)}
           </Button>
         ) : null}
         <DialogFooter>
@@ -569,6 +569,7 @@ interface GroupChatWorkspaceProps {
 }
 
 export function GroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
+  const { t } = useI18n()
   const b = useBots()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
@@ -752,15 +753,14 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
     .sort((a, b) => (a.at || 0) - (b.at || 0))
 
   const availableMembers = members.filter(member => botSourceStatus(member).available).length
-  const availabilityLabel = `${availableMembers} of ${members.length} available`
+  const availabilityLabel = b.group.availableCount(availableMembers, members.length)
 
-  const memberNames =
-    members.map(b => displayName(b, botRosterMeta(b, allMeta))).join(', ') || 'No bots in this group chat'
+  const memberNames = members.map(bot => displayName(bot, botRosterMeta(bot, allMeta))).join(', ') || b.group.noBots
 
   const header = (
     <div className="flex items-center gap-2 px-2.5 pt-2.5 pb-2">
       <Button onClick={() => (onBack ? onBack() : $groupChatWorkspace.set(null))} size="sm" variant="ghost">
-        Back
+        {t.common.back}
       </Button>
       {/* Room picture (set via Group settings) leads the title when present. */}
       {room.image ? (
@@ -799,9 +799,9 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
           <Codicon name="gear" />
         </Button>
       </Tip>
-      <Tip label="Manage members">
+      <Tip label={b.group.manageMembers}>
         <Button
-          aria-label="Manage group members"
+          aria-label={b.group.manageMembersAria}
           className="shrink-0 text-(--ui-text-tertiary) hover:text-foreground"
           onClick={() => setMemberPickerOpen(true)}
           size="sm"

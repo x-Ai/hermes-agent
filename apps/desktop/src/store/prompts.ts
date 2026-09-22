@@ -1,5 +1,7 @@
 import { atom, computed, type ReadableAtom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
+
 import { $clarifyRequest, $clarifyRequests } from './clarify'
 import { isSessionGone, isSessionGoneForBackgroundPolling, markSessionGone } from './runtime-gone'
 import { respondToServerRequest } from './server-requests'
@@ -348,7 +350,7 @@ export async function answerApproval(
   }
 
   if (!gateway) {
-    throw new Error('Hermes gateway is not connected')
+    throw new Error(translateNow('prompts.gatewayDisconnected'))
   }
 
   await requestForOwnedSession(request.sessionId, ambientRequestFor(gateway), 'approval.respond', {

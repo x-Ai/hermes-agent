@@ -59,6 +59,12 @@ export function getRuntimeI18nLocale(): Locale {
   return runtimeLocale
 }
 
+/** Resolve copy for an explicit locale. Long-lived contributions use this so
+ * their labels follow display-language changes after registration. */
+export function translateForLocale(locale: Locale, key: string, ...args: unknown[]): string {
+  return translateFrom(l => TRANSLATIONS[l], locale, key, args)
+}
+
 export function translateNow(key: string, ...args: unknown[]): string {
-  return translateFrom(locale => TRANSLATIONS[locale], runtimeLocale, key, args)
+  return translateForLocale(runtimeLocale, key, ...args)
 }

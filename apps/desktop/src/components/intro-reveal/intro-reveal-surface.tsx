@@ -2,28 +2,34 @@ import './intro-reveal.css'
 
 import type { Ref } from 'react'
 
+import { type Translations, useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 
 import { BrandClose } from './scenes/brand'
 import { SideAgents } from './scenes/side-agents'
 import { BLUE, BLUE_DIM, EASE, NOUS_SHADOW } from './scenes/style'
 import { decoded, SPINNER } from './scenes/text'
-import { INTRO_BEATS, INTRO_PROMPT, INTRO_REPLY_WORDS, INTRO_TOOL_ROWS } from './timeline'
+import { INTRO_BEATS, INTRO_PROMPT, INTRO_TOOL_ROWS } from './timeline'
 import { useIntroClock } from './use-intro-clock'
 import { viewportSlot } from './viewport-cube'
 
 const INTRO_BEAT_INDEX: Record<string, number> = Object.fromEntries(INTRO_BEATS.map((b, i) => [b.id, i]))
-const SKIP = 'Skip'
-const SURFACES = 'Desktop · Messages · Phone · Anywhere'
 
 export function IntroRevealSurface() {
-  const { frame, leaving, faded, skip, glowRef, stageRef, brandRef, viewportRef } = useIntroClock()
+  const { t } = useI18n()
+  const copy = t.introReveal
+
+  const { frame, leaving, faded, skip, glowRef, stageRef, brandRef, viewportRef } = useIntroClock(
+    copy.prompt,
+    copy.replyWords.length
+  )
+
   const everywhere = frame.beat >= INTRO_BEAT_INDEX.everywhere
   const brand = frame.beat >= INTRO_BEAT_INDEX.brand
 
   return (
     <div
-      aria-label={SKIP}
+      aria-label={copy.skip}
       aria-modal="true"
       className={cn(
         'fixed inset-0 flex items-center justify-center overflow-hidden',
@@ -62,11 +68,11 @@ export function IntroRevealSurface() {
         ref={stageRef}
         style={{ perspective: '1400px', transformStyle: 'preserve-3d', willChange: 'transform, opacity' }}
       >
-        <SideAgents active={everywhere && !brand} side="left" tick={frame.tick} />
+        <SideAgents active={everywhere && !brand} copy={copy.sideAgents} side="left" tick={frame.tick} />
 
-        <HeroChat frame={frame} viewportRef={viewportRef} />
+        <HeroChat copy={copy} frame={frame} viewportRef={viewportRef} />
 
-        <SideAgents active={everywhere && !brand} side="right" tick={frame.tick} />
+        <SideAgents active={everywhere && !brand} copy={copy.sideAgents} side="right" tick={frame.tick} />
       </div>
 
       <div
@@ -78,7 +84,7 @@ export function IntroRevealSurface() {
           transition: `opacity 620ms ${EASE} 180ms, transform 620ms ${EASE} 180ms`
         }}
       >
-        {SURFACES}
+        {copy.surfaces}
       </div>
 
       <BrandClose ref={brandRef} />
@@ -89,24 +95,26 @@ export function IntroRevealSurface() {
         style={{ fontFamily: "'Collapse', sans-serif" }}
         type="button"
       >
-        {SKIP}
+        {copy.skip}
       </button>
     </div>
   )
 }
 
 interface HeroChatProps {
+  copy: Translations['introReveal']
   frame: ReturnType<typeof useIntroClock>['frame']
   viewportRef: Ref<HTMLCanvasElement>
 }
 
-function HeroChat({ frame, viewportRef }: HeroChatProps) {
+function HeroChat({ copy, frame, viewportRef }: HeroChatProps) {
   const beat = frame.beat
   const sent = beat >= INTRO_BEAT_INDEX.send
   const replying = beat >= INTRO_BEAT_INDEX.reply
   const everywhere = beat >= INTRO_BEAT_INDEX.everywhere
-  const typedText = INTRO_PROMPT.slice(0, frame.typed)
-  const replyText = INTRO_REPLY_WORDS.slice(0, frame.replyWords).join(' ')
+  const typedText = copy.prompt.slice(0, frame.typed)
+  const replyText = copy.replyWords.slice(0, frame.replyWords).join('')
+  const toolCopy = [copy.tools.blender, copy.tools.metal, copy.tools.glass]
 
   return (
     <div
@@ -122,7 +130,7 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
         willChange: 'transform'
       }}
     >
-      <ViewportNode frame={frame} viewportRef={viewportRef} />
+      <ViewportNode copy={copy} frame={frame} viewportRef={viewportRef} />
 
       <div className="flex min-h-[3.9rem] justify-end">
         <div
@@ -140,13 +148,14 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
 
       <div className="mt-5 grid min-h-[10.5rem] content-start gap-2.5">
         {INTRO_TOOL_ROWS.map((row, i) => {
+          const rowCopy = toolCopy[i]!
           const shown = Boolean(frame.toolShown & (1 << i)) && sent
           const done = Boolean(frame.toolDone & (1 << i))
 
           return (
             <div
               className="flex items-center gap-3 rounded-lg px-4 py-3"
-              key={row.label}
+              key={rowCopy.label}
               style={{
                 background: 'rgba(255,255,255,0.045)',
                 border: '1px solid rgba(255,255,255,0.06)',
@@ -166,7 +175,7 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
                 className="text-[0.66rem] font-bold uppercase tracking-[0.18em] text-white/55"
                 style={{ fontFamily: "'Collapse', sans-serif" }}
               >
-                {row.label}
+                {rowCopy.label}
               </span>
               <span
                 className="ml-auto grid text-[0.8rem] text-white/50"
@@ -177,13 +186,13 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
                   className="col-start-1 row-start-1 text-right"
                   style={{ opacity: done ? 0 : 1, transition: `opacity 400ms ${EASE}` }}
                 >
-                  {shown && !done ? decoded(row.runningText, row.at, frame.tick) : row.runningText}
+                  {shown && !done ? decoded(rowCopy.running, row.at, frame.tick) : rowCopy.running}
                 </span>
                 <span
                   className="col-start-1 row-start-1 text-right"
                   style={{ color: BLUE_DIM, opacity: done ? 1 : 0, transition: `opacity 400ms ${EASE}` }}
                 >
-                  {done ? decoded(row.doneText, row.doneAt, frame.tick, 380) : row.doneText}
+                  {done ? decoded(rowCopy.done, row.doneAt, frame.tick, 380) : rowCopy.done}
                 </span>
               </span>
             </div>
@@ -204,7 +213,7 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
           }}
         >
           {replyText || '\u00a0'}
-          {replying && frame.replyWords < INTRO_REPLY_WORDS.length ? (
+          {replying && frame.replyWords < copy.replyWords.length ? (
             <span
               className="dither ml-1 inline-block h-[1.05em] w-[0.5em] translate-y-[3px]"
               style={{ animation: 'intro-caret 0.9s step-end infinite', color: BLUE }}
@@ -224,7 +233,7 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
         >
           <div className="min-h-[2rem] px-1.5 pt-0.5 text-[1.02rem] leading-7 text-white/90">
             {sent || typedText.length === 0 ? (
-              <span className="text-white/28">Ask anything. Build anything.</span>
+              <span className="text-white/28">{copy.composerPlaceholder}</span>
             ) : (
               typedText
             )}
@@ -293,7 +302,7 @@ function HeroChat({ frame, viewportRef }: HeroChatProps) {
   )
 }
 
-function ViewportNode({ frame, viewportRef }: HeroChatProps) {
+function ViewportNode({ copy, frame, viewportRef }: HeroChatProps) {
   const viewport = viewportSlot(frame.tick * 45)
   const sent = frame.beat >= INTRO_BEAT_INDEX.send
   const everywhere = frame.beat >= INTRO_BEAT_INDEX.everywhere
@@ -327,13 +336,13 @@ function ViewportNode({ frame, viewportRef }: HeroChatProps) {
               className="inline-block size-1 rounded-full"
               style={{ animation: 'intro-dot 1.6s ease-in-out infinite', background: BLUE }}
             />
-            viewport
+            {copy.viewport}
           </span>
           <span
             className="text-[0.6rem] normal-case tracking-normal"
             style={{ color: BLUE_DIM, fontFamily: "'JetBrains Mono', monospace" }}
           >
-            {decoded(viewport.mode, viewport.at, frame.tick, 300)}
+            {decoded(copy.viewportModes[viewport.mode] ?? viewport.mode, viewport.at, frame.tick, 300)}
           </span>
         </div>
         <canvas className="block h-40 w-full" ref={viewportRef} />

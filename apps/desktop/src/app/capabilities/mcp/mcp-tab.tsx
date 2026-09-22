@@ -1611,8 +1611,8 @@ function McpCatalog({
                     {prettyName(entry.name)}
                   </span>
                   <CatalogTag>{entry.transport}</CatalogTag>
-                  {entry.auth_type === 'oauth' && <CatalogTag>OAuth</CatalogTag>}
-                  {entry.auth_type === 'api_key' && <CatalogTag>API key</CatalogTag>}
+                  {entry.auth_type === 'oauth' && <CatalogTag>{m.catalogAuthOAuth}</CatalogTag>}
+                  {entry.auth_type === 'api_key' && <CatalogTag>{m.catalogAuthApiKey}</CatalogTag>}
                   {entry.needs_install && !entry.installed && <CatalogTag>{m.catalogNeedsInstall}</CatalogTag>}
                   {entry.installed && (
                     <span className="text-[0.6rem] text-emerald-400">

@@ -13,7 +13,7 @@ export function ProfileTag({ className, profile }: { className?: string; profile
   const { t } = useI18n()
   const colors = useStore($profileColors)
   const key = normalizeProfileKey(profile)
-  const label = t.sidebar.row.ownedByProfile(key)
+  const label = t.sidebar.row.ownedByProfile(key === 'default' ? t.common.defaultName : key)
 
   return (
     <Tip label={label}>

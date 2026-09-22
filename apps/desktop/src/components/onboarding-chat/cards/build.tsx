@@ -26,6 +26,7 @@ import {
   SETUP_PROFILE
 } from '@/components/onboarding-chat/setup-profile'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/i18n'
 import { answeredAfter } from '@/lib/chat-messages/parts'
 import { segmentTranscriptDirectives } from '@/lib/transcript-directives'
 import { cn } from '@/lib/utils'
@@ -35,14 +36,13 @@ import { isSessionOwnerRoute } from '@/store/session-request-router'
 
 /** A tapped option is submitted as the user's own visible message rather than as a hidden [setup] note, so the
  *  model's next message answers a real turn. */
-const FALLBACK_OPTION = "Let's figure it out together"
-
 /**
  * The last question card before the handoff. The model asks what the user wants to build first, then places this card
  * with options it wrote from the conversation so far:
  * `::onboarding{step="first" options="Find emails I need to reply to|Plan my day around meetings|…"}`.
  */
 export function FirstBuildCard({ attrs, locked }: CardProps) {
+  const { t } = useI18n()
   const view = useSessionView()
   const storedId = useStore(view.$storedId)
   const target = view.kind === 'tile' ? `tile:${storedId}` : 'main'
@@ -82,7 +82,7 @@ export function FirstBuildCard({ attrs, locked }: CardProps) {
     })
     .slice(0, 4)
 
-  const options = parsed.length < 2 ? [FALLBACK_OPTION] : parsed
+  const options = parsed.length < 2 ? [t.guidedOnboarding.fallbackOption] : parsed
 
   const pick = (option: string) => {
     if (picked !== null || locked) {
@@ -115,6 +115,7 @@ export function FirstBuildCard({ attrs, locked }: CardProps) {
  * and a locked (replayed) transcript never starts one.
  */
 export function HandoffCard({ attrs, locked }: CardProps) {
+  const { t } = useI18n()
   const view = useSessionView()
   const storedId = useStore(view.$storedId)
   const runtimeId = useStore(view.$runtimeId)
@@ -211,14 +212,14 @@ export function HandoffCard({ attrs, locked }: CardProps) {
       <StatusDot live={!settled && !failed} />
       <span className="text-(--ui-text-secondary)">
         {failed
-          ? (error ?? 'The first build could not be started. Retry to check its session.')
+          ? (error ?? t.guidedOnboarding.handoffFailedRetry)
           : settled
-            ? `${title} was started — find it in your sessions`
-            : `Opening ${title}\u2026`}
+            ? t.guidedOnboarding.handoffStarted(title)
+            : t.guidedOnboarding.handoffOpening(title)}
       </span>
       {state?.phase === 'error' && (
         <Button disabled={locked} onClick={() => void retry()} size="sm" variant="text">
-          Retry first build
+          {t.guidedOnboarding.retryFirstBuild}
         </Button>
       )}
     </div>
@@ -227,10 +228,11 @@ export function HandoffCard({ attrs, locked }: CardProps) {
 
 /** The earlier steps are derived from this transcript on every render, so a re-mount cannot lose or repeat them. */
 export function ProgressCard({ attrs, locked }: CardProps) {
+  const { t } = useI18n()
   const view = useSessionView()
   const messages = useStore(view.$messages)
   const messageId = useAuiState(state => state.message.id)
-  const title = (attrs.title ?? '').trim() || 'Working on it'
+  const title = (attrs.title ?? '').trim() || t.guidedOnboarding.workingOnIt
 
   const index = messages.findIndex(message => message.id === messageId)
   const previous = index < 0 ? [] : messages.slice(0, index)
@@ -250,7 +252,7 @@ export function ProgressCard({ attrs, locked }: CardProps) {
       .at(-1)
 
     return progress?.kind === 'directive'
-      ? [{ id: message.id, title: progress.directive.attrs.title?.trim() || 'Working on it' }]
+      ? [{ id: message.id, title: progress.directive.attrs.title?.trim() || t.guidedOnboarding.workingOnIt }]
       : []
   })
 

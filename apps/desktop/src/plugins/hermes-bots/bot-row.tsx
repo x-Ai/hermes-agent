@@ -390,7 +390,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
           onSelect={() => {
             host.notify({
               kind: 'info',
-              message: `Duplicating ${displayName(bot, meta)}…`
+              message: b.bot.duplicating(displayName(bot, meta))
             })
             duplicateBot(bot, $lastRoster.get())
               .then(name => {
@@ -399,7 +399,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
                 })
                 host.notify({
                   kind: 'success',
-                  message: `Created ${name} — full copy of ${bot.name}`
+                  message: b.bot.duplicated(name, bot.name)
                 })
               })
               .catch(err => host.notifyError(err, b.bot.duplicateFailed))
@@ -421,7 +421,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
             a delegated job, a side thread — without moving the row click off
             the canonical Bot Chat. */}
         <ContextMenuItem disabled={!botRecentSession(bot)} onSelect={() => void openBotRecentSession(bot)}>
-          Open recent session
+          {b.bot.openRecentSession}
         </ContextMenuItem>
         <ContextMenuSeparator />
         {/* Filing. Membership is one field on the bot's meta (`sectionId`), so
@@ -593,7 +593,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
     <ContextMenu>
       <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onSelect={() => onOpen(group)}>Open Group Chat</ContextMenuItem>
+        <ContextMenuItem onSelect={() => onOpen(group)}>{b.group.openGroupChat}</ContextMenuItem>
         <ContextMenuSeparator />
         {/* Same affordance as a bot row's pin; pinned rooms lead the roster
             band, and the flag lives on the room record. */}

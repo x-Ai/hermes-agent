@@ -195,6 +195,8 @@ interface StaleAuxWarningProps {
 // $0-balance provider after switching main away from it) and offers the
 // existing one-click reset rather than auto-clearing legitimate pins.
 function StaleAuxWarning({ applying, onReset, slots, taskLabel }: StaleAuxWarningProps) {
+  const m = useI18n().t.settings.model
+
   if (!slots.length) {
     return null
   }
@@ -207,11 +209,12 @@ function StaleAuxWarning({ applying, onReset, slots, taskLabel }: StaleAuxWarnin
     <div className="flex flex-wrap items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
       <AlertTriangle className="size-3.5 shrink-0" />
       <span className="grow">
-        {slots.length} auxiliary task{slots.length === 1 ? '' : 's'} ({names}) still run on{' '}
-        <span className="font-mono">{allSameProvider ? provider : 'other providers'}</span>, not your main model.
+        {m.staleAuxPrefix(slots.length, names)}
+        <span className="font-mono">{allSameProvider ? provider : m.staleAuxOtherProviders}</span>
+        {m.staleAuxSuffix}
       </span>
       <Button disabled={applying} onClick={onReset} size="sm" variant="textStrong">
-        Reset all to main
+        {m.resetAllToMain}
       </Button>
     </div>
   )
@@ -927,7 +930,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                 </>
               ) : (
                 <Button onClick={startProviderSetup} size="sm" variant="textStrong">
-                  Set up {selectedProviderRow?.name ?? 'provider'}
+                  {m.setUpProvider(selectedProviderRow?.name ?? m.provider.toLocaleLowerCase())}
                 </Button>
               )
             ) : (
@@ -1196,7 +1199,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               </SelectContent>
             </Select>
             <label className="flex items-center gap-2 rounded-sm border border-border px-2 py-1 text-xs">
-              Enabled
+              {m.moa.enabled}
               <Switch
                 checked={currentMoaPreset.enabled !== false}
                 disabled={applying}
@@ -1217,7 +1220,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               size="sm"
               variant="text"
             >
-              Set default
+              {m.moa.setDefault}
             </Button>
             <Button
               disabled={Object.keys(moa.presets).length <= 1 || applying}
@@ -1243,12 +1246,12 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               size="sm"
               variant="ghost"
             >
-              Delete
+              {m.moa.deletePreset}
             </Button>
             <Input
               className={cn('w-40', CONTROL_TEXT)}
               onChange={event => setNewMoaPresetName(event.target.value)}
-              placeholder="new preset"
+              placeholder={m.moa.newPresetPlaceholder}
               value={newMoaPresetName}
             />
             <Button
@@ -1271,18 +1274,18 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               size="sm"
               variant="textStrong"
             >
-              Add preset
+              {m.moa.addPreset}
             </Button>
           </div>
           <div className="mb-2 text-xs text-muted-foreground">
-            Default: <span className="font-mono">{moa.default_preset}</span>
+            {m.moa.defaultLabel} <span className="font-mono">{moa.default_preset}</span>
           </div>
           <div className="grid gap-1">
             {currentMoaPreset.reference_models.map((slot, index) => (
               <ListRow
                 action={
                   <Switch
-                    aria-label={`${slot.enabled !== false ? 'Disable' : 'Enable'} reference ${index + 1}`}
+                    aria-label={m.moa.toggleReference(index + 1, slot.enabled !== false)}
                     checked={slot.enabled !== false}
                     disabled={applying}
                     onCheckedChange={checked =>
@@ -1359,7 +1362,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                       size="sm"
                       variant="ghost"
                     >
-                      Remove
+                      {m.moa.removeReference}
                     </Button>
                   </div>
                 }
@@ -1372,7 +1375,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                 key={`${selectedMoaPreset}-${index}`}
                 title={
                   <span className="flex items-baseline gap-2">
-                    {`Reference ${index + 1}`}
+                    {m.moa.referenceTitle(index + 1)}
                     <Pill>{m.moaReferenceHint}</Pill>
                   </span>
                 }
@@ -1389,7 +1392,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               size="sm"
               variant="textStrong"
             >
-              Add reference model
+              {m.moa.addReference}
             </Button>
             <ListRow
               below={

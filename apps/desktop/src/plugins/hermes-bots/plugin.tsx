@@ -66,7 +66,7 @@ import {
 } from './group-chat'
 import { groupWorkspaceOwnerKey } from './group-membership'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
-import { BOTS_LOCALES } from './i18n'
+import { BOTS_LOCALES, botsText } from './i18n'
 import { displayName } from './labels'
 import { startBotRelay, stopBotRelay } from './relay'
 import { $activityToasts } from './roster-actions'
@@ -709,7 +709,7 @@ export default {
       area: PALETTE_AREA,
       data: {
         id: `${ID}.new-agent`,
-        label: 'New Bot…',
+        label: () => botsText().bot.newTitle,
         keywords: ['bot', 'agent', 'profile', 'teammate', 'create'],
         run: () => {
           host.notify({
@@ -757,12 +757,11 @@ export default {
             // property — and silently resolved to null on every turn: /new
             // reset the forever-chat instead of compacting it.
             if (activeBot && isCanonicalChatOnScreen(row, host.state.focusedStoredSessionId.get())) {
+              const copy = botsText().bot
               host.notify({
                 kind: 'info',
-                title: 'This chat never resets',
-                message:
-                  'Bot chats are one continuous conversation — compacting instead. ' +
-                  'For a throwaway session with this bot, use Sessions mode.'
+                title: copy.neverResetsTitle,
+                message: copy.neverResetsBody
               })
 
               return {
