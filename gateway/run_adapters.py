@@ -1690,7 +1690,7 @@ class GatewayAdapterLifecycleMixin:
 
         def check(
             user_id: str, chat_type: Optional[str] = None, chat_id: Optional[str] = None, *,
-            is_bot: bool = False, thread_id: Optional[str] = None,
+            is_bot: bool = False, thread_id: Optional[str] = None, command: Optional[str] = None,
         ) -> bool:
             if not user_id:
                 return False
@@ -1707,10 +1707,14 @@ class GatewayAdapterLifecycleMixin:
             if adapter is not None:
                 source._transport_adapter_ref = _weakref.ref(adapter)
             if transport_home is None:
-                return self._is_user_authorized(source)
-            # Canonicalize FIRST (callback sources never went through ``build_source``): the routed
-            # profile's pairing store is consulted, allowlists read under the transport home.
-            if self._canonicalize(source, primary_home=transport_home) is None:
-                return False  # fail-closed, like the ``_handle_message`` ingress gate
-            return self._is_user_authorized_for_source(source)
+                allowed = self._is_user_authorized(source)
+            else:
+                # Canonicalize FIRST (callback sources never went through ``build_source``): the routed
+                # profile's pairing store is consulted, allowlists read under the transport home.
+                if self._canonicalize(source, primary_home=transport_home) is None:
+                    return False  # fail-closed, like the ``_handle_message`` ingress gate
+                allowed = self._is_user_authorized_for_source(source)
+            if not allowed:
+                return False
+            return self._check_slash_access(source, command) is None if command else allowed
         return check

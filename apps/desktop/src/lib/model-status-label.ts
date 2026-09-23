@@ -46,8 +46,36 @@ export const PROVIDER_DISPLAY_NAMES: Readonly<Record<string, string>> = {
   'xai-oauth': 'xAI Grok'
 }
 
-export function providerDisplayName(provider: string): string {
+export function providerCatalogName(
+  provider: string,
+  providers?: ReadonlyArray<{ name: string; slug: string }>
+): string | undefined {
+  const slug = provider.trim().toLowerCase()
+
+  if (!slug || !providers) {
+    return undefined
+  }
+
+  const bare = slug.startsWith('custom:') ? slug.slice('custom:'.length) : slug
+
+  return providers.find(entry => {
+    const entrySlug = entry.slug.trim().toLowerCase()
+
+    return entrySlug === slug || entrySlug === bare
+  })?.name
+}
+
+export function providerDisplayName(provider: string, catalogName?: string): string {
   const normalized = provider.trim().toLowerCase()
+  const named = catalogName?.trim()
+
+  if (named) {
+    return named
+  }
+
+  if (normalized.startsWith('custom:')) {
+    return provider.trim().slice('custom:'.length) || provider.trim()
+  }
 
   return PROVIDER_DISPLAY_NAMES[normalized] ?? provider.trim()
 }

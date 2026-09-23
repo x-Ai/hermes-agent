@@ -720,6 +720,12 @@ def _skill_view_with_bump(args, **kw):
     # out of the parent's bucket.
     dedup_task_id = None if is_background_review() else task_id
     if (stub := _check_skill_view_dedup(dedup_task_id, name, args.get("file_path"))) is not None:
+        with suppress(Exception):
+            parsed_stub = json.loads(stub)
+            resolved = parsed_stub.get("name") or name
+            from tools.skill_usage import bump_use, bump_view
+            bump_view(str(resolved))
+            bump_use(str(resolved), task_id=task_id, session_id=kw.get("session_id"))
         return stub
     result = skill_view(name, file_path=args.get("file_path"), task_id=task_id)
     with suppress(Exception):

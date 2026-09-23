@@ -462,7 +462,7 @@ import {
 import { updateCheckAgent } from './update-api-proxy'
 import { waitForUpdateClearance } from './update-gate'
 import { readLiveUpdateMarker, updateHandoffConflict, writeUpdateMarker } from './update-marker'
-import { isOfficialSshRemote, OFFICIAL_REPO_HTTPS_URL } from './update-remote'
+import { canonicalUpdateRemoteReplacement, isOfficialSshRemote, OFFICIAL_REPO_HTTPS_URL } from './update-remote'
 import {
   collectRelaunchArgs,
   describeUpdaterHandoffFailure,
@@ -3288,6 +3288,27 @@ async function getOriginUrl(updateRoot) {
   return origin.code === 0 ? origin.stdout.trim() : ''
 }
 
+async function ensureCanonicalUpdateOrigin(updateRoot) {
+  const current = await getOriginUrl(updateRoot)
+  const replacement = canonicalUpdateRemoteReplacement(current)
+
+  if (!replacement) {
+    return current
+  }
+
+  const changed = await runGit(['remote', 'set-url', 'origin', replacement], { cwd: updateRoot })
+
+  if (changed.code === 0) {
+    rememberLog(`[updates] migrated origin from ${current} to ${replacement}`)
+
+    return replacement
+  }
+
+  rememberLog(`[updates] could not migrate origin from ${current}: ${firstLine(changed.stderr) || 'git failed'}`)
+
+  return current
+}
+
 function emitUpdateProgress(payload) {
   const merged = { stage: 'idle', message: '', percent: null, error: null, ...payload, at: Date.now() }
   rememberLog(`[updates] ${merged.stage}: ${merged.message || merged.error || ''}`)
@@ -3350,6 +3371,8 @@ async function checkUpdates({ force = false }: { force?: boolean } = {}) {
       branch
     }
   }
+
+  await ensureCanonicalUpdateOrigin(updateRoot)
 
   const git = args => runGit(args, { cwd: updateRoot }).then(r => r.stdout.trim())
 
@@ -4187,6 +4210,7 @@ async function applyUpdates(opts: { stopSafeBlockers?: boolean } = {}) {
   updateInFlight = true
 
   try {
+    await ensureCanonicalUpdateOrigin(resolveUpdateRoot())
     const updater = resolveUpdaterBinary()
 
     if (!updater && !IS_WINDOWS) {
@@ -17492,7 +17516,7 @@ ipcMain.handle('hermes:selectPaths', async (_event, options: any = {}) => {
   }
 
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: options?.title || 'Add context',
+    title: options?.title,
     defaultPath: resolvedDefaultPath,
     properties: properties as any,
     filters: Array.isArray(options?.filters) ? options.filters : undefined

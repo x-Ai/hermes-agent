@@ -159,6 +159,7 @@ def _response_finish_reason(response: Any) -> str:
 # compaction checkpoint would silently truncate the conversation's memory and feed the cut-off text back
 # into every subsequent iterative-update prompt. (Ported from earendil-works/pi#7048 / commit 97fa14e39.)
 _TRUNCATED_SUMMARY_MARKER = "finish_reason=length"
+_SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS = 32_768
 
 # A provider can return a natural-language refusal with finish_reason="stop". It is
 # non-empty, so the usual response validation accepts it, but it contains none of
@@ -2083,6 +2084,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
                 self.model, base_url=self.base_url, api_key=self.api_key,
                 config_context_length=self._config_context_length, provider=self.provider,
                 custom_providers=self.custom_providers,
+                requested_provider=getattr(self, "requested_provider", "") or self.provider,
             )
             # Raise-only small-context floor; must run after context_length resolves and before threshold_tokens derives.
             self.threshold_percent = self._effective_threshold_percent(self._resolved_context_length, self._base_threshold_percent)
@@ -2111,7 +2113,8 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         if self._threshold_tokens is None:
             # Resolve the window first: it may floor threshold_percent as a side effect.
             _ctx = self.context_length
-            self._threshold_tokens = self._compute_threshold_tokens(_ctx, self.threshold_percent, self.max_tokens)
+            self._threshold_tokens = self._compute_threshold_tokens(
+                _ctx, self.threshold_percent, self.max_tokens, self.max_input_tokens)
             self._apply_threshold_tokens_cap()
         return self._threshold_tokens
 
@@ -2502,7 +2505,8 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         config_percent = getattr(self, "_config_threshold_percent", self.threshold_percent)
         base_percent = resolve_model_threshold(model, self.model_thresholds, config_percent, provider)
         effective_percent = self._effective_threshold_percent(context_length, base_percent)
-        threshold = self._compute_threshold_tokens(context_length, effective_percent, self.max_tokens)
+        threshold = self._compute_threshold_tokens(
+            context_length, effective_percent, self.max_tokens, self.max_input_tokens)
         if self.threshold_tokens_cap is not None and self.threshold_tokens_cap > 0:
             threshold = min(threshold, self.threshold_tokens_cap, context_length)
         return base_percent, effective_percent, threshold
@@ -2519,6 +2523,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         runtime_changed = (model, provider, base_url, api_mode) != (self.model, self.provider, self.base_url, self.api_mode)
         self.model, self.base_url, self.api_key, self.provider, self.api_mode = model, base_url, api_key, provider, api_mode
         self.context_length = context_length
+        self.max_input_tokens = self._configured_max_input_tokens(model, base_url)
         # max_tokens=None means "unspecified": keep the existing output reservation.
         # A switch that genuinely changes the output budget passes the new value explicitly. (#43547)
         if max_tokens is not None:
@@ -2575,6 +2580,16 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
             return None
         return ivalue if ivalue > 0 else None
 
+    def _configured_max_input_tokens(self, model: str, base_url: str) -> int | None:
+        """Exact custom-route input cap, or no independent cap when the row is automatic."""
+        from hermes_cli.config_providers import get_custom_provider_token_limits
+
+        value = get_custom_provider_token_limits(
+            model, base_url, custom_providers=self.custom_providers,
+            requested_provider=getattr(self, "requested_provider", "") or self.provider,
+        ).get("max_input_tokens")
+        return self._coerce_max_tokens(value)
+
     # Same normalization: a threshold_tokens cap is a positive int, or None for "no cap".
     _coerce_threshold_tokens_cap = _coerce_max_tokens
 
@@ -2600,6 +2615,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
     @staticmethod
     def _compute_threshold_tokens(
         context_length: int, threshold_percent: float, max_tokens: int | None = None,
+        max_input_tokens: int | None = None,
     ) -> int:
         """Compute the compaction trigger in tokens from the effective input budget.
         Base is ``(context_length - max_tokens) * threshold_percent`` floored at MINIMUM_CONTEXT_LENGTH;
@@ -2621,6 +2637,8 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         effective_window = context_length - (max_tokens or 0)
         if effective_window <= 0:
             effective_window = context_length
+        if max_input_tokens is not None and max_input_tokens > 0:
+            effective_window = min(effective_window, max_input_tokens)
         pct_value = int(effective_window * threshold_percent)
         floored = max(pct_value, MINIMUM_CONTEXT_LENGTH)
         # The floor must not consume output headroom: cap at 85% when it is the binding term. Near-minimum windows
@@ -2642,7 +2660,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         model_thresholds: dict[str, float] | None = None, threshold_tokens_cap: Any = None,
         proactive_prune_tokens: int = 0, proactive_prune_min_result_chars: int = 8000,
         proactive_prune_min_reclaim_tokens: int = 4096, min_tail_user_messages: int = 1, tail_mode: str = "lean",
-        custom_providers: list | None = None,
+        custom_providers: list | None = None, requested_provider: str = "",
     ):
         self.model, self.base_url, self.api_key, self.provider, self.api_mode = model, base_url, api_key, provider, api_mode
         # "lean" = small clamped tail + verbatim-user summary section; "legacy" = 0.20*window tail.
@@ -2650,6 +2668,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         # Per-model context_length overrides live in custom_providers; without them deferred
         # resolution falls back to the hardcoded family catalog (#83324).
         self.custom_providers = custom_providers or None
+        self.requested_provider = requested_provider or provider
         # Per-model overrides (longest substring match wins); floor applied on top.
         self.model_thresholds = model_thresholds or {}
         # Raw config value, before override/floor; fallback when switching to a model with no override.
@@ -2679,6 +2698,7 @@ class ContextCompressor(SummaryDispatchMixin, MicroCompactionMixin, ContextEngin
         self.quiet_mode = quiet_mode
         # Usable input = context_length - max_tokens; only a positive int counts as a reservation.
         self.max_tokens = self._coerce_max_tokens(max_tokens)
+        self.max_input_tokens = self._configured_max_input_tokens(model, base_url)
         # True: summary failure aborts (messages unchanged); False: insert deterministic handoff and drop middle.
         # Output-token reservation: the provider carves max_tokens out of the context window, so the usable
         # input budget is context_length - max_tokens. None = provider default => assume no reservation.
@@ -3710,7 +3730,11 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         self._clear_compression_failure_cooldown()  # no cooldown — retry immediately
 
     def _call_summary_llm(self, prompt: str, prompt_started_at: float) -> str:
-        """Issue the single aux summary call; return validated content text.
+        """Issue a bounded aux summary sequence; return validated content text.
+
+        A reasoning-only output-limit stop gets one same-prompt recovery with
+        reasoning disabled and a larger output allowance. Other incomplete
+        summaries retain the fail-closed behavior.
         Raises RuntimeError for empty content or a length-truncated (PARTIAL) summary so the failure
         routes through main-model fallback + cooldown instead of wiping the compacted turns."""
         # call_llm writes the route it actually selected; never pre-resolve a second, stale pair.
@@ -3733,37 +3757,60 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # Without this, an incoming user message aborts the summary and compression falls back to a degraded
         # static marker, losing the real handoff (#23975). Re-entrant: a main-model retry (_generate_summary
         # recursion) re-enters harmlessly.
-        _aux_call_start = time.monotonic()
-        _latency_info: Dict[str, int] = {"prompt_build_ms": max(0, int((_aux_call_start - prompt_started_at) * 1000))}
-        call_kwargs["latency_info"] = _latency_info
-        # Per-attempt observable (#114594): with this line a stalled attempt is distinguishable from a slow
-        # one — silence before it is prompt build, silence after it is the summary provider.
-        logger.info(
-            "Compression summary call dispatched: model=%s prompt_chars=%s prompt_build_ms=%s",
-            self.summary_model or self.model, f"{len(prompt):,}", _latency_info["prompt_build_ms"],
-        )
-        try:
-            # Compression is atomic: shield the summary call from gateway interrupts. Re-entrant.
-            with aux_interrupt_protection():
-                response = call_llm(**call_kwargs)
-        finally:
-            route_known = bool(_aux_route.get("provider") and _aux_route.get("model"))
-            _aux_model = _aux_route.get("model") or self.summary_model or self.model or ""
-            # Remember the resolved model for the failure path: an ``auto`` route picks one per call
-            # without setting ``summary_model``, so only this names it in the user warning (#116472).
-            self._last_aux_resolved_model = _aux_model or None
-            self._record_aux_compression_call(
-                prompt_messages=call_kwargs["messages"],
-                # max_tokens is intentionally absent; .get() keeps the telemetry hook from breaking the call.
-                max_tokens=call_kwargs.get("max_tokens"),
-                duration_ms=int((time.monotonic() - _aux_call_start) * 1000),
-                aux_provider=_aux_route.get("provider") or self.provider or "",
-                aux_model=_aux_model,
-                effective_aux_context=self.context_length if route_known and _aux_model == self.model else None,
-                phase_timings=_latency_info,
+        _summary_attempts = 0
+
+        def _issue_summary(overrides: Optional[Dict[str, Any]] = None) -> Any:
+            nonlocal _aux_route, _summary_attempts
+            _aux_route = {}
+            attempt_kwargs = dict(call_kwargs)
+            attempt_kwargs.update(overrides or {})
+            attempt_kwargs["route_info"] = _aux_route
+            _aux_call_start = time.monotonic()
+            _latency_info: Dict[str, int] = {
+                "prompt_build_ms": (
+                    max(0, int((_aux_call_start - prompt_started_at) * 1000))
+                    if _summary_attempts == 0 else 0
+                )
+            }
+            _summary_attempts += 1
+            attempt_kwargs["latency_info"] = _latency_info
+            logger.info(
+                "Compression summary call dispatched: model=%s prompt_chars=%s prompt_build_ms=%s",
+                self.summary_model or self.model, f"{len(prompt):,}", _latency_info["prompt_build_ms"],
             )
+            try:
+                with aux_interrupt_protection():
+                    return call_llm(**attempt_kwargs)
+            finally:
+                route_known = bool(_aux_route.get("provider") and _aux_route.get("model"))
+                _aux_model = _aux_route.get("model") or self.summary_model or self.model or ""
+                self._last_aux_resolved_model = _aux_model or None
+                self._record_aux_compression_call(
+                    prompt_messages=attempt_kwargs["messages"],
+                    max_tokens=attempt_kwargs.get("max_tokens"),
+                    duration_ms=int((time.monotonic() - _aux_call_start) * 1000),
+                    aux_provider=_aux_route.get("provider") or self.provider or "",
+                    aux_model=_aux_model,
+                    effective_aux_context=self.context_length if route_known and _aux_model == self.model else None,
+                    phase_timings=_latency_info,
+                )
+
+        response = _issue_summary()
         if self._compression_cancelled():
             raise AuxiliaryExplicitCancellation()
+        finish_reason = _response_finish_reason(response)
+        visible_content = extract_content_or_reasoning(response, allow_reasoning_fallback=False)
+        if finish_reason == "length" and not visible_content:
+            logger.warning(
+                "Context compression exhausted its output allowance in reasoning before "
+                "producing summary text; retrying once without reasoning"
+            )
+            response = _issue_summary({
+                "reasoning_config": {"enabled": False, "effort": "none"},
+                "max_tokens": _SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS,
+            })
+            if self._compression_cancelled():
+                raise AuxiliaryExplicitCancellation()
         # Reasoning-field fallback (DeepSeek/Qwen/Kimi put the summary in reasoning_content); capped.
         content = extract_content_or_reasoning(response, max_reasoning_chars=8000)
         where = f"(provider={self.provider or 'auto'} model={self.summary_model or self.model})"
@@ -3791,10 +3838,11 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
         # tail of the merge and feed the cut-off text into every later micro-compact pass. Leave the
         # exchange unabsorbed instead; a later pass retries it. (Same class as _generate_summary's guard;
         # pi#7048.)
-        if _response_finish_reason(response) == "length":
+        finish_reason = _response_finish_reason(response)
+        if finish_reason in {"length", "incomplete", "content_filter"}:
             raise RuntimeError(
-                f"Context compression summary was truncated ({_TRUNCATED_SUMMARY_MARKER}): generation hit the output "
-                f"token cap and the summary is incomplete {where}"
+                f"Context compression summary was truncated ({_TRUNCATED_SUMMARY_MARKER}): generation ended with "
+                f"finish_reason={finish_reason} and the summary is incomplete {where}"
             )
         return content
 

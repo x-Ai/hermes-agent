@@ -2,9 +2,10 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { invalidateContextBreakdownForConfig } from '@/store/context-breakdown'
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
-import { ContextUsagePanel } from './context-usage-panel'
+import { ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
 import { useContextBreakdown } from './hooks/use-context-breakdown'
 
 const usage: UsageStats = {
@@ -28,6 +29,7 @@ const breakdown: ContextBreakdown = {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
@@ -58,12 +60,81 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
   })
 
-  it('skips the estimate mid-turn — the gateway streams measured usage then', () => {
+  it('starts a fresh read when the turn becomes busy', async () => {
+    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
+    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
+
+    const { rerender, result } = renderHook(
+      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { busy: false } }
+    )
+
+    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
+    rerender({ busy: true })
+
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    expect(result.current.loading).toBe(false)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries an unavailable deferred-agent snapshot during a long turn', async () => {
+    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
+    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
+
+    const { result } = renderHook(() =>
+      useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' })
+    )
+
+    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
+    expect(result.current.loading).toBe(true)
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2), { timeout: 1_000 })
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    expect(result.current.loading).toBe(false)
+  })
+
+  it('refetches the authoritative breakdown when a turn ends', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
+
+    const { rerender } = renderHook(
+      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { busy: true } }
+    )
+
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    rerender({ busy: false })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
+  })
+
+  it('refetches the live transcript after each in-place compression', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
+
+    const { rerender } = renderHook(
+      ({ compressionCount }) =>
+        useContextBreakdown({
+          busy: true,
+          compressionCount,
+          enabled: true,
+          requestGateway,
+          sessionId: 'runtime-1'
+        }),
+      { initialProps: { compressionCount: 0 } }
+    )
+
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    rerender({ compressionCount: 1 })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
+    rerender({ compressionCount: 2 })
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(3))
+  })
+
+  it('refetches after a saved context configuration change', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
     renderHook(() => useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' }))
 
-    expect(requestGateway).not.toHaveBeenCalled()
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
+    invalidateContextBreakdownForConfig()
+    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
   })
 
   it('refetches on a session switch and never reports the previous session numbers', async () => {
@@ -101,6 +172,73 @@ describe('useContextBreakdown', () => {
 })
 
 describe('ContextUsagePanel', () => {
+  it('projects live context growth into the conversation category', () => {
+    const baseline: ContextBreakdown = {
+      ...breakdown,
+      categories: [
+        { color: 'gray', id: 'system_prompt', label: 'System prompt', tokens: 20_000 },
+        { color: 'teal', id: 'conversation', label: 'Conversation', tokens: 100_000 }
+      ],
+      context_used: 128_000,
+      estimated_total: 120_000
+    }
+
+    const projected = projectLiveContextBreakdown(baseline, {
+      ...usage,
+      context_max: 272_000,
+      context_used: 148_000
+    })
+
+    expect(projected?.categories.find(category => category.id === 'system_prompt')?.tokens).toBe(20_000)
+    expect(projected?.categories.find(category => category.id === 'conversation')?.tokens).toBe(128_000)
+    expect(projected?.context_used).toBe(148_000)
+    expect(projected?.context_percent).toBe(54)
+    expect(projected?.estimated_total).toBe(148_000)
+  })
+
+  it('re-baselines conversation from the current window after compression', () => {
+    const baseline: ContextBreakdown = {
+      ...breakdown,
+      categories: [
+        { color: 'gray', id: 'system_prompt', label: 'System prompt', tokens: 20_000 },
+        { color: 'teal', id: 'conversation', label: 'Conversation', tokens: 500_000 }
+      ],
+      context_used: 520_000,
+      estimated_total: 520_000
+    }
+
+    const compressed = projectLiveContextBreakdown(baseline, {
+      ...usage,
+      context_used: 90_000
+    })
+
+    const regrown = projectLiveContextBreakdown(compressed, {
+      ...usage,
+      context_used: 153_600
+    })
+
+    expect(compressed?.categories.find(category => category.id === 'conversation')?.tokens).toBe(70_000)
+    expect(regrown?.categories.find(category => category.id === 'conversation')?.tokens).toBe(133_600)
+    expect(regrown?.estimated_total).toBe(153_600)
+  })
+
+  it('does not mislabel live usage as conversation while the deferred agent is unavailable', () => {
+    const unavailable: ContextBreakdown = {
+      ...breakdown,
+      categories: [],
+      context_used: 0,
+      estimated_total: 0,
+      ready: false
+    }
+
+    const projected = projectLiveContextBreakdown(unavailable, {
+      ...usage,
+      context_used: 185_600
+    })
+
+    expect(projected?.categories).toEqual([])
+  })
+
   it('marks estimates but preserves the provider-usage header', () => {
     for (const estimated of [true, false]) {
       const { container, unmount } = render(

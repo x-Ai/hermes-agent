@@ -74,6 +74,8 @@ type BotsMessages = {
     retryNow: string
     rosterUnavailable: (reason: string) => string
     waitingForGateway: string
+    refreshFailed: string
+    reconnecting: string
     hidden: string
     allGateways: string
     currentGateway: string
@@ -299,7 +301,18 @@ type BotsMessages = {
     activityBy: (member: string, action: string) => string
     activitySlotWait: (member: string) => string
     activityLabels: Record<
-      'queued' | 'working' | 'replied' | 'passed' | 'timedOut' | 'failed' | 'cancelled' | 'settled' | 'capped' | 'delivered' | 'held' | 'stopped',
+      | 'queued'
+      | 'working'
+      | 'replied'
+      | 'passed'
+      | 'timedOut'
+      | 'failed'
+      | 'cancelled'
+      | 'settled'
+      | 'capped'
+      | 'delivered'
+      | 'held'
+      | 'stopped',
       string
     >
     stop: string
@@ -366,6 +379,8 @@ type BotsMessages = {
     deleteDescription: (name: string) => string
     deletedGroup: (name: string) => string
     attachmentFailed: (file: string, member: string) => string
+    emptyResponse: string
+    noFreeName: string
   }
   /** Skills hub + MCP setup surfaces embedded in the bot editor. */
   tools: {
@@ -507,6 +522,8 @@ const en: BotsMessages = {
       `Roster unavailable: ${reason}. If your gateway predates profiles.list, update Hermes and restart the gateway.`,
     waitingForGateway:
       'Waiting for the gateway connection… (remote gateways can take a few seconds; retries automatically)',
+    refreshFailed: 'Roster refresh failed — showing the last good list.',
+    reconnecting: ' Waiting for the gateway to reconnect…',
     hidden: 'Hidden',
     allGateways: 'All gateways',
     currentGateway: 'Current gateway',
@@ -807,7 +824,10 @@ const en: BotsMessages = {
     deleteDescription: name =>
       `This removes “${name}” from its bots and clears the shared room log. The bots and their individual chats are kept.`,
     deletedGroup: name => `Deleted group “${name}”`,
-    attachmentFailed: (file, member) => `Could not attach ${file} for ${member}`
+    attachmentFailed: (file, member) => `Could not attach ${file} for ${member}`,
+    emptyResponse:
+      '⚠️ The model returned no response after processing tool results. This can happen with some models — try again or rephrase your question.',
+    noFreeName: 'No free name for the group.'
   },
   tools: {
     skillsHub: 'Hermes Skills Hub',
@@ -944,6 +964,8 @@ const ja: BotsMessages = {
     rosterUnavailable: reason =>
       `名簿を取得できません: ${reason}。ゲートウェイが profiles.list より前の場合は、Hermes を更新してゲートウェイを再起動してください。`,
     waitingForGateway: 'ゲートウェイ接続を待っています…（リモートは数秒かかることがあります。自動で再試行します）',
+    refreshFailed: '名簿を更新できませんでした。最後に取得できたリストを表示しています。',
+    reconnecting: ' ゲートウェイの再接続を待っています…',
     hidden: '隠し',
     allGateways: 'すべてのゲートウェイ',
     currentGateway: '現在のゲートウェイ',
@@ -1245,7 +1267,10 @@ const ja: BotsMessages = {
     deleteDescription: name =>
       `これは削除します。 “${name}ボットから「共有ルームログをクリア」 ボットと個々のチャットが保持されます.`,
     deletedGroup: name => `削除されたグループ “${name}”`,
-    attachmentFailed: (file, member) => `添付できませんでした${file}〜のために${member}`
+    attachmentFailed: (file, member) => `添付できませんでした${file}〜のために${member}`,
+    emptyResponse:
+      '⚠️ ツール結果の処理後にモデルから応答がありませんでした。一部のモデルで発生することがあります。もう一度試すか、質問を言い換えてください。',
+    noFreeName: 'グループに使える名前がありません。'
   },
   tools: {
     skillsHub: 'Hermes スキルハブ',
@@ -1382,6 +1407,8 @@ const zh: BotsMessages = {
     retryNow: '立即重试',
     rosterUnavailable: reason => `无法获取名单：${reason}。如果网关早于 profiles.list，请更新 Hermes 并重启网关。`,
     waitingForGateway: '正在等待网关连接…（远程网关可能需要几秒；会自动重试）',
+    refreshFailed: '智能体名单刷新失败，正在显示上次成功加载的列表。',
+    reconnecting: ' 正在等待网关重新连接…',
     hidden: '隐藏',
     allGateways: '所有网关',
     currentGateway: '当前网关',
@@ -1671,7 +1698,9 @@ const zh: BotsMessages = {
     deleted: '已删除',
     deleteDescription: name => `这将移除“${name}从它的机器人中删除，并清除共享房间日志。机器人及其各自的聊天会被保留。`,
     deletedGroup: name => `已删除的群组“${name}”`,
-    attachmentFailed: (file, member) => `无法附加${file}为${member}`
+    attachmentFailed: (file, member) => `无法为 ${member} 附加 ${file}`,
+    emptyResponse: '⚠️ 模型处理工具结果后没有返回响应。某些模型可能出现此情况，请重试或换一种方式提问。',
+    noFreeName: '没有可用于群组的名称。'
   },
   tools: {
     skillsHub: 'Hermes 技能中心',
@@ -1806,6 +1835,8 @@ const zhHant: BotsMessages = {
     retryNow: '立即重試',
     rosterUnavailable: reason => `無法取得名單：${reason}。如果閘道早於 profiles.list，請更新 Hermes 並重新啟動閘道。`,
     waitingForGateway: '正在等待閘道連線…（遠端閘道可能需要幾秒；會自動重試）',
+    refreshFailed: '智慧體名單重新整理失敗，正在顯示上次成功載入的清單。',
+    reconnecting: ' 正在等待閘道重新連線…',
     hidden: '隱藏',
     allGateways: '所有閘道',
     currentGateway: '目前閘道',
@@ -1970,8 +2001,7 @@ const zhHant: BotsMessages = {
     lockFace: '鎖定頭像',
     faceLocked: '面部鎖定.',
     faceFollowsName: '臉跟隨名字.',
-    noImageModel:
-      '沒有可用的圖片模型。如果你剛啟用模型（或更新 Hermes），請重新啟動閘道：Ctrl+K →「重新啟動閘道」。',
+    noImageModel: '沒有可用的圖片模型。如果你剛啟用模型（或更新 Hermes），請重新啟動閘道：Ctrl+K →「重新啟動閘道」。',
     checkingImageBackend: '正在檢查圖片後端…',
     chooseImage: '選擇圖片…',
     noPets: '寵物圖鑑中沒有寵物。執行 `hermes pets` 來探索。',
@@ -2095,7 +2125,9 @@ const zhHant: BotsMessages = {
     deleted: '已刪除',
     deleteDescription: name => `此移除“${name}也清除了共享的房間紀錄。 他們的談話都保留下來了.`,
     deletedGroup: name => `已刪除的群組${name}”`,
-    attachmentFailed: (file, member) => `無法附加${file}為${member}`
+    attachmentFailed: (file, member) => `無法為 ${member} 附加 ${file}`,
+    emptyResponse: '⚠️ 模型處理工具結果後沒有傳回回應。部分模型可能發生此情況，請重試或換一種方式提問。',
+    noFreeName: '沒有可用於群組的名稱。'
   },
   tools: {
     skillsHub: 'Hermes 技能中心',
@@ -2232,6 +2264,8 @@ const ru: BotsMessages = {
       `Roster unavailable: ${reason}Если ваш шлюз предшествует профилям. Список, обновление Hermes и перезапуск шлюза.`,
     waitingForGateway:
       'Ожидание подключения шлюза ... (удаленные шлюзы могут занять несколько секунд; повторные попытки автоматически)',
+    refreshFailed: 'Не удалось обновить список ботов — показан последний успешно загруженный список.',
+    reconnecting: ' Ожидание переподключения к шлюзу…',
     hidden: 'Скрытый',
     allGateways: 'Все шлюзы',
     currentGateway: 'Текущий шлюз',
@@ -2537,7 +2571,10 @@ const ru: BotsMessages = {
     deleteDescription: name =>
       `Это устраняет "${name}"от своих ботов и очищает журнал общей комнаты. Сохраняются боты и их индивидуальные чаты.`,
     deletedGroup: name => `Исключенная группа"${name}”`,
-    attachmentFailed: (file, member) => `Не удалось прикрепить${file}для${member}`
+    attachmentFailed: (file, member) => `Не удалось прикрепить ${file} для ${member}`,
+    emptyResponse:
+      '⚠️ Модель не вернула ответ после обработки результатов инструментов. Попробуйте ещё раз или переформулируйте вопрос.',
+    noFreeName: 'Нет свободного имени для группы.'
   },
   tools: {
     skillsHub: 'Центр навыков Hermes',
@@ -2677,6 +2714,8 @@ const ar: BotsMessages = {
     rosterUnavailable: reason =>
       `Roster unavailable: ${reason}إذا كان مدخلك مُسبقاً للمواصفات القائمة، تحديث Hermes وإعادة البوابة.`,
     waitingForGateway: 'تنتظر اتصال البوابة... (البوابات البعيدة يمكن أن تأخذ بضع ثواني؛ إعادة التفتيش تلقائيا)',
+    refreshFailed: 'تعذر تحديث قائمة الروبوتات — يتم عرض آخر قائمة تم تحميلها بنجاح.',
+    reconnecting: ' جارٍ انتظار إعادة اتصال البوابة…',
     hidden: 'مخفٍ',
     allGateways: 'جميع البوابات',
     currentGateway: 'البوابة الحالية',
@@ -2974,7 +3013,9 @@ const ar: BotsMessages = {
     deleteDescription: name =>
       `وهذا يزيل "${name}" من أحواضها ويوضح سجل الغرفة المشتركة. الأحصنة و دردشاتهم الفردية محتفظ بها.`,
     deletedGroup: name => `المجموعة المعزولة "${name}”`,
-    attachmentFailed: (file, member) => `تعذر الإرفاق${file}لـ${member}`
+    attachmentFailed: (file, member) => `تعذر إرفاق ${file} لـ ${member}`,
+    emptyResponse: '⚠️ لم يُرجع النموذج أي استجابة بعد معالجة نتائج الأدوات. حاول مرة أخرى أو أعد صياغة سؤالك.',
+    noFreeName: 'لا يوجد اسم متاح للمجموعة.'
   },
   tools: {
     skillsHub: 'مركز المهارات',

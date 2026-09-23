@@ -1473,6 +1473,27 @@ DEFAULT_CONFIG = {
         "ledger": True,
     },
 
+    # Collective Wisdom — local qualification plus owner-consented sharing.
+    "wisdom": {
+        "enabled": False,
+        "portal_url": "https://portal.nousresearch.com",
+        "request_timeout": 30,
+        "notifications": {
+            "delivery_mode": "agent",
+            "decisions": "immediate",
+            "installed_updates": "immediate",
+            "new_skills": "daily",
+        },
+        "agent_led": {
+            "window_days": 7,
+            "min_aggregate_count": 3,
+            "max_candidates": 3,
+            "dismiss_suppression_days": 30,
+            "popular_install_threshold": 10,
+            "review_interval_hours": 24 * 7,
+        },
+    },
+
     # Curator — background maintenance of AGENT-CREATED skills (never hub-installed): marks
     # long-unused skills stale, archives (never deletes) obsolete ones, optionally consolidates
     # overlaps via a forked aux-model agent. Inactivity-triggered from session start, no cron

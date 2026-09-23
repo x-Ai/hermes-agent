@@ -1263,9 +1263,11 @@ def _(rid, params: dict, session: dict) -> dict:
             "estimated_total": 0,
             "context_estimated": usage.get("context_estimated", False),
             "context_source": usage.get("context_source", "provider_usage"),
+            "ready": False,
             "model": _metadata_mirror(session).get("model", "")})
     with session["history_lock"]:
-        history = list(session.get("history", []))
+        live_history = getattr(agent, "_session_messages", None)
+        history = list(live_history if isinstance(live_history, list) else session.get("history", []))
     # Bind the session context (on the RPC thread the session cwd is unset, so the prompt build inside
     # would key its workspace pin on the backend's cwd and overwrite the session's pin) and the session's
     # profile runtime scope: the build reaches the external memory provider's system_prompt_block(),
@@ -1275,7 +1277,9 @@ def _(rid, params: dict, session: dict) -> dict:
         from agent.context_breakdown import compute_session_context_breakdown
         from agent.context_file_sources import context_file_sources_for_agent
         with _session_profile_runtime_scope(session):
+            _sync_agent_compression_with_config(str(params.get("session_id") or ""), session)
             payload = compute_session_context_breakdown(agent, history)
+            payload["ready"] = True
             # Structured per-file rows so the Desktop popover can explain "why is my CLAUDE.md ignored?".
             payload["context_files"] = context_file_sources_for_agent(agent)
         return _ok(rid, payload)

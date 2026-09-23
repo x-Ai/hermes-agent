@@ -468,7 +468,10 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
     from hermes_cli.config import get_compatible_custom_providers
     from hermes_cli.models import _AGGREGATOR_PROVIDERS, _KNOWN_PROVIDER_NAMES, normalize_provider
     from hermes_cli.model_normalize import normalize_model_for_provider
-    from hermes_cli.providers import resolve_custom_provider, resolve_user_provider
+    from hermes_cli.providers import (
+        custom_provider_slug, is_saved_custom_endpoint,
+        resolve_custom_provider, resolve_user_provider,
+    )
 
     prov_in = (provider or "").strip()
     model_in = (model or "").strip()
@@ -481,11 +484,24 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
     if not isinstance(cfg, dict):
         cfg = {}
     user_providers = cfg.get("providers")
-    declared = resolve_user_provider(
+    user_provider = resolve_user_provider(
         prov_in, user_providers if isinstance(user_providers, dict) else {}
-    ) or resolve_custom_provider(prov_in, get_compatible_custom_providers(cfg))
-    if declared is not None:
-        return declared.id, model_in
+    )
+    custom_provider = resolve_custom_provider(prov_in, get_compatible_custom_providers(cfg))
+    if user_provider is not None:
+        try:
+            from hermes_cli.auth import PROVIDER_REGISTRY
+            provider_entry = (
+                user_providers.get(user_provider.id)
+                if isinstance(user_providers, dict) else None
+            )
+            if user_provider.id.strip().lower() in PROVIDER_REGISTRY and is_saved_custom_endpoint(provider_entry):
+                return custom_provider_slug(user_provider.name, user_provider.id), model_in
+        except Exception:
+            pass
+        return user_provider.id, model_in
+    if custom_provider is not None:
+        return custom_provider.id, model_in
 
     is_custom_provider_slug = canonical == "custom" or canonical.startswith("custom:")
     if canonical not in _KNOWN_PROVIDER_NAMES and not is_custom_provider_slug and "/" in model_in:

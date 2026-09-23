@@ -287,6 +287,15 @@ export function quickModelOptions(
     return 0
   })
 
+  const currentProviderName =
+    providers.find(provider => {
+      const slug = provider.slug.trim().toLowerCase()
+      const current = currentProvider.trim().toLowerCase()
+      const bare = current.startsWith('custom:') ? current.slice('custom:'.length) : current
+
+      return slug === current || slug === bare
+    })?.name ?? currentProvider
+
   const add = (provider: string, providerName: string, model: string) => {
     const key = `${provider}:${model}`
 
@@ -299,7 +308,7 @@ export function quickModelOptions(
   }
 
   if (currentProvider && currentModel) {
-    add(currentProvider, currentProvider, currentModel)
+    add(currentProvider, currentProviderName, currentModel)
   }
 
   for (const provider of providers) {

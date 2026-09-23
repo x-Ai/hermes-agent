@@ -14,14 +14,14 @@ from collections.abc import Iterable
 from contextlib import suppress
 from typing import Any, Dict, List, Optional
 
-from utils import normalize_proxy_env_vars
+from utils import base_url_host_matches, base_url_hostname, normalize_proxy_env_vars
 
 from agent.anthropic_credentials import _is_oauth_token
 from agent.anthropic_endpoints import (
     _base_url_needs_context_1m_beta, _is_azure_anthropic_endpoint, _is_kimi_coding_endpoint,
     _is_minimax_anthropic_endpoint, _is_nous_portal_endpoint, _is_opencode_endpoint,
     _is_third_party_anthropic_endpoint, _model_name_is_kimi_family, _normalize_base_url_text,
-    _requires_bearer_auth,
+    _requires_bearer_auth as _requires_bearer_auth_for_known_endpoint,
 )
 from agent.anthropic_message_convert import (
     convert_messages_to_anthropic, convert_tools_to_anthropic, normalize_model_name,
@@ -129,6 +129,12 @@ def _get_anthropic_max_output(model: str) -> int:
     return _ANTHROPIC_OUTPUT_LIMITS[best_key] if best_key else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
 
 
+def _get_known_anthropic_max_output(model: str) -> Optional[int]:
+    m = model.lower().replace(".", "-")
+    best_key = max((key for key in _ANTHROPIC_OUTPUT_LIMITS if key in m), key=len, default=None)
+    return _ANTHROPIC_OUTPUT_LIMITS[best_key] if best_key else None
+
+
 def _resolve_positive_anthropic_max_tokens(value) -> Optional[int]:
     """``value`` floored to a positive int, or None when it is not a finite positive number.
     Anthropic 400s on max_tokens that are 0, negative, fractional or non-finite; the ``max_tokens
@@ -144,11 +150,17 @@ def _resolve_positive_anthropic_max_tokens(value) -> Optional[int]:
     return int(value) if int(value) > 0 else None  # int() truncates toward zero for floats
 
 
-def _resolve_anthropic_messages_max_tokens(requested, model: str, context_length: Optional[int] = None) -> int:
+def _resolve_anthropic_messages_max_tokens(
+    requested, model: str, context_length: Optional[int] = None, base_url: Optional[str] = None,
+) -> int:
     """``requested`` when it is a positive finite number, else the model's output ceiling. Raises
     ValueError if neither is positive. The context-window clamp is the caller's job so the
     positive-value contract stays endpoint-agnostic."""
-    resolved = _resolve_positive_anthropic_max_tokens(requested) or _get_anthropic_max_output(model)
+    resolved = _resolve_positive_anthropic_max_tokens(requested) or _get_known_anthropic_max_output(model)
+    if resolved is None:
+        # Messages requires max_tokens. Preserve the future-Claude ceiling on Anthropic itself,
+        # but do not impose 128K on an unknown model served by a compatible third-party endpoint.
+        resolved = 16_384 if _is_third_party_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
     if resolved > 0:
         return resolved
     raise ValueError(
@@ -339,6 +351,65 @@ def _attribution_headers() -> Dict[str, str]:
     }
 
 
+def _configured_auth_scheme(base_url: str | None) -> str | None:
+    """Return a matching custom provider's explicit Anthropic auth scheme."""
+    if not base_url:
+        return None
+    try:
+        from hermes_cli.config import get_compatible_custom_providers
+
+        entries = get_compatible_custom_providers()
+    except Exception:
+        return None
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        scheme = str(entry.get("auth_scheme") or "").strip().lower()
+        if scheme not in ("bearer", "x-api-key"):
+            continue
+        entry_host = base_url_hostname(str(entry.get("base_url") or ""))
+        if entry_host and base_url_host_matches(str(base_url), entry_host):
+            return scheme
+    return None
+
+
+def _requires_bearer_auth(base_url: str | None) -> bool:
+    """Apply an explicit custom-provider auth scheme before built-in detection."""
+    normalized = _normalize_base_url_text(base_url)
+    if not normalized:
+        return False
+    configured = _configured_auth_scheme(normalized)
+    if configured == "bearer":
+        return True
+    if configured == "x-api-key":
+        return False
+    return _requires_bearer_auth_for_known_endpoint(normalized)
+
+
+def _apply_custom_provider_headers_to_kwargs(
+    kwargs: Dict[str, Any], base_url: Optional[str]
+) -> None:
+    """Merge configured endpoint headers, overriding defaults case-insensitively."""
+    if not base_url:
+        return
+    try:
+        from hermes_cli.config import get_custom_provider_extra_headers
+
+        extra = get_custom_provider_extra_headers(base_url)
+    except Exception:
+        return
+    if not extra:
+        return
+    incoming_lower = {key.lower() for key in extra}
+    merged = {
+        key: value
+        for key, value in (kwargs.get("default_headers") or {}).items()
+        if key.lower() not in incoming_lower
+    }
+    merged.update(extra)
+    kwargs["default_headers"] = merged
+
+
 def _client_timeout(timeout):
     """httpx.Timeout with the caller's read timeout (default 900s) and a 10s connect."""
     from httpx import Timeout
@@ -408,9 +479,10 @@ def _new_sdk_client(sdk, kwargs: Dict[str, Any], headers: Dict[str, str], route:
     # Per-provider ``custom_providers[].extra_headers`` last: the most specific config level wins
     # over the SDK User-Agent and the attribution/beta sets above, on every builder path (init,
     # /model switch, rebuild, auxiliary) — the OpenAI-wire clients already do this (#24293, #9721).
-    merged.update(_custom_provider_extra_headers(route or kwargs.get("base_url")))
-    if merged:
-        kwargs["default_headers"] = merged
+    header_kwargs = {"default_headers": merged}
+    _apply_custom_provider_headers_to_kwargs(header_kwargs, route or kwargs.get("base_url"))
+    if header_kwargs["default_headers"]:
+        kwargs["default_headers"] = header_kwargs["default_headers"]
     return sdk.Anthropic(**kwargs)
 
 
@@ -623,7 +695,8 @@ def build_anthropic_kwargs(
     if not _is_nous_portal_endpoint(base_url):
         model = normalize_model_name(model, preserve_dots=preserve_dots)
     # Non-positive/non-finite values fail locally instead of 400-ing upstream.
-    effective_max_tokens = _resolve_anthropic_messages_max_tokens(max_tokens, model, context_length=context_length)
+    effective_max_tokens = _resolve_anthropic_messages_max_tokens(
+        max_tokens, model, context_length=context_length, base_url=base_url)
     if context_length and effective_max_tokens > context_length:
         effective_max_tokens = max(context_length - 1, 1)
     to_wire = _oauth_wire_namer(anthropic_tools) if is_oauth else None

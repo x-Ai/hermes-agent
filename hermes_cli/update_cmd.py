@@ -1252,7 +1252,7 @@ def _finish_already_up_to_date(
     git_cmd, branch: str, current_branch: str, _plan, *, assume_yes: bool, gateway_mode: bool,
     gw_input_fn, pre_update_snapshot_id, had_desktop_app_before_update: bool,
     active_lazy_features, active_tool_dependencies, _windows_gateway_resume,
-    no_gateway_restart: bool = False) -> None:
+    no_gateway_restart: bool = False, explicit_branch: bool = False) -> None:
     """"Already up to date" path: restore stash/branch, repair the checkout, catch up the fleet.
     ``sys.exit(1)`` when the repair is incomplete (after gateway exit code + partial receipt)."""
     _invalidate_update_cache()
@@ -1264,7 +1264,9 @@ def _finish_already_up_to_date(
             git_cmd, _m().PROJECT_ROOT, _plan.auto_stash_ref, prompt_user=_plan.prompt_for_restore,
             input_fn=gw_input_fn)
     if _plan.parked_branch_switched:
-        if _plan.switch_block_reason.startswith("unmerged:"):
+        if explicit_branch:
+            print(f"  ✓ Staying on '{branch}' (switched from '{current_branch}').")
+        elif _plan.switch_block_reason.startswith("unmerged:"):
             _count = _plan.switch_block_reason.split(":", 1)[1]
             print(
                 f"  ✓ Checkout was parked on '{current_branch}' — switched back to {branch}; "
@@ -1662,7 +1664,8 @@ def _cmd_update_impl(args, gateway_mode: bool):
                 active_lazy_features=opts.active_lazy_features,
                 active_tool_dependencies=opts.active_tool_dependencies,
                 _windows_gateway_resume=_windows_gateway_resume,
-                no_gateway_restart=opts.no_gateway_restart)
+                no_gateway_restart=opts.no_gateway_restart,
+                explicit_branch=bool(getattr(args, "branch", None)))
             return
 
         if commit_count > 0:

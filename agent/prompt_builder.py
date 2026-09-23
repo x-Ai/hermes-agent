@@ -1012,11 +1012,11 @@ def _local_host_hints() -> list[str]:
     return ["\n".join(host_lines), _WINDOWS_BASH_SHELL_HINT]
 
 
-def _remote_backend_hint(backend: str) -> str:
+def _remote_backend_hint(backend: str, *, probe_enabled: bool = True) -> str:
     """Backend-only block for remote/sandbox backends (host info deliberately suppressed)."""
     lead = (f"Terminal backend: {backend}. Your `terminal`, `read_file`, `write_file`, `patch`, and "
             f"`search_files` tools all operate inside ")
-    probe = _probe_remote_backend(backend)
+    probe = _probe_remote_backend(backend) if probe_enabled else None
     if probe:
         return lead + (
             f"this {backend} environment — NOT on the machine where Hermes itself is running. The host OS, "
@@ -1029,9 +1029,14 @@ def _remote_backend_hint(backend: str) -> str:
         or _plugin_backend_attr(backend, "env_description")
         or f"a {backend} environment (likely Linux)"
     )
+    probe_status = (
+        "Live backend probing is disabled, so the sandbox's "
+        if not probe_enabled
+        else "The backend probe didn't respond at prompt-build time, so the sandbox's "
+    )
     return lead + (
-        f"{description} — NOT on the machine where Hermes itself runs. The backend probe didn't respond at "
-        f"prompt-build time, so the sandbox's OS, current user, $HOME, and working directory are unknown from here. "
+        f"{description} — NOT on the machine where Hermes itself runs. {probe_status}"
+        f"OS, current user, $HOME, and working directory are unknown from here. "
         f"If you need them, probe directly with a terminal call like `uname -a && whoami && pwd`."
     )
 
@@ -1053,13 +1058,15 @@ def _embedder_environment_hint() -> str:
         (_config_readonly("agent.environment_hint").get("agent", {}) or {}).get("environment_hint", "")).strip()
 
 
-def build_environment_hints() -> str:
+def build_environment_hints(*, environment_probe_enabled: bool = True) -> str:
     """Execution-environment block: local backends get host OS/home/cwd; remote/sandbox
     backends get ONLY the backend's own state (the agent's tools cannot touch the host).
     WSL and embedder hints are appended."""
     backend = (_tenv_read("TERMINAL_ENV") or "local").strip().lower()
     is_remote_backend = backend in _REMOTE_TERMINAL_BACKENDS or _plugin_backend_is_remote(backend)
-    hints = [_remote_backend_hint(backend)] if is_remote_backend else _local_host_hints()
+    hints = [
+        _remote_backend_hint(backend, probe_enabled=environment_probe_enabled)
+    ] if is_remote_backend else _local_host_hints()
     hints += [WSL_ENVIRONMENT_HINT] if is_wsl() else []
     return "\n\n".join(h for h in (*hints, _embedder_environment_hint()) if h)
 

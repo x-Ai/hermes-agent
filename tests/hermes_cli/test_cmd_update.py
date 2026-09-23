@@ -395,6 +395,7 @@ class TestRepairCurrentCheckoutRuntimeRepair:
         monkeypatch.setattr(hm, "_clear_update_incomplete_marker", lambda: None)
         monkeypatch.setattr(hm, "_is_windows", lambda: False)
         monkeypatch.setattr("hermes_cli.managed_uv.ensure_uv", lambda **k: "uv")
+        monkeypatch.setattr(update_cmd.subprocess, "run", lambda *_a, **_k: None)
 
         assert update_cmd._repair_venv_on_current_checkout(
             assume_yes=True, gateway_mode=False, pre_update_snapshot_id=None,

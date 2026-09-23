@@ -2202,6 +2202,7 @@ from gateway.run_watchers import GatewaySessionWatchersMixin
 from gateway.run_notifications import GatewayNotificationsMixin
 from gateway.run_inbound import GatewayInboundMixin
 from gateway.run_goals import GatewayGoalsMixin
+from gateway.run_wisdom import GatewayWisdomMixin, WisdomCardRefresh, enqueue_weekly_review
 from gateway.run_agent_cache import GatewayAgentCacheMixin
 from gateway.run_profile_reconcile import GatewayProfileReconcileMixin
 from gateway.platforms.base import (
@@ -2317,7 +2318,8 @@ def _resolve_runtime_agent_kwargs() -> dict:
     _primary_provider = (_model_cfg.get("provider") or "").strip()
 
     try:
-        runtime, fallback_entry = resolve_runtime_with_fallback(_load_gateway_config())
+        runtime, fallback_entry = resolve_runtime_with_fallback(
+            _load_gateway_config(), target_model=_primary_model or None)
     except Exception as exc:
         raise RuntimeError(format_runtime_provider_error(exc)) from exc
 
@@ -2325,7 +2327,8 @@ def _resolve_runtime_agent_kwargs() -> dict:
         # The entry's model is the one this agent must send (#112600). Carry the fallback notice so the
         # gateway can surface a user-visible provider switch (#74349); the caller must pop
         # ``_fallback_notice`` before forwarding kwargs to AIAgent.
-        return {**_runtime_agent_kwargs(runtime), "model": fallback_entry["model"],
+        return {**_runtime_agent_kwargs(runtime), **_runtime_output_limit_kwargs(runtime, _model_cfg),
+                "model": fallback_entry["model"],
                 "_fallback_notice": pre_agent_fallback_notice(
                     _primary_provider, _primary_model,
                     runtime.get("provider") or fallback_entry.get("provider") or "unknown",
@@ -2336,7 +2339,33 @@ def _resolve_runtime_agent_kwargs() -> dict:
         {k: v for k, v in capabilities.items() if isinstance(k, str) and isinstance(v, bool)}
         if isinstance(capabilities, dict) else {})
 
-    return {**_runtime_agent_kwargs(runtime), "capabilities": capabilities}
+    return {
+        **_runtime_agent_kwargs(runtime),
+        **_runtime_output_limit_kwargs(runtime, _model_cfg),
+        "capabilities": capabilities,
+    }
+
+
+def _runtime_output_limit_kwargs(runtime: dict, model_cfg: Optional[dict] = None) -> dict:
+    """Resolve explicit config/env output budget before provider-scoped discovered limits."""
+    max_tokens = None
+    source = None
+    raw_env = os.environ.get("HERMES_MAX_TOKENS")
+    if raw_env:
+        with suppress(ValueError, TypeError):
+            max_tokens = int(raw_env)
+            source = "explicit"
+    elif isinstance(model_cfg, dict):
+        raw = model_cfg.get("max_tokens")
+        if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
+            max_tokens = raw
+            source = "explicit"
+    if max_tokens is None:
+        raw = runtime.get("max_output_tokens")
+        if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
+            max_tokens = raw
+            source = runtime.get("max_output_tokens_source") or "provider"
+    return {"max_tokens": max_tokens, "max_tokens_source": source}
 
 
 def _runtime_agent_kwargs(runtime: dict) -> dict:
@@ -2463,7 +2492,8 @@ def _resolve_runtime_agent_kwargs_for_provider(provider: str, target_model: Opti
     return {
         **_runtime_agent_kwargs(runtime),
         "request_overrides": dict(runtime.get("request_overrides") or {}),
-        "capabilities": dict(runtime.get("capabilities") or {})}
+        "capabilities": dict(runtime.get("capabilities") or {}),
+        **_runtime_output_limit_kwargs(runtime)}
 
 
 def _deep_merge_request_overrides(base: Optional[dict], override: Optional[dict]) -> dict:
@@ -3394,7 +3424,7 @@ class GatewayRunner(
     GatewayVoiceMixin, GatewayAdapterLifecycleMixin, GatewayTopicThreadsMixin, GatewayTurnMixin,
     GatewayShutdownMixin, GatewayBusySessionMixin, GatewayConfigLoadersMixin, GatewayStartupMixin,
     GatewaySessionWatchersMixin, GatewayNotificationsMixin, GatewayInboundMixin, GatewayGoalsMixin,
-    GatewayAgentCacheMixin, GatewayProfileReconcileMixin):
+    GatewayAgentCacheMixin, GatewayWisdomMixin, GatewayProfileReconcileMixin):
     """Main gateway controller: manages adapter lifecycles, routes messages to/from the agent."""
 
     # Class-level defaults so partial construction in tests doesn't blow up on attribute access.
@@ -4187,13 +4217,16 @@ class GatewayRunner(
             # fallback. See #210.
             team_id = getattr(source, "scope_id", None)
             user_id = getattr(source, "user_id", None)
-            if team_id or user_id:
+            profile = getattr(source, "profile", None)
+            if team_id or user_id or profile:
                 metadata = dict(metadata or {})
                 if team_id:
                     metadata["slack_team_id"] = str(team_id)
                     metadata.setdefault("scope_id", str(team_id))
                 if user_id:
                     metadata.setdefault("user_id", str(user_id))
+                if profile:
+                    metadata.setdefault("profile", str(profile))
         from gateway.session_context import source_route_metadata
         metadata = source_route_metadata(source, metadata)
         # Routed profile for shared state.db namespaces: under profile_routes the transport adapter's
@@ -4804,6 +4837,8 @@ def _start_gateway_housekeeping(
         # PID alive — the thread (or a chore blocked on the loop) wedged (#113372). Runs first so a
         # wedged chore stops the NEXT stamp instead of a slow one delaying this tick's.
         (1, "Runtime heartbeat", _write_runtime_status_quiet)]
+    wisdom_cards = WisdomCardRefresh(adapters, loop)
+    chores.append((1, "Wisdom publication-card refresh", wisdom_cards.tick))
     if adapters is not None or runner is not None:
         # Restart-safe cron workers run outside the gateway cgroup and queue their final send for
         # whichever gateway is live; drained here (not the scheduler tick) so external providers get it too.
@@ -4824,6 +4859,7 @@ def _start_gateway_housekeeping(
         (60, "Curator tick", profile_scoped_chore(runner, _housekeeping_curator)),
         (60, "Sync pull tick", profile_scoped_chore(runner, _housekeeping_skill_sync)),
         (60, "Org sync pull tick", profile_scoped_chore(runner, _housekeeping_org_skill_sync)),
+        (60, "Wisdom agent-led review tick", profile_scoped_chore(runner, enqueue_weekly_review)),
         (60, "state.db maintenance tick", profile_scoped_chore(
             runner,
             # Default-bound now, i.e. OUTSIDE any profile scope: this is the launch home's override.

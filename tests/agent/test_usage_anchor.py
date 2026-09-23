@@ -305,6 +305,21 @@ class TestCodexAppServerAnchor:
 
         assert agent._usage_anchor is prior
 
+    def test_codex_usage_keeps_cache_buckets_disjoint(self):
+        from agent.codex_runtime import _record_codex_app_server_usage
+
+        agent = self._agent()
+        usage = self._usage(input_tokens=12_000)
+        usage["cachedInputTokens"] = 8_000
+        usage["cacheWriteInputTokens"] = 1_000
+
+        result = _record_codex_app_server_usage(agent, self._turn(usage), messages=[])
+
+        assert result["input_tokens"] == 3_000
+        assert result["cache_read_tokens"] == 8_000
+        assert result["cache_write_tokens"] == 1_000
+        assert result["prompt_tokens"] == 12_000
+
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

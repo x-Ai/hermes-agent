@@ -4,10 +4,187 @@
 // surface. Bundled locale files use `defineCompleteLocale()` so a newly added
 // key fails typecheck until every language supplies it.
 
+import type { WisdomMuteCopy, WisdomSyncCopy } from '@hermes/shared'
+
 import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
 export type Locale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru'
+
+export interface WisdomTranslations {
+  syncRecovery?: WisdomSyncCopy
+  notificationPreferences: WisdomMuteCopy
+  title: string
+  loading: string
+  unavailable: string
+  setup: string
+  setupDisclosure: string
+  setupAction: string
+  settingUp: string
+  scanLocal: string
+  orgWide: string
+  sharedSkills: (count: number) => string
+  localCandidates: (count: number) => string
+  contributionWorkflow: string
+  potential: string
+  potentialHelp: string
+  noSuggestions: string
+  browseLocal: (count: number) => string
+  browseLocalHelp: string
+  ownerReview: string
+  ownerReviewHelp: string
+  noDrafts: string
+  noShared: string
+  noDescription: string
+  serverScanPassed: string
+  localOnly: string
+  qualifiedLocally: string
+  qualificationFirst: (organizationName?: string | null) => string
+  qualificationReturning: string
+  savedLocally: string
+  prepare: string
+  continueDraft: string
+  reviewExact: string
+  runSetupStep: string
+  confirmSetupPrerequisite: string
+  setupCommand: string
+  setupStepApprovalNotice: string
+  openDraft: string
+  draftState: (state: string) => string
+  authoritative: string
+  versionHistory: string
+  versions: string
+  versionDetails: (version: number) => string
+  immutableVersion: string
+  published: (date: string) => string
+  releaseExplanation: string
+  viewInPortal: string
+  backToSkill: string
+  backToVersions: string
+  prepareTitle: string
+  prepareNotice: string
+  ownerDescription: string
+  systemSpecification: string
+  cancel: string
+  submit: string
+  submitting: string
+  readEvery: string
+  publishToTeam: string
+  submitForApproval: string
+  publishLocalNotice: string
+  submitLocalNotice: string
+  reloadReview: string
+  editReview: string
+  editOwnerDescription: string
+  unsavedChanges: string
+  saveAndRescan: string
+  savingRevision: string
+  resetChanges: string
+  reviewedHashes: string
+  ownerReviewExact: string
+  localOverlay: string
+  close: string
+  approve: string
+  publishing: string
+  proposalTitle: string
+  localSuggestion: string
+  preparingLocal: string
+  whySuggested: string
+  sharePrompt: string
+  reviewFirst: string
+  notNow: string
+  yes: string
+  share: string
+  sharePreparationNotice: string
+  reviewPreviousPage: string
+  reviewNextPage: string
+  muteNotificationsSoon: string
+  unmuteNotificationsSoon: string
+  openCollective: string
+  prepareExact: string
+  skillName: string
+  whatItDoes: string
+  editDefaultsNotice: string
+  detailedRequirements: string
+  hideDetailedRequirements: string
+  specificationNotice: string
+  openFullReview: string
+  sendPrivateReview: string
+  saveLocal: string
+  savingLocal: string
+  source: string
+  preview: string
+  localDraft: string
+  serverReviewed: string
+  serverEnforced: string
+  localAdvisory: string
+  qualificationLabel: string
+  scanPassed: string
+  reviewFindings: string
+  scanAvailable: string
+  scanUnavailable: string
+  reviewed: string
+  contentHash: string
+  authorDescriptionHash: string
+  packageManifestHash: string
+  serverReviewNotice: string
+  decline: string
+  approvePublish: string
+  checkUpdates: (count: number) => string
+  checking: string
+  refreshShared: string
+  refreshingShared: string
+  installReferenceLabel: string
+  installReferencePlaceholder: string
+  installReferenceHelp: string
+  reviewInstall: string
+  planningInstall: string
+  updateModeLabel: string
+  updateModeDefault: string
+  updateModeManual: string
+  updateModeAutomatic: string
+  updateModeRequired: string
+  updateModeHelp: string
+  updateModePlan: (mode: string) => string
+  install: string
+  uninstall: string
+  checkSkill: string
+  updateAvailable: (version?: number) => string
+  reviewUpdate: string
+  installed: (version: number, mode: string) => string
+  confirmAction: (action: string) => string
+  acceptCompatibility: string
+  acceptSensitive: string
+  preserveModified: string
+  alreadyCurrent: string
+  ownerCopyLabel: string
+  serverFactsLabel: string
+  notifications: string
+  activityReady: (count: number) => string
+  aSkill: string
+  decisionPublished: (skill: string) => string
+  decisionChanges: (skill: string) => string
+  decisionDeclined: (skill: string) => string
+  decisionChanged: (skill: string, state: string) => string
+  installedNotice: (skill: string, version?: string) => string
+  updatedNotice: (skill: string, version?: string) => string
+  updateNotice: (skill: string, version?: string) => string
+  newSkillNotice: (skill: string) => string
+  unavailableNotice: (skill: string) => string
+  archivedNotice: (skill: string) => string
+  takedownNotice: (skill: string) => string
+  viewSkill: string
+  markSeen: string
+  installationRefreshFailed: string
+  preparationFailed: string
+  installPlanningFailed: string
+  setupFailed: string
+  registryRefreshFailed: string
+  localScanFailed: string
+  updateCheckFailed: string
+  acknowledgeNotificationsFailed: string
+  deferNotificationFailed: string
+}
 
 /** One error-card entry: a short title and one plain sentence. Either may
  *  take the failing provider's display name (falls back to "the AI service"). */
@@ -1791,6 +1968,7 @@ export interface Translations {
     envKeys: Record<string, { description?: string; prompt?: string }>
   }
   skills: {
+    collective: WisdomTranslations
     plugins: {
       agentTitle: string
       agentBlurb: string
@@ -1858,6 +2036,8 @@ export interface Translations {
         secretStoredAs: (env: string) => string
       }
     }
+    tabCollective: string
+    searchCollective: string
     hub: {
       searchPlaceholder: string
       search: string

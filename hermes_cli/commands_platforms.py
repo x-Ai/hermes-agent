@@ -9,7 +9,8 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from hermes_cli.commands import (
-    COMMAND_REGISTRY, _is_gateway_available, _iter_plugin_command_entries, _resolve_config_gates)
+    COMMAND_REGISTRY, _is_gateway_available, _iter_plugin_command_entries, _resolve_config_gates,
+    command_available)
 
 # Logger name parity with the origin module (tests capture "hermes_cli.commands").
 logger = logging.getLogger("hermes_cli.commands")
@@ -23,7 +24,10 @@ _TG_MULTI_UNDERSCORE = re.compile(r"_{2,}")
 def _gateway_available_commands() -> list:
     """Registry entries visible on gateway surfaces (config gates read once)."""
     overrides = _resolve_config_gates()
-    return [cmd for cmd in COMMAND_REGISTRY if _is_gateway_available(cmd, overrides)]
+    return [
+        cmd for cmd in COMMAND_REGISTRY
+        if _is_gateway_available(cmd, overrides) and command_available(cmd)
+    ]
 
 
 def _requires_argument(args_hint: str) -> bool:

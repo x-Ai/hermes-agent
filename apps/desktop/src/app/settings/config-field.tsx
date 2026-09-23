@@ -49,7 +49,9 @@ export function ConfigField({
     fieldCopyForSchemaKey(FIELD_LABELS, schemaKey) ??
     prettyName(schemaKey.split('.').pop() ?? schemaKey)
 
-  const normalize = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '')
+  // Keep non-ASCII letters/numbers so localized descriptions do not collapse
+  // to the same token as a short Latin label such as "Docker".
+  const normalize = (v: string) => v.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 
   const rawDescription = (
     fieldCopyForSchemaKey(t.settings.fieldDescriptions, schemaKey) ??
@@ -136,7 +138,9 @@ export function ConfigField({
   if (selectOptions) {
     return row(
       <Select
-        onValueChange={next => onChange(next === EMPTY_SELECT_VALUE ? '' : next)}
+        onValueChange={next =>
+          onChange(next === EMPTY_SELECT_VALUE ? '' : schema.type === 'number' ? Number(next) : next)
+        }
         value={String(value ?? '') || EMPTY_SELECT_VALUE}
       >
         <SelectTrigger className={CONTROL_TEXT}>

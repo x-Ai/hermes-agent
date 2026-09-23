@@ -36,6 +36,8 @@ import { ConfigField } from './config-field'
 import { configSubpageForField } from './config-subpages'
 import {
   clearsEnabledToolsets,
+  delegationModelOptions,
+  delegationProviderOptions,
   diffConfig,
   enumOptionsFor,
   getNested,
@@ -422,6 +424,22 @@ function ConfigSettingsInner({
 
   const visibleFields = activeSectionId === 'voice' ? fields.filter(([key]) => voiceFieldVisible(key, config)) : fields
 
+  const enumOptionsForKey = (key: string) => {
+    if (key === 'tts.elevenlabs.voice_id') {
+      return enumOptionsFor(key, getNested(config, key), config, elevenLabsVoiceOptions ?? undefined)
+    }
+
+    if (key === 'delegation.provider') {
+      return enumOptionsFor(key, getNested(config, key), config, delegationProviderOptions(config))
+    }
+
+    if (key === 'delegation.model') {
+      return enumOptionsFor(key, getNested(config, key), config, delegationModelOptions(config))
+    }
+
+    return enumOptionsFor(key, getNested(config, key), config)
+  }
+
   const showEmptyState =
     visibleFields.length === 0 &&
     (subpage === undefined
@@ -467,11 +485,7 @@ function ConfigSettingsInner({
                     <MemoryConnect profile={scopeProfile} provider={String(getNested(config, key))} />
                   ) : undefined
                 }
-                enumOptions={
-                  key === 'tts.elevenlabs.voice_id'
-                    ? enumOptionsFor(key, getNested(config, key), config, elevenLabsVoiceOptions ?? undefined)
-                    : enumOptionsFor(key, getNested(config, key), config)
-                }
+                enumOptions={enumOptionsForKey(key)}
                 onChange={value => updateConfig(setNested(config, key, value))}
                 optionLabels={key === 'tts.elevenlabs.voice_id' ? elevenLabsVoiceLabels : undefined}
                 schema={field}

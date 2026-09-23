@@ -5,6 +5,7 @@ import {
   displayModelName,
   formatModelPillLabel,
   modelDisplayParts,
+  providerCatalogName,
   providerDisplayName
 } from './model-status-label'
 import { reasoningEffortLabel } from './reasoning-effort'
@@ -14,6 +15,14 @@ describe('model-status-label', () => {
     expect(providerDisplayName('xai-oauth')).toBe('xAI Grok')
     expect(providerDisplayName('xai')).toBe('xAI')
     expect(providerDisplayName('openai-codex')).toBe('ChatGPT or Codex Subscription')
+  })
+
+  it('uses a named custom endpoint and resolves durable custom identities', () => {
+    const providers = [{ name: 'My Relay', slug: 'relay' }]
+
+    expect(providerCatalogName('custom:relay', providers)).toBe('My Relay')
+    expect(providerDisplayName('custom:relay', 'My Relay')).toBe('My Relay')
+    expect(providerDisplayName('custom:relay')).toBe('relay')
   })
   it('formats display names consistently', () => {
     expect(displayModelName('anthropic/claude-opus-4.8-fast')).toBe('Opus 4.8')

@@ -6,6 +6,8 @@ import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
 import {
   clearsEnabledToolsets,
+  delegationModelOptions,
+  delegationProviderOptions,
   diffConfig,
   enumOptionsFor,
   getNested,
@@ -365,6 +367,48 @@ describe('settings helpers', () => {
       expect(opts).not.toContain('local_command')
       expect(opts).not.toContain('deepinfra')
       expect(opts).toContain('myasr')
+    })
+  })
+
+  describe('delegation custom-endpoint suggestions', () => {
+    const endpoints: HermesConfigRecord = {
+      providers: {
+        'my-relay': {
+          name: 'My Relay',
+          base_url: 'https://relay.example/v1',
+          model: 'default-model',
+          models: ['default-model', 'alt-model', 'third-model']
+        },
+        'map-shaped': {
+          base_url: 'https://map.example/v1',
+          models: { 'map-a': {}, 'map-b': {} }
+        },
+        disabled: { base_url: 'https://off.example/v1', enabled: false, models: ['x'] },
+        broken: 'not a dict'
+      }
+    }
+
+    const withProvider = (provider: string): HermesConfigRecord => ({
+      ...endpoints,
+      delegation: { use_custom_endpoints: true, provider }
+    })
+
+    it('gates suggestions behind the explicit switch', () => {
+      expect(delegationProviderOptions(endpoints)).toBeUndefined()
+      expect(delegationModelOptions(endpoints)).toBeUndefined()
+    })
+
+    it('suggests enabled endpoint ids and the selected endpoint models', () => {
+      const enabled = { ...endpoints, delegation: { use_custom_endpoints: true, provider: '' } }
+
+      expect(delegationProviderOptions(enabled)).toEqual(['my-relay', 'map-shaped'])
+      expect(delegationModelOptions(withProvider('custom:my-relay'))).toEqual([
+        'default-model',
+        'alt-model',
+        'third-model'
+      ])
+      expect(delegationModelOptions(withProvider('map-shaped'))).toEqual(['map-a', 'map-b'])
+      expect(delegationModelOptions(withProvider('disabled'))).toBeUndefined()
     })
   })
 

@@ -6,7 +6,7 @@ import { ConnectionSwitcher } from '@/app/chat/sidebar/connection-switcher'
 import { ProfileSwitcher } from '@/app/chat/sidebar/profile-dropdown-switcher'
 import type { CommandCenterSection } from '@/app/command-center'
 import { useApprovalModeStatusbarItem } from '@/app/shell/approval-mode-menu'
-import { ContextUsagePanel } from '@/app/shell/context-usage-panel'
+import { ContextUsagePanel, projectLiveContextBreakdown } from '@/app/shell/context-usage-panel'
 import { GatewayMenuPanel } from '@/app/shell/gateway-menu-panel'
 import { useContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
 import { useSystemResourcesStatusbarItem } from '@/app/shell/system-resources-statusbar'
@@ -291,6 +291,7 @@ export function useStatusbarItems({
 
   const { breakdown: contextBreakdown, loading: contextBreakdownLoading } = useContextBreakdown({
     busy,
+    compressionCount: currentUsage.compressions,
     enabled: !contextItemHidden,
     requestGateway,
     sessionId: activeSessionId
@@ -303,19 +304,40 @@ export function useStatusbarItems({
   // and the store merges rather than replaces, so the PREVIOUS session's gauge
   // numbers survive the switch. Mid-turn there's no breakdown by design and
   // the streamed usage carries the gauge.
-  const gaugeUsage = useMemo<UsageStats>(
-    () =>
-      contextBreakdown
-        ? {
-            ...currentUsage,
-            context_estimated: contextBreakdown.context_estimated,
-            context_source: contextBreakdown.context_source,
-            context_max: contextBreakdown.context_max,
-            context_percent: contextBreakdown.context_percent,
-            context_used: contextBreakdown.context_used
-          }
-        : currentUsage,
-    [contextBreakdown, currentUsage]
+  const gaugeUsage = useMemo<UsageStats>(() => {
+    if (!contextBreakdown) {
+      return currentUsage
+    }
+
+    const preferLive = (busy || contextBreakdownLoading) && typeof currentUsage.context_used === 'number'
+
+    if (preferLive) {
+      const contextMax = currentUsage.context_max ?? contextBreakdown.context_max
+      const contextUsed = currentUsage.context_used ?? contextBreakdown.context_used
+
+      return {
+        ...currentUsage,
+        context_estimated: currentUsage.context_estimated ?? contextBreakdown.context_estimated,
+        context_max: contextMax,
+        context_percent: contextMax ? Math.max(0, Math.min(100, Math.round((contextUsed / contextMax) * 100))) : 0,
+        context_source: currentUsage.context_source ?? contextBreakdown.context_source,
+        context_used: contextUsed
+      }
+    }
+
+    return {
+      ...currentUsage,
+      context_estimated: contextBreakdown.context_estimated,
+      context_max: contextBreakdown.context_max,
+      context_percent: contextBreakdown.context_percent,
+      context_source: contextBreakdown.context_source,
+      context_used: contextBreakdown.context_used
+    }
+  }, [busy, contextBreakdown, contextBreakdownLoading, currentUsage])
+
+  const displayedContextBreakdown = useMemo(
+    () => projectLiveContextBreakdown(contextBreakdown, gaugeUsage),
+    [contextBreakdown, gaugeUsage]
   )
 
   const contextUsage = useMemo(() => usageContextLabel(gaugeUsage), [gaugeUsage])
@@ -665,7 +687,11 @@ export function useStatusbarItems({
         menuAlign: 'end',
         menuClassName: 'w-auto border-(--ui-stroke-secondary) p-0',
         menuContent: (
-          <ContextUsagePanel breakdown={contextBreakdown} loading={contextBreakdownLoading} usage={gaugeUsage} />
+          <ContextUsagePanel
+            breakdown={displayedContextBreakdown}
+            loading={contextBreakdownLoading}
+            usage={gaugeUsage}
+          />
         ),
         toggleLabel: copy.toggleContextUsage,
         variant: 'menu'
@@ -724,7 +750,7 @@ export function useStatusbarItems({
       chatOpen,
       clientVersionItem,
       contextBar,
-      contextBreakdown,
+      displayedContextBreakdown,
       contextBreakdownLoading,
       contextUsage,
       copy,

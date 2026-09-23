@@ -171,6 +171,20 @@ describe('ProjectOverviewRow', () => {
     expect(onNewSession).toHaveBeenCalledWith(null)
   })
 
+  it('uses the first repository when a project has no explicit primary path', () => {
+    const projectWithoutPrimary = {
+      ...project,
+      path: null,
+      repos: [{ path: '/Users/test/first-repo' }, { path: '/Users/test/second-repo' }]
+    } as unknown as SidebarProjectTree
+    const onNewSession = vi.fn()
+
+    render(<ProjectOverviewRow onNewSession={onNewSession} project={projectWithoutPrimary} />)
+    fireEvent.click(screen.getByRole('button', { name: /New session in/ }))
+
+    expect(onNewSession).toHaveBeenCalledWith('/Users/test/first-repo')
+  })
+
   it('tags the row with data-sessions-project so a skin can target one project', () => {
     const { container } = render(<ProjectOverviewRow project={project} />)
 

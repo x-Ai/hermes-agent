@@ -1158,6 +1158,24 @@ def _parse_codex_final_response(final: Any) -> Tuple[List[str], List[Any], Any]:
     return text_parts, tool_calls_raw, usage
 
 
+def _codex_aux_finish_reason(final: Any, tool_calls_raw: List[Any]) -> str:
+    """Preserve Responses terminal state when adapting an auxiliary call to Chat Completions."""
+    status = str(_field(final, "status", "") or "").strip().lower()
+    details = _field(final, "incomplete_details")
+    reason = str(_field(details, "reason", "") or "").strip().lower()
+    if status == "incomplete":
+        if reason in {"max_output_tokens", "length"}:
+            return "length"
+        if reason == "content_filter":
+            return "content_filter"
+        return "incomplete"
+    if status in {"failed", "cancelled"}:
+        error = _field(final, "error")
+        message = _field(error, "message") or _field(error, "code") or status
+        raise RuntimeError(f"Codex auxiliary Responses request {status}: {message}")
+    return "tool_calls" if tool_calls_raw else "stop"
+
+
 def _close_quietly(target: Any, failure_note: Optional[str]) -> None:
     """Call ``target.close()`` if present; a failure is debug-logged under ``failure_note`` (silent when None)."""
     close = getattr(target, "close", None)
@@ -1494,7 +1512,19 @@ class _CodexCompletionsAdapter:
         # headers via the SDK kwarg — forward them.
         if isinstance(kwargs.get("extra_headers"), dict) and kwargs["extra_headers"]:
             resp_kwargs["extra_headers"] = dict(kwargs["extra_headers"])
-        # The Codex endpoint rejects max_output_tokens/temperature (400) — omit.
+        # ChatGPT's private Codex endpoint rejects output-budget fields, but public/custom
+        # Responses endpoints honor the standard max_output_tokens field.
+        is_codex_backend = (
+            base_url_host_matches(host, "chatgpt.com")
+            and "/backend-api/codex" in host.lower()
+        )
+        output_budget = kwargs.get("max_output_tokens")
+        if output_budget is None:
+            output_budget = kwargs.get("max_completion_tokens")
+        if output_budget is None:
+            output_budget = kwargs.get("max_tokens")
+        if output_budget is not None and not is_codex_backend:
+            resp_kwargs["max_output_tokens"] = output_budget
         extra_body = kwargs.get("extra_body") or {}
         if isinstance(extra_body, dict):
             # service_tier (fast mode) is a top-level Responses field; xAI's endpoint rejects it.
@@ -1592,6 +1622,7 @@ class _CodexCompletionsAdapter:
             if final is None:
                 raise RuntimeError("Codex auxiliary Responses stream did not return a final response")
             text_parts, tool_calls_raw, usage = _parse_codex_final_response(final)
+            finish_reason = _codex_aux_finish_reason(final, tool_calls_raw)
             # Undo only the aliases THIS request emitted, before the call reaches Hermes dispatch.
             for tc in tool_calls_raw or ():
                 if tc.function.name in wire_aliases:
@@ -1609,7 +1640,7 @@ class _CodexCompletionsAdapter:
             tool_calls=tool_calls_raw or None,
         )
         choice = SimpleNamespace(
-            index=0, message=message, finish_reason="stop" if not tool_calls_raw else "tool_calls"
+            index=0, message=message, finish_reason=finish_reason
         )
         return SimpleNamespace(choices=[choice], model=model, usage=usage)
 
@@ -3706,7 +3737,7 @@ def _prepare_same_provider_retry(
         effective_provider or resolved_provider, retry_model or final_model, messages,
         temperature=temperature, max_tokens=max_tokens, tools=tools, timeout=effective_timeout,
         extra_body=effective_extra_body, reasoning_config=reasoning_config,
-        base_url=retry_base or resolved_base_url, task=task,
+        base_url=retry_base or resolved_base_url, task=task, api_mode=resolved_api_mode,
     )
     # Preserve per-request attribution headers (e.g. Copilot ``x-initiator``) so the retry keeps capability gating.
     if extra_headers:
@@ -6572,7 +6603,7 @@ def _build_call_kwargs(
     max_tokens: Optional[int] = None, tools: Optional[list] = None, timeout: float = 30.0,
     extra_body: Optional[dict] = None, reasoning_config: Optional[dict] = None,
     base_url: Optional[str] = None, task: Optional[str] = None,
-    no_progress_timeout: Optional[float] = None,
+    no_progress_timeout: Optional[float] = None, api_mode: Optional[str] = None,
 ) -> dict:
     """Build kwargs for .chat.completions.create() with model/provider adjustments.
     ``no_progress_timeout`` is a Codex-Responses-only extra (consumed by
@@ -6594,7 +6625,10 @@ def _build_call_kwargs(
         if not _forbids_sampling_params(model):
             kwargs["temperature"] = temperature
     provider_norm = str(provider or "").strip().lower()
-    if max_tokens is not None and _forwards_max_tokens(provider, provider_norm, model, effective_base, task):
+    if max_tokens is not None and (
+        api_mode == "codex_responses"
+        or _forwards_max_tokens(provider, provider_norm, model, effective_base, task)
+    ):
         kwargs.update(auxiliary_max_tokens_param(max_tokens, model=model))  # picks max_completion_tokens where needed
     if tools:
         kwargs["tools"] = _dedupe_tool_names(tools, provider, model)
@@ -6631,7 +6665,8 @@ def _build_call_kwargs(
     if reasoning_config and isinstance(reasoning_config, dict):
         raw_base = base_url or ""
         if (
-            provider_norm == "anthropic" or projection.messages_wire or _nous_on_messages_wire(provider_norm, model)
+            api_mode == "anthropic_messages"
+            or provider_norm == "anthropic" or projection.messages_wire or _nous_on_messages_wire(provider_norm, model)
             or _endpoint_speaks_anthropic_messages(raw_base) or _is_anthropic_compat_endpoint(provider_norm, raw_base)
         ):
             kwargs["_reasoning_config"] = dict(reasoning_config)
@@ -7233,11 +7268,21 @@ def _resolve_call_client(
     return _ResolvedAuxRoute(client, final_model, resolved_provider, effective_provider)
 
 
+def _effective_aux_api_mode(client: Any, resolved_api_mode: Optional[str]) -> Optional[str]:
+    """Use the concrete wrapper when an inherited or auto route omitted its API mode."""
+    if isinstance(client, (CodexAuxiliaryClient, AsyncCodexAuxiliaryClient)):
+        return "codex_responses"
+    if isinstance(client, (AnthropicAuxiliaryClient, AsyncAnthropicAuxiliaryClient)):
+        return "anthropic_messages"
+    return resolved_api_mode
+
+
 _PreparedAuxRequest = NamedTuple("_PreparedAuxRequest", [
     ("client", Any), ("final_model", Optional[str]), ("kwargs", Dict[str, Any]),
     ("resolved_provider", str), ("request_provider", str), ("resolved_model", Optional[str]),
     ("resolved_base_url", Optional[str]), ("resolved_api_key", Optional[str]),
-    ("resolved_api_mode", Optional[str]), ("effective_timeout", float),
+    ("resolved_api_mode", Optional[str]), ("effective_max_tokens", Optional[int]),
+    ("effective_timeout", float),
     ("effective_extra_body", Dict[str, Any]), ("base_info", str)])
 
 
@@ -7264,6 +7309,7 @@ def _prepare_aux_request(
         resolved_base_url=resolved_base_url, resolved_api_key=resolved_api_key,
         resolved_api_mode=resolved_api_mode, main_runtime=main_runtime, async_mode=async_mode,
     )
+    resolved_api_mode = _effective_aux_api_mode(client, resolved_api_mode)
     effective_timeout = _effective_aux_timeout(task, timeout)
     # Codex-Responses-only: real SDK clients reject an unrecognized ``no_progress_timeout``
     # kwarg, so only resolve/forward it when the route is actually a Codex stream (#108104).
@@ -7272,8 +7318,8 @@ def _prepare_aux_request(
         if isinstance(client, (CodexAuxiliaryClient, AsyncCodexAuxiliaryClient)) else None
     )
     request_provider = effective_provider or resolved_provider
+    compression_config = _get_auxiliary_task_config("compression") if task == "compression" else {}
     if not async_mode:
-        compression_config = _get_auxiliary_task_config("compression") if task == "compression" else {}
         _, effective_extra_body = _compression_fast_lane_controls(
             task, actual_provider=request_provider, actual_model=final_model,
             requested_provider=provider, requested_model=model, route_config=compression_config,
@@ -7290,13 +7336,21 @@ def _prepare_aux_request(
             logger.info("Auxiliary %s: using %s (%s)%s",
                          task, request_provider or "auto", final_model or "default",
                          f" at {base_info}" if base_info and "openrouter" not in base_info else "")
+    from agent.output_tokens import compression_output_budget
+    effective_max_tokens = compression_output_budget(
+        task, max_tokens=max_tokens,
+        actual_provider=request_provider, actual_model=final_model,
+        base_url=base_info or resolved_base_url or "",
+        api_key=getattr(client, "api_key", resolved_api_key), api_mode=resolved_api_mode,
+        route_config=compression_config, task_config=compression_config,
+    )
     # Client's actual base_url so endpoint-specific temperature overrides work on
     # auto-detected routes (api.moonshot.ai vs api.kimi.com/coding).
     kwargs = _build_call_kwargs(
-        request_provider, final_model, messages, temperature=temperature, max_tokens=max_tokens,
+        request_provider, final_model, messages, temperature=temperature, max_tokens=effective_max_tokens,
         tools=tools, timeout=effective_timeout, extra_body=effective_extra_body,
         reasoning_config=reasoning_config, base_url=base_info or resolved_base_url, task=task,
-        no_progress_timeout=no_progress_timeout)
+        no_progress_timeout=no_progress_timeout, api_mode=resolved_api_mode)
     if extra_headers:
         kwargs["extra_headers"] = dict(extra_headers)
     # Convert image blocks for Anthropic-compatible endpoints (e.g. MiniMax)
@@ -7305,7 +7359,7 @@ def _prepare_aux_request(
         kwargs["messages"] = _convert_openai_images_to_anthropic(kwargs["messages"])
     return _PreparedAuxRequest(
         client, final_model, kwargs, resolved_provider, request_provider, resolved_model,
-        resolved_base_url, resolved_api_key, resolved_api_mode, effective_timeout,
+        resolved_base_url, resolved_api_key, resolved_api_mode, effective_max_tokens, effective_timeout,
         effective_extra_body, base_info)
 
 
@@ -7872,7 +7926,7 @@ def _plan_aux_call(
         effective_extra_body=req.effective_extra_body, reasoning_config=reasoning_config,
     )
     retry_kwargs = dict(
-        candidate_kwargs, resolved_base_url=req.resolved_base_url,
+        candidate_kwargs, max_tokens=req.effective_max_tokens, resolved_base_url=req.resolved_base_url,
         resolved_api_key=req.resolved_api_key, resolved_api_mode=req.resolved_api_mode,
         main_runtime=main_runtime, final_model=req.final_model, extra_headers=extra_headers,
     )
@@ -8032,7 +8086,10 @@ def _message_field(msg, name):
     return msg.get(name) if isinstance(msg, dict) else getattr(msg, name, None)
 
 
-def extract_content_or_reasoning(response, *, max_reasoning_chars: int | None = None) -> str:
+def extract_content_or_reasoning(
+    response, *, max_reasoning_chars: int | None = None,
+    allow_reasoning_fallback: bool = True,
+) -> str:
     """Extract content from an LLM response, falling back to reasoning fields.
     Order: ``content`` (inline think blocks stripped) → ``reasoning``/``reasoning_content`` →
     ``reasoning_details`` (OpenRouter array). Accepts a response or bare message;
@@ -8057,6 +8114,8 @@ def extract_content_or_reasoning(response, *, max_reasoning_chars: int | None = 
         ).strip()
         if cleaned:
             return cleaned
+    if not allow_reasoning_fallback:
+        return ""
     # Content is empty or reasoning-only — try structured reasoning fields
     reasoning_parts: list[str] = []
     for field in ("reasoning", "reasoning_content"):

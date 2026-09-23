@@ -15,7 +15,7 @@ class GatewayWisdomMixin:
     async def _handle_wisdom_command(self, event: MessageEvent):
         """Dispatch `/wisdom` through the active profile's shared service."""
         source = event.source
-        adapter = self._adapter_for_source(source)
+        adapter = self._delivery_adapter_for(source)
         raw_args = event.get_command_args()
         if event.get_command() == "collective-wisdom-install":
             raw_args = f"install {raw_args}".strip()
@@ -63,7 +63,7 @@ class GatewayWisdomMixin:
         self, source: Any, session_id: str, *, user_activity: bool = True
     ) -> None:
         """Surface local qualification after the originating client reply."""
-        adapter = self._adapter_for_source(source)
+        adapter = self._delivery_adapter_for(source)
         sender = getattr(adapter, "send_wisdom_candidate_notifications", None)
         if adapter is None or not callable(sender):
             return
@@ -120,7 +120,7 @@ class GatewayWisdomMixin:
         denied = self._check_slash_access(source, "wisdom")
         if denied is not None:
             return denied
-        adapter = self._adapter_for_source(source)
+        adapter = self._delivery_adapter_for(source)
         continuation = getattr(adapter, "send_wisdom_continuation", None)
         if callable(continuation):
             try:

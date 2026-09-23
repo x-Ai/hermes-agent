@@ -42,6 +42,7 @@ import type {
 import { useProfileScope } from "@/contexts/useProfileScope";
 import { ToolsetConfigDrawer } from "@/components/ToolsetConfigDrawer";
 import { SkillEditorDialog } from "@/components/SkillEditorDialog";
+import { CollectiveWisdomPanel } from "@/components/CollectiveWisdomPanel";
 import { LoadErrorNotice } from "@/components/LoadErrorNotice";
 import { useToast } from "@nous-research/ui/hooks/use-toast";
 import { Toast } from "@nous-research/ui/ui/components/toast";
@@ -132,12 +133,17 @@ export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillInfo[]>([]);
   const [toolsets, setToolsets] = useState<ToolsetInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wisdomEntitlement, setWisdomEntitlement] = useState<{
+    scope: { profile: string };
+    entitled: boolean;
+    expiresAt: number | null;
+  } | null>(null);
   // Humanized error from the last skills/toolsets load; drives a persistent
   // Retry notice. `loadNonce` re-runs the load effect on Retry.
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadNonce, setLoadNonce] = useState(0);
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"skills" | "toolsets" | "hub">("skills");
+  const [view, setView] = useState<"skills" | "toolsets" | "hub" | "collective">("skills");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [togglingSkills, setTogglingSkills] = useState<Set<string>>(new Set());
   const [configToolset, setConfigToolset] = useState<ToolsetInfo | null>(null);
@@ -158,6 +164,7 @@ export default function SkillsPage() {
   const {
     profile: selectedProfile,
   } = useProfileScope();
+  const wisdomScope = useMemo(() => ({ profile: selectedProfile }), [selectedProfile]);
 
   useEffect(() => {
     // Promise-chain shape: setState fires only inside async callbacks so the
@@ -180,6 +187,49 @@ export default function SkillsPage() {
       cancelled = true;
     };
   }, [selectedProfile, loadNonce]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let pollTimer: ReturnType<typeof setTimeout> | undefined;
+    let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const schedulePoll = () => {
+      pollTimer = setTimeout(probe, 15_000);
+    };
+    const probe = () => {
+      api
+        .getWisdomEntitlement(selectedProfile || undefined)
+        .then((result) => {
+          if (cancelled) return;
+          clearTimeout(expiryTimer);
+          const expiresAt = typeof result.expires_at === "number" ? result.expires_at : null;
+          const entitled = result.entitled === true && expiresAt !== null && expiresAt * 1000 > Date.now();
+          setWisdomEntitlement({ scope: wisdomScope, entitled, expiresAt });
+          if (entitled) {
+            expiryTimer = setTimeout(
+              () => !cancelled && setWisdomEntitlement({ scope: wisdomScope, entitled: false, expiresAt }),
+              Math.min(expiresAt * 1000 - Date.now(), 2_147_483_647),
+            );
+          }
+        })
+        .catch(() => !cancelled && setWisdomEntitlement({ scope: wisdomScope, entitled: false, expiresAt: null }))
+        .finally(() => !cancelled && schedulePoll());
+    };
+
+    probe();
+    return () => {
+      cancelled = true;
+      clearTimeout(pollTimer);
+      clearTimeout(expiryTimer);
+    };
+  }, [selectedProfile, wisdomScope]);
+
+  const wisdomEntitled = wisdomEntitlement?.scope === wisdomScope && wisdomEntitlement.entitled;
+  const wisdomDenied = wisdomEntitlement?.scope === wisdomScope && !wisdomEntitlement.entitled;
+
+  useEffect(() => {
+    if (view === "collective" && wisdomDenied) setView("skills");
+  }, [view, wisdomDenied]);
 
   /* ---- Toggle skill ---- */
   const handleToggleSkill = async (skill: SkillInfo) => {
@@ -434,13 +484,24 @@ export default function SkillsPage() {
                 />
                 <PanelItem
                   icon={Search}
-                  label="Browse hub"
+                  label={t.skills.browseHub ?? en.skills.browseHub}
                   active={view === "hub"}
                   onClick={() => {
                     setView("hub");
                     setSearch("");
                   }}
                 />
+                {wisdomEntitled && (
+                  <PanelItem
+                    icon={Sparkles}
+                    label={t.skills.wisdom.tab}
+                    active={view === "collective"}
+                    onClick={() => {
+                      setView("collective");
+                      setSearch("");
+                    }}
+                  />
+                )}
               </div>
 
               {view === "skills" &&
@@ -681,6 +742,8 @@ export default function SkillsPage() {
                 </div>
               )}
             </>
+          ) : view === "collective" && wisdomEntitled ? (
+            <CollectiveWisdomPanel profile={selectedProfile || undefined} />
           ) : (
             <HubBrowser showToast={showToast} profile={selectedProfile || undefined} />
           )}

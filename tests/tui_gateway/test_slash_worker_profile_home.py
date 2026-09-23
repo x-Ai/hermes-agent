@@ -56,7 +56,7 @@ def test_slash_worker_uses_the_parent_hermes_source_tree():
             mock_popen.return_value.stderr = MagicMock()
 
             with patch(
-                "tools.environments.local.build_subprocess_env",
+                "tools.environments.local.served_profile_child_env",
                 return_value={"PATH": "/usr/bin", "PYTHONPATH": preserved_user_path},
             ):
                 server._SlashWorker(session_key="test_key", model="test-model")
@@ -67,4 +67,3 @@ def test_slash_worker_uses_the_parent_hermes_source_tree():
     expected_source_root = str(Path(server.__file__).resolve().parent.parent)
 
     assert child_pythonpath == [expected_source_root, preserved_user_path]
-

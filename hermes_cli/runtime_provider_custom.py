@@ -91,6 +91,27 @@ def _lift_model_capabilities(entry: Dict[str, Any], model: Optional[str], result
         result["capabilities"] = capabilities
 
 
+def _lift_max_output_tokens(
+    entry: Dict[str, Any], result: Dict[str, Any], model: Optional[str] = None,
+) -> None:
+    """Lift the route's output limit, with an exact per-model entry winning over provider scope."""
+    models = entry.get("models")
+    model_config = models.get(model) if isinstance(models, dict) and model else None
+    overrides = entry.get("model_token_limits")
+    model_override = overrides.get(model) if isinstance(overrides, dict) and model else None
+    for source in (model_override, model_config, entry):
+        if not isinstance(source, dict):
+            continue
+        for key in ("max_output_tokens", "max_tokens"):
+            value = source.get(key)
+            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+                result["max_output_tokens"] = value
+                result["max_output_tokens_source"] = (
+                    "discovered" if source is model_config and entry.get("models_discovered") is True
+                    else "provider" if source is entry else "model")
+                return
+
+
 
 def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
     """Copy a validated ``extra_headers`` dict. SECURITY: values carry credentials — never log."""
@@ -102,6 +123,8 @@ def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
 def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *, provider_key: str, key_env: str,
                                api_mode: Optional[str]) -> None:
     """Copy the optional fields shared by ``providers:`` and legacy ``custom_providers:`` entries."""
+    from hermes_cli.config_providers import _normalize_model_token_limits, _normalize_provider_models
+
     if key_env:
         result["key_env"] = key_env
     if provider_key:
@@ -112,7 +135,15 @@ def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *,
     _lift_extra_headers(entry, result)
     if api_mode:
         result["api_mode"] = api_mode
-
+    models, legacy_discovered = _normalize_provider_models(entry.get("models"))
+    if models:
+        result["models"] = models
+    model_token_limits = _normalize_model_token_limits(entry.get("model_token_limits"))
+    if model_token_limits:
+        result["model_token_limits"] = model_token_limits
+    if entry.get("models_discovered") is True or legacy_discovered:
+        result["models_discovered"] = True
+    _lift_max_output_tokens(entry, result)
     _lift_model_capabilities(entry, None, result)
 
 
@@ -140,7 +171,11 @@ def _match_new_style_provider(requested_norm: str, providers: Dict[str, Any]) ->
     """Scan ``providers:`` (new-style, keyed) for ``requested_norm``."""
     from hermes_cli.config import is_provider_enabled
     rp = _rp()
-    for ep_name, entry in providers.items():
+    keyed = [
+        (name, entry) for name, entry in providers.items()
+        if requested_norm in custom_provider_aliases("", str(name))
+    ]
+    for ep_name, entry in keyed or providers.items():
         # ``providers.<name>.enabled: false`` entries stay in config but are invisible here.
         if not isinstance(entry, dict) or not is_provider_enabled(entry):
             continue
@@ -171,7 +206,10 @@ def _match_new_style_provider(requested_norm: str, providers: Dict[str, Any]) ->
 
 def _match_legacy_custom_provider(requested_norm: str, custom_providers) -> Optional[Dict[str, Any]]:
     """Scan the legacy ``custom_providers:`` list for ``requested_norm``."""
-    for entry in custom_providers:
+    from hermes_cli.config_providers import _token_limit_entries_for_provider
+
+    identity = "custom:custom" if requested_norm == "custom" else requested_norm
+    for entry in _token_limit_entries_for_provider(custom_providers, requested_provider=identity):
         name, base_url = (entry.get("name"), entry.get("base_url")) if isinstance(entry, dict) else (None, None)
         if not isinstance(name, str) or not isinstance(base_url, str):
             continue
@@ -214,6 +252,28 @@ def has_named_custom_provider(requested_provider: str) -> bool:
         return _rp()._get_named_custom_provider(requested_provider) is not None
     except Exception:
         return False
+
+
+def current_custom_provider_api_mode(
+    requested_provider: str, *, model: Optional[str] = None,
+) -> Optional[str]:
+    """Return the protocol currently configured for a named custom endpoint."""
+    requested = _clean(requested_provider).lower()
+    if not requested.startswith("custom:"):
+        return None
+    try:
+        entry = _get_named_custom_provider(requested_provider)
+    except Exception:
+        return None
+    if not entry:
+        return None
+    mode = _rp()._parse_api_mode(entry.get("api_mode"))
+    if mode:
+        return mode
+    base_url = _entry_url(entry)
+    if not base_url:
+        return None
+    return _rp()._fallback_api_mode(requested_provider, base_url, _clean(model))
 
 
 def codex_model_provider_id(requested_provider: str) -> Optional[str]:
@@ -416,6 +476,7 @@ def _apply_custom_provider_extras(custom_provider: Dict[str, Any], target_model:
     if model_name:
         result["model"] = model_name
     _lift_model_capabilities(custom_provider, model_name, result)
+    _lift_max_output_tokens(custom_provider, result, model_name)
 
     if custom_provider.get("extra_headers"):
         result["extra_headers"] = dict(custom_provider["extra_headers"])

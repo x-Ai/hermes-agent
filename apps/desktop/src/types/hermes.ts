@@ -235,19 +235,35 @@ export interface CustomEndpointModelDetail {
   reasoning_effort?: null | string
 }
 
+export interface CustomEndpointModelTokenLimits {
+  context_length?: number
+  max_input_tokens?: number
+  max_output_tokens?: number
+}
+
 export interface CustomEndpoint {
   api_key_preview?: null | string
   api_mode?: CustomEndpointApiMode
+  /** Anthropic-wire auth pin ('' = auto-detect). */
+  auth_scheme?: string
   base_url: string
   context_length?: null | number
   discover_models: boolean
   has_api_key: boolean
   id: string
   is_current?: boolean
+  /** Legacy provider-wide output cap returned for migration. */
+  max_output_tokens?: null | number
   model: string
+  /** Explicit total context windows keyed by exact model id. */
+  model_context_lengths?: Record<string, number>
+  /** Canonical exact-model total context, input cap and output cap. */
+  model_token_limits?: Record<string, CustomEndpointModelTokenLimits>
   models: string[]
   name: string
   source?: string
+  /** Pinned HTTP User-Agent ('' = SDK default). */
+  user_agent?: string
 }
 
 export interface CustomEndpointsResponse {
@@ -264,15 +280,29 @@ export interface CustomEndpointsResponse {
 export interface CustomEndpointUpdate {
   api_key?: string
   api_mode?: CustomEndpointApiMode
+  /** '' clears the Anthropic auth-header pin. */
+  auth_scheme?: string
   base_url: string
-  context_length?: number
+  context_length?: null | number
   discover_models?: boolean
   id?: string
   make_default?: boolean
+  max_output_tokens?: null | number
   model: string
   model_details?: CustomEndpointModelDetail[]
+  model_context_lengths?: Record<string, null | number>
+  model_token_limits?: Record<
+    string,
+    {
+      context_length: null | number
+      max_input_tokens: null | number
+      max_output_tokens: null | number
+    }
+  >
   models?: string[]
   name: string
+  /** '' clears the User-Agent override. */
+  user_agent?: string
 }
 
 export interface CustomEndpointValidationResponse {
@@ -785,7 +815,11 @@ export interface UsageStats {
   /** Session prompt-cache hit rate, 0–100. Omitted (not 0) when the provider reports no cache reads. */
   cache_hit_pct?: number
   calls: number
+  /** Number of current-session context compactions completed by the backend. */
+  compressions?: number
   context_max?: number
+  /** True while a compaction has invalidated occupancy pending provider usage. */
+  context_pending?: boolean
   context_percent?: number
   context_estimated?: boolean
   context_source?: string
@@ -862,6 +896,8 @@ export interface ContextBreakdown {
   context_used: number
   estimated_total: number
   model?: string
+  /** False while a deferred session is still constructing its AIAgent. */
+  ready?: boolean
   context_files?: ContextFileSource[]
 }
 

@@ -40,6 +40,14 @@ class CustomEndpointModelDetail(BaseModel):
     canonical_model: Optional[str] = None
     reasoning_effort: Optional[str] = None
 
+
+class CustomEndpointModelTokenLimits(BaseModel):
+    """Optional exact-model limits. ``null`` clears that field back to automatic resolution."""
+
+    context_length: Optional[int] = None
+    max_input_tokens: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+
 class CustomEndpointUpdate(BaseModel):
     id: str = ""
     name: str
@@ -50,6 +58,11 @@ class CustomEndpointUpdate(BaseModel):
     # None (older UI payload) leaves a hand-written api_mode alone.
     api_mode: Optional[Literal["", "chat_completions", "codex_responses", "anthropic_messages"]] = None
     context_length: Optional[int] = None
+    model_context_lengths: Optional[Dict[str, Optional[int]]] = None
+    model_token_limits: Optional[Dict[str, CustomEndpointModelTokenLimits]] = None
+    max_output_tokens: Optional[int] = None
+    auth_scheme: Optional[str] = None
+    user_agent: Optional[str] = None
     discover_models: bool = True
     make_default: bool = False
     models: Optional[List[str]] = None

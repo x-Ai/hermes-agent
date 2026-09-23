@@ -136,6 +136,7 @@ def _thread_metadata_for_source(source, reply_to_message_id: str | None = None) 
     # adapter's static profile stamp.
     profile = str(getattr(source, "profile", None) or "").strip()
     if profile:
+        metadata["profile"] = profile
         metadata["hermes_profile"] = profile
     return metadata
 

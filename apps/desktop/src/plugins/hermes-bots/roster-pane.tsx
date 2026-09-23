@@ -203,7 +203,8 @@ function useReconcileRosterOwner(
   selectionHydrated: boolean,
   roster: RosterRow[],
   sourceSnapshot: GatewaySource[],
-  allMeta: Record<string, BotMeta>
+  allMeta: Record<string, BotMeta>,
+  blockedMessage: string
 ) {
   // The roster has ANSWERED once data or a terminal error exists — that, not
   // row count, is what lets this pane stop showing its loading state (an empty
@@ -222,10 +223,10 @@ function useReconcileRosterOwner(
       const selected = selectedRosterBot(roster, $selectedRosterKey.get())
 
       if ($botsPaneVisible.get() && !$groupChatWorkspace.get() && selected) {
-        setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)
+        setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected, blockedMessage)
       }
     }
-  }, [data, error, selectionHydrated, roster, sourceSnapshot, allMeta])
+  }, [data, error, selectionHydrated, roster, sourceSnapshot, allMeta, blockedMessage])
 }
 
 export function BotsPane() {
@@ -409,13 +410,18 @@ export function BotsPane() {
   }, [hiddenExpanded, hasRosterConstraint])
   usePublishRosterSnapshot({ data, live, roster, allMeta, activeSourceRoster })
 
-  useReconcileRosterOwner(data, error, selectionHydrated, roster, sourceSnapshot, allMeta)
+  useReconcileRosterOwner(
+    data,
+    error,
+    selectionHydrated,
+    roster,
+    sourceSnapshot,
+    allMeta,
+    b.bot.workspaceSelectionRequired
+  )
 
   const staleNotice =
-    error && !live && roster.length
-      ? 'Roster refresh failed — showing the last good list.' +
-        (gatewayUp ? '' : ' Waiting for the gateway to reconnect…')
-      : null
+    error && !live && roster.length ? b.roster.refreshFailed + (gatewayUp ? '' : b.roster.reconnecting) : null
 
   const groupChatMembers = groupChatName ? groupChatMemberBots(groupChatName, roster, allMeta) : []
 

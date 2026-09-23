@@ -36,7 +36,7 @@ def event(source, text, *, internal=False):
 ])
 async def test_runner_dispatches_wisdom_to_native_adapter(runner, source, text, arguments):
     adapter = SimpleNamespace(send_wisdom_command=AsyncMock())
-    runner._adapter_for_source = Mock(return_value=adapter)
+    runner._delivery_adapter_for = Mock(return_value=adapter)
     handler = runner._gateway_plain_command_handlers()["wisdom"]
     assert await handler(event(source, text)) == ""
     adapter.send_wisdom_command.assert_awaited_once_with(arguments, source=source)
@@ -45,7 +45,7 @@ async def test_runner_dispatches_wisdom_to_native_adapter(runner, source, text, 
 @pytest.mark.asyncio
 async def test_start_continuation_checks_wisdom_access_before_adapter(runner, source):
     adapter = SimpleNamespace(send_wisdom_continuation=AsyncMock())
-    runner._adapter_for_source = Mock(return_value=adapter)
+    runner._delivery_adapter_for = Mock(return_value=adapter)
     runner._check_slash_access = Mock(return_value="Not allowed")
     start = event(source, "/start wisdom_private-token")
 

@@ -167,6 +167,7 @@ export function ProjectDialog() {
           folders,
           idea: idea.trim() || undefined,
           name: trimmed,
+          primaryPath: folders[0],
           use: true
         })
 

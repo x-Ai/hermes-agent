@@ -9,7 +9,7 @@ import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { $sidebarShowAllSessions } from '@/store/layout'
-import { fetchProjectSessions, projectProfile } from '@/store/projects'
+import { fetchProjectSessions, projectProfile, projectRootCwd } from '@/store/projects'
 
 import {
   SIDEBAR_LEAD_ICON_SIZE,
@@ -135,6 +135,7 @@ export function ProjectOverviewRow({
   const total = project.sessionCount - hiddenSessionCount
   const hiddenCount = total - preview.length
   const offerShowAll = !showAllSessions && !expanded && preview.length > 0 && hiddenCount > 0
+  const newSessionCwd = projectRootCwd(project) || null
 
   const showAll = () => {
     // All-profiles view has no single backend to ask for one project's lanes;
@@ -193,7 +194,7 @@ export function ProjectOverviewRow({
           {onNewSession && (
             <WorkspaceAddButton
               label={s.newSessionIn(project.label)}
-              onClick={() => onNewSession(project.path)}
+              onClick={() => onNewSession(newSessionCwd)}
               onPointerDown={
                 onNewSessionSplit
                   ? event => {
@@ -206,11 +207,11 @@ export function ProjectOverviewRow({
                           onNewSessionSplit(placement.dir, {
                             anchor: placement.anchor,
                             before: placement.before,
-                            cwd: project.path
+                            cwd: newSessionCwd
                           })
                         },
                         event,
-                        { cwd: project.path, label: s.newSessionIn(project.label) }
+                        { cwd: newSessionCwd, label: s.newSessionIn(project.label) }
                       )
                     }
                   : undefined

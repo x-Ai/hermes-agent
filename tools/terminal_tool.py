@@ -357,8 +357,18 @@ def get_session_execution_cwd(session_key: Optional[str]) -> Optional[str]:
     env_type = str(config.get("env_type") or "local").strip().lower()
     if not _is_container_backend(env_type):
         return recorded
-    if recorded and not _is_unusable_container_cwd(recorded):
-        return recorded
+    # With cwd mounting enabled, an existing host directory can still look like a valid absolute
+    # container path (notably /private/var/... on macOS). Translate a mountable recorded path before
+    # accepting it verbatim as an in-container cwd.
+    if recorded:
+        mount_enabled = bool(config.get(
+            "docker_mount_cwd_to_workspace"
+            if env_type == "docker" else "singularity_mount_cwd_to_workspace"
+        ))
+        if mount_enabled and resolve_workspace_mount(recorded)[0]:
+            return str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
+        if not _is_unusable_container_cwd(recorded):
+            return recorded
     mount_source, container_cwd = _resolve_workspace_mount_for_task(session_key, config)
     if mount_source and container_cwd:
         return container_cwd
@@ -1439,7 +1449,13 @@ def terminal_tool(
         # session_key) as a stable anchor.
         from tools.approval import get_current_session_key
 
-        session_key = get_current_session_key(default="") or (task_id or "")
+        routing_session_key = get_current_session_key(default="") or (task_id or "")
+        try:
+            from agent.delegation_context import is_delegated_child_context
+            delegated_child = is_delegated_child_context()
+        except Exception:
+            delegated_child = False
+        cwd_session_key = str(task_id) if delegated_child and task_id else routing_session_key
 
         # The supervised-gateway identity probe ends in a kernel process query
         # (psutil create_time) that has wedged for the better part of an hour on
@@ -1459,7 +1475,7 @@ def terminal_tool(
         try:
             bounded_guard = run_bounded_sync(
                 lambda: _pre_exec_block(
-                    command, env=env, env_type=env_type, cwd=cwd, workdir=workdir, session_key=session_key,
+                    command, env=env, env_type=env_type, cwd=cwd, workdir=workdir, session_key=cwd_session_key,
                 ),
                 guard_timeout,
                 label="terminal.pre-exec-guard",
@@ -1490,7 +1506,8 @@ def terminal_tool(
         if background:
             result = spawn_background_process(
                 command=command, env=env, env_type=env_type, effective_task_id=effective_task_id,
-                task_id=task_id, session_key=session_key, workdir=workdir, cwd=cwd,
+                task_id=task_id, session_key=routing_session_key, cwd_session_key=cwd_session_key,
+                workdir=workdir, cwd=cwd,
                 effective_pty=pty and not pty_disabled, notify_on_complete=notify_on_complete,
                 watch_patterns=watch_patterns, approval_note=verdict.note,
                 pty_disabled_reason=_PTY_DISABLED_REASON if pty_disabled else None,
@@ -1502,7 +1519,7 @@ def terminal_tool(
             return result
         return _run_foreground(
             command, env, plan,
-            task_id=task_id, session_id=session_id, session_key=session_key,
+            task_id=task_id, session_id=session_id, session_key=cwd_session_key,
             workdir=workdir, approval_note=verdict.note, clear_interrupt=verdict.approved_run,
         )
     except _Rejected as r:

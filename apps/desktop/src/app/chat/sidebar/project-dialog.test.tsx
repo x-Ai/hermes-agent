@@ -109,7 +109,11 @@ describe('ProjectDialog', () => {
 
     await waitFor(() => {
       expect(createProject).toHaveBeenCalledWith(
-        expect.objectContaining({ folders: ['/Users/test/my-folder'], name: 'my-folder' })
+        expect.objectContaining({
+          folders: ['/Users/test/my-folder'],
+          name: 'my-folder',
+          primaryPath: '/Users/test/my-folder'
+        })
       )
       expect(enterProject).toHaveBeenCalledWith('p_created')
     })

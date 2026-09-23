@@ -125,9 +125,7 @@ export function ModelPill({
 
   const isMoa = (currentProvider || '').trim().toLowerCase() === 'moa'
 
-  const modelLabel = isMoa
-    ? displayEntityName(currentModel, t)
-    : formatModelPillLabel(currentModel, { fastMode })
+  const modelLabel = isMoa ? displayEntityName(currentModel, t) : formatModelPillLabel(currentModel, { fastMode })
 
   // The model resolves a beat after the gateway/session comes up. Rather than
   // flash a literal "No model", show a quiet loader (inherits the pill text
@@ -163,7 +161,10 @@ export function ModelPill({
     : PILL
 
   const baseTitle = currentProvider
-    ? copy.modelTitle(isMoa ? 'MOA' : providerDisplayName(currentProvider), modelLabel || copy.modelNone)
+    ? copy.modelTitle(
+        isMoa ? 'MOA' : providerDisplayName(currentProvider, model.providerName),
+        modelLabel || copy.modelNone
+      )
     : copy.switchModel
 
   const title = pinnedOverride ? `${baseTitle} — ${copy.modelPinned}` : baseTitle

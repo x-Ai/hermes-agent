@@ -90,8 +90,9 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
     base_url = _clean(current_base_url)
     if not base_url:
         return None
+    from hermes_cli.providers import custom_endpoint_label
     return ProviderDef(
-        id="custom", name="Custom endpoint", transport="openai_chat", api_key_env_vars=(),
+        id="custom", name=custom_endpoint_label(), transport="openai_chat", api_key_env_vars=(),
         base_url=base_url, is_aggregator=False, auth_type="api_key", source="model-config")
 
 
@@ -1568,7 +1569,9 @@ def _resolve_switch_credentials(st: _Switch) -> Optional[ModelSwitchResult]:
     # ``model.openai_runtime`` opt-in, not a wire protocol the host can mandate: keep it.
     from hermes_cli.providers import is_actual_route
     mandated_mode = "chat_completions" if is_actual_route(st.target_provider, st.base_url) else host_mandated_api_mode(st.base_url)
-    if mandated_mode is not None and st.api_mode != "codex_app_server":
+    target_provider_norm = st.target_provider.strip().lower()
+    is_named_custom = target_provider_norm == "custom" or target_provider_norm.startswith("custom:")
+    if mandated_mode is not None and st.api_mode != "codex_app_server" and not (is_named_custom and st.api_mode):
         st.api_mode = mandated_mode
     st.api_mode = st.api_mode or determine_api_mode(st.target_provider, st.base_url)
     return None

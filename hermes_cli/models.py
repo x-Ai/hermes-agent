@@ -1127,6 +1127,9 @@ def provider_label(provider: Optional[str]) -> str:
     if normalized == "auto":
         return "Auto"
     normalized = normalize_provider(normalized)
+    if normalized == "custom":
+        from hermes_cli.providers import custom_endpoint_label
+        return custom_endpoint_label()
     return _PROVIDER_LABELS.get(normalized, original or "OpenRouter")
 
 
@@ -1642,6 +1645,10 @@ def provider_model_ids(provider: Optional[str], *, force_refresh: bool = False) 
 # ---------------------------------------------------------------------------
 
 _PROVIDER_MODELS_CACHE_TTL = 3600  # 1h
+# Bump when the custom-endpoint catalog collector learns new capability fields. Rows without
+# this marker predate capability collection; a current row with no ``model_metadata`` means
+# the endpoint was probed and did not advertise any supported metadata.
+_PROVIDER_MODELS_METADATA_SCHEMA_VERSION = 2
 # Stale-while-revalidate window: an expired same-credentials entry is served IMMEDIATELY while a
 # daemon thread refreshes the disk cache; beyond this bound the caller blocks on a live fetch.
 # Catalogs change on release timescales, so hour-old data beats stalling every picker surface.
@@ -1653,8 +1660,17 @@ _swr_refresh_lock = threading.Lock()
 
 
 def _cache_entry(fp: str, models: list[str], at: Optional[float] = None) -> dict:
-    """One provider row of the disk cache: credential fingerprint, write time, model ids."""
-    return {"fp": fp, "at": time.time() if at is None else at, "models": list(models)}
+    """One provider row of the disk cache: credential fingerprint, model ids and capabilities."""
+    entry = {
+        "fp": fp,
+        "at": time.time() if at is None else at,
+        "models": list(models),
+        "metadata_schema_version": _PROVIDER_MODELS_METADATA_SCHEMA_VERSION,
+    }
+    metadata = getattr(models, "model_metadata", None)
+    if isinstance(metadata, dict) and metadata:
+        entry["model_metadata"] = metadata
+    return entry
 
 
 def _ollama_native_probe_reachable() -> bool:
@@ -2380,6 +2396,46 @@ def github_model_reasoning_efforts(
     return _github_reasoning_efforts_for_model_id(str(model_id or normalized))
 
 
+class DiscoveredModelList(list[str]):
+    """List-compatible discovered catalog with per-model capability metadata attached."""
+
+    def __init__(self, models=(), *, model_metadata: Optional[dict[str, dict[str, int]]] = None):
+        super().__init__(models)
+        self.model_metadata = dict(model_metadata or {})
+
+
+def _positive_output_limit(value: Any) -> Optional[int]:
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
+def _models_from_catalog(data: Any) -> DiscoveredModelList:
+    """Keep IDs plus advertised output limits; never reinterpret context length as output size."""
+    model_ids: list[str] = []
+    metadata: dict[str, dict[str, int]] = {}
+    rows = data.get("data", []) if isinstance(data, dict) else []
+    for row in rows if isinstance(rows, list) else []:
+        if not isinstance(row, dict):
+            continue
+        model_id = row.get("id")
+        if not isinstance(model_id, str) or not model_id:
+            continue
+        model_ids.append(model_id)
+        capabilities = row.get("capabilities")
+        candidates = (
+            capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None,
+            row.get("max_output_tokens"),
+            row.get("max_tokens"),
+            row.get("max_completion_tokens"),
+        )
+        limit = next(
+            (value for raw in candidates if (value := _positive_output_limit(raw)) is not None),
+            None,
+        )
+        if limit is not None:
+            metadata[model_id] = {"max_output_tokens": limit}
+    return DiscoveredModelList(model_ids, model_metadata=metadata)
+
+
 # Negative cache: monotonic timestamp of the last fully-failed probe, keyed
 # by ``host:port`` so both URL candidates (``/v1`` + root) share one entry.
 # Without this, an unreachable endpoint (TCP blackhole — SYN draws no reply,
@@ -2476,7 +2532,7 @@ def probe_api_models(
         if _neg_key is not None:
             _probe_neg_cache.pop(_neg_key, None)
         return _probe_result(
-            [m.get("id", "") for m in data.get("data", [])], url, candidate_base.rstrip("/"),
+            _models_from_catalog(data), url, candidate_base.rstrip("/"),
             alternate_base if alternate_base != candidate_base else normalized, is_fallback)
 
     if _neg_key is not None and not reachable:
@@ -2646,7 +2702,9 @@ def _custom_endpoint_fingerprint(
 
 
 def _cache_entry_valid(
-    entry: Any, fp: str, *, allow_empty: bool = False) -> "TypeGuard[dict[str, Any]]":
+    entry: Any, fp: str, *, allow_empty: bool = False,
+    require_metadata_schema: bool = False,
+) -> "TypeGuard[dict[str, Any]]":
     """Well-formed cache row for fingerprint *fp*. Requires a numeric ``at`` so corrupt disk state
     degrades to a cache miss instead of raising; empty model lists are valid only when the caller
     opts into an authoritative empty catalog."""
@@ -2656,7 +2714,18 @@ def _cache_entry_valid(
         and isinstance(entry.get("models"), list)
         and (allow_empty or bool(entry["models"]))
         and isinstance(entry.get("at"), (int, float))
-        and not isinstance(entry.get("at"), bool))
+        and not isinstance(entry.get("at"), bool)
+        and (
+            not require_metadata_schema
+            or (
+                type(entry.get("metadata_schema_version")) is int
+                and entry["metadata_schema_version"] == _PROVIDER_MODELS_METADATA_SCHEMA_VERSION
+                and (
+                    "model_metadata" not in entry
+                    or isinstance(entry.get("model_metadata"), dict)
+                )
+            )
+        ))
 
 
 def cached_fetch_api_models(
@@ -2672,7 +2741,11 @@ def cached_fetch_api_models(
     from hermes_cli.model_switch_providers import _NativePickerModelList
 
     def _catalog(entry):
-        return (_NativePickerModelList if entry.get("native_catalog") else list)(entry["models"])
+        if entry.get("native_catalog"):
+            return _NativePickerModelList(entry["models"])
+        metadata = entry.get("model_metadata")
+        return DiscoveredModelList(
+            entry["models"], model_metadata=metadata if isinstance(metadata, dict) else None)
 
     def _entry(live, at=None):
         return {**_cache_entry(fp, live, at), "native_catalog": isinstance(live, _NativePickerModelList)}
@@ -2697,7 +2770,8 @@ def cached_fetch_api_models(
     entry = cache.get(cache_key)
     now = time.time()
     native_row = isinstance(entry, dict) and entry.get("native_catalog") is True
-    valid = not force_refresh and _cache_entry_valid(entry, fp, allow_empty=native_row)
+    valid = not force_refresh and _cache_entry_valid(
+        entry, fp, allow_empty=native_row, require_metadata_schema=True)
 
     if valid:
         age = now - entry["at"]
@@ -2728,7 +2802,7 @@ def cached_fetch_api_models(
         return _catalog(stored)
     # Live returned nothing (offline, timeout, auth hiccup): a stale same-fingerprint entry beats it
     # (non-empty only: an empty native row is not worth resurrecting over the generic fallback).
-    if _cache_entry_valid(entry, fp):
+    if _cache_entry_valid(entry, fp, require_metadata_schema=True):
         return _catalog(entry)
     return live
 

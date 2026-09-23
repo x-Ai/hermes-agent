@@ -28,6 +28,7 @@ class Usage(OpenModel):
     total: int = 0
     calls: int = 0
     compressions: int | None = None
+    context_pending: bool | None = None
     context_used: int | None = None
     context_max: int | None = None
     context_percent: int | None = None

@@ -1057,9 +1057,12 @@ _KNOWN_ROOT_KEYS = frozenset(DEFAULT_CONFIG.keys()) | _EXTRA_KNOWN_ROOT_KEYS
 # Valid fields inside a custom_providers list entry (key_env is read at runtime by
 # runtime_provider.py and auxiliary_client.py).
 _VALID_CUSTOM_PROVIDER_FIELDS = {
-    "name", "base_url", "api_key", "api_mode", "model", "models",
-    "context_length", "rate_limit_delay", "extra_body",
-    "ssl_ca_cert", "ssl_verify", "key_env", "catalog_provider"}
+    "name", "base_url", "api_key", "api_mode", "model", "default_model", "models",
+    "models_discovered", "model_token_limits", "context_length", "max_input_tokens",
+    "max_output_tokens", "max_tokens", "rate_limit_delay", "request_timeout_seconds",
+    "stale_timeout_seconds", "discover_models", "extra_body", "extra_headers", "auth_scheme",
+    "user_agent", "ssl_ca_cert", "ssl_verify", "key_env", "api_key_env", "catalog_provider",
+    "session_affinity_header", "enabled"}
 
 # Fields that look like they should be inside custom_providers, not at root
 _CUSTOM_PROVIDER_LIKE_FIELDS = {"base_url", "api_key", "rate_limit_delay", "api_mode"}

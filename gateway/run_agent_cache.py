@@ -28,7 +28,8 @@ logger = logging.getLogger("gateway.run")
 
 # Override fields layered onto runtime kwargs when non-None (partial overrides don't clobber defaults).
 _OVERRIDE_APPLY_KEYS = (
-    "provider", "requested_provider", "api_key", "base_url", "api_mode", "credential_pool", "capabilities", "max_tokens",
+    "provider", "requested_provider", "api_key", "base_url", "api_mode", "credential_pool", "capabilities",
+    "max_tokens", "max_tokens_source",
 )
 
 
@@ -67,6 +68,29 @@ class GatewayAgentCacheMixin:
         for key, value in cls._memory_provider_identity_signature(cfg_get(cfg, "memory", "provider")).items():
             out[f"memory.{key}"] = value
         return out
+
+    @staticmethod
+    def _active_provider_context_length(
+        model: str, runtime: dict, user_config: dict | None
+    ) -> Optional[int]:
+        """Exact context override for the active route."""
+        return GatewayAgentCacheMixin._active_provider_token_limits(
+            model, runtime, user_config
+        ).get("context_length")
+
+    @staticmethod
+    def _active_provider_token_limits(
+        model: str, runtime: dict, user_config: dict | None
+    ) -> dict[str, int]:
+        """Exact context/input/output overrides that affect the active agent's budgets."""
+        from hermes_cli.config_providers import get_custom_provider_token_limits
+
+        return get_custom_provider_token_limits(
+            model,
+            str(runtime.get("base_url") or ""),
+            config=user_config if isinstance(user_config, dict) else {},
+            requested_provider=str(runtime.get("requested_provider") or runtime.get("provider") or ""),
+        )
 
     # Kept for the process lifetime: loading a provider imports its plugin module, and this runs on every inbound message.
     _MEMORY_IDENTITY_PROVIDER_MEMO: dict[str, Any] = {}

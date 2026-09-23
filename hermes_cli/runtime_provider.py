@@ -467,9 +467,34 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
     shell/.env override."""
     if requested and requested.strip():
         return requested.strip().lower()
-    cfg_provider = _get_model_config().get("provider")
+    model_cfg = _get_model_config()
+    cfg_provider = model_cfg.get("provider")
     if isinstance(cfg_provider, str) and cfg_provider.strip():
-        return cfg_provider.strip().lower()
+        configured = cfg_provider.strip().lower()
+        cfg_base_url = str(model_cfg.get("base_url") or "").strip()
+        if cfg_base_url:
+            try:
+                canonical_builtin = auth_mod.resolve_provider(configured)
+            except AuthError:
+                canonical_builtin = None
+            if canonical_builtin == configured:
+                from hermes_cli.providers import custom_provider_slug, is_saved_custom_endpoint
+
+                providers = load_config().get("providers")
+                saved_entry = providers.get(configured) if isinstance(providers, dict) else None
+                custom_base_url = str(
+                    (saved_entry or {}).get("base_url")
+                    or (saved_entry or {}).get("url")
+                    or (saved_entry or {}).get("api")
+                    or ""
+                ).strip()
+                if (
+                    is_saved_custom_endpoint(saved_entry)
+                    and _normalize_base_url_for_match(custom_base_url)
+                    == _normalize_base_url_for_match(cfg_base_url)
+                ):
+                    return custom_provider_slug(configured, configured)
+        return configured
     return get_secret_str("HERMES_INFERENCE_PROVIDER", "").strip().lower() or "auto"
 
 
@@ -480,7 +505,7 @@ from hermes_cli.runtime_provider_custom import (  # noqa: E402,F401
     _get_named_custom_provider, _lift_common_custom_fields, _lift_extra_headers,
     _lift_model_capabilities, _normalize_base_url_for_match, _normalize_custom_provider_name, _resolve_named_custom_runtime,
     _try_resolve_from_custom_pool, canonical_custom_identity, codex_model_provider_id, expand_direct_api_alias,
-    find_custom_provider_identity,
+    current_custom_provider_api_mode, find_custom_provider_identity,
     find_custom_provider_identity_by_model, has_named_custom_provider, is_routable_provider,
 )
 from hermes_cli.runtime_provider_backends import (  # noqa: E402,F401

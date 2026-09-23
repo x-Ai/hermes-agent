@@ -58,9 +58,17 @@ export {
   DATA_URL_READ_MAX_MAX_MB,
   DATA_URL_READ_MIN_MAX_MB
 } from './data-url-read-max'
+export {
+  type HermesConfigRecord as DelegationConfigRecord,
+  delegationCustomEndpointsEnabled,
+  delegationModelOptions,
+  delegationProviderOptions
+} from './delegation-suggestions'
 export { compactNumber } from './format'
 export { type FuzzyMatch, fuzzyRank, fuzzyScore, fuzzyScoreMulti, type RankedItem } from './fuzzy'
 export * from './gateway-events'
+export * from './wisdom-mute'
+export * from './wisdom-sync'
 export {
   applyDocumentLocale,
   type EndonymLocale,
