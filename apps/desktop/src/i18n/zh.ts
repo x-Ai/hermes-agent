@@ -1458,7 +1458,7 @@ export const zh = defineCompleteLocale({
         backend: '终端执行后端',
         containerPersistent: '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
         dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace，关闭时沙箱完全隔离',
-        dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的容器',
+        dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立的容器',
         dockerWorkspaceMountPath: '项目在容器内的完整挂载路径，默认 /workspace，修改后对下一个容器生效',
         singularityMountCwdToWorkspace: '把项目目录绑定挂载到 Singularity 沙箱的 /workspace，关闭时沙箱完全隔离',
         singularityWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立的实例',
@@ -1493,20 +1493,21 @@ export const zh = defineCompleteLocale({
       },
       auxiliary: {
         compression: {
-          timeout: '每次调用辅助压缩模型的等待秒数（默认 120）。本地模型较慢时请调高'
+          timeout: '每次调用辅助压缩模型的等待秒数（默认 120），本地模型较慢时请调高'
         }
       },
       browser: {
         useRealProfile:
-          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置(Cookie、登录、偏好)到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新。即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器(Chrome/Edge/Brave/Chromium)，否则报错。此选项默认关闭'
+          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置(Cookie、登录、偏好)到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新，即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器(Chrome/Edge/Brave/Chromium)，否则报错。此选项默认关闭'
       },
       voice: {
+        clientDirect: '尽可能让此桌面端直接连接语音提供方，而不是通过网关中转音频',
         autoTts: '自动朗读助手回复',
         voiceChatMode:
-          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商。gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes——由你选择的任意模型带着完整工具集作答。需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费。',
+          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商，gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes — 由你选择的任意模型带着完整工具集作答，需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费',
         gptLive: {
           voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID。',
-          instructions: '附加到实时语音人设的句子（语气、语速、语言）。Hermes 保留自己的系统提示词。'
+          instructions: '附加到实时语音人设的句子（语气、语速、语言），Hermes 保留自己的系统提示词'
         }
       },
       stt: {

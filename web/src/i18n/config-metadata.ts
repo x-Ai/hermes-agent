@@ -936,13 +936,13 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'agent.max_turns': 'Hermes 停止一次运行前工具调用轮次的上限',
   'agent.image_input_mode': '控制图片附件如何发送给模型',
   'agent.output_truncation_retries':
-    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。重试会临时关闭 reasoning，并可能调高隐式传输输出上限。完整输入可能再次计费；默认 1 次，最多 3 次。',
+    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。重试会临时关闭 reasoning，并可能调高隐式传输输出上限。完整输入可能再次计费，默认 1 次，最多 3 次',
   'agent.post_tool_empty_retries':
-    '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+    '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
   'agent.thinking_prefill_retries':
-    '模型只返回思考而没有可见文本时，预填充该思考以继续生成。每次重试都可能重复计费；设为 0 可关闭，最多 3 次。',
+    '模型只返回思考而没有可见文本时，预填充该思考以继续生成。每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
   'agent.empty_response_retries':
-    '前置恢复层仍未产生可见文本时重试。每次都可能重复计费，成本保护可能提前停止；设为 0 可关闭，最多 3 次。',
+    '前置恢复层仍未产生可见文本时重试。每次都可能重复计费，成本保护可能提前停止，设为 0 可关闭，最多 3 次',
   'agent.environment_probe': '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述',
   'terminal.backend': '终端执行后端',
   'terminal.cwd': '工具与终端操作的默认项目目录',
@@ -950,12 +950,12 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'terminal.env_passthrough': '传入工具执行的环境变量',
   'terminal.container_persistent': '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
   'terminal.docker_image': '执行后端为 Docker 时使用的容器镜像',
-  'terminal.docker_mount_cwd_to_workspace': '把项目目录绑定挂载到 Docker 沙箱的 /workspace；关闭时沙箱完全隔离',
-  'terminal.docker_workspace_per_session': '使用各会话自己选择的目录，而不只是启动目录；每个项目会有独立容器',
+  'terminal.docker_mount_cwd_to_workspace': '把项目目录绑定挂载到 Docker 沙箱的 /workspace，关闭时沙箱完全隔离',
+  'terminal.docker_workspace_per_session': '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立容器',
   'terminal.docker_workspace_mount_path': '项目在容器内的完整挂载路径，默认 /workspace',
   'terminal.singularity_image': '执行后端为 Singularity 时使用的镜像',
   'terminal.singularity_mount_cwd_to_workspace': '把项目目录绑定挂载到 Singularity 沙箱的 /workspace',
-  'terminal.singularity_workspace_per_session': '使用各会话自己选择的目录；每个项目会有独立实例',
+  'terminal.singularity_workspace_per_session': '使用各会话自己选择的目录，每个项目会有独立实例',
   'terminal.singularity_workspace_mount_path': '项目在沙箱内的完整绑定路径，默认 /workspace',
   'terminal.modal_image': '执行后端为 Modal 时使用的云端镜像',
   'terminal.daytona_image': '执行后端为 Daytona 时使用的云端镜像',
@@ -964,13 +964,13 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'approvals.mode': 'Hermes 如何处理需要显式审批的命令',
   'approvals.timeout': '审批提示在超时前等待的时长',
   'security.redact_secrets': '尽可能从模型可见内容中隐藏检测到的密钥',
-  'security.allow_private_urls': '允许 URL 获取工具访问 localhost 和私有网络地址；云元数据端点始终保持阻止',
+  'security.allow_private_urls': '允许 URL 获取工具访问 localhost 和私有网络地址，云元数据端点始终保持阻止',
   'browser.use_real_profile':
     '本地浏览器使用真实登录状态。Hermes 会复制默认浏览器配置到隔离快照，并用内置 Chromium 驱动',
   'terminal.vercel_runtime': 'Vercel Sandbox 运行时',
   'terminal.modal_mode': 'Modal 沙箱模式',
   'proxy.enabled':
-    '仅用于 Docker 的出站凭据防火墙。需要先运行 hermes egress setup 和 hermes egress start；目前尚未接入 Modal、SSH 和 Daytona。',
+    '仅用于 Docker 的出站凭据防火墙。需要先运行 hermes egress setup 和 hermes egress start，目前尚未接入 Modal、SSH 和 Daytona',
   'proxy.credential_source': 'iron-proxy 启动时加载真实上游密钥的位置',
   'proxy.enforce_on_docker': '出站代理已启用但未配置或未运行时，拒绝启动 Docker 沙箱',
   'tts.provider': '语音合成提供商',
@@ -986,19 +986,19 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'context.engine': '上下文管理引擎',
   'human_delay.mode': '模拟输入延迟模式',
   'logging.level': 'agent.log 的日志级别',
-  'agent.service_tier': '快速模式：fast 表示始终启用；auto 表示每轮开始的若干秒启用；cold 表示仅第一轮启用。',
+  'agent.service_tier': '快速模式：fast 表示始终启用，auto 表示每轮开始的若干秒启用，cold 表示仅第一轮启用',
   'delegation.use_custom_endpoints': '在子智能体提供商字段中提供你的自定义端点，并在模型字段中提供该端点已发现的模型',
-  'delegation.model': '用于委派子智能体的模型。留空则继承父智能体模型',
-  'delegation.provider': '用于委派子智能体的内置提供商名称或自定义端点 ID。留空则继承父智能体',
+  'delegation.model': '用于委派子智能体的模型，留空则继承父智能体模型',
+  'delegation.provider': '用于委派子智能体的内置提供商名称或自定义端点 ID，留空则继承父智能体',
   'delegation.reasoning_effort': '委派给后台代理时使用的推理强度',
   'updates.non_interactive_local_changes':
-    '聊天应用或网关更新 Hermes 时，如何处理未提交的本地源码更改。stash 会保留并在更新后重新应用；discard 会丢弃这些更改。终端更新不受此设置影响，始终会询问。',
+    '聊天应用或网关更新 Hermes 时，如何处理未提交的本地源码更改，stash 会保留并在更新后重新应用，discard 会丢弃这些更改。终端更新不受此设置影响，始终会询问',
   'updates.refresh_cua_driver':
-    'Hermes 更新时刷新已安装的 cua-driver。对于无权写入 /Applications 的非管理员 macOS 账户，请关闭此项。',
+    'Hermes 更新时刷新已安装的 cua-driver，对于无权写入 /Applications 的非管理员 macOS 账户，请关闭此项',
   'browser.headed':
-    '在可见窗口中运行本地浏览器，并在轮次之间保持窗口打开；空闲会话仍会在 browser.inactivity_timeout 后清理。',
+    '在可见窗口中运行本地浏览器，并在轮次之间保持窗口打开；空闲会话仍会在 browser.inactivity_timeout 后清理',
   'plugins.hook_callback_timeout':
-    '进程内 Python 插件钩子回调的最长执行时间（秒）。0 表示不限制，超过 600 的值会被限制为 600。'
+    '进程内 Python 插件钩子回调的最长执行时间（秒），0 表示不限制，超过 600 的值会被限制为 600。'
 }
 
 const ZH_OPTIONS: Record<string, string> = {

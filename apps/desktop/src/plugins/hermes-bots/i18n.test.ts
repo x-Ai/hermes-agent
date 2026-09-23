@@ -45,6 +45,8 @@ describe('BOTS_LOCALES', () => {
       'bot.description',
       'bot.nameLabel',
       'bot.createBot',
+      'bot.capabilitiesImmediateLabel',
+      'bot.soulProtocolLabel',
       'avatar.lockFace',
       'group.manageTitle',
       'tools.skillsHub',

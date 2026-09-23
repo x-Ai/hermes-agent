@@ -192,12 +192,14 @@ type BotsMessages = {
     createOn: string
     generalTab: string
     capabilitiesTab: string
+    capabilitiesImmediateLabel: string
     skillsTab: string
     toolsetsTab: string
     cloneFromProfile: string
     cloneFromRemoteProfile: (target: string) => string
     freshProfile: string
     soulLabel: string
+    soulProtocolLabel: string
     shareAuth: string
     shareAuthDescription: string
     createEmpty: string
@@ -624,12 +626,14 @@ const en: BotsMessages = {
     createOn: 'Create on',
     generalTab: 'General',
     capabilitiesTab: 'Capabilities',
+    capabilitiesImmediateLabel: 'Capabilities (applies immediately — skills, tools, MCP)',
     skillsTab: 'Skills',
     toolsetsTab: 'Tools',
     cloneFromProfile: 'Clone from profile',
     cloneFromRemoteProfile: target => `Clone from profile (on ${target})`,
     freshProfile: 'Fresh profile (bundled skills)',
     soulLabel: 'SOUL.md (optional — replaces the generated persona)',
+    soulProtocolLabel: 'SOUL.md (persona + agent-messaging protocol)',
     shareAuth: 'Share keys & accounts with the main profile',
     shareAuthDescription:
       'Subscriptions, OAuth logins, and API keys stay shared (not copied), so token refreshes never invalidate each other. Uncheck for an isolated snapshot copy.',
@@ -1067,12 +1071,14 @@ const ja: BotsMessages = {
     createOn: '作成先',
     generalTab: 'インフォメーション',
     capabilitiesTab: '能力・能力',
+    capabilitiesImmediateLabel: '機能（すぐに反映 — スキル、ツール、MCP）',
     skillsTab: 'スキル',
     toolsetsTab: 'ツール',
     cloneFromProfile: 'プロファイルから複製',
     cloneFromRemoteProfile: target => `プロフィールから複製（オン${target})`,
     freshProfile: '新規プロファイル（同梱スキル）',
     soulLabel: 'SOUL.md (オプション — 生成されたパーサを置き換える)',
+    soulProtocolLabel: 'SOUL.md（ペルソナ + エージェント間メッセージングプロトコル）',
     shareAuth: 'キーとアカウントをメインプロファイルで共有',
     shareAuthDescription:
       'サブスクリプション、OAuthログイン、およびAPIキーは共有を維持します(コピーされていない)、従ってトークンは互いに無効にしません更新します。 分離されたスナップショットのコピーのチェックを外します.',
@@ -1506,12 +1512,14 @@ const zh: BotsMessages = {
     createOn: '创建位置',
     generalTab: '一般',
     capabilitiesTab: '能力',
+    capabilitiesImmediateLabel: '能力（立即生效 — 技能、工具、MCP）',
     skillsTab: '技能',
     toolsetsTab: '工具',
     cloneFromProfile: '从配置档克隆',
     cloneFromRemoteProfile: target => `从配置文件克隆（在${target})`,
     freshProfile: '全新配置档（内置技能）',
     soulLabel: 'SOUL.md（可选 — 替换生成的人格）',
+    soulProtocolLabel: 'SOUL.md（人格 + 智能体消息协议）',
     shareAuth: '与主账户共享密钥和账号',
     shareAuthDescription:
       '订阅、OAuth 登录和 API 密钥保持共享（不复制），因此令牌刷新永远不会互相失效。取消选中以获取独立的快照副本。',
@@ -1934,12 +1942,14 @@ const zhHant: BotsMessages = {
     createOn: '建立位置',
     generalTab: '一般',
     capabilitiesTab: '能力',
+    capabilitiesImmediateLabel: '能力（立即生效 — 技能、工具、MCP）',
     skillsTab: '技能',
     toolsetsTab: '工具',
     cloneFromProfile: '從設定檔複製',
     cloneFromRemoteProfile: target => `從個人資料克隆 (在${target})`,
     freshProfile: '全新設定檔（內建技能）',
     soulLabel: 'SOUL.md.md( 選擇性 —— 取代產生的人)',
+    soulProtocolLabel: 'SOUL.md（人格 + 智慧體訊息協定）',
     shareAuth: '用主描述檔共享金鑰帳號( A)',
     shareAuthDescription:
       '訂閱、 API 登記、 OAuth 金鑰保持共享( 未复制) , 所以令牌刷新永不失效 。 取消檢查孤立的快照副本 .',
@@ -2367,12 +2377,14 @@ const ru: BotsMessages = {
     createOn: 'Создавать',
     generalTab: 'Генерал',
     capabilitiesTab: 'Возможности',
+    capabilitiesImmediateLabel: 'Возможности (применяются сразу — навыки, инструменты, MCP)',
     skillsTab: 'Навыки',
     toolsetsTab: 'Инструменты',
     cloneFromProfile: 'Клон из профиля',
     cloneFromRemoteProfile: target => `Клонировать из профиля (на${target})`,
     freshProfile: 'Свежий профиль (связанные навыки)',
     soulLabel: 'SOUL.md (необязательно — заменяет сгенерированную персону)',
+    soulProtocolLabel: 'SOUL.md (персона + протокол обмена сообщениями между агентами)',
     shareAuth: 'Делитесь ключами и аккаунтами с основным профилем',
     shareAuthDescription:
       'Подписки, логины OAuth и ключи API остаются общими (не копируются), поэтому обновления токенов никогда не аннулируют друг друга. Проверить наличие изолированной копии.',
@@ -2816,12 +2828,14 @@ const ar: BotsMessages = {
     createOn: 'الخلق على',
     generalTab: 'معلومات عامة',
     capabilitiesTab: 'القدرات',
+    capabilitiesImmediateLabel: 'القدرات (تُطبّق فورًا — المهارات والأدوات وMCP)',
     skillsTab: 'المهارات',
     toolsetsTab: 'الأدوات',
     cloneFromProfile: 'كلون من الملف',
     cloneFromRemoteProfile: target => `استنساخ من الملف الشخصي (على${target})`,
     freshProfile: 'نبذة جديدة (مهارات مكتظة)',
     soulLabel: 'SOUL.md (optional - replaces the generated persona)',
+    soulProtocolLabel: 'SOUL.md (الشخصية + بروتوكول مراسلة الوكلاء)',
     shareAuth: 'مفاتيح الأسهم',
     shareAuthDescription:
       'وتظل الاشتراكات، وقطع غيار OAuth، ومفاتيح API مشتركة (غير مجهزة)، بحيث لا تبطل الجروح المزروعة بعضها البعض. غير مُتأكّد من نسخة مُنعزلة.',

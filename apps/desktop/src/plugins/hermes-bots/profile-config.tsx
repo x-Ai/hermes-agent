@@ -272,7 +272,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           }}
         />
         {labeled(
-          'Capabilities (applies immediately — skills, tools, MCP)',
+          b.bot.capabilitiesImmediateLabel,
           <ResizableFrame height={460} minHeight={300}>
             <CapabilitiesView
               embedded
@@ -286,7 +286,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           </ResizableFrame>
         )}
         {labeled(
-          'SOUL.md (persona + agent-messaging protocol)',
+          b.bot.soulProtocolLabel,
           <Textarea
             className="min-h-28 font-mono text-xs leading-5"
             onChange={event =>
@@ -324,7 +324,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           {b.bot.remoteCapabilitiesNeedNewerDesktop}
         </div>
         {labeled(
-          'SOUL.md (persona + agent-messaging protocol)',
+          b.bot.soulProtocolLabel,
           <Textarea
             className="min-h-28 font-mono text-xs leading-5"
             onChange={event =>
@@ -488,7 +488,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
         </div>
       )}
       {labeled(
-        'SOUL.md (persona + agent-messaging protocol)',
+        b.bot.soulProtocolLabel,
         <Textarea
           className="min-h-28 font-mono text-xs leading-5"
           onChange={event =>

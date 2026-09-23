@@ -1460,6 +1460,7 @@ export const zhHant = defineCompleteLocale({
         enabled: '對話變大時摘要較早的上下文。'
       },
       voice: {
+        clientDirect: '盡可能讓此桌面端直接連線語音提供方，而不是透過閘道中轉音訊。',
         autoTts: '自動朗讀助手回覆。'
       },
       stt: {
