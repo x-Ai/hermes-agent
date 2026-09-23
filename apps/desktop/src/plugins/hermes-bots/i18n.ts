@@ -1435,7 +1435,7 @@ const zh: BotsMessages = {
     hiddenToast: name => `已隐藏 ${name} — 点击机器人标题栏的眼睛按钮可查看隐藏的机器人`,
     unhiddenToast: name => `${name} 已回到列表`,
     groupsMenu: groups => `群聊：${groups}…`,
-    manageGroups: '管理群聊…',
+    manageGroups: '管理群组…',
     metadataLoadFailed: '无法加载智能体元数据',
     loadFailed: '无法加载智能体',
     groupsLoadFailed: '无法加载智能体群组',
