@@ -47,6 +47,7 @@ import { Tip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@
 import type { DesktopRegistryConnection } from '@/global'
 import { getProfileSoul, updateProfileSoul } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { sortConnectionsForDisplay } from '@/lib/connection-display'
 import { triggerHaptic } from '@/lib/haptics'
 import { Loader2 } from '@/lib/icons'
@@ -377,7 +378,7 @@ export function ProfileRail() {
                   color={resolveProfileColor(profile.name, colors)}
                   connectionId={namedProfileConnectionId}
                   key={profile.name}
-                  label={profileLabel(profile)}
+                  label={displayEntityName(profileLabel(profile), t)}
                   name={profile.name}
                   // The legacy per-profile remote override predates the
                   // gateway registry; once the rail shows machines directly
@@ -435,7 +436,9 @@ export function ProfileRail() {
             active={isAll || onDefault}
             connectionId={activeConnectionId ?? undefined}
             glyph={isAll ? 'layers' : 'home'}
-            label={onDefault ? p.showAllProfiles : p.switchToProfile(profileLabel(defaultProfile))}
+            label={
+              onDefault ? p.showAllProfiles : p.switchToProfile(displayEntityName(profileLabel(defaultProfile), t))
+            }
             onSelect={() => (onDefault ? setShowAllProfiles(true) : selectProfile(defaultProfile.name))}
             profile={defaultProfile.name}
           />
@@ -449,7 +452,7 @@ export function ProfileRail() {
           active
           connectionId={activeConnectionId ?? undefined}
           glyph="home"
-          label={profileLabel(defaultProfile)}
+          label={displayEntityName(profileLabel(defaultProfile), t)}
           onSelect={() => selectProfile(defaultProfile.name)}
           profile={defaultProfile.name}
         />
@@ -503,7 +506,7 @@ export function ProfileRail() {
                           active={onDefault}
                           connectionId={activeConnectionId ?? undefined}
                           glyph="home"
-                          label={profileLabel(defaultProfile)}
+                          label={displayEntityName(profileLabel(defaultProfile), t)}
                           onSelect={() => selectProfile(defaultProfile.name)}
                           profile={defaultProfile.name}
                         />

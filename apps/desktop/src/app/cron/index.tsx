@@ -45,6 +45,7 @@ import {
   updateCronJob
 } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle } from '@/lib/icons'
 import { requestModelOptions } from '@/lib/model-options'
 import { asText } from '@/lib/text'
@@ -1156,6 +1157,8 @@ function CronEditorDialog({
     modelProviders.some(provider =>
       (provider.models ?? []).some(model => cronModelChoiceValue(provider.slug, model) === modelChoice)
     )
+  const modelChoiceLabel = (provider: string, model: string) =>
+    provider.trim().toLowerCase() === 'moa' ? displayEntityName(model, t) : model
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -1237,12 +1240,14 @@ function CronEditorDialog({
                 <SelectItem value={CUSTOM_TEMPLATE}>{c.blueprints.custom}</SelectItem>
                 {blueprintList.map(item => (
                   <SelectItem key={item.key} value={item.key}>
-                    {item.title}
+                    {c.blueprints.titles[item.title] ?? item.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {blueprint?.description && <FieldHint>{blueprint.description}</FieldHint>}
+            {blueprint?.description && (
+              <FieldHint>{c.blueprints.descriptions[blueprint.title] ?? blueprint.description}</FieldHint>
+            )}
           </Field>
         )}
 
@@ -1250,10 +1255,10 @@ function CronEditorDialog({
           <form className="grid gap-4" onSubmit={handleBlueprintSubmit}>
             {blueprint.fields.map(field => {
               const fieldId = `blueprint-${blueprint.key}-${field.name}`
-              const help = blueprintSlotHelp(field)
+              const help = blueprintSlotHelp(field, c.blueprints)
 
               return (
-                <Field htmlFor={fieldId} key={field.name} label={field.label}>
+                <Field htmlFor={fieldId} key={field.name} label={c.blueprints.labels[field.label] ?? field.label}>
                   {field.name === 'deliver' ? (
                     // Use the shared, backend-sourced delivery targets (same as the
                     // manual editor) rather than the blueprint's static field.options,
@@ -1267,6 +1272,7 @@ function CronEditorDialog({
                     />
                   ) : (
                     <BlueprintSlotControl
+                      copy={c.blueprints}
                       field={field}
                       id={fieldId}
                       onChange={next => setSlotValues(prev => ({ ...prev, [field.name]: next }))}
@@ -1359,7 +1365,11 @@ function CronEditorDialog({
                     <SelectItem value={MODEL_DEFAULT_VALUE}>{c.modelDefault}</SelectItem>
                     {!modelChoiceKnown && (
                       <SelectItem className="font-mono" value={modelChoice}>
-                        {parseCronModelChoiceValue(modelChoice)?.model ?? modelChoice}
+                        {(() => {
+                          const parsed = parseCronModelChoiceValue(modelChoice)
+
+                          return parsed ? modelChoiceLabel(parsed.provider, parsed.model) : modelChoice
+                        })()}
                       </SelectItem>
                     )}
                     {modelProviders.map(provider => (
@@ -1370,7 +1380,7 @@ function CronEditorDialog({
 
                           return (
                             <SelectItem className="font-mono" key={value} value={value}>
-                              {model}
+                              {modelChoiceLabel(provider.slug, model)}
                             </SelectItem>
                           )
                         })}
