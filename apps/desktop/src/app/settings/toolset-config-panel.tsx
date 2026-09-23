@@ -30,6 +30,7 @@ import type {
   ToolProvider,
   ToolProviderStatus,
   ToolsetConfig,
+  ToolsetModel,
   ToolsetModelsResponse
 } from '@/types/hermes'
 
@@ -52,6 +53,37 @@ interface ToolsetConfigPanelProps {
 /** Toolsets whose backends expose a selectable model catalog (mirrors the
  *  backend's _MODEL_CATALOG_TOOLSETS map). */
 const MODEL_CATALOG_TOOLSETS = new Set(['image_gen', 'video_gen'])
+
+export function localizedBadge(badge: string, tokens: Record<string, string>): string {
+  return badge
+    .split(' · ')
+    .map(part => {
+      const starred = part.startsWith('★')
+      const token = part.replace(/^★\s*/, '')
+
+      return (starred ? '★ ' : '') + (tokens[token] || token)
+    })
+    .join(' · ')
+}
+
+export function localizedModelDescription(
+  model: Pick<ToolsetModel, 'id' | 'strengths'>,
+  modelDescriptions: Record<string, string>,
+  prose: Record<string, string>
+): string {
+  return modelDescriptions[model.id] ?? prose[model.strengths] ?? model.strengths
+}
+
+export function localizedModelLabel(
+  model: Pick<ToolsetModel, 'display' | 'id'>,
+  labels: Record<string, string>
+): string {
+  return labels[model.id] ?? model.display ?? model.id
+}
+
+export function localizedModelSpeed(speed: string, speeds: Record<string, string>): string {
+  return speeds[speed] ?? speed
+}
 
 /**
  * `useNavigate` throws when there is no react-router context. Inside Settings
@@ -500,7 +532,7 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               type="button"
             >
               <span className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-medium">{model.display || model.id}</span>
+                <span className="font-mono text-xs font-medium">{localizedModelLabel(model, copy.modelLabels)}</span>
                 {isSelected && (
                   <Pill tone="primary">
                     <Check className="size-3" />
@@ -511,9 +543,11 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
                 {saving === model.id && <Loader2 className="size-3 animate-spin" />}
               </span>
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
-                {model.speed && <span>{model.speed}</span>}
-                {model.strengths && <span>{model.strengths}</span>}
-                {model.price && <span className="font-mono">{model.price}</span>}
+                {model.speed && <span>{localizedModelSpeed(model.speed, copy.modelSpeeds)}</span>}
+                {model.strengths && (
+                  <span>{localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy)}</span>
+                )}
+                {model.price && <span className="font-mono">{copy.modelPrices[model.id] ?? model.price}</span>}
               </span>
             </button>
           )

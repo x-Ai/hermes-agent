@@ -4885,6 +4885,7 @@ export const en: Translations = {
     }
   },
   zones: {
+    toggleLayoutEditMode: 'Toggle layout edit mode',
     showTabStrip: 'Show tabs',
     hideTabStrip: 'Hide tabs',
     showStripTab: title => `Show ${title}`,

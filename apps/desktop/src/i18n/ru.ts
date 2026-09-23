@@ -5221,6 +5221,7 @@ export const ru = defineCompleteLocale({
     }
   },
   zones: {
+    toggleLayoutEditMode: 'Переключить режим редактирования макета',
     showTabStrip: 'Показать вкладки',
     hideTabStrip: 'Скрыть вкладки',
     showStripTab: title => `Показать ${title}`,
@@ -5268,7 +5269,20 @@ export const ru = defineCompleteLocale({
     saveApply: 'Сохранить и применить',
     notExpressible: 'эта расстановка зацеплена (pinwheel) — пока не выразима как вложенные разделения',
     zoneCount: count => `${count} ${RU_NOUN(count, 'зона', 'зоны', 'зон')}`,
-    tabCount: count => `${count} ${RU_NOUN(count, 'вкладка', 'вкладки', 'вкладок')}`
+    tabCount: count => `${count} ${RU_NOUN(count, 'вкладка', 'вкладки', 'вкладок')}`,
+    layoutNames: {
+      default: 'По умолчанию',
+      focus: 'Фокус',
+      'terminal-deck': 'Терминальная панель',
+      quad: 'Четыре панели'
+    },
+    paneNames: {
+      sessions: 'Сеансы',
+      files: 'Файлы',
+      review: 'Проверка',
+      terminal: 'Терминал',
+      workspace: 'Рабочая область'
+    }
   },
   contextMenu: {
     link: {
