@@ -7,6 +7,7 @@ import type * as groupChat from './group-chat'
 import type * as groupRounds from './group-rounds'
 import { createGroupGateway, drain, runTimersInline, scriptedStorage } from './group-test-utils'
 import type { GatewayOptions, ScriptedGateway } from './group-test-utils'
+import { translateBots } from './i18n-test-helper'
 import type { GroupMember } from './types'
 
 // Collapsible group Activity view: a runtime-only, bounded feed of truthful
@@ -210,7 +211,7 @@ describe('turn arc', () => {
 
     expect(failed?.reason).toBe(room.activity.GROUP_SLOT_WAIT_REASON)
     expect(room.activity.groupActivityLabel(failed!, 'Slot wait')).toBe(
-      "builder couldn't start — too many bots running"
+      translateBots('group.activitySlotWait', 'builder')
     )
     expect(room.data.$botAttention.get()).toEqual({})
   })

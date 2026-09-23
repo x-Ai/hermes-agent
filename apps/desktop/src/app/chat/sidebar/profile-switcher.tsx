@@ -47,8 +47,8 @@ import { Tip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@
 import type { DesktopRegistryConnection } from '@/global'
 import { getProfileSoul, updateProfileSoul } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { displayEntityName } from '@/lib/display-name'
 import { sortConnectionsForDisplay } from '@/lib/connection-display'
+import { displayEntityName } from '@/lib/display-name'
 import { triggerHaptic } from '@/lib/haptics'
 import { Loader2 } from '@/lib/icons'
 import { PROFILE_SWATCHES, profileColorSoft, resolveProfileColor } from '@/lib/profile-color'
@@ -788,7 +788,7 @@ function ProfileDropdown({
                   isDefault={false}
                   name={activeProfile.name}
                 />
-                <span className="truncate">{profileLabel(activeProfile)}</span>
+                <span className="truncate">{displayEntityName(profileLabel(activeProfile), t)}</span>
               </>
             ) : (
               <span className="truncate">{p.title}</span>
@@ -813,7 +813,7 @@ function ProfileDropdown({
               color={resolveProfileColor(profile.name, colors)}
               connectionId={connectionId}
               key={profile.name}
-              label={profileLabel(profile)}
+              label={displayEntityName(profileLabel(profile), t)}
               name={profile.name}
             />
           ))}
@@ -826,30 +826,31 @@ function ProfileDropdown({
               <span className="truncate">{group.label}</span>
               {!group.reachable && <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-amber-500" />}
             </DropdownMenuLabel>
-            {[group.defaultAgent, ...group.named].map(agent => (
-              <ProfileLaunchContextMenu
-                connectionId={agent.connectionId}
-                key={agent.profile}
-                label={p.fleet.onGateway(agent.profile, group.label)}
-                profile={agent.profile}
-              >
-                <DropdownMenuItem
-                  aria-label={p.fleet.onGateway(agent.profile, group.label)}
-                  className="min-w-0"
-                  onSelect={() => onSelectRest(agent)}
+            {[group.defaultAgent, ...group.named].map(agent => {
+              const name = displayEntityName(agent.profile, t)
+              const label = p.fleet.onGateway(name, group.label)
+
+              return (
+                <ProfileLaunchContextMenu
+                  connectionId={agent.connectionId}
+                  key={agent.profile}
+                  label={label}
+                  profile={agent.profile}
                 >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <ProfileGlyph
-                      aria-hidden="true"
-                      color={resolveProfileColor(agent.profile, colors)}
-                      isDefault={agent.isDefault}
-                      name={agent.profile}
-                    />
-                    <span className="truncate">{agent.profile}</span>
-                  </span>
-                </DropdownMenuItem>
-              </ProfileLaunchContextMenu>
-            ))}
+                  <DropdownMenuItem aria-label={label} className="min-w-0" onSelect={() => onSelectRest(agent)}>
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <ProfileGlyph
+                        aria-hidden="true"
+                        color={resolveProfileColor(agent.profile, colors)}
+                        isDefault={agent.isDefault}
+                        name={agent.profile}
+                      />
+                      <span className="truncate">{name}</span>
+                    </span>
+                  </DropdownMenuItem>
+                </ProfileLaunchContextMenu>
+              )
+            })}
           </div>
         ))}
       </DropdownMenuContent>
@@ -943,7 +944,7 @@ function ProfilePill({
   )
 
   return profile ? (
-    <ProfileLaunchContextMenu connectionId={connectionId ?? null} label={profile} profile={profile}>
+    <ProfileLaunchContextMenu connectionId={connectionId ?? null} label={label} profile={profile}>
       {button}
     </ProfileLaunchContextMenu>
   ) : (
@@ -1018,6 +1019,7 @@ function FleetRestGroup({
   const p = t.profiles
   const dividerLabel = group.reachable ? p.fleet.gateway(group.label) : p.fleet.gatewayUnreachable(group.label)
   const defaultKey = fleetRouteKey(group.connectionId, group.defaultAgent.profile)
+  const defaultName = displayEntityName(group.defaultAgent.profile, t)
 
   return (
     <>
@@ -1035,7 +1037,7 @@ function FleetRestGroup({
           active={false}
           connectionId={group.connectionId}
           glyph="home"
-          label={p.fleet.onGateway(group.defaultAgent.profile, group.label)}
+          label={p.fleet.onGateway(defaultName, group.label)}
           muted
           onSelect={() => onSelect(group.defaultAgent)}
           pending={pendingRoute === defaultKey}
@@ -1088,7 +1090,8 @@ function RestSquare({
   const p = t.profiles
   const hue = color ?? 'var(--ui-text-quaternary)'
   const [pickerOpen, setPickerOpen] = useState(false)
-  const label = p.fleet.onGateway(agent.profile, agent.connectionLabel)
+  const name = displayEntityName(agent.profile, t)
+  const label = p.fleet.onGateway(name, agent.connectionLabel)
 
   const pickColor = (next: null | string) => {
     onRecolor(next)
@@ -1137,7 +1140,7 @@ function RestSquare({
           <ProfileLaunchMenuSection connectionId={agent.connectionId} label={label} profile={agent.profile} />
           <ContextMenuItem onSelect={onSelect}>
             <Codicon name="arrow-right" size="0.875rem" />
-            <span className="truncate">{p.fleet.switchTo(agent.profile, agent.connectionLabel)}</span>
+            <span className="truncate">{p.fleet.switchTo(name, agent.connectionLabel)}</span>
           </ContextMenuItem>
           <ContextMenuItem onSelect={() => setPickerOpen(true)}>
             <Codicon name="symbol-color" size="0.875rem" />

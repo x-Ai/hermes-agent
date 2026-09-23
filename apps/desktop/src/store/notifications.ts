@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-import { getRuntimeI18nLocale, translateNow } from '@/i18n'
+import { getRuntimeI18nLocale, translateNow } from '@/i18n/runtime'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
 import { isLocalBackendSlotWaitTimeout, requestPoolLimitsSettings } from '@/store/pool-limits'
 import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'

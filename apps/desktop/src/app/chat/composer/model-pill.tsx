@@ -122,7 +122,9 @@ export function ModelPill({
   // Tiles always have a runtime — pin badge is primary-draft only.
   const pinnedOverride =
     view.kind === 'primary' && !runtimeId && modelSource === 'manual' && Boolean(currentModel.trim())
+
   const isMoa = (currentProvider || '').trim().toLowerCase() === 'moa'
+
   const modelLabel = isMoa
     ? displayEntityName(currentModel, t)
     : formatModelPillLabel(currentModel, { fastMode })

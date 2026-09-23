@@ -1157,6 +1157,7 @@ function CronEditorDialog({
     modelProviders.some(provider =>
       (provider.models ?? []).some(model => cronModelChoiceValue(provider.slug, model) === modelChoice)
     )
+
   const modelChoiceLabel = (provider: string, model: string) =>
     provider.trim().toLowerCase() === 'moa' ? displayEntityName(model, t) : model
 

@@ -25,7 +25,7 @@ vi.mock('react-router', () => ({
 vi.mock('@/i18n', () => ({
   useI18n: () => ({
     t: {
-      common: { cancel: 'Cancel', delete: 'Delete' },
+      common: { cancel: 'Cancel', defaultName: 'default', delete: 'Delete' },
       profiles: {
         actions: 'Actions',
         allProfiles: 'All profiles',

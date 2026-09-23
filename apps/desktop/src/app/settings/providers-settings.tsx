@@ -87,6 +87,7 @@ function buildProviderKeyGroups(
       ...info,
       description: envKeys[key]?.description ?? info.description
     }
+
     const providerId = info.provider?.trim() || ''
     const sourceName = info.provider_label?.trim() || providerId || providerGroup(key)
 

@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'
+import { en } from '@/i18n/en'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import { $localRuntimeJobs } from '@/store/local-runtime-jobs'
 import {
@@ -128,7 +129,7 @@ describe('the catalog owns model curation', () => {
     renderMenu()
     await screen.findByText(/Gemini 3\.1 Pro/i)
 
-    fireEvent.click(screen.getByText('Edit models…'))
+    fireEvent.click(screen.getByText(en.shell.modelMenu.editModels))
 
     expect($modelVisibilityOpen.get()).toBe(true)
   })

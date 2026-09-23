@@ -142,6 +142,7 @@ export function groupFailureDetail(message: unknown): string {
 export function groupActivityLabel(event: GroupActivityEntry, group?: null | string) {
   const b = botsText()
   const kind = event?.kind
+
   const labels: Record<GroupActivityKind, string> = {
     queued: b.group.activityLabels.queued,
     working: b.group.activityLabels.working,
@@ -156,6 +157,7 @@ export function groupActivityLabel(event: GroupActivityEntry, group?: null | str
     held: b.group.activityLabels.held,
     stopped: b.group.activityLabels.stopped
   }
+
   const base = labels[kind] || kind || b.group.activityDidSomething
 
   if (kind === 'cancelled' || kind === 'settled' || kind === 'capped') {

@@ -220,7 +220,7 @@ describe('the bot row context menu speaks the active language', () => {
 
     expect(within(menu).getByText('置顶')).toBeTruthy()
     expect(within(menu).getByText('隐藏')).toBeTruthy()
-    expect(within(menu).getByText('管理群聊…')).toBeTruthy()
+    expect(within(menu).getByText(translateBotsIn('zh')('bot.manageGroups'))).toBeTruthy()
     expect(within(menu).queryByText('Pin to top')).toBeNull()
     expect(within(menu).queryByText('Hide')).toBeNull()
     expect(within(menu).queryByText('Manage groups…')).toBeNull()

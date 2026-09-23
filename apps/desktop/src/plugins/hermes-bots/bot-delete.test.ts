@@ -16,6 +16,7 @@
 import type * as HermesSdk from '@hermes/plugin-sdk'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { translateBots } from './i18n-test-helper'
 import type { ProfileRoute, RosterRow } from './types'
 
 const { forgetSessionUnread, invalidateQueries, newChat, overrides, request, stateAtoms } = vi.hoisted(() => {
@@ -184,7 +185,7 @@ describe('deletes that must not happen', () => {
         route: { ...remoteRoute, targetProfile: 'worker' },
         sourceScoped: true
       } as RosterRow)
-    ).rejects.toThrow(/source-scoped profile deletion requires host\.deleteProfile/i)
+    ).rejects.toThrow(translateBots('bot.sourceScopedDeleteUnsupported'))
 
     expect(request.mock.calls.some(([method]) => method === 'cli.exec')).toBe(false)
   })
