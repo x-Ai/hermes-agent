@@ -165,6 +165,7 @@ type BotsMessages = {
     advancedFailed: string
     openAnotherChatUnsupported: string
     remoteConnectionsUnsupported: string
+    storedSessionsUnsupported: string
     workspaceSelectionRequired: string
     /** Bot-open failure toasts (canonical-chat.ts notifyBotOpenFailure). The
      *  raw RPC/connection error travels in the toast `detail`, never here. */
@@ -343,6 +344,9 @@ type BotsMessages = {
     answerFailed: (handle: string, error: string) => string
     wantsToRunCommand: (handle: string) => string
     asks: (handle: string) => string
+    ownAnswerPlaceholder: string
+    answerPlaceholder: string
+    sending: string
     answerTo: (member: string) => string
     openGroupChat: string
     manageMembers: string
@@ -584,6 +588,7 @@ const en: BotsMessages = {
     advancedFailed: 'Advanced configuration failed',
     openAnotherChatUnsupported: 'Update Hermes Desktop to open another Bot chat.',
     remoteConnectionsUnsupported: 'Update Hermes Desktop to chat with bots on other connections.',
+    storedSessionsUnsupported: 'This Hermes Desktop version cannot open stored sessions.',
     workspaceSelectionRequired: 'Select a bot or group first.',
     openNeedsUpdateTitle: 'This bot lives on an older Hermes',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}, then try again.`,
@@ -779,6 +784,9 @@ const en: BotsMessages = {
     answerFailed: (handle, error) => `Could not send the answer to @${handle}: ${error}`,
     wantsToRunCommand: handle => `@${handle} wants to run a command:`,
     asks: handle => `@${handle} asks:`,
+    ownAnswerPlaceholder: 'Or type your own answer…',
+    answerPlaceholder: 'Type your answer…',
+    sending: 'Sending…',
     answerTo: member => `Answer @${member}`,
     openGroupChat: 'Open Group Chat',
     manageMembers: 'Manage members',
@@ -1017,6 +1025,7 @@ const ja: BotsMessages = {
     advancedFailed: '詳細設定に失敗しました',
     openAnotherChatUnsupported: '別のボットチャットを開くには Hermes Desktop を更新してください。',
     remoteConnectionsUnsupported: '他の接続上のボットとチャットするには Hermes Desktop を更新してください。',
+    storedSessionsUnsupported: 'このバージョンの Hermes Desktop では保存済みセッションを開けません。',
     workspaceSelectionRequired: '先にボットまたはグループを選択してください。',
     openNeedsUpdateTitle: 'このボットは古い Hermes 上で動いています',
     openNeedsUpdateMessage: connectionLabel => `${connectionLabel} を更新してから、もう一度お試しください。`,
@@ -1213,6 +1222,9 @@ const ja: BotsMessages = {
     answerFailed: (handle, error) => `@${handle}に回答を送信できませんでした: ${error}`,
     wantsToRunCommand: handle => `@${handle}がコマンドを実行しようとしています:`,
     asks: handle => `@${handle}からの質問:`,
+    ownAnswerPlaceholder: 'または自分の回答を入力…',
+    answerPlaceholder: '回答を入力…',
+    sending: '送信中…',
     answerTo: member => `@${member}に回答`,
     openGroupChat: 'グループチャットを開く',
     manageMembers: 'メンバーの管理',
@@ -1448,6 +1460,7 @@ const zh: BotsMessages = {
     advancedFailed: '高级配置失败',
     openAnotherChatUnsupported: '请更新 Hermes Desktop 以打开另一个智能体聊天。',
     remoteConnectionsUnsupported: '请更新 Hermes Desktop 以与其他连接上的智能体聊天。',
+    storedSessionsUnsupported: '当前版本的 Hermes Desktop 无法打开已保存的会话。',
     workspaceSelectionRequired: '请先选择一个智能体或群聊。',
     openNeedsUpdateTitle: '这个机器人运行在较旧的 Hermes 上',
     openNeedsUpdateMessage: connectionLabel => `请更新 ${connectionLabel}，然后重试。`,
@@ -1636,6 +1649,9 @@ const zh: BotsMessages = {
     answerFailed: (handle, error) => `无法将回答发送给 @${handle}：${error}`,
     wantsToRunCommand: handle => `@${handle} 想执行一个命令：`,
     asks: handle => `@${handle} 的提问：`,
+    ownAnswerPlaceholder: '或者输入你自己的回答…',
+    answerPlaceholder: '输入你的回答…',
+    sending: '发送中…',
     answerTo: member => `回答 @${member}`,
     openGroupChat: '打开群聊',
     manageMembers: '管理成员',
@@ -1868,6 +1884,7 @@ const zhHant: BotsMessages = {
     advancedFailed: '進階設定失敗',
     openAnotherChatUnsupported: '請更新 Hermes Desktop 以開啟另一個智慧體聊天。',
     remoteConnectionsUnsupported: '請更新 Hermes Desktop 以與其他連線上的智慧體聊天。',
+    storedSessionsUnsupported: '目前版本的 Hermes Desktop 無法開啟已儲存的工作階段。',
     workspaceSelectionRequired: '請先選擇一個智慧體或群組聊天。',
     openNeedsUpdateTitle: '這個機器人運行在較舊的 Hermes 上',
     openNeedsUpdateMessage: connectionLabel => `更新${connectionLabel}然後再試一次。`,
@@ -2057,6 +2074,9 @@ const zhHant: BotsMessages = {
     answerFailed: (handle, error) => `無法將回答傳送給 @${handle}：${error}`,
     wantsToRunCommand: handle => `@${handle} 想執行一個命令：`,
     asks: handle => `@${handle} 的提問：`,
+    ownAnswerPlaceholder: '或輸入你自己的回答…',
+    answerPlaceholder: '輸入你的回答…',
+    sending: '傳送中…',
     answerTo: member => `回覆 @${member}`,
     openGroupChat: '開啟群組聊天',
     manageMembers: '管理成員',
@@ -2294,6 +2314,7 @@ const ru: BotsMessages = {
     advancedFailed: 'Продвинутая конфигурация провалилась',
     openAnotherChatUnsupported: 'Обновите рабочий стол Hermes, чтобы открыть еще один чат.',
     remoteConnectionsUnsupported: 'Обновите Hermes Desktop для общения с ботами по другим соединениям.',
+    storedSessionsUnsupported: 'Эта версия Hermes Desktop не может открыть сохранённые сеансы.',
     workspaceSelectionRequired: 'Сначала выберите бота или групповой чат.',
     openNeedsUpdateTitle: 'Этот бот живет на старом Hermes',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}тогда попробуйте еще раз.`,
@@ -2493,6 +2514,9 @@ const ru: BotsMessages = {
     answerFailed: (handle, error) => `Не удалось отправить ответ на @${handle}: ${error}`,
     wantsToRunCommand: handle => `@${handle}хочет выполнить команду:`,
     asks: handle => `@${handle}спрашивает:`,
+    ownAnswerPlaceholder: 'Или введите свой ответ…',
+    answerPlaceholder: 'Введите ответ…',
+    sending: 'Отправка…',
     answerTo: member => `Ответить @${member}`,
     openGroupChat: 'Открытый групповой чат',
     manageMembers: 'Управлять членами',
@@ -2734,6 +2758,7 @@ const ar: BotsMessages = {
     advancedFailed: 'فشل التكوين المتقدم',
     openAnotherChatUnsupported: 'تحديث Hermes Desktop لفتح دردشة أخرى.',
     remoteConnectionsUnsupported: 'حدّث Hermes Desktop للدردشة مع الروبوتات على اتصالات أخرى.',
+    storedSessionsUnsupported: 'لا يستطيع هذا الإصدار من Hermes Desktop فتح الجلسات المحفوظة.',
     workspaceSelectionRequired: 'اختر روبوتاً أو محادثة جماعية أولاً.',
     openNeedsUpdateTitle: 'هذا الحذاء يعيش في زكس كيتر ميكروز',
     openNeedsUpdateMessage: connectionLabel => `Update ${connectionLabel}حاول مرة أخرى.`,
@@ -2926,6 +2951,9 @@ const ar: BotsMessages = {
     answerFailed: (handle, error) => `لا يمكن إرسال الإجابة إلى @${handle}: ${error}`,
     wantsToRunCommand: handle => `@${handle}يريد تشغيل أمر:`,
     asks: handle => `@${handle}يسأل:`,
+    ownAnswerPlaceholder: 'أو اكتب إجابتك…',
+    answerPlaceholder: 'اكتب إجابتك…',
+    sending: 'جارٍ الإرسال…',
     answerTo: member => `جواب:${member}`,
     openGroupChat: 'الفريق المفتوح',
     manageMembers: 'أعضاء الإدارة',

@@ -85,7 +85,7 @@ async function openStoredBotChat(
   summary: CanonicalChatRow
 ): Promise<string> {
   if (!storedId || typeof host.openSession !== 'function') {
-    throw new Error('This Hermes Desktop version cannot open stored sessions')
+    throw new Error(botsText().bot.storedSessionsUnsupported)
   }
 
   const { bot, name, route } = botOwner(owner)

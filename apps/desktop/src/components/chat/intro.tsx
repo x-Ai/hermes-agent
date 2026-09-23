@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { useI18n } from '@/i18n'
 import { capitalize, normalize } from '@/lib/text'
 
 import introCopyJsonl from './intro-copy.jsonl?raw'
@@ -157,9 +158,24 @@ function resolveCopy(personality?: string, seed?: number): IntroCopy {
   return pickCopy(copies, seed)
 }
 
+function localizedBody(
+  pools: Readonly<Record<string, readonly string[]>>,
+  personality: string | undefined,
+  roll: number
+): string | null {
+  const personalityKey = normalizeKey(personality)
+  const poolKey = NEUTRAL_PERSONALITIES.has(personalityKey) ? 'none' : personalityKey
+  const pool = pools[poolKey] ?? pools.none
+
+  return pool?.length ? pool[Math.abs(roll) % pool.length] : null
+}
+
 export function Intro({ personality, seed }: IntroProps) {
+  const { t } = useI18n()
   const [mountSeed] = useState(() => Math.floor(Math.random() * 100000))
-  const copy = resolveCopy(personality, mountSeed + (seed ?? 0))
+  const roll = mountSeed + (seed ?? 0)
+  const body = localizedBody(t.intro.bodies, personality, roll)
+  const copy = body !== null ? { headline: '', body } : resolveCopy(personality, roll)
 
   return (
     <div
