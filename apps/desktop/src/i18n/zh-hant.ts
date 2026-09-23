@@ -1443,10 +1443,6 @@ export const zhHant = defineCompleteLocale({
         useRealProfile:
           '本機瀏覽會使用您真實的登入狀態。Hermes 會將預設瀏覽器的設定檔（Cookie、登入狀態和偏好設定）複製到受管理的快照中，再透過隨附的 Chromium 驅動該快照；它絕不會直接開啟您正在使用的設定檔，並會在每次執行時從原設定檔重新整理副本。即使已設定雲端瀏覽器後端，也允許代理依要求開啟使用真實設定檔的本機工作階段。僅支援以 Chromium 為基礎的瀏覽器（Chrome、Edge、Brave、Chromium）；若預設瀏覽器不是 Chromium 核心，將顯示明確的錯誤訊息。預設關閉。'
       },
-      browser: {
-        useRealProfile:
-          '本機瀏覽會使用您真實的登入狀態。Hermes 會將預設瀏覽器的設定檔（Cookie、登入狀態和偏好設定）複製到受管理的快照中，再透過隨附的 Chromium 驅動該快照；它絕不會直接開啟您正在使用的設定檔，並會在每次執行時從原設定檔重新整理副本。即使已設定雲端瀏覽器後端，也允許代理依要求開啟使用真實設定檔的本機工作階段。僅支援以 Chromium 為基礎的瀏覽器（Chrome、Edge、Brave、Chromium）；若預設瀏覽器不是 Chromium 核心，將顯示明確的錯誤訊息。預設關閉。'
-      },
       checkpoints: {
         enabled: '在檔案編輯前建立可回復的快照。'
       },
