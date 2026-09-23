@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { DesktopRosterAgent } from '@/global'
 import { getProfiles, type ProfileScope, profileScopeKey } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
+import { displayEntityName } from '@/lib/display-name'
 import { cn } from '@/lib/utils'
 import { activeGatewayConnectionId } from '@/store/gateway'
 import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
@@ -51,6 +53,7 @@ export function useCapabilityScope({
   fixedConnection?: string
   fixedProfile?: string
 }): CapabilityScope {
+  const { t } = useI18n()
   const activeProfile = useStore($activeGatewayProfile)
   const [scopeOverride, setScopeOverride] = useState<null | string | { connectionId: string; profile: string }>(null)
 
@@ -116,20 +119,20 @@ export function useCapabilityScope({
 
       return rosterData.agents.map((agent: DesktopRosterAgent) => ({
         key: `${agent.connectionId}::${agent.profile}`,
-        label:
-          agent.connectionId === activeId
-            ? `${agent.profile} — ${agent.connectionLabel} (current)`
-            : `${agent.profile} — ${agent.connectionLabel}`,
+        label: `${displayEntityName(agent.profile, t)} — ${displayConnectionLabel(
+          { kind: agent.connectionKind, label: agent.connectionLabel },
+          t
+        )}${agent.connectionId === activeId ? ` (${t.settings.connections.currentPill.toLocaleLowerCase()})` : ''}`,
         value: `${agent.connectionId}::${agent.profile}`
       }))
     }
 
     return (profilesData?.profiles ?? []).map(p => ({
       key: p.name,
-      label: p.is_default ? 'Hermes (default)' : p.name,
+      label: p.is_default ? t.skills.plugins.defaultProfile : displayEntityName(p.name, t),
       value: p.name
     }))
-  }, [multiConnection, profilesData, rosterData])
+  }, [multiConnection, profilesData, rosterData, t])
 
   // The selector's current value must match one option's value exactly. On the
   // roster path an ambient (non-override) scope is the active gateway's

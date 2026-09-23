@@ -1,4 +1,5 @@
 import type { DesktopRegistryConnection } from '@/global'
+import type { Translations } from '@/i18n'
 
 export const CONNECTION_SEARCH_THRESHOLD = 8
 
@@ -74,9 +75,18 @@ export function connectionEndpoint(connection: DesktopRegistryConnection): null 
   return connection.url?.trim() || null
 }
 
+/** The local registry label is a stable backend identity, not user-authored
+ * copy. Localize it at presentation time while leaving routing data intact. */
+export function displayConnectionLabel(
+  connection: Pick<DesktopRegistryConnection, 'kind' | 'label'>,
+  t: Translations
+): string {
+  return connection.kind === 'local' ? t.settings.connections.thisDevice || connection.label : connection.label
+}
+
 /** Full gateway identity for a hover tip without keeping technical routing in chrome. */
-export function connectionTooltip(connection: DesktopRegistryConnection): string {
+export function connectionTooltip(connection: DesktopRegistryConnection, label = connection.label): string {
   const endpoint = connectionEndpoint(connection)
 
-  return endpoint ? `${connection.label}\n${endpoint}` : connection.label
+  return endpoint ? `${label}\n${endpoint}` : label
 }

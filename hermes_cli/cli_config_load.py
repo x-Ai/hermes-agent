@@ -89,6 +89,9 @@ _TERMINAL_ENV_MAPPINGS = {
         "ssh_host", "ssh_user", "ssh_port", "ssh_key", "container_cpu", "container_memory",
         "container_disk", "container_persistent", "docker_volumes", "docker_env", "docker_extra_args",
         "docker_shm_size", "docker_mount_cwd_to_workspace", "docker_network", "docker_run_as_host_user",
+        "docker_workspace_per_session", "singularity_mount_cwd_to_workspace",
+        "singularity_workspace_per_session", "docker_workspace_mount_path",
+        "singularity_workspace_mount_path",
         "docker_snap_compat",
         "docker_persist_across_processes", "docker_shared_container_key", "docker_orphan_reaper",
         "sandbox_dir", "persistent_shell",
@@ -190,6 +193,11 @@ def _cli_config_defaults():
             "docker_image": img, "docker_forward_env": [], "singularity_image": f"docker://{img}",
             "modal_image": img, "daytona_image": img, "docker_volumes": [],
             "docker_mount_cwd_to_workspace": False,  # opt-in only: sandbox isolation
+            "docker_workspace_per_session": False,
+            "singularity_mount_cwd_to_workspace": False,
+            "singularity_workspace_per_session": False,
+            "docker_workspace_mount_path": "/workspace",
+            "singularity_workspace_mount_path": "/workspace",
             "docker_shared_container_key": "",
         },
         "browser": {
@@ -201,6 +209,10 @@ def _cli_config_defaults():
         "agent": {
             "max_turns": 500, "verbose": False, "system_prompt": "", "prefill_messages_file": "",  # max_turns shared with subagents
             "reasoning_effort": "", "service_tier": "",
+            "output_truncation_retries": 1,
+            "post_tool_empty_retries": 1,
+            "thinking_prefill_retries": 2,
+            "empty_response_retries": 3,
             "personalities": {},  # user overrides merged by name over hermes_cli.personality builtins
         },
         "display": {
@@ -218,7 +230,9 @@ def _cli_config_defaults():
         "code_execution": {"timeout": 300, "max_tool_calls": 50},
         "auxiliary": {"vision": {"provider": "auto", "model": "", "base_url": "", "api_key": ""}},
         # delegation: empty model/provider = inherit parent; api_key falls back to OPENAI_API_KEY
-        "delegation": {"max_iterations": 45, "model": "", "provider": "", "base_url": "", "api_key": ""},
+        "delegation": {
+            "max_iterations": 45, "model": "", "provider": "", "use_custom_endpoints": False,
+            "base_url": "", "api_key": ""},
         "onboarding": {"seen": {}},  # first-touch hint flags (agent/onboarding.py), latched once shown
     }
 

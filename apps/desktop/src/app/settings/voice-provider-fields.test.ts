@@ -77,7 +77,7 @@ describe('voice field option coverage', () => {
     // Free-input keys don't *require* ENUM_OPTIONS (an empty datalist is
     // fine), but any that do declare options must be actual Voice-section
     // fields — a typo'd key here would silently do nothing.
-    for (const key of FREE_INPUT_KEYS) {
+    for (const key of [...FREE_INPUT_KEYS].filter(candidate => /^(stt|tts|voice)\./.test(candidate))) {
       expect(voiceKeys, key).toContain(key)
     }
   })

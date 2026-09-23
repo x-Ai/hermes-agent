@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
+import { displayEntityName } from '@/lib/display-name'
 import { triggerHaptic } from '@/lib/haptics'
 import { Loader2 } from '@/lib/icons'
 import { resolveProfileColor } from '@/lib/profile-color'
@@ -132,11 +134,18 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
     setPendingRoute(key)
 
     void selectConnection(agent.connectionId, { profile: agent.profile })
-      .catch((error: unknown) => notifyError(error, p.switchConnectionFailed(agent.connectionLabel)))
+      .catch((error: unknown) =>
+        notifyError(
+          error,
+          p.switchConnectionFailed(
+            displayConnectionLabel({ kind: agent.connectionKind, label: agent.connectionLabel }, t)
+          )
+        )
+      )
       .finally(() => setPendingRoute(current => (current === key ? null : current)))
   }
 
-  const triggerLabel = showAll ? p.allProfiles : active ? profileLabel(active) : p.title
+  const triggerLabel = showAll ? p.allProfiles : active ? displayEntityName(profileLabel(active), t) : p.title
 
   return (
     <div
@@ -184,7 +193,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
                 color={resolveProfileColor(profile.name, colors)}
                 isDefault={profile.is_default}
                 key={profile.name}
-                label={profileLabel(profile)}
+                label={displayEntityName(profileLabel(profile), t)}
                 name={profile.name}
               />
             ))}
@@ -204,29 +213,34 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
               <DropdownMenuSeparator />
               <DropdownMenuLabel className={cn(dropdownMenuSectionLabel, 'flex items-center gap-1.5')}>
                 <ConnectionGlyph connection={group} />
-                <span className="truncate">{group.label}</span>
+                <span className="truncate">{displayConnectionLabel(group, t)}</span>
                 {!group.reachable && (
                   <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-amber-500" />
                 )}
               </DropdownMenuLabel>
-              {[group.defaultAgent, ...group.named].map(agent => (
-                <DropdownMenuItem
-                  aria-label={p.fleet.onGateway(agent.profile, group.label)}
-                  className="min-w-0"
-                  key={agent.profile}
-                  onSelect={() => switchToRest(agent)}
-                >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <ProfileGlyph
-                      aria-hidden="true"
-                      color={resolveProfileColor(agent.profile, colors)}
-                      isDefault={agent.isDefault}
-                      name={agent.profile}
-                    />
-                    <span className="truncate">{agent.profile}</span>
-                  </span>
-                </DropdownMenuItem>
-              ))}
+              {[group.defaultAgent, ...group.named].map(agent => {
+                const name = displayEntityName(agent.profile, t)
+                const label = p.fleet.onGateway(name, displayConnectionLabel(group, t))
+
+                return (
+                  <DropdownMenuItem
+                    aria-label={label}
+                    className="min-w-0"
+                    key={agent.profile}
+                    onSelect={() => switchToRest(agent)}
+                  >
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <ProfileGlyph
+                        aria-hidden="true"
+                        color={resolveProfileColor(agent.profile, colors)}
+                        isDefault={agent.isDefault}
+                        name={agent.profile}
+                      />
+                      <span className="truncate">{name}</span>
+                    </span>
+                  </DropdownMenuItem>
+                )
+              })}
             </div>
           ))}
           <DropdownMenuSeparator />

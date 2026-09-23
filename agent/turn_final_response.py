@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Dict, Optional
 
+from agent.i18n import t
 from agent.message_metadata import append_message
 from agent.turn_empty_response import recover_empty_response
 from agent.turn_stop_gates import apply_stop_gates
@@ -22,6 +23,25 @@ _EPHEMERAL_SCAFFOLDING_FLAGS = (
     "_thinking_prefill", "_empty_recovery_synthetic", "_empty_terminal_sentinel",
     "_dropped_toolcall_nudge",
 )
+_OUTPUT_TRUNCATION_RETRY_CAP = 65_536
+
+
+def _arm_output_truncation_retry(agent: Any, api_kwargs: Any) -> Optional[int]:
+    """Make a no-visible-output replay materially different from the failed call."""
+    agent._ephemeral_reasoning_off = True
+    requested_cap = agent._requested_output_cap_from_api_kwargs(api_kwargs)
+    if requested_cap is None:
+        return None
+
+    source = str(getattr(agent, "max_tokens_source", "") or "").strip().lower()
+    configured_cap = bool(getattr(agent, "max_tokens", None)) or source in {
+        "explicit", "model", "provider", "discovered",
+    }
+    retry_cap = requested_cap
+    if not configured_cap and requested_cap < _OUTPUT_TRUNCATION_RETRY_CAP:
+        retry_cap = min(max(requested_cap * 2, 8_192), _OUTPUT_TRUNCATION_RETRY_CAP)
+    agent._ephemeral_max_output_tokens = retry_cap
+    return retry_cap
 
 
 @dataclass
@@ -38,6 +58,7 @@ class FinalResponseVerdict:
     codex_ack_continuations: Any
     truncated_response_parts: Any
     length_continue_retries: Any
+    output_truncation_retries: Any
     _pending_verification_response: Any
     _pending_verification_response_previewed: Any
     result: Optional[Dict[str, Any]] = None
@@ -45,10 +66,10 @@ class FinalResponseVerdict:
 
 def finish_text_response(
     agent: Any, *, assistant_message: Any, response: Any, finish_reason: Any, messages: Any,
-    api_messages: Any, conversation_history: Any, api_call_count: Any, user_message: Any,
+    api_messages: Any, api_kwargs: Any, conversation_history: Any, api_call_count: Any, user_message: Any,
     active_system_prompt: Any, final_response: Any, _turn_exit_reason: Any,
     _preflight_compression_blocked: Any, codex_ack_continuations: Any,
-    truncated_response_parts: Any, length_continue_retries: Any,
+    truncated_response_parts: Any, length_continue_retries: Any, output_truncation_retries: Any,
     _pending_verification_response: Any, _pending_verification_response_previewed: Any,
 ) -> FinalResponseVerdict:
     """Finish (or defer) a text-only assistant response in the original guard order. Every
@@ -59,6 +80,10 @@ def finish_text_response(
         _CODEX_ACK_CONTINUATION_NUDGE, _DEGENERATE_FINAL_NUDGE, _DROPPED_TOOLCALL_NUDGE_CONTENT,
         _join_truncated_parts
     )
+    standard_output_truncation = bool(getattr(agent, "_standard_output_truncation_pending", False))
+    agent._standard_output_truncation_pending = False
+    truncation_had_tool_calls = bool(getattr(agent, "_standard_output_truncation_had_tool_calls", False))
+    agent._standard_output_truncation_had_tool_calls = False
 
     def _verdict(action: str, result: Optional[Dict[str, Any]] = None) -> FinalResponseVerdict:
         return FinalResponseVerdict(
@@ -68,6 +93,7 @@ def finish_text_response(
             codex_ack_continuations=codex_ack_continuations,
             truncated_response_parts=truncated_response_parts,
             length_continue_retries=length_continue_retries,
+            output_truncation_retries=output_truncation_retries,
             _pending_verification_response=_pending_verification_response,
             _pending_verification_response_previewed=_pending_verification_response_previewed,
             result=result,
@@ -105,6 +131,52 @@ def finish_text_response(
     # Unmute: _mute_post_response from a housekeeping tool turn must not silence
     # empty-response warnings on the final response path.
     agent._mute_post_response = False
+
+    if standard_output_truncation:
+        # A reasoning-only/empty length stop gets its own bounded replay with a
+        # materially different wire policy; visible partial output is terminal.
+        agent._empty_content_retries = 0
+        agent._thinking_prefill_retries = 0
+        agent._dropped_toolcall_retries = 0
+        final_response = agent._strip_think_blocks(final_response).strip()
+        retry_budget = getattr(agent, "_output_truncation_retries", 0)
+        if not final_response and not truncation_had_tool_calls and output_truncation_retries < retry_budget:
+            output_truncation_retries += 1
+            retry_cap = _arm_output_truncation_retry(agent, api_kwargs)
+            cap_note = f", retry_cap={retry_cap}" if retry_cap is not None else ""
+            logger.warning(
+                "Provider output limit reached before visible text — retry %d/%d "
+                "without reasoning%s (model=%s provider=%s); the full input may be billed again",
+                output_truncation_retries, retry_budget, cap_note, agent.model, agent.provider,
+            )
+            agent._emit_diagnostic_status(
+                "⚠️ Provider output limit reached before visible text — retrying without "
+                f"reasoning ({output_truncation_retries}/{retry_budget}); the full input may be billed again"
+            )
+            final_response = None
+            return _verdict("continue")
+        if not final_response:
+            final_response = t("agent.output_truncated_no_visible")
+            assistant_message.content = final_response
+        final_msg = agent._build_assistant_message(assistant_message, "length")
+        while (
+            messages
+            and isinstance(messages[-1], dict)
+            and any(messages[-1].get(flag) for flag in _EPHEMERAL_SCAFFOLDING_FLAGS)
+        ):
+            messages.pop()
+        agent._emit_pending_fallback_notice()
+        agent._clear_status_buffer()
+        append_message(messages, final_msg)
+        try:
+            agent._flush_messages_to_session_db(messages, conversation_history)
+        except Exception:
+            logger.warning(
+                "standard-truncation turn flush failed (session=%s); relying on finalization retry",
+                getattr(agent, "session_id", None) or "none", exc_info=True,
+            )
+        _turn_exit_reason = "partial_text_response(finish_reason=length)"
+        return _verdict("break")
 
     # Think-block-only / empty content: recovery path.
     if not agent._has_content_after_think_block(final_response):

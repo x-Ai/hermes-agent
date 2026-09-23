@@ -17,7 +17,8 @@ from hermes_constants import get_hermes_home
 from tools.registry import registry, tool_error
 from hermes_cli.config import cfg_get
 from agent.skill_utils import (
-    EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS, is_skill_support_path as _is_skill_support_path)
+    EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS, extract_skill_editorial_metadata,
+    is_skill_support_path as _is_skill_support_path)
 from tools.skills_tool_setup import (  # noqa: F401
     SkillReadinessStatus, _build_setup_note, _capture_required_environment_variables,
     _get_required_environment_variables, _is_env_var_persisted, _is_remote_env_backend)
@@ -180,9 +181,23 @@ def _skill_search_dirs() -> Tuple[list, list, Path]:
     return project_dirs, all_dirs, active_skills_dir
 
 
-def _find_all_skills(*, skip_disabled: bool = False) -> List[Dict[str, Any]]:
+def _skill_metadata_projection(
+    skills: List[Dict[str, Any]], *, include_editorial: bool
+) -> List[Dict[str, Any]]:
+    """Copy cached metadata, omitting UI-only copy for agent-facing callers."""
+    if include_editorial:
+        return [dict(skill) for skill in skills]
+    return [
+        {key: value for key, value in skill.items()
+         if key not in {"editorial_name", "editorial_description"}}
+        for skill in skills
+    ]
+
+
+def _find_all_skills(*, skip_disabled: bool = False, include_editorial: bool = False) -> List[Dict[str, Any]]:
     """All skills (name, description, category) across project/local/external dirs, first-wins
-    by name; cached per session. ``skip_disabled=True`` ignores disabled state (config UI)."""
+    by name; cached per session. ``skip_disabled=True`` ignores disabled state (config UI).
+    ``include_editorial=True`` adds human-facing copy without replacing the canonical fields."""
     from agent.skill_utils import iter_project_skill_files, iter_skill_index_files
     cache_key = "with_disabled" if skip_disabled else "filtered"
     disabled = set() if skip_disabled else _get_disabled_skill_names()
@@ -193,7 +208,7 @@ def _find_all_skills(*, skip_disabled: bool = False) -> List[Dict[str, Any]]:
     if cached is not None and cached[0] == signature and (now - cached[1]) < _SKILLS_CACHE_TTL_SECONDS:
         # Shallow copies: callers mutate the returned dicts (web_server annotates
         # s["enabled"]/s["usage"]); handing out cached objects would poison the cache.
-        return [dict(s) for s in cached[2]]
+        return _skill_metadata_projection(cached[2], include_editorial=include_editorial)
     skills = []
     seen_names: set = set()
     for scan_dir in dirs_to_scan:  # project dirs go through the quarantine chokepoint
@@ -213,7 +228,10 @@ def _find_all_skills(*, skip_disabled: bool = False) -> List[Dict[str, Any]]:
                     description = next((ln for ln in map(str.strip, body.strip().split("\n"))
                                         if ln and not ln.startswith("#")), description)
                 seen_names.add(name)
-                skills.append({"name": name, "description": _truncate_description(description),
+                description = _truncate_description(description)
+                editorial = extract_skill_editorial_metadata(
+                    frontmatter, fallback_name=name, fallback_description=description)
+                skills.append({"name": name, "description": description, **editorial,
                                "category": _get_category_from_path(skill_md)})
             except (UnicodeDecodeError, PermissionError) as e:
                 logger.debug("Failed to read skill file %s: %s", skill_md, e)
@@ -222,7 +240,7 @@ def _find_all_skills(*, skip_disabled: bool = False) -> List[Dict[str, Any]]:
     # Keyed by the signature computed BEFORE the scan: a write racing the scan changes the
     # signature, so the next call re-scans instead of serving a torn result.
     _SKILLS_CACHE[cache_key] = (signature, now, skills)
-    return [dict(s) for s in skills]
+    return _skill_metadata_projection(skills, include_editorial=include_editorial)
 
 
 def _sort_skills(skills: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

@@ -20,6 +20,7 @@ import {
   CONNECTION_SEARCH_THRESHOLD,
   connectionMatchesQuery,
   connectionTooltip,
+  displayConnectionLabel,
   sortConnectionsForDisplay
 } from '@/lib/connection-display'
 import { triggerHaptic } from '@/lib/haptics'
@@ -129,7 +130,10 @@ export function ConnectionSwitcher({ compact = false, onConnect }: { compact?: b
     const connection = connections.find(candidate => candidate.id === connectionId)
 
     void selectConnection(connectionId).catch(error =>
-      notifyError(error, t.profiles.switchConnectionFailed(connection?.label ?? connectionId))
+      notifyError(
+        error,
+        t.profiles.switchConnectionFailed(connection ? displayConnectionLabel(connection, t) : connectionId)
+      )
     )
   }
 
@@ -260,10 +264,13 @@ function ConnectionSwitcherTrigger({
   title,
   ...triggerProps
 }: ConnectionMenuProps & React.ComponentProps<'button'>) {
+  const { t } = useI18n()
+  const activeLabel = activeConnection ? displayConnectionLabel(activeConnection, t) : null
+
   return (
     <Button
       {...triggerProps}
-      aria-label={activeConnection ? `${title}: ${activeConnection.label}` : title}
+      aria-label={activeLabel ? `${title}: ${activeLabel}` : title}
       className={cn(
         'w-full min-w-0 justify-between overflow-hidden px-1 text-(--ui-text-secondary) data-[state=open]:bg-(--ui-control-active-background) data-[state=open]:text-foreground',
         compact && 'h-full min-h-0 rounded-none px-1.5 text-[0.6875rem] font-normal',
@@ -296,10 +303,13 @@ function ManageGatewaysLabel({ label }: { label: string }) {
 }
 
 function ConnectionLabel({ connection }: { connection: DesktopRegistryConnection }) {
+  const { t } = useI18n()
+  const label = displayConnectionLabel(connection, t)
+
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden" title={connectionTooltip(connection)}>
+    <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden" title={connectionTooltip(connection, label)}>
       <ConnectionGlyph connection={connection} />
-      <span className="truncate">{connection.label}</span>
+      <span className="truncate">{label}</span>
     </span>
   )
 }

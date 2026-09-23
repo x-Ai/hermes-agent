@@ -20,6 +20,8 @@ import { Input } from '@/components/ui/input'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
+import { displayEntityName } from '@/lib/display-name'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { $connectionsRegistry } from '@/store/connection-registry-state'
@@ -57,6 +59,7 @@ export function GatewayProfileGroups({
   onNewSessionSplit,
   nested = false
 }: GatewayProfileGroupsProps) {
+  const { t } = useI18n()
   const registry = useStore($connectionsRegistry)
   const order = useStore($gatewayGroupOrder)
   const gatewayProfiles = new Map<string, SidebarSessionGroup[]>()
@@ -65,7 +68,7 @@ export function GatewayProfileGroups({
   for (const group of groups) {
     // Unknown legacy ownership stays unassigned; never guess a local gateway.
     if (nested || !group.connectionId) {
-      sections.push(nested ? { ...group, label: group.profile! } : group)
+      sections.push(nested ? { ...group, label: displayEntityName(group.profile!, t) } : group)
 
       continue
     }
@@ -76,12 +79,13 @@ export function GatewayProfileGroups({
     if (profiles) {
       profiles.push(group)
     } else {
+      const connection = registry?.connections.find(candidate => candidate.id === group.connectionId)
+
       gatewayProfiles.set(id, [group])
       sections.push({
         id,
         connectionId: group.connectionId,
-        label:
-          registry?.connections.find(connection => connection.id === group.connectionId)?.label || group.connectionId,
+        label: connection ? displayConnectionLabel(connection, t) : group.connectionId,
         mode: 'profile',
         path: null,
         sessions: []

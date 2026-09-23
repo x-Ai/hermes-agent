@@ -47,7 +47,7 @@ import { Tip, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@
 import type { DesktopRegistryConnection } from '@/global'
 import { getProfileSoul, updateProfileSoul } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { sortConnectionsForDisplay } from '@/lib/connection-display'
+import { displayConnectionLabel, sortConnectionsForDisplay } from '@/lib/connection-display'
 import { displayEntityName } from '@/lib/display-name'
 import { triggerHaptic } from '@/lib/haptics'
 import { Loader2 } from '@/lib/icons'
@@ -238,7 +238,14 @@ export function ProfileRail() {
     setPendingRoute(key)
 
     void selectConnection(agent.connectionId, { profile: agent.profile })
-      .catch((error: unknown) => notifyError(error, p.switchConnectionFailed(agent.connectionLabel)))
+      .catch((error: unknown) =>
+        notifyError(
+          error,
+          p.switchConnectionFailed(
+            displayConnectionLabel({ kind: agent.connectionKind, label: agent.connectionLabel }, t)
+          )
+        )
+      )
       .finally(() => setPendingRoute(current => (current === key ? null : current)))
   }
 
@@ -490,11 +497,13 @@ export function ProfileRail() {
                     <FleetDivider
                       connection={activeConnection}
                       first={index === 0}
-                      label={activeConnection ? p.fleet.gateway(activeConnection.label) : null}
+                      label={activeConnection ? p.fleet.gateway(displayConnectionLabel(activeConnection, t)) : null}
                       reachable
                     />
                     <span
-                      aria-label={activeConnection ? p.fleet.gateway(activeConnection.label) : undefined}
+                      aria-label={
+                        activeConnection ? p.fleet.gateway(displayConnectionLabel(activeConnection, t)) : undefined
+                      }
                       className="flex shrink-0 items-center gap-1"
                       data-active="true"
                       data-connection-id={activeConnection?.id}
@@ -594,7 +603,14 @@ export function ProfileRail() {
       />
 
       <DeleteProfileDialog
-        gatewayLabel={pendingRestDelete?.connectionLabel}
+        gatewayLabel={
+          pendingRestDelete
+            ? displayConnectionLabel(
+                { kind: pendingRestDelete.connectionKind, label: pendingRestDelete.connectionLabel },
+                t
+              )
+            : undefined
+        }
         onClose={() => setPendingRestDelete(null)}
         onDeleted={() => refreshFleetRoster({ force: true })}
         open={pendingRestDelete !== null}
@@ -603,7 +619,14 @@ export function ProfileRail() {
       />
 
       <EditSoulDialog
-        gatewayLabel={pendingRestSoul?.connectionLabel}
+        gatewayLabel={
+          pendingRestSoul
+            ? displayConnectionLabel(
+                { kind: pendingRestSoul.connectionKind, label: pendingRestSoul.connectionLabel },
+                t
+              )
+            : undefined
+        }
         onClose={() => setPendingRestSoul(null)}
         profileName={pendingRestSoul?.profile ?? null}
         scope={pendingRestSoul ? restScope(pendingRestSoul) : undefined}
@@ -823,12 +846,12 @@ function ProfileDropdown({
             <DropdownMenuSeparator />
             <DropdownMenuLabel className={cn(dropdownMenuSectionLabel, 'flex items-center gap-1.5')}>
               <ConnectionGlyph connection={group} />
-              <span className="truncate">{group.label}</span>
+              <span className="truncate">{displayConnectionLabel(group, t)}</span>
               {!group.reachable && <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-amber-500" />}
             </DropdownMenuLabel>
             {[group.defaultAgent, ...group.named].map(agent => {
               const name = displayEntityName(agent.profile, t)
-              const label = p.fleet.onGateway(name, group.label)
+              const label = p.fleet.onGateway(name, displayConnectionLabel(group, t))
 
               return (
                 <ProfileLaunchContextMenu
@@ -1017,7 +1040,8 @@ function FleetRestGroup({
 }) {
   const { t } = useI18n()
   const p = t.profiles
-  const dividerLabel = group.reachable ? p.fleet.gateway(group.label) : p.fleet.gatewayUnreachable(group.label)
+  const groupLabel = displayConnectionLabel(group, t)
+  const dividerLabel = group.reachable ? p.fleet.gateway(groupLabel) : p.fleet.gatewayUnreachable(groupLabel)
   const defaultKey = fleetRouteKey(group.connectionId, group.defaultAgent.profile)
   const defaultName = displayEntityName(group.defaultAgent.profile, t)
 
@@ -1025,7 +1049,7 @@ function FleetRestGroup({
     <>
       <FleetDivider connection={group} first={first} label={dividerLabel} reachable={group.reachable} />
       <span
-        aria-label={p.fleet.gateway(group.label)}
+        aria-label={p.fleet.gateway(groupLabel)}
         className="flex shrink-0 items-center gap-1"
         data-active="false"
         data-connection-id={group.connectionId}
@@ -1037,7 +1061,7 @@ function FleetRestGroup({
           active={false}
           connectionId={group.connectionId}
           glyph="home"
-          label={p.fleet.onGateway(defaultName, group.label)}
+          label={p.fleet.onGateway(defaultName, groupLabel)}
           muted
           onSelect={() => onSelect(group.defaultAgent)}
           pending={pendingRoute === defaultKey}
@@ -1091,7 +1115,8 @@ function RestSquare({
   const hue = color ?? 'var(--ui-text-quaternary)'
   const [pickerOpen, setPickerOpen] = useState(false)
   const name = displayEntityName(agent.profile, t)
-  const label = p.fleet.onGateway(name, agent.connectionLabel)
+  const connectionLabel = displayConnectionLabel({ kind: agent.connectionKind, label: agent.connectionLabel }, t)
+  const label = p.fleet.onGateway(name, connectionLabel)
 
   const pickColor = (next: null | string) => {
     onRecolor(next)
@@ -1140,7 +1165,7 @@ function RestSquare({
           <ProfileLaunchMenuSection connectionId={agent.connectionId} label={label} profile={agent.profile} />
           <ContextMenuItem onSelect={onSelect}>
             <Codicon name="arrow-right" size="0.875rem" />
-            <span className="truncate">{p.fleet.switchTo(name, agent.connectionLabel)}</span>
+            <span className="truncate">{p.fleet.switchTo(name, connectionLabel)}</span>
           </ContextMenuItem>
           <ContextMenuItem onSelect={() => setPickerOpen(true)}>
             <Codicon name="symbol-color" size="0.875rem" />

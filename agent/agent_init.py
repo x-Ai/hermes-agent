@@ -350,6 +350,11 @@ def _parse_config_int(raw: Any, default: int) -> int:
         return default
 
 
+def _bounded_retry_count(raw: Any, default: int) -> int:
+    """Configurable paid-retry budget: integer 0..3, malformed values use ``default``."""
+    return min(max(_parse_config_int(raw, default), 0), 3)
+
+
 def _cfg_flag(cfg: Dict[str, Any], key: str, default: bool) -> bool:
     """Legacy string-set truthiness used by the ``compression`` section."""
     return str(cfg.get(key, default)).lower() in {"true", "1", "yes"}
@@ -1394,6 +1399,14 @@ def _apply_agent_section(agent, _agent_cfg):
     except (TypeError, ValueError):
         _api_retries = 3
     agent._api_max_retries = _api_retries
+    agent._output_truncation_retries = _bounded_retry_count(
+        _agent_section.get("output_truncation_retries", 1), 1)
+    agent._post_tool_empty_retry_budget = _bounded_retry_count(
+        _agent_section.get("post_tool_empty_retries", 1), 1)
+    agent._thinking_prefill_retry_budget = _bounded_retry_count(
+        _agent_section.get("thinking_prefill_retries", 2), 2)
+    agent._empty_response_retry_budget = _bounded_retry_count(
+        _agent_section.get("empty_response_retries", 3), 3)
     # Bounded post-exhaustion auto-recovery cycles once retries AND the fallback chain are spent
     # on a transient outage (agent/turn_recovery_autorecover.py). 0 disables the ladder.
     try:
@@ -2289,7 +2302,7 @@ _PASSTHROUGH_PARAMS = (
     # Toolset filtering
     "enabled_toolsets", "disabled_toolsets",
     # Model response configuration (None = provider/model default)
-    "max_tokens", "reasoning_config", "service_tier",
+    "max_tokens", "max_tokens_source", "reasoning_config", "service_tier",
     "side_agent",
 )
 # Gateway identity params stored as ``agent._<name>``. gateway_session_key is the stable
@@ -2332,6 +2345,7 @@ def init_agent(
     notice_callback: callable = None, notice_clear_callback: callable = None,
     event_callback: Optional[Callable[[str, dict], None]] = None,
     reaction_callback: Optional[Callable[[str], None]] = None, max_tokens: int = None,
+    max_tokens_source: str = None,
     reasoning_config: Dict[str, Any] = None, service_tier: str = None,
     request_overrides: Dict[str, Any] = None, prefill_messages: List[Dict[str, Any]] = None,
     platform: str = None, user_id: str = None, user_id_alt: str = None, user_name: str = None,

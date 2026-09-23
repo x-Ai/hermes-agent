@@ -1660,6 +1660,7 @@ export const ja = defineCompleteLocale({
       updateAllDone: 'アップデートの発送',
       updateAllFailed: 'ファンアウトの更新に失敗しました',
       updateSkippedCloud: 'Hermes クラウドによって管理',
+      thisDevice: 'このデバイス',
       kindLocal: 'ローカル',
       kindRemote: 'リモートゲートウェイ',
       kindCloud: 'Hermes クラウド',
@@ -2977,6 +2978,7 @@ export const ja = defineCompleteLocale({
       legacyBackend:
         'このバックエンドは、キーアドレス指定プラグインの切り替えよりも前から存在します。ここで管理するには、Hermes を更新してください。',
       portableBadge: 'ポータブル',
+      bundledDescriptions: {},
       sourceLabels: {
         bundled: 'バンドルされた',
         user: 'ユーザー',

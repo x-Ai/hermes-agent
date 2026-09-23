@@ -257,8 +257,12 @@ function PackageRow({
   const desktop = pkg.desktop
   const agent = pkg.agent
   const displayName = desktop?.localizedName?.[locale] ?? pkg.name
-  const displayDescription = desktop?.localizedDescription?.[locale] ?? pkg.description
+  const agentKey = agent?.key ?? agent?.name ?? ''
+
+  const displayDescription =
+    desktop?.localizedDescription?.[locale] ?? p.bundledDescriptions[agentKey] ?? pkg.description
   // Manifest `config_schema` → an inline settings form under the row (#46600, #87934).
+
   const settingsFields = agent?.settings_schema ?? []
   const hasSettings = Boolean(agent?.key) && settingsFields.length > 0
   const [settingsOpen, setSettingsOpen] = useState(false)

@@ -15,6 +15,7 @@ import { useI18n } from '@/i18n'
 import {
   CONNECTION_SEARCH_THRESHOLD,
   connectionMatchesQuery,
+  displayConnectionLabel,
   sortConnectionsForDisplay
 } from '@/lib/connection-display'
 import { deriveRemoteAuthProviderShape } from '@/lib/desktop-remote-auth'
@@ -557,7 +558,7 @@ export function ConnectionsRegistrySection() {
         const reachable = result.ok === true || result.reachable === true
 
         if (reachable) {
-          notify({ title: conn.label, message: s.testOk })
+          notify({ title: displayConnectionLabel(conn, t), message: s.testOk })
           // A successful Test may have warmed a cold OAuth session that the
           // roster missed; explicit recovery should bypass its cache window.
           void refreshFleetRoster({ force: true })
@@ -570,7 +571,7 @@ export function ConnectionsRegistrySection() {
         setTestingId(null)
       }
     },
-    [bridge, s.testFailed, s.testOk]
+    [bridge, s.testFailed, s.testOk, t]
   )
 
   // Fan out `hermes update` to every eligible source; per-connection results
@@ -690,6 +691,7 @@ export function ConnectionsRegistrySection() {
           const isCurrent = activeConnectionId === conn.id
           const isPrimary = registry.primary === conn.id
           const busy = busyId === conn.id
+          const displayLabel = displayConnectionLabel(conn, t)
           // Display-only: this connection is a second address for a backend
           // already registered under another entry (same install_id).
           const sameBackendPeer = sameBackendPeerLabel(conn, sortedConnections)
@@ -751,7 +753,7 @@ export function ConnectionsRegistrySection() {
               title={
                 <span className="flex items-center gap-2">
                   <Icon className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{conn.label}</span>
+                  <span className="truncate">{displayLabel}</span>
                   {isCurrent && <Pill tone="primary">{s.currentPill}</Pill>}
                   {isPrimary && <Pill>{s.primaryPill}</Pill>}
                   {conn.kind === 'local' && <Pill>{s.managedPill}</Pill>}

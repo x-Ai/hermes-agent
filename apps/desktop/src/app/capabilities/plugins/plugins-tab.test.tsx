@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { $pluginRecords } from '@/contrib/plugins-store'
+import { I18nProvider } from '@/i18n'
+import { zh } from '@/i18n/zh'
 import { $agentPlugins, $agentPluginsStatus } from '@/store/agent-plugins'
 import { $confirmRequest, settleConfirm } from '@/store/confirm'
 import { $paneHeightOverride, setPaneHeightOverride } from '@/store/panes'
@@ -81,6 +83,28 @@ describe('PluginsTab', () => {
 
     expect(screen.queryByText('fal')).toBeNull()
     expect(screen.getByText(/No plugins yet/)).toBeTruthy()
+  })
+
+  it('uses localized descriptions for manageable bundled plugins', () => {
+    $agentPlugins.set([
+      {
+        description: 'Raw backend description',
+        key: 'disk-cleanup',
+        name: 'disk-cleanup',
+        source: 'bundled',
+        status: 'enabled',
+        version: '2.0.0'
+      }
+    ])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText(zh.skills.plugins.bundledDescriptions['disk-cleanup'])).toBeTruthy()
+    expect(screen.queryByText('Raw backend description')).toBeNull()
   })
 
   // A desktop half can only be copied out of a backend that runs on THIS

@@ -111,6 +111,12 @@ DEFAULT_CONFIG = {
         # whole call; the OpenAI SDK also retries transient errors (max_retries=2). Set 1 for fast
         # failover to fallback providers; raise to tolerate longer provider hiccups.
         "api_max_retries": 3,
+        # Independent recovery budgets for successful responses with no visible text.
+        # Values above 3 are clamped by the agent runtime.
+        "output_truncation_retries": 1,
+        "post_tool_empty_retries": 1,
+        "thinking_prefill_retries": 2,
+        "empty_response_retries": 3,
         # Once api_max_retries AND the fallback chain are spent on a transient outage (5xx,
         # overloaded/529, connect/read timeouts) with nothing delivered yet, wait and retry this many
         # more cycles (jittered 15/30/60/60/60s; a provider Retry-After wins up to 120s) with a
@@ -345,6 +351,11 @@ DEFAULT_CONFIG = {
         # /output/... inside Docker and emit the host-visible path in MEDIA:, not the container one.
         "docker_volumes": [],
         "docker_mount_cwd_to_workspace": False,  # mount host cwd at /workspace (weakens isolation)
+        "docker_workspace_per_session": False,
+        "singularity_mount_cwd_to_workspace": False,
+        "singularity_workspace_per_session": False,
+        "docker_workspace_mount_path": "/workspace",
+        "singularity_workspace_mount_path": "/workspace",
         "docker_network": True,  # false = --network=none, no network access from commands
         "docker_extra_args": [],        # Extra flags passed verbatim to docker run
         # /dev/shm size for the Docker sandbox. Docker's 64 MB default silently breaks
@@ -1303,6 +1314,8 @@ DEFAULT_CONFIG = {
     "delegation": {
         "model": "",  # e.g. "google/gemini-3-flash-preview" (empty = inherit parent)
         "provider": "",  # e.g. "openrouter" (empty = inherit parent provider + credentials)
+        # Desktop suggestions for configured custom endpoints and their discovered model catalogs.
+        "use_custom_endpoints": False,
         # Fallback chain for delegated children (same entry format as the top-level list).
         # For an unpinned child, null = inherit the parent chain; [] = disable fallback.
         # A child pinned by provider, endpoint, or model gets no fallback unless this

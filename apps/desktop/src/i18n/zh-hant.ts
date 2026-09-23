@@ -1599,6 +1599,7 @@ export const zhHant = defineCompleteLocale({
       updateAllDone: '已發送更新',
       updateAllFailed: '更新扇出失敗',
       updateSkippedCloud: '由Hermes雲端管理',
+      thisDevice: '此裝置',
       kindLocal: '本地',
       kindRemote: '遠端網關',
       kindCloud: 'Hermes 雲',
@@ -2828,6 +2829,7 @@ export const zhHant = defineCompleteLocale({
       toggleFailed: (name: string) => `無法切換${name}`,
       legacyBackend: '該後端早於按鍵尋址插件切換 - 更新 Hermes 以在此處管理它。',
       portableBadge: '隨身攜帶',
+      bundledDescriptions: {},
       sourceLabels: {
         bundled: '捆綁的',
         user: '使用者',

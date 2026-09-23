@@ -2,6 +2,7 @@ import type { ProfileScope } from '@/api/client'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { deleteProfile } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { retireLocalProfileGateways } from '@/store/gateway'
 import { $activeGatewayProfile, normalizeProfileKey, selectProfile, setActiveProfile } from '@/store/profile'
 import { dropTilesForProfile } from '@/store/session-states'
@@ -39,7 +40,7 @@ export function DeleteProfileDialog({
         profile ? (
           <>
             {p.deleteDescPrefix}
-            <span className="font-medium text-foreground">{profile.name}</span>
+            <span className="font-medium text-foreground">{displayEntityName(profile.name, t)}</span>
             {gatewayLabel ? p.fleet.deleteOn(gatewayLabel) : null}
             {p.deleteDescMid}
             <span className="font-mono text-xs">{profile.path}</span>

@@ -3,6 +3,7 @@ import { useStore } from '@nanostores/react'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $profileColors, normalizeProfileKey } from '@/store/profile'
 
@@ -13,7 +14,7 @@ export function ProfileTag({ className, profile }: { className?: string; profile
   const { t } = useI18n()
   const colors = useStore($profileColors)
   const key = normalizeProfileKey(profile)
-  const label = t.sidebar.row.ownedByProfile(key === 'default' ? t.common.defaultName : key)
+  const label = t.sidebar.row.ownedByProfile(displayEntityName(key, t))
 
   return (
     <Tip label={label}>

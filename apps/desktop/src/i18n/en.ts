@@ -1379,6 +1379,7 @@ export const en: Translations = {
       updateAllDone: 'Updates dispatched',
       updateAllFailed: 'Update fan-out failed',
       updateSkippedCloud: 'Managed by Hermes Cloud',
+      thisDevice: 'This device',
       kindLocal: 'Local',
       kindRemote: 'Remote gateway',
       kindCloud: 'Hermes Cloud',
@@ -2418,6 +2419,7 @@ export const en: Translations = {
       toggleFailed: (name: string) => `Could not toggle ${name}`,
       legacyBackend: 'This backend predates key-addressed plugin toggles — update Hermes to manage it here.',
       portableBadge: 'portable',
+      bundledDescriptions: {},
       sourceLabels: {
         bundled: 'bundled',
         user: 'user',

@@ -1503,6 +1503,7 @@ export const ar = defineCompleteLocale({
       updateAllDone: 'تم إرسال التحديثات',
       updateAllFailed: 'فشل التحديث الموسع',
       updateSkippedCloud: 'تتم إدارته بواسطة Hermes Cloud',
+      thisDevice: 'هذا الجهاز',
       kindLocal: 'محلي',
       kindRemote: 'البوابة البعيدة',
       kindCloud: 'Hermes سحابة',
@@ -2549,6 +2550,7 @@ export const ar = defineCompleteLocale({
       toggleFailed: (name: string) => `تعذر التبديل${name}`,
       legacyBackend: 'وتسبق هذه المساندة نظارات البلوجين ذات الصبغة الرئيسية - تحديث Hermes لإدارة ذلك المكان.',
       portableBadge: 'محمول',
+      bundledDescriptions: {},
       sourceLabels: {
         bundled: 'موجود في حزمة',
         user: 'المستخدم',

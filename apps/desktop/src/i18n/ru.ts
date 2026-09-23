@@ -1711,6 +1711,7 @@ export const ru = defineCompleteLocale({
       updateAllDone: 'Обновления разосланы',
       updateAllFailed: 'Не удалось разослать обновления',
       updateSkippedCloud: 'Управляется Hermes Cloud',
+      thisDevice: 'Это устройство',
       kindLocal: 'Локальный',
       kindRemote: 'Удалённый шлюз',
       kindCloud: 'Hermes Cloud',
@@ -2785,6 +2786,7 @@ export const ru = defineCompleteLocale({
       legacyBackend:
         'Этот бэкэнд предшествует переключателям плагинов с адресацией по ключу — обновите Hermes, чтобы управлять им здесь.',
       portableBadge: 'портативный',
+      bundledDescriptions: {},
       sourceLabels: {
         bundled: 'упакованный',
         user: 'пользователь',

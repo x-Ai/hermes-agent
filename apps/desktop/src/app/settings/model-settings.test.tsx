@@ -308,6 +308,14 @@ describe('ModelSettings', () => {
     await waitFor(() => expect(saveHermesConfig).toHaveBeenCalledWith({ agent: { service_tier: 'fast' } }))
   })
 
+  it('keeps the main reasoning label on one line beside its selector', async () => {
+    await renderModelSettings()
+
+    const label = await screen.findByText('Reasoning', { selector: 'span' })
+
+    expect(label.classList.contains('whitespace-nowrap')).toBe(true)
+  })
+
   it('hides the reasoning/speed defaults when the main model reports no capabilities', async () => {
     getGlobalModelOptions.mockResolvedValueOnce({
       providers: [

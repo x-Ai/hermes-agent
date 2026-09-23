@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import type { DesktopRegistryConnection } from '@/global'
+import { zh } from '@/i18n/zh'
 
 import {
   connectionEndpoint,
   connectionMatchesQuery,
   connectionTooltip,
+  displayConnectionLabel,
   sortConnectionsForDisplay
 } from './connection-display'
 
@@ -79,5 +81,10 @@ describe('connection display helpers', () => {
     expect(connectionEndpoint(ssh)).toBe('hermes@studio.example.test:2222')
     expect(connectionTooltip(ssh)).not.toContain('/secret/key')
     expect(connectionTooltip(connection('local', 'This device', 'local'))).toBe('This device')
+  })
+
+  it('localizes the built-in local connection without rewriting user labels', () => {
+    expect(displayConnectionLabel(connection('local', 'This device', 'local'), zh)).toBe('本设备')
+    expect(displayConnectionLabel(connection('work', 'Work gateway'), zh)).toBe('Work gateway')
   })
 })

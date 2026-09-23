@@ -220,7 +220,7 @@ function ProfileRow({
         />
       }
       menuItems={menuItems}
-      menuLabel={profileLabel(profile)}
+      menuLabel={displayEntityName(profileLabel(profile), t)}
       onSelect={onSelect}
       rowKey={profile.name}
       title={displayEntityName(profileLabel(profile), t)}

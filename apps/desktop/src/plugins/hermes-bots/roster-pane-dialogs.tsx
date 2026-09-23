@@ -54,6 +54,10 @@ export function renderRosterDialogs({
   activeSourceRoster,
   refetch
 }: renderRosterDialogsProps) {
+  const deletingDisplayName = deleting
+    ? deleting.name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName)
+    : ''
+
   return (
     <>
       <CreateAgentDialog
@@ -108,7 +112,7 @@ export function renderRosterDialogs({
           deleting ? (
             <span>
               {b.bot.deleteDescriptionPrefix}
-              <span className="font-medium text-foreground">{deleting.name}</span>
+              <span className="font-medium text-foreground">{deletingDisplayName}</span>
               {b.bot.deleteDescriptionMiddle}
               <span className="font-mono text-xs">{deleting.path}</span>
               {b.bot.deleteDescriptionSuffix}
@@ -128,7 +132,7 @@ export function renderRosterDialogs({
           await refetch()
           host.notify({
             kind: 'success',
-            message: b.bot.profileDeleted(name)
+            message: b.bot.profileDeleted(name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName))
           })
         }}
         open={Boolean(deleting)}

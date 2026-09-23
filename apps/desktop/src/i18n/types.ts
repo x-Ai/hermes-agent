@@ -1335,6 +1335,7 @@ export interface Translations {
       updateAllDone: string
       updateAllFailed: string
       updateSkippedCloud: string
+      thisDevice: string
       kindLocal: string
       kindRemote: string
       kindCloud: string
@@ -1814,6 +1815,7 @@ export interface Translations {
       toggleFailed: (name: string) => string
       legacyBackend: string
       portableBadge: string
+      bundledDescriptions: Record<string, string>
       sourceLabels: Record<string, string>
       catalogTitle: string
       catalogBrowse: string

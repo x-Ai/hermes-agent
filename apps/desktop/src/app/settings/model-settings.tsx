@@ -27,6 +27,7 @@ import type {
 } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { isCodeSkewRestartRequired } from '@/lib/code-skew-error'
+import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'
 import { isSubmitEnter } from '@/lib/ime'
 import { cn } from '@/lib/utils'
@@ -961,8 +962,8 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
           {needsSetup && !setupIsApiKey && selectedProviderRow && (
             <p className="mt-2 text-xs text-muted-foreground">
               {selectedProviderRow?.auth_type === 'api_key'
-                ? `${selectedProviderRow?.name} needs an API key — set it up to choose a model.`
-                : `${selectedProviderRow?.name} signs in through your browser — Hermes runs the flow for you.`}
+                ? m.needsApiKeyHint(selectedProviderRow.name)
+                : m.oauthHint(selectedProviderRow.name)}
             </p>
           )}
           {config && mainModel && (reasoningSupported || fastSupported) && (
@@ -970,7 +971,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               <span className="text-xs text-muted-foreground">{m.defaultsLabel}</span>
               {reasoningSupported && (
                 <div className="flex items-center gap-2 text-xs">
-                  {m.reasoning}
+                  <span className="whitespace-nowrap">{m.reasoning}</span>
                   <Select
                     onValueChange={value => void writeAgentDefault('agent.reasoning_effort', value)}
                     value={effortValue}
@@ -990,7 +991,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               )}
               {fastSupported && (
                 <label className="flex items-center gap-2 text-xs">
-                  {t.shell.modelOptions.fast}
+                  <span className="whitespace-nowrap">{t.shell.modelOptions.fast}</span>
                   <Switch
                     checked={fastOn}
                     onCheckedChange={checked =>
@@ -1193,7 +1194,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               <SelectContent>
                 {Object.keys(moa.presets).map(name => (
                   <SelectItem key={name} value={name}>
-                    {name}
+                    {displayEntityName(name, t)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1278,7 +1279,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
             </Button>
           </div>
           <div className="mb-2 text-xs text-muted-foreground">
-            {m.moa.defaultLabel} <span className="font-mono">{moa.default_preset}</span>
+            {m.moa.defaultLabel} <span className="font-mono">{displayEntityName(moa.default_preset, t)}</span>
           </div>
           <div className="grid gap-1">
             {currentMoaPreset.reference_models.map((slot, index) => (

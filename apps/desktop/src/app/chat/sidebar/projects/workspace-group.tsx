@@ -7,6 +7,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { ProfileGlyph } from '@/components/ui/profile-glyph'
 import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { displayPath } from '@/lib/display-path'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { $sidebarShowAllSessions, setWorkspaceNodeOpen } from '@/store/layout'
@@ -74,6 +75,7 @@ export function SidebarWorkspaceGroup({
   const visibleSessions = sessions.slice(0, isProfileGroup ? PROJECT_PREVIEW_COUNT : laneCap)
   const hiddenCount = isProfileGroup ? 0 : sessions.length - visibleSessions.length
   const nextCount = Math.min(SIDEBAR_GROUP_PAGE, hiddenCount)
+  const displayLabel = isProfileGroup ? displayEntityName(group.label, t) : group.label
 
   // Leading glyph: a home mark for the repo's primary checkout (labeled by its
   // live branch), a branch/kanban mark otherwise.
@@ -146,7 +148,7 @@ export function SidebarWorkspaceGroup({
   // Main checkout lanes are branch-targeted.
   const addButton = (onNewSession || isProfileGroup) && (
     <WorkspaceAddButton
-      label={s.newSessionIn(group.label)}
+      label={s.newSessionIn(displayLabel)}
       onClick={() => void handleNewSession()}
       onPointerDown={
         onNewSessionSplit
@@ -157,7 +159,7 @@ export function SidebarWorkspaceGroup({
               // onClick above.
               startNewSessionDrag(placement => void handleNewSessionSplit(placement), event, {
                 cwd: group.path,
-                label: s.newSessionIn(group.label),
+                label: s.newSessionIn(displayLabel),
                 profile: isProfileGroup ? group.id : undefined
               })
             }
@@ -179,11 +181,11 @@ export function SidebarWorkspaceGroup({
           // named theirs) — profile keys are stored lowercase.
           label={
             <SidebarRowLink
-              aria-label={t.profiles.switchToProfile(group.label)}
+              aria-label={t.profiles.switchToProfile(displayLabel)}
               labelClassName="capitalize hover:text-foreground hover:underline"
               onClick={() => selectProfile(group.id)}
             >
-              {group.label}
+              {displayLabel}
             </SidebarRowLink>
           }
           lead={
@@ -198,7 +200,11 @@ export function SidebarWorkspaceGroup({
               />
             </SidebarRowLead>
           }
-          toggle={{ ariaLabel: s.projects.toggle(group.label, !open), onToggle: toggleOpen, open }}
+          toggle={{
+            ariaLabel: s.projects.toggle(displayLabel, !open),
+            onToggle: toggleOpen,
+            open
+          }}
           totals={{ costUsd: usage?.cost_usd ?? 0, tokens: usage?.tokens ?? 0 }}
         />
       ) : (

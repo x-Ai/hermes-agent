@@ -77,10 +77,62 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
         "description": "Context window override (0 = auto-detect from model metadata)",
         "category": "general",
     },
+    "agent.output_truncation_retries": {
+        "type": "number",
+        "description": "Retries after an output-token limit produces no visible text",
+        "options": [0, 1, 2, 3],
+    },
+    "agent.post_tool_empty_retries": {
+        "type": "number",
+        "description": "Continuation retries after tools produce no visible answer",
+        "options": [0, 1, 2, 3],
+    },
+    "agent.thinking_prefill_retries": {
+        "type": "number",
+        "description": "Prefill retries for reasoning-only responses",
+        "options": [0, 1, 2, 3],
+    },
+    "agent.empty_response_retries": {
+        "type": "number",
+        "description": "Final retries for responses containing no visible text",
+        "options": [0, 1, 2, 3],
+    },
+    "agent.environment_probe": {
+        "type": "boolean",
+        "description": "Probe execution-environment details for new sessions",
+    },
     "terminal.backend": _select(
         "Terminal execution backend",
         "local", "docker", "ssh", "modal", "daytona", "vercel_sandbox", "singularity",
     ),
+    "terminal.container_persistent": {
+        "type": "boolean",
+        "description": "Keep container filesystem state across Hermes sessions",
+    },
+    "terminal.docker_mount_cwd_to_workspace": {
+        "type": "boolean",
+        "description": "Bind-mount the project folder into Docker at /workspace",
+    },
+    "terminal.docker_workspace_per_session": {
+        "type": "boolean",
+        "description": "Follow the project folder selected by each session in Docker",
+    },
+    "terminal.docker_workspace_mount_path": {
+        "type": "string",
+        "description": "Full in-container Docker project mount path",
+    },
+    "terminal.singularity_mount_cwd_to_workspace": {
+        "type": "boolean",
+        "description": "Bind-mount the project folder into Singularity at /workspace",
+    },
+    "terminal.singularity_workspace_per_session": {
+        "type": "boolean",
+        "description": "Follow the project folder selected by each session in Singularity",
+    },
+    "terminal.singularity_workspace_mount_path": {
+        "type": "string",
+        "description": "Full in-container Singularity project mount path",
+    },
     # sync with _SUPPORTED_VERCEL_RUNTIMES in terminal_tool.py
     "terminal.vercel_runtime": _select("Vercel Sandbox runtime", "node24", "node22", "python3.13"),
     "terminal.modal_mode": _select("Modal sandbox mode", "sandbox", "function"),

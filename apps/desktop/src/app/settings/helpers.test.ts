@@ -18,6 +18,32 @@ import {
 } from './helpers'
 
 describe('settings helpers', () => {
+  it('surfaces the complete advanced runtime controls with registered field copy', () => {
+    const advanced = SECTIONS.find(section => section.id === 'advanced')
+
+    const restored = [
+      'terminal.container_persistent',
+      'terminal.docker_mount_cwd_to_workspace',
+      'terminal.docker_workspace_per_session',
+      'terminal.docker_workspace_mount_path',
+      'terminal.singularity_mount_cwd_to_workspace',
+      'terminal.singularity_workspace_per_session',
+      'terminal.singularity_workspace_mount_path',
+      'agent.output_truncation_retries',
+      'agent.post_tool_empty_retries',
+      'agent.thinking_prefill_retries',
+      'agent.empty_response_retries',
+      'delegation.use_custom_endpoints'
+    ]
+
+    expect(advanced?.keys).toEqual(expect.arrayContaining(restored))
+
+    for (const key of restored) {
+      expect(fieldCopyForSchemaKey(FIELD_LABELS, key)).toBeTruthy()
+      expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, key)).toBeTruthy()
+    }
+  })
+
   it('surfaces repository discovery config in Workspace with user-facing copy', () => {
     const workspace = SECTIONS.find(section => section.id === 'workspace')
 

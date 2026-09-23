@@ -11,6 +11,10 @@ import { triggerHaptic } from '@/lib/haptics'
 import { notifyError } from '@/store/notifications'
 import { $voiceLiveStatus, selectedVoiceChatMode, setVoiceChatMode } from '@/store/voice-live'
 
+export function voiceLiveUnavailableReason(reason: null | string, fallback: string): string {
+  return !reason || /no OpenAI API key/i.test(reason) ? fallback : reason
+}
+
 /**
  * Which engine the next voice conversation mounts: the chained
  * speech-to-text → Hermes → speech loop, or GPT-Live delegating to Hermes.
@@ -32,6 +36,7 @@ export function VoiceEngineRows({ disabled }: { disabled: boolean }) {
   }
 
   const liveAvailable = status.available
+  const liveUnavailableReason = voiceLiveUnavailableReason(status.reason, c.voiceEngineLiveNeedsKey)
 
   return (
     <>
@@ -55,7 +60,7 @@ export function VoiceEngineRows({ disabled }: { disabled: boolean }) {
             <span>{c.voiceEngineLive}</span>
             {liveAvailable ? null : (
               <span className="text-muted-foreground truncate text-xs">
-                {status.reason ?? c.voiceEngineLiveNeedsKey}
+                {liveUnavailableReason}
               </span>
             )}
           </span>
