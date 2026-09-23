@@ -1749,6 +1749,10 @@ export interface Translations {
         description: string
       }
       loading: string
+
+      providerLabels: Record<string, string>
+
+      providerDescriptions: Record<string, string>
     }
     sessions: {
       loading: string
@@ -1780,6 +1784,8 @@ export interface Translations {
       updateDirFailed: string
       clearDirFailed: string
     }
+
+    envKeys: Record<string, { description?: string; prompt?: string }>
   }
   skills: {
     plugins: {
@@ -1953,6 +1959,10 @@ export interface Translations {
     tabPlugins: string
     officialCatalog: string
     officialPill: string
+
+    toolsetDescriptions: Record<string, string>
+
+    toolsetLabels: Record<string, string>
   }
   starmap: {
     title: string
@@ -2273,6 +2283,8 @@ export interface Translations {
     openLogs: string
     fieldCopy: Record<string, { label?: string; help?: string; placeholder?: string }>
     platformIntro: Record<string, string>
+
+    platformDescription: Record<string, string>
   }
   sidebar: {
     gatewayGroups: {

@@ -2379,7 +2379,9 @@ export const ru = defineCompleteLocale({
         title: 'Локальный / свой эндпоинт',
         description: 'Направьте Hermes на любой OpenAI-совместимый эндпоинт (Zyphra, vLLM, llama.cpp, Ollama и т. д.).'
       },
-      loading: 'Загрузка провайдеров…'
+      loading: 'Загрузка провайдеров…',
+      providerLabels: {},
+      providerDescriptions: {}
     },
     sessions: {
       loading: 'Загрузка архивных сеансов…',
@@ -2666,7 +2668,8 @@ export const ru = defineCompleteLocale({
         'Не удалось открыть Системные настройки. Откройте раздел «Конфиденциальность и безопасность» вручную и повторите попытку.',
       captureFailed: 'Не удалось снять переднее окно. Ничего не прикреплено и не отправлено.',
       contextChanged: 'Текущий черновик изменился во время съёмки. Снимок не прикреплён и не отправлен.'
-    }
+    },
+    envKeys: {}
   },
   skills: {
     tabSkills: 'Навыки',
@@ -2873,6 +2876,13 @@ export const ru = defineCompleteLocale({
         `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : 'рискованные модели'} to review${unverified ? ' and the skill comes from an unverified source' : ''}. Прочтите скан, прежде чем решить, стоит ли доверять автору.`,
       viewScan: 'Посмотреть скан',
       openLog: 'Открыть журнал'
+    },
+    toolsetDescriptions: {
+      a2a: 'A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — bidirectional inter-agent communication using the open Linux Foundation standard. Outbound tools discover peers, fetch Agent Cards, and send JSON-RPC tasks. The inbound adapter exposes Hermes at /.well-known/agent-card.json and routes tasks into its live gateway session with full memory and context. Localhost-only binding is used when no bearer token is configured; inbound text is filtered, outbound credentials are scrubbed, and exchanges are audit-logged outside context compaction. Uses only the Python standard library; no a2a-sdk dependency is required.',
+      stt: 'voice transcription (gateway voice messages + voice mode)'
+    },
+    toolsetLabels: {
+      stt: 'Speech-to-Text'
     }
   },
   starmap: {
@@ -3419,7 +3429,34 @@ export const ru = defineCompleteLocale({
     restartFailedManualDetail:
       'Попробуйте перезагрузить еще раз; если все равно не получится, откройте логи и отправьте диагностику.',
     restartAgain: 'Перезагрузить снова',
-    openLogs: 'Открыть журналы'
+    openLogs: 'Открыть журналы',
+    platformDescription: {
+      telegram: 'Use Hermes in Telegram private chats, groups, and topics.',
+      discord: 'Connect Hermes to Discord DMs, channels, and threads.',
+      slack:
+        'Use Hermes in Slack via Socket Mode. The bot only responds to connected users after adding allowed Slack member IDs.',
+      mattermost: 'Connect Hermes to Mattermost channels and DMs.',
+      matrix: 'Use Hermes in Matrix rooms and DMs.',
+      signal: 'Connect via signal-cli REST bridge.',
+      whatsapp: 'Use Hermes with WhatsApp via bundled bridge — scan to auth.',
+      bluebubbles: 'Use Hermes in iMessage via BlueBubbles server.',
+      homeassistant: 'Control your smart home from Hermes via Home Assistant.',
+      email: 'Talk to Hermes via IMAP/SMTP mailbox.',
+      sms: 'Send and receive SMS via Twilio.',
+      dingtalk: 'Connect Hermes to DingTalk groups.',
+      feishu: 'Use Hermes in Feishu / Lark.',
+      google_chat: 'Connect Hermes to Google Chat via Cloud Pub/Sub.',
+      wecom: 'Send-only WeCom group bot (webhook style).',
+      wecom_callback: 'Two-way WeCom integration via callback app.',
+      weixin: 'Connect personal WeChat account via Tencent iLink Bot API.',
+      qqbot: 'Connect Hermes to QQ Open Platform bots.',
+      yuanbao: 'Connect Hermes to Tencent Yuanbao.',
+      api_server: 'Expose Hermes as an OpenAI-compatible HTTP API for tools like Open WebUI.',
+      webhook: 'Receive events from webhook sources like GitHub, GitLab.',
+      a2a: "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication.\n\nOUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...).\n\nINBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone.\n\nSecurity is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts.\n\nPure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.",
+      buzz: 'Connect to decentralized Buzz community via Nostr relays (requires buzz CLI).',
+      raft: 'Join a Raft workspace as an external agent to collaborate on tasks.'
+    }
   },
   webhooks: {
     search: 'Поиск вебхуков...',

@@ -2041,7 +2041,9 @@ export const ar = defineCompleteLocale({
         title: 'نقطة نهاية محلية',
         description: 'استخدم خادما محليا أو نقطة نهاية متوافقة مع OpenAI لهذا المزود.'
       },
-      loading: 'جار تحميل المزودين...'
+      loading: 'جار تحميل المزودين...',
+      providerLabels: {},
+      providerDescriptions: {}
     },
     sessions: {
       loading: 'جار تحميل الجلسات المؤرشفة...',
@@ -2321,7 +2323,8 @@ export const ar = defineCompleteLocale({
       permissionFailed: 'تعذر فتح إعدادات النظام. افتح الخصوصية والأمان يدويًا، ثم أعد المحاولة.',
       captureFailed: 'تعذر التقاط النافذة الأمامية. لم يتم إرفاق أي شيء أو إرساله.',
       contextChanged: 'تم تغيير المسودة الحالية أثناء الالتقاط. لم يتم إرفاق الصورة أو إرسالها.'
-    }
+    },
+    envKeys: {}
   },
   skills: {
     tabSkills: 'المهارات',
@@ -2519,6 +2522,13 @@ export const ar = defineCompleteLocale({
         `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : 'أنماط الخطر'} to review${unverified ? ' and the skill comes from an unverified source' : ''}- اقرأ المسح قبل أن تقرر ما إذا كانت ستثق بصاحب البلاغ.`,
       viewScan: 'المسح الضوئي',
       openLog: 'السجل المفتوح'
+    },
+    toolsetDescriptions: {
+      a2a: 'دعم بروتوكول A2A (Agent-to-Agent) الإصدار 1.0 في Hermes Agent للاتصال ثنائي الاتجاه بين الوكلاء وفق معيار Linux Foundation المفتوح. تكتشف أدوات الإرسال النظراء وتجلب Agent Card وترسل مهام JSON-RPC، بينما يعرض محول الاستقبال Hermes عبر /.well-known/agent-card.json ويوجه المهام إلى جلسة البوابة المباشرة بكامل الذاكرة والسياق. عند عدم إعداد bearer token يقتصر الربط على localhost، مع ترشيح النص الوارد وتنظيف بيانات الاعتماد الصادرة وتسجيل كل التبادلات خارج ضغط السياق. يعتمد على مكتبة Python القياسية فقط ولا يحتاج إلى a2a-sdk.',
+      stt: 'تحويل الصوت إلى نص (رسائل صوتية وأوضاع صوتية للبوابة)'
+    },
+    toolsetLabels: {
+      stt: 'تحويل الكلام إلى نص'
     }
   },
   starmap: {
@@ -3052,11 +3062,71 @@ export const ar = defineCompleteLocale({
         help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp مفصولة بفواصل.'
       }
     },
-    platformIntro: {},
+    platformIntro: {
+      telegram:
+        'في Telegram، تحدث إلى @BotFather، وقم بتشغيل /newbot، انسخ الرمز الذي يعطيك إياه. ثم احصل على معرّف مستخدمك الرقمي من @userinfobot.',
+      discord:
+        'افتح بوابة مطوري Discord، أنشئ تطبيقًا، أضف Bot، وانسخ رمزه. قم بدعوة البوت إلى خادمك بالنطاقات الصحيحة.',
+      slack: 'أنشئ تطبيق Slack، فعّل Socket Mode، ثبّته في مساحة العمل الخاصة بك، وانسخ رمز البوت ورمز مستوى التطبيق.',
+      mattermost: 'أنشئ حساب بوت أو رمز وصول شخصي على خادم Mattermost الخاص بك، ثم الصق رابط الخادم والرمز هنا.',
+      matrix:
+        'سجّل الدخول إلى الخادم الرئيسي باستخدام حساب البوت، وانسخ رمز الوصول ومعرّف المستخدم ورابط الخادم الرئيسي.',
+      signal:
+        'قم بتشغيل جسر signal-cli REST في موقع يمكن الوصول إليه، ثم وجّه Hermes إلى هذا الرابط ورقم الهاتف المسجل.',
+      whatsapp: 'قم بتشغيل جسر WhatsApp المدمج في Hermes، امسح رمز QR عند التشغيل الأول، ثم فعّل المنصة.',
+      bluebubbles:
+        'قم بتشغيل خادم BlueBubbles على Mac يحتوي على iMessage، اكشف API الخاص به، ثم وجّه Hermes إلى هذا الرابط مع كلمة مرور الخادم.',
+      homeassistant: 'افتح ملفك الشخصي في Home Assistant وأنشئ رمز وصول طويل الأجل. الصقه هنا مع رابط HA الخاص بك.',
+      email:
+        'استخدم صندوق بريد مخصص. بالنسبة لـ Gmail/Workspace، أنشئ كلمة مرور للتطبيق واستخدم imap.gmail.com / smtp.gmail.com.',
+      sms: 'احصل على Account SID و Auth Token من وحدة تحكم Twilio، بالإضافة إلى رقم هاتف قادر على إرسال الرسائل القصيرة.',
+      dingtalk: 'أنشئ تطبيق DingTalk في وحدة تحكم المطورين، وانسخ Client ID (App key) و Client Secret هنا.',
+      feishu: 'أنشئ تطبيق Feishu / Lark، قم بإعداد قدرات البوت، وانسخ App ID و App secret ومفتاح تشفير الأحداث.',
+      wecom:
+        'أضف بوت مجموعة في WeCom، وانسخ مفتاح webhook الخاص به كـ WECOM_BOT_ID. إرسال فقط — للاتجاهين استخدم خيار WeCom (التطبيق).',
+      wecom_callback:
+        'قم بإعداد تطبيق WeCom الذاتي، اكشف رابط callback الخاص به، وقدم corp ID و secret و agent ID و AES key.',
+      weixin:
+        'قم بتشغيل `hermes gateway setup`، اختر Weixin، ثم امسح وأكّد رمز QR باستخدام حساب WeChat الشخصي الخاص بك. سيتصل Hermes عبر Tencent iLink Bot API ويحفظ بيانات الاعتماد.',
+      qqbot: 'سجّل تطبيقًا على منصة QQ المفتوحة (q.qq.com)، وانسخ App ID و Client Secret.',
+      api_server:
+        'اكشف Hermes كـ API متوافق مع OpenAI. قم بتعيين مفتاح مصادقة، ثم وجّه Open WebUI / LobeChat وغيرها إلى host:port.',
+      webhook:
+        'قم بتشغيل خادم HTTP حتى تتمكن الأدوات الأخرى (GitHub، GitLab، التطبيقات المخصصة) من POST. تحقق من التوقيعات باستخدام السر.',
+      a2a: 'لا توجد تبعيات خارجية (المكتبة القياسية فقط). قم بتعيين رمز مشترك أو رمز نظير للسماح لمثيلات Hermes الأخرى بالاتصال عبر بروتوكول A2A.',
+      buzz: 'يتطلب أداة buzz CLI (https://github.com/block/buzz) في PATH أو BUZZ_CLI_PATH. اتصل بمجتمع Buzz عبر Nostr relay.',
+      raft: 'انضم إلى مساحة عمل Raft كوكيل خارجي.'
+    },
     sharedListenerUrl: 'يُخدم عبر مستمع البوابة المشتركة على',
     restartFailedManualDetail: 'حاول إعادة التشغيل مرة أخرى؛ إذا كان لا يزال يفشل، فتح السجلات وإرسال التشخيصات.',
     restartAgain: 'عودوا مرة أخرى',
-    openLogs: 'فتح السجلات'
+    openLogs: 'فتح السجلات',
+    platformDescription: {
+      telegram: 'استخدم Hermes في رسائل Telegram الخاصة والمجموعات والمواضيع.',
+      discord: 'دمج Hermes مع رسائل Discord المباشرة والقنوات والخيوط.',
+      slack: 'استخدم Hermes في Slack عبر Socket Mode. أضف معرّفات أعضاء Slack المسموح بهم وسيستجيب البوت المتصل.',
+      mattermost: 'دمج Hermes مع قنوات Mattermost والرسائل المباشرة.',
+      matrix: 'استخدم Hermes في غرف Matrix والرسائل المباشرة.',
+      signal: 'اتصل عبر جسر signal-cli REST.',
+      whatsapp: 'استخدم Hermes عبر جسر WhatsApp المدمج مع مصادقة رمز QR.',
+      bluebubbles: 'استخدم Hermes في iMessage عبر خادم BlueBubbles.',
+      homeassistant: 'تحكم في منزلك الذكي من Hermes عبر Home Assistant.',
+      email: 'تحدث مع Hermes عبر صندوق بريد IMAP/SMTP.',
+      sms: 'أرسل واستقبل الرسائل النصية عبر Twilio.',
+      dingtalk: 'دمج Hermes مع مجموعات DingTalk.',
+      feishu: 'استخدم Hermes داخل Feishu / Lark.',
+      google_chat: 'دمج Hermes مع Google Chat عبر Cloud Pub/Sub.',
+      wecom: 'بوت مجموعة WeCom للإرسال فقط عبر webhook.',
+      wecom_callback: 'تكامل WeCom ثنائي الاتجاه عبر تطبيق callback.',
+      weixin: 'اربط حساب WeChat الشخصي عبر Tencent iLink Bot API.',
+      qqbot: 'دمج Hermes مع بوت QQ على منصة QQ المفتوحة.',
+      yuanbao: 'دمج Hermes مع Tencent Yuanbao.',
+      api_server: 'اكشف Hermes كـ HTTP API متوافق مع OpenAI لأدوات مثل Open WebUI.',
+      webhook: 'استقبل الأحداث من مصادر webhook مثل GitHub و GitLab.',
+      a2a: 'دعم بروتوكول A2A (Agent-to-Agent) الإصدار 1.0 لـ Hermes Agent —— الاتجاهان من معيار Linux Foundation المفتوح للاتصال بين الوكلاء.\n\nالصادر (أدوات العميل): تتيح a2a_discover و a2a_call و a2a_list و a2a_history و a2a_orchestrate للوكيل جلب بطاقة الوكيل (Agent Card) لوكيل آخر وإرسال مهام إليه عبر JSON-RPC —— يعمل مع أي نظير متوافق مع A2A (Hermes، LangChain، CrewAI، Google ADK، OpenClaw، إلخ).\n\nالوارد (محول المنصة): يعرض Hermes كوكيل قابل للاكتشاف عبر A2A. يتم تقديم بطاقة الوكيل على /.well-known/agent-card.json (مسار v1.0 الأساسي؛ agent.json القديم يستجيب أيضًا) ويتم توجيه المهام الواردة إلى جلسة البوابة المباشرة للوكيل مثل أي منصة أخرى —— لذا فإن الوكيل الذي يرد هو نفسه الذي يتحدث إلى المستخدم، مع الذاكرة والسياق الكاملين، وليس نسخة يمكن التخلص منها.\n\nالأمان مفعّل افتراضيًا: عدم تكوين رمز حامل => ربط localhost فقط. يمر نص المهمة الواردة عبر مرشحات حقن المطالبات؛ يتم تنظيف النص الصادر من السلاسل ذات الشكل الاعتمادي؛ يتم تسجيل كل تبادل في سجل المراجعة والاحتفاظ به على القرص خارج خط أنابيب ضغط السياق بحيث تنجو المحادثات من الضغط وإعادة التشغيل.\n\nنقل مكتبة قياسية نقية (http.server + urllib) —— لا حاجة لتبعية a2a-sdk.',
+      buzz: 'اتصل بمجتمع Buzz اللامركزي عبر Nostr relay (يتطلب buzz CLI).',
+      raft: 'انضم إلى مساحة عمل Raft كوكيل خارجي للتعاون في المهام.'
+    }
   },
   webhooks: {
     search: 'ابحثوا في الويب.',

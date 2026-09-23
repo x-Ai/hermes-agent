@@ -2039,7 +2039,9 @@ export const en: Translations = {
         title: 'Local / custom endpoint',
         description: 'Point Hermes at any OpenAI-compatible endpoint (Zyphra, vLLM, llama.cpp, Ollama, etc).'
       },
-      loading: 'Loading providers...'
+      loading: 'Loading providers...',
+      providerLabels: {},
+      providerDescriptions: {}
     },
     sessions: {
       loading: 'Loading archived sessions…',
@@ -2324,7 +2326,8 @@ export const en: Translations = {
       permissionFailed: 'Could not open System Settings. Open Privacy & Security manually, then retry.',
       captureFailed: 'Could not capture the frontmost window. Nothing was attached or sent.',
       contextChanged: 'The current draft changed during capture. The screenshot was not attached or sent.'
-    }
+    },
+    envKeys: {}
   },
   skills: {
     tabSkills: 'Skills',
@@ -2527,6 +2530,13 @@ export const en: Translations = {
         `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : 'risky patterns'} to review${unverified ? ' and the skill comes from an unverified source' : ''}. Read the scan before deciding whether to trust the author.`,
       viewScan: 'View scan',
       openLog: 'Open log'
+    },
+    toolsetDescriptions: {
+      a2a: 'A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — bidirectional inter-agent communication using the open Linux Foundation standard. Outbound tools discover peers, fetch Agent Cards, and send JSON-RPC tasks. The inbound adapter exposes Hermes at /.well-known/agent-card.json and routes tasks into its live gateway session with full memory and context. Localhost-only binding is used when no bearer token is configured; inbound text is filtered, outbound credentials are scrubbed, and exchanges are audit-logged outside context compaction. Uses only the Python standard library; no a2a-sdk dependency is required.',
+      stt: 'voice transcription (gateway voice messages + voice mode)'
+    },
+    toolsetLabels: {
+      stt: 'Speech-to-Text'
     }
   },
   starmap: {
@@ -3069,11 +3079,78 @@ export const en: Translations = {
         help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
       }
     },
-    platformIntro: {},
+    platformIntro: {
+      telegram:
+        'In Telegram, talk to @BotFather, run /newbot, and copy the token it gives you. Then get your numeric user ID from @userinfobot.',
+      discord:
+        'Open the Discord Developer Portal, create an application, add a Bot, then copy its token. Invite the bot to your server with proper permission scopes.',
+      slack:
+        'Create a Slack app, enable Socket Mode, install it to your workspace, then copy the bot token and app-level token.',
+      mattermost:
+        'On your Mattermost server, create a bot account or personal access token, then paste the server URL and token here.',
+      matrix:
+        'Log in to your homeserver with the bot account, then copy the access token, user ID, and homeserver URL.',
+      signal:
+        'Run a signal-cli REST bridge at an accessible location, then point Hermes at that URL and a registered phone number.',
+      whatsapp:
+        'Start the bundled WhatsApp bridge with Hermes, scan the QR code on first run, then enable the platform.',
+      bluebubbles:
+        'Run BlueBubbles Server on a Mac with iMessage, expose its API, then point Hermes at that URL with the server password.',
+      homeassistant:
+        'Open your profile in Home Assistant and create a long-lived access token. Paste it here along with your HA URL.',
+      email:
+        'Use a dedicated mailbox. For Gmail/Workspace, create an app-specific password and use imap.gmail.com / smtp.gmail.com.',
+      sms: 'Get your Account SID and Auth Token from the Twilio console, along with an SMS-enabled phone number.',
+      dingtalk:
+        'Create a DingTalk application in the developer console, then copy the Client ID (App key) and Client Secret here.',
+      feishu:
+        'Create a Feishu / Lark app, configure bot capabilities, and copy the App ID, App secret, and event encryption key.',
+      wecom:
+        'Add a group bot in WeCom, copy its webhook key as WECOM_BOT_ID. Send-only — for two-way use the WeCom (App) option.',
+      wecom_callback:
+        'Set up a WeCom self-built app, expose its callback URL, and provide the corp ID, secret, agent ID, and AES key.',
+      weixin:
+        'Run `hermes gateway setup`, choose Weixin, then scan and confirm the QR code with your personal WeChat account. Hermes will connect via Tencent iLink Bot API and save credentials.',
+      qqbot: 'Register an application on QQ Open Platform (q.qq.com), copy the App ID and Client Secret.',
+      api_server:
+        'Expose Hermes as an OpenAI-compatible API. Set an auth key, then point Open WebUI / LobeChat etc. at host:port.',
+      webhook:
+        'Run an HTTP server for other tools (GitHub, GitLab, custom apps) to POST to. Verify signatures with a secret.',
+      a2a: 'No external dependencies (stdlib only). Set a shared token or peer tokens to allow other Hermes instances to connect via A2A protocol.',
+      buzz: 'Requires buzz CLI tool (https://github.com/block/buzz) in PATH or BUZZ_CLI_PATH. Connects to Buzz community via Nostr relays.',
+      raft: 'Join a Raft workspace as an external agent.'
+    },
     sharedListenerUrl: 'Served on the shared gateway listener at',
     restartFailedManualDetail: 'Try Restart again; if it still fails, open the logs and send diagnostics.',
     restartAgain: 'Restart again',
-    openLogs: 'Open logs'
+    openLogs: 'Open logs',
+    platformDescription: {
+      telegram: 'Use Hermes in Telegram private chats, groups, and topics.',
+      discord: 'Connect Hermes to Discord DMs, channels, and threads.',
+      slack:
+        'Use Hermes in Slack via Socket Mode. The bot only responds to connected users after adding allowed Slack member IDs.',
+      mattermost: 'Connect Hermes to Mattermost channels and DMs.',
+      matrix: 'Use Hermes in Matrix rooms and DMs.',
+      signal: 'Connect via signal-cli REST bridge.',
+      whatsapp: 'Use Hermes with WhatsApp via bundled bridge — scan to auth.',
+      bluebubbles: 'Use Hermes in iMessage via BlueBubbles server.',
+      homeassistant: 'Control your smart home from Hermes via Home Assistant.',
+      email: 'Talk to Hermes via IMAP/SMTP mailbox.',
+      sms: 'Send and receive SMS via Twilio.',
+      dingtalk: 'Connect Hermes to DingTalk groups.',
+      feishu: 'Use Hermes in Feishu / Lark.',
+      google_chat: 'Connect Hermes to Google Chat via Cloud Pub/Sub.',
+      wecom: 'Send-only WeCom group bot (webhook style).',
+      wecom_callback: 'Two-way WeCom integration via callback app.',
+      weixin: 'Connect personal WeChat account via Tencent iLink Bot API.',
+      qqbot: 'Connect Hermes to QQ Open Platform bots.',
+      yuanbao: 'Connect Hermes to Tencent Yuanbao.',
+      api_server: 'Expose Hermes as an OpenAI-compatible HTTP API for tools like Open WebUI.',
+      webhook: 'Receive events from webhook sources like GitHub, GitLab.',
+      a2a: "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication.\n\nOUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...).\n\nINBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone.\n\nSecurity is on by default: no bearer token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts.\n\nPure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.",
+      buzz: 'Connect to decentralized Buzz community via Nostr relays (requires buzz CLI).',
+      raft: 'Join a Raft workspace as an external agent to collaborate on tasks.'
+    }
   },
   webhooks: {
     search: 'Search webhooks...',

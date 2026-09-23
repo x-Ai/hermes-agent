@@ -123,7 +123,10 @@ function fieldCopy(field: MessagingEnvVarInfo, m: Translations['messaging']) {
   return {
     label: localized.label || field.prompt || field.key,
     help: localized.help || field.description,
-    placeholder: localized.placeholder || field.prompt,
+    // A localized entry without an explicit placeholder falls back to its own
+    // label — not the backend's English prompt — so localized fields never
+    // show an untranslated placeholder.
+    placeholder: localized.placeholder || localized.label || field.prompt,
     advanced: Boolean(copy.advanced || field.advanced)
   }
 }
@@ -706,7 +709,7 @@ function PlatformDetail({
             )}
           </div>
           <p className="mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
-            {platform.description}
+            {m.platformDescription[platform.id] || platform.description}
           </p>
           <PlatformHint platform={platform} />
         </div>

@@ -142,6 +142,8 @@ interface EnvVarFieldProps {
 function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarFieldProps) {
   const { t } = useI18n()
   const copy = t.settings.toolsets
+  const envCopy = t.settings.envKeys[envVar.key]
+  const promptText = envCopy?.prompt || envCopy?.description || envVar.prompt
   const navigate = useOptionalNavigate()
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
@@ -232,8 +234,8 @@ function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarField
                 {isSet ? copy.set : copy.notSet}
               </Pill>
             </div>
-            {envVar.prompt && envVar.prompt !== envVar.key && (
-              <p className="mt-0.5 text-[0.7rem] text-muted-foreground">{envVar.prompt}</p>
+            {promptText && promptText !== envVar.key && (
+              <p className="mt-0.5 text-[0.7rem] text-muted-foreground">{promptText}</p>
             )}
           </div>
           {!editing && (
@@ -255,7 +257,7 @@ function EnvVarField({ envVar, isSet, onSaved, onCleared, profile }: EnvVarField
               autoFocus
               className="min-w-52 flex-1 font-mono"
               onChange={e => setValue(e.target.value)}
-              placeholder={envVar.prompt || envVar.key}
+              placeholder={promptText || envVar.key}
               type={envVar.default ? 'text' : 'password'}
               value={value}
             />
@@ -846,7 +848,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
             >
               <span className="flex min-w-0 items-center gap-2">
                 <span className="truncate text-sm font-medium">{provider.name}</span>
-                {provider.badge && <Pill>{provider.badge}</Pill>}
+                {provider.badge && <Pill>{localizedBadge(provider.badge, copy.badgeTokens)}</Pill>}
                 {isBackendActive && (
                   <Pill tone="primary">
                     <Check className="size-3" />
@@ -869,7 +871,9 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
 
             {isExpanded && (
               <div className="grid gap-2 bg-muted/20 p-3">
-                {provider.tag && <p className="text-[0.72rem] text-muted-foreground">{provider.tag}</p>}
+                {provider.tag && (
+                  <p className="text-[0.72rem] text-muted-foreground">{copy.tagCopy[provider.tag] || provider.tag}</p>
+                )}
                 {(toolset !== 'web' || webCaps.length === 0) && (
                   // Explicit activation — the old row-click-selects UX gave no
                   // signal about which backend was actually in use and made

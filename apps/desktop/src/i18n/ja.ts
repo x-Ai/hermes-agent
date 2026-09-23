@@ -2322,7 +2322,9 @@ export const ja = defineCompleteLocale({
         title: 'ローカル / カスタムエンドポイント',
         description: 'OpenAI 互換のエンドポイント（Zyphra、vLLM、llama.cpp、Ollama など）を指定します。'
       },
-      loading: 'プロバイダーを読み込み中...'
+      loading: 'プロバイダーを読み込み中...',
+      providerLabels: {},
+      providerDescriptions: {}
     },
     sessions: {
       loading: 'アーカイブ済みセッションを読み込み中…',
@@ -2379,8 +2381,83 @@ export const ja = defineCompleteLocale({
       ready: '準備完了',
       needsSignIn: 'サインインが必要',
       needsSetup: 'セットアップが必要',
-      badgeTokens: {},
-      tagCopy: {},
+      badgeTokens: {
+        recommended: 'おすすめ',
+        free: '無料',
+        local: 'ローカル',
+        'self-hosted': 'セルフホスト',
+        paid: '有料',
+        preview: 'プレビュー',
+        subscription: 'サブスクリプション',
+        'no key': 'キー不要',
+        'search only': '検索のみ',
+        'optional gateway': 'ゲートウェイ任意'
+      },
+      tagCopy: {
+        '30 prebuilt voices, controllable via prompts': '30 種のプリセット音声、プロンプトで制御可能',
+        'Anti-detection browser (Firefox/Camoufox)': '検出回避ブラウザ (Firefox/Camoufox)',
+        'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
+          'cua-driver によるバックグラウンドのコンピューター操作 — カーソルやフォーカスを奪いません。あらゆるモデルで動作。',
+        'Browser login at accounts.x.ai — no API key required': 'accounts.x.ai でブラウザログイン — API キー不要',
+        'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
+          'Chatterbox、Qwen3-TTS など — api.deepinfra.com のライブカタログ',
+        'Direct xAI API billing via XAI_API_KEY': 'XAI_API_KEY による xAI API 直接課金',
+        'Good quality, no API key needed': '良好な品質、API キー不要',
+        'Grok voices — uses xAI Grok OAuth or XAI_API_KEY': 'Grok 音声 — xAI Grok OAuth または XAI_API_KEY を使用',
+        'Headless Chromium, no API key needed': 'ヘッドレス Chromium、API キー不要',
+        'High quality voices': '高品質な音声',
+        'Hosted Langfuse (cloud.langfuse.com)': 'ホスト版 Langfuse (cloud.langfuse.com)',
+        'Lightweight local ONNX TTS (~25MB), no API key': '軽量ローカル ONNX TTS（約 25MB）、API キー不要',
+        'Local neural TTS, 44 languages (voices ~20-90MB)': 'ローカルのニューラル TTS、44 言語対応（音声 約 20-90MB）',
+        'Managed Browser Use billed to your subscription': 'マネージド Browser Use、サブスクリプションに課金',
+        'Managed FAL image generation billed to your subscription': 'マネージド FAL 画像生成、サブスクリプションに課金',
+        'Managed FAL video generation billed to your subscription': 'マネージド FAL 動画生成、サブスクリプションに課金',
+        'Managed Firecrawl billed to your subscription': 'マネージド Firecrawl、サブスクリプションに課金',
+        'Managed OpenAI TTS billed to your subscription': 'マネージド OpenAI TTS、サブスクリプションに課金',
+        'Most natural voices': '最も自然な音声',
+        'Multilingual, native Opus': '多言語対応、ネイティブ Opus',
+        'PKCE OAuth — opens the setup wizard': 'PKCE OAuth — セットアップウィザードを開きます',
+        'REST API integration': 'REST API 連携',
+        'Run your own Firecrawl instance (Docker)': '自前の Firecrawl インスタンスを実行 (Docker)',
+        'Self-hosted Langfuse instance': 'セルフホストの Langfuse インスタンス',
+        "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
+          'Grok の web_search ツールによるエージェント型ウェブ検索 — xAI Grok OAuth または XAI_API_KEY を使用。',
+        'Cloud browser with remote execution': 'リモート実行対応のクラウドブラウザ',
+        'Cloud browser with stealth and proxies': 'ステルスとプロキシ対応のクラウドブラウザ',
+        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
+          'FLUX、Qwen-Image など — api.deepinfra.com のライブカタログ',
+        'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
+          '無料でプライバシーに配慮したメタ検索。SEARXNG_URL を自分のインスタンスに向けてください。',
+        'Free-tier API key — 2k queries/mo, search only.': '無料枠 API キー — 月 2,000 クエリ、検索のみ。',
+        'Full search + extract; supports direct API and Nous tool-gateway routing.':
+          'フル検索 + 抽出。直接 API と Nous ツールゲートウェイ経由の両方に対応。',
+        'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
+          'OpenRouter 経由の Gemini Flash Image など。OPENROUTER_API_KEY を使用',
+        'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
+          'Krea 2 基盤モデル — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。スタイル転送、ムードボード、参照ガイド生成。直接キーまたはマネージド Nous サブスクリプションゲートウェイ。',
+        'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
+          'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse — テキストから動画・画像から動画',
+        'Objective-tuned search + parallel page extraction.': '目的別にチューニングされた検索 + 並列ページ抽出。',
+        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
+          'flux-2-klein、flux-2-pro、gpt-image、nano-banana などから選択 — テキストから画像・画像編集',
+        'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
+          'Nous Portal 経由の参照グラウンディング画像生成（OpenRouter バックエンド）',
+        'Search + extract in one provider.': '検索 + 抽出を 1 つのプロバイダーで。',
+        'Search via the ddgs Python package — no API key (pair with any extract provider)':
+          'ddgs Python パッケージによる検索 — API キー不要（任意の抽出プロバイダーと併用可）',
+        'Semantic + neural web search with content extraction.':
+          'セマンティック + ニューラルのウェブ検索とコンテンツ抽出。',
+        'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
+          'Wan、p-video など — api.deepinfra.com のライブカタログ。テキストから動画・画像から動画',
+        'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
+          'gpt-image-2、低/中/高の品質ティア — テキストから画像・画像編集',
+        'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
+          'ChatGPT/Codex OAuth 経由の gpt-image-2 — API キー不要。テキストと画像の入力に対応',
+        'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-image — テキストから画像・画像編集。xAI Grok OAuth または XAI_API_KEY を使用。xAI Imagine ストレージが有効なため、生成メディアは自動失効しない再利用可能な公開 URL を取得します。保存ファイルと公開 URL ホスティングに xAI が課金する場合があります。`image_gen.xai.storage.enabled: false` で無効化、または `expires_after` で保持期間を変更できます。',
+        'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-video はテキスト/参照から生成、grok-imagine-video-1.5 は画像から動画。編集/延長は以前の Imagine 結果の公開 HTTPS MP4（`video` / `public_url`）を渡します。xAI Grok OAuth または XAI_API_KEY を使用。xAI Imagine ストレージが有効なため、生成メディアは自動失効しない再利用可能な公開 URL を取得します。保存ファイルと公開 URL ホスティングに xAI が課金する場合があります。`video_gen.xai.storage.enabled: false` で無効化、または `expires_after` で保持期間を変更できます。'
+      },
       activeBackend: '使用中',
       activeBackendHint: 'これが現在アクティブなバックエンドです',
       useBackend: 'このバックエンドを使う',
@@ -2609,6 +2686,170 @@ export const ja = defineCompleteLocale({
       permissionFailed: 'システム設定を開けませんでした。プライバシーとセキュリティを手動で開き、再試行してください。',
       captureFailed: '最前面のウインドウを撮影できませんでした。添付も送信もされていません。',
       contextChanged: '撮影中に現在の下書きが変わりました。画像は添付も送信もされていません。'
+    },
+    envKeys: {
+      NOUS_BASE_URL: { description: 'Nous Portal ベース URL の上書き' },
+      OPENROUTER_API_KEY: { description: 'OpenRouter API キー（ビジョン、ウェブ抽出ヘルパー、MOA 用）' },
+      GOOGLE_API_KEY: { description: 'Google AI Studio API キー（GEMINI_API_KEY としても認識）' },
+      GEMINI_API_KEY: { description: 'Google AI Studio API キー（GOOGLE_API_KEY のエイリアス）' },
+      GEMINI_BASE_URL: { description: 'Google AI Studio ベース URL の上書き' },
+      VERTEX_CREDENTIALS_PATH: {
+        description:
+          'Vertex AI (Gemini) 用の Google Cloud サービスアカウント JSON のパス。Vertex は静的 API キーではなく OAuth2 を使用し、Hermes はこの資格情報から短期トークンを発行します。GOOGLE_APPLICATION_CREDENTIALS、次いで ADC (gcloud auth application-default login) にフォールバックします。プロジェクト/リージョンは config.yaml の vertex: で設定します。'
+      },
+      XAI_API_KEY: { description: 'xAI API キー' },
+      XAI_BASE_URL: { description: 'xAI ベース URL の上書き' },
+      NVIDIA_API_KEY: { description: 'NVIDIA NIM API キー（build.nvidia.com またはローカル NIM エンドポイント）' },
+      NVIDIA_BASE_URL: {
+        description: 'NVIDIA NIM ベース URL の上書き（ローカル NIM の http://localhost:8000/v1 など）'
+      },
+      LM_API_KEY: { description: '認証を有効にした LM Studio ローカルサーバー用の Bearer トークン' },
+      LM_BASE_URL: { description: 'LM Studio ベース URL の上書き' },
+      GLM_API_KEY: { description: 'Z.AI / GLM API キー（ZAI_API_KEY / Z_AI_API_KEY としても認識）' },
+      ZAI_API_KEY: { description: 'Z.AI API キー（GLM_API_KEY のエイリアス）' },
+      Z_AI_API_KEY: { description: 'Z.AI API キー（GLM_API_KEY のエイリアス）' },
+      GLM_BASE_URL: { description: 'Z.AI / GLM ベース URL の上書き' },
+      KIMI_API_KEY: { description: 'Kimi / Moonshot API キー' },
+      KIMI_BASE_URL: { description: 'Kimi / Moonshot ベース URL の上書き' },
+      KIMI_CN_API_KEY: { description: 'Kimi / Moonshot 中国リージョンの API キー' },
+      STEPFUN_API_KEY: { description: 'StepFun Step Plan API キー' },
+      STEPFUN_BASE_URL: { description: 'StepFun Step Plan ベース URL の上書き' },
+      ARCEEAI_API_KEY: { description: 'Arcee AI API キー' },
+      ARCEE_BASE_URL: { description: 'Arcee AI ベース URL の上書き' },
+      GMI_API_KEY: { description: 'GMI Cloud API キー' },
+      GMI_BASE_URL: { description: 'GMI Cloud ベース URL の上書き' },
+      FIREWORKS_API_KEY: { description: 'Fireworks AI API キー' },
+      MINIMAX_API_KEY: { description: 'MiniMax API キー（インターナショナル）' },
+      MINIMAX_BASE_URL: { description: 'MiniMax ベース URL の上書き' },
+      MINIMAX_CN_API_KEY: { description: 'MiniMax API キー（中国エンドポイント）' },
+      MINIMAX_CN_BASE_URL: { description: 'MiniMax（中国）ベース URL の上書き' },
+      DEEPSEEK_API_KEY: { description: 'DeepSeek 直接アクセス用の API キー' },
+      DEEPSEEK_BASE_URL: { description: 'カスタム DeepSeek API ベース URL（上級者向け）' },
+      DASHSCOPE_API_KEY: { description: 'Alibaba Cloud DashScope API キー（Qwen + マルチプロバイダーモデル）' },
+      DASHSCOPE_BASE_URL: {
+        description: 'カスタム DashScope ベース URL（デフォルト: coding-intl の OpenAI 互換エンドポイント）'
+      },
+      HERMES_QWEN_BASE_URL: { description: 'Qwen Portal ベース URL の上書き（デフォルト: https://portal.qwen.ai/v1）' },
+      OPENCODE_ZEN_API_KEY: { description: 'OpenCode Zen API キー（従量課金で厳選モデルを利用）' },
+      OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen ベース URL の上書き' },
+      OPENCODE_GO_API_KEY: {
+        description: 'OpenCode Go API キー（月額 10 ドルのサブスクリプションでオープンモデルを利用）'
+      },
+      OPENCODE_GO_BASE_URL: { description: 'OpenCode Go ベース URL の上書き' },
+      HF_TOKEN: {
+        description:
+          'Inference Providers 用の Hugging Face トークン（router.huggingface.co 経由で 20+ のオープンモデル）'
+      },
+      HF_BASE_URL: { description: 'Hugging Face Inference Providers ベース URL の上書き' },
+      OLLAMA_API_KEY: { description: 'Ollama Cloud API キー（ollama.com — クラウドホストのオープンモデル）' },
+      OLLAMA_BASE_URL: { description: 'Ollama Cloud ベース URL の上書き（デフォルト: https://ollama.com/v1）' },
+      XIAOMI_API_KEY: { description: 'Xiaomi MiMo API キー（mimo-v2.5-pro、mimo-v2.5 などの MiMo モデル用）' },
+      XIAOMI_BASE_URL: { description: 'Xiaomi MiMo ベース URL の上書き（デフォルト: https://api.xiaomimimo.com/v1）' },
+      UPSTAGE_API_KEY: { description: 'Solar LLM モデル用の Upstage API キー' },
+      UPSTAGE_BASE_URL: { description: 'Upstage ベース URL の上書き（デフォルト: https://api.upstage.ai/v1）' },
+      AWS_REGION: { description: 'Bedrock API 呼び出しの AWS リージョン（us-east-1、eu-central-1 など）' },
+      AWS_PROFILE: { description: 'Bedrock 認証用の AWS 名前付きプロファイル（~/.aws/credentials から）' },
+      AZURE_FOUNDRY_API_KEY: { description: 'カスタム Azure エンドポイント用の Azure Foundry API キー' },
+      AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry ベース URL（エンドポイント別の設定は hermes model で）' },
+      ALIBABA_CODING_PLAN_API_KEY: { description: 'Alibaba Cloud (Coding Plan) API キー' },
+      ALIBABA_CODING_PLAN_BASE_URL: { description: 'Alibaba Cloud (Coding Plan) ベース URL の上書き' },
+      ANTHROPIC_API_KEY: { description: 'Anthropic API キー' },
+      ANTHROPIC_TOKEN: { description: 'Anthropic API キー' },
+      CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API キー' },
+      DEEPINFRA_API_KEY: { description: 'DeepInfra API キー' },
+      DEEPINFRA_BASE_URL: { description: 'DeepInfra ベース URL の上書き' },
+      KILOCODE_API_KEY: { description: 'Kilocode API キー' },
+      KIMI_CODING_API_KEY: { description: 'Kimi Coding API キー' },
+      NOVITA_API_KEY: { description: 'NovitaAI API キー' },
+      NOVITA_BASE_URL: { description: 'NovitaAI ベース URL の上書き' },
+      EXA_API_KEY: { description: 'AI ネイティブなウェブ検索とコンテンツ取得のための Exa API キー' },
+      PARALLEL_API_KEY: { description: 'AI ネイティブなウェブ検索と抽出のための Parallel API キー' },
+      FIRECRAWL_API_KEY: { description: 'ウェブ検索とスクレイピングのための Firecrawl API キー' },
+      FIRECRAWL_API_URL: { description: 'セルフホストの Firecrawl インスタンス用 API URL（任意）' },
+      FIRECRAWL_GATEWAY_URL: { description: 'Nous 購読者専用の Firecrawl ツールゲートウェイの上書き（任意）' },
+      TOOL_GATEWAY_DOMAIN: {
+        description:
+          'Nous 購読者専用の共有ツールゲートウェイのドメインサフィックス。ベンダーホストの導出に使用（例: nousresearch.com -> firecrawl-gateway.nousresearch.com）'
+      },
+      TOOL_GATEWAY_SCHEME: {
+        description:
+          'Nous 購読者専用の共有ツールゲートウェイの URL スキーム（デフォルト https、ローカルテストでは http）'
+      },
+      TOOL_GATEWAY_USER_TOKEN: {
+        description:
+          'ツールゲートウェイリクエスト用の Nous 購読者アクセストークン（任意。省略時は Hermes 認証ストアから取得）'
+      },
+      TAVILY_API_KEY: { description: 'AI ネイティブなウェブ検索と抽出のための Tavily API キー' },
+      SEARXNG_URL: { description: '無料セルフホストのウェブ検索用 SearXNG インスタンスの URL' },
+      BRAVE_SEARCH_API_KEY: { description: 'Brave Search API サブスクリプショントークン（無料枠: 月 2,000 クエリ）' },
+      BROWSERBASE_API_KEY: {
+        description: 'クラウドブラウザ用の Browserbase API キー（任意 — ローカルブラウザには不要）'
+      },
+      BROWSERBASE_PROJECT_ID: { description: 'Browserbase プロジェクト ID（任意 — クラウドブラウザのみ必要）' },
+      BROWSER_USE_API_KEY: {
+        description: 'クラウドブラウザ用の Browser Use API キー（任意 — ローカルブラウザには不要）'
+      },
+      FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl ブラウザセッションの TTL（秒、任意、デフォルト 300）' },
+      AGENT_BROWSER_ENGINE: {
+        description:
+          'ローカルモードのブラウザエンジン: auto（デフォルト Chrome）、lightpanda（高速、スクリーンショットなし）、chrome'
+      },
+      CAMOFOX_URL: {
+        description: 'ローカル検出回避ブラウジング用の Camofox ブラウザサーバー URL（例: http://localhost:9377）'
+      },
+      CAMOFOX_API_KEY: { description: 'リモート/認証付き Camofox サーバーへ送る任意の Bearer トークン' },
+      FAL_KEY: { description: '画像・動画生成のための FAL API キー' },
+      KREA_API_KEY: { description: 'Krea 2 画像生成のための Krea API キー（Medium + Large）' },
+      VOICE_TOOLS_OPENAI_KEY: { description: '音声文字起こし (Whisper) と OpenAI TTS 用の OpenAI API キー' },
+      ELEVENLABS_API_KEY: { description: '高品質音声合成と Scribe 文字起こしのための ElevenLabs API キー' },
+      MISTRAL_API_KEY: { description: 'Voxtral TTS と文字起こし (STT) のための Mistral API キー' },
+      GITHUB_TOKEN: { description: 'スキルハブ用の GitHub トークン（API レート制限の緩和、スキル公開）' },
+      HONCHO_API_KEY: { description: 'AI ネイティブ永続メモリのための Honcho API キー' },
+      HONCHO_BASE_URL: { description: 'セルフホスト Honcho インスタンスのベース URL（API キー不要）' },
+      HINDSIGHT_API_KEY: { description: 'グラフ対応の永続メモリのための Hindsight API キー' },
+      HINDSIGHT_API_URL: {
+        description: 'Hindsight API のベース URL（デフォルト: https://api.hindsight.vectorize.io）'
+      },
+      SUPERMEMORY_API_KEY: { description: '会話スコープの永続メモリのための Supermemory API キー' },
+      MEM0_API_KEY: { description: 'セマンティック永続メモリのための Mem0 Platform API キー' },
+      RETAINDB_API_KEY: { description: '永続メモリのための RetainDB API キー' },
+      RETAINDB_BASE_URL: {
+        description: 'セルフホスト RetainDB インスタンスのベース URL（デフォルト: https://api.retaindb.com）'
+      },
+      BRV_API_KEY: { description: 'ByteRover API キー（任意、クラウド同期用 — デフォルトはローカル優先）' },
+      OPENVIKING_API_KEY: { description: 'OpenViking API キー（ローカル開発モードでは空欄可）' },
+      OPENVIKING_ENDPOINT: { description: 'OpenViking サーバー URL（デフォルト: http://127.0.0.1:1933）' },
+      HERMES_LANGFUSE_PUBLIC_KEY: { description: 'Langfuse プロジェクト公開キー (pk-lf-...)' },
+      HERMES_LANGFUSE_SECRET_KEY: { description: 'Langfuse プロジェクト秘密キー (sk-lf-...)' },
+      HERMES_LANGFUSE_BASE_URL: { description: 'Langfuse サーバー URL（デフォルト: https://cloud.langfuse.com）' },
+      NOTION_API_KEY: { description: 'Notion 統合トークン（notion スキルで使用）' },
+      LINEAR_API_KEY: { description: 'Linear 個人 API キー（linear スキルで使用）' },
+      AIRTABLE_API_KEY: { description: 'Airtable 個人アクセストークン（airtable スキルで使用）' },
+      TENOR_API_KEY: { description: 'GIF 検索のための Tenor API キー（gif-search スキルで使用）' },
+      SUDO_PASSWORD: {
+        description:
+          'root 権限が必要なターミナルコマンドで使う sudo パスワード。明示的な空文字を設定するとプロンプトなしで空を試します'
+      },
+      HERMES_PREFILL_MESSAGES_FILE: {
+        description: 'few-shot プライミング用の一時プリフィルメッセージ JSON ファイルのパス'
+      },
+      HERMES_EPHEMERAL_SYSTEM_PROMPT: {
+        description: 'API 呼び出し時に注入される一時システムプロンプト（セッションには保存されません）'
+      },
+      RAFT_PROFILE: {
+        description: 'Raft エージェントプロファイルの slug — 設定するとアダプターが自動で有効になります'
+      },
+      GATEWAY_ALLOW_ALL_USERS: {
+        description: 'すべてのユーザーにメッセージングボットとの対話を許可します（true/false）。デフォルト: false。'
+      },
+      GATEWAY_PROXY_URL: {
+        description:
+          'メッセージを転送するリモート Hermes API サーバーの URL（プロキシモード）。設定するとゲートウェイはプラットフォーム I/O のみを担当し、エージェント処理はすべてリモートサーバーに委任されます。ホストエージェントに中継する Docker E2EE コンテナ向け。config.yaml の gateway.proxy_url でも設定可能。'
+      },
+      GATEWAY_PROXY_KEY: {
+        description:
+          'リモート Hermes API サーバーとの認証用 Bearer トークン（プロキシモード）。リモートホストの API_SERVER_KEY と一致させる必要があります。'
+      }
     }
   },
   skills: {
@@ -2817,6 +3058,102 @@ export const ja = defineCompleteLocale({
         `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '危険なパターン'} to review${unverified ? ' and the skill comes from an unverified source' : ''}。著者を信頼するかどうかを判断する前に、スキャンを読んでください。`,
       viewScan: 'スキャンの表示',
       openLog: 'ログを開く'
+    },
+    toolsetDescriptions: {
+      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 対応です。Linux Foundation のオープン標準を使った双方向のエージェント間通信を提供します。アウトバウンドツールはピアの検出、Agent Card の取得、JSON-RPC タスクの送信を行います。インバウンドアダプターは /.well-known/agent-card.json で Hermes を公開し、完全なメモリとコンテキストを持つライブゲートウェイセッションへタスクをルーティングします。bearer token が未設定の場合は localhost のみにバインドし、入力テキストのフィルタリング、出力認証情報の除去、コンテキスト圧縮外での監査ログ記録を行います。Python 標準ライブラリのみを使用し、a2a-sdk は不要です。',
+      browser:
+        'ウェブ操作のためのブラウザ自動化（ナビゲート、クリック、入力、スクロール、iframe、長押し）と URL 検索用のウェブ検索',
+      clarify: 'ユーザーに確認の質問をします（選択式または自由回答）',
+      code_execution: 'ツールをプログラム的に呼び出す Python スクリプトを実行します（LLM の往復を削減）',
+      coding:
+        'コーディング向けツールセット: ファイル、ターミナル、検索、ウェブドキュメント、スキル、Todo、委任、ビジョン、ブラウザ',
+      computer_use:
+        'cua-driver によるバックグラウンドのデスクトップ操作（macOS/Windows/Linux）— スクリーンショット、マウス、キーボード、スクロール、ドラッグ。ユーザーのカーソルやキーボードフォーカスを奪いません。ツール対応のあらゆるモデルで動作します。',
+      context_engine: 'アクティブなコンテキストエンジンが公開するランタイムツール',
+      cronjob: 'Cron ジョブ管理ツール — スケジュールタスクの作成、一覧、更新、一時停止、再開、削除、実行',
+      debugging: 'デバッグとトラブルシューティングのツールキット',
+      delegation: '複雑なサブタスクのために隔離コンテキストのサブエージェントを生成します',
+      discord: 'Discord の閲覧・参加ツール（メッセージ取得、メンバー検索、スレッド作成）',
+      discord_admin: 'Discord サーバー管理（チャンネル/ロール一覧、メッセージのピン留め、ロール割り当て）',
+      feishu_doc: 'Feishu / Lark ドキュメントの内容を読み取ります',
+      feishu_drive: 'Feishu / Lark ドキュメントのコメント操作（一覧、返信、追加）',
+      file: 'ファイル操作ツール: 読み取り、書き込み、パッチ（あいまい一致対応）、検索（内容 + ファイル）',
+      'hermes-acp':
+        'エディター統合（VS Code、Zed、JetBrains）— メッセージング・音声・確認 UI を除いたコーディング向けツール',
+      'hermes-api-server':
+        'OpenAI 互換 API サーバー — HTTP 経由で全エージェントツールにアクセス（clarify や send_message などの対話型 UI ツールは除く）',
+      'hermes-bluebubbles':
+        'BlueBubbles iMessage ボットツールセット — ローカルの BlueBubbles サーバー経由の Apple iMessage',
+      'hermes-cli': '完全な対話型 CLI ツールセット — すべてのデフォルトツールと Cron ジョブ管理',
+      'hermes-cron': 'デフォルトの Cron ツールセット — hermes-cli と同じコアツール。hermes tools で制御',
+      'hermes-dingtalk': 'DingTalk ボットツールセット — エンタープライズメッセージングプラットフォーム（フルアクセス）',
+      'hermes-discord': 'Discord ボットツールセット — フルアクセス（ターミナルは危険コマンド承認の安全チェック付き）',
+      'hermes-email': 'メールボットツールセット — メール (IMAP/SMTP) で Hermes と対話',
+      'hermes-feishu':
+        'Feishu / Lark ボットツールセット — Feishu / Lark 経由のエンタープライズメッセージング（フルアクセス）',
+      'hermes-gateway': 'ゲートウェイツールセット — すべてのメッセージングプラットフォームツールの統合',
+      'hermes-homeassistant': 'Home Assistant ボットツールセット — スマートホームのイベント監視と制御',
+      'hermes-matrix': 'Matrix ボットツールセット — 分散型暗号化メッセージング（フルアクセス）',
+      'hermes-mattermost': 'Mattermost ボットツールセット — セルフホストのチームメッセージング（フルアクセス）',
+      'hermes-qqbot': 'QQBot ツールセット — 公式 Bot API v2 経由の QQ メッセージング（フルアクセス）',
+      'hermes-signal': 'Signal ボットツールセット — 暗号化メッセージングプラットフォーム（フルアクセス）',
+      'hermes-slack': 'Slack ボットツールセット — ワークスペース利用のフルアクセス（ターミナルは安全チェック付き）',
+      'hermes-sms': 'SMS ボットツールセット — SMS (Twilio) で Hermes と対話',
+      'hermes-telegram': 'Telegram ボットツールセット — 個人利用のフルアクセス（ターミナルは安全チェック付き）',
+      'hermes-webhook': 'Webhook ツールセット — 外部 Webhook イベントの受信と処理',
+      'hermes-wecom': 'WeCom ボットツールセット — エンタープライズ WeChat メッセージング（フルアクセス）',
+      'hermes-wecom-callback': 'WeCom コールバックツールセット — 企業の自社構築アプリメッセージング（フルアクセス）',
+      'hermes-weixin': 'Weixin ボットツールセット — iLink 経由の個人 WeChat メッセージング（フルアクセス）',
+      'hermes-whatsapp': 'WhatsApp ボットツールセット — Telegram に類似（個人メッセージング、より信頼度が高い）',
+      'hermes-yuanbao': 'Yuanbao メッセージングプラットフォームツールセット — グループ情報、メンバー照会、DM、スタンプ',
+      homeassistant: 'Home Assistant スマートホームの制御と監視',
+      image_gen: 'クリエイティブ生成ツール（画像）',
+      kanban:
+        'カンバンのマルチエージェント連携 — カンバンディスパッチャーから生成されたエージェント（HERMES_KANBAN_TASK 環境変数設定時）のみ有効。ディスパッチャーはデフォルトでゲートウェイ内で実行されます（config.yaml の kanban.dispatch_in_gateway 参照）。ワーカーは構造化された引き継ぎでタスクを完了し、人間の入力待ちでブロックし、長い操作中にハートビートを送り、スレッドにコメントし、ファイルを添付できます（オーケストレーターはさらにタスクの一覧・ブロック解除・分配が可能）。',
+      memory: 'セッションをまたぐ永続メモリ（個人メモ + ユーザープロファイル）',
+      project: 'デスクトッププロジェクト — 名前付きワークスペースの作成/切り替え（GUI セッションのみ）',
+      safe: 'ターミナルアクセスを除いた安全なツールキット',
+      search: 'ウェブ検索のみ（コンテンツ抽出/スクレイピングなし）',
+      session_search: '過去の会話を検索して要約付きで振り返ります',
+      skills: '専門的な指示と知識を持つスキルドキュメントへのアクセス、作成、編集、管理',
+      spotify: 'ネイティブの Spotify 再生、検索、プレイリスト、アルバム、ライブラリツール',
+      terminal: 'ターミナル/コマンド実行とプロセス管理ツール',
+      todo: '複数ステップの作業のためのタスク計画と追跡',
+      tts: 'テキスト読み上げ: Edge TTS（無料）、ElevenLabs、OpenAI、xAI でテキストを音声に変換',
+      stt: '音声テキスト変換：音声書き起こし（ゲートウェイ音声メッセージと音声モード）',
+      video: '動画の分析・理解ツール（オプトイン、デフォルトツールセット外）',
+      video_gen:
+        '動画生成ツール。単一の video_generate ツールがテキストから動画（プロンプトのみ）と画像から動画（プロンプト + image_url）、参照から動画をカバーします。プロバイダー固有の編集/延長ワークフローは別ツールとして現れる場合があります。hermes tools → Video Generation で設定。',
+      vision: '画像分析とビジョンツール',
+      x_search:
+        'xAI 内蔵の x_search Responses ツールで X (Twitter) の投稿とスレッドを検索します。xAI 資格情報（SuperGrok OAuth または XAI_API_KEY）の設定時に利用可能。デフォルトはオフ。hermes tools → X (Twitter) Search で有効化。',
+      yuanbao: 'Yuanbao プラットフォームツール — グループ情報、メンバー照会、DM、スタンプ'
+    },
+    toolsetLabels: {
+      web: 'ウェブ検索とスクレイピング',
+      browser: 'ブラウザ自動化',
+      terminal: 'ターミナルとプロセス',
+      file: 'ファイル操作',
+      code_execution: 'コード実行',
+      vision: 'ビジョン / 画像分析',
+      video: '動画分析',
+      image_gen: '画像生成',
+      video_gen: '動画生成',
+      x_search: 'X (Twitter) 検索',
+      tts: 'テキスト読み上げ',
+      stt: '音声テキスト変換',
+      skills: 'スキル',
+      todo: 'タスク計画',
+      memory: 'メモリ',
+      context_engine: 'コンテキストエンジン',
+      session_search: 'セッション検索',
+      clarify: '確認の質問',
+      delegation: 'タスク委任',
+      cronjob: 'Cron ジョブ',
+      discord: 'Discord（閲覧/参加）',
+      discord_admin: 'Discord サーバー管理',
+      yuanbao: 'Yuanbao（元宝）',
+      computer_use: 'コンピューター操作 (macOS/Windows/Linux)'
     }
   },
   starmap: {
@@ -3355,11 +3692,78 @@ export const ja = defineCompleteLocale({
         help: '推奨。カンマ区切りの電話番号または WhatsApp ID。'
       }
     },
-    platformIntro: {},
+    platformIntro: {
+      telegram:
+        'Telegram で @BotFather に話しかけて /newbot を実行し、表示されたトークンをコピーします。次に @userinfobot から数値のユーザー ID を取得します。',
+      discord:
+        'Discord Developer Portal を開いてアプリケーションを作成し、Bot を追加してそのトークンをコピーします。適切なスコープでボットをサーバーに招待してください。',
+      slack:
+        'Slack アプリを作成し、Socket Mode を有効にしてワークスペースにインストールし、ボットトークンとアプリレベルトークンをコピーします。',
+      mattermost:
+        'Mattermost サーバーでボットアカウントまたはパーソナルアクセストークンを作成し、サーバー URL とトークンをここに貼り付けます。',
+      matrix:
+        'ボットアカウントでホームサーバーにサインインし、アクセストークン、ユーザー ID、ホームサーバー URL をコピーします。',
+      signal:
+        '到達可能な場所で signal-cli REST ブリッジを実行し、その URL と登録済みの電話番号を Hermes に設定します。',
+      whatsapp:
+        'Hermes 同梱の WhatsApp ブリッジを起動し、初回実行時に QR コードをスキャンしてからプラットフォームを有効にします。',
+      bluebubbles:
+        'iMessage が使える Mac で BlueBubbles Server を実行して API を公開し、サーバーパスワードとともに Hermes をその URL に向けます。',
+      homeassistant:
+        'Home Assistant でプロフィールを開き、長期アクセストークンを作成します。HA の URL と一緒にここに貼り付けてください。',
+      email:
+        '専用メールボックスを使ってください。Gmail/Workspace ではアプリパスワードを作成し、imap.gmail.com / smtp.gmail.com を使用します。',
+      sms: 'Twilio コンソールから Account SID と Auth Token、SMS 送信可能な電話番号を取得します。',
+      dingtalk:
+        '開発者コンソールで DingTalk アプリを作成し、Client ID (App key) と Client Secret をここにコピーします。',
+      feishu:
+        'Feishu / Lark アプリを作成し、ボット機能を設定して、App ID、App secret、イベント暗号化キーをコピーします。',
+      wecom:
+        'WeCom でグループロボットを追加し、その webhook key を WECOM_BOT_ID としてコピーします。送信専用です — 双方向には WeCom (アプリ) を使ってください。',
+      wecom_callback:
+        'WeCom の自社構築アプリを設定し、コールバック URL を公開して、corp ID、secret、agent ID、AES key を指定します。',
+      weixin:
+        '`hermes gateway setup` を実行して Weixin を選択し、個人の WeChat アカウントで QR コードをスキャンして確認します。Hermes は Tencent の iLink Bot API 経由で接続し、資格情報を保存します。',
+      qqbot: 'QQ オープンプラットフォーム (q.qq.com) でアプリを登録し、App ID と Client Secret をコピーします。',
+      api_server:
+        'Hermes を OpenAI 互換 API として公開します。認証キーを設定し、Open WebUI / LobeChat などを host:port に向けてください。',
+      webhook:
+        '他のツール (GitHub、GitLab、カスタムアプリ) が POST できる HTTP サーバーを実行します。シークレットで署名を検証します。',
+      a2a: '外部依存関係なし（標準ライブラリのみ）。共有トークンまたはピアトークンを設定して、他の Hermes インスタンスが A2A プロトコル経由で接続できるようにします。',
+      buzz: 'buzz CLI ツール (https://github.com/block/buzz) が PATH または BUZZ_CLI_PATH に必要です。Nostr リレー経由で Buzz コミュニティに接続します。',
+      raft: 'Raft ワークスペースに外部エージェントとして参加します。'
+    },
     sharedListenerUrl: '共有ゲートウェイのリスナーで提供中:',
     restartFailedManualDetail: 'もう一度再起動してみてください。それでも失敗する場合は、ログを開いて診断を送信します。',
     restartAgain: 'もう一度再起動してください',
-    openLogs: 'ログを開く'
+    openLogs: 'ログを開く',
+    platformDescription: {
+      telegram: 'Telegram の DM、グループ、トピックで Hermes を使います。',
+      discord: 'Discord の DM、チャンネル、スレッドに Hermes を接続します。',
+      slack:
+        'Socket Mode 経由で Slack から Hermes を使います。許可する Slack メンバー ID を追加すると接続済みボットが応答します。',
+      mattermost: 'Mattermost のチャンネルとダイレクトメッセージに Hermes を接続します。',
+      matrix: 'Matrix のルームとダイレクトメッセージで Hermes を使います。',
+      signal: 'signal-cli REST ブリッジ経由で接続します。',
+      whatsapp: '同梱の WhatsApp ブリッジと QR 認証で Hermes を使います。',
+      bluebubbles: 'BlueBubbles サーバー経由の iMessage で Hermes を使います。',
+      homeassistant: 'Home Assistant 経由で Hermes からスマートホームを操作します。',
+      email: 'IMAP/SMTP メールボックスを通じて Hermes と会話します。',
+      sms: 'Twilio 経由でテキストメッセージを送受信します。',
+      dingtalk: 'DingTalk（釘釘）のグループに Hermes を接続します。',
+      feishu: 'Feishu / Lark の中で Hermes を使います。',
+      google_chat: 'Cloud Pub/Sub 経由で Google Chat に Hermes を接続します。',
+      wecom: 'Webhook 経由の送信専用 WeCom グループボット。',
+      wecom_callback: 'コールバックアプリによる双方向の WeCom 連携。',
+      weixin: 'Tencent iLink Bot API 経由で個人 WeChat アカウントを接続します。',
+      qqbot: 'QQ オープンプラットフォームのボットに Hermes を接続します。',
+      yuanbao: 'Tencent Yuanbao に Hermes を接続します。',
+      api_server: 'Open WebUI などのツール向けに Hermes を OpenAI 互換 HTTP API として公開します。',
+      webhook: 'GitHub、GitLab などの webhook ソースからイベントを受信します。',
+      a2a: 'Hermes Agent の A2A（Agent-to-Agent）プロトコル v1.0 サポート —— Linux Foundation のエージェント間通信オープン標準の双方向対応。\n\nアウトバウンド（クライアントツール）：a2a_discover、a2a_call、a2a_list、a2a_history、a2a_orchestrate により、エージェントが他のエージェントの Agent Card を取得し、JSON-RPC 経由でタスクを送信できます —— 任意の A2A 準拠ピア（Hermes、LangChain、CrewAI、Google ADK、OpenClaw など）と連携可能。\n\nインバウンド（プラットフォームアダプター）：Hermes を A2A で発見可能なエージェントとして公開します。Agent Card は /.well-known/agent-card.json で提供され（v1.0 標準パス；レガシー agent.json も応答）、受信タスクは他のプラットフォームと同様にエージェントのライブゲートウェイセッションにルーティングされます —— そのため応答するエージェントは、完全なメモリとコンテキストを持ってユーザーと会話している同じエージェントであり、使い捨てのクローンではありません。\n\nセキュリティはデフォルトで有効：ベアラートークン未設定 => localhost のみにバインド。インバウンドタスクテキストはプロンプトインジェクションフィルターを通過；アウトバウンドテキストは認証情報形式の文字列をスクラブ；すべての交換は監査ログに記録され、コンテキスト圧縮パイプラインの外でディスクに永続化されるため、会話は圧縮と再起動後も存続します。\n\n純粋な標準ライブラリトランスポート（http.server + urllib）—— a2a-sdk 依存関係不要。',
+      buzz: 'Nostr リレー経由で分散型 Buzz コミュニティに接続します（buzz CLI が必要）。',
+      raft: 'Raft ワークスペースに外部エージェントとして参加してタスクで協力します。'
+    }
   },
   webhooks: {
     search: 'Webhook を検索...',

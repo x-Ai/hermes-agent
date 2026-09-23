@@ -2252,7 +2252,9 @@ export const zhHant = defineCompleteLocale({
         title: '本地 / 自訂端點',
         description: '將 Hermes 指向任意 OpenAI 相容端點（Zyphra、vLLM、llama.cpp、Ollama 等）。'
       },
-      loading: '正在載入提供方...'
+      loading: '正在載入提供方...',
+      providerLabels: {},
+      providerDescriptions: {}
     },
     sessions: {
       loading: '正在載入已封存工作階段…',
@@ -2306,8 +2308,82 @@ export const zhHant = defineCompleteLocale({
       ready: '就緒',
       needsSignIn: '需要登入',
       needsSetup: '需要安裝',
-      badgeTokens: {},
-      tagCopy: {},
+      badgeTokens: {
+        recommended: '推薦',
+        free: '免費',
+        local: '本機',
+        'self-hosted': '自架',
+        paid: '付費',
+        preview: '預覽',
+        subscription: '訂閱',
+        'no key': '免金鑰',
+        'search only': '僅搜尋',
+        'optional gateway': '選用閘道'
+      },
+      tagCopy: {
+        '30 prebuilt voices, controllable via prompts': '30 種預置語音，可透過提示詞控制',
+        'Anti-detection browser (Firefox/Camoufox)': '反偵測瀏覽器 (Firefox/Camoufox)',
+        'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
+          '透過 cua-driver 背景控制電腦——不會搶佔您的游標或焦點。適用於任何模型。',
+        'Browser login at accounts.x.ai — no API key required': '在 accounts.x.ai 瀏覽器登入——無需 API 金鑰',
+        'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
+          'Chatterbox、Qwen3-TTS 等——來自 api.deepinfra.com 的即時目錄',
+        'Direct xAI API billing via XAI_API_KEY': '透過 XAI_API_KEY 直接按 xAI API 計費',
+        'Good quality, no API key needed': '音質不錯，無需 API 金鑰',
+        'Grok voices — uses xAI Grok OAuth or XAI_API_KEY': 'Grok 語音——使用 xAI Grok OAuth 或 XAI_API_KEY',
+        'Headless Chromium, no API key needed': '無頭 Chromium，無需 API 金鑰',
+        'High quality voices': '高品質語音',
+        'Hosted Langfuse (cloud.langfuse.com)': '託管版 Langfuse (cloud.langfuse.com)',
+        'Lightweight local ONNX TTS (~25MB), no API key': '輕量本機 ONNX TTS（約 25MB），無需 API 金鑰',
+        'Local neural TTS, 44 languages (voices ~20-90MB)': '本機神經網路 TTS，支援 44 種語言（語音包約 20-90MB）',
+        'Managed Browser Use billed to your subscription': '託管 Browser Use，計入您的訂閱',
+        'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入您的訂閱',
+        'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
+        'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
+        'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
+        'Most natural voices': '最自然的語音',
+        'Multilingual, native Opus': '多語言，原生 Opus',
+        'PKCE OAuth — opens the setup wizard': 'PKCE OAuth——將開啟設定精靈',
+        'REST API integration': 'REST API 整合',
+        'Run your own Firecrawl instance (Docker)': '執行您自己的 Firecrawl 執行個體 (Docker)',
+        'Self-hosted Langfuse instance': '自架 Langfuse 執行個體',
+        "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
+          '透過 Grok 的 web_search 工具進行代理式網頁搜尋——使用 xAI Grok OAuth 或 XAI_API_KEY。',
+        'Cloud browser with remote execution': '支援遠端執行的雲端瀏覽器',
+        'Cloud browser with stealth and proxies': '帶隱身與代理的雲端瀏覽器',
+        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
+          'FLUX、Qwen-Image 等——來自 api.deepinfra.com 的即時目錄',
+        'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
+          '免費、尊重隱私的元搜尋。把 SEARXNG_URL 指向您的執行個體。',
+        'Free-tier API key — 2k queries/mo, search only.': '免費方案 API 金鑰——每月 2000 次查詢，僅搜尋。',
+        'Full search + extract; supports direct API and Nous tool-gateway routing.':
+          '完整的搜尋 + 擷取；支援直連 API 和 Nous 工具閘道路由。',
+        'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
+          '經 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
+        'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
+          'Krea 2 基礎模型——Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。風格轉移、情緒板、參考引導生成。可直連金鑰或經託管 Nous 訂閱閘道。',
+        'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
+          'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse——文生影片與圖生影片',
+        'Objective-tuned search + parallel page extraction.': '面向目標調校的搜尋 + 平行頁面擷取。',
+        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
+          '可選 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等——文生圖與圖像編輯',
+        'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
+          '經 Nous Portal 的參考圖像生成（OpenRouter 支援）',
+        'Search + extract in one provider.': '搜尋 + 擷取一體的供應商。',
+        'Search via the ddgs Python package — no API key (pair with any extract provider)':
+          '透過 ddgs Python 套件搜尋——無需 API 金鑰（可搭配任意擷取供應商）',
+        'Semantic + neural web search with content extraction.': '語意 + 神經網路網頁搜尋，帶內容擷取。',
+        'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
+          'Wan、p-video 等——來自 api.deepinfra.com 的即時目錄；文生影片與圖生影片',
+        'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
+          'gpt-image-2，低/中/高品質檔——文生圖與圖像編輯',
+        'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
+          '經 ChatGPT/Codex OAuth 使用 gpt-image-2——無需 API 金鑰；支援文字與圖像輸入',
+        'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-image——文生圖與圖像編輯；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `image_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。',
+        'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-video 用於文字/參考生成；grok-imagine-video-1.5 用於圖生影片；編輯/延伸：傳入先前 Imagine 結果的公開 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `video_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。'
+      },
       activeBackend: '目前後端',
       activeBackendHint: '這是你目前使用的後端',
       useBackend: '使用此後端',
@@ -2529,6 +2605,140 @@ export const zhHant = defineCompleteLocale({
       permissionFailed: '無法開啟系統設定。請手動打開「隱私與安全性」，然後重試。',
       captureFailed: '無法擷取最前面的視窗。沒有任何內容被附加或傳送。',
       contextChanged: '當前草稿在捕捉過程中被更改。截圖未附上或未發送。'
+    },
+    envKeys: {
+      NOUS_BASE_URL: { description: 'Nous Portal 基礎 URL 覆寫' },
+      OPENROUTER_API_KEY: { description: 'OpenRouter API 金鑰（用於視覺、網頁擷取輔助和 MOA）' },
+      GOOGLE_API_KEY: { description: 'Google AI Studio API 金鑰（也識別 GEMINI_API_KEY）' },
+      GEMINI_API_KEY: { description: 'Google AI Studio API 金鑰（GOOGLE_API_KEY 的別名）' },
+      GEMINI_BASE_URL: { description: 'Google AI Studio 基礎 URL 覆寫' },
+      VERTEX_CREDENTIALS_PATH: {
+        description:
+          '用於 Vertex AI (Gemini) 的 Google Cloud 服務帳戶 JSON 路徑。Vertex 使用 OAuth2 而非靜態 API 金鑰——Hermes 用該憑證簽發短期權杖。回退到 GOOGLE_APPLICATION_CREDENTIALS，再回退到 ADC (gcloud auth application-default login)。專案/區域在 config.yaml 的 vertex: 下設定。'
+      },
+      XAI_API_KEY: { description: 'xAI API 金鑰' },
+      XAI_BASE_URL: { description: 'xAI 基礎 URL 覆寫' },
+      NVIDIA_API_KEY: { description: 'NVIDIA NIM API 金鑰（build.nvidia.com 或本機 NIM 端點）' },
+      NVIDIA_BASE_URL: { description: 'NVIDIA NIM 基礎 URL 覆寫（如本機 NIM 的 http://localhost:8000/v1）' },
+      LM_API_KEY: { description: '啟用驗證的 LM Studio 本機伺服器的 Bearer 權杖' },
+      LM_BASE_URL: { description: 'LM Studio 基礎 URL 覆寫' },
+      GLM_API_KEY: { description: 'Z.AI / GLM API 金鑰（也識別 ZAI_API_KEY / Z_AI_API_KEY）' },
+      ZAI_API_KEY: { description: 'Z.AI API 金鑰（GLM_API_KEY 的別名）' },
+      Z_AI_API_KEY: { description: 'Z.AI API 金鑰（GLM_API_KEY 的別名）' },
+      GLM_BASE_URL: { description: 'Z.AI / GLM 基礎 URL 覆寫' },
+      KIMI_API_KEY: { description: 'Kimi / Moonshot API 金鑰' },
+      KIMI_BASE_URL: { description: 'Kimi / Moonshot 基礎 URL 覆寫' },
+      KIMI_CN_API_KEY: { description: 'Kimi / Moonshot 中國區 API 金鑰' },
+      STEPFUN_API_KEY: { description: '階躍星辰 Step Plan API 金鑰' },
+      STEPFUN_BASE_URL: { description: '階躍星辰 Step Plan 基礎 URL 覆寫' },
+      ARCEEAI_API_KEY: { description: 'Arcee AI API 金鑰' },
+      ARCEE_BASE_URL: { description: 'Arcee AI 基礎 URL 覆寫' },
+      GMI_API_KEY: { description: 'GMI Cloud API 金鑰' },
+      GMI_BASE_URL: { description: 'GMI Cloud 基礎 URL 覆寫' },
+      FIREWORKS_API_KEY: { description: 'Fireworks AI API 金鑰' },
+      MINIMAX_API_KEY: { description: 'MiniMax API 金鑰（國際版）' },
+      MINIMAX_BASE_URL: { description: 'MiniMax 基礎 URL 覆寫' },
+      MINIMAX_CN_API_KEY: { description: 'MiniMax API 金鑰（中國區端點）' },
+      MINIMAX_CN_BASE_URL: { description: 'MiniMax（中國區）基礎 URL 覆寫' },
+      DEEPSEEK_API_KEY: { description: '用於直連 DeepSeek 的 API 金鑰' },
+      DEEPSEEK_BASE_URL: { description: '自訂 DeepSeek API 基礎 URL（進階）' },
+      DASHSCOPE_API_KEY: { description: '阿里雲 DashScope API 金鑰（Qwen 及多供應商模型）' },
+      DASHSCOPE_BASE_URL: { description: '自訂 DashScope 基礎 URL（預設：coding-intl OpenAI 相容端點）' },
+      HERMES_QWEN_BASE_URL: { description: 'Qwen Portal 基礎 URL 覆寫（預設 https://portal.qwen.ai/v1）' },
+      OPENCODE_ZEN_API_KEY: { description: 'OpenCode Zen API 金鑰（按量付費使用精選模型）' },
+      OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen 基礎 URL 覆寫' },
+      OPENCODE_GO_API_KEY: { description: 'OpenCode Go API 金鑰（10 美元/月訂閱使用開源模型）' },
+      OPENCODE_GO_BASE_URL: { description: 'OpenCode Go 基礎 URL 覆寫' },
+      HF_TOKEN: {
+        description: '用於 Inference Providers 的 Hugging Face 權杖（經 router.huggingface.co 存取 20+ 開源模型）'
+      },
+      HF_BASE_URL: { description: 'Hugging Face Inference Providers 基礎 URL 覆寫' },
+      OLLAMA_API_KEY: { description: 'Ollama Cloud API 金鑰（ollama.com——雲端託管的開源模型）' },
+      OLLAMA_BASE_URL: { description: 'Ollama Cloud 基礎 URL 覆寫（預設 https://ollama.com/v1）' },
+      XIAOMI_API_KEY: { description: '小米 MiMo API 金鑰（用於 mimo-v2.5-pro、mimo-v2.5 等 MiMo 模型）' },
+      XIAOMI_BASE_URL: { description: '小米 MiMo 基礎 URL 覆寫（預設 https://api.xiaomimimo.com/v1）' },
+      UPSTAGE_API_KEY: { description: '用於 Solar LLM 模型的 Upstage API 金鑰' },
+      UPSTAGE_BASE_URL: { description: 'Upstage 基礎 URL 覆寫（預設 https://api.upstage.ai/v1）' },
+      AWS_REGION: { description: 'Bedrock API 呼叫的 AWS 區域（如 us-east-1、eu-central-1）' },
+      AWS_PROFILE: { description: '用於 Bedrock 驗證的 AWS 命名設定檔（來自 ~/.aws/credentials）' },
+      AZURE_FOUNDRY_API_KEY: { description: '自訂 Azure 端點的 Azure Foundry API 金鑰' },
+      AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry 基礎 URL（端點級設定請用 hermes model 設定）' },
+      ALIBABA_CODING_PLAN_API_KEY: { description: '阿里雲（Coding Plan）API 金鑰' },
+      ALIBABA_CODING_PLAN_BASE_URL: { description: '阿里雲（Coding Plan）基礎 URL 覆寫' },
+      ANTHROPIC_API_KEY: { description: 'Anthropic API 金鑰' },
+      ANTHROPIC_TOKEN: { description: 'Anthropic API 金鑰' },
+      CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API 金鑰' },
+      DEEPINFRA_API_KEY: { description: 'DeepInfra API 金鑰' },
+      DEEPINFRA_BASE_URL: { description: 'DeepInfra 基礎 URL 覆寫' },
+      KILOCODE_API_KEY: { description: 'Kilocode API 金鑰' },
+      KIMI_CODING_API_KEY: { description: 'Kimi Coding API 金鑰' },
+      NOVITA_API_KEY: { description: 'NovitaAI API 金鑰' },
+      NOVITA_BASE_URL: { description: 'NovitaAI 基礎 URL 覆寫' },
+      EXA_API_KEY: { description: '用於 AI 原生網頁搜尋與內容擷取的 Exa API 金鑰' },
+      PARALLEL_API_KEY: { description: '用於 AI 原生網頁搜尋與擷取的 Parallel API 金鑰' },
+      FIRECRAWL_API_KEY: { description: '用於網頁搜尋與擷取的 Firecrawl API 金鑰' },
+      FIRECRAWL_API_URL: { description: '自架 Firecrawl 執行個體的 API URL（選填）' },
+      FIRECRAWL_GATEWAY_URL: { description: '僅 Nous 訂閱者使用的 Firecrawl 工具閘道位址覆寫（選填）' },
+      TOOL_GATEWAY_DOMAIN: {
+        description:
+          '僅 Nous 訂閱者使用的共享工具閘道網域後綴，用於推導供應商主機，例如 nousresearch.com -> firecrawl-gateway.nousresearch.com'
+      },
+      TOOL_GATEWAY_SCHEME: {
+        description: '僅 Nous 訂閱者使用的共享工具閘道 URL 協定（預設 https，本機閘道測試可設 http）'
+      },
+      TOOL_GATEWAY_USER_TOKEN: {
+        description: '工具閘道請求使用的 Nous 訂閱者存取權杖（選填；預設從 Hermes 驗證儲存區讀取）'
+      },
+      TAVILY_API_KEY: { description: '用於 AI 原生網頁搜尋與擷取的 Tavily API 金鑰' },
+      SEARXNG_URL: { description: '您的 SearXNG 執行個體 URL，用於免費自架網頁搜尋' },
+      BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 訂閱權杖（免費方案：每月 2,000 次查詢）' },
+      BROWSERBASE_API_KEY: { description: '雲端瀏覽器的 Browserbase API 金鑰（選填——本機瀏覽器無需此項）' },
+      BROWSERBASE_PROJECT_ID: { description: 'Browserbase 專案 ID（選填——僅雲端瀏覽器需要）' },
+      BROWSER_USE_API_KEY: { description: '雲端瀏覽器的 Browser Use API 金鑰（選填——本機瀏覽器無需此項）' },
+      FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl 瀏覽器工作階段 TTL（秒，選填，預設 300）' },
+      AGENT_BROWSER_ENGINE: {
+        description: '本機模式瀏覽器引擎：auto（預設 Chrome）、lightpanda（更快，無截圖）、chrome'
+      },
+      CAMOFOX_URL: { description: '本機反偵測瀏覽的 Camofox 瀏覽器伺服器 URL（如 http://localhost:9377）' },
+      CAMOFOX_API_KEY: { description: '傳送到遠端/啟用驗證的 Camofox 伺服器的選填 Bearer 權杖' },
+      FAL_KEY: { description: '用於圖像與影片生成的 FAL API 金鑰' },
+      KREA_API_KEY: { description: '用於 Krea 2 圖像生成的 Krea API 金鑰（Medium + Large）' },
+      VOICE_TOOLS_OPENAI_KEY: { description: '用於語音轉寫 (Whisper) 和 OpenAI TTS 的 OpenAI API 金鑰' },
+      ELEVENLABS_API_KEY: { description: '用於高品質文字轉語音和 Scribe 轉寫的 ElevenLabs API 金鑰' },
+      MISTRAL_API_KEY: { description: '用於 Voxtral TTS 和轉寫 (STT) 的 Mistral API 金鑰' },
+      GITHUB_TOKEN: { description: '用於技能中心的 GitHub 權杖（更高 API 速率限制、技能發佈）' },
+      HONCHO_API_KEY: { description: '用於 AI 原生持久記憶的 Honcho API 金鑰' },
+      HONCHO_BASE_URL: { description: '自架 Honcho 執行個體的基礎 URL（無需 API 金鑰）' },
+      HINDSIGHT_API_KEY: { description: '用於圖感知持久記憶的 Hindsight API 金鑰' },
+      HINDSIGHT_API_URL: { description: 'Hindsight API 基礎 URL（預設 https://api.hindsight.vectorize.io）' },
+      SUPERMEMORY_API_KEY: { description: '用於工作階段級持久記憶的 Supermemory API 金鑰' },
+      MEM0_API_KEY: { description: '用於語意持久記憶的 Mem0 Platform API 金鑰' },
+      RETAINDB_API_KEY: { description: '用於持久記憶的 RetainDB API 金鑰' },
+      RETAINDB_BASE_URL: { description: '自架 RetainDB 執行個體的基礎 URL（預設 https://api.retaindb.com）' },
+      BRV_API_KEY: { description: 'ByteRover API 金鑰（選填，用於雲端同步——預設本機優先）' },
+      OPENVIKING_API_KEY: { description: 'OpenViking API 金鑰（本機開發模式可留空）' },
+      OPENVIKING_ENDPOINT: { description: 'OpenViking 伺服器 URL（預設 http://127.0.0.1:1933）' },
+      HERMES_LANGFUSE_PUBLIC_KEY: { description: 'Langfuse 專案公鑰 (pk-lf-...)' },
+      HERMES_LANGFUSE_SECRET_KEY: { description: 'Langfuse 專案私鑰 (sk-lf-...)' },
+      HERMES_LANGFUSE_BASE_URL: { description: 'Langfuse 伺服器 URL（預設 https://cloud.langfuse.com）' },
+      NOTION_API_KEY: { description: 'Notion 整合權杖（notion 技能使用）' },
+      LINEAR_API_KEY: { description: 'Linear 個人 API 金鑰（linear 技能使用）' },
+      AIRTABLE_API_KEY: { description: 'Airtable 個人存取權杖（airtable 技能使用）' },
+      TENOR_API_KEY: { description: '用於 GIF 搜尋的 Tenor API 金鑰（gif-search 技能使用）' },
+      SUDO_PASSWORD: {
+        description: '終端機命令需要 root 權限時使用的 sudo 密碼；設為明確的空字串表示直接嘗試空密碼而不提示'
+      },
+      HERMES_PREFILL_MESSAGES_FILE: { description: '用於 few-shot 預熱的臨時預填訊息 JSON 檔案路徑' },
+      HERMES_EPHEMERAL_SYSTEM_PROMPT: { description: '在 API 呼叫時注入的臨時系統提示詞（永不寫入工作階段）' },
+      RAFT_PROFILE: { description: 'Raft 代理設定檔 slug——設定後自動啟用配接器' },
+      GATEWAY_ALLOW_ALL_USERS: { description: '允許所有使用者與訊息機器人互動（true/false）。預設 false。' },
+      GATEWAY_PROXY_URL: {
+        description:
+          '要轉發訊息的遠端 Hermes API 伺服器 URL（代理模式）。設定後閘道只處理平台收發——所有代理工作委派給遠端伺服器。適用於中繼到主機代理的 Docker E2EE 容器。也可透過 config.yaml 的 gateway.proxy_url 設定。'
+      },
+      GATEWAY_PROXY_KEY: {
+        description: '與遠端 Hermes API 伺服器驗證用的 Bearer 權杖（代理模式）。必須與遠端主機的 API_SERVER_KEY 一致。'
+      }
     }
   },
   skills: {
@@ -2725,6 +2935,97 @@ export const zhHant = defineCompleteLocale({
         `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '危險模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}。在決定是否信任作者之前，請先閱讀掃描結果。`,
       viewScan: '查看掃描',
       openLog: '打開日誌'
+    },
+    toolsetDescriptions: {
+      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）協定 v1.0 支援——使用 Linux 基金會開放標準進行雙向代理間通訊。出站工具可發現對等代理、取得 Agent Card，並透過 JSON-RPC 傳送任務；入站適配器在 /.well-known/agent-card.json 公開 Hermes，並將任務路由到擁有完整記憶與情境的即時閘道工作階段。未設定 bearer token 時僅繫結 localhost；入站文字會經過篩選，出站憑證會被清除，所有交換都會在情境壓縮流程之外進行稽核記錄。僅使用 Python 標準函式庫，無需 a2a-sdk 依賴。',
+      browser: '用於網頁互動的瀏覽器自動化（導覽、點擊、輸入、捲動、iframe、長按），並帶用於尋找 URL 的網頁搜尋',
+      clarify: '向使用者提出澄清問題（選擇題或開放式）',
+      code_execution: '執行以程式方式呼叫工具的 Python 指令碼（減少 LLM 往返）',
+      coding: '面向編碼的工具集：檔案、終端機、搜尋、網頁文件、技能、待辦、委派、視覺、瀏覽器',
+      computer_use:
+        '透過 cua-driver 背景控制桌面（macOS/Windows/Linux）——截圖、滑鼠、鍵盤、捲動、拖曳。不會搶佔使用者的游標或鍵盤焦點。適用於任何支援工具呼叫的模型。',
+      context_engine: '由目前上下文引擎公開的執行階段工具',
+      cronjob: '排程任務管理工具——建立、列出、更新、暫停、恢復、刪除和觸發排程任務',
+      debugging: '偵錯與疑難排解工具箱',
+      delegation: '為複雜子任務衍生具有隔離上下文的子代理',
+      discord: 'Discord 閱讀與參與工具（取得訊息、搜尋成員、建立討論串）',
+      discord_admin: 'Discord 伺服器管理（列出頻道/角色、置頂訊息、指派角色）',
+      feishu_doc: '讀取飛書 / Lark 文件內容',
+      feishu_drive: '飛書 / Lark 文件留言操作（列出、回覆、新增）',
+      file: '檔案操作工具：讀取、寫入、修補（支援模糊比對）和搜尋（內容 + 檔案）',
+      'hermes-acp': '編輯器整合（VS Code、Zed、JetBrains）——面向編碼的工具，不含訊息、音訊或澄清 UI',
+      'hermes-api-server':
+        '相容 OpenAI 的 API 伺服器——透過 HTTP 存取全部代理工具（不含 clarify、send_message 等互動式 UI 工具）',
+      'hermes-bluebubbles': 'BlueBubbles iMessage 機器人工具集——透過本機 BlueBubbles 伺服器使用 Apple iMessage',
+      'hermes-cli': '完整互動式 CLI 工具集——全部預設工具外加排程任務管理',
+      'hermes-cron': '預設 cron 工具集——與 hermes-cli 相同的核心工具；由 hermes tools 控制',
+      'hermes-dingtalk': '釘釘機器人工具集——企業訊息平台（完全存取）',
+      'hermes-discord': 'Discord 機器人工具集——完全存取（終端機有危險命令核准安全檢查）',
+      'hermes-email': '郵件機器人工具集——透過電子郵件 (IMAP/SMTP) 與 Hermes 互動',
+      'hermes-feishu': '飛書 / Lark 機器人工具集——透過飛書 / Lark 的企業訊息（完全存取）',
+      'hermes-gateway': '閘道工具集——所有訊息平台工具的聯集',
+      'hermes-homeassistant': 'Home Assistant 機器人工具集——智慧家庭事件監控與控制',
+      'hermes-matrix': 'Matrix 機器人工具集——去中心化加密訊息（完全存取）',
+      'hermes-mattermost': 'Mattermost 機器人工具集——自架團隊訊息（完全存取）',
+      'hermes-qqbot': 'QQ 機器人工具集——透過官方 Bot API v2 的 QQ 訊息（完全存取）',
+      'hermes-signal': 'Signal 機器人工具集——加密訊息平台（完全存取）',
+      'hermes-slack': 'Slack 機器人工具集——工作區使用的完全存取（終端機有安全檢查）',
+      'hermes-sms': '簡訊機器人工具集——透過簡訊 (Twilio) 與 Hermes 互動',
+      'hermes-telegram': 'Telegram 機器人工具集——個人使用的完全存取（終端機有安全檢查）',
+      'hermes-webhook': 'Webhook 工具集——接收並處理外部 Webhook 事件',
+      'hermes-wecom': '企業微信機器人工具集——企業微信訊息（完全存取）',
+      'hermes-wecom-callback': '企業微信回呼工具集——企業自建應用訊息（完全存取）',
+      'hermes-weixin': '微信機器人工具集——透過 iLink 的個人微信訊息（完全存取）',
+      'hermes-whatsapp': 'WhatsApp 機器人工具集——類似 Telegram（個人訊息，更受信任）',
+      'hermes-yuanbao': '元寶訊息平台工具集——群組資訊、成員查詢、私訊、貼圖表情',
+      homeassistant: 'Home Assistant 智慧家庭控制與監控',
+      image_gen: '創意生成工具（圖像）',
+      kanban:
+        '看板多代理協同——僅當代理由看板調度器衍生（設定了 HERMES_KANBAN_TASK 環境變數）時啟用。調度器預設在閘道內執行；見 config.yaml 的 kanban.dispatch_in_gateway。讓工作代理以結構化交接完成任務、封鎖等待人工輸入、長操作期間傳送心跳、在討論串留言、附加檔案，（編排者還可）列出、解除封鎖和分發任務。',
+      memory: '跨工作階段持久記憶（個人筆記 + 使用者輪廓）',
+      project: '桌面專案——建立/切換命名工作區（僅 GUI 工作階段）',
+      safe: '不含終端機存取的安全工具箱',
+      search: '僅網頁搜尋（不含內容擷取/抓取）',
+      session_search: '搜尋並回憶過往對話，支援摘要',
+      skills: '存取、建立、編輯和管理帶有專門指令與知識的技能文件',
+      spotify: '原生 Spotify 播放、搜尋、播放清單、專輯和曲庫工具',
+      terminal: '終端機/命令執行與程序管理工具',
+      todo: '多步驟工作的任務規劃與追蹤',
+      tts: '文字轉語音：用 Edge TTS（免費）、ElevenLabs、OpenAI 或 xAI 將文字轉為音訊',
+      stt: '語音轉文字：語音轉寫（閘道器語音訊息與語音模式）',
+      video: '影片分析與理解工具（選擇啟用，不在預設工具集中）',
+      video_gen:
+        '影片生成工具。單一 video_generate 工具涵蓋文生影片（僅提示詞）和圖生影片（提示詞 + image_url），以及參考生影片。供應商專屬的編輯/延伸工作流程可能以獨立工具出現。透過 hermes tools → Video Generation 設定。',
+      vision: '圖像分析與視覺工具',
+      x_search:
+        '透過 xAI 內建的 x_search Responses 工具搜尋 X (Twitter) 貼文和討論串。設定 xAI 憑證（SuperGrok OAuth 或 XAI_API_KEY）後可用。預設關閉；在 hermes tools → X (Twitter) Search 中啟用。',
+      yuanbao: '元寶平台工具——群組資訊、成員查詢、私訊、貼圖'
+    },
+    toolsetLabels: {
+      web: '網頁搜尋與擷取',
+      browser: '瀏覽器自動化',
+      terminal: '終端機與程序',
+      file: '檔案操作',
+      code_execution: '程式碼執行',
+      vision: '視覺 / 圖像分析',
+      video: '影片分析',
+      image_gen: '圖像生成',
+      video_gen: '影片生成',
+      x_search: 'X (Twitter) 搜尋',
+      tts: '文字轉語音',
+      stt: '語音轉文字',
+      skills: '技能',
+      todo: '任務規劃',
+      memory: '記憶',
+      context_engine: '上下文引擎',
+      session_search: '工作階段搜尋',
+      clarify: '澄清問題',
+      delegation: '任務委派',
+      cronjob: '排程任務',
+      discord: 'Discord（閱讀/參與）',
+      discord_admin: 'Discord 伺服器管理',
+      yuanbao: '元寶',
+      computer_use: '電腦操控 (macOS/Windows/Linux)'
     }
   },
   starmap: {
@@ -3258,11 +3559,65 @@ export const zhHant = defineCompleteLocale({
         help: '建議設定。逗號分隔的電話號碼或 WhatsApp ID。'
       }
     },
-    platformIntro: {},
+    platformIntro: {
+      telegram:
+        '在 Telegram 中與 @BotFather 對話，執行 /newbot，複製它給您的 Token。然後從 @userinfobot 取得您的數字使用者 ID。',
+      discord:
+        '開啟 Discord 開發者入口網站，建立應用程式，新增 Bot，然後複製其 Token。用正確的權限範圍把機器人邀請到您的伺服器。',
+      slack: '建立 Slack 應用程式，啟用 Socket Mode，安裝到您的工作區，然後複製 bot Token 和 app 層級 Token。',
+      mattermost: '在您的 Mattermost 伺服器上建立機器人帳戶或個人存取權杖，然後在此貼上伺服器 URL 和權杖。',
+      matrix: '用機器人帳戶登入您的 homeserver，然後複製存取權杖、使用者 ID 和 homeserver URL。',
+      signal: '在可存取的位置執行 signal-cli REST 橋接，然後把 Hermes 指向該 URL 和已註冊的電話號碼。',
+      whatsapp: '啟動 Hermes 內建的 WhatsApp 橋接，首次執行時掃描 QR code，然後啟用該平台。',
+      bluebubbles:
+        '在裝有 iMessage 的 Mac 上執行 BlueBubbles Server，公開其 API，然後用伺服器密碼把 Hermes 指向該 URL。',
+      homeassistant: '在 Home Assistant 中開啟您的個人資料並建立長期存取權杖。把它連同您的 HA URL 一起貼到這裡。',
+      email: '使用專用信箱。對於 Gmail/Workspace，建立應用程式專用密碼並使用 imap.gmail.com / smtp.gmail.com。',
+      sms: '從 Twilio 控制台取得您的 Account SID 和 Auth Token，以及一個可傳送簡訊的電話號碼。',
+      dingtalk: '在開發者控制台建立釘釘應用，然後在此複製 Client ID (App key) 和 Client Secret。',
+      feishu: '建立飛書 / Lark 應用，設定機器人能力，複製 App ID、App secret 和事件加密金鑰。',
+      wecom: '在企業微信中新增群機器人，複製其 webhook key 作為 WECOM_BOT_ID。僅可傳送——雙向請用企業微信 (應用) 選項。',
+      wecom_callback: '設定一個企業微信自建應用，公開其回呼 URL，並提供 corp ID、secret、agent ID 和 AES key。',
+      weixin:
+        '執行 `hermes gateway setup`，選擇 Weixin，然後使用個人微信帳號掃描並確認 QR code。Hermes 會透過騰訊 iLink Bot API 連線並儲存憑證。',
+      qqbot: '在 QQ 開放平台 (q.qq.com) 註冊一個應用，複製 App ID 和 Client Secret。',
+      api_server:
+        '把 Hermes 公開為相容 OpenAI 的 API。設定一個驗證金鑰，然後把 Open WebUI / LobeChat 等指向 host:port。',
+      webhook: '執行一個 HTTP 伺服器，供其他工具 (GitHub、GitLab、自訂應用) POST。用 secret 驗證簽章。',
+      a2a: '無外部依賴（僅標準函式庫）。設定共用 token 或對等 token 以允許其他 Hermes 實例透過 A2A 協定連線。',
+      buzz: '需要 buzz CLI 工具 (https://github.com/block/buzz) 在 PATH 或 BUZZ_CLI_PATH 中。透過 Nostr relay 連接到 Buzz 社群。',
+      raft: '以外部代理的身分加入 Raft 工作區。'
+    },
     sharedListenerUrl: '透過共享閘道監聽器提供，位址為',
     restartFailedManualDetail: '再次嘗試重新啟動；如果仍然失敗，請開啟日誌並發送診斷訊息。',
     restartAgain: '再次重啟',
-    openLogs: '打開日誌'
+    openLogs: '打開日誌',
+    platformDescription: {
+      telegram: '在 Telegram 私訊、群組和話題中使用 Hermes。',
+      discord: '把 Hermes 接入 Discord 私訊、頻道和討論串。',
+      slack: '透過 Socket Mode 在 Slack 中使用 Hermes。新增允許的 Slack 成員 ID 後已連線的機器人才會回應。',
+      mattermost: '把 Hermes 接入 Mattermost 頻道和私訊。',
+      matrix: '在 Matrix 房間和私訊中使用 Hermes。',
+      signal: '透過 signal-cli REST 橋接連線。',
+      whatsapp: '透過內建的 WhatsApp 橋接使用 Hermes，掃碼認證。',
+      bluebubbles: '透過 BlueBubbles 伺服器在 iMessage 中使用 Hermes。',
+      homeassistant: '透過 Home Assistant 從 Hermes 控制您的智慧家庭。',
+      email: '透過 IMAP/SMTP 信箱與 Hermes 對話。',
+      sms: '透過 Twilio 收發簡訊。',
+      dingtalk: '把 Hermes 接入釘釘群。',
+      feishu: '在飛書 / Lark 中使用 Hermes。',
+      google_chat: '透過 Cloud Pub/Sub 把 Hermes 接入 Google Chat。',
+      wecom: '僅傳送的企業微信群機器人（webhook 方式）。',
+      wecom_callback: '透過回呼應用實現企業微信雙向整合。',
+      weixin: '透過騰訊 iLink Bot API 連接個人微信帳號。',
+      qqbot: '把 Hermes 接入 QQ 開放平台的 QQ 機器人。',
+      yuanbao: '把 Hermes 接入騰訊元寶。',
+      api_server: '把 Hermes 公開為相容 OpenAI 的 HTTP API，供 Open WebUI 等工具使用。',
+      webhook: '接收來自 GitHub、GitLab 等 Webhook 來源的事件。',
+      a2a: 'Hermes Agent 的 A2A（Agent-to-Agent）協定 v1.0 支援 —— Linux 基金會開放標準的雙向代理間通訊。\n\n出站（客戶端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 讓代理獲取其他代理的 Agent Card 並透過 JSON-RPC 傳送任務 —— 可與任何 A2A 相容的對等端（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）協作。\n\n入站（平台適配器）：將 Hermes 暴露為可被 A2A 發現的代理。Agent Card 在 /.well-known/agent-card.json 提供服務（v1.0 規範路徑；舊版 agent.json 也回應），傳入任務被路由到代理的即時閘道工作階段中，就像任何其他平台一樣 —— 因此回覆的代理與正在與使用者對話的是同一個，擁有完整的記憶體和情境，而不是一次性複製。\n\n安全性預設開啟：未設定權杖則僅繫結 localhost。入站任務文字經過提示注入篩選器；出站文字清除憑證形式的字串；每次交換都經過稽核日誌記錄並持久化到磁碟，在情境壓縮管線之外，因此對話在壓縮和重新啟動後仍然存活。\n\n純標準函式庫傳輸（http.server + urllib）—— 無需 a2a-sdk 依賴。',
+      buzz: '透過 Nostr relay 連接到去中心化的 Buzz 社群（需要 buzz CLI）。',
+      raft: '以外部代理的身分加入 Raft 工作區，協作完成任務。'
+    }
   },
   webhooks: {
     search: '搜尋網路掛鉤...',
