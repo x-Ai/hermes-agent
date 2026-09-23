@@ -11,6 +11,7 @@ import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { releaseTypingFocus } from '@/components/ui/keyboard-first'
 import { Tip } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { ChevronDown } from '@/lib/icons'
 import { formatModelPillLabel, providerDisplayName } from '@/lib/model-status-label'
 import { cn } from '@/lib/utils'
@@ -46,7 +47,8 @@ export function ModelPill({
   disabled: boolean
   model: ChatBarState['model']
 }) {
-  const copy = useI18n().t.shell.statusbar
+  const { t } = useI18n()
+  const copy = t.shell.statusbar
   // Two return branches below, one handle: only ever one of them mounts.
   const tourMarker = useTourMarker('model-pill')
   const view = useSessionView()
@@ -120,6 +122,10 @@ export function ModelPill({
   // Tiles always have a runtime — pin badge is primary-draft only.
   const pinnedOverride =
     view.kind === 'primary' && !runtimeId && modelSource === 'manual' && Boolean(currentModel.trim())
+  const isMoa = (currentProvider || '').trim().toLowerCase() === 'moa'
+  const modelLabel = isMoa
+    ? displayEntityName(currentModel, t)
+    : formatModelPillLabel(currentModel, { fastMode })
 
   // The model resolves a beat after the gateway/session comes up. Rather than
   // flash a literal "No model", show a quiet loader (inherits the pill text
@@ -129,7 +135,7 @@ export function ModelPill({
   ) : (
     <>
       {currentModel.trim() ? (
-        <span className="truncate">{formatModelPillLabel(currentModel, { fastMode })}</span>
+        <span className="truncate">{modelLabel}</span>
       ) : (
         <GlyphSpinner className="opacity-50" spinner="braille" />
       )}
@@ -155,7 +161,7 @@ export function ModelPill({
     : PILL
 
   const baseTitle = currentProvider
-    ? copy.modelTitle(providerDisplayName(currentProvider), currentModel || copy.modelNone)
+    ? copy.modelTitle(isMoa ? 'MOA' : providerDisplayName(currentProvider), modelLabel || copy.modelNone)
     : copy.switchModel
 
   const title = pinnedOverride ? `${baseTitle} — ${copy.modelPinned}` : baseTitle

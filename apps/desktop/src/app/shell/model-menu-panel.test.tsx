@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'
+import { en } from '@/i18n/en'
 import { $collapsedProviders, toggleCollapsedProvider } from '@/store/provider-collapse'
 import { $activeSessionId, $currentModel, $currentProvider } from '@/store/session'
 
@@ -429,7 +430,7 @@ describe('ModelMenuPanel provider collapse', () => {
 
     await content.findByText(/Glm 4\.5 Air/i)
 
-    fireEvent.click(await content.findByText('Refresh models'))
+    fireEvent.click(await content.findByText(en.shell.modelMenu.refreshModels))
 
     await vi.waitFor(() => {
       expect(getGlobalModelOptions).toHaveBeenCalledTimes(2)
@@ -447,7 +448,7 @@ describe('ModelMenuPanel provider collapse', () => {
     const { content, onSelectModel } = renderPanel()
 
     await content.findByText(/Deepseek V4 Pro/i)
-    fireEvent.click(await content.findByText('Refresh models'))
+    fireEvent.click(await content.findByText(en.shell.modelMenu.refreshModels))
 
     await vi.waitFor(() => {
       expect(getGlobalModelOptions).toHaveBeenCalledTimes(2)
@@ -474,7 +475,7 @@ describe('ModelMenuPanel provider collapse', () => {
     const { content, onSelectModel } = renderPanel()
 
     await content.findAllByText(/Glm 4\.5 Air/i)
-    fireEvent.click(await content.findByText('Refresh models'))
+    fireEvent.click(await content.findByText(en.shell.modelMenu.refreshModels))
 
     await vi.waitFor(() => {
       expect(getGlobalModelOptions).toHaveBeenCalledTimes(2)

@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { HermesGateway } from '@/hermes'
 import { getLocalModelsStatus } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { isSubmitEnter } from '@/lib/ime'
 import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
@@ -282,8 +283,11 @@ export function ModelCatalogMenu({
   // sitting under zero model matches would otherwise become the "first match"
   // Enter commits.
   const shownMoaPresets = useMemo(
-    () => (q ? moaPresets.filter(preset => foldIncludes(`moa ${preset}`, q)) : moaPresets),
-    [moaPresets, q]
+    () =>
+      q
+        ? moaPresets.filter(preset => foldIncludes(`moa ${preset} ${displayEntityName(preset, t)}`, q))
+        : moaPresets,
+    [moaPresets, q, t]
   )
 
   const selectFamily = async (family: ModelFamily, provider: ModelOptionProvider) => {
@@ -639,7 +643,8 @@ export function ModelCatalogMenu({
                 {...kbRowProps(`moa:${preset}`)}
               >
                 <span className="min-w-0 flex-1 truncate">
-                  {t.settings.model.moa.shortTitle}: <HighlightMatches foldSeparators query={search} text={preset} />
+                  {t.settings.model.moa.shortTitle}:{' '}
+                  <HighlightMatches foldSeparators query={search} text={displayEntityName(preset, t)} />
                 </span>
                 {isCurrentMoa ? <Codicon className="ml-auto text-foreground" name="check" size="0.75rem" /> : null}
               </DropdownMenuItem>

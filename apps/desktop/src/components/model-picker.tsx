@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { getLocalModelsStatus } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { currentPickerSelection } from '@/lib/model-status-label'
 import { foldIncludes, normalize } from '@/lib/text'
@@ -273,6 +274,10 @@ function ModelResults({
       return [...models]
     }
 
+    if (provider.slug.toLowerCase() === 'moa') {
+      return models.filter(model => foldIncludes(displayEntityName(model, t), q) || foldIncludes(model, q))
+    }
+
     return fuzzyRank(models, q, modelSearchText).map(r => r.item)
   }
 
@@ -317,6 +322,7 @@ function ModelResults({
               </div>
             )}
             {models.map(model => {
+              const modelLabel = provider.slug.toLowerCase() === 'moa' ? displayEntityName(model, t) : model
               const isCurrent = model === currentModel && catalogProviderMatches(provider, currentProvider)
               const price = provider.pricing?.[model]
               const locked = unavailable.has(model)
@@ -343,7 +349,7 @@ function ModelResults({
                   value={`${provider.slug}:${model}`}
                 >
                   <span className="min-w-0 flex-1 truncate">
-                    <HighlightMatches foldSeparators query={search} text={model} />
+                    <HighlightMatches foldSeparators query={search} text={modelLabel} />
                   </span>
                   {loadProgress && (
                     <span className="flex shrink-0 items-center gap-1.5" title={copy.loadingIntoMemory}>
