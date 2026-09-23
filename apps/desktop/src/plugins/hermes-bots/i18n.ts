@@ -1533,7 +1533,7 @@ const zh: BotsMessages = {
     deleted: '已删除',
     deleteDescriptionPrefix: '这将永久删除该机器人',
     deleteDescriptionMiddle: '以及其相关的 Hermes 配置文件位于',
-    deleteDescriptionSuffix: '。此操作无法撤销。',
+    deleteDescriptionSuffix: '，此操作无法撤销',
     profileDeleted: name => `已删除的个人资料${name}`,
     duplicating: name => `正在复制 ${name}…`,
     duplicated: (name, source) => `已创建 ${name} — ${source} 的完整副本`,
@@ -1543,7 +1543,7 @@ const zh: BotsMessages = {
     someSectionsFailed: sections => `某些部分失败了：${sections}`,
     recentSessionOpenFailed: '无法打开最近的会话',
     neverResetsTitle: '此聊天从不重播',
-    neverResetsBody: '瓶式聊天是一种连续的对话——而不是紧凑. 对于带有此机器人的丢弃会话, 请使用会话模式 .'
+    neverResetsBody: '瓶式聊天是一种连续的对话——而不是紧凑，对于带有此机器人的丢弃会话, 请使用会话模式 .'
   },
   avatar: {
     classicShapes: '经典形状',
