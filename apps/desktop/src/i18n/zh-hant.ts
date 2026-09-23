@@ -2442,7 +2442,7 @@ export const zhHant = defineCompleteLocale({
         selectedTitle: '已選擇後端',
         selectedMessage: backend => `終端命令現在透過 ${backend} 執行。將套用於新工作階段。`,
         failedSelect: backend => `選擇 ${backend} 失敗`,
-        needsSetupHint: '此後端目前已選擇，但尚未完成完整設置——命令在設置完成之前將會失敗。',
+        needsSetupHint: '現在即可選擇此後端——但在完成設定前命令將會失敗。',
         descriptions: {},
         details: {},
         needsSetupConfirmTitle: backend => `選擇${backend}無論如何?`,
@@ -3516,7 +3516,8 @@ export const zhHant = defineCompleteLocale({
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'Bot Token'
+        label: 'Bot Token',
+        help: 'Mattermost Bot Token 或個人存取 Token'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '允許的使用者 ID',
@@ -3524,14 +3525,17 @@ export const zhHant = defineCompleteLocale({
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'Matrix homeserver URL（如 https://matrix.org）'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: '存取 Token'
+        label: '存取 Token',
+        help: 'Matrix 存取 Token（優先於密碼登入）'
       },
       MATRIX_USER_ID: {
         label: 'Bot 使用者 ID',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'Matrix 使用者 ID（如 @hermes:example.org）'
       },
       MATRIX_ALLOWED_USERS: {
         label: '允許的 Matrix 使用者 ID',
@@ -3560,6 +3564,396 @@ export const zhHant = defineCompleteLocale({
       WHATSAPP_ALLOWED_USERS: {
         label: '允許的 WhatsApp 使用者',
         help: '建議設定。逗號分隔的電話號碼或 WhatsApp ID。'
+      },
+      TELEGRAM_ALLOW_ALL_USERS: {
+        label: '允許所有 Telegram 使用者',
+        help: '僅供開發使用。任何 Telegram 使用者都能觸發機器人。'
+      },
+      TELEGRAM_HOME_CHANNEL: { label: '主頻道 ID', help: 'cron / 通知傳遞的預設聊天 ID。' },
+      TELEGRAM_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: 'Telegram 主頻道的顯示名稱。' },
+      SLACK_ALLOW_ALL_USERS: {
+        label: '允許所有 Slack 使用者',
+        help: '僅供開發使用。任何 Slack 使用者都能觸發機器人。'
+      },
+      SLACK_HOME_CHANNEL: { label: '主頻道 ID', help: 'cron / 通知傳遞的預設頻道 ID（以 C 開頭）。' },
+      SLACK_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: 'Slack 主頻道的顯示名稱。' },
+      SLACK_THREAD_REQUIRE_MENTION: {
+        label: '討論串內需要 @提及',
+        help: 'Slack 討論串回覆需要明確的 @提及；頂層自由回應頻道不受影響。'
+      },
+      MATTERMOST_ALLOWED_CHANNELS: {
+        label: '允許的頻道 ID',
+        help: '設定後機器人只在這些頻道回應（白名單），逗號分隔。'
+      },
+      MATTERMOST_FREE_RESPONSE_CHANNELS: {
+        label: '自由回應頻道 ID',
+        help: '機器人無需 @提及即可回應的 Mattermost 頻道 ID，逗號分隔。'
+      },
+      MATTERMOST_REPLY_MODE: { label: '回覆方式', help: 'thread（巢狀討論串）或 off（平鋪）。預設 off。' },
+      MATTERMOST_REQUIRE_MENTION: {
+        label: '頻道內需要 @提及',
+        help: '在 Mattermost 頻道中需要 @提及（預設 true）。設為 false 可回應所有訊息。'
+      },
+      MATRIX_ALLOW_ALL_USERS: {
+        label: '允許所有 Matrix 使用者',
+        help: '僅供開發使用。任何 Matrix 使用者都能觸發機器人。'
+      },
+      MATRIX_AUTO_THREAD: { label: '房間內自動建立討論串', help: '為 Matrix 房間訊息自動建立討論串（預設 true）。' },
+      MATRIX_DEVICE_ID: {
+        label: '裝置 ID',
+        help: '用於端對端加密的穩定 Matrix 裝置 ID，重啟後保持不變（如 HERMES_BOT）。'
+      },
+      MATRIX_DM_AUTO_THREAD: { label: '私訊自動建立討論串', help: '為 Matrix 私訊自動建立討論串（預設 false）。' },
+      MATRIX_FREE_RESPONSE_ROOMS: {
+        label: '自由回應房間 ID',
+        help: '機器人無需 @提及即可回應的 Matrix 房間 ID，逗號分隔。'
+      },
+      MATRIX_HOME_CHANNEL: { label: '主房間 ID', help: 'cron / 通知傳遞的預設房間 ID。' },
+      MATRIX_HOME_CHANNEL_NAME: { label: '主房間名稱', help: 'Matrix 主房間的顯示名稱。' },
+      MATRIX_PASSWORD: { label: 'Matrix 密碼', help: 'Matrix 帳戶密碼（存取 Token 的替代方式）。' },
+      MATRIX_RECOVERY_KEY: {
+        label: '復原金鑰',
+        help: '裝置金鑰輪換後用於交叉簽署驗證的復原金鑰（Element：設定 → 安全 → 復原金鑰）。'
+      },
+      MATRIX_REQUIRE_MENTION: {
+        label: '房間內需要 @提及',
+        help: '在 Matrix 房間中需要 @提及（預設 true）。設為 false 可回應所有訊息。'
+      },
+      WHATSAPP_DM_POLICY: { label: '私訊策略', help: 'WhatsApp 私訊的授權方式。' },
+      WHATSAPP_ALLOW_ALL_USERS: {
+        label: '允許所有 WhatsApp 使用者',
+        help: '僅供開發使用。任何 WhatsApp 使用者都能觸發機器人。'
+      },
+      WHATSAPP_HOME_CHANNEL: { label: '主頻道 ID', help: 'cron / 通知傳遞的預設聊天 ID。' },
+      WHATSAPP_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: 'WhatsApp 主頻道的顯示名稱。' },
+      BLUEBUBBLES_SERVER_URL: {
+        label: '伺服器 URL',
+        help: '用於 iMessage 整合的 BlueBubbles 伺服器 URL。',
+        placeholder: 'http://192.168.1.10:1234'
+      },
+      BLUEBUBBLES_PASSWORD: {
+        label: '伺服器密碼',
+        help: 'BlueBubbles 伺服器密碼（BlueBubbles Server → 設定 → API）。'
+      },
+      BLUEBUBBLES_ALLOWED_USERS: {
+        label: '允許的 iMessage 位址',
+        help: '建議設定。逗號分隔的 iMessage 位址（電子郵件或電話號碼）。'
+      },
+      HASS_URL: {
+        label: 'Home Assistant URL',
+        help: 'Home Assistant 基礎 URL。',
+        placeholder: 'http://homeassistant.local:8123'
+      },
+      HASS_TOKEN: { label: '長期存取權杖', help: 'Home Assistant 長期存取權杖。' },
+      EMAIL_ADDRESS: { label: '電子郵件位址', help: '電子郵件帳戶位址。' },
+      EMAIL_PASSWORD: { label: '電子郵件密碼', help: '電子郵件帳戶密碼 / 應用程式專用密碼。' },
+      EMAIL_IMAP_HOST: { label: 'IMAP 主機', help: '收件輪詢使用的 IMAP 主機。', placeholder: 'imap.gmail.com' },
+      EMAIL_SMTP_HOST: { label: 'SMTP 主機', help: '寄件使用的 SMTP 主機。', placeholder: 'smtp.gmail.com' },
+      EMAIL_ALLOWED_USERS: {
+        label: '允許的電子郵件位址',
+        help: '建議設定。允許與機器人對話的電子郵件位址，逗號分隔。'
+      },
+      EMAIL_HOME_ADDRESS: { label: '主位址', help: 'cron / 通知傳遞的預設電子郵件位址。' },
+      EMAIL_SMTP_PORT: { label: 'SMTP 連接埠', help: 'SMTP 連接埠（預設 587）。' },
+      TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: '來自 Twilio 控制台的 Account SID。' },
+      TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: '來自 Twilio 控制台的 Auth Token。' },
+      TWILIO_PHONE_NUMBER: { label: 'Twilio 電話號碼', help: '可傳送簡訊的 Twilio 號碼（E.164 格式）。' },
+      DINGTALK_CLIENT_ID: { label: 'Client ID (App Key)', help: '釘釘應用的 App Key（Client ID）。' },
+      DINGTALK_CLIENT_SECRET: { label: 'Client Secret', help: '釘釘應用的 App Secret（Client Secret）。' },
+      DINGTALK_ALLOWED_USERS: {
+        label: '允許的使用者',
+        help: '允許與機器人對話的員工 / 傳送者 ID，逗號分隔（* 表示任何人）。'
+      },
+      DINGTALK_HOME_CHANNEL: { label: '主對話 ID', help: 'cron / 通知傳遞的預設對話 ID。' },
+      DINGTALK_HOME_CHANNEL_NAME: { label: '主對話名稱', help: '釘釘主對話的顯示名稱。' },
+      DINGTALK_WEBHOOK_URL: {
+        label: '群機器人 Webhook URL',
+        help: '用於跨平台 / cron 傳遞的固定群機器人 Webhook URL（選填）。'
+      },
+      FEISHU_APP_ID: { label: 'App ID', help: '飛書 / Lark 應用的 App ID。' },
+      FEISHU_APP_SECRET: { label: 'App Secret', help: '飛書 / Lark 應用的 App Secret。' },
+      FEISHU_ENCRYPT_KEY: { label: '加密金鑰 (Encrypt Key)', help: '飛書 / Lark 事件加密金鑰。' },
+      FEISHU_VERIFICATION_TOKEN: { label: '驗證權杖 (Verification Token)', help: '飛書 / Lark 事件驗證權杖。' },
+      FEISHU_ALLOWED_USERS: { label: '允許的使用者 ID', help: '建議設定。允許與機器人對話的飛書使用者 ID，逗號分隔。' },
+      FEISHU_ALLOW_ALL_USERS: { label: '允許所有飛書使用者', help: '僅供開發使用。任何飛書使用者都能觸發機器人。' },
+      FEISHU_DOMAIN: { label: '網域 (feishu/lark)', help: 'feishu（中國版）或 lark（國際版）。' },
+      FEISHU_HOME_CHANNEL: { label: '主群組 ID', help: 'cron / 通知傳遞的預設群組 ID。' },
+      FEISHU_HOME_CHANNEL_NAME: { label: '主群組名稱', help: '飛書主群組的顯示名稱。' },
+      WECOM_BOT_ID: { label: '機器人 ID', help: '企業微信智慧機器人的 bot ID。' },
+      WECOM_SECRET: { label: '機器人 Secret', help: '企業微信智慧機器人的 secret。' },
+      WECOM_CALLBACK_CORP_ID: { label: '企業 ID (Corp ID)', help: '企業微信回呼模式的企業 ID（自建應用）。' },
+      WECOM_CALLBACK_CORP_SECRET: { label: '應用 Secret', help: '企業微信回呼模式的應用 Secret。' },
+      WECOM_CALLBACK_AGENT_ID: { label: '應用 Agent ID', help: '企業微信回呼模式的應用 Agent ID。' },
+      WECOM_CALLBACK_TOKEN: { label: '回呼 Token', help: '企業微信回呼驗證 Token。' },
+      WECOM_CALLBACK_ENCODING_AES_KEY: {
+        label: 'EncodingAESKey',
+        help: '用於訊息加解密的企業微信回呼 EncodingAESKey。'
+      },
+      WEIXIN_ACCOUNT_ID: {
+        label: 'iLink Bot 帳號 ID',
+        help: '透過 hermes gateway setup 掃碼登入取得的 iLink Bot 帳號 ID。'
+      },
+      WEIXIN_TOKEN: { label: 'iLink Bot 權杖', help: '透過 hermes gateway setup 掃碼登入取得的 iLink Bot 權杖。' },
+      WEIXIN_BASE_URL: {
+        label: 'iLink API 基礎 URL',
+        help: '掃碼登入儲存的 iLink API 基礎 URL（預設 https://ilinkai.weixin.qq.com）。'
+      },
+      QQ_APP_ID: { label: 'App ID', help: '來自 QQ 開放平台 (q.qq.com) 的機器人 App ID。' },
+      QQ_CLIENT_SECRET: { label: 'Client Secret', help: '來自 QQ 開放平台的機器人 Client Secret。' },
+      QQ_ALLOWED_USERS: { label: '允許的 QQ 使用者', help: '建議設定。允許使用機器人的 QQ 使用者 ID，逗號分隔。' },
+      QQ_GROUP_ALLOWED_USERS: { label: '允許的 QQ 群', help: '允許與機器人互動的 QQ 群 ID，逗號分隔。' },
+      QQ_SANDBOX: { label: '沙箱模式', help: '啟用 QQ 沙箱模式用於開發測試（true/false）。' },
+      API_SERVER_ENABLED: {
+        label: '啟用 API 伺服器',
+        help: '啟用相容 OpenAI 的 API 伺服器（true/false），供 Open WebUI、LobeChat 等前端連線。'
+      },
+      API_SERVER_KEY: {
+        label: '驗證金鑰',
+        help: 'API 伺服器認證用的 Bearer 權杖。啟用 API 伺服器時必填，缺少時伺服器拒絕啟動。'
+      },
+      API_SERVER_PORT: { label: '連接埠', help: 'API 伺服器連接埠（預設 8642）。' },
+      API_SERVER_HOST: {
+        label: '監聽位址',
+        help: 'API 伺服器的繫結位址（預設 127.0.0.1）。即使只繫結本機回送位址也需要設定驗證金鑰。'
+      },
+      API_SERVER_MODEL_NAME: {
+        label: '模型名稱',
+        help: '在 /v1/models 上公佈的模型名。預設為設定檔名（預設設定檔則為 hermes-agent）。適合搭配 OpenWebUI 的多使用者情境。'
+      },
+      WEBHOOK_ENABLED: { label: '啟用 Webhook', help: '啟用 Webhook 平台配接器，接收來自 GitHub、GitLab 等的事件。' },
+      WEBHOOK_PORT: { label: '連接埠', help: 'Webhook HTTP 伺服器連接埠（預設 8644）。' },
+      WEBHOOK_SECRET: {
+        label: '簽章金鑰',
+        help: '用於 Webhook 簽章驗證的全域 HMAC 金鑰（可在 config.yaml 中按路由覆寫）。'
+      },
+      IRC_SERVER: {
+        label: 'IRC 伺服器',
+        help: 'IRC 伺服器主機名稱（如 irc.libera.chat）。',
+        placeholder: 'irc.libera.chat'
+      },
+      IRC_CHANNEL: { label: 'IRC 頻道', help: '要加入的 IRC 頻道（如 #hermes）。' },
+      IRC_NICKNAME: { label: '機器人暱稱', help: '機器人在 IRC 上的暱稱（預設 hermes-bot）。' },
+      IRC_SERVER_PASSWORD: { label: '伺服器密碼', help: 'IRC 伺服器密碼（如需要）。' },
+      IRC_NICKSERV_PASSWORD: { label: 'NickServ 密碼', help: '用於暱稱認證的 NickServ 密碼。' },
+      IRC_PORT: { label: 'IRC 連接埠', help: 'IRC 伺服器連接埠（預設：TLS 6697，非 TLS 6667）。' },
+      IRC_USE_TLS: { label: '使用 TLS', help: 'IRC 連線使用 TLS（1/true/yes 啟用；連接埠 6697 時預設啟用）。' },
+      IRC_ALLOWED_USERS: { label: '允許的暱稱', help: '允許與機器人對話的 IRC 暱稱，逗號分隔。' },
+      IRC_ALLOW_ALL_USERS: { label: '允許所有使用者', help: '僅供開發使用。允許頻道中任何人與機器人對話。' },
+      IRC_HOME_CHANNEL: { label: '主頻道', help: 'cron / 通知傳遞的頻道（預設使用 IRC_CHANNEL）。' },
+      GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
+        label: '服務帳戶 JSON',
+        help: '服務帳戶 JSON 金鑰的路徑（或內嵌 JSON）。留空則在 Cloud Run / GCE 上使用應用程式預設憑證（ADC），回退到 GOOGLE_APPLICATION_CREDENTIALS。'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_URL: { label: 'HTTP 事件回呼 URL', help: '用於 Chat 訊息事件的已驗證 HTTP 端點。' },
+      GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
+        label: 'HTTP 事件權杖受眾',
+        help: 'Google 簽署 HTTP 事件 Bearer 權杖的預期受眾。預設為 GOOGLE_CHAT_HTTP_EVENTS_URL。'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
+        label: 'HTTP 事件服務帳戶信箱',
+        help: 'HTTP 事件 Bearer 權杖預期的 Google 服務帳戶信箱。'
+      },
+      GOOGLE_CHAT_PROJECT_ID: {
+        label: 'GCP 專案 ID',
+        help: '選用 Pub/Sub 入站模式的 GCP 專案 ID。回退到 GOOGLE_CLOUD_PROJECT。'
+      },
+      GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub 訂閱名稱', help: '拉取模式入站事件的選用 Pub/Sub 訂閱路徑。' },
+      GOOGLE_CHAT_ALLOWED_USERS: { label: '允許的使用者信箱', help: '允許與機器人互動的使用者信箱，逗號分隔。' },
+      GOOGLE_CHAT_HOME_CHANNEL: { label: '主空間 ID', help: 'cron / 通知傳遞的預設空間（如 spaces/AAAA...）。' },
+      LINE_CHANNEL_ACCESS_TOKEN: {
+        label: '頻道存取權杖',
+        help: 'LINE 頻道長期存取權杖（LINE Developers 主控台 > Messaging API > Channel access token）。'
+      },
+      LINE_CHANNEL_SECRET: { label: '頻道密鑰', help: 'LINE 頻道密鑰（用於 HMAC-SHA256 Webhook 簽章驗證）。' },
+      LINE_PORT: { label: 'Webhook 連接埠', help: 'Webhook 監聽連接埠（預設 8646）。' },
+      LINE_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面 IPv4+IPv6）。' },
+      LINE_PUBLIC_URL: {
+        label: '公開 HTTPS 基礎 URL',
+        help: '向 LINE 提供圖片/音訊/影片的公開 HTTPS 基礎 URL（如 https://my-tunnel.example.com）。繫結位址無法直接存取時傳送媒體必需。'
+      },
+      LINE_ALLOWED_USERS: { label: '允許的使用者 ID', help: '允許私訊機器人的 LINE 使用者 ID（U 開頭），逗號分隔。' },
+      LINE_ALLOWED_GROUPS: { label: '允許的群組 ID', help: '機器人會回應的 LINE 群組 ID（C 開頭），逗號分隔。' },
+      LINE_ALLOWED_ROOMS: { label: '允許的聊天室 ID', help: '機器人會回應的 LINE 聊天室 ID（R 開頭），逗號分隔。' },
+      LINE_ALLOW_ALL_USERS: {
+        label: '允許所有使用者',
+        help: '僅供開發使用。允許任何 LINE 使用者與機器人對話（停用允許清單）。'
+      },
+      LINE_HOME_CHANNEL: { label: '主頻道 ID', help: 'cron / 通知傳遞的預設使用者/群組/聊天室 ID。' },
+      LINE_SLOW_RESPONSE_THRESHOLD: {
+        label: '慢回應閾值（秒）',
+        help: '觸發慢 LLM postback 按鈕前的秒數（預設 45；設 0 停用並一律使用 Push 回退）。'
+      },
+      NTFY_TOPIC: { label: '訂閱主題', help: '要訂閱的主題名稱（如 hermes-in）。' },
+      NTFY_SERVER_URL: { label: '伺服器 URL', help: 'ntfy 伺服器 URL（預設 https://ntfy.sh）。' },
+      NTFY_TOKEN: { label: '驗證權杖', help: 'Bearer 權杖或用於 Basic 驗證的 user:pass（選填）。' },
+      NTFY_PUBLISH_TOPIC: { label: '發佈主題', help: '回覆發佈到的主題（預設使用 NTFY_TOPIC）。' },
+      NTFY_MARKDOWN: { label: '啟用 Markdown', help: '傳送回覆時帶 X-Markdown: true 標頭（true/false，預設 false）。' },
+      NTFY_ALLOWED_USERS: { label: '允許的主題名稱', help: '允許的主題名稱（允許清單），逗號分隔。' },
+      NTFY_ALLOW_ALL_USERS: { label: '允許所有主題', help: '僅供開發使用。允許任何主題與機器人對話（停用允許清單）。' },
+      NTFY_HOME_CHANNEL: { label: '主主題', help: 'cron / 通知傳遞的預設主題。' },
+      NTFY_HOME_CHANNEL_NAME: { label: '主主題名稱', help: '主頻道的顯示名稱（預設使用主題名稱）。' },
+      PHOTON_PROJECT_ID: {
+        label: 'Spectrum 專案 ID',
+        help: 'Spectrum 專案 ID（專案的 spectrumProjectId；由 hermes photon setup 設定）。'
+      },
+      PHOTON_PROJECT_SECRET: {
+        label: '專案密鑰',
+        help: '與 Spectrum 專案 ID 配對的專案密鑰（由 hermes photon setup 設定）。'
+      },
+      PHOTON_SIDECAR_PORT: {
+        label: 'Sidecar 控制連接埠',
+        help: 'Node sidecar 控制與入站通道的回送連接埠（預設 8789）。'
+      },
+      PHOTON_SIDECAR_AUTOSTART: {
+        label: '自動啟動 Sidecar',
+        help: '連線時自動啟動 Node sidecar（true/false，預設 true）。'
+      },
+      PHOTON_NODE_BIN: { label: 'Node 執行檔路徑', help: 'node 執行檔的路徑（預設取 PATH 中的 node）。' },
+      PHOTON_DASHBOARD_HOST: {
+        label: 'Dashboard 主機',
+        help: 'Photon Dashboard API 主機（預設 https://app.photon.codes）。'
+      },
+      PHOTON_SPECTRUM_HOST: {
+        label: 'Spectrum API 主機',
+        help: 'Photon Spectrum API 主機（預設 https://spectrum.photon.codes）。'
+      },
+      PHOTON_ALLOWED_USERS: { label: '允許的使用者', help: '允許與機器人對話的 E.164 電話號碼，逗號分隔。' },
+      PHOTON_ALLOW_ALL_USERS: {
+        label: '允許所有使用者',
+        help: '僅供開發使用。允許任何傳送者觸發機器人（停用允許清單）。'
+      },
+      PHOTON_REQUIRE_MENTION: {
+        label: '群組聊天需要提及',
+        help: '忽略群組聊天訊息，除非命中提及喚醒詞（true/false，預設 false）。'
+      },
+      PHOTON_MENTION_PATTERNS: {
+        label: '群組提及模式',
+        help: '群組聊天的提及喚醒詞正規表示式（JSON 清單或逗號/換行分隔；預設使用 Hermes 喚醒詞）。'
+      },
+      PHOTON_HOME_CHANNEL: {
+        label: '主 Photon 目標',
+        help: 'cron / 通知傳遞的預設 Photon 目標：Spectrum 空間 ID、DM GUID 或純 E.164 電話號碼。'
+      },
+      PHOTON_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: '主頻道的顯示名稱。' },
+      PHOTON_TELEMETRY: {
+        label: '啟用 Spectrum 遙測',
+        help: '在 sidecar 中啟用 Spectrum SDK 遙測（true/false，預設 false；可用 hermes photon telemetry on|off 切換）。'
+      },
+      PHOTON_MARKDOWN: {
+        label: '以 Markdown 呈現回覆',
+        help: '以 Markdown 傳送回覆——iMessage 原生呈現，其他 Spectrum 平台降級為純文字（true/false，預設 true）。'
+      },
+      PHOTON_REACTIONS: {
+        label: '啟用回應貼圖',
+        help: '用 👀/👍/👎 回應訊息表示處理狀態，並把機器人訊息上的回應轉給代理（true/false，預設 false）。'
+      },
+      SIMPLEX_WS_URL: {
+        label: '常駐程式 WebSocket URL',
+        help: 'simplex-chat 常駐程式的 WebSocket URL（如 ws://127.0.0.1:5225）。'
+      },
+      SIMPLEX_ALLOWED_USERS: { label: '允許的聯絡人 ID', help: '允許與機器人對話的 SimpleX 聯絡人 ID，逗號分隔。' },
+      SIMPLEX_ALLOW_ALL_USERS: {
+        label: '允許所有聯絡人',
+        help: '僅供開發使用。允許任何聯絡人與機器人對話（停用允許清單）。'
+      },
+      SIMPLEX_AUTO_ACCEPT: { label: '自動接受聯絡人請求', help: '自動接受收到的聯絡人請求（預設 true）。' },
+      SIMPLEX_GROUP_ALLOWED: {
+        label: '允許的群組 ID',
+        help: '機器人參與的 SimpleX 群組 ID（逗號分隔），或 * 允許任意群組。省略則完全忽略群組訊息（更安全的預設——否則群組裡機器人會處理每個成員的訊息）。'
+      },
+      SIMPLEX_HOME_CHANNEL: { label: '主聯絡人/群組 ID', help: 'cron / 通知傳遞的預設聯絡人/群組 ID。' },
+      SIMPLEX_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: '主頻道的顯示名稱（預設使用 ID）。' },
+      HERMES_SIMPLEX_TEXT_BATCH_DELAY: {
+        label: '文字合批延遲（秒）',
+        help: '把連續快速到達的入站文字合併為單一訊息事件的靜默期秒數（預設 0.8）——與 Telegram 的文字合批相同。'
+      },
+      SMS_ALLOWED_USERS: { label: '允許的號碼', help: '允許與機器人對話的電話號碼，逗號分隔。' },
+      SMS_HOME_CHANNEL: { label: '主號碼', help: 'cron / 通知傳遞的預設電話號碼。' },
+      TEAMS_CLIENT_ID: { label: 'Azure AD 用戶端 ID', help: 'Azure AD 應用程式（Bot Framework）用戶端 ID。' },
+      TEAMS_CLIENT_SECRET: { label: 'Azure AD 用戶端密鑰', help: 'Azure AD 應用程式用戶端密鑰。' },
+      TEAMS_TENANT_ID: { label: 'Azure AD 租用戶 ID', help: '託管機器人應用程式的 Azure AD 租用戶 ID。' },
+      TEAMS_PORT: { label: 'Webhook 連接埠', help: 'Webhook 監聽連接埠（Bot Framework 預設 3978）。' },
+      TEAMS_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面 IPv4+IPv6）。' },
+      TEAMS_ALLOWED_USERS: { label: '允許的使用者', help: '允許與機器人對話的 Teams 使用者 ID / UPN，逗號分隔。' },
+      TEAMS_ALLOW_ALL_USERS: { label: '允許所有使用者', help: '僅供開發使用。任何 Teams 使用者都能觸發機器人。' },
+      TEAMS_HOME_CHANNEL: { label: '主頻道', help: 'cron / 通知傳遞的預設聊天/頻道 ID。' },
+      TEAMS_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: 'Teams 主頻道的顯示名稱。' },
+      WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企業微信智慧機器人 WebSocket URL。' },
+      WECOM_HOME_CHANNEL: { label: '主對話 ID', help: 'cron / 通知傳遞的預設聊天 ID。' },
+      WECOM_ALLOWED_USERS: { label: '允許的使用者', help: '允許與機器人對話的企業微信使用者 ID，逗號分隔。' },
+      A2A_AGENT_NAME: {
+        label: 'A2A 代理名稱',
+        help: '在此代理的 Agent Card 上公布的名稱（預設：主機名稱派生）。',
+        placeholder: 'A2A 代理名稱'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A 共用權杖（空則僅限本機）',
+        help: '入站 A2A 呼叫的共用權杖（身分回退至呼叫方 IP）。不設任何權杖則僅綁定 127.0.0.1。',
+        placeholder: 'A2A 共用權杖（空則僅限本機）'
+      },
+      A2A_HOST: {
+        label: 'A2A 綁定主機（預設 127.0.0.1）',
+        help: '入站綁定主機。預設 127.0.0.1；僅在設定了權杖且在此處選擇時才擴展到 0.0.0.0。',
+        placeholder: 'A2A 綁定主機（預設 127.0.0.1）'
+      },
+      A2A_PORT: {
+        label: 'A2A 連接埠（預設 9900）',
+        help: '入站 A2A 伺服器連接埠（預設 9900）。',
+        placeholder: 'A2A 連接埠（預設 9900）'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A 對等權杖（name:token，逗號分隔；或留空）',
+        help: '每個對等代理的權杖（如 alice:tok1,bob:tok2）。匹配的名稱用於限速、信任和稽核。',
+        placeholder: 'A2A 對等權杖（name:token，逗號分隔；或留空）'
+      },
+      A2A_HOME_CHANNEL: { label: 'A2A 主頻道（或留空）', help: 'cron / 通知投遞時 deliver=a2a 使用的任務/情境 ID。' },
+      A2A_ALLOW_ALL_USERS: {
+        label: '允許所有 A2A 對等代理',
+        help: '允許任何已驗證的 A2A 對等代理存取此代理（僅限開發）。'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft 代理 profile',
+        help: 'Raft 代理 profile slug — 設定後自動啟用轉接器。',
+        placeholder: 'Raft 代理 profile'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz 中繼 URL',
+        help: 'Buzz 社群中繼的基礎 URL（如 https://mycommunity.communities.buzz.xyz）。',
+        placeholder: 'Buzz 中繼 URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr 私密金鑰（nsec 或 hex）',
+        help: '代理 Buzz 身分的 Nostr 私密金鑰（nsec 或 hex）——唯一的 Buzz 密鑰。'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI 路徑（或留空）',
+        help: 'buzz CLI 二進位檔路徑（預設：PATH 中的 buzz，然後是 ~/bin/buzz）。'
+      },
+      BUZZ_CHANNELS: {
+        label: '頻道 UUID（逗號分隔）',
+        help: '要監聽的頻道 UUID，逗號分隔（預設：所有已加入的頻道）。'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: '主頻道 UUID（或留空）',
+        help: 'cron / 通知投遞的頻道 UUID（預設使用第一個監聽的頻道）。'
+      },
+      BUZZ_ALLOWED_USERS: { label: '允許的使用者（逗號分隔）', help: '允許與代理對話的 npub 或 hex 公鑰，逗號分隔。' },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: '允許所有使用者？（true/false）',
+        help: '允許任何社群成員與代理對話（true/false）。'
+      },
+      BUZZ_TRANSPORT: {
+        label: '傳輸方式（auto/websocket/poll）',
+        help: '入站傳輸方式：auto（WebSocket 帶輪詢回退，預設）、websocket 或 poll。'
+      },
+      BUZZ_POLL_INTERVAL: { label: '輪詢間隔秒數', help: '入站輪詢掃描間隔秒數（預設 4）。' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON（或留空）',
+        help: '用於 NIP-42 WebSocket 認證的可選 NIP-OA 所有者證明 auth tag JSON。'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: '憑證檔案路徑（或留空）',
+        help: '保存 nsec 的 JSON 憑證檔案（當 BUZZ_PRIVATE_KEY 未設定時作為回退）。'
       }
     },
     platformIntro: {
@@ -3843,7 +4237,9 @@ export const zhHant = defineCompleteLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: '電子郵件'
+      email: '電子郵件',
+      botChat: 'Bot 聊天',
+      defaultProfile: '預設'
     },
     scheduleLabels: {
       daily: '每天',
@@ -3953,12 +4349,121 @@ export const zhHant = defineCompleteLocale({
       loading: '正在載入藍圖...',
       failedLoad: '載入藍圖失敗',
       emptyTitle: '沒有可用的藍圖',
-      emptyDesc: '此後端上沒有可用的自動化藍圖。'
+      emptyDesc: '此後端上沒有可用的自動化藍圖。',
+      titles: {
+        'Morning briefing': '早間簡報',
+        'Important-mail monitor': '重要郵件監控',
+        'Weekly review': '每週回顧',
+        'Workday start reminder': '工作日開始提醒',
+        'Custom reminder': '自訂提醒',
+        'Evening wind-down': '晚間整理',
+        'Topic news digest': '主題新聞摘要',
+        'Bills & renewals reminder': '帳單與續約提醒',
+        'Price & availability watch': '價格與庫存監控',
+        'Competitor news watch': '競爭對手新聞監控',
+        'Habit check-in': '習慣簽到',
+        'Hydration & movement nudge': '補水與運動提醒',
+        'Weekly meal plan': '每週膳食計畫',
+        'Daily learning drip': '每日學習',
+        'Gratitude & reflection prompt': '感恩與反思提示',
+        'On-this-day discovery': '歷史上的今天'
+      },
+      descriptions: {
+        'Morning briefing': '簡短的每日簡報：今日行事曆、天氣和待辦緊急事項。',
+        'Important-mail monitor': '定期檢查收件匣，僅在真正需要注意時提醒。',
+        'Weekly review': '每週回顧：已完成的事項、待辦事項和即將到來的事項。',
+        'Workday start reminder': '工作日提醒，附帶議程和首要任務。',
+        'Custom reminder': '依您的排程自訂的重複提醒。',
+        'Evening wind-down': '一日結束檢查：瞭解明日行程和今晚需準備的事項。',
+        'Topic news digest': '關於您關心主題的定期摘要——去重後僅顯示真正的新項目。',
+        'Bills & renewals reminder': '定期付款、訂閱續約或到期日前的提前警告——避免意外自動扣款。',
+        'Price & availability watch': '監控特定商品、航班、飯店或清單，並在價格或庫存狀況符合條件時提醒。',
+        'Competitor news watch': '追蹤指定公司的重要新聞——產品發布、定價、融資、申報——附引用摘要。',
+        'Habit check-in': '定期提醒以維持習慣並反思完成情況。',
+        'Hydration & movement nudge': '全天定期提醒喝水、站立和伸展。',
+        'Weekly meal plan': '依您的飲食和烹飪時間量身打造的每週膳食計畫，附合併購物清單。',
+        'Daily learning drip': '每天一個小課程，關於您想學習的主題——日積月累。',
+        'Gratitude & reflection prompt': '每日或每週的反思提示，記錄感恩和洞察。',
+        'On-this-day discovery': '歷史上在今天發生的有趣事件——依您的興趣個人化。'
+      },
+      labels: {
+        'What time?': '什麼時間？',
+        'Where to deliver?': '送達何處？',
+        'How often?': '多久一次？',
+        'Remind me to…': '提醒我…',
+        'Which day?': '哪一天？',
+        'Repeat on': '重複於',
+        'What topic?': '什麼主題？',
+        'How many bullets?': '幾個項目符號？',
+        "What's due?": '什麼到期？',
+        'What exactly to watch?': '確切監控什麼？',
+        'Alert me when…': '提醒我當…',
+        'Which companies?': '哪些公司？',
+        'Which events matter?': '哪些事件重要？',
+        'Which habit?': '哪個習慣？',
+        'Start hour': '開始時間',
+        'End hour': '結束時間',
+        'Diet?': '飲食限制？',
+        'Meals per day?': '每日幾餐？',
+        'Cooking effort?': '烹飪難度？',
+        'Only notify me if the mail…': '僅在郵件…時通知我',
+        'Learn about…': '學習…',
+        'What kind?': '什麼類型？'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24小時制，如 08:00',
+        'minutes between checks': '檢查間隔（分鐘）',
+        'hours between checks — be gentle with rate limits': '檢查間隔（小時）——注意速率限制',
+        'hours between nudges': '提醒間隔（小時）',
+        'first hour of the active window (24h)': '活躍時段開始小時（24小時制）',
+        'last hour of the active window (24h)': '活躍時段結束小時（24小時制）'
+      },
+      options: {
+        everyday: '每天',
+        weekdays: '工作日',
+        weekends: '週末',
+        sunday: '週日',
+        monday: '週一',
+        tuesday: '週二',
+        wednesday: '週三',
+        thursday: '週四',
+        friday: '週五',
+        saturday: '週六',
+        'dinner only': '僅晚餐',
+        'lunch and dinner': '午餐和晚餐',
+        'all three': '三餐',
+        quick: '簡單',
+        medium: '中等',
+        ambitious: '複雜',
+        'no restrictions': '無限制',
+        vegetarian: '素食',
+        vegan: '純素',
+        'high-protein': '高蛋白',
+        'low-carb': '低碳水',
+        'on this day in history': '歷史上的今天',
+        'word of the day': '每日單詞',
+        'science fact': '科學趣聞',
+        'quote of the day': '每日名言',
+        auto: '自動',
+        websocket: 'websocket',
+        poll: '輪詢'
+      }
     },
     lastRunFailed: '上次運行失敗：',
     editJob: '編輯職位',
     runAgain: '再次運行',
-    overdueSince: '逾期自：'
+    overdueSince: '逾期自：',
+    modelImpact: {
+      title: '排程工作將繼續使用原模型',
+      message: count => `${count} 個未固定的排程工作將繼續使用建立時的模型執行。固定它們或設定 cron.model 以遷移。`,
+      detailMore: (names, remaining) => `${names}，以及另外 ${remaining} 個`,
+      review: '檢查排程工作',
+      saveFailed: 'Hermes 未儲存該模型變更。',
+      confirmTitle: '模型選擇警告',
+      confirmDetail: '僅在你接受此權衡時確認。',
+      confirmAction: '確認',
+      declined: '已取消模型變更 — 你拒絕了資料訓練層級警告。'
+    }
   },
   artifacts: {
     search: '搜尋成品…',
@@ -5101,7 +5606,8 @@ export const zhHant = defineCompleteLocale({
       noModels: '找不到模型',
       editModels: '編輯模型…',
       refreshModels: '重新整理模型',
-      fast: '快速'
+      fast: '快速',
+      moaPresets: 'MOA 預設'
     },
     modelOptions: {
       noOptions: '此模型沒有可用選項',
@@ -6157,7 +6663,7 @@ export const zhHant = defineCompleteLocale({
     resumeStrandedTitle: '無法載入此工作階段',
     resumeStrandedBody: '與此工作階段的連線失敗，自動重試已停止。請確認閘道正在執行，然後重試。',
     poolSlotTimeoutBody:
-      '所有本機設定檔後端插槽目前都在使用中。請在「設定」→「進階」中增加 Warm Bot Backends，或等待閒置後端被移除後重試。',
+      '所有本機設定檔後端插槽目前都在使用中。請在「設定」→「進階」中增加「保持執行的機器人後端數量」，或等待閒置後端被移除後重試。',
     poolSlotTimeoutOpenSettings: '開啟進階設定',
     resumeRetry: '重試',
     nothingToBranch: '沒有可分支的內容',

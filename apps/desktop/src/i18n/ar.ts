@@ -1056,7 +1056,8 @@ export const ar = defineCompleteLocale({
       safety: 'الأمان',
       memory: 'الذاكرة والسياق',
       voice: 'الصوت',
-      advanced: 'متقدم'
+      advanced: 'متقدم',
+      browser: 'المتصفح'
     },
     searchPlaceholder: {
       about: 'حول Hermes Desktop',
@@ -3152,7 +3153,8 @@ export const ar = defineCompleteLocale({
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'رمز البوت (token)'
+        label: 'رمز البوت (token)',
+        help: 'رمز بوت Mattermost أو رمز الوصول الشخصي'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: 'معرّفات المستخدمين المسموح بهم',
@@ -3160,14 +3162,17 @@ export const ar = defineCompleteLocale({
       },
       MATRIX_HOMESERVER: {
         label: 'رابط Homeserver',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'رابط خادم Matrix الرئيسي (مثل https://matrix.org)'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: 'رمز الوصول'
+        label: 'رمز الوصول',
+        help: 'رمز وصول Matrix (يُفضَّل على تسجيل الدخول بكلمة مرور)'
       },
       MATRIX_USER_ID: {
         label: 'معرّف مستخدم البوت',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'معرّف مستخدم Matrix (مثل @hermes:example.org)'
       },
       MATRIX_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Matrix المسموح بهم',
@@ -3196,6 +3201,97 @@ export const ar = defineCompleteLocale({
       WHATSAPP_ALLOWED_USERS: {
         label: 'مستخدمو WhatsApp المسموح بهم',
         help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp مفصولة بفواصل.'
+      },
+      A2A_AGENT_NAME: {
+        label: 'اسم عميل A2A',
+        help: 'الاسم المُعلَن على بطاقة الوكيل (Agent Card) لهذا الوكيل (الافتراضي: مشتق من اسم المضيف).',
+        placeholder: 'اسم عميل A2A'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)',
+        help: 'رمز حامل مشترك لاستدعاءات A2A الواردة (تعود الهوية إلى IP المتصل). بدون أي رمز => ربط بـ 127.0.0.1 فقط.',
+        placeholder: 'رمز حامل A2A المشترك (أو فارغ لـ localhost فقط)'
+      },
+      A2A_HOST: {
+        label: 'مضيف ربط A2A (الافتراضي 127.0.0.1)',
+        help: 'مضيف الربط الوارد. الافتراضي 127.0.0.1؛ يتوسع إلى 0.0.0.0 فقط عند تعيين رمز حامل والموافقة هنا.',
+        placeholder: 'مضيف ربط A2A (الافتراضي 127.0.0.1)'
+      },
+      A2A_PORT: {
+        label: 'منفذ A2A (الافتراضي 9900)',
+        help: 'منفذ خادم A2A الوارد (الافتراضي 9900).',
+        placeholder: 'منفذ A2A (الافتراضي 9900)'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)',
+        help: 'رموز حامل لكل نظير (مثل alice:tok1,bob:tok2). كل وكيل بعيد له بيانات اعتماد خاصة به.',
+        placeholder: 'رموز نظير A2A (name:token، مفصولة بفواصل؛ أو فارغ)'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'قناة A2A الرئيسية (أو فارغ)',
+        help: 'معرف المهمة/السياق المستخدم كهدف تسليم cron / الإشعارات لـ deliver=a2a.'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'السماح لجميع أقران A2A؟ (true/false)',
+        help: 'السماح لأي نظير A2A مصادَق عليه بالوصول إلى الوكيل (للتطوير فقط).'
+      },
+      RAFT_PROFILE: {
+        label: 'ملف تعريف وكيل Raft',
+        help: 'اسم ملف تعريف وكيل Raft — يُمكِّن المحول تلقائيًا عند التعيين.',
+        placeholder: 'ملف تعريف وكيل Raft'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'عنوان URL مُرحِّل Buzz',
+        help: 'عنوان URL الأساسي لمُرحِّل مجتمع Buzz (مثل https://mycommunity.communities.buzz.xyz).',
+        placeholder: 'عنوان URL مُرحِّل Buzz'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'المفتاح الخاص لـ Nostr (nsec أو hex)',
+        help: 'المفتاح الخاص لـ Nostr لهوية Buzz للوكيل (nsec أو hex) — السر الوحيد لـ Buzz.'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'مسار buzz CLI (أو فارغ)',
+        help: "مسار ملف buzz CLI الثنائي (الافتراضي: 'buzz' على PATH، ثم ~/bin/buzz)."
+      },
+      BUZZ_CHANNELS: {
+        label: 'معرفات UUID للقنوات (مفصولة بفواصل)',
+        help: 'معرفات UUID للقنوات المراد مراقبتها، مفصولة بفواصل (الافتراضي: جميع القنوات المنضمة إليها).'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'معرف UUID القناة الرئيسية (أو فارغ)',
+        help: 'معرف UUID للقناة لتسليم cron / الإشعارات (الافتراضي: القناة الأولى المراقَبة).'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: 'المستخدمون المسموح بهم (مفصولون بفواصل)',
+        help: 'npubs أو مفاتيح hex العامة المسموح لها بالتحدث إلى الوكيل، مفصولة بفواصل.'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'السماح لجميع المستخدمين؟ (true/false)',
+        help: 'السماح لأي عضو في المجتمع بالتحدث إلى الوكيل (true/false).'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'طريقة النقل (auto/websocket/poll)',
+        help: 'نقل وارد: auto (WebSocket مع احتياط poll، الافتراضي)، websocket، أو poll.'
+      },
+      BUZZ_POLL_INTERVAL: {
+        label: 'ثواني فاصل الاستطلاع',
+        help: 'الثواني بين عمليات مسح الاستطلاع الوارد (الافتراضي: 4).'
+      },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON (أو فارغ)',
+        help: 'علامة NIP-OA لاعتماد المالك الاختيارية لمصادقة NIP-42 WebSocket.'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: 'مسار ملف الاعتمادات (أو فارغ)',
+        help: 'ملف اعتمادات JSON يحتوي على nsec (احتياطي عند عدم تعيين BUZZ_PRIVATE_KEY).'
+      },
+      LINE_HOST: {
+        label: 'مضيف Webhook',
+        help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).'
+      },
+      TEAMS_HOST: {
+        label: 'مضيف Webhook',
+        help: 'مضيف ربط Webhook (الافتراضي: غير محدد → ثنائي المكدس، جميع الواجهات IPv4+IPv6).'
       }
     },
     platformIntro: {
@@ -3488,7 +3584,9 @@ export const ar = defineCompleteLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'البريد الإلكتروني'
+      email: 'البريد الإلكتروني',
+      botChat: 'دردشة البوت',
+      defaultProfile: 'افتراضي'
     },
     scheduleLabels: {
       daily: 'يوميا',
@@ -3581,7 +3679,7 @@ export const ar = defineCompleteLocale({
     scheduleRequired: 'الجدول الزمني مطلوب.',
     scriptOnlyEditHint: 'عمل سري فقط (لا يوجد عمل سريع). العمل:',
     saveChanges: 'حفظ التغييرات',
-    createAction: 'إنشاء',
+    createAction: 'إنشاء مهمة مجدولة',
     tabs: {
       jobs: 'المهام',
       blueprints: 'المخططات'
@@ -3598,12 +3696,125 @@ export const ar = defineCompleteLocale({
       loading: 'جار تحميل المخططات...',
       failedLoad: 'فشل تحميل المخططات',
       emptyTitle: 'لا توجد مخططات متاحة',
-      emptyDesc: 'لا توجد مخططات أتمتة متاحة على هذا الخادم.'
+      emptyDesc: 'لا توجد مخططات أتمتة متاحة على هذا الخادم.',
+      titles: {
+        'Morning briefing': 'إحاطة الصباح',
+        'Important-mail monitor': 'مراقب البريد المهم',
+        'Weekly review': 'مراجعة أسبوعية',
+        'Workday start reminder': 'تذكير ببداية يوم العمل',
+        'Custom reminder': 'تذكير مخصص',
+        'Evening wind-down': 'استرخاء المساء',
+        'Topic news digest': 'ملخص أخبار الموضوع',
+        'Bills & renewals reminder': 'تذكير بالفواتير والتجديدات',
+        'Price & availability watch': 'مراقبة السعر والتوفر',
+        'Competitor news watch': 'مراقبة أخبار المنافسين',
+        'Habit check-in': 'تسجيل وصول العادة',
+        'Hydration & movement nudge': 'تذكير بالشرب والحركة',
+        'Weekly meal plan': 'خطة وجبات أسبوعية',
+        'Daily learning drip': 'تعلم يومي',
+        'Gratitude & reflection prompt': 'مطالبة بالامتنان والتأمل',
+        'On-this-day discovery': 'اكتشاف في مثل هذا اليوم'
+      },
+      descriptions: {
+        'Morning briefing': 'إحاطة يومية موجزة: التقويم اليومي والطقس والمهام العاجلة.',
+        'Important-mail monitor': 'تحقق من صندوق الوارد بانتظام، تنبيه فقط عندما يحتاج حقًا إلى اهتمام.',
+        'Weekly review': 'مراجعة أسبوعية: ما تم إنجازه، والمهام المعلقة، وما هو قادم.',
+        'Workday start reminder': 'تذكير بيوم العمل مع جدول الأعمال والمهام الأولى.',
+        'Custom reminder': 'تذكير متكرر مخصص حسب جدولك الزمني.',
+        'Evening wind-down': 'فحص نهاية اليوم: ما هو قادم غدًا وما تحتاج إعداده الليلة.',
+        'Topic news digest': 'ملخص منتظم حول المواضيع التي تهتم بها — فقط العناصر الجديدة حقًا بعد إلغاء التكرار.',
+        'Bills & renewals reminder':
+          'تحذير مسبق قبل المدفوعات المتكررة أو تجديدات الاشتراك أو تواريخ الاستحقاق — تجنب الرسوم المفاجئة.',
+        'Price & availability watch':
+          'راقب منتجات أو رحلات أو فنادق أو قوائم محددة، تنبيه عندما يتطابق السعر أو التوفر مع معاييرك.',
+        'Competitor news watch':
+          'تتبع الأخبار الكبيرة من شركات محددة — إطلاق منتجات، تسعير، تمويل، ملفات — مع ملخص مقتبس.',
+        'Habit check-in': 'تذكيرات منتظمة للحفاظ على العادة والتفكير في الإكمال.',
+        'Hydration & movement nudge': 'تذكيرات منتظمة طوال اليوم للشرب والوقوف والتمدد.',
+        'Weekly meal plan': 'خطة وجبات أسبوعية مصممة حسب نظامك الغذائي ووقت الطهي، مع قائمة تسوق مجمعة.',
+        'Daily learning drip': 'درس صغير واحد يوميًا حول موضوع تريد تعلمه — يتراكم مع مرور الوقت.',
+        'Gratitude & reflection prompt': 'مطالبة يومية أو أسبوعية للتأمل، لتسجيل الامتنان والرؤى.',
+        'On-this-day discovery': 'أحداث مثيرة للاهتمام حدثت في التاريخ في هذا اليوم — مخصصة حسب اهتماماتك.'
+      },
+      labels: {
+        'What time?': 'أي وقت؟',
+        'Where to deliver?': 'أين التسليم؟',
+        'How often?': 'كم مرة؟',
+        'Remind me to…': 'ذكرني بـ…',
+        'Which day?': 'أي يوم؟',
+        'Repeat on': 'كرر في',
+        'What topic?': 'أي موضوع؟',
+        'How many bullets?': 'كم نقطة؟',
+        "What's due?": 'ما المستحق؟',
+        'What exactly to watch?': 'ماذا تراقب بالضبط؟',
+        'Alert me when…': 'نبهني عندما…',
+        'Which companies?': 'أي شركات؟',
+        'Which events matter?': 'أي أحداث مهمة؟',
+        'Which habit?': 'أي عادة؟',
+        'Start hour': 'ساعة البدء',
+        'End hour': 'ساعة الانتهاء',
+        'Diet?': 'قيود غذائية؟',
+        'Meals per day?': 'وجبات يوميًا؟',
+        'Cooking effort?': 'جهد الطهي؟',
+        'Only notify me if the mail…': 'فقط أخبرني إذا كان البريد…',
+        'Learn about…': 'التعلم حول…',
+        'What kind?': 'أي نوع؟'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': 'بتوقيت محلي 24 ساعة، مثل 08:00',
+        'minutes between checks': 'دقائق بين كل فحص',
+        'hours between checks — be gentle with rate limits': 'ساعات بين كل فحص — كن رفيقًا مع حدود المعدل',
+        'hours between nudges': 'ساعات بين كل تذكير',
+        'first hour of the active window (24h)': 'الساعة الأولى من النافذة النشطة (24 ساعة)',
+        'last hour of the active window (24h)': 'الساعة الأخيرة من النافذة النشطة (24 ساعة)'
+      },
+      options: {
+        everyday: 'كل يوم',
+        weekdays: 'أيام الأسبوع',
+        weekends: 'نهاية الأسبوع',
+        sunday: 'الأحد',
+        monday: 'الاثنين',
+        tuesday: 'الثلاثاء',
+        wednesday: 'الأربعاء',
+        thursday: 'الخميس',
+        friday: 'الجمعة',
+        saturday: 'السبت',
+        'dinner only': 'العشاء فقط',
+        'lunch and dinner': 'الغداء والعشاء',
+        'all three': 'الثلاث وجبات',
+        quick: 'سريع',
+        medium: 'متوسط',
+        ambitious: 'متقدم',
+        'no restrictions': 'بدون قيود',
+        vegetarian: 'نباتي',
+        vegan: 'نباتي صرف',
+        'high-protein': 'غني بالبروتين',
+        'low-carb': 'منخفض الكربوهيدرات',
+        'on this day in history': 'في مثل هذا اليوم من التاريخ',
+        'word of the day': 'كلمة اليوم',
+        'science fact': 'حقيقة علمية',
+        'quote of the day': 'اقتباس اليوم',
+        auto: 'تلقائي',
+        websocket: 'websocket',
+        poll: 'استطلاع'
+      }
     },
     lastRunFailed: 'فشل آخر مرة:',
     editJob: 'تحرير الوظيفة',
     runAgain: 'تشغيل مرة أخرى',
-    overdueSince: 'تأخر تقديمه منذ:'
+    overdueSince: 'تأخر تقديمه منذ:',
+    modelImpact: {
+      title: 'تبقى المهام المجدولة على نموذجها الأصلي',
+      message: count =>
+        `${count} من المهام المجدولة غير المثبتة ستواصل العمل على النموذج الذي أُنشئت به. ثبّتها أو اضبط cron.model لنقلها.`,
+      detailMore: (names, remaining) => `${names} و${remaining} أخرى`,
+      review: 'مراجعة المهام المجدولة',
+      saveFailed: 'لم يحفظ Hermes تغيير النموذج هذا.',
+      confirmTitle: 'تحذير اختيار النموذج',
+      confirmDetail: 'أكّد فقط إذا كنت تقبل هذه المقايضة.',
+      confirmAction: 'تأكيد',
+      declined: 'أُلغي تغيير النموذج — رفضت تحذير طبقة تدريب البيانات.'
+    }
   },
   artifacts: {
     search: 'بحث',
@@ -4769,7 +4980,8 @@ export const ar = defineCompleteLocale({
       noModels: 'لا توجد نماذج',
       editModels: 'تحرير النماذج',
       refreshModels: 'تحديث النماذج',
-      fast: 'سريع'
+      fast: 'سريع',
+      moaPresets: 'إعدادات MOA المسبقة'
     },
     modelOptions: {
       noOptions: 'لا توجد خيارات لهذا النموذج',
@@ -5839,7 +6051,7 @@ export const ar = defineCompleteLocale({
     resumeStrandedBody:
       'فشل الاتصال بهذه الجلسة وتوقفت إعادة المحاولة التلقائية. تأكد من تشغيل البوابة، ثم حاول مجددا.',
     poolSlotTimeoutBody:
-      'جميع خانات الواجهات الخلفية المحلية للملفات الشخصية مشغولة. زد عدد Warm Bot Backends من الإعدادات ← متقدم، أو أعد المحاولة بعد إزالة واجهة خلفية خاملة.',
+      'جميع خانات الواجهات الخلفية المحلية للملفات الشخصية مشغولة. زد «عدد العمليات الخلفية للبوتات التي تبقى قيد التشغيل» من الإعدادات ← متقدم، أو أعد المحاولة بعد إزالة واجهة خلفية خاملة.',
     poolSlotTimeoutOpenSettings: 'فتح الإعدادات المتقدمة',
     resumeRetry: 'إعادة المحاولة',
     nothingToBranch: 'لا يوجد ما يمكن تفريعه',

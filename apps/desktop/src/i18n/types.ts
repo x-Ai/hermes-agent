@@ -3643,6 +3643,17 @@ export interface Translations {
     close: string
     title: string
     count: (count: number) => string
+    modelImpact: {
+      title: string
+      message: (count: number) => string
+      detailMore: (names: string, remaining: number) => string
+      review: string
+      saveFailed: string
+      confirmTitle: string
+      confirmDetail: string
+      confirmAction: string
+      declined: string
+    }
     search: string
     loading: string
     states: Record<string, string>
@@ -3735,6 +3746,11 @@ export interface Translations {
       failedLoad: string
       emptyTitle: string
       emptyDesc: string
+      titles: Record<string, string>
+      descriptions: Record<string, string>
+      labels: Record<string, string>
+      helps: Record<string, string>
+      options: Record<string, string>
     }
   }
   artifacts: {
@@ -4184,6 +4200,7 @@ export interface Translations {
       editModels: string
       refreshModels: string
       fast: string
+      moaPresets: string
     }
     modelOptions: {
       noOptions: string

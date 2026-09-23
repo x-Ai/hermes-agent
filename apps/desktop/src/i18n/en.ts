@@ -2159,8 +2159,7 @@ export const en: Translations = {
         selectedTitle: 'Backend selected',
         selectedMessage: backend => `Terminal commands now run via ${backend}. Applies to new sessions.`,
         failedSelect: backend => `Failed to select ${backend}`,
-        needsSetupHint:
-          'This backend is currently selected without full setup — commands will fail until setup is complete.',
+        needsSetupHint: 'You can select this backend now — commands will fail until setup is complete.',
         descriptions: {},
         details: {},
         needsSetupConfirmTitle: backend => `Select ${backend} anyway?`,
@@ -3028,7 +3027,8 @@ export const en: Translations = {
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'Bot token'
+        label: 'Bot token',
+        help: 'Mattermost bot token or personal access token'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: 'Allowed user IDs',
@@ -3036,14 +3036,17 @@ export const en: Translations = {
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'Matrix homeserver URL (e.g. https://matrix.org)'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: 'Access token'
+        label: 'Access token',
+        help: 'Matrix access token (preferred over password login)'
       },
       MATRIX_USER_ID: {
         label: 'Bot user ID',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'Matrix user ID (e.g. @hermes:example.org)'
       },
       MATRIX_ALLOWED_USERS: {
         label: 'Allowed Matrix user IDs',
@@ -3080,6 +3083,86 @@ export const en: Translations = {
       TEAMS_HOST: {
         label: 'Webhook host',
         help: 'Webhook bind host (default: unset → dual-stack, all interfaces IPv4+IPv6).'
+      },
+      A2A_AGENT_NAME: {
+        label: 'A2A agent name',
+        help: "Name advertised on this agent's Agent Card (default: hostname-derived).",
+        placeholder: 'A2A agent name'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A shared bearer token (or empty for localhost-only)',
+        help: 'Shared bearer token for inbound A2A calls (identity falls back to caller IP). With no token of any kind => bind to 127.0.0.1 only (no remote access).',
+        placeholder: 'A2A shared bearer token (or empty for localhost-only)'
+      },
+      A2A_HOST: {
+        label: 'A2A bind host (default 127.0.0.1)',
+        help: 'Inbound bind host. Defaults to 127.0.0.1; only widens to 0.0.0.0 when a bearer token is set AND you opt in here.',
+        placeholder: 'A2A bind host (default 127.0.0.1)'
+      },
+      A2A_PORT: {
+        label: 'A2A port (default 9900)',
+        help: 'Inbound A2A server port (default 9900).',
+        placeholder: 'A2A port (default 9900)'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A per-peer tokens (name:token, comma-separated; or empty)',
+        help: "Per-peer bearer tokens ('alice:tok1,bob:tok2'). Each remote agent gets its own credential; the matched name is the authenticated identity used for rate limiting, trust, and audit.",
+        placeholder: 'A2A per-peer tokens (name:token, comma-separated; or empty)'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A home channel (or empty)',
+        help: 'Task/context id used as the cron / notification delivery target for deliver=a2a.'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'Allow all A2A peers? (true/false)',
+        help: 'Allow any authenticated A2A peer to reach the agent (dev only).'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft agent profile',
+        help: 'Raft agent profile slug — auto-enables the adapter when set.',
+        placeholder: 'Raft agent profile'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz relay URL',
+        help: 'Base URL of the Buzz community relay (e.g. https://mycommunity.communities.buzz.xyz).',
+        placeholder: 'Buzz relay URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr private key (nsec or hex)',
+        help: "Nostr private key for the agent's Buzz identity (nsec or hex) — the only Buzz secret."
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI path (or empty)',
+        help: "Path to the buzz CLI binary (default: 'buzz' on PATH, then ~/bin/buzz)."
+      },
+      BUZZ_CHANNELS: {
+        label: 'Channel UUIDs (comma-separated)',
+        help: 'Comma-separated channel UUIDs to watch (default: all joined channels).'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'Home channel UUID (or empty)',
+        help: 'Channel UUID for cron / notification delivery (defaults to the first watched channel).'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: 'Allowed users (comma-separated)',
+        help: 'Comma-separated npubs or hex pubkeys allowed to talk to the agent.'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'Allow all users? (true/false)',
+        help: 'Allow any community member to talk to the agent (true/false).'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'Transport (auto/websocket/poll)',
+        help: 'Inbound transport: auto (WebSocket w/ poll fallback, default), websocket, or poll.'
+      },
+      BUZZ_POLL_INTERVAL: { label: 'Poll interval seconds', help: 'Seconds between inbound poll sweeps (default: 4).' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON (or empty)',
+        help: 'Optional NIP-OA owner-attestation auth tag JSON for NIP-42 WebSocket auth.'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: 'Credentials file path (or empty)',
+        help: 'JSON credentials file holding the nsec (fallback when BUZZ_PRIVATE_KEY is unset).'
       }
     },
     platformIntro: {
@@ -3370,7 +3453,7 @@ export const en: Translations = {
       running: 'running',
       paused: 'paused',
       disabled: 'disabled',
-      error: 'last run failed',
+      error: 'error',
       completed: 'completed'
     },
     deliveryLabels: {
@@ -3378,7 +3461,9 @@ export const en: Translations = {
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'Email'
+      email: 'Email',
+      botChat: 'Bot Chat',
+      defaultProfile: 'default'
     },
     scheduleLabels: {
       daily: 'Daily',
@@ -3489,12 +3574,127 @@ export const en: Translations = {
       loading: 'Loading blueprints...',
       failedLoad: 'Failed to load blueprints',
       emptyTitle: 'No blueprints available',
-      emptyDesc: 'No automation blueprints are available on this backend.'
+      emptyDesc: 'No automation blueprints are available on this backend.',
+      titles: {
+        'Morning briefing': 'Morning briefing',
+        'Important-mail monitor': 'Important-mail monitor',
+        'Weekly review': 'Weekly review',
+        'Workday start reminder': 'Workday start reminder',
+        'Custom reminder': 'Custom reminder',
+        'Evening wind-down': 'Evening wind-down',
+        'Topic news digest': 'Topic news digest',
+        'Bills & renewals reminder': 'Bills & renewals reminder',
+        'Price & availability watch': 'Price & availability watch',
+        'Competitor news watch': 'Competitor news watch',
+        'Habit check-in': 'Habit check-in',
+        'Hydration & movement nudge': 'Hydration & movement nudge',
+        'Weekly meal plan': 'Weekly meal plan',
+        'Daily learning drip': 'Daily learning drip',
+        'Gratitude & reflection prompt': 'Gratitude & reflection prompt',
+        'On-this-day discovery': 'On-this-day discovery'
+      },
+      descriptions: {
+        'Morning briefing': "A short daily briefing: today's calendar, weather, and any pending urgent items.",
+        'Important-mail monitor':
+          'Checks your inbox periodically and alerts only when something truly needs attention.',
+        'Weekly review': "Weekly recap: what got done, what's pending, and what's coming up.",
+        'Workday start reminder': 'Workday reminder with your agenda and top priorities.',
+        'Custom reminder': 'Custom recurring reminder on your schedule.',
+        'Evening wind-down': "End-of-day check: a glance at tomorrow's schedule and what to prepare tonight.",
+        'Topic news digest': 'Periodic digest on topics you care about — deduplicated so only truly new items surface.',
+        'Bills & renewals reminder':
+          'Advance warning before recurring payments, subscription renewals, or due dates — so nothing auto-charges unexpectedly.',
+        'Price & availability watch':
+          'Monitor exact products, flights, hotels, or listings and alert when price or availability conditions are met.',
+        'Competitor news watch':
+          'Track notable news about specified companies — launches, pricing, funding, filings — with cited summaries.',
+        'Habit check-in': 'Periodic reminder to maintain a habit and reflect on completion.',
+        'Hydration & movement nudge': 'Periodic reminders throughout the day to drink water, stand up, and stretch.',
+        'Weekly meal plan': 'Weekly meal plan with a merged shopping list, tailored to your diet and cooking time.',
+        'Daily learning drip': 'One small lesson per day on a topic you want to learn — builds up over time.',
+        'Gratitude & reflection prompt': 'Daily or weekly reflection prompt to note gratitudes and insights.',
+        'On-this-day discovery':
+          'Interesting events from history that happened on this day — personalized to your interests.'
+      },
+      labels: {
+        'What time?': 'What time?',
+        'Where to deliver?': 'Where to deliver?',
+        'How often?': 'How often?',
+        'Remind me to…': 'Remind me to…',
+        'Which day?': 'Which day?',
+        'Repeat on': 'Repeat on',
+        'What topic?': 'What topic?',
+        'How many bullets?': 'How many bullets?',
+        "What's due?": "What's due?",
+        'What exactly to watch?': 'What exactly to watch?',
+        'Alert me when…': 'Alert me when…',
+        'Which companies?': 'Which companies?',
+        'Which events matter?': 'Which events matter?',
+        'Which habit?': 'Which habit?',
+        'Start hour': 'Start hour',
+        'End hour': 'End hour',
+        'Diet?': 'Diet?',
+        'Meals per day?': 'Meals per day?',
+        'Cooking effort?': 'Cooking effort?',
+        'Only notify me if the mail…': 'Only notify me if the mail…',
+        'Learn about…': 'Learn about…',
+        'What kind?': 'What kind?'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24h local time, e.g. 08:00',
+        'minutes between checks': 'minutes between checks',
+        'hours between checks — be gentle with rate limits': 'hours between checks — be gentle with rate limits',
+        'hours between nudges': 'hours between nudges',
+        'first hour of the active window (24h)': 'first hour of the active window (24h)',
+        'last hour of the active window (24h)': 'last hour of the active window (24h)'
+      },
+      options: {
+        everyday: 'everyday',
+        weekdays: 'weekdays',
+        weekends: 'weekends',
+        sunday: 'sunday',
+        monday: 'monday',
+        tuesday: 'tuesday',
+        wednesday: 'wednesday',
+        thursday: 'thursday',
+        friday: 'friday',
+        saturday: 'saturday',
+        'dinner only': 'dinner only',
+        'lunch and dinner': 'lunch and dinner',
+        'all three': 'all three',
+        quick: 'quick',
+        medium: 'medium',
+        ambitious: 'ambitious',
+        'no restrictions': 'no restrictions',
+        vegetarian: 'vegetarian',
+        vegan: 'vegan',
+        'high-protein': 'high-protein',
+        'low-carb': 'low-carb',
+        'on this day in history': 'on this day in history',
+        'word of the day': 'word of the day',
+        'science fact': 'science fact',
+        'quote of the day': 'quote of the day',
+        auto: 'auto',
+        websocket: 'websocket',
+        poll: 'poll'
+      }
     },
     lastRunFailed: 'Last run failed:',
     editJob: 'Edit job',
     runAgain: 'Run again',
-    overdueSince: 'Overdue since:'
+    overdueSince: 'Overdue since:',
+    modelImpact: {
+      title: 'Scheduled jobs stay on their original model',
+      message: count =>
+        `${count} unpinned scheduled ${count === 1 ? 'job keeps' : 'jobs keep'} running on the model ${count === 1 ? 'it was' : 'they were'} created under. Pin ${count === 1 ? 'it' : 'them'} or set cron.model to move ${count === 1 ? 'it' : 'them'}.`,
+      detailMore: (names, remaining) => `${names} and ${remaining} more`,
+      review: 'Review scheduled jobs',
+      saveFailed: 'Hermes did not save that model change.',
+      confirmTitle: 'Model Selection Warning',
+      confirmDetail: 'Confirm only if you accept this trade-off.',
+      confirmAction: 'Confirm',
+      declined: 'Model change cancelled — you declined the data-training tier warning.'
+    }
   },
   artifacts: {
     search: 'Search artifacts...',
@@ -4678,9 +4878,10 @@ export const en: Translations = {
     modelMenu: {
       search: 'Search models',
       noModels: 'No models found',
-      editModels: 'Edit models…',
-      refreshModels: 'Refresh models',
-      fast: 'Fast'
+      editModels: 'Edit Models…',
+      refreshModels: 'Refresh Models',
+      fast: 'Fast',
+      moaPresets: 'MOA presets'
     },
     modelOptions: {
       noOptions: 'No options for this model',
@@ -5759,7 +5960,7 @@ export const en: Translations = {
     resumeStrandedBody:
       'The connection to this session failed and automatic retries gave up. Check that the gateway is running, then try again.',
     poolSlotTimeoutBody:
-      "Too many bots are running at once for this computer's limit. Raise the limit in Settings → Advanced, or wait for one to finish and retry.",
+      'All local profile backend slots are in use. Increase Warm Bot Backends in Settings → Advanced, or retry after an idle backend is evicted.',
     poolSlotTimeoutOpenSettings: 'Open Advanced Settings',
     resumeRetry: 'Retry',
     nothingToBranch: 'Nothing to branch',

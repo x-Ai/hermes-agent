@@ -422,6 +422,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   agent: {
     maxTurns: 'Max Agent Steps',
     imageInputMode: 'Image Attachments',
+    environmentProbe: 'Execution Environment Probe',
     apiMaxRetries: 'API Retries',
     serviceTier: 'Service Tier',
     toolUseEnforcement: 'Tool-Use Enforcement'
@@ -432,6 +433,7 @@ export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
     timeout: 'Command Timeout',
     persistentShell: 'Persistent Shell',
     envPassthrough: 'Environment Passthrough',
+    containerPersistent: 'Persistent Container Filesystem',
     dockerImage: 'Docker Image',
     singularityImage: 'Singularity Image',
     modalImage: 'Modal Image',
@@ -605,12 +607,16 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   },
   agent: {
     imageInputMode: 'Controls how image attachments are sent to the model.',
-    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.'
+    maxTurns: 'Upper bound for tool-calling turns before Hermes stops a run.',
+    environmentProbe:
+      'Probe execution-environment details for new sessions. Container backends use a temporary sandbox that is automatically removed after probing; off uses a static description.'
   },
   terminal: {
     cwd: 'Default project folder for tool and terminal work.',
     persistentShell: 'Keep shell state between commands when the backend supports it.',
     envPassthrough: 'Environment variables to pass into tool execution.',
+    containerPersistent:
+      'Keep container filesystem state across Hermes sessions. Changes apply after the backend restarts and do not destroy the current container or instance.',
     dockerImage: 'Container image used when the execution backend is Docker.',
     singularityImage: 'Image used when the execution backend is Singularity.',
     modalImage: 'Image used when the execution backend is Modal.',

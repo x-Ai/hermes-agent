@@ -1258,8 +1258,7 @@ export const ja = defineCompleteLocale({
     },
     fieldLabels: defineFieldCopy({
       model: 'デフォルトモデル',
-      modelContextLength:
-        'メインのチャットモデルのみ、検出されたコンテキストウィンドウを上書きします（トークン数）。0 のままにすると、選択したモデルから検出された値を使用します。補助モデル/MoA モデルには影響しません。',
+      modelContextLength: 'コンテキストウィンドウ',
       fallbackProviders: 'フォールバックモデル',
       toolsets: '有効なツールセット',
       timezone: 'タイムゾーン',
@@ -1277,7 +1276,12 @@ export const ja = defineCompleteLocale({
         imageInputMode: '画像添付',
         apiMaxRetries: 'API 再試行回数',
         serviceTier: 'サービス階層',
-        toolUseEnforcement: 'ツール使用の強制'
+        toolUseEnforcement: 'ツール使用の強制',
+        outputTruncationRetries: '出力上限の再試行回数',
+        postToolEmptyRetries: 'ツール後の空応答再試行回数',
+        thinkingPrefillRetries: '推論プリフィル再試行回数',
+        emptyResponseRetries: '空応答の再試行回数',
+        environmentProbe: '実行環境のプローブ'
       },
       terminal: {
         cwd: '作業ディレクトリ',
@@ -1288,7 +1292,14 @@ export const ja = defineCompleteLocale({
         dockerImage: 'Docker イメージ',
         singularityImage: 'Singularity イメージ',
         modalImage: 'Modal イメージ',
-        daytonaImage: 'Daytona イメージ'
+        daytonaImage: 'Daytona イメージ',
+        containerPersistent: 'コンテナファイルシステムを永続化',
+        dockerMountCwdToWorkspace: 'プロジェクトを Docker にマウント',
+        dockerWorkspacePerSession: 'セッションごとのプロジェクトに追従',
+        dockerWorkspaceMountPath: 'Docker マウントパス',
+        singularityMountCwdToWorkspace: 'プロジェクトを Singularity にマウント',
+        singularityWorkspacePerSession: 'セッションごとのプロジェクトに追従（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity マウントパス'
       },
       fileReadMaxChars: 'ファイル読み取り上限',
       toolOutput: {
@@ -1321,7 +1332,8 @@ export const ja = defineCompleteLocale({
       voice: {
         recordKey: '音声ショートカット',
         maxRecordingSeconds: '最大録音時間',
-        autoTts: '応答を読み上げる'
+        autoTts: '応答を読み上げる',
+        clientDirect: 'クライアント直接接続'
       },
       stt: {
         enabled: '音声認識',
@@ -1344,7 +1356,8 @@ export const ja = defineCompleteLocale({
           languageCode: 'ElevenLabs 言語',
           tagAudioEvents: '音声イベントをタグ付け',
           diarize: '話者分離'
-        }
+        },
+        echoTranscripts: '文字起こしのエコー表示'
       },
       tts: {
         provider: '音声合成プロバイダー',
@@ -1420,7 +1433,8 @@ export const ja = defineCompleteLocale({
         maxIterations: 'サブエージェントターン上限',
         maxConcurrentChildren: '並列サブエージェント',
         childTimeoutSeconds: 'サブエージェントタイムアウト',
-        reasoningEffort: 'サブエージェント推論強度'
+        reasoningEffort: 'サブエージェント推論強度',
+        useCustomEndpoints: 'サブエージェントにカスタムエンドポイントを提案'
       },
       updates: {
         nonInteractiveLocalChanges: 'アプリ内更新時のローカル変更'
@@ -1443,12 +1457,24 @@ export const ja = defineCompleteLocale({
         'Hermes がローカル時刻のコンテキストを必要とするときに使用します。空欄ならシステムのタイムゾーンを使います。',
       agent: {
         imageInputMode: '画像添付をモデルへ送る方法を制御します。',
-        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。'
+        maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
+        outputTruncationRetries:
+          'プロバイダーが出力トークン上限を報告し、表示可能なテキストが生成されなかった場合のみ再試行します。再試行ごとに同じプロンプトが再送信され、再度課金される可能性があります。0（推奨）のままにしてください。最大 3 回です。',
+        postToolEmptyRetries:
+          'ツール呼び出し後に表示可能なテキストが返らない場合、続行を促します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
+        thinkingPrefillRetries:
+          '推論だけの応答をプリフィルし、表示可能なテキストへ続行します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
+        emptyResponseRetries:
+          '先行する回復層の後も表示可能なテキストがない場合に再試行します。再課金の可能性があり、コストガードが早期終了することがあります。0 で無効、最大 3 回です。',
+        environmentProbe:
+          '新しいセッションの実行環境を調べます。コンテナバックエンドではプローブ後に自動削除される一時サンドボックスを使い、オフの場合は静的な説明を使います。'
       },
       terminal: {
         cwd: 'ツールとターミナル作業のデフォルトプロジェクトフォルダーです。',
         persistentShell: 'バックエンドが対応している場合、コマンド間でシェル状態を保持します。',
-        envPassthrough: 'ツール実行へ渡す環境変数です。'
+        envPassthrough: 'ツール実行へ渡す環境変数です。',
+        containerPersistent:
+          'セッションをまたいでコンテナのファイルシステム状態を保持します。変更はバックエンドの再起動後に反映され、現在のコンテナやインスタンスは削除されません。'
       },
       codeExecution: {
         mode: 'コード実行を現在のプロジェクトにどれだけ厳密に制限するかを設定します。'
@@ -1459,7 +1485,9 @@ export const ja = defineCompleteLocale({
         timeout: '承認プロンプトがタイムアウトするまで待つ時間です。'
       },
       security: {
-        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。'
+        redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。',
+        allowPrivateUrls:
+          'URL 取得ツールによる localhost とプライベートネットワークアドレスへのアクセスを許可します。クラウドメタデータのエンドポイントは引き続きブロックされます。'
       },
       browser: {
         useRealProfile:
@@ -2523,7 +2551,7 @@ export const ja = defineCompleteLocale({
         selectedTitle: 'バックエンドを選択しました',
         selectedMessage: backend => `ターミナルコマンドは ${backend} で実行されます。新しいセッションに適用されます。`,
         failedSelect: backend => `${backend} の選択に失敗しました`,
-        needsSetupHint: 'このバックエンドは選択されていますが、セットアップが完了するまでコマンドは失敗します。',
+        needsSetupHint: 'このバックエンドは今すぐ選択できますが、セットアップが完了するまでコマンドは失敗します。',
         descriptions: {},
         details: {},
         needsSetupConfirmTitle: backend => `それでも ${backend} を選択しますか？`,
@@ -3654,7 +3682,8 @@ export const ja = defineCompleteLocale({
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'ボットトークン'
+        label: 'ボットトークン',
+        help: 'Mattermost ボットトークンまたは個人アクセストークン'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '許可するユーザー ID',
@@ -3662,14 +3691,17 @@ export const ja = defineCompleteLocale({
       },
       MATRIX_HOMESERVER: {
         label: 'ホームサーバー URL',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'Matrix ホームサーバー URL（例：https://matrix.org）'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: 'アクセストークン'
+        label: 'アクセストークン',
+        help: 'Matrix アクセストークン（パスワードログインより優先）'
       },
       MATRIX_USER_ID: {
         label: 'ボットユーザー ID',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'Matrix ユーザー ID（例：@hermes:example.org）'
       },
       MATRIX_ALLOWED_USERS: {
         label: '許可する Matrix ユーザー ID',
@@ -3698,6 +3730,523 @@ export const ja = defineCompleteLocale({
       WHATSAPP_ALLOWED_USERS: {
         label: '許可する WhatsApp ユーザー',
         help: '推奨。カンマ区切りの電話番号または WhatsApp ID。'
+      },
+      IRC_SERVER: {
+        label: 'IRC サーバー',
+        help: 'IRC サーバーのホスト名（例: irc.libera.chat）。',
+        placeholder: 'irc.libera.chat'
+      },
+      IRC_CHANNEL: { label: 'IRC チャンネル', help: '参加する IRC チャンネル（例: #hermes）。' },
+      IRC_NICKNAME: { label: 'ボットのニックネーム', help: 'IRC 上のボットのニックネーム（デフォルト: hermes-bot）。' },
+      IRC_SERVER_PASSWORD: { label: 'サーバーパスワード', help: 'IRC サーバーのパスワード（必要な場合）。' },
+      IRC_NICKSERV_PASSWORD: { label: 'NickServ パスワード', help: 'ニックネーム認証用の NickServ パスワード。' },
+      IRC_PORT: { label: 'IRC ポート', help: 'IRC サーバーのポート（デフォルト: TLS は 6697、非 TLS は 6667）。' },
+      IRC_USE_TLS: {
+        label: 'TLS を使用',
+        help: 'IRC 接続に TLS を使用（1/true/yes で有効。ポート 6697 ではデフォルト有効）。'
+      },
+      IRC_ALLOWED_USERS: { label: '許可するニックネーム', help: 'ボットと会話できる IRC ニックネーム。カンマ区切り。' },
+      IRC_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。チャンネル内の誰でもボットと会話できます。'
+      },
+      IRC_HOME_CHANNEL: {
+        label: 'ホームチャンネル',
+        help: 'Cron / 通知配信のチャンネル（デフォルトは IRC_CHANNEL）。'
+      },
+      GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
+        label: 'サービスアカウント JSON',
+        help: 'サービスアカウント JSON キーのパス（またはインライン JSON）。空欄なら Cloud Run / GCE のアプリケーションデフォルト認証情報 (ADC) を使用し、GOOGLE_APPLICATION_CREDENTIALS にフォールバックします。'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_URL: {
+        label: 'HTTP イベントコールバック URL',
+        help: 'Chat メッセージイベント用の認証済み HTTP エンドポイント。'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
+        label: 'HTTP イベントトークンのオーディエンス',
+        help: 'Google 署名の HTTP イベント Bearer トークンに期待するオーディエンス。デフォルトは GOOGLE_CHAT_HTTP_EVENTS_URL。'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
+        label: 'HTTP イベントサービスアカウントメール',
+        help: 'HTTP イベント Bearer トークンに期待する Google サービスアカウントのメールアドレス。'
+      },
+      GOOGLE_CHAT_PROJECT_ID: {
+        label: 'GCP プロジェクト ID',
+        help: '任意の Pub/Sub 受信モード用 GCP プロジェクト ID。GOOGLE_CLOUD_PROJECT にフォールバック。'
+      },
+      GOOGLE_CHAT_SUBSCRIPTION_NAME: {
+        label: 'Pub/Sub サブスクリプション名',
+        help: 'プルモード受信イベント用の任意の Pub/Sub サブスクリプションパス。'
+      },
+      GOOGLE_CHAT_ALLOWED_USERS: {
+        label: '許可するユーザーメール',
+        help: 'ボットと対話できるユーザーのメールアドレス。カンマ区切り。'
+      },
+      GOOGLE_CHAT_HOME_CHANNEL: {
+        label: 'ホームスペース ID',
+        help: 'Cron / 通知配信のデフォルトスペース（例: spaces/AAAA...）。'
+      },
+      LINE_CHANNEL_ACCESS_TOKEN: {
+        label: 'チャネルアクセストークン',
+        help: 'LINE チャネルの長期アクセストークン（LINE Developers コンソール > Messaging API > チャネルアクセストークン）。'
+      },
+      LINE_CHANNEL_SECRET: {
+        label: 'チャネルシークレット',
+        help: 'LINE チャネルシークレット（HMAC-SHA256 Webhook 署名検証に使用）。'
+      },
+      LINE_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（デフォルト: 8646）。' },
+      LINE_HOST: {
+        label: 'Webhook ホスト',
+        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
+      },
+      LINE_PUBLIC_URL: {
+        label: '公開 HTTPS ベース URL',
+        help: 'LINE へ画像/音声/動画を配信するための公開 HTTPS ベース URL（例: https://my-tunnel.example.com）。バインドアドレスに直接到達できない場合、メディア送信に必須。'
+      },
+      LINE_ALLOWED_USERS: {
+        label: '許可するユーザー ID',
+        help: 'ボットに DM できる LINE ユーザー ID（U で始まる）。カンマ区切り。'
+      },
+      LINE_ALLOWED_GROUPS: {
+        label: '許可するグループ ID',
+        help: 'ボットが応答する LINE グループ ID（C で始まる）。カンマ区切り。'
+      },
+      LINE_ALLOWED_ROOMS: {
+        label: '許可するルーム ID',
+        help: 'ボットが応答する LINE ルーム ID（R で始まる）。カンマ区切り。'
+      },
+      LINE_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。すべての LINE ユーザーがボットと会話できます（許可リストを無効化）。'
+      },
+      LINE_HOME_CHANNEL: {
+        label: 'ホームチャンネル ID',
+        help: 'Cron / 通知配信のデフォルトのユーザー/グループ/ルーム ID。'
+      },
+      LINE_SLOW_RESPONSE_THRESHOLD: {
+        label: '低速応答しきい値（秒）',
+        help: '低速 LLM ポストバックボタンが作動するまでの秒数（デフォルト: 45。0 で無効化し常に Push フォールバック）。'
+      },
+      NTFY_TOPIC: { label: '購読トピック', help: '購読するトピック名（例: hermes-in）。' },
+      NTFY_SERVER_URL: { label: 'サーバー URL', help: 'ntfy サーバーの URL（デフォルト: https://ntfy.sh）。' },
+      NTFY_TOKEN: { label: '認証トークン', help: 'Bearer トークンまたは Basic 認証用の user:pass（任意）。' },
+      NTFY_PUBLISH_TOPIC: { label: '発行トピック', help: '返信を発行するトピック（デフォルトは NTFY_TOPIC）。' },
+      NTFY_MARKDOWN: {
+        label: 'Markdown を有効化',
+        help: 'X-Markdown: true ヘッダー付きで返信を送信（true/false、デフォルト: false）。'
+      },
+      NTFY_ALLOWED_USERS: { label: '許可するトピック名', help: '許可するトピック名（許可リスト）。カンマ区切り。' },
+      NTFY_ALLOW_ALL_USERS: {
+        label: 'すべてのトピックを許可',
+        help: '開発用のみ。あらゆるトピックがボットと会話できます（許可リストを無効化）。'
+      },
+      NTFY_HOME_CHANNEL: { label: 'ホームトピック', help: 'Cron / 通知配信のデフォルトトピック。' },
+      NTFY_HOME_CHANNEL_NAME: {
+        label: 'ホームトピック名',
+        help: 'ホームチャンネルの表示名（デフォルトはトピック名）。'
+      },
+      PHOTON_PROJECT_ID: {
+        label: 'Spectrum プロジェクト ID',
+        help: 'Spectrum プロジェクト ID（プロジェクトの spectrumProjectId。hermes photon setup で設定）。'
+      },
+      PHOTON_PROJECT_SECRET: {
+        label: 'プロジェクトシークレット',
+        help: 'Spectrum プロジェクト ID と対になるシークレット（hermes photon setup で設定）。'
+      },
+      PHOTON_SIDECAR_PORT: {
+        label: 'サイドカー制御ポート',
+        help: 'Node サイドカーの制御 + 受信チャネル用ループバックポート（デフォルト 8789）。'
+      },
+      PHOTON_SIDECAR_AUTOSTART: {
+        label: 'サイドカーを自動起動',
+        help: '接続時に Node サイドカーを起動（true/false、デフォルト true）。'
+      },
+      PHOTON_NODE_BIN: {
+        label: 'Node 実行ファイルのパス',
+        help: 'node バイナリのパス（デフォルト: PATH 上の node）。'
+      },
+      PHOTON_DASHBOARD_HOST: {
+        label: 'Dashboard ホスト',
+        help: 'Photon Dashboard API ホスト（デフォルト https://app.photon.codes）。'
+      },
+      PHOTON_SPECTRUM_HOST: {
+        label: 'Spectrum API ホスト',
+        help: 'Photon Spectrum API ホスト（デフォルト https://spectrum.photon.codes）。'
+      },
+      PHOTON_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる E.164 電話番号。カンマ区切り。' },
+      PHOTON_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。あらゆる送信者がボットをトリガーできます（許可リストを無効化）。'
+      },
+      PHOTON_REQUIRE_MENTION: {
+        label: 'グループチャットでメンションを必須にする',
+        help: 'メンションのウェイクワードに一致しない限りグループチャットのメッセージを無視します（true/false、デフォルト false）。'
+      },
+      PHOTON_MENTION_PATTERNS: {
+        label: 'グループメンションパターン',
+        help: 'グループチャット用メンションウェイクワードの正規表現（JSON リストまたはカンマ/改行区切り。デフォルトは Hermes のウェイクワード）。'
+      },
+      PHOTON_HOME_CHANNEL: {
+        label: 'ホーム Photon ターゲット',
+        help: 'Cron / 通知配信のデフォルト Photon ターゲット: Spectrum スペース ID、DM GUID、または素の E.164 電話番号。'
+      },
+      PHOTON_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'ホームチャンネルの表示名。' },
+      PHOTON_TELEMETRY: {
+        label: 'Spectrum テレメトリを有効化',
+        help: 'サイドカーで Spectrum SDK テレメトリを有効にします（true/false、デフォルト false。hermes photon telemetry on|off で切り替え）。'
+      },
+      PHOTON_MARKDOWN: {
+        label: '返信を Markdown でレンダリング',
+        help: '返信を Markdown で送信します — iMessage はネイティブ表示、他の Spectrum プラットフォームはプレーンテキストに劣化（true/false、デフォルト true）。'
+      },
+      PHOTON_REACTIONS: {
+        label: 'リアクションタップバックを有効化',
+        help: '処理状況として 👀/👍/👎 をタップバックし、ボットメッセージへのタップバックをエージェントに転送します（true/false、デフォルト false）。'
+      },
+      SIMPLEX_WS_URL: {
+        label: 'デーモン WebSocket URL',
+        help: 'simplex-chat デーモンの WebSocket URL（例: ws://127.0.0.1:5225）。'
+      },
+      SIMPLEX_ALLOWED_USERS: {
+        label: '許可する連絡先 ID',
+        help: 'ボットと会話できる SimpleX 連絡先 ID。カンマ区切り。'
+      },
+      SIMPLEX_ALLOW_ALL_USERS: {
+        label: 'すべての連絡先を許可',
+        help: '開発用のみ。あらゆる連絡先がボットと会話できます（許可リストを無効化）。'
+      },
+      SIMPLEX_AUTO_ACCEPT: {
+        label: '連絡先リクエストを自動承認',
+        help: '受信した連絡先リクエストを自動承認します（デフォルト: true）。'
+      },
+      SIMPLEX_GROUP_ALLOWED: {
+        label: '許可するグループ ID',
+        help: 'ボットが参加する SimpleX グループ ID（カンマ区切り）、または * で任意のグループを許可。省略するとグループメッセージを完全に無視します（より安全なデフォルト — さもないとグループ内のボットは全メンバーのトラフィックを処理します）。'
+      },
+      SIMPLEX_HOME_CHANNEL: {
+        label: 'ホーム連絡先/グループ ID',
+        help: 'Cron / 通知配信のデフォルト連絡先/グループ ID。'
+      },
+      SIMPLEX_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'ホームチャンネルの表示名（デフォルトは ID）。' },
+      HERMES_SIMPLEX_TEXT_BATCH_DELAY: {
+        label: 'テキストバッチ遅延（秒）',
+        help: '連続して届く受信テキストを 1 つのメッセージイベントに結合する静穏期間の秒数（デフォルト: 0.8）— Telegram のテキストバッチングと同じパターン。'
+      },
+      SMS_ALLOWED_USERS: { label: '許可する番号', help: 'ボットと会話できる電話番号。カンマ区切り。' },
+      SMS_HOME_CHANNEL: { label: 'ホーム番号', help: 'Cron / 通知配信のデフォルト電話番号。' },
+      TEAMS_CLIENT_ID: {
+        label: 'Azure AD クライアント ID',
+        help: 'Azure AD アプリケーション（Bot Framework）のクライアント ID。'
+      },
+      TEAMS_CLIENT_SECRET: {
+        label: 'Azure AD クライアントシークレット',
+        help: 'Azure AD アプリケーションのクライアントシークレット。'
+      },
+      TEAMS_TENANT_ID: {
+        label: 'Azure AD テナント ID',
+        help: 'ボットアプリケーションをホストする Azure AD テナント ID。'
+      },
+      TEAMS_PORT: { label: 'Webhook ポート', help: 'Webhook のリッスンポート（Bot Framework デフォルト: 3978）。' },
+      TEAMS_HOST: {
+        label: 'Webhook ホスト',
+        help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース IPv4+IPv6）。'
+      },
+      TEAMS_ALLOWED_USERS: {
+        label: '許可するユーザー',
+        help: 'ボットと会話できる Teams ユーザー ID / UPN。カンマ区切り。'
+      },
+      TEAMS_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可',
+        help: '開発用のみ。すべての Teams ユーザーがボットをトリガーできます。'
+      },
+      TEAMS_HOME_CHANNEL: { label: 'ホームチャンネル', help: 'Cron / 通知配信のデフォルトのチャット/チャンネル ID。' },
+      TEAMS_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Teams ホームチャンネルの表示名。' },
+      WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: 'WeCom スマートロボットの WebSocket URL。' },
+      WECOM_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
+      WECOM_ALLOWED_USERS: { label: '許可するユーザー', help: 'ボットと会話できる WeCom ユーザー ID。カンマ区切り。' },
+      A2A_AGENT_NAME: {
+        label: 'A2A エージェント名',
+        help: 'このエージェントの Agent Card に公開される名前（デフォルト：ホスト名から生成）。',
+        placeholder: 'A2A エージェント名'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A 共有トークン（空の場合はローカルのみ）',
+        help: 'インバウンド A2A 呼び出し用の共有トークン（IDが呼び出し元 IP にフォールバック）。トークン未設定の場合は 127.0.0.1 のみにバインドします。',
+        placeholder: 'A2A 共有トークン（空の場合はローカルのみ）'
+      },
+      A2A_HOST: {
+        label: 'A2A バインドホスト（デフォルト 127.0.0.1）',
+        help: 'インバウンドバインドホスト。デフォルト 127.0.0.1；トークン設定時かつここで選択した場合のみ 0.0.0.0 に拡張。',
+        placeholder: 'A2A バインドホスト（デフォルト 127.0.0.1）'
+      },
+      A2A_PORT: {
+        label: 'A2A ポート（デフォルト 9900）',
+        help: 'インバウンド A2A サーバーポート（デフォルト 9900）。',
+        placeholder: 'A2A ポート（デフォルト 9900）'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A ピアトークン（name:token、カンマ区切り；または空）',
+        help: 'ピアエージェントごとのトークン（例：alice:tok1,bob:tok2）。マッチした名前がレート制限、信頼、監査に使用される ID になります。',
+        placeholder: 'A2A ピアトークン（name:token、カンマ区切り；または空）'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A ホームチャンネル（または空）',
+        help: 'deliver=a2a の場合に cron / 通知配信で使用するタスク/コンテキスト ID。'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: 'すべての A2A ピアを許可',
+        help: '認証済みの A2A ピアがこのエージェントにアクセスできるようにします（開発用のみ）。'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft エージェントプロファイル',
+        help: 'Raft エージェントプロファイルスラグ — 設定するとアダプターが自動有効化されます。',
+        placeholder: 'Raft エージェントプロファイル'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz リレー URL',
+        help: 'Buzz コミュニティリレーのベース URL（例：https://mycommunity.communities.buzz.xyz）。',
+        placeholder: 'Buzz リレー URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr 秘密鍵（nsec または hex）',
+        help: 'エージェントの Buzz アイデンティティ用 Nostr 秘密鍵（nsec または hex）— 唯一の Buzz シークレット。'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI パス（または空）',
+        help: 'buzz CLI バイナリのパス（デフォルト：PATH の buzz、次に ~/bin/buzz）。'
+      },
+      BUZZ_CHANNELS: {
+        label: 'チャンネル UUID（カンマ区切り）',
+        help: '監視するチャンネルの UUID（カンマ区切り、デフォルト：参加中のすべてのチャンネル）。'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: 'ホームチャンネル UUID（または空）',
+        help: 'cron / 通知配信に使用するチャンネル UUID（デフォルト：最初の監視チャンネル）。'
+      },
+      BUZZ_ALLOWED_USERS: {
+        label: '許可するユーザー（カンマ区切り）',
+        help: 'エージェントと会話できる npub または hex 公開鍵。カンマ区切り。'
+      },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: 'すべてのユーザーを許可？（true/false）',
+        help: 'すべてのコミュニティメンバーがエージェントと会話できるようにします（true/false）。'
+      },
+      BUZZ_TRANSPORT: {
+        label: 'トランスポート（auto/websocket/poll）',
+        help: 'インバウンドトランスポート：auto（WebSocket + ポールフォールバック、デフォルト）、websocket、または poll。'
+      },
+      BUZZ_POLL_INTERVAL: { label: 'ポール間隔（秒）', help: 'インバウンドポールスイープの間隔秒数（デフォルト 4）。' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON（または空）',
+        help: 'NIP-42 WebSocket 認証用のオプション NIP-OA 所有者証明 auth tag JSON。'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: '認証情報ファイルパス（または空）',
+        help: 'nsec を保持する JSON 認証情報ファイル（BUZZ_PRIVATE_KEY 未設定時のフォールバック）。'
+      },
+      TELEGRAM_ALLOW_ALL_USERS: {
+        label: 'すべての Telegram ユーザーを許可',
+        help: '開発用のみ。すべての Telegram ユーザーがボットを利用できます。'
+      },
+      TELEGRAM_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
+      TELEGRAM_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Telegram ホームチャンネルの表示名。' },
+      SLACK_ALLOW_ALL_USERS: {
+        label: 'すべての Slack ユーザーを許可',
+        help: '開発用のみ。すべての Slack ユーザーがボットを利用できます。'
+      },
+      SLACK_HOME_CHANNEL: {
+        label: 'ホームチャンネル ID',
+        help: 'Cron / 通知配信のデフォルトチャンネル ID（C で始まる）。'
+      },
+      SLACK_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'Slack ホームチャンネルの表示名。' },
+      SLACK_THREAD_REQUIRE_MENTION: {
+        label: 'スレッド内で @メンションを必須にする',
+        help: 'Slack スレッドの返信に明示的な @メンションを必須にします。トップレベルの自由応答チャンネルには影響しません。'
+      },
+      MATTERMOST_ALLOWED_CHANNELS: {
+        label: '許可するチャンネル ID',
+        help: '設定するとボットはこれらのチャンネルでのみ応答します（ホワイトリスト）。カンマ区切り。'
+      },
+      MATTERMOST_FREE_RESPONSE_CHANNELS: {
+        label: '自由応答チャンネル ID',
+        help: '@メンションなしでボットが応答する Mattermost チャンネル ID。カンマ区切り。'
+      },
+      MATTERMOST_REPLY_MODE: { label: '返信モード', help: 'thread（ネスト）または off（フラット）。デフォルト: off。' },
+      MATTERMOST_REQUIRE_MENTION: {
+        label: 'チャンネル内で @メンションを必須にする',
+        help: 'Mattermost チャンネルで @メンションを必須にします（デフォルト: true）。false にするとすべてのメッセージに応答します。'
+      },
+      MATRIX_ALLOW_ALL_USERS: {
+        label: 'すべての Matrix ユーザーを許可',
+        help: '開発用のみ。すべての Matrix ユーザーがボットを利用できます。'
+      },
+      MATRIX_AUTO_THREAD: {
+        label: 'ルームでスレッドを自動作成',
+        help: 'Matrix ルームのメッセージにスレッドを自動作成します（デフォルト: true）。'
+      },
+      MATRIX_DEVICE_ID: {
+        label: 'デバイス ID',
+        help: 'E2EE 永続化のための再起動後も変わらない Matrix デバイス ID（例: HERMES_BOT）。'
+      },
+      MATRIX_DM_AUTO_THREAD: {
+        label: 'DM でスレッドを自動作成',
+        help: 'Matrix の DM にスレッドを自動作成します（デフォルト: false）。'
+      },
+      MATRIX_FREE_RESPONSE_ROOMS: {
+        label: '自由応答ルーム ID',
+        help: '@メンションなしでボットが応答する Matrix ルーム ID。カンマ区切り。'
+      },
+      MATRIX_HOME_CHANNEL: { label: 'ホームルーム ID', help: 'Cron / 通知配信のデフォルトルーム ID。' },
+      MATRIX_HOME_CHANNEL_NAME: { label: 'ホームルーム名', help: 'Matrix ホームルームの表示名。' },
+      MATRIX_PASSWORD: {
+        label: 'Matrix パスワード',
+        help: 'Matrix アカウントのパスワード（アクセストークンの代替）。'
+      },
+      MATRIX_RECOVERY_KEY: {
+        label: 'リカバリーキー',
+        help: 'デバイスキーのローテーション後にクロス署名検証へ使うリカバリーキー（Element: 設定 → セキュリティ → リカバリーキー）。'
+      },
+      MATRIX_REQUIRE_MENTION: {
+        label: 'ルームで @メンションを必須にする',
+        help: 'Matrix ルームで @メンションを必須にします（デフォルト: true）。false にするとすべてのメッセージに応答します。'
+      },
+      WHATSAPP_DM_POLICY: { label: 'DM ポリシー', help: 'WhatsApp ダイレクトメッセージの承認方法。' },
+      WHATSAPP_ALLOW_ALL_USERS: {
+        label: 'すべての WhatsApp ユーザーを許可',
+        help: '開発用のみ。すべての WhatsApp ユーザーがボットを利用できます。'
+      },
+      WHATSAPP_HOME_CHANNEL: { label: 'ホームチャンネル ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
+      WHATSAPP_HOME_CHANNEL_NAME: { label: 'ホームチャンネル名', help: 'WhatsApp ホームチャンネルの表示名。' },
+      BLUEBUBBLES_SERVER_URL: {
+        label: 'サーバー URL',
+        help: 'iMessage 連携用の BlueBubbles サーバー URL。',
+        placeholder: 'http://192.168.1.10:1234'
+      },
+      BLUEBUBBLES_PASSWORD: {
+        label: 'サーバーパスワード',
+        help: 'BlueBubbles サーバーのパスワード（BlueBubbles Server → 設定 → API）。'
+      },
+      BLUEBUBBLES_ALLOWED_USERS: {
+        label: '許可する iMessage アドレス',
+        help: '推奨。カンマ区切りの iMessage アドレス（メールまたは電話番号）。'
+      },
+      HASS_URL: {
+        label: 'Home Assistant URL',
+        help: 'Home Assistant のベース URL。',
+        placeholder: 'http://homeassistant.local:8123'
+      },
+      HASS_TOKEN: { label: '長期アクセストークン', help: 'Home Assistant の長期アクセストークン。' },
+      EMAIL_ADDRESS: { label: 'メールアドレス', help: 'メールアカウントのアドレス。' },
+      EMAIL_PASSWORD: { label: 'メールパスワード', help: 'メールアカウントのパスワード / アプリパスワード。' },
+      EMAIL_IMAP_HOST: {
+        label: 'IMAP ホスト',
+        help: '受信ポーリングに使う IMAP ホスト。',
+        placeholder: 'imap.gmail.com'
+      },
+      EMAIL_SMTP_HOST: { label: 'SMTP ホスト', help: '送信に使う SMTP ホスト。', placeholder: 'smtp.gmail.com' },
+      EMAIL_ALLOWED_USERS: {
+        label: '許可するメールアドレス',
+        help: '推奨。ボットと会話できるメールアドレス。カンマ区切り。'
+      },
+      EMAIL_HOME_ADDRESS: { label: 'ホームアドレス', help: 'Cron / 通知配信のデフォルトメールアドレス。' },
+      EMAIL_SMTP_PORT: { label: 'SMTP ポート', help: 'SMTP ポート（デフォルト 587）。' },
+      TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: 'Twilio コンソールの Account SID。' },
+      TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: 'Twilio コンソールの Auth Token。' },
+      TWILIO_PHONE_NUMBER: { label: 'Twilio 電話番号', help: 'SMS を送信できる Twilio の番号（E.164 形式）。' },
+      DINGTALK_CLIENT_ID: { label: 'Client ID (App Key)', help: 'DingTalk アプリの App Key（Client ID）。' },
+      DINGTALK_CLIENT_SECRET: { label: 'Client Secret', help: 'DingTalk アプリの App Secret（Client Secret）。' },
+      DINGTALK_ALLOWED_USERS: {
+        label: '許可するユーザー',
+        help: 'ボットと会話できるスタッフ / 送信者 ID。カンマ区切り（* は全員）。'
+      },
+      DINGTALK_HOME_CHANNEL: { label: 'ホーム会話 ID', help: 'Cron / 通知配信のデフォルト会話 ID。' },
+      DINGTALK_HOME_CHANNEL_NAME: { label: 'ホーム会話名', help: 'DingTalk ホーム会話の表示名。' },
+      DINGTALK_WEBHOOK_URL: {
+        label: 'ロボット Webhook URL',
+        help: 'クロスプラットフォーム / Cron 配信用の固定ロボット Webhook URL（任意）。'
+      },
+      FEISHU_APP_ID: { label: 'App ID', help: 'Feishu / Lark アプリの App ID。' },
+      FEISHU_APP_SECRET: { label: 'App Secret', help: 'Feishu / Lark アプリの App Secret。' },
+      FEISHU_ENCRYPT_KEY: { label: '暗号化キー (Encrypt Key)', help: 'Feishu / Lark のイベント暗号化キー。' },
+      FEISHU_VERIFICATION_TOKEN: {
+        label: '検証トークン (Verification Token)',
+        help: 'Feishu / Lark のイベント検証トークン。'
+      },
+      FEISHU_ALLOWED_USERS: {
+        label: '許可するユーザー ID',
+        help: '推奨。ボットと会話できる Feishu ユーザー ID。カンマ区切り。'
+      },
+      FEISHU_ALLOW_ALL_USERS: {
+        label: 'すべての Feishu ユーザーを許可',
+        help: '開発用のみ。すべての Feishu ユーザーがボットを利用できます。'
+      },
+      FEISHU_DOMAIN: { label: 'ドメイン (feishu/lark)', help: 'feishu（中国版）または lark（国際版）。' },
+      FEISHU_HOME_CHANNEL: { label: 'ホームチャット ID', help: 'Cron / 通知配信のデフォルトチャット ID。' },
+      FEISHU_HOME_CHANNEL_NAME: { label: 'ホームチャット名', help: 'Feishu ホームチャットの表示名。' },
+      WECOM_BOT_ID: { label: 'ボット ID', help: 'WeCom スマートロボットのボット ID。' },
+      WECOM_SECRET: { label: 'ボット Secret', help: 'WeCom スマートロボットの secret。' },
+      WECOM_CALLBACK_CORP_ID: {
+        label: '企業 ID (Corp ID)',
+        help: 'WeCom コールバックモードの企業 ID（自社構築アプリ）。'
+      },
+      WECOM_CALLBACK_CORP_SECRET: { label: 'アプリ Secret', help: 'WeCom コールバックモードのアプリ Secret。' },
+      WECOM_CALLBACK_AGENT_ID: { label: 'アプリ Agent ID', help: 'WeCom コールバックモードのアプリ Agent ID。' },
+      WECOM_CALLBACK_TOKEN: { label: 'コールバックトークン', help: 'WeCom コールバック検証トークン。' },
+      WECOM_CALLBACK_ENCODING_AES_KEY: {
+        label: 'EncodingAESKey',
+        help: 'メッセージ暗号化用の WeCom コールバック EncodingAESKey。'
+      },
+      WEIXIN_ACCOUNT_ID: {
+        label: 'iLink Bot アカウント ID',
+        help: 'hermes gateway setup の QR ログインで取得した iLink Bot アカウント ID。'
+      },
+      WEIXIN_TOKEN: {
+        label: 'iLink Bot トークン',
+        help: 'hermes gateway setup の QR ログインで取得した iLink Bot トークン。'
+      },
+      WEIXIN_BASE_URL: {
+        label: 'iLink API ベース URL',
+        help: 'QR ログインで保存された iLink API ベース URL（デフォルト: https://ilinkai.weixin.qq.com）。'
+      },
+      QQ_APP_ID: { label: 'App ID', help: 'QQ オープンプラットフォーム (q.qq.com) のボット App ID。' },
+      QQ_CLIENT_SECRET: { label: 'Client Secret', help: 'QQ オープンプラットフォームのボット Client Secret。' },
+      QQ_ALLOWED_USERS: {
+        label: '許可する QQ ユーザー',
+        help: '推奨。ボットを利用できる QQ ユーザー ID。カンマ区切り。'
+      },
+      QQ_GROUP_ALLOWED_USERS: {
+        label: '許可する QQ グループ',
+        help: 'ボットと対話できる QQ グループ ID。カンマ区切り。'
+      },
+      QQ_SANDBOX: {
+        label: 'サンドボックスモード',
+        help: '開発テスト用に QQ サンドボックスモードを有効にします（true/false）。'
+      },
+      API_SERVER_ENABLED: {
+        label: 'API サーバーを有効にする',
+        help: 'OpenAI 互換の API サーバーを有効にします（true/false）。Open WebUI や LobeChat などのフロントエンドが接続できます。'
+      },
+      API_SERVER_KEY: {
+        label: '認証キー',
+        help: 'API サーバー認証用の Bearer トークン。API サーバーを有効にする場合は必須で、未設定だとサーバーは起動を拒否します。'
+      },
+      API_SERVER_PORT: { label: 'ポート', help: 'API サーバーのポート（デフォルト: 8642）。' },
+      API_SERVER_HOST: {
+        label: 'バインドアドレス',
+        help: 'API サーバーのバインドアドレス（デフォルト: 127.0.0.1）。ループバックのみでも認証キーは必須です。'
+      },
+      API_SERVER_MODEL_NAME: {
+        label: 'モデル名',
+        help: '/v1/models で公開されるモデル名。デフォルトはプロファイル名（デフォルトプロファイルでは hermes-agent）。OpenWebUI のマルチユーザー構成に便利です。'
+      },
+      WEBHOOK_ENABLED: {
+        label: 'Webhook を有効にする',
+        help: 'GitHub や GitLab などからイベントを受信する Webhook アダプターを有効にします。'
+      },
+      WEBHOOK_PORT: { label: 'ポート', help: 'Webhook HTTP サーバーのポート（デフォルト: 8644）。' },
+      WEBHOOK_SECRET: {
+        label: '署名シークレット',
+        help: 'Webhook 署名検証用のグローバル HMAC シークレット（config.yaml でルートごとに上書き可能）。'
       }
     },
     platformIntro: {
@@ -3998,7 +4547,9 @@ export const ja = defineCompleteLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: 'メール'
+      email: 'メール',
+      botChat: 'Bot チャット',
+      defaultProfile: 'デフォルト'
     },
     scheduleLabels: {
       daily: '毎日',
@@ -4109,13 +4660,127 @@ export const ja = defineCompleteLocale({
       scheduled: 'ブレーンプリントをスケジュールしました',
       loading: 'ブレーンプリントを読み込み中...',
       failedLoad: 'ブレーンプリントの読み込みに失敗しました',
-      emptyTitle: '利用できるブレーンプリントはありません',
-      emptyDesc: 'このバックエンドで利用できる自動化ブレーンプリントはありません。'
+      emptyTitle: '利用できるブループリントはありません',
+      emptyDesc: 'このバックエンドで利用できる自動化ブループリントはありません。',
+      titles: {
+        'Morning briefing': '朝のブリーフィング',
+        'Important-mail monitor': '重要メール監視',
+        'Weekly review': '週次レビュー',
+        'Workday start reminder': '勤務開始リマインダー',
+        'Custom reminder': 'カスタムリマインダー',
+        'Evening wind-down': '夜のまとめ',
+        'Topic news digest': 'トピックニュースダイジェスト',
+        'Bills & renewals reminder': '請求書と更新のリマインダー',
+        'Price & availability watch': '価格と在庫監視',
+        'Competitor news watch': '競合ニュース監視',
+        'Habit check-in': '習慣チェックイン',
+        'Hydration & movement nudge': '水分補給と運動の促し',
+        'Weekly meal plan': '週間食事計画',
+        'Daily learning drip': '毎日の学習',
+        'Gratitude & reflection prompt': '感謝と振り返りのプロンプト',
+        'On-this-day discovery': '今日は何の日'
+      },
+      descriptions: {
+        'Morning briefing': '毎日の簡単なブリーフィング：今日のカレンダー、天気、保留中の緊急事項。',
+        'Important-mail monitor': '定期的に受信トレイをチェックし、本当に注意が必要なときだけ通知します。',
+        'Weekly review': '週次まとめ：完了したこと、保留中のこと、これから来ること。',
+        'Workday start reminder': '議題と最優先事項を含む勤務日リマインダー。',
+        'Custom reminder': 'スケジュールに基づくカスタム繰り返しリマインダー。',
+        'Evening wind-down': '終日チェック：明日のスケジュールと今夜準備すべきことの一覧。',
+        'Topic news digest':
+          '関心のあるトピックに関する定期的なダイジェスト — 重複排除されて本当に新しいアイテムだけが表示されます。',
+        'Bills & renewals reminder':
+          '定期支払い、サブスクリプション更新、または期限日の前に事前警告 — 予期しない自動請求を防ぎます。',
+        'Price & availability watch':
+          '正確な商品、フライト、ホテル、またはリストを監視し、価格または在庫状況の条件が満たされたときに通知します。',
+        'Competitor news watch':
+          '指定企業に関する注目すべきニュースを追跡 — 製品発売、価格設定、資金調達、申告 — 引用付き要約。',
+        'Habit check-in': '習慣を維持し、完了を振り返るための定期的なリマインダー。',
+        'Hydration & movement nudge': '日中に定期的に水を飲み、立ち上がり、ストレッチするためのリマインダー。',
+        'Weekly meal plan': 'あなたの食事と調理時間に合わせた、統合された買い物リスト付きの週間食事計画。',
+        'Daily learning drip': '学びたいトピックについて毎日少しずつ学習 — 時間をかけて蓄積されます。',
+        'Gratitude & reflection prompt': '感謝と洞察を記録するための毎日または毎週の振り返りプロンプト。',
+        'On-this-day discovery': '歴史上の今日に起こった興味深い出来事 — あなたの興味に合わせてパーソナライズされます。'
+      },
+      labels: {
+        'What time?': '何時？',
+        'Where to deliver?': 'どこに配信しますか？',
+        'How often?': '頻度は？',
+        'Remind me to…': 'リマインダー内容…',
+        'Which day?': '何曜日？',
+        'Repeat on': '繰り返し',
+        'What topic?': 'トピックは？',
+        'How many bullets?': 'いくつの箇条書き？',
+        "What's due?": '何が期限ですか？',
+        'What exactly to watch?': '正確に何を監視しますか？',
+        'Alert me when…': '通知条件…',
+        'Which companies?': 'どの企業？',
+        'Which events matter?': 'どのイベントが重要？',
+        'Which habit?': 'どの習慣？',
+        'Start hour': '開始時刻',
+        'End hour': '終了時刻',
+        'Diet?': '食事制限は？',
+        'Meals per day?': '1日の食事回数？',
+        'Cooking effort?': '調理の労力？',
+        'Only notify me if the mail…': 'メールが…の場合のみ通知',
+        'Learn about…': '学ぶテーマ…',
+        'What kind?': '種類は？'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24時間形式（例：08:00）',
+        'minutes between checks': 'チェック間隔（分）',
+        'hours between checks — be gentle with rate limits': 'チェック間隔（時間）——レート制限に注意',
+        'hours between nudges': 'ナッジ間隔（時間）',
+        'first hour of the active window (24h)': 'アクティブ時間帯の開始時刻（24時間制）',
+        'last hour of the active window (24h)': 'アクティブ時間帯の終了時刻（24時間制）'
+      },
+      options: {
+        everyday: '毎日',
+        weekdays: '平日',
+        weekends: '週末',
+        sunday: '日曜日',
+        monday: '月曜日',
+        tuesday: '火曜日',
+        wednesday: '水曜日',
+        thursday: '木曜日',
+        friday: '金曜日',
+        saturday: '土曜日',
+        'dinner only': '夕食のみ',
+        'lunch and dinner': '昼食と夕食',
+        'all three': '3食',
+        quick: '簡単',
+        medium: '普通',
+        ambitious: '本格的',
+        'no restrictions': '制限なし',
+        vegetarian: 'ベジタリアン',
+        vegan: 'ビーガン',
+        'high-protein': '高タンパク',
+        'low-carb': '低糖質',
+        'on this day in history': '歴史上の今日',
+        'word of the day': '今日の単語',
+        'science fact': 'サイエンスファクト',
+        'quote of the day': '今日の名言',
+        auto: '自動',
+        websocket: 'websocket',
+        poll: 'ポーリング'
+      }
     },
     lastRunFailed: '最後の実行が失敗しました:',
     editJob: 'ジョブの編集',
     runAgain: 'もう一度実行します',
-    overdueSince: '次の日から期限を過ぎています:'
+    overdueSince: '次の日から期限を過ぎています:',
+    modelImpact: {
+      title: 'スケジュール済みジョブは元のモデルで実行されます',
+      message: count =>
+        `ピン留めされていない ${count} 件のスケジュール済みジョブは、作成時のモデルで引き続き実行されます。移行するにはピン留めするか cron.model を設定してください。`,
+      detailMore: (names, remaining) => `${names}、ほか ${remaining} 件`,
+      review: 'スケジュール済みジョブを確認',
+      saveFailed: 'Hermes はモデルの変更を保存しませんでした。',
+      confirmTitle: 'モデル選択の警告',
+      confirmDetail: 'このトレードオフを受け入れる場合のみ確認してください。',
+      confirmAction: '確認',
+      declined: 'モデル変更をキャンセルしました — データ学習ティアの警告を拒否しました。'
+    }
   },
   artifacts: {
     search: 'アーティファクトを検索...',
@@ -5303,7 +5968,8 @@ export const ja = defineCompleteLocale({
       noModels: 'モデルが見つかりません',
       editModels: 'モデルを編集…',
       refreshModels: 'モデルを更新',
-      fast: '高速'
+      fast: '高速',
+      moaPresets: 'MOA プリセット'
     },
     modelOptions: {
       noOptions: 'このモデルにはオプションがありません',
@@ -6391,7 +7057,7 @@ export const ja = defineCompleteLocale({
     resumeStrandedBody:
       'このセッションへの接続に失敗し、自動再試行も停止しました。ゲートウェイが実行中か確認してから、もう一度お試しください。',
     poolSlotTimeoutBody:
-      'すべてのローカルプロファイルバックエンドスロットが使用中です。「設定」→「詳細設定」で「Warm Bot Backends」を増やすか、アイドル状態のバックエンドが解放された後に再試行してください。',
+      'すべてのローカルプロファイルバックエンドスロットが使用中です。「設定」→「詳細設定」で「起動を維持するボットバックエンド数」を増やすか、アイドル状態のバックエンドが解放された後に再試行してください。',
     poolSlotTimeoutOpenSettings: '詳細設定を開く',
     resumeRetry: '再試行',
     nothingToBranch: 'ブランチするものがありません',

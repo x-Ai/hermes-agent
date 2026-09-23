@@ -739,13 +739,14 @@ export const zh = defineCompleteLocale({
       'composer.queue': '消息排队',
       'composer.sendQueued': '发送下一条排队消息',
       'composer.mention': '引用文件、文件夹、网址',
-      'composer.slash': '斜杠命令面板',
+      'composer.slash': 'Slash 命令面板',
       'composer.help': '快速帮助',
       'composer.history': '切换弹窗/历史',
       'composer.cancel': '关闭弹窗·取消运行',
       'nav.capabilities': '打开技能',
       'view.cycleSidebarGrouping': '周期会话分组',
-      'view.toggleProfileRail': '切换配置档案栏'
+      'view.toggleProfileRail': '切换配置档案栏',
+      'view.terminalSelection': '将终端选区发送到输入框'
     }
   },
   paletteCommands: {
@@ -1224,8 +1225,7 @@ export const zh = defineCompleteLocale({
     },
     fieldLabels: defineFieldCopy({
       model: '默认模型',
-      modelContextLength:
-        '仅覆盖主聊天模型检测到的上下文窗口（以 token 计）。保持为 0 则使用所选模型检测到的值。不影响辅助模型/MoA 模型',
+      modelContextLength: '上下文窗口',
       fallbackProviders: '备用模型',
       toolsets: '启用的工具集',
       timezone: '时区',
@@ -1243,7 +1243,12 @@ export const zh = defineCompleteLocale({
         imageInputMode: '图片附件',
         apiMaxRetries: 'API 重试次数',
         serviceTier: '服务等级',
-        toolUseEnforcement: '工具调用强制'
+        toolUseEnforcement: '工具调用强制',
+        outputTruncationRetries: '输出上限重试次数',
+        postToolEmptyRetries: '工具后空响应重试次数',
+        thinkingPrefillRetries: '思考预填充重试次数',
+        emptyResponseRetries: '空响应重试次数',
+        environmentProbe: '执行环境探测'
       },
       terminal: {
         cwd: '工作目录',
@@ -1254,7 +1259,14 @@ export const zh = defineCompleteLocale({
         dockerImage: 'Docker 镜像',
         singularityImage: 'Singularity 镜像',
         modalImage: 'Modal 镜像',
-        daytonaImage: 'Daytona 镜像'
+        daytonaImage: 'Daytona 镜像',
+        containerPersistent: '持久化容器文件系统',
+        dockerMountCwdToWorkspace: '将项目目录挂载进 Docker',
+        dockerWorkspacePerSession: '跟随各会话选择的项目',
+        dockerWorkspaceMountPath: 'Docker 挂载路径',
+        singularityMountCwdToWorkspace: '将项目目录挂载进 Singularity',
+        singularityWorkspacePerSession: '跟随各会话选择的项目（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity 挂载路径'
       },
       fileReadMaxChars: '文件读取上限',
       toolOutput: {
@@ -1292,7 +1304,8 @@ export const zh = defineCompleteLocale({
         gptLive: {
           voice: 'GPT-Live 音色',
           instructions: 'GPT-Live 人设'
-        }
+        },
+        clientDirect: '客户端直连'
       },
       stt: {
         enabled: '语音转文字',
@@ -1396,7 +1409,8 @@ export const zh = defineCompleteLocale({
         maxIterations: '子智能体轮次上限',
         maxConcurrentChildren: '并行子智能体',
         childTimeoutSeconds: '子智能体超时',
-        reasoningEffort: '子智能体推理强度'
+        reasoningEffort: '子智能体推理强度',
+        useCustomEndpoints: '子智能体建议自定义端点'
       },
       updates: {
         nonInteractiveLocalChanges: '应用内更新本地更改'
@@ -1411,23 +1425,41 @@ export const zh = defineCompleteLocale({
         showReasoning: '当后端提供推理内容时予以显示'
       },
       desktop: {
-        repoScanEnabled: '扫描本地文件夹，并在“项目”中显示 Git 代码仓库',
-        repoScanRoots: '要扫描的文件夹。留空时扫描主目录',
+        repoScanEnabled: '扫描本地文件夹，并在"项目"中显示 Git 代码仓库',
+        repoScanRoots: '要扫描的文件夹，留空时扫描主目录',
         repoScanExcludePaths: '发现代码仓库时跳过这些文件夹及其子目录'
       },
-      timezone: '当 Hermes 需要本地时间上下文时使用。留空则使用系统时区',
+      timezone: '当 Hermes 需要本地时间上下文时使用，留空则使用系统时区',
       agent: {
         imageInputMode: '控制图片附件如何发送给模型',
-        maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限'
+        maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
+        outputTruncationRetries:
+          '仅在提供方明确因输出 Token 上限截断且没有生成可见文本时重试，每次重试都可能重复计费，建议设为 0，最多 3 次',
+        postToolEmptyRetries:
+          '模型在工具调用后未返回可见文本时，发送继续提示，每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
+        thinkingPrefillRetries:
+          '模型只返回思考而没有可见文本时，预填充该思考以继续生成，每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
+        emptyResponseRetries:
+          '前置恢复层仍未产生可见文本时重试，每次都可能重复计费，成本保护可能提前停止，设为 0 可关闭，最多 3 次',
+        serviceTier: 'API 服务等级（OpenAI/Anthropic）',
+        environmentProbe: '为新会话探测执行环境详情，容器后端使用探测后自动销毁的临时沙箱，关闭时使用静态描述'
       },
       terminal: {
         cwd: '工具与终端操作的默认项目目录',
         persistentShell: '当后端支持时，在命令之间保留 Shell 状态',
         envPassthrough: '传入工具执行的环境变量',
-        dockerImage: '当执行后端为 Docker 时使用的容器镜像',
-        singularityImage: '当执行后端为 Singularity 时使用的镜像',
-        modalImage: '当执行后端为 Modal 时使用的镜像',
-        daytonaImage: '当执行后端为 Daytona 时使用的镜像'
+        dockerImage: '执行后端为 Docker 时使用的容器镜像',
+        singularityImage: '执行后端为 Singularity 时使用的镜像',
+        modalImage: '执行后端为 Modal 时使用的镜像，运行在云端：项目目录以副本方式同步，无法挂载',
+        daytonaImage: '执行后端为 Daytona 时使用的镜像，运行在云端：项目目录以副本方式同步，无法挂载',
+        backend: '终端执行后端',
+        containerPersistent: '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
+        dockerMountCwdToWorkspace: '把项目目录绑定挂载到 Docker 沙箱的 /workspace，关闭时沙箱完全隔离',
+        dockerWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录。每个项目会有独立的容器',
+        dockerWorkspaceMountPath: '项目在容器内的完整挂载路径，默认 /workspace，修改后对下一个容器生效',
+        singularityMountCwdToWorkspace: '把项目目录绑定挂载到 Singularity 沙箱的 /workspace，关闭时沙箱完全隔离',
+        singularityWorkspacePerSession: '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立的实例',
+        singularityWorkspaceMountPath: '项目在沙箱内的完整绑定路径，默认 /workspace，修改后对下一个实例生效'
       },
       codeExecution: {
         mode: '代码执行被限定到当前项目的严格程度'
@@ -1438,14 +1470,16 @@ export const zh = defineCompleteLocale({
         timeout: '审批提示在超时前等待的时长'
       },
       security: {
-        redactSecrets: '尽可能从模型可见内容中隐藏检测到的密钥'
+        redactSecrets: '尽可能从模型可见内容中隐藏检测到的密钥',
+        allowPrivateUrls: '允许 URL 获取工具访问 localhost 和私有网络地址，云元数据端点始终保持阻止'
       },
       checkpoints: {
         enabled: '在文件编辑前创建可回滚的快照'
       },
       memory: {
         memoryEnabled: '保存有助于未来会话的持久记忆',
-        userProfileEnabled: '维护一份精简的用户偏好画像'
+        userProfileEnabled: '维护一份精简的用户偏好画像',
+        provider: '记忆提供方插件'
       },
       context: {
         engine: '在接近上下文上限时管理长对话的策略'
@@ -1461,44 +1495,52 @@ export const zh = defineCompleteLocale({
       },
       browser: {
         useRealProfile:
-          '本地浏览使用你的真实登录状态。Hermes 会把你默认浏览器的配置（Cookie、登录、偏好）复制为受管快照，并用自带的 Chromium 驱动它——不会直接打开你的实时配置，且每次运行都会从实时配置刷新副本。还允许智能体在配置了云端浏览器后端时，按需打开本地真实配置会话。仅支持 Chromium 系浏览器（Chrome、Edge、Brave、Brave Origin、Chromium）；默认浏览器不是 Chromium 系时会给出明确报错。默认关闭'
+          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置(Cookie、登录、偏好)到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新。即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器(Chrome/Edge/Brave/Chromium)，否则报错。此选项默认关闭'
       },
       voice: {
         autoTts: '自动朗读助手回复',
         voiceChatMode:
-          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商。gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes——由你选择的任意模型带着完整工具集作答。需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费',
+          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商。gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes——由你选择的任意模型带着完整工具集作答。需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费。',
         gptLive: {
-          voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID',
-          instructions: '附加到实时语音人设的句子（语气、语速、语言）。Hermes 保留自己的系统提示词'
+          voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID。',
+          instructions: '附加到实时语音人设的句子（语气、语速、语言）。Hermes 保留自己的系统提示词。'
         }
       },
       stt: {
         enabled: '启用本地或提供方支持的语音转写',
         echoTranscripts: '将语音消息的原始 🎙️ 转写文本发回聊天',
         local: {
-          model: '本地 faster-whisper 转写所使用的模型大小。模型越大通常越准确，但需要更多内存和处理时间。'
+          model: '本地 faster-whisper 转写所使用的模型大小，模型越大通常越准确，但需要更多内存和处理时间'
         },
         elevenlabs: {
-          languageCode: '可选的 ISO-639-3 语言代码。留空让 ElevenLabs 自动检测'
-        }
+          languageCode: '可选的 ISO-639-3 语言代码，留空让 ElevenLabs 自动检测'
+        },
+        provider: '语音转文本（STT）提供方'
       },
       tts: {
         xai: {
           voiceId: 'xAI 语音 ID（如 eve）或自定义语音 ID',
-          language: '口语语言代码（如 en、pt-BR），或填 "auto" 自动检测',
-          speed: '播放速度。0.7 = 较慢，1.0 = 正常，1.5 = 较快',
-          autoSpeechTags: '合成前让 LLM 在文稿中插入表现力音频标签（如 [laughing]、[sighs]）',
-          optimizeStreamingLatency: '延迟与质量的权衡。0 = 最佳质量，2 = 最低延迟',
-          sampleRate: '音频采样率（Hz）。越高音质越好、文件越大',
-          bitRate: 'MP3 比特率（bps）。仅当编码为 mp3 时生效'
+          language: '语言代码（如 en、pt-BR），或填 "auto" 自动检测',
+          speed: '播放速度：0.7 = 较慢，1.0 = 正常，1.5 = 较快',
+          autoSpeechTags: '让 LLM 在合成前自动插入表情音频标签（如 [laughing]、[sighs]）',
+          optimizeStreamingLatency: '延迟与质量权衡：0 = 最佳质量，2 = 最低延迟',
+          sampleRate: '音频采样率（Hz）：越高音质越好，文件越大',
+          bitRate: 'MP3 比特率（bps），仅在编解码器为 mp3 时生效'
         },
         neutts: {
           device: 'NeuTTS 的本地推理设备'
-        }
+        },
+        provider: '文本转语音（TTS）提供方'
       },
       updates: {
         nonInteractiveLocalChanges:
-          'Hermes 从应用内更新时（无终端提示），保留本地源码修改（暂存）或丢弃（放弃）。通过终端更新时始终会询问'
+          'Hermes 从应用内更新时(无终端提示)，保留本地源码修改(暂存)或丢弃(放弃)，通过终端更新时始终会询问'
+      },
+      delegation: {
+        model: '委派子智能体使用的模型，留空则继承父智能体的模型',
+        provider: '委派子智能体使用的提供方 — 内置名称或自定义端点 id，留空则继承父智能体',
+        useCustomEndpoints: '在子智能体提供方列表中提供你的自定义端点，并在模型列表中提供该端点已发现的模型',
+        reasoningEffort: '委派子智能体使用的推理力度'
       }
     }),
     about: {
@@ -2803,9 +2845,31 @@ export const zh = defineCompleteLocale({
         selectedTitle: '已选择后端',
         selectedMessage: backend => `终端命令现在通过 ${backend} 运行。将应用于新会话`,
         failedSelect: backend => `选择 ${backend} 失败`,
-        needsSetupHint: '此后端已选中但尚未完成设置——在设置完成前命令将会失败',
-        descriptions: {},
-        details: {},
+        needsSetupHint: '现在即可选择此后端 — 但在完成设置前命令将会失败',
+        descriptions: {
+          local: '直接在本机上运行命令，不进行隔离',
+          docker: '在隔离的 Docker 容器中运行命令，并使用持久化工作区',
+          singularity: '在 Singularity/Apptainer 容器中运行命令（适合 HPC，无需 root）',
+          modal: '在 Modal 云沙箱中运行命令',
+          daytona: '在 Daytona 云沙箱中运行命令',
+          ssh: '通过 SSH 在远程主机上运行命令'
+        },
+        details: {
+          'Docker CLI not found — install Docker Desktop or docker-ce.':
+            '未找到 Docker CLI — 请安装 Docker Desktop 或 docker-ce',
+          'Docker daemon not reachable — start Docker and retry.': '无法连接 Docker 守护进程 — 请启动 Docker 后重试',
+          'Docker daemon not responding (timed out).': 'Docker 守护进程无响应（已超时）',
+          'Neither singularity nor apptainer found on PATH.': 'PATH 中未找到 singularity 或 apptainer',
+          'Modal credentials not found — set MODAL_TOKEN_ID and MODAL_TOKEN_SECRET (or run `modal setup`).':
+            '未找到 Modal 凭据 — 请设置 MODAL_TOKEN_ID 和 MODAL_TOKEN_SECRET（或运行 `modal setup`）',
+          'Set DAYTONA_API_KEY to use the Daytona backend.': '请设置 DAYTONA_API_KEY 以使用 Daytona 后端',
+          'Set terminal.ssh_host and terminal.ssh_user in config.yaml (or the matching TERMINAL_SSH_* env vars).':
+            '请在 config.yaml 中设置 terminal.ssh_host 和 terminal.ssh_user（或对应的 TERMINAL_SSH_* 环境变量）',
+          'Set terminal.ssh_host in config.yaml (or the matching TERMINAL_SSH_* env vars).':
+            '请在 config.yaml 中设置 terminal.ssh_host（或对应的 TERMINAL_SSH_* 环境变量）',
+          'Set terminal.ssh_user in config.yaml (or the matching TERMINAL_SSH_* env vars).':
+            '请在 config.yaml 中设置 terminal.ssh_user（或对应的 TERMINAL_SSH_* 环境变量）'
+        },
         needsSetupConfirmTitle: backend => `仍要选择 ${backend} 吗？`,
         needsSetupConfirmDescription: detail => `${detail} 此更改生效后启动的会话在设置完成前将没有终端或文件工具`,
         needsSetupConfirmDescriptionGeneric:
@@ -3614,7 +3678,7 @@ export const zh = defineCompleteLocale({
       loading: '正在搜索 Marketplace...',
       error: '无法连接到 Marketplace',
       installError: '无法安装该主题',
-      invalidColorTheme: '该主题缺少“colors”配置，因此不是有效的 VS Code 颜色主题',
+      invalidColorTheme: '该主题缺少"colors"配置，因此不是有效的 VS Code 颜色主题',
       empty: '没有匹配的主题',
       install: '安装',
       installing: '安装中...',
@@ -3879,19 +3943,19 @@ export const zh = defineCompleteLocale({
       },
       TELEGRAM_PROXY: {
         label: '代理 URL',
-        help: '仅在 Telegram 被屏蔽的网络中需要。'
+        help: '仅在 Telegram 被屏蔽的网络中需要'
       },
       DISCORD_BOT_TOKEN: {
         label: 'Bot 令牌',
-        help: '在 Discord 开发者门户创建应用，添加机器人，然后粘贴其令牌。'
+        help: '在 Discord 开发者门户创建应用，添加机器人，然后粘贴其令牌'
       },
       DISCORD_ALLOWED_USERS: {
         label: '允许的 Discord 用户 ID',
-        help: '推荐。逗号分隔的 Discord 用户 ID。'
+        help: '推荐。逗号分隔的 Discord 用户 ID'
       },
       DISCORD_REPLY_TO_MODE: {
         label: '回复方式',
-        help: 'first、all 或 off。'
+        help: 'first、all 或 off'
       },
       DISCORD_ALLOW_ALL_USERS: {
         label: '允许所有 Discord 用户',
@@ -3899,31 +3963,35 @@ export const zh = defineCompleteLocale({
       },
       DISCORD_HOME_CHANNEL: {
         label: '主页频道 ID',
-        help: 'bot 主动发送消息的频道（cron 输出、提醒等）。'
+        help: 'bot 主动发送消息的频道（cron 输出、提醒等）'
       },
       DISCORD_HOME_CHANNEL_NAME: {
         label: '主页频道名称',
-        help: '日志和状态输出中显示的主页频道名称。'
+        help: '日志和状态输出中显示的主页频道名称'
       },
       BLUEBUBBLES_ALLOW_ALL_USERS: {
         label: '允许所有 iMessage 用户',
-        help: '为 true 时跳过 BlueBubbles 允许列表。'
+        help: '为 true 时跳过 BlueBubbles 允许列表'
       },
       MATTERMOST_ALLOW_ALL_USERS: {
-        label: '允许所有 Mattermost 用户'
+        label: '允许所有 Mattermost 用户',
+        help: '允许所有 Mattermost 用户绕过允许列表与机器人交互'
       },
       MATTERMOST_HOME_CHANNEL: {
-        label: '主页频道'
+        label: '主页频道',
+        help: 'cron / 通知投递的默认 Mattermost 频道 ID'
       },
       QQ_ALLOW_ALL_USERS: {
-        label: '允许所有 QQ 用户'
+        label: '允许所有 QQ 用户',
+        help: '允许所有 QQ 用户绕过允许列表与机器人交互（true/false）'
       },
       QQBOT_HOME_CHANNEL: {
         label: 'QQ 主页频道',
-        help: 'cron 投递的默认频道或群组。'
+        help: 'cron 投递的默认频道或群组'
       },
       QQBOT_HOME_CHANNEL_NAME: {
-        label: 'QQ 主页频道名称'
+        label: 'QQ 主页频道名称',
+        help: 'QQ 主页频道的显示名称'
       },
       SLACK_BOT_TOKEN: {
         label: 'Slack bot 令牌',
@@ -3937,33 +4005,37 @@ export const zh = defineCompleteLocale({
       },
       SLACK_ALLOWED_USERS: {
         label: '允许的 Slack 用户 ID',
-        help: '推荐。逗号分隔的 Slack 用户 ID。'
+        help: '推荐。逗号分隔的 Slack 用户 ID'
       },
       MATTERMOST_URL: {
         label: '服务器 URL',
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
-        label: 'Bot 令牌'
+        label: 'Bot 令牌',
+        help: 'Mattermost Bot 令牌或个人访问令牌'
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '允许的用户 ID',
-        help: '推荐。逗号分隔的 Mattermost 用户 ID。'
+        help: '推荐。逗号分隔的 Mattermost 用户 ID'
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
-        placeholder: 'https://matrix.org'
+        placeholder: 'https://matrix.org',
+        help: 'Matrix homeserver URL（如 https://matrix.org）'
       },
       MATRIX_ACCESS_TOKEN: {
-        label: '访问令牌'
+        label: '访问令牌',
+        help: 'Matrix 访问令牌（优先于密码登录）'
       },
       MATRIX_USER_ID: {
         label: 'Bot 用户 ID',
-        placeholder: '@hermes:example.org'
+        placeholder: '@hermes:example.org',
+        help: 'Matrix 用户 ID（如 @hermes:example.org）'
       },
       MATRIX_ALLOWED_USERS: {
         label: '允许的 Matrix 用户 ID',
-        help: '推荐。@user:server 格式的逗号分隔用户 ID。'
+        help: '推荐。@user:server 格式的逗号分隔用户 ID'
       },
       SIGNAL_HTTP_URL: {
         label: 'Signal 桥接 URL',
@@ -3972,22 +4044,408 @@ export const zh = defineCompleteLocale({
       },
       SIGNAL_ACCOUNT: {
         label: '电话号码',
-        help: '在 signal-cli 桥接中注册的号码。'
+        help: '在 signal-cli 桥接中注册的号码'
       },
       SIGNAL_ALLOWED_USERS: {
         label: '允许的 Signal 用户',
-        help: '推荐。逗号分隔的 Signal 标识符。'
+        help: '推荐。逗号分隔的 Signal 标识符'
       },
       WHATSAPP_ENABLED: {
         label: '启用 WhatsApp 桥接',
-        help: '由下方开关自动设置。除非确知需要，否则请勿改动。'
+        help: '由下方开关自动设置。除非确知需要，否则请勿改动'
       },
       WHATSAPP_MODE: {
         label: '桥接模式'
       },
       WHATSAPP_ALLOWED_USERS: {
         label: '允许的 WhatsApp 用户',
-        help: '推荐。逗号分隔的电话号码或 WhatsApp ID。'
+        help: '推荐。逗号分隔的电话号码或 WhatsApp ID'
+      },
+      TELEGRAM_ALLOW_ALL_USERS: {
+        label: '允许所有 Telegram 用户',
+        help: '仅用于开发。任何 Telegram 用户都能触发机器人'
+      },
+      TELEGRAM_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID' },
+      TELEGRAM_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Telegram 主页频道的显示名称' },
+      SLACK_ALLOW_ALL_USERS: { label: '允许所有 Slack 用户', help: '仅用于开发。任何 Slack 用户都能触发机器人' },
+      SLACK_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认频道 ID（以 C 开头）' },
+      SLACK_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Slack 主页频道的显示名称' },
+      SLACK_THREAD_REQUIRE_MENTION: {
+        label: '线程内需要 @提及',
+        help: 'Slack 线程回复需要显式 @提及；顶层自由响应频道不受影响'
+      },
+      MATTERMOST_ALLOWED_CHANNELS: {
+        label: '允许的频道 ID',
+        help: '设置后机器人只在这些频道响应（白名单），逗号分隔'
+      },
+      MATTERMOST_FREE_RESPONSE_CHANNELS: {
+        label: '自由响应频道 ID',
+        help: '机器人无需 @提及即可响应的 Mattermost 频道 ID，逗号分隔'
+      },
+      MATTERMOST_REPLY_MODE: { label: '回复方式', help: 'thread（嵌套线程）或 off（平铺）。默认 off' },
+      MATTERMOST_REQUIRE_MENTION: {
+        label: '频道内需要 @提及',
+        help: '在 Mattermost 频道中需要 @提及（默认 true）。设为 false 可响应所有消息'
+      },
+      MATRIX_ALLOW_ALL_USERS: { label: '允许所有 Matrix 用户', help: '仅用于开发。任何 Matrix 用户都能触发机器人' },
+      MATRIX_AUTO_THREAD: { label: '房间内自动创建线程', help: '为 Matrix 房间消息自动创建线程（默认 true）' },
+      MATRIX_DEVICE_ID: {
+        label: '设备 ID',
+        help: '用于端到端加密的稳定 Matrix 设备 ID，重启后保持不变（如 HERMES_BOT）'
+      },
+      MATRIX_DM_AUTO_THREAD: { label: '私信自动创建线程', help: '为 Matrix 私信自动创建线程（默认 false）' },
+      MATRIX_FREE_RESPONSE_ROOMS: {
+        label: '自由响应房间 ID',
+        help: '机器人无需 @提及即可响应的 Matrix 房间 ID，逗号分隔'
+      },
+      MATRIX_HOME_CHANNEL: { label: '主页房间 ID', help: 'cron / 通知投递的默认房间 ID' },
+      MATRIX_HOME_CHANNEL_NAME: { label: '主页房间名称', help: 'Matrix 主页房间的显示名称' },
+      MATRIX_PASSWORD: { label: 'Matrix 密码', help: 'Matrix 账户密码（访问令牌的替代方式）' },
+      MATRIX_RECOVERY_KEY: {
+        label: '恢复密钥',
+        help: '设备密钥轮换后用于交叉签名验证的恢复密钥（Element：设置 → 安全 → 恢复密钥）'
+      },
+      MATRIX_REQUIRE_MENTION: {
+        label: '房间内需要 @提及',
+        help: '在 Matrix 房间中需要 @提及（默认 true）。设为 false 可响应所有消息'
+      },
+      WHATSAPP_DM_POLICY: { label: '私信策略', help: 'WhatsApp 私信的授权方式' },
+      WHATSAPP_ALLOW_ALL_USERS: {
+        label: '允许所有 WhatsApp 用户',
+        help: '仅用于开发。任何 WhatsApp 用户都能触发机器人'
+      },
+      WHATSAPP_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID' },
+      WHATSAPP_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'WhatsApp 主页频道的显示名称' },
+      BLUEBUBBLES_SERVER_URL: {
+        label: '服务器 URL',
+        help: '用于 iMessage 集成的 BlueBubbles 服务器 URL',
+        placeholder: 'http://192.168.1.10:1234'
+      },
+      BLUEBUBBLES_PASSWORD: {
+        label: '服务器密码',
+        help: 'BlueBubbles 服务器密码（BlueBubbles Server → 设置 → API）'
+      },
+      BLUEBUBBLES_ALLOWED_USERS: {
+        label: '允许的 iMessage 地址',
+        help: '推荐。逗号分隔的 iMessage 地址（邮箱或电话号码）'
+      },
+      HASS_URL: {
+        label: 'Home Assistant URL',
+        help: 'Home Assistant 基础 URL',
+        placeholder: 'http://homeassistant.local:8123'
+      },
+      HASS_TOKEN: { label: '长期访问令牌', help: 'Home Assistant 长期访问令牌' },
+      EMAIL_ADDRESS: { label: '邮箱地址', help: '邮箱账户地址' },
+      EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱账户密码 / 应用专用密码' },
+      EMAIL_IMAP_HOST: { label: 'IMAP 主机', help: '收件轮询使用的 IMAP 主机', placeholder: 'imap.gmail.com' },
+      EMAIL_SMTP_HOST: { label: 'SMTP 主机', help: '发件使用的 SMTP 主机', placeholder: 'smtp.gmail.com' },
+      EMAIL_ALLOWED_USERS: { label: '允许的邮箱地址', help: '推荐。允许与机器人对话的邮箱地址，逗号分隔' },
+      EMAIL_HOME_ADDRESS: { label: '主页地址', help: 'cron / 通知投递的默认邮箱地址' },
+      EMAIL_SMTP_PORT: { label: 'SMTP 端口', help: 'SMTP 端口（默认 587）' },
+      TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: '来自 Twilio 控制台的 Account SID' },
+      TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: '来自 Twilio 控制台的 Auth Token' },
+      TWILIO_PHONE_NUMBER: { label: 'Twilio 电话号码', help: '可发送短信的 Twilio 号码（E.164 格式）' },
+      DINGTALK_CLIENT_ID: { label: 'Client ID (App Key)', help: '钉钉应用的 App Key（Client ID）' },
+      DINGTALK_CLIENT_SECRET: { label: 'Client Secret', help: '钉钉应用的 App Secret（Client Secret）' },
+      DINGTALK_ALLOWED_USERS: {
+        label: '允许的用户',
+        help: '允许与机器人对话的员工 / 发送者 ID，逗号分隔（* 表示任何人）'
+      },
+      DINGTALK_HOME_CHANNEL: { label: '主页会话 ID', help: 'cron / 通知投递的默认会话 ID' },
+      DINGTALK_HOME_CHANNEL_NAME: { label: '主页会话名称', help: '钉钉主页会话的显示名称' },
+      DINGTALK_WEBHOOK_URL: {
+        label: '群机器人 Webhook URL',
+        help: '用于跨平台 / cron 投递的固定群机器人 Webhook URL（可选）'
+      },
+      FEISHU_APP_ID: { label: 'App ID', help: '飞书 / Lark 应用的 App ID' },
+      FEISHU_APP_SECRET: { label: 'App Secret', help: '飞书 / Lark 应用的 App Secret' },
+      FEISHU_ENCRYPT_KEY: { label: '加密密钥 (Encrypt Key)', help: '飞书 / Lark 事件加密密钥' },
+      FEISHU_VERIFICATION_TOKEN: { label: '校验令牌 (Verification Token)', help: '飞书 / Lark 事件校验令牌' },
+      FEISHU_ALLOWED_USERS: { label: '允许的用户 ID', help: '推荐。允许与机器人对话的飞书用户 ID，逗号分隔' },
+      FEISHU_ALLOW_ALL_USERS: { label: '允许所有飞书用户', help: '仅用于开发。任何飞书用户都能触发机器人' },
+      FEISHU_DOMAIN: { label: '域 (feishu/lark)', help: 'feishu（中国版）或 lark（国际版）' },
+      FEISHU_HOME_CHANNEL: { label: '主页群聊 ID', help: 'cron / 通知投递的默认群聊 ID' },
+      FEISHU_HOME_CHANNEL_NAME: { label: '主页群聊名称', help: '飞书主页群聊的显示名称' },
+      WECOM_BOT_ID: { label: '机器人 ID', help: '企业微信智能机器人的 bot ID' },
+      WECOM_SECRET: { label: '机器人 Secret', help: '企业微信智能机器人的 secret' },
+      WECOM_CALLBACK_CORP_ID: { label: '企业 ID (Corp ID)', help: '企业微信回调模式的企业 ID（自建应用）' },
+      WECOM_CALLBACK_CORP_SECRET: { label: '应用 Secret', help: '企业微信回调模式的应用 Secret' },
+      WECOM_CALLBACK_AGENT_ID: { label: '应用 Agent ID', help: '企业微信回调模式的应用 Agent ID' },
+      WECOM_CALLBACK_TOKEN: { label: '回调 Token', help: '企业微信回调校验 Token' },
+      WECOM_CALLBACK_ENCODING_AES_KEY: {
+        label: 'EncodingAESKey',
+        help: '用于消息加解密的企业微信回调 EncodingAESKey'
+      },
+      WEIXIN_ACCOUNT_ID: {
+        label: 'iLink Bot 账号 ID',
+        help: '通过 hermes gateway setup 扫码登录获得的 iLink Bot 账号 ID'
+      },
+      WEIXIN_TOKEN: { label: 'iLink Bot 令牌', help: '通过 hermes gateway setup 扫码登录获得的 iLink Bot 令牌' },
+      WEIXIN_BASE_URL: {
+        label: 'iLink API 基础 URL',
+        help: '扫码登录保存的 iLink API 基础 URL（默认 https://ilinkai.weixin.qq.com）'
+      },
+      QQ_APP_ID: { label: 'App ID', help: '来自 QQ 开放平台 (q.qq.com) 的机器人 App ID' },
+      QQ_CLIENT_SECRET: { label: 'Client Secret', help: '来自 QQ 开放平台的机器人 Client Secret' },
+      QQ_ALLOWED_USERS: { label: '允许的 QQ 用户', help: '推荐。允许使用机器人的 QQ 用户 ID，逗号分隔' },
+      QQ_GROUP_ALLOWED_USERS: { label: '允许的 QQ 群', help: '允许与机器人互动的 QQ 群 ID，逗号分隔' },
+      QQ_SANDBOX: { label: '沙箱模式', help: '启用 QQ 沙箱模式用于开发测试（true/false）' },
+      API_SERVER_ENABLED: {
+        label: '启用 API 服务器',
+        help: '启用兼容 OpenAI 的 API 服务器（true/false），供 Open WebUI、LobeChat 等前端连接'
+      },
+      API_SERVER_KEY: {
+        label: '鉴权密钥',
+        help: 'API 服务器认证用的 Bearer 令牌。启用 API 服务器时必填，缺失时服务器拒绝启动'
+      },
+      API_SERVER_PORT: { label: '端口', help: 'API 服务器端口（默认 8642）' },
+      API_SERVER_HOST: {
+        label: '监听地址',
+        help: 'API 服务器的绑定地址（默认 127.0.0.1）。即使只绑定本机回环地址也需要设置鉴权密钥'
+      },
+      API_SERVER_MODEL_NAME: {
+        label: '模型名称',
+        help: '在 /v1/models 上公布的模型名。默认为配置档案名（默认档案则为 hermes-agent）。适合搭配 OpenWebUI 的多用户场景'
+      },
+      WEBHOOK_ENABLED: { label: '启用 Webhook', help: '启用 Webhook 平台适配器，接收来自 GitHub、GitLab 等的事件' },
+      WEBHOOK_PORT: { label: '端口', help: 'Webhook HTTP 服务器端口（默认 8644）' },
+      WEBHOOK_SECRET: {
+        label: '签名密钥',
+        help: '用于 Webhook 签名校验的全局 HMAC 密钥（可在 config.yaml 中按路由覆盖）'
+      },
+      IRC_SERVER: {
+        label: 'IRC 服务器',
+        help: 'IRC 服务器主机名（如 irc.libera.chat）',
+        placeholder: 'irc.libera.chat'
+      },
+      IRC_CHANNEL: { label: 'IRC 频道', help: '要加入的 IRC 频道（如 #hermes）' },
+      IRC_NICKNAME: { label: '机器人昵称', help: '机器人在 IRC 上的昵称（默认 hermes-bot）' },
+      IRC_SERVER_PASSWORD: { label: '服务器密码', help: 'IRC 服务器密码（如需要）' },
+      IRC_NICKSERV_PASSWORD: { label: 'NickServ 密码', help: '用于昵称认证的 NickServ 密码' },
+      IRC_PORT: { label: 'IRC 端口', help: 'IRC 服务器端口（默认：TLS 6697，非 TLS 6667）' },
+      IRC_USE_TLS: { label: '使用 TLS', help: 'IRC 连接使用 TLS（1/true/yes 启用；端口 6697 时默认启用）' },
+      IRC_ALLOWED_USERS: { label: '允许的昵称', help: '允许与机器人对话的 IRC 昵称，逗号分隔' },
+      IRC_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许频道中任何人与机器人对话' },
+      IRC_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的频道（默认使用 IRC_CHANNEL）' },
+      GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
+        label: '服务账号 JSON',
+        help: '服务账号 JSON 密钥的路径（或内联 JSON）。留空则在 Cloud Run / GCE 上使用应用默认凭据（ADC），回退到 GOOGLE_APPLICATION_CREDENTIALS'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_URL: { label: 'HTTP 事件回调 URL', help: '用于 Chat 消息事件的已认证 HTTP 端点' },
+      GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
+        label: 'HTTP 事件令牌受众',
+        help: 'Google 签名 HTTP 事件 Bearer 令牌的期望受众。默认为 GOOGLE_CHAT_HTTP_EVENTS_URL'
+      },
+      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
+        label: 'HTTP 事件服务账号邮箱',
+        help: 'HTTP 事件 Bearer 令牌期望的 Google 服务账号邮箱'
+      },
+      GOOGLE_CHAT_PROJECT_ID: {
+        label: 'GCP 项目 ID',
+        help: '可选 Pub/Sub 入站模式的 GCP 项目 ID。回退到 GOOGLE_CLOUD_PROJECT'
+      },
+      GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub 订阅名', help: '拉取模式入站事件的可选 Pub/Sub 订阅路径' },
+      GOOGLE_CHAT_ALLOWED_USERS: { label: '允许的用户邮箱', help: '允许与机器人交互的用户邮箱，逗号分隔' },
+      GOOGLE_CHAT_HOME_CHANNEL: { label: '主页空间 ID', help: 'cron / 通知投递的默认空间（如 spaces/AAAA...）' },
+      LINE_CHANNEL_ACCESS_TOKEN: {
+        label: '频道访问令牌',
+        help: 'LINE 频道长期访问令牌（LINE Developers 控制台 > Messaging API > Channel access token）'
+      },
+      LINE_CHANNEL_SECRET: { label: '频道密钥', help: 'LINE 频道密钥（用于 HMAC-SHA256 Webhook 签名校验）' },
+      LINE_PORT: { label: 'Webhook 端口', help: 'Webhook 监听端口（默认 8646）' },
+      LINE_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）' },
+      LINE_PUBLIC_URL: {
+        label: '公开 HTTPS 基础 URL',
+        help: '向 LINE 提供图片/音频/视频的公开 HTTPS 基础 URL（如 https://my-tunnel.example.com）。绑定地址无法直接访问时发送媒体必需'
+      },
+      LINE_ALLOWED_USERS: { label: '允许的用户 ID', help: '允许私信机器人的 LINE 用户 ID（U 开头），逗号分隔' },
+      LINE_ALLOWED_GROUPS: { label: '允许的群组 ID', help: '机器人会响应的 LINE 群组 ID（C 开头），逗号分隔' },
+      LINE_ALLOWED_ROOMS: { label: '允许的聊天室 ID', help: '机器人会响应的 LINE 聊天室 ID（R 开头），逗号分隔' },
+      LINE_ALLOW_ALL_USERS: {
+        label: '允许所有用户',
+        help: '仅用于开发。允许任何 LINE 用户与机器人对话（停用允许列表）'
+      },
+      LINE_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认用户/群组/聊天室 ID' },
+      LINE_SLOW_RESPONSE_THRESHOLD: {
+        label: '慢响应阈值（秒）',
+        help: '触发慢 LLM postback 按钮前的秒数（默认 45；设 0 禁用并始终使用 Push 回退）'
+      },
+      NTFY_TOPIC: { label: '订阅主题', help: '要订阅的主题名（如 hermes-in）' },
+      NTFY_SERVER_URL: { label: '服务器 URL', help: 'ntfy 服务器 URL（默认 https://ntfy.sh）' },
+      NTFY_TOKEN: { label: '认证令牌', help: 'Bearer 令牌或用于 Basic 认证的 user:pass（可选）' },
+      NTFY_PUBLISH_TOPIC: { label: '发布主题', help: '回复发布到的主题（默认使用 NTFY_TOPIC）' },
+      NTFY_MARKDOWN: { label: '启用 Markdown', help: '发送回复时带 X-Markdown: true 头（true/false，默认 false）' },
+      NTFY_ALLOWED_USERS: { label: '允许的主题名', help: '允许的主题名（允许列表），逗号分隔' },
+      NTFY_ALLOW_ALL_USERS: { label: '允许所有主题', help: '仅用于开发。允许任何主题与机器人对话（停用允许列表）' },
+      NTFY_HOME_CHANNEL: { label: '主页主题', help: 'cron / 通知投递的默认主题' },
+      NTFY_HOME_CHANNEL_NAME: { label: '主页主题名称', help: '主页频道的显示名称（默认使用主题名）' },
+      PHOTON_PROJECT_ID: {
+        label: 'Spectrum 项目 ID',
+        help: 'Spectrum 项目 ID（项目的 spectrumProjectId；由 hermes photon setup 设置）'
+      },
+      PHOTON_PROJECT_SECRET: {
+        label: '项目密钥',
+        help: '与 Spectrum 项目 ID 配对的项目密钥（由 hermes photon setup 设置）'
+      },
+      PHOTON_SIDECAR_PORT: { label: 'Sidecar 控制端口', help: 'Node sidecar 控制与入站通道的回环端口（默认 8789）' },
+      PHOTON_SIDECAR_AUTOSTART: {
+        label: '自动启动 Sidecar',
+        help: '连接时自动拉起 Node sidecar（true/false，默认 true）'
+      },
+      PHOTON_NODE_BIN: { label: 'Node 可执行文件路径', help: 'node 二进制的路径（默认取 PATH 中的 node）' },
+      PHOTON_DASHBOARD_HOST: {
+        label: 'Dashboard 主机',
+        help: 'Photon Dashboard API 主机（默认 https://app.photon.codes）'
+      },
+      PHOTON_SPECTRUM_HOST: {
+        label: 'Spectrum API 主机',
+        help: 'Photon Spectrum API 主机（默认 https://spectrum.photon.codes）'
+      },
+      PHOTON_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 E.164 电话号码，逗号分隔' },
+      PHOTON_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许任何发送者触发机器人（停用允许列表）' },
+      PHOTON_REQUIRE_MENTION: {
+        label: '群聊需要提及',
+        help: '忽略群聊消息，除非命中提及唤醒词（true/false，默认 false）'
+      },
+      PHOTON_MENTION_PATTERNS: {
+        label: '群聊提及模式',
+        help: '群聊的提及唤醒词正则（JSON 列表或逗号/换行分隔；默认使用 Hermes 唤醒词）'
+      },
+      PHOTON_HOME_CHANNEL: {
+        label: '主页 Photon 目标',
+        help: 'cron / 通知投递的默认 Photon 目标：Spectrum 空间 ID、DM GUID 或纯 E.164 电话号码'
+      },
+      PHOTON_HOME_CHANNEL_NAME: { label: '主页频道名称', help: '主页频道的显示名称' },
+      PHOTON_TELEMETRY: {
+        label: '启用 Spectrum 遥测',
+        help: '在 sidecar 中启用 Spectrum SDK 遥测（true/false，默认 false；可用 hermes photon telemetry on|off 切换）'
+      },
+      PHOTON_MARKDOWN: {
+        label: '以 Markdown 渲染回复',
+        help: '以 Markdown 发送回复 — iMessage 原生渲染，其他 Spectrum 平台降级为纯文本（true/false，默认 true）'
+      },
+      PHOTON_REACTIONS: {
+        label: '启用回应表情',
+        help: '用 👀/👍/👎 回应消息表示处理状态，并把机器人消息上的回应转给代理（true/false，默认 false）'
+      },
+      SIMPLEX_WS_URL: {
+        label: '守护进程 WebSocket URL',
+        help: 'simplex-chat 守护进程的 WebSocket URL（如 ws://127.0.0.1:5225）'
+      },
+      SIMPLEX_ALLOWED_USERS: { label: '允许的联系人 ID', help: '允许与机器人对话的 SimpleX 联系人 ID，逗号分隔' },
+      SIMPLEX_ALLOW_ALL_USERS: {
+        label: '允许所有联系人',
+        help: '仅用于开发。允许任何联系人与机器人对话（停用允许列表）'
+      },
+      SIMPLEX_AUTO_ACCEPT: { label: '自动接受联系人请求', help: '自动接受收到的联系人请求（默认 true）' },
+      SIMPLEX_GROUP_ALLOWED: {
+        label: '允许的群组 ID',
+        help: '机器人参与的 SimpleX 群组 ID（逗号分隔），或 * 允许任意群组。省略则完全忽略群消息（更安全的默认 — 否则群里机器人会处理每个成员的消息）'
+      },
+      SIMPLEX_HOME_CHANNEL: { label: '主页联系人/群组 ID', help: 'cron / 通知投递的默认联系人/群组 ID' },
+      SIMPLEX_HOME_CHANNEL_NAME: { label: '主页频道名称', help: '主页频道的显示名称（默认使用 ID）' },
+      HERMES_SIMPLEX_TEXT_BATCH_DELAY: {
+        label: '文本合批延迟（秒）',
+        help: '把连续快速到达的入站文本合并为单条消息事件的静默期秒数（默认 0.8） — 与 Telegram 的文本合批相同'
+      },
+      SMS_ALLOWED_USERS: { label: '允许的号码', help: '允许与机器人对话的电话号码，逗号分隔' },
+      SMS_HOME_CHANNEL: { label: '主页号码', help: 'cron / 通知投递的默认电话号码' },
+      TEAMS_CLIENT_ID: { label: 'Azure AD 客户端 ID', help: 'Azure AD 应用（Bot Framework）客户端 ID' },
+      TEAMS_CLIENT_SECRET: { label: 'Azure AD 客户端密钥', help: 'Azure AD 应用客户端密钥' },
+      TEAMS_TENANT_ID: { label: 'Azure AD 租户 ID', help: '托管机器人应用的 Azure AD 租户 ID' },
+      TEAMS_PORT: { label: 'Webhook 端口', help: 'Webhook 监听端口（Bot Framework 默认 3978）' },
+      TEAMS_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）' },
+      TEAMS_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 Teams 用户 ID / UPN，逗号分隔' },
+      TEAMS_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。任何 Teams 用户都能触发机器人' },
+      TEAMS_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认聊天/频道 ID' },
+      TEAMS_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Teams 主页频道的显示名称' },
+      WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企业微信智能机器人 WebSocket URL' },
+      WECOM_HOME_CHANNEL: { label: '主页会话 ID', help: 'cron / 通知投递的默认聊天 ID' },
+      WECOM_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的企业微信用户 ID，逗号分隔' },
+      A2A_AGENT_NAME: {
+        label: 'A2A 代理名称',
+        help: '在此代理的 Agent Card 上公布的名称（默认：主机名派生）',
+        placeholder: 'A2A 代理名称'
+      },
+      A2A_BEARER_TOKEN: {
+        label: 'A2A 共享令牌（空则仅限本地）',
+        help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP）。不设任何令牌则仅绑定 127.0.0.1',
+        placeholder: 'A2A 共享令牌（空则仅限本地）'
+      },
+      A2A_HOST: {
+        label: 'A2A 绑定主机（默认 127.0.0.1）',
+        help: '入站绑定主机。默认 127.0.0.1；仅在设置了令牌且在此处选择时才扩展到 0.0.0.0',
+        placeholder: 'A2A 绑定主机（默认 127.0.0.1）'
+      },
+      A2A_PORT: {
+        label: 'A2A 端口（默认 9900）',
+        help: '入站 A2A 服务器端口（默认 9900）',
+        placeholder: 'A2A 端口（默认 9900）'
+      },
+      A2A_PEER_TOKENS: {
+        label: 'A2A 对等令牌（name:token，逗号分隔；或留空）',
+        help: '每个对等代理的令牌（如 alice:tok1,bob:tok2）。匹配的名称用于限速、信任和审计',
+        placeholder: 'A2A 对等令牌（name:token，逗号分隔；或留空）'
+      },
+      A2A_HOME_CHANNEL: {
+        label: 'A2A 主页频道（或留空）',
+        help: 'cron / 通知投递时 deliver=a2a 使用的任务/上下文 ID'
+      },
+      A2A_ALLOW_ALL_USERS: {
+        label: '允许所有 A2A 对等代理',
+        help: '允许任何已认证的 A2A 对等代理访问此代理（仅限开发）'
+      },
+      RAFT_PROFILE: {
+        label: 'Raft 代理 profile',
+        help: 'Raft 代理 profile slug — 设置后自动启用适配器',
+        placeholder: 'Raft 代理 profile'
+      },
+      BUZZ_RELAY_URL: {
+        label: 'Buzz 中继 URL',
+        help: 'Buzz 社区中继的基础 URL（如 https://mycommunity.communities.buzz.xyz）',
+        placeholder: 'Buzz 中继 URL'
+      },
+      BUZZ_PRIVATE_KEY: {
+        label: 'Nostr 私钥（nsec 或 hex）',
+        help: '代理 Buzz 身份的 Nostr 私钥（nsec 或 hex） — 唯一的 Buzz 密钥'
+      },
+      BUZZ_CLI_PATH: {
+        label: 'buzz CLI 路径（或留空）',
+        help: 'buzz CLI 二进制文件路径（默认：PATH 中的 buzz，然后是 ~/bin/buzz）'
+      },
+      BUZZ_CHANNELS: {
+        label: '频道 UUID（逗号分隔）',
+        help: '要监听的频道 UUID，逗号分隔（默认：所有已加入的频道）'
+      },
+      BUZZ_HOME_CHANNEL: {
+        label: '主页频道 UUID（或留空）',
+        help: 'cron / 通知投递的频道 UUID（默认使用第一个监听的频道）'
+      },
+      BUZZ_ALLOWED_USERS: { label: '允许的用户（逗号分隔）', help: '允许与代理对话的 npub 或 hex 公钥，逗号分隔' },
+      BUZZ_ALLOW_ALL_USERS: {
+        label: '允许所有用户？（true/false）',
+        help: '允许任何社区成员与代理对话（true/false）'
+      },
+      BUZZ_TRANSPORT: {
+        label: '传输方式（auto/websocket/poll）',
+        help: '入站传输方式：auto（WebSocket 带轮询回退，默认）、websocket 或 poll'
+      },
+      BUZZ_POLL_INTERVAL: { label: '轮询间隔秒数', help: '入站轮询扫描间隔秒数（默认 4）' },
+      BUZZ_AUTH_TAG: {
+        label: 'NIP-OA auth tag JSON（或留空）',
+        help: '用于 NIP-42 WebSocket 认证的可选 NIP-OA 所有者证明 auth tag JSON'
+      },
+      BUZZ_CREDENTIALS_FILE: {
+        label: '凭证文件路径（或留空）',
+        help: '保存 nsec 的 JSON 凭证文件（当 BUZZ_PRIVATE_KEY 未设置时作为回退）'
+      },
+      BUZZ_REPLY_IN_THREAD: {
+        label: '在线程中回复？（true/false）',
+        help: '在触发消息下方以线程形式回复（true/false，默认 true）；设为 false 时直接发布到频道时间线'
+      },
+      PHOTON_READ_RECEIPTS: {
+        label: '发送已读回执？（true/false）',
+        help: '转发给 Hermes 后，将收到的 iMessage 标记为已读（true/false，默认 true）'
       }
     },
     platformIntro: {
@@ -4265,7 +4723,7 @@ export const zh = defineCompleteLocale({
     loading: '正在加载定时任务…',
     states: {
       enabled: '已启用',
-      scheduled: '已排程',
+      scheduled: '已定时',
       running: '运行中',
       paused: '已暂停',
       disabled: '已禁用',
@@ -4277,7 +4735,9 @@ export const zh = defineCompleteLocale({
       telegram: 'Telegram',
       discord: 'Discord',
       slack: 'Slack',
-      email: '电子邮件'
+      email: '电子邮件',
+      botChat: 'Bot 聊天',
+      defaultProfile: '默认'
     },
     scheduleLabels: {
       daily: '每天',
@@ -4315,9 +4775,9 @@ export const zh = defineCompleteLocale({
     topOfHour: '每个整点',
     everyHourAt: minute => `每小时的 :${minute}`,
     newCron: '新建定时任务',
-    emptyDescNew: '按 cron 表达式排程一个提示词。Hermes 会运行它，并把结果发送到你选择的目的地',
+    emptyDescNew: '使用 cron 表达式创建定时任务，Hermes 会运行提示词，并把结果发送到你选择的目的地',
     emptyDescSearch: '尝试更宽泛的搜索词',
-    emptyTitleNew: '暂无排程任务',
+    emptyTitleNew: '暂无定时任务',
     emptyTitleSearch: '无匹配项',
     last: '上次：',
     next: '下次：',
@@ -4350,8 +4810,8 @@ export const zh = defineCompleteLocale({
     failedSave: '保存定时任务失败',
     editTitle: '编辑定时任务',
     createTitle: '新建定时任务',
-    editDesc: '更新排程、提示词或投递目标。更改将在下次运行时生效',
-    createDesc: '排程一个提示词以自动运行。使用 cron 语法或类似"每 15 分钟"的自然语言',
+    editDesc: '更新定时计划、提示词或投递目标，更改将在下次运行时生效',
+    createDesc: '创建定时任务以自动运行提示词，可使用 cron 语法或类似"每 15 分钟"的自然语言',
     nameLabel: '名称',
     namePlaceholder: '晨间简报',
     promptLabel: '提示词',
@@ -4361,38 +4821,147 @@ export const zh = defineCompleteLocale({
     deliverNeedsHomeChannel: '请先设置主频道',
     modelLabel: '模型',
     modelDefault: '默认（全局模型）',
-    customScheduleLabel: '自定义排程',
+    customScheduleLabel: '自定义定时计划',
     customPlaceholder: '0 9 * * * 或 weekdays at 9am',
     customHint: 'Cron 表达式，或类似"每小时""工作日上午 9 点"的短语',
     optional: '可选',
     promptRequired: '提示词为必填项',
-    promptScheduleRequired: '提示词和排程为必填项',
-    scheduleRequired: '排程为必填项',
-    scriptOnlyEditHint: '仅脚本任务（无 AI 提示词）。任务 ID：',
+    promptScheduleRequired: '提示词和定时计划为必填项',
+    scheduleRequired: '定时计划为必填项',
+    scriptOnlyEditHint: '仅脚本任务（无 AI 提示词），任务 ID：',
     saveChanges: '保存更改',
     createAction: '创建定时任务',
     tabs: {
       jobs: '任务',
-      blueprints: '蓝图'
+      blueprints: '模板'
     },
     blueprints: {
-      tab: '蓝图',
+      tab: '模板',
       startFrom: '从此开始',
       custom: '自定义',
       subtitle: '现成的自动化',
-      dialogDesc: '填写详细信息并进行排程',
+      dialogDesc: '填写详细信息并创建定时任务',
       scheduleIt: '安排任务',
       scheduling: '安排中...',
-      scheduled: '蓝图已安排',
-      loading: '正在加载蓝图...',
-      failedLoad: '加载蓝图失败',
-      emptyTitle: '没有可用的蓝图',
-      emptyDesc: '此后端上没有可用的自动化蓝图'
+      scheduled: '模板已安排',
+      loading: '正在加载模板...',
+      failedLoad: '加载模板失败',
+      emptyTitle: '没有可用的模板',
+      emptyDesc: '此后端上没有可用的自动化模板',
+      titles: {
+        'Morning briefing': '早间简报',
+        'Important-mail monitor': '重要邮件监控',
+        'Weekly review': '每周回顾',
+        'Workday start reminder': '工作日开始提醒',
+        'Custom reminder': '自定义提醒',
+        'Evening wind-down': '晚间放松',
+        'Topic news digest': '主题新闻摘要',
+        'Bills & renewals reminder': '账单与续费提醒',
+        'Price & availability watch': '价格与可用性监控',
+        'Competitor news watch': '竞品新闻监控',
+        'Habit check-in': '习惯打卡',
+        'Hydration & movement nudge': '饮水与活动提醒',
+        'Weekly meal plan': '每周膳食计划',
+        'Daily learning drip': '每日学习滴灌',
+        'Gratitude & reflection prompt': '感恩与反思提示',
+        'On-this-day discovery': '历史上的今天'
+      },
+      descriptions: {
+        'Morning briefing': '每日简短简报：今日日程、天气和任何等待处理的紧急事项',
+        'Important-mail monitor': '定期检查收件箱，仅提醒真正需要关注的邮件',
+        'Weekly review': '每周回顾：已完成的事项、待办事项和即将到来的安排',
+        'Workday start reminder': '工作日提醒，包含你的议程和首要任务',
+        'Custom reminder': '按你的日程安排的自定义重复提醒',
+        'Evening wind-down': '每日结束时的检查：一览明天的日程和今晚需要准备的事项',
+        'Topic news digest': '关于你关心的主题的定期摘要 — 去重后只推送真正新的内容',
+        'Bills & renewals reminder': '在定期付款、订阅续费或到期日之前提前提醒 — 以免意外扣费',
+        'Price & availability watch': '监控确切的产品、航班、酒店或列表，在满足价格或可用性条件时发出提醒',
+        'Competitor news watch': '追踪指定公司的重要新闻 — 产品发布、定价、融资、申报 — 附引用摘要',
+        'Habit check-in': '定期提醒以保持习惯并反思是否完成',
+        'Hydration & movement nudge': '白天定期提醒喝水、站起来和伸展',
+        'Weekly meal plan': '每周膳食计划加合并的购物清单，根据你的饮食和烹饪时间调整',
+        'Daily learning drip': '每天一个关于你想学习的主题的小课程，随时间逐步积累',
+        'Gratitude & reflection prompt': '每日或每周的反思提示，记录感恩和见解',
+        'On-this-day discovery': '历史上的今天发生的有趣事件 — 个性化推荐'
+      },
+      labels: {
+        'What time?': '什么时间？',
+        'Where to deliver?': '投递至何处？',
+        'How often?': '多久一次？',
+        'Remind me to…': '提醒我…',
+        'Which day?': '哪一天？',
+        'Repeat on': '重复于',
+        'What topic?': '什么主题？',
+        'How many bullets?': '多少条？',
+        "What's due?": '什么到期？',
+        'What exactly to watch?': '确切要监控什么？',
+        'Alert me when…': '何时提醒我…',
+        'Which companies?': '哪些公司？',
+        'Which events matter?': '哪些事件重要？',
+        'Which habit?': '哪个习惯？',
+        'Start hour': '开始时间',
+        'End hour': '结束时间',
+        'Diet?': '饮食？',
+        'Meals per day?': '每天几餐？',
+        'Cooking effort?': '烹饪难度？',
+        'Only notify me if the mail…': '仅在邮件…时通知我',
+        'Learn about…': '学习…',
+        'What kind?': '什么类型？'
+      },
+      helps: {
+        '24h local time, e.g. 08:00': '24小时制，如 08:00',
+        'minutes between checks': '检查间隔（分钟）',
+        'hours between checks — be gentle with rate limits': '检查间隔（小时） — 注意速率限制',
+        'hours between nudges': '提醒间隔（小时）',
+        'first hour of the active window (24h)': '活跃时段开始小时（24小时制）',
+        'last hour of the active window (24h)': '活跃时段结束小时（24小时制）'
+      },
+      options: {
+        everyday: '每天',
+        weekdays: '工作日',
+        weekends: '周末',
+        sunday: '周日',
+        monday: '周一',
+        tuesday: '周二',
+        wednesday: '周三',
+        thursday: '周四',
+        friday: '周五',
+        saturday: '周六',
+        'dinner only': '仅晚餐',
+        'lunch and dinner': '午餐和晚餐',
+        'all three': '三餐',
+        quick: '简单',
+        medium: '中等',
+        ambitious: '复杂',
+        'no restrictions': '无限制',
+        vegetarian: '素食',
+        vegan: '纯素',
+        'high-protein': '高蛋白',
+        'low-carb': '低碳水',
+        'on this day in history': '历史上的今天',
+        'word of the day': '每日单词',
+        'science fact': '科学趣闻',
+        'quote of the day': '每日名言',
+        auto: '自动',
+        websocket: 'websocket',
+        poll: '轮询'
+      }
     },
     lastRunFailed: '上次运行失败 :',
     editJob: '编辑任务',
     runAgain: '再来一次',
-    overdueSince: '逾期未交,因为:'
+    overdueSince: '逾期未交,因为:',
+    modelImpact: {
+      title: '定时任务将继续使用原模型',
+      message: count => `${count} 个未固定的定时任务将继续使用创建时的模型运行。固定它们或设置 cron.model 以迁移`,
+      detailMore: (names, remaining) => `${names}，以及另外 ${remaining} 个`,
+      review: '检查定时任务',
+      saveFailed: 'Hermes 未保存该模型更改',
+      confirmTitle: '模型选择警告',
+      confirmDetail: '仅在你接受此权衡时确认',
+      confirmAction: '确认',
+      declined: '已取消模型更改 — 你拒绝了数据训练层级警告'
+    }
   },
   artifacts: {
     search: '搜索产物…',
@@ -4612,16 +5181,16 @@ export const zh = defineCompleteLocale({
       renameDesc: '留空则清除',
       untitledPlaceholder: '无标题会话',
       deleteTitle: '删除会话？',
-      deleteDesc: title => `这将永久删除“${title}”，且无法撤销`,
+      deleteDesc: title => `这将永久删除"${title}"，且无法撤销`,
       deleting: '正在删除…',
       deleted: '会话已删除',
       untitledChat: id => `会话 ${id}`,
       messageCount: count => `${count} 条消息`,
       todoProgress: '任务完成度',
       ageNow: '刚刚',
-      ageDay: '天',
-      ageHour: '时',
-      ageMin: '分'
+      ageDay: '天前',
+      ageHour: '小时前',
+      ageMin: '分钟前'
     },
     dateDivider: {
       today: '今天早些时候',
@@ -4760,7 +5329,7 @@ export const zh = defineCompleteLocale({
     },
     hotkeyDescs: {
       'composer.mention': '引用文件、文件夹、URL、git',
-      'composer.slash': '斜杠命令面板',
+      'composer.slash': 'Slash 命令面板',
       'composer.help': '此快速帮助 (删除以关闭)',
       'composer.sendNewline': '发送 · Shift+Enter 换行',
       'composer.sendQueued': '发送下一条排队的回合',
@@ -4886,7 +5455,7 @@ export const zh = defineCompleteLocale({
     running: '运行中',
     stop: '停止',
     dismiss: '关闭',
-    exit: code => `退出码 ${code}`,
+    exit: code => `Exit code ${code}`,
     control: {
       goalActiveTurns: (turn, maxTurns) => `第 ${turn}/${maxTurns} 轮`,
       goalDoneTurns: turns => `共 ${turns} 轮`,
@@ -5533,7 +6102,8 @@ export const zh = defineCompleteLocale({
       noModels: '未找到模型',
       editModels: '编辑模型…',
       refreshModels: '刷新模型',
-      fast: '快速'
+      fast: 'Fast',
+      moaPresets: 'MOA 预设'
     },
     modelOptions: {
       noOptions: '此模型没有可用选项',
@@ -5620,20 +6190,20 @@ export const zh = defineCompleteLocale({
       toggleRunningTimer: '回合计时',
       toggleSessionTimer: '会话计时',
       toggleTerminal: '终端',
-      toggleTokensPerSecond: '每秒 token 数',
+      toggleTokensPerSecond: '每秒 Token 数',
       toggleVersion: '版本与更新',
       toggleFreeTier: 'Free tier',
       toggleWorkspace: '工作区',
-      cacheHitRateTitle: '本会话的提示缓存命中率 — 缓存 token 更便宜，越高越省',
-      tokensPerSecondTitle: '每秒输出 token 数，取最近 10 次模型调用的平均值',
+      cacheHitRateTitle: '本会话的提示缓存命中率',
+      tokensPerSecondTitle: '每秒输出 Token 数，取最近 10 次模型调用平均值',
       agents: '代理',
       closeAgents: '关闭代理',
       openAgents: '打开代理',
       subagents: count => `${count} 个子代理`,
       failed: count => `${count} 个失败`,
       running: count => `${count} 个运行中`,
-      cron: '排程',
-      openCron: '打开排程任务',
+      cron: '定时任务',
+      openCron: '打开定时任务',
       webhooks: 'Webhook',
       openWebhooks: '打开 Webhook',
       starmap: '记忆图谱',
@@ -5646,7 +6216,7 @@ export const zh = defineCompleteLocale({
         gpuUtilization: 'GPU 利用率',
         gpuMemory: '显存',
         ram: '内存',
-        unifiedNote: '统一内存——GPU 与系统共享此内存池',
+        unifiedNote: '统一内存 — GPU与系统共享',
         toggle: '系统资源'
       },
       contextUsagePanel: {
@@ -5673,7 +6243,7 @@ export const zh = defineCompleteLocale({
       noModel: '无模型',
       switchModel: '切换模型',
       openModelPicker: '打开模型选择器',
-      modelPinned: '已由你固定；新对话将使用此模型而非“设置”中的默认模型',
+      modelPinned: '已固定，新对话将使用此模型而非"设置"中的默认模型',
       modelTitle: (provider, model) => `模型 · ${provider}: ${model}`,
       providerModelTitle: (provider, model) => `${provider} · ${model}`
     }
@@ -6559,7 +7129,7 @@ export const zh = defineCompleteLocale({
     promptFailed: '提示词发送失败',
     providerCredentialRequired: '发送第一条消息前请先添加提供方凭据',
     readinessChecksDisagree: 'setup.status 显示凭据已配置，但运行时解析仍然失败',
-    emptySlashCommand: '空 slash 命令',
+    emptySlashCommand: '空 Slash 命令',
     desktopCommands: '桌面端命令',
     skillCommandsAvailable: count => `${count} 个技能命令可用`,
     warningLine: message => `警告：${message}`,
@@ -6586,7 +7156,7 @@ export const zh = defineCompleteLocale({
     resumeStrandedTitle: '无法加载此会话',
     resumeStrandedBody: '与此会话的连接失败，自动重试已停止。请确认网关正在运行，然后重试',
     poolSlotTimeoutBody:
-      '所有本地配置后端槽位都在使用中。请在“设置”→“高级”中增加 Warm Bot Backends，或等待空闲后端被驱逐后重试',
+      '所有本地配置后端槽位都在使用中。请在“设置”→“高级”中增加“保持运行的机器人后端数量”，或等待空闲后端被移除后重试',
     poolSlotTimeoutOpenSettings: '打开高级设置',
     resumeRetry: '重试',
     nothingToBranch: '没有可分支的内容',
