@@ -12,6 +12,7 @@ import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { Switch } from '@/components/ui/switch'
 import type { HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { Search } from '@/lib/icons'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
@@ -69,6 +70,8 @@ export function ModelVisibilityDialog({
     setVisibleModels(toggleModelVisibility($visibleModels.get(), providers, provider.slug, model))
   }
 
+  const isMoaProvider = (provider: ModelOptionProvider) => (provider.slug || '').toLowerCase() === 'moa'
+
   const setProviderVisible = (provider: ModelOptionProvider, next: boolean) => {
     setVisibleModels(setProviderVisibility($visibleModels.get(), providers, provider.slug, next))
   }
@@ -76,7 +79,11 @@ export function ModelVisibilityDialog({
   const q = normalize(search)
 
   const matches = (provider: ModelOptionProvider, model: string) =>
-    !q || foldIncludes(`${model} ${provider.name} ${provider.slug} ${displayModelName(model)}`, q)
+    !q ||
+    foldIncludes(
+      `${model} ${provider.name} ${provider.slug} ${displayModelName(model)} ${displayEntityName(model, t)}`,
+      q
+    )
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -129,7 +136,11 @@ export function ModelVisibilityDialog({
                       type="button"
                     >
                       <span className="min-w-0 truncate">
-                        <HighlightMatches foldSeparators query={search} text={provider.name} />
+                        <HighlightMatches
+                          foldSeparators
+                          query={search}
+                          text={isMoaProvider(provider) ? t.settings.model.moa.title : provider.name}
+                        />
                       </span>
                       <DisclosureCaret
                         className="shrink-0 opacity-0 transition group-hover/label:opacity-100"
@@ -144,7 +155,9 @@ export function ModelVisibilityDialog({
                   </div>
                   {!collapsed &&
                     models.map(family => {
-                      const { name, tag } = modelDisplayParts(family.id)
+                      const { name, tag } = isMoaProvider(provider)
+                        ? { name: displayEntityName(family.id, t), tag: '' }
+                        : modelDisplayParts(family.id)
                       const key = modelVisibilityKey(provider.slug, family.id)
 
                       return (
