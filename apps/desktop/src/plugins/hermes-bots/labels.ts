@@ -63,6 +63,45 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
   return raw.replace(/\b\w/g, ch => ch.toUpperCase())
 }
 
+export function localizedDisplayName(
+  bot: Partial<RosterRow>,
+  meta: BotMeta | null | undefined,
+  defaultProfileName: string
+): string {
+  const display = displayName(bot, meta)
+  const generated = /^default[-_ ]+(\d+)$/i.exec((bot.name || '').trim())
+
+  if (
+    !generated ||
+    meta?.title?.trim() ||
+    bot.display_name?.trim() ||
+    bot.title?.trim() ||
+    aliasIdentityFor(bot) ||
+    !defaultProfileName.trim()
+  ) {
+    return display
+  }
+
+  return `${defaultProfileName.trim()} ${generated[1]}`
+}
+
+export function localizedProfileName(name: string, defaultProfileName: string): string {
+  const raw = String(name || '').trim()
+  const localizedDefault = defaultProfileName.trim()
+
+  if (!localizedDefault) {
+    return raw
+  }
+
+  if (/^default$/i.test(raw)) {
+    return localizedDefault
+  }
+
+  const numbered = /^default[-_ ]+(\d+)$/i.exec(raw)
+
+  return numbered ? `${localizedDefault} ${numbered[1]}` : raw
+}
+
 export function slugify(value: string, max = 64) {
   return value
     .toLowerCase()

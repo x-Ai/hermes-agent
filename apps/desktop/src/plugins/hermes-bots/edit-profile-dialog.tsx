@@ -26,7 +26,7 @@ import { AvatarPicker } from './avatar-picker'
 import { $botMeta, botSelectionKey, ROSTER_KEY, saveBotMeta } from './data'
 import { labeled } from './dialog-parts'
 import { useBots } from './i18n'
-import { displayName } from './labels'
+import { displayName, localizedDisplayName, localizedProfileName } from './labels'
 import { AdvancedProfileConfig, applyAdvancedConfig, emptyAdvancedState } from './profile-config'
 import { botRosterMeta, requestForBot } from './routing'
 import type { AvatarAppearance, RosterRow } from './types'
@@ -196,7 +196,12 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
       >
         <DialogHeader>
           <DialogTitle>{b.bot.editTitle}</DialogTitle>
-          <DialogDescription>{`Appearance and role for ${displayName(bot, null)} (${bot.name}).`}</DialogDescription>
+          <DialogDescription>
+            {b.bot.editDescription(
+              localizedDisplayName(bot, meta, b.bot.defaultProfileName),
+              localizedProfileName(bot.name, b.bot.defaultProfileName)
+            )}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="flex justify-center py-1">

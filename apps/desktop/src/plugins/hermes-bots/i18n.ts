@@ -112,6 +112,8 @@ type BotsMessages = {
   bot: {
     newTitle: string
     editTitle: string
+    defaultProfileName: string
+    editDescription: (name: string, profile: string) => string
     editMenu: string
     helpPromptPlaceholder: string
     descriptionHint: string
@@ -523,6 +525,8 @@ const en: BotsMessages = {
   bot: {
     newTitle: 'New bot',
     editTitle: 'Edit profile',
+    defaultProfileName: 'Default',
+    editDescription: (name, profile) => `Appearance and role for ${name} (${profile}).`,
     editMenu: 'Edit…',
     helpPromptPlaceholder: 'What should this bot help with?',
     descriptionHint: 'Leave blank to generate from the bot’s name and description.',
@@ -927,6 +931,8 @@ const ja: BotsMessages = {
   bot: {
     newTitle: '新しいボット',
     editTitle: 'プロファイルを編集',
+    defaultProfileName: 'デフォルト',
+    editDescription: (name, profile) => `${name} の外観と役割（プロファイル：${profile}）。`,
     editMenu: '編集…',
     helpPromptPlaceholder: 'このボットは何を手伝いますか？',
     descriptionHint: '空欄のままにすると、ボットの名前と説明から生成します。',
@@ -1329,6 +1335,8 @@ const zh: BotsMessages = {
   bot: {
     newTitle: '新建机器人',
     editTitle: '编辑配置档案',
+    defaultProfileName: '默认',
+    editDescription: (name, profile) => `${name} 的外观与角色（配置档案：${profile}）`,
     editMenu: '编辑…',
     helpPromptPlaceholder: '这个机器人应该帮你做什么？',
     descriptionHint: '留空则根据机器人的名称和描述生成。',
@@ -1720,6 +1728,8 @@ const zhHant: BotsMessages = {
   bot: {
     newTitle: '新機器人',
     editTitle: '編輯個人資料',
+    defaultProfileName: '預設',
+    editDescription: (name, profile) => `${name} 的外觀與角色（設定檔：${profile}）`,
     editMenu: '編輯…',
     helpPromptPlaceholder: '這個機器人應該幫助什麼？',
     descriptionHint: '留空以根據機器人的名稱和描述生成。',
@@ -2116,6 +2126,8 @@ const ru: BotsMessages = {
   bot: {
     newTitle: 'Новый бот',
     editTitle: 'Редактировать профиль',
+    defaultProfileName: 'По умолчанию',
+    editDescription: (name, profile) => `${name}: внешний вид и роль (профиль: ${profile}).`,
     editMenu: 'Редактировать..',
     helpPromptPlaceholder: 'Чем должен помочь этот бот?',
     descriptionHint: 'Оставьте пустой для генерации из имени и описания бота.',
@@ -2528,6 +2540,8 @@ const ar: BotsMessages = {
   bot: {
     newTitle: 'حذاء جديد',
     editTitle: 'تحرير الملف الشخصي',
+    defaultProfileName: 'افتراضي',
+    editDescription: (name, profile) => `مظهر ${name} ودوره (الملف الشخصي: ${profile}).`,
     editMenu: 'إديت',
     helpPromptPlaceholder: 'ما الذي يجب أن يساعده هذا الأحمق؟?',
     descriptionHint: 'اترك فارغاً لتوليده من اسم ووصف الفولط.',
