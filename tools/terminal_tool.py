@@ -18,9 +18,11 @@ import/patch target): ``terminal_tool_config`` (TERMINAL_* reads, ``_quiet``),
 ``terminal_tool_result`` (foreground result post-processing).
 """
 
+import hashlib
 import json
 import logging
 import os
+import posixpath
 import sys
 import time
 import threading
@@ -135,13 +137,25 @@ def _docker_volume_uses_host_path(volume_spec: str) -> bool:
     )
 
 
-def _docker_has_host_access(config: Dict[str, Any]) -> bool:
+def _docker_has_host_access(config: Dict[str, Any], host_cwd: Optional[str] = None) -> bool:
     """Return True when a Docker sandbox exposes host paths through bind mounts."""
     if config.get("env_type") != "docker":
         return False
-    if config.get("host_cwd") and config.get("docker_mount_cwd_to_workspace"):
+    effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
+    if effective_host_cwd and config.get("docker_mount_cwd_to_workspace"):
         return True
     return any(_docker_volume_uses_host_path(vol) for vol in config.get("docker_volumes", []))
+
+
+def _sandbox_has_host_access(config: Dict[str, Any], host_cwd: Optional[str] = None) -> bool:
+    """Return whether the selected local sandbox can write through to the host."""
+    env_type = config.get("env_type")
+    if env_type == "docker":
+        return _docker_has_host_access(config, host_cwd)
+    if env_type == "singularity":
+        effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
+        return bool(effective_host_cwd) and bool(config.get("singularity_mount_cwd_to_workspace"))
+    return False
 
 
 def _check_all_guards(command: str, env_type: str,
@@ -153,6 +167,75 @@ def _check_all_guards(command: str, env_type: str,
 
 
 from tools.environments.base import EnvironmentConnectionError
+
+
+_MOUNT_CWD_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
+    "singularity": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
+}
+_WORKSPACE_PER_SESSION_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
+    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
+}
+_DEFAULT_WORKSPACE_MOUNT_PATH = "/workspace"
+_WORKSPACE_MOUNT_PATH_ENV_VARS = {
+    "docker": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
+    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
+}
+_SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
+_RESERVED_MOUNT_TARGETS = frozenset({"/root", "/home", "/tmp", "/var/tmp", "/run"})
+
+
+def _workspace_mount_path(env_type: Optional[str] = None) -> str:
+    """Resolve and validate the in-container project mount target."""
+    if env_type is None:
+        env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
+    env_var = _WORKSPACE_MOUNT_PATH_ENV_VARS.get(env_type)
+    raw = (_tenv(env_var) or "").strip() if env_var else ""
+    if not raw:
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    normalized = posixpath.normpath(raw.replace("\\", "/"))
+    if not normalized.startswith("/") or normalized == "/":
+        logger.warning(
+            "Ignoring invalid %s value %r (must be an absolute in-container path other than /); using %s.",
+            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH,
+        )
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    if normalized in _RESERVED_MOUNT_TARGETS:
+        logger.warning(
+            "Ignoring %s value %r because it collides with a sandbox-internal mount point; using %s.",
+            env_var, raw, _DEFAULT_WORKSPACE_MOUNT_PATH,
+        )
+        return _DEFAULT_WORKSPACE_MOUNT_PATH
+    return normalized
+
+
+def _is_sandbox_path(path: str, mount_path: str) -> bool:
+    return path.startswith(_SANDBOX_PATH_PREFIXES) or path == mount_path or path.startswith(mount_path + "/")
+
+
+def _is_host_path(cwd: str) -> bool:
+    return bool(cwd) and _is_host_cwd(cwd)
+
+
+def resolve_workspace_mount(raw_cwd: str) -> tuple[Optional[str], Optional[str]]:
+    """Return ``(host source, sandbox target)`` for a mountable host cwd."""
+    if not isinstance(raw_cwd, str) or not raw_cwd.strip():
+        return None, None
+    raw = raw_cwd.strip()
+    mount_path = _workspace_mount_path()
+    if _is_sandbox_path(raw, mount_path):
+        return None, None
+    if os.name == "nt" and raw.startswith("/"):
+        return None, None
+    candidate = os.path.abspath(os.path.expanduser(raw))
+    if _is_sandbox_path(candidate, mount_path):
+        return None, None
+    if _is_host_path(candidate):
+        return candidate, mount_path
+    if os.path.isabs(candidate) and os.path.isdir(candidate):
+        return candidate, mount_path
+    return None, None
 
 
 # Tool description for LLM
@@ -267,6 +350,24 @@ def get_session_cwd(session_key: Optional[str]) -> Optional[str]:
         return _session_cwd.get(str(session_key or "default"))
 
 
+def get_session_execution_cwd(session_key: Optional[str]) -> Optional[str]:
+    """Return a session cwd translated into the selected backend namespace."""
+    recorded = get_session_cwd(session_key)
+    config = _get_env_config()
+    env_type = str(config.get("env_type") or "local").strip().lower()
+    if not _is_container_backend(env_type):
+        return recorded
+    if recorded and not _is_unusable_container_cwd(recorded):
+        return recorded
+    mount_source, container_cwd = _resolve_workspace_mount_for_task(session_key, config)
+    if mount_source and container_cwd:
+        return container_cwd
+    if _resolve_task_host_cwd(config, session_key):
+        return str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
+    fallback = config.get("cwd")
+    return str(fallback) if isinstance(fallback, str) and fallback.strip() else None
+
+
 def clear_session_cwd(session_key: str) -> None:
     """Drop a session's cwd record (session teardown)."""
     with _session_cwd_lock:
@@ -298,7 +399,7 @@ def _sanitize_cwd_for_live_env(env: Any, new_cwd: str) -> Optional[str]:
         candidate = os.path.abspath(os.path.expanduser(new_cwd))
         mounted = os.path.abspath(os.path.expanduser(host_mount))
         if candidate == mounted:
-            return "/workspace"
+            return str(getattr(env, "_workspace_mount_path", None) or _DEFAULT_WORKSPACE_MOUNT_PATH)
     return None
 
 
@@ -430,6 +531,49 @@ def _docker_session_isolation_enabled() -> bool:
     return _session_scope().docker_session_isolated
 
 
+def _workspace_cwd_for_task(task_id: Optional[str], config_cwd: str = "") -> str:
+    """Host cwd shared by workspace identity and mount resolution."""
+    overrides = _task_env_overrides.get(task_id or "default") or {}
+    return str(overrides.get("cwd") or get_session_cwd(task_id) or config_cwd or "")
+
+
+def _resolve_workspace_per_session(env_type: str, mount_cwd_enabled: bool) -> bool:
+    per_session_var = _WORKSPACE_PER_SESSION_ENV_VARS.get(env_type)
+    return bool(
+        per_session_var
+        and mount_cwd_enabled
+        and _tenv(per_session_var, "false").strip().lower() in {"true", "1", "yes", "on"}
+    )
+
+
+def _workspace_per_session_enabled() -> bool:
+    _ensure_terminal_env_bridged()
+    env_type = (_tenv("TERMINAL_ENV", "local") or "").strip().lower()
+    mount_var = _MOUNT_CWD_ENV_VARS.get(env_type)
+    mount_enabled = bool(
+        mount_var and _tenv(mount_var, "false").strip().lower() in {"true", "1", "yes", "on"}
+    )
+    return _resolve_workspace_per_session(env_type, mount_enabled)
+
+
+def _workspace_container_key(host_path: str) -> str:
+    try:
+        normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
+    except OSError:
+        normalized = host_path
+    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}"
+    digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
+    return f"ws-{digest[:12]}"
+
+
+def _resolve_workspace_mount_for_task(
+    task_id: Optional[str], config: Dict[str, Any]
+) -> tuple[Optional[str], Optional[str]]:
+    if not config.get("workspace_per_session"):
+        return None, None
+    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("cwd") or ""))
+
+
 def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """Map a tool-call ``task_id`` to the ``_active_environments`` key. Order matters —
     earlier branches are authoritative where they apply:
@@ -451,9 +595,17 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     """
     if task_id and _has_isolation_overrides(task_id):
         return task_id
+    if task_id:
+        alias_target = _resolve_container_alias(task_id)
+        if alias_target != task_id:
+            return _resolve_container_task_id(alias_target)
     scope = _session_scope()
     if task_id and scope.session_isolated:
-        return _resolve_container_alias(task_id)
+        return task_id
+    if _workspace_per_session_enabled():
+        mount_source, _ = resolve_workspace_mount(_workspace_cwd_for_task(task_id))
+        if mount_source:
+            return _workspace_container_key(mount_source)
     # Per-session isolation: when a session key is present (the WebUI streaming layer sets it per-session,
     # the gateway per-message via contextvars), scope the container to it so switching profiles can't reuse
     # a previous profile's SSHEnvironment and silently run commands on the wrong remote host. Subagents
@@ -528,21 +680,21 @@ def _lookup_active_env(effective_task_id: str, task_id: Optional[str]):
 
 
 def _resolve_task_host_cwd(config: Dict[str, Any], task_id: Optional[str]) -> Optional[str]:
-    """Host directory to bind-mount at ``/workspace`` for *task_id*'s container.
-
-    Single owner of the cwd-mount policy for every creation site. Shared-
-    container mode: the ``TERMINAL_CWD``-derived ``config["host_cwd"]``.
-    Per-session isolation (docker + ``container_persistent: false``): only
-    the SESSION's own registered workspace may mount — the process env var is
-    a launch artifact that outlives the session that set it, so deriving a
-    fresh session's mount from it would leak the previous session's directory.
-    Overrides tagged ``cwd_source: "process"`` are refused for the same reason;
-    ``cwd_source: "session"`` or untagged (ACP/RL) overrides mount.
-    """
-    if config.get("env_type") != "docker" or not config.get("docker_mount_cwd_to_workspace"):
+    """Host directory to bind-mount for this task's Docker/Singularity sandbox."""
+    env_type = str(config.get("env_type") or "").strip().lower()
+    mount_enabled = bool(
+        config.get(
+            "docker_mount_cwd_to_workspace"
+            if env_type == "docker"
+            else "singularity_mount_cwd_to_workspace"
+        )
+    )
+    if env_type not in _MOUNT_CWD_ENV_VARS or not mount_enabled:
         return None
+    if config.get("workspace_per_session"):
+        return _resolve_workspace_mount_for_task(task_id, config)[0]
     # Top-level CLI parent ("default") is a single-session process — legacy behavior.
-    if not _docker_session_isolation_enabled() or _resolve_container_task_id(task_id) == "default":
+    if env_type != "docker" or not _docker_session_isolation_enabled() or _resolve_container_task_id(task_id) == "default":
         return config.get("host_cwd")
     overrides = resolve_task_overrides(task_id)
     candidate = overrides.get("cwd")
@@ -612,7 +764,7 @@ def _ensure_terminal_env_bridged() -> None:
 _DEFAULT_CWD_BY_BACKEND = {"ssh": "~", "vercel_sandbox": _VERCEL_SANDBOX_DEFAULT_CWD}
 
 
-def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:
+def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
     """``(cwd, host_cwd)`` from TERMINAL_CWD for *env_type*.
 
     Container backends are sanity-checked: with Docker cwd passthrough the host
@@ -625,15 +777,17 @@ def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:
     if cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
     host_cwd = None
-    if env_type == "docker" and mount_docker_cwd:
-        candidate = os.path.abspath(os.path.expanduser(_tenv("TERMINAL_CWD") or _safe_getcwd()))
-        if (
-            _is_host_cwd(candidate)
-            or (os.path.isabs(candidate) and os.path.isdir(candidate) and not candidate.startswith(("/workspace", "/root")))
-        ):
-            host_cwd = candidate
-            cwd = "/workspace"
-    elif _is_container_backend(env_type) and cwd and _is_unusable_container_cwd(cwd) and cwd != default_cwd:
+    if mount_cwd_active:
+        mount_source, container_cwd = resolve_workspace_mount(_tenv("TERMINAL_CWD") or _safe_getcwd())
+        if mount_source:
+            host_cwd = mount_source
+            cwd = container_cwd
+    elif (
+        _is_container_backend(env_type)
+        and cwd
+        and (_is_unusable_container_cwd(cwd) or resolve_workspace_mount(cwd)[0] is not None)
+        and cwd != default_cwd
+    ):
         logger.info("Ignoring TERMINAL_CWD=%r for %s backend "
                     "(host/relative path won't work in sandbox). Using %r instead.",
                     cwd, env_type, default_cwd)
@@ -647,6 +801,12 @@ def _get_env_config() -> Dict[str, Any]:
     _ensure_terminal_env_bridged()
     env_type = _tenv("TERMINAL_ENV", "local")
     mount_docker_cwd = _tenv_bool("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
+    mount_singularity_cwd = _tenv_bool("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "false")
+    mount_cwd_active = (
+        (env_type == "docker" and mount_docker_cwd)
+        or (env_type == "singularity" and mount_singularity_cwd)
+    )
+    workspace_per_session = _resolve_workspace_per_session(env_type, mount_cwd_active)
 
     # Container/docker-only payloads are parsed only when such a backend is
     # selected: a stale or invalid Docker value bridged from config.yaml must
@@ -667,7 +827,7 @@ def _get_env_config() -> Dict[str, Any]:
     else:
         docker_forward_env, docker_volumes, docker_env, docker_extra_args, docker_shm_size = [], [], {}, [], "1g"
 
-    cwd, host_cwd = _resolve_config_cwd(env_type, mount_docker_cwd)
+    cwd, host_cwd = _resolve_config_cwd(env_type, mount_cwd_active)
 
     return {
         "env_type": env_type,
@@ -681,6 +841,9 @@ def _get_env_config() -> Dict[str, Any]:
         "cwd": cwd,
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
+        "singularity_mount_cwd_to_workspace": mount_singularity_cwd,
+        "workspace_per_session": workspace_per_session,
+        "workspace_mount_path": _workspace_mount_path(env_type),
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),
         "lifetime_seconds": _parse_env_var("TERMINAL_LIFETIME_SECONDS", "300"),
         # SSH-specific config
@@ -881,13 +1044,24 @@ class _ApprovalVerdict:
     approved_run: bool = False
 
 
-def _run_approval_guards(command: str, env_type: str, config: Dict[str, Any], *, force: bool) -> _ApprovalVerdict:
+def _run_approval_guards(
+    command: str,
+    env_type: str,
+    config: Dict[str, Any],
+    *,
+    force: bool,
+    host_cwd: Optional[str] = None,
+) -> _ApprovalVerdict:
     """Run tirith + dangerous-command guards; ``force`` skips them entirely.
     Raises :class:`_Rejected` when the command may not run (denied, or pending
     gateway approval)."""
     if force:
         return _ApprovalVerdict(approved_run=True)
-    approval = _check_all_guards(command, env_type, has_host_access=_docker_has_host_access(config))
+    approval = _check_all_guards(
+        command,
+        env_type,
+        has_host_access=_sandbox_has_host_access(config, host_cwd),
+    )
     if not approval["approved"]:
         if approval.get("status") == "pending_approval":  # gateway ask mode
             raise _Rejected(_error_json(
@@ -988,7 +1162,7 @@ def _plan_execution(
     # resolved cwd; when the host path IS this session's mounted workspace,
     # remap to /workspace instead of discarding it.
     if _is_container_backend(env_type) and _is_unusable_container_cwd(cwd):
-        remapped = "/workspace" if host_cwd else config["cwd"]
+        remapped = (config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH) if host_cwd else config["cwd"]
         if cwd != remapped:
             logger.info(
                 "Remapping host/relative cwd override %r for %s backend "
@@ -1300,7 +1474,13 @@ def terminal_tool(
             ))
         # Pre-exec security checks (tirith + dangerous command detection);
         # force=True means the user already confirmed.
-        verdict = _run_approval_guards(command, env_type, plan.config, force=force)
+        verdict = _run_approval_guards(
+            command,
+            env_type,
+            plan.config,
+            force=force,
+            host_cwd=plan.host_cwd,
+        )
 
         pty_disabled = pty and _command_requires_pipe_stdin(command)
         if plan.promoted_from_foreground_timeout is not None:
