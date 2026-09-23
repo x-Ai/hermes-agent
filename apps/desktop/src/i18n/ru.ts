@@ -3045,6 +3045,8 @@ export const ru = defineCompleteLocale({
       placeholder: 'Поиск в VS Code Marketplace...',
       loading: 'Поиск в Marketplace...',
       error: 'Не удалось подключиться к Marketplace.',
+      installError: 'Не удалось установить эту тему.',
+      invalidColorTheme: 'В теме нет карты «colors», поэтому это не цветовая тема VS Code.',
       empty: 'Совпадающих тем нет.',
       install: 'Установить',
       installing: 'Установка...',
