@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getToolsets, type ProfileScope, profileScopeKey } from '@/hermes'
+import type { Translations } from '@/i18n'
 import { isDesktopToolsetVisible } from '@/lib/desktop-toolsets'
 import { normalize } from '@/lib/text'
 import type { ToolsetInfo } from '@/types/hermes'
 
-import { includesQuery, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
+import { includesQuery, toolNames, toolsetDescription, toolsetDisplayLabel } from '../../settings/helpers'
 
 // Toolsets live in the RQ cache so switching tabs/pages paints the cached list
 // instantly (no reload flash) and mount only fires a deduped background
@@ -33,7 +34,8 @@ export function filteredToolsets(
   toolsets: ToolsetInfo[],
   query: string,
   toolCalls: Record<string, number>,
-  desc: boolean
+  desc: boolean,
+  t: Translations
 ): ToolsetInfo[] {
   const q = normalize(query)
   const sign = desc ? 1 : -1
@@ -50,15 +52,16 @@ export function filteredToolsets(
 
       return (
         includesQuery(toolset.name, q) ||
-        includesQuery(toolsetDisplayLabel(toolset), q) ||
+        includesQuery(toolsetDisplayLabel(toolset, t), q) ||
         includesQuery(toolset.description, q) ||
+        includesQuery(toolsetDescription(toolset, t), q) ||
         toolNames(toolset).some(name => includesQuery(name, q))
       )
     })
     .sort(
       (a, b) =>
         sign * (toolsetCalls(b, toolCalls) - toolsetCalls(a, toolCalls)) ||
-        toolsetDisplayLabel(a).localeCompare(toolsetDisplayLabel(b))
+        toolsetDisplayLabel(a, t).localeCompare(toolsetDisplayLabel(b, t))
     )
 }
 

@@ -21,7 +21,7 @@ import {
   type ListStripMenuToggle,
   MasterDetail
 } from '../../master-detail'
-import { asText, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
+import { toolNames, toolsetDescription, toolsetDisplayLabel } from '../../settings/helpers'
 import { CapabilityEmpty, SortButton } from '../primitives'
 
 import { useToolCalls } from './tool-calls'
@@ -63,8 +63,8 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
 
   // Absent counts sort the list A–Z until the analytics scan lands.
   const visibleToolsets = useMemo(
-    () => filteredToolsets(toolsets, query, toolCalls ?? {}, toolsetsSortDesc),
-    [query, toolCalls, toolsets, toolsetsSortDesc]
+    () => filteredToolsets(toolsets, query, toolCalls ?? {}, toolsetsSortDesc, t),
+    [query, t, toolCalls, toolsets, toolsetsSortDesc]
   )
 
   // Bulk actions and the master-switch state target the WHOLE tab, never the
@@ -96,7 +96,7 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
           current?.map(row => (row.name === toolset.name ? { ...row, enabled: !enabled, available: !enabled } : row)) ??
           current
       )
-      notifyError(err, t.skills.failedToUpdate(toolsetDisplayLabel(toolset)))
+      notifyError(err, t.skills.failedToUpdate(toolsetDisplayLabel(toolset, t)))
     }
   }
 
@@ -154,7 +154,7 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
         }
       >
         {visibleToolsets.map(toolset => {
-          const label = toolsetDisplayLabel(toolset)
+          const label = toolsetDisplayLabel(toolset, t)
           const calls = toolCalls ? toolsetCalls(toolset, toolCalls) : null
 
           return (
@@ -169,12 +169,12 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
                 ) : calls > 0 ? (
                   `×${compactNumber(calls)}`
                 ) : (
-                  `${toolNames(toolset).length} tools`
+                  t.skills.toolsCount(toolNames(toolset).length)
                 )
               }
               onSelect={() => setSelectedToolset(toolset.name)}
               onToggle={checked => void handleToggleToolset(toolset, checked)}
-              subtitle={asText(toolset.description)}
+              subtitle={toolsetDescription(toolset, t)}
               title={label}
               toggleLabel={t.skills.toggleToolset(label, !toolset.enabled)}
             />

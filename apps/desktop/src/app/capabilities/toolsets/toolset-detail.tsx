@@ -11,7 +11,7 @@ import { PanelPill } from '../../overlays/panel'
 import { SETTINGS_ROUTE } from '../../routes'
 import { BrowserRealProfilePanel } from '../../settings/browser-real-profile-panel'
 import { ComputerUsePanel } from '../../settings/computer-use-panel'
-import { asText, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
+import { toolNames, toolsetDescription, toolsetDisplayLabel } from '../../settings/helpers'
 import { TerminalBackendPanel } from '../../settings/terminal-backend-panel'
 import { ToolsetConfigPanel } from '../../settings/toolset-config-panel'
 import { DetailHeader } from '../primitives'
@@ -30,13 +30,13 @@ export function ToolsetDetail({
   const { t } = useI18n()
   const navigate = useNavigate()
   const tools = toolNames(toolset)
-  const label = toolsetDisplayLabel(toolset)
+  const label = toolsetDisplayLabel(toolset, t)
 
   return (
     <>
       {/* "Configured" as a resting state is noise — only the warn state earns a pill. */}
       <DetailHeader
-        description={asText(toolset.description) || t.skills.noDescription}
+        description={toolsetDescription(toolset, t) || t.skills.noDescription}
         pills={!toolset.configured && <PanelPill tone="warn">{t.skills.needsKeys}</PanelPill>}
         title={label}
       />

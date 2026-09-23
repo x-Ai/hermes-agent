@@ -1965,7 +1965,7 @@ export interface Translations {
       clearDirFailed: string
     }
 
-    envKeys: Record<string, { description?: string; prompt?: string }>
+    envKeys: Record<string, { description?: string; label?: string; prompt?: string }>
   }
   skills: {
     collective: WisdomTranslations
@@ -2112,6 +2112,7 @@ export interface Translations {
     toolsetsEnabled: (enabled: number, total: number) => string
     configureToolset: (label: string) => string
     toggleToolset: (label: string, enabled: boolean) => string
+    toolsCount: (count: number) => string
     skillsLoadFailed: string
     toolsetsRefreshFailed: string
     skillEnabled: string

@@ -47,6 +47,17 @@ export function localizedCredentialInfo(
   return description ? { ...info, description } : info
 }
 
+/** Localize the display-only credential title while keeping the environment
+ * variable name as the stable read/write identity. */
+export function localizedCredentialLabel(
+  key: string,
+  info: EnvVarInfo,
+  envKeys: Translations['settings']['envKeys'],
+  fieldCopy: Translations['messaging']['fieldCopy']
+): string {
+  return envKeys[key]?.label || fieldCopy[key]?.label || credentialRowLabel(key, info)
+}
+
 const credentialElementId = (key: string) => `credential-key-${key}`
 
 export function KeysSettings({ view }: KeysSettingsProps) {
@@ -105,10 +116,9 @@ export function KeysSettings({ view }: KeysSettingsProps) {
         <div className="grid gap-2">
           {entries.map(([key, info]) => {
             const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys, t.messaging.fieldCopy)
-            // Credential names are configuration identifiers, not prose. Keep
-            // them stable across locales; only their explanatory copy is
-            // localized on the Settings page.
-            const label = credentialRowLabel(key, localizedInfo)
+            // The environment key remains the stable read/write identity;
+            // only its display label and explanatory copy are localized.
+            const label = localizedCredentialLabel(key, localizedInfo, t.settings.envKeys, t.messaging.fieldCopy)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>

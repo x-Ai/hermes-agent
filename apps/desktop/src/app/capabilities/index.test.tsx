@@ -6,6 +6,7 @@ import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as HermesApi from '@/hermes'
+import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
@@ -80,16 +81,18 @@ function toolset(overrides: Record<string, unknown> = {}) {
   }
 }
 
-async function renderSkills() {
+async function renderSkills(initialLocale: 'en' | 'zh' = 'en') {
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
-      // CapabilitiesView reads skills/toolsets via useQuery, so it needs a provider.
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/capabilities?tab=toolsets']}>
-          <CapabilitiesView />
-        </MemoryRouter>
-      </QueryClientProvider>
+      <I18nProvider configClient={null} initialLocale={initialLocale}>
+        {/* CapabilitiesView reads skills/toolsets via useQuery, so it needs a provider. */}
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={['/capabilities?tab=toolsets']}>
+            <CapabilitiesView />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </I18nProvider>
     )
   })
 
@@ -151,6 +154,24 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     // of the emoji rather than a single-match text lookup.
     await screen.findByRole('switch', { name: 'Turn Cron Jobs toolset off' })
     expect(screen.queryByText(/⏰/)).toBeNull()
+  })
+
+  it('localizes built-in toolset names, descriptions, and counts', async () => {
+    getToolsets.mockResolvedValue([
+      toolset({
+        name: 'terminal',
+        label: 'Terminal & Processes',
+        description: 'terminal, process',
+        tools: ['terminal', 'process']
+      })
+    ])
+
+    await renderSkills('zh')
+
+    expect(await screen.findByRole('switch', { name: '关闭 终端与进程 工具集' })).toBeTruthy()
+    expect(screen.getAllByText('终端与进程').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('终端/命令执行与进程管理工具').length).toBeGreaterThan(0)
+    expect(screen.getByText('2 个工具')).toBeTruthy()
   })
 
   it('renders the provider config panel inline for the selected toolset', async () => {

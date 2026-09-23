@@ -25,6 +25,11 @@ export const stripToolsetLabel = (label: string): string =>
 export const toolsetDisplayLabel = (toolset: Pick<ToolsetInfo, 'label' | 'name'>, t?: Translations): string =>
   t?.skills.toolsetLabels[toolset.name] || stripToolsetLabel(asText(toolset.label || toolset.name))
 
+/** Localized toolset blurb with backend copy as the fallback for plugin or
+ * newly introduced toolsets not yet present in the locale catalog. */
+export const toolsetDescription = (toolset: Pick<ToolsetInfo, 'description' | 'name'>, t?: Translations): string =>
+  t?.skills.toolsetDescriptions[toolset.name] || asText(toolset.description)
+
 export const toolNames = (t: ToolsetInfo) => (Array.isArray(t.tools) ? t.tools.map(asText).filter(Boolean) : [])
 
 export const withoutKey = <T>(record: Record<string, T>, key: string) => {

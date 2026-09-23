@@ -3144,6 +3144,16 @@ export const zh = defineCompleteLocale({
       FIRECRAWL_API_KEY: { description: '用于网页搜索与抓取的 Firecrawl API 密钥' },
       FIRECRAWL_API_URL: { description: '自托管 Firecrawl 实例的 API URL（可选）' },
       FIRECRAWL_GATEWAY_URL: { description: '仅 Nous 订阅者使用的 Firecrawl 工具网关地址覆盖（可选）' },
+      TOOL_GATEWAY_URL: {
+        label: '工具网关 URL',
+        description: '同源提供方和媒体上传使用的共享工具网关完整源地址（可选）',
+        prompt: '共享工具网关 URL（留空则根据域名推导）'
+      },
+      CONNECTOR_GATEWAY_URL: {
+        label: '连接器网关 URL',
+        description: '连接器 API 使用的连接器网关完整源地址（可选）',
+        prompt: '连接器网关 URL（留空则根据域名推导）'
+      },
       TOOL_GATEWAY_DOMAIN: {
         description:
           '仅 Nous 订阅者使用的共享工具网关域名后缀，用于推导供应商主机，例如 nousresearch.com -> firecrawl-gateway.nousresearch.com'
@@ -3155,6 +3165,21 @@ export const zh = defineCompleteLocale({
         description: '工具网关请求使用的 Nous 订阅者访问令牌（可选，默认从 Hermes 认证存储读取）'
       },
       TAVILY_API_KEY: { description: '用于 AI 原生网页搜索与提取的 Tavily API 密钥' },
+      PERPLEXITY_API_KEY: {
+        label: 'Perplexity',
+        description: 'Perplexity 搜索 API 密钥，用于返回按相关性排序的结果和与查询相关的页面摘要',
+        prompt: 'Perplexity API 密钥'
+      },
+      KEENABLE_API_KEY: {
+        label: 'Keenable',
+        description: 'Keenable API 密钥，用于快速的独立索引网页搜索和页面抓取（可选；无需密钥也可使用免费档）',
+        prompt: 'Keenable API 密钥'
+      },
+      PORCUPINE_ACCESS_KEY: {
+        label: 'Porcupine 访问密钥',
+        description: 'Picovoice 访问密钥，用于 Porcupine“Hey Hermes”唤醒词引擎（可选；默认免费使用 openWakeWord）',
+        prompt: 'Picovoice 访问密钥'
+      },
       HASS_TOKEN: { description: 'Home Assistant 长期访问令牌' },
       SEARXNG_URL: { description: '你的 SearXNG 实例 URL，用于免费自托管网页搜索' },
       BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 订阅令牌（免费档：每月 2,000 次查询）' },
@@ -3463,6 +3488,7 @@ export const zh = defineCompleteLocale({
     toolsetsEnabled: (enabled, total) => `已启用 ${enabled}/${total} 个工具集`,
     configureToolset: label => `配置 ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? '开启' : '关闭'} ${label} 工具集`,
+    toolsCount: count => `${count} 个工具`,
     skillsLoadFailed: '技能加载失败',
     toolsetsRefreshFailed: '工具集刷新失败',
     skillEnabled: '技能已启用',
@@ -4574,6 +4600,10 @@ export const zh = defineCompleteLocale({
       TEAMS_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）' },
       TEAMS_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 Teams 用户 ID / UPN，逗号分隔' },
       TEAMS_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。任何 Teams 用户都能触发机器人' },
+      TEAMS_REQUIRE_MENTION: {
+        label: 'Teams 要求提及',
+        help: '仅回复在频道或群聊中 @提及机器人或回复机器人的消息（默认关闭；应用获得 RSC 消息读取许可后需要启用）'
+      },
       TEAMS_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认聊天/频道 ID' },
       TEAMS_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Teams 主页频道的显示名称' },
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企业微信智能机器人 WebSocket URL' },

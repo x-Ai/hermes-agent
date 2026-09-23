@@ -2768,6 +2768,7 @@ export const ru = defineCompleteLocale({
     toolsetsEnabled: (enabled, total) => `Включено наборов инструментов: ${enabled}/${total}`,
     configureToolset: label => `Настроить ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? 'Включить' : 'Отключить'} набор инструментов ${label}`,
+    toolsCount: count => `${count} ${RU_NOUN(count, 'инструмент', 'инструмента', 'инструментов')}`,
     skillsLoadFailed: 'Не удалось загрузить навыки',
     toolsetsRefreshFailed: 'Не удалось обновить наборы инструментов',
     skillEnabled: 'Навык включён',

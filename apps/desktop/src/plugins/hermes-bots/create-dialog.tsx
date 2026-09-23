@@ -808,8 +808,8 @@ export function CreateAgentDialog({ open, onClose, roster }: CreateAgentDialogPr
                 !valid || taken ? (
                   <div className="px-2 py-3 text-center text-xs text-(--ui-text-tertiary)">
                     {taken
-                      ? 'That name is taken — pick another before configuring capabilities.'
-                      : 'Name the bot first — a draft profile is created when you open this tab (discarded if you cancel).'}
+                      ? b.bot.nameTakenBeforeCapabilities
+                      : b.bot.nameFirstBeforeCapabilities}
                   </div>
                 ) : !createdForCaps ? (
                   <div className="flex justify-center py-4">

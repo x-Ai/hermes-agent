@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { TRANSLATIONS } from '@/i18n/catalog'
 import { stubResizeObserver } from '@/test/jsdom'
 
 import { envVar } from './test-utils'
@@ -54,6 +55,29 @@ function DeepLinkButton({ target }: { target: string }) {
 }
 
 describe('KeysSettings', () => {
+  it('localizes reported credential titles and descriptions without changing their environment keys', async () => {
+    const { localizedCredentialInfo, localizedCredentialLabel } = await import('./keys-settings')
+    const envKeys = TRANSLATIONS.zh.settings.envKeys
+    const fieldCopy = TRANSLATIONS.zh.messaging.fieldCopy
+
+    const cases = [
+      ['PERPLEXITY_API_KEY', 'Perplexity'],
+      ['PORCUPINE_ACCESS_KEY', 'Porcupine 访问密钥'],
+      ['TOOL_GATEWAY_URL', '工具网关 URL'],
+      ['CONNECTOR_GATEWAY_URL', '连接器网关 URL'],
+      ['KEENABLE_API_KEY', 'Keenable'],
+      ['TEAMS_REQUIRE_MENTION', 'Teams 要求提及']
+    ] as const
+
+    for (const [key, expectedLabel] of cases) {
+      const english = `English description for ${key}`
+      const info = envVar('tool', { description: english })
+
+      expect(localizedCredentialLabel(key, info, envKeys, fieldCopy)).toBe(expectedLabel)
+      expect(localizedCredentialInfo(key, info, envKeys, fieldCopy).description).not.toBe(english)
+    }
+  })
+
   it('fetches env vars for the displayed profile (the concrete key, never null) when unscoped', async () => {
     // #90549 class: getEnvVars(null) targets the primary profile's env store,
     // so a non-default profile's Keys page would read (and edit) the wrong

@@ -2661,6 +2661,7 @@ export const ar = defineCompleteLocale({
     toolsetsEnabled: (enabled, total) => `${enabled} من ${total} مفعلة`,
     configureToolset: label => `ضبط ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? 'تشغيل' : 'إيقاف'} ${label}`,
+    toolsCount: count => `${count} ${count === 1 ? 'أداة' : 'أدوات'}`,
     skillsLoadFailed: 'فشل تحميل المهارات',
     toolsetsRefreshFailed: 'فشل تحديث مجموعات الأدوات',
     skillEnabled: 'تم تفعيل المهارة',

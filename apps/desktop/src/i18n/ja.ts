@@ -3112,6 +3112,7 @@ export const ja = defineCompleteLocale({
     toolsetsEnabled: (enabled, total) => `${enabled}/${total} ツールセットが有効`,
     configureToolset: label => `${label} を設定`,
     toggleToolset: (label, enabled) => `${label} ツールセットを${enabled ? 'オン' : 'オフ'}にする`,
+    toolsCount: count => `${count} 個のツール`,
     skillsLoadFailed: 'スキルの読み込みに失敗しました',
     toolsetsRefreshFailed: 'ツールセットの更新に失敗しました',
     skillEnabled: 'スキルを有効にしました',

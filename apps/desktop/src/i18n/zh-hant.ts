@@ -2685,6 +2685,16 @@ export const zhHant = defineCompleteLocale({
       FIRECRAWL_API_KEY: { description: '用於網頁搜尋與擷取的 Firecrawl API 金鑰' },
       FIRECRAWL_API_URL: { description: '自架 Firecrawl 執行個體的 API URL（選填）' },
       FIRECRAWL_GATEWAY_URL: { description: '僅 Nous 訂閱者使用的 Firecrawl 工具閘道位址覆寫（選填）' },
+      TOOL_GATEWAY_URL: {
+        label: '工具閘道 URL',
+        description: '同源供應商和媒體上傳使用的共用工具閘道完整來源位址（選填）',
+        prompt: '共用工具閘道 URL（留空則根據網域推導）'
+      },
+      CONNECTOR_GATEWAY_URL: {
+        label: '連接器閘道 URL',
+        description: '連接器 API 使用的連接器閘道完整來源位址（選填）',
+        prompt: '連接器閘道 URL（留空則根據網域推導）'
+      },
       TOOL_GATEWAY_DOMAIN: {
         description:
           '僅 Nous 訂閱者使用的共享工具閘道網域後綴，用於推導供應商主機，例如 nousresearch.com -> firecrawl-gateway.nousresearch.com'
@@ -2696,6 +2706,21 @@ export const zhHant = defineCompleteLocale({
         description: '工具閘道請求使用的 Nous 訂閱者存取權杖（選填；預設從 Hermes 驗證儲存區讀取）'
       },
       TAVILY_API_KEY: { description: '用於 AI 原生網頁搜尋與擷取的 Tavily API 金鑰' },
+      PERPLEXITY_API_KEY: {
+        label: 'Perplexity',
+        description: 'Perplexity 搜尋 API 金鑰，用於回傳按相關性排序的結果和與查詢相關的頁面摘要',
+        prompt: 'Perplexity API 金鑰'
+      },
+      KEENABLE_API_KEY: {
+        label: 'Keenable',
+        description: 'Keenable API 金鑰，用於快速的獨立索引網頁搜尋和頁面擷取（選填；無需金鑰也可使用免費方案）',
+        prompt: 'Keenable API 金鑰'
+      },
+      PORCUPINE_ACCESS_KEY: {
+        label: 'Porcupine 存取金鑰',
+        description: 'Picovoice 存取金鑰，用於 Porcupine「Hey Hermes」喚醒詞引擎（選填；預設免費使用 openWakeWord）',
+        prompt: 'Picovoice 存取金鑰'
+      },
       SEARXNG_URL: { description: '您的 SearXNG 執行個體 URL，用於免費自架網頁搜尋' },
       BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 訂閱權杖（免費方案：每月 2,000 次查詢）' },
       BROWSERBASE_API_KEY: { description: '雲端瀏覽器的 Browserbase API 金鑰（選填——本機瀏覽器無需此項）' },
@@ -2963,6 +2988,7 @@ export const zhHant = defineCompleteLocale({
     toolsetsEnabled: (enabled, total) => `已啟用 ${enabled}/${total} 個工具集`,
     configureToolset: label => `設定 ${label}`,
     toggleToolset: (label, enabled) => `${enabled ? '開啟' : '關閉'} ${label} 工具集`,
+    toolsCount: count => `${count} 個工具`,
     skillsLoadFailed: '技能載入失敗',
     toolsetsRefreshFailed: '工具集重新整理失敗',
     skillEnabled: '技能已啟用',
@@ -4078,6 +4104,10 @@ export const zhHant = defineCompleteLocale({
       TEAMS_HOST: { label: 'Webhook 主機', help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面 IPv4+IPv6）。' },
       TEAMS_ALLOWED_USERS: { label: '允許的使用者', help: '允許與機器人對話的 Teams 使用者 ID / UPN，逗號分隔。' },
       TEAMS_ALLOW_ALL_USERS: { label: '允許所有使用者', help: '僅供開發使用。任何 Teams 使用者都能觸發機器人。' },
+      TEAMS_REQUIRE_MENTION: {
+        label: 'Teams 要求提及',
+        help: '僅回覆在頻道或群組聊天中 @提及機器人或回覆機器人的訊息（預設關閉；應用取得 RSC 訊息讀取許可後需要啟用）'
+      },
       TEAMS_HOME_CHANNEL: { label: '主頻道', help: 'cron / 通知傳遞的預設聊天/頻道 ID。' },
       TEAMS_HOME_CHANNEL_NAME: { label: '主頻道名稱', help: 'Teams 主頻道的顯示名稱。' },
       WECOM_WEBSOCKET_URL: { label: 'WebSocket URL', help: '企業微信智慧機器人 WebSocket URL。' },

@@ -2566,6 +2566,7 @@ export const en: Translations = {
     toolsetsEnabled: (enabled, total) => `${enabled}/${total} toolsets enabled`,
     configureToolset: label => `Configure ${label}`,
     toggleToolset: (label, enabled) => `Turn ${label} toolset ${enabled ? 'on' : 'off'}`,
+    toolsCount: count => `${count} ${count === 1 ? 'tool' : 'tools'}`,
     skillsLoadFailed: 'Skills failed to load',
     toolsetsRefreshFailed: 'Toolsets failed to refresh',
     skillEnabled: 'Skill enabled',
