@@ -54,7 +54,7 @@ export const zh = defineLocale({
     missingResult: '缺少连接器结果',
     disclaimer: '连接为可选操作，请仅授权你希望 Hermes 使用的应用',
     connectTitle: app => `连接 ${app}？`,
-    describe: app => `Hermes 会在浏览器中登录 ${app}，读取任何内容前都会先询问。`,
+    describe: app => `Hermes 会在浏览器中登录 ${app}，读取任何内容前都会先询问`,
     skipThis: '跳过此项',
     continueWith: count => `继续使用已选的 ${count} 个应用`,
     noneOfThese: '都不用',
@@ -569,7 +569,7 @@ export const zh = defineLocale({
       signIn: '登录',
       view: '查看',
       disable: '禁用',
-      disabledMessage: name => `${name}MCP 已禁用。可以随时在 功能 → MCP 中重新启用。`,
+      disabledMessage: name => `${name}MCP 已禁用。可以随时在 功能 → MCP 中重新启用`,
       disableFailed: name => `无法禁用${name}MCP.`
     },
     errors: {
@@ -624,7 +624,7 @@ export const zh = defineLocale({
       liveEnded: '实时语音会话已结束',
       liveError: '实时语音',
       liveDelegationFailed: '无法将请求交给 Hermes',
-      liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}。已改用语音转文字。`,
+      liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}。已改用语音转文字`,
       liveEndedConnectionLost: '实时语音会话已断开连接。',
       liveEndedClosed: '实时语音会话已被服务关闭。'
     },
@@ -2340,7 +2340,7 @@ export const zh = defineLocale({
       addTitle: '添加端点',
       nameLabel: '名称',
       providerIdLabel: '提供商 ID',
-      providerIdHint: '作为提供商标识符写入 config.yaml；创建后不可更改，如需其他 ID 请新建端点',
+      providerIdHint: '作为提供商标识符写入 config.yaml，创建后不可更改，如需其他 ID 请新建端点',
       urlLabel: '端点 URL',
       apiModeLabel: 'API 协议',
       apiModeAuto: '自动',
@@ -2350,12 +2350,12 @@ export const zh = defineLocale({
       authSchemeLabel: '认证请求头',
       authSchemeAuto: '自动检测',
       authSchemeHint:
-        'Anthropic 兼容中继采用不同的认证方式：有些要求原生 x-api-key 请求头，有些只接受 Authorization: Bearer。自动检测覆盖已知主机；若中继返回 401/403，请在此指定认证方式',
+        'Anthropic 兼容中继采用不同的认证方式：有些要求原生 x-api-key 请求头，有些只接受 Authorization: Bearer。自动检测覆盖已知主机，若中继返回 401/403，请在此指定认证方式',
       noModelCatalog: '端点可以连通，但未提供模型目录',
       connectedNoModels: url => `已连接到 ${url}，但端点未声明任何模型`,
       defaultModelLabel: '默认模型',
       contextLabel: '模型 Token 限制',
-      contextHint: '可分别设置每个模型的总上下文、最大输入和最大输出；留空则自动解析',
+      contextHint: '可分别设置每个模型的总上下文、最大输入和最大输出，留空则自动解析',
       modelLabel: '模型',
       contextWindowLabel: '总上下文',
       maxInputLabel: '最大输入',
@@ -2363,7 +2363,7 @@ export const zh = defineLocale({
       apiKeyLabel: 'API 密钥',
       userAgentLabel: 'User-Agent',
       userAgentHint:
-        '发送到该端点的 HTTP User-Agent。默认使用标准桌面浏览器标识，避免被代理或 WAF 拦截；留空则使用 SDK 默认值',
+        '发送到该端点的 HTTP User-Agent。默认使用标准桌面浏览器标识，避免被代理或 WAF 拦截，留空则使用 SDK 默认值',
       contextAuto: '自动',
       keyKeepPlaceholder: '留空则保留当前密钥',
       keyOptionalPlaceholder: '可选',
@@ -2391,8 +2391,8 @@ export const zh = defineLocale({
       endpointSaved: '自定义端点已保存。',
       saveFailed: '保存失败',
       endpointReachable: '端点可连接。',
-      endpointReachableTransport: transport => `端点可连接（${transport} 路由已响应）。`,
-      endpointReachableModels: (reachable, count) => `${reachable} 找到 ${count} 个模型。`,
+      endpointReachableTransport: transport => `端点可连接（${transport} 路由已响应）`,
+      endpointReachableModels: (reachable, count) => `${reachable} 找到 ${count} 个模型`,
       endpointValidationFailed: '端点验证失败。',
       validationFailed: '验证失败',
       activationFailed: '启用失败',
@@ -2400,7 +2400,7 @@ export const zh = defineLocale({
       deleteFailed: '删除失败',
       title: '自定义端点',
       deleteEndpoint: '删除端点',
-      emptyDescription: '在下方添加兼容 OpenAI 的端点。',
+      emptyDescription: '在下方添加端点',
       emptyTitle: '暂无自定义端点',
       namePlaceholder: '我的代理',
       contextPlaceholder: '自动'
@@ -2592,9 +2592,9 @@ export const zh = defineLocale({
       amountValidation: {
         reloadTo: '充值金额',
         greaterThanThreshold: '充值金额必须大于阈值。',
-        decimal: label => `${label}：请输入最多含两位小数的美元金额。`,
-        positive: label => `${label}：金额必须大于 $0。`,
-        minimum: (label, amount) => `${label}：最低金额为 ${amount}。`,
+        decimal: label => `${label}：请输入最多含两位小数的美元金额`,
+        positive: label => `${label}：金额必须大于 $0`,
+        minimum: (label, amount) => `${label}：最低金额为 ${amount}`,
         maximum: (label, amount) => `${label}：最高金额为 ${amount}。`
       },
       stepUp: {
@@ -2611,7 +2611,7 @@ export const zh = defineLocale({
         added: amount => (amount ? `已添加 $${amount}。` : '已添加额度。'),
         failedTitle: '扣款失败',
         unconfirmedTitle: '扣款结果尚未确认',
-        unconfirmedBody: message => `${message} 上次扣款结果尚未确认，请在重试前检查余额和历史记录。`,
+        unconfirmedBody: message => `${message} 上次扣款结果尚未确认，请在重试前检查余额和历史记录`,
         checkTitle: '无法检查扣款',
         checkBody: '无法检查扣款。',
         untrackedTitle: '无法跟踪扣款',
@@ -2638,7 +2638,7 @@ export const zh = defineLocale({
         title: '立即购买额度',
         buyButton: '购买',
         processing: '处理中…正在确认结算',
-        added: amount => `已添加 ${amount}，正在刷新余额。`,
+        added: amount => `已添加 ${amount}，正在刷新余额`,
         retry: '重试',
         openPortal: '打开门户'
       },
@@ -2657,7 +2657,7 @@ export const zh = defineLocale({
         tryAgain: '重试',
         checkingChange: '正在检查此变更…',
         cannotChange: '无法在此进行该变更。',
-        alreadyOn: name => `你已使用 ${name}，无需更改。`,
+        alreadyOn: name => `你已使用 ${name}，无需更改`,
         notScheduleable: '无法在此安排该变更。',
         scheduling: '正在安排…',
         cancel: '取消',
@@ -2713,7 +2713,7 @@ export const zh = defineLocale({
           notAvailablePill: '—',
           manageCaption: '在门户中管理自动充值。',
           turnOnCaption: '在门户中开启自动充值',
-          chargesDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动扣款 ${reloadTo}。`,
+          chargesDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动扣款 ${reloadTo}`,
           distinctCardCaption: cardLabel => `自动充值使用 ${cardLabel} 扣款，请在门户中核对`,
           distinctCardFallback: '另一张银行卡',
           reconcileAction: '核对 ↗'
@@ -2740,8 +2740,8 @@ export const zh = defineLocale({
           chooseAction: '选择 ↗',
           adjustPlanAction: '调整套餐 ↗',
           unavailableCaption: '订阅详情暂不可用，仍可打开门户。',
-          downgradeCaption: (tierName, when) => `于 ${when} 更改为 ${tierName}。`,
-          cancellationCaption: when => `于 ${when} 取消。`,
+          downgradeCaption: (tierName, when) => `于 ${when} 更改为 ${tierName}`,
+          cancellationCaption: when => `于 ${when} 取消`,
           renewsCaption: date => `于 ${date} 续费`,
           noSubscriptionCaption: '没有有效订阅，付费模型会扣除充值额度。'
         }
@@ -2757,7 +2757,7 @@ export const zh = defineLocale({
           messageByAdmin: '管理员已停止此终端的远程支出。',
           messageBySelf: '你已停止此终端的远程支出。'
         },
-        remoteSpendingReconnect: who => `${who} 请从“设置 → 网关”重新连接以重新授权此设备。`,
+        remoteSpendingReconnect: who => `${who} 请从“设置 → 网关”重新连接以重新授权此设备`,
         sessionRevoked: { title: '会话已登出', message: '你的会话已登出。请从“设置 → 网关”重新登录。' },
         cliBillingDisabled: {
           title: '远程支出已关闭',
@@ -2869,7 +2869,7 @@ export const zh = defineLocale({
     sessions: {
       loading: '正在加载已归档会话…',
       archivedTitle: '已归档会话',
-      archivedIntro: '已归档对话会从侧边栏隐藏，但会保留全部消息。在侧边栏按住 Alt/Option（⌥）+ Shift 点击对话即可归档',
+      archivedIntro: '已归档对话会从侧边栏隐藏，但会保留全部消息，在侧边栏按住 Alt/Option（⌥）+ Shift 点击对话即可归档',
       emptyArchivedTitle: '暂无归档',
       emptyArchivedDesc: '归档一个对话后会显示在这里',
       unarchive: '取消归档',
@@ -3378,7 +3378,7 @@ export const zh = defineLocale({
         needsSetupConfirmAction: '仍然选择',
         unavailableTitle: '没有终端命令',
         unavailableMessage: backend =>
-          `Hermes 现在无法运行 shell 命令：${backend}尚未准备好。切换到本地，或完成设置${backend}然后重试。`,
+          `Hermes 现在无法运行 shell 命令：${backend}尚未准备好。切换到本地，或完成设置${backend}然后重试`,
         openBackendSettings: '打开终端设置',
         useLocal: '使用当地',
         switchedToLocal: '终端命令现在在本地运行 。 适用于新会话.'
@@ -3495,7 +3495,7 @@ export const zh = defineLocale({
       uninstallHermes: '卸载 Hermes',
       chooseHowMuch: '选择要删除的内容。应用会关闭以完成卸载；随时重新打开安装程序即可恢复。',
       confirmUninstall: '确认卸载',
-      confirmBody: what => `这将删除${what}。此操作无法撤销。`,
+      confirmBody: what => `这将删除${what}。此操作无法撤销`,
       appLabel: '应用：',
       couldNotStart: '无法开始卸载。',
       uninstalling: '正在卸载…',
@@ -4119,13 +4119,13 @@ export const zh = defineLocale({
       uninstallTip: (name: string, profile: string) => `卸载${name}来自${profile}`,
       uninstallConfirmTitle: (name: string) => `卸载${name}?`,
       uninstallConfirmBody: (name: string, profile: string) =>
-        `这会从${profile}配置文件中删除插件的文件。任何随附的桌面部分也会被移除。可以随时从目录或 Git 重新安装它。`,
+        `这会从${profile}配置文件中删除插件的文件。任何随附的桌面部分也会被移除。可以随时从目录或 Git 重新安装它`,
       uninstallFailed: (name: string) => `无法卸载${name}`,
-      uninstalled: (name: string) => `${name}已卸载。重新启动网关以卸载它。`,
+      uninstalled: (name: string) => `${name}已卸载。重新启动网关以卸载它`,
       uninstallDesktopTip: (name: string) => `卸载${name}从此应用程序`,
       uninstallDesktopConfirmBody: (name: string) =>
-        `这将删除${name}位于此计算机的桌面插件文件夹中的内容，并立即卸载它。您可以随时从 Git 重新安装或将文件夹放回。`,
-      uninstalledDesktop: (name: string) => `${name}已卸载。`,
+        `这将删除${name}位于此计算机的桌面插件文件夹中的内容，并立即卸载它。您可以随时从 Git 重新安装或将文件夹放回`,
+      uninstalledDesktop: (name: string) => `${name}已卸载`,
       deepLinkErrorTitle: '插件安装链接被拒绝',
       deepLinkCatalogInvalidName: '链接的目录名称缺失或无效。',
       deepLinkCatalogUnknown: (name: string) => `“${name}” is not in the Hermes plugin catalog. Nothing was installed.`,
@@ -4133,7 +4133,7 @@ export const zh = defineLocale({
       settingsToggle: (name: string) => `设置：${name}`,
       settingsForm: {
         save: '保存设置',
-        saved: (name: string) => `${name}设置已保存。`,
+        saved: (name: string) => `${name}设置已保存`,
         saveFailed: (name: string) => `无法保存${name}设置`,
         optional: '(可选)',
         secretSet: '(套数)',
@@ -4784,6 +4784,7 @@ export const zh = defineLocale({
       },
       MATTERMOST_URL: {
         label: '服务器 URL',
+        help: 'Mattermost 服务器 URL（例如 https://mm.example.com）',
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {
@@ -6856,7 +6857,7 @@ export const zh = defineLocale({
     getKey: '获取密钥',
     replaceCurrent: '替换当前值',
     pasteApiKey: '粘贴 API 密钥',
-    directApiAccess: provider => `直接通过 API 访问 ${provider}。`,
+    directApiAccess: provider => `直接通过 API 访问 ${provider}`,
     localApiKeyPlaceholder: 'API 密钥（可选 — 仅当端点需要时填写）',
     couldNotSave: '无法保存凭据',
     connecting: '连接中',
@@ -6895,7 +6896,7 @@ export const zh = defineLocale({
     change: '更改',
     startChatting: '开始',
     docs: provider => `${provider} 文档`,
-    signInDidNotFinish: provider => `使用${provider}登录未完成。请检查你的网络连接并重试，或者选择不同的提供商。`,
+    signInDidNotFinish: provider => `使用${provider}登录未完成。请检查你的网络连接并重试，或者选择不同的提供商`,
     tryAgain: '再试一次',
     useApiKeyInstead: '使用 API 密钥',
     errorDetails: '详情'

@@ -3,6 +3,7 @@ import { MemoryRouter, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
+import { zh } from '@/i18n/zh'
 import { stubResizeObserver } from '@/test/jsdom'
 
 import { envVar } from './test-utils'
@@ -59,17 +60,41 @@ function DeepLinkButton({ target }: { target: string }) {
 
 describe('KeysSettings', () => {
   it.each([
-    ['settings', 'CONNECTOR_GATEWAY_URL', 'CONNECTOR GATEWAY URL'],
-    ['tools', 'PORCUPINE_ACCESS_KEY', 'PORCUPINE ACCESS']
-  ] as const)('keeps backend-owned %s metadata verbatim in Chinese', async (view, key, expectedLabel) => {
-    const description = `Exact technical description for ${key}`
-    getEnvVars.mockResolvedValue({ [key]: envVar(view === 'tools' ? 'tool' : 'setting', { description }) })
+    [
+      'settings',
+      'CONNECTOR_GATEWAY_URL',
+      'setting',
+      'CONNECTOR GATEWAY URL',
+      zh.settings.envKeys.CONNECTOR_GATEWAY_URL.description
+    ],
+    [
+      'tools',
+      'PORCUPINE_ACCESS_KEY',
+      'tool',
+      'PORCUPINE ACCESS',
+      zh.settings.envKeys.PORCUPINE_ACCESS_KEY.description
+    ],
+    ['tools', 'KEENABLE_API_KEY', 'tool', 'KEENABLE', zh.settings.envKeys.KEENABLE_API_KEY.description],
+    [
+      'settings',
+      'IRC_ALLOW_ALL_USERS',
+      'messaging',
+      'IRC ALLOW ALL USERS',
+      zh.messaging.fieldCopy.IRC_ALLOW_ALL_USERS.help
+    ]
+  ] as const)(
+    'keeps the backend-owned %s label while localizing its description in Chinese',
+    async (view, key, category, expectedLabel, expectedDescription) => {
+      const backendDescription = `Exact technical description for ${key}`
+      getEnvVars.mockResolvedValue({ [key]: envVar(category, { description: backendDescription }) })
 
-    await renderKeysSettings(view, '/settings', 'zh')
+      await renderKeysSettings(view, '/settings', 'zh')
 
-    fireEvent.click(await screen.findByText(expectedLabel))
-    expect(screen.getByText(description)).toBeTruthy()
-  })
+      fireEvent.click(await screen.findByText(expectedLabel))
+      expect(screen.getByText(expectedDescription!)).toBeTruthy()
+      expect(screen.queryByText(backendDescription)).toBeNull()
+    }
+  )
 
   it('fetches env vars for the displayed profile (the concrete key, never null) when unscoped', async () => {
     // #90549 class: getEnvVars(null) targets the primary profile's env store,

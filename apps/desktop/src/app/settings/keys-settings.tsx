@@ -39,10 +39,9 @@ export function KeysSettings({ view }: KeysSettingsProps) {
   // path — request-shaped so the API helpers never see a primary-targeting
   // null).
   const scopeProfile = useStore($settingsRequestProfile)
-  // Tool/setting names and descriptions are backend-owned technical metadata.
-  // Keep them verbatim here instead of replacing them with locale-specific
-  // guesses (for example, URL and product/access-key names).
-  const { rowProps, vars } = useEnvCredentials(scopeProfile, { localizeDescriptions: false })
+  // Environment-variable names stay as stable technical labels while the
+  // shared credential hook overlays localized explanatory copy.
+  const { rowProps, vars } = useEnvCredentials(scopeProfile)
   const [openKey, setOpenKey] = useState<null | string>(null)
 
   useEffect(() => {

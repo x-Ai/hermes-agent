@@ -4239,14 +4239,16 @@ export const zhHant = defineLocale({
         label: '主頻道'
       },
       QQ_ALLOW_ALL_USERS: {
-        label: '允許所有 QQ 使用者'
+        label: '允許所有 QQ 使用者',
+        help: '允許所有 QQ 使用者繞過允許清單與機器人互動（true/false）'
       },
       QQBOT_HOME_CHANNEL: {
         label: 'QQ 主頻道',
         help: 'cron 傳遞的預設頻道或群組。'
       },
       QQBOT_HOME_CHANNEL_NAME: {
-        label: 'QQ 主頻道名稱'
+        label: 'QQ 主頻道名稱',
+        help: 'QQ 主頻道的顯示名稱'
       },
       SLACK_BOT_TOKEN: {
         label: 'Slack bot Token',
@@ -4264,6 +4266,7 @@ export const zhHant = defineLocale({
       },
       MATTERMOST_URL: {
         label: '伺服器 URL',
+        help: 'Mattermost 伺服器 URL（例如 https://mm.example.com）',
         placeholder: 'https://mattermost.example.com'
       },
       MATTERMOST_TOKEN: {

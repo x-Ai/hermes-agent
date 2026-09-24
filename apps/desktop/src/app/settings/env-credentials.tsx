@@ -47,10 +47,7 @@ export function SettingsCategoryHeading({ count, icon: Icon, title }: CategoryHe
 // scope); undefined keeps the app-wide active profile. Request-shaped on
 // purpose: the API helpers treat an explicit `null` as "target the
 // primary/default backend", which is never what a settings page means.
-export function useEnvCredentials(
-  profile?: string,
-  { localizeDescriptions = true }: { localizeDescriptions?: boolean } = {}
-): UseEnvCredentials {
+export function useEnvCredentials(profile?: string): UseEnvCredentials {
   const { t } = useI18n()
   const credentials = t.settings.credentials
   const toolsets = t.settings.toolsets
@@ -198,20 +195,21 @@ export function useEnvCredentials(
   // Missing keys keep the backend English; values written back never include
   // the description, so the overlay stays presentation-only.
   const localizedVars = useMemo(() => {
-    if (!vars || !localizeDescriptions) {
+    if (!vars) {
       return vars
     }
 
     const table = t.settings.envKeys
+    const fieldCopy = t.messaging.fieldCopy
     const out: Record<string, EnvVarInfo> = {}
 
     for (const [key, info] of Object.entries(vars)) {
-      const description = table[key]?.description
+      const description = table[key]?.description || fieldCopy[key]?.help
       out[key] = description ? { ...info, description } : info
     }
 
     return out
-  }, [localizeDescriptions, t, vars])
+  }, [t, vars])
 
   return {
     saveValue,
