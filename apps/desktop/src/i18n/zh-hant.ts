@@ -2792,6 +2792,7 @@ export const zhHant = defineLocale({
       badgeTokens: {
         recommended: '推薦',
         free: '免費',
+        'keyless/paid': '免金鑰/付費',
         local: '本機',
         'self-hosted': '自架',
         paid: '付費',
@@ -2799,7 +2800,8 @@ export const zhHant = defineLocale({
         subscription: '訂閱',
         'no key': '免金鑰',
         'search only': '僅搜尋',
-        'optional gateway': '選用閘道'
+        'optional gateway': '選用閘道',
+        native: '原生'
       },
       tagCopy: {
         '30 prebuilt voices, controllable via prompts': '30 種預置語音，可透過提示詞控制',
@@ -2819,6 +2821,8 @@ export const zhHant = defineLocale({
         'Local neural TTS, 44 languages (voices ~20-90MB)': '本機神經網路 TTS，支援 44 種語言（語音包約 20-90MB）',
         'Managed Browser Use billed to your subscription': '託管 Browser Use，計入您的訂閱',
         'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入您的訂閱',
+        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription':
+          '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入您的訂閱',
         'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
         'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
         'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
@@ -2853,6 +2857,8 @@ export const zhHant = defineLocale({
         'Search + extract in one provider.': '搜尋 + 擷取一體的供應商。',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '透過 ddgs Python 套件搜尋——無需 API 金鑰（可搭配任意擷取供應商）',
+        'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
+          '搜尋由供應商端執行（需要 Codex Responses 傳輸方式並登入 openai-codex）；僅支援搜尋，內容擷取仍使用其他後端',
         'Semantic + neural web search with content extraction.': '語意 + 神經網路網頁搜尋，帶內容擷取。',
         'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
           'Wan、p-video 等——來自 api.deepinfra.com 的即時目錄；文生影片與圖生影片',
@@ -2924,7 +2930,9 @@ export const zhHant = defineLocale({
         failedSelect: backend => `選擇 ${backend} 失敗`,
         needsSetupHint: '現在即可選擇此後端——但在完成設定前命令將會失敗。',
         descriptions: {},
-        details: {},
+        details: {
+          'Docker not reachable — start Docker and retry.': '無法連線 Docker——請啟動 Docker 後重試'
+        },
         needsSetupConfirmTitle: backend => `選擇${backend}無論如何?`,
         needsSetupConfirmDescription: detail => `${detail}在此更改之後開始的會話，在設置完成之前將沒有終端或文件工具。`,
         needsSetupConfirmDescriptionGeneric:

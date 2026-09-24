@@ -9,7 +9,8 @@ import {
   isSupportedLocaleValue,
   localeConfigValue,
   normalizeLocale,
-  resolveInitialLocale
+  resolvePreferredLocale,
+  writeStoredLocale
 } from './languages'
 import { setRuntimeI18nLocale } from './runtime'
 import type { Locale, Translations } from './types'
@@ -100,7 +101,7 @@ export function I18nProvider({
   initialLocale,
   scopeKey
 }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => normalizeLocale(initialLocale))
+  const [locale, setLocaleState] = useState<Locale>(() => resolvePreferredLocale(initialLocale))
   const [isLoadingConfig, setIsLoadingConfig] = useState(false)
   const [isSavingLocale, setIsSavingLocale] = useState(false)
   const [configLoadError, setConfigLoadError] = useState<Error | null>(null)
@@ -113,6 +114,7 @@ export function I18nProvider({
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
     localeRef.current = locale
+    writeStoredLocale(locale)
     setRuntimeI18nLocale(locale)
     applyDocumentLocale(locale)
   }, [locale])
@@ -161,12 +163,18 @@ export function I18nProvider({
             return
           }
 
+          if (saved != null && saved !== '') {
+            setLocaleState(DEFAULT_LOCALE)
+
+            return
+          }
+
           // Keep inference unsaved so OS language changes apply on the next boot
           // until the user explicitly picks a language.
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            setLocaleState(resolveInitialLocale(undefined, machineProfile?.locale))
+            setLocaleState(resolvePreferredLocale(undefined, [machineProfile?.locale]))
           }
         })
         .catch(error => {
@@ -175,7 +183,6 @@ export function I18nProvider({
           }
 
           setConfigLoadError(toError(error))
-          setLocaleState(DEFAULT_LOCALE)
 
           if (retryCount < MAX_LOCALE_RETRIES) {
             retryCount += 1

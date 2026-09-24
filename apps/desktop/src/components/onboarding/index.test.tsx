@@ -145,7 +145,7 @@ describe('onboarding API-key provider descriptions', () => {
   it('uses a localized generic description for a newly added provider', () => {
     renderForm('Future Provider', 'future')
 
-    expect(screen.getByText('直接通过 API 访问 Future Provider。')).toBeTruthy()
+    expect(screen.getByText(/^直接通过 API 访问 Future Provider/)).toBeTruthy()
     expect(screen.queryByText('Direct API access to Future Provider.')).toBeNull()
   })
 })

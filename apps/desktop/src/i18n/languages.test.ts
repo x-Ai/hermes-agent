@@ -1,9 +1,21 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { TRANSLATIONS } from './catalog'
-import { DEFAULT_LOCALE, isLocale, isSupportedLocaleValue, LOCALE_OPTIONS, normalizeLocale } from './languages'
+import {
+  DEFAULT_LOCALE,
+  detectSystemLocale,
+  isLocale,
+  isSupportedLocaleValue,
+  LOCALE_OPTIONS,
+  LOCALE_STORAGE_KEY,
+  normalizeLocale,
+  resolvePreferredLocale,
+  writeStoredLocale
+} from './languages'
 
 describe('desktop i18n languages', () => {
+  afterEach(() => window.localStorage.removeItem(LOCALE_STORAGE_KEY))
+
   it('normalizes supported locale aliases', () => {
     expect(normalizeLocale('en')).toBe('en')
     expect(normalizeLocale('EN-US')).toBe('en')
@@ -68,5 +80,18 @@ describe('desktop i18n languages', () => {
     }
 
     expect(Object.keys(TRANSLATIONS).sort()).toEqual(LOCALE_OPTIONS.map(option => option.id).sort())
+  })
+
+  it('uses the cached UI locale before the backend is available', () => {
+    writeStoredLocale('zh')
+
+    expect(resolvePreferredLocale(undefined, ['en-US'])).toBe('zh')
+    expect(resolvePreferredLocale('ja', ['en-US'])).toBe('ja')
+  })
+
+  it('uses the first supported OS locale when no cached choice exists', () => {
+    expect(detectSystemLocale(['it-IT', 'zh-CN', 'en-US'])).toBe('zh')
+    expect(detectSystemLocale(['fr-CA'])).toBe('fr')
+    expect(detectSystemLocale(['unknown'])).toBe(DEFAULT_LOCALE)
   })
 })

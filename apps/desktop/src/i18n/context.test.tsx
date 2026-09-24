@@ -5,6 +5,7 @@ import type { HermesConfigRecord } from '@/hermes'
 
 import { TRANSLATIONS } from './catalog'
 import { type I18nConfigClient, I18nProvider, useI18n } from './context'
+import { LOCALE_STORAGE_KEY } from './languages'
 import type { Locale } from './types'
 
 function LanguageProbe({ target = 'zh' }: { target?: Locale }) {
@@ -28,6 +29,7 @@ function LanguageProbe({ target = 'zh' }: { target?: Locale }) {
 describe('I18nProvider', () => {
   afterEach(() => {
     cleanup()
+    window.localStorage.removeItem(LOCALE_STORAGE_KEY)
     vi.restoreAllMocks()
   })
 
@@ -77,6 +79,25 @@ describe('I18nProvider', () => {
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
+  it('keeps the cached first-paint locale when config has no saved language', async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, 'zh')
+
+    const configClient: I18nConfigClient = {
+      getConfig: vi.fn().mockResolvedValue({}),
+      saveConfig: vi.fn()
+    }
+
+    render(
+      <I18nProvider configClient={configClient}>
+        <LanguageProbe />
+      </I18nProvider>
+    )
+
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+  })
+
   it.each([
     ['fr', 'fr'],
     ['de-DE', 'de'],
@@ -102,7 +123,7 @@ describe('I18nProvider', () => {
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
-  it('keeps English usable when config loading fails', async () => {
+  it('keeps the first-paint locale when config loading fails', async () => {
     const configClient: I18nConfigClient = {
       getConfig: vi.fn().mockRejectedValue(new Error('config unavailable')),
       saveConfig: vi.fn()
@@ -116,8 +137,8 @@ describe('I18nProvider', () => {
 
     await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
 
-    expect(screen.getByTestId('locale').textContent).toBe('en')
-    expect(screen.getByTestId('label').textContent).toBe('Language')
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(screen.getByTestId('label').textContent).toBe('语言')
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
@@ -260,9 +281,9 @@ describe('I18nProvider', () => {
       </I18nProvider>
     )
 
-    // Flush the initial attempt: it fails and settles on English.
+    // Flush the initial attempt: it fails but keeps the first-paint locale.
     await act(async () => {})
-    expect(screen.getByTestId('locale').textContent).toBe('en')
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
     expect(getConfig).toHaveBeenCalledTimes(1)
 
     // Budget is 10 retries at 3s each; run the whole budget to completion.

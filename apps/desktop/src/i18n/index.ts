@@ -10,11 +10,16 @@ export {
 } from './context'
 export {
   DEFAULT_LOCALE,
+  detectSystemLocale,
   isLocale,
   isSupportedLocaleValue,
   LOCALE_OPTIONS,
+  LOCALE_STORAGE_KEY,
   localeConfigValue,
-  normalizeLocale
+  normalizeLocale,
+  readStoredLocale,
+  resolvePreferredLocale,
+  writeStoredLocale
 } from './languages'
 export { LocalizedTabTitle } from './localized-tab-title'
 export {

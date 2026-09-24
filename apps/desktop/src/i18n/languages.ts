@@ -192,6 +192,68 @@ export function resolveInitialLocale(saved: string | null | undefined, osLocale:
   return osPreferredLocale(osLocale) ?? DEFAULT_LOCALE
 }
 
+export const LOCALE_STORAGE_KEY = 'hermes-desktop.ui-locale'
+
+function navigatorLocales(): readonly unknown[] {
+  if (typeof navigator === 'undefined') {
+    return []
+  }
+
+  return [navigator.language, ...(navigator.languages ?? [])]
+}
+
+export function detectSystemLocale(candidates: readonly unknown[] = navigatorLocales()): Locale {
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string') {
+      continue
+    }
+
+    const locale = osPreferredLocale(candidate)
+
+    if (locale) {
+      return locale
+    }
+  }
+
+  return DEFAULT_LOCALE
+}
+
+export function readStoredLocale(): Locale | null {
+  if (typeof localStorage === 'undefined') {
+    return null
+  }
+
+  try {
+    const raw = localStorage.getItem(LOCALE_STORAGE_KEY)
+
+    return isSupportedLocaleValue(raw) ? normalizeLocale(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function writeStoredLocale(locale: Locale): void {
+  if (typeof localStorage === 'undefined') {
+    return
+  }
+
+  try {
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  } catch {
+    // Best-effort first-paint cache; the live provider remains authoritative.
+  }
+}
+
+/** First paint cannot wait for the profile backend. An explicit test/setup
+ * value wins, followed by the last resolved UI locale and the OS locale. */
+export function resolvePreferredLocale(explicit?: unknown, candidates?: readonly unknown[]): Locale {
+  if (isSupportedLocaleValue(explicit)) {
+    return normalizeLocale(explicit)
+  }
+
+  return readStoredLocale() ?? detectSystemLocale(candidates)
+}
+
 export function localeConfigValue(locale: Locale): string {
   return LOCALE_OPTIONS.find(item => item.id === locale)?.configValue ?? DEFAULT_LOCALE
 }

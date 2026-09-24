@@ -58,9 +58,9 @@ export const zh = defineLocale({
     skipThis: '跳过此项',
     continueWith: count => `继续使用已选的 ${count} 个应用`,
     noneOfThese: '都不用',
-    unavailableNow: '目前无法使用连接功能，可以稍后再设置。',
-    nothingConnectedYet: '目前尚未连接任何应用。',
-    connectWhenNeeded: '任务需要时，Hermes 会提示你连接，并在读取任何内容前先询问。',
+    unavailableNow: '目前无法使用连接功能，可以稍后再设置',
+    nothingConnectedYet: '目前尚未连接任何应用',
+    connectWhenNeeded: '任务需要时，Hermes 会提示你连接，并在读取任何内容前先询问',
     execution: '连接器工具',
     connectErrorFor: app => `无法为 ${app} 开始授权`,
     setup: server => `设置 ${server}`,
@@ -68,8 +68,8 @@ export const zh = defineLocale({
     setupCancel: '取消',
     authorizedToolsUnavailable: '已授权。工具不可用',
     plugin: '插件',
-    nothingSelectedYet: '目前不会连接或安装任何内容。',
-    connectOrInstallWhenNeeded: '任务需要时，Hermes 会提示你连接应用或安装插件，并会先征得同意。',
+    nothingSelectedYet: '目前不会连接或安装任何内容',
+    connectOrInstallWhenNeeded: '任务需要时，Hermes 会提示你连接应用或安装插件，并会先征得同意',
     required: '必填'
   },
   connectorsPage: {
@@ -435,15 +435,15 @@ export const zh = defineLocale({
       waitingForUpdate: '正在等待当前更新完成…'
     },
     errors: {
-      backgroundExited: '运行您聊天的服务意外关闭。请重新启动以继续 — 您的聊天记录和设置是安全的。',
-      backgroundExitedDuringStartup: 'Hermes 在启动后立即停止。',
+      backgroundExited: '运行您聊天的服务意外关闭。请重新启动以继续 — 您的聊天记录和设置是安全的',
+      backgroundExitedDuringStartup: 'Hermes 在启动后立即停止',
       backendStopped: 'Hermes 在后台停止工作',
       desktopBootFailed: 'Hermes 无法启动',
       gatewayConnectionLost: 'Hermes 丢失了连接',
       gatewayConnectionLostDetail:
-        '仍在尝试重新连接。您可以继续阅读和撰写。如果这种情况持续，请立即重新连接或检查您的连接设置。',
+        '仍在尝试重新连接。您可以继续阅读和撰写。如果这种情况持续，请立即重新连接或检查您的连接设置',
       gatewaySignInRequired: '您的远程 Hermes 已将您注销',
-      ipcBridgeUnavailable: 'Hermes 桌面无法与其自身的后台层通信。请重新启动应用。',
+      ipcBridgeUnavailable: 'Hermes 桌面无法与其自身的后台层通信。请重新启动应用',
       restartHermes: '重新启动 Hermes',
       openLogs: '打开日志',
       reconnectNow: '现在重新连接',
@@ -581,23 +581,23 @@ export const zh = defineLocale({
       apiRetriesExhausted: retries => `API 调用重试 ${retries} 次后仍失败`,
       invalidApiResponseAfterRetries: (retries, detail) => `API 响应无效，重试 ${retries} 次后仍失败：${detail}`,
       resetsIn: remaining => `重置倒计时：${remaining}`,
-      elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥。请在 设置 → 密钥 中添加。',
-      elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次。',
+      elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥。请在 设置 → 密钥 中添加',
+      elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
       diskFull: '磁盘已满 — 请腾出一些空间后再试',
       fileNotFound: target => (target ? `找不到文件：${target}` : '找不到文件'),
-      gatewayAuthFailed: '该 Hermes 不再接受您保存的登录信息。请打开 网关 并重新登录（或粘贴新的访问令牌），然后重试。',
+      gatewayAuthFailed: '该 Hermes 不再接受您保存的登录信息。请打开 网关 并重新登录（或粘贴新的访问令牌），然后重试',
       invalidExternalUrl: '外部链接无效',
       invalidPreviewUrl: '预览链接无效',
       methodNotAllowed: "Hermes' 后台服务与应用程序不同步，可能是在更新后出现。重启它以解决此问题。",
       microphonePermission: '麦克风权限已被拒绝',
-      openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次。',
+      openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
       openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API key (${status} invalid_api_key)`,
-      openaiTtsNeedsKey: '语音需要一个 OpenAI 密钥。请在设置 → 密钥中添加一个。',
+      openaiTtsNeedsKey: '语音需要一个 OpenAI 密钥。请在设置 → 密钥中添加一个',
       restoreTargetMissing: '目标消息已不在此会话历史中，请刷新会话后重试',
       restoreTargetUnsafe: '无法安全恢复此检查点，请刷新会话后重试',
       sessionStoppedBeforeAgentReady: '智能体就绪前会话已停止',
       turnCancelledBeforeAgentReady: '智能体就绪前，本轮对话已取消',
-      codeSkewRestartRequired: 'Hermes 已更新，但仍在运行旧版本。请重启以完成更新。',
+      codeSkewRestartRequired: 'Hermes 已更新，但仍在运行旧版本。请重启以完成更新',
       storageFailure: 'Hermes无法保存到它的数据文件夹中. 打开维护检查并修复.',
       rpcOutOfSync: '应用程序和后端在不同的版本上. 更新两者.',
       restartHermesFailed: '无法重启 Hermes'
@@ -625,8 +625,8 @@ export const zh = defineLocale({
       liveError: '实时语音',
       liveDelegationFailed: '无法将请求交给 Hermes',
       liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}。已改用语音转文字`,
-      liveEndedConnectionLost: '实时语音会话已断开连接。',
-      liveEndedClosed: '实时语音会话已被服务关闭。'
+      liveEndedConnectionLost: '实时语音会话已断开连接',
+      liveEndedClosed: '实时语音会话已被服务关闭'
     },
     native: {
       approvalTitle: '需要批准',
@@ -766,23 +766,23 @@ export const zh = defineLocale({
     included: '包含',
     freeTierName: 'Nous · 免费套餐',
     freeTierCaption:
-      '在 nous/welcome 上运行，包含连接器。登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型。',
-    freeTierFootnote: '免费套餐没有余额，也不需要支付。登录 Nous 账户后，会显示付款和使用情况。',
+      '在 nous/welcome 上运行，包含连接器。登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型',
+    freeTierFootnote: '免费套餐没有余额，也不需要支付。登录 Nous 账户后，会显示付款和使用情况',
     chargeFailed: '扣款失败',
-    chargeUnconfirmedBody: '费用可能仍会结算。在重试之前请先检查门户。',
+    chargeUnconfirmedBody: '费用可能仍会结算。在重试之前请先检查门户',
     chargeUnconfirmedTitle: '未确认费用结果',
-    chargeCheckFailedBody: '无法确认收费。请在重试前检查门户网站。',
+    chargeCheckFailedBody: '无法确认收费。请在重试前检查门户网站',
     chargeCheckFailedTitle: '无法验证费用',
-    chargeMaySettle: '费用可能仍会结算。重试前请检查门户网站。',
+    chargeMaySettle: '费用可能仍会结算。重试前请检查门户网站',
     stillProcessing: '仍在处理，已超过5分钟',
-    chargeNeedsVerification: '您的卡片需要验证。完成后，请再试一次。',
-    cardExpired: '您的卡已过期。请在门户网站上更新，然后再试一次。',
-    cardDeclined: '您的卡被拒绝了。请在门户上尝试使用另一张卡。',
+    chargeNeedsVerification: '您的卡片需要验证。完成后，请再试一次',
+    cardExpired: '您的卡已过期。请在门户网站上更新，然后再试一次',
+    cardDeclined: '您的卡被拒绝了。请在门户上尝试使用另一张卡',
     chargeFailedReason: reason => `The charge failed (${reason}). Try again or use another card on the portal.`,
     verificationNotApprovedTitle: '验证未通过',
-    verificationNotApprovedBody: '卡片验证未被批准。请重试或使用另一张卡。',
+    verificationNotApprovedBody: '卡片验证未被批准。请重试或使用另一张卡',
     verificationCompleteTitle: '验证完成',
-    verificationCompleteBody: '您的卡已通过验证。您现在可以重新尝试收费。',
+    verificationCompleteBody: '您的卡已通过验证。您现在可以重新尝试收费',
     refusal: {
       consentTitle: '需要确认银行卡',
       consentMessage: '请在门户确认此银行卡可用于终端扣款',
@@ -1190,7 +1190,7 @@ export const zh = defineLocale({
       sources: {
         title: '密码管理器',
         blurb:
-          '已安装的密码管理器会被自动识别，智能体第一次需要其中的登录信息时会请你解锁（每个会话一次）；内存中只保留会话令牌，智能体永远看不到你的主密码或任何登录信息',
+          '已安装的密码管理器会被自动识别，智能体第一次需要其中的登录信息时会请你解锁（每个会话一次），内存中只保留会话令牌，智能体永远看不到你的主密码或任何登录信息',
         toggleFailed: '无法更新密码管理器',
         notInstalled: name => `未检测到,安装 ${name} 命令行工具并登录后，Hermes 会自动识别`,
         disabledDesc: '已检测到，但已为 Hermes 关闭',
@@ -1281,7 +1281,7 @@ export const zh = defineLocale({
       oauthSet: '已设置 OAuth',
       waitingForConsent: '正在等待浏览器授权…',
       saved: label => `${label}设置已保存`,
-      updated: '内存提供者配置已更新。',
+      updated: '内存提供者配置已更新',
       saveFailed: label => `无法保存${label}设置`
     },
     sections: {
@@ -1373,7 +1373,7 @@ export const zh = defineLocale({
       },
       textDirectionTitle: '文本方向',
       textDirectionDesc:
-        '设置对话消息和输入框的文字方向。自动模式会根据每段的首个字符判断；混合文字对齐不正确时可手动选择。代码始终从左向右显示',
+        '设置对话消息和输入框的文字方向，自动模式会根据每段的首个字符判断；混合文字对齐不正确时可手动选择，代码始终从左向右显示',
       textDirection: { auto: '自动', rtl: '从右向左', ltr: '从左向右' },
       backdropTitle: '聊天背景',
       backdropDesc: '对话后方那张淡淡的雕像图片',
@@ -1385,10 +1385,10 @@ export const zh = defineLocale({
       reactionsDesc: 'iMessage 风格的表情回应 — 你可以给消息添加回应，Hermes 也能回应你的消息',
       tipsTitle: '应用内提示',
       tipsDesc:
-        '指向应用某处的小气泡：空闲时偶尔出现，需要时 Hermes 也会给你一条，每条提示只出现一次。开始使用满 30 天后自动关闭，你可以重新开启',
+        '指向应用某处的小气泡：空闲时偶尔出现，需要时 Hermes 也会给你一条，每条提示只出现一次，开始使用满 30 天后自动关闭，你可以重新开启',
       tipsReset: (count: number) => `再次显示 ${count} 条提示`,
       toursTitle: '引导导览',
-      toursDesc: '让 Hermes 带你熟悉应用：调暗界面并逐步高亮每个位置。开始使用满 30 天后自动关闭，你可以重新开启',
+      toursDesc: '让 Hermes 带你熟悉应用：调暗界面并逐步高亮每个位置，开始使用满 30 天后自动关闭，你可以重新开启',
       composerPopoutTitle: '悬浮输入框',
       composerPopoutDesc: '允许将输入框拖出底部停靠区，关闭后，输入框会锁定在底部',
       vibeHeartsTitle: '心情爱心',
@@ -1421,7 +1421,7 @@ export const zh = defineLocale({
       pet: {
         title: '宠物',
         intro:
-          '领养一只悬浮在应用上的 petdex 动画宠物，它会根据 Hermes 的状态做出反应 — 工具执行时奔跑、成功时欢呼、出错时沮丧',
+          '领养一只悬浮在应用上的 Petdex 动画宠物，它会根据 Hermes 的状态做出反应 — 工具执行时奔跑、成功时欢呼、出错时沮丧',
         restartHint: '宠物功能需要重启 — 当前运行的应用在此功能加入前启动，请退出并重新打开 Hermes，然后回到此处',
         on: '开启',
         off: '关闭',
@@ -1432,7 +1432,7 @@ export const zh = defineLocale({
         chooseTitle: '选择宠物',
         chooseDesc: '选择后会自动安装（如需）并设为当前宠物',
         searchPlaceholder: '搜索宠物…',
-        unreachable: '无法连接到 petdex 画廊，请检查网络连接并重新打开此页面',
+        unreachable: '无法连接到 Petdex 画廊，请检查网络连接并重新打开此页面',
         noMatch: query => `没有匹配「${query}」的宠物`,
         installedTag: '已安装',
         generatedTag: '生成',
@@ -1461,7 +1461,7 @@ export const zh = defineLocale({
       hideThreadTimelineTitle: '隐藏对话时间线条',
       hideThreadTimelineDesc: '隐藏每个对话右侧边缘的导航条',
       chatFontTitle: '聊天字体',
-      chatFontDesc: '为聊天及应用界面选择已安装的字体，适合 OpenDyslexic 等易读字体；留空则使用主题字体',
+      chatFontDesc: '为聊天及应用界面选择已安装的字体，适合 OpenDyslexic 等易读字体，留空则使用主题字体',
       chatFontPlaceholder: 'OpenDyslexic 或 CSS 字体栈',
       chatFontPreview: '预览',
       chatFontSample: '敏捷的棕色狐狸跳过懒狗。0123456789',
@@ -1747,7 +1747,7 @@ export const zh = defineLocale({
         voiceChatMode:
           'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商，gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes — 由你选择的任意模型带着完整工具集作答，需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费',
         gptLive: {
-          voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID。',
+          voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID',
           instructions: '附加到实时语音人设的句子（语气、语速、语言），Hermes 保留自己的系统提示词'
         }
       },
@@ -1844,7 +1844,7 @@ export const zh = defineLocale({
       keepAwakeTitle: '保持电脑唤醒',
       keepAwakeDesc: '阻止本机休眠，让长时间或通宵运行继续进行，屏幕仍可变暗',
       disableF12Title: '禁用 F12 开发者工具',
-      disableF12Desc: '阻止 F12 打开开发者工具。Ctrl+Shift+I（Mac 上为 Cmd+Opt+I）仍然可用',
+      disableF12Desc: '阻止 F12 打开开发者工具,Ctrl+Shift+I（Mac 上为 Cmd+Opt+I）仍然可用',
       attachmentSizeTitle: '预览 / 图片加载大小上限',
       attachmentSizeDesc:
         '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
@@ -1852,8 +1852,8 @@ export const zh = defineLocale({
       attachmentSizeLabel: '预览 / 图片加载大小上限(MB)',
       minimizeToTrayTitle: '最小化到托盘',
       minimizeToTrayDesc:
-        '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行。通过托盘菜单中的“退出 Hermes”或 Cmd+Q 退出。默认关闭，仅适用于此设备',
-      minimizeToTrayUnavailable: '系统托盘不可用。窗口将正常最小化和关闭。关闭此选项后重新开启即可重试',
+        '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行,通过托盘菜单中的"退出 Hermes"或 Cmd+Q 退出。默认关闭，仅适用于此设备',
+      minimizeToTrayUnavailable: '系统托盘不可用，窗口将正常最小化和关闭，关闭此选项后重新开启即可重试',
       showOptions: '显示选项'
     },
     quickEntry: {
@@ -2205,7 +2205,7 @@ export const zh = defineLocale({
       setupProviderFallback: '提供方',
       setUpProvider: name => `设置 ${name}`,
       staleAuxBefore: (count, names) => `${count} 个辅助任务（${names}）仍由 `,
-      staleAuxAfter: ' 运行，而不是主模型。',
+      staleAuxAfter: ' 运行，而不是主模型',
       staleAuxOtherProviders: '其他提供方',
       moaEnabled: '启用',
       moaSetDefault: '设为默认',
@@ -2388,12 +2388,12 @@ export const zh = defineLocale({
       apiMode: 'API 模式',
       autoDetect: '自动检测',
       couldNotLoad: '无法加载自定义端点',
-      endpointSaved: '自定义端点已保存。',
+      endpointSaved: '自定义端点已保存',
       saveFailed: '保存失败',
-      endpointReachable: '端点可连接。',
+      endpointReachable: '端点可连接',
       endpointReachableTransport: transport => `端点可连接（${transport} 路由已响应）`,
       endpointReachableModels: (reachable, count) => `${reachable} 找到 ${count} 个模型`,
-      endpointValidationFailed: '端点验证失败。',
+      endpointValidationFailed: '端点验证失败',
       validationFailed: '验证失败',
       activationFailed: '启用失败',
       deleteConfirm: name => `删除 ${name}？`,
@@ -2440,7 +2440,7 @@ export const zh = defineLocale({
         '保持运行以便快速切换的机器人后端数量。数量越多，切换越快，内存占用也越高(每个后端约 60 MB)，修改后立即生效',
       idleTimeout: '后端空闲超时',
       idleTimeoutDescription:
-        '未使用的机器人后端在关闭前保持运行的时长。调大此值，可避免每隔几分钟切回机器人时都要等待重新启动',
+        '未使用的机器人后端在关闭前保持运行的时长，调大此值，可避免每隔几分钟切回机器人时都要等待重新启动',
       idleTimeoutAria: '后端空闲超时（毫秒）',
       milliseconds: '毫秒',
       warmBotBackendsAria: '预热机器人后端',
@@ -2580,10 +2580,10 @@ export const zh = defineLocale({
       freeTier: {
         signIn: '登录',
         title: '你正在使用 Nous 免费服务',
-        message: '登录 Nous 账户以解锁更多模型和工具。',
-        caption: '使用 nous/welcome，包含连接器。登录后会保留连接器，并增加需要账户的工具和其他所有模型。',
+        message: '登录 Nous 账户以解锁更多模型和工具',
+        caption: '使用 nous/welcome，包含连接器。登录后会保留连接器，并增加需要账户的工具和其他所有模型',
         name: 'Nous · 免费服务',
-        footnote: '免费服务没有余额，无需支付。登录 Nous 账户后才会显示支付与用量。',
+        footnote: '免费服务没有余额，无需支付。登录 Nous 账户后才会显示支付与用量',
         plan: '免费服务',
         model: '模型',
         connectors: '连接器',
@@ -2591,7 +2591,7 @@ export const zh = defineLocale({
       },
       amountValidation: {
         reloadTo: '充值金额',
-        greaterThanThreshold: '充值金额必须大于阈值。',
+        greaterThanThreshold: '充值金额必须大于阈值',
         decimal: label => `${label}：请输入最多含两位小数的美元金额`,
         positive: label => `${label}：金额必须大于 $0`,
         minimum: (label, amount) => `${label}：最低金额为 ${amount}`,
@@ -2603,24 +2603,24 @@ export const zh = defineLocale({
         waiting: '正在等待验证链接…',
         verify: '验证以继续',
         deniedTitle: '验证未获批准',
-        deniedBody: '验证已结束，但未允许此终端进行远程支出。',
+        deniedBody: '验证已结束，但未允许此终端进行远程支出',
         successTitle: '验证完成',
-        successBody: '此终端已获准进行远程支出。'
+        successBody: '此终端已获准进行远程支出'
       },
       charge: {
-        added: amount => (amount ? `已添加 $${amount}。` : '已添加额度。'),
+        added: amount => (amount ? `已添加 $${amount}。` : '已添加额度'),
         failedTitle: '扣款失败',
         unconfirmedTitle: '扣款结果尚未确认',
         unconfirmedBody: message => `${message} 上次扣款结果尚未确认，请在重试前检查余额和历史记录`,
         checkTitle: '无法检查扣款',
-        checkBody: '无法检查扣款。',
+        checkBody: '无法检查扣款',
         untrackedTitle: '无法跟踪扣款',
-        untrackedBody: '账单服务已接受请求，但未返回扣款标识。',
+        untrackedBody: '账单服务已接受请求，但未返回扣款标识',
         timeoutTitle: '5 分钟后仍在处理',
-        timeoutBody: '扣款仍可能结算，请在重试前检查门户。',
-        authenticationRequired: '银行要求验证（3DS）。请在门户完成验证以完成本次购买。',
-        expired: '银行卡已过期。请在门户中更新。',
-        declined: '银行卡被拒绝。请在门户中尝试另一张卡。',
+        timeoutBody: '扣款仍可能结算，请在重试前检查门户',
+        authenticationRequired: '银行要求验证（3DS）。请在门户完成验证以完成本次购买',
+        expired: '银行卡已过期。请在门户中更新',
+        declined: '银行卡被拒绝。请在门户中尝试另一张卡',
         failedBody: reason => `扣款未成功（${reason}）。`
       },
       title: '账单',
@@ -2649,16 +2649,16 @@ export const zh = defineLocale({
         backAria: '返回账单',
         current: '当前套餐',
         scheduled: '已安排',
-        empty: '目前没有可切换的套餐。',
+        empty: '目前没有可切换的套餐',
         undo: '撤销',
         undoing: '正在撤销…',
         downgrade: '降级',
         confirmDowngrade: '确认降级',
         tryAgain: '重试',
         checkingChange: '正在检查此变更…',
-        cannotChange: '无法在此进行该变更。',
+        cannotChange: '无法在此进行该变更',
         alreadyOn: name => `你已使用 ${name}，无需更改`,
-        notScheduleable: '无法在此安排该变更。',
+        notScheduleable: '无法在此安排该变更',
         scheduling: '正在安排…',
         cancel: '取消',
         effectScheduled: (targetName, effectiveAt, creditsDelta) =>
@@ -2672,8 +2672,8 @@ export const zh = defineLocale({
         turnOffConfirm: '关闭自动充值？',
         turnOff: '关闭',
         disable: '禁用',
-        updated: '自动充值已更新。',
-        turnedOff: '自动充值已关闭。',
+        updated: '自动充值已更新',
+        turnedOff: '自动充值已关闭',
         manage: '管理',
         save: '保存',
         saving: '正在保存…',
@@ -2683,18 +2683,18 @@ export const zh = defineLocale({
         notice: {
           loggedOut: {
             title: '连接你的 Nous 账户',
-            message: '在 TUI 中运行 /portal，或打开 Nous 门户连接账户。',
+            message: '在 TUI 中运行 /portal 或打开 Nous 门户连接账户',
             action: '打开门户 ↗'
           },
           noCard: {
             title: '尚未添加支付方式',
-            message: '添加银行卡后才能购买额度和使用自动充值。请在门户中添加。',
+            message: '添加银行卡后才能购买额度和使用自动充值。请在门户中添加',
             action: '添加银行卡 ↗'
           }
         },
         paymentMethod: {
           title: '支付方式',
-          description: '管理用于充值和订阅续费的银行卡。',
+          description: '管理用于充值和订阅续费的银行卡',
           addAction: '添加支付方式',
           updateAction: '更新',
           provenance: {
@@ -2704,14 +2704,14 @@ export const zh = defineLocale({
             suffix: label => ` - ${label}`
           }
         },
-        buyCredits: { description: '从银行卡一次性扣款，今天即可计入余额。' },
+        buyCredits: { description: '从银行卡一次性扣款，今天即可计入余额' },
         autoRefill: {
           title: '余额不足时充值',
-          genericDescription: '余额低于阈值时自动补充额度。',
+          genericDescription: '余额低于阈值时自动补充额度',
           offPill: '已关闭',
           enabledPill: '已启用',
           notAvailablePill: '—',
-          manageCaption: '在门户中管理自动充值。',
+          manageCaption: '在门户中管理自动充值',
           turnOnCaption: '在门户中开启自动充值',
           chargesDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动扣款 ${reloadTo}`,
           distinctCardCaption: cardLabel => `自动充值使用 ${cardLabel} 扣款，请在门户中核对`,
@@ -2739,43 +2739,43 @@ export const zh = defineLocale({
           freeTier: '免费',
           chooseAction: '选择 ↗',
           adjustPlanAction: '调整套餐 ↗',
-          unavailableCaption: '订阅详情暂不可用，仍可打开门户。',
+          unavailableCaption: '订阅详情暂不可用，仍可打开门户',
           downgradeCaption: (tierName, when) => `于 ${when} 更改为 ${tierName}`,
           cancellationCaption: when => `于 ${when} 取消`,
           renewsCaption: date => `于 ${date} 续费`,
-          noSubscriptionCaption: '没有有效订阅，付费模型会扣除充值额度。'
+          noSubscriptionCaption: '没有有效订阅，付费模型会扣除充值额度'
         }
       },
       errors: {
         consentRequired: { title: '需要确认银行卡', message: '请在门户中确认此卡可用于终端扣款' },
         insufficientScope: {
           title: '需要批准远程支出',
-          message: '此操作需要远程支出权限。请发起一次充值以授权，然后重试。'
+          message: '此操作需要远程支出权限。请发起一次充值以授权，然后重试'
         },
         remoteSpendingRevoked: {
           title: '远程支出已停止',
-          messageByAdmin: '管理员已停止此终端的远程支出。',
-          messageBySelf: '你已停止此终端的远程支出。'
+          messageByAdmin: '管理员已停止此终端的远程支出',
+          messageBySelf: '你已停止此终端的远程支出'
         },
         remoteSpendingReconnect: who => `${who} 请从“设置 → 网关”重新连接以重新授权此设备`,
-        sessionRevoked: { title: '会话已登出', message: '你的会话已登出。请从“设置 → 网关”重新登录。' },
+        sessionRevoked: { title: '会话已登出', message: '你的会话已登出。请从“设置 → 网关”重新登录' },
         cliBillingDisabled: {
           title: '远程支出已关闭',
-          message: '此账户的远程支出已关闭，账单管理员可在门户的 Hermes Agent 页面开启。'
+          message: '此账户的远程支出已关闭，账单管理员可在门户的 Hermes Agent 页面开启'
         },
         roleRequired: {
           title: '需要管理员权限',
-          message: '添加资金需要组织管理员或所有者权限。请联系管理员，或在门户中管理。'
+          message: '添加资金需要组织管理员或所有者权限。请联系管理员，或在门户中管理'
         },
-        idempotencyConflict: { title: '请发起新的充值', message: '🔴 此扣款标识已用于另一金额。请发起新的充值。' },
+        idempotencyConflict: { title: '请发起新的充值', message: '🔴 此扣款标识已用于另一金额。请发起新的充值' },
         noPaymentMethod: {
           title: '没有已保存的银行卡',
-          message: '💳 尚未保存用于终端扣款的银行卡。请在门户中设置（一次性购买额度不会保存可重复使用的卡）。'
+          message: '💳 尚未保存用于终端扣款的银行卡。请在门户中设置（一次性购买额度不会保存可重复使用的卡）'
         },
         orgAccessDenied: { title: '组织访问被拒绝', message: '此令牌未绑定到你可管理的组织' },
         monthlyCapExceeded: {
           title: '已达每月支出上限',
-          messageReached: '🔴 已达每月支出上限。',
+          messageReached: '🔴 已达每月支出上限',
           messageHeadroom: remaining => `🔴 已达每月支出上限，剩余额度为 $${remaining}。`
         },
         rateLimited: {
@@ -2789,11 +2789,11 @@ export const zh = defineLocale({
         upgradeCapExceeded: { title: '已达每日套餐变更次数上限', message: '已达每日套餐变更次数上限，请明天重试' },
         endpointUnavailable: {
           title: '账单端点不可用',
-          message: '账单端点返回了非 JSON 响应（此部署可能不支持该端点）。'
+          message: '账单端点返回了非 JSON 响应（此部署可能不支持该端点）'
         },
-        timeout: { title: '账单请求超时', message: '账单请求超时。' },
-        transport: { title: '账单连接失败', message: '账单请求在到达网关前失败。' },
-        default: { title: '账单请求失败', message: '账单请求失败。' }
+        timeout: { title: '账单请求超时', message: '账单请求超时' },
+        transport: { title: '账单连接失败', message: '账单请求在到达网关前失败' },
+        default: { title: '账单请求失败', message: '账单请求失败' }
       }
     },
     providers: {
@@ -2922,6 +2922,7 @@ export const zh = defineLocale({
         recommended: '推荐',
         free: '免费',
         'free tier': '免费档',
+        'keyless/paid': '免密钥/付费',
         'key optional': '密钥可选',
         local: '本地',
         'no Chromium': '无需 Chromium',
@@ -2931,7 +2932,8 @@ export const zh = defineLocale({
         subscription: '订阅',
         'no key': '免密钥',
         'search only': '仅搜索',
-        'optional gateway': '可选网关'
+        'optional gateway': '可选网关',
+        native: '原生'
       },
       tagCopy: {
         '30 prebuilt voices, controllable via prompts': '30 种预置语音，可通过提示词控制',
@@ -2951,6 +2953,8 @@ export const zh = defineLocale({
         'Local neural TTS, 44 languages (voices ~20-90MB)': '本地神经网络 TTS，支持 44 种语言（语音包约 20-90MB）',
         'Managed Browser Use billed to your subscription': '托管 Browser Use，计入你的订阅',
         'Managed FAL image generation billed to your subscription': '托管 FAL 图像生成，计入你的订阅',
+        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription':
+          '托管图像生成（FAL、Krea 2、Nous Portal 模型），费用计入你的订阅',
         'Managed FAL video generation billed to your subscription': '托管 FAL 视频生成，计入你的订阅',
         'Managed Firecrawl billed to your subscription': '托管 Firecrawl，计入你的订阅',
         'Managed OpenAI TTS billed to your subscription': '托管 OpenAI TTS，计入你的订阅',
@@ -3004,6 +3008,8 @@ export const zh = defineLocale({
           '搜索与提取。可选择免密钥使用；设置 TAVILY_API_KEY 可获得更高限额',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '通过 ddgs Python 包搜索 — 无需 API 密钥（可搭配任意提取提供方）',
+        'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
+          '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex）；仅支持搜索，内容提取仍使用其他后端',
         'Semantic + neural web search with content extraction.': '语义 + 神经网络网页搜索，带内容提取',
         "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.":
           '通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取。突发负载下会受到速率限制',
@@ -3047,7 +3053,7 @@ export const zh = defineLocale({
       activeBackend: '当前后端',
       activeBackendHint: '这是你当前使用的后端',
       useBackend: '使用此后端',
-      nousIncluded: '包含在 Nous 订阅中；登录 Nous Portal 即可激活',
+      nousIncluded: '包含在 Nous 订阅中，登录 Nous Portal 即可激活',
       nousAuthNeededTitle: '登录 Nous Portal',
       nousAuthNeededMessage: provider => `已保存 ${provider}，但在登录 Nous Portal 之前不会激活`,
       nousAuthSignIn: '登录',
@@ -3356,6 +3362,7 @@ export const zh = defineLocale({
           ssh: '通过 SSH 在远程主机上运行命令'
         },
         details: {
+          'Docker not reachable — start Docker and retry.': '无法连接 Docker — 请启动 Docker 后重试',
           'Docker CLI not found — install Docker Desktop or docker-ce.':
             '未找到 Docker CLI — 请安装 Docker Desktop 或 docker-ce',
           'Docker daemon not reachable — start Docker and retry.': '无法连接 Docker 守护进程 — 请启动 Docker 后重试',
@@ -3493,27 +3500,27 @@ export const zh = defineLocale({
       dangerZone: '危险操作',
       checkingInstalled: '正在检查已安装内容…',
       uninstallHermes: '卸载 Hermes',
-      chooseHowMuch: '选择要删除的内容。应用会关闭以完成卸载；随时重新打开安装程序即可恢复。',
+      chooseHowMuch: '选择要删除的内容。应用会关闭以完成卸载；随时重新打开安装程序即可恢复',
       confirmUninstall: '确认卸载',
       confirmBody: what => `这将删除${what}。此操作无法撤销`,
       appLabel: '应用：',
-      couldNotStart: '无法开始卸载。',
+      couldNotStart: '无法开始卸载',
       uninstalling: '正在卸载…',
       yesUninstall: '是，卸载',
       options: {
         gui: {
           title: '仅卸载聊天图形界面',
-          description: '仅移除此桌面应用。Hermes 智能体、你的配置和聊天记录都会保留。',
+          description: '仅移除此桌面应用。Hermes 智能体、你的配置和聊天记录都会保留',
           consequence: '桌面聊天图形界面（此应用及其数据）'
         },
         lite: {
           title: '卸载图形界面和智能体，保留数据',
-          description: '移除应用和 Hermes 智能体，但保留配置、聊天记录和密钥，以便将来重新安装。',
+          description: '移除应用和 Hermes 智能体，但保留配置、聊天记录和密钥，以便将来重新安装',
           consequence: '聊天图形界面和 Hermes 智能体（配置、聊天记录和密钥会保留）'
         },
         full: {
           title: '全部卸载',
-          description: '移除应用、智能体和所有用户数据——配置、聊天记录、定时任务、密钥和日志。',
+          description: '移除应用、智能体和所有用户数据——配置、聊天记录、定时任务、密钥和日志',
           consequence: '全部内容——聊天图形界面、Hermes 智能体以及你的所有配置、聊天记录、密钥和日志'
         }
       }
@@ -3801,7 +3808,7 @@ export const zh = defineLocale({
         pending: '选择已保存在本地，正在等待同步',
         failed: '同步失败。请刷新设置后重新选择',
         conflict: '其他客户端更改了偏好。请刷新查看',
-        expired: '此选择已过期。请刷新设置后重试。'
+        expired: '此选择已过期。请刷新设置后重试'
       },
       title: '集体智慧',
       loading: '正在加载集体智慧…',
@@ -4049,8 +4056,8 @@ export const zh = defineLocale({
       halfDesktop: '桌面',
       halfDesktopHint: '本应用，所有配置相同',
       halfAgent: '智能体',
-      halfAgentIn: (profile: string) => `${profile} 中的智能体`,
-      defaultProfile: 'Hermes(默认)',
+      halfAgentIn: (profile: string) => `${profile} 智能体`,
+      defaultProfile: 'Hermes(内置)',
       kindAgent: '智能体',
       kindDesktop: '桌面',
       kindBoth: '智能体 + 桌面',
@@ -4101,35 +4108,35 @@ export const zh = defineLocale({
         '点击任意插件上的「+ Add to this Agent」— 经过审核的条目会以其固定提交安装到所选配置，捆绑的 agent+桌面插件会同时提供两部分',
       alreadyInstalled: (name: string) => `${name} 已安装在此配置中`,
       catalogProvenance: (sha: string) => `从 Hermes 目录安装${sha ? `，固定提交 ${sha}` : ''}`,
-      pinnedProvenance: (sha: string) => `已固定到提交 ${sha}。重新固定前将拒绝更新`,
+      pinnedProvenance: (sha: string) => `已固定到提交 ${sha}，重新固定前将拒绝更新`,
       pinnedBadge: (sha: string) => `固定 @ ${sha}`,
       tierOfficial: '官方',
       tierCommunity: '社区',
       updateToPin: (sha: string) => `更新到 ${sha}`,
       updateFailed: (name: string) => `无法更新 ${name}`,
-      updated: (name: string) => `${name} 已更新到当前目录固定提交。重启网关后生效`,
+      updated: (name: string) => `${name} 已更新到当前目录固定提交，重启网关后生效`,
       desktopHalfRemote: '不可用（远程后端）',
       desktopHalfRemoteTip:
-        '此软件包的桌面部分位于远程后端的磁盘上，该应用无法读取它。要在此使用它，请运行从 Git 安装，并勾选该软件包的仓库 URL 和 Desktop 目标——这会将桌面部分克隆到此机器上。',
+        '此软件包的桌面部分位于远程后端的磁盘上，该应用无法读取它，要在此使用它，请运行从 Git 安装，并勾选该软件包的仓库 URL 和 Desktop 目标——这会将桌面部分克隆到此机器上',
       updateConsentTitle: (name: string) => `${name}请求更多`,
       updateConsentBody: (name: string, sha: string) =>
-        `The new catalog pin of ${name} (${sha})添加已安装版本没有的表面。 只有在你信任他们的情况下才应用:`,
+        `The new catalog pin of ${name} (${sha})添加已安装版本没有的表面，只有在你信任他们的情况下才应用:`,
       updateConsentConfirm: '应用更新',
       uninstall: '卸载',
       uninstallTip: (name: string, profile: string) => `卸载${name}来自${profile}`,
       uninstallConfirmTitle: (name: string) => `卸载${name}?`,
       uninstallConfirmBody: (name: string, profile: string) =>
-        `这会从${profile}配置文件中删除插件的文件。任何随附的桌面部分也会被移除。可以随时从目录或 Git 重新安装它`,
+        `这会从${profile}配置文件中删除插件的文件，任何随附的桌面部分也会被移除，可以随时从目录或 Git 重新安装它`,
       uninstallFailed: (name: string) => `无法卸载${name}`,
-      uninstalled: (name: string) => `${name}已卸载。重新启动网关以卸载它`,
+      uninstalled: (name: string) => `${name}已卸载，重新启动网关以卸载它`,
       uninstallDesktopTip: (name: string) => `卸载${name}从此应用程序`,
       uninstallDesktopConfirmBody: (name: string) =>
-        `这将删除${name}位于此计算机的桌面插件文件夹中的内容，并立即卸载它。您可以随时从 Git 重新安装或将文件夹放回`,
+        `这将删除${name}位于此计算机的桌面插件文件夹中的内容，并立即卸载它，您可以随时从 Git 重新安装或将文件夹放回`,
       uninstalledDesktop: (name: string) => `${name}已卸载`,
       deepLinkErrorTitle: '插件安装链接被拒绝',
-      deepLinkCatalogInvalidName: '链接的目录名称缺失或无效。',
+      deepLinkCatalogInvalidName: '链接的目录名称缺失或无效',
       deepLinkCatalogUnknown: (name: string) => `“${name}” is not in the Hermes plugin catalog. Nothing was installed.`,
-      deepLinkCatalogUnavailable: '无法加载 Hermes 插件目录。请检查您的连接并重新打开链接。',
+      deepLinkCatalogUnavailable: '无法加载 Hermes 插件目录，请检查您的连接并重新打开链接',
       settingsToggle: (name: string) => `设置：${name}`,
       settingsForm: {
         save: '保存设置',
@@ -4137,7 +4144,7 @@ export const zh = defineLocale({
         saveFailed: (name: string) => `无法保存${name}设置`,
         optional: '(可选)',
         secretSet: '(套数)',
-        secretStoredAs: (env: string) => `Stored in the profile's .env as ${env},绝不在 config.yaml;留空以保留当前值.`
+        secretStoredAs: (env: string) => `Stored in the profile's .env as ${env}，绝不在 config.yaml，留空以保留当前值`
       }
     },
     officialCatalog: '可安装',
@@ -4195,7 +4202,7 @@ export const zh = defineLocale({
       searchFailed: '技能中心搜索失败',
       installBlockedTitle: name => `无法安装${name}`,
       installBlockedMessage: (findings, unverified) =>
-        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '风险模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}。在决定是否信任作者之前读取扫描.`,
+        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '风险模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}，在决定是否信任作者之前读取扫描.`,
       viewScan: '查看扫描',
       openLog: '打开日志'
     },
@@ -6128,7 +6135,7 @@ export const zh = defineLocale({
     wakeWordPausedVoice: phrase => `唤醒词:"${phrase}" — 语音对话期间暂停`,
     wakeWordClickToEnable: '点击启用',
     lookupLoading: '查找中…',
-    lookupNoMatches: '没有匹配项。',
+    lookupNoMatches: '没有匹配项',
     lookupTry: '试试',
     lookupOr: '或',
     commonCommands: '常用命令',
@@ -6569,12 +6576,12 @@ export const zh = defineLocale({
   handoffTour: {
     profileTitle: '你的第一个任务在默认配置档案中运行',
     profileText:
-      '这里可以切换配置档案。当前高亮的是 default，任务会话就在其中。另一个是设置配置档案，欢迎对话保存在那里。',
+      '这里可以切换配置档案。当前高亮的是 default，任务会话就在其中。另一个是设置配置档案，欢迎对话保存在那里',
     sessionsTitle: '每个配置档案都有自己的会话',
     sessionsText:
-      '此列表属于默认配置档案。“新建会话”会在当前选中的配置档案中创建会话。在侧栏切换配置档案，列表也会随之切换。',
+      '此列表属于默认配置档案。“新建会话”会在当前选中的配置档案中创建会话。在侧栏切换配置档案，列表也会随之切换',
     stayTitle: '随时都能找到 Hermes',
-    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可。这个对话会一直保留。'
+    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可。这个对话会一直保留'
   },
   guidedGreeting: {
     line: '来了，进来吧。我是 Hermes。给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做。\n\n先说，我该怎么称呼你？',
@@ -6584,7 +6591,7 @@ export const zh = defineLocale({
     skip: '跳过',
     surfaces: '桌面 · 消息 · 手机 · 随处可用',
     prompt: '在 Blender 中制作一个主视觉立方体，并轮换展示几种材质',
-    replyWords: ['完成 — ', '材质已编译，', '并在立方体上完成预览。', '要导出转台动画吗？'],
+    replyWords: ['完成 — ', '材质已编译，', '并在立方体上完成预览', '要导出转台动画吗？'],
     composerPlaceholder: '尽管提问，随心创造',
     viewport: '视口',
     tagline: '你的智能体，无处不在',
@@ -6705,7 +6712,7 @@ export const zh = defineLocale({
       unconfirmedRunning: '第一个任务尚未确认启动，但会话仍显示正在运行。请在其空闲后重试；没有重复发送',
       notAcknowledged: '第一个任务尚未确认启动，请检查其会话后重试；没有重复发送',
       notAcknowledgedStart: '第一个任务未确认启动，请检查其会话后重试',
-      pluginFolderUnavailable: '桌面插件文件夹不可用，请在启动第一个任务前重试。'
+      pluginFolderUnavailable: '桌面插件文件夹不可用，请在启动第一个任务前重试'
     }
   },
   install: {
@@ -6872,7 +6879,7 @@ export const zh = defineLocale({
     connectedProvider: provider => `${provider} 已连接`,
     connectedPicking: provider => `${provider} 已连接。正在选择默认模型...`,
     signInFailed: '登录失败，请重试',
-    signInExpired: '在你完成之前，登录页面超时了。请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥。',
+    signInExpired: '在你完成之前，登录页面超时了。请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥',
     pickDifferentProvider: '选择其他提供方',
     signInWith: provider => `使用 ${provider} 登录`,
     openedBrowser: provider => `已在浏览器中打开 ${provider}`,
@@ -6934,14 +6941,14 @@ export const zh = defineLocale({
     tryAgain: '重试',
     startAgain: '重新开始',
     didNotComplete: '登录未完成',
-    rejectedBody: '没问题，你仍然在免费 Nous 服务上。随时准备好就可以登录。',
-    supersededBody: '较新的登录代码已取代此代码。请使用最新代码，或者重新开始。',
+    rejectedBody: '没问题，你仍然在免费 Nous 服务上。随时准备好就可以登录',
+    supersededBody: '较新的登录代码已取代此代码。请使用最新代码，或者重新开始',
     timedOutHeading: '该登录链接已过期',
-    timedOutBody: '随时准备好就可以重新开始。你仍然在免费 Nous 服务上。',
-    retiredBody: '在登录完成前，你的会话已结束。Hermes 将启动一个新的会话；然后随时准备好再次登录。',
-    errorBody: '登录未完成。准备好时请再次尝试。',
+    timedOutBody: '随时准备好就可以重新开始。你仍然在免费 Nous 服务上',
+    retiredBody: '在登录完成前，你的会话已结束。Hermes 将启动一个新的会话；然后随时准备好再次登录',
+    errorBody: '登录未完成。准备好时请再次尝试',
     alreadySignedInHeading: '已登录',
-    alreadySignedInBody: '此 Hermes 已登录 Nous 账户。',
+    alreadySignedInBody: '此 Hermes 已登录 Nous 账户',
     busyHeading: '马上就到了',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间.`,
@@ -7294,15 +7301,15 @@ export const zh = defineLocale({
   },
   interfaceMode: {
     title: '界面模式',
-    hint: '只改变显示的内容，不改变 Hermes 的能力。',
-    sessionNote: '由简洁模式设定。此处的更改仅在本次会话内生效；切换到高级模式即可保留为你的设置。',
+    hint: '只改变显示的内容，不改变 Hermes 的能力',
+    sessionNote: '由简洁模式设定。此处的更改仅在本次会话内生效；切换到高级模式即可保留为你的设置',
     simple: {
       label: '简洁',
-      description: '用于与 Hermes 对话。只有侧边栏和聊天；没有终端、文件或差异面板。'
+      description: '用于与 Hermes 对话。只有侧边栏和聊天；没有终端、文件或差异面板'
     },
     advanced: {
       label: '高级',
-      description: '面向开发者。终端、文件、差异、状态栏和布局，按你的设置显示。'
+      description: '面向开发者。终端、文件、差异、状态栏和布局，按你的设置显示'
     }
   },
 
@@ -7502,15 +7509,15 @@ export const zh = defineLocale({
       dismissError: '关闭错误',
       errorGenericProvider: 'AI 服务',
       errorLayerBodies: {
-        auth: 'AI 服务拒绝了登录凭据。请检查此提供商的凭据，然后重新发送消息。',
-        billing: '此提供商账户的额度已用尽。请充值或切换提供商，然后重新发送。',
-        disk: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试。',
-        generic: 'Hermes 回复时出现问题。请重试；若问题持续，请复制错误详情。',
-        provider: 'AI 服务无法完成此请求。请稍后重试或切换服务商。',
-        endpoint: 'Hermes 无法连接到你的自定义模型服务器。请确认它正在运行，然后重新发送消息。',
-        gateway: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息。',
-        runtime: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息。',
-        streaming: '回复完成前连接已断开。请重试以重新发送。'
+        auth: 'AI 服务拒绝了登录凭据。请检查此提供商的凭据，然后重新发送消息',
+        billing: '此提供商账户的额度已用尽。请充值或切换提供商，然后重新发送',
+        disk: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试',
+        generic: 'Hermes 回复时出现问题。请重试；若问题持续，请复制错误详情',
+        provider: 'AI 服务无法完成此请求。请稍后重试或切换服务商',
+        endpoint: 'Hermes 无法连接到你的自定义模型服务器。请确认它正在运行，然后重新发送消息',
+        gateway: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息',
+        runtime: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息',
+        streaming: '回复完成前连接已断开。请重试以重新发送'
       },
       errorCodes: {
         auth: {
@@ -7567,7 +7574,7 @@ export const zh = defineLocale({
         },
         stream_drop: {
           title: '回复被中断',
-          body: '连接在回复完成前已中断。请重试以重新发送。'
+          body: '连接在回复完成前已中断。请重试以重新发送'
         },
         upstream_blocked: {
           title: '请求被防火墙拦截',
@@ -7580,11 +7587,11 @@ export const zh = defineLocale({
         },
         context_overflow: {
           title: '此对话过长',
-          body: '对话内容已超出模型上下文。请压缩对话或新建对话，然后重新发送。'
+          body: '对话内容已超出模型上下文。请压缩对话或新建对话，然后重新发送'
         },
         payload_too_large: {
           title: '此消息过大',
-          body: '请求内容超出模型限制。请压缩对话或新建对话，然后重新发送。'
+          body: '请求内容超出模型限制。请压缩对话或新建对话，然后重新发送'
         },
         model_not_found: {
           title: '此模型不可用',
@@ -7592,47 +7599,47 @@ export const zh = defineLocale({
         },
         truncated: {
           title: '回复未完整生成',
-          body: '模型在完成回复前停止了。请重试以获取完整回复。'
+          body: '模型在完成回复前停止了。请重试以获取完整回复'
         },
         loop_error: {
           title: 'Hermes 陷入循环',
-          body: '回复持续重复相同步骤，因此 Hermes 已停止运行。请重试；若再次发生，可新建对话。'
+          body: '回复持续重复相同步骤，因此 Hermes 已停止运行。请重试；若再次发生，可新建对话'
         },
         SESSION_NOT_OWNED: {
           title: '此对话已在其他位置打开',
-          body: '此对话当前正在另一个 Hermes 窗口或终端中打开。请先在那里关闭，然后重新发送；也可以在这里新建对话。'
+          body: '此对话当前正在另一个 Hermes 窗口或终端中打开。请先在那里关闭，然后重新发送；也可以在这里新建对话'
         },
         disk_full: {
           title: '磁盘已满',
-          body: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试。'
+          body: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试'
         },
         free_tier_disabled: {
           title: '未登录的免费服务当前已关闭',
-          body: '登录免费的 Nous 账户即可继续对话。'
+          body: '登录免费的 Nous 账户即可继续对话'
         },
         free_tier_rate_limited: {
           title: '未登录聊天额度已用尽',
-          body: '额度很快会恢复。登录免费的 Nous 账户可获得更高额度。'
+          body: '额度很快会恢复。登录免费的 Nous 账户可获得更高额度'
         },
         free_tier_at_capacity: {
           title: '未登录聊天当前繁忙',
-          body: '登录免费账户可跳过队列，也可以稍后重试。'
+          body: '登录免费账户可跳过队列，也可以稍后重试'
         },
         free_tier_model_not_free: {
           title: '未登录时无法使用此模型',
-          body: 'Hermes 当前使用免费模型。登录免费的 Nous 账户可使用更多模型。'
+          body: 'Hermes 当前使用免费模型。登录免费的 Nous 账户可使用更多模型'
         },
         free_tier_route: {
           title: 'Hermes 无法访问此路由上的免费模型',
-          body: '请登录免费的 Nous 账户，或检查 NOUS_INFERENCE_BASE_URL 设置。'
+          body: '请登录免费的 Nous 账户，或检查 NOUS_INFERENCE_BASE_URL 设置'
         },
         free_tier_outage: {
           title: '免费模型暂时无法响应',
-          body: '请稍后重新发送消息。'
+          body: '请稍后重新发送消息'
         },
         free_tier_refused: {
           title: '未登录时无法发送此消息',
-          body: '请登录免费的 Nous 账户后继续。'
+          body: '请登录免费的 Nous 账户后继续'
         }
       },
       errorLayers: {
@@ -7701,7 +7708,7 @@ export const zh = defineLocale({
       errorSignInFreeTier: '用 Nous 账户签名'
     },
     approval: {
-      gatewayDisconnected: 'Hermes 目前离线。该命令仍在等待您的回复（直到批准超时）。重新连接后，再次发送它。',
+      gatewayDisconnected: 'Hermes 目前离线。该命令仍在等待您的回复（直到批准超时）。重新连接后，再次发送它',
       sendFailed: '无法发送您的答案',
       run: '运行',
       command: '命令',
@@ -7720,7 +7727,7 @@ export const zh = defineLocale({
     },
     clarify: {
       notReady: '澄清请求尚未就绪',
-      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送。',
+      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送',
       sendFailed: '无法发送澄清响应',
       loadingQuestion: '正在加载问题…',
       other: '其他 (输入你的答案)',
@@ -7751,7 +7758,7 @@ export const zh = defineLocale({
       kind: { plugin: '插件', skill: '技能' },
       tier: { official: '官方', community: '社区' },
       targetProfile: profile => `安装到你的 ${profile} 配置文件`,
-      sendFailed: '无法发送你的回复，请重试。',
+      sendFailed: '无法发送你的回复，请重试',
       commitLabel: '提交',
       subdirLabel: '文件夹',
       securityHeading: '安全',
@@ -7774,7 +7781,7 @@ export const zh = defineLocale({
       envRequired: '请先填写所需凭据',
       sendFailed: '无法发送 MCP 设置响应',
       reloadFailed: '服务器已保存，但重新加载 MCP 工具失败 — 将在下个会话加载',
-      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送。'
+      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送'
     },
     tool: {
       copyCode: '复制代码',

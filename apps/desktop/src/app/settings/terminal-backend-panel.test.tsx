@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider } from '@/i18n'
 import { deferred } from '@/test/deferred'
 import type { TerminalBackendsResponse } from '@/types/hermes'
 
@@ -40,7 +41,7 @@ function backends(overrides: Partial<TerminalBackendsResponse> = {}): TerminalBa
         description: 'Run commands in an isolated Docker container.',
         active: false,
         status: 'needs_setup',
-        detail: 'Docker daemon not reachable — start Docker and retry.'
+        detail: 'Docker not reachable — start Docker and retry.'
       },
       {
         name: 'ssh',
@@ -102,7 +103,7 @@ describe('TerminalBackendPanel', () => {
     expect(confirmMock).toHaveBeenCalledWith(
       expect.objectContaining({
         title: expect.stringContaining('Docker'),
-        description: expect.stringContaining('Docker daemon not reachable')
+        description: expect.stringContaining('Docker not reachable')
       })
     )
     // Must not select while the confirm dialog is still pending.
@@ -112,7 +113,7 @@ describe('TerminalBackendPanel', () => {
 
     await waitFor(() => expect(selectTerminalBackend).toHaveBeenCalledWith('docker'))
     // The guidance detail stays visible on the now-active row.
-    expect(screen.getByText(/Docker daemon not reachable/)).toBeTruthy()
+    expect(screen.getByText(/Docker not reachable/)).toBeTruthy()
   })
 
   it('does not select a needs_setup backend when the confirm dialog is declined', async () => {
@@ -134,6 +135,18 @@ describe('TerminalBackendPanel', () => {
     })
 
     expect(selectTerminalBackend).not.toHaveBeenCalled()
+  })
+
+  it('localizes the live Docker availability warning in Chinese', async () => {
+    const { TerminalBackendPanel } = await import('./terminal-backend-panel')
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <TerminalBackendPanel onConfiguredChange={vi.fn()} />
+      </I18nProvider>
+    )
+
+    expect(await screen.findByText('无法连接 Docker — 请启动 Docker 后重试')).toBeTruthy()
+    expect(screen.queryByText('Docker not reachable — start Docker and retry.')).toBeNull()
   })
 
   it('does not re-select the already active backend', async () => {

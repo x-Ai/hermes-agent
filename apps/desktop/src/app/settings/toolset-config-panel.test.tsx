@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router'
 import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider } from '@/i18n'
 import type { ToolsetConfig } from '@/types/hermes'
 
 // Collect the component graph before the behavioral test deadline starts.
@@ -928,6 +929,76 @@ describe('ToolsetConfigPanel', () => {
       await waitFor(() => expect(selectToolsetProvider).toHaveBeenCalledWith('web', 'Firecrawl', 'search'))
       // Badge tracks the local write without a refetch.
       await waitFor(() => expect(screen.getByText('Search: firecrawl')).toBeTruthy())
+    })
+
+    it('localizes dynamic badges and provider explanations in Chinese', async () => {
+      const tag =
+        'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend'
+      const managedTag =
+        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription'
+      getToolsetConfig.mockResolvedValue(
+        webConfig({
+          active_provider: 'OpenAI Native Web Search (Codex Responses)',
+          providers: [
+            {
+              name: 'OpenAI Native Web Search (Codex Responses)',
+              badge: 'native',
+              tag,
+              env_vars: [],
+              post_setup: null,
+              requires_nous_auth: false,
+              is_active: true,
+              status: 'ready',
+              web_backend: 'openai_native',
+              capabilities: ['search']
+            },
+            {
+              name: 'Firecrawl',
+              badge: 'keyless/paid · optional gateway',
+              tag: 'Full search + extract',
+              env_vars: [],
+              post_setup: null,
+              requires_nous_auth: false,
+              is_active: false,
+              status: 'ready',
+              web_backend: 'firecrawl',
+              capabilities: ['search', 'extract']
+            },
+            {
+              name: 'Nous Subscription',
+              badge: 'subscription',
+              tag: managedTag,
+              env_vars: [],
+              post_setup: null,
+              requires_nous_auth: true,
+              is_active: false,
+              status: 'needs_auth'
+            }
+          ]
+        })
+      )
+
+      render(
+        <I18nProvider configClient={null} initialLocale="zh">
+          <ToolsetConfigPanel onConfiguredChange={vi.fn()} toolset="web" />
+        </I18nProvider>
+      )
+
+      expect(await screen.findByText('原生')).toBeTruthy()
+      expect(screen.getByText('免密钥/付费 · 可选网关')).toBeTruthy()
+      expect(
+        screen.getByText(
+          '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex）；仅支持搜索，内容提取仍使用其他后端'
+        )
+      ).toBeTruthy()
+      expect(screen.queryByText('native')).toBeNull()
+      expect(screen.queryByText(tag)).toBeNull()
+
+      fireEvent.click(screen.getByRole('button', { name: /Nous Subscription/ }))
+      expect(
+        await screen.findByText('托管图像生成（FAL、Krea 2、Nous Portal 模型），费用计入你的订阅')
+      ).toBeTruthy()
+      expect(screen.queryByText(managedTag)).toBeNull()
     })
   })
 })

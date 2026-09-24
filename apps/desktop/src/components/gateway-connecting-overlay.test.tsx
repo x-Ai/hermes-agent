@@ -1,6 +1,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import { I18nProvider, LOCALE_STORAGE_KEY } from '@/i18n'
 import { $desktopBoot } from '@/store/boot'
 import { $gatewaySwitching } from '@/store/gateway-switch'
 import { $desktopOnboarding } from '@/store/onboarding'
@@ -50,7 +51,10 @@ function resetStores() {
 }
 
 beforeEach(resetStores)
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  window.localStorage.removeItem(LOCALE_STORAGE_KEY)
+})
 
 // The connecting overlay renders "CONN" + a scrambled tail inside one
 // uppercase span; match that node specifically so the recovery overlay's
@@ -62,6 +66,22 @@ const isRecoveryShown = () =>
   Boolean(screen.queryByText(/use local gateway/i) || screen.queryByText(/retry/i) || screen.queryByText(/sign in/i))
 
 describe('connecting overlay vs recovery surface', () => {
+  it('uses the cached Chinese locale on the initial boot frame', async () => {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, 'zh')
+    $desktopBoot.set({ ...$desktopBoot.get(), progress: 10, running: true, visible: true })
+
+    await act(async () => {
+      render(
+        <I18nProvider configClient={null}>
+          <GatewayConnectingOverlay />
+        </I18nProvider>
+      )
+    })
+
+    expect(screen.getByText('连接中')).toBeTruthy()
+    expect(screen.queryByText('CONNECTING')).toBeNull()
+  })
+
   it('post-boot socket drops do not re-cover the app with the initial CONNECTING overlay', async () => {
     // 1. Initial boot succeeded: gateway opened, boot completed (no error).
     setGatewayState('open')
