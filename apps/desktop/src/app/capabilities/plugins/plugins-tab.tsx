@@ -267,8 +267,9 @@ function PackageRow({
   const d = t.settings.plugins
   const desktop = pkg.desktop
   const agent = pkg.agent
-  const displayName = desktop?.localizedName?.[locale] ?? pkg.name
   const agentKey = agent?.key ?? agent?.name ?? ''
+  const bundledName = agent?.source === 'bundled' ? p.bundledNames[agentKey] : undefined
+  const displayName = desktop?.localizedName?.[locale] ?? bundledName ?? pkg.name
 
   const displayDescription =
     desktop?.localizedDescription?.[locale] ?? p.bundledDescriptions[agentKey] ?? pkg.description

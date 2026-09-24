@@ -3775,11 +3775,11 @@ export const zh = defineLocale({
       kindBoth: '智能体 + 桌面',
       installAgentHere: '在此安装',
       installAgentHereTip: (profile: string) =>
-        `桌面部分已加载到本应用，但 agent 部分尚未安装到 ${profile}。在那里安装它`,
+        `桌面部分已加载到本应用，但 agent 部分尚未安装到 ${profile}，在那里安装它`,
       installAgentHereNoOrigin:
         '此配置未安装 agent 部分，且该包是手动复制的（无目录条目或 git 远程），无法从此处安装，请将其文件夹复制到该配置或从 Git 重新安装',
       desktopHalfPending: '复制中…',
-      desktopHalfPendingTip: '此包附带的桌面部分尚未复制到应用中。请重新扫描或重启应用',
+      desktopHalfPendingTip: '此包附带的桌面部分尚未复制到应用中，请重新扫描或重启应用',
       emptyAll: '还没有插件',
       empty: '此配置尚未安装任何 agent 插件',
       emptyHint: '在下方目录中浏览，一键安装经过审核的插件',
@@ -3787,11 +3787,15 @@ export const zh = defineLocale({
       toggleFailed: (name: string) => `无法切换 ${name}`,
       legacyBackend: '此后端版本较旧，不支持按键名切换插件 — 请更新 Hermes 后再在此管理',
       portableBadge: '便携',
+      bundledNames: {
+        'disk-cleanup': '临时文件清理',
+        'security-guidance': '安全编码指引'
+      },
       bundledDescriptions: {
         'disk-cleanup':
-          '自动追踪并清理 Hermes 会话期间产生的临时文件（测试脚本、临时输出、定时任务日志）。通过插件钩子运行，无需智能体介入。',
+          '自动追踪并清理 Hermes 会话期间产生的临时文件（测试脚本、临时输出、定时任务日志），通过插件钩子运行，无需智能体介入',
         'security-guidance':
-          '当新写入的内容包含已知危险模式时，在文件写入工具结果中附加安全警告。包含 25 条基于 Anthropic claude-plugins-official 改编的规则；不会阻止写入，并会在下一轮把警告反馈给模型以便自行修正。'
+          '当新写入的内容包含已知危险模式时，在文件写入工具结果中附加安全警告。包含 25 条基于 Anthropic claude-plugins-official 改编的规则，不会阻止写入，并会在下一轮把警告反馈给模型以便自行修正'
       },
       sourceLabels: {
         bundled: '内置',
@@ -3994,6 +3998,7 @@ export const zh = defineLocale({
       clarify: '澄清问题',
       delegation: '任务委派',
       cronjob: '定时任务',
+      kanban: '看板',
       discord: 'Discord（阅读/参与）',
       discord_admin: 'Discord 服务器管理',
       yuanbao: '元宝',

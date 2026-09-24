@@ -2271,6 +2271,7 @@ export interface Translations {
         missing_app: string
         unknown: string
       }
+      bundledNames: Record<string, string>
       bundledDescriptions: Record<string, string>
       sourceLabels: Record<string, string>
       catalogTitle: string

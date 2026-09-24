@@ -95,7 +95,7 @@ describe('PluginsTab', () => {
     expect(screen.getByText(/No plugins yet/)).toBeTruthy()
   })
 
-  it('uses localized descriptions for manageable bundled plugins', () => {
+  it('uses localized names and descriptions for manageable bundled plugins', () => {
     $agentPlugins.set([
       {
         description: 'Raw backend description',
@@ -104,6 +104,14 @@ describe('PluginsTab', () => {
         source: 'bundled',
         status: 'enabled',
         version: '2.0.0'
+      },
+      {
+        description: 'Raw security description',
+        key: 'security-guidance',
+        name: 'security-guidance',
+        source: 'bundled',
+        status: 'enabled',
+        version: '0.1.0'
       }
     ])
 
@@ -113,8 +121,36 @@ describe('PluginsTab', () => {
       </I18nProvider>
     )
 
+    expect(screen.getByText(zh.skills.plugins.bundledNames['disk-cleanup'])).toBeTruthy()
+    expect(screen.queryByText('disk-cleanup')).toBeNull()
     expect(screen.getByText(zh.skills.plugins.bundledDescriptions['disk-cleanup'])).toBeTruthy()
+    expect(screen.getByText(zh.skills.plugins.bundledNames['security-guidance'])).toBeTruthy()
+    expect(screen.queryByText('security-guidance')).toBeNull()
+    expect(screen.getByText(zh.skills.plugins.bundledDescriptions['security-guidance'])).toBeTruthy()
     expect(screen.queryByText('Raw backend description')).toBeNull()
+    expect(screen.queryByText('Raw security description')).toBeNull()
+  })
+
+  it('keeps a non-bundled plugin name when it matches a bundled plugin id', () => {
+    $agentPlugins.set([
+      {
+        description: 'User-owned replacement',
+        key: 'disk-cleanup',
+        name: 'disk-cleanup',
+        source: 'user',
+        status: 'enabled',
+        version: '3.0.0'
+      }
+    ])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('disk-cleanup')).toBeTruthy()
+    expect(screen.queryByText(zh.skills.plugins.bundledNames['disk-cleanup'])).toBeNull()
   })
 
   // A desktop half can only be copied out of a backend that runs on THIS

@@ -3228,6 +3228,7 @@ export const en: Translations = {
         missing_app: 'app missing',
         unknown: 'status unknown'
       },
+      bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
         bundled: 'bundled',

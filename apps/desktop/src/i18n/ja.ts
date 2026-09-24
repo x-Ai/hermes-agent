@@ -3179,6 +3179,7 @@ export const ja = defineLocale({
       legacyBackend:
         'このバックエンドは、キーアドレス指定プラグインの切り替えよりも前から存在します。ここで管理するには、Hermes を更新してください。',
       portableBadge: 'ポータブル',
+      bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
         bundled: 'バンドルされた',

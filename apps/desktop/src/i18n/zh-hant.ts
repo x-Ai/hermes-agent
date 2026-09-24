@@ -3277,6 +3277,10 @@ export const zhHant = defineLocale({
       toggleFailed: (name: string) => `無法切換${name}`,
       legacyBackend: '該後端早於按鍵尋址插件切換 - 更新 Hermes 以在此處管理它。',
       portableBadge: '隨身攜帶',
+      bundledNames: {
+        'disk-cleanup': '暫存檔清理',
+        'security-guidance': '安全編碼指引'
+      },
       bundledDescriptions: {},
       sourceLabels: {
         bundled: '捆綁的',
@@ -3477,6 +3481,7 @@ export const zhHant = defineLocale({
       clarify: '澄清問題',
       delegation: '任務委派',
       cronjob: '排程任務',
+      kanban: '看板',
       discord: 'Discord（閱讀/參與）',
       discord_admin: 'Discord 伺服器管理',
       yuanbao: '元寶',

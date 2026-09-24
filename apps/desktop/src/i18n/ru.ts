@@ -2811,6 +2811,7 @@ export const ru = defineLocale({
       legacyBackend:
         'Этот бэкэнд предшествует переключателям плагинов с адресацией по ключу — обновите Hermes, чтобы управлять им здесь.',
       portableBadge: 'портативный',
+      bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
         bundled: 'упакованный',

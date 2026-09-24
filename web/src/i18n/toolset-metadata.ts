@@ -26,6 +26,7 @@ const ZH_TOOLSET_LABELS: Record<string, string> = {
   clarify: "澄清问题",
   delegation: "任务委派",
   cronjob: "定时任务",
+  kanban: "看板",
   discord: "Discord（阅读/参与）",
   discord_admin: "Discord 服务器管理",
   yuanbao: "元宝",

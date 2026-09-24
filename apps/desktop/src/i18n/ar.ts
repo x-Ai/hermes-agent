@@ -2728,6 +2728,7 @@ export const ar = defineLocale({
       toggleFailed: (name: string) => `تعذر التبديل${name}`,
       legacyBackend: 'وتسبق هذه المساندة نظارات البلوجين ذات الصبغة الرئيسية - تحديث Hermes لإدارة ذلك المكان.',
       portableBadge: 'محمول',
+      bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
         bundled: 'موجود في حزمة',

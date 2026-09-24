@@ -11,6 +11,7 @@ import {
 describe("toolset metadata localization", () => {
   it("matches the Desktop Chinese toolset identity copy", () => {
     expect(localizeToolsetLabel("web", "🔍 Web Search & Scraping", "zh")).toBe("网页搜索与抓取");
+    expect(localizeToolsetLabel("kanban", "Kanban", "zh")).toBe("看板");
     expect(localizeToolsetDescription("web", "web_search, web_extract", "zh")).toBe("网页搜索与内容提取");
     expect(localizeToolsetDescription("a2a", "A2A protocol", "zh")).toContain("双向代理间通信");
   });

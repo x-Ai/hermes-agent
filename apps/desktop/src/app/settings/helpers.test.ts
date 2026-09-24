@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { zh } from '@/i18n/zh'
 import type { HermesConfigRecord } from '@/types/hermes'
 
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
@@ -12,7 +13,8 @@ import {
   providerGroup,
   sectionFieldEntries,
   setNested,
-  stripToolsetLabel
+  stripToolsetLabel,
+  toolsetDisplayLabel
 } from './helpers'
 
 describe('settings helpers', () => {
@@ -125,6 +127,15 @@ describe('settings helpers', () => {
     })
   })
 
+  describe('toolsetDisplayLabel', () => {
+    it('strips emoji from toolset rows', () => {
+      expect(toolsetDisplayLabel({ name: 'cronjob', label: '⏰ Cron Jobs' })).toBe('Cron Jobs')
+    })
+
+    it('uses the localized toolset name when the locale catalog provides one', () => {
+      expect(toolsetDisplayLabel({ name: 'kanban', label: 'Kanban' }, zh)).toBe('看板')
+    })
+  })
   describe('providerGroup', () => {
     it('prefers the longest matching prefix so CN/regional buckets win', () => {
       // MINIMAX_CN_ must beat the generic MINIMAX_ prefix.
