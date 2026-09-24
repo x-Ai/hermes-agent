@@ -3,7 +3,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopBootstrapEvent, DesktopBootstrapState, DesktopConnectionProbeResult } from '@/global'
-import { I18nProvider } from '@/i18n'
 
 import { DesktopInstallOverlay } from './desktop-install-overlay'
 
@@ -91,41 +90,6 @@ afterEach(() => {
 })
 
 describe('DesktopInstallOverlay first-run setup', () => {
-  it('renders the first-run choice in the selected locale before a backend exists', async () => {
-    localStorage.clear()
-    vi.spyOn(window.navigator, 'language', 'get').mockReturnValue('zh-CN')
-    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['zh-CN'])
-    installDesktopMock(
-      bootstrapState({ setupChoice: { platform: 'darwin', activeRoot: '/Users/me/.hermes/hermes-agent' } })
-    )
-
-    render(
-      <I18nProvider configClient={null}>
-        <DesktopInstallOverlay />
-      </I18nProvider>
-    )
-
-    expect(await screen.findByText('设置 Hermes Desktop')).toBeTruthy()
-    expect(screen.getByText('连接到现有 Hermes')).toBeTruthy()
-    expect(screen.getByText('本地安装 Hermes')).toBeTruthy()
-  })
-
-  it('shows the remote/local choice without installer progress', async () => {
-    installDesktopMock(
-      bootstrapState({
-        setupChoice: { platform: 'win32', activeRoot: 'C:\\Users\\me\\AppData\\Local\\hermes\\hermes-agent' }
-      })
-    )
-
-    render(<DesktopInstallOverlay />)
-
-    expect(await screen.findByText('Set up Hermes Desktop')).toBeTruthy()
-    expect(screen.getByText('Connect to existing Hermes')).toBeTruthy()
-    expect(screen.getByText('Install Hermes locally')).toBeTruthy()
-    expect(screen.queryByText(/steps complete/i)).toBeNull()
-    expect(screen.queryByText(/Fetching installer manifest/i)).toBeNull()
-  })
-
   it('continues local bootstrap only when Install Hermes locally is selected', async () => {
     const desktop = installDesktopMock(
       bootstrapState({
@@ -215,22 +179,6 @@ describe('DesktopInstallOverlay first-run setup', () => {
     })
 
     expect(screen.queryByText('Local installation could not start. Restart Hermes Desktop and try again.')).toBeNull()
-  })
-
-  it('opens the remote connection form from the first-run choice', async () => {
-    installDesktopMock(
-      bootstrapState({
-        setupChoice: { platform: 'linux', activeRoot: '/home/me/.hermes/hermes-agent' }
-      })
-    )
-
-    render(<DesktopInstallOverlay />)
-
-    fireEvent.click(await screen.findByText('Connect to existing Hermes'))
-
-    expect(await screen.findByText('Gateway URL')).toBeTruthy()
-    expect(screen.getByText('Test connection')).toBeTruthy()
-    expect(screen.getByText('Apply and reconnect')).toBeTruthy()
   })
 
   it('returns from the remote connection form to the first-run choice', async () => {

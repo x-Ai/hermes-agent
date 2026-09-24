@@ -9,7 +9,8 @@ import type { BillingPlanCardView } from './use-billing-state'
 import { useResumeFlow } from './use-subscription-change'
 
 export function CurrentPlanCard({ onViewPlans, plan }: { onViewPlans: () => void; plan: BillingPlanCardView }) {
-  const copy = useI18n().t.billingPage
+  const { t } = useI18n()
+  const b = t.settings.billing
   const resumeFlow = useResumeFlow()
 
   return (
@@ -24,7 +25,7 @@ export function CurrentPlanCard({ onViewPlans, plan }: { onViewPlans: () => void
               </span>
               {plan.price && (
                 <span className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                  {copy.perMonth(plan.price)}
+                  {b.perMonth(plan.price)}
                 </span>
               )}
             </div>
@@ -42,7 +43,7 @@ export function CurrentPlanCard({ onViewPlans, plan }: { onViewPlans: () => void
           {/* Scheduled downgrade → chargeless undo (subscription.resume), no confirm. */}
           {plan.pending && (
             <Button disabled={resumeFlow.busy} onClick={() => void resumeFlow.resume()} size="sm" type="button">
-              {resumeFlow.busy ? copy.undoing : copy.undo}
+              {resumeFlow.busy ? b.plan.undoing : b.plan.undo}
             </Button>
           )}
           {plan.link && (

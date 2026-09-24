@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
 import type * as React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
-import { getWisdomEntitlement } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
@@ -17,9 +15,8 @@ import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { PanelEmpty } from '../overlays/panel'
 import { PageSearchShell } from '../page-search-shell'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
-import { CollectiveTab } from '../skills/collective-tab'
 
-import { McpTab } from './mcp/mcp-tab'
+import { ConnectorsTab } from './connectors/connectors-tab'
 import { PluginsTab } from './plugins/plugins-tab'
 import { CapabilityScopeSelector, useCapabilityScope } from './scope-selector'
 import { EmbeddedHubPicker } from './skills/embedded-hub-picker'
@@ -31,7 +28,7 @@ import { ToolsetsTab } from './toolsets/toolsets-tab'
 
 // Skills Hub browsing lives inside the Skills tab. Legacy `?tab=hub`
 // links fall back to 'skills' via useRouteEnumParam.
-const CAPABILITY_MODES = ['skills', 'toolsets', 'mcp', 'plugins', 'collective'] as const
+const CAPABILITY_MODES = ['skills', 'toolsets', 'connectors', 'plugins'] as const
 
 type CapabilityMode = (typeof CAPABILITY_MODES)[number]
 
@@ -71,9 +68,7 @@ export function CapabilitiesView({
   const routeTab = useRouteEnumParam('tab', CAPABILITY_MODES, 'skills')
   const localTab = useState<CapabilityMode>('skills')
   const [mode, setMode] = embedded ? localTab : routeTab
-  // $gateway only feeds the MCP tab — gate the subscription so Skills/Toolsets
-  // tabs don't re-render on connect/disconnect/reconnect.
-  const gateway = useStoreSelector($gateway, g => (mode === 'mcp' ? g : null))
+  const gateway = useStoreSelector($gateway, g => (mode === 'connectors' ? g : null))
 
   const [query, setQuery] = useState('')
 
@@ -85,24 +80,6 @@ export function CapabilitiesView({
   }
 
   const scope = useCapabilityScope({ fixedConnection, fixedProfile })
-
-  const wisdomEntitlement = useQuery({
-    queryKey: ['wisdom-entitlement', scope.key],
-    queryFn: () => getWisdomEntitlement(scope.profile),
-    staleTime: 0,
-    refetchInterval: 15_000,
-    retry: false
-  })
-
-  const wisdomEntitled =
-    wisdomEntitlement.data?.entitled === true &&
-    (wisdomEntitlement.data.expires_at === null || wisdomEntitlement.data.expires_at * 1000 > Date.now())
-
-  useEffect(() => {
-    if (mode === 'collective' && !wisdomEntitled && !wisdomEntitlement.isFetching) {
-      setMode('skills')
-    }
-  }, [mode, setMode, wisdomEntitled, wisdomEntitlement.isFetching])
 
   // The two installed lists the tab pills count. They are fetched here, as a
   // pair, because the counts stay live for the tab the user is NOT on.
@@ -157,16 +134,16 @@ export function CapabilitiesView({
     <PageLoader label={t.skills.loading} />
   )
 
-  // One entry per tab. Each is keyed on the scope so switching profile or
-  // connection is a fresh tab — never one profile's selection, open editor or
-  // pending install left standing over another profile's backend.
   const tabContent = {
     // The gateway instance backs ONLY the live `reload.mcp` RPC, and it is the
     // ACTIVE gateway's socket — for a scope pinned to a different backend that
-    // RPC would hot-reload the wrong machine's MCP servers, so it is withheld
     // (config edits still apply on that backend's next session).
-    mcp: () => (
-      <McpTab gateway={scope.crossBackend ? null : gateway} key={`mcp-${scope.key}`} profile={scope.profile} />
+    connectors: () => (
+      <ConnectorsTab
+        gateway={scope.crossBackend ? null : gateway}
+        key={`connectors-${scope.key}`}
+        profile={scope.profile}
+      />
     ),
     // Agent plugins for the scoped profile (selector in the section header),
     // app-level desktop plugins, and the docs catalog picker underneath.
@@ -189,8 +166,7 @@ export function CapabilitiesView({
     ),
     toolsets: () => (
       <ToolsetsTab key={`toolsets-${scope.key}`} profile={scope.profile} query={query} toolsets={toolsets ?? []} />
-    ),
-    collective: () => <CollectiveTab key={`collective-${scope.key}`} profile={scope.profile} query={query} />
+    )
   } satisfies Record<CapabilityMode, () => React.ReactNode>
 
   return (
@@ -199,29 +175,18 @@ export function CapabilitiesView({
       activeTab={mode}
       onSearchChange={setQuery}
       onTabChange={id => setMode(id as CapabilityMode)}
-      // MCP manages a handful of entries with the editor right there —
-      // searching it is noise.
-      searchHidden={mode === 'mcp' || mode === 'plugins'}
+      // The Connectors directory owns its search field; plugins has its own list.
+      searchHidden={mode === 'connectors' || mode === 'plugins'}
       searchHints={searchHints}
-      searchPlaceholder={
-        mode === 'skills'
-          ? t.skills.searchSkills
-          : mode === 'collective'
-            ? t.skills.searchCollective
-            : t.skills.searchToolsets
-      }
+      searchPlaceholder={mode === 'skills' ? t.skills.searchSkills : t.skills.searchToolsets}
       searchValue={query}
       tabs={[
         { id: 'skills', label: t.skills.tabSkills, meta: skills?.length ?? null },
         { id: 'toolsets', label: t.skills.tabToolsets, meta: toolsets ? visibleToolsetCount(toolsets) : null },
-        { id: 'mcp', label: t.skills.tabMcp },
-        { id: 'plugins', label: t.skills.tabPlugins },
-        ...(wisdomEntitled ? [{ id: 'collective', label: t.skills.tabCollective }] : [])
+        { id: 'connectors', label: t.connectorsPage.title },
+        { id: 'plugins', label: t.skills.tabPlugins }
       ]}
     >
-      {/* One shared column: the scope selector sits above whichever tab is
-          active, so Skills / Tools / MCP all read and write the SAME selected
-          profile. */}
       <div className="flex h-full flex-col">
         {mode !== 'plugins' && <CapabilityScopeSelector scope={scope} />}
         <div className="flex min-h-0 flex-1 flex-col">

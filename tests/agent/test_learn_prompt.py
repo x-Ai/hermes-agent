@@ -7,10 +7,10 @@ these are the load-bearing behavior contracts.
 """
 
 from agent.learn_prompt import (
-    build_learn_prompt,
     _AUTHORING_STANDARDS,
     _KNOWLEDGE_SKILL_STANDARDS,
     _SOURCE_HYGIENE,
+    build_learn_prompt,
 )
 
 
@@ -114,16 +114,9 @@ class TestBuildLearnPrompt:
 
 
 class TestLearnRegistryWiring:
-    def test_learn_is_registered_and_resolves(self):
-        from hermes_cli.commands import resolve_command
-
-        cmd = resolve_command("learn")
-        assert cmd is not None
-        assert cmd.name == "learn"
-
-
-
     def test_learn_is_not_cli_only(self):
         from hermes_cli.commands import resolve_command
 
-        assert not resolve_command("learn").cli_only
+        cmd = resolve_command("learn")
+        assert cmd is not None and cmd.name == "learn"
+        assert not cmd.cli_only

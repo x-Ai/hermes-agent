@@ -199,7 +199,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
 
     if (!target) {
       setPhase('error')
-      setMessage(b.tools.noTargetProfile)
+      setMessage(b.tools.noTarget)
 
       return
     }
@@ -298,13 +298,13 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
   if (supported === false) {
     return (
       <span className="ml-1.5 text-[0.65rem] text-(--ui-text-quaternary)">
-        {b.tools.needsSetupRestart(requires.join(', '))}
+        {b.tools.needsSetup(requires.join(', '))}
       </span>
     )
   }
 
   if (phase === 'done') {
-    return <span className="ml-1.5 text-[0.65rem] text-(--ui-success)">{b.tools.setupDone}</span>
+    return <span className="ml-1.5 text-[0.65rem] text-(--ui-success)">{b.tools.setUpDone}</span>
   }
 
   if (phase === 'keys') {
@@ -327,7 +327,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
         ))}
         <div className="flex gap-1">
           <Button onClick={() => void submitKeys()} size="xs" variant="secondary">
-            {b.tools.saveAndTest}
+            {b.tools.saveTest}
           </Button>
           <Button onClick={() => setPhase('idle')} size="xs" variant="ghost">
             {t.common.cancel}
@@ -350,7 +350,7 @@ export function McpSetupButton({ profile, entry, onDone, ensureProfile }: McpSet
       <span className="ml-1.5 text-[0.65rem] text-(--ui-danger,#f87171)">
         {(message || b.tools.setupFailed) + ' '}
         <Button className="underline" onClick={() => setPhase('idle')} size="inline" variant="link">
-          {b.tools.retry}
+          {t.common.retry}
         </Button>
       </span>
     )

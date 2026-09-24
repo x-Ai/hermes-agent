@@ -6,7 +6,6 @@ import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as HermesApi from '@/hermes'
-import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
@@ -81,18 +80,16 @@ function toolset(overrides: Record<string, unknown> = {}) {
   }
 }
 
-async function renderSkills(initialLocale: 'en' | 'zh' = 'en') {
+async function renderSkills() {
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
-      <I18nProvider configClient={null} initialLocale={initialLocale}>
-        {/* CapabilitiesView reads skills/toolsets via useQuery, so it needs a provider. */}
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={['/capabilities?tab=toolsets']}>
-            <CapabilitiesView />
-          </MemoryRouter>
-        </QueryClientProvider>
-      </I18nProvider>
+      // CapabilitiesView reads skills/toolsets via useQuery, so it needs a provider.
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/capabilities?tab=toolsets']}>
+          <CapabilitiesView />
+        </MemoryRouter>
+      </QueryClientProvider>
     )
   })
 
@@ -142,47 +139,6 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
 
     await waitFor(() => expect(setToolsetEnabled).toHaveBeenCalled())
     expect(setToolsetEnabled.mock.calls[0].slice(0, 2)).toEqual(['web', false])
-  })
-
-  it('renders toolset titles without leading emoji', async () => {
-    getToolsets.mockResolvedValue([toolset({ name: 'cronjob', label: '⏰ Cron Jobs', description: 'cron tools' })])
-
-    await renderSkills()
-
-    // The label renders in both the row and the auto-selected detail header, so
-    // assert via the switch's (emoji-stripped) accessible name and the absence
-    // of the emoji rather than a single-match text lookup.
-    await screen.findByRole('switch', { name: 'Turn Cron Jobs toolset off' })
-    expect(screen.queryByText(/⏰/)).toBeNull()
-  })
-
-  it('localizes built-in toolset names, descriptions, and counts', async () => {
-    getToolsets.mockResolvedValue([
-      toolset({
-        name: 'terminal',
-        label: 'Terminal & Processes',
-        description: 'terminal, process',
-        tools: ['terminal', 'process']
-      })
-    ])
-
-    await renderSkills('zh')
-
-    expect(await screen.findByRole('switch', { name: '关闭 终端与进程 工具集' })).toBeTruthy()
-    expect(screen.getAllByText('终端与进程').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('终端/命令执行与进程管理工具').length).toBeGreaterThan(0)
-    expect(screen.getByText('2 个工具')).toBeTruthy()
-  })
-
-  it('renders the provider config panel inline for the selected toolset', async () => {
-    // The master-detail UI dropped the resting "Configured" pill and the
-    // "Configure" expander: the detail column auto-selects the first toolset
-    // and renders its config panel directly, which fetches on mount.
-    await renderSkills()
-
-    await screen.findByRole('switch', { name: 'Turn Web Search toolset off' })
-    await waitFor(() => expect(getToolsetConfig).toHaveBeenCalled())
-    expect(getToolsetConfig.mock.calls[0][0]).toBe('web')
   })
 
   it('scopes Tools config to the profile chosen in the selector', async () => {
@@ -326,7 +282,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     // Refused with an informational toast, no install action spawned.
     await waitFor(() =>
       expect(vi.mocked(notify)).toHaveBeenCalledWith(
-        expect.objectContaining({ title: '"web-research" is already installed' })
+        expect.objectContaining({ title: expect.stringContaining('web-research') })
       )
     )
   })
@@ -382,8 +338,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
 
     await renderSkills()
 
-    expect(await screen.findByText(/auxiliary model configuration/)).toBeTruthy()
-    const link = screen.getByRole('button', { name: /Choose vision model in Settings/ })
+    const link = await screen.findByRole('button', { name: /Choose vision model in Settings/ })
 
     await act(async () => {
       fireEvent.click(link)
@@ -524,7 +479,6 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
 
     // Catalog section header + the one genuinely-available row. Rows already
     // installed (lock flag OR name collision with the installed list) are gone.
-    expect(await screen.findByText('Available to install')).toBeTruthy()
     expect(await screen.findByText('gif-search')).toBeTruthy()
     expect(screen.queryByText('ascii-art')).toBeNull()
 

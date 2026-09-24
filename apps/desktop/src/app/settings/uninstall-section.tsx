@@ -21,12 +21,36 @@ interface ModeOption {
 export function UninstallSection() {
   const hasBreadcrumb = useContext(SettingsBreadcrumbContext)
   const { t } = useI18n()
-  const copy = t.settings.uninstall
-  const options: ModeOption[] = (['gui', 'lite', 'full'] as const).map(mode => ({
-    mode,
-    ...copy.options[mode],
-    needsAgent: mode !== 'gui'
-  }))
+  const u = t.settings.uninstallSection
+
+  const options: ModeOption[] = [
+    {
+      mode: 'gui',
+      title: u.options.gui.title,
+      description: u.options.gui.description,
+      consequence: u.options.gui.consequence,
+      needsAgent: false
+    },
+    {
+      mode: 'lite',
+      title: u.options.lite.title,
+      description: u.options.lite.description,
+      consequence: u.options.lite.consequence,
+      needsAgent: true
+    },
+    {
+      mode: 'full',
+      title: u.options.full.title,
+      description: u.options.full.description,
+      consequence: u.options.full.consequence,
+      // full removes the agent (and user data), so it's an agent-removing option:
+      // hide it on a lite client with no local agent, same as lite. A lite client
+      // connecting to a remote backend has no local agent OR local user data the
+      // GUI installed, so gui-only is the correct (and only) option there.
+      needsAgent: true
+    }
+  ]
+
   const [summary, setSummary] = useState<DesktopUninstallSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [pending, setPending] = useState<DesktopUninstallMode | null>(null)
@@ -87,7 +111,7 @@ export function UninstallSection() {
       const result = await bridge.run(pending)
 
       if (!result.ok) {
-        setError(result.message || result.error || copy.startFailed)
+        setError(result.message || result.error || u.couldNotStart)
         setRunning(false)
         setPending(null)
       }
@@ -103,28 +127,28 @@ export function UninstallSection() {
 
   return (
     <div className={cn('mx-auto w-full max-w-2xl', !hasBreadcrumb && 'mt-8')}>
-      <SectionHeading icon={AlertTriangle} page title={copy.dangerZone} />
+      <SectionHeading icon={AlertTriangle} page title={t.settings.uninstallSection.dangerZone} />
 
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
         {loading ? (
           <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
             <Loader2 className="size-3.5 animate-spin" />
-            {copy.checking}
+            {u.checkingInstalled}
           </div>
         ) : pendingOption ? (
           <div>
-            <p className="text-sm font-medium text-destructive">{copy.confirmTitle}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{copy.confirmBody(pendingOption.consequence)}</p>
+            <p className="text-sm font-medium text-destructive">{t.settings.uninstallSection.confirmUninstall}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{u.confirmBody(pendingOption.consequence)}</p>
             {summary?.running_app_path && (
               <p className="mt-1 font-mono text-[0.68rem] text-muted-foreground/60">
-                {copy.appPathLabel(summary.running_app_path)}
+                {u.appLabel} {summary.running_app_path}
               </p>
             )}
             {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button disabled={running} onClick={() => void handleConfirm()} size="sm" variant="destructive">
                 {running && <Loader2 className="size-3 animate-spin" />}
-                {running ? copy.uninstalling : copy.confirmYes}
+                {running ? u.uninstalling : u.yesUninstall}
               </Button>
               <Button disabled={running} onClick={() => setPending(null)} size="sm" variant="text">
                 {t.common.cancel}
@@ -133,8 +157,8 @@ export function UninstallSection() {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">{copy.heading}</p>
-            <p className="text-xs text-muted-foreground">{copy.chooseBody}</p>
+            <p className="text-sm font-medium">{t.settings.uninstallSection.uninstallHermes}</p>
+            <p className="text-xs text-muted-foreground">{u.chooseHowMuch}</p>
             <div className="mt-1 flex flex-col gap-2">
               {visibleOptions.map(opt => (
                 <button

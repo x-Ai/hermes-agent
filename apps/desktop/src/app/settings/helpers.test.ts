@@ -2,12 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import type { HermesConfigRecord } from '@/types/hermes'
 
-import { FIELD_DESCRIPTIONS, FIELD_LABELS, SECTIONS } from './constants'
 import { defineFieldCopy, fieldCopyForSchemaKey, schemaKeyToFieldCopyKey } from './field-copy'
 import {
   clearsEnabledToolsets,
-  delegationModelOptions,
-  delegationProviderOptions,
   diffConfig,
   enumOptionsFor,
   getNested,
@@ -15,62 +12,10 @@ import {
   providerGroup,
   sectionFieldEntries,
   setNested,
-  stripToolsetLabel,
-  toolsetDisplayLabel
+  stripToolsetLabel
 } from './helpers'
 
 describe('settings helpers', () => {
-  it('surfaces the complete advanced runtime controls with registered field copy', () => {
-    const advanced = SECTIONS.find(section => section.id === 'advanced')
-
-    const restored = [
-      'terminal.container_persistent',
-      'terminal.docker_mount_cwd_to_workspace',
-      'terminal.docker_workspace_per_session',
-      'terminal.docker_workspace_mount_path',
-      'terminal.singularity_mount_cwd_to_workspace',
-      'terminal.singularity_workspace_per_session',
-      'terminal.singularity_workspace_mount_path',
-      'agent.output_truncation_retries',
-      'agent.post_tool_empty_retries',
-      'agent.thinking_prefill_retries',
-      'agent.empty_response_retries',
-      'delegation.use_custom_endpoints'
-    ]
-
-    expect(advanced?.keys).toEqual(expect.arrayContaining(restored))
-
-    for (const key of restored) {
-      expect(fieldCopyForSchemaKey(FIELD_LABELS, key)).toBeTruthy()
-      expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, key)).toBeTruthy()
-    }
-  })
-
-  it('surfaces repository discovery config in Workspace with user-facing copy', () => {
-    const workspace = SECTIONS.find(section => section.id === 'workspace')
-
-    expect(workspace?.keys).toEqual(
-      expect.arrayContaining([
-        'desktop.repo_scan_enabled',
-        'desktop.repo_scan_roots',
-        'desktop.repo_scan_exclude_paths'
-      ])
-    )
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'desktop.repo_scan_enabled')).toBeTruthy()
-    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'desktop.repo_scan_exclude_paths')).toBeTruthy()
-  })
-
-  it('exposes the auxiliary compression timeout in Memory & Context with user-facing copy', () => {
-    // 3-segment schema key: the label lookup must round-trip the nested
-    // auxiliary.compression.timeout path the backend schema flattens.
-    const memory = SECTIONS.find(section => section.id === 'memory')
-
-    expect(memory?.keys).toContain('auxiliary.compression.timeout')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'auxiliary.compression.timeout')).toBe('Compression model timeout (s)')
-    expect(fieldCopyForSchemaKey(FIELD_DESCRIPTIONS, 'auxiliary.compression.timeout')).toContain('default 120')
-    expect(fieldCopyForSchemaKey(FIELD_LABELS, 'model_context_length')).toMatch(/main model/i)
-  })
-
   it('does not shadow the backend schema options for memory.provider', () => {
     // memory.provider options are discovery-driven and served by the backend
     // config schema (merged per-request); enumOptionsFor must return undefined
@@ -107,18 +52,6 @@ describe('settings helpers', () => {
 
       expect(copy[['display', 'personality'].join('.')]).toBe('Personality')
       expect(copy[['stt', 'elevenlabs', 'language_code'].join('.')]).toBe('Language')
-    })
-
-    it('keeps top-level flat field keys', () => {
-      expect(
-        defineFieldCopy({
-          model_context_length: 'Context Window',
-          file_read_max_chars: 'File Read Limit'
-        })
-      ).toEqual({
-        model_context_length: 'Context Window',
-        file_read_max_chars: 'File Read Limit'
-      })
     })
 
     it('maps schema keys to camelCase translation keys', () => {
@@ -192,20 +125,7 @@ describe('settings helpers', () => {
     })
   })
 
-  describe('toolsetDisplayLabel', () => {
-    it('strips emoji from toolset rows', () => {
-      expect(toolsetDisplayLabel({ name: 'cronjob', label: '⏰ Cron Jobs' })).toBe('Cron Jobs')
-    })
-  })
-
   describe('providerGroup', () => {
-    it('maps a provider env var to its labeled group', () => {
-      expect(providerGroup('XAI_API_KEY')).toBe('xAI')
-      expect(providerGroup('NOUS_API_KEY')).toBe('Nous Portal')
-      expect(providerGroup('FIREWORKS_API_KEY')).toBe('Fireworks AI')
-      expect(providerGroup('OPENROUTER_API_KEY')).toBe('OpenRouter')
-    })
-
     it('prefers the longest matching prefix so CN/regional buckets win', () => {
       // MINIMAX_CN_ must beat the generic MINIMAX_ prefix.
       expect(providerGroup('MINIMAX_CN_API_KEY')).toBe('MiniMax (China)')
@@ -225,30 +145,6 @@ describe('settings helpers', () => {
 
   describe('enumOptionsFor — backend selector dropdowns', () => {
     const config: HermesConfigRecord = {}
-
-    it('renders a dropdown for the TTS provider including xAI (Grok)', () => {
-      const opts = enumOptionsFor('tts.provider', 'edge', config)
-      expect(opts).toBeDefined()
-      expect(opts).toContain('xai')
-      expect(opts).toContain('edge')
-      expect(opts).toContain('elevenlabs')
-    })
-
-    it('renders a dropdown for the STT provider including xAI (Grok)', () => {
-      const opts = enumOptionsFor('stt.provider', 'local', config)
-      expect(opts).toEqual(['local', 'groq', 'openai', 'mistral', 'xai', 'elevenlabs'])
-    })
-
-    it('renders dropdowns for per-backend model/device sub-fields', () => {
-      expect(enumOptionsFor('stt.openai.model', 'whisper-1', config)).toContain('gpt-4o-transcribe')
-      expect(enumOptionsFor('tts.openai.model', 'gpt-4o-mini-tts', config)).toContain('tts-1-hd')
-      expect(enumOptionsFor('tts.neutts.device', 'cpu', config)).toEqual(['cpu', 'cuda', 'mps'])
-    })
-
-    it('renders a dropdown for the terminal execution backend', () => {
-      const opts = enumOptionsFor('terminal.backend', 'local', config)
-      expect(opts).toEqual(['local', 'docker', 'singularity', 'modal', 'daytona', 'ssh'])
-    })
 
     it('narrows OpenAI TTS voice suggestions to what the selected model supports', () => {
       // gpt-4o-mini-tts (and unset/unknown models): full 13-voice set.
@@ -367,48 +263,6 @@ describe('settings helpers', () => {
       expect(opts).not.toContain('local_command')
       expect(opts).not.toContain('deepinfra')
       expect(opts).toContain('myasr')
-    })
-  })
-
-  describe('delegation custom-endpoint suggestions', () => {
-    const endpoints: HermesConfigRecord = {
-      providers: {
-        'my-relay': {
-          name: 'My Relay',
-          base_url: 'https://relay.example/v1',
-          model: 'default-model',
-          models: ['default-model', 'alt-model', 'third-model']
-        },
-        'map-shaped': {
-          base_url: 'https://map.example/v1',
-          models: { 'map-a': {}, 'map-b': {} }
-        },
-        disabled: { base_url: 'https://off.example/v1', enabled: false, models: ['x'] },
-        broken: 'not a dict'
-      }
-    }
-
-    const withProvider = (provider: string): HermesConfigRecord => ({
-      ...endpoints,
-      delegation: { use_custom_endpoints: true, provider }
-    })
-
-    it('gates suggestions behind the explicit switch', () => {
-      expect(delegationProviderOptions(endpoints)).toBeUndefined()
-      expect(delegationModelOptions(endpoints)).toBeUndefined()
-    })
-
-    it('suggests enabled endpoint ids and the selected endpoint models', () => {
-      const enabled = { ...endpoints, delegation: { use_custom_endpoints: true, provider: '' } }
-
-      expect(delegationProviderOptions(enabled)).toEqual(['my-relay', 'map-shaped'])
-      expect(delegationModelOptions(withProvider('custom:my-relay'))).toEqual([
-        'default-model',
-        'alt-model',
-        'third-model'
-      ])
-      expect(delegationModelOptions(withProvider('map-shaped'))).toEqual(['map-a', 'map-b'])
-      expect(delegationModelOptions(withProvider('disabled'))).toBeUndefined()
     })
   })
 

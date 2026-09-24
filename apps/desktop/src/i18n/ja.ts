@@ -1,9 +1,11 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineCompleteLocale } from './define-locale'
+import { defineLocale } from './define-locale'
+import { introJa } from './intro-ja'
 import { en } from './en'
 
-export const ja = defineCompleteLocale({
+export const ja = defineLocale({
+  intro: introJa,
   connectors: {
     title: 'アプリを接続',
     connect: '接続',
@@ -1162,6 +1164,10 @@ export const ja = defineCompleteLocale({
       backdropDesc: '会話の背後に表示される淡い彫像の画像。',
       userBubbleTitle: 'メッセージの吹き出し',
       userBubbleDesc: '自分のメッセージの透け具合。0 で不透明、100 で枠線だけが残ります。',
+      textDirectionTitle: 'テキストの方向',
+      textDirectionDesc:
+        'チャットのメッセージと入力欄の文字方向を設定します。「自動」は各段落の最初の文字で判断します。混在したテキストの並びがおかしいときは方向を選んでください。コードは常に左から右に表示されます。',
+      textDirection: { auto: '自動', rtl: '右から左', ltr: '左から右' },
       introSplashTitle: 'イントロ表示',
       introSplashDesc: '空のチャットに表示されるワードマークとプロンプト。',
       reactionsTitle: 'メッセージリアクション',
@@ -1882,27 +1888,13 @@ export const ja = defineCompleteLocale({
     },
     mcp: {
       loading: 'MCP サーバーを読み込み中...',
-      failedLoad: 'MCP 設定の読み込みに失敗しました',
-      nameRequiredTitle: '名前が必要です',
-      nameRequiredMessage: 'この MCP サーバーに設定キーを付けてください。',
-      objectRequired: 'サーバー設定は JSON オブジェクトである必要があります',
       invalidJson: '無効な MCP JSON',
       saveFailed: '保存に失敗しました',
       removeFailed: '削除に失敗しました',
-      gatewayUnavailableTitle: 'ゲートウェイが利用できません',
-      gatewayUnavailableMessage: 'MCP を再読み込みする前にゲートウェイを再接続してください。',
-      reloadedTitle: 'MCP ツールを再読み込みしました',
-      reloadedMessage: '新しいツールスキーマは新しいターンに適用されます。',
       reloadFailed: 'MCP の再読み込みに失敗しました',
       savedTitle: 'MCP サーバーを保存しました',
       savedMessage: name => `${name} は MCP の再読み込み後に適用されます。`,
-      newServer: '新しいサーバー',
-      reload: 'MCP を再読み込み',
-      reloading: '再読み込み中...',
-      emptyTitle: 'MCP サーバーがありません',
-      emptyDesc: 'MCP ツールを公開するには stdio または HTTP サーバーを追加してください。',
       disabled: '無効',
-      editServer: 'サーバーを編集',
       name: '名前',
       serverJson: 'サーバー JSON',
       remove: '削除',
@@ -1934,7 +1926,6 @@ export const ja = defineCompleteLocale({
         `${[`ツール ${tools} 個`, ...(prompts ? [`プロンプト ${prompts} 個`] : []), ...(resources ? [`リソース ${resources} 個`] : [])].join('、')} を有効化`,
       costTokens: tokens => `1 呼び出しあたり約 ${tokens} トークン`,
       usage30d: uses => `過去 30 日で ${uses} 回使用`,
-      unusedPill: '未使用',
       statusConnecting: '接続中…',
       statusNeedsAuth: '認証が必要です',
       statusError: 'エラー',
@@ -1942,11 +1933,7 @@ export const ja = defineCompleteLocale({
       allServers: 'すべてのサーバー',
       authenticatedTitle: '認証済み',
       authenticatedMessage: (server, count) => `${server}: ツール ${count} 個`,
-      waitingForBrowser: 'ブラウザを待機中…',
       authenticate: '認証',
-      unsavedConnect: '未保存 — 接続するには mcp.json を保存してください。',
-      enableTool: tool => `${tool} を有効化`,
-      disableTool: tool => `${tool} を無効化`,
       noOutput: 'まだ出力がありません。',
       deepLinkTitle: 'MCP サーバーを追加しますか？',
       deepLinkDescription:
@@ -1973,6 +1960,29 @@ export const ja = defineCompleteLocale({
       catalogAuthApiKey: 'APIキー'
     },
     model: {
+      moaTitle: 'エージェント混合（Mixture of Agents）',
+      moaPreset: 'プリセット',
+      moaDescription:
+        '「Mixture of Agents」プロバイダーのモデルとして表示される名前付きプリセットを設定します。集約モデルが実行を担当し、ツールループのすべての処理を行うため、実行費用のほぼ全額がそのプロバイダーに請求されます。参照モデルは既定でユーザーの各ターンに一度だけ助言します。',
+      moaAggregator: '集約モデル',
+      moaAggregatorBilled: '実行モデル · 実行費用の請求先',
+      moaReferenceHint: '既定では各ターンに一度だけ助言',
+      setupProviderFallback: 'プロバイダー',
+      setUpProvider: name => `${name} を設定`,
+      staleAuxBefore: (count, names) => `${count} 件の補助タスク（${names}）は引き続き `,
+      staleAuxAfter: ' で実行され、メインモデルは使用されません。',
+      staleAuxOtherProviders: '別のプロバイダー',
+      moaEnabled: '有効',
+      moaSetDefault: 'デフォルトに設定',
+      moaNewPresetPlaceholder: '新しいプリセット',
+      moaAddPreset: 'プリセットを追加',
+      customModel: 'カスタムモデル…',
+      customModelPlaceholder: 'モデル ID',
+      chooseFromList: 'リストから選択',
+      moaDefault: 'デフォルト:',
+      moaReferenceToggle: (enabled, index) => `参照 ${index} を${enabled ? '無効化' : '有効化'}`,
+      moaReferenceTitle: index => `参照 ${index}`,
+      moaAddReference: '参照モデルを追加',
       loading: 'モデル設定を読み込み中...',
       appliesDesc:
         '新しいセッションに適用されます。コンポーザーのモデルピッカーを使ってアクティブなチャットをホットスワップできます。',
@@ -2002,12 +2012,10 @@ export const ja = defineCompleteLocale({
       notInCatalog:
         'このプロバイダーのモデル リストには含まれていません。呼び出しはバックアップにフォールバックされる可能性があります。',
       staleAuxPrefix: (count, names) => `${count} 件の補助タスク (${names}) は引き続き `,
-      staleAuxOtherProviders: '他のプロバイダー',
       staleAuxSuffix: ' で実行されます — メインモデルではありません。',
       pasteKeyPlaceholder: keyEnv => `${keyEnv} を貼り付け`,
       activate: '有効化',
       activating: '有効化中...',
-      setUpProvider: name => `${name} を設定`,
       needsApiKeyHint: name => `${name} には API キーが必要です — 設定するとモデルを選択できます。`,
       oauthHint: name => `${name} はブラウザーでサインインします — Hermes がフローを代行します。`,
       moa: {
@@ -2076,13 +2084,6 @@ export const ja = defineCompleteLocale({
         }
       },
       inheritMainEffort: '継承 · メインモデルの推論強度',
-      moaTitle: '薬剤の混合',
-      moaPreset: 'プリセット',
-      moaDescription:
-        'Mixture of Agents プロバイダーの下にモデルとして表示される名前付きプリセットを構成します。アグリゲーターは動作モデルです。アグリゲーターはツール ループのすべてのステップを実行し、実行コストのほぼすべてがそのプロバイダーに請求されます。デフォルトでは、参照はユーザーのターンごとに 1 回のみアドバイスします。',
-      moaAggregator: 'アグリゲーター',
-      moaAggregatorBilled: '演技モデル · 実行に対して請求される',
-      moaReferenceHint: 'デフォルトではターンごとに 1 回アドバイスします'
     },
     customEndpoints: {
       title: 'カスタムエンドポイント',
@@ -2366,7 +2367,7 @@ export const ja = defineCompleteLocale({
       loading: 'アーカイブ済みセッションを読み込み中…',
       archivedTitle: 'アーカイブ済みセッション',
       archivedIntro:
-        'アーカイブ済みチャットはサイドバーでは非表示になりますが、すべてのメッセージは保持されます。サイドバーのチャットを Ctrl/⌘ クリックするとアーカイブできます。',
+        'アーカイブ済みチャットはサイドバーでは非表示になりますが、すべてのメッセージは保持されます。サイドバーのチャットを Alt/⌥+Shift クリックするとアーカイブできます。',
       emptyArchivedTitle: 'アーカイブがありません',
       emptyArchivedDesc: 'チャットをアーカイブするとここに表示されます。',
       unarchive: 'アーカイブを解除',
@@ -5046,6 +5047,39 @@ export const ja = defineCompleteLocale({
     missingBody: 'このアーティファクトはローカルレジストリに存在しません。'
   },
   sidebar: {
+    profileRail: 'プロファイルバー',
+    markAllRead: 'すべて既読にする',
+    filter: {
+      grouping: 'グループ化',
+      ordering: '並び替え',
+      show: '表示',
+      filters: 'フィルター',
+      status: 'ステータス',
+      pullRequest: 'プルリクエスト',
+      profile: 'プロファイル',
+      project: 'プロジェクト',
+      archived: 'アーカイブ',
+      resetToDefaults: 'デフォルトに戻す',
+      expandAll: 'すべて展開',
+      collapseAll: 'すべて折りたたむ',
+      inboxStyle: '受信トレイスタイル',
+      updated: '更新',
+      created: '作成',
+      tokens: 'トークン',
+      cost: 'コスト',
+      manual: '手動',
+      preview: 'プレビュー',
+      pr: 'PR',
+      needsInput: '入力待ち',
+      working: '実行中',
+      unread: '未読',
+      draft: '下書き',
+      idle: 'アイドル',
+      open: 'オープン',
+      merged: 'マージ済み',
+      closed: 'クローズ済み',
+      noPR: 'PRなし'
+    },
     gatewayGroups: {
       grouping: 'ゲートウェイとプロファイル',
       rename: 'グループ名を変更',
@@ -5271,15 +5305,10 @@ export const ja = defineCompleteLocale({
         idle: 'アイドル'
       }
     },
-    markAllRead: 'すべて既読としてマークする',
-    profileRail: 'プロファイルレール',
     terminal: 'ターミナル',
     files: 'ファイル',
     review: 'レビュー',
     logs: 'ログ'
-  },
-  intro: {
-    bodies: {}
   },
   composer: {
     message: 'メッセージ',
@@ -5350,12 +5379,77 @@ export const ja = defineCompleteLocale({
     hotkeys: 'ホットキー',
     helpFooter: 'フルパネルを開く · Backspace で閉じる',
     commandDescs: {
-      '/help': 'コマンドとホットキーの全リスト',
+      '/help': 'デスクトップのスラッシュコマンドを表示',
       '/clear': '新しいセッションを開始',
       '/resume': '以前のセッションを再開',
       '/details': 'トランスクリプトの詳細レベルを制御',
       '/copy': '選択または最後のアシスタントメッセージをコピー',
-      '/quit': 'hermes を終了'
+      '/quit': 'hermes を終了',
+      '/start': '返信せずにプラットフォームの開始要求を確認',
+      '/new': '新しいデスクトップチャットを開始',
+      '/topic': 'Telegram の個人チャットのトピックを有効化または確認',
+      '/save': '現在の会話を JSON に保存',
+      '/retry': '最後のユーザーメッセージを再試行',
+      '/prompt': '$EDITOR で次のプロンプトを Markdown で作成して送信',
+      '/undo': 'ユーザーのターンを指定回数戻して再入力（既定は 1）',
+      '/title': '現在のセッション名を変更',
+      '/handoff': 'このセッションをメッセージプラットフォームへ引き継ぐ',
+      '/branch': '最新メッセージから新しいチャットを分岐',
+      '/worktree': '分離した Git ワークツリーを表示、一覧、作成、整理',
+      '/compress': '会話コンテキストを圧縮',
+      '/rollback': 'チェックポイントを一覧または復元',
+      '/export': 'プロファイルの設定、スキル、テーマを共有用アーカイブに書き出す',
+      '/import': '共有アーカイブを新しいプロファイルとして読み込む',
+      '/stop': '進行中のターンとバックグラウンドプロセスを停止',
+      '/pause': '新しい処理を全体で一時停止（緊急停止）；/pause off で再開',
+      '/bg': '別のバックグラウンドセッションでプロンプトを実行',
+      '/btw': '進行中の会話を中断せずに関連する質問をする',
+      '/agents': 'アクティブなセッションとタスクを表示',
+      '/journey': 'メモリグラフを開く',
+      '/queue': '次のターンのプロンプトを追加、一覧、編集、削除、移動、全消去',
+      '/steer': '現在の実行を誘導',
+      '/goal': 'このセッションの継続目標を管理',
+      '/heartbeat': 'アイドル時にこのセッションで繰り返すプロンプトを設定',
+      '/refine': 'この会話を見直し、学びをメモリやスキルに保存',
+      '/review': '独立したサブエージェントに作業のレビューを依頼',
+      '/loop': 'このセッションで一定間隔でプロンプトを繰り返す',
+      '/plan': '実行せずに .hermes/plans/ に Markdown の実装計画を作成',
+      '/moa': 'Mixture of Agents のプリセットで実行し、元のモデルに戻す',
+      '/subgoal': '進行中の目標の追加条件を管理',
+      '/status': '現在のセッション状態を表示',
+      '/egress': 'Docker の送信プロキシの状態を表示',
+      '/context': 'コンテキスト使用量、内訳、圧縮統計、処理速度を表示',
+      '/whoami': 'スラッシュコマンドのアクセス権を表示',
+      '/profile': 'アクティブな Hermes プロファイルを切り替え',
+      '/codex-runtime': 'OpenAI/Codex モデルの Codex app-server ランタイムを切り替え',
+      '/personality': 'このセッションの人格を切り替え',
+      '/battery': 'ステータスバーのバッテリー表示を切り替え',
+      '/timestamps': 'メッセージと /history の時刻表示を切り替え',
+      '/diff': '作業ディレクトリの Git 変更を表示',
+      '/focus': 'プロンプトと最終回答のみを表示するフォーカス表示を切り替え',
+      '/yolo': 'YOLO を切り替え — 危険なコマンドを自動承認',
+      '/approvals': '危険なコマンドの承認モードを表示または設定',
+      '/reasoning': '推論の強度と表示を管理',
+      '/skin': 'デスクトップテーマを切り替え',
+      '/wake': 'デスクトップのウェイクワード検出を制御 [on|off|status]',
+      '/tools': 'エージェントが使えるツールを切り替え',
+      '/memory': '保留中のメモリ書き込みを確認し、承認を切り替え',
+      '/bundles': 'スキルバンドルを一覧表示',
+      '/pet': 'petdex マスコットを切り替え',
+      '/hatch': '新しいペットを生成',
+      '/learn': 'ディレクトリ、URL、会話、メモから再利用可能なスキルを学ぶ',
+      '/init': 'リポジトリを調べて AGENTS.md の指示を作成または更新',
+      '/suggestions': '提案された自動化を確認し、採用または却下',
+      '/blueprint': 'ブループリントから自動化を設定',
+      '/browser': 'ローカルブラウザー接続を管理',
+      '/palette': 'コマンドパレットを開く',
+      '/usage': 'このセッションのトークン使用量を表示',
+      '/subscription': 'Nous のプランを確認し、ブラウザーで変更',
+      '/topup': 'Nous の残高を表示し、請求を管理',
+      '/platform': '問題のあるゲートウェイプラットフォームを一時停止、再開、一覧表示',
+      '/version': 'Hermes Agent のバージョンを表示',
+      '/debug': 'デバッグレポートを作成',
+      '/model': 'このセッションのモデルを切り替え'
     },
     hotkeyDescs: {
       'composer.mention': 'ファイル、フォルダー、URL、Git を参照',
@@ -5706,6 +5800,13 @@ export const ja = defineCompleteLocale({
     everythingSkipped: 'スキップ',
     everythingRowFailed: '更新に失敗しました',
     everythingFanoutFailedTitle: '他のインスタンスを更新できませんでした',
+    changeLogNew: '新機能',
+    changeLogFixed: '修正',
+    changeLogFaster: '高速化',
+    changeLogImproved: '改善',
+    changeLogOther: 'その他の改善',
+    changeLogFallbackLabel: '今回の更新',
+    changeLogFallbackItem: '改善と修正',
     applyStatus: {
       preparing: 'バックエンドを更新しています…',
       pulling: 'バックエンドを更新中…',
@@ -6164,13 +6265,18 @@ export const ja = defineCompleteLocale({
     free: '無料',
     freeTier: '無料プラン',
     priceTitle: '100 万トークンあたりの入力/出力価格',
-    wasPrice: '旧価格'
+    wasPrice: '旧価格',
+    customModel: 'カスタムモデル',
+    addCustomModelAction: 'カスタムモデルを追加…',
+    customModelPlaceholder: 'モデル ID を入力（例: openai/gpt-5）'
   },
   modelVisibility: {
     title: 'モデル',
     search: 'モデルを検索',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
-    addProvider: 'プロバイダーを追加…'
+    addProvider: 'プロバイダーを追加…',
+    addCustomModel: 'カスタムモデルを追加',
+    removeCustomModel: 'カスタムモデルを削除'
   },
   shell: {
     windowControls: 'ウィンドウコントロール',
@@ -6477,6 +6583,23 @@ export const ja = defineCompleteLocale({
       cancelComment: 'コメントをキャンセル'
     }
   },
+  interfaceMode: {
+    title: 'インターフェースモード',
+    hint: '表示される内容が変わるだけで、Hermes にできることは変わりません。',
+    sessionNote:
+      'シンプルモードで設定されています。ここでの変更はこのセッション中のみ有効です。自分の設定にするには詳細モードに切り替えてください。',
+    simple: {
+      label: 'シンプル',
+      description:
+        'Hermes と話すための表示。サイドバーとチャットのみ。ターミナル、ファイル、差分のペインは表示しません。'
+    },
+    advanced: {
+      label: '詳細',
+      description: '開発者向け。ターミナル、ファイル、差分、ステータスバー、レイアウトを設定したとおりに。'
+    }
+  },
+
+
   zones: {
     showTabStrip: 'タブを表示',
     hideTabStrip: 'タブを隠す',
@@ -6678,6 +6801,67 @@ export const ja = defineCompleteLocale({
       branchNewChat: '新しいチャットでブランチ',
       react: 'リアクション',
       dismissError: 'エラーを閉じる',
+      errorGenericProvider: 'AI サービス',
+      errorLayerBodies: {
+        generic:
+          'Hermes の返信中に問題が発生しました。再試行してください。問題が続く場合はエラー詳細をコピーしてください。',
+        provider:
+          'AI サービスがリクエストを完了できませんでした。少し待って再試行するか、プロバイダーを切り替えてください。',
+        endpoint:
+          'カスタムモデルサーバーに接続できません。サーバーが起動しているか確認し、メッセージを再送してください。',
+        streaming: '返信が完了する前に接続が切れました。再試行してもう一度送信してください。'
+      },
+      errorCodes: {
+        provider_policy_blocked: {
+          title: 'アカウント設定によりこのモデルはブロックされています',
+          body: provider =>
+            `${provider} はアカウントのデータまたはプライバシー設定により、このリクエストを処理できません。別のモデルまたはプロバイダーを選んでください。`
+        },
+        content_policy_blocked: {
+          title: 'AI サービスが回答を拒否しました',
+          body: provider => `${provider} はこのメッセージへの回答を拒否しました。編集して再送してください。`
+        },
+        format_error: {
+          title: 'AI サービスがリクエストの形式を拒否しました',
+          body: provider =>
+            `${provider} はこのリクエストの形式を受け付けませんでした。プロバイダーを切り替えるか、調査のため診断情報を送信してください。`
+        },
+        invalid_response: {
+          title: 'AI サービスが読み取れない応答を返しました',
+          body: provider => `${provider} は Hermes が読み取れない内容を返しました。しばらくしてから再試行してください。`
+        },
+        empty_response: {
+          title: 'AI サービスが空の応答を返しました',
+          body: provider => `${provider} はこのメッセージに内容を返しませんでした。しばらくしてから再試行してください。`
+        },
+        rate_limit: {
+          title: 'AI サービスが混み合っています',
+          body: provider => `${provider} は現在リクエスト数を制限しています。少し待ってから再試行してください。`
+        },
+        upstream_rate_limit: {
+          title: 'AI サービスが混み合っています',
+          body: provider => `${provider} は現在リクエスト数を制限しています。少し待ってから再試行してください。`
+        },
+        overloaded: {
+          title: 'AI サービスの負荷が高すぎます',
+          body: provider =>
+            `${provider} で現在問題が発生しています。しばらくしてから再試行するか、プロバイダーを切り替えてください。`
+        },
+        server_error: {
+          title: 'AI サービスでエラーが発生しました',
+          body: provider =>
+            `${provider} がサーバーエラーを返しました。しばらくしてから再試行するか、プロバイダーを切り替えてください。`
+        },
+        timeout: {
+          title: '応答がタイムアウトしました',
+          body: provider => `${provider} から時間内に応答がありませんでした。再試行してもう一度送信してください。`
+        },
+        ssl_cert_verification: {
+          title: '安全な接続に失敗しました',
+          body: provider =>
+            `Hermes は ${provider} との安全な接続を検証できませんでした。ネットワークやプロキシの設定を確認するか、プロバイダーを切り替えて再送してください。`
+        }
+      },
       errorLayers: {
         auth: '認証エラー',
         billing: 'クレジット不足',
@@ -6721,155 +6905,6 @@ export const ja = defineCompleteLocale({
       goForward: '進む',
       sendEdited: '編集済みメッセージを送信',
       attachingFile: '添付中…',
-      errorLayerBodies: {
-        auth: 'AI サービスがサインインを拒否しました。このプロバイダーの資格情報を確認して、メッセージを再送信してください。',
-        billing:
-          'あなたのアカウントには、このプロバイダーに対するクレジットが残っていません。チャージするかプロバイダーを変更して、再度送信してください。',
-        disk: 'ディスクがいっぱいなので、Hermes はこの会話を保存できませんでした。スペースを解放してから再試行してください。',
-        endpoint:
-          'Hermes はカスタム モデル サーバーに接続できません。動作していることを確認してから、再度メッセージを送信してください。',
-        gateway:
-          'Hermes は、この返信を開始して内部問題に遭遇しました。メッセージをもう一度送信してください。引き続き発生する場合は、診断を送信してください。',
-        generic:
-          'Hermes の応答中に問題が発生しました。繰り返し発生する場合は、再試行するか、詳細をコピーしてください。',
-        provider:
-          'AI サービスはこのリクエストを完了できませんでした。しばらくしてから再試行するか、プロバイダーを切り替えてください。',
-        runtime:
-          'Hermes は、この返信を開始して内部問題に遭遇しました。メッセージをもう一度送信してください。引き続き発生する場合は、診断を送信してください。',
-        streaming: '応答が完了する前に接続が切断されました。もう一度送信してみてください。'
-      },
-      errorCodes: {
-        auth: {
-          title: provider => `${provider}サインインを拒否しました`,
-          body: provider =>
-            `保存された資格情報${provider}受け付けられませんでした。設定で修正するか、プロバイダーを切り替えてから、もう一度メッセージを送信してください。`
-        },
-        auth_permanent: {
-          title: provider => `${provider}サインインを拒否しました`,
-          body: provider =>
-            `保存された資格情報${provider}無効であるか取り消されました。更新するかプロバイダーを変更して、もう一度メッセージを送信してください。`
-        },
-        billing: {
-          title: 'クレジットがありません',
-          body: provider =>
-            `あなたの${provider}アカウントのクレジットが残っていません。チャージするかプロバイダーを変更してから、再度送信してください。`
-        },
-        rate_limit: {
-          title: 'AI サービスがビジー状態です',
-          body: provider => `${provider}現在リクエストを制限しています。少し待ってから、もう一度試してください。`
-        },
-        upstream_rate_limit: {
-          title: 'AI サービスがビジー状態です',
-          body: provider => `${provider}現在リクエストを制限しています。少し待ってから、もう一度試してください。`
-        },
-        overloaded: {
-          title: 'AI サービスが過負荷になっています',
-          body: provider =>
-            `${provider}現在問題が発生しています。少ししてから再試行するか、プロバイダーを切り替えてください。`
-        },
-        server_error: {
-          title: 'AIサービスに問題がありました',
-          body: provider =>
-            `${provider}サーバーエラーが返されました。少し待って再試行するか、プロバイダーを変更してください。`
-        },
-        timeout: {
-          title: '返信がタイムアウトしました',
-          body: provider => `${provider}時間内に応答しませんでした。再送信してください。`
-        },
-        stream_drop: {
-          title: '返事が途切れてしまった',
-          body: '応答が完了する前に接続が切断されました。もう一度送信してみてください。'
-        },
-        upstream_blocked: {
-          title: 'ファイアウォールがリクエストをブロックしました',
-          body: provider =>
-            `ファイアウォールまたは前にあるCDN${provider}リクエストがモデルに届く前にブロックされました — あなたのキーはおそらく問題ありません。設定のプロバイダーの extra_headers で User-Agent ヘッダーを設定するか、プロバイダーを切り替えてから、もう一度メッセージを送信してください。`
-        },
-        ssl_cert_verification: {
-          title: '安全な接続に失敗しました',
-          body: provider =>
-            `Hermes could not verify the secure connection to ${provider}。ネットワークまたはプロキシの設定を確認するか、プロバイダーを切り替えて、メッセージを再送信してください。`
-        },
-        context_overflow: {
-          title: 'この会話は長すぎます',
-          body: '会話はもはやモデルに当てはまりません。圧縮するか、新しいチャットを開始してから再度送信してください。'
-        },
-        payload_too_large: {
-          title: 'このメッセージは大きすぎます',
-          body: 'リクエストがモデルにとって大きすぎました。会話を圧縮するか、新しいチャットを開始して、再度送信します。'
-        },
-        model_not_found: {
-          title: 'このモデルは利用できません',
-          body: provider =>
-            `${provider}あなたのアカウントではこのモデルは提供されていません。別のモデルを選択してから、もう一度メッセージを送信してください。`
-        },
-        provider_policy_blocked: {
-          title: 'このモデルはアカウント設定によってブロックされています',
-          body: provider =>
-            `${provider}このリクエストをあなたのアカウントのデータまたはプライバシー設定の下でルーティングすることはありません。別のモデルを選択するか、プロバイダーを切り替えてください。`
-        },
-        content_policy_blocked: {
-          title: 'AI サービスはこのリクエストを拒否しました',
-          body: provider => `${provider}このメッセージには返信しません。編集してもう一度送ってください。`
-        },
-        format_error: {
-          title: 'AI サービスがリクエストを拒否しました',
-          body: provider =>
-            `${provider}このリクエストの作成方法を受け入れませんでした。プロバイダーを切り替えるか、診断情報を送ってください。こちらで確認します。`
-        },
-        truncated: {
-          title: '返事が途中で切れてしまった',
-          body: 'モデルは終了する前に停止しました。完全な応答を得るために再試行してください。'
-        },
-        invalid_response: {
-          title: 'AI サービスが判読できない応答を送信しました',
-          body: provider => `${provider}何か Hermes が読み取れませんでした。しばらくしてから再試行してください。`
-        },
-        empty_response: {
-          title: 'AI サービスが空の応答を送信しました',
-          body: provider => `${provider}このメッセージに対して何も返されませんでした。しばらくして再試行してください。`
-        },
-        loop_error: {
-          title: 'Hermes がループにはまりました',
-          body: '応答は同じ手順を繰り返し続けたので、Hermes がそれを停止しました。再度同じ問題が発生する場合は、再試行するか、新しいチャットを開始してください。'
-        },
-        SESSION_NOT_OWNED: {
-          title: 'このチャットは別の場所で開かれています',
-          body: 'このチャットは現在、別の Hermes ウィンドウまたはターミナルで開かれています。そこで閉じてメッセージを再度送信するか、ここで新しいチャットを開始してください。'
-        },
-        disk_full: {
-          title: 'ディスクが一杯です',
-          body: 'ディスクがいっぱいなので、Hermes はこの会話を保存できませんでした。スペースを解放してから再試行してください。'
-        },
-        free_tier_disabled: {
-          title: 'サインインせずに Hermes を使用することは現在オフになっています',
-          body: 'チャットを続けるには、Nous アカウントでサインインしてください。無料です。'
-        },
-        free_tier_rate_limited: {
-          title: 'サインインせずにチャットできる許容量を使い果たしました',
-          body: 'すぐにリフレッシュされます。 Nous アカウントでサインインすると、さらに多くの許容量を無料で利用できます。'
-        },
-        free_tier_at_capacity: {
-          title: 'サインインせずにチャットするのは現在非常に混雑しています',
-          body: 'サインインするとキューをスキップできます。無料です。または、しばらくしてからもう一度お試しください。'
-        },
-        free_tier_model_not_free: {
-          title: 'そのモデルはサインインしないと利用できません',
-          body: 'Hermes は今のところ無料モデルを使用しています。 Nous アカウントでサインインすると、より多くのモデルを利用できます。無料です。'
-        },
-        free_tier_route: {
-          title: 'Hermes はこのルートで無料モデルに到達できませんでした',
-          body: 'Nous アカウントでサインインするか (無料)、または NOUS_INFERENCE_BASE_URL 設定を確認してください。'
-        },
-        free_tier_outage: {
-          title: '無料モデルは現在応答が困難です',
-          body: '1分後にもう一度メッセージを送信してみてください。'
-        },
-        free_tier_refused: {
-          title: 'Hermes はサインインせずに送信できませんでした',
-          body: 'Nous アカウントでのサインインは無料です。'
-        }
-      },
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}あなたのAPIキーを拒否しました`,
@@ -6881,7 +6916,6 @@ export const ja = defineCompleteLocale({
         }
       },
       errorDetails: '詳細',
-      errorGenericProvider: 'AIサービス',
       errorToastTitle: 'Hermes は返信を完了できませんでした',
       errorLimitResets: time => `制限は ${time} にリセットされます`,
       errorRetryAtReset: time => `制限のリセット時に再試行（${time}）`,

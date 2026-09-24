@@ -163,7 +163,9 @@ function AccountRow({ billing, row }: { billing?: BillingStateResponse; row: Bil
 }
 
 function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: BillingAccountRowView }) {
-  const copy = useI18n().t.billingPage
+  const { t } = useI18n()
+  const b = t.settings.billing
+
   const presets = useMemo(
     () =>
       billing.charge_presets.map((amount, index) => ({
@@ -201,7 +203,7 @@ function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: B
             value={amount}
           />
           <Input
-            aria-label={copy.customCreditAmount}
+            aria-label={b.buyCredits.customAmount}
             containerClassName="w-16"
             disabled={controlsDisabled}
             inputMode="decimal"
@@ -220,7 +222,7 @@ function BuyCreditsRow({ billing, row }: { billing: BillingStateResponse; row: B
             value={amount}
           />
           <Button disabled={!canBuy} onClick={startBuy} size="xs" type="button" variant="secondary">
-            {copy.buy}
+            {b.buyCredits.buyButton}
           </Button>
         </div>
       }
@@ -259,13 +261,14 @@ function BuyCreditsOutcome({
   onRetry: () => void
   outcome: ReturnType<typeof useChargeFlow>['outcome']
 }) {
-  const copy = useI18n().t.billingPage
+  const { t } = useI18n()
+  const b = t.settings.billing
   const stepUp = useStepUpFlow()
 
   if (busy) {
     return (
       <div className="mt-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-        {copy.processingSettlement}
+        {b.buyCredits.processing}
       </div>
     )
   }
@@ -277,7 +280,7 @@ function BuyCreditsOutcome({
   if (outcome.kind === 'success') {
     return (
       <div className="mt-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-        {copy.creditsAdded(formatMoney(outcome.amountUsd ?? amount))}
+        {b.buyCredits.added(formatMoney(outcome.amountUsd ?? amount))}
       </div>
     )
   }
@@ -290,7 +293,7 @@ function BuyCreditsOutcome({
         </span>
         {outcome.portalUrl && (
           <Button onClick={() => onPortal(outcome.portalUrl)} size="sm" type="button" variant="outline">
-            {copy.openPortal}
+            {b.buyCredits.openPortal}
             <ExternalLink className="size-3.5" />
           </Button>
         )}
@@ -307,13 +310,13 @@ function BuyCreditsOutcome({
       </span>
       {outcome.action?.type === 'retry' && (
         <Button onClick={onRetry} size="sm" type="button" variant="outline">
-          {copy.tryAgain}
+          {b.buyCredits.retry}
         </Button>
       )}
       {outcome.action?.type === 'step_up' && <StepUpInlineAction flow={stepUp} />}
       {portalUrl && (
         <Button onClick={() => onPortal(portalUrl)} size="sm" type="button" variant="outline">
-          {copy.openPortal}
+          {b.buyCredits.openPortal}
           <ExternalLink className="size-3.5" />
         </Button>
       )}
@@ -322,8 +325,10 @@ function BuyCreditsOutcome({
 }
 
 function UsageBar({ bar, fallbackLabel }: { bar?: BillingUsageRowView['bar']; fallbackLabel: string }) {
+  const { t } = useI18n()
+
   const resolvedBar = bar ?? {
-    label: `${fallbackLabel} usage`,
+    label: t.settings.billing.usageLabel(fallbackLabel),
     state: 'neutral',
     tone: 'topup',
     value: 0
@@ -385,21 +390,23 @@ function BillingFixtureSelect({
   onValueChange: (value: BillingFixtureSelection) => void
   value: BillingFixtureSelection
 }) {
-  const copy = useI18n().t.billingPage
+  const { t } = useI18n()
+  const b = t.settings.billing
+
   return (
     <div className="flex items-center gap-1.5 text-(--ui-text-tertiary)">
       <Wrench className="size-3.5 shrink-0" />
-      <span className="text-xs font-normal">{copy.preview}</span>
+      <span className="text-xs font-normal">{b.preview}</span>
       <Select onValueChange={value => onValueChange(value as BillingFixtureSelection)} value={value}>
         <SelectTrigger
-          aria-label={copy.previewFixture}
+          aria-label="Billing preview fixture (dev only)"
           className="h-7 w-36 border-dashed border-(--ui-stroke-secondary) bg-transparent px-2 text-xs font-normal text-(--ui-text-tertiary) shadow-none hover:bg-(--ui-bg-tertiary) focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-(--ui-bg-tertiary)"
           size="sm"
         >
           <SelectValue />
         </SelectTrigger>
         <SelectContent align="end">
-          <SelectItem value="live">{copy.live}</SelectItem>
+          <SelectItem value="live">live</SelectItem>
           {BILLING_DEV_FIXTURE_NAMES.map(name => (
             <SelectItem key={name} value={name}>
               {name}
@@ -470,6 +477,7 @@ function BillingSettingsContent({
   onFixtureChange?: (value: BillingFixtureSelection) => void
 }) {
   const { t } = useI18n()
+  const b = t.settings.billing
   const [subView, setSubView] = useRouteEnumParam<BillingSubView>('bview', BILLING_VIEWS, 'overview')
 
   // Fixture mode flows through the SAME query path — the simulated api (supplied by
@@ -491,7 +499,7 @@ function BillingSettingsContent({
 
   const billingResult = billingState.data
   const subscriptionResult = subscriptionState.data
-  const view = deriveBillingView(billingResult, subscriptionResult)
+  const view = deriveBillingView(billingResult, subscriptionResult, b)
   const billing = billingResult?.ok ? billingResult.data : undefined
 
   const { paymentRow, refillRow, topupRow } = view
@@ -530,7 +538,7 @@ function BillingSettingsContent({
       </div>
 
       {view.plan && (
-        <SettingsSection icon={Package} title={t.billingPage.plan}>
+        <SettingsSection icon={Package} title={b.sections.plan}>
           <CurrentPlanCard onViewPlans={() => setSubView('plans')} plan={view.plan} />
           {view.planFootnote && (
             <div className="mt-1 text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
@@ -544,7 +552,7 @@ function BillingSettingsContent({
         <SettingsSection
           aside={paymentRow ? <PaymentMethodAside row={paymentRow} /> : undefined}
           icon={CreditCard}
-          title={t.billingPage.paymentAndCredits}
+          title={b.sections.paymentAndCredits}
         >
           {accountRows.map(row => (
             <AccountRow billing={billing} key={row.id} row={row} />
@@ -553,7 +561,7 @@ function BillingSettingsContent({
       )}
 
       {view.usageRows.length > 0 && (
-        <SettingsSection icon={BarChart3} title={t.billingPage.usage}>
+        <SettingsSection icon={BarChart3} title={b.sections.usage}>
           <div className="@container">
             {view.usageRows.map(row => (
               <UsageRow key={row.id} row={row} />
@@ -564,7 +572,9 @@ function BillingSettingsContent({
 
       {
         // no endpoint yet — NAS capability-board gap
-        FEATURE_BILLING_INVOICES ? <SectionHeading icon={BarChart3} title={t.billingPage.invoices} /> : null
+        FEATURE_BILLING_INVOICES ? (
+          <SectionHeading icon={BarChart3} title={t.settings.billing.sections.invoices} />
+        ) : null
       }
     </SettingsContent>
   )

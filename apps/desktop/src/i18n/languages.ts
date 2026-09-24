@@ -42,6 +42,24 @@ export const LOCALE_OPTIONS = [
     name: LOCALE_ENDONYMS.ru,
     englishName: 'Russian',
     configValue: 'ru'
+  },
+  {
+    id: 'fr',
+    name: LOCALE_ENDONYMS.fr,
+    englishName: 'French',
+    configValue: 'fr'
+  },
+  {
+    id: 'de',
+    name: LOCALE_ENDONYMS.de,
+    englishName: 'German',
+    configValue: 'de'
+  },
+  {
+    id: 'es',
+    name: LOCALE_ENDONYMS.es,
+    englishName: 'Spanish',
+    configValue: 'es'
   }
 ] as const satisfies readonly { configValue: string; englishName: string; id: Locale; name: string }[]
 
@@ -96,7 +114,40 @@ const LOCALE_ALIASES: Record<string, Locale> = {
   russian: 'ru',
   'russian-russian': 'ru',
   русский: 'ru',
-  руский: 'ru'
+  руский: 'ru',
+  fr: 'fr',
+  'fr-fr': 'fr',
+  fr_fr: 'fr',
+  'fr-be': 'fr',
+  fr_be: 'fr',
+  'fr-ca': 'fr',
+  fr_ca: 'fr',
+  'fr-ch': 'fr',
+  fr_ch: 'fr',
+  french: 'fr',
+  français: 'fr',
+  francais: 'fr',
+  de: 'de',
+  'de-de': 'de',
+  de_de: 'de',
+  'de-at': 'de',
+  de_at: 'de',
+  'de-ch': 'de',
+  de_ch: 'de',
+  german: 'de',
+  deutsch: 'de',
+  es: 'es',
+  'es-es': 'es',
+  es_es: 'es',
+  'es-mx': 'es',
+  es_mx: 'es',
+  'es-ar': 'es',
+  es_ar: 'es',
+  'es-419': 'es',
+  es_419: 'es',
+  spanish: 'es',
+  español: 'es',
+  espanol: 'es'
 }
 
 export function isLocale(value: unknown): value is Locale {
@@ -143,66 +194,4 @@ export function resolveInitialLocale(saved: string | null | undefined, osLocale:
 
 export function localeConfigValue(locale: Locale): string {
   return LOCALE_OPTIONS.find(item => item.id === locale)?.configValue ?? DEFAULT_LOCALE
-}
-
-export const LOCALE_STORAGE_KEY = 'hermes-desktop.ui-locale'
-
-function navigatorLocales(): readonly unknown[] {
-  if (typeof navigator === 'undefined') {
-    return []
-  }
-
-  return [navigator.language, ...(navigator.languages ?? [])]
-}
-
-export function detectSystemLocale(candidates: readonly unknown[] = navigatorLocales()): Locale {
-  for (const candidate of candidates) {
-    if (typeof candidate !== 'string') {
-      continue
-    }
-
-    const locale = osPreferredLocale(candidate)
-
-    if (locale) {
-      return locale
-    }
-  }
-
-  return DEFAULT_LOCALE
-}
-
-export function readStoredLocale(): Locale | null {
-  if (typeof localStorage === 'undefined') {
-    return null
-  }
-
-  try {
-    const raw = localStorage.getItem(LOCALE_STORAGE_KEY)
-
-    return isSupportedLocaleValue(raw) ? normalizeLocale(raw) : null
-  } catch {
-    return null
-  }
-}
-
-export function writeStoredLocale(locale: Locale): void {
-  if (typeof localStorage === 'undefined') {
-    return
-  }
-
-  try {
-    localStorage.setItem(LOCALE_STORAGE_KEY, locale)
-  } catch {
-    // Storage is best-effort. The in-memory selection still owns this window.
-  }
-}
-
-/** First paint cannot wait for the backend. Explicit input wins, then the
- * desktop-local choice, then the browser/OS locale. */
-export function resolvePreferredLocale(explicit?: unknown, candidates?: readonly unknown[]): Locale {
-  if (isSupportedLocaleValue(explicit)) {
-    return normalizeLocale(explicit)
-  }
-
-  return readStoredLocale() ?? detectSystemLocale(candidates)
 }

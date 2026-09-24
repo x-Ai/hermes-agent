@@ -1,9 +1,11 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineCompleteLocale } from './define-locale'
+import { defineLocale } from './define-locale'
+import { introZhHant } from './intro-zh-hant'
 import { en } from './en'
 
-export const zhHant = defineCompleteLocale({
+export const zhHant = defineLocale({
+  intro: introZhHant,
   connectors: {
     title: '連接你的應用程式',
     connect: '連接',
@@ -1130,6 +1132,10 @@ export const zhHant = defineCompleteLocale({
       backdropDesc: '對話後方那張淡淡的雕像圖片。',
       userBubbleTitle: '訊息氣泡',
       userBubbleDesc: '你自己的訊息有多透明。0 為不透明，100 時只保留邊框。',
+      textDirectionTitle: '文字方向',
+      textDirectionDesc:
+        '設定聊天訊息和輸入框的文字方向。「自動」依每段的第一個字母判斷；混合文字排列不對時，可手動選擇方向。程式碼一律從左到右顯示。',
+      textDirection: { auto: '自動', rtl: '從右到左', ltr: '從左到右' },
       introSplashTitle: '開場標識',
       introSplashDesc: '空白對話中顯示的字標和提示語。',
       reactionsTitle: '訊息回應',
@@ -1808,27 +1814,13 @@ export const zhHant = defineCompleteLocale({
     },
     mcp: {
       loading: '正在載入 MCP 伺服器...',
-      failedLoad: 'MCP 設定載入失敗',
-      nameRequiredTitle: '需要名稱',
-      nameRequiredMessage: '請為此 MCP 伺服器提供設定鍵。',
-      objectRequired: '伺服器設定必須是 JSON 物件',
       invalidJson: 'MCP JSON 無效',
       saveFailed: '儲存失敗',
       removeFailed: '移除失敗',
-      gatewayUnavailableTitle: '閘道不可用',
-      gatewayUnavailableMessage: '重新載入 MCP 前請先重新連線閘道。',
-      reloadedTitle: 'MCP 工具已重新載入',
-      reloadedMessage: '新的工具 Schema 將套用至後續回合。',
       reloadFailed: 'MCP 重新載入失敗',
       savedTitle: 'MCP 伺服器已儲存',
       savedMessage: name => `${name} 會在 MCP 重新載入後生效。`,
-      newServer: '新伺服器',
-      reload: '重新載入 MCP',
-      reloading: '重新載入中...',
-      emptyTitle: '沒有 MCP 伺服器',
-      emptyDesc: '新增 stdio 或 HTTP 伺服器以公開 MCP 工具。',
       disabled: '已停用',
-      editServer: '編輯伺服器',
       name: '名稱',
       serverJson: '伺服器 JSON',
       remove: '移除',
@@ -1860,7 +1852,6 @@ export const zhHant = defineCompleteLocale({
         `已啟用 ${[`${tools} 個工具`, ...(prompts ? [`${prompts} 個提示`] : []), ...(resources ? [`${resources} 個資源`] : [])].join('、')}`,
       costTokens: tokens => `每次呼叫約 ${tokens} token`,
       usage30d: uses => `30 天內 ${uses} 次呼叫`,
-      unusedPill: '未使用',
       statusConnecting: '連線中…',
       statusNeedsAuth: '需要驗證',
       statusError: '錯誤',
@@ -1868,11 +1859,7 @@ export const zhHant = defineCompleteLocale({
       allServers: '所有伺服器',
       authenticatedTitle: '已驗證',
       authenticatedMessage: (server, count) => `${server}：${count} 個工具`,
-      waitingForBrowser: '等待瀏覽器…',
       authenticate: '驗證',
-      unsavedConnect: '未儲存 — 儲存 mcp.json 以連線。',
-      enableTool: tool => `啟用 ${tool}`,
-      disableTool: tool => `停用 ${tool}`,
       noOutput: '尚無輸出。',
       deepLinkTitle: '新增 MCP 伺服器？',
       deepLinkDescription: '一個連結要求將此 MCP 伺服器加入 Hermes。請檢查下方的完整設定——它來自該連結，而非 Hermes。',
@@ -1895,6 +1882,22 @@ export const zhHant = defineCompleteLocale({
       catalogAuthApiKey: 'API 按鍵'
     },
     model: {
+      setupProviderFallback: '提供方',
+      setUpProvider: name => `設定 ${name}`,
+      staleAuxBefore: (count, names) => `${count} 個輔助任務（${names}）仍由 `,
+      staleAuxAfter: ' 執行，而非主要模型。',
+      staleAuxOtherProviders: '其他提供方',
+      moaEnabled: '啟用',
+      moaSetDefault: '設為預設',
+      moaNewPresetPlaceholder: '新預設',
+      moaAddPreset: '新增預設',
+      customModel: '自訂模型…',
+      customModelPlaceholder: '模型 ID',
+      chooseFromList: '從清單中選擇',
+      moaDefault: '預設：',
+      moaReferenceToggle: (enabled, index) => `${enabled ? '停用' : '啟用'}參考 ${index}`,
+      moaReferenceTitle: index => `參考 ${index}`,
+      moaAddReference: '新增參考模型',
       loading: '正在載入模型設定...',
       appliesDesc: '套用至新工作階段。可在輸入框的模型選擇器中臨時切換目前對話。',
       provider: '提供方',
@@ -1920,12 +1923,10 @@ export const zhHant = defineCompleteLocale({
       fallbackEmpty: '無後備模型－除非失敗，否則將使用預設模型。',
       notInCatalog: '不在該提供者的型號清單中 — 通話可能會退回到備份。',
       staleAuxPrefix: (count, names) => `${count} 個輔助任務（${names}）仍執行於 `,
-      staleAuxOtherProviders: '其他提供方',
       staleAuxSuffix: ' 上，而非你的主要模型。',
       pasteKeyPlaceholder: keyEnv => `貼上 ${keyEnv}`,
       activate: '啟用',
       activating: '啟用中...',
-      setUpProvider: name => `設定 ${name}`,
       needsApiKeyHint: name => `${name} 需要 API 金鑰 — 完成設定後才能選擇模型。`,
       oauthHint: name => `${name} 透過瀏覽器登入 — Hermes 會為你完成整個流程。`,
       moa: {
@@ -2002,65 +2003,44 @@ export const zhHant = defineCompleteLocale({
       moaReferenceHint: '默認情況下，每回合建議一次'
     },
     customEndpoints: {
-      title: '自訂端點',
-      loadFailed: '無法載入自訂的端點',
-      saved: '自訂端點已儲存 .',
-      saveFailed: '儲存失敗',
-      reachable: '終點可以達到.',
-      reachableWithModels: count => `端點可達。已找到${count}模型。`,
-      validationFailed: '端點驗證失敗 .',
-      validationError: '驗證失敗',
-      enterUrlFirst: '先輸入端點URL.',
-      unreachable: url => `無法到達${url}.`,
-      authRejected: '末端拒絕了 API 鍵 .',
-      httpError: status => `端點返回 HTTP${status}.`,
-      activationFailed: '啟動失敗',
-      deleteConfirm: name => `刪除${name}?`,
-      deleteFailed: '刪除失敗',
-      active: '活躍',
-      apiKeySet: 'API 鍵集合',
+      active: '已啟用',
+      apiKeySet: '已設定 API 金鑰',
       use: '使用',
-      deleteEndpoint: '刪除端點',
-      emptyTitle: '沒有自訂端點',
-      emptyDesc: '下面新增一個 OpenAI 相容的端點 .',
       editTitle: '編輯端點',
       addTitle: '新增端點',
-      nameLabel: '名稱',
-      providerIdLabel: '提供者代碼',
-      providerIdHint: '身份辨識器儲存在 config.yaml 中, 是提供者的金鑰, 在建立後固定; 使用新的端點來換用 ID .',
-      urlLabel: '末端點 URL',
-      apiModeLabel: 'API议定书',
-      apiModeAuto: '自動',
-      apiModeChat: '聊天完成',
-      apiModeResponses: '答复',
-      apiModeMessages: 'Anthropic 信件',
-      authSchemeLabel: 'Auth 信頭',
-      authSchemeAuto: '自動偵測',
-      authSchemeHint:
-        'Anthropic相容的中继器在認證上被分拆:有些人期待本地的 x- api- key 頭, 其他人只接受授權: Bearer 。 自動偵查覆蓋了知名主機; 如果您的中继器拒絕了要求, 請用 401/ 403 設定此機制 .',
-      noModelCatalog: '終點可以達到 它不暴露模型目錄.',
-      connectedNoModels: url => `Connected to ${url}, but the endpoint advertised no models.`,
-      defaultModelLabel: '默认模式',
-      contextLabel: '模型 Token 限制',
-      contextHint: '可分別設定每個模型的總上下文、最大輸入和最大輸出。任一欄留空或清除都會恢復自動',
-      modelLabel: '模型',
-      contextWindowLabel: '總上下文',
-      maxInputLabel: '最大輸入',
-      maxOutputLabel: '最大輸出',
-      apiKeyLabel: 'API 金鑰',
-      userAgentLabel: '使用者代理',
-      userAgentHint:
-        'HTTP 使用者代理被送至此端點 。 默认為标准的桌面瀏覽器代理, 因此代理, WAF 不阻擋要求 。 清除字段以使用內建的 HTTP 預設值 .',
-      contextAuto: '自動',
-      keyKeepPlaceholder: '留空白以保留目前的金鑰',
-      keyOptionalPlaceholder: '可選',
-      useForNewChats: '用于新聊天',
-      discoverModels: '發現模型',
+      fields: {
+        name: '名稱',
+        providerId: '供應商 ID',
+        endpointUrl: '端點 URL',
+        defaultModel: '預設模型',
+        context: '上下文',
+        apiKey: 'API 金鑰',
+        apiKeyNewPlaceholder: '留空以保留目前金鑰',
+        apiKeyPlaceholder: '選填',
+        useNewChats: '用於新對話',
+        discoverModels: '探索模型'
+      },
       test: '測試',
-      newEndpoint: '新端點',
-      reachableVia: transport => `端點可透過${transport}.`,
-      emptyDescription: '下面新增一個 OpenAI 相容的端點 .',
-      namePlaceholder: 'Axet 代理',
+      save: '儲存',
+      newEndpoint: '新增端點',
+      apiMode: 'API 模式',
+      autoDetect: '自動偵測',
+      couldNotLoad: '無法載入自訂端點',
+      endpointSaved: '自訂端點已儲存。',
+      saveFailed: '儲存失敗',
+      endpointReachable: '端點可連線。',
+      endpointReachableTransport: transport => `端點可連線（${transport} 路由已回應）。`,
+      endpointReachableModels: (reachable, count) => `${reachable} 找到 ${count} 個模型。`,
+      endpointValidationFailed: '端點驗證失敗。',
+      validationFailed: '驗證失敗',
+      activationFailed: '啟用失敗',
+      deleteConfirm: name => `刪除 ${name}？`,
+      deleteFailed: '刪除失敗',
+      title: '自訂端點',
+      deleteEndpoint: '刪除端點',
+      emptyDescription: '在下方新增 OpenAI 相容端點。',
+      emptyTitle: '尚無自訂端點',
+      namePlaceholder: '我的代理',
       contextPlaceholder: '自動'
     },
     uninstall: {
@@ -2233,6 +2213,229 @@ export const zhHant = defineCompleteLocale({
       deleted: model => `已刪除 ${model}。`,
       deleteFailed: '刪除失敗'
     },
+    billing: {
+      perMonth: amount => `${amount}/月`,
+      creditsPerMonth: amount => `${amount} 額度/月`,
+      usageLabel: label => `${label}用量`,
+      freeTier: {
+        signIn: '登入',
+        title: '你正在使用 Nous 免費服務',
+        message: '登入 Nous 帳戶以解鎖更多模型和工具。',
+        caption: '使用 nous/welcome，包含連接器。登入後會保留連接器，並增加需要帳戶的工具和其他所有模型。',
+        name: 'Nous · 免費服務',
+        footnote: '免費服務沒有餘額，無需付款。登入 Nous 帳戶後才會顯示支付與用量。',
+        plan: '免費服務',
+        model: '模型',
+        connectors: '連接器',
+        included: '已包含'
+      },
+      amountValidation: {
+        reloadTo: '儲值金額',
+        greaterThanThreshold: '儲值金額必須大於門檻。',
+        decimal: label => `${label}：請輸入最多含兩位小數的美元金額。`,
+        positive: label => `${label}：金額必須大於 $0。`,
+        minimum: (label, amount) => `${label}：最低金額為 ${amount}。`,
+        maximum: (label, amount) => `${label}：最高金額為 ${amount}。`
+      },
+      stepUp: {
+        openVerification: '開啟驗證頁面',
+        dismiss: '關閉',
+        waiting: '正在等待驗證連結…',
+        verify: '驗證以繼續',
+        deniedTitle: '驗證未獲核准',
+        deniedBody: '驗證已結束，但未允許此終端進行遠端支出。',
+        successTitle: '驗證完成',
+        successBody: '此終端已獲准進行遠端支出。'
+      },
+      charge: {
+        added: amount => (amount ? `已加入 $${amount}。` : '已加入額度。'),
+        failedTitle: '扣款失敗',
+        unconfirmedTitle: '扣款結果尚未確認',
+        unconfirmedBody: message => `${message} 上次扣款結果尚未確認，請在重試前檢查餘額和歷史記錄。`,
+        checkTitle: '無法檢查扣款',
+        checkBody: '無法檢查扣款。',
+        untrackedTitle: '無法追蹤扣款',
+        untrackedBody: '帳單服務已接受請求，但未傳回扣款識別碼。',
+        timeoutTitle: '5 分鐘後仍在處理',
+        timeoutBody: '扣款仍可能結算，請在重試前檢查入口網站。',
+        authenticationRequired: '銀行要求驗證（3DS）。請在入口網站完成驗證以完成本次購買。',
+        expired: '銀行卡已到期。請在入口網站中更新。',
+        declined: '銀行卡遭拒。請在入口網站中嘗試另一張卡。',
+        failedBody: reason => `扣款未成功（${reason}）。`
+      },
+      title: '帳單',
+      preview: '預覽',
+      summary: { balance: '餘額', plan: '方案', autoRefill: '自動儲值' },
+      sections: {
+        invoices: '發票',
+        plan: '方案',
+        paymentAndCredits: '支付與額度',
+        usage: '用量'
+      },
+      usage: { title: '用量' },
+      buyCredits: {
+        customAmount: '自訂儲值金額',
+        title: '立即購買額度',
+        buyButton: '購買',
+        processing: '處理中…正在確認結算',
+        added: amount => `已加入 ${amount}，正在重新整理餘額。`,
+        retry: '重試',
+        openPortal: '開啟入口網站'
+      },
+      plan: {
+        title: '方案',
+        changePlan: '變更方案',
+        viewPlans: '查看方案',
+        backAria: '返回帳單',
+        current: '目前方案',
+        scheduled: '已排定',
+        empty: '目前沒有可切換的方案。',
+        undo: '復原',
+        undoing: '正在復原…',
+        downgrade: '降級',
+        confirmDowngrade: '確認降級',
+        tryAgain: '重試',
+        checkingChange: '正在檢查此變更…',
+        cannotChange: '無法在此進行該變更。',
+        alreadyOn: name => `你已使用 ${name}，無需變更。`,
+        notScheduleable: '無法在此排定該變更。',
+        scheduling: '正在排定…',
+        cancel: '取消',
+        effectScheduled: (targetName, effectiveAt, creditsDelta) =>
+          `變更為 ${targetName}，於 ${effectiveAt} 生效。現在不扣款；在此之前保留目前方案。${creditsDelta ? `每月額度變化：${creditsDelta}。` : ''}`
+      },
+      autoReload: {
+        threshold: '門檻',
+        thresholdAria: '自動儲值門檻',
+        reloadTo: '儲值金額',
+        reloadToAria: '自動儲值金額',
+        turnOffConfirm: '關閉自動儲值？',
+        turnOff: '關閉',
+        disable: '停用',
+        updated: '自動儲值已更新。',
+        turnedOff: '自動儲值已關閉。',
+        manage: '管理',
+        save: '儲存',
+        saving: '正在儲存…',
+        cancel: '取消'
+      },
+      state: {
+        notice: {
+          loggedOut: {
+            title: '連接你的 Nous 帳戶',
+            message: '在 TUI 中執行 /portal，或開啟 Nous 入口網站連接帳戶。',
+            action: '開啟入口網站 ↗'
+          },
+          noCard: {
+            title: '尚未新增付款方式',
+            message: '新增銀行卡後才能購買額度和使用自動儲值。請在入口網站中新增。',
+            action: '新增銀行卡 ↗'
+          }
+        },
+        paymentMethod: {
+          title: '付款方式',
+          description: '管理用於儲值和訂閱續費的銀行卡。',
+          addAction: '新增付款方式',
+          updateAction: '更新',
+          provenance: {
+            autoRefill: '自動儲值卡',
+            customerDefault: '帳戶預設卡',
+            subPin: '訂閱卡',
+            suffix: label => ` - ${label}`
+          }
+        },
+        buyCredits: { description: '從銀行卡一次性扣款，今天即可計入餘額。' },
+        autoRefill: {
+          title: '餘額不足時儲值',
+          genericDescription: '餘額低於門檻時自動補充額度。',
+          offPill: '已關閉',
+          enabledPill: '已啟用',
+          notAvailablePill: '—',
+          manageCaption: '在入口網站中管理自動儲值。',
+          turnOnCaption: '在入口網站中開啟自動儲值',
+          chargesDescription: (reloadTo, threshold) => `餘額低於 ${threshold} 時自動扣款 ${reloadTo}。`,
+          distinctCardCaption: cardLabel => `自動儲值使用 ${cardLabel} 扣款，請在入口網站中核對`,
+          distinctCardFallback: '另一張銀行卡',
+          reconcileAction: '核對 ↗'
+        },
+        usage: {
+          subscriptionCredits: {
+            title: '訂閱額度',
+            barLabel: '剩餘訂閱額度',
+            captionResets: date => `於 ${date} 重設`,
+            valueOf: (remaining, monthly) => `${monthly} 中剩餘 ${remaining}`,
+            valueOver: (remaining, monthly, over) => `${monthly} 中剩餘 ${remaining} · 超出 ${over}`
+          },
+          topupCredits: { title: '儲值額度', caption: '不會到期' },
+          monthlyCap: {
+            title: '每月支出上限',
+            barLabel: '已用每月支出限額',
+            captionDefault: '預設上限',
+            captionSpending: '每月遠端支出',
+            valueUsed: (spent, limit) => `${limit} 中已用 ${spent}`
+          }
+        },
+        planCard: {
+          freeTier: '免費',
+          chooseAction: '選擇 ↗',
+          adjustPlanAction: '調整方案 ↗',
+          unavailableCaption: '訂閱詳細資料暫不可用，仍可開啟入口網站。',
+          downgradeCaption: (tierName, when) => `於 ${when} 變更為 ${tierName}。`,
+          cancellationCaption: when => `於 ${when} 取消。`,
+          renewsCaption: date => `於 ${date} 續費`,
+          noSubscriptionCaption: '沒有有效訂閱，付費模型會扣除儲值額度。'
+        }
+      },
+      errors: {
+        consentRequired: { title: '需要確認銀行卡', message: '請在入口網站中確認此卡可用於終端扣款' },
+        insufficientScope: {
+          title: '需要核准遠端支出',
+          message: '此操作需要遠端支出權限。請發起一次儲值以授權，然後重試。'
+        },
+        remoteSpendingRevoked: {
+          title: '遠端支出已停止',
+          messageByAdmin: '管理員已停止此終端的遠端支出。',
+          messageBySelf: '你已停止此終端的遠端支出。'
+        },
+        remoteSpendingReconnect: who => `${who} 請從「設定 → 閘道」重新連線以重新授權此裝置。`,
+        sessionRevoked: { title: '工作階段已登出', message: '你的工作階段已登出。請從「設定 → 閘道」重新登入。' },
+        cliBillingDisabled: {
+          title: '遠端支出已關閉',
+          message: '此帳戶的遠端支出已關閉，帳單管理員可在入口網站的 Hermes Agent 頁面開啟。'
+        },
+        roleRequired: {
+          title: '需要管理員權限',
+          message: '新增資金需要組織管理員或擁有者權限。請聯絡管理員，或在入口網站中管理。'
+        },
+        idempotencyConflict: { title: '請發起新的儲值', message: '🔴 此扣款識別碼已用於另一金額。請發起新的儲值。' },
+        noPaymentMethod: {
+          title: '沒有已儲存的銀行卡',
+          message: '💳 尚未儲存用於終端扣款的銀行卡。請在入口網站中設定（一次性購買額度不會儲存可重複使用的卡）。'
+        },
+        orgAccessDenied: { title: '組織存取遭拒', message: '此權杖未綁定到你可管理的組織' },
+        monthlyCapExceeded: {
+          title: '已達每月支出上限',
+          messageReached: '🔴 已達每月支出上限。',
+          messageHeadroom: remaining => `🔴 已達每月支出上限，剩餘額度為 $${remaining}。`
+        },
+        rateLimited: {
+          title: '目前扣款請求過多',
+          message: mins => `🟡 目前扣款請求過多${mins > 0 ? `（請約 ${mins} 分鐘後重試）` : ''}。這不是付款失敗。`
+        },
+        stripeUnavailable: {
+          title: 'Stripe 遇到問題',
+          message: mins => (mins > 0 ? `Stripe 遇到問題，請約 ${mins} 分鐘後重試` : 'Stripe 遇到問題，請稍後重試')
+        },
+        upgradeCapExceeded: { title: '已達每日方案變更次數上限', message: '已達每日方案變更次數上限，請明天重試' },
+        endpointUnavailable: {
+          title: '帳單端點不可用',
+          message: '帳單端點傳回了非 JSON 回應（此部署可能不支援該端點）。'
+        },
+        timeout: { title: '帳單請求逾時', message: '帳單請求逾時。' },
+        transport: { title: '帳單連線失敗', message: '帳單請求在到達閘道前失敗。' },
+        default: { title: '帳單請求失敗', message: '帳單請求失敗。' }
+      }
+    },
     providers: {
       connectAccount: '連結帳號',
       haveApiKey: '改用 API 金鑰？',
@@ -2265,7 +2468,7 @@ export const zhHant = defineCompleteLocale({
     sessions: {
       loading: '正在載入已封存工作階段…',
       archivedTitle: '已封存工作階段',
-      archivedIntro: '已封存的聊天會從側邊欄隱藏，但保留全部訊息。在側邊欄 Ctrl/⌘ 點擊聊天即可封存。',
+      archivedIntro: '已封存的聊天會從側邊欄隱藏，但保留全部訊息。在側邊欄 Alt/⌥+Shift 點擊聊天即可封存。',
       emptyArchivedTitle: '暫無封存',
       emptyArchivedDesc: '封存一個聊天後會顯示在這裡。',
       unarchive: '取消封存',
@@ -2569,9 +2772,33 @@ export const zhHant = defineCompleteLocale({
       billingPlans: '計畫'
     },
     uninstallSection: {
-      dangerZone: '危險區',
+      dangerZone: '危險操作',
+      checkingInstalled: '正在檢查已安裝內容…',
+      uninstallHermes: '解除安裝 Hermes',
+      chooseHowMuch: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
       confirmUninstall: '確認解除安裝',
-      uninstallHermes: '解除安裝 Hermes'
+      confirmBody: what => `這將移除${what}。此操作無法復原。`,
+      appLabel: '應用程式：',
+      couldNotStart: '無法開始解除安裝。',
+      uninstalling: '正在解除安裝…',
+      yesUninstall: '是，解除安裝',
+      options: {
+        gui: {
+          title: '僅解除安裝聊天 GUI',
+          description: '移除此桌面應用程式。Hermes 代理、你的設定和聊天記錄都會保留。',
+          consequence: '桌面聊天 GUI（此應用程式及其資料）'
+        },
+        lite: {
+          title: '解除安裝 GUI 與代理，保留資料',
+          description: '移除應用程式和 Hermes 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
+          consequence: '聊天 GUI 和 Hermes 代理（設定、聊天記錄和機密會保留）'
+        },
+        full: {
+          title: '解除安裝全部',
+          description: '移除應用程式、代理和所有使用者資料——設定、聊天記錄、排程工作、機密和日誌。',
+          consequence: '全部內容——聊天 GUI、Hermes 代理，以及你的所有設定、聊天記錄、機密和日誌'
+        }
+      }
     },
     computerUse: {
       accessibility: '無障礙',
@@ -4754,6 +4981,39 @@ export const zhHant = defineCompleteLocale({
     missingBody: '此產物已不在本機註冊表中。'
   },
   sidebar: {
+    profileRail: '設定檔列',
+    markAllRead: '全部標示為已讀',
+    filter: {
+      grouping: '分組',
+      ordering: '排序',
+      show: '顯示',
+      filters: '篩選',
+      status: '狀態',
+      pullRequest: '提取請求',
+      profile: '設定檔',
+      project: '專案',
+      archived: '已封存',
+      resetToDefaults: '重設為預設值',
+      expandAll: '全部展開',
+      collapseAll: '全部收合',
+      inboxStyle: '收件匣樣式',
+      updated: '已更新',
+      created: '已建立',
+      tokens: '詞元數',
+      cost: '費用',
+      manual: '手動',
+      preview: '預覽',
+      pr: 'PR',
+      needsInput: '需要輸入',
+      working: '運作中',
+      unread: '未讀',
+      draft: '草稿',
+      idle: '閒置',
+      open: '開啟',
+      merged: '已合併',
+      closed: '已關閉',
+      noPR: '無 PR'
+    },
     gatewayGroups: {
       grouping: '閘道與設定檔',
       rename: '重新命名群組',
@@ -4975,15 +5235,10 @@ export const zhHant = defineCompleteLocale({
         idle: '空間'
       }
     },
-    markAllRead: '全部標記為已讀',
-    profileRail: '型材導軌',
     terminal: '終端機',
     files: '檔案',
     review: '審查',
     logs: '記錄'
-  },
-  intro: {
-    bodies: {}
   },
   composer: {
     message: '訊息',
@@ -5054,12 +5309,77 @@ export const zhHant = defineCompleteLocale({
     hotkeys: '快捷鍵',
     helpFooter: '開啟完整面板 · 退格鍵關閉',
     commandDescs: {
-      '/help': '指令與快捷鍵的完整清單',
+      '/help': '顯示桌面端斜線指令',
       '/clear': '開始新工作階段',
-      '/resume': '繼續之前的工作階段',
+      '/resume': '繼續已儲存的工作階段',
       '/details': '控制對話記錄的詳細程度',
       '/copy': '複製所選內容或最後一條助手訊息',
-      '/quit': '結束 hermes'
+      '/quit': '結束 hermes',
+      '/start': '確認平台啟動請求，不傳送回覆',
+      '/new': '開始新的桌面聊天',
+      '/topic': '啟用或查看 Telegram 私訊話題工作階段',
+      '/save': '將目前對話記錄儲存為 JSON',
+      '/retry': '重試最後一則訊息（重新傳送給代理）',
+      '/prompt': '在 $EDITOR 中用 Markdown 撰寫下一個提示詞，然後傳送',
+      '/undo': '退回 N 個使用者回合並重新提示（預設為 1）',
+      '/title': '重新命名目前工作階段',
+      '/handoff': '將此工作階段交接至訊息平台',
+      '/branch': '將最新訊息分支至新的聊天',
+      '/worktree': '顯示、列出、建立或清理隔離的 Git worktree',
+      '/compress': '壓縮此對話的上下文',
+      '/rollback': '列出或還原檔案系統檢查點（還原會保留你的手動編輯；--all 可覆寫此行為）',
+      '/export': '將設定檔（設定、技能、主題）匯出為可分享的封存檔',
+      '/import': '將共用的設定檔封存檔匯入為新的設定檔',
+      '/stop': '停止目前回合與背景程序',
+      '/pause': '暫停全域新工作（緊急停止）；/pause off 恢復',
+      '/bg': '在獨立的背景工作階段中執行提示詞',
+      '/btw': '在不中斷目前對話的情況下詢問旁支問題',
+      '/agents': '顯示作用中的代理與執行中的任務',
+      '/journey': '開啟記憶圖譜 — 查看技能與記憶隨時間的變化',
+      '/queue': '排入、檢視、編輯、移除、移動或清空下一回合提示詞',
+      '/steer': '在下一次工具呼叫後插入訊息，不會中斷目前工作',
+      '/goal': '設定持續目標，讓 Hermes 跨回合工作直到完成',
+      '/heartbeat': '設定週期性提示詞，在閒置時重新進入此工作階段',
+      '/refine': '立即檢查此對話，並將心得儲存至記憶或技能',
+      '/review': '產生獨立子代理，審查剛才討論的工作（PR、程式碼、文件）',
+      '/loop': '在此工作階段以固定間隔重新執行提示詞',
+      '/plan': '將 Markdown 實作計畫寫入 .hermes/plans/，不執行任何操作',
+      '/moa': '使用預設的 Mixture of Agents 組合執行提示詞，完成後還原模型',
+      '/subgoal': '新增或管理作用中目標的額外條件',
+      '/status': '顯示目前工作階段狀態',
+      '/egress': '顯示 Docker 對外連線代理狀態',
+      '/context': '顯示詳細的上下文視窗，包括用量、分類明細、壓縮統計與吞吐量',
+      '/whoami': '顯示你的斜線指令存取權限（admin / user）',
+      '/profile': '切換作用中的 Hermes 設定檔',
+      '/codex-runtime': '切換 OpenAI/Codex 模型使用的 Codex app-server runtime',
+      '/personality': '設定預先定義的人格',
+      '/battery': '切換狀態列中的彩色電池指示器',
+      '/timestamps': '切換訊息與 /history 上的 [HH:MM] 時間戳記',
+      '/diff': '顯示工作目錄中的 Git 變更',
+      '/focus': '切換專注檢視 — 只顯示你的提示詞與最終回覆',
+      '/yolo': '切換 YOLO — 自動核准危險指令',
+      '/approvals': '顯示或設定持久化的危險指令核准模式',
+      '/reasoning': '管理推理強度與顯示方式',
+      '/skin': '切換桌面主題，或切換至下一個主題',
+      '/wake': '控制桌面的喚醒詞監聽器 [on|off|status]',
+      '/tools': '管理工具',
+      '/memory': '檢視待處理的記憶寫入，或切換核准閘門',
+      '/bundles': '列出技能套件（可用 /<name> 作為多個技能的別名）',
+      '/pet': '切換或領養 petdex 吉祥物（/pet、/pet list、/pet boba）',
+      '/hatch': '產生新的寵物（開啟寵物產生器）',
+      '/learn': '從你描述的任何內容（目錄、URL、此聊天、筆記）學習可重用的技能',
+      '/init': '掃描儲存庫並產生或更新 AGENTS.md 專案指引',
+      '/suggestions': '檢視建議的自動化項目（接受或略過）',
+      '/blueprint': '使用 blueprint 範本設定自動化',
+      '/browser': '管理瀏覽器 CDP 連線 [connect|disconnect|status]（僅限本機 gateway）',
+      '/palette': '開啟模糊搜尋指令面板（也可使用 Ctrl+P）',
+      '/usage': '顯示 Token 用量與速率限制；`reset` 可兌換保留的 Codex 限額重設',
+      '/subscription': '檢視你的 Nous 方案，並在瀏覽器中變更',
+      '/topup': '顯示你的 Nous 餘額，並在 Portal 管理帳務',
+      '/platform': '暫停、恢復或列出故障的閘道平台',
+      '/version': '顯示 Hermes Agent 版本',
+      '/debug': '上傳偵錯報告（系統資訊與記錄），並取得可分享連結',
+      '/model': '切換此工作階段的模型'
     },
     hotkeyDescs: {
       'composer.mention': '參照檔案、資料夾、URL、git',
@@ -5403,6 +5723,13 @@ export const zhHant = defineCompleteLocale({
     everythingSkipped: '已略過',
     everythingRowFailed: '更新失敗',
     everythingFanoutFailedTitle: '無法更新其他執行個體',
+    changeLogNew: '新增功能',
+    changeLogFixed: '修復',
+    changeLogFaster: '更快',
+    changeLogImproved: '改進',
+    changeLogOther: '其他改進',
+    changeLogFallbackLabel: '本次更新',
+    changeLogFallbackItem: '改進與修復',
     applyStatus: {
       preparing: '正在更新後端…',
       pulling: '後端更新中…',
@@ -5827,13 +6154,18 @@ export const zhHant = defineCompleteLocale({
     free: '免費',
     freeTier: '免費層',
     priceTitle: '每百萬 Token 的輸入/輸出價格',
-    wasPrice: '原價'
+    wasPrice: '原價',
+    customModel: '自訂模型',
+    addCustomModelAction: '新增自訂模型…',
+    customModelPlaceholder: '輸入模型 ID，例如 openai/gpt-5'
   },
   modelVisibility: {
     title: '模型',
     search: '搜尋模型',
     noAuthenticatedProviders: '沒有已驗證的提供方。',
-    addProvider: '新增提供方…'
+    addProvider: '新增提供方…',
+    addCustomModel: '新增自訂模型',
+    removeCustomModel: '移除自訂模型'
   },
   shell: {
     windowControls: '視窗控制項',
@@ -6136,6 +6468,21 @@ export const zhHant = defineCompleteLocale({
       cancelComment: '取消評論'
     }
   },
+  interfaceMode: {
+    title: '介面模式',
+    hint: '只改變顯示的內容，不改變 Hermes 的能力。',
+    sessionNote: '由簡潔模式設定。此處的變更僅在本次工作階段內生效；切換到進階模式即可保留為你的設定。',
+    simple: {
+      label: '簡潔',
+      description: '用於與 Hermes 對話。只有側邊欄和聊天；沒有終端機、檔案或差異面板。'
+    },
+    advanced: {
+      label: '進階',
+      description: '面向開發者。終端機、檔案、差異、狀態列和版面配置，按你的設定顯示。'
+    }
+  },
+
+
   zones: {
     showTabStrip: '顯示分頁',
     hideTabStrip: '隱藏分頁',
@@ -6331,6 +6678,59 @@ export const zhHant = defineCompleteLocale({
       branchNewChat: '在新聊天中分支',
       react: '回應',
       dismissError: '关闭错误',
+      errorGenericProvider: 'AI 服務',
+      errorLayerBodies: {
+        generic: 'Hermes 回覆時發生問題。請重試；若問題持續，請複製錯誤詳細資訊。',
+        provider: 'AI 服務無法完成此請求。請稍後重試或切換服務商。',
+        endpoint: 'Hermes 無法連線至你的自訂模型伺服器。請確認它正在執行，然後重新傳送訊息。',
+        streaming: '回覆完成前連線已中斷。請重試以重新傳送。'
+      },
+      errorCodes: {
+        provider_policy_blocked: {
+          title: '帳戶設定封鎖了此模型',
+          body: provider => `${provider} 無法依你帳戶的資料或隱私設定路由此請求。請選擇其他模型或切換服務商。`
+        },
+        content_policy_blocked: {
+          title: 'AI 服務拒絕回答此請求',
+          body: provider => `${provider} 拒絕回答這則訊息。請修改後重新傳送。`
+        },
+        format_error: {
+          title: 'AI 服務拒絕了請求格式',
+          body: provider => `${provider} 不接受此請求的建構方式。請切換服務商，或傳送診斷資訊以便我們排查。`
+        },
+        invalid_response: {
+          title: 'AI 服務傳回了無法讀取的回覆',
+          body: provider => `${provider} 傳回了 Hermes 無法讀取的內容。請稍後重試。`
+        },
+        empty_response: {
+          title: 'AI 服務傳回了空回覆',
+          body: provider => `${provider} 沒有為此訊息傳回內容。請稍後重試。`
+        },
+        rate_limit: {
+          title: 'AI 服務忙碌中',
+          body: provider => `${provider} 正在限制請求數量。請稍等片刻後重試。`
+        },
+        upstream_rate_limit: {
+          title: 'AI 服務忙碌中',
+          body: provider => `${provider} 正在限制請求數量。請稍等片刻後重試。`
+        },
+        overloaded: {
+          title: 'AI 服務負載過高',
+          body: provider => `${provider} 目前遇到問題。請稍後重試或切換服務商。`
+        },
+        server_error: {
+          title: 'AI 服務發生錯誤',
+          body: provider => `${provider} 傳回了伺服器錯誤。請稍後重試或切換服務商。`
+        },
+        timeout: {
+          title: '回覆逾時',
+          body: provider => `${provider} 未及時回應。請重試以重新傳送。`
+        },
+        ssl_cert_verification: {
+          title: '安全連線失敗',
+          body: provider => `Hermes 無法驗證與 ${provider} 的安全連線。請檢查網路或代理設定，或切換服務商後重新傳送。`
+        }
+      },
       errorLayers: {
         auth: '認證錯誤',
         billing: '額度不足',
@@ -6373,143 +6773,6 @@ export const zhHant = defineCompleteLocale({
       goForward: '前進',
       sendEdited: '傳送編輯後的訊息',
       attachingFile: '正在附加…',
-      errorLayerBodies: {
-        auth: 'AI 服務拒絕您的登入。檢查該提供者的憑證，然後再次發送您的訊息。',
-        billing: '您的帳戶已沒有該提供者的積分。充值或更換提供者，然後重新發送。',
-        disk: '您的磁碟已滿，因此 Hermes 無法儲存此對話。釋放一些空間，然後再試一次。',
-        endpoint: 'Hermes 無法存取您的自訂模型伺服器。檢查它是否正在運行，然後再次發送您的訊息。',
-        gateway: 'Hermes 在開始此回應時遇到內部問題。再次發送您的訊息；如果這種情況持續發生，請發送診斷訊息。',
-        generic: 'Hermes 回覆時出現問題。重試，或者如果這種情況持續發生，請複製詳細資訊。',
-        provider: 'AI 服務無法完成此要求。請稍後重試或更換提供者。',
-        runtime: 'Hermes 在開始此回應時遇到內部問題。再次發送您的訊息；如果這種情況持續發生，請發送診斷訊息。',
-        streaming: '在回復完成之前連接就斷開了。重試再次發送。'
-      },
-      errorCodes: {
-        auth: {
-          title: provider => `${provider}拒絕了您的登入`,
-          body: provider =>
-            `儲存的憑證適用於${provider}未被接受。請在設定中修正它們或更換服務提供者，然後再次發送您的訊息。`
-        },
-        auth_permanent: {
-          title: provider => `${provider}拒絕了您的登入`,
-          body: provider =>
-            `儲存的憑證適用於${provider}無效或已被撤銷。請更新它們或更換服務提供商，然後再次發送您的訊息。`
-        },
-        billing: {
-          title: '餘額不足',
-          body: provider => `你的${provider}帳戶餘額已用盡。請充值或更換服務提供者，然後再次發送。`
-        },
-        rate_limit: {
-          title: 'AI服務正忙',
-          body: provider => `${provider}目前正在限制請求。請稍等片刻，然後重試。`
-        },
-        upstream_rate_limit: {
-          title: 'AI服務正忙',
-          body: provider => `${provider}目前正在限制請求。請稍等片刻，然後重試。`
-        },
-        overloaded: {
-          title: 'AI服務超載',
-          body: provider => `${provider}目前出現問題。請稍後重試或切換服務提供者。`
-        },
-        server_error: {
-          title: 'AI服務出現問題',
-          body: provider => `${provider}伺服器返回錯誤。請稍後重試或更換提供者。`
-        },
-        timeout: {
-          title: '回覆超時',
-          body: provider => `${provider}未能及時回覆。請重試再次發送。`
-        },
-        stream_drop: {
-          title: '回覆被刪了',
-          body: '在回復完成之前連接就斷開了。重試再次發送。'
-        },
-        upstream_blocked: {
-          title: '防火牆阻止了請求',
-          body: provider =>
-            `防火牆或 CDN 在前面${provider}在請求到達模型之前被阻擋——你的金鑰可能沒問題。通過設定中的 provider 的 extra_headers 設置 User-Agent 標頭，或者切換提供者，然後再次發送你的訊息。`
-        },
-        ssl_cert_verification: {
-          title: '安全連線失敗',
-          body: provider =>
-            `Hermes could not verify the secure connection to ${provider}。檢查您的網路或代理設置，或切換供應商，然後重新發送訊息。`
-        },
-        context_overflow: {
-          title: '這段對話太長',
-          body: '談話不再符合模型。壓縮它或開始新的聊天，然後再次發送。'
-        },
-        payload_too_large: {
-          title: '此消息太大',
-          body: '該要求對於模型來說太大了。壓縮對話或開始新的聊天，然後重新發送。'
-        },
-        model_not_found: {
-          title: '此型號不可用',
-          body: provider => `${provider}您的帳戶不提供此模型。請選擇其他模型，然後再次發送您的訊息。`
-        },
-        provider_policy_blocked: {
-          title: '您的帳戶設定阻止了該模型',
-          body: provider => `${provider}不會在您的帳戶資料或隱私設定下處理此請求。請選擇其他模型或更換供應商。`
-        },
-        content_policy_blocked: {
-          title: 'AI 服務拒絕了此請求',
-          body: provider => `${provider}不會回覆這則訊息。請修改後再發送。`
-        },
-        format_error: {
-          title: 'AI 服務拒絕了請求',
-          body: provider => `${provider}未接受此請求的構建方式。請更換服務提供商或發送診斷資料，以便我們檢查。`
-        },
-        truncated: {
-          title: '回復被縮短了',
-          body: '模型在完成之前就停止了。重試以獲得完整答案。'
-        },
-        invalid_response: {
-          title: 'AI 服務發送了無法讀取的回复',
-          body: provider => `${provider}返回了某些 Hermes 無法讀取的內容。請稍後重試。`
-        },
-        empty_response: {
-          title: 'AI服務發送了空回复',
-          body: provider => `${provider}對此訊息沒有返回任何內容。請稍後再試。`
-        },
-        loop_error: {
-          title: 'Hermes 陷入循環',
-          body: '回复不断重复相同的步骤，所以Hermes停止了它。重试，或者如果再次发生这种情况则开始新的聊天。'
-        },
-        SESSION_NOT_OWNED: {
-          title: '此聊天已在其他地方打開',
-          body: '此聊天当前在另一个 Hermes 窗口或终端中打开。在那里关闭它并再次发送您的消息，或者在此处开始新的聊天。'
-        },
-        disk_full: {
-          title: '磁碟已滿',
-          body: '您的磁碟已滿，因此 Hermes 無法儲存此對話。釋放一些空間，然後再試一次。'
-        },
-        free_tier_disabled: {
-          title: '无需登录即可使用 Hermes 现已关闭',
-          body: '使用 Nous 帐户登录即可继续聊天，这是免费的。'
-        },
-        free_tier_rate_limited: {
-          title: '您已用完未登入的聊天限額',
-          body: '很快就會刷新。使用 Nous 帐户登录可获得更大的津贴，而且是免费的。'
-        },
-        free_tier_at_capacity: {
-          title: '不登入聊天現在真的很忙',
-          body: '登录以跳过队列，这是免费的，或者稍后再试。'
-        },
-        free_tier_model_not_free: {
-          title: '該模型在未登入的情況下不可用',
-          body: 'Hermes 目前使用免費模型。使用Nous帐户登录可查看更多型号，而且是免费的。'
-        },
-        free_tier_route: {
-          title: 'Hermes 无法到达此路线上的免费模型',
-          body: '使用 Nous 帐户登录，这是免费的，或者检查 NOUS_INFERENCE_BASE_URL 设置。'
-        },
-        free_tier_outage: {
-          title: '免费模型目前无法响应',
-          body: '請稍後嘗試再次發送訊息。'
-        },
-        free_tier_refused: {
-          title: 'Hermes 無法在未登入的情況下傳送該訊息',
-          body: '使用 Nous 帐户登录是免费的。'
-        }
-      },
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}拒絕了你的 API 金鑰`,
@@ -6520,7 +6783,6 @@ export const zhHant = defineCompleteLocale({
         }
       },
       errorDetails: '詳細資訊',
-      errorGenericProvider: '人工智慧服務',
       errorToastTitle: 'Hermes 无法完成回复',
       errorLimitResets: time => `限額將於 ${time} 重設`,
       errorRetryAtReset: time => `限額重設後重試（${time}）`,

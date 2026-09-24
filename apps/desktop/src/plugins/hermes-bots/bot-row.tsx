@@ -11,6 +11,7 @@ import {
   coarseElapsed,
   Codicon,
   ContextMenu,
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
@@ -60,7 +61,7 @@ import { toggleGroupChatPinned } from './group-pin'
 import { $activeGroupMemberKeys } from './group-presence'
 import { fallbackSelectionAfterHide, isBotHidden, isBotPinned } from './hidden-bots'
 import { useBots } from './i18n'
-import { localizedDisplayName, stripPreviewMarkdown } from './labels'
+import { displayName, stripPreviewMarkdown } from './labels'
 import { duplicateBot } from './profile-ops'
 import { botRecentSession, openBotRecentSession } from './recent-session'
 import { openRosterBot } from './roster-actions'
@@ -74,6 +75,7 @@ import {
   useTurnBusy,
   workerActiveAt
 } from './row-helpers'
+import { openBotScreen } from './screen-open'
 import type { GroupMember, RosterRow, SidebarRowLabels } from './types'
 import {
   $botSections,
@@ -118,7 +120,6 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
   const activeGroup = useValue($groupChatWorkspace)
   const allMeta = useValue($botMeta)
   const meta = botRosterMeta(bot, allMeta)
-  const label = localizedDisplayName(bot, meta, b.bot.defaultProfileName)
   const hidden = isBotHidden(bot, allMeta)
   const pinned = isBotPinned(bot, allMeta)
   const sourceStatus = botSourceStatus(bot)
@@ -193,7 +194,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
   const gatewayLabel = bot.connectionLabel || (bot.connectionId === 'local' ? b.bot.thisDevice : '')
   const showDetailsRow = Boolean(showHandle || displayPreview || fromBot)
 
-  const rowTooltip = [label, `@${handle}`, gatewayLabel, sourceStatus.label]
+  const rowTooltip = [displayName(bot, meta), `@${handle}`, gatewayLabel, sourceStatus.label]
     .filter(Boolean)
     .join(' · ')
 
@@ -284,7 +285,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
               </Tip>
             ) : null}
             <Tip label={rowTooltip}>
-              <span className="min-w-0 truncate text-[0.8125rem] font-medium">{label}</span>
+              <span className="min-w-0 truncate text-[0.8125rem] font-medium">{displayName(bot, meta)}</span>
             </Tip>
           </div>
           {attention ? (
@@ -322,6 +323,26 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
       <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem onSelect={() => void openRosterBot(bot)}>{b.bot.openBotChat}</ContextMenuItem>
+        <ContextMenuItem onSelect={() => openBotScreen(bot, meta)}>{b.screen.menu}</ContextMenuItem>
+        <ContextMenuCheckboxItem
+          checked={Boolean(meta?.screenAutoOpen)}
+          onSelect={() => {
+            void ensureBotMetadata(bot)
+              .then(current => {
+                const next = !current.screenAutoOpen
+                void saveBotMeta(bot, { screenAutoOpen: next })
+                host.notify({
+                  kind: 'info',
+                  message: next
+                    ? b.screen.autoOpenOnToast(displayName(bot, current))
+                    : b.screen.autoOpenOffToast(displayName(bot, current))
+                })
+              })
+              .catch(error => host.notifyError?.(error, b.bot.metadataLoadFailed))
+          }}
+        >
+          {b.screen.autoOpenMenu}
+        </ContextMenuCheckboxItem>
         <ContextMenuSeparator />
         <ContextMenuItem
           onSelect={() => {
@@ -334,8 +355,8 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
                 host.notify({
                   kind: 'info',
                   message: pinned
-                    ? b.bot.unpinnedToast(localizedDisplayName(bot, current, b.bot.defaultProfileName))
-                    : b.bot.pinnedToast(localizedDisplayName(bot, current, b.bot.defaultProfileName))
+                    ? b.bot.unpinnedToast(displayName(bot, current))
+                    : b.bot.pinnedToast(displayName(bot, current))
                 })
               })
               .catch(error => host.notifyError?.(error, b.bot.metadataLoadFailed))
@@ -359,8 +380,8 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
                 host.notify({
                   kind: 'info',
                   message: hidden
-                    ? b.bot.unhiddenToast(localizedDisplayName(bot, current, b.bot.defaultProfileName))
-                    : b.bot.hiddenToast(localizedDisplayName(bot, current, b.bot.defaultProfileName))
+                    ? b.bot.unhiddenToast(displayName(bot, current))
+                    : b.bot.hiddenToast(displayName(bot, current))
                 })
               })
               .catch(error => host.notifyError?.(error, b.bot.metadataLoadFailed))
@@ -391,7 +412,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
           onSelect={() => {
             host.notify({
               kind: 'info',
-              message: b.bot.duplicating(label)
+              message: `Duplicating ${displayName(bot, meta)}…`
             })
             duplicateBot(bot, $lastRoster.get())
               .then(name => {
@@ -400,7 +421,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
                 })
                 host.notify({
                   kind: 'success',
-                  message: b.bot.duplicated(name, bot.name)
+                  message: `Created ${name} — full copy of ${bot.name}`
                 })
               })
               .catch(err => host.notifyError(err, b.bot.duplicateFailed))
@@ -422,7 +443,7 @@ export function BotRow({ bot, onDelete, onEdit, onGroup, onNewSection, showHandl
             a delegated job, a side thread — without moving the row click off
             the canonical Bot Chat. */}
         <ContextMenuItem disabled={!botRecentSession(bot)} onSelect={() => void openBotRecentSession(bot)}>
-          {b.bot.openRecentSession}
+          Open recent session
         </ContextMenuItem>
         <ContextMenuSeparator />
         {/* Filing. Membership is one field on the bot's meta (`sectionId`), so
@@ -594,7 +615,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
     <ContextMenu>
       <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onSelect={() => onOpen(group)}>{b.group.openGroupChat}</ContextMenuItem>
+        <ContextMenuItem onSelect={() => onOpen(group)}>Open Group Chat</ContextMenuItem>
         <ContextMenuSeparator />
         {/* Same affordance as a bot row's pin; pinned rooms lead the roster
             band, and the flag lives on the room record. */}
@@ -603,11 +624,11 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
             const pinned = toggleGroupChatPinned(group)
 
             if (pinned !== null) {
-              host.notify({ kind: 'info', message: pinned ? b.bot.pinnedToast(group) : b.bot.unpinnedToast(group) })
+              host.notify({ kind: 'info', message: `${group} ${pinned ? 'pinned to top' : 'unpinned'}` })
             }
           }}
         >
-          {room.pinned ? b.bot.unpin : b.bot.pinToTop}
+          {room.pinned ? 'Unpin' : 'Pin to top'}
         </ContextMenuItem>
         {/* Filing — the same submenu a bot row gets, driving the room-record
             assignment instead of profile meta. */}

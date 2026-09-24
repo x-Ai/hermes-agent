@@ -15,6 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  useI18n,
   useQuery
 } from '@hermes/plugin-sdk'
 import { useState } from 'react'
@@ -118,8 +119,8 @@ interface ModelPickerProps {
 }
 
 export function ModelPicker({ bot = null, value, onChange, placeholderModel }: ModelPickerProps) {
-  const copy = useBots().modelPicker
-  const resolvedPlaceholderModel = placeholderModel ?? copy.gatewayDefault
+  const b = useBots()
+  const { t } = useI18n()
   const { data, isLoading, error } = useModelOptions(bot)
 
   // Hooks are ALWAYS declared up front, before any conditional return.
@@ -143,7 +144,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
     return (
       <div className="grid grid-cols-2 gap-2.5">
         {labeled(
-          copy.provider,
+          t.settings.model.provider,
           <Input
             onChange={event =>
               onChange({
@@ -155,7 +156,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
           />
         )}
         {labeled(
-          copy.model,
+          t.settings.model.model,
           <Input
             onChange={event =>
               onChange({
@@ -175,26 +176,26 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2.5">
           {labeled(
-            copy.customProvider,
+            b.editor.providerCustom,
             <Input
               onChange={event =>
                 onChange({
                   provider: event.target.value
                 })
               }
-              placeholder="e.g. omnirouter, inferx, 9router"
+              placeholder="omnirouter / inferx / 9router"
               value={value.provider}
             />
           )}
           {labeled(
-            copy.customModel,
+            b.editor.modelCustom,
             <Input
               onChange={event =>
                 onChange({
                   model: event.target.value
                 })
               }
-              placeholder="e.g. antigravity/gemini-3.6-flash-high"
+              placeholder="antigravity/gemini-3.6-flash-high"
               value={value.model}
             />
           )}
@@ -205,7 +206,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
           size="sm"
           variant="ghost"
         >
-          {copy.backToDropdowns}
+          {b.editor.backToDropdowns}
         </Button>
       </div>
     )
@@ -220,7 +221,7 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
   return (
     <div className="grid grid-cols-[1fr_1.4fr] gap-2.5">
       {labeled(
-        copy.provider,
+        t.settings.model.provider,
         <Select
           onValueChange={v => {
             if (v === NONE) {
@@ -246,18 +247,18 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NONE}>{copy.inheritLaunchProfile}</SelectItem>
+            <SelectItem value={NONE}>{b.editor.inheritLaunch}</SelectItem>
             {providers.map(p => (
               <SelectItem key={p.slug} value={p.slug}>
                 {p.name ? `${p.name} (${p.slug})` : p.slug}
               </SelectItem>
             ))}
-            <SelectItem value={CUSTOM}>{copy.enterManually}</SelectItem>
+            <SelectItem value={CUSTOM}>{b.editor.enterManually}</SelectItem>
           </SelectContent>
         </Select>
       )}
       {labeled(
-        copy.model,
+        t.settings.model.model,
         activeProvider && models.length > 0 ? (
           <Select
             onValueChange={v =>
@@ -285,7 +286,9 @@ export function ModelPicker({ bot = null, value, onChange, placeholderModel }: M
                 model: event.target.value
               })
             }
-            placeholder={resolvedPlaceholderModel || copy.modelPlaceholder}
+            placeholder={
+              placeholderModel === undefined ? b.editor.gatewayDefault : placeholderModel || b.editor.modelNameExample
+            }
             value={value.model}
           />
         )

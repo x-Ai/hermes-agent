@@ -1305,7 +1305,10 @@ class HermesCLI(CLIInitMixin, CLITuiRuntimeMixin, CLIProcessNotificationsMixin, 
         from hermes_cli.commands import COMMANDS
         typed_base = cmd_lower.split()[0]
         all_known = set(COMMANDS) | set(skill_commands) | set(skill_bundles)
-        matches = [c for c in all_known if c.startswith(typed_base)]
+        matches = [
+            c for c in all_known
+            if c.startswith(typed_base) and self._command_available(c)
+        ]
         if len(matches) > 1:
             if typed_base in matches:
                 matches = [typed_base]

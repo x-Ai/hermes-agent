@@ -425,7 +425,7 @@ SUBCOMMAND_DESCRIPTIONS: dict[str, dict[str, str]] = {
     for cmd in COMMAND_REGISTRY if cmd.subcommands
 }
 for _cmd in COMMAND_REGISTRY:
-    if _cmd.gateway_only or not command_available(_cmd):
+    if _cmd.gateway_only:
         continue
     _entries = {f"/{_cmd.name}": _build_description(_cmd)}
     for _alias in _cmd.aliases:

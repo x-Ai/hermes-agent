@@ -13,7 +13,7 @@ describe('Chinese localization regressions', () => {
   })
 
   it('ships localized intro pools instead of falling through to generated English slogans', () => {
-    expect(zh.intro.bodies.none).toHaveLength(5)
-    expect(zh.intro.bodies.none?.every(line => /[\u3400-\u9fff]/u.test(line))).toBe(true)
+    expect(zh.intro.stock.none).toHaveLength(5)
+    expect(zh.intro.stock.none?.every(line => /[\u3400-\u9fff]/u.test(line))).toBe(true)
   })
 })

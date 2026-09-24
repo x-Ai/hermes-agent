@@ -1,17 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
-
-import {
-  evaluateRuntimeReadiness,
-  fetchRuntimeReadinessSignals,
-  interpretRuntimeReadiness,
-  runtimeReadinessDisplay
-} from './runtime-readiness'
-
-afterEach(() => {
-  setRuntimeI18nLocale('en')
-})
+import { fetchRuntimeReadinessSignals, interpretRuntimeReadiness, runtimeReadinessDisplay } from './runtime-readiness'
 
 describe('interpretRuntimeReadiness', () => {
   it('prefers runtime_check when both signals exist', () => {
@@ -96,64 +85,6 @@ describe('fetchRuntimeReadinessSignals', () => {
     await fetchRuntimeReadinessSignals(requestGateway, 'nous')
 
     expect(calls).toEqual([{ method: 'setup.status' }, { method: 'setup.runtime_check', params: { provider: 'nous' } }])
-  })
-})
-
-describe('evaluateRuntimeReadiness', () => {
-  it.each(['en', 'zh', 'zh-hant', 'ja', 'ar', 'ru'] as const)(
-    'localizes unknown-provider readiness failures in %s while preserving the provider and diagnostic commands',
-    async locale => {
-      setRuntimeI18nLocale(locale)
-      const copy = TRANSLATIONS[locale]
-
-      for (const provider of ['fable', 'custom-test']) {
-        const requestGateway = async <T = unknown>(method: string) => {
-          if (method === 'setup.status') {
-            return { provider_configured: true } as T
-          }
-
-          return {
-            ok: false,
-            error: `Unknown provider '${provider}'. Check 'hermes\nmodel' for available providers, or run 'hermes\ndoctor' to diagnose config issues.`
-          } as T
-        }
-
-        const result = await evaluateRuntimeReadiness(requestGateway)
-
-        expect(result).toMatchObject({ ready: false, checksDisagree: true, source: 'runtime_check' })
-        expect(result.reason).toBe(
-          `${copy.notifications.errors.unknownProvider(provider)} ${copy.desktop.readinessChecksDisagree}`
-        )
-        expect(result.reason).toContain(provider)
-        expect(result.reason).toContain('hermes model')
-        expect(result.reason).toContain('hermes doctor')
-
-        if (locale !== 'en') {
-          expect(result.reason).not.toContain('Unknown provider')
-          expect(result.reason).not.toContain(TRANSLATIONS.en.desktop.readinessChecksDisagree)
-        }
-      }
-    }
-  )
-
-  it('forwards requestedProvider to setup.runtime_check', async () => {
-    const requestGateway = async <T = unknown>(method: string, params?: Record<string, unknown>) => {
-      if (method === 'setup.status') {
-        return { provider_configured: true } as T
-      }
-
-      if (method === 'setup.runtime_check') {
-        expect(params).toEqual({ provider: 'nous' })
-
-        return { ok: true } as T
-      }
-
-      throw new Error(`unexpected method: ${method}`)
-    }
-
-    const result = await evaluateRuntimeReadiness(requestGateway, { requestedProvider: 'nous' })
-
-    expect(result.ready).toBe(true)
   })
 })
 

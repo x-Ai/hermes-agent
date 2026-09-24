@@ -6,7 +6,7 @@
  * it reaches back into neither.
  */
 
-import { Button, host, Input } from '@hermes/plugin-sdk'
+import { Button, host, Input, useI18n } from '@hermes/plugin-sdk'
 import { useEffect, useRef, useState } from 'react'
 
 import { useBots } from './i18n'
@@ -35,6 +35,8 @@ interface HubSkillsSectionProps {
 
 export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
   const b = useBots()
+  const { t } = useI18n()
+  const h = t.skills.hub
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<HubSkillResult[] | null>(null)
   const [searching, setSearching] = useState(false)
@@ -136,14 +138,14 @@ export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
       }))
       host.notify({
         kind: 'success',
-        message: b.tools.skillInstalled(label)
+        message: b.tools.installed(label)
       })
 
       if (typeof onInstalled === 'function') {
         onInstalled(label)
       }
     } catch (err) {
-      host.notifyError(err, b.tools.skillInstallFailed(label))
+      host.notifyError(err, b.tools.installFailed(label))
     } finally {
       setInstalling(null)
     }
@@ -154,14 +156,14 @@ export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
   return (
     <div className="grid gap-1.5 border-t border-(--ui-stroke-secondary) pt-2">
       <div className="flex items-baseline justify-between gap-2">
-        <div className="text-[0.7rem] font-medium text-(--ui-text-secondary)">{b.tools.skillsHubShort}</div>
+        <div className="text-[0.7rem] font-medium text-(--ui-text-secondary)">{b.tools.skillsHub}</div>
         <Button
           className="text-[0.65rem] text-(--ui-text-quaternary) hover:text-(--ui-text-secondary)"
           onClick={() => setBrowseHub(v => !v)}
           size="inline"
           variant="text"
         >
-          {browseHub ? b.tools.hideHubBrowser : b.tools.browseFullHub}
+          {browseHub ? h.pickerHide : h.pickerBrowse}
         </Button>
       </div>
       {browseHub ? (
@@ -196,7 +198,7 @@ export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
             />
           </div>
           <div className="px-1 text-[0.65rem] leading-4 text-(--ui-text-quaternary)">
-            {installing ? b.tools.installingSkill(installing) : b.tools.hubBrowserHint}
+            {installing ? h.installStarted(installing) : `${h.pickerHint} ${b.tools.resizeHint}`}
           </div>
         </div>
       ) : null}
@@ -219,12 +221,12 @@ export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
           value={query}
         />
         <Button disabled={searching || !query.trim()} onClick={() => void search()} size="sm" variant="secondary">
-          {searching ? b.tools.searching : b.tools.search}
+          {searching ? h.searching : h.search}
         </Button>
       </div>
-      {searching ? <div className="px-1 text-[0.65rem] text-(--ui-text-quaternary)">{b.tools.searchingHub}</div> : null}
+      {searching ? <div className="px-1 text-[0.65rem] text-(--ui-text-quaternary)">{b.tools.searchHint}</div> : null}
       {results === null ? null : results.length === 0 ? (
-        <div className="px-1 py-1.5 text-[0.7rem] text-(--ui-text-quaternary)">{b.tools.noHubMatches}</div>
+        <div className="px-1 py-1.5 text-[0.7rem] text-(--ui-text-quaternary)">{h.noResults}</div>
       ) : (
         <div
           className="overflow-y-auto overscroll-contain"
@@ -242,10 +244,10 @@ export function HubSkillsSection({ bot, onInstalled }: HubSkillsSectionProps) {
                   ) : null}
                 </div>
                 {installed[r.name] ? (
-                  <span className="shrink-0 text-[0.65rem] text-(--ui-text-tertiary)">{b.tools.added}</span>
+                  <span className="shrink-0 text-[0.65rem] text-(--ui-text-tertiary)">✓ {h.installed}</span>
                 ) : (
                   <Button
-                    aria-label={`Install "${r.name}" and add it to the list above`}
+                    aria-label={b.tools.installHint(r.name)}
                     className="shrink-0 px-2 font-semibold"
                     disabled={installing !== null}
                     onClick={() => void install(r.name)}

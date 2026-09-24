@@ -1,6 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineCompleteLocale } from './define-locale'
+import { defineLocale } from './define-locale'
 import { en } from './en'
 
 // RU_PLURAL: (count, one, few, many) — русские формы сущ. падежа
@@ -24,7 +24,7 @@ const RU_NOUN = (count: number | string, one: string, few: string, many: string)
   return n === 1 && nn !== 11 ? one : n >= 2 && n <= 4 && (nn < 12 || nn > 14) ? few : many
 }
 
-export const ru = defineCompleteLocale({
+export const ru = defineLocale({
   connectors: {
     title: 'Подключите приложения',
     connect: 'Подключить',
@@ -869,7 +869,7 @@ export const ru = defineCompleteLocale({
       title: 'Плагины приложения',
       blurb: 'Встроенные или добавленные в папку desktop-plugins. Отключите, чтобы выгрузить без перезапуска.',
       count: n => `Установлено: ${n}`,
-      openFolder: 'Открыть папку плагинов',
+      openFolder: 'Открыть папку плагинов приложения',
       rescan: 'Пересканировать',
       reveal: 'Показать в файловом менеджере',
       enable: 'Включить',
@@ -1195,6 +1195,10 @@ export const ru = defineCompleteLocale({
       backdropDesc: 'Блёклый силуэт позади диалога.',
       userBubbleTitle: 'Пузырь сообщения',
       userBubbleDesc: 'Насколько прозрачны ваши сообщения. 0 — сплошная заливка, 100 — остаётся только контур.',
+      textDirectionTitle: 'Направление текста',
+      textDirectionDesc:
+        'Как сообщения чата и поле ввода выбирают направление. «Авто» ориентируется на первую букву каждого абзаца; выберите направление, если смешанный текст выстраивается неправильно. Код всегда остаётся слева направо.',
+      textDirection: { auto: 'Авто', rtl: 'Справа налево', ltr: 'Слева направо' },
       introSplashTitle: 'Экран приветствия',
       introSplashDesc: 'Логотип и подсказка, показываемые на пустом чате.',
       reactionsTitle: 'Реакции на сообщения',
@@ -1930,60 +1934,24 @@ export const ru = defineCompleteLocale({
     },
     mcp: {
       loading: 'Загрузка MCP-серверов…',
-      failedLoad: 'Не удалось загрузить конфигурацию MCP',
-      nameRequiredTitle: 'Нужно имя',
-      nameRequiredMessage: 'Задайте этому MCP-серверу ключ конфигурации.',
-      objectRequired: 'Конфигурация сервера должна быть JSON-объектом',
       invalidJson: 'Неверный JSON MCP',
       saveFailed: 'Не удалось сохранить',
       removeFailed: 'Не удалось удалить',
-      gatewayUnavailableTitle: 'Шлюз недоступен',
-      gatewayUnavailableMessage: 'Переподключите шлюз, прежде чем перезагружать MCP.',
-      reloadedTitle: 'Инструменты MCP перезагружены',
-      reloadedMessage: 'Новые схемы инструментов применяются к новым ходам.',
       reloadFailed: 'Не удалось перезагрузить MCP',
       savedTitle: 'MCP-сервер сохранён',
       savedMessage: name => `${name} применится после перезагрузки MCP.`,
-      newServer: 'Новый сервер',
-      reload: 'Перезагрузить MCP',
-      reloading: 'Перезагрузка…',
-      emptyTitle: 'MCP-серверов нет',
-      emptyDesc: 'Добавьте stdio- или HTTP-сервер, чтобы получить инструменты MCP.',
       disabled: 'отключён',
-      editServer: 'Изменить сервер',
       name: 'Имя',
       serverJson: 'JSON сервера',
       remove: 'Удалить',
-      saveServer: 'Сохранить сервер',
       test: 'Проверить соединение',
-      testing: 'Проверка…',
-      testOk: count =>
-        `Подключено — доступно ${count} ${RU_PLURAL(count, 'инструмент', 'инструмента', 'инструментов')}`,
-      testFailed: 'Не удалось подключиться',
-      enableServer: name => `Включить ${name}`,
-      disableServer: name => `Отключить ${name}`,
-      serverEnabled: name => `${name} включён — применится к новым сеансам.`,
-      serverDisabled: name => `${name} отключён — применится к новым сеансам.`,
-      toggleFailed: (name, enabled) => `Не удалось ${enabled ? 'включить' : 'отключить'} ${name}`,
-      tabServers: 'Серверы',
-      tabCatalog: 'Каталог',
       catalogLoading: 'Загрузка каталога MCP…',
-      catalogLoadFailed: 'Не удалось загрузить каталог MCP',
-      catalogEmpty: 'Записей каталога нет.',
-      catalogInstalled: 'Установлен',
-      catalogEnabled: 'Включён',
-      catalogNeedsInstall: 'Нужна сборка',
-      catalogInstall: 'Установить',
-      catalogInstalling: 'Установка…',
-      catalogInstallStarted: name => `Установка ${name}… применится к новым сеансам после завершения.`,
       catalogInstallFailed: name => `Не удалось установить ${name}`,
-      catalogEnvPrompt: name => `${name} требует учётные данные`,
       catalogEnvRequired: 'Заполните обязательные значения перед установкой.',
       capabilitySummary: (tools, prompts, resources) =>
         `${[`${tools} ${RU_NOUN(tools, 'инструмент', 'инструмента', 'инструментов')}`, ...(prompts ? [`${prompts} ${RU_NOUN(prompts, 'промпт', 'промпта', 'промптов')}`] : []), ...(resources ? [`${resources} ${RU_NOUN(resources, 'ресурс', 'ресурса', 'ресурсов')}`] : [])].join(', ')} включено`,
       costTokens: tokens => `~${tokens} ток/вызов`,
       usage30d: uses => `${uses} ${RU_NOUN(uses, 'использование', 'использования', 'использований')}/30д`,
-      unusedPill: 'не используется',
       statusConnecting: 'Подключение…',
       statusNeedsAuth: 'Нужна аутентификация',
       statusError: 'Ошибка',
@@ -1992,11 +1960,7 @@ export const ru = defineCompleteLocale({
       authenticatedTitle: 'Аутентифицирован',
       authenticatedMessage: (server, count) =>
         `${server}: ${count} ${RU_PLURAL(count, 'инструмент', 'инструмента', 'инструментов')}`,
-      waitingForBrowser: 'Ожидание браузера…',
       authenticate: 'Аутентифицироваться',
-      unsavedConnect: 'Не сохранено — сохраните mcp.json, чтобы подключиться.',
-      enableTool: tool => `Включить ${tool}`,
-      disableTool: tool => `Отключить ${tool}`,
       noOutput: 'Вывода пока нет.',
       deepLinkTitle: 'Добавить MCP-сервер?',
       deepLinkDescription:
@@ -2022,6 +1986,28 @@ export const ru = defineCompleteLocale({
       catalogAuthApiKey: 'API ключ'
     },
     model: {
+      moaPreset: 'Пресет',
+      moaDescription:
+        'Настройте именованные пресеты, которые появятся как модели провайдера Mixture of Agents. Модель-агрегатор выполняет каждый шаг цикла инструментов; почти вся стоимость запуска списывается у её провайдера. По умолчанию референсные модели дают совет один раз на сообщение пользователя.',
+      moaAggregator: 'Модель-агрегатор',
+      moaAggregatorBilled: 'исполняющая модель · на неё приходится стоимость запуска',
+      moaReferenceHint: 'по умолчанию советует один раз за ход',
+      setupProviderFallback: 'провайдер',
+      setUpProvider: name => `Настроить ${name}`,
+      staleAuxBefore: (count, names) => `Вспомогательные задачи (${count}: ${names}) по-прежнему используют `,
+      staleAuxAfter: ', а не основную модель.',
+      staleAuxOtherProviders: 'других провайдеров',
+      moaEnabled: 'Включено',
+      moaSetDefault: 'Сделать основным',
+      moaNewPresetPlaceholder: 'новый пресет',
+      moaAddPreset: 'Добавить пресет',
+      customModel: 'Своя модель…',
+      customModelPlaceholder: 'ID модели',
+      chooseFromList: 'Выбрать из списка',
+      moaDefault: 'По умолчанию:',
+      moaReferenceToggle: (enabled, index) => `${enabled ? 'Отключить' : 'Включить'} референс ${index}`,
+      moaReferenceTitle: index => `Референс ${index}`,
+      moaAddReference: 'Добавить референсную модель',
       loading: 'Загрузка конфигурации модели…',
       appliesDesc:
         'Применяется к новым сеансам. Для горячей смены модели в активном чате используйте выборщик модели в композере.',
@@ -2050,12 +2036,10 @@ export const ru = defineCompleteLocale({
       fallbackEmpty: 'Запасных моделей нет — используется модель по умолчанию, если она не падает.',
       notInCatalog: 'нет в списке моделей этого провайдера — вызовы могут уходить на запасную.',
       staleAuxPrefix: (count, names) => `${count} auxiliary task${count === 1 ? '' : 's'} (${names}) still run on `,
-      staleAuxOtherProviders: 'другие поставщики',
       staleAuxSuffix: 'не ваша основная модель.',
       pasteKeyPlaceholder: keyEnv => `Вставить${keyEnv}`,
       activate: 'Активировать',
       activating: 'Активировать...',
-      setUpProvider: name => `Настроить${name}`,
       needsApiKeyHint: name => `${name}требуется ключ API — настройте его, чтобы выбрать модель.`,
       oauthHint: name => `${name}входит через ваш браузер — Hermes запускает процесс за вас.`,
       moa: {
@@ -2126,12 +2110,6 @@ export const ru = defineCompleteLocale({
       },
       inheritMainEffort: 'наследовать · усилие основной модели',
       moaTitle: 'Смесь агентов',
-      moaPreset: 'Предустановка',
-      moaDescription:
-        'Настройте именованные наборы настроек, которые отображаются в виде моделей в поставщике «Смесь агентов». Агрегатор является действующей моделью: он выполняет каждый шаг цикла инструмента, и почти все затраты на выполнение выставляются его провайдеру. По умолчанию ссылки рекомендуют только один раз за ход пользователя.',
-      moaAggregator: 'Агрегатор',
-      moaAggregatorBilled: 'действующая модель · выставлен счет за пробег',
-      moaReferenceHint: 'по умолчанию советует один раз за ход'
     },
     customEndpoints: {
       title: 'Пользовательские конечные точки',
@@ -2415,7 +2393,7 @@ export const ru = defineCompleteLocale({
       loading: 'Загрузка архивных сеансов…',
       archivedTitle: 'Архивные сеансы',
       archivedIntro:
-        'Архивированные чаты скрыты из боковой панели, но сохраняют все сообщения. Чтобы архивировать чат из боковой панели — Ctrl/⌘-клик по нему.',
+        'Архивированные чаты скрыты из боковой панели, но сохраняют все сообщения. Чтобы архивировать чат из боковой панели — Alt/⌥+Shift-клик по нему.',
       emptyArchivedTitle: 'Архив пуст',
       emptyArchivedDesc: 'Архивируйте чат, чтобы скрыть его отсюда.',
       unarchive: 'Восстановить',
@@ -2748,7 +2726,6 @@ export const ru = defineCompleteLocale({
     tabSkills: 'Навыки',
     tabToolsets: 'Инструменты',
     configuringProfile: 'Настраивается:',
-    tabMcp: 'MCP',
     all: 'Все',
     searchSkills: 'Поиск навыков...',
     searchToolsets: 'Поиск инструментов...',
@@ -4054,6 +4031,38 @@ export const ru = defineCompleteLocale({
     missingBody: 'Этот артефакт больше нет в локальном реестре.'
   },
   sidebar: {
+    profileRail: 'Панель профилей',
+    filter: {
+      grouping: 'Группировка',
+      ordering: 'Сортировка',
+      show: 'Показывать',
+      inboxStyle: 'Стиль «Входящие»',
+      status: 'Статус',
+      pullRequest: 'Запрос на слияние',
+      profile: 'Профиль',
+      project: 'Проект',
+      archived: 'Архивные',
+      expandAll: 'Развернуть все',
+      collapseAll: 'Свернуть все',
+      updated: 'Обновление',
+      created: 'Создано',
+      tokens: 'Токены',
+      cost: 'Стоимость',
+      manual: 'Вручную',
+      preview: 'Превью',
+      pr: 'PR',
+      open: 'Открыт',
+      draft: 'Черновик',
+      merged: 'Слит',
+      closed: 'Закрыт',
+      needsInput: 'Нужен ввод',
+      working: 'В работе',
+      unread: 'Непрочитанные',
+      idle: 'Бездействие',
+      filters: 'Фильтры',
+      resetToDefaults: 'Сбросить настройки',
+      noPR: 'Без PR'
+    },
     gatewayGroups: {
       grouping: 'Шлюз и профиль',
       rename: 'Переименовать группу',
@@ -4280,14 +4289,10 @@ export const ru = defineCompleteLocale({
       }
     },
     markAllRead: 'Отметить все как прочитанные',
-    profileRail: 'Профильная рейка',
     terminal: 'Терминал',
     files: 'Файлы',
     review: 'Проверка',
     logs: 'Журналы'
-  },
-  intro: {
-    bodies: {}
   },
   composer: {
     message: 'Сообщение',
@@ -4358,12 +4363,77 @@ export const ru = defineCompleteLocale({
     hotkeys: 'Горячие клавиши',
     helpFooter: 'открывает полную панель · backspace закрывает',
     commandDescs: {
-      '/help': 'полный список команд + горячих клавиш',
+      '/help': 'Показать слеш-команды приложения',
       '/clear': 'начать новый сеанс',
-      '/resume': 'возобновить прошлый сеанс',
+      '/resume': 'Возобновить сохранённый сеанс',
       '/details': 'уровень детализации транскрипта',
       '/copy': 'скопировать выделенное или последнее сообщение ассистента',
-      '/quit': 'выйти из hermes'
+      '/quit': 'выйти из hermes',
+      '/start': 'Подтвердить запуск платформы без ответа',
+      '/new': 'Начать новый чат в приложении',
+      '/topic': 'Включить или просмотреть темы личных сообщений Telegram',
+      '/save': 'Сохранить текущую переписку в JSON',
+      '/retry': 'Повторно отправить последнее сообщение агенту',
+      '/prompt': 'Написать следующий запрос в Markdown в $EDITOR и отправить',
+      '/undo': 'Вернуться на N ходов пользователя и повторить запрос (по умолчанию 1)',
+      '/title': 'Переименовать текущий сеанс',
+      '/handoff': 'Передать этот сеанс в мессенджер',
+      '/branch': 'Создать новый чат из последнего сообщения',
+      '/worktree': 'Показать, перечислить, создать или очистить изолированные рабочие деревья Git',
+      '/compress': 'Сжать контекст текущей беседы',
+      '/rollback': 'Показать или восстановить контрольные точки файлов, сохранив ручные правки',
+      '/export': 'Экспортировать профиль, настройки, навыки и тему в общий архив',
+      '/import': 'Импортировать архив как новый профиль',
+      '/stop': 'Остановить текущий ход и фоновые процессы',
+      '/pause': 'Приостановить новую работу глобально; /pause off возобновляет её',
+      '/bg': 'Выполнить запрос в отдельном фоновом сеансе',
+      '/btw': 'Задать побочный вопрос о беседе, не прерывая её',
+      '/agents': 'Показать активных агентов и выполняемые задачи',
+      '/journey': 'Открыть граф памяти — навыки и воспоминания во времени',
+      '/queue': 'Добавить, просмотреть, изменить, удалить, переместить или очистить запросы в очереди',
+      '/steer': 'Добавить сообщение после следующего вызова инструмента без прерывания',
+      '/goal': 'Задать постоянную цель, над которой Hermes работает до завершения',
+      '/heartbeat': 'Задать повторяющийся запрос для этого сеанса в состоянии простоя',
+      '/refine': 'Проанализировать беседу и сохранить выводы в памяти или навыках',
+      '/review': 'Запустить независимого субагента для проверки обсуждаемой работы',
+      '/loop': 'Повторять запрос с заданным интервалом в этом сеансе',
+      '/plan': 'Записать план реализации в Markdown в .hermes/plans/ без выполнения',
+      '/moa': 'Выполнить запрос через Mixture of Agents, затем вернуть исходную модель',
+      '/subgoal': 'Добавить или изменить критерии активной цели',
+      '/status': 'Показать состояние текущего сеанса',
+      '/egress': 'Показать состояние исходящего прокси Docker',
+      '/context': 'Показать использование контекста, категории, статистику сжатия и скорость обработки',
+      '/whoami': 'Показать права доступа к слеш-командам',
+      '/profile': 'Переключить активный профиль Hermes',
+      '/codex-runtime': 'Переключить среду Codex app-server для моделей OpenAI/Codex',
+      '/personality': 'Выбрать готовую личность',
+      '/battery': 'Переключить цветной индикатор батареи в строке состояния',
+      '/timestamps': 'Переключить метки времени в сообщениях и /history',
+      '/diff': 'Показать изменения Git в рабочем каталоге',
+      '/focus': 'Переключить вид только с запросом и итоговым ответом',
+      '/yolo': 'Переключить YOLO — автоматически одобрять опасные команды',
+      '/approvals': 'Показать или задать постоянный режим одобрения опасных команд',
+      '/reasoning': 'Управлять уровнем и отображением рассуждений',
+      '/skin': 'Переключить тему приложения или выбрать следующую',
+      '/wake': 'Управлять распознаванием фразы пробуждения [on|off|status]',
+      '/tools': 'Управлять доступными агенту инструментами',
+      '/memory': 'Просмотреть ожидающие записи в память или переключить их одобрение',
+      '/bundles': 'Показать наборы навыков',
+      '/pet': 'Переключить или выбрать питомца petdex',
+      '/hatch': 'Создать нового питомца',
+      '/learn': 'Создать навык на основе каталогов, URL, беседы или заметок',
+      '/init': 'Просканировать репозиторий и создать или обновить инструкции AGENTS.md',
+      '/suggestions': 'Просмотреть, принять или отклонить предложенные автоматизации',
+      '/blueprint': 'Настроить автоматизацию по шаблону',
+      '/browser': 'Управлять CDP-подключением браузера [connect|disconnect|status] (только локальный шлюз)',
+      '/palette': 'Открыть палитру команд',
+      '/usage': 'Показать расход токенов и лимиты; reset использует накопленный сброс лимита Codex',
+      '/subscription': 'Показать план Nous и изменить его в браузере',
+      '/topup': 'Показать баланс Nous и управлять оплатой',
+      '/platform': 'Приостановить, возобновить или перечислить сбоящие платформы шлюза',
+      '/version': 'Показать версию Hermes Agent',
+      '/debug': 'Загрузить отчёт отладки с данными системы и журналами и получить ссылку',
+      '/model': 'Переключить модель для этого сеанса'
     },
     hotkeyDescs: {
       'composer.mention': 'ссылки на файлы, папки, URL, git',
@@ -4715,6 +4785,13 @@ export const ru = defineCompleteLocale({
     everythingSkipped: 'Пропущено',
     everythingRowFailed: 'Обновление не удалось',
     everythingFanoutFailedTitle: 'Не удалось обновить другие инстанции',
+    changeLogNew: 'Новое',
+    changeLogFixed: 'Исправления',
+    changeLogFaster: 'Быстродействие',
+    changeLogImproved: 'Улучшения',
+    changeLogOther: 'Другие улучшения',
+    changeLogFallbackLabel: 'В этом обновлении',
+    changeLogFallbackItem: 'Улучшения и исправления',
     applyStatus: {
       preparing: 'Обновляем бэкенд…',
       pulling: 'Бэкенд обновляется…',
@@ -5165,13 +5242,18 @@ export const ru = defineCompleteLocale({
     free: 'Free',
     freeTier: 'Бесплатный тариф',
     priceTitle: 'Цена вход / выход за миллион токенов',
-    wasPrice: 'было'
+    wasPrice: 'было',
+    customModel: 'Своя модель',
+    addCustomModelAction: 'Добавить свою модель…',
+    customModelPlaceholder: 'Введите id модели, например openai/gpt-5'
   },
   modelVisibility: {
     title: 'Модели',
     search: 'Поиск моделей',
     noAuthenticatedProviders: 'Нет провайдеров с аутентификацией.',
-    addProvider: 'Добавить провайдера…'
+    addProvider: 'Добавить провайдера…',
+    addCustomModel: 'Добавить свою модель',
+    removeCustomModel: 'Удалить свою модель'
   },
   shell: {
     windowControls: 'Управление окном',
@@ -5476,6 +5558,20 @@ export const ru = defineCompleteLocale({
       commentTitle: n => `Комментарий${n}`,
       saveComment: 'Сохранить',
       cancelComment: 'Отменить комментарий'
+    }
+  },
+  interfaceMode: {
+    title: 'Режим интерфейса',
+    hint: 'Меняет то, что показано, а не то, что умеет Hermes.',
+    sessionNote:
+      'Задано простым режимом. Изменение здесь действует до конца сеанса; переключитесь в расширенный, чтобы сделать его своим.',
+    simple: {
+      label: 'Простой',
+      description: 'Для общения с Hermes. Боковая панель и чат; без терминала, файлов и панелей diff.'
+    },
+    advanced: {
+      label: 'Расширенный',
+      description: 'Для разработчиков. Терминал, файлы, diff, строка состояния и раскладки — как вы их настроили.'
     }
   },
   zones: {
@@ -5932,6 +6028,29 @@ export const ru = defineCompleteLocale({
       lateAnswer: (question, choice) => `Re: «${question}» — мой ответ: ${choice}`,
       lateAnswerTip: 'Составить этот ответ как продолжение',
       lateAnswerHint: 'Этот промпт больше не ждёт. Выберите вариант, чтобы составить его как сообщение-продолжение.'
+    },
+    catalogInstall: {
+      preparing: 'Готовим установку…',
+      install: 'Установить',
+      advanced: 'Дополнительно',
+      skip: 'Пропустить',
+      installing: 'Установка…',
+      installed: 'Установлено',
+      notInstalled: 'Не установлено',
+      failed: 'Ошибка',
+      showNames: 'показать имена',
+      hideNames: 'скрыть имена',
+      skill: name => `навык ${name}`,
+      kind: { plugin: 'плагин', skill: 'навык' },
+      tier: { official: 'официальный', community: 'сообщество' },
+      targetProfile: profile => `Установка в ваш профиль ${profile}`,
+      sendFailed: 'Не удалось отправить ответ. Попробуйте ещё раз.',
+      commitLabel: 'Коммит',
+      subdirLabel: 'Папка',
+      securityHeading: 'Безопасность',
+      scan: { passed: 'Проверка пройдена', warnings: 'Проверка нашла предупреждения', failed: 'Проверка не пройдена' },
+      requirementsLabel: 'Требования',
+      credentialsHeading: 'Учётные данные'
     },
     mcpSetup: {
       installTitle: 'Добавить MCP-серверы',

@@ -41,6 +41,7 @@ import { previewTargetFromMarkdownHref } from '@/lib/preview-targets'
 import { sessionRefFromMarkdownHref } from '@/lib/session-refs'
 import { isDirectiveInProgress } from '@/lib/transcript-directives'
 import { cn } from '@/lib/utils'
+import { useForcedTextDirection } from '@/store/text-direction'
 
 import { ArtifactCard } from './artifact-card'
 import { SessionRefLink } from './directive-text'
@@ -270,7 +271,7 @@ function MarkdownLink({ children, className, href, ...props }: ComponentProps<'a
     // rendered/source toggle) instead of the download-link fallback that
     // `mediaKind() === 'file'` would produce. (#84951)
     if (isMarkdownDocumentPath(mediaPath)) {
-      return <PreviewAttachment source="tool-result" target={mediaPath} />
+      return <PreviewAttachment target={mediaPath} />
     }
 
     // Non-media files (PDFs, data files, anything outside MEDIA_BY_EXT):
@@ -280,7 +281,7 @@ function MarkdownLink({ children, className, href, ...props }: ComponentProps<'a
     // branch below produces — so MEDIA: uniformly delivers the richest
     // rendering for every file type.
     if (mediaKind(mediaPath) === 'file') {
-      return <PreviewAttachment source="tool-result" target={mediaPath} />
+      return <PreviewAttachment target={mediaPath} />
     }
 
     return <MediaAttachment path={mediaPath} />
@@ -289,7 +290,7 @@ function MarkdownLink({ children, className, href, ...props }: ComponentProps<'a
   const previewTarget = previewTargetFromMarkdownHref(href)
 
   if (previewTarget) {
-    return <PreviewAttachment source="explicit-link" target={previewTarget} />
+    return <PreviewAttachment target={previewTarget} />
   }
 
   const sessionRef = sessionRefFromMarkdownHref(href)
@@ -314,7 +315,7 @@ function MarkdownLink({ children, className, href, ...props }: ComponentProps<'a
 
     if (fileHref) {
       return mediaKind(fileHref) === 'file' ? (
-        <PreviewAttachment source="explicit-link" target={fileHref} />
+        <PreviewAttachment target={fileHref} />
       ) : (
         <MediaAttachment path={fileHref} />
       )
@@ -470,6 +471,10 @@ interface MarkdownTextSurfaceProps {
    *  routed @mentions) without owning the Markdown pipeline. Nested inline
    *  markup and code are left as rendered. */
   decorateText?: (children: ReactNode) => ReactNode
+  /** The reader's explicit Text direction (Appearance). Stamped on the root
+   *  and on list/quote boxes in place of their `dir="auto"`, so every prose
+   *  block follows it; undefined is Auto and leaves the DOM attribute-free. */
+  textDirection?: 'ltr' | 'rtl'
 }
 
 // Headings shrink to chat scale rather than the prose default (h1≈xl). Kept
@@ -589,9 +594,19 @@ function MarkdownTextSurface({
   defer,
   disableArtifacts,
   previewOnly,
-  scratchpad
+  scratchpad,
+  textDirection
 }: MarkdownTextSurfaceProps) {
   const { status, text } = useMessagePartText()
+  // List/quote boxes resolve from content under Auto (see the ul/ol/blockquote
+  // notes below); an explicit choice replaces that vote rather than nesting it.
+  const boxDir = textDirection ?? 'auto'
+
+  const surfaceContainerProps = useMemo(
+    () => (textDirection ? { ...containerProps, dir: textDirection } : containerProps),
+    [containerProps, textDirection]
+  )
+
   const isStreaming = status.type === 'running'
 
   // Keep code parsing enabled while streaming so incomplete fenced blocks still
@@ -656,7 +671,7 @@ function MarkdownTextSurface({
           return (
             <blockquote
               className={cn('border-s-2 border-(--ui-stroke-tertiary) ps-3 text-muted-foreground italic', className)}
-              dir="auto"
+              dir={boxDir}
               {...props}
             >
               {children}
@@ -664,10 +679,10 @@ function MarkdownTextSurface({
           )
         },
         ul: ({ className, ...props }: ComponentProps<'ul'>) => (
-          <ul className={cn('my-1 gap-0', className)} dir="auto" {...props} />
+          <ul className={cn('my-1 gap-0', className)} dir={boxDir} {...props} />
         ),
         ol: ({ className, ...props }: ComponentProps<'ol'>) => (
-          <ol className={cn('my-1 gap-0', className)} dir="auto" {...props} />
+          <ol className={cn('my-1 gap-0', className)} dir={boxDir} {...props} />
         ),
         li: ({ children, className, ...props }: ComponentProps<'li'>) => (
           <li className={cn('leading-(--dt-line-height)', className)} {...props}>
@@ -710,7 +725,7 @@ function MarkdownTextSurface({
           )
         }
       }) as StreamdownTextComponents,
-    [decorateText, disableArtifacts, isStreaming, previewOnly, scratchpad]
+    [boxDir, decorateText, disableArtifacts, isStreaming, previewOnly, scratchpad]
   )
 
   if (text.length > MAX_MARKDOWN_CHARS) {
@@ -743,7 +758,7 @@ function MarkdownTextSurface({
       <StreamdownTextPrimitive
         components={components}
         containerClassName={cn(MARKDOWN_CONTAINER_CLASS_NAME, containerClassName)}
-        containerProps={containerProps}
+        containerProps={surfaceContainerProps}
         defer={defer}
         lineNumbers={false}
         mode="streaming"
@@ -805,7 +820,9 @@ export function MarkdownTextContent({ isRunning, text, ...surfaceProps }: Markdo
 }
 
 const MarkdownTextImpl = () => {
-  return <MarkdownTextSurface defer />
+  const textDirection = useForcedTextDirection()
+
+  return <MarkdownTextSurface defer textDirection={textDirection} />
 }
 
 export const MarkdownText = memo(MarkdownTextImpl)

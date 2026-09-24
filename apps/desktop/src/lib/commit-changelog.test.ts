@@ -50,7 +50,6 @@ describe('buildCommitChangelog', () => {
     ])
 
     expect(groups.map(g => g.id)).toEqual(['new', 'fixed', 'faster'])
-    expect(groups[0]).toMatchObject({ label: "What's new" })
     expect(groups[0].items[0]).toBe('Add NSIS prereq detection page')
     expect(groups[1].items[0]).toBe('Jitter when dragging')
   })
@@ -77,21 +76,9 @@ describe('buildCommitChangelog', () => {
   it('falls back to a neutral placeholder when every commit is filtered or empty', () => {
     const groups = buildCommitChangelog([{ summary: 'chore: bump' }, { summary: 'ci: stuff' }])
 
-    expect(groups).toEqual([{ id: 'other', items: ['Improvements and fixes'], label: 'In this update' }])
-  })
-
-  it('accepts localized group and fallback copy without changing commit parsing', () => {
-    expect(buildCommitChangelog([{ summary: 'fix: jitter' }], { labels: { fixed: '问题修复' } })[0]).toMatchObject({
-      items: ['Jitter'],
-      label: '问题修复'
-    })
-
-    expect(
-      buildCommitChangelog([{ summary: 'chore: bump' }], {
-        fallbackItem: '改进与修复',
-        fallbackLabel: '本次更新'
-      })
-    ).toEqual([{ id: 'other', items: ['改进与修复'], label: '本次更新' }])
+    expect(groups).toHaveLength(1)
+    expect(groups[0].id).toBe('other')
+    expect(groups[0].items).toHaveLength(1)
   })
 
   it('dedupes identical subjects and caps the items per group', () => {

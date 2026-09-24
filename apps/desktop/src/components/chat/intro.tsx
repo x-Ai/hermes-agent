@@ -158,24 +158,17 @@ function resolveCopy(personality?: string, seed?: number): IntroCopy {
   return pickCopy(copies, seed)
 }
 
-function localizedBody(
-  pools: Readonly<Record<string, readonly string[]>>,
-  personality: string | undefined,
-  roll: number
-): string | null {
-  const personalityKey = normalizeKey(personality)
-  const poolKey = NEUTRAL_PERSONALITIES.has(personalityKey) ? 'none' : personalityKey
-  const pool = pools[poolKey] ?? pools.none
-
-  return pool?.length ? pool[Math.abs(roll) % pool.length] : null
-}
-
 export function Intro({ personality, seed }: IntroProps) {
-  const { t } = useI18n()
   const [mountSeed] = useState(() => Math.floor(Math.random() * 100000))
-  const roll = mountSeed + (seed ?? 0)
-  const body = localizedBody(t.intro.bodies, personality, roll)
-  const copy = body !== null ? { headline: '', body } : resolveCopy(personality, roll)
+  const { t } = useI18n()
+  const rotationSeed = mountSeed + (seed ?? 0)
+  const copy = resolveCopy(personality, rotationSeed)
+  const key = normalizeKey(personality)
+
+  const bodies =
+    t.intro.stock[key] ?? (NEUTRAL_PERSONALITIES.has(key) ? t.intro.stock.none : t.intro.custom(personality || ''))
+
+  const body = bodies?.[Math.abs(rotationSeed) % bodies.length] ?? copy.body
 
   return (
     <div
@@ -185,7 +178,7 @@ export function Intro({ personality, seed }: IntroProps) {
       <div className="w-full min-w-0">
         <Wordmark className="mb-1" text={WORDMARK} />
 
-        <p className="m-0 text-center leading-normal tracking-tight">{copy.body}</p>
+        <p className="m-0 text-center leading-normal tracking-tight">{body}</p>
       </div>
     </div>
   )

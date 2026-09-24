@@ -10,16 +10,11 @@ export {
 } from './context'
 export {
   DEFAULT_LOCALE,
-  detectSystemLocale,
   isLocale,
   isSupportedLocaleValue,
   LOCALE_OPTIONS,
-  LOCALE_STORAGE_KEY,
   localeConfigValue,
-  normalizeLocale,
-  readStoredLocale,
-  resolvePreferredLocale,
-  writeStoredLocale
+  normalizeLocale
 } from './languages'
 export { LocalizedTabTitle } from './localized-tab-title'
 export {
@@ -33,5 +28,5 @@ export {
   translatePlugin,
   usePluginI18n
 } from './plugin-i18n'
-export { getRuntimeI18nLocale, setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
+export { setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
 export type { Locale, ToolTitleKey, Translations } from './types'

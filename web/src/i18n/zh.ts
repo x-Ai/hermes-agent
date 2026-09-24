@@ -114,6 +114,8 @@ export const zh: Translations = {
     memoryElevatedBanner: "代理当前可用内存较低",
     diskCriticalBanner: "代理磁盘空间即将耗尽，新消息、记忆和设置可能无法保存",
     diskElevatedBanner: "代理磁盘使用量较高，请考虑清理旧会话或扩充存储空间",
+    multiplexStandaloneBanner:
+      "你的网关当前只服务一个配置档案。未服务：{profiles}。原因：{reason}。修复：hermes gateway migrate --multiplex",
     diskFreeLabel: "剩余 {count} MB",
     dismiss: "关闭"
   },
@@ -198,6 +200,10 @@ export const zh: Translations = {
     failedToDeleteSelected: "删除所选会话失败",
     resumeInChat: "在对话中继续",
     newChat: "新对话",
+    workspace: "工作区",
+    workspaceDefault: "默认",
+    workspaceRescan: "重新扫描仓库",
+    workspaceCustom: "其他路径…",
     previousPage: "上一页",
     nextPage: "下一页",
     roles: {

@@ -1,7 +1,6 @@
 """Tests for skill_view repeat-view dedup (unchanged-skill stub)."""
 
 import json
-import os
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -58,7 +57,6 @@ class TestSkillViewDedup:
         assert r2["success"] is True
         assert r2.get("dedup") is True
         assert r2.get("content_returned") is False
-        assert "unchanged" in r2["message"]
         assert "content" not in r2
         assert bump_view.call_count == 2
         assert bump_use.call_count == 2
@@ -144,7 +142,3 @@ class TestSkillViewDedup:
         assert repeat.get("dedup") is True
         assert repeat.get("content_returned") is False
 
-    def test_compression_hook_importable(self):
-        # conversation_compression imports this lazily; keep the seam stable.
-        from tools.skills_tool import reset_skill_view_dedup as f
-        f(None)

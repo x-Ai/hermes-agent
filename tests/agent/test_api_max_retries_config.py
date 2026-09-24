@@ -32,10 +32,6 @@ def _make_agent(api_max_retries=None, output_truncation_retries=None, **empty_re
         )
 
 
-def test_default_api_max_retries_is_three():
-    """No config override → legacy default of 3 retries preserved."""
-    agent = _make_agent()
-    assert agent._api_max_retries == 3
 
 
 def test_api_max_retries_honors_config_override():

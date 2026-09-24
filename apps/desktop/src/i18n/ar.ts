@@ -1,7 +1,7 @@
-import { defineCompleteLocale } from './define-locale'
+import { defineLocale } from './define-locale'
 import { en } from './en'
 
-export const ar = defineCompleteLocale({
+export const ar = defineLocale({
   connectors: {
     title: 'ربط تطبيقاتك',
     connect: 'ربط',
@@ -1144,6 +1144,10 @@ export const ar = defineCompleteLocale({
       backdropDesc: 'اختيار مقدار مزج خلفية سطح المكتب مع سطح Hermes.',
       userBubbleTitle: 'فقاعة الرسالة',
       userBubbleDesc: 'مدى شفافية رسائلك. معتمة عند 0؛ يبقى الإطار فقط عند 100.',
+      textDirectionTitle: 'اتجاه النص',
+      textDirectionDesc:
+        'كيف تحدد رسائل المحادثة وحقل الكتابة اتجاهها. «تلقائي» يتبع أول حرف في كل فقرة؛ اختر اتجاهًا عندما يظهر النص المختلط بترتيب خاطئ. تبقى الشيفرة دائمًا من اليسار إلى اليمين.',
+      textDirection: { auto: 'تلقائي', rtl: 'من اليمين إلى اليسار', ltr: 'من اليسار إلى اليمين' },
       introSplashTitle: 'شاشة المقدمة',
       introSplashDesc: 'الشعار النصي والعبارة التمهيدية في محادثة فارغة.',
       reactionsTitle: 'تفاعلات الرسائل',
@@ -1717,27 +1721,13 @@ export const ar = defineCompleteLocale({
     },
     mcp: {
       loading: 'جار تحميل خوادم MCP...',
-      failedLoad: 'فشل تحميل إعدادات MCP',
-      nameRequiredTitle: 'الاسم مطلوب',
-      nameRequiredMessage: 'أعط هذا الخادم مفتاح إعداد.',
-      objectRequired: 'يجب أن تكون إعدادات الخادم كائن JSON',
       invalidJson: 'JSON الخاص بـ MCP غير صالح',
       saveFailed: 'فشل الحفظ',
       removeFailed: 'فشلت الإزالة',
-      gatewayUnavailableTitle: 'البوابة غير متاحة',
-      gatewayUnavailableMessage: 'أعد الاتصال بالبوابة قبل إعادة تحميل MCP.',
-      reloadedTitle: 'تمت إعادة تحميل أدوات MCP',
-      reloadedMessage: 'مخططات الأدوات الجديدة تطبق على الأدوار الجديدة.',
       reloadFailed: 'فشلت إعادة تحميل MCP',
       savedTitle: 'تم حفظ خادم MCP',
       savedMessage: name => `سيطبق ${name} بعد إعادة تحميل MCP.`,
-      newServer: 'خادم جديد',
-      reload: 'إعادة تحميل MCP',
-      reloading: 'جار إعادة التحميل...',
-      emptyTitle: 'لا توجد خوادم MCP',
-      emptyDesc: 'أضف خادم stdio أو HTTP لإتاحة أدوات MCP.',
       disabled: 'معطل',
-      editServer: 'تحرير الخادم',
       name: 'الاسم',
       serverJson: 'JSON الخادم',
       remove: 'إزالة',
@@ -1806,6 +1796,29 @@ export const ar = defineCompleteLocale({
       catalogAuthApiKey: 'مفتاح API'
     },
     model: {
+      moaTitle: 'مزيج الوكلاء (Mixture of Agents)',
+      moaPreset: 'إعداد مسبق',
+      moaDescription:
+        'اضبط إعدادات مسبقة مسماة تظهر كنماذج ضمن موفّر Mixture of Agents. نموذج التجميع هو المنفّذ؛ ينفّذ كل خطوة في حلقة الأدوات وتُحتسب غالبية تكلفة التشغيل على موفّره. تقدّم النماذج المرجعية المشورة مرة واحدة لكل رسالة مستخدم افتراضياً.',
+      moaAggregator: 'نموذج التجميع',
+      moaAggregatorBilled: 'النموذج المنفّذ · تُحتسب عليه تكلفة التشغيل',
+      moaReferenceHint: 'يقدّم المشورة مرة واحدة لكل رسالة افتراضياً',
+      setupProviderFallback: 'الموفّر',
+      setUpProvider: name => `إعداد ${name}`,
+      staleAuxBefore: (count, names) => `المهام المساعدة (${count}: ${names}) ما زالت تعمل لدى `,
+      staleAuxAfter: '، وليس على النموذج الرئيسي.',
+      staleAuxOtherProviders: 'موفّرين آخرين',
+      moaEnabled: 'مُفعّل',
+      moaSetDefault: 'تعيين الافتراضي',
+      moaNewPresetPlaceholder: 'إعداد جديد',
+      moaAddPreset: 'إضافة إعداد',
+      customModel: 'نموذج مخصص…',
+      customModelPlaceholder: 'معرّف النموذج',
+      chooseFromList: 'اختر من القائمة',
+      moaDefault: 'الافتراضي:',
+      moaReferenceToggle: (enabled, index) => `${enabled ? 'تعطيل' : 'تفعيل'} المرجع ${index}`,
+      moaReferenceTitle: index => `المرجع ${index}`,
+      moaAddReference: 'إضافة نموذج مرجعي',
       loading: 'جار تحميل إعدادات النموذج...',
       appliesDesc: 'ينطبق على الجلسات الجديدة. استخدم منتقي النموذج في صندوق الإنشاء لتبديل المحادثة النشطة فورا.',
       provider: 'المزوّد',
@@ -1831,12 +1844,10 @@ export const ar = defineCompleteLocale({
       fallbackEmpty: 'ولا توجد نماذج للتراجع - يستخدم النموذج الافتراضي ما لم يفشل.',
       notInCatalog: 'ليس في قائمة المزود النموذجية هذه المكالمات قد تعود إلى الدعم.',
       staleAuxPrefix: (count, names) => `${count} auxiliary task${count === 1 ? '' : 's'} (${names}) still run on `,
-      staleAuxOtherProviders: 'موردون آخرون',
       staleAuxSuffix: 'ليس نموذجك الرئيسي.',
       pasteKeyPlaceholder: keyEnv => `لصق${keyEnv}`,
       activate: 'النشاط',
       activating: 'تفعيل...',
-      setUpProvider: name => `إعداد${name}`,
       needsApiKeyHint: name => `${name}يحتاج إلى مفتاح API — اضبطه لاختيار نموذج.`,
       oauthHint: name => `${name}يسجل الدخول عبر متصفحك — Hermes يقوم بتشغيل التدفق نيابة عنك.`,
       moa: {
@@ -1904,13 +1915,6 @@ export const ar = defineCompleteLocale({
         }
       },
       inheritMainEffort: 'يرث · النموذج الرئيسي الجهد',
-      moaTitle: 'خلط العملاء',
-      moaPreset: 'إعداد مسبق',
-      moaDescription:
-        'تم تسمية المفترسات التي تظهر كنماذج تحت مظلة العملاء والمجمّع هو النموذج المتصرّف - وهو يدير كل خطوة من حلقة الأدوات، وكلّ تكلفة الركض تقريبا تُدفع إلى مقدّمها. ولا تقدم المراجع سوى المشورة مرة واحدة لكل مستخدم عن طريق التقصير.',
-      moaAggregator: 'المجمّع',
-      moaAggregatorBilled: 'النموذج التمثيلي: فواتير للهرب',
-      moaReferenceHint: 'تقديم المشورة مرة واحدة في كل مرة عن طريق التقصير'
     },
     customEndpoints: {
       title: 'نقاط النهاية المخصصة',
@@ -2188,7 +2192,7 @@ export const ar = defineCompleteLocale({
       loading: 'جار تحميل الجلسات المؤرشفة...',
       archivedTitle: 'الجلسات المؤرشفة',
       archivedIntro:
-        'تُخفى المحادثات المؤرشفة من الشريط الجانبي مع الاحتفاظ بكل رسائلها. اضغط Ctrl/⌘ مع النقر على محادثة في الشريط الجانبي لأرشفتها.',
+        'تُخفى المحادثات المؤرشفة من الشريط الجانبي مع الاحتفاظ بكل رسائلها. اضغط Alt/⌥+Shift مع النقر على محادثة في الشريط الجانبي لأرشفتها.',
       emptyArchivedTitle: 'لا توجد محادثات مؤرشفة',
       emptyArchivedDesc: 'أرشف محادثة لإخفائها هنا.',
       unarchive: 'إلغاء الأرشفة',
@@ -4054,6 +4058,39 @@ export const ar = defineCompleteLocale({
     missingBody: 'لم يعد هذا الناتج موجودًا في السجل المحلي.'
   },
   sidebar: {
+    profileRail: 'شريط الملفات الشخصية',
+    markAllRead: 'وضع علامة مقروء على الكل',
+    filter: {
+      grouping: 'تجميع',
+      ordering: 'ترتيب',
+      show: 'إظهار',
+      filters: 'تصفية',
+      status: 'الحالة',
+      pullRequest: 'طلب سحب',
+      profile: 'الملف الشخصي',
+      project: 'المشروع',
+      archived: 'مؤرشف',
+      resetToDefaults: 'إعادة تعيين إلى الافتراضي',
+      expandAll: 'توسيع الكل',
+      collapseAll: 'طي الكل',
+      inboxStyle: 'نمط البريد الوارد',
+      updated: 'محدّث',
+      created: 'أُنشئ',
+      tokens: 'الرموز',
+      cost: 'التكلفة',
+      manual: 'يدوي',
+      preview: 'معاينة',
+      pr: 'PR',
+      needsInput: 'يحتاج إدخالاً',
+      working: 'يعمل',
+      unread: 'غير مقروء',
+      draft: 'مسودة',
+      idle: 'خامل',
+      open: 'مفتوح',
+      merged: 'مدمج',
+      closed: 'مغلق',
+      noPR: 'لا يوجد PR'
+    },
     gatewayGroups: {
       grouping: 'البوابة والملف الشخصي',
       rename: 'إعادة تسمية المجموعة',
@@ -4281,15 +4318,10 @@ export const ar = defineCompleteLocale({
         idle: 'خامل'
       }
     },
-    markAllRead: 'كل شيء كما يلي:',
-    profileRail: 'سكة الحديد',
     terminal: 'الطرفية',
     files: 'الملفات',
     review: 'المراجعة',
     logs: 'السجلات'
-  },
-  intro: {
-    bodies: {}
   },
   composer: {
     message: 'الرسالة',
@@ -4360,12 +4392,77 @@ export const ar = defineCompleteLocale({
     hotkeys: 'الاختصارات',
     helpFooter: 'استخدم الأسهم للتنقل و Enter للاختيار.',
     commandDescs: {
-      '/help': 'قائمة كاملة بالأوامر + اختصارات لوحة المفاتيح',
+      '/help': 'عرض أوامر الشرطة المائلة لسطح المكتب',
       '/clear': 'بدء جلسة جديدة',
-      '/resume': 'استئناف جلسة سابقة',
+      '/resume': 'استئناف جلسة محفوظة',
       '/details': 'التحكم في مستوى تفاصيل النص',
       '/copy': 'نسخ التحديد أو آخر رسالة من المساعد',
-      '/quit': 'الخروج من hermes'
+      '/quit': 'الخروج من hermes',
+      '/start': 'تأكيد طلب بدء المنصة دون إرسال رد',
+      '/new': 'بدء محادثة جديدة في تطبيق سطح المكتب',
+      '/topic': 'تفعيل مواضيع الرسائل الخاصة في Telegram أو عرضها',
+      '/save': 'حفظ المحادثة الحالية بصيغة JSON',
+      '/retry': 'إعادة إرسال آخر رسالة إلى الوكيل',
+      '/prompt': 'كتابة الطلب التالي بتنسيق Markdown في $EDITOR ثم إرساله',
+      '/undo': 'الرجوع بعدد محدد من أدوار المستخدم وإعادة الطلب (الافتراضي 1)',
+      '/title': 'إعادة تسمية الجلسة الحالية',
+      '/handoff': 'نقل هذه الجلسة إلى منصة مراسلة',
+      '/branch': 'إنشاء فرع من آخر رسالة في محادثة جديدة',
+      '/worktree': 'عرض أشجار عمل Git المعزولة أو سردها أو إنشاؤها أو تنظيفها',
+      '/compress': 'ضغط سياق المحادثة الحالية',
+      '/rollback': 'عرض نقاط استعادة الملفات أو استعادتها مع الحفاظ على تعديلاتك اليدوية',
+      '/export': 'تصدير الملف الشخصي بإعداداته ومهاراته وسمته إلى أرشيف قابل للمشاركة',
+      '/import': 'استيراد أرشيف مشترك كملف شخصي جديد',
+      '/stop': 'إيقاف الدور الجاري والعمليات الخلفية',
+      '/pause': 'إيقاف العمل الجديد مؤقتًا للجميع؛ الاستئناف باستخدام /pause off',
+      '/bg': 'تشغيل طلب في جلسة خلفية منفصلة',
+      '/btw': 'طرح سؤال جانبي عن المحادثة دون مقاطعتها',
+      '/agents': 'عرض الوكلاء النشطين والمهام الجارية',
+      '/journey': 'فتح رسم الذاكرة لعرض المهارات والذكريات عبر الزمن',
+      '/queue': 'إضافة طلبات للدور التالي أو عرضها أو تعديلها أو حذفها أو نقلها أو مسحها',
+      '/steer': 'إدراج رسالة بعد استدعاء الأداة التالي دون مقاطعة العمل',
+      '/goal': 'تحديد هدف مستمر يعمل عليه Hermes حتى إنجازه',
+      '/heartbeat': 'تحديد طلب متكرر يعود إلى هذه الجلسة عندما تكون خاملة',
+      '/refine': 'مراجعة هذه المحادثة وحفظ الدروس في الذاكرة أو المهارات',
+      '/review': 'تشغيل وكيل فرعي مستقل لمراجعة العمل الذي نوقش',
+      '/loop': 'تكرار طلب على فترات منتظمة في هذه الجلسة',
+      '/plan': 'كتابة خطة تنفيذ بتنسيق Markdown في .hermes/plans/ دون تنفيذها',
+      '/moa': 'تشغيل طلب باستخدام Mixture of Agents ثم استعادة النموذج',
+      '/subgoal': 'إضافة معايير للهدف النشط أو إدارتها',
+      '/status': 'عرض حالة الجلسة الحالية',
+      '/egress': 'عرض حالة وكيل الاتصالات الصادرة في Docker',
+      '/context': 'عرض استخدام السياق وتفاصيله وإحصاءات الضغط ومعدل المعالجة',
+      '/whoami': 'عرض صلاحية الوصول إلى أوامر الشرطة المائلة',
+      '/profile': 'تبديل ملف Hermes الشخصي النشط',
+      '/codex-runtime': 'تبديل بيئة Codex app-server لنماذج OpenAI/Codex',
+      '/personality': 'اختيار شخصية محددة مسبقًا',
+      '/battery': 'تبديل عرض مؤشر البطارية الملون في شريط الحالة',
+      '/timestamps': 'تبديل الطوابع الزمنية في الرسائل و /history',
+      '/diff': 'عرض تغييرات Git في مجلد العمل',
+      '/focus': 'تبديل عرض التركيز الذي يعرض الطلب والرد النهائي فقط',
+      '/yolo': 'تبديل YOLO — الموافقة التلقائية على الأوامر الخطرة',
+      '/approvals': 'عرض وضع الموافقة على الأوامر الخطرة أو ضبطه',
+      '/reasoning': 'إدارة مستوى الاستدلال وطريقة عرضه',
+      '/skin': 'تبديل سمة سطح المكتب أو الانتقال إلى التالية',
+      '/wake': 'التحكم في مستمع كلمة التنبيه [on|off|status]',
+      '/tools': 'إدارة الأدوات المتاحة للوكيل',
+      '/memory': 'مراجعة عمليات كتابة الذاكرة المعلقة أو تبديل طلب الموافقة',
+      '/bundles': 'عرض حزم المهارات',
+      '/pet': 'تبديل تميمة petdex أو تبني واحدة',
+      '/hatch': 'إنشاء حيوان أليف جديد',
+      '/learn': 'تعلم مهارة قابلة لإعادة الاستخدام من المجلدات أو الروابط أو المحادثة أو الملاحظات',
+      '/init': 'فحص المستودع لإنشاء تعليمات AGENTS.md أو تحديثها',
+      '/suggestions': 'مراجعة عمليات الأتمتة المقترحة وقبولها أو رفضها',
+      '/blueprint': 'إعداد أتمتة من قالب مخطط',
+      '/browser': 'إدارة اتصال المتصفح عبر CDP [connect|disconnect|status] (بوابة محلية فقط)',
+      '/palette': 'فتح لوحة الأوامر',
+      '/usage': 'عرض استخدام الرموز وحدود الطلبات؛ reset يسترد إعادة ضبط محفوظة لحدود Codex',
+      '/subscription': 'عرض خطة Nous وتغييرها في المتصفح',
+      '/topup': 'عرض رصيد Nous وإدارة الفواتير',
+      '/platform': 'إيقاف منصة بوابة متعثرة مؤقتًا أو استئنافها أو عرضها',
+      '/version': 'عرض إصدار Hermes Agent',
+      '/debug': 'رفع تقرير تصحيح يتضمن معلومات النظام والسجلات للحصول على رابط قابل للمشاركة',
+      '/model': 'تبديل نموذج هذه الجلسة'
     },
     hotkeyDescs: {
       'composer.mention': 'الإشارة إلى الملفات والمجلدات والروابط وgit',
@@ -4712,6 +4809,13 @@ export const ar = defineCompleteLocale({
     everythingSkipped: 'تم التخطي',
     everythingRowFailed: 'فشل التحديث',
     everythingFanoutFailedTitle: 'تعذر تحديث المثيلات الأخرى',
+    changeLogNew: 'جديد',
+    changeLogFixed: 'إصلاحات',
+    changeLogFaster: 'أسرع',
+    changeLogImproved: 'تحسينات',
+    changeLogOther: 'تحسينات أخرى',
+    changeLogFallbackLabel: 'في هذا التحديث',
+    changeLogFallbackItem: 'تحسينات وإصلاحات',
     applyStatus: {
       preparing: 'جار تحديث الواجهة الخلفية...',
       pulling: 'جار تحديث الواجهة الخلفية...',
@@ -5156,7 +5260,9 @@ export const ar = defineCompleteLocale({
     title: 'النماذج',
     search: 'بحث في النماذج',
     noAuthenticatedProviders: 'لا يوجد مزوّدون مصادق عليهم.',
-    addProvider: 'إضافة مزوّد…'
+    addProvider: 'إضافة مزوّد…',
+    addCustomModel: 'إضافة نموذج مخصص',
+    removeCustomModel: 'إزالة النموذج المخصص'
   },
   shell: {
     windowControls: 'تحكم النافذة',
@@ -5458,6 +5564,19 @@ export const ar = defineCompleteLocale({
       commentTitle: n => `تعليق${n}`,
       saveComment: 'حفظ',
       cancelComment: 'تعليق إلغاء'
+    }
+  },
+  interfaceMode: {
+    title: 'وضع الواجهة',
+    hint: 'يغيّر ما يظهر، وليس ما يستطيع Hermes فعله.',
+    sessionNote: 'يحدده الوضع البسيط. التغيير هنا يستمر لهذه الجلسة فقط؛ بدّل إلى المتقدم لجعله خيارك.',
+    simple: {
+      label: 'بسيط',
+      description: 'للتحدث مع Hermes. الشريط الجانبي والدردشة؛ بلا طرفية أو لوحات ملفات أو فروقات.'
+    },
+    advanced: {
+      label: 'متقدم',
+      description: 'للمطورين. الطرفية والملفات والفروقات وشريط الحالة والتخطيطات، كما أعددتها.'
     }
   },
   zones: {

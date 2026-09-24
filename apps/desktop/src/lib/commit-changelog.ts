@@ -32,12 +32,14 @@ export interface CommitChangelogInput {
 }
 
 interface BuildOptions {
-  fallbackItem?: string
-  fallbackLabel?: string
-  labels?: Partial<Record<CommitGroupId, string>>
   maxGroups?: number
   maxPerGroup?: number
   maxTotal?: number
+  /** Per-group display labels (e.g. localized). A group without an entry
+   *  keeps its English default. */
+  labels?: Partial<Record<CommitGroupId, string>>
+  /** Label + item for the empty-state fallback group. */
+  fallback?: { label: string; item: string }
 }
 
 const GROUP_META: Record<CommitGroupId, { label: string; order: number }> = {
@@ -127,7 +129,7 @@ export function buildCommitChangelog(
   commits: readonly CommitChangelogInput[] | undefined,
   options: BuildOptions = {}
 ): CommitGroup[] {
-  const { fallbackItem, fallbackLabel, labels, maxGroups = 3, maxPerGroup = 4, maxTotal = 6 } = options
+  const { maxGroups = 3, maxPerGroup = 4, maxTotal = 6 } = options
   const groups = new Map<CommitGroupId, string[]>()
   const seen = new Set<string>()
   let total = 0
@@ -169,17 +171,19 @@ export function buildCommitChangelog(
   }
 
   const result = Array.from(groups.entries())
-    .map(([id, items]) => ({ id, items, label: labels?.[id] ?? GROUP_META[id].label, order: GROUP_META[id].order }))
+    .map(([id, items]) => ({ id, items, label: GROUP_META[id].label, order: GROUP_META[id].order }))
     .sort((a, b) => a.order - b.order)
     .slice(0, maxGroups)
-    .map(({ id, items, label }): CommitGroup => ({ id, items, label }))
+    .map(({ id, items, label }): CommitGroup => ({ id, items, label: options.labels?.[id] ?? label }))
 
   if (result.length === 0) {
+    const fallback = options.fallback
+
     return [
       {
         ...FALLBACK_GROUP,
-        items: [fallbackItem ?? FALLBACK_GROUP.items[0]],
-        label: fallbackLabel ?? FALLBACK_GROUP.label
+        label: fallback?.label ?? FALLBACK_GROUP.label,
+        items: [fallback?.item ?? FALLBACK_GROUP.items[0]]
       }
     ]
   }

@@ -17,15 +17,6 @@ def _make_anthropic_text_block(text: str) -> SimpleNamespace:
     return SimpleNamespace(type="text", text=text)
 
 
-def _make_anthropic_tool_use_block(name: str = "my_tool") -> SimpleNamespace:
-    return SimpleNamespace(
-        type="tool_use",
-        id="toolu_01",
-        name=name,
-        input={"foo": "bar"},
-    )
-
-
 def _make_anthropic_response(blocks, stop_reason: str = "max_tokens"):
     return SimpleNamespace(
         id="msg_01",
