@@ -28,6 +28,7 @@ import type {
 } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { isCodeSkewRestartRequired } from '@/lib/code-skew-error'
+import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle, Cpu, Loader2 } from '@/lib/icons'
 import { isSubmitEnter } from '@/lib/ime'
 import { cn } from '@/lib/utils'
@@ -1182,7 +1183,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
               <SelectContent>
                 {Object.keys(moa.presets).map(name => (
                   <SelectItem key={name} value={name}>
-                    {name}
+                    {displayEntityName(name, t)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1267,7 +1268,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
             </Button>
           </div>
           <div className="mb-2 text-xs text-muted-foreground">
-            {m.moaDefault} <span className="font-mono">{moa.default_preset}</span>
+            {m.moaDefault} <span className="font-mono">{displayEntityName(moa.default_preset, t)}</span>
           </div>
           <div className="grid gap-1">
             {currentMoaPreset.reference_models.map((slot, index) => (

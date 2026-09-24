@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { HermesGateway } from '@/hermes'
 import { getLocalModelsStatus } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { isSubmitEnter } from '@/lib/ime'
 import { catalogProviderMatches, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
@@ -295,8 +296,9 @@ export function ModelCatalogMenu({
   // sitting under zero model matches would otherwise become the "first match"
   // Enter commits.
   const shownMoaPresets = useMemo(
-    () => (q ? moaPresets.filter(preset => foldIncludes(`moa ${preset}`, q)) : moaPresets),
-    [moaPresets, q]
+    () =>
+      q ? moaPresets.filter(preset => foldIncludes(`moa ${preset} ${displayEntityName(preset, t)}`, q)) : moaPresets,
+    [moaPresets, q, t]
   )
 
   const hideCatalog = slugEntry && !search
@@ -693,7 +695,9 @@ export function ModelCatalogMenu({
       {!hideCatalog && shownMoaPresets.length > 0 ? (
         <div className={cn(quietRows)}>
           {hasList ? <DropdownMenuSeparator className="mx-0" /> : null}
-          <DropdownMenuLabel className={dropdownMenuSectionLabel}>MoA presets</DropdownMenuLabel>
+          <DropdownMenuLabel className={dropdownMenuSectionLabel}>
+            {t.settings.model.moa.presetsTitle}
+          </DropdownMenuLabel>
           {shownMoaPresets.map(preset => {
             const isCurrentMoa = current.provider === 'moa' && current.model === preset
 
@@ -707,7 +711,7 @@ export function ModelCatalogMenu({
                 {...kbRowProps(`moa:${preset}`)}
               >
                 <span className="min-w-0 flex-1 truncate">
-                  MoA: <HighlightMatches foldSeparators query={search} text={preset} />
+                  MoA: <HighlightMatches foldSeparators query={search} text={displayEntityName(preset, t)} />
                 </span>
                 {isCurrentMoa ? <Codicon className="ml-auto text-foreground" name="check" size="0.75rem" /> : null}
               </DropdownMenuItem>

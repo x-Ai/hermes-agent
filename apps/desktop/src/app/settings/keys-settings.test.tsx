@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TRANSLATIONS } from '@/i18n/catalog'
+import { I18nProvider } from '@/i18n'
 import { stubResizeObserver } from '@/test/jsdom'
 
 import { envVar } from './test-utils'
@@ -14,6 +14,7 @@ stubResizeObserver()
 vi.mock('@/hermes', () => ({
   deleteEnvVar: vi.fn(),
   getEnvVars: (profile?: null | string) => getEnvVars(profile),
+  getProfiles: vi.fn(async () => ({ profiles: [{ name: 'default', is_default: true }] })),
   revealEnvVar: vi.fn(),
   setApiRequestProfile: () => undefined,
   setEnvVar: vi.fn()
@@ -32,13 +33,15 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-async function renderKeysSettings(view: 'settings' | 'tools', route = '/settings') {
+async function renderKeysSettings(view: 'settings' | 'tools', route = '/settings', locale = 'en') {
   const { KeysSettings } = await import('./keys-settings')
 
   await act(async () => {
     render(
       <MemoryRouter initialEntries={[route]}>
-        <KeysSettings view={view} />
+        <I18nProvider configClient={null} initialLocale={locale}>
+          <KeysSettings view={view} />
+        </I18nProvider>
       </MemoryRouter>
     )
   })
@@ -55,27 +58,17 @@ function DeepLinkButton({ target }: { target: string }) {
 }
 
 describe('KeysSettings', () => {
-  it('localizes reported credential titles and descriptions without changing their environment keys', async () => {
-    const { localizedCredentialInfo, localizedCredentialLabel } = await import('./keys-settings')
-    const envKeys = TRANSLATIONS.zh.settings.envKeys
-    const fieldCopy = TRANSLATIONS.zh.messaging.fieldCopy
+  it.each([
+    ['settings', 'CONNECTOR_GATEWAY_URL', 'CONNECTOR GATEWAY URL'],
+    ['tools', 'PORCUPINE_ACCESS_KEY', 'PORCUPINE ACCESS']
+  ] as const)('keeps backend-owned %s metadata verbatim in Chinese', async (view, key, expectedLabel) => {
+    const description = `Exact technical description for ${key}`
+    getEnvVars.mockResolvedValue({ [key]: envVar(view === 'tools' ? 'tool' : 'setting', { description }) })
 
-    const cases = [
-      ['PERPLEXITY_API_KEY', 'Perplexity'],
-      ['PORCUPINE_ACCESS_KEY', 'Porcupine 访问密钥'],
-      ['TOOL_GATEWAY_URL', '工具网关 URL'],
-      ['CONNECTOR_GATEWAY_URL', '连接器网关 URL'],
-      ['KEENABLE_API_KEY', 'Keenable'],
-      ['TEAMS_REQUIRE_MENTION', 'Teams 要求提及']
-    ] as const
+    await renderKeysSettings(view, '/settings', 'zh')
 
-    for (const [key, expectedLabel] of cases) {
-      const english = `English description for ${key}`
-      const info = envVar('tool', { description: english })
-
-      expect(localizedCredentialLabel(key, info, envKeys, fieldCopy)).toBe(expectedLabel)
-      expect(localizedCredentialInfo(key, info, envKeys, fieldCopy).description).not.toBe(english)
-    }
+    fireEvent.click(await screen.findByText(expectedLabel))
+    expect(screen.getByText(description)).toBeTruthy()
   })
 
   it('fetches env vars for the displayed profile (the concrete key, never null) when unscoped', async () => {

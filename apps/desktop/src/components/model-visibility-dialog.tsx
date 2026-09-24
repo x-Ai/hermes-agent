@@ -12,6 +12,7 @@ import { HighlightMatches } from '@/components/ui/highlight-matches'
 import { Switch } from '@/components/ui/switch'
 import type { HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { Plus, Search, X } from '@/lib/icons'
 import { modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
@@ -92,7 +93,11 @@ export function ModelVisibilityDialog({
   const q = normalize(search)
 
   const matches = (provider: ModelOptionProvider, model: string) =>
-    !q || foldIncludes(`${model} ${provider.name} ${provider.slug} ${displayModelName(model)}`, q)
+    !q ||
+    foldIncludes(
+      `${model} ${provider.name} ${provider.slug} ${displayModelName(model)} ${displayEntityName(model, t)}`,
+      q
+    )
 
   // Typing an id no provider lists offers to add it — same gesture as the
   // pickers, minus the switch — and the new row lands visible. Only once the
@@ -169,7 +174,10 @@ export function ModelVisibilityDialog({
                   </div>
                   {!collapsed &&
                     models.map(family => {
-                      const { name, tag } = modelDisplayParts(family.id)
+                      const { name, tag } =
+                        provider.slug.toLowerCase() === 'moa'
+                          ? { name: displayEntityName(family.id, t), tag: '' }
+                          : modelDisplayParts(family.id)
                       const key = modelVisibilityKey(provider.slug, family.id)
 
                       return (

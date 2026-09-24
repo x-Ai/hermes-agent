@@ -2,9 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useI18n } from '@/i18n'
-import type { Translations } from '@/i18n'
 import { $settingsRequestProfile } from '@/store/settings-scope'
-import type { EnvVarInfo } from '@/types/hermes'
 
 import { CredentialKeyCard, credentialPlaceholder, credentialRowLabel } from './credential-key-ui'
 import { useEnvCredentials } from './env-credentials'
@@ -32,32 +30,6 @@ const VIEW_CATEGORIES: Record<KeysView, readonly string[]> = {
   tools: ['tool']
 }
 
-/** Overlay renderer-owned copy on backend credential metadata. Generic keys
- * use settings.envKeys; messaging-derived settings reuse the platform field
- * help. The backend remains authoritative for behavior and URLs. Unknown keys
- * retain backend copy so plugin-provided settings degrade gracefully. */
-export function localizedCredentialInfo(
-  key: string,
-  info: EnvVarInfo,
-  envKeys: Translations['settings']['envKeys'],
-  fieldCopy: Translations['messaging']['fieldCopy']
-): EnvVarInfo {
-  const description = envKeys[key]?.description || fieldCopy[key]?.help
-
-  return description ? { ...info, description } : info
-}
-
-/** Localize the display-only credential title while keeping the environment
- * variable name as the stable read/write identity. */
-export function localizedCredentialLabel(
-  key: string,
-  info: EnvVarInfo,
-  envKeys: Translations['settings']['envKeys'],
-  fieldCopy: Translations['messaging']['fieldCopy']
-): string {
-  return envKeys[key]?.label || fieldCopy[key]?.label || credentialRowLabel(key, info)
-}
-
 const credentialElementId = (key: string) => `credential-key-${key}`
 
 export function KeysSettings({ view }: KeysSettingsProps) {
@@ -67,7 +39,10 @@ export function KeysSettings({ view }: KeysSettingsProps) {
   // path — request-shaped so the API helpers never see a primary-targeting
   // null).
   const scopeProfile = useStore($settingsRequestProfile)
-  const { rowProps, vars } = useEnvCredentials(scopeProfile)
+  // Tool/setting names and descriptions are backend-owned technical metadata.
+  // Keep them verbatim here instead of replacing them with locale-specific
+  // guesses (for example, URL and product/access-key names).
+  const { rowProps, vars } = useEnvCredentials(scopeProfile, { localizeDescriptions: false })
   const [openKey, setOpenKey] = useState<null | string>(null)
 
   useEffect(() => {
@@ -115,16 +90,13 @@ export function KeysSettings({ view }: KeysSettingsProps) {
       {entries.length > 0 ? (
         <div className="grid gap-2">
           {entries.map(([key, info]) => {
-            const localizedInfo = localizedCredentialInfo(key, info, t.settings.envKeys, t.messaging.fieldCopy)
-            // The environment key remains the stable read/write identity;
-            // only its display label and explanatory copy are localized.
-            const label = localizedCredentialLabel(key, localizedInfo, t.settings.envKeys, t.messaging.fieldCopy)
+            const label = credentialRowLabel(key, info)
 
             return (
               <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>
                 <CredentialKeyCard
                   expanded={openKey === key}
-                  info={localizedInfo}
+                  info={info}
                   label={label}
                   onExpand={() => setOpenKey(key)}
                   onToggle={() => setOpenKey(prev => (prev === key ? null : key))}

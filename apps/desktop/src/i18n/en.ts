@@ -53,6 +53,10 @@ export const en: Translations = {
     openInBrowser: 'Open in browser',
     setupCancel: 'Cancel',
     authorizedToolsUnavailable: 'Authorized. Tools unavailable.',
+    plugin: 'Plugin',
+    nothingSelectedYet: 'Nothing connects or installs yet.',
+    connectOrInstallWhenNeeded:
+      'Hermes will offer to link these, or install a plugin, when a task needs them, and asks first.',
     required: 'Required'
   },
   connectorsPage: {
@@ -296,7 +300,6 @@ export const en: Translations = {
       hintOpenWorld: { label: 'External', long: 'Reaches something outside this app.' }
     }
   },
-
 
   sessionImport: {
     title: 'Continue from another app',
@@ -6123,7 +6126,6 @@ export const en: Translations = {
       description: 'For developers. Terminal, files, diffs, statusbar and layouts, as you set them.'
     }
   },
-
 
   zones: {
     toggleLayoutEditMode: 'Toggle layout edit mode',

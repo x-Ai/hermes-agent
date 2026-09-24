@@ -1,8 +1,8 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale } from './define-locale'
-import { introJa } from './intro-ja'
 import { en } from './en'
+import { introJa } from './intro-ja'
 
 export const ja = defineLocale({
   intro: introJa,
@@ -2083,7 +2083,7 @@ export const ja = defineLocale({
           hint: 'プロファイル概要の自動生成'
         }
       },
-      inheritMainEffort: '継承 · メインモデルの推論強度',
+      inheritMainEffort: '継承 · メインモデルの推論強度'
     },
     customEndpoints: {
       title: 'カスタムエンドポイント',
@@ -6600,7 +6600,6 @@ export const ja = defineLocale({
     }
   },
 
-
   zones: {
     showTabStrip: 'タブを表示',
     hideTabStrip: 'タブを隠す',
@@ -6804,15 +6803,38 @@ export const ja = defineLocale({
       dismissError: 'エラーを閉じる',
       errorGenericProvider: 'AI サービス',
       errorLayerBodies: {
+        auth: 'AI サービスがサインインを拒否しました。このプロバイダーの認証情報を確認して、メッセージを再送してください。',
+        billing:
+          'このプロバイダーのアカウント残高がありません。チャージするかプロバイダーを切り替えて、再送してください。',
+        disk: 'ディスクがいっぱいのため、Hermes はこの会話を保存できませんでした。空き容量を確保して再試行してください。',
         generic:
           'Hermes の返信中に問題が発生しました。再試行してください。問題が続く場合はエラー詳細をコピーしてください。',
         provider:
           'AI サービスがリクエストを完了できませんでした。少し待って再試行するか、プロバイダーを切り替えてください。',
         endpoint:
           'カスタムモデルサーバーに接続できません。サーバーが起動しているか確認し、メッセージを再送してください。',
+        gateway:
+          'Hermes は返信の開始時に内部エラーを検出しました。メッセージを再送し、問題が続く場合は診断情報を送信してください。',
+        runtime:
+          'Hermes は返信の開始時に内部エラーを検出しました。メッセージを再送し、問題が続く場合は診断情報を送信してください。',
         streaming: '返信が完了する前に接続が切れました。再試行してもう一度送信してください。'
       },
       errorCodes: {
+        auth: {
+          title: provider => `${provider} がサインインを拒否しました`,
+          body: provider =>
+            `${provider} に保存された認証情報が受け付けられませんでした。設定を修正するかプロバイダーを切り替えて、再送してください。`
+        },
+        auth_permanent: {
+          title: provider => `${provider} がサインインを拒否しました`,
+          body: provider =>
+            `${provider} に保存された認証情報が無効、または取り消されています。更新するかプロバイダーを切り替えて、再送してください。`
+        },
+        billing: {
+          title: 'クレジットがありません',
+          body: provider =>
+            `${provider} アカウントのクレジットがありません。チャージするかプロバイダーを切り替えて、再送してください。`
+        },
         provider_policy_blocked: {
           title: 'アカウント設定によりこのモデルはブロックされています',
           body: provider =>
@@ -6857,10 +6879,76 @@ export const ja = defineLocale({
           title: '応答がタイムアウトしました',
           body: provider => `${provider} から時間内に応答がありませんでした。再試行してもう一度送信してください。`
         },
+        stream_drop: {
+          title: '返信が途中で切れました',
+          body: '返信が完了する前に接続が切れました。再試行してもう一度送信してください。'
+        },
+        upstream_blocked: {
+          title: 'ファイアウォールがリクエストをブロックしました',
+          body: provider =>
+            `${provider} の前段にあるファイアウォールまたは CDN が、モデルに届く前にリクエストをブロックしました。キーは正常な可能性があります。設定でプロバイダーの extra_headers に User-Agent を指定するか、プロバイダーを切り替えて再送してください。`
+        },
         ssl_cert_verification: {
           title: '安全な接続に失敗しました',
           body: provider =>
             `Hermes は ${provider} との安全な接続を検証できませんでした。ネットワークやプロキシの設定を確認するか、プロバイダーを切り替えて再送してください。`
+        },
+        context_overflow: {
+          title: 'この会話は長すぎます',
+          body: '会話がモデルのコンテキストに収まりません。会話を圧縮するか、新しいチャットを開始して再送してください。'
+        },
+        payload_too_large: {
+          title: 'このメッセージは大きすぎます',
+          body: 'リクエストがモデルの上限を超えています。会話を圧縮するか、新しいチャットを開始して再送してください。'
+        },
+        model_not_found: {
+          title: 'このモデルは利用できません',
+          body: provider =>
+            `${provider} はこのアカウントにモデルを提供していません。別のモデルを選んで再送してください。`
+        },
+        truncated: {
+          title: '返信が途中で終了しました',
+          body: 'モデルが回答を完了する前に停止しました。再試行して完全な返信を取得してください。'
+        },
+        loop_error: {
+          title: 'Hermes がループしました',
+          body: '同じ手順が繰り返されたため、Hermes は処理を停止しました。再試行し、再発する場合は新しいチャットを開始してください。'
+        },
+        SESSION_NOT_OWNED: {
+          title: 'このチャットは別の場所で開かれています',
+          body: 'このチャットは別の Hermes ウィンドウまたはターミナルで開かれています。そちらで閉じて再送するか、ここで新しいチャットを開始してください。'
+        },
+        disk_full: {
+          title: 'ディスクがいっぱいです',
+          body: 'ディスクがいっぱいのため、Hermes はこの会話を保存できませんでした。空き容量を確保して再試行してください。'
+        },
+        free_tier_disabled: {
+          title: 'サインインなしの無料利用は現在停止中です',
+          body: '無料の Nous アカウントでサインインすると、チャットを続けられます。'
+        },
+        free_tier_rate_limited: {
+          title: 'サインインなしの利用枠を使い切りました',
+          body: '利用枠はまもなく更新されます。無料の Nous アカウントでサインインすると、より大きな利用枠を使えます。'
+        },
+        free_tier_at_capacity: {
+          title: 'サインインなしのチャットは現在混み合っています',
+          body: '無料アカウントでサインインすると待ち行列を回避できます。しばらく待って再試行することもできます。'
+        },
+        free_tier_model_not_free: {
+          title: 'サインインなしではこのモデルを利用できません',
+          body: 'Hermes は現在無料モデルを使用しています。無料の Nous アカウントでサインインすると、より多くのモデルを利用できます。'
+        },
+        free_tier_route: {
+          title: 'この経路では無料モデルに接続できません',
+          body: '無料の Nous アカウントでサインインするか、NOUS_INFERENCE_BASE_URL の設定を確認してください。'
+        },
+        free_tier_outage: {
+          title: '無料モデルは一時的に応答できません',
+          body: 'しばらくしてからメッセージを再送してください。'
+        },
+        free_tier_refused: {
+          title: 'サインインなしではこのメッセージを送信できません',
+          body: '無料の Nous アカウントでサインインして続けてください。'
         }
       },
       errorLayers: {

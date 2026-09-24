@@ -428,6 +428,9 @@ type BotsMessages = {
     sending: string
     answerTo: (member: string) => string
     openGroupChat: string
+    memberAdded: (member: string, group: string) => string
+    memberRemoved: (member: string, group: string) => string
+    createdWith: (group: string, count: number) => string
     manageMembers: string
     manageMembersAria: string
     manageMembersDescription: (max: number, group: string) => string
@@ -1024,6 +1027,9 @@ const en: BotsMessages = {
     sending: 'Sending…',
     answerTo: member => `Answer @${member}`,
     openGroupChat: 'Open Group Chat',
+    memberAdded: (member, group) => `${member} added to “${group}”`,
+    memberRemoved: (member, group) => `${member} removed from “${group}”`,
+    createdWith: (group, count) => `“${group}” created with ${count} ${count === 1 ? 'bot' : 'bots'}`,
     manageMembers: 'Manage members',
     manageMembersAria: 'Manage group members',
     manageMembersDescription: (max, group) =>
@@ -1619,6 +1625,9 @@ const ja: BotsMessages = {
     sending: '送信中…',
     answerTo: member => `@${member}に回答`,
     openGroupChat: 'グループチャットを開く',
+    memberAdded: (member, group) => `${member}を「${group}」に追加しました`,
+    memberRemoved: (member, group) => `${member}を「${group}」から削除しました`,
+    createdWith: (group, count) => `「${group}」を${count}体のボットで作成しました`,
     manageMembers: 'メンバーの管理',
     manageMembersAria: 'グループメンバーの管理',
     manageMembersDescription: (max, group) =>
@@ -2201,6 +2210,9 @@ const zh: BotsMessages = {
     sending: '发送中…',
     answerTo: member => `回答 @${member}`,
     openGroupChat: '打开群聊',
+    memberAdded: (member, group) => `已将 ${member} 添加到“${group}”`,
+    memberRemoved: (member, group) => `已将 ${member} 从“${group}”移除`,
+    createdWith: (group, count) => `已创建“${group}”，包含 ${count} 个机器人`,
     manageMembers: '管理成员',
     manageMembersAria: '管理群组成员',
     manageMembersDescription: (max, group) =>
@@ -2776,6 +2788,9 @@ const zhHant: BotsMessages = {
     sending: '傳送中…',
     answerTo: member => `回覆 @${member}`,
     openGroupChat: '開啟群組聊天',
+    memberAdded: (member, group) => `已將 ${member} 加入「${group}」`,
+    memberRemoved: (member, group) => `已將 ${member} 從「${group}」移除`,
+    createdWith: (group, count) => `已建立「${group}」，包含 ${count} 個機器人`,
     manageMembers: '管理成員',
     manageMembersAria: '管理群組成員',
     manageMembersDescription: (max, group) => `選擇 2 -${max} bots for “${group}」.`,
@@ -3302,6 +3317,9 @@ const ru: BotsMessages = {
     sending: 'Отправка…',
     answerTo: member => `Ответить @${member}`,
     openGroupChat: 'Открытый групповой чат',
+    memberAdded: (member, group) => `${member} добавлен в «${group}»`,
+    memberRemoved: (member, group) => `${member} удалён из «${group}»`,
+    createdWith: (group, count) => `Группа «${group}» создана: ${count} ботов`,
     manageMembers: 'Управлять членами',
     manageMembersAria: 'Управлять членами группы',
     manageMembersDescription: (max, group) =>
@@ -3749,6 +3767,9 @@ const ar: BotsMessages = {
     sending: 'جارٍ الإرسال…',
     answerTo: member => `جواب:${member}`,
     openGroupChat: 'الفريق المفتوح',
+    memberAdded: (member, group) => `تمت إضافة ${member} إلى «${group}»`,
+    memberRemoved: (member, group) => `تمت إزالة ${member} من «${group}»`,
+    createdWith: (group, count) => `تم إنشاء «${group}» مع ${count} من الوكلاء`,
     manageMembers: 'أعضاء الإدارة',
     manageMembersAria: 'أعضاء مجموعة إدارة',
     manageMembersDescription: (max, group) =>

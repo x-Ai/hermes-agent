@@ -583,6 +583,7 @@ describe('ModelSettings MoA preset editor', () => {
       expect(screen.getByRole('button', { name: m.moaAddReference })).toBeTruthy()
       expect(screen.getByRole('button', { name: m.moaSetDefault })).toBeTruthy()
       expect(screen.getByPlaceholderText(m.moaNewPresetPlaceholder)).toBeTruthy()
+      expect(screen.getAllByText(TRANSLATIONS[locale].common.defaultName).length).toBeGreaterThan(0)
       fireEvent.click(screen.getByRole('switch', { name: m.moaReferenceToggle(true, 1) }))
       expect(screen.getByRole('switch', { name: m.moaReferenceToggle(false, 1) }).getAttribute('aria-checked')).toBe(
         'false'

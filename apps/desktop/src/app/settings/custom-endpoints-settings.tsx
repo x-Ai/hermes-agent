@@ -35,49 +35,79 @@ interface CustomEndpointsSettingsProps {
   onMainModelChanged?: (provider: string, model: string) => void
 }
 
+interface ModelTokenLimitForm {
+  contextLength: string
+  maxInputTokens: string
+  maxOutputTokens: string
+}
+
 interface EndpointForm {
   apiKey: string
   apiMode: CustomEndpointApiMode
+  authScheme: string
   baseUrl: string
-  contextLength: string
   discoverModels: boolean
   id: string
   makeDefault: boolean
   model: string
+  modelTokenLimits: Record<string, ModelTokenLimitForm>
   name: string
+  userAgent: string
 }
 
+const DEFAULT_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+
 // Same choices as `hermes model`'s custom-provider setup; '' = runtime auto-detect.
-const API_MODE_OPTIONS: readonly { id: CustomEndpointApiMode; label: string }[] = [
-  { id: '', label: 'Auto-detect' },
-  { id: 'chat_completions', label: 'Chat Completions' },
-  { id: 'codex_responses', label: 'Responses API' },
-  { id: 'anthropic_messages', label: 'Anthropic Messages' }
-]
+const API_MODE_IDS: readonly CustomEndpointApiMode[] = ['', 'chat_completions', 'codex_responses', 'anthropic_messages']
 
 const EMPTY_FORM: EndpointForm = {
   apiKey: '',
   apiMode: '',
+  authScheme: '',
   baseUrl: '',
-  contextLength: '',
   discoverModels: true,
   id: '',
   makeDefault: true,
   model: '',
-  name: ''
+  modelTokenLimits: {},
+  name: '',
+  userAgent: DEFAULT_USER_AGENT
 }
 
 function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
+  const modelIds = new Set([
+    endpoint.model,
+    ...endpoint.models,
+    ...Object.keys(endpoint.model_token_limits ?? {}),
+    ...Object.keys(endpoint.model_context_lengths ?? {})
+  ])
+
   return {
     apiKey: '',
     apiMode: endpoint.api_mode ?? '',
+    authScheme: endpoint.auth_scheme ?? '',
     baseUrl: endpoint.base_url,
-    contextLength: endpoint.context_length ? String(endpoint.context_length) : '',
     discoverModels: endpoint.discover_models,
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
     model: endpoint.model,
-    name: endpoint.name
+    modelTokenLimits: Object.fromEntries(
+      Array.from(modelIds).map(model => {
+        const limits = endpoint.model_token_limits?.[model]
+
+        return [
+          model,
+          {
+            contextLength: String(limits?.context_length ?? endpoint.model_context_lengths?.[model] ?? ''),
+            maxInputTokens: String(limits?.max_input_tokens ?? ''),
+            maxOutputTokens: String(limits?.max_output_tokens ?? endpoint.max_output_tokens ?? '')
+          }
+        ]
+      })
+    ),
+    name: endpoint.name,
+    userAgent: endpoint.user_agent ?? ''
   }
 }
 
@@ -86,7 +116,28 @@ function toPayload(
   models?: string[],
   modelDetails?: CustomEndpointModelDetail[]
 ): CustomEndpointUpdate {
-  const contextLength = Number.parseInt(form.contextLength, 10)
+  const modelIds = Array.from(new Set([...(models ?? []), form.model].map(model => model.trim()).filter(Boolean)))
+
+  const modelTokenLimits = Object.fromEntries(
+    modelIds.map(model => {
+      const values = form.modelTokenLimits[model]
+
+      const positiveOrNull = (value: string | undefined): number | null => {
+        const parsed = Number(value)
+
+        return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+      }
+
+      return [
+        model,
+        {
+          context_length: positiveOrNull(values?.contextLength),
+          max_input_tokens: positiveOrNull(values?.maxInputTokens),
+          max_output_tokens: positiveOrNull(values?.maxOutputTokens)
+        }
+      ]
+    })
+  )
 
   return {
     id: form.id.trim() || undefined,
@@ -95,11 +146,13 @@ function toPayload(
     model: form.model.trim(),
     api_key: form.apiKey.trim() || undefined,
     api_mode: form.apiMode,
-    context_length: Number.isFinite(contextLength) && contextLength > 0 ? contextLength : undefined,
+    auth_scheme: form.apiMode === 'anthropic_messages' ? form.authScheme : '',
     discover_models: form.discoverModels,
     make_default: form.makeDefault,
+    model_token_limits: modelTokenLimits,
     models: models?.length ? models : undefined,
-    model_details: modelDetails?.length ? modelDetails : undefined
+    model_details: modelDetails?.length ? modelDetails : undefined,
+    user_agent: form.userAgent.trim()
   }
 }
 
@@ -109,9 +162,17 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const copyRef = useRef(ce)
   copyRef.current = ce
 
-  const apiModeOptions = API_MODE_OPTIONS.map(option =>
-    option.id === '' ? { ...option, label: ce.autoDetect } : option
-  )
+  const apiModeOptions: readonly { id: CustomEndpointApiMode; label: string }[] = API_MODE_IDS.map(id => ({
+    id,
+    label:
+      id === ''
+        ? ce.apiModeAuto
+        : id === 'chat_completions'
+          ? ce.apiModeChat
+          : id === 'codex_responses'
+            ? ce.apiModeResponses
+            : ce.apiModeMessages
+  }))
 
   // Shared settings "Applies to" scope: read/write this profile's endpoints,
   // not whichever Bot is active in the left rail. Undefined follows the
@@ -126,6 +187,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const [endpoints, setEndpoints] = useState<CustomEndpoint[]>([])
   const [form, setForm] = useState<EndpointForm>(EMPTY_FORM)
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
   // Alias metadata from the last Test; the backend resolves a picked alias to its
   // canonical model + reasoning effort on Save (#93622).
   const [discoveredDetails, setDiscoveredDetails] = useState<CustomEndpointModelDetail[]>([])
@@ -138,12 +201,21 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     }
   }
 
+  function startNewEndpoint() {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setDiscoveredModels([])
+    setDiscoveredDetails([])
+    requestAnimationFrame(() => nameInputRef.current?.focus())
+  }
+
   // eslint-disable-next-line no-restricted-syntax -- lifecycle guard drops stale async completions; it does not mirror an atom
   useEffect(() => {
     let cancelled = false
     mounted.current = true
     setLoading(true)
     setForm(EMPTY_FORM)
+    setEditingId(null)
     setDiscoveredModels([])
     setDiscoveredDetails([])
     setEndpoints([])
@@ -160,6 +232,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         const current = data.endpoints.find(endpoint => endpoint.is_current) ?? data.endpoints[0]
 
         if (current) {
+          setEditingId(current.id)
           setForm(formFromEndpoint(current))
           setDiscoveredModels(current.models)
         }
@@ -193,6 +266,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       const saved = response.endpoints.find(endpoint => endpoint.id === response.id)
 
       if (saved) {
+        setEditingId(saved.id)
         setForm(formFromEndpoint(saved))
         setDiscoveredModels(saved.models)
       }
@@ -224,7 +298,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         return
       }
 
-      setDiscoveredModels(response.models)
+      setDiscoveredModels(current => Array.from(new Set([...current, ...response.models])))
       setDiscoveredDetails(response.model_details ?? [])
 
       if (response.ok) {
@@ -310,7 +384,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
       setEndpoints(response.endpoints)
 
-      if (form.id === endpoint.id) {
+      if (editingId === endpoint.id) {
+        setEditingId(null)
         setForm(EMPTY_FORM)
         setDiscoveredModels([])
         setDiscoveredDetails([])
@@ -339,14 +414,59 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   }
 
   const allModelOptions = Array.from(new Set([...discoveredModels, form.model].filter(Boolean)))
-  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim()
+  const hasInvalidTokenLimit = Object.values(form.modelTokenLimits).some(limits =>
+    Object.values(limits).some(value => {
+      if (!value.trim()) {
+        return false
+      }
+
+      const parsed = Number(value)
+
+      return !Number.isSafeInteger(parsed) || parsed <= 0
+    })
+  )
+  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidTokenLimit
+  const tokenLimitFields = [
+    { key: 'contextLength', label: ce.contextWindowLabel },
+    { key: 'maxInputTokens', label: ce.maxInputLabel },
+    { key: 'maxOutputTokens', label: ce.maxOutputLabel }
+  ] as const
+
+  function updateModelTokenLimit(model: string, key: keyof ModelTokenLimitForm, value: string) {
+    setForm(current => {
+      const previous = current.modelTokenLimits[model] ?? {
+        contextLength: '',
+        maxInputTokens: '',
+        maxOutputTokens: ''
+      }
+
+      return {
+        ...current,
+        modelTokenLimits: {
+          ...current.modelTokenLimits,
+          [model]: { ...previous, [key]: value }
+        }
+      }
+    })
+  }
 
   return (
     <SettingsContent>
       <SettingsProfileScope className="mb-5" />
       <div className="space-y-6">
         <section>
-          <SectionHeading icon={Globe} meta={`${endpoints.length}`} page title={t.settings.customEndpoints.title} />
+          <SectionHeading
+            aside={
+              <Button onClick={startNewEndpoint} size="sm" type="button" variant="outline">
+                <Plus />
+                {ce.newEndpoint}
+              </Button>
+            }
+            icon={Globe}
+            meta={`${endpoints.length}`}
+            page
+            title={t.settings.customEndpoints.title}
+          />
           <div className="divide-y divide-border/40 rounded-md border border-border/50">
             {endpoints.length ? (
               endpoints.map(endpoint => (
@@ -354,6 +474,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                   <button
                     className="min-w-0 text-left"
                     onClick={() => {
+                      setEditingId(endpoint.id)
                       setForm(formFromEndpoint(endpoint))
                       setDiscoveredModels(endpoint.models)
                       setDiscoveredDetails([])
@@ -413,7 +534,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         </section>
 
         <section>
-          <SectionHeading icon={Plus} title={form.id ? ce.editTitle : ce.addTitle} />
+          <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -421,16 +542,19 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 <Input
                   onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
                   placeholder={t.settings.customEndpoints.namePlaceholder}
+                  ref={nameInputRef}
                   value={form.name}
                 />
               </label>
               <label className="grid gap-1.5 text-xs text-muted-foreground">
                 {ce.fields.providerId}
                 <Input
+                  disabled={Boolean(editingId)}
                   onChange={event => setForm(current => ({ ...current, id: event.target.value }))}
                   placeholder="axet-proxy"
                   value={form.id}
                 />
+                <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.providerIdHint}</span>
               </label>
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -442,42 +566,100 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               />
             </label>
             <fieldset className="grid min-w-0 gap-1.5 text-xs text-muted-foreground">
-              <legend className="mb-1.5">{ce.apiMode}</legend>
+              <legend className="mb-1.5">{ce.apiModeLabel}</legend>
               <SegmentedControl
                 className="w-full max-w-full"
-                onChange={apiMode => setForm(current => ({ ...current, apiMode }))}
+                onChange={apiMode =>
+                  setForm(current => ({
+                    ...current,
+                    apiMode,
+                    authScheme: apiMode === 'anthropic_messages' ? current.authScheme : ''
+                  }))
+                }
                 options={apiModeOptions}
                 value={form.apiMode}
               />
             </fieldset>
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
-                {ce.fields.defaultModel}
-                <ComboboxInput
-                  onChange={model => setForm(current => ({ ...current, model }))}
-                  options={allModelOptions}
-                  placeholder="gpt-5.4"
-                  value={form.model}
+            {form.apiMode === 'anthropic_messages' && (
+              <div className="grid gap-1.5 text-xs text-muted-foreground">
+                {ce.authSchemeLabel}
+                <SegmentedControl
+                  onChange={value => setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))}
+                  options={[
+                    { id: 'auto', label: ce.authSchemeAuto },
+                    { id: 'bearer', label: 'Authorization: Bearer' },
+                    { id: 'x-api-key', label: 'x-api-key' }
+                  ]}
+                  value={form.authScheme || 'auto'}
                 />
-              </label>
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
-                {ce.fields.context}
-                <Input
-                  inputMode="numeric"
-                  onChange={event => setForm(current => ({ ...current, contextLength: event.target.value }))}
-                  placeholder={t.settings.customEndpoints.contextPlaceholder}
-                  value={form.contextLength}
-                />
-              </label>
+                <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
+              </div>
+            )}
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.defaultModelLabel}
+              <ComboboxInput
+                onChange={model => setForm(current => ({ ...current, model }))}
+                options={allModelOptions}
+                placeholder="gpt-5.4"
+                value={form.model}
+              />
+            </label>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              <span>{ce.contextLabel}</span>
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.contextHint}</span>
+              {allModelOptions.length > 0 && (
+                <div className="max-h-64 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
+                  <div className="hidden gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem] sm:grid sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]">
+                    <span>{ce.modelLabel}</span>
+                    {tokenLimitFields.map(field => (
+                      <span key={field.key}>{field.label}</span>
+                    ))}
+                  </div>
+                  {allModelOptions.map(model => (
+                    <div
+                      className="grid items-center gap-2 p-2 sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]"
+                      key={model}
+                    >
+                      <span className="truncate font-mono text-[0.72rem] text-foreground" title={model}>
+                        {model}
+                      </span>
+                      {tokenLimitFields.map(field => (
+                        <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
+                          <span className="sm:sr-only">{field.label}</span>
+                          <Input
+                            aria-label={`${field.label}: ${model}`}
+                            inputMode="numeric"
+                            min={1}
+                            onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
+                            placeholder={ce.contextAuto}
+                            step={1}
+                            type="number"
+                            value={form.modelTokenLimits[model]?.[field.key] ?? ''}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.fields.apiKey}
               <Input
                 onChange={event => setForm(current => ({ ...current, apiKey: event.target.value }))}
-                placeholder={form.id ? ce.fields.apiKeyNewPlaceholder : ce.fields.apiKeyPlaceholder}
+                placeholder={editingId ? ce.keyKeepPlaceholder : ce.keyOptionalPlaceholder}
                 type="password"
                 value={form.apiKey}
               />
+            </label>
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.userAgentLabel}
+              <Input
+                onChange={event => setForm(current => ({ ...current, userAgent: event.target.value }))}
+                placeholder={DEFAULT_USER_AGENT}
+                value={form.userAgent}
+              />
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.userAgentHint}</span>
             </label>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <label className="flex items-center gap-2">
@@ -508,16 +690,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 {ce.save}
               </Button>
-              <Button
-                className={cn(!form.id && 'hidden')}
-                onClick={() => {
-                  setForm(EMPTY_FORM)
-                  setDiscoveredModels([])
-                  setDiscoveredDetails([])
-                }}
-                type="button"
-                variant="ghost"
-              >
+              <Button className={cn(!editingId && 'hidden')} onClick={startNewEndpoint} type="button" variant="ghost">
                 {ce.newEndpoint}
               </Button>
             </div>

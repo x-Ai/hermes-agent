@@ -1,6 +1,7 @@
 import { JsonRpcGatewayClient } from '@hermes/shared'
 
 import type { HermesApiRequest } from '@/global'
+import { translateNow } from '@/i18n'
 
 // Desktop startup fires a burst of read-only data calls (config, profiles,
 // model info/options, cron) the moment the backend passes readiness. On a
@@ -30,8 +31,8 @@ export const GATEWAY_NOT_CONNECTED_MESSAGE = 'Hermes gateway is not connected'
 export class HermesGateway extends JsonRpcGatewayClient {
   constructor() {
     super({
-      closedErrorMessage: 'Hermes gateway connection closed',
-      connectErrorMessage: 'Could not connect to Hermes gateway',
+      closedErrorMessage: translateNow('prompts.gatewayDisconnected'),
+      connectErrorMessage: translateNow('notifications.toast.gatewayConnectFailed'),
       createRequestId: nextId => nextId,
       notConnectedErrorMessage: GATEWAY_NOT_CONNECTED_MESSAGE,
       // The channel already answered -32603; surface the crash in devtools like the dial-failure sink.

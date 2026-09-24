@@ -101,8 +101,8 @@ describe('CustomEndpointsSettings', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Responses API' }))
     await act(() => language.setLocale('zh-hant'))
     expect((screen.getByRole('textbox', { name: '名稱' }) as HTMLInputElement).value).toBe('Fixture Ω')
-    expect(screen.getByText('API 模式')).toBeTruthy()
-    expect(screen.getByRole('button', { name: '自動偵測' })).toBeTruthy()
+    expect(screen.getByText(language.t.settings.customEndpoints.apiModeLabel)).toBeTruthy()
+    expect(screen.getByRole('button', { name: language.t.settings.customEndpoints.apiModeAuto })).toBeTruthy()
     expect(saveCustomEndpoint).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: '儲存' }))
     expect(saveCustomEndpoint).toHaveBeenCalledWith(
@@ -164,6 +164,57 @@ describe('CustomEndpointsSettings', () => {
     )
   })
 
+  it('preserves custom auth, user-agent, and per-model token limits when saving', async () => {
+    getCustomEndpoints.mockResolvedValue(emptyResponse)
+    saveCustomEndpoint.mockResolvedValue(savedResponse)
+    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
+
+    render(<CustomEndpointsSettings />)
+
+    await screen.findByText('No custom endpoints')
+    fireEvent.change(screen.getByPlaceholderText('Axet Proxy'), { target: { value: 'Private relay' } })
+    fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
+      target: { value: 'https://relay.example/v1' }
+    })
+    fireEvent.change(screen.getByPlaceholderText('gpt-5.4'), { target: { value: 'claude-fable-5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Anthropic Messages' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Authorization: Bearer' }))
+    fireEvent.change(screen.getByLabelText('Total Context: claude-fable-5'), {
+      target: { value: '200000' }
+    })
+    fireEvent.change(screen.getByLabelText('Max Input: claude-fable-5'), {
+      target: { value: '180000' }
+    })
+    fireEvent.change(screen.getByLabelText('Max Output: claude-fable-5'), {
+      target: { value: '20000' }
+    })
+    fireEvent.change(
+      screen.getByPlaceholderText(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+      ),
+      {
+        target: { value: 'Hermes Desktop Test' }
+      }
+    )
+    fireEvent.click(screen.getByRole('button', { name: en.settings.customEndpoints.save }))
+
+    expect(saveCustomEndpoint).toHaveBeenCalledWith(
+      expect.objectContaining({
+        api_mode: 'anthropic_messages',
+        auth_scheme: 'bearer',
+        model_token_limits: {
+          'claude-fable-5': {
+            context_length: 200000,
+            max_input_tokens: 180000,
+            max_output_tokens: 20000
+          }
+        },
+        user_agent: 'Hermes Desktop Test'
+      }),
+      'default'
+    )
+  })
+
   it('loads and saves endpoints for the Settings Applies-to profile, not only the active bot', async () => {
     const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
     const { $settingsScopeOverride } = await import('@/store/settings-scope')
@@ -205,7 +256,17 @@ describe('CustomEndpointsSettings', () => {
   it('hydrates the API mode from a saved endpoint', async () => {
     getCustomEndpoints.mockResolvedValue({
       ...savedResponse,
-      endpoints: [{ ...savedResponse.endpoints[0], api_mode: 'anthropic_messages' }]
+      endpoints: [
+        {
+          ...savedResponse.endpoints[0],
+          api_mode: 'anthropic_messages',
+          auth_scheme: 'bearer',
+          model_token_limits: {
+            'model-a': { context_length: 128000, max_input_tokens: 96000, max_output_tokens: 32000 }
+          },
+          user_agent: 'Existing relay agent'
+        }
+      ]
     })
     const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
 
@@ -213,6 +274,12 @@ describe('CustomEndpointsSettings', () => {
 
     await screen.findByText('Profile A')
     expect(screen.getByRole('button', { name: 'Anthropic Messages' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Authorization: Bearer' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByPlaceholderText('axet-proxy')).toHaveProperty('disabled', true)
+    expect(screen.getByLabelText('Total Context: model-a')).toHaveProperty('value', '128000')
+    expect(screen.getByLabelText('Max Input: model-a')).toHaveProperty('value', '96000')
+    expect(screen.getByLabelText('Max Output: model-a')).toHaveProperty('value', '32000')
+    expect(screen.getByDisplayValue('Existing relay agent')).toBeTruthy()
   })
 
   it('drops a pending save completion after its profile-scoped view unmounts', async () => {

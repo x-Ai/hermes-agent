@@ -6,6 +6,7 @@ import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as HermesApi from '@/hermes'
+import { I18nProvider } from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import type * as HubActions from '@/store/hub-actions'
 
@@ -19,6 +20,7 @@ const getUsageAnalytics = vi.fn()
 const getProfiles = vi.fn()
 const getSkillContent = vi.fn()
 const getOfficialSkills = vi.fn()
+const getWisdomEntitlement = vi.fn()
 
 // Partial mock: keep the real module (CapabilitiesView pulls in @/store/profile,
 // whose import-time subscription calls setApiRequestProfile) and stub only the
@@ -36,7 +38,8 @@ vi.mock('@/hermes', async importOriginal => ({
   getUsageAnalytics: (days: number, profile?: null | string) => getUsageAnalytics(days, profile),
   getProfiles: () => getProfiles(),
   getSkillContent: (name: string, profile?: null | string) => getSkillContent(name, profile),
-  getOfficialSkills: (profile?: null | string) => getOfficialSkills(profile)
+  getOfficialSkills: (profile?: null | string) => getOfficialSkills(profile),
+  getWisdomEntitlement: (profile?: null | string) => getWisdomEntitlement(profile)
 }))
 
 // Notifications hit nanostores/timers we don't care about here.
@@ -103,6 +106,7 @@ beforeEach(() => {
   getToolsetConfig.mockResolvedValue({ has_category: true, active_provider: null, providers: [] })
   getUsageAnalytics.mockResolvedValue({ tools: [] })
   getOfficialSkills.mockResolvedValue({ skills: [] })
+  getWisdomEntitlement.mockResolvedValue({ entitled: false, expires_at: null })
   getSkillContent.mockResolvedValue({
     name: 'web-research',
     path: '/skills/web-research/SKILL.md',
@@ -126,6 +130,41 @@ afterEach(() => {
 // all 11 tests (2× in a row on PR #93612, plus a main run the same hour).
 // Give this file headroom; the tests are not slow individually.
 describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
+  it('localizes the Connectors tab in Chinese', async () => {
+    await act(async () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <I18nProvider configClient={null} initialLocale="zh">
+            <MemoryRouter initialEntries={['/capabilities?tab=toolsets']}>
+              <CapabilitiesView />
+            </MemoryRouter>
+          </I18nProvider>
+        </QueryClientProvider>
+      )
+    })
+
+    expect(await screen.findByRole('button', { name: '连接器' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Connectors' })).toBeNull()
+  })
+
+  it('restores the Collective tab when the selected profile is entitled', async () => {
+    getWisdomEntitlement.mockResolvedValue({ entitled: true, expires_at: null })
+
+    await act(async () => {
+      render(
+        <QueryClientProvider client={queryClient}>
+          <I18nProvider configClient={null} initialLocale="zh">
+            <MemoryRouter initialEntries={['/capabilities?tab=skills']}>
+              <CapabilitiesView />
+            </MemoryRouter>
+          </I18nProvider>
+        </QueryClientProvider>
+      )
+    })
+
+    expect(await screen.findByRole('button', { name: '集体智慧' })).toBeTruthy()
+  })
+
   it('renders a switch for each toolset and toggles it off', async () => {
     await renderSkills()
 

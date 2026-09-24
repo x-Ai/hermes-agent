@@ -252,10 +252,10 @@ export function CreateAgentDialog({ open, onClose, roster }: CreateAgentDialogPr
       .then(() =>
         host.notify({
           kind: 'success',
-          message: `Draft agent "${draft}" discarded`
+          message: b.bot.draftDiscarded(draft)
         })
       )
-      .catch(err => host.notifyError(err, `Could not clean up draft profile "${draft}"`))
+      .catch(err => host.notifyError(err, b.bot.draftCleanupFailed(draft)))
   }
 
   const reset = () => {
@@ -667,7 +667,11 @@ export function CreateAgentDialog({ open, onClose, roster }: CreateAgentDialogPr
           ) : null}
           {labeled(
             b.editor.title,
-            <Input onChange={event => setTitle(event.target.value)} placeholder="Inbox Triage" value={title} />
+            <Input
+              onChange={event => setTitle(event.target.value)}
+              placeholder={b.bot.titlePlaceholder}
+              value={title}
+            />
           )}
           {labeled(
             b.editor.description,
@@ -1022,8 +1026,8 @@ export function GroupDialog({ bot, onClose }: GroupDialogProps) {
     host.notify({
       kind: 'info',
       message: enabled
-        ? `${displayName(bot, botRosterMeta(bot, meta))} added to “${group}”`
-        : `${displayName(bot, botRosterMeta(bot, meta))} removed from “${group}”`
+        ? b.group.memberAdded(displayName(bot, botRosterMeta(bot, meta)), group)
+        : b.group.memberRemoved(displayName(bot, botRosterMeta(bot, meta)), group)
     })
   }
 
@@ -1073,7 +1077,7 @@ export function GroupDialog({ bot, onClose }: GroupDialogProps) {
           <Input
             autoFocus
             onChange={event => setName(event.target.value)}
-            placeholder={groups.length ? 'New group…' : 'Group name (e.g. Research)'}
+            placeholder={groups.length ? b.group.newGroupPlaceholder : b.group.groupNamePlaceholder}
             value={name}
           />
           <Button disabled={!name.trim()} size="sm" type="submit">
@@ -1191,7 +1195,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
     })
     host.notify({
       kind: 'info',
-      message: `“${groupName}” created with ${selected.length} bots`
+      message: b.group.createdWith(groupName, selected.length)
     })
     onClose()
     onCreated?.(groupName)

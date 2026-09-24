@@ -306,7 +306,10 @@ export interface Translations {
     openInBrowser: string
     setupCancel: string
     authorizedToolsUnavailable: string
+    plugin: string
     required: string
+    nothingSelectedYet: string
+    connectOrInstallWhenNeeded: string
   }
   common: {
     apply: string
@@ -5257,7 +5260,6 @@ export interface Translations {
     simple: { label: string; description: string }
     advanced: { label: string; description: string }
   }
-
 
   zones: {
     showTabStrip: string

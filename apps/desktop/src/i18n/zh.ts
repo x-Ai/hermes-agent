@@ -67,7 +67,237 @@ export const zh = defineLocale({
     openInBrowser: '在浏览器中打开',
     setupCancel: '取消',
     authorizedToolsUnavailable: '已授权。工具不可用',
+    plugin: '插件',
+    nothingSelectedYet: '目前不会连接或安装任何内容。',
+    connectOrInstallWhenNeeded: '任务需要时，Hermes 会提示你连接应用或安装插件，并会先征得同意。',
     required: '必填'
+  },
+  connectorsPage: {
+    title: '连接器',
+    searchPlaceholder: count => `搜索 ${count} 个应用`,
+    filterCategory: '类别',
+    categoryAll: '所有类别',
+    uncategorised: '未分类',
+    residencyLocal: '在此设备上',
+    segment: {
+      all: '全部',
+      available: '可用',
+      connected: '已连接',
+      off: '已关闭'
+    },
+    group: {
+      connected: '已连接',
+      connectedNote: '异常连接优先显示',
+      available: '可用',
+      off: '已关闭',
+      offNote: '登录信息会保留'
+    },
+    card: {
+      kindManaged: '托管',
+      kindCatalog: 'MCP · 目录',
+      kindCustom: 'MCP · 自定义',
+      kindPlugin: plugin => `MCP · 插件 ${plugin}`,
+      inCatalog: '来自 Hermes 目录',
+      hostedTwin: '有托管版本可用',
+      alsoLocal: '也在此设备上运行',
+      open: name => `打开 ${name}`,
+      turnServerOn: name => `开启 ${name}`,
+      turnServerOff: name => `关闭 ${name}`,
+      state: {
+        accessExpired: '访问权限已过期',
+        available: '可用',
+        connected: '已连接',
+        connecting: '连接中',
+        connectionUnknown: '状态未知',
+        couldNotConnect: '无法连接',
+        offByYourOrganisation: '已被组织关闭',
+        offForYou: '已为你关闭',
+        serverConnecting: '连接中…',
+        serverError: '错误',
+        serverNeedsAuth: '需要身份验证',
+        serverOff: '关闭',
+        serverOn: '开启',
+        serverOnUnused: '已开启，未使用'
+      },
+      fact: {
+        tools: count => `${count} 个工具`,
+        toolsOff: count => `${count} 个工具已关闭`,
+        toolsOn: count => `${count} 个工具已开启`,
+        toolsSomeOn: (total, on) => `${total} 个工具，已开启 ${on} 个`
+      },
+      verb: {
+        authenticate: '验证身份',
+        connect: '连接',
+        install: '安装',
+        openLogs: '打开日志',
+        reconnect: '重新连接',
+        stopWaiting: '停止等待',
+        tryAgain: '重试',
+        turnBackOn: '重新开启'
+      },
+      reason: {
+        finishSignIn: '请在浏览器中完成登录',
+        reconnect: '重新连接以继续使用此应用',
+        serverError: '服务器拒绝了连接',
+        serverNeedsAuth: '登录后，此服务器才能响应'
+      }
+    },
+    page: {
+      loading: '正在读取目录和此计算机上的服务器',
+      emptyTitle: '这里还没有应用。请在此计算机上添加服务器以开始使用',
+      noMatchTitle: '没有匹配的应用',
+      noMatchBody: '这里没有匹配项。你可以连接自己的 MCP 服务器来添加应用',
+      clearSearch: '清除搜索',
+      hostedFailedTitle: '无法连接托管应用',
+      hostedFailedBody: '此计算机上的服务器不受影响，仍在运行；没有任何项目被关闭',
+      retry: '重试',
+      matchesElsewhere: count => `其他分组中还有 ${count} 个匹配项`,
+      showAllMatches: '显示所有匹配项',
+      segmentNoMatch: segment => `${segment}中没有匹配项，因此已显示全部结果`,
+      freeTierNote: '登录前，连接会保留在此计算机上',
+      signInLine: '登录 Nous 以使用托管应用',
+      signIn: '登录',
+      managedUnavailable: '此账户暂时无法使用托管应用',
+      writeFailed: '未能保存此更改',
+      refreshFailed: '未能刷新工具列表',
+      disconnectNoAccount: 'Hermes 在此处没有可断开的账户。请刷新页面后重试',
+      disconnectRefused: 'Nous 目前无法移除此登录。请改用开关关闭应用，或稍后重试'
+    },
+    add: {
+      action: '自行添加',
+      title: '连接自定义 MCP',
+      hint: '将在此设备的 mcp.json 中新增一个条目',
+      pasteLabel: '粘贴命令或配置片段',
+      pastePlaceholder: 'npx -y @modelcontextprotocol/server-filesystem /path/to/dir',
+      pasteNoMatch: '无法从内容中识别服务器，请改为填写下方字段',
+      name: '名称',
+      nameTaken: '此名称已被使用',
+      type: '类型',
+      typeStdio: 'STDIO',
+      typeHttp: 'Streamable HTTP',
+      command: '启动命令',
+      args: '参数',
+      addArg: '+ 添加参数',
+      envVars: '环境变量',
+      addEnvVar: '+ 添加环境变量',
+      passthrough: '透传环境变量',
+      addPassthrough: '+ 添加变量',
+      cwd: '工作目录',
+      url: 'URL',
+      headers: '请求头',
+      addHeader: '+ 添加请求头',
+      auth: '身份验证',
+      authNone: '无',
+      authOauth: 'OAuth',
+      authBearer: 'Bearer token',
+      keyPlaceholder: 'KEY',
+      valuePlaceholder: '值',
+      removeRow: '移除此行',
+      editJson: '编辑 mcp.json',
+      saveFailed: '未能保存此服务器'
+    },
+    dialog: {
+      disconnect: '断开连接',
+      disconnectTitle: name => `断开 ${name}？`,
+      disconnectBody: 'Hermes 将不再使用此账户；你随时可以重新连接',
+      menuRefreshTools: '刷新工具',
+      moreActions: '更多操作',
+      removeServerTitle: name => `移除 ${name}？`,
+      removeServerBody: '此条目将从本机的 mcp.json 中移除，不会删除其他内容',
+      appSwitch: name => `允许 Hermes 使用 ${name}`,
+      waysTitle: name => `${name} 的运行位置`,
+      wayNotConnected: name => `尚未连接。请在浏览器中登录 ${name}`,
+      wayHosted: '托管',
+      bothOn: name => `两者均已开启，因此 Hermes 会看到两套 ${name} 工具`,
+      turnOffLocal: '关闭本地服务器',
+      providedByPlugin: plugin => `由插件 ${plugin} 提供`,
+      openPlugins: '打开插件标签页',
+      nousLine: 'Nous 应用跟随你的账户，而不是配置档案',
+      rulesReadOnly: '目前无法更改规则',
+      rulesAppOff: name => `开启 ${name} 后才能更改其工具`,
+      rulesSignIn: '登录后才能更改 Hermes 在此处可执行的操作',
+      orgNote: count => `你的组织关闭了 ${count} 个工具`,
+      orgLink: '打开连接器管理页面',
+      connectEnded: '登录未完成',
+      connectOpenAgain: '重新打开链接',
+      tokensPerCall: '每次调用的 token 数',
+      usesPerMonth: '30 天内使用次数',
+      advanced: '高级',
+      advancedHint: 'mcp.json 条目和日志'
+    },
+    tools: {
+      title: '工具',
+      notInstalledBody: '安装到此设备后即可查看其提供的工具',
+      summaryTitle: name => `Hermes 可以通过 ${name} 执行的操作`,
+      summaryPreviewTitle: name => `连接后 Hermes 可以通过 ${name} 执行的操作`,
+      summaryCount: count => `${count} 个工具`,
+      summaryAllTools: '所有工具',
+      summaryOther: '其他',
+      allToolsSwitch: '开启或关闭所有工具',
+      summaryAllOn: '全部开启',
+      summarySomeOn: (on, total) => `已开启 ${on}/${total}`,
+      summaryOff: '已关闭',
+      showAllTools: count => `显示全部 ${count} 个工具`,
+      showSummary: '显示摘要',
+      facetSwitch: facet => `开启或关闭${facet}工具`,
+      moreHints: count => `+${count}`,
+      staleSignIn: '登录以读取最新工具列表',
+      searchCountPlaceholder: count => `搜索 ${count} 个工具`,
+      toolList: name => `${name} 工具`,
+      categorySelect: count => `${count} 个类别`,
+      showDeprecated: count => `显示 ${count} 个已弃用工具`,
+      hideDeprecated: count => `隐藏 ${count} 个已弃用工具`,
+      quickReadOnly: '仅只读',
+      quickNoDestructive: '关闭破坏性操作',
+      quickEverythingOn: '全部开启',
+      lockedHint: '已被组织关闭',
+      turnToolOn: tool => `开启 ${tool}`,
+      turnToolOff: tool => `关闭 ${tool}`,
+      showDetails: tool => `显示 ${tool} 的说明`,
+      hideDetails: tool => `隐藏 ${tool} 的说明`,
+      noMatch: '没有符合筛选条件的工具',
+      loading: '正在读取工具列表',
+      unavailableLine: '工具列表不可用',
+      needsAuthTitle: name => `登录 ${name} 以读取其工具`,
+      needsAuthBody: '登录信息仅保留在此计算机上，不会离开此设备',
+      retry: '重试',
+      goneTitle: name => `${name} 已从目录中移除`,
+      goneBody: 'Hermes 已无法调用它。该条目会保留到你主动移除，不会突然消失',
+      remove: '移除',
+      offTitle: name => `${name} 已关闭`,
+      offBody: '使用上方开关开启后，即可读取其提供的工具',
+      signedOutTitle: '登录 Nous 以读取工具列表',
+      signedOutBody: '此计算机上的服务器不受影响',
+      conflictTitle: '你编辑期间，有人更改了此规则',
+      conflictBody: (theyOff, theyOn) => {
+        const changes = [
+          theyOff > 0 ? `关闭了你已开启的 ${theyOff} 个工具` : '',
+          theyOn > 0 ? `开启了你已关闭的 ${theyOn} 个工具` : ''
+        ].filter(Boolean)
+
+        return `${changes.length > 0 ? `对方${changes.join('，并')}。` : ''}你的编辑仍保留在屏幕上，尚未写入。`
+      },
+      conflictReload: '加载对方版本',
+      conflictSave: '覆盖保存',
+      saveFailed: '未能保存这些工具规则',
+      footerDirty: (off, backOn) => `关闭 ${off} 个工具，重新开启 ${backOn || '零'}个`,
+      discard: '放弃更改',
+      save: '保存更改',
+      saving: '保存中…'
+    },
+    vocabulary: {
+      facetRead: { label: '读取', long: '从此应用读取数据，不会更改内容' },
+      facetWrite: { label: '写入', long: '在此应用中新建或更改内容' },
+      facetDestructive: { label: '破坏性', long: '可能永久移除此应用中的内容' },
+      facetUnclassified: { label: '作用未知', long: '应用未说明此工具会执行哪些操作' },
+      hintReadOnly: { label: '只读', long: '该工具声明仅执行读取操作' },
+      hintCreate: { label: '创建', long: '创建新内容' },
+      hintUpdate: { label: '更新', long: '更改已有内容' },
+      hintDelete: { label: '删除', long: '移除内容' },
+      hintDestructive: { label: '破坏性', long: '此处无法撤销该工具所做的更改' },
+      hintIdempotent: { label: '可重复', long: '重复运行与运行一次的结果相同' },
+      hintOpenWorld: { label: '外部访问', long: '访问此应用之外的内容' }
+    }
   },
   sessionImport: {
     title: '从其他应用继续',
@@ -694,6 +924,7 @@ export const zh = defineLocale({
       'view.toggleReview': '切换审查面板',
       'view.toggleStatusbar': '切换状态栏',
       'view.toggleTabStrip': '切换标签',
+      'view.toggleSimpleMode': '切换简洁模式',
       'view.showFiles': '显示文件浏览器',
       'view.showBrowser': '打开浏览器',
       'view.toggleHud': '切换 HUD 模式',
@@ -861,6 +1092,10 @@ export const zh = defineLocale({
         reviewedIntro: '此条目已在其固定提交处经过人工审核，你仍可在下方检查确切代码',
         restartToApply: '重启网关后插件才会生效',
         restartNow: '重启网关',
+        toolsConnected: n => `${n} 个工具已连接`,
+        skillsReady: names => (names.length === 1 ? `技能 ${names[0]} 已就绪` : `${names.length} 个技能已就绪`),
+        nextChat: '下次对话中可使用更多工具',
+        serverNotConnected: (server, reason) => `MCP 服务器 ${server} 未连接${reason ? `：${reason}` : ''}`,
         missingEnvAction: '去设置',
         alreadyInstalled: (name: string) => `${name} 已安装`,
         desktopTarget: '安装到此应用的本地 desktop-plugins 文件夹',
@@ -1136,6 +1371,10 @@ export const zh = defineLocale({
         window: '整个窗口',
         sidebar: '仅侧边栏'
       },
+      textDirectionTitle: '文本方向',
+      textDirectionDesc:
+        '设置对话消息和输入框的文字方向。自动模式会根据每段的首个字符判断；混合文字对齐不正确时可手动选择。代码始终从左向右显示',
+      textDirection: { auto: '自动', rtl: '从右向左', ltr: '从左向右' },
       backdropTitle: '聊天背景',
       backdropDesc: '对话后方那张淡淡的雕像图片',
       userBubbleTitle: '消息气泡',
@@ -2084,11 +2323,52 @@ export const zh = defineLocale({
       moaReferenceHint: '默认每轮仅建议一次'
     },
     customEndpoints: {
+      loadFailed: '无法加载自定义端点',
+      saved: '自定义端点已保存',
+      reachable: '端点可以连通',
+      reachableWithModels: count => `端点可以连通，发现 ${count} 个模型`,
+      validationError: '验证失败',
+      enterUrlFirst: '请先输入端点 URL',
+      unreachable: url => `无法连接 ${url}`,
+      authRejected: '端点拒绝了该 API 密钥',
+      httpError: status => `端点返回了 HTTP ${status}`,
+      emptyDesc: '在下方添加一个 OpenAI 兼容端点',
       active: '已启用',
       apiKeySet: '已设置 API 密钥',
       use: '使用',
       editTitle: '编辑端点',
       addTitle: '添加端点',
+      nameLabel: '名称',
+      providerIdLabel: '提供商 ID',
+      providerIdHint: '作为提供商标识符写入 config.yaml；创建后不可更改，如需其他 ID 请新建端点',
+      urlLabel: '端点 URL',
+      apiModeLabel: 'API 协议',
+      apiModeAuto: '自动',
+      apiModeChat: 'Chat Completions',
+      apiModeResponses: 'Responses API',
+      apiModeMessages: 'Anthropic Messages',
+      authSchemeLabel: '认证请求头',
+      authSchemeAuto: '自动检测',
+      authSchemeHint:
+        'Anthropic 兼容中继采用不同的认证方式：有些要求原生 x-api-key 请求头，有些只接受 Authorization: Bearer。自动检测覆盖已知主机；若中继返回 401/403，请在此指定认证方式',
+      noModelCatalog: '端点可以连通，但未提供模型目录',
+      connectedNoModels: url => `已连接到 ${url}，但端点未声明任何模型`,
+      defaultModelLabel: '默认模型',
+      contextLabel: '模型 Token 限制',
+      contextHint: '可分别设置每个模型的总上下文、最大输入和最大输出；留空则自动解析',
+      modelLabel: '模型',
+      contextWindowLabel: '总上下文',
+      maxInputLabel: '最大输入',
+      maxOutputLabel: '最大输出',
+      apiKeyLabel: 'API 密钥',
+      userAgentLabel: 'User-Agent',
+      userAgentHint:
+        '发送到该端点的 HTTP User-Agent。默认使用标准桌面浏览器标识，避免被代理或 WAF 拦截；留空则使用 SDK 默认值',
+      contextAuto: '自动',
+      keyKeepPlaceholder: '留空则保留当前密钥',
+      keyOptionalPlaceholder: '可选',
+      useForNewChats: '用于新对话',
+      discoverModels: '自动发现模型',
       fields: {
         name: '名称',
         providerId: '提供商 ID',
@@ -2104,6 +2384,7 @@ export const zh = defineLocale({
       test: '测试',
       save: '保存',
       newEndpoint: '新建端点',
+      reachableVia: transport => `端点可通过 ${transport} 连接`,
       apiMode: 'API 模式',
       autoDetect: '自动检测',
       couldNotLoad: '无法加载自定义端点',
@@ -3787,6 +4068,15 @@ export const zh = defineLocale({
       toggleFailed: (name: string) => `无法切换 ${name}`,
       legacyBackend: '此后端版本较旧，不支持按键名切换插件 — 请更新 Hermes 后再在此管理',
       portableBadge: '便携',
+      serverStates: {
+        connected: '已连接',
+        app_not_running: '应用未运行',
+        endpoint_unavailable: '端点不可用',
+        no_interactive_session: '没有交互会话',
+        version_too_old: '版本过旧',
+        missing_app: '缺少应用',
+        unknown: '状态未知'
+      },
       bundledNames: {
         'disk-cleanup': '临时文件清理',
         'security-guidance': '安全编码指引'
@@ -5509,6 +5799,37 @@ export const zh = defineLocale({
     missingBody: '此产物已不在本地注册表中'
   },
   sidebar: {
+    filter: {
+      grouping: '分组',
+      ordering: '排序',
+      show: '显示',
+      filters: '筛选',
+      status: '状态',
+      pullRequest: '拉取请求',
+      profile: '配置档案',
+      project: '项目',
+      archived: '已归档',
+      resetToDefaults: '恢复默认设置',
+      expandAll: '全部展开',
+      collapseAll: '全部收起',
+      inboxStyle: '收件箱样式',
+      updated: '更新时间',
+      created: '创建时间',
+      tokens: 'Token',
+      cost: '费用',
+      manual: '手动',
+      preview: '预览',
+      pr: 'PR',
+      needsInput: '需要输入',
+      working: '处理中',
+      unread: '未读',
+      draft: '草稿',
+      idle: '空闲',
+      open: '开放',
+      merged: '已合并',
+      closed: '已关闭',
+      noPR: '无 PR'
+    },
     gatewayGroups: {
       grouping: '网关与配置',
       rename: '重命名分组',
@@ -5548,6 +5869,13 @@ export const zh = defineLocale({
     projectEmpty: '暂无会话',
     projectLoadFailed: '会话加载失败',
     noSessions: '暂无会话',
+    storageCorrupt: {
+      title: '会话数据库已损坏',
+      body: profiles =>
+        `Hermes 无法读取 ${profiles} 的全部会话历史。列表中缺失的对话并未删除，但存储它们的文件已经损坏`,
+      action: '请退出此配置档案上的 Hermes，然后在不修改文件的情况下检查它，或恢复快照：',
+      guide: '恢复指南'
+    },
     noFilterMatches: '没有会话符合这些筛选条件',
     projects: {
       showAllSessions: '显示所有会话',
@@ -6649,13 +6977,18 @@ export const zh = defineLocale({
     free: '免费',
     freeTier: '免费层',
     priceTitle: '每百万 Token 的输入/输出价格',
-    wasPrice: '原价'
+    wasPrice: '原价',
+    customModel: '自定义模型',
+    addCustomModelAction: '添加自定义模型…',
+    customModelPlaceholder: '输入模型 ID，例如 openai/gpt-5'
   },
   modelVisibility: {
     title: '模型',
     search: '搜索模型',
     noAuthenticatedProviders: '没有已认证的提供方',
-    addProvider: '添加提供方…'
+    addProvider: '添加提供方…',
+    addCustomModel: '添加自定义模型',
+    removeCustomModel: '移除自定义模型'
   },
   shell: {
     windowControls: '窗口控件',
@@ -6972,7 +7305,6 @@ export const zh = defineLocale({
     }
   },
 
-
   zones: {
     showTabStrip: '显示标签',
     hideTabStrip: '隐藏标签',
@@ -7169,12 +7501,29 @@ export const zh = defineLocale({
       dismissError: '关闭错误',
       errorGenericProvider: 'AI 服务',
       errorLayerBodies: {
+        auth: 'AI 服务拒绝了登录凭据。请检查此提供商的凭据，然后重新发送消息。',
+        billing: '此提供商账户的额度已用尽。请充值或切换提供商，然后重新发送。',
+        disk: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试。',
         generic: 'Hermes 回复时出现问题。请重试；若问题持续，请复制错误详情。',
         provider: 'AI 服务无法完成此请求。请稍后重试或切换服务商。',
         endpoint: 'Hermes 无法连接到你的自定义模型服务器。请确认它正在运行，然后重新发送消息。',
+        gateway: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息。',
+        runtime: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息。',
         streaming: '回复完成前连接已断开。请重试以重新发送。'
       },
       errorCodes: {
+        auth: {
+          title: provider => `${provider} 拒绝了登录`,
+          body: provider => `为 ${provider} 保存的凭据未被接受。请在设置中修正凭据或切换提供商，然后重新发送消息。`
+        },
+        auth_permanent: {
+          title: provider => `${provider} 拒绝了登录`,
+          body: provider => `为 ${provider} 保存的凭据无效或已被撤销。请更新凭据或切换提供商，然后重新发送消息。`
+        },
+        billing: {
+          title: '额度不足',
+          body: provider => `${provider} 账户的额度已用尽。请充值或切换提供商，然后重新发送。`
+        },
         provider_policy_blocked: {
           title: '账户设置阻止了此模型',
           body: provider => `${provider} 无法按你账户的数据或隐私设置路由此请求。请选择其他模型或切换服务商。`
@@ -7215,9 +7564,74 @@ export const zh = defineLocale({
           title: '回复超时',
           body: provider => `${provider} 未及时响应。请重试以重新发送。`
         },
+        stream_drop: {
+          title: '回复被中断',
+          body: '连接在回复完成前已中断。请重试以重新发送。'
+        },
+        upstream_blocked: {
+          title: '请求被防火墙拦截',
+          body: provider =>
+            `${provider} 前方的防火墙或 CDN 在请求到达模型前将其拦截；你的密钥可能没有问题。请在设置中通过提供商的 extra_headers 设置 User-Agent，或切换提供商后重试。`
+        },
         ssl_cert_verification: {
           title: '安全连接失败',
           body: provider => `Hermes 无法验证与 ${provider} 的安全连接。请检查网络或代理设置，或切换服务商后重新发送。`
+        },
+        context_overflow: {
+          title: '此对话过长',
+          body: '对话内容已超出模型上下文。请压缩对话或新建对话，然后重新发送。'
+        },
+        payload_too_large: {
+          title: '此消息过大',
+          body: '请求内容超出模型限制。请压缩对话或新建对话，然后重新发送。'
+        },
+        model_not_found: {
+          title: '此模型不可用',
+          body: provider => `${provider} 未向你的账户提供此模型。请选择其他模型，然后重新发送。`
+        },
+        truncated: {
+          title: '回复未完整生成',
+          body: '模型在完成回复前停止了。请重试以获取完整回复。'
+        },
+        loop_error: {
+          title: 'Hermes 陷入循环',
+          body: '回复持续重复相同步骤，因此 Hermes 已停止运行。请重试；若再次发生，可新建对话。'
+        },
+        SESSION_NOT_OWNED: {
+          title: '此对话已在其他位置打开',
+          body: '此对话当前正在另一个 Hermes 窗口或终端中打开。请先在那里关闭，然后重新发送；也可以在这里新建对话。'
+        },
+        disk_full: {
+          title: '磁盘已满',
+          body: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试。'
+        },
+        free_tier_disabled: {
+          title: '未登录的免费服务当前已关闭',
+          body: '登录免费的 Nous 账户即可继续对话。'
+        },
+        free_tier_rate_limited: {
+          title: '未登录聊天额度已用尽',
+          body: '额度很快会恢复。登录免费的 Nous 账户可获得更高额度。'
+        },
+        free_tier_at_capacity: {
+          title: '未登录聊天当前繁忙',
+          body: '登录免费账户可跳过队列，也可以稍后重试。'
+        },
+        free_tier_model_not_free: {
+          title: '未登录时无法使用此模型',
+          body: 'Hermes 当前使用免费模型。登录免费的 Nous 账户可使用更多模型。'
+        },
+        free_tier_route: {
+          title: 'Hermes 无法访问此路由上的免费模型',
+          body: '请登录免费的 Nous 账户，或检查 NOUS_INFERENCE_BASE_URL 设置。'
+        },
+        free_tier_outage: {
+          title: '免费模型暂时无法响应',
+          body: '请稍后重新发送消息。'
+        },
+        free_tier_refused: {
+          title: '未登录时无法发送此消息',
+          body: '请登录免费的 Nous 账户后继续。'
         }
       },
       errorLayers: {
@@ -7637,7 +8051,9 @@ export const zh = defineLocale({
     vaultCodeSkip: '跳过',
     vaultCodeConfirm: '输入验证码',
     reconnect: '重新连接',
-    sudoCommandUnavailable: '此 agent 未提供命令。如果无法在对话中确认，请取消'
+    sudoCommandUnavailable: '此 agent 未提供命令。如果无法在对话中确认，请取消',
+    sudoInstallDesc:
+      'Hermes 需要你的 sudo 密码，以便在网关主机上安装 Bot Screen 所需的软件包（TigerVNC 和 Xfce）。密码只会发送到该主机'
   },
   desktop: {
     audioReadFailed: '无法读取录制的音频',

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { fieldCopyForSchemaKey } from '@/app/settings/field-copy'
 
 import { TRANSLATIONS } from './catalog'
-import { setRuntimeI18nLocale, translateNow } from './runtime'
+import { setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
 import { zh } from './zh'
 
 describe('desktop i18n runtime translator', () => {
@@ -28,6 +28,11 @@ describe('desktop i18n runtime translator', () => {
       TRANSLATIONS.en.notifications.updateReadyMessage(2)
     )
     expect(translateNow('notifications.updateReadyMessage', 2)).toContain('2')
+  })
+
+  it('translates an explicit locale without changing the active runtime locale', () => {
+    expect(translateForLocale('zh', 'paletteCommands.resetLayout')).toBe('重置布局')
+    expect(translateNow('paletteCommands.resetLayout')).toBe(TRANSLATIONS.en.paletteCommands.resetLayout)
   })
 
   it('keeps translated settings field copy addressable from schema keys', () => {
