@@ -3500,9 +3500,9 @@ export const zh = defineLocale({
       dangerZone: '危险操作',
       checkingInstalled: '正在检查已安装内容…',
       uninstallHermes: '卸载 Hermes',
-      chooseHowMuch: '选择要删除的内容。应用会关闭以完成卸载；随时重新打开安装程序即可恢复',
+      chooseHowMuch: '选择要删除的内容，应用会关闭以完成卸载，随时重新打开安装程序即可恢复',
       confirmUninstall: '确认卸载',
-      confirmBody: what => `这将删除${what}。此操作无法撤销`,
+      confirmBody: what => `这将删除${what}，此操作无法撤销`,
       appLabel: '应用：',
       couldNotStart: '无法开始卸载',
       uninstalling: '正在卸载…',
@@ -3510,7 +3510,7 @@ export const zh = defineLocale({
       options: {
         gui: {
           title: '仅卸载聊天图形界面',
-          description: '仅移除此桌面应用。Hermes 智能体、你的配置和聊天记录都会保留',
+          description: '仅移除此桌面应用，Hermes 智能体、你的配置和聊天记录都会保留',
           consequence: '桌面聊天图形界面（此应用及其数据）'
         },
         lite: {
