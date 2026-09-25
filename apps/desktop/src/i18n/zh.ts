@@ -1857,6 +1857,9 @@ export const zh = defineLocale({
       alwaysExternalLinksTitle: '始终在外部浏览器中打开链接',
       alwaysExternalLinksDesc:
         '点击链接时始终使用系统浏览器打开，而不是应用内浏览器。右键菜单中的“在应用内浏览器中打开”仍然可用',
+      voiceShortcutHintTitle: '语音录制快捷键',
+      voiceShortcutHintDesc:
+        '请在“设置 → 键盘快捷键”中设置语音录制快捷键（“开始 / 停止语音对话”）。voice.record_key 配置仅适用于 CLI 和 TUI',
       attachmentSizeTitle: '预览 / 图片加载大小上限',
       attachmentSizeDesc:
         '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',

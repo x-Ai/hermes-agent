@@ -537,7 +537,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
           <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
+              <label className="grid content-start gap-1.5 text-xs text-muted-foreground">
                 {ce.fields.name}
                 <Input
                   onChange={event => setForm(current => ({ ...current, name: event.target.value }))}
@@ -546,7 +546,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                   value={form.name}
                 />
               </label>
-              <label className="grid gap-1.5 text-xs text-muted-foreground">
+              <label className="grid content-start gap-1.5 text-xs text-muted-foreground">
                 {ce.fields.providerId}
                 <Input
                   disabled={Boolean(editingId)}

@@ -95,7 +95,12 @@ describe('CustomEndpointsSettings', () => {
       </I18nProvider>
     )
     await screen.findByText('暂无自定义端点')
-    fireEvent.change(screen.getByRole('textbox', { name: '名称' }), { target: { value: 'Fixture Ω' } })
+    const nameInput = screen.getByRole('textbox', { name: '名称' })
+    const providerIdInput = screen.getByPlaceholderText('axet-proxy')
+
+    expect(nameInput.closest('label')?.classList.contains('content-start')).toBe(true)
+    expect(providerIdInput.closest('label')?.classList.contains('content-start')).toBe(true)
+    fireEvent.change(nameInput, { target: { value: 'Fixture Ω' } })
     fireEvent.change(screen.getByRole('textbox', { name: '端点 URL' }), { target: { value: 'http://fixture.test/v1' } })
     fireEvent.change(screen.getByRole('combobox', { name: '默认模型' }), { target: { value: 'fixture-model' } })
     fireEvent.click(screen.getByRole('button', { name: 'Responses API' }))
