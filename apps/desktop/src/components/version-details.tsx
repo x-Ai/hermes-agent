@@ -26,7 +26,13 @@ export function VersionDetails({ version }: { version: DesktopVersionInfo }) {
   const u = t.updates
 
   const source =
-    version.source === 'ci' ? 'CI' : version.source ? version.source[0].toUpperCase() + version.source.slice(1) : null
+    version.source === 'ci'
+      ? 'CI'
+      : version.source === 'local'
+        ? u.versionDetailsBuildOriginLocal
+        : version.source
+          ? version.source[0].toUpperCase() + version.source.slice(1)
+          : null
 
   // The Distribution row: one resolver owns the label policy — see
   // distribution-label.ts. Nix and Docker are product names, rendered

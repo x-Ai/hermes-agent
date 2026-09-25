@@ -3274,6 +3274,7 @@ export interface Translations {
     versionDetailsVersion: string
     versionDetailsCommit: string
     versionDetailsBuildOrigin: string
+    versionDetailsBuildOriginLocal: string
     versionDetailsDistribution: string
     versionDetailsDistributionDesktop: string
     versionDetailsDistributionDesktopMsix: string

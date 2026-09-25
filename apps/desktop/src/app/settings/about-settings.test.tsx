@@ -2,7 +2,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopUpdateStatus, DesktopVersionInfo, HermesConnection } from '@/global'
+import { I18nProvider } from '@/i18n'
 import { en } from '@/i18n/en'
+import { zh } from '@/i18n/zh'
 import type * as SessionStore from '@/store/session'
 import { $connection } from '@/store/session'
 import {
@@ -117,6 +119,36 @@ describe('AboutSettings', (): void => {
     render(<AboutSettings />)
     expect(screen.getByText(`${en.updates.version('1.2.3')} · ${en.updates.channels.canary}`)).toBeTruthy()
     expect(screen.queryByRole('combobox')).toBeNull()
+  })
+
+  it('localizes the update card and source-install details in Simplified Chinese', (): void => {
+    $desktopVersion.set({
+      ...$desktopVersion.get()!,
+      commit: '057d92a763e097',
+      distribution: 'desktop-app',
+      installedByScript: true,
+      payload: 'bootstrap',
+      source: 'local',
+      updateMechanism: 'self'
+    })
+    $updateStatus.set({ supported: true, behind: 0, fetchedAt: Date.now() })
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <AboutSettings />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText(zh.updates.lastChecked(zh.updates.justNow))).toBeTruthy()
+    expect(screen.getByRole('button', { name: zh.updates.checkNow })).toBeTruthy()
+    expect(screen.getByRole('link', { name: zh.updates.releaseNotes })).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsVersion)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsCommit)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsBuildOrigin)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsBuildOriginLocal)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsDistribution)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsDistributionSourceInstallerDesktop)).toBeTruthy()
+    expect(screen.getByText(zh.updates.versionDetailsInstallId)).toBeTruthy()
   })
 
   it('a commit client refuses updates without hiding an unrelated backend update', (): void => {

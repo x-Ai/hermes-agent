@@ -5452,6 +5452,7 @@ export const en: Translations = {
     versionDetailsVersion: 'Version',
     versionDetailsCommit: 'Commit',
     versionDetailsBuildOrigin: 'Build Origin',
+    versionDetailsBuildOriginLocal: 'Local',
     versionDetailsDistribution: 'Distribution',
     versionDetailsDistributionDesktop: 'Desktop app',
     versionDetailsDistributionDesktopMsix: 'Desktop app (MSIX)',
