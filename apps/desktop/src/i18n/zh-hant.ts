@@ -2892,6 +2892,7 @@ export const zhHant = defineLocale({
           '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入您的訂閱',
         'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
         'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
+        'Managed web search and extract billed to your subscription': '託管網頁搜尋與內容擷取，費用計入您的訂閱',
         'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
         'Most natural voices': '最自然的語音',
         'Multilingual, native Opus': '多語言，原生 Opus',

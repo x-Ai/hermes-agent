@@ -2548,6 +2548,8 @@ export const ja = defineLocale({
         'Managed FAL image generation billed to your subscription': 'マネージド FAL 画像生成、サブスクリプションに課金',
         'Managed FAL video generation billed to your subscription': 'マネージド FAL 動画生成、サブスクリプションに課金',
         'Managed Firecrawl billed to your subscription': 'マネージド Firecrawl、サブスクリプションに課金',
+        'Managed web search and extract billed to your subscription':
+          'マネージド Web 検索・抽出、サブスクリプションに課金',
         'Managed OpenAI TTS billed to your subscription': 'マネージド OpenAI TTS、サブスクリプションに課金',
         'Most natural voices': '最も自然な音声',
         'Multilingual, native Opus': '多言語対応、ネイティブ Opus',

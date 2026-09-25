@@ -139,6 +139,7 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "Managed FAL image generation billed to your subscription": "托管 FAL 图像生成，计入你的订阅",
   "Managed FAL video generation billed to your subscription": "托管 FAL 视频生成，计入你的订阅",
   "Managed Firecrawl billed to your subscription": "托管 Firecrawl，计入你的订阅",
+  "Managed web search and extract billed to your subscription": "托管网页搜索与内容提取，费用计入你的订阅",
   "Managed OpenAI TTS billed to your subscription": "托管 OpenAI TTS，计入你的订阅",
   "Managed OpenAI transcription billed to your subscription": "托管 OpenAI 转写，计入你的订阅",
   "voice transcription (gateway voice messages voice mode)": "语音转写（网关语音消息与语音模式）",

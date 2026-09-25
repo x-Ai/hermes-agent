@@ -22,6 +22,9 @@ describe("toolset metadata localization", () => {
       "无头 Chromium，无需 API 密钥"
     );
     expect(
+      localizeToolsetProviderTag("Managed web search and extract billed to your subscription", "zh")
+    ).toBe("托管网页搜索与内容提取，费用计入你的订阅");
+    expect(
       localizeToolsetProviderTag("voice transcription (gateway voice messages voice mode)", "zh")
     ).toBe("语音转写（网关语音消息与语音模式）");
     expect(
