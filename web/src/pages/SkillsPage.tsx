@@ -484,7 +484,7 @@ export default function SkillsPage() {
                 />
                 <PanelItem
                   icon={Search}
-                  label={t.skills.browseHub ?? en.skills.browseHub}
+                  label={t.skills.browseHub ?? en.skills.browseHub ?? "Browse hub"}
                   active={view === "hub"}
                   onClick={() => {
                     setView("hub");

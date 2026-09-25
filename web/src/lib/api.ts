@@ -1873,6 +1873,7 @@ export interface McpServerCreate {
 
 export interface McpTestResult {
   ok: boolean;
+  code?: string;
   error?: string;
   tools: Array<{ name: string; description: string }>;
 }
@@ -1941,7 +1942,9 @@ export interface MessagingPlatformUpdate {
 export interface MessagingPlatformTestResult {
   ok: boolean;
   state: string;
+  code?: string;
   message: string;
+  missing?: string[];
 }
 
 export interface PairingUser {

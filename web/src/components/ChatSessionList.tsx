@@ -69,7 +69,9 @@ export function ChatSessionList({
   profile,
   className,
   onPicked,
-  onNewChat
+  onNewChat,
+  workspaceCwd,
+  onWorkspaceChange
 }: ChatSessionListProps) {
   const { locale, t } = useI18n();
   const [, setSearchParams] = useSearchParams();
@@ -228,7 +230,7 @@ export function ChatSessionList({
         })}
       </div>
     );
-  }, [activeSessionId, error, loading, pick, reload, sessions, t]);
+  }, [activeSessionId, error, loading, locale, pick, reload, sessions, t]);
 
   return (
     <aside
