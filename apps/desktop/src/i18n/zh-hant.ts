@@ -6878,7 +6878,10 @@ export const zhHant = defineLocale({
     tabCount: count => `${count} 個分頁`,
     toggleLayoutEditMode: '切換版面編輯模式',
     layoutNames: {
+      'sidebar-left': '左側邊欄',
+      'sidebar-right': '右側邊欄',
       default: '預設',
+      basic: '基礎',
       focus: '專注',
       'terminal-deck': '終端面板',
       quad: '四格'

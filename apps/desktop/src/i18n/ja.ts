@@ -6712,7 +6712,10 @@ export const ja = defineLocale({
     tabCount: count => `${count} 個のタブ`,
     toggleLayoutEditMode: 'レイアウト編集モードを切り替え',
     layoutNames: {
+      'sidebar-left': '左サイドバー',
+      'sidebar-right': '右サイドバー',
       default: 'デフォルト',
+      basic: 'ベーシック',
       focus: 'フォーカス',
       'terminal-deck': 'ターミナルデッキ',
       quad: 'クワッド'

@@ -3019,11 +3019,11 @@ export const zh = defineLocale({
         'Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.':
           '搜索与提取。无需密钥即可使用；设置 TAVILY_API_KEY 可获得更高限额',
         'Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.':
-          '搜索与提取。可选择免密钥使用；设置 TAVILY_API_KEY 可获得更高限额',
+          '搜索与提取。可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '通过 ddgs Python 包搜索 — 无需 API 密钥（可搭配任意提取提供方）',
         'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
-          '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex）；仅支持搜索，内容提取仍使用其他后端',
+          '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex），仅支持搜索，内容提取仍使用其他后端',
         'Semantic + neural web search with content extraction.': '语义 + 神经网络网页搜索，带内容提取',
         "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.":
           '通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取。突发负载下会受到速率限制',
@@ -3034,15 +3034,15 @@ export const zh = defineLocale({
         'Independent web index for AI apps. Keyed access with higher limits and guaranteed service.':
           '面向 AI 应用的独立网页索引。密钥访问具有更高限额和服务保障',
         'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
-          'Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录；文生视频与图生视频',
+          'Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录，文生视频与图生视频',
         'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
           'gpt-image-2，低/中/高质量档 — 文生图与图像编辑',
         'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
-          '经 ChatGPT/Codex OAuth 使用 gpt-image-2 — 无需 API 密钥；支持文本与图像输入',
+          '经 ChatGPT/Codex OAuth 使用 gpt-image-2 — 无需 API 密钥，支持文本与图像输入',
         'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-image — 文生图与图像编辑；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
+          'grok-imagine-image — 文生图与图像编辑，使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
         'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
+          'grok-imagine-video 用于文本/参考生成，grok-imagine-video-1.5 用于图生视频，编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
         'faster-whisper on-device, no API key': '本地 faster-whisper 转写，无需 API 密钥',
         'Managed OpenAI transcription billed to your subscription': '托管 OpenAI 转写，计入你的订阅',
         'voice transcription (gateway voice messages voice mode)': '语音转写（网关语音消息与语音模式）',
@@ -7441,7 +7441,10 @@ export const zh = defineLocale({
     tabCount: count => `${count} 个标签页`,
     toggleLayoutEditMode: '切换布局编辑模式',
     layoutNames: {
+      'sidebar-left': '左侧边栏',
+      'sidebar-right': '右侧边栏',
       default: '默认',
+      basic: '基础',
       focus: '专注',
       'terminal-deck': '终端面板',
       quad: '四格'

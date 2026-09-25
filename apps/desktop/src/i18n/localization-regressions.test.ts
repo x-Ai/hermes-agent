@@ -20,6 +20,19 @@ describe('Chinese localization regressions', () => {
     expect(zh.intro.stock.none?.every(line => /[\u3400-\u9fff]/u.test(line))).toBe(true)
   })
 
+  it('localizes bundled layout preset names instead of rendering their English titles', () => {
+    expect(zh.zones.layoutNames).toMatchObject({
+      'sidebar-left': '左侧边栏',
+      'sidebar-right': '右侧边栏',
+      basic: '基础'
+    })
+    expect(zhHant.zones.layoutNames).toMatchObject({
+      'sidebar-left': '左側邊欄',
+      'sidebar-right': '右側邊欄',
+      basic: '基礎'
+    })
+  })
+
   it('keeps newly added capability and error surfaces localized in Chinese', () => {
     for (const locale of [zh, zhHant]) {
       expect(locale.connectorsPage.title).not.toBe(en.connectorsPage.title)
