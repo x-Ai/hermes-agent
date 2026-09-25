@@ -11,6 +11,8 @@ describe('Chinese localization regressions', () => {
     expect(zh.shell.statusbar.toggleFreeTier).not.toBe(en.shell.statusbar.toggleFreeTier)
     expect(zh.skills.plugins.bundledDescriptions['disk-cleanup']).not.toBe('')
     expect(zh.skills.plugins.bundledDescriptions['security-guidance']).not.toBe('')
+    expect(zh.settings.config.alwaysExternalLinksTitle).not.toBe(en.settings.config.alwaysExternalLinksTitle)
+    expect(zh.settings.config.alwaysExternalLinksDesc).not.toBe(en.settings.config.alwaysExternalLinksDesc)
   })
 
   it('ships localized intro pools instead of falling through to generated English slogans', () => {
