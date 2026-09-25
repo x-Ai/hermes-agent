@@ -8,6 +8,7 @@ interface ContextBreakdownOptions {
   busy: boolean
   compressionCount?: number
   enabled: boolean
+  suspendWhileBusy?: boolean
   requestGateway: <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
   sessionId: null | string
 }
@@ -31,6 +32,7 @@ export function useContextBreakdown({
   busy,
   compressionCount,
   enabled,
+  suspendWhileBusy = false,
   requestGateway,
   sessionId
 }: ContextBreakdownOptions) {
@@ -39,7 +41,10 @@ export function useContextBreakdown({
   const configRevision = useStore($contextBreakdownConfigRevision)
 
   useEffect(() => {
-    if (!enabled || !sessionId) {
+    if (!enabled || !sessionId || (suspendWhileBusy && busy)) {
+      if (suspendWhileBusy && busy) {
+        setFetched(null)
+      }
       setLoading(false)
 
       return
@@ -88,10 +93,10 @@ export function useContextBreakdown({
         clearTimeout(retryTimer)
       }
     }
-  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId])
+  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId, suspendWhileBusy])
 
   return {
-    breakdown: fetched && fetched.sessionId === sessionId ? fetched.breakdown : null,
+    breakdown: fetched?.sessionId === sessionId ? fetched.breakdown : null,
     loading
   }
 }

@@ -136,12 +136,12 @@ def test_installed_setup_refuses_stale_or_unowned_context(installed, monkeypatch
     assert not sentinel.exists()
 
 
-@pytest.mark.macos_only
+@pytest.mark.platforms("macos")
 def test_setup_inspection_rejects_executable_mode_on_macos(installed):
     _assert_executable_setup_rejected(installed)
 
 
-@pytest.mark.linux_only
+@pytest.mark.platforms("linux")
 def test_setup_inspection_rejects_executable_mode_on_linux(installed):
     _assert_executable_setup_rejected(installed)
 

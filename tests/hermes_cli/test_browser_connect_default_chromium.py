@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 import pytest
 
+import posixpath
+
 import hermes_cli.browser_connect as bc
 
 
@@ -146,14 +148,18 @@ class TestDetectDefaultLinux:
 
 class TestLinuxProfileDir:
     def _env(self, monkeypatch, home):
-        monkeypatch.setenv("HOME", str(home))
+        # The code under test resolves the user's home via
+        # os.path.expanduser("~"), which reads HOME on POSIX but USERPROFILE
+        # on Windows — patch expanduser to a POSIX-FORM home so the
+        # Linux-target path resolution is exercised identically on every
+        # host (posixpath.join only inserts '/' between components; a
+        # backslash-drive home would leak host separators into the result).
+        monkeypatch.setattr(bc.os.path, "expanduser", lambda _p: home.as_posix())
         monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
 
     def test_native_path_when_nothing_exists(self, tmp_path, monkeypatch):
         self._env(monkeypatch, tmp_path)
-        assert bc.real_profile_data_dir("chromium", "Linux") == (
-            tmp_path / ".config" / "chromium"
-        ).as_posix()
+        assert bc.real_profile_data_dir("chromium", "Linux") == posixpath.join(tmp_path.as_posix(), ".config", "chromium")
 
     def test_snap_chromium_profile_is_found(self, tmp_path, monkeypatch):
         self._env(monkeypatch, tmp_path)

@@ -53,6 +53,7 @@ import { PROFILES_ROUTE } from '../../routes'
 
 import { ConnectionGlyph } from './connection-glyph'
 import { buildRestGroups, type FleetAgent, fleetRouteKey } from './fleet-rail'
+import { useLocalDeviceSwitch } from './local-device-switch'
 import { useFleetRoster } from './use-fleet-roster'
 import { useProfilePrewarm } from './use-profile-prewarm'
 
@@ -80,6 +81,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
   const roster = useStore($fleetRoster)
   const [createOpen, setCreateOpen] = useState(false)
   const [pendingRoute, setPendingRoute] = useState<null | string>(null)
+  const { dialog: localDeviceDialog, request: requestLocalDevice } = useLocalDeviceSwitch()
 
   useFleetRoster(multipleConnections)
 
@@ -128,7 +130,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
     }
   }
 
-  const switchToRest = (agent: FleetAgent) => {
+  const commitRestSwitch = (agent: FleetAgent) => {
     const key = fleetRouteKey(agent.connectionId, agent.profile)
     triggerHaptic('selection')
     setPendingRoute(key)
@@ -143,6 +145,30 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
         )
       )
       .finally(() => setPendingRoute(current => (current === key ? null : current)))
+  }
+
+  const switchToRest = (agent: FleetAgent) => {
+    if (agent.connectionKind !== 'local') {
+      commitRestSwitch(agent)
+
+      return
+    }
+
+    const key = fleetRouteKey(agent.connectionId, agent.profile)
+    setPendingRoute(key)
+
+    void requestLocalDevice({
+      connectionId: agent.connectionId,
+      label: agent.connectionLabel,
+      profile: agent.profile,
+      replaceCenter: agent.profile === 'default'
+    }).then(accepted => {
+      setPendingRoute(current => (current === key ? null : current))
+
+      if (accepted) {
+        commitRestSwitch(agent)
+      }
+    })
   }
 
   const triggerLabel = showAll ? p.allProfiles : active ? displayEntityName(profileLabel(active), t) : p.title
@@ -220,7 +246,10 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
               </DropdownMenuLabel>
               {[group.defaultAgent, ...group.named].map(agent => {
                 const name = displayEntityName(agent.profile, t)
-                const label = p.fleet.onGateway(name, displayConnectionLabel(group, t))
+                const localDefault = agent.connectionKind === 'local' && agent.isDefault
+                const label = localDefault
+                  ? p.fleet.localDevice
+                  : p.fleet.onGateway(name, displayConnectionLabel(group, t))
 
                 return (
                   <DropdownMenuItem
@@ -230,12 +259,16 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
                     onSelect={() => switchToRest(agent)}
                   >
                     <span className="flex min-w-0 items-center gap-1.5">
-                      <ProfileGlyph
-                        aria-hidden="true"
-                        color={resolveProfileColor(agent.profile, colors)}
-                        isDefault={agent.isDefault}
-                        name={agent.profile}
-                      />
+                      {localDefault ? (
+                        <Codicon aria-hidden="true" name="device-desktop" size="0.875rem" />
+                      ) : (
+                        <ProfileGlyph
+                          aria-hidden="true"
+                          color={resolveProfileColor(agent.profile, colors)}
+                          isDefault={agent.isDefault}
+                          name={agent.profile}
+                        />
+                      )}
                       <span className="truncate">{name}</span>
                     </span>
                   </DropdownMenuItem>
@@ -268,6 +301,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
         open={createOpen}
         profiles={profiles}
       />
+      {localDeviceDialog}
     </div>
   )
 }

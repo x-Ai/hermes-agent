@@ -278,6 +278,8 @@ export const ru = defineLocale({
     }
   },
   notifications: {
+    sharedProfileWarning:
+      'Другая установка Hermes использует этот профиль. Обе установки используют общие настройки и данные, поэтому изменения могут конфликтовать. Можно продолжить работу или закрыть другую установку перед внесением изменений.',
     region: 'Уведомления',
     hide: 'Скрыть',
     show: 'Показать',
@@ -731,6 +733,7 @@ export const ru = defineLocale({
       'composer.focus': 'Сфокусировать композер',
       'composer.modelPicker': 'Открыть выбор модели',
       'composer.voice': 'Начать / остановить голосовой диалог',
+      'composer.dictate': 'Начать / остановить диктовку',
       'view.toggleSidebar': 'Показать / скрыть панель сеансов',
       'view.toggleRightSidebar': 'Показать / скрыть браузер файлов',
       'view.toggleReview': 'Показать / скрыть панель ревью',
@@ -860,6 +863,7 @@ export const ru = defineLocale({
       keysSettings: 'Настройки',
       mcp: 'MCP',
       archivedChats: 'Архив чатов',
+      sessions: 'Сеансы',
       about: 'О программе',
       billing: 'Оплата',
       notifications: 'Уведомления',
@@ -933,6 +937,8 @@ export const ru = defineLocale({
         agentSuccess: name => `Плагин агента ${name} установлен`,
         desktopSuccess: name => `Плагин приложения ${name} установлен`,
         agentFailed: 'Не удалось установить плагин агента',
+        installUncertain:
+          'Hermes перестал ждать результат установки, но плагин может всё ещё устанавливаться. Закройте это окно и обновите список плагинов перед повторной установкой.',
         desktopFailed: 'Не удалось установить плагин приложения',
         missingEnv: (_name, vars) => `Не хватает переменных окружения: ${vars}. Добавьте их в Настройки → Ключи.`,
         profileLabel: 'Установить для профиля'
@@ -1249,8 +1255,8 @@ export const ru = defineLocale({
           'Заберите анимированного питомца из petdex, который парит над приложением и реагирует на действия Hermes — «бегает», пока выполняются инструменты, радуется успеху и хмурится при ошибках.',
         restartHint:
           'Питомцам нужен быстрый перезапуск — текущее приложение запустилось до появления этой функции. Выйдите из Hermes и откройте снова, затем вернитесь сюда.',
-        on: 'Вкл',
-        off: 'Выкл',
+        on: 'Вкл.',
+        off: 'Выкл.',
         scaleTitle: 'Размер',
         scaleDesc: 'Меняет размер парящего питомца. Применяется мгновенно везде.',
         roamTitle: 'Блуждание',
@@ -1363,7 +1369,6 @@ export const ru = defineLocale({
         maxSnapshots: 'Лимит чекпоинтов'
       },
       voice: {
-        recordKey: 'Горячая клавиша голосового ввода',
         maxRecordingSeconds: 'Макс. длительность записи',
         autoTts: 'Зачитывать ответы вслух',
         clientDirect: 'Прямое подключение клиента'
@@ -1643,6 +1648,9 @@ export const ru = defineLocale({
       disableF12Title: 'Отключить F12 DevTools',
       disableF12Desc:
         'Блокирует открытие Developer Tools по F12. Ctrl+Shift+I (на Mac — Cmd+Opt+I) продолжает работать.',
+      alwaysExternalLinksTitle: 'Всегда открывать ссылки во внешнем браузере',
+      alwaysExternalLinksDesc:
+        'Открывать каждую ссылку в системном браузере вместо встроенного. Пункт «Открыть во встроенном браузере» в контекстном меню продолжает работать.',
       attachmentSizeTitle: 'Макс. размер превью / загрузки изображений',
       attachmentSizeDesc:
         'Насколько большой локальный файл приложение будет загружать для превью и вложений, в МБ. По умолчанию 16. Для удалённых неграфических вложений действует отдельный лимит 256 МБ. Слишком большое значение загружает весь файл в память и может подвесить или уронить приложение.',
@@ -2109,7 +2117,7 @@ export const ru = defineLocale({
         web_extract: { label: 'Веб-извлечение', hint: 'Суммаризация страниц' }
       },
       inheritMainEffort: 'наследовать · усилие основной модели',
-      moaTitle: 'Смесь агентов',
+      moaTitle: 'Смесь агентов'
     },
     customEndpoints: {
       title: 'Пользовательские конечные точки',
@@ -4202,6 +4210,7 @@ export const ru = defineLocale({
       branchFrom: 'Ветка',
       rename: 'Переименовать',
       archive: 'В архив',
+      unarchive: 'Восстановить',
       newWindow: 'Новое окно',
       openInTerminal: 'Открыть в терминале',
       hideTabBar: 'Скрыть панель вкладок',
@@ -4706,6 +4715,14 @@ export const ru = defineLocale({
     showStack: 'Показать панель состояния'
   },
   updates: {
+    discontinuedTitle: 'Эта сборка Hermes больше не поддерживается',
+    discontinuedBody:
+      'Эта сборка Hermes больше не поддерживается и может перестать работать — удалите её. Ваши данные останутся на диске.',
+    channels: { stable: 'Стабильный', canary: 'Тестовый' },
+    bundleSwapPending: 'Перезапустите, чтобы завершить обновление',
+    bundleSwapPendingDesc:
+      'Обновлённое приложение уже установлено — достаточно перезапустить Hermes, чтобы загрузить его. Чаты и настройки не пострадают.',
+    bundleSwapPendingAction: 'Перезапустить Hermes',
     stages: {
       idle: 'Готовимся…',
       prepare: 'Готовимся…',
@@ -4727,6 +4744,7 @@ export const ru = defineLocale({
     unsupportedMessage: 'Эта версия Hermes не может обновлять себя из приложения.',
     connectionRetry: 'Проверьте соединение и попробуйте снова.',
     latestBody: 'У вас последняя версия.',
+    versionDetailsDistributionStore: 'Microsoft Store',
     latestBodyBackend: 'Бэкенд работает на последней версии.',
     allSetTitle: 'Всё готово',
     availableTitle: 'Доступно новое обновление',
@@ -5359,6 +5377,7 @@ export const ru = defineLocale({
       toggleWorkspace: 'Рабочее пространство',
       cacheHitRateTitle: 'Доля попаданий в кэш промпта за сеанс — кэшированные токены дешевле, чем выше, тем дешевле',
       tokensPerSecondTitle: 'Выходных токенов в секунду, среднее за последние 10 вызовов модели',
+      session: 'Сеанс',
       agents: 'Агенты',
       closeAgents: 'Закрыть агентов',
       openAgents: 'Открыть агентов',
@@ -5399,7 +5418,8 @@ export const ru = defineLocale({
         title: 'Использование контекста',
         tokenSummary: (used, max) => `${used} / ${max} токенов`
       },
-      session: 'Сеанс',
+      focusedSince: 'В фокусе с',
+      focusedSinceTitle: 'Время с момента фокуса этого чата — не длительность хода',
       yoloOn: 'YOLO включён — автоматическое подтверждение опасных команд. Shift-клик переключает глобально.',
       yoloOff: 'YOLO выключен. Shift-клик переключает глобально.',
       modelNone: 'нет',
@@ -5421,6 +5441,11 @@ export const ru = defineLocale({
     remotePickerTitle: 'Выбрать удалённую папку',
     remotePickerDescription: 'Просмотрите папки на подключённом бэкенде.',
     remotePickerSelect: 'Выбрать папку',
+    remotePickerNewFolder: 'Новая папка',
+    remotePickerFolderName: 'Имя папки',
+    remotePickerCreateFolder: 'Создать папку',
+    remotePickerInvalidFolderName: 'Введите одно имя папки без косых черт.',
+    remotePickerCreateFolderFailed: error => `Не удалось создать папку (${error}).`,
     folderTip: cwd => cwd,
     openFolder: 'Открыть папку',
     refreshTree: 'Обновить дерево',
@@ -6363,6 +6388,9 @@ export const ru = defineLocale({
     sessionUnavailable: 'Сеанс недоступен',
     createSessionFailed: 'Не удалось создать новый сеанс',
     promptFailed: 'Промпт не удался',
+    staleSessionTitle: 'Чат устарел',
+    staleSessionBody:
+      'Это окно отставало от другого вида того же чата. Загружены последние сообщения. Отправьте снова, если всё ещё хотите.',
     providerCredentialRequired: 'Добавьте учётные данные провайдера перед отправкой первого сообщения.',
     readinessChecksDisagree:
       'setup.status сообщает, что учётные данные настроены, но определить рабочую конфигурацию по-прежнему не удалось.',
@@ -6418,6 +6446,8 @@ export const ru = defineLocale({
     deleteFailed: 'Удаление не удалось',
     archived: 'В архиве',
     archiveFailed: 'Архивирование не удалось',
+    restored: 'Восстановлено',
+    unarchiveFailed: 'Не удалось восстановить',
     cwdChangeFailed: 'Изменение рабочего каталога не удалось',
     cwdStagedTitle: 'Рабочий каталог поставлен в очередь',
     cwdStagedMessage: 'Перезапустите бэкенд desktop, чтобы применить изменения cwd к этому активному сеансу.',

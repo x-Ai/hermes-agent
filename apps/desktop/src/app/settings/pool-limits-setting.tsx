@@ -2,6 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
 import { ListRow } from '@/app/settings/primitives'
+import { SETTING_IDS, settingElementId } from '@/app/settings/settings-manifest'
 import { Input } from '@/components/ui/input'
 import { useI18n } from '@/i18n'
 import { $poolLimits, loadPoolLimits, savePoolLimits } from '@/store/pool-limits'
@@ -83,6 +84,7 @@ export function PoolLimitsSetting() {
           </div>
         }
         description={t.settings.poolLimits.warmBackendsDescription}
+        id={settingElementId(SETTING_IDS.advanced.warmBotBackends)}
         title={t.settings.poolLimits.warmBotBackendsTitle}
       />
       <ListRow
@@ -110,6 +112,7 @@ export function PoolLimitsSetting() {
           </div>
         }
         description={t.settings.poolLimits.idleTimeoutDescription}
+        id={settingElementId(SETTING_IDS.advanced.backendIdleTimeout)}
         title={t.settings.poolLimits.backendIdleTimeoutTitle}
       />
     </>

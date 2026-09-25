@@ -13,11 +13,16 @@ const { openRosterBot, openSession, prepareBotSource } = vi.hoisted(() => ({
   prepareBotSource: vi.fn(async () => undefined)
 }))
 
-vi.mock('@hermes/plugin-sdk', () => ({
-  BOT_CHAT_SESSION_HYDRATION_TIMEOUT_MS: 60_000,
-  haptic: () => undefined,
-  host: { openSession, notifyError: vi.fn() }
-}))
+vi.mock('@hermes/plugin-sdk', async () => {
+  const { atom } = await import('nanostores')
+
+  return {
+    atom,
+    BOT_CHAT_SESSION_HYDRATION_TIMEOUT_MS: 60_000,
+    haptic: () => undefined,
+    host: { openSession, notifyError: vi.fn() }
+  }
+})
 vi.mock('./bot-state', () => ({ saveSelectedRosterBot: () => undefined }))
 vi.mock('./canonical-chat', () => ({ prepareBotSource }))
 vi.mock('./roster-actions', () => ({ openRosterBot }))

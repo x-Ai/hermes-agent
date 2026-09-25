@@ -934,8 +934,7 @@ describe('ToolsetConfigPanel', () => {
     it('localizes dynamic badges and provider explanations in Chinese', async () => {
       const tag =
         'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend'
-      const managedTag =
-        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription'
+      const managedTag = 'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription'
       getToolsetConfig.mockResolvedValue(
         webConfig({
           active_provider: 'OpenAI Native Web Search (Codex Responses)',
@@ -986,6 +985,10 @@ describe('ToolsetConfigPanel', () => {
 
       expect(await screen.findByText('原生')).toBeTruthy()
       expect(screen.getByText('免密钥/付费 · 可选网关')).toBeTruthy()
+      const openAiRow = screen.getByRole('button', { name: /OpenAI Native Web Search/ })
+
+      fireEvent.click(screen.getByRole('button', { name: /Firecrawl/ }))
+      fireEvent.click(openAiRow)
       expect(
         screen.getByText(
           '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex）；仅支持搜索，内容提取仍使用其他后端'
@@ -995,9 +998,7 @@ describe('ToolsetConfigPanel', () => {
       expect(screen.queryByText(tag)).toBeNull()
 
       fireEvent.click(screen.getByRole('button', { name: /Nous Subscription/ }))
-      expect(
-        await screen.findByText('托管图像生成（FAL、Krea 2、Nous Portal 模型），费用计入你的订阅')
-      ).toBeTruthy()
+      expect(await screen.findByText('托管图像生成（FAL、Krea 2、Nous Portal 模型），费用计入你的订阅')).toBeTruthy()
       expect(screen.queryByText(managedTag)).toBeNull()
     })
   })

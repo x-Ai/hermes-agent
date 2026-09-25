@@ -60,7 +60,7 @@ def _verify_packaged_entry(resources: Path) -> None:
 
     index = resources / "app.asar.unpacked" / "dist" / "index.html"
     try:
-        html = index.read_text(encoding="utf-8")
+        html = index.read_text(encoding="utf-8-sig")
         if not any(_MODULE_TAG.search(match.group(0))
                    and match.group(0).lower().startswith("<script")
                    and not re.match(r"^[a-z]+:|^//", match.group(1), re.IGNORECASE)
@@ -97,16 +97,12 @@ def verify_windows_desktop_update(project_root: Path | None = None) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Verify the install root supplied by the handoff, independent of its cwd."""
+    """Verify the imported checkout, or an explicit handoff install root."""
     args = sys.argv[1:] if argv is None else argv
-    if len(args) != 1:
-        raise SystemExit("usage: python -m hermes_cli.desktop_update_verify <install-root>")
+    if len(args) > 1:
+        raise SystemExit("usage: python -m hermes_cli.desktop_update_verify [install-root]")
 
-    # Keep the receipt boundary's original runtime-import check as well as the
-    # packaged Desktop checks below.
-    import hermes_cli.main  # noqa: F401
-
-    verify_windows_desktop_update(Path(args[0]).resolve())
+    verify_windows_desktop_update(Path(args[0]).resolve() if args else None)
 
 
 if __name__ == "__main__":

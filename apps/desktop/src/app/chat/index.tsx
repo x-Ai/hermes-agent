@@ -31,6 +31,7 @@ import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
 import { activeGatewayConnectionId } from '@/store/gateway'
 import { $introSplash } from '@/store/intro-splash'
 import { $pinnedSessionIds } from '@/store/layout'
+import { $guideOpening, $onboardingGate } from '@/store/onboarding-gate'
 import { $petActive } from '@/store/pet'
 import { $petOverlayActive } from '@/store/pet-overlay'
 import { $activeGatewayProfile, $gatewaySwapTarget, $hydrationSyncProfile, $profiles } from '@/store/profile'
@@ -516,6 +517,8 @@ const ChatViewContent = memo(function ChatViewContent({
   const composerScope = useComposerScope()
   const composerSurfaceId = useComposerSurfaceId()
   const isPrimary = view.kind === 'primary'
+  const guideOpening = useStore($guideOpening) && isPrimary
+  const guideStarted = useStoreSelector($onboardingGate, gate => gate.guideKickoff === 'started')
   const activeSessionId = useStore(view.$runtimeId)
 
   const transcriptStoredSessionId = useStoreSelector($sessionStates, states =>
@@ -687,7 +690,7 @@ const ChatViewContent = memo(function ChatViewContent({
   // unmount it again — see composerStaysMounted (#117375).
   const settledRoutedSessionRef = useRef<null | string>(null)
 
-  if (!loadingSession && isRoutedSessionView) {
+  if (!guideOpening && !loadingSession && isRoutedSessionView) {
     settledRoutedSessionRef.current = routedSessionId
   } else if (!isRoutedSessionView) {
     settledRoutedSessionRef.current = null
@@ -812,6 +815,7 @@ const ChatViewContent = memo(function ChatViewContent({
       data-chat-unfocused={surfaceFocused || surfaceHovered ? undefined : ''}
       data-composer-surface-id={composerSurfaceId}
       data-composer-target={composerScope.target}
+      data-guide-arrived={isPrimary && guideStarted ? '' : undefined}
       data-session-anchor={sessionAnchor}
     >
       <Backdrop />
@@ -845,21 +849,23 @@ const ChatViewContent = memo(function ChatViewContent({
           data-slot="composer-bounds"
           {...dropHandlers}
         >
-          <Thread
-            clampToComposer={showChatBar}
-            cwd={currentCwd}
-            gateway={gateway}
-            intro={showIntro ? { personality: introPersonality, seed: introSeed } : undefined}
-            loading={threadLoading}
-            onBranchInNewChat={onBranchInNewChat}
-            onCancel={haltRun}
-            onDismissError={onDismissError}
-            onRestoreToMessage={onRestoreToMessage}
-            scrollProfile={modelOptionsProfile || activeGatewayProfile}
-            sessionId={activeSessionId}
-            sessionKey={threadKey}
-            wisdomProfile={wisdomProfile}
-          />
+          {!guideOpening && (
+            <Thread
+              clampToComposer={showChatBar}
+              cwd={currentCwd}
+              gateway={gateway}
+              intro={showIntro ? { personality: introPersonality, seed: introSeed } : undefined}
+              loading={threadLoading}
+              onBranchInNewChat={onBranchInNewChat}
+              onCancel={haltRun}
+              onDismissError={onDismissError}
+              onRestoreToMessage={onRestoreToMessage}
+              scrollProfile={modelOptionsProfile || activeGatewayProfile}
+              sessionId={activeSessionId}
+              sessionKey={threadKey}
+              wisdomProfile={wisdomProfile}
+            />
+          )}
           {resumeExhausted && routedSessionId && (
             <ResumeExhaustedOverlay onRetryResume={onRetryResume} sessionId={routedSessionId} />
           )}

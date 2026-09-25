@@ -12,7 +12,7 @@ from typing import Any, Literal
 
 from packaging.version import InvalidVersion, Version
 
-from hermes_cli import __version__ as HERMES_VERSION
+from hermes_cli.version_info import get_version_info
 
 from .contract import SystemSpecification
 
@@ -237,7 +237,7 @@ def detect_local_capabilities(
         "sandbox": True,
     }
     return LocalCapabilities(
-        hermes_version=HERMES_VERSION,
+        hermes_version=get_version_info().base_version,
         os=_normalized_os(platform.system()),
         architecture=_normalized_architecture(platform.machine()),
         model_capabilities=frozenset(model_capabilities),

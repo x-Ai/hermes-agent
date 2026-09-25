@@ -18,6 +18,12 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
 }
 
 export const zh = defineLocale({
+  externalOpenFailed: {
+    title: '无法打开此链接',
+    message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开。',
+    copyUrl: '复制链接',
+    close: '关闭'
+  },
   intro: introZh,
   connectors: {
     title: '连接你的应用',
@@ -495,6 +501,8 @@ export const zh = defineLocale({
     }
   },
   notifications: {
+    sharedProfileWarning:
+      '另一个 Hermes 安装实例正在使用此配置。两个实例共享此配置的设置和数据，因此更改可能发生冲突。你可以继续使用，也可以在更改前关闭另一个实例。',
     region: '通知',
     hide: '隐藏',
     show: '显示',
@@ -765,8 +773,7 @@ export const zh = defineLocale({
     freeTier: '免费层',
     included: '包含',
     freeTierName: 'Nous · 免费套餐',
-    freeTierCaption:
-      '在 nous/welcome 上运行，包含连接器。登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型',
+    freeTierCaption: '在 nous/welcome 上运行，包含连接器。登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型',
     freeTierFootnote: '免费套餐没有余额，也不需要支付。登录 Nous 账户后，会显示付款和使用情况',
     chargeFailed: '扣款失败',
     chargeUnconfirmedBody: '费用可能仍会结算。在重试之前请先检查门户',
@@ -919,6 +926,7 @@ export const zh = defineLocale({
       'composer.focus': '聚焦输入框',
       'composer.modelPicker': '打开模型选择器',
       'composer.voice': '开始 / 停止语音对话',
+      'composer.dictate': '开始 / 停止听写',
       'view.toggleSidebar': '切换会话侧边栏',
       'view.toggleRightSidebar': '切换文件浏览器',
       'view.toggleReview': '切换审查面板',
@@ -1049,6 +1057,7 @@ export const zh = defineLocale({
       keysSettings: '设置',
       mcp: 'MCP',
       archivedChats: '已归档对话',
+      sessions: '会话',
       about: '关于',
       billing: '账单',
       notifications: '通知',
@@ -1209,6 +1218,7 @@ export const zh = defineLocale({
         masterPasswordPlaceholder: '主密码'
       }
     },
+
     notifications: {
       title: '通知',
       intro: '原生桌面通知，区别于应用内提示，设置按设备保存，每台电脑各自独立',
@@ -1541,7 +1551,6 @@ export const zh = defineLocale({
         maxSnapshots: '检查点上限'
       },
       voice: {
-        recordKey: '语音快捷键',
         maxRecordingSeconds: '最长录音时长',
         autoTts: '朗读回复',
         voiceChatMode: '语音聊天模式',
@@ -2686,6 +2695,7 @@ export const zh = defineLocale({
             message: '在 TUI 中运行 /portal 或打开 Nous 门户连接账户',
             action: '打开门户 ↗'
           },
+          openPortal: '打开门户 ↗',
           noCard: {
             title: '尚未添加支付方式',
             message: '添加银行卡后才能购买额度和使用自动充值。请在门户中添加',
@@ -5395,7 +5405,15 @@ export const zh = defineLocale({
       gatewayUnreachable: gateway => `${gateway} · 无法连接`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `切换到 ${gateway} 上的 ${name}`,
-      deleteOn: gateway => `（位于 ${gateway}）`
+      deleteOn: gateway => `（位于 ${gateway}）`,
+      localDevice: '此设备（本地后端——若未安装 Hermes 则会安装，否则打开一个新会话）',
+      switchDeviceTitle: '切换到此设备？',
+      switchDeviceDesc: '这会在这台电脑上打开一个新会话。当前对话仍留在另一个网关上。',
+      switchDeviceConfirm: '切换',
+      installDeviceTitle: '切换到此设备？',
+      installDeviceDesc: '这将在本地安装 Hermes，然后在这台电脑上打开一个新会话。确认之前不会开始安装。',
+      installDeviceConfirm: '本地安装',
+      connectExistingInstead: '改为连接现有环境'
     },
     remoteOverride: {
       menuItem: '连接到远程主机…',
@@ -5979,6 +5997,7 @@ export const zh = defineLocale({
       branchFrom: '分支',
       rename: '重命名…',
       archive: '归档',
+      unarchive: '取消归档',
       newWindow: '新窗口',
       openInTerminal: '在终端中打开',
       hideTabBar: '隐藏标签栏',
@@ -6481,6 +6500,12 @@ export const zh = defineLocale({
     showStack: '显示状态面板'
   },
   updates: {
+    discontinuedTitle: '此版本的 Hermes 已停止支持',
+    discontinuedBody: '此版本的 Hermes 已停止支持，可能无法正常运行——请卸载。您的数据仍保留在磁盘上。',
+    channels: { stable: '稳定版', canary: '预览版' },
+    bundleSwapPending: '重启以完成更新',
+    bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本。聊天记录和设置不会受到影响。',
+    bundleSwapPendingAction: '重启 Hermes',
     stages: {
       idle: '准备中…',
       prepare: '准备中…',
@@ -7060,6 +7085,7 @@ export const zh = defineLocale({
       updateInProgress: '正在更新',
       commitsBehind: (count, branch) => `落后 ${branch} ${count} 个提交`,
       desktopVersion: version => `Hermes Desktop v${version}`,
+      releaseAvailable: tag => `版本 ${tag} 可用。`,
       backendVersion: version => `后端 v${version}`,
       clientLabel: version => `客户端 v${version}`,
       connectionSsh: host => `SSH: ${host}`,
@@ -7163,6 +7189,11 @@ export const zh = defineLocale({
     remotePickerTitle: '选择远程文件夹',
     remotePickerDescription: '浏览已连接后端上的文件夹',
     remotePickerSelect: '选择文件夹',
+    remotePickerNewFolder: '新建文件夹',
+    remotePickerFolderName: '文件夹名称',
+    remotePickerCreateFolder: '创建文件夹',
+    remotePickerInvalidFolderName: '请输入单个文件夹名称，不要包含斜杠。',
+    remotePickerCreateFolderFailed: error => `无法创建文件夹 (${error})。`,
     folderTip: cwd => cwd,
     openFolder: '打开文件夹',
     refreshTree: '刷新文件树',
@@ -8119,6 +8150,8 @@ export const zh = defineLocale({
     deleteFailed: '删除失败',
     archived: '已归档',
     archiveFailed: '归档失败',
+    restored: '已恢复',
+    unarchiveFailed: '取消归档失败',
     cwdChangeFailed: '工作目录更改失败',
     cwdStagedTitle: '工作目录已暂存',
     cwdStagedMessage: '重启桌面后端后，工作目录更改才会应用到当前活跃会话',

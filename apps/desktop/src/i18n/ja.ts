@@ -5,6 +5,12 @@ import { en } from './en'
 import { introJa } from './intro-ja'
 
 export const ja = defineLocale({
+  externalOpenFailed: {
+    title: 'このリンクを開けませんでした',
+    message: 'このアドレスを開くブラウザが登録されていません。リンクをコピーして手動で開いてください。',
+    copyUrl: 'リンクをコピー',
+    close: '閉じる'
+  },
   intro: introJa,
   connectors: {
     title: 'アプリを接続',
@@ -259,6 +265,8 @@ export const ja = defineLocale({
     }
   },
   notifications: {
+    sharedProfileWarning:
+      '別の Hermes インストールがこのプロファイルを使用しています。両方が設定とデータを共有しているため、変更が競合する可能性があります。このまま続けるか、変更する前にもう一方を終了してください。',
     region: '通知',
     hide: '非表示',
     show: '表示',
@@ -810,6 +818,90 @@ export const ja = defineLocale({
     openInHermes: 'Hermes で開く'
   },
   settings: {
+    uninstallSection: {
+      dangerZone: '危険ゾーン',
+      checkingInstalled: 'インストール内容を確認中…',
+      uninstallHermes: 'Hermes をアンインストール',
+      chooseHowMuch:
+        '削除する範囲を選択してください。完了するためにアプリが閉じます。インストーラーを開き直せばいつでも戻れます。',
+      confirmUninstall: 'アンインストールの確認',
+      confirmBody: what => `${what} が削除されます。この操作は取り消せません。`,
+      appLabel: 'アプリ：',
+      couldNotStart: 'アンインストールを開始できませんでした。',
+      uninstalling: 'アンインストール中…',
+      yesUninstall: 'はい、アンインストール',
+      options: {
+        gui: {
+          title: 'Chat GUI のみアンインストール',
+          description: 'このデスクトップアプリを削除します。Hermes エージェント、設定、チャットはすべて残ります。',
+          consequence: 'デスクトップ Chat GUI（このアプリとそのデータ）'
+        },
+        lite: {
+          title: 'GUI とエージェントをアンインストール、データは保持',
+          description:
+            'アプリと Hermes エージェントを削除しますが、将来の再インストールに備えて設定・チャット・シークレットは保持します。',
+          consequence: 'Chat GUI と Hermes エージェント（設定・チャット・シークレットは保持）'
+        },
+        full: {
+          title: 'すべてアンインストール',
+          description:
+            'アプリ、エージェント、すべてのユーザーデータ（設定、チャット、定期ジョブ、シークレット、ログ）を削除します。',
+          consequence: 'すべて——Chat GUI、Hermes エージェント、およびすべての設定・チャット・シークレット・ログ'
+        }
+      }
+    },
+    subpages: {
+      appearanceTheme: 'テーマ',
+      appearanceTypography: 'フォントと表示倍率',
+      appearanceWindowLayout: 'ウィンドウとレイアウト',
+      appearanceChatDisplay: 'チャット表示',
+      appearancePet: 'ペット',
+      appearanceGeneral: '一般',
+      modelMain: 'メインモデル',
+      modelAuxiliary: '補助モデル',
+      modelMoa: 'エージェントの協調',
+      modelFallbacks: '代替モデル',
+      chatBehavior: '動作',
+      chatAttachments: '添付ファイル',
+      workspaceProjects: 'プロジェクトと検出',
+      workspaceShell: 'シェル環境',
+      workspaceFiles: 'ファイルと実行',
+      safetyApprovals: '承認',
+      safetyPrivacy: 'プライバシーとネットワーク',
+      safetyCheckpoints: 'チェックポイント',
+      browserProfile: 'ブラウザープロファイル',
+      browserNetwork: 'ローカル・プライベート URL',
+      memoryPersistent: '永続メモリ',
+      memoryContext: 'コンテキストと圧縮',
+      voiceConversation: '音声会話',
+      voiceTranscription: '音声認識',
+      voiceSpeech: '音声合成',
+      advancedRuntime: 'エージェントの制限',
+      advancedTools: 'ツールへのアクセス',
+      advancedTerminal: 'ターミナルのバックエンド',
+      advancedOutput: '出力の制限',
+      advancedDelegation: 'サブエージェント',
+      advancedDesktop: 'デスクトップと起動',
+      gatewayConnection: 'このウィンドウ',
+      gatewayDevices: '保存済みの接続',
+      gatewayManagedUpdates: 'リモート更新',
+      gatewayManagedUpdatesUnavailable: 'リモート更新には、管理対象 SSH の更新に対応したデスクトップ版が必要です。',
+      gatewayManagedUpdatesEmpty: '保存済みの接続に SSH 接続を追加すると、ここで更新を管理できます。',
+      keyboardShortcuts: 'キー割り当て',
+      hudGesture: 'HUDジェスチャー',
+      screenCapture: '画面キャプチャ',
+      notificationAlerts: 'デスクトップ通知',
+      notificationSounds: 'サウンド',
+      archivedSessions: 'アーカイブと保持',
+      defaultDirectory: '既定のプロジェクトフォルダー',
+      vaultCredentials: '保存済みの認証情報',
+      vaultSources: 'パスワードマネージャー',
+      appUpdates: 'バージョンと更新',
+      uninstall: 'アンインストール',
+      billingOverview: '概要',
+      billingPlans: 'プラン'
+    },
+
     closeSettings: '設定を閉じる',
     exportConfig: '設定を書き出す',
     importConfig: '設定を読み込む',
@@ -830,6 +922,7 @@ export const ja = defineLocale({
       keysSettings: '設定',
       mcp: 'MCP',
       archivedChats: 'アーカイブ済みチャット',
+      sessions: 'セッション',
       about: '情報',
       billing: '請求',
       notifications: '通知',
@@ -1338,7 +1431,6 @@ export const ja = defineLocale({
         maxSnapshots: 'チェックポイント上限'
       },
       voice: {
-        recordKey: '音声ショートカット',
         maxRecordingSeconds: '最大録音時間',
         autoTts: '応答を読み上げる',
         clientDirect: 'クライアント直接接続'
@@ -2249,7 +2341,13 @@ export const ja = defineLocale({
       noRecommendationAction: 'モデルを探す',
       downloaded: 'ダウンロード済み',
       downloadAction: size => `ダウンロード · ${size}`,
-      downloadProgress: (done, total) => `ダウンロード中 ${done} / ${total}`,
+      downloadProgress: (done, total) => `${done} / ${total}`,
+      downloadStatusRunning: 'ダウンロード中',
+      downloadSpeed: rate => `${rate}`,
+      downloadEta: time => `残り約${time}`,
+      downloadPausedLabel: '一時停止中',
+      downloadPauseAction: '一時停止',
+      downloadResumeAction: '再開',
       downloadDoneToast: model => `${model} の準備ができました。`,
       installDoneToast: 'ローカルランタイムのインストールが完了しました。',
       quickstartTitle: 'このマシンでモデルを実行する',
@@ -2627,62 +2725,7 @@ export const ja = defineLocale({
       postSetupOpenLogs: 'ログを開く',
       postSetupRunAgain: 'もう一度実行します'
     },
-    subpages: {
-      appearanceTheme: 'テーマ',
-      appearanceTypography: 'フォントと表示倍率',
-      appearanceWindowLayout: 'ウィンドウとレイアウト',
-      appearanceChatDisplay: 'チャット表示',
-      appearancePet: 'ペット',
-      appearanceGeneral: '一般',
-      modelMain: 'メインモデル',
-      modelAuxiliary: '補助モデル',
-      modelMoa: 'エージェントの協調',
-      modelFallbacks: '代替モデル',
-      chatBehavior: '動作',
-      chatAttachments: '添付ファイル',
-      workspaceProjects: 'プロジェクトと検出',
-      workspaceShell: 'シェル環境',
-      workspaceFiles: 'ファイルと実行',
-      safetyApprovals: '承認',
-      safetyPrivacy: 'プライバシーとネットワーク',
-      safetyCheckpoints: 'チェックポイント',
-      browserProfile: 'ブラウザープロファイル',
-      browserNetwork: 'ローカル・プライベート URL',
-      memoryPersistent: '永続メモリ',
-      memoryContext: 'コンテキストと圧縮',
-      voiceConversation: '音声会話',
-      voiceTranscription: '音声認識',
-      voiceSpeech: '音声合成',
-      advancedRuntime: 'エージェントの制限',
-      advancedTools: 'ツールへのアクセス',
-      advancedTerminal: 'ターミナルのバックエンド',
-      advancedOutput: '出力の制限',
-      advancedDelegation: 'サブエージェント',
-      advancedDesktop: 'デスクトップと起動',
-      gatewayConnection: 'このウィンドウ',
-      gatewayDevices: '保存済みの接続',
-      gatewayManagedUpdates: 'リモート更新',
-      gatewayManagedUpdatesUnavailable: 'リモート更新には、管理対象 SSH の更新に対応したデスクトップ版が必要です。',
-      gatewayManagedUpdatesEmpty: '保存済みの接続に SSH 接続を追加すると、ここで更新を管理できます。',
-      keyboardShortcuts: 'キー割り当て',
-      hudGesture: 'HUDジェスチャー',
-      screenCapture: '画面キャプチャ',
-      notificationAlerts: 'デスクトップ通知',
-      notificationSounds: 'サウンド',
-      archivedSessions: 'アーカイブと保持',
-      defaultDirectory: '既定のプロジェクトフォルダー',
-      vaultCredentials: '保存済みの認証情報',
-      vaultSources: 'パスワードマネージャー',
-      appUpdates: 'バージョンと更新',
-      uninstall: 'アンインストール',
-      billingOverview: '概要',
-      billingPlans: 'プラン'
-    },
-    uninstallSection: {
-      dangerZone: '危険地帯',
-      confirmUninstall: 'アンインストールの確認',
-      uninstallHermes: 'Hermesをアンインストールする'
-    },
+
     computerUse: {
       accessibility: 'アクセシビリティ',
       screenRecording: '画面録画',
@@ -5219,6 +5262,7 @@ export const ja = defineLocale({
       branchFrom: '分岐',
       rename: '名前を変更…',
       archive: 'アーカイブ',
+      unarchive: 'アーカイブを解除',
       newWindow: '新しいウィンドウ',
       openInTerminal: 'ターミナルで開く',
       hideTabBar: 'タブバーを隠す',
@@ -5721,6 +5765,14 @@ export const ja = defineLocale({
     showStack: 'ステータススタックを表示'
   },
   updates: {
+    discontinuedTitle: 'このHermesビルドはサポートされていません',
+    discontinuedBody:
+      'このHermesビルドはサポートが終了し、動作しなくなる可能性があります。アンインストールしてください。データはディスクに残ります。',
+    channels: { stable: '安定版', canary: '先行版' },
+    bundleSwapPending: '再起動して更新を完了',
+    bundleSwapPendingDesc:
+      '更新されたアプリはすでにインストール済みです。Hermes を再起動するだけで新しいビルドが読み込まれます。チャットや設定はそのまま保持されます。',
+    bundleSwapPendingAction: 'Hermes を再起動',
     stages: {
       idle: '準備中…',
       prepare: '準備中…',
@@ -5742,6 +5794,7 @@ export const ja = defineLocale({
     unsupportedMessage: 'このバージョンの Hermes はアプリ内から自分を更新できません。',
     connectionRetry: '接続を確認してもう一度試してください。',
     latestBody: '最新バージョンを実行しています。',
+    versionDetailsDistributionStore: 'Microsoft Store',
     latestBodyBackend: 'バックエンドは最新バージョンを実行しています。',
     allSetTitle: '準備完了',
     availableTitle: '新しい更新が利用可能',
@@ -6383,6 +6436,7 @@ export const ja = defineLocale({
       cacheHitRateTitle:
         'このセッションのプロンプト キャッシュ ヒット率 - キャッシュされたトークンのコストが低いため、高いほど安価です',
       tokensPerSecondTitle: '1 秒あたりの出力トークン (最後の 10 回のモデル呼び出しの平均)',
+      session: 'セッション',
       agents: 'エージェント',
       closeAgents: 'エージェントを閉じる',
       openAgents: 'エージェントを開く',
@@ -6423,7 +6477,8 @@ export const ja = defineLocale({
         title: 'コンテキスト使用状況',
         tokenSummary: (used, max) => `${used} / ${max} Tokens`
       },
-      session: 'セッション',
+      focusedSince: 'フォーカスしてから',
+      focusedSinceTitle: 'このチャットをフォーカスしてからの時間。ターンの実行時間ではありません',
       yoloOn: 'YOLO オン — 危険なコマンドを自動承認中。Shift+クリックで全体に切り替え。',
       yoloOff: 'YOLO オフ。Shift+クリックで全体に切り替え。',
       modelNone: 'なし',
@@ -6445,6 +6500,11 @@ export const ja = defineLocale({
     remotePickerTitle: 'リモートフォルダーを選択',
     remotePickerDescription: '接続中のバックエンド上のフォルダーを参照します。',
     remotePickerSelect: 'フォルダーを選択',
+    remotePickerNewFolder: '新しいフォルダー',
+    remotePickerFolderName: 'フォルダー名',
+    remotePickerCreateFolder: 'フォルダーを作成',
+    remotePickerInvalidFolderName: 'スラッシュを含まない 1 つのフォルダー名を入力してください。',
+    remotePickerCreateFolderFailed: error => `フォルダーを作成できませんでした (${error})。`,
     folderTip: cwd => cwd,
     openFolder: 'フォルダーを開く',
     refreshTree: 'ツリーを更新',
@@ -7362,6 +7422,9 @@ export const ja = defineLocale({
     sessionUnavailable: 'セッションが利用できません',
     createSessionFailed: '新しいセッションを作成できませんでした',
     promptFailed: 'プロンプトに失敗しました',
+    staleSessionTitle: 'チャットが最新ではありません',
+    staleSessionBody:
+      'このウィンドウは同じチャットの別ビューより遅れています。最新のメッセージを読み込みました。送信する場合はもう一度送ってください。',
     providerCredentialRequired: '最初のメッセージを送信する前にプロバイダー認証情報を追加してください。',
     readinessChecksDisagree: 'setup.status は資格情報が設定済みと報告していますが、ランタイム解決は失敗しました。',
     emptySlashCommand: '空のスラッシュコマンド',
@@ -7416,6 +7479,8 @@ export const ja = defineLocale({
     deleteFailed: '削除に失敗しました',
     archived: 'アーカイブしました',
     archiveFailed: 'アーカイブに失敗しました',
+    restored: '復元しました',
+    unarchiveFailed: 'アーカイブ解除に失敗しました',
     cwdChangeFailed: '作業ディレクトリの変更に失敗しました',
     cwdStagedTitle: '作業ディレクトリがステージングされました',
     cwdStagedMessage:

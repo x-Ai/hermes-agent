@@ -501,9 +501,15 @@ def _notif_handle_event(sid, session, evt, emitted, registry, fmt, deferred, com
     if not owned and _notification_event_requires_owner(evt) and not _session_owns_notification_event(sid, session, evt):
         origin, key = str(evt.get("origin_ui_session_id") or ""), str(evt.get("session_key") or "")
         if deferred is None:
-            (logger.warning if is_delegation else logger.debug)(
+            # A durable replay stays pending: hand it back so the orphan sweep re-offers it once its owner
+            # is live (#97202), and keep that retry out of WARNING.
+            restored = is_delegation and bool(evt.get("restored"))
+            (logger.warning if is_delegation and not restored else logger.debug)(
                 "Dropping unowned %s notification (origin=%r key=%r) instead of delivering to session %s",
                 evt_type, origin, key, sid)
+            if is_delegation:
+                from tools.async_delegation import return_completion_offer
+                return_completion_offer(evt)
         elif is_delegation:
             deferred.append(evt)
         else:
@@ -690,6 +696,7 @@ def _notification_poller_scoped_loop(stop_event: threading.Event, sid: str, sess
     subscriptions and delivers terminal task events the same way (status.update + agent turn) — the delivery
     path tools/kanban_tools.py documents for platform="tui" rows (issue #59890).
     """
+    from tools import async_delegation
     from tools.process_registry import process_registry
     from tools.process_registry_notifications import format_process_notification
     queue = process_registry.completion_queue
@@ -702,6 +709,8 @@ def _notification_poller_scoped_loop(stop_event: threading.Event, sid: str, sess
         if not session.get("running") and now - last_wisdom_poll >= _WISDOM_POLL_SECONDS:
             last_wisdom_poll = now
             _sync_wisdom_activity_notice(sid, session)
+        # Completions whose owner process died after this one started (#97202); throttled per profile home.
+        async_delegation.maybe_sweep_orphaned_completions(queue)
         if now - last_bot_poll >= _BOT_DELIVERY_POLL_SECONDS:  # bot DM → live-owner delivery latency ≤ 5 s
             last_bot_poll = now
             _poll_bot_live_delivery_guarded(sid, session, now)

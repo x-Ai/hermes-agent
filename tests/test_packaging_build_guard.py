@@ -9,9 +9,7 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
 
 def _build_artifact(kind: str, tmp_path, *, nix_build: bool) -> subprocess.CompletedProcess[str]:
     """Invoke the real PEP 517 hook (build_sdist / build_wheel) as a subprocess.
@@ -53,7 +51,6 @@ def _build_artifact(kind: str, tmp_path, *, nix_build: bool) -> subprocess.Compl
         capture_output=True,
         check=False,
     )
-
 
 @pytest.mark.parametrize("kind", ["sdist", "wheel"])
 def test_artifact_build_rejects_nix_development_shell_environment(kind, tmp_path):

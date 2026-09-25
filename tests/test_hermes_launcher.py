@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.mark.macos_only
+@pytest.mark.platforms("macos")
 def test_direct_launcher_reexecs_the_adjacent_managed_python(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     launcher = tmp_path / "hermes"

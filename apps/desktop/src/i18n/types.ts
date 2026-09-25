@@ -515,6 +515,9 @@ export interface Translations {
       openGateways: string
       openMaintenance: string
     }
+    sharedProfileWarning: string
+    compressDeferredDone: string
+    updateReadyMessageAppInstaller: string
   }
   billingPage: {
     title: string
@@ -686,6 +689,7 @@ export interface Translations {
     conflictWith: (label: string) => string
     categories: Record<string, string>
     actions: Record<string, string>
+    clear: string
   }
   paletteCommands: {
     reloadDesktopPlugins: string
@@ -1096,6 +1100,7 @@ export interface Translations {
       billing: string
       notifications: string
       vault: string
+      sessions: string
     }
     plugins: {
       title: string
@@ -1162,6 +1167,7 @@ export interface Translations {
         agentFailed: string
         desktopFailed: string
         missingEnv: (name: string, vars: string) => string
+        installUncertain: string
       }
     }
     vault: {
@@ -1487,6 +1493,10 @@ export interface Translations {
       attachmentSizeUnit: string
       attachmentSizeLabel: string
       showOptions: string
+      alwaysExternalLinksTitle: string
+      alwaysExternalLinksDesc: string
+      voiceShortcutHintTitle: string
+      voiceShortcutHintDesc: string
     }
     hudModifier: {
       title: string
@@ -1963,6 +1973,20 @@ export interface Translations {
       deleteConfirm: (model: string) => string
       deleted: (model: string) => string
       deleteFailed: string
+      connectionChanged: string
+      downloadStatusRunning: string
+      downloadSpeed: (rate: string) => string
+      downloadEta: (time: string) => string
+      /** Duration units the ETA is composed from; hours carries its
+       *  remainder so a locale orders the two parts itself. */
+      downloadEtaSeconds: (count: number) => string
+      downloadEtaMinutes: (count: number) => string
+      downloadEtaHours: (hours: number, minutes: number) => string
+      downloadPausedLabel: string
+      downloadPauseAction: string
+      downloadResumeAction: string
+      downloadPauseFailed: (model: string) => string
+      downloadResumeFailed: (model: string) => string
     }
     billing: {
       perMonth: (amount: string) => string
@@ -2080,6 +2104,7 @@ export interface Translations {
         notice: {
           loggedOut: { title: string; message: string; action: string }
           noCard: { title: string; message: string; action: string }
+          openPortal: string
         }
         paymentMethod: {
           title: string
@@ -2953,6 +2978,7 @@ export interface Translations {
       ageDay: string
       ageHour: string
       ageMin: string
+      unarchive: string
     }
     dateDivider: {
       today: string
@@ -3205,6 +3231,63 @@ export interface Translations {
     gitUnusable: string
     connectionSettings: string
     openDownloadPage: string
+    discontinuedTitle: string
+    discontinuedBody: string
+    channels: { stable: string; canary: string }
+    bundleSwapPending: string
+    bundleSwapPendingDesc: string
+    bundleSwapPendingAction: string
+    availableBodyAppInstaller: string
+    applyingBodyAppInstaller: string
+    applyingCloseAppInstaller: string
+    checkUnknownTitleAppInstaller: string
+    checkUnknownBodyAppInstaller: string
+    /** Update-status overlay + version-details (mechanism-aware update UI):
+     * the overlay reads these off t.updates directly. */
+    appName: string
+    version: (value: string) => string
+    versionUnavailable: string
+    checkNow: string
+    seeWhatsNew: string
+    releaseNotes: string
+    onLatest: string
+    installing: string
+    cantReach: string
+    tapCheck: string
+    updateReady: (count: number) => string
+    updateReadyUnknown: string
+    availableBodyRelease: (tag: string) => string
+    lastChecked: (age: string) => string
+    never: string
+    justNow: string
+    minAgo: (count: number) => string
+    hoursAgo: (count: number) => string
+    daysAgo: (count: number) => string
+    justNowSuffix: string
+    bundleOutOfSync: string
+    bundleOutOfSyncDesc: string
+    bundleOutOfSyncAction: string
+    checkingShort: string
+    releaseAvailable: (tag: string) => string
+    versionDetailsTitle: string
+    versionDetailsBody: string
+    versionDetailsVersion: string
+    versionDetailsCommit: string
+    versionDetailsBuildOrigin: string
+    versionDetailsDistribution: string
+    versionDetailsDistributionDesktop: string
+    versionDetailsDistributionDesktopMsix: string
+    versionDetailsDistributionDesktopInstaller: string
+    versionDetailsDistributionSourceInstaller: string
+    versionDetailsDistributionSourceInstallerDesktop: string
+    versionDetailsDistributionSource: string
+    versionDetailsDistributionSourceDesktop: string
+    versionDetailsDistributionStore: string
+    versionDetailsRuntime: string
+    versionDetailsRuntimeEmbedded: string
+    versionDetailsRuntimeExternal: string
+    versionDetailsInstallId: string
+    versionDetailsUncommittedChanges: string
   }
   introReveal: {
     skip: string
@@ -3731,6 +3814,10 @@ export interface Translations {
     modelSwitchConfirmTitleFallback: string
     modelSwitchKeepLabel: string
     modelSwitchStaleNotice: string
+    staleSessionTitle: string
+    staleSessionBody: string
+    restored: string
+    unarchiveFailed: string
   }
   connectorsPage: {
     title: string
@@ -4085,6 +4172,8 @@ export interface Translations {
       signInToRemoteGateway: string
       signInWithProvider: (provider: string) => string
       identityProvider: string
+      bundledReinstallHint: string
+      reinstallApp: string
     }
   }
   remoteDisplayBanner: {
@@ -4285,6 +4374,15 @@ export interface Translations {
       onGateway: (name: string, gateway: string) => string
       switchTo: (name: string, gateway: string) => string
       deleteOn: (gateway: string) => string
+      /** At-rest local default pill: device, not Home, and the click's consequence. */
+      localDevice: string
+      switchDeviceTitle: string
+      switchDeviceDesc: string
+      switchDeviceConfirm: string
+      installDeviceTitle: string
+      installDeviceDesc: string
+      installDeviceConfirm: string
+      connectExistingInstead: string
     }
     remoteOverride: {
       menuItem: string
@@ -4387,6 +4485,11 @@ export interface Translations {
     failedSaveSoul: string
     failedCreate: string
     failedRename: string
+    status: {
+      unread: (count: number) => string
+      needsInput: (count: number) => string
+      working: (count: number) => string
+    }
   }
   modelAssignment: {
     saveFailed: string
@@ -4789,6 +4892,10 @@ export interface Translations {
     copyOutput: string
     reloadRetry: string
     openLogs: string
+    setupChoiceDescLocal: string
+    useLocalTitle: string
+    useLocalDesc: string
+    bundledLocalDesc: string
   }
   onboarding: {
     headerTitle: string
@@ -5107,6 +5214,9 @@ export interface Translations {
       modelPinned: string
       modelTitle: (provider: string, model: string) => string
       providerModelTitle: (provider: string, model: string) => string
+      releaseAvailable: (tag: string) => string
+      focusedSince: string
+      focusedSinceTitle: string
     }
   }
   rightSidebar: {
@@ -5146,6 +5256,11 @@ export interface Translations {
     terminalCloseOthers: string
     terminalCloseAll: string
     addToChat: string
+    remotePickerNewFolder: string
+    remotePickerFolderName: string
+    remotePickerCreateFolder: string
+    remotePickerInvalidFolderName: string
+    remotePickerCreateFolderFailed: (error: string) => string
   }
   preview: {
     tab: string
@@ -5405,5 +5520,11 @@ export interface Translations {
       description: string
       toggle: (open: boolean) => string
     }
+  }
+  externalOpenFailed: {
+    title: string
+    message: string
+    copyUrl: string
+    close: string
   }
 }
