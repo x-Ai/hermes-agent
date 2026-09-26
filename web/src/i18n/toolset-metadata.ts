@@ -198,9 +198,9 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
     "经 Nous Portal 的参考图像生成（OpenRouter 支撑）",
   "Search + extract in one provider.": "搜索 + 提取一体的提供方",
   "Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.":
-    "搜索与提取。无需密钥即可使用；设置 TAVILY_API_KEY 可获得更高限额",
+    "搜索与提取。无需密钥即可使用，设置 TAVILY_API_KEY 可获得更高限额",
   "Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.":
-    "搜索与提取。可选择免密钥使用；设置 TAVILY_API_KEY 可获得更高限额",
+    "搜索与提取。可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额",
   "Search via the ddgs Python package — no API key (pair with any extract provider)":
     "通过 ddgs Python 包搜索 — 无需 API 密钥（可搭配任意提取提供方）",
   "Semantic + neural web search with content extraction.": "语义 + 神经网络网页搜索，带内容提取",
@@ -213,13 +213,13 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "Independent web index for AI apps. Keyed access with higher limits and guaranteed service.":
     "面向 AI 应用的独立网页索引。密钥访问具有更高限额和服务保障",
   "Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video":
-    "Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录；文生视频与图生视频",
+    "Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录，文生视频与图生视频",
   "gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing":
     "gpt-image-2，低/中/高质量档 — 文生图与图像编辑",
   "gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs":
-    "经 ChatGPT/Codex OAuth 使用 gpt-image-2 — 无需 API 密钥；支持文本与图像输入",
+    "经 ChatGPT/Codex OAuth 使用 gpt-image-2 — 无需 API 密钥，支持文本与图像输入",
   "grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.":
-    "grok-imagine-image — 文生图与图像编辑；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
+    "grok-imagine-image — 文生图与图像编辑，使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
   "grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.":
     "grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
   "Whisper via OpenRouter API": "经 OpenRouter API 使用 Whisper",
