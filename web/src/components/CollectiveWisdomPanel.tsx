@@ -20,6 +20,7 @@ import type {
 import { Button } from '@nous-research/ui/ui/components/button'
 import { Input } from '@nous-research/ui/ui/components/input'
 import { useI18n } from '@/i18n'
+import { en } from '@/i18n/en'
 import { WisdomFileEditor } from './WisdomFileEditor'
 import { WisdomAgentActivity } from './WisdomAgentActivity'
 import { WisdomNotificationSettings } from './WisdomNotificationSettings'
@@ -56,7 +57,10 @@ const candidateDisplayName = (candidate: WisdomCandidate) => candidate.editorial
 
 const candidateDisplayDescription = (candidate: WisdomCandidate) => candidate.editorial_description?.trim() || ''
 
-function wisdomActionFailure(status: { exit_code: number | null; lines: string[] }): string {
+function wisdomActionFailure(
+  status: { exit_code: number | null; lines: string[] },
+  fallback: (code: string) => string
+): string {
   const lastRunMarker = status.lines.findLastIndex(line => line.startsWith('==='))
   const latestRun = status.lines
     .slice(lastRunMarker + 1)
@@ -78,26 +82,30 @@ function wisdomActionFailure(status: { exit_code: number | null; lines: string[]
     }
   }
 
-  return `Collective Wisdom action failed (${status.exit_code ?? 'unknown'})`
+  return fallback(String(status.exit_code ?? 'unknown'))
 }
 
-async function waitForWisdomAction(name: string): Promise<void> {
+async function waitForWisdomAction(
+  name: string,
+  copy: NonNullable<ReturnType<typeof useI18n>['t']['skills']['wisdom']['reviewUi']>
+): Promise<void> {
   for (let attempt = 0; attempt < 1200; attempt += 1) {
     const status = await api.getActionStatus(name, 80)
     if (!status.running) {
       if (status.exit_code !== 0) {
-        throw new Error(wisdomActionFailure(status))
+        throw new Error(wisdomActionFailure(status, copy.actionFailed))
       }
       return
     }
     await new Promise(resolve => setTimeout(resolve, 500))
   }
-  throw new Error('Collective Wisdom action timed out')
+  throw new Error(copy.actionTimedOut)
 }
 
 export function CollectiveWisdomPanel({ profile }: Props) {
   const { t } = useI18n()
   const copy = t.skills.wisdom
+  const reviewUi = copy.reviewUi ?? en.skills.wisdom.reviewUi!
   const [status, setStatus] = useState<WisdomStatus | null>(null)
   const [discovery, setDiscovery] = useState<WisdomDiscovery>({ skills: [], next_cursor: null })
   const [candidates, setCandidates] = useState<WisdomCandidate[]>([])
@@ -204,7 +212,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
     setError(null)
     try {
       const action = await api.setupWisdom(profile)
-      await waitForWisdomAction(action.name)
+      await waitForWisdomAction(action.name, reviewUi)
       const nextStatus = await api.getWisdomStatus(profile)
       setStatus(nextStatus)
       const [nextDiscovery, nextCandidates, nextDrafts, nextInstallations] = await loadConfiguredData()
@@ -285,7 +293,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
     if (!review) return null
     const manifest = reviewFiles['skill.manifest.json']
     return manifest === undefined
-      ? 'The complete package must include skill.manifest.json.'
+      ? reviewUi.manifestRequired
       : wisdomManifestValidationError(manifest)
   }, [review, reviewFiles])
 
@@ -333,7 +341,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
       String(payload.slug ?? '') ||
       discovery.skills.find(item => item.id === skillId)?.slug ||
       installations.installations.find(item => item.skill_id === skillId)?.slug ||
-      'A Collective Wisdom skill'
+      reviewUi.unknownSkill
     const versionValue = event.version ?? payload.version
     const version = versionValue ? `v${String(versionValue)}` : undefined
     const kind = String(event.kind ?? '')
@@ -561,7 +569,9 @@ export function CollectiveWisdomPanel({ profile }: Props) {
         throw new Error('The complete package must include skill.manifest.json.')
       }
       const manifestError = wisdomManifestValidationError(manifest)
-      if (manifestError) throw new Error(`Fix the System Specification before saving: ${manifestError}`)
+      if (manifestError) {
+        throw new Error(reviewUi.fixSystemSpecification.replace('{error}', manifestError))
+      }
       const files = review.files.map(file => ({
         path: file.path,
         content_utf8: reviewFiles[file.path] ?? file.content_utf8
@@ -672,7 +682,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
               setBusy('scan')
               try {
                 const action = await api.scanWisdom(undefined, profile)
-                await waitForWisdomAction(action.name)
+                await waitForWisdomAction(action.name, reviewUi)
                 const next = await api.getWisdomCandidates(profile)
                 setCandidates(next.candidates)
               } catch (reason) {
@@ -760,7 +770,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
       )}
 
       {installations.notifications.length > 0 && (
-        <div className="border border-blue-500/40 p-3 text-xs" aria-label="Collective Wisdom notifications">
+        <div className="border border-blue-500/40 p-3 text-xs" aria-label={reviewUi.notifications}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <span>{copy.activityReady(installations.notifications.length)}</span>
@@ -805,7 +815,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
                     <p className="text-xs text-text-tertiary">{candidateSummary(candidate)}</p>
                     {candidate.professionalism_check && (
                       <div className="mt-1">
-                        <WisdomCheckBadge label="Professionalism" value={candidate.professionalism_check} />
+                        <WisdomCheckBadge label={reviewUi.professionalism} value={candidate.professionalism_check} />
                       </div>
                     )}
                   </div>
@@ -852,7 +862,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
                               <p className="text-xs text-text-tertiary">{candidateSummary(candidate)}</p>
                               {candidate.professionalism_check && (
                                 <div className="mt-1">
-                                  <WisdomCheckBadge label="Professionalism" value={candidate.professionalism_check} />
+                                  <WisdomCheckBadge label={reviewUi.professionalism} value={candidate.professionalism_check} />
                                 </div>
                               )}
                             </div>
@@ -912,8 +922,8 @@ export function CollectiveWisdomPanel({ profile }: Props) {
             <div className="mb-3 flex items-start justify-between gap-3">
               <span className="font-mono font-semibold">{skill.slug}</span>
               <span className="flex shrink-0 flex-col items-end gap-1">
-                <WisdomCheckBadge label="Security" value={skill.security_check} />
-                <WisdomCheckBadge label="Professionalism" value={skill.professionalism_check} />
+                <WisdomCheckBadge label={reviewUi.security} value={skill.security_check} />
+                <WisdomCheckBadge label={reviewUi.professionalism} value={skill.professionalism_check} />
                 {pendingUpdates.has(skill.id) && (
                   <span className="text-xs text-amber-500">
                     {copy.updateAvailable(pendingUpdates.get(skill.id)?.plan?.version)}
@@ -965,7 +975,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
           </pre>
           {content && (
             <div className="mt-4">
-              <p className="break-all font-mono text-[11px]">content {content.content_hash}</p>
+              <p className="break-all font-mono text-[11px]">{reviewUi.contentHash} {content.content_hash}</p>
               {content.files.map(file => (
                 <details key={file.path} className="border-t border-border py-2" open>
                   <summary className="cursor-pointer font-mono text-xs">
@@ -1004,7 +1014,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
       )}
 
       {actionPlan && (
-        <div className="border border-amber-500/50 p-4" role="dialog" aria-label="Verified managed action plan">
+        <div className="border border-amber-500/50 p-4" role="dialog" aria-label={reviewUi.verifiedPlan}>
           <h3 className="font-mono text-base">{copy.confirmAction(actionPlan.action)}</h3>
           <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap text-xs">
             {JSON.stringify(actionPlan, null, 2)}
@@ -1032,7 +1042,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
               </p>
             </div>
           )}
-          {actionPlan.state === 'current' && <p className="mt-3 text-xs">This managed skill is already current.</p>}
+          {actionPlan.state === 'current' && <p className="mt-3 text-xs">{reviewUi.managedCurrent}</p>}
           {actionPlan.compatibility && actionPlan.compatibility.outcome !== 'compatible' && (
             <label className="mt-3 flex gap-2 text-xs">
               <input
@@ -1072,7 +1082,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
                 setActionPlanReference(null)
               }}
             >
-              Cancel
+              {copy.cancel}
             </Button>
             {actionPlan.state !== 'current' && (
               <Button disabled={busy === 'install-mode'} size="sm" onClick={applyManagedAction}>
@@ -1087,18 +1097,18 @@ export function CollectiveWisdomPanel({ profile }: Props) {
         <div role="status" className="border-y border-border p-4">
           <p>{copy.draftState(publication.publication_state)}</p>
           <a href={publication.portal_url} target="_blank" rel="noreferrer">
-            View in Portal
+            {reviewUi.viewInPortal}
           </a>
         </div>
       )}
 
       {review && (
-        <div className="border border-emerald-500/40 p-4" aria-label="Owner review exact content">
+        <div className="border border-emerald-500/40 p-4" aria-label={reviewUi.ownerReviewExact}>
           <h3 className="font-mono text-base">{review.draft.slug}</h3>
           <p className="mt-1 text-xs text-text-secondary">
             {review.publication_mode === 'open'
-              ? 'Confirming uploads this exact package and publishes it to your team after the required checks.'
-              : 'Confirming uploads this exact package for your organization to approve. It stays unpublished until moderation is complete.'}
+              ? reviewUi.publicationOpen
+              : reviewUi.publicationModerated}
           </p>
           {reviewCanEdit && <p className="mt-2 text-xs leading-5 text-text-secondary">{copy.editReview}</p>}
           {reviewDirty && (
@@ -1108,10 +1118,10 @@ export function CollectiveWisdomPanel({ profile }: Props) {
           )}
           <div className="mt-3 grid gap-3 border-y border-border py-3 text-xs">
             <div>
-              <strong>Owner-authored description (not platform verified)</strong>
+              <strong>{reviewUi.ownerDescriptionUnverified}</strong>
               {reviewCanEdit ? (
                 <textarea
-                  aria-label="Edit owner-authored description"
+                  aria-label={reviewUi.editOwnerDescription}
                   className="mt-2 min-h-24 w-full resize-y border border-border bg-background/40 px-3 py-2 text-sm leading-relaxed focus-visible:border-foreground/25 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30"
                   maxLength={4096}
                   value={reviewDescription}
@@ -1119,12 +1129,12 @@ export function CollectiveWisdomPanel({ profile }: Props) {
                 />
               ) : (
                 <p className="mt-1 whitespace-pre-wrap text-text-secondary">
-                  {review.draft.authorDescription || 'No description.'}
+                  {review.draft.authorDescription || copy.noDescription}
                 </p>
               )}
             </div>
             <div>
-              <strong>Server-enforced scan and server-derived facts</strong>
+              <strong>{reviewUi.serverChecks}</strong>
               <WisdomReviewTables
                 security={review.draft.security_check}
                 professionalism={review.draft.professionalism_check}
@@ -1142,7 +1152,7 @@ export function CollectiveWisdomPanel({ profile }: Props) {
               </pre>
             </div>
             <div>
-              <strong>System Specification (declarative only)</strong>
+              <strong>{reviewUi.systemSpecDeclarative}</strong>
               <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap text-text-secondary">
                 {JSON.stringify(review.draft.systemSpec, null, 2)}
               </pre>
@@ -1150,9 +1160,9 @@ export function CollectiveWisdomPanel({ profile }: Props) {
           </div>
           <div className="my-3 grid gap-1 font-mono text-[11px]">
             <strong className="font-sans text-xs">{copy.reviewedHashes}</strong>
-            <span>content {review.hashes.content}</span>
-            <span>author description {review.hashes.author_description}</span>
-            <span>package manifest {review.hashes.package_manifest}</span>
+            <span>{reviewUi.contentHash} {review.hashes.content}</span>
+            <span>{reviewUi.authorDescriptionHash} {review.hashes.author_description}</span>
+            <span>{reviewUi.packageManifestHash} {review.hashes.package_manifest}</span>
           </div>
           {review.files.map(file => (
             <WisdomFileEditor
@@ -1233,8 +1243,8 @@ export function CollectiveWisdomPanel({ profile }: Props) {
                 {busy === review.draft.id
                   ? copy.submitting
                   : review.publication_mode === 'open'
-                    ? 'Publish to team'
-                    : 'Submit for approval'}
+                    ? reviewUi.publishToTeam
+                    : reviewUi.submitForApproval}
               </Button>
             </div>
           </div>

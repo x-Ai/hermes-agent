@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BrandMark } from '../components/brand-mark'
 import { Button } from '../components/button'
 import { Loader } from '../components/loader'
-import { useInstallerI18n } from '../i18n'
+import { installerStageName, useInstallerI18n } from '../i18n'
 import { formatDuration, formatElapsed } from '../lib/format'
 import { $mode, $progress, type BootstrapStateModel, cancelInstall, type StageState } from '../store'
 
@@ -20,7 +20,7 @@ interface ProgressProps {
  * of the product.
  */
 export default function ProgressScreen({ bootstrap }: ProgressProps) {
-  const { t } = useInstallerI18n()
+  const { locale, t } = useInstallerI18n()
   const progress = useStore($progress)
   const mode = useStore($mode)
   const [showLogs, setShowLogs] = useState(false)
@@ -113,7 +113,7 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
                   key={name}
                 >
                   {rec.state === 'running' && <Loader className="-ml-2 size-6 shrink-0" label={t.common.loading} />}
-                  <span className="flex-1 truncate">{t.progress.stageNames[name] || rec.info.title}</span>
+                  <span className="flex-1 truncate">{installerStageName(locale, name, rec.info.title)}</span>
                   {meta && <span className="text-xs tabular-nums text-muted-foreground/70">{meta}</span>}
                   <StateIcon state={rec.state ?? null} />
                 </li>

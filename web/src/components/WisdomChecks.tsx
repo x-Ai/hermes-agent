@@ -1,16 +1,11 @@
 import { AlertTriangle, CheckCircle2, CircleHelp, Loader2, XCircle } from 'lucide-react'
 
 import type { WisdomReviewCheck, WisdomReviewCheckRow, WisdomReviewStatus } from '@/lib/api'
+import { useI18n } from '@/i18n'
+import { en } from '@/i18n/en'
 
-const PROFESSIONALISM_LABELS: Record<string, string> = {
-  profanity_or_abuse: 'Profanity or abusive language',
-  hate_or_harassment: 'Hate or harassment',
-  sexual_or_graphic_language: 'Sexual or graphic language',
-  manipulative_or_spam: 'Manipulative, deceptive, or spam-like wording'
-}
-
-function statusLabel(status: WisdomReviewStatus): string {
-  return status.replaceAll('_', ' ').replace(/^./, value => value.toUpperCase())
+function statusLabel(status: WisdomReviewStatus, labels: Record<string, string>): string {
+  return labels[status] ?? status.replaceAll('_', ' ').replace(/^./, value => value.toUpperCase())
 }
 
 function StatusIcon({ status }: { status: WisdomReviewStatus }) {
@@ -31,27 +26,33 @@ function tone(status: WisdomReviewStatus): string {
 }
 
 export function WisdomCheckBadge({ label, value }: { label: string; value?: WisdomReviewCheck | null }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const status = value?.status ?? 'unavailable'
   return (
     <span className={`inline-flex items-center gap-1 border px-2 py-1 text-[11px] ${tone(status)}`}>
       <StatusIcon status={status} />
-      {label}: {statusLabel(status)}
+      {label}: {statusLabel(status, copy.statusLabels)}
     </span>
   )
 }
 
-function rowLabel(row: WisdomReviewCheckRow): string {
-  return row.label || PROFESSIONALISM_LABELS[row.key] || statusLabel(row.key as WisdomReviewStatus)
+function rowLabel(
+  row: WisdomReviewCheckRow,
+  professionalismLabels: Record<string, string>,
+  statusLabels: Record<string, string>
+): string {
+  return row.label || professionalismLabels[row.key] || statusLabel(row.key as WisdomReviewStatus, statusLabels)
 }
 
 function CheckTable({ label, note, value }: { label: string; note: string; value?: WisdomReviewCheck | null }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const status = value?.status ?? 'unavailable'
   const rows = value?.checks ?? []
   return (
     <section aria-label={label} className="border-t border-border py-3 first:border-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-medium">{label}</h4>
-        <WisdomCheckBadge label="Result" value={{ status }} />
+        <WisdomCheckBadge label={copy.result} value={{ status }} />
       </div>
       {value?.summary && <p className="mt-1 text-xs text-text-secondary">{value.summary}</p>}
       <p className="mt-1 text-[11px] text-text-tertiary">{note}</p>
@@ -60,26 +61,28 @@ function CheckTable({ label, note, value }: { label: string; note: string; value
           <table className="w-full border-collapse text-left text-xs">
             <thead className="text-text-tertiary">
               <tr>
-                <th className="border-b border-border py-2 pr-3 font-medium">Check</th>
-                <th className="border-b border-border py-2 pr-3 font-medium">Status</th>
-                <th className="border-b border-border py-2 font-medium">Details</th>
+                <th className="border-b border-border py-2 pr-3 font-medium">{copy.check}</th>
+                <th className="border-b border-border py-2 pr-3 font-medium">{copy.status}</th>
+                <th className="border-b border-border py-2 font-medium">{copy.details}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map(row => (
                 <tr key={row.key}>
-                  <th className="border-b border-border/60 py-2 pr-3 font-normal">{rowLabel(row)}</th>
+                  <th className="border-b border-border/60 py-2 pr-3 font-normal">
+                    {rowLabel(row, copy.professionalismLabels, copy.statusLabels)}
+                  </th>
                   <td className="border-b border-border/60 py-2 pr-3">
                     <span className="inline-flex items-center gap-1">
-                      <StatusIcon status={row.status} /> {statusLabel(row.status)}
+                      <StatusIcon status={row.status} /> {statusLabel(row.status, copy.statusLabels)}
                     </span>
                   </td>
                   <td className="border-b border-border/60 py-2 text-text-secondary">
                     {row.details.length > 0
                       ? row.details.join(' ')
                       : row.finding_count > 0
-                        ? `${row.finding_count} finding${row.finding_count === 1 ? '' : 's'}`
-                        : 'No known matches detected'}
+                        ? copy.findings(row.finding_count)
+                        : copy.noKnownMatches}
                   </td>
                 </tr>
               ))}
@@ -98,20 +101,21 @@ export function WisdomReviewTables({
   professionalism?: WisdomReviewCheck | null
   security?: WisdomReviewCheck | null
 }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   return (
     <div className="mt-3 border-y border-border">
       <CheckTable
-        label={security?.source === 'local_preflight' ? 'Security check (local preflight)' : 'Security check'}
+        label={security?.source === 'local_preflight' ? copy.securityLocalPreflight : copy.securityCheck}
         note={
           security?.source === 'local_preflight'
-            ? 'Local checks complete. Required Gateway checks run after you confirm upload and before publication.'
-            : 'Deterministic Gateway scan. A pass means no known matches were detected, not that the package is certified secure.'
+            ? copy.securityLocalNote
+            : copy.securityGatewayNote
         }
         value={security}
       />
       <CheckTable
-        label="Professionalism check"
-        note="Agent-assessed and advisory. It does not block publication or installation."
+        label={copy.professionalismCheck}
+        note={copy.professionalismNote}
         value={professionalism}
       />
     </div>

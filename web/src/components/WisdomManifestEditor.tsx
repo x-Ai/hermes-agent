@@ -5,6 +5,8 @@ import { Button } from '@nous-research/ui/ui/components/button'
 import { Checkbox } from '@nous-research/ui/ui/components/checkbox'
 import { Input } from '@nous-research/ui/ui/components/input'
 import { Label } from '@nous-research/ui/ui/components/label'
+import { useI18n } from '@/i18n'
+import { en } from '@/i18n/en'
 import { parseWisdomManifest, wisdomManifestValidationError } from '@/lib/wisdom-manifest'
 import type {
   WisdomManifestV1,
@@ -55,6 +57,7 @@ function StringListField({
   placeholder,
   onChange
 }: StringListFieldProps) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   return (
     <div className="space-y-2">
@@ -75,7 +78,7 @@ function StringListField({
             }
           />
           <Button
-            aria-label={`Remove ${itemLabel} ${index + 1}`}
+            aria-label={copy.removeItem(itemLabel, index + 1)}
             size="icon"
             outlined
             disabled={disabled}
@@ -92,7 +95,7 @@ function StringListField({
         onClick={() => onChange([...value, ''])}
         prefix={<Plus className="h-3.5 w-3.5" />}
       >
-        Add {itemLabel}
+        {copy.addItem(itemLabel)}
       </Button>
     </div>
   )
@@ -113,6 +116,7 @@ function PresetMultiSelect({
   disabled?: boolean
   onChange: (value: string[]) => void
 }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   const presets = new Set(options.map(option => option.value))
   const custom = value.filter(item => !presets.has(item))
@@ -144,8 +148,8 @@ function PresetMultiSelect({
         })}
       </div>
       <StringListField
-        label={`Other ${label.toLowerCase()}`}
-        description="Keep this empty unless the skill targets a platform not listed above."
+        label={copy.other(label)}
+        description={copy.unlistedTargetHint}
         itemLabel={`other ${label.toLowerCase().replace(/s$/, '')}`}
         value={custom}
         disabled={disabled}
@@ -192,6 +196,7 @@ function ToolRequirements({
   disabled?: boolean
   onChange: (value: WisdomToolRequirement[]) => void
 }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   return (
     <div className="space-y-3">
@@ -199,7 +204,7 @@ function ToolRequirements({
         <div key={index} className="grid gap-3 border border-border/80 p-3 sm:grid-cols-2">
           <div>
             <Label htmlFor={`${id}-tool-${index}`} className="text-xs">
-              Tool name
+              {copy.toolName}
             </Label>
             <Input
               id={`${id}-tool-${index}`}
@@ -216,7 +221,7 @@ function ToolRequirements({
           </div>
           <div>
             <Label htmlFor={`${id}-tool-version-${index}`} className="text-xs">
-              Minimum version (optional)
+              {copy.minimumVersionOptional}
             </Label>
             <Input
               id={`${id}-tool-version-${index}`}
@@ -235,8 +240,8 @@ function ToolRequirements({
           </div>
           <BooleanField
             id={`${id}-tool-admin-${index}`}
-            label="Administrator permission required"
-            description="Installing or enabling this tool needs an administrator's action."
+            label={copy.adminRequired}
+            description={copy.adminRequiredDescription}
             checked={tool.requires_admin}
             disabled={disabled}
             onChange={requires_admin =>
@@ -244,7 +249,7 @@ function ToolRequirements({
             }
           />
           <div className="flex items-center justify-between gap-3 text-[11px] text-text-tertiary">
-            <span>Automatic installation is always off.</span>
+            <span>{copy.autoInstallOff}</span>
             <Button
               size="sm"
               outlined
@@ -252,7 +257,7 @@ function ToolRequirements({
               onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}
               prefix={<Trash2 className="h-3.5 w-3.5" />}
             >
-              Remove
+              {copy.remove}
             </Button>
           </div>
         </div>
@@ -266,7 +271,7 @@ function ToolRequirements({
         }
         prefix={<Plus className="h-3.5 w-3.5" />}
       >
-        Add tool
+        {copy.addTool}
       </Button>
     </div>
   )
@@ -281,6 +286,7 @@ function PluginRequirements({
   disabled?: boolean
   onChange: (value: WisdomPluginRequirement[]) => void
 }) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   return (
     <div className="space-y-3">
@@ -288,7 +294,7 @@ function PluginRequirements({
         <div key={index} className="grid gap-3 border border-border/80 p-3 sm:grid-cols-2">
           <div>
             <Label htmlFor={`${id}-plugin-${index}`} className="text-xs">
-              Plugin ID
+              {copy.pluginId}
             </Label>
             <Input
               id={`${id}-plugin-${index}`}
@@ -305,7 +311,7 @@ function PluginRequirements({
           </div>
           <div>
             <Label htmlFor={`${id}-plugin-version-${index}`} className="text-xs">
-              Minimum version (optional)
+              {copy.minimumVersionOptional}
             </Label>
             <Input
               id={`${id}-plugin-version-${index}`}
@@ -324,8 +330,8 @@ function PluginRequirements({
           </div>
           <BooleanField
             id={`${id}-plugin-required-${index}`}
-            label="Required"
-            description="Without this plugin, the skill cannot provide its complete behavior."
+            label={copy.required}
+            description={copy.requiredPluginDescription}
             checked={plugin.required}
             disabled={disabled}
             onChange={required =>
@@ -340,7 +346,7 @@ function PluginRequirements({
               onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}
               prefix={<Trash2 className="h-3.5 w-3.5" />}
             >
-              Remove
+              {copy.remove}
             </Button>
           </div>
         </div>
@@ -352,13 +358,14 @@ function PluginRequirements({
         onClick={() => onChange([...value, { id: '', minimum_version: null, required: true }])}
         prefix={<Plus className="h-3.5 w-3.5" />}
       >
-        Add plugin
+        {copy.addPlugin}
       </Button>
     </div>
   )
 }
 
 export function WisdomSystemSpecificationEditor({ value, disabled = false, onChange }: SpecificationEditorProps) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   const update = <K extends keyof WisdomSystemSpecification>(key: K, next: WisdomSystemSpecification[K]) => {
     onChange({ ...value, [key]: next })
@@ -367,17 +374,15 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
   return (
     <div className="space-y-4">
       <p className="border border-border bg-muted/10 p-3 text-[11px] leading-4 text-text-secondary">
-        Hermes pre-fills new drafts from this authoring device and requirements explicitly recorded on the skill.
-        Review these values before sharing: selected platforms and architectures restrict where teammates can install
-        the skill. Clear every selection only when the skill is known to work everywhere.
+        {copy.compatibilityIntro}
       </p>
       <fieldset className="grid gap-4 border border-border p-4 sm:grid-cols-2">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Compatibility targets</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.compatibilityTargets}</legend>
         <div>
           <Label htmlFor={`${id}-hermes-version`} className="text-xs font-medium">
-            Minimum Hermes version
+            {copy.minimumHermesVersion}
           </Label>
-          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">Older Hermes installations will be blocked.</p>
+          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">{copy.olderHermesBlocked}</p>
           <Input
             id={`${id}-hermes-version`}
             disabled={disabled}
@@ -388,9 +393,9 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
         </div>
         <div>
           <Label htmlFor={`${id}-context-window`} className="text-xs font-medium">
-            Minimum model context window
+            {copy.minimumContextWindow}
           </Label>
-          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">Leave blank when no minimum is required.</p>
+          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">{copy.noMinimum}</p>
           <Input
             id={`${id}-context-window`}
             type="number"
@@ -407,34 +412,34 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
           />
         </div>
         <PresetMultiSelect
-          label="Platforms"
-          description="Checked systems are the allowed install targets. New drafts start with this authoring system."
+          label={copy.platforms}
+          description={copy.platformsDescription}
           value={value.platforms}
           options={PLATFORM_OPTIONS}
           disabled={disabled}
           onChange={platforms => update('platforms', platforms)}
         />
         <PresetMultiSelect
-          label="Architectures"
-          description="Checked processors are the allowed install targets. New drafts start with this device."
+          label={copy.architectures}
+          description={copy.architecturesDescription}
           value={value.architectures}
           options={ARCHITECTURE_OPTIONS}
           disabled={disabled}
           onChange={architectures => update('architectures', architectures)}
         />
         <StringListField
-          label="Model capabilities"
-          description="Capabilities the active model must provide, such as vision or tool use."
-          itemLabel="model capability"
+          label={copy.modelCapabilities}
+          description={copy.modelCapabilitiesDescription}
+          itemLabel={copy.modelCapability}
           value={value.model.capabilities}
           disabled={disabled}
           placeholder="vision"
           onChange={capabilities => update('model', { ...value.model, capabilities })}
         />
         <StringListField
-          label="Hardware"
-          description="Physical hardware requirements, such as a GPU."
-          itemLabel="hardware requirement"
+          label={copy.hardware}
+          description={copy.hardwareDescription}
+          itemLabel={copy.hardwareRequirement}
           value={value.hardware}
           disabled={disabled}
           placeholder="gpu"
@@ -443,39 +448,39 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
       </fieldset>
 
       <fieldset className="border border-border p-4">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Runtime access</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.runtimeAccess}</legend>
         <p className="mb-4 text-[11px] leading-4 text-text-tertiary">
-          These requirements are checked locally before installation. They do not grant permissions by themselves.
+          {copy.runtimeAccessDescription}
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <BooleanField
             id={`${id}-shell`}
-            label="Shell commands"
-            description="The skill needs to run terminal commands."
+            label={copy.shellCommands}
+            description={copy.shellCommandsDescription}
             checked={value.runtime.shell}
             disabled={disabled}
             onChange={shell => update('runtime', { ...value.runtime, shell })}
           />
           <BooleanField
             id={`${id}-browser`}
-            label="Browser control"
-            description="The skill needs an interactive browser."
+            label={copy.browserControl}
+            description={copy.browserControlDescription}
             checked={value.runtime.browser}
             disabled={disabled}
             onChange={browser => update('runtime', { ...value.runtime, browser })}
           />
           <BooleanField
             id={`${id}-code`}
-            label="Code execution"
-            description="The skill needs a code-execution environment."
+            label={copy.codeExecution}
+            description={copy.codeExecutionDescription}
             checked={value.runtime.code}
             disabled={disabled}
             onChange={code => update('runtime', { ...value.runtime, code })}
           />
           <BooleanField
             id={`${id}-sandbox`}
-            label="Sandbox required"
-            description="The skill must run with sandbox isolation enabled."
+            label={copy.sandboxRequired}
+            description={copy.sandboxRequiredDescription}
             checked={value.runtime.sandbox}
             disabled={disabled}
             onChange={sandbox => update('runtime', { ...value.runtime, sandbox })}
@@ -484,20 +489,19 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
       </fieldset>
 
       <fieldset className="border border-border p-4">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Tools and plugins</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.toolsAndPlugins}</legend>
         <div className="space-y-5">
           <div>
-            <h4 className="text-xs font-medium">Tools</h4>
+            <h4 className="text-xs font-medium">{copy.tools}</h4>
             <p className="mb-3 mt-0.5 text-[11px] text-text-tertiary">
-              Hermes pre-fills explicit skill requirements and checks whether they are enabled. This manifest can never
-              install them automatically.
+              {copy.toolsDescription}
             </p>
             <ToolRequirements value={value.tools} disabled={disabled} onChange={tools => update('tools', tools)} />
           </div>
           <div className="border-t border-border pt-4">
-            <h4 className="text-xs font-medium">Plugins</h4>
+            <h4 className="text-xs font-medium">{copy.plugins}</h4>
             <p className="mb-3 mt-0.5 text-[11px] text-text-tertiary">
-              Hermes pre-fills explicitly declared plugin IDs. Confirm whether each is required.
+              {copy.pluginsDescription}
             </p>
             <PluginRequirements
               value={value.plugins}
@@ -509,20 +513,20 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
       </fieldset>
 
       <fieldset className="grid gap-5 border border-border p-4 sm:grid-cols-2">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Credentials and connections</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.credentialsAndConnections}</legend>
         <StringListField
-          label="Credentials"
-          description="Names only. Secret values are never included in the manifest."
-          itemLabel="credential"
+          label={copy.credentials}
+          description={copy.credentialsDescription}
+          itemLabel={copy.credential}
           value={value.credentials}
           disabled={disabled}
           placeholder="EXAMPLE_TOKEN"
           onChange={credentials => update('credentials', credentials)}
         />
         <StringListField
-          label="Connections"
-          description="Configured services or linked accounts the skill needs."
-          itemLabel="connection"
+          label={copy.connections}
+          description={copy.connectionsDescription}
+          itemLabel={copy.connection}
           value={value.connections}
           disabled={disabled}
           placeholder="team-mcp"
@@ -531,41 +535,41 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
       </fieldset>
 
       <fieldset className="grid gap-5 border border-border p-4 sm:grid-cols-2">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Data access</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.dataAccess}</legend>
         <StringListField
-          label="Filesystem read access"
-          description="Paths the skill needs to read."
-          itemLabel="read path"
+          label={copy.filesystemRead}
+          description={copy.filesystemReadDescription}
+          itemLabel={copy.readPath}
           value={value.filesystem.read}
           disabled={disabled}
           placeholder="~/project"
           onChange={read => update('filesystem', { ...value.filesystem, read })}
         />
         <StringListField
-          label="Filesystem write access"
-          description="Paths the skill needs to modify."
-          itemLabel="write path"
+          label={copy.filesystemWrite}
+          description={copy.filesystemWriteDescription}
+          itemLabel={copy.writePath}
           value={value.filesystem.write}
           disabled={disabled}
           placeholder="~/project/output"
           onChange={write => update('filesystem', { ...value.filesystem, write })}
         />
         <StringListField
-          label="Network destinations"
-          description="Hosts or services the skill needs to contact."
-          itemLabel="network destination"
+          label={copy.networkDestinations}
+          description={copy.networkDestinationsDescription}
+          itemLabel={copy.networkDestination}
           value={value.network.destinations}
           disabled={disabled}
           placeholder="api.example.com"
           onChange={destinations => update('network', { destinations })}
         />
         <StringListField
-          label="Known limitations"
-          description="Important constraints teammates should understand before installation."
-          itemLabel="known limitation"
+          label={copy.knownLimitations}
+          description={copy.knownLimitationsDescription}
+          itemLabel={copy.knownLimitation}
           value={value.known_limitations}
           disabled={disabled}
-          placeholder="Manual verification is still required"
+          placeholder={copy.knownLimitationsDescription}
           onChange={known_limitations => update('known_limitations', known_limitations)}
         />
       </fieldset>
@@ -574,6 +578,7 @@ export function WisdomSystemSpecificationEditor({ value, disabled = false, onCha
 }
 
 export function WisdomManifestEditor({ value, disabled = false, onChange }: ManifestEditorProps) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const id = useId()
   let manifest: WisdomManifestV1
   try {
@@ -581,7 +586,7 @@ export function WisdomManifestEditor({ value, disabled = false, onChange }: Mani
   } catch (reason) {
     return (
       <div role="alert" className="mt-3 border border-red-500/50 p-3 text-xs text-red-300">
-        This server-reviewed manifest cannot be safely represented as a form. Reload the draft and try again.{' '}
+        {copy.formUnavailable}{' '}
         {reason instanceof Error ? reason.message : String(reason)}
       </div>
     )
@@ -598,12 +603,12 @@ export function WisdomManifestEditor({ value, disabled = false, onChange }: Mani
         </div>
       )}
       <fieldset className="grid gap-4 border border-border p-4 sm:grid-cols-[1fr_auto]">
-        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">Skill identity</legend>
+        <legend className="px-2 text-xs font-semibold uppercase tracking-wide">{copy.skillIdentity}</legend>
         <div>
           <Label htmlFor={`${id}-manifest-name`} className="text-xs font-medium">
-            Skill name
+            {copy.skillName}
           </Label>
-          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">The package name recorded in the manifest.</p>
+          <p className="mb-2 mt-0.5 text-[11px] text-text-tertiary">{copy.skillNameDescription}</p>
           <Input
             id={`${id}-manifest-name`}
             disabled={disabled}
@@ -613,9 +618,9 @@ export function WisdomManifestEditor({ value, disabled = false, onChange }: Mani
           />
         </div>
         <div className="min-w-32">
-          <Label className="text-xs font-medium">Schema version</Label>
+          <Label className="text-xs font-medium">{copy.schemaVersion}</Label>
           <p className="mt-2 font-mono text-sm">1</p>
-          <p className="mt-0.5 text-[11px] text-text-tertiary">Fixed by the V1 contract.</p>
+          <p className="mt-0.5 text-[11px] text-text-tertiary">{copy.schemaVersionDescription}</p>
         </div>
       </fieldset>
       <WisdomSystemSpecificationEditor

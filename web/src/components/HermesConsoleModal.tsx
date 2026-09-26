@@ -19,6 +19,8 @@ import {
 import { cn, themedBody } from "@/lib/utils";
 import { useTheme } from "@/themes";
 import { errorMessage } from "@/lib/api-error";
+import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 
 type ConsoleFrame =
   | {
@@ -82,7 +84,7 @@ function buildTerminalTheme(background: string, foreground: string) {
     brightBlue: "#9dbaff",
     brightMagenta: "#e4b7ff",
     brightCyan: "#8ef0ff",
-    brightWhite: "#ffffff",
+    brightWhite: "#ffffff"
   };
 }
 
@@ -104,6 +106,8 @@ function isPrintable(data: string): boolean {
 }
 
 export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).console;
   const modalRef = useModalBehavior({ open, onClose });
   const hostRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<XtermTerminal | null>(null);
@@ -187,11 +191,11 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
       setConnectionState("running");
       if (!sendFrame({ type: "input", line })) {
         activeCommandRef.current = false;
-        writeLine(term, "\x1b[31mConsole is not connected.\x1b[0m");
+        writeLine(term, `\x1b[31m${copy.notConnected}\x1b[0m`);
         showPrompt();
       }
     },
-    [cancelCommand, sendFrame, showPrompt],
+    [cancelCommand, copy.notConnected, sendFrame, showPrompt]
   );
 
   const recallHistory = useCallback(
@@ -214,9 +218,9 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         }
       }
       const idx = historyIndexRef.current;
-      redrawInput(idx === null ? "" : history[idx] ?? "");
+      redrawInput(idx === null ? "" : (history[idx] ?? ""));
     },
-    [redrawInput],
+    [redrawInput]
   );
 
   const handleInputData = useCallback(
@@ -272,7 +276,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         }
       }
     },
-    [cancelCommand, recallHistory, showPrompt, submitLine],
+    [cancelCommand, recallHistory, showPrompt, submitLine]
   );
 
   const handleFrame = useCallback(
@@ -299,7 +303,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
       }
 
       if (frame.type === "error") {
-        writeLine(term, `\x1b[31m${frame.message || "Command failed."}\x1b[0m`);
+        writeLine(term, `\x1b[31m${frame.message || copy.commandFailed}\x1b[0m`);
         return;
       }
 
@@ -310,7 +314,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         if (frame.message) {
           writeLine(term, `\x1b[33m${frame.message}\x1b[0m`);
         }
-        inputPromptRef.current = "Confirm? [y/N] ";
+        inputPromptRef.current = copy.confirmPrompt;
         lineRef.current = "";
         term.write(inputPromptRef.current);
         return;
@@ -326,10 +330,10 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
           return;
         }
         if (frame.status === "timeout") {
-          writeLine(term, "\x1b[31mCommand timed out.\x1b[0m");
+          writeLine(term, `\x1b[31m${copy.timedOut}\x1b[0m`);
         }
         if (frame.status === "cancelled") {
-          writeLine(term, "\x1b[33mCancelled.\x1b[0m");
+          writeLine(term, `\x1b[33m${copy.cancelled}\x1b[0m`);
         }
         pendingCommandRef.current = null;
         setConnectionState("ready");
@@ -342,7 +346,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         showPrompt();
       }
     },
-    [showPrompt],
+    [copy.cancelled, copy.confirmPrompt, copy.timedOut, showPrompt]
   );
 
   useEffect(() => {
@@ -363,8 +367,8 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
       scrollback: 3000,
       theme: buildTerminalTheme(
         theme.terminalBackground ?? "#000000",
-        theme.terminalForeground ?? "#f0e6d2",
-      ),
+        theme.terminalForeground ?? "#f0e6d2"
+      )
     });
     termRef.current = term;
 
@@ -403,7 +407,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
     setConnectionState("connecting");
     setConsoleProfile(profile || "current");
     hasReadyFrameRef.current = false;
-    writeLine(term, "\x1b[2mConnecting to Hermes Console...\x1b[0m");
+    writeLine(term, `\x1b[2m${copy.connectingMessage}\x1b[0m`);
 
     void (async () => {
       try {
@@ -417,21 +421,21 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
           setConnectionState("connecting");
         };
 
-        ws.onmessage = (ev) => {
+        ws.onmessage = ev => {
           try {
             const frame = JSON.parse(String(ev.data)) as ConsoleFrame;
             handleFrame(frame);
           } catch {
-            writeLine(term, "\x1b[31mMalformed console frame.\x1b[0m");
+            writeLine(term, `\x1b[31m${copy.malformedFrame}\x1b[0m`);
           }
         };
 
         ws.onerror = () => {
           setConnectionState("error");
-          writeLine(term, "\x1b[31mConsole websocket error.\x1b[0m");
+          writeLine(term, `\x1b[31m${copy.websocketError}\x1b[0m`);
         };
 
-        ws.onclose = (ev) => {
+        ws.onclose = ev => {
           if (maybeReloadForLoopbackWsAuthFailure(ev.code)) {
             return;
           }
@@ -442,22 +446,20 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
           setConnectionState(ev.code === 1000 ? "closed" : "error");
           // Close code and server reason are diagnostics, not user copy.
           console.warn(`[console] websocket closed code=${ev.code}${ev.reason ? ` reason=${ev.reason}` : ""}`);
+          const reason = ev.reason ? ` ${ev.reason}` : "";
           const message =
             ev.code === 1006 && !hasReadyFrameRef.current
-              ? "Console could not connect to the dashboard server. Check that `hermes dashboard` is running, then click Reconnect."
+              ? copy.handshakeFailed
               : ev.code === 1000
-                ? "Console closed."
-                : "Console disconnected from the dashboard server. Click Reconnect to try again.";
+                ? copy.closedMessage.replace("{code}", String(ev.code)).replace("{reason}", "")
+                : copy.closedMessage.replace("{code}", String(ev.code)).replace("{reason}", reason);
           writeLine(term, `\x1b[31m${message}\x1b[0m`);
         };
       } catch (err) {
         if (cancelled) return;
         setConnectionState("error");
         console.warn(`[console] connect failed: ${errorMessage(err)}`);
-        writeLine(
-          term,
-          "\x1b[31mConsole could not connect to the dashboard server. Check that `hermes dashboard` is running, then click Reconnect.\x1b[0m",
-        );
+        writeLine(term, `\x1b[31m${copy.unavailable.replace("{error}", errorMessage(err))}\x1b[0m`);
       }
     })();
 
@@ -476,7 +478,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
       activeCommandRef.current = false;
       hasReadyFrameRef.current = false;
     };
-  }, [connectNonce, handleFrame, handleInputData, open, profile, theme]);
+  }, [connectNonce, copy, handleFrame, handleInputData, open, profile, theme]);
 
   useEffect(() => {
     if (!open) return;
@@ -484,7 +486,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
     if (!term) return;
     term.options.theme = buildTerminalTheme(
       theme.terminalBackground ?? "#000000",
-      theme.terminalForeground ?? "#f0e6d2",
+      theme.terminalForeground ?? "#f0e6d2"
     );
   }, [open, theme]);
 
@@ -503,7 +505,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
     <div
       ref={modalRef}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 p-3 sm:p-4"
-      onClick={(event) => event.target === event.currentTarget && onClose()}
+      onClick={event => event.target === event.currentTarget && onClose()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="hermes-console-title"
@@ -511,7 +513,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
       <div
         className={cn(
           themedBody,
-          "relative flex h-[min(82dvh,760px)] w-full max-w-5xl flex-col border border-border bg-card shadow-2xl",
+          "relative flex h-[min(82dvh,760px)] w-full max-w-5xl flex-col border border-border bg-card shadow-2xl"
         )}
       >
         <header className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-3">
@@ -523,10 +525,10 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
               id="hermes-console-title"
               className="font-mondwest text-display text-base tracking-wider"
             >
-              Hermes Console
+              {copy.title}
             </h2>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge tone={statusTone}>{connectionState}</Badge>
+              <Badge tone={statusTone}>{copy.states[connectionState]}</Badge>
               <span className="font-mono">{consoleProfile}</span>
               {(connectionState === "closed" || connectionState === "error") && (
                 <Button
@@ -536,9 +538,9 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
                     setConnectionState("connecting");
                     setConnectNonce((n) => n + 1);
                   }}
-                  aria-label="Reconnect console"
+                  aria-label={copy.reconnect}
                 >
-                  Reconnect
+                  {copy.reconnect}
                 </Button>
               )}
             </div>
@@ -548,7 +550,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
             size="icon"
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground"
-            aria-label="Close console"
+            aria-label={copy.close}
           >
             <X />
           </Button>
@@ -561,6 +563,6 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

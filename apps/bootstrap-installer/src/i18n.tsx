@@ -62,6 +62,7 @@ const STAGE_IDS = [
   'node-deps',
   'path',
   'config',
+  'products',
   'setup',
   'gateway',
   'desktop',
@@ -90,6 +91,7 @@ const stageNames = {
     'node-deps': 'Install browser-tool dependencies',
     path: 'Install hermes command',
     config: 'Prepare config and skills',
+    products: 'Install command, apps, and desktop',
     setup: 'Configure API keys and settings',
     gateway: 'Configure gateway service',
     desktop: 'Build desktop app',
@@ -114,6 +116,7 @@ const stageNames = {
     'node-deps': '安装浏览器工具依赖',
     path: '安装 hermes 命令',
     config: '准备配置和技能',
+    products: '安装命令、应用和桌面端',
     setup: '配置 API 密钥和设置',
     gateway: '配置网关服务',
     desktop: '构建桌面应用',
@@ -138,6 +141,7 @@ const stageNames = {
     'node-deps': '安裝瀏覽器工具相依套件',
     path: '安裝 hermes 指令',
     config: '準備設定與技能',
+    products: '安裝命令、應用程式和桌面版',
     setup: '設定 API 金鑰與偏好設定',
     gateway: '設定閘道服務',
     desktop: '建置桌面應用程式',
@@ -162,6 +166,7 @@ const stageNames = {
     'node-deps': 'ブラウザーツールの依存関係をインストール',
     path: 'hermes コマンドをインストール',
     config: '設定とスキルを準備',
+    products: 'コマンド、アプリ、デスクトップ版をインストール',
     setup: 'API キーと設定を構成',
     gateway: 'ゲートウェイサービスを設定',
     desktop: 'デスクトップアプリをビルド',
@@ -186,6 +191,7 @@ const stageNames = {
     'node-deps': 'تثبيت تبعيات أداة المتصفح',
     path: 'تثبيت أمر hermes',
     config: 'إعداد التكوين والمهارات',
+    products: 'تثبيت الأمر والتطبيقات وتطبيق سطح المكتب',
     setup: 'إعداد مفاتيح API والإعدادات',
     gateway: 'إعداد خدمة البوابة',
     desktop: 'بناء تطبيق سطح المكتب',
@@ -210,6 +216,7 @@ const stageNames = {
     'node-deps': 'Установка зависимостей браузерных инструментов',
     path: 'Установка команды hermes',
     config: 'Подготовка конфигурации и навыков',
+    products: 'Установка команды, приложений и настольного приложения',
     setup: 'Настройка ключей API и параметров',
     gateway: 'Настройка службы шлюза',
     desktop: 'Сборка приложения',
@@ -550,6 +557,10 @@ export function InstallerI18nProvider({ children }: { children: ReactNode }) {
 
 export function useInstallerI18n(): InstallerI18nValue {
   return useContext(InstallerI18nContext)
+}
+
+export function installerStageName(locale: InstallerLocale, name: string, fallback: string): string {
+  return MESSAGES[locale].progress.stageNames[name] || fallback
 }
 
 export function InstallerLanguageSwitcher() {

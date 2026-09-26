@@ -20,6 +20,123 @@ export type Locale =
 export interface WisdomTranslations {
   syncRecovery?: import('@hermes/shared').WisdomSyncCopy
   notificationPreferences: import('@hermes/shared').WisdomMuteCopy;
+  reviewUi?: {
+    notifications: string
+    professionalism: string
+    security: string
+    result: string
+    check: string
+    status: string
+    details: string
+    noKnownMatches: string
+    findings: (count: number) => string
+    professionalismLabels: Record<string, string>
+    statusLabels: Record<string, string>
+    securityCheck: string
+    securityLocalPreflight: string
+    securityLocalNote: string
+    securityGatewayNote: string
+    professionalismCheck: string
+    professionalismNote: string
+    source: string
+    preview: string
+    localDraft: string
+    serverReviewed: string
+    editorMode: (path: string) => string
+    editFile: (path: string) => string
+    addItem: (item: string) => string
+    removeItem: (item: string, index: number) => string
+    other: (label: string) => string
+    unlistedTargetHint: string
+    toolName: string
+    minimumVersionOptional: string
+    adminRequired: string
+    adminRequiredDescription: string
+    autoInstallOff: string
+    remove: string
+    addTool: string
+    pluginId: string
+    required: string
+    requiredPluginDescription: string
+    addPlugin: string
+    compatibilityIntro: string
+    compatibilityTargets: string
+    minimumHermesVersion: string
+    olderHermesBlocked: string
+    minimumContextWindow: string
+    noMinimum: string
+    platforms: string
+    platformsDescription: string
+    architectures: string
+    architecturesDescription: string
+    modelCapabilities: string
+    modelCapabilitiesDescription: string
+    modelCapability: string
+    hardware: string
+    hardwareDescription: string
+    hardwareRequirement: string
+    runtimeAccess: string
+    runtimeAccessDescription: string
+    shellCommands: string
+    shellCommandsDescription: string
+    browserControl: string
+    browserControlDescription: string
+    codeExecution: string
+    codeExecutionDescription: string
+    sandboxRequired: string
+    sandboxRequiredDescription: string
+    toolsAndPlugins: string
+    tools: string
+    toolsDescription: string
+    plugins: string
+    pluginsDescription: string
+    credentialsAndConnections: string
+    credentials: string
+    credentialsDescription: string
+    credential: string
+    connections: string
+    connectionsDescription: string
+    connection: string
+    dataAccess: string
+    filesystemRead: string
+    filesystemReadDescription: string
+    readPath: string
+    filesystemWrite: string
+    filesystemWriteDescription: string
+    writePath: string
+    networkDestinations: string
+    networkDestinationsDescription: string
+    networkDestination: string
+    knownLimitations: string
+    knownLimitationsDescription: string
+    knownLimitation: string
+    formUnavailable: string
+    skillIdentity: string
+    skillName: string
+    skillNameDescription: string
+    schemaVersion: string
+    schemaVersionDescription: string
+    verifiedPlan: string
+    managedCurrent: string
+    viewInPortal: string
+    ownerReviewExact: string
+    ownerDescriptionUnverified: string
+    editOwnerDescription: string
+    serverChecks: string
+    systemSpecDeclarative: string
+    contentHash: string
+    authorDescriptionHash: string
+    packageManifestHash: string
+    publicationOpen: string
+    publicationModerated: string
+    publishToTeam: string
+    submitForApproval: string
+    actionTimedOut: string
+    actionFailed: (code: string) => string
+    fixSystemSpecification: string
+    manifestRequired: string
+    unknownSkill: string
+  }
   tab: string
   browseHub: string
   title: string

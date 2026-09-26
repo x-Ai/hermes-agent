@@ -34,6 +34,7 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatSessionList } from "@/components/ChatSessionList";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
 import { api } from "@/lib/api";
 import { readStoredWorkspace, writeStoredWorkspace } from "@/lib/chat-workspaces";
 import { latchChatActivation } from "@/lib/chat-activation";
@@ -45,7 +46,6 @@ import { PtyResumeSanitizer } from "@/lib/pty-resume-sanitizer";
 import {
   PTY_CONNECTING_TIMEOUT_MS,
   PTY_KEEPALIVE_INTERVAL_MS,
-  PTY_RECONNECT_INPUT_MESSAGE,
   PTY_RECONNECT_MAX_ATTEMPTS,
   PTY_RESUME_RECONNECT_THROTTLE_MS,
   PTY_RESUME_SANITIZE_WINDOW_MS,
@@ -57,7 +57,6 @@ import {
 } from "@/lib/pty-reconnect";
 import {
   PTY_RESUME_LOADING_MAX_MS,
-  PTY_RESUME_LOADING_MESSAGE,
   shouldFinishResumeHydrationOnChunk,
   shouldShowResumeLoadingOverlay,
 } from "@/lib/pty-resume-loading";
@@ -83,11 +82,6 @@ import {
 } from "@/lib/chatImagePaste";
 import { maybeReloadForLoopbackWsAuthFailure } from "@/lib/dashboard-auth-reload";
 import {
-  PTY_GAVE_UP_BANNER,
-  PTY_RECONNECTING_BANNER,
-  PTY_SESSION_ENDED_MESSAGE,
-  PTY_SESSION_ENDED_TERMINAL_LINE,
-  PTY_START_FAILED_MESSAGE,
   PTY_TOKEN_MISSING_BANNER,
   ptyReconnectExhausted,
   ptyRejectionBanner,
@@ -174,6 +168,8 @@ function terminalLineHeightForWidth(layoutWidthPx: number): number {
 }
 
 export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).chat;
   const hostRef = useRef<HTMLDivElement | null>(null);
   const termWrapRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
@@ -218,7 +214,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     !window.__HERMES_SESSION_TOKEN__ &&
     !window.__HERMES_AUTH_REQUIRED__;
   const [banner, setBanner] = useState<string | null>(() =>
-    tokenMissing ? PTY_TOKEN_MISSING_BANNER.text : null,
+    tokenMissing ? copy.sessionTokenUnavailable : null,
   );
   // Which one-click fix (if any) the banner offers next to its text.
   const [bannerAction, setBannerAction] = useState<PtyBannerAction>(() =>
@@ -354,7 +350,6 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     scope: string;
     title: string | null;
   }>({ scope: "", title: null });
-  const { t } = useI18n();
   const closeMobilePanel = useCallback(() => setMobilePanelOpenRaw(false), []);
   const modelToolsLabel = useMemo(
     () => `${t.app.modelToolsSheetTitle} ${t.app.modelToolsSheetSubtitle}`,
@@ -676,16 +671,14 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
     const reportImageUploadError = (err: unknown) => {
       const message = err instanceof Error ? err.message : String(err);
       console.warn("[dashboard chat] image upload failed:", message);
-      setBanner(`Image upload failed: ${message}`);
+      setBanner(copy.imageUploadFailed.replace("{error}", message));
     };
     const driveImageAttach = async (paths: string[]) => {
       for (const path of paths) {
         if (imageUploadDisposed) return;
         const ws = wsRef.current;
         if (!ws || ws.readyState !== WebSocket.OPEN) {
-          setBanner(
-            "Image uploaded, but chat is not connected — try again.",
-          );
+          setBanner(copy.imageUploadedDisconnected);
           return;
         }
         ws.send(`/image ${path}`);
@@ -1466,7 +1459,25 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
       const rejection = ptyRejectionBanner(ev.code);
       if (rejection) {
         setPtyState("closed");
-        setBanner(rejection.text);
+        const localizedRejection =
+          ev.code === 4401
+            ? (ev.reason
+                ? copy.authFailedReason.replace("{reason}", ev.reason)
+                : copy.authFailed)
+            : ev.code === 4403
+              ? (ev.reason
+                  ? copy.requestRefusedReason.replace("{reason}", ev.reason)
+                  : copy.originRefused)
+              : ev.code === 4404
+                ? (ev.reason
+                    ? copy.chatUnavailableReason.replace("{reason}", ev.reason)
+                    : copy.chatUnavailable)
+                : ev.code === 4408
+                  ? (ev.reason
+                      ? copy.requestRefusedReason.replace("{reason}", ev.reason)
+                      : copy.clientNotPermitted)
+                  : rejection.text;
+        setBanner(localizedRejection);
         setBannerAction(rejection.action);
         return;
       }
@@ -1482,7 +1493,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
       //   4410 = the agent PROCESS exited (real end) → restart affordance.
       //   4409 = superseded by a newer tab attaching the same token → stay quiet.
       if (ev.code === 4410) {
-        term.write(`\r\n\x1b[90m${PTY_SESSION_ENDED_TERMINAL_LINE}\x1b[0m\r\n`);
+        term.write(`\r\n\x1b[90m[${copy.sessionEnded}]\x1b[0m\r\n`);
         setEndedReason("exited");
         setPtyState("ended");
         return;
@@ -1502,7 +1513,9 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
       // `/exit`, or started a new session). NS-504: surface an explicit
       // restart affordance instead of leaving a dead terminal that only a
       // full page refresh could recover.
-      term.write(`\r\n\x1b[90m${PTY_SESSION_ENDED_TERMINAL_LINE}\x1b[0m\r\n`);
+      term.write(
+        `\r\n\x1b[90m[${copy.sessionEndedCode.replace("{code}", String(ev.code))}]\x1b[0m\r\n`,
+      );
       setEndedReason("exited");
       setPtyState("ended");
     };
@@ -1537,9 +1550,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
         ) {
           if (!blockedInputNoticeRef.current) {
             blockedInputNoticeRef.current = true;
-            term.write(
-              `\r\n\x1b[33m[${PTY_RECONNECT_INPUT_MESSAGE}]\x1b[0m\r\n`,
-            );
+            term.write(`\r\n\x1b[33m[${copy.reconnectInputBlocked}]\x1b[0m\r\n`);
           }
           return;
         }
@@ -1814,7 +1825,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
   // dashboard column uses `relative z-2`, which traps `position:fixed`
   // descendants below those layers (see Toast.tsx).
   const reconnectBanner =
-    ptyState === "reconnecting" ? PTY_RECONNECTING_BANNER : null;
+    ptyState === "reconnecting" ? copy.connectionInterrupted.replace("{code}", "") : null;
   const visibleBanner = banner ?? reconnectBanner;
   const showReconnectOverlay =
     ptyState === "reconnecting" || (ptyState === "closed" && !banner);
@@ -1924,7 +1935,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
           <span className="min-w-0 flex-1">{visibleBanner}</span>
           {banner && bannerAction === "reload" && (
             <Button size="sm" outlined onClick={() => window.location.reload()}>
-              Reload page
+              {copy.reloadPage}
             </Button>
           )}
         </div>
@@ -1952,10 +1963,10 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
               <div className="flex max-w-[min(28rem,calc(100vw-3rem))] flex-col items-start gap-2 border border-warning/60 bg-black/80 px-3 py-2 text-xs text-warning shadow-lg">
                 <div className="tracking-wide">
                   {ptyState === "reconnecting"
-                    ? "Chat is reconnecting."
+                    ? copy.reconnecting
                     : reconnectGaveUp
-                      ? PTY_GAVE_UP_BANNER.text
-                      : "Chat disconnected."}
+                      ? copy.reconnectGaveUp
+                      : copy.disconnected}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -1963,18 +1974,18 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
                     outlined
                     onClick={reconnectPty}
                     prefix={<RotateCcw className="h-4 w-4" />}
-                    aria-label="Reconnect chat"
+                    aria-label={copy.reconnect}
                   >
-                    Reconnect now
+                    {copy.reconnectNow}
                   </Button>
                   {ptyState === "closed" && reconnectGaveUp && (
                     <Button
                       size="sm"
                       ghost
                       onClick={() => navigate("/system")}
-                      aria-label="Check server status"
+                      aria-label={copy.checkServerStatus}
                     >
-                      Check server status
+                      {copy.checkServerStatus}
                     </Button>
                   )}
                 </div>
@@ -1987,10 +1998,10 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
               className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
               role="status"
               aria-live="polite"
-              aria-label={PTY_RESUME_LOADING_MESSAGE}
+              aria-label={copy.loadingResume}
             >
               <div className="max-w-[min(28rem,calc(100vw-3rem))] border border-current/30 bg-black/80 px-4 py-3 text-center text-xs tracking-wide text-white/85 shadow-lg">
-                {PTY_RESUME_LOADING_MESSAGE}
+                {copy.loadingResume}
               </div>
             </div>
           )}
@@ -2002,24 +2013,24 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
             <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/60">
               <div className="max-w-[min(32rem,calc(100vw-3rem))] text-center text-sm tracking-wide text-white/80">
                 {endedReason === "start-failed"
-                  ? PTY_START_FAILED_MESSAGE
-                  : PTY_SESSION_ENDED_MESSAGE}
+                  ? copy.startFailed
+                  : copy.sessionEnded}
               </div>
               <div className="flex flex-wrap justify-center gap-2">
                 <Button
                   onClick={startFreshPty}
                   prefix={<RotateCcw className="h-4 w-4" />}
-                  aria-label="Start a new chat session"
+                  aria-label={copy.newSession}
                 >
-                  Start new session
+                  {copy.startNewSession}
                 </Button>
                 {endedReason === "exited" && (
                   <Button
                     outlined
                     onClick={() => navigate("/logs")}
-                    aria-label="Open logs"
+                    aria-label={copy.openLogs}
                   >
-                    Open logs
+                    {copy.openLogs}
                   </Button>
                 )}
               </div>
@@ -2029,8 +2040,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
           <Button
             ghost
             onClick={handleCopyLast}
-            title="Copy last assistant response as raw markdown"
-            aria-label="Copy last assistant response"
+            title={copy.copyLastTitle}
+            aria-label={copy.copyLast}
             className={cn(
               "absolute z-10",
               "normal-case tracking-normal font-normal",
@@ -2046,7 +2057,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
             <span className="inline-flex items-center gap-1.5">
               <Copy className="h-3 w-3 shrink-0" />
               <span className="hidden min-[400px]:inline tracking-wide">
-                {copyState === "copied" ? "copied" : "copy last response"}
+                {copyState === "copied" ? copy.copied : copy.copyLast}
               </span>
             </span>
           </Button>
@@ -2055,8 +2066,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
             <Button
               ghost
               onClick={toggleChatPanel}
-              title="Show side panel (model + sessions)"
-              aria-label="Show chat side panel"
+              title={copy.showPanel}
+              aria-label={copy.showPanel}
               className={cn(
                 "absolute z-10",
                 "normal-case tracking-normal font-normal",
@@ -2071,7 +2082,7 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
               <span className="inline-flex items-center gap-1">
                 <PanelRight className="h-3 w-3 shrink-0" />
                 <span className="hidden min-[400px]:inline tracking-wide">
-                  panel
+                  {copy.panel}
                 </span>
               </span>
             </Button>
@@ -2090,8 +2101,8 @@ export default function ChatPage({ isActive = true }: { isActive?: boolean }) {
                 ghost
                 size="icon"
                 onClick={toggleChatPanel}
-                aria-label="Collapse chat side panel"
-                title="Collapse side panel"
+                aria-label={copy.collapsePanel}
+                title={copy.collapsePanel}
                 className="text-text-secondary hover:text-midground"
               >
                 <X />

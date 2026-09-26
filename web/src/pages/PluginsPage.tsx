@@ -411,12 +411,12 @@ export default function PluginsPage() {
         force: entry.installed,
         enable: false,
       });
-      showToast(`${r.plugin_name ?? entry.name} installed`, "success");
+      showToast(copy.installedToast.replace("{name}", r.plugin_name ?? entry.name), "success");
       if ((r.missing_env?.length ?? 0) > 0)
         showToast(`${t.pluginsPage.missingEnvWarn} ${r.missing_env!.join(", ")}`, "error");
       await Promise.all([loadHub(), loadCatalog()]);
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Install failed", "error");
+      showToast(e instanceof Error ? e.message : copy.installFailed, "error");
     } finally {
       setCatalogBusy(null);
     }

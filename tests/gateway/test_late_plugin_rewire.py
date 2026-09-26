@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from gateway.config import PlatformConfig, Platform
-from gateway.run_plugin_rewire import GatewayPluginRewireMixin
+from gateway.run import GatewayRunner
 from hermes_cli.plugins import PluginContext, PluginManager, PluginManifest, discover_plugins, get_plugin_manager
 from plugins.platforms.telegram.adapter import TelegramAdapter
 
@@ -130,14 +130,12 @@ def test_slack_late_action_handler_registers_one_listener():
 
 
 def test_runner_rewires_live_adapters_on_the_loop_when_plugins_load():
-    class Runner(GatewayPluginRewireMixin):
-        adapters = {Platform.TELEGRAM: MagicMock()}
-
     _write_plugin(Path(os.environ["HERMES_HOME"]))  # something must actually load for the event to fire
     mgr = PluginManager()
 
     async def scenario():
-        runner = Runner()
+        runner = object.__new__(GatewayRunner)
+        runner.adapters = {Platform.TELEGRAM: MagicMock()}
         runner._subscribe_plugin_rewire(mgr)
         runner._subscribe_plugin_rewire(mgr)  # a served-profile rescan re-enters: one listener
         await asyncio.to_thread(mgr.discover_and_load, True)  # fires on another thread

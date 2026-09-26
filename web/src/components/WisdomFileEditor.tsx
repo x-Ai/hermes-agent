@@ -4,6 +4,8 @@ import { Markdown } from '@/components/Markdown'
 import type { WisdomDraftReview } from '@/lib/api'
 import { Button } from '@nous-research/ui/ui/components/button'
 import { WisdomManifestEditor } from './WisdomManifestEditor'
+import { useI18n } from '@/i18n'
+import { en } from '@/i18n/en'
 
 interface Props {
   file: WisdomDraftReview['files'][number]
@@ -14,13 +16,14 @@ interface Props {
 }
 
 export function WisdomFileEditor({ file, value, disabled = false, reviewSource = 'server', onChange }: Props) {
+  const copy = useI18n().t.skills.wisdom.reviewUi ?? en.skills.wisdom.reviewUi!
   const [mode, setMode] = useState<'source' | 'preview'>('source')
 
   if (file.path === 'skill.manifest.json') {
     return (
       <details className="border-t border-border py-3" open>
         <summary className="cursor-pointer font-mono text-xs">
-          {file.path} · {reviewSource === 'local' ? 'local draft' : 'server-reviewed'} {file.hash}
+          {file.path} · {reviewSource === 'local' ? copy.localDraft : copy.serverReviewed} {file.hash}
         </summary>
         <WisdomManifestEditor value={value} disabled={disabled} onChange={onChange} />
       </details>
@@ -32,15 +35,15 @@ export function WisdomFileEditor({ file, value, disabled = false, reviewSource =
   return (
     <details className="border-t border-border py-3" open>
       <summary className="cursor-pointer font-mono text-xs">
-        {file.path} · {reviewSource === 'local' ? 'local draft' : 'server-reviewed'} {file.hash}
+        {file.path} · {reviewSource === 'local' ? copy.localDraft : copy.serverReviewed} {file.hash}
       </summary>
       {supportsPreview && (
-        <div className="mt-3 flex gap-2" aria-label={`${file.path} editor mode`}>
+        <div className="mt-3 flex gap-2" aria-label={copy.editorMode(file.path)}>
           <Button size="xs" outlined={mode !== 'source'} onClick={() => setMode('source')}>
-            Source
+            {copy.source}
           </Button>
           <Button size="xs" outlined={mode !== 'preview'} onClick={() => setMode('preview')}>
-            Preview
+            {copy.preview}
           </Button>
         </div>
       )}
@@ -50,7 +53,7 @@ export function WisdomFileEditor({ file, value, disabled = false, reviewSource =
         </div>
       ) : (
         <textarea
-          aria-label={`Edit ${file.path}`}
+          aria-label={copy.editFile(file.path)}
           className="mt-3 min-h-64 max-h-[32rem] w-full resize-y border border-border bg-background/40 px-3 py-2 font-mono text-xs leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:border-foreground/25 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={disabled}
           spellCheck={false}

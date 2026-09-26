@@ -38,4 +38,26 @@ describe('Chinese Dashboard localization', () => {
     expect(localizePluginDescription('demo-plugin', 'A browser integration', 'zh')).toContain('demo-plugin')
     expect(localizePluginLabel('kanban', 'Kanban', 'zh')).toBe('看板')
   })
+
+  it('keeps every built-in and bundled-plugin sidebar label in Chinese', () => {
+    expect({
+      files: zh.app.nav.files,
+      mcp: zh.app.nav.mcp,
+      channels: zh.app.nav.channels,
+      webhooks: zh.app.nav.webhooks,
+      pairing: zh.app.nav.pairing,
+      system: zh.app.nav.system,
+      kanban: localizePluginLabel('kanban', 'Kanban', 'zh'),
+      achievements: localizePluginLabel('hermes-achievements', 'Achievements', 'zh')
+    }).toEqual({
+      files: '文件',
+      mcp: 'MCP',
+      channels: '消息平台',
+      webhooks: 'Webhook',
+      pairing: '配对管理',
+      system: '系统',
+      kanban: '看板',
+      achievements: '成就'
+    })
+  })
 })

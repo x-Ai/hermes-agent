@@ -100,17 +100,20 @@ const ChatPage = lazy(() => import("@/pages/ChatPage"));
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
+import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizePluginLabel } from "@/i18n/plugin-metadata";
 import type { Translations } from "@/i18n/types";
 import { PluginPage, PluginSlot, usePlugins } from "@/plugins";
 import type { PluginManifest } from "@/plugins";
 import { useTheme } from "@/themes";
 import { isDashboardEmbeddedChatEnabled } from "@/lib/dashboard-flags";
 import { latchChatActivation } from "@/lib/chat-activation";
-import { sharedGatewayProfiles, sharedGatewayRestartDescription } from "@/lib/shared-gateway";
+import { sharedGatewayProfiles } from "@/lib/shared-gateway";
 import { api } from "@/lib/api";
 import type { StatusResponse, UpdateCheckResponse } from "@/lib/api";
 
-function RouteFallback({ label = "Loading…" }: { label?: string }) {
+function RouteFallback({ label }: { label?: string }) {
+  const { t } = useI18n();
   return (
     <div
       className="flex min-h-[12rem] flex-1 items-center justify-center"
@@ -119,7 +122,7 @@ function RouteFallback({ label = "Loading…" }: { label?: string }) {
     >
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Spinner />
-        <span>{label}</span>
+        <span>{label ?? t.common.loading}</span>
       </div>
     </div>
   );
@@ -137,7 +140,7 @@ function UnknownRouteFallback({ pluginsLoading }: { pluginsLoading: boolean }) {
   return <Navigate to="/sessions" replace />;
 }
 
-const CHAT_NAV_ITEM: NavItem = {
+const CHAT_NAV_ITEM: BuiltinNavItem = {
   path: "/chat",
   labelKey: "chat",
   label: "Chat",
@@ -185,14 +188,14 @@ function ChatRouteSink() {
   return null;
 }
 
-const BUILTIN_NAV_REST: NavItem[] = [
+const BUILTIN_NAV_REST: BuiltinNavItem[] = [
   {
     path: "/sessions",
     labelKey: "sessions",
     label: "Sessions",
     icon: MessageSquare,
   },
-  { path: "/files", label: "Files", icon: FolderOpen },
+  { path: "/files", labelKey: "files", label: "Files", icon: FolderOpen },
   {
     path: "/analytics",
     labelKey: "analytics",
@@ -209,14 +212,14 @@ const BUILTIN_NAV_REST: NavItem[] = [
   { path: "/cron", labelKey: "cron", label: "Cron", icon: Clock },
   { path: "/skills", labelKey: "skills", label: "Skills", icon: Package },
   { path: "/plugins", labelKey: "plugins", label: "Plugins", icon: Puzzle },
-  { path: "/mcp", label: "MCP", icon: Plug },
-  { path: "/channels", label: "Channels", icon: Radio },
-  { path: "/webhooks", label: "Webhooks", icon: Webhook },
-  { path: "/pairing", label: "Pairing", icon: ShieldCheck },
+  { path: "/mcp", labelKey: "mcp", label: "MCP", icon: Plug },
+  { path: "/channels", labelKey: "channels", label: "Channels", icon: Radio },
+  { path: "/webhooks", labelKey: "webhooks", label: "Webhooks", icon: Webhook },
+  { path: "/pairing", labelKey: "pairing", label: "Pairing", icon: ShieldCheck },
   { path: "/profiles", labelKey: "profiles", label: "Profiles", icon: Users },
   { path: "/config", labelKey: "config", label: "Config", icon: Settings },
   { path: "/env", labelKey: "keys", label: "Keys", icon: KeyRound },
-  { path: "/system", label: "System", icon: Wrench },
+  { path: "/system", labelKey: "system", label: "System", icon: Wrench },
   {
     path: "/docs",
     labelKey: "documentation",
@@ -258,6 +261,7 @@ function resolveIcon(name: string): ComponentType<{ className?: string }> {
 function buildNavItems(
   builtIn: NavItem[],
   manifests: PluginManifest[],
+  locale: Parameters<typeof localizePluginLabel>[2],
 ): NavItem[] {
   const items = [...builtIn];
 
@@ -267,7 +271,7 @@ function buildNavItems(
 
     const pluginItem: NavItem = {
       path: manifest.tab.path,
-      label: manifest.label,
+      label: localizePluginLabel(manifest.name, manifest.label, locale),
       icon: resolveIcon(manifest.icon),
     };
 
@@ -294,8 +298,9 @@ function buildNavItems(
 function partitionSidebarNav(
   builtIn: NavItem[],
   manifests: PluginManifest[],
+  locale: Parameters<typeof localizePluginLabel>[2],
 ): { coreItems: NavItem[]; pluginItems: NavItem[] } {
-  const merged = buildNavItems(builtIn, manifests);
+  const merged = buildNavItems(builtIn, manifests, locale);
   const builtinPaths = new Set(builtIn.map((i) => i.path));
   const coreItems: NavItem[] = [];
   const pluginItems: NavItem[] = [];
@@ -372,7 +377,8 @@ function buildRoutes(
 const SIDEBAR_COLLAPSED_KEY = "hermes-sidebar-collapsed";
 
 export default function App() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const chatCopy = getDashboardCopy(t).chat;
   const { pathname } = useLocation();
   const { manifests, loading: pluginsLoading } = usePlugins();
   const { theme } = useTheme();
@@ -468,8 +474,8 @@ export default function App() {
   }, [embeddedChat, showTokenAnalytics]);
 
   const sidebarNav = useMemo(
-    () => partitionSidebarNav(builtinNav, manifests),
-    [builtinNav, manifests],
+    () => partitionSidebarNav(builtinNav, manifests, locale),
+    [builtinNav, locale, manifests],
   );
   const routes = useMemo(
     () => buildRoutes(builtinRoutes, manifests),
@@ -481,9 +487,9 @@ export default function App() {
         .filter((m) => !m.tab.hidden)
         .map((m) => ({
           path: m.tab.override ?? m.tab.path,
-          label: m.label,
+          label: localizePluginLabel(m.name, m.label, locale),
         })),
-    [manifests],
+    [locale, manifests],
   );
 
   const layoutVariant = theme.layoutVariant ?? "standard";
@@ -797,7 +803,7 @@ export default function App() {
                   !chatOverriddenByPlugin &&
                   (pluginsLoading ? (
                     isChatRoute ? (
-                      <RouteFallback label="Loading chat…" />
+                      <RouteFallback label={chatCopy.loading} />
                     ) : null
                   ) : chatHostMounted ? (
                     <div
@@ -811,7 +817,7 @@ export default function App() {
                       <Suspense
                         fallback={
                           isChatRoute ? (
-                            <RouteFallback label="Loading chat…" />
+                            <RouteFallback label={chatCopy.loading} />
                           ) : null
                         }
                       >
@@ -819,7 +825,7 @@ export default function App() {
                       </Suspense>
                     </div>
                   ) : isChatRoute ? (
-                    <RouteFallback label="Loading chat…" />
+                    <RouteFallback label={chatCopy.loading} />
                   ) : null)}
               </div>
               <PluginSlot name="post-main" />
@@ -1081,10 +1087,13 @@ function SidebarSystemActions({
 
     <ConfirmDialog
       cancelLabel={t.common.cancel}
-      confirmLabel={sharedGateway ? "Restart all" : t.status.restartGateway}
+      confirmLabel={sharedGateway ? getDashboardCopy(t).system.restartAll : t.status.restartGateway}
       description={
         sharedGateway
-          ? sharedGatewayRestartDescription(sharedGateway)
+          ? getDashboardCopy(t).system.sharedRestartDescription.replace(
+              "{profiles}",
+              sharedGateway.join(", "),
+            )
           : (t.status.restartGatewayConfirmMessage ??
             "This restarts the Hermes gateway process. Connected channels and active sessions will reconnect afterward.")
       }
@@ -1094,7 +1103,7 @@ function SidebarSystemActions({
       open={restartConfirmOpen}
       title={
         sharedGateway
-          ? "Restart the shared gateway?"
+          ? getDashboardCopy(t).system.restartSharedTitle
           : (t.status.restartGatewayConfirmTitle ?? `${t.status.restartGateway}?`)
       }
     />
@@ -1355,8 +1364,12 @@ interface GatewayDotProps {
 interface NavItem {
   icon: ComponentType<{ className?: string }>;
   label: string;
-  labelKey?: string;
+  labelKey?: keyof Translations["app"]["nav"];
   path: string;
+}
+
+interface BuiltinNavItem extends NavItem {
+  labelKey: keyof Translations["app"]["nav"];
 }
 
 interface SidebarIconWithTooltipProps {

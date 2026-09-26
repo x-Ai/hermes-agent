@@ -27,7 +27,7 @@ import {
   Sparkles,
   Loader2,
   Pencil,
-  Plus,
+  Plus
 } from "lucide-react";
 import { api } from "@/lib/api";
 import type {
@@ -37,7 +37,7 @@ import type {
   SkillHubSource,
   SkillHubInstalledEntry,
   SkillHubPreview,
-  SkillHubScan,
+  SkillHubScan
 } from "@/lib/api";
 import { useProfileScope } from "@/contexts/useProfileScope";
 import { ToolsetConfigDrawer } from "@/components/ToolsetConfigDrawer";
@@ -57,12 +57,13 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@nous-research/ui/ui/components/dialog";
 import { cn } from "@/lib/utils";
 import { Input } from "@nous-research/ui/ui/components/input";
 import { useI18n } from "@/i18n";
 import { en } from "@/i18n/en";
+import { getDashboardCopy } from "@/i18n/dashboard";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 import { errorMessage } from "@/lib/api-error";
@@ -85,25 +86,41 @@ const CATEGORY_LABELS: Record<string, string> = {
   p5js: "p5.js",
   ai: "AI",
   ux: "UX",
-  ui: "UI",
+  ui: "UI"
+};
+
+const ZH_CATEGORY_LABELS: Record<string, string> = {
+  mlops: "MLOps",
+  "mlops/cloud": "MLOps / 云平台",
+  "mlops/evaluation": "MLOps / 评估",
+  "mlops/inference": "MLOps / 推理",
+  "mlops/models": "MLOps / 模型",
+  "mlops/training": "MLOps / 训练",
+  "mlops/vector-databases": "MLOps / 向量数据库",
+  mcp: "MCP",
+  "red-teaming": "红队测试",
+  ocr: "OCR",
+  p5js: "p5.js",
+  ai: "AI",
+  ux: "UX",
+  ui: "UI"
 };
 
 function prettyCategory(
   raw: string | null | undefined,
   generalLabel: string,
+  locale = "en"
 ): string {
   if (!raw) return generalLabel;
+  if (locale === "zh" && ZH_CATEGORY_LABELS[raw]) return ZH_CATEGORY_LABELS[raw];
   if (CATEGORY_LABELS[raw]) return CATEGORY_LABELS[raw];
   return raw
     .split(/[-_/]/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 }
 
-const TOOLSET_ICONS: Record<
-  string,
-  React.ComponentType<{ className?: string }>
-> = {
+const TOOLSET_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   computer: Cpu,
   web: Globe,
   security: Shield,
@@ -112,12 +129,10 @@ const TOOLSET_ICONS: Record<
   ai: Brain,
   integration: Blocks,
   code: Code,
-  automation: Zap,
+  automation: Zap
 };
 
-function toolsetIcon(
-  name: string,
-): React.ComponentType<{ className?: string }> {
+function toolsetIcon(name: string): React.ComponentType<{ className?: string }> {
   const lower = name.toLowerCase();
   for (const [key, icon] of Object.entries(TOOLSET_ICONS)) {
     if (lower.includes(key)) return icon;
@@ -151,7 +166,8 @@ export default function SkillsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorSkill, setEditorSkill] = useState<string | null>(null);
   const { toast, showToast } = useToast();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   const { setAfterTitle, setEnd } = usePageHeader();
 
   // ── Profile scoping ──
@@ -173,7 +189,7 @@ export default function SkillsPage() {
     let cancelled = false;
     Promise.all([
       api.getSkills(selectedProfile || undefined),
-      api.getToolsets(selectedProfile || undefined),
+      api.getToolsets(selectedProfile || undefined)
     ])
       .then(([s, tsets]) => {
         if (cancelled) return;
@@ -233,22 +249,15 @@ export default function SkillsPage() {
 
   /* ---- Toggle skill ---- */
   const handleToggleSkill = async (skill: SkillInfo) => {
-    setTogglingSkills((prev) => new Set(prev).add(skill.name));
+    setTogglingSkills(prev => new Set(prev).add(skill.name));
     try {
       await api.toggleSkill(skill.name, !skill.enabled, selectedProfile || undefined);
-      setSkills((prev) =>
-        prev.map((s) =>
-          s.name === skill.name ? { ...s, enabled: !s.enabled } : s,
-        ),
-      );
-      showToast(
-        `${skill.name} ${skill.enabled ? t.common.disabled : t.common.enabled}`,
-        "success",
-      );
+      setSkills(prev => prev.map(s => (s.name === skill.name ? { ...s, enabled: !s.enabled } : s)));
+      showToast(`${skill.name} ${skill.enabled ? t.common.disabled : t.common.enabled}`, "success");
     } catch {
       showToast(`${t.common.failedToToggle} ${skill.name}`, "error");
     } finally {
-      setTogglingSkills((prev) => {
+      setTogglingSkills(prev => {
         const next = new Set(prev);
         next.delete(skill.name);
         return next;
@@ -297,7 +306,10 @@ export default function SkillsPage() {
     if (url) segs.push(`URL: ${url}`);
     if (text) segs.push(text);
     // Flatten to a single line — the chat composer submits on the first Enter.
-    const composed = segs.join("; ").replace(/\s*\n\s*/g, " ").trim();
+    const composed = segs
+      .join("; ")
+      .replace(/\s*\n\s*/g, " ")
+      .trim();
     if (!composed) return;
     setLearnOpen(false);
     navigate(`/chat?learn=${encodeURIComponent(composed)}`);
@@ -308,7 +320,7 @@ export default function SkillsPage() {
   }, []);
   const handleEditorSaved = useCallback(
     (skillName: string) => {
-      showToast(`${skillName} saved ✓`, "success");
+      showToast(`${copy.skillSaved.replace("{name}", skillName)} ✓`, "success");
       // Reload the list so a newly created skill (or an edited description)
       // shows up immediately.
       api
@@ -316,7 +328,7 @@ export default function SkillsPage() {
         .then(setSkills)
         .catch(() => {});
     },
-    [selectedProfile, showToast],
+    [selectedProfile, showToast]
   );
 
   /* ---- Derived data ---- */
@@ -326,23 +338,18 @@ export default function SkillsPage() {
   const searchMatchedSkills = useMemo(() => {
     if (!isSearching) return [];
     return skills.filter(
-      (s) =>
+      s =>
         s.name.toLowerCase().includes(lowerSearch) ||
         s.description.toLowerCase().includes(lowerSearch) ||
-        (s.category ?? "").toLowerCase().includes(lowerSearch),
+        (s.category ?? "").toLowerCase().includes(lowerSearch)
     );
   }, [skills, isSearching, lowerSearch]);
 
   const activeSkills = useMemo(() => {
     if (isSearching) return [];
-    if (!activeCategory)
-      return [...skills].sort((a, b) => a.name.localeCompare(b.name));
+    if (!activeCategory) return [...skills].sort((a, b) => a.name.localeCompare(b.name));
     return skills
-      .filter((s) =>
-        activeCategory === "__none__"
-          ? !s.category
-          : s.category === activeCategory,
-      )
+      .filter(s => (activeCategory === "__none__" ? !s.category : s.category === activeCategory))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [skills, activeCategory, isSearching]);
 
@@ -360,12 +367,12 @@ export default function SkillsPage() {
       })
       .map(([key, count]) => ({
         key,
-        name: prettyCategory(key === "__none__" ? null : key, t.common.general),
-        count,
+        name: prettyCategory(key === "__none__" ? null : key, t.common.general, locale),
+        count
       }));
-  }, [skills, t]);
+  }, [locale, skills, t]);
 
-  const enabledCount = skills.filter((s) => s.enabled).length;
+  const enabledCount = skills.filter(s => s.enabled).length;
 
   useLayoutEffect(() => {
     if (loading) {
@@ -378,7 +385,7 @@ export default function SkillsPage() {
         {t.skills.enabledOf
           .replace("{enabled}", String(enabledCount))
           .replace("{total}", String(skills.length))}
-      </span>,
+      </span>
     );
     setEnd(
       <div className="relative w-full min-w-0 sm:max-w-xs">
@@ -387,7 +394,7 @@ export default function SkillsPage() {
           className="h-8 rounded-none pl-8 pr-7 text-xs"
           placeholder={t.common.search}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
         />
         {search && (
           <Button
@@ -400,29 +407,21 @@ export default function SkillsPage() {
             <X />
           </Button>
         )}
-      </div>,
+      </div>
     );
     return () => {
       setAfterTitle(null);
       setEnd(null);
     };
-  }, [
-    enabledCount,
-    loading,
-    search,
-    setAfterTitle,
-    setEnd,
-    skills.length,
-    t,
-  ]);
+  }, [enabledCount, loading, search, setAfterTitle, setEnd, skills.length, t]);
 
   const filteredToolsets = useMemo(() => {
     return toolsets.filter(
-      (ts) =>
+      ts =>
         !search ||
         ts.name.toLowerCase().includes(lowerSearch) ||
         ts.label.toLowerCase().includes(lowerSearch) ||
-        ts.description.toLowerCase().includes(lowerSearch),
+        ts.description.toLowerCase().includes(lowerSearch)
     );
   }, [toolsets, search, lowerSearch]);
 
@@ -504,42 +503,36 @@ export default function SkillsPage() {
                 )}
               </div>
 
-              {view === "skills" &&
-                !isSearching &&
-                allCategories.length > 0 && (
-                  <div className="hidden sm:flex flex-col border-t border-border">
-                    <div className="px-3 pt-2 pb-1 font-mondwest text-display text-xs tracking-[0.12em] text-text-tertiary">
-                      {t.skills.categories}
-                    </div>
-                    <div className="flex flex-col p-2 pt-1 gap-px max-h-[calc(100vh-340px)] overflow-y-auto">
-                      {allCategories.map(({ key, name, count }) => {
-                        const isActive = activeCategory === key;
-
-                        return (
-                          <ListItem
-                            key={key}
-                            active={isActive}
-                            onClick={() =>
-                              setActiveCategory(isActive ? null : key)
-                            }
-                            className="rounded-none px-2 py-1 text-xs"
-                          >
-                            <span className="flex-1 truncate">{name}</span>
-                            <span
-                              className={`text-xs tabular-nums ${
-                                isActive
-                                  ? "text-text-secondary"
-                                  : "text-text-tertiary"
-                              }`}
-                            >
-                              {count}
-                            </span>
-                          </ListItem>
-                        );
-                      })}
-                    </div>
+              {view === "skills" && !isSearching && allCategories.length > 0 && (
+                <div className="hidden sm:flex flex-col border-t border-border">
+                  <div className="px-3 pt-2 pb-1 font-mondwest text-display text-xs tracking-[0.12em] text-text-tertiary">
+                    {t.skills.categories}
                   </div>
-                )}
+                  <div className="flex flex-col p-2 pt-1 gap-px max-h-[calc(100vh-340px)] overflow-y-auto">
+                    {allCategories.map(({ key, name, count }) => {
+                      const isActive = activeCategory === key;
+
+                      return (
+                        <ListItem
+                          key={key}
+                          active={isActive}
+                          onClick={() => setActiveCategory(isActive ? null : key)}
+                          className="rounded-none px-2 py-1 text-xs"
+                        >
+                          <span className="flex-1 truncate">{name}</span>
+                          <span
+                            className={`text-xs tabular-nums ${
+                              isActive ? "text-text-secondary" : "text-text-tertiary"
+                            }`}
+                          >
+                            {count}
+                          </span>
+                        </ListItem>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -556,10 +549,7 @@ export default function SkillsPage() {
                   <Badge tone="secondary" className="text-xs">
                     {t.skills.resultCount
                       .replace("{count}", String(searchMatchedSkills.length))
-                      .replace(
-                        "{s}",
-                        searchMatchedSkills.length !== 1 ? "s" : "",
-                      )}
+                      .replace("{s}", searchMatchedSkills.length !== 1 ? "s" : "")}
                   </Badge>
                 </div>
               </CardHeader>
@@ -570,7 +560,7 @@ export default function SkillsPage() {
                   </p>
                 ) : (
                   <div className="grid gap-1">
-                    {searchMatchedSkills.map((skill) => (
+                    {searchMatchedSkills.map(skill => (
                       <SkillRow
                         key={skill.name}
                         skill={skill}
@@ -595,6 +585,7 @@ export default function SkillsPage() {
                       ? prettyCategory(
                           activeCategory === "__none__" ? null : activeCategory,
                           t.common.general,
+                          locale
                         )
                       : t.skills.all}
                   </CardTitle>
@@ -604,21 +595,11 @@ export default function SkillsPage() {
                         .replace("{count}", String(activeSkills.length))
                         .replace("{s}", activeSkills.length !== 1 ? "s" : "")}
                     </Badge>
-                    <Button
-                      size="sm"
-                      outlined
-                      onClick={openLearn}
-                      prefix={<Sparkles />}
-                    >
-                      Learn a skill
+                    <Button size="sm" outlined onClick={openLearn} prefix={<Sparkles />}>
+                      {copy.learn}
                     </Button>
-                    <Button
-                      size="sm"
-                      outlined
-                      onClick={openCreateEditor}
-                      prefix={<Plus />}
-                    >
-                      New skill
+                    <Button size="sm" outlined onClick={openCreateEditor} prefix={<Plus />}>
+                      {copy.newSkill}
                     </Button>
                   </div>
                 </div>
@@ -644,7 +625,7 @@ export default function SkillsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-1">
-                    {activeSkills.map((skill) => (
+                    {activeSkills.map(skill => (
                       <SkillRow
                         key={skill.name}
                         skill={skill}
@@ -669,7 +650,7 @@ export default function SkillsPage() {
                 </Card>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredToolsets.map((ts) => {
+                  {filteredToolsets.map(ts => {
                     const TsIcon = toolsetIcon(ts.name);
                     const labelText = ts.label.trim() || ts.name;
 
@@ -680,21 +661,15 @@ export default function SkillsPage() {
                             <TsIcon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-sm">
-                                  {labelText}
-                                </span>
+                                <span className="font-medium text-sm">{labelText}</span>
                                 <Badge
                                   tone={ts.enabled ? "success" : "outline"}
                                   className="text-xs"
                                 >
-                                  {ts.enabled
-                                    ? t.common.active
-                                    : t.common.inactive}
+                                  {ts.enabled ? t.common.active : t.common.inactive}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-text-secondary mb-2">
-                                {ts.description}
-                              </p>
+                              <p className="text-xs text-text-secondary mb-2">{ts.description}</p>
                               {ts.enabled && !ts.configured && (
                                 <p className="text-xs text-amber-300 mb-2">
                                   {t.skills.setupNeeded}
@@ -702,7 +677,7 @@ export default function SkillsPage() {
                               )}
                               {ts.tools.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
-                                  {ts.tools.map((tool) => (
+                                  {ts.tools.map(tool => (
                                     <Badge
                                       key={tool}
                                       tone="secondary"
@@ -716,10 +691,7 @@ export default function SkillsPage() {
                               {ts.tools.length === 0 && (
                                 <span className="text-xs text-text-tertiary">
                                   {ts.enabled
-                                    ? t.skills.toolsetLabel.replace(
-                                        "{name}",
-                                        ts.name,
-                                      )
+                                    ? t.skills.toolsetLabel.replace("{name}", ts.name)
                                     : t.skills.disabledForCli}
                                 </span>
                               )}
@@ -730,7 +702,7 @@ export default function SkillsPage() {
                                   onClick={() => setConfigToolset(ts)}
                                   prefix={<Wrench />}
                                 >
-                                  Configure
+                                  {copy.configure}
                                 </Button>
                               </div>
                             </div>
@@ -767,57 +739,50 @@ export default function SkillsPage() {
       <Dialog open={learnOpen} onOpenChange={setLearnOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Learn a skill</DialogTitle>
-            <DialogDescription>
-              Point Hermes at anything and it will distill a reusable skill —
-              following the house authoring standards. Fill in any combination
-              below; the agent gathers the sources and writes the skill in chat.
-            </DialogDescription>
+            <DialogTitle>{copy.learn}</DialogTitle>
+            <DialogDescription>{copy.learnDescription}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div className="grid gap-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Local file or directory
+                {copy.localSource}
               </label>
               <Input
-                placeholder="~/projects/some-sdk  (read with read_file / search_files)"
+                placeholder={copy.localSourcePlaceholder}
                 value={learnDir}
-                onChange={(e) => setLearnDir(e.target.value)}
+                onChange={e => setLearnDir(e.target.value)}
               />
             </div>
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">
-                URL
-              </label>
+              <label className="text-xs font-medium text-muted-foreground">URL</label>
               <Input
-                placeholder="https://docs.example.com/api  (fetched with web_extract)"
+                placeholder={copy.urlPlaceholder}
                 value={learnUrl}
-                onChange={(e) => setLearnUrl(e.target.value)}
+                onChange={e => setLearnUrl(e.target.value)}
               />
             </div>
             <div className="grid gap-1.5">
               <label className="text-xs font-medium text-muted-foreground">
-                Anything else — describe the workflow, paste notes, or say
-                "what we just did"
+                {copy.extraSource}
               </label>
               <textarea
                 className="min-h-[90px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="e.g. how I file an expense report: open the portal, …"
+                placeholder={copy.extraSourcePlaceholder}
                 value={learnText}
-                onChange={(e) => setLearnText(e.target.value)}
+                onChange={e => setLearnText(e.target.value)}
               />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-1">
             <Button ghost onClick={() => setLearnOpen(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               onClick={submitLearn}
               prefix={<Sparkles />}
               disabled={!learnDir.trim() && !learnUrl.trim() && !learnText.trim()}
             >
-              Learn it
+              {copy.learnIt}
             </Button>
           </div>
         </DialogContent>
@@ -827,28 +792,18 @@ export default function SkillsPage() {
   );
 }
 
-function SkillRow({
-  skill,
-  toggling,
-  onToggle,
-  onEdit,
-  noDescriptionLabel,
-}: SkillRowProps) {
+function SkillRow({ skill, toggling, onToggle, onEdit, noDescriptionLabel }: SkillRowProps) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   return (
     <div className="group flex items-start gap-3 px-3 py-2.5 transition-colors hover:bg-muted/40">
       <div className="pt-0.5 shrink-0">
-        <Switch
-          checked={skill.enabled}
-          onCheckedChange={onToggle}
-          disabled={toggling}
-        />
+        <Switch checked={skill.enabled} onCheckedChange={onToggle} disabled={toggling} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span
-            className={`font-mono-ui text-sm ${
-              skill.enabled ? "text-foreground" : "text-muted-foreground"
-            }`}
+            className={`font-mono-ui text-sm ${skill.enabled ? "text-foreground" : "text-muted-foreground"}`}
           >
             {skill.name}
           </span>
@@ -861,8 +816,8 @@ function SkillRow({
         ghost
         size="icon"
         className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:text-foreground"
-        title="Edit SKILL.md"
-        aria-label={`Edit ${skill.name}`}
+        title={copy.editSkill}
+        aria-label={copy.editTitle.replace("{name}", skill.name)}
         onClick={onEdit}
       >
         <Pencil />
@@ -879,7 +834,7 @@ function PanelItem({ active, icon: Icon, label, onClick }: PanelItemProps) {
       className={cn(
         "rounded-none whitespace-nowrap px-2.5 py-1.5",
         "font-mondwest text-[0.7rem] tracking-[0.08em] uppercase",
-        active && "bg-foreground/90 text-background hover:text-background",
+        active && "bg-foreground/90 text-background hover:text-background"
       )}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -908,35 +863,41 @@ interface SkillRowProps {
 /* ------------------------------------------------------------------ */
 
 /** Map a trust level to a Badge tone + label + icon. */
-function trustVisual(level: string): {
+function trustVisual(
+  level: string,
+  copy: ReturnType<typeof getDashboardCopy>["skills"]
+): {
   tone: "success" | "secondary" | "warning" | "outline";
   label: string;
 } {
   switch (level) {
     case "trusted":
-      return { tone: "success", label: "trusted" };
+      return { tone: "success", label: copy.trusted };
     case "builtin":
-      return { tone: "secondary", label: "builtin" };
+      return { tone: "secondary", label: copy.builtin };
     case "community":
-      return { tone: "warning", label: "community" };
+      return { tone: "warning", label: copy.community };
     default:
-      return { tone: "outline", label: level || "unknown" };
+      return { tone: "outline", label: level || copy.unknown };
   }
 }
 
 /** Map a scan verdict to tone + icon. */
-function verdictVisual(verdict: string): {
+function verdictVisual(
+  verdict: string,
+  copy: ReturnType<typeof getDashboardCopy>["skills"]
+): {
   tone: "success" | "warning" | "destructive";
   Icon: React.ComponentType<{ className?: string }>;
   label: string;
 } {
   switch (verdict) {
     case "safe":
-      return { tone: "success", Icon: ShieldCheck, label: "Safe" };
+      return { tone: "success", Icon: ShieldCheck, label: copy.safe };
     case "caution":
-      return { tone: "warning", Icon: ShieldAlert, label: "Caution" };
+      return { tone: "warning", Icon: ShieldAlert, label: copy.caution };
     case "dangerous":
-      return { tone: "destructive", Icon: ShieldAlert, label: "Dangerous" };
+      return { tone: "destructive", Icon: ShieldAlert, label: copy.dangerous };
     default:
       return { tone: "warning", Icon: ShieldQuestion, label: verdict };
   }
@@ -946,17 +907,19 @@ const SEVERITY_TONE: Record<string, "destructive" | "warning" | "secondary" | "o
   critical: "destructive",
   high: "destructive",
   medium: "warning",
-  low: "secondary",
+  low: "secondary"
 };
 
 function HubBrowser({
   showToast,
-  profile,
+  profile
 }: {
   showToast: (msg: string, kind: "success" | "error") => void;
   /** Optional profile scoping installs + installed-state badges. */
   profile?: string;
 }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SkillHubResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -986,7 +949,7 @@ function HubBrowser({
     let cancelled = false;
     api
       .getSkillHubSources(profile)
-      .then((r) => {
+      .then(r => {
         if (cancelled) return;
         setSources(r.sources);
         setFeatured(r.featured);
@@ -1015,9 +978,9 @@ function HubBrowser({
       setResults(r.results);
       setSourceCounts(r.source_counts || {});
       setTimedOut(r.timed_out || []);
-      setInstalled((prev) => ({ ...prev, ...(r.installed || {}) }));
+      setInstalled(prev => ({ ...prev, ...(r.installed || {}) }));
     } catch (e) {
-      showToast(`Hub search failed: ${errorMessage(e)}`, "error");
+      showToast(copy.hubSearchFailed.replace("{error}", errorMessage(e)), "error");
       setResults([]);
       setSourceCounts({});
       setTimedOut([]);
@@ -1025,7 +988,7 @@ function HubBrowser({
       setSearchMs(Math.round(performance.now() - t0));
       setSearching(false);
     }
-  }, [query, showToast, profile]);
+  }, [copy.hubSearchFailed, query, showToast, profile]);
 
   /* ---- Poll a spawned action's log until it exits ---- */
   useEffect(() => {
@@ -1044,7 +1007,7 @@ function HubBrowser({
           // Install finished — refresh installed-state so badges update.
           api
             .getSkillHubSources(profile)
-            .then((r) => !cancelled && setInstalled(r.installed))
+            .then(r => !cancelled && setInstalled(r.installed))
             .catch(() => {});
         }
       } catch {
@@ -1062,33 +1025,33 @@ function HubBrowser({
     async (identifier: string) => {
       try {
         const res = await api.installSkillFromHub(identifier, profile);
-        showToast(`Installing ${identifier}…`, "success");
+        showToast(copy.installingSkill.replace("{name}", identifier), "success");
         setActionLog([]);
         setActionRunning(true);
         setAction(res.name);
         setDetail(null);
       } catch (e) {
-        showToast(`Install failed: ${errorMessage(e)}`, "error");
+        showToast(copy.installFailed.replace("{error}", errorMessage(e)), "error");
       }
     },
-    [showToast, profile],
+    [copy.installFailed, copy.installingSkill, showToast, profile]
   );
 
   const updateAll = useCallback(async () => {
     try {
       const res = await api.updateSkillsFromHub(profile);
-      showToast("Updating installed skills…", "success");
+      showToast(copy.updatingSkills, "success");
       setActionLog([]);
       setActionRunning(true);
       setAction(res.name);
     } catch (e) {
-      showToast(`Update failed: ${errorMessage(e)}`, "error");
+      showToast(copy.updateFailed.replace("{error}", errorMessage(e)), "error");
     }
-  }, [showToast, profile]);
+  }, [copy.updateFailed, copy.updatingSkills, showToast, profile]);
 
   const isInstalled = useCallback(
     (identifier: string) => Boolean(installed[identifier]),
-    [installed],
+    [installed]
   );
 
   const showLanding = !searched && !searching;
@@ -1103,10 +1066,10 @@ function HubBrowser({
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 className="h-8 pl-8 text-sm"
-                placeholder="Search the skill hub (GitHub, official, community)…"
+                placeholder={copy.hubSearchPlaceholder}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => {
                   if (e.key === "Enter") void runSearch();
                 }}
               />
@@ -1117,7 +1080,7 @@ function HubBrowser({
               disabled={searching || !query.trim()}
               prefix={searching ? <Spinner /> : <Search className="h-3.5 w-3.5" />}
             >
-              Search
+              {copy.search}
             </Button>
             <Button
               size="sm"
@@ -1125,7 +1088,7 @@ function HubBrowser({
               onClick={() => void updateAll()}
               prefix={<RefreshCw className="h-3.5 w-3.5" />}
             >
-              Update all
+              {copy.updateAll}
             </Button>
           </div>
 
@@ -1142,9 +1105,9 @@ function HubBrowser({
               <Download className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="font-mono text-xs">{action}</span>
               {actionRunning ? (
-                <Badge tone="warning">running</Badge>
+                <Badge tone="warning">{copy.running}</Badge>
               ) : (
-                <Badge tone="success">done</Badge>
+                <Badge tone="success">{copy.done}</Badge>
               )}
               {!actionRunning && (
                 <Button
@@ -1152,14 +1115,14 @@ function HubBrowser({
                   size="xs"
                   className="ml-auto text-muted-foreground"
                   onClick={() => setAction(null)}
-                  aria-label="Dismiss"
+                  aria-label={copy.dismiss}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>
             <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words bg-background/50 border border-border p-2 text-xs font-mono text-muted-foreground">
-              {actionLog.length ? actionLog.join("\n") : "Starting…"}
+              {actionLog.length ? actionLog.join("\n") : copy.starting}
             </pre>
           </CardContent>
         </Card>
@@ -1177,13 +1140,11 @@ function HubBrowser({
               <div className="flex items-center gap-2 px-1">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
                 <span className="font-mondwest text-display text-xs tracking-[0.12em] text-text-secondary uppercase">
-                  Featured skills
+                  {copy.featured}
                 </span>
-                <span className="text-xs text-text-tertiary">
-                  from the Hermes index — search above for thousands more
-                </span>
+                <span className="text-xs text-text-tertiary">{copy.featuredHint}</span>
               </div>
-              {featured.map((r) => (
+              {featured.map(r => (
                 <HubResultCard
                   key={r.identifier}
                   result={r}
@@ -1196,8 +1157,7 @@ function HubBrowser({
           ) : (
             <Card className="rounded-none">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                Search the hub above to browse installable skills from the
-                connected sources.
+                {copy.browseHint}
               </CardContent>
             </Card>
           )}
@@ -1223,11 +1183,11 @@ function HubBrowser({
           {results.length === 0 ? (
             <Card className="rounded-none">
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                No matching skills found in the hub.
+                {copy.noHubMatches}
               </CardContent>
             </Card>
           ) : (
-            results.map((r) => (
+            results.map(r => (
               <HubResultCard
                 key={r.identifier}
                 result={r}
@@ -1255,33 +1215,22 @@ function HubBrowser({
 }
 
 /* ---- Connected hubs strip ---- */
-function ConnectedHubs({
-  sources,
-  loading,
-}: {
-  sources: SkillHubSource[];
-  loading: boolean;
-}) {
+function ConnectedHubs({ sources, loading }: { sources: SkillHubSource[]; loading: boolean }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   if (loading) {
-    return (
-      <p className="text-xs text-muted-foreground">Connecting to skill hubs…</p>
-    );
+    return <p className="text-xs text-muted-foreground">{copy.connecting}</p>;
   }
   if (sources.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        Results come from the same sources as{" "}
-        <span className="font-mono">hermes skills search</span>.
-      </p>
-    );
+    return <p className="text-xs text-muted-foreground">{copy.sameSourcesHint}</p>;
   }
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="flex items-center gap-1 text-xs text-text-tertiary">
         <Globe className="h-3 w-3" />
-        Connected hubs:
+        {copy.connectedHubs}
       </span>
-      {sources.map((s) => {
+      {sources.map(s => {
         const down =
           (s.id === "hermes-index" && s.available === false) ||
           (s.id === "github" && s.rate_limited === true);
@@ -1292,14 +1241,14 @@ function ConnectedHubs({
             className={cn("text-xs", down && "opacity-60")}
             title={
               s.id === "github" && s.rate_limited
-                ? "GitHub API rate-limited — set GITHUB_TOKEN to raise the limit"
+                ? copy.githubRateLimited
                 : s.id === "hermes-index" && s.available === false
-                  ? "Centralized index unavailable — falling back to live sources"
+                  ? copy.indexUnavailable
                   : undefined
             }
           >
             {s.label}
-            {s.id === "github" && s.rate_limited ? " (rate-limited)" : ""}
+            {s.id === "github" && s.rate_limited ? ` (${copy.rateLimited})` : ""}
           </Badge>
         );
       })}
@@ -1312,18 +1261,20 @@ function SearchMeta({
   count,
   sourceCounts,
   timedOut,
-  ms,
+  ms
 }: {
   count: number;
   sourceCounts: Record<string, number>;
   timedOut: string[];
   ms: number | null;
 }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   const entries = Object.entries(sourceCounts).filter(([, n]) => n > 0);
   return (
     <div className="flex flex-wrap items-center gap-2 px-1 text-xs text-text-tertiary">
       <Badge tone="secondary" className="text-xs">
-        {count} result{count !== 1 ? "s" : ""}
+        {copy.results.replace("{count}", String(count))}
       </Badge>
       {ms != null && <span>{(ms / 1000).toFixed(1)}s</span>}
       {entries.length > 0 && (
@@ -1338,7 +1289,7 @@ function SearchMeta({
       {timedOut.length > 0 && (
         <span className="flex items-center gap-1 text-amber-400">
           <AlertTriangle className="h-3 w-3" />
-          {timedOut.join(", ")} timed out
+          {copy.timedOut.replace("{names}", timedOut.join(", "))}
         </span>
       )}
     </div>
@@ -1350,14 +1301,16 @@ function HubResultCard({
   result,
   installed,
   onOpen,
-  onInstall,
+  onInstall
 }: {
   result: SkillHubResult;
   installed: boolean;
   onOpen: () => void;
   onInstall: () => void;
 }) {
-  const trust = trustVisual(result.trust_level);
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
+  const trust = trustVisual(result.trust_level, copy);
   return (
     <Card className="rounded-none transition-colors hover:bg-muted/30">
       <CardContent className="py-3 flex items-start gap-3">
@@ -1365,12 +1318,10 @@ function HubResultCard({
           type="button"
           className="flex-1 min-w-0 text-left"
           onClick={onOpen}
-          aria-label={`Open ${result.name}`}
+          aria-label={copy.openSkill.replace("{name}", result.name)}
         >
           <div className="flex flex-wrap items-center gap-2 mb-0.5">
-            <span className="font-mono-ui text-sm hover:underline">
-              {result.name}
-            </span>
+            <span className="font-mono-ui text-sm hover:underline">{result.name}</span>
             <Badge tone={trust.tone} className="text-xs">
               {trust.label}
             </Badge>
@@ -1379,15 +1330,13 @@ function HubResultCard({
             </Badge>
             {installed && (
               <Badge tone="success" className="text-xs">
-                installed
+                {copy.installed}
               </Badge>
             )}
           </div>
-          <p className="text-xs text-text-secondary line-clamp-2">
-            {result.description}
-          </p>
+          <p className="text-xs text-text-secondary line-clamp-2">{result.description}</p>
           <div className="flex flex-wrap items-center gap-1 mt-1">
-            {result.tags.slice(0, 5).map((tag) => (
+            {result.tags.slice(0, 5).map(tag => (
               <span
                 key={tag}
                 className="text-[0.65rem] font-mono text-text-tertiary border border-border px-1 py-px"
@@ -1396,30 +1345,19 @@ function HubResultCard({
               </span>
             ))}
           </div>
-          <p className="text-xs font-mono text-text-tertiary truncate mt-1">
-            {result.identifier}
-          </p>
+          <p className="text-xs font-mono text-text-tertiary truncate mt-1">{result.identifier}</p>
         </button>
         <div className="flex shrink-0 flex-col gap-1.5">
-          <Button
-            size="sm"
-            outlined
-            onClick={onOpen}
-            prefix={<FileText className="h-3.5 w-3.5" />}
-          >
-            Details
+          <Button size="sm" outlined onClick={onOpen} prefix={<FileText className="h-3.5 w-3.5" />}>
+            {copy.details}
           </Button>
           {installed ? (
             <Button size="sm" ghost disabled prefix={<CheckCircle2 className="h-3.5 w-3.5" />}>
-              Installed
+              {copy.installed}
             </Button>
           ) : (
-            <Button
-              size="sm"
-              onClick={onInstall}
-              prefix={<Download className="h-3.5 w-3.5" />}
-            >
-              Install
+            <Button size="sm" onClick={onInstall} prefix={<Download className="h-3.5 w-3.5" />}>
+              {copy.install}
             </Button>
           )}
         </div>
@@ -1434,7 +1372,7 @@ function SkillDetailDialog({
   installed,
   onClose,
   onInstall,
-  showToast,
+  showToast
 }: {
   result: SkillHubResult;
   installed: boolean;
@@ -1442,12 +1380,14 @@ function SkillDetailDialog({
   onInstall: () => void;
   showToast: (msg: string, kind: "success" | "error") => void;
 }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   const [tab, setTab] = useState<"readme" | "scan">("readme");
   const [preview, setPreview] = useState<SkillHubPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(true);
   const [scan, setScan] = useState<SkillHubScan | null>(null);
   const [scanning, setScanning] = useState(false);
-  const trust = trustVisual(result.trust_level);
+  const trust = trustVisual(result.trust_level, copy);
 
   useEffect(() => {
     let cancelled = false;
@@ -1456,13 +1396,13 @@ function SkillDetailDialog({
       .previewSkillFromHub(result.identifier)
       .then((p) => !cancelled && setPreview(p))
       .catch((e) => {
-        if (!cancelled) showToast(`Preview failed: ${errorMessage(e)}`, "error");
+        if (!cancelled) showToast(copy.previewFailed.replace("{error}", errorMessage(e)), "error");
       })
       .finally(() => !cancelled && setPreviewLoading(false));
     return () => {
       cancelled = true;
     };
-  }, [result.identifier, showToast]);
+  }, [copy.previewFailed, result.identifier, showToast]);
 
   const runScan = useCallback(async () => {
     setScanning(true);
@@ -1471,11 +1411,11 @@ function SkillDetailDialog({
       const s = await api.scanSkillFromHub(result.identifier);
       setScan(s);
     } catch (e) {
-      showToast(`Scan failed: ${errorMessage(e)}`, "error");
+      showToast(copy.scanFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setScanning(false);
     }
-  }, [result.identifier, showToast]);
+  }, [copy.scanFailed, result.identifier, showToast]);
 
   return (
     <Dialog open onOpenChange={(o: boolean) => !o && onClose()}>
@@ -1492,21 +1432,18 @@ function SkillDetailDialog({
             </Badge>
             {installed && (
               <Badge tone="success" className="text-xs">
-                installed
+                {copy.installed}
               </Badge>
             )}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Preview the SKILL.md source and run a security scan for {result.name}{" "}
-            before installing.
+            {copy.previewDescription.replace("{name}", result.name)}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-1 flex flex-col gap-1">
           <p className="text-xs text-text-secondary">{result.description}</p>
-          <p className="text-xs font-mono text-text-tertiary truncate">
-            {result.identifier}
-          </p>
+          <p className="text-xs font-mono text-text-tertiary truncate">{result.identifier}</p>
         </div>
 
         {/* Action row */}
@@ -1517,7 +1454,7 @@ function SkillDetailDialog({
             onClick={() => setTab("readme")}
             prefix={<FileText className="h-3.5 w-3.5" />}
           >
-            Read SKILL.md
+            {copy.readSkill}
           </Button>
           <Button
             size="sm"
@@ -1532,7 +1469,7 @@ function SkillDetailDialog({
               )
             }
           >
-            {scan ? "Re-scan" : "Security scan"}
+            {scan ? copy.rescan : copy.securityScan}
           </Button>
           <div className="ml-auto flex items-center gap-3">
             {result.repo && (
@@ -1548,15 +1485,11 @@ function SkillDetailDialog({
             )}
             {installed ? (
               <Button size="sm" ghost disabled prefix={<CheckCircle2 className="h-3.5 w-3.5" />}>
-                Installed
+                {copy.installed}
               </Button>
             ) : (
-              <Button
-                size="sm"
-                onClick={onInstall}
-                prefix={<Download className="h-3.5 w-3.5" />}
-              >
-                Install
+              <Button size="sm" onClick={onInstall} prefix={<Download className="h-3.5 w-3.5" />}>
+                {copy.install}
               </Button>
             )}
           </div>
@@ -1573,7 +1506,7 @@ function SkillDetailDialog({
               <div className="flex flex-col gap-2.5">
                 {preview.tags.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1">
-                    {preview.tags.map((tag) => (
+                    {preview.tags.map(tag => (
                       <span
                         key={tag}
                         className="text-[0.65rem] font-mono text-text-tertiary border border-border px-1 py-px"
@@ -1585,19 +1518,17 @@ function SkillDetailDialog({
                 )}
                 {preview.files.length > 0 && (
                   <div className="text-xs text-text-tertiary">
-                    <span className="font-mondwest tracking-[0.1em] uppercase">
-                      Files:{" "}
-                    </span>
+                    <span className="font-mondwest tracking-[0.1em] uppercase">{copy.files} </span>
                     <span className="font-mono">{preview.files.join("  ")}</span>
                   </div>
                 )}
                 <pre className="whitespace-pre-wrap break-words bg-background/50 border border-border p-3 text-xs font-mono text-text-secondary leading-relaxed">
-                  {(preview.skill_md || "").trim() || "(SKILL.md is empty)"}
+                  {(preview.skill_md || "").trim() || copy.emptySkill}
                 </pre>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-10">
-                Couldn't load the skill source.
+                {copy.sourceLoadFailed}
               </p>
             )
           ) : (
@@ -1610,45 +1541,30 @@ function SkillDetailDialog({
 }
 
 /* ---- Visual security-scan result ---- */
-function ScanPanel({
-  scan,
-  scanning,
-}: {
-  scan: SkillHubScan | null;
-  scanning: boolean;
-}) {
+function ScanPanel({ scan, scanning }: { scan: SkillHubScan | null; scanning: boolean }) {
+  const { t } = useI18n();
+  const copy = getDashboardCopy(t).skills;
   if (scanning && !scan) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-12">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <span className="text-xs text-muted-foreground">
-          Fetching, quarantining, and scanning…
-        </span>
+        <span className="text-xs text-muted-foreground">{copy.scanning}</span>
       </div>
     );
   }
   if (!scan) {
-    return (
-      <p className="text-sm text-muted-foreground text-center py-10">
-        Run a security scan to inspect this skill for risky patterns before
-        installing.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground text-center py-10">{copy.scanHint}</p>;
   }
 
-  const v = verdictVisual(scan.verdict);
+  const v = verdictVisual(scan.verdict, copy);
   const policyTone =
-    scan.policy === "allow"
-      ? "success"
-      : scan.policy === "ask"
-        ? "warning"
-        : "destructive";
+    scan.policy === "allow" ? "success" : scan.policy === "ask" ? "warning" : "destructive";
   const policyLabel =
     scan.policy === "allow"
-      ? "Install allowed"
+      ? copy.installAllowed
       : scan.policy === "ask"
-        ? "Needs confirmation"
-        : "Install blocked";
+        ? copy.needsConfirmation
+        : copy.installBlocked;
 
   return (
     <div className="flex flex-col gap-3">
@@ -1661,19 +1577,22 @@ function ScanPanel({
               ? "text-emerald-400"
               : scan.verdict === "dangerous"
                 ? "text-red-400"
-                : "text-amber-400",
+                : "text-amber-400"
           )}
         />
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Verdict: {v.label}</span>
+            <span className="text-sm font-medium">
+              {copy.verdict.replace("{verdict}", v.label)}
+            </span>
             <Badge tone={v.tone} className="text-xs">
               {scan.verdict}
             </Badge>
           </div>
           <span className="text-xs text-text-tertiary">
-            {scan.trust_level} source · {scan.findings.length} finding
-            {scan.findings.length !== 1 ? "s" : ""}
+            {copy.sourceFindings
+              .replace("{source}", trustVisual(scan.trust_level, copy).label)
+              .replace("{count}", String(scan.findings.length))}
           </span>
         </div>
         <Badge tone={policyTone} className="ml-auto text-xs">
@@ -1683,19 +1602,19 @@ function ScanPanel({
 
       {/* Severity tally */}
       <div className="flex flex-wrap items-center gap-1.5">
-        {(["critical", "high", "medium", "low"] as const).map((sev) => {
+        {(["critical", "high", "medium", "low"] as const).map(sev => {
           const n = scan.severity_counts[sev] || 0;
           if (n === 0) return null;
           return (
             <Badge key={sev} tone={SEVERITY_TONE[sev]} className="text-xs">
-              {n} {sev}
+              {n} {copy[sev]}
             </Badge>
           );
         })}
         {scan.findings.length === 0 && (
           <span className="flex items-center gap-1 text-xs text-emerald-400">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            No risky patterns detected
+            {copy.noRisk}
           </span>
         )}
       </div>

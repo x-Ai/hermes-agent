@@ -37,17 +37,20 @@ import { EventsFeedClient } from '@/lib/eventsFeedClient'
 import { api } from '@/lib/api'
 import {
   EVENTS_MAX_RECONNECT_ATTEMPTS,
-  eventsGaveUpMessage,
   eventsReconnectDelayMs,
-  eventsReconnectingMessage,
-  eventsRejectedMessage,
   isEventsAuthRejection,
   isEventsAuthRejectionMessage,
   isEventsFeedMessage,
   shouldRetryEventsClose
 } from '@/lib/events-reconnect'
-import { credentialWarning, sidecarErrorMessage } from '@/lib/chat-sidebar-banner'
+import {
+  SIDECAR_DISCONNECTED_MESSAGE,
+  credentialWarning,
+  sidecarErrorMessage
+} from '@/lib/chat-sidebar-banner'
 import { titleFromSessionInfoPayload } from '@/lib/chat-title'
+import { useI18n } from '@/i18n'
+import { getDashboardCopy } from '@/i18n/dashboard'
 
 import { cn } from '@/lib/utils'
 import { AlertCircle, ChevronDown, KeyRound, RefreshCw } from 'lucide-react'
@@ -60,14 +63,6 @@ interface SessionInfo {
   provider?: string
   credential_warning?: string
   title?: string
-}
-
-const STATE_LABEL: Record<ConnectionState, string> = {
-  idle: 'idle',
-  connecting: 'connecting',
-  open: 'live',
-  closed: 'closed',
-  error: 'error'
 }
 
 const STATE_TONE: Record<ConnectionState, 'secondary' | 'warning' | 'success' | 'destructive'> = {
@@ -109,6 +104,8 @@ export function ChatSidebar({
   onDashboardNewSessionRequest,
   onSessionTitleChange
 }: ChatSidebarProps) {
+  const { t } = useI18n()
+  const copy = getDashboardCopy(t).chat
   const navigate = useNavigate()
   // `version` bumps on reconnect (manual button, profile/channel switch) and
   // re-runs the socket effects. The clients themselves live for the whole
@@ -201,7 +198,12 @@ export function ChatSidebar({
 
       if (message) {
         console.warn(`[chat-sidebar] sidecar error: ${message}`)
-        setError(sidecarErrorMessage(message))
+        const normalized = sidecarErrorMessage(message)
+        setError(
+          normalized === SIDECAR_DISCONNECTED_MESSAGE
+            ? copy.sidePanelDisconnected
+            : normalized
+        )
       }
     })
 
@@ -221,7 +223,12 @@ export function ChatSidebar({
       .catch((e: Error) => {
         if (!cancelled) {
           console.warn(`[chat-sidebar] sidecar connect failed: ${e.message}`)
-          setError(sidecarErrorMessage(e.message))
+          const normalized = sidecarErrorMessage(e.message)
+          setError(
+            normalized === SIDECAR_DISCONNECTED_MESSAGE
+              ? copy.sidePanelDisconnected
+              : normalized
+          )
         }
       })
 
@@ -253,15 +260,25 @@ export function ChatSidebar({
     let unmounting = false
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
     let attempt = 0
+    let eventsBanner: string | null = null
 
     // The banner is shared with `info.credential_warning` and the JSON-RPC
     // sidecar, and `error` is those messages' only home — the sidecar does
     // not re-emit. So the events feed may only write over an empty banner
     // or one of its own messages, and may only clear its own.
-    const surface = (msg: string) =>
-      !unmounting && setError(current => (isEventsFeedMessage(current) ? msg : (current ?? msg)))
+    const surface = (msg: string) => {
+      if (unmounting) return
+      const previous = eventsBanner
+      eventsBanner = msg
+      setError(current => (current === previous || isEventsFeedMessage(current) ? msg : (current ?? msg)))
+    }
 
-    const clearEventsBanner = () => !unmounting && setError(current => (isEventsFeedMessage(current) ? null : current))
+    const clearEventsBanner = () => {
+      if (unmounting) return
+      const previous = eventsBanner
+      eventsBanner = null
+      setError(current => (current === previous || isEventsFeedMessage(current) ? null : current))
+    }
 
     // Single scheduling path: the client collapses `error` + `close` of one
     // socket generation into one `closed` transition, so only one timer is
@@ -271,13 +288,13 @@ export function ChatSidebar({
         return
       }
       if (attempt >= EVENTS_MAX_RECONNECT_ATTEMPTS) {
-        surface(eventsGaveUpMessage())
+        surface(copy.eventsGaveUp)
         return
       }
 
       const delay = eventsReconnectDelayMs(attempt)
       attempt += 1
-      surface(eventsReconnectingMessage(delay))
+      surface(copy.eventsReconnecting.replace('{seconds}', String(Math.round(delay / 1000))))
 
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null
@@ -310,7 +327,7 @@ export function ChatSidebar({
       }
       console.warn(`[chat-sidebar] events feed closed code=${code ?? 'none'}`)
       if (code !== undefined && isEventsAuthRejection(code)) {
-        surface(eventsRejectedMessage(code))
+        surface(copy.eventsExpired)
         return
       }
       // `undefined` = handshake timeout / error without a close frame.
@@ -350,7 +367,7 @@ export function ChatSidebar({
       offNewSession()
       feed.close()
     }
-  }, [channel, feed, onDashboardNewSessionRequest, onSessionTitleChange, version])
+  }, [channel, copy.eventsExpired, copy.eventsGaveUp, copy.eventsReconnecting, feed, onDashboardNewSessionRequest, onSessionTitleChange, version])
 
   // Seed the badge on mount and re-read it whenever the sockets are rebuilt
   // (a profile/channel switch bumps `version`).
@@ -370,8 +387,11 @@ export function ChatSidebar({
   const modelName = effectiveModel || info.model || '—'
   const modelLabel = modelName.split('/').slice(-1)[0] ?? '—'
   const credential = credentialWarning(info.credential_warning)
-  const banner = error ?? credential?.message ?? null
-  const showReload = isEventsAuthRejectionMessage(error)
+  const credentialMessage = credential?.provider
+    ? copy.noApiKey.replace('{provider}', credential.provider)
+    : credential?.message
+  const banner = error ?? credentialMessage ?? null
+  const showReload = isEventsAuthRejectionMessage(error) || error === copy.eventsExpired
 
   return (
     <aside
@@ -382,7 +402,7 @@ export function ChatSidebar({
     >
       <Card className="flex items-center justify-between gap-2 px-3 py-2">
         <div className="min-w-0 flex-1">
-          <div className="text-display text-xs tracking-wider text-text-tertiary">model</div>
+          <div className="text-display text-xs tracking-wider text-text-tertiary">{copy.model}</div>
 
           <Button
             ghost
@@ -393,7 +413,7 @@ export function ChatSidebar({
               'self-start normal-case tracking-normal text-sm font-medium',
               'hover:underline disabled:no-underline'
             )}
-            title={modelName === '—' ? 'switch model' : modelName}
+            title={modelName === '—' ? copy.switchModel : modelName}
           >
             <span className="flex min-w-0 max-w-full items-center gap-1">
               <span className="truncate">{modelLabel}</span>
@@ -404,7 +424,7 @@ export function ChatSidebar({
         </div>
 
         <Badge tone={STATE_TONE[state]} className="shrink-0">
-          {STATE_LABEL[state]}
+          {copy.states[state]}
         </Badge>
       </Card>
 
@@ -414,11 +434,7 @@ export function ChatSidebar({
             currentModel={modelName}
             profile={profile}
             refreshKey={modelRefreshKey}
-            onChanged={effort =>
-              setModelNotice(
-                `Reasoning effort set to ${effort}. Run /new or refresh the page to apply it to this chat.`
-              )
-            }
+            onChanged={effort => setModelNotice(copy.reasoningSet.replace('{effort}', effort))}
           />
         </Card>
       )}
@@ -446,12 +462,12 @@ export function ChatSidebar({
                 onClick={() => window.location.reload()}
                 prefix={<RefreshCw />}
               >
-                Reload page
+                {t.common.retry}
               </Button>
             )}
             {error && !showReload && (
               <Button size="sm" outlined className="mt-1" onClick={reconnect} prefix={<RefreshCw />}>
-                Reconnect side panel
+                {copy.reconnectPanel}
               </Button>
             )}
             {!error && credential && (
@@ -465,10 +481,10 @@ export function ChatSidebar({
                   // still lives under ChatPage, so router context is present.)
                   onClick={() => navigate('/env')}
                 >
-                  Add key
+                  {copy.addKey}
                 </Button>
                 <Button size="sm" outlined onClick={() => setModelOpen(true)}>
-                  Switch model
+                  {copy.switchModel}
                 </Button>
               </div>
             )}
@@ -516,7 +532,7 @@ export function ChatSidebar({
         onCancel={() => {
           const m = pendingReloadModel
           setPendingReloadModel(null)
-          setModelNotice(`Model set to ${m}. Run /new or refresh the page to apply it to this chat.`)
+          setModelNotice(copy.modelSet.replace('{model}', m ?? ''))
         }}
       />
     </aside>
