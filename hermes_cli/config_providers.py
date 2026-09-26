@@ -98,6 +98,8 @@ def find_provider_entry(providers: Any, key: Any) -> Tuple[Any, Optional[Dict[st
     return None, None
 
 
+_MAX_TOKENS_FIELDS = ("max_tokens", "max_completion_tokens")
+
 # camelCase aliases commonly used in hand-written provider configs.
 _CAMEL_ALIASES: Dict[str, str] = {
     "apiKey": "api_key",
@@ -111,6 +113,7 @@ _CAMEL_ALIASES: Dict[str, str] = {
     "maxOutputTokens": "max_output_tokens",
     "rateLimitDelay": "rate_limit_delay",
     "authScheme": "auth_scheme",
+    "maxTokensField": "max_tokens_field",
     "sessionAffinityHeader": "session_affinity_header"}
 
 
@@ -123,7 +126,7 @@ _KNOWN_PROVIDER_KEYS = {
     "context_length", "max_input_tokens", "max_output_tokens", "max_tokens", "rate_limit_delay",
     "request_timeout_seconds", "stale_timeout_seconds",
     "discover_models", "extra_body", "extra_headers", "capabilities", "ssl_ca_cert", "ssl_verify",
-    "auth_scheme", "catalog_provider", "session_affinity_header"}
+    "auth_scheme", "max_tokens_field", "catalog_provider", "session_affinity_header"}
 
 
 def _pick_provider_base_url(entry: Dict[str, Any], provider_key: str) -> str:
@@ -187,6 +190,21 @@ def _normalize_provider_models(models: Any) -> Tuple[Dict[str, Any], bool]:
     return {}, discovered
 
 
+def _positive_token_count(raw: Any) -> Optional[int]:
+    """A token budget from config: positive int, or a numeric string a hand-written YAML may carry
+    (``"131072"``); bools and everything else are not budgets. One coercion for every reader so a
+    value the normalizer keeps is a value the resolver honours."""
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, float) and not raw.is_integer():
+        return None
+    try:
+        value = int(str(raw).strip()) if isinstance(raw, str) else int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
 def _normalize_model_token_limits(value: Any) -> Dict[str, Dict[str, int]]:
     """Keep only positive, exact-model token overrides from a provider entry."""
     if not isinstance(value, dict):
@@ -197,11 +215,9 @@ def _normalize_model_token_limits(value: Any) -> Dict[str, Dict[str, int]]:
         if not model or not isinstance(raw_limits, dict):
             continue
         limits = {
-            field: raw
+            field: parsed
             for field in ("context_length", "max_input_tokens", "max_output_tokens")
-            if isinstance((raw := raw_limits.get(field)), int)
-            and not isinstance(raw, bool)
-            and raw > 0
+            if (parsed := _positive_token_count(raw_limits.get(field))) is not None
         }
         if limits:
             result[model] = limits
@@ -283,14 +299,15 @@ def _normalize_custom_provider_entry(
 
     for field, ok in (
         ("context_length", lambda v: isinstance(v, int) and v > 0),
-        ("max_input_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
-        ("max_output_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
-        ("max_tokens", lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0),
         ("rate_limit_delay", lambda v: isinstance(v, (int, float)) and v >= 0),
         ("discover_models", lambda v: isinstance(v, (bool, str))),
     ):
         if ok(entry.get(field)):
             normalized[field] = entry[field]
+    for field in ("max_input_tokens", "max_output_tokens", "max_tokens"):
+        budget = _positive_token_count(entry.get(field))
+        if budget is not None:
+            normalized[field] = budget
     if isinstance(entry.get("extra_body"), dict):
         normalized["extra_body"] = dict(entry["extra_body"])
 
@@ -306,6 +323,17 @@ def _normalize_custom_provider_entry(
             "providers.%s: unknown auth_scheme '%s' ignored (expected 'bearer' or 'x-api-key')",
             provider_key or "?",
             auth_scheme,
+        )
+    max_tokens_field = _stripped("max_tokens_field").lower()
+    if max_tokens_field in _MAX_TOKENS_FIELDS:
+        normalized["max_tokens_field"] = max_tokens_field
+    elif max_tokens_field:
+        _warn_once_per_provider(
+            provider_key,
+            f"max_tokens_field:{max_tokens_field}",
+            "providers.%s: unknown max_tokens_field '%s' ignored (expected 'max_tokens' or 'max_completion_tokens')",
+            provider_key or "?",
+            max_tokens_field,
         )
     _put("session_affinity_header", _stripped("session_affinity_header"))
     _put("ssl_ca_cert", _stripped("ssl_ca_cert"))
@@ -331,7 +359,7 @@ def _custom_provider_entry_to_provider_config(
         "name", "api_key", "key_env", "key_cmd", "models", "models_discovered", "model_token_limits",
         "context_length", "max_input_tokens", "max_output_tokens", "max_tokens",
         "rate_limit_delay", "discover_models", "extra_body", "extra_headers",
-        "auth_scheme", "session_affinity_header", "ssl_ca_cert", "ssl_verify", "catalog_provider"):
+        "auth_scheme", "max_tokens_field", "session_affinity_header", "ssl_ca_cert", "ssl_verify", "catalog_provider"):
         if field in normalized:
             provider_entry[field] = normalized[field]
     if "model" in normalized:
@@ -629,7 +657,13 @@ def get_custom_provider_token_limits(
     config: Optional[Dict[str, Any]] = None,
     *, requested_provider: str = "",
 ) -> Dict[str, int]:
-    """Configured total-context, input and output limits for one exact endpoint/model route."""
+    """Configured total-context, input and output limits for one exact endpoint/model route.
+
+    Precedence, most specific user intent first: ``model_token_limits[model]`` > a hand-curated
+    ``models[model]`` row > the entry's provider-wide value > a ``models[model]`` row Hermes itself
+    discovered from ``/models`` (an advertised capability ceiling, never above the user's own
+    budget). Every surface that needs an output or input budget resolves through here.
+    """
     from hermes_cli.config import get_compatible_custom_providers, load_config_readonly
     if not model or not base_url:
         return {}
@@ -643,15 +677,6 @@ def get_custom_provider_token_limits(
                 return {}
             raw = config.get("custom_providers")
             custom_providers = raw if isinstance(raw, list) else []
-
-    def _positive_int(raw: Any) -> Optional[int]:
-        if isinstance(raw, bool):
-            return None
-        try:
-            value = int(raw)
-        except (TypeError, ValueError):
-            return None
-        return value if value > 0 else None
 
     aliases = {
         "context_length": ("context_length",),
@@ -667,16 +692,23 @@ def get_custom_provider_token_limits(
         if isinstance((overrides := entry.get("model_token_limits")), dict)
         and isinstance((limits := overrides.get(model)), dict)
     ]
-    model_cfgs = [
+    curated_cfgs = [
         model_cfg
         for entry in entries
-        if (model_cfg := _route_model_cfg(entry, model)) is not None
+        if entry.get("models_discovered") is not True
+        and (model_cfg := _route_model_cfg(entry, model)) is not None
+    ]
+    discovered_cfgs = [
+        model_cfg
+        for entry in entries
+        if entry.get("models_discovered") is True
+        and (model_cfg := _route_model_cfg(entry, model)) is not None
     ]
     result: Dict[str, int] = {}
     for field, keys in aliases.items():
-        for source in (*override_cfgs, *model_cfgs, *entries):
+        for source in (*override_cfgs, *curated_cfgs, *entries, *discovered_cfgs):
             value = next(
-                (parsed for key in keys if (parsed := _positive_int(source.get(key))) is not None),
+                (parsed for key in keys if (parsed := _positive_token_count(source.get(key))) is not None),
                 None,
             )
             if value is not None:
@@ -684,6 +716,29 @@ def get_custom_provider_token_limits(
                 break
     return result
 
+
+
+def get_custom_provider_max_tokens_field(
+    model: str, base_url: str, custom_providers: Optional[List[Dict[str, Any]]] = None,
+    config: Optional[Dict[str, Any]] = None, *, requested_provider: str = "",
+) -> Optional[str]:
+    """The chat-completions output-cap field name pinned for one route (``max_tokens`` or
+    ``max_completion_tokens``), a ``models[model]`` row winning over the entry, or None."""
+    if not model or not base_url:
+        return None
+    if custom_providers is None:
+        from hermes_cli.config import get_compatible_custom_providers, load_config_readonly
+        try:
+            custom_providers = get_compatible_custom_providers(load_config_readonly() if config is None else config)
+        except Exception:
+            return None
+    entries = _token_limit_entries_for_route(base_url, custom_providers, config, requested_provider=requested_provider)
+    sources = [cfg for entry in entries if (cfg := _route_model_cfg(entry, model)) is not None] + list(entries)
+    for source in sources:
+        field = str(source.get("max_tokens_field") or "").strip().lower()
+        if field in _MAX_TOKENS_FIELDS:
+            return field
+    return None
 
 def get_custom_provider_model_capability(
     model: str,

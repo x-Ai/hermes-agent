@@ -128,7 +128,7 @@ from agent.auxiliary_unavailable import (
     AuxiliaryClientUnavailable, clear_nous_credential_failure, missing_provider_credentials_message,
     nous_credential_failure_detail, record_nous_credential_failure)
 from hermes_constants import OPENROUTER_BASE_URL, hermes_home_key
-from utils import base_url_host_matches, base_url_hostname, base_url_origin, env_float, is_truthy_value, model_forces_max_completion_tokens, normalize_proxy_env_vars
+from utils import base_url_host_matches, base_url_hostname, base_url_origin, env_float, is_truthy_value, normalize_proxy_env_vars
 
 logger = logging.getLogger(__name__)
 
@@ -5161,6 +5161,10 @@ def _named_custom_openai_wire_client(custom_base: str, custom_key: Any, extra_he
     _headers = _apply_user_default_headers(None)
     if extra_headers:
         _headers = {**(_headers or {}), **extra_headers}
+    from agent.endpoint_auth import auth_scheme_default_headers
+    _auth = auth_scheme_default_headers(custom_base, custom_key)
+    if _auth:
+        _headers = {**{k: v for k, v in (_headers or {}).items() if str(k).lower() != "authorization"}, **_auth}
     if _headers:
         _extra["default_headers"] = _headers
     return _create_openai_client(api_key=custom_key, base_url=_clean_base, **_extra)
@@ -5740,17 +5744,18 @@ def get_auxiliary_extra_body() -> dict:
     return _nous_extra_body() if auxiliary_is_nous else {}
 
 
-def auxiliary_max_tokens_param(value: int, *, model: Optional[str] = None) -> dict:
-    """Max-tokens kwarg for the auxiliary provider: direct OpenAI/Copilot and newer OpenAI-family
-    models (by ``model`` name, so custom endpoints fronting gpt-5.x are caught) need max_completion_tokens."""
-    _custom_host = base_url_hostname(_current_custom_base_url()) or ""
-    direct_openai_family = (
-        not _scoped_key_env("OPENROUTER_API_KEY") and _read_nous_auth() is None
-        and (_custom_host in ("api.openai.com", "api.githubcopilot.com") or _custom_host.endswith(".githubcopilot.com"))
-    )
-    if direct_openai_family or model_forces_max_completion_tokens(model):
-        return {"max_completion_tokens": value}
-    return {"max_tokens": value}
+def auxiliary_max_tokens_param(
+    value: int, *, model: Optional[str] = None, base_url: Optional[str] = None,
+    provider: Optional[str] = None,
+) -> dict:
+    """Max-tokens kwarg for an auxiliary route: the same ``chat_max_tokens_field`` rule as the main
+    turn (configured ``max_tokens_field`` > endpoint host), so compression, titles and vision never
+    budget a custom endpoint differently from the conversation on it. ``base_url`` defaults to the
+    auxiliary custom route when the caller has no resolved URL."""
+    from agent.output_tokens import chat_max_tokens_field
+
+    route = str(base_url or "").strip() or _current_custom_base_url()
+    return {chat_max_tokens_field(route, model, provider): value}
 
 
 # ── Centralized LLM Call API: call_llm()/async_call_llm() own resolve → cached client → shape
@@ -6689,7 +6694,7 @@ def _build_call_kwargs(
         api_mode == "codex_responses"
         or _forwards_max_tokens(provider, provider_norm, model, effective_base, task)
     ):
-        kwargs.update(auxiliary_max_tokens_param(max_tokens, model=model))  # picks max_completion_tokens where needed
+        kwargs.update(auxiliary_max_tokens_param(max_tokens, model=model, base_url=effective_base, provider=provider))
     if tools:
         kwargs["tools"] = _dedupe_tool_names(tools, provider, model)
     # Provider profiles are the source of truth for reasoning wire shapes (top-level, nested body,

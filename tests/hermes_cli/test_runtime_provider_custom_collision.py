@@ -53,3 +53,14 @@ def test_picker_context_uses_same_recovered_custom_identity():
         patch("hermes_cli.runtime_provider.load_config", return_value=config),
     ):
         assert load_picker_context().current_provider == "custom:xai"
+
+
+def test_keyless_entry_named_after_a_builtin_is_still_a_custom_endpoint():
+    from hermes_cli.providers import is_builtin_provider_id, is_custom_endpoint_entry
+
+    assert is_builtin_provider_id("xai") and not is_builtin_provider_id("my-relay")
+    # Structural: the URL, not the credential's env-var spelling, says this is a foreign endpoint.
+    assert is_custom_endpoint_entry("xai", {"base_url": "http://127.0.0.1:8080/v1"}) is True
+    assert is_custom_endpoint_entry("xai", {"base_url": "https://gw.example.test/v1", "key_env": "MY_KEY"}) is True
+    assert is_custom_endpoint_entry("xai", {"request_timeout_seconds": 30}) is False
+    assert is_custom_endpoint_entry("my-relay", {"api": "https://gw.example.test/v1"}) is True

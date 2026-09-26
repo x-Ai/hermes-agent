@@ -42,9 +42,7 @@ def _arm_output_truncation_retry(agent: Any, api_kwargs: Any) -> Optional[int]:
         return None
 
     source = str(getattr(agent, "max_tokens_source", "") or "").strip().lower()
-    configured_cap = bool(getattr(agent, "max_tokens", None)) or source in {
-        "explicit", "model", "provider", "discovered",
-    }
+    configured_cap = bool(getattr(agent, "max_tokens", None)) or source in {"explicit", "route"}
     retry_cap = requested_cap
     if not configured_cap and requested_cap < _OUTPUT_TRUNCATION_RETRY_CAP:
         retry_cap = min(max(requested_cap * 2, 8_192), _OUTPUT_TRUNCATION_RETRY_CAP)

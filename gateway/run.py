@@ -2303,7 +2303,7 @@ def _resolve_runtime_agent_kwargs() -> dict:
         # The entry's model is the one this agent must send (#112600). Carry the fallback notice so the
         # gateway can surface a user-visible provider switch (#74349); the caller must pop
         # ``_fallback_notice`` before forwarding kwargs to AIAgent.
-        return {**_runtime_agent_kwargs(runtime), **_runtime_output_limit_kwargs(runtime, _model_cfg),
+        return {**_runtime_agent_kwargs(runtime),
                 "model": fallback_entry["model"],
                 "_fallback_notice": pre_agent_fallback_notice(
                     _primary_provider, _primary_model,
@@ -2317,31 +2317,8 @@ def _resolve_runtime_agent_kwargs() -> dict:
 
     return {
         **_runtime_agent_kwargs(runtime),
-        **_runtime_output_limit_kwargs(runtime, _model_cfg),
         "capabilities": capabilities,
     }
-
-
-def _runtime_output_limit_kwargs(runtime: dict, model_cfg: Optional[dict] = None) -> dict:
-    """Resolve explicit config/env output budget before provider-scoped discovered limits."""
-    max_tokens = None
-    source = None
-    raw_env = os.environ.get("HERMES_MAX_TOKENS")
-    if raw_env:
-        with suppress(ValueError, TypeError):
-            max_tokens = int(raw_env)
-            source = "explicit"
-    elif isinstance(model_cfg, dict):
-        raw = model_cfg.get("max_tokens")
-        if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
-            max_tokens = raw
-            source = "explicit"
-    if max_tokens is None:
-        raw = runtime.get("max_output_tokens")
-        if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
-            max_tokens = raw
-            source = runtime.get("max_output_tokens_source") or "provider"
-    return {"max_tokens": max_tokens, "max_tokens_source": source}
 
 
 def _runtime_agent_kwargs(runtime: dict) -> dict:
@@ -2468,8 +2445,7 @@ def _resolve_runtime_agent_kwargs_for_provider(provider: str, target_model: Opti
     return {
         **_runtime_agent_kwargs(runtime),
         "request_overrides": dict(runtime.get("request_overrides") or {}),
-        "capabilities": dict(runtime.get("capabilities") or {}),
-        **_runtime_output_limit_kwargs(runtime)}
+        "capabilities": dict(runtime.get("capabilities") or {})}
 
 
 def _deep_merge_request_overrides(base: Optional[dict], override: Optional[dict]) -> dict:

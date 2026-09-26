@@ -1265,11 +1265,14 @@ model:
 :::note Context windows and output limits are different
 **`context_length`** is the **total context window** — the combined budget for input *and* output tokens (e.g. 200,000 for Claude Opus 4.6). Hermes uses this to decide when to compress history and to validate API requests.
 
-Output limits govern a single generated response, not the conversation history.
-Hermes no longer reads `model.max_tokens`, `HERMES_MAX_TOKENS`, provider output-cap
-settings, or `model_overrides.*.*.max_output_tokens`. Remove these legacy settings.
-Custom OpenAI-compatible endpoints receive no automatic catalog-sized output cap.
-Their server defaults apply; these can be lower than the model maximum.
+Output limits govern a single generated response, not the conversation history. This fork keeps
+them **per endpoint**: a custom provider can pin `max_output_tokens` (and `max_input_tokens`)
+provider-wide, per model under `model_token_limits`, or inherit the value a `/models` catalog
+advertises; `model.max_tokens` in config.yaml (or an explicit `AIAgent(max_tokens=...)`) pins the
+budget for every route. Resolution happens once, at agent construction, for the CLI, the gateway,
+the TUI/Desktop, batch, cron, ACP and side agents alike, and is re-derived on `/model` switches
+and fallbacks. Nothing configured means no cap is sent on OpenAI-compatible wires (the server
+default applies, which can be lower than the model maximum).
 
 Native Anthropic Messages (including the native Anthropic Bedrock path) requires
 `max_tokens`, so Hermes supplies an internal value. Bedrock Converse is a separate
@@ -1348,6 +1351,34 @@ providers:
 ```
 
 Each entry accepts: `api` (the endpoint base URL — `base_url`/`url` are accepted aliases), `name` (optional display name; defaults to the dict key), `key_env` or inline `api_key` or `key_cmd` (see below), `transport` (`chat_completions` / `anthropic_messages` / `codex_responses`), `default_model`, `models`, `context_length`, `discover_models`, `extra_body`, `extra_headers`, `session_affinity_header` (name of a header that carries the conversation id, for session-aware proxies; off unless set), `ssl_ca_cert` / `ssl_verify`, `catalog_provider` (see below), and `enabled: false` to hide an entry without deleting it.
+
+This fork adds endpoint-level fields so a relay never needs a model-name special case in code:
+
+```yaml
+providers:
+  my-relay:
+    api: https://relay.example.com/v1
+    key_env: MY_RELAY_KEY
+    transport: chat_completions
+    auth_scheme: x-api-key           # or bearer; one setting for every wire, default = auto-detect
+    max_tokens_field: max_completion_tokens   # for relays that forward to OpenAI unchanged
+    max_output_tokens: 32000         # provider-wide output budget
+    max_input_tokens: 200000         # caps the compaction window below context_length
+    model_token_limits:              # exact-model pins win over the provider-wide values
+      glm-5.2: {context_length: 200000, max_output_tokens: 128000}
+    models:
+      glm-5.2: {supports_vision: false, supports_reasoning: true, max_tokens_field: max_tokens}
+    extra_headers: {X-Tenant: team-a}
+    extra_body: {chat_template_kwargs: {enable_thinking: false}}
+```
+
+Precedence for the three budgets: `model_token_limits[model]` > a hand-curated `models[model]`
+row > the entry's provider-wide value > a `models[model]` row Hermes discovered from `/models`
+(an advertised ceiling never outranks your own budget). `auth_scheme`, `max_tokens_field` and
+the budgets are all editable in the Desktop **Custom endpoints** panel, whose **Test** button
+probes with exactly the headers the runtime will send (stored key, `extra_headers`, User-Agent,
+auth header). An endpoint id may not reuse a built-in provider id (`openai`, `xai`, ...):
+`providers.<builtin>` is that provider's own settings block.
 
 #### Command-minted credentials (`key_cmd`)
 

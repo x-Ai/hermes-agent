@@ -234,3 +234,25 @@ def test_fetch_api_models_sends_extra_headers_to_models_probe(monkeypatch):
     assert captured["headers"]["authorization"] == "Bearer proxy-key"
     assert captured["headers"]["sleeve-harness"] == "hermes"
     assert captured["headers"]["sleeve-base-url"] == "http://localhost:8081/v1"
+
+
+def test_x_api_key_scheme_replaces_bearer_on_openai_wire_clients():
+    """``auth_scheme: x-api-key`` governs Chat Completions / Responses clients too, not only the
+    Anthropic transport: the static key moves to ``x-api-key`` and the SDK's bearer header is dropped."""
+    from openai import OpenAI
+    from openai._models import FinalRequestOptions
+    from agent.endpoint_auth import apply_auth_scheme_to_client_kwargs, auth_scheme_default_headers
+
+    url = "https://gateway.example.test/v1"
+    entries = [{"name": "gw", "provider_key": "gw", "base_url": url, "auth_scheme": "x-api-key"}]
+    kwargs = {"api_key": "sk-secret", "base_url": url, "default_headers": {"X-Tenant": "a"}}
+    apply_auth_scheme_to_client_kwargs(kwargs, url, entries)
+    request = OpenAI(**kwargs)._build_request(
+        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={}))
+    assert request.headers.get("authorization") is None
+    assert request.headers.get("x-api-key") == "sk-secret"
+    assert request.headers.get("x-tenant") == "a"
+
+    # Unpinned routes and command-minted (callable) keys keep the SDK bearer path untouched.
+    assert auth_scheme_default_headers("https://other.example.test/v1", "sk-secret", entries) == {}
+    assert auth_scheme_default_headers(url, lambda: "minted", entries) == {}

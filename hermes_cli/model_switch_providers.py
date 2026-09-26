@@ -17,7 +17,7 @@ from typing import Any, List, Optional
 from agent.command_token_source import build_command_token_provider, materialize_probe_api_key
 from hermes_cli.providers import (
     custom_provider_aliases, custom_provider_slug, get_label,
-    is_saved_custom_endpoint,
+    is_custom_endpoint_entry,
 )
 from utils import base_url_host_matches
 
@@ -64,9 +64,7 @@ def _save_discovered_models_to_config(
                 continue
             if not _discovered_catalog_stale(entry, model_ids, model_metadata):
                 continue
-            metadata = model_metadata if isinstance(model_metadata, dict) else {}
-            entry["models"] = {
-                model_id: dict(metadata.get(model_id) or {}) for model_id in model_ids}
+            entry["models"] = _discovered_rows(model_ids, model_metadata, entry.get("models"))
             entry["models_discovered"] = True
             changed = True
 
@@ -74,6 +72,24 @@ def _save_discovered_models_to_config(
             save_config(cfg)
     except Exception:
         pass
+
+
+_DISCOVERY_OWNED_KEYS = ("max_output_tokens",)
+
+
+def _discovered_rows(model_ids: list[str], model_metadata: Any, existing: Any) -> dict:
+    """Rows for a refreshed discovered catalog: advertised metadata layered over whatever else the
+    same row already carries (``supports_vision``, ``canonical_model``, ...). A re-probe owns the
+    advertised fields only; it must never erase what the user or Desktop wrote into the row."""
+    metadata = model_metadata if isinstance(model_metadata, dict) else {}
+    prior_rows = existing if isinstance(existing, dict) else {}
+    rows: dict = {}
+    for model_id in model_ids:
+        prior = prior_rows.get(model_id)
+        row = {k: v for k, v in prior.items() if k not in _DISCOVERY_OWNED_KEYS} if isinstance(prior, dict) else {}
+        row.update(metadata.get(model_id) or {})
+        rows[model_id] = row
+    return rows
 
 
 def _discovered_catalog_stale(
@@ -89,9 +105,7 @@ def _discovered_catalog_stale(
     legacy_discovered = isinstance(existing, dict) and existing.get("__discovered_model_catalog__") is True
     entry_discovered = entry.get("models_discovered") is True or legacy_discovered
     if isinstance(existing, dict):
-        expected = {
-            model_id: dict((model_metadata or {}).get(model_id) or {}) for model_id in model_ids}
-        return entry_discovered and (legacy_discovered or existing != expected)
+        return entry_discovered and (legacy_discovered or existing != _discovered_rows(model_ids, model_metadata, existing))
     if isinstance(existing, list):
         return not any(isinstance(m, dict) for m in existing) and existing != model_ids
     return True
@@ -988,7 +1002,7 @@ def _lap_user_provider_rows(b: _PickerBuild, user_providers: dict) -> None:
         display_name = coerce_provider_id(ep_cfg.get("name")) or ep_name
         provider_id_collides = (
             ep_name.strip().lower() in PROVIDER_REGISTRY
-            and is_saved_custom_endpoint(ep_cfg)
+            and is_custom_endpoint_entry(ep_name, ep_cfg)
         )
         if ep_name.lower() in b.seen_slugs and not provider_id_collides:
             continue

@@ -143,3 +143,30 @@ def test_bare_root_probe_reports_the_v1_key_rejection_not_the_root_404(route, mo
         data = asyncio.run(mod.validate_custom_endpoint(body))
     assert data["ok"] is False and data["reachable"] is True
     assert "404" not in data["message"]
+
+
+def test_probe_headers_mirror_the_runtime_request_shape(monkeypatch):
+    """The Test button must send what the runtime sends: the stored key when the form leaves it blank,
+    the entry's extra_headers, the form's User-Agent, and ONE auth header chosen by auth_scheme."""
+    import hermes_cli.web_routers.config_env as mod
+    from hermes_cli.web_models import CustomEndpointUpdate
+
+    monkeypatch.setattr(mod, "get_secret_str", lambda name, default="": "stored-key" if name == "RELAY_KEY" else default)
+    entry = {"key_env": "RELAY_KEY", "extra_headers": {"X-Tenant": "t1", "User-Agent": "old-ua"}, "auth_scheme": "x-api-key"}
+    body = CustomEndpointUpdate(name="relay", base_url="https://relay.example/v1", model="m", user_agent="Hermes/1")
+
+    chat = mod._probe_request_headers(body, entry, "chat_completions", "https://relay.example/v1")
+    assert chat["x-api-key"] == "stored-key" and "Authorization" not in chat
+    assert chat["X-Tenant"] == "t1" and chat["User-Agent"] == "Hermes/1"
+
+    # A key typed into the form wins over the stored one; a bearer pin uses Authorization only.
+    typed = CustomEndpointUpdate(name="relay", base_url="https://relay.example/v1", model="m",
+                                 api_key="typed", auth_scheme="bearer")
+    anth = mod._probe_request_headers(typed, entry, "anthropic_messages", "https://relay.example/anthropic")
+    assert anth["Authorization"] == "Bearer typed" and "x-api-key" not in anth
+    assert anth["anthropic-version"] == "2023-06-01"
+
+    # Auto-detect on an unknown Anthropic-wire host follows the adapter's default: x-api-key.
+    auto = CustomEndpointUpdate(name="new", base_url="https://other.example/anthropic", model="m", api_key="k")
+    assert "x-api-key" in mod._probe_request_headers(auto, {}, "anthropic_messages", "https://other.example/anthropic")
+    assert "Authorization" in mod._probe_request_headers(auto, {}, "chat_completions", "https://other.example/v1")

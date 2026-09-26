@@ -958,6 +958,27 @@ export interface Translations {
       apiKeyLabel: string
       userAgentLabel: string
       userAgentHint: string
+      useBrowserUserAgent: string
+      defaultRowLabel: string
+      visionLabel: string
+      reasoningLabel: string
+      capabilityAuto: string
+      capabilityYes: string
+      capabilityNo: string
+      extraHeadersLabel: string
+      extraHeadersHint: string
+      headerNamePlaceholder: string
+      headerValuePlaceholder: string
+      addHeader: string
+      removeHeader: string
+      extraBodyLabel: string
+      extraBodyHint: string
+      extraBodyInvalid: string
+      maxTokensFieldLabel: string
+      maxTokensFieldAuto: string
+      maxTokensFieldHint: string
+      catalogProviderLabel: string
+      catalogProviderHint: string
       contextAuto: string
       keyKeepPlaceholder: string
       keyOptionalPlaceholder: string

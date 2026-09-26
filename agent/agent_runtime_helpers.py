@@ -1309,6 +1309,7 @@ def restore_primary_runtime(agent) -> bool:
         _rebuild_primary_client(agent, rt, reason="restore_primary")
         if hasattr(agent.context_compressor, "requested_provider"):
             agent.context_compressor.requested_provider = agent.requested_provider
+        _refresh_route_output_limit(agent)
         agent.context_compressor.update_model(
             model=rt["compressor_model"], context_length=rt["compressor_context_length"],
             base_url=rt["compressor_base_url"], api_key=rt["compressor_api_key"],
@@ -2223,6 +2224,7 @@ def _update_switch_compressor(agent, custom_providers, effective_context_length,
         )
         if hasattr(agent.context_compressor, "requested_provider"):
             agent.context_compressor.requested_provider = getattr(agent, "requested_provider", "") or agent.provider
+        _refresh_route_output_limit(agent, custom_providers)
         agent.context_compressor.update_model(
             model=agent.model,
             context_length=new_context_length,
@@ -2238,6 +2240,21 @@ def _update_switch_compressor(agent, custom_providers, effective_context_length,
     # clamp lands before the first compaction on the new window, not after it (#114707).
     from agent.conversation_compression import revalidate_compression_feasibility
     revalidate_compression_feasibility(agent)
+
+
+def _refresh_route_output_limit(agent, custom_providers=None) -> None:
+    """Re-derive a route-scoped ``max_tokens`` for the runtime the agent now points at, and mirror it
+    into the compressor's output reservation. An explicit budget (caller or ``model.max_tokens``) is
+    pinned and never re-derived. The compressor attribute is set directly rather than through
+    ``update_model(max_tokens=...)``: plugin context engines implement the narrower ABC signature."""
+    if str(getattr(agent, "max_tokens_source", "") or "").lower() != "explicit":
+        from agent.agent_init import route_output_limit
+        limit = route_output_limit(agent, custom_providers)
+        agent.max_tokens = limit
+        agent.max_tokens_source = "route" if limit is not None else None
+    compressor = getattr(agent, "context_compressor", None)
+    if compressor is not None and hasattr(compressor, "max_tokens") and hasattr(compressor, "_coerce_max_tokens"):
+        compressor.max_tokens = compressor._coerce_max_tokens(agent.max_tokens)
 
 
 def _build_primary_runtime_snapshot(agent, api_mode) -> Dict[str, Any]:

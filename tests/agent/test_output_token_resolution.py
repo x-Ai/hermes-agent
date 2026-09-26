@@ -44,8 +44,8 @@ def test_output_limit_precedence_and_scoping():
         requested_provider="custom:missing", custom_providers=entries, discover=False)
 
     assert (explicit.value, explicit.source) == (4_000, "explicit")
-    assert (model.value, model.source) == (96_000, "model")
-    assert (provider.value, provider.source) == (64_000, "provider")
+    assert (model.value, model.source) == (96_000, "route")
+    assert (provider.value, provider.source) == (64_000, "route")
     assert (mismatched.value, mismatched.source) == (None, "transport_default")
 
 
@@ -60,10 +60,10 @@ def test_provider_limit_wins_over_saved_discovered_capability():
         explicit=None, model="glm-5.2", base_url=url, provider="custom",
         requested_provider="custom:cursor2api", custom_providers=entries, discover=False)
 
-    assert (resolved.value, resolved.source) == (64_000, "provider")
+    assert (resolved.value, resolved.source) == (64_000, "route")
 
 
-def test_saved_discovered_capability_refreshes_through_current_endpoint_cache():
+def test_persisted_discovered_capability_is_authoritative_without_a_live_probe():
     from hermes_cli.models import DiscoveredModelList
 
     url = "https://cursor2api.example/v1"
@@ -80,11 +80,11 @@ def test_saved_discovered_capability_refreshes_through_current_endpoint_cache():
             requested_provider="cursor2api", api_mode="codex_responses",
             custom_providers=[entry], api_key="key")
 
-    assert (resolved.value, resolved.source) == (131_072, "discovered")
-    fetch.assert_called_once()
+    assert (resolved.value, resolved.source) == (128_000, "route")
+    fetch.assert_not_called()
 
 
-def test_saved_discovered_capability_is_only_an_offline_fallback():
+def test_persisted_discovered_capability_holds_when_the_endpoint_cache_is_empty():
     url = "https://cursor2api.example/v1"
     entry = _entry(
         "cursor2api", url, api_mode="codex_responses", models_discovered=True,
@@ -97,7 +97,7 @@ def test_saved_discovered_capability_is_only_an_offline_fallback():
             requested_provider="cursor2api", api_mode="codex_responses",
             custom_providers=[entry], api_key="key")
 
-    assert (resolved.value, resolved.source) == (128_000, "discovered")
+    assert (resolved.value, resolved.source) == (128_000, "route")
 
 
 def test_live_discovered_capability_is_used_without_context_length_inference():
@@ -333,3 +333,24 @@ def test_optional_chat_and_responses_limits_are_omitted_when_unconfigured():
 )
 def test_provider_reported_output_limits_are_standard_truncations(api_mode, response):
     assert is_standard_output_truncation(SimpleNamespace(api_mode=api_mode), response) is True
+
+
+def test_max_tokens_field_is_config_driven_and_shared_by_main_and_auxiliary_paths():
+    from agent.auxiliary_client import auxiliary_max_tokens_param
+    from agent.output_tokens import chat_max_tokens_field
+
+    url = "https://strict-relay.example/v1"
+    entries = [_entry("strict", url, max_tokens_field="max_completion_tokens",
+                      models={"legacy-model": {"max_tokens_field": "max_tokens"}})]
+    with patch("hermes_cli.config.get_compatible_custom_providers", return_value=entries), \
+         patch("hermes_cli.config.load_config_readonly", return_value={}):
+        # No model-name guess: a gpt-5 slug on an unknown host keeps the protocol default...
+        assert chat_max_tokens_field("https://other.example/v1", "gpt-5-mini") == "max_tokens"
+        # ...the endpoint's own pin wins, per model row first...
+        assert chat_max_tokens_field(url, "gpt-5-mini", "custom", "custom:strict") == "max_completion_tokens"
+        assert chat_max_tokens_field(url, "legacy-model", "custom", "custom:strict") == "max_tokens"
+        # ...and the auxiliary client applies the identical rule.
+        assert auxiliary_max_tokens_param(64, model="gpt-5-mini", base_url=url, provider="custom") == {
+            "max_completion_tokens": 64}
+        assert auxiliary_max_tokens_param(64, model="gpt-5-mini", base_url="https://other.example/v1") == {"max_tokens": 64}
+    assert chat_max_tokens_field("https://api.openai.com/v1", "gpt-4.1") == "max_completion_tokens"

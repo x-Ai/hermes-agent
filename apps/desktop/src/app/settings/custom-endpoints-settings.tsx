@@ -22,6 +22,7 @@ import { $settingsRequestProfile } from '@/store/settings-scope'
 import type {
   CustomEndpoint,
   CustomEndpointApiMode,
+  CustomEndpointMaxTokensField,
   CustomEndpointModelDetail,
   CustomEndpointUpdate
 } from '@/types/hermes'
@@ -41,38 +42,115 @@ interface ModelTokenLimitForm {
   maxOutputTokens: string
 }
 
+type CapabilityPin = '' | 'no' | 'yes'
+
+interface ModelCapabilityForm {
+  supportsReasoning: CapabilityPin
+  supportsVision: CapabilityPin
+}
+
+interface HeaderRow {
+  name: string
+  value: string
+}
+
 interface EndpointForm {
   apiKey: string
   apiMode: CustomEndpointApiMode
   authScheme: string
   baseUrl: string
+  catalogProvider: string
+  defaultTokenLimits: ModelTokenLimitForm
   discoverModels: boolean
+  extraBody: string
+  extraHeaders: HeaderRow[]
   id: string
   makeDefault: boolean
+  maxTokensField: CustomEndpointMaxTokensField
   model: string
+  modelCapabilities: Record<string, ModelCapabilityForm>
   modelTokenLimits: Record<string, ModelTokenLimitForm>
   name: string
   userAgent: string
 }
 
-const DEFAULT_USER_AGENT =
+/** Opt-in preset for relays/WAFs that only accept browser-like agents. Never a default: the SDK
+ * identity is the truthful one, and some endpoints key features on it (e.g. coding relays). */
+export const BROWSER_USER_AGENT_PRESET =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
 
 // Same choices as `hermes model`'s custom-provider setup; '' = runtime auto-detect.
 const API_MODE_IDS: readonly CustomEndpointApiMode[] = ['', 'chat_completions', 'codex_responses', 'anthropic_messages']
+const MAX_TOKENS_FIELD_IDS: readonly CustomEndpointMaxTokensField[] = ['', 'max_tokens', 'max_completion_tokens']
+
+const EMPTY_LIMITS: ModelTokenLimitForm = { contextLength: '', maxInputTokens: '', maxOutputTokens: '' }
+const EMPTY_CAPABILITIES: ModelCapabilityForm = { supportsReasoning: '', supportsVision: '' }
 
 const EMPTY_FORM: EndpointForm = {
   apiKey: '',
   apiMode: '',
   authScheme: '',
   baseUrl: '',
+  catalogProvider: '',
+  defaultTokenLimits: EMPTY_LIMITS,
   discoverModels: true,
+  extraBody: '',
+  extraHeaders: [],
   id: '',
   makeDefault: true,
+  maxTokensField: '',
   model: '',
+  modelCapabilities: {},
   modelTokenLimits: {},
   name: '',
-  userAgent: DEFAULT_USER_AGENT
+  userAgent: ''
+}
+
+const limitsToForm = (limits?: {
+  context_length?: null | number
+  max_input_tokens?: null | number
+  max_output_tokens?: null | number
+}): ModelTokenLimitForm => ({
+  contextLength: String(limits?.context_length ?? ''),
+  maxInputTokens: String(limits?.max_input_tokens ?? ''),
+  maxOutputTokens: String(limits?.max_output_tokens ?? '')
+})
+
+const pinToForm = (value?: boolean | null): CapabilityPin => (value === true ? 'yes' : value === false ? 'no' : '')
+
+const positiveOrNull = (value: string | undefined): number | null => {
+  const parsed = Number(value)
+
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+const isInvalidLimit = (value: string) => {
+  if (!value.trim()) {
+    return false
+  }
+
+  const parsed = Number(value)
+
+  return !Number.isSafeInteger(parsed) || parsed <= 0
+}
+
+/** `{ value }` for '' or a JSON object, `{ error: true }` for anything else. */
+export function parseExtraBody(text: string): { error?: boolean; value: Record<string, unknown> } {
+  if (!text.trim()) {
+    return { value: {} }
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(text)
+
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return { value: parsed as Record<string, unknown> }
+    }
+  } catch {
+    // fall through
+  }
+
+  return { error: true, value: {} }
 }
 
 function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
@@ -80,18 +158,38 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
     endpoint.model,
     ...endpoint.models,
     ...Object.keys(endpoint.model_token_limits ?? {}),
-    ...Object.keys(endpoint.model_context_lengths ?? {})
+    ...Object.keys(endpoint.model_context_lengths ?? {}),
+    ...Object.keys(endpoint.model_capabilities ?? {})
   ])
+
+  const extraBody = endpoint.extra_body ?? {}
 
   return {
     apiKey: '',
     apiMode: endpoint.api_mode ?? '',
     authScheme: endpoint.auth_scheme ?? '',
     baseUrl: endpoint.base_url,
+    catalogProvider: endpoint.catalog_provider ?? '',
+    defaultTokenLimits: limitsToForm(endpoint.default_token_limits),
     discoverModels: endpoint.discover_models,
+    extraBody: Object.keys(extraBody).length ? JSON.stringify(extraBody, null, 2) : '',
+    extraHeaders: Object.entries(endpoint.extra_headers ?? {})
+      .filter(([name]) => name.toLowerCase() !== 'user-agent')
+      .map(([name, value]) => ({ name, value })),
     id: endpoint.id,
     makeDefault: Boolean(endpoint.is_current),
+    maxTokensField: endpoint.max_tokens_field ?? '',
     model: endpoint.model,
+    modelCapabilities: Object.fromEntries(
+      Array.from(modelIds).map(model => {
+        const pins = endpoint.model_capabilities?.[model]
+
+        return [
+          model,
+          { supportsReasoning: pinToForm(pins?.supports_reasoning), supportsVision: pinToForm(pins?.supports_vision) }
+        ]
+      })
+    ),
     modelTokenLimits: Object.fromEntries(
       Array.from(modelIds).map(model => {
         const limits = endpoint.model_token_limits?.[model]
@@ -99,9 +197,8 @@ function formFromEndpoint(endpoint: CustomEndpoint): EndpointForm {
         return [
           model,
           {
-            contextLength: String(limits?.context_length ?? endpoint.model_context_lengths?.[model] ?? ''),
-            maxInputTokens: String(limits?.max_input_tokens ?? ''),
-            maxOutputTokens: String(limits?.max_output_tokens ?? endpoint.max_output_tokens ?? '')
+            ...limitsToForm(limits),
+            contextLength: String(limits?.context_length ?? endpoint.model_context_lengths?.[model] ?? '')
           }
         ]
       })
@@ -118,26 +215,23 @@ function toPayload(
 ): CustomEndpointUpdate {
   const modelIds = Array.from(new Set([...(models ?? []), form.model].map(model => model.trim()).filter(Boolean)))
 
-  const modelTokenLimits = Object.fromEntries(
-    modelIds.map(model => {
-      const values = form.modelTokenLimits[model]
+  const limitsPayload = (values?: ModelTokenLimitForm) => ({
+    context_length: positiveOrNull(values?.contextLength),
+    max_input_tokens: positiveOrNull(values?.maxInputTokens),
+    max_output_tokens: positiveOrNull(values?.maxOutputTokens)
+  })
 
-      const positiveOrNull = (value: string | undefined): number | null => {
-        const parsed = Number(value)
+  const pinPayload = (pin?: CapabilityPin) => (pin === 'yes' ? true : pin === 'no' ? false : null)
 
-        return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
-      }
-
-      return [
-        model,
-        {
-          context_length: positiveOrNull(values?.contextLength),
-          max_input_tokens: positiveOrNull(values?.maxInputTokens),
-          max_output_tokens: positiveOrNull(values?.maxOutputTokens)
-        }
-      ]
-    })
+  const extraHeaders: Record<string, string> = Object.fromEntries(
+    form.extraHeaders
+      .map(row => [row.name.trim(), row.value] as const)
+      .filter(([name]) => name && name.toLowerCase() !== 'user-agent')
   )
+
+  if (form.userAgent.trim()) {
+    extraHeaders['User-Agent'] = form.userAgent.trim()
+  }
 
   return {
     id: form.id.trim() || undefined,
@@ -146,13 +240,26 @@ function toPayload(
     model: form.model.trim(),
     api_key: form.apiKey.trim() || undefined,
     api_mode: form.apiMode,
-    auth_scheme: form.apiMode === 'anthropic_messages' ? form.authScheme : '',
+    auth_scheme: form.authScheme,
+    catalog_provider: form.catalogProvider.trim(),
+    default_token_limits: limitsPayload(form.defaultTokenLimits),
     discover_models: form.discoverModels,
+    extra_body: parseExtraBody(form.extraBody).value,
+    extra_headers: extraHeaders,
     make_default: form.makeDefault,
-    model_token_limits: modelTokenLimits,
+    max_tokens_field: form.maxTokensField,
+    model_capabilities: Object.fromEntries(
+      modelIds.map(model => [
+        model,
+        {
+          supports_reasoning: pinPayload(form.modelCapabilities[model]?.supportsReasoning),
+          supports_vision: pinPayload(form.modelCapabilities[model]?.supportsVision)
+        }
+      ])
+    ),
+    model_token_limits: Object.fromEntries(modelIds.map(model => [model, limitsPayload(form.modelTokenLimits[model])])),
     models: models?.length ? models : undefined,
-    model_details: modelDetails?.length ? modelDetails : undefined,
-    user_agent: form.userAgent.trim()
+    model_details: modelDetails?.length ? modelDetails : undefined
   }
 }
 
@@ -414,40 +521,82 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   }
 
   const allModelOptions = Array.from(new Set([...discoveredModels, form.model].filter(Boolean)))
-  const hasInvalidTokenLimit = Object.values(form.modelTokenLimits).some(limits =>
-    Object.values(limits).some(value => {
-      if (!value.trim()) {
-        return false
-      }
 
-      const parsed = Number(value)
-
-      return !Number.isSafeInteger(parsed) || parsed <= 0
-    })
+  const hasInvalidTokenLimit = [form.defaultTokenLimits, ...Object.values(form.modelTokenLimits)].some(limits =>
+    Object.values(limits).some(isInvalidLimit)
   )
-  const canSave = form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidTokenLimit
+
+  const extraBodyInvalid = Boolean(parseExtraBody(form.extraBody).error)
+
+  const canSave =
+    form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidTokenLimit && !extraBodyInvalid
+
+  const showMaxTokensField = form.apiMode === '' || form.apiMode === 'chat_completions'
+
   const tokenLimitFields = [
     { key: 'contextLength', label: ce.contextWindowLabel },
     { key: 'maxInputTokens', label: ce.maxInputLabel },
     { key: 'maxOutputTokens', label: ce.maxOutputLabel }
   ] as const
 
-  function updateModelTokenLimit(model: string, key: keyof ModelTokenLimitForm, value: string) {
+  const capabilityFields = [
+    { key: 'supportsVision', label: ce.visionLabel },
+    { key: 'supportsReasoning', label: ce.reasoningLabel }
+  ] as const
+
+  const capabilityOptions: readonly { id: CapabilityPin; label: string }[] = [
+    { id: '', label: ce.capabilityAuto },
+    { id: 'yes', label: ce.capabilityYes },
+    { id: 'no', label: ce.capabilityNo }
+  ]
+
+  const tableGrid = 'sm:grid-cols-[minmax(9rem,1fr)_repeat(3,minmax(6rem,9rem))_repeat(2,minmax(5rem,6.5rem))]'
+
+  function updateModelTokenLimit(model: null | string, key: keyof ModelTokenLimitForm, value: string) {
     setForm(current => {
-      const previous = current.modelTokenLimits[model] ?? {
-        contextLength: '',
-        maxInputTokens: '',
-        maxOutputTokens: ''
+      if (model === null) {
+        return { ...current, defaultTokenLimits: { ...current.defaultTokenLimits, [key]: value } }
       }
 
-      return {
-        ...current,
-        modelTokenLimits: {
-          ...current.modelTokenLimits,
-          [model]: { ...previous, [key]: value }
-        }
-      }
+      const previous = current.modelTokenLimits[model] ?? EMPTY_LIMITS
+
+      return { ...current, modelTokenLimits: { ...current.modelTokenLimits, [model]: { ...previous, [key]: value } } }
     })
+  }
+
+  function updateModelCapability(model: string, key: keyof ModelCapabilityForm, value: CapabilityPin) {
+    setForm(current => {
+      const previous = current.modelCapabilities[model] ?? EMPTY_CAPABILITIES
+
+      return { ...current, modelCapabilities: { ...current.modelCapabilities, [model]: { ...previous, [key]: value } } }
+    })
+  }
+
+  function updateHeaderRow(index: number, patch: Partial<HeaderRow>) {
+    setForm(current => ({
+      ...current,
+      extraHeaders: current.extraHeaders.map((row, i) => (i === index ? { ...row, ...patch } : row))
+    }))
+  }
+
+  function renderLimitInputs(model: null | string, values: ModelTokenLimitForm) {
+    const scope = model ?? ce.defaultRowLabel
+
+    return tokenLimitFields.map(field => (
+      <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
+        <span className="sm:sr-only">{field.label}</span>
+        <Input
+          aria-label={`${field.label}: ${scope}`}
+          inputMode="numeric"
+          min={1}
+          onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
+          placeholder={ce.contextAuto}
+          step={1}
+          type="number"
+          value={values[field.key]}
+        />
+      </label>
+    ))
   }
 
   return (
@@ -569,30 +718,33 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
               <legend className="mb-1.5">{ce.apiModeLabel}</legend>
               <SegmentedControl
                 className="w-full max-w-full"
-                onChange={apiMode =>
-                  setForm(current => ({
-                    ...current,
-                    apiMode,
-                    authScheme: apiMode === 'anthropic_messages' ? current.authScheme : ''
-                  }))
-                }
+                onChange={apiMode => setForm(current => ({ ...current, apiMode }))}
                 options={apiModeOptions}
                 value={form.apiMode}
               />
             </fieldset>
-            {form.apiMode === 'anthropic_messages' && (
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.authSchemeLabel}
+              <SegmentedControl
+                onChange={value => setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))}
+                options={[
+                  { id: 'auto', label: ce.authSchemeAuto },
+                  { id: 'bearer', label: 'Authorization: Bearer' },
+                  { id: 'x-api-key', label: 'x-api-key' }
+                ]}
+                value={form.authScheme || 'auto'}
+              />
+              <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
+            </div>
+            {showMaxTokensField && (
               <div className="grid gap-1.5 text-xs text-muted-foreground">
-                {ce.authSchemeLabel}
+                {ce.maxTokensFieldLabel}
                 <SegmentedControl
-                  onChange={value => setForm(current => ({ ...current, authScheme: value === 'auto' ? '' : value }))}
-                  options={[
-                    { id: 'auto', label: ce.authSchemeAuto },
-                    { id: 'bearer', label: 'Authorization: Bearer' },
-                    { id: 'x-api-key', label: 'x-api-key' }
-                  ]}
-                  value={form.authScheme || 'auto'}
+                  onChange={maxTokensField => setForm(current => ({ ...current, maxTokensField }))}
+                  options={MAX_TOKENS_FIELD_IDS.map(id => ({ id, label: id || ce.maxTokensFieldAuto }))}
+                  value={form.maxTokensField}
                 />
-                <p className="text-[0.66rem] leading-4">{ce.authSchemeHint}</p>
+                <p className="text-[0.66rem] leading-4">{ce.maxTokensFieldHint}</p>
               </div>
             )}
             <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -607,41 +759,50 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
             <div className="grid gap-1.5 text-xs text-muted-foreground">
               <span>{ce.contextLabel}</span>
               <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.contextHint}</span>
-              {allModelOptions.length > 0 && (
-                <div className="max-h-64 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
-                  <div className="hidden gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem] sm:grid sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]">
-                    <span>{ce.modelLabel}</span>
-                    {tokenLimitFields.map(field => (
-                      <span key={field.key}>{field.label}</span>
-                    ))}
-                  </div>
-                  {allModelOptions.map(model => (
-                    <div
-                      className="grid items-center gap-2 p-2 sm:grid-cols-[minmax(10rem,1fr)_repeat(3,minmax(7.5rem,12rem))]"
-                      key={model}
-                    >
-                      <span className="truncate font-mono text-[0.72rem] text-foreground" title={model}>
-                        {model}
-                      </span>
-                      {tokenLimitFields.map(field => (
-                        <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
-                          <span className="sm:sr-only">{field.label}</span>
-                          <Input
-                            aria-label={`${field.label}: ${model}`}
-                            inputMode="numeric"
-                            min={1}
-                            onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
-                            placeholder={ce.contextAuto}
-                            step={1}
-                            type="number"
-                            value={form.modelTokenLimits[model]?.[field.key] ?? ''}
-                          />
-                        </label>
-                      ))}
-                    </div>
+              <div className="max-h-72 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
+                <div className={cn('hidden gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem] sm:grid', tableGrid)}>
+                  <span>{ce.modelLabel}</span>
+                  {tokenLimitFields.map(field => (
+                    <span key={field.key}>{field.label}</span>
+                  ))}
+                  {capabilityFields.map(field => (
+                    <span key={field.key}>{field.label}</span>
                   ))}
                 </div>
-              )}
+                <div className={cn('grid items-center gap-2 bg-muted/10 p-2', tableGrid)}>
+                  <span className="truncate text-[0.72rem] font-medium text-foreground">{ce.defaultRowLabel}</span>
+                  {renderLimitInputs(null, form.defaultTokenLimits)}
+                  <span className="hidden sm:block" />
+                  <span className="hidden sm:block" />
+                </div>
+                {allModelOptions.map(model => (
+                  <div className={cn('grid items-center gap-2 p-2', tableGrid)} key={model}>
+                    <span className="truncate font-mono text-[0.72rem] text-foreground" title={model}>
+                      {model}
+                    </span>
+                    {renderLimitInputs(model, form.modelTokenLimits[model] ?? EMPTY_LIMITS)}
+                    {capabilityFields.map(field => (
+                      <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
+                        <span className="sm:sr-only">{field.label}</span>
+                        <select
+                          aria-label={`${field.label}: ${model}`}
+                          className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                          onChange={event =>
+                            updateModelCapability(model, field.key, event.target.value as CapabilityPin)
+                          }
+                          value={form.modelCapabilities[model]?.[field.key] ?? ''}
+                        >
+                          {capabilityOptions.map(option => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.fields.apiKey}
@@ -652,14 +813,107 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 value={form.apiKey}
               />
             </label>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              <label className="grid gap-1.5">
+                {ce.userAgentLabel}
+                <Input
+                  onChange={event => setForm(current => ({ ...current, userAgent: event.target.value }))}
+                  placeholder={BROWSER_USER_AGENT_PRESET}
+                  value={form.userAgent}
+                />
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  onClick={() => setForm(current => ({ ...current, userAgent: BROWSER_USER_AGENT_PRESET }))}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  {ce.useBrowserUserAgent}
+                </Button>
+                <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.userAgentHint}</span>
+              </div>
+            </div>
+            <div className="grid gap-1.5 text-xs text-muted-foreground">
+              <span>{ce.extraHeadersLabel}</span>
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.extraHeadersHint}</span>
+              {form.extraHeaders.map((row, index) => (
+                <div className="grid gap-2 sm:grid-cols-[minmax(8rem,1fr)_minmax(0,2fr)_auto]" key={index}>
+                  <Input
+                    aria-label={`${ce.headerNamePlaceholder} ${index + 1}`}
+                    onChange={event => updateHeaderRow(index, { name: event.target.value })}
+                    placeholder={ce.headerNamePlaceholder}
+                    value={row.name}
+                  />
+                  <Input
+                    aria-label={`${ce.headerValuePlaceholder} ${index + 1}`}
+                    onChange={event => updateHeaderRow(index, { value: event.target.value })}
+                    placeholder={ce.headerValuePlaceholder}
+                    value={row.value}
+                  />
+                  <Button
+                    aria-label={ce.removeHeader}
+                    onClick={() =>
+                      setForm(current => ({
+                        ...current,
+                        extraHeaders: current.extraHeaders.filter((_, i) => i !== index)
+                      }))
+                    }
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              ))}
+              <div>
+                <Button
+                  onClick={() =>
+                    setForm(current => ({
+                      ...current,
+                      extraHeaders: [...current.extraHeaders, { name: '', value: '' }]
+                    }))
+                  }
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <Plus />
+                  {ce.addHeader}
+                </Button>
+              </div>
+            </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
-              {ce.userAgentLabel}
-              <Input
-                onChange={event => setForm(current => ({ ...current, userAgent: event.target.value }))}
-                placeholder={DEFAULT_USER_AGENT}
-                value={form.userAgent}
+              {ce.extraBodyLabel}
+              <textarea
+                aria-invalid={extraBodyInvalid || undefined}
+                className={cn(
+                  'min-h-20 w-full rounded-md border border-input bg-background px-2 py-1.5 font-mono text-xs',
+                  extraBodyInvalid && 'border-destructive'
+                )}
+                onChange={event => setForm(current => ({ ...current, extraBody: event.target.value }))}
+                placeholder='{"chat_template_kwargs": {"enable_thinking": false}}'
+                spellCheck={false}
+                value={form.extraBody}
               />
-              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.userAgentHint}</span>
+              <span
+                className={cn(
+                  'text-[0.66rem] leading-4',
+                  extraBodyInvalid ? 'text-destructive' : 'text-muted-foreground/80'
+                )}
+              >
+                {extraBodyInvalid ? ce.extraBodyInvalid : ce.extraBodyHint}
+              </span>
+            </label>
+            <label className="grid gap-1.5 text-xs text-muted-foreground">
+              {ce.catalogProviderLabel}
+              <Input
+                onChange={event => setForm(current => ({ ...current, catalogProvider: event.target.value }))}
+                placeholder="deepseek"
+                value={form.catalogProvider}
+              />
+              <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.catalogProviderHint}</span>
             </label>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <label className="flex items-center gap-2">

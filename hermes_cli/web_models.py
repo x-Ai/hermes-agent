@@ -48,6 +48,14 @@ class CustomEndpointModelTokenLimits(BaseModel):
     max_input_tokens: Optional[int] = None
     max_output_tokens: Optional[int] = None
 
+
+class CustomEndpointModelCapabilities(BaseModel):
+    """Per-model capability pins; ``null`` clears a pin back to catalog/probe detection."""
+
+    supports_vision: Optional[bool] = None
+    supports_reasoning: Optional[bool] = None
+
+
 class CustomEndpointUpdate(BaseModel):
     id: str = ""
     name: str
@@ -67,6 +75,16 @@ class CustomEndpointUpdate(BaseModel):
     make_default: bool = False
     models: Optional[List[str]] = None
     model_details: Optional[List[CustomEndpointModelDetail]] = None
+    # Provider-wide defaults for the three budgets; per-model ``model_token_limits`` win. ``null``
+    # on a field clears it. Omitted (older UI) leaves the entry-level values alone.
+    default_token_limits: Optional[CustomEndpointModelTokenLimits] = None
+    # Generic escape hatches. Each replaces the stored map wholesale when present ({} clears it).
+    extra_headers: Optional[Dict[str, str]] = None
+    extra_body: Optional[Dict[str, Any]] = None
+    # "" = protocol default (max_tokens), else the field the endpoint's Chat Completions accepts.
+    max_tokens_field: Optional[Literal["", "max_tokens", "max_completion_tokens"]] = None
+    catalog_provider: Optional[str] = None
+    model_capabilities: Optional[Dict[str, CustomEndpointModelCapabilities]] = None
 
 class MessagingPlatformUpdate(BaseModel):
     enabled: Optional[bool] = None

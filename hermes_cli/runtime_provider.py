@@ -492,7 +492,7 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
             except AuthError:
                 canonical_builtin = None
             if canonical_builtin == configured:
-                from hermes_cli.providers import custom_provider_slug, is_saved_custom_endpoint
+                from hermes_cli.providers import custom_provider_slug, is_custom_endpoint_entry
 
                 providers = load_config().get("providers")
                 saved_entry = providers.get(configured) if isinstance(providers, dict) else None
@@ -503,7 +503,7 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
                     or ""
                 ).strip()
                 if (
-                    is_saved_custom_endpoint(saved_entry)
+                    is_custom_endpoint_entry(configured, saved_entry)
                     and _normalize_base_url_for_match(custom_base_url)
                     == _normalize_base_url_for_match(cfg_base_url)
                 ):

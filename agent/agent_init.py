@@ -954,6 +954,8 @@ def _apply_openai_header_policy(agent, client_kwargs: Dict[str, Any]) -> None:
         # Per-provider extra_headers applied last so the most specific config level wins.
         # SECURITY: values may carry credentials — never log them.
         apply_custom_provider_extra_headers_to_client_kwargs(client_kwargs, _cp_base_url, _cp_entries)
+        from agent.endpoint_auth import apply_auth_scheme_to_client_kwargs
+        apply_auth_scheme_to_client_kwargs(client_kwargs, _cp_base_url, _cp_entries)
     except Exception:
         logger.debug("custom-provider TLS resolution skipped", exc_info=True)
 
@@ -1929,6 +1931,52 @@ def _resolve_context_length(agent, _agent_cfg, base_url):
     return _config_context_length, _custom_providers, _effective_context_length, _model_cfg
 
 
+def _resolve_output_limit(agent, _model_section, _custom_providers) -> None:
+    """``agent.max_tokens``: the caller's explicit value, else ``model.max_tokens``, else the active
+    custom route's configured or discovered output limit, else None (the provider's own default).
+
+    Resolved here, next to the context length, so every constructor path (CLI, gateway, TUI/Desktop,
+    batch, cron, ACP, side agents) sees the same budget; ``max_tokens_source`` tells the live config
+    sync and the switch path whether the value may be re-derived (``"route"``) or is pinned
+    (``"explicit"``).
+    """
+    if agent.max_tokens is not None:
+        if not getattr(agent, "max_tokens_source", None):
+            agent.max_tokens_source = "explicit"
+        return
+    _config_max_tokens = _model_section.get("max_tokens")
+    if _config_max_tokens is not None:
+        agent.max_tokens = _positive_int(_config_max_tokens, reject=(bool,))
+        if agent.max_tokens is None:
+            _warn_invalid_config_int(
+                "model.max_tokens in config.yaml", _config_max_tokens,
+                "must be a positive integer (e.g. 4096)", "provider default", agent=agent,
+            )
+        else:
+            agent.max_tokens_source = "explicit"
+            return
+    agent.max_tokens_source = None
+    limit = route_output_limit(agent, _custom_providers)
+    if limit is not None:
+        agent.max_tokens = limit
+        agent.max_tokens_source = "route"
+
+
+def route_output_limit(agent, custom_providers=None) -> Optional[int]:
+    """The active route's ``max_output_tokens`` from the custom endpoint config (per-model
+    override > hand-curated or discovered model row > provider default), or None. The one
+    resolver shared by construction, ``/model`` switches and the live config sync."""
+    from hermes_cli.config_providers import get_custom_provider_token_limits
+    try:
+        return get_custom_provider_token_limits(
+            str(agent.model or ""), str(agent.base_url or ""),
+            custom_providers=custom_providers if custom_providers is not None else getattr(agent, "_custom_providers", None),
+            requested_provider=getattr(agent, "requested_provider", "") or agent.provider or "",
+        ).get("max_output_tokens")
+    except Exception:
+        return None
+
+
 def _select_context_engine(_agent_cfg):
     """Config-driven context engine: ``context.engine`` → plugins/context_engine/<name>/ →
     general plugin system → None (built-in ContextCompressor)."""
@@ -2517,6 +2565,7 @@ def init_agent(
     _config_context_length, _custom_providers, _effective_context_length, _model_cfg = _resolve_context_length(
         agent, _agent_cfg, base_url
     )
+    _resolve_output_limit(agent, _model_cfg if isinstance(_model_cfg, dict) else {}, _custom_providers)
     _build_context_engine(agent, _agent_cfg, cs, _custom_providers, _effective_context_length, session_db)
     _configure_ollama_num_ctx(agent, _model_cfg, _config_context_length)
     _enforce_minimum_context(agent)

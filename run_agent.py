@@ -156,6 +156,7 @@ from agent.message_sanitization import (
     deterministic_call_id as _codex_deterministic_call_id,
     uniquify_tool_call_ids as _sanitize_uniquify_tool_call_ids,
 )
+from agent.output_tokens import chat_max_tokens_field
 from agent.codex_responses_adapter import (
     _derive_responses_function_call_id as _codex_derive_responses_function_call_id,
     _split_responses_tool_id as _codex_split_responses_tool_id,
@@ -696,10 +697,12 @@ class AIAgent(
         return AIAgent._model_requires_responses_api(model)
 
     def _max_tokens_param(self, value: int) -> dict:
-        """Choose the chat token field from the target endpoint, never from a model-name guess."""
-        if self._is_direct_openai_url() or self._is_azure_openai_url() or self._is_github_copilot_url():
-            return {"max_completion_tokens": value}
-        return {"max_tokens": value}
+        """The chat output-cap field: the route's configured ``max_tokens_field`` wins, else the
+        endpoint decides (direct OpenAI / Azure / Copilot want ``max_completion_tokens``); never a
+        model-name guess. Shared with the auxiliary client via ``chat_max_tokens_field``."""
+        return {chat_max_tokens_field(getattr(self, "base_url", None), getattr(self, "model", None), getattr(self, "provider", None),
+                                      getattr(self, "requested_provider", None),
+                                      getattr(self, "_custom_providers", None)): value}
 
     @staticmethod
     def _requested_output_cap_from_api_kwargs(api_kwargs: Any) -> Optional[int]:

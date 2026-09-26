@@ -127,6 +127,11 @@ _ANTHROPIC_OUTPUT_LIMITS = {
 }
 # Unknown models get the highest current limit: future models are unlikely to have *less*.
 _ANTHROPIC_DEFAULT_OUTPUT_LIMIT = 128_000
+# Last resort for an unknown model on a third-party Anthropic-compatible endpoint. Messages requires
+# ``max_tokens``; nothing configured or discovered means we do not know the ceiling, and 128K 400s on
+# many relays. Override per endpoint (``max_output_tokens`` / ``model_token_limits``) or per model;
+# ``agent_init`` resolves those into ``agent.max_tokens`` before this default is ever consulted.
+_THIRD_PARTY_DEFAULT_OUTPUT_LIMIT = 16_384
 
 
 def _get_anthropic_max_output(model: str) -> int:
@@ -169,7 +174,7 @@ def _resolve_anthropic_messages_max_tokens(
     if resolved is None:
         # Messages requires max_tokens. Preserve the future-Claude ceiling on Anthropic itself,
         # but do not impose 128K on an unknown model served by a compatible third-party endpoint.
-        resolved = 16_384 if _is_third_party_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
+        resolved = _THIRD_PARTY_DEFAULT_OUTPUT_LIMIT if _is_third_party_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
     if resolved > 0:
         return resolved
     raise ValueError(
@@ -361,25 +366,10 @@ def _attribution_headers() -> Dict[str, str]:
 
 
 def _configured_auth_scheme(base_url: str | None) -> str | None:
-    """Return a matching custom provider's explicit Anthropic auth scheme."""
-    if not base_url:
-        return None
-    try:
-        from hermes_cli.config import get_compatible_custom_providers
+    """The endpoint's pinned auth scheme via the wire-agnostic resolver (``agent.endpoint_auth``)."""
+    from agent.endpoint_auth import custom_provider_auth_scheme
 
-        entries = get_compatible_custom_providers()
-    except Exception:
-        return None
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        scheme = str(entry.get("auth_scheme") or "").strip().lower()
-        if scheme not in ("bearer", "x-api-key"):
-            continue
-        entry_host = base_url_hostname(str(entry.get("base_url") or ""))
-        if entry_host and base_url_host_matches(str(base_url), entry_host):
-            return scheme
-    return None
+    return custom_provider_auth_scheme(base_url)
 
 
 def _requires_bearer_auth(base_url: str | None) -> bool:

@@ -6,6 +6,7 @@ import pytest
 from starlette.testclient import TestClient
 
 from agent.context_compressor import ContextCompressor
+from agent.agent_init import route_output_limit
 from agent.output_tokens import resolve_output_token_limit
 from gateway.run_agent_cache import GatewayAgentCacheMixin
 from hermes_cli.config import get_compatible_custom_providers, load_config, save_config
@@ -63,7 +64,6 @@ def _live_session(provider, base_url):
 def _assert_live_limits(provider, base_url, expected):
     resolved_runtime = resolve_runtime_provider(requested=f"custom:{provider}", target_model="shared-model")
     assert resolved_runtime["base_url"] == base_url
-    assert resolved_runtime.get("max_output_tokens") == expected.get("max_output_tokens")
     session, compressor = _live_session(provider, base_url)
     server._sync_agent_compression_with_config(provider, session)
     agent = session["agent"]
@@ -72,6 +72,7 @@ def _assert_live_limits(provider, base_url, expected):
     assert compressor.max_input_tokens == expected.get("max_input_tokens")
     assert compressor.max_tokens == expected.get("max_output_tokens")
     assert agent.max_tokens == expected.get("max_output_tokens")
+    assert route_output_limit(agent, get_compatible_custom_providers()) == expected.get("max_output_tokens")
     runtime = {"provider": "custom", "requested_provider": f"custom:{provider}", "base_url": base_url}
     assert GatewayAgentCacheMixin._active_provider_token_limits(
         "shared-model", runtime, load_config(),
@@ -152,3 +153,50 @@ def test_default_context_pin_only_refreshes_its_own_provider(client, same_url, p
     if same_url:
         first_session["agent"].requested_provider = "custom"
         assert server._global_context_length_for_agent(first_session["agent"], cfg) is None
+
+
+def test_new_endpoint_may_not_take_a_builtin_provider_id(client):
+    body = {"id": "xai", "name": "xAI relay", "base_url": "https://relay.example.invalid/v1",
+            "model": "grok-4", "make_default": False}
+    response = client.post("/api/providers/custom-endpoints", json=body)
+    assert response.status_code == 422
+    assert "built-in provider id" in response.json()["detail"]
+    assert "providers" not in load_config() or "xai" not in (load_config().get("providers") or {})
+
+    body["id"] = "xai-relay"
+    assert client.post("/api/providers/custom-endpoints", json=body).status_code == 200
+
+
+def test_provider_defaults_and_generic_fields_round_trip_without_becoming_per_model_pins(client):
+    url = "https://relay.example.invalid/v1"
+    body = {
+        "id": "relay", "name": "Relay", "base_url": url, "model": "m1", "models": ["m1", "m2"],
+        "make_default": False,
+        "default_token_limits": {"context_length": 200_000, "max_output_tokens": 32_000},
+        "model_token_limits": {"m1": {"max_output_tokens": 8_000}},
+        "extra_headers": {"X-Tenant": "t1", "User-Agent": "Hermes/1"},
+        "extra_body": {"chat_template_kwargs": {"enable_thinking": False}},
+        "max_tokens_field": "max_completion_tokens", "catalog_provider": "deepseek",
+        "model_capabilities": {"m2": {"supports_vision": True, "supports_reasoning": False}},
+    }
+    assert client.post("/api/providers/custom-endpoints", json=body).status_code == 200
+    row = {r["id"]: r for r in client.get("/api/providers/custom-endpoints").json()["endpoints"]}["relay"]
+    assert row["default_token_limits"] == {"context_length": 200_000, "max_output_tokens": 32_000}
+    assert row["model_token_limits"] == {"m1": {"max_output_tokens": 8_000}}  # m2 inherits, not pinned
+    assert row["extra_headers"] == body["extra_headers"] and row["user_agent"] == "Hermes/1"
+    assert row["extra_body"] == body["extra_body"] and row["max_tokens_field"] == "max_completion_tokens"
+    assert row["catalog_provider"] == "deepseek"
+    assert row["model_capabilities"] == {"m2": {"supports_vision": True, "supports_reasoning": False}}
+
+    # The runtime sees the same precedence: m1's pin, m2 the provider default.
+    from hermes_cli.config_providers import get_custom_provider_token_limits
+    providers = get_compatible_custom_providers()
+    assert get_custom_provider_token_limits("m1", url, providers, requested_provider="custom:relay")["max_output_tokens"] == 8_000
+    assert get_custom_provider_token_limits("m2", url, providers, requested_provider="custom:relay")["max_output_tokens"] == 32_000
+
+    # Re-saving from the panel (defaults untouched, one pin cleared) keeps the provider defaults.
+    body.update(model_token_limits={"m1": {"max_output_tokens": None}}, default_token_limits=None)
+    body.pop("default_token_limits")
+    assert client.post("/api/providers/custom-endpoints", json=body).status_code == 200
+    row = {r["id"]: r for r in client.get("/api/providers/custom-endpoints").json()["endpoints"]}["relay"]
+    assert row["default_token_limits"]["max_output_tokens"] == 32_000 and row["model_token_limits"] == {}

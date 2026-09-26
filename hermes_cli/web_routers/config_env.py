@@ -25,6 +25,8 @@ from hermes_cli.web_server_profiles import (
 )
 from fastapi import HTTPException, Request
 from hermes_cli.config import DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, require_readable_config_before_write, custom_endpoint_key_env, coerce_provider_id, find_provider_entry, get_compatible_custom_providers, _ENV_REF_RE, _deep_merge
+from hermes_cli.providers import is_builtin_provider_id
+from agent.secret_scope import get_secret_str
 from hermes_cli.config_providers import _canonical_api_mode, _custom_provider_entry_to_provider_config
 from hermes_cli.web_models import ConfigUpdate, EnvVarUpdate, EnvVarDelete, EnvVarReveal, CustomEndpointUpdate
 from typing import Any, Dict, List, Optional, Tuple
@@ -420,16 +422,24 @@ def _positive_model_limit(mapping: Any, *keys: str) -> Optional[int]:
     return None
 
 
+_LIMIT_FIELDS = {
+    "context_length": ("context_length",),
+    "max_input_tokens": ("max_input_tokens",),
+    "max_output_tokens": ("max_output_tokens", "max_tokens"),
+}
+
+
+def _default_token_limits_from_entry(entry: Dict[str, Any]) -> Dict[str, int]:
+    """The entry-level (provider-wide) budgets, shown in Desktop's "all models" row."""
+    limits = {field: _positive_model_limit(entry, *aliases) for field, aliases in _LIMIT_FIELDS.items()}
+    return {field: value for field, value in limits.items() if value is not None}
+
+
 def _model_token_limits_from_custom_endpoint_entry(
     entry: Dict[str, Any], models: List[str]
 ) -> Dict[str, Dict[str, int]]:
-    """Exact model limits for Desktop, expanding legacy provider-wide values for migration."""
-    fields = {
-        "context_length": ("context_length",),
-        "max_input_tokens": ("max_input_tokens",),
-        "max_output_tokens": ("max_output_tokens", "max_tokens"),
-    }
-    inherited = {field: _positive_model_limit(entry, *aliases) for field, aliases in fields.items()}
+    """Exact per-model pins only (``model_token_limits`` over a hand-curated ``models`` row); the
+    provider-wide defaults are reported separately so the UI never re-saves them as per-model pins."""
     result: Dict[str, Dict[str, int]] = {}
     override_configs = entry.get("model_token_limits")
     model_configs = entry.get("models")
@@ -441,18 +451,31 @@ def _model_token_limits_from_custom_endpoint_entry(
             if isinstance(model_configs, dict) and not models_are_discovered else None
         )
         limits: Dict[str, int] = {}
-        for field, aliases in fields.items():
-            value = (
-                _positive_model_limit(override_cfg, *aliases)
-                or _positive_model_limit(model_cfg, *aliases)
-                or inherited[field]
-            )
+        for field, aliases in _LIMIT_FIELDS.items():
+            value = _positive_model_limit(override_cfg, *aliases) or _positive_model_limit(model_cfg, *aliases)
             if value is not None:
                 limits[field] = value
         if limits:
             result[model] = limits
     return result
 
+
+def _model_capabilities_from_entry(entry: Dict[str, Any], models: List[str]) -> Dict[str, Dict[str, bool]]:
+    """Per-model ``supports_vision`` / ``supports_reasoning`` pins from the ``models`` rows."""
+    rows = entry.get("models") if isinstance(entry.get("models"), dict) else {}
+    result: Dict[str, Dict[str, bool]] = {}
+    for model in models:
+        row = rows.get(model)
+        if not isinstance(row, dict):
+            continue
+        pins = {}
+        for field, aliases in (("supports_vision", ("supports_vision", "vision")), ("supports_reasoning", ("supports_reasoning",))):
+            value = next((row[a] for a in aliases if isinstance(row.get(a), bool)), None)
+            if value is not None:
+                pins[field] = value
+        if pins:
+            result[model] = pins
+    return result
 
 def _extract_endpoint_user_agent(entry: Dict[str, Any]) -> str:
     """Read a case-insensitive User-Agent override from ``extra_headers``."""
@@ -475,6 +498,13 @@ def _endpoint_row(
         "api_mode": _endpoint_api_mode(key_entry),
         "auth_scheme": str(key_entry.get("auth_scheme") or ""),
         "user_agent": _extract_endpoint_user_agent(key_entry),
+        "extra_headers": {str(k): str(v) for k, v in (key_entry.get("extra_headers") or {}).items()}
+        if isinstance(key_entry.get("extra_headers"), dict) else {},
+        "extra_body": dict(key_entry.get("extra_body")) if isinstance(key_entry.get("extra_body"), dict) else {},
+        "max_tokens_field": str(key_entry.get("max_tokens_field") or ""),
+        "catalog_provider": str(key_entry.get("catalog_provider") or ""),
+        "default_token_limits": _default_token_limits_from_entry(key_entry),
+        "model_capabilities": _model_capabilities_from_entry(key_entry, models),
         "model_token_limits": model_token_limits,
         "model_context_lengths": {
             model_id: limits["context_length"]
@@ -627,6 +657,15 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
     # miss the entry and fork a slugged twin next to the original.
     stored_key, existing = _resolve_custom_endpoint_entry(providers, body.id or body.name)
     endpoint_id = coerce_provider_id(stored_key) if existing is not None else _custom_endpoint_id(body.id or body.name)
+    if existing is None and is_builtin_provider_id(endpoint_id):
+        # ``providers.<builtin>`` is that provider's own settings block; a foreign endpoint stored
+        # under it would be read as both. Existing rows keep working through the runtime's
+        # structural disambiguation; new ones must pick a distinct id.
+        raise HTTPException(
+            status_code=422,
+            detail=f"'{endpoint_id}' is a built-in provider id; choose another id for this endpoint "
+                   f"(for example '{endpoint_id}-relay')",
+        )
     if existing is None:
         existing = {}
 
@@ -692,20 +731,7 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         entry["model"] = model
         models_map.setdefault(model, {})
     if body.model_token_limits is not None:
-        limit_fields = {
-            "context_length": ("context_length",),
-            "max_input_tokens": ("max_input_tokens",),
-            "max_output_tokens": ("max_output_tokens", "max_tokens"),
-        }
-        owned_fields = {
-            field
-            for limits in body.model_token_limits.values()
-            for field in limits.model_fields_set
-            if field in limit_fields
-        }
-        for field in owned_fields:
-            for legacy_key in limit_fields[field]:
-                entry.pop(legacy_key, None)
+        limit_fields = _LIMIT_FIELDS
         existing_overrides = entry.get("model_token_limits")
         overrides_map: Dict[str, Any] = (
             dict(existing_overrides) if isinstance(existing_overrides, dict) else {}
@@ -779,6 +805,63 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         else:
             raise HTTPException(status_code=422, detail="max_output_tokens must be a positive integer or null")
 
+    if body.default_token_limits is not None:
+        # Provider-wide budgets: the fallback for every model without a per-model pin.
+        for field in body.default_token_limits.model_fields_set:
+            if field not in _LIMIT_FIELDS:
+                continue
+            value = getattr(body.default_token_limits, field)
+            for legacy_key in _LIMIT_FIELDS[field]:
+                entry.pop(legacy_key, None)
+            if value is None:
+                continue
+            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+                entry[field] = int(value)
+            else:
+                raise HTTPException(status_code=422, detail=f"default {field} must be a positive integer or null")
+
+    if body.model_capabilities is not None:
+        for raw_model_id, pins in body.model_capabilities.items():
+            model_id = str(raw_model_id).strip()
+            if not model_id:
+                raise HTTPException(status_code=422, detail="model capability id must not be empty")
+            row = dict(models_map.get(model_id) or {}) if isinstance(models_map.get(model_id), dict) else {}
+            for field in pins.model_fields_set:
+                value = getattr(pins, field)
+                for alias in (("supports_vision", "vision") if field == "supports_vision" else (field,)):
+                    row.pop(alias, None)
+                if value is not None:
+                    row[field] = bool(value)
+            models_map[model_id] = row
+        entry["models"] = models_map
+
+    if body.extra_body is not None:
+        if body.extra_body:
+            entry["extra_body"] = dict(body.extra_body)
+        else:
+            entry.pop("extra_body", None)
+
+    if body.max_tokens_field is not None:
+        if body.max_tokens_field:
+            entry["max_tokens_field"] = body.max_tokens_field
+        else:
+            entry.pop("max_tokens_field", None)
+
+    if body.catalog_provider is not None:
+        if body.catalog_provider.strip():
+            entry["catalog_provider"] = body.catalog_provider.strip()
+        else:
+            entry.pop("catalog_provider", None)
+
+    if body.extra_headers is not None:
+        # The full header map is authoritative (User-Agent included); ``user_agent`` below is the
+        # older UI's single-field path and is skipped when the map was sent.
+        cleaned = {str(k).strip(): str(v) for k, v in body.extra_headers.items() if str(k).strip()}
+        if cleaned:
+            entry["extra_headers"] = cleaned
+        else:
+            entry.pop("extra_headers", None)
+
     if body.auth_scheme is not None:
         auth_scheme = body.auth_scheme.strip().lower().replace("_", "-")
         if auth_scheme in ("", "auto"):
@@ -788,7 +871,7 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
         else:
             raise HTTPException(status_code=422, detail="auth_scheme must be 'bearer', 'x-api-key', or 'auto'")
 
-    if body.user_agent is not None:
+    if body.user_agent is not None and body.extra_headers is None:
         raw_headers = entry.get("extra_headers")
         headers_map: Dict[str, Any] = dict(raw_headers) if isinstance(raw_headers, dict) else {}
         for key in [key for key in headers_map if str(key).lower() == "user-agent"]:
@@ -952,42 +1035,85 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
         return response
 
 
+def _probe_auth_headers(mode: str, api_key: str, auth_scheme: str, base_url: str) -> Dict[str, str]:
+    """The authentication header the runtime sends on this route, so the Test button proves the same
+    request shape: a pinned ``auth_scheme`` wins; otherwise Anthropic-wire follows the adapter's host
+    rule (x-api-key unless a known bearer relay) and OpenAI-wire uses Bearer."""
+    if not api_key:
+        return {}
+    scheme = auth_scheme
+    if not scheme and mode == "anthropic_messages":
+        from agent.anthropic_adapter import _requires_bearer_auth
+        scheme = "bearer" if _requires_bearer_auth(base_url) else "x-api-key"
+    return {"x-api-key": api_key} if scheme == "x-api-key" else {"Authorization": f"Bearer {api_key}"}
+
+
+def _probe_request_headers(body: CustomEndpointUpdate, entry: Dict[str, Any], mode: str, base_url: str) -> Dict[str, str]:
+    """Headers for one endpoint probe: the stored entry's ``extra_headers``, the form's User-Agent,
+    then the credential — the form's key, else the stored ``key_env``/``api_key`` (an edit leaves
+    the key field blank, which must not turn the probe into an unauthenticated request)."""
+    headers: Dict[str, str] = {"Accept": "application/json"}
+    stored = entry.get("extra_headers") if isinstance(entry, dict) else None
+    if isinstance(stored, dict):
+        headers.update({str(k): str(v) for k, v in stored.items() if v is not None})
+    if body.user_agent is not None:
+        for key in [k for k in headers if k.lower() == "user-agent"]:
+            headers.pop(key)
+        if body.user_agent.strip():
+            headers["User-Agent"] = body.user_agent.strip()
+    api_key = (body.api_key or "").strip()
+    if not api_key and isinstance(entry, dict):
+        key_env = str(entry.get("key_env") or entry.get("api_key_env") or "").strip()
+        api_key = (get_secret_str(key_env, "") if key_env else str(entry.get("api_key") or "")).strip()
+    scheme = body.auth_scheme if body.auth_scheme is not None else str(entry.get("auth_scheme") or "") if isinstance(entry, dict) else ""
+    scheme = (scheme or "").strip().lower().replace("_", "-")
+    headers.update(_probe_auth_headers(mode, api_key, scheme if scheme in ("bearer", "x-api-key") else "", base_url))
+    if mode == "anthropic_messages":
+        headers.setdefault("anthropic-version", "2023-06-01")
+    return headers
+
+
 @router.post("/api/providers/custom-endpoints/validate")
-async def validate_custom_endpoint(body: CustomEndpointUpdate):
-    """Probe a custom endpoint by calling its OpenAI-compatible /models URL."""
+async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = None):
+    """Probe a custom endpoint with the request shape the runtime will use (auth scheme, stored
+    ``extra_headers``, User-Agent), so "Test" passing means the saved endpoint works."""
     base_url = (body.base_url or "").strip().rstrip("/")
     if not base_url:
         return {"ok": False, "reachable": True, "message": "Enter an endpoint URL first.", "models": []}
 
-    headers = {"Accept": "application/json"}
-    if body.api_key and body.api_key.strip():
-        headers["Authorization"] = f"Bearer {body.api_key.strip()}"
+    with _config_profile_scope(profile):
+        _stored_key, entry = _resolve_custom_endpoint_entry(load_config().get("providers"), body.id or body.name or "")
+        entry = entry if isinstance(entry, dict) else {}
+        pinned_mode = _canonical_api_mode(body.api_mode or "").lower() or _endpoint_api_mode(entry)
+        headers = _probe_request_headers(body, entry, pinned_mode or _auto_api_mode(base_url), base_url)
 
-    resolved, resp = await _probe_openai_compatible_models(base_url, headers)
-    if resp is None:
-        return {"ok": False, "reachable": False, "message": f"Could not reach {base_url}/models.", "models": []}
-    if resp.status_code in (401, 403):
-        return {"ok": False, "reachable": True, "message": "The endpoint rejected the API key.", "models": []}
-    if not resp.is_success:
-        return {"ok": False, "reachable": True, "message": f"Endpoint returned HTTP {resp.status_code}.", "models": []}
-    # ``models`` stays the bare id list older clients read; ``model_details`` keeps the
-    # alias metadata (``canonical_model`` / ``reasoning_effort``) the id list flattens.
-    entries = _parse_model_entries(resp)
-    ids = [e["id"] for e in entries]
-    # /models answering proves nothing about the transport the runtime will POST to:
-    # a Responses-only host lists models fine and 404s every /chat/completions (#93622).
-    # Probe the route the saved mode (or the runtime's URL auto-detect) actually uses, on the
-    # base that actually served /models (#65488) — that is the URL the runtime will persist.
-    mode = _canonical_api_mode(body.api_mode or "").lower() or _auto_api_mode(resolved)
-    probe_model = (body.model or "").strip() or (ids[0] if ids else "")
-    try:
-        async with _endpoint_probe_client(resolved, 8.0) as client:
-            missing = await _probe_transport_route(client, resolved, mode, probe_model, headers)
-    except Exception:
-        missing = ""  # inconclusive (see _probe_transport_route): never block on a transport error
+        resolved, resp = await _probe_openai_compatible_models(base_url, headers)
+        if resp is None:
+            return {"ok": False, "reachable": False, "message": f"Could not reach {base_url}/models.", "models": []}
+        if resp.status_code in (401, 403):
+            return {"ok": False, "reachable": True, "message": "The endpoint rejected the API key.", "models": []}
+        if not resp.is_success:
+            return {"ok": False, "reachable": True, "message": f"Endpoint returned HTTP {resp.status_code}.", "models": []}
+        # ``models`` stays the bare id list older clients read; ``model_details`` keeps the
+        # alias metadata (``canonical_model`` / ``reasoning_effort``) the id list flattens.
+        entries = _parse_model_entries(resp)
+        ids = [e["id"] for e in entries]
+        # /models answering proves nothing about the transport the runtime will POST to:
+        # a Responses-only host lists models fine and 404s every /chat/completions (#93622).
+        # Probe the route the saved mode (or the runtime's URL auto-detect) actually uses, on the
+        # base that actually served /models (#65488) — that is the URL the runtime will persist.
+        mode = pinned_mode or _auto_api_mode(resolved)
+        probe_model = (body.model or "").strip() or (ids[0] if ids else "")
+        route_headers = _probe_request_headers(body, entry, mode, resolved)
+        try:
+            async with _endpoint_probe_client(resolved, 8.0) as client:
+                missing = await _probe_transport_route(client, resolved, mode, probe_model, route_headers)
+        except Exception:
+            missing = ""  # inconclusive (see _probe_transport_route): never block on a transport error
 
     result = {"ok": True, "reachable": True, "message": "", "models": ids, "model_details": entries,
-              "transport_checked": mode, "resolved_base_url": resolved}
+              "transport_checked": mode, "resolved_base_url": resolved,
+              "auth_header_checked": next((k for k in route_headers if k.lower() in ("authorization", "x-api-key")), "")}
     if missing:
         result.update(ok=False, message=missing)
     return result
@@ -1039,8 +1165,6 @@ async def _probe_transport_route(client, base_url: str, mode: str, model: str, h
         return ""
     if mode == "anthropic_messages":
         payload = {"model": model, "max_tokens": 1, "messages": [{"role": "user", "content": "hi"}]}
-        token = headers.get("Authorization", "").removeprefix("Bearer ")
-        headers = {**headers, "anthropic-version": "2023-06-01", **({"x-api-key": token} if token else {})}
     elif mode == "codex_responses":
         payload = {"model": model, "input": "hi", "max_output_tokens": 16}
     else:

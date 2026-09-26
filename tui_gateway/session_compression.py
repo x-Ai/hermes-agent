@@ -220,7 +220,7 @@ def _apply_live_compression_config(agent: Any, cfg: dict | None) -> None:
     if str(getattr(agent, "max_tokens_source", "") or "").lower() != "explicit":
         output_limit = active_limits.get("max_output_tokens")
         agent.max_tokens = output_limit
-        agent.max_tokens_source = "model" if output_limit is not None else None
+        agent.max_tokens_source = "route" if output_limit is not None else None
         if hasattr(cc, "max_tokens"):
             cc.max_tokens = cc._coerce_max_tokens(output_limit)
     cc.threshold_tokens_cap = cc._coerce_threshold_tokens_cap(

@@ -39,16 +39,6 @@ def _configured_entries(
     return candidates
 
 
-def _limit_from_mapping(mapping: Any) -> Optional[int]:
-    if not isinstance(mapping, dict):
-        return None
-    for key in ("max_output_tokens", "max_tokens"):
-        value = _positive_int(mapping.get(key))
-        if value is not None:
-            return value
-    return None
-
-
 def _limit_from_discovered_metadata(metadata: Any, model: str) -> Optional[int]:
     model_metadata = metadata.get(model) if isinstance(metadata, dict) else None
     if not isinstance(model_metadata, dict):
@@ -65,34 +55,29 @@ def resolve_output_token_limit(
     api_key: str = "",
     discover: bool = True,
 ) -> OutputTokenLimit:
-    """Resolve explicit > model > provider > discovered capability > transport default."""
+    """Explicit caller budget > the route's configured limit > a live-discovered capability > None.
+
+    The configured rung is ``hermes_cli.config_providers.get_custom_provider_token_limits`` — the
+    same resolver ``agent_init`` and the live config sync use for ``agent.max_tokens`` — so an
+    auxiliary call never budgets a route differently from the main turn on it. Live discovery
+    (``/models`` through the endpoint cache) only fills in when nothing is configured or persisted.
+    """
     value = _positive_int(explicit)
     if value is not None:
         return OutputTokenLimit(value, "explicit")
 
+    requested = requested_provider or provider
     entries = list(_configured_entries(
-        custom_providers, base_url=base_url, requested_provider=requested_provider or provider,
-        api_mode=api_mode))
-    saved_discovered: Optional[int] = None
-    for entry in entries:
-        overrides = entry.get("model_token_limits")
-        model_override = overrides.get(model) if isinstance(overrides, dict) else None
-        value = _limit_from_mapping(model_override)
-        if value is not None:
-            return OutputTokenLimit(value, "model")
-    for entry in entries:
-        models = entry.get("models")
-        model_config = models.get(model) if isinstance(models, dict) else None
-        value = _limit_from_mapping(model_config)
-        if value is not None:
-            if entry.get("models_discovered") is True:
-                saved_discovered = value
-            else:
-                return OutputTokenLimit(value, "model")
-    for entry in entries:
-        value = _limit_from_mapping(entry)
-        if value is not None:
-            return OutputTokenLimit(value, "provider")
+        custom_providers, base_url=base_url, requested_provider=requested, api_mode=api_mode))
+    if entries and model and base_url:
+        from hermes_cli.config_providers import get_custom_provider_token_limits
+
+        configured = get_custom_provider_token_limits(
+            model, base_url, custom_providers=entries, requested_provider=requested,
+        ).get("max_output_tokens")
+        if configured is not None:
+            return OutputTokenLimit(configured, "route")
+
     route_is_custom = bool(entries) or str(provider or "").strip().lower() == "custom" or (
         str(requested_provider or "").strip().lower().startswith("custom:"))
     if discover and route_is_custom and model and base_url:
@@ -108,10 +93,6 @@ def resolve_output_token_limit(
                 getattr(catalog, "model_metadata", None), model)
             if value is not None:
                 return OutputTokenLimit(value, "discovered")
-            if catalog is None and saved_discovered is not None:
-                # The persisted config catalog keeps the route usable offline, but it must
-                # not suppress the TTL/schema-aware endpoint cache when the provider is up.
-                return OutputTokenLimit(saved_discovered, "discovered")
             # This configured route is authoritative even when its provider-aware probe failed.
             # A generic second probe could use the wrong auth mode/headers for the same URL.
             return OutputTokenLimit(None, "transport_default")
@@ -123,8 +104,6 @@ def resolve_output_token_limit(
         value = _limit_from_discovered_metadata(metadata, model)
         if value is not None:
             return OutputTokenLimit(value, "discovered")
-    if saved_discovered is not None:
-        return OutputTokenLimit(saved_discovered, "discovered")
     return OutputTokenLimit(None, "transport_default")
 
 
@@ -196,17 +175,34 @@ def compression_output_budget(
     return configured_budget
 
 
-def output_token_limit_for_agent(agent) -> Optional[int]:
-    """Resolve the active agent route. Called at request construction so fallback routes re-scope."""
-    source = str(getattr(agent, "max_tokens_source", "") or "").strip().lower()
-    explicit = None if source in {"model", "provider", "discovered"} else getattr(agent, "max_tokens", None)
-    return resolve_output_token_limit(
-        explicit=explicit,
-        model=str(getattr(agent, "model", "") or ""),
-        base_url=str(getattr(agent, "base_url", "") or ""),
-        provider=str(getattr(agent, "provider", "") or ""),
-        requested_provider=str(getattr(agent, "requested_provider", "") or ""),
-        api_mode=str(getattr(agent, "api_mode", "") or ""),
-        custom_providers=getattr(agent, "_custom_providers", None),
-        api_key=getattr(agent, "api_key", ""),
-    ).value
+def chat_max_tokens_field(
+    base_url: Any, model: Any = None, provider: Any = None, requested_provider: Any = None,
+    custom_providers: Any = None,
+) -> str:
+    """Which Chat Completions field carries the output cap for a route.
+
+    A configured ``max_tokens_field`` (provider entry or ``models[model]`` row) wins; otherwise the
+    ENDPOINT decides: OpenAI's own API, Azure OpenAI and GitHub Copilot reject ``max_tokens`` for
+    their newer families, everything else speaks ``max_tokens``. Never inferred from the model
+    name — a third-party host fronting ``gpt-5`` is the user's call, hence the config field.
+    """
+    url = str(base_url or "")
+    try:
+        from hermes_cli.config_providers import get_custom_provider_max_tokens_field
+
+        configured = get_custom_provider_max_tokens_field(
+            str(model or ""), url, custom_providers=custom_providers,
+            requested_provider=str(requested_provider or provider or ""),
+        )
+    except Exception:
+        configured = None
+    if configured:
+        return configured
+    from utils import base_url_host_matches, base_url_hostname
+
+    host = base_url_hostname(url) or ""
+    if host == "api.openai.com" or base_url_host_matches(url, "openai.azure.com") or (
+        host == "api.githubcopilot.com" or host.endswith(".githubcopilot.com")
+    ):
+        return "max_completion_tokens"
+    return "max_tokens"

@@ -1025,7 +1025,7 @@ _VALID_CUSTOM_PROVIDER_FIELDS = {
     "name", "base_url", "api_key", "api_mode", "model", "default_model", "models",
     "models_discovered", "model_token_limits", "context_length", "max_input_tokens",
     "max_output_tokens", "max_tokens", "rate_limit_delay", "request_timeout_seconds",
-    "stale_timeout_seconds", "discover_models", "extra_body", "extra_headers", "auth_scheme",
+    "stale_timeout_seconds", "discover_models", "extra_body", "extra_headers", "auth_scheme", "max_tokens_field",
     "user_agent", "ssl_ca_cert", "ssl_verify", "key_env", "api_key_env", "catalog_provider",
     "session_affinity_header", "enabled"}
 

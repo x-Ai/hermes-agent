@@ -474,7 +474,7 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
     from hermes_cli.models import _AGGREGATOR_PROVIDERS, _KNOWN_PROVIDER_NAMES, normalize_provider
     from hermes_cli.model_normalize import normalize_model_for_provider
     from hermes_cli.providers import (
-        custom_provider_slug, is_saved_custom_endpoint,
+        custom_provider_slug, is_custom_endpoint_entry,
         resolve_custom_provider, resolve_user_provider,
     )
 
@@ -500,7 +500,7 @@ def _normalize_main_model_assignment(provider: str, model: str) -> tuple[str, st
                 user_providers.get(user_provider.id)
                 if isinstance(user_providers, dict) else None
             )
-            if user_provider.id.strip().lower() in PROVIDER_REGISTRY and is_saved_custom_endpoint(provider_entry):
+            if user_provider.id.strip().lower() in PROVIDER_REGISTRY and is_custom_endpoint_entry(user_provider.id, provider_entry):
                 return custom_provider_slug(user_provider.name, user_provider.id), model_in
         except Exception:
             pass

@@ -237,6 +237,13 @@ export interface CustomEndpointModelDetail {
   reasoning_effort?: null | string
 }
 
+export type CustomEndpointMaxTokensField = '' | 'max_completion_tokens' | 'max_tokens'
+
+export interface CustomEndpointModelCapabilities {
+  supports_reasoning?: boolean | null
+  supports_vision?: boolean | null
+}
+
 export interface CustomEndpointModelTokenLimits {
   context_length?: number
   max_input_tokens?: number
@@ -266,6 +273,17 @@ export interface CustomEndpoint {
   source?: string
   /** Pinned HTTP User-Agent ('' = SDK default). */
   user_agent?: string
+  /** Provider-wide budgets; per-model `model_token_limits` win. */
+  default_token_limits?: CustomEndpointModelTokenLimits
+  /** Every extra header sent to this endpoint (User-Agent included). */
+  extra_headers?: Record<string, string>
+  /** Merged into every request body. */
+  extra_body?: Record<string, unknown>
+  /** '' = endpoint decides; else the Chat Completions output-cap field. */
+  max_tokens_field?: CustomEndpointMaxTokensField
+  catalog_provider?: string
+  /** Per-model capability pins from the `models` rows. */
+  model_capabilities?: Record<string, CustomEndpointModelCapabilities>
 }
 
 export interface CustomEndpointsResponse {
@@ -305,6 +323,20 @@ export interface CustomEndpointUpdate {
   name: string
   /** '' clears the User-Agent override. */
   user_agent?: string
+  /** Provider-wide budgets; a `null` field clears it. Omit to leave them alone. */
+  default_token_limits?: {
+    context_length: null | number
+    max_input_tokens: null | number
+    max_output_tokens: null | number
+  }
+  /** Full header map (replaces the stored one; {} clears). */
+  extra_headers?: Record<string, string>
+  /** Full extra body (replaces the stored one; {} clears). */
+  extra_body?: Record<string, unknown>
+  max_tokens_field?: CustomEndpointMaxTokensField
+  catalog_provider?: string
+  /** `null` on a field clears that pin. */
+  model_capabilities?: Record<string, { supports_reasoning: boolean | null; supports_vision: boolean | null }>
 }
 
 export interface CustomEndpointValidationResponse {

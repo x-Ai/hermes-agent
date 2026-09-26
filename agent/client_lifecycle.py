@@ -935,6 +935,8 @@ class ClientLifecycleMixin:
             try:
                 from hermes_cli.config import apply_custom_provider_extra_headers_to_client_kwargs
                 apply_custom_provider_extra_headers_to_client_kwargs(self._client_kwargs, base_url)
+                from agent.endpoint_auth import apply_auth_scheme_to_client_kwargs
+                apply_auth_scheme_to_client_kwargs(self._client_kwargs, base_url, getattr(self, "_custom_providers", None))
             except Exception:
                 logger.debug("custom-provider extra_headers skipped", exc_info=True)
 

@@ -202,23 +202,58 @@ describe('CustomEndpointsSettings', () => {
         target: { value: 'Hermes Desktop Test' }
       }
     )
+    fireEvent.change(screen.getByLabelText('Max Output: All models (default)'), { target: { value: '32000' } })
+    fireEvent.change(screen.getByLabelText('Vision: claude-fable-5'), { target: { value: 'yes' } })
+    fireEvent.click(screen.getByRole('button', { name: en.settings.customEndpoints.addHeader }))
+    fireEvent.change(screen.getByPlaceholderText(en.settings.customEndpoints.headerNamePlaceholder), {
+      target: { value: 'X-Tenant' }
+    })
+    fireEvent.change(screen.getByPlaceholderText(en.settings.customEndpoints.headerValuePlaceholder), {
+      target: { value: 't1' }
+    })
+    fireEvent.change(screen.getByPlaceholderText('{"chat_template_kwargs": {"enable_thinking": false}}'), {
+      target: { value: '{"thinking": {"type": "disabled"}}' }
+    })
     fireEvent.click(screen.getByRole('button', { name: en.settings.customEndpoints.save }))
 
     expect(saveCustomEndpoint).toHaveBeenCalledWith(
       expect.objectContaining({
         api_mode: 'anthropic_messages',
         auth_scheme: 'bearer',
+        default_token_limits: { context_length: null, max_input_tokens: null, max_output_tokens: 32000 },
+        extra_body: { thinking: { type: 'disabled' } },
+        extra_headers: { 'User-Agent': 'Hermes Desktop Test', 'X-Tenant': 't1' },
+        model_capabilities: { 'claude-fable-5': { supports_reasoning: null, supports_vision: true } },
         model_token_limits: {
           'claude-fable-5': {
             context_length: 200000,
             max_input_tokens: 180000,
             max_output_tokens: 20000
           }
-        },
-        user_agent: 'Hermes Desktop Test'
+        }
       }),
       'default'
     )
+    // A fresh endpoint never carries an implicit browser identity.
+    expect(saveCustomEndpoint.mock.calls[0][0].extra_headers['User-Agent']).toBe('Hermes Desktop Test')
+  })
+
+  it('does not send a User-Agent unless the user set one', async () => {
+    getCustomEndpoints.mockResolvedValue(emptyResponse)
+    saveCustomEndpoint.mockResolvedValue(savedResponse)
+    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
+
+    render(<CustomEndpointsSettings />)
+
+    await screen.findByText('No custom endpoints')
+    fireEvent.change(screen.getByPlaceholderText('Axet Proxy'), { target: { value: 'Plain relay' } })
+    fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
+      target: { value: 'https://relay.example/v1' }
+    })
+    fireEvent.change(screen.getByPlaceholderText('gpt-5.4'), { target: { value: 'm1' } })
+    fireEvent.click(screen.getByRole('button', { name: en.settings.customEndpoints.save }))
+
+    expect(saveCustomEndpoint.mock.calls[0][0].extra_headers).toEqual({})
   })
 
   it('loads and saves endpoints for the Settings Applies-to profile, not only the active bot', async () => {

@@ -91,28 +91,6 @@ def _lift_model_capabilities(entry: Dict[str, Any], model: Optional[str], result
         result["capabilities"] = capabilities
 
 
-def _lift_max_output_tokens(
-    entry: Dict[str, Any], result: Dict[str, Any], model: Optional[str] = None,
-) -> None:
-    """Lift the route's output limit, with an exact per-model entry winning over provider scope."""
-    models = entry.get("models")
-    model_config = models.get(model) if isinstance(models, dict) and model else None
-    overrides = entry.get("model_token_limits")
-    model_override = overrides.get(model) if isinstance(overrides, dict) and model else None
-    for source in (model_override, model_config, entry):
-        if not isinstance(source, dict):
-            continue
-        for key in ("max_output_tokens", "max_tokens"):
-            value = source.get(key)
-            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-                result["max_output_tokens"] = value
-                result["max_output_tokens_source"] = (
-                    "discovered" if source is model_config and entry.get("models_discovered") is True
-                    else "provider" if source is entry else "model")
-                return
-
-
-
 def _lift_extra_headers(entry: Dict[str, Any], result: Dict[str, Any]) -> None:
     """Copy a validated ``extra_headers`` dict. SECURITY: values carry credentials — never log."""
     extra_headers = _rp().normalize_extra_headers(entry.get("extra_headers"))
@@ -143,7 +121,6 @@ def _lift_common_custom_fields(entry: Dict[str, Any], result: Dict[str, Any], *,
         result["model_token_limits"] = model_token_limits
     if entry.get("models_discovered") is True or legacy_discovered:
         result["models_discovered"] = True
-    _lift_max_output_tokens(entry, result)
     _lift_model_capabilities(entry, None, result)
 
 
@@ -257,7 +234,7 @@ def has_named_custom_provider(requested_provider: str) -> bool:
 def current_custom_provider_api_mode(
     requested_provider: str, *, model: Optional[str] = None,
 ) -> Optional[str]:
-    """Return the protocol currently configured for a named custom endpoint."""
+    """Return the protocol explicitly pinned on a named custom endpoint."""
     requested = _clean(requested_provider).lower()
     if not requested.startswith("custom:"):
         return None
@@ -267,13 +244,7 @@ def current_custom_provider_api_mode(
         return None
     if not entry:
         return None
-    mode = _rp()._parse_api_mode(entry.get("api_mode"))
-    if mode:
-        return mode
-    base_url = _entry_url(entry)
-    if not base_url:
-        return None
-    return _rp()._fallback_api_mode(requested_provider, base_url, _clean(model))
+    return _rp()._parse_api_mode(entry.get("api_mode") or entry.get("transport"))
 
 
 def codex_model_provider_id(requested_provider: str) -> Optional[str]:
@@ -476,7 +447,6 @@ def _apply_custom_provider_extras(custom_provider: Dict[str, Any], target_model:
     if model_name:
         result["model"] = model_name
     _lift_model_capabilities(custom_provider, model_name, result)
-    _lift_max_output_tokens(custom_provider, result, model_name)
 
     if custom_provider.get("extra_headers"):
         result["extra_headers"] = dict(custom_provider["extra_headers"])

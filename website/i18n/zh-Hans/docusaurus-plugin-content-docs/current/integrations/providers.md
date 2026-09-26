@@ -1090,7 +1090,7 @@ model:
 :::note 两个设置，容易混淆
 **`context_length`** 是**总上下文窗口**——输入和输出 token 的合计预算（例如 Claude Opus 4.6 为 200,000）。Hermes 用它来决定何时压缩历史记录以及验证 API 请求。
 
-**输出上限**限制单次响应，而非对话历史。Hermes 不再读取 `model.max_tokens`、`HERMES_MAX_TOKENS` 或提供商及模型的输出上限设置。兼容端点使用服务器默认值；该值不一定是模型最大值。原生 Anthropic Messages 仍要求 `max_tokens`，Hermes 会提供内部值。Bedrock Converse 的可选输出限制默认省略。
+**输出上限**限制单次响应，而非对话历史。本 fork 按**端点**保留这项能力：自定义提供方可以在提供方级别设置 `max_output_tokens`（以及 `max_input_tokens`），在 `model_token_limits` 下按模型精确设置，或继承 `/models` 目录声明的值；config.yaml 里的 `model.max_tokens` 会为所有路由固定预算。解析在 agent 构造时只发生一次，CLI、网关、TUI/桌面端、批处理、cron、ACP 与子 agent 行为一致，`/model` 切换和 fallback 时会重新推导。未配置时 OpenAI 兼容线不发送上限（使用服务器默认值，可能低于模型最大值）；原生 Anthropic Messages 仍要求 `max_tokens`，Hermes 会提供内部值。Bedrock Converse 的可选输出限制默认省略。
 
 当自动检测获取的窗口大小不正确时，设置 `context_length`。
 请删除旧的用户输出上限配置；内部任务预算与 MCP 采样安全预算保持不变。
@@ -1160,6 +1160,28 @@ custom_providers:
     key_env: ANTHROPIC_PROXY_KEY
     api_mode: anthropic_messages  # 用于 Anthropic 兼容代理
 ```
+
+本 fork 为端点增加了几个字段，让中继站无需在代码里按模型名特判：
+
+```yaml
+providers:
+  my-relay:
+    api: https://relay.example.com/v1
+    key_env: MY_RELAY_KEY
+    api_mode: chat_completions
+    auth_scheme: x-api-key           # 或 bearer；一处设置对所有协议线生效，默认自动检测
+    max_tokens_field: max_completion_tokens   # 原样转发到 OpenAI 的中继需要
+    max_output_tokens: 32000         # 提供方级输出预算
+    max_input_tokens: 200000         # 把压缩窗口压到 context_length 以下
+    model_token_limits:              # 精确到模型的设置优先于提供方级
+      glm-5.2: {context_length: 200000, max_output_tokens: 128000}
+    models:
+      glm-5.2: {supports_vision: false, supports_reasoning: true, max_tokens_field: max_tokens}
+    extra_headers: {X-Tenant: team-a}
+    extra_body: {chat_template_kwargs: {enable_thinking: false}}
+```
+
+三个预算的优先级：`model_token_limits[model]` > 手写的 `models[model]` 行 > 提供方级值 > Hermes 从 `/models` 发现的 `models[model]` 行（端点声明的上限不会盖过你自己的预算）。`auth_scheme`、`max_tokens_field` 和各预算都可以在桌面端**自定义端点**面板里编辑；面板的**测试**按钮会用运行时完全一致的请求头探测（已保存的密钥、`extra_headers`、User-Agent、认证头）。端点 id 不能与内置提供方 id（`openai`、`xai` 等）相同：`providers.<内置 id>` 是该提供方自己的设置块。
 
 某些 OpenAI 兼容端点需要特定于提供商的请求体字段。在对应的自定义提供商中添加 `extra_body` 映射，Hermes 会将其合并到该端点的每个 chat-completions 请求中：
 

@@ -2531,8 +2531,8 @@ def _models_from_catalog(data: Any) -> DiscoveredModelList:
         candidates = (
             capabilities.get("max_output_tokens") if isinstance(capabilities, dict) else None,
             row.get("max_output_tokens"),
-            row.get("max_tokens"),
             row.get("max_completion_tokens"),
+            row.get("max_tokens"),
         )
         limit = next(
             (value for raw in candidates if (value := _positive_output_limit(raw)) is not None),
