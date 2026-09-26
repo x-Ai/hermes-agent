@@ -1,8 +1,4 @@
-import {
-  delegationCustomEndpointsEnabled,
-  delegationModelOptions,
-  delegationProviderOptions
-} from '@hermes/shared'
+import { delegationCustomEndpointsEnabled, delegationModelOptions, delegationProviderOptions } from '@hermes/shared'
 
 import type { Translations } from '@/i18n'
 import { asText, normalize } from '@/lib/text'

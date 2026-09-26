@@ -2,7 +2,11 @@ import { afterEach, expect, it } from 'vitest'
 
 import { setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 
-import { localizeAgentStatusText, localizeApiErrorMessage, localizeAsyncDelegationResultText } from './api-error-messages'
+import {
+  localizeAgentStatusText,
+  localizeApiErrorMessage,
+  localizeAsyncDelegationResultText
+} from './api-error-messages'
 
 afterEach(() => {
   setRuntimeI18nLocale('en')

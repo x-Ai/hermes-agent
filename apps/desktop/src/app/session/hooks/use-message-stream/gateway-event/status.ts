@@ -294,6 +294,7 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
   if (event.type === 'error') {
     const rawErrorMessage = payload?.message || translateNow('notifications.gatewayErrorFallback')
     const looksLikeProviderSetup = isProviderSetupErrorMessage(rawErrorMessage)
+
     const errorMessage = looksLikeProviderSetup
       ? translateNow('desktop.providerCredentialRequired')
       : localizeGatewayErrorMessage(rawErrorMessage)

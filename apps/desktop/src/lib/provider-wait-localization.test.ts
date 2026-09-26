@@ -17,8 +17,10 @@ describe('localizeProviderWaitText', () => {
     const model = `model/${variant}-${kind}`
     const thinking = kind === 'output' ? ', or the model is thinking' : ''
     const reconnect = reconnectSeconds ? `; auto-reconnect at ${reconnectSeconds}s` : ''
+
     const wait =
       variant === 'stream-first' ? `no stream ${kind} for ${elapsedSeconds}s` : `${elapsedSeconds}s with no ${kind} yet`
+
     const raw = `⏳ waiting on ${model} — ${wait} (provider may be slow or overloaded${thinking}${reconnect})`
     const localized = `localized:${model}:${elapsedSeconds}:${kind}:${reconnectSeconds ?? 'none'}`
     const providerWaiting = vi.fn(() => localized)

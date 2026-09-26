@@ -44,7 +44,9 @@ describe('Chinese localization regressions', () => {
         en.assistant.thread.errorCodes.context_overflow.title
       )
       expect(locale.assistant.catalogInstall.securityHeading).not.toBe(en.assistant.catalogInstall.securityHeading)
-      expect(locale.settings.toolsets.tagCopy['Managed web search and extract billed to your subscription']).toBeTruthy()
+      expect(
+        locale.settings.toolsets.tagCopy['Managed web search and extract billed to your subscription']
+      ).toBeTruthy()
     }
   })
 

@@ -271,7 +271,7 @@ test.runIf(process.platform !== 'win32').each([0, 23])(
         launcher,
         `#!${shell}\nprintf '%s\\n' "$@" "$HERMES_HOME" "$HERMES_UPDATE_CORRELATION_ID" "$HERMES_UPDATE_ORIGIN_PROFILE" "$HERMES_UPDATE_ORIGIN_HOME" "$HERMES_UPDATE_OUTPUT_PATH"\nexit ${exitCode}\n`,
         { encoding: 'utf8', mode: 0o700 }
-       )
+      )
 
       const command: string = buildPosixManagedUpdateLaunch(
         {

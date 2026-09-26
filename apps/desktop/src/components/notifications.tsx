@@ -245,7 +245,8 @@ function NotificationItem({ notification, stack }: { notification: AppNotificati
   const Icon = styles.icon
   const hasMessage = Boolean(notification.message && notification.message !== notification.title)
   const hasDetail = Boolean(notification.detail && notification.detail !== notification.message)
-  const hasDescription = hasMessage || notification.meta || hasDetail || notification.action || notification.secondaryAction
+  const hasDescription =
+    hasMessage || notification.meta || hasDetail || notification.action || notification.secondaryAction
   const { t } = useI18n()
   const copy = t.notifications
 

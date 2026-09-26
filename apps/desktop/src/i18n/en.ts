@@ -2224,7 +2224,8 @@ export const en: Translations = {
       capabilityYes: 'Yes',
       capabilityNo: 'No',
       extraHeadersLabel: 'Extra headers',
-      extraHeadersHint: 'Sent on every request to this endpoint (gateway tokens, routing tags). Values are stored in config.yaml.',
+      extraHeadersHint:
+        'Sent on every request to this endpoint (gateway tokens, routing tags). Values are stored in config.yaml.',
       headerNamePlaceholder: 'Header name',
       headerValuePlaceholder: 'Value',
       addHeader: 'Add header',

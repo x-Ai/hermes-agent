@@ -178,6 +178,7 @@ export function ModelVisibilityDialog({
                         provider.slug.toLowerCase() === 'moa'
                           ? { name: displayEntityName(family.id, t), tag: '' }
                           : modelDisplayParts(family.id)
+
                       const key = modelVisibilityKey(provider.slug, family.id)
 
                       return (

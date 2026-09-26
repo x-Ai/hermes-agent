@@ -133,10 +133,7 @@ export const PRE_TURN_LIVE_SETTLE_GRACE_MS = 15_000
 // Gateway/provider failures sometimes arrive as message.complete text instead
 // of an explicit error event. Treat matches as inline assistant errors so they
 // persist like real error events and don't get erased by hydrate fallback.
-const COMPLETION_ERROR_PATTERNS = [
-  /^HTTP\s+\d{3}\b/i,
-  /^(Provider|Gateway)\s+error:/i
-]
+const COMPLETION_ERROR_PATTERNS = [/^HTTP\s+\d{3}\b/i, /^(Provider|Gateway)\s+error:/i]
 
 export function completionErrorText(finalText: string): string | null {
   const text = finalText.trim()

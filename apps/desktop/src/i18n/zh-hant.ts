@@ -2351,13 +2351,16 @@ export const zhHant = defineLocale({
       addHeader: '新增標頭',
       removeHeader: '刪除標頭',
       extraBodyLabel: '額外請求主體（JSON）',
-      extraBodyHint: '合併進每個請求主體，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或伺服器文件規定的思考預算欄位',
+      extraBodyHint:
+        '合併進每個請求主體，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或伺服器文件規定的思考預算欄位',
       extraBodyInvalid: '必須是 JSON 物件',
       maxTokensFieldLabel: '輸出上限欄位',
       maxTokensFieldAuto: '自動（由端點決定）',
-      maxTokensFieldHint: 'Chat Completions 請求中承載輸出上限的欄位。原樣轉發到 OpenAI 的中繼請固定為 max_completion_tokens；執行階段不會依模型名稱猜測',
+      maxTokensFieldHint:
+        'Chat Completions 請求中承載輸出上限的欄位。原樣轉發到 OpenAI 的中繼請固定為 max_completion_tokens；執行階段不會依模型名稱猜測',
       catalogProviderLabel: '中繼資料目錄來源',
-      catalogProviderHint: '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
+      catalogProviderHint:
+        '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自動',
       keyKeepPlaceholder: '留空則保留目前的金鑰',
       keyOptionalPlaceholder: '選填',

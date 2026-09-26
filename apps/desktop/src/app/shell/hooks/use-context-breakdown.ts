@@ -45,6 +45,7 @@ export function useContextBreakdown({
       if (suspendWhileBusy && busy) {
         setFetched(null)
       }
+
       setLoading(false)
 
       return

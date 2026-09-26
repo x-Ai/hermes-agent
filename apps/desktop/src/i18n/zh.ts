@@ -2457,13 +2457,16 @@ export const zh = defineLocale({
       addHeader: '添加请求头',
       removeHeader: '删除请求头',
       extraBodyLabel: '额外请求体（JSON）',
-      extraBodyHint: '合并进每个请求体，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或服务端文档规定的思考预算字段',
+      extraBodyHint:
+        '合并进每个请求体，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或服务端文档规定的思考预算字段',
       extraBodyInvalid: '必须是 JSON 对象',
       maxTokensFieldLabel: '输出上限字段',
       maxTokensFieldAuto: '自动（由端点决定）',
-      maxTokensFieldHint: 'Chat Completions 请求里承载输出上限的字段。原样转发到 OpenAI 的中继请固定为 max_completion_tokens；运行时不会按模型名猜测',
+      maxTokensFieldHint:
+        'Chat Completions 请求里承载输出上限的字段。原样转发到 OpenAI 的中继请固定为 max_completion_tokens；运行时不会按模型名猜测',
       catalogProviderLabel: '元数据目录来源',
-      catalogProviderHint: '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
+      catalogProviderHint:
+        '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自动',
       keyKeepPlaceholder: '留空则保留当前密钥',
       keyOptionalPlaceholder: '可选',

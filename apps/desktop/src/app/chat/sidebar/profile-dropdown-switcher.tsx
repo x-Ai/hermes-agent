@@ -247,6 +247,7 @@ export function ProfileSwitcher({ compact = false }: { compact?: boolean }) {
               {[group.defaultAgent, ...group.named].map(agent => {
                 const name = displayEntityName(agent.profile, t)
                 const localDefault = agent.connectionKind === 'local' && agent.isDefault
+
                 const label = localDefault
                   ? p.fleet.localDevice
                   : p.fleet.onGateway(name, displayConnectionLabel(group, t))
