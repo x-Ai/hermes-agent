@@ -46,6 +46,7 @@ import { Label } from "@nous-research/ui/ui/components/label";
 import { useI18n } from "@/i18n";
 import { en } from "@/i18n/en";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 import { LoadErrorNotice } from "@/components/LoadErrorNotice";
@@ -496,8 +497,8 @@ function splitJobKey(key: string): { profile: string; id: string } {
   return { profile: key.slice(0, idx) || "default", id: key.slice(idx + 1) };
 }
 
-function profileLabel(profile: string): string {
-  return profile === "default" ? "default" : profile;
+function profileLabel(profile: string, defaultLabel: string): string {
+  return localizeDefaultIdentifier(profile, defaultLabel);
 }
 
 const STATUS_TONE: Record<string, "success" | "warning" | "destructive"> = {
@@ -974,7 +975,7 @@ export default function CronPage() {
                 >
                   {profiles.map(profile => (
                     <SelectOption key={profile.name} value={profile.name}>
-                      {profileLabel(profile.name)}
+                      {profileLabel(profile.name, copy.default)}
                     </SelectOption>
                   ))}
                 </Select>
@@ -1098,7 +1099,7 @@ export default function CronPage() {
                 <SelectOption value="all">{copy.allProfiles}</SelectOption>
                 {profiles.map((profile) => (
                   <SelectOption key={profile.name} value={profile.name}>
-                    {profileLabel(profile.name)}
+                    {profileLabel(profile.name, copy.default)}
                   </SelectOption>
                 ))}
               </Select>
@@ -1161,7 +1162,7 @@ export default function CronPage() {
                         </Badge>
                       )}
                       <Badge tone="outline">
-                        {profile === "default" ? copy.default : profileLabel(profile)}
+                        {profileLabel(profile, copy.default)}
                       </Badge>
                       {deliver && deliver !== "local" && (
                         <Badge tone="outline">{deliveryLabels[deliver] ?? deliver}</Badge>

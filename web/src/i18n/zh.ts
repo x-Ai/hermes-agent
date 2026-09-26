@@ -1362,6 +1362,7 @@ export const zh: Translations = {
     profileDescriptionsHint: "描述会引导任务路由，可自动生成，也可手动编辑保存",
     noProfilesInstalled: "尚未安装配置",
     defaultSuffix: "（默认）",
+    defaultLabel: "默认",
     autoReview: "自动生成——请审阅",
     noProfileDescription: "⚠ 暂无描述",
     profileDescriptionPlaceholder: "此配置擅长什么？",

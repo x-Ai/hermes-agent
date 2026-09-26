@@ -1174,6 +1174,7 @@ export interface Translations {
     profileDescriptionsHint?: string;
     noProfilesInstalled?: string;
     defaultSuffix?: string;
+    defaultLabel?: string;
     autoReview?: string;
     noProfileDescription?: string;
     profileDescriptionPlaceholder?: string;

@@ -60,4 +60,13 @@ describe('Chinese Dashboard localization', () => {
       achievements: '成就'
     })
   })
+
+  it('keeps the canonical default identifiers and Kanban orchestration copy localized', () => {
+    expect(zh.profiles.defaultBadge).toBe('默认')
+    expect(zh.kanban.defaultLabel).toBe('默认')
+    expect(zh.kanban.defaultValue).toBe('（默认：{name}）')
+    expect(zh.kanban.orchestrationSettings).toBe('编排设置')
+    expect(zh.kanban.orchestrationAuto).toBe('自动')
+    expect(zh.kanban.orchestrationManual).toBe('手动')
+  })
 })

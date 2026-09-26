@@ -33,6 +33,7 @@ import { Label } from "@nous-research/ui/ui/components/label";
 import { Select, SelectOption } from "@nous-research/ui/ui/components/select";
 import { Checkbox } from "@nous-research/ui/ui/components/checkbox";
 import { useI18n } from "@/i18n";
+import { localizeDefaultIdentifier } from "@/i18n/default-identifier";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { cn, themedBody } from "@/lib/utils";
 import { errorMessage } from "@/lib/api-error";
@@ -460,7 +461,10 @@ export default function ProfilesPage() {
       const { active } = await api.setActiveProfile(name);
       setProfile(active);
       showToast(
-        `${L.activeSet}: ${active} — ${L.activeSetHint.replace("{name}", active)}`,
+        `${L.activeSet}: ${localizeDefaultIdentifier(active, t.profiles.defaultBadge)} — ${L.activeSetHint.replace(
+          "{name}",
+          localizeDefaultIdentifier(active, t.profiles.defaultBadge),
+        )}`,
         "success"
       );
       setActiveInfo(prev => (prev ? { ...prev, active } : { active, current: active }));
@@ -511,7 +515,10 @@ export default function ProfilesPage() {
     setSoulSaving(true);
     try {
       await api.updateProfileSoul(name, soulText);
-      showToast(`${t.profiles.soulSaved}: ${name}`, "success");
+      showToast(
+        `${t.profiles.soulSaved}: ${localizeDefaultIdentifier(name, t.profiles.defaultBadge)}`,
+        "success",
+      );
       activeSoulRequest.current = null;
       setEditingSoulFor(null);
     } catch (e) {
@@ -556,7 +563,10 @@ export default function ProfilesPage() {
         )
       );
       if (activeDescRequest.current === name) {
-        showToast(`${L.descriptionSaved}: ${name}`, "success");
+        showToast(
+          `${L.descriptionSaved}: ${localizeDefaultIdentifier(name, t.profiles.defaultBadge)}`,
+          "success",
+        );
         setEditingDescFor(null);
       }
     } catch (e) {
@@ -589,7 +599,12 @@ export default function ProfilesPage() {
               : p
           )
         );
-        if (current) showToast(`${L.descriptionSaved}: ${name}`, "success");
+        if (current) {
+          showToast(
+            `${L.descriptionSaved}: ${localizeDefaultIdentifier(name, t.profiles.defaultBadge)}`,
+            "success",
+          );
+        }
       } else if (current) {
         showToast(`${L.describeFailed}: ${res.reason}`, "error");
       }
@@ -676,7 +691,10 @@ export default function ProfilesPage() {
       async (name: string) => {
         try {
           await api.deleteProfile(name);
-          showToast(`${t.profiles.deleted}: ${name}`, "success");
+          showToast(
+            `${t.profiles.deleted}: ${localizeDefaultIdentifier(name, t.profiles.defaultBadge)}`,
+            "success",
+          );
           load();
         } catch (e) {
           showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
@@ -691,7 +709,10 @@ export default function ProfilesPage() {
   const pendingProfile = pendingName ? profiles.find(p => p.name === pendingName) : undefined;
   const deleteMessage = (() => {
     if (!pendingName) return t.profiles.confirmDeleteMessage;
-    const base = t.profiles.confirmDeleteMessage.replace("{name}", pendingName);
+    const base = t.profiles.confirmDeleteMessage.replace(
+      "{name}",
+      localizeDefaultIdentifier(pendingName, t.profiles.defaultBadge),
+    );
     return pendingProfile?.gateway_running ? `${base}\n\n${L.gatewayRunningWarning}` : base;
   })();
 
@@ -805,7 +826,7 @@ export default function ProfilesPage() {
                   <SelectOption value="">{t.profiles.cloneFromNone}</SelectOption>
                   {profiles.map(profile => (
                     <SelectOption key={profile.name} value={profile.name}>
-                      {profile.name}
+                      {localizeDefaultIdentifier(profile.name, t.profiles.defaultBadge)}
                     </SelectOption>
                   ))}
                 </Select>
@@ -914,12 +935,16 @@ export default function ProfilesPage() {
 
               <span>
                 {L.activeProfile}:{" "}
-                <span className="font-medium text-foreground">{activeInfo.active}</span>
+                <span className="font-medium text-foreground">
+                  {localizeDefaultIdentifier(activeInfo.active, t.profiles.defaultBadge)}
+                </span>
               </span>
             </span>
 
             {activeInfo.current !== activeInfo.active && (
-              <span className="font-mono text-muted-foreground/80">({activeInfo.current})</span>
+              <span className="font-mono text-muted-foreground/80">
+                ({localizeDefaultIdentifier(activeInfo.current, t.profiles.defaultBadge)})
+              </span>
             )}
           </CardContent>
         </Card>
@@ -1001,8 +1026,8 @@ export default function ProfilesPage() {
                         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
                           <span className="font-medium text-sm truncate">
                             {p.display_name?.trim()
-                              ? `${p.display_name.trim()} (${p.name})`
-                              : p.name}
+                              ? `${localizeDefaultIdentifier(p.display_name.trim(), t.profiles.defaultBadge)} (${localizeDefaultIdentifier(p.name, t.profiles.defaultBadge)})`
+                              : localizeDefaultIdentifier(p.name, t.profiles.defaultBadge)}
                           </span>
 
                           {active && <Badge tone="success">{L.activeBadge}</Badge>}
@@ -1153,7 +1178,9 @@ export default function ProfilesPage() {
                   : editorKind === "desc"
                     ? L.description
                     : t.profiles.soulSection}
-                <span className="text-muted-foreground"> · {editorName}</span>
+                <span className="text-muted-foreground">
+                  {" · "}{localizeDefaultIdentifier(editorName, t.profiles.defaultBadge)}
+                </span>
               </h2>
             </header>
 
