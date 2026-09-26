@@ -4684,7 +4684,7 @@ export const ar = defineLocale({
       copyFailure: 'فشل نسخ المعيار إلى الحافظة',
       continuationFailed: 'فشل إرسال متابعة الهدف',
       continuationQueued: 'تم استئناف الهدف — المتابعة في قائمة الانتظار حتى انتهاء الدور الحالي',
-      continuationBusy: 'تم استئناف الهدف — الجلسة مشغولة، نفّذ /interrupt للدور الحالي للمتابعة',
+      continuationBusy: 'تم استئناف الهدف — الجلسة مشغولة، أوقف الرد الحالي أولاً (زر الإيقاف أو Esc) للمتابعة',
       controlUnavailable: msg => `عناصر تحكم الجلسة غير متاحة: ${msg}`,
       dismissError: 'تجاهل الخطأ',
       add: 'إضافة'
@@ -4830,8 +4830,11 @@ export const ar = defineLocale({
     changelogFallbackTitle: 'في هذا التحديث',
     changelogFallback: 'تحسينات وإصلاحات',
     manualTitle: 'التحديث من الطرفية',
+    manualUnavailableTitle: 'لا يمكن التحديث من هنا',
     manualBody: 'لقد ثبّتت Hermes من سطر الأوامر، لذا تُجرى التحديثات من هناك أيضا. الصق هذا في طرفيتك:',
+    manualBodyBackend: 'تتم إدارة خادم Hermes خارج هذا التطبيق. نفّذ هذا الأمر على الخادم الذي يستضيفه:',
     manualPickedUp: 'سيلتقط Hermes الإصدار الجديد في المرة التالية التي تشغّله فيها.',
+    manualPickedUpBackend: 'سيحمّل الخادم الإصدار الجديد بعد اكتمال التحديث.',
     guiSkewTitle: 'تحديث تطبيق سطح المكتب',
     guiSkewBody:
       'تم تحديث الواجهة الخلفية، لكن حزمة تطبيق سطح المكتب هذه لم تتغير. حدّث أو أعد تثبيت تطبيق Hermes لسطح المكتب (ملف AppImage / ‎.deb / ‎.rpm) لمطابقته.',
@@ -5330,6 +5333,7 @@ export const ar = defineLocale({
       search: 'البحث عن نموذج...',
       noModels: 'لا توجد نماذج',
       editModels: 'تحرير النماذج',
+      followDefault: 'استخدام الافتراضي من الإعدادات',
       refreshModels: 'تحديث النماذج',
       fast: 'سريع',
       moaPresets: 'إعدادات MOA المسبقة'

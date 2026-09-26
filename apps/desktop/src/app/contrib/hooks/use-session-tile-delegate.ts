@@ -1,7 +1,11 @@
 import { useEffect } from 'react'
 
 import { PROMPT_SUBMIT_REQUEST_TIMEOUT_MS } from '@/api/client'
-import { graftRefreshedTailOntoBackfill } from '@/app/chat/transcript-backfill'
+import {
+  extendRefreshPageToOverlap,
+  graftRefreshedTailOntoBackfill,
+  olderPageReader
+} from '@/app/chat/transcript-backfill'
 import { fetchStoredTranscriptAcrossBackends, getLatestSessionMessages } from '@/hermes'
 import { translateNow } from '@/i18n/runtime'
 import { type ChatMessage, chatMessageText, toChatMessages } from '@/lib/chat-messages'
@@ -40,11 +44,9 @@ type SessionStateCache = ReturnType<typeof useSessionStateCache>
 
 function mergeTileTranscript(
   previous: ChatMessage[],
-  prefetchMessages: SessionResumeResult['messages'] | undefined,
+  prefetched: ChatMessage[],
   streamId?: null | string
 ): ChatMessage[] {
-  const prefetched = toChatMessages(prefetchMessages ?? [])
-
   if (!prefetched.length) {
     return previous
   }
@@ -318,11 +320,25 @@ export function useSessionTileDelegate({
 
         if (existing && cached?.storedSessionId === storedSessionId && (cached.busy || cached.messages.length > 0)) {
           const prefetch = await prefetchPromise
+
+          // A long turn can push every rendered row off the newest page; read
+          // older pages until they overlap so the graft keeps earlier history.
+          const prefetched = await extendRefreshPageToOverlap(
+            toChatMessages(prefetch?.messages ?? []),
+            cached.messages,
+            olderPageReader(storedSessionId, restScope, prefetch)
+          )
+
+          // The overlap reads await; drop the page if the tile was rebound.
+          if (sessionStateByRuntimeIdRef.current.get(existing)?.storedSessionId !== storedSessionId) {
+            return existing
+          }
+
           // Deltas and completion may land while REST is in flight.
           updateSessionState(
             existing,
             state => {
-              const merged = mergeTileTranscript(state.messages, prefetch?.messages, state.streamId ?? cached.streamId)
+              const merged = mergeTileTranscript(state.messages, prefetched, state.streamId ?? cached.streamId)
 
               return chatMessageArraysEquivalent(state.messages, merged) ? state : { ...state, messages: merged }
             },

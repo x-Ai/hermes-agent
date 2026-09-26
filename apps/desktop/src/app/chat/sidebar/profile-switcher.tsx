@@ -1200,7 +1200,9 @@ function FleetRestGroup({
   const { t } = useI18n()
   const p = t.profiles
   const groupLabel = displayConnectionLabel(group, t)
-  const dividerLabel = group.reachable ? p.fleet.gateway(groupLabel) : p.fleet.gatewayUnreachable(groupLabel)
+  const dividerLabel = group.reachable
+    ? p.fleet.gateway(groupLabel)
+    : `${group.needsSignIn ? `${p.fleet.gateway(groupLabel)} · ${t.settings.toolsets.needsSignIn}` : p.fleet.gatewayUnreachable(groupLabel)}${group.error ? `\n${group.error}` : ''}`
   const defaultKey = fleetRouteKey(group.connectionId, group.defaultAgent.profile)
   const defaultName = displayEntityName(group.defaultAgent.profile, t)
   // At rest, This device is a backend switch, not Home. The house glyph stays

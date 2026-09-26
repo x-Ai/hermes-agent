@@ -496,6 +496,9 @@ export const zhHant = defineLocale({
     copyDetailFailed: '無法複製通知詳情',
     backendOutOfDateTitle: '後端版本過舊',
     backendOutOfDateMessage: '您的 Hermes 後端早於目前的桌面版本，可能無法正常運作。請更新以保持一致。',
+    desktopOutOfDateTitle: '應用程式版本過舊',
+    desktopOutOfDateMessage: '此 Hermes 應用程式早於所連接的後端，可能無法正常運作。請更新應用程式以保持一致。',
+    updateDesktopApp: '更新應用程式',
     installMethodUnsupportedTitle: '不受支援的安裝方式',
     updateHermes: '更新 Hermes',
     updateReadyTitle: '有可用更新',
@@ -5926,7 +5929,7 @@ export const zhHant = defineLocale({
       copyFailure: '複製條件到剪貼板失敗',
       continuationFailed: '提交目標延續內容失敗',
       continuationQueued: '目標已恢復 — 延續內容已排隊，將在目前回合結束後送出',
-      continuationBusy: '目標已恢復 — 會話忙碌中，請 /interrupt 目前回合以繼續',
+      continuationBusy: '目標已恢復 — 會話忙碌中，請先停止目前回覆（Stop 按鈕或 Esc）以繼續',
       controlUnavailable: msg => `會話控制無法使用: ${msg}`,
       dismissError: '關閉錯誤',
       add: '新增'
@@ -6029,8 +6032,11 @@ export const zhHant = defineLocale({
     changelogFallbackTitle: '本次更新',
     changelogFallback: '改進與修正',
     manualTitle: '從終端機更新',
+    manualUnavailableTitle: '無法從這裡更新',
     manualBody: '您是從命令列安裝的 Hermes，因此更新也需要在那裡執行。請將此指令貼到終端機：',
+    manualBodyBackend: 'Hermes 後端由本應用程式之外管理。請在託管它的伺服器上執行此指令：',
     manualPickedUp: '下次啟動 Hermes 時會使用新版本。',
+    manualPickedUpBackend: '後端會在更新完成後載入新版本。',
     guiSkewTitle: '請更新桌面應用程式',
     guiSkewBody:
       '後端已更新，但此桌面應用程式套件未變更。請更新或重新安裝 Hermes 桌面應用程式（你的 AppImage / .deb / .rpm）以保持一致。',
@@ -6515,6 +6521,7 @@ export const zhHant = defineLocale({
       search: '搜尋模型',
       noModels: '找不到模型',
       editModels: '編輯模型…',
+      followDefault: '使用設定中的預設模型',
       refreshModels: '重新整理模型',
       fast: '快速',
       moaPresets: 'MOA 預設'

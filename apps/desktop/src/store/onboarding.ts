@@ -1044,7 +1044,13 @@ export async function saveOnboardingApiKey(
   // Optional endpoint key — only meaningful for the "Local / custom endpoint"
   // option, whose primary `value` is the base URL. Ignored for plain API-key
   // providers (their key IS `value`).
-  endpointApiKey?: string
+  endpointApiKey?: string,
+  // Optional manual model name — only meaningful for the "Local / custom
+  // endpoint" option when /v1/models discovery returns an empty list (e.g.
+  // Cohere's OpenAI-compatible endpoint, which serves no OpenAI-shaped model
+  // catalog). Mirrors the runtime's `discover_models: false` + explicit
+  // `models:` config path. Ignored for plain API-key providers.
+  modelName?: string
 ) {
   ctx = captureContext(ctx)
   const generation = flowGeneration
@@ -1060,7 +1066,7 @@ export async function saveOnboardingApiKey(
   // base_url + model + api_key), not dropped into .env — runtime resolution
   // ignores OPENAI_BASE_URL.
   if (envKey === 'OPENAI_BASE_URL') {
-    return saveOnboardingLocalEndpoint(trimmed, endpointApiKey?.trim() ?? '', ctx)
+    return saveOnboardingLocalEndpoint(trimmed, endpointApiKey?.trim() ?? '', ctx, modelName)
   }
 
   // No key validation here on purpose: we previously live-probed the key and
@@ -1105,16 +1111,34 @@ export async function saveOnboardingApiKey(
 // endpoints that gate /v1/models behind auth still enumerate models) and
 // persisted to model.api_key so the runtime can authenticate.
 //
+// If discovery returns no models — common for OpenAI-compatible SaaS that
+// doesn't expose a /v1/models catalog in the OpenAI shape (Cohere's
+// compatibility endpoint, auth-gated gateways, etc.) — we return
+// `{ ok: false, needsModelInput: true, message }` so the wizard can reveal a
+// manual model-name input. The runtime already supports this case via
+// `discover_models: false` + an explicit `models:` list; the wizard was the
+// only layer still hard-failing. A non-empty `modelName` argument is used
+// verbatim instead of the discovered list.
+//
 // We deliberately don't route through completeWithModelConfirm: that path
 // re-assigns the model from /api/model/options WITHOUT a base_url, which would
 // wipe the base_url we just wrote. We have a concrete model already, so we
 // verify the runtime directly and finish.
-export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: string, ctx: OnboardingContext) {
+export async function saveOnboardingLocalEndpoint(
+  baseUrl: string,
+  apiKey: string,
+  ctx: OnboardingContext,
+  // Manual model name from the wizard. When non-empty it is persisted verbatim
+  // — the same semantics as `discover_models: false` + an explicit `models:`
+  // list in config.yaml.
+  modelName?: string
+) {
   ctx = captureContext(ctx)
   const generation = flowGeneration
   flowScope = ctx.scope
   const url = baseUrl.trim()
   const key = apiKey.trim()
+  const manualModel = modelName?.trim() ?? ''
 
   if (!url) {
     return { ok: false, message: translateNow('settings.customEndpoints.enterUrlFirst') }
@@ -1150,9 +1174,20 @@ export async function saveOnboardingLocalEndpoint(baseUrl: string, apiKey: strin
     return { ok: false, message: translateNow('settings.customEndpoints.unreachable', url) }
   }
 
+  // Prefer the user-supplied model name when present; fall back to discovery.
+  if (manualModel) {
+    model = manualModel
+  }
+
   if (!model) {
+    // Probe succeeded but the endpoint didn't enumerate any models. The
+    // endpoint likely *has* models — we just can't discover them through an
+    // OpenAI-shaped /v1/models response. Signal the wizard to reveal a manual
+    // model-name input rather than hard-failing; `needsModelInput` is the
+    // discriminator the form reads.
     return {
       ok: false,
+      needsModelInput: true,
       message: translateNow('settings.customEndpoints.connectedNoModels', url)
     }
   }

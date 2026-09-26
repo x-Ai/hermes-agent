@@ -38,6 +38,12 @@ vi.mock('@/store/notifications', () => ({
   notifyError: (...args: unknown[]) => notifyError(...args)
 }))
 
+// Load once at module scope so no test's 15s budget pays the heavy transform
+// + import (the first-test timeout flake under CI load).
+const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
+const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
+const { $settingsScopeOverride } = await import('@/store/settings-scope')
+
 const emptyResponse: CustomEndpointsResponse = {
   current: { base_url: '', model: '', provider: '' },
   endpoints: []
@@ -61,18 +67,15 @@ const savedResponse: CustomEndpointsResponse = {
   ok: true
 }
 
-beforeEach(async () => {
-  const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
-  const { $settingsScopeOverride } = await import('@/store/settings-scope')
+beforeEach(() => {
   $activeGatewayProfile.set('default')
   $settingsScopeOverride.set(null)
   $profiles.set([])
 })
 
-afterEach(async () => {
+afterEach(() => {
   cleanup()
   vi.clearAllMocks()
-  const { $settingsScopeOverride } = await import('@/store/settings-scope')
   $settingsScopeOverride.set(null)
 })
 
@@ -80,7 +83,6 @@ describe('CustomEndpointsSettings', () => {
   it('localizes endpoint editing on language changes without changing transport or draft identifiers', async () => {
     getCustomEndpoints.mockResolvedValue(emptyResponse)
     saveCustomEndpoint.mockResolvedValue(savedResponse)
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
     let language!: I18nContextValue
 
     function Surface() {
@@ -135,7 +137,6 @@ describe('CustomEndpointsSettings', () => {
       transport_checked: 'codex_responses'
     })
     saveCustomEndpoint.mockResolvedValue(savedResponse)
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
 
     render(<CustomEndpointsSettings />)
 
@@ -221,8 +222,6 @@ describe('CustomEndpointsSettings', () => {
   })
 
   it('loads and saves endpoints for the Settings Applies-to profile, not only the active bot', async () => {
-    const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
-    const { $settingsScopeOverride } = await import('@/store/settings-scope')
     $activeGatewayProfile.set('carousel-director')
     $settingsScopeOverride.set('content-studio')
     $profiles.set(
@@ -238,7 +237,6 @@ describe('CustomEndpointsSettings', () => {
     )
     getCustomEndpoints.mockResolvedValue(emptyResponse)
     saveCustomEndpoint.mockResolvedValue(savedResponse)
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
 
     render(<CustomEndpointsSettings />)
 
@@ -273,7 +271,6 @@ describe('CustomEndpointsSettings', () => {
         }
       ]
     })
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
 
     render(<CustomEndpointsSettings />)
 
@@ -293,7 +290,6 @@ describe('CustomEndpointsSettings', () => {
     getCustomEndpoints.mockResolvedValue(emptyResponse)
     const onConfigSaved = vi.fn()
     const onMainModelChanged = vi.fn()
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
 
     const view = render(
       <CustomEndpointsSettings onConfigSaved={onConfigSaved} onMainModelChanged={onMainModelChanged} />
@@ -328,7 +324,6 @@ describe('CustomEndpointsSettings', () => {
       models: ['model-a'],
       resolved_base_url: 'http://h.test/v1'
     })
-    const { CustomEndpointsSettings } = await import('./custom-endpoints-settings')
     render(<CustomEndpointsSettings onConfigSaved={vi.fn()} onMainModelChanged={vi.fn()} />)
 
     await screen.findByText('No custom endpoints')

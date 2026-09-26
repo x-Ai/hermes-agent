@@ -730,10 +730,13 @@ export function SourceView({ filePath, language, text }: { filePath?: string; la
 export type PreviewViewMode = 'diff' | 'rendered' | 'source'
 
 export function LocalFilePreview({
+  onClose,
   onSelectRendered,
   reloadKey,
   target
 }: {
+  /** Closes the preview's tab; offered when the file can't be shown. */
+  onClose?: () => void
   /** Present when the pane can render this file live (HTML). Adds the
    *  `rendered` mode to the switcher and routes its selection to the pane. */
   onSelectRendered?: () => void
@@ -1096,12 +1099,22 @@ export function LocalFilePreview({
     return <PageLoader label={t.preview.loading} />
   }
 
+  // A preview that can't load (the file was moved or deleted) is a dead end,
+  // so it carries its own way out rather than leaving it to the tab strip.
+  const closeAction = onClose ? { label: t.common.close, onClick: onClose } : undefined
+
   if (state.error) {
-    return <PreviewEmptyState body={readableError(state.error, state.error).message} title={t.preview.unavailable} />
+    return (
+      <PreviewEmptyState
+        body={readableError(state.error, state.error).message}
+        primaryAction={closeAction}
+        title={t.preview.unavailable}
+      />
+    )
   }
 
   if (pdfError) {
-    return <PreviewEmptyState body={pdfError} title={t.preview.unavailable} />
+    return <PreviewEmptyState body={pdfError} primaryAction={closeAction} title={t.preview.unavailable} />
   }
 
   if (
