@@ -1794,7 +1794,7 @@ export const zhOverrides = {
         imageInputMode: '控制图片附件如何发送给模型',
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
         outputTruncationRetries:
-          '在提供方因输出 Token 上限截断回复后继续生成的次数（0–3）。每次续写都会重新发送完整提示并可能再次计费；设为 0 则立即返回已生成的部分。默认 3 次',
+          '在提供方因输出 Token 上限截断回复后继续生成的次数（0–3），每次续写都会重新发送完整提示并可能再次计费，设为 0 则立即返回已生成的部分，默认 3 次',
         postToolEmptyRetries:
           '模型在工具调用后未返回可见文本时，发送继续提示，每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
         thinkingPrefillRetries:
@@ -1861,7 +1861,7 @@ export const zhOverrides = {
         clientDirect: '尽可能让此桌面端直接连接语音提供方，而不是通过网关中转音频',
         autoTts: '自动朗读助手回复',
         voiceChatMode:
-          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商，gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes — 由你选择的任意模型带着完整工具集作答，需要 OpenAI API 密钥；语音层按每分钟 $0.05 计费',
+          'chained：语音转文字 → Hermes → 文字转语音，使用下方的提供商，gpt-live：一个全双工的 OpenAI 语音模型（gpt-live-1）负责听和说，并把每个实际请求交给 Hermes — 由你选择的任意模型带着完整工具集作答，需要 OpenAI API 密钥，语音层按每分钟 $0.05 计费',
         gptLive: {
           voice: 'GPT-Live 模式使用的音色，可填写自定义音色 ID',
           instructions: '附加到实时语音人设的句子（语气、语速、语言），Hermes 保留自己的系统提示词'
@@ -1962,10 +1962,10 @@ export const zhOverrides = {
       disableF12Desc: '阻止 F12 打开开发者工具,Ctrl+Shift+I（Mac 上为 Cmd+Opt+I）仍然可用',
       alwaysExternalLinksTitle: '始终在外部浏览器中打开链接',
       alwaysExternalLinksDesc:
-        '点击链接时始终使用系统浏览器打开，而不是应用内浏览器。右键菜单中的“在应用内浏览器中打开”仍然可用',
+        '点击链接时始终使用系统浏览器打开，而不是应用内浏览器，右键菜单中的“在应用内浏览器中打开”仍然可用',
       voiceShortcutHintTitle: '语音录制快捷键',
       voiceShortcutHintDesc:
-        '请在“设置 → 键盘快捷键”中设置语音录制快捷键（“开始 / 停止语音对话”）。voice.record_key 配置仅适用于 CLI 和 TUI',
+        '请在“设置 → 键盘快捷键”中设置语音录制快捷键（“开始 / 停止语音对话”），voice.record_key 配置仅适用于 CLI 和 TUI',
       attachmentSizeTitle: '预览 / 图片加载大小上限',
       attachmentSizeDesc:
         '桌面端为预览和图片附件加载本地文件的大小上限(MB)，默认为 16，远程非图片附件使用单独的 256MB 上限，设置过大会将整个文件读入内存，可能导致应用卡死或崩溃',
@@ -1973,7 +1973,7 @@ export const zhOverrides = {
       attachmentSizeLabel: '预览 / 图片加载大小上限(MB)',
       minimizeToTrayTitle: '最小化到托盘',
       minimizeToTrayDesc:
-        '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行,通过托盘菜单中的"退出 Hermes"或 Cmd+Q 退出。默认关闭，仅适用于此设备',
+        '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行,通过托盘菜单中的"退出 Hermes"或 Cmd+Q 退出，默认关闭，仅适用于此设备',
       minimizeToTrayUnavailable: '系统托盘不可用，窗口将正常最小化和关闭，关闭此选项后重新开启即可重试',
       showOptions: '显示选项'
     },
