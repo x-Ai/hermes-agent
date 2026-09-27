@@ -2929,7 +2929,8 @@ export const zh = defineLocale({
         'alibaba-token-plan': 'Alibaba（Token Plan）',
         'alibaba-token-plan-cn': 'Alibaba（Token Plan，中国大陆）',
         'alibaba-coding-plan': 'Alibaba（Coding Plan）',
-        'alibaba-coding-plan-cn': 'Alibaba（Coding Plan，中国大陆）'
+        'alibaba-coding-plan-cn': 'Alibaba（Coding Plan，中国大陆）',
+        'tencent-tokenplan': '腾讯 TokenPlan'
       },
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
@@ -2964,6 +2965,7 @@ export const zh = defineLocale({
         'Meta Model API': 'Meta 超级智能实验室的 Muse Spark 系列模型',
         'OpenAI API': '通过 api.openai.com 和 API 密钥直接访问 OpenAI 模型',
         'Tencent TokenHub': '通过腾讯 TokenHub 使用混元 3 预览版',
+        'Tencent TokenPlan': '通过 api.lkeap.cloud.tencent.com 使用混元 4 预览版（Anthropic Messages）',
         'Vercel AI Gateway': '聚合多个模型提供方的 Vercel AI Gateway'
       }
     },
@@ -3754,6 +3756,10 @@ export const zh = defineLocale({
       AI_GATEWAY_BASE_URL: { description: 'Vercel AI Gateway 基础 URL 覆盖' },
       TOKENHUB_API_KEY: { description: '腾讯 TokenHub API 密钥（通过 tokenhub.tencentmaas.com 使用混元 3 预览版）' },
       TOKENHUB_BASE_URL: { description: '腾讯 TokenHub 基础 URL 覆盖' },
+      TOKENPLAN_API_KEY: {
+        description: '腾讯 TokenPlan API 密钥（通过 api.lkeap.cloud.tencent.com 使用混元 4 预览版）'
+      },
+      TOKENPLAN_BASE_URL: { description: '腾讯 TokenPlan 基础 URL 覆盖' },
       MODEL_API_KEY: { description: 'Meta Model API 密钥' },
       META_API_KEY: { description: 'Meta Model API 密钥' },
       META_MODEL_API_KEY: { description: 'Meta Model API 密钥' },

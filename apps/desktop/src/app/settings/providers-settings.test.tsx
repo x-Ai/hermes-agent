@@ -270,6 +270,13 @@ describe('ProvidersSettings', () => {
         'ALIBABA_CODING_PLAN_CN_API_KEY',
         'ALIBABA_CODING_PLAN_CN_BASE_URL',
         '阿里云（Coding Plan，中国大陆）'
+      ],
+      [
+        'tencent-tokenplan',
+        'Tencent TokenPlan',
+        'TOKENPLAN_API_KEY',
+        'TOKENPLAN_BASE_URL',
+        '腾讯 TokenPlan'
       ]
     ] as const
 
@@ -306,7 +313,12 @@ describe('ProvidersSettings', () => {
       const title = await screen.findByText(localizedName)
 
       fireEvent.click(title)
-      expect(screen.getByText(TRANSLATIONS.zh.settings.envKeys[key]?.description ?? '')).toBeTruthy()
+      const description =
+        TRANSLATIONS.zh.settings.providers.providerDescriptions[sourceName] ??
+        TRANSLATIONS.zh.settings.envKeys[key]?.description ??
+        ''
+
+      expect(screen.getByText(description)).toBeTruthy()
       expect(screen.getByText(TRANSLATIONS.zh.settings.envKeys[baseUrl]?.description ?? '')).toBeTruthy()
 
       if (sourceName !== localizedName) {
