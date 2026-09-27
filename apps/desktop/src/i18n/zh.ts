@@ -22,7 +22,11 @@ export const zhOverrides = {
     title: '无法打开此链接',
     message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开。',
     copyUrl: '复制链接',
-    close: '关闭'
+    close: '关闭',
+    missing: {
+      title: '找不到文件',
+      message: '此文件不存在 — 可能已被删除或移动，或者位于另一台机器上'
+    }
   },
   intro: introZh,
   catalog: {
@@ -1039,6 +1043,15 @@ export const zhOverrides = {
       'view.findInPage': '页面内查找',
       'view.findNext': '查找下一个',
       'view.findPrevious': '查找上一个',
+      'view.tabSlot.1': '切换到标签页 1',
+      'view.tabSlot.2': '切换到标签页 2',
+      'view.tabSlot.3': '切换到标签页 3',
+      'view.tabSlot.4': '切换到标签页 4',
+      'view.tabSlot.5': '切换到标签页 5',
+      'view.tabSlot.6': '切换到标签页 6',
+      'view.tabSlot.7': '切换到标签页 7',
+      'view.tabSlot.8': '切换到标签页 8',
+      'view.tabSlot.9': '切换到标签页 9',
       'appearance.toggleMode': '切换浅色/深色',
       'layout.editMode': '切换布局编辑模式',
       'profile.default': '切换到默认配置',
@@ -4225,11 +4238,15 @@ export const zhOverrides = {
       emptyHint: '在下方目录中浏览，一键安装经过审核的插件',
       loadFailed: '无法加载 agent 插件',
       toggleFailed: (name: string) => `无法切换 ${name}`,
+      toolsetOn: (name: string, profile: string) => `已为 ${profile} 启用 ${name} agent 工具`,
+      toolsetOff: (name: string, profile: string) => `已为 ${profile} 禁用 ${name} agent 工具`,
+      toolsetToggleFailed: (name: string) => `无法切换 ${name} agent 工具；桌面端面板保持不变`,
       legacyBackend: '此后端版本较旧，不支持按键名切换插件 — 请更新 Hermes 后再在此管理',
       portableBadge: '便携',
       serverStates: {
         connected: '已连接',
         app_not_running: '应用未运行',
+        hermes_not_connected: '缺少 MCP 连接',
         endpoint_unavailable: '端点不可用',
         no_interactive_session: '没有交互会话',
         version_too_old: '版本过旧',

@@ -9,7 +9,11 @@ export const zhHantOverrides = {
     title: '無法開啟此連結',
     message: '沒有註冊用於開啟此位址的瀏覽器。請複製連結並手動開啟。',
     copyUrl: '複製連結',
-    close: '關閉'
+    close: '關閉',
+    missing: {
+      title: '找不到檔案',
+      message: '此檔案不存在 — 可能已被刪除或移動，或者位於另一台機器上。'
+    }
   },
   intro: introZhHant,
   connectors: {
@@ -965,6 +969,15 @@ export const zhHantOverrides = {
       'view.findInPage': '在頁面中尋找',
       'view.findNext': '尋找下一個匹配項',
       'view.findPrevious': '尋找上一個符合項',
+      'view.tabSlot.1': '切換到分頁 1',
+      'view.tabSlot.2': '切換到分頁 2',
+      'view.tabSlot.3': '切換到分頁 3',
+      'view.tabSlot.4': '切換到分頁 4',
+      'view.tabSlot.5': '切換到分頁 5',
+      'view.tabSlot.6': '切換到分頁 6',
+      'view.tabSlot.7': '切換到分頁 7',
+      'view.tabSlot.8': '切換到分頁 8',
+      'view.tabSlot.9': '切換到分頁 9',
       'appearance.toggleMode': '切換亮/暗',
       'layout.editMode': '切換版面編輯模式',
       'profile.default': '切換到預設配置文件',
@@ -3726,11 +3739,15 @@ export const zhHantOverrides = {
       emptyHint: '瀏覽下面的目錄並一鍵安裝經過審查的插件。',
       loadFailed: '無法載入代理插件',
       toggleFailed: (name: string) => `無法切換${name}`,
+      toolsetOn: (name: string, profile: string) => `已為 ${profile} 啟用 ${name} 代理工具`,
+      toolsetOff: (name: string, profile: string) => `已為 ${profile} 停用 ${name} 代理工具`,
+      toolsetToggleFailed: (name: string) => `無法切換 ${name} 代理工具；桌面面板維持不變`,
       legacyBackend: '該後端早於按鍵尋址插件切換 - 更新 Hermes 以在此處管理它。',
       portableBadge: '隨身攜帶',
       serverStates: {
         connected: '已連接',
         app_not_running: '應用程式未執行',
+        hermes_not_connected: '缺少 MCP 連線',
         endpoint_unavailable: '端點不可用',
         no_interactive_session: '沒有互動工作階段',
         version_too_old: '版本過舊',
@@ -5664,6 +5681,7 @@ export const zhHantOverrides = {
       backgroundRunning: '背景任務執行中',
       draftSession: '草稿 — 尚未傳送',
       handoffOrigin: platform => `從 ${platform} 轉接`,
+      continuationOrigin: '自動延續 — 此對話已壓縮並延續',
       ownedByProfile: profile => `設定檔：${profile}`,
       renamed: '已重新命名',
       renameFailed: '重新命名失敗',
