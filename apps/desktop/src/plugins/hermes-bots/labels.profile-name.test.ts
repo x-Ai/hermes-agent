@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { botProfileIdentity, slugifyProfileName } from './labels'
+import { botProfileIdentity, localizedProfileName, slugifyProfileName } from './labels'
 
 describe('profile-name identity', () => {
   it('derives a stable ASCII profile id from a CJK name and keeps the name as the title', () => {
@@ -21,6 +21,11 @@ describe('profile-name identity', () => {
     // NFKD alone tokenised the detached accent: 'Résumé' → 're-sume'.
     expect(slugifyProfileName('Café Résumé')).toBe('cafe-resume')
     expect(botProfileIdentity('Café', '')).toEqual({ slug: 'cafe', title: 'Café' })
+  })
+
+  it('localizes the reserved default profile name without changing named profiles', () => {
+    expect(localizedProfileName('default', '默认')).toBe('默认')
+    expect(localizedProfileName('research', '默认')).toBe('research')
   })
 
   it('keeps one token per NFC code point and never splits a token at the 64-char cap', () => {
