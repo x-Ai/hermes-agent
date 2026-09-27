@@ -1214,9 +1214,7 @@ def _normalize_codex_response(
     trusted_final = (
         response_status == "completed" and issuer_kind not in ("codex_backend", "xai_responses", "github_responses")
     )
-    if response_incomplete_output_limit:
-        finish_reason = "length"
-    elif tool_calls:
+    if tool_calls:
         finish_reason = "tool_calls"
     elif response_incomplete_content_filter:
         finish_reason = "content_filter"

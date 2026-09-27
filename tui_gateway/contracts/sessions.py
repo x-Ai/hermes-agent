@@ -500,6 +500,9 @@ class SessionContextBreakdownResult(Result):
     context_source: str
     model: str
     context_files: list[ContextFileSource] = []
+    # False only while a deferred session has no agent yet (categories empty, counters from the usage
+    # snapshot): clients keep polling instead of rendering "no context data".
+    ready: bool = True
 
 
 method("session.context_breakdown", params=SessionContextBreakdownParams, result=SessionContextBreakdownResult,

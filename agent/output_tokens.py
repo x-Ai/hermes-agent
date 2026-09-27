@@ -147,32 +147,37 @@ def compression_output_budget(
     actual_provider: str, actual_model: Optional[str], base_url: str, api_key: Any,
     api_mode: Optional[str], route_config: dict[str, Any], task_config: dict[str, Any],
 ) -> Optional[int]:
-    """Explicit caller > configured task/fallback budget clamped to route ceiling.
+    """Explicit caller > configured task/fallback budget, either clamped to the route ceiling.
 
     Responses and Anthropic compression may use an independent task budget even for a
     reasoning model. An omitted budget preserves the provider's default policy instead
     of turning a discovered capability ceiling into a requested generation size.
-    Fallbacks resolve their own route when a budget was configured.
+    Fallbacks resolve their own route when a budget was configured. An explicit budget is
+    a request for room (the summary-recovery retry asks for 32K), not knowledge of the
+    route: above a known ceiling it is a guaranteed 400, so it is clamped the same way;
+    an unknown ceiling passes it through and the max_tokens rejection rung repairs a refusal.
     """
-    if task != "compression" or max_tokens is not None:
+    if task != "compression":
         return max_tokens
 
     mode = str(api_mode or "").strip().lower()
     if mode not in {"codex_responses", "anthropic_messages"}:
-        return None
-    configured_budget = (
-        configured_compression_output_budget(route_config)
-        or configured_compression_output_budget(task_config)
-    )
-    if configured_budget is None:
+        return max_tokens
+    budget = max_tokens
+    if budget is None:
+        budget = (
+            configured_compression_output_budget(route_config)
+            or configured_compression_output_budget(task_config)
+        )
+    if budget is None:
         return None
     route_limit = _compression_route_output_limit(
         actual_provider=actual_provider, actual_model=actual_model, base_url=base_url,
         api_key=api_key, api_mode=mode,
     )
     if route_limit is not None:
-        return min(configured_budget, route_limit)
-    return configured_budget
+        return min(budget, route_limit)
+    return budget
 
 
 def chat_max_tokens_field(

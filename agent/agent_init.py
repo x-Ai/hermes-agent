@@ -1441,7 +1441,7 @@ def _apply_agent_section(agent, _agent_cfg):
         _api_retries = 3
     agent._api_max_retries = _api_retries
     agent._output_truncation_retries = _bounded_retry_count(
-        _agent_section.get("output_truncation_retries", 1), 1)
+        _agent_section.get("output_truncation_retries", 3), 3)
     agent._post_tool_empty_retry_budget = _bounded_retry_count(
         _agent_section.get("post_tool_empty_retries", 1), 1)
     agent._thinking_prefill_retry_budget = _bounded_retry_count(

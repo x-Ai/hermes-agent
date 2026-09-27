@@ -346,3 +346,36 @@ class TestMicroSummarizeTruncationGuard:
         assert c._micro_compact_cursor == cursor_before
         assert c._micro_compact_rolling_summary == ""
         assert not any(refusal in str(message.get("content")) for message in result)
+
+
+class TestSummaryRecoveryBudgetClamp:
+    """The reasoning-only recovery retry asks for ``_SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS`` of room; the
+    budget choke point must clamp that ask to the route's known ceiling (an explicit budget above it is
+    a guaranteed 400) and pass it through when the ceiling is unknown (the max_tokens rejection rung
+    repairs a refusal there)."""
+
+    @pytest.mark.parametrize(
+        ("api_mode", "route_limit", "expected"),
+        [
+            ("anthropic_messages", 8_192, 8_192),
+            ("codex_responses", 16_384, 16_384),
+            ("anthropic_messages", None, 32_768),
+            ("chat_completions", 8_192, 32_768),  # ceilings are only resolved on the two native wires
+        ],
+    )
+    def test_explicit_compression_budget_is_clamped_to_known_route_ceiling(self, monkeypatch, api_mode, route_limit, expected):
+        import agent.output_tokens as output_tokens
+
+        monkeypatch.setattr(output_tokens, "_compression_route_output_limit", lambda **_kw: route_limit)
+
+        budget = output_tokens.compression_output_budget(
+            "compression", max_tokens=32_768, actual_provider="custom", actual_model="small-summarizer",
+            base_url="https://relay.example/v1", api_key="k", api_mode=api_mode, route_config={}, task_config={},
+        )
+
+        assert budget == expected
+        # Only the compression task is budgeted here; other aux tasks keep the caller's value verbatim.
+        assert output_tokens.compression_output_budget(
+            "title", max_tokens=32_768, actual_provider="custom", actual_model="small-summarizer",
+            base_url="https://relay.example/v1", api_key="k", api_mode=api_mode, route_config={}, task_config={},
+        ) == 32_768

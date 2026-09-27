@@ -1265,6 +1265,17 @@ agent:
   # underneath this wrapper — this is the Hermes-level loop.
   # api_max_retries: 3
 
+  # Output-length recovery. When the provider stops a response at its output-token
+  # limit (finish_reason=length / stop_reason=max_tokens / Responses max_output_tokens)
+  # Hermes continues the answer in place, re-sending the whole prompt each time. On very
+  # large contexts every continuation is billed again, so the ladder is bounded:
+  # output_truncation_retries: 3 # Continuations after an output-limit stop (0-3; 0 = return the partial at once)
+  # The remaining no-visible-output recovery layers are bounded independently and run in
+  # this order; set any of them to 0 to disable only that layer:
+  # post_tool_empty_retries: 1   # Continuation nudges after tools return no visible text (0-3)
+  # thinking_prefill_retries: 2  # Prefill retries for reasoning-only responses (0-3)
+  # empty_response_retries: 3    # Final ordinary empty-response retries (0-3)
+
   # Once api_max_retries AND the fallback chain are spent on a transient outage
   # (5xx, overloaded/529, connect/read timeouts) and nothing has been delivered
   # yet, Hermes waits and retries this many more cycles (jittered 15/30/60/60/60s;

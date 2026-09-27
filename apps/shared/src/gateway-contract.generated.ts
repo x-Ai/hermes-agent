@@ -3179,6 +3179,7 @@ export interface SessionContextBreakdownResult {
   context_source: string
   model: string
   context_files?: ContextFileSource[]
+  ready?: boolean
 }
 export interface ContextCategory {
   color: string

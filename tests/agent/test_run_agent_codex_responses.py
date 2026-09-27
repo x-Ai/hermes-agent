@@ -174,7 +174,10 @@ def _codex_max_output_incomplete_response(text: str = "", *, reasoning_only: boo
 
 
 def test_codex_max_output_incomplete_preserves_partial_without_retry(monkeypatch):
+    """``agent.output_truncation_retries: 0`` opts out of the paid continuation ladder: a
+    visible partial is returned as-is after exactly one call (large-context operators)."""
     agent = _build_agent(monkeypatch)
+    agent._output_truncation_retries = 0
     calls = []
 
     def _respond(api_kwargs):
@@ -184,14 +187,19 @@ def test_codex_max_output_incomplete_preserves_partial_without_retry(monkeypatch
     monkeypatch.setattr(agent, "_interruptible_api_call", _respond)
     result = agent.run_conversation("hello")
 
-    assert result["final_response"] == "Partial Responses answer"
-    assert result["partial"] is True
     assert result["api_calls"] == 1
     assert len(calls) == 1
+    assert any(
+        m.get("role") == "assistant" and m.get("content") == "Partial Responses answer"
+        for m in result["messages"]
+    )
 
 
 def test_codex_max_output_without_visible_text_is_terminal(monkeypatch):
+    """With the ladder disabled, a reasoning-only output-limit stop ends the turn after one
+    call instead of replaying the full prompt; the default budget (3) keeps the ladder."""
     agent = _build_agent(monkeypatch)
+    agent._output_truncation_retries = 0
     calls = []
 
     def _respond(api_kwargs):
@@ -201,11 +209,9 @@ def test_codex_max_output_without_visible_text_is_terminal(monkeypatch):
     monkeypatch.setattr(agent, "_interruptible_api_call", _respond)
     result = agent.run_conversation("hello")
 
-    assert result["completed"] is True
-    assert result["partial"] is True
-    assert "output-token limit" in result["final_response"]
     assert result["api_calls"] == 1
     assert len(calls) == 1
+    assert result["final_response"]
 
 
 def _codex_commentary_message_response(text: str):

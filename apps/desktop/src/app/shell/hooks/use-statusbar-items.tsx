@@ -303,8 +303,7 @@ export function useStatusbarItems({
     compressionCount: currentUsage.compressions,
     enabled: !contextItemHidden,
     requestGateway,
-    sessionId: activeSessionId,
-    suspendWhileBusy: true
+    sessionId: activeSessionId
   })
 
   // The breakdown wins whenever we have one, for two reasons: it reports the

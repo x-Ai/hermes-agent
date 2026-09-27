@@ -3845,6 +3845,8 @@ Summary generation was unavailable, so this is a best-effort deterministic fallb
                 "Context compression exhausted its output allowance in reasoning before "
                 "producing summary text; retrying once without reasoning"
             )
+            # A request for room, not knowledge of the route: ``compression_output_budget`` clamps it to
+            # the resolved route's known output ceiling (a 32K ask on an 8K model is a guaranteed 400).
             response = _issue_summary({
                 "reasoning_config": {"enabled": False, "effort": "none"},
                 "max_tokens": _SUMMARY_RECOVERY_MAX_OUTPUT_TOKENS,

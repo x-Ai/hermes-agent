@@ -11,7 +11,6 @@ from agent.output_tokens import resolve_output_token_limit
 from agent.transports.codex import ResponsesApiTransport
 from agent.transports.anthropic import AnthropicTransport
 from agent.transports.chat_completions import ChatCompletionsTransport
-from agent.turn_response_check import is_standard_output_truncation
 from run_agent import AIAgent
 
 
@@ -318,21 +317,6 @@ def test_optional_chat_and_responses_limits_are_omitted_when_unconfigured():
 
     for kwargs in (responses, chat):
         assert not ({"max_tokens", "max_completion_tokens", "max_output_tokens"} & kwargs.keys())
-
-
-@pytest.mark.parametrize(
-    ("api_mode", "response"),
-    [
-        ("chat_completions", SimpleNamespace(choices=[SimpleNamespace(finish_reason="length")])),
-        ("anthropic_messages", SimpleNamespace(stop_reason="max_tokens")),
-        ("bedrock_converse", SimpleNamespace(
-            choices=[SimpleNamespace(finish_reason="length")])),
-        ("codex_responses", SimpleNamespace(
-            status="incomplete", incomplete_details=SimpleNamespace(reason="max_output_tokens"))),
-    ],
-)
-def test_provider_reported_output_limits_are_standard_truncations(api_mode, response):
-    assert is_standard_output_truncation(SimpleNamespace(api_mode=api_mode), response) is True
 
 
 def test_max_tokens_field_is_config_driven_and_shared_by_main_and_auxiliary_paths():

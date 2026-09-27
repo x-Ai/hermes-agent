@@ -46,6 +46,8 @@ export function projectLiveContextBreakdown(
   })
 
   if (!foundConversation && conversationTokens > 0) {
+    // Same English fallback the backend sends; the panel relabels rows by id from
+    // `copy.categories`, so no locale ever renders this string.
     categories.push({
       color: 'var(--context-usage-conversation)',
       id: 'conversation',

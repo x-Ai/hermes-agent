@@ -28289,6 +28289,11 @@
             },
             "title": "Context Files",
             "type": "array"
+          },
+          "ready": {
+            "default": true,
+            "title": "Ready",
+            "type": "boolean"
           }
         },
         "required": [

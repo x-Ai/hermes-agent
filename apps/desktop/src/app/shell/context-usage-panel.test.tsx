@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -6,7 +6,7 @@ import { invalidateContextBreakdownForConfig } from '@/store/context-breakdown'
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
 import { ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
-import { useContextBreakdown } from './hooks/use-context-breakdown'
+import { DEFERRED_AGENT_RETRY_LIMIT, useContextBreakdown } from './hooks/use-context-breakdown'
 
 const usage: UsageStats = {
   calls: 1,
@@ -27,11 +27,21 @@ const breakdown: ContextBreakdown = {
   model: 'test-model'
 }
 
+/** What the backend answers for a resumed session whose agent is still being built. */
+const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
+
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
   vi.restoreAllMocks()
 })
+
+/** Flush resolved gateway promises and fire due timers under fake timers. */
+async function elapse(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms)
+  })
+}
 
 describe('useContextBreakdown', () => {
   it('fetches for a session that has not run a turn yet', async () => {
@@ -60,77 +70,126 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
   })
 
-  it('starts a fresh read when the turn becomes busy', async () => {
-    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
-    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
+  it('suspends while a turn runs, drops the idle snapshot on the first busy render, and refetches at turn end', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
     const { rerender, result } = renderHook(
       ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
       { initialProps: { busy: false } }
     )
 
-    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+
     rerender({ busy: true })
 
-    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
-    expect(result.current.loading).toBe(false)
-    expect(requestGateway).toHaveBeenCalledTimes(2)
-  })
+    // Synchronously null: the streamed usage owns the gauge from the first busy frame.
+    expect(result.current.breakdown).toBeNull()
+    expect(requestGateway).toHaveBeenCalledTimes(1)
 
-  it('retries an unavailable deferred-agent snapshot during a long turn', async () => {
-    const unavailable: ContextBreakdown = { ...breakdown, categories: [], ready: false }
-    const requestGateway = vi.fn().mockResolvedValueOnce(unavailable).mockResolvedValueOnce(breakdown)
-
-    const { result } = renderHook(() =>
-      useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' })
-    )
-
-    await waitFor(() => expect(result.current.breakdown).toEqual(unavailable))
-    expect(result.current.loading).toBe(true)
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2), { timeout: 1_000 })
-    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
-    expect(result.current.loading).toBe(false)
-  })
-
-  it('refetches the authoritative breakdown when a turn ends', async () => {
-    const requestGateway = vi.fn().mockResolvedValue(breakdown)
-
-    const { rerender } = renderHook(
-      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
-      { initialProps: { busy: true } }
-    )
-
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
     rerender({ busy: false })
+
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
   })
 
-  it('refetches the live transcript after each in-place compression', async () => {
+  it('never re-asks mid-turn, even when a compression or config save lands during the turn', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
     const { rerender } = renderHook(
       ({ compressionCount }) =>
-        useContextBreakdown({
-          busy: true,
-          compressionCount,
-          enabled: true,
-          requestGateway,
-          sessionId: 'runtime-1'
-        }),
+        useContextBreakdown({ busy: true, compressionCount, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { compressionCount: 0 } }
+    )
+
+    rerender({ compressionCount: 1 })
+    invalidateContextBreakdownForConfig()
+    await act(async () => undefined)
+
+    expect(requestGateway).not.toHaveBeenCalled()
+  })
+
+  it('retries a not-ready deferred-agent snapshot with backoff until it is ready', async () => {
+    vi.useFakeTimers()
+
+    const requestGateway = vi
+      .fn()
+      .mockResolvedValueOnce(unavailable)
+      .mockResolvedValueOnce(unavailable)
+      .mockResolvedValue(breakdown)
+
+    const { result } = renderHook(() =>
+      useContextBreakdown({ busy: false, enabled: true, requestGateway, sessionId: 'runtime-1' })
+    )
+
+    await elapse(0)
+    expect(result.current.breakdown).toEqual(unavailable)
+    expect(result.current.loading).toBe(true)
+    expect(requestGateway).toHaveBeenCalledTimes(1)
+
+    await elapse(250)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+
+    await elapse(500)
+    expect(requestGateway).toHaveBeenCalledTimes(3)
+    expect(result.current.breakdown).toEqual(breakdown)
+    expect(result.current.loading).toBe(false)
+
+    // Ready snapshots are not polled.
+    await elapse(30_000)
+    expect(requestGateway).toHaveBeenCalledTimes(3)
+  })
+
+  it('stops retrying after the bounded attempt count', async () => {
+    vi.useFakeTimers()
+    const requestGateway = vi.fn().mockResolvedValue(unavailable)
+
+    const { result } = renderHook(() =>
+      useContextBreakdown({ busy: false, enabled: true, requestGateway, sessionId: 'runtime-1' })
+    )
+
+    await elapse(120_000)
+
+    expect(requestGateway).toHaveBeenCalledTimes(DEFERRED_AGENT_RETRY_LIMIT + 1)
+    expect(result.current.breakdown).toEqual(unavailable)
+    expect(result.current.loading).toBe(false)
+  })
+
+  it('cancels a pending retry when the turn starts', async () => {
+    vi.useFakeTimers()
+    const requestGateway = vi.fn().mockResolvedValue(unavailable)
+
+    const { rerender } = renderHook(
+      ({ busy }) => useContextBreakdown({ busy, enabled: true, requestGateway, sessionId: 'runtime-1' }),
+      { initialProps: { busy: false } }
+    )
+
+    await elapse(0)
+    expect(requestGateway).toHaveBeenCalledTimes(1)
+
+    rerender({ busy: true })
+    await elapse(30_000)
+
+    expect(requestGateway).toHaveBeenCalledTimes(1)
+  })
+
+  it('refetches after an idle compression', async () => {
+    const requestGateway = vi.fn().mockResolvedValue(breakdown)
+
+    const { rerender } = renderHook(
+      ({ compressionCount }) =>
+        useContextBreakdown({ busy: false, compressionCount, enabled: true, requestGateway, sessionId: 'runtime-1' }),
       { initialProps: { compressionCount: 0 } }
     )
 
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
     rerender({ compressionCount: 1 })
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
-    rerender({ compressionCount: 2 })
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(3))
   })
 
   it('refetches after a saved context configuration change', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
-    renderHook(() => useContextBreakdown({ busy: true, enabled: true, requestGateway, sessionId: 'runtime-1' }))
+    renderHook(() => useContextBreakdown({ busy: false, enabled: true, requestGateway, sessionId: 'runtime-1' }))
 
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
     invalidateContextBreakdownForConfig()
@@ -209,18 +268,10 @@ describe('ContextUsagePanel', () => {
   })
 
   it('does not mislabel live usage as conversation while the deferred agent is unavailable', () => {
-    const unavailable: ContextBreakdown = {
-      ...breakdown,
-      categories: [],
-      context_used: 0,
-      estimated_total: 0,
-      ready: false
-    }
-
-    const projected = projectLiveContextBreakdown(unavailable, {
-      ...usage,
-      context_used: 185_600
-    })
+    const projected = projectLiveContextBreakdown(
+      { ...unavailable, context_used: 0, estimated_total: 0 },
+      { ...usage, context_used: 185_600 }
+    )
 
     expect(projected?.categories).toEqual([])
   })

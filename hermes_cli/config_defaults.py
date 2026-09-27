@@ -113,7 +113,7 @@ DEFAULT_CONFIG = {
         "api_max_retries": 3,
         # Independent recovery budgets for successful responses with no visible text.
         # Values above 3 are clamped by the agent runtime.
-        "output_truncation_retries": 1,
+        "output_truncation_retries": 3,
         "post_tool_empty_retries": 1,
         "thinking_prefill_retries": 2,
         "empty_response_retries": 3,

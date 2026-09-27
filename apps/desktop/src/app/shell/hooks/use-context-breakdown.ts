@@ -8,9 +8,18 @@ interface ContextBreakdownOptions {
   busy: boolean
   compressionCount?: number
   enabled: boolean
-  suspendWhileBusy?: boolean
   requestGateway: <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
   sessionId: null | string
+}
+
+/** Re-asks for a snapshot the backend reports as not ready (`ready: false`: a
+ *  resumed session whose AIAgent is still being built in the background) this
+ *  many times, backing off 250ms → 2s (about 12s in total). After that the
+ *  gauge rides the streamed usage until the next trigger. */
+export const DEFERRED_AGENT_RETRY_LIMIT = 8
+
+function deferredAgentRetryDelayMs(attempt: number): number {
+  return Math.min(2_000, 250 * 2 ** attempt)
 }
 
 /** The focused session's context breakdown, fetched as soon as the statusbar
@@ -24,15 +33,15 @@ interface ContextBreakdownOptions {
  *  hasn't spoken yet. It is a read-only chars/4 pass: no provider call, no
  *  prompt-cache impact.
  *
- *  Refetches when the focused session changes and when a turn ends (the
- *  transcript just grew). Held keyed by the session it describes so switching
- *  sessions drops the previous numbers instead of painting them under the new
- *  session's name. */
+ *  Refetches when the focused session changes, when a turn ends (the
+ *  transcript just grew), after an idle compression and after a saved config
+ *  change. Held keyed by the session it describes so switching sessions drops
+ *  the previous numbers instead of painting them under the new session's
+ *  name. */
 export function useContextBreakdown({
   busy,
   compressionCount,
   enabled,
-  suspendWhileBusy = false,
   requestGateway,
   sessionId
 }: ContextBreakdownOptions) {
@@ -41,17 +50,19 @@ export function useContextBreakdown({
   const configRevision = useStore($contextBreakdownConfigRevision)
 
   useEffect(() => {
-    if (!enabled || !sessionId || (suspendWhileBusy && busy)) {
-      if (suspendWhileBusy && busy) {
-        setFetched(null)
-      }
+    // Mid-turn the transcript changes on every delta and the gateway already
+    // streams measured usage, so an estimate would be both stale and wasteful.
+    if (!enabled || !sessionId || busy) {
+      // A turn invalidates the idle snapshot. Do not let it reappear between
+      // busy=false and the next RPC response (or survive a failed refresh).
+      setFetched(null)
       setLoading(false)
 
       return
     }
 
     let cancelled = false
-    let retryCount = 0
+    let attempt = 0
     let retryTimer: null | ReturnType<typeof setTimeout> = null
 
     const fetchBreakdown = () => {
@@ -59,18 +70,17 @@ export function useContextBreakdown({
 
       void requestGateway<ContextBreakdown>('session.context_breakdown', { session_id: sessionId })
         .then(breakdown => {
-          if (cancelled || !breakdown) {
+          if (cancelled) {
             return
           }
 
-          setFetched({ breakdown, sessionId })
+          if (breakdown) {
+            setFetched({ breakdown, sessionId })
+          }
 
-          const categoriesReady = breakdown.ready !== false && breakdown.categories.length > 0
-
-          if (busy && !categoriesReady) {
-            const delay = Math.min(2_000, 250 * 2 ** retryCount)
-            retryCount += 1
-            retryTimer = setTimeout(fetchBreakdown, delay)
+          if (breakdown?.ready === false && attempt < DEFERRED_AGENT_RETRY_LIMIT) {
+            retryTimer = setTimeout(fetchBreakdown, deferredAgentRetryDelayMs(attempt))
+            attempt += 1
 
             return
           }
@@ -93,10 +103,12 @@ export function useContextBreakdown({
         clearTimeout(retryTimer)
       }
     }
-  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId, suspendWhileBusy])
+  }, [busy, compressionCount, configRevision, enabled, requestGateway, sessionId])
 
   return {
-    breakdown: fetched?.sessionId === sessionId ? fetched.breakdown : null,
+    // The effect clears `fetched` only after commit, so gate on `busy` here too:
+    // the first busy render must not hand out the pre-turn snapshot.
+    breakdown: !busy && fetched?.sessionId === sessionId ? fetched.breakdown : null,
     loading
   }
 }

@@ -198,11 +198,9 @@ def _mirror_result_onto_live_lists(agent, result, messages, *, direct_path: bool
     if isinstance(session_messages, list) and session_messages is not messages:
         # Durable-parent adoption can leave `_session_messages` on the pre-adoption list.
         _sync_persisted_markers(session_messages, result_messages)
-    # Publish the admitted compressed transcript immediately. The conversation
-    # loop adopts this same list, while live gateway reads use
-    # ``_session_messages``. Keeping the old pointer briefly makes context
-    # occupancy jump back to the pre-compression window.
-    agent._session_messages = result_messages
+    # The live pointer is NOT rebound here: the turn loop adopts the returned list itself, and a manual
+    # ``/compress here N`` passes only the head (the tail is rejoined by the caller), so publishing the
+    # result would hand shutdown/eviction flushes and live readers a truncated transcript.
 
 
 def _rebind_caller_session_context(agent) -> None:

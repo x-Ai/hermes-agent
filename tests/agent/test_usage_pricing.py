@@ -219,23 +219,72 @@ def test_official_anthropic_ignores_inclusive_looking_hint():
     assert normalized.prompt_tokens == 1_180_000
 
 
-def test_anthropic_gateway_explicit_prompt_total_is_authoritative():
-    usage = SimpleNamespace(
-        input_tokens=600_000,
-        prompt_tokens=600_000,
-        output_tokens=1_000,
-        cache_read_input_tokens=580_000,
-    )
-
+@pytest.mark.parametrize(
+    ("provider", "usage", "hint", "expected"),
+    [
+        # A proxy that mirrors prompt_tokens=input_tokens on Anthropic's own route: the provider guard
+        # comes first, so the mirror never turns 20K uncached + 580K cached into 0 input.
+        pytest.param(
+            "anthropic",
+            dict(input_tokens=20_000, prompt_tokens=20_000, output_tokens=1_000, cache_read_input_tokens=580_000),
+            None,
+            dict(input_tokens=20_000, cache_read_tokens=580_000, prompt_tokens=600_000),
+            id="anthropic-mirror-stays-disjoint",
+        ),
+        # A disjoint third-party Messages gateway whose cache is small next to the estimate error: the
+        # inclusive reading misses the 55K estimate by 9%, so native semantics hold (60K/100K, not 20K/60K).
+        pytest.param(
+            "minimax",
+            dict(input_tokens=60_000, output_tokens=500, cache_read_input_tokens=40_000),
+            55_000,
+            dict(input_tokens=60_000, cache_read_tokens=40_000, prompt_tokens=100_000),
+            id="small-cache-hint-is-not-evidence",
+        ),
+        # The genuine inclusive gateway: input_tokens matches the estimate within 0.3% while the disjoint
+        # reading is nearly 2x off, and the cache dwarfs the tolerance.
+        pytest.param(
+            "custom",
+            dict(input_tokens=600_000, output_tokens=1_000, cache_read_input_tokens=580_000,
+                 cache_creation_input_tokens=5_000),
+            598_000,
+            dict(input_tokens=15_000, cache_read_tokens=580_000, cache_write_tokens=5_000, prompt_tokens=600_000,
+                 total_tokens=601_000),
+            id="inclusive-gateway-flips-on-tight-match",
+        ),
+        # A mirrored prompt_tokens on a third-party gateway proves nothing by itself: without an estimate
+        # the wire's disjoint meaning stands...
+        pytest.param(
+            "custom",
+            dict(input_tokens=600_000, prompt_tokens=600_000, output_tokens=1_000, cache_read_input_tokens=580_000),
+            None,
+            dict(input_tokens=600_000, cache_read_tokens=580_000, prompt_tokens=1_180_000),
+            id="mirror-without-hint-stays-disjoint",
+        ),
+        # ...and it does not block the tie-breaker either.
+        pytest.param(
+            "custom",
+            dict(input_tokens=600_000, prompt_tokens=600_000, output_tokens=1_000, cache_read_input_tokens=580_000),
+            600_000,
+            dict(input_tokens=20_000, cache_read_tokens=580_000, prompt_tokens=600_000),
+            id="mirror-with-matching-hint-flips",
+        ),
+        # An explicit total no smaller than the sum of the buckets is a genuine total and wins over the hint.
+        pytest.param(
+            "custom",
+            dict(input_tokens=20_000, prompt_tokens=620_000, output_tokens=1_000, cache_read_input_tokens=580_000),
+            20_000,
+            dict(input_tokens=40_000, cache_read_tokens=580_000, prompt_tokens=620_000),
+            id="explicit-total-above-bucket-sum-is-authoritative",
+        ),
+    ],
+)
+def test_anthropic_gateway_cache_semantics_decision_rule(provider, usage, hint, expected):
+    """Anthropic-shape usage is disjoint unless a third-party gateway gives strong evidence otherwise."""
     normalized = normalize_usage(
-        usage,
-        provider="custom",
-        api_mode="anthropic_messages",
+        SimpleNamespace(**usage), provider=provider, api_mode="anthropic_messages", prompt_tokens_hint=hint,
     )
 
-    assert normalized.input_tokens == 20_000
-    assert normalized.cache_read_tokens == 580_000
-    assert normalized.prompt_tokens == 600_000
+    assert {field: getattr(normalized, field) for field in expected} == expected
 
 
 

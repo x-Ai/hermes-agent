@@ -61,21 +61,3 @@ class TestTruncatedAnthropicResponseNormalization:
         assert nr is not None
         assert not nr.tool_calls
 
-
-class TestContinuationLogicBranching:
-    """Provider-declared output limits share the standard truncation contract."""
-
-    def test_anthropic_max_tokens_is_a_standard_truncation(self):
-        from agent.turn_response_check import is_standard_output_truncation
-
-        response = _make_anthropic_response([_make_anthropic_text_block("partial")])
-        assert is_standard_output_truncation(
-            SimpleNamespace(api_mode="anthropic_messages"), response) is True
-
-    def test_bedrock_max_tokens_is_a_standard_truncation(self):
-        from agent.turn_response_check import is_standard_output_truncation
-
-        assert is_standard_output_truncation(
-            SimpleNamespace(api_mode="bedrock_converse"),
-            SimpleNamespace(choices=[SimpleNamespace(finish_reason="length")]),
-        ) is True

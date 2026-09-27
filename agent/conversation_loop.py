@@ -1381,7 +1381,6 @@ class _LoopState:
     failed: bool = False
     codex_ack_continuations: int = 0
     length_continue_retries: int = 0
-    output_truncation_retries: int = 0
     # Per-turn backstop for the refunding restarts (redirect / rebuilt-for-fallback).
     # Unlike ``retry_count`` (rebound to 0 each iteration) this accumulates for the whole
     # turn so a runaway interrupt/redirect that keeps re-arming a restart flag cannot
@@ -1570,7 +1569,6 @@ def _run_conversation_turn(
     agent._compression_adoption_failed = False
     agent._ephemeral_reasoning_off = False
     agent._ephemeral_max_output_tokens = None
-    agent._standard_output_truncation_had_tool_calls = False
     agent._auth_pool_refresh_counts = {}
     agent._last_turn_usage = None
 

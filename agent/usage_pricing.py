@@ -572,6 +572,28 @@ _CHAT_USAGE_SHAPE = (
 )
 
 
+def _hint_says_input_includes_cache(prompt_total: int, cache_tokens: int, prompt_tokens_hint: Any) -> bool:
+    """Whether the pre-request estimate says a gateway's ``input_tokens`` already contains its cache buckets.
+
+    The hint is the rough local estimate of the request, so it is a tie-breaker, never proof; a wrong
+    flip under-reports occupancy and delays compression. The inclusive reading must match the estimate
+    within a tight tolerance, the disjoint reading must be at least twice as far off, and the cache must
+    exceed that tolerance — below it the two readings differ by less than estimator noise. 60K input +
+    40K cache against a 55K estimate misses the inclusive reading by 9% and stays disjoint; 600K + 585K
+    against 598K matches it within 0.3% and flips.
+    """
+    try:
+        hint = int(prompt_tokens_hint or 0)
+    except (TypeError, ValueError):
+        return False
+    if hint <= 0:
+        return False
+    tolerance = max(1_024, hint // 20)
+    inclusive_error = abs(prompt_total - hint)
+    disjoint_error = abs(prompt_total + cache_tokens - hint)
+    return inclusive_error <= tolerance < cache_tokens and inclusive_error * 2 < disjoint_error
+
+
 def normalize_usage(
     response_usage: Any,
     *,
@@ -599,32 +621,22 @@ def normalize_usage(
     )
     cache_tokens = cache_read_tokens + cache_write_tokens
     if shape is _ANTHROPIC_USAGE_SHAPE:
-        # Native Anthropic reports disjoint input/cache buckets. Some custom
-        # Messages gateways instead expose an OpenAI-style total as
-        # ``input_tokens`` while retaining the Anthropic cache field names.
-        reported_prompt_total = _usage_field(response_usage, "prompt_tokens")
-        input_includes_cache = bool(reported_prompt_total)
-        if (
-            not input_includes_cache
-            and mode == "anthropic_messages"
-            and provider_name != "anthropic"
-            and cache_tokens > 0
-            and prompt_total >= cache_tokens
-        ):
-            try:
-                hint = int(prompt_tokens_hint or 0)
-            except (TypeError, ValueError):
-                hint = 0
-            if hint > 0:
-                inclusive_error = abs(prompt_total - hint)
-                disjoint_error = abs(prompt_total + cache_tokens - hint)
-                margin = max(1_024, int(hint * 0.05))
-                input_includes_cache = inclusive_error + margin < disjoint_error
-        if input_includes_cache:
-            prompt_total = reported_prompt_total or prompt_total
-            input_tokens = max(0, prompt_total - cache_tokens)
-        else:
-            input_tokens = prompt_total
+        # The Messages wire reports disjoint input/cache buckets; Anthropic itself always does, so the
+        # provider guard comes first and no mirrored field can override it. Some third-party Messages
+        # gateways expose an OpenAI-style inclusive total as ``input_tokens`` while keeping the Anthropic
+        # cache field names; only those are re-read, and only on strong evidence.
+        input_tokens = prompt_total
+        if mode == "anthropic_messages" and provider_name != "anthropic" and cache_tokens > 0:
+            reported_prompt_total = _usage_field(u, "prompt_tokens")
+            if reported_prompt_total >= prompt_total + cache_tokens:
+                # An explicit total no smaller than the sum of the buckets is a genuine total. One that
+                # merely mirrors ``input_tokens`` proves nothing: a proxy mirrors disjoint input the same way.
+                prompt_total = reported_prompt_total
+                input_tokens = prompt_total - cache_tokens
+            elif prompt_total >= cache_tokens and _hint_says_input_includes_cache(
+                prompt_total, cache_tokens, prompt_tokens_hint
+            ):
+                input_tokens = prompt_total - cache_tokens
     else:
         # Codex/Chat totals INCLUDE cached tokens, so subtract the cache buckets.
         input_tokens = max(0, prompt_total - cache_tokens)

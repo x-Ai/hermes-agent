@@ -319,17 +319,21 @@ def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -
         st.truncated_response_parts.append((_interim_content, st.is_stub))
 
     filled = st.window_filled
-    if n < 4 and filled is None:
+    # ``agent.output_truncation_retries`` (0-3, default 3 = the historical four-attempt ladder)
+    # caps how many times a server-declared output-length stop is continued; every
+    # continuation re-sends the whole paid prompt, so operators on large contexts lower it.
+    limit = output_truncation_retry_limit(agent)
+    if n <= limit and filled is None:
         _dropped_tools = getattr(st.response, "_dropped_tool_names", None)
         if st.is_stub and _dropped_tools:
             agent._vprint(
                 f"{agent.log_prefix}↻ Stream interrupted mid "
-                f"tool-call ({', '.join(_dropped_tools[:3])}) — requesting chunked retry ({n}/4)...", diagnostic=True,
+                f"tool-call ({', '.join(_dropped_tools[:3])}) — requesting chunked retry ({n}/{limit})...", diagnostic=True,
             )
         elif st.is_stub:
-            agent._vprint(f"{agent.log_prefix}↻ Stream interrupted — requesting continuation ({n}/4)...", diagnostic=True)
+            agent._vprint(f"{agent.log_prefix}↻ Stream interrupted — requesting continuation ({n}/{limit})...", diagnostic=True)
         else:
-            agent._vprint(f"{agent.log_prefix}↻ Requesting continuation ({n}/4)...", diagnostic=True)
+            agent._vprint(f"{agent.log_prefix}↻ Requesting continuation ({n}/{limit})...", diagnostic=True)
         append_message(messages, {
             "role": "user", "content": _get_continuation_prompt(st.is_stub, _dropped_tools),
             "_length_continuation_nudge": True,
@@ -363,6 +367,15 @@ def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -
         partial_response or _CEILING_NO_TEXT,
         "Response remained truncated after 4 continuation attempts",
     )
+
+
+def output_truncation_retry_limit(agent: Any) -> int:
+    """Continuations allowed after an output-length stop: ``agent.output_truncation_retries``
+    clamped to 0..3 (3 keeps the historical ladder: three nudges, then the ceiling exit)."""
+    value = getattr(agent, "_output_truncation_retries", 3)
+    if isinstance(value, bool) or not isinstance(value, int):  # unset / test doubles → full ladder
+        return 3
+    return max(0, min(3, value))
 
 
 def _model_output_limit(agent: Any) -> Optional[int]:
@@ -633,9 +646,10 @@ def continue_codex_incomplete(
             agent._session_messages = messages
             return CODEX_FALLBACK_ACTIVATED
         # No fallback left: fall through to the terminal sentinel.
-    elif n < 3 or reasoning_only:
+    elif n <= output_truncation_retry_limit(agent) and (n < 3 or reasoning_only):
         # A reasoning-only streak below 3 continues even once partials used up the aggregate
-        # cap, so the mixed partial-then-stall variant reaches the ladder above.
+        # cap, so the mixed partial-then-stall variant reaches the ladder above. The operator's
+        # ``agent.output_truncation_retries`` (default 3 = unchanged ladder) caps both.
         # If the interim has nothing the Responses converter will replay, a bare retry is
         # byte-identical; a replayable interim holding only a ``compaction`` checkpoint
         # ALSO re-sends identically. One bare retry, then always nudge.
@@ -680,7 +694,8 @@ def continue_codex_incomplete(
     agent._codex_reasoning_only_streak = 0
     agent._persist_session(messages, conversation_history)
     return partial_result(
-        messages, api_call_count, "Codex response remained incomplete after 3 continuation attempts"
+        messages, api_call_count,
+        f"Codex response remained incomplete after {n} continuation attempt{'s' if n != 1 else ''}",
     )
 
 
