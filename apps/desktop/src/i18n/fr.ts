@@ -1644,6 +1644,7 @@ export const frOverrides = {
       searchPlaceholder: 'Rechercher…',
       noResults: 'Aucun résultat trouvé',
       systemDefault: 'Par défaut du système',
+      providerDefault: 'Par défaut du fournisseur',
       loading: 'Chargement de la configuration Hermes...',
       emptyTitle: 'Rien à configurer',
       emptyDesc: 'Cette section ne contient aucun paramètre ajustable.',

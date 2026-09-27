@@ -1581,6 +1581,7 @@ export interface Translations {
       searchPlaceholder: string
       noResults: string
       systemDefault: string
+      providerDefault: string
       loading: string
       emptyTitle: string
       emptyDesc: string

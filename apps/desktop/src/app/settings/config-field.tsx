@@ -9,7 +9,14 @@ import { cn } from '@/lib/utils'
 import type { ConfigFieldSchema } from '@/types/hermes'
 
 import { ComboboxInput } from './combobox-input'
-import { CONTROL_TEXT, EMPTY_SELECT_VALUE, FIELD_DESCRIPTIONS, FIELD_LABELS, FREE_INPUT_KEYS } from './constants'
+import {
+  CONTROL_TEXT,
+  EMPTY_SELECT_VALUE,
+  FIELD_DESCRIPTIONS,
+  FIELD_LABELS,
+  FREE_INPUT_KEYS,
+  PROVIDER_DEFAULT_SENTINELS
+} from './constants'
 import { FallbackModelsField } from './fallback-models-field'
 import { fieldCopyForSchemaKey } from './field-copy'
 import { ListRow, ToggleRow } from './primitives'
@@ -119,6 +126,16 @@ export function ConfigField({
 
   const selectOptions = enumOptions ?? (schema.type === 'select' ? (schema.options ?? []).map(String) : undefined)
 
+  // A provider-default sentinel is stored verbatim but is not display text: the
+  // text controls show it as an empty field behind a localized placeholder, and
+  // clearing the field restores the sentinel rather than writing '' (which the
+  // runtime would forward as an empty voice name).
+  const sentinel = PROVIDER_DEFAULT_SENTINELS[schemaKey]
+  const textValue = String(value ?? '')
+  const displayText = sentinel !== undefined && textValue === sentinel ? '' : textValue
+  const textPlaceholder = sentinel !== undefined ? c.providerDefault : c.notSet
+  const onTextChange = (next: string) => onChange(sentinel !== undefined && next === '' ? sentinel : next)
+
   // Large closed-world lists (e.g. ~590 IANA timezones) get a searchable
   // Popover + cmdk combobox instead of a closed Select dropdown.  The schema
   // opt-in via `searchable: true` keeps this deterministic — no field
@@ -145,11 +162,11 @@ export function ConfigField({
     return row(
       <ComboboxInput
         className={CONTROL_TEXT}
-        onChange={onChange}
+        onChange={onTextChange}
         optionLabels={optionLabels}
         options={selectOptions.filter(o => o !== '')}
-        placeholder={c.notSet}
-        value={String(value ?? '')}
+        placeholder={textPlaceholder}
+        value={displayText}
       />
     )
   }
@@ -237,23 +254,23 @@ export function ConfigField({
     )
   }
 
-  const isLong = schema.type === 'text' || String(value ?? '').length > 100
+  const isLong = schema.type === 'text' || textValue.length > 100
 
   return isLong
     ? wideRow(
         <Textarea
           className={cn('min-h-24 resize-y bg-background', CONTROL_TEXT)}
-          onChange={e => onChange(e.target.value)}
-          placeholder={c.notSet}
-          value={String(value ?? '')}
+          onChange={e => onTextChange(e.target.value)}
+          placeholder={textPlaceholder}
+          value={displayText}
         />
       )
     : row(
         <Input
           className={CONTROL_TEXT}
-          onChange={e => onChange(e.target.value)}
-          placeholder={c.notSet}
-          value={String(value ?? '')}
+          onChange={e => onTextChange(e.target.value)}
+          placeholder={textPlaceholder}
+          value={displayText}
         />
       )
 }

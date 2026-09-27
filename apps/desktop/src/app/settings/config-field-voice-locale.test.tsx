@@ -76,3 +76,42 @@ it('preserves distinct Unicode descriptions but suppresses label and schema-key 
   expect(screen.getByText('Extra help')).toBeTruthy()
   unmount()
 })
+
+// `tts.deepinfra.voice` is seeded with the literal sentinel "default", which
+// the runtime forwards to DeepInfra as the voice name. The row must not print
+// that wire value as if it were copy: it reads as an empty field behind the
+// locale's "provider default" placeholder, and edits keep raw voice names.
+it('shows the DeepInfra voice sentinel as a localized placeholder, not as text', () => {
+  for (const locale of ['zh', 'zh-hant'] as const) {
+    const t = TRANSLATIONS[locale]
+
+    const { unmount } = render(
+      <I18nProvider configClient={null} initialLocale={locale}>
+        <ConfigField onChange={() => {}} schema={{ type: 'string' }} schemaKey="tts.deepinfra.voice" value="default" />
+      </I18nProvider>
+    )
+
+    const input = screen.getByPlaceholderText(t.settings.config.providerDefault) as HTMLInputElement
+    expect(input.value).toBe('')
+    expect(screen.queryByDisplayValue('default')).toBeNull()
+    expect(t.settings.config.providerDefault).not.toBe(TRANSLATIONS.en.settings.config.providerDefault)
+    unmount()
+  }
+})
+
+it('restores the DeepInfra voice sentinel when the field is cleared and keeps typed voice names raw', () => {
+  const onChange = vi.fn()
+
+  render(
+    <I18nProvider configClient={null} initialLocale="zh">
+      <ConfigField onChange={onChange} schema={{ type: 'string' }} schemaKey="tts.deepinfra.voice" value="af_bella" />
+    </I18nProvider>
+  )
+
+  const input = screen.getByDisplayValue('af_bella')
+  fireEvent.change(input, { target: { value: 'af_sky' } })
+  expect(onChange).toHaveBeenLastCalledWith('af_sky')
+
+  fireEvent.change(input, { target: { value: '' } })
+  expect(onChange).toHaveBeenLastCalledWith('default')
+})

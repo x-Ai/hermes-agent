@@ -1872,6 +1872,9 @@ export const zhHantOverrides = {
         },
         neutts: {
           device: 'NeuTTS 的本機推論裝置'
+        },
+        deepinfra: {
+          voice: '傳送給 DeepInfra 語音 API 的音色名稱，留空則使用模型的預設音色'
         }
       }
     }),
@@ -1919,6 +1922,7 @@ export const zhHantOverrides = {
       searchPlaceholder: '搜尋…',
       noResults: '找不到結果',
       systemDefault: '系統預設',
+      providerDefault: '提供方預設',
       loading: '正在載入 Hermes 設定...',
       emptyTitle: '無可設定項目',
       emptyDesc: '此區段沒有可調整的設定。',

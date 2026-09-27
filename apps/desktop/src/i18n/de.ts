@@ -1639,6 +1639,7 @@ export const deOverrides = {
       searchPlaceholder: 'Suchen…',
       noResults: 'Keine Ergebnisse gefunden',
       systemDefault: 'Systemstandard',
+      providerDefault: 'Anbieterstandard',
       loading: 'Hermes-Konfiguration wird geladen...',
       emptyTitle: 'Nichts zu konfigurieren',
       emptyDesc: 'Dieser Bereich hat keine einstellbaren Optionen.',

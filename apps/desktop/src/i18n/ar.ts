@@ -1448,6 +1448,7 @@ export const arOverrides = {
       searchPlaceholder: 'بحث…',
       noResults: 'لا توجد نتائج',
       systemDefault: 'إعداد النظام الافتراضي',
+      providerDefault: 'الإعداد الافتراضي للمزوّد',
       loading: 'جار تحميل إعدادات Hermes...',
       emptyTitle: 'لا توجد إعدادات',
       emptyDesc: 'لا يحتوي هذا القسم على إعدادات قابلة للتعديل.',

@@ -1663,6 +1663,7 @@ export const ruOverrides = {
       searchPlaceholder: 'Поиск…',
       noResults: 'Ничего не найдено',
       systemDefault: 'Системное по умолчанию',
+      providerDefault: 'По умолчанию провайдера',
       loading: 'Загрузка конфигурации Hermes…',
       emptyTitle: 'Настраивать нечего',
       emptyDesc: 'В этом разделе нет настраиваемых параметров.',

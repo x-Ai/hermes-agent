@@ -1638,6 +1638,7 @@ export const esOverrides = {
       searchPlaceholder: 'Buscar…',
       noResults: 'No se encontraron resultados',
       systemDefault: 'Valor del sistema',
+      providerDefault: 'Valor del proveedor',
       loading: 'Cargando configuración de Hermes...',
       emptyTitle: 'Nada que configurar',
       emptyDesc: 'Esta sección no tiene ajustes configurables.',

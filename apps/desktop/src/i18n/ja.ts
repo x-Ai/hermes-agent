@@ -1698,6 +1698,7 @@ export const jaOverrides = {
       searchPlaceholder: '検索…',
       noResults: '結果が見つかりません',
       systemDefault: 'システムのデフォルト',
+      providerDefault: 'プロバイダーのデフォルト',
       loading: 'Hermes の設定を読み込み中...',
       emptyTitle: '設定項目がありません',
       emptyDesc: 'このセクションには調整できる設定がありません。',

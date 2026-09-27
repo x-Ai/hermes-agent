@@ -411,6 +411,15 @@ export const FREE_INPUT_KEYS = new Set([
   'tts.deepinfra.voice'
 ])
 
+// Fields whose seeded value is a literal sentinel the runtime forwards verbatim
+// (`tts.deepinfra.voice: "default"` is the voice name sent to DeepInfra's speech
+// API). It is a wire value, not display text, so ConfigField renders it as an
+// empty control behind the localized "provider default" placeholder and writes
+// the sentinel back when the field is cleared instead of storing ''.
+export const PROVIDER_DEFAULT_SENTINELS: Record<string, string> = {
+  'tts.deepinfra.voice': 'default'
+}
+
 export const FIELD_LABELS: Record<string, string> = defineFieldCopy({
   model: 'Default Model',
   modelContextLength: 'Main model context window (override)',
@@ -725,6 +734,9 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
     },
     neutts: {
       device: 'Local inference device for NeuTTS.'
+    },
+    deepinfra: {
+      voice: "Voice name sent to the DeepInfra speech API. Leave empty to use the model's default voice."
     }
   },
   stt: {

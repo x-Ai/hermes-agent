@@ -1891,6 +1891,9 @@ export const zhOverrides = {
         neutts: {
           device: 'NeuTTS 的本地推理设备'
         },
+        deepinfra: {
+          voice: '发送给 DeepInfra 语音接口的音色名称，留空则使用模型的默认音色'
+        },
         provider: '文本转语音（TTS）提供方'
       },
       updates: {
@@ -1947,6 +1950,7 @@ export const zhOverrides = {
       searchPlaceholder: '搜索…',
       noResults: '未找到结果',
       systemDefault: '系统默认',
+      providerDefault: '提供方默认',
       loading: '正在加载 Hermes 配置...',
       emptyTitle: '无可配置项',
       emptyDesc: '此分区没有可调整的设置',
