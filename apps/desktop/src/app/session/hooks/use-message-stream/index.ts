@@ -653,7 +653,11 @@ export function useMessageStream({
         // Structured failure from the terminal frame wins over the legacy text
         // heuristic ("Error: <provider detail>" texts don't match the regexes).
         const rawCompletionError = failure?.error ?? completionErrorText(finalText)
-        const completionError = rawCompletionError ? localizeApiErrorMessage(rawCompletionError) : rawCompletionError
+
+        const completionError = rawCompletionError
+          ? localizeApiErrorMessage(rawCompletionError, undefined, failure?.surface?.code)
+          : rawCompletionError
+
         // A partial failure's `text` is streamed output the user should keep,
         // not the error string — settle it like a normal reply AND mark the
         // bubble failed, instead of stripping the text.
@@ -950,7 +954,9 @@ export function useMessageStream({
       }
 
       const notificationText =
-        !failure?.partial && (failure || completionErrorText(text)) ? localizeApiErrorMessage(text) : text
+        !failure?.partial && (failure || completionErrorText(text))
+          ? localizeApiErrorMessage(text, undefined, failure?.surface?.code)
+          : text
 
       dispatchNativeNotification({
         body: notificationText.slice(0, 140) || translateNow('notifications.native.turnDoneBody'),

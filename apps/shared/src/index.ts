@@ -69,8 +69,6 @@ export {
 export { compactNumber } from './format'
 export { type FuzzyMatch, fuzzyRank, fuzzyScore, fuzzyScoreMulti, type RankedItem } from './fuzzy'
 export * from './gateway-events'
-export * from './wisdom-mute'
-export * from './wisdom-sync'
 export {
   applyDocumentLocale,
   type EndonymLocale,
@@ -194,3 +192,5 @@ export {
   type ResolveGatewayWsUrlDeps,
   type WebSocketAuthParam
 } from './websocket-url'
+export * from './wisdom-mute'
+export * from './wisdom-sync'

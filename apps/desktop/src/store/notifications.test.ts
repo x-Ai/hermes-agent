@@ -34,6 +34,22 @@ test('gateway_auth_failed error is summarized as sign-in, with an Open Gateways 
   expect($routeRequest.get()?.path).toBe('/settings?tab=gateway')
 })
 
+// Regression for the lost fix 03ea411994: the backend's provider-setup error
+// reaches many surfaces through notifyError (session creation, model loading,
+// settings), not just the gateway 'error' event; every toast shows the same
+// localized credential copy and keeps the raw text as the detail line.
+test.each([
+  "No inference provider configured. Run 'hermes model' to set one up.",
+  '503 {"detail": {"message": "no provider configured", "code": "no_provider_configured"}}'
+])('provider-setup error %s toasts the credential-required copy in the active locale', raw => {
+  setRuntimeI18nLocale('zh')
+  notifyError(new Error(raw), 'Could not create session')
+
+  expect(lastMessage()).toBe(TRANSLATIONS.zh.desktop.providerCredentialRequired)
+  expect(lastMessage()).not.toBe(en.desktop.providerCredentialRequired)
+  expect($notifications.get()[0]?.detail).toContain(raw.includes('503') ? 'no provider configured' : 'hermes model')
+})
+
 test('provider invalid_api_key error maps to the OpenAI summary and deep-links to Keys', () => {
   notifyError(
     new Error('401 {"error": {"message": "Incorrect API key provided", "code": "invalid_api_key"}}'),

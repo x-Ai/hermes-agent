@@ -2,6 +2,7 @@ import { atom } from 'nanostores'
 
 import { getRuntimeI18nLocale, translateNow } from '@/i18n/runtime'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
+import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
 import { isLocalBackendSlotWaitTimeout, requestPoolLimitsSettings } from '@/store/pool-limits'
 import { requestBackendRestart, requestRoute } from '@/store/recovery-requests'
 
@@ -137,6 +138,15 @@ interface ErrorSummaryRule {
 }
 
 const ERROR_SUMMARIES: ErrorSummaryRule[] = [
+  {
+    // The backend's provider-setup error ("No inference provider configured.
+    // Run 'hermes model' …", code no_provider_configured) reaches many
+    // surfaces through notifyError (session creation, model loading,
+    // settings); show the same copy the submit/onboarding paths use for it and
+    // keep the raw text as the detail line.
+    test: msg => isProviderSetupErrorMessage(msg),
+    summarize: () => translateNow('desktop.providerCredentialRequired')
+  },
   {
     test: msg => /^fast mode is not available for this model$/i.test(msg.trim()),
     summarize: () => translateNow('notifications.errors.fastModeUnavailable'),

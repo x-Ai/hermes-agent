@@ -2,7 +2,11 @@ import { JsonRpcGatewayClient } from '@hermes/shared'
 import { map, type MapStore } from 'nanostores'
 
 import type { HermesApiRequest } from '@/global'
-import { translateNow } from '@/i18n'
+// `@/i18n/runtime` only, never the barrel: the barrel re-exports `./context`,
+// which imports `@/hermes` → `./client` — a cycle vitest cannot resolve when a
+// test mocks `@/hermes` with a factory that imports this module (the whole ui
+// project deadlocked at collection).
+import { translateNow } from '@/i18n/runtime'
 
 // Desktop startup fires a burst of read-only data calls (config, profiles,
 // model info/options, cron) the moment the backend passes readiness. On a
@@ -32,8 +36,10 @@ export const GATEWAY_NOT_CONNECTED_MESSAGE = 'Hermes gateway is not connected'
 export class HermesGateway extends JsonRpcGatewayClient {
   constructor() {
     super({
-      closedErrorMessage: translateNow('prompts.gatewayDisconnected'),
-      connectErrorMessage: translateNow('notifications.toast.gatewayConnectFailed'),
+      // Thunks: the client is built at boot, before the saved locale loads, and
+      // outlives locale switches; resolve the copy when the error is raised.
+      closedErrorMessage: () => translateNow('prompts.gatewayDisconnected'),
+      connectErrorMessage: () => translateNow('notifications.toast.gatewayConnectFailed'),
       createRequestId: nextId => nextId,
       notConnectedErrorMessage: GATEWAY_NOT_CONNECTED_MESSAGE,
       // The channel already answered -32603; surface the crash in devtools like the dial-failure sink.

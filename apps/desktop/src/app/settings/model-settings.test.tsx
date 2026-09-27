@@ -701,6 +701,45 @@ describe('ModelSettings MoA preset editor', () => {
     }
   })
 
+  // Regression for the lost fix 3556b49e9d: after enabling/saving a MoA preset
+  // the chat picker kept its 60s-stale catalog and never listed the `moa`
+  // provider. Both writers (debounced slot autosave and explicit preset ops)
+  // must invalidate every model-options query once the save is confirmed.
+  it('invalidates the model-options catalog after the debounced autosave and after a preset op', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+
+    try {
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      const invalidate = vi.spyOn(client, 'invalidateQueries')
+      render(
+        <MemoryRouter>
+          <QueryClientProvider client={client}>
+            <ModelSettings />
+          </QueryClientProvider>
+        </MemoryRouter>
+      )
+      expect(await screen.findByText('Reference 1')).toBeTruthy()
+      expect(invalidate).not.toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['model-options'] }))
+
+      fireEvent.click(screen.getByRole('switch', { name: 'Enabled' }))
+      await vi.advanceTimersByTimeAsync(700)
+      await waitFor(() => expect(saveMoaModels).toHaveBeenCalledTimes(1))
+      await waitFor(() =>
+        expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['model-options'] }))
+      )
+
+      invalidate.mockClear()
+      fireEvent.change(screen.getByPlaceholderText('new preset'), { target: { value: 'research' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Add preset' }))
+      await waitFor(() => expect(saveMoaModels).toHaveBeenCalledTimes(2))
+      await waitFor(() =>
+        expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['model-options'] }))
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('saves a disabled reference model without removing it (per-slot enabled toggle)', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
 

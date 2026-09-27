@@ -1,10 +1,10 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineLocale } from './define-locale'
+import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
 import { introZhHant } from './intro-zh-hant'
 
-export const zhHant = defineLocale({
+export const zhHantOverrides = {
   externalOpenFailed: {
     title: '無法開啟此連結',
     message: '沒有註冊用於開啟此位址的瀏覽器。請複製連結並手動開啟。',
@@ -420,7 +420,8 @@ export const zhHant = defineLocale({
       usingRuntime: '使用已安裝的 Hermes 執行環境',
       waitingBackendLaunch: '正在等待 Hermes 後端啟動',
       waitingBackendReady: '正在等待 Hermes 後端準備就緒',
-      waitingForUpdate: '正在等待目前的更新完成…'
+      waitingForUpdate: '正在等待目前的更新完成…',
+      waitingSetupChoice: '正在等待你選擇首次執行的設定方式'
     },
     errors: {
       backgroundExited: '運行您的聊天的服務意外關閉。請重新啟動它以繼續 — 您的聊天和設定是安全的。',
@@ -471,7 +472,9 @@ export const zhHant = defineLocale({
       signInToRemoteGateway: '登入遠端閘道',
       signInWithProvider: provider => `使用 ${provider} 登入`,
       identityProvider: '您的身分提供方',
-      details: '詳細資訊'
+      details: '詳細資訊',
+      bundledReinstallHint: '此內建安裝無法在應用程式內自我修復——請重新安裝應用程式以還原其後端',
+      reinstallApp: '重新安裝應用程式'
     },
     causes: {
       exitedEarly: 'Hermes的背景服務在啟動後就停止了.',
@@ -578,6 +581,25 @@ export const zhHant = defineLocale({
       apiRetriesExhausted: retries => `API 呼叫重試 ${retries} 次後仍失敗`,
       invalidApiResponseAfterRetries: (retries, detail) => `API 回應無效，重試 ${retries} 次後仍失敗：${detail}`,
       resetsIn: remaining => `重設倒數：${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `${label} 在全部 ${attempts} 次嘗試中都回傳了流量限制`,
+          overloaded: `${label} 在全部 ${attempts} 次嘗試中都回報過載`,
+          server_error: `${label} 在全部 ${attempts} 次嘗試中都回傳了伺服器錯誤`,
+          timeout: `${label} 在全部 ${attempts} 次嘗試中都未及時回應`,
+          unknown: `${label} 在 ${attempts} 次嘗試後仍未作答`
+        }[reason]
+
+        const situation = resetWindow
+          ? `其用量限額將在 ${resetWindow} 後重設。屆時請傳送 /retry，或使用 /model 切換模型。`
+          : '它似乎暫時無法使用。請稍候一分鐘後傳送 /retry，或使用 /model 切換模型。'
+
+        return `${lead}——${situation}為避免再次發生，可透過 \`hermes fallback add\` 新增備用供應商。`
+      },
+      providerSaid: summary => `供應商回傳：${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `${label} 連續 ${attempts} 次回傳了空的或損毀的回覆——它可能已過載或正在對你限流。請稍候一分鐘後傳送 /retry，或使用 /model 切換模型。`,
+      errorDetailsLine: detail => `詳細資訊：${detail}`,
       elevenLabsNeedsKey: '語音輸入需要一個 ElevenLabs 鍵。在 設定 → 鍵 中添加一個。',
       elevenLabsRejectedKey: 'ElevenLabs 未接受你的 API 金鑰。請在 設定 → 金鑰 中更新，然後再試一次。',
       diskFull: '磁碟已滿 — 請騰出一些空間後再試。',
@@ -648,7 +670,9 @@ export const zhHant = defineLocale({
       openKeys: '開啟金鑰',
       openGateways: '開啟網關',
       openMaintenance: '開啟維持'
-    }
+    },
+    compressDeferredDone: '上下文壓縮已完成',
+    updateReadyMessageAppInstaller: 'Hermes 新版本已就緒。立即更新，Windows 會為你完成剩餘步驟'
   },
   remoteDisplayBanner: {
     message: reason => `軟體繪圖已啟用 — 偵測到遠端顯示（${reason}）。為防止畫面閃爍，已停用 GPU 加速。`
@@ -978,8 +1002,12 @@ export const zhHant = defineLocale({
       'composer.cancel': '關閉彈出視窗·取消運行',
       'nav.capabilities': '開放技能',
       'view.cycleSidebarGrouping': '循環會話分組',
-      'view.toggleProfileRail': '切換型材導軌'
-    }
+      'view.toggleProfileRail': '切換型材導軌',
+      'conversation.scrollPageUp': '向上捲動一頁對話',
+      'conversation.scrollPageDown': '向下捲動一頁對話',
+      'composer.dictate': '開始/停止聽寫'
+    },
+    clear: '清除'
   },
   paletteCommands: {
     reloadDesktopPlugins: '重新載入桌面外掛程式',
@@ -1177,7 +1205,9 @@ export const zhHant = defineLocale({
         desktopFailed: '桌面插件安裝失敗',
         missingEnv: (name, vars) =>
           `${name} is installed but needs a key before it can work: ${vars}。現在添加它，否則插件的工具將失敗。`,
-        profileLabel: '安裝設定檔'
+        profileLabel: '安裝設定檔',
+        installUncertain:
+          'Hermes 已停止等待安裝結果，但插件可能仍在安裝中。請關閉此對話方塊，並在「插件」中執行「重新掃描」後再嘗試安裝'
       }
     },
     vault: {
@@ -1594,7 +1624,12 @@ export const zhHant = defineLocale({
       voice: {
         maxRecordingSeconds: '最長錄音時間',
         clientDirect: '用戶端直連',
-        autoTts: '朗讀回覆'
+        autoTts: '朗讀回覆',
+        voiceChatMode: '語音聊天模式',
+        gptLive: {
+          voice: 'GPT-Live 語音',
+          instructions: 'GPT-Live 人設'
+        }
       },
       stt: {
         enabled: '語音轉文字',
@@ -1664,6 +1699,10 @@ export const zhHant = defineLocale({
         },
         piper: {
           voice: 'Piper 語音'
+        },
+        deepinfra: {
+          model: 'DeepInfra TTS 模型',
+          voice: 'DeepInfra 語音'
         }
       },
       memory: {
@@ -1680,7 +1719,8 @@ export const zhHant = defineLocale({
         enabled: '自動壓縮',
         threshold: '壓縮閾值',
         targetRatio: '壓縮目標',
-        protectLastN: '保護最近訊息'
+        protectLastN: '保護最近訊息',
+        codexGpt55Autoraise: 'Codex 壓縮自動提高'
       },
       delegation: {
         model: '子代理模型',
@@ -1693,6 +1733,11 @@ export const zhHant = defineLocale({
       },
       updates: {
         nonInteractiveLocalChanges: '應用程式內更新的本機變更'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '壓縮模型逾時（秒）'
+        }
       }
     }),
     fieldDescriptions: defineFieldCopy({
@@ -1713,7 +1758,7 @@ export const zhHant = defineLocale({
         imageInputMode: '控制圖片附件如何傳送給模型。',
         maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。',
         outputTruncationRetries:
-          '僅在提供方明確因輸出 Token 上限截斷且未產生可見文字時重試。每次都會重新傳送相同提示並可能重複計費；建議設為 0，最多 3 次。',
+          '在提供方因輸出 Token 上限截斷回覆後繼續生成的次數（0–3）。每次續寫都會重新傳送完整提示並可能再次計費；設為 0 則立即回傳已生成的部分。預設 3 次。',
         postToolEmptyRetries:
           '模型在工具呼叫後未回傳可見文字時，傳送繼續提示。每次重試都可能重複計費；設為 0 可關閉，最多 3 次。',
         thinkingPrefillRetries:
@@ -1727,7 +1772,17 @@ export const zhHant = defineLocale({
         persistentShell: '後端支援時，在指令之間保留 Shell 狀態。',
         envPassthrough: '傳入工具執行的環境變數。',
         containerPersistent:
-          '跨工作階段保留容器檔案系統狀態。變更會在後端重新啟動後生效，且不會銷毀目前的容器或執行個體。'
+          '跨工作階段保留容器檔案系統狀態。變更會在後端重新啟動後生效，且不會銷毀目前的容器或執行個體。',
+        dockerImage: '執行後端為 Docker 時使用的容器映像檔',
+        dockerMountCwdToWorkspace: '將專案目錄繫結掛載到 Docker 沙箱的 /workspace；關閉時沙箱完全隔離',
+        dockerWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的容器',
+        dockerWorkspaceMountPath: '專案在容器內的完整掛載路徑，預設 /workspace；修改後對下一個容器生效',
+        singularityImage: '執行後端為 Singularity 時使用的映像檔',
+        singularityMountCwdToWorkspace: '將專案目錄繫結掛載到 Singularity 沙箱的 /workspace；關閉時沙箱完全隔離',
+        singularityWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的執行個體',
+        singularityWorkspaceMountPath: '專案在沙箱內的完整繫結路徑，預設 /workspace；修改後對下一個執行個體生效',
+        modalImage: '執行後端為 Modal 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載',
+        daytonaImage: '執行後端為 Daytona 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載'
       },
       codeExecution: {
         mode: '程式碼執行被限制在目前專案中的嚴格程度。'
@@ -1756,21 +1811,53 @@ export const zhHant = defineLocale({
         engine: '長對話接近上下文上限時的管理策略。'
       },
       compression: {
-        enabled: '對話變大時摘要較早的上下文。'
+        enabled: '對話變大時摘要較早的上下文。',
+        codexGpt55Autoraise: '為受支援的 ChatGPT Codex OAuth 模型將壓縮門檻提高到 85%'
       },
       voice: {
         clientDirect: '盡可能讓此桌面端直接連線語音提供方，而不是透過閘道中轉音訊。',
-        autoTts: '自動朗讀助手回覆。'
+        autoTts: '自動朗讀助手回覆。',
+        voiceChatMode:
+          'chained：語音轉文字 → Hermes → 文字轉語音，使用下方的供應商。gpt-live：一個全雙工的 OpenAI 語音模型（gpt-live-1）負責聆聽與說話，並把每個實際請求交給 Hermes——由你選擇的任何模型帶著完整工具集作答。需要 OpenAI API 金鑰；語音層按每分鐘 $0.05 計費',
+        gptLive: {
+          voice: 'GPT-Live 模式使用的語音，可填寫自訂語音 ID',
+          instructions: '附加到即時語音人設的句子（語氣、語速、語言）。Hermes 保留自己的系統提示詞'
+        }
       },
       stt: {
         enabled: '啟用本機或提供方支援的語音轉寫。',
         elevenlabs: {
           languageCode: '可選的 ISO-639-3 語言代碼。留空讓 ElevenLabs 自動偵測。'
-        }
+        },
+        echoTranscripts: '將語音訊息的原始 🎙️ 逐字稿發回聊天'
       },
       updates: {
         nonInteractiveLocalChanges:
           'Hermes 從應用程式內更新自身時，保留本機原始碼變更（stash）或丟棄（discard）。終端機更新一律會詢問。'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '每次呼叫輔助壓縮模型的等待秒數（預設 120）。本機模型較慢時請調高'
+        }
+      },
+      delegation: {
+        model: '委派子智慧體使用的模型，留空則繼承父智慧體的模型',
+        provider: '委派子智慧體使用的供應商——內建名稱或自訂端點 id，留空則繼承父智慧體',
+        useCustomEndpoints: '在子智慧體供應商清單中提供你的自訂端點，並在模型清單中提供該端點已探索到的模型'
+      },
+      tts: {
+        xai: {
+          voiceId: 'xAI 語音 ID（例如 eve）或自訂語音 ID',
+          language: '語言代碼（例如 en、pt-BR），或填 "auto" 自動偵測',
+          speed: '播放速度：0.7 = 較慢，1.0 = 正常，1.5 = 較快',
+          autoSpeechTags: '讓 LLM 在合成前自動插入表情音訊標籤（如 [laughing]、[sighs]）',
+          optimizeStreamingLatency: '延遲與品質的取捨：0 = 最佳品質，2 = 最低延遲',
+          sampleRate: '音訊取樣率（Hz）：越高音質越好，檔案越大',
+          bitRate: 'MP3 位元率（bps），僅在編解碼器為 mp3 時生效'
+        },
+        neutts: {
+          device: 'NeuTTS 的本機推論裝置'
+        }
       }
     }),
     about: {
@@ -1806,8 +1893,7 @@ export const zhHant = defineLocale({
       justNow: '剛剛',
       minAgo: count => `${count} 分鐘前`,
       hoursAgo: count => `${count} 小時前`,
-      daysAgo: count => `${count} 天前`,
-      justNowSuffix: '· 剛才'
+      daysAgo: count => `${count} 天前`
     },
     config: {
       none: '無',
@@ -1840,7 +1926,13 @@ export const zhHant = defineLocale({
       minimizeToTrayDesc:
         '最小化視窗或關閉主要視窗以將它們隱藏到系統托盤（在 macOS 的選單列上）並保持 Hermes 運行。使用托盤選單中的退出 Hermes 或按 Cmd Q 離開。默認為關閉；僅適用於此設備。',
       minimizeToTrayUnavailable: '系統托盤不可用。Windows 將正常最小化並關閉。關閉再重新開啟以重試。',
-      showOptions: '顯示選項'
+      showOptions: '顯示選項',
+      alwaysExternalLinksTitle: '一律在外部瀏覽器中開啟連結',
+      alwaysExternalLinksDesc:
+        '點擊連結時一律使用系統瀏覽器開啟，而不是應用程式內瀏覽器。右鍵選單中的「在應用程式內瀏覽器中開啟」仍然可用',
+      voiceShortcutHintTitle: '語音錄製快捷鍵',
+      voiceShortcutHintDesc:
+        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI'
     },
     quickEntry: {
       enabledTitle: '快速輸入',
@@ -2171,8 +2263,27 @@ export const zhHant = defineLocale({
       importNoMatch: '貼上的文字中未識別到伺服器設定。',
       importConfirm: '加入 mcp.json',
       importConfirmMany: count => `將 ${count} 個伺服器加入 mcp.json`,
-      catalogAuthOAuth: 'OAuth}',
-      catalogAuthApiKey: 'API 按鍵'
+      catalogAuthOAuth: 'OAuth',
+      catalogAuthApiKey: 'API 按鍵',
+      failedLoad: 'MCP 設定載入失敗',
+      nameRequiredTitle: '需要名稱',
+      nameRequiredMessage: '請為此 MCP 伺服器提供設定鍵',
+      objectRequired: '伺服器設定必須是 JSON 物件',
+      gatewayUnavailableTitle: '閘道無法使用',
+      gatewayUnavailableMessage: '重新載入 MCP 前請先重新連線閘道',
+      reloadedTitle: 'MCP 工具已重新載入',
+      reloadedMessage: '新的工具 schema 將套用到後續回合',
+      newServer: '新伺服器',
+      reload: '重新載入 MCP',
+      reloading: '重新載入中...',
+      emptyTitle: '沒有 MCP 伺服器',
+      emptyDesc: '新增 stdio 或 HTTP 伺服器以提供 MCP 工具',
+      editServer: '編輯伺服器',
+      unusedPill: '未使用',
+      waitingForBrowser: '正在等待瀏覽器…',
+      unsavedConnect: '未儲存——儲存 mcp.json 以連線',
+      enableTool: tool => `啟用 ${tool}`,
+      disableTool: tool => `停用 ${tool}`
     },
     model: {
       setupProviderFallback: '提供方',
@@ -2573,7 +2684,13 @@ export const zhHant = defineLocale({
       deleteAction: '刪除模型',
       deleteConfirm: model => `從磁碟刪除 ${model}？`,
       deleted: model => `已刪除 ${model}。`,
-      deleteFailed: '刪除失敗'
+      deleteFailed: '刪除失敗',
+      connectionChanged: '本機模型連線已變更',
+      downloadEtaSeconds: count => `${count} 秒`,
+      downloadEtaMinutes: count => `${count} 分鐘`,
+      downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 小時 ${minutes} 分鐘` : `${hours} 小時`),
+      downloadPauseFailed: model => `無法暫停 ${model} 的下載`,
+      downloadResumeFailed: model => `無法繼續 ${model} 的下載`
     },
     billing: {
       perMonth: amount => `${amount}/月`,
@@ -3622,7 +3739,12 @@ export const zhHant = defineLocale({
         'disk-cleanup': '暫存檔清理',
         'security-guidance': '安全編碼指引'
       },
-      bundledDescriptions: {},
+      bundledDescriptions: {
+        'disk-cleanup':
+          '自動追蹤並清理 Hermes 工作階段期間產生的暫存檔案（測試指令碼、暫時輸出、排程工作記錄），透過插件掛鉤執行，不需要智慧體介入',
+        'security-guidance':
+          '當新寫入的內容包含已知危險模式時，在檔案寫入工具結果中附加安全警告。包含 25 條改編自 Anthropic claude-plugins-official 的規則，不會阻止寫入，並會在下一輪把警告回饋給模型以便自行修正'
+      },
       sourceLabels: {
         bundled: '捆綁的',
         user: '使用者',
@@ -4918,7 +5040,15 @@ export const zhHant = defineLocale({
       gatewayUnreachable: gateway => `${gateway}· 無法到達`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `切換到${name}開啟${gateway}`,
-      deleteOn: gateway => `開啟${gateway}`
+      deleteOn: gateway => `開啟${gateway}`,
+      localDevice: '此裝置（本機後端——若未安裝 Hermes 則會安裝，否則開啟一個新的工作階段）',
+      switchDeviceTitle: '切換到此裝置？',
+      switchDeviceDesc: '這會在這台電腦上開啟一個新的工作階段。目前的對話仍留在另一個閘道上。',
+      switchDeviceConfirm: '切換',
+      installDeviceTitle: '切換到此裝置？',
+      installDeviceDesc: '這將在本機安裝 Hermes，然後在這台電腦上開啟一個新的工作階段。確認之前不會開始安裝。',
+      installDeviceConfirm: '在本機安裝',
+      connectExistingInstead: '改為連線現有環境'
     },
     remoteOverride: {
       menuItem: '連線至遠端主機…',
@@ -5023,7 +5153,12 @@ export const zhHant = defineLocale({
     defaultProfile: '預設設定檔',
     defaultSet: name => `${name} 已設為預設`,
     defaultDescription: '用於 Hermes 啟動和新建聊天。現有工作階段仍保留在各自的設定檔中。',
-    failedSetDefault: '無法設定預設設定檔'
+    failedSetDefault: '無法設定預設設定檔',
+    status: {
+      unread: count => `${count} 個工作階段有未讀訊息`,
+      needsInput: count => `${count} 個工作階段等待你的回覆`,
+      working: count => `${count} 個工作階段正在執行`
+    }
   },
   cron: {
     close: '關閉排程',
@@ -5528,7 +5663,6 @@ export const zhHant = defineLocale({
       renamed: '已重新命名',
       renameFailed: '重新命名失敗',
       renameTitle: '重新命名工作階段',
-      renameDesc: '留空則清除。',
       untitledPlaceholder: '未命名工作階段',
       deleteTitle: '刪除會話？',
       deleteDesc: title => `這將永久刪除「${title}」，且無法復原。`,
@@ -6107,7 +6241,56 @@ export const zhHant = defineLocale({
     },
     gitUnusable: 'Hermes 無法在這台電腦上執行 Git，因此無法檢查更新。',
     connectionSettings: '連接設定值',
-    openDownloadPage: '開啟下載頁面'
+    openDownloadPage: '開啟下載頁面',
+    availableBodyAppInstaller: 'Hermes 新版本已就緒。Hermes 將會關閉，由 Windows 完成更新，然後自動重新開啟',
+    applyingBodyAppInstaller:
+      'Hermes 將會關閉，由 Windows 完成更新。完成後 Hermes 會自動重新開啟——你不需要進行任何操作',
+    applyingCloseAppInstaller: '此視窗將會關閉，Windows 完成更新後 Hermes 會自動重新開啟',
+    checkUnknownTitleAppInstaller: '無法檢查更新',
+    checkUnknownBodyAppInstaller: 'Windows 目前無法檢查更新。重新啟動 Hermes 時也會自動安裝更新',
+    appName: 'Hermes',
+    version: value => `版本 ${value}`,
+    versionUnavailable: '版本資訊無法使用',
+    checkNow: '立即檢查',
+    seeWhatsNew: '查看更新內容',
+    releaseNotes: '發行說明',
+    onLatest: '你使用的是最新版本',
+    installing: '正在安裝更新',
+    cantReach: '無法連線更新伺服器',
+    tapCheck: '點擊「立即檢查」以檢查更新',
+    updateReady: count => `有新更新可用（包含 ${count} 項變更）`,
+    updateReadyUnknown: '有新更新可用',
+    availableBodyRelease: tag => `版本 ${tag} 已可安裝`,
+    lastChecked: age => `上次檢查：${age}`,
+    never: '從未',
+    justNow: '剛剛',
+    minAgo: count => `${count} 分鐘前`,
+    hoursAgo: count => `${count} 小時前`,
+    daysAgo: count => `${count} 天前`,
+    bundleOutOfSync: '應用程式版本已過期',
+    bundleOutOfSyncDesc: 'Hermes 執行環境已更新，但桌面應用程式仍是舊版本。請更新桌面應用程式以取得最新修正',
+    bundleOutOfSyncAction: '取得安裝程式',
+    checkingShort: '正在檢查…',
+    releaseAvailable: tag => `版本 ${tag} 可用`,
+    versionDetailsTitle: '版本詳細資訊',
+    versionDetailsBody: '此安裝由應用程式外部管理，請使用最初的安裝方式進行更新',
+    versionDetailsVersion: '版本',
+    versionDetailsCommit: '提交',
+    versionDetailsBuildOrigin: '建置來源',
+    versionDetailsBuildOriginLocal: '本機',
+    versionDetailsDistribution: '發佈方式',
+    versionDetailsDistributionDesktop: '桌面應用程式',
+    versionDetailsDistributionDesktopMsix: '桌面應用程式（MSIX）',
+    versionDetailsDistributionDesktopInstaller: '桌面應用程式（安裝程式）',
+    versionDetailsDistributionSourceInstaller: '原始碼（安裝指令碼）',
+    versionDetailsDistributionSourceInstallerDesktop: '原始碼（安裝指令碼）+ Hermes 桌面應用程式',
+    versionDetailsDistributionSource: '原始碼',
+    versionDetailsDistributionSourceDesktop: '原始碼 + Hermes 桌面應用程式',
+    versionDetailsRuntime: '執行環境',
+    versionDetailsRuntimeEmbedded: '內建執行環境',
+    versionDetailsRuntimeExternal: '外部執行環境（使用系統執行環境）',
+    versionDetailsInstallId: '安裝 ID',
+    versionDetailsUncommittedChanges: '未提交的變更'
   },
   handoffTour: {
     profileTitle: '您的第一個任務在預設設定檔上運行',
@@ -6345,7 +6528,11 @@ export const zhHant = defineLocale({
     copyOutput: '複製輸出',
     reloadRetry: '重新載入並重試',
     probeErrorDetails: '詳細資訊',
-    openLogs: '打開日誌'
+    openLogs: '打開日誌',
+    setupChoiceDescLocal: '在這台電腦上安裝 Hermes，或連線到你已在執行的 Hermes 閘道',
+    useLocalTitle: '在這台電腦上使用 Hermes',
+    useLocalDesc: '這裡已安裝 Hermes 執行環境——按一下即可啟動，不需要下載任何內容',
+    bundledLocalDesc: '使用此應用程式內建的 Hermes 執行環境——內建後端即為本機安裝'
   },
   onboarding: {
     headerTitle: '開始設定 Hermes Agent',
@@ -6442,7 +6629,8 @@ export const zhHant = defineLocale({
     signInDidNotFinish: provider => `登入方式${provider}未完成。請檢查您的網路連線並重試，或選擇其他提供者。`,
     tryAgain: '再試一次',
     useApiKeyInstead: '使用 API 鍵',
-    errorDetails: '詳細資訊'
+    errorDetails: '詳細資訊',
+    localModelNamePlaceholder: '模型名稱（例如 command-a-plus-05-2026）'
   },
   freeTier: {
     providerRowTitle: 'Nous · 免費套餐',
@@ -6689,7 +6877,8 @@ export const zhHant = defineLocale({
       openModelPicker: '開啟模型選擇器',
       modelPinned: '已由你固定；新對話將使用此模型而非「設定」中的預設模型',
       modelTitle: (provider, model) => `模型 · ${provider}：${model}`,
-      providerModelTitle: (provider, model) => `${provider} · ${model}`
+      providerModelTitle: (provider, model) => `${provider} · ${model}`,
+      releaseAvailable: tag => `版本 ${tag} 可用。`
     }
   },
   rightSidebar: {
@@ -6913,13 +7102,6 @@ export const zhHant = defineLocale({
       focus: '專注',
       'terminal-deck': '終端面板',
       quad: '四格'
-    },
-    paneNames: {
-      sessions: '工作階段',
-      files: '檔案',
-      review: '審閱',
-      terminal: '終端',
-      workspace: '工作區'
     }
   },
   contextMenu: {
@@ -7048,14 +7230,18 @@ export const zhHant = defineLocale({
         `供應商持續 ${elapsedSeconds} 秒未傳回${kind === 'output' ? '輸出' : '回應'}，正在重新連線…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `正在等待供應商，${retrySeconds} 秒後重試（第 ${attempt}/${maxAttempts} 次）`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `正在等待 ${provider} ${kind === 'output' ? '輸出' : '回應'}——已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
-          kind === 'output' ? '，模型也可能仍在思考' : ''
-        }${reconnectSeconds ? `；若持續無${kind === 'output' ? '輸出' : '回應'}，將在 ${reconnectSeconds} 秒時自動重新連線` : ''}）`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `正在等待 ${provider}——${kind === 'events' ? '未收到串流事件' : '重新連線後未收到回應'}已持續 ${elapsedSeconds} 秒（供應商可能回應較慢或負載過高${
-          reconnectSeconds ? `；總等待時間達到 ${reconnectSeconds} 秒時自動重新連線` : ''
-        }）`,
+      providerWaitPhases: {
+        first_event: seconds => `等待首個供應商事件已 ${seconds} 秒`,
+        reconnect: seconds => `重新連線後等待首個供應商事件已 ${seconds} 秒`,
+        pre_progress: seconds => `供應商串流已開啟，${seconds} 秒內沒有實質的模型進展`,
+        post_event: seconds => `供應商串流運作中，${seconds} 秒內沒有串流事件`,
+        first_chunk: seconds => `等待首個串流資料區塊已 ${seconds} 秒`,
+        post_chunk: seconds => `串流已開啟，${seconds} 秒內沒有串流輸出`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${stillWaiting ? '仍在等待' : '正在等待'} ${model}——${phaseText}${
+          watchdog ? `（自動重新連線：${watchdog.label} 看門狗將在 ${watchdog.seconds} 秒後觸發）` : ''
+        }`,
       summarizingThread: '正在整理對話',
       moaAggregating: 'MoA 正在彙整…',
       moaReference: (label, index, count) =>
@@ -7294,7 +7480,8 @@ export const zhHant = defineLocale({
       alwaysAllow: '一律允許',
       reconnect: '重新連接',
       timedOutSystemLine: '批准超時 - 命令未運行。請Hermes重試，或在設定→安全性→批准逾時中提高限制。',
-      openSafetySettings: '開啟安全設定'
+      openSafetySettings: '開啟安全設定',
+      commandDetails: '命令詳細資訊'
     },
     clarify: {
       notReady: '澄清請求尚未就緒',
@@ -7798,5 +7985,66 @@ export const zhHant = defineLocale({
     confirmDetail: '僅在你接受此權衡時確認。',
     confirmAction: '確認',
     declined: '已取消模型變更 — 你拒絕了資料訓練層級警告。'
+  },
+  catalog: {
+    add: '新增',
+    added: '已新增',
+    discover: '探索',
+    featured: '精選',
+    explorePlugins: '探索插件',
+    exploreSkills: '探索技能',
+    mostStarred: '星標最多',
+    newest: '最新發布',
+    recentlyUpdated: '最近更新',
+    alphabetical: '名稱',
+    sortBy: '排序方式',
+    seeAll: '檢視全部',
+    related: '類似推薦',
+    tags: '標籤',
+    screenshots: '螢幕截圖',
+    listView: '清單檢視',
+    cardView: '卡片檢視',
+    installTitle: name => `安裝「${name}」？`,
+    installDescription: '此技能將在新的工作階段中可用。請僅安裝可信任來源的內容。',
+    installTo: '安裝到',
+    thisComputer: '這台電腦',
+    installing: '正在安裝…',
+    installComplete: name => `已安裝「${name}」`,
+    destinationChanged: '安裝目標已變更。請關閉此對話方塊並重新開啟安裝連結。',
+    installed: '已安裝',
+    searchSkills: '搜尋技能',
+    searchPlugins: '搜尋插件',
+    allSources: '所有來源',
+    allCategories: '所有分類',
+    about: '簡介',
+    author: '作者',
+    source: '來源',
+    category: '分類',
+    version: '版本',
+    platforms: '支援的平台',
+    requires: '相依項目',
+    tools: '工具',
+    hooks: '掛鉤',
+    middleware: '中介軟體',
+    commands: '命令',
+    license: '授權條款',
+    addedDate: '新增日期',
+    updatedDate: '更新日期',
+    repository: '程式碼儲存庫',
+    documentation: '文件',
+    noResults: '沒有相符項目',
+    tryAnother: '請嘗試其他搜尋或清除篩選條件。',
+    clearFilters: '清除篩選條件',
+    filters: '篩選條件',
+    loadFailed: '無法載入目錄',
+    retry: '重試',
+    more: '顯示更多',
+    pinned: '已審核的提交',
+    snapshotHint: '內容來自 Hermes 目錄。瀏覽時不會連線來源程式碼儲存庫。',
+    installHint: '安裝前請檢查原始碼。變更將在新的工作階段中生效。',
+    results: count => `${count.toLocaleString('zh-Hant')} 個結果`,
+    back: '返回結果'
   }
-})
+} satisfies TranslationOverrides
+
+export const zhHant = defineLocale(zhHantOverrides)

@@ -1,8 +1,9 @@
 // Desktop i18n type contract.
 //
 // `Translations` is the single source of truth for every translatable string
-// surface. Bundled locale files use `defineCompleteLocale()` so a newly added
-// key fails typecheck until every language supplies it.
+// surface. `en` implements it directly; every other locale is a `defineLocale`
+// overlay, so a key missing from an overlay falls back to English at runtime
+// (catalog-completeness.test.ts reports each locale's fallback surface).
 
 import type { WisdomMuteCopy, WisdomSyncCopy } from '@hermes/shared'
 
@@ -10,6 +11,14 @@ import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
 export type Locale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' | 'de' | 'es'
+
+/** Silence phases named by agent/chat_completion_wait_notice.py (`_PHASE_TEXT`). */
+export type ProviderWaitPhase =
+  'first_event' | 'reconnect' | 'pre_progress' | 'post_event' | 'first_chunk' | 'post_chunk'
+
+/** Classifier reasons with their own retries-exhausted lead in
+ *  agent/turn_failure_copy.py (`_EXHAUSTED_LEADS`); `unknown` is its default lead. */
+export type ProviderExhaustedReason = 'rate_limit' | 'overloaded' | 'server_error' | 'timeout' | 'unknown'
 
 export interface WisdomTranslations {
   syncRecovery?: WisdomSyncCopy
@@ -505,6 +514,18 @@ export interface Translations {
       apiRetriesExhausted: (retries: string) => string
       invalidApiResponseAfterRetries: (retries: string, detail: string) => string
       resetsIn: (remaining: string) => string
+      /** agent/turn_failure_copy.py::exhausted_copy — lead + situation + backup hint;
+       *  `resetWindow` is the backend's `~3h` / `~45 min` when the quota reset is known. */
+      providerRetriesExhausted: (
+        reason: ProviderExhaustedReason,
+        label: string,
+        attempts: string,
+        resetWindow: string | null
+      ) => string
+      providerSaid: (summary: string) => string
+      /** agent/turn_failure_copy.py `invalid_response` site copy (without its Details line). */
+      providerInvalidResponse: (label: string, attempts: string) => string
+      errorDetailsLine: (detail: string) => string
       unknownProvider: (provider: string) => string
       fastModeUnavailable: string
       elevenLabsNeedsKey: string
@@ -1537,7 +1558,6 @@ export interface Translations {
       updateReady: (count: number) => string
       updateReadyUnknown: string
       lastChecked: (age: string) => string
-      justNowSuffix: string
       automaticUpdates: string
       automaticUpdatesDesc: string
       branchCommit: (branch: string, commit: string) => string
@@ -3048,7 +3068,6 @@ export interface Translations {
       renamed: string
       renameFailed: string
       renameTitle: string
-      renameDesc: string
       untitledPlaceholder: string
       deleteTitle: string
       deleteDesc: (title: string) => string
@@ -3349,7 +3368,6 @@ export interface Translations {
     minAgo: (count: number) => string
     hoursAgo: (count: number) => string
     daysAgo: (count: number) => string
-    justNowSuffix: string
     bundleOutOfSync: string
     bundleOutOfSyncDesc: string
     bundleOutOfSyncAction: string
@@ -3530,17 +3548,16 @@ export interface Translations {
       modelContinuing: (attempt: string, maxAttempts: string) => string
       providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
       providerRetrying: (retrySeconds: string, attempt: string, maxAttempts: string) => string
-      providerWaiting: (
-        provider: string,
-        elapsedSeconds: string,
-        kind: 'output' | 'response',
-        reconnectSeconds: string | null
-      ) => string
-      providerWaitingAfterActivity: (
-        provider: string,
-        elapsedSeconds: string,
-        kind: 'events' | 'response',
-        reconnectSeconds: string | null
+      /** One rendering per backend silence phase, given the seconds of silence. */
+      providerWaitPhases: Record<ProviderWaitPhase, (seconds: string) => string>
+      /** `⏳ waiting on {model} — {phase} (auto-reconnect: {label} watchdog in {n}s)`;
+       *  `stillWaiting` is the backend's near-deadline lead. The watchdog label is
+       *  the backend's own identifier (TTFB, stream idle, …) and stays verbatim. */
+      providerWaitNotice: (
+        model: string,
+        phaseText: string,
+        watchdog: { label: string; seconds: string } | null,
+        stillWaiting: boolean
       ) => string
       summarizingThread: string
       moaAggregating: string
@@ -4204,6 +4221,7 @@ export interface Translations {
       waitingBackendLaunch: string
       waitingBackendReady: string
       waitingForUpdate: string
+      waitingSetupChoice: string
     }
     errors: {
       backgroundExited: string
@@ -5514,7 +5532,6 @@ export interface Translations {
     tabCount: (count: number) => string
     toggleLayoutEditMode: string
     layoutNames: Record<string, string>
-    paneNames: Record<string, string>
   }
   contextMenu: {
     link: {

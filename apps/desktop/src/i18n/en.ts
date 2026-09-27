@@ -502,7 +502,8 @@ export const en: Translations = {
       usingRuntime: 'Using the installed Hermes runtime',
       waitingBackendLaunch: 'Waiting for Hermes backend to launch',
       waitingBackendReady: 'Waiting for Hermes backend to become ready',
-      waitingForUpdate: 'Waiting for the current update to finish…'
+      waitingForUpdate: 'Waiting for the current update to finish…',
+      waitingSetupChoice: 'Waiting for your first-run setup choice'
     },
     errors: {
       backgroundExited:
@@ -672,6 +673,25 @@ export const en: Translations = {
       apiRetriesExhausted: retries => `API call failed after ${retries} retries`,
       invalidApiResponseAfterRetries: (retries, detail) => `Invalid API response after ${retries} retries: ${detail}`,
       resetsIn: remaining => `It resets in ${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `${label} rate-limited every one of ${attempts} attempts`,
+          overloaded: `${label} reported it was overloaded on all ${attempts} attempts`,
+          server_error: `${label} returned a server error on all ${attempts} attempts`,
+          timeout: `${label} didn't respond in time on any of ${attempts} attempts`,
+          unknown: `${label} didn't answer after ${attempts} attempts`
+        }[reason]
+
+        const situation = resetWindow
+          ? `its usage limit resets in ${resetWindow}. Send /retry after that, or switch models with /model.`
+          : 'it looks temporarily unavailable. Wait a minute and send /retry, or switch models with /model.'
+
+        return `${lead} — ${situation} To avoid this in future, add a backup provider with \`hermes fallback add\`.`
+      },
+      providerSaid: summary => `Provider said: ${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `${label} sent back an empty or broken reply ${attempts} times — it is probably overloaded or rate-limiting you. Wait a minute and send /retry, or switch models with /model.`,
+      errorDetailsLine: detail => `Details: ${detail}`,
       elevenLabsNeedsKey: 'Voice input needs an ElevenLabs key. Add one in Settings → Keys.',
       elevenLabsRejectedKey: "ElevenLabs didn't accept your API key. Update it in Settings → Keys, then try again.",
       diskFull: 'Disk full — free some space, then try again.',
@@ -1624,8 +1644,7 @@ export const en: Translations = {
       justNow: 'just now',
       minAgo: count => `${count} min ago`,
       hoursAgo: count => `${count} hours ago`,
-      daysAgo: count => `${count} days ago`,
-      justNowSuffix: ' · just now'
+      daysAgo: count => `${count} days ago`
     },
     config: {
       none: 'None',
@@ -2198,20 +2217,20 @@ export const en: Translations = {
       apiModeChat: 'Chat Completions',
       apiModeResponses: 'Responses API',
       apiModeMessages: 'Anthropic Messages',
-      authSchemeLabel: 'Auth Header',
+      authSchemeLabel: 'Auth header',
       authSchemeAuto: 'Auto-detect',
       authSchemeHint:
         'Which header carries the API key on every wire. Auto-detect sends Authorization: Bearer on OpenAI-compatible routes and follows the known-host table on Anthropic-compatible ones; pin x-api-key or Bearer if the endpoint answers 401/403.',
       noModelCatalog: 'Endpoint is reachable. It does not expose a model catalog.',
       connectedNoModels: url => `Connected to ${url}, but the endpoint advertised no models.`,
-      defaultModelLabel: 'Default Model',
-      contextLabel: 'Model Token Limits',
+      defaultModelLabel: 'Default model',
+      contextLabel: 'Model token limits',
       contextHint:
         'Customize the total context, maximum input and maximum output for each model. Leave any value blank to resolve it automatically.',
       modelLabel: 'Model',
-      contextWindowLabel: 'Total Context',
-      maxInputLabel: 'Max Input',
-      maxOutputLabel: 'Max Output',
+      contextWindowLabel: 'Total context',
+      maxInputLabel: 'Max input',
+      maxOutputLabel: 'Max output',
       apiKeyLabel: 'API Key',
       userAgentLabel: 'User-Agent',
       userAgentHint:
@@ -2284,10 +2303,10 @@ export const en: Translations = {
       }
     },
     poolLimits: {
-      warmBackends: 'Warm Bot Backends',
+      warmBackends: 'Warm bot backends',
       warmBackendsDescription:
         'How many bot backends stay running for instant switching. Higher = faster switches, more memory (~60MB per backend). Applies immediately.',
-      idleTimeout: 'Backend Idle Timeout',
+      idleTimeout: 'Backend idle timeout',
       idleTimeoutDescription:
         'How long an unused bot backend stays warm before it is shut down. Raise this so bots you revisit every few minutes never pay a cold start.',
       idleTimeoutAria: 'Backend idle timeout in milliseconds',
@@ -3164,7 +3183,7 @@ export const en: Translations = {
       whySuggested: 'Why Hermes suggested this skill',
       sharePrompt: 'Would you like to share it?',
       reviewFirst: 'Review first',
-      notNow: 'Not Now',
+      notNow: 'Not now',
       yes: 'Yes',
       share: 'Share',
       reviewPreviousPage: 'Previous review page',
@@ -4917,7 +4936,6 @@ export const en: Translations = {
       renamed: 'Renamed',
       renameFailed: 'Rename failed',
       renameTitle: 'Rename session',
-      renameDesc: 'Leave empty to clear.',
       untitledPlaceholder: 'Untitled session',
       deleteTitle: 'Delete session?',
       deleteDesc: title => `This will permanently delete “${title}”. This cannot be undone.`,
@@ -5534,7 +5552,6 @@ export const en: Translations = {
     minAgo: count => `${count} min ago`,
     hoursAgo: count => `${count}h ago`,
     daysAgo: count => `${count}d ago`,
-    justNowSuffix: ' · just now',
     bundleOutOfSync: 'App build out of date',
     bundleOutOfSyncDesc:
       'The Hermes runtime was updated, but the desktop app itself is still an older build. Update it to pick up the latest fixes.',
@@ -6033,9 +6050,9 @@ export const en: Translations = {
     modelMenu: {
       search: 'Search models',
       noModels: 'No models found',
-      editModels: 'Edit Models…',
+      editModels: 'Edit models…',
       followDefault: 'Use Settings default',
-      refreshModels: 'Refresh Models',
+      refreshModels: 'Refresh models',
       fast: 'Fast',
       moaPresets: 'MOA presets'
     },
@@ -6405,13 +6422,6 @@ export const en: Translations = {
       focus: 'Focus',
       'terminal-deck': 'Terminal deck',
       quad: 'Quad'
-    },
-    paneNames: {
-      sessions: 'Sessions',
-      files: 'Files',
-      review: 'Review',
-      terminal: 'Terminal',
-      workspace: 'Workspace'
     }
   },
   contextMenu: {
@@ -6519,14 +6529,18 @@ export const en: Translations = {
         `No ${kind} from the provider after ${elapsedSeconds}s — reconnecting…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `Waiting for the provider — retrying in ${retrySeconds}s (attempt ${attempt}/${maxAttempts})`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `Waiting for ${provider} ${kind} — ${elapsedSeconds}s elapsed (the provider may be slow or overloaded${
-          kind === 'output' ? ', or the model may still be thinking' : ''
-        }${reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s` : ''})`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `Waiting for ${provider} — ${elapsedSeconds}s with no ${kind === 'events' ? 'stream events' : 'response after reconnect'} (the provider may be slow or overloaded${
-          reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s total elapsed` : ''
-        })`,
+      providerWaitPhases: {
+        first_event: seconds => `${seconds}s waiting for the first provider event`,
+        reconnect: seconds => `${seconds}s waiting for the first provider event after reconnect`,
+        pre_progress: seconds => `provider stream open; ${seconds}s without substantive model progress`,
+        post_event: seconds => `provider stream active; ${seconds}s without stream events`,
+        first_chunk: seconds => `${seconds}s waiting for the first stream chunk`,
+        post_chunk: seconds => `stream open; ${seconds}s without stream output`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${stillWaiting ? 'Still waiting' : 'Waiting'} for ${model} — ${phaseText}${
+          watchdog ? ` (auto-reconnect: ${watchdog.label} watchdog in ${watchdog.seconds}s)` : ''
+        }`,
       summarizingThread: 'Summarizing thread',
       moaAggregating: 'MoA aggregating…',
       moaReference: (label, index, count) =>

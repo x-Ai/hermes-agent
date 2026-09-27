@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { DesktopUpdateStatus, DesktopVersionInfo } from '@/global'
@@ -6,7 +6,7 @@ import { I18nProvider, type Locale, TRANSLATIONS, type Translations } from '@/i1
 import { en } from '@/i18n/en'
 import type { UpdateApplyState } from '@/store/updates'
 
-import { deriveUpdateStatus, VersionHero } from './update-status'
+import { deriveUpdateStatus, UpdateStatusCard, VersionHero } from './update-status'
 
 // VersionHero is the shared About/overlay hero. Its module imports the real
 // updates store graph; mock it shallowly — these tests exercise the hero's
@@ -115,6 +115,51 @@ describe('deriveUpdateStatus', () => {
     })
 
     expect(view.line).toBe(en.updates.latestBodyBackend)
+  })
+})
+
+describe('UpdateStatusCard last-checked line', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+  })
+
+  // Regression for the lost fix 49ba2e2698: after "Check now" the card read
+  // "Last checked just now · just now" — fetchedAt already renders "just now",
+  // so a second suffix for the fresh check is a duplicate, in every locale.
+  it.each(['en', 'zh'] as const)('shows the freshly checked relative time exactly once in %s', async locale => {
+    const updates = await import('@/store/updates')
+    const fetchedAt = Date.now()
+    updates.$updateApply.set(IDLE_APPLY)
+    updates.$updateStatus.set(null)
+    vi.mocked(updates.checkUpdates).mockImplementation(async () => {
+      updates.$updateStatus.set({ behind: 0, fetchedAt, supported: true })
+
+      return { behind: 0, fetchedAt, supported: true }
+    })
+    const copy = TRANSLATIONS[locale].updates
+
+    render(
+      <I18nProvider configClient={null} initialLocale={locale}>
+        <UpdateStatusCard showReleaseNotes={false} target="client" />
+      </I18nProvider>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: copy.checkNow }))
+    // Let the check's promise settle and any follow-up state land before reading.
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    const expected = copy.lastChecked(copy.justNow)
+
+    const line = screen.getByText(
+      (_, element) => element?.tagName === 'P' && (element.textContent ?? '').startsWith(expected)
+    )
+
+    expect(line.textContent).toBe(expected)
+    updates.$updateStatus.set(null)
   })
 })
 

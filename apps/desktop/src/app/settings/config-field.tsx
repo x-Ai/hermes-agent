@@ -155,11 +155,13 @@ export function ConfigField({
   }
 
   if (selectOptions) {
+    // ENUM_OPTIONS are display strings even for number-typed schema keys (the
+    // retry counts); a Select pick must still store the schema's type.
+    const pickedValue = (next: string): unknown =>
+      next === EMPTY_SELECT_VALUE ? '' : schema.type === 'number' && next.trim() !== '' ? Number(next) : next
+
     return row(
-      <Select
-        onValueChange={next => onChange(next === EMPTY_SELECT_VALUE ? '' : next)}
-        value={String(value ?? '') || EMPTY_SELECT_VALUE}
-      >
+      <Select onValueChange={next => onChange(pickedValue(next))} value={String(value ?? '') || EMPTY_SELECT_VALUE}>
         <SelectTrigger className={CONTROL_TEXT}>
           <SelectValue />
         </SelectTrigger>

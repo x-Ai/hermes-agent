@@ -12,6 +12,22 @@ describe('isProviderSetupErrorMessage', () => {
     expect(isProviderSetupErrorMessage('set an API key (OPENROUTER_API_KEY) in ~/.hermes/.env')).toBe(true)
   })
 
+  it('matches the current auth.no_provider_configured copy in every gateway locale', () => {
+    // en / zh / zh-hant / ja leads of locales/*.yaml `auth.no_provider_configured`.
+    expect(
+      isProviderSetupErrorMessage(
+        'Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key).'
+      )
+    ).toBe(true)
+    expect(isProviderSetupErrorMessage('Hermes 尚未连接任何 AI 提供方。运行 `hermes model` 选择一个。')).toBe(true)
+    expect(isProviderSetupErrorMessage('Hermes 尚未連接任何 AI 提供方。執行 `hermes model` 選擇一個。')).toBe(true)
+    expect(
+      isProviderSetupErrorMessage(
+        'Hermes はまだどの AI プロバイダーにも接続されていません。`hermes model` を実行して選択してください。'
+      )
+    ).toBe(true)
+  })
+
   it('matches the exact empty-key warning emitted in session.info', () => {
     expect(
       isProviderSetupErrorMessage("No API key configured for provider 'openrouter'. First message will fail.")

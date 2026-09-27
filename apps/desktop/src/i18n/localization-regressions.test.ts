@@ -4,39 +4,59 @@ import { en } from './en'
 import { zh } from './zh'
 import { zhHant } from './zh-hant'
 
+const CJK = /[㐀-鿿]/u
+const CHINESE = [zh, zhHant]
+
+// Contracts between the Chinese catalogs and English: protocol names stay
+// identical, user-facing copy must differ from English and be written in
+// Chinese. No literal wording is frozen here — re-polishing a string must
+// not fail these.
 describe('Chinese localization regressions', () => {
   it('keeps protocol names verbatim while localizing user-facing tier and bundled-plugin copy', () => {
-    expect(zh.settings.mcp.catalogAuthOAuth).toBe('OAuth')
-    expect(zh.shell.statusbar.toggleFreeTier).toBe('免费套餐')
-    expect(zh.shell.statusbar.toggleFreeTier).not.toBe(en.shell.statusbar.toggleFreeTier)
-    expect(zh.skills.plugins.bundledDescriptions['disk-cleanup']).not.toBe('')
-    expect(zh.skills.plugins.bundledDescriptions['security-guidance']).not.toBe('')
-    expect(zh.settings.config.alwaysExternalLinksTitle).not.toBe(en.settings.config.alwaysExternalLinksTitle)
-    expect(zh.settings.config.alwaysExternalLinksDesc).not.toBe(en.settings.config.alwaysExternalLinksDesc)
-    expect(zh.settings.config.voiceShortcutHintTitle).not.toBe(en.settings.config.voiceShortcutHintTitle)
-    expect(zh.settings.config.voiceShortcutHintDesc).not.toBe(en.settings.config.voiceShortcutHintDesc)
+    for (const locale of CHINESE) {
+      expect(locale.settings.mcp.catalogAuthOAuth).toBe(en.settings.mcp.catalogAuthOAuth)
+      expect(locale.shell.statusbar.toggleFreeTier).not.toBe(en.shell.statusbar.toggleFreeTier)
+      expect(locale.shell.statusbar.toggleFreeTier).toMatch(CJK)
+
+      for (const plugin of ['disk-cleanup', 'security-guidance'] as const) {
+        expect(locale.skills.plugins.bundledDescriptions[plugin], plugin).toMatch(CJK)
+        expect(locale.skills.plugins.bundledDescriptions[plugin], plugin).not.toBe(
+          en.skills.plugins.bundledDescriptions[plugin]
+        )
+      }
+
+      for (const key of [
+        'alwaysExternalLinksTitle',
+        'alwaysExternalLinksDesc',
+        'voiceShortcutHintTitle',
+        'voiceShortcutHintDesc'
+      ] as const) {
+        expect(locale.settings.config[key], key).not.toBe(en.settings.config[key])
+        expect(locale.settings.config[key], key).toMatch(CJK)
+      }
+    }
   })
 
   it('ships localized intro pools instead of falling through to generated English slogans', () => {
-    expect(zh.intro.stock.none).toHaveLength(5)
-    expect(zh.intro.stock.none?.every(line => /[\u3400-\u9fff]/u.test(line))).toBe(true)
+    for (const locale of CHINESE) {
+      const pool = locale.intro.stock.none ?? []
+
+      expect(pool.length).toBeGreaterThan(0)
+      expect(pool.every(line => CJK.test(line))).toBe(true)
+    }
   })
 
   it('localizes bundled layout preset names instead of rendering their English titles', () => {
-    expect(zh.zones.layoutNames).toMatchObject({
-      'sidebar-left': '左侧边栏',
-      'sidebar-right': '右侧边栏',
-      basic: '基础'
-    })
-    expect(zhHant.zones.layoutNames).toMatchObject({
-      'sidebar-left': '左側邊欄',
-      'sidebar-right': '右側邊欄',
-      basic: '基礎'
-    })
+    for (const locale of CHINESE) {
+      for (const [id, title] of Object.entries(en.zones.layoutNames)) {
+        expect(locale.zones.layoutNames[id], id).toMatch(CJK)
+        expect(locale.zones.layoutNames[id], id).not.toBe(title)
+      }
+    }
   })
 
   it('keeps newly added capability and error surfaces localized in Chinese', () => {
-    for (const locale of [zh, zhHant]) {
+    for (const locale of CHINESE) {
       expect(locale.connectorsPage.title).not.toBe(en.connectorsPage.title)
       expect(locale.connectorsPage.page.loading).not.toBe(en.connectorsPage.page.loading)
       expect(locale.settings.customEndpoints.authSchemeLabel).not.toBe(en.settings.customEndpoints.authSchemeLabel)
@@ -44,34 +64,44 @@ describe('Chinese localization regressions', () => {
         en.assistant.thread.errorCodes.context_overflow.title
       )
       expect(locale.assistant.catalogInstall.securityHeading).not.toBe(en.assistant.catalogInstall.securityHeading)
-      expect(locale.settings.toolsets.tagCopy['Managed web search and extract billed to your subscription']).toBeTruthy()
+
+      // Every backend tag English knows has a Chinese rendering that is not the tag itself.
+      for (const tag of Object.keys(en.settings.toolsets.tagCopy)) {
+        expect(locale.settings.toolsets.tagCopy[tag], tag).toBeTruthy()
+        expect(locale.settings.toolsets.tagCopy[tag], tag).not.toBe(tag)
+      }
     }
   })
 
   it('localizes the connectors directory and custom MCP form while preserving protocol names', () => {
-    for (const locale of [zh, zhHant]) {
+    for (const locale of CHINESE) {
       const page = locale.connectorsPage
 
       expect(page.title).not.toBe(en.connectorsPage.title)
       expect(page.searchPlaceholder(65)).not.toBe(en.connectorsPage.searchPlaceholder(65))
       expect(page.page.managedUnavailable).not.toBe(en.connectorsPage.page.managedUnavailable)
       expect(page.group.available).not.toBe(en.connectorsPage.group.available)
-      expect(page.add.action).not.toBe(en.connectorsPage.add.action)
-      expect(page.add.title).not.toBe(en.connectorsPage.add.title)
-      expect(page.add.pasteLabel).not.toBe(en.connectorsPage.add.pasteLabel)
-      expect(page.add.command).not.toBe(en.connectorsPage.add.command)
-      expect(page.add.args).not.toBe(en.connectorsPage.add.args)
-      expect(page.add.envVars).not.toBe(en.connectorsPage.add.envVars)
-      expect(page.add.passthrough).not.toBe(en.connectorsPage.add.passthrough)
-      expect(page.add.cwd).not.toBe(en.connectorsPage.add.cwd)
-      expect(page.add.headers).not.toBe(en.connectorsPage.add.headers)
-      expect(page.add.auth).not.toBe(en.connectorsPage.add.auth)
-      expect(page.add.editJson).not.toBe(en.connectorsPage.add.editJson)
-      expect(page.add.typeStdio).toBe('STDIO')
-      expect(page.add.typeHttp).toBe('Streamable HTTP')
-      expect(page.add.url).toBe('URL')
-      expect(page.add.authOauth).toBe('OAuth')
-      expect(page.add.authBearer).toBe('Bearer token')
+
+      for (const key of [
+        'action',
+        'title',
+        'pasteLabel',
+        'command',
+        'args',
+        'envVars',
+        'passthrough',
+        'cwd',
+        'headers',
+        'auth',
+        'editJson'
+      ] as const) {
+        expect(page.add[key], key).not.toBe(en.connectorsPage.add[key])
+      }
+
+      // Protocol and scheme names are identifiers, kept exactly as English spells them.
+      for (const key of ['typeStdio', 'typeHttp', 'url', 'authOauth', 'authBearer'] as const) {
+        expect(page.add[key], key).toBe(en.connectorsPage.add[key])
+      }
     }
   })
 })

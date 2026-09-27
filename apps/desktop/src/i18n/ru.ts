@@ -1,6 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineLocale } from './define-locale'
+import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
 
 // RU_PLURAL: (count, one, few, many) — русские формы сущ. падежа
@@ -24,7 +24,7 @@ const RU_NOUN = (count: number | string, one: string, few: string, many: string)
   return n === 1 && nn !== 11 ? one : n >= 2 && n <= 4 && (nn < 12 || nn > 14) ? few : many
 }
 
-export const ru = defineLocale({
+export const ruOverrides = {
   connectors: {
     title: 'Подключите приложения',
     connect: 'Подключить',
@@ -211,7 +211,8 @@ export const ru = defineLocale({
       usingRuntime: 'Использование установленной среды Hermes',
       waitingBackendLaunch: 'Ожидание запуска бэкенда Hermes',
       waitingBackendReady: 'Ожидание готовности бэкенда Hermes',
-      waitingForUpdate: 'Ожидание завершения текущего обновления…'
+      waitingForUpdate: 'Ожидание завершения текущего обновления…',
+      waitingSetupChoice: 'Ожидание вашего выбора при первом запуске'
     },
     errors: {
       backgroundExited: 'Фоновый процесс Hermes завершён.',
@@ -379,6 +380,25 @@ export const ru = defineLocale({
       invalidApiResponseAfterRetries: (retries, detail) =>
         `Недопустимый ответ API после ${retries} повторных попыток: ${detail}`,
       resetsIn: remaining => `До сброса: ${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `${label} ограничил частоту запросов во всех ${attempts} попытках`,
+          overloaded: `${label} сообщил о перегрузке во всех ${attempts} попытках`,
+          server_error: `${label} вернул ошибку сервера во всех ${attempts} попытках`,
+          timeout: `${label} не ответил вовремя ни в одной из ${attempts} попыток`,
+          unknown: `${label} не ответил после ${attempts} попыток`
+        }[reason]
+
+        const situation = resetWindow
+          ? `его лимит использования сбросится через ${resetWindow}. После этого отправьте /retry или смените модель командой /model.`
+          : 'похоже, он временно недоступен. Подождите минуту и отправьте /retry или смените модель командой /model.'
+
+        return `${lead} — ${situation} Чтобы избежать этого в будущем, добавьте резервного провайдера командой \`hermes fallback add\`.`
+      },
+      providerSaid: summary => `Ответ провайдера: ${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `${label} ${attempts} раз подряд вернул пустой или повреждённый ответ — вероятно, он перегружен или ограничивает ваши запросы. Подождите минуту и отправьте /retry или смените модель командой /model.`,
+      errorDetailsLine: detail => `Подробности: ${detail}`,
       elevenLabsNeedsKey: 'Для STT ElevenLabs нужен ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'ElevenLabs отклонил API-ключ (401).',
       diskFull: 'Диск заполнен — освободите место и повторите.',
@@ -946,7 +966,8 @@ export const ru = defineLocale({
         installUncertain:
           'Hermes перестал ждать результат установки, но плагин может всё ещё устанавливаться. Закройте это окно и обновите список плагинов перед повторной установкой.',
         desktopFailed: 'Не удалось установить плагин приложения',
-        missingEnv: (_name, vars) => `Не хватает переменных окружения: ${vars}. Добавьте их в Настройки → Ключи.`,
+        missingEnv: (name, vars) =>
+          `${name} установлен, но для работы ему нужен ключ: ${vars}. Добавьте его сейчас, иначе инструменты плагина не будут работать.`,
         profileLabel: 'Установить для профиля'
       }
     },
@@ -1506,7 +1527,7 @@ export const ru = defineLocale({
         imageInputMode: 'Управляет тем, как вложения изображений отправляются модели.',
         maxTurns: 'Верхний предел ходов с вызовами инструментов, после которого Hermes останавливает запуск.',
         outputTruncationRetries:
-          'Повторять запрос только когда провайдер сообщает о лимите выходных токенов до появления видимого текста. Каждый повтор заново отправляет тот же запрос и может тарифицироваться повторно. Оставьте 0 (рекомендуется); максимум 3.',
+          'Сколько раз продолжать ответ, оборванный на лимите выходных токенов провайдера (0–3). Каждое продолжение заново отправляет весь запрос и может тарифицироваться повторно; 0 сразу возвращает частичный ответ. По умолчанию 3.',
         postToolEmptyRetries:
           'Отправлять подсказку на продолжение, если после вызова инструментов нет видимого текста. Каждый повтор может тарифицироваться. 0 — выключить; максимум 3.',
         thinkingPrefillRetries:
@@ -1627,8 +1648,7 @@ export const ru = defineLocale({
       justNow: 'только что',
       minAgo: count => `${count} ${RU_NOUN(count, 'минуту', 'минуты', 'минут')} назад`,
       hoursAgo: count => `${count} ${RU_NOUN(count, 'час', 'часа', 'часов')} назад`,
-      daysAgo: count => `${count} ${RU_NOUN(count, 'день', 'дня', 'дней')} назад`,
-      justNowSuffix: ' · только что'
+      daysAgo: count => `${count} ${RU_NOUN(count, 'день', 'дня', 'дней')} назад`
     },
     config: {
       none: 'Нет',
@@ -2119,8 +2139,7 @@ export const ru = defineLocale({
         profile_describer: {
           label: 'Описатель профиля',
           hint: 'Описания автопрофилей'
-        },
-        web_extract: { label: 'Веб-извлечение', hint: 'Суммаризация страниц' }
+        }
       },
       inheritMainEffort: 'наследовать · усилие основной модели',
       moaTitle: 'Смесь агентов'
@@ -2356,11 +2375,11 @@ export const ru = defineLocale({
       browseFitUnknown: 'Подходит неизвестно',
       browseAlreadyDownloaded: 'Уже скачал.',
       addedByYou: 'Добавлено вами',
-      browseDownloadStarted: 'Загрузка {имя}',
-      browseDownloadAria: 'Скачать {имя}',
+      browseDownloadStarted: 'Загрузка {name}',
+      browseDownloadAria: 'Скачать {name}',
       sideloadButton: 'Добавить файл модели',
       sideloadTitle: 'Выберите файл модели GGUF.',
-      sideloadDone: 'Добавлено {имя}.',
+      sideloadDone: 'Добавлено {name}.',
       sideloadAlreadyPresent: 'Уже в вашей библиотеке.',
       pillFullContext: max => `Полный${max}контекст`,
       pillFullContextTip: 'Запускается в полном контекстном окне модели с самого начала.',
@@ -4241,7 +4260,6 @@ export const ru = defineLocale({
       renamed: 'Переименовано',
       renameFailed: 'Переименование не удалось',
       renameTitle: 'Переименовать сеанс',
-      renameDesc: 'Оставьте пустым, чтобы очистить.',
       untitledPlaceholder: 'Сеанс без названия',
       deleteTitle: 'Удалить сеанс?',
       deleteDesc: title => `Это навсегда удалит «${title}». Это действие необратимо.`,
@@ -5666,13 +5684,6 @@ export const ru = defineLocale({
       focus: 'Фокус',
       'terminal-deck': 'Терминальная панель',
       quad: 'Четыре панели'
-    },
-    paneNames: {
-      sessions: 'Сеансы',
-      files: 'Файлы',
-      review: 'Проверка',
-      terminal: 'Терминал',
-      workspace: 'Рабочая область'
     }
   },
   contextMenu: {
@@ -5781,14 +5792,18 @@ export const ru = defineLocale({
         `No ${kind} from the provider after ${elapsedSeconds}s - воссоединение..`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `Ожидание провайдера — повтор через ${retrySeconds} с (попытка ${attempt}/${maxAttempts})`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `Waiting for ${provider} ${kind} — ${elapsedSeconds}(поставщик может быть медленным или перегруженным)${
-          kind === 'output' ? 'или модель все еще может думать' : ''
-        }${reconnectSeconds ? `; automatically reconnecting at ${reconnectSeconds}s` : ''})`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `Ожидание ${provider} — ${elapsedSeconds} с без ${kind === 'events' ? 'событий потока' : 'ответа после переподключения'} (провайдер может отвечать медленно или быть перегружен${
-          reconnectSeconds ? `; автоматическое переподключение через ${reconnectSeconds} с от начала ожидания` : ''
-        })`,
+      providerWaitPhases: {
+        first_event: seconds => `${seconds} с ожидания первого события провайдера`,
+        reconnect: seconds => `${seconds} с ожидания первого события провайдера после переподключения`,
+        pre_progress: seconds => `поток провайдера открыт; ${seconds} с без существенного прогресса модели`,
+        post_event: seconds => `поток провайдера активен; ${seconds} с без событий потока`,
+        first_chunk: seconds => `${seconds} с ожидания первого фрагмента потока`,
+        post_chunk: seconds => `поток открыт; ${seconds} с без вывода потока`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${stillWaiting ? 'Всё ещё ожидаем' : 'Ожидаем'} ${model} — ${phaseText}${
+          watchdog ? ` (автопереподключение: сторожевой таймер «${watchdog.label}» через ${watchdog.seconds} с)` : ''
+        }`,
       summarizingThread: 'Резюмирующая нить',
       moaAggregating: 'МоА агрегирует..',
       moaReference: (label, index, count) =>
@@ -6587,4 +6602,6 @@ export const ru = defineLocale({
     confirmAction: 'Подтвердить',
     declined: 'Изменение модели отменено — вы отклонили предупреждение уровня обучения данных.'
   }
-})
+} satisfies TranslationOverrides
+
+export const ru = defineLocale(ruOverrides)

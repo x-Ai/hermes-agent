@@ -3976,12 +3976,21 @@ function english(key: string, ...args: unknown[]): string {
 
 let bound: { text: BotsText; translate: PluginTranslate } | null = null
 
+/** Drop the cached binding. `bind` resolves string leaves eagerly against the
+ *  locale active at bind time and `ctx.i18n.t` keeps one identity for the
+ *  plugin's whole life, so without this every `botsText()` string stayed in
+ *  the first locale after the saved language loaded or the user switched.
+ *  `register` wires it to `ctx.i18n.onLocaleChange`. */
+export function resetBotsText(): void {
+  bound = null
+}
+
 /** `useBots` for the module-level functions a hook can't reach — the schedule
  *  summarizers and label helpers that render inside components but aren't
  *  components. Non-reactive on its own; every caller is invoked during a
  *  render that a core `useI18n()` already subscribes to, so a locale switch
- *  still repaints. Cached on translator identity: `bind` walks the whole tree,
- *  and these run per row. */
+ *  still repaints. Cached on translator identity (`bind` walks the whole tree,
+ *  and these run per row) and dropped by `resetBotsText` on a locale change. */
 export function botsText(): BotsText {
   const translate = getPluginCtx()?.i18n?.t ?? english
 

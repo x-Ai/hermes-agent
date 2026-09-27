@@ -185,13 +185,13 @@ describe('CustomEndpointsSettings', () => {
     fireEvent.change(screen.getByPlaceholderText('gpt-5.4'), { target: { value: 'claude-fable-5' } })
     fireEvent.click(screen.getByRole('button', { name: 'Anthropic Messages' }))
     fireEvent.click(screen.getByRole('button', { name: 'Authorization: Bearer' }))
-    fireEvent.change(screen.getByLabelText('Total Context: claude-fable-5'), {
+    fireEvent.change(screen.getByLabelText(`${en.settings.customEndpoints.contextWindowLabel}: claude-fable-5`), {
       target: { value: '200000' }
     })
-    fireEvent.change(screen.getByLabelText('Max Input: claude-fable-5'), {
+    fireEvent.change(screen.getByLabelText(`${en.settings.customEndpoints.maxInputLabel}: claude-fable-5`), {
       target: { value: '180000' }
     })
-    fireEvent.change(screen.getByLabelText('Max Output: claude-fable-5'), {
+    fireEvent.change(screen.getByLabelText(`${en.settings.customEndpoints.maxOutputLabel}: claude-fable-5`), {
       target: { value: '20000' }
     })
     fireEvent.change(
@@ -202,7 +202,9 @@ describe('CustomEndpointsSettings', () => {
         target: { value: 'Hermes Desktop Test' }
       }
     )
-    fireEvent.change(screen.getByLabelText('Max Output: All models (default)'), { target: { value: '32000' } })
+    fireEvent.change(screen.getByLabelText(`${en.settings.customEndpoints.maxOutputLabel}: All models (default)`), {
+      target: { value: '32000' }
+    })
     fireEvent.change(screen.getByLabelText('Vision: claude-fable-5'), { target: { value: 'yes' } })
     fireEvent.click(screen.getByRole('button', { name: en.settings.customEndpoints.addHeader }))
     fireEvent.change(screen.getByPlaceholderText(en.settings.customEndpoints.headerNamePlaceholder), {
@@ -313,9 +315,18 @@ describe('CustomEndpointsSettings', () => {
     expect(screen.getByRole('button', { name: 'Anthropic Messages' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByRole('button', { name: 'Authorization: Bearer' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByPlaceholderText('axet-proxy')).toHaveProperty('disabled', true)
-    expect(screen.getByLabelText('Total Context: model-a')).toHaveProperty('value', '128000')
-    expect(screen.getByLabelText('Max Input: model-a')).toHaveProperty('value', '96000')
-    expect(screen.getByLabelText('Max Output: model-a')).toHaveProperty('value', '32000')
+    expect(screen.getByLabelText(`${en.settings.customEndpoints.contextWindowLabel}: model-a`)).toHaveProperty(
+      'value',
+      '128000'
+    )
+    expect(screen.getByLabelText(`${en.settings.customEndpoints.maxInputLabel}: model-a`)).toHaveProperty(
+      'value',
+      '96000'
+    )
+    expect(screen.getByLabelText(`${en.settings.customEndpoints.maxOutputLabel}: model-a`)).toHaveProperty(
+      'value',
+      '32000'
+    )
     expect(screen.getByDisplayValue('Existing relay agent')).toBeTruthy()
   })
 

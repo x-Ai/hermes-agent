@@ -12,6 +12,7 @@ const BOOT_PHASE_COPY = {
   'backend.update-wait': 'waitingForUpdate',
   'backend.port': 'waitingBackendLaunch',
   'backend.wait': 'waitingBackendReady',
+  'bootstrap.choice': 'waitingSetupChoice',
   'renderer.boot': 'startingDesktopConnection',
   'renderer.config': 'loadingSettings',
   'renderer.gateway.connect': 'connectingGateway',

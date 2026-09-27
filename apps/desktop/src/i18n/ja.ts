@@ -1,10 +1,10 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineLocale } from './define-locale'
+import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
 import { introJa } from './intro-ja'
 
-export const ja = defineLocale({
+export const jaOverrides = {
   externalOpenFailed: {
     title: 'このリンクを開けませんでした',
     message: 'このアドレスを開くブラウザが登録されていません。リンクをコピーして手動で開いてください。',
@@ -198,7 +198,8 @@ export const ja = defineLocale({
       usingRuntime: 'インストール済みの Hermes ランタイムを使用中',
       waitingBackendLaunch: 'Hermes バックエンドの起動を待機中',
       waitingBackendReady: 'Hermes バックエンドの準備完了を待機中',
-      waitingForUpdate: '現在の更新が完了するまで待機中…'
+      waitingForUpdate: '現在の更新が完了するまで待機中…',
+      waitingSetupChoice: '初回セットアップの選択を待っています'
     },
     errors: {
       backgroundExited: 'Hermes バックグラウンドプロセスが終了しました。',
@@ -364,6 +365,25 @@ export const ja = defineLocale({
       apiRetriesExhausted: retries => `API 呼び出しは ${retries} 回再試行しても失敗しました`,
       invalidApiResponseAfterRetries: (retries, detail) => `API レスポンスが無効です（${retries} 回再試行）：${detail}`,
       resetsIn: remaining => `リセットまで：${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `${label} は ${attempts} 回の試行すべてでレート制限を返しました`,
+          overloaded: `${label} は ${attempts} 回の試行すべてで過負荷を報告しました`,
+          server_error: `${label} は ${attempts} 回の試行すべてでサーバーエラーを返しました`,
+          timeout: `${label} は ${attempts} 回の試行のいずれでも時間内に応答しませんでした`,
+          unknown: `${label} は ${attempts} 回試行しても応答しませんでした`
+        }[reason]
+
+        const situation = resetWindow
+          ? `利用上限は ${resetWindow} 後にリセットされます。その後に /retry を送るか、/model でモデルを切り替えてください。`
+          : '一時的に利用できないようです。1 分ほど待って /retry を送るか、/model でモデルを切り替えてください。'
+
+        return `${lead} — ${situation}今後これを避けるには、\`hermes fallback add\` でバックアップのプロバイダーを追加してください。`
+      },
+      providerSaid: summary => `プロバイダーの応答: ${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `${label} は ${attempts} 回連続で空または壊れた応答を返しました — 過負荷か、レート制限を受けている可能性があります。1 分ほど待って /retry を送るか、/model でモデルを切り替えてください。`,
+      errorDetailsLine: detail => `詳細: ${detail}`,
       elevenLabsNeedsKey: 'ElevenLabs STT には ELEVENLABS_API_KEY が必要です。',
       elevenLabsRejectedKey: 'ElevenLabs が API キーを拒否しました (401)。',
       diskFull: 'ディスク容量不足です — 空きを作ってからもう一度お試しください。',
@@ -1004,7 +1024,7 @@ export const ja = defineLocale({
         agentFailed: 'エージェントプラグインのインストールに失敗しました',
         desktopFailed: 'デスクトッププラグインのインストールに失敗しました',
         missingEnv: (name, vars) =>
-          `${name} is installed but needs a key before it can work: ${vars}。今すぐ追加しないと、プラグインのツールが失敗します。`,
+          `${name} はインストールされましたが、動作にはキーが必要です：${vars}。今すぐ追加しないと、プラグインのツールが失敗します。`,
         profileLabel: 'プロファイル用にインストールする'
       }
     },
@@ -1563,7 +1583,7 @@ export const ja = defineLocale({
         imageInputMode: '画像添付をモデルへ送る方法を制御します。',
         maxTurns: 'Hermes が 1 回の実行を停止するまでのツール呼び出しターン上限です。',
         outputTruncationRetries:
-          'プロバイダーが出力トークン上限を報告し、表示可能なテキストが生成されなかった場合のみ再試行します。再試行ごとに同じプロンプトが再送信され、再度課金される可能性があります。0（推奨）のままにしてください。最大 3 回です。',
+          'プロバイダーの出力トークン上限で途切れた応答を続きから生成する回数（0～3）。続きの生成ごとにプロンプト全体が再送信され、再度課金される可能性があります。0 にすると途中までの回答をそのまま返します。既定は 3 回です。',
         postToolEmptyRetries:
           'ツール呼び出し後に表示可能なテキストが返らない場合、続行を促します。再試行ごとに再課金される可能性があります。0 で無効、最大 3 回です。',
         thinkingPrefillRetries:
@@ -1663,8 +1683,7 @@ export const ja = defineLocale({
       justNow: 'たった今',
       minAgo: count => `${count} 分前`,
       hoursAgo: count => `${count} 時間前`,
-      daysAgo: count => `${count} 日前`,
-      justNowSuffix: ' · たった今'
+      daysAgo: count => `${count} 日前`
     },
     config: {
       none: 'なし',
@@ -5293,7 +5312,6 @@ export const ja = defineLocale({
       renamed: '名前を変更しました',
       renameFailed: '名前の変更に失敗しました',
       renameTitle: 'セッションの名前を変更',
-      renameDesc: '空欄にするとクリアされます。',
       untitledPlaceholder: '無題のセッション',
       deleteTitle: 'セッションを削除しますか？',
       deleteDesc: title => `「${title}」を完全に削除します。この操作は元に戻せません。`,
@@ -6729,13 +6747,6 @@ export const ja = defineLocale({
       focus: 'フォーカス',
       'terminal-deck': 'ターミナルデッキ',
       quad: 'クワッド'
-    },
-    paneNames: {
-      sessions: 'セッション',
-      files: 'ファイル',
-      review: 'レビュー',
-      terminal: 'ターミナル',
-      workspace: 'ワークスペース'
     }
   },
   contextMenu: {
@@ -6844,14 +6855,19 @@ export const ja = defineLocale({
         `プロバイダーから${kind === 'output' ? '出力' : '応答'}がないまま ${elapsedSeconds} 秒経過したため、再接続しています…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `プロバイダーを待っています — ${retrySeconds} 秒後に再試行（${attempt}/${maxAttempts} 回目）`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `${provider} の${kind === 'output' ? '出力' : '応答'}を待っています — ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
-          kind === 'output' ? '。モデルがまだ思考中の可能性もあります' : ''
-        }${reconnectSeconds ? `。${reconnectSeconds} 秒経過時に自動で再接続します` : ''}）`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `${provider} を待っています — ${kind === 'events' ? 'ストリームイベントがないまま' : '再接続後に応答がないまま'} ${elapsedSeconds} 秒経過（プロバイダーの応答が遅いか過負荷の可能性があります${
-          reconnectSeconds ? `。合計 ${reconnectSeconds} 秒経過時に自動で再接続します` : ''
-        }）`,
+      providerWaitPhases: {
+        first_event: seconds => `最初のプロバイダーイベントを ${seconds} 秒待機中`,
+        reconnect: seconds => `再接続後、最初のプロバイダーイベントを ${seconds} 秒待機中`,
+        pre_progress: seconds =>
+          `プロバイダーのストリームは開いていますが、${seconds} 秒間モデルの実質的な進捗がありません`,
+        post_event: seconds => `プロバイダーのストリームは動作中ですが、${seconds} 秒間ストリームイベントがありません`,
+        first_chunk: seconds => `最初のストリームチャンクを ${seconds} 秒待機中`,
+        post_chunk: seconds => `ストリームは開いていますが、${seconds} 秒間ストリーム出力がありません`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${model} を${stillWaiting ? '引き続き' : ''}待っています — ${phaseText}${
+          watchdog ? `（自動再接続: ${watchdog.label} ウォッチドッグが ${watchdog.seconds} 秒後に作動）` : ''
+        }`,
       summarizingThread: '会話を整理中',
       moaAggregating: 'MoA で集約中…',
       moaReference: (label, index, count) =>
@@ -7625,4 +7641,6 @@ export const ja = defineLocale({
     confirmAction: '確認',
     declined: 'モデル変更をキャンセルしました — データ学習ティアの警告を拒否しました。'
   }
-})
+} satisfies TranslationOverrides
+
+export const ja = defineLocale(jaOverrides)

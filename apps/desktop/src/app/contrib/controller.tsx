@@ -41,6 +41,7 @@ import { Slot } from '@/contrib/react/slot'
 import { registry } from '@/contrib/registry'
 import { discoverRuntimePlugins } from '@/contrib/runtime-loader'
 import { LocalizedTabTitle, translateForLocale, translateNow } from '@/i18n'
+import { subscribeRuntimeI18nLocale } from '@/i18n/runtime'
 import { NEW_SESSION_TITLE, sessionTitle as storedSessionTitle } from '@/lib/chat-runtime'
 import {
   Download,
@@ -281,14 +282,14 @@ registry.registerMany([
 // auto-discovered by discoverBundledPlugins() below.
 // ---------------------------------------------------------------------------
 
-registry.registerMany([
-  // Titlebar center stays empty on purpose: session title lives in tabs +
-  // sidebar; place/cwd lives in the sidebar project tree. Center is drag
-  // chrome (plugins can still contribute to titleBar.center if needed).
-  // Layout edit mode registers through the SAME declarative surfaces plugins
-  // use: a rebindable keybind (collision-checked in the panel) + a ⌘K row
-  // whose hotkey hint tracks the live binding.
-  {
+// Layout edit mode registers through the SAME declarative surfaces plugins
+// use: a rebindable keybind (collision-checked in the panel) + a ⌘K row
+// whose hotkey hint tracks the live binding. A keybind label is a plain
+// string the panel renders as-is, so unlike the palette row it cannot take a
+// locale callback: re-register on a locale change instead (the kanban plugin
+// does the same for its keybind), or the label freezes in the boot locale.
+const registerLayoutEditKeybind = (): (() => void) =>
+  registry.register({
     id: 'layout.editMode',
     area: KEYBINDS_AREA,
     data: {
@@ -297,7 +298,18 @@ registry.registerMany([
       defaults: ['mod+shift+\\'],
       run: toggleLayoutEditMode
     } satisfies KeybindContribution
-  },
+  })
+
+let disposeLayoutEditKeybind = registerLayoutEditKeybind()
+subscribeRuntimeI18nLocale(() => {
+  disposeLayoutEditKeybind()
+  disposeLayoutEditKeybind = registerLayoutEditKeybind()
+})
+
+registry.registerMany([
+  // Titlebar center stays empty on purpose: session title lives in tabs +
+  // sidebar; place/cwd lives in the sidebar project tree. Center is drag
+  // chrome (plugins can still contribute to titleBar.center if needed).
   paletteToggle({
     id: 'layout.editMode',
     label: locale => translateForLocale(locale, 'zones.toggleLayoutEditMode'),

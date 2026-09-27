@@ -1,35 +1,136 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { TRANSLATIONS } from '@/i18n'
+import { type Locale, type ProviderWaitPhase, TRANSLATIONS } from '@/i18n'
 
-import { localizeProviderWaitText } from './provider-wait-localization'
+import { isProviderWaitNotice, localizeProviderWaitText } from './provider-wait-localization'
 
-const copy = TRANSLATIONS.zh.assistant.thread
+// ── agent/chat_completion_wait_notice.py, mirrored as its format strings ──
+// (`_PHASE_TEXT` + `wait_notice_text`), so every fixture below is composed the
+// way the backend composes it rather than hand-typed prose.
+const PHASE_TEXT: Record<ProviderWaitPhase, string> = {
+  first_event: '{n}s waiting for the first provider event',
+  reconnect: '{n}s waiting for the first provider event after reconnect',
+  pre_progress: 'provider stream open; {n}s without substantive model progress',
+  post_event: 'provider stream active; {n}s without stream events',
+  first_chunk: '{n}s waiting for the first stream chunk',
+  post_chunk: 'stream open; {n}s without stream output'
+}
 
-describe('localizeProviderWaitText', () => {
-  it.each([
-    { variant: 'elapsed-first', kind: 'output' as const, elapsedSeconds: '57', reconnectSeconds: '900' },
-    { variant: 'elapsed-first', kind: 'response' as const, elapsedSeconds: '30', reconnectSeconds: null },
-    { variant: 'stream-first', kind: 'output' as const, elapsedSeconds: '61', reconnectSeconds: '347' },
-    { variant: 'stream-first', kind: 'response' as const, elapsedSeconds: '43', reconnectSeconds: null }
-  ])('passes every $variant $kind field from the wire to the locale formatter', testCase => {
-    const { variant, kind, elapsedSeconds, reconnectSeconds } = testCase
-    const model = `model/${variant}-${kind}`
-    const thinking = kind === 'output' ? ', or the model is thinking' : ''
-    const reconnect = reconnectSeconds ? `; auto-reconnect at ${reconnectSeconds}s` : ''
-    const wait =
-      variant === 'stream-first' ? `no stream ${kind} for ${elapsedSeconds}s` : `${elapsedSeconds}s with no ${kind} yet`
-    const raw = `⏳ waiting on ${model} — ${wait} (provider may be slow or overloaded${thinking}${reconnect})`
-    const localized = `localized:${model}:${elapsedSeconds}:${kind}:${reconnectSeconds ?? 'none'}`
-    const providerWaiting = vi.fn(() => localized)
+const NEAR_DEADLINE_SECS = 15
 
-    expect(localizeProviderWaitText(raw, { ...copy, providerWaiting })).toBe(localized)
-    expect(providerWaiting).toHaveBeenCalledWith(model, elapsedSeconds, kind, reconnectSeconds)
+type Watchdog = [label: string, remaining: number] | null
+
+function waitNoticeText(model: string, silenceSecs: number, phase: ProviderWaitPhase, watchdog: Watchdog): string {
+  const nearDeadline = watchdog !== null && watchdog[1] <= NEAR_DEADLINE_SECS
+  const lead = nearDeadline ? 'still waiting on' : 'waiting on'
+  let text = `⏳ ${lead} ${model} — ${PHASE_TEXT[phase].replace('{n}', String(Math.trunc(silenceSecs)))}`
+
+  if (watchdog !== null) {
+    text += ` (auto-reconnect: ${watchdog[0]} watchdog in ${Math.max(0, Math.trunc(watchdog[1]))}s)`
+  }
+
+  return text
+}
+
+const PHASES = Object.keys(PHASE_TEXT) as ProviderWaitPhase[]
+// Labels the backend hands wait_notice_text (codex_watchdog_deadline / the
+// stream monitor): far from and inside the near-deadline window.
+const WATCHDOGS: Watchdog[] = [null, ['stream stale', 240.4], ['TTFB', 9.6]]
+const LOCALES = Object.keys(TRANSLATIONS) as Locale[]
+
+describe('current wait notices', () => {
+  it.each(PHASES.flatMap(phase => WATCHDOGS.map(watchdog => ({ phase, watchdog }))))(
+    'renders $phase with watchdog $watchdog from the phase copy and keeps the numbers',
+    ({ phase, watchdog }) => {
+      const raw = waitNoticeText('gpt-5.5-codex', 61.9, phase, watchdog)
+      const still = watchdog !== null && watchdog[1] <= NEAR_DEADLINE_SECS
+
+      expect(isProviderWaitNotice(raw)).toBe(true)
+
+      for (const locale of LOCALES) {
+        const copy = TRANSLATIONS[locale].assistant.thread
+
+        const expected = copy.providerWaitNotice(
+          'gpt-5.5-codex',
+          copy.providerWaitPhases[phase]('61'),
+          watchdog ? { label: watchdog[0], seconds: String(Math.trunc(watchdog[1])) } : null,
+          still
+        )
+
+        expect(localizeProviderWaitText(raw, copy)).toBe(expected)
+        expect(expected).toContain('gpt-5.5-codex')
+        expect(expected).toContain('61')
+
+        if (watchdog) {
+          expect(expected).toContain(watchdog[0])
+          expect(expected).toContain(String(Math.trunc(watchdog[1])))
+        }
+      }
+    }
+  )
+
+  it('translates the notice for every locale that overrides the thread copy', () => {
+    const raw = waitNoticeText('claude-fable-5-1', 90, 'first_chunk', ['stream stale', 500])
+
+    for (const locale of LOCALES) {
+      const copy = TRANSLATIONS[locale].assistant.thread
+      const localized = localizeProviderWaitText(raw, copy)
+
+      if (copy.providerWaitNotice !== TRANSLATIONS.en.assistant.thread.providerWaitNotice) {
+        expect(localized).not.toBe(localizeProviderWaitText(raw, TRANSLATIONS.en.assistant.thread))
+      }
+
+      expect(localized).not.toBe(raw)
+    }
   })
 
-  it('keeps unknown provider text verbatim', () => {
-    const raw = '↻ provider supplied a new wait state'
+  it('still-waiting leads and far watchdogs render distinct copy', () => {
+    const copy = TRANSLATIONS.zh.assistant.thread
+    const near = localizeProviderWaitText(waitNoticeText('m', 100, 'post_event', ['stream idle', 5]), copy)
+    const far = localizeProviderWaitText(waitNoticeText('m', 100, 'post_event', ['stream idle', 200]), copy)
 
-    expect(localizeProviderWaitText(raw, copy)).toBe(raw)
+    expect(near).not.toBe(far)
+  })
+})
+
+describe('other core status rewrites', () => {
+  it.each(['output', 'response'] as const)('localizes the %s reconnect frame', kind => {
+    // chat_completion_helpers.py / chat_completion_nonstream.py
+    const raw =
+      kind === 'output'
+        ? '⚠ no output from provider for 45s — reconnecting...'
+        : '⚠ no response from provider in 45s — reconnecting...'
+
+    const copy = TRANSLATIONS.zh.assistant.thread
+
+    expect(isProviderWaitNotice(raw)).toBe(true)
+    expect(localizeProviderWaitText(raw, copy)).toBe(copy.providerReconnecting('45', kind))
+  })
+
+  it('localizes the retry countdown and the continue nudge', () => {
+    const copy = TRANSLATIONS.zh.assistant.thread
+
+    // turn_recovery.py
+    const retry = '⏳ waiting on provider — retrying in 30s (attempt 2/5)'
+    expect(localizeProviderWaitText(retry, copy)).toBe(copy.providerRetrying('30', '2', '5'))
+
+    // turn_truncation.py
+    const nudge = '↻ model returned reasoning with no final answer — asking it to continue (1/3)'
+    expect(localizeProviderWaitText(nudge, copy)).toBe(copy.modelContinuing('1', '3'))
+  })
+})
+
+describe('unknown text', () => {
+  it('keeps model prose and unrecognised frames verbatim', () => {
+    const copy = TRANSLATIONS.zh.assistant.thread
+
+    expect(localizeProviderWaitText('Let me look at the file first.', copy)).toBe('Let me look at the file first.')
+    expect(isProviderWaitNotice('Let me look at the file first.')).toBe(false)
+
+    // A wait frame with phase text this build does not know stays a wait
+    // frame (ephemeral in watch windows) and is shown as written.
+    const future = '⏳ waiting on some-model — 30s doing something new'
+    expect(isProviderWaitNotice(future)).toBe(true)
+    expect(localizeProviderWaitText(future, copy)).toBe(future)
   })
 })

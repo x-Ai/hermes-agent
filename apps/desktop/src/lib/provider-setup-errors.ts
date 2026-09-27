@@ -1,7 +1,10 @@
 import { translateNow } from '@/i18n'
 
+// Mirrors the backend's `auth.no_provider_configured` copy (locales/*.yaml) in
+// every locale the gateway may already have localized it to, plus the older
+// English wordings still emitted by setup and session.info.
 const PROVIDER_SETUP_ERROR_RE =
-  /No (?:inference|Hermes) provider(?: is)? configured|no_provider_configured|set an API key/i
+  /No (?:inference|Hermes) provider(?: is)? configured|Hermes is not connected to any AI provider|no_provider_configured|set an API key|尚未连接任何 AI 提供方|尚未連接任何 AI 提供方|AI プロバイダーにも接続されていません/i
 
 const SESSION_INFO_CREDENTIAL_WARNING_RE = /^No API key configured for provider '[^']*'\. First message will fail\.$/
 

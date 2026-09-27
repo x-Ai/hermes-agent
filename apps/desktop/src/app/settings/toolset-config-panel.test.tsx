@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import type * as ReactRouterDom from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
+import { I18nProvider, TRANSLATIONS } from '@/i18n'
 import type { ToolsetConfig } from '@/types/hermes'
 
 // Collect the component graph before the behavioral test deadline starts.
@@ -989,16 +989,21 @@ describe('ToolsetConfigPanel', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /Firecrawl/ }))
       fireEvent.click(openAiRow)
-      expect(
-        screen.getByText(
-          '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex）；仅支持搜索，内容提取仍使用其他后端'
-        )
-      ).toBeTruthy()
+
+      // The panel renders the catalog's translation of the backend tag, so the
+      // assertion reads that entry rather than freezing its wording here.
+      const localizedTag = TRANSLATIONS.zh.settings.toolsets.tagCopy[tag]
+      expect(localizedTag).toBeTruthy()
+      expect(localizedTag).not.toBe(tag)
+      expect(screen.getByText(localizedTag)).toBeTruthy()
       expect(screen.queryByText('native')).toBeNull()
       expect(screen.queryByText(tag)).toBeNull()
 
       fireEvent.click(screen.getByRole('button', { name: /Nous Subscription/ }))
-      expect(await screen.findByText('托管图像生成（FAL、Krea 2、Nous Portal 模型），费用计入你的订阅')).toBeTruthy()
+      const localizedManagedTag = TRANSLATIONS.zh.settings.toolsets.tagCopy[managedTag]
+      expect(localizedManagedTag).toBeTruthy()
+      expect(localizedManagedTag).not.toBe(managedTag)
+      expect(await screen.findByText(localizedManagedTag)).toBeTruthy()
       expect(screen.queryByText(managedTag)).toBeNull()
     })
   })

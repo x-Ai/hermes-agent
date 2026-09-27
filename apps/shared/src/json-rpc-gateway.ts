@@ -15,9 +15,16 @@ export type ConnectionState = 'idle' | 'connecting' | 'open' | 'closed' | 'error
 
 export type WebSocketLike = WebSocket
 
+/**
+ * Error copy may be a thunk: the desktop localizes these messages and the
+ * active locale is only known after boot, so a string captured at
+ * construction would stay in the boot locale for the life of the client.
+ */
+export type GatewayMessage = string | (() => string)
+
 export interface GatewayClientOptions {
-  closedErrorMessage?: string
-  connectErrorMessage?: string
+  closedErrorMessage?: GatewayMessage
+  connectErrorMessage?: GatewayMessage
   connectTimeoutMs?: number
   createRequestId?: (nextId: number) => GatewayRequestId
   heartbeatDeadlineMs?: number
@@ -33,7 +40,7 @@ export interface GatewayClientOptions {
   requestIdPrefix?: string
   requestTimeoutMs?: number
   socketFactory?: (url: string) => WebSocketLike
-  notConnectedErrorMessage?: string
+  notConnectedErrorMessage?: GatewayMessage
 }
 
 const ANY = '*'
@@ -226,7 +233,7 @@ export class JsonRpcGatewayClient {
         return
       }
 
-      this.dropSocket(new Error(this.options.closedErrorMessage))
+      this.dropSocket(new Error(this.text(this.options.closedErrorMessage)))
     })
 
     await new Promise<void>((resolve, reject) => {
@@ -333,7 +340,11 @@ export class JsonRpcGatewayClient {
   }
 
   private connectFailure(detail: string): Error {
-    return new Error(`${this.options.connectErrorMessage} (${detail})`)
+    return new Error(`${this.text(this.options.connectErrorMessage)} (${detail})`)
+  }
+
+  private text(message: GatewayMessage): string {
+    return typeof message === 'function' ? message() : message
   }
 
   close(): void {
@@ -344,7 +355,7 @@ export class JsonRpcGatewayClient {
    * Invalidate the current socket generation after an ambiguous transport
    * outcome. The outer connection owner decides whether/when to reconnect.
    */
-  invalidate(message = this.options.closedErrorMessage): void {
+  invalidate(message?: string): void {
     const socket = this.socket
 
     if (!socket) {
@@ -354,7 +365,7 @@ export class JsonRpcGatewayClient {
     // Drop the generation BEFORE closing: a synchronous `close` event from
     // the socket must hit the identity guard and not run the default
     // closed-path a second time on top of whatever the owner redialed.
-    this.dropSocket(new Error(message))
+    this.dropSocket(new Error(message ?? this.text(this.options.closedErrorMessage)))
 
     try {
       socket.close()
@@ -398,7 +409,7 @@ export class JsonRpcGatewayClient {
     signal?: AbortSignal
   ): Promise<T> {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      return Promise.reject(new Error(this.options.notConnectedErrorMessage))
+      return Promise.reject(new Error(this.text(this.options.notConnectedErrorMessage)))
     }
 
     return this.channel.request<T>(
@@ -406,7 +417,7 @@ export class JsonRpcGatewayClient {
       params,
       timeoutMs,
       signal,
-      () => new Error(this.options.notConnectedErrorMessage)
+      () => new Error(this.text(this.options.notConnectedErrorMessage))
     )
   }
 

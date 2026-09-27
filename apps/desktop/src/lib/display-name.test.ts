@@ -6,9 +6,12 @@ import { displayEntityName } from './display-name'
 
 describe('displayEntityName', () => {
   it('localizes the reserved default identity and generated suffixes without changing other names', () => {
-    expect(displayEntityName('default', zh)).toBe('默认')
-    expect(displayEntityName('default-2', zh)).toBe('默认-2')
-    expect(displayEntityName('default_workspace', zh)).toBe('默认_workspace')
+    const localized = zh.common.defaultName
+
+    expect(localized).not.toBe('default')
+    expect(displayEntityName('default', zh)).toBe(localized)
+    expect(displayEntityName('default-2', zh)).toBe(`${localized}-2`)
+    expect(displayEntityName('default_workspace', zh)).toBe(`${localized}_workspace`)
     expect(displayEntityName('my-default', zh)).toBe('my-default')
   })
 })

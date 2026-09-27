@@ -1,6 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
-import { defineLocale } from './define-locale'
+import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
@@ -17,7 +17,7 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
   task: '个任务'
 }
 
-export const zh = defineLocale({
+export const zhOverrides = {
   externalOpenFailed: {
     title: '无法打开此链接',
     message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开。',
@@ -497,7 +497,8 @@ export const zh = defineLocale({
       usingRuntime: '使用已安装的 Hermes 运行时',
       waitingBackendLaunch: '正在等待 Hermes 后端启动',
       waitingBackendReady: '正在等待 Hermes 后端准备就绪',
-      waitingForUpdate: '正在等待当前更新完成…'
+      waitingForUpdate: '正在等待当前更新完成…',
+      waitingSetupChoice: '正在等待你选择首次运行的设置方式'
     },
     errors: {
       backgroundExited: '运行您聊天的服务意外关闭。请重新启动以继续 — 您的聊天记录和设置是安全的',
@@ -548,7 +549,9 @@ export const zh = defineLocale({
       signInToRemoteGateway: '登录远程网关',
       signInWithProvider: provider => `使用 ${provider} 登录`,
       identityProvider: '你的身份提供方',
-      details: '详情'
+      details: '详情',
+      bundledReinstallHint: '此内置安装无法在应用内自我修复——请重新安装应用以恢复其后端',
+      reinstallApp: '重新安装应用'
     },
     causes: {
       exitedEarly: 'Hermes的背景服务在开始后就停止了.',
@@ -651,6 +654,25 @@ export const zh = defineLocale({
       apiRetriesExhausted: retries => `API 调用重试 ${retries} 次后仍失败`,
       invalidApiResponseAfterRetries: (retries, detail) => `API 响应无效，重试 ${retries} 次后仍失败：${detail}`,
       resetsIn: remaining => `重置倒计时：${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `${label} 在全部 ${attempts} 次尝试中都返回了限流`,
+          overloaded: `${label} 在全部 ${attempts} 次尝试中都报告过载`,
+          server_error: `${label} 在全部 ${attempts} 次尝试中都返回了服务器错误`,
+          timeout: `${label} 在全部 ${attempts} 次尝试中都未及时响应`,
+          unknown: `${label} 在 ${attempts} 次尝试后仍未作答`
+        }[reason]
+
+        const situation = resetWindow
+          ? `其用量限额将在 ${resetWindow} 后重置。届时请发送 /retry，或使用 /model 切换模型。`
+          : '它似乎暂时不可用。请稍等一分钟后发送 /retry，或使用 /model 切换模型。'
+
+        return `${lead}——${situation}为避免再次发生，可通过 \`hermes fallback add\` 添加备用服务商。`
+      },
+      providerSaid: summary => `服务商返回：${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `${label} 连续 ${attempts} 次返回了空的或损坏的回复——它可能已过载或正在对你限流。请稍等一分钟后发送 /retry，或使用 /model 切换模型。`,
+      errorDetailsLine: detail => `详情：${detail}`,
       elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥。请在 设置 → 密钥 中添加',
       elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
       diskFull: '磁盘已满 — 请腾出一些空间后再试',
@@ -720,7 +742,9 @@ export const zh = defineLocale({
       openKeys: '打开密钥',
       openGateways: '打开网关',
       openMaintenance: '打开维护'
-    }
+    },
+    compressDeferredDone: '上下文压缩已完成',
+    updateReadyMessageAppInstaller: 'Hermes 新版本已就绪。现在更新，Windows 会为你完成剩余步骤'
   },
   remoteDisplayBanner: {
     message: reason => `软件渲染已启用 — 检测到远程显示（${reason}）。为防止画面闪烁，已禁用 GPU 加速`
@@ -1054,7 +1078,8 @@ export const zh = defineLocale({
       'view.cycleSidebarGrouping': '周期会话分组',
       'view.toggleProfileRail': '切换配置档案栏',
       'view.terminalSelection': '将终端选区发送到输入框'
-    }
+    },
+    clear: '清除'
   },
   paletteCommands: {
     reloadDesktopPlugins: '重新加载桌面插件',
@@ -1198,8 +1223,11 @@ export const zh = defineLocale({
         desktopSuccess: name => `桌面插件 ${name} 已安装`,
         agentFailed: '智能体插件安装失败',
         desktopFailed: '桌面插件安装失败',
-        missingEnv: vars => `缺少环境变量：${vars}，请在设置 → 密钥中添加`,
-        profileLabel: '安装到配置文件'
+        missingEnv: (name, vars) =>
+          `${name} 已安装，但需要先配置密钥才能使用：${vars}。请立即添加，否则该插件的工具将无法运行`,
+        profileLabel: '安装到配置文件',
+        installUncertain:
+          'Hermes 已停止等待安装结果，但插件可能仍在安装中。请关闭此对话框，并在“插件”中执行“重新扫描”后再尝试安装'
       }
     },
     vault: {
@@ -1751,7 +1779,7 @@ export const zh = defineLocale({
         imageInputMode: '控制图片附件如何发送给模型',
         maxTurns: 'Hermes 停止一次运行前工具调用轮次的上限',
         outputTruncationRetries:
-          '仅在提供方明确因输出 Token 上限截断且没有生成可见文本时重试，每次重试都可能重复计费，建议设为 0，最多 3 次',
+          '在提供方因输出 Token 上限截断回复后继续生成的次数（0–3）。每次续写都会重新发送完整提示并可能再次计费；设为 0 则立即返回已生成的部分。默认 3 次',
         postToolEmptyRetries:
           '模型在工具调用后未返回可见文本时，发送继续提示，每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
         thinkingPrefillRetries:
@@ -1893,8 +1921,7 @@ export const zh = defineLocale({
       justNow: '刚刚',
       minAgo: count => `${count} 分钟前`,
       hoursAgo: count => `${count} 小时前`,
-      daysAgo: count => `${count} 天前`,
-      justNowSuffix: ' · 刚刚'
+      daysAgo: count => `${count} 天前`
     },
     config: {
       none: '无',
@@ -2278,7 +2305,11 @@ export const zh = defineLocale({
       importConfirm: '添加到 mcp.json',
       importConfirmMany: count => `添加 ${count} 个服务器到 mcp.json`,
       catalogAuthOAuth: 'OAuth',
-      catalogAuthApiKey: 'API 密钥'
+      catalogAuthApiKey: 'API 密钥',
+      editServer: '编辑服务器',
+      saveServer: '保存服务器',
+      unusedPill: '未使用',
+      waitingForBrowser: '正在等待浏览器…'
     },
     model: {
       setupProviderFallback: '提供方',
@@ -2586,8 +2617,7 @@ export const zh = defineLocale({
       recommendedReason: {
         'best-quality-resident': '在完全驻留 GPU 且保持全速的模型中质量最高。推荐会在质量与该硬件的预计速度之间权衡',
         'speed-gated-quality': '有更高质量的模型可以装入这台机器，但受内存带宽限制响应会太慢——这是保持流畅的最佳模型',
-        'fastest-resident': '没有模型能在该硬件上达到全速；这是完全驻留 GPU 内存中最快的一个',
-        'least-painful-spilled': '没有模型能完全装入 GPU 内存 — 这是从系统内存运行表现最好的一个'
+        'fastest-resident': '没有模型能在该硬件上达到全速；这是完全驻留 GPU 内存中最快的一个'
       } as Record<string, string>,
       noRecommendationTitle: '此设备暂无自动推荐模型',
       noRecommendationDetail:
@@ -2671,7 +2701,19 @@ export const zh = defineLocale({
       deleteAction: '删除模型',
       deleteConfirm: model => `从磁盘删除 ${model}？`,
       deleted: model => `已删除 ${model}`,
-      deleteFailed: '删除失败'
+      deleteFailed: '删除失败',
+      connectionChanged: '本地模型连接已更改',
+      downloadStatusRunning: '正在下载',
+      downloadSpeed: rate => `${rate}`,
+      downloadEta: time => `剩余约 ${time}`,
+      downloadEtaSeconds: count => `${count} 秒`,
+      downloadEtaMinutes: count => `${count} 分钟`,
+      downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 小时 ${minutes} 分钟` : `${hours} 小时`),
+      downloadPausedLabel: '已暂停',
+      downloadPauseAction: '暂停',
+      downloadResumeAction: '继续',
+      downloadPauseFailed: model => `无法暂停 ${model} 的下载`,
+      downloadResumeFailed: model => `无法继续 ${model} 的下载`
     },
     billing: {
       perMonth: amount => `${amount}/月`,
@@ -4408,7 +4450,8 @@ export const zh = defineLocale({
       discord_admin: 'Discord 服务器管理',
       yuanbao: '元宝',
       computer_use: '电脑操控 (macOS/Windows/Linux)'
-    }
+    },
+    tabMcp: 'MCP'
   },
   starmap: {
     title: '记忆图谱',
@@ -5616,7 +5659,12 @@ export const zh = defineLocale({
     defaultProfile: '默认配置档案',
     defaultSet: name => `${name} 已设为默认`,
     defaultDescription: '用于 Hermes 启动和新建聊天。现有会话仍保留在各自的配置档案中',
-    failedSetDefault: '无法设置默认配置档案'
+    failedSetDefault: '无法设置默认配置档案',
+    status: {
+      unread: count => `${count} 个会话有未读消息`,
+      needsInput: count => `${count} 个会话等待你的回复`,
+      working: count => `${count} 个会话正在运行`
+    }
   },
   cron: {
     close: '关闭定时任务',
@@ -6120,7 +6168,6 @@ export const zh = defineLocale({
       renamed: '已重命名',
       renameFailed: '重命名失败',
       renameTitle: '重命名会话',
-      renameDesc: '留空则清除',
       untitledPlaceholder: '无标题会话',
       deleteTitle: '删除会话？',
       deleteDesc: title => `这将永久删除"${title}"，且无法撤销`,
@@ -6717,7 +6764,6 @@ export const zh = defineLocale({
     minAgo: count => `${count} 分钟前`,
     hoursAgo: count => `${count} 小时前`,
     daysAgo: count => `${count} 天前`,
-    justNowSuffix: ' · 刚刚',
     bundleOutOfSync: '应用版本已过期',
     bundleOutOfSyncDesc: 'Hermes 运行时已更新，但桌面应用仍是旧版本，请更新桌面应用以获取最新修复',
     bundleOutOfSyncAction: '获取安装程序',
@@ -6742,7 +6788,12 @@ export const zh = defineLocale({
     versionDetailsRuntimeEmbedded: '内置运行时',
     versionDetailsRuntimeExternal: '外部运行时（使用系统运行时）',
     versionDetailsInstallId: '安装 ID',
-    versionDetailsUncommittedChanges: '未提交更改'
+    versionDetailsUncommittedChanges: '未提交更改',
+    availableBodyAppInstaller: 'Hermes 新版本已就绪。Hermes 将会关闭，由 Windows 完成更新，然后自动重新打开',
+    applyingBodyAppInstaller: 'Hermes 将会关闭，由 Windows 完成更新。完成后 Hermes 会自动重新打开——你无需进行任何操作',
+    applyingCloseAppInstaller: '此窗口将会关闭，Windows 完成更新后 Hermes 会自动重新打开',
+    checkUnknownTitleAppInstaller: '无法检查更新',
+    checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新。重启 Hermes 时也会自动安装更新'
   },
   handoffTour: {
     profileTitle: '你的第一个任务在默认配置档案中运行',
@@ -6981,7 +7032,11 @@ export const zh = defineLocale({
     copyOutput: '复制输出',
     reloadRetry: '重新加载并重试',
     probeErrorDetails: '详情',
-    openLogs: '打开日志'
+    openLogs: '打开日志',
+    setupChoiceDescLocal: '在这台电脑上安装 Hermes，或连接到你已在运行的 Hermes 网关',
+    useLocalTitle: '在这台电脑上使用 Hermes',
+    useLocalDesc: '这里已安装 Hermes 运行时——一键即可启动，无需下载任何内容',
+    bundledLocalDesc: '使用此应用内置的 Hermes 运行时——内置后端即为本地安装'
   },
   onboarding: {
     headerTitle: '开始设置 Hermes Agent',
@@ -7324,7 +7379,9 @@ export const zh = defineLocale({
       openModelPicker: '打开模型选择器',
       modelPinned: '已固定，新对话将使用此模型而非"设置"中的默认模型',
       modelTitle: (provider, model) => `模型 · ${provider}: ${model}`,
-      providerModelTitle: (provider, model) => `${provider} · ${model}`
+      providerModelTitle: (provider, model) => `${provider} · ${model}`,
+      focusedSince: '聚焦开始时间',
+      focusedSinceTitle: '自此聊天获得焦点以来的时长——不是某个回合的运行时长'
     }
   },
   rightSidebar: {
@@ -7547,13 +7604,6 @@ export const zh = defineLocale({
       focus: '专注',
       'terminal-deck': '终端面板',
       quad: '四格'
-    },
-    paneNames: {
-      sessions: '会话',
-      files: '文件',
-      review: '审阅',
-      terminal: '终端',
-      workspace: '工作区'
     }
   },
   contextMenu: {
@@ -7659,14 +7709,18 @@ export const zh = defineLocale({
         `服务商持续 ${elapsedSeconds} 秒未返回${kind === 'output' ? '输出' : '响应'}，正在重新连接…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `正在等待服务商，${retrySeconds} 秒后重试（第 ${attempt}/${maxAttempts} 次）`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `正在等待 ${provider} ${kind === 'output' ? '输出' : '响应'}——已持续 ${elapsedSeconds} 秒（服务商可能响应较慢或负载过高${
-          kind === 'output' ? '，模型也可能仍在思考' : ''
-        }${reconnectSeconds ? `；若持续无${kind === 'output' ? '输出' : '响应'}，将在 ${reconnectSeconds} 秒时自动重连` : ''}）`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `正在等待 ${provider}——${kind === 'events' ? '未收到流事件' : '重连后未收到响应'}已持续 ${elapsedSeconds} 秒（服务商可能响应较慢或负载过高${
-          reconnectSeconds ? `；总等待时间达到 ${reconnectSeconds} 秒时自动重连` : ''
-        }）`,
+      providerWaitPhases: {
+        first_event: seconds => `等待首个服务商事件已 ${seconds} 秒`,
+        reconnect: seconds => `重连后等待首个服务商事件已 ${seconds} 秒`,
+        pre_progress: seconds => `服务商流已打开，${seconds} 秒内没有实质性的模型进展`,
+        post_event: seconds => `服务商流处于活动状态，${seconds} 秒内没有流事件`,
+        first_chunk: seconds => `等待首个流数据块已 ${seconds} 秒`,
+        post_chunk: seconds => `流已打开，${seconds} 秒内没有流输出`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${stillWaiting ? '仍在等待' : '正在等待'} ${model}——${phaseText}${
+          watchdog ? `（自动重连：${watchdog.label} 看门狗将在 ${watchdog.seconds} 秒后触发）` : ''
+        }`,
       summarizingThread: '正在整理对话',
       moaAggregating: 'MoA 正在汇总…',
       moaReference: (label, index, count) =>
@@ -7905,7 +7959,8 @@ export const zh = defineLocale({
       alwaysAllow: '始终允许',
       reconnect: '重新连接',
       timedOutSystemLine: '批准超时——命令未运行. 请 Hermes 重新尝试, 或在设置 → 安全 → 批准超时 .',
-      openSafetySettings: '打开安全设置'
+      openSafetySettings: '打开安全设置',
+      commandDetails: '命令详情'
     },
     clarify: {
       notReady: '澄清请求尚未就绪',
@@ -8345,7 +8400,9 @@ export const zh = defineLocale({
     modelSwitchConfirmTitle: (model: string) => `切换到 ${model}？`,
     modelSwitchConfirmTitleFallback: '切换模型？',
     modelSwitchKeepLabel: '保留当前模型',
-    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换'
+    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换',
+    staleSessionTitle: '聊天内容已过期',
+    staleSessionBody: '此窗口落后于同一聊天的另一个视图。已加载最新消息，如仍需发送请重新发送'
   },
   tips: {
     close: '不再显示这条提示',
@@ -8431,4 +8488,6 @@ export const zh = defineLocale({
     confirmAction: '确认',
     declined: '已取消模型更改 — 你拒绝了数据训练层级警告'
   }
-})
+} satisfies TranslationOverrides
+
+export const zh = defineLocale(zhOverrides)

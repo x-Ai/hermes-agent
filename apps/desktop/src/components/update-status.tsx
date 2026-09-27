@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { type ReactElement, type ReactNode, useState } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
@@ -276,14 +276,13 @@ export function UpdateStatusCard({
   const status = useStore(isBackend ? $backendUpdateStatus : $updateStatus)
   const checking = useStore(isBackend ? $backendUpdateChecking : $updateChecking)
   const apply = useStore(isBackend ? $backendUpdateApply : $updateApply)
-  const [justChecked, setJustChecked] = useState<boolean>(false)
 
   const view = deriveUpdateStatus({ apply, checking, status, target, u })
 
-  const handleCheck = async (): Promise<void> => {
-    setJustChecked(false)
-    const next = await (isBackend ? checkBackendUpdates({ force: true }) : checkUpdates({ force: true }))
-    setJustChecked(Boolean(next))
+  // fetchedAt already renders "just now" after a check; a separate
+  // freshly-checked suffix duplicated it ("Last checked just now · just now").
+  const handleCheck = (): void => {
+    void (isBackend ? checkBackendUpdates({ force: true }) : checkUpdates({ force: true }))
   }
 
   return (
@@ -305,22 +304,14 @@ export function UpdateStatusCard({
           <p className="font-medium">{view.line}</p>
           {view.error && <p className="mt-1 text-xs text-muted-foreground">{view.error}</p>}
           {view.tone !== 'unsupported' && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {u.lastChecked(relativeTime(status?.fetchedAt, u))}
-              {justChecked && !checking ? u.justNowSuffix : ''}
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{u.lastChecked(relativeTime(status?.fetchedAt, u))}</p>
           )}
         </div>
       </div>
 
       {view.tone !== 'unsupported' && (
         <div className="mt-3 flex flex-wrap items-center gap-4">
-          <Button
-            disabled={checking || view.applying}
-            onClick={() => void handleCheck()}
-            size="sm"
-            variant="textStrong"
-          >
+          <Button disabled={checking || view.applying} onClick={handleCheck} size="sm" variant="textStrong">
             {checking ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
             {checking ? u.checkingShort : u.checkNow}
           </Button>

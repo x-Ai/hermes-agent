@@ -1,6 +1,7 @@
 import type { ModelOptionProvider } from '@hermes/shared'
 import { DEFAULT_REASONING_EFFORT, isReasoningEffort, REASONING_EFFORT_VALUES } from '@hermes/shared'
 import { useStore } from '@nanostores/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -221,6 +222,7 @@ interface ModelSettingsProps {
 
 export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: ModelSettingsProps) {
   const { t } = useI18n()
+  const queryClient = useQueryClient()
   const m = t.settings.model
   const showMain = subpage === undefined || subpage === 'main'
   const showAuxiliary = subpage === undefined || subpage === 'auxiliary'
@@ -465,6 +467,15 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
   // Guard against stale save responses overwriting newer state.
   const moaSaveGeneration = useRef(0)
 
+  // A saved MoA preset changes what the chat pickers list (the virtual `moa`
+  // provider appears once a complete preset is explicit, disappears when the
+  // last one is disabled). Those catalogs are query-cached for 60s, so every
+  // confirmed save invalidates them instead of leaving the picker stale.
+  const invalidateMoaPickerCatalog = useCallback(
+    () => void queryClient.invalidateQueries({ queryKey: ['model-options'] }),
+    [queryClient]
+  )
+
   // Quiet debounced persist for inline MoA edits — mirrors the config page's
   // autosave so slot/aggregator tweaks save themselves, matching the
   // preset-level ops (set default / add / delete) that already persist on
@@ -494,6 +505,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
           .then(saved => {
             if (moaSaveGeneration.current === generation) {
               setMoa(saved)
+              invalidateMoaPickerCatalog()
             }
           })
           .catch(err => {
@@ -503,7 +515,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
           })
       }, 600)
     },
-    [m.loadFailed, scopeProfile, setCaughtError]
+    [invalidateMoaPickerCatalog, m.loadFailed, scopeProfile, setCaughtError]
   )
 
   const updateMoaPreset = useCallback(
@@ -566,13 +578,14 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
         }
 
         setMoa(saved)
+        invalidateMoaPickerCatalog()
       } catch (err) {
         setCaughtError(err, m.loadFailed)
       } finally {
         setApplying(false)
       }
     },
-    [m.loadFailed, scopeProfile, setCaughtError]
+    [invalidateMoaPickerCatalog, m.loadFailed, scopeProfile, setCaughtError]
   )
 
   const auxiliaryTaskLabel = useCallback((key: string) => m.tasks[key]?.label ?? key, [m.tasks])

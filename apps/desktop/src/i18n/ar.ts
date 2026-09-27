@@ -1,7 +1,7 @@
-import { defineLocale } from './define-locale'
+import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
 
-export const ar = defineLocale({
+export const arOverrides = {
   connectors: {
     title: 'ربط تطبيقاتك',
     connect: 'ربط',
@@ -186,7 +186,8 @@ export const ar = defineLocale({
       usingRuntime: 'جار استخدام بيئة Hermes المثبتة',
       waitingBackendLaunch: 'في انتظار تشغيل خادم Hermes',
       waitingBackendReady: 'في انتظار جاهزية خادم Hermes',
-      waitingForUpdate: 'في انتظار اكتمال التحديث الحالي…'
+      waitingForUpdate: 'في انتظار اكتمال التحديث الحالي…',
+      waitingSetupChoice: 'في انتظار اختيارك لإعداد التشغيل الأول'
     },
     errors: {
       backgroundExited: 'خرجت عملية Hermes الخلفية.',
@@ -343,6 +344,25 @@ export const ar = defineLocale({
       invalidApiResponseAfterRetries: (retries, detail) =>
         `استجابة API غير صالحة بعد ${retries} محاولات إعادة: ${detail}`,
       resetsIn: remaining => `الوقت المتبقي لإعادة التعيين: ${remaining}`,
+      providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
+        const lead = {
+          rate_limit: `قيّد ${label} معدل الطلبات في كل المحاولات الـ ${attempts}`,
+          overloaded: `أبلغ ${label} عن تحميل زائد في كل المحاولات الـ ${attempts}`,
+          server_error: `أعاد ${label} خطأ خادم في كل المحاولات الـ ${attempts}`,
+          timeout: `لم يستجب ${label} في الوقت المناسب في أي من المحاولات الـ ${attempts}`,
+          unknown: `لم يجب ${label} بعد ${attempts} محاولات`
+        }[reason]
+
+        const situation = resetWindow
+          ? `يُعاد ضبط حد الاستخدام الخاص به خلال ${resetWindow}. أرسل /retry بعد ذلك، أو بدّل النموذج عبر /model.`
+          : 'يبدو أنه غير متاح مؤقتًا. انتظر دقيقة ثم أرسل /retry، أو بدّل النموذج عبر /model.'
+
+        return `${lead} — ${situation} لتجنب ذلك مستقبلًا، أضف موفّرًا احتياطيًا عبر \`hermes fallback add\`.`
+      },
+      providerSaid: summary => `قال الموفّر: ${summary}`,
+      providerInvalidResponse: (label, attempts) =>
+        `أعاد ${label} ردًا فارغًا أو معطوبًا ${attempts} مرات — على الأرجح أنه محمّل فوق طاقته أو يقيّد معدل طلباتك. انتظر دقيقة ثم أرسل /retry، أو بدّل النموذج عبر /model.`,
+      errorDetailsLine: detail => `التفاصيل: ${detail}`,
       elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
       elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',
@@ -1414,8 +1434,7 @@ export const ar = defineLocale({
       justNow: 'الآن',
       minAgo: count => `قبل ${count} دقيقة`,
       hoursAgo: count => `قبل ${count} ساعة`,
-      daysAgo: count => `قبل ${count} يوم`,
-      justNowSuffix: '· منذ لحظة'
+      daysAgo: count => `قبل ${count} يوم`
     },
 
     config: {
@@ -2147,11 +2166,11 @@ export const ar = defineLocale({
       browseFitUnknown: 'غير معروف',
       browseAlreadyDownloaded: 'تم تحميلها بالفعل.',
       addedByYou: 'أضفتك',
-      browseDownloadStarted: 'تحميل',
-      browseDownloadAria: 'الحمولة {الاسم}',
+      browseDownloadStarted: 'جارٍ تنزيل {name}',
+      browseDownloadAria: 'تنزيل {name}',
       sideloadButton: 'إضافة ملف نموذجي',
       sideloadTitle: 'اختيار ملف نموذجي من طراز GGUF',
-      sideloadDone: 'مضاف {اسمه}.',
+      sideloadDone: 'تمت إضافة {name}.',
       sideloadAlreadyPresent: 'في مكتبتك.',
       pillFullContext: max => `كامل${max}سياق`,
       pillFullContextTip: 'يركض في نافذة الإطار الكامل للنموذج من البداية',
@@ -4114,10 +4133,7 @@ export const ar = defineLocale({
       messaging: 'المراسلة',
       artifacts: 'العناصر',
       cron: 'المهام المجدولة',
-      capabilities: 'المهارات',
-      chat: 'المحادثة',
-      settings: 'الإعدادات',
-      agents: 'الوكلاء'
+      capabilities: 'المهارات'
     },
     searchAria: 'البحث في الجلسات',
     searchPlaceholder: 'البحث في الجلسات...',
@@ -4262,7 +4278,6 @@ export const ar = defineLocale({
       renamed: 'تمت إعادة التسمية',
       renameFailed: 'فشلت إعادة التسمية',
       renameTitle: 'إعادة تسمية الجلسة',
-      renameDesc: '',
       untitledPlaceholder: 'جلسة بلا عنوان',
       deleteTitle: 'حذف الجلسة؟',
       deleteDesc: title => `سيتم حذف «${title}» نهائيًا. لا يمكن التراجع عن هذا الإجراء.`,
@@ -4782,7 +4797,6 @@ export const ar = defineLocale({
     updateReady: count => `${count} تحديث متاح`,
     updateReadyUnknown: 'تحديث جديد جاهز.',
     lastChecked: age => `آخر تحقق ${age}`,
-    justNowSuffix: 'الآن',
     never: 'أبدا',
     justNow: 'الآن',
     minAgo: count => `قبل ${count} دقيقة`,
@@ -5193,8 +5207,7 @@ export const ar = defineLocale({
     flowSubtitles: {
       pkce: 'يفتح المتصفح لتسجيل الدخول ثم يتابع هنا',
       device_code: 'يفتح صفحة تحقق في المتصفح — يتصل Hermes تلقائياً',
-      external: 'سجل الدخول مرة واحدة في الطرفية ثم عد إلى المحادثة',
-      loopback: 'يفتح المتصفح لتسجيل الدخول — يتصل Hermes تلقائياً'
+      external: 'سجل الدخول مرة واحدة في الطرفية ثم عد إلى المحادثة'
     },
     startingSignIn: provider => `جار بدء تسجيل الدخول لـ ${provider}...`,
     verifyingCode: provider => `جار التحقق من الرمز عبر ${provider}...`,
@@ -5701,13 +5714,6 @@ export const ar = defineLocale({
       focus: 'تركيز',
       'terminal-deck': 'لوحة الطرفية',
       quad: 'رباعي'
-    },
-    paneNames: {
-      sessions: 'الجلسات',
-      files: 'الملفات',
-      review: 'المراجعة',
-      terminal: 'الطرفية',
-      workspace: 'مساحة العمل'
     }
   },
   contextMenu: {
@@ -5815,14 +5821,18 @@ export const ar = defineLocale({
         `لم يرسل الموفّر ${kind === 'output' ? 'مخرجات' : 'استجابة'} منذ ${elapsedSeconds} ث — جار إعادة الاتصال…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
         `في انتظار الموفّر — إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
-      providerWaiting: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `في انتظار ${kind === 'output' ? 'مخرجات' : 'استجابة'} ${provider} — انقضت ${elapsedSeconds} ث (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
-          kind === 'output' ? '، أو قد يظل النموذج يفكر' : ''
-        }${reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند ${reconnectSeconds} ث` : ''})`,
-      providerWaitingAfterActivity: (provider, elapsedSeconds, kind, reconnectSeconds) =>
-        `في انتظار ${provider} — انقضت ${elapsedSeconds} ث دون ${kind === 'events' ? 'أحداث بث' : 'استجابة بعد إعادة الاتصال'} (قد يكون الموفّر بطيئًا أو محمّلًا فوق طاقته${
-          reconnectSeconds ? `؛ ستتم إعادة الاتصال تلقائيًا عند بلوغ إجمالي الانتظار ${reconnectSeconds} ث` : ''
-        })`,
+      providerWaitPhases: {
+        first_event: seconds => `${seconds} ث في انتظار أول حدث من الموفّر`,
+        reconnect: seconds => `${seconds} ث في انتظار أول حدث من الموفّر بعد إعادة الاتصال`,
+        pre_progress: seconds => `بث الموفّر مفتوح؛ ${seconds} ث دون تقدم فعلي من النموذج`,
+        post_event: seconds => `بث الموفّر نشط؛ ${seconds} ث دون أحداث بث`,
+        first_chunk: seconds => `${seconds} ث في انتظار أول جزء من البث`,
+        post_chunk: seconds => `البث مفتوح؛ ${seconds} ث دون مخرجات بث`
+      },
+      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
+        `${stillWaiting ? 'ما زلنا في انتظار' : 'في انتظار'} ${model} — ${phaseText}${
+          watchdog ? ` (إعادة اتصال تلقائية: مراقب ${watchdog.label} خلال ${watchdog.seconds} ث)` : ''
+        }`,
       summarizingThread: 'جار تنظيم المحادثة',
       moaAggregating: 'جار التجميع عبر MoA…',
       moaReference: (label, index, count) =>
@@ -6580,4 +6590,6 @@ export const ar = defineLocale({
     confirmAction: 'تأكيد',
     declined: 'أُلغي تغيير النموذج — رفضت تحذير طبقة تدريب البيانات.'
   }
-})
+} satisfies TranslationOverrides
+
+export const ar = defineLocale(arOverrides)
