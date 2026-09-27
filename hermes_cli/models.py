@@ -2870,7 +2870,10 @@ def cached_fetch_api_models(
         rows = _chat_catalog_rows(list(entry["models"]))
         if entry.get("native_catalog"):
             return _NativePickerModelList(rows)
-        metadata = entry.get("model_metadata")
+        # Capability metadata is trusted only at the current schema; an older row still names the
+        # models (the offline rescue below serves it without capabilities).
+        current_schema = entry.get("metadata_schema_version") == _PROVIDER_MODELS_METADATA_SCHEMA_VERSION
+        metadata = entry.get("model_metadata") if current_schema else None
         return DiscoveredModelList(
             rows,
             model_metadata={
@@ -2935,7 +2938,9 @@ def cached_fetch_api_models(
         return _catalog(stored)
     # Live returned nothing (offline, timeout, auth hiccup): a stale same-fingerprint entry beats it
     # (non-empty only: an empty native row is not worth resurrecting over the generic fallback).
-    if _cache_entry_valid(entry, fp, require_metadata_schema=True):
+    # A pre-upgrade row (older metadata schema) still counts here: its model ids are what the
+    # offline user needs, and _catalog drops the metadata it cannot vouch for.
+    if _cache_entry_valid(entry, fp):
         return _catalog(entry)
     return _chat_catalog_rows(live)
 

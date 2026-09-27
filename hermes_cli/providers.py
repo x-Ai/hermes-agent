@@ -443,10 +443,21 @@ def is_builtin_provider_id(name: str) -> bool:
     return str(canonical or "").strip().lower() == requested
 
 
+# Keys under which a ``providers:`` row declares a credential of its own.
+_ENTRY_CREDENTIAL_KEYS = ("api_key", "key_env", "api_key_env", "key_cmd")
+
+
 def is_custom_endpoint_entry(provider_id: str, entry: Any) -> bool:
     """Structural test for a ``providers.<id>`` row that describes its own endpoint rather than
-    settings for the built-in provider of the same id: it carries a base URL whose host is not
-    that provider's default host. Independent of how (or whether) the credential was stored."""
+    settings for the built-in (or plugin) provider of the same id.
+
+    Under a key that is not a built-in id, any row with a base URL is a custom endpoint. Under a
+    built-in id the row is that provider's settings block by default: ``providers.lmstudio.base_url``
+    points LM Studio at another box and ``providers.commandcode.base_url`` re-homes the plugin
+    provider, and both keep the provider's catalog handling, auth and transport. The row is a
+    foreign endpoint only when it points OFF the provider's default host AND carries an identity
+    of its own: a credential (``api_key`` / ``key_env`` / ``api_key_env`` / ``key_cmd``) or a
+    display ``name`` that is not the provider's. Independent of how the credential was stored."""
     if not isinstance(entry, dict):
         return False
     url = str(entry.get("base_url") or entry.get("url") or entry.get("api") or "").strip()
@@ -454,9 +465,16 @@ def is_custom_endpoint_entry(provider_id: str, entry: Any) -> bool:
         return False
     if not is_builtin_provider_id(provider_id):
         return True
-    pdef = get_provider(normalize_provider(provider_id), allow_network=False)
+    canonical = normalize_provider(provider_id)
+    pdef = get_provider(canonical, allow_network=False)
     default_host = base_url_hostname(pdef.base_url) if pdef and pdef.base_url else ""
-    return not default_host or not base_url_host_matches(url, default_host)
+    if default_host and base_url_host_matches(url, default_host):
+        return False
+    if any(str(entry.get(key) or "").strip() for key in _ENTRY_CREDENTIAL_KEYS):
+        return True
+    name = str(entry.get("name") or "").strip().lower()
+    own_labels = {canonical, str(provider_id or "").strip().lower(), get_label(canonical).strip().lower()}
+    return bool(name) and name not in own_labels
 
 def custom_provider_aliases(display_name: str, provider_key: str = "") -> frozenset[str]:
     """Return every current and legacy identity accepted for one endpoint."""

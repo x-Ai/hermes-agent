@@ -186,9 +186,9 @@ def real_profile_data_dir(browser: str, system: str | None = None) -> str | None
         return None
     system = system or platform.system()
     if system == "Windows":
-        home = ntpath.normpath(os.environ.get("USERPROFILE") or os.path.expanduser("~"))
+        home = ntpath.normpath(os.path.expanduser("~"))
     else:
-        home = Path(os.environ.get("HOME") or os.path.expanduser("~")).as_posix()
+        home = Path(os.path.expanduser("~")).as_posix()
     if system == "Darwin":
         return posixpath.join(home, "Library", "Application Support", *b.mac_support)
     if system == "Windows":

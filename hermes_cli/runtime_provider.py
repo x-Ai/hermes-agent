@@ -482,9 +482,9 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
     if requested and requested.strip():
         return requested.strip().lower()
     model_cfg = _get_model_config()
-    cfg_provider = model_cfg.get("provider")
-    if isinstance(cfg_provider, str) and cfg_provider.strip():
-        configured = cfg_provider.strip().lower()
+    # Unquoted YAML ``provider: 2070`` loads as int; the identity is still a string.
+    configured = _config_mod.coerce_provider_id(model_cfg.get("provider")).lower()
+    if configured:
         cfg_base_url = str(model_cfg.get("base_url") or "").strip()
         if cfg_base_url:
             try:

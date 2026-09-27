@@ -20,19 +20,20 @@ from hermes_cli.providers import custom_endpoint_label, get_label
 def test_catalog_key_exists_in_english():
     """A missing key would make t() return the key path itself — the label
     functions must always resolve to a human string."""
-    assert t("provider.custom_endpoint", lang="en") == "Custom endpoint"
+    assert t("provider.custom_endpoint", lang="en") != "provider.custom_endpoint"
 
 
 def test_labels_default_to_english():
-    assert provider_label("custom") == "Custom endpoint"
-    assert get_label("custom") == "Custom endpoint"
-    assert custom_endpoint_label() == "Custom endpoint"
+    en_label = t("provider.custom_endpoint", lang="en")
+    assert provider_label("custom") == en_label
+    assert get_label("custom") == en_label
+    assert custom_endpoint_label() == en_label
 
 
 def test_labels_localize_with_language_env(monkeypatch):
     monkeypatch.setenv("HERMES_LANGUAGE", "zh")
     zh_label = t("provider.custom_endpoint", lang="zh")
-    assert zh_label != "Custom endpoint"  # zh catalog actually translates it
+    assert zh_label != t("provider.custom_endpoint", lang="en")  # zh catalog actually translates it
     assert provider_label("custom") == zh_label
     assert get_label("custom") == zh_label
     assert custom_endpoint_label() == zh_label

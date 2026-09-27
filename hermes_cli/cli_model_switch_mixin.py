@@ -65,6 +65,15 @@ def stored_session_route(session_meta, *, current_model, current_provider):
     if is_foreign_provider_endpoint(provider, base_url):
         # The endpoint and its wire belong to the provider this chat left; resolve the stored one's own.
         base_url = api_mode = None
+    if provider and provider.lower().startswith("custom:"):
+        # A named custom endpoint's wire protocol may have been edited since the row was written; the
+        # entry's current one wins (the CLI twin of tui_gateway's _sync_named_custom_endpoint_protocol).
+        try:
+            from hermes_cli.runtime_provider import current_custom_provider_api_mode
+            api_mode = current_custom_provider_api_mode(provider, model=stored_model) or api_mode
+        except Exception:
+            from cli import logger
+            logger.debug("current custom endpoint api_mode lookup failed", exc_info=True)
     # A row's api_mode/base_url were written for whichever model the session last ran. Providers that
     # pick the wire per model (OpenCode Zen/Go, Copilot, Nous) re-derive both from the stored model, or a
     # resumed opencode-go session keeps a MiniMax-era anthropic_messages route for a chat_completions

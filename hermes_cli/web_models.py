@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, SecretStr, StrictBool, field_validator
+
+# A declared token budget: a real int (``true`` must not coerce to 1, ``"4096"`` is a client bug),
+# positive, and inside the plausibility ceiling catalog/probe metadata is held to
+# (``agent.model_metadata._coerce_reasonable_int``).
+_MAX_TOKEN_LIMIT = 10_000_000
+TokenLimit = Annotated[int, Field(strict=True, gt=0, le=_MAX_TOKEN_LIMIT)]
 
 
 class ConfigUpdate(BaseModel):
@@ -44,9 +50,9 @@ class CustomEndpointModelDetail(BaseModel):
 class CustomEndpointModelTokenLimits(BaseModel):
     """Optional exact-model limits. ``null`` clears that field back to automatic resolution."""
 
-    context_length: Optional[int] = None
-    max_input_tokens: Optional[int] = None
-    max_output_tokens: Optional[int] = None
+    context_length: Optional[TokenLimit] = None
+    max_input_tokens: Optional[TokenLimit] = None
+    max_output_tokens: Optional[TokenLimit] = None
 
 
 class CustomEndpointModelCapabilities(BaseModel):
@@ -65,10 +71,10 @@ class CustomEndpointUpdate(BaseModel):
     # Same choices as the CLI's custom-provider setup; "" = auto-detect at runtime.
     # None (older UI payload) leaves a hand-written api_mode alone.
     api_mode: Optional[Literal["", "chat_completions", "codex_responses", "anthropic_messages"]] = None
-    context_length: Optional[int] = None
-    model_context_lengths: Optional[Dict[str, Optional[int]]] = None
+    context_length: Optional[TokenLimit] = None
+    model_context_lengths: Optional[Dict[str, Optional[TokenLimit]]] = None
     model_token_limits: Optional[Dict[str, CustomEndpointModelTokenLimits]] = None
-    max_output_tokens: Optional[int] = None
+    max_output_tokens: Optional[TokenLimit] = None
     auth_scheme: Optional[str] = None
     user_agent: Optional[str] = None
     discover_models: bool = True

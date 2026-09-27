@@ -748,16 +748,12 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
             for field in limits.model_fields_set:
                 if field not in limit_fields:
                     continue
+                # The schema (``TokenLimit``) already rejects bools, strings, <= 0 and absurd values.
                 value = getattr(limits, field)
                 if value is None:
                     model_override.pop(field, None)
-                elif isinstance(value, int) and not isinstance(value, bool) and value > 0:
-                    model_override[field] = int(value)
                 else:
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"{field} for {model_id!r} must be a positive integer or null",
-                    )
+                    model_override[field] = value
                 if not models_are_discovered:
                     for legacy_key in limit_fields[field]:
                         model_cfg.pop(legacy_key, None)
@@ -780,30 +776,21 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
             model_cfg = dict(current) if isinstance(current, dict) else {}
             if raw_context_length is None:
                 model_cfg.pop("context_length", None)
-            elif raw_context_length > 0:
-                model_cfg["context_length"] = int(raw_context_length)
             else:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"context length for {model_id!r} must be a positive integer or null",
-                )
+                model_cfg["context_length"] = raw_context_length
             models_map[model_id] = model_cfg
     elif "context_length" in body.model_fields_set:
         if body.context_length is None:
             entry.pop("context_length", None)
-        elif body.context_length > 0:
-            entry["context_length"] = int(body.context_length)
-            models_map.setdefault(model, {})["context_length"] = int(body.context_length)
         else:
-            raise HTTPException(status_code=422, detail="context_length must be a positive integer or null")
+            entry["context_length"] = body.context_length
+            models_map.setdefault(model, {})["context_length"] = body.context_length
     entry["models"] = models_map
     if body.model_token_limits is None and "max_output_tokens" in body.model_fields_set:
         if body.max_output_tokens is None:
             entry.pop("max_output_tokens", None)
-        elif body.max_output_tokens > 0:
-            entry["max_output_tokens"] = int(body.max_output_tokens)
         else:
-            raise HTTPException(status_code=422, detail="max_output_tokens must be a positive integer or null")
+            entry["max_output_tokens"] = body.max_output_tokens
 
     if body.default_token_limits is not None:
         # Provider-wide budgets: the fallback for every model without a per-model pin.
@@ -813,12 +800,8 @@ def _write_custom_endpoint(cfg: Dict[str, Any], body: CustomEndpointUpdate) -> T
             value = getattr(body.default_token_limits, field)
             for legacy_key in _LIMIT_FIELDS[field]:
                 entry.pop(legacy_key, None)
-            if value is None:
-                continue
-            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-                entry[field] = int(value)
-            else:
-                raise HTTPException(status_code=422, detail=f"default {field} must be a positive integer or null")
+            if value is not None:
+                entry[field] = value
 
     if body.model_capabilities is not None:
         for raw_model_id, pins in body.model_capabilities.items():

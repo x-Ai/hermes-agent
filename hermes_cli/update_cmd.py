@@ -1100,7 +1100,7 @@ def _prepare_git_command() -> tuple[bool, list, bool]:
     use_zip_update = not git_dir.exists()
     if use_zip_update and sys.platform != "win32":
         print("✗ Not a git repository. Please reinstall:")
-        print("  curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash")
+        print("  curl -fsSL https://raw.githubusercontent.com/x-Ai/hermes-agent/main/scripts/install.sh | bash")
         sys.exit(1)
 
     git_cmd = _base_git_cmd()
@@ -1215,7 +1215,8 @@ def _finalize_receipt(status: str, debug_message: str) -> None:
 
 
 def _finish_already_up_to_date(
-    git_cmd, branch: str, current_branch: str, _plan, *, gw_input_fn, completion_request: dict) -> None:
+    git_cmd, branch: str, current_branch: str, _plan, *, gw_input_fn, completion_request: dict,
+    branch_explicit: bool = False) -> None:
     """"Already up to date" path: restore stash/branch, repair the checkout, catch up the fleet.
     ``sys.exit(1)`` when the repair is incomplete (after gateway exit code + partial receipt)."""
     # Restore stash and switch back if we moved. EXCEPTION: a parked branch verified clean +
@@ -1233,7 +1234,14 @@ def _finish_already_up_to_date(
         else:
             print(f"  ✓ Checkout was parked on '{current_branch}' (fully merged) — switched back to {branch}.")
     elif current_branch not in {branch, "HEAD"}:
-        _git_run(git_cmd, ["checkout", current_branch])
+        if branch_explicit:
+            # An explicit --branch <x> means "(re)point this install at <x>": a successful pull
+            # leaves HEAD on <x>, so the already-up-to-date path must too. Switching back would
+            # strand the checkout on the old branch, and any updater that compares HEAD to
+            # origin/<x> (the desktop GUI) would report "update available" forever.
+            print(f"  ✓ Staying on '{branch}' (switched from '{current_branch}').")
+        else:
+            _git_run(git_cmd, ["checkout", current_branch])
 
     if completion_request is not None:
         # Same code, same host obligation: an SHA-less arm would REPLACE the standing record
@@ -1391,7 +1399,8 @@ def _cmd_update_impl(args, gateway_mode: bool):
         if commit_count == 0:
             _finish_already_up_to_date(
                 git_cmd, branch, current_branch, _plan, gw_input_fn=gw_input_fn,
-                completion_request=completion_request)
+                completion_request=completion_request,
+                branch_explicit=bool(getattr(args, "branch", None)))
             return
 
         if release_sha:

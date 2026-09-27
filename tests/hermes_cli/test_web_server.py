@@ -1670,6 +1670,67 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             for e in custom
         )
 
+    def test_set_model_explicit_key_rotates_the_entry_credential(self, monkeypatch):
+        """An explicit ``api_key`` on POST /api/model/set for a ``providers.<id>`` entry is a
+        rotation request: the runtime must send the NEW key afterwards. The pointer model is
+        kept — the value lands in ``.env`` under the entry's ``key_env``, never in config.yaml.
+        (The credential resolver used to run unconditionally, so the response said ok while the
+        submitted key was written nowhere and the old one kept being sent.)"""
+        from hermes_cli.config import get_config_path, get_env_value, load_config, save_config, save_env_value
+        from hermes_cli.runtime_provider import resolve_runtime_provider
+
+        url, var = "https://acme.example.invalid/v1", "HERMES_CUSTOM_ACME_API_KEY"
+        monkeypatch.delenv(var, raising=False)
+        cfg = load_config()
+        cfg["model"] = {"provider": "openrouter", "default": "other"}
+        cfg["providers"] = {"acme": {"name": "Acme", "base_url": url, "key_env": var,
+                                     "discover_models": False, "models": {"m1": {}}}}
+        save_config(cfg)
+        save_env_value(var, "old-key")
+
+        resp = self.client.post("/api/model/set", json={
+            "scope": "main", "provider": "acme", "model": "m1", "api_key": "new-key",
+            "confirm_expensive_model": True})
+        assert resp.status_code == 200 and resp.json()["ok"] is True, resp.text
+
+        model_cfg = load_config()["model"]
+        assert model_cfg["provider"] == "acme" and model_cfg["key_env"] == var
+        assert "api_key" not in model_cfg
+        assert get_env_value(var) == "new-key"
+        assert "new-key" not in get_config_path().read_text()
+        runtime = resolve_runtime_provider(requested="acme", target_model="m1")
+        assert runtime["base_url"] == url and runtime["api_key"] == "new-key"
+
+    def test_set_model_explicit_key_migrates_a_plaintext_entry_key_to_env(self, monkeypatch):
+        """Same rotation for a pre-#69449 entry that still stores ``api_key`` inline: the new key
+        goes to the endpoint's ``.env`` slot and the entry switches to ``key_env`` (as the
+        custom-endpoint write route does on save), so neither key is left in config.yaml."""
+        from hermes_cli.config import (
+            custom_endpoint_key_env, get_config_path, get_env_value, load_config, save_config)
+        from hermes_cli.runtime_provider import resolve_runtime_provider
+
+        url, var = "https://acme.example.invalid/v1", custom_endpoint_key_env("acme")
+        monkeypatch.delenv(var, raising=False)
+        cfg = load_config()
+        cfg["model"] = {"provider": "openrouter", "default": "other"}
+        cfg["providers"] = {"acme": {"name": "Acme", "base_url": url, "api_key": "old-key",
+                                     "discover_models": False, "models": {"m1": {}}}}
+        save_config(cfg)
+
+        resp = self.client.post("/api/model/set", json={
+            "scope": "main", "provider": "acme", "model": "m1", "api_key": "new-key",
+            "confirm_expensive_model": True})
+        assert resp.status_code == 200 and resp.json()["ok"] is True, resp.text
+
+        cfg = load_config()
+        assert cfg["providers"]["acme"]["key_env"] == var
+        assert "api_key" not in cfg["providers"]["acme"]
+        assert cfg["model"]["key_env"] == var and "api_key" not in cfg["model"]
+        assert get_env_value(var) == "new-key"
+        text = get_config_path().read_text()
+        assert "new-key" not in text and "old-key" not in text
+        assert resolve_runtime_provider(requested="acme", target_model="m1")["api_key"] == "new-key"
+
 
     def test_deleting_the_active_custom_endpoint_clears_its_model_mirror(self):
         """Deleting an endpoint must not leave its credential running the agent.

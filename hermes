@@ -10,6 +10,12 @@ import os
 import sys
 from pathlib import Path
 
+# Set on the child environment when this launcher hands off to a managed
+# interpreter. A checkout can carry both `venv/` (install) and `.venv/`
+# (developer build); without the marker two interpreters that each see the
+# other as "the managed one" exec each other forever.
+_REEXEC_MARKER = "HERMES_LAUNCHER_REEXEC"
+
 
 def _managed_python_candidates(root: Path) -> tuple[Path, ...]:
     if os.name == "nt":
@@ -17,13 +23,62 @@ def _managed_python_candidates(root: Path) -> tuple[Path, ...]:
     return root / "venv" / "bin" / "python", root / ".venv" / "bin" / "python"
 
 
+def _is_runnable(path: Path) -> bool:
+    return path.is_file() and os.access(path, os.X_OK)
+
+
+def _same_interpreter(a: Path, b: Path) -> bool:
+    return os.path.realpath(a) == os.path.realpath(b)
+
+
+def _inside(path: Path, directory: Path) -> bool:
+    """True when ``path`` lives under ``directory`` (before OR after symlink resolution).
+
+    A venv's ``bin/python`` is usually a symlink to the base interpreter, so the resolved path
+    alone would say "outside"; the unresolved path is what identifies a managed interpreter."""
+    for candidate in (os.path.abspath(path), os.path.realpath(path)):
+        for base in (os.path.abspath(directory), os.path.realpath(directory)):
+            if candidate == base or candidate.startswith(base.rstrip(os.sep) + os.sep):
+                return True
+    return False
+
+
+def _managed_python_target(current_executable: str, root: Path, environ) -> Path | None:
+    """The interpreter this launcher should exec into, or None to run in-process.
+
+    Order: an explicit ``HERMES_PYTHON`` wins; a launcher that already handed off once never
+    hands off again (loop guard); an interpreter that already lives in one of the adjacent
+    managed environments stays put; otherwise the first existing candidate is used."""
+    explicit = (environ.get("HERMES_PYTHON") or "").strip()
+    current = Path(current_executable)
+    if explicit:
+        target = Path(explicit)
+        if not _is_runnable(target) or _same_interpreter(target, current):
+            return None
+        return target
+    if environ.get(_REEXEC_MARKER):
+        return None
+    candidates = _managed_python_candidates(root)
+    for candidate in candidates:
+        # Only the unresolved location identifies a managed interpreter: a venv's python is a
+        # symlink to the base interpreter, so a realpath comparison would call the base python
+        # "already managed" and skip the hand-off.
+        if _inside(current, candidate.parent.parent):
+            return None
+    for candidate in candidates:
+        if _is_runnable(candidate):
+            return candidate
+    return None
+
+
 def _reexec_managed_python() -> None:
     launcher = Path(__file__).resolve()
-    current = Path(sys.executable).resolve()
+    target = _managed_python_target(sys.executable, launcher.parent, os.environ)
+    if target is None:
+        return
+    os.environ[_REEXEC_MARKER] = "1"
+    os.execv(str(target), [str(target), str(launcher), *sys.argv[1:]])
 
-    for candidate in _managed_python_candidates(launcher.parent):
-        if candidate.is_file() and os.access(candidate, os.X_OK) and candidate.resolve() != current:
-            os.execv(str(candidate), [str(candidate), str(launcher), *sys.argv[1:]])
 
 if __name__ == "__main__":
     _reexec_managed_python()

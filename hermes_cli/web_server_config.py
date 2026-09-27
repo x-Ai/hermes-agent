@@ -80,7 +80,7 @@ _SCHEMA_OVERRIDES: Dict[str, Dict[str, Any]] = {
     },
     "agent.output_truncation_retries": {
         "type": "number",
-        "description": "Retries after an output-token limit produces no visible text",
+        "description": "Continuations after a response is cut off at the provider output-token limit (0-3; each re-sends the full prompt)",
         "options": [0, 1, 2, 3],
     },
     "agent.post_tool_empty_retries": {
@@ -659,6 +659,41 @@ def _dashboard_skew_restart_hint() -> str:
     )
 
 
+def _rotate_entry_credential(cfg: dict, provider: str, api_key: str) -> Optional[str]:
+    """Store an explicitly submitted key for a ``providers.<id>`` entry and return the ``key_env``
+    pointer ``model_cfg`` should carry, or None when there is nothing to rotate.
+
+    An explicit key is a rotation request and outranks the entry's stored credential; the fork
+    once lost this by letting the pointer resolver run unconditionally, so the dashboard returned
+    200 and the new key was written nowhere (the runtime kept sending the old one). The value goes
+    to ``.env`` behind the entry's own ``key_env`` (else the custom-endpoint slot, migrating a
+    plaintext ``api_key`` the way the endpoint write route does) so config.yaml never holds it.
+    Bare ``custom`` / unknown providers have no entry and keep the inline ``model.api_key`` path.
+    """
+    from hermes_cli.config import _ENV_REF_RE, custom_endpoint_key_env, save_env_value
+    from hermes_cli.web_routers._common import is_redacted_credential_preview
+
+    key = api_key.strip()
+    if not key:
+        return None
+    providers = cfg.get("providers")
+    stored_key, entry = find_provider_entry(providers, provider)
+    if entry is None and provider.strip().lower().startswith("custom:"):
+        stored_key, entry = find_provider_entry(providers, provider.strip().split(":", 1)[1])
+    if entry is None:
+        return None
+    # ``${VAR}`` / a masked preview is the GET display of the current key echoed back, not a new value.
+    if _ENV_REF_RE.fullmatch(key) or is_redacted_credential_preview(key):
+        return None
+    key_env = str(entry.get("key_env") or entry.get("api_key_env") or "").strip()
+    if not key_env:
+        key_env = custom_endpoint_key_env(str(stored_key))
+        entry["key_env"] = key_env
+        entry.pop("api_key", None)
+    save_env_value(key_env, key)
+    return key_env
+
+
 def _resolve_assignment_credentials(model_cfg: dict, provider: str, provider_entry: Any) -> None:
     """Carry the provider's credential POINTER (``key_env`` / raw ``${VAR}``) onto ``model_cfg``.
 
@@ -766,7 +801,12 @@ def _apply_main_assignment_sync(cfg: dict, provider: str, model: str, base_url: 
     provider, model = result.target_provider, result.new_model
     provider_entry = _provider_entry(cfg, provider)
     model_cfg = _apply_main_model_assignment(cfg.get("model", {}), result, api_key)
-    _resolve_assignment_credentials(model_cfg, provider, provider_entry)
+    rotated_key_env = _rotate_entry_credential(cfg, provider, api_key)
+    if rotated_key_env:
+        model_cfg["key_env"] = rotated_key_env
+        model_cfg.pop("api_key", None)
+    else:
+        _resolve_assignment_credentials(model_cfg, provider, provider_entry)
     cfg["model"] = model_cfg
 
     new_provider = provider.strip().lower()

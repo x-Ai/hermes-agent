@@ -200,3 +200,30 @@ def test_provider_defaults_and_generic_fields_round_trip_without_becoming_per_mo
     assert client.post("/api/providers/custom-endpoints", json=body).status_code == 200
     row = {r["id"]: r for r in client.get("/api/providers/custom-endpoints").json()["endpoints"]}["relay"]
     assert row["default_token_limits"]["max_output_tokens"] == 32_000 and row["model_token_limits"] == {}
+
+
+@pytest.mark.parametrize("bad", [True, "4096", 0, 10**12, 1.5], ids=["bool", "str", "zero", "absurd", "float"])
+def test_token_limit_fields_take_only_plausible_positive_ints(client, bad):
+    """``true`` must not coerce to a 1-token budget and there is a plausibility ceiling; a payload
+    with one bad value among good ones persists nothing (the endpoint is never created)."""
+    body = {
+        "id": "relay", "name": "Relay", "base_url": "https://relay.example.invalid/v1", "model": "m1",
+        "models": ["m1", "m2"], "make_default": False,
+        "model_token_limits": {"m1": {"max_output_tokens": 8_000}, "m2": {"context_length": bad}},
+    }
+    assert client.post("/api/providers/custom-endpoints", json=body).status_code == 422
+    assert "relay" not in (load_config().get("providers") or {})
+
+
+def test_partially_invalid_limits_leave_an_existing_entry_untouched(client):
+    url = "https://relay.example.invalid/v1"
+    body = {"id": "relay", "name": "Relay", "base_url": url, "model": "m1", "models": ["m1"], "make_default": False,
+            "default_token_limits": {"max_output_tokens": 32_000},
+            "model_token_limits": {"m1": {"context_length": 200_000}}}
+    assert client.post("/api/providers/custom-endpoints", json=body).status_code == 200
+    before = load_config()["providers"]["relay"]
+
+    for field, payload in (("default_token_limits", {"context_length": True}),
+                           ("model_token_limits", {"m1": {"context_length": 300_000, "max_output_tokens": 10**12}})):
+        assert client.post("/api/providers/custom-endpoints", json={**body, field: payload}).status_code == 422
+        assert load_config()["providers"]["relay"] == before

@@ -50,10 +50,15 @@ def load_picker_context() -> ConfigContext:
         current_provider = coerce_provider_id(model_cfg.get("provider", ""))
         current_base_url = str(model_cfg.get("base_url", "") or "")
         if current_provider:
+            # A ``providers.<builtin>`` row that is really a foreign endpoint is listed under its
+            # ``custom:<id>`` slug; only that re-slug is adopted so the picker marks the right row.
+            # Every other value keeps the coerced config string (no lowercasing, no env fallback).
             try:
                 from hermes_cli.runtime_provider import resolve_requested_provider
 
-                current_provider = resolve_requested_provider()
+                recovered = resolve_requested_provider()
+                if recovered.startswith("custom:"):
+                    current_provider = recovered
             except Exception:
                 pass
     else:  # config.model can be a bare string in older configs
