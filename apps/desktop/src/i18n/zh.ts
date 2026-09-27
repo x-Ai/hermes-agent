@@ -2429,7 +2429,7 @@ export const zh = defineLocale({
       authSchemeLabel: '认证请求头',
       authSchemeAuto: '自动检测',
       authSchemeHint:
-        '所有协议线上承载 API Key 的请求头。自动检测在 OpenAI 兼容路由上发送 Authorization: Bearer，在 Anthropic 兼容路由上按已知主机表决定；端点返回 401/403 时请固定为 x-api-key 或 Bearer',
+        '所有协议线上承载 API Key 的请求头，自动检测在 OpenAI 兼容路由上发送 Authorization: Bearer，在 Anthropic 兼容路由上按已知主机表决定，端点返回 401/403 时请固定为 x-api-key 或 Bearer',
       noModelCatalog: '端点可以连通，但未提供模型目录',
       connectedNoModels: url => `已连接到 ${url}，但端点未声明任何模型`,
       defaultModelLabel: '默认模型',
@@ -2442,7 +2442,7 @@ export const zh = defineLocale({
       apiKeyLabel: 'API 密钥',
       userAgentLabel: 'User-Agent',
       userAgentHint:
-        '发送到该端点的 HTTP User-Agent。留空使用 SDK 默认值；部分中继或 WAF 只放行浏览器标识，遇到拦截时可点击预设填入',
+        '发送到该端点的 HTTP User-Agent，留空使用 SDK 默认值，部分中继或 WAF 只放行浏览器标识，遇到拦截时可点击预设填入',
       useBrowserUserAgent: '使用浏览器 User-Agent',
       defaultRowLabel: '所有模型（默认）',
       visionLabel: '视觉',
@@ -2461,7 +2461,7 @@ export const zh = defineLocale({
       extraBodyInvalid: '必须是 JSON 对象',
       maxTokensFieldLabel: '输出上限字段',
       maxTokensFieldAuto: '自动（由端点决定）',
-      maxTokensFieldHint: 'Chat Completions 请求里承载输出上限的字段。原样转发到 OpenAI 的中继请固定为 max_completion_tokens；运行时不会按模型名猜测',
+      maxTokensFieldHint: 'Chat Completions 请求里承载输出上限的字段，原样转发到 OpenAI 的中继请固定为 max_completion_tokens，运行时不会按模型名猜测',
       catalogProviderLabel: '元数据目录来源',
       catalogProviderHint: '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自动',
@@ -2551,14 +2551,14 @@ export const zh = defineLocale({
     localModels: {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':
-          '综合表现最佳的智能体模型；支持图像理解；长上下文下依然快速',
-        'Frontier-scale model; needs a very large GPU to run well': '前沿大模型；需要显存容量很大的 GPU 才能流畅运行',
+          '综合表现最佳的智能体模型，支持图像理解，长上下文下依然快速',
+        'Frontier-scale model; needs a very large GPU to run well': '前沿大模型，需要显存容量很大的 GPU 才能流畅运行',
         'Bigger mixture-of-experts with multi-token prediction; sees images':
           '更大规模的混合专家模型，支持多词元预测和图像理解',
         'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'
       } as Record<string, string>,
       recommendedBuild: (quant, largeWindow) =>
-        `推荐版本（${quant}）——此引擎针对该量化类型进行了优化；可完全在 GPU 上运行${largeWindow ? '，并支持较大的上下文窗口' : ''}`,
+        `推荐版本（${quant}）——此引擎针对该量化类型进行了优化，可完全在 GPU 上运行${largeWindow ? '，并支持较大的上下文窗口' : ''}`,
       compactBuild: quant => `适合本机的紧凑版本（${quant}）——超出显存容量，需要使用系统内存，运行较慢`,
       fitTooLarge: (quant, size) => `即使是最紧凑的版本（${quant}，${size}），也超出了显存与系统内存的总容量`,
       fitNeedsMemory: '所需内存超出本机容量',
@@ -2924,12 +2924,12 @@ export const zh = defineLocale({
       },
       loading: '正在加载提供方...',
       providerLabels: {
-        alibaba: '阿里云 DashScope',
-        'alibaba-cn': '阿里云 DashScope（中国大陆）',
-        'alibaba-token-plan': '阿里云（Token Plan）',
-        'alibaba-token-plan-cn': '阿里云（Token Plan，中国大陆）',
-        'alibaba-coding-plan': '阿里云（Coding Plan）',
-        'alibaba-coding-plan-cn': '阿里云（Coding Plan，中国大陆）'
+        alibaba: 'Alibaba DashScope',
+        'alibaba-cn': 'Alibaba DashScope（中国大陆）',
+        'alibaba-token-plan': 'Alibaba（Token Plan）',
+        'alibaba-token-plan-cn': 'Alibaba（Token Plan，中国大陆）',
+        'alibaba-coding-plan': 'Alibaba（Coding Plan）',
+        'alibaba-coding-plan-cn': 'Alibaba（Coding Plan，中国大陆）'
       },
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
