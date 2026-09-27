@@ -472,6 +472,7 @@ export const it: Translations = {
       decisionChanged: (skill, state) => `Lo stato del contributo ${skill} è cambiato in ${state}.`,
       installedNotice: (skill, version) =>
         `${skill}${version ? ` ${version}` : ''} è stata installata in questo profilo.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} è stata aggiornata in questo profilo.`,
       updateNotice: (skill, version) => `È disponibile un aggiornamento per ${skill}${version ? ` ${version}` : ''}.`,
       newSkillNotice: skill => `${skill} è stata condivisa con il tuo collettivo.`,
       archivedNotice: skill => `${skill} non è più disponibile per nuove installazioni.`,
@@ -560,7 +561,7 @@ export const it: Translations = {
     llmProviders: "Provider LLM",
     providersConfigured: "{configured} di {total} provider configurati",
     getKey: "Ottieni chiave",
-    notConfigured: "{count} non configurat{s}",
+    notConfigured: "{count} non configurate",
     notSet: "Non impostato",
     keysCount: "{count} chiav{s}",
     enterValue: "Inserisci valore...",

@@ -68,7 +68,7 @@ export default function PairingPage() {
       showToast(copy.approvedToast.replace("{name}", getUserLabel(user)), "success");
       loadPairing();
     } catch (e) {
-      showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+      showToast(copy.approveFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setApproving(null);
     }
@@ -82,7 +82,7 @@ export default function PairingPage() {
       showToast(copy.clearedToast.replace("{count}", String(res.cleared)), "success");
       loadPairing();
     } catch (e) {
-      showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+      showToast(copy.clearFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setClearing(false);
     }
@@ -101,11 +101,11 @@ export default function PairingPage() {
           );
           loadPairing();
         } catch (e) {
-          showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+          showToast(copy.revokeFailed.replace("{error}", errorMessage(e)), "error");
           throw e;
         }
       },
-      [approved, copy.revokedToast, loadPairing, showToast, t.status.error]
+      [approved, copy.revokeFailed, copy.revokedToast, loadPairing, showToast]
     )
   });
 

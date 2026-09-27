@@ -855,7 +855,6 @@ const ZH_FULL_LABELS: Record<string, string> = {
   model_context_length: '模型上下文长度',
   fallback_providers: '备用模型',
   toolsets: '启用的工具集',
-  x_search: 'X (Twitter) 搜索',
   timezone: '时区',
   'display.personality': '人格',
   'display.show_reasoning': '推理过程块',
@@ -936,7 +935,7 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'agent.max_turns': 'Hermes 停止一次运行前工具调用轮次的上限',
   'agent.image_input_mode': '控制图片附件如何发送给模型',
   'agent.output_truncation_retries':
-    '仅在提供商明确报告输出 Token 达到上限且没有生成可见文本时重试。重试会临时关闭 reasoning，并可能调高隐式传输输出上限。完整输入可能再次计费，默认 1 次，最多 3 次',
+    '在提供商因输出 Token 上限截断回复后继续生成的次数（0–3）。每次续写都会重新发送完整提示并可能再次计费；设为 0 则立即返回已生成的部分。默认 3 次',
   'agent.post_tool_empty_retries':
     '模型在工具调用后未返回可见文本时，发送继续提示。每次重试都可能重复计费，设为 0 可关闭，最多 3 次',
   'agent.thinking_prefill_retries':
@@ -974,7 +973,6 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'proxy.credential_source': 'iron-proxy 启动时加载真实上游密钥的位置',
   'proxy.enforce_on_docker': '出站代理已启用但未配置或未运行时，拒绝启动 Docker 沙箱',
   'tts.provider': '语音合成提供商',
-  'stt.provider': '语音识别提供商',
   'stt.local.model': '本地 faster-whisper 模型大小',
   'stt.groq.model': 'Groq Whisper 模型',
   'stt.openai.model': 'OpenAI 转录模型',

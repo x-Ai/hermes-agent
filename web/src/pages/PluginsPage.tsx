@@ -433,7 +433,7 @@ export default function PluginsPage() {
     } finally {
       setRescanBusy(false);
     }
-  }, [loadHub, showToast, t.pluginsPage.refreshDashboard]);
+  }, [copy.rescanFailed, loadHub, showToast, t.pluginsPage.refreshDashboard]);
 
   useEffect(() => {
     setAfterTitle(

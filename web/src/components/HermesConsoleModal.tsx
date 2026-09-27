@@ -346,7 +346,7 @@ export function HermesConsoleModal({ open, onClose }: HermesConsoleModalProps) {
         showPrompt();
       }
     },
-    [copy.cancelled, copy.confirmPrompt, copy.timedOut, showPrompt]
+    [copy.cancelled, copy.commandFailed, copy.confirmPrompt, copy.timedOut, showPrompt]
   );
 
   useEffect(() => {

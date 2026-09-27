@@ -480,6 +480,7 @@ export const ga: Translations = {
       decisionDeclined: skill => `Níor ceadaíodh ${skill} lena roinnt.`,
       decisionChanged: (skill, state) => `Athraíodh stádas ranníocaíochta ${skill} go ${state}.`,
       installedNotice: (skill, version) => `Suiteáladh ${skill}${version ? ` ${version}` : ''} ar an bpróifíl seo.`,
+      updatedNotice: (skill, version) => `Nuashonraíodh ${skill}${version ? ` ${version}` : ''} ar an bpróifíl seo.`,
       updateNotice: (skill, version) => `Tá nuashonrú ar fáil do ${skill}${version ? ` ${version}` : ''}.`,
       newSkillNotice: skill => `Roinneadh ${skill} le do chomhchoiteann.`,
       archivedNotice: skill => `Níl ${skill} ar fáil do shuiteálacha nua a thuilleadh.`,

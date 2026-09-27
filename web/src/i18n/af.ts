@@ -471,6 +471,7 @@ export const af: Translations = {
       decisionChanged: (skill, state) => `${skill} se bydraestatus het na ${state} verander.`,
       installedNotice: (skill, version) =>
         `${skill}${version ? ` ${version}` : ''} is op hierdie profiel geïnstalleer.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} is op hierdie profiel opgedateer.`,
       updateNotice: (skill, version) => `’n Opdatering is vir ${skill}${version ? ` ${version}` : ''} beskikbaar.`,
       newSkillNotice: skill => `${skill} is met jou kollektief gedeel.`,
       archivedNotice: skill => `${skill} is nie meer vir nuwe installasies beskikbaar nie.`,

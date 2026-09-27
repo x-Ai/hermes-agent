@@ -473,6 +473,7 @@ export const de: Translations = {
       decisionChanged: (skill, state) => `Der Beitragsstatus von ${skill} wurde in ${state} geändert.`,
       installedNotice: (skill, version) =>
         `${skill}${version ? ` ${version}` : ''} wurde in diesem Profil installiert.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} wurde in diesem Profil aktualisiert.`,
       updateNotice: (skill, version) => `Für ${skill}${version ? ` ${version}` : ''} ist ein Update verfügbar.`,
       newSkillNotice: skill => `${skill} wurde mit deinem Kollektiv geteilt.`,
       archivedNotice: skill => `${skill} ist für neue Installationen nicht mehr verfügbar.`,

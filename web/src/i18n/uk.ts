@@ -470,6 +470,7 @@ export const uk: Translations = {
       decisionDeclined: skill => `${skill} не схвалено для поширення.`,
       decisionChanged: (skill, state) => `Стан внеску ${skill} змінено на ${state}.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} встановлено в цьому профілі.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} оновлено в цьому профілі.`,
       updateNotice: (skill, version) => `Для ${skill}${version ? ` ${version}` : ''} доступне оновлення.`,
       newSkillNotice: skill => `${skill} поширено у вашому колективі.`,
       archivedNotice: skill => `${skill} більше не доступна для нових встановлень.`,

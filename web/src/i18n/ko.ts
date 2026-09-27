@@ -467,6 +467,7 @@ export const ko: Translations = {
       decisionDeclined: skill => `${skill}은(는) 공유 승인을 받지 못했습니다.`,
       decisionChanged: (skill, state) => `${skill} 기여 상태가 ${state}(으)로 변경되었습니다.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''}이(가) 이 프로필에 설치되었습니다.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''}이(가) 이 프로필에서 업데이트되었습니다.`,
       updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} 업데이트를 사용할 수 있습니다.`,
       newSkillNotice: skill => `${skill}이(가) 컬렉티브에 공유되었습니다.`,
       archivedNotice: skill => `${skill}은(는) 더 이상 새로 설치할 수 없습니다.`,

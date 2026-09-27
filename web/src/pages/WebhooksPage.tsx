@@ -137,11 +137,11 @@ export default function WebhooksPage() {
     } catch (e) {
       setRestartNeeded(true);
       setRestartError(errorMessage(e));
-      showToast(`${copy.restartGateway}: ${errorMessage(e)}`, "error");
+      showToast(copy.restartFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setRestarting(false);
     }
-  }, [copy.restartGateway, copy.restarting, loadWebhooks, showToast, watchRestartOutcome]);
+  }, [copy.restartFailed, copy.restarting, loadWebhooks, showToast, watchRestartOutcome]);
 
   const handleEnableWebhooks = useCallback(async () => {
     setEnabling(true);
@@ -163,12 +163,12 @@ export default function WebhooksPage() {
         showToast(`${copy.restartGateway}${detail}`, "error");
       }
     } catch (e) {
-      showToast(`${copy.enable}: ${errorMessage(e)}`, "error");
+      showToast(copy.enableFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setEnabling(false);
     }
   }, [
-    copy.enable,
+    copy.enableFailed,
     copy.restartGateway,
     copy.restarting,
     loadWebhooks,
@@ -209,7 +209,7 @@ export default function WebhooksPage() {
       resetForm();
       loadWebhooks();
     } catch (e) {
-      showToast(`${t.common.create}: ${errorMessage(e)}`, "error");
+      showToast(copy.createFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setCreating(false);
     }
@@ -228,12 +228,12 @@ export default function WebhooksPage() {
         );
         loadWebhooks();
       } catch (e) {
-        showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+        showToast(copy.updateFailed.replace("{error}", errorMessage(e)), "error");
       } finally {
         setTogglingName(null);
       }
     },
-    [copy.disabledToast, copy.enabledToast, loadWebhooks, showToast, t.status.error]
+    [copy.disabledToast, copy.enabledToast, copy.updateFailed, loadWebhooks, showToast]
   );
 
   const webhookDelete = useConfirmDelete({
@@ -244,11 +244,11 @@ export default function WebhooksPage() {
           showToast(copy.deletedToast.replace("{name}", name), "success");
           loadWebhooks();
         } catch (e) {
-          showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+          showToast(copy.deleteFailed.replace("{error}", errorMessage(e)), "error");
           throw e;
         }
       },
-      [copy.deletedToast, loadWebhooks, showToast, t.status.error]
+      [copy.deleteFailed, copy.deletedToast, loadWebhooks, showToast]
     )
   });
 

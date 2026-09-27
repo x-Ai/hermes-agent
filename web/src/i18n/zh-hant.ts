@@ -466,6 +466,7 @@ export const zhHant: Translations = {
       decisionDeclined: skill => `${skill} 未獲共享核准。`,
       decisionChanged: (skill, state) => `${skill} 的貢獻狀態已變更為${state}。`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} 已安裝到此設定檔。`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} 已在此設定檔更新。`,
       updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} 有可用更新。`,
       newSkillNotice: skill => `${skill} 已與你的集體共享。`,
       archivedNotice: skill => `${skill} 已不再可用於新安裝。`,

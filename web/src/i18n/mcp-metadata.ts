@@ -3,6 +3,8 @@ import type { DashboardCopy } from "./dashboard";
 import type { McpTestResult } from "@/lib/api";
 
 const ZH_SPECIAL_SETUP: Record<string, string> = {
+  asana:
+    "Asana V2 不支持动态客户端注册（DCR），你需要自己的 Asana MCP 应用。在开发者控制台（https://app.asana.com/0/my-apps）创建类型为 \"MCP app\" 的应用，然后：\n  - OAuth → Redirect URL：http://localhost:27890/callback（必须完全一致）。\n  - Manage distribution → 允许你要使用的工作区。\n其 Client ID / Client secret 即上方提示输入的 ASANA_CLIENT_ID / ASANA_CLIENT_SECRET。密钥保存在此配置的 .env 中，非机密的 client id 会写入 config.yaml。\n\n随后运行 `hermes mcp login asana`（或在 Dashboard / 桌面应用中点击“身份验证”；回调仍会到达 http://localhost:27890/callback，因此浏览器必须与 Hermes 运行在同一台机器上），批准访问，然后重启（或 /reload-mcp）需要使用 Asana 工具的 Hermes 会话或网关。",
   alltrails:
     "无需账号或凭据；重启会话后工具即可使用。\n\n注意：该服务器只有 5 个工具，但 schema 特别冗长（合计约 2.4 万 Token）。如果只是偶尔查询步道，建议保持禁用并按需开启，或运行以下命令精简工具：\n  hermes mcp configure alltrails",
   amplitude:
@@ -27,8 +29,8 @@ const ZH_SPECIAL_SETUP: Record<string, string> = {
     "首次连接时，Hermes 会打开浏览器授权 Klaviyo（也可运行 `hermes mcp login klaviyo`）。批准访问后重启会话以加载工具。\n\n需要 Klaviyo 的 Owner、Admin 或 Manager 角色。\n\nHermes 默认固定约 40 个核心工具，并通过 URL 参数启用 Klaviyo 的提示注入缓解措施。如需完整的 262 个工具，请从 config.yaml 的 mcp_servers.klaviyo.url 中移除查询参数。",
   linear:
     "首次连接时，Hermes 会打开浏览器使用 Linear 账号完成认证。授权后重启 Hermes 会话以加载 Linear 工具。\n\n可随时重新运行工具清单：\n  hermes mcp configure linear",
-  n8n:
-    "n8n 桥接器会通过你提供的 URL 连接正在运行的 n8n 实例。请在 n8n 的 Settings → API 中生成 API 密钥。\n\n工作流启用/停用调用会真实修改在线 n8n 实例，请谨慎操作。\n\n新建 Hermes 会话以加载 n8n 工具。",
+  "n8n-official":
+    "在 n8n 的 Settings > Instance-level MCP 中启用 MCP 访问（需要 owner 或 admin）。打开 Connect 并复制以 /mcp-server/http 结尾的完整 Server URL；请使用该 URL 而不是编辑器地址，且 Hermes 后端必须能够访问它。较旧的 n8n 版本会在 MCP 设置页显示同一端点。\n\n运行 `hermes mcp login n8n-official`，或在桌面应用 / Dashboard 中点击“身份验证”，然后在 n8n 中批准访问。无需 n8n API 密钥。如果实例限制了 OAuth 回调地址，请放行 Hermes 使用的回调。\n\nn8n 通过你的账号权限和 MCP 设置控制访问：搜索可以显示你有权查看的工作流预览；若要完整查看、执行或修改某个工作流，请为其启用 Available in MCP。可用工具取决于 n8n 版本和权限，部分工具会更改或运行工作流。可运行以下命令检查已发现的工具：\n  hermes mcp configure n8n-official\n\n现有的 n8n 桥接连接不受影响；这是一个独立连接，不会自动迁移。设置完成后请新建会话或使用 /reload-mcp。",
   robinhood:
     "首次连接时，Hermes 会打开浏览器授权 Robinhood（也可运行 `hermes mcp login robinhood`）。批准访问后重启会话以加载工具。\n\n警告：该服务器可以在专用 Robinhood 智能体账号中执行真实交易（股票、期权和加密货币）。Hermes 的常规工具审批流程仍然适用，但批准前请仔细核对订单。",
   strava:

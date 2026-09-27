@@ -409,6 +409,7 @@ export const ar = defineLocale({
       decisionChanged: (skill: string, state: string) => `تغيّرت حالة مساهمة ${skill} إلى ${state}.`,
       installedNotice: (skill: string, version?: string) =>
         `تم تثبيت ${skill}${version ? ` ${version}` : ''} في هذا الملف الشخصي.`,
+      updatedNotice: (skill: string, version?: string) => `تم تحديث ${skill}${version ? ` ${version}` : ''} في هذا الملف الشخصي.`,
       updateNotice: (skill: string, version?: string) => `يتوفر تحديث لـ ${skill}${version ? ` ${version}` : ''}.`,
       newSkillNotice: (skill: string) => `تمت مشاركة ${skill} مع مجموعتك.`,
       archivedNotice: (skill: string) => `لم تعد ${skill} متاحة للتثبيتات الجديدة.`,

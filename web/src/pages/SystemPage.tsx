@@ -69,6 +69,7 @@ import type {
 import { apiErrorFromResponse, errorMessage } from "@/lib/api-error";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeUpdateCheckNotice, localizeUpdateRefusal } from "@/i18n/update-metadata";
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -625,7 +626,7 @@ export default function SystemPage() {
           } else if (info.behind === 0) {
             showToast(copy.latestVersion, "success");
           } else if (info.message) {
-            showToast(info.message, "error");
+            showToast(localizeUpdateCheckNotice(info, copy), "error");
           }
         }
       } catch (e) {
@@ -651,7 +652,7 @@ export default function SystemPage() {
     try {
       const resp = await api.updateHermes();
       if (!resp.ok) {
-        showToast(resp.message ?? copy.updatesUnavailable, "success");
+        showToast(localizeUpdateRefusal(resp, copy), "success");
         return;
       }
       setActiveAction(resp.name ?? "hermes-update");

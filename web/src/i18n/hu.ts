@@ -470,6 +470,7 @@ export const hu: Translations = {
       decisionDeclined: skill => `${skill} megosztását nem hagyták jóvá.`,
       decisionChanged: (skill, state) => `${skill} hozzájárulási állapota erre változott: ${state}.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} telepítve ebbe a profilba.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} frissítve ebben a profilban.`,
       updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} frissíthető.`,
       newSkillNotice: skill => `${skill} megosztva a közösségeddel.`,
       archivedNotice: skill => `${skill} már nem érhető el új telepítésekhez.`,

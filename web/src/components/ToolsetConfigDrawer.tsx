@@ -82,7 +82,7 @@ export function ToolsetConfigDrawer({ toolset, profile, onClose, onChanged }: Pr
       })
       .catch(() => showToast(copy.loadToolsetFailed, "error"))
       .finally(() => setLoading(false));
-  }, [toolset.name, profile, showToast]);
+  }, [toolset.name, profile, copy.loadToolsetFailed, showToast]);
 
   useEffect(() => {
     void loadConfig();

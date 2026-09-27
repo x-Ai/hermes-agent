@@ -6,10 +6,11 @@ import { localizeMcpSetup, localizeMcpTestError } from "./mcp-metadata";
 describe("MCP catalog setup localization", () => {
   it("localizes the shared OAuth setup template while preserving the command", () => {
     const setup =
-      "On first connection Hermes opens a browser to authorize with Asana (or run `hermes mcp login asana`). Approve access, then restart the session so tools load.";
-    expect(localizeMcpSetup("asana", setup, "zh")).toBe(
-      "首次连接时，Hermes 会打开浏览器授权 Asana（也可运行 `hermes mcp login asana`）。批准访问后重启会话以加载工具。"
-    );
+      "On first connection Hermes opens a browser to authorize with Notion (or run `hermes mcp login notion`). Approve access, then restart the session so tools load.";
+    const localized = localizeMcpSetup("notion", setup, "zh");
+    expect(localized).not.toBe(setup);
+    expect(localized).toContain("Notion");
+    expect(localized).toContain("`hermes mcp login notion`");
   });
 
   it("localizes credential-free and service-specific setup notes", () => {
@@ -20,11 +21,14 @@ describe("MCP catalog setup localization", () => {
         "zh"
       )
     ).toBe("无需账号或凭据；重启会话后工具即可使用。");
-    expect(localizeMcpSetup("n8n", "English source text", "zh")).toContain("真实修改在线 n8n 实例");
+    // Curated notes are keyed by the catalog manifest id and keep the remediation commands intact.
+    expect(localizeMcpSetup("n8n-official", "English source text", "zh")).toContain("hermes mcp login n8n-official");
+    expect(localizeMcpSetup("asana", "English source text", "zh")).toContain("http://localhost:27890/callback");
   });
 
   it("keeps English copy unchanged outside the Chinese locale", () => {
     expect(localizeMcpSetup("asana", "Setup text", "en")).toBe("Setup text");
+    expect(localizeMcpSetup("some-new-server", "Setup text", "zh")).toBe("Setup text");
   });
 });
 
@@ -34,9 +38,9 @@ describe("MCP connection Toast localization", () => {
     expect(localizeMcpTestError({
       ok: false, code: "oauth_required",
       error: "OAuth authentication required — no token found.", tools: []
-    }, copy, "zh")).toBe("需要 OAuth 验证，请先完成授权")
+    }, copy, "zh")).toBe(copy.oauthRequired)
     expect(localizeMcpTestError({
       ok: false, error: "OAuth authentication required — no token found.", tools: []
-    }, copy, "zh")).toBe("需要 OAuth 验证，请先完成授权")
+    }, copy, "zh")).toBe(copy.oauthRequired)
   });
 });

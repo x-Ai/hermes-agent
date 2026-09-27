@@ -844,7 +844,7 @@ export default function CronPage() {
           throw e;
         }
       },
-      [jobs, loadJobs, selectedProfile, showToast, t.common.delete, t.status.error]
+      [copy.fallbackJob, jobs, loadJobs, selectedProfile, showToast, t.common.delete, t.status.error]
     )
   });
 

@@ -1023,7 +1023,17 @@ export default function SessionsPage() {
         if (importInputRef.current) importInputRef.current.value = "";
       }
     },
-    [clearSelection, loadSessions, loadStats, locale, page, refreshEmptyCount, showToast]
+    [
+      clearSelection,
+      copy.importComplete,
+      copy.importFailed,
+      loadSessions,
+      loadStats,
+      locale,
+      page,
+      refreshEmptyCount,
+      showToast
+    ]
   );
 
   useEffect(() => {
@@ -1397,7 +1407,7 @@ export default function SessionsPage() {
         showToast(copy.renameFailed, "error");
       }
     },
-    [rowProfile, showToast, loadStats]
+    [copy.renameFailed, copy.renamed, rowProfile, showToast, loadStats]
   );
 
   const handleExport = useCallback(
@@ -1425,7 +1435,7 @@ export default function SessionsPage() {
         showToast(copy.exportFailed, "error");
       }
     },
-    [rowProfile, showToast]
+    [copy.exportFailed, rowProfile, showToast]
   );
 
   const handlePrune = useCallback(async () => {

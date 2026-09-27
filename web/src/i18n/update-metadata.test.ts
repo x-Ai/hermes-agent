@@ -6,25 +6,35 @@ import { localizeUpdateCheckNotice, localizeUpdateRefusal } from "./update-metad
 describe("update notice localization", () => {
   const copy = dashboardZh.system;
 
-  it("does not expose fixed backend English in update-check Toasts", () => {
-    expect(localizeUpdateCheckNotice({
+  it("renders update-check outcomes from the catalog, never from backend English prose", () => {
+    const unreachable = {
       install_method: "git", current_version: "1", behind: null,
       update_available: false, can_apply: true, update_command: "hermes update",
       message: "Couldn't reach the update source — try again later."
-    }, copy)).toBe("无法连接更新源，请稍后重试")
+    };
+    expect(localizeUpdateCheckNotice(unreachable, copy)).toBe(copy.updateCheckUnavailable);
+    expect(localizeUpdateCheckNotice(unreachable, copy)).not.toContain(unreachable.message);
 
-    expect(localizeUpdateCheckNotice({
+    const managed = {
       install_method: "apt", current_version: "1", behind: null,
       update_available: false, can_apply: false, update_command: "pkg upgrade hermes-agent",
       message: "Hermes is managed by Termux APT"
-    }, copy)).toBe("使用 pkg upgrade hermes-agent 更新")
-  })
+    };
+    expect(localizeUpdateCheckNotice(managed, copy)).toBe(
+      copy.updateWith.replace("{command}", managed.update_command)
+    );
+  });
 
   it("localizes stable update refusal codes and keeps remediation commands", () => {
     expect(localizeUpdateRefusal({
       ok: false, name: "hermes-update", pid: null,
       error: "dashboard_update_managed_externally", message: "backend prose",
       update_command: "managed outside dashboard"
-    }, copy)).toBe("无法从当前 Dashboard 应用更新")
-  })
-})
+    }, copy)).toBe(copy.updatesUnavailable);
+
+    expect(localizeUpdateRefusal({
+      ok: false, name: "hermes-update", pid: null, message: "backend prose",
+      update_command: "pipx upgrade hermes-agent"
+    }, copy)).toBe(copy.updateWith.replace("{command}", "pipx upgrade hermes-agent"));
+  });
+});

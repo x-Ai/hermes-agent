@@ -701,7 +701,7 @@ export default function ProfilesPage() {
           throw e;
         }
       },
-      [load, showToast, t.profiles.deleted, t.status.error]
+      [load, showToast, t.profiles.defaultBadge, t.profiles.deleted, t.status.error]
     )
   });
 

@@ -469,6 +469,7 @@ export const ru: Translations = {
       decisionDeclined: skill => `${skill} не одобрен для публикации.`,
       decisionChanged: (skill, state) => `Состояние вклада ${skill} изменено на ${state}.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} установлен в этом профиле.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} обновлён в этом профиле.`,
       updateNotice: (skill, version) => `Для ${skill}${version ? ` ${version}` : ''} доступно обновление.`,
       newSkillNotice: skill => `${skill} опубликован в вашем коллективе.`,
       archivedNotice: skill => `${skill} больше недоступен для новых установок.`,

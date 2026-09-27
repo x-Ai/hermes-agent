@@ -328,7 +328,7 @@ export default function SkillsPage() {
         .then(setSkills)
         .catch(() => {});
     },
-    [selectedProfile, showToast]
+    [copy.skillSaved, selectedProfile, showToast]
   );
 
   /* ---- Derived data ---- */

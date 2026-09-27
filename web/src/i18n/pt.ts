@@ -472,6 +472,7 @@ export const pt: Translations = {
       decisionDeclined: skill => `${skill} não foi aprovada para partilha.`,
       decisionChanged: (skill, state) => `O estado da contribuição ${skill} mudou para ${state}.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} foi instalada neste perfil.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} foi atualizada neste perfil.`,
       updateNotice: (skill, version) => `Está disponível uma atualização para ${skill}${version ? ` ${version}` : ''}.`,
       newSkillNotice: skill => `${skill} foi partilhada com o teu coletivo.`,
       archivedNotice: skill => `${skill} já não está disponível para novas instalações.`,

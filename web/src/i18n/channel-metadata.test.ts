@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { dashboardZh } from './dashboard'
-import { localizeChannelTestResult } from './channel-metadata'
+import { localizeChannelFieldDescription, localizeChannelTestResult } from './channel-metadata'
 
 describe('channel metadata localization', () => {
   const copy = dashboardZh.channels
@@ -36,5 +36,27 @@ describe('channel metadata localization', () => {
       state: 'disabled',
       message: 'Discord is disabled. Enable it, then restart the gateway.'
     }, copy, 'zh')).toBe('已禁用。请启用后重启网关。')
+  })
+})
+
+describe('channel field text localization', () => {
+  const help = 'In your Slack app, enable Socket Mode, then create Basic Information > App-Level Tokens with the connections:write scope.'
+  const description = 'Slack app-level token (xapp-) for Socket Mode. Get from Basic Information → App-Level Tokens.'
+
+  it('returns the curated translation for a known backend sentence and the verbatim text otherwise', () => {
+    const localizedHelp = localizeChannelFieldDescription('SLACK_APP_TOKEN', help, 'zh')
+    expect(localizedHelp).not.toBe(help)
+    expect(localizedHelp).toContain('Socket Mode')
+    expect(localizedHelp).toContain('connections:write')
+
+    expect(localizeChannelFieldDescription('SLACK_APP_TOKEN', description, 'zh')).toBe(description)
+    expect(localizeChannelFieldDescription('SLACK_APP_TOKEN', help, 'en')).toBe(help)
+    expect(localizeChannelFieldDescription('SLACK_APP_TOKEN', '', 'zh')).toBe('')
+  })
+
+  it('keeps a field\'s tooltip and inline description distinct', () => {
+    expect(localizeChannelFieldDescription('SLACK_APP_TOKEN', help, 'zh')).not.toBe(
+      localizeChannelFieldDescription('SLACK_APP_TOKEN', description, 'zh')
+    )
   })
 })

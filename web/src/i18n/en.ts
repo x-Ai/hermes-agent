@@ -687,6 +687,7 @@ export const en: Translations = {
       decisionDeclined: skill => `${skill} was not approved for sharing.`,
       decisionChanged: (skill, state) => `${skill} contribution status changed to ${state}.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} was installed on this profile.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} was updated on this profile.`,
       updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} is available to update.`,
       newSkillNotice: skill => `${skill} was shared with your collective.`,
       archivedNotice: skill => `${skill} is no longer available for new installs.`,

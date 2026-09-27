@@ -112,6 +112,22 @@ export function localizeBlueprintValue(value: string, locale: Locale): string {
   return locale === 'zh' ? (ZH_VALUES[value] ?? value) : value
 }
 
+// Slot help keyed by the exact catalog sentence (cron/blueprint_catalog.py); uncurated help stays English.
+const ZH_HELP: Record<string, string> = {
+  '24h local time, e.g. 08:00': '24 小时制本地时间，例如 08:00',
+  'origin = the chat you set this up from (or your configured home channel when created from the dashboard); local = save only, no message; or any connected platform name':
+    'origin = 你发起设置的聊天（从 Dashboard 创建时为已配置的主频道）；local = 仅保存、不发送消息；也可填写任一已连接平台的名称',
+  'minutes between checks': '两次检查之间的分钟数',
+  'a subject, product, person, or search phrase': '一个主题、产品、人物或搜索短语',
+  'URL or precise description — variant, dates, seller': 'URL 或精确描述——型号、日期、卖家',
+  'threshold price (state the currency), availability, or terms change': '价格阈值（注明货币）、可用性或条款变化',
+  'hours between checks — be gentle with rate limits': '两次检查之间的小时数——请注意速率限制',
+  'canonical names and domains; aliases help dedup': '正式名称与域名；别名有助于去重',
+  'hours between nudges': '两次提醒之间的小时数',
+  'first hour of the active window (24h)': '活动时段的起始小时（24 小时制）',
+  'last hour of the active window (24h)': '活动时段的结束小时（24 小时制）'
+}
+
 export function localizeBlueprintField(
   field: AutomationBlueprintField,
   locale: Locale
@@ -119,6 +135,6 @@ export function localizeBlueprintField(
   if (locale !== 'zh') return { label: field.label, help: field.help }
   return {
     label: ZH_LABELS[field.label] ?? field.label,
-    help: field.help ? `${ZH_LABELS[field.label] ?? field.label}的设置说明。` : field.help
+    help: field.help ? (ZH_HELP[field.help] ?? field.help) : field.help
   }
 }

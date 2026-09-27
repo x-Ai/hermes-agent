@@ -470,6 +470,7 @@ export const tr: Translations = {
       decisionDeclined: skill => `${skill} paylaşım için onaylanmadı.`,
       decisionChanged: (skill, state) => `${skill} katkısının durumu ${state} olarak değişti.`,
       installedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} bu profile kuruldu.`,
+      updatedNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} bu profilde güncellendi.`,
       updateNotice: (skill, version) => `${skill}${version ? ` ${version}` : ''} için güncelleme var.`,
       newSkillNotice: skill => `${skill} kolektifinizle paylaşıldı.`,
       archivedNotice: skill => `${skill} artık yeni kurulumlar için kullanılamıyor.`,

@@ -98,8 +98,8 @@ export default function McpPage() {
     return api
       .getMcpServers()
       .then((res) => setServers(res.servers))
-      .catch((e) => showToast(`${t.status.error}: ${errorMessage(e)}`, "error"));
-  }, [showToast, t.status.error]);
+      .catch((e) => showToast(copy.loadServersFailed.replace("{error}", errorMessage(e)), "error"));
+  }, [copy.loadServersFailed, showToast]);
 
   const loadCatalog = useCallback(() => {
     return api
@@ -108,8 +108,8 @@ export default function McpPage() {
         setCatalog(res.entries);
         setDiagnostics(res.diagnostics);
       })
-      .catch((e) => showToast(`${t.status.error}: ${errorMessage(e)}`, "error"));
-  }, [showToast, t.status.error]);
+      .catch((e) => showToast(copy.loadCatalogFailed.replace("{error}", errorMessage(e)), "error"));
+  }, [copy.loadCatalogFailed, showToast]);
 
   useEffect(() => {
     Promise.all([loadServers(), loadCatalog()]).finally(() => setLoading(false));
@@ -129,7 +129,7 @@ export default function McpPage() {
         env
       });
     } catch (error) {
-      showToast(error instanceof Error ? error.message : copy.removeTitle, "error");
+      showToast(error instanceof Error ? error.message : copy.invalidServer, "error");
       return;
     }
 
@@ -153,7 +153,7 @@ export default function McpPage() {
       setCreateModalOpen(false);
       loadServers();
     } catch (e) {
-      showToast(`${copy.add}: ${errorMessage(e)}`, "error");
+      showToast(copy.addFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setCreating(false);
     }
@@ -173,7 +173,7 @@ export default function McpPage() {
         showToast(`${server.name}: ${localizeMcpTestError(result, copy, locale)}`, "error");
       }
     } catch (e) {
-      showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+      showToast(copy.testFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setTesting(null);
     }
@@ -194,7 +194,7 @@ export default function McpPage() {
       }));
       showToast(`${server.name}: ${copy.authenticated}`, "success");
     } catch (e) {
-      showToast(`${copy.authenticateOauth}: ${errorMessage(e)}`, "error");
+      showToast(copy.authFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setAuthenticating(null);
     }
@@ -208,7 +208,7 @@ export default function McpPage() {
       setServers(prev => prev.map(s => (s.name === server.name ? { ...s, enabled: next } : s)));
       setRestartNote(copy.nextRestart);
     } catch (e) {
-      showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+      showToast(copy.updateFailed.replace("{error}", errorMessage(e)), "error");
     } finally {
       setTogglingName(null);
     }
@@ -227,11 +227,11 @@ export default function McpPage() {
           });
           loadServers();
         } catch (e) {
-          showToast(`${t.status.error}: ${errorMessage(e)}`, "error");
+          showToast(copy.removeFailed.replace("{error}", errorMessage(e)), "error");
           throw e;
         }
       },
-      [loadServers, showToast, t.common.delete]
+      [copy.removeFailed, loadServers, showToast, t.common.delete]
     )
   });
 
@@ -250,12 +250,12 @@ export default function McpPage() {
         setInstallEnv({});
         await Promise.all([loadServers(), loadCatalog()]);
       } catch (e) {
-        showToast(`${copy.install}: ${errorMessage(e)}`, "error");
+        showToast(copy.installFailed.replace("{error}", errorMessage(e)), "error");
       } finally {
         setInstallingName(null);
       }
     },
-    [copy.install, copy.installed, copy.installingBackground, loadServers, loadCatalog, showToast]
+    [copy.installFailed, copy.installed, copy.installingBackground, loadServers, loadCatalog, showToast]
   );
 
   const handleInstallClick = (entry: McpCatalogEntry) => {

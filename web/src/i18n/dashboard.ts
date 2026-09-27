@@ -601,7 +601,16 @@ export const dashboardEn = {
     authenticateOauth: 'Authenticate with OAuth',
     oauthRequired: 'OAuth authentication is required. Complete authorization first.',
     close: 'Close',
-    required: '{name} is required'
+    required: '{name} is required',
+    invalidServer: 'Invalid MCP server',
+    loadServersFailed: 'Could not load MCP servers: {error}',
+    loadCatalogFailed: 'Could not load the MCP catalog: {error}',
+    addFailed: 'Could not add MCP server: {error}',
+    testFailed: 'Could not test the MCP server: {error}',
+    authFailed: 'Could not sign in to the MCP server: {error}',
+    updateFailed: 'Could not update the MCP server: {error}',
+    removeFailed: 'Could not remove the MCP server: {error}',
+    installFailed: 'Could not install from the catalog: {error}'
   },
   channels: {
     title: 'Channels',
@@ -766,7 +775,12 @@ export const dashboardEn = {
     loadFailed: 'Failed to load webhooks',
     deleteTitle: 'Delete webhook',
     deleteDescription: 'This will permanently remove this webhook subscription.',
-    deliverLog: 'Log'
+    deliverLog: 'Log',
+    restartFailed: 'Failed to restart: {error}',
+    enableFailed: 'Failed to enable webhooks: {error}',
+    createFailed: 'Failed to create: {error}',
+    updateFailed: 'Could not update the webhook: {error}',
+    deleteFailed: 'Could not delete the webhook: {error}'
   },
   pairing: {
     title: 'Pairing',
@@ -787,7 +801,10 @@ export const dashboardEn = {
     approvedToast: 'Approved: "{name}"',
     revokedToast: 'Revoked: "{name}"',
     clearedToast: 'Cleared {count} pending request(s)',
-    minutesAgo: '{count}m ago'
+    minutesAgo: '{count}m ago',
+    approveFailed: 'Could not approve the pairing request: {error}',
+    clearFailed: 'Could not clear pending requests: {error}',
+    revokeFailed: 'Could not revoke access: {error}'
   },
   profileBuilder: {
     title: 'New profile',
@@ -1617,7 +1634,16 @@ export const dashboardZh: DashboardCopy = {
     authenticateOauth: '使用 OAuth 验证',
     oauthRequired: '需要 OAuth 验证，请先完成授权',
     close: '关闭',
-    required: '{name} 为必填项'
+    required: '{name} 为必填项',
+    invalidServer: '无效的 MCP 服务器',
+    loadServersFailed: '无法加载 MCP 服务器：{error}',
+    loadCatalogFailed: '无法加载 MCP 目录：{error}',
+    addFailed: '无法添加 MCP 服务器：{error}',
+    testFailed: '无法测试 MCP 服务器：{error}',
+    authFailed: '无法登录 MCP 服务器：{error}',
+    updateFailed: '无法更新 MCP 服务器：{error}',
+    removeFailed: '无法移除 MCP 服务器：{error}',
+    installFailed: '无法从目录安装：{error}'
   },
   channels: {
     title: '消息平台',
@@ -1772,7 +1798,12 @@ export const dashboardZh: DashboardCopy = {
     loadFailed: '加载 Webhook 失败',
     deleteTitle: '删除 Webhook',
     deleteDescription: '此操作将永久移除该 Webhook 订阅',
-    deliverLog: '日志'
+    deliverLog: '日志',
+    restartFailed: '重启失败：{error}',
+    enableFailed: '启用 Webhook 失败：{error}',
+    createFailed: '创建失败：{error}',
+    updateFailed: '无法更新 Webhook：{error}',
+    deleteFailed: '无法删除 Webhook：{error}'
   },
   pairing: {
     title: '配对管理',
@@ -1793,7 +1824,10 @@ export const dashboardZh: DashboardCopy = {
     approvedToast: '已批准："{name}"',
     revokedToast: '已撤销："{name}"',
     clearedToast: '已清除 {count} 个待处理请求',
-    minutesAgo: '{count} 分钟前'
+    minutesAgo: '{count} 分钟前',
+    approveFailed: '无法批准配对请求：{error}',
+    clearFailed: '无法清除待处理请求：{error}',
+    revokeFailed: '无法撤销访问权限：{error}'
   },
   profileBuilder: {
     title: '新建多代理配置',
