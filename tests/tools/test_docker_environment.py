@@ -1922,3 +1922,23 @@ def test_docker_env_warnings_never_echo_values(caplog):
     with caplog.at_level(logging.WARNING, logger="tools.environments.docker"):
         docker_env._normalize_env_dict({"TOKEN": ["sk-live-value"], "OK": "1"})
     assert "TOKEN" in caplog.text and "sk-live-value" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("spec", "target"),
+    [
+        ("/x:/workspace", "/workspace"),
+        ("/x:/workspace/", "/workspace"),
+        ("/x:/workspace:ro", "/workspace"),
+        ("/x:/workspace2", "/workspace2"),
+        ("named:/data", "/data"),
+        ("C:\\proj:/workspace", "/workspace"),
+        ("novolume", ""),
+    ],
+)
+def test_volume_target_is_the_exact_container_path(spec, target):
+    """`-v /x:/workspace2` must not count as an explicit /workspace mount (substring match),
+    and a custom target must not be suppressed by a volume on the default path."""
+    from tools.environments.docker import _volume_target
+
+    assert _volume_target(spec) == target

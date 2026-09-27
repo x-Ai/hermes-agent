@@ -240,13 +240,16 @@ def _resolve_host_workspace_hint(parent_agent) -> Optional[str]:
         raw_parent_task_id = getattr(parent_agent, "_current_task_id", None)
         parent_task_id = raw_parent_task_id if isinstance(raw_parent_task_id, str) else None
         registered_workspace = resolve_task_overrides(parent_task_id).get("cwd")
+    # The session's registered project outranks the process launch cwd: a Desktop session on
+    # project B whose backend was launched in A must hand the child B's AGENTS.md/CLAUDE.md. The
+    # raw ``TERMINAL_CWD`` env var is the launch profile's under multiplex and is deliberately not
+    # consulted; ``scope_terminal_cwd()`` above is the scoped reading of the same setting.
     candidates = [
-        runtime_workspace,
         registered_workspace,
+        runtime_workspace,
         getattr(getattr(parent_agent, "_subdirectory_hints", None), "working_dir", None),
         getattr(parent_agent, "terminal_cwd", None),
         getattr(parent_agent, "cwd", None),
-        os.getenv("TERMINAL_CWD"),
     ]
     for candidate in filter(None, candidates):
         with _quiet(None):

@@ -531,6 +531,17 @@ def _host_user_args(run_as_host_user: bool) -> list[str]:
     return []
 
 
+
+def _volume_target(spec: str) -> str:
+    """Container-side path of a ``-v`` spec (``src:dst[:opts]``); a Windows drive-letter source
+    (``C:\\proj:/workspace``) keeps its colon. Empty when the spec has no target."""
+    parts = spec.split(":")
+    if len(parts) >= 3 and len(parts[0]) == 1 and parts[0].isalpha():
+        parts = [parts[0] + ":" + parts[1], *parts[2:]]
+    if len(parts) < 2:
+        return ""
+    return parts[1].rstrip("/") or "/"
+
 class DockerEnvironment(BaseEnvironment):
     """Hardened Docker container execution (caps dropped, no-new-privileges, PID limits,
     size-limited tmpfs). The container is the security boundary — its filesystem stays
@@ -740,7 +751,7 @@ class DockerEnvironment(BaseEnvironment):
                 continue
             volume_args.extend(["-v", vol])
         workspace_explicitly_mounted = any(
-            f":{workspace_mount_path}" in v for v in volume_args
+            _volume_target(v) == workspace_mount_path.rstrip("/") for v in volume_args if v != "-v"
         )
 
         host_cwd_abs = os.path.abspath(os.path.expanduser(host_cwd)) if host_cwd else ""

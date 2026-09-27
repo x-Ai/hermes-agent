@@ -923,15 +923,31 @@ def _run_backend_probe(env_type: str, terminal_tool) -> str:
     from tools.terminal_tool_lifecycle import _cleanup_env
 
     config = terminal_tool._get_env_config()
+    is_container = terminal_tool._is_container_backend(env_type)
     # Same container_config shaper as the live terminal path: a private copy of the key table here
     # drifted (no docker_network) and gave the probe a bridge-networked container under lockdown.
+    container_config = _container_config_from_config(config) if is_container else None
+    if container_config is not None:
+        # A system-prompt probe is an observation, not a workspace. It must never inherit the
+        # user's long-lived container lifecycle, bind their launch/project directory, or forward
+        # their credentials merely to run `uname`; and with a fixed name, two sessions building
+        # prompts at once would otherwise join and yank each other's container.
+        container_config = dict(container_config)
+        container_config.update({
+            "container_persistent": False,
+            "docker_persist_across_processes": False,
+            "docker_mount_cwd_to_workspace": False,
+            "singularity_mount_cwd_to_workspace": False,
+            "docker_volumes": [],
+            "docker_forward_env": [],
+            "docker_env": {},
+        })
     env = _create_environment(
         env_type=env_type, image=config.get(_BACKEND_IMAGE_KEYS[env_type], "") if env_type in _BACKEND_IMAGE_KEYS else "", cwd=config.get("cwd", ""),
         timeout=config.get("timeout", 180),
         ssh_config=_ssh_config_from_config(config) if env_type == "ssh" else None,
-        container_config=(_container_config_from_config(config)
-                          if terminal_tool._is_container_backend(env_type) else None),
-        task_id="prompt-backend-probe", host_cwd=config.get("host_cwd"),
+        container_config=container_config,
+        task_id="prompt-backend-probe", host_cwd=None if is_container else config.get("host_cwd"),
         # Only ssh honors this: an isolated ControlMaster socket and no remote dir setup / file sync /
         # snapshot. A normal SSHEnvironment would upload the whole ~/.hermes tree just to run `uname`,
         # and its later __del__ would sync_back() and close the master shared with the agent's own env.

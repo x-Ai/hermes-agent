@@ -180,7 +180,13 @@ def _build_modal_env(*, image, cwd, timeout, cc, task_id, **_):
 
 # env_type -> (class getter, takes image, extra kwargs from (cc, resource kwargs)). SDK-backed modules
 # (daytona/vercel) are imported lazily so they are only required when that backend is selected.
+# The extra-kwargs callable sees the base kwargs plus ``host_cwd`` (the workspace bind source);
+# only rows that mount the workspace forward it to their class.
 _SANDBOX_ROWS = {
+    "singularity": (lambda: _SingularityEnvironment, True,
+                    lambda cc, kw: {"host_cwd": kw.get("host_cwd"),
+                                    "auto_mount_cwd": cc.get("singularity_mount_cwd_to_workspace", False),
+                                    "workspace_mount_path": cc.get("workspace_mount_path", "/workspace")}),
     "daytona": (lambda: importlib.import_module("tools.environments.daytona").DaytonaEnvironment, True,
                 lambda cc, kw: {"cpu": int(kw["cpu"])}),
     "vercel_sandbox": (lambda: importlib.import_module("tools.environments.vercel_sandbox").VercelSandboxEnvironment,
@@ -188,27 +194,15 @@ _SANDBOX_ROWS = {
 }
 
 
-def _build_singularity_env(*, image, cwd, timeout, cc, task_id, host_cwd, **_):
-    return _SingularityEnvironment(
-        image=image,
-        cwd=cwd,
-        timeout=timeout,
-        task_id=task_id,
-        host_cwd=host_cwd,
-        auto_mount_cwd=cc.get("singularity_mount_cwd_to_workspace", False),
-        workspace_mount_path=cc.get("workspace_mount_path", "/workspace"),
-        **_resources(cc),
-    )
-
-
-def _build_sandbox_env(env_type, *, image, cwd, timeout, cc, task_id, **_):
+def _build_sandbox_env(env_type, *, image, cwd, timeout, cc, task_id, host_cwd=None, **_):
     cls, with_image, extra = _SANDBOX_ROWS[env_type]
     kwargs = dict(cwd=cwd, timeout=timeout, task_id=task_id, **_resources(cc),
                   **({"image": image} if with_image else {}))
-    kwargs.update(extra(cc, kwargs))
+    kwargs.update(extra(cc, {**kwargs, "host_cwd": host_cwd}))
     return cls()(**kwargs)
 
 
+_build_singularity_env = functools.partial(_build_sandbox_env, "singularity")
 _build_daytona_env = functools.partial(_build_sandbox_env, "daytona")
 _build_vercel_env = functools.partial(_build_sandbox_env, "vercel_sandbox")
 

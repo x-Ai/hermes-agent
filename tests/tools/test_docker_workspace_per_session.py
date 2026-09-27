@@ -808,13 +808,16 @@ class TestIdentityAndMountAgree:
         assert mounts == {str(a)}
 
     def test_a_session_without_a_registered_cwd_does_not_fan_out(self, config):
-        """No host cwd to key on means the shared default container — and no
-        mount. Reporting one without the other is the divergence itself."""
-        identity = tt._resolve_container_task_id("never-registered")
-        mount_source, _ = tt._resolve_workspace_mount_for_task("never-registered", config)
+        """No session cwd to key on means the LAUNCH directory: every such session
+        keys and mounts the same directory (no fan-out), and the sandbox actually
+        contains what ``host_cwd`` advertises instead of an empty tmpfs."""
+        launch_dir = config["host_cwd"]
+        identities = {tt._resolve_container_task_id(s) for s in ("never-registered", "also-never")}
+        mount_source, container_cwd = tt._resolve_workspace_mount_for_task("never-registered", config)
 
-        assert identity == "default"
-        assert mount_source is None
+        assert identities == {tt._workspace_container_key(launch_dir)}
+        assert mount_source == launch_dir
+        assert container_cwd == tt._workspace_mount_path()
 
     def test_recorded_session_cwd_feeds_identity_too(self, projects, config):
         """``get_session_cwd`` is the second rung of the mount chain, so it must
@@ -920,3 +923,56 @@ class TestEveryToolResolvesOneMount:
         _cwd, host_cwd = creation_args(execute_code, "sess-a")
 
         assert tt._resolve_container_task_id("sess-a") == tt._workspace_container_key(host_cwd)
+
+
+class TestMountedCwdReachesTheSandbox:
+    """A project OUTSIDE /Users and /home (macOS /private/var, /Volumes, /opt, WSL /mnt/c) is
+    bind-mounted correctly but used to reach ``docker run -w <host path>`` verbatim, so every
+    command ran in an empty directory while the project sat at the mount target."""
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        # pytest's tmp_path is under /private/var (macOS) or /tmp (Linux): neither prefix is
+        # known to the unusable-cwd guard, which is exactly the failing case.
+        directory = tmp_path / "proj-x"
+        (directory / "pkg").mkdir(parents=True)
+        return directory
+
+    def test_plan_uses_the_mount_target_as_container_cwd(self, project, per_session_on):
+        tt.register_task_env_overrides("sess-x", {"cwd": str(project)})
+
+        plan = tt._plan_execution("pwd", task_id="sess-x", timeout=None, background=False, _host_local=False)
+
+        assert plan.host_cwd == str(project)
+        assert plan.cwd == tt._workspace_mount_path()
+
+    def test_recorded_host_cwd_inside_the_mount_is_translated_per_command(self, project, per_session_on):
+        tt.register_task_env_overrides("sess-x", {"cwd": str(project)})
+        tt.record_session_cwd("sess-x", str(project / "pkg"))
+
+        cwd = tt._resolve_command_cwd(
+            workdir=None, default_cwd=tt._workspace_mount_path(), session_key="sess-x",
+            env_type=per_session_on)
+
+        assert cwd == tt._workspace_mount_path() + "/pkg"
+
+
+class TestWorkspaceKeyIsProfileScoped:
+    """Two profiles on ONE directory must not share an environment: the image, forwarded env
+    and egress posture differ per profile, and the in-process cache would otherwise hand
+    profile B the environment profile A created."""
+
+    def test_same_directory_different_profiles_different_keys(self, projects, per_session_on):
+        from gateway.session_context import clear_session_vars, set_session_vars
+
+        a, _ = projects
+        keys = {}
+        for profile in ("alpha", "beta", "alpha"):
+            tokens = set_session_vars(profile=profile, session_key=f"sess-{profile}")
+            try:
+                keys.setdefault(profile, set()).add(tt._workspace_container_key(str(a)))
+            finally:
+                clear_session_vars(tokens)
+
+        assert len(keys["alpha"]) == 1  # same profile, same directory: stable
+        assert keys["alpha"] != keys["beta"]  # different profile: different environment

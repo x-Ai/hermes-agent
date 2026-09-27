@@ -20,7 +20,7 @@ from tools.terminal_tool_backends import (
     _container_config_from_config,
     _ssh_config_from_config,
 )
-from tools.terminal_tool_config import _quiet
+from tools.terminal_tool_config import _is_container_backend, _quiet
 
 # Log-record parity with the origin module.
 logger = logging.getLogger("tools.terminal_tool")
@@ -70,7 +70,6 @@ def _create_configured_env(
     """``_create_environment`` with the ssh/container kwargs shaped from *config*
     (shared by the terminal tool and the lazy :func:`ensure_task_env` bring-up)."""
     from tools.terminal_tool_backends import _create_environment
-    from tools.terminal_tool_config import _is_container_backend
     return _create_environment(
         env_type=env_type, image=image, cwd=cwd, timeout=timeout,
         ssh_config=_ssh_config_from_config(config) if env_type == "ssh" else None,

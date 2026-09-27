@@ -585,12 +585,21 @@ def _workspace_per_session_enabled() -> bool:
     return _resolve_workspace_per_session(env_type, mount_enabled)
 
 
+def _workspace_profile_identity() -> str:
+    """Profile component of a per-project workspace key: two profiles on ONE directory must not
+    share an environment (image, forwarded env, egress posture all differ per profile)."""
+    profile = _current_session_profile() or ""
+    routed = _routed_home_task_key(True) or ""
+    shared = _tenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", "") or ""
+    return f"{profile}\n{routed}\n{shared.strip()}"
+
+
 def _workspace_container_key(host_path: str) -> str:
     try:
         normalized = os.path.realpath(os.path.abspath(os.path.expanduser(host_path)))
     except OSError:
         normalized = host_path
-    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}"
+    identity = f"{normalized.casefold()}\n{_workspace_mount_path()}\n{_workspace_profile_identity()}"
     digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()
     return f"ws-{digest[:12]}"
 
@@ -600,7 +609,12 @@ def _resolve_workspace_mount_for_task(
 ) -> tuple[Optional[str], Optional[str]]:
     if not config.get("workspace_per_session"):
         return None, None
-    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("cwd") or ""))
+    # A session with no registered/recorded cwd (plain CLI, cron without a workdir) falls back to
+    # the launch directory the config already advertises as ``host_cwd``: every such session keys
+    # and mounts the same directory, so there is still no per-session fan-out, but the sandbox is
+    # no longer an empty tmpfs while ``host_cwd`` claims the launch dir is mounted. ``config["cwd"]``
+    # is the already-translated in-sandbox path and never a mount source.
+    return resolve_workspace_mount(_workspace_cwd_for_task(task_id, config.get("host_cwd") or ""))
 
 
 def _resolve_container_task_id(task_id: Optional[str]) -> str:
@@ -633,7 +647,10 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
     if task_id and scope.session_isolated:
         return task_id
     if _workspace_per_session_enabled():
-        mount_source, _ = resolve_workspace_mount(_workspace_cwd_for_task(task_id))
+        # Same cwd chain (override > session record > launch dir) as the mount resolver, so the
+        # identity and the mount can never disagree for a session that registered nothing.
+        launch_cwd = _get_env_config().get("host_cwd") or ""
+        mount_source, _ = resolve_workspace_mount(_workspace_cwd_for_task(task_id, launch_cwd))
         if mount_source:
             return _workspace_container_key(mount_source)
     # Per-session isolation: when a session key is present (the WebUI streaming layer sets it per-session,
@@ -993,6 +1010,41 @@ def _resolve_notification_flag_conflict(*, notify_on_complete: bool, watch_patte
     return watch_patterns, ""
 
 
+def _path_is_within(path: str, root: str) -> bool:
+    """True when ``path`` equals ``root`` or is a descendant of it (segment-safe, symlink-aware)."""
+    try:
+        real_path = os.path.realpath(os.path.abspath(os.path.expanduser(path)))
+        real_root = os.path.realpath(os.path.abspath(os.path.expanduser(root)))
+    except OSError:
+        return False
+    if os.name == "nt":
+        real_path, real_root = real_path.casefold(), real_root.casefold()
+    return real_path == real_root or real_path.startswith(real_root.rstrip(os.sep) + os.sep)
+
+
+def _translate_mounted_cwd(
+    recorded: str, session_key: Optional[str], config: Dict[str, Any]
+) -> Optional[str]:
+    """In-sandbox path for a recorded HOST cwd that sits inside this session's mounted workspace
+    (``/private/tmp/proj`` → ``/workspace``; a subdirectory keeps its relative tail). None when the
+    session mounts nothing or the path is outside the mount."""
+    mount_source, mount_target = _resolve_workspace_mount_for_task(session_key, config)
+    if not mount_source or not mount_target:
+        host_cwd = _resolve_task_host_cwd(config, session_key)
+        if not host_cwd:
+            return None
+        mount_source = host_cwd
+        mount_target = str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
+    if not _path_is_within(recorded, mount_source):
+        return None
+    real_recorded = os.path.realpath(os.path.abspath(os.path.expanduser(recorded)))
+    real_source = os.path.realpath(os.path.abspath(os.path.expanduser(mount_source)))
+    tail = os.path.relpath(real_recorded, real_source)
+    if tail in (".", ""):
+        return mount_target
+    return posixpath.join(mount_target, *tail.split(os.sep))
+
+
 def _resolve_command_cwd(
     *,
     workdir: Optional[str],
@@ -1014,13 +1066,20 @@ def _resolve_command_cwd(
     if workdir:
         return coerce_ssh_remote_cwd(workdir, env_type)
     recorded = get_session_cwd(session_key)
-    if recorded and _is_container_backend(env_type) and _is_unusable_container_cwd(recorded):
-        logger.info(
-            "Ignoring recorded session cwd %r for %s backend "
-            "(host/relative path won't work in sandbox). Using %r instead.",
-            recorded, env_type, default_cwd,
-        )
-        return default_cwd
+    if recorded and _is_container_backend(env_type):
+        # A recorded HOST path that is (inside) this session's mounted workspace is reachable in
+        # the sandbox under the mount target — translate it instead of discarding it, for every
+        # project location (not only the /Users and /home prefixes the unusable-cwd guard knows).
+        translated = _translate_mounted_cwd(recorded, session_key, _get_env_config())
+        if translated:
+            return coerce_ssh_remote_cwd(translated, env_type)
+        if _is_unusable_container_cwd(recorded):
+            logger.info(
+                "Ignoring recorded session cwd %r for %s backend "
+                "(host/relative path won't work in sandbox). Using %r instead.",
+                recorded, env_type, default_cwd,
+            )
+            return default_cwd
     return coerce_ssh_remote_cwd(recorded or default_cwd, env_type)
 
 
@@ -1187,6 +1246,14 @@ def _plan_execution(
     cwd = coerce_ssh_remote_cwd(
         overrides.get("cwd") or get_session_cwd(task_id) or config["cwd"], env_type)
     host_cwd = _resolve_task_host_cwd(config, task_id)
+    if _is_container_backend(env_type) and host_cwd:
+        # The session's workspace is bind-mounted: a cwd that is (inside) the mount source must
+        # become the in-sandbox target BEFORE the prefix-based guard below, which only recognizes
+        # /Users, /home, Windows drives and relative paths — a project under /private/tmp, /Volumes,
+        # /opt or /mnt/c would otherwise reach `docker run -w <host path>` and run in an empty dir.
+        translated = _translate_mounted_cwd(cwd, task_id, config)
+        if translated:
+            cwd = translated
     # config["cwd"] was sanitized for container backends in _get_env_config
     # but an override / session record is raw: a host path would reach
     # `docker run -w` and fail with exit 125. Re-apply the guard to the
