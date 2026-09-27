@@ -10,6 +10,8 @@ import { useTranscriptWindow } from '@/components/assistant-ui/thread/transcript
 import { type RestoreMessageTarget } from '@/components/assistant-ui/thread/types'
 import { UserEditComposer } from '@/components/assistant-ui/thread/user-edit-composer'
 import { UserMessage } from '@/components/assistant-ui/thread/user-message'
+import { ThreadWisdomProfileProvider } from '@/components/assistant-ui/thread/wisdom-profile-context'
+import { useWisdomChatSurfaceReady } from '@/components/assistant-ui/wisdom-availability'
 import { WisdomCandidateCard } from '@/components/assistant-ui/wisdom-candidate-card'
 import { WisdomNoticeCard } from '@/components/assistant-ui/wisdom-notice-card'
 import { Intro, type IntroProps } from '@/components/chat/intro'
@@ -186,44 +188,49 @@ export const Thread = memo(function Thread({
   // Wisdom events are stored against the durable session key. New sessions
   // use the live runtime id until persistence binds the pair.
   const wisdomSessionId = sessionKey || sessionId
+  // Each card polls its endpoint; none may mount until the profile is entitled AND set up, or
+  // every poll 422s for users who never opted in.
+  const wisdomReady = useWisdomChatSurfaceReady(wisdomProfile)
 
   const wisdomContent = useMemo(
     () =>
-      wisdomSessionId ? (
+      wisdomReady && wisdomSessionId ? (
         <>
           <WisdomNoticeCard profile={wisdomProfile} />
           <WisdomMediationCard profile={wisdomProfile} sessionId={wisdomSessionId} />
           <WisdomCandidateCard profile={wisdomProfile} sessionId={wisdomSessionId} />
         </>
       ) : undefined,
-    [wisdomProfile, wisdomSessionId]
+    [wisdomProfile, wisdomReady, wisdomSessionId]
   )
 
   return (
     <ThreadEditContext.Provider value={editContext}>
-      <div className="relative grid h-full min-h-0 max-w-full grid-rows-[minmax(0,1fr)] overflow-hidden bg-transparent contain-[layout_paint]">
-        <ThreadMessageList
-          afterContent={wisdomContent}
-          clampToComposer={clampToComposer}
-          components={messageComponents}
-          emptyPlaceholder={emptyPlaceholder}
-          loadingIndicator={loadingIndicator}
-          scrollProfile={scrollProfile}
-          sessionId={sessionId}
-          sessionKey={sessionKey}
-        />
-        {loading === 'session' && <CenteredThreadSpinner />}
-        <ThreadTimeline />
-        <ConfirmDialog
-          confirmLabel={copy.restoreConfirm}
-          description={copy.restoreBody}
-          destructive
-          onClose={closeRestoreConfirm}
-          onConfirm={confirmRestore}
-          open={Boolean(restoreConfirmTarget)}
-          title={copy.restoreTitle}
-        />
-      </div>
+      <ThreadWisdomProfileProvider value={wisdomProfile}>
+        <div className="relative grid h-full min-h-0 max-w-full grid-rows-[minmax(0,1fr)] overflow-hidden bg-transparent contain-[layout_paint]">
+          <ThreadMessageList
+            afterContent={wisdomContent}
+            clampToComposer={clampToComposer}
+            components={messageComponents}
+            emptyPlaceholder={emptyPlaceholder}
+            loadingIndicator={loadingIndicator}
+            scrollProfile={scrollProfile}
+            sessionId={sessionId}
+            sessionKey={sessionKey}
+          />
+          {loading === 'session' && <CenteredThreadSpinner />}
+          <ThreadTimeline />
+          <ConfirmDialog
+            confirmLabel={copy.restoreConfirm}
+            description={copy.restoreBody}
+            destructive
+            onClose={closeRestoreConfirm}
+            onConfirm={confirmRestore}
+            open={Boolean(restoreConfirmTarget)}
+            title={copy.restoreTitle}
+          />
+        </div>
+      </ThreadWisdomProfileProvider>
     </ThreadEditContext.Provider>
   )
 })

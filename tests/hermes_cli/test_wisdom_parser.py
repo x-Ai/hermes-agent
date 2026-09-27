@@ -28,11 +28,34 @@ def test_real_cli_parser_registers_wisdom_without_plugin_discovery(monkeypatch):
     assert args.action == "status"
 
 
-def test_unentitled_parser_help_omits_wisdom(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: False)
+def test_wisdom_is_registered_without_a_token_and_the_handler_says_how_to_sign_in(monkeypatch, capsys):
+    """A logged-out user must not see "'wisdom' is not a hermes command"."""
+    from hermes_cli.subcommands.wisdom import cmd_wisdom
+
+    monkeypatch.setattr("hermes_cli.auth_nous.get_nous_auth_status_local", lambda: {"logged_in": False})
+    monkeypatch.setattr(
+        "hermes_wisdom.service.WisdomService",
+        lambda: (_ for _ in ()).throw(AssertionError("service constructed")),
+    )
     value = argparse.ArgumentParser()
     build_wisdom_parser(value.add_subparsers(dest="command"))
-    assert "wisdom" not in value.format_help().lower()
+    assert "wisdom" in value.format_help().lower()
+
+    assert cmd_wisdom(value.parse_args(["wisdom", "status"])) == 6
+    assert "hermes login" in capsys.readouterr().out
+
+
+def test_logged_in_but_unentitled_handler_names_the_account_gate(monkeypatch, capsys):
+    from hermes_cli.subcommands.wisdom import cmd_wisdom
+
+    monkeypatch.setattr("hermes_cli.auth_nous.get_nous_auth_status_local", lambda: {"logged_in": True, "access_token": "not-a-jwt"})
+    value = argparse.ArgumentParser()
+    build_wisdom_parser(value.add_subparsers(dest="command"))
+
+    assert cmd_wisdom(value.parse_args(["wisdom", "status", "--json"])) == 6
+    out = capsys.readouterr().out
+    assert "does not include Collective Wisdom" in out
+    assert "hermes login" not in out
 
 
 def test_all_foundation_commands_are_registered():

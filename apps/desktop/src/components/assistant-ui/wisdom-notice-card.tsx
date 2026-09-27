@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { CAPABILITIES_ROUTE } from '@/app/routes'
 import { WisdomNotificationsCard } from '@/components/wisdom-notifications-card'
 import {
   acknowledgeWisdomNotifications,
@@ -65,7 +66,9 @@ export function WisdomNoticeCard({ profile }: { profile?: ProfileScope }) {
           wisdomSkillId: event.skill_id
         })
 
-        window.location.hash = `#/skills?${params.toString()}`
+        // The Collective tab lives on the Capabilities page; a stale `#/skills` target falls
+        // through to a new chat and silently drops the Install/Review action.
+        window.location.hash = `#${CAPABILITIES_ROUTE}?${params.toString()}`
       }}
     />
   )

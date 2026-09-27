@@ -11,7 +11,7 @@ from gateway.platforms.base import BasePlatformAdapter
 from gateway.wisdom_command import WisdomAction, WisdomItem, WisdomView
 from tests.gateway.test_slack_wisdom import _adapter as slack_adapter
 from tests.gateway.test_telegram_wisdom_command import _adapter as telegram_adapter
-from tests.wisdom.test_native_install_policy import native_install as native_install
+from tests.hermes_wisdom.test_native_install_policy import native_install as native_install
 from tui_gateway.wisdom_mediation import poll
 
 
@@ -310,7 +310,7 @@ async def test_card_edit_reports_delivery_failure_without_new_message(surface, f
 async def test_native_install_retry_after_edit_failure_only_updates_completed_card(native_install, monkeypatch, surface):
     from dataclasses import replace
     from hermes_wisdom.consent import WisdomConsent
-    from tests.wisdom.test_native_install_policy import request
+    from tests.hermes_wisdom.test_native_install_policy import request
 
     service, original_actor, _ = native_install
     actor = replace(original_actor, platform=surface,
@@ -554,6 +554,7 @@ async def test_scheduler_commits_receipt_or_uncertainty_to_real_ledger(
     from hermes_wisdom.store import WisdomStore
 
     monkeypatch.setattr("hermes_wisdom.entitlement.local_work_allowed", lambda _store: True)
+    monkeypatch.setattr("hermes_wisdom.service._config", lambda: {"enabled": True})
 
     store = WisdomStore(tmp_path / "wisdom")
     store.activate_installation_identity("installation", "org")

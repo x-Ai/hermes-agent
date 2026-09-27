@@ -167,7 +167,7 @@ describe('WisdomCandidateCard', () => {
     expect(screen.queryByText('Minimum Hermes version')).toBeNull()
     expect(screen.getByText('Would you like to share it?')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Review first' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Not Now' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Not now' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Share' })).toBeTruthy()
     expect(submitWisdomPublication).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Review first' }))
@@ -229,7 +229,7 @@ describe('WisdomCandidateCard', () => {
   it('defers this notification without declining the qualified candidate', async () => {
     deferWisdomCandidate.mockResolvedValue({ event_id: 'event-1', state: 'deferred' })
     await renderCard()
-    fireEvent.click(await screen.findByRole('button', { name: 'Not Now' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }))
     await waitFor(() => expect(deferWisdomCandidate).toHaveBeenCalledWith('event-1', 'research'))
     expect(screen.queryByText('safe-skill')).toBeNull()
   })
@@ -262,7 +262,7 @@ describe('WisdomCandidateCard', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Review first' }))
 
     expect((await screen.findByRole('alert')).textContent).toContain('Gateway temporarily unavailable')
-    expect((screen.getByRole('button', { name: 'Not Now' }) as HTMLButtonElement).disabled).toBe(false)
+    expect((screen.getByRole('button', { name: 'Not now' }) as HTMLButtonElement).disabled).toBe(false)
     expect((screen.getByRole('button', { name: 'Review first' }) as HTMLButtonElement).disabled).toBe(false)
     expect((screen.getByRole('button', { name: 'Share' }) as HTMLButtonElement).disabled).toBe(false)
 

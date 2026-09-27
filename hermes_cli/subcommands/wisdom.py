@@ -20,15 +20,38 @@ def _emit(value: Any, *, as_json: bool) -> None:
         print(value)
 
 
+def _access_hint() -> str:
+    """Why the entitlement gate refused, in terms the user can act on."""
+    try:
+        from hermes_cli.auth_nous import get_nous_auth_status_local
+
+        status = get_nous_auth_status_local()
+    except Exception:
+        status = {}
+    if not status.get("logged_in") or status.get("relogin_required"):
+        return "Sign in to your Nous account first: `hermes login`."
+    return "Your Nous account or team does not include Collective Wisdom."
+
+
+def _require_cli_entitlement() -> None:
+    """The command is always registered; a logged-out or unentitled user gets a clear reason."""
+    from hermes_wisdom.entitlement import require_entitlement
+    from hermes_wisdom.package import PackagePolicyError
+
+    try:
+        require_entitlement()
+    except PackagePolicyError as exc:
+        raise PackagePolicyError(f"{exc}. {_access_hint()}") from exc
+
+
 def cmd_wisdom(args: argparse.Namespace) -> int:
     from hermes_wisdom.client import WisdomError
-    from hermes_wisdom.entitlement import require_entitlement
     from hermes_wisdom.package import PackagePolicyError
     from hermes_wisdom.service import WisdomService
 
     command = getattr(args, "wisdom_command", None)
     try:
-        require_entitlement()
+        _require_cli_entitlement()
         service = WisdomService()
         if command not in {"setup", "status", None}:
             service.require_setup()
@@ -272,10 +295,9 @@ def cmd_wisdom(args: argparse.Namespace) -> int:
 
 
 def build_wisdom_parser(subparsers) -> None:
-    from hermes_wisdom.entitlement import is_entitled
-
-    if not is_entitled():
-        return
+    # Always registered: gating registration on the token made a logged-out user see
+    # "'wisdom' is not a hermes command" instead of being told to sign in, and decoded the JWT on
+    # every parser build. The handler explains the denial (see ``_require_cli_entitlement``).
     parser = subparsers.add_parser(
         "wisdom",
         help="Collective Wisdom — review, share, and install team skills",

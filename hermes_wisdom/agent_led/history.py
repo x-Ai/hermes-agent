@@ -41,13 +41,9 @@ def _parse(value: Any) -> datetime | None:
 
 
 def history_path() -> Path:
-    try:
-        from hermes_constants import get_hermes_home
+    from hermes_constants import get_hermes_home
 
-        root = Path(get_hermes_home())
-    except Exception:
-        root = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes")
-    return root / "wisdom" / FILE_NAME
+    return get_hermes_home() / "wisdom" / FILE_NAME
 
 
 class SuggestionHistory:

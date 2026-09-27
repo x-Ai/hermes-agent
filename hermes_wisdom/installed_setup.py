@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import stat
 from dataclasses import asdict
 from pathlib import Path, PurePosixPath
 from typing import Any
+
+from hermes_platform.resolver import locate_command
 
 from .agent_led.setup_document import SETUP_PATH, parse_setup_document
 from .compatibility import detect_local_capabilities, evaluate
@@ -145,7 +146,7 @@ def inspect_installed_setup(
             for item in document.requirements:
                 status = "manual"
                 if item.kind == "command":
-                    status = "present" if shutil.which(item.name) else "missing"
+                    status = "present" if locate_command(item.name).found else "missing"
                 elif item.kind == "env_var":
                     status = "present" if get_env_value(item.name) else "missing"
                 result["prerequisites"].append({

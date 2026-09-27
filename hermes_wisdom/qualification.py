@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import threading
 from difflib import unified_diff
 from datetime import date, datetime, timedelta, timezone, tzinfo
 from pathlib import Path
@@ -17,7 +16,7 @@ from tools.skill_usage import _find_skill_dir, is_bundled, is_hub_installed
 
 from .contract import sha256_address
 from .editorial import ensure_skill_editorial_metadata
-from .entitlement import local_work_allowed
+from .entitlement import local_work_allowed, opted_in
 from .store import WisdomStore
 
 logger = logging.getLogger(__name__)
@@ -423,12 +422,26 @@ def record_mutation(
         )
 
 
+def _background_allowed() -> bool:
+    """Opt-in first (config only), so a profile that never enabled Wisdom gets no ``wisdom.db``."""
+    return opted_in() and local_work_allowed(WisdomStore())
+
+
+def _start_qualification_thread(run, *, name: str) -> None:
+    # The skill-load hook fires inside a routed turn; a bare ``threading.Thread`` starts with an
+    # empty context and its ``get_hermes_home()`` falls back to the launch profile, so under
+    # multiplex the qualification rows would land in another profile's store.
+    from agent.memory_provider import spawn_context_thread
+
+    spawn_context_thread(run, name=name).start()
+
+
 def record_mutation_async(
     skill_name: str, *, task_id: str | None = None, session_id: str | None = None
 ) -> None:
     """Keep classification off the synchronous skill mutation/tool path."""
 
-    if not local_work_allowed(WisdomStore()):
+    if not _background_allowed():
         return
 
     def run() -> None:
@@ -437,9 +450,7 @@ def record_mutation_async(
         except Exception:
             logger.debug("Wisdom mutation classification failed", exc_info=True)
 
-    threading.Thread(
-        target=run, name=f"wisdom-qualify-{skill_name[:32]}", daemon=True
-    ).start()
+    _start_qualification_thread(run, name=f"wisdom-qualify-{skill_name[:32]}")
 
 
 def record_successful_use_async(
@@ -447,7 +458,7 @@ def record_successful_use_async(
 ) -> None:
     """Keep qualification and legacy metadata enrichment off the active turn."""
 
-    if not local_work_allowed(WisdomStore()):
+    if not _background_allowed():
         return
 
     def run() -> None:
@@ -460,6 +471,4 @@ def record_successful_use_async(
         except Exception:
             logger.debug("Wisdom use qualification failed", exc_info=True)
 
-    threading.Thread(
-        target=run, name=f"wisdom-qualify-use-{skill_name[:32]}", daemon=True
-    ).start()
+    _start_qualification_thread(run, name=f"wisdom-qualify-use-{skill_name[:32]}")

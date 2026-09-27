@@ -19,6 +19,8 @@ async def test_idle_gateway_edits_without_agent_or_new_send(monkeypatch):
     monkeypatch.setattr(
         "hermes_wisdom.publication_cards.PublicationCards", lambda _: updater
     )
+    # The refresh refuses (and creates no store) for a profile that never opted in.
+    monkeypatch.setattr("hermes_wisdom.service._config", lambda: {"enabled": True})
     monkeypatch.setattr("hermes_wisdom.service.WisdomService", Mock())
 
     async def scoped(fn):
@@ -48,6 +50,8 @@ async def test_failed_edit_releases_claim_for_durable_retry(monkeypatch):
     monkeypatch.setattr(
         "hermes_wisdom.publication_cards.PublicationCards", lambda _: updater
     )
+    # The refresh refuses (and creates no store) for a profile that never opted in.
+    monkeypatch.setattr("hermes_wisdom.service._config", lambda: {"enabled": True})
     monkeypatch.setattr("hermes_wisdom.service.WisdomService", Mock())
 
     async def scoped(fn):

@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 
 import { localizeReviewSummaryDetail } from './review-summary-localization'
 import { WisdomCommandOutput } from './wisdom-command-output'
+import { useThreadWisdomProfile } from './wisdom-profile-context'
 
 const SLASH_STATUS_RE = /^slash:(?<command>\/[^\n]+)\n(?<output>[\s\S]*)$/
 const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
@@ -67,6 +68,7 @@ export const BackgroundResult: FC<BackgroundResultProps> = ({ text, report, proc
 
 export const SystemMessage: FC = () => {
   const { locale, t } = useI18n()
+  const wisdomProfile = useThreadWisdomProfile()
   const text = useAuiState(s => messageContentText(s.message.content))
   const asyncResult = useAuiState(s => s.message.metadata.custom?.asyncResult)
   const processResult = useAuiState(s => s.message.metadata.custom?.asyncResultKind === 'process')
@@ -177,7 +179,7 @@ export const SystemMessage: FC = () => {
           {slashStatus.groups.command}
         </span>
         {wisdomOutput ? (
-          <WisdomCommandOutput detail={detail} headline={headline} />
+          <WisdomCommandOutput detail={detail} headline={headline} profile={wisdomProfile} />
         ) : multiline ? (
           <LinkifiedText className="mt-0.5 block whitespace-pre-wrap" explicitOnly pretty={false} text={output} />
         ) : (

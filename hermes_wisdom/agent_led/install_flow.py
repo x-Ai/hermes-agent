@@ -10,11 +10,12 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
+
+from hermes_platform.resolver import locate_command
 
 from .history import history_path
 
@@ -34,7 +35,7 @@ def detect_prerequisites(requirements: list[dict[str, Any]], *, env: dict[str, s
         name = str(item.get("name") or "")
         status: str
         if kind == "command":
-            status = "present" if shutil.which(name) else "missing"
+            status = "present" if locate_command(name).found else "missing"
         elif kind == "env_var":
             status = "present" if environment.get(name) else "missing"
         else:

@@ -32,10 +32,13 @@ def _collect_wisdom_activity_notice(session: dict) -> tuple[bool, str | None]:
         return False, None
 
     try:
-        from hermes_wisdom.entitlement import local_work_allowed
+        from hermes_wisdom.entitlement import local_work_allowed, opted_in
         from hermes_wisdom.service import WisdomService
 
         with _session_profile_runtime_scope(session):
+            # Config check before the service: constructing it creates the profile's wisdom.db.
+            if not opted_in():
+                return True, None
             service = WisdomService()
             if not local_work_allowed(service.store):
                 return True, None

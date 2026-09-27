@@ -273,18 +273,41 @@ describe('CollectiveWisdomPanel', () => {
     getWisdomInstallations.mockResolvedValue({
       installations: [],
       notifications: [
+        // Flat projection as emitted by hermes_wisdom/consumption.py (no nested payload).
         {
           event_id: 'decision-1',
+          source_event_ids: ['decision-1'],
+          category: 'publication_decision',
           kind: 'owner_decision',
           skill_id: 'local-internal-id',
-          payload: { slug: 'incident-handoff', state: 'published' }
+          skill_name: 'incident-handoff',
+          editorial_name: null,
+          version: 2,
+          state: 'published',
+          moderation_note: null,
+          portal_url: null
+        },
+        {
+          event_id: 'update-1',
+          source_event_ids: ['update-1'],
+          category: 'update_available',
+          kind: 'updated',
+          skill_id: 'skill-2',
+          skill_name: 'policy-canary',
+          editorial_name: 'Policy Canary',
+          version: 3,
+          state: null,
+          portal_url: null
         }
       ]
     })
 
     render(<CollectiveWisdomPanel profile="research" />)
 
-    expect(await screen.findByText('incident-handoff was approved and is now shared with your team.')).toBeTruthy()
+    expect(await screen.findByText('incident-handoff v2 was approved and is now shared with your team.')).toBeTruthy()
+    expect(screen.getByText('Policy Canary v3 is available to update.')).toBeTruthy()
+    expect(screen.queryByText(/status changed to/)).toBeNull()
+    expect(screen.queryByText(/A Collective Wisdom skill/)).toBeNull()
     expect(screen.queryByText('owner_decision')).toBeNull()
     expect(screen.queryByText('local-internal-id')).toBeNull()
     expect(screen.getByText('deployment-checklist')).toBeTruthy()

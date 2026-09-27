@@ -88,7 +88,7 @@ async def test_resolved_user_session_is_observed_without_starting_assessment(run
     runner._cache_session_source = Mock()
     runner._is_telegram_topic_lane = Mock(return_value=False)
     adapter = object()
-    runner._adapter_for_source = Mock(return_value=adapter)
+    runner._delivery_adapter_for = Mock(return_value=adapter)
     monkeypatch.setattr("gateway.run_heartbeat_acceptance.resolve_heartbeat_owner", AsyncMock(return_value=True))
     observe = AsyncMock()
     monkeypatch.setattr("gateway.wisdom_mediation.schedule", observe)
@@ -99,6 +99,30 @@ async def test_resolved_user_session_is_observed_without_starting_assessment(run
         observe.assert_not_awaited()
     else:
         observe.assert_awaited_once_with(runner, adapter, source, "session-1", observe_only=True)
+
+
+@pytest.mark.asyncio
+async def test_observe_hook_resolves_adapter_through_a_real_runner_method(runner, source, monkeypatch):
+    """The inbound observe hook must reach ``schedule(observe_only=True)`` through a method the
+    production runner actually defines. Patching the CLASS raises for a missing attribute, so a
+    hook calling a renamed method cannot be satisfied by an instance-level fake (the regression that
+    hid the removed ``_adapter_for_source`` behind the hook's broad ``except Exception``)."""
+    assert hasattr(GatewayRunner, "_delivery_adapter_for")
+    adapter = object()
+    monkeypatch.setattr(GatewayRunner, "_delivery_adapter_for", lambda self, src: adapter)
+    entry = SimpleNamespace(session_key="session-key", session_id="session-1")
+    runner._async_session_store = SimpleNamespace(
+        _store=runner.session_store, get_or_create_session=AsyncMock(return_value=entry),
+    )
+    runner._recover_telegram_topic_thread_id = Mock(return_value=None)
+    runner._cache_session_source = Mock()
+    runner._is_telegram_topic_lane = Mock(return_value=False)
+    monkeypatch.setattr("gateway.run_heartbeat_acceptance.resolve_heartbeat_owner", AsyncMock(return_value=True))
+    observe = AsyncMock()
+    monkeypatch.setattr("gateway.wisdom_mediation.schedule", observe)
+
+    assert await runner._hmwa_resolve_session(event(source, "hello"), source) == (source, entry, "session-key")
+    observe.assert_awaited_once_with(runner, adapter, source, "session-1", observe_only=True)
 
 
 def test_housekeeping_registers_card_refresh_and_local_weekly_queue(monkeypatch):

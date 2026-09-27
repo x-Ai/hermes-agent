@@ -129,10 +129,6 @@ export function CapabilitiesView({
       return toolsetSearchTerms(toolsets).map(term => t.common.tryHint(term))
     }
 
-    if (mode === 'collective') {
-      return undefined
-    }
-
     return undefined
   }, [mode, skills, t, toolsets])
 

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as HermesApi from '@/hermes'
@@ -52,6 +52,15 @@ describe('WisdomNoticeCard', () => {
     })
 
     expect(screen.getByText('team-runbook v1 was shared with your collective.')).toBeTruthy()
+  })
+
+  it('deep-links plan actions to the Collective tab of the Capabilities page', async () => {
+    const { WisdomNoticeCard } = await import('./wisdom-notice-card')
+    render(<WisdomNoticeCard profile="research" />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /install/i }))
+
+    expect(window.location.hash).toBe('#/capabilities?tab=collective&wisdomAction=install&wisdomSkillId=skill-1')
   })
 
   it('clears a notice only after a successful empty projection', async () => {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
+import { CAPABILITIES_ROUTE } from '@/app/routes'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +15,7 @@ import { WisdomCheckBadge, WisdomReviewTables } from '@/components/wisdom-checks
 import {
   getWisdomSkill,
   getWisdomVersion,
+  type ProfileScope,
   type WisdomReviewCheck,
   type WisdomSkillDetail,
   type WisdomVersionDetail
@@ -182,7 +184,15 @@ function ErrorState({ error }: { error: string }) {
   )
 }
 
-function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId: string }) {
+function WisdomSkillPreview({
+  onClose,
+  profile,
+  skillId
+}: {
+  onClose: () => void
+  profile?: ProfileScope
+  skillId: string
+}) {
   const { t } = useI18n()
   const copy = t.skills.collective
   const [state, setState] = useState<PreviewState>({ detail: null, error: null, status: 'idle' })
@@ -194,7 +204,7 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
     let current = true
 
     setState({ detail: null, error: null, status: 'loading' })
-    void getWisdomSkill(skillId)
+    void getWisdomSkill(skillId, profile)
       .then(detail => {
         if (current) {
           setState({ detail, error: null, status: 'ready' })
@@ -213,7 +223,7 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
     return () => {
       current = false
     }
-  }, [copy.unavailable, skillId])
+  }, [copy.unavailable, profile, skillId])
 
   const preview = useMemo(() => {
     if (state.status !== 'ready') {
@@ -268,7 +278,7 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
     let current = true
 
     setVersionState({ detail: null, error: null, status: 'loading' })
-    void getWisdomVersion(preview.installId, selectedVersion)
+    void getWisdomVersion(preview.installId, selectedVersion, profile)
       .then(detail => {
         if (current) {
           setVersionState({ detail, error: null, status: 'ready' })
@@ -287,7 +297,7 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
     return () => {
       current = false
     }
-  }, [copy.unavailable, preview, selectedVersion])
+  }, [copy.unavailable, preview, profile, selectedVersion])
 
   const versionPreview = useMemo(() => {
     if (versionState.status !== 'ready') {
@@ -330,7 +340,7 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
     })
 
     onClose()
-    window.location.hash = `#/skills?${params.toString()}`
+    window.location.hash = `#${CAPABILITIES_ROUTE}?${params.toString()}`
   }
 
   const returnToOverview = () => {
@@ -556,7 +566,16 @@ function WisdomSkillPreview({ onClose, skillId }: { onClose: () => void; skillId
   )
 }
 
-export function WisdomCommandOutput({ detail, headline }: { detail: string; headline: string }) {
+export function WisdomCommandOutput({
+  detail,
+  headline,
+  profile
+}: {
+  detail: string
+  headline: string
+  /** Scope of the thread the output belongs to (Bot Mode / background tiles talk to another backend). */
+  profile?: ProfileScope
+}) {
   const { t } = useI18n()
   const copy = t.skills.collective
   const [previewSkillId, setPreviewSkillId] = useState<null | string>(null)
@@ -593,7 +612,9 @@ export function WisdomCommandOutput({ detail, headline }: { detail: string; head
           </div>
         ) : null}
       </div>
-      {previewSkillId ? <WisdomSkillPreview onClose={() => setPreviewSkillId(null)} skillId={previewSkillId} /> : null}
+      {previewSkillId ? (
+        <WisdomSkillPreview onClose={() => setPreviewSkillId(null)} profile={profile} skillId={previewSkillId} />
+      ) : null}
     </>
   )
 }

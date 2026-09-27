@@ -6,6 +6,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _claim_cards(platform):
+    """Pending card edits for *platform*; ``[]`` before the profile opts in (no store is created)."""
+    from hermes_wisdom.entitlement import opted_in
+
+    if not opted_in():
+        return []
+    from hermes_wisdom.publication_cards import PublicationCards
+    from hermes_wisdom.service import WisdomService
+
+    return PublicationCards(WisdomService()).claim(platform)
+
+
 async def refresh(adapters):
     from hermes_wisdom.publication_cards import PublicationCards
     from hermes_wisdom.service import WisdomService
@@ -17,9 +29,7 @@ async def refresh(adapters):
             continue
         platform = str(getattr(adapter.platform, "value", adapter.platform))
         try:
-            jobs = await scoped(
-                lambda: PublicationCards(WisdomService()).claim(platform)
-            )
+            jobs = await scoped(lambda: _claim_cards(platform))
             for job in jobs:
                 success = False
                 try:

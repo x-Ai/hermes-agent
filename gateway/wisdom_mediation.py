@@ -50,8 +50,12 @@ async def schedule(
     from hermes_wisdom.service import WisdomService
 
     def register():
-        from hermes_wisdom.entitlement import local_work_allowed
+        from hermes_wisdom.entitlement import local_work_allowed, opted_in
 
+        # Every inbound DM reaches this hook; refuse before the service so a profile that never
+        # opted in gets no wisdom.db.
+        if not opted_in():
+            raise PackagePolicyError("Wisdom not enabled for this profile")
         service = WisdomService()
         service.require_setup()
         if not local_work_allowed(service.store):
@@ -102,8 +106,10 @@ async def schedule(
             history = list(getattr(agent, "_session_messages", None) or [])
 
         def prepare():
-            from hermes_wisdom.entitlement import local_work_allowed
+            from hermes_wisdom.entitlement import local_work_allowed, opted_in
 
+            if not opted_in():
+                return None, []
             service = WisdomService()
             mediation = WisdomMediation(service)
             org = service.store.active_org_id()

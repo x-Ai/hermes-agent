@@ -77,6 +77,19 @@ describe("fetchJSON", () => {
     expect(fetchMock.mock.calls[2][1]?.method).toBe("POST");
   });
 
+  it("posts the Wisdom sync retry as JSON so the router can parse the body", async () => {
+    const fetchMock = jsonFetchMock();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.retryWisdomSync("worker");
+
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/wisdom/sync/retry");
+    expect(fetchMock.mock.calls[0][1]?.method).toBe("POST");
+    expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toEqual({ profile: "worker" });
+    const headers = fetchMock.mock.calls[0][1]?.headers as Headers;
+    expect(headers.get("Content-Type")).toBe("application/json");
+  });
+
   it("uses the dedicated profile-scoped local Wisdom entitlement endpoint", async () => {
     const fetchMock = jsonFetchMock({ entitled: false, scopes: [] });
     vi.stubGlobal("fetch", fetchMock);

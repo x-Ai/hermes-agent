@@ -13,7 +13,7 @@ from gateway.wisdom_command import (
 from hermes_wisdom.agent_led.actions import current_action_view, handle_action
 from tests.gateway.test_slack_wisdom import _adapter as slack_adapter
 from tests.gateway.test_telegram_wisdom_command import _adapter as telegram_adapter
-from tests.wisdom.local_auth import authorize_local
+from tests.hermes_wisdom.local_auth import authorize_local
 
 
 @pytest.mark.asyncio
@@ -28,7 +28,7 @@ async def test_unversioned_button_requires_fresh_review_before_exact_apply(
     from gateway import wisdom_command
     from hermes_wisdom.mediation_store import MediationStore
     from hermes_wisdom.package import verify_content_files
-    from tests.wisdom.test_service import InstallClient, _install_service
+    from tests.hermes_wisdom.test_service import InstallClient, _install_service
 
     clock = [100.0]
     monkeypatch.setattr("gateway.wisdom_command.time", SimpleNamespace(monotonic=lambda: clock[0]))

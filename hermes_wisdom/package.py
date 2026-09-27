@@ -469,13 +469,13 @@ def prepare_package(
             editorial_description=editorial_description,
         )
     if not (target / "skill.manifest.json").exists():
-        from hermes_cli import __version__ as hermes_version
+        from hermes_cli.version_info import get_version_info
 
         generated = PackageManifest(
             name=source.name,
             requirements=infer_authoring_system_specification(
                 source,
-                hermes_version=hermes_version,
+                hermes_version=get_version_info().base_version,
             ),
         )
         (target / "skill.manifest.json").write_bytes(

@@ -102,7 +102,7 @@ describe('WisdomMediationCard', () => {
       render(<WisdomMediationCard sessionId="session" />)
       await screen.findByText('An updated runbook')
       expect(screen.getAllByRole('button').map(button => button.textContent)).toEqual([
-        'Not Now',
+        'Not now',
         'Review first',
         'Update'
       ])

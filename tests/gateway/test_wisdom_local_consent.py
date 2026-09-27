@@ -7,7 +7,7 @@ import pytest
 from gateway import wisdom_command as command
 from hermes_wisdom.client import WisdomNotFound
 from hermes_wisdom.consent import WisdomConsent
-from tests.wisdom.test_native_install_policy import native_install as native_install
+from tests.hermes_wisdom.test_native_install_policy import native_install as native_install
 
 
 def context():
@@ -32,7 +32,7 @@ def review(service, *, operation):
 
 @pytest.mark.parametrize("operation", ["install", "update"])
 def test_local_review_survives_callback_memory_loss_without_queued_duplicate(native_install, monkeypatch, operation):
-    from tests.wisdom.local_auth import authorize_local
+    from tests.hermes_wisdom.local_auth import authorize_local
     authorize_local(monkeypatch)
     service, _, _ = native_install
     shown = review(service, operation=operation)
@@ -70,7 +70,7 @@ def test_local_review_survives_callback_memory_loss_without_queued_duplicate(nat
 @pytest.mark.parametrize("status", [None, "blocked", "unavailable"])
 @pytest.mark.parametrize("changed_after_review", [False, True])
 def test_local_native_review_requires_current_security_clearance(native_install, status, changed_after_review, monkeypatch):
-    from tests.wisdom.local_auth import authorize_local
+    from tests.hermes_wisdom.local_auth import authorize_local
     authorize_local(monkeypatch)
     service, _, _ = native_install
     if not changed_after_review:

@@ -42,6 +42,7 @@ export function createWisdomSyncController(deps: {
     if (disposed || view.busy || (retry && (!view.snapshot?.can_retry || view.error))) {
       return
     }
+
     view = { ...view, busy: true, error: false }
     deps.changed(view)
 

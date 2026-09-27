@@ -5,8 +5,6 @@ import logging
 import time
 from typing import Any, Dict, Optional
 
-import aiohttp
-
 from gateway.platforms.base import gateway_trust_env
 from gateway.wisdom_command_consent import surface_context
 
@@ -143,6 +141,10 @@ class SlackWisdomMixin:
 
         if not response_url:
             return False
+        # Imported here, not at module level: the Slack plugin registers on installs without the
+        # slack extra, and aiohttp is only needed once a response_url is actually posted to.
+        import aiohttp
+
         try:
             async with aiohttp.ClientSession(trust_env=gateway_trust_env()) as session:
                 async with session.post(

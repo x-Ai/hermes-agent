@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 from unittest.mock import Mock
-from tests.wisdom.test_native_install_policy import native_install as native_install
+from tests.hermes_wisdom.test_native_install_policy import native_install as native_install
 
 import pytest
 

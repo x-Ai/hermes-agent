@@ -20,7 +20,7 @@ if _repo not in sys.path:
 
 from plugins.platforms.telegram.adapter import TelegramAdapter
 from gateway.config import Platform, PlatformConfig
-from tests.wisdom.test_native_install_policy import native_install as native_install
+from tests.hermes_wisdom.test_native_install_policy import native_install as native_install
 
 
 def _make_adapter(extra=None):

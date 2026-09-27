@@ -457,7 +457,7 @@ class GatewayTurnMixin:
                 from gateway.wisdom_mediation import schedule as observe_wisdom_session
 
                 await observe_wisdom_session(
-                    self, self._adapter_for_source(source), source,
+                    self, self._delivery_adapter_for(source), source,
                     str(session_entry.session_id), observe_only=True,
                 )
             except Exception:

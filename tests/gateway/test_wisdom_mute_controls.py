@@ -9,8 +9,8 @@ from gateway.wisdom_command import (
     WisdomCommandController,
     bind_view_callbacks,
 )
-from tests.wisdom.test_mute_controls import controls  # noqa: F401
-from tests.wisdom.test_preferences import preferences  # noqa: F401
+from tests.hermes_wisdom.test_mute_controls import controls  # noqa: F401
+from tests.hermes_wisdom.test_preferences import preferences  # noqa: F401
 
 
 @pytest.fixture

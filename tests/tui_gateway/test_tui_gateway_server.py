@@ -9433,7 +9433,7 @@ def test_complete_slash_returns_plain_string_fields():
 
 
 def test_complete_slash_returns_documented_wisdom_subcommands(monkeypatch):
-    from tests.wisdom.local_auth import authorize_local
+    from tests.hermes_wisdom.local_auth import authorize_local
     authorize_local(monkeypatch)
     resp = server.handle_request(
         {"id": "1", "method": "complete.slash", "params": {"text": "/wisdom "}}
@@ -18592,7 +18592,7 @@ def test_notification_poller_requeues_when_busy(monkeypatch):
 def test_wisdom_activity_notice_is_profile_throttled_and_session_scoped(
     monkeypatch, tmp_path
 ):
-    from tests.wisdom.local_auth import authorize_local
+    from tests.hermes_wisdom.local_auth import authorize_local
     from hermes_wisdom.store import WisdomStore
 
     authorize_local(monkeypatch, "org")

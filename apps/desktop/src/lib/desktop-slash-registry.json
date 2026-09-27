@@ -14,6 +14,7 @@
   "/clear": "terminal",
   "/codex-runtime": null,
   "/codex_runtime": null,
+  "/collective-wisdom-install": null,
   "/commands": null,
   "/compact": null,
   "/compose": null,
@@ -124,6 +125,7 @@
   "/voice": "composer-voice",
   "/wake": null,
   "/whoami": null,
+  "/wisdom": null,
   "/worktree": null,
   "/yolo": null
 }

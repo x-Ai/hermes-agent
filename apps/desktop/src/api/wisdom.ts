@@ -497,16 +497,6 @@ export const suggestWisdomSkill = (
     }
   })
 
-export const reviewWisdomDraft = (
-  draftId: string,
-  acknowledge: boolean,
-  profile?: ProfileScope
-): Promise<WisdomDraftReview> =>
-  request('/api/wisdom/review', profile, {
-    method: 'POST',
-    body: { acknowledge, draft_id: draftId }
-  })
-
 export const saveWisdomPreparedDraft = (
   draftId: string,
   authorDescription: string,
@@ -516,16 +506,6 @@ export const saveWisdomPreparedDraft = (
   request('/api/wisdom/prepared/save', profile, {
     method: 'POST',
     body: { author_description: authorDescription, draft_id: draftId, files }
-  })
-
-export const dismissWisdomCandidate = (
-  localSkillId: string,
-  contentHash: string,
-  profile?: ProfileScope
-): Promise<{ dismissed: true }> =>
-  request('/api/wisdom/candidates/dismiss', profile, {
-    method: 'POST',
-    body: { content_hash: contentHash, local_skill_id: localSkillId }
   })
 
 export const deferWisdomCandidate = (
@@ -539,12 +519,6 @@ export const deferWisdomCandidate = (
 
 export const prepareWisdomCandidate = (eventId: string, profile?: ProfileScope): Promise<WisdomCandidatePreparation> =>
   request('/api/wisdom/candidates/prepare', profile, {
-    method: 'POST',
-    body: { event_id: eventId }
-  })
-
-export const approveWisdomCandidate = (eventId: string, profile?: ProfileScope): Promise<Record<string, unknown>> =>
-  request('/api/wisdom/candidates/approve', profile, {
     method: 'POST',
     body: { event_id: eventId }
   })

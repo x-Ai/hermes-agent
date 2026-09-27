@@ -139,6 +139,11 @@ class GatewayWisdomMixin:
 
 def enqueue_weekly_review() -> None:
     """Queue local evidence; only the active private session assesses and delivers."""
+    from hermes_wisdom.entitlement import opted_in
+
+    # Config check before the service: constructing it creates the profile's wisdom.db.
+    if not opted_in():
+        return
     from hermes_wisdom.service import WisdomService
     from hermes_wisdom.weekly_queue import enqueue_weekly_review as enqueue
 

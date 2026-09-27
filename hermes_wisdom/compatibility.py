@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import platform
-import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -13,6 +12,7 @@ from typing import Any, Literal
 from packaging.version import InvalidVersion, Version
 
 from hermes_cli.version_info import get_version_info
+from hermes_platform.resolver import locate_command
 
 from .contract import SystemSpecification
 
@@ -150,7 +150,7 @@ def detect_local_capabilities(
     required_tools = spec.tools if spec else []
     enabled_tools: dict[str, str | None] = {}
     for requirement in required_tools:
-        if requirement.name in enabled_names or shutil.which(requirement.name):
+        if requirement.name in enabled_names or locate_command(requirement.name).found:
             enabled_tools[requirement.name] = _distribution_version(requirement.name)
 
     plugins: dict[str, str | None] = {}
@@ -231,7 +231,7 @@ def detect_local_capabilities(
         backend == "docker" and not terminal.get("docker_network", True)
     )
     runtime = {
-        "shell": shutil.which("sh") is not None or platform.system() == "Windows",
+        "shell": locate_command("sh").found or platform.system() == "Windows",
         "browser": "browser" in enabled_toolsets,
         "code": "code_execution" in enabled_toolsets,
         "sandbox": True,

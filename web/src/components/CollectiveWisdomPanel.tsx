@@ -334,35 +334,41 @@ export function CollectiveWisdomPanel({ profile }: Props) {
     setDiscovery(nextDiscovery)
   }, [profile])
 
+  // Mirrors the desktop renderer (wisdom-notifications-card.tsx). The backend projection
+  // (hermes_wisdom/consumption.py) is FLAT: `category` decides the sentence, `state` only
+  // matters for publication decisions, and the display name is `editorial_name` || `skill_name`.
   const notificationText = (event: Record<string, unknown>): string => {
-    const payload = asRecord(event.payload)
-    const skillId = String(event.skill_id ?? payload.skill_id ?? '')
+    const skillId = String(event.skill_id ?? '')
+    const editorialName = typeof event.editorial_name === 'string' ? event.editorial_name.trim() : ''
     const skill =
-      String(payload.slug ?? '') ||
+      editorialName ||
+      String(event.skill_name ?? '') ||
       discovery.skills.find(item => item.id === skillId)?.slug ||
       installations.installations.find(item => item.skill_id === skillId)?.slug ||
       reviewUi.unknownSkill
-    const versionValue = event.version ?? payload.version
-    const version = versionValue ? `v${String(versionValue)}` : undefined
+    const version = event.version ? `v${String(event.version)}` : undefined
+    const skillVersion = version ? `${skill} ${version}` : skill
+    const category = String(event.category ?? '')
     const kind = String(event.kind ?? '')
-    if (kind === 'owner_decision') {
-      const state = String(payload.state ?? '')
-      if (state === 'published' || state === 'approved') return copy.decisionPublished(skill)
+    const state = String(event.state ?? '')
+    if (category === 'publication_decision') {
+      if (state === 'published' || state === 'approved') return copy.decisionPublished(skillVersion)
       if (state === 'changes_requested') {
-        const note = typeof payload.moderation_note === 'string' ? payload.moderation_note.trim() : ''
-        return `${copy.decisionChanges(skill)}${note ? ` ${note}` : ''}`
+        const note = typeof event.moderation_note === 'string' ? event.moderation_note.trim() : ''
+        return `${copy.decisionChanges(skillVersion)}${note ? ` ${note}` : ''}`
       }
-      if (state === 'declined' || state === 'rejected') return copy.decisionDeclined(skill)
-      return copy.decisionChanged(skill, copy.draftState(state))
+      if (state === 'declined' || state === 'rejected') return copy.decisionDeclined(skillVersion)
+      return copy.decisionChanged(skillVersion, copy.draftState(state || 'updated'))
     }
-    if (kind === 'installed') return copy.installedNotice(skill, version)
-    if (kind === 'updated' || kind === 'update_available' || kind === 'required_update') {
-      return copy.updateNotice(skill, version)
+    if (category === 'installed') return copy.installedNotice(skill, version)
+    if (category === 'updated') return copy.updatedNotice(skill, version)
+    if (category === 'update_available') return copy.updateNotice(skill, version)
+    if (category === 'new_skill' && kind === 'updated') return copy.updateNotice(skill, version)
+    if (category === 'new_skill') return copy.newSkillNotice(skillVersion)
+    if (category === 'unavailable') {
+      return kind === 'taken_down' ? copy.takedownNotice(skill) : copy.archivedNotice(skill)
     }
-    if (kind === 'new' || kind === 'published') return copy.newSkillNotice(skill)
-    if (kind === 'archived') return copy.archivedNotice(skill)
-    if (kind === 'takedown') return copy.takedownNotice(skill)
-    return copy.decisionChanged(skill, kind.replaceAll('_', ' ') || 'updated')
+    return copy.decisionChanged(skillVersion, (category || kind).replaceAll('_', ' ') || 'updated')
   }
 
   const candidateSummary = (candidate: WisdomCandidate): string => {

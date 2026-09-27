@@ -844,9 +844,12 @@ export const api = {
   getWisdomStatus: (profile?: string) => fetchJSON<WisdomStatus>(`/api/wisdom/status${profileQuery(profile)}`),
   getWisdomMute: (profile?: string) => fetchJSON<WisdomMuteSnapshot>(`/api/wisdom/mute${profileQuery(profile)}`),
   getWisdomSync: (profile?: string) => fetchJSON<WisdomSyncSnapshot>(`/api/wisdom/sync${profileQuery(profile)}`),
-  retryWisdomSync: (profile?: string) => fetchJSON<WisdomSyncSnapshot>('/api/wisdom/sync/retry', {
-    method: 'POST', body: JSON.stringify({ profile })
-  }),
+  retryWisdomSync: (profile?: string) =>
+    fetchJSON<WisdomSyncSnapshot>('/api/wisdom/sync/retry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile })
+    }),
   prepareWisdomMute: (profile?: string) =>
     fetchJSON<WisdomMuteControl>('/api/wisdom/mute/prepare', {
       method: 'POST',
@@ -900,13 +903,6 @@ export const api = {
     }),
   getWisdomCandidates: (profile?: string) =>
     fetchJSON<{ candidates: WisdomCandidate[] }>(`/api/wisdom/candidates${profileQuery(profile)}`),
-  getWisdomEvents: (profile?: string, sessionId?: string) => {
-    const params = new URLSearchParams()
-    if (profile) params.set('profile', profile)
-    if (sessionId) params.set('session_id', sessionId)
-    const query = params.toString()
-    return fetchJSON<{ events: WisdomCandidateEvent[] }>(`/api/wisdom/events${query ? `?${query}` : ''}`)
-  },
   getWisdomDiscovery: (profile?: string) => fetchJSON<WisdomDiscovery>(`/api/wisdom/discovery${profileQuery(profile)}`),
   getWisdomDrafts: (profile?: string) =>
     fetchJSON<{ drafts: WisdomDraft[] }>(`/api/wisdom/drafts${profileQuery(profile)}`),
@@ -1003,16 +999,6 @@ export const api = {
         local_skill_id: localSkillId,
         description,
         system_specification: systemSpecification,
-        profile: profile || undefined
-      })
-    }),
-  reviewWisdomDraft: (draftId: string, acknowledge: boolean, profile?: string) =>
-    fetchJSON<WisdomDraftReview>('/api/wisdom/review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        draft_id: draftId,
-        acknowledge,
         profile: profile || undefined
       })
     }),
