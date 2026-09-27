@@ -1244,7 +1244,11 @@ export const ruOverrides = {
       toursDesc:
         'Позвольте Hermes освещать каждый шаг, помогая вам работать с приложением. Выключается автоматически после первых 30 дней; вы можете включить его снова.',
       composerPopoutTitle: 'Плавающий композер',
-      composerPopoutDesc: 'Позволяет вытягивать композер из его док-зоны. Отключите, чтобы он был закреплён снизу.',
+      composerPopoutDesc:
+        'Позволяет вытягивать композер из его док-зоны. Когда выключено, он остаётся закреплённым внизу.',
+      fileBrowserTitle: 'Файловый браузер',
+      fileBrowserDesc:
+        'Показывает файловый браузер рядом с чатом, когда открыто рабочее пространство. Кнопка в заголовке окна меняет эту настройку.',
       vibeHeartsTitle: 'Вибе Сердца',
       vibeHeartsDesc:
         'Плавающие сердечки, когда вы говорите спасибо, или, добрый бот, или отправляете сердечко. Отдельно от реакций на сообщения выше.',
@@ -3700,6 +3704,8 @@ export const ruOverrides = {
     skillsLabel: 'Навыки',
     notSet: 'Не задано',
     soulDesc: 'Системный промпт и инструкции по персоне, встроенные в этот профиль.',
+    soulMissing:
+      'В этом профиле ещё нет файла SOUL.md. Введите инструкции ниже и сохраните, чтобы создать его. Настройки персонажей в config.yaml управляются отдельно.',
     soulOptional: 'необязательно',
     soulPlaceholder: mode =>
       `Системный промпт / персона этого профиля.\nОставьте пустым, чтобы сохранить ${mode} по умолчанию.`,
@@ -3854,6 +3860,8 @@ export const ruOverrides = {
     nameLabel: 'Имя',
     namePlaceholder: 'Утренний брифинг',
     promptLabel: 'Промпт',
+    scriptLabel: 'Скрипт',
+    scriptBadge: 'скрипт',
     promptPlaceholder: 'Суммируй мои непрочитанные треды Slack и пришли топ-5 на почту...',
     frequencyLabel: 'Частота',
     deliverLabel: 'Доставить в',
@@ -4502,6 +4510,9 @@ export const ruOverrides = {
     queueStuckTitle: 'Сообщение из очереди не отправлено',
     queueStuckBody:
       'Ход из очереди несколько раз не удалось отправить. Он всё ещё в очереди — попробуйте отправить снова.',
+    queueDroppedTitle: 'Элемент очереди отброшен',
+    queueDroppedBody:
+      'Эта фоновая запись была отброшена: её сеанс не удалось возобновить после нескольких попыток. Остальная очередь не затронута.',
     previewUnavailable: 'Предпросмотр недоступен',
     previewLabel: label => `Предпросмотр ${label}`,
     couldNotPreview: label => `Не удалось предпросмотреть ${label}`,
@@ -4595,6 +4606,7 @@ export const ruOverrides = {
     goalWaiting: 'Цель ожидает',
     subagents: count => `${count} ${RU_PLURAL(count, 'субагент', 'субагента', 'субагентов')}`,
     todos: (done, total) => `Задачи ${done}/${total}`,
+    previousTodos: (done, total) => `Прошлые задачи ${done}/${total}`,
     running: 'Выполняется',
     stop: 'Стоп',
     dismiss: 'Скрыть',
@@ -5855,6 +5867,8 @@ export const ruOverrides = {
       preparingAudio: 'Подготовка аудио...',
       stopReading: 'Остановить чтение',
       readAloud: 'Зачитать вслух',
+      copyFullResponse: 'Копировать весь ответ',
+      readAloudFullResponseHint: 'Shift+клик: прочитать весь ответ',
       editMessage: 'Изменить сообщение',
       expandMessage: 'Развернуть сообщение',
       scrollToBottom: 'Прокрутить вниз',
@@ -6079,7 +6093,9 @@ export const ruOverrides = {
       questionProgress: (answered, total) => `Ответ дан на ${answered} из ${total}`,
       lateAnswer: (question, choice) => `Re: «${question}» — мой ответ: ${choice}`,
       lateAnswerTip: 'Составить этот ответ как продолжение',
-      lateAnswerHint: 'Этот промпт больше не ждёт. Выберите вариант, чтобы составить его как сообщение-продолжение.'
+      lateAnswerHint: 'Этот промпт больше не ждёт. Выберите вариант, чтобы составить его как сообщение-продолжение.',
+      notDelivered:
+        'Этот вопрос не дошёл до приложения, поэтому ответить здесь нельзя. Нажмите «Стоп», чтобы завершить ход, и ответьте в чате.'
     },
     catalogInstall: {
       preparing: 'Готовим установку…',

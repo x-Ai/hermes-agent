@@ -81,34 +81,56 @@ function buildProviderKeyGroups(
       continue
     }
 
-    // Prefer the backend-supplied provider label/id so the Keys tab groups by
-    // the same identity the CLI picker uses; fall back to the prefix guess.
-    const localizedInfo = {
-      ...info,
-      description: envKeys[key]?.description ?? info.description
-    }
+    // A shared credential (for example DASHSCOPE_API_KEY) can belong to more
+    // than one built-in route. Expand its provider profiles into card-scoped
+    // rows while keeping the same env-var key for save/remove operations.
+    const expanded = Boolean(info.provider_profiles?.length)
+    const scopedInfos = expanded
+      ? info.provider_profiles!.map(profile => ({
+          ...info,
+          description: profile.description || info.description,
+          provider: profile.provider,
+          provider_label: profile.provider_label,
+          provider_primary: profile.primary,
+          url: profile.url ?? info.url
+        }))
+      : [info]
 
-    const providerId = info.provider?.trim() || ''
-    const sourceName = info.provider_label?.trim() || providerId || providerGroup(key)
+    for (const scopedInfo of scopedInfos) {
+      // Prefer the backend-supplied provider label/id so the Keys tab groups by
+      // the same identity the CLI picker uses; fall back to the prefix guess.
+      // A per-route profile description is already specific to its card; a
+      // plain env var takes the localized catalog description when one exists.
+      const localizedInfo = {
+        ...scopedInfo,
+        description: (expanded ? undefined : envKeys[key]?.description) ?? scopedInfo.description
+      }
 
-    if (sourceName === 'Other') {
-      continue
-    }
+      const providerId = scopedInfo.provider?.trim() || ''
+      const sourceName = scopedInfo.provider_label?.trim() || providerId || providerGroup(key)
 
-    const identity = providerId || sourceName
-    const bucket = buckets.get(identity)
+      if (sourceName === 'Other') {
+        continue
+      }
 
-    if (bucket) {
-      bucket.entries.push([key, localizedInfo])
-    } else {
-      buckets.set(identity, { entries: [[key, localizedInfo]], providerId, sourceName })
+      const identity = providerId || sourceName
+      const bucket = buckets.get(identity)
+
+      if (bucket) {
+        bucket.entries.push([key, localizedInfo])
+      } else {
+        buckets.set(identity, { entries: [[key, localizedInfo]], providerId, sourceName })
+      }
     }
   }
 
   const groups: ProviderKeyGroup[] = []
 
   for (const [id, { entries, providerId, sourceName }] of buckets) {
-    const primary = entries.find(([k, i]) => !i.advanced && isKeyVar(k, i)) ?? entries.find(([k, i]) => isKeyVar(k, i))
+    const primary =
+      entries.find(([k, i]) => i.provider_primary && isKeyVar(k, i)) ??
+      entries.find(([k, i]) => !i.advanced && isKeyVar(k, i)) ??
+      entries.find(([k, i]) => isKeyVar(k, i))
 
     if (!primary) {
       continue

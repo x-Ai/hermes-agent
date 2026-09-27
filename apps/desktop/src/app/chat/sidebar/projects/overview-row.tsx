@@ -9,7 +9,7 @@ import type { SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { $sidebarShowAllSessions } from '@/store/layout'
-import { fetchProjectSessions, projectProfile, projectRootCwd } from '@/store/projects'
+import { fetchProjectSessions, projectProfile } from '@/store/projects'
 
 import {
   SIDEBAR_LEAD_ICON_SIZE,
@@ -146,7 +146,15 @@ export function ProjectOverviewRow({
   const total = project.sessionCount - hiddenSessionCount
   const hiddenCount = total - preview.length
   const offerShowAll = !showAllSessions && !expanded && preview.length > 0 && hiddenCount > 0
-  const newSessionCwd = projectRootCwd(project) || null
+  // #124808: a path-less explicit project (multi-folder, never assigned a
+  // primary_path) still carries repo roots. Its trunk "+" must anchor at
+  // the first repo root — passing the null wire path through would take the
+  // reserved Home/detached branch downstream and silently create a global
+  // session. Home itself keeps null ("no folder" is its contract).
+  const newSessionPath =
+    !project.isNoProject && !(project.path ?? '').trim()
+      ? ((project.repos ?? []).map(repo => repo.path).find(root => (root ?? '').trim()) ?? project.path)
+      : project.path
 
   const showAll = () => {
     // All-profiles view has no single backend to ask for one project's lanes;
@@ -205,7 +213,7 @@ export function ProjectOverviewRow({
           {onNewSession && (
             <WorkspaceAddButton
               label={s.newSessionIn(project.label)}
-              onClick={() => onNewSession(newSessionCwd)}
+              onClick={() => onNewSession(newSessionPath)}
               onPointerDown={
                 onNewSessionSplit
                   ? event => {
@@ -218,11 +226,11 @@ export function ProjectOverviewRow({
                           onNewSessionSplit(placement.dir, {
                             anchor: placement.anchor,
                             before: placement.before,
-                            cwd: newSessionCwd
+                            cwd: newSessionPath
                           })
                         },
                         event,
-                        { cwd: newSessionCwd, label: s.newSessionIn(project.label) }
+                        { cwd: newSessionPath, label: s.newSessionIn(project.label) }
                       )
                     }
                   : undefined
