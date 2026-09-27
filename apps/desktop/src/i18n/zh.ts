@@ -2930,7 +2930,7 @@ export const zh = defineLocale({
         'alibaba-token-plan-cn': 'Alibaba（Token Plan，中国大陆）',
         'alibaba-coding-plan': 'Alibaba（Coding Plan）',
         'alibaba-coding-plan-cn': 'Alibaba（Coding Plan，中国大陆）',
-        'tencent-tokenplan': '腾讯 TokenPlan'
+        'tencent-tokenplan': 'Tencent TokenPlan'
       },
       providerDescriptions: {
         'Nous Portal': '托管 Hermes 与 Nous 训练的模型',
