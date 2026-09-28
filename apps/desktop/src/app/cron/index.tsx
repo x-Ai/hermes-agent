@@ -296,7 +296,7 @@ function matchesQuery(job: CronJob, q: string): boolean {
 
 interface CronViewProps extends React.ComponentProps<'section'> {
   onClose: () => void
-  onOpenSession?: (sessionId: string) => void
+  onOpenSession?: (sessionId: string, session?: SessionInfo) => void
   setStatusbarItemGroup?: SetStatusbarItemGroup
 }
 
@@ -718,6 +718,13 @@ export function CronView({ onClose, onOpenSession, setStatusbarItemGroup: _setSt
             // No selection and no search — "Try a broader search query" here
             // just confused people staring at an empty panel with zero jobs.
             <PanelEmpty
+              action={
+                jobs.length === 0 ? (
+                  <Button onClick={() => setEditor({ mode: 'create' })} size="sm">
+                    {c.newCron}
+                  </Button>
+                ) : undefined
+              }
               description={c.emptyDescNew}
               icon="watch"
               title={jobs.length === 0 ? c.emptyTitleNew : undefined}
@@ -788,7 +795,7 @@ interface CronJobDetailProps {
   c: Translations['cron']
   job: CronJob
   onEdit: () => void
-  onOpenSession?: (sessionId: string) => void
+  onOpenSession?: (sessionId: string, session?: SessionInfo) => void
   onPauseResume: () => void
   onTrigger: () => void
 }
@@ -897,7 +904,7 @@ function CronJobRuns({
 }: {
   c: Translations['cron']
   jobId: string
-  onOpenSession?: (sessionId: string) => void
+  onOpenSession?: (sessionId: string, session?: SessionInfo) => void
 }) {
   const [runs, setRuns] = useState<null | SessionInfo[]>(null)
   const changeEventsAvailable = useStore($changeEventsAvailable)
@@ -976,7 +983,7 @@ function CronJobRuns({
               <button
                 className="row-hover flex items-center justify-between gap-3 rounded-md px-2 py-1 text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                 key={run.id}
-                onClick={() => onOpenSession?.(run.id)}
+                onClick={() => onOpenSession?.(run.id, run)}
                 type="button"
               >
                 <span className="truncate text-foreground/85">

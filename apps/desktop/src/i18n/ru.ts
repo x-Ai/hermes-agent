@@ -760,6 +760,8 @@ export const ruOverrides = {
       'composer.modelPicker': 'Открыть выбор модели',
       'composer.voice': 'Начать / остановить голосовой диалог',
       'composer.dictate': 'Начать / остановить диктовку',
+      'composer.reasoningUp': 'Повысить уровень размышлений',
+      'composer.reasoningDown': 'Понизить уровень размышлений',
       'view.toggleSidebar': 'Показать / скрыть панель сеансов',
       'view.toggleRightSidebar': 'Показать / скрыть браузер файлов',
       'view.toggleReview': 'Показать / скрыть панель ревью',

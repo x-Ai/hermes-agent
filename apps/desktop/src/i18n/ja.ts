@@ -6980,8 +6980,9 @@ export const jaOverrides = {
             `${provider} がサーバーエラーを返しました。しばらくしてから再試行するか、プロバイダーを切り替えてください。`
         },
         timeout: {
-          title: '応答がタイムアウトしました',
-          body: provider => `${provider} から時間内に応答がありませんでした。再試行してもう一度送信してください。`
+          title: 'AI サービスに接続できません',
+          body: provider =>
+            `${provider} に接続できないか、時間内に応答がありませんでした。インターネット接続を確認してから再試行してください。`
         },
         stream_drop: {
           title: '返信が途中で切れました',

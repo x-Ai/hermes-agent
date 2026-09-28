@@ -1048,6 +1048,8 @@ export const en: Translations = {
       'composer.modelPicker': 'Open model picker',
       'composer.voice': 'Start / stop voice conversation',
       'composer.dictate': 'Start / stop dictation',
+      'composer.reasoningUp': 'Reasoning level up',
+      'composer.reasoningDown': 'Reasoning level down',
       'view.toggleSidebar': 'Toggle sessions sidebar',
       'view.toggleRightSidebar': 'Toggle file browser',
       'view.toggleReview': 'Toggle review pane',
@@ -2088,6 +2090,8 @@ export const en: Translations = {
       provider: 'Provider',
       model: 'Model',
       applying: 'Applying...',
+      mainAppliedTitle: 'Main model updated',
+      mainAppliedMessage: model => `New sessions will use ${model}.`,
       defaultsLabel: 'Defaults',
       reasoning: 'Reasoning',
       reasoningOff: 'Off',
@@ -6688,8 +6692,9 @@ export const en: Translations = {
           body: provider => `${provider} returned a server error. Retry in a moment or switch provider.`
         },
         timeout: {
-          title: 'The reply timed out',
-          body: provider => `${provider} did not answer in time. Retry to send it again.`
+          title: 'Could not reach the AI service',
+          body: provider =>
+            `${provider} could not be reached or did not answer in time. Check your internet connection, then retry.`
         },
         stream_drop: {
           title: 'The reply was cut off',
@@ -6940,6 +6945,16 @@ export const en: Translations = {
       },
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
+        analyze: {
+          count: (count, live) => `${live ? 'Analyzing' : 'Analyzed'} ${count} ${count === 1 ? 'image' : 'images'}`,
+          present: 'Analyzing',
+          target: (target, live) => `${live ? 'Analyzing' : 'Analyzed'} ${target}`
+        },
+        browse: {
+          count: (count, live) => `${live ? 'Opening' : 'Opened'} ${count} ${count === 1 ? 'page' : 'pages'}`,
+          present: 'Opening',
+          target: (target, live) => `${live ? 'Opening' : 'Opened'} ${target}`
+        },
         delegate: {
           count: (count, live) => `${live ? 'Delegating' : 'Delegated'} ${count} ${count === 1 ? 'task' : 'tasks'}`,
           present: 'Delegating',
@@ -6955,15 +6970,31 @@ export const en: Translations = {
           present: 'Exploring',
           target: (target, live) => `${live ? 'Exploring' : 'Explored'} ${target}`
         },
+        interact: {
+          count: (count, live) =>
+            `${live ? 'Performing' : 'Performed'} ${count} ${count === 1 ? 'browser action' : 'browser actions'}`,
+          present: 'Performing',
+          target: (target, live) => `${live ? 'Performing' : 'Performed'} ${target}`
+        },
         other: {
           count: (count, live) => `${live ? 'Using' : 'Used'} ${count} ${count === 1 ? 'tool' : 'tools'}`,
           present: 'Using',
           target: (target, live) => `${live ? 'Using' : 'Used'} ${target}`
         },
+        read: {
+          count: (count, live) => `${live ? 'Reading' : 'Read'} ${count} ${count === 1 ? 'page' : 'pages'}`,
+          present: 'Reading',
+          target: (target, live) => `${live ? 'Reading' : 'Read'} ${target}`
+        },
         run: {
           count: (count, live) => `${live ? 'Running' : 'Ran'} ${count} ${count === 1 ? 'command' : 'commands'}`,
           present: 'Running',
           target: (target, live) => `${live ? 'Running' : 'Ran'} ${target}`
+        },
+        search: {
+          count: (count, live) => `${live ? 'Searching' : 'Searched'} ${count} ${count === 1 ? 'query' : 'queries'}`,
+          present: 'Searching',
+          target: (target, live) => `${live ? 'Searching' : 'Searched'} ${target}`
         },
         separator: ', '
       },

@@ -547,8 +547,8 @@ export const zhHantOverrides = {
       providerConnected: provider => `${provider}已連接。`,
       providerSaveFailed: label => `無法儲存${label}`,
       reactionFailed: '無法反應',
-      runtimeNotReadyMessage: 'Hermes 桌面無法驗證啟動時的執行後端 。 某些功能可能會在网關可以通到之前無法使用 .',
-      runtimeNotReadyTitle: '執行時間未準備好',
+      runtimeNotReadyMessage: 'Hermes 桌面版啟動時無法驗證正在執行的後端，在閘道恢復連線前，部分功能可能無法使用',
+      runtimeNotReadyTitle: '執行環境尚未就緒',
       toolGatewayEnabledMessage: labels => {
         const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels.at(-1)}`
 
@@ -1018,7 +1018,9 @@ export const zhHantOverrides = {
       'view.toggleProfileRail': '切換型材導軌',
       'conversation.scrollPageUp': '向上捲動一頁對話',
       'conversation.scrollPageDown': '向下捲動一頁對話',
-      'composer.dictate': '開始/停止聽寫'
+      'composer.dictate': '開始/停止聽寫',
+      'composer.reasoningUp': '提高推理等級',
+      'composer.reasoningDown': '降低推理等級'
     },
     clear: '清除'
   },
@@ -2326,6 +2328,8 @@ export const zhHantOverrides = {
       provider: '提供方',
       model: '模型',
       applying: '套用中...',
+      mainAppliedTitle: '主模型已更新',
+      mainAppliedMessage: model => `新工作階段將使用 ${model}`,
       defaultsLabel: '預設值',
       reasoning: '推理',
       reasoningOff: '關閉',
@@ -7356,8 +7360,8 @@ export const zhHantOverrides = {
           body: provider => `${provider} 傳回了伺服器錯誤。請稍後重試或切換服務商。`
         },
         timeout: {
-          title: '回覆逾時',
-          body: provider => `${provider} 未及時回應。請重試以重新傳送。`
+          title: '無法連線到 AI 服務',
+          body: provider => `無法連線到 ${provider}，或其未及時回應。請檢查網路連線後重試。`
         },
         stream_drop: {
           title: '回覆被中斷',
@@ -7599,32 +7603,57 @@ export const zhHantOverrides = {
       },
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
+        analyze: {
+          count: (count, live) => `${live ? '正在分析' : '分析了'} ${count} 張圖片`,
+          present: '正在分析',
+          target: (target, live) => `${live ? '正在分析' : '分析了'} ${target}`
+        },
+        browse: {
+          count: (count, live) => `${live ? '正在開啟' : '開啟了'} ${count} 個頁面`,
+          present: '正在開啟',
+          target: (target, live) => `${live ? '正在開啟' : '開啟了'} ${target}`
+        },
         delegate: {
-          count: (count, live) => `${live ? '授权' : '已委托'} ${count} ${count === 1 ? '工作' : '工作'}`,
-          present: '授权',
-          target: (target, live) => `${live ? '授权' : '已委托'} ${target}`
+          count: (count, live) => `${live ? '正在委派' : '委派了'} ${count} 個任務`,
+          present: '正在委派',
+          target: (target, live) => `${live ? '正在委派' : '委派了'} ${target}`
         },
         edit: {
-          count: (count, live) => `${live ? '編輯' : '已編輯'} ${count} ${count === 1 ? '文件' : '文件'}`,
-          present: '編輯',
-          target: (target, live) => `${live ? '編輯' : '已編輯'} ${target}`
+          count: (count, live) => `${live ? '正在編輯' : '編輯了'} ${count} 個檔案`,
+          present: '正在編輯',
+          target: (target, live) => `${live ? '正在編輯' : '編輯了'} ${target}`
         },
         explore: {
-          count: (count, live) => `${live ? '探索' : '已探索'} ${count} ${count === 1 ? '文件' : '文件'}`,
-          present: '探索',
-          target: (target, live) => `${live ? '探索' : '已探索'} ${target}`
+          count: (count, live) => `${live ? '正在探索' : '探索了'} ${count} 個檔案`,
+          present: '正在探索',
+          target: (target, live) => `${live ? '正在探索' : '探索了'} ${target}`
+        },
+        interact: {
+          count: (count, live) => `${live ? '正在執行' : '執行了'} ${count} 個瀏覽器操作`,
+          present: '正在執行',
+          target: (target, live) => `${live ? '正在執行' : '執行了'} ${target}`
         },
         other: {
-          count: (count, live) => `${live ? '使用' : '已使用'} ${count} ${count === 1 ? '工具' : '工具'}`,
-          present: '使用',
-          target: (target, live) => `${live ? '使用' : '已使用'} ${target}`
+          count: (count, live) => `${live ? '正在使用' : '使用了'} ${count} 個工具`,
+          present: '正在使用',
+          target: (target, live) => `${live ? '正在使用' : '使用了'} ${target}`
+        },
+        read: {
+          count: (count, live) => `${live ? '正在閱讀' : '閱讀了'} ${count} 個頁面`,
+          present: '正在閱讀',
+          target: (target, live) => `${live ? '正在閱讀' : '閱讀了'} ${target}`
         },
         run: {
-          count: (count, live) => `${live ? '跑步' : '小蘭'} ${count} ${count === 1 ? '命令' : '命令'}`,
-          present: '跑步',
-          target: (target, live) => `${live ? '跑步' : '小蘭'} ${target}`
+          count: (count, live) => `${live ? '正在執行' : '執行了'} ${count} 條命令`,
+          present: '正在執行',
+          target: (target, live) => `${live ? '正在執行' : '執行了'} ${target}`
         },
-        separator: ', '
+        search: {
+          count: (count, live) => `${live ? '正在搜尋' : '搜尋了'} ${count} 個查詢`,
+          present: '正在搜尋',
+          target: (target, live) => `${live ? '正在搜尋' : '搜尋了'} ${target}`
+        },
+        separator: '，'
       },
       actions: {
         read: '已讀取',

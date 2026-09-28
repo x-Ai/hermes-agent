@@ -9,6 +9,7 @@ import {
 } from '@assistant-ui/react-streamdown'
 import type { code as streamdownCode } from '@streamdown/code'
 import { type ComponentProps, isValidElement, memo, type ReactNode, useEffect, useMemo, useState } from 'react'
+import { defaultRemarkPlugins } from 'streamdown'
 
 import { ExpandableBlock } from '@/components/chat/expandable-block'
 import { PreviewAttachment } from '@/components/chat/preview-attachment'
@@ -38,6 +39,7 @@ import {
 } from '@/lib/media'
 import { isOnboardingEnabled } from '@/lib/onboarding-enabled'
 import { previewTargetFromMarkdownHref } from '@/lib/preview-targets'
+import { remarkSoftBreaks } from '@/lib/remark-soft-breaks'
 import { sessionRefFromMarkdownHref } from '@/lib/session-refs'
 import { isDirectiveInProgress } from '@/lib/transcript-directives'
 import { cn } from '@/lib/utils'
@@ -99,6 +101,8 @@ function useCodePlugin(): CodePlugin | null {
 
   return plugin
 }
+
+const REMARK_PLUGINS = [...Object.values(defaultRemarkPlugins), remarkSoftBreaks]
 
 // Replaces Streamdown's `parseIncompleteMarkdown` (full-text remend per
 // flush) with a tail-bounded repair. Must stay module-scope so the prop
@@ -802,6 +806,7 @@ function MarkdownTextSurface({
         parseMarkdownIntoBlocksFn={parseMarkdownIntoBlocksCached}
         plugins={plugins}
         preprocess={preprocessWithTailRepair}
+        remarkPlugins={REMARK_PLUGINS}
       />
     </ErrorBoundary>
   )

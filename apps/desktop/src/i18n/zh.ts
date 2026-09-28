@@ -1019,6 +1019,8 @@ export const zhOverrides = {
       'composer.modelPicker': '打开模型选择器',
       'composer.voice': '开始 / 停止语音对话',
       'composer.dictate': '开始 / 停止听写',
+      'composer.reasoningUp': '提高推理等级',
+      'composer.reasoningDown': '降低推理等级',
       'view.toggleSidebar': '切换会话侧边栏',
       'view.toggleRightSidebar': '切换文件浏览器',
       'view.toggleReview': '切换审查面板',
@@ -2352,6 +2354,8 @@ export const zhOverrides = {
       provider: '提供方',
       model: '模型',
       applying: '应用中...',
+      mainAppliedTitle: '主模型已更新',
+      mainAppliedMessage: model => `新会话将使用 ${model}`,
       defaultsLabel: '默认值',
       reasoning: '推理强度',
       reasoningOff: '关闭',
@@ -7835,8 +7839,8 @@ export const zhOverrides = {
           body: provider => `${provider} 返回了服务器错误。请稍后重试或切换服务商。`
         },
         timeout: {
-          title: '回复超时',
-          body: provider => `${provider} 未及时响应。请重试以重新发送。`
+          title: '无法连接到 AI 服务',
+          body: provider => `无法连接到 ${provider}，或其未及时响应。请检查网络连接后重试。`
         },
         stream_drop: {
           title: '回复被中断',
@@ -8101,6 +8105,16 @@ export const zhOverrides = {
       },
       countLabel: (count, noun, displayNoun) => `${count} ${TOOL_COUNT_UNITS[noun] ?? displayNoun}`,
       runSummary: {
+        analyze: {
+          count: (count, live) => `${live ? '正在分析' : '分析了'} ${count} 张图片`,
+          present: '正在分析',
+          target: (target, live) => `${live ? '正在分析' : '分析了'} ${target}`
+        },
+        browse: {
+          count: (count, live) => `${live ? '正在打开' : '打开了'} ${count} 个页面`,
+          present: '正在打开',
+          target: (target, live) => `${live ? '正在打开' : '打开了'} ${target}`
+        },
         delegate: {
           count: (count, live) => `${live ? '正在委派' : '委派了'} ${count} 个任务`,
           present: '正在委派',
@@ -8116,15 +8130,30 @@ export const zhOverrides = {
           present: '正在探索',
           target: (target, live) => `${live ? '正在探索' : '探索了'} ${target}`
         },
+        interact: {
+          count: (count, live) => `${live ? '正在执行' : '执行了'} ${count} 个浏览器操作`,
+          present: '正在执行',
+          target: (target, live) => `${live ? '正在执行' : '执行了'} ${target}`
+        },
         other: {
           count: (count, live) => `${live ? '正在使用' : '使用了'} ${count} 个工具`,
           present: '正在使用',
           target: (target, live) => `${live ? '正在使用' : '使用了'} ${target}`
         },
+        read: {
+          count: (count, live) => `${live ? '正在阅读' : '阅读了'} ${count} 个页面`,
+          present: '正在阅读',
+          target: (target, live) => `${live ? '正在阅读' : '阅读了'} ${target}`
+        },
         run: {
           count: (count, live) => `${live ? '正在运行' : '运行了'} ${count} 条命令`,
           present: '正在运行',
           target: (target, live) => `${live ? '正在运行' : '运行了'} ${target}`
+        },
+        search: {
+          count: (count, live) => `${live ? '正在搜索' : '搜索了'} ${count} 个查询`,
+          present: '正在搜索',
+          target: (target, live) => `${live ? '正在搜索' : '搜索了'} ${target}`
         },
         separator: '，'
       },

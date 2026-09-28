@@ -855,6 +855,8 @@ export interface Translations {
       provider: string
       model: string
       applying: string
+      mainAppliedTitle: string
+      mainAppliedMessage: (model: string) => string
       defaultsLabel: string
       reasoning: string
       reasoningOff: string
@@ -3706,11 +3708,16 @@ export interface Translations {
       }
       countLabel: (count: number, noun: string, displayNoun: string) => string
       runSummary: {
+        analyze: ToolRunCategoryCopy
+        browse: ToolRunCategoryCopy
         delegate: ToolRunCategoryCopy
         edit: ToolRunCategoryCopy
         explore: ToolRunCategoryCopy
+        interact: ToolRunCategoryCopy
         other: ToolRunCategoryCopy
+        read: ToolRunCategoryCopy
         run: ToolRunCategoryCopy
+        search: ToolRunCategoryCopy
         separator: string
       }
       actions: {

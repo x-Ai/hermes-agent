@@ -5,7 +5,7 @@ import struct
 import pytest
 
 from hermes_cli import desktop_update_verify as verify
-from tests.hermes_cli.test_source_build import copy_freshness_scripts, stamp_product
+from tests.hermes_cli.test_source_build import copy_freshness_scripts, stamp_product, use_host_node_as_pm_node
 
 
 @pytest.fixture
@@ -32,6 +32,7 @@ def bundle(tmp_path, monkeypatch):
     monkeypatch.setattr(main_desktop, '_renderer_bundle_dir', lambda *_args, **_kwargs: dist)
     copy_freshness_scripts(tmp_path)
     stamp_product(tmp_path, "desktop", dist)
+    use_host_node_as_pm_node(monkeypatch)
     return tmp_path, archive, dist
 
 
