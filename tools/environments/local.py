@@ -796,7 +796,9 @@ def _kill_process_group_posix(proc) -> None:
         pgid = os.getpgid(proc.pid)
     except ProcessLookupError:
         if (pgid := getattr(proc, "_hermes_pgid", None)) is None:
-            raise
+            # Reaped between the caller's poll() and this teardown (rg finishing as the
+            # drain hit its bound) and nobody recorded its group: nothing is left to signal.
+            return
     try:  # psutil children snapshot; empty on any failure (must never break the kill)
         import psutil
         descendants = psutil.Process(proc.pid).children(recursive=True)
