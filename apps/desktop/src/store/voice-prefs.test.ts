@@ -18,13 +18,20 @@ import {
   applyVoiceStopPhraseFromConfig
 } from './voice-prefs'
 
+// jsdom's real Storage routes own-property writes through its named-property
+// setter, so a spy placed on the instance never intercepts `setItem` (the write
+// lands anyway). Spy on the prototype there; the in-memory Storage that
+// vitest.setup.ts installs under Node 26 is a plain object whose methods are own
+// properties, so the instance is the only place a spy can sit.
+const setItemSpyTarget = (): Storage => (localStorage instanceof Storage ? Storage.prototype : localStorage)
+
 it('keeps the desktop toggle local across config refreshes', async () => {
   for (const fails of [false, true]) {
     for (const enabled of [false, true]) {
       localStorage.clear()
       vi.resetModules()
       const prefs = await import('./voice-prefs')
-      const write = vi.spyOn(localStorage, 'setItem')
+      const write = vi.spyOn(setItemSpyTarget(), 'setItem')
 
       if (fails) {
         write.mockImplementation(() => {
@@ -53,7 +60,7 @@ it('migrates the legacy preference once, not on every refresh', async () => {
       localStorage.clear()
       vi.resetModules()
       const prefs = await import('./voice-prefs')
-      const write = vi.spyOn(localStorage, 'setItem')
+      const write = vi.spyOn(setItemSpyTarget(), 'setItem')
 
       if (fails) {
         write.mockImplementation(() => {
