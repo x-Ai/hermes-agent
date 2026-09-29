@@ -15,6 +15,40 @@ export const zhHantOverrides = {
       message: '此檔案不存在 — 可能已被刪除或移動，或者位於另一台機器上。'
     }
   },
+  sharedMetrics: {
+    consentTitle: '協助改進 Hermes？',
+    consentBody:
+      '共享指標只包含有上限的計數，絕不包含提示詞、檔案、路徑或錯誤文字。收集僅在本機進行；傳送給 Nous 需要另行同意。',
+    whatIsCollected: '收集哪些內容',
+    collectedIntro: '僅限有上限的計數：',
+    collectedActivity: '活動、工作階段長度、結果和錯誤類別',
+    collectedModels: '模型路由和 token 總量',
+    collectedNames: '內建工具、指令和目錄項名稱',
+    collectedMilestones: '分組的設定計數',
+    collectedReliability: '更新結果與耗時、當機、啟動與回覆速度、訊息平台狀態',
+    collectedUsage:
+      'Hermes 的使用方式：代理的準確度與效率（編輯是否成功、迴圈、錯誤後的恢復、每個任務的 token 與工具呼叫數、快取中斷），各介面與 Desktop 模式的活躍時間，哪些應用程式區域、操作與設定被使用、很快關閉或被關閉，以及供應商設定的結果',
+    collectedMachine:
+      '概略的機器資訊：記憶體範圍、GPU 類型、Hermes 版本新舊與發行通道、落後的更新數、是否使用本機模型伺服器',
+    installId:
+      '傳送會把每日資料包上傳到 Nous 遙測服務。資料包帶有此設定檔的安裝 ID：一個不含個人資訊的固定隨機 UUID，刪除共享指標目錄即可重設。',
+    consentWindow:
+      '只有整個收集期間都落在已記錄同意時段內的資料包才會被傳送——你同意之前的資料，或傳送關閉期間的資料，都會留在本機。你可以隨時再次關閉傳送。',
+    readDocs: '查看完整說明',
+    share: '收集並傳送給 Nous',
+    local: '僅在本機收集',
+    off: '不用了',
+    changeLater: '你可以隨時在 設定 → 安全性 中變更。',
+    saveFailed: '無法儲存你的選擇',
+    collectLabel: '收集使用統計',
+    collectDesc: '在此裝置上保存有上限的計數。絕不包含提示詞、檔案、路徑或錯誤文字。',
+    sendLabel: '向 Nous 傳送使用統計',
+    sendDesc: '將每日資料包上傳到 Nous 遙測服務。只傳送同意時段內的資料。需要先開啟收集。',
+    unavailable: '請更新 Hermes 後端以變更此設定。',
+    stripBody: '僅限有界計數器，絕不包含提示詞或檔案。',
+    stripChoices: { share: '傳送給 Nous', local: '僅限本機', off: '不用了' },
+    stripDetails: '詳細資訊'
+  },
   intro: introZhHant,
   connectors: {
     title: '連接你的應用程式',
@@ -1477,6 +1511,8 @@ export const zhHantOverrides = {
       textDirection: { auto: '自動', rtl: '從右到左', ltr: '從左到右' },
       introSplashTitle: '開場標識',
       introSplashDesc: '空白對話中顯示的字標和提示語。',
+      modelPricingTitle: '模型價格',
+      modelPricingDesc: '在模型選擇器中顯示每百萬 token 的輸入、輸出和快取讀取價格。',
       reactionsTitle: '訊息回應',
       reactionsDesc: 'iMessage 風格的表情回應 — 你可以對訊息做出回應，Hermes 也能回應你的訊息。',
       tipsTitle: '應用程式內提示',
@@ -2341,6 +2377,7 @@ export const zhHantOverrides = {
       restartFailed: '無法重新啟動後端',
       auxiliaryTitle: '輔助模型',
       resetAllToMain: '全部重設為主要模型',
+      staleAuxDismiss: '不再顯示',
       auxiliaryDesc: '輔助任務預設使用主要模型。您可以為任何任務指定專用模型。',
       setToMain: '設為主要模型',
       change: '變更',
@@ -2485,13 +2522,16 @@ export const zhHantOverrides = {
       addHeader: '新增標頭',
       removeHeader: '刪除標頭',
       extraBodyLabel: '額外請求主體（JSON）',
-      extraBodyHint: '合併進每個請求主體，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或伺服器文件規定的思考預算欄位',
+      extraBodyHint:
+        '合併進每個請求主體，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或伺服器文件規定的思考預算欄位',
       extraBodyInvalid: '必須是 JSON 物件',
       maxTokensFieldLabel: '輸出上限欄位',
       maxTokensFieldAuto: '自動（由端點決定）',
-      maxTokensFieldHint: 'Chat Completions 請求中承載輸出上限的欄位。原樣轉發到 OpenAI 的中繼請固定為 max_completion_tokens；執行階段不會依模型名稱猜測',
+      maxTokensFieldHint:
+        'Chat Completions 請求中承載輸出上限的欄位。原樣轉發到 OpenAI 的中繼請固定為 max_completion_tokens；執行階段不會依模型名稱猜測',
       catalogProviderLabel: '中繼資料目錄來源',
-      catalogProviderHint: '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
+      catalogProviderHint:
+        '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自動',
       keyKeepPlaceholder: '留空則保留目前的金鑰',
       keyOptionalPlaceholder: '選填',
@@ -4151,12 +4191,6 @@ export const zhHantOverrides = {
       system: '系統',
       usage: '使用量'
     },
-    sectionDescriptions: {
-      maintenance: '診斷、備份、管理和記憶體數據',
-      sessions: '搜尋和管理工作階段',
-      system: '狀態、記錄和系統動作',
-      usage: '一段時間內的詞元、費用和技能活動'
-    },
     nav: {
       newChat: {
         title: '新工作階段',
@@ -4208,6 +4242,7 @@ export const zhHantOverrides = {
     hermesActiveSessions: (version, count) => `Hermes ${version} · 活躍工作階段 ${count}`,
     restartGateway: '重新啟動閘道',
     openBrowser: '開啟瀏覽器',
+    toggleBrowser: '切換瀏覽器',
     gatewayRestartFailed: '閘道重新啟動失敗。',
     updateHermes: '更新 Hermes',
     reloadWindow: '重新載入視窗',
@@ -4217,6 +4252,7 @@ export const zhHantOverrides = {
     actionStartedWaiting: '動作已啟動，等待狀態…',
     loadingStatus: '正在載入狀態…',
     recentLogs: '最近記錄',
+    logSearchPlaceholder: '搜尋記錄行…',
     noLogs: '尚未載入記錄。',
     days: count => `${count} 天`,
     statSessions: '工作階段',
@@ -4238,7 +4274,6 @@ export const zhHantOverrides = {
     actions: count => `${count} 次動作`,
     logFile: '紀錄檔案',
     logLevel: '等級',
-    logSearchPlaceholder: '過濾日誌行...',
     maintenance: {
       runOps: '診斷',
       doctor: '跑醫生',
@@ -4290,6 +4325,13 @@ export const zhHantOverrides = {
   },
   messaging: {
     search: '搜尋訊息平台…',
+    statusFilter: {
+      all: '全部',
+      bad: '錯誤',
+      good: '已連線',
+      muted: '未啟用',
+      warn: '需要注意'
+    },
     loading: '正在載入訊息平台…',
     loadFailed: '訊息平台載入失敗',
     states: {
@@ -5926,6 +5968,8 @@ export const zhHantOverrides = {
     editingInComposer: '在輸入框中編輯',
     editingQueuedInComposer: '在輸入框中編輯排隊回合',
     queueEdit: '編輯',
+    queueExpand: '展開',
+    queueCollapse: '收起',
     queueSendNext: '下一個',
     queueSteer: '引導 — 立即修正目前回合',
     queueSend: '傳送',
@@ -6220,6 +6264,7 @@ export const zhHantOverrides = {
     },
     changelogFallbackTitle: '本次更新',
     changelogFallback: '改進與修正',
+    copyFullLog: '複製完整更新日誌',
     manualTitle: '從終端機更新',
     manualUnavailableTitle: '無法從這裡更新',
     manualBody: '您是從命令列安裝的 Hermes，因此更新也需要在那裡執行。請將此指令貼到終端機：',
@@ -6338,61 +6383,6 @@ export const zhHantOverrides = {
   guidedGreeting: {
     line: '來了，進來吧。我是 Hermes。給我兩分鐘，把這裡按你的習慣整理一下，然後我們找件你真正想做的事來做。\n\n先說，我該怎麼稱呼你？',
     nameSuggestion: (name: string) => `（如果你願意，我也可以直接叫你 ${name}。）`
-  },
-  introReveal: {
-    skip: '略過',
-    surfaces: '桌面 · 訊息 · 手機 · 隨處可用',
-    prompt: '在 Blender 中製作主視覺立方體，並輪換展示幾種材質',
-    replyWords: ['完成 — ', '材質已編譯，', '並在立方體上完成預覽。', '要匯出轉盤動畫嗎？'],
-    composerPlaceholder: '儘管提問，隨心創作。',
-    viewport: '視埠',
-    tagline: '你的智慧代理，無處不在',
-    viewportModes: {
-      standard: '標準',
-      metal: '金屬',
-      texture: '紋理',
-      glass: '玻璃',
-      wireframe: '線框'
-    },
-    tools: {
-      blender: {
-        label: 'blender-mcp',
-        running: '正在連接 Blender…',
-        done: '場景已連接'
-      },
-      metal: {
-        label: '金屬',
-        running: '正在編譯金屬材質…',
-        done: '金屬 · 粗糙度 0.2'
-      },
-      glass: {
-        label: '玻璃',
-        running: '正在編譯玻璃材質…',
-        done: '玻璃 · 折射率 1.45'
-      }
-    },
-    sideAgents: {
-      research: {
-        title: '研究智慧代理',
-        line1: '找房進度：已選出 3 個新房源',
-        line2: '↳ 正在整理看房行程…'
-      },
-      groceries: {
-        title: '日用品',
-        line1: '已依清單建立每週訂單',
-        line2: '↳ 已預約週日送達'
-      },
-      inbox: {
-        title: '收件匣智慧代理',
-        line1: '已草擬 2 封回覆，等待你確認',
-        line2: '↳ 週五行事曆已更新'
-      },
-      morning: {
-        title: '晨間簡報',
-        line1: '明天：3 場會議，8 點有雨',
-        line2: '↳ 在你醒來前準備好'
-      }
-    }
   },
   guidedOnboarding: {
     done: '✓ 完成',
@@ -6754,7 +6744,11 @@ export const zhHantOverrides = {
     noAuthenticatedProviders: '沒有已驗證的提供方。',
     addProvider: '新增提供方…',
     addCustomModel: '新增自訂模型',
-    removeCustomModel: '移除自訂模型'
+    removeCustomModel: '移除自訂模型',
+    resetToDefaults: '恢復預設',
+    resetConfirm: '將模型可見性恢復為預設？',
+    resetDescription: '你對模型顯示與隱藏的選擇將被清除，每個提供方都會恢復預設清單。你新增的自訂模型會保留並顯示。',
+    resetAction: '恢復'
   },
   shell: {
     windowControls: '視窗控制項',
@@ -6767,6 +6761,10 @@ export const zhHantOverrides = {
       followDefault: '使用設定中的預設模型',
       refreshModels: '重新整理模型',
       fast: '快速',
+      free: '免費',
+      cacheRead: '快取讀取',
+      priceTitle: (input: string, output: string, cache: string) =>
+        `輸入 ${input}/Mtok · 輸出 ${output}/Mtok` + (cache ? ` · 快取讀取 ${cache}/Mtok` : ''),
       moaPresets: 'MOA 預設'
     },
     modelOptions: {
@@ -6875,6 +6873,7 @@ export const zhHantOverrides = {
       openStarmap: '開啟記憶圖譜',
       turnRunning: '執行中',
       contextUsage: '上下文使用量',
+      compressions: count => `壓縮次數：${count}`,
       systemResources: {
         title: '系統資源',
         loading: '資源…',
@@ -7085,6 +7084,7 @@ export const zhHantOverrides = {
     hideTabStrip: '隱藏分頁',
     showStripTab: title => `顯示 ${title}`,
     hideStripTab: title => `隱藏 ${title}`,
+    zoneMenuLabel: title => `${title} 的區域選項`,
     lastTabKeptTitle: '保留最後一個分頁',
     lastTabKeptBody: '此區域至少需要一個可見分頁。請先顯示另一個分頁，或收合整個側邊欄。',
     toggleStripTab: title => `切換 ${title} 分頁`,
@@ -7528,14 +7528,10 @@ export const zhHantOverrides = {
       placeholder: '輸入您的答案…',
       skip: '略過',
       skipped: '已略過',
-      continueLabel: '繼續',
+      noAnswer: '未回答',
       confirmAndContinueLabel: '確認並繼續',
-      answeredBadge: '已回答',
       recommendedSuffix: '（推薦）',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
-      lateAnswer: (question, choice) => `關於「${question}」 — 我的回答: ${choice}`,
-      lateAnswerTip: '將此回答起草為後續訊息',
-      lateAnswerHint: '此問題已不再等待回答。選擇一個選項會將其起草為後續訊息。',
       notDelivered: '此問題未送達應用程式，無法在此回答。請按停止結束本輪，然後在聊天中回覆。'
     },
     mcpSetup: {
@@ -8027,6 +8023,11 @@ export const zhHantOverrides = {
   ui: {
     search: {
       clear: '清除搜尋'
+    },
+    logs: {
+      bottom: '記錄底端',
+      search: '搜尋記錄…',
+      top: '記錄頂端'
     },
     pagination: {
       label: '分頁',

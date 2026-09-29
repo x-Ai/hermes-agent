@@ -47,15 +47,13 @@ method("complete.path", params=CompletePathParams, result=CompletionItemsResult,
        doc="Path / @-reference completions for the composer (files, folders, profiles, plugin providers).")
 
 
-class CompleteSlashParams(ProfileParams):
-    """``session_id`` binds skill completions to that session's profile and workspace (project skills).
-
-    ``profile`` supports discovery before a session exists, while preserving the same
-    profile-scoped command availability rules as the catalog and dispatcher.
-    """
+class CompleteSlashParams(Params):
+    """``session_id`` binds skill completions to that session's profile and workspace (project skills);
+    ``profile`` scopes a session-less request (a new-chat draft)."""
 
     text: str | None = None
     session_id: str | None = None
+    profile: str | None = None
 
 
 class CompleteSlashResult(Result):

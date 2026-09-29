@@ -7,7 +7,7 @@ import { esOverrides } from './es'
 import { frOverrides } from './fr'
 import { jaOverrides } from './ja'
 import { ruOverrides } from './ru'
-import type { Locale } from './types'
+import type { BundledLocale } from './types'
 import { zhOverrides } from './zh'
 import { zhHantOverrides } from './zh-hant'
 
@@ -15,8 +15,9 @@ import { zhHantOverrides } from './zh-hant'
 // the overlay silently falls back to English at runtime, so the MERGED catalog
 // can never show coverage. Coverage is read from the RAW overlays; shape
 // checks (kinds, arities, interpolations, list lengths) run on the merged
-// catalogs the UI actually reads.
-type Overlay = Exclude<Locale, 'en'>
+// catalogs the UI actually reads. Registered runtime packs (`Locale` is open)
+// are covered by registry.test.ts; this file is about the bundled set.
+type Overlay = Exclude<BundledLocale, 'en'>
 
 const OVERRIDES: Record<Overlay, unknown> = {
   zh: zhOverrides,
@@ -55,11 +56,6 @@ const IDENTIFIER_ARGS: Record<string, number[]> = {
   'settings.toolsets.webCapabilitySelectedMessage': [1],
   'starmap.editNode': [0]
 }
-
-// Lists whose length is a property of the language, not of the copy: the intro
-// reveal types `replyWords` out one entry at a time and reads the array's own
-// length, and CJK does not split into English's fourteen words.
-const LANGUAGE_SIZED_LISTS = new Set(['introReveal.replyWords'])
 
 const kindOf = (value: unknown) => (Array.isArray(value) ? 'array' : typeof value)
 
@@ -165,7 +161,7 @@ describe.each(ALL_OVERLAYS)('%s catalog shape', locale => {
 
   it('keeps list-shaped copy the same length as English', () => {
     for (const [path, value] of english) {
-      if (Array.isArray(value) && !LANGUAGE_SIZED_LISTS.has(path)) {
+      if (Array.isArray(value)) {
         expect((catalog.get(path) as unknown[]).length, path).toBe(value.length)
       }
     }

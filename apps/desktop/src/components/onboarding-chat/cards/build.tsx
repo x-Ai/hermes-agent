@@ -1,9 +1,3 @@
-/**
- * The three build cards: choosing what to make, handing it to a session of its own, and reporting progress. Unlike the
- * setup cards these read the directive attrs, which the model writes, so each card validates the payload before it
- * renders.
- */
-
 import { useAuiState } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
 import { useEffect, useMemo } from 'react'
@@ -48,10 +42,6 @@ export function FirstBuildCard({ attrs, locked }: CardProps) {
   const view = useSessionView()
   const storedId = useStore(view.$storedId)
   const target = view.kind === 'tile' ? `tile:${storedId}` : 'main'
-  // The pick lives with the other answers, not in component state: the
-  // visible submit rebuilds the transcript and a local flag came back null,
-  // leaving every chip clickable after one had already been sent. A typed
-  // reply in the composer closes the card the same way a chip does.
   const messageId = useAuiState(state => state.message.id)
 
   const answeredInComposer = answeredAfter(useStore(view.$messages), messageId)
@@ -63,9 +53,6 @@ export function FirstBuildCard({ attrs, locked }: CardProps) {
 
   const picked = committed ?? (answeredInComposer ? '' : null)
 
-  // The 60-character limit keeps an option on one chip. The dedupe is case-insensitive because models repeat
-  // themselves. Fewer than 2 usable options falls back to FALLBACK_OPTION, because the model's prose has already
-  // told the user to pick one below.
   const seen = new Set<string>()
 
   const parsed = (attrs.options ?? '')
@@ -107,15 +94,6 @@ export function FirstBuildCard({ attrs, locked }: CardProps) {
   )
 }
 
-/**
- * Moves the first build out of this chat. Setup emits
- * `::onboarding{step="handoff" task="…" brief="…"}` once the task is decided. This card sets the request atom, and
- * the wiring effect then creates a session on the user's default profile, seeds it, and moves the user there.
- *
- * The `first` step already settled what to build, so this card asks nothing and only reports the state of the handoff.
- * The request atom and the accepted receipt stop a re-parse, a re-mount, or a relaunch from starting a second handoff,
- * and a locked (replayed) transcript never starts one.
- */
 export function HandoffCard({ attrs, locked }: CardProps) {
   const { t } = useI18n()
   const view = useSessionView()
@@ -125,7 +103,6 @@ export function HandoffCard({ attrs, locked }: CardProps) {
   const brief = (attrs.brief ?? '').trim().slice(0, 240)
   const plan = parseHandoffPlan(attrs.plan)
   const state = useStore($setupHandoff)
-  // `locked` follows this text part; a later part (a tool call, reasoning) settles it while the reply still runs.
   const replyRunning = useAuiState(s => s.message.status?.type === 'running')
 
   const receipt = useMemo(() => {
@@ -158,7 +135,6 @@ export function HandoffCard({ attrs, locked }: CardProps) {
           ? owner.profile
           : owner || $setupSession.get()?.profile || $activeGatewayProfile.get()
 
-        // An unreachable history keeps the rendered attrs: today's behaviour, never a stalled handoff.
         const persisted = await readPersistedHandoff(connectionId, profile, runtimeId).catch(() => null)
         const persistedTask = (persisted?.task ?? '').trim().slice(0, 60)
         const persistedBrief = (persisted?.brief ?? '').trim().slice(0, 240)
@@ -243,7 +219,6 @@ export function HandoffCard({ attrs, locked }: CardProps) {
   )
 }
 
-/** The earlier steps are derived from this transcript on every render, so a re-mount cannot lose or repeat them. */
 export function ProgressCard({ attrs, locked }: CardProps) {
   const { t } = useI18n()
   const view = useSessionView()

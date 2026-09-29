@@ -1,4 +1,10 @@
-import { type Locale, type ProviderExhaustedReason, translateForLocale, translateNow, TRANSLATIONS } from '@/i18n'
+import {
+  type Locale,
+  type ProviderExhaustedReason,
+  resolveTranslations,
+  translateForLocale,
+  translateNow
+} from '@/i18n'
 
 import { localizeProviderWaitText } from './provider-wait-localization'
 
@@ -172,7 +178,7 @@ export function localizeAgentStatusText(message: string, locale: Locale): string
     return localizeApiErrorMessage(message, locale)
   }
 
-  return localizeProviderWaitText(message, TRANSLATIONS[locale].assistant.thread)
+  return localizeProviderWaitText(message, resolveTranslations(locale).assistant.thread)
 }
 
 /** Localize producer-owned delegation framing while leaving partial model

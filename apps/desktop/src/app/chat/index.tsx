@@ -917,6 +917,7 @@ const ChatViewContent = memo(function ChatViewContent({
                 onSteerHidden={onSteerHidden}
                 onSubmit={onSubmit}
                 onTranscribeAudio={onTranscribeAudio}
+                profile={modelOptionsProfile || activeGatewayProfile}
                 queueSessionKey={queueSessionKey}
                 sessionId={activeSessionId}
                 state={chatBarState}

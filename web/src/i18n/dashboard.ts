@@ -17,10 +17,14 @@ export const dashboardEn = {
     addKey: 'Add key',
     sidePanelDisconnected:
       'The chat side panel (model and tool activity) could not connect. Chat still works. Click Reconnect side panel to try again.',
-    noApiKey: 'No API key set for {provider}, so messages will fail. Add a key under Keys, or pick a different provider.',
+    sidecarGaveUp:
+      'Chat side panel disconnected — gave up after {attempts} attempts. Click Reconnect side panel to try again.',
+    noApiKey:
+      'No API key set for {provider}, so messages will fail. Add a key under Keys, or pick a different provider.',
     eventsReconnecting: 'Live tool activity paused — reconnecting in {seconds}s…',
     eventsExpired: 'Live tool activity stopped because your login expired. Reload the page to resume.',
-    eventsGaveUp: 'Live tool activity stopped after repeated reconnect attempts. Reconnect the side panel or reload the page.',
+    eventsGaveUp:
+      'Live tool activity stopped after repeated reconnect attempts. Reconnect the side panel or reload the page.',
     reconnectGaveUp:
       'Lost connection to the Hermes dashboard server. If you stopped `hermes dashboard`, start it again; otherwise click Reconnect now.',
     reconnectInputBlocked: 'Chat is reconnecting. Input will resume when connected.',
@@ -124,7 +128,8 @@ export const dashboardEn = {
       'The token, cost, and per-day analytics on this page are a local debug estimate. They count only successful main-agent responses with a usable usage block, and exclude auxiliary calls, provider retries, fallback attempts, and cache writes.',
     hiddenVariance:
       'For models with heavy auxiliary traffic, the local total may be 10–100 times lower than the amount billed by the provider. Hiding these figures prevents them from appearing authoritative.',
-    hiddenActionBefore: 'Check the provider dashboard for actual usage and billing. To show the local debug estimate anyway, set',
+    hiddenActionBefore:
+      'Check the provider dashboard for actual usage and billing. To show the local debug estimate anyway, set',
     hiddenActionAfter: 'in Config.'
   },
   sessions: {
@@ -1006,7 +1011,8 @@ export const dashboardEn = {
     gatewayStarted: 'Gateway {action} started',
     gatewayMigrating: 'Migrating to a single multiplexed gateway',
     gatewayMigrationFailed: 'Gateway migration failed: {error}',
-    gatewayMigrationDescription: 'Your profiles each run their own gateway. One multiplexed gateway serves every profile from a single process.',
+    gatewayMigrationDescription:
+      'Your profiles each run their own gateway. One multiplexed gateway serves every profile from a single process.',
     gatewayMigrationBlocked: 'Fix the blockers below first',
     migrateGateway: 'Migrate to a single multiplexed gateway',
     restartSharedTitle: 'Restart the shared gateway?',
@@ -1064,11 +1070,13 @@ export const dashboardZh: DashboardCopy = {
     reconnectPanel: '重新连接侧栏',
     addKey: '添加密钥',
     sidePanelDisconnected: '对话侧栏（模型与工具活动）无法连接，但对话仍可正常使用。请点击“重新连接侧栏”重试',
+    sidecarGaveUp: '对话侧栏已断开，重试 {attempts} 次后已放弃。请点击“重新连接侧栏”重试',
     noApiKey: '{provider} 尚未设置 API 密钥，因此消息发送会失败。请在“密钥”中添加，或选择其他提供商',
     eventsReconnecting: '实时工具活动已暂停，将在 {seconds} 秒后重新连接…',
     eventsExpired: '登录已过期，实时工具活动已停止。请重新加载页面以恢复',
     eventsGaveUp: '多次重连失败，实时工具活动已停止。请重新连接侧栏或重新加载页面',
-    reconnectGaveUp: '与 Hermes 管理面板服务器的连接已断开。如果已停止 `hermes dashboard`，请重新启动；否则请点击“立即重连”',
+    reconnectGaveUp:
+      '与 Hermes 管理面板服务器的连接已断开。如果已停止 `hermes dashboard`，请重新启动；否则请点击“立即重连”',
     reconnectInputBlocked: '对话正在重新连接，连接恢复后即可继续输入',
     reloadPage: '重新加载页面',
     checkServerStatus: '检查服务器状态',
@@ -1425,8 +1433,7 @@ export const dashboardZh: DashboardCopy = {
     editTitle: '编辑技能：{name}',
     createTitle: '新建技能',
     editDescription: '编辑该技能的 SKILL.md，保存时会校验前置元数据',
-    createDescription:
-      '使用 YAML 前置元数据和 Markdown 指令创建自定义技能。创建后代理即可使用，也可将其附加到定时任务',
+    createDescription: '使用 YAML 前置元数据和 Markdown 指令创建自定义技能。创建后代理即可使用，也可将其附加到定时任务',
     saveChanges: '保存更改',
     createSkill: '创建技能',
     skillSaved: '已保存 {name}',
@@ -2024,7 +2031,8 @@ export const dashboardZh: DashboardCopy = {
     gatewayStarted: '网关{action}已启动',
     gatewayMigrating: '正在迁移到单一多路复用网关',
     gatewayMigrationFailed: '网关迁移失败：{error}',
-    gatewayMigrationDescription: '当前每个配置档案分别运行自己的网关。多路复用网关可通过一个进程为所有配置档案提供服务。',
+    gatewayMigrationDescription:
+      '当前每个配置档案分别运行自己的网关。多路复用网关可通过一个进程为所有配置档案提供服务。',
     gatewayMigrationBlocked: '请先解决下方的阻塞问题',
     migrateGateway: '迁移到单一多路复用网关',
     restartSharedTitle: '重启共享网关？',

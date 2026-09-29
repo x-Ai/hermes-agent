@@ -1,10 +1,9 @@
-export { TRANSLATIONS } from './catalog'
+export { BUNDLED_LOCALES, isBundledLocale, TRANSLATIONS } from './catalog'
 export {
   getConfigDisplayLanguage,
   type I18nConfigClient,
   type I18nContextValue,
   I18nProvider,
-  LOCALE_META,
   useI18n,
   withConfigDisplayLanguage
 } from './context'
@@ -12,10 +11,14 @@ export {
   DEFAULT_LOCALE,
   detectSystemLocale,
   isLocale,
+  isRtlLocale,
   isSupportedLocaleValue,
+  type LanguageOption,
+  languageOptions,
   LOCALE_OPTIONS,
   LOCALE_STORAGE_KEY,
   localeConfigValue,
+  localeMeta,
   normalizeLocale,
   readStoredLocale,
   resolvePreferredLocale,
@@ -33,5 +36,27 @@ export {
   translatePlugin,
   usePluginI18n
 } from './plugin-i18n'
-export { getRuntimeI18nLocale, setRuntimeI18nLocale, translateForLocale, translateNow } from './runtime'
-export type { Locale, ProviderExhaustedReason, ProviderWaitPhase, ToolTitleKey, Translations } from './types'
+export {
+  $appLocaleVersion,
+  type AppLocaleRegistration,
+  type AppLocaleSource,
+  isRegisteredLocale,
+  registerAppLocale,
+  resolveTranslations,
+  unregisterAppLocaleSource
+} from './registry'
+export {
+  getRuntimeI18nLocale,
+  runtimeTranslations,
+  setRuntimeI18nLocale,
+  translateForLocale,
+  translateNow
+} from './runtime'
+export type {
+  BundledLocale,
+  Locale,
+  ProviderExhaustedReason,
+  ProviderWaitPhase,
+  ToolTitleKey,
+  Translations
+} from './types'

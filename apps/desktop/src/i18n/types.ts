@@ -10,7 +10,14 @@ import type { WisdomMuteCopy, WisdomSyncCopy } from '@hermes/shared'
 import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
-export type Locale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' | 'de' | 'es'
+/** The locales compiled into the app (`TRANSLATIONS`). */
+export type BundledLocale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' | 'de' | 'es'
+
+/** Any language id the app can render: a bundled locale, or one a plugin /
+ *  the backend registered at runtime (`registerAppLocale`). Lowercase
+ *  BCP-47-ish (`pl`, `pt-br`). Resolve strings through the registry, never
+ *  by indexing `TRANSLATIONS` directly. */
+export type Locale = string
 
 /** Silence phases named by agent/chat_completion_wait_notice.py (`_PHASE_TEXT`). */
 export type ProviderWaitPhase =
@@ -263,6 +270,36 @@ interface IntroRevealSideAgentCopy {
 }
 
 export interface Translations {
+  /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */
+  sharedMetrics: {
+    consentTitle: string
+    consentBody: string
+    whatIsCollected: string
+    collectedIntro: string
+    collectedActivity: string
+    collectedModels: string
+    collectedNames: string
+    collectedMilestones: string
+    collectedReliability: string
+    collectedUsage: string
+    collectedMachine: string
+    installId: string
+    consentWindow: string
+    readDocs: string
+    share: string
+    local: string
+    off: string
+    changeLater: string
+    saveFailed: string
+    collectLabel: string
+    collectDesc: string
+    sendLabel: string
+    sendDesc: string
+    unavailable: string
+    stripBody: string
+    stripChoices: { share: string; local: string; off: string }
+    stripDetails: string
+  }
   intro: {
     stock: Record<string, string[]>
     custom: (label: string) => string[]
@@ -868,6 +905,7 @@ export interface Translations {
       restartFailed: string
       auxiliaryTitle: string
       resetAllToMain: string
+      staleAuxDismiss: string
       auxiliaryDesc: string
       setToMain: string
       change: string
@@ -1436,6 +1474,8 @@ export interface Translations {
       textDirection: { auto: string; rtl: string; ltr: string }
       introSplashTitle: string
       introSplashDesc: string
+      modelPricingTitle: string
+      modelPricingDesc: string
       reactionsTitle: string
       reactionsDesc: string
       tipsTitle: string
@@ -2697,7 +2737,6 @@ export interface Translations {
     mcpServers: string
     archivedChats: string
     sections: Record<'maintenance' | 'sessions' | 'system' | 'usage', string>
-    sectionDescriptions: Record<'maintenance' | 'sessions' | 'system' | 'usage', string>
     nav: Record<'newChat' | 'settings' | 'capabilities' | 'messaging' | 'artifacts', { title: string; detail: string }>
     sectionEntries: Record<'sessions' | 'system' | 'usage', { title: string; detail: string }>
     providerNavigate: string
@@ -2715,6 +2754,7 @@ export interface Translations {
     hermesActiveSessions: (version: string, count: number) => string
     restartGateway: string
     openBrowser: string
+    toggleBrowser: string
     gatewayRestartFailed: string
     sharedGatewayRestartTitle: string
     sharedGatewayRestartDescription: (bots: string) => string
@@ -2796,6 +2836,7 @@ export interface Translations {
     }
   }
   messaging: {
+    statusFilter: Record<'all' | 'bad' | 'good' | 'muted' | 'warn', string>
     telegramQr: {
       title: string
       subtitle: string
@@ -3196,6 +3237,8 @@ export interface Translations {
     editingInComposer: string
     editingQueuedInComposer: string
     queueEdit: string
+    queueExpand: string
+    queueCollapse: string
     queueSendNext: string
     queueSend: string
     queueSteer: string
@@ -3292,6 +3335,7 @@ export interface Translations {
     updateNow: string
     maybeLater: string
     moreChanges: (count: number) => string
+    copyFullLog: string
     changelogGroups: Record<'new' | 'fixed' | 'faster' | 'improved' | 'other', string>
     changelogFallbackTitle: string
     changelogFallback: string
@@ -3405,27 +3449,6 @@ export interface Translations {
     versionDetailsRuntimeExternal: string
     versionDetailsInstallId: string
     versionDetailsUncommittedChanges: string
-  }
-  introReveal: {
-    skip: string
-    surfaces: string
-    prompt: string
-    replyWords: string[]
-    composerPlaceholder: string
-    viewport: string
-    tagline: string
-    viewportModes: Record<string, string>
-    tools: {
-      blender: IntroRevealToolCopy
-      metal: IntroRevealToolCopy
-      glass: IntroRevealToolCopy
-    }
-    sideAgents: {
-      research: IntroRevealSideAgentCopy
-      groceries: IntroRevealSideAgentCopy
-      inbox: IntroRevealSideAgentCopy
-      morning: IntroRevealSideAgentCopy
-    }
   }
   guidedOnboarding: {
     done: string
@@ -3790,13 +3813,9 @@ export interface Translations {
       placeholder: string
       skip: string
       skipped: string
-      continueLabel: string
+      noAnswer: string
       confirmAndContinueLabel: string
-      answeredBadge: string
       questionProgress: (answered: number, total: number) => string
-      lateAnswer: (question: string, choice: string) => string
-      lateAnswerTip: string
-      lateAnswerHint: string
       notDelivered: string
       recommendedSuffix: string
     }
@@ -5190,6 +5209,10 @@ export interface Translations {
     addProvider: string
     addCustomModel: string
     removeCustomModel: string
+    resetToDefaults: string
+    resetConfirm: string
+    resetDescription: string
+    resetAction: string
   }
   shell: {
     windowControls: string
@@ -5202,6 +5225,9 @@ export interface Translations {
       followDefault: string
       refreshModels: string
       fast: string
+      free: string
+      cacheRead: string
+      priceTitle: (input: string, output: string, cache: string) => string
       moaPresets: string
     }
     modelOptions: {
@@ -5310,6 +5336,7 @@ export interface Translations {
       openStarmap: string
       turnRunning: string
       contextUsage: string
+      compressions: (count: number) => string
       systemResources: {
         title: string
         loading: string
@@ -5513,6 +5540,7 @@ export interface Translations {
     hideTabStrip: string
     showStripTab: (title: string) => string
     hideStripTab: (title: string) => string
+    zoneMenuLabel: (title: string) => string
     lastTabKeptTitle: string
     lastTabKeptBody: string
     toggleStripTab: (title: string) => string
@@ -5638,6 +5666,11 @@ export interface Translations {
   ui: {
     search: {
       clear: string
+    }
+    logs: {
+      bottom: string
+      search: string
+      top: string
     }
     pagination: {
       label: string

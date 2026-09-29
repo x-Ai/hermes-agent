@@ -3,6 +3,7 @@ import { isPaneVisible, togglePaneVisible } from '@/components/pane-shell/tree/s
 import { translateForLocale } from '@/i18n'
 import { Terminal } from '@/lib/icons'
 import { isFocusWithin } from '@/lib/keybinds/combo'
+import { trackArea } from '@/store/desktop-metrics'
 
 const TERMINAL_FOCUS_SCOPE = '[data-terminal]'
 
@@ -54,6 +55,7 @@ export function toggleTerminalPane(): void {
   const revealed = !isPaneVisible('terminal')
 
   togglePaneVisible('terminal')
+  trackArea('terminal_pane', revealed)
 
   if (revealed) {
     focusRevealedTerminal()

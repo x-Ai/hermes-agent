@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { type Locale, type ProviderExhaustedReason, setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
+import {
+  type Locale,
+  type ProviderExhaustedReason,
+  resolveTranslations,
+  setRuntimeI18nLocale,
+  TRANSLATIONS
+} from '@/i18n'
 
 import {
   isApiRetryFailure,
@@ -85,7 +91,7 @@ describe('retries-exhausted chat copy', () => {
       expect(localizeApiErrorMessage(raw, 'en')).toBe(raw)
 
       for (const locale of LOCALES) {
-        const errors = TRANSLATIONS[locale].notifications.errors
+        const errors = resolveTranslations(locale).notifications.errors
         const expected = `${errors.providerRetriesExhausted(COPY_REASON[reason], 'OpenRouter', '3', window)}\n\n${errors.providerSaid(SUMMARY)}`
         const localized = localizeApiErrorMessage(raw, locale)
 
@@ -142,7 +148,7 @@ describe('invalid-response chat copy and error fields', () => {
   it.each(LOCALES)('localizes the invalid_response site copy in %s while keeping the detail', locale => {
     const detail = 'slow response (217s) — likely upstream timeout'
     const raw = format(INVALID_RESPONSE, { label: 'Nous', attempts: 3, detail })
-    const t = TRANSLATIONS[locale]
+    const t = resolveTranslations(locale)
     const localizedDetail = t.assistant.thread.operationInterruptedRetryReasons.slowResponseLikelyUpstreamTimeout('217')
 
     expect(isApiRetryFailure(raw)).toBe(true)
@@ -154,7 +160,7 @@ describe('invalid-response chat copy and error fields', () => {
   it.each(LOCALES)('localizes the Invalid API response error field in %s', locale => {
     // agent/turn_response_check.py stamps this in the result's `error`.
     const raw = 'Invalid API response after 3 retries: slow response (175s) — likely upstream timeout'
-    const t = TRANSLATIONS[locale]
+    const t = resolveTranslations(locale)
     const reason = t.assistant.thread.operationInterruptedRetryReasons.slowResponseLikelyUpstreamTimeout('175')
 
     expect(localizeApiErrorMessage(raw, locale)).toBe(
@@ -219,7 +225,7 @@ it('localizes standalone failure lines in async results while preserving prose, 
 })
 
 it.each(LOCALES)('localizes delegation failure framing in %s', locale => {
-  const translations = TRANSLATIONS[locale]
+  const translations = resolveTranslations(locale)
   const thread = translations.assistant.thread
   const rawDetail = 'Invalid API response after 3 retries: slow response (175s) — likely upstream timeout'
   const localizedDetail = localizeApiErrorMessage(rawDetail, locale)

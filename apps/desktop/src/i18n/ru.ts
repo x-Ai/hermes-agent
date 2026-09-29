@@ -76,6 +76,102 @@ export const ruOverrides = {
     authorizedToolsUnavailable: 'Авторизован. Инструменты недоступны.',
     required: 'Требуется'
   },
+  sharedMetrics: {
+    consentTitle: 'Помочь улучшить Hermes?',
+    consentBody:
+      'Общие метрики — это только ограниченные счётчики. Никаких запросов, файлов, путей или текстов ошибок. Сбор идёт локально. Отправка в Nous — отдельное согласие.',
+    whatIsCollected: 'Что собирается',
+    collectedIntro: 'Только ограниченные счётчики:',
+    collectedActivity: 'Активность, длительность сеансов, результаты и классы ошибок',
+    collectedModels: 'Маршруты моделей и суммы токенов',
+    collectedNames: 'Названия встроенных инструментов, команд и элементов каталога',
+    collectedMilestones: 'Сгруппированные счётчики настройки',
+    collectedReliability:
+      'Результаты и длительность обновлений, сбои, скорость запуска и ответа, состояние мессенджер-платформ',
+    collectedUsage:
+      'Как используется Hermes: точность и эффективность агента (успешные правки, зацикливания, восстановление после ошибок, токены и вызовы инструментов на задачу, сбросы кэша), активное время по интерфейсам и режимам Desktop, какие разделы, действия и настройки приложения используются, быстро закрываются или отключаются, и итоги настройки провайдеров',
+    collectedMachine:
+      'Общие сведения о машине: диапазон ОЗУ, тип GPU, возраст и канал версии Hermes, число пропущенных обновлений, используется ли локальный сервер моделей',
+    installId:
+      'При отправке ежедневный пакет загружается в сервис телеметрии Nous. Пакеты содержат идентификатор установки этого профиля — постоянный случайный UUID без личных данных; он сбрасывается удалением каталога общих метрик.',
+    consentWindow:
+      'Отправляются только пакеты, весь период сбора которых попадает в записанное окно согласия: данные до согласия и за время, когда отправка была выключена, остаются на этом компьютере. Отправку можно снова выключить в любой момент.',
+    readDocs: 'Подробнее',
+    share: 'Собирать и отправлять в Nous',
+    local: 'Собирать только локально',
+    off: 'Нет, спасибо',
+    changeLater: 'Это можно изменить в любой момент в разделе Настройки → Безопасность.',
+    saveFailed: 'Не удалось сохранить выбор',
+    collectLabel: 'Собирать статистику использования',
+    collectDesc: 'Ограниченные счётчики хранятся на этом устройстве. Без запросов, файлов, путей и текстов ошибок.',
+    sendLabel: 'Отправлять статистику в Nous',
+    sendDesc:
+      'Загружать ежедневный пакет в сервис телеметрии Nous. Отправляются только данные из окна согласия. Требует включённого сбора.',
+    unavailable: 'Обновите бэкенд Hermes, чтобы изменить этот параметр.',
+    stripBody: 'Только ограниченные счётчики, никаких промптов и файлов.',
+    stripChoices: { share: 'Отправлять в Nous', local: 'Только локально', off: 'Нет, спасибо' },
+    stripDetails: 'Подробнее'
+  },
+  catalog: {
+    add: 'Добавить',
+    added: 'Добавлено',
+    discover: 'Открывайте новое',
+    featured: 'Рекомендуемые',
+    explorePlugins: 'Обзор плагинов',
+    exploreSkills: 'Обзор навыков',
+    mostStarred: 'Больше всего звёзд',
+    newest: 'Новинки',
+    recentlyUpdated: 'Недавно обновлённые',
+    alphabetical: 'Название',
+    sortBy: 'Сортировать по',
+    seeAll: 'Показать все',
+    related: 'Похожие',
+    tags: 'Теги',
+    screenshots: 'Снимки экрана',
+    listView: 'Список',
+    cardView: 'Карточки',
+    installTitle: (name: string) => `Установить «${name}»?`,
+    installDescription: 'Навык будет доступен в новых сессиях. Устанавливайте только из источников, которым доверяете.',
+    installTo: 'Установить в',
+    thisComputer: 'Этот компьютер',
+    installing: 'Установка…',
+    installComplete: (name: string) => `«${name}» установлен`,
+    destinationChanged: 'Место установки изменилось. Закройте диалог и снова откройте ссылку установки.',
+    installed: 'Установленные',
+    searchSkills: 'Поиск навыков',
+    searchPlugins: 'Поиск плагинов',
+    allSources: 'Все источники',
+    allCategories: 'Все категории',
+    about: 'Описание',
+    author: 'Автор',
+    source: 'Источник',
+    category: 'Категория',
+    version: 'Версия',
+    platforms: 'Платформы',
+    requires: 'Требования',
+    tools: 'Инструменты',
+    hooks: 'Хуки',
+    middleware: 'Промежуточное ПО',
+    commands: 'Команды',
+    license: 'Лицензия',
+    addedDate: 'Добавлено',
+    updatedDate: 'Обновлено',
+    repository: 'Репозиторий',
+    documentation: 'Документация',
+    noResults: 'Совпадений нет',
+    tryAnother: 'Попробуйте другой запрос или сбросьте фильтры.',
+    clearFilters: 'Сбросить фильтры',
+    filters: 'Фильтры',
+    loadFailed: 'Не удалось загрузить каталог',
+    retry: 'Попробовать снова',
+    more: 'Показать ещё',
+    pinned: 'Проверенный коммит',
+    snapshotHint: 'Из каталога Hermes. При просмотре нет обращений к исходным репозиториям.',
+    installHint: 'Проверьте исходный код перед установкой. Изменения применяются к новым сессиям.',
+    results: (count: number) =>
+      `${count.toLocaleString('ru')} ${RU_PLURAL(count, 'результат', 'результата', 'результатов')}`,
+    back: 'Назад к результатам'
+  },
   sessionImport: {
     title: 'Продолжить из другого приложения',
     subtitle: 'Перенесите разговор в Hermes и продолжите с того места, где остановились.',
@@ -768,7 +864,7 @@ export const ruOverrides = {
       'view.toggleStatusbar': 'Показать / скрыть строку состояния',
       'view.toggleTabStrip': 'Показать / скрыть вкладки',
       'view.showFiles': 'Показать браузер файлов',
-      'view.showBrowser': 'Открыть браузер',
+      'view.showBrowser': 'Переключить браузер',
       'view.toggleHud': 'Включить / выключить режим HUD',
       'hud.snapToPointer': 'Переместить HUD под курсор (глобально, пока HUD открыт)',
       'view.showTerminal': 'Показать / скрыть терминал',
@@ -1236,6 +1332,8 @@ export const ruOverrides = {
       textDirection: { auto: 'Авто', rtl: 'Справа налево', ltr: 'Слева направо' },
       introSplashTitle: 'Экран приветствия',
       introSplashDesc: 'Логотип и подсказка, показываемые на пустом чате.',
+      modelPricingTitle: 'Цены моделей',
+      modelPricingDesc: 'Показывать в выборе модели цены за миллион токенов: ввод, вывод и чтение из кэша.',
       reactionsTitle: 'Реакции на сообщения',
       reactionsDesc: 'Эмодзи-тапбеки в стиле iMessage — реагируйте на сообщения, и Hermes сможет реагировать на ваши.',
       tipsTitle: 'Советы в приложении',
@@ -2067,6 +2165,7 @@ export const ruOverrides = {
       restartFailed: 'Не удалось перезапустить серверную часть',
       auxiliaryTitle: 'Вспомогательные модели',
       resetAllToMain: 'Сбросить всё на основную',
+      staleAuxDismiss: 'Больше не показывать',
       auxiliaryDesc:
         'Вспомогательные задачи по умолчанию выполняются основной моделью. Назначьте отдельную модель любой задаче, чтобы переопределить.',
       setToMain: 'На основную',
@@ -3151,18 +3250,7 @@ export const ruOverrides = {
     settingsFields: 'Поля настроек',
     mcpServers: 'MCP-серверы',
     archivedChats: 'Архивные чаты',
-    sections: {
-      maintenance: 'Обслуживание',
-      sessions: 'Сеансы',
-      system: 'Система',
-      usage: 'Использование'
-    },
-    sectionDescriptions: {
-      maintenance: 'Диагностика, резервные копии, курир и данные памяти',
-      sessions: 'Поиск и управление сеансами',
-      system: 'Статус, журналы и системные действия',
-      usage: 'Токены, стоимость и активность навыков со временем'
-    },
+    sections: { maintenance: 'Обслуживание', sessions: 'Сеансы', system: 'Система', usage: 'Использование' },
     nav: {
       newChat: {
         title: 'Новый сеанс',
@@ -3213,7 +3301,8 @@ export const ruOverrides = {
     gatewayStopped: 'Шлюз сообщений остановлен',
     hermesActiveSessions: (version, count) => `Hermes ${version} · Активные сеансы: ${count}`,
     restartGateway: 'Перезапустить шлюз',
-    openBrowser: 'Открыть браузер',
+    openBrowser: 'Переключить браузер',
+    toggleBrowser: 'Переключить браузер',
     gatewayRestartFailed: 'Не удалось перезапустить шлюз.',
     updateHermes: 'Обновить Hermes',
     reloadWindow: 'Перезагрузить окно',
@@ -3244,7 +3333,7 @@ export const ruOverrides = {
     actions: count => `${count} ${RU_NOUN(count, 'действие', 'действия', 'действий')}`,
     logFile: 'Файл журнала',
     logLevel: 'Уровень',
-    logSearchPlaceholder: 'Фильтр строк журнала...',
+    logSearchPlaceholder: 'Поиск по строкам журнала...',
     maintenance: {
       runOps: 'Диагностика',
       doctor: 'Запустить doctor',
@@ -3296,6 +3385,13 @@ export const ruOverrides = {
   },
   messaging: {
     search: 'Поиск в сообщениях...',
+    statusFilter: {
+      all: 'Все',
+      bad: 'Ошибки',
+      good: 'Подключено',
+      muted: 'Неактивно',
+      warn: 'Требует внимания'
+    },
     loading: 'Загрузка платформ сообщений...',
     loadFailed: 'Не удалось загрузить платформы сообщений',
     states: {
@@ -4504,6 +4600,8 @@ export const ruOverrides = {
     editingInComposer: 'Редактирование в композере',
     editingQueuedInComposer: 'Редактирование хода в очереди в композере',
     queueEdit: 'Изменить',
+    queueExpand: 'Раскрыть',
+    queueCollapse: 'Свернуть',
     queueSendNext: 'Дальше',
     queueSteer: 'Направить — изменить текущий ход сейчас',
     queueSend: 'Отправить',
@@ -4804,6 +4902,7 @@ export const ruOverrides = {
     },
     changelogFallbackTitle: 'В этом обновлении',
     changelogFallback: 'Улучшения и исправления',
+    copyFullLog: 'Скопировать полный список изменений',
     manualTitle: 'Обновление из терминала',
     manualUnavailableTitle: 'Обновление здесь недоступно',
     manualBody:
@@ -4880,61 +4979,6 @@ export const ruOverrides = {
   guidedGreeting: {
     line: 'Заходите. Я Hermes. Дайте мне пару минут — обустрою тут всё под вас, а потом займёмся тем, что вам правда нужно.\n\nДля начала: как к вам обращаться?',
     nameSuggestion: (name: string) => `(Могу звать вас просто ${name}, если так удобнее.)`
-  },
-  introReveal: {
-    skip: 'Пропустить',
-    surfaces: 'Компьютер · Сообщения · Телефон · Где угодно',
-    prompt: 'Создай главный куб в Blender и примени к нему несколько материалов',
-    replyWords: ['Готово. ', 'Материалы собраны ', 'и показаны на кубе. ', 'Экспортировать круговой рендер?'],
-    composerPlaceholder: 'Спрашивайте что угодно. Создавайте что угодно.',
-    viewport: 'окно просмотра',
-    tagline: 'Ваш агент — везде',
-    viewportModes: {
-      standard: 'обычный',
-      metal: 'металл',
-      texture: 'текстура',
-      glass: 'стекло',
-      wireframe: 'каркас'
-    },
-    tools: {
-      blender: {
-        label: 'blender-mcp',
-        running: 'подключаемся к Blender…',
-        done: 'сцена подключена'
-      },
-      metal: {
-        label: 'металл',
-        running: 'собираем металл…',
-        done: 'металл · шерох. 0,2'
-      },
-      glass: {
-        label: 'стекло',
-        running: 'собираем стекло…',
-        done: 'стекло · IOR 1,45'
-      }
-    },
-    sideAgents: {
-      research: {
-        title: 'агент-исследователь',
-        line1: 'Поиск квартиры: выбраны 3 новых варианта',
-        line2: '↳ составляем график просмотров…'
-      },
-      groceries: {
-        title: 'продукты',
-        line1: 'Недельный заказ собран по вашему списку',
-        line2: '↳ доставка назначена на воскресенье'
-      },
-      inbox: {
-        title: 'агент почты',
-        line1: 'Готовы 2 черновика ответа, ждём одобрения',
-        line2: '↳ календарь на пятницу обновлён'
-      },
-      morning: {
-        title: 'утренняя сводка',
-        line1: 'Завтра: 3 встречи, дождь в 8',
-        line2: '↳ будет готово до пробуждения'
-      }
-    }
   },
   guidedOnboarding: {
     done: '✓ Готово',
@@ -5315,7 +5359,12 @@ export const ruOverrides = {
     noAuthenticatedProviders: 'Нет провайдеров с аутентификацией.',
     addProvider: 'Добавить провайдера…',
     addCustomModel: 'Добавить свою модель',
-    removeCustomModel: 'Удалить свою модель'
+    removeCustomModel: 'Удалить свою модель',
+    resetToDefaults: 'Сбросить к значениям по умолчанию',
+    resetConfirm: 'Сбросить видимость моделей по умолчанию?',
+    resetDescription:
+      'Ваш выбор показанных и скрытых моделей будет очищен, и у каждого провайдера вернётся список по умолчанию. Добавленные вами модели сохранятся и будут показаны.',
+    resetAction: 'Сбросить'
   },
   shell: {
     windowControls: 'Управление окном',
@@ -5328,6 +5377,10 @@ export const ruOverrides = {
       followDefault: 'Использовать модель по умолчанию из настроек',
       refreshModels: 'Обновить модели',
       fast: 'Быстрая',
+      free: 'бесплатно',
+      cacheRead: 'чтение из кэша',
+      priceTitle: (input: string, output: string, cache: string) =>
+        `Вход ${input}/Mtok · Выход ${output}/Mtok` + (cache ? ` · Чтение из кэша ${cache}/Mtok` : ''),
       moaPresets: 'Предустановки MOA'
     },
     modelOptions: {
@@ -5445,6 +5498,7 @@ export const ruOverrides = {
         unifiedNote: 'Единая память — GPU и система совместно используют этот пул.',
         toggle: 'Системные ресурсы'
       },
+      compressions: count => `Сжатий: ${count}`,
       contextUsagePanel: {
         categories: {
           conversation: 'Диалог',
@@ -5650,6 +5704,7 @@ export const ruOverrides = {
     hideTabStrip: 'Скрыть вкладки',
     showStripTab: title => `Показать ${title}`,
     hideStripTab: title => `Скрыть ${title}`,
+    zoneMenuLabel: title => `Параметры зоны для ${title}`,
     lastTabKeptTitle: 'Последняя вкладка остаётся',
     lastTabKeptBody:
       'В этой зоне нужна хотя бы одна видимая вкладка. Сначала покажите другую вкладку или сверните всю боковую панель.',
@@ -6089,14 +6144,10 @@ export const ruOverrides = {
       placeholder: 'Введите ваш ответ…',
       skip: 'Пропустить',
       skipped: 'Пропущено',
-      continueLabel: 'Продолжить',
+      noAnswer: 'Нет ответа',
       confirmAndContinueLabel: 'Подтвердить и продолжить',
-      answeredBadge: 'Ответ дан',
       recommendedSuffix: '(Рекомендуется)',
       questionProgress: (answered, total) => `Ответ дан на ${answered} из ${total}`,
-      lateAnswer: (question, choice) => `Re: «${question}» — мой ответ: ${choice}`,
-      lateAnswerTip: 'Составить этот ответ как продолжение',
-      lateAnswerHint: 'Этот промпт больше не ждёт. Выберите вариант, чтобы составить его как сообщение-продолжение.',
       notDelivered:
         'Этот вопрос не дошёл до приложения, поэтому ответить здесь нельзя. Нажмите «Стоп», чтобы завершить ход, и ответьте в чате.'
     },
@@ -6600,6 +6651,11 @@ export const ruOverrides = {
   ui: {
     search: {
       clear: 'Очистить поиск'
+    },
+    logs: {
+      bottom: 'В конец журнала',
+      search: 'Поиск в журналах…',
+      top: 'В начало журнала'
     },
     pagination: {
       label: 'пагинация',

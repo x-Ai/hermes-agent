@@ -52,6 +52,107 @@ export const arOverrides = {
     authorizedToolsUnavailable: 'أذن. الأدوات غير متوفرة.',
     required: 'مطلوب'
   },
+  sharedMetrics: {
+    consentTitle: 'هل تساعد في تحسين Hermes؟',
+    consentBody:
+      'تحتوي المقاييس المشتركة على عدّادات محدودة فقط، ولا تتضمن أبدًا المطالبات أو الملفات أو المسارات أو نصوص الأخطاء. الجمع محلي، وإرسالها إلى Nous موافقة منفصلة.',
+    whatIsCollected: 'ما الذي يُجمع',
+    collectedIntro: 'عدّادات محدودة فقط:',
+    collectedActivity: 'النشاط وطول الجلسات والنتائج وفئات الأخطاء',
+    collectedModels: 'مسارات النماذج وإجمالي الرموز',
+    collectedNames: 'أسماء الأدوات والأوامر وعناصر الفهرس المدمجة',
+    collectedMilestones: 'أعداد الإعداد ضمن فئات',
+    collectedReliability: 'نتائج التحديث ومدته، والأعطال، وسرعة البدء والرد، وحالة منصات المراسلة',
+    collectedUsage:
+      'كيفية استخدام Hermes: دقة الوكيل وكفاءته (نجاح التعديلات، الحلقات، التعافي من الأخطاء، الرموز واستدعاءات الأدوات لكل مهمة، انقطاعات الذاكرة المؤقتة)، وقت النشاط لكل واجهة ووضع في تطبيق سطح المكتب، أقسام التطبيق وإجراءاته وإعداداته التي تُستخدم أو تُغلق بسرعة أو تُعطَّل، ونتائج إعداد المزوّدين',
+    collectedMachine:
+      'معلومات عامة عن الجهاز: نطاق الذاكرة، نوع وحدة الرسوميات، عمر إصدار Hermes وقناته، عدد التحديثات المتأخرة، واستخدام خادم نماذج محلي',
+    installId:
+      'يرفع الإرسال كل حزمة يومية إلى خدمة القياس عن بُعد لدى Nous. تحمل الحزم معرّف التثبيت لهذا الملف الشخصي: معرّف UUID عشوائي ثابت بلا معلومات شخصية، ويُعاد تعيينه بحذف مجلد المقاييس المشتركة.',
+    consentWindow:
+      'لا تُرسل إلا الحزم التي تقع فترة جمعها كاملة داخل نافذة موافقة مسجلة — تبقى البيانات السابقة لموافقتك، أو من أي فترة كان الإرسال فيها متوقفًا، على هذا الجهاز. يمكن إيقاف الإرسال مجددًا في أي وقت.',
+    readDocs: 'اقرأ التفاصيل الكاملة',
+    share: 'الجمع والإرسال إلى Nous',
+    local: 'الجمع محليًا فقط',
+    off: 'لا، شكرًا',
+    changeLater: 'يمكنك تغيير ذلك في أي وقت من الإعدادات ← الأمان.',
+    saveFailed: 'تعذّر حفظ اختيارك',
+    collectLabel: 'جمع إحصاءات الاستخدام',
+    collectDesc: 'عدّادات محدودة تُحفظ على هذا الجهاز. دون مطالبات أو ملفات أو مسارات أو نصوص أخطاء.',
+    sendLabel: 'إرسال إحصاءات الاستخدام إلى Nous',
+    sendDesc:
+      'رفع كل حزمة يومية إلى خدمة القياس عن بُعد لدى Nous. لا تُرسل إلا بيانات نافذة الموافقة. يتطلب تفعيل الجمع.',
+    unavailable: 'حدّث واجهة Hermes الخلفية لتغيير هذا الإعداد.',
+    stripBody: 'عدّادات محدودة فقط، دون أي مطالبات أو ملفات.',
+    stripChoices: { share: 'إرسال إلى Nous', local: 'محليًا فقط', off: 'لا، شكرًا' },
+    stripDetails: 'التفاصيل'
+  },
+  externalOpenFailed: {
+    title: 'تعذّر فتح هذا الرابط',
+    message: 'لا يوجد متصفح مسجل لفتح هذا العنوان. انسخ الرابط وافتحه يدويًا.',
+    copyUrl: 'نسخ الرابط',
+    close: 'إغلاق'
+  },
+
+  catalog: {
+    add: 'إضافة',
+    added: 'تمت الإضافة',
+    discover: 'اكتشف',
+    featured: 'مميزة',
+    explorePlugins: 'استكشف الإضافات',
+    exploreSkills: 'استكشف المهارات',
+    mostStarred: 'الأكثر حصولًا على نجوم',
+    newest: 'الأحدث',
+    recentlyUpdated: 'المحدثة مؤخرًا',
+    alphabetical: 'الاسم',
+    sortBy: 'ترتيب حسب',
+    seeAll: 'عرض الكل',
+    related: 'عناصر مشابهة',
+    tags: 'الوسوم',
+    screenshots: 'لقطات الشاشة',
+    listView: 'عرض القائمة',
+    cardView: 'عرض البطاقات',
+    installTitle: (name: string) => `تثبيت «${name}»؟`,
+    installDescription: 'ستتوفر هذه المهارة في الجلسات الجديدة. ثبّت من المصادر التي تثق بها فقط.',
+    installTo: 'التثبيت في',
+    thisComputer: 'هذا الكمبيوتر',
+    installing: 'جارٍ التثبيت…',
+    installComplete: (name: string) => `تم تثبيت «${name}»`,
+    destinationChanged: 'تغيرت وجهة التثبيت. أغلق هذا الحوار وافتح رابط التثبيت مجددًا.',
+    installed: 'المثبتة',
+    searchSkills: 'البحث في المهارات',
+    searchPlugins: 'البحث في الإضافات',
+    allSources: 'كل المصادر',
+    allCategories: 'كل الفئات',
+    about: 'نبذة',
+    author: 'المؤلف',
+    source: 'المصدر',
+    category: 'الفئة',
+    version: 'الإصدار',
+    platforms: 'المنصات',
+    requires: 'المتطلبات',
+    tools: 'الأدوات',
+    hooks: 'الخطافات',
+    middleware: 'البرمجيات الوسيطة',
+    commands: 'الأوامر',
+    license: 'الترخيص',
+    addedDate: 'تاريخ الإضافة',
+    updatedDate: 'تاريخ التحديث',
+    repository: 'المستودع',
+    documentation: 'التوثيق',
+    noResults: 'لا توجد نتائج مطابقة',
+    tryAnother: 'جرّب بحثًا آخر أو امسح عوامل التصفية.',
+    clearFilters: 'مسح عوامل التصفية',
+    filters: 'عوامل التصفية',
+    loadFailed: 'تعذر تحميل الكتالوج',
+    retry: 'حاول مرة أخرى',
+    more: 'عرض المزيد',
+    pinned: 'التزام تمت مراجعته',
+    snapshotHint: 'من كتالوج Hermes. لا يتصل التصفح بمستودعات المصدر مطلقًا.',
+    installHint: 'راجع المصدر قبل التثبيت. تسري التغييرات على الجلسات الجديدة.',
+    results: (count: number) => `النتائج: ${count.toLocaleString('ar')}`,
+    back: 'العودة إلى النتائج'
+  },
   sessionImport: {
     title: 'المتابعة من تطبيق آخر',
     subtitle: 'انقل محادثة إلى Hermes وتابع من حيث توقفت.',
@@ -716,7 +817,7 @@ export const arOverrides = {
       'view.toggleStatusbar': 'تبديل شريط الحالة',
       'view.toggleTabStrip': 'تبديل علامات التبويب',
       'view.showFiles': 'إظهار متصفح الملفات',
-      'view.showBrowser': 'فتح المتصفح',
+      'view.showBrowser': 'تبديل المتصفح',
       'view.toggleHud': 'تبديل وضع HUD',
       'hud.snapToPointer': 'انقل HUD إلى المؤشر (عام، بينما يكون HUD مفتوحًا)',
       'view.showTerminal': 'إظهار الطرفية',
@@ -1176,6 +1277,8 @@ export const arOverrides = {
       textDirection: { auto: 'تلقائي', rtl: 'من اليمين إلى اليسار', ltr: 'من اليسار إلى اليمين' },
       introSplashTitle: 'شاشة المقدمة',
       introSplashDesc: 'الشعار النصي والعبارة التمهيدية في محادثة فارغة.',
+      modelPricingTitle: 'أسعار النماذج',
+      modelPricingDesc: 'عرض أسعار الإدخال والإخراج وقراءة ذاكرة التخزين المؤقت لكل مليون رمز في منتقي النماذج.',
       reactionsTitle: 'تفاعلات الرسائل',
       reactionsDesc: 'تفاعلات إيموجي بأسلوب iMessage — تفاعل مع الرسائل، ويمكن لـ Hermes التفاعل مع رسائلك.',
       tipsTitle: 'نصائح داخل التطبيق',
@@ -1864,6 +1967,7 @@ export const arOverrides = {
       restartFailed: 'تعذر إعادة تشغيل الخلفية',
       auxiliaryTitle: 'النماذج المساعدة',
       resetAllToMain: 'إعادة تعيين الكل إلى النموذج الرئيسي',
+      staleAuxDismiss: 'عدم الإظهار مجددًا',
       auxiliaryDesc: 'تعمل المهام المساعدة على النموذج الرئيسي افتراضيا. عيّن نموذجا مخصصا لأي مهمة لتجاوز ذلك.',
       setToMain: 'ضبط على الرئيسي',
       change: 'تغيير',
@@ -3053,12 +3157,6 @@ export const arOverrides = {
       system: 'النظام',
       usage: 'الاستخدام'
     },
-    sectionDescriptions: {
-      maintenance: 'التشخيص، الدعم، الوصي، بيانات الذاكرة',
-      sessions: 'البحث في الجلسات وإدارتها',
-      system: 'الحالة والسجلات وإجراءات النظام',
-      usage: 'نشاط الرموز والتكلفة والمهارات عبر الزمن'
-    },
     nav: {
       newChat: {
         title: 'جلسة جديدة',
@@ -3109,7 +3207,8 @@ export const arOverrides = {
     gatewayStopped: 'البوابة متوقفة',
     hermesActiveSessions: (version, count) => `Hermes ${version} لديه ${count} جلسة نشطة`,
     restartGateway: 'إعادة تشغيل البوابة',
-    openBrowser: 'فتح المتصفح',
+    openBrowser: 'تبديل المتصفح',
+    toggleBrowser: 'تبديل المتصفح',
     gatewayRestartFailed: 'فشل إعادة تشغيل البوابة.',
     updateHermes: 'تحديث Hermes',
     reloadWindow: 'إعادة تحميل النافذة',
@@ -3119,6 +3218,7 @@ export const arOverrides = {
     actionStartedWaiting: 'بدأ الإجراء، جار الانتظار...',
     loadingStatus: 'جار تحميل الحالة',
     recentLogs: 'السجلات الأخيرة',
+    logSearchPlaceholder: 'البحث في سطور السجل...',
     noLogs: 'لا توجد سجلات',
     days: count => `${count} يوم`,
     statSessions: 'الجلسات',
@@ -3140,7 +3240,6 @@ export const arOverrides = {
     actions: count => `${count} إجراء`,
     logFile: 'ملف لوغ',
     logLevel: 'الرتبة',
-    logSearchPlaceholder: 'خطوط سجل الملفات...',
     maintenance: {
       runOps: 'التشخيص',
       doctor: 'اهرب',
@@ -3192,6 +3291,13 @@ export const arOverrides = {
   },
   messaging: {
     search: 'بحث',
+    statusFilter: {
+      all: 'الكل',
+      bad: 'أخطاء',
+      good: 'متصل',
+      muted: 'غير نشط',
+      warn: 'يحتاج انتباهًا'
+    },
     loading: 'جار التحميل...',
     loadFailed: 'فشل التحميل',
     states: {
@@ -4520,6 +4626,8 @@ export const arOverrides = {
     editingInComposer: 'جار التحرير في صندوق الكتابة',
     editingQueuedInComposer: 'جار تحرير رسالة في الطابور',
     queueEdit: 'تحرير الرسالة المجدولة',
+    queueExpand: 'توسيع',
+    queueCollapse: 'طي',
     queueSendNext: 'إرسالها تاليا',
     queueSteer: 'توجيه — تصحيح الدور الجاري فورا',
     queueSend: 'إرسالها الآن',
@@ -4857,6 +4965,7 @@ export const arOverrides = {
     },
     changelogFallbackTitle: 'في هذا التحديث',
     changelogFallback: 'تحسينات وإصلاحات',
+    copyFullLog: 'نسخ سجل التغييرات الكامل',
     manualTitle: 'التحديث من الطرفية',
     manualUnavailableTitle: 'لا يمكن التحديث من هنا',
     manualBody: 'لقد ثبّتت Hermes من سطر الأوامر، لذا تُجرى التحديثات من هناك أيضا. الصق هذا في طرفيتك:',
@@ -4930,61 +5039,6 @@ export const arOverrides = {
   guidedGreeting: {
     line: 'أهلا، تفضل بالدخول. أنا Hermes. امنحني دقيقتين لأرتب المكان حولك، ثم نبدأ بشيء تريد إنجازه فعلا.\n\nبداية، بماذا أناديك؟',
     nameSuggestion: (name: string) => `(يمكنني أن أناديك ${name} إن كنت تفضل ذلك.)`
-  },
-  introReveal: {
-    skip: 'تخطي',
-    surfaces: 'سطح المكتب · الرسائل · الهاتف · في أي مكان',
-    prompt: 'أنشئ مكعبًا رئيسيًا في Blender وبدّل بين عدة خامات',
-    replyWords: ['تم. ', 'جُمّعت الخامات ', 'وعُرضت على المكعب. ', 'هل تريد تصدير عرض دوراني؟'],
-    composerPlaceholder: 'اسأل عن أي شيء. وابنِ أي شيء.',
-    viewport: 'منفذ العرض',
-    tagline: 'وكيلك، في كل مكان',
-    viewportModes: {
-      standard: 'قياسي',
-      metal: 'معدن',
-      texture: 'نسيج',
-      glass: 'زجاج',
-      wireframe: 'إطار سلكي'
-    },
-    tools: {
-      blender: {
-        label: 'blender-mcp',
-        running: 'جارٍ الاتصال بـ Blender…',
-        done: 'تم ربط المشهد'
-      },
-      metal: {
-        label: 'معدن',
-        running: 'جارٍ تجميع المعدن…',
-        done: 'معدن · خشونة 0.2'
-      },
-      glass: {
-        label: 'زجاج',
-        running: 'جارٍ تجميع الزجاج…',
-        done: 'زجاج · معامل انكسار 1.45'
-      }
-    },
-    sideAgents: {
-      research: {
-        title: 'وكيل البحث',
-        line1: 'البحث عن شقة: ترشيح 3 قوائم جديدة',
-        line2: '↳ جارٍ إعداد جدول الزيارات…'
-      },
-      groceries: {
-        title: 'البقالة',
-        line1: 'تم إعداد الطلب الأسبوعي من قائمتك',
-        line2: '↳ حُجز التوصيل ليوم الأحد'
-      },
-      inbox: {
-        title: 'وكيل البريد الوارد',
-        line1: 'صياغة ردّين بانتظار موافقتك',
-        line2: '↳ تم تحديث تقويم الجمعة'
-      },
-      morning: {
-        title: 'الموجز الصباحي',
-        line1: 'غدًا: 3 اجتماعات ومطر عند الثامنة',
-        line2: '↳ جاهز قبل استيقاظك'
-      }
-    }
   },
   guidedOnboarding: {
     done: '✓ تم',
@@ -5350,7 +5404,12 @@ export const arOverrides = {
     noAuthenticatedProviders: 'لا يوجد مزوّدون مصادق عليهم.',
     addProvider: 'إضافة مزوّد…',
     addCustomModel: 'إضافة نموذج مخصص',
-    removeCustomModel: 'إزالة النموذج المخصص'
+    removeCustomModel: 'إزالة النموذج المخصص',
+    resetToDefaults: 'إعادة التعيين إلى الافتراضي',
+    resetConfirm: 'إعادة إعدادات ظهور النماذج إلى الافتراضي؟',
+    resetDescription:
+      'ستُمسح اختياراتك للنماذج الظاهرة والمخفية وتعود قائمة كل مزوّد الافتراضية. تُحفظ النماذج المخصصة التي أضفتها وتظهر.',
+    resetAction: 'إعادة التعيين'
   },
   shell: {
     windowControls: 'تحكم النافذة',
@@ -5363,6 +5422,10 @@ export const arOverrides = {
       followDefault: 'استخدام الافتراضي من الإعدادات',
       refreshModels: 'تحديث النماذج',
       fast: 'سريع',
+      free: 'مجاني',
+      cacheRead: 'قراءة من الذاكرة المؤقتة',
+      priceTitle: (input: string, output: string, cache: string) =>
+        `الإدخال ${input}/Mtok · الإخراج ${output}/Mtok` + (cache ? ` · قراءة من الذاكرة المؤقتة ${cache}/Mtok` : ''),
       moaPresets: 'إعدادات MOA المسبقة'
     },
     modelOptions: {
@@ -5498,6 +5561,9 @@ export const arOverrides = {
         title: 'السياق',
         tokenSummary: (used, max) => `${used} / ${max}رموز`
       },
+      compressions: count => `مرات الضغط: ${count}`,
+      focusedSince: 'منذ التركيز',
+      focusedSinceTitle: 'الوقت منذ تركيز هذه المحادثة — وليس مدة الدور',
       yoloOn: 'YOLO مفعل',
       yoloOff: 'YOLO معطل',
       modelNone: 'لا نموذج',
@@ -5679,6 +5745,7 @@ export const arOverrides = {
     hideTabStrip: 'إخفاء علامات التبويب',
     showStripTab: title => `إظهار ${title}`,
     hideStripTab: title => `إخفاء ${title}`,
+    zoneMenuLabel: title => `خيارات المنطقة لـ ${title}`,
     lastTabKeptTitle: 'يبقى آخر تبويب',
     lastTabKeptBody:
       'تحتاج هذه المنطقة إلى تبويب مرئي واحد على الأقل. أظهر تبويبا آخر أولا، أو اطو الشريط الجانبي بأكمله.',
@@ -6108,14 +6175,9 @@ export const arOverrides = {
       placeholder: 'اكتب إجابتك...',
       skip: 'تخطي',
       skipped: 'تخطى',
-      continueLabel: 'متابعة',
       confirmAndContinueLabel: 'تأكيد ومتابعة',
-      answeredBadge: 'تمت الإجابة',
       recommendedSuffix: ' (موصى به)',
-      questionProgress: (answered, total) => `تمت الإجابة على ${answered} من ${total}`,
-      lateAnswer: (question, choice) => `Re:${question}" — my answer: ${choice}`,
-      lateAnswerTip: 'مشروع هذا الرد كرسالة متابعة',
-      lateAnswerHint: 'هذه السرعة لم تعد تنتظر اختر خياراً لوضعه كرسالة متابعة.'
+      questionProgress: (answered, total) => `تمت الإجابة على ${answered} من ${total}`
     },
     mcpSetup: {
       installTitle: 'إضافة خواديم MCP',
@@ -6585,6 +6647,11 @@ export const arOverrides = {
   ui: {
     search: {
       clear: 'مسح البحث'
+    },
+    logs: {
+      bottom: 'أسفل السجل',
+      search: 'البحث في السجلات…',
+      top: 'أعلى السجل'
     },
     pagination: {
       label: 'ترقيم الصفحات',

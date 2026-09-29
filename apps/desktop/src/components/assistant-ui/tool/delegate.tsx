@@ -66,6 +66,7 @@ function statusGlyph(status: DelegateRowStatus, label: string): ReactNode {
  * whatever they get up to.
  */
 function DelegateRowView({ row }: { row: DelegateRow }) {
+  const parentSessionId = useStore(useSessionView().$storedId)
   const { locale, t } = useI18n()
   const copy = t.assistant.tool
   const { sessionId } = row
@@ -85,7 +86,7 @@ function DelegateRowView({ row }: { row: DelegateRow }) {
   ].filter(Boolean)
 
   // Only a child that reported its own session id has somewhere to go.
-  const open = sessionId ? () => void openSessionInNewWindow(sessionId, { watch: true }) : undefined
+  const open = sessionId ? () => void openSessionInNewWindow(sessionId, { watch: true, parentSessionId }) : undefined
 
   // The scaffold mark goes on the goal row, NEVER on this wrapper: it fades to
   // 0.67, and opacity opens a stacking context around the ticker's transformed

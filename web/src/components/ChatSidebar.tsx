@@ -43,11 +43,7 @@ import {
   isEventsFeedMessage,
   shouldRetryEventsClose
 } from '@/lib/events-reconnect'
-import {
-  SIDECAR_DISCONNECTED_MESSAGE,
-  credentialWarning,
-  sidecarErrorMessage
-} from '@/lib/chat-sidebar-banner'
+import { SIDECAR_DISCONNECTED_MESSAGE, credentialWarning, sidecarErrorMessage } from '@/lib/chat-sidebar-banner'
 import { titleFromSessionInfoPayload } from '@/lib/chat-title'
 import { useI18n } from '@/i18n'
 import { getDashboardCopy } from '@/i18n/dashboard'
@@ -64,6 +60,17 @@ interface SessionInfo {
   credential_warning?: string
   title?: string
 }
+
+// Auto-redial budget for the JSON-RPC sidecar (#95951). After this many
+// bounded-backoff attempts the manual Reconnect affordance stays the only
+// path, mirroring the events feed's give-up contract.
+const SIDE_CAR_MAX_RECONNECT_ATTEMPTS = 5
+
+// Surfaced once when the redial budget is exhausted. Only this module may
+// clear it (on the next successful open), matching how the events feed
+// owns its own banner messages.
+const SIDE_CAR_GAVE_UP_MESSAGE =
+  'gateway sidecar disconnected — gave up after ' + `${SIDE_CAR_MAX_RECONNECT_ATTEMPTS} attempts, use Reconnect`
 
 const STATE_TONE: Record<ConnectionState, 'secondary' | 'warning' | 'success' | 'destructive'> = {
   idle: 'secondary',
@@ -115,6 +122,12 @@ export function ChatSidebar({
   const [version, setVersion] = useState(0)
   const gw = useMemo(() => new GatewayClient(), [])
   const feed = useMemo(() => new EventsFeedClient(), [])
+  // Sidecar auto-redial budget (#95951). A ref, NOT effect state: the counter
+  // must survive the [gw, version] effect re-runs a redial triggers, or the
+  // budget resets every attempt and never exhausts.
+  // Reset on a successful open and on scope switches.
+  const sidecarRedialAttemptRef = useRef(0)
+  const sidecarGaveUpRef = useRef(false)
 
   const [state, setState] = useState<ConnectionState>('idle')
   const [info, setInfo] = useState<SessionInfo>({})
@@ -172,6 +185,9 @@ export function ChatSidebar({
     if (prevScopeKey.current === scopeKey) return
     prevScopeKey.current = scopeKey
     setError(null)
+    // Fresh scope, fresh sidecar redial budget (#95951).
+    sidecarRedialAttemptRef.current = 0
+    sidecarGaveUpRef.current = false
     setVersion(v => v + 1)
   }, [scopeKey])
 
@@ -199,12 +215,57 @@ export function ChatSidebar({
       if (message) {
         console.warn(`[chat-sidebar] sidecar error: ${message}`)
         const normalized = sidecarErrorMessage(message)
-        setError(
-          normalized === SIDECAR_DISCONNECTED_MESSAGE
-            ? copy.sidePanelDisconnected
-            : normalized
-        )
+        setError(normalized === SIDECAR_DISCONNECTED_MESSAGE ? copy.sidePanelDisconnected : normalized)
       }
+    })
+
+    // Auto-redial after a transient drop (#95951): a dashboard service
+    // restart closes the sidecar's WebSocket with 1012, and GatewayClient
+    // deliberately delegates reconnect policy to this connection owner.
+    // Bounded exponential backoff — the same shape the PTY pane uses —
+    // capped at SIDE_CAR_MAX_RECONNECT_ATTEMPTS; after that the manual
+    // Reconnect affordance stays the only path. A successful open resets
+    // the counter; unmount or a scope switch (version bump) cancels the
+    // pending timer because this effect tears down with the old client.
+    let redialTimer: ReturnType<typeof setTimeout> | null = null
+    const offRedial = gw.onState(s => {
+      if (s === 'open') {
+        sidecarRedialAttemptRef.current = 0
+        if (sidecarGaveUpRef.current) {
+          sidecarGaveUpRef.current = false
+          setError(current => (current === SIDE_CAR_GAVE_UP_MESSAGE ? null : current))
+        }
+        return
+      }
+      if (s !== 'closed' && s !== 'error') {
+        return
+      }
+      if (cancelled || redialTimer) {
+        return
+      }
+      // The attempt counter lives in a ref: each redial rebuilds the client
+      // and re-runs this effect, so a closure-local counter would reset and
+      // the budget would never exhaust (#95951).
+      if (sidecarRedialAttemptRef.current >= SIDE_CAR_MAX_RECONNECT_ATTEMPTS) {
+        // Mirror the events feed's give-up contract: say so once, then the
+        // manual Reconnect affordance stays the only path. Cleared again if
+        // a later connection does open (manual reconnect followed by a
+        // within-budget drop).
+        if (!sidecarGaveUpRef.current) {
+          sidecarGaveUpRef.current = true
+          setError(current => current ?? SIDE_CAR_GAVE_UP_MESSAGE)
+        }
+        return
+      }
+      const attempt = sidecarRedialAttemptRef.current
+      sidecarRedialAttemptRef.current += 1
+      const delayMs = Math.min(250 * 2 ** attempt, 3000)
+      redialTimer = setTimeout(() => {
+        redialTimer = null
+        if (!cancelled) {
+          setVersion(v => v + 1)
+        }
+      }, delayMs)
     })
 
     // Create the sidecar session so the gateway surfaces session-scoped
@@ -224,22 +285,22 @@ export function ChatSidebar({
         if (!cancelled) {
           console.warn(`[chat-sidebar] sidecar connect failed: ${e.message}`)
           const normalized = sidecarErrorMessage(e.message)
-          setError(
-            normalized === SIDECAR_DISCONNECTED_MESSAGE
-              ? copy.sidePanelDisconnected
-              : normalized
-          )
+          setError(normalized === SIDECAR_DISCONNECTED_MESSAGE ? copy.sidePanelDisconnected : normalized)
         }
       })
 
     return () => {
       cancelled = true
+      if (redialTimer) {
+        clearTimeout(redialTimer)
+        redialTimer = null
+      }
+      offRedial()
       offState()
       offSessionInfo()
       offError()
       gw.close()
     }
-    // `profile` is read from render; scope changes bump `version` → redial.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gw, version])
 
@@ -367,7 +428,16 @@ export function ChatSidebar({
       offNewSession()
       feed.close()
     }
-  }, [channel, copy.eventsExpired, copy.eventsGaveUp, copy.eventsReconnecting, feed, onDashboardNewSessionRequest, onSessionTitleChange, version])
+  }, [
+    channel,
+    copy.eventsExpired,
+    copy.eventsGaveUp,
+    copy.eventsReconnecting,
+    feed,
+    onDashboardNewSessionRequest,
+    onSessionTitleChange,
+    version
+  ])
 
   // Seed the badge on mount and re-read it whenever the sockets are rebuilt
   // (a profile/channel switch bumps `version`).
@@ -390,7 +460,13 @@ export function ChatSidebar({
   const credentialMessage = credential?.provider
     ? copy.noApiKey.replace('{provider}', credential.provider)
     : credential?.message
-  const banner = error ?? credentialMessage ?? null
+  // The sidecar give-up sentinel is compared by identity above; only its presentation follows the locale.
+  const banner =
+    (error === SIDE_CAR_GAVE_UP_MESSAGE
+      ? copy.sidecarGaveUp.replace('{attempts}', String(SIDE_CAR_MAX_RECONNECT_ATTEMPTS))
+      : error) ??
+    credentialMessage ??
+    null
   const showReload = isEventsAuthRejectionMessage(error) || error === copy.eventsExpired
 
   return (

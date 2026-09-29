@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type Locale, type ProviderWaitPhase, TRANSLATIONS } from '@/i18n'
+import { type Locale, type ProviderWaitPhase, resolveTranslations, TRANSLATIONS } from '@/i18n'
 
 import { isProviderWaitNotice, localizeProviderWaitText } from './provider-wait-localization'
 
@@ -48,7 +48,7 @@ describe('current wait notices', () => {
       expect(isProviderWaitNotice(raw)).toBe(true)
 
       for (const locale of LOCALES) {
-        const copy = TRANSLATIONS[locale].assistant.thread
+        const copy = resolveTranslations(locale).assistant.thread
 
         const expected = copy.providerWaitNotice(
           'gpt-5.5-codex',
@@ -73,7 +73,7 @@ describe('current wait notices', () => {
     const raw = waitNoticeText('claude-fable-5-1', 90, 'first_chunk', ['stream stale', 500])
 
     for (const locale of LOCALES) {
-      const copy = TRANSLATIONS[locale].assistant.thread
+      const copy = resolveTranslations(locale).assistant.thread
       const localized = localizeProviderWaitText(raw, copy)
 
       if (copy.providerWaitNotice !== TRANSLATIONS.en.assistant.thread.providerWaitNotice) {

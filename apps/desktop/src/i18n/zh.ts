@@ -28,6 +28,40 @@ export const zhOverrides = {
       message: '此文件不存在 — 可能已被删除或移动，或者位于另一台机器上'
     }
   },
+  sharedMetrics: {
+    consentTitle: '帮助改进 Hermes？',
+    consentBody:
+      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本。收集仅在本地进行；发送给 Nous 需要另行同意。',
+    whatIsCollected: '收集哪些内容',
+    collectedIntro: '仅限有上限的计数：',
+    collectedActivity: '活动、会话时长、结果和错误类别',
+    collectedModels: '模型路由和 token 总量',
+    collectedNames: '内置工具、命令和目录项名称',
+    collectedMilestones: '分桶的设置计数',
+    collectedReliability: '更新结果与耗时、崩溃、启动与回复速度、消息平台状态',
+    collectedUsage:
+      'Hermes 的使用方式：代理的准确度与效率（编辑是否成功、循环、错误后的恢复、每个任务的 token 与工具调用数、缓存中断），各界面与 Desktop 模式的活跃时间，哪些应用区域、操作与设置被使用、很快关闭或被关闭，以及提供商设置的结果',
+    collectedMachine:
+      '概略的机器信息：内存范围、GPU 类型、Hermes 版本新旧与发布通道、落后的更新数、是否使用本地模型服务器',
+    installId:
+      '发送会把每日数据包上传到 Nous 遥测服务。数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置。',
+    consentWindow:
+      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机。你可以随时再次关闭发送。',
+    readDocs: '查看完整说明',
+    share: '收集并发送给 Nous',
+    local: '仅在本地收集',
+    off: '不用了',
+    changeLater: '你可以随时在 设置 → 安全 中更改。',
+    saveFailed: '无法保存你的选择',
+    collectLabel: '收集使用统计',
+    collectDesc: '在此设备上保存有上限的计数。绝不包含提示词、文件、路径或错误文本。',
+    sendLabel: '向 Nous 发送使用统计',
+    sendDesc: '将每日数据包上传到 Nous 遥测服务。只发送同意时段内的数据。需要先开启收集。',
+    unavailable: '请更新 Hermes 后端以更改此设置。',
+    stripBody: '仅限有界计数器，绝不包含提示词或文件。',
+    stripChoices: { share: '发送给 Nous', local: '仅本地', off: '不用了' },
+    stripDetails: '详情'
+  },
   intro: introZh,
   catalog: {
     add: '添加',
@@ -1028,7 +1062,7 @@ export const zhOverrides = {
       'view.toggleTabStrip': '切换标签',
       'view.toggleSimpleMode': '切换简洁模式',
       'view.showFiles': '显示文件浏览器',
-      'view.showBrowser': '打开浏览器',
+      'view.showBrowser': '切换浏览器',
       'view.toggleHud': '切换 HUD 模式',
       'hud.snapToPointer': '将 HUD 移到指针处（全局，HUD 打开时）',
       'view.showTerminal': '显示终端',
@@ -1498,6 +1532,8 @@ export const zhOverrides = {
       userBubbleDesc: '你自己的消息有多透明，0 为不透明，100 时只保留边框',
       introSplashTitle: '开场标识',
       introSplashDesc: '空白对话中显示的字标和提示语',
+      modelPricingTitle: '模型价格',
+      modelPricingDesc: '在模型选择器中显示每百万 token 的输入、输出和缓存读取价格',
       reactionsTitle: '消息回应',
       reactionsDesc: 'iMessage 风格的表情回应 — 你可以给消息添加回应，Hermes 也能回应你的消息',
       tipsTitle: '应用内提示',
@@ -2367,6 +2403,7 @@ export const zhOverrides = {
       restartFailed: '无法重启后端',
       auxiliaryTitle: '辅助模型',
       resetAllToMain: '全部重置为主模型',
+      staleAuxDismiss: '不再显示',
       auxiliaryDesc: '辅助任务默认使用主模型，你可以为任意任务指定专用模型',
       setToMain: '设为主模型',
       change: '更改',
@@ -2511,13 +2548,16 @@ export const zhOverrides = {
       addHeader: '添加请求头',
       removeHeader: '删除请求头',
       extraBodyLabel: '额外请求体（JSON）',
-      extraBodyHint: '合并进每个请求体，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或服务端文档规定的思考预算字段',
+      extraBodyHint:
+        '合并进每个请求体，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或服务端文档规定的思考预算字段',
       extraBodyInvalid: '必须是 JSON 对象',
       maxTokensFieldLabel: '输出上限字段',
       maxTokensFieldAuto: '自动（由端点决定）',
-      maxTokensFieldHint: 'Chat Completions 请求里承载输出上限的字段，原样转发到 OpenAI 的中继请固定为 max_completion_tokens，运行时不会按模型名猜测',
+      maxTokensFieldHint:
+        'Chat Completions 请求里承载输出上限的字段，原样转发到 OpenAI 的中继请固定为 max_completion_tokens，运行时不会按模型名猜测',
       catalogProviderLabel: '元数据目录来源',
-      catalogProviderHint: '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
+      catalogProviderHint:
+        '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自动',
       keyKeepPlaceholder: '留空则保留当前密钥',
       keyOptionalPlaceholder: '可选',
@@ -4647,18 +4687,7 @@ export const zhOverrides = {
     settingsFields: '设置字段',
     mcpServers: 'MCP 服务器',
     archivedChats: '已归档对话',
-    sections: {
-      maintenance: '维护',
-      sessions: '会话',
-      system: '系统',
-      usage: '用量'
-    },
-    sectionDescriptions: {
-      maintenance: '诊断、备份、维护器与记忆数据',
-      sessions: '搜索与管理会话',
-      system: '状态、日志与系统操作',
-      usage: '一段时间内的Token、成本与技能活动'
-    },
+    sections: { maintenance: '维护', sessions: '会话', system: '系统', usage: '用量' },
     nav: {
       newChat: {
         title: '新建会话',
@@ -4709,7 +4738,8 @@ export const zhOverrides = {
     gatewayStopped: '消息网关已停止',
     hermesActiveSessions: (version, count) => `Hermes ${version} · 活跃会话 ${count}`,
     restartGateway: '重启网关',
-    openBrowser: '打开浏览器',
+    openBrowser: '切换浏览器',
+    toggleBrowser: '切换浏览器',
     gatewayRestartFailed: '网关重启失败',
     updateHermes: '更新 Hermes',
     reloadWindow: '重新载入窗口',
@@ -4740,7 +4770,7 @@ export const zhOverrides = {
     actions: count => `${count} 次操作`,
     logFile: '日志文件',
     logLevel: '级别',
-    logSearchPlaceholder: '筛选日志行…',
+    logSearchPlaceholder: '搜索日志行…',
     maintenance: {
       runOps: '诊断',
       doctor: '运行体检',
@@ -4792,6 +4822,13 @@ export const zhOverrides = {
   },
   messaging: {
     search: '搜索消息平台…',
+    statusFilter: {
+      all: '全部',
+      bad: '错误',
+      good: '已连接',
+      muted: '未启用',
+      warn: '需要关注'
+    },
     loading: '正在加载消息平台…',
     loadFailed: '消息平台加载失败',
     states: {
@@ -6433,6 +6470,8 @@ export const zhOverrides = {
     editingInComposer: '正在输入框中编辑',
     editingQueuedInComposer: '正在输入框中编辑排队回合',
     queueEdit: '编辑',
+    queueExpand: '展开',
+    queueCollapse: '收起',
     queueSendNext: '下一个',
     queueSteer: '引导 — 立即修正当前回合',
     queueSend: '发送',
@@ -6725,6 +6764,7 @@ export const zhOverrides = {
     },
     changelogFallbackTitle: '本次更新',
     changelogFallback: '改进与修复',
+    copyFullLog: '复制完整更新日志',
     manualTitle: '从终端更新',
     manualUnavailableTitle: '无法从这里更新',
     manualBody: '你是从命令行安装的 Hermes，因此更新也需要在那里运行。请将此命令粘贴到终端：',
@@ -6842,61 +6882,6 @@ export const zhOverrides = {
   guidedGreeting: {
     line: '来了，进来吧。我是 Hermes。给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做。\n\n先说，我该怎么称呼你？',
     nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}。）`
-  },
-  introReveal: {
-    skip: '跳过',
-    surfaces: '桌面 · 消息 · 手机 · 随处可用',
-    prompt: '在 Blender 中制作一个主视觉立方体，并轮换展示几种材质',
-    replyWords: ['完成 — ', '材质已编译，', '并在立方体上完成预览', '要导出转台动画吗？'],
-    composerPlaceholder: '尽管提问，随心创造',
-    viewport: '视口',
-    tagline: '你的智能体，无处不在',
-    viewportModes: {
-      standard: '标准',
-      metal: '金属',
-      texture: '纹理',
-      glass: '玻璃',
-      wireframe: '线框'
-    },
-    tools: {
-      blender: {
-        label: 'blender-mcp',
-        running: '正在连接 Blender…',
-        done: '场景已连接'
-      },
-      metal: {
-        label: '金属',
-        running: '正在编译金属材质…',
-        done: '金属 · 粗糙度 0.2'
-      },
-      glass: {
-        label: '玻璃',
-        running: '正在编译玻璃材质…',
-        done: '玻璃 · 折射率 1.45'
-      }
-    },
-    sideAgents: {
-      research: {
-        title: '调研智能体',
-        line1: '找房进展：已筛出 3 个新房源',
-        line2: '↳ 正在整理看房日程…'
-      },
-      groceries: {
-        title: '日用品',
-        line1: '已根据清单生成每周订单',
-        line2: '↳ 已预约周日送达'
-      },
-      inbox: {
-        title: '收件箱智能体',
-        line1: '已起草 2 封回复，等待你确认',
-        line2: '↳ 日历已更新至周五'
-      },
-      morning: {
-        title: '晨间简报',
-        line1: '明天：3 场会议，8 点有雨',
-        line2: '↳ 在你醒来前准备好'
-      }
-    }
   },
   guidedOnboarding: {
     done: '✓ 完成',
@@ -7257,7 +7242,11 @@ export const zhOverrides = {
     noAuthenticatedProviders: '没有已认证的提供方',
     addProvider: '添加提供方…',
     addCustomModel: '添加自定义模型',
-    removeCustomModel: '移除自定义模型'
+    removeCustomModel: '移除自定义模型',
+    resetToDefaults: '恢复默认',
+    resetConfirm: '将模型可见性恢复为默认？',
+    resetDescription: '你对模型显示与隐藏的选择将被清除，每个提供方都会恢复默认列表。你添加的自定义模型会保留并显示。',
+    resetAction: '恢复'
   },
   shell: {
     windowControls: '窗口控件',
@@ -7269,7 +7258,11 @@ export const zhOverrides = {
       editModels: '编辑模型…',
       followDefault: '使用设置中的默认模型',
       refreshModels: '刷新模型',
-      fast: 'Fast',
+      fast: '快速',
+      free: '免费',
+      cacheRead: '缓存读取',
+      priceTitle: (input: string, output: string, cache: string) =>
+        `输入 ${input}/Mtok · 输出 ${output}/Mtok` + (cache ? ` · 缓存读取 ${cache}/Mtok` : ''),
       moaPresets: 'MOA 预设'
     },
     modelOptions: {
@@ -7378,6 +7371,7 @@ export const zhOverrides = {
       openStarmap: '打开记忆图谱',
       turnRunning: '运行中',
       contextUsage: '上下文用量',
+      compressions: count => `压缩次数：${count}`,
       systemResources: {
         title: '系统资源',
         loading: '资源…',
@@ -7588,6 +7582,7 @@ export const zhOverrides = {
     hideTabStrip: '隐藏标签',
     showStripTab: title => `显示 ${title}`,
     hideStripTab: title => `隐藏 ${title}`,
+    zoneMenuLabel: title => `${title} 的区域选项`,
     lastTabKeptTitle: '保留最后一个标签',
     lastTabKeptBody: '该区域至少需要一个可见标签。请先显示另一个标签，或折叠整个侧边栏',
     toggleStripTab: title => `切换 ${title} 标签`,
@@ -8007,14 +8002,10 @@ export const zhOverrides = {
       placeholder: '输入你的答案…',
       skip: '跳过',
       skipped: '已跳过',
-      continueLabel: '继续',
+      noAnswer: '未回答',
       confirmAndContinueLabel: '确认并继续',
-      answeredBadge: '已回答',
       recommendedSuffix: '（推荐）',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
-      lateAnswer: (question, choice) => `关于"${question}" — 我的回答: ${choice}`,
-      lateAnswerTip: '将此回答起草为后续消息',
-      lateAnswerHint: '此问题已不再等待回答。选择一个选项会将其起草为后续消息',
       notDelivered: '此问题未送达应用，无法在此回答。请按停止结束本轮，然后在聊天中回复'
     },
     catalogInstall: {
@@ -8529,6 +8520,11 @@ export const zhOverrides = {
   ui: {
     search: {
       clear: '清除搜索'
+    },
+    logs: {
+      bottom: '日志底部',
+      search: '搜索日志…',
+      top: '日志顶部'
     },
     pagination: {
       label: '分页',
