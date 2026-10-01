@@ -1259,6 +1259,9 @@ export const jaOverrides = {
       }
     },
     appearance: {
+      chatTextScaleTitle: 'チャットの文字サイズ',
+      chatTextScaleDesc:
+        'UI スケールを基準に、会話とメッセージ入力欄の文字を拡大縮小します。サイドバーや操作ボタンのサイズは変わりません。',
       title: '外観',
       intro:
         'デスクトップ専用の表示設定です。モードは明るさ、テーマはアクセントカラーとチャット面のスタイルを制御します。',
@@ -1649,7 +1652,8 @@ export const jaOverrides = {
       fileReadMaxChars: 'Hermes が 1 回のファイル読み取りで取得できる最大文字数です。',
       approvals: {
         mode: '明示的な承認が必要なコマンドを Hermes がどう扱うかを設定します。',
-        timeout: '承認プロンプトがタイムアウトするまで待つ時間です。'
+        timeout:
+          'メッセージングプラットフォームで承認プロンプトがタイムアウトするまで待つ時間です。アプリとターミナルは回答するまで待ちます。'
       },
       security: {
         redactSecrets: '検出したシークレットを、可能な限りモデルから見える内容から隠します。',
@@ -5608,6 +5612,11 @@ export const jaOverrides = {
     queueDroppedTitle: 'キューのエントリを破棄しました',
     queueDroppedBody:
       'このバックグラウンドのエントリは、セッションを繰り返し再開できなかったため破棄されました。キューの他のエントリには影響しません。',
+    terminalSelectionMissingTitle: 'ターミナル選択を利用できません',
+    terminalSelectionMissingBody:
+      '送信前にターミナル行を再選択（Ctrl/Cmd+L）してください — チップに元のテキストがありません。',
+    queuedTerminalSelectionExpiredBody:
+      'キュー内のターミナル選択はもう利用できません。行を再選択（Ctrl/Cmd+L）して、もう一度キューに入れてください。',
     previewUnavailable: 'プレビューは利用できません',
     previewLabel: label => `${label} のプレビュー`,
     couldNotPreview: label => `${label} をプレビューできませんでした`,
@@ -5824,6 +5833,7 @@ export const jaOverrides = {
       scopeUncommitted: '未コミット',
       scopeBranch: 'ブランチ',
       scopeLastTurn: '前のターン',
+      readOnlyScope: '読み取り専用ビュー — ステージ・復元・コミットは「未コミット」のみ対象です',
       commit: 'コミット',
       commitAndPush: 'コミットしてプッシュ',
       commitPlaceholder: shortcut => `メッセージ（${shortcut} でコミット）`,
@@ -6373,6 +6383,10 @@ export const jaOverrides = {
       editModels: 'モデルを編集…',
       followDefault: '設定のデフォルトを使用',
       refreshModels: 'モデルを更新',
+      favorites: 'お気に入り',
+      addFavorite: 'お気に入りに追加',
+      removeFavorite: 'お気に入りから削除',
+      favoriteShortcut: '⇧ クリック',
       fast: '高速',
       free: '無料',
       cacheRead: 'キャッシュ読み取り',
@@ -6528,6 +6542,10 @@ export const jaOverrides = {
     }
   },
   rightSidebar: {
+    terminalReadOnly: '読み取り専用の出力',
+    terminalReadOnlyHelp:
+      'プロンプトに応答するには、バックグラウンドのコマンドを停止し、新しいターミナルで実行してください。新しいターミナルは別のシェルを開き、このプロセスには接続しません。',
+    terminalOpenInteractive: '新しいターミナルを開く',
     aria: '右サイドバー',
     panelsAria: '右サイドバーパネル',
     files: 'ファイルシステム',
@@ -6572,9 +6590,14 @@ export const jaOverrides = {
   },
   preview: {
     tab: 'プレビュー',
+    pin: 'ワークスペースにピン留め',
+    unpin: 'ワークスペースからピン留めを外す',
     closePane: 'プレビューペインを閉じる',
     loading: 'プレビューを読み込み中',
     unavailable: 'プレビューは利用できません',
+    missingTitle: 'ファイルは存在しません',
+    missingBody: label =>
+      `${label} は削除・移動されたか、一時的な場所が消去されました。このタブは次回の起動時には復元されません。`,
     opening: '開いています...',
     hide: '非表示',
     openPreview: 'プレビューを開く',
@@ -7150,6 +7173,8 @@ export const jaOverrides = {
       noAnswer: '回答なし',
       confirmAndContinueLabel: '確定して続行',
       recommendedSuffix: '（おすすめ）',
+      singleSelectHint: '1つ選ぶ',
+      multiSelectHint: '該当するものをすべて選択',
       questionProgress: (answered, total) => `${total}問中${answered}問回答済み`,
       notDelivered:
         'この質問はアプリに届かなかったため、ここでは回答できません。停止を押してターンを終了し、チャットで返信してください。'
@@ -7467,6 +7492,9 @@ export const jaOverrides = {
     providerCredentialRequired: '最初のメッセージを送信する前にプロバイダー認証情報を追加してください。',
     readinessChecksDisagree: 'setup.status は資格情報が設定済みと報告していますが、ランタイム解決は失敗しました。',
     emptySlashCommand: '空のスラッシュコマンド',
+    slashCommandIgnoredTitle: 'コマンドが送信されませんでした',
+    slashCommandIgnoredBody:
+      'スラッシュコマンドと添付ファイルを同時に使用することはできません。添付ファイルを削除するか、コマンドを別途送信してください。',
     desktopCommands: 'デスクトップコマンド',
     skillCommandsAvailable: count => `${count} 件のスキルコマンドが利用可能です。`,
     warningLine: message => `警告: ${message}`,
@@ -7537,6 +7565,9 @@ export const jaOverrides = {
     generatedImageAlt: '生成された画像',
     downloadImage: '画像をダウンロード',
     savingImage: '画像を保存中',
+    zoomIn: '拡大',
+    zoomOut: '縮小',
+    resetZoom: 'ズームをリセット',
     imagePreviewFailed: '画像のプレビューに失敗しました',
     imageAttach: '画像を添付',
     imageWriteFailed: '画像のディスクへの書き込みに失敗しました。',

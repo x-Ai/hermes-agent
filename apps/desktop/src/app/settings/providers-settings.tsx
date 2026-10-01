@@ -36,6 +36,7 @@ import { providerGroup, providerMeta, providerPriority } from './helpers'
 import { LocalModelsSettings } from './local-models-settings'
 import { SettingsContent, SettingsSkeleton } from './primitives'
 import { SettingsProfileScope } from './profile-scope'
+import { useDeepLinkHighlight } from './use-deep-link-highlight'
 
 // The embedded terminal (and thus the "run disconnect command" path) only
 // exists in the Electron desktop shell, not the web dashboard.
@@ -68,6 +69,9 @@ export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 //   2. Desktop prefix match (`providerGroup`) — legacy fallback for provider
 //      env vars that predate the backend tagging.
 // Only entries that resolve to neither (the "Other" bucket) are skipped.
+// Keyed by the group's stable identity (`group.id`), never its localized label.
+const providerKeyElementId = (id: string) => `provider-key-${id.replace(/\W+/g, '-')}`
+
 function buildProviderKeyGroups(
   vars: Record<string, EnvVarInfo>,
   envKeys: Record<string, { description?: string; prompt?: string }>,
@@ -85,6 +89,7 @@ function buildProviderKeyGroups(
     // than one built-in route. Expand its provider profiles into card-scoped
     // rows while keeping the same env-var key for save/remove operations.
     const expanded = Boolean(info.provider_profiles?.length)
+
     const scopedInfos = expanded
       ? info.provider_profiles!.map(profile => ({
           ...info,
@@ -424,6 +429,41 @@ export function ProvidersSettings({
   // they launched from this page — otherwise the cards keep their stale status.
   const onboardingActive = useStore($desktopOnboarding).manual
 
+  const keyGroupByEnv = useMemo(() => {
+    const byEnv = new Map<string, string>()
+
+    const groups = vars
+      ? buildProviderKeyGroups(
+          vars,
+          t.settings.envKeys,
+          t.settings.providers.providerDescriptions,
+          t.settings.providers.providerLabels
+        )
+      : []
+
+    for (const group of groups) {
+      for (const [key] of [group.primary, ...group.advanced]) {
+        byEnv.set(key, group.id)
+      }
+    }
+
+    return byEnv
+  }, [t, vars])
+
+  const apiKeysShown = view === 'keys' || (oauthProviders.length === 0 && view !== 'custom-endpoints')
+
+  // Deep link from a rejected-key error card (?pview=keys&key=<ENV_KEY>):
+  // clear the filter, expand that provider's card and scroll to it.
+  useDeepLinkHighlight({
+    elementId: key => providerKeyElementId(keyGroupByEnv.get(key) ?? ''),
+    onResolve: key => {
+      setKeyQuery('')
+      setOpenProvider(keyGroupByEnv.get(key) ?? null)
+    },
+    param: 'key',
+    ready: key => apiKeysShown && keyGroupByEnv.has(key)
+  })
+
   const refreshOAuthProviders = useCallback(async () => {
     // OAuth providers are best-effort — a failure here just hides the panel.
     const { providers } = await listOAuthProviders(scopeProfile)
@@ -572,14 +612,15 @@ export function ProvidersSettings({
             {visibleGroups.length > 0 ? (
               <div className="grid gap-2">
                 {visibleGroups.map(group => (
-                  <ProviderKeyRows
-                    expanded={openProvider === group.id}
-                    group={group}
-                    key={group.id}
-                    onExpand={() => setOpenProvider(group.id)}
-                    onToggle={() => setOpenProvider(prev => (prev === group.id ? null : group.id))}
-                    rowProps={rowProps}
-                  />
+                  <div className="scroll-mt-6 rounded-[6px]" id={providerKeyElementId(group.id)} key={group.id}>
+                    <ProviderKeyRows
+                      expanded={openProvider === group.id}
+                      group={group}
+                      onExpand={() => setOpenProvider(group.id)}
+                      onToggle={() => setOpenProvider(prev => (prev === group.id ? null : group.id))}
+                      rowProps={rowProps}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (

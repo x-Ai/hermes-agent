@@ -17,7 +17,7 @@ import { usePaneGroup, usePaneVisible } from '@/components/pane-shell/pane-visib
 import { $hoveredTreeGroup, $sessionTileDragging, $sessionTileEdgeHover } from '@/components/pane-shell/tree/store'
 import { PromptOverlays } from '@/components/prompt-overlays'
 import { TitleMenuTrigger } from '@/components/ui/title-menu-trigger'
-import { type HermesGateway, type ProfileScope } from '@/hermes'
+import { type HermesGateway, type ProfileScope, type ResolvedOwner } from '@/hermes'
 import { useI18n } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, quickModelOptions, sessionTitle } from '@/lib/chat-runtime'
@@ -38,6 +38,7 @@ import { $activeGatewayProfile, $gatewaySwapTarget, $hydrationSyncProfile, $prof
 import {
   $connection,
   $contextSuggestions,
+  $freshDraftKey,
   $freshDraftReady,
   $gatewayState,
   $introPersonality,
@@ -120,7 +121,7 @@ interface ChatViewProps extends Omit<React.ComponentProps<'div'>, 'onSubmit'> {
   onReload: (parentId: string | null) => Promise<void>
   onRestoreToMessage?: (messageId: string, target?: { text?: string; userOrdinal?: number | null }) => Promise<void>
   onRetryResume: (sessionId: string) => void
-  onTranscribeAudio?: (audio: Blob) => Promise<string>
+  onTranscribeAudio?: (audio: Blob, owner?: ResolvedOwner) => Promise<string>
   onDismissError?: (messageId: string) => void
 }
 
@@ -144,7 +145,9 @@ function ChatHeader({
   const profiles = useStore($profiles)
 
   const activeStoredSession =
-    (selectedSessionId && sessions.find(session => sessionMatchesStoredId(session, selectedSessionId))) || null
+    ((selectedSessionId || activeSessionId) &&
+      sessions.find(session => sessionMatchesStoredId(session, selectedSessionId || activeSessionId || ''))) ||
+    null
 
   const title = activeStoredSession ? sessionTitle(activeStoredSession) : NEW_SESSION_TITLE
 
@@ -184,6 +187,7 @@ function ChatHeader({
           onDelete={selectedSessionId ? onDeleteSelectedSession : undefined}
           onPin={selectedSessionId ? onToggleSelectedPin : undefined}
           pinned={selectedIsPinned}
+          profile={activeStoredSession?.profile}
           sessionId={selectedSessionId || activeSessionId || ''}
           sideOffset={8}
           title={title}
@@ -561,6 +565,7 @@ const ChatViewContent = memo(function ChatViewContent({
   const petOverlayActive = useStore($petOverlayActive)
   const petPresent = petActive || petOverlayActive
   const freshDraftReady = useStore($freshDraftReady)
+  const freshDraftKey = useStore($freshDraftKey)
   const gatewayState = useStore($gatewayState)
   const gatewaySwapTarget = useStore($gatewaySwapTarget)
   const hydrationSyncProfile = useStore($hydrationSyncProfile)
@@ -900,6 +905,7 @@ const ChatViewContent = memo(function ChatViewContent({
                 cwd={currentCwd}
                 disabled={!gatewayOpen}
                 focusKey={activeSessionId}
+                freshDraftKey={freshDraftKey}
                 gateway={gateway}
                 maxRecordingSeconds={maxVoiceRecordingSeconds}
                 onAddContextRef={onAddContextRef}

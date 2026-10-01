@@ -117,7 +117,15 @@ export const zh: Translations = {
     multiplexStandaloneBanner:
       "你的网关当前只服务一个配置档案。未服务：{profiles}。原因：{reason}。修复：hermes gateway migrate --multiplex",
     diskFreeLabel: "剩余 {count} MB",
-    dismiss: "关闭"
+    dismiss: "关闭",
+    sharedMetricsTitle: "协助改进 Hermes？",
+    sharedMetricsBody:
+      "共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本机进行，发送给 Nous 需要另行同意",
+    sharedMetricsShare: "发送给 Nous",
+    sharedMetricsLocal: "仅本机",
+    sharedMetricsOff: "不用了",
+    sharedMetricsDetails: "详情",
+    sharedMetricsSaveFailed: "无法保存你的选择"
   },
 
   status: {

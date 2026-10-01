@@ -137,6 +137,8 @@ const PROFILE_SCOPED_PREFIXES = [
   "/api/dashboard/theme",
   "/api/dashboard/font",
   "/api/dashboard/plugins",
+  // The shared-metrics answer is one per profile (telemetry.shared_metrics in its config.yaml).
+  "/api/shared-metrics",
 ];
 
 // The dashboard's own profile when nothing else named one. The backend injects it only
@@ -650,6 +652,17 @@ export const api = {
         body: JSON.stringify(body),
       },
     ),
+  getSharedMetricsConsent: (profile = getManagementProfile()) =>
+    fetchJSON<SharedMetricsConsent>(appendProfileParam("/api/shared-metrics/consent", profile)),
+  saveSharedMetricsConsent: (
+    answer: { enabled: boolean; send: boolean },
+    profile = getManagementProfile(),
+  ) =>
+    fetchJSON<SharedMetricsConsent>(appendProfileParam("/api/shared-metrics/consent", profile), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(answer),
+    }),
   saveConfig: (config: Record<string, unknown>, profile = getManagementProfile()) =>
     fetchJSON<{ ok: boolean }>(appendProfileParam("/api/config", profile), {
       method: "PUT",
@@ -2201,6 +2214,14 @@ export interface WisdomEntitlement {
   org_id: null | string;
   scopes: string[];
   expires_at: null | number;
+}
+
+/** One profile's shared-metrics answer; `decided` is false until either key is written. */
+export interface SharedMetricsConsent {
+  enabled: boolean;
+  send: boolean;
+  decided: boolean;
+  managed: boolean;
 }
 
 export interface StatusResponse {

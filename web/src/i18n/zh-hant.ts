@@ -90,6 +90,14 @@ export const zhHant: Translations = {
     statusOverview: "狀態總覽",
     system: "系統",
     webUi: "管理面板",
+    sharedMetricsTitle: "協助改進 Hermes？",
+    sharedMetricsBody:
+      "共享指標只包含有上限的計數，絕不包含提示詞、檔案、路徑或錯誤文字，收集僅在本機進行，傳送給 Nous 需要另行同意",
+    sharedMetricsShare: "傳送給 Nous",
+    sharedMetricsLocal: "僅本機",
+    sharedMetricsOff: "不用了",
+    sharedMetricsDetails: "詳細資訊",
+    sharedMetricsSaveFailed: "無法儲存你的選擇",
   },
 
   status: {

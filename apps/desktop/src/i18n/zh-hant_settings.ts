@@ -1,0 +1,2450 @@
+import { defineFieldCopy } from '@/app/settings/field-copy'
+
+import type { TranslationOverrides } from './define-locale'
+
+export const zhHantSettings = {
+  language: {
+    label: '語言',
+    description: '選擇桌面介面的語言。',
+    saving: '正在儲存語言…',
+    saveError: '語言更新失敗',
+    switchTo: '切換語言',
+    searchPlaceholder: '搜尋語言…',
+    noResults: '找不到語言'
+  },
+  settings: {
+    subpages: {
+      appearanceTheme: '主題',
+      appearanceTypography: '字體與縮放',
+      appearanceWindowLayout: '視窗與佈局',
+      appearanceChatDisplay: '聊天顯示',
+      appearancePet: '寵物',
+      appearanceGeneral: '一般',
+      modelMain: '主要模型',
+      modelAuxiliary: '輔助模型',
+      modelMoa: '多代理協作',
+      modelFallbacks: '備用模型',
+      chatBehavior: '行為',
+      chatAttachments: '附件',
+      workspaceProjects: '專案與探索',
+      workspaceShell: 'Shell 環境',
+      workspaceFiles: '檔案與執行',
+      safetyApprovals: '核准',
+      safetyPrivacy: '隱私與網路',
+      safetyCheckpoints: '檢查點',
+      browserProfile: '瀏覽器設定檔',
+      browserNetwork: '本機與私人網址',
+      memoryPersistent: '持久記憶',
+      memoryContext: '上下文與壓縮',
+      voiceConversation: '語音對話',
+      voiceTranscription: '語音轉文字',
+      voiceSpeech: '文字轉語音',
+      advancedRuntime: '代理限制',
+      advancedTools: '工具存取',
+      advancedTerminal: '終端後端',
+      advancedOutput: '輸出限制',
+      advancedDelegation: '子代理',
+      advancedDesktop: '桌面與啟動',
+      gatewayConnection: '目前視窗',
+      gatewayDevices: '已儲存的連線',
+      gatewayManagedUpdates: '遠端更新',
+      gatewayManagedUpdatesUnavailable: '遠端更新需要支援受管理 SSH 更新的桌面版本。',
+      gatewayManagedUpdatesEmpty: '請在已儲存的連線中新增 SSH 連線，即可在此管理更新。',
+      keyboardShortcuts: '按鍵繫結',
+      hudGesture: 'HUD 手勢',
+      screenCapture: '螢幕擷取',
+      notificationAlerts: '桌面通知',
+      notificationSounds: '聲音',
+      archivedSessions: '封存與保留',
+      defaultDirectory: '預設專案資料夾',
+      vaultCredentials: '已儲存的憑證',
+      vaultSources: '密碼管理員',
+      appUpdates: '版本與更新',
+      uninstall: '解除安裝',
+      billingOverview: '概覽',
+      billingPlans: '方案'
+    },
+
+    closeSettings: '關閉設定',
+    exportConfig: '匯出設定',
+    importConfig: '匯入設定',
+    resetToDefaults: '恢復預設值',
+    resetConfirm: '要將所有設定恢復為 Hermes 預設值嗎？',
+    exportFailed: '匯出失敗',
+    resetFailed: '重設失敗',
+    nav: {
+      providers: '提供方',
+      providerAccounts: '帳號',
+      providerApiKeys: 'API 金鑰',
+      providerCustomEndpoints: '自訂端點',
+      providerLocalModels: '本地模型',
+      gateway: '閘道',
+      apiKeys: '工具與金鑰',
+      keybinds: '鍵盤快捷鍵',
+      keysTools: '工具',
+      keysSettings: '設定',
+      mcp: 'MCP',
+      archivedChats: '已封存聊天',
+      sessions: '工作階段',
+      about: '關於',
+      billing: '帳單',
+      notifications: '通知',
+      vault: '密碼與登入'
+    },
+    plugins: {
+      title: '桌面插件',
+      blurb:
+        '擴展此應用程序，而不是代理 - 為整個應用程式安裝一次，無論您連接到哪個設定檔、網關或電腦。捆綁或放入桌面插件資料夾中；切換即時生效。',
+      count: n => `${n}已安裝`,
+      openFolder: '打開插件資料夾',
+      rescan: '重新掃描',
+      reveal: '在檔案總管中顯示',
+      enable: '啟用',
+      disable: '停用',
+      failed: '失敗了',
+      empty: '尚未安裝桌面插件。',
+      kinds: {
+        bundled: '捆綁的',
+        disk: '在磁碟上',
+        runtime: '運行時'
+      },
+      agentHalfMissing: '特工一半失蹤了',
+      agentHalfMissingTip:
+        '這是捆綁插件的桌面部分，但其代理部分未安裝在目前連接的後端/設定檔上。從“功能”→“插件”安裝它。',
+      installModal: {
+        installFromGit: '從 Git 安裝',
+        reviewRepository: '檢查儲存庫',
+        repoPlaceholder: 'https://github.com/owner/repo',
+        title: '安裝插件',
+        description: '在安裝任何內容之前查看此儲存庫包含的內容。',
+        repoLabel: '儲存庫',
+        includesHeading: '該套餐包括',
+        agentLabel: '代理商插件',
+        desktopLabel: '桌面使用者介面',
+        agentTargetLocal: (profile, dir) => `安裝到${profile}後端 (${dir})`,
+        agentTargetRemote: profile => `安裝到已連接的設備中${profile}後端`,
+        catalogPinned: (name, sha) =>
+          `Hermes 目錄條目“${name}" — 代理程式元件安裝在已檢查的接腳上${sha ? ` ${sha}` : ''}，而不是分支尖端。`,
+        reviewedHeading: '已審核的目錄條目',
+        reviewedIntro: '該條目在其固定提交時經過了人工審核。您仍然可以檢查下面的確切程式碼。',
+        restartToApply: '重啟網關使插件生效。',
+        restartNow: '重啟網關',
+        toolsConnected: n => `${n} 個工具已連接`,
+        skillsReady: names => (names.length === 1 ? `技能 ${names[0]} 已就緒` : `${names.length} 個技能已就緒`),
+        nextChat: '下次對話中可使用更多工具',
+        serverNotConnected: (server, reason) => `MCP 伺服器 ${server} 未連接${reason ? `：${reason}` : ''}`,
+        missingEnvAction: '設定一下',
+        alreadyInstalled: (name: string) => `${name}已經安裝。`,
+        desktopTarget: '安裝到該應用程式的本機桌面插件資料夾中',
+        desktopTargetFromPackage: '從上面的套件載入到此應用程式中 - 每個設定檔都相同',
+        desktopOnlyNote: '僅桌面版軟體包不安裝後端代理插件。',
+        insecureWarning: '此 URL 使用不安全或本地方案。首選 https:// 或 git@ 進行生產安裝。',
+        securityHeading: '安裝前',
+        securityIntro: '僅從您信任的來源安裝 - 如果您想查看將添加的內容，請查看下面的儲存庫。',
+        sourceHeading: '原始碼',
+        viewRepository: '查看儲存庫',
+        viewPluginFiles: '查看插件文件',
+        gitCloneLabel: 'Git 克隆 URL',
+        enableAgent: '安裝後啟用代理插件',
+        forceReinstall: '強制重新安裝（如果已安裝則替換）',
+        pinToCommit: '固定以提交（可選）',
+        pinToCommitPlaceholder: '完整 40 個字元提交 SHA',
+        pinToCommitHint:
+          '每個安裝此 SHA 的人都會獲得相同的代碼；然後插件會拒絕更新，直到重新固定為止。為最新提交留空。',
+        pinToCommitInvalid: '必須是完整的 40 個字元提交 SHA（不接受分支和標籤）。',
+        install: '安裝',
+        installing: '正在安裝...',
+        probing: '檢查儲存庫...',
+        probeUnavailable: '在此環境中插件檢查不可用。',
+        desktopUnavailable: '在此環境中無法安裝桌面插件。',
+        selectComponent: '至少選擇一個要安裝的組件。',
+        agentSuccess: name => `代理插件${name}已安裝`,
+        desktopSuccess: name => `桌面插件${name}已安裝`,
+        agentFailed: '代理插件安裝失敗',
+        desktopFailed: '桌面插件安裝失敗',
+        missingEnv: (name, vars) =>
+          `${name} is installed but needs a key before it can work: ${vars}。現在添加它，否則插件的工具將失敗。`,
+        profileLabel: '安裝設定檔',
+        installUncertain:
+          'Hermes 已停止等待安裝結果，但插件可能仍在安裝中。請關閉此對話方塊，並在「插件」中執行「重新掃描」後再嘗試安裝'
+      }
+    },
+    vault: {
+      title: '密碼與登入',
+      blurb:
+        '說一句「登入 GitHub」，代理就會代你登入。第一次遇到登入頁時它會當場向你索取登入資訊，之後就自動完成。密碼在本機加密儲存並直接填入頁面——模型永遠看不到。',
+      count: n => `已儲存 ${n} 項`,
+      loadFailed: '無法載入保險庫項目',
+      empty: '尚未儲存任何內容',
+      emptyDesc: '這裡不必手動新增。讓代理登入某個網站時，它會當場向你詢問一次登入資訊。若想提前輸入，可按「新增」。',
+      add: '新增',
+      addTitle: '新增登入資訊、信用卡或地址',
+      addDescription: '加密儲存在此裝置上。代理永遠不會看到密碼。',
+      added: '已儲存。',
+      adding: '儲存中…',
+      addConfirm: '儲存',
+      kindField: '類型',
+      kinds: {
+        login: '登入',
+        payment: '支付卡',
+        address: '地址'
+      },
+      labelField: '標籤',
+      labelPlaceholder: '例如：GitHub 工作帳號',
+      labelRequired: '標籤為必填。',
+      originField: '網站來源',
+      originPlaceholder: 'https://github.com',
+      originPlaceholderCheckout: 'https://shop.example.com',
+      originInvalid: '請輸入有效的 URL，例如 https://example.com。',
+      identifierTypeField: '識別碼類型',
+      identifierTypes: {
+        email: '電子郵件',
+        phone: '電話',
+        username: '使用者名稱'
+      },
+      identifierField: '識別碼',
+      identifierShown: identifier => identifier,
+      passwordField: '密碼',
+      loginFieldsRequired: '識別碼與密碼為必填。',
+      cardNumberField: '卡號',
+      cardNameField: '持卡人姓名',
+      expMonthField: '到期月份',
+      expYearField: '到期年份',
+      cvcField: 'CVC',
+      postalField: '郵遞區號',
+      addressLine1Field: '地址第 1 行',
+      addressLine2Field: '地址第 2 行',
+      cityField: '城市',
+      stateField: '州 / 地區',
+      countryField: '國家/地區',
+      optional: '（選填）',
+      createdOn: date => `新增於 ${date}`,
+      deleteAction: '移除已儲存項目',
+      otpField: '驗證器金鑰',
+      otpPlaceholder: 'Base32 金鑰或 otpauth:// 連結',
+      otpHint: '啟用兩步驟驗證時網站顯示的「設定金鑰」。儲存後 Hermes 會自動產生驗證碼。',
+      twoFactorBadge: '自動 2FA',
+      deleteTitle: '刪除此項目？',
+      deleteDescription: label => `「${label}」將從加密保險庫中移除。此操作無法復原。`,
+      deleteConfirm: '刪除',
+      sources: {
+        title: '密碼管理器',
+        blurb:
+          '已安裝的密碼管理器會被自動偵測。代理第一次需要其中的登入資訊時會請你解鎖（每個工作階段一次）；記憶體中只保留工作階段權杖，代理永遠看不到你的主密碼或任何登入資訊。',
+        toggleFailed: '無法更新密碼管理器',
+        notInstalled: name => `未偵測到。安裝 ${name} 命令列工具並登入後，Hermes 會自動偵測。`,
+        disabledDesc: '已偵測到，但已為 Hermes 關閉。',
+        lockedDesc: '已偵測到。代理需要登入資訊時會請你解鎖，也可立即解鎖。',
+        unlockedDesc: '本工作階段已解鎖。閒置 30 分鐘或關閉 Hermes 後會自動鎖定。',
+        statusLocked: '已鎖定',
+        statusNotDetected: '未偵測到',
+        statusOff: '已關閉',
+        statusUnlocked: '已解鎖',
+        unlock: '解鎖',
+        unlocking: '解鎖中…',
+        lock: '鎖定',
+        unlocked: name => `${name} 已在本工作階段解鎖。`,
+        unlockTitle: name => `解鎖 ${name}`,
+        unlockDescription: '輸入主密碼。它會交給本機的密碼管理器後立即捨棄，不會被儲存、記錄或顯示給代理。',
+        masterPasswordPlaceholder: '主密碼'
+      }
+    },
+    notifications: {
+      title: '通知',
+      intro: '原生桌面通知，與應用程式內提示不同。設定會依裝置保存，每台電腦各自獨立。',
+      enableAll: '啟用通知',
+      enableAllDesc: '關閉後靜音下方所有通知。',
+      focusedHint: '完成提醒僅在 Hermes 位於背景時觸發。',
+      kinds: {
+        approval: {
+          label: '需要核准',
+          description: '有指令正在等待你核准或拒絕。'
+        },
+        input: {
+          label: '需要輸入',
+          description: 'Hermes 提出了問題，或需要密碼或密鑰。'
+        },
+        turnDone: {
+          label: '回覆就緒',
+          description: 'Hermes 在背景時完成了一輪對話。'
+        },
+        turnError: {
+          label: '本輪失敗',
+          description: '背景回合錯誤。'
+        },
+        backgroundDone: {
+          label: '背景工作完成',
+          description: '背景終端機指令已完成。'
+        },
+        credits: {
+          label: '額度提醒',
+          description: '額度存取被暫停或恢復。'
+        },
+        plugin: {
+          label: '外掛通知',
+          description: 'Hermes 在背景時，桌面外掛傳送了通知。'
+        }
+      },
+      test: '傳送測試通知',
+      testTitle: 'Hermes',
+      testBody: '通知運作正常。',
+      testSent: '測試已傳送。若沒有出現，請檢查系統通知權限與專注模式／勿擾模式。',
+      testUnsupported: '此系統不支援原生通知。',
+      completionSoundTitle: '完成提示音',
+      completionSoundDesc: '代理回合結束時播放。可在此選擇預設並預覽。',
+      completionSoundPreview: '預覽'
+    },
+    memoryProvider: {
+      loadFailed: detail => `記憶提供者設定載入失敗：${detail}`,
+      loadFailedFallback: '記憶提供者設定載入失敗',
+      loading: '正在載入記憶提供者設定…',
+      settingsTitle: label => `${label} 設定`,
+      fieldSet: label => `已設定 ${label}`,
+      fieldNotSet: label => `未設定 ${label}`,
+      fullConfig: '完整設定…',
+      fullConfigTitle: label => `${label}——完整設定`,
+      fullConfigDescription: (label, profile) =>
+        `${profile} 設定檔的所有 ${label} 選項。空白欄位會使用解析後的主機值或內建預設值。`,
+      reference: label => `${label} 設定參考`,
+      otherGroup: '其他',
+      saveChanges: '儲存變更',
+      fieldAbout: label => `關於${label}`,
+      leaveBlankToKeep: '留空以保留目前的值',
+      valueSet: '已設定',
+      connectionStartFailed: '無法開始連線。',
+      connectionTimedOut: '連線逾時——請重試。',
+      connectionFailed: '連線失敗。',
+      connectViaOAuth: '透過 OAuth 連線',
+      reconnect: '重新連線',
+      connect: '連線',
+      apiKeySet: '已設定 API 金鑰',
+      oauthSet: '已設定 OAuth',
+      waitingForConsent: '正在等待瀏覽器授權…',
+      saved: label => `${label}設定已儲存`,
+      updated: '記憶體提供者的配置已更新。',
+      saveFailed: label => `無法儲存${label}設定`
+    },
+    sections: {
+      model: '模型',
+      chat: '聊天',
+      appearance: '外觀',
+      workspace: '工作區',
+      safety: '安全性',
+      browser: '瀏覽器',
+      memory: '記憶與上下文',
+      voice: '語音',
+      advanced: '進階'
+    },
+    searchPlaceholder: {
+      about: '關於 Hermes Desktop',
+      config: '搜尋設定…',
+      gateway: '閘道連線…',
+      keys: '搜尋 API 金鑰…',
+      mcp: '搜尋 MCP 伺服器…',
+      sessions: '搜尋已封存工作階段…'
+    },
+    modeOptions: {
+      light: {
+        label: '明亮',
+        description: '明亮的桌面介面'
+      },
+      dark: {
+        label: '深色',
+        description: '降低眩光的工作區'
+      },
+      system: {
+        label: '跟隨系統',
+        description: '跟隨作業系統外觀'
+      }
+    },
+    appearance: {
+      chatTextScaleTitle: '聊天文字大小',
+      chatTextScaleDesc: '相對於介面縮放調整對話文字和訊息輸入框的字級，側邊欄與控制項大小保持不變',
+      title: '外觀',
+      intro: '這些是僅限桌面端的顯示偏好。模式控制亮度；主題控制強調色與聊天介面樣式。',
+      themeSearchPlaceholder: '搜尋你的主題或 VS Code Marketplace…',
+      noInstalledThemeMatches: query => `已安裝的主題中沒有符合「${query}」的項目。`,
+      marketplaceThemeSource: '來自 VS Code Marketplace',
+      colorMode: '色彩模式',
+      colorModeDesc: '選擇固定模式，或讓 Hermes 跟隨系統設定。',
+      toolViewTitle: '工具呼叫顯示',
+      toolViewDesc: '產品模式會隱藏原始工具 payload；技術模式會顯示完整輸入/輸出。',
+      reasoningCollapsedTitle: '預設摺疊推理過程',
+      reasoningCollapsedDesc: '保留串流推理內容，但在您開啟前維持摺疊。',
+      uiScaleTitle: '介面縮放',
+      uiScaleDesc: (percent: number) =>
+        `縮放整個應用程式的文字與介面。也可使用 Cmd/Ctrl 加 +、- 或 0 調整。目前：${percent}%`,
+      sessionDensityTitle: '工作階段列表密度',
+      sessionDensityDesc: '選擇側邊欄工作階段標題下方顯示的資訊量。',
+      sessionDensityCompact: '緊湊',
+      sessionDensityComfortable: '舒適',
+      sessionDensityDetailed: '詳細',
+      tabStripTitle: '分頁列',
+      tabStripDesc: '在區域上方顯示分頁。除非打開其他聊天或磁貼區，否則單個窗格會自動隱藏它們。',
+      tabStripAuto: '自動',
+      tabStripAlways: '一律',
+      tabStripNever: '永不',
+      appActionsTitle: '應用操作',
+      appActionsDesc: '設定、版面與 HUD 放在標題列左側或右側。選右側可把左側留給分頁。',
+      appActionsLeft: '左側',
+      appActionsRight: '右側',
+      terminalFontTitle: '終端機字型',
+      terminalFontDesc:
+        '選擇已安裝的字型用於桌面端終端機。Nerd Font 可正確顯示 Powerlevel10k 與 Shell 圖示；留空則使用內建的 JetBrains Mono。',
+      terminalFontPlaceholder: 'MesloLGS NF 或 CSS 字型堆疊',
+      terminalFontPreview: '字形預覽',
+      terminalFontReset: '使用預設字型',
+      translucencyTitle: '視窗透明',
+      translucencyDesc: '讓整個視窗（包括文字）透出桌面。',
+      translucencyGlassDesc: '霧面玻璃：桌面以柔和模糊透出，文字保持清晰。',
+      translucencyModeClear: '透明',
+      translucencyModeGlass: '玻璃',
+      translucencyTintTitle: '色調',
+      translucencyFadeTitle: '淡出',
+      translucencyFrostTitle: '磨砂質感',
+      translucencyFrost: {
+        'under-window': '深邃',
+        popover: '柔和',
+        titlebar: '明亮',
+        header: '透亮'
+      },
+      translucencyScopeTitle: '套用範圍',
+      translucencyScope: {
+        window: '整個視窗',
+        sidebar: '僅側邊欄'
+      },
+      backdropTitle: '聊天背景',
+      backdropDesc: '對話後方那張淡淡的雕像圖片。',
+      userBubbleTitle: '訊息氣泡',
+      userBubbleDesc: '你自己的訊息有多透明。0 為不透明，100 時只保留邊框。',
+      textDirectionTitle: '文字方向',
+      textDirectionDesc:
+        '設定聊天訊息和輸入框的文字方向。「自動」依每段的第一個字母判斷；混合文字排列不對時，可手動選擇方向。程式碼一律從左到右顯示。',
+      textDirection: { auto: '自動', rtl: '從右到左', ltr: '從左到右' },
+      introSplashTitle: '開場標識',
+      introSplashDesc: '空白對話中顯示的字標和提示語。',
+      modelPricingTitle: '模型價格',
+      modelPricingDesc: '在模型選擇器中顯示每百萬 token 的輸入、輸出和快取讀取價格。',
+      reactionsTitle: '訊息回應',
+      reactionsDesc: 'iMessage 風格的表情回應 — 你可以對訊息做出回應，Hermes 也能回應你的訊息。',
+      tipsTitle: '應用程式內提示',
+      tipsDesc: '偶爾顯示來自應用程式和 Hermes 的提示，每則提示只出現一次。開始使用滿30天後自動關閉，你可以重新開啟。',
+      tipsReset: (count: number) => `再次顯示 ${count} 則提示`,
+      toursTitle: '導覽',
+      toursDesc: '讓 Hermes 逐步標示每個位置，帶你認識應用程式。開始使用滿30天後自動關閉，你可以重新開啟。',
+      composerPopoutTitle: '懸浮輸入框',
+      composerPopoutDesc: '允許將輸入框拖出底部停靠區。關閉時，輸入框停靠在底部。',
+      fileBrowserTitle: '檔案瀏覽器',
+      fileBrowserDesc: '開啟工作區時，在聊天旁顯示檔案瀏覽器。標題列的切換按鈕也會變更此設定。',
+      vibeHeartsTitle: '心情愛心',
+      vibeHeartsDesc: '當你說謝謝、愛你、good bot 或送出愛心時飄出的愛心。與上方的訊息回應是兩回事。',
+      embedsTitle: '內嵌預覽',
+      embedsDesc:
+        '豐富預覽會從第三方網站（YouTube、X 等）載入。詢問會在你允許前顯示佔位符；一律會自動載入；關閉則保留純連結。',
+      embedsAsk: '詢問',
+      embedsAlways: '一律',
+      embedsOff: '關閉',
+      embedsReset: (count: number) => `重設 ${count} 個已允許的服務`,
+      resumeLastSessionTitle: '啟動時恢復上次會話',
+      resumeLastSessionDesc: '開啟後，應用冷啟動時重新打開最近的聊天。關閉則始終從空白新會話開始。',
+      product: '產品',
+      productDesc: '易讀的工具活動與精簡摘要。',
+      technical: '技術',
+      technicalDesc: '包含原始工具參數、結果與底層細節。',
+      themeTitle: '主題',
+      themeDesc: '僅限桌面端的調色盤。所選模式會套用在其上。',
+      themeProfileNote: profile => `已為「${profile}」設定檔儲存——每個設定檔保留各自的主題。`,
+      installTitle: '從 VS Code 安裝',
+      installDesc: '貼上 Marketplace 擴充功能 ID（例如 dracula-theme.theme-dracula），將其配色主題轉換為桌面調色盤。',
+      installPlaceholder: 'publisher.extension',
+      installButton: '安裝',
+      installing: '安裝中…',
+      installError: '無法安裝該主題。',
+      installed: name => `已安裝「${name}」。`,
+      removeTheme: '移除主題',
+      importedBadge: '已匯入',
+      pet: {
+        title: '寵物',
+        intro:
+          '領養一隻懸浮在應用上的 petdex 動畫寵物，它會根據 Hermes 的狀態做出反應——工具執行時奔跑、成功時歡呼、出錯時沮喪。',
+        restartHint: '寵物功能需要重新啟動——目前執行的應用在此功能加入前啟動。請結束並重新開啟 Hermes，然後回到此處。',
+        on: '開啟',
+        off: '關閉',
+        scaleTitle: '大小',
+        scaleDesc: '調整懸浮寵物的大小，所有介面即時生效。',
+        roamTitle: '漫遊',
+        roamDesc: '閒置時讓寵物自己在視窗內四處走動。',
+        chooseTitle: '選擇寵物',
+        chooseDesc: '選擇後會自動安裝（如需）並設為目前寵物。',
+        searchPlaceholder: '搜尋寵物…',
+        unreachable: '無法連線至 petdex 畫廊。請檢查網路連線並重新開啟此頁面。',
+        noMatch: query => `沒有符合「${query}」的寵物。`,
+        installedTag: '已安裝',
+        generatedTag: '生成',
+        countCapped: (cap, total) => `顯示 ${total} 個中的 ${cap} 個——輸入關鍵字以縮小範圍。`,
+        count: n => `${n} 個寵物。`,
+        uninstall: name => `解除安裝 ${name}`,
+        delete: name => `刪除 ${name}`,
+        deleteTitle: name => `刪除 ${name}？`,
+        deleteBody: '此操作會永久刪除寵物，且無法重新安裝。',
+        deleteConfirm: '刪除',
+        rename: name => `重新命名 ${name}`,
+        renameTitle: '重新命名寵物',
+        renamePlaceholder: '為寵物取個名字',
+        renameSave: '儲存',
+        exportPet: name => `匯出 ${name}`,
+        adoptFailed: slug => `無法領養 ${slug}`,
+        uninstallFailed: slug => `無法解除安裝 ${slug}`,
+        renameFailed: slug => `無法重新命名 ${slug}`,
+        exportFailed: slug => `無法匯出 ${slug}`,
+        noneAvailable: '目前沒有可開啟的寵物。',
+        turnOnFailed: '無法開啟寵物。',
+        turnOffFailed: '無法關閉寵物。'
+      },
+      hideCodeDiffsTitle: '隱藏程式碼差異',
+      hideCodeDiffsDesc: '將檔案編輯顯示為內嵌工具列，並標註新增/刪除的行數，但不顯示程式碼。',
+      hideThreadTimelineTitle: '隱藏主題時間軸欄',
+      hideThreadTimelineDesc: '隱藏每個對話右邊緣的導航欄。',
+      chatFontTitle: '聊天字體',
+      chatFontDesc:
+        '為聊天和應用程式的其他部分選擇已安裝的字體。對於可讀性字體（如 OpenDyslexic）非常方便；留空以使用主題的字體。',
+      chatFontPlaceholder: 'OpenDyslexic 或 CSS 字體堆疊',
+      chatFontPreview: '預覽',
+      chatFontSample: '那隻敏捷的棕色狐狸跳過那隻懶惰的狗。0123456789',
+      chatFontReset: '使用主題字體'
+    },
+    fieldLabels: defineFieldCopy({
+      model: '預設模型',
+      modelContextLength: '上下文視窗',
+      fallbackProviders: '備用模型',
+      toolsets: '已啟用工具集',
+      timezone: '時區',
+      display: {
+        personality: '人格',
+        showReasoning: '推理區塊'
+      },
+      desktop: {
+        repoScanEnabled: '自動探索程式碼儲存庫',
+        repoScanRoots: '程式碼儲存庫掃描根目錄',
+        repoScanExcludePaths: '排除的程式碼儲存庫路徑'
+      },
+      agent: {
+        maxTurns: '最大代理步數',
+        imageInputMode: '圖片附件',
+        apiMaxRetries: 'API 重試次數',
+        outputTruncationRetries: '輸出上限重試次數',
+        postToolEmptyRetries: '工具後空回應重試次數',
+        thinkingPrefillRetries: '思考預填充重試次數',
+        emptyResponseRetries: '空回應重試次數',
+        serviceTier: '服務層級',
+        toolUseEnforcement: '工具使用強制',
+        environmentProbe: '執行環境探測'
+      },
+      terminal: {
+        cwd: '工作目錄',
+        backend: '執行後端',
+        timeout: '指令逾時',
+        persistentShell: '持久化 Shell',
+        envPassthrough: '環境變數傳遞',
+        containerPersistent: '持久化容器檔案系統',
+        dockerImage: 'Docker 映像',
+        dockerMountCwdToWorkspace: '將專案目錄掛載進 Docker',
+        dockerWorkspacePerSession: '跟隨各工作階段選擇的專案',
+        dockerWorkspaceMountPath: 'Docker 掛載路徑',
+        singularityImage: 'Singularity 映像',
+        singularityMountCwdToWorkspace: '將專案目錄掛載進 Singularity',
+        singularityWorkspacePerSession: '跟隨各工作階段選擇的專案（Singularity）',
+        singularityWorkspaceMountPath: 'Singularity 掛載路徑',
+        modalImage: 'Modal 映像',
+        daytonaImage: 'Daytona 映像'
+      },
+      fileReadMaxChars: '檔案讀取上限',
+      toolOutput: {
+        maxBytes: '終端機輸出上限',
+        maxLines: '檔案頁面上限',
+        maxLineLength: '行長上限'
+      },
+      codeExecution: {
+        mode: '程式碼執行模式'
+      },
+      approvals: {
+        mode: '批准模式',
+        timeout: '批准逾時',
+        mcpReloadConfirm: '確認 MCP 重新載入'
+      },
+      commandAllowlist: '指令允許清單',
+      security: {
+        redactSecrets: '遮蔽密鑰',
+        allowPrivateUrls: '允許私有 URL'
+      },
+      browser: {
+        allowPrivateUrls: '瀏覽器私有 URL',
+        autoLocalForPrivateUrls: '私有 URL 使用本機瀏覽器',
+        useRealProfile: '使用我的真實瀏覽器設定檔'
+      },
+      checkpoints: {
+        enabled: '檔案檢查點',
+        maxSnapshots: '檢查點上限'
+      },
+      voice: {
+        maxRecordingSeconds: '最長錄音時間',
+        clientDirect: '用戶端直連',
+        autoTts: '朗讀回覆',
+        voiceChatMode: '語音聊天模式',
+        gptLive: {
+          voice: 'GPT-Live 語音',
+          instructions: 'GPT-Live 人設'
+        }
+      },
+      stt: {
+        enabled: '語音轉文字',
+        echoTranscripts: '回顯轉寫文字',
+        provider: '語音轉文字提供方',
+        local: {
+          model: '本機轉寫模型',
+          language: '轉寫語言'
+        },
+        openai: {
+          model: 'OpenAI STT 模型'
+        },
+        groq: {
+          model: 'Groq STT 模型'
+        },
+        mistral: {
+          model: 'Mistral STT 模型'
+        },
+        elevenlabs: {
+          modelId: 'ElevenLabs STT 模型',
+          languageCode: 'ElevenLabs 語言',
+          tagAudioEvents: '標記音訊事件',
+          diarize: '說話者分離'
+        }
+      },
+      tts: {
+        provider: '文字轉語音提供方',
+        edge: {
+          voice: 'Edge 語音'
+        },
+        openai: {
+          model: 'OpenAI TTS 模型',
+          voice: 'OpenAI 語音'
+        },
+        elevenlabs: {
+          voiceId: 'ElevenLabs 語音',
+          modelId: 'ElevenLabs 模型'
+        },
+        xai: {
+          voiceId: 'xAI (Grok) 語音',
+          language: 'xAI 語言',
+          speed: '播放速度',
+          autoSpeechTags: '自動語音標籤',
+          optimizeStreamingLatency: '串流延遲最佳化',
+          sampleRate: '取樣率',
+          bitRate: '位元率'
+        },
+        minimax: {
+          model: 'MiniMax TTS 模型',
+          voiceId: 'MiniMax 語音'
+        },
+        mistral: {
+          model: 'Mistral TTS 模型',
+          voiceId: 'Mistral 語音'
+        },
+        gemini: {
+          model: 'Gemini TTS 模型',
+          voice: 'Gemini 語音'
+        },
+        neutts: {
+          model: 'NeuTTS 模型',
+          device: 'NeuTTS 裝置'
+        },
+        kittentts: {
+          model: 'KittenTTS 模型',
+          voice: 'KittenTTS 語音'
+        },
+        piper: {
+          voice: 'Piper 語音'
+        },
+        deepinfra: {
+          model: 'DeepInfra TTS 模型',
+          voice: 'DeepInfra 語音'
+        }
+      },
+      memory: {
+        memoryEnabled: '持久記憶',
+        userProfileEnabled: '使用者設定檔',
+        memoryCharLimit: '記憶預算',
+        userCharLimit: '設定檔預算',
+        provider: '記憶提供方'
+      },
+      context: {
+        engine: '上下文引擎'
+      },
+      compression: {
+        enabled: '自動壓縮',
+        threshold: '壓縮閾值',
+        targetRatio: '壓縮目標',
+        protectLastN: '保護最近訊息',
+        codexGpt55Autoraise: 'Codex 壓縮自動提高'
+      },
+      delegation: {
+        model: '子代理模型',
+        provider: '子代理提供方',
+        useCustomEndpoints: '子代理建議自訂端點',
+        maxIterations: '子代理輪次上限',
+        maxConcurrentChildren: '平行子代理',
+        childTimeoutSeconds: '子代理逾時',
+        reasoningEffort: '子代理推理強度'
+      },
+      updates: {
+        nonInteractiveLocalChanges: '應用程式內更新的本機變更'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '壓縮模型逾時（秒）'
+        }
+      }
+    }),
+    fieldDescriptions: defineFieldCopy({
+      model: '除非你在輸入框選擇其他模型，否則新聊天會使用此模型。',
+      modelContextLength: '保留 0 會使用所選模型偵測到的上下文視窗。',
+      fallbackProviders: '預設模型失敗時要嘗試的備用 provider:model 項目。',
+      display: {
+        personality: '新工作階段的預設助手風格。',
+        showReasoning: '後端提供推理內容時顯示該區塊。'
+      },
+      desktop: {
+        repoScanEnabled: '掃描本機資料夾，並在「專案」中顯示 Git 程式碼儲存庫。',
+        repoScanRoots: '要掃描的資料夾。留空時掃描主目錄。',
+        repoScanExcludePaths: '探索程式碼儲存庫時略過這些資料夾及其子目錄。'
+      },
+      timezone: 'Hermes 需要本機時間上下文時使用。留空則使用系統時區。',
+      agent: {
+        imageInputMode: '控制圖片附件如何傳送給模型。',
+        maxTurns: 'Hermes 停止一次執行前的工具呼叫輪次上限。',
+        outputTruncationRetries:
+          '在提供方因輸出 Token 上限截斷回覆後繼續生成的次數（0–3）。每次續寫都會重新傳送完整提示並可能再次計費；設為 0 則立即回傳已生成的部分。預設 3 次。',
+        postToolEmptyRetries:
+          '模型在工具呼叫後未回傳可見文字時，傳送繼續提示。每次重試都可能重複計費；設為 0 可關閉，最多 3 次。',
+        thinkingPrefillRetries:
+          '模型只回傳思考而沒有可見文字時，預填充該思考以繼續產生。每次重試都可能重複計費；設為 0 可關閉，最多 3 次。',
+        emptyResponseRetries:
+          '前置復原層仍未產生可見文字時重試。每次都可能重複計費，成本保護可能提前停止；設為 0 可關閉，最多 3 次。',
+        environmentProbe: '為新工作階段探測執行環境詳細資料。容器後端使用探測後自動移除的暫時沙箱；關閉時使用靜態描述。'
+      },
+      terminal: {
+        cwd: '工具與終端機操作的預設專案資料夾。',
+        persistentShell: '後端支援時，在指令之間保留 Shell 狀態。',
+        envPassthrough: '傳入工具執行的環境變數。',
+        containerPersistent:
+          '跨工作階段保留容器檔案系統狀態。變更會在後端重新啟動後生效，且不會銷毀目前的容器或執行個體。',
+        dockerImage: '執行後端為 Docker 時使用的容器映像檔',
+        dockerMountCwdToWorkspace: '將專案目錄繫結掛載到 Docker 沙箱的 /workspace；關閉時沙箱完全隔離',
+        dockerWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的容器',
+        dockerWorkspaceMountPath: '專案在容器內的完整掛載路徑，預設 /workspace；修改後對下一個容器生效',
+        singularityImage: '執行後端為 Singularity 時使用的映像檔',
+        singularityMountCwdToWorkspace: '將專案目錄繫結掛載到 Singularity 沙箱的 /workspace；關閉時沙箱完全隔離',
+        singularityWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的執行個體',
+        singularityWorkspaceMountPath: '專案在沙箱內的完整繫結路徑，預設 /workspace；修改後對下一個執行個體生效',
+        modalImage: '執行後端為 Modal 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載',
+        daytonaImage: '執行後端為 Daytona 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載'
+      },
+      codeExecution: {
+        mode: '程式碼執行被限制在目前專案中的嚴格程度。'
+      },
+      fileReadMaxChars: 'Hermes 單次檔案讀取可讀取的最大字元數。',
+      approvals: {
+        mode: 'Hermes 如何處理需要明確批准的指令。',
+        timeout: '訊息平台上的批准提示逾時前等待的時間，App 與終端機會一直等到你回覆'
+      },
+      security: {
+        redactSecrets: '盡可能從模型可見內容中隱藏偵測到的密鑰。',
+        allowPrivateUrls: '允許 URL 擷取工具存取 localhost 與私有網路位址；雲端中繼資料端點仍一律封鎖。'
+      },
+      browser: {
+        useRealProfile:
+          '本機瀏覽會使用您真實的登入狀態。Hermes 會將預設瀏覽器的設定檔（Cookie、登入狀態和偏好設定）複製到受管理的快照中，再透過隨附的 Chromium 驅動該快照；它絕不會直接開啟您正在使用的設定檔，並會在每次執行時從原設定檔重新整理副本。即使已設定雲端瀏覽器後端，也允許代理依要求開啟使用真實設定檔的本機工作階段。僅支援以 Chromium 為基礎的瀏覽器（Chrome、Edge、Brave、Chromium）；若預設瀏覽器不是 Chromium 核心，將顯示明確的錯誤訊息。預設關閉。'
+      },
+      checkpoints: {
+        enabled: '在檔案編輯前建立可回復的快照。'
+      },
+      memory: {
+        memoryEnabled: '儲存有助於未來工作階段的持久記憶。',
+        userProfileEnabled: '維護一份精簡的使用者偏好設定檔。'
+      },
+      context: {
+        engine: '長對話接近上下文上限時的管理策略。'
+      },
+      compression: {
+        enabled: '對話變大時摘要較早的上下文。',
+        codexGpt55Autoraise: '為受支援的 ChatGPT Codex OAuth 模型將壓縮門檻提高到 85%'
+      },
+      voice: {
+        clientDirect: '盡可能讓此桌面端直接連線語音提供方，而不是透過閘道中轉音訊。',
+        autoTts: '自動朗讀助手回覆。',
+        voiceChatMode:
+          'chained：語音轉文字 → Hermes → 文字轉語音，使用下方的供應商。gpt-live：一個全雙工的 OpenAI 語音模型（gpt-live-1）負責聆聽與說話，並把每個實際請求交給 Hermes——由你選擇的任何模型帶著完整工具集作答。需要 OpenAI API 金鑰；語音層按每分鐘 $0.05 計費',
+        gptLive: {
+          voice: 'GPT-Live 模式使用的語音，可填寫自訂語音 ID',
+          instructions: '附加到即時語音人設的句子（語氣、語速、語言）。Hermes 保留自己的系統提示詞'
+        }
+      },
+      stt: {
+        enabled: '啟用本機或提供方支援的語音轉寫。',
+        elevenlabs: {
+          languageCode: '可選的 ISO-639-3 語言代碼。留空讓 ElevenLabs 自動偵測。'
+        },
+        echoTranscripts: '將語音訊息的原始 🎙️ 逐字稿發回聊天'
+      },
+      updates: {
+        nonInteractiveLocalChanges:
+          'Hermes 從應用程式內更新自身時，保留本機原始碼變更（stash）或丟棄（discard）。終端機更新一律會詢問。'
+      },
+      auxiliary: {
+        compression: {
+          timeout: '每次呼叫輔助壓縮模型的等待秒數（預設 120）。本機模型較慢時請調高'
+        }
+      },
+      delegation: {
+        model: '委派子智慧體使用的模型，留空則繼承父智慧體的模型',
+        provider: '委派子智慧體使用的供應商——內建名稱或自訂端點 id，留空則繼承父智慧體',
+        useCustomEndpoints: '在子智慧體供應商清單中提供你的自訂端點，並在模型清單中提供該端點已探索到的模型'
+      },
+      tts: {
+        xai: {
+          voiceId: 'xAI 語音 ID（例如 eve）或自訂語音 ID',
+          language: '語言代碼（例如 en、pt-BR），或填 "auto" 自動偵測',
+          speed: '播放速度：0.7 = 較慢，1.0 = 正常，1.5 = 較快',
+          autoSpeechTags: '讓 LLM 在合成前自動插入表情音訊標籤（如 [laughing]、[sighs]）',
+          optimizeStreamingLatency: '延遲與品質的取捨：0 = 最佳品質，2 = 最低延遲',
+          sampleRate: '音訊取樣率（Hz）：越高音質越好，檔案越大',
+          bitRate: 'MP3 位元率（bps），僅在編解碼器為 mp3 時生效'
+        },
+        neutts: {
+          device: 'NeuTTS 的本機推論裝置'
+        },
+        deepinfra: {
+          voice: '傳送給 DeepInfra 語音 API 的音色名稱，留空則使用模型的預設音色'
+        }
+      }
+    }),
+    about: {
+      heading: 'Hermes Desktop',
+      version: value => `版本 ${value}`,
+      versionUnavailable: '版本不可用',
+      bundleOutOfSync: '應用程式建置版本過舊',
+      bundleOutOfSyncDesc:
+        'Hermes 執行環境已更新,但桌面應用程式本身仍是舊建置——在應用程式更新之前,新的介面功能（如智慧體模式）不會顯示。請執行下方的更新以重新建置應用程式。如果此警告仍未消除,請從最新的桌面安裝程式重新安裝。',
+      bundleOutOfSyncAction: '取得安裝程式',
+      bundleSwapPending: '重新啟動以完成更新',
+      bundleSwapPendingDesc:
+        '更新後的應用程式已安裝完成，只需重新啟動 Hermes 即可載入新版本。聊天記錄和設定不會受到影響。',
+      bundleSwapPendingAction: '重新啟動 Hermes',
+      updates: '更新',
+      checkNow: '立即檢查',
+      checking: '檢查中…',
+      seeWhatsNew: '查看新增內容',
+      updateNow: '立即更新',
+      releaseNotes: '發行說明',
+      onLatest: '你已是最新版本。',
+      installing: '正在安裝更新。',
+      cantUpdate: '此版本無法從應用程式內自行更新。',
+      cantReach: '無法連線到更新伺服器。',
+      tapCheck: '點選「立即檢查」以尋找更新。',
+      updateReady: count => `新更新已就緒（包含 ${count} 項變更）。`,
+      updateReadyUnknown: '新更新已就緒。',
+      lastChecked: age => `上次檢查：${age}`,
+      automaticUpdates: '自動更新',
+      automaticUpdatesDesc: 'Hermes 會在背景自動檢查更新，並在有可用更新時通知你。',
+      branchCommit: (branch, commit) => `分支 ${branch} · 提交 ${commit}`,
+      never: '從未',
+      justNow: '剛剛',
+      minAgo: count => `${count} 分鐘前`,
+      hoursAgo: count => `${count} 小時前`,
+      daysAgo: count => `${count} 天前`
+    },
+    config: {
+      none: '無',
+      noneParen: '(無)',
+      builtinOnly: '僅內建',
+      notSet: '未設定',
+      commaSeparated: '逗號分隔的值',
+      searchPlaceholder: '搜尋…',
+      noResults: '找不到結果',
+      systemDefault: '系統預設',
+      providerDefault: '提供方預設',
+      loading: '正在載入 Hermes 設定...',
+      emptyTitle: '無可設定項目',
+      emptyDesc: '此區段沒有可調整的設定。',
+      failedLoad: '設定載入失敗',
+      autosaveFailed: '自動儲存失敗',
+      imported: '設定已匯入',
+      invalidJson: '設定 JSON 無效',
+      toolsetsWipeConfirm:
+        '刪除所有啟用的工具集？這將停用記憶體、終端、網路搜尋、委派和大多數其他工具，直到您重新啟用它們。',
+      keepAwakeTitle: '保持電腦喚醒',
+      keepAwakeDesc: '阻止本機睡眠，讓長時間或整夜執行持續進行。螢幕仍可變暗。',
+      disableF12Title: '停用 F12 開發工具',
+      disableF12Desc: '阻止 F12 開啟開發人員工具。 Ctrl+Shift+I（或 Mac 上的 Cmd+Opt+I）仍然有效。',
+      attachmentSizeTitle: '最大預覽/圖像載入大小',
+      attachmentSizeDesc:
+        'Desktop 將載入預覽和映像附加的本機檔案有多大（以 MB 為單位）。預設值為 16。遠端非映像附加使用單獨的 256 MB 上限。設定得非常高會將整個檔案載入到記憶體中，並且可能會凍結或崩潰應用程式。',
+      attachmentSizeUnit: '兆字節',
+      attachmentSizeLabel: '最大預覽/圖像載入大小（以兆位元組為單位）',
+      minimizeToTrayTitle: '最小化到托盤',
+      minimizeToTrayDesc:
+        '最小化視窗或關閉主要視窗以將它們隱藏到系統托盤（在 macOS 的選單列上）並保持 Hermes 運行。使用托盤選單中的退出 Hermes 或按 Cmd Q 離開。默認為關閉；僅適用於此設備。',
+      minimizeToTrayUnavailable: '系統托盤不可用。Windows 將正常最小化並關閉。關閉再重新開啟以重試。',
+      showOptions: '顯示選項',
+      alwaysExternalLinksTitle: '一律在外部瀏覽器中開啟連結',
+      alwaysExternalLinksDesc:
+        '點擊連結時一律使用系統瀏覽器開啟，而不是應用程式內瀏覽器。右鍵選單中的「在應用程式內瀏覽器中開啟」仍然可用',
+      voiceShortcutHintTitle: '語音錄製快捷鍵',
+      voiceShortcutHintDesc:
+        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI'
+    },
+    quickEntry: {
+      enabledTitle: '快速輸入',
+      enabledDesc: '用全域快速鍵在任何地方喚出一個小輸入框，無需開啟 Hermes 即可送出提示。',
+      shortcutTitle: '快速輸入快速鍵',
+      shortcutDesc: '至少需要一個修飾鍵，例如 CommandOrControl+Shift+Space。',
+      active: '快速鍵已生效。',
+      takenBy: '此快速鍵已被其他應用程式占用，請換一個。',
+      invalidShortcut: '不是有效的快速鍵。請至少包含一個修飾鍵。'
+    },
+    credentials: {
+      pasteKey: '貼上金鑰',
+      pasteLabelKey: label => `貼上 ${label} 金鑰`,
+      optional: '選填',
+      enterValueFirst: '請先輸入一個值。',
+      couldNotSave: '無法儲存憑證。',
+      remove: '移除',
+      getKey: '取得金鑰',
+      saving: '儲存中'
+    },
+    envActions: {
+      actions: '動作',
+      manageInKeys: '在 API 金鑰中管理',
+      docs: '文件',
+      hideValue: '隱藏值',
+      revealValue: '顯示值',
+      replace: '取代',
+      set: '設定',
+      clear: '清除'
+    },
+    connections: {
+      title: '註冊網關',
+      intro: '管理此設備以及它可以透過遠端、SSH 或雲端連接到達的每個 Hermes 網關。',
+      stagedNote: '從會話切換網關。個人資料、聊天、訊息傳遞和 cron 作業保留在其網關上；其他網關上的工作繼續運作。',
+      launchModeTitle: '啟動時，返回上次使用的網關上的會話',
+      launchModeDesc: '關閉時，會話將在主網關上開啟。',
+      searchPlaceholder: '搜尋網關...',
+      noSearchResults: '沒有網關符合您的搜尋。',
+      loadFailed: '無法載入連接',
+      currentPill: '目前',
+      primaryPill: '小學',
+      managedPill: '應用程式管理',
+      addConnection: '新增連接',
+      editConnection: '編輯',
+      removeConnection: '刪除',
+      removeConfirmTitle: '刪除這個連接嗎？',
+      removeConfirmDesc: (label: string) =>
+        `“${label}」將從該應用程式中刪除。實例本身不會受到影響 - 您可以隨時再次添加它。`,
+      makePrimary: '設為主要',
+      testConnection: '測試',
+      testOk: '可達',
+      testFailed: '連線測試失敗',
+      saveFailed: '無法儲存連接',
+      removeFailed: '無法刪除連接',
+      updateAll: '更新所有實例',
+      updateAllRunning: '正在更新所有實例...',
+      updateAllDone: '已發送更新',
+      updateAllFailed: '更新扇出失敗',
+      updateSkippedCloud: '由Hermes雲端管理',
+      thisDevice: '此裝置',
+      kindLocal: '本地',
+      kindRemote: '遠端網關',
+      kindCloud: 'Hermes 雲',
+      kindSsh: 'SSH}',
+      kindLocalDesc: '此應用程式管理的 Hermes 運行時。',
+      kindRemoteDesc: '可透過 HTTP(S) — LAN、Tailscale 或網際網路存取的 Hermes 閘道。',
+      kindCloudDesc: '透過您的 Hermes 雲端帳戶發現的託管執行個體。',
+      kindSshDesc: 'Hermes 安裝達到了 SSH。',
+      labelTitle: '名稱',
+      labelDesc: '必填。此實例出現的所有地方都會顯示；必須是唯一的（例如「家庭實驗室」、「工作筆記型電腦」）。',
+      labelPlaceholder: '家庭實驗室',
+      urlTitle: '網關 URL',
+      sshHostTitle: 'SSH主機',
+      headersTitle: '額外的網關標頭',
+      headersDesc:
+        '與每個 HTTP 和 WebSocket 請求一起傳送至此閘道 - 用於存取代理，例如 Cloudflare Access (CF-Access-Client-Id / CF-Access-Client-Secret)。值以加密方式儲存。 Hermes 管理的標頭（授權、Cookie、主機...）將被忽略。',
+      headerValuePlaceholder: '價值',
+      headerValueSaved: '已儲存 — 留空以保留',
+      headerAdd: '新增標題',
+      headerRemove: '刪除',
+      duplicateLocal: '此應用程式已管理本機連線 - 只能有一個。',
+      duplicateUrl: (label: string) => `與此網關 URL 的連線已存在（“${label}”).`,
+      duplicateSsh: (label: string) => `與此 SSH 主機的連線已存在（“${label}”).`,
+      sameBackendHint: (label: string) => `與“相同的後端”${label}”`,
+      localAddHint: '本機不可用：託管本機連線已存在（只有一個）。',
+      cloudAddHint: '提示：在上面的 Hermes 雲端下登入會自動發現您的代理程式 - 僅使用此表單手動註冊已知實例 URL。',
+      save: '儲存連接',
+      saving: '正在儲存...',
+      cancel: '取消',
+      empty: '尚未註冊任何連線。'
+    },
+    managedUpdates: {
+      title: '託管更新',
+      intro: '更新桌面管理的 SSH 以交易方式安裝：會話耗盡、遠端結帳更新，並且每個設定檔都透過相關收據恢復。',
+      sshConnection: '桌面管理的 SSH 安裝',
+      update: '更新',
+      updating: '正在更新…',
+      progress: '排空會話、更新遠端安裝和恢復設定檔......',
+      updated: '已更新',
+      partial: '已更新 — 恢復失敗',
+      refused: '拒絕',
+      failed: '更新失敗',
+      alreadyRunning: '更新已在進行中',
+      receipt: (id: string, outcome: string) => `收據${id} · ${outcome}`,
+      receiptVersions: (pre: string, post: string) => `${pre} → ${post}`,
+      scopesRestored: (profiles: string) => `已還原的檔案資料:${profiles}`,
+      scopeNotRestored: (profile: string, error: string) => `簡介“${profile}” not restored: ${error}`
+    },
+    gateway: {
+      loading: '正在載入閘道設定...',
+      unavailableTitle: '閘道設定不可用',
+      unavailableDesc: '連線設定只能從在執行它的電腦上的 Hermes 桌面應用程式更改。',
+      title: '閘道連線',
+      envOverride: '環境變數覆寫',
+      intro:
+        'Hermes Desktop 預設會啟動自己的本機閘道。如果您希望此應用程式控制另一台機器或可信代理後面已執行的 Hermes 後端，請使用遠端閘道。閘道連線屬於本機層級設定；設定檔是從已連線的閘道中探索出來的。',
+      envOverrideTitle: '這個連接是透過 Hermes 的啟動方式修復的。',
+      envOverrideDesc:
+        '應用程式外的一個啟動設定選擇了此連線，因此下面的選項為唯讀。請在沒有該設定的情況下重新啟動 Hermes，或者請設置它的人在此更改設定。',
+      modeTitle: '連線模式',
+      localTitle: '本機閘道',
+      localDesc: '在 localhost 啟動私有 Hermes 後端。這是預設方式，可離線使用。',
+      remoteTitle: '遠端閘道',
+      remoteDesc: '將此桌面殼層連線至遠端 Hermes 後端。',
+      remoteAuthHint: '託管閘道使用 OAuth 或帳號密碼；自託管閘道也可能使用工作階段權杖。',
+      cloudTitle: 'Hermes Cloud',
+      cloudDesc: '只需登入 Hermes Cloud 一次，即可從您帳戶下的智能體中選擇——無需貼上 URL。',
+      cloudSignInTitle: 'Hermes Cloud',
+      cloudSignIn: '登入 Hermes Cloud',
+      cloudSignedIn: '已登入 Hermes Cloud',
+      cloudNeedsSignIn: '登入 Hermes Cloud 以發現您帳戶下的智能體。',
+      cloudSignedInDesc: '您已登入。在下方選擇一個智能體；工作階段會自動重新整理。',
+      cloudAgentsTitle: '您的智能體',
+      cloudOrgPickerTitle: '選擇一個組織',
+      cloudOrgSelect: '選擇',
+      cloudOrgChange: '切換組織',
+      cloudOrgRole: role => `角色：${role}`,
+      cloudLoadingAgents: '正在載入您的智能體…',
+      cloudNoAgents: {
+        before: '此帳戶下未找到智能體。請在',
+        linkText: 'Nous 門戶',
+        after: '中建立一個，然後重新整理。'
+      },
+      cloudRefresh: '重新整理',
+      cloudConnect: '連線',
+      cloudSavedTitle: '已儲存的雲端網關',
+      cloudSavedDesc: '使用已儲存的網關而不更改預設值。在下面登入以新增實例。在已儲存的連線清單中管理名稱和登入。',
+      cloudUseSaved: '使用網關',
+      cloudActive: '在此視窗中處於活動狀態',
+      cloudConnecting: '正在連線…',
+      cloudDiscoverFailed: '無法載入您的 Hermes Cloud 智能體',
+      cloudConnectFailed: '無法連線到該智能體',
+      cloudSignInFailed: 'Hermes Cloud 登入失敗',
+      cloudSignedOutTitle: '已登出 Hermes Cloud',
+      cloudSignedOutMessage: '已清除 Hermes Cloud 工作階段。',
+      cloudConnectedTitle: '已連線',
+      cloudConnectedPill: '已連線',
+      cloudConnectedTo: name => `已連線到 ${name}。`,
+      cloudAgentProvisioning: '正在設定…',
+      cloudStatusLabel: status => `狀態：${status}`,
+      remoteUrlTitle: '遠端 URL',
+      remoteUrlDesc: '遠端儀表板後端的基礎 URL。支援路徑前綴，例如 /hermes。',
+      probing: '正在檢查此閘道的驗證方式…',
+      probeError: 'Hermes 無法連接到該位址。請檢查 URL 並確認另一台電腦正在運行 Hermes——一旦回應，登入選項就會出現。',
+      signedIn: '已登入',
+      signIn: '登入',
+      signOut: '登出',
+      signInWith: provider => `使用 ${provider} 登入`,
+      authTitle: '驗證',
+      authSignedInPassword: '此閘道使用帳號和密碼。您已登入，工作階段會自動重新整理。',
+      authSignedInOauth: '此閘道使用 OAuth。您已登入，工作階段會自動重新整理。',
+      authNeedsPassword: '此閘道使用帳號和密碼。請登入以授權此桌面應用程式。',
+      authNeedsOauth: provider => `此閘道使用 OAuth。請使用 ${provider} 登入以授權此桌面應用程式。`,
+      tokenTitle: '工作階段 Token',
+      tokenDesc: '用於 REST 和 WebSocket 存取的儀表板工作階段 Token。留空則保留已儲存的 Token。',
+      existingToken: value => `現有 Token ${value}`,
+      savedToken: '已儲存',
+      pasteSessionToken: '貼上工作階段 Token',
+      plainTextConfirmTitle: '以純文字儲存閘道 Token？',
+      plainTextConfirmDesc:
+        '在此機器上未找到作業系統金鑰管理服務，因此令牌將以未加密的方式保存在應用程式的連線設定檔中，任何以此使用者身份運行的程序都可以讀取。請安裝或啟用系統金鑰鏈（在 GNOME 上使用 Keyring 或在 Linux 上使用 KWallet）以進行加密存儲。',
+      plainTextConfirmAction: '以純文字儲存',
+      plainTextStoredTitle: 'Token 以純文字儲存',
+      plainTextStoredDesc:
+        '安全儲存不可用，因此已保存的令牌將以未加密形式存儲在此設備上的應用程式連接設定檔中。請安裝或啟用您的系統鑰匙串（在 Linux 上的 GNOME Keyring 或 KWallet）以對其進行加密。',
+      keychainEncryptionTitle: '使用系統鑰匙圈加密已儲存的機密',
+      keychainEncryptionDesc:
+        '預設關閉。開啟後，閘道 Token 與登入憑證將使用系統鑰匙圈（Keychain Access、GNOME Keyring 或 Windows DPAPI）加密——系統可能會要求授權或密碼。關閉時，它們以僅目前使用者可讀的一般檔案形式儲存。',
+      keychainEncryptionFailed: '無法變更機密加密設定',
+      testRemote: '測試遠端',
+      saveForRestart: '儲存至下次重新啟動',
+      saveAndReconnect: '儲存並重新連線',
+      diagnostics: '診斷',
+      diagnosticsDesc: '在檔案管理員中顯示 desktop.log，閘道啟動失敗時很有用。',
+      openLogs: '開啟記錄',
+      incompleteTitle: '遠端閘道設定不完整',
+      incompleteSignIn: '切換至遠端前，請輸入遠端 URL 並完成登入。',
+      incompleteToken: '切換至遠端前，請輸入遠端 URL 和工作階段 Token。',
+      incompleteSignInTest: '測試前，請輸入遠端 URL 並完成登入。',
+      incompleteTokenTest: '測試前，請輸入遠端 URL 和工作階段 Token。',
+      enterUrlFirst: '請先輸入遠端 URL。',
+      restartingTitle: '閘道連線正在重新啟動',
+      savedTitle: '閘道設定已儲存',
+      restartingMessage: 'Hermes Desktop 將使用已儲存的設定重新連線。',
+      savedMessage: '已儲存，下次重新啟動後生效。',
+      connectedTo: (baseUrl, version) => `已連線至 ${baseUrl}${version ? ` · Hermes ${version}` : ''}`,
+      reachableTitle: '遠端閘道可連線',
+      signedOutTitle: '已登出',
+      signedOutMessage: '已清除遠端閘道工作階段。',
+      failedLoad: '閘道設定載入失敗',
+      signInFailed: '登入失敗',
+      signOutFailed: '登出失敗',
+      testFailed: '遠端閘道測試失敗',
+      applyFailed: '無法套用閘道設定',
+      saveFailed: '無法儲存閘道設定',
+      sshTitle: '透過 SSH 連線',
+      sshDesc:
+        'Hermes 會透過 SSH 在遠端啟動並以通道連線到本應用程式——無需自行啟動或公開任何服務。前提：已具備到該主機的金鑰 SSH 存取。',
+      sshTrustHint: '首次提供的主機金鑰會被信任並固定；後續變更將被拒絕。',
+      sshHostTitle: '主機',
+      sshHostDesc: 'user@host，或 ~/.ssh/config 中的 Host 別名。',
+      sshHostPick: '選擇主機…',
+      sshHostPickTitle: '主機',
+      sshHostPickDesc: '~/.ssh/config 中的 Host 別名，或選擇「自訂」手動輸入。',
+      sshHostCustom: '自訂（手動輸入）…',
+      sshUserTitle: '使用者',
+      sshUserDesc: '留空 = ~/.ssh/config 或目前使用者。',
+      sshUserPlaceholder: '來自 ~/.ssh/config',
+      sshPortTitle: '連接埠',
+      sshPortDesc: '留空 = 22 或 ~/.ssh/config 中的連接埠。',
+      sshKeyTitle: '金鑰檔案',
+      sshKeyDesc: '私密金鑰路徑。留空 = ssh-agent 或 ~/.ssh/config。',
+      sshHermesPathTitle: 'Hermes 路徑（選用）',
+      sshHermesPathDesc: '遠端 hermes 執行檔的完整路徑。留空 = 自動偵測。',
+      sshHermesPathPlaceholder: '自動偵測',
+      sshTestConnection: '測試 SSH',
+      sshConnect: '連線',
+      sshButtonsHint: '「儲存」會在下次啟動時生效，「連線」則立即重新連線。',
+      sshReachable: (host, platform) => `可連線：${host}（${platform}）——已找到 Hermes`,
+      sshIncompleteHost: '連線前請輸入 SSH 主機。',
+      sshErrUnreachable: '無法透過 SSH 連線到該主機。請檢查主機、連接埠和網路。',
+      sshErrAuth:
+        'SSH 驗證失敗。請將金鑰載入 ssh-agent（ssh-add），或在 ~/.ssh/config 中設定 IdentityFile——Hermes 以非互動方式執行 ssh。',
+      sshErrHostKey: '自上次連線以來主機金鑰已變更。請確認這是預期的，然後執行 ssh-keygen -R <host> 並重新連線。',
+      sshErrNotInstalled:
+        '遠端主機上未安裝 Hermes。請在遠端安裝（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或設定 Hermes 路徑。',
+      sshErrPlatform: '不支援的遠端平台。Hermes Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
+      sshErrTimeout: 'SSH 連線逾時。主機可能無法存取或處於睡眠狀態。',
+      sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Hermes。',
+      sshErrUnknown: 'SSH 連線失敗。'
+    },
+    keys: {
+      loading: '正在載入 API 金鑰和憑證...',
+      failedLoad: 'API 金鑰載入失敗',
+      empty: '此類別尚未有任何設定。'
+    },
+    search: {
+      placeholder: '搜尋所有設定...',
+      pill: '搜尋'
+    },
+    profileScope: {
+      appliesTo: '套用至',
+      editsProfile: profile => `此頁面的變更將套用至「${profile}」設定檔。`
+    },
+    mcp: {
+      loading: '正在載入 MCP 伺服器...',
+      invalidJson: 'MCP JSON 無效',
+      saveFailed: '儲存失敗',
+      removeFailed: '移除失敗',
+      reloadFailed: 'MCP 重新載入失敗',
+      savedTitle: 'MCP 伺服器已儲存',
+      savedMessage: name => `${name} 會在 MCP 重新載入後生效。`,
+      disabled: '已停用',
+      name: '名稱',
+      serverJson: '伺服器 JSON',
+      remove: '移除',
+      saveServer: '儲存伺服器',
+      test: '測試連接',
+      testing: '測試...',
+      testOk: count => `Connected — ${count} tool${count === 1 ? '' : 's'} available`,
+      testFailed: '連線失敗',
+      enableServer: name => `啟用${name}`,
+      disableServer: name => `停用${name}`,
+      serverEnabled: name => `${name}已啟用 — 適用於新的會話。`,
+      serverDisabled: name => `${name}已停用 — 適用於新會話。`,
+      toggleFailed: (name, enabled) => `Failed to turn ${name} ${enabled ? '上' : '關閉'}`,
+      tabServers: '伺服器',
+      tabCatalog: '目錄',
+      catalogLoading: '正在載入 MCP 目錄...',
+      catalogLoadFailed: 'MCP 目錄載入失敗',
+      catalogEmpty: '沒有可用的目錄條目。',
+      catalogInstalled: '已安裝',
+      catalogEnabled: '啟用',
+      catalogNeedsInstall: '需要建構',
+      catalogInstall: '安裝',
+      catalogInstalling: '正在安裝...',
+      catalogInstallStarted: name => `Installing ${name}...完成後適用於新會話。`,
+      catalogInstallFailed: name => `安裝失敗${name}`,
+      catalogEnvPrompt: name => `${name}需要憑證`,
+      catalogEnvRequired: '安裝前填寫所需的值。',
+      capabilitySummary: (tools, prompts, resources) =>
+        `已啟用 ${[`${tools} 個工具`, ...(prompts ? [`${prompts} 個提示`] : []), ...(resources ? [`${resources} 個資源`] : [])].join('、')}`,
+      costTokens: tokens => `每次呼叫約 ${tokens} token`,
+      usage30d: uses => `30 天內 ${uses} 次呼叫`,
+      statusConnecting: '連線中…',
+      statusNeedsAuth: '需要驗證',
+      statusError: '錯誤',
+      statusOff: '關閉',
+      allServers: '所有伺服器',
+      authenticatedTitle: '已驗證',
+      authenticatedMessage: (server, count) => `${server}：${count} 個工具`,
+      authenticate: '驗證',
+      noOutput: '尚無輸出。',
+      deepLinkTitle: '新增 MCP 伺服器？',
+      deepLinkDescription: '一個連結要求將此 MCP 伺服器加入 Hermes。請檢查下方的完整設定——它來自該連結，而非 Hermes。',
+      deepLinkStdioWarning: '此伺服器會使用下方所示指令在你的電腦上執行本機程序。僅在信任其來源時繼續。',
+      deepLinkConfirm: '新增伺服器',
+      deepLinkNameInvalid: '名稱須為 1-64 個字母、數字、點、連字號或底線。',
+      deepLinkNameConflict: name => `已存在名為 ${name} 的伺服器——請改用其他名稱或取消。`,
+      deepLinkErrorTitle: '已拒絕 MCP 安裝連結',
+      deepLinkErrorName: '連結中的伺服器名稱缺失或無效。',
+      deepLinkErrorConfig: '連結中的設定不是有效的 base64 編碼 JSON。',
+      deepLinkErrorShape: '設定必須是包含字串 `url` 或 `command` 欄位的 JSON 物件。',
+      deepLinkErrorUrl: '僅允許 http:// 和 https:// 伺服器網址。',
+      deepLinkErrorTooLarge: '設定內容超過 32KB 上限。',
+      importButton: '匯入',
+      importPlaceholder: '貼上 mcp.json 片段、npx/docker 指令、claude mcp add 指令、URL 或 Cursor 連結…',
+      importNoMatch: '貼上的文字中未識別到伺服器設定。',
+      importConfirm: '加入 mcp.json',
+      importConfirmMany: count => `將 ${count} 個伺服器加入 mcp.json`,
+      catalogAuthOAuth: 'OAuth',
+      catalogAuthApiKey: 'API 按鍵',
+      failedLoad: 'MCP 設定載入失敗',
+      nameRequiredTitle: '需要名稱',
+      nameRequiredMessage: '請為此 MCP 伺服器提供設定鍵',
+      objectRequired: '伺服器設定必須是 JSON 物件',
+      gatewayUnavailableTitle: '閘道無法使用',
+      gatewayUnavailableMessage: '重新載入 MCP 前請先重新連線閘道',
+      reloadedTitle: 'MCP 工具已重新載入',
+      reloadedMessage: '新的工具 schema 將套用到後續回合',
+      newServer: '新伺服器',
+      reload: '重新載入 MCP',
+      reloading: '重新載入中...',
+      emptyTitle: '沒有 MCP 伺服器',
+      emptyDesc: '新增 stdio 或 HTTP 伺服器以提供 MCP 工具',
+      editServer: '編輯伺服器',
+      unusedPill: '未使用',
+      waitingForBrowser: '正在等待瀏覽器…',
+      unsavedConnect: '未儲存——儲存 mcp.json 以連線',
+      enableTool: tool => `啟用 ${tool}`,
+      disableTool: tool => `停用 ${tool}`
+    },
+    model: {
+      setupProviderFallback: '提供方',
+      setUpProvider: name => `設定 ${name}`,
+      staleAuxBefore: (count, names) => `${count} 個輔助任務（${names}）仍由 `,
+      staleAuxAfter: ' 執行，而非主要模型。',
+      staleAuxOtherProviders: '其他提供方',
+      moaEnabled: '啟用',
+      moaSetDefault: '設為預設',
+      moaNewPresetPlaceholder: '新預設',
+      moaAddPreset: '新增預設',
+      customModel: '自訂模型…',
+      customModelPlaceholder: '模型 ID',
+      chooseFromList: '從清單中選擇',
+      moaDefault: '預設：',
+      moaReferenceToggle: (enabled, index) => `${enabled ? '停用' : '啟用'}參考 ${index}`,
+      moaReferenceTitle: index => `參考 ${index}`,
+      moaAddReference: '新增參考模型',
+      loading: '正在載入模型設定...',
+      appliesDesc: '套用至新工作階段。可在輸入框的模型選擇器中臨時切換目前對話。',
+      provider: '提供方',
+      model: '模型',
+      applying: '套用中...',
+      mainAppliedTitle: '主模型已更新',
+      mainAppliedMessage: model => `新工作階段將使用 ${model}`,
+      defaultsLabel: '預設值',
+      reasoning: '推理',
+      reasoningOff: '關閉',
+      defaultsFailed: '無法儲存模型預設值',
+      loadFailed: '無法載入模型',
+      restartRequired: '更新後此後端仍在執行舊程式碼。請重新啟動以載入新程式碼。',
+      restartBackend: '重新啟動後端',
+      restartingBackend: '正在重新啟動後端...',
+      restartFailed: '無法重新啟動後端',
+      auxiliaryTitle: '輔助模型',
+      resetAllToMain: '全部重設為主要模型',
+      staleAuxDismiss: '不再顯示',
+      auxiliaryDesc: '輔助任務預設使用主要模型。您可以為任何任務指定專用模型。',
+      setToMain: '設為主要模型',
+      change: '變更',
+      autoUseMain: '自動 · 使用主要模型',
+      providerDefault: '(提供方預設)',
+      fallbackAdd: '新增後備',
+      fallbackEmpty: '無後備模型－除非失敗，否則將使用預設模型。',
+      notInCatalog: '不在該提供者的型號清單中 — 通話可能會退回到備份。',
+      staleAuxPrefix: (count, names) => `${count} 個輔助任務（${names}）仍執行於 `,
+      staleAuxSuffix: ' 上，而非你的主要模型。',
+      pasteKeyPlaceholder: keyEnv => `貼上 ${keyEnv}`,
+      activate: '啟用',
+      activating: '啟用中...',
+      needsApiKeyHint: name => `${name} 需要 API 金鑰 — 完成設定後才能選擇模型。`,
+      oauthHint: name => `${name} 透過瀏覽器登入 — Hermes 會為你完成整個流程。`,
+      moa: {
+        title: '混合智慧體 (MOA)',
+        shortTitle: 'MoA',
+        presetsTitle: 'MoA 預設組',
+        description: '設定以模型形式出現在「混合智慧體」提供方下的命名預設組。聚合模型是實際應答的模型。',
+        presetPlaceholder: '預設組',
+        enabled: '啟用',
+        setDefault: '設為預設',
+        deletePreset: '刪除',
+        newPresetPlaceholder: '新預設組名稱',
+        addPreset: '新增預設組',
+        defaultLabel: '預設：',
+        referenceTitle: index => `參考模型 ${index}`,
+        toggleReference: (index, enabled) => `${enabled ? '停用' : '啟用'}參考模型 ${index}`,
+        removeReference: '移除',
+        addReference: '新增參考模型',
+        aggregatorTitle: '聚合模型'
+      },
+      tasks: {
+        vision: {
+          label: '視覺',
+          hint: '圖片分析'
+        },
+        compression: {
+          label: '壓縮',
+          hint: '上下文壓縮'
+        },
+        skills_hub: {
+          label: '技能中心',
+          hint: '技能搜尋'
+        },
+        approval: {
+          label: '核准',
+          hint: '智慧自動核准'
+        },
+        mcp: {
+          label: 'MCP',
+          hint: 'MCP 工具路由'
+        },
+        title_generation: {
+          label: '標題生成',
+          hint: '工作階段標題'
+        },
+        review: {
+          label: '評審',
+          hint: '/review 評審子代理'
+        },
+        curator: {
+          label: '策展器',
+          hint: '技能使用審查'
+        },
+        triage_specifier: {
+          label: '分診規格',
+          hint: '看板規格細化'
+        },
+        kanban_decomposer: {
+          label: '看板分解器',
+          hint: '任務分解'
+        },
+        profile_describer: {
+          label: '個人檔案描述器',
+          hint: '自動個人資料描述'
+        }
+      },
+      inheritMainEffort: '繼承 · 主要模型工作',
+      moaTitle: '混合劑',
+      moaPreset: '預設',
+      moaDescription:
+        '配置命名預設，這些預設將作為模型出現在多代理提供者下。聚合器是運行模型——它在工具循環的每一步運行，且幾乎所有運行成本都記入其提供者。參考資料默認情況下每個用戶回合僅提供一次建議。',
+      moaAggregator: '聚合器',
+      moaAggregatorBilled: '表演模特 · 按場次計費',
+      moaReferenceHint: '默認情況下，每回合建議一次'
+    },
+    customEndpoints: {
+      loadFailed: '無法載入自訂端點',
+      saved: '自訂端點已儲存',
+      reachable: '端點可以連線',
+      reachableWithModels: count => `端點可以連線，找到 ${count} 個模型`,
+      validationError: '驗證失敗',
+      enterUrlFirst: '請先輸入端點 URL',
+      unreachable: url => `無法連線至 ${url}`,
+      authRejected: '端點拒絕了此 API 金鑰',
+      httpError: status => `端點傳回 HTTP ${status}`,
+      emptyDesc: '在下方新增 OpenAI 相容端點',
+      active: '已啟用',
+      apiKeySet: '已設定 API 金鑰',
+      use: '使用',
+      editTitle: '編輯端點',
+      addTitle: '新增端點',
+      nameLabel: '名稱',
+      providerIdLabel: '供應商 ID',
+      providerIdHint: '作為供應商識別碼寫入 config.yaml；建立後不可變更，如需其他 ID 請新增端點',
+      urlLabel: '端點 URL',
+      apiModeLabel: 'API 協定',
+      apiModeAuto: '自動',
+      apiModeChat: 'Chat Completions',
+      apiModeResponses: 'Responses API',
+      apiModeMessages: 'Anthropic Messages',
+      authSchemeLabel: '驗證標頭',
+      authSchemeAuto: '自動偵測',
+      authSchemeHint:
+        '所有協定線上承載 API Key 的請求標頭。自動偵測在 OpenAI 相容路由上傳送 Authorization: Bearer，在 Anthropic 相容路由上依已知主機表決定；端點回應 401/403 時請固定為 x-api-key 或 Bearer',
+      noModelCatalog: '端點可以連線，但未提供模型目錄',
+      connectedNoModels: url => `已連線至 ${url}，但端點未宣告任何模型`,
+      defaultModelLabel: '預設模型',
+      contextLabel: '模型 Token 限制',
+      contextHint: '可分別設定每個模型的總上下文、最大輸入和最大輸出；留空則自動解析',
+      modelLabel: '模型',
+      contextWindowLabel: '總上下文',
+      maxInputLabel: '最大輸入',
+      maxOutputLabel: '最大輸出',
+      apiKeyLabel: 'API 金鑰',
+      userAgentLabel: 'User-Agent',
+      userAgentHint:
+        '傳送至此端點的 HTTP User-Agent。留空使用 SDK 預設值；部分中繼或 WAF 只放行瀏覽器識別，遭阻擋時可點擊預設填入',
+      useBrowserUserAgent: '使用瀏覽器 User-Agent',
+      defaultRowLabel: '所有模型（預設）',
+      visionLabel: '視覺',
+      reasoningLabel: '推理',
+      capabilityAuto: '自動',
+      capabilityYes: '支援',
+      capabilityNo: '不支援',
+      extraHeadersLabel: '額外請求標頭',
+      extraHeadersHint: '隨此端點的每個請求傳送（閘道權杖、路由標籤等），值會明文保存在 config.yaml',
+      headerNamePlaceholder: '標頭名稱',
+      headerValuePlaceholder: '值',
+      addHeader: '新增標頭',
+      removeHeader: '刪除標頭',
+      extraBodyLabel: '額外請求主體（JSON）',
+      extraBodyHint:
+        '合併進每個請求主體，例如 {"chat_template_kwargs": {"enable_thinking": false}} 或伺服器文件規定的思考預算欄位',
+      extraBodyInvalid: '必須是 JSON 物件',
+      maxTokensFieldLabel: '輸出上限欄位',
+      maxTokensFieldAuto: '自動（由端點決定）',
+      maxTokensFieldHint:
+        'Chat Completions 請求中承載輸出上限的欄位。原樣轉發到 OpenAI 的中繼請固定為 max_completion_tokens；執行階段不會依模型名稱猜測',
+      catalogProviderLabel: '中繼資料目錄來源',
+      catalogProviderHint:
+        '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
+      contextAuto: '自動',
+      keyKeepPlaceholder: '留空則保留目前的金鑰',
+      keyOptionalPlaceholder: '選填',
+      useForNewChats: '用於新對話',
+      discoverModels: '自動探索模型',
+      fields: {
+        name: '名稱',
+        providerId: '供應商 ID',
+        endpointUrl: '端點 URL',
+        defaultModel: '預設模型',
+        context: '上下文',
+        apiKey: 'API 金鑰',
+        apiKeyNewPlaceholder: '留空以保留目前金鑰',
+        apiKeyPlaceholder: '選填',
+        useNewChats: '用於新對話',
+        discoverModels: '探索模型'
+      },
+      test: '測試',
+      save: '儲存',
+      newEndpoint: '新增端點',
+      reachableVia: transport => `端點可透過 ${transport} 連線`,
+      apiMode: 'API 模式',
+      autoDetect: '自動偵測',
+      couldNotLoad: '無法載入自訂端點',
+      endpointSaved: '自訂端點已儲存。',
+      saveFailed: '儲存失敗',
+      endpointReachable: '端點可連線。',
+      endpointReachableTransport: transport => `端點可連線（${transport} 路由已回應）。`,
+      endpointReachableModels: (reachable, count) => `${reachable} 找到 ${count} 個模型。`,
+      endpointValidationFailed: '端點驗證失敗。',
+      validationFailed: '驗證失敗',
+      activationFailed: '啟用失敗',
+      deleteConfirm: name => `刪除 ${name}？`,
+      deleteFailed: '刪除失敗',
+      title: '自訂端點',
+      deleteEndpoint: '刪除端點',
+      emptyDescription: '在下方新增 OpenAI 相容端點。',
+      emptyTitle: '尚無自訂端點',
+      namePlaceholder: '我的代理',
+      contextPlaceholder: '自動'
+    },
+    uninstall: {
+      dangerZone: '危險區',
+      checking: '檢查安裝了什麼..',
+      confirmTitle: '確認解除安裝',
+      confirmBody: consequence => `This removes ${consequence}無法解除.`,
+      appPathLabel: path => `應用程式：${path}`,
+      uninstalling: '完全取消..',
+      confirmYes: '是,卸下',
+      heading: '解除安裝 Hermes',
+      chooseBody: '選擇要移除多少 。 應用程式關閉以完成此工作; 隨時重新啟動安裝器 .',
+      startFailed: '無法啟動 .',
+      options: {
+        gui: {
+          title: '只解裝聊天( Z)',
+          description: '移除此桌面應用程式 。 Hermes代理,你的配置,和聊天都留下.',
+          consequence: '桌面 Chat GUI( 此應用程式及其資料)'
+        },
+        lite: {
+          title: '解裝GUI + 代理,保留我的資料',
+          description: '移除應用程式與 Hermes 代理, 但保留設定、 聊天與秘密.',
+          consequence: 'chat Hermes 和 GUI 代理( 配置、 聊天和保密 )'
+        },
+        full: {
+          title: '解開一切',
+          description: '移除應用程式、代理程式和所有使用者資料——設定、聊天、安排工作、秘密、日志.',
+          consequence: '所有內容——聊天介面、Hermes 代理程式，以及你的全部設定、聊天、密鑰和日誌'
+        }
+      }
+    },
+    poolLimits: {
+      warmBackends: '保持執行的機器人後端數量',
+      warmBackendsDescription:
+        '保持執行以便快速切換的機器人後端數量。數量越多，切換越快，記憶體用量也越高（每個後端約 60 MB）。修改後立即生效。',
+      idleTimeout: '後端閒置逾時',
+      idleTimeoutDescription:
+        '未使用的機器人後端在關閉前保持執行的時間。調高此值，可避免每隔幾分鐘切回機器人時都要等待重新啟動。',
+      idleTimeoutAria: '後端閒置逾時（毫秒）',
+      milliseconds: '毫秒',
+      warmBotBackendsAria: '熱身機器人後端',
+      warmBotBackendsTitle: '熱身機器人後端',
+      backendIdleTimeoutAria: '後端閒置超時（毫秒）',
+      backendIdleTimeoutTitle: '後端閒置逾時'
+    },
+    localModels: {
+      catalogDescriptions: {
+        'Best all-round agent model; sees images; long context stays fast':
+          '綜合表現最佳的智慧體模型；支援圖像理解；長上下文下依然快速',
+        'Frontier-scale model; needs a very large GPU to run well':
+          '前沿大型模型；需要顯示記憶體容量很大的 GPU 才能流暢執行',
+        'Bigger mixture-of-experts with multi-token prediction; sees images':
+          '更大規模的混合專家模型，支援多詞元預測和圖像理解',
+        'Frontier-class model for machines with 128GB+ memory': '前沿級模型，適合配備 128 GB 及以上記憶體的機器'
+      } as Record<string, string>,
+      recommendedBuild: (quant, largeWindow) =>
+        `推薦版本（${quant}）——此引擎針對該量化類型進行了最佳化；可完全在 GPU 上執行${largeWindow ? '，並支援較大的上下文視窗' : ''}`,
+      compactBuild: quant => `適合本機的精簡版本（${quant}）——超出顯示記憶體容量，需要使用系統記憶體，執行較慢`,
+      fitTooLarge: (quant, size) => `即使是最精簡的版本（${quant}，${size}），也超出了顯示記憶體與系統記憶體的總容量`,
+      fitNeedsMemory: '所需記憶體超出本機容量',
+      fitFullContext: context => `以完整的 ${context} 上下文執行`,
+      fitGrowingContext: (start, max) => `上下文從 ${start} 開始，隨使用逐步擴展至 ${max}`,
+      fitSpilled: detail => `${detail}（超出顯示記憶體容量，需要使用系統記憶體，執行較慢）`,
+      title: '本地模型',
+      runtimeTitle: '本地執行環境',
+      runtimeReady: backend => `就緒 · ${backend}`,
+      serverRunning: '執行中',
+      runtimeInstalled: '已安裝 llama.cpp 執行環境',
+      runtimeInstalledDetail: (tag, backend) => `組建 ${tag}，${backend} 後端。Hermes 會為您啟動並管理伺服器。`,
+      installTitle: '安裝本地執行環境',
+      installDetail: '下載 llama.cpp 推理引擎（數百 MB）。下載的模型完全在本機執行——無需帳號，資料不會離開您的電腦。',
+      installAction: '安裝執行環境',
+      installing: '正在安裝執行環境…',
+      installFailed: '執行環境安裝失敗',
+      hardwareTitle: '本機配置',
+      hardwareLoading: '正在檢測硬體…',
+      vram: label => `${label} 顯示記憶體`,
+      ram: label => `${label} 記憶體`,
+      unifiedMemory: '統一記憶體',
+      modelsTitle: '模型',
+      recommended: '推薦',
+      recommendedReason: {
+        'best-quality-resident': '在完全駐留 GPU 且保持全速的模型中品質最高。推薦會在品質與該硬體的預計速度之間權衡。',
+        'speed-gated-quality':
+          '有更高品質的模型可以裝入這台機器，但受記憶體頻寬限制回應會太慢——這是保持流暢的最佳模型。',
+        'fastest-resident': '沒有模型能在該硬體上達到全速；這是完全駐留 GPU 記憶體中最快的一個。'
+      } as Record<string, string>,
+      noRecommendationTitle: '此裝置暫無自動推薦模型',
+      noRecommendationDetail:
+        '自動設定需要一個可完全放入 GPU 記憶體或統一記憶體的精選模型。你仍可在下方自行選擇，或瀏覽更多模型。',
+      noRecommendationAction: '瀏覽模型',
+      downloaded: '已下載',
+      downloadAction: size => `下載 · ${size}`,
+      downloadProgress: (done, total) => `${done} / ${total}`,
+      downloadStatusRunning: '下載中',
+      downloadSpeed: rate => `${rate}`,
+      downloadEta: time => `剩餘約 ${time}`,
+      downloadPausedLabel: '已暫停',
+      downloadPauseAction: '暫停',
+      downloadResumeAction: '繼續',
+      downloadDoneToast: model => `${model} 已就緒。`,
+      installDoneToast: '本地執行環境已安裝就緒。',
+      quickstartTitle: '在這台機器上運行模型',
+      quickstartDetail: (model, size) =>
+        `一鍵即可設置所有內容：本地引擎，${model} (${size}下載），以及你對新聊天的預設設定。任何東西都不會離開這台電腦。`,
+      quickstartDetailReady: model => `一鍵即可${model}你對新聊天的預設值。所有操作都在這台機器上運行。`,
+      quickstartAction: '為我設定',
+      quickstartConfigure: '讓我選擇',
+      quickstartDoneToast: model => `${model}已設置 — 新聊天將在這台機器上運行。`,
+      quickstartFailed: '本地模型設定失敗',
+      quickstartStageEngine: '引擎',
+      quickstartStageModel: '型號',
+      quickstartStageFinish: '完成',
+      useAction: '使用',
+      activePill: '預設',
+      updateTitle: '引擎有可用更新',
+      updateDetail: (next, current) =>
+        `新的 llama.cpp 組建（${next}）可以安裝——目前為 ${current}。下載期間模型仍可正常使用。`,
+      updateAction: '更新引擎',
+      updating: '正在更新引擎…',
+      upToDateTitle: '引擎已是最新',
+      upToDateDetail: (tag, backend) => `跑步 llama.cpp${tag} (${backend}) — 已配置的構建。`,
+      activeDetail: '新對話使用此模型——傳送首條訊息時載入',
+      activeNotLoaded: '首條訊息時載入',
+      loadedPill: '已載入',
+      placementResident: '全部在 GPU',
+      placementSpilled: '部分在記憶體',
+      placementResidentTip: '完全在 GPU 記憶體中以此上下文視窗執行——全速。',
+      placementSpilledTip:
+        '模型的一部分從系統記憶體執行——可用但較慢。更緊湊的版本或更小的上下文可以完全放入顯示記憶體。',
+      loadingPill: '載入中…',
+      ejectTip: '釋放顯示記憶體（需要時重新載入）',
+      ejected: '模型已卸載——顯示記憶體已釋放。',
+      ejectFailed: '無法卸載模型',
+      stopServer: '關閉',
+      startServer: '開啟',
+      runtimeRunningDetail: '本地伺服器執行中。關閉後將釋放全部顯示記憶體，新對話將不再使用本地模型，直到您重新開啟。',
+      serverStopped: '本地伺服器已停止——顯示記憶體已釋放。',
+      serverStarted: '本地伺服器執行中。',
+      serverStopFailed: '無法停止本地伺服器',
+      serverStartFailed: '無法啟動本地伺服器',
+      activating: '啟動中…',
+      activateFailed: model => `無法切換到 ${model}`,
+      activateDoneToast: model => `新對話將使用 ${model}。`,
+      downloadFailed: model => `${model} 下載失敗`,
+      pillFitsGpu: '完全在 GPU 上執行',
+      pillUsesRam: '使用系統記憶體',
+      pillTooBig: '超出本機記憶體',
+      browseTitle: '發現更多模型',
+      browseHint: '搜尋整個 Hugging Face。在這裡下載的模型會自動適配你的機器，但未經我們測試。',
+      browsePlaceholder: '按名稱或作者搜尋模型…',
+      browseSearching: '正在搜尋 Hugging Face',
+      browseListing: '正在讀取模型檔案',
+      browseShowFiles: '查看檔案',
+      browseRefresh: '重新整理',
+      browseDownloads: '次下載',
+      browseLikes: '個讚',
+      browseGated: '需要登入 Hugging Face',
+      browseNoGguf: '未找到相容的模型檔案。',
+      browseFitUnknown: '適配情況未知',
+      browseAlreadyDownloaded: '已下載。',
+      addedByYou: '由你新增',
+      browseDownloadStarted: '正在下載 {name}',
+      browseDownloadAria: '下載 {name}',
+      sideloadButton: '新增模型檔案',
+      sideloadTitle: '選擇 GGUF 模型檔案',
+      sideloadDone: '已新增 {name}。',
+      sideloadAlreadyPresent: '已在你的庫中。',
+      pillFullContext: max => `完整 ${max} 上下文`,
+      pillFullContextTip: '從一開始就以模型的完整上下文視窗執行',
+      pillUpTo: max => `最高 ${max} 上下文`,
+      pillGrowsTip: '隨著對話需要更多空間自動增長',
+      pillVision: '識圖',
+      deleteAction: '刪除模型',
+      deleteConfirm: model => `從磁碟刪除 ${model}？`,
+      deleted: model => `已刪除 ${model}。`,
+      deleteFailed: '刪除失敗',
+      connectionChanged: '本機模型連線已變更',
+      downloadEtaSeconds: count => `${count} 秒`,
+      downloadEtaMinutes: count => `${count} 分鐘`,
+      downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 小時 ${minutes} 分鐘` : `${hours} 小時`),
+      downloadPauseFailed: model => `無法暫停 ${model} 的下載`,
+      downloadResumeFailed: model => `無法繼續 ${model} 的下載`
+    },
+    billing: {
+      perMonth: amount => `${amount}/月`,
+      creditsPerMonth: amount => `${amount} 額度/月`,
+      usageLabel: label => `${label}用量`,
+      freeTier: {
+        signIn: '登入',
+        title: '你正在使用 Nous 免費服務',
+        message: '登入 Nous 帳戶以解鎖更多模型和工具。',
+        caption: '使用 nous/welcome，包含連接器。登入後會保留連接器，並增加需要帳戶的工具和其他所有模型。',
+        name: 'Nous · 免費服務',
+        footnote: '免費服務沒有餘額，無需付款。登入 Nous 帳戶後才會顯示支付與用量。',
+        plan: '免費服務',
+        model: '模型',
+        connectors: '連接器',
+        included: '已包含'
+      },
+      amountValidation: {
+        reloadTo: '儲值金額',
+        greaterThanThreshold: '儲值金額必須大於門檻。',
+        decimal: label => `${label}：請輸入最多含兩位小數的美元金額。`,
+        positive: label => `${label}：金額必須大於 $0。`,
+        minimum: (label, amount) => `${label}：最低金額為 ${amount}。`,
+        maximum: (label, amount) => `${label}：最高金額為 ${amount}。`
+      },
+      stepUp: {
+        openVerification: '開啟驗證頁面',
+        dismiss: '關閉',
+        waiting: '正在等待驗證連結…',
+        verify: '驗證以繼續',
+        deniedTitle: '驗證未獲核准',
+        deniedBody: '驗證已結束，但未允許此終端進行遠端支出。',
+        successTitle: '驗證完成',
+        successBody: '此終端已獲准進行遠端支出。'
+      },
+      charge: {
+        added: amount => (amount ? `已加入 $${amount}。` : '已加入額度。'),
+        failedTitle: '扣款失敗',
+        unconfirmedTitle: '扣款結果尚未確認',
+        unconfirmedBody: message => `${message} 上次扣款結果尚未確認，請在重試前檢查餘額和歷史記錄。`,
+        checkTitle: '無法檢查扣款',
+        checkBody: '無法檢查扣款。',
+        untrackedTitle: '無法追蹤扣款',
+        untrackedBody: '帳單服務已接受請求，但未傳回扣款識別碼。',
+        timeoutTitle: '5 分鐘後仍在處理',
+        timeoutBody: '扣款仍可能結算，請在重試前檢查入口網站。',
+        authenticationRequired: '銀行要求驗證（3DS）。請在入口網站完成驗證以完成本次購買。',
+        expired: '銀行卡已到期。請在入口網站中更新。',
+        declined: '銀行卡遭拒。請在入口網站中嘗試另一張卡。',
+        failedBody: reason => `扣款未成功（${reason}）。`
+      },
+      title: '帳單',
+      preview: '預覽',
+      summary: { balance: '餘額', plan: '方案', autoRefill: '自動儲值' },
+      sections: {
+        invoices: '發票',
+        plan: '方案',
+        paymentAndCredits: '支付與額度',
+        usage: '用量'
+      },
+      usage: { title: '用量' },
+      buyCredits: {
+        customAmount: '自訂儲值金額',
+        title: '立即購買額度',
+        buyButton: '購買',
+        processing: '處理中…正在確認結算',
+        added: amount => `已加入 ${amount}，正在重新整理餘額。`,
+        retry: '重試',
+        openPortal: '開啟入口網站'
+      },
+      plan: {
+        title: '方案',
+        changePlan: '變更方案',
+        viewPlans: '查看方案',
+        backAria: '返回帳單',
+        current: '目前方案',
+        scheduled: '已排定',
+        empty: '目前沒有可切換的方案。',
+        undo: '復原',
+        undoing: '正在復原…',
+        downgrade: '降級',
+        confirmDowngrade: '確認降級',
+        tryAgain: '重試',
+        checkingChange: '正在檢查此變更…',
+        cannotChange: '無法在此進行該變更。',
+        alreadyOn: name => `你已使用 ${name}，無需變更。`,
+        notScheduleable: '無法在此排定該變更。',
+        scheduling: '正在排定…',
+        cancel: '取消',
+        effectScheduled: (targetName, effectiveAt, creditsDelta) =>
+          `變更為 ${targetName}，於 ${effectiveAt} 生效。現在不扣款；在此之前保留目前方案。${creditsDelta ? `每月額度變化：${creditsDelta}。` : ''}`
+      },
+      autoReload: {
+        threshold: '門檻',
+        thresholdAria: '自動儲值門檻',
+        reloadTo: '儲值金額',
+        reloadToAria: '自動儲值金額',
+        turnOffConfirm: '關閉自動儲值？',
+        turnOff: '關閉',
+        disable: '停用',
+        updated: '自動儲值已更新。',
+        turnedOff: '自動儲值已關閉。',
+        manage: '管理',
+        save: '儲存',
+        saving: '正在儲存…',
+        cancel: '取消'
+      },
+      state: {
+        notice: {
+          loggedOut: {
+            title: '連接你的 Nous 帳戶',
+            message: '登入你的 Nous 帳戶，即可在此查看餘額、方案和用量。',
+            action: '登入'
+          },
+          openPortal: '開啟入口網站 ↗',
+          noCard: {
+            title: '尚未新增付款方式',
+            message: '新增銀行卡後才能購買額度和使用自動儲值。請在入口網站中新增。',
+            action: '新增銀行卡 ↗'
+          }
+        },
+        paymentMethod: {
+          title: '付款方式',
+          description: '管理用於儲值和訂閱續費的銀行卡。',
+          addAction: '新增付款方式',
+          updateAction: '更新',
+          provenance: {
+            autoRefill: '自動儲值卡',
+            customerDefault: '帳戶預設卡',
+            subPin: '訂閱卡',
+            suffix: label => ` - ${label}`
+          }
+        },
+        buyCredits: { description: '從銀行卡一次性扣款，今天即可計入餘額。' },
+        autoRefill: {
+          title: '餘額不足時儲值',
+          genericDescription: '餘額低於門檻時自動補充額度。',
+          offPill: '已關閉',
+          enabledPill: '已啟用',
+          notAvailablePill: '—',
+          manageCaption: '在入口網站中管理自動儲值。',
+          turnOnCaption: '在入口網站中開啟自動儲值',
+          chargesDescription: (reloadTo, threshold) => `餘額低於 ${threshold} 時自動扣款 ${reloadTo}。`,
+          distinctCardCaption: cardLabel => `自動儲值使用 ${cardLabel} 扣款，請在入口網站中核對`,
+          distinctCardFallback: '另一張銀行卡',
+          reconcileAction: '核對 ↗'
+        },
+        usage: {
+          subscriptionCredits: {
+            title: '訂閱額度',
+            barLabel: '剩餘訂閱額度',
+            captionResets: date => `於 ${date} 重設`,
+            valueOf: (remaining, monthly) => `${monthly} 中剩餘 ${remaining}`,
+            valueOver: (remaining, monthly, over) => `${monthly} 中剩餘 ${remaining} · 超出 ${over}`
+          },
+          topupCredits: { title: '儲值額度', caption: '不會到期' },
+          monthlyCap: {
+            title: '每月支出上限',
+            barLabel: '已用每月支出限額',
+            captionDefault: '預設上限',
+            captionSpending: '每月遠端支出',
+            valueUsed: (spent, limit) => `${limit} 中已用 ${spent}`
+          }
+        },
+        planCard: {
+          freeTier: '免費',
+          chooseAction: '選擇 ↗',
+          adjustPlanAction: '調整方案 ↗',
+          unavailableCaption: '訂閱詳細資料暫不可用，仍可開啟入口網站。',
+          downgradeCaption: (tierName, when) => `於 ${when} 變更為 ${tierName}。`,
+          cancellationCaption: when => `於 ${when} 取消。`,
+          renewsCaption: date => `於 ${date} 續費`,
+          noSubscriptionCaption: '沒有有效訂閱，付費模型會扣除儲值額度。'
+        }
+      },
+      errors: {
+        consentRequired: { title: '需要確認銀行卡', message: '請在入口網站中確認此卡可用於終端扣款' },
+        insufficientScope: {
+          title: '需要核准遠端支出',
+          message: '此操作需要遠端支出權限。請發起一次儲值以授權，然後重試。'
+        },
+        remoteSpendingRevoked: {
+          title: '遠端支出已停止',
+          messageByAdmin: '管理員已停止此終端的遠端支出。',
+          messageBySelf: '你已停止此終端的遠端支出。'
+        },
+        remoteSpendingReconnect: who => `${who} 請從「設定 → 閘道」重新連線以重新授權此裝置。`,
+        sessionRevoked: { title: '工作階段已登出', message: '你的工作階段已登出。請從「設定 → 閘道」重新登入。' },
+        cliBillingDisabled: {
+          title: '遠端支出已關閉',
+          message: '此帳戶的遠端支出已關閉，帳單管理員可在入口網站的 Hermes Agent 頁面開啟。'
+        },
+        roleRequired: {
+          title: '需要管理員權限',
+          message: '新增資金需要組織管理員或擁有者權限。請聯絡管理員，或在入口網站中管理。'
+        },
+        idempotencyConflict: { title: '請發起新的儲值', message: '🔴 此扣款識別碼已用於另一金額。請發起新的儲值。' },
+        noPaymentMethod: {
+          title: '沒有已儲存的銀行卡',
+          message: '💳 尚未儲存用於終端扣款的銀行卡。請在入口網站中設定（一次性購買額度不會儲存可重複使用的卡）。'
+        },
+        orgAccessDenied: { title: '組織存取遭拒', message: '此權杖未綁定到你可管理的組織' },
+        monthlyCapExceeded: {
+          title: '已達每月支出上限',
+          messageReached: '🔴 已達每月支出上限。',
+          messageHeadroom: remaining => `🔴 已達每月支出上限，剩餘額度為 $${remaining}。`
+        },
+        rateLimited: {
+          title: '目前扣款請求過多',
+          message: mins => `🟡 目前扣款請求過多${mins > 0 ? `（請約 ${mins} 分鐘後重試）` : ''}。這不是付款失敗。`
+        },
+        stripeUnavailable: {
+          title: 'Stripe 遇到問題',
+          message: mins => (mins > 0 ? `Stripe 遇到問題，請約 ${mins} 分鐘後重試` : 'Stripe 遇到問題，請稍後重試')
+        },
+        upgradeCapExceeded: { title: '已達每日方案變更次數上限', message: '已達每日方案變更次數上限，請明天重試' },
+        endpointUnavailable: {
+          title: '帳單端點不可用',
+          message: '帳單端點傳回了非 JSON 回應（此部署可能不支援該端點）。'
+        },
+        timeout: { title: '帳單請求逾時', message: '帳單請求逾時。' },
+        transport: { title: '帳單連線失敗', message: '帳單請求在到達閘道前失敗。' },
+        default: { title: '帳單請求失敗', message: '帳單請求失敗。' }
+      }
+    },
+    providers: {
+      connectAccount: '連結帳號',
+      haveApiKey: '改用 API 金鑰？',
+      intro: '使用訂閱登入，無需複製 API 金鑰。Hermes 會在應用程式中為您完成瀏覽器登入。',
+      connected: '已連線',
+      collapse: '收合',
+      connectAnother: '連結其他提供方',
+      otherProviders: '其他提供方',
+      disconnect: '斷開連接',
+      disconnectInTerminal: '斷開連線（在終端機中執行刪除命令）',
+      removeConfirm: provider => `移除 ${provider}？`,
+      removeExternalGeneric: provider => `${provider}由其自己的 CLI 管理——在那裡移除它。`,
+      removeKeyManaged: provider => `${provider} 由 API 金鑰設定。請從 API Keys 中移除。`,
+      removeTerminalConfirm: (provider, command) => `Disconnect ${provider}？這運行“${command}” 在終端機中清除憑證。`,
+      removeTerminalRunning: provider => `跑步${provider}終端機斷線…`,
+      removedTitle: '帳號已移除',
+      removedMessage: provider => `${provider} 已移除。`,
+      failedRemove: provider => `無法移除 ${provider}`,
+      noProviderKeys: '沒有可用的提供方 API 金鑰。',
+      searchKeys: '搜尋提供方…',
+      noKeysMatch: '沒有符合的提供方。',
+      localEndpoint: {
+        title: '本地 / 自訂端點',
+        description: '將 Hermes 指向任意 OpenAI 相容端點（Zyphra、vLLM、llama.cpp、Ollama 等）。'
+      },
+      loading: '正在載入提供方...',
+      providerLabels: {},
+      providerDescriptions: {}
+    },
+    sessions: {
+      loading: '正在載入已封存工作階段…',
+      archivedTitle: '已封存工作階段',
+      archivedIntro: '已封存的聊天會從側邊欄隱藏，但保留全部訊息。在側邊欄 Alt/⌥+Shift 點擊聊天即可封存。',
+      emptyArchivedTitle: '暫無封存',
+      emptyArchivedDesc: '封存一個聊天後會顯示在這裡。',
+      unarchive: '取消封存',
+      deletePermanently: '永久刪除',
+      messages: count => `${count} 則訊息`,
+      restored: '已還原',
+      deleteConfirm: title => `永久刪除「${title}」？此操作無法復原。`,
+      autoArchiveTitle: '自動封存閒置對話',
+      autoArchiveDesc:
+        '自動封存你一段時間未使用的對話。已釘選的對話永遠不會被封存，也不會刪除任何內容——封存的對話會移到這裡。',
+      autoArchiveDaysLabel: '封存前',
+      autoArchiveDaysUnit: '天無活動',
+      autoArchiveFailed: '無法更新自動封存設定',
+      defaultDirTitle: '預設專案目錄',
+      defaultDirDesc: '新工作階段預設從此資料夾開始，除非您選擇其他目錄。留空則使用您的家目錄。',
+      defaultDirUpdated: '預設專案目錄已更新',
+      defaultsTo: label => `預設使用 ${label}。`,
+      change: '變更',
+      choose: '選擇',
+      clear: '清除',
+      notSet: '未設定',
+      failedLoad: '無法載入已封存工作階段',
+      unarchiveFailed: '取消封存失敗',
+      deleteFailed: '刪除失敗',
+      updateDirFailed: '無法更新預設目錄',
+      clearDirFailed: '無法清除預設目錄'
+    },
+    toolsets: {
+      loadingConfig: '正在載入設定',
+      savedTitle: '憑證已儲存',
+      savedMessage: key => `${key} 已更新。`,
+      removedTitle: '憑證已移除',
+      removedMessage: key => `${key} 已移除。`,
+      failedSave: key => `儲存 ${key} 失敗`,
+      failedRemove: key => `移除 ${key} 失敗`,
+      failedReveal: key => `顯示 ${key} 失敗`,
+      removeConfirm: key => `從 .env 中移除 ${key}？`,
+      set: '已設定',
+      notSet: '未設定',
+      selectedTitle: '已選擇提供方',
+      selectedMessage: provider => `${provider} 現在處於作用中狀態。`,
+      failedSelect: provider => `選擇 ${provider} 失敗`,
+      failedLoad: '工具設定載入失敗',
+      noProviderOptions: '此工具集沒有提供方選項；啟用後即可使用目前設定。',
+      noProviders: '此工具集目前沒有可用提供方。',
+      ready: '就緒',
+      needsSignIn: '需要登入',
+      needsSetup: '需要安裝',
+      badgeTokens: {
+        recommended: '推薦',
+        free: '免費',
+        'keyless/paid': '免金鑰/付費',
+        local: '本機',
+        'self-hosted': '自架',
+        paid: '付費',
+        preview: '預覽',
+        subscription: '訂閱',
+        'no key': '免金鑰',
+        'search only': '僅搜尋',
+        'optional gateway': '選用閘道',
+        native: '原生'
+      },
+      tagCopy: {
+        '30 prebuilt voices, controllable via prompts': '30 種預置語音，可透過提示詞控制',
+        'Anti-detection browser (Firefox/Camoufox)': '反偵測瀏覽器 (Firefox/Camoufox)',
+        'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
+          '透過 cua-driver 背景控制電腦——不會搶佔您的游標或焦點。適用於任何模型。',
+        'Browser login at accounts.x.ai — no API key required': '在 accounts.x.ai 瀏覽器登入——無需 API 金鑰',
+        'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
+          'Chatterbox、Qwen3-TTS 等——來自 api.deepinfra.com 的即時目錄',
+        'Direct xAI API billing via XAI_API_KEY': '透過 XAI_API_KEY 直接按 xAI API 計費',
+        'Good quality, no API key needed': '音質不錯，無需 API 金鑰',
+        'Grok voices — uses xAI Grok OAuth or XAI_API_KEY': 'Grok 語音——使用 xAI Grok OAuth 或 XAI_API_KEY',
+        'Headless Chromium, no API key needed': '無頭 Chromium，無需 API 金鑰',
+        'High quality voices': '高品質語音',
+        'Hosted Langfuse (cloud.langfuse.com)': '託管版 Langfuse (cloud.langfuse.com)',
+        'Lightweight local ONNX TTS (~25MB), no API key': '輕量本機 ONNX TTS（約 25MB），無需 API 金鑰',
+        'Local neural TTS, 44 languages (voices ~20-90MB)': '本機神經網路 TTS，支援 44 種語言（語音包約 20-90MB）',
+        'Managed Browser Use billed to your subscription': '託管 Browser Use，計入您的訂閱',
+        'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入您的訂閱',
+        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription':
+          '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入您的訂閱',
+        'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
+        'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
+        'Managed web search and extract billed to your subscription': '託管網頁搜尋與內容擷取，費用計入您的訂閱',
+        'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
+        'Most natural voices': '最自然的語音',
+        'Multilingual, native Opus': '多語言，原生 Opus',
+        'PKCE OAuth — opens the setup wizard': 'PKCE OAuth——將開啟設定精靈',
+        'REST API integration': 'REST API 整合',
+        'Run your own Firecrawl instance (Docker)': '執行您自己的 Firecrawl 執行個體 (Docker)',
+        'Self-hosted Langfuse instance': '自架 Langfuse 執行個體',
+        "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
+          '透過 Grok 的 web_search 工具進行代理式網頁搜尋——使用 xAI Grok OAuth 或 XAI_API_KEY。',
+        'Cloud browser with remote execution': '支援遠端執行的雲端瀏覽器',
+        'Cloud browser with stealth and proxies': '帶隱身與代理的雲端瀏覽器',
+        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
+          'FLUX、Qwen-Image 等——來自 api.deepinfra.com 的即時目錄',
+        'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
+          '免費、尊重隱私的元搜尋。把 SEARXNG_URL 指向您的執行個體。',
+        'Free-tier API key — 2k queries/mo, search only.': '免費方案 API 金鑰——每月 2000 次查詢，僅搜尋。',
+        'Full search + extract; supports direct API and Nous tool-gateway routing.':
+          '完整的搜尋 + 擷取；支援直連 API 和 Nous 工具閘道路由。',
+        'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
+          '經 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
+        'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
+          'Krea 2 基礎模型——Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。風格轉移、情緒板、參考引導生成。可直連金鑰或經託管 Nous 訂閱閘道。',
+        'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
+          'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse——文生影片與圖生影片',
+        'Objective-tuned search + parallel page extraction.': '面向目標調校的搜尋 + 平行頁面擷取。',
+        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
+          '可選 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等——文生圖與圖像編輯',
+        'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
+          '經 Nous Portal 的參考圖像生成（OpenRouter 支援）',
+        'Search + extract in one provider.': '搜尋 + 擷取一體的供應商。',
+        'Search via the ddgs Python package — no API key (pair with any extract provider)':
+          '透過 ddgs Python 套件搜尋——無需 API 金鑰（可搭配任意擷取供應商）',
+        'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
+          '搜尋由供應商端執行（需要 Codex Responses 傳輸方式並登入 openai-codex）；僅支援搜尋，內容擷取仍使用其他後端',
+        'Semantic + neural web search with content extraction.': '語意 + 神經網路網頁搜尋，帶內容擷取。',
+        'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
+          'Wan、p-video 等——來自 api.deepinfra.com 的即時目錄；文生影片與圖生影片',
+        'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
+          'gpt-image-2，低/中/高品質檔——文生圖與圖像編輯',
+        'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
+          '經 ChatGPT/Codex OAuth 使用 gpt-image-2——無需 API 金鑰；支援文字與圖像輸入',
+        'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-image——文生圖與圖像編輯；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `image_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。',
+        'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
+          'grok-imagine-video 用於文字/參考生成；grok-imagine-video-1.5 用於圖生影片；編輯/延伸：傳入先前 Imagine 結果的公開 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `video_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。'
+      },
+      activeBackend: '目前後端',
+      activeBackendHint: '這是你目前使用的後端',
+      useBackend: '使用此後端',
+      nousIncluded: '隨 Nous 訂閱提供 — 使用您的 Nous 帳戶登入以啟用。',
+      nousAuthNeededTitle: '使用您的 Nous 帳戶登入',
+      nousAuthNeededMessage: provider => `${provider}已保存，但只有在您使用您的 Nous 帳戶登入後才會生效。`,
+      nousAuthSignIn: '登入',
+      nousAuthDoneTitle: 'Nous 帳號已連接',
+      nousAuthDoneMessage: '訂閱後端現已啟用。',
+      nousAuthFailed: 'Nous 登入未完成',
+      noApiKeyRequired: '不需要 API 金鑰。',
+      postSetupHint: step => `此後端需要一次性安裝 (${step})。將在此機器上執行，可能需要幾分鐘。`,
+      postSetupInstalledHint: '已安裝。僅在出現問題時才需要重新執行安裝。',
+      postSetupRun: '執行設定',
+      postSetupRerun: '重新執行設定',
+      postSetupInstalled: '已安裝',
+      postSetupRunning: '安裝中…',
+      postSetupStarting: '啟動中…',
+      postSetupCompleteTitle: '設定完成',
+      postSetupCompleteMessage: step => `已安裝 ${step}。`,
+      postSetupErrorTitle: '設定完成但有錯誤',
+      postSetupErrorMessage: step => `設定中${step}未完成。打開日誌查看原因，然後再次運行安裝程序。`,
+      postSetupFailed: step => `執行 ${step} 設定失敗`,
+      webSearchActive: backend => `搜尋：${backend}`,
+      webExtractActive: backend => `擷取：${backend}`,
+      webCapabilityUnset: '未設定',
+      webUseForSearch: '用於搜尋',
+      webUseForExtract: '用於擷取',
+      webUsedForSearch: '搜尋後端',
+      webUsedForExtract: '擷取後端',
+      webCapabilitySelectedMessage: (provider, capability) =>
+        `${provider} 現在負責網頁${capability === 'search' ? '搜尋' : '擷取'}。`,
+      failedSelectCapability: provider => `無法設定 ${provider}`,
+      loadingModels: '正在載入模型目錄...',
+      modelSectionTitle: '型號',
+      modelCount: count => `${count} model${count === 1 ? '' : 's'}`,
+      modelInUse: '使用中',
+      modelDefault: '預設',
+      modelInactiveHint: '首先選擇該後端來變更其模型。',
+      modelSelectedTitle: '所選型號',
+      modelSelectedMessage: model => `${model}適用於新會話。`,
+      failedSelectModel: model => `選取失敗${model}`,
+      modelLabels: {},
+      modelSpeeds: {},
+      modelDescriptions: {},
+      modelPrices: {},
+      terminalBackend: {
+        sectionTitle: '執行後端',
+        loading: '正在檢查執行後端…',
+        failedLoad: '無法載入終端後端',
+        ready: '就緒',
+        needsSetup: '需要設定',
+        unavailable: '不可用',
+        inUse: '使用中',
+        selectedTitle: '已選擇後端',
+        selectedMessage: backend => `終端命令現在透過 ${backend} 執行。將套用於新工作階段。`,
+        failedSelect: backend => `選擇 ${backend} 失敗`,
+        needsSetupHint: '現在即可選擇此後端——但在完成設定前命令將會失敗。',
+        descriptions: {},
+        details: {
+          'Docker not reachable — start Docker and retry.': '無法連線 Docker——請啟動 Docker 後重試'
+        },
+        needsSetupConfirmTitle: backend => `選擇${backend}無論如何?`,
+        needsSetupConfirmDescription: detail => `${detail}在此更改之後開始的會話，在設置完成之前將沒有終端或文件工具。`,
+        needsSetupConfirmDescriptionGeneric:
+          '此後端尚未設置完成。在此更改之後開始的會話將無終端機或檔案工具，直到設置完成為止。',
+        needsSetupConfirmAction: '仍然選擇',
+        unavailableTitle: '終端命令不可用',
+        unavailableMessage: backend =>
+          `Hermes 現在無法執行 shell 指令：${backend}尚未準備好。切換到本地，或完成設定${backend}然後再試一次。`,
+        openBackendSettings: '打開終端設定',
+        useLocal: '使用本地',
+        switchedToLocal: '終端命令現在在本地運行。適用於新會話。'
+      },
+      computerUse: {
+        checking: '正在檢查電腦使用狀態…',
+        statusReadFailed: '無法讀取電腦使用狀態',
+        unsupported: platform => `目前平台（${platform}）不支援電腦使用。`,
+        installHint: '請先在下方安裝 cua-driver 後端，才能操控本機。',
+        installGrantHint: '然後在此處授予輔助使用和螢幕錄製權限。',
+        platformNotes: {
+          linux: '透過 X11/XWayland 無障礙堆疊操控桌面——無需權限提示。',
+          win32: '首次執行時 Windows SmartScreen 可能會對 cua-driver 的 UIAccess 工作處理程序跳出提示——請選擇允許。'
+        },
+        macGrantNote:
+          '權限授予給 CuaDriver 自身的識別（com.trycua.driver）而非 Hermes——因此系統對話框顯示的是實際操控 Mac 的處理程序。',
+        recheck: '重新檢查',
+        accessibility: '輔助使用',
+        accessibilityHint: '允許 cua-driver 送出點擊、按鍵，並讀取無障礙樹。',
+        screenRecording: '螢幕錄製',
+        screenRecordingHint: '允許 cua-driver 擷取應用程式視窗的螢幕截圖。',
+        driverHealth: '驅動程式健康狀態',
+        granted: '已授權',
+        notGranted: '未授權',
+        ready: '就緒',
+        notReady: '未就緒',
+        unknown: '未知',
+        readyMessage: '電腦使用已就緒。可以讓智慧代理擷取應用程式畫面並進行點擊操作了。',
+        grantPermissions: '授予權限',
+        waitingApproval: '等待核准…',
+        grantFailed: '無法要求權限',
+        approveTitle: '請在系統設定中核准',
+        approveMessage: 'macOS 將顯示一個歸屬於 CuaDriver 的權限對話框。核准後返回此處。'
+      },
+      browserRealProfile: {
+        label: '使用我的真實瀏覽器設定檔',
+        description:
+          '將預設瀏覽器的登入資訊與 Cookie 複製到受管理的快照中，代理使用該快照進行瀏覽。絕不會直接開啟你的真實設定檔。將套用於新工作階段。',
+        enabledTitle: '真實設定檔瀏覽：已開啟',
+        enabledMessage: '新工作階段將使用預設瀏覽器設定檔的快照進行瀏覽。',
+        disabledTitle: '真實設定檔瀏覽：已關閉',
+        disabledMessage: '設定檔快照將被刪除；新工作階段使用乾淨的瀏覽器。',
+        failedSave: '無法儲存真實設定檔設定',
+        prompt: {
+          title: '讓網站保持登入狀態',
+          body: '讓 Hermes 使用預設瀏覽器設定檔的快照進行瀏覽，網站開啟時即已登入。',
+          bulletSnapshot: 'Cookie 與登入資訊會複製到受管理的快照中。',
+          bulletLiveProfile: '絕不會直接開啟你的真實瀏覽器設定檔。',
+          bulletLocal: '所有資料都不會離開這台電腦。',
+          dontShowAgain: '不再顯示',
+          notNow: '暫不',
+          enable: '使用我的設定檔'
+        }
+      },
+      nousAuthFailedMessage: '再試一次。',
+      nousAuthTryAgain: '再試一次',
+      postSetupOpenLogs: '打開日誌',
+      postSetupRunAgain: '再次運行'
+    },
+
+    uninstallSection: {
+      dangerZone: '危險操作',
+      checkingInstalled: '正在檢查已安裝內容…',
+      uninstallHermes: '解除安裝 Hermes',
+      chooseHowMuch: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
+      confirmUninstall: '確認解除安裝',
+      confirmBody: what => `這將移除${what}。此操作無法復原。`,
+      appLabel: '應用程式：',
+      couldNotStart: '無法開始解除安裝。',
+      uninstalling: '正在解除安裝…',
+      yesUninstall: '是，解除安裝',
+      options: {
+        gui: {
+          title: '僅解除安裝聊天 GUI',
+          description: '移除此桌面應用程式。Hermes 代理、你的設定和聊天記錄都會保留。',
+          consequence: '桌面聊天 GUI（此應用程式及其資料）'
+        },
+        lite: {
+          title: '解除安裝 GUI 與代理，保留資料',
+          description: '移除應用程式和 Hermes 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
+          consequence: '聊天 GUI 和 Hermes 代理（設定、聊天記錄和機密會保留）'
+        },
+        full: {
+          title: '解除安裝全部',
+          description: '移除應用程式、代理和所有使用者資料——設定、聊天記錄、排程工作、機密和日誌。',
+          consequence: '全部內容——聊天 GUI、Hermes 代理，以及你的所有設定、聊天記錄、機密和日誌'
+        }
+      }
+    },
+    computerUse: {
+      accessibility: '無障礙',
+      screenRecording: '螢幕錄製',
+      driverHealth: '駕駛員健康'
+    },
+    hudModifier: {
+      title: '點擊以召喚 HUD',
+      description:
+        '在 Mac 上輕按並釋放 ⌘ 選項，或在 Windows/Linux 上輕按 Ctrl Alt，可將 HUD 從任何應用程式中帶到前面。預設為關閉；僅適用於此裝置。',
+      permission:
+        '請在系統偏好設定 → 隱私與安全性 → 輸入監控中允許 Hermes，然後再試一次。此手勢不會記錄按鍵或擷取您的螢幕。',
+      unavailable:
+        '手勢助手 HUD 無法啟動或意外停止。請重試，或重新啟動 Hermes。現有的 HUD 快捷方式在 Hermes 中仍可使用。',
+      missingHelper: '這個 Hermes 安裝缺少 HUD 手勢助手。請更新或重新安裝 Hermes，然後重試。',
+      unsupportedSession: '此桌面會話不支援全局修改鍵點擊。Linux 需要 X11；不支援 Wayland。'
+    },
+    screenshot: {
+      enabledTitle: '截圖快捷鍵',
+      enabledDesc:
+        '從任何應用程式中同時按下兩個 Command 鍵，即可擷取最前方的視窗並將其附加到您目前的 Hermes 草稿中。從不會自動傳送。預設為關閉；僅適用於此 Mac。視窗內容可能包含敏感資訊 — 傳送前請先檢查附件。',
+      statusTitle: '截圖快捷方式狀態',
+      checking: '正在檢查截圖快捷鍵…',
+      disabled: '截圖快捷方式已關閉。',
+      starting: '正在啟動快捷鍵監聽器。它還未準備好。',
+      ready: '捷徑已準備好。截圖會附加到你當前的草稿中，而不會發送。',
+      inputPermission:
+        '輸入監控權限允許 Hermes 在其他應用程式啟用時檢測 Command 鍵。請在系統設定 → 隱私與安全性 → 輸入監控中允許 Hermes，然後返回此處並重試。',
+      screenPermission:
+        '螢幕錄製權限允許 Hermes 在您使用此捷徑時捕捉最前方的應用程式視窗。在系統設定 → 隱私與安全性 → 螢幕錄製 中允許 Hermes，然後返回此處重試。如果 macOS 提示，請重新啟動 Hermes。',
+      openSettings: '打開系統設定',
+      retry: '重試',
+      unavailable: '截圖快捷方式不可用。重試，或將其關閉。',
+      errorTitle: '截圖快捷鍵錯誤',
+      loadFailed: '無法讀取捷徑狀態。請重試以檢查其當前設定。',
+      saveFailed: '無法確認快捷方式的更改。請重試以檢查其當前設置。',
+      permissionFailed: '無法開啟系統設定。請手動打開「隱私與安全性」，然後重試。',
+      captureFailed: '無法擷取最前面的視窗。沒有任何內容被附加或傳送。',
+      contextChanged: '當前草稿在捕捉過程中被更改。截圖未附上或未發送。'
+    },
+    envKeys: {
+      NOUS_BASE_URL: { description: 'Nous Portal 基礎 URL 覆寫' },
+      OPENROUTER_API_KEY: { description: 'OpenRouter API 金鑰（用於視覺、網頁擷取輔助和 MOA）' },
+      GOOGLE_API_KEY: { description: 'Google AI Studio API 金鑰（也識別 GEMINI_API_KEY）' },
+      GEMINI_API_KEY: { description: 'Google AI Studio API 金鑰（GOOGLE_API_KEY 的別名）' },
+      GEMINI_BASE_URL: { description: 'Google AI Studio 基礎 URL 覆寫' },
+      VERTEX_CREDENTIALS_PATH: {
+        description:
+          '用於 Vertex AI (Gemini) 的 Google Cloud 服務帳戶 JSON 路徑。Vertex 使用 OAuth2 而非靜態 API 金鑰——Hermes 用該憑證簽發短期權杖。回退到 GOOGLE_APPLICATION_CREDENTIALS，再回退到 ADC (gcloud auth application-default login)。專案/區域在 config.yaml 的 vertex: 下設定。'
+      },
+      XAI_API_KEY: { description: 'xAI API 金鑰' },
+      XAI_BASE_URL: { description: 'xAI 基礎 URL 覆寫' },
+      NVIDIA_API_KEY: { description: 'NVIDIA NIM API 金鑰（build.nvidia.com 或本機 NIM 端點）' },
+      NVIDIA_BASE_URL: { description: 'NVIDIA NIM 基礎 URL 覆寫（如本機 NIM 的 http://localhost:8000/v1）' },
+      LM_API_KEY: { description: '啟用驗證的 LM Studio 本機伺服器的 Bearer 權杖' },
+      LM_BASE_URL: { description: 'LM Studio 基礎 URL 覆寫' },
+      GLM_API_KEY: { description: 'Z.AI / GLM API 金鑰（也識別 ZAI_API_KEY / Z_AI_API_KEY）' },
+      ZAI_API_KEY: { description: 'Z.AI API 金鑰（GLM_API_KEY 的別名）' },
+      Z_AI_API_KEY: { description: 'Z.AI API 金鑰（GLM_API_KEY 的別名）' },
+      GLM_BASE_URL: { description: 'Z.AI / GLM 基礎 URL 覆寫' },
+      KIMI_API_KEY: { description: 'Kimi / Moonshot API 金鑰' },
+      KIMI_BASE_URL: { description: 'Kimi / Moonshot 基礎 URL 覆寫' },
+      KIMI_CN_API_KEY: { description: 'Kimi / Moonshot 中國區 API 金鑰' },
+      STEPFUN_API_KEY: { description: '階躍星辰 Step Plan API 金鑰' },
+      STEPFUN_BASE_URL: { description: '階躍星辰 Step Plan 基礎 URL 覆寫' },
+      ARCEEAI_API_KEY: { description: 'Arcee AI API 金鑰' },
+      ARCEE_BASE_URL: { description: 'Arcee AI 基礎 URL 覆寫' },
+      GMI_API_KEY: { description: 'GMI Cloud API 金鑰' },
+      GMI_BASE_URL: { description: 'GMI Cloud 基礎 URL 覆寫' },
+      FIREWORKS_API_KEY: { description: 'Fireworks AI API 金鑰' },
+      MINIMAX_API_KEY: { description: 'MiniMax API 金鑰（國際版）' },
+      MINIMAX_BASE_URL: { description: 'MiniMax 基礎 URL 覆寫' },
+      MINIMAX_CN_API_KEY: { description: 'MiniMax API 金鑰（中國區端點）' },
+      MINIMAX_CN_BASE_URL: { description: 'MiniMax（中國區）基礎 URL 覆寫' },
+      DEEPSEEK_API_KEY: { description: '用於直連 DeepSeek 的 API 金鑰' },
+      DEEPSEEK_BASE_URL: { description: '自訂 DeepSeek API 基礎 URL（進階）' },
+      DASHSCOPE_API_KEY: { description: '阿里雲 DashScope API 金鑰（Qwen 及多供應商模型）' },
+      DASHSCOPE_BASE_URL: { description: '自訂 DashScope 基礎 URL（預設：coding-intl OpenAI 相容端點）' },
+      HERMES_QWEN_BASE_URL: { description: 'Qwen Portal 基礎 URL 覆寫（預設 https://portal.qwen.ai/v1）' },
+      OPENCODE_ZEN_API_KEY: { description: 'OpenCode Zen API 金鑰（按量付費使用精選模型）' },
+      OPENCODE_ZEN_BASE_URL: { description: 'OpenCode Zen 基礎 URL 覆寫' },
+      OPENCODE_GO_API_KEY: { description: 'OpenCode Go API 金鑰（10 美元/月訂閱使用開源模型）' },
+      OPENCODE_GO_BASE_URL: { description: 'OpenCode Go 基礎 URL 覆寫' },
+      HF_TOKEN: {
+        description: '用於 Inference Providers 的 Hugging Face 權杖（經 router.huggingface.co 存取 20+ 開源模型）'
+      },
+      HF_BASE_URL: { description: 'Hugging Face Inference Providers 基礎 URL 覆寫' },
+      OLLAMA_API_KEY: { description: 'Ollama Cloud API 金鑰（ollama.com——雲端託管的開源模型）' },
+      OLLAMA_BASE_URL: { description: 'Ollama Cloud 基礎 URL 覆寫（預設 https://ollama.com/v1）' },
+      XIAOMI_API_KEY: { description: '小米 MiMo API 金鑰（用於 mimo-v2.5-pro、mimo-v2.5 等 MiMo 模型）' },
+      XIAOMI_BASE_URL: { description: '小米 MiMo 基礎 URL 覆寫（預設 https://api.xiaomimimo.com/v1）' },
+      UPSTAGE_API_KEY: { description: '用於 Solar LLM 模型的 Upstage API 金鑰' },
+      UPSTAGE_BASE_URL: { description: 'Upstage 基礎 URL 覆寫（預設 https://api.upstage.ai/v1）' },
+      AWS_REGION: { description: 'Bedrock API 呼叫的 AWS 區域（如 us-east-1、eu-central-1）' },
+      AWS_PROFILE: { description: '用於 Bedrock 驗證的 AWS 命名設定檔（來自 ~/.aws/credentials）' },
+      AZURE_FOUNDRY_API_KEY: { description: '自訂 Azure 端點的 Azure Foundry API 金鑰' },
+      AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry 基礎 URL（端點級設定請用 hermes model 設定）' },
+      ALIBABA_CODING_PLAN_API_KEY: { description: '阿里雲（Coding Plan）API 金鑰' },
+      ALIBABA_CODING_PLAN_BASE_URL: { description: '阿里雲（Coding Plan）基礎 URL 覆寫' },
+      ANTHROPIC_API_KEY: { description: 'Anthropic API 金鑰' },
+      ANTHROPIC_TOKEN: { description: 'Anthropic API 金鑰' },
+      CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API 金鑰' },
+      DEEPINFRA_API_KEY: { description: 'DeepInfra API 金鑰' },
+      DEEPINFRA_BASE_URL: { description: 'DeepInfra 基礎 URL 覆寫' },
+      KILOCODE_API_KEY: { description: 'Kilocode API 金鑰' },
+      KIMI_CODING_API_KEY: { description: 'Kimi Coding API 金鑰' },
+      NOVITA_API_KEY: { description: 'NovitaAI API 金鑰' },
+      NOVITA_BASE_URL: { description: 'NovitaAI 基礎 URL 覆寫' },
+      EXA_API_KEY: { description: '用於 AI 原生網頁搜尋與內容擷取的 Exa API 金鑰' },
+      PARALLEL_API_KEY: { description: '用於 AI 原生網頁搜尋與擷取的 Parallel API 金鑰' },
+      FIRECRAWL_API_KEY: { description: '用於網頁搜尋與擷取的 Firecrawl API 金鑰' },
+      FIRECRAWL_API_URL: { description: '自架 Firecrawl 執行個體的 API URL（選填）' },
+      FIRECRAWL_GATEWAY_URL: { description: '僅 Nous 訂閱者使用的 Firecrawl 工具閘道位址覆寫（選填）' },
+      TOOL_GATEWAY_URL: {
+        label: '工具閘道 URL',
+        description: '同源供應商和媒體上傳使用的共用工具閘道完整來源位址（選填）',
+        prompt: '共用工具閘道 URL（留空則根據網域推導）'
+      },
+      CONNECTOR_GATEWAY_URL: {
+        label: '連接器閘道 URL',
+        description: '連接器 API 使用的連接器閘道完整來源位址（選填）',
+        prompt: '連接器閘道 URL（留空則根據網域推導）'
+      },
+      TOOL_GATEWAY_DOMAIN: {
+        description:
+          '僅 Nous 訂閱者使用的共享工具閘道網域後綴，用於推導供應商主機，例如 nousresearch.com -> firecrawl-gateway.nousresearch.com'
+      },
+      TOOL_GATEWAY_SCHEME: {
+        description: '僅 Nous 訂閱者使用的共享工具閘道 URL 協定（預設 https，本機閘道測試可設 http）'
+      },
+      TOOL_GATEWAY_USER_TOKEN: {
+        description: '工具閘道請求使用的 Nous 訂閱者存取權杖（選填；預設從 Hermes 驗證儲存區讀取）'
+      },
+      TAVILY_API_KEY: { description: '用於 AI 原生網頁搜尋與擷取的 Tavily API 金鑰' },
+      PERPLEXITY_API_KEY: {
+        label: 'Perplexity',
+        description: 'Perplexity 搜尋 API 金鑰，用於回傳按相關性排序的結果和與查詢相關的頁面摘要',
+        prompt: 'Perplexity API 金鑰'
+      },
+      KEENABLE_API_KEY: {
+        label: 'Keenable',
+        description: 'Keenable API 金鑰，用於快速的獨立索引網頁搜尋和頁面擷取（選填；無需金鑰也可使用免費方案）',
+        prompt: 'Keenable API 金鑰'
+      },
+      PORCUPINE_ACCESS_KEY: {
+        label: 'Porcupine 存取金鑰',
+        description: 'Picovoice 存取金鑰，用於 Porcupine「Hey Hermes」喚醒詞引擎（選填；預設免費使用 openWakeWord）',
+        prompt: 'Picovoice 存取金鑰'
+      },
+      SEARXNG_URL: { description: '您的 SearXNG 執行個體 URL，用於免費自架網頁搜尋' },
+      BRAVE_SEARCH_API_KEY: { description: 'Brave Search API 訂閱權杖（免費方案：每月 2,000 次查詢）' },
+      BROWSERBASE_API_KEY: { description: '雲端瀏覽器的 Browserbase API 金鑰（選填——本機瀏覽器無需此項）' },
+      BROWSERBASE_PROJECT_ID: { description: 'Browserbase 專案 ID（選填——僅雲端瀏覽器需要）' },
+      BROWSER_USE_API_KEY: { description: '雲端瀏覽器的 Browser Use API 金鑰（選填——本機瀏覽器無需此項）' },
+      FIRECRAWL_BROWSER_TTL: { description: 'Firecrawl 瀏覽器工作階段 TTL（秒，選填，預設 300）' },
+      AGENT_BROWSER_ENGINE: {
+        description: '本機模式瀏覽器引擎：auto（預設 Chrome）、lightpanda（更快，無截圖）、chrome'
+      },
+      CAMOFOX_URL: { description: '本機反偵測瀏覽的 Camofox 瀏覽器伺服器 URL（如 http://localhost:9377）' },
+      CAMOFOX_API_KEY: { description: '傳送到遠端/啟用驗證的 Camofox 伺服器的選填 Bearer 權杖' },
+      FAL_KEY: { description: '用於圖像與影片生成的 FAL API 金鑰' },
+      KREA_API_KEY: { description: '用於 Krea 2 圖像生成的 Krea API 金鑰（Medium + Large）' },
+      VOICE_TOOLS_OPENAI_KEY: { description: '用於語音轉寫 (Whisper) 和 OpenAI TTS 的 OpenAI API 金鑰' },
+      ELEVENLABS_API_KEY: { description: '用於高品質文字轉語音和 Scribe 轉寫的 ElevenLabs API 金鑰' },
+      MISTRAL_API_KEY: { description: '用於 Voxtral TTS 和轉寫 (STT) 的 Mistral API 金鑰' },
+      GITHUB_TOKEN: { description: '用於技能中心的 GitHub 權杖（更高 API 速率限制、技能發佈）' },
+      HONCHO_API_KEY: { description: '用於 AI 原生持久記憶的 Honcho API 金鑰' },
+      HONCHO_BASE_URL: { description: '自架 Honcho 執行個體的基礎 URL（無需 API 金鑰）' },
+      HINDSIGHT_API_KEY: { description: '用於圖感知持久記憶的 Hindsight API 金鑰' },
+      HINDSIGHT_API_URL: { description: 'Hindsight API 基礎 URL（預設 https://api.hindsight.vectorize.io）' },
+      SUPERMEMORY_API_KEY: { description: '用於工作階段級持久記憶的 Supermemory API 金鑰' },
+      MEM0_API_KEY: { description: '用於語意持久記憶的 Mem0 Platform API 金鑰' },
+      RETAINDB_API_KEY: { description: '用於持久記憶的 RetainDB API 金鑰' },
+      RETAINDB_BASE_URL: { description: '自架 RetainDB 執行個體的基礎 URL（預設 https://api.retaindb.com）' },
+      BRV_API_KEY: { description: 'ByteRover API 金鑰（選填，用於雲端同步——預設本機優先）' },
+      OPENVIKING_API_KEY: { description: 'OpenViking API 金鑰（本機開發模式可留空）' },
+      OPENVIKING_ENDPOINT: { description: 'OpenViking 伺服器 URL（預設 http://127.0.0.1:1933）' },
+      HERMES_LANGFUSE_PUBLIC_KEY: { description: 'Langfuse 專案公鑰 (pk-lf-...)' },
+      HERMES_LANGFUSE_SECRET_KEY: { description: 'Langfuse 專案私鑰 (sk-lf-...)' },
+      HERMES_LANGFUSE_BASE_URL: { description: 'Langfuse 伺服器 URL（預設 https://cloud.langfuse.com）' },
+      NOTION_API_KEY: { description: 'Notion 整合權杖（notion 技能使用）' },
+      LINEAR_API_KEY: { description: 'Linear 個人 API 金鑰（linear 技能使用）' },
+      AIRTABLE_API_KEY: { description: 'Airtable 個人存取權杖（airtable 技能使用）' },
+      TENOR_API_KEY: { description: '用於 GIF 搜尋的 Tenor API 金鑰（gif-search 技能使用）' },
+      SUDO_PASSWORD: {
+        description: '終端機命令需要 root 權限時使用的 sudo 密碼；設為明確的空字串表示直接嘗試空密碼而不提示'
+      },
+      HERMES_PREFILL_MESSAGES_FILE: { description: '用於 few-shot 預熱的臨時預填訊息 JSON 檔案路徑' },
+      HERMES_EPHEMERAL_SYSTEM_PROMPT: { description: '在 API 呼叫時注入的臨時系統提示詞（永不寫入工作階段）' },
+      RAFT_PROFILE: { description: 'Raft 代理設定檔 slug——設定後自動啟用配接器' },
+      GATEWAY_ALLOW_ALL_USERS: { description: '允許所有使用者與訊息機器人互動（true/false）。預設 false。' },
+      GATEWAY_PROXY_URL: {
+        description:
+          '要轉發訊息的遠端 Hermes API 伺服器 URL（代理模式）。設定後閘道只處理平台收發——所有代理工作委派給遠端伺服器。適用於中繼到主機代理的 Docker E2EE 容器。也可透過 config.yaml 的 gateway.proxy_url 設定。'
+      },
+      GATEWAY_PROXY_KEY: {
+        description: '與遠端 Hermes API 伺服器驗證用的 Bearer 權杖（代理模式）。必須與遠端主機的 API_SERVER_KEY 一致。'
+      }
+    }
+  },
+  modelPicker: {
+    title: '切換模型',
+    current: '目前：',
+    unknown: '（未知）',
+    search: '篩選提供方和模型...',
+    noModels: '找不到模型。',
+    addProvider: '新增提供方',
+    loadFailed: '無法載入模型',
+    loadingIntoMemory: '載入到記憶體中',
+    downloading: '下載中',
+    localDownloadsHeading: '本地',
+    noAuthenticatedProviders: '沒有已驗證的提供方。',
+    pro: 'Pro',
+    proNeedsSubscription: 'Pro 模型需要付費 Nous 訂閱。',
+    free: '免費',
+    freeTier: '免費層',
+    priceTitle: '每百萬 Token 的輸入/輸出價格',
+    wasPrice: '原價',
+    customModel: '自訂模型',
+    addCustomModelAction: '新增自訂模型…',
+    customModelPlaceholder: '輸入模型 ID，例如 openai/gpt-5'
+  },
+  modelVisibility: {
+    title: '模型',
+    search: '搜尋模型',
+    noAuthenticatedProviders: '沒有已驗證的提供方。',
+    addProvider: '新增提供方…',
+    addCustomModel: '新增自訂模型',
+    removeCustomModel: '移除自訂模型',
+    resetToDefaults: '恢復預設',
+    resetConfirm: '將模型可見性恢復為預設？',
+    resetDescription: '你對模型顯示與隱藏的選擇將被清除，每個提供方都會恢復預設清單。你新增的自訂模型會保留並顯示。',
+    resetAction: '恢復'
+  }
+} satisfies Pick<TranslationOverrides, 'language' | 'settings' | 'modelPicker' | 'modelVisibility'>

@@ -5,9 +5,13 @@ import { textPart } from '@/lib/chat-messages'
 import { coerceGatewayText } from '@/lib/chat-runtime'
 import type { ErrorSurface } from '@/lib/error-surface'
 import { errorCardText } from '@/lib/error-surface-copy'
-import { isProviderSetupErrorMessage, localizeProviderErrorMessage } from '@/lib/provider-setup-errors'
+import {
+  isProviderSetupErrorCode,
+  isProviderSetupErrorMessage,
+  localizeProviderErrorMessage
+} from '@/lib/provider-setup-errors'
 import { type AgentNoticePayload, clearAgentNotice, nativeNoticeInput, showAgentNotice } from '@/store/agent-notices'
-import { clearClarifyRequest } from '@/store/clarify'
+import { clearSettledClarifyRequest } from '@/store/clarify'
 import { reconcileSessionCompacting, setSessionCompacting, takeCompressDeferred } from '@/store/compaction'
 import { refreshBackgroundProcesses } from '@/store/composer-status'
 import { applyGoalStatusText } from '@/store/goals'
@@ -292,7 +296,12 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
 
   if (event.type === 'error') {
     const rawErrorMessage = payload?.message || translateNow('notifications.gatewayErrorFallback')
-    const looksLikeProviderSetup = isProviderSetupErrorMessage(rawErrorMessage)
+
+    // The gateway's own verdict when it sent one (agent init with no usable provider), else the
+    // sentence: a blank install must reach onboarding, not a toast it cannot act on.
+    const looksLikeProviderSetup =
+      isProviderSetupErrorCode(payload?.code) || isProviderSetupErrorMessage(rawErrorMessage)
+
     const errorMessage = looksLikeProviderSetup
       ? translateNow('desktop.providerCredentialRequired')
       : localizeGatewayErrorMessage(rawErrorMessage)
@@ -323,7 +332,7 @@ export function handleStatusEvent(ctx: GatewayEventContext): boolean {
     // the failed turn (same intent as the message.complete clear).
     if (sessionId) {
       clearAllPrompts(sessionId)
-      clearClarifyRequest(undefined, sessionId)
+      clearSettledClarifyRequest(sessionId)
       clearActiveSessionTodos(sessionId)
       reconcileSessionCompacting(sessionId, 'terminal')
       compactedTurnRef.current.delete(sessionId)

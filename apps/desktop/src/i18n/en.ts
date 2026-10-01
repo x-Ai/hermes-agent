@@ -1501,6 +1501,9 @@ export const en: Translations = {
       }
     },
     appearance: {
+      chatTextScaleTitle: 'Chat Text Size',
+      chatTextScaleDesc:
+        'Scales conversation text and the message editor relative to UI Scale. Sidebars and controls stay the same size.',
       title: 'Appearance',
       intro: 'Desktop-only. Mode is brightness; theme is palette and chat chrome.',
       themeSearchPlaceholder: 'Search your themes or the VS Code Marketplace…',
@@ -5251,6 +5254,11 @@ export const en: Translations = {
     queueDroppedTitle: 'Queued prompt dropped',
     queueDroppedBody:
       'This background queue entry was dropped because its session could not be resumed after repeated attempts. Nothing else in the queue was affected.',
+    terminalSelectionMissingTitle: 'Terminal selection unavailable',
+    terminalSelectionMissingBody:
+      'Re-select the terminal lines (Ctrl/Cmd+L) before sending — this chip has no original text.',
+    queuedTerminalSelectionExpiredBody:
+      'This queued terminal selection is no longer available. Re-select the lines (Ctrl/Cmd+L) and queue the message again.',
     previewUnavailable: 'Preview unavailable',
     previewLabel: label => `Preview ${label}`,
     couldNotPreview: label => `Could not preview ${label}`,
@@ -5466,6 +5474,7 @@ export const en: Translations = {
       scopeUncommitted: 'Uncommitted',
       scopeBranch: 'Branch',
       scopeLastTurn: 'Last turn',
+      readOnlyScope: 'Read-only view — stage, revert, and commit apply to Uncommitted',
       commit: 'Commit',
       commitAndPush: 'Commit & Push',
       commitPlaceholder: shortcut => `Message (${shortcut} to commit)`,
@@ -6062,6 +6071,10 @@ export const en: Translations = {
       editModels: 'Edit models…',
       followDefault: 'Use Settings default',
       refreshModels: 'Refresh models',
+      favorites: 'Favorites',
+      addFavorite: 'Add to favorites',
+      removeFavorite: 'Remove from favorites',
+      favoriteShortcut: '⇧ Click',
       fast: 'Fast',
       free: 'free',
       cacheRead: 'cached read',
@@ -6217,6 +6230,10 @@ export const en: Translations = {
     }
   },
   rightSidebar: {
+    terminalReadOnly: 'Read-only output',
+    terminalReadOnlyHelp:
+      'To answer prompts, stop the background command and run it in a new terminal. The new terminal opens a separate shell; it does not connect to this process.',
+    terminalOpenInteractive: 'Open new terminal',
     aria: 'Right sidebar',
     panelsAria: 'Right sidebar panels',
     files: 'File system',
@@ -6261,9 +6278,15 @@ export const en: Translations = {
   },
   preview: {
     tab: 'Preview',
+    pin: 'Pin to workspace',
+    unpin: 'Unpin from workspace',
     closePane: 'Close preview pane',
     loading: 'Loading preview',
     unavailable: 'Preview unavailable',
+    missingTarget: 'That path does not exist on this computer',
+    missingTitle: 'File no longer exists',
+    missingBody: label =>
+      `${label} was deleted, moved, or its temporary location was cleared. This tab will not be restored on the next launch.`,
     opening: 'Opening...',
     hide: 'Hide',
     openPreview: 'Open preview',
@@ -6580,6 +6603,7 @@ export const en: Translations = {
       branchNewChat: 'Branch in new chat',
       react: 'React',
       dismissError: 'Dismiss error',
+      responseStopped: 'Response stopped',
       errorLayers: {
         auth: 'Sign-in problem',
         billing: 'Out of credits',
@@ -6679,6 +6703,10 @@ export const en: Translations = {
         stream_drop: {
           title: 'The reply was cut off',
           body: 'The connection dropped before the reply finished. Retry to send it again.'
+        },
+        no_reply: {
+          title: "The reply didn't finish",
+          body: 'Hermes ended this turn without a reply. Retry to send it again.'
         },
         upstream_blocked: {
           title: 'A firewall blocked the request',
@@ -6798,7 +6826,7 @@ export const en: Translations = {
     },
     approval: {
       gatewayDisconnected:
-        'Hermes is offline right now. The command is still waiting for your answer (until the approval timeout). Reconnect, then send it again.',
+        'Hermes is offline right now. The command is still waiting for your answer. Reconnect, then send it again.',
       sendFailed: 'Could not send your answer',
       run: 'Run',
       command: 'Command',
@@ -6829,6 +6857,8 @@ export const en: Translations = {
       noAnswer: 'No answer',
       confirmAndContinueLabel: 'Confirm and continue',
       recommendedSuffix: ' (Recommended)',
+      singleSelectHint: 'Pick one',
+      multiSelectHint: 'Select all that apply',
       questionProgress: (answered, total) => `${answered} of ${total} answered`,
       notDelivered:
         "This question didn't reach the app, so it can't be answered here. Press Stop to end the turn, then reply in chat."
@@ -7195,6 +7225,9 @@ export const en: Translations = {
     providerCredentialRequired: 'Add a provider credential before sending your first message.',
     readinessChecksDisagree: 'setup.status reports configured credentials, but runtime resolution still failed.',
     emptySlashCommand: 'empty slash command',
+    slashCommandIgnoredTitle: 'Command not sent',
+    slashCommandIgnoredBody:
+      'Slash commands cannot be combined with attachments. Remove the attachment or send the command separately.',
     desktopCommands: 'Desktop commands',
     skillCommandsAvailable: count => `${count} skill commands available.`,
     warningLine: message => `warning: ${message}`,
@@ -7262,6 +7295,9 @@ export const en: Translations = {
     generatedImageAlt: 'Generated image',
     downloadImage: 'Download image',
     savingImage: 'Saving image',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
+    resetZoom: 'Reset zoom',
     imagePreviewFailed: 'Image preview failed',
     imageAttach: 'Image attach',
     imageWriteFailed: 'Failed to write image to disk.',
