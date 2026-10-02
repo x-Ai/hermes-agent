@@ -1273,6 +1273,10 @@ budget for every route. Resolution happens once, at agent construction, for the 
 the TUI/Desktop, batch, cron, ACP and side agents alike, and is re-derived on `/model` switches
 and fallbacks. Nothing configured means no cap is sent on OpenAI-compatible wires (the server
 default applies, which can be lower than the model maximum).
+A reply that degenerates into a repetition loop is still stopped: within about 130,000
+characters of the loop starting (visible or reasoning text), Hermes closes the stream
+and ends the turn with a "Repetition Detected" notice, so an uncapped endpoint cannot keep a
+looping model running.
 
 Native Anthropic Messages (including the native Anthropic Bedrock path) requires
 `max_tokens`, so Hermes supplies an internal value. Bedrock Converse is a separate

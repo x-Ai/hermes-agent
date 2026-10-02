@@ -305,6 +305,7 @@ export const zhHantChrome = {
       reveal: '在資料夾中顯示',
       copyPath: '複製路徑',
       removeFromSidebar: '從側邊欄移除',
+      createdInPreviousContext: '專案已在先前的連線或設定檔中建立。請切換回去；IDEA.md 尚未寫入。',
       createFailed: '無法建立專案',
       unavailableAllProfiles: '檢視全部設定檔時無法使用專案',
       staleBackend: '請更新 Hermes 後端以建立專案——目前後端比桌面應用舊（設定 → 更新 → 後端）。',

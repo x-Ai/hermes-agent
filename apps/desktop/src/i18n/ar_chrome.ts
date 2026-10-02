@@ -294,6 +294,7 @@ export const arChrome = {
       reveal: 'إظهار في المجلد',
       copyPath: 'نسخ المسار',
       removeFromSidebar: 'إخفاء من الشريط الجانبي',
+      createdInPreviousContext: 'أُنشئ المشروع على الاتصال أو الملف الشخصي السابق. عُد إليه؛ لم يُكتب ملف IDEA.md.',
       createFailed: 'تعذّر إنشاء المشروع',
       unavailableAllProfiles: 'لا تتوفر المشاريع أثناء عرض كل الملفات الشخصية',
       staleBackend:

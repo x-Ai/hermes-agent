@@ -1090,7 +1090,7 @@ model:
 :::note 两个设置，容易混淆
 **`context_length`** 是**总上下文窗口**——输入和输出 token 的合计预算（例如 Claude Opus 4.6 为 200,000）。Hermes 用它来决定何时压缩历史记录以及验证 API 请求。
 
-**输出上限**限制单次响应，而非对话历史。本 fork 按**端点**保留这项能力：自定义提供方可以在提供方级别设置 `max_output_tokens`（以及 `max_input_tokens`），在 `model_token_limits` 下按模型精确设置，或继承 `/models` 目录声明的值；config.yaml 里的 `model.max_tokens` 会为所有路由固定预算。解析在 agent 构造时只发生一次，CLI、网关、TUI/桌面端、批处理、cron、ACP 与子 agent 行为一致，`/model` 切换和 fallback 时会重新推导。未配置时 OpenAI 兼容线不发送上限（使用服务器默认值，可能低于模型最大值）；原生 Anthropic Messages 仍要求 `max_tokens`，Hermes 会提供内部值。Bedrock Converse 的可选输出限制默认省略。
+**输出上限**限制单次响应，而非对话历史。本 fork 按**端点**保留这项能力：自定义提供方可以在提供方级别设置 `max_output_tokens`（以及 `max_input_tokens`），在 `model_token_limits` 下按模型精确设置，或继承 `/models` 目录声明的值；config.yaml 里的 `model.max_tokens` 会为所有路由固定预算。解析在 agent 构造时只发生一次，CLI、网关、TUI/桌面端、批处理、cron、ACP 与子 agent 行为一致，`/model` 切换和 fallback 时会重新推导。未配置时 OpenAI 兼容线不发送上限（使用服务器默认值，可能低于模型最大值）。回复在流式输出中陷入重复循环时仍会被停止：循环（可见内容或推理内容）开始后约 130,000 个字符以内，Hermes 会关闭该流并以“Repetition Detected”提示结束本轮，因此没有输出上限的端点也不会让循环中的模型一直运行下去。原生 Anthropic Messages 仍要求 `max_tokens`，Hermes 会提供内部值。Bedrock Converse 的可选输出限制默认省略。
 
 当自动检测获取的窗口大小不正确时，设置 `context_length`。
 请删除旧的用户输出上限配置；内部任务预算与 MCP 采样安全预算保持不变。
