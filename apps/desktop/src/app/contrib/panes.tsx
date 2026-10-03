@@ -39,6 +39,7 @@ const LOGS_BOTTOM_THRESHOLD = 48
 
 export function LogsPane() {
   const { t } = useI18n()
+
   const { data, error } = useQuery({
     queryKey: ['contrib-logs-tail'],
     queryFn: () => getLogs({ lines: 300 }),

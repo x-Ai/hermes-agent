@@ -70,13 +70,7 @@ describe('KeysSettings', () => {
       'CONNECTOR GATEWAY URL',
       zh.settings.envKeys.CONNECTOR_GATEWAY_URL.description
     ],
-    [
-      'tools',
-      'PORCUPINE_ACCESS_KEY',
-      'tool',
-      'PORCUPINE ACCESS',
-      zh.settings.envKeys.PORCUPINE_ACCESS_KEY.description
-    ],
+    ['tools', 'PORCUPINE_ACCESS_KEY', 'tool', 'PORCUPINE ACCESS', zh.settings.envKeys.PORCUPINE_ACCESS_KEY.description],
     ['tools', 'KEENABLE_API_KEY', 'tool', 'KEENABLE', zh.settings.envKeys.KEENABLE_API_KEY.description],
     [
       'settings',

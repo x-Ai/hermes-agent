@@ -201,10 +201,7 @@ export function EditProfileDialog({ bot, open, onClose }: EditProfileDialogProps
         <DialogHeader>
           <DialogTitle>{b.bot.editTitle}</DialogTitle>
           <DialogDescription>
-            {b.editor.editDescription(
-              displayName(bot, null),
-              localizedProfileName(bot.name, b.bot.defaultProfileName)
-            )}
+            {b.editor.editDescription(displayName(bot, null), localizedProfileName(bot.name, b.bot.defaultProfileName))}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">

@@ -934,6 +934,7 @@ describe('ToolsetConfigPanel', () => {
     it('localizes dynamic badges and provider explanations in Chinese', async () => {
       const tag =
         'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend'
+
       const managedTag = 'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription'
       getToolsetConfig.mockResolvedValue(
         webConfig({

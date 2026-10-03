@@ -816,9 +816,7 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
                   )}
                   <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
                     <Checkbox checked={shareAuth} onCheckedChange={value => setShareAuth(Boolean(value))} />
-                    {remoteTarget
-                      ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName)
-                      : b.editor.shareKeys}
+                    {remoteTarget ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName) : b.editor.shareKeys}
                   </label>
                   <div className="pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)">
                     {b.editor.shareKeysHint}

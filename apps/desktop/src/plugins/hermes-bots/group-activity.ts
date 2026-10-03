@@ -164,7 +164,8 @@ export function groupActivityLabel(event: GroupActivityEntry, group?: null | str
     return base
   }
 
-  const who = event?.member === 'You' ? b.group.you : groupSpeakerLabel(event?.member || b.group.activityActorBot, group)
+  const who =
+    event?.member === 'You' ? b.group.you : groupSpeakerLabel(event?.member || b.group.activityActorBot, group)
   const reason = kind === 'failed' ? String(event?.reason || '').trim() : ''
 
   if (kind === 'failed' && reason === GROUP_SLOT_WAIT_REASON) {

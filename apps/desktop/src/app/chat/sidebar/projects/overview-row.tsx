@@ -146,6 +146,7 @@ export function ProjectOverviewRow({
   const total = project.sessionCount - hiddenSessionCount
   const hiddenCount = total - preview.length
   const offerShowAll = !showAllSessions && !expanded && preview.length > 0 && hiddenCount > 0
+
   // #124808: a path-less explicit project (multi-folder, never assigned a
   // primary_path) still carries repo roots. Its trunk "+" must anchor at
   // the first repo root — passing the null wire path through would take the

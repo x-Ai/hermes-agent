@@ -59,9 +59,7 @@ export function VoiceEngineRows({ disabled }: { disabled: boolean }) {
           <span className="flex min-w-0 flex-col">
             <span>{c.voiceEngineLive}</span>
             {liveAvailable ? null : (
-              <span className="text-muted-foreground truncate text-xs">
-                {liveUnavailableReason}
-              </span>
+              <span className="text-muted-foreground truncate text-xs">{liveUnavailableReason}</span>
             )}
           </span>
         </DropdownMenuRadioItem>
