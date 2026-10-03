@@ -45,6 +45,7 @@ import { PluginSlot } from "@/plugins";
 import { ModelPickerDialog } from "@/components/ModelPickerDialog";
 import { ModelReloadConfirm } from "@/components/ModelReloadConfirm";
 import { errorMessage } from "@/lib/api-error";
+import { assignmentToPickerCurrent } from "@/lib/model-picker-current";
 
 const PERIODS = [
   { label: "7d", days: 7 },
@@ -647,6 +648,7 @@ function AuxiliaryTasksModal({
             key={`picker-${refreshKey}`}
             loader={api.getModelOptions}
             alwaysGlobal
+            currentAssignment={assignmentToPickerCurrent(aux?.tasks.find(a => a.task === picker.task))}
             title={copy.setAuxiliary.replace(
               "{name}",
               copy.auxiliarySlots[picker.task as keyof typeof copy.auxiliarySlots]?.[0] ??
@@ -952,6 +954,9 @@ function MoaModelsModal({
           key={`moa-picker-${refreshKey}-${selected}-${picker.kind}-${picker.kind === "reference" ? picker.index : "agg"}`}
           loader={api.getModelOptions}
           alwaysGlobal
+          currentAssignment={
+            picker.kind === "aggregator" ? preset.aggregator : preset.reference_models[picker.index]
+          }
           title={copy.selectMoa}
           onApply={async ({ provider, model }) => {
             if ((provider || "").toLowerCase() === "moa") {

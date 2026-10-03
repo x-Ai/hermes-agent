@@ -883,7 +883,11 @@ export const zhHantSettings = {
       toolsetsWipeConfirm:
         '刪除所有啟用的工具集？這將停用記憶體、終端、網路搜尋、委派和大多數其他工具，直到您重新啟用它們。',
       keepAwakeTitle: '保持電腦喚醒',
-      keepAwakeDesc: '阻止本機睡眠，讓長時間或整夜執行持續進行。螢幕仍可變暗。',
+      keepAwakeDesc:
+        '阻止本機睡眠，「執行期間」僅在有回合進行時生效，整夜執行得以持續，又不會讓筆電整週保持喚醒，螢幕仍可變暗',
+      keepAwakeOff: '關閉',
+      keepAwakeWhileWorking: '執行期間',
+      keepAwakeAlways: '一律',
       disableF12Title: '停用 F12 開發工具',
       disableF12Desc: '阻止 F12 開啟開發人員工具。 Ctrl+Shift+I（或 Mac 上的 Cmd+Opt+I）仍然有效。',
       attachmentSizeTitle: '最大預覽/圖像載入大小',

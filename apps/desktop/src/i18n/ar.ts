@@ -15,7 +15,7 @@ export const arOverrides = {
   connectors: arConnectors.connectors,
   sharedMetrics: arCommon.sharedMetrics,
   externalOpenFailed: arChrome.externalOpenFailed,
-  catalog: arCapabilities.catalog,
+  skillDeepLink: arCapabilities.skillDeepLink,
   sessionImport: arConnectors.sessionImport,
   sendDiagnostics: arDiagnostics.sendDiagnostics,
   common: arCommon.common,

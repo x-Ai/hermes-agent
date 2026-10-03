@@ -1751,7 +1751,14 @@ export const jaOverrides = {
       toolsetsWipeConfirm:
         '有効なツールセットをすべて削除しますか?これにより、メモリ、ターミナル、Web 検索、委任、およびその他のほとんどのツールは、再度有効にするまで無効になります。',
       keepAwakeTitle: 'コンピューターをスリープさせない',
-      keepAwakeDesc: '本体のスリープを防ぎ、長時間や夜通しの実行を継続します。画面は暗転できます。',
+      keepAwakeDesc:
+        '本体のスリープを防ぎます。「実行中のみ」はターンの実行中だけ有効になるため、夜通しの実行を継続しつつ、ノートPCを一週間つけたままにはしません。画面は暗転できます。',
+      keepAwakeOff: 'オフ',
+      keepAwakeWhileWorking: '実行中のみ',
+      keepAwakeAlways: '常に',
+      voiceShortcutHintTitle: '音声録音ショートカット',
+      voiceShortcutHintDesc:
+        '「設定 → キーボードショートカット」で音声録音ショートカット（「Start / stop voice conversation」）を設定します。voice.record_key は CLI と TUI 専用です。',
       disableF12Title: 'F12 開発ツールを無効にする',
       disableF12Desc:
         'F12 が開発者ツールを開けないようにブロックします。 Ctrl+Shift+I (または Mac の場合は Cmd+Opt+I) は引き続き機能します。',
@@ -3004,6 +3011,20 @@ export const jaOverrides = {
           'リモート Hermes API サーバーとの認証用 Bearer トークン（プロキシモード）。リモートホストの API_SERVER_KEY と一致させる必要があります。'
       }
     }
+  },
+
+  skillDeepLink: {
+    installTitle: (name: string) => `「${name}」をインストールしますか？`,
+    installDescription:
+      'このスキルは新しいセッションで利用できます。信頼できる提供元からのみインストールしてください。',
+    installTo: 'インストール先',
+    thisComputer: 'このコンピューター',
+    installing: 'インストール中…',
+    installComplete: (name: string) => `「${name}」をインストールしました`,
+    destinationChanged:
+      'インストール先が変更されました。このダイアログを閉じ、インストールリンクを開き直してください。',
+    installed: 'インストール済み',
+    source: '提供元'
   },
   skills: {
     collective: {
@@ -5565,7 +5586,7 @@ export const jaOverrides = {
       '/init': 'リポジトリを調べて AGENTS.md の指示を作成または更新',
       '/suggestions': '提案された自動化を確認し、採用または却下',
       '/blueprint': 'ブループリントから自動化を設定',
-      '/browser': 'ローカルブラウザー接続を管理',
+      '/browser': 'エージェントのブラウザーを管理 [connect|disconnect|status|use]',
       '/palette': 'コマンドパレットを開く',
       '/usage': 'このセッションのトークン使用量を表示',
       '/subscription': 'Nous のプランを確認し、ブラウザーで変更',

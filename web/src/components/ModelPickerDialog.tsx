@@ -17,6 +17,7 @@ import { fuzzyRank, modelSearchText } from "@hermes/shared";
 import { errorMessage } from "@/lib/api-error";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { isAutoPickerCurrent, resolveInitialProviderSlug, resolvePickerCurrent } from "@/lib/model-picker-current";
 
 /**
  * Two-stage model picker modal.
@@ -74,10 +75,16 @@ interface Props {
   title?: string;
   /** If true, hides "Persist globally" checkbox — always saves to config.yaml. */
   alwaysGlobal?: boolean;
+  /**
+   * Current assignment for this picker *slot* (auxiliary task, MoA model).
+   * The options loader always returns the main chat model; without this,
+   * "Set Auxiliary: Vision" shows `current: glm-5.3` while Vision is Qwen.
+   */
+  currentAssignment?: { model?: string; provider?: string } | null;
 }
 
 export function ModelPickerDialog(props: Props) {
-  const { gw, sessionId, onSubmit, loader, onApply, onClose, title, alwaysGlobal = false } = props;
+  const { gw, sessionId, onSubmit, loader, onApply, onClose, title, alwaysGlobal = false, currentAssignment } = props;
   const { t } = useI18n();
   const copy = getDashboardCopy(t).models;
   const dialogTitle = title ?? copy.switchModel;
@@ -99,12 +106,13 @@ export function ModelPickerDialog(props: Props) {
 
   const applyOptions = (r: ModelOptionsResult) => {
     const next = r?.providers ?? [];
+    const current = resolvePickerCurrent(r, currentAssignment);
     setProviders(next);
-    setCurrentModel(String(r?.model ?? ""));
-    setCurrentProviderSlug(String(r?.provider ?? ""));
+    setCurrentModel(current.model);
+    setCurrentProviderSlug(current.provider);
     setSelectedSlug(prev => {
       if (prev && next.some(p => p.slug === prev)) return prev;
-      return (next.find(p => p.is_current) ?? next[0])?.slug ?? "";
+      return resolveInitialProviderSlug(next, current.provider);
     });
     setSelectedModel("");
   };
@@ -239,6 +247,11 @@ export function ModelPickerDialog(props: Props) {
 
   const canConfirm = !!selectedProvider && !!selectedModel && !applying;
 
+  const trimmedProvider = currentProviderSlug.trim();
+  const currentLabel = isAutoPickerCurrent({ model: currentModel, provider: currentProviderSlug })
+    ? copy.autoMain
+    : `${currentModel.trim() || `(${copy.unknown})`}${trimmedProvider ? ` · ${trimmedProvider}` : ""}`;
+
   const applySelection = async (
     confirmExpensiveModel = false,
     forced?: PendingExpensiveConfirm
@@ -349,8 +362,7 @@ export function ModelPickerDialog(props: Props) {
             {dialogTitle}
           </h2>
           <p className="text-xs text-muted-foreground mt-1 font-mono">
-            {copy.current}: {currentModel || `(${copy.unknown})`}
-            {currentProviderSlug && ` · ${currentProviderSlug}`}
+            {copy.current}: {currentLabel}
           </p>
         </header>
 
@@ -375,6 +387,7 @@ export function ModelPickerDialog(props: Props) {
             providers={filteredProviders}
             total={providers.length}
             selectedSlug={selectedSlug}
+            currentProviderSlug={currentProviderSlug}
             query={trimmedQuery}
             onSelect={slug => {
               setSelectedSlug(slug);
@@ -471,6 +484,7 @@ function ProviderColumn({
   providers,
   total,
   selectedSlug,
+  currentProviderSlug,
   query,
   onSelect,
   onClose,
@@ -480,6 +494,7 @@ function ProviderColumn({
   providers: ModelOptionProvider[];
   total: number;
   selectedSlug: string;
+  currentProviderSlug: string;
   query: string;
   onSelect(slug: string): void;
   /** The links below navigate away; the full-screen dialog must close or it keeps covering the target page. */
@@ -519,6 +534,9 @@ function ProviderColumn({
 
       {providers.map(p => {
         const active = p.slug === selectedSlug;
+        const isCurrentProvider =
+          p.slug === currentProviderSlug &&
+          !isAutoPickerCurrent({ model: "", provider: currentProviderSlug });
         return (
           <ListItem
             key={p.slug}
@@ -529,7 +547,7 @@ function ProviderColumn({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="font-medium truncate">{p.name}</span>
-                {p.is_current && <CurrentTag label={copy.current} />}
+                {isCurrentProvider && <CurrentTag label={copy.current} />}
               </div>
               <div className="text-xs text-text-secondary font-mono truncate">
                 {p.slug} ·{" "}
