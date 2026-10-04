@@ -23,6 +23,9 @@ from hermes_cli.web_server_config import (
 from hermes_cli.web_server_profiles import (
     _approval_mode_of, _broadcast_gateway_session_info, _is_other_profile, _parse_model_entries,
 )
+from hermes_cli.web_server_model_metadata import (
+    raw_model_rows, resolve_custom_endpoint_model_details, saved_endpoint_model_details, warm_models_dev_async,
+)
 from fastapi import HTTPException, Request
 from hermes_cli.config import DEFAULT_CONFIG, OPTIONAL_ENV_VARS, read_raw_config, require_readable_config_before_write, custom_endpoint_key_env, coerce_provider_id, find_provider_entry, get_compatible_custom_providers, _ENV_REF_RE, _deep_merge
 from hermes_cli.providers import is_builtin_provider_id
@@ -549,6 +552,9 @@ def _endpoint_row(
         "default_token_limits": _default_token_limits_from_entry(key_entry),
         "model_capabilities": _model_capabilities_from_entry(key_entry, models),
         "model_token_limits": model_token_limits,
+        # What each blank cell resolves to today (and from where), so the table can show it as a
+        # placeholder before the user ever presses Test.
+        "model_details": saved_endpoint_model_details(base_url, models, key_entry),
         "model_context_lengths": {
             model_id: limits["context_length"]
             for model_id, limits in model_token_limits.items()
@@ -1156,8 +1162,13 @@ async def validate_custom_endpoint(body: CustomEndpointUpdate, profile: Optional
         if not resp.is_success:
             return {"ok": False, "reachable": True, "message": f"Endpoint returned HTTP {resp.status_code}.", "models": []}
         # ``models`` stays the bare id list older clients read; ``model_details`` keeps the
-        # alias metadata (``canonical_model`` / ``reasoning_effort``) the id list flattens.
-        entries = _parse_model_entries(resp)
+        # alias metadata (``canonical_model`` / ``reasoning_effort``) the id list flattens, plus the
+        # limits/capabilities each model resolves to and where each came from (the limits table).
+        warm_models_dev_async()
+        entries = resolve_custom_endpoint_model_details(
+            _parse_model_entries(resp), endpoint_rows=raw_model_rows(resp),
+            catalog_provider=body.catalog_provider if body.catalog_provider is not None else entry.get("catalog_provider"),
+        )
         ids = [e["id"] for e in entries]
         # /models answering proves nothing about the transport the runtime will POST to:
         # a Responses-only host lists models fine and 404s every /chat/completions (#93622).
@@ -1279,7 +1290,7 @@ async def validate_provider_credential(body: EnvVarUpdate, request: Request):
         url = resolved + "/models"
         if resp is None:
             return {"ok": False, "reachable": False, "message": f"Could not reach {url}."}
-        entries = _parse_model_entries(resp)
+        entries = resolve_custom_endpoint_model_details(_parse_model_entries(resp), endpoint_rows=raw_model_rows(resp))
         models = [e["id"] for e in entries]
         if not models and not resp.is_success:
             # A proxy/gateway error page parses as "no models"; name the status instead so the

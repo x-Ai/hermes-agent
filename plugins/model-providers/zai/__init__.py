@@ -45,6 +45,15 @@ def _glm_5_2_reasoning_effort(reasoning_config: dict | None, *, model: str | Non
 class ZaiProfile(ProviderProfile):
     """Z.AI / GLM — extra_body.thinking on/off + GLM-5.2 reasoning_effort."""
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...] | None:
+        """The native knob's vocabulary per generation (what ``build_api_kwargs_extras`` sends);
+        None for GLM models without the knob (the toggle alone)."""
+        if _has_token(model, _GLM_5_3_TOKENS):
+            return re_.GLM53_EFFORTS
+        if _has_token(model, _GLM_5_2_TOKENS):
+            return re_.GLM52_EFFORTS
+        return None
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None, **context
     ) -> tuple[dict[str, Any], dict[str, Any]]:

@@ -130,6 +130,8 @@ export interface ModelChoice {
   effortPending?: boolean
   /** Level the route actually sends for `effort` (`session.info.reasoning_effort_wire`); '' = unknown. */
   effortWire?: string
+  /** Levels the route accepts (`session.info.reasoning_efforts`); null/undefined = unknown. */
+  efforts?: null | readonly string[]
   fast: boolean
   serviceTier?: string
   model: string
@@ -1168,6 +1170,7 @@ function ModelFamilyRow({
         provider={provider.slug}
         reasoning={caps?.reasoning ?? true}
         serviceTier={effTier}
+        supportedEfforts={isCurrent ? (current.efforts ?? caps?.supported_efforts) : caps?.supported_efforts}
         ultrafastSupported={controller.allowSpeed !== false && (caps?.ultrafast ?? false)}
       />
     </DropdownMenuSub>

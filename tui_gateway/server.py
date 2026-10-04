@@ -33,6 +33,7 @@ from tools.environments.local import hermes_subprocess_env
 from agent.fast_mode import STATIC_TIERS
 from agent.replay_cleanup import canonicalize_replay_history
 from agent.reasoning_effort import clamp_effort, route_supported_efforts
+from agent.reasoning_effort_catalog import route_reasoning_support
 from agent.compaction_display import project_compaction_message_for_display  # noqa: F401
 from agent.skill_commands import describe_skill_invocation  # noqa: F401
 from agent.conversation_loop import INTERRUPT_WAITING_FOR_MODEL_PREFIX  # noqa: F401
@@ -2382,10 +2383,23 @@ def _session_info(agent, session: dict | None = None) -> dict:
     if reasoning_effort and reasoning_effort != "none":
         reasoning_effort_wire = str(clamp_effort(reasoning_effort, route_supported_efforts(
             pending_provider or provider, model, getattr(agent, "api_mode", None))) or "")
+    # The levels this route accepts (plugin declaration / serving catalog / models.dev), so the Desktop
+    # dims the ladder steps the route clamps instead of offering seven identical-looking levels. None =
+    # unknown (the client keeps the full ladder). Cache-only; a lookup failure must never cost the event.
+    reasoning_efforts = None
+    if model:
+        try:
+            support = route_reasoning_support(
+                pending_provider or provider, model, getattr(agent, "api_mode", None),
+                base_url=getattr(agent, "base_url", None))
+            reasoning_efforts = list(support.efforts) if support.efforts is not None else None
+        except Exception:
+            reasoning_efforts = None
     info: dict = {
         "model": model,
         "provider": pending_provider or provider,
         "reasoning_effort": reasoning_effort, "reasoning_effort_wire": reasoning_effort_wire,
+        "reasoning_efforts": reasoning_efforts,
         "service_tier": service_tier,
         "fast": service_tier in STATIC_TIERS and _fast_tier_applies(agent, model, pending_provider or provider,
                                                                     route_known=not pending_provider, tier=service_tier),

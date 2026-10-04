@@ -38,6 +38,10 @@ class MetaAIProfile(ProviderProfile):
             if not any(m.startswith(p) for p in self._NON_CHAT_PREFIXES)
         ]
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...]:
+        """Muse accepts ``minimal``..``xhigh`` and rejects ``none`` (a disable is sent as ``minimal``)."""
+        return META_AI_EFFORTS
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, supports_reasoning: bool = False, **context: Any
     ) -> tuple[dict[str, Any], dict[str, Any]]:

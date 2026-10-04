@@ -1646,8 +1646,10 @@ export const setCurrentModel = (next: Updater<string>) => {
     // The wire level belongs to one (provider, model, effort) triple, and a
     // different model clamps a different set. Carrying the old route's stamp
     // makes the pill present a stale escalation as a confirmed one, so drop it
-    // and let the next `session.info` re-stamp.
+    // and let the next `session.info` re-stamp. The accepted-levels set is the
+    // old route's for the same reason.
     $currentReasoningEffortWire.set('')
+    $currentReasoningEfforts.set(null)
   }
 
   const key = composerSelectionKey(COMPOSER_MODEL_KEY)
@@ -1663,6 +1665,7 @@ export const setCurrentProvider = (next: Updater<string>) => {
 
   if ($currentProvider.get() !== previous) {
     $currentReasoningEffortWire.set('')
+    $currentReasoningEfforts.set(null)
   }
 
   const key = composerSelectionKey(COMPOSER_PROVIDER_KEY)
@@ -1735,6 +1738,16 @@ export const $currentReasoningEffortWire = atom('')
 
 export const setCurrentReasoningEffortWire = (next: string) => {
   $currentReasoningEffortWire.set(next)
+}
+
+/** Levels the live route accepts for `$currentModel` (`session.info.reasoning_efforts`):
+ *  null when unknown, so the picker keeps the whole ladder. Describes the route,
+ *  never a preference — not persisted, and withdrawn on a model change until the
+ *  next `session.info` re-stamps it. */
+export const $currentReasoningEfforts = atom<null | string[]>(null)
+
+export const setCurrentReasoningEfforts = (next: null | string[]) => {
+  $currentReasoningEfforts.set(next)
 }
 
 // The profile's `agent.reasoning_effort`, mirrored from config so surfaces that

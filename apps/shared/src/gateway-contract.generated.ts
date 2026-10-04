@@ -519,6 +519,7 @@ export interface SessionLiveInfo {
   provider?: string
   reasoning_effort?: string
   reasoning_effort_wire?: string
+  reasoning_efforts?: string[] | null
   service_tier?: string
   fast?: boolean
   yolo?: boolean
@@ -790,6 +791,7 @@ export interface ModelCapabilities {
   ultrafast?: boolean
   reasoning: boolean
   can_disable_reasoning?: boolean | null
+  supported_efforts?: string[] | null
 }
 /** ``hermes_cli/inventory.py::_apply_pricing`` — formatted $/Mtok strings (``""`` unknown, ``"free"``); the sale fields are Nous Portal-only. */
 export interface ModelPricing {
@@ -3228,6 +3230,7 @@ export interface SessionCwdSetResult {
   provider?: string
   reasoning_effort?: string
   reasoning_effort_wire?: string
+  reasoning_efforts?: string[] | null
   service_tier?: string
   fast?: boolean
   yolo?: boolean

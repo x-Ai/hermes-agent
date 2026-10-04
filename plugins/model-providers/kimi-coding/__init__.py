@@ -51,6 +51,10 @@ class KimiProfile(ProviderProfile):
             return models
         return [model for model in models if model.strip().lower() != "k3"]
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...]:
+        """Kimi for Coding speaks the K3 vocabulary — the set ``build_api_kwargs_extras`` clamps onto."""
+        return KIMI_K3_EFFORTS
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, **context
     ) -> tuple[dict[str, Any], dict[str, Any]]:

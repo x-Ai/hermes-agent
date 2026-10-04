@@ -1488,6 +1488,8 @@ providers:
 
 `catalog_provider` accepts a Hermes provider id (`deepseek`, `anthropic`, `openai`, …) or a models.dev id. It affects metadata lookups only — requests still go to your `api` URL with your credentials — and an explicit `model_overrides` entry for the same model still wins.
 
+**Seeing (and correcting) what a blank cell resolves to.** In the Desktop's *Custom endpoints → Model token limits* table every empty cell shows the value Hermes would use for it and where it came from: `Auto · 131,072` means the runtime resolves it on its own (the endpoint's `/models` row, or the `catalog_provider` catalog — hover the cell for the source), while `Suggested · 400,000` is a models.dev entry matched on the model id across vendors (`zai-org/GLM-5.3` → `zai/glm-5.3`) that the runtime does **not** apply by itself. The Vision / Reasoning selectors name the detected verdict in their *Auto* option the same way. *Fill in detected values* copies everything detected into the empty cells as editable per-model pins (`model_token_limits`, per-model `supports_vision` / `supports_reasoning`), so a non-standard relay can be corrected cell by cell; cells you leave blank keep resolving automatically, and a value you typed is never overwritten.
+
 Switch between them mid-session with the triple syntax:
 
 ```

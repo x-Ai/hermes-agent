@@ -18903,6 +18903,21 @@
             ],
             "default": null,
             "title": "Can Disable Reasoning"
+          },
+          "supported_efforts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Supported Efforts"
           }
         },
         "required": [
@@ -29919,6 +29934,21 @@
             "title": "Reasoning Effort Wire",
             "type": "string"
           },
+          "reasoning_efforts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reasoning Efforts"
+          },
           "service_tier": {
             "default": "",
             "title": "Service Tier",
@@ -30785,6 +30815,21 @@
             "default": "",
             "title": "Reasoning Effort Wire",
             "type": "string"
+          },
+          "reasoning_efforts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reasoning Efforts"
           },
           "service_tier": {
             "default": "",

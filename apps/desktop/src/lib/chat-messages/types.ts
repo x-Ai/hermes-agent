@@ -119,6 +119,8 @@ export type GatewayEventPayload = {
   provider?: string
   reasoning_effort?: string
   reasoning_effort_wire?: string
+  /** Levels the route accepts for the session's model; null/absent = unknown (keep the full ladder). */
+  reasoning_efforts?: null | string[]
   service_tier?: string
   fast?: boolean
   approval_mode?: string

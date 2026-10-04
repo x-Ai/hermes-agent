@@ -329,28 +329,38 @@ def _reasoning_catalog_reader(slug: str):
 def _apply_capabilities(rows: list[dict], *, metadata_config: dict | None = None) -> None:
     """Attach ``{model: {fast, reasoning, ...}}`` per row. ``reasoning`` defaults True when the catalog is
     silent (the dial is a no-op on models that ignore it; hiding it from a capable model is worse). A
-    serving aggregator's detail overrides models.dev (adds ``can_disable_reasoning``). ``supported_efforts``
-    is deliberately NOT forwarded — it under-reports levels that work."""
+    serving aggregator's detail overrides models.dev (adds ``can_disable_reasoning``).
+
+    ``supported_efforts`` is forwarded as a HINT (``agent.reasoning_effort_catalog``: plugin
+    declaration → serving catalog → models.dev ``reasoning_options``). It is known to under-report
+    levels a route honors (the Portal serves glm-5.3 ``minimal`` it never publishes), so the Desktop
+    dims and annotates unsupported levels rather than hiding them — the user can still pick one."""
     from hermes_cli.models import model_supports_ultrafast, resolve_fast_mode_overrides
 
     try:
         from agent.models_dev import get_model_capabilities
     except Exception:
         get_model_capabilities = None  # type: ignore[assignment]
+    try:
+        from agent.reasoning_effort_catalog import route_profile, route_reasoning_support
+    except Exception:
+        route_profile = route_reasoning_support = None  # type: ignore[assignment]
 
     for row in rows:
         slug = row.get("slug") or ""
         caps: dict[str, dict[str, Any]] = {}
         read_reasoning_catalog = _reasoning_catalog_reader(slug.lower())
+        profile = route_profile(slug, row.get("api_url")) if (route_profile is not None and slug) else None
         for model in row.get("models") or []:
             reasoning = True
+            meta = None
             if get_model_capabilities is not None and slug:
                 try:
                     meta = get_model_capabilities(slug, model, config=metadata_config)
                     if meta is not None and meta.supports_reasoning is not None:
                         reasoning = meta.supports_reasoning
                 except Exception:
-                    reasoning = True
+                    reasoning, meta = True, None
 
             fast = resolve_fast_mode_overrides(
                 model, provider=slug, base_url=row.get("api_url")) is not None
@@ -358,6 +368,7 @@ def _apply_capabilities(rows: list[dict], *, metadata_config: dict | None = None
             if fast and model_supports_ultrafast(model):
                 entry["ultrafast"] = True
 
+            detail = None
             if reasoning and read_reasoning_catalog is not None:
                 try:
                     detail = read_reasoning_catalog(model)
@@ -369,6 +380,23 @@ def _apply_capabilities(rows: list[dict], *, metadata_config: dict | None = None
                     entry["reasoning"] = False
                 elif detail:
                     entry["can_disable_reasoning"] = not detail.get("mandatory")
+
+            if entry["reasoning"] and route_reasoning_support is not None:
+                try:
+                    support = route_reasoning_support(
+                        slug, model, base_url=row.get("api_url"), config=metadata_config,
+                        profile=profile, catalog_caps=meta, aggregator_detail=detail)
+                except Exception:
+                    support = None
+                if support is not None:
+                    if support.efforts == ():
+                        # The route's own profile says this model takes no reasoning parameter.
+                        entry["reasoning"] = False
+                        entry.pop("can_disable_reasoning", None)
+                    elif support.efforts:
+                        entry["supported_efforts"] = list(support.efforts)
+                    if entry["reasoning"] and "can_disable_reasoning" not in entry and support.can_disable is not None:
+                        entry["can_disable_reasoning"] = support.can_disable
 
             caps[model] = entry
 

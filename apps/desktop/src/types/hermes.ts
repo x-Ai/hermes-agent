@@ -265,7 +265,20 @@ export interface CustomEndpointModelDetail {
   canonical_model?: null | string
   id: string
   reasoning_effort?: null | string
+  /** Resolved by the backend for the limits table: the value a blank cell resolves to today
+   * (`sources[field]` = `endpoint` | `catalog_provider`) or a catalog suggestion the runtime
+   * never applies on its own (`catalog`). Absent = unknown. */
+  catalog_ref?: null | string
+  context_length?: null | number
+  max_input_tokens?: null | number
+  max_output_tokens?: null | number
+  sources?: null | Record<string, CustomEndpointModelDetailSource>
+  supported_efforts?: null | string[]
+  supports_reasoning?: boolean | null
+  supports_vision?: boolean | null
 }
+
+export type CustomEndpointModelDetailSource = 'catalog' | 'catalog_provider' | 'endpoint'
 
 export type CustomEndpointMaxTokensField = '' | 'max_completion_tokens' | 'max_tokens'
 
@@ -298,6 +311,9 @@ export interface CustomEndpoint {
   model_context_lengths?: Record<string, number>
   /** Canonical exact-model total context, input cap and output cap. */
   model_token_limits?: Record<string, CustomEndpointModelTokenLimits>
+  /** What each saved model's blank cells resolve to (catalog + the runtime's /models memo); older
+   * backends omit it. */
+  model_details?: CustomEndpointModelDetail[]
   models: string[]
   name: string
   source?: string
@@ -906,6 +922,8 @@ export interface SessionRuntimeInfo {
   reasoning_effort?: string
   /** What the route actually sends for `reasoning_effort` (empty when unset; equal when verbatim). */
   reasoning_effort_wire?: string
+  /** Levels the route accepts for the session's model; null/absent = unknown (keep the full ladder). */
+  reasoning_efforts?: null | string[]
   running?: boolean
   service_tier?: string
   skills?: Record<string, string[]> | string[]

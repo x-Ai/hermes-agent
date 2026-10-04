@@ -2247,7 +2247,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             "name": "x", "base_url": "https://responses-gateway.example.com/v1", "model": ""}).json()
         assert body["ok"] is True
         assert body["models"] == ["gpt-5.6-sol", "gpt-5.6-sol-high"]
-        assert body["model_details"] == [
+        # The alias metadata survives verbatim; the resolved limits/capabilities the limits table
+        # reads ride alongside and never displace it.
+        alias_keys = ("id", "canonical_model", "reasoning_effort")
+        assert [{k: d[k] for k in alias_keys if k in d} for d in body["model_details"]] == [
             {"id": "gpt-5.6-sol"},
             {"id": "gpt-5.6-sol-high", "canonical_model": "gpt-5.6-sol", "reasoning_effort": "high"},
         ]

@@ -17,6 +17,7 @@ type SessionRuntimeStatePatch = Partial<
     | 'reasoningEffort'
     | 'reasoningEffortPending'
     | 'reasoningEffortWire'
+    | 'reasoningEfforts'
     | 'serviceTier'
     | 'yolo'
   >
@@ -54,6 +55,10 @@ export function sessionInfoStatePatch(payload: GatewayEventPayload | undefined):
     patch.reasoningEffortWire = payload.reasoning_effort_wire
   }
 
+  if (Array.isArray(payload?.reasoning_efforts) || payload?.reasoning_efforts === null) {
+    patch.reasoningEfforts = Array.isArray(payload.reasoning_efforts) ? payload.reasoning_efforts.map(String) : null
+  }
+
   if (typeof payload?.service_tier === 'string') {
     patch.serviceTier = payload.service_tier
   }
@@ -68,6 +73,13 @@ export function sessionInfoStatePatch(payload: GatewayEventPayload | undefined):
 
   return patch
 }
+
+const sameEfforts = (next: null | string[] | undefined, previous: null | string[] | undefined): boolean =>
+  (next ?? null) === (previous ?? null) ||
+  (Array.isArray(next) &&
+    Array.isArray(previous) &&
+    next.length === previous.length &&
+    next.every((level, index) => level === previous[index]))
 
 export function hasSessionInfoStatePatch(patch: SessionRuntimeStatePatch): boolean {
   return Object.keys(patch).length > 0
@@ -91,6 +103,7 @@ export function applySessionInfoStatePatch(
     // The wire level can change alone: an optimistic paint already holds the new
     // model/effort, so skipping here kept the previous route's clamp ("Medium→Max") forever.
     (patch.reasoningEffortWire === undefined || patch.reasoningEffortWire === state.reasoningEffortWire) &&
+    (patch.reasoningEfforts === undefined || sameEfforts(patch.reasoningEfforts, state.reasoningEfforts)) &&
     (patch.reasoningEffortPending === undefined ||
       patch.reasoningEffortPending === Boolean(state.reasoningEffortPending)) &&
     (patch.serviceTier === undefined || patch.serviceTier === state.serviceTier) &&
@@ -136,10 +149,7 @@ export const PRE_TURN_LIVE_SETTLE_GRACE_MS = 15_000
 // Gateway/provider failures sometimes arrive as message.complete text instead
 // of an explicit error event. Treat matches as inline assistant errors so they
 // persist like real error events and don't get erased by hydrate fallback.
-const COMPLETION_ERROR_PATTERNS = [
-  /^HTTP\s+\d{3}\b/i,
-  /^(Provider|Gateway)\s+error:/i
-]
+const COMPLETION_ERROR_PATTERNS = [/^HTTP\s+\d{3}\b/i, /^(Provider|Gateway)\s+error:/i]
 
 export function completionErrorText(finalText: string): string | null {
   const text = finalText.trim()

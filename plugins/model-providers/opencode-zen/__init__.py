@@ -87,6 +87,16 @@ class OpenCodeGoProfile(ProviderProfile):
         return AccountUsageSnapshot(provider=self.name, source="go_usage_api",
                                     fetched_at=datetime.now(timezone.utc), windows=tuple(windows))
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...] | None:
+        """Per-family vocabulary mirroring ``build_api_kwargs_extras``; None for families it leaves alone."""
+        if _is_glm_5_2_model(model):
+            return re_.GLM52_EFFORTS
+        if _flat_model_name(model).startswith("kimi-k2"):
+            return re_.KIMI_K2_EFFORTS
+        if _is_deepseek_thinking_model(model):
+            return re_.DEEPSEEK_V4_EFFORTS
+        return None
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None, **context
     ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -108,6 +118,10 @@ class OpenCodeGoProfile(ProviderProfile):
 
 class OpenCodeZenProfile(ProviderProfile):
     """OpenCode Zen - model-specific reasoning controls."""
+
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...] | None:
+        """Ox Alpha's fixed low/high/max; None (unknown) for the rest of the Zen catalog."""
+        return re_.OX_ALPHA_EFFORTS if (model or "").strip().rsplit("/", 1)[-1].lower() == "x-preview-f-free" else None
 
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None, **context

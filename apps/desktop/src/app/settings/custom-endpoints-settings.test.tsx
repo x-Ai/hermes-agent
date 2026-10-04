@@ -381,4 +381,84 @@ describe('CustomEndpointsSettings', () => {
     // typed bare root would 404 every request even though the test looked green.
     expect(urlInput.value).toBe('http://h.test/v1')
   })
+
+  it('shows detected limits as placeholders by source and fills them into empty cells on request', async () => {
+    getCustomEndpoints.mockResolvedValue(emptyResponse)
+    validateCustomEndpoint.mockResolvedValue({
+      ok: true,
+      message: '',
+      models: ['glm-5.3'],
+      model_details: [
+        {
+          id: 'glm-5.3',
+          catalog_ref: 'zai/glm-5.3',
+          context_length: 131072,
+          max_output_tokens: 128000,
+          supports_reasoning: true,
+          supports_vision: false,
+          sources: {
+            context_length: 'endpoint',
+            max_output_tokens: 'catalog',
+            supports_reasoning: 'catalog',
+            supports_vision: 'catalog'
+          }
+        }
+      ]
+    })
+    render(<CustomEndpointsSettings />)
+
+    await screen.findByText('No custom endpoints')
+    const fill = screen.getByRole<HTMLButtonElement>('button', { name: en.settings.customEndpoints.fillDetected })
+    expect(fill.disabled).toBe(true)
+    fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
+      target: { value: 'https://relay.example/v1' }
+    })
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Test' })))
+
+    const ce = en.settings.customEndpoints
+    const context = screen.getByLabelText<HTMLInputElement>(`${ce.contextWindowLabel}: glm-5.3`)
+    const output = screen.getByLabelText<HTMLInputElement>(`${ce.maxOutputLabel}: glm-5.3`)
+    const input = screen.getByLabelText<HTMLInputElement>(`${ce.maxInputLabel}: glm-5.3`)
+    // "Auto" = what the runtime resolves on its own; "Suggested" = a catalog value that only
+    // applies once filled in; nothing detected = the plain Auto placeholder.
+    expect(context.placeholder).toBe('Auto · 131,072')
+    expect(context.title).toBe('Source: reported by the endpoint')
+    expect(output.placeholder).toBe('Suggested · 128,000')
+    expect(output.title).toBe('Source: models.dev match: zai/glm-5.3')
+    expect(input.placeholder).toBe('Auto')
+    const vision = screen.getByLabelText<HTMLSelectElement>('Vision: glm-5.3')
+    expect(vision.options[0].text).toBe('Auto (No)')
+    expect(vision.value).toBe('')
+
+    expect(fill.disabled).toBe(false)
+    fireEvent.change(context, { target: { value: '100000' } })
+    fireEvent.click(fill)
+
+    // Empty cells take the detected values; the cell the user typed is left alone.
+    expect(context.value).toBe('100000')
+    expect(output.value).toBe('128000')
+    expect(input.value).toBe('')
+    expect(vision.value).toBe('no')
+    expect(screen.getByLabelText<HTMLSelectElement>('Reasoning: glm-5.3').value).toBe('yes')
+  })
+
+  it("loads a saved endpoint's resolved details as placeholders without a Test", async () => {
+    getCustomEndpoints.mockResolvedValue({
+      ...savedResponse,
+      endpoints: [
+        {
+          ...savedResponse.endpoints[0],
+          model_details: [{ id: 'model-a', context_length: 200000, sources: { context_length: 'catalog_provider' } }]
+        }
+      ]
+    })
+    render(<CustomEndpointsSettings />)
+
+    const context = await screen.findByLabelText<HTMLInputElement>(
+      `${en.settings.customEndpoints.contextWindowLabel}: model-a`
+    )
+
+    expect(context.placeholder).toBe('Auto · 200,000')
+    expect(context.title).toBe('Source: catalog provider')
+  })
 })

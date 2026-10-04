@@ -74,6 +74,7 @@ export function useModelMenuController({
   const currentProvider = useStore(view.$provider)
   const currentReasoningEffort = useStore(view.$reasoningEffort)
   const currentReasoningEffortWire = useStore(view.$reasoningEffortWire)
+  const currentReasoningEfforts = useStore(view.$reasoningEfforts)
   const currentReasoningEffortPending = useStore(view.$reasoningEffortPending)
   const modelPresets = useStore($modelPresets)
   const defaultEffort = useStore($defaultReasoningEffort) || DEFAULT_REASONING_EFFORT
@@ -179,6 +180,7 @@ export function useModelMenuController({
       effort: currentReasoningEffort,
       effortPending: currentReasoningEffortPending,
       effortWire: currentReasoningEffortWire,
+      efforts: currentReasoningEfforts,
       fast: currentFastMode,
       serviceTier: currentServiceTier,
       model: optionsModel,

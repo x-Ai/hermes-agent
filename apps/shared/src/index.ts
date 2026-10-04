@@ -106,8 +106,11 @@ export {
 } from './json-rpc-gateway'
 export { modelSearchText } from './model-search-text'
 export {
+  clampEffort,
   DEFAULT_REASONING_EFFORT,
+  EFFORT_LADDER,
   isReasoningEffort,
+  normalizeSupportedEfforts,
   REASONING_EFFORT_VALUES,
   REASONING_EFFORTS,
   type ReasoningEffort,

@@ -29,7 +29,8 @@ function view(): SessionView {
     $fast: atom(false),
     $reasoningEffort: atom(''),
     $reasoningEffortPending: atom(false),
-    $reasoningEffortWire: atom('')
+    $reasoningEffortWire: atom(''),
+    $reasoningEfforts: atom<null | string[]>(null)
   } satisfies SessionView
 }
 

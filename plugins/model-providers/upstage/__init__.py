@@ -21,6 +21,10 @@ _NON_REASONING_MODEL_RE = re.compile(r"solar-mini(?:[-:.@]|$)|syn-pro")
 class UpstageProfile(ProviderProfile):
     """Upstage Solar — top-level ``reasoning_effort`` control (no reasoning_content echo needed)."""
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...]:
+        """Solar's three-level knob; the non-reasoning SKUs take no reasoning parameter at all."""
+        return () if _NON_REASONING_MODEL_RE.search((model or "").strip().lower()) else SOLAR_EFFORTS
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None, **context
     ) -> tuple[dict[str, Any], dict[str, Any]]:

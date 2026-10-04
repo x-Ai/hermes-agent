@@ -1,4 +1,4 @@
-import { REASONING_EFFORTS } from '@hermes/shared'
+import { clampEffort, isReasoningEffort, normalizeSupportedEfforts, REASONING_EFFORTS } from '@hermes/shared'
 
 import {
   DropdownMenuItem,
@@ -13,6 +13,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
 import { isThinkingEnabled, reasoningEffortClamp, resolveReasoningEffort } from '@/lib/reasoning-effort'
+import { cn } from '@/lib/utils'
 
 // Hermes' real reasoning levels live in lib/reasoning-effort; `none` is owned
 // by the Thinking toggle, not the radio.
@@ -79,6 +80,11 @@ interface ModelEditSubmenuProps {
   /** How fast mode is offered for this model (param toggle vs. variant swap). */
   fastControl: FastControl
   serviceTier?: string
+  /** Levels the route accepts for this model (the catalog's `supported_efforts`,
+   *  or the live session's `reasoning_efforts`). A HINT: levels outside it are
+   *  dimmed and annotated with what the route sends, never removed — catalogs
+   *  under-report what routes honor, so the pick stays the user's. */
+  supportedEfforts?: null | readonly string[]
   ultrafastSupported?: boolean
   /** Whether this row's model is the active one. */
   isActive: boolean
@@ -119,6 +125,7 @@ export function ModelOptionsContent({
   effortWire,
   fastControl,
   serviceTier,
+  supportedEfforts,
   ultrafastSupported = false,
   isActive,
   onSelectModel,
@@ -130,6 +137,7 @@ export function ModelOptionsContent({
 
   const effortValue = resolveReasoningEffort(effort, defaultEffort)
   const clamp = reasoningEffortClamp(effortValue, effortWire)
+  const accepted = normalizeSupportedEfforts(supportedEfforts)
   const thinkingOn = isThinkingEnabled(effort, defaultEffort)
   const showThinkingToggle = reasoning && canDisableReasoning !== false
 
@@ -206,16 +214,29 @@ export function ModelOptionsContent({
           <DropdownMenuSeparator className="mx-0" />
           <DropdownMenuLabel className={dropdownMenuSectionLabel}>{copy.effort}</DropdownMenuLabel>
           <DropdownMenuRadioGroup onValueChange={value => onSetOptions({ effort: value })} value={effortValue}>
-            {REASONING_EFFORTS.map(value => (
-              <DropdownMenuRadioItem
-                className={dropdownMenuRow}
-                key={value}
-                onSelect={event => event.preventDefault()}
-                value={value}
-              >
-                {clamp?.effort === value ? `${copy[value]} (${copy.sendsOnRoute(copy[clamp.wire])})` : copy[value]}
-              </DropdownMenuRadioItem>
-            ))}
+            {REASONING_EFFORTS.map(value => {
+              // The gateway's wire stamp is authoritative for the picked level; for the
+              // others the shared clamp says what this route would send.
+              const unsupported = accepted !== null && !accepted.includes(value)
+              const sends = clamp?.effort === value ? clamp.wire : unsupported ? clampEffort(value, accepted) : value
+
+              const label =
+                sends !== value && isReasoningEffort(sends)
+                  ? `${copy[value]} (${copy.sendsOnRoute(copy[sends])})`
+                  : copy[value]
+
+              return (
+                <DropdownMenuRadioItem
+                  className={cn(dropdownMenuRow, unsupported && 'text-(--ui-text-tertiary)')}
+                  data-unsupported={unsupported || undefined}
+                  key={value}
+                  onSelect={event => event.preventDefault()}
+                  value={value}
+                >
+                  {label}
+                </DropdownMenuRadioItem>
+              )
+            })}
           </DropdownMenuRadioGroup>
         </>
       ) : null}

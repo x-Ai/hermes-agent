@@ -1451,6 +1451,16 @@ export const zhHantSettings = {
       catalogProviderHint:
         '讓此中繼上的模型繼承某個內建提供方目錄的上下文視窗、輸出上限、視覺與推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自動',
+      autoValuePlaceholder: (value: string) => `自動 · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `建議 · ${value}`,
+      fillDetected: '填入偵測到的值',
+      fillDetectedHint:
+        '把偵測到的限制與能力填入空白儲存格，便於針對不標準的端點手動調整。「自動」是 Hermes 留空時會自行解析到的值，「建議」來自 models.dev 目錄、只有填入後才生效；留空的儲存格仍自動解析',
+      capabilityAutoResolved: (verdict: string) => `自動（${verdict}）`,
+      valueSource: (source: string) => `來源：${source}`,
+      sourceEndpoint: '端點自述',
+      sourceCatalogProvider: '中繼資料目錄來源',
+      sourceCatalog: (ref: string) => `models.dev 比對：${ref}`,
       keyKeepPlaceholder: '留空則保留目前的金鑰',
       keyOptionalPlaceholder: '選填',
       useForNewChats: '用於新對話',

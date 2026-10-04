@@ -31,6 +31,7 @@ function renderSubmenu(opts: {
   onSelectModel?: (model: string) => void
   onSetOptions: (patch: { effort?: string; fast?: boolean }) => void
   reasoning: boolean
+  supportedEfforts?: null | readonly string[]
 }) {
   return render(
     <DropdownMenu open>
@@ -47,6 +48,7 @@ function renderSubmenu(opts: {
             onSetOptions={opts.onSetOptions}
             provider="p1"
             reasoning={opts.reasoning}
+            supportedEfforts={opts.supportedEfforts}
           />
         </DropdownMenuSub>
       </DropdownMenuContent>
@@ -127,5 +129,42 @@ describe('ModelEditSubmenu reports edits without performing them', () => {
     fireEvent.click(screen.getByRole('switch'))
 
     expect(onSelectModel).toHaveBeenCalledWith('m1-fast')
+  })
+})
+
+// The route's accepted levels are a HINT (agent/reasoning_effort_catalog.py): catalogs
+// under-report what routes honor, so a level outside the set is dimmed and annotated
+// with what the route sends, but stays a real choice.
+describe("ModelEditSubmenu follows the route's accepted effort levels", () => {
+  it('dims unsupported levels, says what the route sends instead, and keeps them selectable', () => {
+    const onSetOptions = vi.fn()
+    renderSubmenu({
+      fastControl: { kind: 'none' },
+      onSetOptions,
+      reasoning: true,
+      supportedEfforts: ['low', 'high', 'max']
+    })
+
+    const xhigh = screen.getByRole('menuitemradio', { name: /Extra High/ })
+    expect(xhigh.getAttribute('data-unsupported')).toBe('true')
+    expect(xhigh.textContent).toBe('Extra High (sends High on this route)')
+    expect(screen.getByRole('menuitemradio', { name: 'High' }).getAttribute('data-unsupported')).toBeNull()
+    // Ultra has no wire level anywhere; the hint spells out the clamp instead of hiding the step.
+    expect(screen.getByRole('menuitemradio', { name: /Ultra/ }).textContent).toBe('Ultra (sends Max on this route)')
+
+    fireEvent.click(xhigh)
+
+    expect(onSetOptions).toHaveBeenCalledWith({ effort: 'xhigh' })
+  })
+
+  it('keeps the whole ladder plain while the route is unknown or publishes nothing usable', () => {
+    for (const supportedEfforts of [undefined, null, [], ['bespoke']] as const) {
+      renderSubmenu({ fastControl: { kind: 'none' }, onSetOptions: vi.fn(), reasoning: true, supportedEfforts })
+
+      const rows = screen.getAllByRole('menuitemradio')
+      expect(rows).toHaveLength(7)
+      expect(rows.filter(row => row.getAttribute('data-unsupported'))).toHaveLength(0)
+      cleanup()
+    }
   })
 })

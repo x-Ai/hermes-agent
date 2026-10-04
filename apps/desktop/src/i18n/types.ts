@@ -984,6 +984,15 @@ export interface Translations {
       catalogProviderLabel: string
       catalogProviderHint: string
       contextAuto: string
+      autoValuePlaceholder: (value: string) => string
+      suggestedValuePlaceholder: (value: string) => string
+      fillDetected: string
+      fillDetectedHint: string
+      capabilityAutoResolved: (verdict: string) => string
+      valueSource: (source: string) => string
+      sourceEndpoint: string
+      sourceCatalogProvider: string
+      sourceCatalog: (ref: string) => string
       keyKeepPlaceholder: string
       keyOptionalPlaceholder: string
       useForNewChats: string

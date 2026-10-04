@@ -44,10 +44,22 @@ class MemoryProviderSetupRequest(BaseModel):
 
 class CustomEndpointModelDetail(BaseModel):
     """One ``/v1/models`` row with the routing metadata a gateway may advertise on a
-    reasoning alias (``gpt-5.6-sol-high`` → ``gpt-5.6-sol`` @ ``high``). See #93622."""
+    reasoning alias (``gpt-5.6-sol-high`` → ``gpt-5.6-sol`` @ ``high``). See #93622.
+
+    The remaining fields are what ``hermes_cli.web_server_model_metadata`` resolved for the Desktop
+    limits table (value + ``sources[field]``); a client echoing details back on Save may carry them,
+    the server never persists them."""
     id: str
     canonical_model: Optional[str] = None
     reasoning_effort: Optional[str] = None
+    context_length: Optional[int] = None
+    max_input_tokens: Optional[int] = None
+    max_output_tokens: Optional[int] = None
+    supports_vision: Optional[bool] = None
+    supports_reasoning: Optional[bool] = None
+    supported_efforts: Optional[List[str]] = None
+    sources: Optional[Dict[str, str]] = None
+    catalog_ref: Optional[str] = None
 
 
 class CustomEndpointModelTokenLimits(BaseModel):

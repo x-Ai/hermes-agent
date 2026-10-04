@@ -12,6 +12,7 @@ import {
   $currentModel,
   $currentProvider,
   $currentReasoningEffort,
+  $currentReasoningEfforts,
   $currentReasoningEffortWire,
   $currentServiceTier,
   $messages,
@@ -67,6 +68,8 @@ export interface SessionView {
   $reasoningEffortPending: ReadableAtom<boolean>
   /** Gateway-reported level the route sends for `$reasoningEffort` ('' = unknown). */
   $reasoningEffortWire: ReadableAtom<string>
+  /** Levels the route accepts (`session.info.reasoning_efforts`); null = unknown. */
+  $reasoningEfforts: ReadableAtom<null | string[]>
 }
 
 /** The active session's own slice, or `undefined` while it's a draft. */
@@ -131,6 +134,7 @@ export const PRIMARY_SESSION_VIEW: SessionView = {
   $reasoningEffort: primaryField<string>(state => state.reasoningEffort, $currentReasoningEffort),
   $reasoningEffortPending: $primaryReasoningEffortPending,
   $reasoningEffortWire: primaryField<string>(state => state.reasoningEffortWire ?? '', $currentReasoningEffortWire),
+  $reasoningEfforts: primaryField<null | string[]>(state => state.reasoningEfforts ?? null, $currentReasoningEfforts),
   $runtimeId: $activeSessionId,
   $storedId: $selectedStoredSessionId,
   $turnStartedAt: primaryField<number | null>(state => state.turnStartedAt, $turnStartedAt)

@@ -104,6 +104,11 @@ class ModelCapabilities:
     context_window: int = 200000
     max_output_tokens: Optional[int] = None
     model_family: str = ""
+    # ``reasoning_options`` of the catalog entry: the effort vocabulary the vendor publishes
+    # (``{"type": "effort", "values": [...]}``) and whether thinking can be switched off
+    # (``{"type": "toggle"}`` or a published ``none`` level). None = the catalog does not say.
+    supported_efforts: Optional[Tuple[str, ...]] = None
+    can_disable_reasoning: Optional[bool] = None
 
 
 # Hermes provider names → models.dev provider IDs
@@ -837,6 +842,35 @@ def _apply_overrides(
     return base if override is None else _merge_catalog_entry_with_override(base if base is not None else _UNKNOWN_MODEL_BASE, override)
 
 
+def entry_reasoning_support(entry: Dict[str, Any]) -> Tuple[Optional[Tuple[str, ...]], Optional[bool]]:
+    """``(supported_efforts, can_disable)`` from a catalog entry's ``reasoning_options``.
+
+    Only what the vendor publishes: an ``effort`` option yields its ``values`` (lower-cased, order kept);
+    a ``toggle`` option or a published ``none`` level means thinking can be disabled. Absence of a
+    toggle is NOT a mandatory verdict (vendors omit it inconsistently), so that stays None.
+    """
+    options = _dict_or_empty(entry).get("reasoning_options")
+    if not isinstance(options, list):
+        return None, None
+    efforts: Optional[Tuple[str, ...]] = None
+    can_disable: Optional[bool] = None
+    for option in options:
+        if not isinstance(option, dict):
+            continue
+        kind = str(option.get("type") or "").strip().lower()
+        if kind == "effort":
+            values = option.get("values")
+            if isinstance(values, list):
+                levels = tuple(dict.fromkeys(str(v).strip().lower() for v in values if str(v).strip()))
+                if levels:
+                    efforts = levels
+        elif kind == "toggle":
+            can_disable = True
+    if efforts and "none" in efforts:
+        can_disable = True
+    return efforts, can_disable
+
+
 def _entry_supports_vision(entry: Dict[str, Any]) -> bool:
     """Prefer explicit ``modalities.input`` (the older ``attachment`` flag can be stale or too broad
     for image routing); fall back to it only when the input modalities are absent/invalid."""
@@ -865,6 +899,7 @@ def get_model_capabilities(
     raw = _apply_overrides(provider, model, entry, config=config)
     if raw is None:
         return None
+    supported_efforts, can_disable_reasoning = entry_reasoning_support(raw)
     return ModelCapabilities(
         supports_tools=bool(raw.get("tool_call", False)),
         supports_vision=(
@@ -876,6 +911,8 @@ def get_model_capabilities(
         context_window=_extract_limit(raw, "context") or 200000,
         max_output_tokens=_extract_limit(raw, "output"),
         model_family=raw.get("family", "") or "",
+        supported_efforts=supported_efforts,
+        can_disable_reasoning=can_disable_reasoning,
     )
 
 

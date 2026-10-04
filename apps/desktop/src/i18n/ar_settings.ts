@@ -1198,6 +1198,16 @@ export const arSettings = {
       userAgentHint:
         'ترويسة HTTP User-Agent المرسلة إلى نقطة النهاية. تستخدم افتراضياً ترويسة متصفح مكتبي قياسية لتجنب حظر الطلبات بواسطة الوكلاء وWAF. امسح الحقل لاستخدام القيمة الافتراضية المضمنة في SDK.',
       contextAuto: 'تلقائي',
+      autoValuePlaceholder: (value: string) => `تلقائي · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `مقترح · ${value}`,
+      fillDetected: 'تعبئة القيم المكتشفة',
+      fillDetectedHint:
+        'ينسخ الحدود والقدرات المكتشفة إلى الخلايا الفارغة لتتمكن من تعديلها لنقطة نهاية غير قياسية. «تلقائي» هو ما يحدده Hermes بنفسه عند ترك الخلية فارغة، و«مقترح» مأخوذ من دليل models.dev ولا يُستخدم إلا بعد تعبئته. تبقى الخلايا الفارغة تُحدَّد تلقائياً.',
+      capabilityAutoResolved: (verdict: string) => `تلقائي (${verdict})`,
+      valueSource: (source: string) => `المصدر: ${source}`,
+      sourceEndpoint: 'كما أبلغت نقطة النهاية',
+      sourceCatalogProvider: 'مصدر دليل البيانات الوصفية',
+      sourceCatalog: (ref: string) => `مطابقة models.dev: ${ref}`,
       keyKeepPlaceholder: 'ترك فارغة للحفاظ على المفتاح الحالي',
       keyOptionalPlaceholder: 'اختياري',
       useForNewChats: 'استخدام الدردشة الجديدة',

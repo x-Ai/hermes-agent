@@ -38,6 +38,7 @@ const tileView = (reasoningEffort: string, reasoningEffortWire = ''): SessionVie
   $reasoningEffort: atom(reasoningEffort),
   $reasoningEffortPending: atom(false),
   $reasoningEffortWire: atom(reasoningEffortWire),
+  $reasoningEfforts: atom<null | string[]>(null),
   $runtimeId: atom('tile-runtime'),
   $storedId: atom('stored-tile'),
   $turnStartedAt: atom<number | null>(null)

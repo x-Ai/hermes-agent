@@ -38,6 +38,32 @@ def _agent(reasoning_config, **overrides):
     })
 
 
+class TestSessionInfoReasoningEfforts:
+    """``reasoning_efforts`` carries the route's accepted levels (None = unknown) and never costs the event."""
+
+    def test_route_levels_are_reported(self, monkeypatch) -> None:
+        from agent.reasoning_effort_catalog import RouteReasoningSupport
+
+        monkeypatch.setattr(server, "route_reasoning_support",
+                            lambda *a, **k: RouteReasoningSupport(("low", "high", "max"), None, "profile"))
+        info = _session_info(_agent({"enabled": True, "effort": "high"}))
+        assert info["reasoning_efforts"] == ["low", "high", "max"]
+
+    def test_unknown_route_reports_none(self, monkeypatch) -> None:
+        from agent.reasoning_effort_catalog import UNKNOWN_SUPPORT
+
+        monkeypatch.setattr(server, "route_reasoning_support", lambda *a, **k: UNKNOWN_SUPPORT)
+        assert _session_info(_agent(None))["reasoning_efforts"] is None
+
+    def test_lookup_failure_degrades_to_unknown(self, monkeypatch) -> None:
+        def boom(*a, **k):
+            raise RuntimeError("catalog on fire")
+
+        monkeypatch.setattr(server, "route_reasoning_support", boom)
+        info = _session_info(_agent({"enabled": True, "effort": "high"}))
+        assert (info["reasoning_efforts"], info["reasoning_effort"]) == (None, "high")
+
+
 class TestSessionInfoReasoningEffort:
     """Disabled reasoning must be reported as 'none', never ''."""
 

@@ -71,6 +71,9 @@ class SessionLiveInfo(OpenModel):
     # The level the route's entry clamp actually sends for ``reasoning_effort`` ("" when unset/none;
     # equal when verbatim). Lets clients label a clamped Hermes step ("ultra sends max on this route").
     reasoning_effort_wire: str = ""
+    # Levels the route accepts for this model (``agent.reasoning_effort_catalog``): None = unknown (show
+    # the full ladder), [] = no reasoning parameter at all. Lets clients dim the steps the route clamps.
+    reasoning_efforts: list[str] | None = None
     service_tier: str = ""
     fast: bool = False
     yolo: bool = False

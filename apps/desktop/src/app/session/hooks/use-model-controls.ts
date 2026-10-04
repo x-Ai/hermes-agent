@@ -282,7 +282,8 @@ export function useModelControls({
             ...state,
             model: selection.model,
             provider: selection.provider,
-            reasoningEffortWire: ''
+            reasoningEffortWire: '',
+            reasoningEfforts: null
           }))
         }
       }

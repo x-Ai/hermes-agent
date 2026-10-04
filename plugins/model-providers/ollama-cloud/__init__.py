@@ -15,6 +15,10 @@ from providers.base import ProviderProfile
 class OllamaCloudProfile(ProviderProfile):
     """Ollama Cloud — maps xhigh→max via top-level reasoning_effort."""
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...]:
+        """One wire vocabulary for every thinking model (``minimal`` 400s, ``xhigh`` rounds to ``max``)."""
+        return OLLAMA_CLOUD_EFFORTS
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, supports_reasoning: bool = False, **ctx: Any
     ) -> tuple[dict[str, Any], dict[str, Any]]:

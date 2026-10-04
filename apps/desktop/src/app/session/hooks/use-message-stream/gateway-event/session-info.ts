@@ -22,6 +22,7 @@ import {
   setCurrentFastMode,
   setCurrentPersonality,
   setCurrentReasoningEffort,
+  setCurrentReasoningEfforts,
   setCurrentReasoningEffortWire,
   setCurrentServiceTier,
   setCurrentUsage,
@@ -255,6 +256,12 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
 
       if (typeof payload?.reasoning_effort_wire === 'string') {
         setCurrentReasoningEffortWire(payload.reasoning_effort_wire)
+      }
+
+      if (Array.isArray(payload?.reasoning_efforts) || payload?.reasoning_efforts === null) {
+        setCurrentReasoningEfforts(
+          Array.isArray(payload.reasoning_efforts) ? payload.reasoning_efforts.map(String) : null
+        )
       }
 
       if (typeof payload?.service_tier === 'string') {

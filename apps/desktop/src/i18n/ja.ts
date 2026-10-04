@@ -2306,7 +2306,17 @@ export const jaOverrides = {
       userAgentLabel: 'ユーザーエージェント',
       userAgentHint:
         'HTTP ユーザエージェントはこのエンドポイントに送られました。 標準のデスクトップブラウザのエージェントにデフォルトでプロキシとWAFはリクエストをブロックしません。 組み込みの SDK デフォルトを使用するフィールドをクリアします.',
-      contextAuto: '自動車',
+      contextAuto: '自動',
+      autoValuePlaceholder: (value: string) => `自動 · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `候補 · ${value}`,
+      fillDetected: '検出した値を入力',
+      fillDetectedHint:
+        '検出した上限と機能を空欄に入力し、標準的でないエンドポイント向けに手動で調整できるようにします。「自動」は空欄のままでも Hermes が解決する値、「候補」は models.dev カタログ由来で入力した場合のみ有効になります。空欄のセルは引き続き自動で解決されます。',
+      capabilityAutoResolved: (verdict: string) => `自動（${verdict}）`,
+      valueSource: (source: string) => `出典: ${source}`,
+      sourceEndpoint: 'エンドポイントの申告',
+      sourceCatalogProvider: 'メタデータカタログの提供元',
+      sourceCatalog: (ref: string) => `models.dev の一致: ${ref}`,
       keyKeepPlaceholder: '現在のキーを保つために空白を残す',
       keyOptionalPlaceholder: '任意',
       useForNewChats: '新しいチャットに使用する',

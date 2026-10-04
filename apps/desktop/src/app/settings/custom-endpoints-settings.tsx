@@ -24,6 +24,7 @@ import type {
   CustomEndpointApiMode,
   CustomEndpointMaxTokensField,
   CustomEndpointModelDetail,
+  CustomEndpointModelDetailSource,
   CustomEndpointUpdate
 } from '@/types/hermes'
 
@@ -342,6 +343,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
           setEditingId(current.id)
           setForm(formFromEndpoint(current))
           setDiscoveredModels(current.models)
+          setDiscoveredDetails(current.model_details ?? [])
         }
       } catch (err) {
         notifyError(err, copyRef.current.couldNotLoad)
@@ -376,6 +378,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         setEditingId(saved.id)
         setForm(formFromEndpoint(saved))
         setDiscoveredModels(saved.models)
+        setDiscoveredDetails(saved.model_details ?? [])
       }
 
       if (saved && saved.is_current) {
@@ -552,6 +555,102 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
   const tableGrid = 'sm:grid-cols-[minmax(9rem,1fr)_repeat(3,minmax(6rem,9rem))_repeat(2,minmax(5rem,6.5rem))]'
 
+  // What each blank cell resolves to today, from the last Test (or the saved endpoint's
+  // details). `endpoint` / `catalog_provider` values are what the runtime uses on its own;
+  // a `catalog` value is a models.dev suggestion that only applies once filled in.
+  const detailsById: Record<string, CustomEndpointModelDetail> = Object.fromEntries(
+    discoveredDetails.map(detail => [detail.id, detail])
+  )
+
+  const detailLimitKeys = {
+    contextLength: 'context_length',
+    maxInputTokens: 'max_input_tokens',
+    maxOutputTokens: 'max_output_tokens'
+  } as const
+
+  const detailCapabilityKeys = { supportsReasoning: 'supports_reasoning', supportsVision: 'supports_vision' } as const
+
+  function detectedLimit(
+    model: null | string,
+    key: keyof ModelTokenLimitForm
+  ): { source: CustomEndpointModelDetailSource; value: number } | null {
+    const detail = model ? detailsById[model] : undefined
+    const field = detailLimitKeys[key]
+    const value = detail?.[field]
+
+    if (!detail || typeof value !== 'number' || value <= 0) {
+      return null
+    }
+
+    return { source: detail.sources?.[field] ?? 'catalog', value }
+  }
+
+  function detectedCapability(model: string, key: keyof ModelCapabilityForm): boolean | null {
+    const value = detailsById[model]?.[detailCapabilityKeys[key]]
+
+    return typeof value === 'boolean' ? value : null
+  }
+
+  function sourceLabel(detail: CustomEndpointModelDetail, source: CustomEndpointModelDetailSource): string {
+    return source === 'endpoint'
+      ? ce.sourceEndpoint
+      : source === 'catalog_provider'
+        ? ce.sourceCatalogProvider
+        : ce.sourceCatalog(detail.catalog_ref ?? '')
+  }
+
+  function capabilityAutoLabel(model: string, key: keyof ModelCapabilityForm): string {
+    const detected = detectedCapability(model, key)
+
+    return detected === null
+      ? ce.capabilityAuto
+      : ce.capabilityAutoResolved(detected ? ce.capabilityYes : ce.capabilityNo)
+  }
+
+  const fillable = allModelOptions.some(
+    model =>
+      tokenLimitFields.some(field => !form.modelTokenLimits[model]?.[field.key] && detectedLimit(model, field.key)) ||
+      capabilityFields.some(
+        field => !form.modelCapabilities[model]?.[field.key] && detectedCapability(model, field.key) !== null
+      )
+  )
+
+  // Materialize the detected values as editable pins — only into empty cells, so a value the
+  // user already typed is never overwritten. Blank cells keep resolving automatically.
+  function fillDetectedValues() {
+    setForm(current => {
+      const modelTokenLimits = { ...current.modelTokenLimits }
+      const modelCapabilities = { ...current.modelCapabilities }
+
+      for (const model of allModelOptions) {
+        const limits = { ...(modelTokenLimits[model] ?? EMPTY_LIMITS) }
+
+        for (const field of tokenLimitFields) {
+          const detected = detectedLimit(model, field.key)
+
+          if (!limits[field.key] && detected) {
+            limits[field.key] = String(detected.value)
+          }
+        }
+
+        modelTokenLimits[model] = limits
+        const capabilities = { ...(modelCapabilities[model] ?? EMPTY_CAPABILITIES) }
+
+        for (const field of capabilityFields) {
+          const detected = detectedCapability(model, field.key)
+
+          if (!capabilities[field.key] && detected !== null) {
+            capabilities[field.key] = detected ? 'yes' : 'no'
+          }
+        }
+
+        modelCapabilities[model] = capabilities
+      }
+
+      return { ...current, modelCapabilities, modelTokenLimits }
+    })
+  }
+
   function updateModelTokenLimit(model: null | string, key: keyof ModelTokenLimitForm, value: string) {
     setForm(current => {
       if (model === null) {
@@ -582,21 +681,35 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   function renderLimitInputs(model: null | string, values: ModelTokenLimitForm) {
     const scope = model ?? ce.defaultRowLabel
 
-    return tokenLimitFields.map(field => (
-      <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
-        <span className="sm:sr-only">{field.label}</span>
-        <Input
-          aria-label={`${field.label}: ${scope}`}
-          inputMode="numeric"
-          min={1}
-          onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
-          placeholder={ce.contextAuto}
-          step={1}
-          type="number"
-          value={values[field.key]}
-        />
-      </label>
-    ))
+    return tokenLimitFields.map(field => {
+      const detected = detectedLimit(model, field.key)
+      const detail = model ? detailsById[model] : undefined
+      // Fixed en-US grouping: the placeholder is a number to read, not prose to localize.
+      const formatted = detected ? detected.value.toLocaleString('en-US') : ''
+
+      const placeholder = !detected
+        ? ce.contextAuto
+        : detected.source === 'catalog'
+          ? ce.suggestedValuePlaceholder(formatted)
+          : ce.autoValuePlaceholder(formatted)
+
+      return (
+        <label className="grid gap-1 text-[0.66rem] sm:block" key={field.key}>
+          <span className="sm:sr-only">{field.label}</span>
+          <Input
+            aria-label={`${field.label}: ${scope}`}
+            inputMode="numeric"
+            min={1}
+            onChange={event => updateModelTokenLimit(model, field.key, event.target.value)}
+            placeholder={placeholder}
+            step={1}
+            title={detected && detail ? ce.valueSource(sourceLabel(detail, detected.source)) : undefined}
+            type="number"
+            value={values[field.key]}
+          />
+        </label>
+      )
+    })
   }
 
   return (
@@ -626,7 +739,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                       setEditingId(endpoint.id)
                       setForm(formFromEndpoint(endpoint))
                       setDiscoveredModels(endpoint.models)
-                      setDiscoveredDetails([])
+                      setDiscoveredDetails(endpoint.model_details ?? [])
                     }}
                     type="button"
                   >
@@ -759,15 +872,24 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
             <div className="grid gap-1.5 text-xs text-muted-foreground">
               <span>{ce.contextLabel}</span>
               <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.contextHint}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button disabled={!fillable} onClick={fillDetectedValues} size="sm" type="button" variant="outline">
+                  {ce.fillDetected}
+                </Button>
+                <span className="text-[0.66rem] leading-4 text-muted-foreground/80">{ce.fillDetectedHint}</span>
+              </div>
               <div className="max-h-72 divide-y divide-border/40 overflow-y-auto rounded-md border border-border/50">
-                <div className={cn('hidden gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem] sm:grid', tableGrid)}>
-                  <span>{ce.modelLabel}</span>
-                  {tokenLimitFields.map(field => (
-                    <span key={field.key}>{field.label}</span>
-                  ))}
-                  {capabilityFields.map(field => (
-                    <span key={field.key}>{field.label}</span>
-                  ))}
+                {/* Frozen header: an opaque wrapper carries the tint so rows never show through while scrolling. */}
+                <div className="sticky top-0 z-10 hidden bg-card sm:block">
+                  <div className={cn('grid gap-2 bg-muted/20 px-2 py-1.5 text-[0.66rem]', tableGrid)}>
+                    <span>{ce.modelLabel}</span>
+                    {tokenLimitFields.map(field => (
+                      <span key={field.key}>{field.label}</span>
+                    ))}
+                    {capabilityFields.map(field => (
+                      <span key={field.key}>{field.label}</span>
+                    ))}
+                  </div>
                 </div>
                 <div className={cn('grid items-center gap-2 bg-muted/10 p-2', tableGrid)}>
                   <span className="truncate text-[0.72rem] font-medium text-foreground">{ce.defaultRowLabel}</span>
@@ -794,7 +916,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                         >
                           {capabilityOptions.map(option => (
                             <option key={option.id} value={option.id}>
-                              {option.label}
+                              {option.id === '' ? capabilityAutoLabel(model, field.key) : option.label}
                             </option>
                           ))}
                         </select>

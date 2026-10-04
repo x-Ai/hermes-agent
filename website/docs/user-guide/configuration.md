@@ -1882,6 +1882,17 @@ unreachable or a model isn't listed, Hermes falls back to its built-in
 model-family list and passes your effort through unchanged.
 :::
 
+:::note The Desktop effort menu follows the model
+The Desktop's Thinking / Effort menu (the pill beside the model pill, and each
+model row's submenu) reads the levels a route accepts — a provider plugin's
+declaration, the serving aggregator's catalog, or models.dev's
+`reasoning_options` (`session.info.reasoning_efforts`, picker
+`supported_efforts`). Levels outside that set are dimmed and annotated with the
+level the route actually sends ("Extra High (sends High on this route)"), but
+stay selectable: catalogs are known to under-report levels a route honors, so the
+pick remains yours. When nothing publishes a set, the whole ladder shows as before.
+:::
+
 :::note `ultra` is clamped to the strongest level the route accepts
 `ultra` is a Hermes-internal ladder step: no provider wire accepts it, so every route clamps it
 to its strongest level (`max` on GPT-5.6 Codex and OpenAI-compatible routes, `xhigh` on older

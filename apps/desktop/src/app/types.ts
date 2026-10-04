@@ -161,6 +161,8 @@ export interface ClientSessionState {
   /** Gateway-reported wire level for `reasoningEffort`; '' until the backend
    *  has stamped the current pick (so a clamp is never inferred client-side). */
   reasoningEffortWire?: string
+  /** Levels the session's route accepts (`session.info.reasoning_efforts`); null/absent = unknown. */
+  reasoningEfforts?: null | string[]
   /** The runtime has not reported this session's effort yet, so '' above means
    *  "unknown", not "profile default". A cold resume answers before the agent
    *  builds, and only the built agent knows the session's own pin (#79807). */

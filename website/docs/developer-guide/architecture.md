@@ -68,6 +68,8 @@ hermes-agent/
 │   ├── auxiliary_client.py   # Auxiliary LLM for side tasks (vision, summarization)
 │   ├── model_metadata.py     # Model context lengths, token estimation
 │   ├── models_dev.py         # models.dev registry integration
+│   ├── models_dev_search.py  # Cross-provider catalog match for an endpoint's model id (a hint)
+│   ├── reasoning_effort_catalog.py # Merged "which effort levels does this route accept" verdict
 │   ├── anthropic_adapter.py  # Anthropic Messages API format conversion
 │   ├── display.py            # KawaiiSpinner, tool preview formatting
 │   ├── skill_commands.py     # Skill slash commands

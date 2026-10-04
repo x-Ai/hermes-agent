@@ -56,6 +56,7 @@ export function ReasoningMenuPanel(props: ModelMenuHostProps) {
       provider={provider}
       reasoning={caps?.reasoning ?? true}
       serviceTier={controller.current.serviceTier}
+      supportedEfforts={controller.current.efforts ?? caps?.supported_efforts}
       ultrafastSupported={caps?.ultrafast ?? false}
     />
   )

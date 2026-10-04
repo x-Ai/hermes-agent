@@ -2270,6 +2270,16 @@ export const en: Translations = {
       catalogProviderHint:
         'Inherit context window, output limit, vision and reasoning metadata from a built-in provider catalog (e.g. deepseek, anthropic, openai) for models this relay serves.',
       contextAuto: 'Auto',
+      autoValuePlaceholder: (value: string) => `Auto · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `Suggested · ${value}`,
+      fillDetected: 'Fill in detected values',
+      fillDetectedHint:
+        'Copies the detected limits and capabilities into the empty cells so you can adjust them for a non-standard endpoint. "Auto" is what Hermes resolves on its own; "Suggested" comes from the models.dev catalog and is only used once filled in. Blank cells keep resolving automatically.',
+      capabilityAutoResolved: (verdict: string) => `Auto (${verdict})`,
+      valueSource: (source: string) => `Source: ${source}`,
+      sourceEndpoint: 'reported by the endpoint',
+      sourceCatalogProvider: 'catalog provider',
+      sourceCatalog: (ref: string) => `models.dev match: ${ref}`,
       keyKeepPlaceholder: 'Leave blank to keep current key',
       keyOptionalPlaceholder: 'Optional',
       useForNewChats: 'Use for new chats',

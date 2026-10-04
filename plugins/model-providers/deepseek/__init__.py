@@ -22,19 +22,27 @@ from providers.base import ProviderProfile
 _THINKING_CAPABLE_IDS: frozenset[str] = frozenset({"deepseek-flash"})
 
 
+def _thinking_capable(model: str | None) -> bool:
+    """v4+ only; v3 excluded. Version-less canonicals (``deepseek-flash``) carry the same thinking-mode
+    contract but no ``v<N>`` prefix, so consult the id set too — missing them makes Hermes omit
+    ``thinking``, so the server defaults to on and the user's thinking toggle / effort setting is
+    silently ignored."""
+    m = (model or "").strip().lower()
+    versioned_v4_plus = m.startswith("deepseek-v") and not m.startswith("deepseek-v3")
+    return versioned_v4_plus or m in _THINKING_CAPABLE_IDS
+
+
 class DeepSeekProfile(ProviderProfile):
     """DeepSeek — extra_body.thinking + top-level reasoning_effort."""
+
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...] | None:
+        """V4's documented knob; None (unknown) for ids this profile sends no effort to."""
+        return DEEPSEEK_V4_EFFORTS if _thinking_capable(model) else None
 
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None, **context
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        m = (model or "").strip().lower()
-        # v4+ only; v3 excluded. Version-less canonicals (``deepseek-flash``) carry the
-        # same thinking-mode contract but no ``v<N>`` prefix, so consult the id set too —
-        # missing them makes Hermes omit ``thinking``, so the server defaults to on and
-        # the user's thinking toggle / effort setting is silently ignored.
-        versioned_v4_plus = m.startswith("deepseek-v") and not m.startswith("deepseek-v3")
-        if not versioned_v4_plus and m not in _THINKING_CAPABLE_IDS:
+        if not _thinking_capable(model):
             return {}, {}
         # Always set thinking explicitly (default enabled, matching the API default)
         # to avoid the reasoning_content echo trap on subsequent turns.

@@ -469,6 +469,9 @@ export function useSessionTileDelegate({
             ...(typeof info?.reasoning_effort_wire === 'string'
               ? { reasoningEffortWire: info.reasoning_effort_wire }
               : {}),
+            ...(Array.isArray(info?.reasoning_efforts) || info?.reasoning_efforts === null
+              ? { reasoningEfforts: info?.reasoning_efforts ?? null }
+              : {}),
             ...(typeof info?.fast === 'boolean' ? { fast: info.fast } : {}),
             messages:
               state.messages.length > 0 ? state.messages : toChatMessages(prefetch?.messages ?? resumed?.messages ?? [])

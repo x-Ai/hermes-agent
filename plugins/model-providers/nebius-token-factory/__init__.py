@@ -15,6 +15,12 @@ _REASONING_MARKERS = (
 class NebiusTokenFactoryProfile(ProviderProfile):
     """Nebius Token Factory - top-level reasoning_effort."""
 
+    def supported_reasoning_efforts(self, model: str | None) -> tuple[str, ...] | None:
+        """The three-level knob for the reasoning families; None (unknown) elsewhere — the request
+        builder also honours a live ``supports_reasoning`` verdict this hook cannot see."""
+        model_name = (model or "").strip().rsplit("/", 1)[-1].lower()
+        return NEBIUS_EFFORTS if any(marker in model_name for marker in _REASONING_MARKERS) else None
+
     def build_api_kwargs_extras(
         self, *, reasoning_config: dict | None = None, model: str | None = None,
         supports_reasoning: bool = False, **context: Any,

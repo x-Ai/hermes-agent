@@ -2508,6 +2508,16 @@ export const zhOverrides = {
       catalogProviderHint:
         '让该中继上的模型继承某个内置提供方目录的上下文窗口、输出上限、视觉与推理能力（如 deepseek、anthropic、openai）',
       contextAuto: '自动',
+      autoValuePlaceholder: (value: string) => `自动 · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `建议 · ${value}`,
+      fillDetected: '填入检测到的值',
+      fillDetectedHint:
+        '把检测到的限制与能力填入空白单元格，便于针对不标准的端点手动调整。"自动"是 Hermes 留空时会自行解析到的值，"建议"来自 models.dev 目录、只有填入后才生效，留空的单元格仍自动解析',
+      capabilityAutoResolved: (verdict: string) => `自动（${verdict}）`,
+      valueSource: (source: string) => `来源：${source}`,
+      sourceEndpoint: '端点自述',
+      sourceCatalogProvider: '元数据目录来源',
+      sourceCatalog: (ref: string) => `models.dev 匹配：${ref}`,
       keyKeepPlaceholder: '留空则保留当前密钥',
       keyOptionalPlaceholder: '可选',
       useForNewChats: '用于新对话',

@@ -2251,6 +2251,16 @@ export const ruOverrides = {
       userAgentHint:
         'Пользователь-агент HTTP отправляется на эту конечную точку. Дефолты стандартному браузерному агенту, поэтому прокси и WAF не блокируют запросы. Очистите поле для использования встроенного SDK по умолчанию.',
       contextAuto: 'Автомат',
+      autoValuePlaceholder: (value: string) => `Авто · ${value}`,
+      suggestedValuePlaceholder: (value: string) => `Рекомендуется · ${value}`,
+      fillDetected: 'Заполнить обнаруженными значениями',
+      fillDetectedHint:
+        'Копирует обнаруженные лимиты и возможности в пустые ячейки, чтобы их можно было подправить для нестандартной конечной точки. «Авто» — значение, которое Hermes определяет сам при пустой ячейке; «Рекомендуется» взято из каталога models.dev и применяется только после заполнения. Пустые ячейки по-прежнему определяются автоматически.',
+      capabilityAutoResolved: (verdict: string) => `Авто (${verdict})`,
+      valueSource: (source: string) => `Источник: ${source}`,
+      sourceEndpoint: 'сообщено конечной точкой',
+      sourceCatalogProvider: 'источник каталога метаданных',
+      sourceCatalog: (ref: string) => `совпадение models.dev: ${ref}`,
       keyKeepPlaceholder: 'Оставьте пустой, чтобы сохранить текущий ключ',
       keyOptionalPlaceholder: 'Необязательно',
       useForNewChats: 'Используйте для новых чатов',

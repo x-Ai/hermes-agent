@@ -154,9 +154,15 @@ and the dashboard's `/api/model/info`. Precedence: explicit user
 `_default`. Models the plugin does not declare keep the catalog/heuristic path.
 
 Not covered: the picker's `fast` badge (a model-name heuristic in
-`hermes_cli/models.py::model_supports_fast_mode`), reasoning-effort vocabulary
-(`agent/reasoning_effort.py`), and transport request fields. Declarations do not
-add models to a picker — use `fallback_models` / `fetch_models` for that. The
+`hermes_cli/models.py::model_supports_fast_mode`) and transport request fields.
+The reasoning-effort vocabulary is its own hook: override
+`supported_reasoning_efforts(model)` with the set your `build_api_kwargs_extras`
+clamps onto (`()` = the model takes no reasoning parameter, `None` = unknown).
+`agent/reasoning_effort_catalog.py` merges that declaration with the serving
+aggregator's catalog and models.dev `reasoning_options` into the picker's
+`supported_efforts` and `session.info.reasoning_efforts`, which the Desktop uses
+to dim — never hide — the levels your route clamps. Declarations do not add
+models to a picker — use `fallback_models` / `fetch_models` for that. The
 registry is discovered once per process: restart Hermes after editing them.
 
 ## Overridable hooks

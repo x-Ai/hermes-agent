@@ -4,9 +4,10 @@ picker payload. The desktop model picker hides its Thinking toggle from this,
 so a route that can't disable reasoning must be describable here — otherwise
 the UI offers an off switch whose setting the upstream rejects.
 
-The catalog's `supported_efforts` is intentionally absent from the payload:
-the Portal honors levels a route doesn't advertise, so publishing it would
-invite a picker filter that hides working levels.
+The catalog's `supported_efforts` travels as a HINT: the Portal honors levels
+a route doesn't advertise, so the picker dims and annotates unsupported
+levels instead of filtering them — the list must never be the only thing
+that decides what a user may pick.
 """
 
 import hermes_cli.inventory as inv
@@ -41,23 +42,40 @@ def test_optional_reasoning_route_can_disable(monkeypatch):
     assert rows[0]["capabilities"]["deepseek/deepseek-v4-pro"]["can_disable_reasoning"] is True
 
 
-def test_advertised_efforts_never_reach_the_picker(monkeypatch):
-    """The catalog's level list stays off the wire even when it is published.
-
-    It under-reports what the Portal serves, so forwarding it would let the
-    picker hide levels that work. Only the disable verdict crosses.
-    """
+def test_advertised_efforts_reach_the_picker_as_a_hint(monkeypatch):
+    """The serving catalog's level list is forwarded next to the disable verdict, normalized to the
+    lower-case ladder vocabulary, and never contradicts the reasoning flag it rides with."""
     _patch_catalog(monkeypatch, {
         "deepseek/deepseek-v4-pro": {
             "supports_reasoning": True,
-            "supported_efforts": ["xhigh", "high"],
+            "supported_efforts": ["XHigh", "high", "high"],
             "mandatory": False,
         },
     })
     rows = [{"slug": "nous", "models": ["deepseek/deepseek-v4-pro"]}]
     inv._apply_capabilities(rows)
 
-    assert "supported_efforts" not in rows[0]["capabilities"]["deepseek/deepseek-v4-pro"]
+    caps = rows[0]["capabilities"]["deepseek/deepseek-v4-pro"]
+    assert caps["reasoning"] is True
+    assert caps["supported_efforts"] == ["xhigh", "high"]
+    assert caps["can_disable_reasoning"] is True
+
+
+def test_catalog_silent_on_efforts_forwards_no_list(monkeypatch):
+    """No published level list → no ``supported_efforts`` key: the client must read absence as
+    "unknown, show the whole ladder", so an empty or synthesized list must never be emitted."""
+    _patch_catalog(monkeypatch, {
+        "deepseek/deepseek-v4-pro": {"supports_reasoning": True, "supported_efforts": None, "mandatory": True},
+    })
+    from agent import reasoning_effort_catalog
+
+    monkeypatch.setattr(reasoning_effort_catalog, "_catalog_support", lambda *a, **k: (None, None, ""))
+    rows = [{"slug": "nous", "models": ["deepseek/deepseek-v4-pro"]}]
+    inv._apply_capabilities(rows)
+
+    caps = rows[0]["capabilities"]["deepseek/deepseek-v4-pro"]
+    assert "supported_efforts" not in caps
+    assert caps["can_disable_reasoning"] is False
 
 
 def test_non_reasoning_route_offers_no_reasoning_controls(monkeypatch):

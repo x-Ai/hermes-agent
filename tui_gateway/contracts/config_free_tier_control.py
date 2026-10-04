@@ -433,6 +433,9 @@ class ModelCapabilities(Result):
     ultrafast: bool = False
     reasoning: bool
     can_disable_reasoning: bool | None = None
+    # Levels the route accepts (plugin declaration / serving catalog / models.dev); absent = unknown.
+    # A hint for dimming unsupported levels, never a filter — catalogs under-report what routes honor.
+    supported_efforts: list[str] | None = None
 
 
 class ModelOptionProvider(OpenModel):
