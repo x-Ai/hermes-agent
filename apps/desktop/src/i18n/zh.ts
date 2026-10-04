@@ -20,7 +20,7 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
 export const zhOverrides = {
   externalOpenFailed: {
     title: '无法打开此链接',
-    message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开',
+    message: '没有注册用于打开此地址的浏览器，请复制链接并手动打开',
     copyUrl: '复制链接',
     close: '关闭',
     missing: {
@@ -31,7 +31,7 @@ export const zhOverrides = {
   sharedMetrics: {
     consentTitle: '帮助改进 Hermes？',
     consentBody:
-      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本。收集仅在本地进行；发送给 Nous 需要另行同意',
+      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本地进行，发送给 Nous 需要另行同意',
     whatIsCollected: '收集哪些内容',
     collectedIntro: '仅限有上限的计数：',
     collectedActivity: '活动、会话时长、结果和错误类别',
@@ -44,9 +44,9 @@ export const zhOverrides = {
     collectedMachine:
       '概略的机器信息：内存范围、GPU 类型、Hermes 版本新旧与发布通道、落后的更新数、是否使用本地模型服务器',
     installId:
-      '发送会把每日数据包上传到 Nous 遥测服务。数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置',
+      '发送会把每日数据包上传到 Nous 遥测服务，数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置',
     consentWindow:
-      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机。你可以随时再次关闭发送',
+      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机，你可以随时再次关闭发送',
     readDocs: '查看完整说明',
     share: '收集并发送给 Nous',
     local: '仅在本地收集',
@@ -54,9 +54,9 @@ export const zhOverrides = {
     changeLater: '你可以随时在 设置 → 安全 中更改',
     saveFailed: '无法保存你的选择',
     collectLabel: '收集使用统计',
-    collectDesc: '在此设备上保存有上限的计数。绝不包含提示词、文件、路径或错误文本',
+    collectDesc: '在此设备上保存有上限的计数，绝不包含提示词、文件、路径或错误文本',
     sendLabel: '向 Nous 发送使用统计',
-    sendDesc: '将每日数据包上传到 Nous 遥测服务。只发送同意时段内的数据。需要先开启收集',
+    sendDesc: '将每日数据包上传到 Nous 遥测服务，只发送同意时段内的数据，需要先开启收集',
     unavailable: '请更新 Hermes 后端以更改此设置',
     stripBody: '仅限有界计数器，绝不包含提示词或文件',
     stripChoices: { share: '发送给 Nous', local: '仅本地', off: '不用了' },
@@ -110,7 +110,7 @@ export const zhOverrides = {
     setup: server => `设置 ${server}`,
     openInBrowser: '在浏览器中打开',
     setupCancel: '取消',
-    authorizedToolsUnavailable: '已授权。工具不可用',
+    authorizedToolsUnavailable: '已授权，工具不可用',
     plugin: '插件',
     nothingSelectedYet: '目前不会连接或安装任何内容',
     connectOrInstallWhenNeeded: '任务需要时，Hermes 会提示你连接应用或安装插件，并会先征得同意',
@@ -188,12 +188,12 @@ export const zhOverrides = {
     },
     page: {
       loading: '正在读取目录和此计算机上的服务器',
-      emptyTitle: '这里还没有应用。请在此计算机上添加服务器以开始使用',
+      emptyTitle: '这里还没有应用，请在此计算机上添加服务器以开始使用',
       noMatchTitle: '没有匹配的应用',
-      noMatchBody: '这里没有匹配项。你可以连接自己的 MCP 服务器来添加应用',
+      noMatchBody: '这里没有匹配项，你可以连接自己的 MCP 服务器来添加应用',
       clearSearch: '清除搜索',
       hostedFailedTitle: '无法连接托管应用',
-      hostedFailedBody: '此计算机上的服务器不受影响，仍在运行；没有任何项目被关闭',
+      hostedFailedBody: '此计算机上的服务器不受影响，仍在运行，没有任何项目被关闭',
       retry: '重试',
       matchesElsewhere: count => `其他分组中还有 ${count} 个匹配项`,
       showAllMatches: '显示所有匹配项',
@@ -204,8 +204,8 @@ export const zhOverrides = {
       managedUnavailable: '此账户暂时无法使用托管应用',
       writeFailed: '未能保存此更改',
       refreshFailed: '未能刷新工具列表',
-      disconnectNoAccount: 'Hermes 在此处没有可断开的账户。请刷新页面后重试',
-      disconnectRefused: 'Nous 目前无法移除此登录。请改用开关关闭应用，或稍后重试'
+      disconnectNoAccount: 'Hermes 在此处没有可断开的账户，请刷新页面后重试',
+      disconnectRefused: 'Nous 目前无法移除此登录，请改用开关关闭应用，或稍后重试'
     },
     add: {
       action: '自行添加',
@@ -243,14 +243,14 @@ export const zhOverrides = {
     dialog: {
       disconnect: '断开连接',
       disconnectTitle: name => `断开 ${name}？`,
-      disconnectBody: 'Hermes 将不再使用此账户；你随时可以重新连接',
+      disconnectBody: 'Hermes 将不再使用此账户，你随时可以重新连接',
       menuRefreshTools: '刷新工具',
       moreActions: '更多操作',
       removeServerTitle: name => `移除 ${name}？`,
       removeServerBody: '此条目将从本机的 mcp.json 中移除，不会删除其他内容',
       appSwitch: name => `允许 Hermes 使用 ${name}`,
       waysTitle: name => `${name} 的运行位置`,
-      wayNotConnected: name => `尚未连接。请在浏览器中登录 ${name}`,
+      wayNotConnected: name => `尚未连接，请在浏览器中登录 ${name}`,
       wayHosted: '托管',
       bothOn: name => `两者均已开启，因此 Hermes 会看到两套 ${name} 工具`,
       turnOffLocal: '关闭本地服务器',
@@ -306,7 +306,7 @@ export const zhOverrides = {
       needsAuthBody: '登录信息仅保留在此计算机上，不会离开此设备',
       retry: '重试',
       goneTitle: name => `${name} 已从目录中移除`,
-      goneBody: 'Hermes 已无法调用它。该条目会保留到你主动移除，不会突然消失',
+      goneBody: 'Hermes 已无法调用它，该条目会保留到你主动移除，不会突然消失',
       remove: '移除',
       offTitle: name => `${name} 已关闭`,
       offBody: '使用上方开关开启后，即可读取其提供的工具',
@@ -319,7 +319,7 @@ export const zhOverrides = {
           theyOn > 0 ? `开启了你已关闭的 ${theyOn} 个工具` : ''
         ].filter(Boolean)
 
-        return `${changes.length > 0 ? `对方${changes.join('，并')}。` : ''}你的编辑仍保留在屏幕上，尚未写入。`
+        return `${changes.length > 0 ? `对方${changes.join('，并')}，` : ''}你的编辑仍保留在屏幕上，尚未写入`
       },
       conflictReload: '加载对方版本',
       conflictSave: '覆盖保存',
@@ -453,7 +453,7 @@ export const zhOverrides = {
     deleteBody: '将移至废纸篓，你可以从那里恢复',
     pathCopied: '已复制路径',
     revealMissing: '该文件夹不在这台电脑上',
-    revealUnavailable: '这条路不在电脑上——它生活在后端机器上. 使用“ 文件树中的编辑 ” .'
+    revealUnavailable: '这条路不在电脑上——它生活在后端机器上，使用“ 文件树中的编辑 ” .'
   },
   boot: {
     ready: 'Hermes 桌面版已就绪',
@@ -480,25 +480,25 @@ export const zhOverrides = {
       waitingSetupChoice: '正在等待你选择首次运行的设置方式'
     },
     errors: {
-      backgroundExited: '运行您聊天的服务意外关闭。请重新启动以继续 — 您的聊天记录和设置是安全的',
+      backgroundExited: '运行您聊天的服务意外关闭，请重新启动以继续 — 您的聊天记录和设置是安全的',
       backgroundExitedDuringStartup: 'Hermes 在启动后立即停止',
       backendStopped: 'Hermes 在后台停止工作',
       desktopBootFailed: 'Hermes 无法启动',
       gatewayConnectionLost: 'Hermes 丢失了连接',
       gatewayConnectionLostDetail:
-        '仍在尝试重新连接。您可以继续阅读和撰写。如果这种情况持续，请立即重新连接或检查您的连接设置',
+        '仍在尝试重新连接，您可以继续阅读和撰写，如果这种情况持续，请立即重新连接或检查您的连接设置',
       gatewaySignInRequired: '您的远程 Hermes 已将您注销',
-      ipcBridgeUnavailable: 'Hermes 桌面无法与其自身的后台层通信。请重新启动应用',
+      ipcBridgeUnavailable: 'Hermes 桌面无法与其自身的后台层通信，请重新启动应用',
       restartHermes: '重新启动 Hermes',
       openLogs: '打开日志',
       reconnectNow: '现在重新连接',
       connectionSettings: '连接设置',
-      gatewaySignInRequiredDetail: '再次签名重新连接。 您的聊天和设置是安全的.',
+      gatewaySignInRequiredDetail: '再次签名重新连接，您的聊天和设置是安全的',
       signInAgain: '再次签名'
     },
     failure: {
       title: 'Hermes 无法启动',
-      description: "Hermes' 的后台服务未启动。请尝试下面的恢复步骤。这里的操作不会删除您的聊天记录或设置。",
+      description: "Hermes' 的后台服务未启动，请尝试下面的恢复步骤，这里的操作不会删除您的聊天记录或设置",
       remoteTitle: '需要重新登录远程网关',
       remoteDescription: '你的远程网关会话已过期，请重新登录以恢复连接，这些操作不会删除你的对话或设置',
       retry: '重试',
@@ -533,17 +533,17 @@ export const zhOverrides = {
       reinstallApp: '重新安装应用'
     },
     causes: {
-      exitedEarly: 'Hermes的背景服务在开始后就停止了.',
-      timedOut: 'Hermes的背景服务没有及时回答.',
+      exitedEarly: 'Hermes的背景服务在开始后就停止了',
+      timedOut: 'Hermes的背景服务没有及时回答',
       permission: 'Hermes无法写入其数据文件夹(许可问题).',
       diskFull: '磁盘已经满了, 所以 Hermes 无法启动 .',
-      portInUse: '另一个程序是使用网络端口Hermes需要.',
-      installMissing: 'Hermes的部分安装缺失. 选择修复安装以放回去 .'
+      portInUse: '另一个程序是使用网络端口Hermes需要',
+      installMissing: 'Hermes的部分安装缺失，选择修复安装以放回去 .'
     }
   },
   notifications: {
     sharedProfileWarning:
-      '另一个 Hermes 安装实例正在使用此配置。两个实例共享此配置的设置和数据，因此更改可能发生冲突。你可以继续使用，也可以在更改前关闭另一个实例',
+      '另一个 Hermes 安装实例正在使用此配置，两个实例共享此配置的设置和数据，因此更改可能发生冲突，你可以继续使用，也可以在更改前关闭另一个实例',
     region: '通知',
     hide: '隐藏',
     show: '显示',
@@ -554,9 +554,9 @@ export const zhOverrides = {
     copyDetail: '复制详情',
     copyDetailFailed: '无法复制通知详情',
     backendOutOfDateTitle: '后端版本过旧',
-    backendOutOfDateMessage: '你的 Hermes 后端早于当前桌面构建，可能无法正常工作。请更新以保持一致',
+    backendOutOfDateMessage: '你的 Hermes 后端早于当前桌面构建，可能无法正常工作，请更新以保持一致',
     desktopOutOfDateTitle: '应用版本过旧',
-    desktopOutOfDateMessage: '此 Hermes 应用早于所连接的后端，可能无法正常工作。请更新应用以保持一致',
+    desktopOutOfDateMessage: '此 Hermes 应用早于所连接的后端，可能无法正常工作，请更新应用以保持一致',
     updateDesktopApp: '更新应用',
     installMethodUnsupportedTitle: '不受支持的安装方式',
     updateHermes: '更新 Hermes',
@@ -621,7 +621,7 @@ export const zhOverrides = {
       signIn: '登录',
       view: '查看',
       disable: '禁用',
-      disabledMessage: name => `${name}MCP 已禁用。可以随时在 功能 → MCP 中重新启用`,
+      disabledMessage: name => `${name}MCP 已禁用，可以随时在 功能 → MCP 中重新启用`,
       disableFailed: name => `无法禁用${name}MCP.`
     },
     errors: {
@@ -643,34 +643,34 @@ export const zhOverrides = {
         }[reason]
 
         const situation = resetWindow
-          ? `其用量限额将在 ${resetWindow} 后重置。届时请发送 /retry，或使用 /model 切换模型。`
-          : '它似乎暂时不可用。请稍等一分钟后发送 /retry，或使用 /model 切换模型。'
+          ? `其用量限额将在 ${resetWindow} 后重置，届时请发送 /retry，或使用 /model 切换模型`
+          : '它似乎暂时不可用，请稍等一分钟后发送 /retry，或使用 /model 切换模型'
 
-        return `${lead}——${situation}为避免再次发生，可通过 \`hermes fallback add\` 添加备用服务商。`
+        return `${lead}——${situation}为避免再次发生，可通过 \`hermes fallback add\` 添加备用服务商`
       },
       providerSaid: summary => `服务商返回：${summary}`,
       providerInvalidResponse: (label, attempts) =>
-        `${label} 连续 ${attempts} 次返回了空的或损坏的回复——它可能已过载或正在对你限流。请稍等一分钟后发送 /retry，或使用 /model 切换模型`,
+        `${label} 连续 ${attempts} 次返回了空的或损坏的回复——它可能已过载或正在对你限流，请稍等一分钟后发送 /retry，或使用 /model 切换模型`,
       errorDetailsLine: detail => `详情：${detail}`,
-      elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥。请在 设置 → 密钥 中添加',
-      elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
+      elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥，请在 设置 → 密钥 中添加',
+      elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥，在 设置 → 密钥 中更新后再试一次',
       diskFull: '磁盘已满 — 请腾出一些空间后再试',
       fileNotFound: target => (target ? `找不到文件：${target}` : '找不到文件'),
-      gatewayAuthFailed: '该 Hermes 不再接受您保存的登录信息。请打开 网关 并重新登录（或粘贴新的访问令牌），然后重试',
+      gatewayAuthFailed: '该 Hermes 不再接受您保存的登录信息，请打开 网关 并重新登录（或粘贴新的访问令牌），然后重试',
       invalidExternalUrl: '外部链接无效',
       invalidPreviewUrl: '预览链接无效',
-      methodNotAllowed: "Hermes' 后台服务与应用程序不同步，可能是在更新后出现。重启它以解决此问题。",
+      methodNotAllowed: "Hermes' 后台服务与应用程序不同步，可能是在更新后出现，重启它以解决此问题",
       microphonePermission: '麦克风权限已被拒绝',
-      openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
+      openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥，在 设置 → 密钥 中更新后再试一次',
       openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API key (${status} invalid_api_key)`,
-      openaiTtsNeedsKey: '语音需要一个 OpenAI 密钥。请在设置 → 密钥中添加一个',
+      openaiTtsNeedsKey: '语音需要一个 OpenAI 密钥，请在设置 → 密钥中添加一个',
       restoreTargetMissing: '目标消息已不在此会话历史中，请刷新会话后重试',
       restoreTargetUnsafe: '无法安全恢复此检查点，请刷新会话后重试',
       sessionStoppedBeforeAgentReady: '智能体就绪前会话已停止',
       turnCancelledBeforeAgentReady: '智能体就绪前，本轮对话已取消',
-      codeSkewRestartRequired: 'Hermes 已更新，但仍在运行旧版本。请重启以完成更新',
-      storageFailure: 'Hermes无法保存到它的数据文件夹中. 打开维护检查并修复.',
-      rpcOutOfSync: '应用程序和后端在不同的版本上. 更新两者.',
+      codeSkewRestartRequired: 'Hermes 已更新，但仍在运行旧版本，请重启以完成更新',
+      storageFailure: 'Hermes无法保存到它的数据文件夹中，打开维护检查并修复',
+      rpcOutOfSync: '应用程序和后端在不同的版本上，更新两者',
       restartHermesFailed: '无法重启 Hermes'
     },
     voice: {
@@ -695,7 +695,7 @@ export const zhOverrides = {
       liveEnded: '实时语音会话已结束',
       liveError: '实时语音',
       liveDelegationFailed: '无法将请求交给 Hermes',
-      liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}。已改用语音转文字`,
+      liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}，已改用语音转文字`,
       liveEndedConnectionLost: '实时语音会话已断开连接',
       liveEndedClosed: '实时语音会话已被服务关闭'
     },
@@ -723,10 +723,10 @@ export const zhOverrides = {
       openMaintenance: '打开维护'
     },
     compressDeferredDone: '上下文压缩已完成',
-    updateReadyMessageAppInstaller: 'Hermes 新版本已就绪。现在更新，Windows 会为你完成剩余步骤'
+    updateReadyMessageAppInstaller: 'Hermes 新版本已就绪，现在更新，Windows 会为你完成剩余步骤'
   },
   remoteDisplayBanner: {
-    message: reason => `软件渲染已启用 — 检测到远程显示（${reason}）。为防止画面闪烁，已禁用 GPU 加速`
+    message: reason => `软件渲染已启用 — 检测到远程显示（${reason}），为防止画面闪烁，已禁用 GPU 加速`
   },
   billingBlock: {
     titleNous: 'Nous 额度已用尽',
@@ -777,7 +777,7 @@ export const zhOverrides = {
     changeBlocked: '无法在此处完成该变更',
     alreadyOnPlan: name => `你已在使用 ${name}，无需更改`,
     scheduledChange: (name, date, creditsDelta) =>
-      `将在 ${date} 切换到 ${name}，现在不会收费，在此之前仍保留当前套餐${creditsDelta ? `；每月额度变化：${creditsDelta}` : ''}`,
+      `将在 ${date} 切换到 ${name}，现在不会收费，在此之前仍保留当前套餐${creditsDelta ? `，每月额度变化：${creditsDelta}` : ''}`,
     cannotSchedule: '无法在此处安排该变更',
     tryAgain: '重试',
     scheduling: '正在安排…',
@@ -838,23 +838,23 @@ export const zhOverrides = {
     freeTier: '免费层',
     included: '包含',
     freeTierName: 'Nous · 免费套餐',
-    freeTierCaption: '在 nous/welcome 上运行，包含连接器。登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型',
-    freeTierFootnote: '免费套餐没有余额，也不需要支付。登录 Nous 账户后，会显示付款和使用情况',
+    freeTierCaption: '在 nous/welcome 上运行，包含连接器，登录可以保留你的连接器，并添加需要账户的工具以及其他所有模型',
+    freeTierFootnote: '免费套餐没有余额，也不需要支付，登录 Nous 账户后，会显示付款和使用情况',
     chargeFailed: '扣款失败',
-    chargeUnconfirmedBody: '费用可能仍会结算。在重试之前请先检查门户',
+    chargeUnconfirmedBody: '费用可能仍会结算，在重试之前请先检查门户',
     chargeUnconfirmedTitle: '未确认费用结果',
-    chargeCheckFailedBody: '无法确认收费。请在重试前检查门户网站',
+    chargeCheckFailedBody: '无法确认收费，请在重试前检查门户网站',
     chargeCheckFailedTitle: '无法验证费用',
-    chargeMaySettle: '费用可能仍会结算。重试前请检查门户网站',
+    chargeMaySettle: '费用可能仍会结算，重试前请检查门户网站',
     stillProcessing: '仍在处理，已超过5分钟',
-    chargeNeedsVerification: '您的卡片需要验证。完成后，请再试一次',
-    cardExpired: '您的卡已过期。请在门户网站上更新，然后再试一次',
-    cardDeclined: '您的卡被拒绝了。请在门户上尝试使用另一张卡',
+    chargeNeedsVerification: '您的卡片需要验证，完成后，请再试一次',
+    cardExpired: '您的卡已过期，请在门户网站上更新，然后再试一次',
+    cardDeclined: '您的卡被拒绝了，请在门户上尝试使用另一张卡',
     chargeFailedReason: reason => `The charge failed (${reason}). Try again or use another card on the portal`,
     verificationNotApprovedTitle: '验证未通过',
-    verificationNotApprovedBody: '卡片验证未被批准。请重试或使用另一张卡',
+    verificationNotApprovedBody: '卡片验证未被批准，请重试或使用另一张卡',
     verificationCompleteTitle: '验证完成',
-    verificationCompleteBody: '您的卡已通过验证。您现在可以重新尝试收费',
+    verificationCompleteBody: '您的卡已通过验证，您现在可以重新尝试收费',
     refusal: {
       consentTitle: '需要确认银行卡',
       consentMessage: '请在门户确认此银行卡可用于终端扣款',
@@ -1201,7 +1201,7 @@ export const zhOverrides = {
         pinToCommit: '固定到提交（可选）',
         pinToCommitPlaceholder: '完整的 40 位提交 SHA',
         pinToCommitHint:
-          '安装同一 SHA 的所有人都会得到相同的代码；固定后插件将拒绝更新，直到重新固定，留空则安装最新提交',
+          '安装同一 SHA 的所有人都会得到相同的代码，固定后插件将拒绝更新，直到重新固定，留空则安装最新提交',
         pinToCommitInvalid: '必须是完整的 40 位提交 SHA（不接受分支和标签）',
         install: '安装',
         installing: '正在安装…',
@@ -1214,10 +1214,10 @@ export const zhOverrides = {
         agentFailed: '智能体插件安装失败',
         desktopFailed: '桌面插件安装失败',
         missingEnv: (name, vars) =>
-          `${name} 已安装，但需要先配置密钥才能使用：${vars}。请立即添加，否则该插件的工具将无法运行`,
+          `${name} 已安装，但需要先配置密钥才能使用：${vars}，请立即添加，否则该插件的工具将无法运行`,
         profileLabel: '安装到配置文件',
         installUncertain:
-          'Hermes 已停止等待安装结果，但插件可能仍在安装中。请关闭此对话框，并在“插件”中执行“重新扫描”后再尝试安装'
+          'Hermes 已停止等待安装结果，但插件可能仍在安装中，请关闭此对话框，并在“插件”中执行“重新扫描”后再尝试安装'
       }
     },
     vault: {
@@ -1411,7 +1411,7 @@ export const zhOverrides = {
     },
     appearance: {
       chatTextScaleTitle: '聊天文字大小',
-      chatTextScaleDesc: '相对于界面缩放调整对话文字和消息输入框的字号。侧边栏和控件大小保持不变',
+      chatTextScaleDesc: '相对于界面缩放调整对话文字和消息输入框的字号，侧边栏和控件大小保持不变',
       title: '外观',
       intro: '这些是仅桌面端的显示偏好，模式控制明暗，主题控制强调色与对话界面样式',
       themeSearchPlaceholder: '搜索你的主题或 VS Code 商店…',
@@ -1467,7 +1467,7 @@ export const zhOverrides = {
       },
       textDirectionTitle: '文本方向',
       textDirectionDesc:
-        '设置对话消息和输入框的文字方向，自动模式会根据每段的首个字符判断；混合文字对齐不正确时可手动选择，代码始终从左向右显示',
+        '设置对话消息和输入框的文字方向，自动模式会根据每段的首个字符判断，混合文字对齐不正确时可手动选择，代码始终从左向右显示',
       textDirection: { auto: '自动', rtl: '从右向左', ltr: '从左向右' },
       backdropTitle: '聊天背景',
       backdropDesc: '对话后方那张淡淡的雕像图片',
@@ -1488,7 +1488,7 @@ export const zhOverrides = {
       composerPopoutTitle: '悬浮输入框',
       composerPopoutDesc: '允许将输入框拖出底部停靠区，关闭后，输入框会锁定在底部',
       fileBrowserTitle: '文件浏览器',
-      fileBrowserDesc: '打开工作区时，在聊天旁显示文件浏览器。标题栏的切换按钮也会更改此设置',
+      fileBrowserDesc: '打开工作区时，在聊天旁显示文件浏览器，标题栏的切换按钮也会更改此设置',
       vibeHeartsTitle: '心情爱心',
       vibeHeartsDesc: '当你说谢谢、爱你、good bot 或发送爱心时飘出的爱心，与上方的消息回应是两回事',
       embedsTitle: '内嵌预览',
@@ -1836,7 +1836,7 @@ export const zhOverrides = {
       },
       browser: {
         useRealProfile:
-          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置(Cookie、登录、偏好)到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新，即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器(Chrome/Edge/Brave/Chromium)，否则报错。此选项默认关闭'
+          '本地浏览器使用真实登录状态，Hermes复制默认浏览器配置(Cookie、登录、偏好)到快照，用内置Chromium驱动，不直接打开原配置，每次运行刷新，即使有云端后端也可按需开启本地会话，仅支持Chromium内核浏览器(Chrome/Edge/Brave/Chromium)，否则报错，此选项默认关闭'
       },
       voice: {
         clientDirect: '尽可能让此桌面端直接连接语音提供方，而不是通过网关中转音频',
@@ -1894,7 +1894,7 @@ export const zhOverrides = {
       versionUnavailable: '版本不可用',
       bundleOutOfSync: '应用构建版本过旧',
       bundleOutOfSyncDesc:
-        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如智能体模式）不会显示，请运行下方的更新以重新构建应用。如果此警告仍未消除,请从最新的桌面安装程序重新安装',
+        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如智能体模式）不会显示，请运行下方的更新以重新构建应用，如果此警告仍未消除,请从最新的桌面安装程序重新安装',
       bundleOutOfSyncAction: '获取安装程序',
       bundleSwapPending: '重启以完成更新',
       bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本，聊天记录和设置不会受到影响',
@@ -1998,7 +1998,7 @@ export const zhOverrides = {
     connections: {
       title: '已注册网关',
       intro: '管理本机以及通过远程、SSH 或 Hermes Cloud 连接可访问的每个 Hermes 网关',
-      stagedNote: '可在"会话"侧边栏切换网关。配置档案、聊天、消息和定时任务归属于各自网关，其他网关上的工作会继续运行',
+      stagedNote: '可在"会话"侧边栏切换网关，配置档案、聊天、消息和定时任务归属于各自网关，其他网关上的工作会继续运行',
       launchModeTitle: '启动时返回上次使用网关的会话视图',
       launchModeDesc: '关闭时，会话将在主网关上打开',
       searchPlaceholder: '搜索网关…',
@@ -2033,13 +2033,13 @@ export const zhOverrides = {
       kindCloudDesc: '通过你的 Hermes Cloud 账户发现的托管实例',
       kindSshDesc: '通过 SSH 访问的 Hermes 安装',
       labelTitle: '名称',
-      labelDesc: '必填。此实例出现的所有位置都会显示该名称，必须唯一（例如"家庭服务器"、"工作笔记本"）',
+      labelDesc: '必填，此实例出现的所有位置都会显示该名称，必须唯一（例如"家庭服务器"、"工作笔记本"）',
       labelPlaceholder: '家庭服务器',
       urlTitle: '网关 URL',
       sshHostTitle: 'SSH 主机',
       headersTitle: '额外网关请求头',
       headersDesc:
-        '随发往此网关的每个 HTTP 和 WebSocket 请求一起发送 — 用于 Cloudflare Access 等访问代理（CF-Access-Client-Id / CF-Access-Client-Secret）。值加密存储。由 Hermes 管理的请求头（Authorization、Cookie、Host 等）会被忽略',
+        '随发往此网关的每个 HTTP 和 WebSocket 请求一起发送 — 用于 Cloudflare Access 等访问代理（CF-Access-Client-Id / CF-Access-Client-Secret），值加密存储，由 Hermes 管理的请求头（Authorization、Cookie、Host 等）会被忽略',
       headerValuePlaceholder: '值',
       headerValueSaved: '已保存 — 留空以保留',
       headerAdd: '添加请求头',
@@ -2084,7 +2084,7 @@ export const zhOverrides = {
       envOverrideDesc: '取消设置 HERMES_DESKTOP_REMOTE_URL 和 HERMES_DESKTOP_REMOTE_TOKEN 后才会使用下面保存的设置',
       modeTitle: '连接模式',
       localTitle: '本地网关',
-      localDesc: '在 localhost 启动私有 Hermes 后端。这是默认方式，并且可离线工作',
+      localDesc: '在 localhost 启动私有 Hermes 后端，这是默认方式，并且可离线工作',
       remoteTitle: '远程网关',
       remoteDesc: '将此桌面外壳连接到远程 Hermes 后端',
       remoteAuthHint: '托管网关使用 OAuth 或用户名密码,自托管网关也可能使用会话 Token',
@@ -2094,7 +2094,7 @@ export const zhOverrides = {
       cloudSignIn: '登录 Hermes Cloud',
       cloudSignedIn: '已登录 Hermes Cloud',
       cloudNeedsSignIn: '登录 Hermes Cloud 以发现你账户下的智能体',
-      cloudSignedInDesc: '你已登录。在下方选择一个智能体，会话会自动刷新',
+      cloudSignedInDesc: '你已登录，在下方选择一个智能体，会话会自动刷新',
       cloudAgentsTitle: '你的智能体',
       cloudOrgPickerTitle: '选择一个组织',
       cloudOrgSelect: '选择',
@@ -2102,7 +2102,7 @@ export const zhOverrides = {
       cloudOrgRole: role => `角色：${role}`,
       cloudLoadingAgents: '正在加载你的智能体…',
       cloudNoAgents: {
-        before: '此账户下未找到智能体。请在',
+        before: '此账户下未找到智能体，请在',
         linkText: 'Nous 门户',
         after: '中创建一个，然后刷新'
       },
@@ -2124,9 +2124,9 @@ export const zhOverrides = {
       cloudAgentProvisioning: '正在配置…',
       cloudStatusLabel: status => `状态：${status}`,
       remoteUrlTitle: '远程 URL',
-      remoteUrlDesc: '远程 dashboard 后端的基础 URL。支持路径前缀，例如 /hermes',
+      remoteUrlDesc: '远程 dashboard 后端的基础 URL，支持路径前缀，例如 /hermes',
       probing: '正在检查此网关的认证方式…',
-      probeError: '暂时无法访问此网关。请检查 URL，网关响应后会显示认证方式',
+      probeError: '暂时无法访问此网关，请检查 URL，网关响应后会显示认证方式',
       signedIn: '已登录',
       signIn: '登录',
       signOut: '退出登录',
@@ -2134,7 +2134,7 @@ export const zhOverrides = {
       authTitle: '认证',
       authSignedInPassword: '此网关使用用户名和密码，你已登录，会话会自动刷新',
       authSignedInOauth: '此网关使用 OAuth，你已登录，会话会自动刷新',
-      authNeedsPassword: '此网关使用用户名和密码。请登录以授权此桌面应用',
+      authNeedsPassword: '此网关使用用户名和密码，请登录以授权此桌面应用',
       authNeedsOauth: provider => `此网关使用 OAuth，请使用 ${provider} 登录以授权此桌面应用`,
       tokenTitle: '会话 Token',
       tokenDesc: '用于 REST 和 WebSocket 访问的 dashboard 会话 token，留空则保留已保存的 Token',
@@ -2150,7 +2150,7 @@ export const zhOverrides = {
         '安全存储不可用，因此已保存的 Token 以未加密方式存储在此设备上应用的连接设置文件中，请安装或启用 GNOME Keyring 或 KWallet 以对其加密',
       keychainEncryptionTitle: '使用系统钥匙串加密已保存的机密',
       keychainEncryptionDesc:
-        '默认关闭。开启后，网关 Token 和登录凭据将使用系统钥匙串（Keychain Access、GNOME Keyring 或 Windows DPAPI）加密 — 系统可能会请求授权或密码，关闭时，它们以仅当前用户可读的普通文件形式存储',
+        '默认关闭，开启后，网关 Token 和登录凭据将使用系统钥匙串（Keychain Access、GNOME Keyring 或 Windows DPAPI）加密 — 系统可能会请求授权或密码，关闭时，它们以仅当前用户可读的普通文件形式存储',
       keychainEncryptionFailed: '无法更改机密加密设置',
       testRemote: '测试远程',
       saveForRestart: '保存到下次重启',
@@ -2180,7 +2180,7 @@ export const zhOverrides = {
       saveFailed: '无法保存网关设置',
       sshTitle: '通过 SSH 连接',
       sshDesc:
-        'Hermes 会通过 SSH 在远程启动并以隧道连接到本应用 — 无需自行启动或暴露任何服务。前提：已具备到该主机的密钥 SSH 访问',
+        'Hermes 会通过 SSH 在远程启动并以隧道连接到本应用 — 无需自行启动或暴露任何服务，前提：已具备到该主机的密钥 SSH 访问',
       sshTrustHint: '首次提供的主机密钥会被信任并固定，后续变更将被拒绝',
       sshHostTitle: '主机',
       sshHostDesc: 'user@host，或 ~/.ssh/config 中的 Host 别名',
@@ -2206,7 +2206,7 @@ export const zhOverrides = {
       sshErrUnreachable: '无法通过 SSH 连接到该主机，请检查主机、端口和网络',
       sshErrAuth:
         'SSH 认证失败，请将密钥加载到 ssh-agent（ssh-add），或在 ~/.ssh/config 中设置 IdentityFile — Hermes 以非交互方式运行 ssh',
-      sshErrHostKey: '自上次连接以来主机密钥已更改。请确认这是预期的，然后运行 ssh-keygen -R <host> 并重新连接',
+      sshErrHostKey: '自上次连接以来主机密钥已更改，请确认这是预期的，然后运行 ssh-keygen -R <host> 并重新连接',
       sshErrNotInstalled:
         '远程主机上未安装 Hermes，请在远程安装（curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh）或设置 Hermes 路径',
       sshErrPlatform: '不支持的远程平台，Hermes Desktop 的 SSH 模式支持 Linux、macOS 和 Windows 远程主机',
@@ -2346,7 +2346,7 @@ export const zhOverrides = {
       speedStandard: '标准',
       defaultsFailed: '保存模型默认值失败',
       loadFailed: '无法加载模型',
-      restartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码',
+      restartRequired: '更新后此后端仍在运行旧代码，请重启以加载新代码',
       restartBackend: '重启后端',
       restartingBackend: '正在重启后端...',
       restartFailed: '无法重启后端',
@@ -2436,7 +2436,7 @@ export const zhOverrides = {
       moaTitle: '混合智能体（Mixture of Agents）',
       moaPreset: '预设',
       moaDescription:
-        '配置以「混合智能体」提供商下模型形式出现的命名预设。聚合模型是执行模型——它运行工具循环的每一步，整个运行几乎全部费用都计入其提供商。参考模型默认每轮用户消息仅提供一次建议',
+        '配置以「混合智能体」提供商下模型形式出现的命名预设，聚合模型是执行模型——它运行工具循环的每一步，整个运行几乎全部费用都计入其提供商，参考模型默认每轮用户消息仅提供一次建议',
       moaAggregator: '聚合模型',
       moaAggregatorBilled: '执行模型 · 整个运行在此计费',
       moaReferenceHint: '默认每轮仅建议一次'
@@ -2512,7 +2512,7 @@ export const zhOverrides = {
       suggestedValuePlaceholder: (value: string) => `建议 · ${value}`,
       fillDetected: '填入检测到的值',
       fillDetectedHint:
-        '把检测到的限制与能力填入空白单元格，便于针对不标准的端点手动调整。"自动"是 Hermes 留空时会自行解析到的值，"建议"来自 models.dev 目录、只有填入后才生效，留空的单元格仍自动解析',
+        '把检测到的限制与能力填入空白单元格，便于针对不标准的端点手动调整，"自动"是 Hermes 留空时会自行解析到的值，"建议"来自 models.dev 目录、只有填入后才生效，留空的单元格仍自动解析',
       capabilityAutoResolved: (verdict: string) => `自动（${verdict}）`,
       valueSource: (source: string) => `来源：${source}`,
       sourceEndpoint: '端点自述',
@@ -2590,7 +2590,7 @@ export const zhOverrides = {
     poolLimits: {
       warmBackends: '保持运行的机器人后端数量',
       warmBackendsDescription:
-        '保持运行以便快速切换的机器人后端数量。数量越多，切换越快，内存占用也越高(每个后端约 60 MB)，修改后立即生效',
+        '保持运行以便快速切换的机器人后端数量，数量越多，切换越快，内存占用也越高(每个后端约 60 MB)，修改后立即生效',
       idleTimeout: '后端空闲超时',
       idleTimeoutDescription:
         '未使用的机器人后端在关闭前保持运行的时长，调大此值，可避免每隔几分钟切回机器人时都要等待重新启动',
@@ -2637,13 +2637,13 @@ export const zhOverrides = {
       modelsTitle: '模型',
       recommended: '推荐',
       recommendedReason: {
-        'best-quality-resident': '在完全驻留 GPU 且保持全速的模型中质量最高。推荐会在质量与该硬件的预计速度之间权衡',
+        'best-quality-resident': '在完全驻留 GPU 且保持全速的模型中质量最高，推荐会在质量与该硬件的预计速度之间权衡',
         'speed-gated-quality': '有更高质量的模型可以装入这台机器，但受内存带宽限制响应会太慢——这是保持流畅的最佳模型',
-        'fastest-resident': '没有模型能在该硬件上达到全速；这是完全驻留 GPU 内存中最快的一个'
+        'fastest-resident': '没有模型能在该硬件上达到全速，这是完全驻留 GPU 内存中最快的一个'
       } as Record<string, string>,
       noRecommendationTitle: '此设备暂无自动推荐模型',
       noRecommendationDetail:
-        '自动设置需要一个可完全放入显存或统一内存的精选模型。你仍可在下方自行选择，或浏览更多模型',
+        '自动设置需要一个可完全放入显存或统一内存的精选模型，你仍可在下方自行选择，或浏览更多模型',
       noRecommendationAction: '浏览模型',
       downloaded: '已下载',
       downloadAction: size => `下载 · ${size}`,
@@ -2665,7 +2665,7 @@ export const zhOverrides = {
       activePill: '默认',
       updateTitle: '引擎有可用更新',
       updateDetail: (next, current) =>
-        `新的 llama.cpp 构建（${next}）可以安装 — 当前为 ${current}。下载期间模型仍可正常使用`,
+        `新的 llama.cpp 构建（${next}）可以安装 — 当前为 ${current}，下载期间模型仍可正常使用`,
       updateAction: '更新引擎',
       updating: '正在更新引擎…',
       upToDateTitle: '引擎已是最新',
@@ -2676,7 +2676,7 @@ export const zhOverrides = {
       placementResident: '全部在 GPU',
       placementSpilled: '部分在内存',
       placementResidentTip: '完全在 GPU 显存中以此上下文窗口运行 — 全速',
-      placementSpilledTip: '模型的一部分从系统内存运行 — 可用但较慢。更紧凑的版本或更小的上下文可以完全放入显存',
+      placementSpilledTip: '模型的一部分从系统内存运行 — 可用但较慢，更紧凑的版本或更小的上下文可以完全放入显存',
       loadingPill: '加载中…',
       ejectTip: '释放显存（需要时重新加载）',
       ejected: '模型已卸载 — 显存已释放',
@@ -2745,9 +2745,9 @@ export const zhOverrides = {
         signIn: '登录',
         title: '你正在使用 Nous 免费服务',
         message: '登录 Nous 账户以解锁更多模型和工具',
-        caption: '使用 nous/welcome，包含连接器。登录后会保留连接器，并增加需要账户的工具和其他所有模型',
+        caption: '使用 nous/welcome，包含连接器，登录后会保留连接器，并增加需要账户的工具和其他所有模型',
         name: 'Nous · 免费服务',
-        footnote: '免费服务没有余额，无需支付。登录 Nous 账户后才会显示支付与用量',
+        footnote: '免费服务没有余额，无需支付，登录 Nous 账户后才会显示支付与用量',
         plan: '免费服务',
         model: '模型',
         connectors: '连接器',
@@ -2759,7 +2759,7 @@ export const zhOverrides = {
         decimal: label => `${label}：请输入最多含两位小数的美元金额`,
         positive: label => `${label}：金额必须大于 $0`,
         minimum: (label, amount) => `${label}：最低金额为 ${amount}`,
-        maximum: (label, amount) => `${label}：最高金额为 ${amount}。`
+        maximum: (label, amount) => `${label}：最高金额为 ${amount}`
       },
       stepUp: {
         openVerification: '打开验证页面',
@@ -2772,7 +2772,7 @@ export const zhOverrides = {
         successBody: '此终端已获准进行远程支出'
       },
       charge: {
-        added: amount => (amount ? `已添加 $${amount}。` : '已添加额度'),
+        added: amount => (amount ? `已添加 $${amount}` : '已添加额度'),
         failedTitle: '扣款失败',
         unconfirmedTitle: '扣款结果尚未确认',
         unconfirmedBody: message => `${message} 上次扣款结果尚未确认，请在重试前检查余额和历史记录`,
@@ -2782,10 +2782,10 @@ export const zhOverrides = {
         untrackedBody: '账单服务已接受请求，但未返回扣款标识',
         timeoutTitle: '5 分钟后仍在处理',
         timeoutBody: '扣款仍可能结算，请在重试前检查门户',
-        authenticationRequired: '银行要求验证（3DS）。请在门户完成验证以完成本次购买',
-        expired: '银行卡已过期。请在门户中更新',
-        declined: '银行卡被拒绝。请在门户中尝试另一张卡',
-        failedBody: reason => `扣款未成功（${reason}）。`
+        authenticationRequired: '银行要求验证（3DS），请在门户完成验证以完成本次购买',
+        expired: '银行卡已过期，请在门户中更新',
+        declined: '银行卡被拒绝，请在门户中尝试另一张卡',
+        failedBody: reason => `扣款未成功（${reason}）`
       },
       title: '账单',
       preview: '预览',
@@ -2826,7 +2826,7 @@ export const zhOverrides = {
         scheduling: '正在安排…',
         cancel: '取消',
         effectScheduled: (targetName, effectiveAt, creditsDelta) =>
-          `更改为 ${targetName}，于 ${effectiveAt} 生效。现在不扣费；在此之前保留当前套餐。${creditsDelta ? `每月额度变化：${creditsDelta}。` : ''}`
+          `更改为 ${targetName}，于 ${effectiveAt} 生效，现在不扣费，在此之前保留当前套餐${creditsDelta ? `，每月额度变化：${creditsDelta}` : ''}`
       },
       autoReload: {
         threshold: '阈值',
@@ -2853,7 +2853,7 @@ export const zhOverrides = {
           openPortal: '打开门户 ↗',
           noCard: {
             title: '尚未添加支付方式',
-            message: '添加银行卡后才能购买额度和使用自动充值。请在门户中添加',
+            message: '添加银行卡后才能购买额度和使用自动充值，请在门户中添加',
             action: '添加银行卡 ↗'
           }
         },
@@ -2915,7 +2915,7 @@ export const zhOverrides = {
         consentRequired: { title: '需要确认银行卡', message: '请在门户中确认此卡可用于终端扣款' },
         insufficientScope: {
           title: '需要批准远程支出',
-          message: '此操作需要远程支出权限。请发起一次充值以授权，然后重试'
+          message: '此操作需要远程支出权限，请发起一次充值以授权，然后重试'
         },
         remoteSpendingRevoked: {
           title: '远程支出已停止',
@@ -2923,29 +2923,29 @@ export const zhOverrides = {
           messageBySelf: '你已停止此终端的远程支出'
         },
         remoteSpendingReconnect: who => `${who} 请从“设置 → 网关”重新连接以重新授权此设备`,
-        sessionRevoked: { title: '会话已登出', message: '你的会话已登出。请从“设置 → 网关”重新登录' },
+        sessionRevoked: { title: '会话已登出', message: '你的会话已登出，请从“设置 → 网关”重新登录' },
         cliBillingDisabled: {
           title: '远程支出已关闭',
           message: '此账户的远程支出已关闭，账单管理员可在门户的 Hermes Agent 页面开启'
         },
         roleRequired: {
           title: '需要管理员权限',
-          message: '添加资金需要组织管理员或所有者权限。请联系管理员，或在门户中管理'
+          message: '添加资金需要组织管理员或所有者权限，请联系管理员，或在门户中管理'
         },
-        idempotencyConflict: { title: '请发起新的充值', message: '🔴 此扣款标识已用于另一金额。请发起新的充值' },
+        idempotencyConflict: { title: '请发起新的充值', message: '🔴 此扣款标识已用于另一金额，请发起新的充值' },
         noPaymentMethod: {
           title: '没有已保存的银行卡',
-          message: '💳 尚未保存用于终端扣款的银行卡。请在门户中设置（一次性购买额度不会保存可重复使用的卡）'
+          message: '💳 尚未保存用于终端扣款的银行卡，请在门户中设置（一次性购买额度不会保存可重复使用的卡）'
         },
         orgAccessDenied: { title: '组织访问被拒绝', message: '此令牌未绑定到你可管理的组织' },
         monthlyCapExceeded: {
           title: '已达每月支出上限',
           messageReached: '🔴 已达每月支出上限',
-          messageHeadroom: remaining => `🔴 已达每月支出上限，剩余额度为 $${remaining}。`
+          messageHeadroom: remaining => `🔴 已达每月支出上限，剩余额度为 $${remaining}`
         },
         rateLimited: {
           title: '当前扣款请求过多',
-          message: mins => `🟡 当前扣款请求过多${mins > 0 ? `（请约 ${mins} 分钟后重试）` : ''}。这不是支付失败。`
+          message: mins => `🟡 当前扣款请求过多${mins > 0 ? `（请约 ${mins} 分钟后重试）` : ''}，这不是支付失败`
         },
         stripeUnavailable: {
           title: 'Stripe 遇到问题',
@@ -2973,7 +2973,7 @@ export const zhOverrides = {
       disconnectInTerminal: '断开连接（在终端中运行移除命令）',
       removeConfirm: provider => `移除 ${provider}？`,
       removeExternalGeneric: provider => `${provider} 由其自身的 CLI 管理 — 请在那里移除`,
-      removeKeyManaged: provider => `${provider} 由 API 密钥配置。请从 API Keys 中移除`,
+      removeKeyManaged: provider => `${provider} 由 API 密钥配置，请从 API Keys 中移除`,
       removeTerminalConfirm: (provider, command) => `断开 ${provider}？这将在终端中运行 "${command}" 以清除凭据`,
       removeTerminalRunning: provider => `正在终端中断开 ${provider}…`,
       removedTitle: '账号已移除',
@@ -3106,7 +3106,7 @@ export const zhOverrides = {
         '30 prebuilt voices, controllable via prompts': '30 种预置语音，可通过提示词控制',
         'Anti-detection browser (Firefox/Camoufox)': '反检测浏览器 (Firefox/Camoufox)',
         'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
-          '通过 cua-driver 后台控制电脑 — 不会抢占你的光标或焦点。适用于任何模型',
+          '通过 cua-driver 后台控制电脑 — 不会抢占你的光标或焦点，适用于任何模型',
         'Browser login at accounts.x.ai — no API key required': '在 accounts.x.ai 浏览器登录 — 无需 API 密钥',
         'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
           'Chatterbox、Qwen3-TTS 等 — 来自 api.deepinfra.com 的实时目录',
@@ -3139,20 +3139,20 @@ export const zhOverrides = {
         'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
           'FLUX、Qwen-Image 等 — 来自 api.deepinfra.com 的实时目录',
         'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
-          '免费、尊重隐私的元搜索。把 SEARXNG_URL 指向你的实例',
+          '免费、尊重隐私的元搜索，把 SEARXNG_URL 指向你的实例',
         'Free-tier API key — 2k queries/mo, search only.': '免费档 API 密钥 — 每月 2000 次查询，仅搜索',
         'Full search + extract; supports direct API and Nous tool-gateway routing.':
-          '完整的搜索 + 提取；支持直连 API 和 Nous 工具网关路由',
+          '完整的搜索 + 提取，支持直连 API 和 Nous 工具网关路由',
         'Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.':
-          '完整的搜索与提取；支持免密钥云服务、直连 API 和 Nous 工具网关路由',
+          '完整的搜索与提取，支持免密钥云服务、直连 API 和 Nous 工具网关路由',
         'Gemini Flash Image, gpt-image-2, Krea 2, Qwen Image 3 & more via OpenRouter; uses OPENROUTER_API_KEY':
-          '通过 OpenRouter 使用 Gemini Flash Image、gpt-image-2、Krea 2、Qwen Image 3 等模型；需要 OPENROUTER_API_KEY',
+          '通过 OpenRouter 使用 Gemini Flash Image、gpt-image-2、Krea 2、Qwen Image 3 等模型，需要 OPENROUTER_API_KEY',
         'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
-          '经 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
+          '经 OpenRouter 使用 Gemini Flash Image 等，使用 OPENROUTER_API_KEY',
         'Image API model (from live OpenRouter catalog)': '图像 API 模型（来自 OpenRouter 实时目录）',
         'Image-output model (from live OpenRouter catalog)': '图像输出模型（来自 OpenRouter 实时目录）',
         'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
-          'Krea 2 基础模型 — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。风格迁移、情绪板、参考引导生成。可直连密钥或经托管 Nous 订阅网关',
+          'Krea 2 基础模型 — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)，风格迁移、情绪板、参考引导生成，可直连密钥或经托管 Nous 订阅网关',
         'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
           'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse — 文生视频与图生视频',
         'LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Grok Imagine, Gemini Omni — text-to-video & image-to-video':
@@ -3160,9 +3160,9 @@ export const zhOverrides = {
         'Muse Image via Meta Model API (api.meta.ai)': '通过 Meta Model API（api.meta.ai）使用 Muse Image',
         'Objective-tuned search + parallel page extraction.': '面向目标调优的搜索 + 并行页面提取',
         "Objective-tuned search + page extraction on Parallel's anonymous free tier. Rate-limited under burst load.":
-          '通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取。突发负载下会受到速率限制',
+          '通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取，突发负载下会受到速率限制',
         'Objective-tuned search + parallel page extraction via the Parallel SDK. Unthrottled, guaranteed service.':
-          '通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取。无速率限制，服务有保障',
+          '通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取，无速率限制，服务有保障',
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等 — 文生图与图像编辑',
         'Perplexity Search API — ranked, date-stamped web results plus query-relevant page snippets for extract.':
@@ -3171,22 +3171,22 @@ export const zhOverrides = {
           '经 Nous Portal 的参考图像生成（OpenRouter 支撑）',
         'Search + extract in one provider.': '搜索 + 提取一体的提供方',
         'Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.':
-          '搜索与提取。无需密钥即可使用；设置 TAVILY_API_KEY 可获得更高限额',
+          '搜索与提取，无需密钥即可使用，设置 TAVILY_API_KEY 可获得更高限额',
         'Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.':
-          '搜索与提取。可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额',
+          '搜索与提取，可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额',
         'Search via the ddgs Python package — no API key (pair with any extract provider)':
           '通过 ddgs Python 包搜索 — 无需 API 密钥（可搭配任意提取提供方）',
         'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
           '搜索由提供方侧执行（需要 Codex Responses 传输方式并登录 openai-codex），仅支持搜索，内容提取仍使用其他后端',
         'Semantic + neural web search with content extraction.': '语义 + 神经网络网页搜索，带内容提取',
         "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.":
-          '通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取。突发负载下会受到速率限制',
+          '通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取，突发负载下会受到速率限制',
         'Semantic + neural web search with content extraction via the Exa SDK. Unthrottled, guaranteed service.':
-          '通过 Exa SDK 进行语义与神经网络网页搜索及内容提取。无速率限制，服务有保障',
+          '通过 Exa SDK 进行语义与神经网络网页搜索及内容提取，无速率限制，服务有保障',
         "Independent web index for AI apps — fast search + page fetch on Keenable's anonymous free tier.":
           '面向 AI 应用的独立网页索引 — 通过 Keenable 匿名免费套餐提供快速搜索与页面抓取',
         'Independent web index for AI apps. Keyed access with higher limits and guaranteed service.':
-          '面向 AI 应用的独立网页索引。密钥访问具有更高限额和服务保障',
+          '面向 AI 应用的独立网页索引，密钥访问具有更高限额和服务保障',
         'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
           'Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录，文生视频与图生视频',
         'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
@@ -3196,7 +3196,7 @@ export const zhOverrides = {
         'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
           'grok-imagine-image — 文生图与图像编辑，使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
         'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-video 用于文本/参考生成，grok-imagine-video-1.5 用于图生视频，编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
+          'grok-imagine-video 用于文本/参考生成，grok-imagine-video-1.5 用于图生视频，编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`），使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期',
         'faster-whisper on-device, no API key': '本地 faster-whisper 转写，无需 API 密钥',
         'Managed OpenAI transcription billed to your subscription': '托管 OpenAI 转写，计入你的订阅',
         'voice transcription (gateway voice messages voice mode)': '语音转写（网关语音消息与语音模式）',
@@ -3216,7 +3216,7 @@ export const zhOverrides = {
         'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana-2, nano-banana-pro, etc. — text-to-image & image editing':
           '可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana-2、nano-banana-pro 等 — 文生图与图像编辑',
         "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer Token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.":
-          'A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent — 实现 Linux 基金会开放标准的双向智能体间通信。OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务 — 兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）。INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体。Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径；旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样 — 因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体。默认开启安全机制：未配置 bearer Token 则仅绑定 localhost。入站任务文本会经过提示注入过滤；出站文本会清洗凭据型字符串；每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续。纯标准库传输（http.server + urllib） — 无需 a2a-sdk 依赖'
+          'A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent — 实现 Linux 基金会开放标准的双向智能体间通信，OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务 — 兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等），INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体，Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径，旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样 — 因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体，默认开启安全机制：未配置 bearer Token 则仅绑定 localhost，入站任务文本会经过提示注入过滤，出站文本会清洗凭据型字符串，每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续，纯标准库传输（http.server + urllib） — 无需 a2a-sdk 依赖'
       },
       activeBackend: '当前后端',
       activeBackendHint: '这是你当前使用的后端',
@@ -3309,8 +3309,8 @@ export const zhOverrides = {
       },
       modelDescriptions: {
         'grok-imagine-image': '生成快速、质量出色',
-        'grok-imagine-image-2.0': '擅长文字与版式；小字号清晰可读；质量最佳',
-        'grok-imagine-image-quality': '保真度和细节更高；速度比标准模型慢',
+        'grok-imagine-image-2.0': '擅长文字与版式，小字号清晰可读，质量最佳',
+        'grok-imagine-image-quality': '保真度和细节更高，速度比标准模型慢',
         'gpt-image-2-low': '迭代最快，成本最低',
         'gpt-image-2-medium': '均衡表现 — 默认选项',
         'gpt-image-2-high': '保真度最高，提示词遵循能力最强',
@@ -3336,7 +3336,7 @@ export const zhOverrides = {
         'fal-ai/recraft/v4.1/text-to-image': '以设计为先的栅格图像，适合品牌系统与编辑设计',
         'openai/gpt-image-2.5/flare/text-to-image': '日常创作，自然光影与纹理',
         'openai/gpt-image-2.5/sunburst/text-to-image': '精细编辑，主体与构图保持一致',
-        'xai/grok-imagine-image/v2.0/text-to-image': 'xAI。设计级文字排版与布局，提示词遵循能力强',
+        'xai/grok-imagine-image/v2.0/text-to-image': 'xAI，设计级文字排版与布局，提示词遵循能力强',
         'gpt-image-2.5-flare': '适合日常图像生成与编辑',
         'gpt-image-2.5-flare-low': '适合日常图像生成与编辑',
         'gpt-image-2.5-flare-medium': '适合日常图像生成与编辑',
@@ -3349,35 +3349,35 @@ export const zhOverrides = {
         'gpt-image-2.5-sunburst-high': '适合精细图像生成与编辑',
         'gpt-image-2.5-sunburst-xhigh': '适合精细图像生成与编辑',
         'gpt-image-2.5-sunburst-max': '适合精细图像生成与编辑',
-        'openai/gpt-5.4-image-2': '保真度最高、提示词遵循能力最佳；经 OpenRouter 使用时速度较慢',
+        'openai/gpt-5.4-image-2': '保真度最高、提示词遵循能力最佳，经 OpenRouter 使用时速度较慢',
         'google/gemini-3-pro-image': '快速可靠的备用模型，布局遵循能力良好',
-        'google/gemini-3.1-flash-lite-image': '价格低、速度快；支持 14 种精确宽高比和 14 张参考图',
+        'google/gemini-3.1-flash-lite-image': '价格低、速度快，支持 14 种精确宽高比和 14 张参考图',
         'google/gemini-3.1-flash-image': '宽高比与 Lite 相同，另支持分辨率控制（512/1K/2K/4K）',
-        'openai/gpt-image-2': '编辑保真度最佳；最多 16 张参考图；提示词遵循能力最强',
+        'openai/gpt-image-2': '编辑保真度最佳，最多 16 张参考图，提示词遵循能力最强',
         'openai/gpt-image-1-mini': '此处唯一支持透明背景（抠图 PNG）的模型',
         'microsoft/mai-image-2.5': '支持标准宽高比，可作为 Gemini 之外的可靠备选',
-        'x-ai/grok-imagine-image-quality': '写实效果出色；支持最丰富的特殊宽高比与 1K/2K 分辨率',
-        'krea/krea-2-medium': '写实且富有表现力；支持通过种子确定性复现',
-        'krea/krea-2-medium-turbo': '成本最低，适合批量内容、卡片和缩略图；支持种子',
-        'qwen/qwen-image-3-pro': '小字号文字与细节渲染精确；最多生成 6 张，支持 1K/2K 与种子',
-        'krea-2-medium': '插画、动漫、绘画及富有表现力的风格；更快、更经济',
+        'x-ai/grok-imagine-image-quality': '写实效果出色，支持最丰富的特殊宽高比与 1K/2K 分辨率',
+        'krea/krea-2-medium': '写实且富有表现力，支持通过种子确定性复现',
+        'krea/krea-2-medium-turbo': '成本最低，适合批量内容、卡片和缩略图，支持种子',
+        'qwen/qwen-image-3-pro': '小字号文字与细节渲染精确，最多生成 6 张，支持 1K/2K 与种子',
+        'krea-2-medium': '插画、动漫、绘画及富有表现力的风格，更快、更经济',
         'krea-2-large': '写实摄影、原始质感（运动模糊、颗粒）及富有表现力的风格',
         'krea-2-medium-turbo': 'Krea 2 中速度最快，以更低延迟和成本提供中等质量',
         'muse-image-1.0': 'Meta Model API 图像生成',
         'ltx-2.3': '220 亿参数模型，原生生成音频，价格实惠',
         'pixverse-v6': '经济实惠，支持负面提示词，时长 1–15 秒',
-        'seedance-2.0-mini': '字节跳动。速度更快、成本更低的 Seedance 档位，支持音频与口型同步，4–15 秒',
-        'veo3.1': 'Google DeepMind。电影级画面、原生音频，提示词遵循度高',
-        'seedance-2.0': '字节跳动。电影级画面，同步音频与口型，4–15 秒',
-        'seedance-2.5': '字节跳动旗舰模型。单次生成原生 30 秒视频，音频与画面共享潜空间，支持口型同步',
-        'minimax-h3': 'MiniMax 前沿模型。原生 2K（最高 4K），5–15 秒，支持 7 种宽高比',
-        'minimax-h3-max': 'FAL 后训练的 MiniMax H3，质量、提示词遵循与美感表现顶尖；数秒内生成 768p、5–15 秒视频',
-        'flux-3': 'Black Forest Labs 前沿视频模型。原生音频，5–20 秒，支持 8 种宽高比',
-        'grok-imagine-1.5': 'xAI。快速生成带音频的风格化视频，1–15 秒，每秒成本低',
-        'gemini-omni-flash': 'Google。图生视频，支持音频与符合物理规律的运动，3–10 秒',
+        'seedance-2.0-mini': '字节跳动，速度更快、成本更低的 Seedance 档位，支持音频与口型同步，4–15 秒',
+        'veo3.1': 'Google DeepMind，电影级画面、原生音频，提示词遵循度高',
+        'seedance-2.0': '字节跳动，电影级画面，同步音频与口型，4–15 秒',
+        'seedance-2.5': '字节跳动旗舰模型，单次生成原生 30 秒视频，音频与画面共享潜空间，支持口型同步',
+        'minimax-h3': 'MiniMax 前沿模型，原生 2K（最高 4K），5–15 秒，支持 7 种宽高比',
+        'minimax-h3-max': 'FAL 后训练的 MiniMax H3，质量、提示词遵循与美感表现顶尖，数秒内生成 768p、5–15 秒视频',
+        'flux-3': 'Black Forest Labs 前沿视频模型，原生音频，5–20 秒，支持 8 种宽高比',
+        'grok-imagine-1.5': 'xAI，快速生成带音频的风格化视频，1–15 秒，每秒成本低',
+        'gemini-omni-flash': 'Google，图生视频，支持音频与符合物理规律的运动，3–10 秒',
         'kling-v3-4k': '4K 输出，原生中英文音频，3–15 秒',
-        'happy-horse': '阿里巴巴。新模型，公开文档较少，采用保守默认设置',
-        'grok-imagine-video': '支持文生视频；同时兼容旧版图生视频流程',
+        'happy-horse': '阿里巴巴，新模型，公开文档较少，采用保守默认设置',
+        'grok-imagine-video': '支持文生视频，同时兼容旧版图生视频流程',
         'grok-imagine-video-1.5': 'xAI 最新图生视频模型',
         'black-forest-labs/FLUX-1-schnell': '120 亿参数的蒸馏流模型，可在 1–4 步内快速生成高质量图像，提示词遵循能力强',
         'black-forest-labs/FLUX-2-klein-9b': 'FLUX 2 系列中质量与延迟平衡出色的生产级模型，支持先进的图像生成与编辑',
@@ -3399,10 +3399,10 @@ export const zhOverrides = {
           '先进的多模态图像创作模型，原生支持文本、单图与多图输入，可用于融合、编辑和批量生成并保持主体一致',
         'Bria/Bria-3.2-vector': '仅 40 亿参数的商用级文生图模型，美感与文字渲染出色，可媲美领先开源模型',
         'Bria/Bria-3.2': '仅 40 亿参数的商用级文生图模型，美感与文字渲染出色，可媲美领先开源模型',
-        'Bria/blur_background': '在保持主体清晰的同时柔化背景；完全基于授权数据训练，适合安全的商业用途',
-        'Bria/erase_foreground': '精确移除图像中的主要主体或前景对象；完全基于授权数据训练，适合专业与商业用途',
-        'Bria/remove_background': '无缝移除图像背景，适合专业编辑；完全基于授权数据训练，可安全用于商业用途',
-        'Bria/expand': '高质量扩展图像边界，通过生成新像素调整至所需宽高比；基于授权数据训练',
+        'Bria/blur_background': '在保持主体清晰的同时柔化背景，完全基于授权数据训练，适合安全的商业用途',
+        'Bria/erase_foreground': '精确移除图像中的主要主体或前景对象，完全基于授权数据训练，适合专业与商业用途',
+        'Bria/remove_background': '无缝移除图像背景，适合专业编辑，完全基于授权数据训练，可安全用于商业用途',
+        'Bria/expand': '高质量扩展图像边界，通过生成新像素调整至所需宽高比，基于授权数据训练',
         'Qwen/Qwen-Image-Edit': '新一代图像编辑模型，擅长文字修改、风格迁移、视角变换和元素调整，同时保持整体一致性',
         'black-forest-labs/FLUX.1-Kontext-dev':
           '120 亿参数的图像编辑模型，可按自然语言进行一致的多步编辑，以开放权重按非商业许可发布',
@@ -3417,7 +3417,7 @@ export const zhOverrides = {
         'Pixverse/Pixverse-6-T2V':
           '统一的模型驱动视频工作流，支持最长 15 秒、1080p 与多镜头引擎，适合叙事和专业营销内容',
         'ByteDance/Seedance-2.0': '新一代专业级多模态视频创作模型，支持图像、视频和音频等多模态参考输入',
-        'Wan-AI/Wan2.6-T2V': '将提示词转换为流畅视频；智能镜头编排支持主体、场景与氛围一致的多镜头叙事',
+        'Wan-AI/Wan2.6-T2V': '将提示词转换为流畅视频，智能镜头编排支持主体、场景与氛围一致的多镜头叙事',
         'nvidia/Cosmos3-Super':
           '统一理解与生成的世界基础模型，通过推理器与生成器共享潜在表示，生成写实且时间一致的模拟',
         'nvidia/Cosmos3-Nano': '统一理解与生成的世界基础模型，通过推理器与生成器共享潜在表示，生成写实且时间一致的模拟',
@@ -3518,7 +3518,7 @@ export const zhOverrides = {
         unavailable: '不可用',
         inUse: '使用中',
         selectedTitle: '已选择后端',
-        selectedMessage: backend => `终端命令现在通过 ${backend} 运行。将应用于新会话`,
+        selectedMessage: backend => `终端命令现在通过 ${backend} 运行，将应用于新会话`,
         failedSelect: backend => `选择 ${backend} 失败`,
         needsSetupHint: '现在即可选择此后端 — 但在完成设置前命令将会失败',
         descriptions: {
@@ -3549,14 +3549,14 @@ export const zhOverrides = {
         needsSetupConfirmTitle: backend => `仍要选择 ${backend} 吗？`,
         needsSetupConfirmDescription: detail => `${detail} 此更改生效后启动的会话在设置完成前将没有终端或文件工具`,
         needsSetupConfirmDescriptionGeneric:
-          '此后端尚未完成设置。此更改生效后启动的会话在设置完成前将没有终端或文件工具',
+          '此后端尚未完成设置，此更改生效后启动的会话在设置完成前将没有终端或文件工具',
         needsSetupConfirmAction: '仍然选择',
         unavailableTitle: '没有终端命令',
         unavailableMessage: backend =>
-          `Hermes 现在无法运行 shell 命令：${backend}尚未准备好。切换到本地，或完成设置${backend}然后重试`,
+          `Hermes 现在无法运行 shell 命令：${backend}尚未准备好，切换到本地，或完成设置${backend}然后重试`,
         openBackendSettings: '打开终端设置',
         useLocal: '使用当地',
-        switchedToLocal: '终端命令现在在本地运行 。 适用于新会话.'
+        switchedToLocal: '终端命令现在在本地运行 ，适用于新会话'
       },
       computerUse: {
         checking: '正在检查计算机使用状态…',
@@ -3595,7 +3595,7 @@ export const zhOverrides = {
         enabledTitle: '真实配置文件浏览：已开启',
         enabledMessage: '新会话将使用默认浏览器配置文件的快照进行浏览',
         disabledTitle: '真实配置文件浏览：已关闭',
-        disabledMessage: '配置文件快照将被删除；新会话使用干净的浏览器',
+        disabledMessage: '配置文件快照将被删除，新会话使用干净的浏览器',
         failedSave: '无法保存真实配置文件设置',
         prompt: {
           title: '让网站保持登录状态',
@@ -3608,7 +3608,7 @@ export const zhOverrides = {
           enable: '使用我的配置文件'
         }
       },
-      nousAuthFailedMessage: '再试一次.',
+      nousAuthFailedMessage: '再试一次',
       nousAuthTryAgain: '再试一次',
       postSetupOpenLogs: '打开日志',
       postSetupRunAgain: '再来一次'
@@ -3701,34 +3701,34 @@ export const zhOverrides = {
     hudModifier: {
       title: '轻按唤出 HUD',
       description:
-        '在 Mac 上按下并松开 ⌘ + Option，在 Windows/Linux 上按下并松开 Ctrl + Alt，即可从任意应用将 HUD 置于前台。默认关闭，仅适用于此设备',
-      permission: '请在系统设置 → 隐私与安全性 → 输入监控中允许 Hermes，然后重试。此手势不会记录按键或截取屏幕',
-      unavailable: 'HUD 手势辅助程序无法启动或意外停止。请重试或重启 Hermes。Hermes 内原有的 HUD 快捷键仍可使用',
-      missingHelper: '此 Hermes 安装缺少 HUD 手势辅助程序。请更新或重新安装 Hermes，然后重试',
-      unsupportedSession: '此桌面会话不支持全局修饰键轻按事件。Linux 需要 X11；不支持 Wayland'
+        '在 Mac 上按下并松开 ⌘ + Option，在 Windows/Linux 上按下并松开 Ctrl + Alt，即可从任意应用将 HUD 置于前台，默认关闭，仅适用于此设备',
+      permission: '请在系统设置 → 隐私与安全性 → 输入监控中允许 Hermes，然后重试，此手势不会记录按键或截取屏幕',
+      unavailable: 'HUD 手势辅助程序无法启动或意外停止，请重试或重启 Hermes，Hermes 内原有的 HUD 快捷键仍可使用',
+      missingHelper: '此 Hermes 安装缺少 HUD 手势辅助程序，请更新或重新安装 Hermes，然后重试',
+      unsupportedSession: '此桌面会话不支持全局修饰键轻按事件，Linux 需要 X11，不支持 Wayland'
     },
     screenshot: {
       enabledTitle: '截图快捷键',
       enabledDesc:
-        '在任意应用中同时按下左右两个 Command 键，即可截取最前面的窗口并附加到当前 Hermes 草稿。绝不会自动发送。默认关闭，仅适用于这台 Mac。窗口可能包含敏感内容，请在发送前检查附件',
+        '在任意应用中同时按下左右两个 Command 键，即可截取最前面的窗口并附加到当前 Hermes 草稿，绝不会自动发送，默认关闭，仅适用于这台 Mac，窗口可能包含敏感内容，请在发送前检查附件',
       statusTitle: '截图快捷键状态',
       checking: '正在检查截图快捷键…',
       disabled: '截图快捷键已关闭',
       starting: '正在启动快捷键监听，尚未就绪',
-      ready: '快捷键已就绪。截图会附加到当前草稿，不会发送',
+      ready: '快捷键已就绪，截图会附加到当前草稿，不会发送',
       inputPermission:
-        '输入监控权限允许 Hermes 在其他应用处于活动状态时检测两个 Command 键。请在系统设置 → 隐私与安全性 → 输入监控中允许 Hermes，然后返回此处重试',
+        '输入监控权限允许 Hermes 在其他应用处于活动状态时检测两个 Command 键，请在系统设置 → 隐私与安全性 → 输入监控中允许 Hermes，然后返回此处重试',
       screenPermission:
-        '屏幕录制权限允许 Hermes 在你使用此快捷键时截取最前面的应用窗口。请在系统设置 → 隐私与安全性 → 屏幕录制中允许 Hermes，然后返回此处重试。如果 macOS 提示，请重启 Hermes',
+        '屏幕录制权限允许 Hermes 在你使用此快捷键时截取最前面的应用窗口，请在系统设置 → 隐私与安全性 → 屏幕录制中允许 Hermes，然后返回此处重试，如果 macOS 提示，请重启 Hermes',
       openSettings: '打开系统设置',
       retry: '重试',
-      unavailable: '截图快捷键不可用。请重试或将其关闭',
+      unavailable: '截图快捷键不可用，请重试或将其关闭',
       errorTitle: '截图快捷键错误',
-      loadFailed: '无法读取快捷键状态。请重试以检查当前设置',
-      saveFailed: '无法确认快捷键更改。请重试以检查当前设置',
-      permissionFailed: '无法打开系统设置。请手动打开“隐私与安全性”，然后重试',
-      captureFailed: '无法截取最前面的窗口。未附加或发送任何内容',
-      contextChanged: '截图期间当前草稿发生了变化。截图未附加或发送'
+      loadFailed: '无法读取快捷键状态，请重试以检查当前设置',
+      saveFailed: '无法确认快捷键更改，请重试以检查当前设置',
+      permissionFailed: '无法打开系统设置，请手动打开“隐私与安全性”，然后重试',
+      captureFailed: '无法截取最前面的窗口，未附加或发送任何内容',
+      contextChanged: '截图期间当前草稿发生了变化，截图未附加或发送'
     },
     envKeys: {
       NOUS_BASE_URL: { description: 'Nous Portal 基础 URL 覆盖' },
@@ -3738,7 +3738,7 @@ export const zhOverrides = {
       GEMINI_BASE_URL: { description: 'Google AI Studio 基础 URL 覆盖' },
       VERTEX_CREDENTIALS_PATH: {
         description:
-          '用于 Vertex AI (Gemini) 的 Google Cloud 服务账号 JSON 路径。Vertex 使用 OAuth2 而非静态 API 密钥 — Hermes 用该凭据签发短期令牌。回退到 GOOGLE_APPLICATION_CREDENTIALS，再回退到 ADC (gcloud auth application-default login)。项目/区域在 config.yaml 的 vertex: 下设置'
+          '用于 Vertex AI (Gemini) 的 Google Cloud 服务账号 JSON 路径，Vertex 使用 OAuth2 而非静态 API 密钥 — Hermes 用该凭据签发短期令牌，回退到 GOOGLE_APPLICATION_CREDENTIALS，再回退到 ADC (gcloud auth application-default login)，项目/区域在 config.yaml 的 vertex: 下设置'
       },
       XAI_API_KEY: { description: 'xAI API 密钥' },
       XAI_BASE_URL: { description: 'xAI 基础 URL 覆盖' },
@@ -3870,12 +3870,12 @@ export const zhOverrides = {
       },
       KEENABLE_API_KEY: {
         label: 'Keenable',
-        description: 'Keenable API 密钥，用于快速的独立索引网页搜索和页面抓取（可选；无需密钥也可使用免费档）',
+        description: 'Keenable API 密钥，用于快速的独立索引网页搜索和页面抓取（可选，无需密钥也可使用免费档）',
         prompt: 'Keenable API 密钥'
       },
       PORCUPINE_ACCESS_KEY: {
         label: 'Porcupine 访问密钥',
-        description: 'Picovoice 访问密钥，用于 Porcupine“Hey Hermes”唤醒词引擎（可选；默认免费使用 openWakeWord）',
+        description: 'Picovoice 访问密钥，用于 Porcupine“Hey Hermes”唤醒词引擎（可选，默认免费使用 openWakeWord）',
         prompt: 'Picovoice 访问密钥'
       },
       HASS_TOKEN: { description: 'Home Assistant 长期访问令牌' },
@@ -3925,30 +3925,30 @@ export const zhOverrides = {
       },
       RAFT_PROFILE: { description: 'Raft 代理配置档案 slug — 设置后自动启用适配器' },
       GATEWAY_ALLOW_ALL_USERS: {
-        description: '允许所有用户与消息机器人交互（true/false）。默认 false'
+        description: '允许所有用户与消息机器人交互（true/false），默认 false'
       },
       API_SERVER_ENABLED: {
         description: '启用 OpenAI 兼容 API 服务器（true/false），供 Open WebUI、LobeChat 等前端连接'
       },
       API_SERVER_KEY: {
-        description: 'API 服务器的 Bearer 认证令牌。启用服务器时必填，否则服务器将拒绝启动'
+        description: 'API 服务器的 Bearer 认证令牌，启用服务器时必填，否则服务器将拒绝启动'
       },
       API_SERVER_PORT: {
         description: 'API 服务器的端口（默认 8642）'
       },
       API_SERVER_HOST: {
-        description: 'API 服务器的主机/绑定地址（默认 127.0.0.1）。即使仅绑定本机回环地址，仍需 API_SERVER_KEY'
+        description: 'API 服务器的主机/绑定地址（默认 127.0.0.1），即使仅绑定本机回环地址，仍需 API_SERVER_KEY'
       },
       API_SERVER_MODEL_NAME: {
         description:
-          '在 /v1/models 中公布的模型名称。默认使用配置档名，默认配置档则使用 hermes-agent，适用于 OpenWebUI 等多用户环境'
+          '在 /v1/models 中公布的模型名称，默认使用配置档名，默认配置档则使用 hermes-agent，适用于 OpenWebUI 等多用户环境'
       },
       GATEWAY_PROXY_URL: {
         description:
-          '要转发消息的远程 Hermes API 服务器 URL（代理模式）。设置后网关只处理平台收发 — 所有代理工作委托给远程服务器。适用于中继到宿主机代理的 Docker E2EE 容器。也可通过 config.yaml 的 gateway.proxy_url 配置'
+          '要转发消息的远程 Hermes API 服务器 URL（代理模式），设置后网关只处理平台收发 — 所有代理工作委托给远程服务器，适用于中继到宿主机代理的 Docker E2EE 容器，也可通过 config.yaml 的 gateway.proxy_url 配置'
       },
       GATEWAY_PROXY_KEY: {
-        description: '与远程 Hermes API 服务器认证用的 Bearer 令牌（代理模式）。必须与远程主机的 API_SERVER_KEY 一致'
+        description: '与远程 Hermes API 服务器认证用的 Bearer 令牌（代理模式），必须与远程主机的 API_SERVER_KEY 一致'
       },
       WEBHOOK_ENABLED: {
         description: '启用 Webhook 平台适配器，用于接收 GitHub、GitLab 等服务的事件'
@@ -3978,11 +3978,11 @@ export const zhOverrides = {
       publishToTeam: '发布到团队',
       submitForApproval: '提交审核',
       publishLocalNotice: '确认后将上传此确切的软件包，并在通过必要检查后发布到团队',
-      submitLocalNotice: '确认后将上传此确切的软件包供组织审核。审核完成前不会发布',
+      submitLocalNotice: '确认后将上传此确切的软件包供组织审核，审核完成前不会发布',
       reloadReview: '重新加载审核内容',
       notificationPreferences: {
         title: '通知设置',
-        scope: '管理此组织中跨客户端的主动通知。手动浏览和分享仍可使用',
+        scope: '管理此组织中跨客户端的主动通知，手动浏览和分享仍可使用',
         on: '通知已开启',
         muted: '通知已静音',
         day: '1 天',
@@ -3990,16 +3990,16 @@ export const zhOverrides = {
         month: '30 天',
         forever: '无限期',
         pending: '选择已保存在本地，正在等待同步',
-        failed: '同步失败。请刷新设置后重新选择',
-        conflict: '其他客户端更改了偏好。请刷新查看',
-        expired: '此选择已过期。请刷新设置后重试'
+        failed: '同步失败，请刷新设置后重新选择',
+        conflict: '其他客户端更改了偏好，请刷新查看',
+        expired: '此选择已过期，请刷新设置后重试'
       },
       title: '集体智慧',
       loading: '正在加载集体智慧…',
       unavailable: '集体智慧暂不可用',
       setup: '此配置文件尚未设置集体智慧',
       setupDisclosure:
-        '候选资格评估保留在此配置文件中。只有经所有者批准的私有草稿内容、作者文案、声明式清单元数据和托管安装状态会发送到网关',
+        '候选资格评估保留在此配置文件中，只有经所有者批准的私有草稿内容、作者文案、声明式清单元数据和托管安装状态会发送到网关',
       setupAction: '我已了解 — 设置此配置文件',
       settingUp: '正在设置…',
       scanLocal: '扫描本地技能',
@@ -4008,7 +4008,7 @@ export const zhOverrides = {
       localCandidates: count => `${count} 个合格建议`,
       contributionWorkflow: '贡献流程',
       potential: '建议的贡献',
-      potentialHelp: 'Hermes 根据本地使用或有意义的改进判定为合格的技能。在你审核前不会共享',
+      potentialHelp: 'Hermes 根据本地使用或有意义的改进判定为合格的技能，在你审核前不会共享',
       noSuggestions: '目前没有本地技能符合自动资格规则',
       browseLocal: count => `查看所有本地技能 (${count})`,
       browseLocalHelp: '手动选择并不表示 Hermes 使用过这些技能或已自动判定其合格',
@@ -4021,7 +4021,7 @@ export const zhOverrides = {
       localOnly: '可从此设备共享',
       qualifiedLocally: 'Hermes 将此本地技能识别为可能的贡献',
       qualificationFirst: organizationName =>
-        `${organizationName ? `您的组织（${organizationName}）` : '您的组织'}已启用 Collective Wisdom，此功能会自动发现所有团队成员的实用技能。恭喜！Hermes 检测到一项可能对您的团队有用的技能`,
+        `${organizationName ? `您的组织（${organizationName}）` : '您的组织'}已启用 Collective Wisdom，此功能会自动发现所有团队成员的实用技能，恭喜！Hermes 检测到一项可能对您的团队有用的技能`,
       qualificationReturning: 'Hermes 又检测到一项可能对您的团队有用的技能',
       savedLocally: '私有草稿已保存在此设备上',
       prepare: '开始贡献',
@@ -4030,7 +4030,7 @@ export const zhOverrides = {
       runSetupStep: '运行此步骤',
       confirmSetupPrerequisite: '确认前提条件',
       setupCommand: '建议的命令（本地终端）',
-      setupStepApprovalNotice: '确认仅授权此步骤。请勿在聊天中输入凭据',
+      setupStepApprovalNotice: '确认仅授权此步骤，请勿在聊天中输入凭据',
       openDraft: '查看详情',
       draftState: state => {
         const labels: Record<string, string> = {
@@ -4055,17 +4055,17 @@ export const zhOverrides = {
       backToSkill: '返回技能',
       backToVersions: '返回版本列表',
       prepareTitle: '上传前审核本地包',
-      prepareNotice: '不包含本地候选信号。在点击"提交"前，不会有任何内容离开此配置文件',
+      prepareNotice: '不包含本地候选信号，在点击"提交"前，不会有任何内容离开此配置文件',
       ownerDescription: '所有者撰写的描述',
       systemSpecification: '系统规格',
       cancel: '取消',
       submit: '提交草稿',
       submitting: '正在提交…',
-      readEvery: '请阅读每个文件。批准将绑定到下方三个准确哈希值',
+      readEvery: '请阅读每个文件，批准将绑定到下方三个准确哈希值',
       editReview:
-        '可在此编辑描述、SKILL.md 或声明式清单。保存会创建新的私有修订、重新运行扫描并返回新哈希值；不会改写你的本地源技能',
+        '可在此编辑描述、SKILL.md 或声明式清单，保存会创建新的私有修订、重新运行扫描并返回新哈希值，不会改写你的本地源技能',
       editOwnerDescription: '编辑所有者撰写的描述',
-      unsavedChanges: '这些更改尚未扫描。请先保存并重新扫描，再进行批准',
+      unsavedChanges: '这些更改尚未扫描，请先保存并重新扫描，再进行批准',
       saveAndRescan: '保存更改并重新扫描',
       savingRevision: '正在保存并重新扫描…',
       resetChanges: '放弃编辑',
@@ -4086,17 +4086,17 @@ export const zhOverrides = {
       share: '分享',
       reviewPreviousPage: '上一审阅页',
       reviewNextPage: '下一审阅页',
-      sharePreparationNotice: '分享会先在本地准备交接包。在上传或发布任何内容之前，你需要单独审阅并批准',
+      sharePreparationNotice: '分享会先在本地准备交接包，在上传或发布任何内容之前，你需要单独审阅并批准',
       muteNotificationsSoon: '屏蔽通知（即将推出）',
       unmuteNotificationsSoon: '取消屏蔽通知（即将推出）',
       openCollective: '打开集体',
       prepareExact: '审核并编辑',
       skillName: '技能名称',
       whatItDoes: '功能说明',
-      editDefaultsNotice: '请审核技能名称和说明。Hermes 已根据此设备预填兼容性详情；仅在需要调整时展开',
+      editDefaultsNotice: '请审核技能名称和说明，Hermes 已根据此设备预填兼容性详情，仅在需要调整时展开',
       detailedRequirements: '编辑详细要求',
       hideDetailedRequirements: '收起详细要求',
-      specificationNotice: '请审核所有者撰写的文案和声明式系统规格。此操作不会授权执行任何依赖项',
+      specificationNotice: '请审核所有者撰写的文案和声明式系统规格，此操作不会授权执行任何依赖项',
       openFullReview: '打开完整审核',
       sendPrivateReview: '提交草稿',
       saveLocal: '保存',
@@ -4116,7 +4116,7 @@ export const zhOverrides = {
       contentHash: '内容',
       authorDescriptionHash: '作者说明',
       packageManifestHash: '软件包清单',
-      serverReviewNotice: '请阅读下方每个原始文件。批准将绑定到这些由服务器确认的准确哈希值',
+      serverReviewNotice: '请阅读下方每个原始文件，批准将绑定到这些由服务器确认的准确哈希值',
       decline: '拒绝',
       approvePublish: '批准并发布',
       checkUpdates: count => `检查更新${count ? `（${count}）` : ''}`,
@@ -4133,7 +4133,7 @@ export const zhOverrides = {
       updateModeManual: '手动',
       updateModeAutomatic: '自动更新并通知',
       updateModeRequired: '必须更新',
-      updateModeHelp: 'Gateway 会应用组织的当前策略。涉及安全的变更仍需你的批准',
+      updateModeHelp: 'Gateway 会应用组织的当前策略，涉及安全的变更仍需你的批准',
       updateModePlan: mode => `后续更新：${mode}`,
       install: '安装…',
       uninstall: '卸载…',
@@ -4235,7 +4235,7 @@ export const zhOverrides = {
     tabPlugins: '插件',
     plugins: {
       agentTitle: '智能体插件',
-      agentBlurb: '为所选配置扩展智能体 — 工具、钩子、模型提供方。重启网关后生效',
+      agentBlurb: '为所选配置扩展智能体 — 工具、钩子、模型提供方，重启网关后生效',
       pageBlurb: '每个插件一行，插件可以扩展本应用、智能体，或两者 — 每一半都有自己的开关',
       halfDesktop: '桌面',
       halfDesktopHint: '本应用，所有配置相同',
@@ -4259,7 +4259,7 @@ export const zhOverrides = {
       toggleFailed: (name: string) => `无法切换 ${name}`,
       toolsetOn: (name: string, profile: string) => `已为 ${profile} 启用 ${name} agent 工具`,
       toolsetOff: (name: string, profile: string) => `已为 ${profile} 禁用 ${name} agent 工具`,
-      toolsetToggleFailed: (name: string) => `无法切换 ${name} agent 工具；桌面端面板保持不变`,
+      toolsetToggleFailed: (name: string) => `无法切换 ${name} agent 工具，桌面端面板保持不变`,
       legacyBackend: '此后端版本较旧，不支持按键名切换插件 — 请更新 Hermes 后再在此管理',
       portableBadge: '便携',
       serverStates: {
@@ -4281,7 +4281,7 @@ export const zhOverrides = {
         'disk-cleanup':
           '自动追踪并清理 Hermes 会话期间产生的临时文件（测试脚本、临时输出、定时任务日志），通过插件钩子运行，无需智能体介入',
         'security-guidance':
-          '当新写入的内容包含已知危险模式时，在文件写入工具结果中附加安全警告。包含 25 条基于 Anthropic claude-plugins-official 改编的规则，不会阻止写入，并会在下一轮把警告反馈给模型以便自行修正'
+          '当新写入的内容包含已知危险模式时，在文件写入工具结果中附加安全警告，包含 25 条基于 Anthropic claude-plugins-official 改编的规则，不会阻止写入，并会在下一轮把警告反馈给模型以便自行修正'
       },
       sourceLabels: {
         bundled: '内置',
@@ -4396,7 +4396,7 @@ export const zhOverrides = {
       openLog: '打开日志'
     },
     toolsetDescriptions: {
-      a2a: 'Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送；入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话。未配置 Bearer Token 时仅监听 localhost；通信全程执行入站过滤、出站凭据清理及独立审计。仅依赖 Python 标准库，无需 a2a-sdk',
+      a2a: 'Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送，入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话，未配置 Bearer Token 时仅监听 localhost，通信全程执行入站过滤、出站凭据清理及独立审计，仅依赖 Python 标准库，无需 a2a-sdk',
       browser: '用于网页交互的浏览器自动化（导航、点击、输入、滚动、iframe、长按），并带用于查找 URL 的网页搜索',
       clarify: '向用户提出澄清问题（选择题或开放式）',
       code_execution: '运行以编程方式调用工具的 Python 脚本（减少 LLM 往返）',
@@ -4417,7 +4417,7 @@ export const zhOverrides = {
         '兼容 OpenAI 的 API 服务器 — 通过 HTTP 访问全部代理工具（不含 clarify、send_message 等交互式 UI 工具）',
       'hermes-bluebubbles': 'BlueBubbles iMessage 机器人工具集 — 通过本地 BlueBubbles 服务器使用 Apple iMessage',
       'hermes-cli': '完整交互式 CLI 工具集 — 全部默认工具外加定时任务管理',
-      'hermes-cron': '默认 cron 工具集 — 与 hermes-cli 相同的核心工具；由 hermes tools 控制',
+      'hermes-cron': '默认 cron 工具集 — 与 hermes-cli 相同的核心工具，由 hermes tools 控制',
       'hermes-dingtalk': '钉钉机器人工具集 — 企业消息平台（完全访问）',
       'hermes-discord': 'Discord 机器人工具集 — 完全访问（终端有危险命令审批安全检查）',
       'hermes-email': '邮件机器人工具集 — 通过电子邮件 (IMAP/SMTP) 与 Hermes 交互',
@@ -4440,7 +4440,7 @@ export const zhOverrides = {
       homeassistant: 'Home Assistant 智能家居控制与监控',
       image_gen: '创意生成工具（图像）',
       kanban:
-        '看板多代理协同 — 仅当代理由看板调度器派生（设置了 HERMES_KANBAN_TASK 环境变量）时启用。调度器默认在网关内运行；见 config.yaml 的 kanban.dispatch_in_gateway。让工作代理以结构化交接完成任务、阻塞等待人工输入、长操作期间发送心跳、在线程中评论、附加文件，（编排者还可）列出、解除阻塞和分发任务',
+        '看板多代理协同 — 仅当代理由看板调度器派生（设置了 HERMES_KANBAN_TASK 环境变量）时启用，调度器默认在网关内运行，见 config.yaml 的 kanban.dispatch_in_gateway，让工作代理以结构化交接完成任务、阻塞等待人工输入、长操作期间发送心跳、在线程中评论、附加文件，（编排者还可）列出、解除阻塞和分发任务',
       memory: '跨会话持久记忆（个人笔记 + 用户画像）',
       connections: '远程连接器工具与账户授权',
       project: '桌面项目 — 创建/切换命名工作区（仅 GUI 会话）',
@@ -4455,7 +4455,7 @@ export const zhOverrides = {
       stt: '语音转文字：语音转写（网关语音消息与语音模式）',
       video: '视频分析与理解工具（选择启用，不在默认工具集中）',
       video_gen:
-        '视频生成工具：单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频。提供方专属的编辑/扩展工作流可能以独立工具出现，通过 hermes tools → Video Generation 配置',
+        '视频生成工具：单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频，提供方专属的编辑/扩展工作流可能以独立工具出现，通过 hermes tools → Video Generation 配置',
       vision: '图像分析与视觉工具',
       web: '网页搜索与内容提取',
       x_search:
@@ -4826,7 +4826,7 @@ export const zhOverrides = {
     required: '必填',
     recommended: '推荐',
     advanced: count => `高级 (${count})`,
-    noTokenNeeded: '此平台无需在此填写令牌。请按上方设置指南操作，然后在下方启用',
+    noTokenNeeded: '此平台无需在此填写令牌，请按上方设置指南操作，然后在下方启用',
     enabled: '已启用',
     disabled: '已禁用',
     unsavedChanges: '有未保存的更改',
@@ -4870,7 +4870,7 @@ export const zhOverrides = {
     failedRevoke: name => `撤销 ${name} 失败`,
     pairingLockedOut: '批准失败次数过多，该平台已被暂时锁定，请稍后再试',
     waitingSince: minutes => (minutes < 1 ? '刚刚' : `${minutes} 分钟前`),
-    restartNeeded: '已保存。请重启消息网关以应用新设置',
+    restartNeeded: '已保存，请重启消息网关以应用新设置',
     restartNow: '立即重启',
     restarting: '正在重启…',
     restartFailedManual: '网关重启失败 — 请手动重启并检查网关日志',
@@ -4880,10 +4880,10 @@ export const zhOverrides = {
       quickSetup: '快速设置',
       recommended: '推荐',
       qrCodeAlt: 'Telegram 设置二维码',
-      quickHelp: '扫描二维码并在 Telegram 中确认。Hermes 会自动创建机器人并识别你的 Telegram 用户 ID',
+      quickHelp: '扫描二维码并在 Telegram 中确认，Hermes 会自动创建机器人并识别你的 Telegram 用户 ID',
       createWithQr: '通过二维码创建',
       starting: '正在启动…',
-      replaceWarning: 'Telegram 凭据已配置。保存后，新的二维码设置或机器人令牌将替换当前机器人',
+      replaceWarning: 'Telegram 凭据已配置，保存后，新的二维码设置或机器人令牌将替换当前机器人',
       scanHint: '用手机上的 Telegram 应用扫描，或在这台电脑上打开链接',
       waiting: '等待 Telegram 确认…',
       expiresIn: remaining => `${remaining} 后过期`,
@@ -4898,10 +4898,10 @@ export const zhOverrides = {
       numericOnly: '允许的 Telegram 用户 ID 必须是数字',
       saveAndRestart: '保存并重启',
       applying: '正在保存…',
-      pairingExpired: 'Telegram 配对已过期。请重新开始二维码设置',
-      stillWaiting: detail => `仍在等待 Telegram。出错后重试：${detail}`,
-      savedRestarting: 'Telegram 已保存；网关正在重启…',
-      savedRestartFailed: detail => `Telegram 已保存；网关重启失败${detail}`
+      pairingExpired: 'Telegram 配对已过期，请重新开始二维码设置',
+      stillWaiting: detail => `仍在等待 Telegram，出错后重试：${detail}`,
+      savedRestarting: 'Telegram 已保存，网关正在重启…',
+      savedRestartFailed: detail => `Telegram 已保存，网关重启失败${detail}`
     },
     fieldCopy: {
       TELEGRAM_BOT_TOKEN: {
@@ -4911,7 +4911,7 @@ export const zhOverrides = {
       },
       TELEGRAM_ALLOWED_USERS: {
         label: '允许的 Telegram 用户 ID',
-        help: '推荐。来自 @userinfobot 的数字 ID（每格一个）。不设置则任何人都能私信你的机器人'
+        help: '推荐，来自 @userinfobot 的数字 ID（每格一个），不设置则任何人都能私信你的机器人'
       },
       TELEGRAM_PROXY: {
         label: '代理 URL',
@@ -4923,7 +4923,7 @@ export const zhOverrides = {
       },
       DISCORD_ALLOWED_USERS: {
         label: '允许的 Discord 用户 ID',
-        help: '推荐。Discord 用户 ID（每格一个）'
+        help: '推荐，Discord 用户 ID（每格一个）'
       },
       DISCORD_REPLY_TO_MODE: {
         label: '回复方式',
@@ -4931,7 +4931,7 @@ export const zhOverrides = {
       },
       DISCORD_ALLOW_ALL_USERS: {
         label: '允许所有 Discord 用户',
-        help: '仅用于开发。为 true 时，任何人都可以私信 bot，不需要允许列表'
+        help: '仅用于开发，为 true 时，任何人都可以私信 bot，不需要允许列表'
       },
       DISCORD_HOME_CHANNEL: {
         label: '主页频道 ID',
@@ -4977,7 +4977,7 @@ export const zhOverrides = {
       },
       SLACK_ALLOWED_USERS: {
         label: '允许的 Slack 用户 ID',
-        help: '推荐。Slack 用户 ID（每格一个）'
+        help: '推荐，Slack 用户 ID（每格一个）'
       },
       MATTERMOST_URL: {
         label: '服务器 URL',
@@ -4990,7 +4990,7 @@ export const zhOverrides = {
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '允许的用户 ID',
-        help: '推荐。Mattermost 用户 ID（每格一个）'
+        help: '推荐，Mattermost 用户 ID（每格一个）'
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
@@ -5008,7 +5008,7 @@ export const zhOverrides = {
       },
       MATRIX_ALLOWED_USERS: {
         label: '允许的 Matrix 用户 ID',
-        help: '推荐。@user:server 格式的用户 ID（每格一个）'
+        help: '推荐，@user:server 格式的用户 ID（每格一个）'
       },
       SIGNAL_HTTP_URL: {
         label: 'Signal 桥接 URL',
@@ -5021,31 +5021,31 @@ export const zhOverrides = {
       },
       SIGNAL_ALLOWED_USERS: {
         label: '允许的 Signal 用户',
-        help: '推荐。Signal 标识符（每格一个）'
+        help: '推荐，Signal 标识符（每格一个）'
       },
       WHATSAPP_ENABLED: {
         label: '启用 WhatsApp 桥接',
-        help: '由下方开关自动设置。除非确知需要，否则请勿改动'
+        help: '由下方开关自动设置，除非确知需要，否则请勿改动'
       },
       WHATSAPP_MODE: {
         label: '桥接模式'
       },
       WHATSAPP_ALLOWED_USERS: {
         label: '允许的 WhatsApp 用户',
-        help: '推荐。电话号码或 WhatsApp ID（每格一个）'
+        help: '推荐，电话号码或 WhatsApp ID（每格一个）'
       },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: '允许所有 Telegram 用户',
-        help: '仅用于开发。任何 Telegram 用户都能触发机器人'
+        help: '仅用于开发，任何 Telegram 用户都能触发机器人'
       },
       TELEGRAM_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID' },
       TELEGRAM_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Telegram 主页频道的显示名称' },
-      SLACK_ALLOW_ALL_USERS: { label: '允许所有 Slack 用户', help: '仅用于开发。任何 Slack 用户都能触发机器人' },
+      SLACK_ALLOW_ALL_USERS: { label: '允许所有 Slack 用户', help: '仅用于开发，任何 Slack 用户都能触发机器人' },
       SLACK_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认频道 ID（以 C 开头）' },
       SLACK_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Slack 主页频道的显示名称' },
       SLACK_THREAD_REQUIRE_MENTION: {
         label: '线程内需要 @提及',
-        help: 'Slack 线程回复需要显式 @提及；顶层自由响应频道不受影响'
+        help: 'Slack 线程回复需要显式 @提及，顶层自由响应频道不受影响'
       },
       MATTERMOST_ALLOWED_CHANNELS: {
         label: '允许的频道 ID',
@@ -5055,12 +5055,12 @@ export const zhOverrides = {
         label: '自由响应频道 ID',
         help: '机器人无需 @提及即可响应的 Mattermost 频道 ID，逗号分隔'
       },
-      MATTERMOST_REPLY_MODE: { label: '回复方式', help: 'thread（嵌套线程）或 off（平铺）。默认 off' },
+      MATTERMOST_REPLY_MODE: { label: '回复方式', help: 'thread（嵌套线程）或 off（平铺），默认 off' },
       MATTERMOST_REQUIRE_MENTION: {
         label: '频道内需要 @提及',
-        help: '在 Mattermost 频道中需要 @提及（默认 true）。设为 false 可响应所有消息'
+        help: '在 Mattermost 频道中需要 @提及（默认 true），设为 false 可响应所有消息'
       },
-      MATRIX_ALLOW_ALL_USERS: { label: '允许所有 Matrix 用户', help: '仅用于开发。任何 Matrix 用户都能触发机器人' },
+      MATRIX_ALLOW_ALL_USERS: { label: '允许所有 Matrix 用户', help: '仅用于开发，任何 Matrix 用户都能触发机器人' },
       MATRIX_AUTO_THREAD: { label: '房间内自动创建线程', help: '为 Matrix 房间消息自动创建线程（默认 true）' },
       MATRIX_DEVICE_ID: {
         label: '设备 ID',
@@ -5080,12 +5080,12 @@ export const zhOverrides = {
       },
       MATRIX_REQUIRE_MENTION: {
         label: '房间内需要 @提及',
-        help: '在 Matrix 房间中需要 @提及（默认 true）。设为 false 可响应所有消息'
+        help: '在 Matrix 房间中需要 @提及（默认 true），设为 false 可响应所有消息'
       },
       WHATSAPP_DM_POLICY: { label: '私信策略', help: 'WhatsApp 私信的授权方式' },
       WHATSAPP_ALLOW_ALL_USERS: {
         label: '允许所有 WhatsApp 用户',
-        help: '仅用于开发。任何 WhatsApp 用户都能触发机器人'
+        help: '仅用于开发，任何 WhatsApp 用户都能触发机器人'
       },
       WHATSAPP_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认聊天 ID' },
       WHATSAPP_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'WhatsApp 主页频道的显示名称' },
@@ -5100,7 +5100,7 @@ export const zhOverrides = {
       },
       BLUEBUBBLES_ALLOWED_USERS: {
         label: '允许的 iMessage 地址',
-        help: '推荐。逗号分隔的 iMessage 地址（邮箱或电话号码）'
+        help: '推荐，逗号分隔的 iMessage 地址（邮箱或电话号码）'
       },
       HASS_URL: {
         label: 'Home Assistant URL',
@@ -5112,7 +5112,7 @@ export const zhOverrides = {
       EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱账户密码 / 应用专用密码' },
       EMAIL_IMAP_HOST: { label: 'IMAP 主机', help: '收件轮询使用的 IMAP 主机', placeholder: 'imap.gmail.com' },
       EMAIL_SMTP_HOST: { label: 'SMTP 主机', help: '发件使用的 SMTP 主机', placeholder: 'smtp.gmail.com' },
-      EMAIL_ALLOWED_USERS: { label: '允许的邮箱地址', help: '推荐。允许与机器人对话的邮箱地址，逗号分隔' },
+      EMAIL_ALLOWED_USERS: { label: '允许的邮箱地址', help: '推荐，允许与机器人对话的邮箱地址，逗号分隔' },
       EMAIL_HOME_ADDRESS: { label: '主页地址', help: 'cron / 通知投递的默认邮箱地址' },
       EMAIL_SMTP_PORT: { label: 'SMTP 端口', help: 'SMTP 端口（默认 587）' },
       TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: '来自 Twilio 控制台的 Account SID' },
@@ -5134,8 +5134,8 @@ export const zhOverrides = {
       FEISHU_APP_SECRET: { label: 'App Secret', help: '飞书 / Lark 应用的 App Secret' },
       FEISHU_ENCRYPT_KEY: { label: '加密密钥 (Encrypt Key)', help: '飞书 / Lark 事件加密密钥' },
       FEISHU_VERIFICATION_TOKEN: { label: '校验令牌 (Verification Token)', help: '飞书 / Lark 事件校验令牌' },
-      FEISHU_ALLOWED_USERS: { label: '允许的用户 ID', help: '推荐。允许与机器人对话的飞书用户 ID，逗号分隔' },
-      FEISHU_ALLOW_ALL_USERS: { label: '允许所有飞书用户', help: '仅用于开发。任何飞书用户都能触发机器人' },
+      FEISHU_ALLOWED_USERS: { label: '允许的用户 ID', help: '推荐，允许与机器人对话的飞书用户 ID，逗号分隔' },
+      FEISHU_ALLOW_ALL_USERS: { label: '允许所有飞书用户', help: '仅用于开发，任何飞书用户都能触发机器人' },
       FEISHU_DOMAIN: { label: '域 (feishu/lark)', help: 'feishu（中国版）或 lark（国际版）' },
       FEISHU_HOME_CHANNEL: { label: '主页群聊 ID', help: 'cron / 通知投递的默认群聊 ID' },
       FEISHU_HOME_CHANNEL_NAME: { label: '主页群聊名称', help: '飞书主页群聊的显示名称' },
@@ -5160,7 +5160,7 @@ export const zhOverrides = {
       },
       QQ_APP_ID: { label: 'App ID', help: '来自 QQ 开放平台 (q.qq.com) 的机器人 App ID' },
       QQ_CLIENT_SECRET: { label: 'Client Secret', help: '来自 QQ 开放平台的机器人 Client Secret' },
-      QQ_ALLOWED_USERS: { label: '允许的 QQ 用户', help: '推荐。允许使用机器人的 QQ 用户 ID，逗号分隔' },
+      QQ_ALLOWED_USERS: { label: '允许的 QQ 用户', help: '推荐，允许使用机器人的 QQ 用户 ID，逗号分隔' },
       QQ_GROUP_ALLOWED_USERS: { label: '允许的 QQ 群', help: '允许与机器人互动的 QQ 群 ID，逗号分隔' },
       QQ_SANDBOX: { label: '沙箱模式', help: '启用 QQ 沙箱模式用于开发测试（true/false）' },
       API_SERVER_ENABLED: {
@@ -5169,16 +5169,16 @@ export const zhOverrides = {
       },
       API_SERVER_KEY: {
         label: '鉴权密钥',
-        help: 'API 服务器认证用的 Bearer 令牌。启用 API 服务器时必填，缺失时服务器拒绝启动'
+        help: 'API 服务器认证用的 Bearer 令牌，启用 API 服务器时必填，缺失时服务器拒绝启动'
       },
       API_SERVER_PORT: { label: '端口', help: 'API 服务器端口（默认 8642）' },
       API_SERVER_HOST: {
         label: '监听地址',
-        help: 'API 服务器的绑定地址（默认 127.0.0.1）。即使只绑定本机回环地址也需要设置鉴权密钥'
+        help: 'API 服务器的绑定地址（默认 127.0.0.1），即使只绑定本机回环地址也需要设置鉴权密钥'
       },
       API_SERVER_MODEL_NAME: {
         label: '模型名称',
-        help: '在 /v1/models 上公布的模型名。默认为配置档案名（默认档案则为 hermes-agent）。适合搭配 OpenWebUI 的多用户场景'
+        help: '在 /v1/models 上公布的模型名，默认为配置档案名（默认档案则为 hermes-agent），适合搭配 OpenWebUI 的多用户场景'
       },
       WEBHOOK_ENABLED: { label: '启用 Webhook', help: '启用 Webhook 平台适配器，接收来自 GitHub、GitLab 等的事件' },
       WEBHOOK_PORT: { label: '端口', help: 'Webhook HTTP 服务器端口（默认 8644）' },
@@ -5196,18 +5196,18 @@ export const zhOverrides = {
       IRC_SERVER_PASSWORD: { label: '服务器密码', help: 'IRC 服务器密码（如需要）' },
       IRC_NICKSERV_PASSWORD: { label: 'NickServ 密码', help: '用于昵称认证的 NickServ 密码' },
       IRC_PORT: { label: 'IRC 端口', help: 'IRC 服务器端口（默认：TLS 6697，非 TLS 6667）' },
-      IRC_USE_TLS: { label: '使用 TLS', help: 'IRC 连接使用 TLS（1/true/yes 启用；端口 6697 时默认启用）' },
+      IRC_USE_TLS: { label: '使用 TLS', help: 'IRC 连接使用 TLS（1/true/yes 启用，端口 6697 时默认启用）' },
       IRC_ALLOWED_USERS: { label: '允许的昵称', help: '允许与机器人对话的 IRC 昵称，逗号分隔' },
-      IRC_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许频道中任何人与机器人对话' },
+      IRC_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发，允许频道中任何人与机器人对话' },
       IRC_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的频道（默认使用 IRC_CHANNEL）' },
       GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: {
         label: '服务账号 JSON',
-        help: '服务账号 JSON 密钥的路径（或内联 JSON）。留空则在 Cloud Run / GCE 上使用应用默认凭据（ADC），回退到 GOOGLE_APPLICATION_CREDENTIALS'
+        help: '服务账号 JSON 密钥的路径（或内联 JSON），留空则在 Cloud Run / GCE 上使用应用默认凭据（ADC），回退到 GOOGLE_APPLICATION_CREDENTIALS'
       },
       GOOGLE_CHAT_HTTP_EVENTS_URL: { label: 'HTTP 事件回调 URL', help: '用于 Chat 消息事件的已认证 HTTP 端点' },
       GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: {
         label: 'HTTP 事件令牌受众',
-        help: 'Google 签名 HTTP 事件 Bearer 令牌的期望受众。默认为 GOOGLE_CHAT_HTTP_EVENTS_URL'
+        help: 'Google 签名 HTTP 事件 Bearer 令牌的期望受众，默认为 GOOGLE_CHAT_HTTP_EVENTS_URL'
       },
       GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
         label: 'HTTP 事件服务账号邮箱',
@@ -5215,7 +5215,7 @@ export const zhOverrides = {
       },
       GOOGLE_CHAT_PROJECT_ID: {
         label: 'GCP 项目 ID',
-        help: '可选 Pub/Sub 入站模式的 GCP 项目 ID。回退到 GOOGLE_CLOUD_PROJECT'
+        help: '可选 Pub/Sub 入站模式的 GCP 项目 ID，回退到 GOOGLE_CLOUD_PROJECT'
       },
       GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub 订阅名', help: '拉取模式入站事件的可选 Pub/Sub 订阅路径' },
       GOOGLE_CHAT_ALLOWED_USERS: { label: '允许的用户邮箱', help: '允许与机器人交互的用户邮箱，逗号分隔' },
@@ -5229,19 +5229,19 @@ export const zhOverrides = {
       LINE_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）' },
       LINE_PUBLIC_URL: {
         label: '公开 HTTPS 基础 URL',
-        help: '向 LINE 提供图片/音频/视频的公开 HTTPS 基础 URL（如 https://my-tunnel.example.com）。绑定地址无法直接访问时发送媒体必需'
+        help: '向 LINE 提供图片/音频/视频的公开 HTTPS 基础 URL（如 https://my-tunnel.example.com），绑定地址无法直接访问时发送媒体必需'
       },
       LINE_ALLOWED_USERS: { label: '允许的用户 ID', help: '允许私信机器人的 LINE 用户 ID（U 开头），逗号分隔' },
       LINE_ALLOWED_GROUPS: { label: '允许的群组 ID', help: '机器人会响应的 LINE 群组 ID（C 开头），逗号分隔' },
       LINE_ALLOWED_ROOMS: { label: '允许的聊天室 ID', help: '机器人会响应的 LINE 聊天室 ID（R 开头），逗号分隔' },
       LINE_ALLOW_ALL_USERS: {
         label: '允许所有用户',
-        help: '仅用于开发。允许任何 LINE 用户与机器人对话（停用允许列表）'
+        help: '仅用于开发，允许任何 LINE 用户与机器人对话（停用允许列表）'
       },
       LINE_HOME_CHANNEL: { label: '主页频道 ID', help: 'cron / 通知投递的默认用户/群组/聊天室 ID' },
       LINE_SLOW_RESPONSE_THRESHOLD: {
         label: '慢响应阈值（秒）',
-        help: '触发慢 LLM postback 按钮前的秒数（默认 45；设 0 禁用并始终使用 Push 回退）'
+        help: '触发慢 LLM postback 按钮前的秒数（默认 45，设 0 禁用并始终使用 Push 回退）'
       },
       NTFY_TOPIC: { label: '订阅主题', help: '要订阅的主题名（如 hermes-in）' },
       NTFY_SERVER_URL: { label: '服务器 URL', help: 'ntfy 服务器 URL（默认 https://ntfy.sh）' },
@@ -5249,12 +5249,12 @@ export const zhOverrides = {
       NTFY_PUBLISH_TOPIC: { label: '发布主题', help: '回复发布到的主题（默认使用 NTFY_TOPIC）' },
       NTFY_MARKDOWN: { label: '启用 Markdown', help: '发送回复时带 X-Markdown: true 头（true/false，默认 false）' },
       NTFY_ALLOWED_USERS: { label: '允许的主题名', help: '允许的主题名（允许列表），逗号分隔' },
-      NTFY_ALLOW_ALL_USERS: { label: '允许所有主题', help: '仅用于开发。允许任何主题与机器人对话（停用允许列表）' },
+      NTFY_ALLOW_ALL_USERS: { label: '允许所有主题', help: '仅用于开发，允许任何主题与机器人对话（停用允许列表）' },
       NTFY_HOME_CHANNEL: { label: '主页主题', help: 'cron / 通知投递的默认主题' },
       NTFY_HOME_CHANNEL_NAME: { label: '主页主题名称', help: '主页频道的显示名称（默认使用主题名）' },
       PHOTON_PROJECT_ID: {
         label: 'Spectrum 项目 ID',
-        help: 'Spectrum 项目 ID（项目的 spectrumProjectId；由 hermes photon setup 设置）'
+        help: 'Spectrum 项目 ID（项目的 spectrumProjectId，由 hermes photon setup 设置）'
       },
       PHOTON_PROJECT_SECRET: {
         label: '项目密钥',
@@ -5275,14 +5275,14 @@ export const zhOverrides = {
         help: 'Photon Spectrum API 主机（默认 https://spectrum.photon.codes）'
       },
       PHOTON_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 E.164 电话号码，逗号分隔' },
-      PHOTON_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。允许任何发送者触发机器人（停用允许列表）' },
+      PHOTON_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发，允许任何发送者触发机器人（停用允许列表）' },
       PHOTON_REQUIRE_MENTION: {
         label: '群聊需要提及',
         help: '忽略群聊消息，除非命中提及唤醒词（true/false，默认 false）'
       },
       PHOTON_MENTION_PATTERNS: {
         label: '群聊提及模式',
-        help: '群聊的提及唤醒词正则（JSON 列表或逗号/换行分隔；默认使用 Hermes 唤醒词）'
+        help: '群聊的提及唤醒词正则（JSON 列表或逗号/换行分隔，默认使用 Hermes 唤醒词）'
       },
       PHOTON_HOME_CHANNEL: {
         label: '主页 Photon 目标',
@@ -5291,7 +5291,7 @@ export const zhOverrides = {
       PHOTON_HOME_CHANNEL_NAME: { label: '主页频道名称', help: '主页频道的显示名称' },
       PHOTON_TELEMETRY: {
         label: '启用 Spectrum 遥测',
-        help: '在 sidecar 中启用 Spectrum SDK 遥测（true/false，默认 false；可用 hermes photon telemetry on|off 切换）'
+        help: '在 sidecar 中启用 Spectrum SDK 遥测（true/false，默认 false，可用 hermes photon telemetry on|off 切换）'
       },
       PHOTON_MARKDOWN: {
         label: '以 Markdown 渲染回复',
@@ -5308,12 +5308,12 @@ export const zhOverrides = {
       SIMPLEX_ALLOWED_USERS: { label: '允许的联系人 ID', help: '允许与机器人对话的 SimpleX 联系人 ID，逗号分隔' },
       SIMPLEX_ALLOW_ALL_USERS: {
         label: '允许所有联系人',
-        help: '仅用于开发。允许任何联系人与机器人对话（停用允许列表）'
+        help: '仅用于开发，允许任何联系人与机器人对话（停用允许列表）'
       },
       SIMPLEX_AUTO_ACCEPT: { label: '自动接受联系人请求', help: '自动接受收到的联系人请求（默认 true）' },
       SIMPLEX_GROUP_ALLOWED: {
         label: '允许的群组 ID',
-        help: '机器人参与的 SimpleX 群组 ID（逗号分隔），或 * 允许任意群组。省略则完全忽略群消息（更安全的默认 — 否则群里机器人会处理每个成员的消息）'
+        help: '机器人参与的 SimpleX 群组 ID（逗号分隔），或 * 允许任意群组，省略则完全忽略群消息（更安全的默认 — 否则群里机器人会处理每个成员的消息）'
       },
       SIMPLEX_HOME_CHANNEL: { label: '主页联系人/群组 ID', help: 'cron / 通知投递的默认联系人/群组 ID' },
       SIMPLEX_HOME_CHANNEL_NAME: { label: '主页频道名称', help: '主页频道的显示名称（默认使用 ID）' },
@@ -5329,10 +5329,10 @@ export const zhOverrides = {
       TEAMS_PORT: { label: 'Webhook 端口', help: 'Webhook 监听端口（Bot Framework 默认 3978）' },
       TEAMS_HOST: { label: 'Webhook 主机', help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口 IPv4+IPv6）' },
       TEAMS_ALLOWED_USERS: { label: '允许的用户', help: '允许与机器人对话的 Teams 用户 ID / UPN，逗号分隔' },
-      TEAMS_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发。任何 Teams 用户都能触发机器人' },
+      TEAMS_ALLOW_ALL_USERS: { label: '允许所有用户', help: '仅用于开发，任何 Teams 用户都能触发机器人' },
       TEAMS_REQUIRE_MENTION: {
         label: 'Teams 要求提及',
-        help: '仅回复在频道或群聊中 @提及机器人或回复机器人的消息（默认关闭；应用获得 RSC 消息读取许可后需要启用）'
+        help: '仅回复在频道或群聊中 @提及机器人或回复机器人的消息（默认关闭，应用获得 RSC 消息读取许可后需要启用）'
       },
       TEAMS_HOME_CHANNEL: { label: '主页频道', help: 'cron / 通知投递的默认聊天/频道 ID' },
       TEAMS_HOME_CHANNEL_NAME: { label: '主页频道名称', help: 'Teams 主页频道的显示名称' },
@@ -5346,12 +5346,12 @@ export const zhOverrides = {
       },
       A2A_BEARER_TOKEN: {
         label: 'A2A 共享令牌（空则仅限本地）',
-        help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP）。不设任何令牌则仅绑定 127.0.0.1',
+        help: '入站 A2A 调用的共享令牌（身份回退到调用方 IP），不设任何令牌则仅绑定 127.0.0.1',
         placeholder: 'A2A 共享令牌（空则仅限本地）'
       },
       A2A_HOST: {
         label: 'A2A 绑定主机（默认 127.0.0.1）',
-        help: '入站绑定主机。默认 127.0.0.1；仅在设置了令牌且在此处选择时才扩展到 0.0.0.0',
+        help: '入站绑定主机，默认 127.0.0.1，仅在设置了令牌且在此处选择时才扩展到 0.0.0.0',
         placeholder: 'A2A 绑定主机（默认 127.0.0.1）'
       },
       A2A_PORT: {
@@ -5360,9 +5360,9 @@ export const zhOverrides = {
         placeholder: 'A2A 端口（默认 9900）'
       },
       A2A_PEER_TOKENS: {
-        label: 'A2A 对等令牌（name:token，逗号分隔；或留空）',
-        help: '每个对等代理的令牌（如 alice:tok1,bob:tok2）。匹配的名称用于限速、信任和审计',
-        placeholder: 'A2A 对等令牌（name:token，逗号分隔；或留空）'
+        label: 'A2A 对等令牌（name:token，逗号分隔，或留空）',
+        help: '每个对等代理的令牌（如 alice:tok1,bob:tok2），匹配的名称用于限速、信任和审计',
+        placeholder: 'A2A 对等令牌（name:token，逗号分隔，或留空）'
       },
       A2A_HOME_CHANNEL: {
         label: 'A2A 主页频道（或留空）',
@@ -5418,7 +5418,7 @@ export const zhOverrides = {
       },
       BUZZ_REPLY_IN_THREAD: {
         label: '在线程中回复？（true/false）',
-        help: '在触发消息下方以线程形式回复（true/false，默认 true）；设为 false 时直接发布到频道时间线'
+        help: '在触发消息下方以线程形式回复（true/false，默认 true），设为 false 时直接发布到频道时间线'
       },
       PHOTON_READ_RECEIPTS: {
         label: '发送已读回执？（true/false）',
@@ -5427,28 +5427,28 @@ export const zhOverrides = {
     },
     platformIntro: {
       telegram:
-        '在 Telegram 中，与 @BotFather 对话，运行 /newbot，复制它给你的令牌。然后从 @userinfobot 获取你的数字用户 ID',
-      discord: '打开 Discord 开发者门户，创建应用，添加 Bot，然后复制其令牌。用正确的权限范围把机器人邀请到你的服务器',
+        '在 Telegram 中，与 @BotFather 对话，运行 /newbot，复制它给你的令牌，然后从 @userinfobot 获取你的数字用户 ID',
+      discord: '打开 Discord 开发者门户，创建应用，添加 Bot，然后复制其令牌，用正确的权限范围把机器人邀请到你的服务器',
       slack: '创建 Slack 应用，启用 Socket Mode，安装到你的工作区，然后复制 bot 令牌和 app 级令牌',
       mattermost: '在你的 Mattermost 服务器上，创建机器人账户或个人访问令牌，然后在此粘贴服务器 URL 和令牌',
       matrix: '用机器人账户登录你的 homeserver，然后复制访问令牌、用户 ID 和 homeserver URL',
       signal: '在可访问的位置运行 signal-cli REST 桥接，然后把 Hermes 指向该 URL 和已注册的电话号码',
       whatsapp: '启动 Hermes 自带的 WhatsApp 桥接，首次运行时扫描二维码，然后启用该平台',
       bluebubbles: '在装有 iMessage 的 Mac 上运行 BlueBubbles Server，暴露其 API，然后用服务器密码把 Hermes 指向该 URL',
-      homeassistant: '在 Home Assistant 中打开你的个人资料并创建长期访问令牌。把它连同你的 HA URL 一起粘贴到这里',
-      email: '使用专用邮箱。对于 Gmail/Workspace,创建应用专用密码并使用 imap.gmail.com / smtp.gmail.com',
+      homeassistant: '在 Home Assistant 中打开你的个人资料并创建长期访问令牌，把它连同你的 HA URL 一起粘贴到这里',
+      email: '使用专用邮箱，对于 Gmail/Workspace,创建应用专用密码并使用 imap.gmail.com / smtp.gmail.com',
       sms: '从 Twilio 控制台获取你的 Account SID 和 Auth Token，以及一个可发送短信的电话号码',
       dingtalk: '在开发者控制台创建钉钉应用，然后在此复制 Client ID(App key) 和 Client Secret',
       feishu: '创建飞书 / Lark 应用，配置机器人能力，复制 App ID、App secret 和事件加密密钥',
-      wecom: '在企业微信中添加群机器人，复制其 webhook key 作为 WECOM_BOT_ID。仅可发送 — 双向请用企业微信 (应用) 选项',
+      wecom: '在企业微信中添加群机器人，复制其 webhook key 作为 WECOM_BOT_ID，仅可发送 — 双向请用企业微信 (应用) 选项',
       wecom_callback: '设置一个企业微信自建应用，暴露其回调 URL，并提供 corp ID、secret、agent ID 和 AES key',
       weixin:
-        '运行 `hermes gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码。Hermes 会通过腾讯 iLink Bot API 连接并保存凭据',
+        '运行 `hermes gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码，Hermes 会通过腾讯 iLink Bot API 连接并保存凭据',
       qqbot: '在 QQ 开放平台 (q.qq.com) 注册一个应用，复制 App ID 和 Client Secret',
-      api_server: '把 Hermes 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port',
-      webhook: '运行一个 HTTP 服务器，供其他工具 (GitHub、GitLab、自定义应用)POST。用 secret 验证签名',
-      a2a: '无需额外依赖（仅 stdlib）。设置共享令牌或对等令牌以允许其他 Hermes 实例通过 A2A 协议连接',
-      buzz: '需要 buzz CLI 工具（https://github.com/block/buzz）在 PATH 或 BUZZ_CLI_PATH。通过 Nostr 中继连接 Buzz 社区',
+      api_server: '把 Hermes 暴露为兼容 OpenAI 的 API，设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port',
+      webhook: '运行一个 HTTP 服务器，供其他工具 (GitHub、GitLab、自定义应用)POST，用 secret 验证签名',
+      a2a: '无需额外依赖（仅 stdlib），设置共享令牌或对等令牌以允许其他 Hermes 实例通过 A2A 协议连接',
+      buzz: '需要 buzz CLI 工具（https://github.com/block/buzz）在 PATH 或 BUZZ_CLI_PATH，通过 Nostr 中继连接 Buzz 社区',
       raft: '作为外部代理加入 Raft 工作区'
     },
     sharedListenerUrl: '通过共享网关监听器提供，地址为',
@@ -5458,7 +5458,7 @@ export const zhOverrides = {
     platformDescription: {
       telegram: '在 Telegram 私聊、群组和话题中使用 Hermes',
       discord: '把 Hermes 接入 Discord 私信、频道和线程',
-      slack: '通过 Socket Mode 在 Slack 中使用 Hermes。添加允许的 Slack 成员 ID 后已连接的机器人才会响应',
+      slack: '通过 Socket Mode 在 Slack 中使用 Hermes，添加允许的 Slack 成员 ID 后已连接的机器人才会响应',
       mattermost: '把 Hermes 接入 Mattermost 频道和私信',
       matrix: '在 Matrix 房间和私信中使用 Hermes',
       signal: '通过 signal-cli REST 桥接连接',
@@ -5486,7 +5486,7 @@ export const zhOverrides = {
       yuanbao: '把 Hermes 接入腾讯元宝',
       api_server: '把 Hermes 暴露为兼容 OpenAI 的 HTTP API，供 Open WebUI 等工具使用',
       webhook: '接收来自 GitHub、GitLab 等 Webhook 源的事件',
-      a2a: 'Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理通信。\n\n出站：通过 a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 获取 Agent Card、发送 JSON-RPC 任务，并与 Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等 A2A 对等端协作。\n\n入站：通过 /.well-known/agent-card.json（兼容旧版 agent.json）暴露 Hermes，并将任务路由至保留完整记忆与上下文的实时网关会话，而非一次性克隆。\n\n默认安全：无令牌时仅绑定 localhost；入站过滤提示注入，出站清除凭据；所有交换均在上下文压缩流程外审计并持久化，压缩或重启后仍可保留。\n\n仅使用 Python 标准库（http.server + urllib），无需 a2a-sdk',
+      a2a: 'Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理通信\n\n出站：通过 a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 获取 Agent Card、发送 JSON-RPC 任务，并与 Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等 A2A 对等端协作\n\n入站：通过 /.well-known/agent-card.json（兼容旧版 agent.json）暴露 Hermes，并将任务路由至保留完整记忆与上下文的实时网关会话，而非一次性克隆\n\n默认安全：无令牌时仅绑定 localhost，入站过滤提示注入，出站清除凭据，所有交换均在上下文压缩流程外审计并持久化，压缩或重启后仍可保留\n\n仅使用 Python 标准库（http.server + urllib），无需 a2a-sdk',
       buzz: '通过 Nostr 中继连接去中心化的 Buzz 社区（需要 buzz CLI）',
       raft: '作为外部代理加入 Raft 工作区以协作处理任务'
     }
@@ -5588,10 +5588,10 @@ export const zhOverrides = {
       deleteOn: gateway => `（位于 ${gateway}）`,
       localDevice: '此设备（本地后端——若未安装 Hermes 则会安装，否则打开一个新会话）',
       switchDeviceTitle: '切换到此设备？',
-      switchDeviceDesc: '这会在这台电脑上打开一个新会话。当前对话仍留在另一个网关上',
+      switchDeviceDesc: '这会在这台电脑上打开一个新会话，当前对话仍留在另一个网关上',
       switchDeviceConfirm: '切换',
       installDeviceTitle: '切换到此设备？',
-      installDeviceDesc: '这将在本地安装 Hermes，然后在这台电脑上打开一个新会话。确认之前不会开始安装',
+      installDeviceDesc: '这将在本地安装 Hermes，然后在这台电脑上打开一个新会话，确认之前不会开始安装',
       installDeviceConfirm: '本地安装',
       connectExistingInstead: '改为连接现有环境'
     },
@@ -5605,12 +5605,12 @@ export const zhOverrides = {
       urlInvalid: '请输入以 http:// 或 https:// 开头的完整地址',
       tokenLabel: '访问令牌',
       tokenPlaceholder: '粘贴远程会话令牌',
-      tokenSavedHint: '已保存令牌。留空以保留现有令牌',
+      tokenSavedHint: '已保存令牌，留空以保留现有令牌',
       plainTextOptIn: '这台电脑没有安全密钥存储，令牌将以未加密方式保存到磁盘，仍然保存',
       collisionWarning: (label: string) => `设置中已存在名为"${label}"的网关，此配置档案连接是独立的，不会更改它`,
       confirmTitle: '将此配置档案连接到远程主机？',
       confirmNote: (profile: string, host: string) =>
-        `${profile} 中的新对话将在 ${host} 上运行。命令和文件读取都发生在那台电脑上，而不是这台，请只连接你信任的主机`,
+        `${profile} 中的新对话将在 ${host} 上运行，命令和文件读取都发生在那台电脑上，而不是这台，请只连接你信任的主机`,
       confirmBack: '返回',
       connect: '连接',
       connecting: '连接中…',
@@ -5622,7 +5622,7 @@ export const zhOverrides = {
       removeFailed: '无法移除远程连接',
       authFailedTitle: '远程主机拒绝了已保存的令牌',
       authFailedMessage: (profile: string, host: string) =>
-        `${host} 拒绝了为 ${profile} 保存的令牌。它可能已在远程端被更改`,
+        `${host} 拒绝了为 ${profile} 保存的令牌，它可能已在远程端被更改`,
       updateToken: '输入新令牌…'
     },
     actions: '操作',
@@ -5648,7 +5648,7 @@ export const zhOverrides = {
     skillsLabel: '技能',
     notSet: '未设置',
     soulDesc: '内置于此配置档案的系统提示词与人格指令',
-    soulMissing: '此配置档案尚无 SOUL.md 文件。在下方输入指令并保存即可创建。config.yaml 中的人格预设需单独管理',
+    soulMissing: '此配置档案尚无 SOUL.md 文件，在下方输入指令并保存即可创建，config.yaml 中的人格预设需单独管理',
     soulOptional: '可选',
     soulPlaceholder: mode => `此配置档案的系统提示词 / 人格说明，留空则保留${mode}默认值`,
     soulPlaceholderCloned: '克隆的',
@@ -5698,7 +5698,7 @@ export const zhOverrides = {
     setAsDefault: '设为默认',
     defaultProfile: '默认配置档案',
     defaultSet: name => `${name} 已设为默认`,
-    defaultDescription: '用于 Hermes 启动和新建聊天。现有会话仍保留在各自的配置档案中',
+    defaultDescription: '用于 Hermes 启动和新建聊天，现有会话仍保留在各自的配置档案中',
     failedSetDefault: '无法设置默认配置档案',
     status: {
       unread: count => `${count} 个会话有未读消息`,
@@ -5786,7 +5786,7 @@ export const zhOverrides = {
     edit: '编辑定时任务',
     deleteTitle: '删除定时任务？',
     deleteDescPrefix: '这将永久移除 ',
-    deleteDescSuffix: '。它会立即停止触发',
+    deleteDescSuffix: '，它会立即停止触发',
     deleting: '删除中…',
     resumed: '定时任务已恢复',
     paused: '定时任务已暂停',
@@ -5946,7 +5946,7 @@ export const zhOverrides = {
     overdueSince: '逾期未交,因为:',
     modelImpact: {
       title: '定时任务将继续使用原模型',
-      message: count => `${count} 个未固定的定时任务将继续使用创建时的模型运行。固定它们或设置 cron.model 以迁移`,
+      message: count => `${count} 个未固定的定时任务将继续使用创建时的模型运行，固定它们或设置 cron.model 以迁移`,
       detailMore: (names, remaining) => `${names}，以及另外 ${remaining} 个`,
       review: '检查定时任务',
       saveFailed: 'Hermes 未保存该模型更改',
@@ -6048,7 +6048,7 @@ export const zhOverrides = {
       grouping: '网关与配置',
       rename: '重命名分组',
       aliasLabel: '显示名称',
-      aliasHint: '仅更改显示名称；网关和配置档名称保持不变',
+      aliasHint: '仅更改显示名称，网关和配置档名称保持不变',
       resetName: '重置名称',
       moveUp: '上移',
       moveDown: '下移',
@@ -6077,7 +6077,7 @@ export const zhOverrides = {
     showSessions: '显示会话',
     groupTitleGrouped: '取消分组',
     groupTitleUngrouped: '按工作区分组',
-    allPinned: '这里的全部已置顶。取消置顶某个对话即可在最近中显示',
+    allPinned: '这里的全部已置顶，取消置顶某个对话即可在最近中显示',
     shiftClickHint: 'Shift+ 单击对话以置顶 · 拖动以重新排序',
     noWorkspace: '无工作区',
     projectEmpty: '暂无会话',
@@ -6086,7 +6086,7 @@ export const zhOverrides = {
     storageCorrupt: {
       title: '会话数据库已损坏',
       body: profiles =>
-        `Hermes 无法读取 ${profiles} 的全部会话历史。列表中缺失的对话并未删除，但存储它们的文件已经损坏`,
+        `Hermes 无法读取 ${profiles} 的全部会话历史，列表中缺失的对话并未删除，但存储它们的文件已经损坏`,
       action: '请退出此配置档案上的 Hermes，然后在不修改文件的情况下检查它，或恢复快照：',
       guide: '恢复指南'
     },
@@ -6128,11 +6128,11 @@ export const zhOverrides = {
       reveal: '在文件夹中显示',
       copyPath: '复制路径',
       removeFromSidebar: '从侧边栏移除',
-      createdInPreviousContext: '项目已在之前的连接或配置文件中创建。请切换回去；IDEA.md 尚未写入',
+      createdInPreviousContext: '项目已在之前的连接或配置文件中创建，请切换回去，IDEA.md 尚未写入',
       createFailed: '无法创建项目',
       unavailableAllProfiles: '查看全部配置档案时无法使用项目',
       staleBackend: '请更新 Hermes 后端以创建项目 — 当前后端比桌面应用旧（设置 → 更新 → 后端）',
-      deleteConfirm: '这会从 Hermes 中移除已保存的项目。文件、git 仓库和工作树保持不变',
+      deleteConfirm: '这会从 Hermes 中移除已保存的项目，文件、git 仓库和工作树保持不变',
       startWork: '新建工作树',
       newWorktreeTitle: '新建工作树',
       newWorktreeDesc: '为这个工作树命名分支',
@@ -6160,7 +6160,7 @@ export const zhOverrides = {
       removeWorktreeFailed: '无法移除工作树（存在未提交更改？）',
       removeWorktreeConfirm:
         '从 git 中移除（删除工作树目录，但保留分支），或仅从侧边栏隐藏该泳道并将工作树保留在磁盘上',
-      removeWorktreeDirty: '此工作树有未提交的更改。强制移除（丢弃这些更改），或仅隐藏泳道并保留在磁盘上',
+      removeWorktreeDirty: '此工作树有未提交的更改，强制移除（丢弃这些更改），或仅隐藏泳道并保留在磁盘上',
       forceRemove: '强制移除',
       enter: label => `打开 ${label}`,
       reorder: label => `重新排序 ${label}`,
@@ -6368,11 +6368,11 @@ export const zhOverrides = {
       '/branch': '将最新消息分支到新对话',
       '/worktree': '显示、列出、创建或清理隔离的 Git worktree',
       '/compress': '压缩此对话的上下文',
-      '/rollback': '列出或还原文件系统检查点（还原会保留你的手动编辑；--all 可覆盖此行为）',
+      '/rollback': '列出或还原文件系统检查点（还原会保留你的手动编辑，--all 可覆盖此行为）',
       '/export': '将配置档案（设置、技能、主题）导出为可分享的归档文件',
       '/import': '将共享的配置档案归档文件导入为新的配置档案',
       '/stop': '停止当前回合与后台进程',
-      '/pause': '暂停全局新任务（紧急停止）；/pause off 恢复',
+      '/pause': '暂停全局新任务（紧急停止），/pause off 恢复',
       '/bg': '在独立的后台会话中运行提示词',
       '/btw': '在不中断当前对话的情况下询问旁支问题',
       '/agents': '显示活跃代理与正在运行的任务',
@@ -6414,7 +6414,7 @@ export const zhOverrides = {
       '/blueprint': '使用 blueprint 模板设置自动化',
       '/browser': '管理智能体浏览器 [connect|disconnect|status|use]',
       '/palette': '打开模糊搜索命令面板（也可使用 Ctrl+P）',
-      '/usage': '显示 Token 用量与速率限制；`reset` 可兑换保留的 Codex 限额重置',
+      '/usage': '显示 Token 用量与速率限制，`reset` 可兑换保留的 Codex 限额重置',
       '/subscription': '查看你的 Nous 方案，并在浏览器中更改',
       '/topup': '显示你的 Nous 余额，并在 Portal 管理账务',
       '/platform': '暂停、恢复或列出故障的网关平台',
@@ -6455,7 +6455,7 @@ export const zhOverrides = {
     queueResume: '继续',
     queueResumeTip: '已被停止操作暂停 — 继续发送排队的回合',
     queueStuckTitle: '排队消息未发送',
-    queueStuckBody: '排队的对话多次发送失败。它仍在队列中，请重试发送',
+    queueStuckBody: '排队的对话多次发送失败，它仍在队列中，请重试发送',
     queueDroppedTitle: '已丢弃排队内容',
     queueDroppedBody: '该后台队列条目因会话多次尝试后仍无法恢复而被丢弃，队列中的其他内容不受影响',
     terminalSelectionMissingTitle: '无法使用终端选区',
@@ -6699,10 +6699,10 @@ export const zhOverrides = {
   },
   updates: {
     discontinuedTitle: '此版本的 Hermes 已停止支持',
-    discontinuedBody: '此版本的 Hermes 已停止支持，可能无法正常运行——请卸载。您的数据仍保留在磁盘上',
+    discontinuedBody: '此版本的 Hermes 已停止支持，可能无法正常运行——请卸载，您的数据仍保留在磁盘上',
     channels: { stable: '稳定版', canary: '预览版' },
     bundleSwapPending: '重启以完成更新',
-    bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本。聊天记录和设置不会受到影响',
+    bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本，聊天记录和设置不会受到影响',
     bundleSwapPendingAction: '重启 Hermes',
     stages: {
       idle: '准备中…',
@@ -6747,8 +6747,8 @@ export const zhOverrides = {
     copyFullLog: '复制完整更新日志',
     manualTitle: '从终端更新',
     manualUnavailableTitle: '无法从这里更新',
-    manualBody: '你是从命令行安装的 Hermes，因此更新也需要在那里运行。请将此命令粘贴到终端：',
-    manualBodyBackend: 'Hermes 后端由本应用之外管理。请在托管它的服务器上运行此命令：',
+    manualBody: '你是从命令行安装的 Hermes，因此更新也需要在那里运行，请将此命令粘贴到终端：',
+    manualBodyBackend: 'Hermes 后端由本应用之外管理，请在托管它的服务器上运行此命令：',
     manualPickedUp: '下次启动 Hermes 时会使用新版本',
     manualPickedUpBackend: '后端将在更新完成后加载新版本',
     guiSkewTitle: '请更新桌面应用',
@@ -6843,25 +6843,25 @@ export const zhOverrides = {
     versionDetailsRuntimeExternal: '外部运行时（使用系统运行时）',
     versionDetailsInstallId: '安装 ID',
     versionDetailsUncommittedChanges: '未提交更改',
-    availableBodyAppInstaller: 'Hermes 新版本已就绪。Hermes 将会关闭，由 Windows 完成更新，然后自动重新打开',
-    applyingBodyAppInstaller: 'Hermes 将会关闭，由 Windows 完成更新。完成后 Hermes 会自动重新打开——你无需进行任何操作',
+    availableBodyAppInstaller: 'Hermes 新版本已就绪，Hermes 将会关闭，由 Windows 完成更新，然后自动重新打开',
+    applyingBodyAppInstaller: 'Hermes 将会关闭，由 Windows 完成更新，完成后 Hermes 会自动重新打开——你无需进行任何操作',
     applyingCloseAppInstaller: '此窗口将会关闭，Windows 完成更新后 Hermes 会自动重新打开',
     checkUnknownTitleAppInstaller: '无法检查更新',
-    checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新。重启 Hermes 时也会自动安装更新'
+    checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新'
   },
   handoffTour: {
     profileTitle: '你的第一个任务在默认配置档案中运行',
     profileText:
-      '这里可以切换配置档案。当前高亮的是 default，任务会话就在其中。另一个是设置配置档案，欢迎对话保存在那里',
+      '这里可以切换配置档案，当前高亮的是 default，任务会话就在其中，另一个是设置配置档案，欢迎对话保存在那里',
     sessionsTitle: '每个配置档案都有自己的会话',
     sessionsText:
-      '此列表属于默认配置档案。“新建会话”会在当前选中的配置档案中创建会话。在侧栏切换配置档案，列表也会随之切换',
+      '此列表属于默认配置档案，“新建会话”会在当前选中的配置档案中创建会话，在侧栏切换配置档案，列表也会随之切换',
     stayTitle: '随时都能找到 Hermes',
-    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可。这个对话会一直保留'
+    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可，这个对话会一直保留'
   },
   guidedGreeting: {
-    line: '来了，进来吧。我是 Hermes。给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做。\n\n先说，我该怎么称呼你？',
-    nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}。）`
+    line: '来了，进来吧，我是 Hermes，给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做\n\n先说，我该怎么称呼你？',
+    nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}）`
   },
   guidedOnboarding: {
     done: '✓ 完成',
@@ -6876,7 +6876,7 @@ export const zhOverrides = {
     workingOnIt: '正在处理',
     firstBuild: '第一个任务',
     signpostTitle: 'Hermes 就在隔壁',
-    signpostBody: '你现在位于自己的工作区，所有 profile 都在这里。刚才的对话仍保留在其中，需要帮忙时随时回来',
+    signpostBody: '你现在位于自己的工作区，所有 profile 都在这里，刚才的对话仍保留在其中，需要帮忙时随时回来',
     profileDescription: '你与 Hermes 初次见面的地方 — 引导首次使用，并在你熟悉后适时跟进',
     accentNames: {
       mono: '单色',
@@ -6930,8 +6930,8 @@ export const zhOverrides = {
       receiptUnreadable: '无法读取已保存的第一个任务记录，请先检查会话再启动其他任务',
       receiptSaveFailed: '无法保存第一个任务的恢复信息，尚未发送新的启动请求',
       verifyFailed: '无法验证第一个任务，请在连接恢复后重试',
-      unconfirmedRunning: '第一个任务尚未确认启动，但会话仍显示正在运行。请在其空闲后重试；没有重复发送',
-      notAcknowledged: '第一个任务尚未确认启动，请检查其会话后重试；没有重复发送',
+      unconfirmedRunning: '第一个任务尚未确认启动，但会话仍显示正在运行，请在其空闲后重试，没有重复发送',
+      notAcknowledged: '第一个任务尚未确认启动，请检查其会话后重试，没有重复发送',
       notAcknowledgedStart: '第一个任务未确认启动，请检查其会话后重试',
       pluginFolderUnavailable: '桌面插件文件夹不可用，请在启动第一个任务前重试'
     }
@@ -6971,7 +6971,7 @@ export const zhOverrides = {
     unknownError: '未知错误',
     oneTimeTitle: 'Hermes 需要一次性安装',
     unsupportedDesc: platform =>
-      `${platform} 暂不支持自动首次启动安装。请打开终端并运行下面的命令，然后重新启动此应用，之后启动会跳过此步骤`,
+      `${platform} 暂不支持自动首次启动安装，请打开终端并运行下面的命令，然后重新启动此应用，之后启动会跳过此步骤`,
     installCommand: '安装命令',
     copyCommand: '复制命令',
     viewDocs: '查看安装文档',
@@ -6981,12 +6981,12 @@ export const zhOverrides = {
     setupChoiceDesc: '将此应用连接到你已运行的 Hermes 网关，或在这台电脑上本地安装 Hermes',
     connectExistingTitle: '连接到现有 Hermes',
     connectExistingShort: '连接现有环境',
-    connectExistingDesc: '使用会话令牌或浏览器登录连接远程后端。不会启动本地安装',
+    connectExistingDesc: '使用会话令牌或浏览器登录连接远程后端，不会启动本地安装',
     installLocalTitle: '本地安装 Hermes',
     installLocalDesc: '下载 Hermes，创建 Python 环境，并在这台电脑上运行后端',
-    localStartUnavailable: '无法启动本地安装。请重启 Hermes Desktop 后重试',
+    localStartUnavailable: '无法启动本地安装，请重启 Hermes Desktop 后重试',
     remoteSetupTitle: '连接到现有 Hermes',
-    remoteSetupDesc: '输入网关 URL。Hermes Desktop 会检测需要令牌还是浏览器登录',
+    remoteSetupDesc: '输入网关 URL，Hermes Desktop 会检测需要令牌还是浏览器登录',
     remoteUrlTitle: '网关 URL',
     remoteUrlDesc: '使用 Hermes 网关的基础 URL，远程地址请包含 https://',
     remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
@@ -7014,8 +7014,8 @@ export const zhOverrides = {
     settingUpTitle: '正在设置 Hermes Agent',
     finishingTitle: '正在收尾',
     failedDesc:
-      '某个安装步骤失败。在 Windows 上，如果另一个 Hermes CLI 或桌面实例正在运行，可能会出现这种情况，请停止正在运行的 Hermes 实例后重试。可查看下面的详情或 desktop 日志中的完整记录',
-    activeDesc: '这是一次性设置。Hermes 安装器正在下载依赖并配置你的机器，之后启动会跳过此步骤',
+      '某个安装步骤失败，在 Windows 上，如果另一个 Hermes CLI 或桌面实例正在运行，可能会出现这种情况，请停止正在运行的 Hermes 实例后重试，可查看下面的详情或 desktop 日志中的完整记录',
+    activeDesc: '这是一次性设置，Hermes 安装器正在下载依赖并配置你的机器，之后启动会跳过此步骤',
     progress: (completed, total) => `${completed}/${total} 个步骤已完成`,
     currentStage: stage => ` -- 当前：${stage}`,
     fetchingManifest: '正在获取安装器 manifest...',
@@ -7045,7 +7045,7 @@ export const zhOverrides = {
       'claude-code': 'Anthropic OAuth：需额外用量额度才能使用订阅',
       'openai-codex': 'ChatGPT 或 Codex 订阅'
     },
-    preparingInstall: 'Hermes 正在完成安装。首次运行通常不到一分钟',
+    preparingInstall: 'Hermes 正在完成安装，首次运行通常不到一分钟',
     starting: '正在启动 Hermes…',
     lookingUpProviders: '正在查找提供方...',
     collapse: '收起',
@@ -7066,7 +7066,7 @@ export const zhOverrides = {
       },
       openrouter: {
         short: '一个密钥，多个模型',
-        description: '用一个密钥访问数百个模型。适合新安装的默认选择'
+        description: '用一个密钥访问数百个模型，适合新安装的默认选择'
       },
       openai: {
         short: 'GPT 级模型',
@@ -7103,9 +7103,9 @@ export const zhOverrides = {
     startingSignIn: provider => `正在为 ${provider} 启动登录..`,
     verifyingCode: provider => `正在通过 ${provider} 验证你的代码..`,
     connectedProvider: provider => `${provider} 已连接`,
-    connectedPicking: provider => `${provider} 已连接。正在选择默认模型..`,
+    connectedPicking: provider => `${provider} 已连接，正在选择默认模型..`,
     signInFailed: '登录失败，请重试',
-    signInExpired: '在你完成之前，登录页面超时了。请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥',
+    signInExpired: '在你完成之前，登录页面超时了，请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥',
     pickDifferentProvider: '选择其他提供方',
     signInWith: provider => `使用 ${provider} 登录`,
     openedBrowser: provider => `已在浏览器中打开 ${provider}`,
@@ -7113,12 +7113,12 @@ export const zhOverrides = {
     copyAuthCode: '复制授权码并粘贴到下面',
     pasteAuthCode: '粘贴授权码',
     reopenAuthPage: '重新打开授权页面',
-    autoBrowser: provider => `已在浏览器中打开 ${provider}。请在那里授权 Hermes，连接会自动完成，无需复制或粘贴`,
+    autoBrowser: provider => `已在浏览器中打开 ${provider}，请在那里授权 Hermes，连接会自动完成，无需复制或粘贴`,
     reopenSignInPage: '重新打开登录页面',
     waitingAuthorize: '等待你授权...',
-    externalPending: provider => `${provider} 通过自己的 CLI 登录。请在终端运行此命令，然后回来选择"我已登录"：`,
+    externalPending: provider => `${provider} 通过自己的 CLI 登录，请在终端运行此命令，然后回来选择"我已登录"：`,
     signedIn: '我已登录',
-    deviceCodeOpened: provider => `已在浏览器中打开 ${provider}。请在那里输入此代码：`,
+    deviceCodeOpened: provider => `已在浏览器中打开 ${provider}，请在那里输入此代码：`,
     reopenVerification: '重新打开验证页面',
     copy: '复制',
     defaultModel: '默认模型',
@@ -7129,7 +7129,7 @@ export const zhOverrides = {
     change: '更改',
     startChatting: '开始',
     docs: provider => `${provider} 文档`,
-    signInDidNotFinish: provider => `使用${provider}登录未完成。请检查你的网络连接并重试，或者选择不同的提供商`,
+    signInDidNotFinish: provider => `使用${provider}登录未完成，请检查你的网络连接并重试，或者选择不同的提供商`,
     tryAgain: '再试一次',
     useApiKeyInstead: '使用 API 密钥',
     errorDetails: '详情'
@@ -7156,7 +7156,7 @@ export const zhOverrides = {
     doNotShare: '请勿分享此代码',
     waiting: '等待登录…',
     finishingHeading: '正在完成登录…',
-    finishingBody: '已在浏览器中批准。正在获取账户令牌',
+    finishingBody: '已在浏览器中批准，正在获取账户令牌',
     signedInAs: email => `已登录为 ${email}`,
     signedIn: '已登录',
     completedBody: '现在由你的账户提供推理和工具',
@@ -7167,29 +7167,29 @@ export const zhOverrides = {
     tryAgain: '重试',
     startAgain: '重新开始',
     didNotComplete: '登录未完成',
-    rejectedBody: '没问题，你仍然在免费 Nous 服务上。随时准备好就可以登录',
-    supersededBody: '较新的登录代码已取代此代码。请使用最新代码，或者重新开始',
+    rejectedBody: '没问题，你仍然在免费 Nous 服务上，随时准备好就可以登录',
+    supersededBody: '较新的登录代码已取代此代码，请使用最新代码，或者重新开始',
     timedOutHeading: '该登录链接已过期',
-    timedOutBody: '随时准备好就可以重新开始。你仍然在免费 Nous 服务上',
-    retiredBody: '在登录完成前，你的会话已结束。Hermes 将启动一个新的会话；然后随时准备好再次登录',
-    errorBody: '登录未完成。准备好时请再次尝试',
+    timedOutBody: '随时准备好就可以重新开始，你仍然在免费 Nous 服务上',
+    retiredBody: '在登录完成前，你的会话已结束，Hermes 将启动一个新的会话，然后随时准备好再次登录',
+    errorBody: '登录未完成，准备好时请再次尝试',
     alreadySignedInHeading: '已登录',
     alreadySignedInBody: '此 Hermes 已登录 Nous 账户',
     busyHeading: '马上就到了',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间`,
-    unreachableBody: 'Hermes无法到达Nous服务完成签约. 检查一下你的网络连接 再试一次 你的会议还在.',
+    unreachableBody: 'Hermes无法到达Nous服务完成签约，检查一下你的网络连接 再试一次 你的会议还在',
     setupFailed: {
-      gateClosed: '这个版本的Hermes无法在没有Nous账户的情况下启动. 签名或创建一个,它是免费的,只需要一分钟.',
-      paused: '使用Hermes而不签名则暂停片刻. Hermes会继续检查 签字是免费的,让你现在去.',
+      gateClosed: '这个版本的Hermes无法在没有Nous账户的情况下启动，签名或创建一个,它是免费的,只需要一分钟',
+      paused: '使用Hermes而不签名则暂停片刻. Hermes会继续检查 签字是免费的,让你现在去',
       rateLimited: wait =>
-        `Lots of people are getting started right now, so Hermes will try again in ${wait}。签名是免费的,并跳过等待`,
-      unreachable: 'Hermes无法到达Nous服务. 检查你的互联网连接,然后再试一次。 或者联系另一个供应商.',
-      serverError: 'Nous服务打嗝. 立即再试一次, 或者连接另一个提供者.',
-      powRequired: 'Nous服务器要求工作证明,但这尚未在您的代理中执行. 签名或创建一个 Nous 账户继续 .',
-      locked: '这个会话没有签名就无法继续. 签名或创建免费的 Nous 账户继续运行 .',
-      generic: 'Hermes未签约无法设置免费接入. 签名是免费的, 或者连接另一个提供者 .',
-      signInBelow: '签名是免费的。 在下面选Nous.',
+        `Lots of people are getting started right now, so Hermes will try again in ${wait}，签名是免费的,并跳过等待`,
+      unreachable: 'Hermes无法到达Nous服务，检查你的互联网连接,然后再试一次，或者联系另一个供应商',
+      serverError: 'Nous服务打嗝，立即再试一次, 或者连接另一个提供者',
+      powRequired: 'Nous服务器要求工作证明,但这尚未在您的代理中执行，签名或创建一个 Nous 账户继续 .',
+      locked: '这个会话没有签名就无法继续，签名或创建免费的 Nous 账户继续运行 .',
+      generic: 'Hermes未签约无法设置免费接入，签名是免费的, 或者连接另一个提供者 .',
+      signInBelow: '签名是免费的，在下面选Nous.',
       tryAgain: '再试一次',
       retrying: '再次尝试..'
     }
@@ -7225,7 +7225,7 @@ export const zhOverrides = {
     removeCustomModel: '移除自定义模型',
     resetToDefaults: '恢复默认',
     resetConfirm: '将模型可见性恢复为默认？',
-    resetDescription: '你对模型显示与隐藏的选择将被清除，每个提供方都会恢复默认列表。你添加的自定义模型会保留并显示',
+    resetDescription: '你对模型显示与隐藏的选择将被清除，每个提供方都会恢复默认列表，你添加的自定义模型会保留并显示',
     resetAction: '恢复'
   },
   shell: {
@@ -7385,8 +7385,8 @@ export const zhOverrides = {
         tokenSummary: (used, max) => `${used} / ${max} Tokens`
       },
       session: '会话',
-      yoloOn: 'YOLO 已开启 — 自动批准危险命令。Shift+点击可全局切换',
-      yoloOff: 'YOLO 已关闭。Shift+点击可全局切换',
+      yoloOn: 'YOLO 已开启 — 自动批准危险命令，Shift+点击可全局切换',
+      yoloOff: 'YOLO 已关闭，Shift+点击可全局切换',
       modelNone: '无',
       noModel: '无模型',
       switchModel: '切换模型',
@@ -7400,7 +7400,7 @@ export const zhOverrides = {
   },
   rightSidebar: {
     terminalReadOnly: '只读输出',
-    terminalReadOnlyHelp: '如需回应提示，请停止后台命令，再在新终端中运行。新终端会打开独立的 shell，不会连接到此进程',
+    terminalReadOnlyHelp: '如需回应提示，请停止后台命令，再在新终端中运行，新终端会打开独立的 shell，不会连接到此进程',
     terminalOpenInteractive: '打开新终端',
     aria: '右侧边栏',
     panelsAria: '右侧边栏面板',
@@ -7453,7 +7453,7 @@ export const zhOverrides = {
     unavailable: '预览不可用',
     missingTarget: '此路径在这台电脑上不存在',
     missingTitle: '文件已不存在',
-    missingBody: label => `${label} 已被删除、移动，或其临时位置已被清除。此标签页不会在下次启动时恢复`,
+    missingBody: label => `${label} 已被删除、移动，或其临时位置已被清除，此标签页不会在下次启动时恢复`,
     opening: '正在打开...',
     hide: '隐藏',
     openPreview: '打开预览',
@@ -7470,7 +7470,7 @@ export const zhOverrides = {
     binaryTitle: '这看起来像二进制文件',
     binaryBody: label => `预览 ${label} 可能会显示不可读文本`,
     largeTitle: '此文件较大',
-    largeBody: (label, size) => `${label} 大小为 ${size}。Hermes 只会显示前 512 KB`,
+    largeBody: (label, size) => `${label} 大小为 ${size}，Hermes 只会显示前 512 KB`,
     previewAnyway: '仍然预览',
     truncated: '显示前 512 KB',
     noInlineTitle: '没有内联预览',
@@ -7515,7 +7515,7 @@ export const zhOverrides = {
       askRestart: '让 Hermes 重启服务器',
       lookingRestart: taskId => `Hermes 正在查找要重启的预览服务器 (${taskId})`,
       restartingTitle: '正在重启预览服务器',
-      restartingMessage: 'Hermes 正在后台工作。可在预览控制台查看进度',
+      restartingMessage: 'Hermes 正在后台工作，可在预览控制台查看进度',
       startRestartFailed: message => `无法启动服务器重启：${message}`,
       restartFailed: '服务器重启失败',
       hideConsole: '隐藏预览控制台',
@@ -7535,13 +7535,13 @@ export const zhOverrides = {
       reloadingNow: '正在重新加载预览',
       restartFailedTitle: '预览重启失败',
       restartFailedMessage: 'Hermes 无法重启服务器',
-      stillWorking: 'Hermes 仍在工作，但还没有收到重启结果。服务器命令可能正在前台运行',
+      stillWorking: 'Hermes 仍在工作，但还没有收到重启结果，服务器命令可能正在前台运行',
       workspaceReloading: '工作区已变更，正在重新加载预览',
       fileChanged: url => `文件已变更，正在重新加载预览：${url}`,
       filesChanged: (count, url) => `${count} 个文件变更，正在重新加载预览：${url}`,
       watchFailed: message => `无法监听预览文件：${message}`,
       moduleMimeDescription:
-        '模块脚本使用了错误的 MIME 类型。这通常表示静态文件服务器正在服务 Vite/React 应用，而不是项目开发服务器',
+        '模块脚本使用了错误的 MIME 类型，这通常表示静态文件服务器正在服务 Vite/React 应用，而不是项目开发服务器',
       loadFailedConsole: (code, message) => `加载失败${code ? ` (${code})` : ''}: ${message}`,
       unreachableDescription: '无法访问预览页面',
       openTarget: url => `打开 ${url}`,
@@ -7561,14 +7561,14 @@ export const zhOverrides = {
   interfaceMode: {
     title: '界面模式',
     hint: '只改变显示的内容，不改变 Hermes 的能力',
-    sessionNote: '由简洁模式设定。此处的更改仅在本次会话内生效；切换到高级模式即可保留为你的设置',
+    sessionNote: '由简洁模式设定，此处的更改仅在本次会话内生效，切换到高级模式即可保留为你的设置',
     simple: {
       label: '简洁',
-      description: '用于与 Hermes 对话。只有侧边栏和聊天；没有终端、文件或差异面板'
+      description: '用于与 Hermes 对话，只有侧边栏和聊天，没有终端、文件或差异面板'
     },
     advanced: {
       label: '高级',
-      description: '面向开发者。终端、文件、差异、状态栏和布局，按你的设置显示'
+      description: '面向开发者，终端、文件、差异、状态栏和布局，按你的设置显示'
     }
   },
 
@@ -7579,7 +7579,7 @@ export const zhOverrides = {
     hideStripTab: title => `隐藏 ${title}`,
     zoneMenuLabel: title => `${title} 的区域选项`,
     lastTabKeptTitle: '保留最后一个标签',
-    lastTabKeptBody: '该区域至少需要一个可见标签。请先显示另一个标签，或折叠整个侧边栏',
+    lastTabKeptBody: '该区域至少需要一个可见标签，请先显示另一个标签，或折叠整个侧边栏',
     toggleStripTab: title => `切换 ${title} 标签`,
     minimize: '最小化',
     restore: '还原',
@@ -7770,72 +7770,72 @@ export const zhOverrides = {
       responseStopped: '回复已停止',
       errorGenericProvider: 'AI 服务',
       errorLayerBodies: {
-        auth: 'AI 服务拒绝了登录凭据。请检查此提供商的凭据，然后重新发送消息',
-        billing: '此提供商账户的额度已用尽。请充值或切换提供商，然后重新发送',
-        disk: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试',
-        generic: 'Hermes 回复时出现问题。请重试；若问题持续，请复制错误详情',
-        provider: 'AI 服务无法完成此请求。请稍后重试或切换服务商',
-        endpoint: 'Hermes 无法连接到你的自定义模型服务器。请确认它正在运行，然后重新发送消息',
-        gateway: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息',
-        runtime: 'Hermes 在开始回复时遇到内部问题。请重新发送消息；若问题持续，请发送诊断信息',
-        streaming: '回复完成前连接已断开。请重试以重新发送'
+        auth: 'AI 服务拒绝了登录凭据，请检查此提供商的凭据，然后重新发送消息',
+        billing: '此提供商账户的额度已用尽，请充值或切换提供商，然后重新发送',
+        disk: '磁盘空间已满，Hermes 无法保存此对话，请释放空间后重试',
+        generic: 'Hermes 回复时出现问题，请重试，若问题持续，请复制错误详情',
+        provider: 'AI 服务无法完成此请求，请稍后重试或切换服务商',
+        endpoint: 'Hermes 无法连接到你的自定义模型服务器，请确认它正在运行，然后重新发送消息',
+        gateway: 'Hermes 在开始回复时遇到内部问题，请重新发送消息，若问题持续，请发送诊断信息',
+        runtime: 'Hermes 在开始回复时遇到内部问题，请重新发送消息，若问题持续，请发送诊断信息',
+        streaming: '回复完成前连接已断开，请重试以重新发送'
       },
       errorCodes: {
         auth: {
           title: provider => `${provider} 拒绝了登录`,
-          body: provider => `为 ${provider} 保存的凭据未被接受。请在设置中修正凭据或切换提供商，然后重新发送消息。`
+          body: provider => `为 ${provider} 保存的凭据未被接受，请在设置中修正凭据或切换提供商，然后重新发送消息`
         },
         auth_permanent: {
           title: provider => `${provider} 拒绝了登录`,
-          body: provider => `为 ${provider} 保存的凭据无效或已被撤销。请更新凭据或切换提供商，然后重新发送消息。`
+          body: provider => `为 ${provider} 保存的凭据无效或已被撤销，请更新凭据或切换提供商，然后重新发送消息`
         },
         billing: {
           title: '额度不足',
-          body: provider => `${provider} 账户的额度已用尽。请充值或切换提供商，然后重新发送。`
+          body: provider => `${provider} 账户的额度已用尽，请充值或切换提供商，然后重新发送`
         },
         provider_policy_blocked: {
           title: '账户设置阻止了此模型',
-          body: provider => `${provider} 无法按你账户的数据或隐私设置路由此请求。请选择其他模型或切换服务商。`
+          body: provider => `${provider} 无法按你账户的数据或隐私设置路由此请求，请选择其他模型或切换服务商`
         },
         content_policy_blocked: {
           title: 'AI 服务拒绝回答此请求',
-          body: provider => `${provider} 拒绝回答这条消息。请修改后重新发送。`
+          body: provider => `${provider} 拒绝回答这条消息，请修改后重新发送`
         },
         format_error: {
           title: 'AI 服务拒绝了请求格式',
-          body: provider => `${provider} 不接受此请求的构造方式。请切换服务商，或发送诊断信息以便我们排查。`
+          body: provider => `${provider} 不接受此请求的构造方式，请切换服务商，或发送诊断信息以便我们排查`
         },
         invalid_response: {
           title: 'AI 服务返回了无法读取的回复',
-          body: provider => `${provider} 返回了 Hermes 无法读取的内容。请稍后重试。`
+          body: provider => `${provider} 返回了 Hermes 无法读取的内容，请稍后重试`
         },
         empty_response: {
           title: 'AI 服务返回了空回复',
-          body: provider => `${provider} 没有为此消息返回内容。请稍后重试。`
+          body: provider => `${provider} 没有为此消息返回内容，请稍后重试`
         },
         rate_limit: {
           title: 'AI 服务繁忙',
-          body: provider => `${provider} 正在限制请求数量。请稍等片刻后重试。`
+          body: provider => `${provider} 正在限制请求数量，请稍等片刻后重试`
         },
         upstream_rate_limit: {
           title: 'AI 服务繁忙',
-          body: provider => `${provider} 正在限制请求数量。请稍等片刻后重试。`
+          body: provider => `${provider} 正在限制请求数量，请稍等片刻后重试`
         },
         overloaded: {
           title: 'AI 服务负载过高',
-          body: provider => `${provider} 当前遇到问题。请稍后重试或切换服务商。`
+          body: provider => `${provider} 当前遇到问题，请稍后重试或切换服务商`
         },
         server_error: {
           title: 'AI 服务发生错误',
-          body: provider => `${provider} 返回了服务器错误。请稍后重试或切换服务商。`
+          body: provider => `${provider} 返回了服务器错误，请稍后重试或切换服务商`
         },
         timeout: {
           title: '无法连接到 AI 服务',
-          body: provider => `无法连接到 ${provider}，或其未及时响应。请检查网络连接后重试。`
+          body: provider => `无法连接到 ${provider}，或其未及时响应，请检查网络连接后重试`
         },
         stream_drop: {
           title: '回复被中断',
-          body: '连接在回复完成前已中断。请重试以重新发送'
+          body: '连接在回复完成前已中断，请重试以重新发送'
         },
         no_reply: {
           title: '回复未完成',
@@ -7844,39 +7844,39 @@ export const zhOverrides = {
         upstream_blocked: {
           title: '请求被防火墙拦截',
           body: provider =>
-            `${provider} 前方的防火墙或 CDN 在请求到达模型前将其拦截；你的密钥可能没有问题。请在设置中通过提供商的 extra_headers 设置 User-Agent，或切换提供商后重试。`
+            `${provider} 前方的防火墙或 CDN 在请求到达模型前将其拦截，你的密钥可能没有问题，请在设置中通过提供商的 extra_headers 设置 User-Agent，或切换提供商后重试`
         },
         ssl_cert_verification: {
           title: '安全连接失败',
-          body: provider => `Hermes 无法验证与 ${provider} 的安全连接。请检查网络或代理设置，或切换服务商后重新发送。`
+          body: provider => `Hermes 无法验证与 ${provider} 的安全连接，请检查网络或代理设置，或切换服务商后重新发送`
         },
         context_overflow: {
           title: '此对话过长',
-          body: '对话内容已超出模型上下文。请压缩对话或新建对话，然后重新发送'
+          body: '对话内容已超出模型上下文，请压缩对话或新建对话，然后重新发送'
         },
         payload_too_large: {
           title: '此消息过大',
-          body: '请求内容超出模型限制。请压缩对话或新建对话，然后重新发送'
+          body: '请求内容超出模型限制，请压缩对话或新建对话，然后重新发送'
         },
         model_not_found: {
           title: '此模型不可用',
-          body: provider => `${provider} 未向你的账户提供此模型。请选择其他模型，然后重新发送。`
+          body: provider => `${provider} 未向你的账户提供此模型，请选择其他模型，然后重新发送`
         },
         truncated: {
           title: '回复未完整生成',
-          body: '模型在完成回复前停止了。请重试以获取完整回复'
+          body: '模型在完成回复前停止了，请重试以获取完整回复'
         },
         loop_error: {
           title: 'Hermes 陷入循环',
-          body: '回复持续重复相同步骤，因此 Hermes 已停止运行。请重试；若再次发生，可新建对话'
+          body: '回复持续重复相同步骤，因此 Hermes 已停止运行，请重试，若再次发生，可新建对话'
         },
         SESSION_NOT_OWNED: {
           title: '此对话已在其他位置打开',
-          body: '此对话当前正在另一个 Hermes 窗口或终端中打开。请先在那里关闭，然后重新发送；也可以在这里新建对话'
+          body: '此对话当前正在另一个 Hermes 窗口或终端中打开，请先在那里关闭，然后重新发送，也可以在这里新建对话'
         },
         disk_full: {
           title: '磁盘已满',
-          body: '磁盘空间已满，Hermes 无法保存此对话。请释放空间后重试'
+          body: '磁盘空间已满，Hermes 无法保存此对话，请释放空间后重试'
         },
         free_tier_disabled: {
           title: '未登录的免费服务当前已关闭',
@@ -7884,7 +7884,7 @@ export const zhOverrides = {
         },
         free_tier_rate_limited: {
           title: '未登录聊天额度已用尽',
-          body: '额度很快会恢复。登录免费的 Nous 账户可获得更高额度'
+          body: '额度很快会恢复，登录免费的 Nous 账户可获得更高额度'
         },
         free_tier_at_capacity: {
           title: '未登录聊天当前繁忙',
@@ -7892,7 +7892,7 @@ export const zhOverrides = {
         },
         free_tier_model_not_free: {
           title: '未登录时无法使用此模型',
-          body: 'Hermes 当前使用免费模型。登录免费的 Nous 账户可使用更多模型'
+          body: 'Hermes 当前使用免费模型，登录免费的 Nous 账户可使用更多模型'
         },
         free_tier_route: {
           title: 'Hermes 无法访问此路由上的免费模型',
@@ -7922,7 +7922,7 @@ export const zhOverrides = {
       errorStartNewSession: '开始新会话',
       errorSwitchProvider: '切换服务商',
       errorSignInAgain: provider => `重新登录 ${provider}`,
-      errorOauthExpired: provider => `您的 ${provider} 登录已过期或被撤销。请重新登录以继续对话`,
+      errorOauthExpired: provider => `您的 ${provider} 登录已过期或被撤销，请重新登录以继续对话`,
       errorOpenLogs: '打开日志',
       errorOpenLogsFailed: '无法打开日志文件夹',
       errorOpenDesktopLogs: '打开桌面端日志',
@@ -7954,7 +7954,7 @@ export const zhOverrides = {
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}拒绝了你的 API 密钥`,
-          body: provider => `为…而保存的钥匙${provider}无效或已被撤销。请更新后重试。`
+          body: provider => `为…而保存的钥匙${provider}无效或已被撤销，请更新后重试`
         },
         oauth: {
           title: provider => `您的${provider}登录已过期`
@@ -7975,7 +7975,7 @@ export const zhOverrides = {
       errorSignInFreeTier: '用 Nous 账户签名'
     },
     approval: {
-      gatewayDisconnected: 'Hermes 目前离线。该命令仍在等待您的回复（直到批准超时）。重新连接后，再次发送它',
+      gatewayDisconnected: 'Hermes 目前离线，该命令仍在等待您的回复（直到批准超时），重新连接后，再次发送它',
       sendFailed: '无法发送您的答案',
       run: '运行',
       command: '命令',
@@ -7989,13 +7989,13 @@ export const zhOverrides = {
         `这会将"${pattern}"模式加入永久允许列表 (~/.hermes/config.yaml)，Hermes 对类似命令将不再询问，包括当前会话和未来会话`,
       alwaysAllow: '始终允许',
       reconnect: '重新连接',
-      timedOutSystemLine: '批准超时——命令未运行. 请 Hermes 重新尝试, 或在设置 → 安全 → 批准超时 .',
+      timedOutSystemLine: '批准超时——命令未运行，请 Hermes 重新尝试, 或在设置 → 安全 → 批准超时 .',
       openSafetySettings: '打开安全设置',
       commandDetails: '命令详情'
     },
     clarify: {
       notReady: '澄清请求尚未就绪',
-      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送',
+      gatewayDisconnected: 'Hermes 目前离线，重新连接，然后再次发送',
       sendFailed: '无法发送澄清响应',
       loadingQuestion: '正在加载问题…',
       other: '其他 (输入你的答案)',
@@ -8008,7 +8008,7 @@ export const zhOverrides = {
       singleSelectHint: '选一个',
       multiSelectHint: '可多选',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
-      notDelivered: '此问题未送达应用，无法在此回答。请按停止结束本轮，然后在聊天中回复'
+      notDelivered: '此问题未送达应用，无法在此回答，请按停止结束本轮，然后在聊天中回复'
     },
     catalogInstall: {
       preparing: '正在准备安装…',
@@ -8048,7 +8048,7 @@ export const zhOverrides = {
       envRequired: '请先填写所需凭据',
       sendFailed: '无法发送 MCP 设置响应',
       reloadFailed: '服务器已保存，但重新加载 MCP 工具失败 — 将在下个会话加载',
-      gatewayDisconnected: 'Hermes 目前离线。重新连接，然后再次发送'
+      gatewayDisconnected: 'Hermes 目前离线，重新连接，然后再次发送'
     },
     tool: {
       copyCode: '复制代码',
@@ -8083,7 +8083,7 @@ export const zhOverrides = {
       returnedStatus: status => `工具返回了"${status}"状态`,
       commandFailedWithExitCode: exitCode => `命令执行失败，退出码为 ${exitCode}`,
       sessionKernelTimedOut: (timeoutSeconds, remote) =>
-        `执行单元在 ${timeoutSeconds} 秒后超时；${remote ? '远程' : ''}会话内核已被终止，其状态已丢失。下一次 execute_code 调用将启动一个全新的内核`,
+        `执行单元在 ${timeoutSeconds} 秒后超时，${remote ? '远程' : ''}会话内核已被终止，其状态已丢失，下一次 execute_code 调用将启动一个全新的内核`,
       clarifyErrors: {
         questionsMustBeArray: 'questions 参数必须是一个由问题对象组成的数组',
         questionsLimit: limit => `questions 参数最多支持 ${limit} 项`,
@@ -8092,7 +8092,7 @@ export const zhOverrides = {
         choicesMustBeArray: field => `${field} 必须是数组`,
         choicesMustBeStringArray: 'choices 参数必须是字符串数组',
         noQuestion:
-          '未提供问题。请在 questions 数组中至少传入一个对象并填写 question；choices 和 multi_select 为可选字段',
+          '未提供问题，请在 questions 数组中至少传入一个对象并填写 question，choices 和 multi_select 为可选字段',
         unavailable: '当前环境无法使用澄清问题工具',
         inputFailed: detail => `获取用户输入失败：${detail}`
       },
@@ -8320,7 +8320,7 @@ export const zhOverrides = {
     sudoSendFailed: '无法发送 sudo 密码',
     secretSendFailed: '无法发送密钥',
     sudoTitle: '管理员密码',
-    sudoDesc: 'Hermes 需要你的 sudo 密码来运行特权命令。它只会发送给你的本地 agent',
+    sudoDesc: 'Hermes 需要你的 sudo 密码来运行特权命令，它只会发送给你的本地 agent',
     sudoPlaceholder: 'sudo 密码',
     secretTitle: '需要密钥',
     secretDesc: 'Hermes 需要一个凭据才能继续',
@@ -8328,14 +8328,14 @@ export const zhOverrides = {
     vaultUnlockSendFailed: '无法发送主密码',
     vaultUnlockTitle: name => `解锁 ${name}`,
     vaultUnlockDesc: name =>
-      `智能体想使用保存在 ${name} 中的登录信息登录网站。输入主密码以在本会话中解锁——它会直接交给本机的 ${name}，不会被存储或展示给智能体`,
+      `智能体想使用保存在 ${name} 中的登录信息登录网站，输入主密码以在本会话中解锁——它会直接交给本机的 ${name}，不会被存储或展示给智能体`,
     vaultUnlockPlaceholder: '主密码',
     vaultUnlockKeepLocked: '保持锁定',
     vaultUnlockConfirm: '解锁',
     vaultSaveSendFailed: '无法保存登录信息',
     vaultSaveTitle: site => `保存 ${site} 的登录信息？`,
     vaultSaveDesc: origin =>
-      `Hermes 到达了 ${origin} 的登录页，但没有为它保存的登录信息。在此输入一次；它将在本机加密保存并直接填入页面，模型永远看不到密码`,
+      `Hermes 到达了 ${origin} 的登录页，但没有为它保存的登录信息，在此输入一次，它将在本机加密保存并直接填入页面，模型永远看不到密码`,
     vaultSaveIdentifierLabel: '邮箱或用户名',
     vaultSaveIdentifierPlaceholder: 'you@example.com',
     vaultSavePasswordPlaceholder: '密码',
@@ -8345,15 +8345,15 @@ export const zhOverrides = {
     vaultCodeSendFailed: '无法发送验证码',
     vaultCodeTitle: site => `${site} 的验证码`,
     vaultCodeDesc: site =>
-      `${site} 要求输入一次性验证码（短信、邮件或验证器应用）。在此输入，Hermes 会将其填入页面；模型永远看不到它`,
+      `${site} 要求输入一次性验证码（短信、邮件或验证器应用），在此输入，Hermes 会将其填入页面，模型永远看不到它`,
     vaultCodeLabel: '验证码',
     vaultCodeFootnote: '提示：在"设置 → 密码与登录"中为该登录保存验证器密钥后，Hermes 会自动填写验证码',
     vaultCodeSkip: '跳过',
     vaultCodeConfirm: '输入验证码',
     reconnect: '重新连接',
-    sudoCommandUnavailable: '此 agent 未提供命令。如果无法在对话中确认，请取消',
+    sudoCommandUnavailable: '此 agent 未提供命令，如果无法在对话中确认，请取消',
     sudoInstallDesc:
-      'Hermes 需要你的 sudo 密码，以便在网关主机上安装 Bot Screen 所需的软件包（TigerVNC 和 Xfce）。密码只会发送到该主机'
+      'Hermes 需要你的 sudo 密码，以便在网关主机上安装 Bot Screen 所需的软件包（TigerVNC 和 Xfce），密码只会发送到该主机'
   },
   desktop: {
     audioReadFailed: '无法读取录制的音频',
@@ -8375,9 +8375,9 @@ export const zhOverrides = {
     yoloSystem: active => `此会话 YOLO ${active ? '已开启' : '已关闭'}`,
     yoloTitle: 'YOLO',
     yoloToggleFailed: '无法切换 YOLO',
-    profileStatus: current => `配置档案：${current}。使用 /profile <name> 或"新建会话"选择器在其他配置档案中开始对话`,
+    profileStatus: current => `配置档案：${current}，使用 /profile <name> 或"新建会话"选择器在其他配置档案中开始对话`,
     unknownProfile: '未知配置档案',
-    noProfileNamed: (target, available) => `没有名为"${target}"的配置档案。可用：${available}`,
+    noProfileNamed: (target, available) => `没有名为"${target}"的配置档案，可用：${available}`,
     newChatsProfile: name => `新对话将使用配置档案 ${name}`,
     setProfileFailed: '设置配置档案失败',
     sttDisabled: '设置中已禁用语音转文字',
@@ -8388,12 +8388,12 @@ export const zhOverrides = {
     resumeFailed: '恢复失败',
     readOnlyTranscriptTitle: '已以只读方式打开',
     readOnlyTranscriptBody:
-      '尚无已连接的后端认领这个较早的会话，因此它以只读记录方式打开。历史记录完好；在有后端认领之前无法发送消息',
+      '尚无已连接的后端认领这个较早的会话，因此它以只读记录方式打开，历史记录完好，在有后端认领之前无法发送消息',
     readOnlyTranscriptSendBlocked: '该会话目前以只读记录方式打开 — 发送已禁用',
     resumeStrandedTitle: '无法加载此会话',
-    resumeStrandedBody: '与此会话的连接失败，自动重试已停止。请确认网关正在运行，然后重试',
+    resumeStrandedBody: '与此会话的连接失败，自动重试已停止，请确认网关正在运行，然后重试',
     poolSlotTimeoutBody:
-      '所有本地配置后端槽位都在使用中。请在“设置”→“高级”中增加“保持运行的机器人后端数量”，或等待空闲后端被移除后重试',
+      '所有本地配置后端槽位都在使用中，请在“设置”→“高级”中增加“保持运行的机器人后端数量”，或等待空闲后端被移除后重试',
     poolSlotTimeoutOpenSettings: '打开高级设置',
     resumeRetry: '重试',
     nothingToBranch: '没有可分支的内容',
@@ -8447,10 +8447,10 @@ export const zhOverrides = {
     dropFiles: '拖放文件',
     handoff: {
       pickPlatform: '选择目标平台',
-      success: platform => `已移交到 ${platform}。随时可在此处恢复`,
+      success: platform => `已移交到 ${platform}，随时可在此处恢复`,
       systemNote: platform => `↻ 已移交到 ${platform} — 随时可在此处恢复`,
       failed: error => `移交失败：${error}`,
-      timedOut: '等待网关超时。`hermes gateway` 是否正在运行？',
+      timedOut: '等待网关超时，`hermes gateway` 是否正在运行？',
       startMessaging: '开始通讯'
     },
     noPageAt: path => `没有注册页面于${path}`,
@@ -8462,7 +8462,7 @@ export const zhOverrides = {
     modelSwitchKeepLabel: '保留当前模型',
     modelSwitchStaleNotice: '选择已更改 — 未应用模型切换',
     staleSessionTitle: '聊天内容已过期',
-    staleSessionBody: '此窗口落后于同一聊天的另一个视图。已加载最新消息，如仍需发送请重新发送'
+    staleSessionBody: '此窗口落后于同一聊天的另一个视图，已加载最新消息，如仍需发送请重新发送'
   },
   tips: {
     close: '不再显示这条提示',
@@ -8501,7 +8501,7 @@ export const zhOverrides = {
       },
       'local-setup': {
         title: '这台电脑可以本地运行模型',
-        text: '你的硬件可以运行本地模型。对话不离开你的电脑，而且完全免费',
+        text: '你的硬件可以运行本地模型，对话不离开你的电脑，而且完全免费',
         action: '立即设置'
       },
       'right-pane': {
@@ -8510,7 +8510,7 @@ export const zhOverrides = {
       },
       'local-runtime-update': {
         title: '本地引擎有可用更新',
-        text: '更新运行本地模型的引擎。正在进行的本地请求可能会中断',
+        text: '更新运行本地模型的引擎，正在进行的本地请求可能会中断',
         action: '立即更新'
       }
     }
@@ -8518,7 +8518,7 @@ export const zhOverrides = {
   errors: {
     genericFailure: '发生错误',
     boundaryTitle: '界面出错了',
-    boundaryDesc: '此视图遇到意外错误。你的对话和设置是安全的',
+    boundaryDesc: '此视图遇到意外错误，你的对话和设置是安全的',
     reloadWindow: '重新加载窗口',
     openLogs: '打开日志',
     boundaryDetails: '详情',
