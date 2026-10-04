@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { $contextBreakdownConfigRevision } from '@/store/context-breakdown'
 import type { ContextBreakdown } from '@/types/hermes'
@@ -18,6 +18,14 @@ interface ContextBreakdownOptions {
  *  gauge rides the streamed usage until the next trigger. */
 export const DEFERRED_AGENT_RETRY_LIMIT = 8
 
+/** While a turn runs, a ready snapshot is re-measured on this cadence so the
+ *  per-category rows follow a long agentic turn (tool results piling into the
+ *  conversation bucket, a mid-turn compaction shrinking it) instead of freezing
+ *  at the pre-turn split. The RPC is a local chars/4 pass over the live
+ *  transcript — no provider call, no prompt-cache impact — so the cost is a
+ *  few milliseconds of backend CPU every refresh. */
+export const BUSY_REFRESH_MS = 15_000
+
 function deferredAgentRetryDelayMs(attempt: number): number {
   return Math.min(2_000, 250 * 2 ** attempt)
 }
@@ -33,11 +41,19 @@ function deferredAgentRetryDelayMs(attempt: number): number {
  *  hasn't spoken yet. It is a read-only chars/4 pass: no provider call, no
  *  prompt-cache impact.
  *
- *  Refetches when the focused session changes, when a turn ends (the
- *  transcript just grew), after an idle compression and after a saved config
- *  change. Held keyed by the session it describes so switching sessions drops
- *  the previous numbers instead of painting them under the new session's
- *  name.
+ *  Refetches when the focused session changes, when a turn starts and ends,
+ *  on a throttle while the turn runs (`BUSY_REFRESH_MS`), after an idle
+ *  compression and after a saved config change. Held keyed by the session it
+ *  describes so switching sessions drops the previous numbers instead of
+ *  painting them under the new session's name.
+ *
+ *  A running turn does NOT blank the breakdown. The backend measures the live
+ *  (per-tool-round, compacted) message list for a running session, and the
+ *  statusbar projects the last snapshot onto the streamed `session.usage`
+ *  ticks (`projectLiveContextBreakdown`), so the categories a long agentic turn
+ *  shows are current rather than stale — the concern that once made the hook
+ *  suspend mid-turn (#70871). Going dark for the whole turn left the popover
+ *  on "no context data" for ten-minute runs, which is the worse failure.
  *
  *  Two events change the transcript WITHOUT a busy toggle, so the refetch
  *  must be driven explicitly:
@@ -115,6 +131,11 @@ export function useContextBreakdown({
   const [exhausted, setExhausted] = useState(false)
   const [generation, setGeneration] = useState(0)
   const configRevision = useStore($contextBreakdownConfigRevision)
+  // Read by the fetch effect: a mid-turn background refresh must not flip
+  // `loading` while the popover already has rows (that would flash its
+  // loading line); an idle refetch or a cold session still announces itself.
+  const hasSnapshotRef = useRef(false)
+  hasSnapshotRef.current = fetched?.sessionId === sessionId
 
   // Subscribe to invalidation bumps for THIS session: a bump from
   // invalidateContextBreakdown (post-compress, reclaim) re-runs the fetch
@@ -152,11 +173,7 @@ export function useContextBreakdown({
   }, [sessionId])
 
   useEffect(() => {
-    // Mid-turn the transcript changes on every delta and the gateway already
-    // streams measured usage, so an estimate would be both stale and wasteful.
-    if (!enabled || !sessionId || busy) {
-      // A turn invalidates the idle snapshot. Do not let it reappear between
-      // busy=false and the next RPC response (or survive a failed refresh).
+    if (!enabled || !sessionId) {
       setFetched(null)
       setLoading(false)
 
@@ -168,7 +185,7 @@ export function useContextBreakdown({
     // The deferred-agent poll is local to one trigger: a new trigger (busy
     // toggle, compression, config save, invalidation) starts a fresh count.
     let deferredAttempt = 0
-    setLoading(true)
+    setLoading(!(busy && hasSnapshotRef.current))
 
     const scheduleRetry = () => {
       if (attempt < RETRY_DELAYS_MS.length) {
@@ -204,7 +221,7 @@ export function useContextBreakdown({
           // Not ready = a deferred session still building its AIAgent answered
           // from the stored usage (real numbers, no per-category rows). Show
           // them and keep asking on a short backoff until the live agent
-          // answers; ready snapshots are never polled.
+          // answers; ready snapshots are never polled while idle.
           if (breakdown.ready === false && deferredAttempt < DEFERRED_AGENT_RETRY_LIMIT) {
             timer = setTimeout(fetchBreakdown, deferredAgentRetryDelayMs(deferredAttempt))
             deferredAttempt += 1
@@ -213,6 +230,13 @@ export function useContextBreakdown({
           }
 
           setLoading(false)
+
+          // A running turn keeps growing the transcript: re-measure on a
+          // throttle so the rows follow it. The busy→idle flip re-runs this
+          // effect (cancelling the timer) for the authoritative reconciliation.
+          if (busy) {
+            timer = setTimeout(fetchBreakdown, BUSY_REFRESH_MS)
+          }
         })
         .catch(() => {
           // The fetch itself failed (rebind race after session.reclaimed, etc.).
@@ -242,9 +266,7 @@ export function useContextBreakdown({
   // once exhausted the cache is gone, so this returns null and the meter goes
   // dark honestly.
   return {
-    // The effect clears `fetched` only after commit, so gate on `busy` here too:
-    // the first busy render must not hand out the pre-turn snapshot.
-    breakdown: !busy && fetched?.sessionId === sessionId ? fetched.breakdown : null,
+    breakdown: fetched?.sessionId === sessionId ? fetched.breakdown : null,
     loading
   }
 }

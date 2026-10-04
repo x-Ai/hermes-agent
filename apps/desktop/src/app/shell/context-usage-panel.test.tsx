@@ -6,7 +6,7 @@ import { invalidateContextBreakdownForConfig } from '@/store/context-breakdown'
 import type { ContextBreakdown, UsageStats } from '@/types/hermes'
 
 import { ContextMeterDetail, ContextUsagePanel, projectLiveContextBreakdown } from './context-usage-panel'
-import { DEFERRED_AGENT_RETRY_LIMIT, useContextBreakdown } from './hooks/use-context-breakdown'
+import { BUSY_REFRESH_MS, DEFERRED_AGENT_RETRY_LIMIT, useContextBreakdown } from './hooks/use-context-breakdown'
 
 const usage: UsageStats = {
   calls: 1,
@@ -70,7 +70,11 @@ describe('useContextBreakdown', () => {
     await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(1))
   })
 
-  it('suspends while a turn runs, drops the idle snapshot on the first busy render, and refetches at turn end', async () => {
+  // A running turn must not blank the popover: the backend measures the live
+  // transcript for a running session and the statusbar projects the snapshot
+  // onto streamed usage, so the rows stay current through a ten-minute turn.
+  it('keeps the snapshot through a running turn, re-measures on a throttle, and reconciles at turn end', async () => {
+    vi.useFakeTimers()
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
     const { rerender, result } = renderHook(
@@ -78,21 +82,35 @@ describe('useContextBreakdown', () => {
       { initialProps: { busy: false } }
     )
 
-    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    await elapse(0)
+    expect(result.current.breakdown).toEqual(breakdown)
+    expect(requestGateway).toHaveBeenCalledTimes(1)
 
     rerender({ busy: true })
 
-    // Synchronously null: the streamed usage owns the gauge from the first busy frame.
-    expect(result.current.breakdown).toBeNull()
-    expect(requestGateway).toHaveBeenCalledTimes(1)
+    // The first busy render still serves the snapshot (no dark window) and the
+    // turn start re-measures against the live message list.
+    expect(result.current.breakdown).toEqual(breakdown)
+    await elapse(0)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+    // A background refresh never flashes the popover's loading line.
+    expect(result.current.loading).toBe(false)
+
+    await elapse(BUSY_REFRESH_MS)
+    expect(requestGateway).toHaveBeenCalledTimes(3)
+    expect(result.current.breakdown).toEqual(breakdown)
 
     rerender({ busy: false })
+    await elapse(0)
 
-    await waitFor(() => expect(requestGateway).toHaveBeenCalledTimes(2))
-    await waitFor(() => expect(result.current.breakdown).toEqual(breakdown))
+    // Turn end: the authoritative reconciliation, and no further polling while idle.
+    expect(requestGateway).toHaveBeenCalledTimes(4)
+    await elapse(BUSY_REFRESH_MS * 2)
+    expect(requestGateway).toHaveBeenCalledTimes(4)
+    expect(result.current.breakdown).toEqual(breakdown)
   })
 
-  it('never re-asks mid-turn, even when a compression or config save lands during the turn', async () => {
+  it('re-measures mid-turn when a compression or config save lands during the turn', async () => {
     const requestGateway = vi.fn().mockResolvedValue(breakdown)
 
     const { rerender } = renderHook(
@@ -101,11 +119,17 @@ describe('useContextBreakdown', () => {
       { initialProps: { compressionCount: 0 } }
     )
 
+    await act(async () => undefined)
+    expect(requestGateway).toHaveBeenCalledTimes(1)
+
+    // Auto-compression committed mid-turn: the pre-compression rows are wrong by 5-10x (#94001).
     rerender({ compressionCount: 1 })
+    await act(async () => undefined)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+
     invalidateContextBreakdownForConfig()
     await act(async () => undefined)
-
-    expect(requestGateway).not.toHaveBeenCalled()
+    expect(requestGateway).toHaveBeenCalledTimes(3)
   })
 
   it('retries a not-ready deferred-agent snapshot with backoff until it is ready', async () => {
@@ -154,7 +178,7 @@ describe('useContextBreakdown', () => {
     expect(result.current.loading).toBe(false)
   })
 
-  it('cancels a pending retry when the turn starts', async () => {
+  it('restarts the not-ready poll when the turn starts instead of leaving the idle timer behind', async () => {
     vi.useFakeTimers()
     const requestGateway = vi.fn().mockResolvedValue(unavailable)
 
@@ -166,10 +190,17 @@ describe('useContextBreakdown', () => {
     await elapse(0)
     expect(requestGateway).toHaveBeenCalledTimes(1)
 
+    // Turn start: a fresh measurement now; the idle ladder's pending 250ms retry is cancelled.
     rerender({ busy: true })
-    await elapse(30_000)
+    await elapse(0)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
 
-    expect(requestGateway).toHaveBeenCalledTimes(1)
+    await elapse(100)
+    expect(requestGateway).toHaveBeenCalledTimes(2)
+
+    // Only the new ladder's first retry fires at 250ms — not the old one as well.
+    await elapse(150)
+    expect(requestGateway).toHaveBeenCalledTimes(3)
   })
 
   it('refetches after an idle compression', async () => {

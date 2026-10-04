@@ -105,20 +105,25 @@ describe('statusbar context usage lifecycle', () => {
 
     act(() => tick(40_000))
     expect(meter().label).toBe('40k/100k')
-    expect(pending).toHaveLength(1)
+    // Turn start re-measures against the live transcript; the streamed usage owns the gauge meanwhile.
+    expect(pending).toHaveLength(2)
     const content = meter().menuContent
     const panel = render(typeof content === 'function' ? content(vi.fn()) : content)
     expect(panel.container.textContent).toContain('40k')
     expect(panel.container.textContent).toContain('40%')
+
+    // The mid-turn measurement lands: the gauge keeps following the stream, not the snapshot.
+    await act(async () => pending[1].resolve(breakdown(35_000)))
+    expect(meter().label).toBe('40k/100k')
 
     act(() => tick(90_000, 'background-runtime'))
     expect(meter().label).toBe('40k/100k')
 
     act(() => $busy.set(false))
     expect(meter().label).toBe('40k/100k')
-    expect(pending).toHaveLength(2)
+    expect(pending).toHaveLength(3)
 
-    await act(async () => pending[1].resolve(breakdown(45_000)))
+    await act(async () => pending[2].resolve(breakdown(45_000)))
     expect(meter().label).toBe('45k/100k')
   })
 
@@ -130,7 +135,9 @@ describe('statusbar context usage lifecycle', () => {
       $currentUsage.set(usage(40_000))
     })
     act(() => $busy.set(false))
-    await act(async () => pending[1].reject(new Error('disconnected')))
+    // pending[1] is the turn-start measurement (cancelled by the idle flip); the idle refresh is pending[2].
+    expect(pending).toHaveLength(3)
+    await act(async () => pending[2].reject(new Error('disconnected')))
     expect(meter().label).toBe('40k/100k')
   })
 })

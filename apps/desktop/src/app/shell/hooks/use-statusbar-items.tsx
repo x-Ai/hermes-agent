@@ -316,8 +316,9 @@ export function useStatusbarItems({
   // only before that), and it is keyed to the session it describes. The global
   // `$currentUsage` is neither — a resumed session reports no context fields,
   // and the store merges rather than replaces, so the PREVIOUS session's gauge
-  // numbers survive the switch. Mid-turn there's no breakdown by design and
-  // the streamed usage carries the gauge.
+  // numbers survive the switch. Mid-turn the snapshot stays (re-measured on a
+  // throttle by the hook) while the streamed usage carries the gauge and the
+  // popover rows are projected onto it.
   const gaugeUsage = useMemo<UsageStats>(() => {
     if (!contextBreakdown) {
       return currentUsage
