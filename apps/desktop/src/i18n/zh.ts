@@ -20,7 +20,7 @@ const TOOL_COUNT_UNITS: Record<string, string> = {
 export const zhOverrides = {
   externalOpenFailed: {
     title: '无法打开此链接',
-    message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开。',
+    message: '没有注册用于打开此地址的浏览器。请复制链接并手动打开',
     copyUrl: '复制链接',
     close: '关闭',
     missing: {
@@ -31,7 +31,7 @@ export const zhOverrides = {
   sharedMetrics: {
     consentTitle: '帮助改进 Hermes？',
     consentBody:
-      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本。收集仅在本地进行；发送给 Nous 需要另行同意。',
+      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本。收集仅在本地进行；发送给 Nous 需要另行同意',
     whatIsCollected: '收集哪些内容',
     collectedIntro: '仅限有上限的计数：',
     collectedActivity: '活动、会话时长、结果和错误类别',
@@ -44,21 +44,21 @@ export const zhOverrides = {
     collectedMachine:
       '概略的机器信息：内存范围、GPU 类型、Hermes 版本新旧与发布通道、落后的更新数、是否使用本地模型服务器',
     installId:
-      '发送会把每日数据包上传到 Nous 遥测服务。数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置。',
+      '发送会把每日数据包上传到 Nous 遥测服务。数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置',
     consentWindow:
-      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机。你可以随时再次关闭发送。',
+      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机。你可以随时再次关闭发送',
     readDocs: '查看完整说明',
     share: '收集并发送给 Nous',
     local: '仅在本地收集',
     off: '不用了',
-    changeLater: '你可以随时在 设置 → 安全 中更改。',
+    changeLater: '你可以随时在 设置 → 安全 中更改',
     saveFailed: '无法保存你的选择',
     collectLabel: '收集使用统计',
-    collectDesc: '在此设备上保存有上限的计数。绝不包含提示词、文件、路径或错误文本。',
+    collectDesc: '在此设备上保存有上限的计数。绝不包含提示词、文件、路径或错误文本',
     sendLabel: '向 Nous 发送使用统计',
-    sendDesc: '将每日数据包上传到 Nous 遥测服务。只发送同意时段内的数据。需要先开启收集。',
-    unavailable: '请更新 Hermes 后端以更改此设置。',
-    stripBody: '仅限有界计数器，绝不包含提示词或文件。',
+    sendDesc: '将每日数据包上传到 Nous 遥测服务。只发送同意时段内的数据。需要先开启收集',
+    unavailable: '请更新 Hermes 后端以更改此设置',
+    stripBody: '仅限有界计数器，绝不包含提示词或文件',
     stripChoices: { share: '发送给 Nous', local: '仅本地', off: '不用了' },
     stripDetails: '详情'
   },
@@ -543,7 +543,7 @@ export const zhOverrides = {
   },
   notifications: {
     sharedProfileWarning:
-      '另一个 Hermes 安装实例正在使用此配置。两个实例共享此配置的设置和数据，因此更改可能发生冲突。你可以继续使用，也可以在更改前关闭另一个实例。',
+      '另一个 Hermes 安装实例正在使用此配置。两个实例共享此配置的设置和数据，因此更改可能发生冲突。你可以继续使用，也可以在更改前关闭另一个实例',
     region: '通知',
     hide: '隐藏',
     show: '显示',
@@ -554,9 +554,9 @@ export const zhOverrides = {
     copyDetail: '复制详情',
     copyDetailFailed: '无法复制通知详情',
     backendOutOfDateTitle: '后端版本过旧',
-    backendOutOfDateMessage: '你的 Hermes 后端早于当前桌面构建，可能无法正常工作。请更新以保持一致。',
+    backendOutOfDateMessage: '你的 Hermes 后端早于当前桌面构建，可能无法正常工作。请更新以保持一致',
     desktopOutOfDateTitle: '应用版本过旧',
-    desktopOutOfDateMessage: '此 Hermes 应用早于所连接的后端，可能无法正常工作。请更新应用以保持一致。',
+    desktopOutOfDateMessage: '此 Hermes 应用早于所连接的后端，可能无法正常工作。请更新应用以保持一致',
     updateDesktopApp: '更新应用',
     installMethodUnsupportedTitle: '不受支持的安装方式',
     updateHermes: '更新 Hermes',
@@ -650,7 +650,7 @@ export const zhOverrides = {
       },
       providerSaid: summary => `服务商返回：${summary}`,
       providerInvalidResponse: (label, attempts) =>
-        `${label} 连续 ${attempts} 次返回了空的或损坏的回复——它可能已过载或正在对你限流。请稍等一分钟后发送 /retry，或使用 /model 切换模型。`,
+        `${label} 连续 ${attempts} 次返回了空的或损坏的回复——它可能已过载或正在对你限流。请稍等一分钟后发送 /retry，或使用 /model 切换模型`,
       errorDetailsLine: detail => `详情：${detail}`,
       elevenLabsNeedsKey: '语音输入需要一个 ElevenLabs 密钥。请在 设置 → 密钥 中添加',
       elevenLabsRejectedKey: 'ElevenLabs 未接受您的 API 密钥。在 设置 → 密钥 中更新后再试一次',
@@ -850,7 +850,7 @@ export const zhOverrides = {
     chargeNeedsVerification: '您的卡片需要验证。完成后，请再试一次',
     cardExpired: '您的卡已过期。请在门户网站上更新，然后再试一次',
     cardDeclined: '您的卡被拒绝了。请在门户上尝试使用另一张卡',
-    chargeFailedReason: reason => `The charge failed (${reason}). Try again or use another card on the portal.`,
+    chargeFailedReason: reason => `The charge failed (${reason}). Try again or use another card on the portal`,
     verificationNotApprovedTitle: '验证未通过',
     verificationNotApprovedBody: '卡片验证未被批准。请重试或使用另一张卡',
     verificationCompleteTitle: '验证完成',
@@ -1411,7 +1411,7 @@ export const zhOverrides = {
     },
     appearance: {
       chatTextScaleTitle: '聊天文字大小',
-      chatTextScaleDesc: '相对于界面缩放调整对话文字和消息输入框的字号。侧边栏和控件大小保持不变。',
+      chatTextScaleDesc: '相对于界面缩放调整对话文字和消息输入框的字号。侧边栏和控件大小保持不变',
       title: '外观',
       intro: '这些是仅桌面端的显示偏好，模式控制明暗，主题控制强调色与对话界面样式',
       themeSearchPlaceholder: '搜索你的主题或 VS Code 商店…',
@@ -4324,7 +4324,7 @@ export const zhOverrides = {
       uninstalledDesktop: (name: string) => `${name}已卸载`,
       deepLinkErrorTitle: '插件安装链接被拒绝',
       deepLinkCatalogInvalidName: '链接的目录名称缺失或无效',
-      deepLinkCatalogUnknown: (name: string) => `“${name}” is not in the Hermes plugin catalog. Nothing was installed.`,
+      deepLinkCatalogUnknown: (name: string) => `“${name}” is not in the Hermes plugin catalog. Nothing was installed`,
       deepLinkCatalogUnavailable: '无法加载 Hermes 插件目录，请检查您的连接并重新打开链接',
       settingsToggle: (name: string) => `设置：${name}`,
       settingsForm: {
@@ -4391,7 +4391,7 @@ export const zhOverrides = {
       searchFailed: '技能中心搜索失败',
       installBlockedTitle: name => `无法安装${name}`,
       installBlockedMessage: (findings, unverified) =>
-        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '风险模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}，在决定是否信任作者之前读取扫描.`,
+        `The security scan flagged ${findings > 0 ? `${findings} item${findings === 1 ? '' : 's'}` : '风险模式'} to review${unverified ? ' and the skill comes from an unverified source' : ''}，在决定是否信任作者之前读取扫描`,
       viewScan: '查看扫描',
       openLog: '打开日志'
     },
@@ -4836,6 +4836,9 @@ export const zhOverrides = {
     replaceValue: '替换当前值',
     openDocs: '打开文档',
     clearField: key => `清除 ${key}`,
+    addListEntry: '再添加一个',
+    removeListEntry: '移除',
+    listEntryPlaceholder: '输入 ID',
     enableAria: name => `启用 ${name}`,
     disableAria: name => `禁用 ${name}`,
     platformEnabled: name => `${name} 已启用`,
@@ -4908,7 +4911,7 @@ export const zhOverrides = {
       },
       TELEGRAM_ALLOWED_USERS: {
         label: '允许的 Telegram 用户 ID',
-        help: '推荐。来自 @userinfobot 的逗号分隔数字 ID。不设置则任何人都能私信你的机器人'
+        help: '推荐。来自 @userinfobot 的数字 ID（每格一个）。不设置则任何人都能私信你的机器人'
       },
       TELEGRAM_PROXY: {
         label: '代理 URL',
@@ -4920,7 +4923,7 @@ export const zhOverrides = {
       },
       DISCORD_ALLOWED_USERS: {
         label: '允许的 Discord 用户 ID',
-        help: '推荐。逗号分隔的 Discord 用户 ID'
+        help: '推荐。Discord 用户 ID（每格一个）'
       },
       DISCORD_REPLY_TO_MODE: {
         label: '回复方式',
@@ -4974,7 +4977,7 @@ export const zhOverrides = {
       },
       SLACK_ALLOWED_USERS: {
         label: '允许的 Slack 用户 ID',
-        help: '推荐。逗号分隔的 Slack 用户 ID'
+        help: '推荐。Slack 用户 ID（每格一个）'
       },
       MATTERMOST_URL: {
         label: '服务器 URL',
@@ -4987,7 +4990,7 @@ export const zhOverrides = {
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '允许的用户 ID',
-        help: '推荐。逗号分隔的 Mattermost 用户 ID'
+        help: '推荐。Mattermost 用户 ID（每格一个）'
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
@@ -5005,7 +5008,7 @@ export const zhOverrides = {
       },
       MATRIX_ALLOWED_USERS: {
         label: '允许的 Matrix 用户 ID',
-        help: '推荐。@user:server 格式的逗号分隔用户 ID'
+        help: '推荐。@user:server 格式的用户 ID（每格一个）'
       },
       SIGNAL_HTTP_URL: {
         label: 'Signal 桥接 URL',
@@ -5018,7 +5021,7 @@ export const zhOverrides = {
       },
       SIGNAL_ALLOWED_USERS: {
         label: '允许的 Signal 用户',
-        help: '推荐。逗号分隔的 Signal 标识符'
+        help: '推荐。Signal 标识符（每格一个）'
       },
       WHATSAPP_ENABLED: {
         label: '启用 WhatsApp 桥接',
@@ -5029,7 +5032,7 @@ export const zhOverrides = {
       },
       WHATSAPP_ALLOWED_USERS: {
         label: '允许的 WhatsApp 用户',
-        help: '推荐。逗号分隔的电话号码或 WhatsApp ID'
+        help: '推荐。电话号码或 WhatsApp ID（每格一个）'
       },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: '允许所有 Telegram 用户',
@@ -5585,10 +5588,10 @@ export const zhOverrides = {
       deleteOn: gateway => `（位于 ${gateway}）`,
       localDevice: '此设备（本地后端——若未安装 Hermes 则会安装，否则打开一个新会话）',
       switchDeviceTitle: '切换到此设备？',
-      switchDeviceDesc: '这会在这台电脑上打开一个新会话。当前对话仍留在另一个网关上。',
+      switchDeviceDesc: '这会在这台电脑上打开一个新会话。当前对话仍留在另一个网关上',
       switchDeviceConfirm: '切换',
       installDeviceTitle: '切换到此设备？',
-      installDeviceDesc: '这将在本地安装 Hermes，然后在这台电脑上打开一个新会话。确认之前不会开始安装。',
+      installDeviceDesc: '这将在本地安装 Hermes，然后在这台电脑上打开一个新会话。确认之前不会开始安装',
       installDeviceConfirm: '本地安装',
       connectExistingInstead: '改为连接现有环境'
     },
@@ -6125,7 +6128,7 @@ export const zhOverrides = {
       reveal: '在文件夹中显示',
       copyPath: '复制路径',
       removeFromSidebar: '从侧边栏移除',
-      createdInPreviousContext: '项目已在之前的连接或配置文件中创建。请切换回去；IDEA.md 尚未写入。',
+      createdInPreviousContext: '项目已在之前的连接或配置文件中创建。请切换回去；IDEA.md 尚未写入',
       createFailed: '无法创建项目',
       unavailableAllProfiles: '查看全部配置档案时无法使用项目',
       staleBackend: '请更新 Hermes 后端以创建项目 — 当前后端比桌面应用旧（设置 → 更新 → 后端）',
@@ -6696,10 +6699,10 @@ export const zhOverrides = {
   },
   updates: {
     discontinuedTitle: '此版本的 Hermes 已停止支持',
-    discontinuedBody: '此版本的 Hermes 已停止支持，可能无法正常运行——请卸载。您的数据仍保留在磁盘上。',
+    discontinuedBody: '此版本的 Hermes 已停止支持，可能无法正常运行——请卸载。您的数据仍保留在磁盘上',
     channels: { stable: '稳定版', canary: '预览版' },
     bundleSwapPending: '重启以完成更新',
-    bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本。聊天记录和设置不会受到影响。',
+    bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本。聊天记录和设置不会受到影响',
     bundleSwapPendingAction: '重启 Hermes',
     stages: {
       idle: '准备中…',
@@ -6746,8 +6749,8 @@ export const zhOverrides = {
     manualUnavailableTitle: '无法从这里更新',
     manualBody: '你是从命令行安装的 Hermes，因此更新也需要在那里运行。请将此命令粘贴到终端：',
     manualBodyBackend: 'Hermes 后端由本应用之外管理。请在托管它的服务器上运行此命令：',
-    manualPickedUp: '下次启动 Hermes 时会使用新版本。',
-    manualPickedUpBackend: '后端将在更新完成后加载新版本。',
+    manualPickedUp: '下次启动 Hermes 时会使用新版本',
+    manualPickedUpBackend: '后端将在更新完成后加载新版本',
     guiSkewTitle: '请更新桌面应用',
     guiSkewBody:
       '后端已更新，但此桌面应用包未更改，请更新或重新安装 Hermes 桌面应用（你的 AppImage / .deb / .rpm）以保持一致',
@@ -7089,7 +7092,7 @@ export const zhOverrides = {
     directApiAccess: provider => `直接通过 API 访问 ${provider}`,
     localApiKeyPlaceholder: 'API 密钥（可选 — 仅当端点需要时填写）',
     localModelNamePlaceholder: '模型名称（例如 command-a-plus-05-2026）',
-    couldNotSave: '无法保存凭据。',
+    couldNotSave: '无法保存凭据',
     connecting: '连接中',
     update: '更新',
     flowSubtitles: {
@@ -7097,10 +7100,10 @@ export const zhOverrides = {
       device_code: '在浏览器中打开验证页面 — Hermes 会自动连接',
       external: '先在终端登录一次，然后回来继续对话'
     },
-    startingSignIn: provider => `正在为 ${provider} 启动登录...`,
-    verifyingCode: provider => `正在通过 ${provider} 验证你的代码...`,
+    startingSignIn: provider => `正在为 ${provider} 启动登录..`,
+    verifyingCode: provider => `正在通过 ${provider} 验证你的代码..`,
     connectedProvider: provider => `${provider} 已连接`,
-    connectedPicking: provider => `${provider} 已连接。正在选择默认模型...`,
+    connectedPicking: provider => `${provider} 已连接。正在选择默认模型..`,
     signInFailed: '登录失败，请重试',
     signInExpired: '在你完成之前，登录页面超时了。请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥',
     pickDifferentProvider: '选择其他提供方',
@@ -7174,13 +7177,13 @@ export const zhOverrides = {
     alreadySignedInBody: '此 Hermes 已登录 Nous 账户',
     busyHeading: '马上就到了',
     busyBody: wait =>
-      `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间.`,
+      `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间`,
     unreachableBody: 'Hermes无法到达Nous服务完成签约. 检查一下你的网络连接 再试一次 你的会议还在.',
     setupFailed: {
       gateClosed: '这个版本的Hermes无法在没有Nous账户的情况下启动. 签名或创建一个,它是免费的,只需要一分钟.',
       paused: '使用Hermes而不签名则暂停片刻. Hermes会继续检查 签字是免费的,让你现在去.',
       rateLimited: wait =>
-        `Lots of people are getting started right now, so Hermes will try again in ${wait}。签名是免费的,并跳过等待.`,
+        `Lots of people are getting started right now, so Hermes will try again in ${wait}。签名是免费的,并跳过等待`,
       unreachable: 'Hermes无法到达Nous服务. 检查你的互联网连接,然后再试一次。 或者联系另一个供应商.',
       serverError: 'Nous服务打嗝. 立即再试一次, 或者连接另一个提供者.',
       powRequired: 'Nous服务器要求工作证明,但这尚未在您的代理中执行. 签名或创建一个 Nous 账户继续 .',
@@ -7222,7 +7225,7 @@ export const zhOverrides = {
     removeCustomModel: '移除自定义模型',
     resetToDefaults: '恢复默认',
     resetConfirm: '将模型可见性恢复为默认？',
-    resetDescription: '你对模型显示与隐藏的选择将被清除，每个提供方都会恢复默认列表。你添加的自定义模型会保留并显示。',
+    resetDescription: '你对模型显示与隐藏的选择将被清除，每个提供方都会恢复默认列表。你添加的自定义模型会保留并显示',
     resetAction: '恢复'
   },
   shell: {
@@ -7298,7 +7301,7 @@ export const zhOverrides = {
       updateInProgress: '正在更新',
       commitsBehind: (count, branch) => `落后 ${branch} ${count} 个提交`,
       desktopVersion: version => `Hermes Desktop v${version}`,
-      releaseAvailable: tag => `版本 ${tag} 可用。`,
+      releaseAvailable: tag => `版本 ${tag} 可用`,
       backendVersion: version => `后端 v${version}`,
       clientLabel: version => `客户端 v${version}`,
       connectionSsh: host => `SSH: ${host}`,
@@ -7397,8 +7400,7 @@ export const zhOverrides = {
   },
   rightSidebar: {
     terminalReadOnly: '只读输出',
-    terminalReadOnlyHelp:
-      '如需回应提示，请停止后台命令，再在新终端中运行。新终端会打开独立的 shell，不会连接到此进程。',
+    terminalReadOnlyHelp: '如需回应提示，请停止后台命令，再在新终端中运行。新终端会打开独立的 shell，不会连接到此进程',
     terminalOpenInteractive: '打开新终端',
     aria: '右侧边栏',
     panelsAria: '右侧边栏面板',
@@ -7412,8 +7414,8 @@ export const zhOverrides = {
     remotePickerNewFolder: '新建文件夹',
     remotePickerFolderName: '文件夹名称',
     remotePickerCreateFolder: '创建文件夹',
-    remotePickerInvalidFolderName: '请输入单个文件夹名称，不要包含斜杠。',
-    remotePickerCreateFolderFailed: error => `无法创建文件夹 (${error})。`,
+    remotePickerInvalidFolderName: '请输入单个文件夹名称，不要包含斜杠',
+    remotePickerCreateFolderFailed: error => `无法创建文件夹 (${error})`,
     folderTip: cwd => cwd,
     openFolder: '打开文件夹',
     refreshTree: '刷新文件树',
@@ -7451,7 +7453,7 @@ export const zhOverrides = {
     unavailable: '预览不可用',
     missingTarget: '此路径在这台电脑上不存在',
     missingTitle: '文件已不存在',
-    missingBody: label => `${label} 已被删除、移动，或其临时位置已被清除。此标签页不会在下次启动时恢复。`,
+    missingBody: label => `${label} 已被删除、移动，或其临时位置已被清除。此标签页不会在下次启动时恢复`,
     opening: '正在打开...',
     hide: '隐藏',
     openPreview: '打开预览',
@@ -7477,7 +7479,7 @@ export const zhOverrides = {
     editing: '编辑中',
     unsavedChanges: '未保存的更改',
     saveFailed: message => `无法保存：${message}`,
-    saveScopeChanged: '请切换回原来的连接和配置文件以保存此草稿。',
+    saveScopeChanged: '请切换回原来的连接和配置文件以保存此草稿',
     diskChangedTitle: '文件已在磁盘上更改',
     diskChangedBody: '此文件自打开以来已更改，用你的版本覆盖，还是放弃你的编辑并重新加载？',
     overwrite: '覆盖',

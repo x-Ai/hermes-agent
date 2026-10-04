@@ -271,6 +271,9 @@ export const zhHantCommandCenter = {
     replaceValue: '取代目前值',
     openDocs: '開啟文件',
     clearField: key => `清除 ${key}`,
+    addListEntry: '再新增一個',
+    removeListEntry: '移除',
+    listEntryPlaceholder: '輸入 ID',
     enableAria: name => `啟用 ${name}`,
     disableAria: name => `停用 ${name}`,
     platformEnabled: name => `${name} 已啟用`,
@@ -343,7 +346,7 @@ export const zhHantCommandCenter = {
       },
       TELEGRAM_ALLOWED_USERS: {
         label: '允許的 Telegram 使用者 ID',
-        help: '建議設定。來自 @userinfobot 的逗號分隔數字 ID。不設定則任何人都能私訊您的機器人。'
+        help: '建議設定。來自 @userinfobot 的數字 ID（每格一個）。不設定則任何人都能私訊您的機器人。'
       },
       TELEGRAM_PROXY: {
         label: '代理 URL',
@@ -355,7 +358,7 @@ export const zhHantCommandCenter = {
       },
       DISCORD_ALLOWED_USERS: {
         label: '允許的 Discord 使用者 ID',
-        help: '建議設定。逗號分隔的 Discord 使用者 ID。'
+        help: '建議設定。Discord 使用者 ID（每格一個）。'
       },
       DISCORD_REPLY_TO_MODE: {
         label: '回覆方式',
@@ -407,7 +410,7 @@ export const zhHantCommandCenter = {
       },
       SLACK_ALLOWED_USERS: {
         label: '允許的 Slack 使用者 ID',
-        help: '建議設定。逗號分隔的 Slack 使用者 ID。'
+        help: '建議設定。Slack 使用者 ID（每格一個）。'
       },
       MATTERMOST_URL: {
         label: '伺服器 URL',
@@ -420,7 +423,7 @@ export const zhHantCommandCenter = {
       },
       MATTERMOST_ALLOWED_USERS: {
         label: '允許的使用者 ID',
-        help: '建議設定。逗號分隔的 Mattermost 使用者 ID。'
+        help: '建議設定。Mattermost 使用者 ID（每格一個）。'
       },
       MATRIX_HOMESERVER: {
         label: 'Homeserver URL',
@@ -438,7 +441,7 @@ export const zhHantCommandCenter = {
       },
       MATRIX_ALLOWED_USERS: {
         label: '允許的 Matrix 使用者 ID',
-        help: '建議設定。@user:server 格式的逗號分隔使用者 ID。'
+        help: '建議設定。@user:server 格式的使用者 ID（每格一個）。'
       },
       SIGNAL_HTTP_URL: {
         label: 'Signal 橋接 URL',
@@ -451,7 +454,7 @@ export const zhHantCommandCenter = {
       },
       SIGNAL_ALLOWED_USERS: {
         label: '允許的 Signal 使用者',
-        help: '建議設定。逗號分隔的 Signal 識別碼。'
+        help: '建議設定。Signal 識別碼（每格一個）。'
       },
       WHATSAPP_ENABLED: {
         label: '啟用 WhatsApp 橋接',
@@ -462,7 +465,7 @@ export const zhHantCommandCenter = {
       },
       WHATSAPP_ALLOWED_USERS: {
         label: '允許的 WhatsApp 使用者',
-        help: '建議設定。逗號分隔的電話號碼或 WhatsApp ID。'
+        help: '建議設定。電話號碼或 WhatsApp ID（每格一個）。'
       },
       TELEGRAM_ALLOW_ALL_USERS: {
         label: '允許所有 Telegram 使用者',

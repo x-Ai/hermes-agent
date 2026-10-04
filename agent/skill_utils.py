@@ -30,9 +30,9 @@ EXCLUDED_SKILL_DIRS = frozenset((
 # via skill_view(skill, file_path=...), never scanned as standalone skills.
 SKILL_SUPPORT_DIRS = frozenset(("references", "templates", "assets", "scripts"))
 
-# Org mirrors live under skills/_org/<org_id>/ and are TOKEN-GATED: the sync
-# client writes the marker after verifying the token; no marker => no org skills
-# load. The marker persists offline so already-pulled org skills keep working.
+# Upstream removed the ``_org/`` mirror from core (64ad33e32d) — the index no longer
+# gates on it. The constants and ``read_active_org_id`` stay because the retained sync
+# client (``tools/skills_sync_client*``) that Collective Wisdom builds on reads them.
 ORG_MIRROR_DIR_NAME = "_org"
 ORG_ACTIVE_MARKER = ".active_org"
 ORG_PROVENANCE_FILE = ".org-provenance.json"
@@ -981,36 +981,23 @@ def iter_skill_index_files(skills_dir: Path, filename: str):
     ``SKILL.md`` files, but they are progressive-disclosure data loaded through
     ``skill_view(..., file_path=...)`` rather than active skill roots.
 
-    M2 org mirrors (``_org/``) and Collective Wisdom installs
-    (``_wisdom/``): TOKEN-GATED resolution. Only the active org's
-    subdir (per the sync-client-written ``.active_org`` marker) is walked;
-    every other ``_org/<id>/`` (stale mirror from a previous org, or no
-    marker at all) is pruned — leave an org and its skills stop resolving,
-    without any manual cleanup.
+    Collective Wisdom installs (``_wisdom/``) are TOKEN-GATED: only the last
+    Gateway-verified org's subdir (per the ``.active_org`` marker the Wisdom
+    client writes) is walked; without a marker the whole tree is pruned, so
+    leaving an org stops its skills resolving without manual cleanup.
     """
     skills_dir_str = str(skills_dir)
-    active_org = read_active_org_id(skills_dir)
     active_wisdom_org = read_active_wisdom_org_id(skills_dir)
-    org_root = os.path.join(skills_dir_str, ORG_MIRROR_DIR_NAME)
     wisdom_root = os.path.join(skills_dir_str, WISDOM_MANAGED_DIR_NAME)
     matches: list[str] = []
-    for root, dirs, files in os.walk(skills_dir_str, followlinks=True):
+    for root, dirs, files in os.walk(str(skills_dir), followlinks=True):
         has_skill_md = "SKILL.md" in files
-        if root == skills_dir_str and ORG_MIRROR_DIR_NAME in dirs and active_org is None:
-            dirs.remove(ORG_MIRROR_DIR_NAME)
         if root == skills_dir_str and WISDOM_MANAGED_DIR_NAME in dirs and active_wisdom_org is None:
             dirs.remove(WISDOM_MANAGED_DIR_NAME)
-        elif root == org_root:
-            dirs[:] = [d for d in dirs if d == active_org]
         elif root == wisdom_root:
             # Inside _wisdom/: descend ONLY into the last Gateway-verified org.
             dirs[:] = [d for d in dirs if d == active_wisdom_org]
-        dirs[:] = [
-            d
-            for d in dirs
-            if d not in EXCLUDED_SKILL_DIRS
-            and not (has_skill_md and d in SKILL_SUPPORT_DIRS)
-        ]
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_SKILL_DIRS and not (has_skill_md and d in SKILL_SUPPORT_DIRS)]
         if filename in files:
             matches.append(os.path.join(root, filename))
     yield from map(Path, sorted(matches))

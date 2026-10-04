@@ -271,6 +271,9 @@ export const arCommandCenter = {
     replaceValue: 'استبدال القيمة',
     openDocs: 'فتح الوثائق',
     clearField: key => `مسح ${key}`,
+    addListEntry: 'إضافة آخر',
+    removeListEntry: 'إزالة',
+    listEntryPlaceholder: 'أدخل معرّفًا',
     enableAria: name => `تفعيل ${name}`,
     disableAria: name => `تعطيل ${name}`,
     platformEnabled: name => `تم تفعيل ${name}`,
@@ -343,7 +346,7 @@ export const arCommandCenter = {
       },
       TELEGRAM_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Telegram المسموح بهم',
-        help: 'موصى به. معرّفات رقمية مفصولة بفواصل من @userinfobot. بدون ذلك، يمكن لأي شخص مراسلة بوتك مباشرة.'
+        help: 'موصى به. معرّفات رقمية (واحد في كل حقل) من @userinfobot. بدون ذلك، يمكن لأي شخص مراسلة بوتك مباشرة.'
       },
       TELEGRAM_PROXY: {
         label: 'رابط الـ Proxy',
@@ -355,7 +358,7 @@ export const arCommandCenter = {
       },
       DISCORD_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Discord المسموح بهم',
-        help: 'موصى به. معرّفات مستخدمي Discord مفصولة بفواصل.'
+        help: 'موصى به. معرّفات مستخدمي Discord (واحد في كل حقل).'
       },
       DISCORD_REPLY_TO_MODE: {
         label: 'نمط الرد',
@@ -405,7 +408,7 @@ export const arCommandCenter = {
       },
       SLACK_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Slack المسموح بهم',
-        help: 'موصى به. معرّفات مستخدمي Slack مفصولة بفواصل.'
+        help: 'موصى به. معرّفات مستخدمي Slack (واحد في كل حقل).'
       },
       MATTERMOST_URL: {
         label: 'رابط الخادم',
@@ -417,7 +420,7 @@ export const arCommandCenter = {
       },
       MATTERMOST_ALLOWED_USERS: {
         label: 'معرّفات المستخدمين المسموح بهم',
-        help: 'موصى به. معرّفات مستخدمي Mattermost مفصولة بفواصل.'
+        help: 'موصى به. معرّفات مستخدمي Mattermost (واحد في كل حقل).'
       },
       MATRIX_HOMESERVER: {
         label: 'رابط Homeserver',
@@ -435,7 +438,7 @@ export const arCommandCenter = {
       },
       MATRIX_ALLOWED_USERS: {
         label: 'معرّفات مستخدمي Matrix المسموح بهم',
-        help: 'موصى به. معرّفات مستخدمين مفصولة بفواصل بصيغة @user:server.'
+        help: 'موصى به. معرّفات مستخدمين (واحد في كل حقل) بصيغة @user:server.'
       },
       SIGNAL_HTTP_URL: {
         label: 'رابط جسر Signal',
@@ -448,7 +451,7 @@ export const arCommandCenter = {
       },
       SIGNAL_ALLOWED_USERS: {
         label: 'مستخدمو Signal المسموح بهم',
-        help: 'موصى به. معرّفات Signal مفصولة بفواصل.'
+        help: 'موصى به. معرّفات Signal (واحد في كل حقل).'
       },
       WHATSAPP_ENABLED: {
         label: 'تفعيل جسر WhatsApp',
@@ -459,7 +462,7 @@ export const arCommandCenter = {
       },
       WHATSAPP_ALLOWED_USERS: {
         label: 'مستخدمو WhatsApp المسموح بهم',
-        help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp مفصولة بفواصل.'
+        help: 'موصى به. أرقام هواتف أو معرّفات WhatsApp (واحد في كل حقل).'
       },
       A2A_AGENT_NAME: {
         label: 'اسم عميل A2A',
