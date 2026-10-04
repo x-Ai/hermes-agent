@@ -301,6 +301,7 @@ export const zhHantCapabilities = {
         no_interactive_session: '沒有互動工作階段',
         version_too_old: '版本過舊',
         missing_app: '缺少應用程式',
+        unsupported_gpu: '不支援的 GPU',
         unknown: '狀態未知'
       },
       bundledNames: {

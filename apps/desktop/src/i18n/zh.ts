@@ -2342,6 +2342,8 @@ export const zhOverrides = {
       defaultsLabel: '默认值',
       reasoning: '推理强度',
       reasoningOff: '关闭',
+      speed: '速度',
+      speedStandard: '标准',
       defaultsFailed: '保存模型默认值失败',
       loadFailed: '无法加载模型',
       restartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码',
@@ -4258,6 +4260,7 @@ export const zhOverrides = {
         no_interactive_session: '没有交互会话',
         version_too_old: '版本过旧',
         missing_app: '缺少应用',
+        unsupported_gpu: '不支持的 GPU',
         unknown: '状态未知'
       },
       bundledNames: {
@@ -7238,6 +7241,8 @@ export const zhOverrides = {
       options: '选项',
       thinking: '思考',
       fast: '快速',
+      ultrafast: '极速',
+      useStandardSpeed: '使用标准速度',
       effort: '推理强度',
       minimal: '最小',
       low: '低',

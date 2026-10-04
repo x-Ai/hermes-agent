@@ -1,4 +1,5 @@
 import { useStore } from '@nanostores/react'
+import { atom } from 'nanostores'
 import { useEffect, useRef, useState } from 'react'
 
 import { useSessionView } from '@/app/chat/session-view'
@@ -29,6 +30,8 @@ import type { ChatBarState } from './types'
 // No `max-w-*` cap: the pill sizes to its label, so a long model name only
 // truncates when the row is genuinely out of room (#49340) — not at an
 // arbitrary 160px.
+const UNKNOWN_TIER = atom('')
+
 const PILL = cn(
   'h-(--composer-control-size) min-w-0 shrink gap-1 rounded-md px-2 text-xs font-normal',
   'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
@@ -63,6 +66,7 @@ export function ModelPill({
   const currentModel = model.model || viewModel
   const currentProvider = model.provider || viewProvider
   const fastMode = useStore(view.$fast)
+  const serviceTier = useStore(view.$serviceTier ?? UNKNOWN_TIER)
   const reasoningEffort = useStore(view.$reasoningEffort)
   const modelSource = useStore($currentModelSource)
   const runtimeId = useStore(view.$runtimeId)
@@ -130,7 +134,9 @@ export function ModelPill({
 
   const isMoa = (currentProvider || '').trim().toLowerCase() === 'moa'
 
-  const modelLabel = isMoa ? displayEntityName(currentModel, t) : formatModelPillLabel(currentModel, { fastMode })
+  const modelLabel = isMoa
+    ? displayEntityName(currentModel, t)
+    : formatModelPillLabel(currentModel, { fastMode, serviceTier })
 
   // The model resolves a beat after the gateway/session comes up. Rather than
   // flash a literal "No model", show a quiet loader (inherits the pill text

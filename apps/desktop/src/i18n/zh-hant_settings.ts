@@ -1285,6 +1285,8 @@ export const zhHantSettings = {
       defaultsLabel: '預設值',
       reasoning: '推理',
       reasoningOff: '關閉',
+      speed: '速度',
+      speedStandard: '標準',
       defaultsFailed: '無法儲存模型預設值',
       loadFailed: '無法載入模型',
       restartRequired: '更新後此後端仍在執行舊程式碼。請重新啟動以載入新程式碼。',

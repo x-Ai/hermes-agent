@@ -2102,6 +2102,8 @@ export const ruOverrides = {
       defaultsLabel: 'По умолчанию',
       reasoning: 'Рассуждения',
       reasoningOff: 'Выкл',
+      speed: 'Скорость',
+      speedStandard: 'Стандартная',
       defaultsFailed: 'Не удалось сохранить модель по умолчанию',
       loadFailed: 'Не удалось загрузить модели',
       restartRequired:
@@ -5351,6 +5353,8 @@ export const ruOverrides = {
       options: 'Опции',
       thinking: 'Размышление',
       fast: 'Быстрая',
+      ultrafast: 'Ultrafast',
+      useStandardSpeed: 'Использовать стандартную скорость',
       effort: 'Усилия',
       minimal: 'Минимально',
       low: 'Низкое',
