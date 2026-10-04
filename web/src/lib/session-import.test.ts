@@ -59,7 +59,7 @@ describe("importSummary", () => {
         },
         "zh"
       )
-    ).toBe("已导入 2 个；已跳过 1 个；1 个因父会话缺失而独立导入");
+    ).toBe("已导入 2 个，已跳过 1 个，1 个因父会话缺失而独立导入");
     expect(() => parseImportSessions("  \n", "zh")).toThrow("文件为空");
   });
 });

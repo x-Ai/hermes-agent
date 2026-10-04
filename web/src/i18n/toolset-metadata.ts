@@ -35,7 +35,7 @@ const ZH_TOOLSET_LABELS: Record<string, string> = {
 
 const ZH_TOOLSET_DESCRIPTIONS: Record<string, string> = {
   a2a:
-    "Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理间通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送；入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话。未配置 Bearer Token 时仅监听 localhost；通信全程执行入站过滤、出站凭据清理及独立审计。仅依赖 Python 标准库，无需 a2a-sdk",
+    "Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理间通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送，入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话，未配置 Bearer Token 时仅监听 localhost，通信全程执行入站过滤、出站凭据清理及独立审计，仅依赖 Python 标准库，无需 a2a-sdk",
   clarify: "向用户提出澄清问题（选择题或开放式）",
   code_execution: "运行以编程方式调用工具的 Python 脚本（减少 LLM 往返）",
   computer_use:
@@ -49,7 +49,7 @@ const ZH_TOOLSET_DESCRIPTIONS: Record<string, string> = {
   homeassistant: "Home Assistant 智能家居控制与监控",
   image_gen: "创意生成工具（图像）",
   kanban:
-    "看板多代理协同 — 仅当代理由看板调度器派生（设置了 HERMES_KANBAN_TASK 环境变量）时启用。调度器默认在网关内运行；见 config.yaml 的 kanban.dispatch_in_gateway。让工作代理以结构化交接完成任务、阻塞等待人工输入、长操作期间发送心跳、在线程中评论、附加文件，（编排者还可）列出、解除阻塞和分发任务",
+    "看板多代理协同 — 仅当代理由看板调度器派生（设置了 HERMES_KANBAN_TASK 环境变量）时启用，调度器默认在网关内运行，见 config.yaml 的 kanban.dispatch_in_gateway，让工作代理以结构化交接完成任务、阻塞等待人工输入、长操作期间发送心跳、在线程中评论、附加文件，（编排者还可）列出、解除阻塞和分发任务",
   memory: "跨会话持久记忆（个人笔记 + 用户画像）",
   session_search: "搜索并回忆过往对话，支持摘要",
   skills: "访问、创建、编辑和管理带有专门指令与知识的技能文档",
@@ -60,11 +60,11 @@ const ZH_TOOLSET_DESCRIPTIONS: Record<string, string> = {
   tts: "文字转语音：用 Edge TTS（免费）、ElevenLabs、OpenAI 或 xAI 将文字转为音频",
   video: "视频分析与理解工具（选择启用，不在默认工具集中）",
   video_gen:
-    "视频生成工具：单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频。提供方专属的编辑/扩展工作流可能以独立工具出现，通过 hermes tools → Video Generation 配置",
+    "视频生成工具：单个 video_generate 工具覆盖文生视频（仅提示词）和图生视频（提示词 + image_url），以及参考生视频，提供方专属的编辑/扩展工作流可能以独立工具出现，通过 hermes tools → Video Generation 配置",
   vision: "图像分析与视觉工具",
   web: "网页搜索与内容提取",
   x_search:
-    "通过 xAI 内置的 x_search Responses 工具搜索 X (Twitter) 帖子和线程，配置 xAI 凭据（SuperGrok OAuth 或 XAI_API_KEY）后可用，默认关闭。在 hermes tools → X (Twitter) Search 中启用",
+    "通过 xAI 内置的 x_search Responses 工具搜索 X (Twitter) 帖子和线程，配置 xAI 凭据（SuperGrok OAuth 或 XAI_API_KEY）后可用，默认关闭，在 hermes tools → X (Twitter) Search 中启用",
   yuanbao: "元宝平台工具 — 群信息、成员查询、私聊、贴纸"
 };
 
@@ -90,7 +90,7 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "30 prebuilt voices, controllable via prompts": "30 种预置语音，可通过提示词控制",
   "Anti-detection browser (Firefox/Camoufox)": "反检测浏览器 (Firefox/Camoufox)",
   "Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.":
-    "通过 cua-driver 后台控制电脑 — 不会抢占你的光标或焦点。适用于任何模型",
+    "通过 cua-driver 后台控制电脑 — 不会抢占你的光标或焦点，适用于任何模型",
   "Browser login at accounts.x.ai — no API key required": "在 accounts.x.ai 浏览器登录 — 无需 API 密钥",
   "Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com":
     "Chatterbox、Qwen3-TTS 等 — 来自 api.deepinfra.com 的实时目录",
@@ -132,20 +132,20 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "FLUX, Qwen-Image, … — live catalog from api.deepinfra.com":
     "FLUX、Qwen-Image 等 — 来自 api.deepinfra.com 的实时目录",
   "Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.":
-    "免费、尊重隐私的元搜索。把 SEARXNG_URL 指向你的实例",
+    "免费、尊重隐私的元搜索，把 SEARXNG_URL 指向你的实例",
   "Free-tier API key — 2k queries/mo, search only.": "免费档 API 密钥 — 每月 2000 次查询，仅搜索",
   "Full search + extract; supports direct API and Nous tool-gateway routing.":
-    "完整的搜索 + 提取；支持直连 API 和 Nous 工具网关路由",
+    "完整的搜索 + 提取，支持直连 API 和 Nous 工具网关路由",
   "Full search + extract; supports keyless cloud, direct API, and Nous tool-gateway routing.":
-    "完整的搜索与提取；支持免密钥云服务、直连 API 和 Nous 工具网关路由",
+    "完整的搜索与提取，支持免密钥云服务、直连 API 和 Nous 工具网关路由",
   "Gemini Flash Image, gpt-image-2, Krea 2, Qwen Image 3 & more via OpenRouter; uses OPENROUTER_API_KEY":
-    "通过 OpenRouter 使用 Gemini Flash Image、gpt-image-2、Krea 2、Qwen Image 3 等模型；需要 OPENROUTER_API_KEY",
+    "通过 OpenRouter 使用 Gemini Flash Image、gpt-image-2、Krea 2、Qwen Image 3 等模型，需要 OPENROUTER_API_KEY",
   "Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY":
-    "经 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY",
+    "经 OpenRouter 使用 Gemini Flash Image 等，使用 OPENROUTER_API_KEY",
   "Image API model (from live OpenRouter catalog)": "图像 API 模型（来自 OpenRouter 实时目录）",
   "Image-output model (from live OpenRouter catalog)": "图像输出模型（来自 OpenRouter 实时目录）",
   "Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.":
-    "Krea 2 基础模型 — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。风格迁移、情绪板、参考引导生成。可直连密钥或经托管 Nous 订阅网关",
+    "Krea 2 基础模型 — Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)，风格迁移、情绪板、参考引导生成，可直连密钥或经托管 Nous 订阅网关",
   "LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video":
     "LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse — 文生视频与图生视频",
   "LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Grok Imagine, Gemini Omni — text-to-video & image-to-video":
@@ -153,9 +153,9 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "Muse Image via Meta Model API (api.meta.ai)": "通过 Meta Model API（api.meta.ai）使用 Muse Image",
   "Objective-tuned search + parallel page extraction.": "面向目标调优的搜索 + 并行页面提取",
   "Objective-tuned search + page extraction on Parallel's anonymous free tier. Rate-limited under burst load.":
-    "通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取。突发负载下会受到速率限制",
+    "通过 Parallel 匿名免费套餐进行面向目标优化的搜索与页面提取，突发负载下会受到速率限制",
   "Objective-tuned search + parallel page extraction via the Parallel SDK. Unthrottled, guaranteed service.":
-    "通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取。无速率限制，服务有保障",
+    "通过 Parallel SDK 进行面向目标优化的搜索与并行页面提取，无速率限制，服务有保障",
   "Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing":
     "可选 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等 — 文生图与图像编辑",
   "Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana-2, nano-banana-pro, etc. — text-to-image & image editing":
@@ -166,20 +166,20 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
     "经 Nous Portal 的参考图像生成（OpenRouter 支撑）",
   "Search + extract in one provider.": "搜索 + 提取一体的提供方",
   "Search + extract. Works keyless; set TAVILY_API_KEY for higher limits.":
-    "搜索与提取。无需密钥即可使用，设置 TAVILY_API_KEY 可获得更高限额",
+    "搜索与提取，无需密钥即可使用，设置 TAVILY_API_KEY 可获得更高限额",
   "Search + extract. Opt-in keyless; set TAVILY_API_KEY for higher limits.":
-    "搜索与提取。可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额",
+    "搜索与提取，可选择免密钥使用，设置 TAVILY_API_KEY 可获得更高限额",
   "Search via the ddgs Python package — no API key (pair with any extract provider)":
     "通过 ddgs Python 包搜索 — 无需 API 密钥（可搭配任意提取提供方）",
   "Semantic + neural web search with content extraction.": "语义 + 神经网络网页搜索，带内容提取",
   "Semantic + neural web search with content extraction on Exa's anonymous free tier. Rate-limited under burst load.":
-    "通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取。突发负载下会受到速率限制",
+    "通过 Exa 匿名免费套餐进行语义与神经网络网页搜索及内容提取，突发负载下会受到速率限制",
   "Semantic + neural web search with content extraction via the Exa SDK. Unthrottled, guaranteed service.":
-    "通过 Exa SDK 进行语义与神经网络网页搜索及内容提取。无速率限制，服务有保障",
+    "通过 Exa SDK 进行语义与神经网络网页搜索及内容提取，无速率限制，服务有保障",
   "Independent web index for AI apps — fast search + page fetch on Keenable's anonymous free tier.":
     "面向 AI 应用的独立网页索引 — 通过 Keenable 匿名免费套餐提供快速搜索与页面抓取",
   "Independent web index for AI apps. Keyed access with higher limits and guaranteed service.":
-    "面向 AI 应用的独立网页索引。密钥访问具有更高限额和服务保障",
+    "面向 AI 应用的独立网页索引，密钥访问具有更高限额和服务保障",
   "Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video":
     "Wan、p-video 等 — 来自 api.deepinfra.com 的实时目录，文生视频与图生视频",
   "gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing":
@@ -187,16 +187,16 @@ const ZH_PROVIDER_TAGS: Record<string, string> = {
   "gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs":
     "经 ChatGPT/Codex OAuth 使用 gpt-image-2 — 无需 API 密钥，支持文本与图像输入",
   "grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.":
-    "grok-imagine-image — 文生图与图像编辑，使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
+    "grok-imagine-image — 文生图与图像编辑，使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `image_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
   "grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.":
-    "grok-imagine-video 用于文本/参考生成；grok-imagine-video-1.5 用于图生视频；编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期。xAI 可能对存储文件和公开 URL 托管计费。可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
+    "grok-imagine-video 用于文本/参考生成，grok-imagine-video-1.5 用于图生视频，编辑/扩展：传入此前 Imagine 结果的公开 HTTPS MP4（`video` / `public_url`），使用 xAI Grok OAuth 或 XAI_API_KEY，已启用 xAI Imagine 存储，生成的媒体会获得可复用的公开 URL 且不自动过期，xAI 可能对存储文件和公开 URL 托管计费，可用 `video_gen.xai.storage.enabled: false` 关闭，或设置 `expires_after` 更改保留期",
   "Whisper via OpenRouter API": "经 OpenRouter API 使用 Whisper",
   "No paid tier needed — uses Brave's free API.": "无需付费套餐 — 使用 Brave 免费 API",
   "Ultra-low-latency streaming": "极低延迟流式输出",
   "LTX, Pixverse, Seedance 2.0/2.5/Mini, Veo 3.1, MiniMax H3, FLUX 3, Kling 4K, Happy Horse, Wan 2.2 — text-to-video & image-to-video":
     "LTX、Pixverse、Seedance 2.0/2.5/Mini、Veo 3.1、MiniMax H3、FLUX 3、Kling 4K、Happy Horse、Wan 2.2 — 文生视频与图生视频",
   "A2A (Agent-to-Agent) protocol v1.0 support for Hermes Agent — both directions of the open Linux Foundation standard for inter-agent communication. OUTBOUND (client tools): a2a_discover, a2a_call, a2a_list, a2a_history, and a2a_orchestrate let the agent fetch another agent's Agent Card and send it tasks over JSON-RPC — works with any A2A-compliant peer (Hermes, LangChain, CrewAI, Google ADK, OpenClaw, ...). INBOUND (platform adapter): exposes Hermes as an A2A-discoverable agent. An Agent Card is served at /.well-known/agent-card.json (v1.0 canonical path; legacy agent.json also answers) and incoming tasks are routed into the agent's live gateway session like any other platform — so the agent that replies is the same one talking to its user, with full memory and context, not a throwaway clone. Security is on by default: no bearer Token configured => localhost-only bind. Inbound task text passes through prompt-injection filters; outbound text is scrubbed of credential-shaped strings; every exchange is audit-logged and persisted to disk outside the context-compaction pipeline so conversations survive compaction and restarts. Pure stdlib transport (http.server + urllib) — no a2a-sdk dependency required.":
-    "A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent — 实现 Linux 基金会开放标准的双向智能体间通信。OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务 — 兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等）。INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体。Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径；旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样 — 因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体。默认开启安全机制：未配置 bearer Token 则仅绑定 localhost。入站任务文本会经过提示注入过滤；出站文本会清洗凭据型字符串；每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续。纯标准库传输（http.server + urllib） — 无需 a2a-sdk 依赖"
+    "A2A（Agent-to-Agent，智能体间协议）v1.0 支持 Hermes Agent — 实现 Linux 基金会开放标准的双向智能体间通信，OUTBOUND（客户端工具）：a2a_discover、a2a_call、a2a_list、a2a_history 和 a2a_orchestrate 让智能体获取其他智能体的 Agent Card 并通过 JSON-RPC 发送任务 — 兼容任何 A2A 兼容节点（Hermes、LangChain、CrewAI、Google ADK、OpenClaw 等），INBOUND（平台适配器）：将 Hermes 暴露为可被 A2A 发现的智能体，Agent Card 在 /.well-known/agent-card.json 提供（v1.0 规范路径，旧版 agent.json 也支持），传入任务会被路由到智能体的实时网关会话中，就像其他平台一样 — 因此响应的智能体是与用户对话的同一个，拥有完整内存和上下文，而非临时克隆体，默认开启安全机制：未配置 bearer Token 则仅绑定 localhost，入站任务文本会经过提示注入过滤，出站文本会清洗凭据型字符串，每次交换都会审计日志并持久化到磁盘（不在上下文压缩流程内），因此对话可以在压缩和重启后继续，纯标准库传输（http.server + urllib） — 无需 a2a-sdk 依赖"
 };
 
 const ZH_ENV_PROMPTS: Record<string, string> = {

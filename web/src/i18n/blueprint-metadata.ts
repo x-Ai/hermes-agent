@@ -3,22 +3,22 @@ import type { Locale } from './types'
 import type { DashboardCopy } from './dashboard'
 
 const ZH_DESCRIPTIONS: Record<string, string> = {
-  'morning-brief': '每日早报：今日日程、天气和等待处理的紧急事项。',
-  'important-mail': '定期检查收件箱，仅在邮件确实需要处理时通知你。',
-  'weekly-review': '每周回顾：已完成、待处理和即将到来的事项。',
-  'workday-start': '工作日开始时提醒今日日程和优先事项。',
-  'custom-reminder': '按你的时间安排，用你自己的话定期提醒。',
-  'evening-winddown': '每日收尾：预览明日日程和今晚需要准备的事项。',
-  'news-digest': '定期汇总你关心的主题，并对已发送内容去重。',
-  'bill-renewal-watch': '在定期付款、订阅续费或到期日前发出提醒。',
-  'price-watch': '监控指定商品、航班、酒店或列表，在价格或可用性条件满足时提醒。',
-  'competitor-watch': '跟踪指定公司的重要新闻，并生成带引用的摘要。',
-  'habit-checkin': '定期提醒以坚持习惯，并回顾是否完成。',
-  'hydration-move': '白天定期提醒喝水、起身和伸展。',
-  'meal-plan': '按你的饮食偏好和烹饪时间制定每周餐食及合并购物清单。',
-  'learn-daily': '每天学习一个小知识，随时间逐步深入。',
-  'gratitude-journal': '温和的晚间反思提示，回顾当天并记录值得感激的事。',
-  'on-this-day': '每日探索有趣的历史事件、事实或当日词汇。'
+  'morning-brief': '每日早报：今日日程、天气和等待处理的紧急事项',
+  'important-mail': '定期检查收件箱，仅在邮件确实需要处理时通知你',
+  'weekly-review': '每周回顾：已完成、待处理和即将到来的事项',
+  'workday-start': '工作日开始时提醒今日日程和优先事项',
+  'custom-reminder': '按你的时间安排，用你自己的话定期提醒',
+  'evening-winddown': '每日收尾：预览明日日程和今晚需要准备的事项',
+  'news-digest': '定期汇总你关心的主题，并对已发送内容去重',
+  'bill-renewal-watch': '在定期付款、订阅续费或到期日前发出提醒',
+  'price-watch': '监控指定商品、航班、酒店或列表，在价格或可用性条件满足时提醒',
+  'competitor-watch': '跟踪指定公司的重要新闻，并生成带引用的摘要',
+  'habit-checkin': '定期提醒以坚持习惯，并回顾是否完成',
+  'hydration-move': '白天定期提醒喝水、起身和伸展',
+  'meal-plan': '按你的饮食偏好和烹饪时间制定每周餐食及合并购物清单',
+  'learn-daily': '每天学习一个小知识，随时间逐步深入',
+  'gratitude-journal': '温和的晚间反思提示，回顾当天并记录值得感激的事',
+  'on-this-day': '每日探索有趣的历史事件、事实或当日词汇'
 }
 
 const TITLE_KEYS: Record<string, keyof DashboardCopy['cron']['blueprintNames']> = {
@@ -116,13 +116,13 @@ export function localizeBlueprintValue(value: string, locale: Locale): string {
 const ZH_HELP: Record<string, string> = {
   '24h local time, e.g. 08:00': '24 小时制本地时间，例如 08:00',
   'origin = the chat you set this up from (or your configured home channel when created from the dashboard); local = save only, no message; or any connected platform name':
-    'origin = 你发起设置的聊天（从 Dashboard 创建时为已配置的主频道）；local = 仅保存、不发送消息；也可填写任一已连接平台的名称',
+    'origin = 你发起设置的聊天（从 Dashboard 创建时为已配置的主频道），local = 仅保存、不发送消息，也可填写任一已连接平台的名称',
   'minutes between checks': '两次检查之间的分钟数',
   'a subject, product, person, or search phrase': '一个主题、产品、人物或搜索短语',
   'URL or precise description — variant, dates, seller': 'URL 或精确描述——型号、日期、卖家',
   'threshold price (state the currency), availability, or terms change': '价格阈值（注明货币）、可用性或条款变化',
   'hours between checks — be gentle with rate limits': '两次检查之间的小时数——请注意速率限制',
-  'canonical names and domains; aliases help dedup': '正式名称与域名；别名有助于去重',
+  'canonical names and domains; aliases help dedup': '正式名称与域名，别名有助于去重',
   'hours between nudges': '两次提醒之间的小时数',
   'first hour of the active window (24h)': '活动时段的起始小时（24 小时制）',
   'last hour of the active window (24h)': '活动时段的结束小时（24 小时制）'

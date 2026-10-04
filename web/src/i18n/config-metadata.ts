@@ -965,11 +965,11 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'security.redact_secrets': '尽可能从模型可见内容中隐藏检测到的密钥',
   'security.allow_private_urls': '允许 URL 获取工具访问 localhost 和私有网络地址，云元数据端点始终保持阻止',
   'browser.use_real_profile':
-    '本地浏览器使用真实登录状态。Hermes 会复制默认浏览器配置到隔离快照，并用内置 Chromium 驱动',
+    '本地浏览器使用真实登录状态，Hermes 会复制默认浏览器配置到隔离快照，并用内置 Chromium 驱动',
   'terminal.vercel_runtime': 'Vercel Sandbox 运行时',
   'terminal.modal_mode': 'Modal 沙箱模式',
   'proxy.enabled':
-    '仅用于 Docker 的出站凭据防火墙。需要先运行 hermes egress setup 和 hermes egress start，目前尚未接入 Modal、SSH 和 Daytona',
+    '仅用于 Docker 的出站凭据防火墙，需要先运行 hermes egress setup 和 hermes egress start，目前尚未接入 Modal、SSH 和 Daytona',
   'proxy.credential_source': 'iron-proxy 启动时加载真实上游密钥的位置',
   'proxy.enforce_on_docker': '出站代理已启用但未配置或未运行时，拒绝启动 Docker 沙箱',
   'tts.provider': '语音合成提供商',
@@ -990,13 +990,13 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'delegation.provider': '用于委派子智能体的内置提供商名称或自定义端点 ID，留空则继承父智能体',
   'delegation.reasoning_effort': '委派给后台代理时使用的推理强度',
   'updates.non_interactive_local_changes':
-    '聊天应用或网关更新 Hermes 时，如何处理未提交的本地源码更改，stash 会保留并在更新后重新应用，discard 会丢弃这些更改。终端更新不受此设置影响，始终会询问',
+    '聊天应用或网关更新 Hermes 时，如何处理未提交的本地源码更改，stash 会保留并在更新后重新应用，discard 会丢弃这些更改，终端更新不受此设置影响，始终会询问',
   'updates.refresh_cua_driver':
     'Hermes 更新时刷新已安装的 cua-driver，对于无权写入 /Applications 的非管理员 macOS 账户，请关闭此项',
   'browser.headed':
-    '在可见窗口中运行本地浏览器，并在轮次之间保持窗口打开；空闲会话仍会在 browser.inactivity_timeout 后清理',
+    '在可见窗口中运行本地浏览器，并在轮次之间保持窗口打开，空闲会话仍会在 browser.inactivity_timeout 后清理',
   'plugins.hook_callback_timeout':
-    '进程内 Python 插件钩子回调的最长执行时间（秒），0 表示不限制，超过 600 的值会被限制为 600。'
+    '进程内 Python 插件钩子回调的最长执行时间（秒），0 表示不限制，超过 600 的值会被限制为 600'
 }
 
 const ZH_OPTIONS: Record<string, string> = {

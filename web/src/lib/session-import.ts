@@ -45,7 +45,7 @@ export function importSummary(result: SessionImportResponse, locale = "en"): str
     const parts = [`已导入 ${result.imported} 个`];
     if (result.skipped > 0) parts.push(`已跳过 ${result.skipped} 个`);
     if (result.detached > 0) parts.push(`${result.detached} 个因父会话缺失而独立导入`);
-    return parts.join("；");
+    return parts.join("，");
   }
   const parts = [`${result.imported} imported`];
   if (result.skipped > 0) parts.push(`${result.skipped} skipped`);

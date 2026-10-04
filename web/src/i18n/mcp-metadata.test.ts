@@ -20,7 +20,7 @@ describe("MCP catalog setup localization", () => {
         "No account or credentials needed — tools are available as soon as the session restarts.",
         "zh"
       )
-    ).toBe("无需账号或凭据；重启会话后工具即可使用。");
+    ).toBe("无需账号或凭据，重启会话后工具即可使用");
     // Curated notes are keyed by the catalog manifest id and keep the remediation commands intact.
     expect(localizeMcpSetup("n8n-official", "English source text", "zh")).toContain("hermes mcp login n8n-official");
     expect(localizeMcpSetup("asana", "English source text", "zh")).toContain("http://localhost:27890/callback");
