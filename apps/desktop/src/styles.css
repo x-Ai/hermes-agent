@@ -2111,13 +2111,17 @@ body.guest-pointer-lock :is(webview, iframe) {
     background-color 180ms ease-out;
 }
 
+/* The live pulse is an INSET hairline, never an outer ring or a drop shadow.
+   The card sits in an `overflow: hidden` markdown root (and, in a thought, an
+   `overflow: auto` body too), so anything painted outside its box is cut flat
+   at the column edge: the old lift showed up as a border with its sides
+   missing. Inside the box it renders whole wherever the card lands. The
+   static value is the frame reduced motion shows. */
 [data-slot='aui_assistant-message-content'] .aui-md [data-slot='code-card'][data-streaming='true'] {
   animation:
     code-card-stream-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) both,
     code-card-stream-glow 1.8s ease-in-out 180ms infinite alternate;
-  box-shadow:
-    0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 10%, transparent),
-    0 0.625rem 1.75rem color-mix(in srgb, var(--dt-ring) 8%, transparent);
+  box-shadow: inset 0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 14%, transparent);
 }
 
 [data-slot='aui_assistant-message-content']
@@ -2126,6 +2130,29 @@ body.guest-pointer-lock :is(webview, iframe) {
   [data-slot='code-card-body'] {
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 1.5rem), rgb(0 0 0 / 64%) 100%);
   mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 1.5rem), rgb(0 0 0 / 64%) 100%);
+}
+
+/* A code card inside a thinking body skips the live pulse altogether. The
+   pulse outlives the thought: reasoning text stays "running" until the whole
+   message settles, so a finished thought's command block kept pulsing (and
+   fading its last line) while the answer streamed. The body is dimmed
+   scaffolding whose header shimmer already says the thought is live, and a
+   pulse inside a height-capped scroller is only noise. */
+[data-slot='aui_assistant-message-content']
+  [data-slot='aui_thinking-body']
+  .aui-md
+  [data-slot='code-card'][data-streaming='true'] {
+  animation: none;
+  box-shadow: none;
+}
+
+[data-slot='aui_assistant-message-content']
+  [data-slot='aui_thinking-body']
+  .aui-md
+  [data-slot='code-card'][data-streaming='true']
+  [data-slot='code-card-body'] {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 /* Themed at the renderer root so every `aui-md` consumer (assistant turns,
@@ -2568,15 +2595,11 @@ button[data-slot='aui_msg-reactions'] svg {
 
 @keyframes code-card-stream-glow {
   from {
-    box-shadow:
-      0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 6%, transparent),
-      0 0.5rem 1.5rem color-mix(in srgb, var(--dt-ring) 5%, transparent);
+    box-shadow: inset 0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 8%, transparent);
   }
 
   to {
-    box-shadow:
-      0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 12%, transparent),
-      0 0.75rem 2rem color-mix(in srgb, var(--dt-ring) 10%, transparent);
+    box-shadow: inset 0 0 0 0.0625rem color-mix(in srgb, var(--dt-ring) 20%, transparent);
   }
 }
 
