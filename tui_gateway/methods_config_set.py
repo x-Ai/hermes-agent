@@ -60,7 +60,7 @@ def _cfgset_await_agent(session, rid):
     init_err = _wait_agent(session, rid)
     if init_err:
         return init_err
-    return _err(rid, 5032, "agent initialization failed") if session.get("agent") is None else None
+    return _err(rid, 5032, _t("tui_gateway.agent.init_failed_short")) if session.get("agent") is None else None
 
 
 def _cfgset_model_ok(rid, key, value, warning="", confirm_message="", scope="session", **extra):
@@ -126,7 +126,7 @@ def _set_model(rid, params, key, value, session):
         failed_ready = session.get("agent_ready") if failed_agent_init else None
         if failed_agent_init:
             if failed_ready is None:
-                return _err(rid, 5032, session.get("agent_error") or "agent initialization failed")
+                return _err(rid, 5032, session.get("agent_error") or _t("tui_gateway.agent.init_failed_short"))
             if not failed_ready.wait(timeout=30.0):
                 return _err(rid, 5032, agent_still_starting())
         failed_agent_init = (
@@ -155,9 +155,7 @@ def _set_model(rid, params, key, value, session):
         else:
             # One string for every client: the Ink TUI (dashboard /chat, `hermes --tui`) has no
             # Settings; the dashboard has a Models page; only the Desktop has Settings -> Models.
-            return _err(rid, 4001, "config.set model requires a live session; to change the "
-                        "profile default run /setup, or use the Models page (dashboard) / "
-                        "Settings -> Models (Desktop)")
+            return _err(rid, 4001, _t("tui_gateway.config.model_requires_session"))
     return _kv(rid, key, result["value"], warning=result["warning"],
                confirm_required=result.get("confirm_required", False),
                confirm_message=result.get("confirm_message", ""), scope=result.get("scope", "session"))
@@ -181,7 +179,7 @@ def _set_fast(rid, params, key, value, session):
         return _kv(rid, key, service_tier_word(current_tier))
     nv = _FAST_WORDS.get(raw, ("normal" if current_tier in STATIC_TIERS else "fast") if raw in {"", "toggle"} else None)
     if nv is None:
-        return _err(rid, 4002, f"unknown fast mode: {value}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_fast_mode", value=value))
     overrides = None
     if nv in ("fast", "ultrafast"):
         from hermes_cli.models import resolve_fast_mode_overrides
@@ -191,12 +189,12 @@ def _set_fast(rid, params, key, value, session):
             session_override = (session or {}).get("model_override") or {}
             target_model = (isinstance(session_override, dict) and session_override.get("model")) or _resolve_model()
         if not target_model:
-            return _err(rid, 4002, "fast mode is not available without a selected model")
+            return _err(rid, 4002, _t("tui_gateway.config.fast_mode_needs_model"))
         overrides = resolve_fast_mode_overrides(target_model, provider=getattr(agent, "provider", None),
                                                 base_url=getattr(agent, "base_url", None),
                                                 tier="ultrafast" if nv == "ultrafast" else None)
         if overrides is None:
-            return _err(rid, 4002, f"{nv} mode is not available for this model")
+            return _err(rid, 4002, _t("tui_gateway.config.mode_unavailable_for_model", mode=nv))
     if session is not None:
         # Session-scoped like `reasoning` (global = `--global` / Settings → Model): writing config.yaml
         # here flipped fast mode for every surface. The create override survives rebuilds; "" pins normal.
@@ -224,7 +222,7 @@ def _set_verbose(rid, params, key, value, session):
     if value and value != "cycle":
         nv = str(value).strip().lower()
         if nv not in cycle:
-            return _err(rid, 4002, f"unknown verbose mode: {value}")
+            return _err(rid, 4002, _t("tui_gateway.config.unknown_verbose_mode", value=value))
     else:
         cur = session.get("tool_progress_mode", _load_tool_progress_mode()) if session else _load_tool_progress_mode()
         nv = cycle[((cycle.index(cur) if cur in cycle else 2) + 1) % len(cycle)]
@@ -243,7 +241,7 @@ def _set_focus(rid, params, key, value, session):
     cur_focus = bool(d_f.get("focus_view", False))
     action, target = resolve_focus_arg(str(value or ""), cur_focus)
     if action == "usage":
-        return _err(rid, 4002, f"unknown focus value: {value} (use on|off|status)")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_focus_value", value=value))
     if action == "status" or target is None:
         return _kv(rid, key, "on" if cur_focus else "off", tool_progress=_load_tool_progress_mode())
     if target:
@@ -317,7 +315,7 @@ def _set_reasoning(rid, params, key, value, session):
             return _kv(rid, key, reported)
     parsed = parse_reasoning_effort(arg)
     if parsed is None:
-        return _err(rid, 4002, f"unknown reasoning value: {value}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_reasoning_value", value=value))
     if scope == "global" or session is None:
         _write_config_key("agent.reasoning_effort", arg)
         if session is not None:
@@ -337,27 +335,27 @@ def _set_reasoning(rid, params, key, value, session):
 
 
 def _word_setters() -> dict:
-    """key -> (normaliser, accepted words, error template, apply(word)); the reported value is the
+    """key -> (normaliser, accepted words, catalog key of the error, apply(word)); the reported value is the
     accepted word. Built per call: the specs reference server.py globals (rebound at install)."""
     return {
-        "busy": (_word, {"queue", "steer", "interrupt"}, "unknown busy mode: {value}",
+        "busy": (_word, {"queue", "steer", "interrupt"}, "tui_gateway.config.unknown_busy_mode",
                  lambda w: _write_config_key("display.busy_input_mode", w)),
-        "approvals.mode": (_word, _APPROVAL_MODES, "unknown approval mode: {value}; pick one of manual|smart|off",
+        "approvals.mode": (_word, _APPROVAL_MODES, "tui_gateway.config.unknown_approval_mode",
                            lambda w: (_write_config_key("approvals.mode", w), _emit_all_session_info())),
-        "details_mode": (_word, _DETAIL_MODES, "unknown details_mode: {value}", lambda w: _write_display_sections(
+        "details_mode": (_word, _DETAIL_MODES, "tui_gateway.config.unknown_details_mode", lambda w: _write_display_sections(
             sections={section: w for section in _DETAIL_SECTION_NAMES}, details_mode=w)),
         # thinking_mode also keeps details_mode aligned (compat bridge).
-        "thinking_mode": (_word, {"collapsed", "truncated", "full"}, "unknown thinking_mode: {value}", lambda w: (
+        "thinking_mode": (_word, {"collapsed", "truncated", "full"}, "tui_gateway.config.unknown_thinking_mode", lambda w: (
             _write_config_key("display.thinking_mode", w),
             _write_config_key("display.details_mode", "expanded" if w == "full" else "collapsed"))),
         # 'light'/'dark' pin beats background auto-detection (xterm.js hosts misreport OSC 11).
-        "theme": (_word, {"auto", "light", "dark"}, "unknown theme value: {value} (use auto|light|dark)",
+        "theme": (_word, {"auto", "light", "dark"}, "tui_gateway.config.unknown_theme",
                   lambda w: _write_config_key("display.tui_theme", w)),
         # _raw_word: 0/False/[] keep their text so the error names what was sent.
-        "indicator": (_raw_word, INDICATOR_STYLES, "unknown indicator: {raw!r}; pick one of " + "|".join(INDICATOR_STYLES),
+        "indicator": (_raw_word, INDICATOR_STYLES, "tui_gateway.config.unknown_indicator",
                       lambda w: _write_config_key("display.tui_status_indicator", w)),
         # Which engine the desktop voice button mounts; applies to the NEXT conversation.
-        "voice.voice_chat_mode": (_word, {"chained", "gpt-live"}, "unknown voice chat mode: {value}; pick chained|gpt-live",
+        "voice.voice_chat_mode": (_word, {"chained", "gpt-live"}, "tui_gateway.config.unknown_voice_chat_mode",
                                   lambda w: _write_config_key("voice.voice_chat_mode", w))}
 
 
@@ -365,7 +363,7 @@ def _set_word(rid, params, key, value, session):
     norm, allowed, err, apply = _word_setters()[key]
     raw = norm(value)
     if raw not in allowed:
-        return _err(rid, 4002, err.format(value=value, raw=raw))
+        return _err(rid, 4002, _t(err, value=value, raw=repr(raw), options="|".join(INDICATOR_STYLES)))
     apply(raw)
     return _kv(rid, key, raw)
 
@@ -375,10 +373,10 @@ def _set_details_section(rid, params, key, value, session):
     # then applies built-in section defaults before the global details_mode).
     section = key.split(".", 1)[1]
     if section not in _DETAIL_SECTION_NAMES:
-        return _err(rid, 4002, f"unknown section: {section}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_section", section=section))
     nv = _word(value)
     if nv and nv not in _DETAIL_MODES:
-        return _err(rid, 4002, f"unknown details_mode: {value}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_details_mode", value=value))
     _write_display_sections(sections={section: nv} if nv else None, drop_sections=() if nv else (section,))
     return _kv(rid, key, nv)
 
@@ -409,7 +407,7 @@ def _set_toggle(rid, params, key, value, session):
     raw = norm(value)
     nv = flipped() if raw in {"", "toggle"} else aliases.get(raw)
     if nv is None:
-        return _err(rid, 4002, f"unknown {key} value: {value}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_toggle_value", name=key, value=value))
     _write_config_key(cfg_key, nv)
     return _kv(rid, key, report(nv))
 
@@ -420,7 +418,7 @@ def _set_cwd(rid, params, key, value, session):
         return _err(rid, 4002, "cwd required")
     cwd = os.path.abspath(os.path.expanduser(raw))
     if not os.path.isdir(cwd):
-        return _err(rid, 4002, f"working directory does not exist: {raw}")
+        return _err(rid, 4002, _t("tui_gateway.session.cwd_missing", path=raw))
     _write_config_key("terminal.cwd", cwd)
     # ``TERMINAL_CWD`` belongs to the launch process. Keep launch-profile updates live, but never
     # publish an explicit or session-bound secondary profile's cwd into that process-wide carrier.
@@ -463,7 +461,7 @@ def _set_skin(rid, params, key, value, session):
 def _set_display_toggle(rid, params, key, value, session):
     on = _BOOL_WORDS.get(str(value).strip().lower())
     if on is None:
-        return _err(rid, 4002, f"{key} takes true or false")
+        return _err(rid, 4002, _t("tui_gateway.config.takes_bool", name=key))
     _write_config_key(key, on)
     return _kv(rid, key, on)
 
@@ -500,7 +498,7 @@ def _(rid, params: dict) -> dict:
     elif handler is None and key in _DISPLAY_TOGGLE_KEYS:
         handler = _set_display_toggle
     if handler is None:
-        return _err(rid, 4002, f"unknown config key: {key}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_key", name=key))
     return handler(rid, params, key, value, session)
 
 

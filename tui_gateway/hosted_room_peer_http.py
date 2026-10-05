@@ -17,6 +17,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any, NoReturn
 
+from agent.i18n import t as _t
 from gateway.hosted_room_peer import (
     GatewayRoomCatalog, HostedMemberDispatch, validate_room_link_url)
 
@@ -48,21 +49,19 @@ _LEGACY_DISPATCH_MESSAGE_CODES = (
     ("capability catalog changed", "room_capability_catalog_changed"),
     ("execution policy changed", "room_execution_policy_changed"))
 _GRANT_RENEWAL_CODES = frozenset({"invalid_room_grant", "room_reauthorization_required"})
-# (error_code, human message) for the two digest checks after a grant refresh.
+# (error_code, catalog key of the human message) for the two digest checks after a grant refresh.
 _EXECUTION_POLICY_CHANGED = (
-    "room_execution_policy_changed", "peer room execution policy needs reauthorization")
+    "room_execution_policy_changed", "tui_gateway.peer.execution_policy_changed")
 _CAPABILITY_CHANGED = (
-    "room_capability_catalog_changed", "peer room capabilities need reauthorization")
+    "room_capability_catalog_changed", "tui_gateway.peer.capabilities_changed")
 _REAUTHORIZATION_CODES = _GRANT_RENEWAL_CODES | {
     _EXECUTION_POLICY_CHANGED[0], _CAPABILITY_CHANGED[0]}
-# Human messages for 401/403 reauthorization codes (any other status keeps the generic text).
+# Catalog keys of the human messages for 401/403 reauthorization codes (any other status keeps the generic text).
 _REAUTHORIZATION_MESSAGES = {
-    **dict.fromkeys(_GRANT_RENEWAL_CODES, "peer room authorization needs renewal"),
+    **dict.fromkeys(_GRANT_RENEWAL_CODES, "tui_gateway.peer.authorization_renewal"),
     _EXECUTION_POLICY_CHANGED[0]: _EXECUTION_POLICY_CHANGED[1],
     _CAPABILITY_CHANGED[0]: _CAPABILITY_CHANGED[1]}
-_BUDGET_MESSAGES = {
-    "size": "peer{kind} response exceeded the RoomLink size limit",
-    "time": "peer{kind} response exceeded the RoomLink time budget"}
+_BUDGET_MESSAGES = {"size": "tui_gateway.peer.size_limit", "time": "tui_gateway.peer.time_budget"}
 
 
 class _PeerResponseTooLarge(ValueError):
@@ -128,10 +127,10 @@ def _read_body(response: Any, *, max_bytes: int, deadline: float, kind: str, **f
         return _read_bounded_response(
             response, max_bytes=max_bytes, deadline=deadline).decode("utf-8", "replace")
     except _PeerResponseTooLarge as exc:
-        raise PeerRunsHTTPError(_BUDGET_MESSAGES["size"].format(kind=kind), **flags) from exc
+        raise PeerRunsHTTPError(_t(_BUDGET_MESSAGES["size"], kind=kind), **flags) from exc
     except _PeerResponseDeadlineExceeded as exc:
         raise PeerRunsHTTPError(
-            _BUDGET_MESSAGES["time"].format(kind=kind), retryable=True, **flags) from exc
+            _t(_BUDGET_MESSAGES["time"], kind=kind), retryable=True, **flags) from exc
 
 
 def _is_proven_pre_admission_failure(exc: BaseException) -> bool:
@@ -194,7 +193,7 @@ def digest_reauthorization_error(
             _EXECUTION_POLICY_CHANGED),
         (capability_digest, catalog.catalog_digest, _CAPABILITY_CHANGED)):
         if expected is not None and actual != expected:
-            return PeerRunsHTTPError(message, status_code=403, error_code=code, not_admitted=True)
+            return PeerRunsHTTPError(_t(message), status_code=403, error_code=code, not_admitted=True)
     return None
 
 
@@ -300,7 +299,7 @@ class PeerRunsHTTPClient:
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
             not_admitted = ambiguous and _is_proven_pre_admission_failure(exc)
             raise PeerRunsHTTPError(
-                "peer RoomLink endpoint is unreachable", retryable=True,
+                _t("tui_gateway.peer.unreachable"), retryable=True,
                 ambiguous=ambiguous and not not_admitted, not_admitted=not_admitted,
             ) from exc
         try:
@@ -334,8 +333,8 @@ class PeerRunsHTTPClient:
         drift = exc.code == 403 and error_code in {
             _EXECUTION_POLICY_CHANGED[0], _CAPABILITY_CHANGED[0]}
         raise PeerRunsHTTPError(
-            _REAUTHORIZATION_MESSAGES[error_code] if renewal or drift
-            else f"peer rejected {method} {path} with HTTP {exc.code}",
+            _t(_REAUTHORIZATION_MESSAGES[error_code]) if renewal or drift
+            else _t("tui_gateway.peer.rejected", method=method, path=path, status=exc.code),
             retryable=exc.code in {408, 425, 429} or exc.code >= 500,
             error_code=error_code, **flags,
         ) from exc
@@ -378,7 +377,7 @@ class PeerRunsHTTPClient:
         backoff = self._recovery_backoff.get(key)
         if backoff is not None and now < float(backoff["next_attempt_at"]):
             raise PeerRunsHTTPError(
-                "peer admission recovery is backing off", retryable=True, ambiguous=True)
+                _t("tui_gateway.peer.backing_off"), retryable=True, ambiguous=True)
         try:
             recovered = self._admit_dispatch(checked, grant=grant)
         except PeerRunsHTTPError as exc:
@@ -439,7 +438,7 @@ class PeerRunsHTTPClient:
             room_id=dispatch.room_id, profile=dispatch.target_profile, source="bot_room",
             grant=grant, create=True)
         if prepared is None:
-            raise PeerRunsHTTPError("peer room session is unavailable")
+            raise PeerRunsHTTPError(_t("tui_gateway.peer.session_unavailable"))
         return str(prepared.get("session_id") or prepared.get("id") or "")
 
     def _observation_receipt(
@@ -562,7 +561,7 @@ class PeerRunsHTTPClient:
         status_ttl_seconds: float | None = None) -> Mapping[str, Any]:
         """Ask the target gateway to mint a scoped room-member grant."""
         if not self.api_key:
-            raise PeerRunsHTTPError("issuing an invitation requires the target gateway API key")
+            raise PeerRunsHTTPError(_t("tui_gateway.peer.invitation_needs_api_key"))
         return self._request(
             "/v1/room-members/invitations", method="POST",
             body={
@@ -581,7 +580,7 @@ class PeerRunsHTTPClient:
             "/v1/room-members/grants/refresh", grant, body={"ttl_seconds": ttl_seconds})
         replacement = str(refreshed.get("grant") or "")
         if not replacement:
-            raise PeerRunsHTTPError("peer returned no refreshed room grant")
+            raise PeerRunsHTTPError(_t("tui_gateway.peer.no_refreshed_grant"))
         # Persist only after the target proves the replacement authorizes the scoped endpoint.
         probe = self.probe(grant=replacement)
         error = digest_reauthorization_error(
@@ -609,5 +608,5 @@ class PeerRunsHTTPClient:
         """Prevent scoped operations from falling back to broad Bearer auth."""
         value = str(grant or "")
         if not value or value in {"compat", "compatibility-only"}:
-            raise PeerRunsHTTPError("a scoped room grant is required")
+            raise PeerRunsHTTPError(_t("tui_gateway.peer.scoped_grant_required"))
         return value

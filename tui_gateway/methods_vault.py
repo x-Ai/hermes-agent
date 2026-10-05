@@ -65,7 +65,7 @@ def _(rid, params: dict) -> dict:
     from agent.vault_backends.base import external_backend_classes, is_installed
 
     enabled = {b.name: b for b in enabled_backends()}
-    rows = [{"name": "local", "display_name": "Hermes vault", "enabled": True, "needs_unlock": False,
+    rows = [{"name": "local", "display_name": _t("tui_gateway.vault.builtin_label"), "enabled": True, "needs_unlock": False,
              "unlocked": True, "installed": True}]
     for cls in external_backend_classes():
         live = enabled.get(cls.name)
@@ -85,7 +85,7 @@ def _(rid, params: dict) -> dict:
 
     name = str(params.get("name") or "")
     if name not in {cls.name for cls in external_backend_classes()}:
-        return _err(rid, 5095, f"unknown vault source: {name}")
+        return _err(rid, 5095, _t("tui_gateway.vault.unknown_source", name=name))
     enabled = bool(params.get("enabled"))
     cfg = load_config()
     section = _ensure_dict(_ensure_dict(cfg, "vault"), name)
@@ -109,9 +109,9 @@ def _(rid, params: dict) -> dict:
     password = str(params.get("password") or "")
     backend = next((b for b in enabled_backends() if b.name == name and b.needs_unlock), None)
     if backend is None:
-        return _err(rid, 5095, f"{name} is not an enabled password manager")
+        return _err(rid, 5095, _t("tui_gateway.vault.manager_not_enabled", name=name))
     if not password:
-        return _err(rid, 5095, "master password is required")
+        return _err(rid, 5095, _t("tui_gateway.vault.master_password_required"))
     try:
         backend.unlock(password)  # type: ignore[attr-defined]
     except Exception as e:

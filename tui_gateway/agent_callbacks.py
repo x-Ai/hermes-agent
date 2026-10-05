@@ -288,7 +288,8 @@ def _validate_personality(value: str, cfg: dict | None = None) -> tuple[str, str
     personalities = _available_personalities(cfg)
     if name not in personalities:
         names = ", ".join(f"`{n}`" for n in sorted(personalities))
-        raise ValueError(f"Unknown personality: `{str(value).strip()}`.\n\nAvailable: `none`, {names}")
+        raise ValueError(_t("tui_gateway.personality.unknown", name=str(value).strip())
+                         + "\n\n" + _t("tui_gateway.personality.available", names=names))
     return name, render_personality_prompt(personalities[name])
 
 
@@ -480,9 +481,9 @@ def _preview_tool_result_preview(name: str, result: str) -> str:
         if output := str(data.get("output") or "").strip():
             return output[-1200:]
         if data.get("session_id"):
-            return f"Background process started: {data.get('session_id')}"
+            return _t("tui_gateway.process.background_started", id=data.get("session_id"))
         if data.get("exit_code") is not None:
-            return f"terminal exited with code {data.get('exit_code')}"
+            return _t("tui_gateway.process.terminal_exited", code=data.get("exit_code"))
     return str(data.get("error") or "").strip()[:1200]
 
 
@@ -585,7 +586,7 @@ def _rebuild_session_agent(sid: str, session: dict, **kwargs):
         if opened:
             with contextlib.suppress(Exception):
                 session_db.close()
-        raise RuntimeError("session was closed while its agent was being rebuilt")
+        raise RuntimeError(_t("tui_gateway.session.closed_during_rebuild"))
     return agent
 
 

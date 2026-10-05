@@ -19,6 +19,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from agent.i18n import t as _t
 from hermes_constants import get_hermes_home
 from tools.environments.local import hermes_subprocess_env
 
@@ -383,7 +384,7 @@ class HostSupervisor:
         with self._lock:
             proc = self._proc
             if proc is None or proc.poll() is not None or proc.stdin is None:
-                raise RuntimeError("compute host is not running")
+                raise RuntimeError(_t("tui_gateway.compute_host.not_running"))
             proc.stdin.write(json.dumps(frame, separators=(",", ":"), ensure_ascii=False) + "\n")
             proc.stdin.flush()
 
@@ -434,7 +435,7 @@ class HostSupervisor:
                 return
             self._proc = None
         self._remove_registry()
-        self._fail_pending_turns(reason="crash", message=f"compute host exited with code {code}")
+        self._fail_pending_turns(reason="crash", message=_t("tui_gateway.compute_host.exited", code=code))
         self._maybe_respawn_after_crash()
 
     def _fail_pending_turns(self, *, reason: str, message: str) -> None:

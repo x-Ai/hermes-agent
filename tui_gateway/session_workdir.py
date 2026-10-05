@@ -163,10 +163,10 @@ def _workspace_cwd(profile_home, raw: str) -> str:
     if _cwd_is_remote(profile_home):
         if _is_remote_cwd_shape(raw):
             return raw
-        raise ValueError(f"remote working directory must be absolute or ~-relative: {raw}")
+        raise ValueError(_t("tui_gateway.session.cwd_not_absolute", path=raw))
     resolved = os.path.abspath(os.path.expanduser(raw))
     if not os.path.isdir(resolved):
-        raise ValueError(f"working directory does not exist: {raw}")
+        raise ValueError(_t("tui_gateway.session.cwd_missing", path=raw))
     return resolved
 
 
@@ -769,7 +769,7 @@ def _rewind_active_session_history(
     if session_key:
         with _session_db(session) as db:
             if db is None:
-                raise RuntimeError("session database is unavailable")
+                raise RuntimeError(_t("tui_gateway.session.db_unavailable"))
             outcome = db.rewind_user_turn(
                 session_key, user_ordinal, warm_history=history, require_retryable=require_retryable,
                 adopt_row_ids=True)

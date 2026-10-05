@@ -251,7 +251,7 @@ def _maybe_fire_tui_heartbeat_tick(sid: str, session: dict) -> None:
         return
     started = False
     try:
-        _emit("status.update", sid, {"kind": "heartbeat", "text": f"♥ heartbeat #{mgr.state.fire_count} firing…"})
+        _emit("status.update", sid, {"kind": "heartbeat", "text": _t("tui_gateway.notifications.heartbeat_firing", n=mgr.state.fire_count)})
         started = bool(_run_prompt_submit(f"__heartbeat__{int(time.time() * 1000)}", sid, session, prompt))
     except Exception as exc:
         _notif_log_failure("heartbeat dispatch failed", exc)
@@ -289,7 +289,7 @@ def _maybe_fire_tui_loop_tick(sid: str, session: dict) -> None:
         return
     rid = f"__loop__{int(time.time() * 1000)}"
     try:
-        _notif_loop_status(sid, f"↻ /loop wakeup #{mgr.state.ticks_fired if mgr.state else '?'} firing…")
+        _notif_loop_status(sid, _t("tui_gateway.notifications.loop_wakeup_firing", n=mgr.state.ticks_fired if mgr.state else "?"))
         if wakeup.lstrip().startswith("/"):
             _notif_slash_loop_tick(rid, sid, session, mgr, wakeup)
         else:
@@ -310,24 +310,25 @@ def _kb_first_line(value: Any, limit: int) -> str:
 def _kb_completed(task, payload: dict, title: str) -> str:
     handoff = (_kb_first_line(payload["summary"], 200) if payload.get("summary")
                else _kb_first_line(task.result, 160) if getattr(task, "result", None) else "")
-    return f" done — {title}{handoff}"
+    return _t("tui_gateway.kanban.done", title=title, handoff=handoff)
 
 
 def _kb_timed_out(task, payload: dict, title: str) -> str:
     with contextlib.suppress(TypeError, ValueError):
-        return f" timed out (max_runtime={int(payload.get('limit_seconds') or 0)}s); will retry"
-    return " timed out (max_runtime=0s); will retry"
+        return _t("tui_gateway.kanban.timed_out", seconds=int(payload.get("limit_seconds") or 0))
+    return _t("tui_gateway.kanban.timed_out", seconds=0)
 
 
 # kind -> (glyph, suffix after "Kanban <id>"); silent kinds (archived/unblocked) are absent → None.
 _KANBAN_EVENT_FORMATTERS = {
     "completed": ("✔", _kb_completed),
-    "blocked": ("⏸", lambda t, p, title: " blocked" + (f": {str(p.get('reason'))[:160]}" if p.get("reason") else "")),
-    "gave_up": ("✖", lambda t, p, title: " gave up after repeated spawn failures"
+    "blocked": ("⏸", lambda t, p, title: _t("tui_gateway.kanban.blocked")
+                + (f": {str(p.get('reason'))[:160]}" if p.get("reason") else "")),
+    "gave_up": ("✖", lambda t, p, title: _t("tui_gateway.kanban.gave_up")
                 + (f"\n{str(p.get('error'))[:200]}" if p.get("error") else "")),
-    "crashed": ("✖", lambda t, p, title: " worker crashed (pid gone); dispatcher will retry"),
+    "crashed": ("✖", lambda t, p, title: _t("tui_gateway.kanban.crashed")),
     "timed_out": ("⏱", _kb_timed_out),
-    "status": ("🔄", lambda t, p, title: f" → {p.get('status') or ''}"),
+    "status": ("🔄", lambda t, p, title: _t("tui_gateway.kanban.status", status=p.get("status") or "")),
 }
 
 

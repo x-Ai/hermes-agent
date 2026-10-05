@@ -169,3 +169,39 @@ def test_every_bundled_language_keeps_the_slash_commands_users_must_type():
         assert "`/reload-mcp always`" in i18n.t("tui_gateway.tools.reload_mcp_confirm", lang=lang), lang
         assert "`hermes model`" in i18n.t("tui_gateway.credentials.non_key_auth", lang=lang, provider="p", auth="a"), lang
         assert "{count}" not in i18n.t("tui_gateway.tools.undo.done", lang=lang, count=2, unit="t", messages=3), lang
+
+
+# ── batch 3: config refusals, kanban notices, connector and peer-room copy ─────────────────────
+
+def test_config_set_word_refusals_are_catalog_keys_resolved_per_call(english):
+    from tui_gateway import server
+    key = server._word_setters()["approvals.mode"][2]
+    assert key == "tui_gateway.config.unknown_approval_mode"
+    assert i18n.t(key, lang="en", value="bogus", raw="'bogus'", options="x|y") == (
+        "unknown approval mode: bogus; pick one of manual|smart|off")
+    indicator = server._word_setters()["indicator"][2]
+    assert i18n.t(indicator, lang="en", value=0, raw="0", options="a|b") == "unknown indicator: 0; pick one of a|b"
+    assert "bogus" in i18n.t(key, lang="zh", value="bogus", raw="'bogus'", options="x|y")
+    assert "manual|smart|off" in i18n.t(key, lang="zh", value="bogus", raw="'bogus'", options="x|y")
+
+
+def test_kanban_event_suffixes_keep_their_leading_space_in_every_language():
+    """The suffix is glued onto ``Kanban <id>``; a translation that drops the space runs the words together."""
+    for lang in i18n.SUPPORTED_LANGUAGES:
+        for key in ("blocked", "gave_up", "crashed"):
+            assert i18n.t(f"tui_gateway.kanban.{key}", lang=lang).startswith(" "), (lang, key)
+        timed_out = i18n.t("tui_gateway.kanban.timed_out", lang=lang, seconds=30)
+        assert timed_out.startswith(" ") and "max_runtime=30" in timed_out, lang  # CJK catalogs spell the unit out
+        assert i18n.t("tui_gateway.kanban.status", lang=lang, status="running") == " → running", lang
+
+
+def test_connector_and_peer_room_refusals_are_localized(chinese):
+    from tui_gateway import server
+    from tui_gateway.contracts.connectors import ConnectorErrorReason
+    exc = type("Exc", (), {"code": "policy_changed", "status": 409})()
+    assert server._policy_error(exc, ConnectorErrorReason)[2] == i18n.t(
+        "tui_gateway.connectors.policy_changed_refresh", lang="zh")
+    assert i18n.t("tui_gateway.connectors.sign_in") != i18n.t("tui_gateway.connectors.sign_in", lang="en")
+    from tui_gateway.hosted_room_peer_http import _BUDGET_MESSAGES
+    budget = i18n.t(_BUDGET_MESSAGES["size"], kind=" probe")
+    assert budget == i18n.t("tui_gateway.peer.size_limit", lang="zh", kind=" probe") and " probe" in budget

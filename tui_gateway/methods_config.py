@@ -290,7 +290,7 @@ def _(rid, params: dict) -> dict:
     key = params.get("key", "")
     getter = _CONFIG_GETTERS.get(key)
     if getter is None:
-        return _err(rid, 4002, f"unknown config key: {key}")
+        return _err(rid, 4002, _t("tui_gateway.config.unknown_key", name=key))
     try:
         return _ok(rid, getter(params))
     except Exception as e:
@@ -363,7 +363,7 @@ def _readiness_check(rid, params, probe, *, probe_key, wait_seconds):
         from hermes_cli import profiles as profiles_mod
         if not profiles_mod.profile_exists(profile):
             return _ok(rid, {"ok": False, "profile": params.get("profile"),
-                             "error": f"Profile '{profile}' does not exist on this backend."})
+                             "error": _t("tui_gateway.profile.not_exist_on_backend", name=profile)})
         home = _profile_home(profile)
     # ``profile_home=None`` is the launch profile: once this process multiplexes its probe must
     # run under its own frozen secret scope too (``_profile_runtime_scope_tokens`` binds nothing in
@@ -532,7 +532,7 @@ def _(rid, params: dict) -> dict:
         view_url = res.get("viewUrl") or res.get("view_url")
         upload_id = res.get("id")
         if not view_url and not upload_id:  # an upload the user can't reference is useless to support
-            return _ok(rid, {"ok": False, "error": "upload succeeded but returned no view URL or id"})
+            return _ok(rid, {"ok": False, "error": _t("tui_gateway.upload.no_view_url")})
         return _ok(rid, {"ok": True, "view_url": view_url, "upload_id": upload_id,
                          "expires_at": res.get("expiresAt") or res.get("expires_at")})
     except Exception as e:

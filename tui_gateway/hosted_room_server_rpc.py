@@ -10,6 +10,7 @@ from collections.abc import Mapping, Sequence
 from types import ModuleType
 from typing import Any, Callable
 
+from agent.i18n import t as _t
 from gateway import hosted_room_driver as state
 
 _LockType = type(threading.Lock())
@@ -39,10 +40,10 @@ class HostedRoomServerRPC:
         if isinstance(error, dict):
             raise HostedRoomSessionError(
                 method, int(error.get("code") or 5000),
-                str(error.get("message") or "gateway rejected the request"))
+                str(error.get("message") or _t("tui_gateway.peer.gateway_rejected")))
         result = envelope.get("result")
         if not isinstance(result, dict):
-            raise HostedRoomSessionError(method, 5000, "gateway returned no result")
+            raise HostedRoomSessionError(method, 5000, _t("tui_gateway.peer.gateway_no_result"))
         return result
 
     def resolve_exact(self, *, profile: str, title: str, source: str) -> Mapping[str, Any] | None:

@@ -14,7 +14,7 @@ def _foreign_list(rid, params):
     except ValueError as exc:
         return _err(rid, -32602, str(exc))
     except OSError:
-        return _err(rid, -32000, "Could not read session folders on this backend")
+        return _err(rid, -32000, _t("tui_gateway.foreign.folders_unreadable"))
 
 
 def _foreign_history_request(rid, params, importing):
@@ -29,7 +29,7 @@ def _foreign_history_request(rid, params, importing):
     except ValueError as exc:
         return _err(rid, -32602, str(exc))
     except OSError:
-        return _err(rid, -32000, "Could not read this session on the backend")
+        return _err(rid, -32000, _t("tui_gateway.foreign.session_unreadable"))
 
 
 @method("session.foreign.preview")

@@ -158,7 +158,7 @@ def _snapshot_sessions(rid):
         with _sessions_lock:
             return list(_sessions.items()), None
     except Exception as e:
-        return None, _err(rid, 5036, f"could not enumerate active sessions: {e}")
+        return None, _err(rid, 5036, _t("tui_gateway.session.enumerate_failed", detail=e))
 
 
 def _pet_display_cfg() -> dict:
@@ -395,10 +395,10 @@ def _create_session(rid, params: dict, *, copy_parent_history: bool = False) -> 
             try:
                 _, display_history = db.get_resume_conversations(parent_session_id)
             except Exception as exc:
-                return _err(rid, 4008, f"nothing to branch — {exc}")
+                return _err(rid, 4008, _t("tui_gateway.session.nothing_to_branch_detail", detail=exc))
         history = _visible_branch_history(display_history)
         if not history:
-            return _err(rid, 4008, "nothing to branch — send a message first")
+            return _err(rid, 4008, _t("tui_gateway.session.nothing_to_branch"))
     # Only an explicitly chosen existing workspace persists as cwd; the launch-dir fallback is "No workspace".
     explicit_cwd = False
     raw_cwd = _str_param(params, "cwd")  # unguarded, as on BASE: only the path check is best-effort
@@ -1120,7 +1120,7 @@ def _(rid, params: dict) -> dict:
     try:
         target_cwd = _workspace_cwd(home, translate_cwd_for_wsl_backend(raw))
     except ValueError:
-        return _err(rid, 4017, f"working directory does not exist: {raw}")
+        return _err(rid, 4017, _t("tui_gateway.session.cwd_missing", path=raw))
     branch, root = git_probe.branch(target_cwd), git_probe.common_repo_root(target_cwd)
     with _profile_db(params, writer=True) as db:
         if db is None:
@@ -1133,7 +1133,7 @@ def _(rid, params: dict) -> dict:
             try:
                 db.update_session_cwd(target, target_cwd, branch, root, replace_git_meta=True)
             except Exception as e:
-                return _err(rid, 5007, f"move failed: {e}")
+                return _err(rid, 5007, _t("tui_gateway.session.move_failed", detail=e))
     if live is not None:
         try:
             _set_session_cwd(live, target_cwd)
@@ -1183,7 +1183,7 @@ def _(rid, params: dict) -> dict:
     if err:
         return err
     if any(s.get("session_key") == target for _sid, s in snapshot):
-        return _err(rid, 4023, "cannot delete an active session")
+        return _err(rid, 4023, _t("tui_gateway.session.delete_active"))
     profile_home = _profile_home((params.get("profile") or "").strip() or None)
     with _profile_db(params, writer=True) as db:
         if db is None:
@@ -1192,9 +1192,9 @@ def _(rid, params: dict) -> dict:
             home = Path(profile_home) if profile_home is not None else get_hermes_home()
             deleted = db.delete_session(target, sessions_dir=home / "sessions", exclude_active_write_guards=True)
         except SessionActiveWriteGuardError:
-            return _err(rid, 4023, "cannot delete an active session")
+            return _err(rid, 4023, _t("tui_gateway.session.delete_active"))
         except Exception as e:
-            return _err(rid, 5036, f"delete failed: {e}")
+            return _err(rid, 5036, _t("tui_gateway.session.delete_failed", detail=e))
     return _ok(rid, {"deleted": target}) if deleted else _err(rid, 4007, "session not found")
 
 
@@ -1333,12 +1333,12 @@ def _(rid, params: dict, session: dict) -> dict:
             if row_id is None:
                 row_id = db.latest_message_row_id(row_session, role=newest_role)
                 if row_id is None:
-                    return _err(rid, 4040, "no message to react to yet")
+                    return _err(rid, 4040, _t("tui_gateway.session.no_message_to_react"))
             reactions = db.set_message_reaction(row_session, int(row_id), emoji, author=author)
         except Exception as e:
             return _err(rid, 5007, str(e))
     if reactions is None:
-        return _err(rid, 4040, "message not found in this session")
+        return _err(rid, 4040, _t("tui_gateway.session.message_not_found"))
     return _ok(rid, {"row_id": int(row_id), "reactions": reactions})
 
 
@@ -1372,7 +1372,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 4031 if isinstance(e, KeyError) else 4032, str(e))
     except Exception as e:
         logger.warning("llm.oneshot failed: %s", e)
-        return _err(rid, 5030, f"one-shot generation failed: {e}")
+        return _err(rid, 5030, _t("tui_gateway.session.oneshot_failed", detail=e))
 
 
 # ── handoff ──────────────────────────────────────────────────────────
@@ -1388,17 +1388,16 @@ def _(rid, params: dict, session: dict) -> dict:
     try:
         platform = Platform(platform_name)
     except (ValueError, KeyError):
-        return _err(rid, 4024, f"unknown platform '{platform_name}'")
+        return _err(rid, 4024, _t("tui_gateway.handoff.unknown_platform", name=platform_name))
     try:
         with _session_profile_runtime_scope(session):
             gw_config = load_gateway_config()
     except Exception as e:
-        return _err(rid, 5021, f"could not load gateway config: {e}")
+        return _err(rid, 5021, _t("tui_gateway.handoff.config_load_failed", detail=e))
     if not getattr(gw_config.platforms.get(platform), "enabled", False):
-        return _err(rid, 4025, f"platform '{platform_name}' is not configured/enabled in the gateway")
+        return _err(rid, 4025, _t("tui_gateway.handoff.platform_not_enabled", name=platform_name))
     if not (home := gw_config.get_home_channel(platform)) or not home.chat_id:
-        return _err(rid, 4026, f"no home channel configured for {platform_name} — set one with "
-                    "/sethome on the destination chat first")
+        return _err(rid, 4026, _t("tui_gateway.handoff.no_home_channel", name=platform_name))
     # The watcher transfers a persisted row, so make sure one exists for an empty chat.
     _ensure_session_db_row(session)
     key = session["session_key"]
@@ -1409,7 +1408,7 @@ def _(rid, params: dict, session: dict) -> dict:
             if not db.get_session(key):
                 db.set_session_title(key, f"handoff-{key[:8]}")
             if not db.request_handoff(key, platform_name):
-                return _err(rid, 4027, "session is already in flight for handoff — wait for it to settle, then retry")
+                return _err(rid, 4027, _t("tui_gateway.handoff.in_flight"))
         except Exception as e:
             return _err(rid, 5007, str(e))
     return _ok(rid, {"queued": True, "session_key": key, "platform": platform_name, "home_name": home.name})
@@ -1519,7 +1518,7 @@ def _(rid, params: dict, session: dict) -> dict:
             payload["context_files"] = context_file_sources_for_agent(agent)
         return _ok(rid, payload)
     except Exception as exc:
-        return _err(rid, 5000, f"Could not compute context breakdown: {exc}")
+        return _err(rid, 5000, _t("tui_gateway.session.context_breakdown_failed", detail=exc))
     finally:
         _clear_session_context(tokens)
 
@@ -1638,7 +1637,7 @@ def _(rid, params: dict, slug: str) -> dict:
     try:
         pet = store.install_pet(slug)
     except (store.PetStoreError, ManifestError) as exc:
-        return _err(rid, 5031, f"could not adopt '{slug}': {exc}")
+        return _err(rid, 5031, _t("tui_gateway.pet.adopt_failed", slug=slug, detail=exc))
     _set_active(slug)
     return _ok(rid, {"ok": True, "slug": slug, "displayName": pet.display_name})
 
@@ -1681,7 +1680,7 @@ def _(rid, params: dict, slug: str) -> dict:
         return _err(rid, 4004, "missing name")
     from agent.pet import store
     if not (new_slug := store.rename_pet(slug, name)):
-        return _err(rid, 5031, "pet.rename failed")
+        return _err(rid, 5031, _t("tui_gateway.pet.rename_failed"))
     if new_slug != slug:
         from hermes_cli.pets import _rename_active_if
         _pet_config_followup("pet.rename", _rename_active_if, slug, new_slug)
@@ -1797,7 +1796,7 @@ def _(rid, params: dict) -> dict:
     cancelled = _pet_is_cancelled(token)
     _pet_cancel_release(token)
     if cancelled or not out:
-        return _err(rid, 5031, "generation cancelled" if cancelled else "generation produced no usable drafts")
+        return _err(rid, 5031, _t("tui_gateway.pet.generation_cancelled") if cancelled else _t("tui_gateway.pet.no_drafts"))
     return _ok(rid, {"ok": True, "token": token, "drafts": sorted(out, key=lambda d: d["index"])})
 
 
@@ -1815,7 +1814,7 @@ def _(rid, params: dict) -> dict:
     from agent.pet.generate.imagegen import GenerationError
     base = _pet_gen_root() / token / f"draft-{_int_param(params, 'index', 0)}.png"
     if not base.is_file():
-        return _err(rid, 4004, "draft expired — generate again")
+        return _err(rid, 4004, _t("tui_gateway.pet.draft_expired"))
     try:
         sprite = _pet_pick_provider(params, require_references=True)  # rows always need reference grounding
     except GenerationError as exc:
@@ -1857,8 +1856,8 @@ def _billing_view(name: str, module: str, builder: str, serializer: str, fallbac
         try:
             from importlib import import_module
             return _ok(rid, globals()[serializer](getattr(import_module(module), builder)()))
-        except Exception:
-            return _ok(rid, dict(fallback))
+        except Exception:  # ``fallback["error"]`` is a catalog key, resolved per call
+            return _ok(rid, {**fallback, **({"error": _t(fallback["error"])} if fallback.get("error") else {})})
 
 
 @method("billing.state")
@@ -1873,14 +1872,14 @@ def _(rid, params: dict) -> dict:
             return _ok(rid, _serialize_billing_state(BillingState(logged_in=False), free_tier_account=True))
         return _ok(rid, _serialize_billing_state(build_billing_state()))
     except Exception:
-        return _ok(rid, {"ok": True, "logged_in": False, "free_tier_account": False, "error": "could not load billing state"})
+        return _ok(rid, {"ok": True, "logged_in": False, "free_tier_account": False, "error": _t("tui_gateway.billing.load_failed")})
 
 
 _billing_view("usage.bars", "agent.billing_usage", "build_usage_model", "_serialize_usage_model",  # two-bar $ view
               {"ok": True, "available": False})
 _billing_view("subscription.state", "agent.subscription_view", "build_subscription_state",
               "_serialize_subscription_state",
-              {"ok": True, "logged_in": False, "error": "could not load subscription state"})
+              {"ok": True, "logged_in": False, "error": "tui_gateway.billing.subscription_load_failed"})
 
 
 @method("subscription.preview")
@@ -2002,8 +2001,8 @@ def _(rid, params: dict, session: dict) -> dict:
     )
     project = _project_info_for_cwd(_display_session_cwd(session))
     lines = [
-        "Hermes TUI Status", "", *status_lines(fields, "session_id", "path"),
-        *([f"Project: {project['name']}"] if project else []),
+        _t("tui_gateway.session.status_title"), "", *status_lines(fields, "session_id", "path"),
+        *([_t("tui_gateway.session.project_line", name=project["name"])] if project else []),
         *status_lines(fields, "title", "model", "created", "last_activity", "tokens", "agent_running")]
     return _ok(rid, {"output": "\n".join(lines)})
 
@@ -2065,11 +2064,11 @@ def _save_via_compute_host(rid, params: dict) -> dict:
     try:
         ack = _send_compute_host_control(str(params.get("session_id") or ""), route_name="session.save", wait=True)
     except Exception as exc:
-        return _err(rid, 5011, f"compute-host session save failed: {exc}")
-    if (resp := _compute_host_ack_error(rid, ack, ack.get("code") or 5011, "compute-host session save failed")) is not None:
+        return _err(rid, 5011, _t("tui_gateway.compute_host.failed_detail", op="session save", detail=exc))
+    if (resp := _compute_host_ack_error(rid, ack, ack.get("code") or 5011, _t("tui_gateway.compute_host.failed", op="session save"))) is not None:
         return resp
     if not isinstance(result := ack.get("result"), dict):
-        return _err(rid, 5011, "compute-host session save returned an invalid response")
+        return _err(rid, 5011, _t("tui_gateway.compute_host.invalid_response", op="session save"))
     return _ok(rid, result)
 
 
@@ -2089,11 +2088,10 @@ def _compress_via_compute_host(rid, params: dict, session: dict) -> dict:
         # Waiter gave up, host still compressing; the late-ack handler adopts the rotated session when it
         # lands. Not an error (a 5019 here reported timeouts that later succeeded).
         return _ok(rid, {"status": "pending", "turn_isolation": True,
-                         "message": ("compression still running in the background; "
-                                     "the transcript will refresh when it finishes")})
+                         "message": _t("tui_gateway.slash.compress.still_running")})
     except Exception as exc:
-        return _err(rid, 5019, f"compute-host compress failed: {exc}")
-    if (resp := _compute_host_ack_error(rid, ack, 4009, "compute-host compress failed")) is not None:
+        return _err(rid, 5019, _t("tui_gateway.compute_host.failed_detail", op="compress", detail=exc))
+    if (resp := _compute_host_ack_error(rid, ack, 4009, _t("tui_gateway.compute_host.failed", op="compress"))) is not None:
         return resp
     _apply_compute_host_metadata_mirror(session, ack)
     if isinstance(host_result := ack.get("result"), dict):
@@ -2128,9 +2126,9 @@ def _compress_live(rid, sid: str, session: dict, focus_topic: str) -> dict:
         return estimate_request_tokens_rough(msgs, system_prompt=sys_prompt, tools=tools) if msgs else 0
     before_tokens = _tokens(before_messages)
     if before_count >= 4:
-        focus_suffix = f', focus: "{focus_topic}"' if focus_topic else ""
-        _status_update(sid, "compressing",
-                       f"⠋ compressing {before_count} messages (~{before_tokens:,} tok){focus_suffix}…")
+        focus_suffix = _t("tui_gateway.compress.progress_focus", topic=focus_topic) if focus_topic else ""
+        _status_update(sid, "compressing", _t(
+            "tui_gateway.compress.progress", count=before_count, tokens=f"{before_tokens:,}", focus=focus_suffix))
     try:
         removed, usage = _compress_session_history(
             session, focus_topic, approx_tokens=before_tokens, before_messages=before_messages,
@@ -2209,7 +2207,7 @@ def _(rid, params: dict, session: dict) -> dict:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(render_session_for_save(data, "json"), encoding="utf-8")
     except Exception as e:
-        return _err(rid, 5011, f"failed to save {path}: {e}")
+        return _err(rid, 5011, _t("tui_gateway.session.save_failed", path=path, detail=e))
     return _ok(rid, {"file": str(path)})
 
 
@@ -2307,7 +2305,7 @@ def _branch_live(rid, params: dict, session: dict, *, omit_messages: bool = Fals
         old_key = session["session_key"]
         history = _branch_source_history(db, session, old_key)
         if not history:
-            return _err(rid, 4008, "nothing to branch — send a message first")
+            return _err(rid, 4008, _t("tui_gateway.session.nothing_to_branch"))
         if isinstance(count := params.get("count"), int) and count > 0:
             history = history[:count]
         new_key, new_sid, source = _new_session_key(), uuid.uuid4().hex[:8], _session_source(session)
@@ -2321,11 +2319,11 @@ def _branch_live(rid, params: dict, session: dict, *, omit_messages: bool = Fals
                             title_source="user" if params.get("name") else "derived",
                             user_id=_session_auth_user_id(session))
         except Exception as e:
-            return _err(rid, 5008, f"branch failed: {e}")
+            return _err(rid, 5008, _t("tui_gateway.session.branch_failed", detail=e))
     try:
         agent = _build_branch_agent(session, new_sid, new_key, history, source)
     except Exception as e:
-        return _err(rid, 5000, f"agent init failed on branch: {e}")
+        return _err(rid, 5000, _t("tui_gateway.session.branch_agent_init_failed", detail=e))
     if idem_key is not None:
         with _sessions_lock:
             _idempotency_keys[idem_key] = (new_sid, time.time())
@@ -2415,7 +2413,7 @@ def _(rid, params: dict) -> dict:
             try:
                 _interrupt_session_turn(sid, session, request_id=f"interrupt-{rid}")
             except Exception as exc:
-                return _err(rid, 5019, f"compute-host interrupt failed: {exc}")
+                return _err(rid, 5019, _t("tui_gateway.compute_host.failed_detail", op="interrupt", detail=exc))
             return _ok(rid, {"status": "interrupted", "turn_isolation": True})
         session, err = _sess(params, rid)
         if err:
@@ -2482,7 +2480,7 @@ def _correction_method(name: str, verb: str, accepted_status: str, supported, un
             session["last_active"] = time.time()
             return _ok(rid, {"status": "queued", "text": text})
         if not supported(agent):
-            return _err(rid, 4010, unsupported)
+            return _err(rid, 4010, _t(unsupported))
         # An idle agent accepts steer() but only the next turn drains it, spliced after an old tool
         # row (#64578). 'rejected' makes the client queue it as a normal next prompt.
         if verb == "steer" and not session.get("running"):
@@ -2493,11 +2491,11 @@ def _correction_method(name: str, verb: str, accepted_status: str, supported, un
 # Inject text into the next tool result without interrupting (AIAgent.steer(): no new user turn, no role
 # alternation violation).
 _correction_method("session.steer", "steer", "queued", lambda agent: hasattr(agent, "steer"),
-                   "agent does not support steer")
+                   "tui_gateway.session.steer_unsupported")
 # Redirect the active model turn while preserving valid work/context.
 _correction_method("session.redirect", "redirect", "redirected",
                    lambda agent: getattr(agent, "_supports_active_turn_redirect", False) is True
-                   and hasattr(agent, "redirect"), "agent does not support active-turn redirect")
+                   and hasattr(agent, "redirect"), "tui_gateway.session.redirect_unsupported")
 
 
 # ── delegation / spawn trees ─────────────────────────────────────────

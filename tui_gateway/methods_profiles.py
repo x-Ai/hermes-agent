@@ -78,9 +78,9 @@ def _resolve_profile(rid, params):
     try:
         profile_dir = Path(get_profile_dir(name))
     except ValueError:
-        return name, None, _err(rid, 4064, f"profile '{name}' not found")
+        return name, None, _err(rid, 4064, _t("tui_gateway.tools.profile_not_found", name=name))
     if not profile_dir.is_dir():
-        return name, None, _err(rid, 4064, f"profile '{name}' not found")
+        return name, None, _err(rid, 4064, _t("tui_gateway.tools.profile_not_found", name=name))
     return name, profile_dir, None
 
 
@@ -416,7 +416,7 @@ def _(rid, params: dict) -> dict:
     if not str(params.get("name") or "").strip():
         return _err(rid, 4063, "name required")
     if asset != "avatar":
-        return _err(rid, 4066, f"unknown asset '{asset}' (supported: avatar)")
+        return _err(rid, 4066, _t("tui_gateway.profiles.unknown_asset", asset=asset))
     import base64
     import re
     _name, profile_dir, err = _resolve_profile(rid, params)
@@ -432,12 +432,12 @@ def _(rid, params: dict) -> dict:
     try:
         blob = base64.b64decode(match.group(2) if match else data, validate=True)
     except Exception:
-        return _err(rid, 4068, "data is not valid base64")
+        return _err(rid, 4068, _t("tui_gateway.attach.invalid_base64"))
     if len(blob) > 2_000_000:
-        return _err(rid, 4069, f"asset too large ({len(blob)} bytes; max 2MB)")
+        return _err(rid, 4069, _t("tui_gateway.profiles.asset_too_large", bytes=len(blob)))
     ext = next((e for e, magic in _ASSET_MAGIC.items() if all(blob[a:b] == m for a, b, m in magic)), None)
     if ext is None:
-        return _err(rid, 4070, "unsupported image format (PNG/JPEG/WebP only)")
+        return _err(rid, 4070, _t("tui_gateway.profiles.unsupported_image_format"))
     assets_dir.mkdir(parents=True, exist_ok=True)
     _unlink_asset_files(assets_dir, asset)  # one canonical file per asset
     tmp = assets_dir / f"{asset}.{ext}.tmp"

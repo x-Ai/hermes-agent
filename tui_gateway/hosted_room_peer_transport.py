@@ -11,6 +11,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from agent.i18n import t as _t
 from gateway.hosted_room_driver import TaskIdentity
 from gateway.hosted_room_peer import HostedMemberDispatch, PROTOCOL_VERSION
 from tui_gateway.hosted_room_driver import (
@@ -180,14 +181,14 @@ class PeerHostedRoomTransport(InternalSessionRPC):
     def create(self, *, profile: str, title: str, source: str) -> Mapping[str, Any]:
         session = self._prepare(profile=profile, source=source, create=True, title=title)
         if session is None:
-            raise RuntimeError("peer did not create the room session")
+            raise RuntimeError(_t("tui_gateway.peer.session_not_created"))
         self._session_id = str(session.get("session_id") or session.get("id") or "")
         return session
 
     def resume(self, *, profile: str, session_id: str, source: str) -> Mapping[str, Any]:
         session = self._prepare(profile=profile, source=source, create=False, expected_session_id=session_id)
         if session is None:
-            raise RuntimeError("peer room session is unavailable")
+            raise RuntimeError(_t("tui_gateway.peer.session_unavailable"))
         self._session_id = session_id
         return session
 
@@ -198,7 +199,7 @@ class PeerHostedRoomTransport(InternalSessionRPC):
         del member_id  # the signed route already names the member
         self._validate_coordinates(profile=profile, source=source)
         if self._session_id not in {None, session_id}:
-            raise ValueError("peer room session changed during admission")
+            raise ValueError(_t("tui_gateway.peer.session_changed"))
         dispatch = build_member_dispatch(
             binding=self.binding, route=self.route, room_id=task.room_id, task_id=task.task_id,
             target_profile=profile, execution_generation=execution_generation,

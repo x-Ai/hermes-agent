@@ -6,6 +6,8 @@ owns flow registration, profile checks, polling, cancellation, and relayed callb
 
 from __future__ import annotations
 
+from agent.i18n import t as _t
+
 import secrets
 import threading
 import time
@@ -75,9 +77,9 @@ def start_flow(
     with _sessions_lock:
         active = [r for r in _sessions.values() if not r["flow"].worker_done]
         if len(active) >= _MAX_PENDING:
-            raise RuntimeError("Too many MCP OAuth flows are already in progress")
+            raise RuntimeError(_t("tui_gateway.mcp.oauth_too_many"))
         if any(r["server_name"] == server_name and r["hermes_home"] == hermes_home for r in active):
-            raise RuntimeError(f"MCP OAuth for '{server_name}' is already in progress")
+            raise RuntimeError(_t("tui_gateway.mcp.oauth_in_progress", name=server_name))
 
     session_id = secrets.token_urlsafe(24)
     flow = DashboardOAuthFlow(
@@ -99,10 +101,10 @@ def start_flow(
                 break
             if snap.get("status") == "error":
                 raise RuntimeError(
-                    snap.get("error") or "MCP OAuth flow failed before authorization")
+                    snap.get("error") or _t("tui_gateway.mcp.oauth_failed_before_auth"))
             time.sleep(0.1)
         if not auth_url:
-            raise TimeoutError("Timed out waiting for MCP authorization URL")
+            raise TimeoutError(_t("tui_gateway.mcp.oauth_url_timeout"))
     except Exception as exc:
         from tools.mcp_dashboard_oauth import exception_message
         flow.mark_error(exception_message(exc))  # no-op when the worker already recorded the cause
@@ -120,7 +122,7 @@ def _lookup(
     with _sessions_lock:
         rec = _sessions.get(session_id)
     if rec is None:
-        return None, "OAuth session not found or expired"
+        return None, _t("tui_gateway.mcp.oauth_session_expired")
     if rec["server_name"] != server_name:
         return None, "server name mismatch for session"
     if hermes_home_key(rec["hermes_home"]) != hermes_home_key(hermes_home):
@@ -153,7 +155,7 @@ def cancel_flow(session_id: str, server_name: str, hermes_home: str) -> Dict[str
     if rec is None:
         return {"ok": False, "error_message": err}
     flow = rec["flow"]
-    flow.mark_error("OAuth cancelled by user", cancelled=True)
+    flow.mark_error(_t("tui_gateway.mcp.oauth_cancelled"), cancelled=True)
     _shutdown_listener(rec)
     return {"ok": True, "status": flow.snapshot()["status"]}
 

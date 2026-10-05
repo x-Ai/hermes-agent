@@ -100,7 +100,7 @@ def _(rid, params: dict) -> dict:
     # Refusal and release are ONE lease transition: a takeover landing between a separate human_holds()
     # check and the release would be acknowledged to the human and then silently revoked here.
     if _bd_lease.release(unless_human=not force).holder == _bd_lease.HUMAN:
-        return _err(rid, _DISPLAY_ERR, "a human holds this screen; pass force: true to stop it anyway",
+        return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.human_holds_screen"),
                     data={"code": "viewer_mismatch"})
     try:
         stopped = _bd_runtime.stop()
@@ -158,7 +158,7 @@ def _(rid, params: dict) -> dict:
     try:
         # The bridge dials either the host RFB socket or the sandbox relay; neither exists before start.
         if _bd_runtime.rfb_socket_path() is None and not _bd_runtime.sandbox_screen_running():
-            return _err(rid, _DISPLAY_ERR, "this profile's Bot Desktop is not running; call display.start first")
+            return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.not_running"))
         viewer_id = _mint_viewer_id(str(params.get("viewer_id") or "").strip())
         ticket = mint_ticket(user_id=f"display:{viewer_id}", provider="bot-desktop",
                              extra={"hermes_home": str(get_hermes_home()), "viewer_id": viewer_id})
@@ -177,7 +177,7 @@ def _(rid, params: dict) -> dict:
     from hermes_cli.sandbox_image_switch import decide, pending
     sw = pending()
     if sw is None:
-        return _err(rid, _DISPLAY_ERR, "no sandbox image switch is pending for this profile")
+        return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.no_pending_switch"))
     image = decide(sw, approve=bool(params.get("approve", True)))
     return _ok(rid, {"docker_image": image, **_display_snapshot()})
 
@@ -190,13 +190,11 @@ def _(rid, params: dict) -> dict:
     from hermes_constants import hermes_home_key
     from tools.bot_desktop import install as _bd_install, runtime as _bd_runtime
     if not _bd_runtime.is_supported_host():
-        return _err(rid, _DISPLAY_ERR, "Bot Desktop runs on Linux gateway hosts only")
+        return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.linux_only"))
     if _bd_runtime.in_sandbox():
-        return _err(rid, _DISPLAY_ERR, "this profile's screen lives inside the terminal backend's sandbox; give that "
-                                       "sandbox an image with the desktop stack (nousresearch/hermes-sandbox:desktop) "
-                                       "instead of installing on the gateway host")
+        return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.sandbox_needs_image"))
     if _bd_runtime.install_command() is None:
-        return _err(rid, _DISPLAY_ERR, "no supported package manager (apt-get, dnf, pacman) on this host")
+        return _err(rid, _DISPLAY_ERR, _t("tui_gateway.display.no_package_manager"))
     profile_key = hermes_home_key()
 
     def _ask_password() -> str:
@@ -218,7 +216,7 @@ def _(rid, params: dict) -> dict:
         try:
             code = _bd_install.install_packages(ask_password=_ask_password, on_line=_line, claimed=True)
         except Exception as e:
-            _line(f"install failed: {e}")
+            _line(_t("tui_gateway.display.install_failed", detail=e))
             code = 1
         _broadcast_global_event("display.install.done", {"profile_key": profile_key, "code": code,
                                                          "status": _display_snapshot()})
