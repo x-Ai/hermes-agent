@@ -3942,3 +3942,169 @@ tips:
     p09: "Verduidelik hierdie fout en hoe om dit reg te maak"
     p10: "Stel 'n herinnering of skeduleer 'n herhalende taak"
     p11: "Tik / om deur opdragte te blaai, of Ctrl+P vir die palet"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Jou boodskap is nie beantwoord nie."
+    details: "Besonderhede: {detail}"
+    default:
+      title: "Die versoek het misluk"
+      hint: "Stuur /retry, of skakel oor met /model."
+      hint_unrecoverable: "Kies 'n ander model met /model."
+    code:
+      auth:
+        title: "Die modelverskaffer het die API-sleutel verwerp"
+        hint: "Herstel die sleutel met /model, dan /retry."
+      billing:
+        title: "Die modelverskaffer rapporteer dat daar geen krediet oor is nie"
+        hint: "Laai die rekening of skakel oor met /model."
+      rate_limit:
+        title: "Die modelverskaffer beperk die tempo van versoeke"
+        hint: "Wag 'n oomblik, dan /retry."
+      upstream_blocked:
+        title: "'n Brandmuur/CDN voor die modelverskaffer het die versoek geblokkeer"
+        hint: "Stel 'n User-Agent via die verskaffer se extra_headers, of skakel oor met /model."
+      overloaded:
+        title: "Die modelverskaffer is oorlaai"
+        hint: "Wag 'n oomblik, dan /retry."
+      server_error:
+        title: "Die modelverskaffer het 'n interne fout gehad"
+        hint: "Wag 'n oomblik, dan /retry."
+      timeout:
+        title: "Die modelverskaffer het nie betyds geantwoord nie"
+        hint: "Probeer /retry; as dit aanhou gebeur, skakel oor met /model."
+      context_overflow:
+        title: "Die gesprek is te lank vir hierdie model"
+        hint: "Voer /compress uit, dan /retry."
+      payload_too_large:
+        title: "Die versoek was te groot vir hierdie model"
+        hint: "Voer /compress uit, dan /retry."
+      model_not_found:
+        title: "Die modelverskaffer ken nie hierdie model nie"
+        hint: "Kies 'n ander model met /model."
+      content_policy_blocked:
+        title: "Die modelverskaffer het hierdie versoek geweier (inhoudsbeleid)"
+        hint: "Herformuleer en stuur weer."
+      provider_policy_blocked:
+        title: "Die modelverskaffer het hierdie versoek geweier (rekeningbeleid)"
+        hint: "Skakel oor met /model."
+      format_error:
+        title: "Die modelverskaffer het die versoekformaat verwerp"
+        hint: "Probeer /retry; as dit voortduur, skakel oor met /model."
+      ssl_cert_verification:
+        title: "Die verbinding met die modelverskaffer kon nie geverifieer word nie (TLS)"
+        hint: "Kontroleer die eindpunt se sertifikaat, dan /retry."
+    layer:
+      auth:
+        title: "Die modelverskaffer het die geloofsbriewe verwerp"
+        hint: "Herstel hulle met /model, dan /retry."
+      endpoint:
+        title: "Jou pasgemaakte modeleindpunt het nie geantwoord nie"
+        hint: "Kontroleer dat die eindpunt loop, dan /retry."
+      streaming:
+        title: "Die verbinding met die modelverskaffer het halfpad deur die antwoord verbreek"
+        hint: "Stuur /retry."
+        hint_unrecoverable: "Kies 'n ander model met /model."
+      disk:
+        title: "Die skyf is vol, dus kon Hermes nie die beurt stoor nie"
+        hint: "Maak plek, dan /retry."
+      gateway:
+        title: "Hermes het 'n interne fout teëgekom terwyl hierdie beurt uitgevoer is"
+        hint: "Stuur /retry; tik /logs vir die spoor."
+        hint_unrecoverable: "Kies 'n ander model met /model; tik /logs vir die spoor."
+      provider:
+        title: "Die modelverskaffer het 'n fout teruggegee"
+        hint: "Stuur /retry, of skakel oor met /model."
+        hint_unrecoverable: "Kies 'n ander model met /model."
+  agent:
+    init_failed_lock: "Hermes kon nie die assistent vir hierdie sessie begin nie. Besonderhede: {detail}. Wag dat die ander proses die slot vrystel (of sluit dit af — kyk vir 'n lopende paneelbord of agtergrond-hermes-proses), en probeer dan weer."
+    init_failed: "Hermes kon nie die assistent vir hierdie sessie begin nie. Besonderhede: {detail}. Kontroleer die model en verskaffer met /model, of voer `hermes setup` in 'n terminaal uit om te herkonfigureer."
+    still_starting: "Hermes begin nog hierdie sessie (gereedskap word gelaai), dus kon hierdie opdrag nog nie uitgevoer word nie. Wag dat die statusbalk gereed wys en probeer weer."
+    missing_for_turn: "Hermes kon nie die assistent vir hierdie sessie begin nie, dus is jou boodskap nie uitgevoer nie. Maak die sessie weer oop (of begin 'n nuwe een met /new) en stuur dit weer."
+    init_timed_out: "agent-inisialisering het na {seconds}s uitgetel — jou boodskap is nie gestuur nie; probeer weer sodra die sessie gereed is"
+    init_failed_before_completing: "agent-inisialisering het misluk voordat dit voltooi is"
+    still_starting_notice: "Die agent begin nog (gereedskapontdekking / modelopstelling) — jou boodskap word gestuur sodra dit gereed is."
+  resume:
+    failed: "Kon nie daardie sessie weer oopmaak nie (die transkripsie kon nie gelees word nie). Besonderhede: {detail}. Begin 'n nuwe sessie (/new), of kies 'n ander een uit /sessions."
+    reserve_failed: "Hermes kon nie hierdie sessie veilig reserveer nie. Probeer weer."
+    resuming_interrupted: "Onderbreekte beurt word hervat…"
+  turn:
+    cancelled_before_ready: "Beurt gekanselleer voordat die agent gereed was"
+    not_running_before_ready: "Sessie het opgehou loop voordat die agent gereed was"
+    retiring: "die agterkant tree af; herkoppel om voort te gaan"
+    history_changed: "Die geskiedenis het tydens hierdie beurt verander — die antwoord hierbo is sigbaar, maar is nie in die sessiegeskiedenis gestoor nie."
+    context_injection_refused: "Konteksinspuiting geweier."
+    goal_compression_retry: "Kontekskompressie is uitgeput. Die aktiewe doel word een keer weer probeer."
+    goal_paused_compression: "Doel is onderbreek nadat kontekskompressie twee keer uitgeput is. Voer /compress uit, dan /goal resume om voort te gaan."
+  hosted:
+    room_managed_elsewhere: "Hierdie kamer word deur {owner} bestuur. Werk Hermes Desktop op om daarmee voort te gaan."
+    owner_gateway: "sy poort"
+    owner_home_host: "sy tuisgasheer"
+    group_probe_failed: "Kon nie hierdie groep verifieer nie. Probeer weer nadat die poort herstel het."
+    member_busy: "die gasheer-kamer se lidsessie is besig"
+    worker_unavailable: "Die Groepgeselsie-werker is nie beskikbaar nie. Herbegin die Hermes-poort en probeer weer."
+    managed_by_other_gateway: "Hierdie Groepgeselsie word deur 'n ander poort bestuur."
+    reply_truncated: "[Antwoord afgekap. Vra die Bot om die volledige resultaat as 'n lêer te deel.]"
+    turn_deadline_exceeded: "Hierdie Groepgeselsie-beurt het sy gekonfigureerde tydlimiet oorskry en is gestop."
+    not_found: "gasheer-kamer nie gevind nie"
+    still_stopping: "die kamer se werk stop nog; probeer die uitvee weer nadat Stop voltooi is"
+    approval_not_pending: "die kamergoedkeuring is nie meer hangende nie"
+  attach:
+    clipboard_unavailable: "knipbord nie beskikbaar nie: {error}"
+    clipboard_extract_failed: "Die knipbord het 'n beeld, maar die onttrekking het misluk"
+    clipboard_no_image: "Geen beeld in die knipbord gevind nie"
+    image_not_found: "beeld nie gevind nie: {path}"
+    unsupported_image: "nie-ondersteunde beeld: {name}"
+    image_empty: "die beeld is leeg"
+    unsupported_image_extension: "nie-ondersteunde beelduitbreiding: {ext}"
+    write_failed: "skryf het misluk: {error}"
+    pdftoppm_missing: "pdftoppm is nie geïnstalleer nie (poppler-utils-pakket benodig)"
+    pdftoppm_timed_out: "pdftoppm het uitgetel (>120s)"
+    pdftoppm_failed: "pdftoppm het misluk: {detail}"
+    pdftoppm_no_pages: "pdftoppm het geen bladsye gelewer nie (beskadigde PDF?)"
+    pdf_empty: "die gedekodeerde PDF is leeg"
+    not_pdf_payload: "die lading is nie 'n PDF nie (%PDF- towergrepe ontbreek)"
+    pdf_not_found: "PDF nie gevind nie: {path}"
+    not_pdf: "nie 'n PDF nie: {name}"
+    pdf_too_large: "PDF te groot; die limiet is {mb} MB"
+    page_range_cap: "die bladsyreeks oorskry die limiet van {pages} bladsye per aanhegoproep"
+    too_large: "{label} te groot ({bytes} grepe; limiet is {mb} MB)"
+    invalid_base64: "die data is nie geldige base64 nie"
+    file_missing_no_data: "lêer nie op die poort gevind nie en geen data_url verskaf nie"
+    invalid_data_url: "ongeldige data_url-lading"
+    label_image: "beeld"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "Sessieberging is nie beskikbaar nie, dus is hierdie boodskap nie gestoor nie. Oorsaak: {cause}. {action} Stuur dan jou boodskap weer."
+  disk_full: "Daar kon nie na sessieberging geskryf word nie, dus is hierdie boodskap nie gestoor nie: die skyf is vol. Maak skyfspasie vry en stuur dan jou boodskap weer."
+  write_failed: "Daar kon nie na sessieberging geskryf word nie, dus is hierdie boodskap nie gestoor nie. Oorsaak: {cause}. {action} Stuur dan jou boodskap weer."
+  cause:
+    locked: "die sessiedatabasis is deur 'n ander Hermes-proses gesluit"
+    disk_full: "die skyf is vol"
+    disk: "die sessiedatabasislêer is leesalleen of nie skryfbaar nie"
+    corrupt: "die sessiedatabasislêer is beskadig"
+    session_row_missing: "hierdie sessie se databasisry is uitgevee terwyl die geselsie nog oop was en kon nie herskep word nie"
+    fts_index: "die sessie se soekindeks is beskadig (die boodskappe self is ongeskonde)"
+    replaced: "die sessiedatabasislêer is vervang terwyl Hermes geloop het"
+    deleted_wal: "'n ander Hermes-proses hou nog 'n ou kopie van die sessiedatabasis se vooruitskryflog, dus het Hermes opgehou skryf om die lêer veilig te hou"
+    compression: "'n ander proses komprimeer hierdie sessie"
+    compression_closed: "hierdie sessie is deur kontekskompressie geroteer"
+    turn_lease: "'n ander Hermes-proses het hierdie sessie oorgeneem"
+    unknown: "die sessiedatabasis kon nie oopgemaak word nie"
+  action:
+    locked: "Wag 'n oomblik en probeer weer; as dit voortduur, stop die ander Hermes-proses (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Maak skyfspasie vry en probeer dan weer."
+    disk: "Voer `hermes {profile_arg}doctor --fix` uit om te diagnoseer en te herstel."
+    corrupt: "Voer `hermes {profile_arg}doctor --fix` uit om te diagnoseer en te herstel. Herstel: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Probeer weer; as dit voortduur, voer `hermes {profile_arg}doctor` uit."
+    fts_index: "Voer `hermes {profile_arg}doctor --fix` (of `hermes {profile_arg}sessions repair`) uit om dit te herbou."
+    replaced: "Stop Hermes (`hermes {profile_arg}gateway stop`), voer `hermes {profile_arg}doctor` uit, en begin dit dan weer."
+    deleted_wal: "Niks is verlore nie. Sluit elke Hermes-proses op hierdie profiel af (Desktop-toepassing, `hermes {profile_arg}gateway stop`, paneelbord, cron), voer `hermes {profile_arg}doctor` uit — dit noem enige proses wat die log nog hou — en begin Hermes dan weer. Moenie `doctor --fix` uitvoer of enige state.db-lêers uitvee terwyl hulle loop nie. Gids: {url}"
+    compression: "Stuur jou boodskap weer sodra die kompressie klaar is."
+    compression_closed: "Verfris die kliënt (of begin 'n nuwe beurt) en stuur jou boodskap weer."
+    turn_lease: "Wag dat dit klaarmaak, en stuur dan jou boodskap weer."
+    unknown: "Voer `hermes {profile_arg}doctor --fix` uit om te diagnoseer en te herstel."
+  unavailable_brief: "Sessieberging is nie beskikbaar nie: {cause}. {action}"

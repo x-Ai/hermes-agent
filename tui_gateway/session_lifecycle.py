@@ -56,8 +56,13 @@ def _notify_session_boundary(event_type: str, session_id: str | None, platform: 
             invoke_hook(event_type, session_id=session_id, platform=_resolve_agent_platform(platform))
 
 
-_SESSION_OWNERSHIP_UNAVAILABLE = "Hermes could not safely reserve this session. Try again."
 _AUTOMATIC_SESSION_END_REASONS = frozenset({"ws_orphan_reap", "ws_disconnect", "idle_timeout", "lru_evict", "tui_shutdown"})
+
+
+def _session_ownership_unavailable() -> str:
+    """Fail-closed claim refusal (the lease errored, so ownership is unproven); resolved per call so it
+    reads in the profile's language."""
+    return _t("tui_gateway.resume.reserve_failed")
 
 
 def _lease_metadata(live_session_id: str) -> dict:
@@ -82,7 +87,7 @@ def _claim_active_session_slot(
         # PER_SESSION_EXCLUSIVE_SUBMIT), and a claim that errors out has NOT proven the session is unowned.
         # Proceeding without a lease here is the silent double-writer hole flagged in the #94595 review
         # (blocker 2).
-        return (None, _SESSION_OWNERSHIP_UNAVAILABLE)
+        return (None, _session_ownership_unavailable())
 
 
 def _install_borrowed_lease(sid: str, session: dict, frame: dict) -> None:

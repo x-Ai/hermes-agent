@@ -3959,3 +3959,169 @@ tips:
     p09: "Magyarázd el ezt a hibát, és hogyan javítsam"
     p10: "Állíts be emlékeztetőt, vagy ütemezz ismétlődő feladatot"
     p11: "Írj / jelet a parancsokhoz, vagy nyomj Ctrl+P-t a palettához"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Az üzenetedre nem érkezett válasz."
+    details: "Részletek: {detail}"
+    default:
+      title: "A kérés sikertelen"
+      hint: "Küldj /retry-t, vagy válts modellt a /model paranccsal."
+      hint_unrecoverable: "Válassz másik modellt a /model paranccsal."
+    code:
+      auth:
+        title: "A modellszolgáltató elutasította az API-kulcsot"
+        hint: "Javítsd a kulcsot a /model paranccsal, majd /retry."
+      billing:
+        title: "A modellszolgáltató szerint elfogyott az egyenleg"
+        hint: "Töltsd fel a fiókot, vagy válts modellt a /model paranccsal."
+      rate_limit:
+        title: "A modellszolgáltató korlátozza a kérések ütemét"
+        hint: "Várj egy kicsit, majd /retry."
+      upstream_blocked:
+        title: "A modellszolgáltató előtti tűzfal/CDN blokkolta a kérést"
+        hint: "Állíts be User-Agentet a szolgáltató extra_headers beállításán át, vagy válts modellt a /model paranccsal."
+      overloaded:
+        title: "A modellszolgáltató túlterhelt"
+        hint: "Várj egy kicsit, majd /retry."
+      server_error:
+        title: "A modellszolgáltatónál belső hiba történt"
+        hint: "Várj egy kicsit, majd /retry."
+      timeout:
+        title: "A modellszolgáltató nem válaszolt időben"
+        hint: "Próbáld a /retry-t; ha ismétlődik, válts modellt a /model paranccsal."
+      context_overflow:
+        title: "A beszélgetés túl hosszú ehhez a modellhez"
+        hint: "Futtasd a /compress-t, majd /retry."
+      payload_too_large:
+        title: "A kérés túl nagy volt ehhez a modellhez"
+        hint: "Futtasd a /compress-t, majd /retry."
+      model_not_found:
+        title: "A modellszolgáltató nem ismeri ezt a modellt"
+        hint: "Válassz másik modellt a /model paranccsal."
+      content_policy_blocked:
+        title: "A modellszolgáltató elutasította ezt a kérést (tartalmi szabályzat)"
+        hint: "Fogalmazd át, és küldd el újra."
+      provider_policy_blocked:
+        title: "A modellszolgáltató elutasította ezt a kérést (fiókszabályzat)"
+        hint: "Válts modellt a /model paranccsal."
+      format_error:
+        title: "A modellszolgáltató elutasította a kérés formátumát"
+        hint: "Próbáld a /retry-t; ha fennáll, válts modellt a /model paranccsal."
+      ssl_cert_verification:
+        title: "A modellszolgáltatóhoz való kapcsolat nem ellenőrizhető (TLS)"
+        hint: "Ellenőrizd a végpont tanúsítványát, majd /retry."
+    layer:
+      auth:
+        title: "A modellszolgáltató elutasította a hitelesítő adatokat"
+        hint: "Javítsd őket a /model paranccsal, majd /retry."
+      endpoint:
+        title: "Az egyéni modellvégpontod nem válaszolt"
+        hint: "Ellenőrizd, hogy fut-e a végpont, majd /retry."
+      streaming:
+        title: "A modellszolgáltatóval a kapcsolat megszakadt válasz közben"
+        hint: "Küldj /retry-t."
+        hint_unrecoverable: "Válassz másik modellt a /model paranccsal."
+      disk:
+        title: "A lemez megtelt, így a Hermes nem tudta menteni a kört"
+        hint: "Szabadíts fel helyet, majd /retry."
+      gateway:
+        title: "A Hermes belső hibába ütközött a kör futtatása közben"
+        hint: "Küldj /retry-t; a nyomkövetéshez írd be: /logs."
+        hint_unrecoverable: "Válassz másik modellt a /model paranccsal; a nyomkövetéshez írd be: /logs."
+      provider:
+        title: "A modellszolgáltató hibát adott vissza"
+        hint: "Küldj /retry-t, vagy válts modellt a /model paranccsal."
+        hint_unrecoverable: "Válassz másik modellt a /model paranccsal."
+  agent:
+    init_failed_lock: "A Hermes nem tudta elindítani az asszisztenst ehhez a munkamenethez. Részletek: {detail}. Várd meg, amíg a másik folyamat elengedi a zárat (vagy lépj ki belőle — nézd meg, fut-e irányítópult vagy háttérbeli hermes folyamat), majd próbáld újra."
+    init_failed: "A Hermes nem tudta elindítani az asszisztenst ehhez a munkamenethez. Részletek: {detail}. Ellenőrizd a modellt és a szolgáltatót a /model paranccsal, vagy futtasd a `hermes setup`-ot egy terminálban az újrakonfiguráláshoz."
+    still_starting: "A Hermes még indítja ezt a munkamenetet (eszközök betöltése), ezért ez a parancs még nem futhatott le. Várd meg, amíg az állapotsor készen állót mutat, és próbáld újra."
+    missing_for_turn: "A Hermes nem tudta elindítani az asszisztenst ehhez a munkamenethez, ezért az üzeneted nem futott le. Nyisd meg újra a munkamenetet (vagy indíts újat a /new paranccsal), és küldd el újra."
+    init_timed_out: "az ügynök inicializálása {seconds} mp után időtúllépésbe futott — az üzeneted nem lett elküldve; próbáld újra, ha a munkamenet készen áll"
+    init_failed_before_completing: "az ügynök inicializálása a befejezés előtt meghiúsult"
+    still_starting_notice: "Az ügynök még indul (eszközfelderítés / modellbeállítás) — az üzeneted elküldjük, amint készen áll."
+  resume:
+    failed: "Nem sikerült újranyitni azt a munkamenetet (az átirata nem olvasható). Részletek: {detail}. Indíts új munkamenetet (/new), vagy válassz másikat a /sessions-ből."
+    reserve_failed: "A Hermes nem tudta biztonságosan lefoglalni ezt a munkamenetet. Próbáld újra."
+    resuming_interrupted: "A megszakított kör folytatása…"
+  turn:
+    cancelled_before_ready: "A kör megszakadt, mielőtt az ügynök készen állt volna"
+    not_running_before_ready: "A munkamenet már nem futott, mielőtt az ügynök készen állt volna"
+    retiring: "a háttérrendszer visszavonul; a folytatáshoz csatlakozz újra"
+    history_changed: "Az előzmények megváltoztak e kör alatt — a fenti válasz látható, de nem lett elmentve a munkamenet előzményeibe."
+    context_injection_refused: "A kontextus beszúrása elutasítva."
+    goal_compression_retry: "A kontextustömörítés kimerült. Az aktív cél egyszeri újrapróbálása."
+    goal_paused_compression: "A cél szünetel, miután a kontextustömörítés kétszer kimerült. Futtasd a /compress-t, majd a /goal resume-ot a folytatáshoz."
+  hosted:
+    room_managed_elsewhere: "Ezt a szobát {owner} kezeli. Frissítsd a Hermes Desktopot a folytatáshoz."
+    owner_gateway: "a saját átjárója"
+    owner_home_host: "a saját otthoni gazdagépe"
+    group_probe_failed: "Nem sikerült ellenőrizni ezt a csoportot. Próbáld újra, miután az átjáró helyreállt."
+    member_busy: "a tárolt szoba tagjának munkamenete foglalt"
+    worker_unavailable: "A csoportos csevegés feldolgozója nem érhető el. Indítsd újra a Hermes átjárót, és próbáld újra."
+    managed_by_other_gateway: "Ezt a csoportos csevegést egy másik átjáró kezeli."
+    reply_truncated: "[A válasz csonkolva. Kérd meg a botot, hogy ossza meg a teljes eredményt fájlként.]"
+    turn_deadline_exceeded: "Ez a csoportos csevegési kör túllépte a beállított időkorlátot, és le lett állítva."
+    not_found: "a tárolt szoba nem található"
+    still_stopping: "a szoba munkája még leáll; próbáld újra a törlést, ha a Leállítás befejeződött"
+    approval_not_pending: "a szoba jóváhagyása már nem függőben lévő"
+  attach:
+    clipboard_unavailable: "a vágólap nem érhető el: {error}"
+    clipboard_extract_failed: "A vágólapon van kép, de a kinyerés nem sikerült"
+    clipboard_no_image: "Nincs kép a vágólapon"
+    image_not_found: "a kép nem található: {path}"
+    unsupported_image: "nem támogatott kép: {name}"
+    image_empty: "a kép üres"
+    unsupported_image_extension: "nem támogatott képkiterjesztés: {ext}"
+    write_failed: "az írás sikertelen: {error}"
+    pdftoppm_missing: "a pdftoppm nincs telepítve (a poppler-utils csomag szükséges)"
+    pdftoppm_timed_out: "a pdftoppm időtúllépésbe futott (>120 mp)"
+    pdftoppm_failed: "a pdftoppm sikertelen: {detail}"
+    pdftoppm_no_pages: "a pdftoppm nem állított elő oldalakat (sérült PDF?)"
+    pdf_empty: "a dekódolt PDF üres"
+    not_pdf_payload: "a tartalom nem PDF (hiányoznak a %PDF- varázsbájtok)"
+    pdf_not_found: "a PDF nem található: {path}"
+    not_pdf: "nem PDF: {name}"
+    pdf_too_large: "a PDF túl nagy; a felső határ {mb} MB"
+    page_range_cap: "az oldaltartomány meghaladja a csatolásonkénti {pages} oldalas felső határt"
+    too_large: "a(z) {label} túl nagy ({bytes} bájt; a felső határ {mb} MB)"
+    invalid_base64: "az adat nem érvényes base64"
+    file_missing_no_data: "a fájl nem található az átjárón, és data_url sem lett megadva"
+    invalid_data_url: "érvénytelen data_url tartalom"
+    label_image: "kép"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "A munkamenet-tároló nem érhető el, így ez az üzenet nem lett mentve. Ok: {cause}. {action} Utána küldd el újra az üzenetedet."
+  disk_full: "A munkamenet-tárolóba nem lehetett írni, így ez az üzenet nem lett mentve: a lemez megtelt. Szabadíts fel lemezterületet, majd küldd el újra az üzenetedet."
+  write_failed: "A munkamenet-tárolóba nem lehetett írni, így ez az üzenet nem lett mentve. Ok: {cause}. {action} Utána küldd el újra az üzenetedet."
+  cause:
+    locked: "a munkamenet-adatbázist egy másik Hermes folyamat zárolta"
+    disk_full: "a lemez megtelt"
+    disk: "a munkamenet-adatbázis fájlja csak olvasható vagy nem írható"
+    corrupt: "a munkamenet-adatbázis fájlja sérült"
+    session_row_missing: "ennek a munkamenetnek az adatbázissorát törölték, miközben a csevegés még nyitva volt, és nem lehetett újra létrehozni"
+    fts_index: "a munkamenet keresőindexe sérült (maguk az üzenetek épek)"
+    replaced: "a munkamenet-adatbázis fájlját lecserélték, miközben a Hermes futott"
+    deleted_wal: "egy másik Hermes folyamat még a munkamenet-adatbázis előreíró naplójának régi példányát tartja, ezért a Hermes a fájl védelme érdekében leállította az írást"
+    compression: "egy másik folyamat tömöríti ezt a munkamenetet"
+    compression_closed: "ezt a munkamenetet a kontextustömörítés rotálta"
+    turn_lease: "egy másik Hermes folyamat átvette ezt a munkamenetet"
+    unknown: "a munkamenet-adatbázist nem sikerült megnyitni"
+  action:
+    locked: "Várj egy kicsit, és próbáld újra; ha fennáll, állítsd le a másik Hermes folyamatot (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Szabadíts fel lemezterületet, majd próbáld újra."
+    disk: "Futtasd a `hermes {profile_arg}doctor --fix` parancsot a diagnosztizáláshoz és javításhoz."
+    corrupt: "Futtasd a `hermes {profile_arg}doctor --fix` parancsot a diagnosztizáláshoz és javításhoz. Helyreállítás: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Próbáld újra; ha fennáll, futtasd a `hermes {profile_arg}doctor` parancsot."
+    fts_index: "Futtasd a `hermes {profile_arg}doctor --fix` (vagy a `hermes {profile_arg}sessions repair`) parancsot az újraépítéshez."
+    replaced: "Állítsd le a Hermest (`hermes {profile_arg}gateway stop`), futtasd a `hermes {profile_arg}doctor` parancsot, majd indítsd el újra."
+    deleted_wal: "Semmi sem veszett el. Lépj ki a profil minden Hermes folyamatából (asztali alkalmazás, `hermes {profile_arg}gateway stop`, irányítópult, cron), futtasd a `hermes {profile_arg}doctor` parancsot — megnevezi a naplót még tartó folyamatot —, majd indítsd el újra a Hermest. Amíg futnak, ne futtasd a `doctor --fix`-et, és ne törölj state.db fájlokat. Útmutató: {url}"
+    compression: "Küldd el újra az üzenetedet, ha a tömörítés befejeződött."
+    compression_closed: "Frissítsd a klienst (vagy indíts új kört), és küldd el újra az üzenetedet."
+    turn_lease: "Várd meg, amíg befejezi, majd küldd el újra az üzenetedet."
+    unknown: "Futtasd a `hermes {profile_arg}doctor --fix` parancsot a diagnosztizáláshoz és javításhoz."
+  unavailable_brief: "A munkamenet-tároló nem érhető el: {cause}. {action}"

@@ -3940,3 +3940,169 @@ tips:
     p09: "이 오류를 설명하고 해결 방법을 알려 줘"
     p10: "리마인더를 설정하거나 반복 작업을 예약해 줘"
     p11: "/ 를 입력해 명령을 둘러보거나 Ctrl+P로 팔레트를 여세요"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. 메시지에 대한 답변이 없었습니다."
+    details: "세부 정보: {detail}"
+    default:
+      title: "요청이 실패했습니다"
+      hint: "/retry를 보내거나 /model로 전환하세요."
+      hint_unrecoverable: "/model로 다른 모델을 선택하세요."
+    code:
+      auth:
+        title: "모델 제공자가 API 키를 거부했습니다"
+        hint: "/model로 키를 수정한 뒤 /retry하세요."
+      billing:
+        title: "모델 제공자가 잔액이 없다고 보고합니다"
+        hint: "계정을 충전하거나 /model로 전환하세요."
+      rate_limit:
+        title: "모델 제공자가 요청 속도를 제한하고 있습니다"
+        hint: "잠시 기다린 뒤 /retry하세요."
+      upstream_blocked:
+        title: "모델 제공자 앞단의 방화벽/CDN이 요청을 차단했습니다"
+        hint: "제공자의 extra_headers로 User-Agent를 설정하거나 /model로 전환하세요."
+      overloaded:
+        title: "모델 제공자에 과부하가 걸렸습니다"
+        hint: "잠시 기다린 뒤 /retry하세요."
+      server_error:
+        title: "모델 제공자에 내부 오류가 발생했습니다"
+        hint: "잠시 기다린 뒤 /retry하세요."
+      timeout:
+        title: "모델 제공자가 제시간에 응답하지 않았습니다"
+        hint: "/retry를 시도하고, 계속되면 /model로 전환하세요."
+      context_overflow:
+        title: "대화가 이 모델에 비해 너무 깁니다"
+        hint: "/compress를 실행한 뒤 /retry하세요."
+      payload_too_large:
+        title: "요청이 이 모델에 비해 너무 큽니다"
+        hint: "/compress를 실행한 뒤 /retry하세요."
+      model_not_found:
+        title: "모델 제공자가 이 모델을 알지 못합니다"
+        hint: "/model로 다른 모델을 선택하세요."
+      content_policy_blocked:
+        title: "모델 제공자가 이 요청을 거부했습니다(콘텐츠 정책)"
+        hint: "다르게 표현해서 다시 보내세요."
+      provider_policy_blocked:
+        title: "모델 제공자가 이 요청을 거부했습니다(계정 정책)"
+        hint: "/model로 전환하세요."
+      format_error:
+        title: "모델 제공자가 요청 형식을 거부했습니다"
+        hint: "/retry를 시도하고, 지속되면 /model로 전환하세요."
+      ssl_cert_verification:
+        title: "모델 제공자와의 연결을 검증할 수 없습니다(TLS)"
+        hint: "엔드포인트의 인증서를 확인한 뒤 /retry하세요."
+    layer:
+      auth:
+        title: "모델 제공자가 자격 증명을 거부했습니다"
+        hint: "/model로 수정한 뒤 /retry하세요."
+      endpoint:
+        title: "사용자 지정 모델 엔드포인트가 응답하지 않았습니다"
+        hint: "엔드포인트가 실행 중인지 확인한 뒤 /retry하세요."
+      streaming:
+        title: "모델 제공자와의 연결이 답변 도중 끊어졌습니다"
+        hint: "/retry를 보내세요."
+        hint_unrecoverable: "/model로 다른 모델을 선택하세요."
+      disk:
+        title: "디스크가 가득 차서 Hermes가 이 턴을 저장하지 못했습니다"
+        hint: "공간을 확보한 뒤 /retry하세요."
+      gateway:
+        title: "이 턴을 실행하는 동안 Hermes에 내부 오류가 발생했습니다"
+        hint: "/retry를 보내세요. 추적 정보는 /logs로 확인하세요."
+        hint_unrecoverable: "/model로 다른 모델을 선택하세요. 추적 정보는 /logs로 확인하세요."
+      provider:
+        title: "모델 제공자가 오류를 반환했습니다"
+        hint: "/retry를 보내거나 /model로 전환하세요."
+        hint_unrecoverable: "/model로 다른 모델을 선택하세요."
+  agent:
+    init_failed_lock: "Hermes가 이 세션의 어시스턴트를 시작하지 못했습니다. 세부 정보: {detail}. 다른 프로세스가 잠금을 해제할 때까지 기다리거나(또는 종료하세요 — 실행 중인 대시보드나 백그라운드 hermes 프로세스를 확인) 다시 시도하세요."
+    init_failed: "Hermes가 이 세션의 어시스턴트를 시작하지 못했습니다. 세부 정보: {detail}. /model로 모델과 제공자를 확인하거나 터미널에서 `hermes setup`을 실행해 다시 설정하세요."
+    still_starting: "Hermes가 아직 이 세션을 시작하는 중(도구 로드 중)이라 이 명령을 아직 실행할 수 없습니다. 상태 표시줄에 준비됨이 표시될 때까지 기다린 뒤 다시 시도하세요."
+    missing_for_turn: "Hermes가 이 세션의 어시스턴트를 시작하지 못해 메시지가 실행되지 않았습니다. 세션을 다시 열거나(/new로 새로 시작) 다시 보내세요."
+    init_timed_out: "에이전트 초기화가 {seconds}초 후 시간 초과되었습니다 — 메시지는 전송되지 않았습니다. 세션이 준비되면 다시 시도하세요"
+    init_failed_before_completing: "에이전트 초기화가 완료되기 전에 실패했습니다"
+    still_starting_notice: "에이전트를 아직 시작하는 중입니다(도구 검색 / 모델 설정) — 준비되는 즉시 메시지를 보냅니다."
+  resume:
+    failed: "해당 세션을 다시 열 수 없습니다(기록을 읽을 수 없음). 세부 정보: {detail}. 새 세션을 시작하거나(/new) /sessions에서 다른 세션을 선택하세요."
+    reserve_failed: "Hermes가 이 세션을 안전하게 확보하지 못했습니다. 다시 시도하세요."
+    resuming_interrupted: "중단된 턴을 재개하는 중…"
+  turn:
+    cancelled_before_ready: "에이전트가 준비되기 전에 턴이 취소되었습니다"
+    not_running_before_ready: "에이전트가 준비되기 전에 세션 실행이 끝났습니다"
+    retiring: "백엔드가 종료 중입니다. 다시 연결해 계속하세요"
+    history_changed: "이 턴 도중 기록이 변경되었습니다 — 위의 답변은 보이지만 세션 기록에는 저장되지 않았습니다."
+    context_injection_refused: "컨텍스트 주입이 거부되었습니다."
+    goal_compression_retry: "컨텍스트 압축이 소진되었습니다. 활성 목표를 한 번 다시 시도합니다."
+    goal_paused_compression: "컨텍스트 압축이 두 번 연속 소진되어 목표가 일시 중지되었습니다. /compress를 실행한 뒤 /goal resume으로 계속하세요."
+  hosted:
+    room_managed_elsewhere: "이 룸은 {owner}이(가) 관리합니다. Hermes Desktop을 업데이트해 계속하세요."
+    owner_gateway: "해당 게이트웨이"
+    owner_home_host: "해당 홈 호스트"
+    group_probe_failed: "이 그룹을 확인할 수 없습니다. 게이트웨이가 복구된 뒤 다시 시도하세요."
+    member_busy: "호스팅된 룸의 구성원 세션이 사용 중입니다"
+    worker_unavailable: "그룹 채팅 워커를 사용할 수 없습니다. Hermes 게이트웨이를 다시 시작한 뒤 다시 시도하세요."
+    managed_by_other_gateway: "이 그룹 채팅은 다른 게이트웨이가 관리합니다."
+    reply_truncated: "[답변이 잘렸습니다. 전체 결과를 파일로 공유해 달라고 봇에게 요청하세요.]"
+    turn_deadline_exceeded: "이 그룹 채팅 턴이 설정된 시간 제한을 초과해 중지되었습니다."
+    not_found: "호스팅된 룸을 찾을 수 없습니다"
+    still_stopping: "룸 작업이 아직 중지되는 중입니다. 중지가 완료된 뒤 삭제를 다시 시도하세요"
+    approval_not_pending: "룸 승인이 더 이상 대기 중이 아닙니다"
+  attach:
+    clipboard_unavailable: "클립보드를 사용할 수 없습니다: {error}"
+    clipboard_extract_failed: "클립보드에 이미지가 있지만 추출하지 못했습니다"
+    clipboard_no_image: "클립보드에 이미지가 없습니다"
+    image_not_found: "이미지를 찾을 수 없습니다: {path}"
+    unsupported_image: "지원되지 않는 이미지: {name}"
+    image_empty: "이미지가 비어 있습니다"
+    unsupported_image_extension: "지원되지 않는 이미지 확장자: {ext}"
+    write_failed: "쓰기 실패: {error}"
+    pdftoppm_missing: "pdftoppm이 설치되어 있지 않습니다(poppler-utils 패키지 필요)"
+    pdftoppm_timed_out: "pdftoppm 시간 초과(>120초)"
+    pdftoppm_failed: "pdftoppm 실패: {detail}"
+    pdftoppm_no_pages: "pdftoppm이 페이지를 만들지 못했습니다(PDF 손상?)"
+    pdf_empty: "디코딩된 PDF가 비어 있습니다"
+    not_pdf_payload: "페이로드가 PDF가 아닙니다(%PDF- 매직 바이트 없음)"
+    pdf_not_found: "PDF를 찾을 수 없습니다: {path}"
+    not_pdf: "PDF가 아닙니다: {name}"
+    pdf_too_large: "PDF가 너무 큽니다. 상한은 {mb} MB입니다"
+    page_range_cap: "페이지 범위가 첨부 호출당 {pages}페이지 상한을 초과합니다"
+    too_large: "{label}이(가) 너무 큽니다({bytes}바이트. 상한은 {mb} MB)"
+    invalid_base64: "데이터가 유효한 base64가 아닙니다"
+    file_missing_no_data: "게이트웨이에서 파일을 찾을 수 없고 data_url도 제공되지 않았습니다"
+    invalid_data_url: "data_url 페이로드가 잘못되었습니다"
+    label_image: "이미지"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "세션 저장소를 사용할 수 없어 이 메시지가 저장되지 않았습니다. 원인: {cause}. {action} 그런 다음 메시지를 다시 보내세요."
+  disk_full: "세션 저장소에 쓸 수 없어 이 메시지가 저장되지 않았습니다: 디스크가 가득 찼습니다. 디스크 공간을 확보한 뒤 메시지를 다시 보내세요."
+  write_failed: "세션 저장소에 쓸 수 없어 이 메시지가 저장되지 않았습니다. 원인: {cause}. {action} 그런 다음 메시지를 다시 보내세요."
+  cause:
+    locked: "세션 데이터베이스가 다른 Hermes 프로세스에 의해 잠겨 있습니다"
+    disk_full: "디스크가 가득 찼습니다"
+    disk: "세션 데이터베이스 파일이 읽기 전용이거나 쓸 수 없습니다"
+    corrupt: "세션 데이터베이스 파일이 손상되었습니다"
+    session_row_missing: "채팅이 열려 있는 동안 이 세션의 데이터베이스 행이 삭제되었고 다시 만들 수 없었습니다"
+    fts_index: "세션 검색 색인이 손상되었습니다(메시지 자체는 온전합니다)"
+    replaced: "Hermes가 실행되는 동안 세션 데이터베이스 파일이 교체되었습니다"
+    deleted_wal: "다른 Hermes 프로세스가 세션 데이터베이스의 미리 쓰기 로그 이전 사본을 아직 쥐고 있어 파일을 보호하기 위해 Hermes가 쓰기를 중단했습니다"
+    compression: "다른 프로세스가 이 세션을 압축하는 중입니다"
+    compression_closed: "이 세션은 컨텍스트 압축으로 교체되었습니다"
+    turn_lease: "다른 Hermes 프로세스가 이 세션을 넘겨받았습니다"
+    unknown: "세션 데이터베이스를 열 수 없습니다"
+  action:
+    locked: "잠시 기다렸다가 다시 시도하고, 계속되면 다른 Hermes 프로세스를 중지하세요(`hermes {profile_arg}gateway stop`)."
+    disk_full: "디스크 공간을 확보한 뒤 다시 시도하세요."
+    disk: "`hermes {profile_arg}doctor --fix`를 실행해 진단하고 복구하세요."
+    corrupt: "`hermes {profile_arg}doctor --fix`를 실행해 진단하고 복구하세요. 복구: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "다시 시도하고, 계속되면 `hermes {profile_arg}doctor`를 실행하세요."
+    fts_index: "`hermes {profile_arg}doctor --fix`(또는 `hermes {profile_arg}sessions repair`)를 실행해 다시 빌드하세요."
+    replaced: "Hermes를 중지하고(`hermes {profile_arg}gateway stop`) `hermes {profile_arg}doctor`를 실행한 뒤 다시 시작하세요."
+    deleted_wal: "잃은 것은 없습니다. 이 프로필의 모든 Hermes 프로세스를 종료하고(데스크톱 앱, `hermes {profile_arg}gateway stop`, 대시보드, cron) `hermes {profile_arg}doctor`를 실행한 뒤(로그를 아직 쥐고 있는 프로세스를 알려줍니다) Hermes를 다시 시작하세요. 실행 중에는 `doctor --fix`를 실행하거나 state.db 파일을 삭제하지 마세요. 안내: {url}"
+    compression: "압축이 끝나면 메시지를 다시 보내세요."
+    compression_closed: "클라이언트를 새로 고치거나(또는 새 턴을 시작) 메시지를 다시 보내세요."
+    turn_lease: "완료될 때까지 기다린 뒤 메시지를 다시 보내세요."
+    unknown: "`hermes {profile_arg}doctor --fix`를 실행해 진단하고 복구하세요."
+  unavailable_brief: "세션 저장소를 사용할 수 없습니다: {cause}. {action}"

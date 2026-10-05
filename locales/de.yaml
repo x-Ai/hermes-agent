@@ -3942,3 +3942,169 @@ tips:
     p09: "Erkläre diesen Fehler und wie ich ihn behebe"
     p10: "Richte eine Erinnerung ein oder plane eine wiederkehrende Aufgabe"
     p11: "Geben Sie / ein, um Befehle zu durchsuchen, oder Ctrl+P für die Palette"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Ihre Nachricht wurde nicht beantwortet."
+    details: "Details: {detail}"
+    default:
+      title: "Die Anfrage ist fehlgeschlagen"
+      hint: "Senden Sie /retry oder wechseln Sie mit /model."
+      hint_unrecoverable: "Wählen Sie mit /model ein anderes Modell."
+    code:
+      auth:
+        title: "Der Modellanbieter hat den API-Schlüssel abgelehnt"
+        hint: "Korrigieren Sie den Schlüssel mit /model, dann /retry."
+      billing:
+        title: "Der Modellanbieter meldet kein Guthaben mehr"
+        hint: "Laden Sie das Konto auf oder wechseln Sie mit /model."
+      rate_limit:
+        title: "Der Modellanbieter drosselt die Anfragen"
+        hint: "Warten Sie einen Moment, dann /retry."
+      upstream_blocked:
+        title: "Eine Firewall/ein CDN vor dem Modellanbieter hat die Anfrage blockiert"
+        hint: "Setzen Sie einen User-Agent über die extra_headers des Anbieters oder wechseln Sie mit /model."
+      overloaded:
+        title: "Der Modellanbieter ist überlastet"
+        hint: "Warten Sie einen Moment, dann /retry."
+      server_error:
+        title: "Beim Modellanbieter ist ein interner Fehler aufgetreten"
+        hint: "Warten Sie einen Moment, dann /retry."
+      timeout:
+        title: "Der Modellanbieter hat nicht rechtzeitig geantwortet"
+        hint: "Versuchen Sie /retry; falls es weiter passiert, wechseln Sie mit /model."
+      context_overflow:
+        title: "Die Unterhaltung ist für dieses Modell zu lang"
+        hint: "Führen Sie /compress aus, dann /retry."
+      payload_too_large:
+        title: "Die Anfrage war für dieses Modell zu groß"
+        hint: "Führen Sie /compress aus, dann /retry."
+      model_not_found:
+        title: "Der Modellanbieter kennt dieses Modell nicht"
+        hint: "Wählen Sie mit /model ein anderes Modell."
+      content_policy_blocked:
+        title: "Der Modellanbieter hat diese Anfrage abgelehnt (Inhaltsrichtlinie)"
+        hint: "Formulieren Sie um und senden Sie erneut."
+      provider_policy_blocked:
+        title: "Der Modellanbieter hat diese Anfrage abgelehnt (Kontorichtlinie)"
+        hint: "Wechseln Sie mit /model."
+      format_error:
+        title: "Der Modellanbieter hat das Anfrageformat abgelehnt"
+        hint: "Versuchen Sie /retry; falls es bestehen bleibt, wechseln Sie mit /model."
+      ssl_cert_verification:
+        title: "Die Verbindung zum Modellanbieter konnte nicht verifiziert werden (TLS)"
+        hint: "Prüfen Sie das Zertifikat des Endpunkts, dann /retry."
+    layer:
+      auth:
+        title: "Der Modellanbieter hat die Zugangsdaten abgelehnt"
+        hint: "Korrigieren Sie sie mit /model, dann /retry."
+      endpoint:
+        title: "Ihr benutzerdefinierter Modell-Endpunkt hat nicht geantwortet"
+        hint: "Prüfen Sie, ob der Endpunkt läuft, dann /retry."
+      streaming:
+        title: "Die Verbindung zum Modellanbieter ist mitten in der Antwort abgebrochen"
+        hint: "Senden Sie /retry."
+        hint_unrecoverable: "Wählen Sie mit /model ein anderes Modell."
+      disk:
+        title: "Die Festplatte ist voll, daher konnte Hermes den Zug nicht speichern"
+        hint: "Schaffen Sie Platz, dann /retry."
+      gateway:
+        title: "Hermes ist bei diesem Zug auf einen internen Fehler gestoßen"
+        hint: "Senden Sie /retry; /logs zeigt den Trace."
+        hint_unrecoverable: "Wählen Sie mit /model ein anderes Modell; /logs zeigt den Trace."
+      provider:
+        title: "Der Modellanbieter hat einen Fehler zurückgegeben"
+        hint: "Senden Sie /retry oder wechseln Sie mit /model."
+        hint_unrecoverable: "Wählen Sie mit /model ein anderes Modell."
+  agent:
+    init_failed_lock: "Hermes konnte den Assistenten für diese Sitzung nicht starten. Details: {detail}. Warten Sie, bis der andere Prozess die Sperre freigibt (oder beenden Sie ihn — prüfen Sie auf ein laufendes Dashboard oder einen Hermes-Hintergrundprozess), und versuchen Sie es dann erneut."
+    init_failed: "Hermes konnte den Assistenten für diese Sitzung nicht starten. Details: {detail}. Prüfen Sie Modell und Anbieter mit /model oder führen Sie `hermes setup` in einem Terminal aus, um neu zu konfigurieren."
+    still_starting: "Hermes startet diese Sitzung noch (Werkzeuge werden geladen), daher konnte dieser Befehl noch nicht ausgeführt werden. Warten Sie, bis die Statusleiste „bereit“ anzeigt, und versuchen Sie es erneut."
+    missing_for_turn: "Hermes konnte den Assistenten für diese Sitzung nicht starten, daher wurde Ihre Nachricht nicht ausgeführt. Öffnen Sie die Sitzung erneut (oder starten Sie mit /new eine neue) und senden Sie sie noch einmal."
+    init_timed_out: "Die Initialisierung des Agenten ist nach {seconds}s abgelaufen — Ihre Nachricht wurde nicht gesendet; versuchen Sie es erneut, sobald die Sitzung bereit ist"
+    init_failed_before_completing: "Die Initialisierung des Agenten ist vor dem Abschluss fehlgeschlagen"
+    still_starting_notice: "Der Agent startet noch (Werkzeugerkennung / Modelleinrichtung) — Ihre Nachricht wird gesendet, sobald er bereit ist."
+  resume:
+    failed: "Diese Sitzung konnte nicht wieder geöffnet werden (ihr Protokoll ließ sich nicht lesen). Details: {detail}. Starten Sie eine neue Sitzung (/new) oder wählen Sie eine andere aus /sessions."
+    reserve_failed: "Hermes konnte diese Sitzung nicht sicher reservieren. Versuchen Sie es erneut."
+    resuming_interrupted: "Unterbrochener Zug wird fortgesetzt…"
+  turn:
+    cancelled_before_ready: "Zug abgebrochen, bevor der Agent bereit war"
+    not_running_before_ready: "Sitzung lief nicht mehr, bevor der Agent bereit war"
+    retiring: "Das Backend wird außer Betrieb genommen; verbinden Sie sich erneut, um fortzufahren"
+    history_changed: "Der Verlauf hat sich während dieses Zugs geändert — die Antwort oben ist sichtbar, wurde aber nicht im Sitzungsverlauf gespeichert."
+    context_injection_refused: "Kontext-Injektion abgelehnt."
+    goal_compression_retry: "Die Kontextkomprimierung ist erschöpft. Das aktive Ziel wird einmal erneut versucht."
+    goal_paused_compression: "Ziel pausiert, nachdem die Kontextkomprimierung zweimal erschöpft war. Führen Sie /compress aus, dann /goal resume, um fortzufahren."
+  hosted:
+    room_managed_elsewhere: "Dieser Raum wird von {owner} verwaltet. Aktualisieren Sie Hermes Desktop, um ihn fortzusetzen."
+    owner_gateway: "seinem Gateway"
+    owner_home_host: "seinem Heim-Host"
+    group_probe_failed: "Diese Gruppe konnte nicht verifiziert werden. Versuchen Sie es erneut, sobald das Gateway wieder da ist."
+    member_busy: "Die Mitgliedssitzung des gehosteten Raums ist beschäftigt"
+    worker_unavailable: "Der Gruppenchat-Worker ist nicht verfügbar. Starten Sie das Hermes-Gateway neu und versuchen Sie es erneut."
+    managed_by_other_gateway: "Dieser Gruppenchat wird von einem anderen Gateway verwaltet."
+    reply_truncated: "[Antwort gekürzt. Bitten Sie den Bot, das vollständige Ergebnis als Datei zu teilen.]"
+    turn_deadline_exceeded: "Dieser Gruppenchat-Zug hat sein konfiguriertes Zeitlimit überschritten und wurde gestoppt."
+    not_found: "Gehosteter Raum nicht gefunden"
+    still_stopping: "Die Raumarbeit wird noch gestoppt; wiederholen Sie das Löschen, sobald Stopp abgeschlossen ist"
+    approval_not_pending: "Die Raumfreigabe steht nicht mehr aus"
+  attach:
+    clipboard_unavailable: "Zwischenablage nicht verfügbar: {error}"
+    clipboard_extract_failed: "Die Zwischenablage enthält ein Bild, aber das Auslesen ist fehlgeschlagen"
+    clipboard_no_image: "Kein Bild in der Zwischenablage gefunden"
+    image_not_found: "Bild nicht gefunden: {path}"
+    unsupported_image: "Nicht unterstütztes Bild: {name}"
+    image_empty: "Das Bild ist leer"
+    unsupported_image_extension: "Nicht unterstützte Bilderweiterung: {ext}"
+    write_failed: "Schreiben fehlgeschlagen: {error}"
+    pdftoppm_missing: "pdftoppm ist nicht installiert (Paket poppler-utils erforderlich)"
+    pdftoppm_timed_out: "pdftoppm hat das Zeitlimit überschritten (>120s)"
+    pdftoppm_failed: "pdftoppm fehlgeschlagen: {detail}"
+    pdftoppm_no_pages: "pdftoppm hat keine Seiten erzeugt (PDF beschädigt?)"
+    pdf_empty: "Das dekodierte PDF ist leer"
+    not_pdf_payload: "Die Nutzlast ist kein PDF (fehlende %PDF- Magic Bytes)"
+    pdf_not_found: "PDF nicht gefunden: {path}"
+    not_pdf: "Kein PDF: {name}"
+    pdf_too_large: "PDF zu groß; die Obergrenze liegt bei {mb} MB"
+    page_range_cap: "Der Seitenbereich überschreitet die Obergrenze von {pages} Seiten pro Anhängevorgang"
+    too_large: "{label} zu groß ({bytes} Bytes; Obergrenze {mb} MB)"
+    invalid_base64: "Die Daten sind kein gültiges Base64"
+    file_missing_no_data: "Datei auf dem Gateway nicht gefunden und keine data_url angegeben"
+    invalid_data_url: "Ungültige data_url-Nutzlast"
+    label_image: "Bild"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "Der Sitzungsspeicher ist nicht verfügbar, daher wurde diese Nachricht nicht gespeichert. Ursache: {cause}. {action} Senden Sie Ihre Nachricht danach erneut."
+  disk_full: "Der Sitzungsspeicher konnte nicht beschrieben werden, daher wurde diese Nachricht nicht gespeichert: Die Festplatte ist voll. Schaffen Sie Speicherplatz und senden Sie Ihre Nachricht erneut."
+  write_failed: "Der Sitzungsspeicher konnte nicht beschrieben werden, daher wurde diese Nachricht nicht gespeichert. Ursache: {cause}. {action} Senden Sie Ihre Nachricht danach erneut."
+  cause:
+    locked: "die Sitzungsdatenbank ist von einem anderen Hermes-Prozess gesperrt"
+    disk_full: "die Festplatte ist voll"
+    disk: "die Sitzungsdatenbankdatei ist schreibgeschützt oder nicht beschreibbar"
+    corrupt: "die Sitzungsdatenbankdatei ist beschädigt"
+    session_row_missing: "die Datenbankzeile dieser Sitzung wurde gelöscht, während der Chat noch offen war, und konnte nicht neu angelegt werden"
+    fts_index: "der Suchindex der Sitzung ist beschädigt (die Nachrichten selbst sind intakt)"
+    replaced: "die Sitzungsdatenbankdatei wurde ersetzt, während Hermes lief"
+    deleted_wal: "ein anderer Hermes-Prozess hält noch eine alte Kopie des Write-Ahead-Logs der Sitzungsdatenbank, daher hat Hermes das Schreiben eingestellt, um die Datei zu schützen"
+    compression: "ein anderer Prozess komprimiert diese Sitzung gerade"
+    compression_closed: "diese Sitzung wurde durch die Kontextkomprimierung rotiert"
+    turn_lease: "ein anderer Hermes-Prozess hat diese Sitzung übernommen"
+    unknown: "die Sitzungsdatenbank konnte nicht geöffnet werden"
+  action:
+    locked: "Warten Sie einen Moment und versuchen Sie es erneut; falls es bestehen bleibt, stoppen Sie den anderen Hermes-Prozess (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Schaffen Sie Speicherplatz und versuchen Sie es erneut."
+    disk: "Führen Sie `hermes {profile_arg}doctor --fix` aus, um zu diagnostizieren und zu reparieren."
+    corrupt: "Führen Sie `hermes {profile_arg}doctor --fix` aus, um zu diagnostizieren und zu reparieren. Wiederherstellung: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Versuchen Sie es erneut; falls es bestehen bleibt, führen Sie `hermes {profile_arg}doctor` aus."
+    fts_index: "Führen Sie `hermes {profile_arg}doctor --fix` (oder `hermes {profile_arg}sessions repair`) aus, um ihn neu aufzubauen."
+    replaced: "Stoppen Sie Hermes (`hermes {profile_arg}gateway stop`), führen Sie `hermes {profile_arg}doctor` aus und starten Sie es dann erneut."
+    deleted_wal: "Nichts ist verloren. Beenden Sie jeden Hermes-Prozess dieses Profils (Desktop-App, `hermes {profile_arg}gateway stop`, Dashboard, Cron), führen Sie `hermes {profile_arg}doctor` aus — es nennt jeden Prozess, der das Log noch hält — und starten Sie Hermes dann erneut. Führen Sie währenddessen kein `doctor --fix` aus und löschen Sie keine state.db-Dateien. Anleitung: {url}"
+    compression: "Senden Sie Ihre Nachricht erneut, sobald die Komprimierung abgeschlossen ist."
+    compression_closed: "Aktualisieren Sie den Client (oder starten Sie einen neuen Zug) und senden Sie Ihre Nachricht erneut."
+    turn_lease: "Warten Sie, bis er fertig ist, und senden Sie Ihre Nachricht dann erneut."
+    unknown: "Führen Sie `hermes {profile_arg}doctor --fix` aus, um zu diagnostizieren und zu reparieren."
+  unavailable_brief: "Der Sitzungsspeicher ist nicht verfügbar: {cause}. {action}"

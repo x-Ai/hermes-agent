@@ -3940,3 +3940,169 @@ tips:
     p09: "解釋這個錯誤以及該如何修復"
     p10: "設定提醒或排程一項定期任務"
     p11: "輸入 / 瀏覽指令，或按 Ctrl+P 開啟指令面板"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}。你的訊息未得到回答。"
+    details: "詳情：{detail}"
+    default:
+      title: "請求失敗"
+      hint: "傳送 /retry，或用 /model 切換模型。"
+      hint_unrecoverable: "用 /model 選擇另一個模型。"
+    code:
+      auth:
+        title: "模型提供方拒絕了該 API 金鑰"
+        hint: "用 /model 修正金鑰，然後 /retry。"
+      billing:
+        title: "模型提供方回報餘額已用盡"
+        hint: "為帳戶儲值，或用 /model 切換模型。"
+      rate_limit:
+        title: "模型提供方正在對請求限速"
+        hint: "稍等片刻，然後 /retry。"
+      upstream_blocked:
+        title: "模型提供方前方的防火牆/CDN 攔截了請求"
+        hint: "透過提供方的 extra_headers 設定 User-Agent，或用 /model 切換模型。"
+      overloaded:
+        title: "模型提供方負載過高"
+        hint: "稍等片刻，然後 /retry。"
+      server_error:
+        title: "模型提供方發生內部錯誤"
+        hint: "稍等片刻，然後 /retry。"
+      timeout:
+        title: "模型提供方未在時限內回應"
+        hint: "試試 /retry；如果反覆發生，請用 /model 切換模型。"
+      context_overflow:
+        title: "對話長度超出了此模型的上限"
+        hint: "執行 /compress，然後 /retry。"
+      payload_too_large:
+        title: "請求對此模型來說過大"
+        hint: "執行 /compress，然後 /retry。"
+      model_not_found:
+        title: "模型提供方不認識這個模型"
+        hint: "用 /model 選擇另一個模型。"
+      content_policy_blocked:
+        title: "模型提供方拒絕了此請求（內容政策）"
+        hint: "換個說法再傳送。"
+      provider_policy_blocked:
+        title: "模型提供方拒絕了此請求（帳戶政策）"
+        hint: "用 /model 切換模型。"
+      format_error:
+        title: "模型提供方拒絕了請求格式"
+        hint: "試試 /retry；如果仍然失敗，請用 /model 切換模型。"
+      ssl_cert_verification:
+        title: "無法驗證與模型提供方的連線（TLS）"
+        hint: "檢查端點的憑證，然後 /retry。"
+    layer:
+      auth:
+        title: "模型提供方拒絕了憑證"
+        hint: "用 /model 修正憑證，然後 /retry。"
+      endpoint:
+        title: "你的自訂模型端點沒有回應"
+        hint: "確認端點正在執行，然後 /retry。"
+      streaming:
+        title: "與模型提供方的連線在回覆中途中斷"
+        hint: "傳送 /retry。"
+        hint_unrecoverable: "用 /model 選擇另一個模型。"
+      disk:
+        title: "磁碟已滿，Hermes 無法儲存本回合"
+        hint: "釋放一些空間，然後 /retry。"
+      gateway:
+        title: "Hermes 在執行本回合時遇到內部錯誤"
+        hint: "傳送 /retry；輸入 /logs 查看堆疊。"
+        hint_unrecoverable: "用 /model 選擇另一個模型；輸入 /logs 查看堆疊。"
+      provider:
+        title: "模型提供方回傳了錯誤"
+        hint: "傳送 /retry，或用 /model 切換模型。"
+        hint_unrecoverable: "用 /model 選擇另一個模型。"
+  agent:
+    init_failed_lock: "Hermes 無法為此工作階段啟動助理。詳情：{detail}。請等待另一個程序釋放鎖定（或結束它——檢查是否有正在執行的儀表板或背景 hermes 程序），然後重試。"
+    init_failed: "Hermes 無法為此工作階段啟動助理。詳情：{detail}。請用 /model 檢查模型與提供方，或在終端機中執行 `hermes setup` 重新設定。"
+    still_starting: "Hermes 仍在啟動此工作階段（正在載入工具），此指令暫時無法執行。請等狀態列顯示就緒後再試。"
+    missing_for_turn: "Hermes 無法為此工作階段啟動助理，你的訊息沒有執行。請重新開啟該工作階段（或用 /new 建立新的）後再傳送。"
+    init_timed_out: "代理初始化在 {seconds} 秒後逾時——你的訊息未傳送；請等工作階段就緒後重試"
+    init_failed_before_completing: "代理初始化未完成即失敗"
+    still_starting_notice: "代理仍在啟動（探索工具 / 設定模型）——你的訊息會在就緒後立即傳送。"
+  resume:
+    failed: "無法重新開啟該工作階段（無法讀取其對話記錄）。詳情：{detail}。請建立新的工作階段（/new），或從 /sessions 中選擇另一個。"
+    reserve_failed: "Hermes 無法安全地保留此工作階段。請重試。"
+    resuming_interrupted: "正在恢復被中斷的回合…"
+  turn:
+    cancelled_before_ready: "代理就緒前本回合已被取消"
+    not_running_before_ready: "代理就緒前工作階段已不再執行"
+    retiring: "後端正在退役；請重新連線後繼續"
+    history_changed: "本回合期間歷史記錄發生了變化——上方的回覆可見，但未儲存到工作階段歷史中。"
+    context_injection_refused: "上下文注入已被拒絕。"
+    goal_compression_retry: "上下文壓縮已用盡。將重試目前目標一次。"
+    goal_paused_compression: "上下文壓縮連續兩次用盡，目標已暫停。執行 /compress，然後用 /goal resume 繼續。"
+  hosted:
+    room_managed_elsewhere: "此房間由{owner}管理。請更新 Hermes Desktop 後繼續。"
+    owner_gateway: "其所屬閘道"
+    owner_home_host: "其主機"
+    group_probe_failed: "無法驗證此群組。請等閘道恢復後重試。"
+    member_busy: "託管房間的成員工作階段忙碌中"
+    worker_unavailable: "群組聊天工作程序無法使用。請重新啟動 Hermes 閘道後重試。"
+    managed_by_other_gateway: "此群組聊天由另一個閘道管理。"
+    reply_truncated: "[回覆已截斷。請讓該 Bot 以檔案形式分享完整結果。]"
+    turn_deadline_exceeded: "此群組聊天回合超過了設定的時間限制，已被停止。"
+    not_found: "找不到託管房間"
+    still_stopping: "房間工作仍在停止中；請等停止完成後再重試刪除"
+    approval_not_pending: "房間批准已不再處於等待狀態"
+  attach:
+    clipboard_unavailable: "剪貼簿無法使用：{error}"
+    clipboard_extract_failed: "剪貼簿中有圖片，但擷取失敗"
+    clipboard_no_image: "剪貼簿中沒有圖片"
+    image_not_found: "找不到圖片：{path}"
+    unsupported_image: "不支援的圖片：{name}"
+    image_empty: "圖片為空"
+    unsupported_image_extension: "不支援的圖片副檔名：{ext}"
+    write_failed: "寫入失敗：{error}"
+    pdftoppm_missing: "未安裝 pdftoppm（需要 poppler-utils 套件）"
+    pdftoppm_timed_out: "pdftoppm 逾時（>120 秒）"
+    pdftoppm_failed: "pdftoppm 失敗：{detail}"
+    pdftoppm_no_pages: "pdftoppm 沒有產生任何頁面（PDF 已損毀？）"
+    pdf_empty: "解碼後的 PDF 為空"
+    not_pdf_payload: "資料不是 PDF（缺少 %PDF- 魔術位元組）"
+    pdf_not_found: "找不到 PDF：{path}"
+    not_pdf: "不是 PDF：{name}"
+    pdf_too_large: "PDF 過大；上限為 {mb} MB"
+    page_range_cap: "頁面範圍超過了每次附加 {pages} 頁的上限"
+    too_large: "{label}過大（{bytes} 位元組；上限為 {mb} MB）"
+    invalid_base64: "資料不是有效的 base64"
+    file_missing_no_data: "閘道上找不到該檔案，且未提供 data_url"
+    invalid_data_url: "data_url 資料無效"
+    label_image: "圖片"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "工作階段儲存空間無法使用，此訊息未儲存。原因：{cause}。{action} 然後重新傳送你的訊息。"
+  disk_full: "工作階段儲存空間無法寫入，此訊息未儲存：磁碟已滿。請釋放一些磁碟空間，然後重新傳送你的訊息。"
+  write_failed: "工作階段儲存空間無法寫入，此訊息未儲存。原因：{cause}。{action} 然後重新傳送你的訊息。"
+  cause:
+    locked: "工作階段資料庫被另一個 Hermes 程序鎖定"
+    disk_full: "磁碟已滿"
+    disk: "工作階段資料庫檔案為唯讀或無法寫入"
+    corrupt: "工作階段資料庫檔案已損毀"
+    session_row_missing: "此工作階段的資料庫列在聊天仍開啟時被刪除，且無法重建"
+    fts_index: "工作階段搜尋索引已損毀（訊息本身完好）"
+    replaced: "工作階段資料庫檔案在 Hermes 執行期間被取代"
+    deleted_wal: "另一個 Hermes 程序仍持有工作階段資料庫預寫日誌的舊副本，為保護檔案安全 Hermes 已停止寫入"
+    compression: "另一個程序正在壓縮此工作階段"
+    compression_closed: "此工作階段已被上下文壓縮輪替"
+    turn_lease: "另一個 Hermes 程序接管了此工作階段"
+    unknown: "無法開啟工作階段資料庫"
+  action:
+    locked: "稍等片刻後重試；如果持續發生，請停止另一個 Hermes 程序（`hermes {profile_arg}gateway stop`）。"
+    disk_full: "請釋放一些磁碟空間，然後重試。"
+    disk: "執行 `hermes {profile_arg}doctor --fix` 進行診斷與修復。"
+    corrupt: "執行 `hermes {profile_arg}doctor --fix` 進行診斷與修復。復原方式：`hermes {profile_arg}sessions recover --source <state.db> --inspect-only`。"
+    session_row_missing: "請重試；如果持續發生，請執行 `hermes {profile_arg}doctor`。"
+    fts_index: "執行 `hermes {profile_arg}doctor --fix`（或 `hermes {profile_arg}sessions repair`）重建索引。"
+    replaced: "停止 Hermes（`hermes {profile_arg}gateway stop`），執行 `hermes {profile_arg}doctor`，然後重新啟動。"
+    deleted_wal: "資料沒有遺失。請結束此設定檔上的所有 Hermes 程序（桌面應用程式、`hermes {profile_arg}gateway stop`、儀表板、cron），執行 `hermes {profile_arg}doctor`——它會列出仍持有該日誌的程序——然後重新啟動 Hermes。在它們執行期間不要執行 `doctor --fix` 或刪除任何 state.db 檔案。指南：{url}"
+    compression: "等壓縮完成後重新傳送你的訊息。"
+    compression_closed: "重新整理用戶端（或開始新的回合）後重新傳送你的訊息。"
+    turn_lease: "等它完成後重新傳送你的訊息。"
+    unknown: "執行 `hermes {profile_arg}doctor --fix` 進行診斷與修復。"
+  unavailable_brief: "工作階段儲存空間無法使用：{cause}。{action}"

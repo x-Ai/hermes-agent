@@ -3941,3 +3941,169 @@ tips:
     p09: "اشرح هذا الخطأ وكيفية إصلاحه"
     p10: "اضبط تذكيرًا أو جدولة مهمة متكررة"
     p11: "اكتب / لاستعراض الأوامر، أو Ctrl+P للوحة الأوامر"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. لم تتم الإجابة عن رسالتك."
+    details: "التفاصيل: {detail}"
+    default:
+      title: "فشل الطلب"
+      hint: "أرسل /retry أو بدّل النموذج عبر /model."
+      hint_unrecoverable: "اختر نموذجًا آخر عبر /model."
+    code:
+      auth:
+        title: "رفض مزوّد النموذج مفتاح API"
+        hint: "صحّح المفتاح عبر /model ثم /retry."
+      billing:
+        title: "يفيد مزوّد النموذج بنفاد الرصيد"
+        hint: "اشحن الحساب أو بدّل النموذج عبر /model."
+      rate_limit:
+        title: "يحدّ مزوّد النموذج من معدل الطلبات"
+        hint: "انتظر قليلًا ثم /retry."
+      upstream_blocked:
+        title: "حظر جدار حماية/CDN أمام مزوّد النموذج هذا الطلب"
+        hint: "اضبط User-Agent عبر extra_headers الخاصة بالمزوّد، أو بدّل النموذج عبر /model."
+      overloaded:
+        title: "مزوّد النموذج محمّل بشكل زائد"
+        hint: "انتظر قليلًا ثم /retry."
+      server_error:
+        title: "حدث خطأ داخلي لدى مزوّد النموذج"
+        hint: "انتظر قليلًا ثم /retry."
+      timeout:
+        title: "لم يجب مزوّد النموذج في الوقت المحدد"
+        hint: "جرّب /retry؛ وإذا تكرر الأمر فبدّل النموذج عبر /model."
+      context_overflow:
+        title: "المحادثة أطول من أن يتسع لها هذا النموذج"
+        hint: "شغّل /compress ثم /retry."
+      payload_too_large:
+        title: "الطلب أكبر من أن يتسع له هذا النموذج"
+        hint: "شغّل /compress ثم /retry."
+      model_not_found:
+        title: "مزوّد النموذج لا يعرف هذا النموذج"
+        hint: "اختر نموذجًا آخر عبر /model."
+      content_policy_blocked:
+        title: "رفض مزوّد النموذج هذا الطلب (سياسة المحتوى)"
+        hint: "أعد الصياغة وأرسل مجددًا."
+      provider_policy_blocked:
+        title: "رفض مزوّد النموذج هذا الطلب (سياسة الحساب)"
+        hint: "بدّل النموذج عبر /model."
+      format_error:
+        title: "رفض مزوّد النموذج تنسيق الطلب"
+        hint: "جرّب /retry؛ وإذا استمر الأمر فبدّل النموذج عبر /model."
+      ssl_cert_verification:
+        title: "تعذّر التحقق من الاتصال بمزوّد النموذج (TLS)"
+        hint: "تحقق من شهادة نقطة النهاية ثم /retry."
+    layer:
+      auth:
+        title: "رفض مزوّد النموذج بيانات الاعتماد"
+        hint: "صحّحها عبر /model ثم /retry."
+      endpoint:
+        title: "لم تجب نقطة نهاية النموذج المخصصة الخاصة بك"
+        hint: "تأكد من أن نقطة النهاية تعمل ثم /retry."
+      streaming:
+        title: "انقطع الاتصال بمزوّد النموذج في منتصف الرد"
+        hint: "أرسل /retry."
+        hint_unrecoverable: "اختر نموذجًا آخر عبر /model."
+      disk:
+        title: "القرص ممتلئ، لذا لم يتمكن Hermes من حفظ الدور"
+        hint: "حرّر بعض المساحة ثم /retry."
+      gateway:
+        title: "واجه Hermes خطأً داخليًا أثناء تشغيل هذا الدور"
+        hint: "أرسل /retry؛ واكتب /logs لعرض التتبع."
+        hint_unrecoverable: "اختر نموذجًا آخر عبر /model؛ واكتب /logs لعرض التتبع."
+      provider:
+        title: "أعاد مزوّد النموذج خطأً"
+        hint: "أرسل /retry أو بدّل النموذج عبر /model."
+        hint_unrecoverable: "اختر نموذجًا آخر عبر /model."
+  agent:
+    init_failed_lock: "تعذّر على Hermes بدء المساعد لهذه الجلسة. التفاصيل: {detail}. انتظر حتى تحرّر العملية الأخرى القفل (أو أغلقها — تحقق من وجود لوحة تحكم أو عملية hermes تعمل في الخلفية)، ثم أعد المحاولة."
+    init_failed: "تعذّر على Hermes بدء المساعد لهذه الجلسة. التفاصيل: {detail}. تحقق من النموذج والمزوّد عبر /model، أو شغّل `hermes setup` في الطرفية لإعادة الإعداد."
+    still_starting: "ما زال Hermes يبدأ هذه الجلسة (جارٍ تحميل الأدوات)، لذا تعذّر تشغيل هذا الأمر بعد. انتظر حتى يظهر شريط الحالة أنه جاهز ثم أعد المحاولة."
+    missing_for_turn: "تعذّر على Hermes بدء المساعد لهذه الجلسة، لذا لم تُنفَّذ رسالتك. أعد فتح الجلسة (أو ابدأ جلسة جديدة عبر /new) وأرسلها مجددًا."
+    init_timed_out: "انتهت مهلة تهيئة الوكيل بعد {seconds} ثانية — لم تُرسَل رسالتك؛ أعد المحاولة بعد أن تصبح الجلسة جاهزة"
+    init_failed_before_completing: "فشلت تهيئة الوكيل قبل اكتمالها"
+    still_starting_notice: "ما زال الوكيل يبدأ (اكتشاف الأدوات / إعداد النموذج) — ستُرسَل رسالتك فور أن يصبح جاهزًا."
+  resume:
+    failed: "تعذّر إعادة فتح تلك الجلسة (تعذّرت قراءة نصّها). التفاصيل: {detail}. ابدأ جلسة جديدة (/new)، أو اختر جلسة أخرى من /sessions."
+    reserve_failed: "تعذّر على Hermes حجز هذه الجلسة بأمان. أعد المحاولة."
+    resuming_interrupted: "جارٍ استئناف الدور المتوقف…"
+  turn:
+    cancelled_before_ready: "أُلغي الدور قبل أن يصبح الوكيل جاهزًا"
+    not_running_before_ready: "توقفت الجلسة عن العمل قبل أن يصبح الوكيل جاهزًا"
+    retiring: "الخادم الخلفي قيد الإيقاف؛ أعد الاتصال للمتابعة"
+    history_changed: "تغيّر السجل أثناء هذا الدور — الرد أعلاه مرئي لكنه لم يُحفظ في سجل الجلسة."
+    context_injection_refused: "رُفض حقن السياق."
+    goal_compression_retry: "استُنفد ضغط السياق. تجري إعادة محاولة الهدف النشط مرة واحدة."
+    goal_paused_compression: "أُوقف الهدف مؤقتًا بعد استنفاد ضغط السياق مرتين. شغّل /compress ثم /goal resume للمتابعة."
+  hosted:
+    room_managed_elsewhere: "هذه الغرفة تديرها {owner}. حدّث Hermes Desktop للمتابعة فيها."
+    owner_gateway: "بوابتها"
+    owner_home_host: "مضيفها الرئيسي"
+    group_probe_failed: "تعذّر التحقق من هذه المجموعة. أعد المحاولة بعد تعافي البوابة."
+    member_busy: "جلسة العضو في الغرفة المستضافة مشغولة"
+    worker_unavailable: "عامل الدردشة الجماعية غير متاح. أعد تشغيل بوابة Hermes ثم أعد المحاولة."
+    managed_by_other_gateway: "هذه الدردشة الجماعية تديرها بوابة أخرى."
+    reply_truncated: "[جرى اقتطاع الرد. اطلب من البوت مشاركة النتيجة الكاملة كملف.]"
+    turn_deadline_exceeded: "تجاوز دور الدردشة الجماعية هذا حد الوقت المضبوط وتم إيقافه."
+    not_found: "الغرفة المستضافة غير موجودة"
+    still_stopping: "لا يزال عمل الغرفة قيد الإيقاف؛ أعد محاولة الحذف بعد اكتمال الإيقاف"
+    approval_not_pending: "لم تعد موافقة الغرفة معلّقة"
+  attach:
+    clipboard_unavailable: "الحافظة غير متاحة: {error}"
+    clipboard_extract_failed: "تحتوي الحافظة على صورة لكن استخراجها فشل"
+    clipboard_no_image: "لم يُعثر على صورة في الحافظة"
+    image_not_found: "الصورة غير موجودة: {path}"
+    unsupported_image: "صورة غير مدعومة: {name}"
+    image_empty: "الصورة فارغة"
+    unsupported_image_extension: "امتداد صورة غير مدعوم: {ext}"
+    write_failed: "فشلت الكتابة: {error}"
+    pdftoppm_missing: "pdftoppm غير مثبّت (حزمة poppler-utils مطلوبة)"
+    pdftoppm_timed_out: "انتهت مهلة pdftoppm (>120 ثانية)"
+    pdftoppm_failed: "فشل pdftoppm: {detail}"
+    pdftoppm_no_pages: "لم ينتج pdftoppm أي صفحات (هل ملف PDF تالف؟)"
+    pdf_empty: "ملف PDF بعد فك الترميز فارغ"
+    not_pdf_payload: "المحتوى ليس ملف PDF (بايتات %PDF- السحرية مفقودة)"
+    pdf_not_found: "ملف PDF غير موجود: {path}"
+    not_pdf: "ليس ملف PDF: {name}"
+    pdf_too_large: "ملف PDF كبير جدًا؛ الحد الأقصى {mb} ميغابايت"
+    page_range_cap: "نطاق الصفحات يتجاوز الحد الأقصى البالغ {pages} صفحة لكل عملية إرفاق"
+    too_large: "{label} كبير جدًا ({bytes} بايت؛ الحد الأقصى {mb} ميغابايت)"
+    invalid_base64: "البيانات ليست base64 صالحًا"
+    file_missing_no_data: "الملف غير موجود على البوابة ولم يُقدَّم data_url"
+    invalid_data_url: "محتوى data_url غير صالح"
+    label_image: "الصورة"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "تخزين الجلسات غير متاح، لذا لم تُحفظ هذه الرسالة. السبب: {cause}. {action} ثم أرسل رسالتك مجددًا."
+  disk_full: "تعذّرت الكتابة في تخزين الجلسات، لذا لم تُحفظ هذه الرسالة: القرص ممتلئ. حرّر بعض مساحة القرص ثم أرسل رسالتك مجددًا."
+  write_failed: "تعذّرت الكتابة في تخزين الجلسات، لذا لم تُحفظ هذه الرسالة. السبب: {cause}. {action} ثم أرسل رسالتك مجددًا."
+  cause:
+    locked: "قاعدة بيانات الجلسات مقفلة بواسطة عملية Hermes أخرى"
+    disk_full: "القرص ممتلئ"
+    disk: "ملف قاعدة بيانات الجلسات للقراءة فقط أو غير قابل للكتابة"
+    corrupt: "ملف قاعدة بيانات الجلسات تالف"
+    session_row_missing: "حُذف صف هذه الجلسة من قاعدة البيانات بينما كانت المحادثة لا تزال مفتوحة وتعذّر إنشاؤه من جديد"
+    fts_index: "فهرس بحث الجلسات تالف (الرسائل نفسها سليمة)"
+    replaced: "استُبدل ملف قاعدة بيانات الجلسات أثناء تشغيل Hermes"
+    deleted_wal: "ما زالت عملية Hermes أخرى تحتفظ بنسخة قديمة من سجل الكتابة المسبقة لقاعدة بيانات الجلسات، لذا توقف Hermes عن الكتابة للحفاظ على سلامة الملف"
+    compression: "عملية أخرى تضغط هذه الجلسة"
+    compression_closed: "جرى تدوير هذه الجلسة بواسطة ضغط السياق"
+    turn_lease: "تولّت عملية Hermes أخرى هذه الجلسة"
+    unknown: "تعذّر فتح قاعدة بيانات الجلسات"
+  action:
+    locked: "انتظر قليلًا وأعد المحاولة؛ وإذا استمر الأمر فأوقف عملية Hermes الأخرى (`hermes {profile_arg}gateway stop`)."
+    disk_full: "حرّر بعض مساحة القرص ثم أعد المحاولة."
+    disk: "شغّل `hermes {profile_arg}doctor --fix` للتشخيص والإصلاح."
+    corrupt: "شغّل `hermes {profile_arg}doctor --fix` للتشخيص والإصلاح. الاستعادة: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "أعد المحاولة؛ وإذا استمر الأمر فشغّل `hermes {profile_arg}doctor`."
+    fts_index: "شغّل `hermes {profile_arg}doctor --fix` (أو `hermes {profile_arg}sessions repair`) لإعادة بنائه."
+    replaced: "أوقف Hermes (`hermes {profile_arg}gateway stop`)، وشغّل `hermes {profile_arg}doctor`، ثم ابدأه مجددًا."
+    deleted_wal: "لم يُفقد شيء. أغلق كل عمليات Hermes على هذا الملف الشخصي (تطبيق سطح المكتب، `hermes {profile_arg}gateway stop`، لوحة التحكم، cron)، وشغّل `hermes {profile_arg}doctor` — فهو يسمّي أي عملية لا تزال تحتفظ بالسجل — ثم ابدأ Hermes مجددًا. لا تشغّل `doctor --fix` ولا تحذف أي ملفات state.db أثناء تشغيلها. الدليل: {url}"
+    compression: "أرسل رسالتك مجددًا بعد انتهاء الضغط."
+    compression_closed: "حدّث العميل (أو ابدأ دورًا جديدًا) وأرسل رسالتك مجددًا."
+    turn_lease: "انتظر حتى تنتهي ثم أرسل رسالتك مجددًا."
+    unknown: "شغّل `hermes {profile_arg}doctor --fix` للتشخيص والإصلاح."
+  unavailable_brief: "تخزين الجلسات غير متاح: {cause}. {action}"

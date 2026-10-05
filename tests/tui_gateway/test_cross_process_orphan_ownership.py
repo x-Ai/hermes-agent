@@ -195,12 +195,12 @@ def test_desktop_claim_fails_closed_when_registry_setup_fails(
     )
 
     assert desktop_lease is None
-    assert desktop_message == server._SESSION_OWNERSHIP_UNAVAILABLE
+    assert desktop_message == server._session_ownership_unavailable()
     # Every surface fails closed now (#94595): a claim that errored has not
     # proven the session is unowned, and proceeding leaseless reopens the
     # double-writer hole.
     assert tui_lease is None
-    assert tui_message == server._SESSION_OWNERSHIP_UNAVAILABLE
+    assert tui_message == server._session_ownership_unavailable()
 
 
 def test_server_release_retries_liveness_lease_before_dropping_reference(

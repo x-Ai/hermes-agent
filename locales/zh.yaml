@@ -3941,3 +3941,169 @@ tips:
     p09: "解释这个错误以及如何修复"
     p10: "设置提醒或安排一个定时任务"
     p11: "输入 / 浏览命令，或按 Ctrl+P 打开命令面板"
+
+# tui_gateway: 桌面端与终端 TUI 后端自身面向用户的文本（拒绝信息、斜杠命令输出、附件错误等）
+tui_gateway:
+  turn_error:
+    not_answered: "{title}，你的消息未得到回答"
+    details: "详情：{detail}"
+    default:
+      title: "请求失败"
+      hint: "发送 /retry，或用 /model 切换模型"
+      hint_unrecoverable: "用 /model 选择另一个模型"
+    code:
+      auth:
+        title: "模型提供方拒绝了该 API 密钥"
+        hint: "用 /model 修正密钥，然后 /retry"
+      billing:
+        title: "模型提供方报告余额已用尽"
+        hint: "为账户充值，或用 /model 切换模型"
+      rate_limit:
+        title: "模型提供方正在对请求限速"
+        hint: "稍等片刻，然后 /retry"
+      upstream_blocked:
+        title: "模型提供方前方的防火墙/CDN 拦截了请求"
+        hint: "通过提供方的 extra_headers 设置 User-Agent，或用 /model 切换模型"
+      overloaded:
+        title: "模型提供方负载过高"
+        hint: "稍等片刻，然后 /retry"
+      server_error:
+        title: "模型提供方发生内部错误"
+        hint: "稍等片刻，然后 /retry"
+      timeout:
+        title: "模型提供方未在规定时间内响应"
+        hint: "试试 /retry，如果反复出现，请用 /model 切换模型"
+      context_overflow:
+        title: "对话长度超出了该模型的上限"
+        hint: "运行 /compress，然后 /retry"
+      payload_too_large:
+        title: "请求对该模型来说过大"
+        hint: "运行 /compress，然后 /retry"
+      model_not_found:
+        title: "模型提供方不认识这个模型"
+        hint: "用 /model 选择另一个模型"
+      content_policy_blocked:
+        title: "模型提供方拒绝了此请求（内容策略）"
+        hint: "换个说法再发送"
+      provider_policy_blocked:
+        title: "模型提供方拒绝了此请求（账户策略）"
+        hint: "用 /model 切换模型"
+      format_error:
+        title: "模型提供方拒绝了请求格式"
+        hint: "试试 /retry，如果仍然失败，请用 /model 切换模型"
+      ssl_cert_verification:
+        title: "无法验证与模型提供方的连接（TLS）"
+        hint: "检查端点的证书，然后 /retry"
+    layer:
+      auth:
+        title: "模型提供方拒绝了凭据"
+        hint: "用 /model 修正凭据，然后 /retry"
+      endpoint:
+        title: "你的自定义模型端点没有响应"
+        hint: "确认端点正在运行，然后 /retry"
+      streaming:
+        title: "与模型提供方的连接在回复中途断开"
+        hint: "发送 /retry"
+        hint_unrecoverable: "用 /model 选择另一个模型"
+      disk:
+        title: "磁盘已满，Hermes 无法保存本轮对话"
+        hint: "释放一些空间，然后 /retry"
+      gateway:
+        title: "Hermes 在运行本轮时遇到内部错误"
+        hint: "发送 /retry，输入 /logs 查看堆栈"
+        hint_unrecoverable: "用 /model 选择另一个模型，输入 /logs 查看堆栈"
+      provider:
+        title: "模型提供方返回了错误"
+        hint: "发送 /retry，或用 /model 切换模型"
+        hint_unrecoverable: "用 /model 选择另一个模型"
+  agent:
+    init_failed_lock: "Hermes 无法为此会话启动助手，详情：{detail}，请等待另一个进程释放锁（或退出它，检查是否有正在运行的仪表盘或后台 hermes 进程），然后重试"
+    init_failed: "Hermes 无法为此会话启动助手，详情：{detail}，请用 /model 检查模型和提供方，或在终端中运行 `hermes setup` 重新配置"
+    still_starting: "Hermes 仍在启动此会话（正在加载工具），此命令暂时无法运行，请等状态栏显示就绪后重试"
+    missing_for_turn: "Hermes 无法为此会话启动助手，你的消息没有运行，请重新打开该会话（或用 /new 新建一个）后再发送"
+    init_timed_out: "代理初始化在 {seconds} 秒后超时，你的消息未发送，请等会话就绪后重试"
+    init_failed_before_completing: "代理初始化未完成即失败"
+    still_starting_notice: "代理仍在启动（发现工具 / 设置模型），你的消息会在就绪后立即发送"
+  resume:
+    failed: "无法重新打开该会话（无法读取其对话记录），详情：{detail}，请新建会话（/new），或从 /sessions 中选择另一个"
+    reserve_failed: "Hermes 无法安全地保留此会话，请重试"
+    resuming_interrupted: "正在恢复被中断的回合…"
+  turn:
+    cancelled_before_ready: "代理就绪前，本轮对话已取消"
+    not_running_before_ready: "代理就绪前会话已停止"
+    retiring: "后端正在退役，请重新连接后继续"
+    history_changed: "本轮期间历史记录发生了变化，上面的回复可见，但未保存到会话历史中"
+    context_injection_refused: "上下文注入已被拒绝"
+    goal_compression_retry: "上下文压缩已用尽，将重试当前目标一次"
+    goal_paused_compression: "上下文压缩连续两次用尽，目标已暂停，运行 /compress，然后用 /goal resume 继续"
+  hosted:
+    room_managed_elsewhere: "此房间由{owner}管理，请更新 Hermes Desktop 后继续"
+    owner_gateway: "其所属网关"
+    owner_home_host: "其所属主机"
+    group_probe_failed: "无法验证此群组，请等网关恢复后重试"
+    member_busy: "托管房间的成员会话正忙"
+    worker_unavailable: "群聊工作进程不可用，请重启 Hermes 网关后重试"
+    managed_by_other_gateway: "此群聊由另一个网关管理"
+    reply_truncated: "[回复已截断，请让该 Bot 以文件形式分享完整结果]"
+    turn_deadline_exceeded: "此群聊回合超过了配置的时间限制，已被停止"
+    not_found: "找不到托管房间"
+    still_stopping: "房间任务仍在停止中，请等停止完成后再重试删除"
+    approval_not_pending: "房间审批已不再处于等待状态"
+  attach:
+    clipboard_unavailable: "剪贴板不可用：{error}"
+    clipboard_extract_failed: "剪贴板中有图片，但提取失败"
+    clipboard_no_image: "剪贴板中没有图片"
+    image_not_found: "找不到图片：{path}"
+    unsupported_image: "不支持的图片：{name}"
+    image_empty: "图片为空"
+    unsupported_image_extension: "不支持的图片扩展名：{ext}"
+    write_failed: "写入失败：{error}"
+    pdftoppm_missing: "未安装 pdftoppm（需要 poppler-utils 软件包）"
+    pdftoppm_timed_out: "pdftoppm 超时（>120 秒）"
+    pdftoppm_failed: "pdftoppm 失败：{detail}"
+    pdftoppm_no_pages: "pdftoppm 没有生成任何页面（PDF 已损坏？）"
+    pdf_empty: "解码后的 PDF 为空"
+    not_pdf_payload: "数据不是 PDF（缺少 %PDF- 魔数）"
+    pdf_not_found: "找不到 PDF：{path}"
+    not_pdf: "不是 PDF：{name}"
+    pdf_too_large: "PDF 过大，上限为 {mb} MB"
+    page_range_cap: "页面范围超过了每次附加 {pages} 页的上限"
+    too_large: "{label}过大（{bytes} 字节，上限为 {mb} MB）"
+    invalid_base64: "数据不是有效的 base64"
+    file_missing_no_data: "网关上找不到该文件，且未提供 data_url"
+    invalid_data_url: "data_url 数据无效"
+    label_image: "图片"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure — 各界面共用的存储故障原因与处理方式
+storage:
+  unavailable: "会话存储不可用，此消息未保存，原因：{cause}，{action}，然后重新发送你的消息"
+  disk_full: "会话存储无法写入，此消息未保存：磁盘已满，请释放一些磁盘空间，然后重新发送你的消息"
+  write_failed: "会话存储无法写入，此消息未保存，原因：{cause}，{action}，然后重新发送你的消息"
+  cause:
+    locked: "会话数据库被另一个 Hermes 进程锁定"
+    disk_full: "磁盘已满"
+    disk: "会话数据库文件为只读或不可写"
+    corrupt: "会话数据库文件已损坏"
+    session_row_missing: "此会话的数据库记录在聊天仍打开时被删除，且无法重建"
+    fts_index: "会话搜索索引已损坏（消息本身完好）"
+    replaced: "会话数据库文件在 Hermes 运行期间被替换"
+    deleted_wal: "另一个 Hermes 进程仍持有会话数据库预写日志的旧副本，为保护文件安全 Hermes 已停止写入"
+    compression: "另一个进程正在压缩此会话"
+    compression_closed: "此会话已被上下文压缩轮换"
+    turn_lease: "另一个 Hermes 进程接管了此会话"
+    unknown: "无法打开会话数据库"
+  action:
+    locked: "稍等片刻后重试，如果持续出现，请停止另一个 Hermes 进程（`hermes {profile_arg}gateway stop`）"
+    disk_full: "请释放一些磁盘空间，然后重试"
+    disk: "运行 `hermes {profile_arg}doctor --fix` 进行诊断和修复"
+    corrupt: "运行 `hermes {profile_arg}doctor --fix` 进行诊断和修复，恢复方式：`hermes {profile_arg}sessions recover --source <state.db> --inspect-only`"
+    session_row_missing: "请重试，如果持续出现，请运行 `hermes {profile_arg}doctor`"
+    fts_index: "运行 `hermes {profile_arg}doctor --fix`（或 `hermes {profile_arg}sessions repair`）重建索引"
+    replaced: "停止 Hermes（`hermes {profile_arg}gateway stop`），运行 `hermes {profile_arg}doctor`，然后重新启动"
+    deleted_wal: "数据没有丢失，请退出此配置档案上的所有 Hermes 进程（桌面应用、`hermes {profile_arg}gateway stop`、仪表盘、cron），运行 `hermes {profile_arg}doctor`（它会列出仍持有该日志的进程），然后重新启动 Hermes，在它们运行期间不要执行 `doctor --fix` 或删除任何 state.db 文件，指南：{url}"
+    compression: "等压缩完成后重新发送你的消息"
+    compression_closed: "刷新客户端（或开始新的一轮）后重新发送你的消息"
+    turn_lease: "等它完成后重新发送你的消息"
+    unknown: "运行 `hermes {profile_arg}doctor --fix` 进行诊断和修复"
+  unavailable_brief: "会话存储不可用：{cause}，{action}"

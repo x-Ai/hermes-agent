@@ -10,7 +10,7 @@ def handle_request(req: dict) -> dict | None:
 
     with retirement.work() as admitted:
         if not admitted:
-            return _err(req.get("id"), 5035, "backend is retiring; reconnect to continue")
+            return _err(req.get("id"), 5035, _t("tui_gateway.turn.retiring"))
         return _handle_admitted_request(req)
 
 
@@ -65,7 +65,7 @@ def dispatch(req: dict, transport: Optional[Transport] = None) -> dict | None:
 
         # Reserve BEFORE enqueueing: a queued handler has accepted work even though no worker runs yet.
         if not retirement.acquire():
-            return _err(req.get("id"), 5035, "backend is retiring; reconnect to continue")
+            return _err(req.get("id"), 5035, _t("tui_gateway.turn.retiring"))
         try:
             ctx = contextvars.copy_context()  # the pool worker must see the bound transport
             owner = normalized[2].get("owner")

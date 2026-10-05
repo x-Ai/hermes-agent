@@ -102,15 +102,11 @@ def _plan_goal_compression_recovery(
     if attempts < _GOAL_COMPRESSION_RECOVERY_LIMIT and continuation_prompt:
         session[_GOAL_COMPRESSION_RECOVERY_ATTEMPTS] = {
             "goal_created_at": goal_created_at, "goal": goal_text, "attempts": attempts + 1}
-        return (
-            continuation_prompt,
-            "Context compression was exhausted. Retrying the active goal once.")
+        return continuation_prompt, _t("tui_gateway.turn.goal_compression_retry")
     goal_mgr.pause(reason="context compression exhausted twice consecutively")
     # A later explicit /goal resume gets a fresh bounded recovery cycle.
     session.pop(_GOAL_COMPRESSION_RECOVERY_ATTEMPTS, None)
-    return None, (
-        "Goal paused after context compression was exhausted twice. "
-        "Run /compress, then /goal resume to continue.")
+    return None, _t("tui_gateway.turn.goal_paused_compression")
 
 
 def _admit_prompt_turn(
@@ -165,7 +161,7 @@ def _admit_prompt_turn(
         # crosses this gate, so refuse here with a retryable frame: the turn body used to dereference the
         # missing agent twice (in ``_invoke_agent`` and again in its ``finally``), which killed the turn
         # thread with ``running`` still True — the prompt vanished and the session stayed "busy" (#111531).
-        reason = session.get("agent_error") or AGENT_MISSING_FOR_TURN
+        reason = session.get("agent_error") or agent_missing_for_turn()
         logger.info("Refusing turn for session %s: no agent attached (%s)", session.get("session_key") or sid, reason)
         _emit_terminal_turn_error(
             sid, session, reason,
@@ -302,9 +298,7 @@ def _commit_turn_history(
             f"(expected={history_version} current={current_version}) — "
             f"agent output NOT written to session history",
             file=sys.stderr)
-        return (
-            "History changed during this turn — the response above is visible "
-            "but was not saved to session history.")
+        return _t("tui_gateway.turn.history_changed")
 
 
 def _result_status(result: dict) -> str:
@@ -716,7 +710,7 @@ def _prepare_turn_input(sid: str, session: dict, st: _TurnRun, text: Any, images
             prompt, cwd=cwd, allowed_root=cwd, context_length=ctx_len)
         if ctx.blocked:
             _emit(
-                "error", sid, {"message": "\n".join(ctx.warnings) or "Context injection refused."})
+                "error", sid, {"message": "\n".join(ctx.warnings) or _t("tui_gateway.turn.context_injection_refused")})
             return None
         prompt = ctx.message
     st.prompt_text = prompt if isinstance(prompt, str) else ""
@@ -1179,7 +1173,7 @@ def _run_prompt_submit(
                 if st.terminal_callback is not None and not st.receipt_attempted:
                     st.receipt_attempted = True
                     st.terminal_callback({
-                        "status": "failed", "text": "", "error": "Context injection refused."})
+                        "status": "failed", "text": "", "error": _t("tui_gateway.turn.context_injection_refused")})
                     st.receipt_committed = True
                 return
             prompt, run_message, cols, streamer = prepared

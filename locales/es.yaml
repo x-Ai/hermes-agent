@@ -3942,3 +3942,169 @@ tips:
     p09: "Explica este error y cómo solucionarlo"
     p10: "Crea un recordatorio o programa una tarea recurrente"
     p11: "Escribe / para explorar los comandos, o Ctrl+P para la paleta"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Tu mensaje no obtuvo respuesta."
+    details: "Detalles: {detail}"
+    default:
+      title: "La solicitud falló"
+      hint: "Envía /retry o cambia de modelo con /model."
+      hint_unrecoverable: "Elige otro modelo con /model."
+    code:
+      auth:
+        title: "El proveedor del modelo rechazó la clave de API"
+        hint: "Corrige la clave con /model y luego /retry."
+      billing:
+        title: "El proveedor del modelo informa que no queda crédito"
+        hint: "Recarga la cuenta o cambia de modelo con /model."
+      rate_limit:
+        title: "El proveedor del modelo está limitando la frecuencia de solicitudes"
+        hint: "Espera un momento y luego /retry."
+      upstream_blocked:
+        title: "Un cortafuegos/CDN delante del proveedor del modelo bloqueó la solicitud"
+        hint: "Define un User-Agent mediante los extra_headers del proveedor, o cambia de modelo con /model."
+      overloaded:
+        title: "El proveedor del modelo está sobrecargado"
+        hint: "Espera un momento y luego /retry."
+      server_error:
+        title: "El proveedor del modelo tuvo un error interno"
+        hint: "Espera un momento y luego /retry."
+      timeout:
+        title: "El proveedor del modelo no respondió a tiempo"
+        hint: "Prueba /retry; si sigue ocurriendo, cambia de modelo con /model."
+      context_overflow:
+        title: "La conversación es demasiado larga para este modelo"
+        hint: "Ejecuta /compress y luego /retry."
+      payload_too_large:
+        title: "La solicitud era demasiado grande para este modelo"
+        hint: "Ejecuta /compress y luego /retry."
+      model_not_found:
+        title: "El proveedor del modelo no conoce este modelo"
+        hint: "Elige otro modelo con /model."
+      content_policy_blocked:
+        title: "El proveedor del modelo rechazó esta solicitud (política de contenido)"
+        hint: "Reformúlala y envíala de nuevo."
+      provider_policy_blocked:
+        title: "El proveedor del modelo rechazó esta solicitud (política de la cuenta)"
+        hint: "Cambia de modelo con /model."
+      format_error:
+        title: "El proveedor del modelo rechazó el formato de la solicitud"
+        hint: "Prueba /retry; si persiste, cambia de modelo con /model."
+      ssl_cert_verification:
+        title: "No se pudo verificar la conexión con el proveedor del modelo (TLS)"
+        hint: "Comprueba el certificado del endpoint y luego /retry."
+    layer:
+      auth:
+        title: "El proveedor del modelo rechazó las credenciales"
+        hint: "Corrígelas con /model y luego /retry."
+      endpoint:
+        title: "Tu endpoint de modelo personalizado no respondió"
+        hint: "Comprueba que el endpoint esté en ejecución y luego /retry."
+      streaming:
+        title: "La conexión con el proveedor del modelo se cortó a mitad de la respuesta"
+        hint: "Envía /retry."
+        hint_unrecoverable: "Elige otro modelo con /model."
+      disk:
+        title: "El disco está lleno, así que Hermes no pudo guardar el turno"
+        hint: "Libera espacio y luego /retry."
+      gateway:
+        title: "Hermes encontró un error interno al ejecutar este turno"
+        hint: "Envía /retry; escribe /logs para ver la traza."
+        hint_unrecoverable: "Elige otro modelo con /model; escribe /logs para ver la traza."
+      provider:
+        title: "El proveedor del modelo devolvió un error"
+        hint: "Envía /retry o cambia de modelo con /model."
+        hint_unrecoverable: "Elige otro modelo con /model."
+  agent:
+    init_failed_lock: "Hermes no pudo iniciar el asistente para esta sesión. Detalles: {detail}. Espera a que el otro proceso libere el bloqueo (o ciérralo; busca un panel o un proceso hermes en segundo plano en ejecución) y luego reintenta."
+    init_failed: "Hermes no pudo iniciar el asistente para esta sesión. Detalles: {detail}. Comprueba el modelo y el proveedor con /model, o ejecuta `hermes setup` en una terminal para reconfigurar."
+    still_starting: "Hermes todavía está iniciando esta sesión (cargando herramientas), así que este comando aún no pudo ejecutarse. Espera a que la barra de estado muestre listo y vuelve a intentarlo."
+    missing_for_turn: "Hermes no pudo iniciar el asistente para esta sesión, así que tu mensaje no se ejecutó. Vuelve a abrir la sesión (o inicia una nueva con /new) y envíalo de nuevo."
+    init_timed_out: "la inicialización del agente agotó el tiempo tras {seconds}s: tu mensaje no se envió; reintenta cuando la sesión esté lista"
+    init_failed_before_completing: "la inicialización del agente falló antes de completarse"
+    still_starting_notice: "El agente todavía se está iniciando (detección de herramientas / configuración del modelo): tu mensaje se enviará en cuanto esté listo."
+  resume:
+    failed: "No se pudo reabrir esa sesión (no se pudo leer su transcripción). Detalles: {detail}. Inicia una sesión nueva (/new) o elige otra en /sessions."
+    reserve_failed: "Hermes no pudo reservar esta sesión de forma segura. Inténtalo de nuevo."
+    resuming_interrupted: "Reanudando el turno interrumpido…"
+  turn:
+    cancelled_before_ready: "Turno cancelado antes de que el agente estuviera listo"
+    not_running_before_ready: "La sesión ya no estaba en ejecución antes de que el agente estuviera listo"
+    retiring: "el backend se está retirando; vuelve a conectarte para continuar"
+    history_changed: "El historial cambió durante este turno: la respuesta de arriba es visible, pero no se guardó en el historial de la sesión."
+    context_injection_refused: "Inyección de contexto rechazada."
+    goal_compression_retry: "La compresión de contexto se agotó. Reintentando el objetivo activo una vez."
+    goal_paused_compression: "Objetivo en pausa tras agotarse dos veces la compresión de contexto. Ejecuta /compress y luego /goal resume para continuar."
+  hosted:
+    room_managed_elsewhere: "Esta sala la gestiona {owner}. Actualiza Hermes Desktop para continuar con ella."
+    owner_gateway: "su gateway"
+    owner_home_host: "su host de origen"
+    group_probe_failed: "No se pudo verificar este grupo. Vuelve a intentarlo cuando el gateway se recupere."
+    member_busy: "la sesión del miembro de la sala alojada está ocupada"
+    worker_unavailable: "El worker del chat grupal no está disponible. Reinicia el gateway de Hermes y vuelve a intentarlo."
+    managed_by_other_gateway: "Este chat grupal lo gestiona otro gateway."
+    reply_truncated: "[Respuesta truncada. Pide al Bot que comparta el resultado completo como archivo.]"
+    turn_deadline_exceeded: "Este turno del chat grupal superó su límite de tiempo configurado y se detuvo."
+    not_found: "sala alojada no encontrada"
+    still_stopping: "el trabajo de la sala todavía se está deteniendo; reintenta la eliminación cuando termine la detención"
+    approval_not_pending: "la aprobación de la sala ya no está pendiente"
+  attach:
+    clipboard_unavailable: "portapapeles no disponible: {error}"
+    clipboard_extract_failed: "El portapapeles tiene una imagen, pero la extracción falló"
+    clipboard_no_image: "No se encontró ninguna imagen en el portapapeles"
+    image_not_found: "imagen no encontrada: {path}"
+    unsupported_image: "imagen no compatible: {name}"
+    image_empty: "la imagen está vacía"
+    unsupported_image_extension: "extensión de imagen no compatible: {ext}"
+    write_failed: "error de escritura: {error}"
+    pdftoppm_missing: "pdftoppm no está instalado (se requiere el paquete poppler-utils)"
+    pdftoppm_timed_out: "pdftoppm agotó el tiempo (>120s)"
+    pdftoppm_failed: "pdftoppm falló: {detail}"
+    pdftoppm_no_pages: "pdftoppm no produjo ninguna página (¿PDF dañado?)"
+    pdf_empty: "el PDF decodificado está vacío"
+    not_pdf_payload: "la carga no es un PDF (faltan los bytes mágicos %PDF-)"
+    pdf_not_found: "PDF no encontrado: {path}"
+    not_pdf: "no es un PDF: {name}"
+    pdf_too_large: "PDF demasiado grande; el límite es de {mb} MB"
+    page_range_cap: "el rango de páginas supera el límite de {pages} páginas por adjunto"
+    too_large: "{label} demasiado grande ({bytes} bytes; el límite es de {mb} MB)"
+    invalid_base64: "los datos no son base64 válido"
+    file_missing_no_data: "archivo no encontrado en el gateway y no se proporcionó data_url"
+    invalid_data_url: "carga data_url no válida"
+    label_image: "imagen"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "El almacenamiento de sesiones no está disponible, así que este mensaje no se guardó. Causa: {cause}. {action} Después, envía tu mensaje de nuevo."
+  disk_full: "No se pudo escribir en el almacenamiento de sesiones, así que este mensaje no se guardó: el disco está lleno. Libera espacio en disco y envía tu mensaje de nuevo."
+  write_failed: "No se pudo escribir en el almacenamiento de sesiones, así que este mensaje no se guardó. Causa: {cause}. {action} Después, envía tu mensaje de nuevo."
+  cause:
+    locked: "la base de datos de sesiones está bloqueada por otro proceso de Hermes"
+    disk_full: "el disco está lleno"
+    disk: "el archivo de la base de datos de sesiones es de solo lectura o no se puede escribir"
+    corrupt: "el archivo de la base de datos de sesiones está dañado"
+    session_row_missing: "la fila de esta sesión en la base de datos se eliminó mientras el chat seguía abierto y no se pudo recrear"
+    fts_index: "el índice de búsqueda de sesiones está dañado (los mensajes en sí están intactos)"
+    replaced: "el archivo de la base de datos de sesiones se reemplazó mientras Hermes estaba en ejecución"
+    deleted_wal: "otro proceso de Hermes todavía conserva una copia antigua del registro de escritura anticipada de la base de datos de sesiones, así que Hermes dejó de escribir para mantener el archivo a salvo"
+    compression: "otro proceso está comprimiendo esta sesión"
+    compression_closed: "esta sesión fue rotada por la compresión de contexto"
+    turn_lease: "otro proceso de Hermes tomó el control de esta sesión"
+    unknown: "no se pudo abrir la base de datos de sesiones"
+  action:
+    locked: "Espera un momento e inténtalo de nuevo; si persiste, detén el otro proceso de Hermes (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Libera espacio en disco y vuelve a intentarlo."
+    disk: "Ejecuta `hermes {profile_arg}doctor --fix` para diagnosticar y reparar."
+    corrupt: "Ejecuta `hermes {profile_arg}doctor --fix` para diagnosticar y reparar. Recuperación: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Inténtalo de nuevo; si persiste, ejecuta `hermes {profile_arg}doctor`."
+    fts_index: "Ejecuta `hermes {profile_arg}doctor --fix` (o `hermes {profile_arg}sessions repair`) para reconstruirlo."
+    replaced: "Detén Hermes (`hermes {profile_arg}gateway stop`), ejecuta `hermes {profile_arg}doctor` y vuelve a iniciarlo."
+    deleted_wal: "No se ha perdido nada. Cierra todos los procesos de Hermes de este perfil (app de escritorio, `hermes {profile_arg}gateway stop`, panel, cron), ejecuta `hermes {profile_arg}doctor` (indica qué proceso sigue reteniendo el registro) y vuelve a iniciar Hermes. No ejecutes `doctor --fix` ni borres archivos state.db mientras se ejecutan. Guía: {url}"
+    compression: "Envía tu mensaje de nuevo cuando termine la compresión."
+    compression_closed: "Actualiza el cliente (o inicia un turno nuevo) y envía tu mensaje de nuevo."
+    turn_lease: "Espera a que termine y luego envía tu mensaje de nuevo."
+    unknown: "Ejecuta `hermes {profile_arg}doctor --fix` para diagnosticar y reparar."
+  unavailable_brief: "El almacenamiento de sesiones no está disponible: {cause}. {action}"

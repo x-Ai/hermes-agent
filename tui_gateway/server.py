@@ -43,8 +43,9 @@ from tui_gateway.turn_marker import clear_turn_marker, marker_writer_state, read
 from tui_gateway.contracts import registry as _contracts
 # User-facing copy shared with the split method modules (they close over this namespace).
 from tui_gateway.user_messages import (  # noqa: F401
-    AGENT_BUILD_ABANDONED, AGENT_MISSING_FOR_TURN, AGENT_STILL_STARTING, agent_init_failed_message, busy_message,
+    AGENT_BUILD_ABANDONED, agent_init_failed_message, agent_missing_for_turn, agent_still_starting, busy_message,
     resume_failed_message, turn_error_text, handoff_busy_message)
+from agent.i18n import t as _t  # split-module bodies run under this namespace
 from tui_gateway.transport import (FanoutTransport, StdioTransport, Transport, bind_transport,
                                    current_transport, reset_transport)
 
@@ -552,7 +553,7 @@ def _db_unavailable_error(rid, *, code: int):
     failure = describe_storage_failure(_db_error)
     return _err(
         rid, code,
-        f"Session storage is unavailable: {failure.gloss}. {failure.action}",
+        _t("storage.unavailable_brief", cause=failure.gloss, action=failure.action),
         data={"code": failure.code, "cause": failure.cause, "details": storage_failure_details(_db_error)})
 
 
@@ -932,7 +933,7 @@ def _current_session_steer_authority(session_id: str) -> tuple[Transport | None,
 def _wait_agent(session: dict, rid: str, timeout: float = 30.0) -> dict | None:
     ready = session.get("agent_ready")
     if ready is not None and not ready.wait(timeout=timeout):
-        return _err(rid, 5032, AGENT_STILL_STARTING)
+        return _err(rid, 5032, agent_still_starting())
     return _err(rid, 5032, err) if (err := session.get("agent_error")) else None
 
 
@@ -978,18 +979,16 @@ def _wait_agent_for_prompt(session: dict, rid: str, sid: str) -> dict | None:
             return None
         waited = time.monotonic() - start
         if waited >= cap:
-            return _err(rid, 5032, f"agent initialization timed out after {int(waited)}s — "
-                        "your message was not sent; retry once the session is ready")
+            return _err(rid, 5032, _t("tui_gateway.agent.init_timed_out", seconds=int(waited)))
         build_thread = session.get("_agent_build_thread")
         if build_thread is not None and not build_thread.is_alive() and not ready.is_set():
             # _build's finally guarantees ready.set(); dead thread + unset ready = died hard.
-            return _err(rid, 5032, session.get("agent_error") or "agent initialization failed before completing")
+            return _err(rid, 5032, session.get("agent_error") or _t("tui_gateway.agent.init_failed_before_completing"))
         if not notified_slow and waited >= _AGENT_BUILD_SLOW_NOTICE_AFTER:
             notified_slow = True  # one keyed, replace-in-place notice (toast / status bar)
             _emit("notification.show", sid, {
-                "text": "Still starting the agent (tool discovery / model setup) — your message will be sent as soon as it's ready.",
-                "level": "info", "kind": "agent", "ttl_ms": None,
-                "key": _AGENT_BUILD_SLOW_NOTICE_KEY, "id": _AGENT_BUILD_SLOW_NOTICE_KEY})
+                "text": _t("tui_gateway.agent.still_starting_notice"), "level": "info", "kind": "agent",
+                "ttl_ms": None, "key": _AGENT_BUILD_SLOW_NOTICE_KEY, "id": _AGENT_BUILD_SLOW_NOTICE_KEY})
     if notified_slow:
         _emit("notification.clear", sid, {"key": _AGENT_BUILD_SLOW_NOTICE_KEY})
     return _err(rid, 5032, err) if (err := session.get("agent_error")) else None

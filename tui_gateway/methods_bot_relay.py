@@ -268,7 +268,7 @@ def register(server) -> None:
     from . import methods_groups
     server._LONG_HANDLERS = server._LONG_HANDLERS | methods_groups.LONG_HANDLERS
     for name in (
-        "get_hosted_room_service", "_WORKER_UNAVAILABLE", "_profile_name", "_requested_profile",
+        "get_hosted_room_service", "_profile_name", "_requested_profile",
         "_api_server_key", "_room_link_run_storage_durable"):
         setattr(server, name, getattr(methods_groups, name))
     methods_groups.bind_server(server)

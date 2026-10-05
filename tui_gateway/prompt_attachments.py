@@ -52,12 +52,12 @@ def _decode_attach_payload(
     """``(bytes, None)`` or ``(None, error)``: 4017 on bad/empty base64, 4018 over *max_bytes*."""
     data = _decode_attach_base64(raw_b64, mime_prefix=mime_prefix)
     if data is None:
-        return None, _err(rid, 4017, "data is not valid base64")
+        return None, _err(rid, 4017, _t("tui_gateway.attach.invalid_base64"))
     if not data:
         return None, _err(rid, 4017, empty_msg)
     if len(data) > max_bytes:
         mb = max_bytes // (1024 * 1024)
-        return None, _err(rid, 4018, f"{label} too large ({len(data)} bytes; cap is {mb} MB)")
+        return None, _err(rid, 4018, _t("tui_gateway.attach.too_large", label=label, bytes=len(data), mb=mb))
     return data, None
 
 
@@ -214,7 +214,7 @@ def _stage_session_file_attachment(
             filename = resolved.name
     else:
         if not data_url:
-            raise ValueError("file not found on gateway and no data_url provided")
+            raise ValueError(_t("tui_gateway.attach.file_missing_no_data"))
         # Any media type (unlike the image-specific decoder); bare base64 also accepted.
         import binascii as _binascii
         import re as _re
@@ -222,7 +222,7 @@ def _stage_session_file_attachment(
             payload = _b64_payload(
                 data_url, r"^data:[^;,]*(?:;[^;,=]+=[^;,]+)*;base64,(.*)$", _re.DOTALL | _re.I)
         except (ValueError, _binascii.Error) as exc:
-            raise ValueError("invalid data_url payload") from exc
+            raise ValueError(_t("tui_gateway.attach.invalid_data_url")) from exc
         filename = _sanitize_attachment_name(name or Path(str(raw_path or "")).name)
     root = _session_home_dir(session, "attachments")
     root.mkdir(parents=True, exist_ok=True)

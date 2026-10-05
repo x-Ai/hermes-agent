@@ -13,6 +13,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from agent.i18n import t as _t
 from gateway import hosted_room_discussion as discussion
 from gateway import hosted_room_driver as driver
 from gateway import hosted_room_links
@@ -151,8 +152,7 @@ class HostedRoomService:
         """(gateway_id, epoch) of a room this gateway owns; conflict error otherwise."""
         gateway_id, epoch = _authority(self._room(room_id))
         if gateway_id != hosted_rooms.local_authority_gateway_id():
-            raise hosted_rooms.AuthorityConflictError(
-                "This Group Chat is managed by another gateway.")
+            raise hosted_rooms.AuthorityConflictError(_t("tui_gateway.hosted.managed_by_other_gateway"))
         return gateway_id, epoch
 
     def _turn_lock(self, profile: str) -> contextlib.AbstractContextManager[Path]:
@@ -460,7 +460,7 @@ class HostedRoomService:
             authority_gateway_id=gateway_id, authority_epoch=epoch)
         binding = next((b for b in self.bindings() if b.room_id == room_id), None)
         if binding is None:
-            raise hosted_rooms.RoomNotFoundError("hosted room not found")
+            raise hosted_rooms.RoomNotFoundError(_t("tui_gateway.hosted.not_found"))
         self.prepare_room(binding)
         self.runtime.wakeup()
         return event
@@ -483,7 +483,7 @@ class HostedRoomService:
                 if result["status"] == "stopping":
                     pending += 1
         if require_acknowledged and pending:
-            raise RuntimeError("room work is still stopping; retry deletion after Stop completes")
+            raise RuntimeError(_t("tui_gateway.hosted.still_stopping"))
         self.runtime.wakeup()
         return len(tasks)
 
@@ -511,7 +511,7 @@ class HostedRoomService:
                 int(pending.get("execution_generation") or 0),
             ) == (requested_approval_id, task_id, execution_generation)
         if not requested_approval_id or not matches(action):
-            raise RuntimeError("room approval is no longer pending")
+            raise RuntimeError(_t("tui_gateway.hosted.approval_not_pending"))
         if choice not in {"once", "deny"}:
             raise RuntimeError("room approval choice must be once or deny")
         approve = _hook(client, "approve_receipt")

@@ -4,48 +4,32 @@ One place for the sentences the TUI, Desktop and dashboard print verbatim, so th
 "what happened / what to do" shape stays consistent and the slash commands cited
 (`/model`, `/new`, `/sessions`, `/retry`) exist on EVERY client this gateway serves (TUI,
 Desktop, dashboard) — no client-only forms (`/sessions new`, `/setup`) and no single-surface
-gestures stated as fact (Ctrl+C is copy on Desktop). Lead phrases that clients pattern-match
-on (``Session busy``) are part of the wire contract — keep them.
+gestures stated as fact (Ctrl+C is copy on Desktop). The prose itself lives in the
+``tui_gateway`` section of ``locales/<lang>.yaml`` and is resolved per call, in the profile's
+``display.language``. Lead phrases that clients pattern-match on (``Session busy``) are part of
+the wire contract — keep them English in every catalog.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-# Provider-layer failure codes → (title, hint). Codes are ``agent.error_classifier.FailoverReason``
-# values carried in ``error_surface.code``; anything unlisted falls back on the layer table.
-_TURN_ERROR_CODE_COPY: dict[str, tuple[str, str]] = {
-    "auth": ("The model provider rejected the API key", "Fix the key with /model, then /retry."),
-    "auth_permanent": ("The model provider rejected the API key", "Fix the key with /model, then /retry."),
-    "billing": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "billing_unverified": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "rate_limit": ("The model provider is rate-limiting requests", "Wait a moment, then /retry."),
-    "upstream_rate_limit": ("The model provider is rate-limiting requests", "Wait a moment, then /retry."),
-    "upstream_blocked": ("A firewall/CDN in front of the model provider blocked the request", "Set a User-Agent via the provider's extra_headers, or switch with /model."),
-    "overloaded": ("The model provider is overloaded", "Wait a moment, then /retry."),
-    "server_error": ("The model provider had an internal error", "Wait a moment, then /retry."),
-    "timeout": ("The model provider did not answer in time", "Try /retry; if it keeps happening, switch with /model."),
-    "context_overflow": ("The conversation is too long for this model", "Run /compress, then /retry."),
-    "payload_too_large": ("The request was too large for this model", "Run /compress, then /retry."),
-    "model_not_found": ("The model provider does not know this model", "Pick another model with /model."),
-    "content_policy_blocked": ("The model provider refused this request (content policy)", "Rephrase and send again."),
-    "provider_policy_blocked": ("The model provider refused this request (account policy)", "Switch with /model."),
-    "format_error": ("The model provider rejected the request format", "Try /retry; if it persists, switch with /model."),
-    "ssl_cert_verification": ("The connection to the model provider could not be verified (TLS)",
-                              "Check the endpoint's certificate, then /retry."),
-}
+from agent.i18n import t as _t
 
-_TURN_ERROR_LAYER_COPY: dict[str, tuple[str, str]] = {
-    "auth": ("The model provider rejected the credentials", "Fix them with /model, then /retry."),
-    "billing": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "endpoint": ("Your custom model endpoint did not answer", "Check the endpoint is running, then /retry."),
-    "streaming": ("The connection to the model provider dropped mid-reply", "Send /retry."),
-    "disk": ("The disk is full, so Hermes could not save the turn", "Free some space, then /retry."),
-    "gateway": ("Hermes hit an internal error while running this turn", "Send /retry; type /logs for the trace."),
-    "provider": ("The model provider returned an error", "Send /retry, or switch with /model."),
-}
-
-_TURN_ERROR_DEFAULT = ("The request failed", "Send /retry, or switch with /model.")
+# Provider-layer failure codes are ``agent.error_classifier.FailoverReason`` values carried in
+# ``error_surface.code``. Each code in _CODE_KEYS has its own ``turn_error.code.<code>`` catalog
+# entry; an alias shares the entry of the code it is a variant of; anything unlisted falls back on
+# the ``turn_error.layer.<layer>`` entry, then on ``turn_error.default``.
+_CODE_ALIASES: dict[str, str] = {
+    "auth_permanent": "auth", "billing_unverified": "billing", "upstream_rate_limit": "rate_limit"}
+_CODE_KEYS = frozenset({
+    "auth", "billing", "rate_limit", "upstream_blocked", "overloaded", "server_error", "timeout",
+    "context_overflow", "payload_too_large", "model_not_found", "content_policy_blocked",
+    "provider_policy_blocked", "format_error", "ssl_cert_verification"})
+_LAYER_KEYS = frozenset({"auth", "endpoint", "streaming", "disk", "gateway", "provider"})
+# Entries whose hint opens with "Send /retry": a turn that cannot be retried gets their
+# ``hint_unrecoverable`` sibling, which names /model instead.
+_RETRY_LED_HINTS = frozenset({"default", "layer.streaming", "layer.gateway", "layer.provider"})
 
 _DETAIL_LIMIT = 400
 
@@ -55,19 +39,29 @@ def _identity(surface: dict | None) -> str:
     return f" ({provider})" if provider else ""
 
 
+def _copy_key(surface: dict | None) -> str:
+    """``code.<c>`` / ``layer.<l>`` / ``default`` under ``tui_gateway.turn_error``."""
+    surface = surface if isinstance(surface, dict) else {}
+    code = str(surface.get("code") or "")
+    code = _CODE_ALIASES.get(code, code)
+    if code in _CODE_KEYS:
+        return f"code.{code}"
+    layer = str(surface.get("layer") or "")
+    if layer == "billing":  # same copy as the billing code
+        return "code.billing"
+    return f"layer.{layer}" if layer in _LAYER_KEYS else "default"
+
+
 def turn_error_title(surface: dict | None) -> str:
     """Plain title for a failed turn, picked from ``error_surface`` code then layer."""
-    surface = surface if isinstance(surface, dict) else {}
-    title, _ = _TURN_ERROR_CODE_COPY.get(str(surface.get("code") or "")) \
-        or _TURN_ERROR_LAYER_COPY.get(str(surface.get("layer") or "")) or _TURN_ERROR_DEFAULT
-    return f"{title}{_identity(surface)}"
+    return f"{_t(f'tui_gateway.turn_error.{_copy_key(surface)}.title')}{_identity(surface)}"
 
 
 def turn_error_hint(surface: dict | None, recoverable: bool = True) -> str:
-    surface = surface if isinstance(surface, dict) else {}
-    _, hint = _TURN_ERROR_CODE_COPY.get(str(surface.get("code") or "")) \
-        or _TURN_ERROR_LAYER_COPY.get(str(surface.get("layer") or "")) or _TURN_ERROR_DEFAULT
-    return hint if recoverable else hint.replace("Send /retry", "Pick another model with /model")
+    key = _copy_key(surface)
+    if not recoverable and key in _RETRY_LED_HINTS:
+        return _t(f"tui_gateway.turn_error.{key}.hint_unrecoverable")
+    return _t(f"tui_gateway.turn_error.{key}.hint")
 
 
 def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: bool = True) -> str:
@@ -76,9 +70,9 @@ def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: boo
     detail = " ".join(str(error or "").split())
     if len(detail) > _DETAIL_LIMIT:
         detail = detail[:_DETAIL_LIMIT - 1] + "…"
-    lines = [f"{turn_error_title(surface)}. Your message was not answered."]
+    lines = [_t("tui_gateway.turn_error.not_answered", title=turn_error_title(surface))]
     if detail:
-        lines.append(f"Details: {detail}")
+        lines.append(_t("tui_gateway.turn_error.details", detail=detail))
     lines.append(turn_error_hint(surface, recoverable))
     return "\n".join(lines)
 
@@ -88,14 +82,12 @@ def busy_message(command: str) -> str:
     ``/interrupt`` slash command on any client: Desktop has a Stop button, the terminal TUI uses
     Ctrl+C — name both without assuming which one the reader has. Catalog prose, but the leading
     ``session busy`` stays English in every language: both clients match it to retry or soften."""
-    from agent.i18n import t
-    return t("gateway.busy.streaming_reply", command=command.lstrip("/"))
+    return _t("gateway.busy.streaming_reply", command=command.lstrip("/"))
 
 
 def handoff_busy_message() -> str:
     """4009 refusal for ``handoff.request`` while a reply is streaming — same marker contract."""
-    from agent.i18n import t
-    return t("gateway.busy.handoff_wait")
+    return _t("gateway.busy.handoff_wait")
 
 
 # Prefixes of the TimeoutErrors raised by ``hermes_cli.auth._auth_store_lock`` (profile
@@ -111,27 +103,24 @@ _AUTH_LOCK_TIMEOUT_PREFIXES = (
 
 
 def agent_init_failed_message(exc: Any) -> str:
-    if any(prefix in str(exc) for prefix in _AUTH_LOCK_TIMEOUT_PREFIXES):
-        return (f"Hermes could not start the assistant for this session. Details: {exc}. "
-                "Wait for the other process to release the lock (or exit it — check for a running "
-                "dashboard or background hermes process), then retry.")
-    return (f"Hermes could not start the assistant for this session. Details: {exc}. "
-            "Check the model and provider with /model, or run `hermes setup` in a terminal to reconfigure.")
+    lock = any(prefix in str(exc) for prefix in _AUTH_LOCK_TIMEOUT_PREFIXES)
+    return _t("tui_gateway.agent.init_failed_lock" if lock else "tui_gateway.agent.init_failed", detail=str(exc))
 
 
-AGENT_STILL_STARTING = (
-    "Hermes is still starting this session (loading tools), so this command could not run yet. "
-    "Wait for the status bar to show ready and try again.")
+def agent_still_starting() -> str:
+    """5032 refusal for a command that needs the agent while the deferred build is still running."""
+    return _t("tui_gateway.agent.still_starting")
+
 
 # A deferred build that finished WITHOUT attaching an agent (its session record was replaced or
 # closed while it ran) leaves ``agent_ready`` set and ``agent`` None; this is the recorded cause.
 AGENT_BUILD_ABANDONED = "agent build aborted: the session was closed or replaced before the build finished"
-# Turn refusal when the record still has no agent at admission time (reason unknown).
-AGENT_MISSING_FOR_TURN = (
-    "Hermes could not start the assistant for this session, so your message was not run. "
-    "Reopen the session (or start a new one with /new) and send it again.")
+
+
+def agent_missing_for_turn() -> str:
+    """Turn refusal when the record still has no agent at admission time (reason unknown)."""
+    return _t("tui_gateway.agent.missing_for_turn")
 
 
 def resume_failed_message(exc: Any) -> str:
-    return (f"Could not reopen that session (its transcript could not be read). Details: {exc}. "
-            "Start a new session (/new), or pick another from /sessions.")
+    return _t("tui_gateway.resume.failed", detail=str(exc))

@@ -14,7 +14,6 @@ _profile_scoped = _registry.profile_scoped
 
 
 _STALE_TARGET_MSG = "target user message is no longer in session history"
-_GROUP_PROBE_FAILED_MSG = "Could not verify this group. Try again after the gateway recovers."
 
 
 def _history_user_indices(history: list) -> list:
@@ -295,16 +294,15 @@ def _legacy_group_fence_error(rid, session, params):
                     or str(params.get("profile") or "").strip()
                     or str(_current_profile_name() or "default").strip()))
     except RoomProbeUnavailableError:
-        return _err(rid, 5122, _GROUP_PROBE_FAILED_MSG)
+        return _err(rid, 5122, _t("tui_gateway.hosted.group_probe_failed"))
     except HostedRoomError:
         # Legacy Desktop sessions used the display name after "Group: " — not a room id.
         return None
     except Exception:
-        return _err(rid, 5122, _GROUP_PROBE_FAILED_MSG)
+        return _err(rid, 5122, _t("tui_gateway.hosted.group_probe_failed"))
     if hosted or peer:
-        owner = "its gateway" if hosted else "its home host"
-        return _err(
-            rid, 4122, f"This room is managed by {owner}. Update Hermes Desktop to continue it.")
+        owner = _t("tui_gateway.hosted.owner_gateway" if hosted else "tui_gateway.hosted.owner_home_host")
+        return _err(rid, 4122, _t("tui_gateway.hosted.room_managed_elsewhere", owner=owner))
     return None
 
 
@@ -564,9 +562,7 @@ def _persist_session_row_for_submit(rid, session, text=None, display_kind=None):
         if _ensure_session_db_row(session) is False:
             failure = describe_storage_failure(_db_error)
             error = _err(
-                rid, 5072,
-                f"Session storage is unavailable, so this message was not saved. Cause: {failure.gloss}. "
-                f"{failure.action} Then send your message again.",
+                rid, 5072, _t("storage.unavailable", cause=failure.gloss, action=failure.action),
                 data=_storage_error_data(failure, _db_error))
         else:
             _persist_branch_seed(session)
@@ -580,17 +576,11 @@ def _persist_session_row_for_submit(rid, session, text=None, display_kind=None):
     except Exception as exc:
         failure = describe_storage_failure(exc)
         if failure.code == "disk_full":
-            error = _err(
-                rid, 5070,
-                "Session storage could not be written, so this message was not saved: the disk is full. "
-                "Free some disk space, then send your message again.",
-                data=_storage_error_data(failure, exc))
+            error = _err(rid, 5070, _t("storage.disk_full"), data=_storage_error_data(failure, exc))
         else:
             logger.warning("prompt.submit: session persist failed: %s", exc, exc_info=True)
             error = _err(
-                rid, 5071,
-                f"Session storage could not be written, so this message was not saved. Cause: {failure.gloss}. "
-                f"{failure.action} Then send your message again.",
+                rid, 5071, _t("storage.write_failed", cause=failure.gloss, action=failure.action),
                 data=_storage_error_data(failure, exc))
     # No turn thread will start, so neither resume nor the busy queue may see
     # this rejected prompt as live. Release the slot a turn would normally own.
@@ -628,10 +618,9 @@ def _run_after_agent_ready(
             session["running"] = False
             _clear_inflight_turn(session)
             # Without this emit the turn vanishes silently after {"status": "streaming"}.
-            _emit("error", sid, {"message": (
-                "Turn cancelled before the agent was ready"
-                if session.get("_turn_cancel_requested")
-                else "Session no longer running before the agent was ready")})
+            _emit("error", sid, {"message": _t(
+                "tui_gateway.turn.cancelled_before_ready" if session.get("_turn_cancel_requested")
+                else "tui_gateway.turn.not_running_before_ready")})
             return
     _run_prompt_submit(
         rid, sid, session, text, display_kind=display_kind, display_metadata=display_metadata,
@@ -649,7 +638,7 @@ def _lock_in_submit_turn(
     fields = {}
     with _session_turn_admission(session) as admitted:
         if not admitted:
-            return _err(rid, 5035, "backend is retiring; reconnect to continue"), fields
+            return _err(rid, 5035, _t("tui_gateway.turn.retiring")), fields
         # A watch session's run lives in the PARENT turn (own running flag False); typing
         # mid-run would build a second agent racing the child on the same stored session.
         if session.get("lazy") and _child_run_active(
@@ -756,7 +745,7 @@ def _(rid, params: dict) -> dict:
             if not session.get("running"):
                 break
             if internal_hosted_submit:
-                return _err(rid, 4091, "hosted room member session is busy")
+                return _err(rid, 4091, _t("tui_gateway.hosted.member_busy"))
             busy_transport = t or session.get("transport")
         if has_truncation:
             # A rewind/edit/restore/regenerate must land as a truncation, never as a
@@ -840,7 +829,7 @@ def _(rid, params: dict) -> dict:
     try:
         from hermes_cli.clipboard import has_clipboard_image, save_clipboard_image
     except Exception as e:
-        return _err(rid, 5027, f"clipboard unavailable: {e}")
+        return _err(rid, 5027, _t("tui_gateway.attach.clipboard_unavailable", error=e))
     session["image_counter"] = session.get("image_counter", 0) + 1
     img_dir = _session_images_dir(session)
     img_dir.mkdir(parents=True, exist_ok=True)
@@ -849,9 +838,9 @@ def _(rid, params: dict) -> dict:
     # Save-first (CLI keybinding parity): more robust than a has_image() precheck.
     if not save_clipboard_image(img_path):
         session["image_counter"] = max(0, session["image_counter"] - 1)
-        return _ok(rid, {"attached": False, "message": (
-            "Clipboard has image but extraction failed" if has_clipboard_image()
-            else "No image found in clipboard")})
+        return _ok(rid, {"attached": False, "message": _t(
+            "tui_gateway.attach.clipboard_extract_failed" if has_clipboard_image()
+            else "tui_gateway.attach.clipboard_no_image")})
     session.setdefault("attached_images", []).append(str(img_path))
     return _ok(rid, _attached_image_result(session, img_path))
 
@@ -873,9 +862,9 @@ def _(rid, params: dict) -> dict:
             path_token, remainder = _split_path_input(raw)
             image_path = _resolve_attachment_path(path_token)
             if image_path is None:
-                return _err(rid, 4016, f"image not found: {path_token}")
+                return _err(rid, 4016, _t("tui_gateway.attach.image_not_found", path=path_token))
         if image_path.suffix.lower() not in _IMAGE_EXTENSIONS:
-            return _err(rid, 4016, f"unsupported image: {image_path.name}")
+            return _err(rid, 4016, _t("tui_gateway.attach.unsupported_image", name=image_path.name))
         session.setdefault("attached_images", []).append(str(image_path))
         return _ok(rid, _attached_image_result(
             session, image_path,
@@ -896,7 +885,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 4015, "content_base64 required")
     img_bytes, err = _decode_attach_payload(
         rid, raw_b64, mime_prefix="image/", max_bytes=_ATTACH_BYTES_MAX_BYTES,
-        label="image", empty_msg="image is empty")
+        label=_t("tui_gateway.attach.label_image"), empty_msg=_t("tui_gateway.attach.image_empty"))
     if err is not None:
         return err
     filename = str(params.get("filename", "") or "")
@@ -905,11 +894,11 @@ def _(rid, params: dict) -> dict:
         ext_hint = "." + ext_hint
     ext = _sniff_image_ext(img_bytes, filename or (f"x{ext_hint}" if ext_hint else ""))
     if ext not in _allowed_image_extensions():
-        return _err(rid, 4016, f"unsupported image extension: {ext}")
+        return _err(rid, 4016, _t("tui_gateway.attach.unsupported_image_extension", ext=ext))
     try:
         img_path = _queue_attached_image(session, img_bytes, ext, prefix="upload")
     except Exception as e:
-        return _err(rid, 5027, f"write failed: {e}")
+        return _err(rid, 5027, _t("tui_gateway.attach.write_failed", error=e))
     return _ok(rid, _attached_image_result(
         session, img_path,
         remainder="", text=f"[User attached image: {img_path.name}]", bytes=len(img_bytes)))
@@ -926,7 +915,7 @@ def _(rid, params: dict) -> dict:
     if err:
         return err
     if shutil.which("pdftoppm") is None:
-        return _err(rid, 5028, "pdftoppm not installed (poppler-utils package required)")
+        return _err(rid, 5028, _t("tui_gateway.attach.pdftoppm_missing"))
     raw_path = str(params.get("path", "") or "").strip()
     raw_b64 = str(params.get("content_base64") or params.get("data") or "").strip()
     if not raw_path and not raw_b64:
@@ -950,13 +939,13 @@ def _(rid, params: dict) -> dict:
                 argv, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL,
                 encoding="utf-8", errors="replace", creationflags=windows_hide_flags())
         except subprocess.TimeoutExpired:
-            return _err(rid, 5028, "pdftoppm timed out (>120s)")
+            return _err(rid, 5028, _t("tui_gateway.attach.pdftoppm_timed_out"))
         if res.returncode != 0:
             tail = (res.stderr or res.stdout or "").strip().splitlines()[-3:]
-            return _err(rid, 5028, "pdftoppm failed: " + " | ".join(tail))
+            return _err(rid, 5028, _t("tui_gateway.attach.pdftoppm_failed", detail=" | ".join(tail)))
         rendered = sorted(td_path.glob("page-*.png"))
         if not rendered:
-            return _err(rid, 5028, "pdftoppm produced no pages (corrupt PDF?)")
+            return _err(rid, 5028, _t("tui_gateway.attach.pdftoppm_no_pages"))
         attached_pages = []
         for src in rendered:
             page_num = src.stem.split("-", 1)[-1]
@@ -1232,11 +1221,11 @@ def _pdf_attach_source(rid, params, td_path, raw_path, raw_b64):
     if raw_b64:
         pdf_bytes, err = _decode_attach_payload(
             rid, raw_b64, mime_prefix="application/pdf", max_bytes=_PDF_ATTACH_MAX_BYTES,
-            label="PDF", empty_msg="decoded PDF is empty")
+            label=_t("tui_gateway.attach.label_pdf"), empty_msg=_t("tui_gateway.attach.pdf_empty"))
         if err is not None:
             return None, None, err
         if pdf_bytes[:5] != b"%PDF-":
-            return None, None, _err(rid, 4017, "payload is not a PDF (missing %PDF- magic bytes)")
+            return None, None, _err(rid, 4017, _t("tui_gateway.attach.not_pdf_payload"))
         pdf_path = td_path / "input.pdf"
         pdf_path.write_bytes(pdf_bytes)
         return pdf_path, str(params.get("filename", "") or "uploaded.pdf"), None
@@ -1246,12 +1235,12 @@ def _pdf_attach_source(rid, params, td_path, raw_path, raw_b64):
     except Exception:
         resolved = None
     if resolved is None or not (pdf := Path(resolved)).is_file():
-        return None, None, _err(rid, 4016, f"PDF not found: {raw_path}")
+        return None, None, _err(rid, 4016, _t("tui_gateway.attach.pdf_not_found", path=raw_path))
     if pdf.suffix.lower() != ".pdf":
-        return None, None, _err(rid, 4016, f"not a PDF: {pdf.name}")
+        return None, None, _err(rid, 4016, _t("tui_gateway.attach.not_pdf", name=pdf.name))
     if pdf.stat().st_size > _PDF_ATTACH_MAX_BYTES:
         mb = _PDF_ATTACH_MAX_BYTES // (1024 * 1024)
-        return None, None, _err(rid, 4018, f"PDF too large; cap is {mb} MB")
+        return None, None, _err(rid, 4018, _t("tui_gateway.attach.pdf_too_large", mb=mb))
     return pdf, pdf.name, None
 
 
@@ -1270,7 +1259,7 @@ def _pdf_page_range(rid, params):
         return None, None, _err(rid, 4015, "last_page must be >= first_page")
     if last_page - first_page + 1 > _PDF_ATTACH_MAX_PAGES:
         return None, None, _err(
-            rid, 4019, f"page range exceeds cap of {_PDF_ATTACH_MAX_PAGES} pages per attach call")
+            rid, 4019, _t("tui_gateway.attach.page_range_cap", pages=_PDF_ATTACH_MAX_PAGES))
     return first_page, last_page, None
 
 
@@ -1312,7 +1301,7 @@ def _spawn_side_agent(
             _clear_session_context(session_tokens)
 
     if _start_session_work(run, name=f"side-agent-{task_id}") is None:
-        return _err(rid, 5035, "backend is retiring; reconnect to continue")
+        return _err(rid, 5035, _t("tui_gateway.turn.retiring"))
     return _ok(rid, {"task_id": task_id})
 
 

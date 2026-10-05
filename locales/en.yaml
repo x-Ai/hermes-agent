@@ -4069,3 +4069,170 @@ tips:
     p09: "Explain this error and how to fix it"
     p10: "Set a reminder or schedule a recurring task"
     p11: "Type / to browse commands, or Ctrl+P for the palette"
+
+# tui_gateway: the Desktop / terminal-TUI backend's own user-facing text (refusals, slash output,
+# attachment errors). Keys are resolved by tui_gateway/*.py through agent.i18n.t().
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Your message was not answered."
+    details: "Details: {detail}"
+    default:
+      title: "The request failed"
+      hint: "Send /retry, or switch with /model."
+      hint_unrecoverable: "Pick another model with /model, or switch with /model."
+    code:
+      auth:
+        title: "The model provider rejected the API key"
+        hint: "Fix the key with /model, then /retry."
+      billing:
+        title: "The model provider reports no credit left"
+        hint: "Top up the account or switch with /model."
+      rate_limit:
+        title: "The model provider is rate-limiting requests"
+        hint: "Wait a moment, then /retry."
+      upstream_blocked:
+        title: "A firewall/CDN in front of the model provider blocked the request"
+        hint: "Set a User-Agent via the provider's extra_headers, or switch with /model."
+      overloaded:
+        title: "The model provider is overloaded"
+        hint: "Wait a moment, then /retry."
+      server_error:
+        title: "The model provider had an internal error"
+        hint: "Wait a moment, then /retry."
+      timeout:
+        title: "The model provider did not answer in time"
+        hint: "Try /retry; if it keeps happening, switch with /model."
+      context_overflow:
+        title: "The conversation is too long for this model"
+        hint: "Run /compress, then /retry."
+      payload_too_large:
+        title: "The request was too large for this model"
+        hint: "Run /compress, then /retry."
+      model_not_found:
+        title: "The model provider does not know this model"
+        hint: "Pick another model with /model."
+      content_policy_blocked:
+        title: "The model provider refused this request (content policy)"
+        hint: "Rephrase and send again."
+      provider_policy_blocked:
+        title: "The model provider refused this request (account policy)"
+        hint: "Switch with /model."
+      format_error:
+        title: "The model provider rejected the request format"
+        hint: "Try /retry; if it persists, switch with /model."
+      ssl_cert_verification:
+        title: "The connection to the model provider could not be verified (TLS)"
+        hint: "Check the endpoint's certificate, then /retry."
+    layer:
+      auth:
+        title: "The model provider rejected the credentials"
+        hint: "Fix them with /model, then /retry."
+      endpoint:
+        title: "Your custom model endpoint did not answer"
+        hint: "Check the endpoint is running, then /retry."
+      streaming:
+        title: "The connection to the model provider dropped mid-reply"
+        hint: "Send /retry."
+        hint_unrecoverable: "Pick another model with /model."
+      disk:
+        title: "The disk is full, so Hermes could not save the turn"
+        hint: "Free some space, then /retry."
+      gateway:
+        title: "Hermes hit an internal error while running this turn"
+        hint: "Send /retry; type /logs for the trace."
+        hint_unrecoverable: "Pick another model with /model; type /logs for the trace."
+      provider:
+        title: "The model provider returned an error"
+        hint: "Send /retry, or switch with /model."
+        hint_unrecoverable: "Pick another model with /model, or switch with /model."
+  agent:
+    init_failed_lock: "Hermes could not start the assistant for this session. Details: {detail}. Wait for the other process to release the lock (or exit it — check for a running dashboard or background hermes process), then retry."
+    init_failed: "Hermes could not start the assistant for this session. Details: {detail}. Check the model and provider with /model, or run `hermes setup` in a terminal to reconfigure."
+    still_starting: "Hermes is still starting this session (loading tools), so this command could not run yet. Wait for the status bar to show ready and try again."
+    missing_for_turn: "Hermes could not start the assistant for this session, so your message was not run. Reopen the session (or start a new one with /new) and send it again."
+    init_timed_out: "agent initialization timed out after {seconds}s — your message was not sent; retry once the session is ready"
+    init_failed_before_completing: "agent initialization failed before completing"
+    still_starting_notice: "Still starting the agent (tool discovery / model setup) — your message will be sent as soon as it's ready."
+  resume:
+    failed: "Could not reopen that session (its transcript could not be read). Details: {detail}. Start a new session (/new), or pick another from /sessions."
+    reserve_failed: "Hermes could not safely reserve this session. Try again."
+    resuming_interrupted: "Resuming interrupted turn…"
+  turn:
+    cancelled_before_ready: "Turn cancelled before the agent was ready"
+    not_running_before_ready: "Session no longer running before the agent was ready"
+    retiring: "backend is retiring; reconnect to continue"
+    history_changed: "History changed during this turn — the response above is visible but was not saved to session history."
+    context_injection_refused: "Context injection refused."
+    goal_compression_retry: "Context compression was exhausted. Retrying the active goal once."
+    goal_paused_compression: "Goal paused after context compression was exhausted twice. Run /compress, then /goal resume to continue."
+  hosted:
+    room_managed_elsewhere: "This room is managed by {owner}. Update Hermes Desktop to continue it."
+    owner_gateway: "its gateway"
+    owner_home_host: "its home host"
+    group_probe_failed: "Could not verify this group. Try again after the gateway recovers."
+    member_busy: "hosted room member session is busy"
+    worker_unavailable: "Group Chat worker is unavailable. Restart the Hermes gateway and try again."
+    managed_by_other_gateway: "This Group Chat is managed by another gateway."
+    reply_truncated: "[Reply truncated. Ask the Bot to share the full result as a file.]"
+    turn_deadline_exceeded: "This Group Chat turn exceeded its configured time limit and was stopped."
+    not_found: "hosted room not found"
+    still_stopping: "room work is still stopping; retry deletion after Stop completes"
+    approval_not_pending: "room approval is no longer pending"
+  attach:
+    clipboard_unavailable: "clipboard unavailable: {error}"
+    clipboard_extract_failed: "Clipboard has image but extraction failed"
+    clipboard_no_image: "No image found in clipboard"
+    image_not_found: "image not found: {path}"
+    unsupported_image: "unsupported image: {name}"
+    image_empty: "image is empty"
+    unsupported_image_extension: "unsupported image extension: {ext}"
+    write_failed: "write failed: {error}"
+    pdftoppm_missing: "pdftoppm not installed (poppler-utils package required)"
+    pdftoppm_timed_out: "pdftoppm timed out (>120s)"
+    pdftoppm_failed: "pdftoppm failed: {detail}"
+    pdftoppm_no_pages: "pdftoppm produced no pages (corrupt PDF?)"
+    pdf_empty: "decoded PDF is empty"
+    not_pdf_payload: "payload is not a PDF (missing %PDF- magic bytes)"
+    pdf_not_found: "PDF not found: {path}"
+    not_pdf: "not a PDF: {name}"
+    pdf_too_large: "PDF too large; cap is {mb} MB"
+    page_range_cap: "page range exceeds cap of {pages} pages per attach call"
+    too_large: "{label} too large ({bytes} bytes; cap is {mb} MB)"
+    invalid_base64: "data is not valid base64"
+    file_missing_no_data: "file not found on gateway and no data_url provided"
+    invalid_data_url: "invalid data_url payload"
+    label_image: "image"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure — the cause + remedy every surface prints
+storage:
+  unavailable: "Session storage is unavailable, so this message was not saved. Cause: {cause}. {action} Then send your message again."
+  disk_full: "Session storage could not be written, so this message was not saved: the disk is full. Free some disk space, then send your message again."
+  write_failed: "Session storage could not be written, so this message was not saved. Cause: {cause}. {action} Then send your message again."
+  cause:
+    locked: "the session database is locked by another Hermes process"
+    disk_full: "the disk is full"
+    disk: "the session database file is read-only or not writable"
+    corrupt: "the session database file is damaged"
+    session_row_missing: "this session's database row was deleted while the chat was still open and could not be recreated"
+    fts_index: "the session search index is damaged (the messages themselves are intact)"
+    replaced: "the session database file was replaced while Hermes was running"
+    deleted_wal: "another Hermes process still holds an old copy of the session database's write-ahead log, so Hermes stopped writing to keep the file safe"
+    compression: "another process is compressing this session"
+    compression_closed: "this session was rotated by context compression"
+    turn_lease: "another Hermes process took over this session"
+    unknown: "the session database could not be opened"
+  action:
+    locked: "Wait a moment and try again; if it persists, stop the other Hermes process (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Free some disk space, then try again."
+    disk: "Run `hermes {profile_arg}doctor --fix` to diagnose and repair."
+    corrupt: "Run `hermes {profile_arg}doctor --fix` to diagnose and repair. Recovery: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Try again; if it persists, run `hermes {profile_arg}doctor`."
+    fts_index: "Run `hermes {profile_arg}doctor --fix` (or `hermes {profile_arg}sessions repair`) to rebuild it."
+    replaced: "Stop Hermes (`hermes {profile_arg}gateway stop`), run `hermes {profile_arg}doctor`, then start it again."
+    deleted_wal: "Nothing is lost. Quit every Hermes process on this profile (Desktop app, `hermes {profile_arg}gateway stop`, dashboard, cron), run `hermes {profile_arg}doctor` — it names any process still holding the log — then start Hermes again. Do not run `doctor --fix` or delete any state.db files while they run. Guide: {url}"
+    compression: "Send your message again once compression finishes."
+    compression_closed: "Refresh the client (or start a new turn) and send your message again."
+    turn_lease: "Wait for it to finish, then send your message again."
+    unknown: "Run `hermes {profile_arg}doctor --fix` to diagnose and repair."
+  unavailable_brief: "Session storage is unavailable: {cause}. {action}"

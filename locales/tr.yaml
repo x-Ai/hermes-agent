@@ -3941,3 +3941,169 @@ tips:
     p09: "Bu hatayı ve nasıl düzeltileceğini açıkla"
     p10: "Bir hatırlatıcı kur veya yinelenen bir görev zamanla"
     p11: "Komutlara göz atmak için / yazın, palet için Ctrl+P"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Mesajınız yanıtlanmadı."
+    details: "Ayrıntılar: {detail}"
+    default:
+      title: "İstek başarısız oldu"
+      hint: "/retry gönderin veya /model ile model değiştirin."
+      hint_unrecoverable: "/model ile başka bir model seçin."
+    code:
+      auth:
+        title: "Model sağlayıcısı API anahtarını reddetti"
+        hint: "Anahtarı /model ile düzeltin, sonra /retry."
+      billing:
+        title: "Model sağlayıcısı bakiyenin bittiğini bildiriyor"
+        hint: "Hesaba bakiye yükleyin veya /model ile model değiştirin."
+      rate_limit:
+        title: "Model sağlayıcısı istekleri hız sınırına tabi tutuyor"
+        hint: "Biraz bekleyin, sonra /retry."
+      upstream_blocked:
+        title: "Model sağlayıcısının önündeki bir güvenlik duvarı/CDN isteği engelledi"
+        hint: "Sağlayıcının extra_headers ayarıyla bir User-Agent belirleyin veya /model ile model değiştirin."
+      overloaded:
+        title: "Model sağlayıcısı aşırı yüklü"
+        hint: "Biraz bekleyin, sonra /retry."
+      server_error:
+        title: "Model sağlayıcısında dahili bir hata oluştu"
+        hint: "Biraz bekleyin, sonra /retry."
+      timeout:
+        title: "Model sağlayıcısı zamanında yanıt vermedi"
+        hint: "/retry deneyin; tekrarlarsa /model ile model değiştirin."
+      context_overflow:
+        title: "Konuşma bu model için çok uzun"
+        hint: "/compress çalıştırın, sonra /retry."
+      payload_too_large:
+        title: "İstek bu model için çok büyüktü"
+        hint: "/compress çalıştırın, sonra /retry."
+      model_not_found:
+        title: "Model sağlayıcısı bu modeli tanımıyor"
+        hint: "/model ile başka bir model seçin."
+      content_policy_blocked:
+        title: "Model sağlayıcısı bu isteği reddetti (içerik politikası)"
+        hint: "Yeniden ifade edip tekrar gönderin."
+      provider_policy_blocked:
+        title: "Model sağlayıcısı bu isteği reddetti (hesap politikası)"
+        hint: "/model ile model değiştirin."
+      format_error:
+        title: "Model sağlayıcısı istek biçimini reddetti"
+        hint: "/retry deneyin; sürerse /model ile model değiştirin."
+      ssl_cert_verification:
+        title: "Model sağlayıcısına bağlantı doğrulanamadı (TLS)"
+        hint: "Uç noktanın sertifikasını kontrol edin, sonra /retry."
+    layer:
+      auth:
+        title: "Model sağlayıcısı kimlik bilgilerini reddetti"
+        hint: "Bunları /model ile düzeltin, sonra /retry."
+      endpoint:
+        title: "Özel model uç noktanız yanıt vermedi"
+        hint: "Uç noktanın çalıştığını kontrol edin, sonra /retry."
+      streaming:
+        title: "Model sağlayıcısıyla bağlantı yanıtın ortasında koptu"
+        hint: "/retry gönderin."
+        hint_unrecoverable: "/model ile başka bir model seçin."
+      disk:
+        title: "Disk dolu olduğundan Hermes bu turu kaydedemedi"
+        hint: "Biraz yer açın, sonra /retry."
+      gateway:
+        title: "Hermes bu turu çalıştırırken dahili bir hatayla karşılaştı"
+        hint: "/retry gönderin; iz için /logs yazın."
+        hint_unrecoverable: "/model ile başka bir model seçin; iz için /logs yazın."
+      provider:
+        title: "Model sağlayıcısı bir hata döndürdü"
+        hint: "/retry gönderin veya /model ile model değiştirin."
+        hint_unrecoverable: "/model ile başka bir model seçin."
+  agent:
+    init_failed_lock: "Hermes bu oturum için asistanı başlatamadı. Ayrıntılar: {detail}. Diğer sürecin kilidi bırakmasını bekleyin (veya onu kapatın — çalışan bir pano ya da arka plandaki hermes süreci olup olmadığını kontrol edin), sonra yeniden deneyin."
+    init_failed: "Hermes bu oturum için asistanı başlatamadı. Ayrıntılar: {detail}. Modeli ve sağlayıcıyı /model ile kontrol edin ya da yeniden yapılandırmak için bir terminalde `hermes setup` çalıştırın."
+    still_starting: "Hermes bu oturumu hâlâ başlatıyor (araçlar yükleniyor), bu yüzden komut henüz çalıştırılamadı. Durum çubuğunda hazır görünene kadar bekleyip yeniden deneyin."
+    missing_for_turn: "Hermes bu oturum için asistanı başlatamadığından mesajınız çalıştırılmadı. Oturumu yeniden açın (veya /new ile yeni bir tane başlatın) ve tekrar gönderin."
+    init_timed_out: "ajan başlatma {seconds} sn sonra zaman aşımına uğradı — mesajınız gönderilmedi; oturum hazır olunca yeniden deneyin"
+    init_failed_before_completing: "ajan başlatma tamamlanmadan başarısız oldu"
+    still_starting_notice: "Ajan hâlâ başlatılıyor (araç keşfi / model kurulumu) — mesajınız hazır olur olmaz gönderilecek."
+  resume:
+    failed: "Bu oturum yeniden açılamadı (dökümü okunamadı). Ayrıntılar: {detail}. Yeni bir oturum başlatın (/new) veya /sessions içinden başka birini seçin."
+    reserve_failed: "Hermes bu oturumu güvenli biçimde ayıramadı. Yeniden deneyin."
+    resuming_interrupted: "Kesilen tur sürdürülüyor…"
+  turn:
+    cancelled_before_ready: "Ajan hazır olmadan tur iptal edildi"
+    not_running_before_ready: "Ajan hazır olmadan oturum çalışmayı bıraktı"
+    retiring: "arka uç emekliye ayrılıyor; devam etmek için yeniden bağlanın"
+    history_changed: "Bu tur sırasında geçmiş değişti — yukarıdaki yanıt görünür ancak oturum geçmişine kaydedilmedi."
+    context_injection_refused: "Bağlam enjeksiyonu reddedildi."
+    goal_compression_retry: "Bağlam sıkıştırması tükendi. Etkin hedef bir kez yeniden deneniyor."
+    goal_paused_compression: "Bağlam sıkıştırması iki kez tükendiği için hedef duraklatıldı. Devam etmek için /compress, sonra /goal resume çalıştırın."
+  hosted:
+    room_managed_elsewhere: "Bu odayı {owner} yönetiyor. Devam etmek için Hermes Desktop'ı güncelleyin."
+    owner_gateway: "kendi ağ geçidi"
+    owner_home_host: "kendi ana sunucusu"
+    group_probe_failed: "Bu grup doğrulanamadı. Ağ geçidi toparlandıktan sonra yeniden deneyin."
+    member_busy: "barındırılan odanın üye oturumu meşgul"
+    worker_unavailable: "Grup Sohbeti çalışanı kullanılamıyor. Hermes ağ geçidini yeniden başlatıp yeniden deneyin."
+    managed_by_other_gateway: "Bu Grup Sohbeti başka bir ağ geçidi tarafından yönetiliyor."
+    reply_truncated: "[Yanıt kısaltıldı. Tam sonucu dosya olarak paylaşmasını Bot'tan isteyin.]"
+    turn_deadline_exceeded: "Bu Grup Sohbeti turu yapılandırılmış süre sınırını aştı ve durduruldu."
+    not_found: "barındırılan oda bulunamadı"
+    still_stopping: "oda işi hâlâ durduruluyor; Durdur tamamlandıktan sonra silmeyi yeniden deneyin"
+    approval_not_pending: "oda onayı artık beklemede değil"
+  attach:
+    clipboard_unavailable: "pano kullanılamıyor: {error}"
+    clipboard_extract_failed: "Panoda görüntü var ancak çıkarma başarısız oldu"
+    clipboard_no_image: "Panoda görüntü bulunamadı"
+    image_not_found: "görüntü bulunamadı: {path}"
+    unsupported_image: "desteklenmeyen görüntü: {name}"
+    image_empty: "görüntü boş"
+    unsupported_image_extension: "desteklenmeyen görüntü uzantısı: {ext}"
+    write_failed: "yazma başarısız: {error}"
+    pdftoppm_missing: "pdftoppm kurulu değil (poppler-utils paketi gerekli)"
+    pdftoppm_timed_out: "pdftoppm zaman aşımına uğradı (>120 sn)"
+    pdftoppm_failed: "pdftoppm başarısız: {detail}"
+    pdftoppm_no_pages: "pdftoppm hiç sayfa üretmedi (PDF bozuk mu?)"
+    pdf_empty: "çözülen PDF boş"
+    not_pdf_payload: "yük bir PDF değil (%PDF- sihirli baytları yok)"
+    pdf_not_found: "PDF bulunamadı: {path}"
+    not_pdf: "PDF değil: {name}"
+    pdf_too_large: "PDF çok büyük; sınır {mb} MB"
+    page_range_cap: "sayfa aralığı, ekleme çağrısı başına {pages} sayfa sınırını aşıyor"
+    too_large: "{label} çok büyük ({bytes} bayt; sınır {mb} MB)"
+    invalid_base64: "veri geçerli base64 değil"
+    file_missing_no_data: "dosya ağ geçidinde bulunamadı ve data_url verilmedi"
+    invalid_data_url: "geçersiz data_url yükü"
+    label_image: "görüntü"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "Oturum depolaması kullanılamadığından bu mesaj kaydedilmedi. Neden: {cause}. {action} Sonra mesajınızı yeniden gönderin."
+  disk_full: "Oturum depolamasına yazılamadığından bu mesaj kaydedilmedi: disk dolu. Biraz disk alanı açın, sonra mesajınızı yeniden gönderin."
+  write_failed: "Oturum depolamasına yazılamadığından bu mesaj kaydedilmedi. Neden: {cause}. {action} Sonra mesajınızı yeniden gönderin."
+  cause:
+    locked: "oturum veritabanı başka bir Hermes süreci tarafından kilitlenmiş"
+    disk_full: "disk dolu"
+    disk: "oturum veritabanı dosyası salt okunur veya yazılabilir değil"
+    corrupt: "oturum veritabanı dosyası hasarlı"
+    session_row_missing: "bu oturumun veritabanı satırı sohbet hâlâ açıkken silindi ve yeniden oluşturulamadı"
+    fts_index: "oturum arama dizini hasarlı (mesajların kendisi sağlam)"
+    replaced: "oturum veritabanı dosyası Hermes çalışırken değiştirildi"
+    deleted_wal: "başka bir Hermes süreci oturum veritabanının önden yazma günlüğünün eski bir kopyasını hâlâ tutuyor, bu yüzden Hermes dosyayı korumak için yazmayı durdurdu"
+    compression: "başka bir süreç bu oturumu sıkıştırıyor"
+    compression_closed: "bu oturum bağlam sıkıştırmasıyla döndürüldü"
+    turn_lease: "başka bir Hermes süreci bu oturumu devraldı"
+    unknown: "oturum veritabanı açılamadı"
+  action:
+    locked: "Biraz bekleyip yeniden deneyin; sürerse diğer Hermes sürecini durdurun (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Biraz disk alanı açın, sonra yeniden deneyin."
+    disk: "Tanılamak ve onarmak için `hermes {profile_arg}doctor --fix` çalıştırın."
+    corrupt: "Tanılamak ve onarmak için `hermes {profile_arg}doctor --fix` çalıştırın. Kurtarma: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Yeniden deneyin; sürerse `hermes {profile_arg}doctor` çalıştırın."
+    fts_index: "Yeniden oluşturmak için `hermes {profile_arg}doctor --fix` (veya `hermes {profile_arg}sessions repair`) çalıştırın."
+    replaced: "Hermes'i durdurun (`hermes {profile_arg}gateway stop`), `hermes {profile_arg}doctor` çalıştırın, sonra yeniden başlatın."
+    deleted_wal: "Hiçbir şey kaybolmadı. Bu profildeki her Hermes sürecinden çıkın (Masaüstü uygulaması, `hermes {profile_arg}gateway stop`, pano, cron), `hermes {profile_arg}doctor` çalıştırın — günlüğü hâlâ tutan süreci adlandırır — sonra Hermes'i yeniden başlatın. Onlar çalışırken `doctor --fix` çalıştırmayın ve state.db dosyalarını silmeyin. Kılavuz: {url}"
+    compression: "Sıkıştırma bitince mesajınızı yeniden gönderin."
+    compression_closed: "İstemciyi yenileyin (veya yeni bir tur başlatın) ve mesajınızı yeniden gönderin."
+    turn_lease: "Bitmesini bekleyin, sonra mesajınızı yeniden gönderin."
+    unknown: "Tanılamak ve onarmak için `hermes {profile_arg}doctor --fix` çalıştırın."
+  unavailable_brief: "Oturum depolaması kullanılamıyor: {cause}. {action}"

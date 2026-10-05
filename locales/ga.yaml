@@ -3942,3 +3942,169 @@ tips:
     p09: "Mínigh an earráid seo agus conas í a réiteach"
     p10: "Socraigh meabhrúchán nó sceidealaigh tasc athfhillteach"
     p11: "Clóscríobh / chun orduithe a bhrabhsáil, nó Ctrl+P don phailéad"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}. Níor freagraíodh do theachtaireacht."
+    details: "Sonraí: {detail}"
+    default:
+      title: "Theip ar an iarratas"
+      hint: "Seol /retry, nó athraigh le /model."
+      hint_unrecoverable: "Roghnaigh samhail eile le /model."
+    code:
+      auth:
+        title: "Dhiúltaigh soláthraí na samhla don eochair API"
+        hint: "Ceartaigh an eochair le /model, ansin /retry."
+      billing:
+        title: "Tuairiscíonn soláthraí na samhla nach bhfuil aon chreidmheas fágtha"
+        hint: "Breisigh an cuntas nó athraigh le /model."
+      rate_limit:
+        title: "Tá soláthraí na samhla ag teorannú ráta na n-iarratas"
+        hint: "Fan nóiméad, ansin /retry."
+      upstream_blocked:
+        title: "Chuir balla dóiteáin/CDN os comhair sholáthraí na samhla cosc ar an iarratas"
+        hint: "Socraigh User-Agent trí extra_headers an tsoláthraí, nó athraigh le /model."
+      overloaded:
+        title: "Tá soláthraí na samhla ró-ualaithe"
+        hint: "Fan nóiméad, ansin /retry."
+      server_error:
+        title: "Tharla earráid inmheánach ag soláthraí na samhla"
+        hint: "Fan nóiméad, ansin /retry."
+      timeout:
+        title: "Níor fhreagair soláthraí na samhla in am"
+        hint: "Bain triail as /retry; má leanann sé ar aghaidh, athraigh le /model."
+      context_overflow:
+        title: "Tá an comhrá rófhada don tsamhail seo"
+        hint: "Rith /compress, ansin /retry."
+      payload_too_large:
+        title: "Bhí an t-iarratas rómhór don tsamhail seo"
+        hint: "Rith /compress, ansin /retry."
+      model_not_found:
+        title: "Níl aithne ag soláthraí na samhla ar an tsamhail seo"
+        hint: "Roghnaigh samhail eile le /model."
+      content_policy_blocked:
+        title: "Dhiúltaigh soláthraí na samhla don iarratas seo (polasaí ábhair)"
+        hint: "Athfhoclaigh é agus seol arís."
+      provider_policy_blocked:
+        title: "Dhiúltaigh soláthraí na samhla don iarratas seo (polasaí cuntais)"
+        hint: "Athraigh le /model."
+      format_error:
+        title: "Dhiúltaigh soláthraí na samhla d'fhormáid an iarratais"
+        hint: "Bain triail as /retry; má mhaireann sé, athraigh le /model."
+      ssl_cert_verification:
+        title: "Níorbh fhéidir an nasc le soláthraí na samhla a fhíorú (TLS)"
+        hint: "Seiceáil teastas an chríochphointe, ansin /retry."
+    layer:
+      auth:
+        title: "Dhiúltaigh soláthraí na samhla do na dintiúir"
+        hint: "Ceartaigh iad le /model, ansin /retry."
+      endpoint:
+        title: "Níor fhreagair do chríochphointe samhla saincheaptha"
+        hint: "Seiceáil go bhfuil an críochphointe ag rith, ansin /retry."
+      streaming:
+        title: "Thit an nasc le soláthraí na samhla i lár an fhreagra"
+        hint: "Seol /retry."
+        hint_unrecoverable: "Roghnaigh samhail eile le /model."
+      disk:
+        title: "Tá an diosca lán, mar sin níorbh fhéidir le Hermes an babhta a shábháil"
+        hint: "Saor spás, ansin /retry."
+      gateway:
+        title: "Tháinig Hermes ar earráid inmheánach agus an babhta seo á rith"
+        hint: "Seol /retry; clóscríobh /logs don rian."
+        hint_unrecoverable: "Roghnaigh samhail eile le /model; clóscríobh /logs don rian."
+      provider:
+        title: "D'fhill soláthraí na samhla earráid"
+        hint: "Seol /retry, nó athraigh le /model."
+        hint_unrecoverable: "Roghnaigh samhail eile le /model."
+  agent:
+    init_failed_lock: "Níorbh fhéidir le Hermes an cúntóir a thosú don seisiún seo. Sonraí: {detail}. Fan go scaoilfidh an próiseas eile an glas (nó scoir é — seiceáil an bhfuil deais nó próiseas hermes cúlra ag rith), ansin bain triail eile as."
+    init_failed: "Níorbh fhéidir le Hermes an cúntóir a thosú don seisiún seo. Sonraí: {detail}. Seiceáil an tsamhail agus an soláthraí le /model, nó rith `hermes setup` i dteirminéal chun athchumrú."
+    still_starting: "Tá Hermes fós ag tosú an tseisiúin seo (uirlisí á lódáil), mar sin níorbh fhéidir an t-ordú seo a rith go fóill. Fan go dtaispeánfaidh an barra stádais go bhfuil sé réidh agus bain triail eile as."
+    missing_for_turn: "Níorbh fhéidir le Hermes an cúntóir a thosú don seisiún seo, mar sin níor ritheadh do theachtaireacht. Athoscail an seisiún (nó tosaigh ceann nua le /new) agus seol arís í."
+    init_timed_out: "chuaigh túsú an ghníomhaire thar am tar éis {seconds}s — níor seoladh do theachtaireacht; bain triail eile as nuair a bheidh an seisiún réidh"
+    init_failed_before_completing: "theip ar thúsú an ghníomhaire sular críochnaíodh é"
+    still_starting_notice: "Tá an gníomhaire fós ag tosú (fionnachtain uirlisí / socrú samhla) — seolfar do theachtaireacht chomh luath agus a bheidh sé réidh."
+  resume:
+    failed: "Níorbh fhéidir an seisiún sin a athoscailt (níorbh fhéidir a thras-scríbhinn a léamh). Sonraí: {detail}. Tosaigh seisiún nua (/new), nó roghnaigh ceann eile ó /sessions."
+    reserve_failed: "Níorbh fhéidir le Hermes an seisiún seo a chur in áirithe go sábháilte. Bain triail eile as."
+    resuming_interrupted: "Babhta briste á atosú…"
+  turn:
+    cancelled_before_ready: "Cealaíodh an babhta sular bhí an gníomhaire réidh"
+    not_running_before_ready: "Ní raibh an seisiún ag rith a thuilleadh sular bhí an gníomhaire réidh"
+    retiring: "tá an t-inneall cúil ag éirí as; athnasc chun leanúint ar aghaidh"
+    history_changed: "D'athraigh an stair le linn an bhabhta seo — tá an freagra thuas infheicthe ach níor sábháladh é i stair an tseisiúin."
+    context_injection_refused: "Diúltaíodh d'instealladh comhthéacs."
+    goal_compression_retry: "Tá comhbhrú comhthéacs ídithe. Baintear triail eile as an sprioc ghníomhach uair amháin."
+    goal_paused_compression: "Cuireadh an sprioc ar sos tar éis do chomhbhrú comhthéacs a bheith ídithe faoi dhó. Rith /compress, ansin /goal resume chun leanúint ar aghaidh."
+  hosted:
+    room_managed_elsewhere: "Tá an seomra seo á bhainistiú ag {owner}. Nuashonraigh Hermes Desktop chun leanúint leis."
+    owner_gateway: "a gheata"
+    owner_home_host: "a óstach baile"
+    group_probe_failed: "Níorbh fhéidir an grúpa seo a fhíorú. Bain triail eile as tar éis don gheata teacht chuige féin."
+    member_busy: "tá seisiún bhall an tseomra óstáilte gnóthach"
+    worker_unavailable: "Níl oibrí an Chomhrá Grúpa ar fáil. Atosaigh geata Hermes agus bain triail eile as."
+    managed_by_other_gateway: "Tá an Comhrá Grúpa seo á bhainistiú ag geata eile."
+    reply_truncated: "[Freagra teasctha. Iarr ar an mBota an toradh iomlán a roinnt mar chomhad.]"
+    turn_deadline_exceeded: "Sháraigh an babhta Comhrá Grúpa seo a theorainn ama chumraithe agus stopadh é."
+    not_found: "seomra óstáilte gan aimsiú"
+    still_stopping: "tá obair an tseomra fós ag stopadh; bain triail eile as an scriosadh tar éis do Stop a bheith críochnaithe"
+    approval_not_pending: "níl ceadú an tseomra ar feitheamh a thuilleadh"
+  attach:
+    clipboard_unavailable: "níl an ghearrthaisce ar fáil: {error}"
+    clipboard_extract_failed: "Tá íomhá sa ghearrthaisce ach theip ar an mbaint amach"
+    clipboard_no_image: "Níor aimsíodh aon íomhá sa ghearrthaisce"
+    image_not_found: "íomhá gan aimsiú: {path}"
+    unsupported_image: "íomhá gan tacaíocht: {name}"
+    image_empty: "tá an íomhá folamh"
+    unsupported_image_extension: "iarmhír íomhá gan tacaíocht: {ext}"
+    write_failed: "theip ar an scríobh: {error}"
+    pdftoppm_missing: "níl pdftoppm suiteáilte (tá an pacáiste poppler-utils ag teastáil)"
+    pdftoppm_timed_out: "chuaigh pdftoppm thar am (>120s)"
+    pdftoppm_failed: "theip ar pdftoppm: {detail}"
+    pdftoppm_no_pages: "níor tháirg pdftoppm aon leathanach (PDF truaillithe?)"
+    pdf_empty: "tá an PDF díchódaithe folamh"
+    not_pdf_payload: "ní PDF é an pálasta (bearta draíochta %PDF- ar iarraidh)"
+    pdf_not_found: "PDF gan aimsiú: {path}"
+    not_pdf: "ní PDF é: {name}"
+    pdf_too_large: "PDF rómhór; is é {mb} MB an teorainn"
+    page_range_cap: "sáraíonn an raon leathanach an teorainn de {pages} leathanach in aghaidh an ghlao ceangail"
+    too_large: "{label} rómhór ({bytes} beart; is é {mb} MB an teorainn)"
+    invalid_base64: "ní base64 bailí iad na sonraí"
+    file_missing_no_data: "comhad gan aimsiú ar an ngeata agus níor soláthraíodh data_url"
+    invalid_data_url: "pálasta data_url neamhbhailí"
+    label_image: "íomhá"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "Níl stóráil seisiúin ar fáil, mar sin níor sábháladh an teachtaireacht seo. Cúis: {cause}. {action} Ansin seol do theachtaireacht arís."
+  disk_full: "Níorbh fhéidir scríobh chuig stóráil seisiúin, mar sin níor sábháladh an teachtaireacht seo: tá an diosca lán. Saor spás diosca, ansin seol do theachtaireacht arís."
+  write_failed: "Níorbh fhéidir scríobh chuig stóráil seisiúin, mar sin níor sábháladh an teachtaireacht seo. Cúis: {cause}. {action} Ansin seol do theachtaireacht arís."
+  cause:
+    locked: "tá bunachar sonraí an tseisiúin faoi ghlas ag próiseas Hermes eile"
+    disk_full: "tá an diosca lán"
+    disk: "tá comhad bhunachar sonraí an tseisiúin inléite amháin nó ní féidir scríobh air"
+    corrupt: "tá comhad bhunachar sonraí an tseisiúin damáistithe"
+    session_row_missing: "scriosadh ró bhunachar sonraí an tseisiúin seo agus an comhrá fós ar oscailt agus níorbh fhéidir é a athchruthú"
+    fts_index: "tá innéacs cuardaigh an tseisiúin damáistithe (tá na teachtaireachtaí féin slán)"
+    replaced: "cuireadh comhad eile in ionad chomhad bhunachar sonraí an tseisiúin agus Hermes ag rith"
+    deleted_wal: "tá seanchóip de loga réamhscríofa bhunachar sonraí an tseisiúin fós ag próiseas Hermes eile, mar sin stop Hermes de bheith ag scríobh chun an comhad a choinneáil slán"
+    compression: "tá próiseas eile ag comhbhrú an tseisiúin seo"
+    compression_closed: "rothlaíodh an seisiún seo le comhbhrú comhthéacs"
+    turn_lease: "ghlac próiseas Hermes eile an seisiún seo ar láimh"
+    unknown: "níorbh fhéidir bunachar sonraí an tseisiúin a oscailt"
+  action:
+    locked: "Fan nóiméad agus bain triail eile as; má mhaireann sé, stop an próiseas Hermes eile (`hermes {profile_arg}gateway stop`)."
+    disk_full: "Saor spás diosca, ansin bain triail eile as."
+    disk: "Rith `hermes {profile_arg}doctor --fix` chun diagnóisiú agus deisiú."
+    corrupt: "Rith `hermes {profile_arg}doctor --fix` chun diagnóisiú agus deisiú. Athshlánú: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`."
+    session_row_missing: "Bain triail eile as; má mhaireann sé, rith `hermes {profile_arg}doctor`."
+    fts_index: "Rith `hermes {profile_arg}doctor --fix` (nó `hermes {profile_arg}sessions repair`) chun é a atógáil."
+    replaced: "Stop Hermes (`hermes {profile_arg}gateway stop`), rith `hermes {profile_arg}doctor`, ansin tosaigh arís é."
+    deleted_wal: "Níl aon rud caillte. Scoir gach próiseas Hermes ar an bpróifíl seo (aip Desktop, `hermes {profile_arg}gateway stop`, deais, cron), rith `hermes {profile_arg}doctor` — ainmníonn sé aon phróiseas a bhfuil an loga fós aige — ansin tosaigh Hermes arís. Ná rith `doctor --fix` agus ná scrios aon chomhaid state.db agus iad ag rith. Treoir: {url}"
+    compression: "Seol do theachtaireacht arís nuair a bheidh an comhbhrú críochnaithe."
+    compression_closed: "Athnuaigh an cliant (nó tosaigh babhta nua) agus seol do theachtaireacht arís."
+    turn_lease: "Fan go gcríochnóidh sé, ansin seol do theachtaireacht arís."
+    unknown: "Rith `hermes {profile_arg}doctor --fix` chun diagnóisiú agus deisiú."
+  unavailable_brief: "Níl stóráil seisiúin ar fáil: {cause}. {action}"

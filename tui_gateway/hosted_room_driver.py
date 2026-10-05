@@ -18,6 +18,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, ContextManager, Protocol, cast
 
+from agent.i18n import t as _t
 from gateway import hosted_room_driver as state
 
 _CANCEL_ROUTE_RETRIES = 8
@@ -25,8 +26,6 @@ _STOP_ACK_STATUSES = {"cancelled", "interrupted"}
 
 ROOM_SESSION_SOURCE = "bot_room"
 MAX_TERMINAL_TEXT_BYTES = 64 * 1024
-_TERMINAL_TRUNCATION_NOTICE = (
-    "\n\n[Reply truncated. Ask the Bot to share the full result as a file.]")
 _STOP_PENDING = "stop retry remains pending: {exc}"
 
 
@@ -713,7 +712,7 @@ class HostedRoomRuntime:
             state.settle_stopping_task, binding, task, lease,
             settlement_id=f"deadline:{int(task['execution_generation'])}", status="failed",
             result={
-                "error": "This Group Chat turn exceeded its configured time limit and was stopped.",
+                "error": _t("tui_gateway.hosted.turn_deadline_exceeded"),
                 "reason_code": "turn_deadline_exceeded",
                 "timeout_seconds": self.turn_timeout_seconds})
 
@@ -923,13 +922,14 @@ def _truncate_utf8(value: Any, *, max_bytes: int) -> tuple[str, bool]:
     text, encoded = str(value or ""), str(value or "").encode("utf-8")
     if len(encoded) <= max_bytes:
         return text, False
-    prefix = encoded[: max(0, max_bytes - len(_TERMINAL_TRUNCATION_NOTICE.encode("utf-8")))]
+    notice = "\n\n" + _t("tui_gateway.hosted.reply_truncated")
+    prefix = encoded[: max(0, max_bytes - len(notice.encode("utf-8")))]
     while prefix:
         try:
-            return prefix.decode("utf-8") + _TERMINAL_TRUNCATION_NOTICE, True
+            return prefix.decode("utf-8") + notice, True
         except UnicodeDecodeError:
             prefix = prefix[:-1]
-    return _TERMINAL_TRUNCATION_NOTICE.strip(), True
+    return notice.strip(), True
 
 
 def _bounded_terminal_result(receipt: Mapping[str, Any]) -> dict[str, Any]:

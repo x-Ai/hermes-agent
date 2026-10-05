@@ -3940,3 +3940,169 @@ tips:
     p09: "このエラーの意味と修正方法を説明して"
     p10: "リマインダーを設定するか、定期タスクをスケジュールして"
     p11: "/ でコマンドを参照、Ctrl+P でパレットを開けます"
+
+# tui_gateway: Desktop / terminal-TUI backend user-facing text
+tui_gateway:
+  turn_error:
+    not_answered: "{title}。メッセージには回答されませんでした"
+    details: "詳細: {detail}"
+    default:
+      title: "リクエストが失敗しました"
+      hint: "/retry を送るか、/model で切り替えてください"
+      hint_unrecoverable: "/model で別のモデルを選んでください"
+    code:
+      auth:
+        title: "モデルプロバイダーが API キーを拒否しました"
+        hint: "/model でキーを修正してから /retry してください"
+      billing:
+        title: "モデルプロバイダーの残高が尽きています"
+        hint: "アカウントにチャージするか、/model で切り替えてください"
+      rate_limit:
+        title: "モデルプロバイダーがリクエストをレート制限しています"
+        hint: "少し待ってから /retry してください"
+      upstream_blocked:
+        title: "モデルプロバイダーの前段のファイアウォール/CDN がリクエストをブロックしました"
+        hint: "プロバイダーの extra_headers で User-Agent を設定するか、/model で切り替えてください"
+      overloaded:
+        title: "モデルプロバイダーが過負荷です"
+        hint: "少し待ってから /retry してください"
+      server_error:
+        title: "モデルプロバイダーで内部エラーが発生しました"
+        hint: "少し待ってから /retry してください"
+      timeout:
+        title: "モデルプロバイダーが時間内に応答しませんでした"
+        hint: "/retry を試し、繰り返す場合は /model で切り替えてください"
+      context_overflow:
+        title: "会話がこのモデルには長すぎます"
+        hint: "/compress を実行してから /retry してください"
+      payload_too_large:
+        title: "リクエストがこのモデルには大きすぎます"
+        hint: "/compress を実行してから /retry してください"
+      model_not_found:
+        title: "モデルプロバイダーがこのモデルを認識しません"
+        hint: "/model で別のモデルを選んでください"
+      content_policy_blocked:
+        title: "モデルプロバイダーがこのリクエストを拒否しました（コンテンツポリシー）"
+        hint: "言い換えてもう一度送ってください"
+      provider_policy_blocked:
+        title: "モデルプロバイダーがこのリクエストを拒否しました（アカウントポリシー）"
+        hint: "/model で切り替えてください"
+      format_error:
+        title: "モデルプロバイダーがリクエスト形式を拒否しました"
+        hint: "/retry を試し、続く場合は /model で切り替えてください"
+      ssl_cert_verification:
+        title: "モデルプロバイダーへの接続を検証できませんでした（TLS）"
+        hint: "エンドポイントの証明書を確認してから /retry してください"
+    layer:
+      auth:
+        title: "モデルプロバイダーが認証情報を拒否しました"
+        hint: "/model で修正してから /retry してください"
+      endpoint:
+        title: "カスタムモデルエンドポイントが応答しませんでした"
+        hint: "エンドポイントが起動しているか確認してから /retry してください"
+      streaming:
+        title: "モデルプロバイダーとの接続が返信の途中で切れました"
+        hint: "/retry を送ってください"
+        hint_unrecoverable: "/model で別のモデルを選んでください"
+      disk:
+        title: "ディスクが満杯のため、Hermes はこのターンを保存できませんでした"
+        hint: "空き容量を確保してから /retry してください"
+      gateway:
+        title: "このターンの実行中に Hermes で内部エラーが発生しました"
+        hint: "/retry を送ってください。トレースは /logs で確認できます"
+        hint_unrecoverable: "/model で別のモデルを選んでください。トレースは /logs で確認できます"
+      provider:
+        title: "モデルプロバイダーがエラーを返しました"
+        hint: "/retry を送るか、/model で切り替えてください"
+        hint_unrecoverable: "/model で別のモデルを選んでください"
+  agent:
+    init_failed_lock: "Hermes はこのセッションのアシスタントを起動できませんでした。詳細: {detail}。もう一方のプロセスがロックを解放するのを待つか、そのプロセスを終了（実行中のダッシュボードやバックグラウンドの hermes プロセスを確認）してから、再試行してください"
+    init_failed: "Hermes はこのセッションのアシスタントを起動できませんでした。詳細: {detail}。/model でモデルとプロバイダーを確認するか、ターミナルで `hermes setup` を実行して再設定してください"
+    still_starting: "Hermes はまだこのセッションを起動中（ツールを読み込み中）のため、このコマンドはまだ実行できませんでした。ステータスバーが準備完了になるのを待ってから、もう一度お試しください"
+    missing_for_turn: "Hermes はこのセッションのアシスタントを起動できなかったため、メッセージは実行されませんでした。セッションを開き直す（または /new で新規作成する）か、もう一度送信してください"
+    init_timed_out: "エージェントの初期化が {seconds} 秒後にタイムアウトしました — メッセージは送信されていません。セッションの準備ができてから再試行してください"
+    init_failed_before_completing: "エージェントの初期化が完了前に失敗しました"
+    still_starting_notice: "エージェントをまだ起動中です（ツールの検出 / モデルの設定） — 準備ができ次第メッセージを送信します"
+  resume:
+    failed: "そのセッションを開き直せませんでした（トランスクリプトを読み取れません）。詳細: {detail}。新しいセッションを開始（/new）するか、/sessions から別のセッションを選んでください"
+    reserve_failed: "Hermes はこのセッションを安全に確保できませんでした。もう一度お試しください"
+    resuming_interrupted: "中断されたターンを再開しています…"
+  turn:
+    cancelled_before_ready: "エージェントの準備が整う前にターンがキャンセルされました"
+    not_running_before_ready: "エージェントの準備が整う前にセッションの実行が終了しました"
+    retiring: "バックエンドは退役中です。再接続して続行してください"
+    history_changed: "このターンの途中で履歴が変更されました — 上の返信は表示されていますが、セッション履歴には保存されていません"
+    context_injection_refused: "コンテキストの注入が拒否されました"
+    goal_compression_retry: "コンテキスト圧縮を使い切りました。アクティブなゴールを一度だけ再試行します"
+    goal_paused_compression: "コンテキスト圧縮を 2 回続けて使い切ったため、ゴールを一時停止しました。/compress を実行してから /goal resume で続行してください"
+  hosted:
+    room_managed_elsewhere: "このルームは{owner}が管理しています。Hermes Desktop を更新して続行してください"
+    owner_gateway: "そのゲートウェイ"
+    owner_home_host: "そのホームホスト"
+    group_probe_failed: "このグループを確認できませんでした。ゲートウェイが復旧してからもう一度お試しください"
+    member_busy: "ホストされたルームのメンバーセッションは使用中です"
+    worker_unavailable: "グループチャットのワーカーが利用できません。Hermes ゲートウェイを再起動してからもう一度お試しください"
+    managed_by_other_gateway: "このグループチャットは別のゲートウェイが管理しています"
+    reply_truncated: "[返信は切り詰められました。完全な結果をファイルとして共有するよう Bot に依頼してください]"
+    turn_deadline_exceeded: "このグループチャットのターンは設定された時間制限を超えたため停止されました"
+    not_found: "ホストされたルームが見つかりません"
+    still_stopping: "ルームの作業はまだ停止中です。停止が完了してから削除をやり直してください"
+    approval_not_pending: "ルームの承認はもう保留中ではありません"
+  attach:
+    clipboard_unavailable: "クリップボードを利用できません: {error}"
+    clipboard_extract_failed: "クリップボードに画像はありますが、取り出せませんでした"
+    clipboard_no_image: "クリップボードに画像がありません"
+    image_not_found: "画像が見つかりません: {path}"
+    unsupported_image: "対応していない画像です: {name}"
+    image_empty: "画像が空です"
+    unsupported_image_extension: "対応していない画像の拡張子です: {ext}"
+    write_failed: "書き込みに失敗しました: {error}"
+    pdftoppm_missing: "pdftoppm がインストールされていません（poppler-utils パッケージが必要です）"
+    pdftoppm_timed_out: "pdftoppm がタイムアウトしました（>120 秒）"
+    pdftoppm_failed: "pdftoppm が失敗しました: {detail}"
+    pdftoppm_no_pages: "pdftoppm がページを生成しませんでした（PDF が破損？）"
+    pdf_empty: "デコードした PDF が空です"
+    not_pdf_payload: "ペイロードは PDF ではありません（%PDF- マジックバイトがありません）"
+    pdf_not_found: "PDF が見つかりません: {path}"
+    not_pdf: "PDF ではありません: {name}"
+    pdf_too_large: "PDF が大きすぎます。上限は {mb} MB です"
+    page_range_cap: "ページ範囲が 1 回の添付あたり {pages} ページの上限を超えています"
+    too_large: "{label}が大きすぎます（{bytes} バイト。上限は {mb} MB）"
+    invalid_base64: "データは有効な base64 ではありません"
+    file_missing_no_data: "ゲートウェイ上にファイルが見つからず、data_url も指定されていません"
+    invalid_data_url: "data_url ペイロードが無効です"
+    label_image: "画像"
+    label_pdf: "PDF"
+
+# storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
+storage:
+  unavailable: "セッションストレージが利用できないため、このメッセージは保存されませんでした。原因: {cause}。{action} その後、メッセージをもう一度送信してください"
+  disk_full: "セッションストレージに書き込めなかったため、このメッセージは保存されませんでした: ディスクが満杯です。ディスクの空き容量を確保してから、メッセージをもう一度送信してください"
+  write_failed: "セッションストレージに書き込めなかったため、このメッセージは保存されませんでした。原因: {cause}。{action} その後、メッセージをもう一度送信してください"
+  cause:
+    locked: "セッションデータベースが別の Hermes プロセスによってロックされています"
+    disk_full: "ディスクが満杯です"
+    disk: "セッションデータベースファイルが読み取り専用か書き込み不可です"
+    corrupt: "セッションデータベースファイルが破損しています"
+    session_row_missing: "このセッションのデータベース行がチャットを開いたまま削除され、再作成できませんでした"
+    fts_index: "セッションの検索インデックスが破損しています（メッセージ自体は無事です）"
+    replaced: "Hermes の実行中にセッションデータベースファイルが置き換えられました"
+    deleted_wal: "別の Hermes プロセスがセッションデータベースの先行書き込みログの古いコピーをまだ保持しているため、ファイルを守るために Hermes は書き込みを停止しました"
+    compression: "別のプロセスがこのセッションを圧縮中です"
+    compression_closed: "このセッションはコンテキスト圧縮によってローテーションされました"
+    turn_lease: "別の Hermes プロセスがこのセッションを引き継ぎました"
+    unknown: "セッションデータベースを開けませんでした"
+  action:
+    locked: "少し待ってから再試行し、続く場合はもう一方の Hermes プロセスを停止してください（`hermes {profile_arg}gateway stop`）"
+    disk_full: "ディスクの空き容量を確保してから、もう一度お試しください"
+    disk: "`hermes {profile_arg}doctor --fix` を実行して診断と修復を行ってください"
+    corrupt: "`hermes {profile_arg}doctor --fix` を実行して診断と修復を行ってください。復旧: `hermes {profile_arg}sessions recover --source <state.db> --inspect-only`"
+    session_row_missing: "もう一度お試しください。続く場合は `hermes {profile_arg}doctor` を実行してください"
+    fts_index: "`hermes {profile_arg}doctor --fix`（または `hermes {profile_arg}sessions repair`）を実行して再構築してください"
+    replaced: "Hermes を停止し（`hermes {profile_arg}gateway stop`）、`hermes {profile_arg}doctor` を実行してから、もう一度起動してください"
+    deleted_wal: "何も失われていません。このプロファイルの Hermes プロセスをすべて終了し（デスクトップアプリ、`hermes {profile_arg}gateway stop`、ダッシュボード、cron）、`hermes {profile_arg}doctor` を実行して（ログをまだ保持しているプロセスを表示します）、Hermes を再起動してください。それらの実行中は `doctor --fix` を実行したり state.db ファイルを削除したりしないでください。ガイド: {url}"
+    compression: "圧縮が終わってから、メッセージをもう一度送信してください"
+    compression_closed: "クライアントを更新（または新しいターンを開始）してから、メッセージをもう一度送信してください"
+    turn_lease: "それが終わるのを待ってから、メッセージをもう一度送信してください"
+    unknown: "`hermes {profile_arg}doctor --fix` を実行して診断と修復を行ってください"
+  unavailable_brief: "セッションストレージを利用できません: {cause}。{action}"

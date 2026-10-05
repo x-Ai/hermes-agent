@@ -10,6 +10,9 @@ import contextlib
 import importlib
 import os
 import threading
+from collections.abc import Callable
+
+from agent.i18n import t as _t
 
 _registry = HandlerRegistry()
 method = _registry.method
@@ -27,8 +30,13 @@ _run_store_lock = threading.Lock()
 _bound_server = None
 _service = None
 
-_WORKER_UNAVAILABLE = "Group Chat worker is unavailable. Restart the Hermes gateway and try again."
 _DRIVER_UNAVAILABLE = "hosted room driver is unavailable"
+
+
+def _worker_unavailable() -> str:
+    """4123 text when the hosted-room service is not running in this process; resolved per call so
+    it reads in the profile's language."""
+    return _t("tui_gateway.hosted.worker_unavailable")
 
 
 def bind_server(server) -> None:
@@ -182,7 +190,7 @@ def _room_error_class(replica_only: bool) -> type:
 def _room_method(
     name: str, *, code: int, room_code: int | None = None, replica_only: bool = False,
     with_reason: bool = True, service_code: int | None = None,
-    service_message: str = _DRIVER_UNAVAILABLE, db: bool = False):
+    service_message: str | Callable[[], str] = _DRIVER_UNAVAILABLE, db: bool = False):
     """Register ``fn`` under ``name`` with the shared hosted-room error envelope.
     ``service_code``: the live service is required (else that error) and passed as a third
     argument; ``db``: the default room db path follows. ``room_code`` maps ``HostedRoomError``
@@ -196,7 +204,8 @@ def _room_method(
             if service_code is not None:
                 service = get_hosted_room_service()
                 if service is None:
-                    return _err(rid, service_code, service_message)
+                    return _err(
+                        rid, service_code, service_message() if callable(service_message) else service_message)
                 args += (service,)
             if db:
                 from gateway.hosted_rooms import default_db_path
@@ -356,7 +365,7 @@ def _(rid, params: dict, db_path) -> dict:
 
 @_room_method(
     "groups.create", code=5111, room_code=4110, service_code=4123,
-    service_message=_WORKER_UNAVAILABLE)
+    service_message=_worker_unavailable)
 def _(rid, params: dict, service) -> dict:
     """Create a hosted room idempotently; authority is this gateway's stable install identity."""
     room = service.create_room(
@@ -380,7 +389,7 @@ def _(rid, params: dict, db_path) -> dict:
 
 @_room_method(
     "groups.send", code=5112, room_code=4111, service_code=4123,
-    service_message=_WORKER_UNAVAILABLE)
+    service_message=_worker_unavailable)
 def _(rid, params: dict, service) -> dict:
     """Append one typed event idempotently (inert ``message.user`` only; actor is server-owned)."""
     from gateway.hosted_rooms import user_event_id
@@ -395,7 +404,7 @@ def _(rid, params: dict, service) -> dict:
 
 @_room_method(
     "groups.disband", code=5114, room_code=4113, service_code=4123,
-    service_message=_WORKER_UNAVAILABLE)
+    service_message=_worker_unavailable)
 def _(rid, params: dict, service) -> dict:
     """Permanently tombstone a hosted room id."""
     from gateway.hosted_rooms import (
@@ -406,7 +415,7 @@ def _(rid, params: dict, service) -> dict:
     def disband_with_state(state: dict | None = None) -> dict:
         local_gateway_id = local_authority_gateway_id()
         if state is not None and str(state["authority_gateway_id"]) != local_gateway_id:
-            raise AuthorityConflictError("This Group Chat is managed by another gateway.")
+            raise AuthorityConflictError(_t("tui_gateway.hosted.managed_by_other_gateway"))
         tombstone = disband_room(
             service.db_path, room_id=params.get("room_id"),
             expected_gateway_id=str(local_gateway_id),
