@@ -4532,3 +4532,9 @@ storage:
     turn_lease: "Fan go gcríochnóidh sé, ansin seol do theachtaireacht arís."
     unknown: "Rith `hermes {profile_arg}doctor --fix` chun diagnóisiú agus deisiú."
   unavailable_brief: "Níl stóráil seisiúin ar fáil: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "Níor próiseáladh d'iarratas. Seol arís é más mian leat fós go gcuirfinn i gcrích é."
+    partial_notice: "Níor críochnaíodh an babhta seo. Seans go bhfuil roinnt gníomhartha rite cheana; fíoraigh a n-éifeachtaí sula seolann tú arís."

@@ -4549,3 +4549,9 @@ storage:
     turn_lease: "Várd meg, amíg befejezi, majd küldd el újra az üzenetedet."
     unknown: "Futtasd a `hermes {profile_arg}doctor --fix` parancsot a diagnosztizáláshoz és javításhoz."
   unavailable_brief: "A munkamenet-tároló nem érhető el: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "A kérésed nem lett feldolgozva. Küldd el újra, ha még mindig szeretnéd, hogy végrehajtsam."
+    partial_notice: "Ez a kör nem fejeződött be. Néhány művelet már lefuthatott; ellenőrizd a hatásukat, mielőtt újraküldöd."

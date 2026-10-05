@@ -4530,3 +4530,9 @@ storage:
     turn_lease: "완료될 때까지 기다린 뒤 메시지를 다시 보내세요."
     unknown: "`hermes {profile_arg}doctor --fix`를 실행해 진단하고 복구하세요."
   unavailable_brief: "세션 저장소를 사용할 수 없습니다: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "요청이 처리되지 않았습니다. 계속 진행하길 원하면 다시 보내 주세요."
+    partial_notice: "이 턴이 완료되지 않았습니다. 일부 작업은 이미 실행되었을 수 있으니, 다시 보내기 전에 그 결과를 확인하세요."

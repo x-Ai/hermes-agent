@@ -4532,3 +4532,9 @@ storage:
     turn_lease: "Wag dat dit klaarmaak, en stuur dan jou boodskap weer."
     unknown: "Voer `hermes {profile_arg}doctor --fix` uit om te diagnoseer en te herstel."
   unavailable_brief: "Sessieberging is nie beskikbaar nie: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "Jou versoek is nie verwerk nie. Stuur dit weer as jy steeds wil hê ek moet dit uitvoer."
+    partial_notice: "Hierdie beurt is nie voltooi nie. Sommige aksies het dalk reeds geloop; kontroleer hul uitwerking voordat jy weer stuur."

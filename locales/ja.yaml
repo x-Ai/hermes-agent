@@ -4530,3 +4530,9 @@ storage:
     turn_lease: "それが終わるのを待ってから、メッセージをもう一度送信してください"
     unknown: "`hermes {profile_arg}doctor --fix` を実行して診断と修復を行ってください"
   unavailable_brief: "セッションストレージを利用できません: {cause}。{action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください"
+    partial_notice: "このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください"

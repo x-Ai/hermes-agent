@@ -4531,3 +4531,9 @@ storage:
     turn_lease: "等它完成后重新发送你的消息"
     unknown: "运行 `hermes {profile_arg}doctor --fix` 进行诊断和修复"
   unavailable_brief: "会话存储不可用：{cause}，{action}"
+
+# core: 各界面共用的回合循环文本（agent/turn_failure_copy.py）
+core:
+  failed_turn:
+    notice: "你的请求未被处理，如果你仍希望我执行，请重新发送"
+    partial_notice: "本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送"

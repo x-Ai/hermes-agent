@@ -4531,3 +4531,9 @@ storage:
     turn_lease: "انتظر حتى تنتهي ثم أرسل رسالتك مجددًا."
     unknown: "شغّل `hermes {profile_arg}doctor --fix` للتشخيص والإصلاح."
   unavailable_brief: "تخزين الجلسات غير متاح: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه."
+    partial_notice: "لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال."

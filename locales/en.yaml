@@ -4660,3 +4660,9 @@ storage:
     turn_lease: "Wait for it to finish, then send your message again."
     unknown: "Run `hermes {profile_arg}doctor --fix` to diagnose and repair."
   unavailable_brief: "Session storage is unavailable: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "Your request was not processed. Send it again if you still want me to carry it out."
+    partial_notice: "This turn did not complete. Some actions may already have run; verify their effects before resending."

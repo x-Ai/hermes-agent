@@ -4532,3 +4532,9 @@ storage:
     turn_lease: "Attendi che finisca, poi invia di nuovo il messaggio."
     unknown: "Esegui `hermes {profile_arg}doctor --fix` per diagnosticare e riparare."
   unavailable_brief: "L'archiviazione delle sessioni non è disponibile: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "La tua richiesta non è stata elaborata. Inviala di nuovo se vuoi ancora che la esegua."
+    partial_notice: "Questo turno non è stato completato. Alcune azioni potrebbero essere già state eseguite; verifica i loro effetti prima di reinviare."

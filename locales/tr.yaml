@@ -4531,3 +4531,9 @@ storage:
     turn_lease: "Bitmesini bekleyin, sonra mesajınızı yeniden gönderin."
     unknown: "Tanılamak ve onarmak için `hermes {profile_arg}doctor --fix` çalıştırın."
   unavailable_brief: "Oturum depolaması kullanılamıyor: {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "İsteğiniz işlenmedi. Hâlâ yerine getirmemi istiyorsanız yeniden gönderin."
+    partial_notice: "Bu tur tamamlanmadı. Bazı eylemler çoktan çalışmış olabilir; yeniden göndermeden önce etkilerini doğrulayın."

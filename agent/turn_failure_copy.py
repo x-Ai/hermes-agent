@@ -58,14 +58,24 @@ def untyped_failed_turn_display_kind(role: Any, content: Any) -> Optional[str]:
     return None
 
 
+def partial_failed_turn_notice() -> str:
+    """The hedged boundary copy, in the profile's language (core.failed_turn.partial_notice)."""
+    from agent.i18n import t
+
+    return t("core.failed_turn.partial_notice")
+
+
 def failed_turn_notice(turn_messages: Any) -> str:
-    """Boundary copy for a failed turn: never claim "not processed" when a tool may have run."""
+    """Boundary copy for a failed turn: never claim "not processed" when a tool may have run.
+    Resolved per call from the catalog; the English constants above stay the legacy read-side key."""
+    from agent.i18n import t
+
     for row in turn_messages or ():
         if isinstance(row, dict) and (
             row.get("role") == "tool" or (row.get("role") == "assistant" and row.get("tool_calls"))
         ):
-            return PARTIAL_FAILED_TURN_NOTICE
-    return FAILED_TURN_NOTICE
+            return partial_failed_turn_notice()
+    return t("core.failed_turn.notice")
 
 
 def provider_label_for(provider: Any) -> str:

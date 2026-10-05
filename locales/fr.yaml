@@ -4857,3 +4857,9 @@ storage:
     turn_lease: "Attendez qu'il termine, puis renvoyez votre message."
     unknown: "Lancez `hermes {profile_arg}doctor --fix` pour diagnostiquer et réparer."
   unavailable_brief: "Le stockage des sessions est indisponible : {cause}. {action}"
+
+# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+core:
+  failed_turn:
+    notice: "Votre demande n'a pas été traitée. Renvoyez-la si vous souhaitez toujours que je l'exécute."
+    partial_notice: "Ce tour ne s'est pas terminé. Certaines actions ont peut-être déjà été exécutées ; vérifiez leurs effets avant de renvoyer."
