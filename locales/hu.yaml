@@ -777,6 +777,10 @@ gateway:
     unknown_subcommand: "Ismeretlen /skills alparancs ezen a platformon. Használható: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (A keresés/telepítés csak CLI-ből érhető el.)"
     diff_truncated: "\n… (levágva — a teljes diff itt: ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — a Hermes még válaszol. Előbb állítsd le a folyamatban lévő választ (Stop gomb vagy Ctrl+C a terminálban), majd futtasd a /{command} parancsot."
+    review_wait: "session busy — várd meg az aktuális kör végét, majd futtasd a /review parancsot"
+    handoff_wait: "session busy — várd meg az aktuális kör végét, majd próbáld újra az átadást"
+    subagent_running: "az alügynök még fut — várd meg, amíg befejezi"
     action_restarting: "újraindul"
     action_shutting_down: "leáll"
     reject_model: "Az ügynök fut — várj, vagy előbb /stop, aztán válts modellt."

@@ -786,6 +786,12 @@ gateway:
     unknown_subcommand: "Unknown /skills subcommand on this platform. Use: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Search/install are CLI-only.)"
     diff_truncated: "\n… (truncated — full diff in ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    # tui_gateway (Desktop / terminal TUI backend) refusals while a reply is streaming. The leading
+    # "session busy" stays English in every language: both clients match it to retry or soften.
+    streaming_reply: "session busy — Hermes is still replying. Stop the current reply first (Stop button, or Ctrl+C in a terminal), then run /{command}."
+    review_wait: "session busy — wait for the current turn to finish, then /review"
+    handoff_wait: "session busy — wait for the current turn to finish, then retry the handoff"
+    subagent_running: "subagent still running — wait for it to finish"
     action_restarting: "restarting"
     action_shutting_down: "shutting down"
     reject_model: "Agent is running — wait or /stop first, then switch models."

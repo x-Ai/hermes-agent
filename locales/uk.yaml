@@ -767,6 +767,10 @@ gateway:
     unknown_subcommand: "Невідома підкоманда /skills на цій платформі. Доступні: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Пошук і встановлення доступні лише в CLI.)"
     diff_truncated: "\n… (скорочено — повний diff у ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — Hermes ще відповідає. Спершу зупиніть поточну відповідь (кнопка «Стоп» або Ctrl+C у терміналі), потім виконайте /{command}."
+    review_wait: "session busy — дочекайтеся завершення поточного ходу, потім виконайте /review"
+    handoff_wait: "session busy — дочекайтеся завершення поточного ходу, потім повторіть передачу"
+    subagent_running: "субагент ще працює — дочекайтеся його завершення"
     action_restarting: "перезапускається"
     action_shutting_down: "завершує роботу"
     reject_model: "Агент працює — зачекайте або спочатку виконайте /stop, а потім змінюйте модель."

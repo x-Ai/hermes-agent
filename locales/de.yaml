@@ -767,6 +767,10 @@ gateway:
     unknown_subcommand: "Unbekannter /skills-Unterbefehl auf dieser Plattform. Verwenden Sie: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Suchen/Installieren nur über die CLI.)"
     diff_truncated: "\n… (gekürzt — vollständiger Diff in ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — Hermes antwortet noch. Stoppen Sie zuerst die laufende Antwort (Stopp-Taste oder Strg+C im Terminal) und führen Sie dann /{command} aus."
+    review_wait: "session busy — warten Sie, bis der aktuelle Zug beendet ist, und führen Sie dann /review aus"
+    handoff_wait: "session busy — warten Sie, bis der aktuelle Zug beendet ist, und wiederholen Sie dann die Übergabe"
+    subagent_running: "Subagent läuft noch — warten Sie, bis er fertig ist"
     action_restarting: "wird neu gestartet"
     action_shutting_down: "wird heruntergefahren"
     reject_model: "Agent läuft — warten Sie oder verwenden Sie zuerst /stop, dann wechseln Sie das Modell."

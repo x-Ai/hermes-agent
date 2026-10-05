@@ -767,6 +767,10 @@ gateway:
     unknown_subcommand: "Onbekende /skills-subopdrag op hierdie platform. Gebruik: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Soek/installeer is slegs via die CLI.)"
     diff_truncated: "\n… (afgekap — volledige diff in ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — Hermes antwoord nog. Stop eers die huidige antwoord (Stop-knoppie, of Ctrl+C in 'n terminaal), en voer dan /{command} uit."
+    review_wait: "session busy — wag tot die huidige beurt klaar is, en voer dan /review uit"
+    handoff_wait: "session busy — wag tot die huidige beurt klaar is, en probeer dan die oorhandiging weer"
+    subagent_running: "subagent loop nog — wag tot dit klaar is"
     action_restarting: "besig om te herbegin"
     action_shutting_down: "besig om af te sluit"
     reject_model: "Agent loop — wag of gebruik eers /stop, en wissel dan modelle."

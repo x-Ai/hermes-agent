@@ -766,6 +766,10 @@ gateway:
     unknown_subcommand: "Bu platformda bilinmeyen /skills alt komutu. Kullanım: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Arama/kurma yalnızca CLI'dan yapılır.)"
     diff_truncated: "\n… (kısaltıldı — tam diff: ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — Hermes hâlâ yanıt veriyor. Önce mevcut yanıtı durdurun (Durdur düğmesi veya terminalde Ctrl+C), sonra /{command} komutunu çalıştırın."
+    review_wait: "session busy — mevcut turun bitmesini bekleyin, sonra /review çalıştırın"
+    handoff_wait: "session busy — mevcut turun bitmesini bekleyin, sonra devri yeniden deneyin"
+    subagent_running: "alt ajan hâlâ çalışıyor — bitmesini bekleyin"
     action_restarting: "yeniden başlatılıyor"
     action_shutting_down: "kapatılıyor"
     reject_model: "Ajan çalışıyor — bekleyin veya önce /stop kullanın, ardından model değiştirin."

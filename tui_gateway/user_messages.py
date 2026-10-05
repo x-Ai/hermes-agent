@@ -86,9 +86,16 @@ def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: boo
 def busy_message(command: str) -> str:
     """4009 refusal for a history-mutating command while a reply is streaming. There is no
     ``/interrupt`` slash command on any client: Desktop has a Stop button, the terminal TUI uses
-    Ctrl+C — name both without assuming which one the reader has."""
-    return (f"session busy — Hermes is still replying. Stop the current reply first (Stop button, "
-            f"or Ctrl+C in a terminal), then run /{command.lstrip('/')}.")
+    Ctrl+C — name both without assuming which one the reader has. Catalog prose, but the leading
+    ``session busy`` stays English in every language: both clients match it to retry or soften."""
+    from agent.i18n import t
+    return t("gateway.busy.streaming_reply", command=command.lstrip("/"))
+
+
+def handoff_busy_message() -> str:
+    """4009 refusal for ``handoff.request`` while a reply is streaming — same marker contract."""
+    from agent.i18n import t
+    return t("gateway.busy.handoff_wait")
 
 
 # Prefixes of the TimeoutErrors raised by ``hermes_cli.auth._auth_store_lock`` (profile

@@ -765,6 +765,10 @@ gateway:
     unknown_subcommand: "此平台不支援這個 /skills 子指令。可用：pending、approve <id>、reject <id>、diff <id>、approval <on|off>。（搜尋／安裝僅限 CLI。）"
     diff_truncated: "\n…（已截斷 — 完整差異見 ~/.hermes/pending/skills/{pending_id}.json）"
   busy:
+    streaming_reply: "session busy — Hermes 仍在回覆中。請先停止目前的回覆（停止按鈕，或在終端機中按 Ctrl+C），再執行 /{command}。"
+    review_wait: "session busy — 請等待目前回合結束後再執行 /review"
+    handoff_wait: "session busy — 請等待目前回合結束後再重試交接"
+    subagent_running: "子代理仍在執行中，請等待它完成"
     action_restarting: "重新啟動中"
     action_shutting_down: "關閉中"
     reject_model: "代理正在執行中 — 請等待或先 /stop，再切換模型。"

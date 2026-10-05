@@ -1380,7 +1380,7 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict, session: dict) -> dict:
     """Queue a handoff (desktop /handoff): only writes ``pending``; the gateway watcher claims and re-binds."""
     if session.get("running"):
-        return _err(rid, 4009, "session busy — wait for the current turn to finish, then retry the handoff")
+        return _err(rid, 4009, handoff_busy_message())
     if not (platform_name := (params.get("platform", "") or "").strip().lower()):
         return _err(rid, 4023, "platform required")
     # Validate up front: an unconfigured platform / missing home channel pends forever.

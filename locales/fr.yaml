@@ -888,6 +888,10 @@ gateway:
 
       … (tronqué — diff complet dans ~/.hermes/pending/skills/{pending_id}.json)
   busy:
+    streaming_reply: "session busy — Hermes répond encore. Arrêtez d'abord la réponse en cours (bouton Stop, ou Ctrl+C dans un terminal), puis lancez /{command}."
+    review_wait: "session busy — attendez la fin du tour en cours, puis lancez /review"
+    handoff_wait: "session busy — attendez la fin du tour en cours, puis relancez le transfert"
+    subagent_running: "sous-agent encore en cours — attendez qu'il termine"
     action_restarting: "en cours de redémarrage"
     action_shutting_down: "en cours d'arrêt"
     reject_model: "L'agent est en cours d'exécution — attendez ou faites /stop d'abord, puis changez de modèle."

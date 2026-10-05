@@ -43,7 +43,8 @@ def _format_live_review_output(sid: str, session: Optional[dict], arg: str) -> s
     if (agent := session.get("agent")) is None:
         return "Nothing to review yet — send a message first."
     if session.get("running"):
-        return "session busy — wait for the current turn to finish, then /review"
+        from agent.i18n import t
+        return t("gateway.busy.review_wait")
     with session.get("history_lock") or contextlib.nullcontext():
         snapshot = list(session.get("history", []))
     snapshot = snapshot or list(getattr(agent, "_session_messages", None) or [])

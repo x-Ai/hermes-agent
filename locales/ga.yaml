@@ -767,6 +767,10 @@ gateway:
     unknown_subcommand: "Fo-ordú /skills anaithnid ar an ardán seo. Úsáid: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Tá cuardach/suiteáil ar fáil ón CLI amháin.)"
     diff_truncated: "\n… (giorraithe — an diff iomlán i ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — tá Hermes fós ag freagairt. Stop an freagra reatha ar dtús (cnaipe Stop, nó Ctrl+C i dteirminéal), ansin rith /{command}."
+    review_wait: "session busy — fan go gcríochnóidh an babhta reatha, ansin rith /review"
+    handoff_wait: "session busy — fan go gcríochnóidh an babhta reatha, ansin bain triail eile as an aistriú"
+    subagent_running: "tá an fo-ghníomhaire fós ag rith — fan go gcríochnóidh sé"
     action_restarting: "ag atosú"
     action_shutting_down: "ag múchadh"
     reject_model: "Tá an gníomhaire ag rith — fan nó /stop ar dtús, ansin athraigh an tsamhail."

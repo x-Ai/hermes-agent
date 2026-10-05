@@ -765,6 +765,10 @@ gateway:
     unknown_subcommand: "このプラットフォームでは不明な /skills サブコマンドです。使用可能: pending、approve <id>、reject <id>、diff <id>、approval <on|off>。(検索/インストールは CLI 専用です。)"
     diff_truncated: "\n… (省略 — 完全な diff は ~/.hermes/pending/skills/{pending_id}.json にあります)"
   busy:
+    streaming_reply: "session busy — Hermes はまだ返信中です。先に現在の返信を停止（停止ボタン、またはターミナルでは Ctrl+C）してから /{command} を実行してください。"
+    review_wait: "session busy — 現在のターンが終わるのを待ってから /review を実行してください"
+    handoff_wait: "session busy — 現在のターンが終わるのを待ってからハンドオフをやり直してください"
+    subagent_running: "サブエージェントがまだ実行中です — 終了するまでお待ちください"
     action_restarting: "再起動中"
     action_shutting_down: "シャットダウン中"
     reject_model: "エージェントが実行中です — 完了を待つか、先に /stop してからモデルを切り替えてください。"

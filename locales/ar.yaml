@@ -766,6 +766,10 @@ gateway:
     unknown_subcommand: "أمر فرعي غير معروف لـ /skills على هذه المنصة. استخدم: pending، approve <id>، reject <id>، diff <id>، approval <on|off>. (البحث والتثبيت متاحان في سطر الأوامر فقط.)"
     diff_truncated: "\n… (مقتطع — الفرق الكامل في ~/.hermes/pending/skills/{pending_id}.json)"
   busy:
+    streaming_reply: "session busy — ما زال Hermes يرد. أوقف الرد الحالي أولاً (زر الإيقاف، أو Ctrl+C في الطرفية)، ثم شغّل /{command}."
+    review_wait: "session busy — انتظر انتهاء الدور الحالي، ثم شغّل /review"
+    handoff_wait: "session busy — انتظر انتهاء الدور الحالي، ثم أعد محاولة التسليم"
+    subagent_running: "الوكيل الفرعي ما زال يعمل — انتظر حتى ينتهي"
     action_restarting: "قيد إعادة التشغيل"
     action_shutting_down: "قيد إيقاف التشغيل"
     reject_model: "الوكيل قيد التشغيل — انتظر أو استخدم /stop أولًا، ثم بدّل النموذج."
