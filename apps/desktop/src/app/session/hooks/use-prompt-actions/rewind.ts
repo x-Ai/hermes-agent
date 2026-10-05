@@ -13,6 +13,7 @@ import type { AppendMessage, ThreadMessage } from '@assistant-ui/react'
 
 import type { ClientSessionState } from '@/app/types'
 import { PROMPT_SUBMIT_REQUEST_TIMEOUT_MS } from '@/hermes'
+import { translateNow } from '@/i18n'
 import {
   branchGroupForUser,
   type ChatMessage,
@@ -590,14 +591,14 @@ export function planRestore(messages: ChatMessage[], messageId: string, target?:
   const source = messages[sourceIndex]
 
   if (!source || source.role !== 'user') {
-    throw new Error('Could not find the message to restore.')
+    throw new Error(translateNow('runtimeErrors.restoreMessageNotFound'))
   }
 
   const sourceText = chatMessageText(source).trim()
   const text = (sourceText || target?.text?.trim() || '').trim()
 
   if (!text) {
-    throw new Error('Cannot restore an empty message.')
+    throw new Error(translateNow('runtimeErrors.restoreEmptyMessage'))
   }
 
   // Failed turn: the target user msg never reached the gateway, so any

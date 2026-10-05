@@ -18,7 +18,7 @@ import {
   getLatestSessionMessages,
   setSessionArchived
 } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import {
   type ChatMessage,
   preserveLocalAssistantErrors,
@@ -1005,7 +1005,7 @@ export function useSessionActions({
       const stored = created.stored_session_id
 
       if (!stored) {
-        throw new Error('The new session did not return a stored id.')
+        throw new Error(translateNow('runtimeErrors.newSessionMissingId'))
       }
 
       // Only a genuine user move to a DIFFERENT chat mid-create orphans the
@@ -1020,7 +1020,7 @@ export function useSessionActions({
 
       if (drift) {
         console.warn('[submit-drift-abort]', drift, { phase: 'quick-entry-new' })
-        throw new Error(`Quick Entry destination changed mid-create: ${drift}`)
+        throw new Error(translateNow('runtimeErrors.quickEntryDestinationChanged', drift))
       }
 
       // The owner is the requesting submit's correlation when the caller knows

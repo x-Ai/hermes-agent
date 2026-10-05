@@ -5,7 +5,7 @@ import { useStore } from '@nanostores/react'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 
 import { type ResolvedOwner, transcribeAudio } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { attachmentPathNeedsUpload } from '@/lib/attachment-upload-policy'
 import { type ChatMessage, textPart } from '@/lib/chat-messages'
 import { isSlashCommandText, pathLabel } from '@/lib/chat-runtime'
@@ -141,7 +141,7 @@ export async function uploadComposerAttachment(
     }
 
     if (attachment.kind === 'image' ? !imagePayload : !fileDataUrl) {
-      throw new Error(`Could not read ${label}`)
+      throw new Error(translateNow('runtimeErrors.attachmentReadFailed', label))
     }
   }
 
@@ -1060,7 +1060,7 @@ export function usePromptActions({
       const sessionId = activeSessionIdRef.current
 
       if (!sessionId) {
-        throw new Error('No active session to restore.')
+        throw new Error(translateNow('runtimeErrors.noActiveSessionToRestore'))
       }
 
       // Same dual-store read as reloadFromMessage (#68734).

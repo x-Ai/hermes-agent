@@ -392,7 +392,7 @@ async function activeProjectsContext(profile = projectProfile()): Promise<Active
   }
 
   if (!gateway || !stillOnWritableProjectOwner({ connectionId, gateway, profile })) {
-    throw new Error('Active Hermes profile changed while connecting')
+    throw new Error(translateNow('runtimeErrors.profileChangedWhileConnecting'))
   }
 
   return { connectionId, gateway, profile, stampLocal }

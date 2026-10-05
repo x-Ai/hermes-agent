@@ -8,6 +8,7 @@ import { arCommandCenter } from './ar_command_center'
 import { arCommon } from './ar_common'
 import { arConnectors } from './ar_connectors'
 import { arDiagnostics } from './ar_diagnostics'
+import { arRuntime } from './ar_runtime'
 import { arSettings } from './ar_settings'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 
@@ -30,6 +31,7 @@ export const arOverrides = {
   keybinds: arChrome.keybinds,
   paletteCommands: arChrome.paletteCommands,
   timelineEvents: arChat.timelineEvents,
+  runtimeErrors: arRuntime.runtimeErrors,
   findInPage: arChrome.findInPage,
   language: arSettings.language,
   quickEntry: arChat.quickEntry,

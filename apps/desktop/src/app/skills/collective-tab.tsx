@@ -38,7 +38,7 @@ import {
   type WisdomReviewCheck,
   type WisdomUpdateMode
 } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { notifyError } from '@/store/notifications'
 
@@ -71,7 +71,7 @@ async function waitForWisdomAction(name: string, profile: ProfileScope): Promise
     await new Promise(resolve => setTimeout(resolve, 500))
   }
 
-  throw new Error('Collective Wisdom action timed out')
+  throw new Error(translateNow('runtimeErrors.wisdomActionTimedOut'))
 }
 
 export function CollectiveTab({ profile, query }: { profile: ProfileScope; query: string }) {
@@ -405,7 +405,7 @@ export function CollectiveTab({ profile, query }: { profile: ProfileScope; query
       if (actionPlan.action === 'uninstall') {
         await uninstallWisdomSkill(actionPlan.skill_id, profile)
       } else if (!actionPlan.receipt) {
-        throw new Error('Verified action receipt is missing')
+        throw new Error(translateNow('runtimeErrors.wisdomReceiptMissing'))
       } else if (actionPlan.action === 'install') {
         await applyWisdomInstall(actionPlan.receipt, acceptPartial, profile)
       } else {

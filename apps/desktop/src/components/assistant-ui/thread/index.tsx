@@ -18,7 +18,7 @@ import { Intro, type IntroProps } from '@/components/chat/intro'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { WisdomMediationCard } from '@/components/wisdom-mediation-card'
 import type { HermesGateway, ProfileScope } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { notifyError } from '@/store/notifications'
 
 type ThreadLoadingState = 'response' | 'session'
@@ -96,7 +96,7 @@ export const Thread = memo(function Thread({
 
   const confirmRestore = useCallback(() => {
     if (!restoreConfirmTarget || !onRestoreToMessage) {
-      throw new Error('Restore is unavailable for this message.')
+      throw new Error(translateNow('runtimeErrors.restoreUnavailableForMessage'))
     }
 
     const { messageId, text, userOrdinal } = restoreConfirmTarget

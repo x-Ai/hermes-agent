@@ -12,6 +12,8 @@
 
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
+
 export interface PoolLimits {
   /** Max concurrently spawned non-primary profile backends. */
   maxBackends: number
@@ -84,6 +86,6 @@ export async function savePoolLimits(next: { maxBackends?: number; idleMs?: numb
     }
   } catch {
     $poolLimits.set(current)
-    throw new Error('Applying pool limits failed')
+    throw new Error(translateNow('runtimeErrors.poolLimitsApplyFailed'))
   }
 }

@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify'
 
+import { translateNow } from '@/i18n'
 import { isDesktopFsRemoteMode, readDesktopFileDataUrl, readDesktopFileText } from '@/lib/desktop-fs'
 import { isWindowsAbsolutePath } from '@/lib/path-compare'
 import type { PreviewTarget } from '@/store/preview'
@@ -193,14 +194,14 @@ export async function openPreviewTargetInBrowser(target: PreviewTarget): Promise
   const bridge = window.hermesDesktop
 
   if (!bridge?.openPreviewInBrowser) {
-    throw new Error('Desktop preview browser bridge is unavailable')
+    throw new Error(translateNow('runtimeErrors.previewBrowserBridgeUnavailable'))
   }
 
   const dataUrl = target.dataUrl && validatedRemoteHtmlDataUrl(target.dataUrl)
 
   if (!dataUrl) {
     if (target.transient) {
-      throw new Error('Remote HTML preview could not be loaded')
+      throw new Error(translateNow('runtimeErrors.remotePreviewLoadFailed'))
     }
 
     await bridge.openPreviewInBrowser(target.url)
@@ -209,7 +210,7 @@ export async function openPreviewTargetInBrowser(target: PreviewTarget): Promise
   }
 
   if (!bridge.saveImageBuffer) {
-    throw new Error('Desktop preview buffer bridge is unavailable')
+    throw new Error(translateNow('runtimeErrors.previewBufferBridgeUnavailable'))
   }
 
   const decoded = atob(dataUrl.slice(dataUrl.indexOf(',') + 1))
@@ -217,7 +218,7 @@ export async function openPreviewTargetInBrowser(target: PreviewTarget): Promise
   const filePath = await bridge.saveImageBuffer(bytes, '.html')
 
   if (!filePath) {
-    throw new Error('Could not stage remote HTML preview')
+    throw new Error(translateNow('runtimeErrors.remotePreviewStageFailed'))
   }
 
   await bridge.openPreviewInBrowser(pathToFileUrl(filePath))

@@ -1,3 +1,4 @@
+import { translateNow } from '@/i18n'
 // oxlint-disable-next-line anti-slop/no-shape-in-symbol-names -- `isServerShape` is main's exported name; it is bound to a domain name here instead of renaming the export.
 import { type McpServerEntry, type McpServers, isServerShape as namesAServer, normalizeEntry } from '@/lib/mcp-servers'
 
@@ -9,14 +10,14 @@ export function parseServersDoc(raw: string): McpServers {
   const parsed: unknown = JSON.parse(raw)
 
   if (!(parsed instanceof Object) || Array.isArray(parsed)) {
-    throw new Error('Expected a JSON object')
+    throw new Error(translateNow('runtimeErrors.mcpDocNotObject'))
   }
 
   // SAFETY: an object and not an array, checked on the line above; every property read below is optional.
   const doc = parsed as McpServerEntry
 
   if (namesAServer(doc)) {
-    throw new Error('Wrap the server in {"mcpServers": {"name": …}} so it has a name')
+    throw new Error(translateNow('runtimeErrors.mcpDocNeedsName'))
   }
 
   const wrapper = doc.mcpServers ?? doc.mcp_servers

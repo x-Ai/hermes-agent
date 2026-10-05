@@ -386,11 +386,11 @@ export async function downloadGatewayMediaFile(
 ): Promise<GatewayFileSaveResult> {
   // URI conversion belongs to the gateway OS, not the renderer's URL parser.
   if (!path?.trim()) {
-    throw new Error('Missing gateway file path')
+    throw new Error(translateNow('runtimeErrors.gatewayFilePathMissing'))
   }
 
   if (!window.hermesDesktop?.saveGatewayFile) {
-    throw new Error('Desktop file download bridge is unavailable')
+    throw new Error(translateNow('runtimeErrors.fileDownloadBridgeUnavailable'))
   }
 
   const conn = $connection.get()

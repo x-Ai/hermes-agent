@@ -1,5 +1,6 @@
 import { hermesApiAs, type OwnerScope, ownerScoped, type ResolvedOwner } from '@/api/client'
 import { getApiRequestConnection, getApiRequestProfile, hermesApi } from '@/hermes'
+import { translateNow } from '@/i18n'
 
 /**
  * Client-direct voice: call the active profile's STT/TTS providers straight
@@ -257,7 +258,7 @@ async function sttFetch(stt: DirectSttConfig, url: string, init: RequestInit): P
     return await fetch(url, { ...init, signal: controller.signal })
   } catch (error) {
     if (controller.signal.aborted) {
-      throw new Error(`Transcription timed out after ${seconds}s (${stt.provider} did not answer)`)
+      throw new Error(translateNow('runtimeErrors.transcriptionTimedOut', seconds, stt.provider))
     }
 
     throw error
@@ -361,7 +362,7 @@ export async function transcribeAudioClientDirect(audio: Blob, owner?: ResolvedO
     })
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs STT error (HTTP ${response.status}): ${await providerErrorText(response)}`)
+      throw new Error(translateNow('runtimeErrors.sttHttpError', response.status, await providerErrorText(response)))
     }
 
     const result = (await response.json()) as { text?: string }
@@ -432,7 +433,7 @@ export async function synthesizeSpeechClientDirect(tts: DirectTtsConfig, text: s
     )
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs TTS error (HTTP ${response.status}): ${await providerErrorText(response)}`)
+      throw new Error(translateNow('runtimeErrors.ttsHttpError', response.status, await providerErrorText(response)))
     }
 
     return response.arrayBuffer()

@@ -1,5 +1,6 @@
 import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'
 
+import { enRuntime } from './en_runtime'
 import type { Translations } from './types'
 
 export const en: Translations = {
@@ -1110,13 +1111,7 @@ export const en: Translations = {
     toggleLogs: 'Toggle logs',
     toggleYolo: 'Toggle yolo'
   },
-  timelineEvents: {
-    modelChanged: 'model changed',
-    resumedInterruptedTurn: 'resumed interrupted turn',
-    personalityChanged: 'personality changed',
-    backgroundAgentWorkFinished: 'background agent work finished',
-    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
-  },
+  ...enRuntime,
   findInPage: {
     next: 'Next match',
     previous: 'Previous match'

@@ -1,5 +1,6 @@
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
 import { type ClientWakeCaptureHandle, startClientWakeCapture } from '@/lib/wake-client-capture'
 import { $gateway } from '@/store/gateway'
 
@@ -159,7 +160,7 @@ const gatewayRequester: WakeRequester = async <T>(method: string, params: Record
   const gateway = $gateway.get()
 
   if (!gateway) {
-    throw new Error('Hermes gateway unavailable')
+    throw new Error(translateNow('runtimeErrors.gatewayUnavailable'))
   }
 
   return method === 'wake.start'

@@ -307,7 +307,7 @@ export const arAssistant = {
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}رفض مفتاح API الخاص بك`,
-          body: provider => `المفتاح محفوظ لـ${provider}غير صالح أو تم إلغاؤه. حدّثه ثم حاول مرة أخرى.`
+          body: provider => `المفتاح المحفوظ لـ ${provider} غير صالح أو تم إلغاؤه. حدّثه ثم حاول مرة أخرى.`
         },
         oauth: {
           title: provider => `لك${provider}انتهت صلاحية تسجيل الدخول`

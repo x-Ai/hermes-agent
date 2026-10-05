@@ -1,5 +1,6 @@
 import { capabilityScoped, type ProfileScope } from '@/api/client'
 import { type McpOAuthFlow, mcpOAuthRpc } from '@/api/mcp'
+import { translateNow } from '@/i18n'
 
 import { isMissingRpcMethod } from './gateway-rpc'
 
@@ -49,7 +50,7 @@ export async function completeMcpDesktopOAuth({
 
   // A legacy null connection can resolve to a remote registry primary.
   if (!bridge && scope.connectionId !== 'local') {
-    throw new Error('Update Hermes Desktop to support MCP OAuth callbacks.')
+    throw new Error(translateNow('runtimeErrors.mcpOauthCallbackUnsupported'))
   }
 
   let listener: { id: string; redirectUri: string } | undefined
@@ -151,7 +152,7 @@ export async function completeMcpDesktopOAuth({
       checkCancelled()
 
       if (Date.now() >= deadline) {
-        throw new Error('Timed out waiting for MCP OAuth authorization')
+        throw new Error(translateNow('runtimeErrors.mcpOauthTimedOut'))
       }
 
       if (relayError) {

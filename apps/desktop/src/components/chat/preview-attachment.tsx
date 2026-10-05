@@ -169,7 +169,7 @@ export function PreviewAttachment({ target }: { target: string }) {
       }
 
       if (!preview) {
-        throw new Error(`Could not open preview target: ${requestTarget}`)
+        throw new Error(t.runtimeErrors.previewTargetUnavailable(requestTarget))
       }
 
       openPreview(preview)

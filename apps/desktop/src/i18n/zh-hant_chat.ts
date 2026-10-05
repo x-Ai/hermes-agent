@@ -2,11 +2,12 @@ import type { TranslationOverrides } from './define-locale'
 
 export const zhHantChat = {
   timelineEvents: {
-    modelChanged: '模式已變更',
-    resumedInterruptedTurn: '恢复中斷轉彎',
+    modelChanged: '模型已變更',
+    resumedInterruptedTurn: '已恢復中斷的回合',
     personalityChanged: '人格已變更',
     backgroundAgentWorkFinished: '背景代理工作已完成',
-    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
+    backgroundAgentsFinished: count => `${count} 個背景代理已完成`,
+    backgroundProcessFinished: '背景程序已完成'
   },
   quickEntry: {
     label: '快速輸入',

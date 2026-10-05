@@ -1,6 +1,7 @@
 import { atom } from 'nanostores'
 
 import type { DesktopProfileRoute } from '@/global'
+import { translateNow } from '@/i18n'
 import { withTimeout } from '@/lib/with-timeout'
 
 // Electron owns persistence and cross-window changes. This atom is only a
@@ -37,7 +38,7 @@ export async function setDefaultProfile(route: DesktopProfileRoute): Promise<Des
   const setDefault = window.hermesDesktop?.profile?.setDefault
 
   if (!setDefault) {
-    throw new Error('This Desktop version cannot save a default profile.')
+    throw new Error(translateNow('runtimeErrors.defaultProfileUnsupported'))
   }
 
   const requestRevision = ++revision

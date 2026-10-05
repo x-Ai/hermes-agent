@@ -2,6 +2,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
+import { zhRuntime } from './zh_runtime'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
   document: '个文档',
@@ -1082,13 +1083,7 @@ export const zhOverrides = {
     toggleLogs: '切换日志',
     toggleYolo: '切换 YOLO 模式'
   },
-  timelineEvents: {
-    modelChanged: '模型已更改',
-    resumedInterruptedTurn: '已恢复中断的回合',
-    personalityChanged: '个性已更改',
-    backgroundAgentWorkFinished: '后台代理工作已完成',
-    backgroundAgentsFinished: count => `${count} 个后台代理已完成`
-  },
+  ...zhRuntime,
   findInPage: {
     next: '下一个匹配',
     previous: '上一个匹配'
@@ -7954,10 +7949,10 @@ export const zhOverrides = {
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}拒绝了你的 API 密钥`,
-          body: provider => `为…而保存的钥匙${provider}无效或已被撤销，请更新后重试`
+          body: provider => `为 ${provider} 保存的 API 密钥无效或已被撤销，请更新后重试`
         },
         oauth: {
-          title: provider => `您的${provider}登录已过期`
+          title: provider => `你的 ${provider} 登录已过期`
         }
       },
       errorDetails: '详情',

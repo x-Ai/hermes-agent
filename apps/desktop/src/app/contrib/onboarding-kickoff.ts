@@ -78,7 +78,7 @@ export async function adoptGuideSession(
     $activeGatewayProfile.get() !== setupProfile ||
     !$messages.get().some(message => message.role === 'assistant' && !message.hidden && chatMessageText(message).trim())
   ) {
-    throw new Error('The welcome conversation could not be loaded. Please try again.')
+    throw new Error(translateNow('runtimeErrors.welcomeConversationUnavailable'))
   }
 
   $chatOnboardingThreadIds.set([canonical.id, adoptedRuntimeId])

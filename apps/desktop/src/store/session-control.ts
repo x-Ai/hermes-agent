@@ -1,5 +1,7 @@
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
+
 import { $gateway } from './gateway'
 import { refreshSessionGoal } from './goals'
 import { isSessionGone, isSessionGoneForBackgroundPolling, markSessionGone } from './runtime-gone'
@@ -816,7 +818,7 @@ export async function runSessionControlAction(
   const gateway = $gateway.get()
 
   if (!gateway) {
-    throw new Error('Session control gateway is unavailable')
+    throw new Error(translateNow('runtimeErrors.sessionControlGatewayUnavailable'))
   }
 
   const eventVersion = currentEventVersion(sessionId)

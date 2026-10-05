@@ -61,7 +61,7 @@ function bridge() {
   const desktop = window.hermesDesktop
 
   if (!desktop) {
-    throw new Error('Hermes Desktop bridge is unavailable')
+    throw new Error(translateNow('runtimeErrors.hermesDesktopBridgeUnavailable'))
   }
 
   return desktop
@@ -132,7 +132,7 @@ export async function writeDesktopFileText(path: string, content: string): Promi
 
   if (!isDesktopFsRemoteMode()) {
     if (!desktop.writeTextFile) {
-      throw new Error('Saving is not available')
+      throw new Error(translateNow('runtimeErrors.savingUnavailable'))
     }
 
     return desktop.writeTextFile(path, content)
@@ -228,7 +228,7 @@ export async function renameDesktopPath(path: string, newName: string): Promise<
   const desktop = bridge()
 
   if (!desktop.renamePath) {
-    throw new Error('Rename is not available')
+    throw new Error(translateNow('runtimeErrors.renameUnavailable'))
   }
 
   const result = await desktop.renamePath(path, newName)
@@ -241,7 +241,7 @@ export async function trashDesktopPath(path: string): Promise<void> {
   const desktop = bridge()
 
   if (!desktop.trashPath) {
-    throw new Error('Delete is not available')
+    throw new Error(translateNow('runtimeErrors.deleteUnavailable'))
   }
 
   await desktop.trashPath(path)

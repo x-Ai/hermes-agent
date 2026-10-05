@@ -325,7 +325,7 @@ export const zhHantAssistant = {
       errorAuthKinds: {
         api_key: {
           title: provider => `${provider}拒絕了你的 API 金鑰`,
-          body: provider => `儲存的鑰匙為${provider}無效或已被撤銷。請更新後再試一次。`
+          body: provider => `為 ${provider} 儲存的 API 金鑰無效或已被撤銷。請更新後再試一次。`
         },
         oauth: {
           title: provider => `你的${provider}登入已過期`

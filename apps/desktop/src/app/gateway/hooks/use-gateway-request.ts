@@ -3,6 +3,7 @@ import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useRef } from 'react'
 
 import type { HermesGateway } from '@/hermes'
+import { translateNow } from '@/i18n'
 import { resolveDesktopGatewayWsUrl } from '@/lib/gateway-ws-url'
 import { RECONNECT_ATTEMPT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
 import {
@@ -161,7 +162,7 @@ export function useGatewayRequest() {
       const gateway = gatewayRef.current ?? activeGateway()
 
       if (!gateway) {
-        throw new Error('Hermes gateway unavailable')
+        throw new Error(translateNow('runtimeErrors.gatewayUnavailable'))
       }
 
       // Bind retries to the dispatch owner, not whichever source is focused

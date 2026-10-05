@@ -14,6 +14,7 @@
 // halves in one bundle.
 import { atom } from 'nanostores'
 
+import { translateNow } from '@/i18n'
 import { $gateway } from '@/store/gateway'
 
 export interface SendDiagnosticsResult {
@@ -97,7 +98,7 @@ export async function confirmSendDiagnostics(): Promise<void> {
     const gateway = $gateway.get()
 
     if (!gateway) {
-      throw new Error('Hermes gateway unavailable')
+      throw new Error(translateNow('runtimeErrors.gatewayUnavailable'))
     }
 
     const extraFiles = await collectLocalExtras()

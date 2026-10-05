@@ -10,6 +10,7 @@ import { zhHantCommandCenter } from './zh-hant_command_center'
 import { zhHantCommon } from './zh-hant_common'
 import { zhHantConnectors } from './zh-hant_connectors'
 import { zhHantDiagnostics } from './zh-hant_diagnostics'
+import { zhHantRuntime } from './zh-hant_runtime'
 import { zhHantSettings } from './zh-hant_settings'
 
 export const zhHantOverrides = {
@@ -85,6 +86,7 @@ export const zhHantOverrides = {
   keybinds: zhHantChrome.keybinds,
   paletteCommands: zhHantChrome.paletteCommands,
   timelineEvents: zhHantChat.timelineEvents,
+  runtimeErrors: zhHantRuntime.runtimeErrors,
   findInPage: zhHantChrome.findInPage,
   language: zhHantSettings.language,
   quickEntry: zhHantChat.quickEntry,

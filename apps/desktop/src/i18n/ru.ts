@@ -2,6 +2,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
+import { ruRuntime } from './ru_runtime'
 
 // RU_PLURAL: (count, one, few, many) — русские формы сущ. падежа
 // RU_NOUN: (count, one, few, many) — формы род. множественного
@@ -873,13 +874,7 @@ export const ruOverrides = {
     toggleLogs: 'Переключать бревна',
     toggleYolo: 'Тоггл Йоло'
   },
-  timelineEvents: {
-    modelChanged: 'изменилась модель',
-    resumedInterruptedTurn: 'возобновленный прерванный поворот',
-    personalityChanged: 'личность изменилась',
-    backgroundAgentWorkFinished: 'завершилась работа агента',
-    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
-  },
+  ...ruRuntime,
   findInPage: {
     next: 'Следующее вхождение',
     previous: 'Предыдущее вхождение'
@@ -6080,12 +6075,12 @@ export const ruOverrides = {
       },
       errorAuthKinds: {
         api_key: {
-          title: provider => `${provider}отклонён ваш API ключ`,
+          title: provider => `${provider} отклонил ваш API-ключ`,
           body: provider =>
-            `Ключ сохранен для${provider}недействителен или был отозван. Обновите его, затем попробуйте снова.`
+            `Ключ, сохранённый для ${provider}, недействителен или был отозван. Обновите его, затем попробуйте снова.`
         },
         oauth: {
-          title: provider => `Твой${provider}срок действия входа истек`
+          title: provider => `Срок действия вашего входа в ${provider} истёк`
         }
       },
       errorDetails: 'Детали',

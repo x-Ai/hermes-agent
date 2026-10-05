@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
 import { introJa } from './intro-ja'
+import { jaRuntime } from './ja_runtime'
 
 export const jaOverrides = {
   externalOpenFailed: {
@@ -845,13 +846,7 @@ export const jaOverrides = {
     toggleLogs: 'ログをトグル',
     toggleYolo: 'トグル・ヨーロ'
   },
-  timelineEvents: {
-    modelChanged: 'モデル変更',
-    resumedInterruptedTurn: '再開された中断された回転',
-    personalityChanged: '人格変更',
-    backgroundAgentWorkFinished: '背景エージェント作業終了',
-    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
-  },
+  ...jaRuntime,
   findInPage: {
     next: '次の試合',
     previous: '前回の試合'
@@ -7158,12 +7153,12 @@ export const jaOverrides = {
       attachingFile: '添付中…',
       errorAuthKinds: {
         api_key: {
-          title: provider => `${provider}あなたのAPIキーを拒否しました`,
+          title: provider => `${provider} があなたの API キーを拒否しました`,
           body: provider =>
-            `保存されたキー${provider}無効であるか、取り消されました。更新してから、再試行してください。`
+            `${provider} 用に保存されたキーは無効か、取り消されています。更新してから再試行してください。`
         },
         oauth: {
-          title: provider => `あなたの${provider}サインインの期限が切れました`
+          title: provider => `${provider} へのサインインの期限が切れました`
         }
       },
       errorDetails: '詳細',

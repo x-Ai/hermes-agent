@@ -4,6 +4,7 @@ import type { ProfileScope } from '@/api/client'
 import type { HandoffReceipt } from '@/app/contrib/handoff-leg'
 import { handoffReceiptKey, readHandoffReceipt } from '@/app/contrib/handoff-receipt'
 import { CONNECTOR_LEAD_ORDER } from '@/components/onboarding-chat/options'
+import { translateNow } from '@/i18n'
 import { connectorTitle } from '@/lib/connector-tools'
 import { activeGatewayConnectionId } from '@/store/gateway'
 import { machineDescription } from '@/store/machine'
@@ -212,7 +213,7 @@ function planRunbook(plan: HandoffPlan, pluginRoot: string, connectFirst: boolea
 
     case 'plugin':
       if (!pluginRoot) {
-        throw new Error('The desktop plugin folder is unavailable. Retry before starting the first build.')
+        throw new Error(translateNow('runtimeErrors.pluginFolderUnavailable'))
       }
 
       return connectFirst ? pluginRunbook(pluginRoot) : [...pluginRunbook(pluginRoot), NO_AUTH_RULE]

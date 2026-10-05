@@ -1,6 +1,7 @@
 import { skillInvocationText } from '@hermes/shared'
 
 import { splitLeadingAttachmentRefs } from '@/components/assistant-ui/reference-kinds'
+import { translateNow } from '@/i18n'
 import { extractImageRefs } from '@/lib/embedded-images'
 import { parseErrorSurface } from '@/lib/error-surface'
 import { dedupeGeneratedImageEchoesInParts } from '@/lib/generated-images'
@@ -272,15 +273,15 @@ function asyncResultBody(content: string): string | undefined {
 
 function timelineDisplayContent(message: SessionMessage, content: string): string {
   if (message.display_kind === 'model_switch') {
-    return 'model changed'
+    return translateNow('timelineEvents.modelChanged')
   }
 
   if (message.display_kind === 'auto_continue') {
-    return 'resumed interrupted turn'
+    return translateNow('timelineEvents.resumedInterruptedTurn')
   }
 
   if (message.display_kind === 'personality_switch') {
-    return 'personality changed'
+    return translateNow('timelineEvents.personalityChanged')
   }
 
   if (message.display_kind === 'async_delegation_complete') {
@@ -289,13 +290,13 @@ function timelineDisplayContent(message: SessionMessage, content: string): strin
     return (
       timelineDisplayText(message.display_metadata) ??
       (count === undefined
-        ? 'background agent work finished'
-        : `${count} background agent${count === 1 ? '' : 's'} finished`)
+        ? translateNow('timelineEvents.backgroundAgentWorkFinished')
+        : translateNow('timelineEvents.backgroundAgentsFinished', count))
     )
   }
 
   if (message.display_kind === 'process_complete') {
-    return timelineDisplayText(message.display_metadata) ?? 'background process finished'
+    return timelineDisplayText(message.display_metadata) ?? translateNow('timelineEvents.backgroundProcessFinished')
   }
 
   return content

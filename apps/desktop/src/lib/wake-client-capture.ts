@@ -1,3 +1,5 @@
+import { translateNow } from '@/i18n'
+
 /**
  * Client-side mic capture for remote wake word.
  *
@@ -111,7 +113,7 @@ export async function startClientWakeCapture(options: ClientWakeCaptureOptions):
   const AudioContextCtor = window.AudioContext || audioWindow.webkitAudioContext
 
   if (!AudioContextCtor) {
-    throw new Error('AudioContext unavailable for client wake capture')
+    throw new Error(translateNow('runtimeErrors.audioContextUnavailable'))
   }
 
   if (!navigator.mediaDevices?.getUserMedia) {

@@ -8,6 +8,7 @@ import type {
   HermesReviewShipInfo
 } from '@/global'
 import { hermesApi } from '@/hermes'
+import { translateNow } from '@/i18n'
 
 import { desktopFsProfile, isDesktopFsRemoteMode } from './desktop-fs'
 
@@ -23,7 +24,7 @@ function desktopApi<T>(path: string, body?: Record<string, unknown>): Promise<T>
   const desktop = window.hermesDesktop
 
   if (!desktop) {
-    throw new Error('Hermes Desktop bridge is unavailable')
+    throw new Error(translateNow('runtimeErrors.hermesDesktopBridgeUnavailable'))
   }
 
   return hermesApi<T>(

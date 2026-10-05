@@ -2,6 +2,7 @@ import { atom, computed } from 'nanostores'
 
 import { getProfiles } from '@/api/profiles'
 import type { DesktopConnectionsRegistry } from '@/global'
+import { translateNow } from '@/i18n'
 import { traceIdentityChange } from '@/lib/identity-trace'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import { persistStringRecord, storedStringRecord } from '@/lib/storage'
@@ -534,7 +535,7 @@ export async function selectConnection(connectionId: string, options: SelectConn
       }
 
       if (!targetIsActive()) {
-        throw new Error(`Connection "${targetConnection.label}" did not become active.`)
+        throw new Error(translateNow('runtimeErrors.connectionNotActive', targetConnection.label))
       }
     } finally {
       // Lower the barrier the moment the commit settles — before the

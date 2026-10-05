@@ -10,6 +10,8 @@ import type { WisdomMuteCopy, WisdomSyncCopy } from '@hermes/shared'
 import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
+import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
+
 /** The locales compiled into the app (`TRANSLATIONS`). */
 export type BundledLocale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' | 'de' | 'es'
 
@@ -763,13 +765,8 @@ export interface Translations {
     toggleLogs: string
     toggleYolo: string
   }
-  timelineEvents: {
-    modelChanged: string
-    resumedInterruptedTurn: string
-    personalityChanged: string
-    backgroundAgentWorkFinished: string
-    backgroundAgentsFinished: (count: number) => string
-  }
+  timelineEvents: TimelineEventsCopy
+  runtimeErrors: RuntimeErrorsCopy
   quickEntry: {
     label: string
     askPlaceholder: string

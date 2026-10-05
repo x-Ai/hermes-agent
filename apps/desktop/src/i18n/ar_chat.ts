@@ -2,11 +2,12 @@ import type { TranslationOverrides } from './define-locale'
 
 export const arChat = {
   timelineEvents: {
-    modelChanged: 'النموذج المتغير',
-    resumedInterruptedTurn: 'استئناف الانقطاع',
-    personalityChanged: 'الشخصية',
-    backgroundAgentWorkFinished: 'عمل عميل خلفي انتهى',
-    backgroundAgentsFinished: count => `${count} background agent${count === 1 ? '' : 's'} finished`
+    modelChanged: 'تم تغيير النموذج',
+    resumedInterruptedTurn: 'تم استئناف الدور المتوقف',
+    personalityChanged: 'تم تغيير الشخصية',
+    backgroundAgentWorkFinished: 'انتهى عمل الوكيل في الخلفية',
+    backgroundAgentsFinished: count => `انتهى ${count} من وكلاء الخلفية`,
+    backgroundProcessFinished: 'انتهت العملية في الخلفية'
   },
   quickEntry: {
     label: 'إدخال سريع',

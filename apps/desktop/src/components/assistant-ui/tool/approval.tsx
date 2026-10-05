@@ -19,7 +19,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useI18n } from '@/i18n'
+import { translateNow, useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import { ChevronDown, Loader2 } from '@/lib/icons'
 import { releaseApprovalKey } from '@/lib/keybinds/approval-keys'
@@ -170,7 +170,7 @@ async function sendApproval(request: ApprovalRequest, choice: ApprovalChoice) {
   const gateway = $gateway.get()
 
   if (!gateway) {
-    throw new Error('Gateway disconnected')
+    throw new Error(translateNow('runtimeErrors.gatewayDisconnected'))
   }
 
   if (

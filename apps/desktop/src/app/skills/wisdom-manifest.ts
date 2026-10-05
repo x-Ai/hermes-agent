@@ -1,3 +1,5 @@
+import { translateNow } from '@/i18n'
+
 export interface WisdomToolRequirement {
   name: string
   minimum_version: null | string
@@ -118,7 +120,7 @@ export function parseWisdomSystemSpecification(value: unknown): WisdomSystemSpec
   exactKeys(model, ['capabilities', 'minimum_context_window'], 'Model requirement')
 
   if (model.minimum_context_window !== null && typeof model.minimum_context_window !== 'number') {
-    throw new Error('Minimum context window must be a number or blank')
+    throw new Error(translateNow('runtimeErrors.manifestMinContextInvalid'))
   }
 
   const filesystem = record(specification.filesystem, 'Filesystem requirement')
@@ -129,7 +131,7 @@ export function parseWisdomSystemSpecification(value: unknown): WisdomSystemSpec
   exactKeys(runtime, ['shell', 'browser', 'code', 'sandbox'], 'Runtime requirement')
 
   if (!Array.isArray(specification.tools)) {
-    throw new Error('Tools must be a list')
+    throw new Error(translateNow('runtimeErrors.manifestToolsNotList'))
   }
 
   const tools = specification.tools.map((raw, index) => {
@@ -137,7 +139,7 @@ export function parseWisdomSystemSpecification(value: unknown): WisdomSystemSpec
     exactKeys(tool, ['name', 'minimum_version', 'auto_install', 'requires_admin'], `Tool ${index + 1}`)
 
     if (tool.auto_install !== false) {
-      throw new Error(`Tool ${index + 1} cannot request automatic installation`)
+      throw new Error(translateNow('runtimeErrors.manifestToolAutoInstall', index + 1))
     }
 
     return {
@@ -149,7 +151,7 @@ export function parseWisdomSystemSpecification(value: unknown): WisdomSystemSpec
   })
 
   if (!Array.isArray(specification.plugins)) {
-    throw new Error('Plugins must be a list')
+    throw new Error(translateNow('runtimeErrors.manifestPluginsNotList'))
   }
 
   const plugins = specification.plugins.map((raw, index) => {
@@ -196,7 +198,7 @@ export function parseWisdomManifest(value: string): WisdomManifestV1 {
   exactKeys(manifest, ['schema_version', 'name', 'requirements'], 'Manifest')
 
   if (manifest.schema_version !== 1) {
-    throw new Error('Only manifest schema version 1 is supported')
+    throw new Error(translateNow('runtimeErrors.manifestSchemaUnsupported'))
   }
 
   return {

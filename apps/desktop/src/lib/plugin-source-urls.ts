@@ -1,3 +1,5 @@
+import { translateNow } from '@/i18n'
+
 const GITHUB_BROWSER_SEGMENTS = new Set(['tree', 'blob', 'commit'])
 
 export interface PluginSourceLinks {
@@ -10,7 +12,7 @@ function resolvePluginGitUrl(identifier: string): { gitUrl: string; subdir: stri
   const trimmed = identifier.trim()
 
   if (!trimmed) {
-    throw new Error('Plugin identifier is required.')
+    throw new Error(translateNow('runtimeErrors.pluginIdentifierRequired'))
   }
 
   if (/^(https?:\/\/|git@|ssh:\/\/|file:\/\/)/.test(trimmed)) {
@@ -61,7 +63,7 @@ function resolvePluginGitUrl(identifier: string): { gitUrl: string; subdir: stri
     return { gitUrl, subdir }
   }
 
-  throw new Error('Invalid plugin identifier.')
+  throw new Error(translateNow('runtimeErrors.pluginIdentifierInvalid'))
 }
 
 function githubBrowseBase(gitUrl: string): string | null {
