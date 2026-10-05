@@ -1,3 +1,12 @@
+agent:
+  output_truncated_no_visible: "La risposta è stata troncata al limite di token di output del provider prima che venisse prodotto testo visibile."
+
+auth:
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+
+provider:
+  custom_endpoint: "Endpoint personalizzato"
+
 approval:
   dangerous_header: "⚠️  COMANDO PERICOLOSO: {description}"
   choose_long: "      [o]una volta  |  [s]essione  |  [a]sempre  |  [d]nega"
@@ -41,6 +50,71 @@ approval:
     minute_other: "{count} minuti"
     second_one: "{count} secondo"
     second_other: "{count} secondi"
+  # Rifiuti che il livello di approvazione restituisce al modello (tools/approval*.py). Ogni messaggio
+  # conserva, in tutte le lingue, il marcatore inglese ``BLOCKED`` in testa: il compressore di contesto
+  # e gli strumenti di trascrizione vi si basano.
+  blocked:
+    hardline: "BLOCKED (hardline): {description}. Questo comando è nella lista di blocco incondizionata e non può essere eseguito tramite l'agente — nemmeno con --yolo, /yolo, approvals.mode=off o la modalità approve di cron. Se devi davvero eseguirlo, fallo tu stesso in un terminale fuori dall'agente."
+    recovery_prefix: " RIPRISTINO: questo blocco scatta su contenuti di comando inline troppo grandi o non analizzabili (heredoc, one-liner giganteschi), non sull'operazione in sé. "
+    recovery_saved: "Il tuo comando è stato salvato in {path} — controllalo, poi esegui: terminal(command=\"bash {path}\"). Non riprovare inline."
+    recovery_write_file: "Scrivi lo script in un file con write_file, poi eseguilo: terminal(command=\"bash /path/script.sh\") oppure \"python3 /path/script.py\". Non riprovare inline."
+    user_deny: "BLOCKED: questo comando corrisponde alla regola di rifiuto definita dall'utente '{pattern}' (approvals.deny in config.yaml). Non può essere eseguito tramite l'agente — nemmeno con --yolo, /yolo o approvals.mode=off. NON riprovare né riformulare questo comando; l'utente lo ha esplicitamente vietato."
+    sudo_stdin: "BLOCKED: {description}. Non passare password a 'sudo -S' tramite pipe — è un vettore di attacco a forza bruta. Imposta SUDO_PASSWORD nel tuo file .env se l'agente ha bisogno di sudo senza password, oppure esegui il comando sudo manualmente nel tuo terminale."
+    smart_denied: "BLOCKED dall'approvazione intelligente: {description}. Il comando è stato valutato come davvero pericoloso. NON riprovare.{breaker}"
+    breaker: " INTERRUTTORE: {count} comandi consecutivi sono stati bloccati dal revisore di sicurezza. SMETTI di tentare varianti di questa operazione. Segnala l'operazione bloccata all'utente e chiedigli di eseguirla manualmente oppure di usare /approve."
+    no_human: "BLOCKED: è richiesta un'approvazione ({description}), ma non è presente alcun utente interattivo né gateway che possa concederla."
+    no_human_plugin: "BLOCKED: {subject}, ma non è presente alcun utente interattivo né gateway che possa concederla. Un plugin ha segnalato questa azione per una conferma umana."
+    tirith_unavailable: "BLOCKED: impossibile importare lo scanner di sicurezza Tirith e security.tirith_fail_open è false, quindi questo comando non può essere consentito in silenzio — e {clause}. Trova un approccio alternativo, installa tirith oppure imposta approvals.{cfg_key}: approve in config.yaml."
+    execute_code_unattended: "BLOCKED: execute_code esegue Python locale arbitrario (incluse chiamate subprocess che aggirano i controlli di approvazione delle stringhe shell). {clause}. Usa invece gli strumenti normali, oppure imposta approvals.{cfg_key}: approve solo se {trust}."
+    unattended: "BLOCKED: {subject}, ma {clause}. {advice} Per consentire {noun} {scope}, imposta approvals.{cfg_key}: approve in config.yaml."
+    flagged_subject: "Comando segnalato come pericoloso ({description})"
+    approval_required_subject: "approvazione richiesta ({description})"
+    tool_subject: "Lo strumento '{tool}' richiede un'approvazione ({description})"
+    advice_command: "Trova un approccio alternativo che eviti questo comando."
+    advice_action: "Trova un approccio alternativo che eviti questa azione."
+    advice_generic: "Trova un approccio alternativo."
+    noun_dangerous_commands: "i comandi pericolosi"
+    noun_flagged_actions: "le azioni segnalate"
+    reason_timeout: "timeout senza risposta dell'utente"
+    reason_denied: "rifiuto dell'utente"
+    reason_withdrawn: "approvazione ritirata prima della risposta dell'utente ({cause})"
+    reason_undelivered: "nessuna approvazione: la richiesta di approvazione non è stata recapitata o non ha ricevuto risposta ({cause})"
+    reason_given: " Motivo indicato dall'utente: \"{reason}\"."
+    silence: " Il silenzio non è consenso."
+    tirith_scan_summary: "Scansione di sicurezza: {summary}"
+    tirith_scan_findings: "Scansione di sicurezza — {findings}"
+    tirith_default_summary: "problema di sicurezza rilevato"
+    context:
+      single_query_clause: "la modalità a query singola (-q) viene eseguita senza un utente presente che possa approvare"
+      single_query_scope: "in modalità a query singola"
+      single_query_trust: "questa esecuzione a query singola è intenzionalmente considerata affidabile"
+      cron_clause: "i job cron vengono eseguiti senza un utente presente che possa approvare"
+      cron_scope: "nei job cron"
+      cron_trust: "questo profilo cron è intenzionalmente considerato affidabile"
+      unattended_clause: "questa sessione viene eseguita su una piattaforma non presidiata ({platform}) senza un utente presente che possa approvare"
+      unattended_scope: "sulle piattaforme non presidiate"
+      unattended_trust: "le sessioni su questa superficie sono intenzionalmente considerate affidabili"
+    command:
+      notify_failed: "BLOCKED: impossibile inviare la richiesta di approvazione all'utente. NON riprovare."
+      gateway_refused: "BLOCKED: comando — {reason}.{reason_addendum} L'utente NON ha acconsentito a questa azione. NON riprovare questo comando, NON riformularlo e NON tentare di ottenere lo stesso risultato con un altro comando. Interrompi il flusso di lavoro corrente e attendi la risposta dell'utente prima di qualsiasi altra azione distruttiva o irreversibile.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: l'utente ha rifiutato questo comando tramite il canale di approvazione selezionato. L'utente NON ha acconsentito a questa azione. NON riprovare né tentare di ottenere lo stesso risultato per un'altra via.{breaker}"
+      cli_timeout: "BLOCKED: il comando è andato in timeout senza risposta dell'utente. L'utente NON ha acconsentito a questa azione. NON riprovare questo comando, NON riformularlo e NON tentare di ottenere lo stesso risultato con un altro comando. Interrompi il flusso di lavoro corrente e attendi la risposta dell'utente prima di qualsiasi altra azione distruttiva o irreversibile. Il silenzio non è consenso.{breaker}"
+      cli_denied: "BLOCKED: l'utente ha rifiutato questo comando. L'utente NON ha acconsentito a questa azione. NON riprovare questo comando, NON riformularlo e NON tentare di ottenere lo stesso risultato con un altro comando. Interrompi il flusso di lavoro corrente e attendi la risposta dell'utente prima di qualsiasi altra azione distruttiva o irreversibile.{breaker}"
+    code:
+      notify_failed: "BLOCKED: impossibile inviare la richiesta di approvazione di execute_code all'utente. NON riprovare."
+      gateway_refused: "BLOCKED: script execute_code — {reason}.{reason_addendum} L'utente NON ha acconsentito all'esecuzione di questo codice. NON riprovare, NON riformulare lo script e NON tentare di ottenere lo stesso risultato con un altro strumento.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: l'utente ha rifiutato execute_code tramite il canale di approvazione selezionato. L'utente NON ha acconsentito."
+      cli_timeout: "BLOCKED: l'azione è andata in timeout senza risposta dell'utente. L'utente NON ha acconsentito a questa azione. NON riprovare, NON riformularla e NON tentare di ottenere lo stesso risultato per un'altra via. Il silenzio non è consenso.{breaker}"
+      cli_denied: "BLOCKED: l'utente ha rifiutato l'esecuzione dello script execute_code (corrispondenza: '{description}'). NON riprovare — l'utente l'ha respinta esplicitamente.{breaker}"
+    action:
+      notify_failed: "BLOCKED: impossibile inviare la richiesta di approvazione all'utente. NON riprovare."
+      gateway_refused: "BLOCKED: azione — {reason}.{reason_addendum} L'utente NON ha acconsentito a questa azione. NON riprovare, NON riformularla e NON tentare di ottenere lo stesso risultato per un'altra via.{timeout_addendum}"
+      cli_timeout: "BLOCKED: l'azione è andata in timeout senza risposta dell'utente. L'utente NON ha acconsentito a questa azione. NON riprovare, NON riformularla e NON tentare di ottenere lo stesso risultato per un'altra via. Il silenzio non è consenso."
+      cli_denied: "BLOCKED: l'utente ha rifiutato questa azione potenzialmente pericolosa (corrispondenza: '{description}'). NON riprovare — l'utente l'ha respinta esplicitamente."
+    pending:
+      action_required: "⚠️ Questa azione è potenzialmente pericolosa ({description}). Richiesta di approvazione inviata all'utente.\n\n**Destinazione:**\n```\n{command}\n```"
+      command_body: "**Comando:**\n```\n{command}\n```"
+      pending: "⚠️ {description}. Richiesta di approvazione inviata all'utente.\n\n{body}\n\nSTOP: non rieseguire, riformulare o reinviare questa richiesta ({noun}) — ogni variante invia all'utente UN'ALTRA scheda di approvazione. Attendi la decisione dell'utente; se questo turno deve terminare, segnala che l'approvazione è in sospeso."
 gateway:
   approval_expired: "⚠️ Approvazione scaduta (l'agente non è più in attesa). Chiedi all'agente di riprovare."
   draining: "⏳ Attendo il completamento di {count} agente/i attivo/i prima di riavviare..."

@@ -1,3 +1,12 @@
+agent:
+  output_truncated_no_visible: "A válasz a szolgáltató kimeneti tokenkorlátjánál csonkolódott, mielőtt látható szöveg készült volna."
+
+auth:
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+
+provider:
+  custom_endpoint: "Egyéni végpont"
+
 approval:
   dangerous_header: "⚠️  VESZÉLYES PARANCS: {description}"
   choose_long: "      [o]egyszer  |  [s]munkamenet  |  [a]mindig  |  [d]elutasít"
@@ -41,6 +50,71 @@ approval:
     minute_other: "{count} perc"
     second_one: "{count} másodperc"
     second_other: "{count} másodperc"
+  # A jóváhagyási réteg modellnek visszaadott elutasításai (tools/approval*.py). Minden üzenet minden
+  # nyelven az angol ``BLOCKED`` jelölővel kezdődik: a kontextustömörítő és az átirat-eszközök erre
+  # támaszkodnak.
+  blocked:
+    hardline: "BLOCKED (kemény szabály): {description}. Ez a parancs a feltétel nélküli tiltólistán van, és nem futtatható az ügynökön keresztül — még --yolo, /yolo, approvals.mode=off vagy a cron approve módja mellett sem. Ha valóban futtatnod kell, futtasd magad egy, az ügynökön kívüli terminálban."
+    recovery_prefix: " HELYREÁLLÍTÁS: ez a tiltás a túl nagy vagy feldolgozhatatlan beágyazott parancstörzsekre (heredoc, óriási egysorosok) lép életbe, nem magára a műveletre. "
+    recovery_saved: "A parancsodat ide mentettük: {path} — nézd át, majd futtasd: terminal(command=\"bash {path}\"). Ne próbáld újra beágyazva."
+    recovery_write_file: "Írd a szkriptet fájlba a write_file eszközzel, majd futtasd: terminal(command=\"bash /path/script.sh\") vagy \"python3 /path/script.py\". Ne próbáld újra beágyazva."
+    user_deny: "BLOCKED: ez a parancs illeszkedik a felhasználó által megadott '{pattern}' tiltószabályra (approvals.deny a config.yaml-ban). Nem futtatható az ügynökön keresztül — még --yolo, /yolo vagy approvals.mode=off mellett sem. NE próbáld újra és NE fogalmazd át ezt a parancsot; a felhasználó kifejezetten megtiltotta."
+    sudo_stdin: "BLOCKED: {description}. Ne adj át jelszót csővezetéken a 'sudo -S' parancsnak — ez nyers erős támadási vektor. Állítsd be a SUDO_PASSWORD értéket a .env fájlban, ha az ügynöknek jelszó nélküli sudo kell, vagy futtasd a sudo parancsot kézzel a saját termináljaidban."
+    smart_denied: "BLOCKED az intelligens jóváhagyás által: {description}. A parancs valóban veszélyesnek minősült. NE próbáld újra.{breaker}"
+    breaker: " MEGSZAKÍTÓ: a biztonsági ellenőr {count} egymást követő parancsot tiltott le. HAGYD ABBA a művelet változatainak próbálgatását. Jelentsd a letiltott műveletet a felhasználónak, és kérd meg, hogy futtassa kézzel, vagy használja az /approve parancsot."
+    no_human: "BLOCKED: jóváhagyás szükséges ({description}), de nincs jelen interaktív felhasználó vagy átjáró, aki megadhatná."
+    no_human_plugin: "BLOCKED: {subject}, de nincs jelen interaktív felhasználó vagy átjáró, aki megadhatná. Egy bővítmény emberi megerősítésre jelölte ezt a műveletet."
+    tirith_unavailable: "BLOCKED: a Tirith biztonsági szkennert nem sikerült importálni, és a security.tirith_fail_open értéke false, ezért ez a parancs nem engedélyezhető csendben — ráadásul {clause}. Keress más megközelítést, telepítsd a tirith-et, vagy állítsd be az approvals.{cfg_key}: approve értéket a config.yaml-ban."
+    execute_code_unattended: "BLOCKED: az execute_code tetszőleges helyi Pythont futtat (beleértve a shell-sztringek jóváhagyási ellenőrzését megkerülő subprocess hívásokat). {clause}. Használd inkább a szokásos eszközöket, vagy csak akkor állítsd be az approvals.{cfg_key}: approve értéket, ha {trust}."
+    unattended: "BLOCKED: {subject}, de {clause}. {advice} Ahhoz, hogy {scope} engedélyezd a következőt: {noun}, állítsd be az approvals.{cfg_key}: approve értéket a config.yaml-ban."
+    flagged_subject: "A parancs veszélyesként lett megjelölve ({description})"
+    approval_required_subject: "jóváhagyás szükséges ({description})"
+    tool_subject: "A(z) '{tool}' eszköz jóváhagyást igényel ({description})"
+    advice_command: "Keress más megközelítést, amely elkerüli ezt a parancsot."
+    advice_action: "Keress más megközelítést, amely elkerüli ezt a műveletet."
+    advice_generic: "Keress más megközelítést."
+    noun_dangerous_commands: "veszélyes parancsok"
+    noun_flagged_actions: "megjelölt műveletek"
+    reason_timeout: "időtúllépés felhasználói válasz nélkül"
+    reason_denied: "a felhasználó elutasította"
+    reason_withdrawn: "a jóváhagyást visszavonták, mielőtt a felhasználó válaszolt volna ({cause})"
+    reason_undelivered: "nincs jóváhagyás: a jóváhagyási kérést nem sikerült kézbesíteni, vagy nem érkezett rá válasz ({cause})"
+    reason_given: " A felhasználó által megadott indok: \"{reason}\"."
+    silence: " A hallgatás nem beleegyezés."
+    tirith_scan_summary: "Biztonsági ellenőrzés: {summary}"
+    tirith_scan_findings: "Biztonsági ellenőrzés — {findings}"
+    tirith_default_summary: "biztonsági probléma észlelve"
+    context:
+      single_query_clause: "az egyszeri lekérdezés módja (-q) jóváhagyásra képes felhasználó jelenléte nélkül fut"
+      single_query_scope: "egyszeri lekérdezés módban"
+      single_query_trust: "ez az egyszeri lekérdezéses futás szándékosan megbízhatónak számít"
+      cron_clause: "a cron feladatok jóváhagyásra képes felhasználó jelenléte nélkül futnak"
+      cron_scope: "cron feladatokban"
+      cron_trust: "ez a cron profil szándékosan megbízhatónak számít"
+      unattended_clause: "ez a munkamenet felügyelet nélküli platformon ({platform}) fut, jóváhagyásra képes felhasználó jelenléte nélkül"
+      unattended_scope: "felügyelet nélküli platformokon"
+      unattended_trust: "az ezen a felületen futó munkamenetek szándékosan megbízhatónak számítanak"
+    command:
+      notify_failed: "BLOCKED: a jóváhagyási kérést nem sikerült elküldeni a felhasználónak. NE próbáld újra."
+      gateway_refused: "BLOCKED: parancs — {reason}.{reason_addendum} A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra ezt a parancsot, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más paranccsal elérni. Állítsd le a jelenlegi munkafolyamatot, és várd meg a felhasználó válaszát, mielőtt bármilyen további romboló vagy visszafordíthatatlan műveletet végeznél.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: a felhasználó a kiválasztott jóváhagyási csatornán elutasította ezt a parancsot. A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra, és NE próbáld ugyanazt az eredményt más úton elérni.{breaker}"
+      cli_timeout: "BLOCKED: a parancs felhasználói válasz nélkül lejárt. A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra ezt a parancsot, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más paranccsal elérni. Állítsd le a jelenlegi munkafolyamatot, és várd meg a felhasználó válaszát, mielőtt bármilyen további romboló vagy visszafordíthatatlan műveletet végeznél. A hallgatás nem beleegyezés.{breaker}"
+      cli_denied: "BLOCKED: a felhasználó elutasította ezt a parancsot. A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra ezt a parancsot, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más paranccsal elérni. Állítsd le a jelenlegi munkafolyamatot, és várd meg a felhasználó válaszát, mielőtt bármilyen további romboló vagy visszafordíthatatlan műveletet végeznél.{breaker}"
+    code:
+      notify_failed: "BLOCKED: az execute_code jóváhagyási kérést nem sikerült elküldeni a felhasználónak. NE próbáld újra."
+      gateway_refused: "BLOCKED: execute_code szkript — {reason}.{reason_addendum} A felhasználó NEM járult hozzá ennek a kódnak a futtatásához. NE próbáld újra, NE fogalmazd át a szkriptet, és NE próbáld ugyanazt az eredményt más eszközzel elérni.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: a felhasználó a kiválasztott jóváhagyási csatornán elutasította az execute_code kérést. A felhasználó NEM járult hozzá."
+      cli_timeout: "BLOCKED: a művelet felhasználói válasz nélkül lejárt. A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más úton elérni. A hallgatás nem beleegyezés.{breaker}"
+      cli_denied: "BLOCKED: a felhasználó elutasította az execute_code szkript futtatását (találat: '{description}'). NE próbáld újra — a felhasználó kifejezetten elutasította.{breaker}"
+    action:
+      notify_failed: "BLOCKED: a jóváhagyási kérést nem sikerült elküldeni a felhasználónak. NE próbáld újra."
+      gateway_refused: "BLOCKED: művelet — {reason}.{reason_addendum} A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más úton elérni.{timeout_addendum}"
+      cli_timeout: "BLOCKED: a művelet felhasználói válasz nélkül lejárt. A felhasználó NEM járult hozzá ehhez a művelethez. NE próbáld újra, NE fogalmazd át, és NE próbáld ugyanazt az eredményt más úton elérni. A hallgatás nem beleegyezés."
+      cli_denied: "BLOCKED: a felhasználó elutasította ezt a potenciálisan veszélyes műveletet (találat: '{description}'). NE próbáld újra — a felhasználó kifejezetten elutasította."
+    pending:
+      action_required: "⚠️ Ez a művelet potenciálisan veszélyes ({description}). Jóváhagyást kérünk a felhasználótól.\n\n**Cél:**\n```\n{command}\n```"
+      command_body: "**Parancs:**\n```\n{command}\n```"
+      pending: "⚠️ {description}. Jóváhagyást kérünk a felhasználótól.\n\n{body}\n\nÁLLJ: ne futtasd újra, ne fogalmazd át és ne küldd újra ezt a kérést ({noun}) — minden változat ÚJABB jóváhagyási kártyát küld a felhasználónak. Várd meg a felhasználó döntését; ha ennek a körnek véget kell érnie, jelezd, hogy a jóváhagyás függőben van."
 gateway:
   approval_expired: "⚠️ A jóváhagyás lejárt (az ügynök már nem vár). Kérd meg az ügynököt, hogy próbálja újra."
   draining: "⏳ {count} aktív ügynök befejezésére várunk az újraindítás előtt..."

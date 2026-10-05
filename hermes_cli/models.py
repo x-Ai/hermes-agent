@@ -1136,6 +1136,9 @@ def provider_label(provider: Optional[str]) -> str:
     if normalized == "auto":
         return "Auto"
     normalized = normalize_provider(normalized)
+    if normalized == "custom":
+        from hermes_cli.providers import custom_endpoint_label
+        return custom_endpoint_label()
     return _PROVIDER_LABELS.get(normalized, original or "OpenRouter")
 
 

@@ -1,3 +1,20 @@
+agent:
+  output_truncated_no_visible: "Response truncated at the provider's output-token limit before visible text was produced."
+
+provider:
+  # Display label for the bare "custom" provider (a user-configured endpoint
+  # that is not a named provider).  Provider names and model IDs are
+  # identifiers and stay untranslated; this label is prose, not an identifier.
+  custom_endpoint: "Custom endpoint"
+
+auth:
+  # Raised when provider resolution exhausts every source (config, env keys,
+  # OAuth logins, Bedrock).  The paired machine-readable code
+  # `no_provider_configured` stays on the exception for clients to match on;
+  # this text is display prose.  Command names, env-var names, and paths are
+  # identifiers and stay untranslated in every locale.
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+
 approval:
   dangerous_header: "⚠️  DANGEROUS COMMAND: {description}"
   choose_long: "      [o]nce  |  [s]ession  |  [a]lways  |  [d]eny"
@@ -43,6 +60,73 @@ approval:
     minute_other: "{count} minutes"
     second_one: "{count} second"
     second_other: "{count} seconds"
+
+  # Refusals the approval layer hands back to the model (tools/approval*.py). Every message keeps the
+  # English ``BLOCKED`` marker at its head in every language: the context compressor and transcript
+  # tooling key on it. ``{breaker}`` / ``{reason_addendum}`` / ``{timeout_addendum}`` are addenda that
+  # may be empty, so they sit after the sentence they extend.
+  blocked:
+    hardline: "BLOCKED (hardline): {description}. This command is on the unconditional blocklist and cannot be executed via the agent — not even with --yolo, /yolo, approvals.mode=off, or cron approve mode. If you genuinely need to run it, run it yourself in a terminal outside the agent."
+    recovery_prefix: " RECOVERY: this block fires on oversized/unparseable inline command payloads (heredocs, giant one-liners), not on the operation itself. "
+    recovery_saved: "Your command was saved to {path} — review it, then run: terminal(command=\"bash {path}\"). Do not retry inline."
+    recovery_write_file: "Write the script to a file with write_file, then run it: terminal(command=\"bash /path/script.sh\") or \"python3 /path/script.py\". Do not retry inline."
+    user_deny: "BLOCKED: this command matches the user-defined deny rule '{pattern}' (approvals.deny in config.yaml). It cannot be executed via the agent — not even with --yolo, /yolo, or approvals.mode=off. Do NOT retry or rephrase this command; the user has explicitly forbidden it."
+    sudo_stdin: "BLOCKED: {description}. Do not pipe passwords to 'sudo -S' — this is a brute-force attack vector. Set SUDO_PASSWORD in your .env file if the agent needs passwordless sudo, or run the sudo command manually in your own terminal."
+    smart_denied: "BLOCKED by smart approval: {description}. The command was assessed as genuinely dangerous. Do NOT retry.{breaker}"
+    breaker: " CIRCUIT BREAKER: {count} consecutive commands were blocked by the security reviewer. STOP attempting variations of this operation. Report the blocked operation to the user and either ask them to run it manually or use /approve."
+    no_human: "BLOCKED: approval required ({description}) but no interactive user or gateway is present to approve it."
+    no_human_plugin: "BLOCKED: {subject} but no interactive user or gateway is present to approve it. A plugin flagged this action for human confirmation."
+    tirith_unavailable: "BLOCKED: the Tirith security scanner could not be imported and security.tirith_fail_open is false, so this command cannot be silently allowed — and {clause}. Find an alternative approach, install tirith, or set approvals.{cfg_key}: approve in config.yaml."
+    execute_code_unattended: "BLOCKED: execute_code runs arbitrary local Python (including subprocess calls that bypass shell-string approval checks). {clause}. Use normal tools instead, or set approvals.{cfg_key}: approve only if {trust}."
+    unattended: "BLOCKED: {subject} but {clause}. {advice} To allow {noun} {scope}, set approvals.{cfg_key}: approve in config.yaml."
+    flagged_subject: "Command flagged as dangerous ({description})"
+    approval_required_subject: "approval required ({description})"
+    tool_subject: "Tool '{tool}' requires approval ({description})"
+    advice_command: "Find an alternative approach that avoids this command."
+    advice_action: "Find an alternative approach that avoids this action."
+    advice_generic: "Find an alternative approach."
+    noun_dangerous_commands: "dangerous commands"
+    noun_flagged_actions: "flagged actions"
+    reason_timeout: "timed out without user response"
+    reason_denied: "denied by user"
+    reason_withdrawn: "approval was withdrawn before the user answered ({cause})"
+    reason_undelivered: "was not approved: the approval prompt could not be delivered or was not answered ({cause})"
+    reason_given: " Reason given by the user: \"{reason}\"."
+    silence: " Silence is not consent."
+    tirith_scan_summary: "Security scan: {summary}"
+    tirith_scan_findings: "Security scan — {findings}"
+    tirith_default_summary: "security issue detected"
+    context:
+      single_query_clause: "single-query mode (-q) runs without a user present to approve it"
+      single_query_scope: "in single-query mode"
+      single_query_trust: "this single-query run is intentionally trusted"
+      cron_clause: "cron jobs run without a user present to approve it"
+      cron_scope: "in cron jobs"
+      cron_trust: "this cron profile is intentionally trusted"
+      unattended_clause: "this session runs on an unattended platform ({platform}) with no user present to approve it"
+      unattended_scope: "on unattended platforms"
+      unattended_trust: "sessions on this surface are intentionally trusted"
+    command:
+      notify_failed: "BLOCKED: Failed to send approval request to user. Do NOT retry."
+      gateway_refused: "BLOCKED: Command {reason}.{reason_addendum} The user has NOT consented to this action. Do NOT retry this command, do NOT rephrase it, and do NOT attempt the same outcome via a different command. Stop the current workflow and wait for the user to respond before taking any further destructive or irreversible action.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: User denied this command through the selected approval transport. The user has NOT consented to this action. Do NOT retry or attempt the same outcome through another route.{breaker}"
+      cli_timeout: "BLOCKED: Command timed out without user response. The user has NOT consented to this action. Do NOT retry this command, do NOT rephrase it, and do NOT attempt the same outcome via a different command. Stop the current workflow and wait for the user to respond before taking any further destructive or irreversible action. Silence is not consent.{breaker}"
+      cli_denied: "BLOCKED: User denied this command. The user has NOT consented to this action. Do NOT retry this command, do NOT rephrase it, and do NOT attempt the same outcome via a different command. Stop the current workflow and wait for the user to respond before taking any further destructive or irreversible action.{breaker}"
+    code:
+      notify_failed: "BLOCKED: Failed to send execute_code approval request to user. Do NOT retry."
+      gateway_refused: "BLOCKED: execute_code script {reason}.{reason_addendum} The user has NOT consented to running this code. Do NOT retry, do NOT rephrase the script, and do NOT attempt the same outcome via a different tool.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: User denied execute_code through the selected approval transport. The user has NOT consented."
+      cli_timeout: "BLOCKED: Action timed out without user response. The user has NOT consented to this action. Do NOT retry it, do NOT rephrase it, and do NOT attempt the same outcome via a different path. Silence is not consent.{breaker}"
+      cli_denied: "BLOCKED: User denied execute_code script execution (matched '{description}'). Do NOT retry — the user has explicitly rejected it.{breaker}"
+    action:
+      notify_failed: "BLOCKED: Failed to send approval request to user. Do NOT retry."
+      gateway_refused: "BLOCKED: Action {reason}.{reason_addendum} The user has NOT consented to this action. Do NOT retry it, do NOT rephrase it, and do NOT attempt the same outcome via a different path.{timeout_addendum}"
+      cli_timeout: "BLOCKED: Action timed out without user response. The user has NOT consented to this action. Do NOT retry it, do NOT rephrase it, and do NOT attempt the same outcome via a different path. Silence is not consent."
+      cli_denied: "BLOCKED: User denied this potentially dangerous action (matched '{description}'). Do NOT retry — the user has explicitly rejected it."
+    pending:
+      action_required: "⚠️ This action is potentially dangerous ({description}). Asking the user for approval.\n\n**Target:**\n```\n{command}\n```"
+      command_body: "**Command:**\n```\n{command}\n```"
+      pending: "⚠️ {description}. Asking the user for approval.\n\n{body}\n\nSTOP: do NOT re-run, rephrase, or re-issue this {noun} — each variant sends the user ANOTHER approval card. Wait for the user's decision; if this turn must end, report that approval is pending."
 
 gateway:
   approval_expired: "⚠️ Approval expired (agent is no longer waiting). Ask the agent to try again."

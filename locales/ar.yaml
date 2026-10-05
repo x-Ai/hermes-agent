@@ -1,3 +1,12 @@
+agent:
+  output_truncated_no_visible: "تم اقتطاع الاستجابة عند حد رموز الإخراج لدى المزوّد قبل إنتاج أي نص مرئي."
+
+auth:
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+
+provider:
+  custom_endpoint: "نقطة نهاية مخصصة"
+
 approval:
   dangerous_header: "⚠️  أمر خطير: {description}"
   choose_long: "      [o] مرة  |  [s] الجلسة  |  [a] دائمًا  |  [d] رفض"
@@ -41,6 +50,70 @@ approval:
     minute_other: "{count} دقائق"
     second_one: "{count} ثانية"
     second_other: "{count} ثوانٍ"
+  # رسائل الرفض التي تعيدها طبقة الموافقة إلى النموذج (tools/approval*.py). تحتفظ كل رسالة، بأي لغة،
+  # بالعلامة الإنجليزية ``BLOCKED`` في بدايتها: يعتمد عليها ضاغط السياق وأدوات النصوص المسجّلة.
+  blocked:
+    hardline: "BLOCKED (قاعدة صارمة): {description}. هذا الأمر مدرج في قائمة الحظر غير المشروطة ولا يمكن تنفيذه عبر الوكيل — ولا حتى مع --yolo أو /yolo أو approvals.mode=off أو وضع approve الخاص بـ cron. إذا كنت تحتاج فعلاً إلى تشغيله، فشغّله بنفسك في طرفية خارج الوكيل."
+    recovery_prefix: " الاستعادة: يُفعَّل هذا الحظر بسبب محتوى أوامر مضمّن ضخم أو يتعذّر تحليله (heredoc، أسطر مفردة عملاقة)، وليس بسبب العملية نفسها. "
+    recovery_saved: "حُفظ أمرك في {path} — راجعه ثم شغّل: terminal(command=\"bash {path}\"). لا تعِد المحاولة بشكل مضمّن."
+    recovery_write_file: "اكتب السكربت في ملف باستخدام write_file ثم شغّله: terminal(command=\"bash /path/script.sh\") أو \"python3 /path/script.py\". لا تعِد المحاولة بشكل مضمّن."
+    user_deny: "BLOCKED: يطابق هذا الأمر قاعدة الرفض المعرّفة من المستخدم '{pattern}' (approvals.deny في config.yaml). لا يمكن تنفيذه عبر الوكيل — ولا حتى مع --yolo أو /yolo أو approvals.mode=off. لا تعِد المحاولة ولا تعِد صياغة هذا الأمر؛ فقد منعه المستخدم صراحةً."
+    sudo_stdin: "BLOCKED: {description}. لا تمرّر كلمات المرور إلى 'sudo -S' عبر الأنبوب — فهذا مسار لهجمات القوة الغاشمة. اضبط SUDO_PASSWORD في ملف .env إذا كان الوكيل يحتاج إلى sudo بلا كلمة مرور، أو شغّل أمر sudo يدويًا في طرفيتك الخاصة."
+    smart_denied: "BLOCKED بواسطة الموافقة الذكية: {description}. قُيِّم الأمر على أنه خطير فعلاً. لا تعِد المحاولة.{breaker}"
+    breaker: " قاطع الدائرة: حظر مراجع الأمان {count} أمرًا متتاليًا. توقّف عن تجربة أشكال مختلفة لهذه العملية. أبلغ المستخدم بالعملية المحظورة واطلب منه إما تشغيلها يدويًا أو استخدام /approve."
+    no_human: "BLOCKED: الموافقة مطلوبة ({description}) لكن لا يوجد مستخدم تفاعلي ولا بوابة لمنحها."
+    no_human_plugin: "BLOCKED: {subject} لكن لا يوجد مستخدم تفاعلي ولا بوابة لمنحها. وضع أحد المكوّنات الإضافية علامة على هذا الإجراء لطلب تأكيد بشري."
+    tirith_unavailable: "BLOCKED: تعذّر استيراد ماسح الأمان Tirith وقيمة security.tirith_fail_open هي false، لذا لا يمكن السماح بهذا الأمر بصمت — كما أن {clause}. ابحث عن نهج بديل، أو ثبّت tirith، أو اضبط approvals.{cfg_key}: approve في config.yaml."
+    execute_code_unattended: "BLOCKED: يشغّل execute_code شيفرة Python محلية عشوائية (بما فيها استدعاءات subprocess التي تتجاوز فحوص الموافقة على سلاسل الصدفة). {clause}. استخدم الأدوات العادية بدلاً من ذلك، أو اضبط approvals.{cfg_key}: approve فقط إذا كان {trust}."
+    unattended: "BLOCKED: {subject} لكن {clause}. {advice} للسماح بـ{noun} {scope}، اضبط approvals.{cfg_key}: approve في config.yaml."
+    flagged_subject: "تم وضع علامة على الأمر بوصفه خطيرًا ({description})"
+    approval_required_subject: "الموافقة مطلوبة ({description})"
+    tool_subject: "تتطلّب الأداة '{tool}' موافقة ({description})"
+    advice_command: "ابحث عن نهج بديل يتجنّب هذا الأمر."
+    advice_action: "ابحث عن نهج بديل يتجنّب هذا الإجراء."
+    advice_generic: "ابحث عن نهج بديل."
+    noun_dangerous_commands: "الأوامر الخطيرة"
+    noun_flagged_actions: "الإجراءات الموسومة"
+    reason_timeout: "انتهت مهلته دون رد من المستخدم"
+    reason_denied: "رفضه المستخدم"
+    reason_withdrawn: "سُحبت الموافقة عليه قبل أن يجيب المستخدم ({cause})"
+    reason_undelivered: "لم تتم الموافقة عليه: تعذّر إيصال طلب الموافقة أو لم يُجَب عنه ({cause})"
+    reason_given: " السبب الذي ذكره المستخدم: \"{reason}\"."
+    silence: " الصمت ليس موافقة."
+    tirith_scan_summary: "فحص الأمان: {summary}"
+    tirith_scan_findings: "فحص الأمان — {findings}"
+    tirith_default_summary: "تم اكتشاف مشكلة أمنية"
+    context:
+      single_query_clause: "وضع الاستعلام المفرد (-q) يعمل دون وجود مستخدم يمكنه الموافقة"
+      single_query_scope: "في وضع الاستعلام المفرد"
+      single_query_trust: "تشغيل الاستعلام المفرد هذا موثوقًا به عمدًا"
+      cron_clause: "مهام cron تعمل دون وجود مستخدم يمكنه الموافقة"
+      cron_scope: "في مهام cron"
+      cron_trust: "ملف تعريف cron هذا موثوقًا به عمدًا"
+      unattended_clause: "هذه الجلسة تعمل على منصة غير مراقبة ({platform}) دون وجود مستخدم يمكنه الموافقة"
+      unattended_scope: "على المنصات غير المراقبة"
+      unattended_trust: "جلسات هذا السطح موثوقًا بها عمدًا"
+    command:
+      notify_failed: "BLOCKED: تعذّر إرسال طلب الموافقة إلى المستخدم. لا تعِد المحاولة."
+      gateway_refused: "BLOCKED: الأمر {reason}.{reason_addendum} لم يوافق المستخدم على هذا الإجراء. لا تعِد محاولة هذا الأمر، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها بأمر مختلف. أوقف سير العمل الحالي وانتظر رد المستخدم قبل اتخاذ أي إجراء إضافي مدمّر أو لا رجعة فيه.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: رفض المستخدم هذا الأمر عبر قناة الموافقة المحددة. لم يوافق المستخدم على هذا الإجراء. لا تعِد المحاولة ولا تحاول الوصول إلى النتيجة نفسها عبر مسار آخر.{breaker}"
+      cli_timeout: "BLOCKED: انتهت مهلة الأمر دون رد من المستخدم. لم يوافق المستخدم على هذا الإجراء. لا تعِد محاولة هذا الأمر، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها بأمر مختلف. أوقف سير العمل الحالي وانتظر رد المستخدم قبل اتخاذ أي إجراء إضافي مدمّر أو لا رجعة فيه. الصمت ليس موافقة.{breaker}"
+      cli_denied: "BLOCKED: رفض المستخدم هذا الأمر. لم يوافق المستخدم على هذا الإجراء. لا تعِد محاولة هذا الأمر، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها بأمر مختلف. أوقف سير العمل الحالي وانتظر رد المستخدم قبل اتخاذ أي إجراء إضافي مدمّر أو لا رجعة فيه.{breaker}"
+    code:
+      notify_failed: "BLOCKED: تعذّر إرسال طلب الموافقة على execute_code إلى المستخدم. لا تعِد المحاولة."
+      gateway_refused: "BLOCKED: سكربت execute_code {reason}.{reason_addendum} لم يوافق المستخدم على تشغيل هذه الشيفرة. لا تعِد المحاولة، ولا تعِد صياغة السكربت، ولا تحاول الوصول إلى النتيجة نفسها بأداة مختلفة.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: رفض المستخدم execute_code عبر قناة الموافقة المحددة. لم يوافق المستخدم."
+      cli_timeout: "BLOCKED: انتهت مهلة الإجراء دون رد من المستخدم. لم يوافق المستخدم على هذا الإجراء. لا تعِد المحاولة، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها عبر مسار آخر. الصمت ليس موافقة.{breaker}"
+      cli_denied: "BLOCKED: رفض المستخدم تنفيذ سكربت execute_code (تطابق: '{description}'). لا تعِد المحاولة — فقد رفضه المستخدم صراحةً.{breaker}"
+    action:
+      notify_failed: "BLOCKED: تعذّر إرسال طلب الموافقة إلى المستخدم. لا تعِد المحاولة."
+      gateway_refused: "BLOCKED: الإجراء {reason}.{reason_addendum} لم يوافق المستخدم على هذا الإجراء. لا تعِد المحاولة، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها عبر مسار آخر.{timeout_addendum}"
+      cli_timeout: "BLOCKED: انتهت مهلة الإجراء دون رد من المستخدم. لم يوافق المستخدم على هذا الإجراء. لا تعِد المحاولة، ولا تعِد صياغته، ولا تحاول الوصول إلى النتيجة نفسها عبر مسار آخر. الصمت ليس موافقة."
+      cli_denied: "BLOCKED: رفض المستخدم هذا الإجراء الذي قد يكون خطيرًا (تطابق: '{description}'). لا تعِد المحاولة — فقد رفضه المستخدم صراحةً."
+    pending:
+      action_required: "⚠️ قد يكون هذا الإجراء خطيرًا ({description}). جارٍ طلب موافقة المستخدم.\n\n**الهدف:**\n```\n{command}\n```"
+      command_body: "**الأمر:**\n```\n{command}\n```"
+      pending: "⚠️ {description}. جارٍ طلب موافقة المستخدم.\n\n{body}\n\nتوقّف: لا تعِد تشغيل هذا الطلب ({noun}) ولا تعِد صياغته ولا تعِد إرساله — فكل صيغة ترسل إلى المستخدم بطاقة موافقة أخرى. انتظر قرار المستخدم؛ وإذا كان لا بد من إنهاء هذا الدور، فأبلغ بأن الموافقة ما زالت معلّقة."
 gateway:
   approval_expired: "⚠️ انتهت صلاحية الموافقة (لم يعد الوكيل ينتظر). اطلب من الوكيل المحاولة مرة أخرى."
   draining: "⏳ جارٍ إنهاء {count} وكيل نشط قبل إعادة التشغيل..."

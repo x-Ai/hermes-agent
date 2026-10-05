@@ -1,3 +1,12 @@
+agent:
+  output_truncated_no_visible: "Die Antwort wurde am Ausgabetoken-Limit des Anbieters abgeschnitten, bevor sichtbarer Text erzeugt wurde."
+
+auth:
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+
+provider:
+  custom_endpoint: "Benutzerdefinierter Endpunkt"
+
 approval:
   dangerous_header: "⚠️  GEFÄHRLICHER BEFEHL: {description}"
   choose_long: "      [o]einmal  |  [s]sitzung  |  [a]immer  |  [d]ablehnen"
@@ -41,6 +50,71 @@ approval:
     minute_other: "{count} Minuten"
     second_one: "{count} Sekunde"
     second_other: "{count} Sekunden"
+  # Ablehnungen, die die Genehmigungsschicht dem Modell zurückgibt (tools/approval*.py). Jede Meldung
+  # behält in jeder Sprache die englische Markierung ``BLOCKED`` am Anfang: der Kontextkompressor und
+  # die Transkript-Werkzeuge erkennen sie daran.
+  blocked:
+    hardline: "BLOCKED (Hardline): {description}. Dieser Befehl steht auf der unbedingten Sperrliste und kann nicht über den Agenten ausgeführt werden — auch nicht mit --yolo, /yolo, approvals.mode=off oder dem cron-approve-Modus. Wenn Sie ihn wirklich ausführen müssen, führen Sie ihn selbst in einem Terminal außerhalb des Agenten aus."
+    recovery_prefix: " WIEDERHERSTELLUNG: Diese Sperre greift bei übergroßen oder nicht parsbaren Inline-Befehlsinhalten (Heredocs, riesige Einzeiler), nicht bei der Operation selbst. "
+    recovery_saved: "Ihr Befehl wurde unter {path} gespeichert — prüfen Sie ihn und führen Sie dann aus: terminal(command=\"bash {path}\"). Nicht inline erneut versuchen."
+    recovery_write_file: "Schreiben Sie das Skript mit write_file in eine Datei und führen Sie es dann aus: terminal(command=\"bash /path/script.sh\") oder \"python3 /path/script.py\". Nicht inline erneut versuchen."
+    user_deny: "BLOCKED: Dieser Befehl passt auf die benutzerdefinierte Verbotsregel '{pattern}' (approvals.deny in config.yaml). Er kann nicht über den Agenten ausgeführt werden — auch nicht mit --yolo, /yolo oder approvals.mode=off. Diesen Befehl NICHT erneut versuchen oder umformulieren; der Nutzer hat ihn ausdrücklich verboten."
+    sudo_stdin: "BLOCKED: {description}. Leiten Sie keine Passwörter per Pipe an 'sudo -S' — das ist ein Brute-Force-Angriffsvektor. Setzen Sie SUDO_PASSWORD in Ihrer .env-Datei, wenn der Agent passwortloses sudo benötigt, oder führen Sie den sudo-Befehl manuell in Ihrem eigenen Terminal aus."
+    smart_denied: "BLOCKED durch Smart Approval: {description}. Der Befehl wurde als tatsächlich gefährlich eingestuft. NICHT erneut versuchen.{breaker}"
+    breaker: " SICHERUNG AUSGELÖST: {count} aufeinanderfolgende Befehle wurden vom Sicherheitsprüfer blockiert. HÖREN SIE AUF, Varianten dieser Operation zu versuchen. Melden Sie die blockierte Operation dem Nutzer und bitten Sie ihn, sie entweder manuell auszuführen oder /approve zu verwenden."
+    no_human: "BLOCKED: Genehmigung erforderlich ({description}), aber kein interaktiver Nutzer und kein Gateway ist anwesend, um sie zu erteilen."
+    no_human_plugin: "BLOCKED: {subject}, aber kein interaktiver Nutzer und kein Gateway ist anwesend, um sie zu erteilen. Ein Plugin hat diese Aktion zur menschlichen Bestätigung markiert."
+    tirith_unavailable: "BLOCKED: Der Tirith-Sicherheitsscanner konnte nicht importiert werden und security.tirith_fail_open ist false, daher kann dieser Befehl nicht stillschweigend erlaubt werden — und {clause}. Suchen Sie einen anderen Weg, installieren Sie tirith oder setzen Sie approvals.{cfg_key}: approve in config.yaml."
+    execute_code_unattended: "BLOCKED: execute_code führt beliebiges lokales Python aus (einschließlich subprocess-Aufrufen, die die Genehmigungsprüfung von Shell-Strings umgehen). {clause}. Verwenden Sie stattdessen normale Werkzeuge oder setzen Sie approvals.{cfg_key}: approve nur, wenn {trust}."
+    unattended: "BLOCKED: {subject}, aber {clause}. {advice} Um {noun} {scope} zu erlauben, setzen Sie approvals.{cfg_key}: approve in config.yaml."
+    flagged_subject: "Befehl als gefährlich eingestuft ({description})"
+    approval_required_subject: "Genehmigung erforderlich ({description})"
+    tool_subject: "Werkzeug '{tool}' benötigt eine Genehmigung ({description})"
+    advice_command: "Suchen Sie einen anderen Weg, der diesen Befehl vermeidet."
+    advice_action: "Suchen Sie einen anderen Weg, der diese Aktion vermeidet."
+    advice_generic: "Suchen Sie einen anderen Weg."
+    noun_dangerous_commands: "gefährliche Befehle"
+    noun_flagged_actions: "markierte Aktionen"
+    reason_timeout: "ist ohne Antwort des Nutzers abgelaufen"
+    reason_denied: "wurde vom Nutzer abgelehnt"
+    reason_withdrawn: "wurde zurückgezogen, bevor der Nutzer antwortete ({cause})"
+    reason_undelivered: "wurde nicht genehmigt: Die Genehmigungsabfrage konnte nicht zugestellt oder nicht beantwortet werden ({cause})"
+    reason_given: " Vom Nutzer genannter Grund: \"{reason}\"."
+    silence: " Schweigen ist keine Zustimmung."
+    tirith_scan_summary: "Sicherheitsscan: {summary}"
+    tirith_scan_findings: "Sicherheitsscan — {findings}"
+    tirith_default_summary: "Sicherheitsproblem erkannt"
+    context:
+      single_query_clause: "der Einzelabfrage-Modus (-q) läuft ohne anwesenden Nutzer, der genehmigen könnte"
+      single_query_scope: "im Einzelabfrage-Modus"
+      single_query_trust: "dieser Einzelabfrage-Lauf absichtlich als vertrauenswürdig gilt"
+      cron_clause: "cron-Jobs laufen ohne anwesenden Nutzer, der genehmigen könnte"
+      cron_scope: "in cron-Jobs"
+      cron_trust: "dieses cron-Profil absichtlich als vertrauenswürdig gilt"
+      unattended_clause: "diese Sitzung läuft auf einer unbeaufsichtigten Plattform ({platform}) ohne anwesenden Nutzer, der genehmigen könnte"
+      unattended_scope: "auf unbeaufsichtigten Plattformen"
+      unattended_trust: "Sitzungen auf dieser Oberfläche absichtlich als vertrauenswürdig gelten"
+    command:
+      notify_failed: "BLOCKED: Die Genehmigungsanfrage konnte nicht an den Nutzer gesendet werden. NICHT erneut versuchen."
+      gateway_refused: "BLOCKED: Der Befehl {reason}.{reason_addendum} Der Nutzer hat dieser Aktion NICHT zugestimmt. Diesen Befehl NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Befehl anstreben. Stoppen Sie den aktuellen Arbeitsablauf und warten Sie auf die Antwort des Nutzers, bevor Sie weitere destruktive oder unumkehrbare Aktionen ausführen.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: Der Nutzer hat diesen Befehl über den gewählten Genehmigungskanal abgelehnt. Der Nutzer hat dieser Aktion NICHT zugestimmt. NICHT erneut versuchen und dasselbe Ergebnis NICHT über einen anderen Weg anstreben.{breaker}"
+      cli_timeout: "BLOCKED: Der Befehl ist ohne Antwort des Nutzers abgelaufen. Der Nutzer hat dieser Aktion NICHT zugestimmt. Diesen Befehl NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Befehl anstreben. Stoppen Sie den aktuellen Arbeitsablauf und warten Sie auf die Antwort des Nutzers, bevor Sie weitere destruktive oder unumkehrbare Aktionen ausführen. Schweigen ist keine Zustimmung.{breaker}"
+      cli_denied: "BLOCKED: Der Nutzer hat diesen Befehl abgelehnt. Der Nutzer hat dieser Aktion NICHT zugestimmt. Diesen Befehl NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Befehl anstreben. Stoppen Sie den aktuellen Arbeitsablauf und warten Sie auf die Antwort des Nutzers, bevor Sie weitere destruktive oder unumkehrbare Aktionen ausführen.{breaker}"
+    code:
+      notify_failed: "BLOCKED: Die execute_code-Genehmigungsanfrage konnte nicht an den Nutzer gesendet werden. NICHT erneut versuchen."
+      gateway_refused: "BLOCKED: Das execute_code-Skript {reason}.{reason_addendum} Der Nutzer hat der Ausführung dieses Codes NICHT zugestimmt. NICHT erneut versuchen, das Skript NICHT umformulieren und NICHT dasselbe Ergebnis über ein anderes Werkzeug anstreben.{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED: Der Nutzer hat execute_code über den gewählten Genehmigungskanal abgelehnt. Der Nutzer hat NICHT zugestimmt."
+      cli_timeout: "BLOCKED: Die Aktion ist ohne Antwort des Nutzers abgelaufen. Der Nutzer hat dieser Aktion NICHT zugestimmt. NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Weg anstreben. Schweigen ist keine Zustimmung.{breaker}"
+      cli_denied: "BLOCKED: Der Nutzer hat die Ausführung des execute_code-Skripts abgelehnt (Treffer: '{description}'). NICHT erneut versuchen — der Nutzer hat sie ausdrücklich abgelehnt.{breaker}"
+    action:
+      notify_failed: "BLOCKED: Die Genehmigungsanfrage konnte nicht an den Nutzer gesendet werden. NICHT erneut versuchen."
+      gateway_refused: "BLOCKED: Die Aktion {reason}.{reason_addendum} Der Nutzer hat dieser Aktion NICHT zugestimmt. NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Weg anstreben.{timeout_addendum}"
+      cli_timeout: "BLOCKED: Die Aktion ist ohne Antwort des Nutzers abgelaufen. Der Nutzer hat dieser Aktion NICHT zugestimmt. NICHT erneut versuchen, NICHT umformulieren und NICHT dasselbe Ergebnis über einen anderen Weg anstreben. Schweigen ist keine Zustimmung."
+      cli_denied: "BLOCKED: Der Nutzer hat diese potenziell gefährliche Aktion abgelehnt (Treffer: '{description}'). NICHT erneut versuchen — der Nutzer hat sie ausdrücklich abgelehnt."
+    pending:
+      action_required: "⚠️ Diese Aktion ist potenziell gefährlich ({description}). Der Nutzer wird um Genehmigung gebeten.\n\n**Ziel:**\n```\n{command}\n```"
+      command_body: "**Befehl:**\n```\n{command}\n```"
+      pending: "⚠️ {description}. Der Nutzer wird um Genehmigung gebeten.\n\n{body}\n\nSTOPP: {noun} NICHT erneut ausführen, umformulieren oder erneut absetzen — jede Variante schickt dem Nutzer EINE WEITERE Genehmigungskarte. Warten Sie auf die Entscheidung des Nutzers; wenn dieser Zug enden muss, melden Sie, dass die Genehmigung aussteht."
 gateway:
   approval_expired: "⚠️ Genehmigung abgelaufen (Agent wartet nicht mehr). Bitten Sie den Agenten, es erneut zu versuchen."
   draining: "⏳ Warte auf {count} aktive(n) Agent(en) vor dem Neustart..."

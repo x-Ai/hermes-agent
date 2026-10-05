@@ -1,3 +1,12 @@
+agent:
+  output_truncated_no_visible: "回應在產生可見文字之前達到提供方的輸出 Token 上限，已被截斷。"
+
+auth:
+  no_provider_configured: "Hermes 尚未連接任何 AI 提供方。執行 `hermes model` 選擇一個（免費的 Nous 方案無需 API 金鑰），在聊天中輸入 `/login`，或用 `hermes auth add <provider>` 新增金鑰。（進階：將 OPENROUTER_API_KEY 等 API 金鑰寫入 {home}/.env。）"
+
+provider:
+  custom_endpoint: "自訂端點"
+
 approval:
   dangerous_header: "⚠️  危險指令： {description}"
   choose_long: "      [o]僅此一次  |  [s]本次工作階段  |  [a]永久允許  |  [d]拒絕"
@@ -41,6 +50,69 @@ approval:
     minute_other: "{count} 分鐘"
     second_one: "{count} 秒"
     second_other: "{count} 秒"
+  # 審批層回傳給模型的拒絕訊息（tools/approval*.py）。每則訊息開頭都保留英文標記 BLOCKED：上下文壓縮器與記錄工具依賴它。
+  blocked:
+    hardline: "BLOCKED（硬性封鎖）：{description}。此指令位於無條件封鎖清單中，無法透過代理執行——即使使用 --yolo、/yolo、approvals.mode=off 或 cron 的 approve 模式也不行。如果確實需要執行它，請在代理之外的終端機中自行執行。"
+    recovery_prefix: " 復原方式：此封鎖針對的是過大或無法解析的內嵌指令內容（heredoc、超長單行指令），並非針對操作本身。"
+    recovery_saved: "你的指令已儲存到 {path}——請先檢查，然後執行：terminal(command=\"bash {path}\")。不要再以內嵌方式重試。"
+    recovery_write_file: "請先用 write_file 把指令碼寫入檔案，然後執行：terminal(command=\"bash /path/script.sh\") 或 \"python3 /path/script.py\"。不要再以內嵌方式重試。"
+    user_deny: "BLOCKED：此指令符合使用者自訂的拒絕規則 '{pattern}'（config.yaml 中的 approvals.deny）。無法透過代理執行——即使使用 --yolo、/yolo 或 approvals.mode=off 也不行。不要重試或改寫此指令；使用者已明確禁止它。"
+    sudo_stdin: "BLOCKED：{description}。不要把密碼透過管線傳給 'sudo -S'——這是一種暴力破解攻擊途徑。如果代理需要免密碼 sudo，請在 .env 檔案中設定 SUDO_PASSWORD，或在你自己的終端機中手動執行該 sudo 指令。"
+    smart_denied: "BLOCKED（智慧審批）：{description}。該指令被評估為確實危險。不要重試。{breaker}"
+    breaker: "斷路器已觸發：安全審查器已連續封鎖 {count} 個指令。停止嘗試此操作的各種變體。向使用者回報被封鎖的操作，並請其手動執行或使用 /approve。"
+    no_human: "BLOCKED：需要批准（{description}），但目前沒有可以批准的互動式使用者或閘道。"
+    no_human_plugin: "BLOCKED：{subject}，但目前沒有可以批准的互動式使用者或閘道。有外掛將此操作標記為需要人工確認。"
+    tirith_unavailable: "BLOCKED：無法匯入 Tirith 安全掃描器，且 security.tirith_fail_open 為 false，因此不能靜默放行此指令——而且{clause}。請另尋方案、安裝 tirith，或在 config.yaml 中設定 approvals.{cfg_key}: approve。"
+    execute_code_unattended: "BLOCKED：execute_code 會執行任意本機 Python（包括繞過 shell 字串審批檢查的 subprocess 呼叫）。{clause}。請改用一般工具，或僅在{trust}時設定 approvals.{cfg_key}: approve。"
+    unattended: "BLOCKED：{subject}，但{clause}。{advice}如需{scope}允許{noun}，請在 config.yaml 中設定 approvals.{cfg_key}: approve。"
+    flagged_subject: "指令被標記為危險（{description}）"
+    approval_required_subject: "需要批准（{description}）"
+    tool_subject: "工具 '{tool}' 需要批准（{description}）"
+    advice_command: "請另尋不需要此指令的方案。"
+    advice_action: "請另尋不需要此操作的方案。"
+    advice_generic: "請另尋其他方案。"
+    noun_dangerous_commands: "危險指令"
+    noun_flagged_actions: "被標記的操作"
+    reason_timeout: "逾時且使用者未回應"
+    reason_denied: "被使用者拒絕"
+    reason_withdrawn: "的批准在使用者回答之前被撤回（{cause}）"
+    reason_undelivered: "未獲批准：批准提示無法送達或未被回答（{cause}）"
+    reason_given: "使用者給出的理由：\"{reason}\"。"
+    silence: "沉默不代表同意。"
+    tirith_scan_summary: "安全掃描：{summary}"
+    tirith_scan_findings: "安全掃描——{findings}"
+    tirith_default_summary: "偵測到安全問題"
+    context:
+      single_query_clause: "單次查詢模式（-q）執行時沒有使用者在場批准"
+      single_query_scope: "在單次查詢模式下"
+      single_query_trust: "此單次查詢執行確實可信"
+      cron_clause: "cron 工作執行時沒有使用者在場批准"
+      cron_scope: "在 cron 工作中"
+      cron_trust: "此 cron 設定檔確實可信"
+      unattended_clause: "此工作階段在無人看管的平台（{platform}）上執行，沒有使用者在場批准"
+      unattended_scope: "在無人看管的平台上"
+      unattended_trust: "此平台上的工作階段確實可信"
+    command:
+      notify_failed: "BLOCKED：向使用者傳送批准請求失敗。不要重試。"
+      gateway_refused: "BLOCKED：指令{reason}。{reason_addendum}使用者尚未同意此操作。不要重試此指令，不要改寫它，也不要透過其他指令達成同樣的結果。停止目前的工作流程，等待使用者回應後再進行任何進一步的破壞性或不可逆操作。{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED：使用者透過所選的批准管道拒絕了此指令。使用者尚未同意此操作。不要重試，也不要透過其他途徑達成同樣的結果。{breaker}"
+      cli_timeout: "BLOCKED：指令逾時且使用者未回應。使用者尚未同意此操作。不要重試此指令，不要改寫它，也不要透過其他指令達成同樣的結果。停止目前的工作流程，等待使用者回應後再進行任何進一步的破壞性或不可逆操作。沉默不代表同意。{breaker}"
+      cli_denied: "BLOCKED：使用者拒絕了此指令。使用者尚未同意此操作。不要重試此指令，不要改寫它，也不要透過其他指令達成同樣的結果。停止目前的工作流程，等待使用者回應後再進行任何進一步的破壞性或不可逆操作。{breaker}"
+    code:
+      notify_failed: "BLOCKED：向使用者傳送 execute_code 批准請求失敗。不要重試。"
+      gateway_refused: "BLOCKED：execute_code 指令碼{reason}。{reason_addendum}使用者尚未同意執行這段程式碼。不要重試，不要改寫指令碼，也不要透過其他工具達成同樣的結果。{timeout_addendum}{breaker}"
+      transport_denied: "BLOCKED：使用者透過所選的批准管道拒絕了 execute_code。使用者尚未同意。"
+      cli_timeout: "BLOCKED：操作逾時且使用者未回應。使用者尚未同意此操作。不要重試，不要改寫，也不要透過其他途徑達成同樣的結果。沉默不代表同意。{breaker}"
+      cli_denied: "BLOCKED：使用者拒絕執行 execute_code 指令碼（符合 '{description}'）。不要重試——使用者已明確拒絕。{breaker}"
+    action:
+      notify_failed: "BLOCKED：向使用者傳送批准請求失敗。不要重試。"
+      gateway_refused: "BLOCKED：操作{reason}。{reason_addendum}使用者尚未同意此操作。不要重試，不要改寫，也不要透過其他途徑達成同樣的結果。{timeout_addendum}"
+      cli_timeout: "BLOCKED：操作逾時且使用者未回應。使用者尚未同意此操作。不要重試，不要改寫，也不要透過其他途徑達成同樣的結果。沉默不代表同意。"
+      cli_denied: "BLOCKED：使用者拒絕了這個具有潛在危險的操作（符合 '{description}'）。不要重試——使用者已明確拒絕。"
+    pending:
+      action_required: "⚠️ 此操作具有潛在危險（{description}）。正在請求使用者批准。\n\n**目標：**\n```\n{command}\n```"
+      command_body: "**指令：**\n```\n{command}\n```"
+      pending: "⚠️ {description}。正在請求使用者批准。\n\n{body}\n\n停止：不要重新執行、改寫或重新發出此{noun}——每個變體都會再向使用者傳送一張批准卡片。請等待使用者決定；如果本輪必須結束，請回報批准仍在等待中。"
 gateway:
   approval_expired: "⚠️ 批准已逾期（代理不再等待）。請讓代理重試。"
   draining: "⏳ 正在等待 {count} 個活躍代理結束後重新啟動..."
