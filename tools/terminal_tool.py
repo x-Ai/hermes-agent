@@ -1292,8 +1292,11 @@ def _run_approval_guards(
             f"Command denied: {desc}. "
             "Use the approval prompt to allow it, or rephrase the command."
         )
+        # ``user_consent`` rides along so the context compressor can keep "the user did NOT consent"
+        # in its summary whatever language the message is written in.
         raise _Rejected(_error_json(approval.get("message", fallback_msg), status="blocked",
-                                    **({"user_summary": approval["user_summary"]} if approval.get("user_summary") else {})))
+                                    **({"user_summary": approval["user_summary"]} if approval.get("user_summary") else {}),
+                                    **({"user_consent": False} if approval.get("user_consent") is False else {})))
     desc = approval.get("description", "flagged as dangerous")
     if approval.get("user_approved"):
         return _ApprovalVerdict(
