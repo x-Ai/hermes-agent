@@ -247,18 +247,9 @@ def _plugin_profile_pdef(name: str) -> Optional[ProviderDef]:
                        auth_type=prof.auth_type or "api_key", source="plugin-profile")
 
 
-def custom_endpoint_label() -> str:
-    """Return the localized display label for the bare ``custom`` provider."""
-    from agent.i18n import t
-
-    return t("provider.custom_endpoint")
-
-
 def get_label(provider_id: str) -> str:
     """Human-readable display name: label override, else models.dev name, else the id."""
     canonical = normalize_provider(provider_id)
-    if canonical == "custom":
-        return custom_endpoint_label()
     if canonical in _LABEL_OVERRIDES:
         return _LABEL_OVERRIDES[canonical]
     pdef = get_provider(canonical)

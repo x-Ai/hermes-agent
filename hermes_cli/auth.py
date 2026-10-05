@@ -1720,12 +1720,12 @@ def resolve_provider(
             return "bedrock"
     except ImportError:
         pass  # boto3 not installed
-    from agent.i18n import t as _i18n_t
     from hermes_constants import display_hermes_home
-    # Localized display prose (locales/*.yaml, English fallback); the stable machine-readable
-    # ``code`` is what programmatic consumers match on.
     raise AuthError(
-        _i18n_t("auth.no_provider_configured", home=display_hermes_home()),
+        "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free "
+        "Nous tier needs no API key), type `/login` in chat, or add a key with "
+        f"`hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in "
+        f"{display_hermes_home()}/.env.)",
         code="no_provider_configured")
 
 

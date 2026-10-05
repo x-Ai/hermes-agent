@@ -1,12 +1,3 @@
-agent:
-  output_truncated_no_visible: "Teascadh an freagra ag teorainn comharthaí aschuir an tsoláthraí sular táirgeadh téacs infheicthe."
-
-auth:
-  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
-
-provider:
-  custom_endpoint: "Críochphointe saincheaptha"
-
 approval:
   dangerous_header: "⚠️  ORDÚ CONTÚIRTEACH: {description}"
   choose_long: "      [o]uair amháin  |  [s]eisiún  |  [a]i gcónaí  |  [d]iúltaigh"

@@ -6,8 +6,9 @@ import { translateNow } from '@/i18n'
 // but …" form, and both arrive wrapped in `agent_init_failed_message()`. Matching is by the
 // noun phrase, never the surrounding wording, and deliberately NOT by "provider configured"
 // alone: the auxiliary-model warning says "No auxiliary LLM provider configured" and is not a
-// provider-setup failure. The tail mirrors the backend's `auth.no_provider_configured` copy
-// (locales/*.yaml) in every locale the gateway may already have localized it to.
+// provider-setup failure. The CJK alternatives at the tail match the prose an OLDER fork backend
+// localized (the backend no longer translates it; the desktop and the runtime update on
+// separate clocks, so a stale backend can still send them).
 const PROVIDER_SETUP_ERROR_RE =
   /No (?:inference|Hermes|LLM) provider(?: is)? configured|Hermes is not connected to any AI provider|no_provider_configured|set an API key|is set in config\.yaml but no (?:API key|credentials)|尚未连接任何 AI 提供方|尚未連接任何 AI 提供方|AI プロバイダーにも接続されていません/i
 

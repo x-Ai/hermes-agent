@@ -1,20 +1,3 @@
-agent:
-  output_truncated_no_visible: "Response truncated at the provider's output-token limit before visible text was produced."
-
-provider:
-  # Display label for the bare "custom" provider (a user-configured endpoint
-  # that is not a named provider).  Provider names and model IDs are
-  # identifiers and stay untranslated; this label is prose, not an identifier.
-  custom_endpoint: "Custom endpoint"
-
-auth:
-  # Raised when provider resolution exhausts every source (config, env keys,
-  # OAuth logins, Bedrock).  The paired machine-readable code
-  # `no_provider_configured` stays on the exception for clients to match on;
-  # this text is display prose.  Command names, env-var names, and paths are
-  # identifiers and stay untranslated in every locale.
-  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
-
 approval:
   dangerous_header: "⚠️  DANGEROUS COMMAND: {description}"
   choose_long: "      [o]nce  |  [s]ession  |  [a]lways  |  [d]eny"

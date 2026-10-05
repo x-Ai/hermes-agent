@@ -90,9 +90,8 @@ def _bare_custom_provider_def(current_base_url: str) -> Optional[ProviderDef]:
     base_url = _clean(current_base_url)
     if not base_url:
         return None
-    from hermes_cli.providers import custom_endpoint_label
     return ProviderDef(
-        id="custom", name=custom_endpoint_label(), transport="openai_chat", api_key_env_vars=(),
+        id="custom", name="Custom endpoint", transport="openai_chat", api_key_env_vars=(),
         base_url=base_url, is_aggregator=False, auth_type="api_key", source="model-config")
 
 
@@ -1406,8 +1405,7 @@ def _route_from_model_input(st: _Switch) -> Optional[ModelSwitchResult]:
 def _switch_provider_label(st: _Switch) -> str:
     label = get_label(st.target_provider)
     if st.target_provider == "custom" and st.current_base_url:
-        from hermes_cli.providers import custom_endpoint_label
-        label = custom_endpoint_label()
+        label = "Custom endpoint"
     if st.target_provider.startswith("custom:"):
         custom_pdef = resolve_provider_full(st.target_provider, st.user_providers, st.custom_providers)
         if custom_pdef is not None:

@@ -1091,10 +1091,8 @@ def _lap_bare_custom_row(b: _PickerBuild, custom_providers: list | None) -> None
             models = discovered
     except Exception:
         pass
-    from hermes_cli.providers import custom_endpoint_label
-
     b.add_endpoint_row(
-        "custom", custom_endpoint_label(), api_url, models, True, native_catalog_empty,
+        "custom", "Custom endpoint", api_url, models, True, native_catalog_empty,
         source="model-config", shown=_cap_models(models, b.max_models))
 
 
