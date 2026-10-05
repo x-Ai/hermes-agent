@@ -670,7 +670,7 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
       extractedError ||
       envelopeErrorText(part.toolResultMetadata) ||
       (typeof part.result === 'string' && part.result.trim()) ||
-      'Tool returned an error.'
+      translateNow('assistant.tool.returnedError')
     )
   }
 
@@ -679,11 +679,16 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   }
 
   if (result.success === false || result.ok === false) {
-    return firstStringField(result, ['message', 'reason', 'detail']) || 'Tool returned success=false.'
+    return (
+      firstStringField(result, ['message', 'reason', 'detail']) || translateNow('assistant.tool.returnedSuccessFalse')
+    )
   }
 
   if (typeof result.status === 'string' && /^(error|failed|failure|fatal|exception)$/i.test(result.status.trim())) {
-    return firstStringField(result, ['message', 'reason', 'detail']) || `Tool returned status "${result.status}".`
+    return (
+      firstStringField(result, ['message', 'reason', 'detail']) ||
+      translateNow('assistant.tool.returnedStatus', result.status)
+    )
   }
 
   // A non-zero exit code alone is a weak failure signal: grep returns 1 on
@@ -698,7 +703,7 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
   if (exit !== null && exit !== 0) {
     const hasOutput = Boolean(firstStringField(result, ['output', 'stdout', 'stderr', 'output_preview'])?.trim())
 
-    return hasOutput ? '' : `Command failed with exit code ${exit}.`
+    return hasOutput ? '' : translateNow('assistant.tool.commandFailedWithExitCode', exit)
   }
 
   return ''
@@ -734,7 +739,9 @@ function toolStatus(part: ToolPart, resultRecord: Record<string, unknown>): Tool
     return 'notice'
   }
 
-  if (part.toolName === 'terminal' && error === 'Command failed with exit code 1.') {
+  // Compared against the same catalog sentence toolErrorText produced, so the
+  // exit-1 softening holds in every UI language.
+  if (part.toolName === 'terminal' && error === translateNow('assistant.tool.commandFailedWithExitCode', 1)) {
     return 'notice'
   }
 

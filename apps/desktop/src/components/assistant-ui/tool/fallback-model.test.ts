@@ -90,6 +90,41 @@ describe('buildToolView terminal exit-code status', () => {
   })
 })
 
+describe('buildToolView error text follows the UI language', () => {
+  const terminal = (result: Record<string, unknown>) => buildToolView(part({ result, toolName: 'terminal' }), '')
+
+  // The sentence lands in `detail`, the expanded body of the tool row.
+  it('names a bare exit-code failure in the UI language', () => {
+    setRuntimeI18nLocale('zh')
+    const view = terminal({ exit_code: 255, output: '' })
+
+    expect(view.status).toBe('error')
+    expect(view.detail).toContain('命令执行失败，退出码为 255')
+    expect(view.detail).not.toContain('Command failed')
+  })
+
+  it('still softens the empty exit-1 case when the sentence is not English', () => {
+    setRuntimeI18nLocale('zh')
+    const view = terminal({ exit_code: 1, output: '' })
+
+    expect(view.status).toBe('notice')
+    expect(view.detail).toContain('命令执行失败，退出码为 1')
+  })
+
+  it('translates the generic tool-error sentences', () => {
+    setRuntimeI18nLocale('zh')
+
+    expect(buildToolView(part({ isError: true, result: {} }), '').detail).toContain('工具返回了错误')
+    expect(buildToolView(part({ result: { success: false } }), '').detail).toContain('工具返回 success=false')
+    expect(buildToolView(part({ result: { status: 'failed' } }), '').detail).toContain('工具返回了"failed"状态')
+  })
+
+  it('keeps the English sentences under the default locale', () => {
+    expect(terminal({ exit_code: 255, output: '' }).detail).toContain('Command failed with exit code 255.')
+    expect(buildToolView(part({ isError: true, result: {} }), '').detail).toContain('Tool returned an error.')
+  })
+})
+
 describe('buildToolView error confidence', () => {
   it('keeps routine misses and returned diagnostic data out of destructive status', () => {
     const cases: Array<[Partial<ToolPart>, ReturnType<typeof buildToolView>['status']]> = [

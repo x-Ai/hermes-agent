@@ -6213,7 +6213,7 @@ export const ruOverrides = {
       returnedError: 'Инструмент вернул ошибку.',
       returnedSuccessFalse: 'Инструмент возвращает успех = ложный.',
       returnedStatus: status => `Инструмент вернул статус"${status}".`,
-      commandFailedWithExitCode: exitCode => `Команда завершилась с кодом выхода${exitCode}.`,
+      commandFailedWithExitCode: exitCode => `Команда завершилась с кодом выхода ${exitCode}.`,
       sessionKernelTimedOut: (timeoutSeconds, remote) =>
         `Cell timed out after ${timeoutSeconds}s; the ${remote ? 'remote ' : ''}ядро сеанса было убито, а его состояние потеряно. Следующий вызов execution code запускает новое ядро.`,
       clarifyErrors: {
