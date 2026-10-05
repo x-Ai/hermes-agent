@@ -969,7 +969,7 @@ export const zhHantSettings = {
       kindLocal: '本地',
       kindRemote: '遠端網關',
       kindCloud: 'Hermes 雲',
-      kindSsh: 'SSH}',
+      kindSsh: 'SSH',
       kindLocalDesc: '此應用程式管理的 Hermes 運行時。',
       kindRemoteDesc: '可透過 HTTP(S) — LAN、Tailscale 或網際網路存取的 Hermes 閘道。',
       kindCloudDesc: '透過您的 Hermes 雲端帳戶發現的託管執行個體。',
