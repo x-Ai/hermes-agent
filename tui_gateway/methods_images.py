@@ -68,7 +68,7 @@ def _(rid, params: dict) -> dict:
     if not available:
         return _ok(rid, {
             "available": False, "success": False,
-            "error": "No image generation backend configured (run `hermes tools` to enable one)."})
+            "error": _t("tui_gateway.images.no_backend")})
     prompt = str(params.get("prompt") or "").strip()
     if not prompt:
         return _err(rid, 4071, "prompt required")
@@ -86,7 +86,7 @@ def _(rid, params: dict) -> dict:
         return _err(rid, 5071, str(e))
     if not result.get("success"):
         return _ok(rid, {"available": True, "success": False,
-                         "error": str(result.get("error") or "generation failed")})
+                         "error": str(result.get("error") or _t("tui_gateway.images.generation_failed"))})
     image_ref = str(result.get("image") or "")
     data_url = _image_to_data_url(image_ref, cap) if image_ref else None
     return _ok(rid, {"available": True, "success": True, "image": image_ref,

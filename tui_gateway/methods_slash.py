@@ -28,8 +28,8 @@ _ISOLATED_SESSION_READ_COMMANDS = frozenset({"context", "tools", "help"})
 # for an agentless session would answer worse, not better.
 _CONTEXT_LOCAL_IN_PROCESS = frozenset({"context"})
 
-_NO_AGENT_USAGE = "(._.) No active agent -- send a message first."
-_NO_AGENT = "No active agent -- send a message first."
+def _no_agent_usage() -> str:
+    return "(._.) " + _t("tui_gateway.slash.no_active_agent")
 
 
 def _format_live_review_output(sid: str, session: Optional[dict], arg: str) -> str:
@@ -37,11 +37,11 @@ def _format_live_review_output(sid: str, session: Optional[dict], arg: str) -> s
     delegation rail; its completion is stamped with the parent's durable session_id, which
     ``_session_owns_notification_event`` matches to drain it back into this chat."""
     if session is None:
-        return "Nothing to review yet — send a message first."
+        return _t("tui_gateway.slash.review.nothing_yet")
     if _session_uses_compute_host(session):
-        return "/review runs on the local agent only for now — this session's agent lives on a remote compute host."
+        return _t("tui_gateway.slash.review.remote_host")
     if (agent := session.get("agent")) is None:
-        return "Nothing to review yet — send a message first."
+        return _t("tui_gateway.slash.review.nothing_yet")
     if session.get("running"):
         from agent.i18n import t
         return t("gateway.busy.review_wait")
@@ -64,7 +64,7 @@ def _format_live_review_output(sid: str, session: Optional[dict], arg: str) -> s
     except ValueError as exc:
         return str(exc)
     except Exception as exc:
-        return f"/review failed to start: {exc}"
+        return _t("tui_gateway.slash.review.start_failed", detail=exc)
     finally:
         _current_runtime_session_record.reset(runtime_token)
         _clear_session_context(tokens)
@@ -75,9 +75,9 @@ def _format_live_refine_output(sid: str, session: Optional[dict], arg: str) -> s
     """Dispatch /refine against the live session's agent: spawn the background
     memory/skills review directly instead of forking the isolated slash worker."""
     if session is None:
-        return "Refine unavailable (no session)."
+        return _t("tui_gateway.slash.refine.no_session")
     if session.get("running"):
-        return "Agent is running — wait for the turn to finish, then /refine."
+        return _t("tui_gateway.slash.refine.agent_running")
     if _session_uses_compute_host(session):
         command = "/refine" + (f" {arg}" if arg.strip() else "")
         try:
@@ -88,14 +88,14 @@ def _format_live_refine_output(sid: str, session: Optional[dict], arg: str) -> s
                 wait=True,
             )
         except Exception as exc:
-            return f"compute-host slash.refine failed: {exc}"
+            return _t("tui_gateway.compute_host.failed_detail", op="slash.refine", detail=exc)
         if ack.get("type") in {"control.error", "error"}:
-            return str(ack.get("message") or "compute-host slash.refine failed")
+            return str(ack.get("message") or _t("tui_gateway.compute_host.failed", op="slash.refine"))
         _apply_compute_host_metadata_mirror(session, ack)
         return str(ack.get("output") or "")
     agent = session.get("agent")
     if agent is None:
-        return "Nothing to refine yet — send a message first."
+        return _t("tui_gateway.slash.refine.nothing_yet")
 
     snapshot = []
     transcript_ref = str(session.get("session_key") or "")
@@ -112,7 +112,7 @@ def _format_live_refine_output(sid: str, session: Optional[dict], arg: str) -> s
         with session["history_lock"]:
             snapshot = list(session.get("history", []))
     if not snapshot:
-        return "Nothing to refine yet — the conversation is empty."
+        return _t("tui_gateway.slash.refine.conversation_empty")
 
     review_skills = "skill_manage" in getattr(agent, "valid_tool_names", set())
     try:
@@ -124,19 +124,16 @@ def _format_live_refine_output(sid: str, session: Optional[dict], arg: str) -> s
             explicit=True,
         )
     except Exception as exc:
-        return f"/refine failed to start: {exc}"
-    tail = f" (focus: {arg.strip()})" if arg.strip() else ""
-    return (
-        f"⚗ Reviewing this conversation in the background{tail} — "
-        "any memory/skill updates will be reported when done."
-    )
+        return _t("tui_gateway.slash.refine.start_failed", detail=exc)
+    tail = _t("tui_gateway.slash.refine.focus", focus=arg.strip()) if arg.strip() else ""
+    return _t("tui_gateway.slash.refine.started", focus=tail)
 
 
 def _format_live_usage_output(sid: str, session: dict, arg: str) -> str:
     agent = session.get("agent")
     usage = _session_usage_snapshot(session)
     if agent is None and not usage:
-        return _NO_AGENT_USAGE
+        return _no_agent_usage()
     if session.get("_metadata_message_count") is not None:
         message_count = int(session.get("_metadata_message_count") or 0)
     else:
@@ -145,18 +142,21 @@ def _format_live_usage_output(sid: str, session: dict, arg: str) -> str:
 
     def n(key: str) -> str:
         return f"{int(usage.get(key) or 0):,}"
-    rows = [("Input tokens:", n("input")), ("Output tokens:", n("output"))]
+    def label(key: str) -> str:
+        return _t(f"tui_gateway.slash.usage.{key}")
+    rows = [(label("input_tokens"), n("input")), (label("output_tokens"), n("output"))]
     if int(usage.get("reasoning") or 0):
-        rows.append(("Reasoning tokens:", n("reasoning")))
-    rows += [("Prompt tokens:", n("prompt")), ("Completion tokens:", n("completion")),
-             ("Total tokens:", n("total")), ("API calls:", n("calls"))]
+        rows.append((label("reasoning_tokens"), n("reasoning")))
+    rows += [(label("prompt_tokens"), n("prompt")), (label("completion_tokens"), n("completion")),
+             (label("total_tokens"), n("total")), (label("api_calls"), n("calls"))]
     if usage.get("context_max"):
         pct = int(usage.get("context_percent") or 0)
         mark = "~" if usage.get("context_estimated") else ""
-        rows.append(("Current context:", f"{mark}{n('context_used')} / {n('context_max')} ({mark}{pct}%)"))
-    rows += [("Messages:", f"{message_count:,}"), ("Compressions:", n("compressions"))]
-    model = usage.get("model") or _metadata_mirror(session).get("model") or getattr(agent, "model", "") or "(unknown)"
-    lines = ["Session Token Usage", "────────────────────────────────────────", f"Model: {model}"]
+        rows.append((label("current_context"), f"{mark}{n('context_used')} / {n('context_max')} ({mark}{pct}%)"))
+    rows += [(label("messages"), f"{message_count:,}"), (label("compressions"), n("compressions"))]
+    model = (usage.get("model") or _metadata_mirror(session).get("model") or getattr(agent, "model", "")
+             or label("unknown_model"))
+    lines = [label("title"), "────────────────────────────────────────", _t("tui_gateway.slash.usage.model", model=model)]
     return "\n".join(lines + [f"{label:<30}{value}" for label, value in rows])
 
 
@@ -178,14 +178,14 @@ def _format_live_history_output(sid: str, session: dict, arg: str) -> str:
     db_history = _live_session_messages(session)
     messages = _history_to_messages(history if db_history is None else db_history, profile_home=session.get("profile_home"))
     if not messages:
-        return "No conversation history yet."
-    lines = ["Conversation History", "────────────────────────────────────────"]
+        return _t("tui_gateway.slash.history.empty")
+    lines = [_t("tui_gateway.slash.history.title"), "────────────────────────────────────────"]
     for idx, message in enumerate(messages, start=1):
         role = str(message.get("role") or "unknown")
-        label = {"user": "You", "assistant": "Hermes"}.get(role, role.title())
+        label = {"user": _t("tui_gateway.slash.history.you"), "assistant": "Hermes"}.get(role, role.title())
         text = str(message.get("text") or message.get("context") or "").strip()
         text = f"{text[:400]}..." if len(text) > 400 else text
-        lines.append(f"[{label} #{idx}] {text or '(no text)'}")
+        lines.append(f"[{label} #{idx}] {text or _t('tui_gateway.slash.history.no_text')}")
     return "\n".join(lines)
 
 
@@ -228,7 +228,8 @@ def _format_live_context_output(sid: str, session: dict, arg: str) -> str:
 
     usage = _session_usage_snapshot(session)
     mirror = _metadata_mirror(session)
-    lines = [f"Conversation: {len(messages)} messages" if messages else "Conversation is empty (no messages yet)."]
+    lines = [_t("tui_gateway.slash.context.count", count=len(messages)) if messages
+             else _t("tui_gateway.slash.context.empty")]
     roles = Counter(str(msg.get("role") or "unknown") for msg in messages)
     lines.append("  " + ", ".join(f"{r}: {roles.get(r, 0)}" for r in ("user", "assistant", "tool", "system")))
     if model := mirror.get("model") or usage.get("model") or "":
@@ -264,17 +265,17 @@ def _format_live_tools_output(sid: str, session: dict, arg: str) -> str:
     info = _session_info(session.get("agent"), session)
     groups = info.get("tools") if isinstance(info, dict) else {}
     if not isinstance(groups, dict) or not groups:
-        return "No tools available."
+        return _t("tui_gateway.slash.tools.none")
     names = sorted({str(n) for g in groups.values() if isinstance(g, list) for n in g})
     if not names:
-        return "No tools available."
-    return "Available tools ({}):\n{}".format(len(names), "\n".join(f"  {name}" for name in names))
+        return _t("tui_gateway.slash.tools.none")
+    return _t("tui_gateway.slash.tools.available", count=len(names)) + "\n" + "\n".join(f"  {name}" for name in names)
 
 
 def _format_live_help_output(sid: str, session: dict, arg: str) -> str:
     try:
         from hermes_cli.commands import COMMANDS_BY_CATEGORY, command_available, resolve_command
-        lines = ["Available commands:", ""]
+        lines = [_t("tui_gateway.slash.help.title"), ""]
         for category, commands in COMMANDS_BY_CATEGORY.items():
             lines.append(f"{category}:")
             lines.extend(
@@ -284,7 +285,7 @@ def _format_live_help_output(sid: str, session: dict, arg: str) -> str:
             )
         return "\n".join(lines)
     except Exception as exc:
-        return f"help unavailable: {exc}"
+        return _t("tui_gateway.slash.help.unavailable", detail=exc)
 
 
 def _format_live_model_output(session: dict) -> str:
@@ -292,14 +293,14 @@ def _format_live_model_output(session: dict) -> str:
     model = getattr(agent, "model", "") if agent is not None else ""
     provider = getattr(agent, "provider", "") if agent is not None else ""
     if not model:
-        return "Current model: (unknown)"
-    return f"Current model: {model}" + (f" ({provider})" if provider else "")
+        return _t("tui_gateway.slash.model.unknown")
+    return _t("tui_gateway.slash.model.current", model=model) + (f" ({provider})" if provider else "")
 
 
 def _format_live_status_output(sid: str, session: dict, arg: str) -> str:
     response = _methods["session.status"]("status", {"session_id": sid})
     if response.get("error"):
-        return str(response["error"].get("message") or "status unavailable")
+        return str(response["error"].get("message") or _t("tui_gateway.slash.status.unavailable"))
     return str(response.get("result", {}).get("output") or "")
 
 
@@ -309,20 +310,20 @@ _LIVE_SLASH_OUTPUT = {
     "wisdom": (None, lambda sid, session, arg: _format_live_wisdom_output(session or {}, "wisdom", arg)),
     "collective-wisdom-install": (
         None, lambda sid, session, arg: _format_live_wisdom_output(session or {}, "collective-wisdom-install", arg)),
-    "compress": ("no active session for /compress",
+    "compress": (lambda: _t("tui_gateway.slash.compress.no_session"),
                  lambda sid, session, arg: _mirror_slash_side_effects(sid, session, f"/compress {arg}".strip())),
-    "usage": (_NO_AGENT_USAGE, _format_live_usage_output),
+    "usage": (_no_agent_usage, _format_live_usage_output),
     "review": (None, _format_live_review_output),
-    "history": ("No conversation history yet.", _format_live_history_output),
+    "history": (lambda: _t("tui_gateway.slash.history.empty"), _format_live_history_output),
     "refine": (None, _format_live_refine_output),
     "status": (None, _format_live_status_output),
-    "context": ("Conversation is empty (no messages yet).", _format_live_context_output),
-    "tools": ("No tools available.", _format_live_tools_output),
+    "context": (lambda: _t("tui_gateway.slash.context.empty"), _format_live_context_output),
+    "tools": (lambda: _t("tui_gateway.slash.tools.none"), _format_live_tools_output),
     "help": (None, _format_live_help_output),
-    "clear": (None, "Screen clear is terminal-only; desktop/TUI chat left unchanged."),
-    "models": (None, "Use /model to view or switch the current model; desktop users can also open the model picker."),
-    "rename": (None, "Use /title <name> to rename this session."),
-    "effort": (None, "Use /reasoning <effort> to change reasoning effort.")}
+    "clear": (None, lambda sid, session, arg: _t("tui_gateway.slash.clear.terminal_only")),
+    "models": (None, lambda sid, session, arg: _t("tui_gateway.slash.hint.models")),
+    "rename": (None, lambda sid, session, arg: _t("tui_gateway.slash.hint.rename")),
+    "effort": (None, lambda sid, session, arg: _t("tui_gateway.slash.hint.effort"))}
 
 
 def _live_slash_command_output(sid: str, session: Optional[dict], name: str, arg: str) -> Optional[str]:
@@ -344,8 +345,8 @@ def _live_slash_command_output(sid: str, session: Optional[dict], name: str, arg
         return None
     no_session_reply, fmt = entry
     if session is None and no_session_reply is not None:
-        return no_session_reply
-    return fmt(sid, session, arg) if callable(fmt) else fmt
+        return no_session_reply()
+    return fmt(sid, session, arg)
 
 
 # ── Side-effect mirroring ────────────────────────────────────────────
@@ -469,12 +470,12 @@ def _compute_host_slash(sid: str, session: dict, name: str, command: str) -> tup
             **({"timeout": _compute_host_compress_wait_seconds(), "on_late_ack": _on_late_ack} if is_compress else {}))
     except queue.Empty:
         if is_compress:
-            return "pending", "compression still running in the background; the transcript will refresh when it finishes"
-        return "failed", f"compute-host {route_name} failed: timed out"
+            return "pending", _t("tui_gateway.slash.compress.still_running")
+        return "failed", _t("tui_gateway.compute_host.timed_out", op=route_name)
     except Exception as exc:
-        return "failed", f"compute-host {route_name} failed: {exc}"
+        return "failed", _t("tui_gateway.compute_host.failed_detail", op=route_name, detail=exc)
     if ack.get("type") in {"control.error", "error"}:
-        return "rejected", str(ack.get("message") or f"compute-host {route_name} failed")
+        return "rejected", str(ack.get("message") or _t("tui_gateway.compute_host.failed", op=route_name))
     _apply_compute_host_metadata_mirror(session, ack)
     return "ok", str(ack.get("output") or "")
 
@@ -503,7 +504,7 @@ def _mirror_slash_side_effects(sid: str, session: dict, command: str) -> str:
         if name == "compress" and agent:
             from agent.conversation_compression import finalize_context_engine_compression_notification
             finalize_context_engine_compression_notification(agent, committed=False)
-        return f"live session sync failed: {e}"
+        return _t("tui_gateway.slash.live_sync_failed", detail=e)
 
 
 def register(server) -> None:

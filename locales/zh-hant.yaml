@@ -4073,6 +4073,273 @@ tui_gateway:
     invalid_data_url: "data_url 資料無效"
     label_image: "圖片"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "沒有作用中的代理 -- 請先傳送一則訊息。"
+    review:
+      nothing_yet: "還沒有可檢閱的內容 — 請先傳送一則訊息。"
+      remote_host: "/review 目前只能在本機代理上執行 — 此工作階段的代理位於遠端運算主機上。"
+      start_failed: "/review 啟動失敗：{detail}"
+    refine:
+      no_session: "無法精煉（沒有工作階段）。"
+      agent_running: "代理正在執行 — 請等這一回合結束後再執行 /refine。"
+      nothing_yet: "還沒有可精煉的內容 — 請先傳送一則訊息。"
+      conversation_empty: "還沒有可精煉的內容 — 對話是空的。"
+      start_failed: "/refine 啟動失敗：{detail}"
+      started: "⚗ 正在背景檢閱此對話{focus} — 任何記憶/技能更新都會在完成後回報。"
+      focus: "（焦點：{focus}）"
+    usage:
+      title: "工作階段 Token 用量"
+      model: "模型：{model}"
+      unknown_model: "（未知）"
+      input_tokens: "輸入 token："
+      output_tokens: "輸出 token："
+      reasoning_tokens: "推理 token："
+      prompt_tokens: "提示 token："
+      completion_tokens: "補全 token："
+      total_tokens: "總計 token："
+      api_calls: "API 呼叫："
+      current_context: "目前上下文："
+      messages: "訊息數："
+      compressions: "壓縮次數："
+    history:
+      empty: "還沒有對話歷史。"
+      title: "對話歷史"
+      you: "你"
+      no_text: "（無文字）"
+    context:
+      count: "對話：{count} 則訊息"
+      empty: "對話是空的（還沒有訊息）。"
+    tools:
+      none: "沒有可用的工具。"
+      available: "可用工具（{count}）："
+    help:
+      title: "可用指令："
+      unavailable: "說明無法使用：{detail}"
+    model:
+      current: "目前模型：{model}"
+      unknown: "目前模型：（未知）"
+    status:
+      unavailable: "狀態無法使用"
+    compress:
+      no_session: "沒有可供 /compress 使用的作用中工作階段"
+      still_running: "壓縮仍在背景進行；完成後逐字稿會自動重新整理"
+    clear:
+      terminal_only: "清除畫面僅限終端機；桌面版/TUI 聊天保持不變。"
+    hint:
+      models: "使用 /model 檢視或切換目前模型；桌面版使用者也可以開啟模型選擇器。"
+      rename: "使用 /title <名稱> 重新命名此工作階段。"
+      effort: "使用 /reasoning <程度> 變更推理強度。"
+    live_sync_failed: "即時工作階段同步失敗：{detail}"
+  compute_host:
+    failed: "運算主機 {op} 失敗"
+    failed_detail: "運算主機 {op} 失敗：{detail}"
+    timed_out: "運算主機 {op} 失敗：逾時"
+    invalid_response: "運算主機 {op} 回傳了無效的回應"
+    clarify_lock_failed: "釐清鎖定失敗"
+    turn_failed: "運算主機回合執行失敗"
+    compression_failed: "壓縮失敗：{detail}"
+    compression_complete: "✓ 上下文壓縮完成"
+  tools:
+    profile_not_found: "找不到設定檔 '{name}'"
+    no_active_session: "沒有作用中的工作階段"
+    no_such_process: "沒有這個程序：{id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp 會使提示快取失效（下一則訊息會重新傳送全部輸入 token）。回覆 `/reload-mcp now` 繼續，或回覆 `/reload-mcp always` 繼續並永久關閉此提示。"
+    kind:
+      quick_command: "快速指令"
+      plugin_command: "外掛指令"
+    discovery_unavailable:
+      quick: "quick_commands 探索無法使用：{detail}"
+      plugin: "外掛指令探索無法使用：{detail}"
+      skill: "技能探索無法使用：{detail}"
+    cli_exec_timeout: "cli.exec：逾時"
+    unknown_command: "未知的指令：{name}"
+    quick_command_failed: "快速指令失敗，結束代碼 {code}"
+    bundle:
+      dispatch_failed: "技能套件分派失敗：{detail}"
+      load_failed: "載入技能套件失敗：{name}"
+      loading: "⚡ 正在載入技能套件：{name}（{count} 個技能）"
+      skipped_missing: "已略過缺少的技能：{names}"
+      loading_stacked: "⚡ 正在載入 {count} 個堆疊技能：{names}"
+    usage:
+      queue: "用法：/queue <提示>"
+      focus: "用法：/focus [on|off|status]"
+      steer: "用法：/steer <提示>"
+    moa:
+      queued: "已以預設 {preset} 排入一次性 MoA；這一回合結束後會還原先前的模型。"
+      unavailable: "MoA 無法使用：{detail}"
+    retry:
+      no_session: "沒有可重試的作用中工作階段"
+      media: "重試無法安全地重建或合併附加的媒體"
+      nothing: "沒有可重試的上一則使用者訊息"
+      persist_failed: "重試：儲存歷史失敗："
+    steer:
+      sent_next_turn: "沒有執行中的代理；已作為下一回合傳送：{text}"
+      queued: "⏩ 導引已排入佇列 — 將在下一次工具呼叫後生效：{text}"
+    goal:
+      continuing_now: "現在繼續 — 執行下一步。"
+      loop_deferred: "注意：一個作用中的 /goal 正在驅動此工作階段 — 迴圈喚醒會延後到目標完成、暫停或擱置之後。"
+    undo:
+      no_session: "沒有可復原的作用中工作階段"
+      invalid_count: "復原：無效的數量 {value} — 請使用 /undo 或 /undo N"
+      nothing: "沒有可復原的使用者訊息"
+      done: "↶ 已復原 {count} {unit}（{messages} 則訊息）。編輯後重新提交，或傳送一則新訊息。"
+      turn: "回合"
+      turns: "回合"
+    snapshot_restore_blocked: "/snapshot restore 在 TUI 中被封鎖，因為它會在即時代理快取著設定時變更磁碟上的設定/狀態。請在傳統 CLI 中執行，然後重新啟動 TUI。"
+    compress:
+      no_session: "沒有可壓縮的作用中工作階段"
+      failed: "壓縮失敗：{detail}"
+    memory:
+      unknown_subcommand: "未知的 /memory 子指令。可用：pending、approve <id>、reject <id>、approval <on|off>。"
+    skills:
+      unknown_subcommand: "此處不支援該 /skills 子指令。可用：pending、approve <id>、reject <id>、diff <id>、approval <on|off>。（搜尋/安裝/瀏覽在終端機側進行。）"
+      write_approval_off: "技能寫入核准已關閉（skills.write_approval）。以 /skills approval on 啟用，然後以 /skills pending 檢閱暫存的寫入。"
+      install_failed: "技能安裝失敗"
+      reloading: "正在重新載入技能…"
+      none_new: "未偵測到新技能。"
+      added: "新增的技能："
+      removed: "移除的技能："
+    command_unavailable_for_profile: "/{command} 對目前的設定檔無法使用"
+    not_dispatchable: "不是快速/外掛/技能套件/技能指令：{name}"
+    empty_command: "指令是空的"
+    plugin_command_error: "外掛指令錯誤：{detail}"
+    checkpoint_rewind_failed: "檢查點已還原，但工作階段歷史倒回失敗：{detail}"
+  mcp:
+    server_not_found: "找不到伺服器 '{name}'"
+    server_plugin_owned: "伺服器 '{name}' 由外掛 '{plugin}' 提供，無法修改"
+    server_exists: "伺服器 '{name}' 已存在"
+    unknown_catalog_entry: "未知的 MCP 目錄項目或預設：{preset}"
+    config_shape: "設定必須指定 'url'（http）或 'command'（stdio），或一個有效的 'preset'"
+    server_rejected: "伺服器 '{name}' 遭拒：指令/參數設定可疑"
+    malformed_config: "伺服器設定格式錯誤"
+    invalid_credential: "該值不是有效的憑證"
+    oauth_required: "需要 OAuth 驗證 — 找不到權杖。"
+    stdio_no_oauth: "stdio 伺服器以環境變數金鑰驗證，而不是 OAuth"
+    header_auth_no_oauth: "此伺服器使用標頭/API 金鑰驗證，而不是 OAuth"
+  plugins:
+    toggle_failed: "切換失敗"
+    install_failed: "安裝失敗"
+    not_catalog_install: "'{name}' 不是從目錄安裝的 — 請透過 CLI 更新"
+    remove_failed: "移除失敗"
+    not_found: "找不到外掛 '{name}'"
+  shell:
+    blocked_hardline: "已封鎖（硬性規則）：{reason}。危險指令請交給代理執行。"
+    blocked: "已封鎖：{reason}。危險指令請交給代理執行。"
+    timed_out: "指令逾時（30 秒）"
+  session_control:
+    subgoal_text_required: "需要子目標文字"
+    subgoal_added: "✓ 已新增子目標 {index}：{text}"
+    subgoal_removed: "✓ 已移除子目標 {index}：{text}"
+    subgoals_cleared_one: "✓ 已清除 1 個子目標。"
+    subgoals_cleared: "✓ 已清除 {count} 個子目標。"
+    no_subgoals: "沒有可清除的子目標。"
+    heartbeat_paused: "⏸ 心跳已暫停：{prompt}"
+    no_heartbeat: "未設定心跳。"
+    heartbeat_resumed: "▶ 心跳已恢復（每 {interval}）：{prompt}"
+    no_heartbeat_to_resume: "沒有可恢復的心跳。"
+    heartbeat_cleared: "✓ 心跳已清除。"
+  voice:
+    wake_unavailable: "喚醒模組無法使用：{detail}"
+    wake_device_unresolved: "無法解析喚醒詞輸入裝置：{detail}"
+    enable_first: "請先啟用語音模式：/voice on"
+    mode_off: "語音模式已關閉 — 以 /voice on 啟用"
+    module_missing_deps: "語音模組無法使用 — 請安裝音訊相依套件"
+    module_missing: "語音模組無法使用"
+  browser:
+    already_listening: "Chromium 系瀏覽器已在 {url} 監聽"
+    port_occupied: "連接埠 {port} 被另一個非 CDP 瀏覽器的應用程式占用（可能是 IDE 偵錯器或開發伺服器）— 改為在連接埠 {launch_port} 上啟動偵錯瀏覽器…"
+    launching: "Chromium 系瀏覽器未以遠端偵錯模式執行 — 正在嘗試啟動…"
+    launched: "Chromium 系瀏覽器已啟動並在連接埠 {port} 上監聽"
+    start_manually: "請以遠端偵錯模式啟動 Chromium 系瀏覽器，然後重試 /browser connect："
+    no_executable: "在此環境中找不到受支援的 Chromium 系瀏覽器執行檔。"
+    install_hint: "請安裝一個，或以 --remote-debugging-port={port} 啟動 Chromium 系瀏覽器，然後重試 /browser connect。"
+    not_connected: "瀏覽器未連線 — 請以遠端偵錯模式啟動 Chromium 系瀏覽器並重試 /browser connect"
+    unsupported_url: "不支援的瀏覽器 URL：{url}"
+    missing_host: "瀏覽器 URL 缺少主機：{url}"
+    invalid_port: "瀏覽器 URL 中的連接埠無效：{url}"
+    unreachable_detail: "無法連線到 {url} 上的瀏覽器 CDP：{detail}"
+    unreachable: "無法連線到 {url} 上的瀏覽器 CDP"
+  model:
+    switch_failed_staying: "切換到模型 {target} 失敗（{detail}）；繼續使用 {current}。"
+    once_requires_session: "/model --once 需要一個即時工作階段"
+    switch_failed: "模型切換失敗"
+    capabilities_updated: "能力已更新 — 此 Bot 的工具與提示詞已重新整理。"
+    configured_switch_failed: "無法切換到已設定的模型 {model}：{detail}"
+    switch_error: "無法切換模型：{detail}"
+  compress:
+    lock_held: "壓縮鎖被占用：{holder}"
+    unknown_holder: "未知"
+  images:
+    no_backend: "未設定影像產生後端（執行 `hermes tools` 啟用一個）。"
+    generation_failed: "產生失敗"
+  wisdom:
+    summary: "集體智慧：{summary}。執行 {commands} 進行管理。"
+    team_update_one: "1 則團隊更新"
+    team_updates: "{count} 則團隊更新"
+    skill_ready_one: "1 個技能待檢閱"
+    skills_ready: "{count} 個技能待檢閱"
+    and: "和"
+    or: "或"
+    cannot_continue: "集體智慧無法繼續：{detail}"
+    open_inbox_hint: "開啟 /wisdom inbox 進行檢閱並使用同意控制項。"
+    notification_settings: "通知設定：/wisdom mute"
+  complete:
+    at:
+      git_diff: "git 差異"
+      staged_diff: "已暫存的差異"
+      attach_file: "附加檔案"
+      attach_folder: "附加資料夾"
+      fetch_url: "擷取網址"
+      git_log: "git 記錄"
+    agent_profile: "代理設定檔"
+    agent_profile_primary: "代理設定檔（主要）"
+    plugin_provider: "外掛：{prefix}"
+    details:
+      section_override: "區段覆寫"
+      cycle_global_mode: "循環切換全域模式"
+      global_mode: "全域模式"
+      clear_override: "清除 {section} 的覆寫"
+      set_section: "設定 {section}"
+    slash:
+      density: "切換精簡顯示模式"
+      details: "控制代理細節的可見性"
+      logs: "顯示最近的閘道記錄"
+      mouse: "設定滑鼠追蹤預設 [on|off|toggle|wheel|buttons|all]"
+      sessions: "在即時 TUI 工作階段之間切換"
+  credentials:
+    managed_readonly: "受管理的安裝 — 憑證為唯讀"
+    unknown_provider: "未知的供應商：{slug}"
+    non_key_auth: "{provider} 使用 {auth} 驗證 — 請執行 `hermes model` 進行設定"
+    no_env_var: "未為 {provider} 定義環境變數"
+    none_found: "找不到 {slug} 的憑證"
+  profile:
+    not_exist: "設定檔 '{name}' 不存在。"
+    store_unavailable: "設定檔的工作階段儲存空間無法使用：{path}：{detail}"
+  approval:
+    client_cannot_answer: "已連線的用戶端無法回應核准請求（請更新 Hermes 應用程式）"
+  session:
+    hydration_timed_out: "工作階段歷史載入逾時"
+  checkpoint:
+    invalid_number: "無效的檢查點編號。請使用 1-{max}。"
+  cli_exec:
+    setup: "`hermes setup` 需要完整的終端機 — 請在 TUI 之外執行"
+    gateway: "`hermes gateway` 是長時間執行的程序 — 請在另一個終端機中執行"
+    sessions_browse: "`hermes sessions browse` 是互動式的 — 請在此處使用 /resume，或在另一個終端機中執行 browse"
+    config_edit: "`hermes config edit` 需要在真實終端機中使用 $EDITOR"
+    bare: "單獨的 `hermes` 是互動式的 — 請使用 `/hermes chat -q …`，或在另一個終端機中執行 `hermes`"
+  tool_progress:
+    lines_chars: "{lines} 行 / {chars} 字元"
+    chars: "{chars} 字元"
+    verbose_tail: "[顯示詳細輸出的結尾；已省略 {omitted}]"
+  onboarding:
+    facts_too_long: "新手導覽資訊過長，無法記住"
+    memory_not_saved: "記憶未儲存"
+    verify_failed: "無法驗證已儲存的新手導覽資訊"
+    no_setup_profile: "沒有可重設的設定用設定檔"
+  projects:
+    not_found: "沒有這個專案"
+  subagent:
+    interrupted_via_tui: "透過 TUI 中斷（{id}）"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

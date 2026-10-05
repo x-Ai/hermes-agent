@@ -473,7 +473,7 @@ def _(rid, params: dict) -> dict:
             WakeWordInUse, detector_frame_info, load_wake_word_config, owns_listener,
             start_listening, wake_phrase, wake_surface_enabled)
     except Exception as e:
-        return _err(rid, 5026, f"wake module unavailable: {e}")
+        return _err(rid, 5026, _t("tui_gateway.voice.wake_unavailable", detail=e))
     cfg = load_wake_word_config()
     capture_mode, reqs = _wake_probe(cfg, params, surface)
     # Requirements first: a gesture on an un-armable setup must refuse WITHOUT flipping
@@ -569,7 +569,7 @@ def _(rid, params: dict) -> dict:
         input_device = get_input_device_status(cfg)
         hint = reqs.get("hint", "")
         if input_device.get("error") and not hint:
-            hint = f"Wake-word input device could not be resolved: {input_device['error']}"
+            hint = _t("tui_gateway.voice.wake_device_unresolved", detail=input_device["error"])
         if silent and not hint:
             hint = silent_audio_hint(input_device)
         # Effective capture: prefer the *armed* detector over config/auto, else with capture:auto
@@ -670,7 +670,7 @@ def _set_voice_tts(on: bool) -> None:
 
 def _voice_toggle_tts(rid, params: dict) -> dict:
     if not _voice_mode_enabled():
-        return _err(rid, 4014, "enable voice mode first: /voice on")
+        return _err(rid, 4014, _t("tui_gateway.voice.enable_first"))
     _set_voice_tts(not _voice_tts_enabled())
     return _ok(rid, _voice_status_payload())
 
@@ -726,7 +726,7 @@ def _(rid, params: dict) -> dict:
     try:
         global _voice_event_sid, _voice_wake_owner
         if action == "start" and not _voice_mode_enabled():
-            return _err(rid, 4015, "voice mode is off — enable with /voice on")
+            return _err(rid, 4015, _t("tui_gateway.voice.mode_off"))
         with _voice_sid_lock:
             _voice_event_sid = params.get("session_id") or _voice_event_sid
         if action == "stop":
@@ -774,7 +774,7 @@ def _(rid, params: dict) -> dict:
         if wake_paused or action == "stop":
             _resume_voice_wake()
         if isinstance(e, ImportError):
-            return _err(rid, 5025, "voice module not available — install audio dependencies")
+            return _err(rid, 5025, _t("tui_gateway.voice.module_missing_deps"))
         return _err(rid, 5025, str(e))
 
 
@@ -786,7 +786,7 @@ def _(rid, params: dict) -> dict:
     try:
         import hermes_cli.voice  # noqa: F401  (a missing module must answer 5026, not die in a thread)
     except Exception as e:
-        return _err(rid, 5026, "voice module not available" if isinstance(e, ImportError) else str(e))
+        return _err(rid, 5026, _t("tui_gateway.voice.module_missing") if isinstance(e, ImportError) else str(e))
     threading.Thread(target=_speak_text_with_barge, args=(text,), daemon=True).start()
     return _ok(rid, {"status": "speaking"})
 

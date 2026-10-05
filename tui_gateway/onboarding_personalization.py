@@ -1,5 +1,6 @@
 import json
 
+from agent.i18n import t as _t
 from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 from hermes_cli.profiles import get_profile_dir
 from tools.memory_tool import load_on_disk_store, memory_tool
@@ -27,15 +28,15 @@ def remember_onboarding(answers: dict) -> dict:
         return {'saved': True, 'profile': 'default', 'target': 'user'}
     content = 'Agreed during onboarding:\n' + '\n'.join(facts)
     if len(content) > 2000:
-        raise ValueError('Onboarding facts are too long to remember')
+        raise ValueError(_t("tui_gateway.onboarding.facts_too_long"))
 
     token = set_hermes_home_override(get_profile_dir('default'))
     try:
         result = json.loads(memory_tool(action='add', target='user', content=content, store=load_on_disk_store()))
         if not result.get('success') or result.get('staged'):
-            raise ValueError(result.get('error') or result.get('message') or 'Memory was not saved')
+            raise ValueError(result.get('error') or result.get('message') or _t("tui_gateway.onboarding.memory_not_saved"))
         if content not in load_on_disk_store().user_entries:
-            raise ValueError('Could not verify saved onboarding facts')
+            raise ValueError(_t("tui_gateway.onboarding.verify_failed"))
         return {'saved': True, 'profile': 'default', 'target': 'user'}
     finally:
         reset_hermes_home_override(token)

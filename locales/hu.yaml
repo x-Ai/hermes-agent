@@ -4092,6 +4092,273 @@ tui_gateway:
     invalid_data_url: "érvénytelen data_url tartalom"
     label_image: "kép"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Nincs aktív ügynök -- előbb küldj egy üzenetet."
+    review:
+      nothing_yet: "Még nincs mit átnézni — előbb küldj egy üzenetet."
+      remote_host: "A /review egyelőre csak a helyi ügynökön fut — ennek a munkamenetnek az ügynöke távoli számítási gazdagépen él."
+      start_failed: "A /review nem tudott elindulni: {detail}"
+    refine:
+      no_session: "A Refine nem érhető el (nincs munkamenet)."
+      agent_running: "Az ügynök fut — várd meg a kör végét, majd /refine."
+      nothing_yet: "Még nincs mit finomítani — előbb küldj egy üzenetet."
+      conversation_empty: "Még nincs mit finomítani — a beszélgetés üres."
+      start_failed: "A /refine nem tudott elindulni: {detail}"
+      started: "⚗ A beszélgetés átnézése a háttérben zajlik{focus} — a memória-/készségfrissítésekről a végén jelentünk."
+      focus: " (fókusz: {focus})"
+    usage:
+      title: "A munkamenet tokenhasználata"
+      model: "Modell: {model}"
+      unknown_model: "(ismeretlen)"
+      input_tokens: "Bemeneti tokenek:"
+      output_tokens: "Kimeneti tokenek:"
+      reasoning_tokens: "Gondolkodási tokenek:"
+      prompt_tokens: "Prompt tokenek:"
+      completion_tokens: "Válasz tokenek:"
+      total_tokens: "Összes token:"
+      api_calls: "API-hívások:"
+      current_context: "Jelenlegi kontextus:"
+      messages: "Üzenetek:"
+      compressions: "Tömörítések:"
+    history:
+      empty: "Még nincs beszélgetési előzmény."
+      title: "Beszélgetési előzmények"
+      you: "Te"
+      no_text: "(nincs szöveg)"
+    context:
+      count: "Beszélgetés: {count} üzenet"
+      empty: "A beszélgetés üres (még nincs üzenet)."
+    tools:
+      none: "Nincs elérhető eszköz."
+      available: "Elérhető eszközök ({count}):"
+    help:
+      title: "Elérhető parancsok:"
+      unavailable: "a súgó nem érhető el: {detail}"
+    model:
+      current: "Jelenlegi modell: {model}"
+      unknown: "Jelenlegi modell: (ismeretlen)"
+    status:
+      unavailable: "az állapot nem érhető el"
+    compress:
+      no_session: "nincs aktív munkamenet a /compress számára"
+      still_running: "a tömörítés még fut a háttérben; az átirat frissül, amint befejeződik"
+    clear:
+      terminal_only: "A képernyőtörlés csak terminálban létezik; az asztali/TUI csevegés változatlan maradt."
+    hint:
+      models: "A /model paranccsal nézheted meg vagy válthatod a jelenlegi modellt; az asztali felhasználók a modellválasztót is megnyithatják."
+      rename: "A /title <név> paranccsal nevezheted át ezt a munkamenetet."
+      effort: "A /reasoning <szint> paranccsal módosíthatod a gondolkodási erőfeszítést."
+    live_sync_failed: "az élő munkamenet szinkronizálása nem sikerült: {detail}"
+  compute_host:
+    failed: "számítási gazdagép: {op} sikertelen"
+    failed_detail: "számítási gazdagép: {op} sikertelen: {detail}"
+    timed_out: "számítási gazdagép: {op} sikertelen: időtúllépés"
+    invalid_response: "számítási gazdagép: {op} érvénytelen választ adott"
+    clarify_lock_failed: "a tisztázási zár sikertelen"
+    turn_failed: "a kör sikertelen a számítási gazdagépen"
+    compression_failed: "a tömörítés sikertelen: {detail}"
+    compression_complete: "✓ A kontextus tömörítése kész"
+  tools:
+    profile_not_found: "a(z) '{name}' profil nem található"
+    no_active_session: "nincs aktív munkamenet"
+    no_such_process: "nincs ilyen folyamat: {id}"
+    reload_mcp_confirm: "⚠️  A /reload-mcp érvényteleníti a prompt-gyorsítótárat (a következő üzenet újraküldi az összes bemeneti tokent). Válaszolj `/reload-mcp now`-val a folytatáshoz, vagy `/reload-mcp always`-zel a folytatáshoz és a figyelmeztetés végleges elnémításához."
+    kind:
+      quick_command: "gyorsparancs"
+      plugin_command: "Bővítményparancs"
+    discovery_unavailable:
+      quick: "a quick_commands felderítése nem érhető el: {detail}"
+      plugin: "a bővítményparancsok felderítése nem érhető el: {detail}"
+      skill: "a készségek felderítése nem érhető el: {detail}"
+    cli_exec_timeout: "cli.exec: időtúllépés"
+    unknown_command: "ismeretlen parancs: {name}"
+    quick_command_failed: "a gyorsparancs {code} kilépési kóddal hibázott"
+    bundle:
+      dispatch_failed: "a csomag indítása sikertelen: {detail}"
+      load_failed: "a csomag betöltése sikertelen: {name}"
+      loading: "⚡ Csomag betöltése: {name} ({count} készség)"
+      skipped_missing: "Hiányzó készségek kihagyva: {names}"
+      loading_stacked: "⚡ {count} egymásra rakott készség betöltése: {names}"
+    usage:
+      queue: "használat: /queue <prompt>"
+      focus: "használat: /focus [on|off|status]"
+      steer: "használat: /steer <prompt>"
+    moa:
+      queued: "Egyszeri MoA sorba állítva a(z) {preset} előbeállítással; a kör után az előző modell visszaáll."
+      unavailable: "a MoA nem érhető el: {detail}"
+    retry:
+      no_session: "nincs aktív munkamenet az újrapróbáláshoz"
+      media: "az újrapróbálás nem tudja biztonságosan újraépíteni vagy összevonni a csatolt médiát"
+      nothing: "nincs korábbi felhasználói üzenet az újrapróbáláshoz"
+      persist_failed: "újrapróbálás: az előzmények mentése sikertelen: "
+    steer:
+      sent_next_turn: "Nem fut ügynök; a következő körként elküldve: {text}"
+      queued: "⏩ Terelés sorba állítva — a következő eszközhívás után érkezik: {text}"
+    goal:
+      continuing_now: "Folytatás most — a következő lépés jön."
+      loop_deferred: "Megjegyzés: egy aktív /goal vezérli ezt a munkamenetet — a ciklus ébresztései elhalasztódnak, amíg a cél be nem fejeződik, szünetel vagy parkolópályára nem kerül."
+    undo:
+      no_session: "nincs aktív munkamenet a visszavonáshoz"
+      invalid_count: "undo: érvénytelen szám {value} — használd a /undo vagy /undo N parancsot"
+      nothing: "nincs visszavonható felhasználói üzenet"
+      done: "↶ {count} {unit} visszavonva ({messages} üzenet). Szerkeszd és küldd újra, vagy írj új üzenetet."
+      turn: "kör"
+      turns: "kör"
+    snapshot_restore_blocked: "A /snapshot restore a TUI-ban tiltott, mert a lemezen lévő konfigurációt/állapotot módosítja, miközben az élő ügynök gyorsítótárazott beállításokkal dolgozik. Futtasd a klasszikus CLI-ben, majd indítsd újra a TUI-t."
+    compress:
+      no_session: "nincs aktív munkamenet a tömörítéshez"
+      failed: "a tömörítés sikertelen: {detail}"
+    memory:
+      unknown_subcommand: "Ismeretlen /memory alparancs. Használható: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Itt ismeretlen /skills alparancs. Használható: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (A keresés/telepítés/böngészés a terminál oldalán történik.)"
+      write_approval_off: "A készségírások jóváhagyása ki van kapcsolva (skills.write_approval). Kapcsold be a /skills approval on paranccsal, majd nézd át a várakozó írásokat a /skills pending paranccsal."
+      install_failed: "a készség telepítése sikertelen"
+      reloading: "Készségek újratöltése..."
+      none_new: "Nem észleltünk új készséget."
+      added: "Hozzáadott készségek:"
+      removed: "Eltávolított készségek:"
+    command_unavailable_for_profile: "a /{command} nem érhető el a jelenlegi profilban"
+    not_dispatchable: "nem gyors-/bővítmény-/csomag-/készségparancs: {name}"
+    empty_command: "üres parancs"
+    plugin_command_error: "Bővítményparancs-hiba: {detail}"
+    checkpoint_rewind_failed: "az ellenőrzőpont visszaállt, de a munkamenet előzményeinek visszatekerése sikertelen: {detail}"
+  mcp:
+    server_not_found: "a(z) '{name}' kiszolgáló nem található"
+    server_plugin_owned: "a(z) '{name}' kiszolgálót a(z) '{plugin}' bővítmény biztosítja, nem módosítható"
+    server_exists: "a(z) '{name}' kiszolgáló már létezik"
+    unknown_catalog_entry: "Ismeretlen MCP-katalógusbejegyzés vagy előbeállítás: {preset}"
+    config_shape: "a konfigurációnak meg kell adnia egy 'url'-t (http) vagy 'command'-ot (stdio), vagy egy érvényes 'preset'-et"
+    server_rejected: "a(z) '{name}' kiszolgáló elutasítva: gyanús parancs-/argumentumkonfiguráció"
+    malformed_config: "hibás kiszolgálókonfiguráció"
+    invalid_credential: "az érték nem érvényes hitelesítő adat"
+    oauth_required: "OAuth-hitelesítés szükséges — nem található token."
+    stdio_no_oauth: "az stdio kiszolgálók környezeti kulcsokkal hitelesítenek, nem OAuth-tal"
+    header_auth_no_oauth: "ez a kiszolgáló fejléc-/API-kulcs-hitelesítést használ, nem OAuth-ot"
+  plugins:
+    toggle_failed: "az átkapcsolás sikertelen"
+    install_failed: "a telepítés sikertelen"
+    not_catalog_install: "a(z) '{name}' nem katalógusból telepített — frissítsd a CLI-n keresztül"
+    remove_failed: "az eltávolítás sikertelen"
+    not_found: "a(z) '{name}' bővítmény nem található"
+  shell:
+    blocked_hardline: "blokkolva (szigorú szabály): {reason}. A veszélyes parancsokhoz használd az ügynököt."
+    blocked: "blokkolva: {reason}. A veszélyes parancsokhoz használd az ügynököt."
+    timed_out: "a parancs túllépte az időkorlátot (30 mp)"
+  session_control:
+    subgoal_text_required: "az alcél szövege kötelező"
+    subgoal_added: "✓ {index}. alcél hozzáadva: {text}"
+    subgoal_removed: "✓ {index}. alcél eltávolítva: {text}"
+    subgoals_cleared_one: "✓ 1 alcél törölve."
+    subgoals_cleared: "✓ {count} alcél törölve."
+    no_subgoals: "Nincs törlendő alcél."
+    heartbeat_paused: "⏸ Szívverés szüneteltetve: {prompt}"
+    no_heartbeat: "Nincs beállítva szívverés."
+    heartbeat_resumed: "▶ Szívverés folytatva ({interval} időközönként): {prompt}"
+    no_heartbeat_to_resume: "Nincs folytatható szívverés."
+    heartbeat_cleared: "✓ Szívverés törölve."
+  voice:
+    wake_unavailable: "az ébresztőmodul nem érhető el: {detail}"
+    wake_device_unresolved: "Az ébresztőszó bemeneti eszköze nem azonosítható: {detail}"
+    enable_first: "előbb kapcsold be a hangmódot: /voice on"
+    mode_off: "a hangmód ki van kapcsolva — kapcsold be a /voice on paranccsal"
+    module_missing_deps: "a hangmodul nem érhető el — telepítsd az audiofüggőségeket"
+    module_missing: "a hangmodul nem érhető el"
+  browser:
+    already_listening: "Egy Chromium-családú böngésző már figyel itt: {url}"
+    port_occupied: "A(z) {port} portot egy másik, nem CDP-böngésző alkalmazás foglalja (talán egy IDE-hibakereső vagy fejlesztői kiszolgáló) — helyette hibakereső böngésző indul a(z) {launch_port} porton..."
+    launching: "Nem fut Chromium-családú böngésző távoli hibakereséssel — indítási kísérlet..."
+    launched: "Chromium-családú böngésző elindult, a(z) {port} porton figyel"
+    start_manually: "Indíts egy Chromium-családú böngészőt távoli hibakereséssel, majd próbáld újra a /browser connect parancsot:"
+    no_executable: "Ebben a környezetben nem található támogatott Chromium-családú böngésző futtatható fájlja."
+    install_hint: "Telepíts egyet, vagy indíts egy Chromium-családú böngészőt a --remote-debugging-port={port} kapcsolóval, majd próbáld újra a /browser connect parancsot."
+    not_connected: "A böngésző nincs csatlakoztatva — indíts egy Chromium-családú böngészőt távoli hibakereséssel, és próbáld újra a /browser connect parancsot"
+    unsupported_url: "nem támogatott böngésző-URL: {url}"
+    missing_host: "hiányzik a gazdagép a böngésző-URL-ből: {url}"
+    invalid_port: "érvénytelen port a böngésző-URL-ben: {url}"
+    unreachable_detail: "a böngésző CDP-je nem érhető el itt: {url}: {detail}"
+    unreachable: "a böngésző CDP-je nem érhető el itt: {url}"
+  model:
+    switch_failed_staying: "A(z) {target} modellre váltás sikertelen ({detail}); marad a(z) {current}."
+    once_requires_session: "a /model --once élő munkamenetet igényel"
+    switch_failed: "a modellváltás sikertelen"
+    capabilities_updated: "A képességek frissültek — a bot eszközei és promptja frissítve lettek."
+    configured_switch_failed: "Nem sikerült a beállított {model} modellre váltani: {detail}"
+    switch_error: "Nem sikerült modellt váltani: {detail}"
+  compress:
+    lock_held: "A tömörítési zár foglalt: {holder}"
+    unknown_holder: "ismeretlen"
+  images:
+    no_backend: "Nincs beállítva képgeneráló háttérrendszer (futtasd a `hermes tools` parancsot egy engedélyezéséhez)."
+    generation_failed: "a generálás sikertelen"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. A kezelésükhöz futtasd: {commands}."
+    team_update_one: "1 csapatfrissítés"
+    team_updates: "{count} csapatfrissítés"
+    skill_ready_one: "1 készség vár átnézésre"
+    skills_ready: "{count} készség vár átnézésre"
+    and: " és "
+    or: " vagy "
+    cannot_continue: "A Collective Wisdom nem tudott folytatódni: {detail}"
+    open_inbox_hint: "Nyisd meg a /wisdom inbox-ot az átnézéshez és a hozzájárulási vezérlők használatához."
+    notification_settings: "Értesítési beállítások: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git diff"
+      staged_diff: "előkészített diff"
+      attach_file: "fájl csatolása"
+      attach_folder: "mappa csatolása"
+      fetch_url: "URL letöltése"
+      git_log: "git napló"
+    agent_profile: "ügynökprofil"
+    agent_profile_primary: "ügynökprofil (elsődleges)"
+    plugin_provider: "bővítmény: {prefix}"
+    details:
+      section_override: "szakasz felülbírálása"
+      cycle_global_mode: "globális mód léptetése"
+      global_mode: "globális mód"
+      clear_override: "{section} felülbírálásának törlése"
+      set_section: "{section} beállítása"
+    slash:
+      density: "Tömör megjelenítési mód átkapcsolása"
+      details: "Az ügynök részleteinek láthatósága"
+      logs: "A legutóbbi átjárónapló-sorok megjelenítése"
+      mouse: "Egérkövetési előbeállítás [on|off|toggle|wheel|buttons|all]"
+      sessions: "Váltás az élő TUI-munkamenetek között"
+  credentials:
+    managed_readonly: "felügyelt telepítés — a hitelesítő adatok csak olvashatók"
+    unknown_provider: "ismeretlen szolgáltató: {slug}"
+    non_key_auth: "a(z) {provider} {auth} hitelesítést használ — a beállításhoz futtasd a `hermes model` parancsot"
+    no_env_var: "nincs környezeti változó definiálva ehhez: {provider}"
+    none_found: "nem található hitelesítő adat ehhez: {slug}"
+  profile:
+    not_exist: "A(z) '{name}' profil nem létezik."
+    store_unavailable: "a profil munkamenet-tárolója nem érhető el: {path}: {detail}"
+  approval:
+    client_cannot_answer: "a csatlakozott kliens nem tud jóváhagyási kérésekre válaszolni (frissítsd a Hermes alkalmazást)"
+  session:
+    hydration_timed_out: "a munkamenet előzményeinek betöltése túllépte az időkorlátot"
+  checkpoint:
+    invalid_number: "Érvénytelen ellenőrzőpont-szám. Használd: 1-{max}."
+  cli_exec:
+    setup: "a `hermes setup` teljes terminált igényel — futtasd a TUI-n kívül"
+    gateway: "a `hermes gateway` hosszan fut — futtasd egy másik terminálban"
+    sessions_browse: "a `hermes sessions browse` interaktív — itt használd a /resume parancsot, vagy futtasd a browse-t egy másik terminálban"
+    config_edit: "a `hermes config edit` igazi terminálban igényli az $EDITOR-t"
+    bare: "a puszta `hermes` interaktív — használd a `/hermes chat -q …` parancsot, vagy futtasd a `hermes`-t egy másik terminálban"
+  tool_progress:
+    lines_chars: "{lines} sor / {chars} karakter"
+    chars: "{chars} karakter"
+    verbose_tail: "[a részletes kimenet vége látható; kihagyva: {omitted}]"
+  onboarding:
+    facts_too_long: "A bevezetési adatok túl hosszúak a megjegyzéshez"
+    memory_not_saved: "A memória nem lett elmentve"
+    verify_failed: "A mentett bevezetési adatok nem ellenőrizhetők"
+    no_setup_profile: "nincs visszaállítandó beállítási profil"
+  projects:
+    not_found: "nincs ilyen projekt"
+  subagent:
+    interrupted_via_tui: "Megszakítva a TUI-n keresztül ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

@@ -309,7 +309,7 @@ def _validate_action_args(rid, action: str, args: dict):
     if action == "subgoal.add":
         text = args.get("text")
         if not isinstance(text, str) or not (text := text.strip()):
-            return None, _err(rid, 4004, "subgoal text is required")
+            return None, _err(rid, 4004, _t("tui_gateway.session_control.subgoal_text_required"))
         return {"text": text}, None
     if action == "subgoal.remove":
         index = args.get("index")
@@ -346,13 +346,19 @@ def _execute_subgoal_action(session_key: str, action: str, args: dict) -> dict:
     manager = GoalManager(session_id=session_key)
     if action == "subgoal.add":
         text = manager.add_subgoal(args["text"])
-        return {"result": {"type": "exec", "output": f"✓ Added subgoal {len(manager.state.subgoals)}: {text}"}}
+        return {"result": {"type": "exec", "output": _t(
+            "tui_gateway.session_control.subgoal_added", index=len(manager.state.subgoals), text=text)}}
     if action == "subgoal.remove":
         index = args["index"]
         text = manager.remove_subgoal(index)
-        return {"result": {"type": "exec", "output": f"✓ Removed subgoal {index}: {text}"}}
+        return {"result": {"type": "exec", "output": _t(
+            "tui_gateway.session_control.subgoal_removed", index=index, text=text)}}
     count = manager.clear_subgoals()
-    output = f"✓ Cleared {count} subgoal{'s' if count != 1 else ''}." if count else "No subgoals to clear."
+    if count:
+        output = (_t("tui_gateway.session_control.subgoals_cleared_one") if count == 1
+                  else _t("tui_gateway.session_control.subgoals_cleared", count=count))
+    else:
+        output = _t("tui_gateway.session_control.no_subgoals")
     return {"result": {"type": "exec", "output": output}}
 
 
@@ -362,15 +368,18 @@ def _execute_heartbeat_action(session_key: str, action: str) -> dict:
     manager = HeartbeatManager(session_id=session_key)
     if action == "heartbeat.pause":
         state = manager.pause()
-        output = f"⏸ Heartbeat paused: {state.prompt}" if state else "No heartbeat set."
+        output = (_t("tui_gateway.session_control.heartbeat_paused", prompt=state.prompt) if state
+                  else _t("tui_gateway.session_control.no_heartbeat"))
     elif action == "heartbeat.resume":
         state = manager.resume()
         output = (
-            f"▶ Heartbeat resumed (every {format_interval(state.interval_seconds)}): {state.prompt}"
-            if state else "No heartbeat to resume."
+            _t("tui_gateway.session_control.heartbeat_resumed",
+               interval=format_interval(state.interval_seconds), prompt=state.prompt)
+            if state else _t("tui_gateway.session_control.no_heartbeat_to_resume")
         )
     elif action == "heartbeat.clear":
-        output = "✓ Heartbeat cleared." if manager.clear() else "No heartbeat set."
+        output = (_t("tui_gateway.session_control.heartbeat_cleared") if manager.clear()
+                  else _t("tui_gateway.session_control.no_heartbeat"))
     else:
         return _err(None, 4004, f"unknown heartbeat action: {action}")
     return {"result": {"type": "exec", "output": output}}

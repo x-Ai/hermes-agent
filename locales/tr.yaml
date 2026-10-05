@@ -4074,6 +4074,273 @@ tui_gateway:
     invalid_data_url: "geçersiz data_url yükü"
     label_image: "görüntü"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Etkin ajan yok -- önce bir mesaj gönderin."
+    review:
+      nothing_yet: "Henüz gözden geçirilecek bir şey yok — önce bir mesaj gönderin."
+      remote_host: "/review şimdilik yalnızca yerel ajanda çalışır — bu oturumun ajanı uzak bir hesaplama ana makinesinde."
+      start_failed: "/review başlatılamadı: {detail}"
+    refine:
+      no_session: "Refine kullanılamıyor (oturum yok)."
+      agent_running: "Ajan çalışıyor — turun bitmesini bekleyin, sonra /refine."
+      nothing_yet: "Henüz inceltilecek bir şey yok — önce bir mesaj gönderin."
+      conversation_empty: "Henüz inceltilecek bir şey yok — konuşma boş."
+      start_failed: "/refine başlatılamadı: {detail}"
+      started: "⚗ Bu konuşma arka planda gözden geçiriliyor{focus} — bellek/beceri güncellemeleri bitince bildirilecek."
+      focus: " (odak: {focus})"
+    usage:
+      title: "Oturum Token Kullanımı"
+      model: "Model: {model}"
+      unknown_model: "(bilinmiyor)"
+      input_tokens: "Girdi token'ları:"
+      output_tokens: "Çıktı token'ları:"
+      reasoning_tokens: "Akıl yürütme token'ları:"
+      prompt_tokens: "İstem token'ları:"
+      completion_tokens: "Tamamlama token'ları:"
+      total_tokens: "Toplam token:"
+      api_calls: "API çağrıları:"
+      current_context: "Geçerli bağlam:"
+      messages: "Mesajlar:"
+      compressions: "Sıkıştırmalar:"
+    history:
+      empty: "Henüz konuşma geçmişi yok."
+      title: "Konuşma Geçmişi"
+      you: "Siz"
+      no_text: "(metin yok)"
+    context:
+      count: "Konuşma: {count} mesaj"
+      empty: "Konuşma boş (henüz mesaj yok)."
+    tools:
+      none: "Kullanılabilir araç yok."
+      available: "Kullanılabilir araçlar ({count}):"
+    help:
+      title: "Kullanılabilir komutlar:"
+      unavailable: "yardım kullanılamıyor: {detail}"
+    model:
+      current: "Geçerli model: {model}"
+      unknown: "Geçerli model: (bilinmiyor)"
+    status:
+      unavailable: "durum kullanılamıyor"
+    compress:
+      no_session: "/compress için etkin oturum yok"
+      still_running: "sıkıştırma arka planda hâlâ sürüyor; bitince döküm yenilenecek"
+    clear:
+      terminal_only: "Ekran temizleme yalnızca terminalde; masaüstü/TUI sohbeti değişmedi."
+    hint:
+      models: "Geçerli modeli görmek veya değiştirmek için /model kullanın; masaüstü kullanıcıları model seçiciyi de açabilir."
+      rename: "Bu oturumu yeniden adlandırmak için /title <ad> kullanın."
+      effort: "Akıl yürütme düzeyini değiştirmek için /reasoning <düzey> kullanın."
+    live_sync_failed: "canlı oturum eşitlemesi başarısız: {detail}"
+  compute_host:
+    failed: "hesaplama ana makinesi: {op} başarısız"
+    failed_detail: "hesaplama ana makinesi: {op} başarısız: {detail}"
+    timed_out: "hesaplama ana makinesi: {op} başarısız: zaman aşımı"
+    invalid_response: "hesaplama ana makinesi: {op} geçersiz bir yanıt döndürdü"
+    clarify_lock_failed: "açıklama kilidi başarısız"
+    turn_failed: "hesaplama ana makinesinde tur başarısız"
+    compression_failed: "sıkıştırma başarısız: {detail}"
+    compression_complete: "✓ Bağlam sıkıştırma tamamlandı"
+  tools:
+    profile_not_found: "'{name}' profili bulunamadı"
+    no_active_session: "etkin oturum yok"
+    no_such_process: "böyle bir süreç yok: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp istem önbelleğini geçersiz kılar (sonraki mesaj tüm girdi token'larını yeniden gönderir). Devam etmek için `/reload-mcp now`, devam edip bu uyarıyı kalıcı olarak susturmak için `/reload-mcp always` yanıtını verin."
+    kind:
+      quick_command: "hızlı komut"
+      plugin_command: "Eklenti komutu"
+    discovery_unavailable:
+      quick: "quick_commands keşfi kullanılamıyor: {detail}"
+      plugin: "eklenti komutu keşfi kullanılamıyor: {detail}"
+      skill: "beceri keşfi kullanılamıyor: {detail}"
+    cli_exec_timeout: "cli.exec: zaman aşımı"
+    unknown_command: "bilinmeyen komut: {name}"
+    quick_command_failed: "hızlı komut {code} çıkış koduyla başarısız oldu"
+    bundle:
+      dispatch_failed: "paket gönderimi başarısız: {detail}"
+      load_failed: "paket yüklenemedi: {name}"
+      loading: "⚡ Paket yükleniyor: {name} ({count} beceri)"
+      skipped_missing: "Eksik beceriler atlandı: {names}"
+      loading_stacked: "⚡ {count} yığılmış beceri yükleniyor: {names}"
+    usage:
+      queue: "kullanım: /queue <istem>"
+      focus: "kullanım: /focus [on|off|status]"
+      steer: "kullanım: /steer <istem>"
+    moa:
+      queued: "{preset} ön ayarıyla tek seferlik MoA sıraya alındı; bu turdan sonra önceki model geri yüklenecek."
+      unavailable: "MoA kullanılamıyor: {detail}"
+    retry:
+      no_session: "yeniden denenecek etkin oturum yok"
+      media: "yeniden deneme, ekli medyayı güvenle yeniden oluşturamaz veya birleştiremez"
+      nothing: "yeniden denenecek önceki kullanıcı mesajı yok"
+      persist_failed: "yeniden deneme: geçmiş kaydedilemedi: "
+    steer:
+      sent_next_turn: "Çalışan ajan yok; sonraki tur olarak gönderildi: {text}"
+      queued: "⏩ Yönlendirme sıraya alındı — sonraki araç çağrısından sonra ulaşacak: {text}"
+    goal:
+      continuing_now: "Şimdi devam ediliyor — sonraki adım atılıyor."
+      loop_deferred: "Not: etkin bir /goal bu oturumu yönetiyor — döngü uyandırmaları hedef bitene, duraklatılana veya askıya alınana kadar ertelenir."
+    undo:
+      no_session: "geri alınacak etkin oturum yok"
+      invalid_count: "undo: geçersiz sayı {value} — /undo veya /undo N kullanın"
+      nothing: "geri alınacak kullanıcı mesajı yok"
+      done: "↶ {count} {unit} geri alındı ({messages} mesaj). Düzenleyip yeniden gönderin veya yeni bir mesaj yazın."
+      turn: "tur"
+      turns: "tur"
+    snapshot_restore_blocked: "/snapshot restore TUI'de engellendi; çünkü canlı ajanın ayarları önbellekteyken diskteki yapılandırmayı/durumu değiştirir. Klasik CLI'de çalıştırın, sonra TUI'yi yeniden başlatın."
+    compress:
+      no_session: "sıkıştırılacak etkin oturum yok"
+      failed: "sıkıştırma başarısız: {detail}"
+    memory:
+      unknown_subcommand: "Bilinmeyen /memory alt komutu. Kullanın: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Burada bilinmeyen /skills alt komutu. Kullanın: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Arama/kurulum/gezinme terminal tarafındadır.)"
+      write_approval_off: "Beceri yazma onayı kapalı (skills.write_approval). /skills approval on ile açın, sonra bekleyen yazmaları /skills pending ile inceleyin."
+      install_failed: "beceri kurulumu başarısız"
+      reloading: "Beceriler yeniden yükleniyor..."
+      none_new: "Yeni beceri algılanmadı."
+      added: "Eklenen beceriler:"
+      removed: "Kaldırılan beceriler:"
+    command_unavailable_for_profile: "/{command} geçerli profil için kullanılamıyor"
+    not_dispatchable: "hızlı/eklenti/paket/beceri komutu değil: {name}"
+    empty_command: "boş komut"
+    plugin_command_error: "Eklenti komutu hatası: {detail}"
+    checkpoint_rewind_failed: "kontrol noktası geri yüklendi ama oturum geçmişini geri sarma başarısız oldu: {detail}"
+  mcp:
+    server_not_found: "'{name}' sunucusu bulunamadı"
+    server_plugin_owned: "'{name}' sunucusu '{plugin}' eklentisi tarafından sağlanıyor ve değiştirilemez"
+    server_exists: "'{name}' sunucusu zaten var"
+    unknown_catalog_entry: "Bilinmeyen MCP katalog girdisi veya ön ayar: {preset}"
+    config_shape: "yapılandırma bir 'url' (http) ya da 'command' (stdio) veya geçerli bir 'preset' belirtmeli"
+    server_rejected: "'{name}' sunucusu reddedildi: şüpheli komut/argüman yapılandırması"
+    malformed_config: "bozuk sunucu yapılandırması"
+    invalid_credential: "değer geçerli bir kimlik bilgisi değil"
+    oauth_required: "OAuth kimlik doğrulaması gerekli — belirteç bulunamadı."
+    stdio_no_oauth: "stdio sunucuları OAuth ile değil, ortam anahtarlarıyla kimlik doğrular"
+    header_auth_no_oauth: "bu sunucu OAuth değil, üstbilgi/API anahtarı kimlik doğrulaması kullanıyor"
+  plugins:
+    toggle_failed: "geçiş başarısız"
+    install_failed: "kurulum başarısız"
+    not_catalog_install: "'{name}' bir katalog kurulumu değil — CLI üzerinden güncelleyin"
+    remove_failed: "kaldırma başarısız"
+    not_found: "'{name}' eklentisi bulunamadı"
+  shell:
+    blocked_hardline: "engellendi (katı kural): {reason}. Tehlikeli komutlar için ajanı kullanın."
+    blocked: "engellendi: {reason}. Tehlikeli komutlar için ajanı kullanın."
+    timed_out: "komut zaman aşımına uğradı (30 sn)"
+  session_control:
+    subgoal_text_required: "alt hedef metni gerekli"
+    subgoal_added: "✓ Alt hedef {index} eklendi: {text}"
+    subgoal_removed: "✓ Alt hedef {index} kaldırıldı: {text}"
+    subgoals_cleared_one: "✓ 1 alt hedef temizlendi."
+    subgoals_cleared: "✓ {count} alt hedef temizlendi."
+    no_subgoals: "Temizlenecek alt hedef yok."
+    heartbeat_paused: "⏸ Kalp atışı duraklatıldı: {prompt}"
+    no_heartbeat: "Kalp atışı ayarlanmamış."
+    heartbeat_resumed: "▶ Kalp atışı sürdürüldü (her {interval}): {prompt}"
+    no_heartbeat_to_resume: "Sürdürülecek kalp atışı yok."
+    heartbeat_cleared: "✓ Kalp atışı temizlendi."
+  voice:
+    wake_unavailable: "uyandırma modülü kullanılamıyor: {detail}"
+    wake_device_unresolved: "Uyandırma sözcüğü giriş aygıtı çözümlenemedi: {detail}"
+    enable_first: "önce ses modunu etkinleştirin: /voice on"
+    mode_off: "ses modu kapalı — /voice on ile etkinleştirin"
+    module_missing_deps: "ses modülü kullanılamıyor — ses bağımlılıklarını kurun"
+    module_missing: "ses modülü kullanılamıyor"
+  browser:
+    already_listening: "Chromium ailesinden bir tarayıcı zaten {url} adresinde dinliyor"
+    port_occupied: "{port} portu CDP tarayıcısı olmayan başka bir uygulama tarafından kullanılıyor (bir IDE hata ayıklayıcısı veya geliştirme sunucusu olabilir) — bunun yerine {launch_port} portunda bir hata ayıklama tarayıcısı başlatılıyor..."
+    launching: "Chromium ailesinden bir tarayıcı uzaktan hata ayıklamayla çalışmıyor — başlatılmaya çalışılıyor..."
+    launched: "Chromium ailesinden tarayıcı başlatıldı ve {port} portunda dinliyor"
+    start_manually: "Chromium ailesinden bir tarayıcıyı uzaktan hata ayıklamayla başlatın, sonra /browser connect komutunu yeniden deneyin:"
+    no_executable: "Bu ortamda desteklenen bir Chromium ailesi tarayıcı yürütülebilir dosyası bulunamadı."
+    install_hint: "Bir tane kurun veya Chromium ailesinden bir tarayıcıyı --remote-debugging-port={port} ile başlatın, sonra /browser connect komutunu yeniden deneyin."
+    not_connected: "Tarayıcı bağlı değil — Chromium ailesinden bir tarayıcıyı uzaktan hata ayıklamayla başlatın ve /browser connect komutunu yeniden deneyin"
+    unsupported_url: "desteklenmeyen tarayıcı URL'si: {url}"
+    missing_host: "tarayıcı URL'sinde ana makine eksik: {url}"
+    invalid_port: "tarayıcı URL'sinde geçersiz port: {url}"
+    unreachable_detail: "{url} adresindeki tarayıcı CDP'sine ulaşılamadı: {detail}"
+    unreachable: "{url} adresindeki tarayıcı CDP'sine ulaşılamadı"
+  model:
+    switch_failed_staying: "{target} modeline geçiş başarısız oldu ({detail}); {current} ile devam ediliyor."
+    once_requires_session: "/model --once canlı bir oturum gerektirir"
+    switch_failed: "model geçişi başarısız"
+    capabilities_updated: "Yetenekler güncellendi — bu botun araçları ve istemi yenilendi."
+    configured_switch_failed: "Yapılandırılmış {model} modeline geçilemedi: {detail}"
+    switch_error: "Model değiştirilemedi: {detail}"
+  compress:
+    lock_held: "Sıkıştırma kilidi tutuluyor: {holder}"
+    unknown_holder: "bilinmiyor"
+  images:
+    no_backend: "Görüntü üretme arka ucu yapılandırılmamış (birini etkinleştirmek için `hermes tools` çalıştırın)."
+    generation_failed: "üretim başarısız"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Yönetmek için {commands} çalıştırın."
+    team_update_one: "1 ekip güncellemesi"
+    team_updates: "{count} ekip güncellemesi"
+    skill_ready_one: "incelemeye hazır 1 beceri"
+    skills_ready: "incelemeye hazır {count} beceri"
+    and: " ve "
+    or: " veya "
+    cannot_continue: "Collective Wisdom devam edemedi: {detail}"
+    open_inbox_hint: "İncelemek ve onay denetimlerini kullanmak için /wisdom inbox açın."
+    notification_settings: "Bildirim ayarları: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git farkı"
+      staged_diff: "hazırlanmış fark"
+      attach_file: "dosya ekle"
+      attach_folder: "klasör ekle"
+      fetch_url: "URL getir"
+      git_log: "git günlüğü"
+    agent_profile: "ajan profili"
+    agent_profile_primary: "ajan profili (birincil)"
+    plugin_provider: "eklenti: {prefix}"
+    details:
+      section_override: "bölüm geçersiz kılma"
+      cycle_global_mode: "genel modu sırayla değiştir"
+      global_mode: "genel mod"
+      clear_override: "{section} geçersiz kılmasını temizle"
+      set_section: "{section} ayarla"
+    slash:
+      density: "Sıkışık görüntü modunu aç/kapat"
+      details: "Ajan ayrıntılarının görünürlüğünü denetle"
+      logs: "Son ağ geçidi günlük satırlarını göster"
+      mouse: "Fare izleme ön ayarını belirle [on|off|toggle|wheel|buttons|all]"
+      sessions: "Canlı TUI oturumları arasında geçiş yap"
+  credentials:
+    managed_readonly: "yönetilen kurulum — kimlik bilgileri salt okunur"
+    unknown_provider: "bilinmeyen sağlayıcı: {slug}"
+    non_key_auth: "{provider}, {auth} kimlik doğrulaması kullanıyor — yapılandırmak için `hermes model` çalıştırın"
+    no_env_var: "{provider} için tanımlı ortam değişkeni yok"
+    none_found: "{slug} için kimlik bilgisi bulunamadı"
+  profile:
+    not_exist: "'{name}' profili yok."
+    store_unavailable: "profil oturum deposu kullanılamıyor: {path}: {detail}"
+  approval:
+    client_cannot_answer: "bağlı istemci onay isteklerini yanıtlayamıyor (Hermes uygulamasını güncelleyin)"
+  session:
+    hydration_timed_out: "oturum geçmişi yüklenirken zaman aşımı"
+  checkpoint:
+    invalid_number: "Geçersiz kontrol noktası numarası. 1-{max} kullanın."
+  cli_exec:
+    setup: "`hermes setup` tam bir terminal gerektirir — TUI dışında çalıştırın"
+    gateway: "`hermes gateway` uzun süre çalışır — başka bir terminalde çalıştırın"
+    sessions_browse: "`hermes sessions browse` etkileşimlidir — burada /resume kullanın veya browse'u başka bir terminalde çalıştırın"
+    config_edit: "`hermes config edit` gerçek bir terminalde $EDITOR gerektirir"
+    bare: "argümansız `hermes` etkileşimlidir — `/hermes chat -q …` kullanın veya `hermes` komutunu başka bir terminalde çalıştırın"
+  tool_progress:
+    lines_chars: "{lines} satır / {chars} karakter"
+    chars: "{chars} karakter"
+    verbose_tail: "[ayrıntılı çıktının sonu gösteriliyor; {omitted} atlandı]"
+  onboarding:
+    facts_too_long: "Başlangıç bilgileri hatırlanamayacak kadar uzun"
+    memory_not_saved: "Bellek kaydedilmedi"
+    verify_failed: "Kaydedilen başlangıç bilgileri doğrulanamadı"
+    no_setup_profile: "sıfırlanacak kurulum profili yok"
+  projects:
+    not_found: "böyle bir proje yok"
+  subagent:
+    interrupted_via_tui: "TUI üzerinden kesildi ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

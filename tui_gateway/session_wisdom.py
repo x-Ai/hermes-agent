@@ -71,17 +71,16 @@ def _collect_wisdom_activity_notice(session: dict) -> tuple[bool, str | None]:
     parts: list[str] = []
     commands: list[str] = []
     if organization_count:
-        noun = "update" if organization_count == 1 else "updates"
-        parts.append(f"{organization_count} team {noun}")
+        parts.append(_t("tui_gateway.wisdom.team_update_one") if organization_count == 1
+                     else _t("tui_gateway.wisdom.team_updates", count=organization_count))
         commands.append("/wisdom notifications")
     if candidate_count:
-        noun = "skill" if candidate_count == 1 else "skills"
-        parts.append(f"{candidate_count} {noun} ready to review")
+        parts.append(_t("tui_gateway.wisdom.skill_ready_one") if candidate_count == 1
+                     else _t("tui_gateway.wisdom.skills_ready", count=candidate_count))
         commands.append("/wisdom candidates")
-    return True, (
-        f"Collective Wisdom: {' and '.join(parts)}. "
-        f"Run {' or '.join(commands)} to manage them."
-    )
+    return True, _t(
+        "tui_gateway.wisdom.summary", summary=_t("tui_gateway.wisdom.and").join(parts),
+        commands=_t("tui_gateway.wisdom.or").join(commands))
 
 
 def _sync_wisdom_activity_notice(sid: str, session: dict) -> None:
@@ -161,7 +160,7 @@ def _format_live_wisdom_output(session: dict, name: str, arg: str) -> str:
             view = WisdomCommandController().execute(raw_args, service, context)
             return render_local_view(view, context)
     except Exception as exc:
-        return f"Collective Wisdom could not continue: {command_error_text(exc)}"
+        return _t("tui_gateway.wisdom.cannot_continue", detail=command_error_text(exc))
 
 
 def register(server) -> None:

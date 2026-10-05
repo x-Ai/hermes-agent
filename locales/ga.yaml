@@ -4075,6 +4075,273 @@ tui_gateway:
     invalid_data_url: "pálasta data_url neamhbhailí"
     label_image: "íomhá"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Níl aon ghníomhaire gníomhach -- seol teachtaireacht ar dtús."
+    review:
+      nothing_yet: "Níl aon rud le hathbhreithniú fós — seol teachtaireacht ar dtús."
+      remote_host: "Ní ritheann /review ach ar an ngníomhaire áitiúil go fóill — tá gníomhaire an tseisiúin seo ar óstach ríomhaireachta cianda."
+      start_failed: "Theip ar /review tosú: {detail}"
+    refine:
+      no_session: "Níl Refine ar fáil (gan seisiún)."
+      agent_running: "Tá an gníomhaire ag rith — fan go gcríochnóidh an babhta, ansin /refine."
+      nothing_yet: "Níl aon rud le beachtú fós — seol teachtaireacht ar dtús."
+      conversation_empty: "Níl aon rud le beachtú fós — tá an comhrá folamh."
+      start_failed: "Theip ar /refine tosú: {detail}"
+      started: "⚗ Tá an comhrá seo á athbhreithniú sa chúlra{focus} — tuairisceofar aon nuashonruithe cuimhne/scileanna nuair a bheidh sé déanta."
+      focus: " (fócas: {focus})"
+    usage:
+      title: "Úsáid Chomharthaí an tSeisiúin"
+      model: "Samhail: {model}"
+      unknown_model: "(anaithnid)"
+      input_tokens: "Comharthaí ionchuir:"
+      output_tokens: "Comharthaí aschuir:"
+      reasoning_tokens: "Comharthaí réasúnaithe:"
+      prompt_tokens: "Comharthaí leide:"
+      completion_tokens: "Comharthaí comhlánaithe:"
+      total_tokens: "Comharthaí iomlána:"
+      api_calls: "Glaonna API:"
+      current_context: "Comhthéacs reatha:"
+      messages: "Teachtaireachtaí:"
+      compressions: "Comhbhrúnna:"
+    history:
+      empty: "Níl aon stair chomhrá ann fós."
+      title: "Stair an Chomhrá"
+      you: "Tusa"
+      no_text: "(gan téacs)"
+    context:
+      count: "Comhrá: {count} teachtaireacht"
+      empty: "Tá an comhrá folamh (gan teachtaireachtaí fós)."
+    tools:
+      none: "Níl aon uirlisí ar fáil."
+      available: "Uirlisí atá ar fáil ({count}):"
+    help:
+      title: "Orduithe atá ar fáil:"
+      unavailable: "níl cabhair ar fáil: {detail}"
+    model:
+      current: "Samhail reatha: {model}"
+      unknown: "Samhail reatha: (anaithnid)"
+    status:
+      unavailable: "níl an stádas ar fáil"
+    compress:
+      no_session: "níl aon seisiún gníomhach do /compress"
+      still_running: "tá an comhbhrú fós ag rith sa chúlra; athnuafar an tras-scríbhinn nuair a chríochnóidh sé"
+    clear:
+      terminal_only: "Níl glanadh an scáileáin ach sa teirminéal; fágadh comhrá na deisce/TUI gan athrú."
+    hint:
+      models: "Úsáid /model chun an tsamhail reatha a fheiceáil nó a athrú; is féidir le húsáideoirí deisce an roghnóir samhlacha a oscailt freisin."
+      rename: "Úsáid /title <ainm> chun an seisiún seo a athainmniú."
+      effort: "Úsáid /reasoning <leibhéal> chun iarracht an réasúnaithe a athrú."
+    live_sync_failed: "theip ar shioncrónú an tseisiúin bheo: {detail}"
+  compute_host:
+    failed: "óstach ríomhaireachta: theip ar {op}"
+    failed_detail: "óstach ríomhaireachta: theip ar {op}: {detail}"
+    timed_out: "óstach ríomhaireachta: theip ar {op}: thar am"
+    invalid_response: "óstach ríomhaireachta: d'fhill {op} freagra neamhbhailí"
+    clarify_lock_failed: "theip ar an nglas soiléirithe"
+    turn_failed: "theip ar an mbabhta ar an óstach ríomhaireachta"
+    compression_failed: "theip ar an gcomhbhrú: {detail}"
+    compression_complete: "✓ Comhbhrú an chomhthéacs críochnaithe"
+  tools:
+    profile_not_found: "próifíl '{name}' gan aimsiú"
+    no_active_session: "níl aon seisiún gníomhach"
+    no_such_process: "níl a leithéid de phróiseas ann: {id}"
+    reload_mcp_confirm: "⚠️  Déanann /reload-mcp taisce na leide a neamhbhailíochtú (seolfaidh an chéad teachtaireacht eile na comharthaí ionchuir go léir arís). Freagair le `/reload-mcp now` chun leanúint ar aghaidh, nó le `/reload-mcp always` chun leanúint ar aghaidh agus an leid seo a chur ina tost go buan."
+    kind:
+      quick_command: "mearordú"
+      plugin_command: "Ordú breiseáin"
+    discovery_unavailable:
+      quick: "níl fionnachtain quick_commands ar fáil: {detail}"
+      plugin: "níl fionnachtain orduithe breiseáin ar fáil: {detail}"
+      skill: "níl fionnachtain scileanna ar fáil: {detail}"
+    cli_exec_timeout: "cli.exec: thar am"
+    unknown_command: "ordú anaithnid: {name}"
+    quick_command_failed: "theip ar an mearordú le cód scoir {code}"
+    bundle:
+      dispatch_failed: "theip ar sheoladh an bheartáin: {detail}"
+      load_failed: "theip ar an mbeartán a lódáil: {name}"
+      loading: "⚡ Beartán á lódáil: {name} ({count} scil)"
+      skipped_missing: "Scileanna ar iarraidh a scipeáladh: {names}"
+      loading_stacked: "⚡ {count} scil chruachta á lódáil: {names}"
+    usage:
+      queue: "úsáid: /queue <leid>"
+      focus: "úsáid: /focus [on|off|status]"
+      steer: "úsáid: /steer <leid>"
+    moa:
+      queued: "MoA aonuaire curtha i scuaine leis an réamhshocrú {preset}; cuirfear an tsamhail roimhe sin ar ais tar éis an bhabhta seo."
+      unavailable: "níl MoA ar fáil: {detail}"
+    retry:
+      no_session: "níl aon seisiún gníomhach le hatriail"
+      media: "ní féidir leis an atriail na meáin cheangailte a atógáil nó a chomhcheangal go sábháilte"
+      nothing: "níl aon teachtaireacht úsáideora roimhe seo le hatriail"
+      persist_failed: "atriail: theip ar an stair a shábháil: "
+    steer:
+      sent_next_turn: "Níl aon ghníomhaire ag rith; seolta mar an chéad bhabhta eile: {text}"
+      queued: "⏩ Stiúradh curtha i scuaine — tiocfaidh sé tar éis an chéad ghlao uirlise eile: {text}"
+    goal:
+      continuing_now: "Ag leanúint ar aghaidh anois — ag tógáil an chéad chéim eile."
+      loop_deferred: "Nóta: tá /goal gníomhach ag tiomáint an tseisiúin seo — cuirtear múscailtí lúibe siar go gcríochnóidh, go sosfaidh nó go bpáirceálfar an sprioc."
+    undo:
+      no_session: "níl aon seisiún gníomhach le cealú"
+      invalid_count: "undo: líon neamhbhailí {value} — úsáid /undo nó /undo N"
+      nothing: "níl aon teachtaireachtaí úsáideora le cealú"
+      done: "↶ Cealaíodh {count} {unit} ({messages} teachtaireacht). Cuir in eagar agus athsheol, nó seol teachtaireacht nua."
+      turn: "bhabhta"
+      turns: "babhta"
+    snapshot_restore_blocked: "Tá cosc ar /snapshot restore sa TUI toisc go n-athraíonn sé cumraíocht/staid ar an diosca fad atá socruithe i dtaisce ag an ngníomhaire beo. Rith sa CLI clasaiceach é, ansin atosaigh an TUI."
+    compress:
+      no_session: "níl aon seisiún gníomhach le comhbhrú"
+      failed: "theip ar an gcomhbhrú: {detail}"
+    memory:
+      unknown_subcommand: "Fo-ordú /memory anaithnid. Úsáid: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Fo-ordú /skills anaithnid anseo. Úsáid: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Déantar cuardach/suiteáil/brabhsáil ar thaobh an teirminéil.)"
+      write_approval_off: "Tá ceadú scríofa scileanna múchta (skills.write_approval). Cumasaigh é le /skills approval on, ansin athbhreithnigh na scríobhanna stáitsithe le /skills pending."
+      install_failed: "theip ar shuiteáil na scile"
+      reloading: "Scileanna á n-athlódáil..."
+      none_new: "Níor braitheadh aon scileanna nua."
+      added: "Scileanna a cuireadh leis:"
+      removed: "Scileanna a baineadh:"
+    command_unavailable_for_profile: "níl /{command} ar fáil don phróifíl reatha"
+    not_dispatchable: "ní mearordú/ordú breiseáin/beartáin/scile é: {name}"
+    empty_command: "ordú folamh"
+    plugin_command_error: "Earráid ordaithe breiseáin: {detail}"
+    checkpoint_rewind_failed: "athchóiríodh an seicphointe, ach theip ar stair an tseisiúin a athchasadh: {detail}"
+  mcp:
+    server_not_found: "freastalaí '{name}' gan aimsiú"
+    server_plugin_owned: "is é an breiseán '{plugin}' a sholáthraíonn an freastalaí '{name}' agus ní féidir é a athrú"
+    server_exists: "tá an freastalaí '{name}' ann cheana"
+    unknown_catalog_entry: "Iontráil chatalóige MCP nó réamhshocrú anaithnid: {preset}"
+    config_shape: "ní mór don chumraíocht 'url' (http) nó 'command' (stdio), nó 'preset' bailí a shonrú"
+    server_rejected: "diúltaíodh don fhreastalaí '{name}': cumraíocht ordaithe/argóintí amhrasach"
+    malformed_config: "cumraíocht freastalaí míchumtha"
+    invalid_credential: "ní dintiúr bailí é an luach"
+    oauth_required: "Fíordheimhniú OAuth de dhíth — níor aimsíodh aon chomhartha."
+    stdio_no_oauth: "fíordheimhníonn freastalaithe stdio le heochracha timpeallachta, ní le OAuth"
+    header_auth_no_oauth: "úsáideann an freastalaí seo fíordheimhniú ceanntáisc/eochrach API, ní OAuth"
+  plugins:
+    toggle_failed: "theip ar an scoránú"
+    install_failed: "theip ar an tsuiteáil"
+    not_catalog_install: "ní suiteáil chatalóige é '{name}' — nuashonraigh é tríd an CLI"
+    remove_failed: "theip ar an mbaint"
+    not_found: "breiseán '{name}' gan aimsiú"
+  shell:
+    blocked_hardline: "blocáilte (riail dhocht): {reason}. Úsáid an gníomhaire d'orduithe contúirteacha."
+    blocked: "blocáilte: {reason}. Úsáid an gníomhaire d'orduithe contúirteacha."
+    timed_out: "chuaigh an t-ordú thar am (30 s)"
+  session_control:
+    subgoal_text_required: "tá téacs an fhospriocanna ag teastáil"
+    subgoal_added: "✓ Fosprioc {index} curtha leis: {text}"
+    subgoal_removed: "✓ Fosprioc {index} bainte: {text}"
+    subgoals_cleared_one: "✓ Glanadh 1 fhosprioc."
+    subgoals_cleared: "✓ Glanadh {count} fhosprioc."
+    no_subgoals: "Níl aon fhospriocanna le glanadh."
+    heartbeat_paused: "⏸ Buille croí ar sos: {prompt}"
+    no_heartbeat: "Níl aon bhuille croí socraithe."
+    heartbeat_resumed: "▶ Buille croí atosaithe (gach {interval}): {prompt}"
+    no_heartbeat_to_resume: "Níl aon bhuille croí le hatosú."
+    heartbeat_cleared: "✓ Buille croí glanta."
+  voice:
+    wake_unavailable: "níl an modúl múscailte ar fáil: {detail}"
+    wake_device_unresolved: "Níorbh fhéidir gléas ionchuir an fhocail mhúscailte a réiteach: {detail}"
+    enable_first: "cumasaigh an mód gutha ar dtús: /voice on"
+    mode_off: "tá an mód gutha múchta — cumasaigh é le /voice on"
+    module_missing_deps: "níl an modúl gutha ar fáil — suiteáil na spleáchais fuaime"
+    module_missing: "níl an modúl gutha ar fáil"
+  browser:
+    already_listening: "Tá brabhsálaí de theaghlach Chromium ag éisteacht cheana ag {url}"
+    port_occupied: "Tá port {port} in úsáid ag feidhmchlár eile nach brabhsálaí CDP é (b'fhéidir dífhabhtóir IDE nó freastalaí forbartha) — brabhsálaí dífhabhtaithe á sheoladh ar phort {launch_port} ina ionad..."
+    launching: "Níl brabhsálaí de theaghlach Chromium ag rith le cian-dífhabhtú — ag iarraidh é a sheoladh..."
+    launched: "Brabhsálaí de theaghlach Chromium seolta agus ag éisteacht ar phort {port}"
+    start_manually: "Tosaigh brabhsálaí de theaghlach Chromium le cian-dífhabhtú, ansin bain triail eile as /browser connect:"
+    no_executable: "Níor aimsíodh aon chomhad inrite brabhsálaí de theaghlach Chromium a dtacaítear leis sa timpeallacht seo."
+    install_hint: "Suiteáil ceann nó tosaigh brabhsálaí de theaghlach Chromium le --remote-debugging-port={port}, ansin bain triail eile as /browser connect."
+    not_connected: "Níl an brabhsálaí ceangailte — tosaigh brabhsálaí de theaghlach Chromium le cian-dífhabhtú agus bain triail eile as /browser connect"
+    unsupported_url: "URL brabhsálaí nach dtacaítear leis: {url}"
+    missing_host: "óstach ar iarraidh in URL an bhrabhsálaí: {url}"
+    invalid_port: "port neamhbhailí in URL an bhrabhsálaí: {url}"
+    unreachable_detail: "níorbh fhéidir CDP an bhrabhsálaí ag {url} a shroicheadh: {detail}"
+    unreachable: "níorbh fhéidir CDP an bhrabhsálaí ag {url} a shroicheadh"
+  model:
+    switch_failed_staying: "Theip ar athrú go dtí an tsamhail {target} ({detail}); ag fanacht ar {current}."
+    once_requires_session: "teastaíonn seisiún beo ó /model --once"
+    switch_failed: "theip ar athrú na samhla"
+    capabilities_updated: "Cumais nuashonraithe — athnuadh uirlisí agus leid an bhota seo."
+    configured_switch_failed: "Níorbh fhéidir athrú go dtí an tsamhail chumraithe {model}: {detail}"
+    switch_error: "Níorbh fhéidir an tsamhail a athrú: {detail}"
+  compress:
+    lock_held: "Glas comhbhrúite á choinneáil: {holder}"
+    unknown_holder: "anaithnid"
+  images:
+    no_backend: "Níl aon inneall cúil giniúna íomhánna cumraithe (rith `hermes tools` chun ceann a chumasú)."
+    generation_failed: "theip ar an nginiúint"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Rith {commands} chun iad a bhainistiú."
+    team_update_one: "1 nuashonrú foirne"
+    team_updates: "{count} nuashonrú foirne"
+    skill_ready_one: "1 scil réidh le hathbhreithniú"
+    skills_ready: "{count} scil réidh le hathbhreithniú"
+    and: " agus "
+    or: " nó "
+    cannot_continue: "Níorbh fhéidir le Collective Wisdom leanúint ar aghaidh: {detail}"
+    open_inbox_hint: "Oscail /wisdom inbox chun athbhreithniú a dhéanamh agus rialuithe toilithe a úsáid."
+    notification_settings: "Socruithe fógraí: /wisdom mute"
+  complete:
+    at:
+      git_diff: "difríocht git"
+      staged_diff: "difríocht stáitsithe"
+      attach_file: "ceangail comhad"
+      attach_folder: "ceangail fillteán"
+      fetch_url: "faigh URL"
+      git_log: "loga git"
+    agent_profile: "próifíl ghníomhaire"
+    agent_profile_primary: "próifíl ghníomhaire (príomhúil)"
+    plugin_provider: "breiseán: {prefix}"
+    details:
+      section_override: "sárú rannáin"
+      cycle_global_mode: "rothlaigh an mód domhanda"
+      global_mode: "mód domhanda"
+      clear_override: "glan sárú {section}"
+      set_section: "socraigh {section}"
+    slash:
+      density: "Scoránaigh an mód taispeána dlúth"
+      details: "Rialaigh infheictheacht sonraí an ghníomhaire"
+      logs: "Taispeáin línte loga geata le déanaí"
+      mouse: "Socraigh réamhshocrú rianaithe luiche [on|off|toggle|wheel|buttons|all]"
+      sessions: "Athraigh idir seisiúin bheo TUI"
+  credentials:
+    managed_readonly: "suiteáil bhainistithe — tá na dintiúir inléite amháin"
+    unknown_provider: "soláthraí anaithnid: {slug}"
+    non_key_auth: "úsáideann {provider} fíordheimhniú {auth} — rith `hermes model` chun é a chumrú"
+    no_env_var: "níl aon athróg timpeallachta sainithe do {provider}"
+    none_found: "níor aimsíodh aon dintiúir do {slug}"
+  profile:
+    not_exist: "Níl an phróifíl '{name}' ann."
+    store_unavailable: "níl stór seisiún na próifíle ar fáil: {path}: {detail}"
+  approval:
+    client_cannot_answer: "ní féidir leis an gcliant ceangailte iarratais cheadaithe a fhreagairt (nuashonraigh an aip Hermes)"
+  session:
+    hydration_timed_out: "chuaigh lódáil stair an tseisiúin thar am"
+  checkpoint:
+    invalid_number: "Uimhir sheicphointe neamhbhailí. Úsáid 1-{max}."
+  cli_exec:
+    setup: "teastaíonn teirminéal iomlán ó `hermes setup` — rith lasmuigh den TUI é"
+    gateway: "ritheann `hermes gateway` ar feadh i bhfad — rith i dteirminéal eile é"
+    sessions_browse: "tá `hermes sessions browse` idirghníomhach — úsáid /resume anseo, nó rith browse i dteirminéal eile"
+    config_edit: "teastaíonn $EDITOR i bhfíortheirminéal ó `hermes config edit`"
+    bare: "tá `hermes` lom idirghníomhach — úsáid `/hermes chat -q …` nó rith `hermes` i dteirminéal eile"
+  tool_progress:
+    lines_chars: "{lines} líne / {chars} carachtar"
+    chars: "{chars} carachtar"
+    verbose_tail: "[eireaball an aschuir fhoclaigh á thaispeáint; {omitted} fágtha ar lár]"
+  onboarding:
+    facts_too_long: "Tá na fíricí tosaithe rófhada le cuimhneamh orthu"
+    memory_not_saved: "Níor sábháladh an chuimhne"
+    verify_failed: "Níorbh fhéidir na fíricí tosaithe sábháilte a fhíorú"
+    no_setup_profile: "níl aon phróifíl socraithe le hathshocrú"
+  projects:
+    not_found: "níl a leithéid de thionscadal ann"
+  subagent:
+    interrupted_via_tui: "Briseadh isteach tríd an TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

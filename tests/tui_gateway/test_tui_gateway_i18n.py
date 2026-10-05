@@ -118,3 +118,54 @@ def test_every_bundled_language_keeps_the_recovery_commands_and_placeholders():
         assert "`hermes -p x gateway stop`" in action and "https://guide" in action, lang
         assert "/model" in i18n.t("tui_gateway.turn_error.default.hint_unrecoverable", lang=lang), lang
         assert "{detail}" not in i18n.t("tui_gateway.resume.failed", lang=lang, detail="d"), lang
+
+
+# ── batch 2: slash output, CLI-exec guards, compression lock ───────────────────────────────────
+
+def test_cli_exec_guard_hints_keep_their_english_and_resolve_in_chinese(english, monkeypatch):
+    from tui_gateway import server
+    assert server._cli_exec_blocked(["setup"]) == "`hermes setup` needs a full terminal — run it outside the TUI"
+    assert server._cli_exec_blocked(["sessions", "browse"]).startswith("`hermes sessions browse` is interactive")
+    assert server._cli_exec_blocked([]).startswith("bare `hermes` is interactive")
+    assert server._cli_exec_blocked(["chat", "-q", "hi"]) is None
+    monkeypatch.setenv("HERMES_LANGUAGE", "zh")
+    i18n.reset_language_cache()
+    assert server._cli_exec_blocked(["setup"]) == i18n.t("tui_gateway.cli_exec.setup", lang="zh")
+    assert server._cli_exec_blocked(["config", "edit"]) == i18n.t("tui_gateway.cli_exec.config_edit", lang="zh")
+    assert server._cli_exec_blocked(["chat"]) is None
+
+
+def test_live_slash_hints_and_no_session_replies_come_from_the_catalog(chinese):
+    from tui_gateway import server
+    # Static hints and the "no session yet" replies are resolved per call, not frozen at import.
+    assert server._live_slash_command_output("sid", None, "clear", "") == i18n.t(
+        "tui_gateway.slash.clear.terminal_only", lang="zh")
+    assert server._live_slash_command_output("sid", None, "rename", "") == i18n.t(
+        "tui_gateway.slash.hint.rename", lang="zh")
+    assert server._live_slash_command_output("sid", None, "history", "") == i18n.t(
+        "tui_gateway.slash.history.empty", lang="zh")
+    usage = server._live_slash_command_output("sid", None, "usage", "")
+    assert usage.startswith("(._.) ") and usage[6:] == i18n.t("tui_gateway.slash.no_active_agent", lang="zh")
+    for text in (usage, server._live_slash_command_output("sid", None, "clear", "")):
+        assert "tui_gateway." not in text and "/title" not in text or "rename" not in text
+
+
+def test_compression_lock_message_names_the_holder_in_the_active_language(chinese):
+    from tui_gateway import server
+    held = server.CompressionLockHeld("worker-7")
+    assert held.holder == "worker-7"
+    assert str(held) == i18n.t("tui_gateway.compress.lock_held", lang="zh", holder="worker-7")
+    anonymous = server.CompressionLockHeld()
+    assert str(anonymous) == i18n.t(
+        "tui_gateway.compress.lock_held", lang="zh", holder=i18n.t("tui_gateway.compress.unknown_holder", lang="zh"))
+
+
+def test_every_bundled_language_keeps_the_slash_commands_users_must_type():
+    """Translators may rewrite the prose, never the command the user has to type next."""
+    for lang in i18n.SUPPORTED_LANGUAGES:
+        assert "/voice on" in i18n.t("tui_gateway.voice.mode_off", lang=lang), lang
+        assert "/browser connect" in i18n.t("tui_gateway.browser.not_connected", lang=lang), lang
+        assert "/skills approval on" in i18n.t("tui_gateway.tools.skills.write_approval_off", lang=lang), lang
+        assert "`/reload-mcp always`" in i18n.t("tui_gateway.tools.reload_mcp_confirm", lang=lang), lang
+        assert "`hermes model`" in i18n.t("tui_gateway.credentials.non_key_auth", lang=lang, provider="p", auth="a"), lang
+        assert "{count}" not in i18n.t("tui_gateway.tools.undo.done", lang=lang, count=2, unit="t", messages=3), lang

@@ -36,7 +36,7 @@ def _projects_method(name: str):
                 with pdb.connect_closing() as conn:
                     return fn(rid, params, pdb, conn)
             except _NoProject:
-                return _err(rid, _E_NO_PROJECT, "no such project")
+                return _err(rid, _E_NO_PROJECT, _t("tui_gateway.projects.not_found"))
             except ValueError as e:
                 return _err(rid, _E_PROJECT_ARG, str(e))
             except Exception as e:

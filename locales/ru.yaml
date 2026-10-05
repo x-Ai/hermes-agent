@@ -4075,6 +4075,273 @@ tui_gateway:
     invalid_data_url: "некорректное содержимое data_url"
     label_image: "изображение"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Нет активного агента -- сначала отправьте сообщение."
+    review:
+      nothing_yet: "Пока нечего просматривать — сначала отправьте сообщение."
+      remote_host: "/review пока работает только на локальном агенте — агент этой сессии живёт на удалённом вычислительном хосте."
+      start_failed: "/review не удалось запустить: {detail}"
+    refine:
+      no_session: "Refine недоступен (нет сессии)."
+      agent_running: "Агент работает — дождитесь окончания хода, затем /refine."
+      nothing_yet: "Пока нечего дорабатывать — сначала отправьте сообщение."
+      conversation_empty: "Пока нечего дорабатывать — разговор пуст."
+      start_failed: "/refine не удалось запустить: {detail}"
+      started: "⚗ Просматриваю этот разговор в фоне{focus} — об обновлениях памяти/навыков сообщу по завершении."
+      focus: " (фокус: {focus})"
+    usage:
+      title: "Расход токенов сессии"
+      model: "Модель: {model}"
+      unknown_model: "(неизвестно)"
+      input_tokens: "Входные токены:"
+      output_tokens: "Выходные токены:"
+      reasoning_tokens: "Токены рассуждения:"
+      prompt_tokens: "Токены промпта:"
+      completion_tokens: "Токены ответа:"
+      total_tokens: "Всего токенов:"
+      api_calls: "Вызовы API:"
+      current_context: "Текущий контекст:"
+      messages: "Сообщений:"
+      compressions: "Сжатий:"
+    history:
+      empty: "Истории разговора пока нет."
+      title: "История разговора"
+      you: "Вы"
+      no_text: "(нет текста)"
+    context:
+      count: "Разговор: {count} сообщений"
+      empty: "Разговор пуст (сообщений пока нет)."
+    tools:
+      none: "Нет доступных инструментов."
+      available: "Доступные инструменты ({count}):"
+    help:
+      title: "Доступные команды:"
+      unavailable: "справка недоступна: {detail}"
+    model:
+      current: "Текущая модель: {model}"
+      unknown: "Текущая модель: (неизвестно)"
+    status:
+      unavailable: "статус недоступен"
+    compress:
+      no_session: "нет активной сессии для /compress"
+      still_running: "сжатие ещё идёт в фоне; транскрипт обновится, когда оно закончится"
+    clear:
+      terminal_only: "Очистка экрана есть только в терминале; чат в десктопе/TUI не изменён."
+    hint:
+      models: "Используйте /model, чтобы посмотреть или сменить текущую модель; в десктопе можно также открыть выбор модели."
+      rename: "Используйте /title <имя>, чтобы переименовать эту сессию."
+      effort: "Используйте /reasoning <уровень>, чтобы изменить глубину рассуждения."
+    live_sync_failed: "не удалось синхронизировать живую сессию: {detail}"
+  compute_host:
+    failed: "вычислительный хост: {op} не удалось"
+    failed_detail: "вычислительный хост: {op} не удалось: {detail}"
+    timed_out: "вычислительный хост: {op} не удалось: время ожидания истекло"
+    invalid_response: "вычислительный хост: {op} вернул недопустимый ответ"
+    clarify_lock_failed: "не удалось установить блокировку уточнения"
+    turn_failed: "ход на вычислительном хосте не удался"
+    compression_failed: "сжатие не удалось: {detail}"
+    compression_complete: "✓ Сжатие контекста завершено"
+  tools:
+    profile_not_found: "профиль '{name}' не найден"
+    no_active_session: "нет активной сессии"
+    no_such_process: "нет такого процесса: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp сбрасывает кэш промпта (следующее сообщение заново отправит все входные токены). Ответьте `/reload-mcp now`, чтобы продолжить, или `/reload-mcp always`, чтобы продолжить и навсегда отключить это предупреждение."
+    kind:
+      quick_command: "быстрая команда"
+      plugin_command: "Команда плагина"
+    discovery_unavailable:
+      quick: "обнаружение quick_commands недоступно: {detail}"
+      plugin: "обнаружение команд плагинов недоступно: {detail}"
+      skill: "обнаружение навыков недоступно: {detail}"
+    cli_exec_timeout: "cli.exec: время ожидания истекло"
+    unknown_command: "неизвестная команда: {name}"
+    quick_command_failed: "быстрая команда завершилась с кодом {code}"
+    bundle:
+      dispatch_failed: "не удалось выполнить набор: {detail}"
+      load_failed: "не удалось загрузить набор: {name}"
+      loading: "⚡ Загружаю набор: {name} ({count} навыков)"
+      skipped_missing: "Пропущены отсутствующие навыки: {names}"
+      loading_stacked: "⚡ Загружаю {count} сложенных навыков: {names}"
+    usage:
+      queue: "использование: /queue <промпт>"
+      focus: "использование: /focus [on|off|status]"
+      steer: "использование: /steer <промпт>"
+    moa:
+      queued: "Одноразовый MoA поставлен в очередь с пресетом {preset}; после этого хода прежняя модель будет восстановлена."
+      unavailable: "MoA недоступен: {detail}"
+    retry:
+      no_session: "нет активной сессии для повтора"
+      media: "повтор не может безопасно восстановить или объединить прикреплённые медиа"
+      nothing: "нет предыдущего сообщения пользователя для повтора"
+      persist_failed: "повтор: не удалось сохранить историю: "
+    steer:
+      sent_next_turn: "Агент не запущен; отправлено как следующий ход: {text}"
+      queued: "⏩ Подсказка в очереди — придёт после следующего вызова инструмента: {text}"
+    goal:
+      continuing_now: "Продолжаю — делаю следующий шаг."
+      loop_deferred: "Примечание: активная /goal ведёт эту сессию — пробуждения цикла откладываются, пока цель не завершится, не встанет на паузу или не будет отложена."
+    undo:
+      no_session: "нет активной сессии для отмены"
+      invalid_count: "undo: недопустимое число {value} — используйте /undo или /undo N"
+      nothing: "нет сообщений пользователя для отмены"
+      done: "↶ Отменено: {count} {unit} ({messages} сообщ.). Отредактируйте и отправьте снова или напишите новое сообщение."
+      turn: "ход"
+      turns: "ход(ов)"
+    snapshot_restore_blocked: "/snapshot restore заблокирован в TUI, потому что он меняет конфигурацию и состояние на диске, пока у живого агента настройки в кэше. Выполните его в классическом CLI, затем перезапустите TUI."
+    compress:
+      no_session: "нет активной сессии для сжатия"
+      failed: "сжатие не удалось: {detail}"
+    memory:
+      unknown_subcommand: "Неизвестная подкоманда /memory. Доступно: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Неизвестная здесь подкоманда /skills. Доступно: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Поиск/установка/просмотр — на стороне терминала.)"
+      write_approval_off: "Подтверждение записи навыков выключено (skills.write_approval). Включите его командой /skills approval on, затем просмотрите отложенные записи через /skills pending."
+      install_failed: "установка навыка не удалась"
+      reloading: "Перезагружаю навыки..."
+      none_new: "Новых навыков не обнаружено."
+      added: "Добавленные навыки:"
+      removed: "Удалённые навыки:"
+    command_unavailable_for_profile: "/{command} недоступна для текущего профиля"
+    not_dispatchable: "не быстрая/плагинная/наборная/навыковая команда: {name}"
+    empty_command: "пустая команда"
+    plugin_command_error: "Ошибка команды плагина: {detail}"
+    checkpoint_rewind_failed: "контрольная точка восстановлена, но откат истории сессии не удался: {detail}"
+  mcp:
+    server_not_found: "сервер '{name}' не найден"
+    server_plugin_owned: "сервер '{name}' предоставлен плагином '{plugin}' и не может быть изменён"
+    server_exists: "сервер '{name}' уже существует"
+    unknown_catalog_entry: "Неизвестная запись каталога MCP или пресет: {preset}"
+    config_shape: "в конфигурации нужно указать 'url' (http) или 'command' (stdio), либо допустимый 'preset'"
+    server_rejected: "сервер '{name}' отклонён: подозрительная конфигурация команды/аргументов"
+    malformed_config: "некорректная конфигурация сервера"
+    invalid_credential: "значение не является допустимыми учётными данными"
+    oauth_required: "Требуется аутентификация OAuth — токен не найден."
+    stdio_no_oauth: "stdio-серверы аутентифицируются ключами из окружения, а не через OAuth"
+    header_auth_no_oauth: "этот сервер использует аутентификацию по заголовку/API-ключу, а не OAuth"
+  plugins:
+    toggle_failed: "не удалось переключить"
+    install_failed: "установка не удалась"
+    not_catalog_install: "'{name}' установлен не из каталога — обновите его через CLI"
+    remove_failed: "удаление не удалось"
+    not_found: "плагин '{name}' не найден"
+  shell:
+    blocked_hardline: "заблокировано (жёсткое правило): {reason}. Для опасных команд используйте агента."
+    blocked: "заблокировано: {reason}. Для опасных команд используйте агента."
+    timed_out: "время выполнения команды истекло (30 с)"
+  session_control:
+    subgoal_text_required: "нужен текст подцели"
+    subgoal_added: "✓ Добавлена подцель {index}: {text}"
+    subgoal_removed: "✓ Удалена подцель {index}: {text}"
+    subgoals_cleared_one: "✓ Очищена 1 подцель."
+    subgoals_cleared: "✓ Очищено подцелей: {count}."
+    no_subgoals: "Нет подцелей для очистки."
+    heartbeat_paused: "⏸ Heartbeat приостановлен: {prompt}"
+    no_heartbeat: "Heartbeat не задан."
+    heartbeat_resumed: "▶ Heartbeat возобновлён (каждые {interval}): {prompt}"
+    no_heartbeat_to_resume: "Нет heartbeat для возобновления."
+    heartbeat_cleared: "✓ Heartbeat очищен."
+  voice:
+    wake_unavailable: "модуль пробуждения недоступен: {detail}"
+    wake_device_unresolved: "Не удалось определить устройство ввода для слова-активатора: {detail}"
+    enable_first: "сначала включите голосовой режим: /voice on"
+    mode_off: "голосовой режим выключен — включите его командой /voice on"
+    module_missing_deps: "голосовой модуль недоступен — установите аудиозависимости"
+    module_missing: "голосовой модуль недоступен"
+  browser:
+    already_listening: "Браузер семейства Chromium уже слушает на {url}"
+    port_occupied: "Порт {port} занят другим приложением, которое не является CDP-браузером (возможно, отладчиком IDE или dev-сервером) — вместо этого запускаю отладочный браузер на порту {launch_port}..."
+    launching: "Браузер семейства Chromium не запущен с удалённой отладкой — пробую запустить..."
+    launched: "Браузер семейства Chromium запущен и слушает порт {port}"
+    start_manually: "Запустите браузер семейства Chromium с удалённой отладкой, затем повторите /browser connect:"
+    no_executable: "В этом окружении не найден исполняемый файл поддерживаемого браузера семейства Chromium."
+    install_hint: "Установите его или запустите браузер семейства Chromium с --remote-debugging-port={port}, затем повторите /browser connect."
+    not_connected: "Браузер не подключён — запустите браузер семейства Chromium с удалённой отладкой и повторите /browser connect"
+    unsupported_url: "неподдерживаемый URL браузера: {url}"
+    missing_host: "в URL браузера нет хоста: {url}"
+    invalid_port: "недопустимый порт в URL браузера: {url}"
+    unreachable_detail: "не удалось связаться с CDP браузера по адресу {url}: {detail}"
+    unreachable: "не удалось связаться с CDP браузера по адресу {url}"
+  model:
+    switch_failed_staying: "Переключение на модель {target} не удалось ({detail}); остаёмся на {current}."
+    once_requires_session: "/model --once требует живой сессии"
+    switch_failed: "переключение модели не удалось"
+    capabilities_updated: "Возможности обновлены — инструменты и промпт этого бота обновлены."
+    configured_switch_failed: "Не удалось переключиться на настроенную модель {model}: {detail}"
+    switch_error: "Не удалось сменить модель: {detail}"
+  compress:
+    lock_held: "Блокировка сжатия занята: {holder}"
+    unknown_holder: "неизвестно"
+  images:
+    no_backend: "Бэкенд генерации изображений не настроен (выполните `hermes tools`, чтобы включить его)."
+    generation_failed: "генерация не удалась"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Выполните {commands}, чтобы управлять ими."
+    team_update_one: "1 обновление команды"
+    team_updates: "обновлений команды: {count}"
+    skill_ready_one: "1 навык готов к просмотру"
+    skills_ready: "навыков готово к просмотру: {count}"
+    and: " и "
+    or: " или "
+    cannot_continue: "Collective Wisdom не смог продолжить: {detail}"
+    open_inbox_hint: "Откройте /wisdom inbox, чтобы просмотреть и использовать элементы управления согласием."
+    notification_settings: "Настройки уведомлений: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git diff"
+      staged_diff: "diff индекса"
+      attach_file: "прикрепить файл"
+      attach_folder: "прикрепить папку"
+      fetch_url: "загрузить URL"
+      git_log: "git log"
+    agent_profile: "профиль агента"
+    agent_profile_primary: "профиль агента (основной)"
+    plugin_provider: "плагин: {prefix}"
+    details:
+      section_override: "переопределение раздела"
+      cycle_global_mode: "переключить глобальный режим по кругу"
+      global_mode: "глобальный режим"
+      clear_override: "снять переопределение {section}"
+      set_section: "задать {section}"
+    slash:
+      density: "Переключить компактный режим отображения"
+      details: "Управлять видимостью деталей агента"
+      logs: "Показать последние строки журнала шлюза"
+      mouse: "Задать пресет отслеживания мыши [on|off|toggle|wheel|buttons|all]"
+      sessions: "Переключаться между живыми сессиями TUI"
+  credentials:
+    managed_readonly: "управляемая установка — учётные данные только для чтения"
+    unknown_provider: "неизвестный провайдер: {slug}"
+    non_key_auth: "{provider} использует аутентификацию {auth} — выполните `hermes model` для настройки"
+    no_env_var: "для {provider} не задана переменная окружения"
+    none_found: "учётные данные для {slug} не найдены"
+  profile:
+    not_exist: "Профиль '{name}' не существует."
+    store_unavailable: "хранилище сессий профиля недоступно: {path}: {detail}"
+  approval:
+    client_cannot_answer: "подключённый клиент не может отвечать на запросы подтверждения (обновите приложение Hermes)"
+  session:
+    hydration_timed_out: "истекло время загрузки истории сессии"
+  checkpoint:
+    invalid_number: "Недопустимый номер контрольной точки. Используйте 1-{max}."
+  cli_exec:
+    setup: "`hermes setup` требует полноценного терминала — запустите его вне TUI"
+    gateway: "`hermes gateway` работает долго — запустите его в другом терминале"
+    sessions_browse: "`hermes sessions browse` интерактивна — используйте здесь /resume или запустите browse в другом терминале"
+    config_edit: "`hermes config edit` требует $EDITOR в настоящем терминале"
+    bare: "`hermes` без аргументов интерактивна — используйте `/hermes chat -q …` или запустите `hermes` в другом терминале"
+  tool_progress:
+    lines_chars: "{lines} строк / {chars} символов"
+    chars: "{chars} символов"
+    verbose_tail: "[показан хвост подробного вывода; пропущено {omitted}]"
+  onboarding:
+    facts_too_long: "Сведения из онбординга слишком длинные, чтобы их запомнить"
+    memory_not_saved: "Память не была сохранена"
+    verify_failed: "Не удалось проверить сохранённые сведения онбординга"
+    no_setup_profile: "нет профиля настройки для сброса"
+  projects:
+    not_found: "нет такого проекта"
+  subagent:
+    interrupted_via_tui: "Прервано через TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

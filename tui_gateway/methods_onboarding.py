@@ -21,7 +21,7 @@ def _(rid, params: dict) -> dict:
     from hermes_cli.setup_profile import find_setup_profile, reset_setup_profile
     found = find_setup_profile()
     if found is None:
-        return _err(rid, 4072, "no setup profile to reset")
+        return _err(rid, 4072, _t("tui_gateway.onboarding.no_setup_profile"))
     _clear_setup_sessions(found[1])
     try:
         setup = reset_setup_profile()

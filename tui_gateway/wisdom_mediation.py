@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 import logging
 
+from agent.i18n import t as _t
 from hermes_wisdom.consent import ConsentActor
 from hermes_wisdom.delivery import DeliveryReceipt
 from hermes_wisdom.mediation import WisdomMediation, session_runtime
@@ -136,8 +137,8 @@ def poll(session: dict, *, emit, profile_scope, connected=lambda: True) -> None:
                 view = advice_view(selected, introduction=introduction)
                 text = (
                     view.to_text()
-                    + "\n\nOpen /wisdom inbox to review and use consent controls."
-                    + "\nNotification settings: /wisdom mute"
+                    + "\n\n" + _t("tui_gateway.wisdom.open_inbox_hint")
+                    + "\n" + _t("tui_gateway.wisdom.notification_settings")
                 )
             except Exception:
                 mediation.cancel_delivery(org, selected)

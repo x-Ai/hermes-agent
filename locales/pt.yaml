@@ -4075,6 +4075,273 @@ tui_gateway:
     invalid_data_url: "payload data_url inválido"
     label_image: "imagem"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Nenhum agente ativo -- envie uma mensagem primeiro."
+    review:
+      nothing_yet: "Ainda não há nada para revisar — envie uma mensagem primeiro."
+      remote_host: "/review só roda no agente local por enquanto — o agente desta sessão vive em um host de computação remoto."
+      start_failed: "/review não conseguiu iniciar: {detail}"
+    refine:
+      no_session: "Refine indisponível (sem sessão)."
+      agent_running: "O agente está em execução — aguarde o turno terminar e então /refine."
+      nothing_yet: "Ainda não há nada para refinar — envie uma mensagem primeiro."
+      conversation_empty: "Ainda não há nada para refinar — a conversa está vazia."
+      start_failed: "/refine não conseguiu iniciar: {detail}"
+      started: "⚗ Revisando esta conversa em segundo plano{focus} — qualquer atualização de memória/habilidade será informada ao terminar."
+      focus: " (foco: {focus})"
+    usage:
+      title: "Uso de tokens da sessão"
+      model: "Modelo: {model}"
+      unknown_model: "(desconhecido)"
+      input_tokens: "Tokens de entrada:"
+      output_tokens: "Tokens de saída:"
+      reasoning_tokens: "Tokens de raciocínio:"
+      prompt_tokens: "Tokens de prompt:"
+      completion_tokens: "Tokens de conclusão:"
+      total_tokens: "Total de tokens:"
+      api_calls: "Chamadas de API:"
+      current_context: "Contexto atual:"
+      messages: "Mensagens:"
+      compressions: "Compressões:"
+    history:
+      empty: "Ainda não há histórico de conversa."
+      title: "Histórico da conversa"
+      you: "Você"
+      no_text: "(sem texto)"
+    context:
+      count: "Conversa: {count} mensagens"
+      empty: "A conversa está vazia (ainda sem mensagens)."
+    tools:
+      none: "Nenhuma ferramenta disponível."
+      available: "Ferramentas disponíveis ({count}):"
+    help:
+      title: "Comandos disponíveis:"
+      unavailable: "ajuda indisponível: {detail}"
+    model:
+      current: "Modelo atual: {model}"
+      unknown: "Modelo atual: (desconhecido)"
+    status:
+      unavailable: "status indisponível"
+    compress:
+      no_session: "nenhuma sessão ativa para /compress"
+      still_running: "a compressão ainda está rodando em segundo plano; a transcrição será atualizada quando terminar"
+    clear:
+      terminal_only: "Limpar a tela é só para o terminal; o chat do desktop/TUI permanece inalterado."
+    hint:
+      models: "Use /model para ver ou trocar o modelo atual; no desktop também é possível abrir o seletor de modelos."
+      rename: "Use /title <nome> para renomear esta sessão."
+      effort: "Use /reasoning <esforço> para mudar o esforço de raciocínio."
+    live_sync_failed: "falha na sincronização da sessão ao vivo: {detail}"
+  compute_host:
+    failed: "host de computação: {op} falhou"
+    failed_detail: "host de computação: {op} falhou: {detail}"
+    timed_out: "host de computação: {op} falhou: tempo esgotado"
+    invalid_response: "host de computação: {op} retornou uma resposta inválida"
+    clarify_lock_failed: "falha no bloqueio de esclarecimento"
+    turn_failed: "o turno no host de computação falhou"
+    compression_failed: "falha na compressão: {detail}"
+    compression_complete: "✓ Compressão do contexto concluída"
+  tools:
+    profile_not_found: "perfil '{name}' não encontrado"
+    no_active_session: "nenhuma sessão ativa"
+    no_such_process: "processo inexistente: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp invalida o cache do prompt (a próxima mensagem reenviará todos os tokens de entrada). Responda `/reload-mcp now` para prosseguir, ou `/reload-mcp always` para prosseguir e silenciar este aviso permanentemente."
+    kind:
+      quick_command: "comando rápido"
+      plugin_command: "Comando de plugin"
+    discovery_unavailable:
+      quick: "descoberta de quick_commands indisponível: {detail}"
+      plugin: "descoberta de comandos de plugin indisponível: {detail}"
+      skill: "descoberta de habilidades indisponível: {detail}"
+    cli_exec_timeout: "cli.exec: tempo esgotado"
+    unknown_command: "comando desconhecido: {name}"
+    quick_command_failed: "o comando rápido falhou com código de saída {code}"
+    bundle:
+      dispatch_failed: "falha no despacho do pacote: {detail}"
+      load_failed: "não foi possível carregar o pacote: {name}"
+      loading: "⚡ Carregando pacote: {name} ({count} habilidades)"
+      skipped_missing: "Habilidades ausentes ignoradas: {names}"
+      loading_stacked: "⚡ Carregando {count} habilidades empilhadas: {names}"
+    usage:
+      queue: "uso: /queue <prompt>"
+      focus: "uso: /focus [on|off|status]"
+      steer: "uso: /steer <prompt>"
+    moa:
+      queued: "MoA de uso único enfileirado com a predefinição {preset}; o modelo anterior será restaurado após este turno."
+      unavailable: "MoA indisponível: {detail}"
+    retry:
+      no_session: "nenhuma sessão ativa para repetir"
+      media: "a repetição não consegue reconstruir nem combinar com segurança as mídias anexadas"
+      nothing: "nenhuma mensagem anterior do usuário para repetir"
+      persist_failed: "repetição: falha ao salvar o histórico: "
+    steer:
+      sent_next_turn: "Nenhum agente em execução; enviado como próximo turno: {text}"
+      queued: "⏩ Direcionamento enfileirado — chega após a próxima chamada de ferramenta: {text}"
+    goal:
+      continuing_now: "Continuando agora — dando o próximo passo."
+      loop_deferred: "Observação: um /goal ativo está conduzindo esta sessão — os despertares do loop ficam adiados até que o objetivo termine, pause ou seja estacionado."
+    undo:
+      no_session: "nenhuma sessão ativa para desfazer"
+      invalid_count: "undo: quantidade inválida {value} — use /undo ou /undo N"
+      nothing: "nenhuma mensagem de usuário para desfazer"
+      done: "↶ {count} {unit} desfeito(s) ({messages} mensagem(ns)). Edite e reenvie, ou mande uma nova mensagem."
+      turn: "turno"
+      turns: "turnos"
+    snapshot_restore_blocked: "/snapshot restore está bloqueado na TUI porque altera configuração/estado em disco enquanto o agente ao vivo tem configurações em cache. Execute-o na CLI clássica e depois reinicie a TUI."
+    compress:
+      no_session: "nenhuma sessão ativa para comprimir"
+      failed: "falha na compressão: {detail}"
+    memory:
+      unknown_subcommand: "Subcomando /memory desconhecido. Use: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Subcomando /skills desconhecido aqui. Use: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Buscar/instalar/navegar ficam do lado do terminal.)"
+      write_approval_off: "A aprovação de escritas de habilidades está desligada (skills.write_approval). Ative com /skills approval on e depois revise as escritas pendentes com /skills pending."
+      install_failed: "falha na instalação da habilidade"
+      reloading: "Recarregando habilidades..."
+      none_new: "Nenhuma habilidade nova detectada."
+      added: "Habilidades adicionadas:"
+      removed: "Habilidades removidas:"
+    command_unavailable_for_profile: "/{command} está indisponível para o perfil atual"
+    not_dispatchable: "não é um comando rápido/de plugin/de pacote/de habilidade: {name}"
+    empty_command: "comando vazio"
+    plugin_command_error: "Erro no comando de plugin: {detail}"
+    checkpoint_rewind_failed: "ponto de verificação restaurado, mas o retrocesso do histórico da sessão falhou: {detail}"
+  mcp:
+    server_not_found: "servidor '{name}' não encontrado"
+    server_plugin_owned: "o servidor '{name}' é fornecido pelo plugin '{plugin}' e não pode ser modificado"
+    server_exists: "o servidor '{name}' já existe"
+    unknown_catalog_entry: "Entrada de catálogo MCP ou predefinição desconhecida: {preset}"
+    config_shape: "a configuração deve especificar uma 'url' (http) ou um 'command' (stdio), ou um 'preset' válido"
+    server_rejected: "servidor '{name}' rejeitado: configuração de comando/argumentos suspeita"
+    malformed_config: "configuração de servidor malformada"
+    invalid_credential: "o valor não é uma credencial válida"
+    oauth_required: "Autenticação OAuth necessária — nenhum token encontrado."
+    stdio_no_oauth: "servidores stdio autenticam por chaves de ambiente, não por OAuth"
+    header_auth_no_oauth: "este servidor usa autenticação por cabeçalho/chave de API, não OAuth"
+  plugins:
+    toggle_failed: "falha ao alternar"
+    install_failed: "falha na instalação"
+    not_catalog_install: "'{name}' não é uma instalação do catálogo — atualize pela CLI"
+    remove_failed: "falha na remoção"
+    not_found: "plugin '{name}' não encontrado"
+  shell:
+    blocked_hardline: "bloqueado (regra rígida): {reason}. Use o agente para comandos perigosos."
+    blocked: "bloqueado: {reason}. Use o agente para comandos perigosos."
+    timed_out: "o comando esgotou o tempo (30 s)"
+  session_control:
+    subgoal_text_required: "o texto do subobjetivo é obrigatório"
+    subgoal_added: "✓ Subobjetivo {index} adicionado: {text}"
+    subgoal_removed: "✓ Subobjetivo {index} removido: {text}"
+    subgoals_cleared_one: "✓ 1 subobjetivo apagado."
+    subgoals_cleared: "✓ {count} subobjetivos apagados."
+    no_subgoals: "Nenhum subobjetivo para apagar."
+    heartbeat_paused: "⏸ Heartbeat pausado: {prompt}"
+    no_heartbeat: "Nenhum heartbeat definido."
+    heartbeat_resumed: "▶ Heartbeat retomado (a cada {interval}): {prompt}"
+    no_heartbeat_to_resume: "Nenhum heartbeat para retomar."
+    heartbeat_cleared: "✓ Heartbeat apagado."
+  voice:
+    wake_unavailable: "módulo de ativação por voz indisponível: {detail}"
+    wake_device_unresolved: "Não foi possível resolver o dispositivo de entrada da palavra de ativação: {detail}"
+    enable_first: "ative o modo de voz primeiro: /voice on"
+    mode_off: "o modo de voz está desligado — ative com /voice on"
+    module_missing_deps: "módulo de voz indisponível — instale as dependências de áudio"
+    module_missing: "módulo de voz indisponível"
+  browser:
+    already_listening: "Um navegador da família Chromium já está escutando em {url}"
+    port_occupied: "A porta {port} está ocupada por outro aplicativo que não é um navegador CDP (talvez um depurador de IDE ou um servidor de desenvolvimento) — iniciando um navegador de depuração na porta {launch_port} em vez disso..."
+    launching: "Nenhum navegador da família Chromium está rodando com depuração remota — tentando iniciar..."
+    launched: "Navegador da família Chromium iniciado e escutando na porta {port}"
+    start_manually: "Inicie um navegador da família Chromium com depuração remota e tente /browser connect novamente:"
+    no_executable: "Nenhum executável de navegador da família Chromium compatível foi encontrado neste ambiente."
+    install_hint: "Instale um ou inicie um navegador da família Chromium com --remote-debugging-port={port} e tente /browser connect novamente."
+    not_connected: "Navegador não conectado — inicie um navegador da família Chromium com depuração remota e tente /browser connect novamente"
+    unsupported_url: "URL de navegador não suportada: {url}"
+    missing_host: "host ausente na URL do navegador: {url}"
+    invalid_port: "porta inválida na URL do navegador: {url}"
+    unreachable_detail: "não foi possível alcançar o CDP do navegador em {url}: {detail}"
+    unreachable: "não foi possível alcançar o CDP do navegador em {url}"
+  model:
+    switch_failed_staying: "A troca para o modelo {target} falhou ({detail}); permanecendo em {current}."
+    once_requires_session: "/model --once requer uma sessão ao vivo"
+    switch_failed: "falha na troca de modelo"
+    capabilities_updated: "Capacidades atualizadas — as ferramentas e o prompt deste bot foram atualizados."
+    configured_switch_failed: "Não foi possível trocar para o modelo configurado {model}: {detail}"
+    switch_error: "Não foi possível trocar de modelo: {detail}"
+  compress:
+    lock_held: "Bloqueio de compressão em uso: {holder}"
+    unknown_holder: "desconhecido"
+  images:
+    no_backend: "Nenhum backend de geração de imagens configurado (execute `hermes tools` para ativar um)."
+    generation_failed: "falha na geração"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Execute {commands} para gerenciá-los."
+    team_update_one: "1 atualização da equipe"
+    team_updates: "{count} atualizações da equipe"
+    skill_ready_one: "1 habilidade pronta para revisão"
+    skills_ready: "{count} habilidades prontas para revisão"
+    and: " e "
+    or: " ou "
+    cannot_continue: "Collective Wisdom não pôde continuar: {detail}"
+    open_inbox_hint: "Abra /wisdom inbox para revisar e usar os controles de consentimento."
+    notification_settings: "Configurações de notificação: /wisdom mute"
+  complete:
+    at:
+      git_diff: "diff do git"
+      staged_diff: "diff preparado"
+      attach_file: "anexar arquivo"
+      attach_folder: "anexar pasta"
+      fetch_url: "buscar URL"
+      git_log: "log do git"
+    agent_profile: "perfil de agente"
+    agent_profile_primary: "perfil de agente (principal)"
+    plugin_provider: "plugin: {prefix}"
+    details:
+      section_override: "substituição de seção"
+      cycle_global_mode: "alternar o modo global"
+      global_mode: "modo global"
+      clear_override: "limpar a substituição de {section}"
+      set_section: "definir {section}"
+    slash:
+      density: "Alternar o modo de exibição compacto"
+      details: "Controlar a visibilidade dos detalhes do agente"
+      logs: "Mostrar as linhas recentes do log do gateway"
+      mouse: "Definir a predefinição de rastreamento do mouse [on|off|toggle|wheel|buttons|all]"
+      sessions: "Alternar entre sessões TUI ao vivo"
+  credentials:
+    managed_readonly: "instalação gerenciada — as credenciais são somente leitura"
+    unknown_provider: "provedor desconhecido: {slug}"
+    non_key_auth: "{provider} usa autenticação {auth} — execute `hermes model` para configurar"
+    no_env_var: "nenhuma variável de ambiente definida para {provider}"
+    none_found: "nenhuma credencial encontrada para {slug}"
+  profile:
+    not_exist: "O perfil '{name}' não existe."
+    store_unavailable: "armazenamento de sessões do perfil indisponível: {path}: {detail}"
+  approval:
+    client_cannot_answer: "o cliente conectado não consegue responder a pedidos de aprovação (atualize o aplicativo Hermes)"
+  session:
+    hydration_timed_out: "tempo esgotado ao carregar o histórico da sessão"
+  checkpoint:
+    invalid_number: "Número de ponto de verificação inválido. Use 1-{max}."
+  cli_exec:
+    setup: "`hermes setup` precisa de um terminal completo — execute fora da TUI"
+    gateway: "`hermes gateway` roda por tempo indeterminado — execute em outro terminal"
+    sessions_browse: "`hermes sessions browse` é interativo — use /resume aqui, ou execute browse em outro terminal"
+    config_edit: "`hermes config edit` precisa do $EDITOR em um terminal real"
+    bare: "`hermes` sem argumentos é interativo — use `/hermes chat -q …` ou execute `hermes` em outro terminal"
+  tool_progress:
+    lines_chars: "{lines} linhas / {chars} caracteres"
+    chars: "{chars} caracteres"
+    verbose_tail: "[mostrando o final da saída detalhada; {omitted} omitidos]"
+  onboarding:
+    facts_too_long: "As informações de integração são longas demais para memorizar"
+    memory_not_saved: "A memória não foi salva"
+    verify_failed: "Não foi possível verificar as informações de integração salvas"
+    no_setup_profile: "nenhum perfil de configuração para redefinir"
+  projects:
+    not_found: "projeto inexistente"
+  subagent:
+    interrupted_via_tui: "Interrompido pela TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

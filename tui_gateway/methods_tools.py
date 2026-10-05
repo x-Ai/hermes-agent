@@ -57,7 +57,7 @@ def _profile_scoped_rpc(
                     try:
                         home = _profile_home(profile)
                     except ProfileUnavailableError:
-                        return _err(rid, 4064, f"profile '{profile}' not found")
+                        return _err(rid, 4064, _t("tui_gateway.tools.profile_not_found", name=profile))
                     scope = _session_profile_runtime_scope({"profile_home": str(home) if home else None})
                 except Exception as e:
                     if not catch_resolve:
@@ -121,13 +121,13 @@ def _mcp_server_rows():
 def _mcp_named_server(rid, params):
     """(name, servers, None) for a configured server, else (name, servers, 4064 error)."""
     name, servers = _str_arg(params, "name"), _mcp_server_rows()[0]
-    return name, servers, None if name in servers else _err(rid, 4064, f"server '{name}' not found")
+    return name, servers, None if name in servers else _err(rid, 4064, _t("tui_gateway.mcp.server_not_found", name=name))
 
 
 def _mcp_plugin_write_error(rid, name: str, plugins: dict):
     plugin = plugins.get(name)
     if plugin is not None:
-        return _err(rid, 4090, f"server '{name}' is provided by plugin '{plugin}' and cannot be modified")
+        return _err(rid, 4090, _t("tui_gateway.mcp.server_plugin_owned", name=name, plugin=plugin))
     return None
 
 
@@ -148,7 +148,7 @@ def _session_key_or_err(rid, session, module: str, label: str):
     """(session_key, module, None) for the /goal and /loop managers, else (None, None, error):
     4001 without a session/key, 5030 when ``module`` fails to import."""
     if not session:
-        return None, None, _err(rid, 4001, "no active session")
+        return None, None, _err(rid, 4001, _t("tui_gateway.tools.no_active_session"))
     if not (sid_key := session.get("session_key") or ""):
         return None, None, _err(rid, 4001, "no session key")
     try:
@@ -291,7 +291,7 @@ def _(rid, params: dict, session) -> dict:
     registry = _tools_mod("tools.process_registry").process_registry
     proc = registry.get(proc_id)
     if proc is None or str(getattr(proc, "session_key", "") or "") != str(session.get("session_key") or ""):
-        return _err(rid, 4044, f"no such process: {proc_id}")
+        return _err(rid, 4044, _t("tui_gateway.tools.no_such_process", id=proc_id))
     return _ok(rid, registry.kill_process(proc_id))
 
 
@@ -351,17 +351,14 @@ def _(rid, params: dict) -> dict:
     # Prompt-cache invalidation gate: without confirm=true honour ``approvals.mcp_reload_confirm``
     # (Ink prints ``message`` and re-invokes with confirm=true, or flips the config).
     if not bool(params.get("confirm", False)) and _mcp_reload_confirm_required():
-        message = (
-            "⚠️  /reload-mcp invalidates the prompt cache (next message re-sends full input tokens). "
-            "Reply `/reload-mcp now` to proceed, or `/reload-mcp always` to proceed and "
-            "silence this prompt permanently.")
+        message = _t("tui_gateway.tools.reload_mcp_confirm")
         return _ok(rid, {"status": "confirm_required", "message": message})
     if session and _session_uses_compute_host(session):
         try:
             ack = _get_compute_host_supervisor().reload_mcp(
                 str(params.get("session_id") or ""), request_id=f"reload-mcp-{rid}")
         except Exception as exc:
-            return _err(rid, 5019, f"compute-host reload_mcp failed: {exc}")
+            return _err(rid, 5019, _t("tui_gateway.compute_host.failed_detail", op="reload_mcp", detail=exc))
         return _ok(rid, {"status": "reloaded", "turn_isolation": True, "host_ack": ack})
     _mcp_agent, _mcp_lifecycle, _mcp_discovery = (
         _tools_mod("tools.mcp_tool_agent"), _tools_mod("tools.mcp_tool_lifecycle"), _tools_mod("tools.mcp_tool_discovery"))
@@ -453,10 +450,10 @@ def _catalog_registry(cat: _Catalog) -> None:
         cat.add(f"/{cmd.name}", commands._build_description(cmd), cmd.category)
         for a in cmd.aliases:
             cat.canon[f"/{a}".lower()] = f"/{cmd.name}"
-    for name, desc, category in _TUI_EXTRA:
+    for name, desc_key, category in _TUI_EXTRA:
         # Registry command/alias wins over a colliding TUI extra (e.g. /compact, /sessions).
         if name.lower() not in cat.canon:
-            cat.add(name, desc, category)
+            cat.add(name, _t(f"tui_gateway.complete.slash.{desc_key}"), category)
 
 
 def _catalog_quick_commands(cat: _Catalog) -> None:
@@ -469,7 +466,7 @@ def _catalog_quick_commands(cat: _Catalog) -> None:
             continue
         qtype = qc.get("type", "")
         default_desc = {"exec": f"exec: {qc.get('command', '')}", "alias": f"alias → {qc.get('target', '')}"}
-        desc = str(qc.get("description") or default_desc.get(qtype, qtype or "quick command"))
+        desc = str(qc.get("description") or default_desc.get(qtype, qtype or _t("tui_gateway.tools.kind.quick_command")))
         cat.add(f"/{qname}", desc, "User commands")
 
 
@@ -481,7 +478,7 @@ def _catalog_plugin_commands(cat: _Catalog) -> None:
         key = f"/{pname}"
         if not isinstance(info, dict) or key.lower() in cat.canon:
             continue
-        cat.add(key, str(info.get("description") or "Plugin command"), "Plugin commands")
+        cat.add(key, str(info.get("description") or _t("tui_gateway.tools.kind.plugin_command")), "Plugin commands")
         mode = info.get("argument_mode")
         if mode not in {"options", "text", "mixed"}:
             mode = "text" if str(info.get("args_hint") or "").strip() else None
@@ -523,16 +520,16 @@ def _(rid, params: dict) -> dict:
         try:
             _catalog_quick_commands(cat)
         except Exception as e:
-            warning = f"quick_commands discovery unavailable: {e}"
+            warning = _t("tui_gateway.tools.discovery_unavailable.quick", detail=e)
         try:
             _catalog_plugin_commands(cat)
         except Exception as e:
-            warning = warning or f"plugin command discovery unavailable: {e}"
+            warning = warning or _t("tui_gateway.tools.discovery_unavailable.plugin", detail=e)
         try:
             collision_note = _catalog_skills(cat, skills)  # always runs: skills must list even when a loader failed
             warning = warning or collision_note
         except Exception as e:
-            warning = f"skill discovery unavailable: {e}"
+            warning = _t("tui_gateway.tools.discovery_unavailable.skill", detail=e)
     return _ok(rid, {
         "pairs": cat.pairs,
         "sub": {
@@ -562,7 +559,7 @@ def _(rid, params: dict) -> dict:
         rid, [sys.executable, "-m", "hermes_cli.main", *argv], min(int(params.get("timeout", 240)), 600),
         on_result=lambda r: _ok(rid, {
             "blocked": False, "code": r.returncode, "output": (_joined_output(r) or "(no output)")[:48_000]}),
-        timeout_err=(5016, "cli.exec: timeout"), fail_code=5017,
+        timeout_err=(5016, _t("tui_gateway.tools.cli_exec_timeout")), fail_code=5017,
         env=_compat.restore_ambient_pythonpath(hermes_subprocess_env(inherit_credentials=True)))
 
 
@@ -574,7 +571,7 @@ def _(rid, params: dict) -> dict:
     r = commands.resolve_command(params.get("name", ""))
     if r and commands.command_available(r):
         return _ok(rid, {"canonical": r.name, "description": r.describe(), "category": r.category})
-    return _err(rid, 4011, f"unknown command: {params.get('name')}")
+    return _err(rid, 4011, _t("tui_gateway.tools.unknown_command", name=params.get("name")))
 
 
 # command.dispatch stages. Each takes (rid, params, session, name, arg) and
@@ -592,7 +589,7 @@ def _dispatch_quick(rid, params, session, name, arg):
         output = _joined_output(r)[:4000]
         output = _tools_mod("agent.redact").redact_sensitive_text(output) if output else output
         if r.returncode != 0:
-            return _err(rid, 4018, output or f"quick command failed with exit code {r.returncode}")
+            return _err(rid, 4018, output or _t("tui_gateway.tools.quick_command_failed", code=r.returncode))
         return _exec_out(rid, output)
     return _ok(rid, {"type": "alias", "target": qc.get("target", "")}) if qc.get("type") == "alias" else None
 
@@ -716,13 +713,13 @@ def _dispatch_bundle(rid, params, session, name, arg):
             bundle_key, arg, task_id=session.get("session_key", "") if session else "",
             platform=_resolve_session_platform())
     except Exception as exc:
-        return _err(rid, 4018, f"bundle dispatch failed: {exc}")
+        return _err(rid, 4018, _t("tui_gateway.tools.bundle.dispatch_failed", detail=exc))
     if not bundle_result:
-        return _err(rid, 4018, f"failed to load bundle: {bundle_key}")
+        return _err(rid, 4018, _t("tui_gateway.tools.bundle.load_failed", name=bundle_key))
     msg, loaded_names, missing = bundle_result
     bundle_name = bundles.get_skill_bundles().get(bundle_key, {}).get("name", bundle_key.lstrip("/"))
-    notice = f"⚡ Loading bundle: {bundle_name} ({len(loaded_names)} skills)"
-    notice += f"\nSkipped missing skills: {', '.join(missing)}" if missing else ""
+    notice = _t("tui_gateway.tools.bundle.loading", name=bundle_name, count=len(loaded_names))
+    notice += "\n" + _t("tui_gateway.tools.bundle.skipped_missing", names=", ".join(missing)) if missing else ""
     # UIs render `display`, never `message`: the expanded body is model-facing scaffolding.
     return _ok(rid, {"type": "send", "message": msg, "notice": notice, "display": _skill_scaffold_projection(msg)})
 
@@ -742,9 +739,9 @@ def _dispatch_skill(rid, params, session, name, arg):
                     task_id=session.get("session_key", "") if session else "")
                 if stacked:
                     msg, loaded_names, missing = stacked
-                    notice = f"⚡ Loading {len(loaded_names)} stacked skills: {', '.join(loaded_names)}"
+                    notice = _t("tui_gateway.tools.bundle.loading_stacked", count=len(loaded_names), names=", ".join(loaded_names))
                     if missing:
-                        notice += f"\nSkipped missing skills: {', '.join(missing)}"
+                        notice += "\n" + _t("tui_gateway.tools.bundle.skipped_missing", names=", ".join(missing))
                     return _ok(rid, {
                         "type": "skill", "message": msg, "name": cmds[key].get("name", name),
                         "notice": notice, "display": _skill_scaffold_projection(msg)})
@@ -763,7 +760,7 @@ def _dispatch_skill(rid, params, session, name, arg):
 
 
 def _cmd_queue(rid, params, session, name, arg):
-    return _ok(rid, {"type": "send", "message": arg}) if arg else _err(rid, 4004, "usage: /queue <prompt>")
+    return _ok(rid, {"type": "send", "message": arg}) if arg else _err(rid, 4004, _t("tui_gateway.tools.usage.queue"))
 
 
 def _prompt_builtin(module: str, fn: str, kw: str = ""):
@@ -805,7 +802,7 @@ def _cmd_moa(rid, params, session, name, arg):
         if not arg:
             return _err(rid, 4004, moa.moa_usage())
         if not session:
-            return _err(rid, 4001, "no active session")
+            return _err(rid, 4001, _t("tui_gateway.tools.no_active_session"))
         preset = moa.normalize_moa_config(_load_cfg().get("moa") or {})["default_preset"]
         # Record the live identity for post-turn restore, then swap the agent's client in
         # place: session["model_override"] alone never switches an already-built agent.
@@ -827,10 +824,10 @@ def _cmd_moa(rid, params, session, name, arg):
             session["model_override"] = {
                 "provider": "moa", "model": preset, "base_url": "moa://local",
                 "api_key": "moa-virtual-provider", "api_mode": "chat_completions"}
-        notice = f"MoA one-shot queued with preset {preset}; previous model will be restored after this turn."
+        notice = _t("tui_gateway.tools.moa.queued", preset=preset)
         return _ok(rid, {"type": "send", "notice": notice, "message": arg})
     except Exception as exc:
-        return _err(rid, 5030, f"moa unavailable: {exc}")
+        return _err(rid, 5030, _t("tui_gateway.tools.moa.unavailable", detail=exc))
 
 
 def _cmd_focus(rid, params, session, name, arg):
@@ -840,7 +837,7 @@ def _cmd_focus(rid, params, session, name, arg):
     display = display if isinstance(display, dict) else {}
     action, target = fv.resolve_focus_arg(arg, cur := bool(display.get("focus_view", False)))
     if action == "usage":
-        return _err(rid, 4004, "usage: /focus [on|off|status]")
+        return _err(rid, 4004, _t("tui_gateway.tools.usage.focus"))
     if action == "status":
         saved = display.get("focus_saved_tool_progress") or _load_tool_progress_mode()
         return _exec_out(rid, fv.format_focus_status(cur, saved))
@@ -854,7 +851,7 @@ def _cmd_focus(rid, params, session, name, arg):
 
 def _cmd_retry(rid, params, session, name, arg):
     if not session:
-        return _err(rid, 4001, "no active session to retry")
+        return _err(rid, 4001, _t("tui_gateway.tools.retry.no_session"))
     if busy := _busy_error(rid, session, "retry"):
         return busy
     cc = _tools_mod("agent.context_compressor")
@@ -862,8 +859,8 @@ def _cmd_retry(rid, params, session, name, arg):
         if busy := _busy_error(rid, session, "retry"):
             return busy
         if session.get("attached_images"):
-            return _err(rid, 4018, "retry cannot safely reconstruct or combine attached media")
-        history, user_indices, err = _rewind_prelude(rid, session, "retry", "no previous user message to retry")
+            return _err(rid, 4018, _t("tui_gateway.tools.retry.media"))
+        history, user_indices, err = _rewind_prelude(rid, session, "retry", _t("tui_gateway.tools.retry.nothing"))
         if err:
             return err
         _prefix, live_view = cc.history_before_user_originated_turn(history, user_indices[-1])
@@ -872,7 +869,7 @@ def _cmd_retry(rid, params, session, name, arg):
         except ValueError as exc:
             return _err(rid, 4018, str(exc))
         rewound, err = _rewind_or_err(
-            rid, session, len(user_indices) - 1, (4018, ""), "retry: failed to persist history: ", require_retryable=True)
+            rid, session, len(user_indices) - 1, (4018, ""), _t("tui_gateway.tools.retry.persist_failed"), require_retryable=True)
         if err:
             return err
         content = cc.retryable_user_text(rewound[1].get("content"))
@@ -889,17 +886,17 @@ def _tui_model_friction(signal, session, turns=1):
 
 def _cmd_steer(rid, params, session, name, arg):
     if not arg:
-        return _err(rid, 4004, "usage: /steer <prompt>")
+        return _err(rid, 4004, _t("tui_gateway.tools.usage.steer"))
     shown = f"{arg[:80]}{'...' if len(arg) > 80 else ''}"
     # An idle agent still accepts steer(), but nothing drains it until the NEXT turn's pre-API
     # drain, which splices it after whatever tool row is newest (#64578). Idle → a normal message.
     if not (session and session.get("running")):
-        return _ok(rid, {"type": "send", "message": arg, "notice": f"No agent running; sent as next turn: {shown}"})
+        return _ok(rid, {"type": "send", "message": arg, "notice": _t("tui_gateway.tools.steer.sent_next_turn", text=shown)})
     agent = session.get("agent")
     if agent and hasattr(agent, "steer"):
         with contextlib.suppress(Exception):
             if agent.steer(arg):
-                return _exec_out(rid, f"⏩ Steer queued — arrives after the next tool call: {shown}")
+                return _exec_out(rid, _t("tui_gateway.tools.steer.queued", text=shown))
     return _ok(rid, {"type": "send", "message": arg})  # turn still building / steer refused: next-turn message
 
 
@@ -924,7 +921,7 @@ def _cmd_goal(rid, params, session, name, arg):
             return _exec_out(rid, result.output)
         payload = {"type": "send", "notice": result.output, "message": result.prompt}
         if not result.kickoff:
-            payload["notice"] += "\nContinuing now — taking the next step."
+            payload["notice"] += "\n" + _t("tui_gateway.tools.goal.continuing_now")
             payload["display"] = "/goal resume"
         return _ok(rid, payload)
 
@@ -938,8 +935,7 @@ def _cmd_loop(rid, params, session, name, arg):
     if result.get("created"):
         with contextlib.suppress(Exception):
             if loops.goal_blocks_loop_tick(sid_key):
-                output += ("\nNote: an active /goal is driving this session — loop "
-                           "wakeups defer until the goal finishes, pauses, or parks.")
+                output += "\n" + _t("tui_gateway.tools.goal.loop_deferred")
     return _exec_out(rid, output)
 
 
@@ -949,7 +945,7 @@ def _cmd_undo(rid, params, session, name, arg):
         # the composer with the text of the user message we backed up to so it can be edited and
         # resubmitted. N=1 is the Claude-Code-style single-step undo; /undo 3 backs up three user turns at
         # once. See issue #21910.
-        return _err(rid, 4001, "no active session to undo")
+        return _err(rid, 4001, _t("tui_gateway.tools.undo.no_session"))
     if busy := _busy_error(rid, session, "undo"):
         return busy
     if not (session_key := session.get("session_key", "")):
@@ -958,9 +954,9 @@ def _cmd_undo(rid, params, session, name, arg):
     try:
         n = max(int(arg_str.split()[0]), 1) if arg_str else 1
     except (ValueError, IndexError):
-        return _err(rid, 4004, f"undo: invalid count {arg_str!r} — use /undo or /undo N")
+        return _err(rid, 4004, _t("tui_gateway.tools.undo.invalid_count", value=repr(arg_str)))
     with session["history_lock"]:
-        _history, user_indices, err = _rewind_prelude(rid, session, "undo", "no user messages to undo")
+        _history, user_indices, err = _rewind_prelude(rid, session, "undo", _t("tui_gateway.tools.undo.nothing"))
         if err:
             return err
         turns_undone = min(n, len(user_indices))
@@ -983,8 +979,8 @@ def _cmd_undo(rid, params, session, name, arg):
             with contextlib.suppress(Exception):
                 step()
     _tui_model_friction("undo", session, turns_undone)
-    turn_word = "turn" if turns_undone == 1 else "turns"
-    notice = f"↶ Undid {turns_undone} {turn_word} ({rewound_count} message(s)). Edit and resubmit, or send a new message."
+    turn_word = _t("tui_gateway.tools.undo.turn" if turns_undone == 1 else "tui_gateway.tools.undo.turns")
+    notice = _t("tui_gateway.tools.undo.done", count=turns_undone, unit=turn_word, messages=rewound_count)
     return _ok(rid, {"type": "prefill", "message": target_text, "notice": notice})
 
 
@@ -995,14 +991,12 @@ def _is_snapshot_restore(arg: str) -> bool:
 def _cmd_snapshot(rid, params, session, name, arg):
     if not _is_snapshot_restore(arg):
         return None
-    return _exec_out(
-        rid, "/snapshot restore is blocked in the TUI because it changes config/state on disk "
-        "while the live agent has cached settings. Run it in the classic CLI, then restart the TUI.")
+    return _exec_out(rid, _t("tui_gateway.tools.snapshot_restore_blocked"))
 
 
 def _cmd_compress(rid, params, session, name, arg):
     if not session:
-        return _err(rid, 4001, "no active session to compress")
+        return _err(rid, 4001, _t("tui_gateway.tools.compress.no_session"))
     if busy := _busy_error(rid, session, "compress"):
         return busy
     sid = params.get("session_id", "")
@@ -1019,7 +1013,7 @@ def _cmd_compress(rid, params, session, name, arg):
     except Exception as exc:
         _tools_mod("agent.conversation_compression").finalize_context_engine_compression_notification(
             session["agent"], committed=False)
-        return _err(rid, 5009, f"compress failed: {exc}")
+        return _err(rid, 5009, _t("tui_gateway.tools.compress.failed", detail=exc))
 
 
 # ─── /memory + /skills write-approval review ─────────────────────────────────
@@ -1034,12 +1028,6 @@ def _cmd_compress(rid, params, session, name, arg):
 # dispatcher's `_session_home_scope(session)` block: `load_on_disk_store()` reads the profile's
 # MEMORY.md/USER.md and its memory char limits (see the scope note on `_session_home_scope`,
 # #110695).
-_MEMORY_USAGE = ("Unknown /memory subcommand. "
-                 "Use: pending, approve <id>, reject <id>, approval <on|off>.")
-_SKILLS_USAGE = ("Unknown /skills subcommand here. "
-                 "Use: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. "
-                 "(Search/install/browse are terminal-side.)")
-
 
 def _pending_subcommand_store(session):
     """Memory store for the session's own profile: the live agent's store when there is one, else a
@@ -1074,7 +1062,7 @@ def _run_pending_review(rid, subsystem: str, arg: str, session, *, unknown: str)
 
 def _cmd_memory(rid, params, session, name, arg):
     """/memory — review staged memory writes, approve/reject them, toggle the gate."""
-    return _run_pending_review(rid, "memory", arg, session, unknown=_MEMORY_USAGE)
+    return _run_pending_review(rid, "memory", arg, session, unknown=_t("tui_gateway.tools.memory.unknown_subcommand"))
 
 
 def _cmd_skills(rid, params, session, name, arg):
@@ -1094,10 +1082,8 @@ def _cmd_skills(rid, params, session, name, arg):
     # answer when a pile exists, and point at the toggle when there is nothing to review.
     if (sub[0].lower() not in {"approval", "mode"} and not wa.write_approval_enabled(wa.SKILLS)
             and wa.pending_count(wa.SKILLS) == 0):
-        return _exec_out(rid, "Skill write approval is off (skills.write_approval). "
-                              "Enable it with /skills approval on, then review staged writes "
-                              "with /skills pending.")
-    return _run_pending_review(rid, "skills", arg, session, unknown=_SKILLS_USAGE)
+        return _exec_out(rid, _t("tui_gateway.tools.skills.write_approval_off"))
+    return _run_pending_review(rid, "skills", arg, session, unknown=_t("tui_gateway.tools.skills.unknown_subcommand"))
 
 
 _SLASH_BUILTINS = {
@@ -1115,7 +1101,7 @@ def _(rid, params: dict) -> dict:
     commands = _tools_mod("hermes_cli.commands")
     resolved = commands.resolve_command(name)
     if resolved is not None and not commands.command_available(resolved):
-        return _err(rid, 4030, f"/{resolved.name} is unavailable for the current profile")
+        return _err(rid, 4030, _t("tui_gateway.tools.command_unavailable_for_profile", command=resolved.name))
 
     # Stage order is load-bearing: quick > plugin > bundle > skill > built-in. One home binding
     # around the whole loop: the routing guard (``_profile_skill_command``) and the stages
@@ -1129,7 +1115,7 @@ def _(rid, params: dict) -> dict:
                 if name in _SESSION_CONTROL_SLASHES and "error" not in res:
                     _publish_session_control_snapshot(params.get("session_id", ""), session)
                 return res
-    return _err(rid, 4018, f"not a quick/plugin/bundle/skill command: {name}")
+    return _err(rid, 4018, _t("tui_gateway.tools.not_dispatchable", name=name))
 
 
 @method("slash.exec")
@@ -1140,7 +1126,7 @@ def _(rid, params: dict) -> dict:
         return err
     cmd = params.get("command", "").strip()
     if not cmd:
-        return _err(rid, 4004, "empty command")
+        return _err(rid, 4004, _t("tui_gateway.tools.empty_command"))
     # Skill/bundle and _PENDING_INPUT_COMMANDS must NOT reach the slash worker. Plugin
     # commands also bypass it but return normal slash.exec output (TUI keeps the pager path).
     parts = cmd.lstrip("/").split(maxsplit=1)
@@ -1150,7 +1136,7 @@ def _(rid, params: dict) -> dict:
     commands = _tools_mod("hermes_cli.commands")
     resolved = commands.resolve_command(base)
     if resolved is not None and not commands.command_available(resolved):
-        return _err(rid, 4030, f"/{resolved.name} is unavailable for the current profile")
+        return _err(rid, 4030, _t("tui_gateway.tools.command_unavailable_for_profile", command=resolved.name))
     live_output = _live_slash_command_output(sid, session, base, arg)
     if live_output is not None:
         return _ok(rid, {"output": live_output or "(no output)"})
@@ -1178,7 +1164,7 @@ def _(rid, params: dict) -> dict:
         try:
             return _ok(rid, {"output": _run_plugin_command(plugin_handler, arg, session) or "(no output)"})
         except Exception as e:
-            return _ok(rid, {"output": f"Plugin command error: {e}"})
+            return _ok(rid, {"output": _t("tui_gateway.tools.plugin_command_error", detail=e)})
     worker = session.get("slash_worker")
     if not worker:
         # slash.exec runs on the RPC pool: two concurrent commands could both see slash_worker=None
@@ -1266,7 +1252,7 @@ def _(rid, params: dict, session) -> dict:
                     try:
                         removed = _rewind_active_session_history(session, len(user_indices) - 1)[2]
                     except Exception as exc:
-                        raise RuntimeError(f"checkpoint restored, but session history rewind failed: {exc}") from exc
+                        raise RuntimeError(_t("tui_gateway.tools.checkpoint_rewind_failed", detail=exc)) from exc
             result["history_removed"] = removed
         return result
     return _ok(rid, _with_checkpoints(session, go))
@@ -1498,7 +1484,7 @@ def _skills_install(rid, params, query):
         # The tail carries the reason the CLI user would have seen: the scan-block message,
         # the "Multiple skills named" candidate table, or the fetch failure.
         log = "\n".join(captured.lines[-12:]).strip()
-        return _err(rid, 5031, log.splitlines()[-1] if log else "skill install failed",
+        return _err(rid, 5031, log.splitlines()[-1] if log else _t("tui_gateway.tools.skills.install_failed"),
                     data={"installed": False, "name": query, "log": log or None})
     return _ok(rid, {"installed": True, "name": query})
 
@@ -1539,8 +1525,9 @@ def _(rid, params: dict) -> dict:
                              profile=params.get("profile")):
         result = _tools_mod("agent.skill_commands").reload_skills()
     added, removed = result.get("added") or [], result.get("removed") or []
-    lines = ["Reloading skills..."] + ([] if added or removed else ["No new skills detected."])
-    for label, items in (("Added skills:", added), ("Removed skills:", removed)):
+    lines = [_t("tui_gateway.tools.skills.reloading")] + (
+        [] if added or removed else [_t("tui_gateway.tools.skills.none_new")])
+    for label, items in ((_t("tui_gateway.tools.skills.added"), added), (_t("tui_gateway.tools.skills.removed"), removed)):
         if items:
             lines.append(label)
             lines.extend(f"  - {item.get('name', '')}" for item in items)
@@ -1609,7 +1596,7 @@ def _(rid, params: dict) -> dict:
     if err := _mcp_plugin_write_error(rid, name, plugins):
         return err
     if name in servers:
-        return _err(rid, 4090, f"server '{name}' already exists")
+        return _err(rid, 4090, _t("tui_gateway.mcp.server_exists", name=name))
     raw_cfg = params.get("config")
     server_config: dict = dict(raw_cfg) if isinstance(raw_cfg, dict) else {}
     # Explicit url/command wins. Otherwise a desktop catalog id is resolved
@@ -1629,16 +1616,16 @@ def _(rid, params: dict) -> dict:
                     command=server_config.get("command"),
                     cmd_args=list(server_config.get("args") or []), server_config=server_config)
             except ValueError:
-                return _err(rid, 4063, f"Unknown MCP catalog entry or preset: {preset}")
+                return _err(rid, 4063, _t("tui_gateway.mcp.unknown_catalog_entry", preset=preset))
     if not server_config.get("url") and not server_config.get("command"):
-        return _err(rid, 4063, "config must specify a 'url' (http) or 'command' (stdio), or a valid 'preset'")
+        return _err(rid, 4063, _t("tui_gateway.mcp.config_shape"))
     if bearer_token := params.get("bearer_token"):
         server_config["headers"] = mc._save_bearer_auth_token(name, str(bearer_token))
     saved_ok = mc._save_mcp_server(name, server_config)
     source = "catalog" if entry is not None else ("url" if server_config.get("url") else "local")
     catalog.record_mcp_install(source, entry.name if entry else None, "success" if saved_ok else "failed")
     if not saved_ok:
-        return _err(rid, 4001, f"server '{name}' rejected: suspicious command/args configuration")
+        return _err(rid, 4001, _t("tui_gateway.mcp.server_rejected", name=name))
     saved = mc._get_mcp_servers().get(name, server_config)
     return _ok(rid, {"ok": True, "name": name, "server": _mcp_summarize_server(name, saved)})
 
@@ -1655,11 +1642,11 @@ def _(rid, params: dict) -> dict:
     env_var = _str_arg(params, "env_var") or mc._env_key_for_server(name)
     entry = servers[name]
     if not isinstance(entry, dict):
-        return _err(rid, 4001, "malformed server config")
+        return _err(rid, 4001, _t("tui_gateway.mcp.malformed_config"))
     if entry.get("url"):
         normalized = mc._strip_bearer_prefix(str(value))
         if not normalized or normalized.lower() == "bearer":
-            return _err(rid, 4063, "value is not a valid credential")
+            return _err(rid, 4063, _t("tui_gateway.mcp.invalid_credential"))
         hc.save_env_value(env_var, normalized)
         is_default = env_var == mc._env_key_for_server(name)
         entry["headers"] = (
@@ -1698,7 +1685,7 @@ def _(rid, params: dict) -> dict:
     except Exception as exc:
         return failure(str(exc), needs_oauth_token, mc._oauth_tokens_present(name) if needs_oauth_token else None)
     if not token_present:
-        return failure("OAuth authentication required — no token found.", True, False)
+        return failure(_t("tui_gateway.mcp.oauth_required"), True, False)
     return _ok(rid, {
         "ok": True, "tools": [{"name": t, "description": d} for t, d in tools],
         "prompts": details.get("prompts", 0), "resources": details.get("resources", 0),
@@ -1712,7 +1699,7 @@ def _(rid, params: dict) -> dict:
     if err := _mcp_plugin_write_error(rid, name, _mcp_server_rows()[1]):
         return err
     if not _tools_mod("hermes_cli.mcp_config")._remove_mcp_server(name):
-        return _err(rid, 4064, f"server '{name}' not found")
+        return _err(rid, 4064, _t("tui_gateway.mcp.server_not_found", name=name))
     return _ok(rid, {"ok": True, "removed": True})
 
 
@@ -1729,9 +1716,9 @@ def _(rid, params: dict) -> dict:
             return err
         cfg = dict(servers[name])
         if not cfg.get("url"):
-            return _err(rid, 4001, "stdio servers authenticate via env keys, not OAuth")
+            return _err(rid, 4001, _t("tui_gateway.mcp.stdio_no_oauth"))
         if cfg.get("headers") and cfg.get("auth") != "oauth":
-            return _err(rid, 4001, "this server uses header/API-key auth, not OAuth")
+            return _err(rid, 4001, _t("tui_gateway.mcp.header_auth_no_oauth"))
         cfg["auth"] = "oauth"
         hermes_home = str(_tools_mod("hermes_constants").get_hermes_home().expanduser().resolve(strict=False))
         result = _tools_mod("tui_gateway.mcp_oauth_sessions").start_flow(
@@ -1894,7 +1881,7 @@ def _plugins_toggle(rid, params):
     toggle = _tools_mod("hermes_cli.plugins_cmd").dashboard_set_agent_plugin_enabled
     result = toggle(ident, enabled=bool(params.get("enable")))
     if not result.get("ok"):
-        return _err(rid, 5026, result.get("error") or "toggle failed")
+        return _err(rid, 5026, result.get("error") or _t("tui_gateway.plugins.toggle_failed"))
     # The toggle resolves a bare leaf / manifest name to the canonical key it wrote; report that key.
     key = result.get("name") or ident
     row = next((r for r in _plugin_rows() if key in (r["key"], r["name"])), None)
@@ -1917,7 +1904,7 @@ def _plugins_install(rid, params):
         ident, force=bool(params.get("force")), enable=params.get("enable", True), catalog_name=catalog_name or None,
         ref=str(params.get("ref") or "").strip() or None)
     if not result.get("ok"):
-        return _err(rid, 5026, result.get("error") or "install failed")
+        return _err(rid, 5026, result.get("error") or _t("tui_gateway.plugins.install_failed"))
     return _ok(rid, _with_activation(result, str(result.get("plugin_name") or "")) if result.get("enabled") else result)
 
 
@@ -1933,7 +1920,7 @@ def _plugins_update(rid, params):
     target = pc._plugins_dir() / name
     sidecar = cat.catalog_install_record(target) if target.is_dir() else None
     if not sidecar:
-        return _err(rid, 4020, f"'{name}' is not a catalog install — update it via the CLI")
+        return _err(rid, 4020, _t("tui_gateway.plugins.not_catalog_install", name=name))
     try:
         result = cat.repin_catalog_plugin(
             target, sidecar, consent_cb=(lambda _delta: True) if params.get("accept_capabilities") else None)
@@ -1958,7 +1945,7 @@ def _plugins_remove(rid, params):
     if not name:
         return _err(rid, 4019, "plugins.remove requires a 'name'")
     result = _tools_mod("hermes_cli.plugins_cmd").dashboard_remove_user_plugin(name)
-    return _ok(rid, result) if result.get("ok") else _err(rid, 5026, result.get("error") or "remove failed")
+    return _ok(rid, result) if result.get("ok") else _err(rid, 5026, result.get("error") or _t("tui_gateway.plugins.remove_failed"))
 
 
 def _plugins_settings(rid, params):
@@ -1971,7 +1958,7 @@ def _plugins_settings(rid, params):
     pc = _tools_mod("hermes_cli.plugins_cmd")
     found = next((p for p in pc._discover_all_plugins() if key in (p[5], p[0])), None)
     if found is None:
-        return _err(rid, 4020, f"plugin '{key}' not found")
+        return _err(rid, 4020, _t("tui_gateway.plugins.not_found", name=key))
     _name, _version, _desc, _source, plugin_dir, canonical = found
     try:
         written = _tools_mod("hermes_cli.plugins_settings").save_plugin_settings(
@@ -2005,15 +1992,15 @@ def _(rid, params: dict) -> dict:
 def _(rid, params: dict) -> dict:
     cmd = params.get("command", "")
     if not cmd:
-        return _err(rid, 4004, "empty command")
+        return _err(rid, 4004, _t("tui_gateway.tools.empty_command"))
     try:
         approval = _tools_mod("tools.approval_detection")
         is_hardline, hardline_desc = approval.detect_hardline_command(cmd)
         if is_hardline:
-            return _err(rid, 4005, f"blocked (hardline): {hardline_desc}. Use the agent for dangerous commands.")
+            return _err(rid, 4005, _t("tui_gateway.shell.blocked_hardline", reason=hardline_desc))
         is_dangerous, _, desc = approval.detect_dangerous_command(cmd)
         if is_dangerous:
-            return _err(rid, 4005, f"blocked: {desc}. Use the agent for dangerous commands.")
+            return _err(rid, 4005, _t("tui_gateway.shell.blocked", reason=desc))
     except ImportError:
         return _err(rid, 5001, "shell.exec unavailable: approval safety module not importable")
 
@@ -2031,7 +2018,7 @@ def _(rid, params: dict) -> dict:
     env = _tools_mod("tools.environments.local").build_subprocess_env()
     return _captured_exec(
         rid, cmd, 30, shell=True, env=env, fail_code=5003,
-        timeout_err=(5002, "command timed out (30s)"), on_result=done)
+        timeout_err=(5002, _t("tui_gateway.shell.timed_out")), on_result=done)
 
 
 def register(server) -> None:

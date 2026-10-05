@@ -4073,6 +4073,273 @@ tui_gateway:
     invalid_data_url: "data_url ペイロードが無効です"
     label_image: "画像"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "アクティブなエージェントがありません -- まずメッセージを送信してください"
+    review:
+      nothing_yet: "まだレビューするものがありません — まずメッセージを送信してください"
+      remote_host: "/review は現時点ではローカルのエージェントでのみ実行できます — このセッションのエージェントはリモートの計算ホスト上にあります"
+      start_failed: "/review の開始に失敗しました: {detail}"
+    refine:
+      no_session: "Refine は利用できません（セッションがありません）"
+      agent_running: "エージェントが実行中です — ターンの終了を待ってから /refine を実行してください"
+      nothing_yet: "まだ精錬するものがありません — まずメッセージを送信してください"
+      conversation_empty: "まだ精錬するものがありません — 会話が空です"
+      start_failed: "/refine の開始に失敗しました: {detail}"
+      started: "⚗ この会話をバックグラウンドでレビューしています{focus} — メモリ/スキルの更新があれば完了時に報告します"
+      focus: "（焦点: {focus}）"
+    usage:
+      title: "セッションのトークン使用量"
+      model: "モデル: {model}"
+      unknown_model: "（不明）"
+      input_tokens: "入力トークン:"
+      output_tokens: "出力トークン:"
+      reasoning_tokens: "推論トークン:"
+      prompt_tokens: "プロンプトトークン:"
+      completion_tokens: "補完トークン:"
+      total_tokens: "合計トークン:"
+      api_calls: "API 呼び出し:"
+      current_context: "現在のコンテキスト:"
+      messages: "メッセージ数:"
+      compressions: "圧縮回数:"
+    history:
+      empty: "まだ会話履歴がありません"
+      title: "会話履歴"
+      you: "あなた"
+      no_text: "（テキストなし）"
+    context:
+      count: "会話: {count} 件のメッセージ"
+      empty: "会話は空です（まだメッセージがありません）"
+    tools:
+      none: "利用できるツールがありません"
+      available: "利用できるツール（{count}）:"
+    help:
+      title: "利用できるコマンド:"
+      unavailable: "ヘルプを利用できません: {detail}"
+    model:
+      current: "現在のモデル: {model}"
+      unknown: "現在のモデル: （不明）"
+    status:
+      unavailable: "ステータスを利用できません"
+    compress:
+      no_session: "/compress に使えるアクティブなセッションがありません"
+      still_running: "圧縮はまだバックグラウンドで実行中です。完了するとトランスクリプトが更新されます"
+    clear:
+      terminal_only: "画面のクリアはターミナル専用です。デスクトップ/TUI のチャットは変更されません"
+    hint:
+      models: "現在のモデルの表示や切り替えには /model を使ってください。デスクトップ版ではモデルピッカーも開けます"
+      rename: "このセッションの名前を変えるには /title <名前> を使ってください"
+      effort: "推論の強さを変えるには /reasoning <強さ> を使ってください"
+    live_sync_failed: "ライブセッションの同期に失敗しました: {detail}"
+  compute_host:
+    failed: "計算ホストの {op} に失敗しました"
+    failed_detail: "計算ホストの {op} に失敗しました: {detail}"
+    timed_out: "計算ホストの {op} に失敗しました: タイムアウト"
+    invalid_response: "計算ホストの {op} が無効な応答を返しました"
+    clarify_lock_failed: "確認ロックに失敗しました"
+    turn_failed: "計算ホストのターンが失敗しました"
+    compression_failed: "圧縮に失敗しました: {detail}"
+    compression_complete: "✓ コンテキストの圧縮が完了しました"
+  tools:
+    profile_not_found: "プロファイル '{name}' が見つかりません"
+    no_active_session: "アクティブなセッションがありません"
+    no_such_process: "そのプロセスはありません: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp はプロンプトキャッシュを無効にします（次のメッセージで入力トークン全体を再送信します）。続行するには `/reload-mcp now`、続行してこの確認を今後表示しないようにするには `/reload-mcp always` と返信してください"
+    kind:
+      quick_command: "クイックコマンド"
+      plugin_command: "プラグインコマンド"
+    discovery_unavailable:
+      quick: "quick_commands の検出を利用できません: {detail}"
+      plugin: "プラグインコマンドの検出を利用できません: {detail}"
+      skill: "スキルの検出を利用できません: {detail}"
+    cli_exec_timeout: "cli.exec: タイムアウト"
+    unknown_command: "不明なコマンド: {name}"
+    quick_command_failed: "クイックコマンドが終了コード {code} で失敗しました"
+    bundle:
+      dispatch_failed: "バンドルのディスパッチに失敗しました: {detail}"
+      load_failed: "バンドルの読み込みに失敗しました: {name}"
+      loading: "⚡ バンドルを読み込んでいます: {name}（{count} 個のスキル）"
+      skipped_missing: "見つからないスキルをスキップしました: {names}"
+      loading_stacked: "⚡ {count} 個のスタックされたスキルを読み込んでいます: {names}"
+    usage:
+      queue: "使い方: /queue <プロンプト>"
+      focus: "使い方: /focus [on|off|status]"
+      steer: "使い方: /steer <プロンプト>"
+    moa:
+      queued: "プリセット {preset} で単発の MoA をキューに入れました。このターンの後に以前のモデルを復元します"
+      unavailable: "MoA を利用できません: {detail}"
+    retry:
+      no_session: "再試行できるアクティブなセッションがありません"
+      media: "再試行では添付メディアを安全に再構成・結合できません"
+      nothing: "再試行できる直前のユーザーメッセージがありません"
+      persist_failed: "再試行: 履歴の保存に失敗しました: "
+    steer:
+      sent_next_turn: "実行中のエージェントがありません。次のターンとして送信しました: {text}"
+      queued: "⏩ ステアをキューに入れました — 次のツール呼び出しの後に届きます: {text}"
+    goal:
+      continuing_now: "このまま続行します — 次のステップに進みます"
+      loop_deferred: "注: アクティブな /goal がこのセッションを駆動しています — ループの起動はゴールが完了・一時停止・保留されるまで延期されます"
+    undo:
+      no_session: "取り消せるアクティブなセッションがありません"
+      invalid_count: "取り消し: 無効な数 {value} — /undo または /undo N を使ってください"
+      nothing: "取り消せるユーザーメッセージがありません"
+      done: "↶ {count} {unit}を取り消しました（{messages} 件のメッセージ）。編集して再送信するか、新しいメッセージを送信してください"
+      turn: "ターン"
+      turns: "ターン"
+    snapshot_restore_blocked: "/snapshot restore は TUI ではブロックされています。ライブのエージェントが設定をキャッシュしている間にディスク上の設定/状態を変更してしまうためです。従来の CLI で実行してから TUI を再起動してください"
+    compress:
+      no_session: "圧縮できるアクティブなセッションがありません"
+      failed: "圧縮に失敗しました: {detail}"
+    memory:
+      unknown_subcommand: "不明な /memory サブコマンドです。使用可能: pending、approve <id>、reject <id>、approval <on|off>"
+    skills:
+      unknown_subcommand: "ここでは使えない /skills サブコマンドです。使用可能: pending、approve <id>、reject <id>、diff <id>、approval <on|off>（検索/インストール/閲覧はターミナル側です）"
+      write_approval_off: "スキル書き込みの承認はオフです（skills.write_approval）。/skills approval on で有効にしてから、/skills pending でステージされた書き込みを確認してください"
+      install_failed: "スキルのインストールに失敗しました"
+      reloading: "スキルを再読み込みしています..."
+      none_new: "新しいスキルは検出されませんでした"
+      added: "追加されたスキル:"
+      removed: "削除されたスキル:"
+    command_unavailable_for_profile: "/{command} は現在のプロファイルでは利用できません"
+    not_dispatchable: "クイック/プラグイン/バンドル/スキルのコマンドではありません: {name}"
+    empty_command: "コマンドが空です"
+    plugin_command_error: "プラグインコマンドのエラー: {detail}"
+    checkpoint_rewind_failed: "チェックポイントは復元されましたが、セッション履歴の巻き戻しに失敗しました: {detail}"
+  mcp:
+    server_not_found: "サーバー '{name}' が見つかりません"
+    server_plugin_owned: "サーバー '{name}' はプラグイン '{plugin}' が提供しているため変更できません"
+    server_exists: "サーバー '{name}' は既に存在します"
+    unknown_catalog_entry: "不明な MCP カタログ項目またはプリセットです: {preset}"
+    config_shape: "設定には 'url'（http）か 'command'（stdio）、または有効な 'preset' を指定する必要があります"
+    server_rejected: "サーバー '{name}' は拒否されました: コマンド/引数の設定が疑わしいです"
+    malformed_config: "サーバー設定の形式が不正です"
+    invalid_credential: "値が有効な認証情報ではありません"
+    oauth_required: "OAuth 認証が必要です — トークンが見つかりません"
+    stdio_no_oauth: "stdio サーバーは OAuth ではなく環境変数のキーで認証します"
+    header_auth_no_oauth: "このサーバーは OAuth ではなくヘッダー/API キー認証を使います"
+  plugins:
+    toggle_failed: "切り替えに失敗しました"
+    install_failed: "インストールに失敗しました"
+    not_catalog_install: "'{name}' はカタログからのインストールではありません — CLI で更新してください"
+    remove_failed: "削除に失敗しました"
+    not_found: "プラグイン '{name}' が見つかりません"
+  shell:
+    blocked_hardline: "ブロックされました（ハードライン）: {reason}。危険なコマンドはエージェントに任せてください"
+    blocked: "ブロックされました: {reason}。危険なコマンドはエージェントに任せてください"
+    timed_out: "コマンドがタイムアウトしました（30 秒）"
+  session_control:
+    subgoal_text_required: "サブゴールのテキストが必要です"
+    subgoal_added: "✓ サブゴール {index} を追加しました: {text}"
+    subgoal_removed: "✓ サブゴール {index} を削除しました: {text}"
+    subgoals_cleared_one: "✓ 1 個のサブゴールをクリアしました"
+    subgoals_cleared: "✓ {count} 個のサブゴールをクリアしました"
+    no_subgoals: "クリアするサブゴールがありません"
+    heartbeat_paused: "⏸ ハートビートを一時停止しました: {prompt}"
+    no_heartbeat: "ハートビートは設定されていません"
+    heartbeat_resumed: "▶ ハートビートを再開しました（{interval} ごと）: {prompt}"
+    no_heartbeat_to_resume: "再開するハートビートがありません"
+    heartbeat_cleared: "✓ ハートビートをクリアしました"
+  voice:
+    wake_unavailable: "ウェイクモジュールを利用できません: {detail}"
+    wake_device_unresolved: "ウェイクワードの入力デバイスを解決できませんでした: {detail}"
+    enable_first: "先に音声モードを有効にしてください: /voice on"
+    mode_off: "音声モードはオフです — /voice on で有効にしてください"
+    module_missing_deps: "音声モジュールを利用できません — オーディオ依存関係をインストールしてください"
+    module_missing: "音声モジュールを利用できません"
+  browser:
+    already_listening: "Chromium 系ブラウザは既に {url} で待ち受けています"
+    port_occupied: "ポート {port} は CDP ブラウザではない別のアプリケーションに占有されています（IDE のデバッガーや開発サーバーが使っている可能性があります）— 代わりにポート {launch_port} でデバッグブラウザを起動します..."
+    launching: "Chromium 系ブラウザがリモートデバッグ付きで実行されていません — 起動を試みています..."
+    launched: "Chromium 系ブラウザを起動し、ポート {port} で待ち受けています"
+    start_manually: "リモートデバッグ付きで Chromium 系ブラウザを起動してから、/browser connect を再試行してください:"
+    no_executable: "この環境ではサポートされている Chromium 系ブラウザの実行ファイルが見つかりませんでした"
+    install_hint: "ブラウザをインストールするか、--remote-debugging-port={port} を付けて Chromium 系ブラウザを起動してから、/browser connect を再試行してください"
+    not_connected: "ブラウザが接続されていません — リモートデバッグ付きで Chromium 系ブラウザを起動して /browser connect を再試行してください"
+    unsupported_url: "サポートされていないブラウザ URL です: {url}"
+    missing_host: "ブラウザ URL にホストがありません: {url}"
+    invalid_port: "ブラウザ URL のポートが無効です: {url}"
+    unreachable_detail: "{url} のブラウザ CDP に到達できませんでした: {detail}"
+    unreachable: "{url} のブラウザ CDP に到達できませんでした"
+  model:
+    switch_failed_staying: "モデル {target} への切り替えに失敗しました（{detail}）。{current} のまま続行します"
+    once_requires_session: "/model --once にはライブセッションが必要です"
+    switch_failed: "モデルの切り替えに失敗しました"
+    capabilities_updated: "機能を更新しました — この Bot のツールとプロンプトを更新しました"
+    configured_switch_failed: "設定済みのモデル {model} に切り替えられませんでした: {detail}"
+    switch_error: "モデルを切り替えられませんでした: {detail}"
+  compress:
+    lock_held: "圧縮ロックが保持されています: {holder}"
+    unknown_holder: "不明"
+  images:
+    no_backend: "画像生成バックエンドが設定されていません（`hermes tools` を実行して有効にしてください）"
+    generation_failed: "生成に失敗しました"
+  wisdom:
+    summary: "Collective Wisdom: {summary}。管理するには {commands} を実行してください"
+    team_update_one: "1 件のチーム更新"
+    team_updates: "{count} 件のチーム更新"
+    skill_ready_one: "レビュー待ちのスキルが 1 個"
+    skills_ready: "レビュー待ちのスキルが {count} 個"
+    and: "と"
+    or: "または"
+    cannot_continue: "Collective Wisdom を続行できませんでした: {detail}"
+    open_inbox_hint: "/wisdom inbox を開いて確認し、同意のコントロールを使ってください"
+    notification_settings: "通知設定: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git の差分"
+      staged_diff: "ステージ済みの差分"
+      attach_file: "ファイルを添付"
+      attach_folder: "フォルダーを添付"
+      fetch_url: "URL を取得"
+      git_log: "git のログ"
+    agent_profile: "エージェントプロファイル"
+    agent_profile_primary: "エージェントプロファイル（プライマリ）"
+    plugin_provider: "プラグイン: {prefix}"
+    details:
+      section_override: "セクションの上書き"
+      cycle_global_mode: "グローバルモードを順に切り替え"
+      global_mode: "グローバルモード"
+      clear_override: "{section} の上書きを解除"
+      set_section: "{section} を設定"
+    slash:
+      density: "コンパクト表示モードを切り替え"
+      details: "エージェントの詳細表示を制御"
+      logs: "最近のゲートウェイログを表示"
+      mouse: "マウス追跡プリセットを設定 [on|off|toggle|wheel|buttons|all]"
+      sessions: "ライブの TUI セッションを切り替え"
+  credentials:
+    managed_readonly: "管理されたインストールです — 認証情報は読み取り専用です"
+    unknown_provider: "不明なプロバイダー: {slug}"
+    non_key_auth: "{provider} は {auth} 認証を使います — `hermes model` を実行して設定してください"
+    no_env_var: "{provider} の環境変数が定義されていません"
+    none_found: "{slug} の認証情報が見つかりません"
+  profile:
+    not_exist: "プロファイル '{name}' は存在しません"
+    store_unavailable: "プロファイルのセッションストアを利用できません: {path}: {detail}"
+  approval:
+    client_cannot_answer: "接続中のクライアントは承認リクエストに応答できません（Hermes アプリを更新してください）"
+  session:
+    hydration_timed_out: "セッション履歴の読み込みがタイムアウトしました"
+  checkpoint:
+    invalid_number: "無効なチェックポイント番号です。1-{max} を使ってください"
+  cli_exec:
+    setup: "`hermes setup` にはフルのターミナルが必要です — TUI の外で実行してください"
+    gateway: "`hermes gateway` は長時間実行されます — 別のターミナルで実行してください"
+    sessions_browse: "`hermes sessions browse` は対話型です — ここでは /resume を使うか、別のターミナルで browse を実行してください"
+    config_edit: "`hermes config edit` には実際のターミナルで $EDITOR が必要です"
+    bare: "引数なしの `hermes` は対話型です — `/hermes chat -q …` を使うか、別のターミナルで `hermes` を実行してください"
+  tool_progress:
+    lines_chars: "{lines} 行 / {chars} 文字"
+    chars: "{chars} 文字"
+    verbose_tail: "[詳細出力の末尾を表示しています。{omitted}を省略]"
+  onboarding:
+    facts_too_long: "オンボーディングの情報が長すぎて記憶できません"
+    memory_not_saved: "メモリは保存されませんでした"
+    verify_failed: "保存したオンボーディング情報を確認できませんでした"
+    no_setup_profile: "リセットするセットアッププロファイルがありません"
+  projects:
+    not_found: "そのプロジェクトはありません"
+  subagent:
+    interrupted_via_tui: "TUI から中断されました（{id}）"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

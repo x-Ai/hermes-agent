@@ -11,13 +11,11 @@ method = _registry.method
 _profile_scoped = _registry.profile_scoped
 
 _BUILTIN_AT_PREFIXES = frozenset({"file", "folder", "url", "git", "diff", "staged"})
+# (completion text, catalog suffix under ``tui_gateway.complete.at`` / ``tui_gateway.complete.slash``)
 _AT_DIRECTIVE_HINTS = [
-    ("@diff", "git diff"), ("@staged", "staged diff"), ("@file:", "attach file"),
-    ("@folder:", "attach folder"), ("@url:", "fetch url"), ("@git:", "git log")]
-_SLASH_EXTRAS = [
-    ("/density", "Toggle compact display mode"), ("/details", "Control agent detail visibility"),
-    ("/logs", "Show recent gateway log lines"),
-    ("/mouse", "Set mouse tracking preset [on|off|toggle|wheel|buttons|all]")]
+    ("@diff", "git_diff"), ("@staged", "staged_diff"), ("@file:", "attach_file"),
+    ("@folder:", "attach_folder"), ("@url:", "fetch_url"), ("@git:", "git_log")]
+_SLASH_EXTRAS = [("/density", "density"), ("/details", "details"), ("/logs", "logs"), ("/mouse", "mouse")]
 
 
 def _item(text: str, meta: str, display: str | None = None) -> dict:
@@ -69,9 +67,10 @@ def _profile_mention_items(prefix: str) -> list[dict]:
                 continue
             seen.add(name.lower())
             if name.lower().startswith(prefix.lower()):
-                out.append(_item(f"@{name}", (getattr(p, "description", "") or "").strip() or "agent profile"))
+                out.append(_item(f"@{name}", (getattr(p, "description", "") or "").strip()
+                                 or _t("tui_gateway.complete.agent_profile")))
         if "hermes".startswith(prefix.lower()) and "hermes" not in seen:
-            out.append(_item("@hermes", "agent profile (primary)"))
+            out.append(_item("@hermes", _t("tui_gateway.complete.agent_profile_primary")))
     except Exception:
         return []
     return out
@@ -141,11 +140,12 @@ def _fuzzy_basename_items(root: str, path_part: str, prefix_tag: str) -> list[di
 
 def _at_root_items() -> list[dict]:
     """Completions for a bare ``@``: directive hints, agent profiles, plugin ``@<prefix>:`` providers."""
-    items = [_item(t, m) for t, m in _AT_DIRECTIVE_HINTS] + _profile_mention_items("")
+    items = [_item(text, _t(f"tui_gateway.complete.at.{key}")) for text, key in _AT_DIRECTIVE_HINTS]
+    items += _profile_mention_items("")
     with contextlib.suppress(Exception):
         from agent.context_references import get_context_reference_providers
         for pfx, prov in sorted(get_context_reference_providers().items()):
-            items.append(_item(f"@{pfx}:", prov.description or f"plugin: {pfx}"))
+            items.append(_item(f"@{pfx}:", prov.description or _t("tui_gateway.complete.plugin_provider", prefix=pfx)))
     return items
 
 
@@ -326,7 +326,7 @@ def _(rid, params: dict) -> dict:
     text_lower = text.lower()
     for extra_text, extra_meta in _SLASH_EXTRAS:
         if extra_text.startswith(text_lower) and not any(item["text"] == extra_text for item in items):
-            items.append({**_item(extra_text, extra_meta), "kind": "command"})
+            items.append({**_item(extra_text, _t(f"tui_gateway.complete.slash.{extra_meta}")), "kind": "command"})
     if (details_items := _details_completions(text)) is not None:
         return _ok(rid, {"items": details_items, "replace_from": text.rfind(" ") + 1 if " " in text else len(text)})
     return _ok(rid, {"items": items, "replace_from": text.rfind(" ") + 1 if " " in text else 1})
@@ -384,13 +384,13 @@ def _(rid, params: dict) -> dict:
     if not slug or not api_key:
         return _err(rid, 4001, "slug and api_key are required")
     if is_managed():
-        return _err(rid, 4006, "managed install — credentials are read-only")
+        return _err(rid, 4006, _t("tui_gateway.credentials.managed_readonly"))
     if not (pconfig := PROVIDER_REGISTRY.get(slug)):
-        return _err(rid, 4002, f"unknown provider: {slug}")
+        return _err(rid, 4002, _t("tui_gateway.credentials.unknown_provider", slug=slug))
     if pconfig.auth_type != "api_key":
-        return _err(rid, 4003, f"{pconfig.name} uses {pconfig.auth_type} auth — run `hermes model` to configure")
+        return _err(rid, 4003, _t("tui_gateway.credentials.non_key_auth", provider=pconfig.name, auth=pconfig.auth_type))
     if not pconfig.api_key_env_vars:
-        return _err(rid, 4004, f"no env var defined for {pconfig.name}")
+        return _err(rid, 4004, _t("tui_gateway.credentials.no_env_var", provider=pconfig.name))
     # Save the key to ~/.hermes/.env via the unified credential lifecycle so any stale config.yaml mirror of
     # the previous key (model.api_key, custom_providers[*].api_key) is rotated in the same action (#62269).
     env_var = pconfig.api_key_env_vars[0]
@@ -443,7 +443,7 @@ def _(rid, params: dict) -> dict:
     cleared_env = any([remove_provider_env_credential(ev).get("found") for ev in removable])
     cleared_auth = clear_provider_auth(slug)  # full disconnect: OAuth grants go too
     if not cleared_env and not cleared_auth:
-        return _err(rid, 4005, f"no credentials found for {slug}")
+        return _err(rid, 4005, _t("tui_gateway.credentials.none_found", slug=slug))
     return _ok(rid, {"slug": slug, "name": pconfig.name if pconfig else slug, "disconnected": True})
 
 

@@ -279,8 +279,9 @@ def _commit_agent_switch(sid: str, session: dict, agent, result, current_model: 
         # pinned to a broken model and kill the conversation on the next turn (#50163). A failed switch is a
         # no-op; surface a clean error to the client.
         logger.warning("In-place model switch failed for TUI agent: %s", exc)
-        raise ValueError(f"Model switch to {result.new_model} failed ({exc}); "
-                         f"staying on {getattr(agent, 'model', current_model)}.") from exc
+        raise ValueError(_t(
+            "tui_gateway.model.switch_failed_staying", target=result.new_model, detail=exc,
+            current=getattr(agent, "model", current_model))) from exc
     _restart_slash_worker(sid, session)
     _persist_live_session_runtime(session)
     _persist_live_session_system_prompt(session)
@@ -303,7 +304,7 @@ def _apply_model_switch(
         raw_input, parsed_flags, persist_override)
     agent = session.get("agent")
     if one_turn and not agent:
-        raise ValueError("/model --once requires a live session")
+        raise ValueError(_t("tui_gateway.model.once_requires_session"))
     current_provider, current_model, current_base_url, current_api_key = _current_model_runtime(
         agent, explicit_provider)
     # User-defined providers let switch_model resolve named custom endpoints
@@ -320,7 +321,7 @@ def _apply_model_switch(
         explicit_provider=explicit_provider, user_providers=user_provs,
         custom_providers=custom_provs)
     if not result.success:
-        raise ValueError(result.error_message or "model switch failed")
+        raise ValueError(result.error_message or _t("tui_gateway.model.switch_failed"))
     restore_snapshot = _snapshot_agent_model_runtime(agent) if (one_turn and agent) else None
     if agent:
         _merge_preflight_warning(result, agent, session, cfg, custom_provs)
@@ -429,7 +430,7 @@ def _sync_bot_capabilities(sid: str, session: dict) -> None:
         finally:
             _clear_session_context(tokens)
         new_agent._session_title_hint = "Bot Chat"
-        _emit("notice", sid, {"message": "Capabilities updated — this bot's tools and prompt were refreshed."})
+        _emit("notice", sid, {"message": _t("tui_gateway.model.capabilities_updated")})
     except Exception as e:
         logger.warning("Bot capability sync failed for %s: %s", sid, e)
 
@@ -480,7 +481,7 @@ def _sync_agent_model_with_config(sid: str, session: dict) -> None:
         logger.warning("Configured model %s could not be adopted for session %s: %s", model, sid, e)
         from gateway.warning_notifications import render_notification
         render_notification(
-            lambda: _emit("error", sid, {"message": f"Could not switch to configured model {model}: {e}"}),
+            lambda: _emit("error", sid, {"message": _t("tui_gateway.model.configured_switch_failed", model=model, detail=e)}),
             platform="tui", user_config=getattr(session.get("agent"), "_notification_config", None))
 
 

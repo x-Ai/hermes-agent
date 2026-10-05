@@ -4073,6 +4073,273 @@ tui_gateway:
     invalid_data_url: "data_url 페이로드가 잘못되었습니다"
     label_image: "이미지"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "활성 에이전트가 없습니다 -- 먼저 메시지를 보내세요."
+    review:
+      nothing_yet: "아직 검토할 내용이 없습니다 — 먼저 메시지를 보내세요."
+      remote_host: "/review는 현재 로컬 에이전트에서만 실행됩니다 — 이 세션의 에이전트는 원격 컴퓨트 호스트에 있습니다."
+      start_failed: "/review 시작 실패: {detail}"
+    refine:
+      no_session: "Refine을 사용할 수 없습니다(세션 없음)."
+      agent_running: "에이전트가 실행 중입니다 — 턴이 끝날 때까지 기다린 뒤 /refine을 실행하세요."
+      nothing_yet: "아직 다듬을 내용이 없습니다 — 먼저 메시지를 보내세요."
+      conversation_empty: "아직 다듬을 내용이 없습니다 — 대화가 비어 있습니다."
+      start_failed: "/refine 시작 실패: {detail}"
+      started: "⚗ 이 대화를 백그라운드에서 검토하고 있습니다{focus} — 메모리/스킬 업데이트가 있으면 완료 시 보고합니다."
+      focus: " (초점: {focus})"
+    usage:
+      title: "세션 토큰 사용량"
+      model: "모델: {model}"
+      unknown_model: "(알 수 없음)"
+      input_tokens: "입력 토큰:"
+      output_tokens: "출력 토큰:"
+      reasoning_tokens: "추론 토큰:"
+      prompt_tokens: "프롬프트 토큰:"
+      completion_tokens: "완성 토큰:"
+      total_tokens: "총 토큰:"
+      api_calls: "API 호출:"
+      current_context: "현재 컨텍스트:"
+      messages: "메시지 수:"
+      compressions: "압축 횟수:"
+    history:
+      empty: "아직 대화 기록이 없습니다."
+      title: "대화 기록"
+      you: "나"
+      no_text: "(텍스트 없음)"
+    context:
+      count: "대화: 메시지 {count}개"
+      empty: "대화가 비어 있습니다(아직 메시지 없음)."
+    tools:
+      none: "사용할 수 있는 도구가 없습니다."
+      available: "사용할 수 있는 도구({count}):"
+    help:
+      title: "사용할 수 있는 명령:"
+      unavailable: "도움말을 사용할 수 없습니다: {detail}"
+    model:
+      current: "현재 모델: {model}"
+      unknown: "현재 모델: (알 수 없음)"
+    status:
+      unavailable: "상태를 사용할 수 없습니다"
+    compress:
+      no_session: "/compress에 사용할 활성 세션이 없습니다"
+      still_running: "압축이 아직 백그라운드에서 실행 중입니다. 완료되면 대화 기록이 새로 고쳐집니다"
+    clear:
+      terminal_only: "화면 지우기는 터미널 전용입니다. 데스크톱/TUI 채팅은 그대로 유지됩니다."
+    hint:
+      models: "현재 모델을 보거나 바꾸려면 /model을 사용하세요. 데스크톱 사용자는 모델 선택기를 열 수도 있습니다."
+      rename: "이 세션의 이름을 바꾸려면 /title <이름>을 사용하세요."
+      effort: "추론 강도를 바꾸려면 /reasoning <강도>를 사용하세요."
+    live_sync_failed: "라이브 세션 동기화 실패: {detail}"
+  compute_host:
+    failed: "컴퓨트 호스트 {op} 실패"
+    failed_detail: "컴퓨트 호스트 {op} 실패: {detail}"
+    timed_out: "컴퓨트 호스트 {op} 실패: 시간 초과"
+    invalid_response: "컴퓨트 호스트 {op}이(가) 잘못된 응답을 반환했습니다"
+    clarify_lock_failed: "확인 잠금 실패"
+    turn_failed: "컴퓨트 호스트 턴 실패"
+    compression_failed: "압축 실패: {detail}"
+    compression_complete: "✓ 컨텍스트 압축 완료"
+  tools:
+    profile_not_found: "프로필 '{name}'을(를) 찾을 수 없습니다"
+    no_active_session: "활성 세션이 없습니다"
+    no_such_process: "해당 프로세스가 없습니다: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp는 프롬프트 캐시를 무효화합니다(다음 메시지에서 전체 입력 토큰을 다시 보냅니다). 계속하려면 `/reload-mcp now`, 계속하고 이 안내를 영구히 끄려면 `/reload-mcp always`라고 답하세요."
+    kind:
+      quick_command: "빠른 명령"
+      plugin_command: "플러그인 명령"
+    discovery_unavailable:
+      quick: "quick_commands 검색을 사용할 수 없습니다: {detail}"
+      plugin: "플러그인 명령 검색을 사용할 수 없습니다: {detail}"
+      skill: "스킬 검색을 사용할 수 없습니다: {detail}"
+    cli_exec_timeout: "cli.exec: 시간 초과"
+    unknown_command: "알 수 없는 명령: {name}"
+    quick_command_failed: "빠른 명령이 종료 코드 {code}(으)로 실패했습니다"
+    bundle:
+      dispatch_failed: "번들 디스패치 실패: {detail}"
+      load_failed: "번들을 불러오지 못했습니다: {name}"
+      loading: "⚡ 번들 불러오는 중: {name}(스킬 {count}개)"
+      skipped_missing: "없는 스킬을 건너뛰었습니다: {names}"
+      loading_stacked: "⚡ 중첩된 스킬 {count}개 불러오는 중: {names}"
+    usage:
+      queue: "사용법: /queue <프롬프트>"
+      focus: "사용법: /focus [on|off|status]"
+      steer: "사용법: /steer <프롬프트>"
+    moa:
+      queued: "프리셋 {preset}(으)로 일회성 MoA를 대기열에 넣었습니다. 이 턴이 끝나면 이전 모델이 복원됩니다."
+      unavailable: "MoA를 사용할 수 없습니다: {detail}"
+    retry:
+      no_session: "재시도할 활성 세션이 없습니다"
+      media: "재시도는 첨부된 미디어를 안전하게 재구성하거나 합칠 수 없습니다"
+      nothing: "재시도할 이전 사용자 메시지가 없습니다"
+      persist_failed: "재시도: 기록 저장 실패: "
+    steer:
+      sent_next_turn: "실행 중인 에이전트가 없습니다. 다음 턴으로 보냈습니다: {text}"
+      queued: "⏩ 조정이 대기열에 들어갔습니다 — 다음 도구 호출 이후에 전달됩니다: {text}"
+    goal:
+      continuing_now: "지금 계속합니다 — 다음 단계를 진행합니다."
+      loop_deferred: "참고: 활성 /goal이 이 세션을 이끌고 있습니다 — 루프 깨우기는 목표가 끝나거나 일시 중지되거나 보류될 때까지 미뤄집니다."
+    undo:
+      no_session: "실행 취소할 활성 세션이 없습니다"
+      invalid_count: "실행 취소: 잘못된 개수 {value} — /undo 또는 /undo N을 사용하세요"
+      nothing: "실행 취소할 사용자 메시지가 없습니다"
+      done: "↶ {count}{unit}을(를) 실행 취소했습니다(메시지 {messages}개). 편집한 뒤 다시 제출하거나 새 메시지를 보내세요."
+      turn: "턴"
+      turns: "턴"
+    snapshot_restore_blocked: "/snapshot restore는 TUI에서 차단됩니다. 라이브 에이전트가 설정을 캐시하고 있는 동안 디스크의 설정/상태를 바꾸기 때문입니다. 클래식 CLI에서 실행한 뒤 TUI를 다시 시작하세요."
+    compress:
+      no_session: "압축할 활성 세션이 없습니다"
+      failed: "압축 실패: {detail}"
+    memory:
+      unknown_subcommand: "알 수 없는 /memory 하위 명령입니다. 사용 가능: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "여기서는 알 수 없는 /skills 하위 명령입니다. 사용 가능: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (검색/설치/탐색은 터미널 쪽입니다.)"
+      write_approval_off: "스킬 쓰기 승인이 꺼져 있습니다(skills.write_approval). /skills approval on으로 켠 뒤 /skills pending으로 준비된 쓰기를 검토하세요."
+      install_failed: "스킬 설치 실패"
+      reloading: "스킬을 다시 불러오는 중..."
+      none_new: "새 스킬이 감지되지 않았습니다."
+      added: "추가된 스킬:"
+      removed: "제거된 스킬:"
+    command_unavailable_for_profile: "/{command}은(는) 현재 프로필에서 사용할 수 없습니다"
+    not_dispatchable: "빠른/플러그인/번들/스킬 명령이 아닙니다: {name}"
+    empty_command: "명령이 비어 있습니다"
+    plugin_command_error: "플러그인 명령 오류: {detail}"
+    checkpoint_rewind_failed: "체크포인트는 복원되었지만 세션 기록 되감기에 실패했습니다: {detail}"
+  mcp:
+    server_not_found: "서버 '{name}'을(를) 찾을 수 없습니다"
+    server_plugin_owned: "서버 '{name}'은(는) 플러그인 '{plugin}'이 제공하므로 수정할 수 없습니다"
+    server_exists: "서버 '{name}'이(가) 이미 있습니다"
+    unknown_catalog_entry: "알 수 없는 MCP 카탈로그 항목 또는 프리셋: {preset}"
+    config_shape: "설정에는 'url'(http)이나 'command'(stdio), 또는 유효한 'preset'을 지정해야 합니다"
+    server_rejected: "서버 '{name}'이(가) 거부되었습니다: 명령/인수 설정이 의심스럽습니다"
+    malformed_config: "서버 설정 형식이 잘못되었습니다"
+    invalid_credential: "값이 유효한 자격 증명이 아닙니다"
+    oauth_required: "OAuth 인증이 필요합니다 — 토큰을 찾을 수 없습니다."
+    stdio_no_oauth: "stdio 서버는 OAuth가 아니라 환경 변수 키로 인증합니다"
+    header_auth_no_oauth: "이 서버는 OAuth가 아니라 헤더/API 키 인증을 사용합니다"
+  plugins:
+    toggle_failed: "전환 실패"
+    install_failed: "설치 실패"
+    not_catalog_install: "'{name}'은(는) 카탈로그 설치가 아닙니다 — CLI로 업데이트하세요"
+    remove_failed: "제거 실패"
+    not_found: "플러그인 '{name}'을(를) 찾을 수 없습니다"
+  shell:
+    blocked_hardline: "차단됨(하드라인): {reason}. 위험한 명령은 에이전트에게 맡기세요."
+    blocked: "차단됨: {reason}. 위험한 명령은 에이전트에게 맡기세요."
+    timed_out: "명령 시간 초과(30초)"
+  session_control:
+    subgoal_text_required: "하위 목표 텍스트가 필요합니다"
+    subgoal_added: "✓ 하위 목표 {index} 추가됨: {text}"
+    subgoal_removed: "✓ 하위 목표 {index} 제거됨: {text}"
+    subgoals_cleared_one: "✓ 하위 목표 1개를 지웠습니다."
+    subgoals_cleared: "✓ 하위 목표 {count}개를 지웠습니다."
+    no_subgoals: "지울 하위 목표가 없습니다."
+    heartbeat_paused: "⏸ 하트비트 일시 중지됨: {prompt}"
+    no_heartbeat: "설정된 하트비트가 없습니다."
+    heartbeat_resumed: "▶ 하트비트 재개됨({interval}마다): {prompt}"
+    no_heartbeat_to_resume: "재개할 하트비트가 없습니다."
+    heartbeat_cleared: "✓ 하트비트를 지웠습니다."
+  voice:
+    wake_unavailable: "웨이크 모듈을 사용할 수 없습니다: {detail}"
+    wake_device_unresolved: "웨이크 워드 입력 장치를 찾을 수 없습니다: {detail}"
+    enable_first: "먼저 음성 모드를 켜세요: /voice on"
+    mode_off: "음성 모드가 꺼져 있습니다 — /voice on으로 켜세요"
+    module_missing_deps: "음성 모듈을 사용할 수 없습니다 — 오디오 의존성을 설치하세요"
+    module_missing: "음성 모듈을 사용할 수 없습니다"
+  browser:
+    already_listening: "Chromium 계열 브라우저가 이미 {url}에서 수신 대기 중입니다"
+    port_occupied: "포트 {port}은(는) CDP 브라우저가 아닌 다른 애플리케이션이 사용 중입니다(IDE 디버거나 개발 서버일 수 있습니다) — 대신 포트 {launch_port}에서 디버그 브라우저를 실행합니다..."
+    launching: "Chromium 계열 브라우저가 원격 디버깅으로 실행되고 있지 않습니다 — 실행을 시도합니다..."
+    launched: "Chromium 계열 브라우저를 실행했고 포트 {port}에서 수신 대기 중입니다"
+    start_manually: "원격 디버깅을 켠 Chromium 계열 브라우저를 시작한 뒤 /browser connect를 다시 시도하세요:"
+    no_executable: "이 환경에서 지원되는 Chromium 계열 브라우저 실행 파일을 찾지 못했습니다."
+    install_hint: "브라우저를 설치하거나 --remote-debugging-port={port}로 Chromium 계열 브라우저를 시작한 뒤 /browser connect를 다시 시도하세요."
+    not_connected: "브라우저가 연결되지 않았습니다 — 원격 디버깅을 켠 Chromium 계열 브라우저를 시작하고 /browser connect를 다시 시도하세요"
+    unsupported_url: "지원되지 않는 브라우저 URL: {url}"
+    missing_host: "브라우저 URL에 호스트가 없습니다: {url}"
+    invalid_port: "브라우저 URL의 포트가 잘못되었습니다: {url}"
+    unreachable_detail: "{url}의 브라우저 CDP에 연결할 수 없습니다: {detail}"
+    unreachable: "{url}의 브라우저 CDP에 연결할 수 없습니다"
+  model:
+    switch_failed_staying: "모델 {target}(으)로 전환하지 못했습니다({detail}). {current}을(를) 유지합니다."
+    once_requires_session: "/model --once에는 라이브 세션이 필요합니다"
+    switch_failed: "모델 전환 실패"
+    capabilities_updated: "기능이 업데이트되었습니다 — 이 봇의 도구와 프롬프트를 새로 고쳤습니다."
+    configured_switch_failed: "설정된 모델 {model}(으)로 전환할 수 없습니다: {detail}"
+    switch_error: "모델을 전환할 수 없습니다: {detail}"
+  compress:
+    lock_held: "압축 잠금이 점유되어 있습니다: {holder}"
+    unknown_holder: "알 수 없음"
+  images:
+    no_backend: "이미지 생성 백엔드가 설정되지 않았습니다(`hermes tools`를 실행해 하나를 켜세요)."
+    generation_failed: "생성 실패"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. 관리하려면 {commands}을(를) 실행하세요."
+    team_update_one: "팀 업데이트 1건"
+    team_updates: "팀 업데이트 {count}건"
+    skill_ready_one: "검토 대기 스킬 1개"
+    skills_ready: "검토 대기 스킬 {count}개"
+    and: " 및 "
+    or: " 또는 "
+    cannot_continue: "Collective Wisdom을 계속할 수 없습니다: {detail}"
+    open_inbox_hint: "/wisdom inbox를 열어 검토하고 동의 제어를 사용하세요."
+    notification_settings: "알림 설정: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git 차이"
+      staged_diff: "스테이징된 차이"
+      attach_file: "파일 첨부"
+      attach_folder: "폴더 첨부"
+      fetch_url: "URL 가져오기"
+      git_log: "git 로그"
+    agent_profile: "에이전트 프로필"
+    agent_profile_primary: "에이전트 프로필(기본)"
+    plugin_provider: "플러그인: {prefix}"
+    details:
+      section_override: "섹션 재정의"
+      cycle_global_mode: "전역 모드 순환"
+      global_mode: "전역 모드"
+      clear_override: "{section} 재정의 해제"
+      set_section: "{section} 설정"
+    slash:
+      density: "간결한 표시 모드 전환"
+      details: "에이전트 세부 정보 표시 제어"
+      logs: "최근 게이트웨이 로그 표시"
+      mouse: "마우스 추적 프리셋 설정 [on|off|toggle|wheel|buttons|all]"
+      sessions: "라이브 TUI 세션 간 전환"
+  credentials:
+    managed_readonly: "관리형 설치입니다 — 자격 증명은 읽기 전용입니다"
+    unknown_provider: "알 수 없는 제공자: {slug}"
+    non_key_auth: "{provider}은(는) {auth} 인증을 사용합니다 — `hermes model`을 실행해 설정하세요"
+    no_env_var: "{provider}에 정의된 환경 변수가 없습니다"
+    none_found: "{slug}의 자격 증명을 찾을 수 없습니다"
+  profile:
+    not_exist: "프로필 '{name}'이(가) 없습니다."
+    store_unavailable: "프로필 세션 저장소를 사용할 수 없습니다: {path}: {detail}"
+  approval:
+    client_cannot_answer: "연결된 클라이언트가 승인 요청에 응답할 수 없습니다(Hermes 앱을 업데이트하세요)"
+  session:
+    hydration_timed_out: "세션 기록 불러오기 시간 초과"
+  checkpoint:
+    invalid_number: "잘못된 체크포인트 번호입니다. 1-{max}을(를) 사용하세요."
+  cli_exec:
+    setup: "`hermes setup`에는 전체 터미널이 필요합니다 — TUI 밖에서 실행하세요"
+    gateway: "`hermes gateway`는 오래 실행됩니다 — 다른 터미널에서 실행하세요"
+    sessions_browse: "`hermes sessions browse`는 대화형입니다 — 여기서는 /resume을 사용하거나 다른 터미널에서 browse를 실행하세요"
+    config_edit: "`hermes config edit`에는 실제 터미널의 $EDITOR가 필요합니다"
+    bare: "인수 없는 `hermes`는 대화형입니다 — `/hermes chat -q …`를 사용하거나 다른 터미널에서 `hermes`를 실행하세요"
+  tool_progress:
+    lines_chars: "{lines}줄 / {chars}자"
+    chars: "{chars}자"
+    verbose_tail: "[상세 출력의 끝부분을 표시 중. {omitted} 생략]"
+  onboarding:
+    facts_too_long: "온보딩 정보가 너무 길어 기억할 수 없습니다"
+    memory_not_saved: "메모리가 저장되지 않았습니다"
+    verify_failed: "저장된 온보딩 정보를 확인할 수 없습니다"
+    no_setup_profile: "재설정할 설정 프로필이 없습니다"
+  projects:
+    not_found: "해당 프로젝트가 없습니다"
+  subagent:
+    interrupted_via_tui: "TUI를 통해 중단됨({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

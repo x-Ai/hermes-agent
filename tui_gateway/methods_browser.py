@@ -58,16 +58,14 @@ def _connect_local_default(port: int, system: str, announce) -> str | None:
     # against squatters that accept TCP but never answer HTTP.
     discovered = discover_local_cdp_url(port, timeout=2.0)
     if discovered is not None:
-        announce(f"Chromium-family browser is already listening at {discovered}")
+        announce(_t("tui_gateway.browser.already_listening", url=discovered))
         return discovered
     launch_port = port
     if local_port_in_use(port):
         launch_port = find_free_debug_port(port)
-        announce(f"Port {port} is occupied by another application that isn't a CDP browser "
-                 "(an IDE debugger or dev server may be using it) — launching a debug browser "
-                 f"on port {launch_port} instead...")
+        announce(_t("tui_gateway.browser.port_occupied", port=port, launch_port=launch_port))
     else:
-        announce("Chromium-family browser isn't running with remote debugging — attempting to launch...")
+        announce(_t("tui_gateway.browser.launching"))
     launch = launch_chrome_debug(launch_port, system)
     if launch.launched:
         # Bounded wait: the whole connect must finish inside the client RPC timeout.
@@ -77,17 +75,17 @@ def _connect_local_default(port: int, system: str, announce) -> str | None:
                 break
             time.sleep(0.5)
     if discovered:
-        announce(f"Chromium-family browser launched and listening on port {launch_port}")
+        announce(_t("tui_gateway.browser.launched", port=launch_port))
         return discovered
     if launch.hint:
         announce(launch.hint, level="error")
     command = manual_chrome_debug_command(launch_port, system)
     hints = (
-        ["Start a Chromium-family browser with remote debugging, then retry /browser connect:", command]
+        [_t("tui_gateway.browser.start_manually"), command]
         if command else [
-            "No supported Chromium-family browser executable was found in this environment.",
-            f"Install one or start a Chromium-family browser with --remote-debugging-port={launch_port}, then retry /browser connect."])
-    hints.append("Browser not connected — start a Chromium-family browser with remote debugging and retry /browser connect")
+            _t("tui_gateway.browser.no_executable"),
+            _t("tui_gateway.browser.install_hint", port=launch_port)])
+    hints.append(_t("tui_gateway.browser.not_connected"))
     for line in hints:
         announce(line, level="error")
     return None
@@ -111,13 +109,13 @@ def _browser_connect(rid, params: dict) -> dict:
             _emit("browser.progress", sid, {"message": message, "level": level})
     parsed = urlparse(url if "://" in url else f"http://{url}")
     if parsed.scheme not in _CDP_SCHEMES:
-        return _err(rid, 4015, f"unsupported browser url: {url}")
+        return _err(rid, 4015, _t("tui_gateway.browser.unsupported_url", url=url))
     if not parsed.hostname:
-        return _err(rid, 4015, f"missing host in browser url: {url}")
+        return _err(rid, 4015, _t("tui_gateway.browser.missing_host", url=url))
     try:
         port = parsed.port or (443 if parsed.scheme in {"https", "wss"} else 80)
     except ValueError:
-        return _err(rid, 4015, f"invalid port in browser url: {url}")
+        return _err(rid, 4015, _t("tui_gateway.browser.invalid_port", url=url))
     # Normalize default-local to 127.0.0.1:9222 so comparisons + messaging match what we persist.
     if _is_default_local_cdp(parsed):
         url = DEFAULT_BROWSER_CDP_URL
@@ -132,7 +130,7 @@ def _browser_connect(rid, params: dict) -> dict:
                 with socket.create_connection((parsed.hostname, port), timeout=2.0):
                     pass
             except OSError as e:
-                return _err(rid, 5031, f"could not reach browser CDP at {url}: {e}")
+                return _err(rid, 5031, _t("tui_gateway.browser.unreachable_detail", url=url, detail=e))
         elif _is_default_local_cdp(parsed):
             discovered = _connect_local_default(port, system, announce)
             if discovered is None:
@@ -141,7 +139,7 @@ def _browser_connect(rid, params: dict) -> dict:
             url = discovered
             parsed = urlparse(url)
         elif not _cdp_http_reachable(parsed):
-            return _err(rid, 5031, f"could not reach browser CDP at {url}")
+            return _err(rid, 5031, _t("tui_gateway.browser.unreachable", url=url))
         # Concrete ``/devtools/browser/<id>`` endpoints stay as-is; discovery-style inputs collapse
         # to ``scheme://host:port`` so ``_resolve_cdp_override`` can append ``/json/version``.
         normalized = (parsed.geturl() if parsed.path.startswith("/devtools/browser/")

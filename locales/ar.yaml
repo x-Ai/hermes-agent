@@ -4074,6 +4074,273 @@ tui_gateway:
     invalid_data_url: "محتوى data_url غير صالح"
     label_image: "الصورة"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "لا يوجد وكيل نشط -- أرسل رسالة أولًا."
+    review:
+      nothing_yet: "لا يوجد ما يُراجَع بعد — أرسل رسالة أولًا."
+      remote_host: "يعمل /review حاليًا على الوكيل المحلي فقط — وكيل هذه الجلسة موجود على مضيف حوسبة بعيد."
+      start_failed: "تعذّر بدء /review: {detail}"
+    refine:
+      no_session: "Refine غير متاح (لا توجد جلسة)."
+      agent_running: "الوكيل قيد التشغيل — انتظر انتهاء الدور ثم نفّذ /refine."
+      nothing_yet: "لا يوجد ما يُحسَّن بعد — أرسل رسالة أولًا."
+      conversation_empty: "لا يوجد ما يُحسَّن بعد — المحادثة فارغة."
+      start_failed: "تعذّر بدء /refine: {detail}"
+      started: "⚗ تجري مراجعة هذه المحادثة في الخلفية{focus} — سيُبلَّغ عن أي تحديثات للذاكرة/المهارات عند الانتهاء."
+      focus: " (التركيز: {focus})"
+    usage:
+      title: "استهلاك الرموز في الجلسة"
+      model: "النموذج: {model}"
+      unknown_model: "(غير معروف)"
+      input_tokens: "رموز الإدخال:"
+      output_tokens: "رموز الإخراج:"
+      reasoning_tokens: "رموز الاستدلال:"
+      prompt_tokens: "رموز الموجّه:"
+      completion_tokens: "رموز الإكمال:"
+      total_tokens: "إجمالي الرموز:"
+      api_calls: "استدعاءات API:"
+      current_context: "السياق الحالي:"
+      messages: "الرسائل:"
+      compressions: "عمليات الضغط:"
+    history:
+      empty: "لا يوجد سجل محادثة بعد."
+      title: "سجل المحادثة"
+      you: "أنت"
+      no_text: "(لا يوجد نص)"
+    context:
+      count: "المحادثة: {count} رسالة"
+      empty: "المحادثة فارغة (لا رسائل بعد)."
+    tools:
+      none: "لا توجد أدوات متاحة."
+      available: "الأدوات المتاحة ({count}):"
+    help:
+      title: "الأوامر المتاحة:"
+      unavailable: "المساعدة غير متاحة: {detail}"
+    model:
+      current: "النموذج الحالي: {model}"
+      unknown: "النموذج الحالي: (غير معروف)"
+    status:
+      unavailable: "الحالة غير متاحة"
+    compress:
+      no_session: "لا توجد جلسة نشطة لـ /compress"
+      still_running: "ما زال الضغط جاريًا في الخلفية؛ سيُحدَّث النص عند انتهائه"
+    clear:
+      terminal_only: "مسح الشاشة متاح في الطرفية فقط؛ دردشة سطح المكتب/TUI لم تتغير."
+    hint:
+      models: "استخدم /model لعرض النموذج الحالي أو تبديله؛ يمكن لمستخدمي سطح المكتب أيضًا فتح منتقي النماذج."
+      rename: "استخدم /title <الاسم> لإعادة تسمية هذه الجلسة."
+      effort: "استخدم /reasoning <المستوى> لتغيير جهد الاستدلال."
+    live_sync_failed: "فشلت مزامنة الجلسة الحية: {detail}"
+  compute_host:
+    failed: "مضيف الحوسبة: فشل {op}"
+    failed_detail: "مضيف الحوسبة: فشل {op}: {detail}"
+    timed_out: "مضيف الحوسبة: فشل {op}: انتهت المهلة"
+    invalid_response: "مضيف الحوسبة: أعاد {op} استجابة غير صالحة"
+    clarify_lock_failed: "فشل قفل التوضيح"
+    turn_failed: "فشل الدور على مضيف الحوسبة"
+    compression_failed: "فشل الضغط: {detail}"
+    compression_complete: "✓ اكتمل ضغط السياق"
+  tools:
+    profile_not_found: "الملف الشخصي '{name}' غير موجود"
+    no_active_session: "لا توجد جلسة نشطة"
+    no_such_process: "لا توجد عملية بهذا المعرّف: {id}"
+    reload_mcp_confirm: "⚠️  يُبطل /reload-mcp ذاكرة التخزين المؤقت للموجّه (الرسالة التالية ستعيد إرسال كل رموز الإدخال). ردّ بـ `/reload-mcp now` للمتابعة، أو `/reload-mcp always` للمتابعة وإسكات هذا التنبيه نهائيًا."
+    kind:
+      quick_command: "أمر سريع"
+      plugin_command: "أمر إضافة"
+    discovery_unavailable:
+      quick: "اكتشاف quick_commands غير متاح: {detail}"
+      plugin: "اكتشاف أوامر الإضافات غير متاح: {detail}"
+      skill: "اكتشاف المهارات غير متاح: {detail}"
+    cli_exec_timeout: "cli.exec: انتهت المهلة"
+    unknown_command: "أمر غير معروف: {name}"
+    quick_command_failed: "فشل الأمر السريع برمز الخروج {code}"
+    bundle:
+      dispatch_failed: "فشل إرسال الحزمة: {detail}"
+      load_failed: "تعذّر تحميل الحزمة: {name}"
+      loading: "⚡ جارٍ تحميل الحزمة: {name} ({count} مهارة)"
+      skipped_missing: "تم تخطي المهارات المفقودة: {names}"
+      loading_stacked: "⚡ جارٍ تحميل {count} مهارة مكدّسة: {names}"
+    usage:
+      queue: "الاستخدام: /queue <الموجّه>"
+      focus: "الاستخدام: /focus [on|off|status]"
+      steer: "الاستخدام: /steer <الموجّه>"
+    moa:
+      queued: "تمت جدولة MoA لمرة واحدة بالإعداد المسبق {preset}؛ سيُستعاد النموذج السابق بعد هذا الدور."
+      unavailable: "MoA غير متاح: {detail}"
+    retry:
+      no_session: "لا توجد جلسة نشطة لإعادة المحاولة"
+      media: "لا يمكن لإعادة المحاولة إعادة بناء الوسائط المرفقة أو دمجها بأمان"
+      nothing: "لا توجد رسالة مستخدم سابقة لإعادة المحاولة"
+      persist_failed: "إعادة المحاولة: فشل حفظ السجل: "
+    steer:
+      sent_next_turn: "لا يوجد وكيل قيد التشغيل؛ أُرسلت كدور تالٍ: {text}"
+      queued: "⏩ تمت جدولة التوجيه — سيصل بعد استدعاء الأداة التالي: {text}"
+    goal:
+      continuing_now: "المتابعة الآن — تنفيذ الخطوة التالية."
+      loop_deferred: "ملاحظة: هدف /goal نشط يقود هذه الجلسة — تُؤجَّل إيقاظات الحلقة حتى ينتهي الهدف أو يتوقف مؤقتًا أو يُركَن."
+    undo:
+      no_session: "لا توجد جلسة نشطة للتراجع"
+      invalid_count: "undo: عدد غير صالح {value} — استخدم /undo أو /undo N"
+      nothing: "لا توجد رسائل مستخدم للتراجع عنها"
+      done: "↶ تم التراجع عن {count} {unit} ({messages} رسالة). عدّل وأعد الإرسال، أو أرسل رسالة جديدة."
+      turn: "دور"
+      turns: "أدوار"
+    snapshot_restore_blocked: "/snapshot restore محظور في TUI لأنه يغيّر الإعدادات/الحالة على القرص بينما يحتفظ الوكيل الحي بإعدادات مخزّنة مؤقتًا. نفّذه في CLI الكلاسيكي ثم أعد تشغيل TUI."
+    compress:
+      no_session: "لا توجد جلسة نشطة للضغط"
+      failed: "فشل الضغط: {detail}"
+    memory:
+      unknown_subcommand: "أمر فرعي غير معروف لـ /memory. استخدم: pending، approve <id>، reject <id>، approval <on|off>."
+    skills:
+      unknown_subcommand: "أمر فرعي غير معروف لـ /skills هنا. استخدم: pending، approve <id>، reject <id>، diff <id>، approval <on|off>. (البحث/التثبيت/التصفح من جهة الطرفية.)"
+      write_approval_off: "موافقة كتابة المهارات معطّلة (skills.write_approval). فعّلها بـ /skills approval on، ثم راجع الكتابات المجهّزة بـ /skills pending."
+      install_failed: "فشل تثبيت المهارة"
+      reloading: "جارٍ إعادة تحميل المهارات..."
+      none_new: "لم تُكتشف مهارات جديدة."
+      added: "المهارات المضافة:"
+      removed: "المهارات المزالة:"
+    command_unavailable_for_profile: "/{command} غير متاح للملف الشخصي الحالي"
+    not_dispatchable: "ليس أمرًا سريعًا/إضافة/حزمة/مهارة: {name}"
+    empty_command: "أمر فارغ"
+    plugin_command_error: "خطأ في أمر الإضافة: {detail}"
+    checkpoint_rewind_failed: "استُعيدت نقطة التحقق، لكن فشل إرجاع سجل الجلسة: {detail}"
+  mcp:
+    server_not_found: "الخادم '{name}' غير موجود"
+    server_plugin_owned: "الخادم '{name}' توفّره الإضافة '{plugin}' ولا يمكن تعديله"
+    server_exists: "الخادم '{name}' موجود بالفعل"
+    unknown_catalog_entry: "إدخال كتالوج MCP أو إعداد مسبق غير معروف: {preset}"
+    config_shape: "يجب أن تحدد الإعدادات 'url' (http) أو 'command' (stdio)، أو 'preset' صالحًا"
+    server_rejected: "رُفض الخادم '{name}': إعداد أمر/وسائط مشبوه"
+    malformed_config: "إعداد خادم مشوّه"
+    invalid_credential: "القيمة ليست بيانات اعتماد صالحة"
+    oauth_required: "مطلوب مصادقة OAuth — لم يُعثر على رمز."
+    stdio_no_oauth: "خوادم stdio تصادق عبر مفاتيح البيئة، لا عبر OAuth"
+    header_auth_no_oauth: "يستخدم هذا الخادم مصادقة بالترويسة/مفتاح API، لا OAuth"
+  plugins:
+    toggle_failed: "فشل التبديل"
+    install_failed: "فشل التثبيت"
+    not_catalog_install: "'{name}' ليس تثبيتًا من الكتالوج — حدّثه عبر CLI"
+    remove_failed: "فشلت الإزالة"
+    not_found: "الإضافة '{name}' غير موجودة"
+  shell:
+    blocked_hardline: "محظور (قاعدة صارمة): {reason}. استخدم الوكيل للأوامر الخطرة."
+    blocked: "محظور: {reason}. استخدم الوكيل للأوامر الخطرة."
+    timed_out: "انتهت مهلة الأمر (30 ثانية)"
+  session_control:
+    subgoal_text_required: "نص الهدف الفرعي مطلوب"
+    subgoal_added: "✓ أُضيف الهدف الفرعي {index}: {text}"
+    subgoal_removed: "✓ أُزيل الهدف الفرعي {index}: {text}"
+    subgoals_cleared_one: "✓ تم مسح هدف فرعي واحد."
+    subgoals_cleared: "✓ تم مسح {count} أهداف فرعية."
+    no_subgoals: "لا توجد أهداف فرعية لمسحها."
+    heartbeat_paused: "⏸ أُوقف النبض مؤقتًا: {prompt}"
+    no_heartbeat: "لم يُضبط أي نبض."
+    heartbeat_resumed: "▶ استُؤنف النبض (كل {interval}): {prompt}"
+    no_heartbeat_to_resume: "لا يوجد نبض لاستئنافه."
+    heartbeat_cleared: "✓ تم مسح النبض."
+  voice:
+    wake_unavailable: "وحدة الإيقاظ غير متاحة: {detail}"
+    wake_device_unresolved: "تعذّر تحديد جهاز إدخال كلمة الإيقاظ: {detail}"
+    enable_first: "فعّل الوضع الصوتي أولًا: /voice on"
+    mode_off: "الوضع الصوتي معطّل — فعّله بـ /voice on"
+    module_missing_deps: "وحدة الصوت غير متاحة — ثبّت تبعيات الصوت"
+    module_missing: "وحدة الصوت غير متاحة"
+  browser:
+    already_listening: "متصفح من عائلة Chromium يستمع بالفعل على {url}"
+    port_occupied: "المنفذ {port} مشغول بتطبيق آخر ليس متصفح CDP (قد يستخدمه مصحح IDE أو خادم تطوير) — سيُشغَّل متصفح تصحيح على المنفذ {launch_port} بدلًا من ذلك..."
+    launching: "لا يعمل أي متصفح من عائلة Chromium مع التصحيح عن بُعد — تجري محاولة التشغيل..."
+    launched: "شُغّل متصفح من عائلة Chromium ويستمع على المنفذ {port}"
+    start_manually: "شغّل متصفحًا من عائلة Chromium مع التصحيح عن بُعد، ثم أعد محاولة /browser connect:"
+    no_executable: "لم يُعثر في هذه البيئة على ملف تنفيذي لمتصفح مدعوم من عائلة Chromium."
+    install_hint: "ثبّت واحدًا أو شغّل متصفحًا من عائلة Chromium مع --remote-debugging-port={port}، ثم أعد محاولة /browser connect."
+    not_connected: "المتصفح غير متصل — شغّل متصفحًا من عائلة Chromium مع التصحيح عن بُعد وأعد محاولة /browser connect"
+    unsupported_url: "عنوان متصفح غير مدعوم: {url}"
+    missing_host: "المضيف مفقود في عنوان المتصفح: {url}"
+    invalid_port: "منفذ غير صالح في عنوان المتصفح: {url}"
+    unreachable_detail: "تعذّر الوصول إلى CDP المتصفح على {url}: {detail}"
+    unreachable: "تعذّر الوصول إلى CDP المتصفح على {url}"
+  model:
+    switch_failed_staying: "فشل التبديل إلى النموذج {target} ({detail})؛ سنبقى على {current}."
+    once_requires_session: "يتطلب /model --once جلسة حية"
+    switch_failed: "فشل تبديل النموذج"
+    capabilities_updated: "تم تحديث القدرات — جرى تحديث أدوات هذا البوت وموجّهه."
+    configured_switch_failed: "تعذّر التبديل إلى النموذج المضبوط {model}: {detail}"
+    switch_error: "تعذّر تبديل النموذج: {detail}"
+  compress:
+    lock_held: "قفل الضغط محجوز: {holder}"
+    unknown_holder: "غير معروف"
+  images:
+    no_backend: "لم يُضبط أي خادم خلفي لتوليد الصور (شغّل `hermes tools` لتفعيل واحد)."
+    generation_failed: "فشل التوليد"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. شغّل {commands} لإدارتها."
+    team_update_one: "تحديث فريق واحد"
+    team_updates: "{count} تحديثات فريق"
+    skill_ready_one: "مهارة واحدة جاهزة للمراجعة"
+    skills_ready: "{count} مهارات جاهزة للمراجعة"
+    and: " و"
+    or: " أو "
+    cannot_continue: "تعذّر على Collective Wisdom المتابعة: {detail}"
+    open_inbox_hint: "افتح /wisdom inbox للمراجعة واستخدام عناصر التحكم في الموافقة."
+    notification_settings: "إعدادات الإشعارات: /wisdom mute"
+  complete:
+    at:
+      git_diff: "فرق git"
+      staged_diff: "الفرق المُجهَّز"
+      attach_file: "إرفاق ملف"
+      attach_folder: "إرفاق مجلد"
+      fetch_url: "جلب عنوان URL"
+      git_log: "سجل git"
+    agent_profile: "ملف الوكيل الشخصي"
+    agent_profile_primary: "ملف الوكيل الشخصي (الأساسي)"
+    plugin_provider: "إضافة: {prefix}"
+    details:
+      section_override: "تجاوز القسم"
+      cycle_global_mode: "التنقل بين الأوضاع العامة"
+      global_mode: "الوضع العام"
+      clear_override: "مسح تجاوز {section}"
+      set_section: "ضبط {section}"
+    slash:
+      density: "تبديل وضع العرض المضغوط"
+      details: "التحكم في ظهور تفاصيل الوكيل"
+      logs: "عرض أحدث سطور سجل البوابة"
+      mouse: "ضبط الإعداد المسبق لتتبع الفأرة [on|off|toggle|wheel|buttons|all]"
+      sessions: "التبديل بين جلسات TUI الحية"
+  credentials:
+    managed_readonly: "تثبيت مُدار — بيانات الاعتماد للقراءة فقط"
+    unknown_provider: "مزوّد غير معروف: {slug}"
+    non_key_auth: "يستخدم {provider} مصادقة {auth} — شغّل `hermes model` للإعداد"
+    no_env_var: "لا يوجد متغير بيئة معرّف لـ {provider}"
+    none_found: "لم يُعثر على بيانات اعتماد لـ {slug}"
+  profile:
+    not_exist: "الملف الشخصي '{name}' غير موجود."
+    store_unavailable: "مخزن جلسات الملف الشخصي غير متاح: {path}: {detail}"
+  approval:
+    client_cannot_answer: "لا يستطيع العميل المتصل الرد على طلبات الموافقة (حدّث تطبيق Hermes)"
+  session:
+    hydration_timed_out: "انتهت مهلة تحميل سجل الجلسة"
+  checkpoint:
+    invalid_number: "رقم نقطة تحقق غير صالح. استخدم 1-{max}."
+  cli_exec:
+    setup: "يحتاج `hermes setup` إلى طرفية كاملة — شغّله خارج TUI"
+    gateway: "`hermes gateway` طويل التشغيل — شغّله في طرفية أخرى"
+    sessions_browse: "`hermes sessions browse` تفاعلي — استخدم /resume هنا، أو شغّل browse في طرفية أخرى"
+    config_edit: "يحتاج `hermes config edit` إلى $EDITOR في طرفية حقيقية"
+    bare: "`hermes` بلا وسائط تفاعلي — استخدم `/hermes chat -q …` أو شغّل `hermes` في طرفية أخرى"
+  tool_progress:
+    lines_chars: "{lines} سطر / {chars} حرف"
+    chars: "{chars} حرف"
+    verbose_tail: "[عرض نهاية المخرجات المفصّلة؛ أُغفل {omitted}]"
+  onboarding:
+    facts_too_long: "حقائق الإعداد الأولي أطول من أن تُحفظ"
+    memory_not_saved: "لم تُحفظ الذاكرة"
+    verify_failed: "تعذّر التحقق من حقائق الإعداد الأولي المحفوظة"
+    no_setup_profile: "لا يوجد ملف إعداد شخصي لإعادة ضبطه"
+  projects:
+    not_found: "لا يوجد مشروع بهذا الاسم"
+  subagent:
+    interrupted_via_tui: "قُوطع عبر TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

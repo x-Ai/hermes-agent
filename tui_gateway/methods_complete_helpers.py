@@ -134,8 +134,9 @@ _DETAILS_MODES = ("hidden", "collapsed", "expanded")
 
 def _details_root_meta(candidate: str) -> str:
     if candidate in _DETAILS_SECTIONS:
-        return "section override"
-    return "cycle global mode" if candidate == "cycle" else "global mode"
+        return _t("tui_gateway.complete.details.section_override")
+    return _t("tui_gateway.complete.details.cycle_global_mode" if candidate == "cycle"
+              else "tui_gateway.complete.details.global_mode")
 
 
 def _details_completions(text: str) -> list[dict] | None:
@@ -160,7 +161,8 @@ def _details_completions(text: str) -> list[dict] | None:
         return []
 
     def section_meta(candidate: str) -> str:
-        return f"clear {section} override" if candidate == "reset" else f"set {section}"
+        return _t("tui_gateway.complete.details.clear_override" if candidate == "reset"
+                  else "tui_gateway.complete.details.set_section", section=section)
     mode_candidates = (*_DETAILS_MODES, "reset")
     if len(parts) == 1:  # trailing space after the section
         return [_item(c, section_meta(c)) for c in mode_candidates]

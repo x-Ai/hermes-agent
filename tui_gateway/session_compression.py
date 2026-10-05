@@ -265,7 +265,7 @@ def _apply_pending_model_switch(sid: str, session: dict) -> None:
         if result.get("confirm_required"):
             _emit("error", sid, {"message": result.get("confirm_message") or result.get("warning") or ""})
     except Exception as e:
-        _emit("error", sid, {"message": f"Could not switch model: {e}"})
+        _emit("error", sid, {"message": _t("tui_gateway.model.switch_error", detail=e)})
 
 
 class CompressionLockHeld(Exception):
@@ -273,7 +273,7 @@ class CompressionLockHeld(Exception):
 
     def __init__(self, holder: str | None = None):
         self.holder = holder
-        super().__init__(f"Compression lock held: {holder or 'unknown'}")
+        super().__init__(_t("tui_gateway.compress.lock_held", holder=holder or _t("tui_gateway.compress.unknown_holder")))
 
 
 def _compress_session_history(

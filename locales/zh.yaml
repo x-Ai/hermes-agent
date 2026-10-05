@@ -4074,6 +4074,273 @@ tui_gateway:
     invalid_data_url: "data_url 数据无效"
     label_image: "图片"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "没有活动的代理，请先发送一条消息"
+    review:
+      nothing_yet: "还没有可回顾的内容，请先发送一条消息"
+      remote_host: "/review 目前只能在本地代理上运行，而此会话的代理位于远程计算主机上"
+      start_failed: "/review 启动失败：{detail}"
+    refine:
+      no_session: "无法精炼（没有会话）"
+      agent_running: "代理正在运行，请等本轮结束后再执行 /refine"
+      nothing_yet: "还没有可精炼的内容，请先发送一条消息"
+      conversation_empty: "还没有可精炼的内容，对话为空"
+      start_failed: "/refine 启动失败：{detail}"
+      started: "⚗ 正在后台回顾此对话{focus}，任何记忆/技能更新都会在完成后报告"
+      focus: "（侧重：{focus}）"
+    usage:
+      title: "会话 Token 用量"
+      model: "模型：{model}"
+      unknown_model: "（未知）"
+      input_tokens: "输入 token："
+      output_tokens: "输出 token："
+      reasoning_tokens: "推理 token："
+      prompt_tokens: "提示 token："
+      completion_tokens: "补全 token："
+      total_tokens: "总计 token："
+      api_calls: "API 调用："
+      current_context: "当前上下文："
+      messages: "消息数："
+      compressions: "压缩次数："
+    history:
+      empty: "还没有对话历史"
+      title: "对话历史"
+      you: "你"
+      no_text: "（无文本）"
+    context:
+      count: "对话：{count} 条消息"
+      empty: "对话为空（还没有消息）"
+    tools:
+      none: "没有可用的工具"
+      available: "可用工具（{count}）："
+    help:
+      title: "可用命令："
+      unavailable: "帮助不可用：{detail}"
+    model:
+      current: "当前模型：{model}"
+      unknown: "当前模型：（未知）"
+    status:
+      unavailable: "状态不可用"
+    compress:
+      no_session: "没有可供 /compress 使用的活动会话"
+      still_running: "压缩仍在后台进行，完成后对话记录会自动刷新"
+    clear:
+      terminal_only: "清屏仅限终端，桌面端/TUI 聊天保持不变"
+    hint:
+      models: "使用 /model 查看或切换当前模型，桌面端用户也可以打开模型选择器"
+      rename: "使用 /title <名称> 重命名此会话"
+      effort: "使用 /reasoning <程度> 更改推理强度"
+    live_sync_failed: "实时会话同步失败：{detail}"
+  compute_host:
+    failed: "计算主机 {op} 失败"
+    failed_detail: "计算主机 {op} 失败：{detail}"
+    timed_out: "计算主机 {op} 失败：超时"
+    invalid_response: "计算主机 {op} 返回了无效响应"
+    clarify_lock_failed: "澄清锁定失败"
+    turn_failed: "计算主机本轮执行失败"
+    compression_failed: "压缩失败：{detail}"
+    compression_complete: "✓ 上下文压缩完成"
+  tools:
+    profile_not_found: "未找到配置档案 '{name}'"
+    no_active_session: "没有活动的会话"
+    no_such_process: "没有这个进程：{id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp 会使提示缓存失效（下一条消息将重新发送全部输入 token），回复 `/reload-mcp now` 继续，或回复 `/reload-mcp always` 继续并永久不再提示"
+    kind:
+      quick_command: "快捷命令"
+      plugin_command: "插件命令"
+    discovery_unavailable:
+      quick: "quick_commands 发现不可用：{detail}"
+      plugin: "插件命令发现不可用：{detail}"
+      skill: "技能发现不可用：{detail}"
+    cli_exec_timeout: "cli.exec：超时"
+    unknown_command: "未知命令：{name}"
+    quick_command_failed: "快捷命令失败，退出码 {code}"
+    bundle:
+      dispatch_failed: "技能包分发失败：{detail}"
+      load_failed: "加载技能包失败：{name}"
+      loading: "⚡ 正在加载技能包：{name}（{count} 个技能）"
+      skipped_missing: "已跳过缺失的技能：{names}"
+      loading_stacked: "⚡ 正在加载 {count} 个叠加技能：{names}"
+    usage:
+      queue: "用法：/queue <提示>"
+      focus: "用法：/focus [on|off|status]"
+      steer: "用法：/steer <提示>"
+    moa:
+      queued: "已使用预设 {preset} 排队一次性 MoA，本轮结束后将恢复之前的模型"
+      unavailable: "MoA 不可用：{detail}"
+    retry:
+      no_session: "没有可重试的活动会话"
+      media: "重试无法安全地重建或合并附加的媒体"
+      nothing: "没有可重试的上一条用户消息"
+      persist_failed: "重试：保存历史失败："
+    steer:
+      sent_next_turn: "没有正在运行的代理，已作为下一轮发送：{text}"
+      queued: "⏩ 引导已排队，将在下一次工具调用后生效：{text}"
+    goal:
+      continuing_now: "现在继续，执行下一步"
+      loop_deferred: "注意：一个活动的 /goal 正在驱动此会话，循环唤醒会推迟到目标完成、暂停或搁置之后"
+    undo:
+      no_session: "没有可撤销的活动会话"
+      invalid_count: "撤销：无效的数量 {value}，请使用 /undo 或 /undo N"
+      nothing: "没有可撤销的用户消息"
+      done: "↶ 已撤销 {count} {unit}（{messages} 条消息），编辑后重新提交，或发送一条新消息"
+      turn: "轮"
+      turns: "轮"
+    snapshot_restore_blocked: "/snapshot restore 在 TUI 中被阻止，因为它会在实时代理缓存着设置时更改磁盘上的配置/状态，请在经典 CLI 中运行，然后重启 TUI"
+    compress:
+      no_session: "没有可压缩的活动会话"
+      failed: "压缩失败：{detail}"
+    memory:
+      unknown_subcommand: "未知的 /memory 子命令，可用：pending、approve <id>、reject <id>、approval <on|off>"
+    skills:
+      unknown_subcommand: "此处不支持该 /skills 子命令，可用：pending、approve <id>、reject <id>、diff <id>、approval <on|off>（搜索/安装/浏览在终端侧进行）"
+      write_approval_off: "技能写入审批已关闭（skills.write_approval），用 /skills approval on 启用，然后用 /skills pending 审阅暂存的写入"
+      install_failed: "技能安装失败"
+      reloading: "正在重新加载技能…"
+      none_new: "未检测到新技能"
+      added: "新增的技能："
+      removed: "移除的技能："
+    command_unavailable_for_profile: "/{command} 对当前配置档案不可用"
+    not_dispatchable: "不是快捷/插件/技能包/技能命令：{name}"
+    empty_command: "命令为空"
+    plugin_command_error: "插件命令错误：{detail}"
+    checkpoint_rewind_failed: "检查点已恢复，但会话历史回退失败：{detail}"
+  mcp:
+    server_not_found: "未找到服务器 '{name}'"
+    server_plugin_owned: "服务器 '{name}' 由插件 '{plugin}' 提供，无法修改"
+    server_exists: "服务器 '{name}' 已存在"
+    unknown_catalog_entry: "未知的 MCP 目录条目或预设：{preset}"
+    config_shape: "配置必须指定 'url'（http）或 'command'（stdio），或一个有效的 'preset'"
+    server_rejected: "服务器 '{name}' 被拒绝：命令/参数配置可疑"
+    malformed_config: "服务器配置格式错误"
+    invalid_credential: "该值不是有效的凭据"
+    oauth_required: "需要 OAuth 认证，未找到令牌"
+    stdio_no_oauth: "stdio 服务器通过环境变量密钥认证，而不是 OAuth"
+    header_auth_no_oauth: "此服务器使用请求头/API 密钥认证，而不是 OAuth"
+  plugins:
+    toggle_failed: "切换失败"
+    install_failed: "安装失败"
+    not_catalog_install: "'{name}' 不是从目录安装的，请通过 CLI 更新"
+    remove_failed: "移除失败"
+    not_found: "未找到插件 '{name}'"
+  shell:
+    blocked_hardline: "已阻止（硬性规则）：{reason}，危险命令请交给代理执行"
+    blocked: "已阻止：{reason}，危险命令请交给代理执行"
+    timed_out: "命令超时（30 秒）"
+  session_control:
+    subgoal_text_required: "需要子目标文本"
+    subgoal_added: "✓ 已添加子目标 {index}：{text}"
+    subgoal_removed: "✓ 已移除子目标 {index}：{text}"
+    subgoals_cleared_one: "✓ 已清除 1 个子目标"
+    subgoals_cleared: "✓ 已清除 {count} 个子目标"
+    no_subgoals: "没有可清除的子目标"
+    heartbeat_paused: "⏸ 心跳已暂停：{prompt}"
+    no_heartbeat: "未设置心跳"
+    heartbeat_resumed: "▶ 心跳已恢复（每 {interval}）：{prompt}"
+    no_heartbeat_to_resume: "没有可恢复的心跳"
+    heartbeat_cleared: "✓ 心跳已清除"
+  voice:
+    wake_unavailable: "唤醒模块不可用：{detail}"
+    wake_device_unresolved: "无法解析唤醒词输入设备：{detail}"
+    enable_first: "请先启用语音模式：/voice on"
+    mode_off: "语音模式已关闭，用 /voice on 启用"
+    module_missing_deps: "语音模块不可用，请安装音频依赖"
+    module_missing: "语音模块不可用"
+  browser:
+    already_listening: "Chromium 系浏览器已在 {url} 监听"
+    port_occupied: "端口 {port} 被另一个非 CDP 浏览器的应用占用（可能是 IDE 调试器或开发服务器），改为在端口 {launch_port} 上启动调试浏览器…"
+    launching: "Chromium 系浏览器未以远程调试模式运行，正在尝试启动…"
+    launched: "Chromium 系浏览器已启动并在端口 {port} 上监听"
+    start_manually: "请以远程调试模式启动 Chromium 系浏览器，然后重试 /browser connect："
+    no_executable: "在此环境中未找到受支持的 Chromium 系浏览器可执行文件"
+    install_hint: "请安装一个，或使用 --remote-debugging-port={port} 启动 Chromium 系浏览器，然后重试 /browser connect"
+    not_connected: "浏览器未连接，请以远程调试模式启动 Chromium 系浏览器并重试 /browser connect"
+    unsupported_url: "不支持的浏览器 URL：{url}"
+    missing_host: "浏览器 URL 缺少主机：{url}"
+    invalid_port: "浏览器 URL 中的端口无效：{url}"
+    unreachable_detail: "无法连接到 {url} 上的浏览器 CDP：{detail}"
+    unreachable: "无法连接到 {url} 上的浏览器 CDP"
+  model:
+    switch_failed_staying: "切换到模型 {target} 失败（{detail}），继续使用 {current}"
+    once_requires_session: "/model --once 需要一个实时会话"
+    switch_failed: "模型切换失败"
+    capabilities_updated: "能力已更新，此 Bot 的工具和提示词已刷新"
+    configured_switch_failed: "无法切换到已配置的模型 {model}：{detail}"
+    switch_error: "无法切换模型：{detail}"
+  compress:
+    lock_held: "压缩锁被占用：{holder}"
+    unknown_holder: "未知"
+  images:
+    no_backend: "未配置图像生成后端（运行 `hermes tools` 启用一个）"
+    generation_failed: "生成失败"
+  wisdom:
+    summary: "集体智慧：{summary}，运行 {commands} 进行管理"
+    team_update_one: "1 条团队更新"
+    team_updates: "{count} 条团队更新"
+    skill_ready_one: "1 个技能待审阅"
+    skills_ready: "{count} 个技能待审阅"
+    and: "和"
+    or: "或"
+    cannot_continue: "集体智慧无法继续：{detail}"
+    open_inbox_hint: "打开 /wisdom inbox 进行审阅并使用同意控制"
+    notification_settings: "通知设置：/wisdom mute"
+  complete:
+    at:
+      git_diff: "git 差异"
+      staged_diff: "已暂存的差异"
+      attach_file: "附加文件"
+      attach_folder: "附加文件夹"
+      fetch_url: "抓取网址"
+      git_log: "git 日志"
+    agent_profile: "代理配置档案"
+    agent_profile_primary: "代理配置档案（主）"
+    plugin_provider: "插件：{prefix}"
+    details:
+      section_override: "分区覆盖"
+      cycle_global_mode: "循环切换全局模式"
+      global_mode: "全局模式"
+      clear_override: "清除 {section} 的覆盖"
+      set_section: "设置 {section}"
+    slash:
+      density: "切换紧凑显示模式"
+      details: "控制代理细节的可见性"
+      logs: "显示最近的网关日志"
+      mouse: "设置鼠标跟踪预设 [on|off|toggle|wheel|buttons|all]"
+      sessions: "在实时 TUI 会话之间切换"
+  credentials:
+    managed_readonly: "托管安装，凭据为只读"
+    unknown_provider: "未知的提供方：{slug}"
+    non_key_auth: "{provider} 使用 {auth} 认证，请运行 `hermes model` 进行配置"
+    no_env_var: "未为 {provider} 定义环境变量"
+    none_found: "未找到 {slug} 的凭据"
+  profile:
+    not_exist: "配置档案 '{name}' 不存在"
+    store_unavailable: "配置档案的会话存储不可用：{path}：{detail}"
+  approval:
+    client_cannot_answer: "已连接的客户端无法回应审批请求（请更新 Hermes 应用）"
+  session:
+    hydration_timed_out: "会话历史加载超时"
+  checkpoint:
+    invalid_number: "无效的检查点编号，请使用 1-{max}"
+  cli_exec:
+    setup: "`hermes setup` 需要完整的终端，请在 TUI 之外运行"
+    gateway: "`hermes gateway` 是长期运行的进程，请在另一个终端中运行"
+    sessions_browse: "`hermes sessions browse` 是交互式的，请在此处使用 /resume，或在另一个终端中运行 browse"
+    config_edit: "`hermes config edit` 需要在真实终端中使用 $EDITOR"
+    bare: "单独的 `hermes` 是交互式的，请使用 `/hermes chat -q …`，或在另一个终端中运行 `hermes`"
+  tool_progress:
+    lines_chars: "{lines} 行 / {chars} 字符"
+    chars: "{chars} 字符"
+    verbose_tail: "[显示详细输出的尾部，已省略 {omitted}]"
+  onboarding:
+    facts_too_long: "引导信息过长，无法记住"
+    memory_not_saved: "记忆未保存"
+    verify_failed: "无法验证已保存的引导信息"
+    no_setup_profile: "没有可重置的设置配置档案"
+  projects:
+    not_found: "没有这个项目"
+  subagent:
+    interrupted_via_tui: "通过 TUI 中断（{id}）"
 
 # storage: hermes_state_user_copy.describe_storage_failure — 各界面共用的存储故障原因与处理方式
 storage:

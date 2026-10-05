@@ -4075,6 +4075,273 @@ tui_gateway:
     invalid_data_url: "ongeldige data_url-lading"
     label_image: "beeld"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "Geen aktiewe agent nie -- stuur eers 'n boodskap."
+    review:
+      nothing_yet: "Nog niks om te hersien nie — stuur eers 'n boodskap."
+      remote_host: "/review loop vir eers net op die plaaslike agent — hierdie sessie se agent woon op 'n afgeleë rekengasheer."
+      start_failed: "/review kon nie begin nie: {detail}"
+    refine:
+      no_session: "Refine nie beskikbaar nie (geen sessie)."
+      agent_running: "Die agent loop — wag dat die beurt klaarmaak, dan /refine."
+      nothing_yet: "Nog niks om te verfyn nie — stuur eers 'n boodskap."
+      conversation_empty: "Nog niks om te verfyn nie — die gesprek is leeg."
+      start_failed: "/refine kon nie begin nie: {detail}"
+      started: "⚗ Hierdie gesprek word in die agtergrond hersien{focus} — enige geheue-/vaardigheidsopdaterings word gerapporteer wanneer dit klaar is."
+      focus: " (fokus: {focus})"
+    usage:
+      title: "Sessie se tekenverbruik"
+      model: "Model: {model}"
+      unknown_model: "(onbekend)"
+      input_tokens: "Invoertekens:"
+      output_tokens: "Uitvoertekens:"
+      reasoning_tokens: "Redenasietekens:"
+      prompt_tokens: "Prompttekens:"
+      completion_tokens: "Voltooiingstekens:"
+      total_tokens: "Totale tekens:"
+      api_calls: "API-oproepe:"
+      current_context: "Huidige konteks:"
+      messages: "Boodskappe:"
+      compressions: "Kompressies:"
+    history:
+      empty: "Nog geen gespreksgeskiedenis nie."
+      title: "Gespreksgeskiedenis"
+      you: "Jy"
+      no_text: "(geen teks)"
+    context:
+      count: "Gesprek: {count} boodskappe"
+      empty: "Die gesprek is leeg (nog geen boodskappe nie)."
+    tools:
+      none: "Geen gereedskap beskikbaar nie."
+      available: "Beskikbare gereedskap ({count}):"
+    help:
+      title: "Beskikbare opdragte:"
+      unavailable: "hulp nie beskikbaar nie: {detail}"
+    model:
+      current: "Huidige model: {model}"
+      unknown: "Huidige model: (onbekend)"
+    status:
+      unavailable: "status nie beskikbaar nie"
+    compress:
+      no_session: "geen aktiewe sessie vir /compress nie"
+      still_running: "kompressie loop nog in die agtergrond; die transkripsie word verfris wanneer dit klaar is"
+    clear:
+      terminal_only: "Skermskoonmaak is net vir die terminaal; die Desktop-/TUI-geselsie bly onveranderd."
+    hint:
+      models: "Gebruik /model om die huidige model te sien of te wissel; Desktop-gebruikers kan ook die modelkieser oopmaak."
+      rename: "Gebruik /title <naam> om hierdie sessie te hernoem."
+      effort: "Gebruik /reasoning <vlak> om die redenasie-inspanning te verander."
+    live_sync_failed: "sinkronisering van die lewendige sessie het misluk: {detail}"
+  compute_host:
+    failed: "rekengasheer: {op} het misluk"
+    failed_detail: "rekengasheer: {op} het misluk: {detail}"
+    timed_out: "rekengasheer: {op} het misluk: tyd verstreke"
+    invalid_response: "rekengasheer: {op} het 'n ongeldige antwoord teruggegee"
+    clarify_lock_failed: "verhelderingsslot het misluk"
+    turn_failed: "beurt op die rekengasheer het misluk"
+    compression_failed: "kompressie het misluk: {detail}"
+    compression_complete: "✓ Kontekskompressie voltooi"
+  tools:
+    profile_not_found: "profiel '{name}' nie gevind nie"
+    no_active_session: "geen aktiewe sessie nie"
+    no_such_process: "geen so 'n proses nie: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp maak die promptkas ongeldig (die volgende boodskap stuur alle invoertekens weer). Antwoord `/reload-mcp now` om voort te gaan, of `/reload-mcp always` om voort te gaan en hierdie waarskuwing permanent stil te maak."
+    kind:
+      quick_command: "vinnige opdrag"
+      plugin_command: "Inpropopdrag"
+    discovery_unavailable:
+      quick: "quick_commands-ontdekking nie beskikbaar nie: {detail}"
+      plugin: "ontdekking van inpropopdragte nie beskikbaar nie: {detail}"
+      skill: "vaardigheidsontdekking nie beskikbaar nie: {detail}"
+    cli_exec_timeout: "cli.exec: tyd verstreke"
+    unknown_command: "onbekende opdrag: {name}"
+    quick_command_failed: "vinnige opdrag het misluk met uitgangkode {code}"
+    bundle:
+      dispatch_failed: "bondelversending het misluk: {detail}"
+      load_failed: "kon nie bondel laai nie: {name}"
+      loading: "⚡ Bondel word gelaai: {name} ({count} vaardighede)"
+      skipped_missing: "Ontbrekende vaardighede oorgeslaan: {names}"
+      loading_stacked: "⚡ {count} gestapelde vaardighede word gelaai: {names}"
+    usage:
+      queue: "gebruik: /queue <prompt>"
+      focus: "gebruik: /focus [on|off|status]"
+      steer: "gebruik: /steer <prompt>"
+    moa:
+      queued: "Eenmalige MoA in die tou geplaas met voorinstelling {preset}; die vorige model word na hierdie beurt herstel."
+      unavailable: "MoA nie beskikbaar nie: {detail}"
+    retry:
+      no_session: "geen aktiewe sessie om weer te probeer nie"
+      media: "weer probeer kan nie aangehegte media veilig herbou of kombineer nie"
+      nothing: "geen vorige gebruikersboodskap om weer te probeer nie"
+      persist_failed: "weer probeer: kon nie geskiedenis stoor nie: "
+    steer:
+      sent_next_turn: "Geen agent loop nie; as volgende beurt gestuur: {text}"
+      queued: "⏩ Stuurwenk in die tou — kom na die volgende gereedskapoproep aan: {text}"
+    goal:
+      continuing_now: "Gaan nou voort — neem die volgende stap."
+      loop_deferred: "Let wel: 'n aktiewe /goal dryf hierdie sessie — lus-wekkers word uitgestel totdat die doel klaarmaak, pouseer of geparkeer word."
+    undo:
+      no_session: "geen aktiewe sessie om te ontdoen nie"
+      invalid_count: "undo: ongeldige getal {value} — gebruik /undo of /undo N"
+      nothing: "geen gebruikersboodskappe om te ontdoen nie"
+      done: "↶ {count} {unit} ontdoen ({messages} boodskap(pe)). Redigeer en stuur weer, of stuur 'n nuwe boodskap."
+      turn: "beurt"
+      turns: "beurte"
+    snapshot_restore_blocked: "/snapshot restore word in die TUI geblokkeer omdat dit konfigurasie/toestand op skyf verander terwyl die lewendige agent instellings in die kas het. Voer dit in die klassieke CLI uit en herbegin dan die TUI."
+    compress:
+      no_session: "geen aktiewe sessie om te komprimeer nie"
+      failed: "kompressie het misluk: {detail}"
+    memory:
+      unknown_subcommand: "Onbekende /memory-subopdrag. Gebruik: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Onbekende /skills-subopdrag hier. Gebruik: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Soek/installeer/blaai gebeur aan die terminaalkant.)"
+      write_approval_off: "Vaardigheidskryfgoedkeuring is af (skills.write_approval). Skakel dit aan met /skills approval on, en hersien dan gestadigde skrywes met /skills pending."
+      install_failed: "vaardigheidsinstallasie het misluk"
+      reloading: "Vaardighede word herlaai..."
+      none_new: "Geen nuwe vaardighede bespeur nie."
+      added: "Bygevoegde vaardighede:"
+      removed: "Verwyderde vaardighede:"
+    command_unavailable_for_profile: "/{command} is nie beskikbaar vir die huidige profiel nie"
+    not_dispatchable: "nie 'n vinnige/inprop-/bondel-/vaardigheidsopdrag nie: {name}"
+    empty_command: "leë opdrag"
+    plugin_command_error: "Inpropopdragfout: {detail}"
+    checkpoint_rewind_failed: "kontrolepunt herstel, maar terugspoel van die sessiegeskiedenis het misluk: {detail}"
+  mcp:
+    server_not_found: "bediener '{name}' nie gevind nie"
+    server_plugin_owned: "bediener '{name}' word deur inprop '{plugin}' verskaf en kan nie gewysig word nie"
+    server_exists: "bediener '{name}' bestaan reeds"
+    unknown_catalog_entry: "Onbekende MCP-katalogusinskrywing of voorinstelling: {preset}"
+    config_shape: "die konfigurasie moet 'n 'url' (http) of 'command' (stdio), of 'n geldige 'preset' spesifiseer"
+    server_rejected: "bediener '{name}' verwerp: verdagte opdrag-/argumentkonfigurasie"
+    malformed_config: "misvormde bedienerkonfigurasie"
+    invalid_credential: "die waarde is nie 'n geldige geloofsbrief nie"
+    oauth_required: "OAuth-verifikasie vereis — geen teken gevind nie."
+    stdio_no_oauth: "stdio-bedieners verifieer met omgewingsleutels, nie OAuth nie"
+    header_auth_no_oauth: "hierdie bediener gebruik kopstuk-/API-sleutelverifikasie, nie OAuth nie"
+  plugins:
+    toggle_failed: "wissel het misluk"
+    install_failed: "installasie het misluk"
+    not_catalog_install: "'{name}' is nie 'n katalogusinstallasie nie — werk dit via die CLI op"
+    remove_failed: "verwydering het misluk"
+    not_found: "inprop '{name}' nie gevind nie"
+  shell:
+    blocked_hardline: "geblokkeer (streng reël): {reason}. Gebruik die agent vir gevaarlike opdragte."
+    blocked: "geblokkeer: {reason}. Gebruik die agent vir gevaarlike opdragte."
+    timed_out: "opdrag se tyd het verstryk (30 s)"
+  session_control:
+    subgoal_text_required: "subdoelteks word vereis"
+    subgoal_added: "✓ Subdoel {index} bygevoeg: {text}"
+    subgoal_removed: "✓ Subdoel {index} verwyder: {text}"
+    subgoals_cleared_one: "✓ 1 subdoel uitgevee."
+    subgoals_cleared: "✓ {count} subdoele uitgevee."
+    no_subgoals: "Geen subdoele om uit te vee nie."
+    heartbeat_paused: "⏸ Hartklop gepouseer: {prompt}"
+    no_heartbeat: "Geen hartklop gestel nie."
+    heartbeat_resumed: "▶ Hartklop hervat (elke {interval}): {prompt}"
+    no_heartbeat_to_resume: "Geen hartklop om te hervat nie."
+    heartbeat_cleared: "✓ Hartklop uitgevee."
+  voice:
+    wake_unavailable: "wekmodule nie beskikbaar nie: {detail}"
+    wake_device_unresolved: "Die wekwoord se invoertoestel kon nie bepaal word nie: {detail}"
+    enable_first: "skakel eers stemmodus aan: /voice on"
+    mode_off: "stemmodus is af — skakel dit aan met /voice on"
+    module_missing_deps: "stemmodule nie beskikbaar nie — installeer die oudio-afhanklikhede"
+    module_missing: "stemmodule nie beskikbaar nie"
+  browser:
+    already_listening: "'n Chromium-familie-blaaier luister reeds by {url}"
+    port_occupied: "Poort {port} word deur 'n ander toepassing beset wat nie 'n CDP-blaaier is nie ('n IDE-ontfouter of ontwikkelingsbediener gebruik dit dalk) — 'n ontfoutblaaier word eerder op poort {launch_port} begin..."
+    launching: "Geen Chromium-familie-blaaier loop met afstandontfouting nie — probeer om een te begin..."
+    launched: "Chromium-familie-blaaier begin en luister op poort {port}"
+    start_manually: "Begin 'n Chromium-familie-blaaier met afstandontfouting en probeer dan /browser connect weer:"
+    no_executable: "Geen ondersteunde uitvoerbare Chromium-familie-blaaier is in hierdie omgewing gevind nie."
+    install_hint: "Installeer een of begin 'n Chromium-familie-blaaier met --remote-debugging-port={port}, en probeer dan /browser connect weer."
+    not_connected: "Blaaier nie gekoppel nie — begin 'n Chromium-familie-blaaier met afstandontfouting en probeer /browser connect weer"
+    unsupported_url: "nie-ondersteunde blaaier-URL: {url}"
+    missing_host: "gasheer ontbreek in blaaier-URL: {url}"
+    invalid_port: "ongeldige poort in blaaier-URL: {url}"
+    unreachable_detail: "kon nie die blaaier se CDP by {url} bereik nie: {detail}"
+    unreachable: "kon nie die blaaier se CDP by {url} bereik nie"
+  model:
+    switch_failed_staying: "Oorskakeling na model {target} het misluk ({detail}); bly op {current}."
+    once_requires_session: "/model --once vereis 'n lewendige sessie"
+    switch_failed: "modeloorskakeling het misluk"
+    capabilities_updated: "Vermoëns opgedateer — hierdie bot se gereedskap en prompt is verfris."
+    configured_switch_failed: "Kon nie na die gekonfigureerde model {model} oorskakel nie: {detail}"
+    switch_error: "Kon nie model oorskakel nie: {detail}"
+  compress:
+    lock_held: "Kompressieslot word gehou: {holder}"
+    unknown_holder: "onbekend"
+  images:
+    no_backend: "Geen beeldgenereringsagterkant gekonfigureer nie (voer `hermes tools` uit om een te aktiveer)."
+    generation_failed: "generering het misluk"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Voer {commands} uit om dit te bestuur."
+    team_update_one: "1 spanopdatering"
+    team_updates: "{count} spanopdaterings"
+    skill_ready_one: "1 vaardigheid gereed vir hersiening"
+    skills_ready: "{count} vaardighede gereed vir hersiening"
+    and: " en "
+    or: " of "
+    cannot_continue: "Collective Wisdom kon nie voortgaan nie: {detail}"
+    open_inbox_hint: "Maak /wisdom inbox oop om te hersien en toestemmingskontroles te gebruik."
+    notification_settings: "Kennisgewinginstellings: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git-diff"
+      staged_diff: "gestadigde diff"
+      attach_file: "heg lêer aan"
+      attach_folder: "heg vouer aan"
+      fetch_url: "haal URL"
+      git_log: "git-log"
+    agent_profile: "agentprofiel"
+    agent_profile_primary: "agentprofiel (primêr)"
+    plugin_provider: "inprop: {prefix}"
+    details:
+      section_override: "afdelingoorskrywing"
+      cycle_global_mode: "wissel globale modus"
+      global_mode: "globale modus"
+      clear_override: "verwyder {section}-oorskrywing"
+      set_section: "stel {section}"
+    slash:
+      density: "Wissel kompakte vertoonmodus"
+      details: "Beheer sigbaarheid van agentbesonderhede"
+      logs: "Wys onlangse poortlogreëls"
+      mouse: "Stel muisvolg-voorinstelling [on|off|toggle|wheel|buttons|all]"
+      sessions: "Wissel tussen lewendige TUI-sessies"
+  credentials:
+    managed_readonly: "bestuurde installasie — geloofsbriewe is leesalleen"
+    unknown_provider: "onbekende verskaffer: {slug}"
+    non_key_auth: "{provider} gebruik {auth}-verifikasie — voer `hermes model` uit om op te stel"
+    no_env_var: "geen omgewingsveranderlike vir {provider} gedefinieer nie"
+    none_found: "geen geloofsbriewe vir {slug} gevind nie"
+  profile:
+    not_exist: "Profiel '{name}' bestaan nie."
+    store_unavailable: "profiel se sessieberging nie beskikbaar nie: {path}: {detail}"
+  approval:
+    client_cannot_answer: "die gekoppelde kliënt kan nie goedkeuringsversoeke beantwoord nie (werk die Hermes-toepassing op)"
+  session:
+    hydration_timed_out: "laai van die sessiegeskiedenis se tyd het verstryk"
+  checkpoint:
+    invalid_number: "Ongeldige kontrolepuntnommer. Gebruik 1-{max}."
+  cli_exec:
+    setup: "`hermes setup` het 'n volle terminaal nodig — voer dit buite die TUI uit"
+    gateway: "`hermes gateway` loop lank — voer dit in 'n ander terminaal uit"
+    sessions_browse: "`hermes sessions browse` is interaktief — gebruik /resume hier, of voer browse in 'n ander terminaal uit"
+    config_edit: "`hermes config edit` het $EDITOR in 'n regte terminaal nodig"
+    bare: "kaal `hermes` is interaktief — gebruik `/hermes chat -q …` of voer `hermes` in 'n ander terminaal uit"
+  tool_progress:
+    lines_chars: "{lines} reëls / {chars} karakters"
+    chars: "{chars} karakters"
+    verbose_tail: "[wys die stert van die uitgebreide afvoer; {omitted} weggelaat]"
+  onboarding:
+    facts_too_long: "Die aanboordfeite is te lank om te onthou"
+    memory_not_saved: "Geheue is nie gestoor nie"
+    verify_failed: "Kon nie die gestoorde aanboordfeite verifieer nie"
+    no_setup_profile: "geen opstelprofiel om terug te stel nie"
+  projects:
+    not_found: "geen so 'n projek nie"
+  subagent:
+    interrupted_via_tui: "Onderbreek via TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure cause + remedy copy
 storage:

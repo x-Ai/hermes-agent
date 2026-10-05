@@ -29,8 +29,9 @@ def _cap_tui_verbose_text(text: str) -> str:
     tail = text[start:].lstrip()
     omitted_chars = max(0, len(text) - len(tail))
     omitted_lines = text[:start].count("\n")
-    omitted = f"{omitted_lines} lines / {omitted_chars} chars" if omitted_lines else f"{omitted_chars} chars"
-    return f"[showing verbose tail; omitted {omitted}]\n{tail}"
+    omitted = (_t("tui_gateway.tool_progress.lines_chars", lines=omitted_lines, chars=omitted_chars)
+               if omitted_lines else _t("tui_gateway.tool_progress.chars", chars=omitted_chars))
+    return _t("tui_gateway.tool_progress.verbose_tail", omitted=omitted) + f"\n{tail}"
 
 
 def _redact_tui_verbose_text(text: str) -> str:

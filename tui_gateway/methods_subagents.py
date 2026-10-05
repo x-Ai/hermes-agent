@@ -96,7 +96,7 @@ def _(rid, params):
     found = False
     if agent is not None:
         try:
-            found = bool(request_hard_interrupt(agent, f"Interrupted via TUI ({subagent_id})"))
+            found = bool(request_hard_interrupt(agent, _t("tui_gateway.subagent.interrupted_via_tui", id=subagent_id)))
         except Exception:
             logger.debug("subagent interrupt failed", exc_info=True)
     return _ok(rid, {"found": found, "subagent_id": subagent_id})

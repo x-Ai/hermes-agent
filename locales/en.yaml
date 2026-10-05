@@ -4203,6 +4203,273 @@ tui_gateway:
     invalid_data_url: "invalid data_url payload"
     label_image: "image"
     label_pdf: "PDF"
+  slash:
+    no_active_agent: "No active agent -- send a message first."
+    review:
+      nothing_yet: "Nothing to review yet — send a message first."
+      remote_host: "/review runs on the local agent only for now — this session's agent lives on a remote compute host."
+      start_failed: "/review failed to start: {detail}"
+    refine:
+      no_session: "Refine unavailable (no session)."
+      agent_running: "Agent is running — wait for the turn to finish, then /refine."
+      nothing_yet: "Nothing to refine yet — send a message first."
+      conversation_empty: "Nothing to refine yet — the conversation is empty."
+      start_failed: "/refine failed to start: {detail}"
+      started: "⚗ Reviewing this conversation in the background{focus} — any memory/skill updates will be reported when done."
+      focus: " (focus: {focus})"
+    usage:
+      title: "Session Token Usage"
+      model: "Model: {model}"
+      unknown_model: "(unknown)"
+      input_tokens: "Input tokens:"
+      output_tokens: "Output tokens:"
+      reasoning_tokens: "Reasoning tokens:"
+      prompt_tokens: "Prompt tokens:"
+      completion_tokens: "Completion tokens:"
+      total_tokens: "Total tokens:"
+      api_calls: "API calls:"
+      current_context: "Current context:"
+      messages: "Messages:"
+      compressions: "Compressions:"
+    history:
+      empty: "No conversation history yet."
+      title: "Conversation History"
+      you: "You"
+      no_text: "(no text)"
+    context:
+      count: "Conversation: {count} messages"
+      empty: "Conversation is empty (no messages yet)."
+    tools:
+      none: "No tools available."
+      available: "Available tools ({count}):"
+    help:
+      title: "Available commands:"
+      unavailable: "help unavailable: {detail}"
+    model:
+      current: "Current model: {model}"
+      unknown: "Current model: (unknown)"
+    status:
+      unavailable: "status unavailable"
+    compress:
+      no_session: "no active session for /compress"
+      still_running: "compression still running in the background; the transcript will refresh when it finishes"
+    clear:
+      terminal_only: "Screen clear is terminal-only; desktop/TUI chat left unchanged."
+    hint:
+      models: "Use /model to view or switch the current model; desktop users can also open the model picker."
+      rename: "Use /title <name> to rename this session."
+      effort: "Use /reasoning <effort> to change reasoning effort."
+    live_sync_failed: "live session sync failed: {detail}"
+  compute_host:
+    failed: "compute-host {op} failed"
+    failed_detail: "compute-host {op} failed: {detail}"
+    timed_out: "compute-host {op} failed: timed out"
+    invalid_response: "compute-host {op} returned an invalid response"
+    clarify_lock_failed: "clarify lock failed"
+    turn_failed: "compute host turn failed"
+    compression_failed: "compression failed: {detail}"
+    compression_complete: "✓ Context compression complete"
+  tools:
+    profile_not_found: "profile '{name}' not found"
+    no_active_session: "no active session"
+    no_such_process: "no such process: {id}"
+    reload_mcp_confirm: "⚠️  /reload-mcp invalidates the prompt cache (next message re-sends full input tokens). Reply `/reload-mcp now` to proceed, or `/reload-mcp always` to proceed and silence this prompt permanently."
+    kind:
+      quick_command: "quick command"
+      plugin_command: "Plugin command"
+    discovery_unavailable:
+      quick: "quick_commands discovery unavailable: {detail}"
+      plugin: "plugin command discovery unavailable: {detail}"
+      skill: "skill discovery unavailable: {detail}"
+    cli_exec_timeout: "cli.exec: timeout"
+    unknown_command: "unknown command: {name}"
+    quick_command_failed: "quick command failed with exit code {code}"
+    bundle:
+      dispatch_failed: "bundle dispatch failed: {detail}"
+      load_failed: "failed to load bundle: {name}"
+      loading: "⚡ Loading bundle: {name} ({count} skills)"
+      skipped_missing: "Skipped missing skills: {names}"
+      loading_stacked: "⚡ Loading {count} stacked skills: {names}"
+    usage:
+      queue: "usage: /queue <prompt>"
+      focus: "usage: /focus [on|off|status]"
+      steer: "usage: /steer <prompt>"
+    moa:
+      queued: "MoA one-shot queued with preset {preset}; previous model will be restored after this turn."
+      unavailable: "moa unavailable: {detail}"
+    retry:
+      no_session: "no active session to retry"
+      media: "retry cannot safely reconstruct or combine attached media"
+      nothing: "no previous user message to retry"
+      persist_failed: "retry: failed to persist history: "
+    steer:
+      sent_next_turn: "No agent running; sent as next turn: {text}"
+      queued: "⏩ Steer queued — arrives after the next tool call: {text}"
+    goal:
+      continuing_now: "Continuing now — taking the next step."
+      loop_deferred: "Note: an active /goal is driving this session — loop wakeups defer until the goal finishes, pauses, or parks."
+    undo:
+      no_session: "no active session to undo"
+      invalid_count: "undo: invalid count {value} — use /undo or /undo N"
+      nothing: "no user messages to undo"
+      done: "↶ Undid {count} {unit} ({messages} message(s)). Edit and resubmit, or send a new message."
+      turn: "turn"
+      turns: "turns"
+    snapshot_restore_blocked: "/snapshot restore is blocked in the TUI because it changes config/state on disk while the live agent has cached settings. Run it in the classic CLI, then restart the TUI."
+    compress:
+      no_session: "no active session to compress"
+      failed: "compress failed: {detail}"
+    memory:
+      unknown_subcommand: "Unknown /memory subcommand. Use: pending, approve <id>, reject <id>, approval <on|off>."
+    skills:
+      unknown_subcommand: "Unknown /skills subcommand here. Use: pending, approve <id>, reject <id>, diff <id>, approval <on|off>. (Search/install/browse are terminal-side.)"
+      write_approval_off: "Skill write approval is off (skills.write_approval). Enable it with /skills approval on, then review staged writes with /skills pending."
+      install_failed: "skill install failed"
+      reloading: "Reloading skills..."
+      none_new: "No new skills detected."
+      added: "Added skills:"
+      removed: "Removed skills:"
+    command_unavailable_for_profile: "/{command} is unavailable for the current profile"
+    not_dispatchable: "not a quick/plugin/bundle/skill command: {name}"
+    empty_command: "empty command"
+    plugin_command_error: "Plugin command error: {detail}"
+    checkpoint_rewind_failed: "checkpoint restored, but session history rewind failed: {detail}"
+  mcp:
+    server_not_found: "server '{name}' not found"
+    server_plugin_owned: "server '{name}' is provided by plugin '{plugin}' and cannot be modified"
+    server_exists: "server '{name}' already exists"
+    unknown_catalog_entry: "Unknown MCP catalog entry or preset: {preset}"
+    config_shape: "config must specify a 'url' (http) or 'command' (stdio), or a valid 'preset'"
+    server_rejected: "server '{name}' rejected: suspicious command/args configuration"
+    malformed_config: "malformed server config"
+    invalid_credential: "value is not a valid credential"
+    oauth_required: "OAuth authentication required — no token found."
+    stdio_no_oauth: "stdio servers authenticate via env keys, not OAuth"
+    header_auth_no_oauth: "this server uses header/API-key auth, not OAuth"
+  plugins:
+    toggle_failed: "toggle failed"
+    install_failed: "install failed"
+    not_catalog_install: "'{name}' is not a catalog install — update it via the CLI"
+    remove_failed: "remove failed"
+    not_found: "plugin '{name}' not found"
+  shell:
+    blocked_hardline: "blocked (hardline): {reason}. Use the agent for dangerous commands."
+    blocked: "blocked: {reason}. Use the agent for dangerous commands."
+    timed_out: "command timed out (30s)"
+  session_control:
+    subgoal_text_required: "subgoal text is required"
+    subgoal_added: "✓ Added subgoal {index}: {text}"
+    subgoal_removed: "✓ Removed subgoal {index}: {text}"
+    subgoals_cleared_one: "✓ Cleared 1 subgoal."
+    subgoals_cleared: "✓ Cleared {count} subgoals."
+    no_subgoals: "No subgoals to clear."
+    heartbeat_paused: "⏸ Heartbeat paused: {prompt}"
+    no_heartbeat: "No heartbeat set."
+    heartbeat_resumed: "▶ Heartbeat resumed (every {interval}): {prompt}"
+    no_heartbeat_to_resume: "No heartbeat to resume."
+    heartbeat_cleared: "✓ Heartbeat cleared."
+  voice:
+    wake_unavailable: "wake module unavailable: {detail}"
+    wake_device_unresolved: "Wake-word input device could not be resolved: {detail}"
+    enable_first: "enable voice mode first: /voice on"
+    mode_off: "voice mode is off — enable with /voice on"
+    module_missing_deps: "voice module not available — install audio dependencies"
+    module_missing: "voice module not available"
+  browser:
+    already_listening: "Chromium-family browser is already listening at {url}"
+    port_occupied: "Port {port} is occupied by another application that isn't a CDP browser (an IDE debugger or dev server may be using it) — launching a debug browser on port {launch_port} instead..."
+    launching: "Chromium-family browser isn't running with remote debugging — attempting to launch..."
+    launched: "Chromium-family browser launched and listening on port {port}"
+    start_manually: "Start a Chromium-family browser with remote debugging, then retry /browser connect:"
+    no_executable: "No supported Chromium-family browser executable was found in this environment."
+    install_hint: "Install one or start a Chromium-family browser with --remote-debugging-port={port}, then retry /browser connect."
+    not_connected: "Browser not connected — start a Chromium-family browser with remote debugging and retry /browser connect"
+    unsupported_url: "unsupported browser url: {url}"
+    missing_host: "missing host in browser url: {url}"
+    invalid_port: "invalid port in browser url: {url}"
+    unreachable_detail: "could not reach browser CDP at {url}: {detail}"
+    unreachable: "could not reach browser CDP at {url}"
+  model:
+    switch_failed_staying: "Model switch to {target} failed ({detail}); staying on {current}."
+    once_requires_session: "/model --once requires a live session"
+    switch_failed: "model switch failed"
+    capabilities_updated: "Capabilities updated — this bot's tools and prompt were refreshed."
+    configured_switch_failed: "Could not switch to configured model {model}: {detail}"
+    switch_error: "Could not switch model: {detail}"
+  compress:
+    lock_held: "Compression lock held: {holder}"
+    unknown_holder: "unknown"
+  images:
+    no_backend: "No image generation backend configured (run `hermes tools` to enable one)."
+    generation_failed: "generation failed"
+  wisdom:
+    summary: "Collective Wisdom: {summary}. Run {commands} to manage them."
+    team_update_one: "1 team update"
+    team_updates: "{count} team updates"
+    skill_ready_one: "1 skill ready to review"
+    skills_ready: "{count} skills ready to review"
+    and: " and "
+    or: " or "
+    cannot_continue: "Collective Wisdom could not continue: {detail}"
+    open_inbox_hint: "Open /wisdom inbox to review and use consent controls."
+    notification_settings: "Notification settings: /wisdom mute"
+  complete:
+    at:
+      git_diff: "git diff"
+      staged_diff: "staged diff"
+      attach_file: "attach file"
+      attach_folder: "attach folder"
+      fetch_url: "fetch url"
+      git_log: "git log"
+    agent_profile: "agent profile"
+    agent_profile_primary: "agent profile (primary)"
+    plugin_provider: "plugin: {prefix}"
+    details:
+      section_override: "section override"
+      cycle_global_mode: "cycle global mode"
+      global_mode: "global mode"
+      clear_override: "clear {section} override"
+      set_section: "set {section}"
+    slash:
+      density: "Toggle compact display mode"
+      details: "Control agent detail visibility"
+      logs: "Show recent gateway log lines"
+      mouse: "Set mouse tracking preset [on|off|toggle|wheel|buttons|all]"
+      sessions: "Switch between live TUI sessions"
+  credentials:
+    managed_readonly: "managed install — credentials are read-only"
+    unknown_provider: "unknown provider: {slug}"
+    non_key_auth: "{provider} uses {auth} auth — run `hermes model` to configure"
+    no_env_var: "no env var defined for {provider}"
+    none_found: "no credentials found for {slug}"
+  profile:
+    not_exist: "Profile '{name}' does not exist."
+    store_unavailable: "profile session store unavailable: {path}: {detail}"
+  approval:
+    client_cannot_answer: "the attached client cannot answer approval requests (update the Hermes app)"
+  session:
+    hydration_timed_out: "session history hydration timed out"
+  checkpoint:
+    invalid_number: "Invalid checkpoint number. Use 1-{max}."
+  cli_exec:
+    setup: "`hermes setup` needs a full terminal — run it outside the TUI"
+    gateway: "`hermes gateway` is long-running — run it in another terminal"
+    sessions_browse: "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal"
+    config_edit: "`hermes config edit` needs $EDITOR in a real terminal"
+    bare: "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+  tool_progress:
+    lines_chars: "{lines} lines / {chars} chars"
+    chars: "{chars} chars"
+    verbose_tail: "[showing verbose tail; omitted {omitted}]"
+  onboarding:
+    facts_too_long: "Onboarding facts are too long to remember"
+    memory_not_saved: "Memory was not saved"
+    verify_failed: "Could not verify saved onboarding facts"
+    no_setup_profile: "no setup profile to reset"
+  projects:
+    not_found: "no such project"
+  subagent:
+    interrupted_via_tui: "Interrupted via TUI ({id})"
 
 # storage: hermes_state_user_copy.describe_storage_failure — the cause + remedy every surface prints
 storage:

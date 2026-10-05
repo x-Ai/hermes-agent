@@ -485,7 +485,7 @@ def _open_profile_session_db(profile_home):
     try:
         return acquire(db_path)
     except Exception as exc:
-        raise RuntimeError(f"profile session store unavailable: {db_path}: {exc}") from exc
+        raise RuntimeError(_t("tui_gateway.profile.store_unavailable", path=db_path, detail=exc)) from exc
 
 
 @contextlib.contextmanager
@@ -576,7 +576,7 @@ def _profile_home(profile: str | None) -> Path | None:
     except ValueError:
         home = None
     if home is None or not home.is_dir():
-        raise ProfileUnavailableError(f"Profile '{name}' does not exist.")
+        raise ProfileUnavailableError(_t("tui_gateway.profile.not_exist", name=name))
     if home.resolve() == Path(_hermes_home).resolve():
         return None  # already the launch profile (no override needed)
     if home not in _served_profile_homes:
@@ -831,9 +831,8 @@ def _emit_approval_request(sid: str, data: dict | None) -> None:
             # queue entry the agent would idle for the whole approvals.timeout with no prompt anywhere
             # (#112548). A withdrawal, not a deny: nobody refused the command.
             if request_id:
-                _approval.withdraw_gateway_approval(session_key, request_id,
-                                                    "the attached client cannot answer approval requests "
-                                                    "(update the Hermes app)")
+                _approval.withdraw_gateway_approval(
+                    session_key, request_id, _t("tui_gateway.approval.client_cannot_answer"))
             return
         choice = str(result.get("choice") or "deny")
         _approval.resolve_gateway_approval(session_key, choice, resolve_all=bool(result.get("all")),
@@ -1069,7 +1068,7 @@ def _await_resume_history(sid: str, current: dict) -> bool:
     if history_ready is None:
         return True
     if not history_ready.wait(timeout=300.0):
-        raise TimeoutError("session history hydration timed out")
+        raise TimeoutError(_t("tui_gateway.session.hydration_timed_out"))
     if history_error := current.get("resume_history_error"):
         raise RuntimeError(str(history_error))
     with _sessions_lock:
@@ -2841,7 +2840,7 @@ def _resolve_checkpoint_hash(mgr, cwd: str, ref: str) -> str:
         return ref
     if 0 <= idx < len(checkpoints):
         return checkpoints[idx].get("hash", ref)
-    raise ValueError(f"Invalid checkpoint number. Use 1-{len(checkpoints)}.")
+    raise ValueError(_t("tui_gateway.checkpoint.invalid_number", max=len(checkpoints)))
 
 
 # ── Methods: session ─────────────────────────────────────────────────
@@ -3559,12 +3558,9 @@ def _finish_reload(rid, params: dict, *, coalesced: bool) -> dict:
 
 _TUI_HIDDEN: frozenset[str] = frozenset({"sethome", "set-home", "commands", "approve", "deny"})
 
+# (command, ``tui_gateway.complete.slash.<key>`` catalog suffix, category)
 _TUI_EXTRA: list[tuple[str, str, str]] = [
-    ("/density", "Toggle compact display mode", "TUI"),
-    ("/logs", "Show recent gateway log lines", "TUI"),
-    ("/mouse", "Set mouse tracking preset [on|off|toggle|wheel|buttons|all]", "TUI"),
-    ("/sessions", "Switch between live TUI sessions", "TUI"),
-]
+    ("/density", "density", "TUI"), ("/logs", "logs", "TUI"), ("/mouse", "mouse", "TUI"), ("/sessions", "sessions", "TUI")]
 
 # Commands that queue onto _pending_input in the CLI; the slash worker has no reader for that queue, so
 # slash.exec routes them to command.dispatch instead.
@@ -3627,21 +3623,18 @@ def _rank_slash_completions(items: list[dict], usage, origin_of, *, browsing: bo
     return ranked_commands + skills[:_SLASH_COMPLETION_LIMIT]
 
 
-# argv shapes that must not run headless in the gateway process → user hint.
+# argv shapes that must not run headless in the gateway process → ``tui_gateway.cli_exec.<key>`` hint.
 _CLI_EXEC_BLOCKED = {
-    ("setup",): "`hermes setup` needs a full terminal — run it outside the TUI",
-    ("gateway",): "`hermes gateway` is long-running — run it in another terminal",
-    ("sessions", "browse"): "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal",
-    ("config", "edit"): "`hermes config edit` needs $EDITOR in a real terminal",
-}
+    ("setup",): "setup", ("gateway",): "gateway", ("sessions", "browse"): "sessions_browse", ("config", "edit"): "config_edit"}
 
 
 def _cli_exec_blocked(argv: list[str]) -> str | None:
     """Return user hint if this argv must not run headless in the gateway process."""
     if not argv:
-        return "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+        return _t("tui_gateway.cli_exec.bare")
     head = tuple(a.lower() for a in argv[:2])
-    return _CLI_EXEC_BLOCKED.get(head[:1]) or _CLI_EXEC_BLOCKED.get(head)
+    key = _CLI_EXEC_BLOCKED.get(head[:1]) or _CLI_EXEC_BLOCKED.get(head)
+    return _t(f"tui_gateway.cli_exec.{key}") if key else None
 
 
 def _resolve_name(name: str) -> str:

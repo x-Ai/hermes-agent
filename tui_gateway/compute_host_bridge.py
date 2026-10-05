@@ -205,15 +205,16 @@ def _lock_compute_host_clarify(rid: str, request_id: str, question_id: str, answ
         ack = _get_compute_host_supervisor().respond(
             sid, {"lock": {"request_id": request_id, "question_id": question_id, "answer": answer}})
     except Exception as exc:
-        return _err(rid, 5019, f"compute-host clarify lock failed: {exc}")
+        return _err(rid, 5019, _t("tui_gateway.compute_host.failed_detail", op="clarify lock", detail=exc))
     if ack.get("type") == "respond.error":
-        return _err(rid, 5019, str(ack.get("message") or "compute-host clarify lock failed"))
+        return _err(rid, 5019, str(ack.get("message") or _t("tui_gateway.compute_host.failed", op="clarify lock")))
     response = ack.get("response")
     if not isinstance(response, dict):
-        return _err(rid, 5019, "compute-host clarify lock returned an invalid response")
+        return _err(rid, 5019, _t("tui_gateway.compute_host.invalid_response", op="clarify lock"))
     if "error" in response:
         error = response["error"] if isinstance(response["error"], dict) else {}
-        return _err(rid, int(error.get("code") or 5000), str(error.get("message") or "clarify lock failed"))
+        return _err(rid, int(error.get("code") or 5000),
+                    str(error.get("message") or _t("tui_gateway.compute_host.clarify_lock_failed")))
     result = response.get("result") if isinstance(response.get("result"), dict) else {}
     with _history_lock(session):
         if _open_request_matches(session, request_id):
@@ -254,7 +255,7 @@ def _on_compute_host_turn_done(rid: str, sid: str, session: dict, frame: dict) -
     if frame.get("type") != "turn.error":
         session.pop("pending_model_switch", None)
     if frame.get("type") == "turn.error":
-        message = str(frame.get("message") or "compute host turn failed")
+        message = str(frame.get("message") or _t("tui_gateway.compute_host.turn_failed"))
         _emit("message.complete", sid, {"text": f"Error: {message}", "status": "error"})
     _apply_compute_host_metadata_mirror(session, frame)
     # Settlement of a turn whose session was closed mid-flight: the real lease was held for it.
@@ -297,7 +298,7 @@ def _submit_prompt_to_compute_host(
             if session.get("_compute_host_turn_id") == turn_id:
                 session.pop("_compute_host_turn_id", None)
                 session.pop("_compute_host_activity_ns", None)
-        return _err(rid, 5019, f"compute-host dispatch failed: {exc}")
+        return _err(rid, 5019, _t("tui_gateway.compute_host.failed_detail", op="dispatch", detail=exc))
     with session["history_lock"]:
         session["_compute_host_active"] = True
         if image_paths is None:
@@ -343,13 +344,13 @@ def _adopt_late_compute_host_compress_ack(sid: str, session: dict, ack: dict, *,
         if _sessions.get(sid) is not session:
             return
     if not isinstance(ack, dict) or ack.get("type") in {"control.error", "error"}:
-        message = str((ack or {}).get("message") or f"compute-host {route_name} failed")
-        _emit("error", sid, {"message": f"compression failed: {message}"})
+        message = str((ack or {}).get("message") or _t("tui_gateway.compute_host.failed", op=route_name))
+        _emit("error", sid, {"message": _t("tui_gateway.compute_host.compression_failed", detail=message)})
         _status_update(sid, "ready")
         return
     _apply_compute_host_metadata_mirror(session, ack)
     _emit("session.info", sid, _compute_host_session_info(session))
-    _status_update(sid, "compacted", "✓ Context compression complete")
+    _status_update(sid, "compacted", _t("tui_gateway.compute_host.compression_complete"))
 
 
 def register(server) -> None:
