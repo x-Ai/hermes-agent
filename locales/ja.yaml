@@ -1,6 +1,3 @@
-agent:
-  output_truncated_no_visible: "表示可能なテキストが生成される前に、プロバイダーの出力トークン上限に達して応答が打ち切られました。"
-
 auth:
   no_provider_configured: "Hermes はまだどの AI プロバイダーにも接続されていません。`hermes model` を実行して選択するか（無料の Nous ティアは API キー不要）、チャットで `/login` と入力するか、`hermes auth add <provider>` でキーを追加してください。（上級者向け: OPENROUTER_API_KEY などの API キーを {home}/.env に記述します。）"
 

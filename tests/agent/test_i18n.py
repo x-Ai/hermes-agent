@@ -156,15 +156,6 @@ def test_t_missing_key_in_non_english_falls_back_to_english(tmp_path, monkeypatc
         i18n.reset_language_cache()
 
 
-def test_empty_output_truncation_notice_is_localized_in_chinese():
-    """Contract, not a copy snapshot: zh resolves to the zh catalog entry, which is a real
-    translation (differs from English) and never the bare key."""
-    key = "agent.output_truncated_no_visible"
-    zh = i18n.t(key, lang="zh")
-    assert zh == i18n._load_catalog("zh")[key]
-    assert zh not in (key, i18n.t(key, lang="en"))
-
-
 def test_no_provider_configured_prose_is_localized_and_keeps_the_home_path():
     """The auth error raised when no provider resolves is catalog prose with the profile home
     interpolated; the machine code ``no_provider_configured`` on the exception is what consumers

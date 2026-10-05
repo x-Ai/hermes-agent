@@ -1,6 +1,3 @@
-agent:
-  output_truncated_no_visible: "A resposta foi truncada no limite de tokens de saída do provedor antes que fosse produzido texto visível."
-
 auth:
   no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
 

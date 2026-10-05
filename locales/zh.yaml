@@ -1,6 +1,3 @@
-agent:
-  output_truncated_no_visible: "响应在生成可见文本之前达到提供方的输出 Token 上限，已被截断"
-
 auth:
   no_provider_configured: "Hermes 尚未连接任何 AI 提供方，运行 `hermes model` 选择一个（免费的 Nous 层级无需 API 密钥），在聊天中输入 `/login`，或用 `hermes auth add <provider>` 添加密钥（进阶：将 OPENROUTER_API_KEY 等 API 密钥写入 {home}/.env）"
 

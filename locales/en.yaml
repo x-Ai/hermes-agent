@@ -1,6 +1,3 @@
-agent:
-  output_truncated_no_visible: "Response truncated at the provider's output-token limit before visible text was produced."
-
 provider:
   # Display label for the bare "custom" provider (a user-configured endpoint
   # that is not a named provider).  Provider names and model IDs are
