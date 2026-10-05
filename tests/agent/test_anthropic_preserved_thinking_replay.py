@@ -97,6 +97,7 @@ def _agent(db, session_id="s1", model="claude-opus-4-6", route=ANTHROPIC):
         reasoning_callback=None, stream_delta_callback=None, _stream_callback=None, log_prefix="",
     )
     agent._needs_thinking_reasoning_pad = lambda: False
+    agent._reasoning_echo_mode = lambda: "strict"
     agent._copy_reasoning_content_for_api = (
         lambda source, target: copy_reasoning_content_for_api(agent, source, target)
     )

@@ -23,10 +23,10 @@ from agent.model_metadata import is_output_cap_error, parse_available_output_tok
 from agent.retry_utils import is_zai_coding_overload_error, zai_coding_overload_retry_ceiling
 from agent.error_classifier import FailoverReason, classify_api_error
 from agent.message_sanitization import (
-    _looks_like_corrupt_image_rejection, _looks_like_image_content_rejection, _sanitize_messages_non_ascii,
-    _sanitize_messages_surrogates, _sanitize_structure_non_ascii, _sanitize_structure_surrogates,
-    _strip_images_from_messages, _strip_non_ascii,
-    close_interrupted_tool_sequence,
+    ECHO_REQUIRE, _looks_like_corrupt_image_rejection, _looks_like_image_content_rejection,
+    _sanitize_messages_non_ascii, _sanitize_messages_surrogates, _sanitize_structure_non_ascii,
+    _sanitize_structure_surrogates, _strip_images_from_messages, _strip_non_ascii,
+    close_interrupted_tool_sequence, looks_like_reasoning_echo_required,
 )
 from agent.thinking_timeout_guidance import build_thinking_timeout_guidance, is_thinking_timeout
 from agent.vision_message_prep import _provider_model_key
@@ -239,9 +239,10 @@ def recover_before_classification(
     """Recovery branches that run BEFORE ``classify_api_error``: UnicodeEncodeError
     sanitization, Anthropic fast mode with no capacity (drop ``speed`` for that model),
     provider image-content rejection (record the (provider, model);
-    build_api_request strips images from that model's requests only), and the Bedrock
-    AnthropicBedrock SDK streaming fallback. Returns ``(retry_now, active_system_prompt)``;
-    the prompt may be ASCII-sanitized in place."""
+    build_api_request strips images from that model's requests only), the reasoning_content
+    echo-back 400 from a lenient route (record the (provider, model); build_api_request re-pads
+    that model's replays), and the Bedrock AnthropicBedrock SDK streaming fallback. Returns
+    ``(retry_now, active_system_prompt)``; the prompt may be ASCII-sanitized in place."""
     if isinstance(api_error, UnicodeEncodeError) and getattr(agent, '_unicode_sanitization_passes', 0) < 2:
         _recovered, active_system_prompt = _recover_unicode_encode_error(
             agent, api_error, messages, api_messages, api_kwargs, active_system_prompt
@@ -295,6 +296,17 @@ def recover_before_classification(
                 "images stay in the session history.",
             )
             return True, active_system_prompt
+
+    # A deepseek-/mimo-named model behind a non-vendor host runs lenient (real reasoning echoed,
+    # nothing fabricated); a verbatim proxy to the vendor enforces the echo after all and 400s the
+    # first replay of a reasoning-less tool-call turn. Learn it once per (provider, model): the route
+    # is require from here on and build_api_request re-pads the same api_messages on the retry.
+    if _status_ok and looks_like_reasoning_echo_required(_err_body) and agent._reasoning_echo_mode() != ECHO_REQUIRE:
+        agent._reasoning_echo_required_routes.add(_model_key)
+        _vlines(agent, "⚠️  Endpoint enforces reasoning_content echo-back — padding replayed turns for this model, retrying...")
+        logger.warning("%sreasoning_content echo-back enforced by %s/%s: route promoted to require for this session",
+                       agent.log_prefix, agent.provider, agent.model)
+        return True, active_system_prompt
 
     # AnthropicBedrock SDK raises "Unexpected event order" when Bedrock errors before
     # message_start; fall back to native Converse for this session.

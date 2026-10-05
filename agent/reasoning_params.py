@@ -7,7 +7,8 @@ Extracted from ``run_agent.py``; every method resolves through ``AIAgent``'s MRO
 import time
 
 from agent.lazy_forward import forward as _forward, forward_static as _forward_static
-from agent.message_sanitization import matches_reasoning_echo_family
+from agent.message_sanitization import ECHO_REQUIRE, matches_reasoning_echo_identity, reasoning_echo_mode
+from agent.vision_message_prep import _provider_model_key
 from utils import base_url_host_matches
 
 # Static OpenRouter fallback when the live /v1/models capability cache is cold.
@@ -154,28 +155,40 @@ class ReasoningParamsMixin:
 
     _build_assistant_message = _forward("agent.chat_completion_helpers", "build_assistant_message")
 
-    def _needs_thinking_reasoning_pad(self) -> bool:
-        """True when the provider enforces ``reasoning_content`` echo-back on tool-call replays (DeepSeek, Kimi,
-        MiMo thinking all 400 without it). Cached per (provider, model, base_url), invalidated by
-        ``switch_model()`` / ``_try_activate_fallback()`` — called ~16× per turn.
-
-        DeepSeek v4 thinking and Kimi / Moonshot thinking both reject replays of assistant tool-call
-        messages that omit ``reasoning_content`` (refs 15250, #17400). Xiaomi MiMo thinking mode has the
-        same requirement.
+    def _reasoning_echo_mode(self) -> str:
+        """Echo policy for the active route: ``"require"`` (pad a reasoning-less turn with " "),
+        ``"lenient"`` (echo real reasoning, never pad) or ``"strict"`` (strip). Table and rationale:
+        the reasoning_content policy block in ``message_sanitization``. Require also comes from the
+        ``model.reasoning_echo`` opt-in and from a route this session learned enforces the echo
+        (``turn_recovery``). Cached per (provider, model, base_url, opt-in) — called ~16× per turn;
+        ``switch_model()`` / ``_try_activate_fallback()`` change the key.
         """
-        key = (self.provider, self.model, getattr(self, "_base_url_lower", self.base_url))
+        opt_in = self._reasoning_echo_opt_in()
+        key = (self.provider, self.model, getattr(self, "_base_url_lower", self.base_url), opt_in)
         cached = getattr(self, "_thinking_pad_cache", None)
         if cached is not None and cached[0] == key:
             return cached[1]
-        result = (self._needs_deepseek_tool_reasoning() or self._needs_kimi_tool_reasoning()
-                  or self._needs_mimo_tool_reasoning() or self._reasoning_echo_opt_in())
-        self._thinking_pad_cache = (key, result)
-        return result
+        if (opt_in or self._needs_deepseek_tool_reasoning() or self._needs_kimi_tool_reasoning()
+                or self._needs_mimo_tool_reasoning()):
+            mode = ECHO_REQUIRE
+        else:
+            mode = reasoning_echo_mode(self.provider, self.model, self.base_url)
+        self._thinking_pad_cache = (key, mode)
+        return mode
+
+    def _needs_thinking_reasoning_pad(self) -> bool:
+        """True when the active route enforces ``reasoning_content`` echo-back on tool-call replays —
+        DeepSeek v4, Kimi / Moonshot and Xiaomi MiMo thinking all 400 without it (refs 15250, #17400):
+        ``_reasoning_echo_mode()`` is require."""
+        return self._reasoning_echo_mode() == ECHO_REQUIRE
 
     def _reasoning_echo_opt_in(self) -> bool:
-        """``model.reasoning_echo`` opt-in for the *current* provider (covers gateways the host rules miss);
-        fallback activation swaps the flag and ``restore_primary_runtime()`` restores it."""
-        return bool(getattr(self, "_reasoning_echo_flag", False))
+        """``model.reasoning_echo`` opt-in for the *current* provider (covers gateways the host rules miss;
+        fallback activation swaps the flag and ``restore_primary_runtime()`` restores it), or a
+        (provider, model) this session learned enforces the echo from its 400 (``turn_recovery``)."""
+        if getattr(self, "_reasoning_echo_flag", False):
+            return True
+        return _provider_model_key(self) in getattr(self, "_reasoning_echo_required_routes", ())
 
     @staticmethod
     def _read_reasoning_echo_from_config() -> bool:
@@ -186,24 +199,22 @@ class ReasoningParamsMixin:
         except Exception:
             return False
 
-    # Echo families are host/provider-driven, not model-name-driven: aggregators re-exporting Kimi reject the
-    # echo. Rule table: ``message_sanitization._REASONING_ECHO_RULES``. Kimi deliberately passes the raw
-    # provider and no model (its rule matches exact provider ids + hosts only).
+    # Echo identities are host/provider-driven, never model-name-driven: aggregators re-exporting Kimi
+    # reject the echo (532b209f01), and a deepseek-/mimo-named model behind another host is lenient, not
+    # require. Rule table: ``message_sanitization._REASONING_ECHO_RULES``. Kimi passes the raw provider
+    # (its rule matches exact provider ids + hosts only).
     def _needs_kimi_tool_reasoning(self) -> bool:
-        """True when the current provider is Kimi / Moonshot thinking mode."""
-        return matches_reasoning_echo_family("kimi", self.provider, None, self.base_url)
+        """True when the current route is Kimi / Moonshot's own thinking-mode endpoint."""
+        return matches_reasoning_echo_identity("kimi", self.provider, self.base_url)
 
     def _needs_deepseek_tool_reasoning(self) -> bool:
-        """True when the current provider is DeepSeek thinking mode (omitting the echo is an HTTP 400).
-
-        DeepSeek V4 thinking mode requires ``reasoning_content`` on every assistant tool-call turn; omitting
-        it causes HTTP 400 when the message is replayed in a subsequent API request (#15250).
-        """
-        return matches_reasoning_echo_family("deepseek", (self.provider or "").lower(), self.model, self.base_url)
+        """True when the current route is DeepSeek's own API (provider ``deepseek`` or host api.deepseek.com),
+        where a replayed assistant tool-call turn without ``reasoning_content`` is HTTP 400 (#15250)."""
+        return matches_reasoning_echo_identity("deepseek", (self.provider or "").lower(), self.base_url)
 
     def _needs_mimo_tool_reasoning(self) -> bool:
-        """True when the current provider is Xiaomi MiMo thinking mode."""
-        return matches_reasoning_echo_family("mimo", (self.provider or "").lower(), self.model, self.base_url)
+        """True when the current route is Xiaomi MiMo's own thinking-mode endpoint."""
+        return matches_reasoning_echo_identity("mimo", (self.provider or "").lower(), self.base_url)
 
     _copy_reasoning_content_for_api = _forward("agent.agent_runtime_helpers", "copy_reasoning_content_for_api")
 

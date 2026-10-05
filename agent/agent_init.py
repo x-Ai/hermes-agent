@@ -2581,6 +2581,9 @@ def init_agent(
     # Every (provider, model) that rejected image content this session. build_api_request strips
     # images from requests to those models only, so history keeps them for any model that can see.
     agent._image_rejecting_models = set()
+    # Every (provider, model) whose 400 said reasoning_content must be passed back: a lenient route
+    # (family model behind a relay) promoted to require for the session (turn_recovery).
+    agent._reasoning_echo_required_routes = set()
     # Models whose Anthropic organization answered a fast request with a fast-mode limit of 0;
     # agent.fast_mode stops sending ``speed`` to them for the rest of the session.
     agent._fast_mode_unavailable_models = set()

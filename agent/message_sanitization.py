@@ -457,7 +457,9 @@ __all__ = [
     "deterministic_call_id", "coalesce_tool_call_id", "tool_call_id_variants",
     "tool_result_id_variants", "uniquify_tool_call_ids", "normalize_provider_tool_call_ids",
     # reasoning_content policy owners
-    "reasoning_echo_family", "matches_reasoning_echo_family", "needs_reasoning_echo",
+    "ECHO_REQUIRE", "ECHO_LENIENT", "ECHO_STRICT", "reasoning_echo_mode", "reasoning_echo_family",
+    "matches_reasoning_echo_identity", "matches_reasoning_echo_model", "matches_reasoning_echo_family",
+    "needs_reasoning_echo", "looks_like_reasoning_echo_required",
     "stale_thinking_reaches_wire", "apply_reasoning_content_policy", "reapply_reasoning_echo",
 ]
 
@@ -613,24 +615,34 @@ def _set_provider_tool_id(tc: Any, key: str, value: str) -> None:
 
 
 # -- reasoning_content policy: single owner of strip-vs-re-pad; adapters keep only SYNTAX --
-# Require side (echo-back enforced; replays 400 without the field): the families below. Kimi
-# is host-driven on purpose (aggregators re-exporting kimi reject it); DeepSeek V4 rejects
-# empty-string pads → " ". Strict side (400/422 "Extra inputs are not permitted"): everyone
-# else — Mistral, Cerebras, Groq, SambaNova, … Strip the key entirely, even a one-space pad.
+# Audit F4 consolidated the decision previously forked across the wire files in separate incident
+# commits (2b3a4f0af8 strip for strict providers, b5495db701 re-pad for require-side,
+# 94b3131be7/9a9f8a6d99 kimi pad). The POLICY — which route gets which treatment — lives here as one
+# rule table + apply functions; adapters keep only SYNTAX mapping (e.g. anthropic_adapter turning
+# reasoning_content into a thinking block). Three directions, decided per route:
+#
+# require — the vendor's OWN endpoint, named by exact provider id or base-URL host: kimi (provider
+#   kimi-coding / kimi-coding-cn, host api.kimi.com / moonshot.ai / moonshot.cn), deepseek (provider
+#   "deepseek", host api.deepseek.com; #15250), mimo (provider "xiaomi", host *.xiaomimimo.com).
+#   Echo-back is enforced: with ``tools`` in the request a replayed assistant turn without
+#   reasoning_content is HTTP 400 ("The reasoning_content in the thinking mode must be passed back to
+#   the API"), so a turn that produced no reasoning is padded with " " (V4 Pro rejects "", #17341).
+#   ``model.reasoning_echo: true`` opts any route in up front.
+# lenient — a family model served by someone else: the model id contains "deepseek" / "mimo" but
+#   neither provider nor host is the vendor's (relays, aggregators). Real reasoning is echoed
+#   verbatim so thinking stays continuous, but nothing is fabricated: a blank pad replayed to an
+#   adaptive-thinking backend reads as "this assistant does not think here" and switches reasoning
+#   off for every later turn (content-neutral A/B on a DeepSeek relay, 6 runs per arm: real echo
+#   6/6 turns reasoned, field omitted 2/6, " " pad 0/6 — and the pad is self-perpetuating). A
+#   verbatim proxy that does enforce the echo is learned from its 400 (turn_recovery) and promoted
+#   to require for the session.
+# strict — everyone else (Mistral, Cerebras, Groq, SambaNova, …; #45655): the key is rejected with
+#   400/422 "Extra inputs are not permitted", even a one-space pad. Strip it entirely.
+# Identity is host/provider-driven on purpose: aggregators re-exporting kimi reject the echo
+# (532b209f01), and the same model id behind a relay is not the vendor's API.
+ECHO_REQUIRE, ECHO_LENIENT, ECHO_STRICT = "require", "lenient", "strict"
+_ECHO_MODES = frozenset({ECHO_REQUIRE, ECHO_LENIENT, ECHO_STRICT})
 
-# --------------------------------------------------------------------------- reasoning_content policy —
-# single owner (audit F4) --------------------------------------------------------------------------- The
-# strip-vs-repad decision was previously forked across the wire files in separate incident commits
-# (2b3a4f0af8 strip for strict providers, b5495db701 re-pad for require-side, 94b3131be7/9a9f8a6d99 kimi
-# pad). The POLICY — which provider direction gets which treatment — lives here as one rule table + apply
-# functions; adapters keep only SYNTAX mapping (e.g. anthropic_adapter turning reasoning_content into a
-# thinking block). Direction table: require-side (echo-back enforced; replays 400 without the field): kimi
-# — provider kimi-coding/kimi-coding-cn, or host api.kimi.com / moonshot.ai / moonshot.cn. Host-driven on
-# purpose: aggregators re-exporting kimi models reject the echo. deepseek — provider "deepseek", model
-# contains "deepseek", or host api.deepseek.com (#15250; V4 rejects empty-string pads, hence the " "
-# single-space pad, #17341). mimo     — provider "xiaomi", model contains "mimo", or host *.xiaomimimo.com.
-# strict side (field rejected with 400/422 "Extra inputs are not permitted"): everyone else — Mistral,
-# Cerebras, Groq, SambaNova, … (#45655). Strip the key entirely, even a single-space pad.
 _REASONING_ECHO_RULES: tuple = (
     # (family, exact providers (raw), exact providers (lowered), model substrings (lowered), hosts)
     ("kimi", frozenset({"kimi-coding", "kimi-coding-cn"}), frozenset(), (), ("api.kimi.com", "moonshot.ai", "moonshot.cn")),
@@ -638,31 +650,60 @@ _REASONING_ECHO_RULES: tuple = (
     ("mimo", frozenset(), frozenset({"xiaomi"}), ("mimo",), ("api.xiaomimimo.com", "xiaomimimo.com")),
 )
 _REASONING_ECHO_RULE_BY_FAMILY = {rule[0]: rule for rule in _REASONING_ECHO_RULES}
+_REASONING_ECHO_FAMILIES = tuple(rule[0] for rule in _REASONING_ECHO_RULES)
 
 
-def matches_reasoning_echo_family(family: str, provider: Any, model: Any, base_url: Any) -> bool:
-    """True when (provider, model, base_url) matches one echo-back family (families can overlap;
-    membership is tested independently). Raises KeyError for an unknown family."""
+def matches_reasoning_echo_identity(family: str, provider: Any, base_url: Any) -> bool:
+    """True when ``provider`` / ``base_url`` name one family's OWN endpoint (exact provider id or host):
+    the require-side signal. Raises KeyError for an unknown family."""
     from utils import base_url_host_matches
 
-    _, raw_providers, lowered_providers, model_subs, hosts = _REASONING_ECHO_RULE_BY_FAMILY[family]
-    model_lower = (model or "").lower()
+    _, raw_providers, lowered_providers, _, hosts = _REASONING_ECHO_RULE_BY_FAMILY[family]
     return (
         provider in raw_providers or (provider or "").lower() in lowered_providers
-        or any(sub in model_lower for sub in model_subs) or any(base_url_host_matches(base_url, host) for host in hosts)
+        or any(base_url_host_matches(base_url, host) for host in hosts)
     )
 
 
+def matches_reasoning_echo_model(family: str, model: Any) -> bool:
+    """True when the model id belongs to the family (substring); alone, this is the lenient signal."""
+    model_lower = (model or "").lower()
+    return any(sub in model_lower for sub in _REASONING_ECHO_RULE_BY_FAMILY[family][3])
+
+
+def matches_reasoning_echo_family(family: str, provider: Any, model: Any, base_url: Any) -> bool:
+    """True when (provider, model, base_url) belongs to one echo family by ANY signal (families can
+    overlap; membership is tested independently). Raises KeyError for an unknown family."""
+    return matches_reasoning_echo_identity(family, provider, base_url) or matches_reasoning_echo_model(family, model)
+
+
 def reasoning_echo_family(provider: Any, model: Any, base_url: Any) -> "str | None":
-    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` (first match in table order) when the
-    endpoint enforces reasoning_content echo-back, else ``None`` (strip side)."""
-    families = (rule[0] for rule in _REASONING_ECHO_RULES)
-    return next((f for f in families if matches_reasoning_echo_family(f, provider, model, base_url)), None)
+    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` (first match in table order) when the route belongs
+    to an echo family by any signal, else ``None``."""
+    return next((f for f in _REASONING_ECHO_FAMILIES if matches_reasoning_echo_family(f, provider, model, base_url)), None)
+
+
+def reasoning_echo_mode(provider: Any, model: Any, base_url: Any) -> str:
+    """``ECHO_REQUIRE`` when provider/host name a family's own endpoint, ``ECHO_LENIENT`` when only
+    the model id belongs to a family, else ``ECHO_STRICT``. Table facts only: the per-session opt-in
+    and the learned-from-400 promotion are folded in by ``ReasoningParamsMixin._reasoning_echo_mode``."""
+    if any(matches_reasoning_echo_identity(f, provider, base_url) for f in _REASONING_ECHO_FAMILIES):
+        return ECHO_REQUIRE
+    if any(matches_reasoning_echo_model(f, model) for f in _REASONING_ECHO_FAMILIES):
+        return ECHO_LENIENT
+    return ECHO_STRICT
 
 
 def needs_reasoning_echo(provider: Any, model: Any, base_url: Any) -> bool:
-    """True when the endpoint requires reasoning_content echo-back."""
-    return reasoning_echo_family(provider, model, base_url) is not None
+    """True when the endpoint enforces reasoning_content echo-back (require side)."""
+    return reasoning_echo_mode(provider, model, base_url) == ECHO_REQUIRE
+
+
+def looks_like_reasoning_echo_required(error_body: Any) -> bool:
+    """True when a 4xx body is the thinking-mode echo-back rejection ("The reasoning_content in the
+    thinking mode must be passed back to the API"): the route enforces the echo after all."""
+    body = str(error_body or "").lower()
+    return "passed back" in body and ("reasoning_content" in body or "reasoning content" in body)
 
 
 def stale_thinking_reaches_wire(api_mode: Any, provider: Any, model: Any, base_url: Any) -> bool:
@@ -672,12 +713,13 @@ def stale_thinking_reaches_wire(api_mode: Any, provider: Any, model: Any, base_u
     walks must share: if they disagree, a reasoning-heavy session can look over-threshold
     to preflight yet fully tail-protected to the walk — an infinite compaction loop.
     ``codex_responses`` never reads the text keys (continuity rides the encrypted sidecar).
+    Both echo sides replay real reasoning; only the strict side strips it.
     """
     if (api_mode or "") == "anthropic_messages":
         from agent.anthropic_thinking_policy import native_anthropic_preserves_prior_thinking
         if native_anthropic_preserves_prior_thinking(base_url, model):
             return True
-    return (api_mode or "") != "codex_responses" and needs_reasoning_echo(provider, model, base_url)
+    return (api_mode or "") != "codex_responses" and reasoning_echo_mode(provider, model, base_url) != ECHO_STRICT
 
 
 def native_anthropic_accounting_projection(messages: Any) -> tuple[Any, tuple[str, ...]]:
@@ -732,69 +774,72 @@ def native_anthropic_accounting_projection(messages: Any) -> tuple[Any, tuple[st
     return projected, tuple(replayed_thinking)
 
 
-def apply_reasoning_content_policy(source_msg: dict, api_msg: dict, needs_thinking_pad: bool) -> None:
-    """Copy provider-facing reasoning fields onto an API replay message (mutates ``api_msg``).
-    ``needs_thinking_pad`` is the require-side flag (``needs_reasoning_echo``)."""
+def apply_reasoning_content_policy(source_msg: dict, api_msg: dict, echo_mode: str) -> None:
+    """Copy provider-facing reasoning fields onto an API replay message (mutates ``api_msg``) in one
+    of the three ``echo_mode`` directions (``ReasoningParamsMixin._reasoning_echo_mode``). Lenient is
+    require minus the fabricated pad: a turn with no real reasoning gets " " on the require side and
+    no field on the lenient side; everything else is identical."""
+    if echo_mode not in _ECHO_MODES:
+        raise ValueError(f"unknown reasoning echo mode {echo_mode!r}")
     if source_msg.get("role") != "assistant":
         return
-    if not needs_thinking_pad:
+    if echo_mode == ECHO_STRICT:
         # Strict side: never carry the field — a reasoning primary pads history with " ",
         # then a fallback to Mistral/Cerebras/Groq replays the pad and 422s. Also drops a
-        # non-string value (None after compaction): never pass null to the API.
+        # non-string value (None after compaction): never pass null to the API. Strict
+        # OpenAI-compatible providers reject ANY reasoning_content key in input messages with
+        # HTTP 400/422 ("Extra inputs are not permitted"), even an empty string or a single-space
+        # pad. Stripping here covers the rebuild path; ``reapply_reasoning_echo`` covers the
+        # already-built api_messages path. Refs #45655.
         api_msg.pop("reasoning_content", None)
         return
     existing, reasoning = source_msg.get("reasoning_content"), source_msg.get("reasoning")
-    # 1. Explicit reasoning_content already set. When the active provider enforces the thinking-mode
-    #   echo-back (DeepSeek / Kimi / MiMo), preserve it verbatim — that includes their own space-placeholder
-    #   written at creation time and any valid reasoning from the same provider. Sessions persisted BEFORE
-    #   #17341 have empty-string placeholders pinned at creation time; DeepSeek V4 Pro rejects those with
-    #   HTTP 400, so upgrade "" → " " on replay. When the active provider does NOT enforce echo-back, strip
-    #   the field entirely. Strict OpenAI-compatible providers (Mistral, Cerebras, Groq, SambaNova, …)
-    #   reject ANY reasoning_content key in input messages with HTTP 400/422 ("Extra inputs are not
-    #   permitted"), even an empty string or a single-space pad. Stripping here covers the rebuild path;
-    #   ``reapply_reasoning_echo`` covers the already-built api_messages path. Refs #45655.
-    if isinstance(existing, str):
-        # Explicit value: preserve verbatim, upgrading legacy "" to " " (DeepSeek V4 400s on "").
+    if isinstance(existing, str) and existing.strip():
+        # Real reasoning (the route's own, or an earlier provider's that the echo side carries):
+        # verbatim on both echo sides.
+        api_msg["reasoning_content"] = existing
+    elif isinstance(existing, str) and echo_mode == ECHO_REQUIRE:
+        # The placeholder written at creation time. Sessions persisted BEFORE #17341 carry "";
+        # DeepSeek V4 Pro rejects that with HTTP 400, so upgrade "" → " " on replay.
         api_msg["reasoning_content"] = existing or " "
     elif isinstance(reasoning, str) and reasoning and not source_msg.get("tool_calls"):
-        # Healthy session: promote internal 'reasoning' → 'reasoning_content'.
+        # Healthy session: promote internal 'reasoning' → 'reasoning_content'. Before the
+        # unconditional pad so genuine reasoning is never overwritten (#15812).
         api_msg["reasoning_content"] = reasoning
-    else:
+    elif echo_mode == ECHO_REQUIRE:
         # tool_calls + 'reasoning' but no 'reasoning_content' means the reasoning came from
         # ANOTHER provider (DeepSeek's own build pins reasoning_content for tool-call turns):
         # pad without leaking foreign CoT. No reasoning at all: every assistant turn still needs
         # the field; " " (not "") because DeepSeek V4 rejects empty string.
         api_msg["reasoning_content"] = " "
+    else:
+        # Lenient: nothing real to echo → no field. A replayed blank pad is what switches an
+        # adaptive-thinking backend off; an omitted field is accepted.
+        api_msg.pop("reasoning_content", None)
 
 
-def reapply_reasoning_echo(api_messages: list, needs_thinking_pad: bool) -> int:
-    """Re-pad (or strip) assistant turns' reasoning_content for the ACTIVE provider.
+_ABSENT = object()
+
+
+def reapply_reasoning_echo(api_messages: list, echo_mode: str) -> int:
+    """Re-pad, un-pad or strip assistant turns' reasoning_content for the ACTIVE route.
 
     ``api_messages`` is built once under the primary provider; a mid-conversation fallback
     can switch providers, so baked-in fields must be reconciled: TO a require-side provider
-    re-applies the pad (else 400), TO a strict one strips it (else 422). Idempotent.
-    Returns the number of assistant turns changed.
+    re-applies the pad (else 400; refs #17341 — DeepSeek/Kimi thinking mode need the field on
+    every assistant turn, a single space when no real reasoning exists), TO a lenient route
+    drops blank pads (else the backend stops thinking), TO a strict one strips everything
+    (else 422). Idempotent. Returns the number of assistant turns changed.
     """
     changed = 0
     for api_msg in api_messages:
         if api_msg.get("role") != "assistant":
             continue
-        # 3. Healthy session: promote 'reasoning' field to 'reasoning_content' for providers that use the
-        #   internal 'reasoning' key. This must happen before the unconditional empty-string fallback so
-        #   genuine reasoning content is not overwritten (#15812 regression in PR #15478). Only promote for
-        #   providers that enforce echo-back — strict providers reject the field (refs #45655).
-        # 4. DeepSeek / Kimi thinking mode: all assistant messages need reasoning_content. Inject a single
-        #   space to satisfy the provider's requirement when no explicit reasoning content is present.
-        #   Covers both tool-call turns (already-poisoned history with no reasoning at all) and plain text
-        #   turns. Space (not "") because DeepSeek V4 Pro tightened validation and rejects empty string with
-        #   HTTP 400 ("The reasoning content in the thinking mode must be passed back to the API"). Refs
-        #   #17341.
-        if needs_thinking_pad:
-            if not api_msg.get("reasoning_content"):
-                apply_reasoning_content_policy(api_msg, api_msg, needs_thinking_pad)
-                changed += 1 if api_msg.get("reasoning_content") else 0
-        elif "reasoning_content" in api_msg:
-            api_msg.pop("reasoning_content", None)
+        before = api_msg.get("reasoning_content", _ABSENT)
+        if echo_mode != ECHO_STRICT and isinstance(before, str) and before.strip():
+            continue  # real reasoning already on the wire copy: both echo sides keep it verbatim
+        apply_reasoning_content_policy(api_msg, api_msg, echo_mode)
+        if api_msg.get("reasoning_content", _ABSENT) != before:
             changed += 1
     return changed
 

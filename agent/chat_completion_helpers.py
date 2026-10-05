@@ -1683,8 +1683,11 @@ def build_assistant_message(agent, assistant_message, finish_reason: str) -> dic
     if raw_reasoning_content is not None:
         msg["reasoning_content"] = _sanitize_surrogates(raw_reasoning_content)
     elif assistant_tool_calls and agent._needs_thinking_reasoning_pad():
-        # DeepSeek v4 / Kimi thinking modes 400 on a replayed tool-call message without
-        # reasoning_content; pad with a single space (empty string is rejected too).
+        # Require side only (the vendors' own endpoints or the reasoning_echo opt-in): DeepSeek v4 /
+        # Kimi thinking modes 400 on a replayed tool-call message without reasoning_content; pad with
+        # a single space (empty string is rejected too). A family model behind a relay (lenient) gets
+        # NO pad here on purpose: the next branch keeps streamed reasoning, and a reasoning-less turn
+        # leaves the field absent, because a replayed " " switches an adaptive-thinking backend off.
         # Without it, replaying the persisted message causes HTTP 400 ("The reasoning_content in the
         # thinking mode must be passed back to the API"). Include streamed reasoning text when captured;
         # otherwise pad with a single space — DeepSeek V4 Pro tightened validation and rejects empty string

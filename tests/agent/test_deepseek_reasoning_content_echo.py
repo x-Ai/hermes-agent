@@ -14,9 +14,11 @@ Fix covers three paths:
    persisted poisoned.
 2. ``_copy_reasoning_content_for_api`` — already-poisoned history replays
    with ``reasoning_content=" "`` injected defensively.
-3. Detection covers three signals: ``provider == "deepseek"``,
-   ``"deepseek" in model``, and ``api.deepseek.com`` host match. The third
-   catches custom-provider setups pointing at DeepSeek.
+3. The pad is keyed on DeepSeek's own endpoint: ``provider == "deepseek"`` or
+   an ``api.deepseek.com`` host match (the latter catches custom-provider
+   setups pointing at DeepSeek). A deepseek-named model behind any other host
+   is *lenient*: real reasoning is echoed, nothing is padded — a replayed " "
+   switches an adaptive-thinking relay off for the rest of the session.
 
 The placeholder is a single space (not empty string) because DeepSeek V4 Pro
 tightened validation and rejects empty-string reasoning_content with a
@@ -72,11 +74,23 @@ def _build_sdk_message(reasoning_content=_ATTR_ABSENT, **extra):
 
 
 class TestNeedsDeepSeekToolReasoning:
-    """_needs_deepseek_tool_reasoning() recognises all three detection signals."""
+    """_needs_deepseek_tool_reasoning() recognises DeepSeek's own endpoint and nothing else."""
 
     def test_provider_deepseek(self) -> None:
         agent = _make_agent(provider="deepseek", model="deepseek-v4-flash")
         assert agent._needs_deepseek_tool_reasoning() is True
+
+    def test_host_api_deepseek_com(self) -> None:
+        agent = _make_agent(provider="custom", model="my-alias", base_url="https://api.deepseek.com/v1")
+        assert agent._needs_deepseek_tool_reasoning() is True
+
+    def test_model_name_behind_another_host_is_lenient_not_require(self) -> None:
+        """The relay case: the model id says DeepSeek, the host does not. Echo real
+        reasoning, never pad — the pad is what locks adaptive thinking off."""
+        agent = _make_agent(provider="custom", model="deepseek-v4.1-flash", base_url="https://relay.example/v1")
+        assert agent._needs_deepseek_tool_reasoning() is False
+        assert agent._reasoning_echo_mode() == "lenient"
+        assert agent._needs_thinking_reasoning_pad() is False
 
 
 
@@ -196,6 +210,21 @@ class TestBuildAssistantMessagePadsStrictProviders:
                 "custom", "kimi-k2", "https://api.moonshot.ai/v1",
                 _ATTR_ABSENT, " ",
                 id="moonshot-base-url",
+            ),
+            pytest.param(
+                "custom", "deepseek-v4-flash", "https://api.deepseek.com/v1",
+                _ATTR_ABSENT, " ",
+                id="deepseek-host-pad",
+            ),
+            pytest.param(
+                "custom", "deepseek-v4.1-flash", "https://relay.example/v1",
+                _ATTR_ABSENT, _EXPECT_NOT_PRESENT,
+                id="deepseek-name-behind-relay-no-pad",
+            ),
+            pytest.param(
+                "openrouter", "deepseek/deepseek-v4", "https://openrouter.ai/api/v1",
+                None, _EXPECT_NOT_PRESENT,
+                id="openrouter-deepseek-no-pad",
             ),
             pytest.param(
                 "openrouter", "anthropic/claude-sonnet-4.6", "https://openrouter.ai/api/v1",

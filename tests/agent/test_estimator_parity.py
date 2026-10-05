@@ -67,6 +67,13 @@ class TestWireTruthPredicate:
             "", "deepseek", "deepseek-reasoner", "https://api.deepseek.com"
         ) is True
 
+    def test_lenient_relay_ships_real_reasoning(self):
+        # A deepseek-named model behind a relay echoes real reasoning_content (never a
+        # pad), so stale thinking text still reaches the wire and must be charged.
+        assert stale_thinking_reaches_wire(
+            "", "custom", "deepseek-v4.1-flash", "https://relay.example/v1"
+        ) is True
+
     def test_strict_chat_completions_strips_it(self):
         assert stale_thinking_reaches_wire(
             "", "mistral", "mistral-large", "https://api.mistral.ai"
