@@ -105,7 +105,11 @@ def _denial_breaker_addendum(session_key: str) -> str:
         "Smart-approval circuit breaker tripped for session %s: %d consecutive denials (threshold %d)",
         session_key, count, threshold,
     )
-    return t("approval.blocked.breaker", count=count)
+    return (
+        f" CIRCUIT BREAKER: {count} consecutive commands were blocked by "
+        "the security reviewer. STOP attempting variations of this "
+        "operation. Report the blocked operation to the user and either ask them to run it manually or use /approve."
+    )
 
 # --- Gateway approval queue (the blocking wait loop lives in approval_gateway_wait) ---------------------------------
 
@@ -556,14 +560,19 @@ def _pending_result(spec, session_key: str, *, command: str, description: str,
         return {
             "approved": False, "pattern_key": pattern_key, "status": "approval_required",
             "command": command, "description": description,
-            "message": t("approval.blocked.pending.action_required", description=description, command=command),
+            "message": (f"⚠️ This action is potentially dangerous ({description}). "
+                        f"Asking the user for approval.\n\n**Target:**\n```\n{command}\n```"),
         }
-    body = body or t("approval.blocked.pending.command_body", command=command)
+    body = body or f"**Command:**\n```\n{command}\n```"
     result = {
         "approved": False, "pattern_key": pattern_key, "status": "pending_approval",
         "approval_pending": True, "command": command, "description": description,
-        "message": t("approval.blocked.pending.pending", description=description, body=body,
-                     noun=t(f"approval.noun.{spec.noun}")),
+        "message": (
+            f"⚠️ {description}. Asking the user for approval.\n\n{body}\n\n"
+            f"STOP: do NOT re-run, rephrase, or re-issue this {spec.noun} — each "
+            "variant sends the user ANOTHER approval card. Wait for the "
+            "user's decision; if this turn must end, report that approval is pending."
+        ),
     }
     if smart_denied:
         result.update(smart_denied=True, allow_permanent=False)
@@ -574,46 +583,36 @@ def _pending_result(spec, session_key: str, *, command: str, description: str,
 
 @dataclass(frozen=True)
 class _Unattended:
-    """One non-interactive context and the text every gate uses to explain it. The wording lives
-    under ``approval.blocked.context.<name>_*`` so the refusal reads in the user's language."""
+    """One non-interactive context and the text every gate uses to explain it."""
     name: str       # "single_query" | "cron" | "unattended"
     cfg_key: str    # approvals.<cfg_key>: approve|deny
-    platform: str = ""  # the unattended platform named in its clause
+    clause: str     # "why nobody can approve" (lower-case sentence fragment)
+    scope: str      # "in cron jobs" — completes "To allow ... {scope}"
+    trust: str      # execute_code: "approve only if {trust}"
 
     def mode(self) -> str:
         # Looked up on the defining module at call time so tests patching the getters keep working.
         return getattr(approval_context, f"_get_{self.name}_approval_mode")()
 
-    def _text(self, part: str) -> str:
-        return t(f"approval.blocked.context.{self.name}_{part}", platform=self.platform)
-
-    @property
-    def clause(self) -> str:
-        """"Why nobody can approve" — a lower-case sentence fragment."""
-        return self._text("clause")
-
-    @property
-    def scope(self) -> str:
-        """"in cron jobs" — completes "To allow ... {scope}"."""
-        return self._text("scope")
-
-    @property
-    def trust(self) -> str:
-        """execute_code: "approve only if {trust}"."""
-        return self._text("trust")
-
     def block_message(self, subject: str, *, noun: str, advice: str) -> str:
-        return t("approval.blocked.unattended", subject=subject, clause=self.clause, advice=advice,
-                 noun=noun, scope=self.scope, cfg_key=self.cfg_key)
+        return (f"BLOCKED: {subject} but {self.clause}. {advice} To allow {noun} {self.scope}, set "
+                f"approvals.{self.cfg_key}: approve in config.yaml.")
 
-    def execute_code_message(self) -> str:
-        clause = self.clause
-        return t("approval.blocked.execute_code_unattended", clause=f"{clause[:1].upper()}{clause[1:]}",
-                 cfg_key=self.cfg_key, trust=self.trust)
+    @property
+    def exec_tail(self) -> str:
+        return (f"{self.clause[0].upper()}{self.clause[1:]}. Use normal tools "
+                f"instead, or set approvals.{self.cfg_key}: approve only if {self.trust}.")
 
 
-_SINGLE_QUERY_CTX = _Unattended("single_query", "single_query_mode")
-_CRON_CTX = _Unattended("cron", "cron_mode")
+_SINGLE_QUERY_CTX = _Unattended(
+    "single_query", "single_query_mode",
+    "single-query mode (-q) runs without a user present to approve it",
+    "in single-query mode", "this single-query run is intentionally trusted",
+)
+_CRON_CTX = _Unattended(
+    "cron", "cron_mode", "cron jobs run without a user present to approve it",
+    "in cron jobs", "this cron profile is intentionally trusted",
+)
 
 
 def _unattended_contexts() -> list[_Unattended]:
@@ -626,7 +625,12 @@ def _unattended_contexts() -> list[_Unattended]:
     if _is_cron_approval_context():
         contexts.append(_CRON_CTX)
     elif _is_unattended_platform_approval_context():
-        contexts.append(_Unattended("unattended", "unattended_mode", platform=_get_session_platform()))
+        contexts.append(_Unattended(
+            "unattended", "unattended_mode",
+            "this session runs on an unattended platform "
+            f"({_get_session_platform()}) with no user present to approve it",
+            "on unattended platforms", "sessions on this surface are intentionally trusted",
+        ))
     return contexts
 
 
@@ -643,12 +647,12 @@ def _unattended_deny(command: str, ctx: _Unattended) -> dict | None:
 
     def block(subject: str) -> dict:
         return {"approved": False, "message": ctx.block_message(
-            subject, noun=t("approval.blocked.noun_dangerous_commands"),
-            advice=t("approval.blocked.advice_command"))}
+            subject, noun="dangerous commands",
+            advice="Find an alternative approach that avoids this command.")}
 
     is_dangerous, pattern_key, description = detect_dangerous_command(command)
     if is_dangerous and not _is_permanently_approved(pattern_key):
-        result = block(t("approval.blocked.flagged_subject", description=description))
+        result = block(f"Command flagged as dangerous ({description})")
         if ctx.name == "single_query":
             result.update(pattern_key=pattern_key, description=description)
         return result
@@ -658,8 +662,10 @@ def _unattended_deny(command: str, ctx: _Unattended) -> dict | None:
     except ImportError:
         if _tirith_fail_open():
             return None
-        return {"approved": False, "message": t("approval.blocked.tirith_unavailable",
-                                                 clause=ctx.clause, cfg_key=ctx.cfg_key)}
+        return {"approved": False, "message": (
+            "BLOCKED: the Tirith security scanner could not be imported and security.tirith_fail_open is false, "
+            f"so this command cannot be silently allowed — and {ctx.clause}. "
+            f"Find an alternative approach, install tirith, or set approvals.{ctx.cfg_key}: approve in config.yaml.")}
     if tirith.get("action") in ("block", "warn"):
         return block(_format_tirith_description(tirith))
     return None
@@ -679,34 +685,75 @@ class _GateSpec:
     redact_cli: bool          # CLI prompt + hooks see the redacted copy
     pending_keys: bool        # pending fallback: redacted ``pending_approval`` shape with
                               # pattern_keys (True) vs raw ``approval_required`` (False)
-    # Refusal wording: ``approval.blocked.<key>.<outcome>`` in the locale catalogs, one template
-    # per outcome (notify_failed / gateway_refused / transport_denied / cli_timeout / cli_denied).
-    # ``{breaker}`` = the denial circuit-breaker addendum, read only where a template shows it
-    # (reading it logs when tripped).
-    key: str
+    # Message templates. ``{breaker}`` = the denial circuit-breaker addendum,
+    # read only where a template shows it (reading it logs when tripped).
+    notify_failed: str
+    gateway_refused: str      # {reason}{reason_addendum}{timeout_addendum}{breaker}
+    transport_denied: str     # {breaker}
+    cli_timeout: str          # {breaker}
+    cli_denied: str           # {description}{breaker}
     smart_log: str            # {command}{description}{session_key}
 
-    def message(self, outcome: str, **fmt: str) -> str:
-        """The refusal for ``outcome`` in the user's language. Templates ignore the placeholders
-        they do not show, so callers may pass the whole set."""
-        return t(f"approval.blocked.{self.key}.{outcome}", **fmt)
 
-    def shows_breaker(self, outcome: str) -> bool:
-        return "{breaker}" in t(f"approval.blocked.{self.key}.{outcome}", lang="en")
-
+_STOP_COMMAND = (
+    " The user has NOT consented to this action. Do NOT retry this command, do "
+    "NOT rephrase it, and do NOT attempt the same outcome via a different "
+    "command. Stop the current workflow and wait for the user to respond before "
+    "taking any further destructive or irreversible action."
+)
+_STOP_ACTION = (
+    " The user has NOT consented to this action. Do NOT retry it, do NOT "
+    "rephrase it, and do NOT attempt the same outcome via a different path."
+)
 
 _COMMAND_GATE = _GateSpec(
-    noun="command", transport=True, user_approved=True, redact_cli=False, pending_keys=True, key="command",
+    noun="command", transport=True, user_approved=True, redact_cli=False, pending_keys=True,
+    notify_failed="BLOCKED: Failed to send approval request to user. Do NOT retry.",
+    gateway_refused="BLOCKED: Command {reason}.{reason_addendum}" + _STOP_COMMAND
+                    + "{timeout_addendum}{breaker}",
+    transport_denied=(
+        "BLOCKED: User denied this command through the selected approval "
+        "transport. The user has NOT consented to this action. Do NOT retry or "
+        "attempt the same outcome through another route.{breaker}"
+    ),
+    cli_timeout="BLOCKED: Command timed out without user response." + _STOP_COMMAND
+                + " Silence is not consent.{breaker}",
+    cli_denied="BLOCKED: User denied this command." + _STOP_COMMAND + "{breaker}",
     smart_log="Smart approval: auto-approved '{command}' ({description})",
 )
 _EXECUTE_CODE_GATE = _GateSpec(
-    noun="code", transport=True, user_approved=True, redact_cli=True, pending_keys=True, key="code",
+    noun="code", transport=True, user_approved=True, redact_cli=True, pending_keys=True,
+    notify_failed="BLOCKED: Failed to send execute_code approval request to user. Do NOT retry.",
+    gateway_refused=(
+        "BLOCKED: execute_code script {reason}.{reason_addendum} The user has "
+        "NOT consented to running this code. Do NOT retry, do NOT rephrase the "
+        "script, and do NOT attempt the same outcome via a different tool.{timeout_addendum}{breaker}"
+    ),
+    transport_denied=(
+        "BLOCKED: User denied execute_code through the selected approval transport. The user has NOT consented."
+    ),
+    cli_timeout="BLOCKED: Action timed out without user response." + _STOP_ACTION
+                + " Silence is not consent.{breaker}",
+    cli_denied=(
+        "BLOCKED: User denied execute_code script execution (matched "
+        "'{description}'). Do NOT retry — the user has explicitly rejected it.{breaker}"
+    ),
     smart_log="Smart approval: auto-approved execute_code for session {session_key}",
 )
 # Plugin-escalated tool calls / protected writes: no transport, no breaker,
 # no user_approved marker (parity with the historical gate).
 _ACTION_GATE = _GateSpec(
-    noun="action", transport=False, user_approved=False, redact_cli=False, pending_keys=False, key="action",
+    noun="action", transport=False, user_approved=False, redact_cli=False, pending_keys=False,
+    notify_failed="BLOCKED: Failed to send approval request to user. Do NOT retry.",
+    gateway_refused="BLOCKED: Action {reason}.{reason_addendum}" + _STOP_ACTION
+                    + "{timeout_addendum}",
+    transport_denied="",
+    cli_timeout="BLOCKED: Action timed out without user response." + _STOP_ACTION
+                + " Silence is not consent.",
+    cli_denied=(
+        "BLOCKED: User denied this potentially dangerous action (matched "
+        "'{description}'). Do NOT retry — the user has explicitly rejected it."
+    ),
     smart_log="",
 )
 
@@ -737,8 +784,8 @@ def _smart_gate(spec: _GateSpec, command: str, description: str, pattern_key: st
         # Unattended programmatic platforms (webhook/msgraph_webhook/ api_server): respect unattended_mode
         # config. Resolves instantly — never a pending approval nobody can answer (#37284, #87509).
         "approved": False,
-        "message": t("approval.blocked.smart_denied", description=description,
-                     breaker=_denial_breaker_addendum(session_key)),
+        "message": (f"BLOCKED by smart approval: {description}. The command was assessed as genuinely "
+                    f"dangerous. Do NOT retry.{_denial_breaker_addendum(session_key)}"),
         "smart_denied": True,
     }, True
 
@@ -768,11 +815,12 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
     allow_permanent = permanent_capable and not smart_denied
 
     def deny(template: str, outcome: str, **fmt) -> dict:
-        breaker = _denial_breaker_addendum(session_key) if spec.shows_breaker(template) else ""
+        breaker = ""
+        if "{breaker}" in template:
+            breaker = _denial_breaker_addendum(session_key)
         deny_reason = fmt.pop("deny_reason", None)
         extra = {"deny_reason": deny_reason} if "reason" in fmt else {}
-        fmt = {"reason": "", "reason_addendum": "", "timeout_addendum": "", **fmt}
-        return _denied(spec.message(template, description=description, breaker=breaker, **fmt),
+        return _denied(template.format(description=description, breaker=breaker, **fmt),
                        pattern_key=pattern_key, description=description,
                        outcome=outcome, noun=spec.noun, **extra)
 
@@ -796,7 +844,7 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
         if choice is not None:
             if choice == "deny":
                 _record_denial(session_key)
-                return deny("transport_denied", "denied")
+                return deny(spec.transport_denied, "denied")
             return grant(choice)
 
     # Gateway/async approval: block the agent thread until /approve or /deny, mirroring the CLI's synchronous input()
@@ -821,7 +869,7 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
                 data["smart_denied"] = True
             decision = _await_gateway_decision(session_key, notify_cb, data, surface="gateway")
             if decision.get("notify_failed"):
-                return _denied(spec.message("notify_failed"), pattern_key=pattern_key,
+                return _denied(spec.notify_failed, pattern_key=pattern_key,
                                description=description, outcome="notify_failed", noun=spec.noun)
             # Consent contract: silence is NOT consent, and an explicit deny is a hard
             # halt — both produce a BLOCKED outcome. ``/deny <reason>`` free text is
@@ -830,17 +878,17 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
             if decision.get("cancelled"):
                 # The prompt was withdrawn (turn interrupted or ended) before anyone answered:
                 # still fail closed, but do not attribute a refusal to the user.
-                return deny("gateway_refused", "cancelled",
-                            reason=t("approval.blocked.reason_withdrawn", cause=decision["cancelled"]),
-                            deny_reason=None)
+                return deny(spec.gateway_refused, "cancelled",
+                            reason=f"approval was withdrawn before the user answered ({decision['cancelled']})",
+                            reason_addendum="", timeout_addendum="", deny_reason=None)
             if not decision["resolved"]:
-                return deny("gateway_refused", "timeout", reason=t("approval.blocked.reason_timeout"),
-                            timeout_addendum=t("approval.blocked.silence"), deny_reason=deny_reason)
-            if choice is None or choice == "deny":
-                return deny("gateway_refused", "denied", reason=t("approval.blocked.reason_denied"),
-                            reason_addendum=(t("approval.blocked.reason_given", reason=deny_reason)
-                                             if deny_reason else ""),
+                return deny(spec.gateway_refused, "timeout", reason="timed out without user response",
+                            reason_addendum="", timeout_addendum=" Silence is not consent.",
                             deny_reason=deny_reason)
+            if choice is None or choice == "deny":
+                return deny(spec.gateway_refused, "denied", reason="denied by user",
+                            reason_addendum=(f' Reason given by the user: "{deny_reason}".' if deny_reason else ""),
+                            timeout_addendum="", deny_reason=deny_reason)
             return grant(choice)
 
         # No gateway callback (cron, batch, or ask-mode leaked into an interactive CLI, historically via `import
@@ -868,17 +916,18 @@ def _human_decision(spec: _GateSpec, *, command: str, description: str,
                                        smart_denied=smart_denied, approval_callback=approval_callback)
     approval_context._fire_approval_hook("post_approval_response", **hook_kwargs, choice=choice)
     if choice == "timeout":
-        return deny("cli_timeout", "timeout")
+        return deny(spec.cli_timeout, "timeout")
     if choice == "cancelled":
         # The prompt never reached a human (callback raised, no callback under prompt_toolkit, interrupted
         # read): fail closed, but do not attribute a refusal to the user (#22992).
-        return deny("gateway_refused", "cancelled",
-                    reason=t("approval.blocked.reason_undelivered", cause=getattr(choice, "cause", "no answer")),
-                    timeout_addendum=t("approval.blocked.silence"), deny_reason=None)
+        return deny(spec.gateway_refused, "cancelled",
+                    reason="was not approved: the approval prompt could not be delivered or was not answered "
+                           f"({getattr(choice, 'cause', 'no answer')})",
+                    reason_addendum="", timeout_addendum=" Silence is not consent.", deny_reason=None)
     if choice == "deny":
         # No _record_denial(): the breaker counts consecutive guardian LLM
         # DENY verdicts, not deliberate human denials.
-        return deny("cli_denied", "denied")
+        return deny(spec.cli_denied, "denied")
     return grant(choice)
 
 
@@ -901,7 +950,8 @@ def _presence(approval_callback=None) -> tuple:
 
 def _run_approval_gate(
     *, pattern_key: str, description: str, display_target: str, approval_callback=None,
-    subject: str = "", noun: str = "", advice: str = "",
+    subject: str = "", noun: str = "flagged actions",
+    advice: str = "Find an alternative approach that avoids this action.",
     cron_deny_message: str = "", single_query_deny_message: str = "", unattended_deny_message: str = "",
     autoapprove_log_prefix: str, fail_closed_when_no_human: bool = False, no_human_block_message: str = "",
 ) -> dict:
@@ -914,11 +964,8 @@ def _run_approval_gate(
     context without an ask bridge BLOCKS instead of auto-approving, so a plugin-flagged action
     never runs ungated.
     Unattended deny text is ``ctx.block_message(subject, noun, advice)`` unless the caller passes
-    an explicit ``*_deny_message`` (the file-tool write gates word their own). ``noun`` and
-    ``advice`` default to the catalog's "flagged actions" wording.
+    an explicit ``*_deny_message`` (the file-tool write gates word their own).
     """
-    noun = noun or t("approval.blocked.noun_flagged_actions")
-    advice = advice or t("approval.blocked.advice_action")
     # Hardline blocks are the caller's job BEFORE this gate, so yolo here only skips the recoverable approval layer.
     # ``approvals.mode: off`` is the third bypass source (the Desktop "Approvals: off" toggle writes it); the shell
     # guards honour it, so every action routed through this gate (computer_use, plugin rules, SSH-config writes,
@@ -942,9 +989,8 @@ def _run_approval_gate(
                 message = deny_messages[ctx.name]
                 if not message and ctx.name == "unattended":
                     # Platform contexts keep the generic wording (historical shape).
-                    message = ctx.block_message(
-                        t("approval.blocked.approval_required_subject", description=description),
-                        noun=t("approval.blocked.noun_flagged_actions"), advice=t("approval.blocked.advice_action"))
+                    message = ctx.block_message(f"approval required ({description})", noun="flagged actions",
+                                                advice="Find an alternative approach that avoids this action.")
                 elif not message:
                     message = ctx.block_message(subject, noun=noun, advice=advice)
                 return _blocked(message, pattern_key=pattern_key, description=description)
@@ -960,8 +1006,10 @@ def _run_approval_gate(
                 logger.warning("%s (pattern: %s): %s — no interactive user/gateway present; "
                                "BLOCKED (fail-closed). Set HERMES_INTERACTIVE or "
                                "HERMES_GATEWAY_SESSION to answer the prompt.", *log_args)
-                return _blocked(no_human_block_message or t("approval.blocked.no_human", description=description),
-                                pattern_key=pattern_key, description=description)
+                return _blocked(no_human_block_message or (
+                    f"BLOCKED: approval required ({description}) but no "
+                    "interactive user or gateway is present to approve it."),
+                    pattern_key=pattern_key, description=description)
         logger.warning("%s (pattern: %s): %s — set HERMES_INTERACTIVE or "
                        "HERMES_GATEWAY_SESSION to require approval.", *log_args)
         return _approved()
@@ -1047,8 +1095,8 @@ def check_dangerous_command(command: str, env_type: str,
         return _approved()
     return _run_approval_gate(
         pattern_key=pattern_key, description=description, display_target=command, approval_callback=approval_callback,
-        subject=t("approval.blocked.flagged_subject", description=description),
-        noun=t("approval.blocked.noun_dangerous_commands"), advice=t("approval.blocked.advice_command"),
+        subject=f"Command flagged as dangerous ({description})", noun="dangerous commands",
+        advice="Find an alternative approach that avoids this command.",
         autoapprove_log_prefix="AUTO-APPROVED dangerous command in non-interactive non-gateway context",
     )
 
@@ -1067,16 +1115,17 @@ def request_tool_approval(tool_name: str, reason: str, *, rule_key: str = "", ap
     description = reason or f"Plugin requires approval for {tool_name}"
     if not rule_key:
         rule_key = f"{tool_name}:{hashlib.sha256(description.encode('utf-8')).hexdigest()[:12]}"
-    subject = t("approval.blocked.tool_subject", tool=tool_name, description=description)
+    subject = f"Tool '{tool_name}' requires approval ({description})"
     return _run_approval_gate(
         # Namespaced so plugin-rule approvals share the allowlist machinery without ever colliding with a real
         # command pattern key; the display target is a synthetic label for the display/allowlist layer.
         pattern_key=f"plugin_rule:{rule_key}", description=description,
         display_target=f"<{tool_name}> (plugin approval rule)", approval_callback=approval_callback,
-        subject=subject, advice=t("approval.blocked.advice_generic"),
+        subject=subject, advice="Find an alternative approach.",
         autoapprove_log_prefix=f"plugin-escalated tool call '{tool_name}' in non-interactive non-gateway context",
         fail_closed_when_no_human=True,
-        no_human_block_message=t("approval.blocked.no_human_plugin", subject=subject),
+        no_human_block_message=(f"BLOCKED: {subject} but no interactive user or gateway is present "
+                                "to approve it. A plugin flagged this action for human confirmation."),
     )
 
 
@@ -1091,9 +1140,9 @@ def _format_tirith_description(tirith_result: dict) -> str:
             text = f"{title}: {desc}" if desc else title
             parts.append(f"[{severity}] {text}" if severity else text)
     if not parts:
-        summary = tirith_result.get("summary") or t("approval.blocked.tirith_default_summary")
-        return t("approval.blocked.tirith_scan_summary", summary=summary)
-    return t("approval.blocked.tirith_scan_findings", findings="; ".join(parts))
+        summary = tirith_result.get("summary") or "security issue detected"
+        return f"Security scan: {summary}"
+    return "Security scan — " + "; ".join(parts)
 
 
 def _tirith_scan(command: str) -> dict:
@@ -1223,8 +1272,11 @@ def check_execute_code_guard(code: str, env_type: str, has_host_access: bool = F
     # sessions: the first active context resolves instantly from its mode.
     for ctx in _unattended_contexts():
         if ctx.mode() == "deny":
-            return _denied(ctx.execute_code_message(),
-                           pattern_key=pattern_key, description=description, outcome="blocked", noun="code")
+            return _denied(
+                "BLOCKED: execute_code runs arbitrary local Python (including "
+                "subprocess calls that bypass shell-string approval checks). " + ctx.exec_tail,
+                pattern_key=pattern_key, description=description, outcome="blocked", noun="code",
+            )
         return _approved()
 
     # Only gateway/ask contexts get the one-shot whole-script approval. In an interactive CLI the script's terminal()

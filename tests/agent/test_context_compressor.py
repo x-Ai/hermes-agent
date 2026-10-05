@@ -457,13 +457,13 @@ def _refusals():
     no_consent = ["BLOCKED, not run", "did NOT consent"]
     return [
         pytest.param("terminal", {"command": "rm -rf build"},
-                     _error_json(gate.message("cli_denied", description="", breaker=""), status="blocked"),
+                     _error_json(gate.cli_denied.format(description="", breaker=""), status="blocked"),
                      no_consent, id="cli_denied"),
         pytest.param("terminal", {"command": "rm -rf build"},
-                     _error_json(gate.message("transport_denied", breaker=""), status="blocked"),
+                     _error_json(gate.transport_denied.format(breaker=""), status="blocked"),
                      no_consent, id="transport_denied"),
         pytest.param("terminal", {"command": "rm -rf build"},
-                     _error_json(gate.message("cli_timeout", breaker=""), status="blocked"),
+                     _error_json(gate.cli_timeout.format(breaker=""), status="blocked"),
                      no_consent, id="cli_timeout"),
         pytest.param("write_file", {"path": "AGENTS.md", "content": "a\nb"},
                      "BLOCKED: write to protected agent-instruction file(s) (AGENTS.md) was denied "

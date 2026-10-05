@@ -2016,11 +2016,11 @@ def _json_dict(text: Any) -> dict:
 
 
 def _summarize_refused_tool_result(tool_name: str, args: dict, content: str) -> "str | None":
-    """Summary for a call an approval or write guard refused (``BLOCKED: ...`` / ``status`` ``blocked`` /
-    ``pending_approval``), else None. The per-tool summarizers describe the call as done ("ran ...", "wrote
-    to ..."), which would turn a user's denial into a record of the action and drop the "do not retry"
-    instruction; ``user_consent`` False in the envelope marks that denial in any language, the English phrase
-    still covers raw-text guards. Strictly below _PRUNE_MIN_CHARS, like the clarify summary, so prunes keep it."""
+    """Summary for a call an approval or write guard refused (``BLOCKED: ...`` / ``status``
+    ``blocked``/``pending_approval``), else None. The per-tool summarizers describe the call as done
+    ("ran ...", "wrote to ..."), which would turn a user's denial into a record of the action and
+    drop the "do not retry" instruction. Strictly below _PRUNE_MIN_CHARS, like the clarify summary,
+    so later prune passes keep it."""
     payload = _json_dict(content)
     status = payload.get("status")
     error = payload.get("error") if isinstance(payload.get("error"), str) else ""
@@ -2030,7 +2030,7 @@ def _summarize_refused_tool_result(tool_name: str, args: dict, content: str) -> 
         outcome = "awaiting the user's approval, not run"
     elif error and (status == "blocked" or error.lstrip().startswith("BLOCKED")):
         outcome = "BLOCKED, not run"
-        if payload.get("user_consent") is False or "NOT consented" in error:
+        if "NOT consented" in error:
             outcome += "; the user did NOT consent, do not retry or reach the same outcome another way"
     else:
         return None

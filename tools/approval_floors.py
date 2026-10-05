@@ -13,7 +13,6 @@ import logging
 import re
 import time
 import uuid
-from agent.i18n import t
 from tools import approval_context as _ctx
 from tools.approval_detection import (
     _MALFORMED_EXEC_DESCRIPTION, _PARSER_LIMIT_DESCRIPTION, _deny_command_variants)
@@ -45,7 +44,11 @@ def _match_user_deny_rule(command: str) -> str | None:
 
 def _user_deny_block_result(pattern: str) -> dict:
     """Build the standard block result for an ``approvals.deny`` match."""
-    return {"approved": False, "user_deny": True, "message": t("approval.blocked.user_deny", pattern=pattern)}
+    return {"approved": False, "user_deny": True, "message": (
+        f"BLOCKED: this command matches the user-defined deny rule "
+        f"'{pattern}' (approvals.deny in config.yaml). It cannot be "
+        "executed via the agent — not even with --yolo, /yolo, or "
+        "approvals.mode=off. Do NOT retry or rephrase this command; the user has explicitly forbidden it.")}
 
 
 def _save_blocked_payload(command: str) -> str | None:
@@ -86,24 +89,46 @@ def _save_blocked_payload(command: str) -> str | None:
         return None
 
 
+_RECOVERY_PREFIX = (
+    " RECOVERY: this block fires on oversized/unparseable inline "
+    "command payloads (heredocs, giant one-liners), not on the operation itself. "
+)
+
+
 def _hardline_block_result(description: str, command: str = "") -> dict:
-    """Build the standard block result for a hardline match. The wording lives in the
-    ``approval.blocked`` catalog so it reads in the user's language; the ``BLOCKED`` marker at
-    its head is kept in every language (the context compressor keys on it)."""
-    message = t("approval.blocked.hardline", description=description)
+    """Build the standard block result for a hardline match."""
+    message = (
+        f"BLOCKED (hardline): {description}. "
+        "This command is on the unconditional blocklist and cannot "
+        "be executed via the agent — not even with --yolo, /yolo, "
+        "approvals.mode=off, or cron approve mode. If you genuinely "
+        "need to run it, run it yourself in a terminal outside the agent."
+    )
     # The parser-limit block is almost always a giant inline payload, not a forbidden operation, and is typically
     # followed by blind rephrase retries — point at the saved script (or the write_file recipe).
     if description in (_PARSER_LIMIT_DESCRIPTION, _MALFORMED_EXEC_DESCRIPTION):
         saved = _save_blocked_payload(command) if command else None
-        message += t("approval.blocked.recovery_prefix") + (
-            t("approval.blocked.recovery_saved", path=saved) if saved
-            else t("approval.blocked.recovery_write_file"))
+        if saved:
+            message += _RECOVERY_PREFIX + (
+                f"Your command was saved to {saved} — review it, then run: terminal(command=\"bash {saved}\"). "
+                "Do not retry inline."
+            )
+        else:
+            message += _RECOVERY_PREFIX + (
+                "Write the script to a file with write_file, "
+                "then run it: terminal(command=\"bash /path/script.sh\") or "
+                "\"python3 /path/script.py\". Do not retry inline."
+            )
     return {"approved": False, "hardline": True, "message": message}
 
 
 def _sudo_stdin_block_result(description: str) -> dict:
     """Build the standard block result for sudo stdin guard."""
-    return {"approved": False, "message": t("approval.blocked.sudo_stdin", description=description)}
+    return {"approved": False, "message": (
+        f"BLOCKED: {description}. "
+        "Do not pipe passwords to 'sudo -S' — this is a brute-force "
+        "attack vector. Set SUDO_PASSWORD in your .env file if the "
+        "agent needs passwordless sudo, or run the sudo command manually in your own terminal.")}
 
 
 # Shell control characters that make a command compound when they appear OUTSIDE quotes. Inside quotes they are
