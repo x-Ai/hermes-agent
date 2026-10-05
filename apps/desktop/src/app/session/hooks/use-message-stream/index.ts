@@ -14,6 +14,8 @@ import {
   completeOpenTimelineParts,
   type GatewayEventPayload,
   mergeFinalAssistantText,
+  normalizeWs,
+  partsText,
   reasoningPart,
   renderMediaTags,
   sealOpenToolParts,
@@ -726,7 +728,8 @@ export function useMessageStream({
       occurredAt = Date.now() / 1000,
       persistedTurn?: PersistedTurn | null,
       responseTransformed?: boolean,
-      status?: string
+      status?: string,
+      responseReused?: boolean
     ) => {
       let shouldHydrate = false
 
@@ -766,6 +769,8 @@ export function useMessageStream({
         // bubble failed, instead of stripping the text.
         const keepFailedPartialText = Boolean(failure?.partial && finalText)
         const interimBoundaryPending = state.interimBoundaryPending
+        // A failed turn's text is the retained buffer, never a reused response.
+        const reusedResponse = Boolean(responseReused && finalText && !completionError)
 
         // Wall-clock seconds this turn actually ran (message.start stamped
         // turnStartedAt). Read BEFORE the state return below nulls it.
@@ -774,6 +779,13 @@ export function useMessageStream({
           : undefined
 
         const replaceTextPart = (parts: ChatMessagePart[], interim: boolean) => {
+          // The backend says every word of this final is already on screen; a
+          // merge bounded at the last tool row would paint it twice. A bubble
+          // that missed those deltas (reconnect) still merges.
+          if (reusedResponse && normalizeWs(partsText(parts)).includes(normalizeWs(finalText))) {
+            return parts
+          }
+
           const visibleFinalText = stripGeneratedImageEchoes(finalText, generatedImageEchoSources(parts)).trim()
 
           // Partial terminal errors carry the whole retained assistant buffer,
@@ -904,10 +916,9 @@ export function useMessageStream({
             const index = fallbackIndex
             const existing = prev[index]
 
-            const existingText = chatMessageText({
-              ...existing,
-              parts: existing.interim || keepFailedPartialText ? existing.parts : currentResponseParts(existing.parts)
-            }).trim()
+            const existingText = partsText(
+              existing.interim || keepFailedPartialText ? existing.parts : currentResponseParts(existing.parts)
+            ).trim()
 
             // The last assistant row is a sealed interim (a tool-call turn or a
             // verify-on-stop candidate — `message.interim` fires for BOTH, see
