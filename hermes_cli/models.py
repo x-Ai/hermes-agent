@@ -95,7 +95,6 @@ def _get_json(
         return json.loads(body.decode())
 
 
-
 def _read_json_cache(path: Path, *, errors=Exception) -> Optional[dict]:
     """Load a JSON-object cache file; None when missing, unreadable, or not a dict."""
     try:
@@ -1132,10 +1131,9 @@ def normalize_provider(provider: Optional[str]) -> str:
 def provider_label(provider: Optional[str]) -> str:
     """Return a human-friendly label for a provider id or alias."""
     original = (provider or "openrouter").strip()
-    normalized = original.lower()
-    if normalized == "auto":
+    if original.lower() == "auto":
         return "Auto"
-    normalized = normalize_provider(normalized)
+    normalized = normalize_provider(original.lower())
     if normalized == "custom":
         from hermes_cli.providers import custom_endpoint_label
         return custom_endpoint_label()
@@ -1709,7 +1707,6 @@ def _relay_model_catalog(normalized: str, relay: str) -> Optional[list[str]]:
         return [str(m) for m in (live or []) if m] or None
     except Exception:
         return None
-
 
 
 # Canonical fetchers that already resolve `model.base_url` themselves for the configured
