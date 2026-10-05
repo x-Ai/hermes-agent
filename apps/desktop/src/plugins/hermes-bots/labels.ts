@@ -77,6 +77,39 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
   return raw.replace(/\b\w/g, ch => ch.toUpperCase())
 }
 
+/** The gateway a Bot Mode surface names beside a row: the roster tooltip, the
+ *  gateway section heading and filter, the @-mention meta, a twin's
+ *  disambiguator. The local registry entry's label is a stable backend
+ *  identity ("This device"), not a name the user typed, so it is localized
+ *  here at presentation time — the rule `displayConnectionLabel` already
+ *  applies in the app shell. Every other label is the user's own name for
+ *  that gateway. Routing and matching keep reading the raw fields.
+ *  `fallback` is what a gateway with no label reads as (its id, usually). */
+export function gatewayDisplayLabel(
+  gateway: { connectionId?: string; kind?: string; label?: string } | null | undefined,
+  thisDevice: string,
+  fallback?: string
+): string {
+  if (gateway?.kind === 'local' || gateway?.connectionId === 'local') {
+    return thisDevice
+  }
+
+  return gateway?.label || fallback || ''
+}
+
+/** Roster rows carry the same triple under `connection*` names. */
+export function botGatewayLabel(
+  bot: Pick<RosterRow, 'connectionId' | 'connectionKind' | 'connectionLabel'> | null | undefined,
+  thisDevice: string,
+  fallback?: string
+): string {
+  return gatewayDisplayLabel(
+    bot ? { connectionId: bot.connectionId, kind: bot.connectionKind, label: bot.connectionLabel } : null,
+    thisDevice,
+    fallback
+  )
+}
+
 export function localizedDisplayName(
   bot: Partial<RosterRow>,
   meta: BotMeta | null | undefined,

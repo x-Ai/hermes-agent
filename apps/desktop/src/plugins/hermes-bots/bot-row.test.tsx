@@ -35,6 +35,9 @@ const { ensureAgent, ensureBotMetadata, notifyError, openRosterBot, requestProfi
     warmProfile: vi.fn()
   }))
 
+// The row reads its strings per render, so a test can pick the UI language.
+const i18n = vi.hoisted(() => ({ locale: 'en' as 'en' | 'zh' }))
+
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
   const sdk = await importOriginal<typeof HermesSdk>()
 
@@ -43,7 +46,7 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
     host: { ...sdk.host, ensureAgent, notifyError, requestProfile, warmAgent, warmProfile },
     // The plugin bundle normally lands via `ctx.i18n.register` at load, so
     // without this every localized label in the row renders empty.
-    usePluginI18n: () => translateBotsIn('en')
+    usePluginI18n: () => translateBotsIn(i18n.locale)
   }
 })
 
@@ -67,6 +70,7 @@ function renderRow(bot: RosterRow) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  i18n.locale = 'en'
   ensureBotMetadata.mockResolvedValue({ pinned: true })
   openRosterBot.mockResolvedValue(true)
   // A save reads the bot's server namespace (profiles.list) before writing it.
@@ -95,6 +99,39 @@ describe('group-turn presence', () => {
     expect(moods()).toEqual(['think', 'idle'])
     act(() => $groupChats.set({}))
     expect(moods()).toEqual(['idle', 'idle'])
+  })
+})
+
+describe('the tooltip names the gateway in the UI language', () => {
+  it('shows the translated "This device" for the local gateway, not the registry label', () => {
+    i18n.locale = 'zh'
+
+    const row = renderRow({
+      connectionId: 'local',
+      connectionKind: 'local',
+      // The registry's label is English data whatever language the UI is in.
+      connectionLabel: 'This device',
+      name: 'default',
+      sourceScoped: true
+    } as RosterRow)
+
+    expect(row.getAttribute('aria-label')).toContain('本设备')
+    expect(row.getAttribute('aria-label')).not.toContain('This device')
+  })
+
+  it('keeps a remote gateway under the name the user gave it', () => {
+    i18n.locale = 'zh'
+
+    const row = renderRow({
+      connectionId: 'homelab',
+      connectionKind: 'remote',
+      connectionLabel: 'Homelab',
+      name: 'research',
+      remoteSource: true,
+      sourceScoped: true
+    } as RosterRow)
+
+    expect(row.getAttribute('aria-label')).toContain('Homelab')
   })
 })
 

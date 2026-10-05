@@ -68,7 +68,7 @@ import {
 import { groupWorkspaceOwnerKey } from './group-membership'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
 import { BOTS_LOCALES, botsText, resetBotsText } from './i18n'
-import { displayName } from './labels'
+import { botGatewayLabel, displayName } from './labels'
 import { startBotRelay, stopBotRelay } from './relay'
 import { $activityToasts } from './roster-actions'
 import {
@@ -208,7 +208,8 @@ export default {
 
             const qualified = (tagCounts.get(tag.toLowerCase()) || 0) > 1 && profile.connectionId
             const insert = qualified ? `@${tag}@${profile.connectionId}` : `@${tag}`
-            const source = profile.connectionLabel ? ` · ${profile.connectionLabel}` : ''
+            const gateway = botGatewayLabel(profile, botsText().bot.thisDevice)
+            const source = gateway ? ` · ${gateway}` : ''
             items.push({
               insert,
               display: insert,

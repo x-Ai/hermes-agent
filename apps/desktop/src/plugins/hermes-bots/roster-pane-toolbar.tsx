@@ -13,6 +13,7 @@ import {
 
 import { botSourceStatus } from './data'
 import type { useBots } from './i18n'
+import { gatewayDisplayLabel } from './labels'
 import { setActivityToasts } from './roster-actions'
 import { GatewayKindGlyph } from './roster-sections'
 import type { rosterGatewayOptions } from './roster-sections'
@@ -205,7 +206,9 @@ export function renderRosterToolbar({
                             className={cn('mr-1.5', !status.available && 'text-amber-600 dark:text-amber-300')}
                             kind={option.kind}
                           />
-                          <span className="min-w-0 flex-1 truncate">{option.label || option.connectionId}</span>
+                          <span className="min-w-0 flex-1 truncate">
+                            {gatewayDisplayLabel(option, b.bot.thisDevice, option.connectionId)}
+                          </span>
                           <span className="text-[0.625rem] tabular-nums text-(--ui-text-quaternary)">
                             {option.count}
                           </span>

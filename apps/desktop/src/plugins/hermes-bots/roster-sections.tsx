@@ -7,12 +7,12 @@
  * without either half knowing about a bot row.
  */
 
-import { cn, Codicon, ConnectionGlyph, DisclosureCaret, RowButton, Tip } from '@hermes/plugin-sdk'
+import { cn, Codicon, ConnectionGlyph, DisclosureCaret, RowButton, Tip, useI18n } from '@hermes/plugin-sdk'
 import type { ReactNode } from 'react'
 
 import { botHandle, botRosterKey, botSourceStatus, filterBots } from './data'
 import { botsText, useBots } from './i18n'
-import { displayName } from './labels'
+import { displayName, gatewayDisplayLabel } from './labels'
 import { botRosterMeta } from './routing'
 import type { BotMeta, GatewaySource, RosterRow } from './types'
 
@@ -210,6 +210,10 @@ function connectionKind(kind?: string) {
   return kind === 'cloud' || kind === 'local' || kind === 'ssh' ? kind : ('remote' as const)
 }
 
+/** The Connections page's own name for each kind. Shared vocabulary resolves
+ *  against core rather than a second copy in the plugin bundle (see i18n.ts). */
+const GATEWAY_KIND_LABEL = { cloud: 'kindCloud', local: 'kindLocal', remote: 'kindRemote', ssh: 'kindSsh' } as const
+
 interface GatewayKindGlyphProps {
   className?: string
   kind?: string
@@ -304,14 +308,15 @@ interface GatewaySectionHeadingProps {
 
 export function GatewaySectionHeading({ collapsed, count, onToggle, option }: GatewaySectionHeadingProps) {
   const b = useBots()
+  const { t } = useI18n()
 
   const status = botSourceStatus({
     sourceError: option?.error,
     sourceReachable: option?.reachable
   })
 
-  const label = option?.label || option?.connectionId || b.roster.currentGateway
-  const kind = option?.kind || 'remote'
+  const label = gatewayDisplayLabel(option, b.bot.thisDevice, option?.connectionId || b.roster.currentGateway)
+  const kind = connectionKind(option?.kind)
 
   return (
     <RosterSectionHeader
@@ -321,7 +326,7 @@ export function GatewaySectionHeading({ collapsed, count, onToggle, option }: Ga
       label={label}
       onToggle={onToggle}
       status={status}
-      tip={`${label} · ${kind} · ${status.label}`}
+      tip={`${label} · ${t.settings.connections[GATEWAY_KIND_LABEL[kind]]} · ${status.label}`}
     />
   )
 }

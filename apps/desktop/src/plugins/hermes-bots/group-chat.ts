@@ -14,7 +14,7 @@ import { atom, host } from '@hermes/plugin-sdk'
 import { $botMeta, $lastRoster, botRosterKey } from './data'
 import { groupMemberReferencesConnection, markOrphanedGroupMemberDescriptor } from './hygiene'
 import { botsText } from './i18n'
-import { displayName } from './labels'
+import { botGatewayLabel, displayName, gatewayDisplayLabel } from './labels'
 import { botRosterMeta } from './routing'
 import { getPluginCtx } from './shared'
 import type {
@@ -1471,7 +1471,7 @@ export function groupSpeakerLabel(name?: null | string, group?: null | string) {
     const peers = seats?.size ? rows.filter(bot => seats.has(botRosterKey(bot))) : rows
     const twin = peers.some(bot => bot !== exact && bot.name === exact.name && friendly(bot) === label)
 
-    return twin ? `${label} · ${exact.connectionLabel || exact.connectionId}` : label
+    return twin ? `${label} · ${botGatewayLabel(exact, botsText().bot.thisDevice, exact.connectionId)}` : label
   }
 
   const boundary = trimmed.indexOf('::')
@@ -1485,7 +1485,9 @@ export function groupSpeakerLabel(name?: null | string, group?: null | string) {
     const label = title || (profile.toLowerCase() === 'default' ? 'Hermes' : profile)
 
     // Another connection still exposes this name: keep them tellable apart.
-    return rows.some(bot => bot.name === profile) ? `${label} · ${connection}` : label
+    return rows.some(bot => bot.name === profile)
+      ? `${label} · ${gatewayDisplayLabel({ connectionId: connection }, botsText().bot.thisDevice, connection)}`
+      : label
   }
 
   // A raw `default` names the ACTIVE gateway's primary profile — it must
