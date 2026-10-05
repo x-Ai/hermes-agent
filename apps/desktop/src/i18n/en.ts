@@ -7241,7 +7241,7 @@ export const en: Translations = {
     branchNeedsChat: 'Start or resume a chat before branching.',
     sessionBusy: 'Session busy',
     sessionBusyQueuedCommand: 'Session busy — message queued to send when the current turn finishes',
-    sessionBusyInterruptCommand: 'Session busy — /interrupt the current turn before sending this command',
+    sessionBusyInterruptCommand: 'Session busy — stop the current reply (Stop button or Esc), then send this command',
     steerQueued: text => `Steered · "${text}" queued for next tool call`,
     steerQueuedNextToolCall: 'Steered next tool call',
     steerRejected: 'Steer rejected — agent declined input',

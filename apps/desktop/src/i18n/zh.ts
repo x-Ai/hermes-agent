@@ -8400,7 +8400,7 @@ export const zhOverrides = {
     branchNeedsChat: '分支前请先开始或恢复一个对话',
     sessionBusy: '会话忙碌中',
     sessionBusyQueuedCommand: '当前任务仍在运行，消息已加入队列，将在本轮结束后自动发送',
-    sessionBusyInterruptCommand: '当前任务仍在运行，请先使用 /interrupt 停止本轮，再发送此命令',
+    sessionBusyInterruptCommand: '当前任务仍在运行，请先停止当前回复（停止按钮或 Esc），再发送此命令',
     steerQueued: text => `已引导 · "${text}"已排队，将在下一次工具调用时送达`,
     steerQueuedNextToolCall: '已引导下一次工具调用',
     steerRejected: '引导未生效——代理未接受该输入',

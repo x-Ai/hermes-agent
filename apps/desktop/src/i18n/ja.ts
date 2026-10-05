@@ -7570,7 +7570,7 @@ export const jaOverrides = {
     sessionBusyQueuedCommand:
       '現在のタスクを実行中です。メッセージはキューに追加され、このターンの完了後に自動送信されます',
     sessionBusyInterruptCommand:
-      '現在のタスクを実行中です。/interrupt でこのターンを停止してからコマンドを送信してください',
+      '現在のタスクを実行中です。先に現在の返信を停止（停止ボタンまたは Esc）してから、このコマンドを送信してください',
     steerQueued: text => `誘導済み ·「${text}」はキューに追加され、次のツール呼び出し時に送られます`,
     steerQueuedNextToolCall: '次のツール呼び出しを誘導しました',
     steerRejected: '誘導できませんでした — エージェントが入力を受け付けませんでした',

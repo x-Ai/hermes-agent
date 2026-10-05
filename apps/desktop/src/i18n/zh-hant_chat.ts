@@ -524,7 +524,7 @@ export const zhHantChat = {
     branchNeedsChat: '分支前請先開始或繼續一個聊天。',
     sessionBusy: '工作階段忙碌中',
     sessionBusyQueuedCommand: '目前任務仍在執行，訊息已加入佇列，將在本回合結束後自動傳送',
-    sessionBusyInterruptCommand: '目前任務仍在執行，請先使用 /interrupt 停止本回合，再傳送此指令',
+    sessionBusyInterruptCommand: '目前任務仍在執行，請先停止目前的回覆（停止按鈕或 Esc），再傳送此指令',
     steerQueued: text => `已引導 ·「${text}」已排入佇列，將在下一次工具呼叫時送達`,
     steerQueuedNextToolCall: '已引導下一次工具呼叫',
     steerRejected: '引導未生效——代理未接受此輸入',

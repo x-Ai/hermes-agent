@@ -6517,7 +6517,7 @@ export const ruOverrides = {
     sessionBusy: 'Сеанс занят',
     sessionBusyQueuedCommand:
       'Занятая сессия — сообщение, стоящее в очереди, чтобы отправить, когда текущий поворот заканчивается',
-    sessionBusyInterruptCommand: 'Занятая сессия — /прервать текущий поворот перед отправкой этой команды',
+    sessionBusyInterruptCommand: 'Сеанс занят — остановите текущий ответ («Стоп» или Esc) и отправьте команду снова',
     steerQueued: text => `Рулевой · "${text}"в очереди на следующий вызов инструмента`,
     steerQueuedNextToolCall: 'Следующий Tool Call',
     steerRejected: 'Рулевое управление отклонено - агент отклонил вход',

@@ -379,11 +379,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
           })
 
           if (queued !== 'idle') {
-            renderSlashOutput(
-              queued === 'queued'
-                ? 'session busy — message queued to send when the current turn finishes'
-                : 'session busy — stop the current reply first (Stop button or Esc), then send this command'
-            )
+            renderSlashOutput(queued === 'queued' ? copy.sessionBusyQueuedCommand : copy.sessionBusyInterruptCommand)
 
             return
           }
@@ -1104,11 +1100,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
             // stale until a profile switch (#123337).
             applySessionTitle(sessionId, finalTitle || null)
             await refreshSessions().catch(() => undefined)
-            renderSlashOutput(
-              finalTitle
-                ? `Session title set: ${finalTitle}${queued ? ' (queued while session initializes)' : ''}`
-                : 'Session title cleared.'
-            )
+            renderSlashOutput(finalTitle ? copy.sessionTitleSet(finalTitle, queued) : copy.sessionTitleCleared)
           } catch (err) {
             renderSlashOutput(`error: ${err instanceof Error ? err.message : String(err)}`)
           }
