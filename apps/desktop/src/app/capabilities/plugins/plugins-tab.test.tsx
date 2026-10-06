@@ -150,7 +150,7 @@ describe('PluginsTab', () => {
     expect(screen.queryByText('Raw security description')).toBeNull()
   })
 
-  it('shows the curated zh description for a catalog-installed plugin while keeping its name', () => {
+  it('shows the curated zh title and description for a catalog-installed plugin', () => {
     const manifest =
       'Home Assistant for Hermes Agent: a gateway platform adapter plus four smart-home tools. Formerly built into Hermes core.'
 
@@ -174,9 +174,32 @@ describe('PluginsTab', () => {
       </I18nProvider>
     )
 
-    expect(screen.getAllByText('homeassistant').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(zh.skills.plugins.bundledNames['homeassistant']).length).toBeGreaterThan(0)
+    expect(screen.queryByText('homeassistant')).toBeNull()
     expect(screen.getAllByText(zh.skills.plugins.bundledDescriptions['homeassistant']).length).toBeGreaterThan(0)
     expect(screen.queryByText(manifest)).toBeNull()
+  })
+
+  it('keeps a hand-installed plugin name even when a catalog title exists for it', () => {
+    $agentPlugins.set([
+      {
+        description: 'Local checkout',
+        key: 'homeassistant',
+        name: 'homeassistant',
+        source: 'user',
+        status: 'enabled',
+        version: '0.0.0'
+      }
+    ])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    expect(screen.getAllByText('homeassistant').length).toBeGreaterThan(0)
+    expect(screen.queryByText(zh.skills.plugins.bundledNames['homeassistant'])).toBeNull()
   })
 
   it('keeps a non-bundled plugin name when it matches a bundled plugin id', () => {

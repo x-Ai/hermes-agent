@@ -306,7 +306,8 @@ export const zhHantCapabilities = {
       },
       bundledNames: {
         'disk-cleanup': '暫存檔清理',
-        'security-guidance': '安全編碼指引'
+        'security-guidance': '安全編碼指引',
+        homeassistant: 'HomeAssistant'
       },
       bundledDescriptions: {
         'disk-cleanup':

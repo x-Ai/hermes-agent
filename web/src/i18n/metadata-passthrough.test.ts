@@ -61,12 +61,17 @@ describe('backend metadata pass-through', () => {
     expect(localizePluginDescription('homeassistant', homeassistant, 'en')).toBe(homeassistant)
   })
 
-  it('bundled plugin titles are curated per name while user installs keep their identifier', () => {
+  it('first-party plugin titles are curated per name while hand-installed copies keep their identifier', () => {
     const bundled = localizeInstalledPluginTitle('disk-cleanup', 'bundled', 'zh')
     expect(bundled).not.toBe('disk-cleanup')
     expect(CJK.test(bundled)).toBe(true)
     expect(localizeInstalledPluginTitle('disk-cleanup', 'user', 'zh')).toBe('disk-cleanup')
     expect(localizeInstalledPluginTitle('disk-cleanup', 'bundled', 'en')).toBe('disk-cleanup')
     expect(localizeInstalledPluginTitle('orca-status', 'user', 'zh')).toBe('orca-status')
+
+    // Catalog installs are git-backed; the curated title covers them, not a hand-dropped copy.
+    expect(localizeInstalledPluginTitle('homeassistant', 'git', 'zh')).toBe('HomeAssistant')
+    expect(localizeInstalledPluginTitle('homeassistant', 'user', 'zh')).toBe('homeassistant')
+    expect(localizeInstalledPluginTitle('homeassistant', 'git', 'en')).toBe('homeassistant')
   })
 })

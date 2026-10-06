@@ -1,12 +1,14 @@
 import type { Locale } from './types'
 
 // Keyed by plugin name: dashboard-manifest labels (App.tsx navigation) and the Plugins
-// page titles of the bundled agent plugins the Desktop renames the same way.
+// page titles of the first-party agent plugins the Desktop titles the same way.
 const ZH_PLUGIN_LABELS: Record<string, string> = {
   kanban: '看板',
   'hermes-achievements': '成就',
   'disk-cleanup': '临时文件清理',
-  'security-guidance': '安全编码指引'
+  'security-guidance': '安全编码指引',
+  // The fork's display title; CLI commands keep the identifier.
+  homeassistant: 'HomeAssistant'
 }
 
 // Keyed by plugin name; the value translates that plugin's current manifest description.
@@ -25,10 +27,11 @@ export function localizePluginLabel(name: string, fallback: string, locale: Loca
   return locale === 'zh' ? (ZH_PLUGIN_LABELS[name] ?? fallback) : fallback
 }
 
-/** Installed-row title. Bundled (first-party) plugins show their curated name, as the Desktop
- *  does; anything the user installed keeps its identifier even when it reuses a bundled id. */
+/** Installed-row title. First-party plugins, bundled or installed from the catalog (the backend
+ *  labels those `git`), show their curated name, as the Desktop does; a plugin dropped into the
+ *  plugins directory by hand keeps its identifier even when it reuses one of those names. */
 export function localizeInstalledPluginTitle(name: string, source: string, locale: Locale): string {
-  return source === 'bundled' ? localizePluginLabel(name, name, locale) : name
+  return source === 'bundled' || source === 'git' ? localizePluginLabel(name, name, locale) : name
 }
 
 /** Plugin manifests are backend data; show a curated translation when one exists, else the manifest's own text. */

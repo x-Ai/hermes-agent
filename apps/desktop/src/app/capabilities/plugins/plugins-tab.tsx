@@ -244,6 +244,19 @@ function Dash() {
   )
 }
 
+// Curated titles cover first-party plugins: bundled ones and catalog installs,
+// which the backend labels `git`. A plugin dropped into the plugins directory
+// by hand keeps its identifier even when it reuses one of those keys.
+const CURATED_TITLE_SOURCES = new Set(['bundled', 'git'])
+
+function curatedPluginName(
+  agent: AgentPluginRow | null,
+  key: string,
+  names: Record<string, string>
+): string | undefined {
+  return agent && CURATED_TITLE_SOURCES.has(agent.source) ? names[key] : undefined
+}
+
 function PackageRow({
   pkg,
   scope,
@@ -271,8 +284,8 @@ function PackageRow({
   const desktop = pkg.desktop
   const agent = pkg.agent
   const agentKey = agent?.key ?? agent?.name ?? ''
-  const bundledName = agent?.source === 'bundled' ? p.bundledNames[agentKey] : undefined
-  const displayName = desktop?.localizedName?.[locale] ?? bundledName ?? pkg.name
+
+  const displayName = desktop?.localizedName?.[locale] ?? curatedPluginName(agent, agentKey, p.bundledNames) ?? pkg.name
 
   const displayDescription =
     desktop?.localizedDescription?.[locale] ?? p.bundledDescriptions[agentKey] ?? pkg.description

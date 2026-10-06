@@ -1,15 +1,18 @@
 // Curated Simplified-Chinese copy for agent plugins whose manifests ship in
-// English. `bundledNames` renames bundled plugins only; `bundledDescriptions`
-// is keyed by registry key and read for every installed agent plugin
-// (`PackageRow` in app/capabilities/plugins/plugins-tab.tsx), so catalog
-// installs such as homeassistant read in Chinese too.
+// English, keyed by registry key and read by `PackageRow` in
+// app/capabilities/plugins/plugins-tab.tsx. `bundledNames` titles bundled and
+// catalog-installed (git) plugins; a plugin dropped into the plugins directory
+// by hand keeps its identifier even when it reuses one of these keys.
+// `bundledDescriptions` is read for every installed agent plugin.
 export const zhPluginManifests: {
   bundledNames: Record<string, string>
   bundledDescriptions: Record<string, string>
 } = {
   bundledNames: {
     'disk-cleanup': '临时文件清理',
-    'security-guidance': '安全编码指引'
+    'security-guidance': '安全编码指引',
+    // The fork's display title; CLI commands and toggles keep the identifier.
+    homeassistant: 'HomeAssistant'
   },
   bundledDescriptions: {
     'disk-cleanup':

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { BOTS_LOCALES } from '@/plugins/hermes-bots/i18n'
 import botsPlugin from '@/plugins/hermes-bots/plugin'
 
 import { en } from './en'
@@ -9,6 +10,32 @@ import { zhHant } from './zh-hant'
 
 const CJK = /[㐀-鿿]/u
 const CHINESE = [zh, zhHant]
+
+// Every user-facing string under a catalog node as [path, text], template
+// functions included (rendered with placeholder arguments).
+function collectCopy(node: unknown, path = '', out: [string, string][] = []): [string, string][] {
+  if (typeof node === 'string') {
+    out.push([path, node])
+  } else if (typeof node === 'function') {
+    try {
+      const text = (node as (...args: unknown[]) => unknown)('样例', '样例', 2)
+
+      if (typeof text === 'string') {
+        out.push([path, text])
+      }
+    } catch {
+      // A template that needs structured arguments; nothing to inspect.
+    }
+  } else if (Array.isArray(node)) {
+    node.forEach((item, index) => collectCopy(item, `${path}[${index}]`, out))
+  } else if (node && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      collectCopy(value, path ? `${path}.${key}` : key, out)
+    }
+  }
+
+  return out
+}
 
 // Contracts between the Chinese catalogs and English: protocol names stay
 // identical, user-facing copy must differ from English and be written in
@@ -38,6 +65,11 @@ describe('Chinese localization regressions', () => {
         expect(locale.settings.config[key], key).toMatch(CJK)
       }
     }
+
+    // zh and zh-hant curate the same set of plugin titles.
+    expect(Object.keys(zhHant.skills.plugins.bundledNames).sort()).toEqual(
+      Object.keys(zh.skills.plugins.bundledNames).sort()
+    )
   })
 
   it('ships localized intro pools instead of falling through to generated English slogans', () => {
@@ -87,6 +119,27 @@ describe('Chinese localization regressions', () => {
     for (const [locale, name] of Object.entries(names)) {
       expect(name, locale).toBe(resolveTranslations(locale).common.bots)
     }
+  })
+
+  it('calls the bots 机器人 / 機器人 throughout Bot Mode, never 智能体 / 智慧體', () => {
+    // 智能体 is what the kind pill calls every agent-half plugin; inside Bot Mode the
+    // roster entries are bots and share the name of the pane, tab and plugin row.
+    const bundles = BOTS_LOCALES as Record<string, unknown>
+    const forbidden: Record<string, RegExp> = { zh: /智能体/u, 'zh-hant': /智慧體|智慧代理/u }
+
+    for (const [locale, pattern] of Object.entries(forbidden)) {
+      const offenders = collectCopy(bundles[locale]).filter(([, text]) => pattern.test(text))
+
+      expect(offenders, locale).toEqual([])
+    }
+
+    // Shell copy that talks about bots outside the plugin follows the same word.
+    expect(zh.composer.botSelectionRequired).toContain('机器人')
+    expect(zh.composer.botChatUnsupported).toContain('机器人')
+    expect(zh.settings.about.bundleOutOfSyncDesc).toContain('机器人模式')
+    expect(zhHant.composer.botSelectionRequired).toContain('機器人')
+    expect(zhHant.composer.botChatUnsupported).toContain('機器人')
+    expect(zhHant.settings.about.bundleOutOfSyncDesc).toContain('機器人模式')
   })
 
   it('localizes the connectors directory and custom MCP form while preserving protocol names', () => {

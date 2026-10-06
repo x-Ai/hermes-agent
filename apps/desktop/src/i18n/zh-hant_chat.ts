@@ -24,8 +24,8 @@ export const zhHantChat = {
   },
   composer: {
     message: '訊息',
-    botSelectionRequired: '請先選擇一個智慧體，再開始新的聊天。',
-    botChatUnsupported: '請更新 Hermes Desktop 以開啟另一個智慧體聊天。',
+    botSelectionRequired: '請先選擇一個機器人，再開始新的聊天。',
+    botChatUnsupported: '請更新 Hermes Desktop 以開啟另一個機器人聊天。',
     addContext: '新增上下文',
     wakingProfile: profile => `正在喚醒 ${profile}…`,
     placeholderStarting: '正在啟動 Hermes...',

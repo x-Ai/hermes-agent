@@ -1892,7 +1892,7 @@ export const zhOverrides = {
       versionUnavailable: '版本不可用',
       bundleOutOfSync: '应用构建版本过旧',
       bundleOutOfSyncDesc:
-        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如智能体模式）不会显示，请运行下方的更新以重新构建应用，如果此警告仍未消除,请从最新的桌面安装程序重新安装',
+        'Hermes 运行时已更新,但桌面应用本身仍是旧构建 — 在应用更新之前,新的界面功能（如机器人模式）不会显示，请运行下方的更新以重新构建应用，如果此警告仍未消除,请从最新的桌面安装程序重新安装',
       bundleOutOfSyncAction: '获取安装程序',
       bundleSwapPending: '重启以完成更新',
       bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本，聊天记录和设置不会受到影响',
@@ -6231,8 +6231,8 @@ export const zhOverrides = {
   },
   composer: {
     message: '消息',
-    botSelectionRequired: '请先选择一个智能体，再开始新的聊天',
-    botChatUnsupported: '请更新 Hermes Desktop 以打开另一个智能体聊天',
+    botSelectionRequired: '请先选择一个机器人，再开始新的聊天',
+    botChatUnsupported: '请更新 Hermes Desktop 以打开另一个机器人聊天',
     addContext: '添加上下文',
     wakingProfile: profile => `正在唤醒 ${profile}…`,
     placeholderStarting: '正在启动 Hermes…',
