@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import botsPlugin from '@/plugins/hermes-bots/plugin'
+
 import { en } from './en'
+import { resolveTranslations } from './registry'
 import { zh } from './zh'
 import { zhHant } from './zh-hant'
 
@@ -70,6 +73,19 @@ describe('Chinese localization regressions', () => {
         expect(locale.settings.toolsets.tagCopy[tag], tag).toBeTruthy()
         expect(locale.settings.toolsets.tagCopy[tag], tag).not.toBe(tag)
       }
+    }
+  })
+
+  it('titles the Bots plugin row with the same word the Bots pane and tab use', () => {
+    // The Capabilities ▸ Plugins row reads the manifest's `localizedName`; the pane and
+    // tab titles read `common.bots`. One feature, one name per locale — and in zh that
+    // name must stay clear of 智能体, which is the kind pill of every agent-half plugin.
+    const names = botsPlugin.localizedName
+
+    expect(Object.keys(names).length).toBeGreaterThan(0)
+
+    for (const [locale, name] of Object.entries(names)) {
+      expect(name, locale).toBe(resolveTranslations(locale).common.bots)
     }
   })
 

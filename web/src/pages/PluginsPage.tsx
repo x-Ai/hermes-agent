@@ -33,7 +33,7 @@ import { PluginSlot } from "@/plugins";
 import { cn } from "@/lib/utils";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { getDashboardCopy } from "@/i18n/dashboard";
-import { localizePluginDescription } from "@/i18n/plugin-metadata";
+import { localizeInstalledPluginTitle, localizePluginDescription } from "@/i18n/plugin-metadata";
 import {
   localizeConfigDescription,
   localizeConfigLabel,
@@ -1053,7 +1053,9 @@ function PluginRowCard(props: PluginRowCardProps) {
       <CardContent className="flex flex-col gap-4 px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
-            <span className="truncate font-semibold">{row.name}</span>
+            <span className="truncate font-semibold">
+              {localizeInstalledPluginTitle(row.name, row.source, locale)}
+            </span>
 
             <Badge tone="outline">
               {t.pluginsPage.sourceBadge}: {row.source}

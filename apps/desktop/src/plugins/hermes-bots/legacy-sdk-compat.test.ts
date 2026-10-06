@@ -63,8 +63,8 @@ describe('an SDK without the optional capability exports', () => {
 
     expect(plugin.id).toBe('hermes-bots')
     expect(typeof plugin.register).toBe('function')
-    expect(plugin.localizedName.zh).toBe('智能体')
-    expect(plugin.localizedDescription.zh).toContain('智能体模式')
+    expect(plugin.localizedName.zh).toBe('机器人')
+    expect(plugin.localizedDescription.zh).toContain('机器人模式')
     expect(plugin.localizedDescription.zh).not.toBe(plugin.description)
   })
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { localizeBlueprintField } from './blueprint-metadata'
 import { localizeEnvDescription } from './env-metadata'
-import { localizePluginDescription } from './plugin-metadata'
+import { localizeInstalledPluginTitle, localizePluginDescription } from './plugin-metadata'
 
 const CJK = /[㐀-鿿]/
 
@@ -59,5 +59,14 @@ describe('backend metadata pass-through', () => {
     expect(localizePluginDescription('homeassistant', homeassistant, 'zh')).not.toBe(homeassistant)
     expect(CJK.test(localizePluginDescription('homeassistant', homeassistant, 'zh'))).toBe(true)
     expect(localizePluginDescription('homeassistant', homeassistant, 'en')).toBe(homeassistant)
+  })
+
+  it('bundled plugin titles are curated per name while user installs keep their identifier', () => {
+    const bundled = localizeInstalledPluginTitle('disk-cleanup', 'bundled', 'zh')
+    expect(bundled).not.toBe('disk-cleanup')
+    expect(CJK.test(bundled)).toBe(true)
+    expect(localizeInstalledPluginTitle('disk-cleanup', 'user', 'zh')).toBe('disk-cleanup')
+    expect(localizeInstalledPluginTitle('disk-cleanup', 'bundled', 'en')).toBe('disk-cleanup')
+    expect(localizeInstalledPluginTitle('orca-status', 'user', 'zh')).toBe('orca-status')
   })
 })
