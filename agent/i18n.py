@@ -8,7 +8,8 @@ Catalogs are flat dotted-key mappings resolved through layers, top first:
 4. the same chain for ``en``
 5. the bare key
 
-Every layer may be partial. Language resolution: explicit ``lang=`` > ``HERMES_LANGUAGE`` >
+Every layer may be partial. Language resolution: explicit ``lang=`` > the language a connected
+client announced for the current context (:func:`bind_client_language`) > ``HERMES_LANGUAGE`` >
 ``display.language`` > ``en``; any id that some layer supplies is accepted, so a pack-only language
 (``pl``) works the moment its plugin loads. ``t()`` is a hot path: one cached merged dict per
 ``(home, lang)``, invalidated by :func:`reset_language_cache` (which every pack registration calls).
@@ -16,6 +17,7 @@ Every layer may be partial. Language resolution: explicit ``lang=`` > ``HERMES_L
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import os
 import threading
@@ -204,7 +206,30 @@ def reset_language_cache() -> None:
     i18n_layers.clear_cache()
 
 
+# The language the client served by the current context renders in (Desktop: inferred from the OS
+# when ``display.language`` is unset, so the profile's own resolution would answer English under a
+# Chinese UI). Bound per RPC / per turn by the TUI gateway; empty = no client claim.
+_client_language: contextvars.ContextVar[str] = contextvars.ContextVar("hermes_client_language", default="")
+
+
+def bind_client_language(lang: Any):
+    """Bind the language a connected client announced for the current context; returns the token for
+    :func:`reset_client_language`. Beats the profile's ``HERMES_LANGUAGE`` / ``display.language`` and
+    loses only to an explicit ``lang=``: backend-authored copy is rendered inside that client's UI,
+    and a mixed-language screen is worse than either language alone. An empty or unresolvable value
+    binds "no claim" (the profile's own setting applies again)."""
+    return _client_language.set(i18n_layers.normalize_language_id(lang) or "")
+
+
+def reset_client_language(token) -> None:
+    _client_language.reset(token)
+
+
 def _resolve_language(home: str) -> str:
+    # A client claim is re-validated against THIS home: a pack-only language is a claim only where
+    # the pack exists, otherwise the profile's own setting applies.
+    if (claimed := _client_language.get()) and (client_lang := resolve_language_id(claimed, home)):
+        return client_lang
     from agent.secret_scope import UnscopedSecretError, get_secret
     try:
         env_lang = get_secret("HERMES_LANGUAGE")
@@ -214,9 +239,9 @@ def _resolve_language(home: str) -> str:
 
 
 def get_language() -> str:
-    """Resolve the active language using env > config > default order. ``HERMES_LANGUAGE`` is a
-    per-profile ``.env`` value, so it is read through the secret scope: under multiplexing a raw
-    environ read would impose the default profile's language on every other profile."""
+    """Resolve the active language using client claim > env > config > default order.
+    ``HERMES_LANGUAGE`` is a per-profile ``.env`` value, so it is read through the secret scope: under
+    multiplexing a raw environ read would impose the default profile's language on every other profile."""
     return _resolve_language(_current_home())
 
 
@@ -246,4 +271,5 @@ def t(key: str, lang: str | None = None, **format_kwargs: Any) -> str:
 __all__ = [
     "SUPPORTED_LANGUAGES", "DEFAULT_LANGUAGE", "t", "get_language", "reset_language_cache",
     "supported_languages", "resolve_language_id", "language_options", "surface_catalog",
+    "bind_client_language", "reset_client_language",
 ]

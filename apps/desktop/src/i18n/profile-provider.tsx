@@ -1,14 +1,14 @@
 import { useStore } from '@nanostores/react'
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useSyncExternalStore } from 'react'
 
 import { $gateway } from '@/store/gateway'
 import { $activeGatewayProfile } from '@/store/profile'
 import { $connection, $gatewayState } from '@/store/session'
 
-import { syncBackendLocalePacks } from './backend-packs'
+import { announceClientLocale, syncBackendLocalePacks } from './backend-packs'
 import { I18nProvider } from './context'
 import { unregisterAppLocaleSource } from './registry'
-import { $requestedLocale } from './runtime'
+import { $requestedLocale, getRuntimeI18nLocale, subscribeRuntimeI18nLocale } from './runtime'
 
 /** Keep gateway/store imports outside the shared i18n context's import graph. */
 export function ProfileI18nProvider({ children }: { children: ReactNode }) {
@@ -26,8 +26,31 @@ export function ProfileI18nProvider({ children }: { children: ReactNode }) {
   ])
 
   useBackendLocalePacks(scopeKey)
+  useClientLocaleAnnounce(scopeKey)
 
   return <I18nProvider scopeKey={scopeKey}>{children}</I18nProvider>
+}
+
+/**
+ * The other direction: tell the backend what this window renders (the
+ * effective locale, OS-inferred or picked), so backend-authored copy for this
+ * connection follows the screen. Re-sent on every (re)connect, locale change
+ * and profile/connection switch — the claim lives with the socket.
+ */
+function useClientLocaleAnnounce(scopeKey: string): void {
+  const gatewayState = useStore($gatewayState)
+  const locale = useSyncExternalStore(subscribeRuntimeI18nLocale, getRuntimeI18nLocale)
+  const open = gatewayState === 'open'
+
+  useEffect(() => {
+    const gateway = $gateway.get()
+
+    if (!open || !gateway) {
+      return
+    }
+
+    void announceClientLocale((method, params) => gateway.request(method, params), locale)
+  }, [open, locale, scopeKey])
 }
 
 /**

@@ -1465,6 +1465,24 @@
       }
     },
     {
+      "name": "i18n.client_locale",
+      "summary": "Announce the language this connection renders; backend-authored copy for its RPCs and the turns its prompts start follows it, ahead of the profile's HERMES_LANGUAGE / display.language.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/I18nClientLocaleParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/I18nClientLocaleResult"
+        }
+      }
+    },
+    {
       "name": "i18n.languages",
       "summary": "Every language some layer supplies (bundled \u222a user overlay \u222a plugin packs), en first.",
       "params": [
@@ -15927,6 +15945,34 @@
           "messages"
         ],
         "title": "I18nCatalogResult",
+        "type": "object"
+      },
+      "I18nClientLocaleParams": {
+        "additionalProperties": false,
+        "description": "``lang`` is what the client renders (a code, alias or regional tag); empty withdraws the claim.",
+        "properties": {
+          "lang": {
+            "default": "",
+            "title": "Lang",
+            "type": "string"
+          }
+        },
+        "title": "I18nClientLocaleParams",
+        "type": "object"
+      },
+      "I18nClientLocaleResult": {
+        "additionalProperties": false,
+        "description": "``lang`` is the canonical id now bound to this connection; ``\"\"`` when the claim was withdrawn\nor named a language no layer supplies (the profile's own setting applies again).",
+        "properties": {
+          "lang": {
+            "title": "Lang",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lang"
+        ],
+        "title": "I18nClientLocaleResult",
         "type": "object"
       },
       "I18nLanguagesResult": {

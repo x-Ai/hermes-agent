@@ -693,6 +693,8 @@ def _(rid, params: dict) -> dict:
     if err:
         return err
     from tools.bot_relay import DeliveryAuthor
+    from tui_gateway.client_locale import remember_session_client_locale
+    remember_session_client_locale(session, current_transport())
 
     # Only the relay handler can build a DeliveryAuthor. A dict here is a client claiming a sender.
     raw_author = params.get("_turn_author")

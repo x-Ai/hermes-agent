@@ -45,7 +45,9 @@ hermes config set display.language pl
 
 Restart running gateways/TUIs so they pick up the pack. The TUI and Desktop language switchers list
 bundled languages, your overlay languages and every installed pack by their native name (endonym).
-The `HERMES_LANGUAGE` entry in `.env` still overrides `display.language`.
+The `HERMES_LANGUAGE` entry in `.env` still overrides `display.language`; the language a Desktop window
+announces for its connection (`i18n.client_locale`) overrides both for the copy the backend writes to that
+window.
 
 ## Writing a pack
 

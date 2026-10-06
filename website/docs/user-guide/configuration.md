@@ -2298,6 +2298,10 @@ Bundled values: `en` (default), `zh` (Simplified Chinese), `zh-hant` (Traditiona
 The list is **pluggable**: a [language pack](features/language-packs.md) plugin (`provides_locales`) or a partial `<HERMES_HOME>/locales/<lang>.yaml` overlay adds a language or overrides wording, and `hermes config set display.language <id>` accepts any id a bundled catalog, your overlay, or an installed pack provides. Unknown ids are refused with the list of available languages; at runtime an unresolvable value falls back to English.
 
 You can also set this per-session with the `HERMES_LANGUAGE` env var, which overrides the config value.
+A connected Desktop window announces the language it renders (`i18n.client_locale`), and messages the
+backend writes for that window — error cards, the failed-turn notice, slash replies — follow it even
+while `display.language` is unset and the app is inferring the language from your OS; picking a language
+explicitly in Desktop settings saves it as `display.language`.
 
 ```yaml
 display:

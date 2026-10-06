@@ -133,10 +133,13 @@ def _release_profile_runtime_scope_tokens(scopes: "_TurnScopes | None") -> None:
 @contextlib.contextmanager
 def _session_profile_runtime_scope(session: dict, *, hydrate_secrets: bool = True):
     """Bind model resolution to the session's profile config and secrets (launch profile included
-    once the process multiplexes; see ``_profile_runtime_scope_tokens``)."""
+    once the process multiplexes; see ``_profile_runtime_scope_tokens``) plus the display language
+    the session's client announced, so an off-turn body's copy matches its screen."""
+    from tui_gateway.client_locale import client_language_scope
     scopes = _profile_runtime_scope_tokens(session.get("profile_home"), hydrate_secrets=hydrate_secrets)
     try:
-        yield
+        with client_language_scope(session.get("client_locale")):
+            yield
     finally:
         _release_profile_runtime_scope_tokens(scopes)
 

@@ -1,7 +1,7 @@
 import { JsonRpcGatewayError } from '@hermes/shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { type BackendLocaleRequest, syncBackendLocalePacks } from './backend-packs'
+import { announceClientLocale, type BackendLocaleRequest, syncBackendLocalePacks } from './backend-packs'
 import { TRANSLATIONS } from './catalog'
 import { languageOptions } from './languages'
 import { isRegisteredLocale, registerAppLocale, resetAppLocaleRegistry, resolveTranslations } from './registry'
@@ -90,5 +90,37 @@ describe('syncBackendLocalePacks', () => {
     await syncBackendLocalePacks(backend([{ id: 'pt-br', endonym: 'Português' }], {}), null, () => false)
     expect(isRegisteredLocale('uk')).toBe(true)
     expect(isRegisteredLocale('pt-br')).toBe(false)
+  })
+})
+
+describe('announceClientLocale', () => {
+  it('sends the normalized rendered locale and an empty claim for none', async () => {
+    const calls: Call[] = []
+
+    const request: BackendLocaleRequest = async <T>(method: string, params: Record<string, unknown>) => {
+      calls.push([method, params])
+
+      return { lang: params.lang } as T
+    }
+
+    await announceClientLocale(request, 'zh_TW')
+    await announceClientLocale(request, null)
+
+    expect(calls).toEqual([
+      ['i18n.client_locale', { lang: 'zh-tw' }],
+      ['i18n.client_locale', { lang: '' }]
+    ])
+  })
+
+  it('is silent on a backend that predates the method', async () => {
+    const debug = vi.spyOn(console, 'debug').mockImplementation(() => {})
+
+    const request: BackendLocaleRequest = async () => {
+      throw new JsonRpcGatewayError('unknown method: i18n.client_locale', { code: -32601 })
+    }
+
+    await expect(announceClientLocale(request, 'zh')).resolves.toBeUndefined()
+
+    expect(debug).not.toHaveBeenCalled()
   })
 })

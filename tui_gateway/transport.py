@@ -99,7 +99,7 @@ class StdioTransport:
     """Writes JSON frames to a stream (usually ``sys.stdout``) resolved via a callable, so runtime
     monkey-patches of the stream keep working."""
 
-    __slots__ = ("_stream_getter", "_lock")
+    __slots__ = ("_stream_getter", "_lock", "__weakref__")
 
     def __init__(self, stream_getter: Callable[[], Any], lock: threading.Lock) -> None:
         self._stream_getter = stream_getter
@@ -288,7 +288,7 @@ class TeeTransport:
     exceptions) determine the result; secondaries swallow failures so a wedged sidecar never stalls the
     main IO path. Used by the PTY child: every emit lands on stdio (Ink) AND a back-WS for the dashboard."""
 
-    __slots__ = ("_primary", "_secondaries")
+    __slots__ = ("_primary", "_secondaries", "__weakref__")
 
     def __init__(self, primary: "Transport", *secondaries: "Transport") -> None:
         self._primary = primary

@@ -1,9 +1,12 @@
-"""Pluggable-language JSON-RPC handlers: ``i18n.languages`` and ``i18n.catalog``.
+"""Pluggable-language JSON-RPC handlers: ``i18n.languages``, ``i18n.catalog`` and ``i18n.client_locale``.
 
 Both are profile-scoped: the user overlay dir (``<home>/locales``) and ``display.language`` belong
 to the profile the client is looking at. Plugin packs are process-wide (one PluginManager per home
 registers them under the same registry), so a pack installed in profile A is visible to every
 profile — a language switcher lists it everywhere, exactly like a bundled locale.
+
+``i18n.client_locale`` is connection-scoped, not profile-scoped: the claim describes the client's
+screen and follows its transport (``tui_gateway/client_locale.py``).
 
 Bodies are rebound onto server.py's globals (method_ctx.bind_module) and reference them bare.
 """
@@ -42,6 +45,13 @@ def _(rid, params: dict) -> dict:
         return _ok(rid, {"lang": lang, "surface": surface, "messages": surface_catalog(lang, surface)})
     except Exception as e:
         return _err(rid, _I18N_ERR, str(e))
+
+
+@method("i18n.client_locale")
+def _(rid, params: dict) -> dict:
+    from tui_gateway.client_locale import remember_client_locale
+    lang = remember_client_locale(current_transport(), params.get("lang"))
+    return _ok(rid, {"lang": lang})
 
 
 def register(server) -> None:

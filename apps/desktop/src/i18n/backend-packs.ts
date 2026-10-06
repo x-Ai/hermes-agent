@@ -9,6 +9,12 @@
  * Pure: the caller hands in the JSON-RPC door. Older gateways predate both
  * methods — method-not-found is silence, not an error, and any other failure
  * leaves whatever the registry already holds (never blank the UI over i18n).
+ *
+ * The reverse direction is `announceClientLocale`: the backend writes copy of
+ * its own (error cards, the failed-turn notice, slash replies) and resolves
+ * its language from the profile's `display.language`, which the app leaves
+ * unset while it infers the locale from the OS — so it is told what this
+ * window renders, per connection (`i18n.client_locale`).
  */
 
 import { isRecord } from '@hermes/shared/i18n'
@@ -121,4 +127,15 @@ export async function syncBackendLocalePacks(
   }
 
   replaceAppLocaleSource('backend', [...registrations.values()])
+}
+
+/**
+ * Tell the connected backend which language this window renders, so the
+ * copy it authors for this connection (and for the turns its prompts start)
+ * matches the screen instead of the profile's unset `display.language`.
+ * Per connection: re-announce on every (re)connect and locale change. Silent
+ * on a backend that predates the method.
+ */
+export async function announceClientLocale(request: BackendLocaleRequest, lang: null | string): Promise<void> {
+  await tolerant(() => request<unknown>('i18n.client_locale', { lang: lang ? normalizeLocaleId(lang) : '' }))
 }

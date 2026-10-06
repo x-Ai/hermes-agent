@@ -203,6 +203,7 @@ class _TurnScopes:
     home: Any = None  # per-turn HERMES_HOME override for a resumed remote profile
     secret: Any = None
     terminal: Any = None
+    client_language: Any = None  # the submitting client's announced display language
 
 
 def _route_turn_images(agent, prompt: Any, images: list[str]) -> Any:
@@ -667,6 +668,10 @@ def _prepare_turn_input(sid: str, session: dict, st: _TurnRun, text: Any, images
     bound = _profile_runtime_scope_tokens(session.get("profile_home"))
     if bound is not None:
         scopes.home, scopes.secret, scopes.terminal = bound.home, bound.secret, bound.terminal
+    # The RPC context's client-language claim does not follow onto this thread either: rebind the
+    # session's copy so turn copy (error cards, failed-turn notice, provider label) matches the screen.
+    from agent.i18n import bind_client_language
+    scopes.client_language = bind_client_language(session.get("client_locale") or "")
     # The sudo password callback is thread-local: without re-wiring here, sudo prompts
     # fall through to /dev/tty and hang the headless gateway (re-run is a no-op).
     _wire_callbacks(sid)
@@ -1070,6 +1075,9 @@ def _post_turn_housekeeping(sid: str, session: dict, st: _TurnRun) -> None:
             trim_memory(reason="tui turn completion")
     except Exception:
         logger.debug("post-turn memory trim failed", exc_info=True)
+    if st.scopes.client_language is not None:
+        from agent.i18n import reset_client_language
+        reset_client_language(st.scopes.client_language)
     if st.scopes.home is not None:
         reset_hermes_home_override(st.scopes.home)
 

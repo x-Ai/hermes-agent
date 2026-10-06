@@ -1824,6 +1824,14 @@ export interface I18nCatalogResult {
   surface: LocaleSurface
   messages: Record<string, string>
 }
+/** ``lang`` is what the client renders (a code, alias or regional tag); empty withdraws the claim. */
+export interface I18nClientLocaleParams {
+  lang?: string
+}
+/** ``lang`` is the canonical id now bound to this connection; ``""`` when the claim was withdrawn or named a language no layer supplies (the profile's own setting applies again). */
+export interface I18nClientLocaleResult {
+  lang: string
+}
 export type PingParams = Record<string, never>
 export interface PingResult {
   pong: boolean
@@ -5049,6 +5057,8 @@ export interface RpcMethods {
   'handoff.state': { params: SessionParams; result: HandoffStateResult }
   /** Pack + overlay messages for one language and surface; the renderer merges them over its bundled catalog. */
   'i18n.catalog': { params: I18nCatalogParams; result: I18nCatalogResult }
+  /** Announce the language this connection renders; backend-authored copy for its RPCs and the turns its prompts start follows it, ahead of the profile's HERMES_LANGUAGE / display.language. */
+  'i18n.client_locale': { params: I18nClientLocaleParams; result: I18nClientLocaleResult }
   /** Every language some layer supplies (bundled ∪ user overlay ∪ plugin packs), en first. */
   'i18n.languages': { params: ProfileParams; result: I18nLanguagesResult }
   /** Queue a gateway-visible image file for the next turn. */
@@ -5473,6 +5483,7 @@ export const RPC_METHODS = [
   'handoff.request',
   'handoff.state',
   'i18n.catalog',
+  'i18n.client_locale',
   'i18n.languages',
   'image.attach',
   'image.attach_bytes',

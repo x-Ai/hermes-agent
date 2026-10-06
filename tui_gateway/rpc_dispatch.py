@@ -29,9 +29,12 @@ def _handle_admitted_request(req: dict) -> dict | None:
         params, problem = _contracts.validate_params(contract, params)
         if problem is not None:
             return _err(rid, 4000, problem)
+    from tui_gateway.client_locale import connection_language_scope
     token = _current_rpc_method.set(method)
     try:
-        response = fn(rid, params)
+        # The connection's announced display language (``i18n.client_locale``) wraps the body.
+        with connection_language_scope():
+            response = fn(rid, params)
     except ProfileUnavailableError as exc:
         return _err(rid, 4064, str(exc))
     finally:

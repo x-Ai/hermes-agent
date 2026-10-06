@@ -29,7 +29,11 @@ the agent thread until the response frame with the same `srq-<n>` id arrives; `c
 reconnecting client re-renders the still-open questions). A client says once per connection that it
 answers them (`client.capabilities {server_requests: true}`, sent by the shared channel on `gateway.ready`);
 a WebSocket client that never did is an app build older than server→client requests, and `send()` fails
-fast for it instead of stalling the agent for the deadline. Desktop reaches the same server over WebSocket
+fast for it instead of stalling the agent for the deadline. A client also announces the language it renders
+(`i18n.client_locale`, Desktop: on connect and on every locale change); the claim lives with the transport
+(`client_locale.py`) and is bound into `agent.i18n` around every RPC body on that connection, copied onto
+the session at `prompt.submit` and rebound for the turn thread and `_session_profile_runtime_scope`
+bodies, so `_t()` copy follows the screen ahead of the profile's `display.language`. Desktop reaches the same server over WebSocket
 via `apps/shared` (`JsonRpcGatewayClient`, `onRequest`). New RPC = a new `methods_<topic>.py` or an entry
 in an existing topical sibling, registered in the table — no `if method == ...` chain (root shape rules).
 

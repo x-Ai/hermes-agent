@@ -1,6 +1,7 @@
 """Pluggable languages (``methods_i18n.py``): the language list and the pack/overlay catalog layer a
 renderer merges over its own bundled English. Both ride ``profile`` so a multiplexed backend answers
-for the profile whose overlay dir and ``display.language`` the client is showing.
+for the profile whose overlay dir and ``display.language`` the client is showing. ``i18n.client_locale``
+is the client's own claim and rides the connection instead.
 """
 
 from __future__ import annotations
@@ -37,6 +38,19 @@ class I18nCatalogParams(ProfileParams):
     surface: LocaleSurface = LocaleSurface.core
 
 
+class I18nClientLocaleParams(Params):
+    """``lang`` is what the client renders (a code, alias or regional tag); empty withdraws the claim."""
+
+    lang: str = ""
+
+
+class I18nClientLocaleResult(Result):
+    """``lang`` is the canonical id now bound to this connection; ``""`` when the claim was withdrawn
+    or named a language no layer supplies (the profile's own setting applies again)."""
+
+    lang: str
+
+
 class I18nCatalogResult(Result):
     """``messages`` is ONLY the pack + user-overlay layer for that surface (flat dotted keys); the
     client merges it over its bundled ``en``/``<lang>``. ``lang`` is the canonical id the request
@@ -53,3 +67,6 @@ method("i18n.languages", params=ProfileParams, result=I18nLanguagesResult,
        doc="Every language some layer supplies (bundled ∪ user overlay ∪ plugin packs), en first.")
 method("i18n.catalog", params=I18nCatalogParams, result=I18nCatalogResult,
        doc="Pack + overlay messages for one language and surface; the renderer merges them over its bundled catalog.")
+method("i18n.client_locale", params=I18nClientLocaleParams, result=I18nClientLocaleResult,
+       doc="Announce the language this connection renders; backend-authored copy for its RPCs and the turns "
+           "its prompts start follows it, ahead of the profile's HERMES_LANGUAGE / display.language.")
