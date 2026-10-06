@@ -292,6 +292,8 @@ export const dashboardEn = {
     reload: 'Reload',
     cacheRead: 'Cache read',
     overridesSummary: '{overrides} override(s) · {auto} auto',
+    inheritsFrom: 'inherits {task}',
+    followTask: 'Follow {task}',
     auxiliarySlots: {
       vision: ['Vision', 'Image analysis'],
       compression: ['Compression', 'Context compaction'],
@@ -355,6 +357,7 @@ export const dashboardEn = {
     scheduledToast: '{name} scheduled',
     loadingBlueprints: 'Loading blueprints…',
     loadBlueprintsFailed: "Couldn't load blueprints",
+    pluginBadge: 'plugin: {name}',
     blueprintNames: {
       morningBriefing: 'Morning briefing',
       importantMail: 'Important-mail monitor',
@@ -1338,6 +1341,8 @@ export const dashboardZh: DashboardCopy = {
     reload: '重载',
     cacheRead: '缓存读取',
     overridesSummary: '{overrides} 项覆盖 · {auto} 项自动',
+    inheritsFrom: '继承 {task}',
+    followTask: '跟随 {task}',
     auxiliarySlots: {
       vision: ['视觉', '图像分析'],
       compression: ['上下文压缩', '上下文精简'],
@@ -1400,6 +1405,7 @@ export const dashboardZh: DashboardCopy = {
     scheduledToast: '已调度 {name}',
     loadingBlueprints: '正在加载蓝图…',
     loadBlueprintsFailed: '无法加载蓝图',
+    pluginBadge: '插件：{name}',
     blueprintNames: {
       morningBriefing: '晨间简报',
       importantMail: '重要邮件监控',

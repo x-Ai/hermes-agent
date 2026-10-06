@@ -2,6 +2,9 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { en } from './en'
+import { ruAuxTasks } from './ru_aux_tasks'
+import { ruModelMenu } from './ru_model_menu'
+import { ruPluginSettings } from './ru_plugins'
 import { ruRuntime } from './ru_runtime'
 
 // RU_PLURAL: (count, one, few, many) — русские формы сущ. падежа
@@ -83,7 +86,8 @@ export const ruOverrides = {
       'Общие метрики — это только ограниченные счётчики. Никаких запросов, файлов, путей или текстов ошибок. Сбор идёт локально. Отправка в Nous — отдельное согласие.',
     whatIsCollected: 'Что собирается',
     collectedIntro: 'Только ограниченные счётчики:',
-    collectedActivity: 'Активность, длительность сеансов, результаты и классы ошибок',
+    collectedActivity:
+      'Активность, длительность сеансов, результаты и классы ошибок, включая причину из фиксированного списка, когда запись в память или сжатие контекста отклонены, не удались или пропущены',
     collectedModels: 'Маршруты моделей и суммы токенов',
     collectedNames: 'Названия встроенных инструментов, команд и элементов каталога',
     collectedMilestones: 'Сгруппированные счётчики настройки',
@@ -495,7 +499,7 @@ export const ruOverrides = {
       inputTitle: 'Требуется ввод',
       inputBody: 'Hermes ожидает ваш ответ.',
       turnDoneTitle: 'Hermes завершил',
-      turnDoneBody: '',
+      turnDoneBody: 'Сообщение завершено.',
       turnErrorTitle: 'Ход не удался',
       backgroundDoneTitle: 'Фоновая задача завершена',
       backgroundFailedTitle: 'Фоновая задача не удалась',
@@ -909,6 +913,7 @@ export const ruOverrides = {
     resetConfirm: 'Сбросить все настройки к значениям Hermes по умолчанию?',
     exportFailed: 'Не удалось экспортировать',
     resetFailed: 'Не удалось сбросить',
+    pluginPages: ruPluginSettings.pluginPages,
     nav: {
       providers: 'Провайдеры',
       providerAccounts: 'Аккаунты',
@@ -926,27 +931,20 @@ export const ruOverrides = {
       about: 'О программе',
       billing: 'Оплата',
       notifications: 'Уведомления',
-      vault: 'Пароли и логины'
+      vault: 'Пароли и логины',
+      plugins: 'Плагины'
     },
     plugins: {
       title: 'Плагины приложения',
-      blurb: 'Встроенные или добавленные в папку desktop-plugins. Отключите, чтобы выгрузить без перезапуска.',
-      count: n => `Установлено: ${n}`,
       openFolder: 'Открыть папку плагинов приложения',
       rescan: 'Пересканировать',
       reveal: 'Показать в файловом менеджере',
-      enable: 'Включить',
-      disable: 'Отключить',
       failed: 'ошибка',
-      empty: 'Плагины приложения пока не установлены.',
       kinds: {
         bundled: 'встроенный',
         disk: 'на диске',
         runtime: 'runtime'
       },
-      agentHalfMissing: 'агент здесь наполовину отсутствует',
-      agentHalfMissingTip:
-        'Это настольная половина входящего в комплект плагина, но его агентская половина не установлена в подключенном в данный момент бэкенде/профиле. Установите его из Возможности → Плагины.',
       installModal: {
         installFromGit: 'Установить из Git',
         reviewRepository: 'Обзор репозитория',
@@ -1997,6 +1995,8 @@ export const ruOverrides = {
         'Неподдерживаемая удалённая платформа. SSH-режим Hermes Desktop поддерживает удалённые хосты Linux, macOS и Windows.',
       sshErrTimeout: 'SSH-соединение истекло. Хост может быть недоступен или «спит».',
       sshErrUpdateRequired: 'Перед подключением через SSH обновите Hermes на удалённой машине.',
+      sshErrInteractiveAuth:
+        'Tailscale SSH требует интерактивной проверки в браузере. Выполните `ssh <host> true` в терминале, завершите проверку и повторите попытку — Hermes запускает SSH неинтерактивно.',
       sshErrUnknown: 'SSH-соединение не удалось.'
     },
     keys: {
@@ -2144,53 +2144,10 @@ export const ruOverrides = {
         addReference: 'Добавить справочную модель',
         aggregatorTitle: 'Агрегатор'
       },
-      tasks: {
-        vision: {
-          label: 'Зрение',
-          hint: 'Анализ изображений'
-        },
-        compression: {
-          label: 'Сжатие',
-          hint: 'Компрессия контекста'
-        },
-        skills_hub: {
-          label: 'Хаб навыков',
-          hint: 'Поиск навыков'
-        },
-        approval: {
-          label: 'Одобрение',
-          hint: 'Умное авто-одобрение'
-        },
-        mcp: {
-          label: 'MCP',
-          hint: 'Маршрутизация MCP-инструментов'
-        },
-        title_generation: {
-          label: 'Ген. заголовка',
-          hint: 'Заголовки сеансов'
-        },
-        review: {
-          label: 'Обзор',
-          hint: '/review субагент рецензента'
-        },
-        curator: {
-          label: 'Куратор',
-          hint: 'Просмотр использования навыков'
-        },
-        triage_specifier: {
-          label: 'Спецификатор сортировки',
-          hint: 'Доработка спецификации Канбана'
-        },
-        kanban_decomposer: {
-          label: 'Канбан-декомпозер',
-          hint: 'Декомпозиция задачи'
-        },
-        profile_describer: {
-          label: 'Описатель профиля',
-          hint: 'Описания автопрофилей'
-        }
-      },
+      tasks: ruAuxTasks,
       inheritMainEffort: 'наследовать · усилие основной модели',
+      inheritsFrom: task => `наследует ${task}`,
+      followTask: task => `Как ${task}`,
       moaTitle: 'Смесь агентов'
     },
     customEndpoints: {
@@ -2968,7 +2925,7 @@ export const ruOverrides = {
         save: 'Сохранить настройки',
         saved: (name: string) => `${name}настройки сохранены.`,
         saveFailed: (name: string) => `Не удалось сохранить${name}настройки`,
-        optional: '(необязательно)',
+        required: 'Обязательно',
         secretSet: '•••••••• (комплект)',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}, никогда в config.yaml; оставьте пустым, чтобы сохранить текущее значение.`
@@ -5339,23 +5296,7 @@ export const ruOverrides = {
     windowControls: 'Управление окном',
     paneControls: 'Управление панелями',
     appControls: 'Управление приложением',
-    modelMenu: {
-      search: 'Поиск моделей',
-      noModels: 'Модели не найдены',
-      editModels: 'Изменить модели…',
-      followDefault: 'Использовать модель по умолчанию из настроек',
-      refreshModels: 'Обновить модели',
-      favorites: 'Избранное',
-      addFavorite: 'Добавить в избранное',
-      removeFavorite: 'Убрать из избранного',
-      favoriteShortcut: '⇧ Клик',
-      fast: 'Быстрая',
-      free: 'бесплатно',
-      cacheRead: 'чтение из кэша',
-      priceTitle: (input: string, output: string, cache: string) =>
-        `Вход ${input}/Mtok · Выход ${output}/Mtok` + (cache ? ` · Чтение из кэша ${cache}/Mtok` : ''),
-      moaPresets: 'Предустановки MOA'
-    },
+    modelMenu: ruModelMenu,
     modelOptions: {
       noOptions: 'Для этой модели нет опций',
       options: 'Опции',
@@ -5424,6 +5365,9 @@ export const ruOverrides = {
       showTerminal: 'Показать терминал',
       hideTerminal: 'Скрыть терминал',
       gateway: 'Шлюз',
+      backend: 'Бэкенд',
+      messagingStopped: 'шлюз сообщений остановлен',
+      messagingDegraded: name => `${name} недоступен`,
       gatewayReady: 'готов',
       gatewayNeedsSetup: 'нужна настройка',
       gatewayUnavailable: 'вывод недоступен',
@@ -6468,9 +6412,6 @@ export const ruOverrides = {
     sessionUnavailable: 'Сеанс недоступен',
     createSessionFailed: 'Не удалось создать новый сеанс',
     promptFailed: 'Промпт не удался',
-    staleSessionTitle: 'Чат устарел',
-    staleSessionBody:
-      'Это окно отставало от другого вида того же чата. Загружены последние сообщения. Отправьте снова, если всё ещё хотите.',
     providerCredentialRequired: 'Добавьте учётные данные провайдера перед отправкой первого сообщения.',
     readinessChecksDisagree:
       'setup.status сообщает, что учётные данные настроены, но определить рабочую конфигурацию по-прежнему не удалось.',

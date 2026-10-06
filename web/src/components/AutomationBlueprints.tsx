@@ -10,7 +10,7 @@ import { Badge } from "@nous-research/ui/ui/components/badge";
 import { useToast } from "@nous-research/ui/hooks/use-toast";
 import { Toast } from "@nous-research/ui/ui/components/toast";
 import { api } from "@/lib/api";
-import type { AutomationBlueprint, AutomationBlueprintField } from "@/lib/api";
+import type { AutomationBlueprint, AutomationBlueprintField } from "@/lib/automation-blueprints";
 import { cn, themedBody } from "@/lib/utils";
 import { errorMessage } from "@/lib/api-error";
 import { useI18n } from "@/i18n";
@@ -128,6 +128,9 @@ function BlueprintCard({
               {localizeBlueprintDescription(blueprint.key, blueprint.description, locale)}
             </p>
             <div className="mt-2 flex flex-wrap gap-1">
+              {blueprint.plugin ? (
+                <Badge tone="outline">{copy.pluginBadge.replace("{name}", blueprint.plugin)}</Badge>
+              ) : null}
               {blueprint.tags.map(t => (
                 <Badge key={t} tone="secondary">
                   {localizeBlueprintValue(t, locale)}

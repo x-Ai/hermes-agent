@@ -29,6 +29,7 @@ import {
   stripGeneratedImageEchoes
 } from '@/lib/generated-images'
 import { isTodoToolName, nextTodosFromToolEvent, parseTodoRevision } from '@/lib/todos'
+import { turnDoneNotificationBody } from '@/lib/turn-done-notification-body'
 import type { ScopedServerRequest } from '@/store/gateway'
 import { dispatchNativeNotification } from '@/store/native-notifications'
 import { isDiskFullErrorMessage, notifyError } from '@/store/notifications'
@@ -1127,7 +1128,7 @@ export function useMessageStream({
           : text
 
       dispatchNativeNotification({
-        body: notificationText.slice(0, 140) || translateNow('notifications.native.turnDoneBody'),
+        body: turnDoneNotificationBody(notificationText, translateNow('notifications.native.turnDoneBody')),
         kind: 'turnDone',
         sessionId,
         title: translateNow('notifications.native.turnDoneTitle')

@@ -2,6 +2,8 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
+import { zhAuxTasks } from './zh_aux_tasks'
+import { zhModelMenu } from './zh_model_menu'
 import { zhRuntime } from './zh_runtime'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
@@ -35,7 +37,8 @@ export const zhOverrides = {
       '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本地进行，发送给 Nous 需要另行同意',
     whatIsCollected: '收集哪些内容',
     collectedIntro: '仅限有上限的计数：',
-    collectedActivity: '活动、会话时长、结果和错误类别',
+    collectedActivity:
+      '活动、会话时长、结果和错误类别，包括记忆写入或上下文压缩被拒绝、失败或跳过时的原因（来自固定列表）',
     collectedModels: '模型路由和 token 总量',
     collectedNames: '内置工具、命令和目录项名称',
     collectedMilestones: '分桶的设置计数',
@@ -707,7 +710,7 @@ export const zhOverrides = {
       inputTitle: '需要输入',
       inputBody: 'Hermes 正在等待你的回应',
       turnDoneTitle: 'Hermes 已完成',
-      turnDoneBody: '',
+      turnDoneBody: '消息已完成',
       turnErrorTitle: '本轮失败',
       backgroundDoneTitle: '后台任务已完成',
       backgroundFailedTitle: '后台任务失败',
@@ -1118,6 +1121,14 @@ export const zhOverrides = {
     resetConfirm: '将所有设置恢复为 Hermes 默认值？',
     exportFailed: '导出失败',
     resetFailed: '重置失败',
+    pluginPages: {
+      blurb: '已安装插件添加的选项，每个插件都有自己的页面，有些还带子页面',
+      empty: '还没有插件提供设置',
+      manage: '管理插件',
+      agentSettings: '智能体设置',
+      pageCount: (n: number) => `${n} 个页面`,
+      missing: '该插件没有设置页面，可能已被禁用或卸载'
+    },
     nav: {
       providers: '提供方',
       providerAccounts: '账号',
@@ -1135,28 +1146,20 @@ export const zhOverrides = {
       about: '关于',
       billing: '账单',
       notifications: '通知',
-      vault: '密码与登录'
+      vault: '密码与登录',
+      plugins: '插件'
     },
     plugins: {
       title: '桌面插件',
-      blurb:
-        '加载到此应用中的界面扩展 — 随构建捆绑，或放入 desktop-plugins 文件夹（包括 Hermes 编写的插件），禁用会即时卸载插件并在重启后保持',
-      count: n => `已安装 ${n} 个`,
       openFolder: '打开插件文件夹',
       rescan: '重新扫描',
       reveal: '在文件管理器中显示',
-      enable: '启用',
-      disable: '禁用',
       failed: '失败',
-      empty: '尚未安装桌面插件',
       kinds: {
         bundled: '内置',
         disk: '磁盘',
         runtime: '运行时'
       },
-      agentHalfMissing: '此处缺少 Agent 部分',
-      agentHalfMissingTip:
-        '这是捆绑插件的桌面部分，但其 agent 部分未安装在当前连接的后端/配置上，请在 能力 → 插件 中安装',
       installModal: {
         installFromGit: '从 Git 安装',
         reviewRepository: '检查仓库',
@@ -1295,7 +1298,6 @@ export const zhOverrides = {
         masterPasswordPlaceholder: '主密码'
       }
     },
-
     notifications: {
       title: '通知',
       intro: '原生桌面通知，区别于应用内提示，设置按设备保存，每台电脑各自独立',
@@ -2207,6 +2209,8 @@ export const zhOverrides = {
       sshErrPlatform: '不支持的远程平台，Hermes Desktop 的 SSH 模式支持 Linux、macOS 和 Windows 远程主机',
       sshErrTimeout: 'SSH 连接超时，主机可能无法访问或处于休眠状态',
       sshErrUpdateRequired: '使用 Desktop SSH 连接前，请更新远程主机上的 Hermes',
+      sshErrInteractiveAuth:
+        'Tailscale SSH 需要交互式浏览器验证，请在终端运行 `ssh <host> true` 完成验证后重试——Hermes 以非交互方式运行 SSH',
       sshErrUnknown: 'SSH 连接失败'
     },
     keys: {
@@ -2381,53 +2385,10 @@ export const zhOverrides = {
         addReference: '添加参考模型',
         aggregatorTitle: '聚合模型'
       },
-      tasks: {
-        vision: {
-          label: '视觉',
-          hint: '图片分析'
-        },
-        compression: {
-          label: '压缩',
-          hint: '上下文压缩'
-        },
-        skills_hub: {
-          label: '技能中心',
-          hint: '技能搜索'
-        },
-        approval: {
-          label: '审批',
-          hint: '智能自动批准'
-        },
-        mcp: {
-          label: 'MCP',
-          hint: 'MCP 工具路由'
-        },
-        title_generation: {
-          label: '标题生成',
-          hint: '会话标题'
-        },
-        review: {
-          label: '评审',
-          hint: '/review 评审子智能体'
-        },
-        curator: {
-          label: '维护器',
-          hint: '技能使用审查'
-        },
-        triage_specifier: {
-          label: '分类指定',
-          hint: '看板任务规格补全'
-        },
-        kanban_decomposer: {
-          label: '看板分解',
-          hint: '任务拆解'
-        },
-        profile_describer: {
-          label: '配置描述',
-          hint: '自动生成配置描述'
-        }
-      },
+      tasks: zhAuxTasks,
       inheritMainEffort: '继承 · 主模型推理强度',
+      inheritsFrom: task => `继承 ${task}`,
+      followTask: task => `跟随 ${task}`,
       moaTitle: '混合智能体（Mixture of Agents）',
       moaPreset: '预设',
       moaDescription:
@@ -4326,7 +4287,7 @@ export const zhOverrides = {
         save: '保存设置',
         saved: (name: string) => `${name}设置已保存`,
         saveFailed: (name: string) => `无法保存${name}设置`,
-        optional: '(可选)',
+        required: '必填',
         secretSet: '(套数)',
         secretStoredAs: (env: string) => `Stored in the profile's .env as ${env}，绝不在 config.yaml，留空以保留当前值`
       }
@@ -7227,23 +7188,7 @@ export const zhOverrides = {
     windowControls: '窗口控件',
     paneControls: '面板控件',
     appControls: '应用控件',
-    modelMenu: {
-      search: '搜索模型',
-      noModels: '未找到模型',
-      editModels: '编辑模型…',
-      followDefault: '使用设置中的默认模型',
-      refreshModels: '刷新模型',
-      favorites: '收藏',
-      addFavorite: '添加到收藏',
-      removeFavorite: '从收藏中移除',
-      favoriteShortcut: '⇧ 单击',
-      fast: '快速',
-      free: '免费',
-      cacheRead: '缓存读取',
-      priceTitle: (input: string, output: string, cache: string) =>
-        `输入 ${input}/Mtok · 输出 ${output}/Mtok` + (cache ? ` · 缓存读取 ${cache}/Mtok` : ''),
-      moaPresets: 'MOA 预设'
-    },
+    modelMenu: zhModelMenu,
     modelOptions: {
       noOptions: '此模型没有可用选项',
       options: '选项',
@@ -7313,6 +7258,9 @@ export const zhOverrides = {
       showTerminal: '显示终端',
       hideTerminal: '隐藏终端',
       gateway: '网关',
+      backend: '后端',
+      messagingStopped: '消息网关已停止',
+      messagingDegraded: name => `${name} 异常`,
       gatewayReady: '就绪',
       gatewayNeedsSetup: '需要设置',
       gatewayUnavailable: '推理不可用',
@@ -8455,9 +8403,7 @@ export const zhOverrides = {
     modelSwitchConfirmTitle: (model: string) => `切换到 ${model}？`,
     modelSwitchConfirmTitleFallback: '切换模型？',
     modelSwitchKeepLabel: '保留当前模型',
-    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换',
-    staleSessionTitle: '聊天内容已过期',
-    staleSessionBody: '此窗口落后于同一聊天的另一个视图，已加载最新消息，如仍需发送请重新发送'
+    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换'
   },
   tips: {
     close: '不再显示这条提示',

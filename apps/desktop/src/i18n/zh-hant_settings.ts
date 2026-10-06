@@ -72,6 +72,14 @@ export const zhHantSettings = {
     resetConfirm: '要將所有設定恢復為 Hermes 預設值嗎？',
     exportFailed: '匯出失敗',
     resetFailed: '重設失敗',
+    pluginPages: {
+      blurb: '已安裝外掛程式加入的選項。每個外掛程式都有自己的頁面，有些還有子頁面。',
+      empty: '還沒有外掛程式提供設定。',
+      manage: '管理外掛程式',
+      agentSettings: '代理程式設定',
+      pageCount: (n: number) => `${n} 個頁面`,
+      missing: '這個外掛程式沒有設定頁面，可能已停用或解除安裝。'
+    },
     nav: {
       providers: '提供方',
       providerAccounts: '帳號',
@@ -89,28 +97,20 @@ export const zhHantSettings = {
       about: '關於',
       billing: '帳單',
       notifications: '通知',
-      vault: '密碼與登入'
+      vault: '密碼與登入',
+      plugins: '外掛程式'
     },
     plugins: {
       title: '桌面插件',
-      blurb:
-        '擴展此應用程序，而不是代理 - 為整個應用程式安裝一次，無論您連接到哪個設定檔、網關或電腦。捆綁或放入桌面插件資料夾中；切換即時生效。',
-      count: n => `${n}已安裝`,
       openFolder: '打開插件資料夾',
       rescan: '重新掃描',
       reveal: '在檔案總管中顯示',
-      enable: '啟用',
-      disable: '停用',
       failed: '失敗了',
-      empty: '尚未安裝桌面插件。',
       kinds: {
         bundled: '捆綁的',
         disk: '在磁碟上',
         runtime: '運行時'
       },
-      agentHalfMissing: '特工一半失蹤了',
-      agentHalfMissingTip:
-        '這是捆綁插件的桌面部分，但其代理部分未安裝在目前連接的後端/設定檔上。從“功能”→“插件”安裝它。',
       installModal: {
         installFromGit: '從 Git 安裝',
         reviewRepository: '檢查儲存庫',
@@ -1155,6 +1155,8 @@ export const zhHantSettings = {
       sshErrPlatform: '不支援的遠端平台。Hermes Desktop 的 SSH 模式支援 Linux、macOS 和 Windows 遠端主機。',
       sshErrTimeout: 'SSH 連線逾時。主機可能無法存取或處於睡眠狀態。',
       sshErrUpdateRequired: '使用 Desktop SSH 連線前，請更新遠端主機上的 Hermes。',
+      sshErrInteractiveAuth:
+        'Tailscale SSH 需要互動式瀏覽器驗證。請在終端機執行 `ssh <host> true` 完成驗證後重試——Hermes 以非互動方式執行 SSH。',
       sshErrUnknown: 'SSH 連線失敗。'
     },
     keys: {
@@ -1300,6 +1302,9 @@ export const zhHantSettings = {
       setToMain: '設為主要模型',
       change: '變更',
       autoUseMain: '自動 · 使用主要模型',
+      inheritMainEffort: '繼承 · 主要模型推理強度',
+      inheritsFrom: task => `繼承 ${task}`,
+      followTask: task => `跟隨 ${task}`,
       providerDefault: '(提供方預設)',
       fallbackAdd: '新增後備',
       fallbackEmpty: '無後備模型－除非失敗，否則將使用預設模型。',
@@ -1375,7 +1380,6 @@ export const zhHantSettings = {
           hint: '自動個人資料描述'
         }
       },
-      inheritMainEffort: '繼承 · 主要模型工作',
       moaTitle: '混合劑',
       moaPreset: '預設',
       moaDescription:

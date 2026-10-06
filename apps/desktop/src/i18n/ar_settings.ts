@@ -18,6 +18,14 @@ export const arSettings = {
     resetConfirm: 'هل تريد إعادة كل الإعدادات إلى افتراضيات Hermes؟',
     exportFailed: 'فشل التصدير',
     resetFailed: 'فشلت إعادة الضبط',
+    pluginPages: {
+      blurb: 'خيارات تضيفها الإضافات المثبّتة. لكل إضافة صفحتها الخاصة، وبعضها يضيف صفحات فرعية.',
+      empty: 'لا توجد إضافة لها إعدادات بعد.',
+      manage: 'إدارة الإضافات',
+      agentSettings: 'إعدادات الوكيل',
+      pageCount: (n: number) => `${n} صفحات`,
+      missing: 'هذه الإضافة ليس لها صفحة إعدادات. ربما عُطّلت أو أُزيلت.'
+    },
     nav: {
       providers: 'المزودون',
       providerAccounts: 'الحسابات',
@@ -35,28 +43,20 @@ export const arSettings = {
       about: 'حول',
       billing: 'الفوترة',
       notifications: 'الإشعارات',
-      vault: 'كلمات المرور وتسجيلات الدخول'
+      vault: 'كلمات المرور وتسجيلات الدخول',
+      plugins: 'الإضافات'
     },
     plugins: {
       title: 'إضافات سطح المكتب',
-      blurb:
-        'امتدادات واجهة تُحمّل داخل هذا التطبيق — إما مضمّنة مع البناء، أو موضوعة في مجلد desktop-plugins (بما فيها التي يكتبها Hermes). تعطيل الإضافة يفرغها مباشرة ويبقى بعد إعادة التشغيل.',
-      count: n => `${n} مثبتة`,
       openFolder: 'فتح مجلد الإضافات',
       rescan: 'إعادة الفحص',
       reveal: 'إظهار في مدير الملفات',
-      enable: 'تفعيل',
-      disable: 'تعطيل',
       failed: 'فشل',
-      empty: 'لا توجد إضافات سطح مكتب مثبتة بعد.',
       kinds: {
         bundled: 'مضمّنة',
         disk: 'على القرص',
         runtime: 'وقت التشغيل'
       },
-      agentHalfMissing: 'الوكيل نصف مفقود هنا',
-      agentHalfMissingTip:
-        'هذا هو نصف البرنامج الإضافي المجمّع لسطح المكتب، ولكن نصف الوكيل الخاص به غير مثبت على الواجهة الخلفية/الملف الشخصي المتصل حاليًا. قم بتثبيته من القدرات → الإضافات.',
       installModal: {
         installFromGit: 'التثبيت من جيت',
         reviewRepository: 'مراجعة المستودع',
@@ -1068,6 +1068,9 @@ export const arSettings = {
       setToMain: 'ضبط على الرئيسي',
       change: 'تغيير',
       autoUseMain: 'تلقائي · استخدام النموذج الرئيسي',
+      inheritMainEffort: 'وراثة · جهد النموذج الرئيسي',
+      inheritsFrom: task => `يرث من ${task}`,
+      followTask: task => `اتباع ${task}`,
       providerDefault: '(افتراضي المزوّد)',
       fallbackAdd: 'التراجع',
       fallbackEmpty: 'ولا توجد نماذج للتراجع - يستخدم النموذج الافتراضي ما لم يفشل.',
@@ -1142,8 +1145,7 @@ export const arSettings = {
           label: 'وصف الملف الشخصي',
           hint: 'وصف الملف الشخصي التلقائي'
         }
-      },
-      inheritMainEffort: 'يرث · النموذج الرئيسي الجهد'
+      }
     },
     customEndpoints: {
       title: 'نقاط النهاية المخصصة',

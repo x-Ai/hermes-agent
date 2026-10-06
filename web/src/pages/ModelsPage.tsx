@@ -14,6 +14,7 @@ import {
   Zap
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { auxTaskLabel, auxTaskRows } from "@/lib/aux-tasks";
 import type {
   AuxiliaryModelsResponse,
   AuxiliaryTaskAssignment,
@@ -52,21 +53,13 @@ const PERIODS = [
   { label: "30d", days: 30 },
   { label: "90d", days: 90 }
 ] as const;
+type AuxSlotCopy = Record<string, string[]>;
 
-// Must match _AUX_TASK_SLOTS in hermes_cli/web_server.py.
-const AUX_TASKS = [
-  { key: "vision" },
-  { key: "compression" },
-  { key: "skills_hub" },
-  { key: "approval" },
-  { key: "mcp" },
-  { key: "title_generation" },
-  { key: "review" },
-  { key: "triage_specifier" },
-  { key: "kanban_decomposer" },
-  { key: "profile_describer" },
-  { key: "curator" }
-] as const;
+/** Built-in slots render the dashboard's localized [label, hint]; plugin-registered tasks
+ *  (`auxTaskRows`) carry their own label/hint from the backend. */
+function auxSlotCopy(slots: AuxSlotCopy, key: string): string[] | undefined {
+  return Object.prototype.hasOwnProperty.call(slots, key) ? slots[key] : undefined;
+}
 
 function formatTokens(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -214,7 +207,8 @@ function UseAsMenu({
   model,
   isMain,
   mainAuxTask,
-  onAssigned
+  auxTasks,
+  onAssigned,
 }: {
   provider: string;
   model: string;
@@ -222,6 +216,8 @@ function UseAsMenu({
   isMain: boolean;
   /** If this model is assigned to a specific aux task, that task's key. */
   mainAuxTask: string | null;
+  /** Auxiliary rows as served (built-ins + plugin tasks); see auxTaskRows. */
+  auxTasks: AuxiliaryTaskAssignment[];
   onAssigned(): void;
 }) {
   const { t } = useI18n();
@@ -325,8 +321,7 @@ function UseAsMenu({
           >
             <span>{copy.allAuxiliaryTasks}</span>
           </button>
-
-          {AUX_TASKS.map(t => (
+          {auxTaskRows(auxTasks).map(t => (
             <button
               key={t.key}
               type="button"
@@ -334,7 +329,7 @@ function UseAsMenu({
               disabled={busy}
               className="flex w-full items-center justify-between px-3 py-1.5 text-xs uppercase hover:bg-muted/50 disabled:opacity-40"
             >
-              <span>{copy.auxiliarySlots[t.key][0]}</span>
+              <span>{auxSlotCopy(copy.auxiliarySlots, t.key)?.[0] ?? t.label}</span>
               {mainAuxTask === t.key && (
                 <span className="text-display text-xs tracking-wider text-primary">
                   {copy.current}
@@ -459,6 +454,7 @@ function ModelCard({
               model={entry.model}
               isMain={isMain}
               mainAuxTask={mainAuxTask}
+              auxTasks={aux}
               onAssigned={onAssigned}
             />
           </div>
@@ -540,6 +536,7 @@ function AuxiliaryTasksModal({
 }) {
   const { t } = useI18n();
   const copy = getDashboardCopy(t).models;
+  const taskLabel = (key: string) => auxSlotCopy(copy.auxiliarySlots, key)?.[0] ?? auxTaskLabel(aux?.tasks, key);
   const [picker, setPicker] = useState<PickerTarget | null>(null);
   const [resetBusy, setResetBusy] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -609,9 +606,14 @@ function AuxiliaryTasksModal({
         </header>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-1">
-          {AUX_TASKS.map(t => {
+          {auxTaskRows(aux?.tasks).map(t => {
             const cur = aux?.tasks.find(a => a.task === t.key);
             const isAuto = !cur || cur.provider === "auto" || !cur.provider;
+            const eff = cur?.effective;
+            const effRoute =
+              eff?.provider && eff.provider !== "auto"
+                ? `${eff.provider} · ${eff.model || `(${copy.providerDefault})`}`
+                : copy.autoMain;
             return (
               <div
                 key={t.key}
@@ -619,17 +621,37 @@ function AuxiliaryTasksModal({
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-medium">{copy.auxiliarySlots[t.key][0]}</span>
+                    <span className="text-xs font-medium">{taskLabel(t.key)}</span>
                     <span className="text-xs text-text-tertiary">
-                      {copy.auxiliarySlots[t.key][1]}
+                      {auxSlotCopy(copy.auxiliarySlots, t.key)?.[1] ?? t.hint}
                     </span>
                   </div>
                   <div className="text-xs font-mono text-text-secondary truncate">
-                    {isAuto
-                      ? copy.autoMain
-                      : `${cur?.provider} · ${cur?.model || `(${copy.providerDefault})`}`}
+                    {isAuto && t.inheritFrom
+                      ? `${copy.inheritsFrom.replace("{task}", taskLabel(t.inheritFrom))} · ${effRoute}`
+                      : isAuto
+                        ? copy.autoMain
+                        : `${cur?.provider} · ${cur?.model || `(${copy.providerDefault})`}`}
                   </div>
                 </div>
+                {t.inheritFrom && !isAuto && (
+                  <Button
+                    size="sm"
+                    outlined
+                    onClick={async () => {
+                      await api.setModelAssignment({
+                        scope: "auxiliary",
+                        task: t.key,
+                        provider: "auto",
+                        model: "",
+                      });
+                      onSaved();
+                    }}
+                    className="h-6 text-xs uppercase"
+                  >
+                    {copy.followTask.replace("{task}", taskLabel(t.inheritFrom))}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   outlined
@@ -649,11 +671,7 @@ function AuxiliaryTasksModal({
             loader={api.getModelOptions}
             alwaysGlobal
             currentAssignment={assignmentToPickerCurrent(aux?.tasks.find(a => a.task === picker.task))}
-            title={copy.setAuxiliary.replace(
-              "{name}",
-              copy.auxiliarySlots[picker.task as keyof typeof copy.auxiliarySlots]?.[0] ??
-                picker.task
-            )}
+            title={copy.setAuxiliary.replace("{name}", taskLabel(picker.task))}
             onApply={async ({ provider, model, confirmExpensiveModel }) => {
               const result = await api.setModelAssignment({
                 confirm_expensive_model: confirmExpensiveModel,
@@ -1035,6 +1053,7 @@ function ModelSettingsPanel({
 
   // Count how many aux tasks have overrides
   const auxOverrideCount = aux?.tasks.filter(a => a.provider && a.provider !== "auto").length ?? 0;
+  const auxTaskCount = auxTaskRows(aux?.tasks).length;
 
   return (
     <Card className="min-w-0 max-w-full overflow-hidden">
@@ -1086,8 +1105,8 @@ function ModelSettingsPanel({
               {auxOverrideCount > 0
                 ? copy.overridesSummary
                     .replace("{overrides}", String(auxOverrideCount))
-                    .replace("{auto}", String(AUX_TASKS.length - auxOverrideCount))
-                : copy.tasksAuto.replace("{count}", String(AUX_TASKS.length))}
+                    .replace("{auto}", String(auxTaskCount - auxOverrideCount))
+                : copy.tasksAuto.replace("{count}", String(auxTaskCount))}
             </div>
           </div>
           <Button
