@@ -1751,11 +1751,12 @@ def _failed_turn_display_metadata(agent, result: dict) -> dict:
     card from the transcript, after the live ``message.complete`` frame is gone. Every
     string is redacted with ``force=True``: the error came from a provider/tool, so a
     secret echoed in it must not reach the durable store (the redaction e2e boundary)."""
-    from agent.error_surface import build_error_surface_from_result
+    from agent.error_surface import agent_provider_label, build_error_surface_from_result
 
     try:
         surface = build_error_surface_from_result(
-            result, provider=agent.provider or "", model=agent.model or ""
+            result, provider=agent.provider or "", model=agent.model or "",
+            provider_label=agent_provider_label(agent),
         )
     except Exception:
         logger.debug("failed-turn error surface unavailable", exc_info=True)

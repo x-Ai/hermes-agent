@@ -85,7 +85,7 @@ def _looks_like_stream_drop(message: str) -> bool:
     return any(fragment in message.lower() for fragment in _STREAM_DROP_FRAGMENTS)
 
 
-def _surface(layer: str, code: str, retryable: bool, provider: str = "", model: str = "") -> dict:
+def _surface(layer: str, code: str, retryable: bool, provider: str = "", model: str = "", label: str = "") -> dict:
     # Identity captured at classification time, so clients report the session
     # that actually failed — not whatever the composer points at later.
     identity = {k: v for k, v in (("provider", provider), ("model", model)) if v}
@@ -93,7 +93,7 @@ def _surface(layer: str, code: str, retryable: bool, provider: str = "", model: 
     if provider:
         # Clients name the failing provider in the card copy ("OpenCode Go did
         # not answer…"), not by its config slug.
-        surface["provider_label"] = _provider_label(provider)
+        surface["provider_label"] = label or _provider_label(provider)
     if layer == LAYER_AUTH and provider:
         # OAuth providers are fixed by signing in again; API-key providers by
         # replacing the key. The client's one-click recovery needs to know which.
@@ -121,6 +121,37 @@ def _provider_label(provider: str) -> str:
         return provider_label(provider)
     except Exception:  # pragma: no cover — advisory only
         return provider
+
+
+def agent_provider_label(agent: Any) -> str:
+    """The name a client prints for ``agent``'s provider on an error card.
+
+    A configured custom endpoint runs as the resolved provider ``"custom"`` (``agent.provider``),
+    whose catalog label is the generic "Custom endpoint"; the identity the user configured
+    survives as ``agent.requested_provider`` (``in-y-x`` / ``custom:in-y-x``) or, for a bare
+    ``custom`` resumed from an older row, in the endpoint URL / model. Built-in providers keep
+    their catalog label; an unresolvable custom endpoint keeps the generic one.
+    """
+    provider = str(getattr(agent, "provider", "") or "")
+    if not provider:
+        return ""
+    try:
+        from hermes_cli.models import normalize_provider
+
+        if normalize_provider(provider) != "custom":
+            return _provider_label(provider)
+        requested = str(getattr(agent, "requested_provider", "") or "").strip().lower()
+        if requested in ("", "custom"):
+            from hermes_cli.runtime_provider import canonical_custom_identity
+
+            requested = canonical_custom_identity(
+                base_url=str(getattr(agent, "base_url", "") or "") or None,
+                model=str(getattr(agent, "model", "") or "") or None) or ""
+        if requested and requested != "custom":
+            return requested.split(":", 1)[1] if requested.startswith("custom:") else requested
+    except Exception:  # pragma: no cover — advisory only
+        logger.debug("error_surface: custom endpoint identity unavailable", exc_info=True)
+    return _provider_label(provider)
 
 
 def auth_kind(provider: Optional[str]) -> str:
@@ -152,11 +183,15 @@ def _result_layer(reason: str, error_text: str, provider: str) -> str:
     return LAYER_STREAMING if _looks_like_stream_drop(error_text) else LAYER_PROVIDER
 
 
-def build_error_surface_from_result(result: Any, provider: str = "", model: str = "") -> Optional[dict]:
+def build_error_surface_from_result(
+    result: Any, provider: str = "", model: str = "", provider_label: str = "",
+) -> Optional[dict]:
     """Descriptor for a returned-error turn result (``failed=True`` dicts).
 
     Uses the stamped ``failure_reason`` plus error text. None when the result
-    carries no failure signal.
+    carries no failure signal. ``provider_label`` overrides the catalog label
+    (``agent_provider_label``: the configured endpoint's own name); ``provider``
+    itself stays the resolved slug the client's recovery actions key on.
     """
     try:
         if not isinstance(result, dict):
@@ -168,27 +203,29 @@ def build_error_surface_from_result(result: Any, provider: str = "", model: str 
         # Disk-full wins outright: the fix (free space) is unrelated to the
         # provider stack; hermes_state owns the pattern list.
         if error_text and _disk_full(error_text):
-            return _surface(LAYER_DISK, "disk_full", False, provider, model)
+            return _surface(LAYER_DISK, "disk_full", False, provider, model, provider_label)
         if result.get("billing_block") or reason in ("billing", "billing_unverified"):
-            return _surface(LAYER_BILLING, reason or "billing", False, provider, model)
+            return _surface(LAYER_BILLING, reason or "billing", False, provider, model, provider_label)
         # The Nous free tier refused or could not serve the turn (``agent/turn_recovery.py``
         # stamps ``free_tier``): its own code, so a client offers the free sign-in rather than an
         # OAuth re-login, and the chat sentence rides along as the card body.
         if isinstance(free_tier := result.get("free_tier"), dict) and free_tier.get("kind"):
             kind = str(free_tier["kind"])
-            surface = _surface(LAYER_PROVIDER, f"free_tier_{kind}", kind in _FREE_TIER_RETRYABLE_KINDS, provider, model)
+            surface = _surface(LAYER_PROVIDER, f"free_tier_{kind}", kind in _FREE_TIER_RETRYABLE_KINDS,
+                               provider, model, provider_label)
             if message := str(free_tier.get("message") or ""):
                 surface["message"] = message
             return surface
         if not reason:  # failed result without a classified reason (legacy paths)
             drop = _looks_like_stream_drop(error_text)
-            return _surface(LAYER_STREAMING if drop else LAYER_PROVIDER, "stream_drop" if drop else "unknown", True, provider, model)
+            return _surface(LAYER_STREAMING if drop else LAYER_PROVIDER, "stream_drop" if drop else "unknown", True,
+                            provider, model, provider_label)
         # Prefer the classifier's own verdict (``failure_retryable``); the
         # reason-set fallback covers older results.
         retryable = result.get("failure_retryable")
         if not isinstance(retryable, bool):
             retryable = reason not in _NON_RETRYABLE_REASONS
-        surface = _surface(_result_layer(reason, error_text, provider), reason, retryable, provider, model)
+        surface = _surface(_result_layer(reason, error_text, provider), reason, retryable, provider, model, provider_label)
         # When the provider named the moment its limit lifts (Retry-After / ``resets_at``,
         # ``agent/turn_recovery.py::_stamp_limit_reset``) the card can say "Limit resets at HH:mm"
         # next to Retry instead of leaving the user to guess (#98852). Epoch seconds.
