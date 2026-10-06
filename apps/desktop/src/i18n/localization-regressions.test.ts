@@ -12,13 +12,13 @@ const CHINESE = [zh, zhHant]
 // Chinese. No literal wording is frozen here — re-polishing a string must
 // not fail these.
 describe('Chinese localization regressions', () => {
-  it('keeps protocol names verbatim while localizing user-facing tier and bundled-plugin copy', () => {
+  it('keeps protocol names verbatim while localizing user-facing tier and plugin manifest copy', () => {
     for (const locale of CHINESE) {
       expect(locale.settings.mcp.catalogAuthOAuth).toBe(en.settings.mcp.catalogAuthOAuth)
       expect(locale.shell.statusbar.toggleFreeTier).not.toBe(en.shell.statusbar.toggleFreeTier)
       expect(locale.shell.statusbar.toggleFreeTier).toMatch(CJK)
 
-      for (const plugin of ['disk-cleanup', 'security-guidance'] as const) {
+      for (const plugin of ['disk-cleanup', 'security-guidance', 'homeassistant'] as const) {
         expect(locale.skills.plugins.bundledDescriptions[plugin], plugin).toMatch(CJK)
         expect(locale.skills.plugins.bundledDescriptions[plugin], plugin).not.toBe(
           en.skills.plugins.bundledDescriptions[plugin]

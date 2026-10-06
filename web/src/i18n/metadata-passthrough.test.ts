@@ -53,5 +53,11 @@ describe('backend metadata pass-through', () => {
     expect(localized).not.toBe(kanban)
     expect(CJK.test(localized)).toBe(true)
     expect(localizePluginDescription('kanban', '', 'zh')).toBe('')
+
+    // Catalog installs carry their repo's English manifest; a curated entry covers them the same way.
+    const homeassistant = 'Home Assistant for Hermes Agent: a gateway platform adapter plus four smart-home tools.'
+    expect(localizePluginDescription('homeassistant', homeassistant, 'zh')).not.toBe(homeassistant)
+    expect(CJK.test(localizePluginDescription('homeassistant', homeassistant, 'zh'))).toBe(true)
+    expect(localizePluginDescription('homeassistant', homeassistant, 'en')).toBe(homeassistant)
   })
 })

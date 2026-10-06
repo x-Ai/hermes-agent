@@ -312,7 +312,9 @@ export const zhHantCapabilities = {
         'disk-cleanup':
           '自動追蹤並清理 Hermes 工作階段期間產生的暫存檔案（測試指令碼、暫時輸出、排程工作記錄），透過插件掛鉤執行，不需要智慧體介入',
         'security-guidance':
-          '當新寫入的內容包含已知危險模式時，在檔案寫入工具結果中附加安全警告。包含 25 條改編自 Anthropic claude-plugins-official 的規則，不會阻止寫入，並會在下一輪把警告回饋給模型以便自行修正'
+          '當新寫入的內容包含已知危險模式時，在檔案寫入工具結果中附加安全警告。包含 25 條改編自 Anthropic claude-plugins-official 的規則，不會阻止寫入，並會在下一輪把警告回饋給模型以便自行修正',
+        homeassistant:
+          'Hermes Agent 的 Home Assistant 整合：一個閘道平台轉接器加上四個智慧家庭工具。轉接器訂閱 HA 的 WebSocket 事件匯流排，並將狀態變更事件（支援逐實體冷卻與網域/實體篩選）轉發給智慧體；回覆以 HA 持續性通知送達，排程任務的 deliver=homeassistant 則經由 notify.notify 服務投遞。homeassistant 工具集（ha_list_entities、ha_get_state、ha_list_services、ha_call_service）透過 REST API 查詢並控制裝置。原先內建於 Hermes 核心'
       },
       sourceLabels: {
         bundled: '捆綁的',

@@ -150,6 +150,35 @@ describe('PluginsTab', () => {
     expect(screen.queryByText('Raw security description')).toBeNull()
   })
 
+  it('shows the curated zh description for a catalog-installed plugin while keeping its name', () => {
+    const manifest =
+      'Home Assistant for Hermes Agent: a gateway platform adapter plus four smart-home tools. Formerly built into Hermes core.'
+
+    $agentPlugins.set([
+      {
+        catalog_name: 'homeassistant',
+        catalog_tier: 'official',
+        description: manifest,
+        installed_sha: 'ba30cb0cf86c52bdb5cde88974bc062e97966529',
+        key: 'homeassistant',
+        name: 'homeassistant',
+        source: 'git',
+        status: 'enabled',
+        version: '2.0.1'
+      }
+    ])
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <PluginsTab profile={null} />
+      </I18nProvider>
+    )
+
+    expect(screen.getAllByText('homeassistant').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(zh.skills.plugins.bundledDescriptions['homeassistant']).length).toBeGreaterThan(0)
+    expect(screen.queryByText(manifest)).toBeNull()
+  })
+
   it('keeps a non-bundled plugin name when it matches a bundled plugin id', () => {
     $agentPlugins.set([
       {

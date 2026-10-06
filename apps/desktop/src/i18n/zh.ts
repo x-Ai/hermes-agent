@@ -4,6 +4,7 @@ import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhAuxTasks } from './zh_aux_tasks'
 import { zhModelMenu } from './zh_model_menu'
+import { zhPluginManifests } from './zh_plugin_manifests'
 import { zhRuntime } from './zh_runtime'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
@@ -4229,16 +4230,7 @@ export const zhOverrides = {
         unsupported_gpu: '不支持的 GPU',
         unknown: '状态未知'
       },
-      bundledNames: {
-        'disk-cleanup': '临时文件清理',
-        'security-guidance': '安全编码指引'
-      },
-      bundledDescriptions: {
-        'disk-cleanup':
-          '自动追踪并清理 Hermes 会话期间产生的临时文件（测试脚本、临时输出、定时任务日志），通过插件钩子运行，无需智能体介入',
-        'security-guidance':
-          '当新写入的内容包含已知危险模式时，在文件写入工具结果中附加安全警告，包含 25 条基于 Anthropic claude-plugins-official 改编的规则，不会阻止写入，并会在下一轮把警告反馈给模型以便自行修正'
-      },
+      ...zhPluginManifests,
       sourceLabels: {
         bundled: '内置',
         user: '用户',
