@@ -53,11 +53,11 @@ const PERIODS = [
   { label: "30d", days: 30 },
   { label: "90d", days: 90 }
 ] as const;
-type AuxSlotCopy = Record<string, string[]>;
+type AuxSlotCopy = Readonly<Record<string, readonly string[]>>;
 
 /** Built-in slots render the dashboard's localized [label, hint]; plugin-registered tasks
  *  (`auxTaskRows`) carry their own label/hint from the backend. */
-function auxSlotCopy(slots: AuxSlotCopy, key: string): string[] | undefined {
+function auxSlotCopy(slots: AuxSlotCopy, key: string): readonly string[] | undefined {
   return Object.prototype.hasOwnProperty.call(slots, key) ? slots[key] : undefined;
 }
 

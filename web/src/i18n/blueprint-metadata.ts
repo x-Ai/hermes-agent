@@ -1,4 +1,4 @@
-import type { AutomationBlueprintField } from '@/lib/api'
+import type { AutomationBlueprintField } from '@/lib/automation-blueprints'
 import type { Locale } from './types'
 import type { DashboardCopy } from './dashboard'
 
