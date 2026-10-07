@@ -130,11 +130,22 @@ _ANTHROPIC_OUTPUT_LIMITS = {
 }
 # Unknown models get the highest current limit: future models are unlikely to have *less*.
 _ANTHROPIC_DEFAULT_OUTPUT_LIMIT = 128_000
-# Last resort for an unknown model on a third-party Anthropic-compatible endpoint. Messages requires
-# ``max_tokens``; nothing configured or discovered means we do not know the ceiling, and 128K 400s on
-# many relays. Override per endpoint (``max_output_tokens`` / ``model_token_limits``) or per model;
-# ``agent_init`` resolves those into ``agent.max_tokens`` before this default is ever consulted.
+# Last resort for an unknown model on an Anthropic-compatible host the provider registry cannot name
+# (``_is_unregistered_anthropic_endpoint``). Messages requires ``max_tokens``; nothing configured or
+# discovered means we do not know the ceiling, and 128K 400s on many relays. Override per endpoint
+# (``max_output_tokens`` / ``model_token_limits``) or per model; ``agent_init`` resolves those into
+# ``agent.max_tokens`` before this default is ever consulted.
 _THIRD_PARTY_DEFAULT_OUTPUT_LIMIT = 16_384
+
+
+def _is_unregistered_anthropic_endpoint(base_url: Optional[str]) -> bool:
+    """A non-Anthropic host the provider registry cannot name — the only route the conservative output
+    floor applies to. Named hosts (Kimi's /coding, Tencent TokenPlan, MiniMax, …) are first-party or
+    vetted endpoints that take the Anthropic default, as upstream sends it."""
+    if not _is_third_party_anthropic_endpoint(base_url):
+        return False
+    from agent.model_metadata import _infer_provider_from_url
+    return not _infer_provider_from_url(str(base_url or ""))
 
 
 def _get_anthropic_max_output(model: str) -> int:
@@ -175,9 +186,9 @@ def _resolve_anthropic_messages_max_tokens(
     positive-value contract stays endpoint-agnostic."""
     resolved = _resolve_positive_anthropic_max_tokens(requested) or _get_known_anthropic_max_output(model)
     if resolved is None:
-        # Messages requires max_tokens. Preserve the future-Claude ceiling on Anthropic itself,
-        # but do not impose 128K on an unknown model served by a compatible third-party endpoint.
-        resolved = _THIRD_PARTY_DEFAULT_OUTPUT_LIMIT if _is_third_party_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
+        # Messages requires max_tokens. Anthropic itself and every host the registry can name keep the
+        # future-Claude ceiling; only a host Hermes knows nothing about gets the conservative floor.
+        resolved = _THIRD_PARTY_DEFAULT_OUTPUT_LIMIT if _is_unregistered_anthropic_endpoint(base_url) else _ANTHROPIC_DEFAULT_OUTPUT_LIMIT
     if resolved > 0:
         return resolved
     raise ValueError(
