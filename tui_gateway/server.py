@@ -2251,7 +2251,14 @@ def _probe_config_health(cfg: dict) -> str:
     if not isinstance(cfg, dict):
         return ""
     warnings: list[str] = []
-    if null_keys := sorted(k for k, v in cfg.items() if v is None):
+    # Only a key that is SUPPOSED to hold nested settings (a dict section in DEFAULT_CONFIG) is a
+    # footgun when a bare `key:` parses to None and drops that nesting. A scalar key left blank —
+    # e.g. `max_concurrent_sessions:` — simply equals its own None default and drops nothing, so
+    # flagging it (and advising `{}`, which a scalar coercer rejects) was a false positive that
+    # re-fired on every boot/profile. Unknown bare keys are nobody's section, so stay silent too.
+    from hermes_cli.config_defaults import DEFAULT_CONFIG
+    if null_keys := sorted(k for k, v in cfg.items()
+                           if v is None and isinstance(DEFAULT_CONFIG.get(k), dict)):
         keys = ", ".join(f"`{k}`" for k in null_keys)
         warnings.append(f"config.yaml has empty section(s): {keys}. Remove the line(s) or set them to `{{}}` — "
                         f"empty sections silently drop nested settings.")

@@ -24,6 +24,23 @@ def test_probe_config_health_flags_null_sections():
     assert "model" not in msg
 
 
+def test_probe_config_health_ignores_blank_scalar_keys():
+    """A scalar key left blank equals its own default and drops no nested settings, so it must NOT
+    be flagged as an empty section. Regression: `max_concurrent_sessions:` (None default, scalar)
+    re-logged 'empty section(s)' with wrong `{}` advice on every boot. Only dict sections in
+    DEFAULT_CONFIG (e.g. `agent:`) are genuine footguns when bare."""
+    from tui_gateway.server import _probe_config_health
+
+    # Blank scalar keys (None defaults / scalar defaults): no warning.
+    assert _probe_config_health({"max_concurrent_sessions": None}) == ""
+    assert _probe_config_health({"max_live_sessions": None, "model": None}) == ""
+
+    # A real bare dict section is still flagged, and a blank scalar alongside it is not named.
+    msg = _probe_config_health({"agent": None, "max_concurrent_sessions": None})
+    assert "agent" in msg
+    assert "max_concurrent_sessions" not in msg
+
+
 def test_apply_model_switch_does_not_leak_process_env():
     """Core fix for cross-session contamination: an in-session /model switch
     must mutate only the target session (record a per-session override + switch
