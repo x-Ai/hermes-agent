@@ -888,7 +888,8 @@
         }).then(function (res) {
           const failed = (res.results || []).filter(function (r) { return !r.ok; });
           if (failed.length > 0) {
-            setError(`Bulk move: ${failed.length} of ${res.results.length} failed`);
+            setError(tx(t, "bulkMoveFailed", "Bulk move: {failed} of {total} failed",
+              { failed: failed.length, total: res.results.length }));
             setFailedIds(new Set(failed.map(function (f) { return f.id; })));
           } else {
             setFailedIds(new Set());
@@ -897,7 +898,7 @@
           setLastSelectedId(null);
           loadBoard();
         }).catch(function (err) {
-          setError(`Move failed: ${err.message || err}`);
+          setError(tx(t, "moveFailed", "Move failed: ") + (err.message || err));
           setFailedIds(new Set(selectedIds));
           loadBoard();
         });
@@ -1142,7 +1143,8 @@
             const failed = (res.results || []).filter(function (r) { return !r.ok; });
             if (failed.length > 0) {
               setError(tx(t, "bulkFailed", "Bulk: ") +
-                `${failed.length} of ${res.results.length} failed: ` +
+                tx(t, "bulkFailedCount", "{failed} of {total} failed: ",
+                  { failed: failed.length, total: res.results.length }) +
                 failed.slice(0, 3).map(function (f) { return `${f.id} (${f.error})`; }).join("; "));
               setFailedIds(new Set(failed.map(function (f) { return f.id; })));
             } else {
@@ -2305,7 +2307,7 @@
 
     function onSubmit(ev) {
       if (ev) ev.preventDefault();
-      if (!slug.trim()) { setErr("slug is required"); return; }
+      if (!slug.trim()) { setErr(tx(t, "slugRequired", "slug is required")); return; }
       setSubmitting(true);
       setErr(null);
       props.onCreate({
@@ -3247,33 +3249,39 @@
                 checked: props.selected,
                 onCheckedChange: handleCheckedChange,
                 onClick: function (e) { e.stopPropagation(); },
-                "aria-label": `Select task ${t.id}`,
+                "aria-label": tx(i18n, "selectTask", "Select task {id}", { id: t.id }),
               }),
             ),
             h("span", { className: "hermes-kanban-card-id",
-                        title: `Task id: ${t.id}. Use this id with kanban_show, /kanban show, or hermes kanban show.` }, t.id),
+                        title: tx(i18n, "taskIdTitle",
+                          "Task id: {id}. Use this id with kanban_show, /kanban show, or hermes kanban show.",
+                          { id: t.id }) }, t.id),
             t.warnings && t.warnings.count > 0
               ? h("span", {
                   className: cn(
                     "hermes-kanban-warning-badge",
                     "hermes-kanban-warning-badge--" + (t.warnings.highest_severity || "warning"),
                   ),
-                  title: (
-                    `${t.warnings.count} active diagnostic` +
-                    (t.warnings.count === 1 ? "" : "s") +
-                    ` (severity: ${t.warnings.highest_severity || "warning"}). ` +
-                    `Click to open for details.`
-                  ),
+                  title: tx(i18n,
+                    t.warnings.count === 1 ? "diagnosticBadgeTitle" : "diagnosticBadgeTitleMany",
+                    t.warnings.count === 1
+                      ? "{count} active diagnostic (severity: {severity}). Click to open for details."
+                      : "{count} active diagnostics (severity: {severity}). Click to open for details.",
+                    { count: t.warnings.count, severity: t.warnings.highest_severity || "warning" }),
                 }, t.warnings.highest_severity === "critical" ? "!!!" :
                    t.warnings.highest_severity === "error" ? "!!" : "⚠")
               : null,
             t.priority > 0
               ? h(Badge, { className: "hermes-kanban-priority",
-                           title: `Priority ${t.priority}. Higher-priority tasks are claimed first by the dispatcher.` }, `P${t.priority}`)
+                           title: tx(i18n, "priorityTitle",
+                             "Priority {priority}. Higher-priority tasks are claimed first by the dispatcher.",
+                             { priority: t.priority }) }, `P${t.priority}`)
               : null,
             t.tenant
               ? h(Badge, { variant: "outline", className: "hermes-kanban-tag",
-                           title: `Tenant: ${t.tenant}. Free-form tag for grouping tasks (customer, project, team).` }, t.tenant)
+                           title: tx(i18n, "tenantTitle",
+                             "Tenant: {tenant}. Free-form tag for grouping tasks (customer, project, team).",
+                             { tenant: t.tenant }) }, t.tenant)
               : null,
             progress
               ? h("span", {
@@ -3281,7 +3289,8 @@
                     "hermes-kanban-progress",
                     progress.done === progress.total ? "hermes-kanban-progress--full" : "",
                   ),
-                  title: `${progress.done} of ${progress.total} child tasks done`,
+                  title: tx(i18n, "childProgressTitle", "{done} of {total} child tasks done",
+                    { done: progress.done, total: progress.total }),
                 }, `${progress.done}/${progress.total}`)
               : null,
             needsAssignee
@@ -3297,7 +3306,8 @@
           h("div", { className: "hermes-kanban-card-row hermes-kanban-card-meta" },
             t.assignee
               ? h("span", { className: "hermes-kanban-assignee",
-                            title: `Assigned to Hermes profile @${t.assignee}` }, "@", t.assignee)
+                            title: tx(i18n, "assignedToTitle", "Assigned to Hermes profile @{assignee}",
+                              { assignee: t.assignee }) }, "@", t.assignee)
               : h("span", { className: "hermes-kanban-unassigned",
                             title: needsAssignee
                               ? tx(i18n, "needsAssigneeHint", "Dependencies are satisfied, but the dispatcher skips this task until you assign a profile.")
@@ -3305,15 +3315,20 @@
                   tx(i18n, "unassigned", "unassigned")),
             t.comment_count > 0
               ? h("span", { className: "hermes-kanban-count",
-                            title: `${t.comment_count} comment${t.comment_count === 1 ? "" : "s"} on this task` }, "💬 ", t.comment_count)
+                            title: tx(i18n,
+                              t.comment_count === 1 ? "commentCountTitle" : "commentCountTitleMany",
+                              t.comment_count === 1 ? "{count} comment on this task" : "{count} comments on this task",
+                              { count: t.comment_count }) }, "💬 ", t.comment_count)
               : null,
             t.link_counts && (t.link_counts.parents + t.link_counts.children) > 0
               ? h("span", { className: "hermes-kanban-count",
-                            title: `${t.link_counts.parents} parent${t.link_counts.parents === 1 ? "" : "s"}, ${t.link_counts.children} child${t.link_counts.children === 1 ? "" : "ren"}. Children stay blocked until their parent is done.` },
+                            title: tx(i18n, "linkCountsTitle",
+                              `${t.link_counts.parents} parent${t.link_counts.parents === 1 ? "" : "s"}, ${t.link_counts.children} child${t.link_counts.children === 1 ? "" : "ren"}. Children stay blocked until their parent is done.`,
+                              { parents: t.link_counts.parents, children: t.link_counts.children }) },
                   "↔ ", t.link_counts.parents + t.link_counts.children)
               : null,
             h("span", { className: "hermes-kanban-ago",
-                        title: t.created_at ? `Created ${t.created_at}` : "" },
+                        title: t.created_at ? tx(i18n, "createdAtTitle", "Created {time}", { time: t.created_at }) : "" },
               timeAgo ? timeAgo(t.created_at) : ""),
           ),
         ),
@@ -4276,7 +4291,7 @@
               onClick: function () { setExpanded(true); },
               className: "hermes-kanban-edit-link",
               title: tx(t, "showAllAttempts", "Show all attempts"),
-            }, `+${runs.length - 3} earlier`)
+            }, tx(t, "earlierAttempts", "+{count} earlier", { count: runs.length - 3 }))
           : null,
       ),
       visible.map(function (r) {
@@ -4732,7 +4747,7 @@
           },
           disabled: !newParent,
           size: "sm",
-        }, "+ parent"),
+        }, tx(t, "addParentButton", "+ parent")),
       ),
       h("div", { className: "hermes-kanban-deps-row" },
         h("span", { className: "hermes-kanban-deps-label" }, tx(t, "children", "Children:")),
@@ -4770,7 +4785,7 @@
           },
           disabled: !newChild,
           size: "sm",
-        }, "+ child"),
+        }, tx(t, "addChildButton", "+ child")),
       ),
     );
   }
@@ -4933,8 +4948,8 @@
           const label = hc.subscribed ? "✓ " + hc.platform : hc.platform;
           const target = `${hc.name} (${hc.chat_id}${hc.thread_id ? " / " + hc.thread_id : ""})`;
           const title = hc.subscribed
-            ? `${tx(t, "sendingUpdates", "Sending updates to")} ${target}. Click to stop.`
-            : `${tx(t, "sendNotifications", "Send completed / blocked / gave_up notifications to")} ${target}.`;
+            ? tx(t, "sendingUpdatesTitle", "Sending updates to {target}. Click to stop.", { target: target })
+            : tx(t, "sendNotificationsTitle", "Send completed / blocked / gave_up notifications to {target}.", { target: target });
           return h(Button, {
             key: hc.platform,
             size: "sm",

@@ -1302,6 +1302,36 @@ export interface Translations {
     modelFreeTextPlaceholder?: string;
     modelLoading?: string;
     modelProfileDefaultOption?: string;
+    // Dashboard-bundle keys the English catalog leaves to the inline fallbacks (zh / zh-hant translate them).
+    boardProject?: string;
+    boardProjectHint?: string;
+    boardProjectNone?: string;
+    boardProjectExplanation?: string;
+    boardProjectClear?: string;
+    boardProjectSettingsExplanation?: string;
+    boardProjectBadge?: string;
+    boardProjectBadgeTitle?: string;
+    unbindProject?: string;
+    bulkMoveFailed?: string;
+    bulkFailedCount?: string;
+    slugRequired?: string;
+    selectTask?: string;
+    taskIdTitle?: string;
+    diagnosticBadgeTitle?: string;
+    diagnosticBadgeTitleMany?: string;
+    priorityTitle?: string;
+    tenantTitle?: string;
+    childProgressTitle?: string;
+    assignedToTitle?: string;
+    commentCountTitle?: string;
+    commentCountTitleMany?: string;
+    linkCountsTitle?: string;
+    createdAtTitle?: string;
+    earlierAttempts?: string;
+    addParentButton?: string;
+    addChildButton?: string;
+    sendingUpdatesTitle?: string;
+    sendNotificationsTitle?: string;
     // Optional in-app confirm-dialog strings for the trash/delete flow;
     // non-English locales fall back to the English literals in the bundle.
     trash?: {
