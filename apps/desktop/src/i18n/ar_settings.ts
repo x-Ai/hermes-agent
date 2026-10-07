@@ -1271,6 +1271,8 @@ export const arSettings = {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':
           'أفضل نموذج وكيل شامل؛ يفهم الصور؛ ويحافظ على السرعة مع السياق الطويل',
+        'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
+          'نموذج مزيج خبراء متقدم واسع النطاق مع توقع رموز متعددة؛ يفهم الصور',
         'Frontier-scale model; needs a very large GPU to run well':
           'نموذج متقدم واسع النطاق؛ يتطلب ذاكرة GPU كبيرة جداً ليعمل بسلاسة',
         'Bigger mixture-of-experts with multi-token prediction; sees images':

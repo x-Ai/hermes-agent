@@ -1371,10 +1371,7 @@ export const zhHantSettings = {
           label: '策展器',
           hint: '技能使用審查'
         },
-        triage_specifier: {
-          label: '分診規格',
-          hint: '看板規格細化'
-        },
+        triage_specifier: { label: '分診規格', hint: '看板規格細化' },
         kanban_decomposer: {
           label: '看板分解器',
           hint: '任務分解'
@@ -1556,6 +1553,8 @@ export const zhHantSettings = {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':
           '綜合表現最佳的智慧體模型；支援圖像理解；長上下文下依然快速',
+        'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
+          '前沿規模的混合專家模型，支援多詞元預測和圖像理解',
         'Frontier-scale model; needs a very large GPU to run well':
           '前沿大型模型；需要顯示記憶體容量很大的 GPU 才能流暢執行',
         'Bigger mixture-of-experts with multi-token prediction; sees images':

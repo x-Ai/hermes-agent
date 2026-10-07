@@ -1069,10 +1069,7 @@ export const ruOverrides = {
           label: 'Ответ готов',
           description: 'Ход завершился, пока Hermes был в фоне.'
         },
-        turnError: {
-          label: 'Ход не удался',
-          description: 'Ошибки фоновых ходов.'
-        },
+        turnError: { label: 'Ход не удался', description: 'Ошибки фоновых ходов.' },
         backgroundDone: {
           label: 'Фоновая задача завершена',
           description: 'Фоновая команда терминала выполнена.'
@@ -2236,6 +2233,8 @@ export const ruOverrides = {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':
           'Лучшая универсальная модель для агента; понимает изображения; сохраняет скорость при длинном контексте',
+        'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
+          'Передовая модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
         'Frontier-scale model; needs a very large GPU to run well':
           'Передовая крупная модель; для быстрой работы нужен GPU с очень большим объёмом памяти',
         'Bigger mixture-of-experts with multi-token prediction; sees images':

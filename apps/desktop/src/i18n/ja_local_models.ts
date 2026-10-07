@@ -6,6 +6,8 @@ export const jaLocalModels: TranslationOverride<Translations['settings']['localM
   catalogDescriptions: {
     'Best all-round agent model; sees images; long context stays fast':
       '総合力に優れたエージェントモデル。画像に対応し、長いコンテキストでも高速',
+    'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
+      'マルチトークン予測を備えた最先端規模の混合エキスパートモデル。画像に対応',
     'Frontier-scale model; needs a very large GPU to run well':
       '最先端の大規模モデル。快適な動作には非常に大容量の GPU メモリが必要',
     'Bigger mixture-of-experts with multi-token prediction; sees images':
