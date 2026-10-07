@@ -40,7 +40,14 @@ export const zhHantAssistant = {
       securityHeading: '安全性',
       scan: { passed: '掃描通過', warnings: '掃描發現警告', failed: '掃描失敗' },
       requirementsLabel: '需求',
-      credentialsHeading: '憑證'
+      credentialsHeading: '憑證',
+      requiresHermes: range => `Hermes ${range}`,
+      envVar: name => `${name} 環境變數`,
+      serverNotConnected: (server, reason) => `MCP 伺服器 ${server} 未連線${reason ? `：${reason}` : ''}`,
+      notEnabled: '已安裝但未啟用',
+      missingEnv: names => `設定 ${names} 以完成設定`,
+      alreadyInstalled: '已安裝，維持原狀',
+      phase: { downloading: '正在下載…', python_packages: '正在安裝 Python 套件…', loading_tools: '正在載入其工具…' }
     },
     thread: {
       loadingSession: '正在載入工作階段',

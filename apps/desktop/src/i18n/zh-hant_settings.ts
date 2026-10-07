@@ -1,6 +1,7 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import type { TranslationOverrides } from './define-locale'
+import { zhHantUninstallSection } from './zh-hant_uninstall_section'
 
 export const zhHantSettings = {
   language: {
@@ -605,7 +606,8 @@ export const zhHantSettings = {
           language: '轉寫語言'
         },
         openai: {
-          model: 'OpenAI STT 模型'
+          model: 'OpenAI STT 模型',
+          streamingModel: 'OpenAI 即時轉寫模型'
         },
         groq: {
           model: 'Groq STT 模型'
@@ -618,7 +620,10 @@ export const zhHantSettings = {
           languageCode: 'ElevenLabs 語言',
           tagAudioEvents: '標記音訊事件',
           diarize: '說話者分離'
-        }
+        },
+        streaming: '即時轉寫',
+        deepinfra: { model: 'DeepInfra STT 模型' },
+        xai: { model: 'xAI STT 模型' }
       },
       tts: {
         provider: '文字轉語音提供方',
@@ -794,7 +799,8 @@ export const zhHantSettings = {
         elevenlabs: {
           languageCode: '可選的 ISO-639-3 語言代碼。留空讓 ElevenLabs 自動偵測。'
         },
-        echoTranscripts: '將語音訊息的原始 🎙️ 逐字稿發回聊天'
+        echoTranscripts: '將語音訊息的原始 🎙️ 逐字稿發回聊天',
+        streaming: '說話時即時顯示文字（OpenAI、xAI、ElevenLabs）。任何失敗都會回退到錄音轉寫。'
       },
       updates: {
         nonInteractiveLocalChanges:
@@ -1585,6 +1591,7 @@ export const zhHantSettings = {
       modelsTitle: '模型',
       recommended: '推薦',
       recommendedReason: {
+        'product-default': '這台機器的預設模型，由其製造商選定。',
         'best-quality-resident': '在完全駐留 GPU 且保持全速的模型中品質最高。推薦會在品質與該硬體的預計速度之間權衡。',
         'speed-gated-quality':
           '有更高品質的模型可以裝入這台機器，但受記憶體頻寬限制回應會太慢——這是保持流暢的最佳模型。',
@@ -2205,35 +2212,7 @@ export const zhHantSettings = {
       postSetupRunAgain: '再次運行'
     },
 
-    uninstallSection: {
-      dangerZone: '危險操作',
-      checkingInstalled: '正在檢查已安裝內容…',
-      uninstallHermes: '解除安裝 Hermes',
-      chooseHowMuch: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
-      confirmUninstall: '確認解除安裝',
-      confirmBody: what => `這將移除${what}。此操作無法復原。`,
-      appLabel: '應用程式：',
-      couldNotStart: '無法開始解除安裝。',
-      uninstalling: '正在解除安裝…',
-      yesUninstall: '是，解除安裝',
-      options: {
-        gui: {
-          title: '僅解除安裝聊天 GUI',
-          description: '移除此桌面應用程式。Hermes 代理、你的設定和聊天記錄都會保留。',
-          consequence: '桌面聊天 GUI（此應用程式及其資料）'
-        },
-        lite: {
-          title: '解除安裝 GUI 與代理，保留資料',
-          description: '移除應用程式和 Hermes 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
-          consequence: '聊天 GUI 和 Hermes 代理（設定、聊天記錄和機密會保留）'
-        },
-        full: {
-          title: '解除安裝全部',
-          description: '移除應用程式、代理和所有使用者資料——設定、聊天記錄、排程工作、機密和日誌。',
-          consequence: '全部內容——聊天 GUI、Hermes 代理，以及你的所有設定、聊天記錄、機密和日誌'
-        }
-      }
-    },
+    uninstallSection: zhHantUninstallSection,
     computerUse: {
       accessibility: '無障礙',
       screenRecording: '螢幕錄製',

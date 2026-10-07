@@ -85,11 +85,37 @@ export const zhHantBoot = {
       diskFull: '磁碟已滿, 所以 Hermes 無法啟動 .',
       portInUse: '另一程序是使用網路端口Hermes需要.',
       installMissing: 'Hermes的安裝部分缺失. 選擇修復安裝放回去 .'
+    },
+    updateHold: {
+      title: '較早的更新仍佔用著 Hermes',
+      titleUnverified: 'Hermes 無法確認上次更新已完成',
+      description: 'Hermes 暫緩啟動，以免載入更新可能仍在修改的檔案。佔用一結束就會自動啟動。',
+      heldByProcess: pid => `更新程序（${pid}）已結束，但它啟動的某個程序仍佔用著 Hermes 安裝目錄。`,
+      heldUnknown: '一次更新已結束，但它啟動的某個程序仍佔用著 Hermes 安裝目錄。',
+      unverified: '更新助手目前無法確認是誰佔用著 Hermes 安裝目錄。Hermes 會持續檢查。',
+      since: time => `自 ${time} 起等待`,
+      lastChecked: time => `上次檢查於 ${time}`,
+      recoveryHint:
+        '通常幾分鐘內即可解除。如果沒有：結束 Hermes，終止殘留的 git 或 hermes 程序（或重新啟動電腦），然後重新開啟 Hermes。',
+      checkAgain: '再次檢查',
+      quit: '結束 Hermes',
+      openLogs: '開啟記錄',
+      startAnyway: '仍然啟動…',
+      confirmTitle: '在更新仍佔用 Hermes 時啟動？',
+      confirmBody:
+        '殘留的更新程序可能仍在修改 Hermes 的檔案。現在啟動可能載入到更新了一半的安裝，在你再次執行更新之前可能無法正常運作。Hermes 會把這個選擇記入記錄並保留更新標記。',
+      confirmKeepWaiting: '繼續等待',
+      confirmStart: '仍然啟動',
+      startAnywayRefused: '在 Hermes 啟動之前，佔用安裝目錄的程序發生了變化。請檢查後再試一次。'
     }
   },
   remoteDisplayBanner: {
     message: reason => `軟體繪圖已啟用 — 偵測到遠端顯示（${reason}）。為防止畫面閃爍，已停用 GPU 加速。`
   },
+  butterbar: {
+    goTo: (index, total) => `顯示第 ${index} 則通知，共 ${total} 則`
+  },
+
   updates: {
     discontinuedTitle: '此版本的 Hermes 已停止支援',
     discontinuedBody: '此版本的 Hermes 已停止支援，可能無法正常運作——請解除安裝。您的資料仍保留在磁碟上。',
@@ -191,7 +217,8 @@ export const zhHantBoot = {
       restarting: '後端正在重新啟動以載入更新…',
       notAvailable: '此後端無法更新。',
       failed: '後端更新失敗。',
-      noReturn: '後端未恢復連線。更新可能未完成——請檢查後端主機。'
+      noReturn: '後端未恢復連線。更新可能未完成——請檢查後端主機。',
+      owed: steps => `後端已更新，但仍有未完成的步驟：${steps}。請重新執行 hermes update 以完成它們。`
     },
     gitUnusable: 'Hermes 無法在這台電腦上執行 Git，因此無法檢查更新。',
     connectionSettings: '連接設定值',
@@ -244,7 +271,8 @@ export const zhHantBoot = {
     versionDetailsRuntimeEmbedded: '內建執行環境',
     versionDetailsRuntimeExternal: '外部執行環境（使用系統執行環境）',
     versionDetailsInstallId: '安裝 ID',
-    versionDetailsUncommittedChanges: '未提交的變更'
+    versionDetailsUncommittedChanges: '未提交的變更',
+    justNowSuffix: ' · 剛剛'
   },
   handoffTour: {
     profileTitle: '您的第一個任務在預設設定檔上運行',
@@ -595,6 +623,7 @@ export const zhHantBoot = {
   TranslationOverrides,
   | 'boot'
   | 'remoteDisplayBanner'
+  | 'butterbar'
   | 'updates'
   | 'handoffTour'
   | 'guidedGreeting'

@@ -3,9 +3,12 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhAuxTasks } from './zh_aux_tasks'
+import { zhLocalModels } from './zh_local_models'
 import { zhModelMenu } from './zh_model_menu'
+import { zhNotices } from './zh_notices'
 import { zhPluginManifests } from './zh_plugin_manifests'
 import { zhRuntime } from './zh_runtime'
+import { zhSharedMetrics } from './zh_shared_metrics'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
   document: '个文档',
@@ -32,41 +35,7 @@ export const zhOverrides = {
       message: '此文件不存在 — 可能已被删除或移动，或者位于另一台机器上'
     }
   },
-  sharedMetrics: {
-    consentTitle: '帮助改进 Hermes？',
-    consentBody:
-      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本地进行，发送给 Nous 需要另行同意',
-    whatIsCollected: '收集哪些内容',
-    collectedIntro: '仅限有上限的计数：',
-    collectedActivity:
-      '活动、会话时长、结果和错误类别，包括记忆写入或上下文压缩被拒绝、失败或跳过时的原因（来自固定列表）',
-    collectedModels: '模型路由和 token 总量',
-    collectedNames: '内置工具、命令和目录项名称',
-    collectedMilestones: '分桶的设置计数',
-    collectedReliability: '更新结果与耗时、崩溃、启动与回复速度、消息平台状态',
-    collectedUsage:
-      'Hermes 的使用方式：代理的准确度与效率（编辑是否成功、循环、错误后的恢复、每个任务的 token 与工具调用数、缓存中断），各界面与 Desktop 模式的活跃时间，哪些应用区域、操作与设置被使用、很快关闭或被关闭，以及提供商设置的结果',
-    collectedMachine:
-      '概略的机器信息：内存范围、GPU 类型、Hermes 版本新旧与发布通道、落后的更新数、是否使用本地模型服务器',
-    installId:
-      '发送会把每日数据包上传到 Nous 遥测服务，数据包带有此配置文件的安装 ID：一个不含个人信息的固定随机 UUID，删除共享指标目录即可重置',
-    consentWindow:
-      '只有整个收集周期都落在已记录同意时段内的数据包才会被发送——你同意之前的数据，或发送关闭期间的数据，都会留在本机，你可以随时再次关闭发送',
-    readDocs: '查看完整说明',
-    share: '收集并发送给 Nous',
-    local: '仅在本地收集',
-    off: '不用了',
-    changeLater: '你可以随时在 设置 → 安全 中更改',
-    saveFailed: '无法保存你的选择',
-    collectLabel: '收集使用统计',
-    collectDesc: '在此设备上保存有上限的计数，绝不包含提示词、文件、路径或错误文本',
-    sendLabel: '向 Nous 发送使用统计',
-    sendDesc: '将每日数据包上传到 Nous 遥测服务，只发送同意时段内的数据，需要先开启收集',
-    unavailable: '请更新 Hermes 后端以更改此设置',
-    stripBody: '仅限有界计数器，绝不包含提示词或文件',
-    stripChoices: { share: '发送给 Nous', local: '仅本地', off: '不用了' },
-    stripDetails: '详情'
-  },
+  sharedMetrics: zhSharedMetrics,
   intro: introZh,
   connectors: {
     title: '连接你的应用',
@@ -544,6 +513,28 @@ export const zhOverrides = {
       diskFull: '磁盘已经满了, 所以 Hermes 无法启动 .',
       portInUse: '另一个程序是使用网络端口Hermes需要',
       installMissing: 'Hermes的部分安装缺失，选择修复安装以放回去 .'
+    },
+    updateHold: {
+      title: '较早的更新仍占用着 Hermes',
+      titleUnverified: 'Hermes 无法确认上次更新已完成',
+      description: 'Hermes 暂缓启动，以免加载更新可能仍在修改的文件，占用一结束就会自动启动',
+      heldByProcess: pid => `更新进程（${pid}）已退出，但它启动的某个进程仍占用着 Hermes 安装目录`,
+      heldUnknown: '一次更新已退出，但它启动的某个进程仍占用着 Hermes 安装目录',
+      unverified: '更新助手目前无法确认是谁占用着 Hermes 安装目录，Hermes 会持续检查',
+      since: time => `自 ${time} 起等待`,
+      lastChecked: time => `上次检查于 ${time}`,
+      recoveryHint:
+        '通常几分钟内即可解除，如果没有：退出 Hermes，结束残留的 git 或 hermes 进程（或重启电脑），然后重新打开 Hermes',
+      checkAgain: '再次检查',
+      quit: '退出 Hermes',
+      openLogs: '打开日志',
+      startAnyway: '仍然启动…',
+      confirmTitle: '在更新仍占用 Hermes 时启动？',
+      confirmBody:
+        '残留的更新进程可能仍在修改 Hermes 的文件，现在启动可能加载到更新了一半的安装，在你再次运行更新之前可能无法正常工作，Hermes 会把这个选择记入日志并保留更新标记',
+      confirmKeepWaiting: '继续等待',
+      confirmStart: '仍然启动',
+      startAnywayRefused: '在 Hermes 启动之前，占用安装目录的进程发生了变化，请检查后重试'
     }
   },
   notifications: {
@@ -730,9 +721,7 @@ export const zhOverrides = {
     compressDeferredDone: '上下文压缩已完成',
     updateReadyMessageAppInstaller: 'Hermes 新版本已就绪，现在更新，Windows 会为你完成剩余步骤'
   },
-  remoteDisplayBanner: {
-    message: reason => `软件渲染已启用 — 检测到远程显示（${reason}），为防止画面闪烁，已禁用 GPU 加速`
-  },
+  ...zhNotices,
   billingBlock: {
     titleNous: 'Nous 额度已用尽',
     titleProvider: provider => `额度已用尽 — ${provider}`,
@@ -1655,7 +1644,8 @@ export const zhOverrides = {
           language: '转写语言'
         },
         openai: {
-          model: 'OpenAI STT 模型'
+          model: 'OpenAI STT 模型',
+          streamingModel: 'OpenAI 实时转写模型'
         },
         groq: {
           model: 'Groq STT 模型'
@@ -1668,7 +1658,10 @@ export const zhOverrides = {
           languageCode: 'ElevenLabs 语言',
           tagAudioEvents: '标记音频事件',
           diarize: '说话人区分'
-        }
+        },
+        streaming: '实时转写',
+        deepinfra: { model: 'DeepInfra STT 模型' },
+        xai: { model: 'xAI STT 模型' }
       },
       tts: {
         provider: '文字转语音提供方',
@@ -1855,7 +1848,8 @@ export const zhOverrides = {
         elevenlabs: {
           languageCode: '可选的 ISO-639-3 语言代码，留空让 ElevenLabs 自动检测'
         },
-        provider: '语音转文本（STT）提供方'
+        provider: '语音转文本（STT）提供方',
+        streaming: '说话时实时显示文字（OpenAI、xAI、ElevenLabs），任何失败都会回退到录音转写'
       },
       tts: {
         xai: {
@@ -2558,142 +2552,7 @@ export const zhOverrides = {
       backendIdleTimeoutAria: '后端空闲超时（毫秒）',
       backendIdleTimeoutTitle: '后端空闲超时（毫秒）'
     },
-    localModels: {
-      catalogDescriptions: {
-        'Best all-round agent model; sees images; long context stays fast':
-          '综合表现最佳的智能体模型，支持图像理解，长上下文下依然快速',
-        'Frontier-scale model; needs a very large GPU to run well': '前沿大模型，需要显存容量很大的 GPU 才能流畅运行',
-        'Bigger mixture-of-experts with multi-token prediction; sees images':
-          '更大规模的混合专家模型，支持多词元预测和图像理解',
-        'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'
-      } as Record<string, string>,
-      recommendedBuild: (quant, largeWindow) =>
-        `推荐版本（${quant}）——此引擎针对该量化类型进行了优化，可完全在 GPU 上运行${largeWindow ? '，并支持较大的上下文窗口' : ''}`,
-      compactBuild: quant => `适合本机的紧凑版本（${quant}）——超出显存容量，需要使用系统内存，运行较慢`,
-      fitTooLarge: (quant, size) => `即使是最紧凑的版本（${quant}，${size}），也超出了显存与系统内存的总容量`,
-      fitNeedsMemory: '所需内存超出本机容量',
-      fitFullContext: context => `以完整的 ${context} 上下文运行`,
-      fitGrowingContext: (start, max) => `上下文从 ${start} 开始，随使用逐步扩展至 ${max}`,
-      fitSpilled: detail => `${detail}（超出显存容量，需要使用系统内存，运行较慢）`,
-      title: '本地模型',
-      runtimeTitle: '本地运行时',
-      runtimeReady: backend => `就绪 · ${backend}`,
-      serverRunning: '运行中',
-      runtimeInstalled: '已安装 llama.cpp 运行时',
-      runtimeInstalledDetail: (tag, backend) => `构建 ${tag}，${backend} 后端，Hermes 会为您启动并管理服务器`,
-      installTitle: '安装本地运行时',
-      installDetail: '下载 llama.cpp 推理引擎（几百 MB），下载的模型完全在本机运行 — 无需账号，数据不会离开您的电脑',
-      installAction: '安装运行时',
-      installing: '正在安装运行时…',
-      installFailed: '运行时安装失败',
-      hardwareTitle: '本机配置',
-      hardwareLoading: '正在检测硬件…',
-      vram: label => `${label} 显存`,
-      ram: label => `${label} 内存`,
-      unifiedMemory: '统一内存',
-      modelsTitle: '模型',
-      recommended: '推荐',
-      recommendedReason: {
-        'best-quality-resident': '在完全驻留 GPU 且保持全速的模型中质量最高，推荐会在质量与该硬件的预计速度之间权衡',
-        'speed-gated-quality': '有更高质量的模型可以装入这台机器，但受内存带宽限制响应会太慢——这是保持流畅的最佳模型',
-        'fastest-resident': '没有模型能在该硬件上达到全速，这是完全驻留 GPU 内存中最快的一个'
-      } as Record<string, string>,
-      noRecommendationTitle: '此设备暂无自动推荐模型',
-      noRecommendationDetail:
-        '自动设置需要一个可完全放入显存或统一内存的精选模型，你仍可在下方自行选择，或浏览更多模型',
-      noRecommendationAction: '浏览模型',
-      downloaded: '已下载',
-      downloadAction: size => `下载 · ${size}`,
-      downloadProgress: (done, total) => `正在下载 ${done} / ${total}`,
-      downloadDoneToast: model => `${model} 已就绪`,
-      installDoneToast: '本地运行时已安装就绪',
-      quickstartTitle: '在本机运行模型',
-      quickstartDetail: (model, size) =>
-        `一键完成所有设置：本地引擎、${model}（需下载 ${size}），并设为新会话的默认模型，并且数据不会离开这台电脑`,
-      quickstartDetailReady: model => `一键将 ${model} 设为新会话的默认模型，所有内容都在本机运行`,
-      quickstartAction: '为我设置',
-      quickstartConfigure: '自定义',
-      quickstartDoneToast: model => `${model} 已就绪 — 新会话将在本机运行`,
-      quickstartFailed: '本地模型设置失败',
-      quickstartStageEngine: '引擎',
-      quickstartStageModel: '模型',
-      quickstartStageFinish: '完成',
-      useAction: '使用',
-      activePill: '默认',
-      updateTitle: '引擎有可用更新',
-      updateDetail: (next, current) =>
-        `新的 llama.cpp 构建（${next}）可以安装 — 当前为 ${current}，下载期间模型仍可正常使用`,
-      updateAction: '更新引擎',
-      updating: '正在更新引擎…',
-      upToDateTitle: '引擎已是最新',
-      upToDateDetail: (tag, backend) => `正在运行 llama.cpp ${tag}（${backend}） — Hermes 提供的最新构建`,
-      activeDetail: '新对话使用此模型 — 发送首条消息时加载',
-      activeNotLoaded: '首条消息时加载',
-      loadedPill: '已加载',
-      placementResident: '全部在 GPU',
-      placementSpilled: '部分在内存',
-      placementResidentTip: '完全在 GPU 显存中以此上下文窗口运行 — 全速',
-      placementSpilledTip: '模型的一部分从系统内存运行 — 可用但较慢，更紧凑的版本或更小的上下文可以完全放入显存',
-      loadingPill: '加载中…',
-      ejectTip: '释放显存（需要时重新加载）',
-      ejected: '模型已卸载 — 显存已释放',
-      ejectFailed: '无法卸载模型',
-      stopServer: '关闭',
-      startServer: '开启',
-      runtimeRunningDetail: '本地服务器正在运行，关闭后将释放全部显存，新对话将不再使用本地模型，直到您重新开启',
-      serverStopped: '本地服务器已停止 — 显存已释放',
-      serverStarted: '本地服务器运行中',
-      serverStopFailed: '无法停止本地服务器',
-      serverStartFailed: '无法启动本地服务器',
-      activating: '启动中…',
-      activateFailed: model => `无法切换到 ${model}`,
-      activateDoneToast: model => `新对话将使用 ${model}`,
-      downloadFailed: model => `${model} 下载失败`,
-      pillFitsGpu: '完全在 GPU 上运行',
-      pillUsesRam: '使用系统内存',
-      pillTooBig: '超出本机内存',
-      browseTitle: '发现更多模型',
-      browseHint: '搜索整个 Hugging Face，在这里下载的模型会自动适配你的机器，但未经我们测试',
-      browsePlaceholder: '按名称或作者搜索模型…',
-      browseSearching: '正在搜索 Hugging Face',
-      browseListing: '正在读取模型文件',
-      browseShowFiles: '查看文件',
-      browseRefresh: '刷新',
-      browseDownloads: '次下载',
-      browseLikes: '个赞',
-      browseGated: '需要登录 Hugging Face',
-      browseNoGguf: '未找到兼容的模型文件',
-      browseFitUnknown: '适配情况未知',
-      browseAlreadyDownloaded: '已下载',
-      addedByYou: '由你添加',
-      browseDownloadStarted: '正在下载 {name}',
-      browseDownloadAria: '下载 {name}',
-      sideloadButton: '添加模型文件',
-      sideloadTitle: '选择 GGUF 模型文件',
-      sideloadDone: '已添加 {name}',
-      sideloadAlreadyPresent: '已在你的库中',
-      pillFullContext: max => `完整 ${max} 上下文`,
-      pillFullContextTip: '从一开始就以模型的完整上下文窗口运行',
-      pillUpTo: max => `最高 ${max} 上下文`,
-      pillGrowsTip: '随着对话需要更多空间自动增长',
-      pillVision: '识图',
-      deleteAction: '删除模型',
-      deleteConfirm: model => `从磁盘删除 ${model}？`,
-      deleted: model => `已删除 ${model}`,
-      deleteFailed: '删除失败',
-      connectionChanged: '本地模型连接已更改',
-      downloadStatusRunning: '正在下载',
-      downloadSpeed: rate => `${rate}`,
-      downloadEta: time => `剩余约 ${time}`,
-      downloadEtaSeconds: count => `${count} 秒`,
-      downloadEtaMinutes: count => `${count} 分钟`,
-      downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 小时 ${minutes} 分钟` : `${hours} 小时`),
-      downloadPausedLabel: '已暂停',
-      downloadPauseAction: '暂停',
-      downloadResumeAction: '继续',
-      downloadPauseFailed: model => `无法暂停 ${model} 的下载`,
-      downloadResumeFailed: model => `无法继续 ${model} 的下载`
-    },
+    localModels: zhLocalModels,
     billing: {
       perMonth: amount => `${amount}/月`,
       creditsPerMonth: amount => `${amount} 额度/月`,
@@ -3648,7 +3507,10 @@ export const zhOverrides = {
           description: '移除应用、智能体和所有用户数据——配置、聊天记录、定时任务、密钥和日志',
           consequence: '全部内容——聊天图形界面、Hermes 智能体以及你的所有配置、聊天记录、密钥和日志'
         }
-      }
+      },
+      managedBody: '此安装由系统托管，Hermes 无法自行删除',
+      dataKept: path => `你的配置、聊天记录和密钥保存在 ${path}，删除应用不会删除它们`,
+      openAppsSettings: '打开“应用”设置'
     },
     computerUse: {
       accessibility: '辅助功能',
@@ -6171,7 +6033,8 @@ export const zhOverrides = {
       ageNow: '刚刚',
       ageDay: '天前',
       ageHour: '小时前',
-      ageMin: '分钟前'
+      ageMin: '分钟前',
+      renameDesc: '留空则清除。'
     },
     dateDivider: {
       today: '今天早些时候',
@@ -6742,7 +6605,8 @@ export const zhOverrides = {
       restarting: '后端正在重启以加载更新…',
       notAvailable: '此后端无法更新',
       failed: '后端更新失败',
-      noReturn: '后端未恢复在线，更新可能未完成 — 请检查后端主机'
+      noReturn: '后端未恢复在线，更新可能未完成 — 请检查后端主机',
+      owed: steps => `后端已更新，但仍有未完成的步骤：${steps}，请重新运行 hermes update 完成它们`
     },
     gitUnusable: 'Hermes 无法在这台电脑上运行 Git，因此无法检查更新',
     connectionSettings: '连接设置',
@@ -6795,7 +6659,8 @@ export const zhOverrides = {
     applyingBodyAppInstaller: 'Hermes 将会关闭，由 Windows 完成更新，完成后 Hermes 会自动重新打开——你无需进行任何操作',
     applyingCloseAppInstaller: '此窗口将会关闭，Windows 完成更新后 Hermes 会自动重新打开',
     checkUnknownTitleAppInstaller: '无法检查更新',
-    checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新'
+    checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新',
+    justNowSuffix: ' · 刚刚'
   },
   handoffTour: {
     profileTitle: '你的第一个任务在默认配置档案中运行',
@@ -7329,7 +7194,7 @@ export const zhOverrides = {
       modelPinned: '已固定，新对话将使用此模型而非"设置"中的默认模型',
       modelTitle: (provider, model) => `模型 · ${provider}: ${model}`,
       providerModelTitle: (provider, model) => `${provider} · ${model}`,
-      focusedSince: '聚焦开始时间',
+      focusedSince: '已聚焦',
       focusedSinceTitle: '自此聊天获得焦点以来的时长——不是某个回合的运行时长'
     }
   },
@@ -7966,7 +7831,14 @@ export const zhOverrides = {
       securityHeading: '安全',
       scan: { passed: '扫描通过', warnings: '扫描发现警告', failed: '扫描未通过' },
       requirementsLabel: '要求',
-      credentialsHeading: '凭据'
+      credentialsHeading: '凭据',
+      requiresHermes: range => `Hermes ${range}`,
+      envVar: name => `${name} 环境变量`,
+      serverNotConnected: (server, reason) => `MCP 服务器 ${server} 未连接${reason ? `：${reason}` : ''}`,
+      notEnabled: '已安装但未启用',
+      missingEnv: names => `设置 ${names} 以完成配置`,
+      alreadyInstalled: '已安装，保持原样',
+      phase: { downloading: '正在下载…', python_packages: '正在安装 Python 包…', loading_tools: '正在加载其工具…' }
     },
     mcpSetup: {
       installTitle: '添加 MCP 服务器',
@@ -8485,6 +8357,16 @@ export const zhOverrides = {
     confirmDetail: '仅在你接受此权衡时确认',
     confirmAction: '确认',
     declined: '已取消模型更改 — 你拒绝了数据训练层级警告'
+  },
+  appTour: {
+    sessions: { title: '你的对话', text: '所有对话都在这里，可搜索、置顶或重新打开任意一个' },
+    composer: { title: '在这里提问', text: '说出你想完成的事，输入 @ 可引入文件' },
+    newSession: { title: '重新开始', text: '新会话拥有独立的上下文，每项任务用一个' },
+    model: { title: '模型选择器', text: '选择由哪个模型来回答你' },
+    modelLocal: '这台电脑可以在本地运行模型：设置 > 提供商 > 本地模型',
+    capabilities: { title: '能力', text: 'Hermes 可使用的技能、工具和插件，在这里添加更多' },
+    messaging: { title: '消息平台', text: '通过 Telegram、Slack、Discord 等联系 Hermes' },
+    rightPane: { title: '工作面板', text: '在右侧打开文件、终端、审阅和应用内浏览器' }
   }
 } satisfies TranslationOverrides
 

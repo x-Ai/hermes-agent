@@ -77,12 +77,15 @@ def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: boo
     return "\n".join(lines)
 
 
-def busy_message(command: str) -> str:
+def busy_message(command: str, compressing: bool = False) -> str:
     """4009 refusal for a history-mutating command while a reply is streaming. There is no
     ``/interrupt`` slash command on any client: Desktop has a Stop button, the terminal TUI uses
-    Ctrl+C — name both without assuming which one the reader has. Catalog prose, but the leading
-    ``session busy`` stays English in every language: both clients match it to retry or soften."""
-    return _t("gateway.busy.streaming_reply", command=command.lstrip("/"))
+    Ctrl+C — name both without assuming which one the reader has. A manual /compress also holds
+    the session busy, but nothing is replying and Stop does not end it: say to wait instead.
+    Catalog prose, but the leading ``session busy`` stays English in every language: both clients
+    match it to retry or soften."""
+    key = "gateway.busy.compress_wait" if compressing else "gateway.busy.streaming_reply"
+    return _t(key, command=command.lstrip("/"))
 
 
 def handoff_busy_message() -> str:

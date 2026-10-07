@@ -5,6 +5,8 @@
  * output that back them. Locales that have not translated this newer bundle
  * fall back to English through getDashboardCopy().
  */
+import { dashboardFilesEn, dashboardFilesZh } from './dashboard-files'
+
 export const dashboardEn = {
   chat: {
     sessionTokenUnavailable: 'Session token unavailable. Open this page through `hermes dashboard`, not directly.',
@@ -172,46 +174,7 @@ export const dashboardEn = {
       vulcanDelegate: 'Vulcan delegate'
     }
   },
-  files: {
-    title: 'Files',
-    refresh: 'Refresh files',
-    path: 'Path',
-    go: 'Go',
-    upload: 'Upload',
-    uploadFiles: 'Upload files',
-    create: 'Create',
-    createFolder: 'Create folder',
-    target: 'Target',
-    folderName: 'Folder name',
-    dropFiles: 'Drop files here',
-    chooseFiles: 'Choose files',
-    name: 'Name',
-    size: 'Size',
-    modified: 'Modified',
-    actions: 'Actions',
-    noFiles: 'No files',
-    loading: 'Loading',
-    loadingFiles: 'Loading files…',
-    uploading: 'Uploading',
-    releaseToUpload: 'Release to upload',
-    pathRequired: 'Path required',
-    directoryUnavailable: 'Directory unavailable',
-    folderNameRequired: 'Folder name required',
-    folderCreated: 'Folder created',
-    uploadedCount: '{count} file(s) uploaded',
-    deleted: 'Deleted',
-    openItem: 'Open {name}',
-    downloadItem: 'Download {name}',
-    deleteItem: 'Delete {name}',
-    deleteTitle: 'Delete {name}?',
-    deleteFallbackTitle: 'Delete item?',
-    deleteFolderDescription: 'This removes the folder and everything inside it.',
-    deleteFileDescription: 'This removes the file.',
-    uploadFailed: 'Upload failed',
-    createFailed: 'Could not create folder',
-    deleteFailed: 'Could not delete file',
-    downloadFailed: 'Could not download file'
-  },
+  files: dashboardFilesEn,
   models: {
     settings: 'Model settings',
     appliesToNewSessions: 'applies to new sessions',
@@ -1055,7 +1018,7 @@ export const dashboardEn = {
   }
 } as const
 
-type WidenStrings<T> = T extends string
+export type WidenStrings<T> = T extends string
   ? string
   : T extends readonly unknown[]
     ? { [K in keyof T]: WidenStrings<T[K]> }
@@ -1224,46 +1187,7 @@ export const dashboardZh: DashboardCopy = {
       vulcanDelegate: 'Vulcan 委派'
     }
   },
-  files: {
-    title: '文件',
-    refresh: '刷新文件',
-    path: '路径',
-    go: '前往',
-    upload: '上传',
-    uploadFiles: '上传文件',
-    create: '新建',
-    createFolder: '新建文件夹',
-    target: '目标路径',
-    folderName: '文件夹名称',
-    dropFiles: '将文件拖放到此处',
-    chooseFiles: '选择文件',
-    name: '名称',
-    size: '大小',
-    modified: '修改时间',
-    actions: '操作',
-    noFiles: '暂无文件',
-    loading: '正在加载',
-    loadingFiles: '正在加载文件…',
-    uploading: '正在上传',
-    releaseToUpload: '松开即可上传',
-    pathRequired: '请输入路径',
-    directoryUnavailable: '目录不可用',
-    folderNameRequired: '请输入文件夹名称',
-    folderCreated: '文件夹已创建',
-    uploadedCount: '已上传 {count} 个文件',
-    deleted: '已删除',
-    openItem: '打开 {name}',
-    downloadItem: '下载 {name}',
-    deleteItem: '删除 {name}',
-    deleteTitle: '删除 {name}？',
-    deleteFallbackTitle: '删除此项？',
-    deleteFolderDescription: '这会删除该文件夹及其中的所有内容',
-    deleteFileDescription: '这会删除该文件',
-    uploadFailed: '上传失败',
-    createFailed: '无法创建文件夹',
-    deleteFailed: '无法删除文件',
-    downloadFailed: '无法下载文件'
-  },
+  files: dashboardFilesZh,
   models: {
     settings: '模型设置',
     appliesToNewSessions: '应用于新会话',

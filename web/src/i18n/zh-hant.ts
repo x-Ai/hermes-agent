@@ -93,6 +93,8 @@ export const zhHant: Translations = {
     sharedMetricsTitle: "協助改進 Hermes？",
     sharedMetricsBody:
       "共享指標只包含有上限的計數，絕不包含提示詞、檔案、路徑或錯誤文字，收集僅在本機進行，傳送給 Nous 需要另行同意",
+    sharedMetricsReaskBody:
+      "再問一次：舊版本可能在您看到這個問題之前就儲存了「不用了」。",
     sharedMetricsShare: "傳送給 Nous",
     sharedMetricsLocal: "僅本機",
     sharedMetricsOff: "不用了",
@@ -103,6 +105,7 @@ export const zhHant: Translations = {
   status: {
     actionFailed: "動作失敗",
     actionFinished: "已完成",
+    actionFinishedOwed: "已更新，但仍有待完成的步驟（重新執行 `hermes update` 以完成）",
     actions: "動作",
     agent: "代理",
     activeSessions: "使用中工作階段",

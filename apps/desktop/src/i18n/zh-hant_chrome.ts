@@ -400,7 +400,8 @@ export const zhHantChrome = {
       ageNow: '剛才',
       ageDay: '天',
       ageHour: '時',
-      ageMin: '分'
+      ageMin: '分',
+      renameDesc: '留空即可清除。'
     },
     dateDivider: {
       today: '今天稍早',
@@ -633,7 +634,7 @@ export const zhHantChrome = {
         title: '上下文使用量',
         tokenSummary: (used, max) => `${used} / ${max} Tokens`
       },
-      focusedSince: '聚焦以來',
+      focusedSince: '已聚焦',
       focusedSinceTitle: '自本次聚焦此對話以來的時間，不是回合執行時長',
       yoloOn: 'YOLO 已開啟 — 自動核准危險指令。Shift+點擊可全域切換。',
       yoloOff: 'YOLO 已關閉。Shift+點擊可全域切換。',

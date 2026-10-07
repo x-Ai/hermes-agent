@@ -121,6 +121,8 @@ export const zh: Translations = {
     sharedMetricsTitle: "协助改进 Hermes？",
     sharedMetricsBody:
       "共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本机进行，发送给 Nous 需要另行同意",
+    sharedMetricsReaskBody:
+      "再问一次：早期版本可能在你看到这个问题之前就保存了“不用了”",
     sharedMetricsShare: "发送给 Nous",
     sharedMetricsLocal: "仅本机",
     sharedMetricsOff: "不用了",
@@ -131,6 +133,7 @@ export const zh: Translations = {
   status: {
     actionFailed: "操作失败",
     actionFinished: "已完成",
+    actionFinishedOwed: "已更新，但仍有待完成的步骤（重新运行 `hermes update` 以完成）",
     actions: "操作",
     agent: "代理",
     activeSessions: "活跃会话",

@@ -27,6 +27,7 @@ export const arOverrides = {
   remoteDisplayBanner: arBoot.remoteDisplayBanner,
   billingBlock: arCommon.billingBlock,
   billingPage: arCommon.billingPage,
+  butterbar: arBoot.butterbar,
   titlebar: arChrome.titlebar,
   keybinds: arChrome.keybinds,
   paletteCommands: arChrome.paletteCommands,

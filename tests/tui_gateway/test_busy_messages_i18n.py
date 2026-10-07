@@ -32,11 +32,20 @@ def test_busy_message_is_localized_and_keeps_its_marker(chinese):
 
 def test_every_busy_refusal_keeps_the_marker_in_every_bundled_language():
     for lang in i18n.SUPPORTED_LANGUAGES:
-        for key in ("streaming_reply", "review_wait", "handoff_wait"):
+        for key in ("streaming_reply", "compress_wait", "review_wait", "handoff_wait"):
             text = i18n.t(f"gateway.busy.{key}", lang=lang, command="undo")
             assert text.startswith("session busy"), (lang, key, text)
             assert "gateway.busy" not in text, (lang, key)
         assert "gateway.busy" not in i18n.t("gateway.busy.subagent_running", lang=lang)
+
+
+def test_compress_refusal_is_localized_and_keeps_its_marker(chinese):
+    message = busy_message("/undo", compressing=True)
+
+    assert message.startswith("session busy")
+    assert "/undo" in message and "/compress" in message
+    assert message == i18n.t("gateway.busy.compress_wait", lang="zh", command="undo")
+    assert message != busy_message("/undo")
 
 
 def test_english_default_names_the_command_and_the_stop_affordances(monkeypatch):

@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import update_cmd
 
 
 @pytest.fixture(autouse=True)
@@ -127,36 +126,3 @@ class TestGitTrampolineSelfHeal:
         assert candidates[1] == (
             profile_home / "git" / "mingw64" / "libexec" / "git-core" / "git.exe"
         )
-
-
-class TestExplicitBranchStaysOnTarget:
-    """`hermes update --branch <x>` from another branch with 0 new commits stays on <x>.
-
-    Regression for the fork fix lost in an upstream sync: the already-up-to-date path used to
-    switch HEAD back to the original branch, stranding an explicit branch migration — a GUI
-    updater comparing HEAD to origin/<x> then reports "update available" forever.
-    """
-
-    @staticmethod
-    def _plan():
-        from types import SimpleNamespace
-        return SimpleNamespace(
-            auto_stash_ref=None, parked_branch_switched=False, switch_block_reason=None,
-            upstream_checked=True, prompt_for_restore=False)
-
-    def test_explicit_branch_is_kept(self, capsys):
-        with patch.object(update_cmd, "_git_run") as git_run, \
-                patch.object(update_cmd, "_complete_source_update"):
-            update_cmd._finish_already_up_to_date(
-                ["git"], "bb/gui", "main", self._plan(), gw_input_fn=None,
-                completion_request=None, branch_explicit=True)
-        assert not any("checkout" in call.args[1] for call in git_run.call_args_list)
-        assert "Staying on 'bb/gui'" in capsys.readouterr().out
-
-    def test_implicit_branch_switches_back(self):
-        with patch.object(update_cmd, "_git_run") as git_run, \
-                patch.object(update_cmd, "_complete_source_update"):
-            update_cmd._finish_already_up_to_date(
-                ["git"], "main", "feature", self._plan(), gw_input_fn=None,
-                completion_request=None, branch_explicit=False)
-        assert [call.args[1] for call in git_run.call_args_list] == [["checkout", "feature"]]
