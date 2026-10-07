@@ -64,6 +64,38 @@ class TestScanSkillCommands:
         assert message is not None
         assert "Apply impeccable design craft." in message
 
+    def test_core_command_collision_logs_once_per_process(self, tmp_path, caplog):
+        """A SHIPPED skill whose slug collides with a core command must warn once per process, not
+        once per scan. scan_skill_commands memoizes per (platform, home, project) identity (#104849),
+        but that identity flaps on a multi-profile Desktop host, so the pre-fix code re-logged the same
+        collision on every distinct identity. The collision is already surfaced in the user-facing
+        listings (test_skill_collision_visibility.py); the log line is a once-per-process breadcrumb."""
+        import logging
+
+        import agent.skill_commands as sc_mod
+        from agent.skill_commands import get_skill_commands
+
+        _make_skill(tmp_path, "handoff")  # name collides with the core /handoff command
+        _make_skill(tmp_path, "tidy-notes")  # control: non-colliding skill still registers
+
+        with (
+            patch("tools.skills_tool.SKILLS_DIR", tmp_path),
+            patch.object(sc_mod, "_skill_commands_by_key", {}),
+            patch.object(sc_mod, "_logged_scan_collisions", set()),
+            caplog.at_level(logging.WARNING, logger="agent.skill_commands"),
+        ):
+            # Two distinct identities → two real scans (the memo misses on the second).
+            with patch.dict(os.environ, {"HERMES_PLATFORM": "telegram"}):
+                first = dict(get_skill_commands())
+            with patch.dict(os.environ, {"HERMES_PLATFORM": "discord"}):
+                second = dict(get_skill_commands())
+
+        assert "/handoff" not in first and "/handoff" not in second  # dropped by the shadowing guard
+        assert "/tidy-notes" in first and "/tidy-notes" in second
+        collisions = [r for r in caplog.records
+                      if "collides with a core Hermes command" in r.getMessage() and "handoff" in r.getMessage()]
+        assert len(collisions) == 1, f"expected one collision warning, got {len(collisions)}"
+
     def test_get_skill_commands_rescans_when_platform_scope_changes(self, tmp_path):
         """Platform-specific disabled-skill caches must not leak across platforms.
 

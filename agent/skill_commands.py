@@ -422,6 +422,22 @@ def _scaffold_header(
 
 _SCAN_SKIP_PARTS = {'.git', '.github', '.hub', '.archive', '.locks'}
 
+# Collision warnings are breadcrumbs, not alerts: the collision is ALSO surfaced in every listing
+# surface the user actually looks at (skill_command_collision_note → the /skills table, /help skills,
+# the commands.catalog palette RPC — see tests/hermes_cli/test_skill_collision_visibility.py).
+# scan_skill_commands memoizes per distinct (platform, home, project) identity (#104849), but that
+# identity legitimately flaps on a multi-profile Desktop host, so a SHIPPED skill whose slug collides
+# re-logged the same warning once per profile/project. Log each distinct collision once per process
+# instead (mirrors native_compaction's once-per-process suppression notice).
+_logged_scan_collisions: set = set()
+
+
+def _warn_scan_collision_once(dedupe_key: tuple, msg: str, *args: Any) -> None:
+    if dedupe_key in _logged_scan_collisions:
+        return
+    _logged_scan_collisions.add(dedupe_key)
+    logger.warning(msg, *args)
+
 
 def skill_command_collision_note(name: str) -> Optional[str]:
     """User-facing note when *name*'s slash slug is a core command (name or alias), else None.
@@ -461,15 +477,19 @@ def _scan_skill_md(skill_md: Path, disabled: set, seen_names: set, commands: Dic
     # A collision with a core command (name or alias) skips auto-registration; the skill stays
     # loadable via /skill <name>. The same predicate feeds the /skills + palette notes.
     if skill_command_collision_note(name) is not None:
-        logger.warning("Skill %r generates slash command '/%s' which collides with a core Hermes command; "
-                       "skipping auto-registration. Use '/skill %s' instead.", name, cmd_name, name)
+        _warn_scan_collision_once(
+            ("core", name, cmd_name),
+            "Skill %r generates slash command '/%s' which collides with a core Hermes command; "
+            "skipping auto-registration. Use '/skill %s' instead.", name, cmd_name, name)
         return
     # Dedup on the slug too: "git_helper" and "git-helper" normalize the same.
     # First-wins preserves project > local > external precedence.
     cmd_key = f"/{cmd_name}"
     if cmd_key in commands:
-        logger.warning("Skill %r maps to slash command %s already claimed by %r; keeping the first and skipping this one.",
-                       name, cmd_key, commands[cmd_key]["name"])
+        _warn_scan_collision_once(
+            ("claim", cmd_key, commands[cmd_key]["name"], name),
+            "Skill %r maps to slash command %s already claimed by %r; keeping the first and skipping this one.",
+            name, cmd_key, commands[cmd_key]["name"])
         return
     commands[cmd_key] = {"name": name, "description": description or f"Invoke the {name} skill",
                          "skill_md_path": str(skill_md), "skill_dir": str(skill_md.parent)}
