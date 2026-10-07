@@ -94,6 +94,7 @@ import {
   Avatar,
   columnHelp,
   columnLabel,
+  defaultProfileOption,
   errText,
   FIELD_LABEL,
   isLockedTarget,
@@ -103,7 +104,8 @@ import {
   shortId,
   useDefaultAssignee,
   useKanban,
-  useOrchestration
+  useOrchestration,
+  useProfileName
 } from './ui'
 
 // ── optimistic board edits (reconciled by the follow-up refresh) ─────────────
@@ -151,6 +153,7 @@ function Meta({ children, icon }: { children: ReactNode; icon: string }) {
 
 function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const created = ago(task.created_at)
   const links = task.link_counts ? task.link_counts.parents + task.link_counts.children : 0
   const fallback = useDefaultAssignee()
@@ -163,6 +166,7 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
   // The agent on the hook for a queued card: the explicit assignee, else the
   // auto-default (ready), else the specifier that rewrites triage cards.
   const attached = task.assignee || (task.status === 'ready' ? fallback : task.status === 'triage' ? orchestrator : '')
+  const attachedLabel = profileName(attached)
 
   const meta = columnMeta(task.status)
 
@@ -176,17 +180,17 @@ function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
             task.status === 'review'
               ? k.reviewChecking
               : task.assignee
-                ? k.attachedTip(attached)
+                ? k.attachedTip(attachedLabel)
                 : task.status === 'triage'
-                  ? k.orchestratorTip(attached)
-                  : k.autoAssignTip(attached)
+                  ? k.orchestratorTip(attachedLabel)
+                  : k.autoAssignTip(attachedLabel)
           }
         >
           <span className="inline-flex min-w-0 cursor-help items-center gap-1 font-medium" style={{ color: meta.tone }}>
             <Avatar name={attached} size="1.125rem" />
             <span className="truncate">
               {!task.assignee && '→ '}
-              {attached}
+              {attachedLabel}
             </span>
           </span>
         </Tip>
@@ -369,6 +373,7 @@ function Column({
   selected: ReadonlySet<string>
 }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const [over, setOver] = useState(false)
   const meta = columnMeta(column.name)
   const label = columnLabel(k, column.name)
@@ -477,7 +482,7 @@ function Column({
               <div className="flex flex-col gap-2" key={assignee}>
                 <div className="flex items-center gap-1.5 px-1 pt-1 text-[0.625rem] text-(--ui-text-quaternary)">
                   {assignee !== UNASSIGNED_LANE && <Avatar name={assignee} size="0.875rem" />}
-                  {assignee}
+                  {assignee === UNASSIGNED_LANE ? k.unassigned : profileName(assignee)}
                   <span className="tabular-nums">{tasks.length}</span>
                 </div>
                 {tasks.map(task => (
@@ -561,6 +566,7 @@ function NewTaskDialog({
   // (ultimately the active profile), applied at create time. Never silently
   // unassigned — parking a card is the explicit choice, not the default.
   const resolvedDefault = useOrchestration()?.resolved_default_assignee || 'default'
+  const profileName = useProfileName()
 
   // Board-level workspace default: a task inherits the current board's
   // configured project dir (scratch when unset, worktree in a git repo, else
@@ -749,12 +755,14 @@ function NewTaskDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_PARENT}>{k.defaultOption(resolvedDefault)}</SelectItem>
+                <SelectItem value={NO_PARENT}>
+                  {defaultProfileOption(k, resolvedDefault, profileName(resolvedDefault))}
+                </SelectItem>
                 {(roster?.profiles ?? [])
                   .filter(profile => profile.name !== resolvedDefault)
                   .map(profile => (
                     <SelectItem key={profile.name} value={profile.name}>
-                      {profile.name}
+                      {profileName(profile.name)}
                     </SelectItem>
                   ))}
                 <SelectItem value={PARKED}>{k.parkedOption}</SelectItem>
@@ -895,6 +903,7 @@ function FilterMenu({
   tenant: string
 }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const active = Boolean(assignee || tenant || archived)
   const lanesByProfile = useValue($lanesByProfile)
 
@@ -920,7 +929,7 @@ function FilterMenu({
         {board.assignees.map(name => (
           <DropdownMenuItem key={name} onSelect={() => onAssignee(name)}>
             <Avatar name={name} size="0.875rem" />
-            {name}
+            {profileName(name)}
             {check(assignee === name)}
           </DropdownMenuItem>
         ))}
@@ -974,6 +983,7 @@ function SelectionBar({
   selected: ReadonlySet<string>
 }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const qc = useQueryClient()
   const scope = useKanbanScope()
   const { data: roster } = useQuery({ queryKey: profilesKey(scope), queryFn: fetchProfiles, staleTime: 60_000 })
@@ -1056,7 +1066,7 @@ function SelectionBar({
                 onSelect={() => bulk.mutate({ assignee: profile.name, reclaim_first: true })}
               >
                 <Avatar name={profile.name} size="0.875rem" />
-                {profile.name}
+                {profileName(profile.name)}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

@@ -83,7 +83,8 @@ import {
   shortId,
   StatusMenu,
   useDefaultAssignee,
-  useKanban
+  useKanban,
+  useProfileName
 } from './ui'
 
 /**
@@ -93,7 +94,11 @@ import {
  * prose with the payload folded in; unknown kinds fall back to kind + compact
  * key=value detail so new backend events still say something.
  */
-function eventText(event: KanbanEvent, k: KanbanText): { detail?: string; label: string } {
+function eventText(
+  event: KanbanEvent,
+  k: KanbanText,
+  profileName: (name: string) => string
+): { detail?: string; label: string } {
   let p: Record<string, unknown> = {}
 
   if (typeof event.payload === 'string' && event.payload) {
@@ -120,7 +125,7 @@ function eventText(event: KanbanEvent, k: KanbanText): { detail?: string; label:
 
   switch (event.kind) {
     case 'created':
-      return { label: k.evtCreated(col('status') ?? '', str('assignee') ?? '') }
+      return { label: k.evtCreated(col('status') ?? '', profileName(str('assignee') ?? '')) }
     case 'status': {
       const reason = str('reason')
 
@@ -133,11 +138,14 @@ function eventText(event: KanbanEvent, k: KanbanText): { detail?: string; label:
     case 'assigned': {
       const assignee = str('assignee')
 
-      return { label: assignee ? k.evtAssignedTo(assignee) : k.evtUnassigned }
+      return { label: assignee ? k.evtAssignedTo(profileName(assignee)) : k.evtUnassigned }
     }
 
-    case 'commented':
-      return { label: k.evtCommentBy(str('author') ?? k.someone) }
+    case 'commented': {
+      const author = str('author')
+
+      return { label: k.evtCommentBy(author ? profileName(author) : k.someone) }
+    }
 
     case 'claimed':
       return { label: str('source_status') === 'review' ? k.evtClaimedReview : k.evtClaimedWorker }
@@ -305,6 +313,7 @@ function AssigneeMenu({
   onReassign: (p: string) => void
 }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const scope = useKanbanScope()
   const { data: roster } = useQuery({ queryKey: profilesKey(scope), queryFn: fetchProfiles, staleTime: 60_000 })
 
@@ -318,7 +327,7 @@ function AssigneeMenu({
           {current ? (
             <>
               <Avatar name={current} size="0.875rem" />
-              <span className="truncate">{current}</span>
+              <span className="truncate">{profileName(current)}</span>
             </>
           ) : (
             <span className="text-(--ui-text-quaternary)">{k.unassigned}</span>
@@ -330,7 +339,7 @@ function AssigneeMenu({
         {(roster?.profiles ?? []).map(profile => (
           <DropdownMenuItem key={profile.name} onSelect={() => onReassign(profile.name)}>
             <Avatar name={profile.name} size="0.875rem" />
-            {profile.name}
+            {profileName(profile.name)}
             {profile.name === current && <Codicon className="ml-auto" name="check" size="0.8rem" />}
           </DropdownMenuItem>
         ))}
@@ -700,6 +709,7 @@ function FeedTabs({
   running: boolean
 }) {
   const k = useKanban()
+  const profileName = useProfileName()
   const [tab, setTab] = useState<'activity' | 'comments' | 'log' | 'runs'>('comments')
 
   const hasLog = !!log?.exists && !!log.content
@@ -733,7 +743,7 @@ function FeedTabs({
               {detail.comments.map(comment => (
                 <li className="flex flex-col gap-0.5" key={comment.id}>
                   <div className="flex items-baseline gap-2 text-[0.75rem]">
-                    <span className="font-medium text-(--ui-text-secondary)">{comment.author}</span>
+                    <span className="font-medium text-(--ui-text-secondary)">{profileName(comment.author)}</span>
                     <span className="text-[0.625rem] text-(--ui-text-quaternary)">{ago(comment.created_at)}</span>
                   </div>
                   <TaskMarkdown text={comment.body} />
@@ -748,7 +758,7 @@ function FeedTabs({
         <ScrollFade deps={detail.events.length} max="7rem">
           <ul className="flex flex-col gap-1">
             {detail.events.map(event => {
-              const { detail: extra, label } = eventText(event, k)
+              const { detail: extra, label } = eventText(event, k, profileName)
 
               return (
                 <li className="flex items-baseline gap-2 text-[0.6875rem]" key={event.id}>

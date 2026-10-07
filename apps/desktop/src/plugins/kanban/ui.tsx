@@ -13,13 +13,14 @@ import {
   profileColor,
   profileColorSoft,
   relativeTime,
+  useI18n,
   useQuery
 } from '@hermes/plugin-sdk'
 import { type ReactNode, useEffect, useState } from 'react'
 
 import { fetchOrchestration, orchestrationKey, useKanbanScope } from './api'
-import { columnLabel, useKanban } from './i18n'
-import { columnMeta, type KanbanTask } from './types'
+import { columnLabel, type KanbanText, useKanban } from './i18n'
+import { type BoardMeta, columnMeta, type KanbanTask } from './types'
 
 // Plugin-scoped i18n lives in ./i18n; re-exported so components import strings
 // and chrome from one place (./ui).
@@ -43,6 +44,38 @@ export function useOrchestration() {
  *  (`kanban.default_assignee`) — '' when unset, i.e. unassigned never runs. */
 export function useDefaultAssignee(): string {
   return useOrchestration()?.default_assignee.trim() ?? ''
+}
+
+/** Mirrors `kanban_db.DEFAULT_BOARD` — the board that always exists. */
+export const DEFAULT_BOARD = 'default'
+
+/** The reserved profile unassigned work ultimately falls back to. */
+export const isDefaultProfile = (name: string): boolean => name.trim().toLowerCase() === 'default'
+
+/** Profile identifiers stay stable in payloads and equality checks; only the
+ *  reserved `default` name is shown in the user's language, the same rule the
+ *  sidebar and Bot Mode apply. */
+export function useProfileName(): (name: string) => string {
+  const { t } = useI18n()
+
+  return name => name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName)
+}
+
+/** "<profile> (default)" for the dispatcher's fallback — except for the
+ *  reserved `default` profile, where the localized word alone says both. */
+export function defaultProfileOption(k: KanbanText, name: string, display: string): string {
+  return isDefaultProfile(name) ? display : k.defaultOption(display)
+}
+
+/** The backend titles a board after its slug (`default` → "Default"); the
+ *  reserved board shows that synthesized name in the user's language until
+ *  someone renames it. */
+export function boardDisplayName(meta: Pick<BoardMeta, 'name' | 'slug'>, k: KanbanText): string {
+  if (meta.slug === DEFAULT_BOARD && (!meta.name || meta.name === 'Default')) {
+    return k.defaultBoardName
+  }
+
+  return meta.name || meta.slug
 }
 
 // System-owned drop targets — you can drag a card OUT of these, never INTO
@@ -168,6 +201,7 @@ function initials(name: string): string {
 }
 
 export function Avatar({ name, size = '1.25rem' }: { name: string; size?: string }) {
+  const profileName = useProfileName()
   // Same identity hue the rest of the app uses (profileColor); default/empty
   // profiles are neutral. Soft tag fill + colored glyph, per the app's tags.
   const color = profileColor(name)
@@ -182,7 +216,7 @@ export function Avatar({ name, size = '1.25rem' }: { name: string; size?: string
         height: size,
         width: size
       }}
-      title={name}
+      title={profileName(name)}
     >
       {initials(name)}
     </span>

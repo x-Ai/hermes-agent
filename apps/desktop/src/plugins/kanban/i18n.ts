@@ -171,6 +171,10 @@ type KanbanMessages = {
   working: string
   // board switcher
   board: string
+  /** The reserved `default` board's display name: the backend stores the
+   *  English title-casing of the slug, which the switcher renders in the
+   *  user's language until the board is renamed. */
+  defaultBoardName: string
   newBoard: string
   /** Tooltip on the page-header trigger — names the ACTION, since the visible
    *  text is the board's own name and reads as a static label otherwise. */
@@ -406,6 +410,7 @@ export const en: KanbanMessages = {
   close: 'Close',
   working: 'working',
   board: 'Board',
+  defaultBoardName: 'Default',
   newBoard: 'New board',
   switchBoard: 'Switch board',
   newBoardDots: 'New board…',
@@ -633,6 +638,7 @@ const ja: KanbanMessages = {
   close: '閉じる',
   working: '作業中',
   board: 'ボード',
+  defaultBoardName: 'デフォルト',
   newBoard: '新しいボード',
   switchBoard: 'ボードを切り替え',
   newBoardDots: '新しいボード…',
@@ -859,6 +865,7 @@ const zh: KanbanMessages = {
   close: '关闭',
   working: '进行中',
   board: '面板',
+  defaultBoardName: '默认',
   newBoard: '新建面板',
   switchBoard: '切换面板',
   newBoardDots: '新建面板…',
@@ -1084,6 +1091,7 @@ const zhHant: KanbanMessages = {
   close: '關閉',
   working: '進行中',
   board: '面板',
+  defaultBoardName: '預設',
   newBoard: '新增面板',
   switchBoard: '切換面板',
   newBoardDots: '新增面板…',

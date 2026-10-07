@@ -50,11 +50,9 @@ import {
 } from './api'
 import { runExportBoardFlow, runImportBoardFlow } from './transfer'
 import type { BoardMeta } from './types'
-import { errText, FIELD_LABEL, useKanban } from './ui'
+import { boardDisplayName, DEFAULT_BOARD, errText, FIELD_LABEL, useKanban } from './ui'
 
 const NO_PROJECT = '__none__'
-/** Mirrors `kanban_db.DEFAULT_BOARD` — the board that always exists. */
-const DEFAULT_BOARD = 'default'
 
 /** Board scope = a first-class Hermes project. Its primary repo becomes the
  *  board's default workspace root; new tasks inherit it as a worktree with a
@@ -228,12 +226,13 @@ function RenameBoardDialog({ board, onClose }: { board: BoardMeta | null; onClos
   // Compiler lifts a callback's property reads into its render-time
   // dependency check, which would deref that null on every closed render.
   const slug = board?.slug ?? ''
+  const currentName = board ? boardDisplayName(board, k) : ''
 
   useEffect(() => {
     if (board) {
-      setName(board.name || board.slug)
+      setName(currentName)
     }
-  }, [board])
+  }, [board, currentName])
 
   const save = useBoardWrite(() => updateBoard(slug, { name: name.trim() }), onClose)
   const disabled = !name.trim() || save.isPending
@@ -276,7 +275,7 @@ function BoardSettingsDialog({ board, onClose }: { board: BoardMeta | null; onCl
       onClose={onClose}
       onConfirm={() => save.mutate()}
       open={Boolean(board)}
-      title={board ? k.boardSettingsFor(board.name || board.slug) : k.settingsDots}
+      title={board ? k.boardSettingsFor(boardDisplayName(board, k)) : k.settingsDots}
     >
       <ProjectPicker onChange={setProject} value={project} />
     </BoardDialog>
@@ -337,7 +336,7 @@ export function BoardSwitcher() {
 
   const currentSlug = slug || boards.current
   const current = boards.boards.find(meta => meta.slug === currentSlug)
-  const label = current?.name || current?.slug || k.board
+  const label = current ? boardDisplayName(current, k) : k.board
 
   return (
     <>
@@ -366,7 +365,7 @@ export function BoardSwitcher() {
               key={meta.slug}
               onSelect={() => $boardSlug.set(meta.slug === boards.current ? '' : meta.slug)}
             >
-              {meta.name || meta.slug}
+              {boardDisplayName(meta, k)}
               {typeof meta.total === 'number' && (
                 <span className="text-[0.625rem] tabular-nums text-(--ui-text-quaternary)">{meta.total}</span>
               )}
@@ -424,7 +423,7 @@ export function BoardSwitcher() {
         onClose={() => setDeleteFor(null)}
         onConfirm={() => confirmDelete(deleteFor!)}
         open={Boolean(deleteFor)}
-        title={deleteFor ? k.deleteBoardTitle(deleteFor.name || deleteFor.slug) : t.common.delete}
+        title={deleteFor ? k.deleteBoardTitle(boardDisplayName(deleteFor, k)) : t.common.delete}
       />
     </>
   )
