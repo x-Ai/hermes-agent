@@ -4201,7 +4201,6 @@ tui_gateway:
       none_new: "Нових навичок не виявлено."
       added: "Додані навички:"
       removed: "Видалені навички:"
-    command_unavailable_for_profile: "/{command} недоступна для поточного профілю"
     not_dispatchable: "не швидка/плагінна/наборна/навичкова команда: {name}"
     empty_command: "порожня команда"
     plugin_command_error: "Помилка команди плагіна: {detail}"
@@ -4282,17 +4281,6 @@ tui_gateway:
   images:
     no_backend: "Бекенд генерації зображень не налаштовано (виконайте `hermes tools`, щоб увімкнути його)."
     generation_failed: "генерація не вдалася"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Виконайте {commands}, щоб керувати ними."
-    team_update_one: "1 оновлення команди"
-    team_updates: "оновлень команди: {count}"
-    skill_ready_one: "1 навичка готова до перегляду"
-    skills_ready: "навичок готово до перегляду: {count}"
-    and: " і "
-    or: " або "
-    cannot_continue: "Collective Wisdom не зміг продовжити: {detail}"
-    open_inbox_hint: "Відкрийте /wisdom inbox, щоб переглянути й використати елементи керування згодою."
-    notification_settings: "Налаштування сповіщень: /wisdom mute"
   complete:
     at:
       git_diff: "git diff"

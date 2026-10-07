@@ -4201,7 +4201,6 @@ tui_gateway:
       none_new: "Geen nuwe vaardighede bespeur nie."
       added: "Bygevoegde vaardighede:"
       removed: "Verwyderde vaardighede:"
-    command_unavailable_for_profile: "/{command} is nie beskikbaar vir die huidige profiel nie"
     not_dispatchable: "nie 'n vinnige/inprop-/bondel-/vaardigheidsopdrag nie: {name}"
     empty_command: "leë opdrag"
     plugin_command_error: "Inpropopdragfout: {detail}"
@@ -4282,17 +4281,6 @@ tui_gateway:
   images:
     no_backend: "Geen beeldgenereringsagterkant gekonfigureer nie (voer `hermes tools` uit om een te aktiveer)."
     generation_failed: "generering het misluk"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Voer {commands} uit om dit te bestuur."
-    team_update_one: "1 spanopdatering"
-    team_updates: "{count} spanopdaterings"
-    skill_ready_one: "1 vaardigheid gereed vir hersiening"
-    skills_ready: "{count} vaardighede gereed vir hersiening"
-    and: " en "
-    or: " of "
-    cannot_continue: "Collective Wisdom kon nie voortgaan nie: {detail}"
-    open_inbox_hint: "Maak /wisdom inbox oop om te hersien en toestemmingskontroles te gebruik."
-    notification_settings: "Kennisgewinginstellings: /wisdom mute"
   complete:
     at:
       git_diff: "git-diff"

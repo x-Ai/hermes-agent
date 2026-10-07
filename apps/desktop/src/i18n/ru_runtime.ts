@@ -51,8 +51,6 @@ export const ruRuntime = {
     clipboardUnavailable: 'API буфера обмена недоступен',
     welcomeConversationUnavailable: 'Не удалось загрузить приветственный разговор. Попробуйте ещё раз.',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',
-    wisdomActionTimedOut: 'Истекло время операции Collective Wisdom',
-    wisdomReceiptMissing: 'Отсутствует подтверждённая квитанция операции',
     manifestMinContextInvalid: 'Минимальное окно контекста должно быть числом или пустым',
     manifestToolsNotList: 'tools должен быть списком',
     manifestToolAutoInstall: (index: number) => `Инструмент ${index} не может запрашивать автоматическую установку`,

@@ -40,8 +40,6 @@ export const arRuntime = {
     clipboardUnavailable: 'واجهة الحافظة غير متاحة',
     welcomeConversationUnavailable: 'تعذّر تحميل محادثة الترحيب. يرجى المحاولة مرة أخرى.',
     pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء البناء الأول.',
-    wisdomActionTimedOut: 'انتهت مهلة عملية Collective Wisdom',
-    wisdomReceiptMissing: 'إيصال العملية المُتحقَّق منه مفقود',
     manifestMinContextInvalid: 'يجب أن يكون الحد الأدنى لنافذة السياق رقمًا أو فارغًا',
     manifestToolsNotList: 'يجب أن تكون tools قائمة',
     manifestToolAutoInstall: (index: number) => `لا يمكن للأداة ${index} طلب التثبيت التلقائي`,

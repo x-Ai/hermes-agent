@@ -4329,7 +4329,6 @@ tui_gateway:
       none_new: "No new skills detected."
       added: "Added skills:"
       removed: "Removed skills:"
-    command_unavailable_for_profile: "/{command} is unavailable for the current profile"
     not_dispatchable: "not a quick/plugin/bundle/skill command: {name}"
     empty_command: "empty command"
     plugin_command_error: "Plugin command error: {detail}"
@@ -4410,17 +4409,6 @@ tui_gateway:
   images:
     no_backend: "No image generation backend configured (run `hermes tools` to enable one)."
     generation_failed: "generation failed"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Run {commands} to manage them."
-    team_update_one: "1 team update"
-    team_updates: "{count} team updates"
-    skill_ready_one: "1 skill ready to review"
-    skills_ready: "{count} skills ready to review"
-    and: " and "
-    or: " or "
-    cannot_continue: "Collective Wisdom could not continue: {detail}"
-    open_inbox_hint: "Open /wisdom inbox to review and use consent controls."
-    notification_settings: "Notification settings: /wisdom mute"
   complete:
     at:
       git_diff: "git diff"

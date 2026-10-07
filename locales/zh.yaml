@@ -4200,7 +4200,6 @@ tui_gateway:
       none_new: "未检测到新技能"
       added: "新增的技能："
       removed: "移除的技能："
-    command_unavailable_for_profile: "/{command} 对当前配置档案不可用"
     not_dispatchable: "不是快捷/插件/技能包/技能命令：{name}"
     empty_command: "命令为空"
     plugin_command_error: "插件命令错误：{detail}"
@@ -4281,17 +4280,6 @@ tui_gateway:
   images:
     no_backend: "未配置图像生成后端（运行 `hermes tools` 启用一个）"
     generation_failed: "生成失败"
-  wisdom:
-    summary: "集体智慧：{summary}，运行 {commands} 进行管理"
-    team_update_one: "1 条团队更新"
-    team_updates: "{count} 条团队更新"
-    skill_ready_one: "1 个技能待审阅"
-    skills_ready: "{count} 个技能待审阅"
-    and: "和"
-    or: "或"
-    cannot_continue: "集体智慧无法继续：{detail}"
-    open_inbox_hint: "打开 /wisdom inbox 进行审阅并使用同意控制"
-    notification_settings: "通知设置：/wisdom mute"
   complete:
     at:
       git_diff: "git 差异"

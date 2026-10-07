@@ -441,8 +441,6 @@ class _Catalog:
 def _catalog_registry(cat: _Catalog) -> None:
     commands = _tools_mod("hermes_cli.commands")
     for cmd in commands.COMMAND_REGISTRY:
-        if not commands.command_available(cmd):
-            continue
         meta = commands.command_desktop_meta(cmd)
         cat.commands.update({f"/{key}": dict(meta) for key in (cmd.name, *cmd.aliases)})
         if cmd.name in _TUI_HIDDEN or cmd.gateway_only:
@@ -567,9 +565,8 @@ def _(rid, params: dict) -> dict:
 @_profile_scoped
 @_guarded(5012)
 def _(rid, params: dict) -> dict:
-    commands = _tools_mod("hermes_cli.commands")
-    r = commands.resolve_command(params.get("name", ""))
-    if r and commands.command_available(r):
+    r = _tools_mod("hermes_cli.commands").resolve_command(params.get("name", ""))
+    if r:
         return _ok(rid, {"canonical": r.name, "description": r.describe(), "category": r.category})
     return _err(rid, 4011, _t("tui_gateway.tools.unknown_command", name=params.get("name")))
 
@@ -1093,11 +1090,6 @@ _SLASH_BUILTINS = {
 def _(rid, params: dict) -> dict:
     name, arg = _resolve_name(params.get("name", "").lstrip("/")), params.get("arg", "")
     session = _sessions.get(params.get("session_id", ""))
-    commands = _tools_mod("hermes_cli.commands")
-    resolved = commands.resolve_command(name)
-    if resolved is not None and not commands.command_available(resolved):
-        return _err(rid, 4030, _t("tui_gateway.tools.command_unavailable_for_profile", command=resolved.name))
-
     # Stage order is load-bearing: quick > plugin > bundle > skill > built-in. One home binding
     # around the whole loop: the routing guard (``_profile_skill_command``) and the stages
     # must resolve against the SAME profile or a secondary-only skill is routed here and then
@@ -1128,10 +1120,6 @@ def _(rid, params: dict) -> dict:
     base = (parts[0] if parts else "").lower()
     arg = parts[1] if len(parts) > 1 else ""
     sid = params.get("session_id", "")
-    commands = _tools_mod("hermes_cli.commands")
-    resolved = commands.resolve_command(base)
-    if resolved is not None and not commands.command_available(resolved):
-        return _err(rid, 4030, _t("tui_gateway.tools.command_unavailable_for_profile", command=resolved.name))
     live_output = _live_slash_command_output(sid, session, base, arg)
     if live_output is not None:
         return _ok(rid, {"output": live_output or "(no output)"})

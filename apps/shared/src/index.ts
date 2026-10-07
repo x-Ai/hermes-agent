@@ -196,5 +196,3 @@ export {
   type ResolveGatewayWsUrlDeps,
   type WebSocketAuthParam
 } from './websocket-url'
-export * from './wisdom-mute'
-export * from './wisdom-sync'

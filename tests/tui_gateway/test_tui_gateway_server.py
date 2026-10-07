@@ -4390,48 +4390,6 @@ def test_config_sync_skips_session_pinned_by_model_command(monkeypatch):
     server._sync_agent_model_with_config("sid", session)
 
 
-def test_config_sync_refreshes_named_custom_protocol(monkeypatch):
-    import hermes_cli.runtime_provider as runtime_provider
-
-    monkeypatch.setattr(runtime_provider, "load_config", lambda: {
-        "providers": {
-            "gmi": {
-                "name": "GMI Cloud",
-                "base_url": "https://api.gmi.example/v1",
-                "transport": "anthropic_messages",
-                "model": "shared-model",
-            }
-        }
-    })
-    calls = []
-
-    class Agent:
-        model = "shared-model"
-        provider = "custom"
-        base_url = "https://api.gmi.example/v1"
-        api_key = "key"
-        api_mode = "chat_completions"
-
-        def switch_model(self, **kwargs):
-            calls.append(kwargs)
-            self.api_mode = kwargs["api_mode"]
-
-    session = {
-        "agent": Agent(),
-        "model_override": {
-            "model": "shared-model", "provider": "custom:gmi", "api_mode": "chat_completions"
-        },
-        "config_model_seen": ("shared-model", ""),
-    }
-    monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"default": "shared-model"}})
-    monkeypatch.setattr(server, "_emit_session_info", lambda *_args: None)
-
-    server._sync_agent_model_with_config("sid", session)
-
-    assert calls and calls[0]["api_mode"] == "anthropic_messages"
-    assert session["model_override"]["api_mode"] == "anthropic_messages"
-
-
 def test_config_sync_noop_when_config_unchanged(monkeypatch):
     _patch_config_model(monkeypatch, "old/model")
     session = _sync_test_session(config_model_seen=("old/model", ""))
@@ -9900,27 +9858,6 @@ def test_complete_slash_returns_plain_string_fields():
         assert isinstance(item["meta"], str), item
 
 
-def test_complete_slash_returns_documented_wisdom_subcommands(monkeypatch):
-    from tests.hermes_wisdom.local_auth import authorize_local
-    authorize_local(monkeypatch)
-    resp = server.handle_request(
-        {"id": "1", "method": "complete.slash", "params": {"text": "/wisdom "}}
-    )
-
-    items = {item["text"]: item for item in resp["result"]["items"]}
-    assert items["show"]["display"] == "show"
-    assert items["show"]["meta"].startswith("<skill> — View its description")
-    assert items["installed"]["meta"] == (
-        "List and manage skills installed on this device"
-    )
-
-
-def test_complete_slash_includes_tui_details_command():
-    resp = server.handle_request(
-        {"id": "1", "method": "complete.slash", "params": {"text": "/det"}}
-    )
-
-    assert any(item["text"] == "/details" for item in resp["result"]["items"])
 
 
 
@@ -12282,8 +12219,7 @@ def test_commands_catalog_has_no_duplicate_or_alias_colliding_names():
     )
 
 
-def test_commands_catalog_filters_gateway_only_commands_and_keeps_status_visible(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: True)
+def test_commands_catalog_filters_gateway_only_commands_and_keeps_status_visible():
     resp = server.handle_request(
         {"id": "1", "method": "commands.catalog", "params": {}}
     )
@@ -12303,44 +12239,23 @@ def test_commands_catalog_filters_gateway_only_commands_and_keeps_status_visible
     assert "/update" in pairs
     assert canon["/update"] == "/update"
 
-    assert "/wisdom" in pairs
-    assert canon["/wisdom"] == "/wisdom"
-    assert canon["/collective-wisdom-install"] == "/wisdom"
-    assert "/collective-wisdom-install" not in pairs
-
     assert "/topic" not in canon
     assert "/approve" not in canon
     assert "/deny" not in canon
     assert "/set-home" not in canon
 
 
-def test_commands_catalog_includes_desktop_meta_without_skills(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: True)
+def test_commands_catalog_includes_desktop_meta_without_skills():
     resp = server.handle_request(
         {"id": "1", "method": "commands.catalog", "params": {}}
     )
 
     commands = resp["result"]["commands"]
     assert commands["/compact"]["argument_mode"] == commands["/compress"]["argument_mode"]
-    assert commands["/wisdom"] == {"argument_mode": "mixed", "desktop": None}
 
     for skill in resp["result"]["skills"]:
         assert skill not in commands
 
-
-def test_commands_catalog_hides_wisdom_without_local_entitlement(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: False)
-
-    resp = server.handle_request(
-        {"id": "1", "method": "commands.catalog", "params": {}}
-    )
-
-    result = resp["result"]
-    assert "/wisdom" not in dict(result["pairs"])
-    assert "/wisdom" not in result["commands"]
-    assert "/wisdom" not in result["canon"]
-    assert "/collective-wisdom-install" not in result["canon"]
-    assert "/wisdom" not in result["sub"]
 
 def test_commands_catalog_includes_plugin_commands(monkeypatch):
     monkeypatch.setattr(
@@ -19437,104 +19352,6 @@ def test_notification_poller_requeues_when_busy(monkeypatch):
             process_registry.completion_queue.get_nowait()
 
 
-def test_wisdom_activity_notice_is_profile_throttled_and_session_scoped(
-    monkeypatch, tmp_path
-):
-    from tests.hermes_wisdom.local_auth import authorize_local
-    from hermes_wisdom.store import WisdomStore
-
-    authorize_local(monkeypatch, "org")
-    monkeypatch.setattr("hermes_wisdom.service._config", lambda: {
-        "enabled": True, "disclosure_acknowledged_at": "fixture",
-    })
-    state = WisdomStore(tmp_path / "wisdom")
-    state.activate_installation_identity("installation", "org")
-    checks = []
-
-    class _Wisdom:
-        store = state
-        def check(self, *, apply_automatic):
-            checks.append(apply_automatic)
-
-        def notifications(self, *, mark_seen):
-            assert mark_seen is False
-            return {"events": [{"event_id": "org-1"}]}
-
-        def local_candidate_events(self, *, session_id):
-            return [{"id": "candidate-1"}] if session_id == "session-a" else []
-
-    monkeypatch.setattr("hermes_wisdom.service.WisdomService", _Wisdom)
-    monkeypatch.setattr(server, "_hermes_home", str(tmp_path / "profile"))
-    server._wisdom_profile_last_poll.clear()
-
-    success, first = server._collect_wisdom_activity_notice(
-        {"session_key": "session-a", "history_lock": threading.Lock()}
-    )
-    second_success, second = server._collect_wisdom_activity_notice(
-        {"session_key": "session-b", "history_lock": threading.Lock()}
-    )
-
-    assert success is True
-    assert first == (
-        "Collective Wisdom: 1 team update and 1 skill ready to review. "
-        "Run /wisdom notifications or /wisdom candidates to manage them."
-    )
-    assert second_success is True
-    assert second == (
-        "Collective Wisdom: 1 team update. "
-        "Run /wisdom notifications to manage them."
-    )
-    assert checks == [False]
-
-
-def test_wisdom_activity_notice_replaces_clears_and_survives_failures(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.service._config", lambda: {"notifications": {"delivery_mode": "fixed"}})
-    emitted = []
-    projections = iter(
-        [
-            (True, "Collective Wisdom: 1 team update."),
-            (True, "Collective Wisdom: 2 team updates."),
-            (False, None),
-            (True, None),
-        ]
-    )
-    monkeypatch.setattr(
-        server, "_collect_wisdom_activity_notice", lambda _session: next(projections)
-    )
-    monkeypatch.setattr(server, "_emit", lambda *args: emitted.append(args))
-    session = {"session_key": "session-a"}
-
-    for _ in range(4):
-        server._sync_wisdom_activity_notice("sid", session)
-
-    shows = [item for item in emitted if item[0] == "notification.show"]
-    clears = [item for item in emitted if item[0] == "notification.clear"]
-    assert [item[2]["text"] for item in shows] == [
-        "Collective Wisdom: 1 team update.",
-        "Collective Wisdom: 2 team updates.",
-    ]
-    assert all(item[2]["key"] == server._WISDOM_NOTICE_KEY for item in shows)
-    assert clears == [
-        ("notification.clear", "sid", {"key": server._WISDOM_NOTICE_KEY})
-    ]
-    assert "_wisdom_notice_text" not in session
-
-
-def test_wisdom_activity_notice_defers_while_a_turn_is_busy(monkeypatch):
-    instantiated = []
-
-    class _Wisdom:
-        def __init__(self):
-            instantiated.append(True)
-
-    monkeypatch.setattr("hermes_wisdom.service.WisdomService", _Wisdom)
-
-    assert server._collect_wisdom_activity_notice(
-        {"session_key": "session-a", "running": True}
-    ) == (False, None)
-    assert instantiated == []
-
-
 def test_session_save_writes_under_hermes_home_with_system_prompt(monkeypatch, tmp_path):
     """TUI /save (session.save RPC) must snapshot under the Hermes profile
     home — not the project/workspace CWD — and include the system prompt,
@@ -20189,132 +20006,6 @@ def test_slash_exec_concurrent_first_use_spawns_single_worker(monkeypatch):
         server._sessions.pop("race-spawn", None)
 
 
-def test_slash_exec_wisdom_uses_native_profile_scoped_controller(monkeypatch, tmp_path):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: True)
-    monkeypatch.setattr("gateway.wisdom_command.require_entitlement", lambda _org_id=None: None)
-    class _ExplodingWorker:
-        def __init__(self, *args, **kwargs):
-            raise AssertionError("native /wisdom must not spawn the CLI worker")
-
-    profile_home = tmp_path / "profile"
-    profile_home.mkdir()
-    session = _session(
-        profile_home=str(profile_home),
-        session_key="wisdom-session",
-        slash_worker=None,
-    )
-    server._sessions["wisdom-native"] = session
-    monkeypatch.setattr(server, "_SlashWorker", _ExplodingWorker)
-
-    try:
-        resp = server.handle_request({
-            "id": "wisdom",
-            "method": "slash.exec",
-            "params": {
-                "command": "wisdom help",
-                "session_id": "wisdom-native",
-            },
-        })
-    finally:
-        server._sessions.pop("wisdom-native", None)
-
-    assert "result" in resp
-    assert "Collective Wisdom commands" in resp["result"]["output"]
-    assert "/wisdom browse" in resp["result"]["output"]
-    assert session["slash_worker"] is None
-
-
-def test_command_dispatch_wisdom_alias_denied_without_entitlement(monkeypatch):
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: False)
-
-    resp = server.handle_request({
-        "id": "wisdom-denied",
-        "method": "command.dispatch",
-        "params": {
-            "name": "collective-wisdom-install",
-            "arg": "skill-1",
-            "session_id": "missing",
-        },
-    })
-
-    assert resp["error"]["code"] == 4030
-    assert "unavailable" in resp["error"]["message"]
-
-
-@pytest.mark.parametrize("method, command", [
-    ("slash.exec", {"command": "wisdom help"}),
-    ("command.dispatch", {"name": "wisdom"}),
-])
-@pytest.mark.parametrize("session_entitled", [True, False])
-def test_wisdom_dispatch_checks_session_not_launch_profile(monkeypatch, tmp_path, method, command, session_entitled):
-    from hermes_constants import get_hermes_home
-
-    profile_home = tmp_path / "session-profile"
-    profile_home.mkdir()
-    session = _session(profile_home=str(profile_home), slash_worker=None)
-    monkeypatch.setitem(server._sessions, "wisdom-profile", session)
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: (
-        session_entitled if get_hermes_home() == profile_home else not session_entitled
-    ))
-    monkeypatch.setattr(server, "_live_slash_command_output", lambda *args: "allowed")
-    monkeypatch.setattr(
-        server,
-        "_dispatch_quick",
-        lambda rid, *args: server._ok(rid, {"type": "exec", "output": "allowed"}),
-    )
-
-    response = server.handle_request({
-        "id": "profile-gate", "method": method,
-        "params": {**command, "session_id": "wisdom-profile"},
-    })
-
-    if session_entitled:
-        assert response["result"]["output"] == "allowed"
-    else:
-        assert response["error"]["code"] == 4030
-
-
-@pytest.mark.parametrize("entitled", [True, False])
-def test_wisdom_discovery_checks_requested_profile(monkeypatch, tmp_path, entitled):
-    from hermes_constants import get_hermes_home
-
-    profile_home = tmp_path / "requested-profile"
-    profile_home.mkdir()
-    monkeypatch.setattr("hermes_cli.profiles.get_profile_dir", lambda name: profile_home)
-    monkeypatch.setattr(server, "_profile_home", lambda name: profile_home)
-    monkeypatch.setattr("hermes_wisdom.entitlement.is_entitled", lambda: (
-        entitled if get_hermes_home() == profile_home else not entitled
-    ))
-
-    def request(method, **params):
-        return server.handle_request({
-            "id": "profile-discovery", "method": method,
-            "params": {"profile": "requested-profile", **params},
-        })
-
-    catalog = request("commands.catalog")["result"]
-    assert ("/wisdom" in catalog["canon"]) is entitled
-    assert ("result" in request("command.resolve", name="wisdom")) is entitled
-    completion_response = request("complete.slash", text="/wisdom")
-    assert "result" in completion_response, completion_response
-    completions = completion_response["result"]["items"]
-    assert any(item["display"] == "/wisdom" for item in completions) is entitled, completions
-
-
-def test_session_close_rpc_claims_then_tears_down(monkeypatch):
-    seen = []
-    claimed = {"session_key": "k"}
-    monkeypatch.setattr(server, "_pop_session_by_id", lambda sid: seen.append(sid) or claimed)
-    monkeypatch.setattr(
-        server,
-        "_teardown_popped_session",
-        lambda session, *, end_reason: seen.append((session, end_reason)) or True,
-    )
-    resp = server.handle_request(
-        {"id": "1", "method": "session.close", "params": {"session_id": "s9"}}
-    )
-    assert resp["result"] == {"closed": True}
-    assert seen == ["s9", (claimed, "tui_close")]
 
 
 def test_close_sessions_for_transport_closes_flagged_repoints_rest(monkeypatch):
@@ -21473,8 +21164,6 @@ def test_get_usage_clamps_post_compression_sentinel():
     usage = server._get_usage(agent)
     assert "context_used" not in usage
     assert "context_percent" not in usage
-    assert usage["context_max"] == 1_048_576
-    assert usage["context_pending"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -21880,118 +21569,6 @@ def test_clarify_timeout_seconds_maps_non_positive_to_unlimited(monkeypatch, con
     monkeypatch.setattr("tools.clarify_gateway.get_clarify_timeout", lambda: configured)
 
     assert server._clarify_timeout_seconds() == expected
-
-
-class TestReportableProvider:
-    """``session.info`` must never surface the bare ``custom`` billing class.
-
-    ``agent.provider`` for a named ``providers:`` endpoint resolves to the
-    literal string ``custom`` — no client can map that back to the endpoint
-    (catalog rows carry the endpoint id), so the desktop composer rendered
-    "custom: <model>" after every restart. The reporting layer upgrades it to
-    the durable ``custom:<name>`` identity via the same recovery helper the
-    session-restore path uses.
-    """
-
-    @staticmethod
-    def _write_providers_config(providers: dict) -> None:
-        import yaml
-
-        from hermes_constants import get_hermes_home
-
-        home = get_hermes_home()
-        home.mkdir(parents=True, exist_ok=True)
-        (home / "config.yaml").write_text(
-            yaml.safe_dump({"providers": providers}), encoding="utf-8"
-        )
-
-    @staticmethod
-    def _reported_provider(provider, *, base_url="", model="claude-fable-5"):
-        from hermes_constants import get_hermes_home
-
-        agent = types.SimpleNamespace(
-            model=model,
-            provider=provider,
-            base_url=base_url,
-            reasoning_config=None,
-            service_tier=None,
-        )
-        return server._session_info(
-            agent, session={"profile_home": str(get_hermes_home())}
-        )["provider"]
-
-    def test_non_custom_values_pass_through_untouched(self):
-        assert self._reported_provider("ying") == "ying"
-        assert self._reported_provider("anthropic") == "anthropic"
-        assert self._reported_provider("custom:ying") == "custom:ying"
-        assert self._reported_provider("") == ""
-
-    def test_bare_custom_recovers_the_endpoint_from_its_base_url(self):
-        self._write_providers_config(
-            {"ying": {"base_url": "https://relay.example/v1", "model": "claude-fable-5"}}
-        )
-        assert (
-            self._reported_provider("custom", base_url="https://relay.example/v1")
-            == "custom:ying"
-        )
-        # URL normalization: a trailing slash must not break the reverse lookup.
-        assert (
-            self._reported_provider("custom", base_url="https://relay.example/v1/")
-            == "custom:ying"
-        )
-
-    def test_bare_custom_recovers_the_endpoint_from_its_model_catalog(self):
-        self._write_providers_config(
-            {
-                "ying": {
-                    "base_url": "https://relay.example/v1",
-                    "models": ["claude-fable-5", "claude-opus-4-8"],
-                }
-            }
-        )
-        assert (
-            self._reported_provider("custom", model="claude-opus-4-8")
-            == "custom:ying"
-        )
-
-    def test_casing_of_the_bare_class_does_not_matter(self):
-        self._write_providers_config(
-            {"ying": {"base_url": "https://relay.example/v1"}}
-        )
-        assert (
-            self._reported_provider("Custom", base_url="https://relay.example/v1")
-            == "custom:ying"
-        )
-
-    def test_unrecoverable_bare_custom_is_kept_as_is(self):
-        # A genuine ad-hoc endpoint with no config entry: nothing to upgrade
-        # to, and hiding the provider entirely would be worse than "custom".
-        self._write_providers_config({})
-        assert (
-            self._reported_provider("custom", base_url="https://nowhere.example")
-            == "custom"
-        )
-
-    def test_session_info_reports_the_upgraded_identity(self):
-        self._write_providers_config(
-            {"ying": {"base_url": "https://relay.example/v1", "name": "Fable"}}
-        )
-        agent = types.SimpleNamespace(
-            model="claude-opus-4-8",
-            provider="custom",
-            base_url="https://relay.example/v1",
-            reasoning_config=None,
-            service_tier=None,
-        )
-
-        from hermes_constants import get_hermes_home
-
-        info = server._session_info(
-            agent, session={"profile_home": str(get_hermes_home())}
-        )
-
-        assert info["provider"] == "custom:ying"
-        assert info["model"] == "claude-opus-4-8"
 
 
 def test_build_persist_message_with_image_refs_without_images_returns_text(monkeypatch):

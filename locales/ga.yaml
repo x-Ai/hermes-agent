@@ -4201,7 +4201,6 @@ tui_gateway:
       none_new: "Níor braitheadh aon scileanna nua."
       added: "Scileanna a cuireadh leis:"
       removed: "Scileanna a baineadh:"
-    command_unavailable_for_profile: "níl /{command} ar fáil don phróifíl reatha"
     not_dispatchable: "ní mearordú/ordú breiseáin/beartáin/scile é: {name}"
     empty_command: "ordú folamh"
     plugin_command_error: "Earráid ordaithe breiseáin: {detail}"
@@ -4282,17 +4281,6 @@ tui_gateway:
   images:
     no_backend: "Níl aon inneall cúil giniúna íomhánna cumraithe (rith `hermes tools` chun ceann a chumasú)."
     generation_failed: "theip ar an nginiúint"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Rith {commands} chun iad a bhainistiú."
-    team_update_one: "1 nuashonrú foirne"
-    team_updates: "{count} nuashonrú foirne"
-    skill_ready_one: "1 scil réidh le hathbhreithniú"
-    skills_ready: "{count} scil réidh le hathbhreithniú"
-    and: " agus "
-    or: " nó "
-    cannot_continue: "Níorbh fhéidir le Collective Wisdom leanúint ar aghaidh: {detail}"
-    open_inbox_hint: "Oscail /wisdom inbox chun athbhreithniú a dhéanamh agus rialuithe toilithe a úsáid."
-    notification_settings: "Socruithe fógraí: /wisdom mute"
   complete:
     at:
       git_diff: "difríocht git"

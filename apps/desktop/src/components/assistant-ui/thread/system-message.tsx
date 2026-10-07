@@ -14,8 +14,6 @@ import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
 import { localizeReviewSummaryDetail } from './review-summary-localization'
-import { WisdomCommandOutput } from './wisdom-command-output'
-import { useThreadWisdomProfile } from './wisdom-profile-context'
 
 const SLASH_STATUS_RE = /^slash:(?<command>\/[^\n]+)\n(?<output>[\s\S]*)$/
 const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
@@ -68,7 +66,6 @@ export const BackgroundResult: FC<BackgroundResultProps> = ({ text, report, proc
 
 export const SystemMessage: FC = () => {
   const { locale, t } = useI18n()
-  const wisdomProfile = useThreadWisdomProfile()
   const text = useAuiState(s => messageContentText(s.message.content))
   const asyncResult = useAuiState(s => s.message.metadata.custom?.asyncResult)
   const processResult = useAuiState(s => s.message.metadata.custom?.asyncResultKind === 'process')
@@ -152,35 +149,18 @@ export const SystemMessage: FC = () => {
     // multiline output (catalogs, usage tables) needs left-aligned, wider room
     // or the column alignment breaks.
     const multiline = output.includes('\n')
-    const wisdomOutput = /^\/(?:wisdom|collective-wisdom-install)(?:\s|$)/i.test(slashStatus.groups.command)
-    const [headline, ...detailLines] = wisdomOutput ? output.split('\n') : [output]
-    const detail = detailLines.join('\n').trim()
 
     return (
       <MessagePrimitive.Root
         className={cn(
-          'self-center',
-          wisdomOutput
-            ? 'w-[min(92%,56rem)] rounded-md border border-(--ui-stroke-tertiary) bg-(--ui-bg-quinary) px-3 py-2 text-left text-[0.75rem] leading-[1.55] text-(--ui-text-secondary)'
-            : cn(
-                'w-[60%] max-w-[44rem] px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60',
-                multiline ? 'text-left' : 'text-center'
-              )
+          'w-[60%] max-w-[44rem] self-center px-2 py-0.5 text-[0.6875rem] leading-5 text-muted-foreground/60',
+          multiline ? 'text-left' : 'text-center'
         )}
         data-role="system"
         data-slot="aui_system-message-root"
       >
-        <span
-          className={cn(
-            'font-mono',
-            wisdomOutput ? 'block text-[0.6875rem] text-(--ui-text-tertiary)' : 'text-muted-foreground/55'
-          )}
-        >
-          {slashStatus.groups.command}
-        </span>
-        {wisdomOutput ? (
-          <WisdomCommandOutput detail={detail} headline={headline} profile={wisdomProfile} />
-        ) : multiline ? (
+        <span className="font-mono text-muted-foreground/55">{slashStatus.groups.command}</span>
+        {multiline ? (
           <LinkifiedText className="mt-0.5 block whitespace-pre-wrap" explicitOnly pretty={false} text={output} />
         ) : (
           <>

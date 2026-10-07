@@ -79,7 +79,6 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 |-------|-------------|------|
 | [`airtable`](../user-guide/skills/bundled/productivity/productivity-airtable.md) | Airtable REST API via curl. Records CRUD, filters, upserts. | `productivity/airtable` |
 | [`box`](../user-guide/skills/bundled/productivity/productivity-box.md) | Box manages cloud files, sharing, search, and metadata. | `productivity/box` |
-| [`collective-wisdom-install`](../user-guide/skills/bundled/productivity/productivity-collective-wisdom-install.md) | Browse, install, or share team skills with consent. | `productivity/collective-wisdom-install` |
 | [`document-to-action-items`](../user-guide/skills/bundled/productivity/productivity-document-to-action-items.md) | Extract cited obligations, deadlines, tasks from documents. | `productivity/document-to-action-items` |
 | [`docx`](../user-guide/skills/bundled/productivity/productivity-docx.md) | Create, read, edit, template, and review Word .docx files. | `productivity/docx` |
 | [`google-workspace`](../user-guide/skills/bundled/productivity/productivity-google-workspace.md) | Gmail, Calendar, Drive, Docs, Sheets via gws CLI or Python. | `productivity/google-workspace` |

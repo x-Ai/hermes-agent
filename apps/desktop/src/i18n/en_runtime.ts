@@ -50,8 +50,6 @@ export const enRuntime = {
     clipboardUnavailable: 'Clipboard API is unavailable',
     welcomeConversationUnavailable: 'The welcome conversation could not be loaded. Please try again.',
     pluginFolderUnavailable: 'The desktop plugin folder is unavailable. Retry before starting the first build.',
-    wisdomActionTimedOut: 'Collective Wisdom action timed out',
-    wisdomReceiptMissing: 'Verified action receipt is missing',
     manifestMinContextInvalid: 'Minimum context window must be a number or blank',
     manifestToolsNotList: 'Tools must be a list',
     manifestToolAutoInstall: (index: number) => `Tool ${index} cannot request automatic installation`,

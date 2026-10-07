@@ -252,7 +252,6 @@ const sidebars: SidebarsConfig = {
                   items: [
                     'user-guide/skills/bundled/productivity/productivity-airtable',
                     'user-guide/skills/bundled/productivity/productivity-box',
-                    'user-guide/skills/bundled/productivity/productivity-collective-wisdom-install',
                     'user-guide/skills/bundled/productivity/productivity-document-to-action-items',
                     'user-guide/skills/bundled/productivity/productivity-docx',
                     'user-guide/skills/bundled/productivity/productivity-google-workspace',

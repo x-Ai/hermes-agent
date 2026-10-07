@@ -10,8 +10,7 @@ from typing import Any
 
 from agent.i18n import t
 from hermes_cli.commands import (
-    COMMAND_REGISTRY, _is_gateway_available, _iter_plugin_command_entries, _resolve_config_gates,
-    command_available)
+    COMMAND_REGISTRY, _is_gateway_available, _iter_plugin_command_entries, _resolve_config_gates)
 
 # Logger name parity with the origin module (tests capture "hermes_cli.commands").
 logger = logging.getLogger("hermes_cli.commands")
@@ -25,10 +24,7 @@ _TG_MULTI_UNDERSCORE = re.compile(r"_{2,}")
 def _gateway_available_commands() -> list:
     """Registry entries visible on gateway surfaces (config gates read once)."""
     overrides = _resolve_config_gates()
-    return [
-        cmd for cmd in COMMAND_REGISTRY
-        if _is_gateway_available(cmd, overrides) and command_available(cmd)
-    ]
+    return [cmd for cmd in COMMAND_REGISTRY if _is_gateway_available(cmd, overrides)]
 
 
 def _requires_argument(args_hint: str) -> bool:
@@ -115,7 +111,7 @@ _TELEGRAM_PRIORITY_TIERS: dict[str, tuple[str, ...]] = {
 # Built-ins that must survive Telegram's small visible menu cap (everything else stays
 # dispatchable when typed). Order = rank: everyday, maintenance, mid-turn control, operational.
 _TELEGRAM_MENU_PRIORITY = (
-    "help", "new", "stop", "status", "egress", "resume", "sessions", "model", "wisdom",
+    "help", "new", "stop", "status", "egress", "resume", "sessions", "model",
     "debug", "restart", "update", "verbose", "commands",
     "approve", "deny", "queue", "steer", "bg", "btw",
     "reasoning", "usage", "platforms", "platform", "profile", "whoami")
@@ -387,7 +383,7 @@ _SLACK_RESERVED_COMMANDS = frozenset({
 # parity test reads this set. Aliases are never pinned ahead of canonicals.
 _SLACK_VIA_HERMES_ONLY = frozenset({
     "topup", "moa", "debug", "egress", "init", "version", "diff", "update", "heartbeat",
-    "refine", "review", "pause", "whoami", "platform", "insights", "start", "login"})
+    "refine", "review", "pause", "whoami", "platform", "insights", "login"})
 
 
 def _sanitize_slack_name(raw: str) -> str:

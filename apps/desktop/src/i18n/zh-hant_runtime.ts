@@ -40,8 +40,6 @@ export const zhHantRuntime = {
     clipboardUnavailable: '剪貼簿 API 無法使用',
     welcomeConversationUnavailable: '無法載入歡迎對話。請再試一次。',
     pluginFolderUnavailable: '桌面外掛資料夾無法使用。請在開始首次建置前重試。',
-    wisdomActionTimedOut: '集體智慧操作逾時',
-    wisdomReceiptMissing: '缺少已驗證的操作回執',
     manifestMinContextInvalid: '最小上下文視窗必須是數字或留空',
     manifestToolsNotList: 'tools 必須是清單',
     manifestToolAutoInstall: (index: number) => `工具 ${index} 不能要求自動安裝`,

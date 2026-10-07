@@ -69,7 +69,7 @@ If your skill is specialized, community-contributed, or niche, it's better suite
 
 ## Memory Providers: Ship as a Standalone Plugin
 
-**We are no longer accepting new memory providers into this repo.** The set of built-in providers under `plugins/memory/` (byterover, holographic, openviking, retaindb) is closed, and the former in-tree providers hindsight, honcho, supermemory and mem0 now ship from the plugin catalog. If you want to add a new memory backend, publish it as a **standalone plugin repo** that users install into `~/.hermes/plugins/` (or via a pip entry point).
+**We are no longer accepting new memory providers into this repo.** The set of built-in providers under `plugins/memory/` (byterover, holographic, retaindb) is closed, and the former in-tree providers hindsight, honcho, supermemory, mem0 and openviking now ship from the plugin catalog. If you want to add a new memory backend, publish it as a **standalone plugin repo** that users install into `~/.hermes/plugins/` (or via a pip entry point).
 
 Standalone memory plugins:
 
@@ -483,8 +483,6 @@ prerequisites:                     # Optional legacy runtime requirements
   commands: [curl, jq]             #   Advisory only; does not hide the skill
 metadata:
   hermes:
-    editorial_name: My Skill          # Optional human-readable UI title
-    editorial_description: What this skill helps a person accomplish.
     tags: [Category, Subcategory, Keywords]
     related_skills: [other-skill-name]
     fallback_for_toolsets: [web]       # Optional — show only when toolset is unavailable
@@ -516,12 +514,6 @@ Known failure modes and how to handle them.
 ## Verification
 How the agent confirms it worked.
 ```
-
-`metadata.hermes.editorial_name` and `editorial_description` are optional,
-human-facing presentation copy. They may use natural titles and fuller prose
-than the routing-focused top-level fields. Hermes continues to identify and
-route skills with `name` and `description`; UIs fall back to that canonical
-pair when editorial copy is absent.
 
 ### Platform-specific skills
 

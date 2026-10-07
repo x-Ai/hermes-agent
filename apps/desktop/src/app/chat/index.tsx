@@ -28,7 +28,6 @@ import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { migrateSessionDraft } from '@/store/composer'
 import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
-import { activeGatewayConnectionId } from '@/store/gateway'
 import { $introSplash } from '@/store/intro-splash'
 import { $pinnedSessionIds } from '@/store/layout'
 import { $guideOpening, $onboardingGate } from '@/store/onboarding-gate'
@@ -546,15 +545,6 @@ const ChatViewContent = memo(function ChatViewContent({
   const awaitingResponse = useStore(view.$awaitingResponse)
   const busy = useStore(view.$busy)
   const activeGatewayProfile = useStore($activeGatewayProfile)
-
-  const wisdomProfile = useMemo<ProfileScope>(
-    () => ({
-      connectionId: modelOptionsOwnerConnectionId ?? activeGatewayConnectionId(),
-      profile: modelOptionsProfile || activeGatewayProfile
-    }),
-    [activeGatewayProfile, modelOptionsOwnerConnectionId, modelOptionsProfile]
-  )
-
   const contextSuggestions = useStore($contextSuggestions)
   // Per-session (SessionView) reads — a tile IS its session, so these come
   // from the view slice, not the global atoms (which track the primary only).
@@ -869,7 +859,6 @@ const ChatViewContent = memo(function ChatViewContent({
               scrollProfile={modelOptionsProfile || activeGatewayProfile}
               sessionId={activeSessionId}
               sessionKey={threadKey}
-              wisdomProfile={wisdomProfile}
             />
           )}
           {resumeExhausted && routedSessionId && (

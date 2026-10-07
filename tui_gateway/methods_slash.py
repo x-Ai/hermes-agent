@@ -274,15 +274,11 @@ def _format_live_tools_output(sid: str, session: dict, arg: str) -> str:
 
 def _format_live_help_output(sid: str, session: dict, arg: str) -> str:
     try:
-        from hermes_cli.commands import COMMANDS_BY_CATEGORY, command_available, resolve_command
+        from hermes_cli.commands import COMMANDS_BY_CATEGORY
         lines = [_t("tui_gateway.slash.help.title"), ""]
         for category, commands in COMMANDS_BY_CATEGORY.items():
             lines.append(f"{category}:")
-            lines.extend(
-                f"  {cmd:<15} {desc}"
-                for cmd, desc in commands.items()
-                if (resolved := resolve_command(cmd)) is None or command_available(resolved)
-            )
+            lines.extend(f"  {cmd:<15} {desc}" for cmd, desc in commands.items())
         return "\n".join(lines)
     except Exception as exc:
         return _t("tui_gateway.slash.help.unavailable", detail=exc)
@@ -307,9 +303,6 @@ def _format_live_status_output(sid: str, session: dict, arg: str) -> str:
 # name → (reply when there is no session, formatter(sid, session, arg) or a fixed reply).
 # A None no-session reply means the formatter handles a missing session itself.
 _LIVE_SLASH_OUTPUT = {
-    "wisdom": (None, lambda sid, session, arg: _format_live_wisdom_output(session or {}, "wisdom", arg)),
-    "collective-wisdom-install": (
-        None, lambda sid, session, arg: _format_live_wisdom_output(session or {}, "collective-wisdom-install", arg)),
     "compress": (lambda: _t("tui_gateway.slash.compress.no_session"),
                  lambda sid, session, arg: _mirror_slash_side_effects(sid, session, f"/compress {arg}".strip())),
     "usage": (_no_agent_usage, _format_live_usage_output),

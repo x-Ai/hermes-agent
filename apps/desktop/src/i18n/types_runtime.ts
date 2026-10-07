@@ -51,8 +51,6 @@ export interface RuntimeErrorsCopy {
   clipboardUnavailable: string
   welcomeConversationUnavailable: string
   pluginFolderUnavailable: string
-  wisdomActionTimedOut: string
-  wisdomReceiptMissing: string
   manifestMinContextInvalid: string
   manifestToolsNotList: string
   manifestToolAutoInstall: (index: number) => string

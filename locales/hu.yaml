@@ -4218,7 +4218,6 @@ tui_gateway:
       none_new: "Nem észleltünk új készséget."
       added: "Hozzáadott készségek:"
       removed: "Eltávolított készségek:"
-    command_unavailable_for_profile: "a /{command} nem érhető el a jelenlegi profilban"
     not_dispatchable: "nem gyors-/bővítmény-/csomag-/készségparancs: {name}"
     empty_command: "üres parancs"
     plugin_command_error: "Bővítményparancs-hiba: {detail}"
@@ -4299,17 +4298,6 @@ tui_gateway:
   images:
     no_backend: "Nincs beállítva képgeneráló háttérrendszer (futtasd a `hermes tools` parancsot egy engedélyezéséhez)."
     generation_failed: "a generálás sikertelen"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. A kezelésükhöz futtasd: {commands}."
-    team_update_one: "1 csapatfrissítés"
-    team_updates: "{count} csapatfrissítés"
-    skill_ready_one: "1 készség vár átnézésre"
-    skills_ready: "{count} készség vár átnézésre"
-    and: " és "
-    or: " vagy "
-    cannot_continue: "A Collective Wisdom nem tudott folytatódni: {detail}"
-    open_inbox_hint: "Nyisd meg a /wisdom inbox-ot az átnézéshez és a hozzájárulási vezérlők használatához."
-    notification_settings: "Értesítési beállítások: /wisdom mute"
   complete:
     at:
       git_diff: "git diff"

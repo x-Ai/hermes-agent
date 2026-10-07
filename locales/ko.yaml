@@ -4199,7 +4199,6 @@ tui_gateway:
       none_new: "새 스킬이 감지되지 않았습니다."
       added: "추가된 스킬:"
       removed: "제거된 스킬:"
-    command_unavailable_for_profile: "/{command}은(는) 현재 프로필에서 사용할 수 없습니다"
     not_dispatchable: "빠른/플러그인/번들/스킬 명령이 아닙니다: {name}"
     empty_command: "명령이 비어 있습니다"
     plugin_command_error: "플러그인 명령 오류: {detail}"
@@ -4280,17 +4279,6 @@ tui_gateway:
   images:
     no_backend: "이미지 생성 백엔드가 설정되지 않았습니다(`hermes tools`를 실행해 하나를 켜세요)."
     generation_failed: "생성 실패"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. 관리하려면 {commands}을(를) 실행하세요."
-    team_update_one: "팀 업데이트 1건"
-    team_updates: "팀 업데이트 {count}건"
-    skill_ready_one: "검토 대기 스킬 1개"
-    skills_ready: "검토 대기 스킬 {count}개"
-    and: " 및 "
-    or: " 또는 "
-    cannot_continue: "Collective Wisdom을 계속할 수 없습니다: {detail}"
-    open_inbox_hint: "/wisdom inbox를 열어 검토하고 동의 제어를 사용하세요."
-    notification_settings: "알림 설정: /wisdom mute"
   complete:
     at:
       git_diff: "git 차이"

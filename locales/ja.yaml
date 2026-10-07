@@ -4199,7 +4199,6 @@ tui_gateway:
       none_new: "新しいスキルは検出されませんでした"
       added: "追加されたスキル:"
       removed: "削除されたスキル:"
-    command_unavailable_for_profile: "/{command} は現在のプロファイルでは利用できません"
     not_dispatchable: "クイック/プラグイン/バンドル/スキルのコマンドではありません: {name}"
     empty_command: "コマンドが空です"
     plugin_command_error: "プラグインコマンドのエラー: {detail}"
@@ -4280,17 +4279,6 @@ tui_gateway:
   images:
     no_backend: "画像生成バックエンドが設定されていません（`hermes tools` を実行して有効にしてください）"
     generation_failed: "生成に失敗しました"
-  wisdom:
-    summary: "Collective Wisdom: {summary}。管理するには {commands} を実行してください"
-    team_update_one: "1 件のチーム更新"
-    team_updates: "{count} 件のチーム更新"
-    skill_ready_one: "レビュー待ちのスキルが 1 個"
-    skills_ready: "レビュー待ちのスキルが {count} 個"
-    and: "と"
-    or: "または"
-    cannot_continue: "Collective Wisdom を続行できませんでした: {detail}"
-    open_inbox_hint: "/wisdom inbox を開いて確認し、同意のコントロールを使ってください"
-    notification_settings: "通知設定: /wisdom mute"
   complete:
     at:
       git_diff: "git の差分"

@@ -4200,7 +4200,6 @@ tui_gateway:
       none_new: "لم تُكتشف مهارات جديدة."
       added: "المهارات المضافة:"
       removed: "المهارات المزالة:"
-    command_unavailable_for_profile: "/{command} غير متاح للملف الشخصي الحالي"
     not_dispatchable: "ليس أمرًا سريعًا/إضافة/حزمة/مهارة: {name}"
     empty_command: "أمر فارغ"
     plugin_command_error: "خطأ في أمر الإضافة: {detail}"
@@ -4281,17 +4280,6 @@ tui_gateway:
   images:
     no_backend: "لم يُضبط أي خادم خلفي لتوليد الصور (شغّل `hermes tools` لتفعيل واحد)."
     generation_failed: "فشل التوليد"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. شغّل {commands} لإدارتها."
-    team_update_one: "تحديث فريق واحد"
-    team_updates: "{count} تحديثات فريق"
-    skill_ready_one: "مهارة واحدة جاهزة للمراجعة"
-    skills_ready: "{count} مهارات جاهزة للمراجعة"
-    and: " و"
-    or: " أو "
-    cannot_continue: "تعذّر على Collective Wisdom المتابعة: {detail}"
-    open_inbox_hint: "افتح /wisdom inbox للمراجعة واستخدام عناصر التحكم في الموافقة."
-    notification_settings: "إعدادات الإشعارات: /wisdom mute"
   complete:
     at:
       git_diff: "فرق git"

@@ -53,8 +53,6 @@ export const jaRuntime = {
     welcomeConversationUnavailable: 'ようこそ会話を読み込めませんでした。もう一度お試しください',
     pluginFolderUnavailable:
       'デスクトッププラグインのフォルダーを利用できません。最初のビルドを始める前に再試行してください',
-    wisdomActionTimedOut: 'Collective Wisdom の操作がタイムアウトしました',
-    wisdomReceiptMissing: '検証済みの操作レシートがありません',
     manifestMinContextInvalid: '最小コンテキストウィンドウは数値か空欄でなければなりません',
     manifestToolsNotList: 'tools はリストでなければなりません',
     manifestToolAutoInstall: (index: number) => `ツール ${index} は自動インストールを要求できません`,

@@ -487,20 +487,6 @@ def _mutate_and_emit(skill_name: str, action: str, mutator: Callable[[Dict[str, 
     """``_mutate`` then emit *action* with the mutator's facts as the record — only if the write landed."""
     if isinstance(facts := _mutate(skill_name, mutator), dict):
         _emit_skill_lifecycle(skill_name, action, record=facts, **hook_kwargs)
-        if action not in {"loaded", "patched", "edited", "created"}:
-            return
-        try:
-            from hermes_wisdom.qualification import record_mutation_async, record_successful_use_async
-
-            task_id = hook_kwargs.get("task_id")
-            session_id = hook_kwargs.get("session_id")
-            if action == "loaded":
-                # Invocation callers use task_id as the live transcript owner.
-                record_successful_use_async(skill_name, task_id=task_id, session_id=session_id or task_id)
-            else:
-                record_mutation_async(skill_name, task_id=task_id, session_id=session_id)
-        except Exception:
-            logger.debug("Wisdom qualification failed for %s/%s", skill_name, action, exc_info=True)
 
 
 # --- Counter bumps — telemetry for ALL skills regardless of provenance (observability only) ---
@@ -687,17 +673,6 @@ def restore_skill(skill_name: str) -> Tuple[bool, str]:
 
 def _match_skill_dir(skill_mds: Iterable[Path], skill_name: str) -> Optional[Path]:
     return next((p.parent for p in skill_mds if _read_skill_name(p, fallback=p.parent.name) == skill_name), None)
-
-
-# Per-skill ``sync`` opt-in. Upstream removed Skill Sync from core (64ad33e32d); the fork keeps
-# ``tools/skills_sync_client`` because Collective Wisdom builds on it, and its pull path adopts the
-# flag through these two readers. Curation-gated so bundled/hub/external skills can't be marked.
-def set_sync(skill_name: str, sync: bool) -> None:
-    _set_field(skill_name, "sync", bool(sync))
-
-
-def is_sync_enabled(skill_name: str) -> bool:
-    return get_record(skill_name).get("sync") is True
 
 
 def _find_skill_dir(skill_name: str) -> Optional[Path]:

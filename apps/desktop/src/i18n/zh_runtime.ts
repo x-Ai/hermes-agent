@@ -48,8 +48,6 @@ export const zhRuntime = {
     clipboardUnavailable: '剪贴板 API 不可用',
     welcomeConversationUnavailable: '无法加载欢迎对话，请重试',
     pluginFolderUnavailable: '桌面插件文件夹不可用，请在开始首次构建前重试',
-    wisdomActionTimedOut: '集体智慧操作超时',
-    wisdomReceiptMissing: '缺少已验证的操作回执',
     manifestMinContextInvalid: '最小上下文窗口必须是数字或留空',
     manifestToolsNotList: 'tools 必须是列表',
     manifestToolAutoInstall: (index: number) => `工具 ${index} 不能请求自动安装`,

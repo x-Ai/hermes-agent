@@ -16,8 +16,7 @@ from hermes_constants import get_hermes_home
 from tools.registry import registry, tool_error
 from hermes_cli.config import cfg_get
 from agent.skill_utils import (
-    EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS, extract_skill_editorial_metadata,
-    is_skill_support_path as _is_skill_support_path)
+    EXCLUDED_SKILL_DIRS as _EXCLUDED_SKILL_DIRS, is_skill_support_path as _is_skill_support_path)
 from tools.skills_tool_setup import (  # noqa: F401
     SkillReadinessStatus, _build_setup_note, _capture_required_environment_variables,
     _get_required_environment_variables, _is_env_var_persisted, _is_remote_env_backend)
@@ -214,11 +213,9 @@ def _skill_catalog(*, skip_disabled: bool = False, include_hidden: bool = False)
                 if not description:  # first non-heading body line (a null value stays null)
                     description = next((ln for ln in map(str.strip, body.strip().split("\n"))
                                         if ln and not ln.startswith("#")), description)
-                name = frontmatter.get("name", skill_md.parent.name)[:MAX_NAME_LENGTH]
-                description = _truncate_description(description)
                 scanned.append({
-                    "name": name, "description": description,
-                    **extract_skill_editorial_metadata(frontmatter, fallback_name=name, fallback_description=description),
+                    "name": frontmatter.get("name", skill_md.parent.name)[:MAX_NAME_LENGTH],
+                    "description": _truncate_description(description),
                     "category": _get_category_from_path(skill_md), "tier": tier, "root": scan_dir,
                     "path": skill_md, "visible": bool(skill_matches_platform(frontmatter)
                                                       and skill_matches_environment(frontmatter)
@@ -235,22 +232,12 @@ def _skill_catalog(*, skip_disabled: bool = False, include_hidden: bool = False)
     return [dict(s) for s in skills]
 
 
-def _find_all_skills(*, skip_disabled: bool = False, include_editorial: bool = False) -> List[Dict[str, Any]]:
+def _find_all_skills(*, skip_disabled: bool = False) -> List[Dict[str, Any]]:
     """Loadable skills (name, description, category): ``name`` is what skill_view() accepts —
     the declared name, or the exact relative path for a same-tier duplicate. Shadowed and
-    unloadable copies are left out. ``skip_disabled=True`` ignores disabled state (config UI);
-    ``include_editorial=True`` adds the human-facing copy (UI callers) without replacing the
-    canonical agent-facing fields."""
-    rows = []
-    for s in _skill_catalog(skip_disabled=skip_disabled):
-        if not s["load_name"]:
-            continue
-        row = {"name": s["load_name"], "description": s["description"], "category": s["category"]}
-        if include_editorial:
-            row["editorial_name"] = s["editorial_name"]
-            row["editorial_description"] = s["editorial_description"]
-        rows.append(row)
-    return rows
+    unloadable copies are left out. ``skip_disabled=True`` ignores disabled state (config UI)."""
+    return [{"name": s["load_name"], "description": s["description"], "category": s["category"]}
+            for s in _skill_catalog(skip_disabled=skip_disabled) if s["load_name"]]
 
 
 def _sort_skills(skills: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -719,12 +706,6 @@ def _skill_view_with_bump(args, **kw):
     # out of the parent's bucket.
     dedup_task_id = None if is_background_review() else task_id
     if (stub := _check_skill_view_dedup(dedup_task_id, name, args.get("file_path"))) is not None:
-        with suppress(Exception):
-            parsed_stub = json.loads(stub)
-            resolved = parsed_stub.get("name") or name
-            from tools.skill_usage import bump_use, bump_view
-            bump_view(str(resolved))
-            bump_use(str(resolved), task_id=task_id, session_id=kw.get("session_id"))
         return stub
     result = skill_view(name, file_path=args.get("file_path"), task_id=task_id)
     with suppress(Exception):

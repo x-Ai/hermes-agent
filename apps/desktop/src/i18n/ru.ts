@@ -1,7 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
-import { en } from './en'
 import { ruAuxTasks } from './ru_aux_tasks'
 import { ruModelMenu } from './ru_model_menu'
 import { ruNotices } from './ru_notices'
@@ -2700,52 +2699,6 @@ export const ruOverrides = {
     source: 'Источник'
   },
   skills: {
-    collective: {
-      ...en.skills.collective,
-      publishToTeam: 'Опубликовать для команды',
-      submitForApproval: 'Отправить на одобрение',
-      publishLocalNotice:
-        'Подтверждение загрузит именно этот пакет и опубликует его для команды после обязательных проверок.',
-      submitLocalNotice:
-        'Подтверждение загрузит именно этот пакет на одобрение организации. До завершения модерации он не будет опубликован.',
-      reloadReview: 'Обновить проверку',
-      notificationPreferences: {
-        title: 'Настройки уведомлений',
-        scope:
-          'Ваши инициативные уведомления во всех клиентах этой организации. Просмотр и публикация вручную остаются доступны.',
-        on: 'Уведомления включены',
-        muted: 'Уведомления отключены',
-        day: '1 день',
-        week: '1 неделя',
-        month: '30 дней',
-        forever: 'Бессрочно',
-        pending: 'Выбор сохранён локально и ожидает синхронизации.',
-        failed: 'Сбой синхронизации. Обновите настройки и выберите снова.',
-        conflict: 'Настройка изменена в другом клиенте. Обновите для проверки.',
-        expired: 'Срок действия выбора истёк. Обновите настройки и повторите.'
-      },
-      qualificationFirst: organizationName =>
-        `${organizationName ? `Ваша организация (${organizationName})` : 'Ваша организация'} включила Collective Wisdom — функцию, которая автоматически находит полезные навыки у всех участников команды. Поздравляем! Hermes обнаружил навык, который может быть полезен вашей команде.`,
-      qualificationReturning: 'Hermes обнаружил ещё один навык, который может быть полезен вашей команде.',
-      sendPrivateReview: 'Отправить черновик',
-      sharePrompt: 'Хотите поделиться?',
-      reviewFirst: 'Сначала проверить',
-      runSetupStep: 'Выполнить этот шаг',
-      confirmSetupPrerequisite: 'Подтвердить предварительное условие',
-      setupCommand: 'Предлагаемая команда (локальный терминал)',
-      setupStepApprovalNotice: 'Подтверждение разрешает только этот шаг. Не вводите учётные данные в чате.',
-      notNow: 'Не сейчас',
-      yes: 'Да',
-      share: 'Поделиться',
-      reviewPreviousPage: 'Предыдущая страница проверки',
-      reviewNextPage: 'Следующая страница проверки',
-      sharePreparationNotice:
-        'Будет подготовлен локальный пакет. Перед загрузкой или публикацией вы отдельно проверите и одобрите его.',
-      muteNotificationsSoon: 'Отключить уведомления (скоро)',
-      unmuteNotificationsSoon: 'Включить уведомления (скоро)'
-    },
-    tabCollective: 'Коллективные знания',
-    searchCollective: 'Поиск в коллективе...',
     tabSkills: 'Навыки',
     tabToolsets: 'Инструменты',
     configuringProfile: 'Настраивается:',

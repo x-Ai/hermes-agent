@@ -260,6 +260,13 @@ def _recover_renamed_skill(st: "_SyncState", skill_name: str, dest: Path) -> Opt
     return None
 
 
+# Built-ins this tree shipped and then withdrew. A user copy that still matches its manifest origin
+# hash carries no local work, so sync removes it and drops the entry; an edited copy is the user's and
+# stays, entry included (the only provenance record). collective-wisdom-install shipped with Collective
+# Wisdom V1 (2026-09-12 → 2026-10-07): its SKILL.md directs the model to wisdom_* tools that no longer exist.
+RETIRED_BUNDLED_SKILLS: frozenset = frozenset({"collective-wisdom-install"})
+
+
 @dataclass
 class _SyncState:
     """Mutable accumulator threaded through one sync_skills() run."""
@@ -278,6 +285,24 @@ class _SyncState:
     def say(self, msg: str) -> None:
         if not self.quiet:
             print(msg)
+
+
+def _remove_retired_skills(st: "_SyncState") -> List[str]:
+    """Delete unmodified copies of RETIRED_BUNDLED_SKILLS and drop their manifest entries."""
+    retired: List[str] = []
+    for name in sorted(RETIRED_BUNDLED_SKILLS & set(st.manifest)):
+        copies = [md.parent for md in _iter_active_skill_mds() if _read_skill_name(md, md.parent.name) == name]
+        edited = [d for d in copies if not _matches_origin_hash(d, st.manifest[name])]
+        for copy in copies:
+            if copy not in edited:
+                _rmtree_writable(copy)
+                st.say(f"  ✓ removed retired built-in {name}")
+        if edited:
+            st.say(f"  ⚠ kept edited copy of retired built-in {name}: {edited[0]}")
+            continue
+        del st.manifest[name]
+        retired.append(name)
+    return retired
 
 
 def _recover_orphan_backup(dest: Path) -> None:
@@ -431,6 +456,7 @@ def sync_skills(quiet: bool = False) -> dict:
             _update_existing_skill(st, skill_name, skill_src, dest, bundled_hash)
         else:
             st.skipped += 1  # in manifest but not on disk — user deleted it
+    retired = _remove_retired_skills(st)
     # Clean manifest entries for skills removed upstream once no copy is left. A dropped built-in still
     # on disk (active or archived) keeps its entry: it is the only provenance record, and without it the
     # copy reads as agent-authored ("Learned", editable) (#95415). Skipped when opted out: bundled_skills
@@ -450,7 +476,7 @@ def sync_skills(quiet: bool = False) -> dict:
     _write_manifest(st.manifest)
     return {
         "copied": st.copied, "updated": st.updated, "skipped": st.skipped, "user_modified": st.user_modified,
-        "cleaned": cleaned, "suppressed": st.suppressed, "relocated": st.relocated,
+        "cleaned": cleaned, "retired": retired, "suppressed": st.suppressed, "relocated": st.relocated,
         "total_bundled": len(bundled_skills),
         "optional_provenance_backfilled": _backfill_optional_provenance(quiet=quiet),
         "shadowed_by_external": st.shadowed_by_external,

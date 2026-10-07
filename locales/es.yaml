@@ -4201,7 +4201,6 @@ tui_gateway:
       none_new: "No se detectaron habilidades nuevas."
       added: "Habilidades añadidas:"
       removed: "Habilidades eliminadas:"
-    command_unavailable_for_profile: "/{command} no está disponible para el perfil actual"
     not_dispatchable: "no es un comando rápido/de plugin/de paquete/de habilidad: {name}"
     empty_command: "comando vacío"
     plugin_command_error: "Error del comando de plugin: {detail}"
@@ -4282,17 +4281,6 @@ tui_gateway:
   images:
     no_backend: "No hay ningún backend de generación de imágenes configurado (ejecuta `hermes tools` para activar uno)."
     generation_failed: "falló la generación"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Ejecuta {commands} para gestionarlos."
-    team_update_one: "1 actualización del equipo"
-    team_updates: "{count} actualizaciones del equipo"
-    skill_ready_one: "1 habilidad lista para revisar"
-    skills_ready: "{count} habilidades listas para revisar"
-    and: " y "
-    or: " o "
-    cannot_continue: "Collective Wisdom no pudo continuar: {detail}"
-    open_inbox_hint: "Abre /wisdom inbox para revisar y usar los controles de consentimiento."
-    notification_settings: "Ajustes de notificaciones: /wisdom mute"
   complete:
     at:
       git_diff: "diff de git"

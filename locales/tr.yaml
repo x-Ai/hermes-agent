@@ -4200,7 +4200,6 @@ tui_gateway:
       none_new: "Yeni beceri algılanmadı."
       added: "Eklenen beceriler:"
       removed: "Kaldırılan beceriler:"
-    command_unavailable_for_profile: "/{command} geçerli profil için kullanılamıyor"
     not_dispatchable: "hızlı/eklenti/paket/beceri komutu değil: {name}"
     empty_command: "boş komut"
     plugin_command_error: "Eklenti komutu hatası: {detail}"
@@ -4281,17 +4280,6 @@ tui_gateway:
   images:
     no_backend: "Görüntü üretme arka ucu yapılandırılmamış (birini etkinleştirmek için `hermes tools` çalıştırın)."
     generation_failed: "üretim başarısız"
-  wisdom:
-    summary: "Collective Wisdom: {summary}. Yönetmek için {commands} çalıştırın."
-    team_update_one: "1 ekip güncellemesi"
-    team_updates: "{count} ekip güncellemesi"
-    skill_ready_one: "incelemeye hazır 1 beceri"
-    skills_ready: "incelemeye hazır {count} beceri"
-    and: " ve "
-    or: " veya "
-    cannot_continue: "Collective Wisdom devam edemedi: {detail}"
-    open_inbox_hint: "İncelemek ve onay denetimlerini kullanmak için /wisdom inbox açın."
-    notification_settings: "Bildirim ayarları: /wisdom mute"
   complete:
     at:
       git_diff: "git farkı"
