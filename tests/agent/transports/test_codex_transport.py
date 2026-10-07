@@ -2016,21 +2016,21 @@ class TestOpenAIReasoningWireProjection:
     def test_explicit_none_is_sent_and_unset_keeps_the_default(self, transport):
         assert self._reasoning(transport, "gpt-5.6-sol", {"enabled": False}) == {"effort": "none"}
         assert self._reasoning(transport, "gpt-5.6-sol", None) == {"effort": "medium", "summary": "auto"}
-        # Astra's vocabulary has no ``none``: nothing to send, never an escalated level.
-        assert self._reasoning(transport, "gpt-6-astra", {"enabled": False}) is None
+        # Astra's vocabulary has no ``none``: its weakest level goes out, never an escalated one.
+        assert self._reasoning(transport, "gpt-6-astra", {"enabled": False}) == {"effort": "low"}
 
-    def test_disable_the_route_cannot_express_is_reported_once(self, transport, caplog):
-        """#75227: a disable the vocabulary cannot carry (Astra has no ``none``) is reported as an unsupported
-        configuration — the model's default effort stays on — instead of silently omitted; once per model."""
+    def test_disable_the_route_cannot_express_projects_to_its_weakest_level_once(self, transport, caplog):
+        """#75227: a disable the vocabulary cannot carry goes out as the route's weakest level (Muse declares
+        ``minimal``..``xhigh``, no ``none``) — an omitted field leaves the default effort on; logged once, as info."""
         import logging
         from agent.transports import codex as codex_transport
-        codex_transport._UNPROJECTABLE_DISABLE_WARNED.discard("gpt-6-astra")
-        with caplog.at_level(logging.WARNING, logger="agent.transports.codex"):
+        codex_transport._PROJECTED_DISABLE_LOGGED.discard("muse-spark-1.2")
+        with caplog.at_level(logging.INFO, logger="agent.transports.codex"):
             for _ in range(2):
-                assert self._reasoning(transport, "gpt-6-astra", {"enabled": False}) is None
-        warned = [r.getMessage() for r in caplog.records
-                  if r.name == "agent.transports.codex" and r.levelno >= logging.WARNING]
-        assert len(warned) == 1 and "gpt-6-astra" in warned[0], caplog.text
+                assert self._reasoning(transport, "muse-spark-1.2", {"enabled": False},
+                                       base_url="https://api.meta.ai/v1") == {"effort": "minimal"}
+        logged = [r for r in caplog.records if r.name == "agent.transports.codex" and "muse-spark-1.2" in r.getMessage()]
+        assert len(logged) == 1 and logged[0].levelno == logging.INFO, caplog.text
 
     @pytest.mark.parametrize("model", ["gpt-4o-mini", "gpt-4.1-mini", "openai/gpt-4o", "ft:gpt-4o-mini:acme::abc1"])
     def test_chat_era_openai_models_get_no_reasoning_field_on_the_official_origin(self, transport, model):

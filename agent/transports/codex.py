@@ -11,7 +11,7 @@ import re
 from typing import Any, Callable, Optional
 
 from agent.reasoning_effort import (
-    CODEX_ASTRA_EFFORTS, CODEX_LEGACY_EFFORTS,
+    CODEX_ASTRA_EFFORTS, CODEX_LEGACY_EFFORTS, EFFORT_LADDER,
     XAI_GROK46_EFFORTS, XAI_LEGACY_EFFORTS, clamp_effort, is_astra_model,
     # Same declared vocabulary + shared clamp as the main Codex transport (agent.reasoning_effort):
     # per-model — "max" availability varies; "minimal"/"ultra" clamp to a listed level.
@@ -272,10 +272,16 @@ def _alias_wire_tools(
     return response_tools, wire_aliases
 
 
-# Models already warned that an explicit disable has no wire form on their route (one warning per process).
-_UNPROJECTABLE_DISABLE_WARNED: set[str] = set()
+# Models whose explicit disable was projected onto their weakest level (one log line per process).
+_PROJECTED_DISABLE_LOGGED: set[str] = set()
 # request_overrides is static config: warn about a dropped prompt_cache_options once, not every turn.
 _PROMPT_CACHE_OPTIONS_DROP_WARNED = False
+
+
+def _effort_rank(level: Any) -> int:
+    """Position of ``level`` on the canonical ladder; unknown levels sort last."""
+    key = str(level).strip().lower()
+    return EFFORT_LADDER.index(key) if key in EFFORT_LADDER else len(EFFORT_LADDER)
 
 
 def _resolve_reasoning(model: str, params: dict[str, Any]) -> tuple[Any, bool]:
@@ -285,7 +291,8 @@ def _resolve_reasoning(model: str, params: dict[str, Any]) -> tuple[Any, bool]:
     reasoning parameters accepted" (400 on any reasoning field) and disables reasoning outright:
     ``(None, False)``. An explicit ``reasoning_effort: none`` on a route whose vocabulary has ``none``
     resolves to ``("none", False)`` so the disable goes on the wire instead of being omitted — omitting
-    it re-enables the model's default effort (gpt-5.6 defaults to ``medium``, #75227).
+    it re-enables the model's default effort (gpt-5.6 defaults to ``medium``, #75227). A route whose
+    vocabulary has no ``none`` (Muse, Astra) resolves to its weakest declared level for the same reason.
     """
     reasoning_effort, reasoning_enabled = "medium", True
     reasoning_config = params.get("reasoning_config")
@@ -318,16 +325,18 @@ def _resolve_reasoning(model: str, params: dict[str, Any]) -> tuple[Any, bool]:
         if not supported:
             return None, False
     if not reasoning_enabled:
-        has_none = any(str(level).strip().lower() == "none" for level in supported)
-        if not has_none and model not in _UNPROJECTABLE_DISABLE_WARNED:
-            # #75227: report the unsupported configuration instead of silently falling back.
-            _UNPROJECTABLE_DISABLE_WARNED.add(model)
-            logger.warning(
-                "reasoning_effort: none cannot be sent for %s — its route accepts only %s, so the model's "
-                "default effort stays on (an omitted reasoning field does not disable it).",
-                model, ", ".join(str(level) for level in supported),
+        if any(str(level).strip().lower() == "none" for level in supported):
+            return "none", False
+        # The route cannot say "off": its weakest declared level is the closest projection (Muse sends
+        # a disable as ``minimal``), and an omitted field would leave the default effort on (#75227).
+        weakest = min(supported, key=_effort_rank)
+        if model not in _PROJECTED_DISABLE_LOGGED:
+            _PROJECTED_DISABLE_LOGGED.add(model)
+            logger.info(
+                "reasoning_effort: none is not in %s's vocabulary (%s); sending its weakest level %r instead.",
+                model, ", ".join(str(level) for level in supported), weakest,
             )
-        return ("none" if has_none else None), False
+        return weakest, False
     return clamp_effort(reasoning_effort, supported), reasoning_enabled
 
 
@@ -576,9 +585,9 @@ def _reasoning_fields(
     """``reasoning`` / ``include`` request fields for the endpoint family.
 
     xAI 400s on ``reasoning.effort`` outside its allowlist; GitHub Models takes a
-    verbatim ``github_reasoning_extra`` and never ``include``. A disabled ask resolved to
-    ``effort="none"`` is sent as ``{"effort": "none"}`` — the wire has no other way to switch
-    a reasoning model's default effort off (#75227).
+    verbatim ``github_reasoning_extra`` and never ``include``. A disabled ask is sent as
+    ``{"effort": "none"}``, or as the route's weakest level when its vocabulary has no ``none`` —
+    the wire has no other way to switch a reasoning model's default effort off (#75227).
     """
     include = ["reasoning.encrypted_content"] if replay_encrypted_reasoning else []
     fields: dict[str, Any] = {}
@@ -605,8 +614,8 @@ def _reasoning_fields(
             fields["include"] = include
     elif not is_github_responses and not is_xai_responses:
         fields["include"] = []
-        if effort == "none":
-            fields["reasoning"] = {"effort": "none"}
+        if effort:
+            fields["reasoning"] = {"effort": effort}
     return fields
 
 
