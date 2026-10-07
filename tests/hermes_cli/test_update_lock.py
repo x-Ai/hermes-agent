@@ -208,6 +208,35 @@ def test_one_incarnation_rule_when_our_own_creation_time_is_unreadable(marker, m
         assert update_lock._lock_holder(marker).held is not ours, text
 
 
+def test_a_whole_second_delegate_recording_of_our_pid_is_ours(marker, other_pid):
+    """The POSIX hand-off names the `hermes update` it spawns on line 4 with the creation time
+    `ps -o lstart=` reports on macOS — whole seconds — while line 1 is its custodian, a process
+    that is neither our ancestor nor the HANDOFF_PID partner. The updater must still recognise
+    that delegate line as itself (2026-10-07: it judged it a previous incarnation and refused
+    its own hand-off with "Another Hermes update is already running")."""
+    from hermes_cli import update_lock
+
+    own_ct = update_lock._own_create_time()
+    if own_ct is None:
+        pytest.skip("own creation time unreadable here")
+    custodian_ct = process_create_time(other_pid)
+    now = int(time.time())
+    truncated = int(own_ct)
+    body = f"{other_pid}\n{now}\nct:{custodian_ct:.3f}\ndelegate:{os.getpid()} ct:{truncated}.000\n"
+    marker.write_text(body, encoding="utf-8", newline="")
+
+    verdict, owner, _run = update_lock.judge_marker(marker.read_bytes())
+    assert (verdict, owner) == ("ours", other_pid)
+    lock = UpdateLock(path=marker)
+    assert lock.acquire() is True and lock.acquired is False, "ran under the hand-off's claim"
+    lock.release()
+
+    # The second before ours is a previous incarnation of the pid, not us.
+    marker.write_text(body.replace(f"ct:{truncated}.000", f"ct:{truncated - 1}.000"), encoding="utf-8", newline="")
+    assert update_lock.judge_marker(marker.read_bytes())[0] == "live"
+    assert UpdateLock(path=marker).acquire() is False
+
+
 def test_release_leaves_a_marker_a_handoff_partner_now_owns(marker):
     """The desktop writes the marker, then the Tauri updater takes ownership.
 

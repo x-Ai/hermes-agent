@@ -47,6 +47,12 @@ CREATE_TIME_TOLERANCE_SECONDS = 2.0
 # Our own creation time re-probed by the same clock: only the marker's 3-decimal rounding differs,
 # while two processes are at least one scheduler tick (10 ms) apart.
 _OWN_CREATE_TIME_EPSILON = 0.005
+# A recording with no sub-second part came from a second-resolution probe — the POSIX hand-off's
+# ``ps -o lstart=`` on macOS (marker.sh ``proc_ct`` writes ``<seconds>.000``) names the ``hermes
+# update`` it spawns on line 4 that way. Our own clock agrees with it only to the second, so such
+# a recording is ours when it falls inside our creation second: a previous incarnation of our pid
+# cannot have started within the same second.
+_WHOLE_SECOND_CREATE_TIME_TOLERANCE = 1.0
 
 # A claim published by create-then-write (filesystems without hard links) is briefly empty; an
 # empty marker this young is a claim in flight, not a dead one (contract A3).
@@ -255,8 +261,9 @@ def incarnation_live(pid: int, recorded_ct=None) -> bool | None:
 
     An identity is (pid, creation time). ``True``: that process is running. ``False``: no such
     process, a different incarnation of the pid, or a claim naming OUR pid that is not us — our
-    own pid is ours only within :data:`_OWN_CREATE_TIME_EPSILON` of our creation time, and a
-    claim without a creation time naming our pid is a previous incarnation (a fresh pid
+    own pid is ours only within :data:`_OWN_CREATE_TIME_EPSILON` of our creation time (inside
+    our creation second for a whole-second recording, :data:`_WHOLE_SECOND_CREATE_TIME_TOLERANCE`),
+    and a claim without a creation time naming our pid is a previous incarnation (a fresh pid
     namespace hands a killed update's pid to the next launch) — unless our own creation time is
     unreadable: then we write no-ct claims ourselves, so a no-ct claim is ours and a ct one is
     not (``marker.rs`` agrees). ``None``: alive but unprovable — no creation time recorded, or
@@ -295,7 +302,11 @@ def _incarnation(pid: int, recorded: float | None, w: _World) -> bool | None:
     if pid == w.pid:  # we are alive by definition: only the incarnation is in question
         if w.ct is None:
             return recorded is None
-        return recorded is not None and abs(w.ct - recorded) <= _OWN_CREATE_TIME_EPSILON
+        if recorded is None:
+            return False
+        if recorded == int(recorded):  # a second-resolution recording (see the constant)
+            return abs(w.ct - recorded) < _WHOLE_SECOND_CREATE_TIME_TOLERANCE
+        return abs(w.ct - recorded) <= _OWN_CREATE_TIME_EPSILON
     if not w.alive(pid):
         return False
     actual = None if recorded is None else w.ct_of(pid)
