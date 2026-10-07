@@ -1129,6 +1129,7 @@ export const arSettings = {
           label: 'المراجعة',
           hint: 'وكيل المراجعة الفرعي /review'
         },
+        voice_chat: { label: 'دردشة صوتية', hint: 'ردود الوضع الصوتي' },
         curator: {
           label: 'المنسّق',
           hint: 'مراجعة استخدام المهارات'

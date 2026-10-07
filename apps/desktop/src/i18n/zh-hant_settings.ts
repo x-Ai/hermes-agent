@@ -1365,10 +1365,8 @@ export const zhHantSettings = {
           label: '標題生成',
           hint: '工作階段標題'
         },
-        review: {
-          label: '評審',
-          hint: '/review 評審子代理'
-        },
+        review: { label: '評審', hint: '/review 評審子代理' },
+        voice_chat: { label: '語音聊天', hint: '語音模式回覆' },
         curator: {
           label: '策展器',
           hint: '技能使用審查'
