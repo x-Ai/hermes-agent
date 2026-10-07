@@ -4772,7 +4772,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -4837,7 +4836,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -4900,7 +4898,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -5480,7 +5477,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -5540,7 +5536,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -5599,7 +5594,6 @@
     },
     {
      "content": "",
-     "reasoning_content": " ",
      "role": "assistant",
      "tool_calls": [
       {
@@ -7391,7 +7385,7 @@
    "prompt_cache_key": "pck_f6d11aab44ec88459ba6fe2e",
    "prompt_cache_retention": "24h",
    "reasoning": {
-    "effort": "none"
+    "effort": "minimal"
    },
    "store": false,
    "timeout": 1800.0,
