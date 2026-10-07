@@ -184,6 +184,7 @@ _WORKSPACE_MOUNT_PATH_ENV_VARS = {
     "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
 }
 _SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
+# no-tmp: ok — a denylist of mount TARGETS the workspace may not shadow, not scratch space.
 _RESERVED_MOUNT_TARGETS = frozenset({"/root", "/home", "/tmp", "/var/tmp", "/run"})
 
 
