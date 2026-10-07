@@ -7,6 +7,7 @@ the already-open session kept the computed threshold from agent creation.
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 from agent.context_compressor import ContextCompressor
@@ -320,10 +321,45 @@ def test_removing_codex_native_compaction_restores_false(monkeypatch):
 
 
 def test_removing_codex_native_threshold_restores_default(monkeypatch):
+    # The fresh-build default is None (DEFAULT_CONFIG["compression"]
+    # ["codex_responses_compact_threshold"]); resolve_compact_threshold reads None as
+    # "auto-derive from the local trigger". The old live path hardcoded 200000 on absence,
+    # diverging from the construction path (_compression_codex_settings) and warning on every
+    # unset session.
     session, _ = _neutral_session()
     session["agent"].codex_responses_compact_threshold = 120_000
     _sync_with_cfg(monkeypatch, session, {"compression": {}})
-    assert session["agent"].codex_responses_compact_threshold == 200_000
+    assert session["agent"].codex_responses_compact_threshold is None
+
+
+def test_empty_codex_native_threshold_is_auto_without_warning(monkeypatch, caplog):
+    """An empty ``codex_responses_compact_threshold:`` key parses to None (unset), which must map to
+    the automatic threshold silently. Regression for the live path warning once per session reload
+    ('Invalid compression.codex_responses_compact_threshold=None') on every unset config.yaml."""
+    session, _ = _neutral_session()
+    session["agent"].codex_responses_compact_threshold = 120_000
+    with caplog.at_level(logging.WARNING, logger="tui_gateway.server"):
+        _sync_with_cfg(
+            monkeypatch, session,
+            {"compression": {"codex_responses_compact_threshold": None}},
+        )
+    assert session["agent"].codex_responses_compact_threshold is None
+    assert not [r for r in caplog.records if "codex_responses_compact_threshold" in r.getMessage()]
+
+
+def test_invalid_codex_native_threshold_warns_and_falls_back_to_auto(monkeypatch, caplog):
+    """A present but unparseable value warns (once) and falls back to the automatic threshold (None),
+    matching the construction path rather than a hardcoded 200000."""
+    session, _ = _neutral_session()
+    session["agent"].codex_responses_compact_threshold = 120_000
+    with caplog.at_level(logging.WARNING, logger="tui_gateway.server"):
+        _sync_with_cfg(
+            monkeypatch, session,
+            {"compression": {"codex_responses_compact_threshold": "not-a-number"}},
+        )
+    assert session["agent"].codex_responses_compact_threshold is None
+    warnings = [r for r in caplog.records if "codex_responses_compact_threshold" in r.getMessage()]
+    assert len(warnings) == 1
 
 
 def test_apply_live_compression_config_is_self_contained():
