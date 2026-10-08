@@ -4277,6 +4277,8 @@ tui_gateway:
     capabilities_updated: "기능이 업데이트되었습니다 — 이 봇의 도구와 프롬프트를 새로 고쳤습니다."
     configured_switch_failed: "설정된 모델 {model}(으)로 전환할 수 없습니다: {detail}"
     switch_error: "모델을 전환할 수 없습니다: {detail}"
+    current_model_fallback: "현재 모델"
+    queued_switch_needs_confirm: "{current}을(를) 유지합니다: {model}(으)로 전환하려면 확인이 필요합니다. 다시 선택하여 확인하세요."
   compress:
     lock_held: "압축 잠금이 점유되어 있습니다: {holder}"
     unknown_holder: "알 수 없음"

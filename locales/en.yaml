@@ -4408,6 +4408,8 @@ tui_gateway:
     capabilities_updated: "Capabilities updated — this bot's tools and prompt were refreshed."
     configured_switch_failed: "Could not switch to configured model {model}: {detail}"
     switch_error: "Could not switch model: {detail}"
+    current_model_fallback: "the current model"
+    queued_switch_needs_confirm: "Stayed on {current}: switching to {model} needs confirmation. Pick it again to confirm."
   compress:
     lock_held: "Compression lock held: {holder}"
     unknown_holder: "unknown"

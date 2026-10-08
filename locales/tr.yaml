@@ -4278,6 +4278,8 @@ tui_gateway:
     capabilities_updated: "Yetenekler güncellendi — bu botun araçları ve istemi yenilendi."
     configured_switch_failed: "Yapılandırılmış {model} modeline geçilemedi: {detail}"
     switch_error: "Model değiştirilemedi: {detail}"
+    current_model_fallback: "geçerli model"
+    queued_switch_needs_confirm: "{current} üzerinde kalındı: {model} modeline geçiş onay gerektiriyor. Onaylamak için yeniden seçin."
   compress:
     lock_held: "Sıkıştırma kilidi tutuluyor: {holder}"
     unknown_holder: "bilinmiyor"

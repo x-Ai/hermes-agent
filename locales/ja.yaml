@@ -4277,6 +4277,8 @@ tui_gateway:
     capabilities_updated: "機能を更新しました — この Bot のツールとプロンプトを更新しました"
     configured_switch_failed: "設定済みのモデル {model} に切り替えられませんでした: {detail}"
     switch_error: "モデルを切り替えられませんでした: {detail}"
+    current_model_fallback: "現在のモデル"
+    queued_switch_needs_confirm: "{current} のままです：{model} への切り替えには確認が必要です。もう一度選択して確認してください。"
   compress:
     lock_held: "圧縮ロックが保持されています: {holder}"
     unknown_holder: "不明"

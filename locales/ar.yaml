@@ -4278,6 +4278,8 @@ tui_gateway:
     capabilities_updated: "تم تحديث القدرات — جرى تحديث أدوات هذا البوت وموجّهه."
     configured_switch_failed: "تعذّر التبديل إلى النموذج المضبوط {model}: {detail}"
     switch_error: "تعذّر تبديل النموذج: {detail}"
+    current_model_fallback: "النموذج الحالي"
+    queued_switch_needs_confirm: "البقاء على {current}: التبديل إلى {model} يتطلب تأكيدًا. اختره مرة أخرى للتأكيد."
   compress:
     lock_held: "قفل الضغط محجوز: {holder}"
     unknown_holder: "غير معروف"

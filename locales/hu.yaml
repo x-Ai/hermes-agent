@@ -4296,6 +4296,8 @@ tui_gateway:
     capabilities_updated: "A képességek frissültek — a bot eszközei és promptja frissítve lettek."
     configured_switch_failed: "Nem sikerült a beállított {model} modellre váltani: {detail}"
     switch_error: "Nem sikerült modellt váltani: {detail}"
+    current_model_fallback: "a jelenlegi modell"
+    queued_switch_needs_confirm: "Maradt: {current}. A(z) {model} modellre váltáshoz megerősítés szükséges. Válaszd ki újra a megerősítéshez."
   compress:
     lock_held: "A tömörítési zár foglalt: {holder}"
     unknown_holder: "ismeretlen"

@@ -4279,6 +4279,8 @@ tui_gateway:
     capabilities_updated: "Cumais nuashonraithe — athnuadh uirlisí agus leid an bhota seo."
     configured_switch_failed: "Níorbh fhéidir athrú go dtí an tsamhail chumraithe {model}: {detail}"
     switch_error: "Níorbh fhéidir an tsamhail a athrú: {detail}"
+    current_model_fallback: "an tsamhail reatha"
+    queued_switch_needs_confirm: "Fanta ar {current}: tá deimhniú ag teastáil chun aistriú go {model}. Roghnaigh arís é le deimhniú."
   compress:
     lock_held: "Glas comhbhrúite á choinneáil: {holder}"
     unknown_holder: "anaithnid"

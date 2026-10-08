@@ -4279,6 +4279,8 @@ tui_gateway:
     capabilities_updated: "Можливості оновлено — інструменти та промпт цього бота оновлено."
     configured_switch_failed: "Не вдалося перемкнутися на налаштовану модель {model}: {detail}"
     switch_error: "Не вдалося змінити модель: {detail}"
+    current_model_fallback: "поточна модель"
+    queued_switch_needs_confirm: "Залишаємося на {current}: перехід на {model} потребує підтвердження. Виберіть її ще раз, щоб підтвердити."
   compress:
     lock_held: "Блокування стиснення зайняте: {holder}"
     unknown_holder: "невідомо"

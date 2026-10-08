@@ -4277,6 +4277,8 @@ tui_gateway:
     capabilities_updated: "能力已更新 — 此 Bot 的工具與提示詞已重新整理。"
     configured_switch_failed: "無法切換到已設定的模型 {model}：{detail}"
     switch_error: "無法切換模型：{detail}"
+    current_model_fallback: "目前模型"
+    queued_switch_needs_confirm: "仍使用 {current}：切換到 {model} 需要確認。再次選擇它即可確認。"
   compress:
     lock_held: "壓縮鎖被占用：{holder}"
     unknown_holder: "未知"

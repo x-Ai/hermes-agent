@@ -4279,6 +4279,8 @@ tui_gateway:
     capabilities_updated: "Vermoëns opgedateer — hierdie bot se gereedskap en prompt is verfris."
     configured_switch_failed: "Kon nie na die gekonfigureerde model {model} oorskakel nie: {detail}"
     switch_error: "Kon nie model oorskakel nie: {detail}"
+    current_model_fallback: "die huidige model"
+    queued_switch_needs_confirm: "Bly op {current}: om na {model} oor te skakel vereis bevestiging. Kies dit weer om te bevestig."
   compress:
     lock_held: "Kompressieslot word gehou: {holder}"
     unknown_holder: "onbekend"

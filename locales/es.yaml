@@ -4279,6 +4279,8 @@ tui_gateway:
     capabilities_updated: "Capacidades actualizadas — se refrescaron las herramientas y el prompt de este bot."
     configured_switch_failed: "No se pudo cambiar al modelo configurado {model}: {detail}"
     switch_error: "No se pudo cambiar de modelo: {detail}"
+    current_model_fallback: "el modelo actual"
+    queued_switch_needs_confirm: "Se mantiene {current}: cambiar a {model} requiere confirmación. Vuelve a elegirlo para confirmar."
   compress:
     lock_held: "Bloqueo de compresión retenido: {holder}"
     unknown_holder: "desconocido"

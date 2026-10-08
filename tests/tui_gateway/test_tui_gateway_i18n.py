@@ -205,3 +205,36 @@ def test_connector_and_peer_room_refusals_are_localized(chinese):
     from tui_gateway.hosted_room_peer_http import _BUDGET_MESSAGES
     budget = i18n.t(_BUDGET_MESSAGES["size"], kind=" probe")
     assert budget == i18n.t("tui_gateway.peer.size_limit", lang="zh", kind=" probe") and " probe" in budget
+
+
+def test_dropped_queued_pick_notice_is_localized_and_names_both_models(chinese, monkeypatch):
+    """A pick queued mid-turn that the guards want confirmed is dropped with a one-line warn notice
+    written in the active language; both model names survive and the fallback for a session whose
+    agent has no model name comes from the catalog too."""
+    import types
+
+    from tui_gateway import server
+
+    monkeypatch.setattr(
+        server, "_apply_model_switch", lambda *_a, **_kw: {"confirm_required": True, "confirm_message": "guarded"})
+    monkeypatch.setattr(server, "_emit_session_info", lambda *_a, **_kw: None)
+    emitted = []
+    monkeypatch.setattr(server, "_emit", lambda *a, **_kw: emitted.append(a))
+    pending = {"raw": "openai/gpt-5.5", "confirm_expensive_model": False,
+               "display_model": "openai/gpt-5.5", "display_provider": ""}
+
+    server._apply_pending_model_switch(
+        "sid", {"agent": types.SimpleNamespace(model="deepseek/deepseek-v4.1-flash"), "pending_model_switch": dict(pending)})
+    notice = next(a[2] for a in emitted if a[0] == "notification.show")
+    assert notice["text"] == i18n.t(
+        "tui_gateway.model.queued_switch_needs_confirm", lang="zh",
+        current="deepseek/deepseek-v4.1-flash", model="openai/gpt-5.5")
+    assert "Stayed on" not in notice["text"] and "tui_gateway." not in notice["text"]
+    assert "\n" not in notice["text"] and notice["level"] == "warn"
+
+    emitted.clear()
+    server._apply_pending_model_switch(
+        "sid", {"agent": types.SimpleNamespace(model=""), "pending_model_switch": dict(pending)})
+    fallback = next(a[2] for a in emitted if a[0] == "notification.show")["text"]
+    assert i18n.t("tui_gateway.model.current_model_fallback", lang="zh") in fallback
+    assert "the current model" not in fallback
