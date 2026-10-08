@@ -4539,3 +4539,10 @@ core:
     stop_hint_cancel_request: "取消请求即可停止"
     stop_hint_stop_command: "发送 /stop 可取消"
     gave_up: "⏳ 自动恢复在 {total} 轮后放弃，服务商仍不可用"
+  model_switch:
+    large_context_title: "大上下文切换警告"
+    large_context_banner: "!!! 大上下文模型切换 !!!"
+    large_context_size: "本会话当前约有 {tokens} 个 token 的上下文"
+    large_context_cost: "切换到 {model} 后，下一次回复将不经缓存重新读取全部上下文（服务商的提示词缓存按模型区分），需一次性支付全价输入费用"
+    large_context_threshold: "阈值：model.switch_context_confirm_tokens（当前为 {threshold}，设为 0 可关闭此检查）"
+    large_context_confirm: "仅在确定现在就要切换时再确认"

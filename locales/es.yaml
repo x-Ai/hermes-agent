@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "cancela la solicitud para detener"
     stop_hint_stop_command: "envía /stop para cancelar"
     gave_up: "⏳ La recuperación automática se rindió tras {total} ciclos — el proveedor sigue sin estar disponible."
+  model_switch:
+    large_context_title: "Aviso de cambio con contexto grande"
+    large_context_banner: "!!! CAMBIO DE MODELO CON CONTEXTO GRANDE !!!"
+    large_context_size: "Esta sesión contiene ~{tokens} tokens de contexto."
+    large_context_cost: "Cambiar a {model} hace que la siguiente respuesta vuelva a leer todo el contexto sin caché (los proveedores guardan la caché de prompts por modelo) — un coste de entrada a precio completo por única vez."
+    large_context_threshold: "Umbral: model.switch_context_confirm_tokens (actualmente {threshold}; 0 desactiva esta comprobación)."
+    large_context_confirm: "Confirma solo si quieres cambiar ahora."

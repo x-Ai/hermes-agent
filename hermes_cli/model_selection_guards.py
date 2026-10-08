@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List, Optional
 
+from agent.i18n import t
 from agent.models_dev import ModelInfo
 
 
@@ -116,17 +117,18 @@ def _context_cache_guard(
     tokens = int(ctx.context_tokens)
     if threshold <= 0 or tokens < threshold:
         return None
+    # Catalog copy (``core.model_switch.*``): the Desktop / TUI confirm dialog, the CLI modal and the
+    # messaging-gateway confirm all show this title and body to the user as-is.
     message = "\n".join([
-        "!!! LARGE CONTEXT MODEL SWITCH !!!",
+        t("core.model_switch.large_context_banner"),
         "",
-        f"This session holds ~{tokens:,} tokens of context.",
-        f"Switching to {target} makes the next reply re-read all of it uncached (providers key "
-        "prompt caches per model) — a one-time full-price input cost.",
+        t("core.model_switch.large_context_size", tokens=f"{tokens:,}"),
+        t("core.model_switch.large_context_cost", model=target),
         "",
-        f"Threshold: model.switch_context_confirm_tokens (currently {threshold:,}; 0 disables this check).",
-        "Confirm only if you intend to switch now."])
+        t("core.model_switch.large_context_threshold", threshold=f"{threshold:,}"),
+        t("core.model_switch.large_context_confirm")])
     return SelectionWarning(
-        kind="context_cache", title="Large Context Switch Warning", model=target,
+        kind="context_cache", title=t("core.model_switch.large_context_title"), model=target,
         provider=(provider or "").strip(), message=message)
 
 

@@ -4865,3 +4865,10 @@ core:
     stop_hint_cancel_request: "annulez la requête pour arrêter"
     stop_hint_stop_command: "envoyez /stop pour annuler"
     gave_up: "⏳ La récupération automatique a abandonné après {total} cycles — le fournisseur est toujours indisponible."
+  model_switch:
+    large_context_title: "Avertissement : changement avec un contexte volumineux"
+    large_context_banner: "!!! CHANGEMENT DE MODÈLE AVEC UN CONTEXTE VOLUMINEUX !!!"
+    large_context_size: "Cette session contient ~{tokens} tokens de contexte."
+    large_context_cost: "Passer à {model} obligera la prochaine réponse à tout relire sans cache (les fournisseurs tiennent un cache de prompt par modèle) — un coût d'entrée au plein tarif, une seule fois."
+    large_context_threshold: "Seuil : model.switch_context_confirm_tokens (actuellement {threshold} ; 0 désactive cette vérification)."
+    large_context_confirm: "Ne confirmez que si vous voulez vraiment changer maintenant."

@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "kanselleer die versoek om te stop"
     stop_hint_stop_command: "stuur /stop om te kanselleer"
     gave_up: "⏳ Outomatiese herstel het ná {total} siklusse opgegee — die verskaffer is steeds nie beskikbaar nie."
+  model_switch:
+    large_context_title: "Waarskuwing: oorskakeling met groot konteks"
+    large_context_banner: "!!! MODELOORSKAKELING MET GROOT KONTEKS !!!"
+    large_context_size: "Hierdie sessie hou ~{tokens} tokens konteks."
+    large_context_cost: "Oorskakel na {model} laat die volgende antwoord alles sonder kas herlees (verskaffers hou promptkasse per model) — 'n eenmalige volprys-invoerkoste."
+    large_context_threshold: "Drempel: model.switch_context_confirm_tokens (tans {threshold}; 0 skakel hierdie kontrole af)."
+    large_context_confirm: "Bevestig net as jy nou wil oorskakel."

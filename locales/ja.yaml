@@ -4538,3 +4538,10 @@ core:
     stop_hint_cancel_request: "停止するにはリクエストをキャンセルしてください"
     stop_hint_stop_command: "キャンセルするには /stop を送信してください"
     gave_up: "⏳ 自動復旧は {total} サイクル後に断念しました — プロバイダーは依然として利用できません"
+  model_switch:
+    large_context_title: "大きなコンテキストの切り替え警告"
+    large_context_banner: "!!! 大きなコンテキストでのモデル切り替え !!!"
+    large_context_size: "このセッションには約 {tokens} トークンのコンテキストがあります"
+    large_context_cost: "{model} に切り替えると、次の応答でその全体をキャッシュなしで再読み込みします（プロバイダーのプロンプトキャッシュはモデルごとに分かれています） — 一度だけ入力トークンが全額課金されます"
+    large_context_threshold: "しきい値: model.switch_context_confirm_tokens（現在 {threshold}。0 でこのチェックを無効化）"
+    large_context_confirm: "今すぐ切り替えるつもりの場合にのみ確認してください"

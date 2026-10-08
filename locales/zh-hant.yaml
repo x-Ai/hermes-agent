@@ -4538,3 +4538,10 @@ core:
     stop_hint_cancel_request: "取消請求即可停止"
     stop_hint_stop_command: "傳送 /stop 可取消"
     gave_up: "⏳ 自動復原在 {total} 輪後放棄 — 供應商仍無法使用。"
+  model_switch:
+    large_context_title: "大型上下文切換警告"
+    large_context_banner: "!!! 大型上下文模型切換 !!!"
+    large_context_size: "此工作階段目前約有 {tokens} 個 token 的上下文。"
+    large_context_cost: "切換到 {model} 後，下一次回覆將不經快取重新讀取全部上下文（供應商的提示快取依模型區分） — 需一次性支付全額輸入費用。"
+    large_context_threshold: "門檻：model.switch_context_confirm_tokens（目前為 {threshold}；設為 0 可停用此檢查）。"
+    large_context_confirm: "只有在確定要立即切換時才確認。"

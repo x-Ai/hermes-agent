@@ -4557,3 +4557,10 @@ core:
     stop_hint_cancel_request: "a leállításhoz vond vissza a kérést"
     stop_hint_stop_command: "a megszakításhoz küldd el a /stop parancsot"
     gave_up: "⏳ Az automatikus helyreállítás {total} ciklus után feladta — a szolgáltató továbbra sem érhető el."
+  model_switch:
+    large_context_title: "Figyelmeztetés: váltás nagy kontextussal"
+    large_context_banner: "!!! MODELLVÁLTÁS NAGY KONTEXTUSSAL !!!"
+    large_context_size: "Ez a munkamenet ~{tokens} token kontextust tartalmaz."
+    large_context_cost: "A(z) {model} modellre váltás miatt a következő válasz az egész kontextust gyorsítótár nélkül olvassa újra (a szolgáltatók modellenként tartják a prompt-gyorsítótárat) — egyszeri, teljes árú bemeneti költség."
+    large_context_threshold: "Küszöb: model.switch_context_confirm_tokens (jelenleg {threshold}; a 0 kikapcsolja ezt az ellenőrzést)."
+    large_context_confirm: "Csak akkor erősítsd meg, ha tényleg most akarsz váltani."

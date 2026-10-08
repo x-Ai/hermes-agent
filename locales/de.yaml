@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "Anfrage abbrechen zum Stoppen"
     stop_hint_stop_command: "/stop senden zum Abbrechen"
     gave_up: "⏳ Automatische Wiederherstellung nach {total} Zyklen aufgegeben — der Anbieter ist weiterhin nicht erreichbar."
+  model_switch:
+    large_context_title: "Warnung: Wechsel mit großem Kontext"
+    large_context_banner: "!!! MODELLWECHSEL MIT GROSSEM KONTEXT !!!"
+    large_context_size: "Diese Session hält ~{tokens} Tokens Kontext."
+    large_context_cost: "Ein Wechsel zu {model} lässt die nächste Antwort den gesamten Kontext ohne Cache neu einlesen (Anbieter führen Prompt-Caches pro Modell) — einmalig volle Eingabekosten."
+    large_context_threshold: "Schwellenwert: model.switch_context_confirm_tokens (derzeit {threshold}; 0 deaktiviert diese Prüfung)."
+    large_context_confirm: "Bestätige nur, wenn du jetzt wirklich wechseln willst."

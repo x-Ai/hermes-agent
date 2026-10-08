@@ -4538,3 +4538,10 @@ core:
     stop_hint_cancel_request: "중지하려면 요청을 취소하세요"
     stop_hint_stop_command: "취소하려면 /stop 을 보내세요"
     gave_up: "⏳ 자동 복구가 {total}회 시도 후 포기했습니다 — 공급자를 여전히 사용할 수 없습니다."
+  model_switch:
+    large_context_title: "대용량 컨텍스트 전환 경고"
+    large_context_banner: "!!! 대용량 컨텍스트 모델 전환 !!!"
+    large_context_size: "이 세션에는 약 {tokens} 토큰의 컨텍스트가 있습니다."
+    large_context_cost: "{model}(으)로 전환하면 다음 응답에서 전체 컨텍스트를 캐시 없이 다시 읽습니다(공급자의 프롬프트 캐시는 모델별로 구분됨) — 입력 비용이 한 번 전액 청구됩니다."
+    large_context_threshold: "임계값: model.switch_context_confirm_tokens (현재 {threshold}; 0이면 이 검사를 비활성화)"
+    large_context_confirm: "지금 전환할 생각인 경우에만 확인하세요."

@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "annulla la richiesta per fermare"
     stop_hint_stop_command: "invia /stop per annullare"
     gave_up: "⏳ Il ripristino automatico ha rinunciato dopo {total} cicli — il provider non è ancora disponibile."
+  model_switch:
+    large_context_title: "Avviso: cambio con contesto grande"
+    large_context_banner: "!!! CAMBIO DI MODELLO CON CONTESTO GRANDE !!!"
+    large_context_size: "Questa sessione contiene ~{tokens} token di contesto."
+    large_context_cost: "Passare a {model} fa rileggere alla prossima risposta tutto il contesto senza cache (i provider tengono la cache dei prompt per modello) — un costo di input a prezzo pieno, una tantum."
+    large_context_threshold: "Soglia: model.switch_context_confirm_tokens (attualmente {threshold}; 0 disattiva questo controllo)."
+    large_context_confirm: "Conferma solo se vuoi davvero cambiare adesso."

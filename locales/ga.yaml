@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "cealaigh an t-iarratas chun stopadh"
     stop_hint_stop_command: "seol /stop chun cealú"
     gave_up: "⏳ D'éirigh an t-aisghabháil uathoibríoch as tar éis {total} timthriall — níl an soláthraí ar fáil fós."
+  model_switch:
+    large_context_title: "Rabhadh: athrú le comhthéacs mór"
+    large_context_banner: "!!! ATHRÚ SAMHLA LE COMHTHÉACS MÓR !!!"
+    large_context_size: "Tá ~{tokens} comhartha comhthéacs sa seisiún seo."
+    large_context_cost: "Má athraíonn tú go {model}, léifidh an chéad fhreagra eile an comhthéacs ar fad arís gan taisce (coinníonn soláthraithe taisce leide in aghaidh na samhla) — costas ionchuir ar lánphraghas, aon uair amháin."
+    large_context_threshold: "Tairseach: model.switch_context_confirm_tokens (faoi láthair {threshold}; díchumasaíonn 0 an tseiceáil seo)."
+    large_context_confirm: "Ná deimhnigh ach amháin má tá sé i gceist agat athrú anois."

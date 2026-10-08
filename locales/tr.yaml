@@ -4539,3 +4539,10 @@ core:
     stop_hint_cancel_request: "durdurmak için isteği iptal edin"
     stop_hint_stop_command: "iptal etmek için /stop gönderin"
     gave_up: "⏳ Otomatik kurtarma {total} döngüden sonra vazgeçti — sağlayıcı hâlâ kullanılamıyor."
+  model_switch:
+    large_context_title: "Büyük Bağlamla Geçiş Uyarısı"
+    large_context_banner: "!!! BÜYÜK BAĞLAMLA MODEL GEÇİŞİ !!!"
+    large_context_size: "Bu oturumda yaklaşık {tokens} token bağlam var."
+    large_context_cost: "{model} modeline geçmek, bir sonraki yanıtın tüm bağlamı önbelleksiz yeniden okumasına yol açar (sağlayıcılar istem önbelleğini model başına tutar) — tek seferlik tam fiyatlı girdi maliyeti."
+    large_context_threshold: "Eşik: model.switch_context_confirm_tokens (şu anda {threshold}; 0 bu denetimi kapatır)."
+    large_context_confirm: "Yalnızca şimdi geçmek istiyorsanız onaylayın."

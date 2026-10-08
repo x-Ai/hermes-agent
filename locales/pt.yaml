@@ -4540,3 +4540,10 @@ core:
     stop_hint_cancel_request: "cancele a solicitação para parar"
     stop_hint_stop_command: "envie /stop para cancelar"
     gave_up: "⏳ A recuperação automática desistiu após {total} ciclos — o provedor continua indisponível."
+  model_switch:
+    large_context_title: "Aviso: troca com contexto grande"
+    large_context_banner: "!!! TROCA DE MODELO COM CONTEXTO GRANDE !!!"
+    large_context_size: "Esta sessão contém ~{tokens} tokens de contexto."
+    large_context_cost: "Trocar para {model} faz a próxima resposta reler todo o contexto sem cache (os provedores mantêm o cache de prompts por modelo) — um custo de entrada a preço cheio, uma única vez."
+    large_context_threshold: "Limite: model.switch_context_confirm_tokens (atualmente {threshold}; 0 desativa esta verificação)."
+    large_context_confirm: "Confirme apenas se pretende trocar agora."

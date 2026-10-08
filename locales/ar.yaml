@@ -4539,3 +4539,10 @@ core:
     stop_hint_cancel_request: "ألغِ الطلب للإيقاف"
     stop_hint_stop_command: "أرسل /stop للإلغاء"
     gave_up: "⏳ تخلّت الاستعادة التلقائية بعد {total} دورات — الموفّر لا يزال غير متاح."
+  model_switch:
+    large_context_title: "تحذير: تبديل مع سياق كبير"
+    large_context_banner: "!!! تبديل النموذج مع سياق كبير !!!"
+    large_context_size: "تحتوي هذه الجلسة على نحو {tokens} رمز من السياق."
+    large_context_cost: "التبديل إلى {model} يجعل الرد التالي يعيد قراءة السياق كله دون ذاكرة مؤقتة (يحتفظ الموفّرون بذاكرة المطالبات المؤقتة لكل نموذج على حدة) — تكلفة إدخال بالسعر الكامل لمرة واحدة."
+    large_context_threshold: "الحد: model.switch_context_confirm_tokens (حاليًا {threshold}؛ القيمة 0 تعطّل هذا الفحص)."
+    large_context_confirm: "أكّد فقط إذا كنت تنوي التبديل الآن."
