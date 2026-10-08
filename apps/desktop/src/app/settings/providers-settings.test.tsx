@@ -248,13 +248,7 @@ describe('ProvidersSettings', () => {
   it('localizes provider cards from stable ids and credential keys', async () => {
     const cases = [
       ['router', 'Ramp Router', 'RAMP_ROUTER_API_KEY', 'RAMP_ROUTER_BASE_URL', 'Ramp Router'],
-      [
-        'nebius-token-factory',
-        'Nebius Token Factory',
-        'NEBIUS_API_KEY',
-        'NEBIUS_BASE_URL',
-        'Nebius Token Factory'
-      ],
+      ['nebius-token-factory', 'Nebius Token Factory', 'NEBIUS_API_KEY', 'NEBIUS_BASE_URL', 'Nebius Token Factory'],
       [
         'alibaba-token-plan',
         'Alibaba Cloud (Token Plan)',
@@ -276,13 +270,7 @@ describe('ProvidersSettings', () => {
         'ALIBABA_CODING_PLAN_CN_BASE_URL',
         '阿里云（Coding Plan，中国大陆）'
       ],
-      [
-        'tencent-tokenplan',
-        'Tencent TokenPlan',
-        'TOKENPLAN_API_KEY',
-        'TOKENPLAN_BASE_URL',
-        '腾讯 TokenPlan'
-      ]
+      ['tencent-tokenplan', 'Tencent TokenPlan', 'TOKENPLAN_API_KEY', 'TOKENPLAN_BASE_URL', '腾讯 TokenPlan']
     ] as const
 
     const vars: Record<string, EnvVarInfo> = {}
@@ -318,6 +306,7 @@ describe('ProvidersSettings', () => {
       const title = await screen.findByText(localizedName)
 
       fireEvent.click(title)
+
       const description =
         TRANSLATIONS.zh.settings.providers.providerDescriptions[sourceName] ??
         TRANSLATIONS.zh.settings.envKeys[key]?.description ??

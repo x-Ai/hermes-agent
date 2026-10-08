@@ -90,7 +90,9 @@ export function BlueprintSlotControl({
     <Input
       id={id}
       onChange={event => onChange(event.target.value)}
-      placeholder={(field.help ? (copy?.helps[field.help] ?? field.help) : null) || copy?.labels[field.label] || field.label}
+      placeholder={
+        (field.help ? (copy?.helps[field.help] ?? field.help) : null) || copy?.labels[field.label] || field.label
+      }
       type="text"
       value={value}
     />

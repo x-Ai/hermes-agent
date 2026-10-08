@@ -33,6 +33,7 @@ export function LocalModelsSettings(): ReactElement {
     </LocalModelsOwnerProvider>
   )
 }
+
 function ScopedLocalModelsSettings(): ReactElement {
   const owner: LocalModelsOwner = useScopedLocalModelsOwner()
   const installStarting: boolean = useIsMutating({ mutationKey: localModelsKey(owner, 'install') }) > 0

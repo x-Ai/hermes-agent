@@ -54,9 +54,7 @@ export function renderRosterDialogs({
   activeSourceRoster,
   refetch
 }: renderRosterDialogsProps) {
-  const deletingDisplayName = deleting
-    ? deleting.name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName)
-    : ''
+  const deletingDisplayName = deleting ? deleting.name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName) : ''
 
   return (
     <>
