@@ -39,6 +39,9 @@ _STOP_HINTS = {
     "cron": "",
 }
 _DEFAULT_STOP_HINT = "send /stop to cancel"
+# The same table as catalog keys (``core.recovery.stop_hint_<key>``) for the printed rendering.
+_STOP_HINT_KEYS = {"cli": "esc", "tui": "esc", "desktop": "esc", "api_server": "cancel_request", "cron": ""}
+_DEFAULT_STOP_HINT_KEY = "stop_command"
 
 
 def auto_recovery_cycles(agent: Any) -> int:
@@ -66,9 +69,20 @@ def ladder_eligible(agent: Any, classified: Any) -> bool:
 
 
 def ladder_notice(agent: Any, *, wait_s: float, cycle: int, total: int) -> str:
+    """The English wire form: the Desktop status row parses it (apps/desktop provider-wait-localization.ts)."""
     hint = _STOP_HINTS.get(str(getattr(agent, "platform", "") or "").lower(), _DEFAULT_STOP_HINT)
     text = f"⏳ Provider temporarily unavailable — retrying automatically in {wait_s:.0f}s (cycle {cycle}/{total})"
     return f"{text}; {hint}" if hint else text
+
+
+def ladder_notice_display(agent: Any, *, wait_s: float, cycle: int, total: int) -> str:
+    """``ladder_notice`` in the user's language — what the CLI prints and the Desktop log shows."""
+    from agent.i18n import t
+    key = _STOP_HINT_KEYS.get(str(getattr(agent, "platform", "") or "").lower(), _DEFAULT_STOP_HINT_KEY)
+    fields = {"wait": f"{wait_s:.0f}", "cycle": cycle, "total": total}
+    if not key:
+        return t("core.recovery.ladder_notice", **fields)
+    return t("core.recovery.ladder_notice_with_hint", hint=t(f"core.recovery.stop_hint_{key}"), **fields)
 
 
 def auto_recover_after_exhaustion(
@@ -85,18 +99,24 @@ def auto_recover_after_exhaustion(
         return None
     total = auto_recovery_cycles(agent)
     used = int(getattr(_retry, "auto_recovery_cycles_used", 0) or 0)
+    from agent.i18n import t
+    from agent.status_output import WireStatus
+
     if used >= total:
-        agent._emit_diagnostic_status(
-            f"⏳ Automatic recovery gave up after {total} cycles — the provider is still unavailable."
-        )
+        agent._emit_diagnostic_status(WireStatus(
+            f"⏳ Automatic recovery gave up after {total} cycles — the provider is still unavailable.",
+            t("core.recovery.gave_up", total=total),
+        ))
         return None
     cycle = used + 1
     _retry.auto_recovery_cycles_used = cycle
     wait_s = ladder_wait_seconds(cycle, api_error)
     notice = ladder_notice(agent, wait_s=wait_s, cycle=cycle, total=total)
     # Durable line on every surface (CLI print, TUI status.update, gateway bubble, api_server SSE)
-    # plus the live wait line (spinner / thinking.delta / activity heartbeat).
-    agent._emit_diagnostic_status(notice)
+    # plus the live wait line (spinner / thinking.delta / activity heartbeat). The wire stays English
+    # on both; the CLI/log print is the catalog rendering.
+    agent._emit_diagnostic_status(
+        WireStatus(notice, ladder_notice_display(agent, wait_s=wait_s, cycle=cycle, total=total)))
     agent._emit_diagnostic_wait(notice)
     logger.warning(
         "%sProvider unavailable (%s) — auto-recovery cycle %d/%d, retrying in %.0fs %s",

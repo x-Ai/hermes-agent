@@ -32,9 +32,11 @@ from agent.auxiliary_client import AuxiliaryExplicitCancellation
 from agent.context_engine import automatic_compaction_status_message, sanitize_memory_context
 from agent.conversation_compression_codex import _codex_compaction_cooldown_remaining
 from agent.conversation_compression_telemetry import _emit_aborted_attempt_telemetry, _emit_compression_attempt_telemetry
+from agent.i18n import t
 from agent.memory_provider import PRE_COMPRESS_CHECKPOINT_API_VERSION
 from agent.model_metadata import estimate_messages_tokens_rough, estimate_request_tokens_rough
 from agent.session_activity import ActivityProvenance, normalize_activity_provenance
+from agent.status_output import WireStatus
 from agent.usage_anchor import set_usage_anchor
 from hermes_state_ids import new_session_id as mint_session_id
 from hermes_state_pidns import holder_namespace_token
@@ -1852,11 +1854,9 @@ class _CompressionActivityHeartbeat:
         if not callable(emit):
             return
         try:
-            emit(COMPACTION_HEARTBEAT_STATUS)
+            emit(WireStatus(COMPACTION_HEARTBEAT_STATUS, t("core.compaction.heartbeat")))
         except Exception:
-            logger.debug(
-                "status emit error in compression heartbeat", exc_info=True
-            )
+            logger.debug("status emit error in compression heartbeat", exc_info=True)
 
     def _run(self) -> None:
         while not self._stop.wait(self._interval_seconds):
@@ -3463,9 +3463,8 @@ def _finish_compaction_boundary(
     compressor = agent.context_compressor
     _cc = compressor.compression_count
     if _cc >= 2:
-        _cc_msg = (
-            f"{agent.log_prefix}⚠️  Session compressed {_cc} times — accuracy may degrade. Consider /new to start fresh."
-        )
+        _cc_msg = WireStatus(f"{agent.log_prefix}⚠️  Session compressed {_cc} times — accuracy may degrade. Consider /new to start fresh.",
+                             f"{agent.log_prefix}{t('core.compaction.compressed_times', count=_cc)}")
         agent._compression_warning = _cc_msg
         agent._emit_diagnostic_status(_cc_msg)
 
@@ -4050,7 +4049,7 @@ def _announce_compression_start(
         "context compression started: session=%s messages=%d tokens=~%s model=%s focus=%r", agent.session_id or "none",
         message_count, f"{approx_tokens:,}" if approx_tokens else "unknown", agent.model, focus_topic,
     )
-    status = COMPACTION_STATUS
+    status = WireStatus(COMPACTION_STATUS, t("core.compaction.status"))
     if not force:
         status = automatic_compaction_status_message(
             agent.context_compressor, phase="compress", default_message=status, approx_tokens=approx_tokens,

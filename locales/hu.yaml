@@ -4535,8 +4535,25 @@ storage:
     unknown: "Futtasd a `hermes {profile_arg}doctor --fix` parancsot a diagnosztizáláshoz és javításhoz."
   unavailable_brief: "A munkamenet-tároló nem érhető el: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "A kérésed nem lett feldolgozva. Küldd el újra, ha még mindig szeretnéd, hogy végrehajtsam."
     partial_notice: "Ez a kör nem fejeződött be. Néhány művelet már lefuthatott; ellenőrizd a hatásukat, mielőtt újraküldöd."
+  compress:
+    lock_held_by: "⏳ Ehhez a munkamenethez már fut egy tömörítés (birtokos: {holder}). Kérlek, várd meg, amíg befejeződik."
+    lock_skipped: "⏳ Tömörítés kihagyva: nem sikerült megszerezni a munkamenet tömörítési zárját. Lehet, hogy egy másik tömörítés még fut, vagy a zár ellenőrzése nem sikerült — próbáld újra hamarosan."
+  compaction:
+    preflight_spinner: "  ⟳ kontextus tömörítése…"
+    status: "🗜️ Kontextus tömörítése — a korábbi beszélgetés összefoglalása, hogy folytathassam..."
+    heartbeat: "🗜️ Kontextus tömörítése — a korábbi beszélgetés összefoglalása még tart..."
+    compressed_times: "⚠️  A munkamenet {count} alkalommal lett tömörítve — a pontosság romolhat. Fontold meg a /new parancsot az újrakezdéshez."
+  transport:
+    transient_retry: "🔁 Átmeneti {error_type} itt: {provider} — a kliens újraépítve, {wait}s várakozás az elsődleges útvonal utolsó próbája előtt."
+  recovery:
+    ladder_notice: "⏳ A szolgáltató átmenetileg nem érhető el — automatikus újrapróbálás {wait}s múlva (ciklus: {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ A szolgáltató átmenetileg nem érhető el — automatikus újrapróbálás {wait}s múlva (ciklus: {cycle}/{total}); {hint}"
+    stop_hint_esc: "a leállításhoz nyomd meg az Esc-et"
+    stop_hint_cancel_request: "a leállításhoz vond vissza a kérést"
+    stop_hint_stop_command: "a megszakításhoz küldd el a /stop parancsot"
+    gave_up: "⏳ Az automatikus helyreállítás {total} ciklus után feladta — a szolgáltató továbbra sem érhető el."

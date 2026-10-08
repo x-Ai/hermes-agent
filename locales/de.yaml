@@ -4518,8 +4518,25 @@ storage:
     unknown: "Führen Sie `hermes {profile_arg}doctor --fix` aus, um zu diagnostizieren und zu reparieren."
   unavailable_brief: "Der Sitzungsspeicher ist nicht verfügbar: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Deine Anfrage wurde nicht bearbeitet. Sende sie erneut, wenn ich sie noch ausführen soll."
     partial_notice: "Dieser Zug wurde nicht abgeschlossen. Einige Aktionen sind möglicherweise schon gelaufen; prüfe ihre Auswirkungen, bevor du erneut sendest."
+  compress:
+    lock_held_by: "⏳ Für diese Session läuft bereits eine Komprimierung (Inhaber: {holder}). Bitte warte, bis sie abgeschlossen ist."
+    lock_skipped: "⏳ Komprimierung übersprungen: Die Komprimierungssperre dieser Session konnte nicht übernommen werden. Möglicherweise läuft noch eine andere Komprimierung, oder die Sperrprüfung ist fehlgeschlagen — versuche es in Kürze erneut."
+  compaction:
+    preflight_spinner: "  ⟳ Kontext wird komprimiert…"
+    status: "🗜️ Kontext wird komprimiert — frühere Unterhaltung wird zusammengefasst, damit ich weitermachen kann..."
+    heartbeat: "🗜️ Kontext wird komprimiert — frühere Unterhaltung wird noch zusammengefasst, damit ich weitermachen kann..."
+    compressed_times: "⚠️  Session {count}-mal komprimiert — die Genauigkeit kann nachlassen. Erwäge /new für einen Neustart."
+  transport:
+    transient_retry: "🔁 Vorübergehender {error_type} bei {provider} — Client neu aufgebaut, warte {wait}s vor einem letzten Versuch über die primäre Route."
+  recovery:
+    ladder_notice: "⏳ Anbieter vorübergehend nicht erreichbar — automatischer Neuversuch in {wait}s (Zyklus {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Anbieter vorübergehend nicht erreichbar — automatischer Neuversuch in {wait}s (Zyklus {cycle}/{total}); {hint}"
+    stop_hint_esc: "Esc drücken zum Abbrechen"
+    stop_hint_cancel_request: "Anfrage abbrechen zum Stoppen"
+    stop_hint_stop_command: "/stop senden zum Abbrechen"
+    gave_up: "⏳ Automatische Wiederherstellung nach {total} Zyklen aufgegeben — der Anbieter ist weiterhin nicht erreichbar."

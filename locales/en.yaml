@@ -4646,8 +4646,25 @@ storage:
     unknown: "Run `hermes {profile_arg}doctor --fix` to diagnose and repair."
   unavailable_brief: "Session storage is unavailable: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Your request was not processed. Send it again if you still want me to carry it out."
     partial_notice: "This turn did not complete. Some actions may already have run; verify their effects before resending."
+  compress:
+    lock_held_by: "⏳ Compression already in progress for this session (holder: {holder}). Please wait for it to finish."
+    lock_skipped: "⏳ Compression skipped: could not acquire this session's compression lock. Another compression may still be running, or the lock check failed — try again shortly."
+  compaction:
+    preflight_spinner: "  ⟳ compacting context…"
+    status: "🗜️ Compacting context — summarizing earlier conversation so I can continue..."
+    heartbeat: "🗜️ Compacting context — still summarizing earlier conversation so I can continue..."
+    compressed_times: "⚠️  Session compressed {count} times — accuracy may degrade. Consider /new to start fresh."
+  transport:
+    transient_retry: "🔁 Transient {error_type} on {provider} — rebuilt client, waiting {wait}s before one last primary attempt."
+  recovery:
+    ladder_notice: "⏳ Provider temporarily unavailable — retrying automatically in {wait}s (cycle {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Provider temporarily unavailable — retrying automatically in {wait}s (cycle {cycle}/{total}); {hint}"
+    stop_hint_esc: "press Esc to stop"
+    stop_hint_cancel_request: "cancel the request to stop"
+    stop_hint_stop_command: "send /stop to cancel"
+    gave_up: "⏳ Automatic recovery gave up after {total} cycles — the provider is still unavailable."

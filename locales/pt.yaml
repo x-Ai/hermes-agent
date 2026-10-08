@@ -4518,8 +4518,25 @@ storage:
     unknown: "Execute `hermes {profile_arg}doctor --fix` para diagnosticar e reparar."
   unavailable_brief: "O armazenamento de sessões está indisponível: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Seu pedido não foi processado. Envie-o novamente se ainda quiser que eu o execute."
     partial_notice: "Este turno não foi concluído. Algumas ações podem já ter sido executadas; verifique seus efeitos antes de reenviar."
+  compress:
+    lock_held_by: "⏳ Já há uma compressão em andamento para esta sessão (detentor: {holder}). Aguarde até que ela termine."
+    lock_skipped: "⏳ Compressão ignorada: não foi possível obter o bloqueio de compressão desta sessão. Outra compressão pode ainda estar em execução, ou a verificação do bloqueio falhou — tente novamente em instantes."
+  compaction:
+    preflight_spinner: "  ⟳ compactando o contexto…"
+    status: "🗜️ Compactando o contexto — resumindo a conversa anterior para poder continuar..."
+    heartbeat: "🗜️ Compactando o contexto — ainda resumindo a conversa anterior para poder continuar..."
+    compressed_times: "⚠️  Sessão compactada {count} vezes — a precisão pode piorar. Considere /new para recomeçar."
+  transport:
+    transient_retry: "🔁 {error_type} transitório em {provider} — cliente reconstruído, aguardando {wait}s antes de uma última tentativa pela rota principal."
+  recovery:
+    ladder_notice: "⏳ Provedor temporariamente indisponível — nova tentativa automática em {wait}s (ciclo {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Provedor temporariamente indisponível — nova tentativa automática em {wait}s (ciclo {cycle}/{total}); {hint}"
+    stop_hint_esc: "pressione Esc para parar"
+    stop_hint_cancel_request: "cancele a solicitação para parar"
+    stop_hint_stop_command: "envie /stop para cancelar"
+    gave_up: "⏳ A recuperação automática desistiu após {total} ciclos — o provedor continua indisponível."

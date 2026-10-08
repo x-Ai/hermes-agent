@@ -308,7 +308,8 @@ def compress_after_tool_results(
         # Compression is running: reset blocked-overflow warning dedup so a
         # future blocked turn can warn again.
         _clear_overflow_warn(agent)
-        agent._safe_print("  ⟳ compacting context…")
+        from agent.i18n import t
+        agent._safe_print(t("core.compaction.preflight_spinner"))
         _post_tool_input = messages
         # Pass overhead-aware _real_tokens, not last_prompt_tokens (0 in the
         # no-usage fallback), so the overflow guard sees the true size.

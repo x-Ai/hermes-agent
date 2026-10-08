@@ -4516,8 +4516,25 @@ storage:
     unknown: "執行 `hermes {profile_arg}doctor --fix` 進行診斷與修復。"
   unavailable_brief: "工作階段儲存空間無法使用：{cause}。{action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "你的請求未被處理。如果你仍希望我執行，請重新傳送。"
     partial_notice: "此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。"
+  compress:
+    lock_held_by: "⏳ 此工作階段的壓縮正在進行中（持有者：{holder}）。請等待其完成。"
+    lock_skipped: "⏳ 已略過壓縮：無法取得此工作階段的壓縮鎖。可能另一次壓縮仍在執行，或鎖定檢查失敗 — 請稍後再試。"
+  compaction:
+    preflight_spinner: "  ⟳ 正在壓縮上下文…"
+    status: "🗜️ 正在壓縮上下文 — 先整理之前的對話以便繼續…"
+    heartbeat: "🗜️ 正在壓縮上下文 — 仍在整理之前的對話以便繼續…"
+    compressed_times: "⚠️  此工作階段已壓縮 {count} 次 — 準確度可能下降。建議用 /new 開始新的工作階段。"
+  transport:
+    transient_retry: "🔁 {provider} 發生暫時性的 {error_type} — 已重建用戶端，等待 {wait} 秒後對主要線路做最後一次嘗試。"
+  recovery:
+    ladder_notice: "⏳ 供應商暫時無法使用 — {wait} 秒後自動重試（第 {cycle}/{total} 輪）"
+    ladder_notice_with_hint: "⏳ 供應商暫時無法使用 — {wait} 秒後自動重試（第 {cycle}/{total} 輪）；{hint}"
+    stop_hint_esc: "按 Esc 可停止"
+    stop_hint_cancel_request: "取消請求即可停止"
+    stop_hint_stop_command: "傳送 /stop 可取消"
+    gave_up: "⏳ 自動復原在 {total} 輪後放棄 — 供應商仍無法使用。"

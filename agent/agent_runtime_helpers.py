@@ -1214,10 +1214,9 @@ def try_recover_primary_transport(
         _apply_primary_runtime_fields(agent, rt)
         _rebuild_primary_client(agent, rt, reason="primary_recovery")
         wait_time = min(3 + retry_count, 8)
-        agent._vprint(
-            f"{agent.log_prefix}🔁 Transient {error_type} on {agent.provider} — "
-            f"rebuilt client, waiting {wait_time}s before one last primary attempt.", force=True, diagnostic=True,
-        )
+        from agent.i18n import t
+        agent._vprint(f"{agent.log_prefix}{t('core.transport.transient_retry', error_type=error_type, provider=agent.provider, wait=wait_time)}",
+                      force=True, diagnostic=True)
         time.sleep(wait_time)
         return True
     except Exception as e:

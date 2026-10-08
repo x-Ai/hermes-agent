@@ -4518,8 +4518,25 @@ storage:
     unknown: "Ejecuta `hermes {profile_arg}doctor --fix` para diagnosticar y reparar."
   unavailable_brief: "El almacenamiento de sesiones no está disponible: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Tu solicitud no se procesó. Envíala de nuevo si todavía quieres que la lleve a cabo."
     partial_notice: "Este turno no se completó. Puede que algunas acciones ya se hayan ejecutado; comprueba sus efectos antes de reenviar."
+  compress:
+    lock_held_by: "⏳ Ya hay una compresión en curso para esta sesión (titular: {holder}). Espera a que termine."
+    lock_skipped: "⏳ Compresión omitida: no se pudo adquirir el bloqueo de compresión de esta sesión. Puede que otra compresión siga en marcha o que la comprobación del bloqueo haya fallado; inténtalo de nuevo en breve."
+  compaction:
+    preflight_spinner: "  ⟳ comprimiendo el contexto…"
+    status: "🗜️ Comprimiendo el contexto — resumiendo la conversación anterior para poder continuar..."
+    heartbeat: "🗜️ Comprimiendo el contexto — todavía resumiendo la conversación anterior para poder continuar..."
+    compressed_times: "⚠️  Sesión comprimida {count} veces — la precisión puede degradarse. Considera /new para empezar de cero."
+  transport:
+    transient_retry: "🔁 {error_type} transitorio en {provider} — cliente reconstruido, esperando {wait}s antes de un último intento por la ruta principal."
+  recovery:
+    ladder_notice: "⏳ Proveedor temporalmente no disponible — reintentando automáticamente en {wait}s (ciclo {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Proveedor temporalmente no disponible — reintentando automáticamente en {wait}s (ciclo {cycle}/{total}); {hint}"
+    stop_hint_esc: "pulsa Esc para detener"
+    stop_hint_cancel_request: "cancela la solicitud para detener"
+    stop_hint_stop_command: "envía /stop para cancelar"
+    gave_up: "⏳ La recuperación automática se rindió tras {total} ciclos — el proveedor sigue sin estar disponible."

@@ -4517,8 +4517,25 @@ storage:
     unknown: "运行 `hermes {profile_arg}doctor --fix` 进行诊断和修复"
   unavailable_brief: "会话存储不可用：{cause}，{action}"
 
-# core: 各界面共用的回合循环文本（agent/turn_failure_copy.py）
+# core: 各界面共用的回合循环与手动压缩文本（agent/turn_failure_copy.py、agent/manual_compression_feedback.py）
 core:
   failed_turn:
     notice: "你的请求未被处理，如果你仍希望我执行，请重新发送"
     partial_notice: "本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送"
+  compress:
+    lock_held_by: "⏳ 此会话的压缩正在进行中（持有者：{holder}），请等待其完成"
+    lock_skipped: "⏳ 已跳过压缩：无法获取此会话的压缩锁，可能另一次压缩仍在运行，或锁检查失败，请稍后重试"
+  compaction:
+    preflight_spinner: "  ⟳ 正在压缩上下文…"
+    status: "🗜️ 正在压缩上下文，先总结之前的对话以便继续…"
+    heartbeat: "🗜️ 正在压缩上下文，仍在总结之前的对话以便继续…"
+    compressed_times: "⚠️  本会话已压缩 {count} 次，准确性可能下降，建议用 /new 开始新会话"
+  transport:
+    transient_retry: "🔁 {provider} 出现暂时性的 {error_type}，已重建客户端，等待 {wait} 秒后对主线路做最后一次尝试"
+  recovery:
+    ladder_notice: "⏳ 服务商暂时不可用，{wait} 秒后自动重试（第 {cycle}/{total} 轮）"
+    ladder_notice_with_hint: "⏳ 服务商暂时不可用，{wait} 秒后自动重试（第 {cycle}/{total} 轮），{hint}"
+    stop_hint_esc: "按 Esc 可停止"
+    stop_hint_cancel_request: "取消请求即可停止"
+    stop_hint_stop_command: "发送 /stop 可取消"
+    gave_up: "⏳ 自动恢复在 {total} 轮后放弃，服务商仍不可用"

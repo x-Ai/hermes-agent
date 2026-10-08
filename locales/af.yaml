@@ -4518,8 +4518,25 @@ storage:
     unknown: "Voer `hermes {profile_arg}doctor --fix` uit om te diagnoseer en te herstel."
   unavailable_brief: "Sessieberging is nie beskikbaar nie: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Jou versoek is nie verwerk nie. Stuur dit weer as jy steeds wil hê ek moet dit uitvoer."
     partial_notice: "Hierdie beurt is nie voltooi nie. Sommige aksies het dalk reeds geloop; kontroleer hul uitwerking voordat jy weer stuur."
+  compress:
+    lock_held_by: "⏳ Daar is reeds 'n kompressie aan die gang vir hierdie sessie (houer: {holder}). Wag asseblief totdat dit klaar is."
+    lock_skipped: "⏳ Kompressie oorgeslaan: kon nie hierdie sessie se kompressieslot bekom nie. 'n Ander kompressie loop dalk nog, of die slotkontrole het misluk — probeer binnekort weer."
+  compaction:
+    preflight_spinner: "  ⟳ konteks word saamgepers…"
+    status: "🗜️ Konteks word saamgepers — vorige gesprek word opgesom sodat ek kan voortgaan..."
+    heartbeat: "🗜️ Konteks word saamgepers — vorige gesprek word steeds opgesom sodat ek kan voortgaan..."
+    compressed_times: "⚠️  Sessie {count} keer saamgepers — akkuraatheid kan verswak. Oorweeg /new om vars te begin."
+  transport:
+    transient_retry: "🔁 Verbygaande {error_type} op {provider} — kliënt herbou, wag {wait}s voor een laaste poging op die primêre roete."
+  recovery:
+    ladder_notice: "⏳ Verskaffer tydelik nie beskikbaar nie — probeer outomaties weer oor {wait}s (siklus {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Verskaffer tydelik nie beskikbaar nie — probeer outomaties weer oor {wait}s (siklus {cycle}/{total}); {hint}"
+    stop_hint_esc: "druk Esc om te stop"
+    stop_hint_cancel_request: "kanselleer die versoek om te stop"
+    stop_hint_stop_command: "stuur /stop om te kanselleer"
+    gave_up: "⏳ Outomatiese herstel het ná {total} siklusse opgegee — die verskaffer is steeds nie beskikbaar nie."

@@ -4518,8 +4518,25 @@ storage:
     unknown: "Esegui `hermes {profile_arg}doctor --fix` per diagnosticare e riparare."
   unavailable_brief: "L'archiviazione delle sessioni non è disponibile: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "La tua richiesta non è stata elaborata. Inviala di nuovo se vuoi ancora che la esegua."
     partial_notice: "Questo turno non è stato completato. Alcune azioni potrebbero essere già state eseguite; verifica i loro effetti prima di reinviare."
+  compress:
+    lock_held_by: "⏳ Una compressione è già in corso per questa sessione (titolare: {holder}). Attendi che termini."
+    lock_skipped: "⏳ Compressione saltata: impossibile acquisire il blocco di compressione di questa sessione. Un'altra compressione potrebbe essere ancora in esecuzione, oppure il controllo del blocco non è riuscito — riprova tra poco."
+  compaction:
+    preflight_spinner: "  ⟳ compressione del contesto…"
+    status: "🗜️ Compressione del contesto — riepilogo della conversazione precedente per poter continuare..."
+    heartbeat: "🗜️ Compressione del contesto — riepilogo della conversazione precedente ancora in corso..."
+    compressed_times: "⚠️  Sessione compressa {count} volte — la precisione potrebbe calare. Valuta /new per ripartire da zero."
+  transport:
+    transient_retry: "🔁 {error_type} transitorio su {provider} — client ricostruito, attendo {wait}s prima di un ultimo tentativo sulla rotta primaria."
+  recovery:
+    ladder_notice: "⏳ Provider temporaneamente non disponibile — nuovo tentativo automatico tra {wait}s (ciclo {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Provider temporaneamente non disponibile — nuovo tentativo automatico tra {wait}s (ciclo {cycle}/{total}); {hint}"
+    stop_hint_esc: "premi Esc per fermare"
+    stop_hint_cancel_request: "annulla la richiesta per fermare"
+    stop_hint_stop_command: "invia /stop per annullare"
+    gave_up: "⏳ Il ripristino automatico ha rinunciato dopo {total} cicli — il provider non è ancora disponibile."

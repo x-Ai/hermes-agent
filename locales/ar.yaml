@@ -4517,8 +4517,25 @@ storage:
     unknown: "شغّل `hermes {profile_arg}doctor --fix` للتشخيص والإصلاح."
   unavailable_brief: "تخزين الجلسات غير متاح: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه."
     partial_notice: "لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال."
+  compress:
+    lock_held_by: "⏳ هناك ضغط جارٍ بالفعل لهذه الجلسة (الحائز: {holder}). يُرجى الانتظار حتى ينتهي."
+    lock_skipped: "⏳ تم تخطي الضغط: تعذّر الحصول على قفل الضغط لهذه الجلسة. قد يكون ضغط آخر لا يزال قيد التشغيل، أو فشل التحقق من القفل — حاول مجددًا بعد قليل."
+  compaction:
+    preflight_spinner: "  ⟳ جارٍ ضغط السياق…"
+    status: "🗜️ جارٍ ضغط السياق — تلخيص المحادثة السابقة حتى أتمكن من المتابعة..."
+    heartbeat: "🗜️ جارٍ ضغط السياق — لا يزال تلخيص المحادثة السابقة جاريًا حتى أتمكن من المتابعة..."
+    compressed_times: "⚠️  تم ضغط الجلسة {count} مرات — قد تتراجع الدقة. فكّر في /new للبدء من جديد."
+  transport:
+    transient_retry: "🔁 {error_type} عابر على {provider} — أُعيد بناء العميل، انتظار {wait} ث قبل محاولة أخيرة عبر المسار الأساسي."
+  recovery:
+    ladder_notice: "⏳ الموفّر غير متاح مؤقتًا — إعادة المحاولة تلقائيًا بعد {wait} ث (الدورة {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ الموفّر غير متاح مؤقتًا — إعادة المحاولة تلقائيًا بعد {wait} ث (الدورة {cycle}/{total})؛ {hint}"
+    stop_hint_esc: "اضغط Esc للإيقاف"
+    stop_hint_cancel_request: "ألغِ الطلب للإيقاف"
+    stop_hint_stop_command: "أرسل /stop للإلغاء"
+    gave_up: "⏳ تخلّت الاستعادة التلقائية بعد {total} دورات — الموفّر لا يزال غير متاح."

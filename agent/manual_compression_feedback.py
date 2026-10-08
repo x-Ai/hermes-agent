@@ -15,15 +15,11 @@ def describe_compression_lock_skip(lock_signal: Any) -> str:
     compression is running (``try_acquire_compression_lock`` swallows
     ``sqlite3.Error``), so the two cases are worded differently.
     """
+    from agent.i18n import t
+
     if isinstance(lock_signal, str) and lock_signal.strip():
-        return (
-            f"⏳ Compression already in progress for this session "
-            f"(holder: {lock_signal}). Please wait for it to finish."
-        )
-    return (
-        "⏳ Compression skipped: could not acquire this session's compression lock. Another compression may "
-        "still be running, or the lock check failed — try again shortly."
-    )
+        return t("core.compress.lock_held_by", holder=lock_signal)
+    return t("core.compress.lock_skipped")
 
 
 def summarize_manual_compression(

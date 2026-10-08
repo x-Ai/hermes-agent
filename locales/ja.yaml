@@ -4516,8 +4516,25 @@ storage:
     unknown: "`hermes {profile_arg}doctor --fix` を実行して診断と修復を行ってください"
   unavailable_brief: "セッションストレージを利用できません: {cause}。{action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください"
     partial_notice: "このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください"
+  compress:
+    lock_held_by: "⏳ このセッションの圧縮はすでに進行中です（保持者: {holder}）。完了するまでお待ちください"
+    lock_skipped: "⏳ 圧縮をスキップしました: このセッションの圧縮ロックを取得できませんでした。別の圧縮がまだ実行中か、ロックの確認に失敗した可能性があります — しばらくしてからもう一度お試しください"
+  compaction:
+    preflight_spinner: "  ⟳ コンテキストを圧縮中…"
+    status: "🗜️ コンテキストを圧縮中 — 続行できるよう以前の会話を要約しています..."
+    heartbeat: "🗜️ コンテキストを圧縮中 — 以前の会話をまだ要約しています..."
+    compressed_times: "⚠️  このセッションは {count} 回圧縮されました — 精度が低下する可能性があります。/new で新しく始めることを検討してください"
+  transport:
+    transient_retry: "🔁 {provider} で一時的な {error_type} が発生 — クライアントを再構築し、{wait} 秒待ってからプライマリへ最後にもう一度試行します"
+  recovery:
+    ladder_notice: "⏳ プロバイダーが一時的に利用できません — {wait} 秒後に自動で再試行します（サイクル {cycle}/{total}）"
+    ladder_notice_with_hint: "⏳ プロバイダーが一時的に利用できません — {wait} 秒後に自動で再試行します（サイクル {cycle}/{total}）— {hint}"
+    stop_hint_esc: "停止するには Esc を押してください"
+    stop_hint_cancel_request: "停止するにはリクエストをキャンセルしてください"
+    stop_hint_stop_command: "キャンセルするには /stop を送信してください"
+    gave_up: "⏳ 自動復旧は {total} サイクル後に断念しました — プロバイダーは依然として利用できません"

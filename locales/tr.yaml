@@ -4517,8 +4517,25 @@ storage:
     unknown: "Tanılamak ve onarmak için `hermes {profile_arg}doctor --fix` çalıştırın."
   unavailable_brief: "Oturum depolaması kullanılamıyor: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "İsteğiniz işlenmedi. Hâlâ yerine getirmemi istiyorsanız yeniden gönderin."
     partial_notice: "Bu tur tamamlanmadı. Bazı eylemler çoktan çalışmış olabilir; yeniden göndermeden önce etkilerini doğrulayın."
+  compress:
+    lock_held_by: "⏳ Bu oturum için zaten bir sıkıştırma sürüyor (sahip: {holder}). Lütfen bitmesini bekleyin."
+    lock_skipped: "⏳ Sıkıştırma atlandı: bu oturumun sıkıştırma kilidi alınamadı. Başka bir sıkıştırma hâlâ çalışıyor olabilir ya da kilit denetimi başarısız oldu — kısa süre sonra yeniden deneyin."
+  compaction:
+    preflight_spinner: "  ⟳ bağlam sıkıştırılıyor…"
+    status: "🗜️ Bağlam sıkıştırılıyor — devam edebilmek için önceki konuşma özetleniyor..."
+    heartbeat: "🗜️ Bağlam sıkıştırılıyor — önceki konuşma hâlâ özetleniyor..."
+    compressed_times: "⚠️  Oturum {count} kez sıkıştırıldı — doğruluk düşebilir. Yeniden başlamak için /new düşünün."
+  transport:
+    transient_retry: "🔁 {provider} üzerinde geçici {error_type} — istemci yeniden kuruldu, birincil yoldan son bir deneme öncesi {wait}s bekleniyor."
+  recovery:
+    ladder_notice: "⏳ Sağlayıcı geçici olarak kullanılamıyor — {wait}s sonra otomatik olarak yeniden denenecek (döngü {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Sağlayıcı geçici olarak kullanılamıyor — {wait}s sonra otomatik olarak yeniden denenecek (döngü {cycle}/{total}); {hint}"
+    stop_hint_esc: "durdurmak için Esc'ye basın"
+    stop_hint_cancel_request: "durdurmak için isteği iptal edin"
+    stop_hint_stop_command: "iptal etmek için /stop gönderin"
+    gave_up: "⏳ Otomatik kurtarma {total} döngüden sonra vazgeçti — sağlayıcı hâlâ kullanılamıyor."

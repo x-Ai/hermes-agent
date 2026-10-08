@@ -4518,8 +4518,25 @@ storage:
     unknown: "Выполните `hermes {profile_arg}doctor --fix` для диагностики и исправления."
   unavailable_brief: "Хранилище сессий недоступно: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Ваш запрос не был обработан. Отправьте его снова, если всё ещё хотите, чтобы я его выполнил."
     partial_notice: "Этот ход не завершился. Некоторые действия могли уже выполниться; проверьте их результат, прежде чем отправлять снова."
+  compress:
+    lock_held_by: "⏳ Сжатие для этой сессии уже выполняется (держатель: {holder}). Дождитесь его завершения."
+    lock_skipped: "⏳ Сжатие пропущено: не удалось получить блокировку сжатия этой сессии. Возможно, другое сжатие ещё выполняется или проверка блокировки не удалась — повторите попытку чуть позже."
+  compaction:
+    preflight_spinner: "  ⟳ сжатие контекста…"
+    status: "🗜️ Сжатие контекста — резюмирую предыдущий разговор, чтобы продолжить..."
+    heartbeat: "🗜️ Сжатие контекста — всё ещё резюмирую предыдущий разговор, чтобы продолжить..."
+    compressed_times: "⚠️  Сессия сжата {count} раз — точность может снизиться. Рассмотрите /new, чтобы начать заново."
+  transport:
+    transient_retry: "🔁 Временная ошибка {error_type} у {provider} — клиент пересоздан, жду {wait} с перед последней попыткой по основному маршруту."
+  recovery:
+    ladder_notice: "⏳ Провайдер временно недоступен — автоматический повтор через {wait} с (цикл {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Провайдер временно недоступен — автоматический повтор через {wait} с (цикл {cycle}/{total}); {hint}"
+    stop_hint_esc: "нажмите Esc, чтобы остановить"
+    stop_hint_cancel_request: "отмените запрос, чтобы остановить"
+    stop_hint_stop_command: "отправьте /stop, чтобы отменить"
+    gave_up: "⏳ Автоматическое восстановление прекращено после {total} циклов — провайдер по-прежнему недоступен."

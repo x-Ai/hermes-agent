@@ -14,6 +14,24 @@ from agent.session_activity import ActivityProvenance
 logger = logging.getLogger("run_agent")
 
 
+class WireStatus(str):
+    """A status line whose English text is a wire contract — gateway/run.py's noise regexes,
+    tui_gateway's compaction re-tagging and the Desktop's wait-frame parser classify it by text —
+    carrying the catalog rendering (``display``) that the CLI prints and the Desktop log shows.
+    ``status_callback`` receives the English; ``_vprint`` shows ``display``."""
+
+    __slots__ = ("display",)
+
+    def __new__(cls, wire: str, display: str):
+        obj = super().__new__(cls, wire)
+        obj.display = display
+        return obj
+
+
+def _display_text(message) -> str | None:
+    return getattr(message, "display", None)
+
+
 class StatusOutputMixin:
     """Status/warning/notice emission and retry-chatter buffering (see module docstring)."""
 
@@ -71,12 +89,13 @@ class StatusOutputMixin:
             except Exception:
                 logger.debug("%s error in %s", name, origin, exc_info=True)
 
-    def _emit_status_kind(self, kind: str, message: str, *, origin: str) -> None:
-        """Print to the CLI (``_vprint(force=True)``) and forward to ``status_callback(kind, message)``. Never raises."""
+    def _emit_status_kind(self, kind: str, message: str, *, origin: str, display: str | None = None) -> None:
+        """Print to the CLI (``_vprint(force=True)``) and forward to ``status_callback(kind, message)``. Never raises.
+        ``display`` (a :class:`WireStatus` rendering) replaces ``message`` in the print only."""
         from gateway.warning_notifications import is_warning_status
         try:
             if not is_warning_status(kind, message) or self._warning_presentation_enabled():
-                self._vprint(f"{self.log_prefix}{message}", force=True)
+                self._vprint(f"{self.log_prefix}{display if display is not None else message}", force=True)
         except Exception:
             pass
         self._call_callback("status_callback", kind, message, origin=origin)
@@ -95,15 +114,18 @@ class StatusOutputMixin:
     def _emit_diagnostic_status(self, message: str) -> None:
         """A diagnostic on the lifecycle rail, without changing legacy formatting."""
         from gateway.warning_notifications import DiagnosticText
-        self._emit_status(DiagnosticText(message))
+        wrapped = DiagnosticText(message)
+        if (display := _display_text(message)) is not None:
+            wrapped.display = display
+        self._emit_status(wrapped)
 
     def _emit_status(self, message: str) -> None:
         """Emit a lifecycle status message (CLI + gateway ``status_callback``)."""
-        self._emit_status_kind("lifecycle", message, origin="_emit_status")
+        self._emit_status_kind("lifecycle", message, origin="_emit_status", display=_display_text(message))
 
     def _emit_warning(self, message: str) -> None:
         """Emit a user-visible warning for degraded side paths where the turn continues but the user must know."""
-        self._emit_status_kind("warn", message, origin="_emit_warning")
+        self._emit_status_kind("warn", message, origin="_emit_warning", display=_display_text(message))
 
     def _emit_startup_warning(self, message: str) -> None:
         """A warning raised during ``__init__`` that the user must see (e.g. a memory provider that

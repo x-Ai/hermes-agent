@@ -4518,8 +4518,25 @@ storage:
     unknown: "Rith `hermes {profile_arg}doctor --fix` chun diagnóisiú agus deisiú."
   unavailable_brief: "Níl stóráil seisiúin ar fáil: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Níor próiseáladh d'iarratas. Seol arís é más mian leat fós go gcuirfinn i gcrích é."
     partial_notice: "Níor críochnaíodh an babhta seo. Seans go bhfuil roinnt gníomhartha rite cheana; fíoraigh a n-éifeachtaí sula seolann tú arís."
+  compress:
+    lock_held_by: "⏳ Tá comhbhrú ar siúl cheana don seisiún seo (sealbhóir: {holder}). Fan go gcríochnóidh sé, le do thoil."
+    lock_skipped: "⏳ Léimeadh thar an gcomhbhrú: níorbh fhéidir glas comhbhrúite an tseisiúin seo a fháil. Seans go bhfuil comhbhrú eile fós ar siúl, nó gur theip ar sheiceáil an ghlais — bain triail eile as ar ball beag."
+  compaction:
+    preflight_spinner: "  ⟳ comhthéacs á chomhbhrú…"
+    status: "🗜️ Comhthéacs á chomhbhrú — achoimre á déanamh ar an gcomhrá roimhe seo ionas gur féidir liom leanúint ar aghaidh..."
+    heartbeat: "🗜️ Comhthéacs á chomhbhrú — achoimre fós á déanamh ar an gcomhrá roimhe seo ionas gur féidir liom leanúint ar aghaidh..."
+    compressed_times: "⚠️  Rinneadh an seisiún a chomhbhrú {count} uair — d'fhéadfadh an chruinneas dul in olcas. Smaoinigh ar /new chun tosú as an nua."
+  transport:
+    transient_retry: "🔁 {error_type} sealadach ar {provider} — cliant atógtha, ag fanacht {wait}s roimh iarracht dheireanach amháin ar an bpríomhbhealach."
+  recovery:
+    ladder_notice: "⏳ Níl an soláthraí ar fáil go sealadach — ag triail arís go huathoibríoch i gceann {wait}s (timthriall {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Níl an soláthraí ar fáil go sealadach — ag triail arís go huathoibríoch i gceann {wait}s (timthriall {cycle}/{total}); {hint}"
+    stop_hint_esc: "brúigh Esc chun stopadh"
+    stop_hint_cancel_request: "cealaigh an t-iarratas chun stopadh"
+    stop_hint_stop_command: "seol /stop chun cealú"
+    gave_up: "⏳ D'éirigh an t-aisghabháil uathoibríoch as tar éis {total} timthriall — níl an soláthraí ar fáil fós."

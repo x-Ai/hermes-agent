@@ -4843,8 +4843,25 @@ storage:
     unknown: "Lancez `hermes {profile_arg}doctor --fix` pour diagnostiquer et réparer."
   unavailable_brief: "Le stockage des sessions est indisponible : {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Votre demande n'a pas été traitée. Renvoyez-la si vous souhaitez toujours que je l'exécute."
     partial_notice: "Ce tour ne s'est pas terminé. Certaines actions ont peut-être déjà été exécutées ; vérifiez leurs effets avant de renvoyer."
+  compress:
+    lock_held_by: "⏳ Une compression est déjà en cours pour cette session (détenteur : {holder}). Veuillez attendre qu'elle se termine."
+    lock_skipped: "⏳ Compression ignorée : impossible d'obtenir le verrou de compression de cette session. Une autre compression est peut-être encore en cours, ou la vérification du verrou a échoué — réessayez dans un instant."
+  compaction:
+    preflight_spinner: "  ⟳ compression du contexte…"
+    status: "🗜️ Compression du contexte — résumé de la conversation précédente pour pouvoir continuer..."
+    heartbeat: "🗜️ Compression du contexte — résumé de la conversation précédente toujours en cours..."
+    compressed_times: "⚠️  Session compressée {count} fois — la précision peut se dégrader. Pensez à /new pour repartir de zéro."
+  transport:
+    transient_retry: "🔁 {error_type} transitoire sur {provider} — client reconstruit, attente de {wait}s avant une dernière tentative sur la route principale."
+  recovery:
+    ladder_notice: "⏳ Fournisseur temporairement indisponible — nouvelle tentative automatique dans {wait}s (cycle {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Fournisseur temporairement indisponible — nouvelle tentative automatique dans {wait}s (cycle {cycle}/{total}) ; {hint}"
+    stop_hint_esc: "appuyez sur Échap pour arrêter"
+    stop_hint_cancel_request: "annulez la requête pour arrêter"
+    stop_hint_stop_command: "envoyez /stop pour annuler"
+    gave_up: "⏳ La récupération automatique a abandonné après {total} cycles — le fournisseur est toujours indisponible."

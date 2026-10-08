@@ -4518,8 +4518,25 @@ storage:
     unknown: "Виконайте `hermes {profile_arg}doctor --fix` для діагностики та виправлення."
   unavailable_brief: "Сховище сесій недоступне: {cause}. {action}"
 
-# core: turn-loop copy every surface stores or prints (agent/turn_failure_copy.py)
+# core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
   failed_turn:
     notice: "Ваш запит не було оброблено. Надішліть його знову, якщо все ще хочете, щоб я його виконав."
     partial_notice: "Цей хід не завершився. Деякі дії могли вже виконатися; перевірте їхній результат, перш ніж надсилати знову."
+  compress:
+    lock_held_by: "⏳ Стиснення для цієї сесії вже виконується (власник: {holder}). Дочекайтеся його завершення."
+    lock_skipped: "⏳ Стиснення пропущено: не вдалося отримати блокування стиснення цієї сесії. Можливо, інше стиснення ще триває або перевірка блокування не вдалася — повторіть спробу трохи пізніше."
+  compaction:
+    preflight_spinner: "  ⟳ стискання контексту…"
+    status: "🗜️ Стискання контексту — підсумовую попередню розмову, щоб продовжити..."
+    heartbeat: "🗜️ Стискання контексту — досі підсумовую попередню розмову, щоб продовжити..."
+    compressed_times: "⚠️  Сесію стиснуто {count} разів — точність може знизитися. Розгляньте /new, щоб почати заново."
+  transport:
+    transient_retry: "🔁 Тимчасова помилка {error_type} у {provider} — клієнт перестворено, чекаю {wait} с перед останньою спробою основним маршрутом."
+  recovery:
+    ladder_notice: "⏳ Провайдер тимчасово недоступний — автоматична повторна спроба через {wait} с (цикл {cycle}/{total})"
+    ladder_notice_with_hint: "⏳ Провайдер тимчасово недоступний — автоматична повторна спроба через {wait} с (цикл {cycle}/{total}); {hint}"
+    stop_hint_esc: "натисніть Esc, щоб зупинити"
+    stop_hint_cancel_request: "скасуйте запит, щоб зупинити"
+    stop_hint_stop_command: "надішліть /stop, щоб скасувати"
+    gave_up: "⏳ Автоматичне відновлення припинено після {total} циклів — провайдер усе ще недоступний."
