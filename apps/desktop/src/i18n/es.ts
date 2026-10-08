@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { esAuxTasks } from './es_aux_tasks'
 import { esBoot } from './es_boot'
+import { esGoalStatus } from './es_goal_status'
 import { esLocalModels } from './es_local_models'
 import { esModelMenu } from './es_model_menu'
 import { esNotices } from './es_notices'
@@ -287,10 +288,7 @@ export const esOverrides = {
         label: 'Solo lectura',
         long: 'La herramienta declara que solo lee.'
       },
-      hintCreate: {
-        label: 'Crea',
-        long: 'Crea algo nuevo.'
-      },
+      hintCreate: { label: 'Crea', long: 'Crea algo nuevo.' },
       hintUpdate: {
         label: 'Actualiza',
         long: 'Cambia algo que ya existe.'
@@ -515,6 +513,7 @@ export const esOverrides = {
     }
   },
   ...esNotices,
+  ...esGoalStatus,
   billingBlock: {
     titleNous: 'Sin créditos de Nous',
     titleProvider: provider => `Sin créditos — ${provider}`,

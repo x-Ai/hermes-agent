@@ -6,6 +6,7 @@ import { StatusRow } from '@/components/chat/status-row'
 import { Codicon } from '@/components/ui/codicon'
 import { GlyphSpinner } from '@/components/ui/glyph-spinner'
 import { type Translations, useI18n } from '@/i18n'
+import { localizeGoalStatusText } from '@/lib/goal-status-localization'
 import { capitalize } from '@/lib/text'
 import type { TodoStatus } from '@/lib/todos'
 import { cn } from '@/lib/utils'
@@ -70,6 +71,19 @@ function leadingGlyph(item: ComposerStatusItem, s: Translations['statusStack'], 
   )
 }
 
+/** The goal row speaks the UI language: the store keeps the backend's English
+ *  detail and leaves the title empty until a line names the goal. */
+function goalRowCopy(item: ComposerStatusItem, t: Translations): { detail?: string; title: string } {
+  if (item.type !== 'goal') {
+    return { title: item.title }
+  }
+
+  return {
+    detail: item.currentTool ? localizeGoalStatusText(item.currentTool, t) : undefined,
+    title: item.title || t.goalStatus.standingGoal
+  }
+}
+
 interface StatusItemRowProps {
   item: ComposerStatusItem
   /** Render a retained, non-running task snapshot. */
@@ -108,6 +122,7 @@ export const StatusItemRow = memo(function StatusItemRow({
       : null
 
   const canOpen = item.type === 'subagent' && !!onOpen
+  const { detail: goalDetail, title } = goalRowCopy(item, t)
 
   // Background rows link to their read-only terminal tab; subagents open their session.
   const onActivate =
@@ -136,17 +151,15 @@ export const StatusItemRow = memo(function StatusItemRow({
                 : 'text-foreground/92'
           )}
         >
-          {item.title}
+          {title}
         </span>
         {item.type === 'subagent' && item.currentTool && (
           <span className="shrink-0 truncate text-[0.62rem] leading-4 text-muted-foreground/70">
             {toolLabel(item.currentTool)}
           </span>
         )}
-        {item.type === 'goal' && item.currentTool && (
-          <span className="shrink-0 truncate text-[0.62rem] leading-4 text-muted-foreground/70">
-            {item.currentTool}
-          </span>
+        {goalDetail && (
+          <span className="shrink-0 truncate text-[0.62rem] leading-4 text-muted-foreground/70">{goalDetail}</span>
         )}
         {failed && typeof item.exitCode === 'number' && item.exitCode !== 0 && (
           <span className="shrink-0 rounded bg-destructive/15 px-1 text-[0.58rem] font-semibold text-destructive tabular-nums">

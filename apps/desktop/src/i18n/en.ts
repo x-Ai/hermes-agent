@@ -4,9 +4,11 @@ import { enAppTour, enHandoffTour } from './en_app_tour'
 import { enAuxTasks } from './en_aux_tasks'
 import { enBoot } from './en_boot'
 import { enCatalogInstall } from './en_catalog_install'
+import { enGoalStatus } from './en_goal_status'
 import { enLocalModels } from './en_local_models'
 import { enModelMenu } from './en_model_menu'
 import { enNotices } from './en_notices'
+import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
 import { enSharedMetrics } from './en_shared_metrics'
 import { enUninstallSection } from './en_uninstall_section'
@@ -635,6 +637,7 @@ export const en: Translations = {
     }
   },
   ...enNotices,
+  ...enGoalStatus,
   billingBlock: {
     titleNous: 'Out of Nous credits',
     titleProvider: provider => `Out of credits — ${provider}`,
@@ -5985,24 +5988,7 @@ export const en: Translations = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `Operation interrupted: waiting for model response (${elapsedSeconds}s elapsed).`,
-      modelContinuing: (attempt, maxAttempts) =>
-        `The model returned reasoning without a final answer — asking it to continue (${attempt}/${maxAttempts})`,
-      providerReconnecting: (elapsedSeconds, kind) =>
-        `No ${kind} from the provider after ${elapsedSeconds}s — reconnecting…`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `Waiting for the provider — retrying in ${retrySeconds}s (attempt ${attempt}/${maxAttempts})`,
-      providerWaitPhases: {
-        first_event: seconds => `${seconds}s waiting for the first provider event`,
-        reconnect: seconds => `${seconds}s waiting for the first provider event after reconnect`,
-        pre_progress: seconds => `provider stream open; ${seconds}s without substantive model progress`,
-        post_event: seconds => `provider stream active; ${seconds}s without stream events`,
-        first_chunk: seconds => `${seconds}s waiting for the first stream chunk`,
-        post_chunk: seconds => `stream open; ${seconds}s without stream output`
-      },
-      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
-        `${stillWaiting ? 'Still waiting' : 'Waiting'} for ${model} — ${phaseText}${
-          watchdog ? ` (auto-reconnect: ${watchdog.label} watchdog in ${watchdog.seconds}s)` : ''
-        }`,
+      ...enProviderWait,
       summarizingThread: 'Summarizing thread',
       moaAggregating: 'MoA aggregating…',
       moaReference: (label, index, count) =>
@@ -6618,6 +6604,7 @@ export const en: Translations = {
     audioReadFailed: 'Could not read recorded audio',
     compressingContext: 'Compressing context…',
     compressingContextFor: topic => `Compressing context for: ${topic}`,
+    compressLockHeld: 'Another compression is already running for this session. Wait for it to finish, then try again.',
     sessionUnavailable: 'Session unavailable',
     createSessionFailed: 'Could not create a new session',
     promptFailed: 'Prompt failed',

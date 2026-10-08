@@ -40,6 +40,49 @@ describe('goal store', () => {
     })
   })
 
+  it('leaves the title empty when a parked line arrives before any goal was named', () => {
+    applyGoalStatusText('s1', '⏳ Goal parked — waiting on session abc123: deploy finished')
+
+    expect($goalsBySession.get().s1).toMatchObject({
+      detail: 'Goal parked — waiting on session abc123: deploy finished',
+      status: 'waiting',
+      title: ''
+    })
+  })
+
+  it('pauses the goal when the judge declares it unachievable', () => {
+    applyGoalStatusText('s1', '⊙ Goal set (20-turn budget): ship the feature')
+    applyGoalStatusText(
+      's1',
+      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.'
+    )
+
+    expect($goalsBySession.get().s1).toMatchObject({
+      detail:
+        'Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.',
+      status: 'paused',
+      title: 'ship the feature'
+    })
+  })
+
+  it('hydrates a paused status line whose reason carries parentheses', () => {
+    applyGoalStatusText('s1', '⏸ Goal (paused, 20/20 turns — turn budget exhausted (20/20)): ship the feature', {
+      hydrate: true
+    })
+
+    expect($goalsBySession.get().s1).toMatchObject({ status: 'paused', title: 'ship the feature' })
+
+    applyGoalStatusText(
+      's2',
+      '⏸ Goal (paused, 3/20 turns, contract — judged unachievable: no tests (yet)): ship it (v2)',
+      {
+        hydrate: true
+      }
+    )
+
+    expect($goalsBySession.get().s2).toMatchObject({ status: 'paused', title: 'ship it (v2)' })
+  })
+
   it('lingers done goals before clearing them', () => {
     vi.useFakeTimers()
 

@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { frAuxTasks } from './fr_aux_tasks'
 import { frBoot } from './fr_boot'
+import { frGoalStatus } from './fr_goal_status'
 import { frLocalModels } from './fr_local_models'
 import { frModelMenu } from './fr_model_menu'
 import { frNotices } from './fr_notices'
@@ -286,10 +287,7 @@ export const frOverrides = {
         label: 'Lecture seule',
         long: "L'outil déclare qu'il se contente de lire."
       },
-      hintCreate: {
-        label: 'Crée',
-        long: 'Crée quelque chose de nouveau.'
-      },
+      hintCreate: { label: 'Crée', long: 'Crée quelque chose de nouveau.' },
       hintUpdate: {
         label: 'Modifie',
         long: 'Modifie quelque chose qui existe déjà.'
@@ -512,6 +510,7 @@ export const frOverrides = {
     }
   },
   ...frNotices,
+  ...frGoalStatus,
   billingBlock: {
     titleNous: 'Plus de crédits Nous',
     titleProvider: provider => `Plus de crédits — ${provider}`,

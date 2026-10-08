@@ -3,10 +3,12 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhAuxTasks } from './zh_aux_tasks'
+import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
 import { zhModelMenu } from './zh_model_menu'
 import { zhNotices } from './zh_notices'
 import { zhPluginManifests } from './zh_plugin_manifests'
+import { zhProviderWait } from './zh_provider_wait'
 import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
 
@@ -722,6 +724,7 @@ export const zhOverrides = {
     updateReadyMessageAppInstaller: 'Hermes 新版本已就绪，现在更新，Windows 会为你完成剩余步骤'
   },
   ...zhNotices,
+  ...zhGoalStatus,
   billingBlock: {
     titleNous: 'Nous 额度已用尽',
     titleProvider: provider => `额度已用尽 — ${provider}`,
@@ -5832,7 +5835,7 @@ export const zhOverrides = {
       ageDay: '天前',
       ageHour: '小时前',
       ageMin: '分钟前',
-      renameDesc: '留空则清除。'
+      renameDesc: '留空则清除'
     },
     dateDivider: {
       today: '今天早些时候',
@@ -7325,24 +7328,7 @@ export const zhOverrides = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作已中断：正在等待模型响应（已等待 ${elapsedSeconds} 秒）`,
-      modelContinuing: (attempt, maxAttempts) =>
-        `模型仅返回了思考内容，未给出最终回答，正在请求继续（第 ${attempt}/${maxAttempts} 次）`,
-      providerReconnecting: (elapsedSeconds, kind) =>
-        `服务商持续 ${elapsedSeconds} 秒未返回${kind === 'output' ? '输出' : '响应'}，正在重新连接…`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `正在等待服务商，${retrySeconds} 秒后重试（第 ${attempt}/${maxAttempts} 次）`,
-      providerWaitPhases: {
-        first_event: seconds => `等待首个服务商事件已 ${seconds} 秒`,
-        reconnect: seconds => `重连后等待首个服务商事件已 ${seconds} 秒`,
-        pre_progress: seconds => `服务商流已打开，${seconds} 秒内没有实质性的模型进展`,
-        post_event: seconds => `服务商流处于活动状态，${seconds} 秒内没有流事件`,
-        first_chunk: seconds => `等待首个流数据块已 ${seconds} 秒`,
-        post_chunk: seconds => `流已打开，${seconds} 秒内没有流输出`
-      },
-      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
-        `${stillWaiting ? '仍在等待' : '正在等待'} ${model}——${phaseText}${
-          watchdog ? `（自动重连：${watchdog.label} 看门狗将在 ${watchdog.seconds} 秒后触发）` : ''
-        }`,
+      ...zhProviderWait,
       summarizingThread: '正在整理对话',
       moaAggregating: 'MoA 正在汇总…',
       moaReference: (label, index, count) =>
@@ -7964,6 +7950,7 @@ export const zhOverrides = {
     audioReadFailed: '无法读取录制的音频',
     compressingContext: '正在压缩上下文…',
     compressingContextFor: topic => `正在为以下主题压缩上下文：${topic}`,
+    compressLockHeld: '此会话已有另一次压缩正在进行，请等它完成后再试',
     sessionUnavailable: '会话不可用',
     createSessionFailed: '无法创建新会话',
     promptFailed: '提示词发送失败',

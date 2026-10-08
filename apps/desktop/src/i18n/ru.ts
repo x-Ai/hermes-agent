@@ -2,9 +2,11 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { ruAuxTasks } from './ru_aux_tasks'
+import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
 import { ruNotices } from './ru_notices'
 import { ruPluginSettings } from './ru_plugins'
+import { ruProviderWait } from './ru_provider_wait'
 import { ruRuntime } from './ru_runtime'
 import { ruSharedMetrics } from './ru_shared_metrics'
 
@@ -482,6 +484,7 @@ export const ruOverrides = {
     }
   },
   ...ruNotices,
+  ...ruGoalStatus,
   billingBlock: {
     titleNous: 'Кредиты Nous закончились',
     titleProvider: provider => `Кредиты закончились — ${provider}`,
@@ -5699,24 +5702,7 @@ export const ruOverrides = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `Операция прервана: ожидание ответа модели (${elapsedSeconds}истекла).`,
-      modelContinuing: (attempt, maxAttempts) =>
-        `Модель вернула рассуждения без итогового ответа — запрашиваем продолжение (${attempt}/${maxAttempts})`,
-      providerReconnecting: (elapsedSeconds, kind) =>
-        `No ${kind} from the provider after ${elapsedSeconds}s - воссоединение..`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `Ожидание провайдера — повтор через ${retrySeconds} с (попытка ${attempt}/${maxAttempts})`,
-      providerWaitPhases: {
-        first_event: seconds => `${seconds} с ожидания первого события провайдера`,
-        reconnect: seconds => `${seconds} с ожидания первого события провайдера после переподключения`,
-        pre_progress: seconds => `поток провайдера открыт; ${seconds} с без существенного прогресса модели`,
-        post_event: seconds => `поток провайдера активен; ${seconds} с без событий потока`,
-        first_chunk: seconds => `${seconds} с ожидания первого фрагмента потока`,
-        post_chunk: seconds => `поток открыт; ${seconds} с без вывода потока`
-      },
-      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
-        `${stillWaiting ? 'Всё ещё ожидаем' : 'Ожидаем'} ${model} — ${phaseText}${
-          watchdog ? ` (автопереподключение: сторожевой таймер «${watchdog.label}» через ${watchdog.seconds} с)` : ''
-        }`,
+      ...ruProviderWait,
       summarizingThread: 'Резюмирующая нить',
       moaAggregating: 'МоА агрегирует..',
       moaReference: (label, index, count) =>
@@ -6326,6 +6312,7 @@ export const ruOverrides = {
     audioReadFailed: 'Не удалось прочитать записанное аудио',
     compressingContext: 'Сжатие контекста..',
     compressingContextFor: topic => `Сжатие контекста для:${topic}`,
+    compressLockHeld: 'Для этой сессии уже выполняется другое сжатие. Дождитесь его завершения и повторите попытку.',
     sessionUnavailable: 'Сеанс недоступен',
     createSessionFailed: 'Не удалось создать новый сеанс',
     promptFailed: 'Промпт не удался',

@@ -55,6 +55,25 @@ function goalTitleFromLine(line: string, pattern: RegExp): string {
   return (line.match(pattern)?.[1] ?? '').trim()
 }
 
+// GoalManager.status_line() while paused: "⏸ Goal (paused, {meta}[ — {reason}]): {goal}".
+// The paused reason may itself hold parentheses ("turn budget exhausted (3/20)"), so
+// the budget summary is matched as the closed set it is and the reason greedily, up
+// to the last "): ".
+const PAUSED_STATUS_LINE =
+  /^⏸ Goal \(paused, \d+\/\d+ turns(?:, (?:\d+ subgoals?|contract|\d+ gates?))*(?: — [\s\S]+)?\): ([\s\S]+)$/
+
+// Judge / loop lines about the standing goal that do not name it: the detail is
+// the line minus its glyph, the title carries over (empty before any line set
+// one; the row shows its localized placeholder).
+const DETAIL_LINES: ReadonlyArray<{ pattern: RegExp; status: GoalStatus }> = [
+  { pattern: /^↻ Continuing toward goal\b/i, status: 'active' },
+  { pattern: /^⏳ Goal parked\b/i, status: 'waiting' },
+  { pattern: /^⏸ Goal paused\b/i, status: 'paused' },
+  // GoalManager.evaluate_after_turn: a goal judged unachievable is parked as paused.
+  { pattern: /^🚫 Goal judged unachievable\b/iu, status: 'paused' },
+  { pattern: /^✓ Goal achieved\b/i, status: 'done' }
+]
+
 function nextGoalFromText(text: string, previous?: SessionGoal): SessionGoal | null | undefined {
   const body = clean(text)
   const line = firstLine(body)
@@ -86,7 +105,8 @@ function nextGoalFromText(text: string, previous?: SessionGoal): SessionGoal | n
     return { status: 'waiting', title: fromWaiting, updatedAt: now }
   }
 
-  const fromPaused = goalTitleFromLine(line, /^⏸ Goal(?:\s*\([^)]*\)| paused)?:\s*(.+)$/)
+  const fromPaused =
+    goalTitleFromLine(line, PAUSED_STATUS_LINE) || goalTitleFromLine(line, /^⏸ Goal(?:\s*\([^)]*\)| paused)?:\s*(.+)$/)
 
   if (fromPaused) {
     return { status: 'paused', title: fromPaused, updatedAt: now }
@@ -98,38 +118,13 @@ function nextGoalFromText(text: string, previous?: SessionGoal): SessionGoal | n
     return { status: 'done', title: fromDone, updatedAt: now }
   }
 
-  if (/^↻ Continuing toward goal\b/i.test(line)) {
-    return {
-      detail: line.replace(/^↻\s*/, ''),
-      status: 'active',
-      title: previous?.title || 'Standing goal',
-      updatedAt: now
-    }
-  }
+  const detailLine = DETAIL_LINES.find(({ pattern }) => pattern.test(line))
 
-  if (/^⏳ Goal parked\b/i.test(line)) {
+  if (detailLine) {
     return {
-      detail: line.replace(/^⏳\s*/, ''),
-      status: 'waiting',
-      title: previous?.title || 'Standing goal',
-      updatedAt: now
-    }
-  }
-
-  if (/^⏸ Goal paused\b/i.test(line)) {
-    return {
-      detail: line.replace(/^⏸\s*/, ''),
-      status: 'paused',
-      title: previous?.title || 'Standing goal',
-      updatedAt: now
-    }
-  }
-
-  if (/^✓ Goal achieved\b/i.test(line)) {
-    return {
-      detail: line.replace(/^✓\s*/, ''),
-      status: 'done',
-      title: previous?.title || 'Standing goal',
+      detail: line.replace(/^[↻⏳⏸🚫✓]\s*/u, ''),
+      status: detailLine.status,
+      title: previous?.title ?? '',
       updatedAt: now
     }
   }

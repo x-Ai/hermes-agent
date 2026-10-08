@@ -3,10 +3,12 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introJa } from './intro-ja'
 import { jaAuxTasks } from './ja_aux_tasks'
+import { jaGoalStatus } from './ja_goal_status'
 import { jaLocalModels } from './ja_local_models'
 import { jaModelMenu } from './ja_model_menu'
 import { jaNotices } from './ja_notices'
 import { jaPluginSettings } from './ja_plugins'
+import { jaProviderWait } from './ja_provider_wait'
 import { jaRuntime } from './ja_runtime'
 import { jaSharedMetrics } from './ja_shared_metrics'
 
@@ -467,6 +469,7 @@ export const jaOverrides = {
     }
   },
   ...jaNotices,
+  ...jaGoalStatus,
   billingBlock: {
     titleNous: 'Nous クレジットが不足しています',
     titleProvider: provider => `クレジット不足 — ${provider}`,
@@ -6477,25 +6480,7 @@ export const jaOverrides = {
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `操作が中断されました：モデルの応答を待機中（${elapsedSeconds}秒経過）。`,
-      modelContinuing: (attempt, maxAttempts) =>
-        `モデルが思考内容のみを返し、最終回答がないため、続きを要求しています（${attempt}/${maxAttempts}）`,
-      providerReconnecting: (elapsedSeconds, kind) =>
-        `プロバイダーから${kind === 'output' ? '出力' : '応答'}がないまま ${elapsedSeconds} 秒経過したため、再接続しています…`,
-      providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `プロバイダーを待っています — ${retrySeconds} 秒後に再試行（${attempt}/${maxAttempts} 回目）`,
-      providerWaitPhases: {
-        first_event: seconds => `最初のプロバイダーイベントを ${seconds} 秒待機中`,
-        reconnect: seconds => `再接続後、最初のプロバイダーイベントを ${seconds} 秒待機中`,
-        pre_progress: seconds =>
-          `プロバイダーのストリームは開いていますが、${seconds} 秒間モデルの実質的な進捗がありません`,
-        post_event: seconds => `プロバイダーのストリームは動作中ですが、${seconds} 秒間ストリームイベントがありません`,
-        first_chunk: seconds => `最初のストリームチャンクを ${seconds} 秒待機中`,
-        post_chunk: seconds => `ストリームは開いていますが、${seconds} 秒間ストリーム出力がありません`
-      },
-      providerWaitNotice: (model, phaseText, watchdog, stillWaiting) =>
-        `${model} を${stillWaiting ? '引き続き' : ''}待っています — ${phaseText}${
-          watchdog ? `（自動再接続: ${watchdog.label} ウォッチドッグが ${watchdog.seconds} 秒後に作動）` : ''
-        }`,
+      ...jaProviderWait,
       summarizingThread: '会話を整理中',
       moaAggregating: 'MoA で集約中…',
       moaReference: (label, index, count) =>
@@ -7081,6 +7066,7 @@ export const jaOverrides = {
     audioReadFailed: '録音した音声を読み取れませんでした',
     compressingContext: 'コンテキストを圧縮..',
     compressingContextFor: topic => `以下のコンテキストを圧縮中:${topic}`,
+    compressLockHeld: 'このセッションでは別の圧縮がすでに実行中です。完了してからもう一度お試しください',
     sessionUnavailable: 'セッションが利用できません',
     createSessionFailed: '新しいセッションを作成できませんでした',
     promptFailed: 'プロンプトに失敗しました',

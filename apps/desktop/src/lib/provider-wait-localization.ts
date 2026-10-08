@@ -1,4 +1,4 @@
-import type { ProviderWaitPhase, Translations } from '@/i18n'
+import type { ProviderRetryReason, ProviderStopHint, ProviderWaitPhase, Translations } from '@/i18n'
 
 type AssistantThreadCopy = Translations['assistant']['thread']
 type Format = (copy: AssistantThreadCopy) => string
@@ -20,9 +20,27 @@ const PHASE_TEXT: ReadonlyArray<{ phase: ProviderWaitPhase; pattern: RegExp }> =
 // backend switches to within NEAR_DEADLINE_SECS of the watchdog.
 const WAIT_NOTICE = /^(still )?waiting on (.+?) — (.+?)(?: \(auto-reconnect: (.+?) watchdog in (\d+)s\))?$/i
 
+// agent/turn_recovery.py::compute_error_backoff names why it is backing off in
+// the lead of its live countdown; the bare "waiting on provider" lead has its
+// own entry below.
+const RETRY_REASONS: Readonly<Record<string, ProviderRetryReason>> = {
+  'rate limited': 'rate_limited',
+  'provider overloaded': 'overloaded',
+  'the free model is busy': 'free_model_busy'
+}
+
+// agent/turn_recovery_autorecover.py `_STOP_HINTS`: how the user ends the wait
+// on the surface that owns the session. A hint this build does not know is
+// shown as the backend wrote it.
+const STOP_HINTS: Readonly<Record<string, ProviderStopHint>> = {
+  'press esc to stop': 'esc',
+  'cancel the request to stop': 'cancelRequest',
+  'send /stop to cancel': 'stopCommand'
+}
+
 // The other live status rewrites the core still emits verbatim
 // (chat_completion_helpers / chat_completion_nonstream / turn_recovery /
-// turn_truncation).
+// turn_recovery_autorecover / turn_truncation).
 const OTHER_NOTICES: ReadonlyArray<{ pattern: RegExp; format: (match: RegExpMatchArray) => Format }> = [
   {
     pattern: /^no (output|response) from provider (?:for|in) (\d+)s — reconnecting\.\.\.$/i,
@@ -31,6 +49,35 @@ const OTHER_NOTICES: ReadonlyArray<{ pattern: RegExp; format: (match: RegExpMatc
   {
     pattern: /^waiting on provider — retrying in (\d+)s \(attempt (\d+)\/(\d+)\)$/i,
     format: match => copy => copy.providerRetrying(match[1], match[2], match[3])
+  },
+  {
+    // "⏳ {reason} — [resets in {window},] retrying in {n}s (attempt {a}/{b})"; the
+    // reset window is reset_hint()'s compact duration ("~13m", "~1h 5m").
+    pattern:
+      /^(rate limited|provider overloaded|the free model is busy) — (?:resets in (.+?), )?retrying in (\d+)s \(attempt (\d+)\/(\d+)\)$/i,
+    format: match => copy =>
+      copy.providerRetryingAfter(
+        copy.providerRetryReasons[RETRY_REASONS[match[1].toLowerCase()]],
+        match[2] ?? null,
+        match[3],
+        match[4],
+        match[5]
+      )
+  },
+  {
+    // ladder_notice(): "⏳ Provider temporarily unavailable — retrying automatically
+    // in {n}s (cycle {c}/{t})[; {stop hint}]" — no hint on cron.
+    pattern: /^provider temporarily unavailable — retrying automatically in (\d+)s \(cycle (\d+)\/(\d+)\)(?:; (.+))?$/i,
+    format: match => copy => {
+      const hint = match[4] === undefined ? null : STOP_HINTS[match[4].toLowerCase()]
+
+      return copy.providerAutoRecovering(
+        match[1],
+        match[2],
+        match[3],
+        hint ? copy.providerStopHints[hint] : (match[4] ?? null)
+      )
+    }
   },
   {
     pattern: /^model returned reasoning with no final answer — asking it to continue \((\d+)\/(\d+)\)$/i,

@@ -482,6 +482,7 @@ export const zhHantChat = {
     audioReadFailed: '無法讀取錄製的音訊',
     compressingContext: '壓縮上下文..',
     compressingContextFor: topic => `壓縮上下文以適用於：${topic}`,
+    compressLockHeld: '此工作階段已有另一次壓縮正在進行，請等它完成後再試',
     sessionUnavailable: '工作階段不可用',
     createSessionFailed: '無法建立新工作階段',
     promptFailed: '提示詞傳送失敗',
@@ -635,8 +636,88 @@ export const zhHantChat = {
         action: '立即更新'
       }
     }
+  },
+  goalStatus: {
+    standingGoal: '目前目標',
+    waitTargets: {
+      session: id => `工作階段 ${id}`,
+      pid: pid => `處理程序 ${pid}`,
+      remaining: seconds => `剩餘 ${seconds} 秒`,
+      seconds: seconds => `${seconds} 秒`
+    },
+    parkedWaitingOn: (target, reason, byJudge) =>
+      `目標等待中${byJudge ? '（判定器）' : ''}，等待對象：${target}，原因：${reason}`,
+    parkedOnPid: (pid, reason) =>
+      `目標等待中，等待處理程序 ${pid}${reason ? `（${reason}）` : ''}，該處理程序結束後迴圈繼續`,
+    parkedStatus: (reason, meta, goal) => `目標（等待中，等待對象：${reason}，${meta}）：${goal}`,
+    parkedCountdownStatus: (seconds, reason, meta, goal) =>
+      `目標（等待中，還需 ${seconds} 秒，${reason}，${meta}）：${goal}`,
+    meta: {
+      turns: (used, max) => `${used}/${max} 輪`,
+      subgoals: count => `${count} 個子目標`,
+      contract: '含契約',
+      gates: count => `${count} 個關卡`,
+      separator: '，'
+    },
+    set: (budget, goal) => `已設定目標（${budget} 輪預算）：${goal}`,
+    replacedPrevious: '（已取代先前的目標）',
+    previousWas: previous => `原目標：${previous}`,
+    contractLabel: '完成契約：',
+    draftedContractLabel: '已草擬的完成契約：',
+    judgeTrailer: againstContract =>
+      `每輪結束後，判定模型會檢查目標是否已完成${againstContract ? '（依據上方契約）' : ''}。Hermes 會持續工作，直到目標完成、你暫停或清除目標，或預算耗盡。可使用 /goal status、/goal show、/goal pause、/goal resume、/goal clear。`,
+    draftTightenHint:
+      '可用內嵌欄位行（例如 verify: <指令>）重新設定目標以收緊任一欄位，然後執行 /goal resume。使用 /goal show 檢視。',
+    draftFailed: '無法草擬契約（輔助模型無法使用），將以自由形式目標執行。每輪判定仍然生效。',
+    ignoredControlWords: rest =>
+      `（已忽略 ${rest}：控制指令不會設定目標文字，若目標確實以控制詞開頭，請使用 /goal -- <文字>）`,
+    paused: goal => `目標已暫停：${goal}`,
+    resumed: goal => `目標已恢復：${goal}`,
+    cleared: '目標已清除。',
+    noActiveGoal: '沒有進行中的目標。',
+    noActiveGoalHint: '沒有進行中的目標。使用 /goal <文字> 設定一個。',
+    noGoalSet: '未設定目標。',
+    noGoalToResume: '沒有可恢復的目標。',
+    waitBarrierCleared: '等待屏障已清除，目標迴圈繼續。',
+    noWaitBarrier: '未設定等待屏障。',
+    activeStatus: (meta, goal) => `目標（進行中，${meta}）：${goal}`,
+    pausedStatus: (meta, reason, goal) => `目標（已暫停，${meta}${reason ? `，${reason}` : ''}）：${goal}`,
+    doneStatus: (meta, goal) => `目標已完成（${meta}）：${goal}`,
+    noContract: '（沒有完成契約，可用 /goal draft <目標> 或內嵌的"欄位: 值"行設定）',
+    noActiveGoalParen: '（沒有進行中的目標）',
+    continuing: (used, max, reason) => `繼續推進目標（${used}/${max}）：${reason}`,
+    achieved: reason => `目標已達成：${reason}`,
+    pausedBudget: (used, max, gateStillFailing) =>
+      `目標已暫停，已用 ${used}/${max} 輪${gateStillFailing ? '（仍有品質關卡未通過）' : ''}。使用 /goal resume 繼續，或 /goal clear 停止。`,
+    pausedGatesNotRun: refusal =>
+      `目標已暫停，品質關卡未執行：${refusal}。請修復工作區或用 /goal gate remove 移除關卡，然後執行 /goal resume。`,
+    pausedGateFailing: (retries, command, exitCode) =>
+      `目標已暫停，品質關卡在 ${retries} 次重試後仍未通過：$ ${command}（結束碼 ${exitCode}）。請手動修復或用 /goal gate remove 移除，然後執行 /goal resume。`,
+    pausedJudgeErrors: (turns, configPath) =>
+      `目標已暫停，判定 API 連續 ${turns} 輪傳回錯誤。請檢查 goal_judge 的供應商/金鑰設定：${configPath}`,
+    pausedJudgeUnparseable: (turns, configPath) =>
+      `目標已暫停，判定模型連續 ${turns} 輪未傳回要求的 JSON 判定結果。請在此處將判定器切換到更嚴格的模型：${configPath}`,
+    thenResume: '然後執行 /goal resume 繼續。',
+    unachievable: reason =>
+      `目標被判定為無法達成，已暫停：${reason} 可用 /goal set 重新界定範圍，或用 /goal resume 強制繼續。`,
+    gateAdded: (command, retries, timeout) =>
+      `已新增關卡：$ ${command}（${retries} 次重試，${timeout} 秒逾時）。目標完成前必須通過。`,
+    gateRemoved: command => `已移除關卡：$ ${command}`,
+    gatesCleared: count => `已清除 ${count} 個關卡。`,
+    noGates: '（沒有品質關卡，使用 /goal gate add <指令> 新增）',
+    gateListItem: (index, command, status) => `- ${index}. $ ${command}${status ? ` ${status}` : ''}`,
+    gatePassing: '✓ 通過',
+    gateFailing: (exitCode, attempt, maxRetries) => `✗ 未通過（結束碼 ${exitCode}，第 ${attempt}/${maxRetries} 次嘗試）`
   }
 } satisfies Pick<
   TranslationOverrides,
-  'timelineEvents' | 'quickEntry' | 'petOverlay' | 'composer' | 'statusStack' | 'prompts' | 'desktop' | 'tips'
+  | 'timelineEvents'
+  | 'quickEntry'
+  | 'petOverlay'
+  | 'composer'
+  | 'statusStack'
+  | 'prompts'
+  | 'desktop'
+  | 'tips'
+  | 'goalStatus'
 >

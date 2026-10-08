@@ -53,6 +53,7 @@ export const arOverrides = {
   sidebar: arChrome.sidebar,
   composer: arChat.composer,
   statusStack: arChat.statusStack,
+  goalStatus: arChat.goalStatus,
   updates: arBoot.updates,
   handoffTour: arBoot.handoffTour,
   guidedGreeting: arBoot.guidedGreeting,

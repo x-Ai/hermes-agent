@@ -52,11 +52,5 @@ export {
   translateForLocale,
   translateNow
 } from './runtime'
-export type {
-  BundledLocale,
-  Locale,
-  ProviderExhaustedReason,
-  ProviderWaitPhase,
-  ToolTitleKey,
-  Translations
-} from './types'
+export type { BundledLocale, Locale, ProviderExhaustedReason, ToolTitleKey, Translations } from './types'
+export type { ProviderRetryReason, ProviderStopHint, ProviderWaitPhase } from './types_provider_wait'

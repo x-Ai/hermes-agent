@@ -485,6 +485,7 @@ export const arChat = {
     audioReadFailed: 'فشلت قراءة الصوت',
     compressingContext: 'سياق الضغط..',
     compressingContextFor: topic => `ضغط السياق من أجل:${topic}`,
+    compressLockHeld: 'هناك ضغط آخر قيد التشغيل بالفعل لهذه الجلسة. انتظر حتى ينتهي ثم حاول مجددًا.',
     sessionUnavailable: 'الجلسة غير متاحة',
     createSessionFailed: 'فشل إنشاء الجلسة',
     promptFailed: 'فشل إرسال الرسالة',
@@ -641,8 +642,89 @@ export const arChat = {
         action: 'التحديث الآن'
       }
     }
+  },
+  goalStatus: {
+    standingGoal: 'الهدف الدائم',
+    waitTargets: {
+      session: id => `الجلسة ${id}`,
+      pid: pid => `العملية ${pid}`,
+      remaining: seconds => `${seconds} ث متبقية`,
+      seconds: seconds => `${seconds} ث`
+    },
+    parkedWaitingOn: (target, reason, byJudge) =>
+      `الهدف قيد الانتظار${byJudge ? ' (بقرار المُقيِّم)' : ''} — في انتظار ${target}: ${reason}`,
+    parkedOnPid: (pid, reason) =>
+      `الهدف قيد الانتظار — في انتظار العملية ${pid}${reason ? ` (${reason})` : ''}. تتوقف الحلقة مؤقتًا حتى تنتهي.`,
+    parkedStatus: (reason, meta, goal) => `الهدف (قيد الانتظار: ${reason}، ${meta}): ${goal}`,
+    parkedCountdownStatus: (seconds, reason, meta, goal) =>
+      `الهدف (قيد الانتظار ${seconds} ث — ${reason}، ${meta}): ${goal}`,
+    meta: {
+      turns: (used, max) => `${used}/${max} جولة`,
+      subgoals: count => `${count} هدف فرعي`,
+      contract: 'عقد',
+      gates: count => `${count} بوابة`,
+      separator: '، '
+    },
+    set: (budget, goal) => `تم تعيين الهدف (ميزانية ${budget} جولة): ${goal}`,
+    replacedPrevious: '(تم استبدال الهدف السابق)',
+    previousWas: previous => `كان: ${previous}`,
+    contractLabel: 'عقد الإنجاز:',
+    draftedContractLabel: 'مسودة عقد الإنجاز:',
+    judgeTrailer: againstContract =>
+      `بعد كل جولة، يتحقق نموذج مُقيِّم مما إذا كان الهدف قد اكتمل${againstContract ? ' وفق العقد أعلاه' : ''}. يواصل Hermes العمل حتى يكتمل، أو توقفه مؤقتًا أو تمسحه، أو تنفد الميزانية. استخدم /goal status و/goal show و/goal pause و/goal resume و/goal clear.`,
+    draftTightenHint:
+      'شدّد أي حقل بإعادة تعيين الهدف بأسطر مضمّنة (مثل verify: <command>)، ثم /goal resume. استخدم /goal show للمراجعة.',
+    draftFailed: 'تعذّر صياغة عقد (النموذج المساعد غير متاح) — يعمل كهدف حر الشكل. ما زال المُقيِّم لكل جولة ساريًا.',
+    ignoredControlWords: rest =>
+      `(تم تجاهل ${rest}: أمر التحكم لا يعيّن نص الهدف أبدًا — استخدم /goal -- <text> عندما يبدأ الهدف فعلًا بكلمة تحكم.)`,
+    paused: goal => `الهدف متوقف مؤقتًا: ${goal}`,
+    resumed: goal => `تم استئناف الهدف: ${goal}`,
+    cleared: 'تم مسح الهدف.',
+    noActiveGoal: 'لا يوجد هدف نشط.',
+    noActiveGoalHint: 'لا يوجد هدف نشط. عيّن واحدًا عبر /goal <text>.',
+    noGoalSet: 'لم يُعيَّن هدف.',
+    noGoalToResume: 'لا يوجد هدف لاستئنافه.',
+    waitBarrierCleared: 'تمت إزالة حاجز الانتظار — تُستأنف حلقة الهدف.',
+    noWaitBarrier: 'لم يُعيَّن حاجز انتظار.',
+    activeStatus: (meta, goal) => `الهدف (نشط، ${meta}): ${goal}`,
+    pausedStatus: (meta, reason, goal) => `الهدف (متوقف مؤقتًا، ${meta}${reason ? ` — ${reason}` : ''}): ${goal}`,
+    doneStatus: (meta, goal) => `اكتمل الهدف (${meta}): ${goal}`,
+    noContract: '(لا يوجد عقد إنجاز — عيّنه عبر /goal draft <objective> أو بأسطر مضمّنة بصيغة حقل: قيمة)',
+    noActiveGoalParen: '(لا يوجد هدف نشط)',
+    continuing: (used, max, reason) => `المتابعة نحو الهدف (${used}/${max}): ${reason}`,
+    achieved: reason => `تم تحقيق الهدف: ${reason}`,
+    pausedBudget: (used, max, gateStillFailing) =>
+      `الهدف متوقف مؤقتًا — استُخدمت ${used}/${max} جولة${gateStillFailing ? ' (ما زالت إحدى بوابات الجودة تفشل)' : ''}. استخدم /goal resume للمتابعة، أو /goal clear للإيقاف.`,
+    pausedGatesNotRun: refusal =>
+      `الهدف متوقف مؤقتًا — لم تُشغَّل بوابات الجودة: ${refusal}. أصلح مساحة العمل أو أزل البوابات عبر /goal gate remove، ثم /goal resume.`,
+    pausedGateFailing: (retries, command, exitCode) =>
+      `الهدف متوقف مؤقتًا — ما زالت بوابة الجودة تفشل بعد ${retries} محاولات إعادة: $ ${command} (رمز الخروج ${exitCode}). أصلحها يدويًا أو أزلها عبر /goal gate remove، ثم /goal resume.`,
+    pausedJudgeErrors: (turns, configPath) =>
+      `الهدف متوقف مؤقتًا — أعادت واجهة المُقيِّم أخطاء (${turns} جولات). تحقق من موفّر/مفتاح goal_judge في ${configPath}`,
+    pausedJudgeUnparseable: (turns, configPath) =>
+      `الهدف متوقف مؤقتًا — نموذج المُقيِّم (${turns} جولات) لا يعيد حكم JSON المطلوب. وجّه المُقيِّم إلى نموذج أكثر صرامة في ${configPath}`,
+    thenResume: 'ثم /goal resume للمتابعة.',
+    unachievable: reason =>
+      `حُكم بأن الهدف غير قابل للتحقيق — متوقف مؤقتًا: ${reason} أعد تحديد نطاقه عبر /goal set، أو تجاوز ذلك عبر /goal resume.`,
+    gateAdded: (command, retries, timeout) =>
+      `تمت إضافة بوابة: $ ${command} (${retries} محاولات إعادة، مهلة ${timeout} ث). يجب أن تنجح قبل اكتمال الهدف.`,
+    gateRemoved: command => `تمت إزالة البوابة: $ ${command}`,
+    gatesCleared: count => `تم مسح ${count} بوابة.`,
+    noGates: '(لا توجد بوابات جودة — استخدم /goal gate add <command> لاشتراط واحدة)',
+    gateListItem: (index, command, status) => `- ${index}. $ ${command}${status ? ` ${status}` : ''}`,
+    gatePassing: '✓ ناجحة',
+    gateFailing: (exitCode, attempt, maxRetries) =>
+      `✗ فاشلة (رمز الخروج ${exitCode}، المحاولة ${attempt}/${maxRetries})`
   }
 } satisfies Pick<
   TranslationOverrides,
-  'timelineEvents' | 'quickEntry' | 'petOverlay' | 'composer' | 'statusStack' | 'prompts' | 'desktop' | 'tips'
+  | 'timelineEvents'
+  | 'quickEntry'
+  | 'petOverlay'
+  | 'composer'
+  | 'statusStack'
+  | 'prompts'
+  | 'desktop'
+  | 'tips'
+  | 'goalStatus'
 >

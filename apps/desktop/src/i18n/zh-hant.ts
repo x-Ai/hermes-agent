@@ -117,6 +117,7 @@ export const zhHantOverrides = {
   sidebar: zhHantChrome.sidebar,
   composer: zhHantChat.composer,
   statusStack: zhHantChat.statusStack,
+  goalStatus: zhHantChat.goalStatus,
   updates: zhHantBoot.updates,
   handoffTour: zhHantBoot.handoffTour,
   guidedGreeting: zhHantBoot.guidedGreeting,

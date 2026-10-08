@@ -2,8 +2,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
-import { $goalsBySession, type SessionGoal } from '@/store/goals'
+import { I18nProvider, TRANSLATIONS } from '@/i18n'
+import { $goalsBySession, applyGoalStatusText, type SessionGoal } from '@/store/goals'
 
 import { ComposerStatusStack } from './index'
 
@@ -25,10 +25,10 @@ const goal = (status: SessionGoal['status'], title = 'ship the feature', detail?
   updatedAt: Date.now()
 })
 
-function renderStack(sessionId: null | string = SID) {
+function renderStack(sessionId: null | string = SID, locale: 'en' | 'zh' = 'en') {
   return render(
     <MemoryRouter>
-      <I18nProvider configClient={null} initialLocale="en">
+      <I18nProvider configClient={null} initialLocale={locale}>
         <ComposerStatusStack queue={null} sessionId={sessionId} />
       </I18nProvider>
     </MemoryRouter>
@@ -65,6 +65,43 @@ describe('ComposerStatusStack goal indicator', () => {
     expect(screen.queryByText('ship the feature')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Goal (active|paused)/ }))
     expect(screen.getByText('ship the feature')).toBeTruthy()
+  })
+
+  it('speaks the UI language for a parked goal that only the backend has described', () => {
+    // The judge parked the loop before any line named the goal: the store holds
+    // the backend's English detail and no title (store/goals.ts).
+    $goalsBySession.set({ [SID]: goal('waiting', '', 'Goal parked — waiting on session abc123: deploy finished') })
+
+    renderStack(SID, 'zh')
+
+    const zh = TRANSLATIONS.zh
+
+    expect(screen.getByText(zh.statusStack.goalWaiting)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(zh.statusStack.goalWaiting) }))
+    expect(screen.getByText(zh.goalStatus.standingGoal)).toBeTruthy()
+    expect(
+      screen.getByText(
+        zh.goalStatus.parkedWaitingOn(zh.goalStatus.waitTargets.session('abc123'), 'deploy finished', false)
+      )
+    ).toBeTruthy()
+    expect(screen.queryByText(/Goal parked/)).toBeNull()
+  })
+
+  it('flips to paused when the judge declares the goal unachievable', () => {
+    $goalsBySession.set({ [SID]: goal('active') })
+    applyGoalStatusText(
+      SID,
+      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.'
+    )
+
+    renderStack(SID, 'zh')
+
+    const zh = TRANSLATIONS.zh
+
+    expect(screen.getByText(zh.statusStack.goalPaused)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(zh.statusStack.goalPaused) }))
+    expect(screen.getByText('ship the feature')).toBeTruthy()
+    expect(screen.getByText(zh.goalStatus.unachievable('the repo has no tests.'))).toBeTruthy()
   })
 
   it('scopes the indicator to the goal-owning session', () => {

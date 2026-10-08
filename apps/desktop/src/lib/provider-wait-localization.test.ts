@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { type Locale, type ProviderWaitPhase, resolveTranslations, TRANSLATIONS } from '@/i18n'
+import {
+  type Locale,
+  type ProviderRetryReason,
+  type ProviderWaitPhase,
+  resolveTranslations,
+  TRANSLATIONS
+} from '@/i18n'
 
 import { isProviderWaitNotice, localizeProviderWaitText } from './provider-wait-localization'
 
@@ -132,5 +138,90 @@ describe('unknown text', () => {
     const future = '⏳ waiting on some-model — 30s doing something new'
     expect(isProviderWaitNotice(future)).toBe(true)
     expect(localizeProviderWaitText(future, copy)).toBe(future)
+  })
+})
+
+describe('retry countdowns and the auto-recovery ladder', () => {
+  // agent/turn_recovery.py::compute_error_backoff — the `_live_reason` leads of
+  // its countdown; "waiting on provider" is covered above.
+  const RETRY_LEADS: Record<ProviderRetryReason, string> = {
+    rate_limited: 'rate limited',
+    overloaded: 'provider overloaded',
+    free_model_busy: 'the free model is busy'
+  }
+
+  it.each(Object.entries(RETRY_LEADS) as [ProviderRetryReason, string][])(
+    'localizes the %s countdown with and without a reset window',
+    (reason, lead) => {
+      const withReset = `⏳ ${lead} — resets in ~13m, retrying in 30s (attempt 2/5)`
+      const bare = `⏳ ${lead} — retrying in 6s (attempt 1/3)`
+
+      expect(isProviderWaitNotice(withReset)).toBe(true)
+      expect(isProviderWaitNotice(bare)).toBe(true)
+
+      for (const locale of LOCALES) {
+        const copy = resolveTranslations(locale).assistant.thread
+        const reasonText = copy.providerRetryReasons[reason]
+        const localizedReset = localizeProviderWaitText(withReset, copy)
+
+        expect(localizedReset).toBe(copy.providerRetryingAfter(reasonText, '~13m', '30', '2', '5'))
+        expect(localizedReset).toContain('~13m')
+        expect(localizedReset).toContain('30')
+        expect(localizedReset).toContain('2/5')
+        expect(localizeProviderWaitText(bare, copy)).toBe(copy.providerRetryingAfter(reasonText, null, '6', '1', '3'))
+      }
+    }
+  )
+
+  // agent/turn_recovery_autorecover.py::ladder_notice with each `_STOP_HINTS` entry.
+  it.each([
+    ['press Esc to stop', 'esc'],
+    ['cancel the request to stop', 'cancelRequest'],
+    ['send /stop to cancel', 'stopCommand']
+  ] as const)('localizes the ladder notice ending in "%s"', (hint, key) => {
+    const raw = `⏳ Provider temporarily unavailable — retrying automatically in 18s (cycle 1/5); ${hint}`
+
+    expect(isProviderWaitNotice(raw)).toBe(true)
+
+    for (const locale of LOCALES) {
+      const copy = resolveTranslations(locale).assistant.thread
+      const localized = localizeProviderWaitText(raw, copy)
+
+      expect(localized).toBe(copy.providerAutoRecovering('18', '1', '5', copy.providerStopHints[key]))
+      expect(localized).toContain(copy.providerStopHints[key])
+      expect(localized).toContain('18')
+      expect(localized).toContain('1/5')
+    }
+  })
+
+  it('keeps an unknown stop hint verbatim and renders the hintless cron form', () => {
+    const copy = TRANSLATIONS.zh.assistant.thread
+    const unknown = '⏳ Provider temporarily unavailable — retrying automatically in 18s (cycle 1/5); tap Stop'
+    const cron = '⏳ Provider temporarily unavailable — retrying automatically in 60s (cycle 3/5)'
+
+    expect(localizeProviderWaitText(unknown, copy)).toBe(copy.providerAutoRecovering('18', '1', '5', 'tap Stop'))
+    expect(localizeProviderWaitText(cron, copy)).toBe(copy.providerAutoRecovering('60', '3', '5', null))
+  })
+
+  it('renders these frames in the locale rather than the backend English', () => {
+    const frames = [
+      '⏳ rate limited — resets in ~2m, retrying in 30s (attempt 2/3)',
+      '⏳ the free model is busy — retrying in 6s (attempt 1/3)',
+      '⏳ Provider temporarily unavailable — retrying automatically in 18s (cycle 1/5); press Esc to stop'
+    ]
+
+    for (const locale of LOCALES) {
+      const copy = resolveTranslations(locale).assistant.thread
+
+      if (copy.providerRetryingAfter === TRANSLATIONS.en.assistant.thread.providerRetryingAfter) {
+        continue
+      }
+
+      for (const frame of frames) {
+        expect(localizeProviderWaitText(frame, copy)).not.toBe(
+          localizeProviderWaitText(frame, TRANSLATIONS.en.assistant.thread)
+        )
+      }
+    }
   })
 })

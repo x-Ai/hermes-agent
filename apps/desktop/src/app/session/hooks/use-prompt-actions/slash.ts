@@ -168,6 +168,47 @@ interface SlashCommandDeps {
 }
 
 /** The /slash command dispatcher, extracted from usePromptActions. */
+/** A `session.compress` reply that compressed nothing, told to the user:
+ *  `status: 'pending'` when the gateway's compute-host wait expired while
+ *  compression is still running there (it pushes session.info + a `compacted`
+ *  status edge when the host finishes, #97948), `lock_held` when another
+ *  compressor holds the session's lock (methods_session `CompressionLockHeld`)
+ *  and `message` names the holder. Neither carries a summary; falling through
+ *  read the lock-held reply as the no-op success "nothing to compress". */
+export function announceUncompressedReply(
+  result: SessionCompressResponse | null | undefined,
+  args: {
+    copy: Translations['desktop']
+    noticeId: string
+    renderSlashOutput: (text: string) => void
+    sessionId: string
+  }
+): boolean {
+  if (result?.status === 'pending') {
+    // Hand the completion off to the status edge: the host is still working.
+    markCompressDeferred(args.sessionId)
+    notify({
+      durationMs: 8_000,
+      id: args.noticeId,
+      kind: 'info',
+      message: result.message || 'compression still running in the background'
+    })
+
+    return true
+  }
+
+  if (result?.lock_held) {
+    const message = result.message || args.copy.compressLockHeld
+
+    args.renderSlashOutput(message)
+    notify({ durationMs: 8_000, id: args.noticeId, kind: 'warning', message })
+
+    return true
+  }
+
+  return false
+}
+
 export function useSlashCommand(deps: SlashCommandDeps) {
   const {
     activeSessionIdRef,
@@ -739,18 +780,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
 
             sessionId = liveSessionId
 
-            // The gateway's compute-host wait expired but compression is still
-            // running there; it pushes session.info + a `compacted` status edge
-            // when the host finishes. Not an error (#97948).
-            if (result?.status === 'pending') {
-              // Hand the completion off to the status edge: this reply carries
-              // no summary and the host is still working, so nothing below
-              // runs for a deferred compress.
-              markCompressDeferred(sessionId)
-
-              const pendingMessage = result.message || 'compression still running in the background'
-              notify({ durationMs: 8_000, id: noticeId, kind: 'info', message: pendingMessage })
-
+            if (announceUncompressedReply(result, { copy, noticeId, renderSlashOutput, sessionId })) {
               return
             }
 

@@ -73,6 +73,9 @@ export interface SessionCompressResponse {
    *  while compression is still running; the transcript refreshes from the
    *  pushed session.info / `compacted` status edge (#97948). */
   message?: string
+  /** True when another compressor held this session's lock (methods_session
+   *  `CompressionLockHeld`): nothing was compressed and `message` says so. */
+  lock_held?: boolean
   removed?: number
   status?: string
   summary?: {

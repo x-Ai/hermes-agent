@@ -2,6 +2,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { deAuxTasks } from './de_aux_tasks'
 import { deBoot } from './de_boot'
+import { deGoalStatus } from './de_goal_status'
 import { deLocalModels } from './de_local_models'
 import { deModelMenu } from './de_model_menu'
 import { deNotices } from './de_notices'
@@ -283,10 +284,7 @@ export const deOverrides = {
         label: 'Nur lesen',
         long: 'Das Tool gibt an, dass es nur liest.'
       },
-      hintCreate: {
-        label: 'Erstellt',
-        long: 'Erstellt etwas Neues.'
-      },
+      hintCreate: { label: 'Erstellt', long: 'Erstellt etwas Neues.' },
       hintUpdate: {
         label: 'Aktualisiert',
         long: 'Ändert etwas, das bereits existiert.'
@@ -512,6 +510,7 @@ export const deOverrides = {
     }
   },
   ...deNotices,
+  ...deGoalStatus,
   billingBlock: {
     titleNous: 'Keine Nous-Credits mehr',
     titleProvider: provider => `Keine Credits mehr — ${provider}`,

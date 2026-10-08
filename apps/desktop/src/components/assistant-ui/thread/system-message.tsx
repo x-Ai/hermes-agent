@@ -14,6 +14,7 @@ import { LinkifiedText } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
 import { localizeReviewSummaryDetail } from './review-summary-localization'
+import { localizeSlashOutput } from './slash-output-localization'
 
 const SLASH_STATUS_RE = /^slash:(?<command>\/[^\n]+)\n(?<output>[\s\S]*)$/
 const STEER_NOTE_RE = /^steer:(?<text>[\s\S]+)$/
@@ -144,7 +145,7 @@ export const SystemMessage: FC = () => {
   const slashStatus = text.match(SLASH_STATUS_RE)
 
   if (slashStatus?.groups) {
-    const output = slashStatus.groups.output.trim()
+    const output = localizeSlashOutput(slashStatus.groups.command, slashStatus.groups.output.trim(), t)
     // Single-line status (e.g. "model → x") reads best centered inline; padded
     // multiline output (catalogs, usage tables) needs left-aligned, wider room
     // or the column alignment breaks.

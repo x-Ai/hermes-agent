@@ -95,6 +95,22 @@ export const arAssistant = {
         `${stillWaiting ? 'ما زلنا في انتظار' : 'في انتظار'} ${model} — ${phaseText}${
           watchdog ? ` (إعادة اتصال تلقائية: مراقب ${watchdog.label} خلال ${watchdog.seconds} ث)` : ''
         }`,
+      providerRetryReasons: {
+        rate_limited: 'تم تقييد المعدل',
+        overloaded: 'الموفّر محمّل فوق طاقته',
+        free_model_busy: 'النموذج المجاني مشغول'
+      },
+      providerRetryingAfter: (reason, resetWindow, retrySeconds, attempt, maxAttempts) =>
+        `${reason} — ${resetWindow ? `يُعاد الضبط خلال ${resetWindow}، ` : ''}إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
+      providerAutoRecovering: (retrySeconds, cycle, total, stopHint) =>
+        `الموفّر غير متاح مؤقتًا — إعادة المحاولة تلقائيًا بعد ${retrySeconds} ث (الدورة ${cycle}/${total})${
+          stopHint ? `؛ ${stopHint}` : ''
+        }`,
+      providerStopHints: {
+        esc: 'اضغط Esc للإيقاف',
+        cancelRequest: 'ألغِ الطلب للإيقاف',
+        stopCommand: 'أرسل /stop للإلغاء'
+      },
       summarizingThread: 'جار تنظيم المحادثة',
       moaAggregating: 'جار التجميع عبر MoA…',
       moaReference: (label, index, count) =>

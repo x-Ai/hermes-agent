@@ -123,6 +123,20 @@ export const zhHantAssistant = {
         `${stillWaiting ? '仍在等待' : '正在等待'} ${model}——${phaseText}${
           watchdog ? `（自動重新連線：${watchdog.label} 看門狗將在 ${watchdog.seconds} 秒後觸發）` : ''
         }`,
+      providerRetryReasons: {
+        rate_limited: '已觸發限流',
+        overloaded: '供應商過載',
+        free_model_busy: '免費模型忙碌中'
+      },
+      providerRetryingAfter: (reason, resetWindow, retrySeconds, attempt, maxAttempts) =>
+        `${reason}，${resetWindow ? `${resetWindow} 後重設，` : ''}${retrySeconds} 秒後重試（第 ${attempt}/${maxAttempts} 次）`,
+      providerAutoRecovering: (retrySeconds, cycle, total, stopHint) =>
+        `供應商暫時無法使用，${retrySeconds} 秒後自動重試（第 ${cycle}/${total} 輪）${stopHint ? `，${stopHint}` : ''}`,
+      providerStopHints: {
+        esc: '按 Esc 可停止',
+        cancelRequest: '取消請求即可停止',
+        stopCommand: '傳送 /stop 可取消'
+      },
       summarizingThread: '正在整理對話',
       moaAggregating: 'MoA 正在彙整…',
       moaReference: (label, index, count) =>

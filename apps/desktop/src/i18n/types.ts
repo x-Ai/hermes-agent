@@ -12,8 +12,10 @@ import type { AppTourTranslations, HandoffTourTranslations } from './types_app_t
 import type { AuxTaskCopyMap } from './types_aux_tasks'
 import type { BootTranslations } from './types_boot'
 import type { CatalogInstallTranslations } from './types_catalog_install'
+import type { GoalStatusTranslations } from './types_goal_status'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { NoticeTranslations } from './types_notices'
+import type { ProviderWaitThreadCopy } from './types_provider_wait'
 import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
 import type { UninstallSectionTranslations } from './types_uninstall_section'
@@ -26,10 +28,6 @@ export type BundledLocale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' 
  *  BCP-47-ish (`pl`, `pt-br`). Resolve strings through the registry, never
  *  by indexing `TRANSLATIONS` directly. */
 export type Locale = string
-
-/** Silence phases named by agent/chat_completion_wait_notice.py (`_PHASE_TEXT`). */
-export type ProviderWaitPhase =
-  'first_event' | 'reconnect' | 'pre_progress' | 'post_event' | 'first_chunk' | 'post_chunk'
 
 /** Classifier reasons with their own retries-exhausted lead in
  *  agent/turn_failure_copy.py (`_EXHAUSTED_LEADS`); `unknown` is its default lead. */
@@ -95,7 +93,7 @@ interface IntroRevealSideAgentCopy {
   line1: string
   line2: string
 }
-export interface Translations extends NoticeTranslations {
+export interface Translations extends NoticeTranslations, GoalStatusTranslations {
   /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */
   sharedMetrics: SharedMetricsTranslations
   appTour: AppTourTranslations
@@ -3283,7 +3281,7 @@ export interface Translations extends NoticeTranslations {
       openDiagram: string
       embedTitle: (label: string) => string
     }
-    thread: {
+    thread: ProviderWaitThreadCopy & {
       loadingSession: string
       openSessionFailed: string
       showEarlier: string
@@ -3334,20 +3332,6 @@ export interface Translations extends NoticeTranslations {
         upstreamServerError: (code: string, durationSeconds: string) => string
       }
       operationInterruptedWaitingForModel: (elapsedSeconds: string) => string
-      modelContinuing: (attempt: string, maxAttempts: string) => string
-      providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
-      providerRetrying: (retrySeconds: string, attempt: string, maxAttempts: string) => string
-      /** One rendering per backend silence phase, given the seconds of silence. */
-      providerWaitPhases: Record<ProviderWaitPhase, (seconds: string) => string>
-      /** `⏳ waiting on {model} — {phase} (auto-reconnect: {label} watchdog in {n}s)`;
-       *  `stillWaiting` is the backend's near-deadline lead. The watchdog label is
-       *  the backend's own identifier (TTFB, stream idle, …) and stays verbatim. */
-      providerWaitNotice: (
-        model: string,
-        phaseText: string,
-        watchdog: { label: string; seconds: string } | null,
-        stillWaiting: boolean
-      ) => string
       summarizingThread: string
       moaAggregating: string
       moaReference: (label: string, index?: number, count?: number) => string
@@ -3600,6 +3584,7 @@ export interface Translations extends NoticeTranslations {
     audioReadFailed: string
     compressingContext: string
     compressingContextFor: (topic: string) => string
+    compressLockHeld: string
     sessionUnavailable: string
     createSessionFailed: string
     promptFailed: string
