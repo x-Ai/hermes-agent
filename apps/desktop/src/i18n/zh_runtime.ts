@@ -65,6 +65,9 @@ export const zhRuntime = {
     audioContextUnavailable: '客户端唤醒采集所需的 AudioContext 不可用',
     connectionBridgeUnavailable: 'Hermes Desktop 连接桥接不可用',
     builtinProviderId: (id: string, suggestion: string) =>
-      `"${id}" 是内置提供商 ID，请为此端点另选一个 ID（例如 "${suggestion}"）`
+      `"${id}" 是内置提供商 ID，请为此端点另选一个 ID（例如 "${suggestion}"）`,
+    welcomeNeedsAttention: '欢迎对话需要处理',
+    welcomeStartFailed: '无法启动欢迎对话',
+    restoreProfileFailed: '无法恢复你的配置档案'
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

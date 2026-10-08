@@ -89,7 +89,14 @@ export const arBoot = {
     message: reason => `العرض البرمجي نشط — تم اكتشاف شاشة بعيدة (${reason}). تم تعطيل تسريع GPU لمنع الوميض.`
   },
   butterbar: {
-    goTo: (index, total) => `عرض الإشعار ${index} من ${total}`
+    goTo: (index, total) => `عرض الإشعار ${index} من ${total}`,
+    legal: {
+      before: 'يخضع استخدام Hermes Agent لـ',
+      terms: 'شروط الخدمة',
+      between: ' و',
+      privacy: 'سياسة الخصوصية',
+      after: ' الخاصة بنا.'
+    }
   },
   updates: {
     discontinuedTitle: 'لم يعد إصدار Hermes هذا مدعومًا',
@@ -241,7 +248,8 @@ export const arBoot = {
     },
     gitUnusable: 'لم يتمكن Hermes من تشغيل Git على هذا الجهاز، لذا لم يتمكن من التحقق من التحديثات.',
     connectionSettings: 'إعدادات الاتصال',
-    openDownloadPage: 'Page'
+    openDownloadPage: 'Page',
+    justNowSuffix: 'الآن'
   },
   handoffTour: {
     profileTitle: 'مهمتك الأولى تجري على ملف الفشل',
@@ -251,86 +259,10 @@ export const arBoot = {
     sessionsText:
       'هذه القائمة تعود إلى الملف الافتراضي وتبدأ الدورة الجديدة دورة واحدة عن أي مكان يتم اختياره. تُغيّر ملامح السكك الحديدية والقائمة بها.',
     stayTitle: 'Hermes على بعد نقطة واحدة',
-    stayText: 'انتقل إلى ملف الإعداد وافتح «مرحباً بك في Hermes» متى احتجت إلى المساعدة؛ سيبقى هناك.'
-  },
-  guidedGreeting: {
-    line: 'أهلا، تفضل بالدخول. أنا Hermes. امنحني دقيقتين لأرتب المكان حولك، ثم نبدأ بشيء تريد إنجازه فعلا.\n\nبداية، بماذا أناديك؟',
-    nameSuggestion: (name: string) => `(يمكنني أن أناديك ${name} إن كنت تفضل ذلك.)`
-  },
-  guidedOnboarding: {
-    done: '✓ تم',
-    continue: 'متابعة',
-    skipSetup: 'تخطي الإعداد',
-    fallbackOption: 'لنكتشف ذلك معًا',
-    handoffFailed: 'تعذر بدء المهمة الأولى.',
-    handoffFailedRetry: 'تعذر بدء المهمة الأولى. أعد المحاولة للتحقق من جلستها.',
-    handoffStarted: title => `بدأت ${title} — ستجدها في جلساتك`,
-    handoffOpening: title => `جارٍ فتح ${title}…`,
-    retryFirstBuild: 'إعادة محاولة المهمة الأولى',
-    workingOnIt: 'جارٍ العمل عليها',
-    firstBuild: 'المهمة الأولى',
-    signpostTitle: 'Hermes ما زال بجوارك',
-    signpostBody:
-      'أنت الآن في مساحة عملك الخاصة، وهنا توجد الملفات الشخصية. ما زالت محادثتنا السابقة هنا، فارجع إليها متى احتجت إلى مساعدة.',
-    profileDescription: 'المكان الذي قابلت فيه Hermes — يرشدك في أول استخدام ثم يطمئن عليك حتى تعتاد عليه.',
-    accentNames: {
-      mono: 'أحادي',
-      githubGreen: 'أخضر GitHub',
-      cyberCyan: 'سماوي رقمي',
-      nousBlue: 'أزرق Nous',
-      ultraviolet: 'فوق بنفسجي',
-      barbiePink: 'وردي باربي',
-      electricRed: 'أحمر كهربائي',
-      safetyOrange: 'برتقالي أمان'
-    },
-    layoutNames: {
-      basic: 'أساسي',
-      elite: 'متقدم'
-    },
-    script: {
-      forkQuestion: 'هل تعرف ما الذي تريد منه أن يصنعه؟',
-      automate: 'أتمتة شيء أفعله باستمرار',
-      figure: 'لنكتشف ذلك معًا',
-      mind: 'لدي فكرة محددة',
-      skip: 'تخطي هذا الآن',
-      somethingElse: 'شيء آخر',
-      tourQuestion: 'هل تريد جولة سريعة أولًا؟',
-      tourBasics: 'الأساسيات فقط',
-      tourNone: 'سأستكشف بنفسي',
-      tourFull: 'عرّفني بالمكان',
-      fallbackQuestion: 'أي خيار يبدو أفضل؟',
-      buildReviewQuestion: 'هل هذا ما تريده؟',
-      buildReviewLooksRight: 'هذا مناسب',
-      buildReviewChange: 'تغيير شيء',
-      buildReviewFurther: 'تطويره أكثر',
-      machineRunQuestion: 'هل تريد مني تنفيذ هذا؟',
-      machineRunGoAhead: 'ابدأ',
-      machineRunChangeList: 'غيّر القائمة',
-      machineRunEssentials: 'الأساسيات فقط',
-      checkpointQuestion: 'ماذا تريد بعد ذلك؟',
-      computerKind: 'الكمبيوتر',
-      machineSetupOption: kind => `ساعدني في إعداد ${kind}`,
-      machineSetupTask: kind => `إعداد ${kind}`
-    },
-    errors: {
-      firstBuildNeedsAttention: 'المهمة الأولى تحتاج إلى انتباهك',
-      welcomeOwnerUnavailable: 'محادثة الترحيب غير متاحة الآن. أعد فتحها ثم حاول بدء المهمة الأولى.',
-      preferencesSaveFailed: 'تعذر حفظ تفضيلات الإعداد. أعد المحاولة قبل بدء المهمة الأولى.',
-      sessionOpenFailed: 'تعذر فتح جلسة المهمة الأولى.',
-      sessionIdentityMissing: 'لم تُرجع جلسة المهمة الأولى معرّفًا دائمًا. تحقق من جلساتك ثم أعد المحاولة.',
-      welcomeCreateFailed: 'تعذر إنشاء محادثة الترحيب. حاول مرة أخرى.',
-      restoreProfileFailed: 'تعذرت استعادة ملفك الشخصي',
-      welcomeNeedsAttention: 'محادثة الترحيب تحتاج إلى انتباهك',
-      welcomeStartFailed: 'تعذر بدء محادثة الترحيب.',
-      receiptUnreadable: 'تعذرت قراءة سجل المهمة الأولى المحفوظ. تحقق من جلساتك قبل بدء مهمة أخرى.',
-      receiptSaveFailed: 'تعذر حفظ جلسة المهمة الأولى للاسترداد. لم يُرسل طلب بدء جديد.',
-      verifyFailed: 'تعذر التحقق من المهمة الأولى. أعد المحاولة بعد عودة الاتصال.',
-      unconfirmedRunning:
-        'لم يتأكد بدء المهمة الأولى، لكن جلستها ما زالت قيد التشغيل. أعد المحاولة بعد خمولها؛ لم يُرسل طلب مكرر.',
-      notAcknowledged: 'لم تؤكد المهمة الأولى بدءها. تحقق من جلستها ثم أعد المحاولة؛ لم يُرسل طلب مكرر.',
-      notAcknowledgedStart: 'لم تؤكد المهمة الأولى بدء التشغيل. تحقق من جلستها ثم أعد المحاولة.',
-      pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء المهمة الأولى.'
-    }
+    stayText: 'انتقل إلى ملف الإعداد وافتح «مرحباً بك في Hermes» متى احتجت إلى المساعدة؛ سيبقى هناك.',
+    localTitle: 'يمكن لهذا الجهاز تشغيل النماذج محليًا',
+    localText: (model: string) =>
+      `${model} يناسب أجهزتك. يعمل مجانًا، ولا تغادر المحادثات جهازك. اختره من هنا، من قائمة النماذج، متى شئت.`
   },
   install: {
     stageStates: {
@@ -441,6 +373,9 @@ export const arBoot = {
     },
     preparingInstall: 'يُكمل Hermes التثبيت. عادة ما يستغرق ذلك أقل من دقيقة في أول تشغيل.',
     starting: 'جار بدء Hermes...',
+    setupSlowTitle: 'يستغرق الإعداد وقتا أطول من المعتاد.',
+    setupSlowBody: 'لا يزال Hermes قيد البدء في الخلفية.',
+    continueWithoutSetup: 'المتابعة دون إعداد',
     lookingUpProviders: 'جار البحث عن المزوّدين...',
     collapse: 'طي',
     otherProviders: 'مزودون آخرون',
@@ -508,8 +443,6 @@ export const arBoot = {
     copyAuthCode: 'انسخ رمز التفويض وألصقه أدناه.',
     pasteAuthCode: 'ألصق رمز التفويض',
     reopenAuthPage: 'إعادة فتح صفحة التفويض',
-    autoBrowser: provider => `فتحنا ${provider} في المتصفح. صرّح لـ Hermes هناك وسيتم الاتصال تلقائياً دون نسخ أو لصق.`,
-    reopenSignInPage: 'إعادة فتح صفحة تسجيل الدخول',
     waitingAuthorize: 'بانتظار التفويض...',
     externalPending: provider =>
       `${provider} يسجل الدخول عبر أداة سطر الأوامر الخاصة به. شغّل هذا الأمر في الطرفية، ثم عد واختر "سجلت الدخول":`,
@@ -529,7 +462,9 @@ export const arBoot = {
       `تسجيل الدخول باستخدام${provider}لم يكتمل. تحقق من اتصال الإنترنت الخاص بك وحاول مرة أخرى، أو اختر مزودًا مختلفًا.`,
     tryAgain: 'حاول مرة أخرى',
     useApiKeyInstead: 'استخدام مفتاح API',
-    errorDetails: 'تفاصيل'
+    errorDetails: 'تفاصيل',
+    skipSetup: 'تخطي الإعداد',
+    skipSetupTip: 'جارٍ تحويلك إلى ملفك الشخصي الافتراضي'
   },
   freeTier: {
     providerRowTitle: 'Nous · المستوى المجاني',
@@ -573,6 +508,12 @@ export const arBoot = {
     errorBody: 'الإشارة لم تنتهي حاول مرة أخرى كلما كنت على استعداد.',
     alreadySignedInHeading: 'لقد وقعت بالفعل.',
     alreadySignedInBody: 'وقد تم بالفعل التوقيع على هذا الحساب Hermes في حساب Nous.',
+    offer: {
+      heading: 'واصل مع Hermes',
+      body: 'أنت تستخدم الحصة المجانية. إذا واصلت استخدام Hermes فستبدأ بمواجهة حدود الاستخدام. سجّل الدخول بحساب Nous مجاني للحصول على حصة أكبر.',
+      signIn: 'تسجيل الدخول',
+      notNow: 'ليس الآن'
+    },
     busyHeading: 'تقريباً',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}جلستك لا تزال هنا في هذه الأثناء.`,
@@ -598,14 +539,5 @@ export const arBoot = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  | 'boot'
-  | 'remoteDisplayBanner'
-  | 'butterbar'
-  | 'updates'
-  | 'handoffTour'
-  | 'guidedGreeting'
-  | 'guidedOnboarding'
-  | 'install'
-  | 'onboarding'
-  | 'freeTier'
+  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'handoffTour' | 'install' | 'onboarding' | 'freeTier'
 >

@@ -186,6 +186,13 @@ export const zhHantChat = {
     attachments: count => `${count} 個附件`,
     editingInComposer: '在輸入框中編輯',
     editingQueuedInComposer: '在輸入框中編輯排隊回合',
+    restoredDraftNotice: '已還原你未送出的訊息',
+    restoredDraftUndo: '復原',
+    localSetup: {
+      title: '這可以在你的電腦上執行',
+      text: (model: string) => `${model} 適合這台電腦。免費，對話留在你的電腦上。`,
+      action: '帶我看看'
+    },
     queueEdit: '編輯',
     queueExpand: '展開',
     queueCollapse: '收起',
@@ -281,9 +288,7 @@ export const zhHantChat = {
         text: '請解釋這是如何運作的，並告訴我關鍵檔案在哪裡。'
       }
     },
-    wakeWord: phrase => `喚醒詞「${phrase}」`,
-    restoredDraftNotice: '已還原你未送出的訊息',
-    restoredDraftUndo: '復原'
+    wakeWord: phrase => `喚醒詞「${phrase}」`
   },
   statusStack: {
     agents: '代理',
@@ -620,11 +625,6 @@ export const zhHantChat = {
       'composer-mentions': {
         title: '附件與指令',
         text: '輸入 @ 把檔案帶入對話，輸入 / 執行指令。'
-      },
-      'local-setup': {
-        title: '這台電腦可以本地執行模型',
-        text: '你的硬體可以執行本地模型。對話不離開你的電腦，而且完全免費。',
-        action: '立即設定'
       },
       'right-pane': {
         title: '工作面板',

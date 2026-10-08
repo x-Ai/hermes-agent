@@ -186,6 +186,13 @@ export const arChat = {
     attachments: count => `${count} مرفق`,
     editingInComposer: 'جار التحرير في صندوق الكتابة',
     editingQueuedInComposer: 'جار تحرير رسالة في الطابور',
+    restoredDraftNotice: 'تمت استعادة رسالتك غير المُرسلة',
+    restoredDraftUndo: 'تراجع',
+    localSetup: {
+      title: 'يمكن تشغيل هذا على جهازك',
+      text: (model: string) => `${model} يناسب هذا الجهاز. مجاني، وتبقى المحادثات على جهازك.`,
+      action: 'أرني'
+    },
     queueEdit: 'تحرير الرسالة المجدولة',
     queueExpand: 'توسيع',
     queueCollapse: 'طي',
@@ -284,9 +291,7 @@ export const arChat = {
         text: 'يرجى شرح كيفية عمل هذا وإرشادي إلى الملفات الرئيسية.'
       }
     },
-    wakeWord: phrase => `أيقظ كلمة${phrase}"`,
-    restoredDraftNotice: 'تمت استعادة رسالتك غير المرسلة',
-    restoredDraftUndo: 'تراجع'
+    wakeWord: phrase => `أيقظ كلمة${phrase}"`
   },
   statusStack: {
     agents: 'الوكلاء',
@@ -479,7 +484,9 @@ export const arChat = {
     vaultCodeSkip: 'تخطٍ',
     vaultCodeConfirm: 'إدخال الرمز',
     reconnect: 'إعادة الاتصال',
-    sudoCommandUnavailable: 'لم يقدّم هذا الوكيل الأمر. ألغِ الطلب إذا لم تتمكن من التحقق منه في المحادثة.'
+    sudoCommandUnavailable: 'لم يقدّم هذا الوكيل الأمر. ألغِ الطلب إذا لم تتمكن من التحقق منه في المحادثة.',
+    sudoInstallDesc:
+      'يحتاج Hermes إلى كلمة مرور sudo لتثبيت حزم Bot Screen (TigerVNC + Xfce) على مضيف البوابة. تُرسل إلى ذلك المضيف فقط.'
   },
   desktop: {
     audioReadFailed: 'فشلت قراءة الصوت',
@@ -626,11 +633,6 @@ export const arChat = {
       'composer-mentions': {
         title: 'المرفقات والأوامر',
         text: 'اكتب @ لإحضار ملف إلى المحادثة، و / لتشغيل أمر.'
-      },
-      'local-setup': {
-        title: 'هذا الجهاز يمكنه تشغيل النماذج محليًا',
-        text: 'عتادك قادر على تشغيل نموذج محلي. تبقى محادثاتك على جهازك ولا تكلف شيئًا.',
-        action: 'إعداد الآن'
       },
       'right-pane': {
         title: 'لوحة العمل',

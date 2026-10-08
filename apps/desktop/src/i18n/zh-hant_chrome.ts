@@ -306,6 +306,8 @@ export const zhHantChrome = {
       copyPath: '複製路徑',
       removeFromSidebar: '從側邊欄移除',
       createdInPreviousContext: '專案已在先前的連線或設定檔中建立。請切換回去；IDEA.md 尚未寫入。',
+      hiddenFromSidebar: '已從側邊欄移除',
+      undoHide: '復原',
       createFailed: '無法建立專案',
       unavailableAllProfiles: '檢視全部設定檔時無法使用專案',
       staleBackend: '請更新 Hermes 後端以建立專案——目前後端比桌面應用舊（設定 → 更新 → 後端）。',
@@ -477,6 +479,11 @@ export const zhHantChrome = {
       priceTitle: (input: string, output: string, cache: string) =>
         `輸入 ${input}/Mtok · 輸出 ${output}/Mtok` + (cache ? ` · 快取讀取 ${cache}/Mtok` : ''),
       moaPresets: 'MOA 預設',
+      localSetup: {
+        title: '本機執行 · 免費、私密',
+        text: (model: string, size: string) => `${model} 適合這台電腦 · 下載 ${size}`,
+        action: '設定'
+      },
       limited: '已限額',
       limitedUntil: (time: string) => `限額至 ${time}`,
       limitedTip: (provider: string, time: null | string) =>

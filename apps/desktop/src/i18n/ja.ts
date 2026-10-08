@@ -8,7 +8,9 @@ import { jaLocalModels } from './ja_local_models'
 import { jaMessagingFieldCopy } from './ja_messaging_fields'
 import { jaModelMenu } from './ja_model_menu'
 import { jaNotices } from './ja_notices'
+import { jaOnboarding } from './ja_onboarding'
 import { jaPluginSettings } from './ja_plugins'
+import { jaProjects } from './ja_projects'
 import { jaProviderWait } from './ja_provider_wait'
 import { jaRuntime } from './ja_runtime'
 import { jaSharedMetrics } from './ja_shared_metrics'
@@ -1019,7 +1021,15 @@ export const jaOverrides = {
         desktopFailed: 'デスクトッププラグインのインストールに失敗しました',
         missingEnv: (name, vars) =>
           `${name} はインストールされましたが、動作にはキーが必要です：${vars}。今すぐ追加しないと、プラグインのツールが失敗します。`,
-        profileLabel: 'プロファイル用にインストールする'
+        profileLabel: 'プロファイル用にインストールする',
+        installUncertain:
+          'Hermes はインストール結果の待機を終了しましたが、プラグインのインストールはまだ進行中の可能性があります。この画面を閉じ、再インストールする前にプラグイン一覧を再スキャンしてください。',
+        nextChat: 'ほかのツールは次のチャットで使えます',
+        serverNotConnected: (server, reason) =>
+          `MCP サーバー ${server} は接続されていません${reason ? `: ${reason}` : '。'}`,
+        skillsReady: names =>
+          names.length === 1 ? `スキル ${names[0]} の準備ができました` : `${names.length} 個のスキルの準備ができました`,
+        toolsConnected: n => `${n} 個のツールを接続しました`
       }
     },
     vault: {
@@ -1707,6 +1717,12 @@ export const jaOverrides = {
       invalidJson: '設定 JSON が無効です',
       toolsetsWipeConfirm:
         '有効なツールセットをすべて削除しますか?これにより、メモリ、ターミナル、Web 検索、委任、およびその他のほとんどのツールは、再度有効にするまで無効になります。',
+      developerTitle: '開発者',
+      resetOnboardingTitle: 'オンボーディングをリセット',
+      resetOnboardingDesc:
+        'セットアップ用のチャットを削除し、セットアッププロファイルを作り直して、初回セットアップをもう一度実行します。自分で作成したプロファイル、チャット、プラグインはそのまま残ります。',
+      resetOnboardingAction: 'リセット',
+      resetOnboardingFailed: 'オンボーディングをリセットできませんでした',
       keepAwakeTitle: 'コンピューターをスリープさせない',
       keepAwakeDesc:
         '本体のスリープを防ぎます。「実行中のみ」はターンの実行中だけ有効になるため、夜通しの実行を継続しつつ、ノートPCを一週間つけたままにはしません。画面は暗転できます。',
@@ -2283,7 +2299,7 @@ export const jaOverrides = {
         '素早く切り替えられるよう、起動したままにするボットバックエンドの数です。増やすと切り替えが速くなりますが、メモリ使用量も増えます（バックエンドごとに約 60 MB）。変更はすぐに反映されます。',
       idleTimeout: 'バックエンドのアイドルタイムアウト',
       idleTimeoutDescription:
-        '未使用のボットバックエンドを終了するまで起動しておく時間です。長くすると、数分おきにボットに戻った際の再起動待ちを避けられます。',
+        '未使用のリモートボット接続を破棄するまでキャッシュしておく時間です。ローカルのバックエンドは cron ジョブやボットチャットを実行するため、アイドル中も動き続けます。',
       idleTimeoutAria: 'バックエンドのアイドルタイムアウト（ミリ秒）',
       milliseconds: 'ミリ秒',
       warmBotBackendsAria: 'ウォームボットバックエンド',
@@ -3709,7 +3725,17 @@ export const jaOverrides = {
       gatewayUnreachable: gateway => `${gateway}· 到達不可能`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `切り替える${name}オン${gateway}`,
-      deleteOn: gateway => `オン${gateway}`
+      deleteOn: gateway => `オン${gateway}`,
+      connectExistingInstead: '代わりに既存環境へ接続',
+      installDeviceConfirm: 'ローカルにインストール',
+      installDeviceDesc:
+        'Hermes をローカルにインストールしてから、このコンピュータで新しいセッションを開きます。確認するまでインストールは始まりません。',
+      installDeviceTitle: 'このデバイスに切り替えますか？',
+      localDevice:
+        'このデバイス（ローカルバックエンド — Hermes が無ければインストールし、あれば新しいセッションを開きます）',
+      switchDeviceConfirm: '切り替える',
+      switchDeviceDesc: 'このコンピュータで新しいセッションを開きます。今の会話は別のゲートウェイに残ります。',
+      switchDeviceTitle: 'このデバイスに切り替えますか？'
     },
     remoteOverride: {
       menuItem: 'リモートホストに接続…',
@@ -3889,6 +3915,7 @@ export const jaOverrides = {
     last: '前回',
     next: '次回',
     noRuns: 'まだ実行されていません',
+    queuedRun: '待機中の実行',
     manage: '管理',
     showRuns: '実行履歴を表示',
     hideRuns: '実行履歴を隠す',
@@ -4208,88 +4235,7 @@ export const jaOverrides = {
     projectLoadFailed: 'セッションの読み込みに失敗しました',
     noSessions: 'セッションはまだありません',
     noFilterMatches: 'このフィルターに一致するセッションはありません',
-    projects: {
-      showAllSessions: 'すべてのセッションを表示',
-      sectionLabel: 'プロジェクト',
-      home: 'ホーム',
-      autoDiscovered: '自動検出',
-      newButton: '新規プロジェクト',
-      createTitle: '新規プロジェクト',
-      createDesc: 'ワークスペースに名前を付け、1つ以上のフォルダを追加します。',
-      renameTitle: 'プロジェクト名を変更',
-      addFolderTitle: 'フォルダを追加',
-      namePlaceholder: '例: Skunkworks',
-      foldersLabel: 'フォルダ',
-      ideaLabel: 'アイデア',
-      ideaPlaceholder: 'このプロジェクトは何ですか？（IDEA.md に保存）',
-      ideaGenerate: 'アイデアを生成',
-      ideaGenerating: '生成中…',
-      ideaShuffle: 'テンプレートをシャッフル',
-      noFolders: 'まだフォルダがありません。',
-      addFolder: 'フォルダを追加',
-      primaryBadge: 'メイン',
-      removeFolder: '削除',
-      create: '作成',
-      menu: 'アクション',
-      menuRename: '名前を変更…',
-      menuAppearance: '外観',
-      noColor: '色なし',
-      menuAddFolder: 'フォルダを追加',
-      menuSetActive: 'アクティブに設定',
-      menuDelete: '削除',
-      moveToProject: 'プロジェクトに移動',
-      movedTo: name => `に移動しました${name}`,
-      moveFailed: 'セッションを移動できませんでした',
-      moveNoFolder: 'そのプロジェクトには移動先のフォルダーがありません',
-      moveNoProjects: '他のプロジェクトはありません',
-      reveal: 'フォルダで表示',
-      copyPath: 'パスをコピー',
-      removeFromSidebar: 'サイドバーから削除',
-      createdInPreviousContext:
-        'プロジェクトは以前の接続またはプロファイルで作成されました。そこに戻ってください。IDEA.md は書き込まれていません。',
-      createFailed: 'プロジェクトを作成できませんでした',
-      unavailableAllProfiles: 'すべてのプロファイルを表示中はプロジェクトを使用できません',
-      staleBackend:
-        'プロジェクトを作成するには Hermes バックエンドを更新してください。バックエンドがこのデスクトップアプリより古いです（設定 → 更新 → バックエンド）。',
-      deleteConfirm:
-        'Hermes から保存済みプロジェクトを削除します。ファイル・git リポジトリ・ワークツリーはそのまま残ります。',
-      startWork: '新しいワークツリー',
-      newWorktreeTitle: '新しいワークツリー',
-      newWorktreeDesc: 'このワークツリーのブランチ名を入力してください。',
-      branchPlaceholder: '例: my-feature',
-      branchOff: () => ({ after: ' から分岐', before: '' }),
-      baseBranchPlaceholder: 'ブランチを検索…',
-      baseBranchNone: 'ブランチが見つかりません',
-      startWorkFailed: 'ワークツリーを作成できませんでした',
-      worktreeStaleBackend:
-        'このリモート接続でワークツリーを作成するには Hermes バックエンドを更新してください — git ワークツリー API 以前のバージョンです。',
-      worktreeProjectLabel: 'プロジェクト',
-      worktreeProjectPlaceholder: 'プロジェクトを検索…',
-      worktreeProjectNone: 'フォルダのあるプロジェクトがありません',
-      convertBranch: 'ブランチを変換…',
-      convertBranchTitle: 'ブランチを変換',
-      convertBranchDesc: 'チェックアウト済みのブランチを開くか、空いているブランチのワークツリーを作成します。',
-      convertBranchPlaceholder: 'ブランチを検索…',
-      convertBranchInstead: '既存のブランチを変換',
-      branchOpenExisting: '開く',
-      branchSwitchHome: 'ホームを切替',
-      branchCreateWorktree: '新しいワークツリー',
-      branchTrackRemote: 'リモートを追跡',
-      branchesLoading: 'ブランチを読み込み中…',
-      noBranches: 'ブランチが見つかりません',
-      removeWorktree: 'ワークツリーを削除',
-      removeWorktreeFailed: 'ワークツリーを削除できませんでした（コミットされていない変更？）',
-      removeWorktreeConfirm:
-        'git から削除（ワークツリーのディレクトリを削除しますが、ブランチは残ります）するか、サイドバーからレーンを隠してワークツリーをディスク上に残します。',
-      removeWorktreeDirty:
-        'このワークツリーにはコミットされていない変更があります。強制削除（変更を破棄）するか、レーンを隠してディスク上に残します。',
-      forceRemove: '強制削除',
-      enter: label => `${label} を開く`,
-      reorder: label => `再注文${label}`,
-      toggle: (label, open) => `${open ? '表示する' : '隠す'} ${label} sessions`,
-      back: 'すべてのプロジェクト',
-      showAllCount: count => `${count} 件のセッションをすべて表示`
-    },
+    projects: jaProjects,
     newSessionIn: label => `${label} で新しいセッション`,
     showMoreIn: (count, label) => `${label} でさらに ${count} 件を表示`,
     loading: '読み込み中…',
@@ -4401,6 +4347,27 @@ export const jaOverrides = {
     review: 'レビュー',
     logs: 'ログ'
   },
+
+  handoffTour: {
+    profileTitle: '最初のタスクはデフォルトのプロファイルで実行されます',
+
+    profileText:
+      'このレールでプロファイルを切り替えます。いま点灯しているのが default で、タスクのセッションはここにあります。もう一方はセットアップ用のプロファイルで、ウェルカムチャットはそちらにあります。',
+
+    sessionsTitle: 'プロファイルごとにセッションが分かれています',
+
+    sessionsText:
+      'この一覧は default プロファイルのものです。「新しいセッション」は選択中のプロファイルで始まります。レールでプロファイルを切り替えると一覧も変わります。',
+
+    stayTitle: 'Hermes はワンクリックで呼べます',
+
+    stayText:
+      '手を借りたいときは、セットアッププロファイルに切り替えて「Hermes へようこそ」を開いてください。いつでもそこにあります。',
+    localTitle: 'このマシンはローカルでモデルを実行できます',
+    localText: (model: string) =>
+      `${model} はお使いのハードウェアで動きます。無料で、チャットはこのコンピューターから出ません。いつでもここ、モデルメニューから選べます。`
+  },
+
   composer: {
     message: 'メッセージ',
     botSelectionRequired: '先にボットを選択してから、新しいチャットを開始してください。',
@@ -4565,6 +4532,13 @@ export const jaOverrides = {
     attachments: count => `${count} 件の添付`,
     editingInComposer: 'コンポーザーで編集中',
     editingQueuedInComposer: 'コンポーザーでキュー済みターンを編集中',
+    restoredDraftNotice: '未送信のメッセージを復元しました',
+    restoredDraftUndo: '元に戻す',
+    localSetup: {
+      title: 'このコンピューターで実行できます',
+      text: (model: string) => `${model} はこのマシンで動きます。無料で、チャットはこのコンピューターから出ません。`,
+      action: '見てみる'
+    },
     queueEdit: '編集',
     queueExpand: '展開',
     queueCollapse: '折りたたむ',
@@ -4664,9 +4638,7 @@ export const jaOverrides = {
         text: 'これがどのように機能するか説明し、主要なファイルを教えてください。'
       }
     },
-    wakeWord: phrase => `ウェイクワード「${phrase}」`,
-    restoredDraftNotice: '未送信のメッセージを復元しました',
-    restoredDraftUndo: '元に戻す'
+    wakeWord: phrase => `ウェイクワード「${phrase}」`
   },
   statusStack: {
     agents: 'エージェント',
@@ -4937,102 +4909,31 @@ export const jaOverrides = {
     gitUnusable: 'このコンピューターで Git を実行できなかったため、更新を確認できませんでした。',
     connectionSettings: '接続設定',
     openDownloadPage: 'ダウンロードページを開く',
-    justNowSuffix: ' · たった今'
+    justNowSuffix: ' · たった今',
+    bundleOutOfSync: 'アプリのビルドが古くなっています',
+    bundleOutOfSyncAction: 'インストーラーを入手',
+    bundleOutOfSyncDesc:
+      'Hermes ランタイムは更新されましたが、デスクトップアプリ自体は古いビルドのままです。アプリを更新するまで、新しいインターフェース機能(Bot Mode など)は表示されません。下の更新を実行してアプリを再ビルドしてください。それでもこの警告が消えない場合は、最新のデスクトップインストーラーから再インストールしてください。',
+    cantReach: '更新サーバーに接続できませんでした。',
+    checkNow: '今すぐ確認',
+    checkingShort: '確認中…',
+    daysAgo: count => `${count} 日前`,
+    hoursAgo: count => `${count} 時間前`,
+    installing: '更新をインストール中です。',
+    justNow: 'たった今',
+    lastChecked: age => `前回確認: ${age}`,
+    minAgo: count => `${count} 分前`,
+    never: '未確認',
+    onLatest: '最新バージョンです。',
+    releaseNotes: 'リリースノート',
+    seeWhatsNew: '新機能を見る',
+    tapCheck: '更新を探すには「今すぐ確認」を押してください。',
+    updateReady: count => `新しい更新の準備ができました (${count} 件の変更を含みます)。`,
+    updateReadyUnknown: '新しい更新の準備ができました。',
+    version: value => `バージョン ${value}`,
+    versionUnavailable: 'バージョンを取得できません'
   },
-  handoffTour: {
-    profileTitle: '最初のタスクはデフォルトのプロファイルで実行されます',
-    profileText:
-      'このレールはプロファイルを切り替えます。現在点灯しているものがデフォルトであり、タスクセッションが存在します。もう 1 つはセットアップ プロファイルで、ウェルカム チャットが存在します。',
-    sessionsTitle: '各プロファイルは独自のセッションを保持します',
-    sessionsText:
-      'このリストはデフォルトのプロファイルに属します。新しいセッションは、選択されたプロファイルで開始されます。レール上のプロファイルを切り替えると、それに応じてリストも変化します。',
-    stayTitle: 'Hermes はワンクリックでアクセスできます',
-    stayText:
-      '必要なときに、セットアップ プロファイルに切り替えて、「Hermes へようこそ」を開きます。それはそこに留まります。'
-  },
-  guidedGreeting: {
-    line: 'やあ、どうぞ。Hermes です。二分だけください、あなたに合わせて整えます。それから、本当にやりたいことに取りかかりましょう。\n\nまずは、何とお呼びすればいいですか。',
-    nameSuggestion: (name: string) => `（よければ、${name} さんとお呼びします。）`
-  },
-  guidedOnboarding: {
-    done: '✓ 完了',
-    continue: '続ける',
-    skipSetup: 'セットアップをスキップ',
-    fallbackOption: '一緒に考える',
-    handoffFailed: '最初のタスクを開始できませんでした。',
-    handoffFailedRetry: '最初のタスクを開始できませんでした。再試行してセッションを確認してください。',
-    handoffStarted: title => `${title} を開始しました。セッション一覧から確認できます`,
-    handoffOpening: title => `${title} を開いています…`,
-    retryFirstBuild: '最初のタスクを再試行',
-    workingOnIt: '作業中',
-    firstBuild: '最初のタスク',
-    signpostTitle: 'Hermes はすぐ隣にいます',
-    signpostBody:
-      'ここはあなた専用のワークスペースで、プロファイルはここに並びます。先ほどの会話も残っています。手が必要なときはいつでも戻ってきてください。',
-    profileDescription: 'Hermes と初めて会った場所。初回の案内を行い、慣れるまでさりげなく見守ります。',
-    accentNames: {
-      mono: 'モノクロ',
-      githubGreen: 'GitHub グリーン',
-      cyberCyan: 'サイバーシアン',
-      nousBlue: 'Nous ブルー',
-      ultraviolet: 'ウルトラバイオレット',
-      barbiePink: 'バービーピンク',
-      electricRed: 'エレクトリックレッド',
-      safetyOrange: 'セーフティオレンジ'
-    },
-    layoutNames: {
-      basic: 'ベーシック',
-      elite: 'エリート'
-    },
-    script: {
-      forkQuestion: '何を作らせたいか決まっていますか？',
-      automate: 'いつもの作業を自動化したい',
-      figure: '一緒に考えたい',
-      mind: '作りたいものがある',
-      skip: '今はスキップ',
-      somethingElse: 'ほかのこと',
-      tourQuestion: '先に中を見て回りますか？',
-      tourBasics: '基本だけ見る',
-      tourNone: '自分で見てみる',
-      tourFull: '案内して',
-      fallbackQuestion: 'どれがよさそうですか？',
-      buildReviewQuestion: '希望どおりになっていますか？',
-      buildReviewLooksRight: 'これでよい',
-      buildReviewChange: '変更したい',
-      buildReviewFurther: 'さらに進める',
-      machineRunQuestion: 'この内容を実行しますか？',
-      machineRunGoAhead: '進めて',
-      machineRunChangeList: '一覧を変更',
-      machineRunEssentials: '必要なものだけ',
-      checkpointQuestion: '次はどうしますか？',
-      computerKind: 'コンピューター',
-      machineSetupOption: kind => `${kind} のセットアップを手伝って`,
-      machineSetupTask: kind => `${kind} をセットアップ`
-    },
-    errors: {
-      firstBuildNeedsAttention: '最初のタスクを確認してください',
-      welcomeOwnerUnavailable: 'ウェルカムチャットを利用できません。開き直して最初のタスクを再試行してください。',
-      preferencesSaveFailed: '案内設定を保存できません。最初のタスクを開始する前に再試行してください。',
-      sessionOpenFailed: '最初のタスクのセッションを開けませんでした。',
-      sessionIdentityMissing:
-        '最初のタスクのセッションに永続 ID がありません。セッションを確認して再試行してください。',
-      welcomeCreateFailed: 'ウェルカムチャットを作成できませんでした。再試行してください。',
-      restoreProfileFailed: 'プロファイルを復元できませんでした',
-      welcomeNeedsAttention: 'ウェルカムチャットを確認してください',
-      welcomeStartFailed: 'ウェルカムチャットを開始できませんでした。',
-      receiptUnreadable:
-        '保存済みの最初のタスク情報を読み込めません。別のタスクを始める前にセッションを確認してください。',
-      receiptSaveFailed: '最初のタスクの復旧情報を保存できませんでした。新しい開始要求は送信していません。',
-      verifyFailed: '最初のタスクを確認できませんでした。接続が戻ったら再試行してください。',
-      unconfirmedRunning:
-        '開始は未確認ですが、最初のタスクのセッションは実行中です。アイドルになってから再試行してください。重複送信はしていません。',
-      notAcknowledged:
-        '最初のタスクの開始が確認されていません。セッションを確認して再試行してください。重複送信はしていません。',
-      notAcknowledgedStart: '最初のタスクが開始を確認しませんでした。セッションを確認して再試行してください。',
-      pluginFolderUnavailable:
-        'デスクトップのプラグインフォルダーを利用できません。最初のタスクを始める前に再試行してください。'
-    }
-  },
+
   install: {
     stageStates: {
       pending: '待機中',
@@ -5135,107 +5036,8 @@ export const jaOverrides = {
     probeErrorDetails: '詳細',
     openLogs: 'ログを開く'
   },
-  onboarding: {
-    headerTitle: 'Hermes Agent のセットアップをしましょう',
-    headerDesc: 'チャットを始めるにはモデルプロバイダーを接続してください。ほとんどのオプションはワンクリックです。',
-    providerTitles: {
-      anthropic: 'Anthropic API キー',
-      'claude-code': 'Anthropic OAuth：サブスクリプション利用には追加使用クレジットが必要',
-      'openai-codex': 'ChatGPT または Codex サブスクリプション'
-    },
-    preparingInstall: 'Hermes はインストールを完了中です。初回実行では通常 1 分以内に完了します。',
-    starting: 'Hermes を起動中…',
-    lookingUpProviders: 'プロバイダーを検索中...',
-    collapse: '折りたたむ',
-    otherProviders: 'その他のプロバイダー',
-    haveApiKey: 'API キーをお持ちです',
-    chooseLater: '後でプロバイダーを選択します',
-    recommended: '推奨',
-    connected: '接続済み',
-    featuredPitch: '1 つのサブスクリプションで 300 以上の最先端モデル — Hermes を実行するための推奨方法',
-    fireworksPitch: '直接モデル API — Fireworks がホストする最先端モデル',
-    localModelsTitle: 'モデルをローカルで実行',
-    localModelsPitch: 'アカウント不要——モデルをダウンロードしてこのマシンで実行',
-    openRouterPitch: '1 つのキーで数百のモデル — 堅実なデフォルト',
-    apiKeyOptions: {
-      fireworks: {
-        short: 'モデル API に直接接続',
-        description: 'Fireworks AI がホストするモデルに直接アクセスします。'
-      },
-      openrouter: {
-        short: '1 つのキーで多くのモデル',
-        description: '1 つのキーで数百のモデルをホスト。新規インストールのデフォルトとして最適。'
-      },
-      openai: {
-        short: 'GPT クラスのモデル',
-        description: 'OpenAI モデルへの直接アクセス。'
-      },
-      gemini: {
-        short: 'Gemini モデル',
-        description: 'Google Gemini モデルへの直接アクセス。'
-      },
-      xai: {
-        short: 'Grok モデル',
-        description: 'xAI Grok モデルへの直接アクセス。'
-      },
-      local: {
-        short: 'セルフホスト',
-        description:
-          'ローカルまたはセルフホストの OpenAI 互換エンドポイント（vLLM、llama.cpp、Ollama など）に Hermes を接続。'
-      }
-    },
-    backToSignIn: 'サインインに戻る',
-    getKey: 'キーを取得',
-    replaceCurrent: '現在の値を置き換え',
-    pasteApiKey: 'API キーを貼り付け',
-    directApiAccess: provider => `${provider} の API に直接アクセスします。`,
-    localApiKeyPlaceholder: 'API キー (オプション - エンドポイントで必要な場合のみ)',
-    couldNotSave: '認証情報を保存できませんでした。',
-    connecting: '接続中',
-    update: '更新',
-    flowSubtitles: {
-      pkce: 'ブラウザーを開いてサインインし、ここに戻ります',
-      device_code: 'ブラウザーで確認ページを開きます — Hermes が自動接続します',
-      external: 'ターミナルで一度サインインして、チャットに戻ります'
-    },
-    startingSignIn: provider => `${provider} のサインインを開始中...`,
-    verifyingCode: provider => `${provider} でコードを確認中...`,
-    connectedProvider: provider => `${provider} が接続されました`,
-    connectedPicking: provider => `${provider} が接続されました。デフォルトモデルを選択中...`,
-    signInFailed: 'サインインに失敗しました。再試行してください。',
-    signInExpired:
-      '承認待ちでタイムアウトしました。多くの場合、開いたタブのサインインページが止まっている（サーバー側の問題）ためです。そのページでサインインを完了してから再試行してください。解決しない場合は API キーまたは CLI を利用してください。',
-    pickDifferentProvider: '別のプロバイダーを選択',
-    signInWith: provider => `${provider} でサインイン`,
-    openedBrowser: provider => `${provider} をブラウザーで開きました。`,
-    authorizeThere: 'そこで Hermes を承認してください。',
-    copyAuthCode: '認証コードをコピーして以下に貼り付けてください。',
-    pasteAuthCode: '認証コードを貼り付け',
-    reopenAuthPage: '認証ページを再度開く',
-    autoBrowser: provider =>
-      `${provider} をブラウザーで開きました。Hermes をそこで承認すれば自動接続されます。コピーや貼り付けは不要です。`,
-    reopenSignInPage: 'サインインページを再度開く',
-    waitingAuthorize: '承認を待っています...',
-    externalPending: provider =>
-      `${provider} は独自の CLI からサインインします。ターミナルでこのコマンドを実行してから、戻って「サインインしました」を選択してください:`,
-    signedIn: 'サインインしました',
-    deviceCodeOpened: provider => `${provider} をブラウザーで開きました。そこにこのコードを入力してください:`,
-    reopenVerification: '確認ページを再度開く',
-    copy: 'コピー',
-    defaultModel: 'デフォルトモデル',
-    freeTier: '無料プラン',
-    pro: 'Pro',
-    free: '無料',
-    price: (input, output) => `${input} 入力 / ${output} 出力 per Mtok`,
-    change: '変更',
-    startChatting: '始める',
-    docs: provider => `${provider} ドキュメント`,
-    signInDidNotFinish: provider =>
-      `でサインイン${provider}完了しませんでした。インターネット接続を確認してもう一度試すか、別のプロバイダーを選択してください。`,
-    tryAgain: 'もう一度試して',
-    useApiKeyInstead: 'API キーを使用する',
-    errorDetails: '詳細'
-  },
+
+  onboarding: jaOnboarding,
   freeTier: {
     providerRowTitle: 'Nous · 無料利用枠',
     providerRowPitch: 'Nous アカウントでサインインして、さらに多くのモデルやツールのロックを解除します。',
@@ -5280,6 +5082,12 @@ export const jaOverrides = {
     errorBody: 'サインインが完了しませんでした。準備ができたら、もう一度お試しください。',
     alreadySignedInHeading: 'すでにサインインしています。',
     alreadySignedInBody: 'この Hermes は、すでに Nous アカウントにサインインしています。',
+    offer: {
+      heading: 'Hermes を使い続ける',
+      body: '現在は無料枠をご利用中です。Hermes を使い続けると、いずれ上限に達します。無料の Nous アカウントでサインインすると、より多くの利用枠が使えます。',
+      signIn: 'サインイン',
+      notNow: '今はしない'
+    },
     busyHeading: 'もうすぐそこ',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}。それまでの間、セッションはまだここにあります。`,
@@ -5307,6 +5115,7 @@ export const jaOverrides = {
       retrying: 'もう一度試してみます…'
     }
   },
+
   modelPicker: {
     title: 'モデルを切り替え',
     current: '現在:',
@@ -6116,6 +5925,7 @@ export const jaOverrides = {
       recommendedSuffix: '（おすすめ）',
       singleSelectHint: '1つ選ぶ',
       multiSelectHint: '該当するものをすべて選択',
+      oneQuestion: '1問',
       questionProgress: (answered, total) => `${total}問中${answered}問回答済み`,
       notDelivered:
         'この質問はアプリに届かなかったため、ここでは回答できません。停止を押してターンを終了し、チャットで返信してください。'
@@ -6136,6 +5946,31 @@ export const jaOverrides = {
       sendFailed: 'MCP セットアップ応答を送信できませんでした',
       reloadFailed: 'サーバーは保存されましたが、MCP ツールの再ロードに失敗しました - 次のセッションがロードされます',
       gatewayDisconnected: 'Hermes は現在オフラインです。再接続してから再度送信してください。'
+    },
+    setupChoose: {
+      kinds: {
+        accent: 'アクセントカラー',
+        connectors: 'アプリ',
+        layout: 'レイアウト',
+        plugins: 'プラグイン',
+        theme: '外観'
+      },
+      loading: 'オプションを読み込み中…',
+      unavailable: 'このリストは現在利用できません。代わりにチャットで返信してください。',
+      findApp: 'アプリを検索',
+      customColor: 'カスタムカラー',
+      plugin: 'プラグイン',
+      startsLater: '始めるときに設定します。'
+    },
+    startChat: {
+      starting: title => `「${title}」を開始中…`,
+      startingUntitled: 'チャットを開始中…',
+      untitled: '新しいチャット',
+      notStarted: 'チャットを開始できませんでした',
+      inProfile: profile => `${profile} 内`,
+      open: '開く',
+      openFailed: 'チャットを開けませんでした',
+      retry: '再試行'
     },
     tool: {
       copyCode: 'コードをコピー',
@@ -6326,6 +6161,16 @@ export const jaOverrides = {
           pending: 'セッション履歴を検索中',
           pendingAction: '検索中'
         },
+        setup_choose: {
+          done: '設定の質問をしました',
+          pending: '設定の質問をしています',
+          pendingAction: '質問中'
+        },
+        start_chat: {
+          done: 'チャットを開始しました',
+          pending: 'チャットを開始中',
+          pendingAction: '開始中'
+        },
         skill_view: {
           done: 'スキルを読み込みました',
           pending: 'スキルを読み込み中',
@@ -6377,6 +6222,33 @@ export const jaOverrides = {
       },
       resultUnavailable: '結果を取得できません',
       resultInterrupted: '中断されました'
+    },
+    catalogInstall: {
+      preparing: 'インストールを準備中…',
+      install: 'インストール',
+      advanced: '詳細設定',
+      skip: 'スキップ',
+      installing: 'インストール中…',
+      installed: 'インストール済み',
+      notInstalled: '未インストール',
+      failed: '失敗',
+      showNames: '名前を表示',
+      hideNames: '名前を隠す',
+      skill: name => `スキル ${name}`,
+      kind: { plugin: 'プラグイン', skill: 'スキル' },
+      tier: { official: '公式', community: 'コミュニティ' },
+      targetProfile: profile => `${profile} プロファイルにインストールします`,
+      sendFailed: '回答を送信できませんでした。もう一度お試しください。',
+      commitLabel: 'コミット',
+      subdirLabel: 'フォルダー',
+      securityHeading: 'セキュリティ',
+      scan: {
+        passed: 'スキャン合格',
+        warnings: 'スキャンで警告あり',
+        failed: 'スキャン不合格'
+      },
+      requirementsLabel: '必要条件',
+      credentialsHeading: '認証情報'
     }
   },
   prompts: {
@@ -6418,7 +6290,9 @@ export const jaOverrides = {
     vaultCodeConfirm: 'コードを入力',
     reconnect: '再接続',
     sudoCommandUnavailable:
-      'エージェントからコマンドが提供されていません。会話で確認できない場合はキャンセルしてください。'
+      'エージェントからコマンドが提供されていません。会話で確認できない場合はキャンセルしてください。',
+    sudoInstallDesc:
+      'Bot Screen のパッケージ（TigerVNC + Xfce）をゲートウェイホストにインストールするため、sudo パスワードが必要です。そのホストにのみ送信されます。'
   },
   desktop: {
     audioReadFailed: '録音した音声を読み取れませんでした',
@@ -6569,11 +6443,6 @@ export const jaOverrides = {
       'composer-mentions': {
         title: 'ファイルとコマンド',
         text: '@ でファイルを会話に取り込み、/ でコマンドを実行できます。'
-      },
-      'local-setup': {
-        title: 'このマシンはローカルでモデルを実行できます',
-        text: 'お使いのハードウェアでローカルモデルを動かせます。会話はこのコンピュータから出ず、料金もかかりません。',
-        action: 'セットアップ'
       },
       'right-pane': {
         title: '作業用ペイン',

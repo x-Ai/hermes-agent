@@ -10,8 +10,8 @@ from agent.i18n import t
 from agent.models_dev import ModelInfo, PROVIDER_TO_MODELS_DEV
 
 
-INPUT_COST_WARNING_THRESHOLD = Decimal("20")
-OUTPUT_COST_WARNING_THRESHOLD = Decimal("100")
+INPUT_COST_WARNING_THRESHOLD = Decimal(20)
+OUTPUT_COST_WARNING_THRESHOLD = Decimal(100)
 GPT55_PRO_OPENROUTER_ID = "openai/gpt-5.5-pro"
 
 

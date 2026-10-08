@@ -5,7 +5,9 @@ import { ruAuxTasks } from './ru_aux_tasks'
 import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
 import { ruNotices } from './ru_notices'
+import { ruOnboarding } from './ru_onboarding'
 import { ruPluginSettings } from './ru_plugins'
+import { ruProjects } from './ru_projects'
 import { ruProviderWait } from './ru_provider_wait'
 import { ruRuntime } from './ru_runtime'
 import { ruSharedMetrics } from './ru_shared_metrics'
@@ -964,7 +966,11 @@ export const ruOverrides = {
         desktopFailed: 'Не удалось установить плагин приложения',
         missingEnv: (name, vars) =>
           `${name} установлен, но для работы ему нужен ключ: ${vars}. Добавьте его сейчас, иначе инструменты плагина не будут работать.`,
-        profileLabel: 'Установить для профиля'
+        profileLabel: 'Установить для профиля',
+        nextChat: 'остальные инструменты появятся в следующем чате',
+        serverNotConnected: (server, reason) => `MCP-сервер ${server} не подключён${reason ? `: ${reason}` : '.'}`,
+        skillsReady: names => (names.length === 1 ? `навык ${names[0]} готов` : `готово навыков: ${names.length}`),
+        toolsConnected: n => `Подключено инструментов: ${n}`
       }
     },
     vault: {
@@ -1693,7 +1699,16 @@ export const ruOverrides = {
         'Сворачивание окон или закрытие главного окна скрывает их в системном трее (строке меню macOS), оставляя Hermes работать. Для выхода выберите «Выйти из Hermes» в меню трея или нажмите Cmd+Q. По умолчанию выключено; действует только на этом устройстве.',
       minimizeToTrayUnavailable:
         'Системный трей недоступен. Окна будут сворачиваться и закрываться как обычно. Выключите и снова включите настройку, чтобы повторить попытку.',
-      showOptions: 'Показать параметры'
+      showOptions: 'Показать параметры',
+      voiceShortcutHintTitle: 'Горячая клавиша записи голоса',
+      voiceShortcutHintDesc:
+        'Настройте горячую клавишу записи голоса в разделе «Настройки → Горячие клавиши» («Начать / остановить голосовой диалог»). Параметр voice.record_key действует только в CLI и TUI.',
+      developerTitle: 'Для разработчиков',
+      resetOnboardingTitle: 'Сбросить первоначальную настройку',
+      resetOnboardingDesc:
+        'Удалить чаты настройки, пересоздать профиль настройки и снова запустить первоначальную настройку. Ваши профили, чаты и плагины сохранятся.',
+      resetOnboardingAction: 'Сбросить',
+      resetOnboardingFailed: 'Не удалось сбросить первоначальную настройку'
     },
     quickEntry: {
       enabledTitle: 'Быстрый ввод',
@@ -2224,7 +2239,7 @@ export const ruOverrides = {
         'Сколько бэкендов ботов остаются запущенными для быстрого переключения. Чем больше, тем быстрее переключение и выше расход памяти (около 60 MB на бэкенд). Изменения применяются сразу.',
       idleTimeout: 'Тайм-аут простоя бэкенда',
       idleTimeoutDescription:
-        'Как долго неиспользуемый бэкенд бота остаётся запущенным до отключения. Увеличьте это время, чтобы не ждать повторного запуска при возвращении к боту каждые несколько минут.',
+        'Как долго неиспользуемое подключение к удалённому боту остаётся в кэше, прежде чем будет сброшено. Локальные бэкенды продолжают работать в простое: они выполняют cron-задачи и чаты ботов.',
       idleTimeoutAria: 'Тайм-аут простоя бэкенда в миллисекундах',
       milliseconds: 'мс',
       warmBotBackendsAria: 'Теплый бот-бэкэнд',
@@ -3587,7 +3602,16 @@ export const ruOverrides = {
       gatewayUnreachable: gateway => `${gateway}· недоступный`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `Переключиться на${name}включено${gateway}`,
-      deleteOn: gateway => `включено${gateway}`
+      deleteOn: gateway => `включено${gateway}`,
+      connectExistingInstead: 'Вместо этого подключить существующий',
+      installDeviceConfirm: 'Установить локально',
+      installDeviceDesc:
+        'Hermes будет установлен локально, затем откроется новая сессия на этом компьютере. Установка не начнётся, пока вы не подтвердите.',
+      installDeviceTitle: 'Переключиться на это устройство?',
+      localDevice: 'Это устройство (локальный бэкенд — установит Hermes, если его нет, иначе откроет новую сессию)',
+      switchDeviceConfirm: 'Переключить',
+      switchDeviceDesc: 'Откроется новая сессия на этом компьютере. Текущий разговор останется на другом шлюзе.',
+      switchDeviceTitle: 'Переключиться на это устройство?'
     },
     remoteOverride: {
       menuItem: 'Подключиться к удаленному хосту…',
@@ -3767,6 +3791,7 @@ export const ruOverrides = {
     last: 'Последний:',
     next: 'Следующий:',
     noRuns: 'Запусков пока не было',
+    queuedRun: 'Запуск в очереди',
     manage: 'Управлять',
     showRuns: 'Показать запуски',
     hideRuns: 'Скрыть запуски',
@@ -4086,87 +4111,7 @@ export const ruOverrides = {
     projectLoadFailed: 'Не удалось загрузить сеансы',
     noSessions: 'Сеансов пока нет',
     noFilterMatches: 'Нет сеансов по этим фильтрам',
-    projects: {
-      showAllSessions: 'Показать все сессии',
-      sectionLabel: 'Проекты',
-      home: 'Главная',
-      autoDiscovered: 'Автоматически обнаружено',
-      newButton: 'Новый проект',
-      createTitle: 'Новый проект',
-      createDesc: 'Назовите рабочее пространство и добавьте одну или несколько папок.',
-      renameTitle: 'Переименовать проект',
-      addFolderTitle: 'Добавить папку',
-      namePlaceholder: 'например, Skunkworks',
-      foldersLabel: 'Папки',
-      ideaLabel: 'Идея',
-      ideaPlaceholder: 'О чём этот проект? (сохраняется в IDEA.md)',
-      ideaGenerate: 'Сгенерировать идею',
-      ideaGenerating: 'Генерация…',
-      ideaShuffle: 'Перемешать шаблоны',
-      noFolders: 'Папки ещё не добавлены.',
-      addFolder: 'Добавить папку',
-      primaryBadge: 'основная',
-      removeFolder: 'Удалить',
-      create: 'Создать',
-      menu: 'Действия',
-      menuRename: 'Переименовать',
-      menuAppearance: 'Внешний вид',
-      noColor: 'Без цвета',
-      menuAddFolder: 'Добавить папку',
-      menuSetActive: 'Сделать активным',
-      menuDelete: 'Удалить',
-      moveToProject: 'Переместить в проект',
-      movedTo: name => `Перемещено в ${name}`,
-      moveFailed: 'Не удалось переместить сеанс',
-      moveNoFolder: 'У этого проекта нет папки для перемещения',
-      moveNoProjects: 'Нет других проектов',
-      reveal: 'Показать в папке',
-      copyPath: 'Копировать путь',
-      removeFromSidebar: 'Скрыть из боковой панели',
-      createdInPreviousContext:
-        'Проект создан в прежнем подключении или профиле. Вернитесь к нему; файл IDEA.md не был записан.',
-      createFailed: 'Не удалось создать проект',
-      unavailableAllProfiles: 'Проекты недоступны при просмотре всех профилей',
-      staleBackend:
-        'Обновите бэкенд Hermes, чтобы создавать проекты — ваш бэкенд старше этого desktop-приложения (Настройки → Обновления → Бэкенд).',
-      deleteConfirm: 'Это удалит сохранённый проект из Hermes. Файлы, git-репозитории и worktrees не пострадают.',
-      startWork: 'Новый worktree',
-      newWorktreeTitle: 'Новый worktree',
-      newWorktreeDesc: 'Назовите ветку для этого worktree.',
-      branchPlaceholder: 'например, my-feature',
-      branchOff: () => ({ after: '', before: 'от ветки ' }),
-      baseBranchPlaceholder: 'Поиск веток…',
-      baseBranchNone: 'Ветки не найдены',
-      startWorkFailed: 'Не удалось создать worktree',
-      worktreeStaleBackend:
-        'Обновите бэкенд Hermes, чтобы создавать worktrees по этому удалённому соединению — он старше git worktree API.',
-      worktreeProjectLabel: 'Проект',
-      worktreeProjectPlaceholder: 'Поиск проектов…',
-      worktreeProjectNone: 'Нет проектов с папкой',
-      convertBranch: 'Преобразовать ветку…',
-      convertBranchTitle: 'Преобразовать ветку',
-      convertBranchDesc: 'Откройте закоммиченные ветки или создайте worktree для свободной ветки.',
-      convertBranchPlaceholder: 'Поиск веток…',
-      convertBranchInstead: 'Преобразовать существующую ветку',
-      branchOpenExisting: 'открыть',
-      branchSwitchHome: 'сменить home',
-      branchCreateWorktree: 'новый worktree',
-      branchTrackRemote: 'отслеживать удалённую',
-      branchesLoading: 'Загрузка веток…',
-      noBranches: 'Ветки не найдены',
-      removeWorktree: 'Удалить worktree',
-      removeWorktreeFailed: 'Не удалось удалить worktree (есть незакоммиченные изменения?)',
-      removeWorktreeConfirm:
-        'Удалить из git (сотрёт каталог worktree; ветка останется) или просто скрыть лану из боковой панели, оставив worktree на диске.',
-      removeWorktreeDirty:
-        'В этом worktree есть незакоммиченные изменения. Удалить принудительно (сбросит эти изменения) или просто скрыть лану и оставить на диске.',
-      forceRemove: 'Удалить принудительно',
-      enter: label => `Открыть ${label}`,
-      reorder: label => `Изменить порядок ${label}`,
-      toggle: (label, open) => `${open ? 'Показать' : 'Скрыть'} сеансы ${label}`,
-      back: 'Все проекты',
-      showAllCount: count => `Показать все сессии (${count})`
-    },
+    projects: ruProjects,
     newSessionIn: label => `Новый сеанс в ${label}`,
     showMoreIn: (count, label) => `Показать ещё ${count} в ${label}`,
     loading: 'Загрузка…',
@@ -4279,6 +4224,20 @@ export const ruOverrides = {
     files: 'Файлы',
     review: 'Проверка',
     logs: 'Журналы'
+  },
+  handoffTour: {
+    profileTitle: 'Первая задача выполняется в профиле по умолчанию',
+    profileText:
+      'Эта панель переключает профили. Сейчас подсвечен default — там сессия задачи. Другой — профиль настройки, там приветственный чат.',
+    sessionsTitle: 'У каждого профиля свои сессии',
+    sessionsText:
+      'Этот список относится к профилю default. «Новая сессия» создаёт её в выбранном профиле. Переключите профиль на панели — и список сменится.',
+    stayTitle: 'Hermes в одном клике',
+    stayText:
+      'Переключитесь на профиль настройки и откройте «Добро пожаловать в Hermes», когда понадобится помощь. Он остаётся там.',
+    localTitle: 'Этот компьютер может запускать модели локально',
+    localText: (model: string) =>
+      `${model} подходит для вашего оборудования. Работает бесплатно, а чаты не покидают ваш компьютер. Выберите её здесь, в меню моделей, когда захотите.`
   },
   composer: {
     message: 'Сообщение',
@@ -4444,6 +4403,14 @@ export const ruOverrides = {
     attachments: count => `${count} ${RU_NOUN(count, 'вложение', 'вложения', 'вложений')}`,
     editingInComposer: 'Редактирование в композере',
     editingQueuedInComposer: 'Редактирование хода в очереди в композере',
+    restoredDraftNotice: 'Восстановлено ваше неотправленное сообщение',
+    restoredDraftUndo: 'Отменить',
+    localSetup: {
+      title: 'Это может работать на вашем компьютере',
+      text: (model: string) =>
+        `${model} подходит для этого компьютера. Бесплатно, а чаты остаются на вашем компьютере.`,
+      action: 'Показать'
+    },
     queueEdit: 'Изменить',
     queueExpand: 'Раскрыть',
     queueCollapse: 'Свернуть',
@@ -4538,9 +4505,7 @@ export const ruOverrides = {
         text: 'Пожалуйста, объясните, как это работает, и укажите ключевые файлы.'
       }
     },
-    wakeWord: phrase => `Слово-пробуждение «${phrase}»`,
-    restoredDraftNotice: 'Восстановлено ваше неотправленное сообщение',
-    restoredDraftUndo: 'Отменить'
+    wakeWord: phrase => `Слово-пробуждение «${phrase}»`
   },
   statusStack: {
     agents: 'Агенты',
@@ -4809,101 +4774,30 @@ export const ruOverrides = {
     gitUnusable: 'Hermes не удалось запустить Git на этом компьютере, поэтому проверить обновления не получилось.',
     connectionSettings: 'Настройки подключения',
     openDownloadPage: 'Открыть страницу загрузки',
-    justNowSuffix: ' · только что'
-  },
-  handoffTour: {
-    profileTitle: 'Ваша первая задача выполняется в профиле по умолчанию.',
-    profileText:
-      'Эта направляющая переключает профили. Тот, который горит сейчас, является значением по умолчанию, в котором находится сеанс задачи. Другой — профиль настройки, в котором находится приветственный чат.',
-    sessionsTitle: 'Каждый профиль хранит свои сеансы',
-    sessionsText:
-      'Этот список принадлежит профилю по умолчанию. Новый сеанс начинается с любого выбранного профиля. Переключайте профили на рейке и список меняется вместе с ним.',
-    stayTitle: 'Hermes находится на расстоянии одного клика',
-    stayText:
-      'Переключитесь на профиль настройки и откройте «Добро пожаловать в Hermes», когда вам понадобится помощь. Оно остается там.'
-  },
-  guidedGreeting: {
-    line: 'Заходите. Я Hermes. Дайте мне пару минут — обустрою тут всё под вас, а потом займёмся тем, что вам правда нужно.\n\nДля начала: как к вам обращаться?',
-    nameSuggestion: (name: string) => `(Могу звать вас просто ${name}, если так удобнее.)`
-  },
-  guidedOnboarding: {
-    done: '✓ Готово',
-    continue: 'Продолжить',
-    skipSetup: 'Пропустить настройку',
-    fallbackOption: 'Давайте придумаем вместе',
-    handoffFailed: 'Не удалось запустить первую задачу.',
-    handoffFailedRetry: 'Не удалось запустить первую задачу. Повторите попытку, чтобы проверить её сессию.',
-    handoffStarted: title => `${title}: задача запущена и доступна в списке сессий`,
-    handoffOpening: title => `Открываем ${title}…`,
-    retryFirstBuild: 'Повторить первую задачу',
-    workingOnIt: 'Работаем над этим',
-    firstBuild: 'Первая задача',
-    signpostTitle: 'Hermes всё ещё рядом',
-    signpostBody:
-      'Теперь вы в своём рабочем пространстве, а здесь находятся профили. Наш предыдущий разговор сохранился — возвращайтесь, когда понадобится помощь.',
-    profileDescription: 'Место знакомства с Hermes — проводит через первый запуск и ненавязчиво помогает освоиться.',
-    accentNames: {
-      mono: 'Монохром',
-      githubGreen: 'Зелёный GitHub',
-      cyberCyan: 'Кибер-циан',
-      nousBlue: 'Синий Nous',
-      ultraviolet: 'Ультрафиолет',
-      barbiePink: 'Розовый Барби',
-      electricRed: 'Электрический красный',
-      safetyOrange: 'Сигнальный оранжевый'
-    },
-    layoutNames: {
-      basic: 'Базовая',
-      elite: 'Расширенная'
-    },
-    script: {
-      forkQuestion: 'Уже знаете, что хотите создать?',
-      automate: 'Автоматизировать привычную задачу',
-      figure: 'Давайте придумаем вместе',
-      mind: 'У меня уже есть идея',
-      skip: 'Пока пропустить',
-      somethingElse: 'Что-нибудь другое',
-      tourQuestion: 'Сначала немного осмотреться?',
-      tourBasics: 'Только самое важное',
-      tourNone: 'Разберусь самостоятельно',
-      tourFull: 'Покажите всё',
-      fallbackQuestion: 'Что звучит лучше?',
-      buildReviewQuestion: 'Получилось так, как вы хотели?',
-      buildReviewLooksRight: 'Всё верно',
-      buildReviewChange: 'Кое-что изменить',
-      buildReviewFurther: 'Развить дальше',
-      machineRunQuestion: 'Запустить этот план?',
-      machineRunGoAhead: 'Начать',
-      machineRunChangeList: 'Изменить список',
-      machineRunEssentials: 'Только необходимое',
-      checkpointQuestion: 'Что делать дальше?',
-      computerKind: 'компьютер',
-      machineSetupOption: kind => `Помогите настроить ${kind}`,
-      machineSetupTask: kind => `Настроить ${kind}`
-    },
-    errors: {
-      firstBuildNeedsAttention: 'Первая задача требует внимания',
-      welcomeOwnerUnavailable: 'Приветственный чат пока недоступен. Откройте его снова и повторите первую задачу.',
-      preferencesSaveFailed:
-        'Не удалось сохранить настройки знакомства. Повторите попытку перед запуском первой задачи.',
-      sessionOpenFailed: 'Не удалось открыть сессию первой задачи.',
-      sessionIdentityMissing:
-        'Сессия первой задачи не вернула постоянный идентификатор. Проверьте сессии и повторите попытку.',
-      welcomeCreateFailed: 'Не удалось создать приветственный чат. Повторите попытку.',
-      restoreProfileFailed: 'Не удалось восстановить профиль',
-      welcomeNeedsAttention: 'Приветственный чат требует внимания',
-      welcomeStartFailed: 'Не удалось запустить приветственный чат.',
-      receiptUnreadable:
-        'Не удалось прочитать сохранённые данные первой задачи. Проверьте сессии перед запуском другой задачи.',
-      receiptSaveFailed: 'Не удалось сохранить сессию первой задачи для восстановления. Новый запуск не отправлен.',
-      verifyFailed: 'Не удалось проверить первую задачу. Повторите попытку после восстановления подключения.',
-      unconfirmedRunning:
-        'Запуск первой задачи не подтверждён, но её сессия всё ещё работает. Повторите попытку после остановки; дубликат не отправлен.',
-      notAcknowledged:
-        'Первая задача не подтвердила запуск. Проверьте её сессию и повторите попытку; дубликат не отправлен.',
-      notAcknowledgedStart: 'Первая задача не подтвердила начало работы. Проверьте её сессию и повторите попытку.',
-      pluginFolderUnavailable: 'Папка плагинов приложения недоступна. Повторите попытку перед запуском первой задачи.'
-    }
+    justNowSuffix: ' · только что',
+    bundleOutOfSync: 'Сборка приложения устарела',
+    bundleOutOfSyncAction: 'Скачать установщик',
+    bundleOutOfSyncDesc:
+      'Рантайм Hermes обновлён, но само приложение — ещё старая сборка: новые функции интерфейса (например, Bot Mode) не появятся до обновления. Запустите обновление ниже, чтобы пересобрать приложение. Если предупреждение не исчезнет, переустановите с последнего установщика.',
+    cantReach: 'Не удалось связаться с сервером обновлений.',
+    checkNow: 'Проверить сейчас',
+    checkingShort: 'Проверка…',
+    daysAgo: count => `${count} ${RU_NOUN(count, 'день', 'дня', 'дней')} назад`,
+    hoursAgo: count => `${count} ${RU_NOUN(count, 'час', 'часа', 'часов')} назад`,
+    installing: 'Сейчас устанавливается обновление.',
+    justNow: 'только что',
+    lastChecked: age => `Проверено ${age}`,
+    minAgo: count => `${count} ${RU_NOUN(count, 'минуту', 'минуты', 'минут')} назад`,
+    never: 'никогда',
+    onLatest: 'У вас последняя версия.',
+    releaseNotes: 'Заметки о выпуске',
+    seeWhatsNew: 'Смотреть, что нового',
+    tapCheck: 'Нажмите «Проверить сейчас», чтобы найти обновления.',
+    updateReady: count =>
+      `Готово новое обновление (включено ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}).`,
+    updateReadyUnknown: 'Готово новое обновление.',
+    version: value => `Версия ${value}`,
+    versionUnavailable: 'Версия недоступна'
   },
   install: {
     stageStates: {
@@ -5005,107 +4899,7 @@ export const ruOverrides = {
     probeErrorDetails: 'Детали',
     openLogs: 'Открыть журналы'
   },
-  onboarding: {
-    headerTitle: 'Настроим для вас Hermes Agent',
-    headerDesc: 'Подключите провайдера модели, чтобы начать общение. Большинство вариантов — в один клик.',
-    providerTitles: {
-      anthropic: 'Ключ API Anthropic',
-      'claude-code': 'Anthropic OAuth: для подписки требуются дополнительные кредиты использования',
-      'openai-codex': 'Подписка ChatGPT или Codex'
-    },
-    preparingInstall: 'Hermes завершает установку. Обычно это занимает меньше минуты при первом запуске.',
-    starting: 'Запускаем Hermes…',
-    lookingUpProviders: 'Ищем провайдеров...',
-    collapse: 'Свернуть',
-    otherProviders: 'Другие провайдеры',
-    haveApiKey: 'У меня есть API-ключ',
-    chooseLater: 'Выберу провайдера позже',
-    recommended: 'Рекомендуется',
-    connected: 'Подключено',
-    featuredPitch: 'Одна подписка, 300+ передовых моделей — рекомендуемый способ запускать Hermes',
-    fireworksPitch: 'Прямой API моделей — передовые модели на хостинге Fireworks',
-    localModelsTitle: 'Запускайте модели локально',
-    localModelsPitch: 'Учетная запись не требуется — загрузите модель и запустите ее на этом компьютере.',
-    openRouterPitch: 'Один ключ, сотни моделей — надёжный вариант по умолчанию',
-    apiKeyOptions: {
-      fireworks: {
-        short: 'прямой API моделей',
-        description: 'Прямой доступ к моделям на хостинге Fireworks AI.'
-      },
-      openrouter: {
-        short: 'один ключ, много моделей',
-        description: 'Сотни моделей за одним ключом. Хороший вариант по умолчанию для новых установок.'
-      },
-      openai: {
-        short: 'модели класса GPT',
-        description: 'Прямой доступ к моделям OpenAI.'
-      },
-      gemini: {
-        short: 'модели Gemini',
-        description: 'Прямой доступ к моделям Google Gemini.'
-      },
-      xai: {
-        short: 'модели Grok',
-        description: 'Прямой доступ к моделям xAI Grok.'
-      },
-      local: {
-        short: 'self-hosted',
-        description:
-          'Укажите Hermes локальный или self-hosted OpenAI-совместимый endpoint (vLLM, llama.cpp, Ollama и т.д.).'
-      }
-    },
-    backToSignIn: 'Назад ко входу',
-    getKey: 'Получить ключ',
-    replaceCurrent: 'Заменить текущее значение',
-    pasteApiKey: 'Вставьте API-ключ',
-    directApiAccess: provider => `Прямой доступ к API ${provider}.`,
-    localApiKeyPlaceholder: 'API-ключ (необязательно — только если ваш endpoint его требует)',
-    couldNotSave: 'Не удалось сохранить учётные данные.',
-    connecting: 'Подключение',
-    update: 'Обновить',
-    flowSubtitles: {
-      pkce: 'Откроет браузер для входа, затем продолжит здесь',
-      device_code: 'Откроет страницу подтверждения в браузере — Hermes подключится автоматически',
-      external: 'Войдите один раз в терминале, затем вернитесь в чат'
-    },
-    startingSignIn: provider => `Начинаем вход для ${provider}...`,
-    verifyingCode: provider => `Проверяем ваш код через ${provider}...`,
-    connectedProvider: provider => `${provider} подключён`,
-    connectedPicking: provider => `${provider} подключён. Выбираем модель по умолчанию...`,
-    signInFailed: 'Вход не удался. Попробуйте снова.',
-    signInExpired:
-      'Время ожидания страницы входа истекло до того, как вы закончили. Попробуйте еще раз и завершите шаг браузера в течение нескольких минут или вместо этого используйте ключ API.',
-    pickDifferentProvider: 'Выбрать другого провайдера',
-    signInWith: provider => `Войти через ${provider}`,
-    openedBrowser: provider => `Мы открыли ${provider} в вашем браузере.`,
-    authorizeThere: 'Авторизуйте Hermes там.',
-    copyAuthCode: 'Скопируйте код авторизации и вставьте его ниже.',
-    pasteAuthCode: 'Вставьте код авторизации',
-    reopenAuthPage: 'Открыть страницу авторизации снова',
-    autoBrowser: provider =>
-      `Мы открыли ${provider} в вашем браузере. Авторизуйте Hermes там, и подключение произойдёт автоматически — ничего копировать и вставлять не нужно.`,
-    reopenSignInPage: 'Открыть страницу входа снова',
-    waitingAuthorize: 'Ждём вашей авторизации...',
-    externalPending: provider =>
-      `${provider} входит через собственный CLI. Выполните эту команду в терминале, затем вернитесь и выберите «Я вошёл»:`,
-    signedIn: 'Я вошёл',
-    deviceCodeOpened: provider => `Мы открыли ${provider} в вашем браузере. Введите там этот код:`,
-    reopenVerification: 'Открыть страницу подтверждения снова',
-    copy: 'Копировать',
-    defaultModel: 'Модель по умолчанию',
-    freeTier: 'Бесплатный тариф',
-    pro: 'Pro',
-    free: 'Free',
-    price: (input, output) => `${input} вход / ${output} выход за Mtok`,
-    change: 'Изменить',
-    startChatting: 'Начать',
-    docs: provider => `Документация ${provider}`,
-    signInDidNotFinish: provider =>
-      `Войти с помощью${provider}не завершено. Проверьте ваше интернет-соединение и попробуйте снова, или выберите другого провайдера.`,
-    tryAgain: 'Попробуйте снова',
-    useApiKeyInstead: 'Используйте ключ API.',
-    errorDetails: 'Детали'
-  },
+  onboarding: ruOnboarding,
   freeTier: {
     providerRowTitle: 'Nous · уровень бесплатного пользования',
     providerRowPitch: 'Войдите в систему с учетной записью Nous, чтобы разблокировать больше моделей и инструментов.',
@@ -5150,6 +4944,12 @@ export const ruOverrides = {
     errorBody: 'Вход не завершен. Попробуйте еще раз, когда будете готовы.',
     alreadySignedInHeading: 'Уже авторизован.',
     alreadySignedInBody: 'Этот Hermes уже вошел в учетную запись Nous.',
+    offer: {
+      heading: 'Продолжайте с Hermes',
+      body: 'Вы пользуетесь бесплатным лимитом. Если продолжите работать с Hermes, скоро начнёте упираться в ограничения. Войдите с бесплатной учётной записью Nous, чтобы получить больший лимит.',
+      signIn: 'Войти',
+      notNow: 'Не сейчас'
+    },
     busyHeading: 'Почти там',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}. А пока ваша сессия все еще здесь.`,
@@ -5978,9 +5778,35 @@ export const ruOverrides = {
       recommendedSuffix: '(Рекомендуется)',
       singleSelectHint: 'Выберите один',
       multiSelectHint: 'Выберите все подходящие',
+      oneQuestion: '1 вопрос',
       questionProgress: (answered, total) => `Ответ дан на ${answered} из ${total}`,
       notDelivered:
         'Этот вопрос не дошёл до приложения, поэтому ответить здесь нельзя. Нажмите «Стоп», чтобы завершить ход, и ответьте в чате.'
+    },
+    setupChoose: {
+      kinds: {
+        accent: 'Акцентный цвет',
+        connectors: 'Приложения',
+        layout: 'Раскладка',
+        plugins: 'Плагины',
+        theme: 'Оформление'
+      },
+      loading: 'Загружаю варианты…',
+      unavailable: 'Этот список сейчас недоступен. Ответьте в чате.',
+      findApp: 'Найти приложение',
+      customColor: 'Свой цвет',
+      plugin: 'Плагин',
+      startsLater: 'Мы настроим это, когда вы начнёте.'
+    },
+    startChat: {
+      starting: title => `Запускаю «${title}»…`,
+      startingUntitled: 'Запускаю чат…',
+      untitled: 'Новый чат',
+      notStarted: 'Чат не запустился',
+      retry: 'Повторить',
+      inProfile: profile => `В ${profile}`,
+      open: 'Открыть',
+      openFailed: 'Не удалось открыть чат'
     },
     catalogInstall: {
       preparing: 'Готовим установку…',
@@ -6215,6 +6041,16 @@ export const ruOverrides = {
           pending: 'Ищу в истории сеансов',
           pendingAction: 'Ищу'
         },
+        setup_choose: {
+          done: 'Задан вопрос о настройке',
+          pending: 'Задаю вопрос о настройке',
+          pendingAction: 'Спрашиваю'
+        },
+        start_chat: {
+          done: 'Чат запущен',
+          pending: 'Запускаю чат',
+          pendingAction: 'Запускаю'
+        },
         skill_view: {
           done: 'Загруженный навык',
           pending: 'Загрузка мастерства',
@@ -6306,7 +6142,9 @@ export const ruOverrides = {
     vaultCodeSkip: 'Пропустить',
     vaultCodeConfirm: 'Введите код',
     reconnect: 'Переподключиться',
-    sudoCommandUnavailable: 'Агент не предоставил команду. Отмените запрос, если не можете проверить её в разговоре.'
+    sudoCommandUnavailable: 'Агент не предоставил команду. Отмените запрос, если не можете проверить её в разговоре.',
+    sudoInstallDesc:
+      'Hermes нужен ваш пароль sudo, чтобы установить пакеты Bot Screen (TigerVNC + Xfce) на хосте шлюза. Он отправляется только на этот хост.'
   },
   desktop: {
     audioReadFailed: 'Не удалось прочитать записанное аудио',
@@ -6451,11 +6289,6 @@ export const ruOverrides = {
       'composer-mentions': {
         title: 'Прикрепляйте и командуйте',
         text: 'Введите @, чтобы включить в разговор файл, / для запуска команды.'
-      },
-      'local-setup': {
-        title: 'Эта машина может запускать модели локально',
-        text: 'Ваше оборудование может обслуживать локальную модель. Чаты остаются на вашем компьютере и ничего не требуют.',
-        action: 'Настройте это'
       },
       'right-pane': {
         title: 'Рабочая панель',

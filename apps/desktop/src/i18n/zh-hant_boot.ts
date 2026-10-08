@@ -113,7 +113,14 @@ export const zhHantBoot = {
     message: reason => `軟體繪圖已啟用 — 偵測到遠端顯示（${reason}）。為防止畫面閃爍，已停用 GPU 加速。`
   },
   butterbar: {
-    goTo: (index, total) => `顯示第 ${index} 則通知，共 ${total} 則`
+    goTo: (index, total) => `顯示第 ${index} 則通知，共 ${total} 則`,
+    legal: {
+      before: '使用 Hermes Agent 即表示受我們的',
+      terms: '服務條款',
+      between: '和',
+      privacy: '隱私權政策',
+      after: '約束。'
+    }
   },
 
   updates: {
@@ -281,85 +288,12 @@ export const zhHantBoot = {
     sessionsTitle: '每個設定檔都有自己的會話',
     sessionsText: '此列表屬於預設設定檔。新會話將在選擇的設定檔上啟動。在導軌上切換配置文件，清單隨之變化。',
     stayTitle: 'Hermes 只需點擊一下即可',
-    stayText: '切換到設定設定檔並在需要協助時開啟歡迎使用 Hermes。它留在那裡。'
+    stayText: '切換到設定設定檔並在需要協助時開啟歡迎使用 Hermes。它留在那裡。',
+    localTitle: '這台電腦可以在本機執行模型',
+    localText: (model: string) =>
+      `${model} 適合你的硬體。免費執行，對話不會離開你的電腦。隨時在這裡的模型選單中選擇它。`
   },
-  guidedGreeting: {
-    line: '來了，進來吧。我是 Hermes。給我兩分鐘，把這裡按你的習慣整理一下，然後我們找件你真正想做的事來做。\n\n先說，我該怎麼稱呼你？',
-    nameSuggestion: (name: string) => `（如果你願意，我也可以直接叫你 ${name}。）`
-  },
-  guidedOnboarding: {
-    done: '✓ 完成',
-    continue: '繼續',
-    skipSetup: '略過設定',
-    fallbackOption: '一起想想要做什麼',
-    handoffFailed: '無法啟動第一個任務。',
-    handoffFailedRetry: '無法啟動第一個任務，請重試並檢查其工作階段。',
-    handoffStarted: title => `${title} 已啟動，可在工作階段清單中找到`,
-    handoffOpening: title => `正在開啟 ${title}…`,
-    retryFirstBuild: '重試第一個任務',
-    workingOnIt: '正在處理',
-    firstBuild: '第一個任務',
-    signpostTitle: 'Hermes 就在隔壁',
-    signpostBody: '你現在位於自己的工作區，所有設定檔都在這裡。剛才的對話仍保留在其中，需要幫忙時隨時回來。',
-    profileDescription: '你與 Hermes 初次見面的地方 — 引導首次使用，並在你熟悉後適時跟進。',
-    accentNames: {
-      mono: '單色',
-      githubGreen: 'GitHub 綠',
-      cyberCyan: '賽博青',
-      nousBlue: 'Nous 藍',
-      ultraviolet: '紫外紫',
-      barbiePink: '芭比粉',
-      electricRed: '電光紅',
-      safetyOrange: '安全橙'
-    },
-    layoutNames: {
-      basic: '基礎',
-      elite: '進階'
-    },
-    script: {
-      forkQuestion: '想好讓它做什麼了嗎？',
-      automate: '自動處理我常做的事',
-      figure: '一起想想要做什麼',
-      mind: '我已經有想法了',
-      skip: '暫時略過',
-      somethingElse: '其他事情',
-      tourQuestion: '要先四處看看嗎？',
-      tourBasics: '只看基礎功能',
-      tourNone: '我自己摸索',
-      tourFull: '帶我看看',
-      fallbackQuestion: '哪個聽起來更適合？',
-      buildReviewQuestion: '這符合你的預期嗎？',
-      buildReviewLooksRight: '符合預期',
-      buildReviewChange: '修改一些內容',
-      buildReviewFurther: '繼續完善',
-      machineRunQuestion: '要我執行這個方案嗎？',
-      machineRunGoAhead: '開始吧',
-      machineRunChangeList: '修改清單',
-      machineRunEssentials: '只做必要項',
-      checkpointQuestion: '接下來想怎麼做？',
-      computerKind: '電腦',
-      machineSetupOption: kind => `幫我設定這台 ${kind}`,
-      machineSetupTask: kind => `設定這台 ${kind}`
-    },
-    errors: {
-      firstBuildNeedsAttention: '第一個任務需要處理',
-      welcomeOwnerUnavailable: '歡迎對話暫時無法使用，請重新開啟後重試第一個任務。',
-      preferencesSaveFailed: '無法儲存引導設定，請在啟動第一個任務前重試。',
-      sessionOpenFailed: '無法開啟第一個任務的工作階段。',
-      sessionIdentityMissing: '第一個任務的工作階段未傳回永久識別碼，請檢查工作階段後重試。',
-      welcomeCreateFailed: '無法建立歡迎對話，請重試。',
-      restoreProfileFailed: '無法還原你的設定檔',
-      welcomeNeedsAttention: '歡迎對話需要處理',
-      welcomeStartFailed: '無法啟動歡迎對話。',
-      receiptUnreadable: '無法讀取已儲存的第一個任務記錄，請先檢查工作階段再啟動其他任務。',
-      receiptSaveFailed: '無法儲存第一個任務的復原資訊，尚未送出新的啟動要求。',
-      verifyFailed: '無法驗證第一個任務，請在連線恢復後重試。',
-      unconfirmedRunning: '第一個任務尚未確認啟動，但工作階段仍顯示執行中。請在其閒置後重試；沒有重複送出。',
-      notAcknowledged: '第一個任務尚未確認啟動，請檢查其工作階段後重試；沒有重複送出。',
-      notAcknowledgedStart: '第一個任務未確認啟動，請檢查其工作階段後重試。',
-      pluginFolderUnavailable: '桌面外掛程式資料夾無法使用，請在啟動第一個任務前重試。'
-    }
-  },
+
   install: {
     stageStates: {
       pending: '等待中',
@@ -537,8 +471,6 @@ export const zhHantBoot = {
     copyAuthCode: '複製授權碼並貼到下方。',
     pasteAuthCode: '貼上授權碼',
     reopenAuthPage: '重新開啟授權頁面',
-    autoBrowser: provider => `已在瀏覽器中開啟 ${provider}。請在那裡授權 Hermes，連線會自動完成，無需複製或貼上。`,
-    reopenSignInPage: '重新開啟登入頁面',
     waitingAuthorize: '等待您授權...',
     externalPending: provider => `${provider} 透過自己的 CLI 登入。請在終端機執行此指令，然後回來選擇「我已登入」：`,
     signedIn: '我已登入',
@@ -557,7 +489,12 @@ export const zhHantBoot = {
     tryAgain: '再試一次',
     useApiKeyInstead: '使用 API 鍵',
     errorDetails: '詳細資訊',
-    localModelNamePlaceholder: '模型名稱（例如 command-a-plus-05-2026）'
+    localModelNamePlaceholder: '模型名稱（例如 command-a-plus-05-2026）',
+    setupSlowTitle: '設定花費的時間比平常久。',
+    setupSlowBody: 'Hermes 仍在背景中啟動。',
+    continueWithoutSetup: '略過設定並繼續',
+    skipSetup: '略過設定',
+    skipSetupTip: '正在為你切換到預設設定檔'
   },
   freeTier: {
     providerRowTitle: 'Nous · 免費套餐',
@@ -571,7 +508,7 @@ export const zhHantBoot = {
     stripBody: '開啟模型選擇器進行嘗試，或使用 Nous 帳號登入。',
     openModelPicker: '開啟模型選擇器',
     dismiss: '解散',
-    providerName: 'Nous}',
+    providerName: 'Nous',
     statusLabel: model => `Nous ·${model}`,
     signIn: '登入',
     signInHeading: '使用 Nous 帳戶登入以解鎖更多模型和工具。',
@@ -600,6 +537,12 @@ export const zhHantBoot = {
     errorBody: '登入未完成。當你準備好時再試一次。',
     alreadySignedInHeading: '已經登入。',
     alreadySignedInBody: '此 Hermes 已登入 Nous 帳號。',
+    offer: {
+      heading: '繼續使用 Hermes',
+      body: '你正在使用免費額度。繼續使用 Hermes 的話，你會開始遇到限制。登入免費的 Nous 帳戶，即可獲得更多額度。',
+      signIn: '登入',
+      notNow: '暫不'
+    },
     busyHeading: '快到了',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}。與此同時，您的會話仍然在這裡。`,
@@ -621,14 +564,5 @@ export const zhHantBoot = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  | 'boot'
-  | 'remoteDisplayBanner'
-  | 'butterbar'
-  | 'updates'
-  | 'handoffTour'
-  | 'guidedGreeting'
-  | 'guidedOnboarding'
-  | 'install'
-  | 'onboarding'
-  | 'freeTier'
+  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'handoffTour' | 'install' | 'onboarding' | 'freeTier'
 >

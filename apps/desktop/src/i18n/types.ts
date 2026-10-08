@@ -10,11 +10,14 @@ import type { TipId } from '@/lib/tips/catalog'
 
 import type { AppTourTranslations, HandoffTourTranslations } from './types_app_tour'
 import type { AuxTaskCopyMap } from './types_aux_tasks'
+import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
 import type { CatalogInstallTranslations } from './types_catalog_install'
 import type { GoalStatusTranslations } from './types_goal_status'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { NoticeTranslations } from './types_notices'
+import type { OnboardingTranslations } from './types_onboarding'
+import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
 import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
@@ -58,7 +61,9 @@ export type ToolTitleKey =
   | 'read_file'
   | 'search_files'
   | 'session_search_recall'
+  | 'setup_choose'
   | 'skill_view'
+  | 'start_chat'
   | 'terminal'
   | 'todo'
   | 'vision_analyze'
@@ -1344,6 +1349,11 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       minimizeToTrayTitle: string
       minimizeToTrayDesc: string
       minimizeToTrayUnavailable: string
+      developerTitle: string
+      resetOnboardingTitle: string
+      resetOnboardingDesc: string
+      resetOnboardingAction: string
+      resetOnboardingFailed: string
       none: string
       noneParen: string
       builtinOnly: string
@@ -2751,82 +2761,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       guide: string
     }
     noFilterMatches: string
-    projects: {
-      showAllSessions: string
-      sectionLabel: string
-      home: string
-      autoDiscovered: string
-      newButton: string
-      createTitle: string
-      createDesc: string
-      renameTitle: string
-      addFolderTitle: string
-      namePlaceholder: string
-      foldersLabel: string
-      ideaLabel: string
-      ideaPlaceholder: string
-      ideaGenerate: string
-      ideaGenerating: string
-      ideaShuffle: string
-      noFolders: string
-      addFolder: string
-      primaryBadge: string
-      removeFolder: string
-      create: string
-      menu: string
-      menuRename: string
-      menuAppearance: string
-      noColor: string
-      menuAddFolder: string
-      menuSetActive: string
-      menuDelete: string
-      moveToProject: string
-      movedTo: (name: string) => string
-      moveFailed: string
-      moveNoFolder: string
-      moveNoProjects: string
-      reveal: string
-      copyPath: string
-      removeFromSidebar: string
-      createdInPreviousContext: string
-      createFailed: string
-      unavailableAllProfiles: string
-      staleBackend: string
-      deleteConfirm: string
-      startWork: string
-      newWorktreeTitle: string
-      newWorktreeDesc: string
-      branchPlaceholder: string
-      branchOff: () => { after: string; before: string }
-      baseBranchPlaceholder: string
-      baseBranchNone: string
-      startWorkFailed: string
-      worktreeStaleBackend: string
-      worktreeProjectLabel: string
-      worktreeProjectPlaceholder: string
-      worktreeProjectNone: string
-      convertBranch: string
-      convertBranchTitle: string
-      convertBranchDesc: string
-      convertBranchPlaceholder: string
-      convertBranchInstead: string
-      branchOpenExisting: string
-      branchSwitchHome: string
-      branchCreateWorktree: string
-      branchTrackRemote: string
-      branchesLoading: string
-      noBranches: string
-      removeWorktree: string
-      removeWorktreeFailed: string
-      removeWorktreeConfirm: string
-      removeWorktreeDirty: string
-      forceRemove: string
-      enter: (label: string) => string
-      reorder: (label: string) => string
-      toggle: (label: string, open: boolean) => string
-      back: string
-      showAllCount: (count: number) => string
-    }
+    projects: SidebarProjectsTranslations
     newSessionIn: (label: string) => string
     showMoreIn: (count: number, label: string) => string
     loading: string
@@ -2983,6 +2918,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     attachments: (count: number) => string
     editingInComposer: string
     editingQueuedInComposer: string
+    /** The local-setup offer above the input after the first finished task. */
+    localSetup: { title: string; text: (model: string) => string; action: string }
     queueEdit: string
     queueExpand: string
     queueCollapse: string
@@ -3201,67 +3138,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     versionDetailsInstallId: string
     versionDetailsUncommittedChanges: string
     justNowSuffix: string
-  }
-  guidedOnboarding: {
-    done: string
-    continue: string
-    skipSetup: string
-    fallbackOption: string
-    handoffFailed: string
-    handoffFailedRetry: string
-    handoffStarted: (title: string) => string
-    handoffOpening: (title: string) => string
-    retryFirstBuild: string
-    workingOnIt: string
-    firstBuild: string
-    signpostTitle: string
-    signpostBody: string
-    profileDescription: string
-    accentNames: Record<string, string>
-    layoutNames: Record<string, string>
-    script: {
-      forkQuestion: string
-      automate: string
-      figure: string
-      mind: string
-      skip: string
-      somethingElse: string
-      tourQuestion: string
-      tourBasics: string
-      tourNone: string
-      tourFull: string
-      fallbackQuestion: string
-      buildReviewQuestion: string
-      buildReviewLooksRight: string
-      buildReviewChange: string
-      buildReviewFurther: string
-      machineRunQuestion: string
-      machineRunGoAhead: string
-      machineRunChangeList: string
-      machineRunEssentials: string
-      checkpointQuestion: string
-      computerKind: string
-      machineSetupOption: (kind: string) => string
-      machineSetupTask: (kind: string) => string
-    }
-    errors: {
-      firstBuildNeedsAttention: string
-      welcomeOwnerUnavailable: string
-      preferencesSaveFailed: string
-      sessionOpenFailed: string
-      sessionIdentityMissing: string
-      welcomeCreateFailed: string
-      restoreProfileFailed: string
-      welcomeNeedsAttention: string
-      welcomeStartFailed: string
-      receiptUnreadable: string
-      receiptSaveFailed: string
-      verifyFailed: string
-      unconfirmedRunning: string
-      notAcknowledged: string
-      notAcknowledgedStart: string
-      pluginFolderUnavailable: string
-    }
   }
   assistant: {
     media: {
@@ -3544,6 +3420,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       alwaysAllow: string
     }
     clarify: {
+      oneQuestion: string
       notReady: string
       gatewayDisconnected: string
       sendFailed: string
@@ -3562,6 +3439,25 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     }
     catalogInstall: CatalogInstallTranslations
 
+    setupChoose: {
+      kinds: Record<'accent' | 'connectors' | 'layout' | 'plugins' | 'theme', string>
+      loading: string
+      unavailable: string
+      findApp: string
+      customColor: string
+      plugin: string
+      startsLater: string
+    }
+    startChat: {
+      starting: (title: string) => string
+      startingUntitled: string
+      untitled: string
+      notStarted: string
+      retry: string
+      inProfile: (profile: string) => string
+      open: string
+      openFailed: string
+    }
     mcpSetup: {
       installTitle: string
       enableTitle: string
@@ -3963,14 +3859,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
   }
   boot: BootTranslations
 
-  billingBlock: {
-    titleNous: string
-    titleProvider: (provider: string) => string
-    fallbackMessage: string
-    openBilling: string
-    addCredits: string
-    dismiss: string
-  }
+  billingBlock: BillingTranslations['billingBlock']
   sendDiagnostics: {
     title: string
     privacyNotice: string
@@ -4324,6 +4213,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     next: string
     overdueSince: string
     noRuns: string
+    queuedRun: string
     manage: string
     showRuns: string
     hideRuns: string
@@ -4605,10 +4495,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     }
   }
   handoffTour: HandoffTourTranslations
-  guidedGreeting: {
-    line: string
-    nameSuggestion: (name: string) => string
-  }
   install: {
     stageStates: Record<string, string>
     stageNames: Record<string, string>
@@ -4679,70 +4565,9 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     useLocalDesc: string
     bundledLocalDesc: string
   }
-  onboarding: {
-    headerTitle: string
-    headerDesc: string
-    providerTitles: Record<string, string>
-    preparingInstall: string
-    starting: string
-    lookingUpProviders: string
-    collapse: string
-    otherProviders: string
-    haveApiKey: string
-    chooseLater: string
-    recommended: string
-    connected: string
-    featuredPitch: string
-    fireworksPitch: string
-    localModelsTitle: string
-    localModelsPitch: string
-    openRouterPitch: string
-    apiKeyOptions: Record<string, { short: string; description: string }>
-    backToSignIn: string
-    getKey: string
-    replaceCurrent: string
-    pasteApiKey: string
-    directApiAccess: (provider: string) => string
-    localApiKeyPlaceholder: string
-    localModelNamePlaceholder: string
-    couldNotSave: string
-    connecting: string
-    update: string
-    flowSubtitles: Record<string, string>
-    startingSignIn: (provider: string) => string
-    verifyingCode: (provider: string) => string
-    connectedProvider: (provider: string) => string
-    connectedPicking: (provider: string) => string
-    signInFailed: string
-    signInExpired: string
-    signInDidNotFinish: (provider: string) => string
-    tryAgain: string
-    useApiKeyInstead: string
-    errorDetails: string
-    pickDifferentProvider: string
-    signInWith: (provider: string) => string
-    openedBrowser: (provider: string) => string
-    authorizeThere: string
-    copyAuthCode: string
-    pasteAuthCode: string
-    reopenAuthPage: string
-    autoBrowser: (provider: string) => string
-    reopenSignInPage: string
-    waitingAuthorize: string
-    externalPending: (provider: string) => string
-    signedIn: string
-    deviceCodeOpened: (provider: string) => string
-    reopenVerification: string
-    copy: string
-    defaultModel: string
-    freeTier: string
-    pro: string
-    free: string
-    price: (input: string, output: string) => string
-    change: string
-    startChatting: string
-    docs: (provider: string) => string
-  }
+
+  onboarding: OnboardingTranslations
+
   freeTier: {
     /** Settings › Providers row title while the Nous identity is the free tier. */
     providerRowTitle: string
@@ -4795,6 +4620,13 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     unreachableBody: string
     alreadySignedInHeading: string
     alreadySignedInBody: string
+    /** The "keep going" offer the backend times after a finished task (repeats, backing off). */
+    offer: {
+      heading: string
+      body: string
+      signIn: string
+      notNow: string
+    }
     // First-launch set-up failure notice: the free tier could not be created at boot.
     // One sentence per backend code (`hermes_cli/anon_auth.py::ANON_*`); the copy never says
     // the free MODEL is off — what is unavailable is using Hermes without signing in.
@@ -5287,7 +5119,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
      *  a button, and `action` is its label. */
     items: Record<TipId, { title: string; text: string }> & {
       'local-runtime-update': { title: string; text: string; action: string }
-      'local-setup': { title: string; text: string; action: string }
     }
   }
   errors: {

@@ -295,6 +295,8 @@ export const arChrome = {
       copyPath: 'نسخ المسار',
       removeFromSidebar: 'إخفاء من الشريط الجانبي',
       createdInPreviousContext: 'أُنشئ المشروع على الاتصال أو الملف الشخصي السابق. عُد إليه؛ لم يُكتب ملف IDEA.md.',
+      hiddenFromSidebar: 'أُخفي من الشريط الجانبي',
+      undoHide: 'تراجع',
       createFailed: 'تعذّر إنشاء المشروع',
       unavailableAllProfiles: 'لا تتوفر المشاريع أثناء عرض كل الملفات الشخصية',
       staleBackend:
@@ -392,7 +394,8 @@ export const arChrome = {
       ageNow: 'الآن',
       ageDay: 'يوم',
       ageHour: 'ساعة',
-      ageMin: 'دقيقة'
+      ageMin: 'دقيقة',
+      renameDesc: ''
     },
     dateDivider: {
       today: 'في وقت سابق من اليوم',
@@ -468,6 +471,11 @@ export const arChrome = {
       priceTitle: (input: string, output: string, cache: string) =>
         `الإدخال ${input}/Mtok · الإخراج ${output}/Mtok` + (cache ? ` · قراءة من الذاكرة المؤقتة ${cache}/Mtok` : ''),
       moaPresets: 'إعدادات MOA المسبقة',
+      localSetup: {
+        title: 'تشغيل محلي · مجاني وخاص',
+        text: (model: string, size: string) => `${model} يناسب هذا الجهاز · تنزيل ${size}`,
+        action: 'إعداد'
+      },
       limited: 'محدود',
       limitedUntil: (time: string) => `محدود حتى ${time}`,
       limitedTip: (provider: string, time: null | string) =>

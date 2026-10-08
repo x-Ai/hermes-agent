@@ -257,18 +257,9 @@ export const zhHantSettings = {
       enableAllDesc: '關閉後靜音下方所有通知。',
       focusedHint: '完成提醒僅在 Hermes 位於背景時觸發。',
       kinds: {
-        approval: {
-          label: '需要核准',
-          description: '有指令正在等待你核准或拒絕。'
-        },
-        input: {
-          label: '需要輸入',
-          description: 'Hermes 提出了問題，或需要密碼或密鑰。'
-        },
-        turnDone: {
-          label: '回覆就緒',
-          description: 'Hermes 在背景時完成了一輪對話。'
-        },
+        approval: { label: '需要核准', description: '有指令正在等待你核准或拒絕。' },
+        input: { label: '需要輸入', description: 'Hermes 提出了問題，或需要密碼或密鑰。' },
+        turnDone: { label: '回覆就緒', description: 'Hermes 在背景時完成了一輪對話。' },
         turnError: {
           label: '本輪失敗',
           description: '背景回合錯誤。'
@@ -911,7 +902,12 @@ export const zhHantSettings = {
         '點擊連結時一律使用系統瀏覽器開啟，而不是應用程式內瀏覽器。右鍵選單中的「在應用程式內瀏覽器中開啟」仍然可用',
       voiceShortcutHintTitle: '語音錄製快捷鍵',
       voiceShortcutHintDesc:
-        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI'
+        '請在「設定 → 鍵盤快捷鍵」中設定語音錄製快捷鍵（「開始/停止語音對話」）。voice.record_key 設定值僅適用於 CLI 和 TUI',
+      developerTitle: '開發者',
+      resetOnboardingTitle: '重設初始設定',
+      resetOnboardingDesc: '刪除設定聊天、重建設定設定檔，並再次執行首次設定。你自己的設定檔、聊天和外掛都會保留。',
+      resetOnboardingAction: '重設',
+      resetOnboardingFailed: '無法重設初始設定'
     },
     quickEntry: {
       enabledTitle: '快速輸入',
@@ -1541,7 +1537,7 @@ export const zhHantSettings = {
         '保持執行以便快速切換的機器人後端數量。數量越多，切換越快，記憶體用量也越高（每個後端約 60 MB）。修改後立即生效。',
       idleTimeout: '後端閒置逾時',
       idleTimeoutDescription:
-        '未使用的機器人後端在關閉前保持執行的時間。調高此值，可避免每隔幾分鐘切回機器人時都要等待重新啟動。',
+        '未使用的遠端機器人連線在中斷前保持快取的時間。本機後端在閒置時會繼續執行，因為它們要跑排程工作和機器人聊天。',
       idleTimeoutAria: '後端閒置逾時（毫秒）',
       milliseconds: '毫秒',
       warmBotBackendsAria: '熱身機器人後端',

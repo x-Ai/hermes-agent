@@ -1418,7 +1418,7 @@ class TestIsPaymentError:
             "this model requires a subscription, upgrade for access: "
             "https://ollama.com/upgrade"
         )
-        setattr(exc, "status_code", 403)
+        exc.status_code = 403
         assert _is_payment_error(exc) is True
 
 
@@ -3202,7 +3202,7 @@ class TestAnthropicAuxiliaryReasoningTranslation:
         # commandcode-anthropic: OpenAI-shaped URL, anthropic_messages api_mode, and a profile
         # class that overrides build_api_kwargs_extras (so the generic extra_body.reasoning
         # fallback the adapter used to read is suppressed). The adapter must still be told.
-        import model_tools  # noqa: F401 — triggers provider discovery
+        import model_tools
         import providers
 
         assert providers.get_provider_profile("commandcode-anthropic") is not None
@@ -3222,7 +3222,7 @@ class TestAnthropicAuxiliaryReasoningTranslation:
         # Bare ``provider: commandcode-anthropic`` (no api_mode) must wrap the client on the
         # profile's declared wire, or the ``_reasoning_config`` kwarg above would reach a plain
         # OpenAI client and TypeError.
-        import model_tools  # noqa: F401
+        import model_tools
         from agent.auxiliary_client import AnthropicAuxiliaryClient, resolve_provider_client
 
         monkeypatch.setenv("COMMANDCODE_API_KEY", "sk-test-" + "x" * 20)

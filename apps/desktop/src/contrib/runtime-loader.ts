@@ -590,6 +590,8 @@ async function diskRoots(): Promise<DiskRoot[]> {
 const PACKAGE_MARKER = '.hermes-package.json'
 
 interface PackageMarker {
+  /** The package is a symlinked dev checkout; `source` is its `desktop/` dir. */
+  linkedSource?: string
   origin?: { catalogName?: string; repo?: string; sha?: string }
   package: string
 }
@@ -611,9 +613,11 @@ async function readPackageMarker(desktop: Window['hermesDesktop'], folder: strin
 
     const parsed = JSON.parse(read.text) as {
       catalogName?: string
+      linked?: boolean
       package?: string
       repo?: string
       sha?: string
+      source?: string
     }
 
     if (!parsed.package) {
@@ -621,6 +625,7 @@ async function readPackageMarker(desktop: Window['hermesDesktop'], folder: strin
     }
 
     return {
+      linkedSource: parsed.linked && parsed.source ? parsed.source : undefined,
       origin: parsed.repo ? { catalogName: parsed.catalogName, repo: parsed.repo, sha: parsed.sha } : undefined,
       package: parsed.package
     }
@@ -640,6 +645,10 @@ interface DiskPlugin {
   id: null | string
   /** Origin label (folder name) — the toast/inventory name for load errors. */
   origin: string
+  /** Linked dev package only: the SOURCE `desktop/plugin.js` this copy came from. */
+  sourceFile?: string
+  /** Watch on `sourceFile` — a save re-syncs the copy, then reloads it. */
+  sourceWatchId?: null | string
   watchId: null | string
 }
 
@@ -805,6 +814,49 @@ async function watchDiskPluginFile(desktop: NonNullable<Window['hermesDesktop']>
   }
 }
 
+/** Watch a linked dev package's SOURCE `plugin.js`. Without it the developer
+ *  edits their checkout while the app keeps running the copy in
+ *  `desktop-plugins/` — the copy is only refreshed on Rescan or restart. */
+async function watchDiskPluginSource(desktop: NonNullable<Window['hermesDesktop']>, record: DiskPlugin): Promise<void> {
+  if (!record.sourceFile || record.sourceWatchId) {
+    return
+  }
+
+  try {
+    const watch = await desktop.watchPreviewFile(record.sourceFile)
+
+    record.sourceWatchId = isReadFileErrorResult(watch) ? null : watch.id
+  } catch {
+    record.sourceWatchId = null
+  }
+}
+
+/** A linked source changed: copy it over the app-root half (Electron's
+ *  reconcile — the one writer of that folder), then reload every copy that
+ *  pass replaced and re-bind its watch, which the folder swap orphaned. */
+async function resyncLinkedDiskPlugins(): Promise<void> {
+  const desktop = window.hermesDesktop
+
+  if (!desktop?.reconcileDesktopPlugins) {
+    return
+  }
+
+  const touched = new Set((await desktop.reconcileDesktopPlugins().catch(() => [])) ?? [])
+
+  for (const record of disk.values()) {
+    // The folder of `<root>/<name>/plugin.js`, either separator (Windows paths).
+    if (!touched.has(record.file.replace(/[\\/][^\\/]*$/, ''))) {
+      continue
+    }
+
+    if (await loadDiskPlugin(record)) {
+      await watchDiskPluginFile(desktop, record)
+    } else {
+      void scanDiskPlugins()
+    }
+  }
+}
+
 /** Reconcile the disk root with the inventory. `reloadKnown` (the manual
  *  "Reload desktop plugins" command) also re-reads every already-known entry
  *  file: an installer that atomically replaces a plugin folder keeps the
@@ -878,6 +930,8 @@ async function scanDiskPlugins(reloadKnown = false): Promise<void> {
           origin: dir.name,
           packageName: marker?.package,
           packageOrigin: marker?.origin,
+          sourceFile: marker?.linkedSource ? `${marker.linkedSource}/plugin.js` : undefined,
+          sourceWatchId: null,
           watchId: null
         }
 
@@ -890,6 +944,7 @@ async function scanDiskPlugins(reloadKnown = false): Promise<void> {
         }
 
         await watchDiskPluginFile(desktop, record)
+        await watchDiskPluginSource(desktop, record)
       }
     }
 
@@ -920,6 +975,10 @@ function retireDiskPlugin(file: string, record: DiskPlugin): void {
 
   if (record.watchId) {
     void window.hermesDesktop?.stopPreviewFileWatch(record.watchId)
+  }
+
+  if (record.sourceWatchId) {
+    void window.hermesDesktop?.stopPreviewFileWatch(record.sourceWatchId)
   }
 
   disk.delete(file)
@@ -988,6 +1047,12 @@ export function watchRuntimePlugins(): void {
     }
 
     for (const record of disk.values()) {
+      if (record.sourceWatchId === id) {
+        void resyncLinkedDiskPlugins()
+
+        return
+      }
+
       if (record.watchId === id) {
         void loadDiskPlugin(record).then(readable => {
           if (!readable) {

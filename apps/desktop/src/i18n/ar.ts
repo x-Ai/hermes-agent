@@ -56,8 +56,6 @@ export const arOverrides = {
   goalStatus: arChat.goalStatus,
   updates: arBoot.updates,
   handoffTour: arBoot.handoffTour,
-  guidedGreeting: arBoot.guidedGreeting,
-  guidedOnboarding: arBoot.guidedOnboarding,
   install: arBoot.install,
   onboarding: arBoot.onboarding,
   freeTier: arBoot.freeTier,

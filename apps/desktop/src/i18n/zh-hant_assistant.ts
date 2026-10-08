@@ -397,6 +397,7 @@ export const zhHantAssistant = {
       noAnswer: '未回答',
       confirmAndContinueLabel: '確認並繼續',
       singleSelectHint: '選一個',
+      oneQuestion: '1 個問題',
       multiSelectHint: '可多選',
       recommendedSuffix: '（推薦）',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
@@ -418,6 +419,31 @@ export const zhHantAssistant = {
       sendFailed: '無法發送 MCP 設定回應',
       reloadFailed: '伺服器已儲存，但重新載入 MCP 工具失敗 - 它們載入下一個會話',
       gatewayDisconnected: 'Hermes 目前離線。重新連接，然後再次發送。'
+    },
+    setupChoose: {
+      kinds: {
+        accent: '強調色',
+        connectors: '應用程式',
+        layout: '版面配置',
+        plugins: '外掛',
+        theme: '外觀'
+      },
+      loading: '正在載入選項…',
+      unavailable: '此清單暫時無法使用，請直接在聊天中回覆。',
+      findApp: '尋找應用程式',
+      customColor: '自訂顏色',
+      plugin: '外掛',
+      startsLater: '開始時我們會幫你設定好這些。'
+    },
+    startChat: {
+      starting: title => `正在啟動「${title}」…`,
+      startingUntitled: '正在啟動聊天…',
+      untitled: '新聊天',
+      notStarted: '無法啟動該聊天。',
+      retry: '重試',
+      inProfile: profile => `位於 ${profile}`,
+      open: '開啟',
+      openFailed: '無法開啟聊天'
     },
     tool: {
       copyCode: '複製程式碼',
@@ -580,6 +606,16 @@ export const zhHantAssistant = {
           done: '已提問',
           pending: '正在提問',
           pendingAction: '正在提問'
+        },
+        setup_choose: {
+          done: '已提出設定問題',
+          pending: '正在提出設定問題',
+          pendingAction: '正在提問'
+        },
+        start_chat: {
+          done: '已啟動聊天',
+          pending: '正在啟動聊天',
+          pendingAction: '正在啟動'
         },
         cronjob: {
           done: 'Cron 工作',

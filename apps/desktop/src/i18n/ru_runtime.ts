@@ -69,6 +69,9 @@ export const ruRuntime = {
     audioContextUnavailable: 'AudioContext недоступен для захвата пробуждения на клиенте',
     connectionBridgeUnavailable: 'Мост соединений Hermes Desktop недоступен',
     builtinProviderId: (id: string, suggestion: string) =>
-      `«${id}» — идентификатор встроенного провайдера. Укажите для этой конечной точки другой идентификатор (например, «${suggestion}»).`
+      `«${id}» — идентификатор встроенного провайдера. Укажите для этой конечной точки другой идентификатор (например, «${suggestion}»).`,
+    welcomeNeedsAttention: 'Приветственный чат требует внимания',
+    welcomeStartFailed: 'Не удалось запустить приветственный чат.',
+    restoreProfileFailed: 'Не удалось восстановить профиль'
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

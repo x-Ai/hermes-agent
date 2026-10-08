@@ -1,5 +1,4 @@
 import type { TranslationOverrides } from './define-locale'
-import { en } from './en'
 
 export const arCapabilities = {
   skillDeepLink: {

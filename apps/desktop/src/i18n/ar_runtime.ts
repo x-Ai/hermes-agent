@@ -58,6 +58,9 @@ export const arRuntime = {
     audioContextUnavailable: 'AudioContext غير متاح لالتقاط الإيقاظ من جهة العميل',
     connectionBridgeUnavailable: 'جسر اتصال Hermes Desktop غير متاح',
     builtinProviderId: (id: string, suggestion: string) =>
-      `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`
+      `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`,
+    welcomeNeedsAttention: 'محادثة الترحيب تحتاج إلى انتباهك',
+    welcomeStartFailed: 'تعذر بدء محادثة الترحيب.',
+    restoreProfileFailed: 'تعذرت استعادة ملفك الشخصي'
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

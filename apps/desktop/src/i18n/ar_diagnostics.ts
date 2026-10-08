@@ -186,7 +186,10 @@ export const arDiagnostics = {
       openKeys: 'فتح المفاتيح',
       openGateways: 'فتح البوابات',
       openMaintenance: 'الصيانة المفتوحة'
-    }
+    },
+    desktopOutOfDateMessage: 'تطبيق Hermes أقدم من الخلفية المتصل بها وقد لا يعمل كما يجب. حدّث التطبيق ليتوافقا.',
+    desktopOutOfDateTitle: 'التطبيق قديم',
+    updateDesktopApp: 'تحديث التطبيق'
   },
   sendDiagnostics: {
     title: 'إرسال التشخيصات إلى Nous',

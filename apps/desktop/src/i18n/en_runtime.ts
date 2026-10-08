@@ -68,6 +68,9 @@ export const enRuntime = {
     audioContextUnavailable: 'AudioContext unavailable for client wake capture',
     connectionBridgeUnavailable: 'Hermes Desktop connection bridge unavailable',
     builtinProviderId: (id: string, suggestion: string) =>
-      `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`
+      `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`,
+    welcomeNeedsAttention: 'Welcome chat needs attention',
+    welcomeStartFailed: 'The welcome chat could not start.',
+    restoreProfileFailed: 'Could not restore your profile'
   }
 } satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors'>

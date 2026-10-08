@@ -70,4 +70,7 @@ export interface RuntimeErrorsCopy {
   connectionBridgeUnavailable: string
   /** The custom-endpoint route's 422 for an id that names a built-in provider (its English detail is the marker). */
   builtinProviderId: (id: string, suggestion: string) => string
+  welcomeNeedsAttention: string
+  welcomeStartFailed: string
+  restoreProfileFailed: string
 }

@@ -8,7 +8,9 @@ import { zhLocalModels } from './zh_local_models'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
 import { zhModelMenu } from './zh_model_menu'
 import { zhNotices } from './zh_notices'
+import { zhOnboarding } from './zh_onboarding'
 import { zhPluginManifests } from './zh_plugin_manifests'
+import { zhProjects } from './zh_projects'
 import { zhProviderWait } from './zh_provider_wait'
 import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
@@ -1960,6 +1962,11 @@ export const zhOverrides = {
       minimizeToTrayDesc:
         '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行,通过托盘菜单中的"退出 Hermes"或 Cmd+Q 退出，默认关闭，仅适用于此设备',
       minimizeToTrayUnavailable: '系统托盘不可用，窗口将正常最小化和关闭，关闭此选项后重新开启即可重试',
+      developerTitle: '开发者',
+      resetOnboardingTitle: '重置新手引导',
+      resetOnboardingDesc: '删除设置对话，重建设置配置文件，并重新运行首次设置，你自己的配置文件、对话和插件会保留',
+      resetOnboardingAction: '重置',
+      resetOnboardingFailed: '无法重置新手引导',
       showOptions: '显示选项'
     },
     quickEntry: {
@@ -2548,7 +2555,7 @@ export const zhOverrides = {
         '保持运行以便快速切换的机器人后端数量，数量越多，切换越快，内存占用也越高(每个后端约 60 MB)，修改后立即生效',
       idleTimeout: '后端空闲超时',
       idleTimeoutDescription:
-        '未使用的机器人后端在关闭前保持运行的时长，调大此值，可避免每隔几分钟切回机器人时都要等待重新启动',
+        '未使用的远程机器人连接在断开前保持缓存的时长，本地后端在空闲时继续运行，因为它们要跑定时任务和机器人聊天',
       idleTimeoutAria: '后端空闲超时（毫秒）',
       milliseconds: '毫秒',
       warmBotBackendsAria: '预热机器人后端',
@@ -4864,6 +4871,7 @@ export const zhOverrides = {
     last: '上次：',
     next: '下次：',
     noRuns: '尚无运行',
+    queuedRun: '排队中的运行',
     manage: '管理',
     showRuns: '显示运行记录',
     hideRuns: '隐藏运行记录',
@@ -5182,83 +5190,7 @@ export const zhOverrides = {
       guide: '恢复指南'
     },
     noFilterMatches: '没有会话符合这些筛选条件',
-    projects: {
-      showAllSessions: '显示所有会话',
-      sectionLabel: '项目',
-      home: '主页',
-      autoDiscovered: '自动发现',
-      newButton: '新建项目',
-      createTitle: '新建项目',
-      createDesc: '为工作区命名并添加一个或多个文件夹',
-      renameTitle: '重命名项目',
-      addFolderTitle: '添加文件夹',
-      namePlaceholder: '例如 Skunkworks',
-      foldersLabel: '文件夹',
-      ideaLabel: '想法',
-      ideaPlaceholder: '这个项目是关于什么的？（保存到 IDEA.md）',
-      ideaGenerate: '生成想法',
-      ideaGenerating: '生成中…',
-      ideaShuffle: '随机模板',
-      noFolders: '尚未添加文件夹',
-      addFolder: '添加文件夹',
-      primaryBadge: '主',
-      removeFolder: '移除',
-      create: '创建',
-      menu: '操作',
-      menuRename: '重命名…',
-      menuAppearance: '外观',
-      noColor: '无颜色',
-      menuAddFolder: '添加文件夹',
-      menuSetActive: '设为活动',
-      menuDelete: '删除',
-      moveToProject: '移动到项目',
-      movedTo: name => `已移动到 ${name}`,
-      moveFailed: '无法移动会话',
-      moveNoFolder: '该项目没有可移入的文件夹',
-      moveNoProjects: '没有其他项目',
-      reveal: '在文件夹中显示',
-      copyPath: '复制路径',
-      removeFromSidebar: '从侧边栏移除',
-      createdInPreviousContext: '项目已在之前的连接或配置文件中创建，请切换回去，IDEA.md 尚未写入',
-      createFailed: '无法创建项目',
-      unavailableAllProfiles: '查看全部配置档案时无法使用项目',
-      staleBackend: '请更新 Hermes 后端以创建项目 — 当前后端比桌面应用旧（设置 → 更新 → 后端）',
-      deleteConfirm: '这会从 Hermes 中移除已保存的项目，文件、git 仓库和工作树保持不变',
-      startWork: '新建工作树',
-      newWorktreeTitle: '新建工作树',
-      newWorktreeDesc: '为这个工作树命名分支',
-      branchPlaceholder: '例如 my-feature',
-      branchOff: () => ({ after: ' 分支', before: '从 ' }),
-      baseBranchPlaceholder: '搜索分支…',
-      baseBranchNone: '未找到分支',
-      startWorkFailed: '无法创建工作树',
-      worktreeStaleBackend: '请更新 Hermes 后端以在此远程连接上创建工作树  —  该后端早于 git 工作树 API',
-      worktreeProjectLabel: '项目',
-      worktreeProjectPlaceholder: '搜索项目…',
-      worktreeProjectNone: '没有包含文件夹的项目',
-      convertBranch: '转换分支…',
-      convertBranchTitle: '转换分支',
-      convertBranchDesc: '打开已检出的分支，或为可用分支创建工作树',
-      convertBranchPlaceholder: '搜索分支…',
-      convertBranchInstead: '转换现有分支',
-      branchOpenExisting: '打开',
-      branchSwitchHome: '切回主检出',
-      branchCreateWorktree: '新工作树',
-      branchTrackRemote: '跟踪远程',
-      branchesLoading: '正在加载分支…',
-      noBranches: '未找到分支',
-      removeWorktree: '移除工作树',
-      removeWorktreeFailed: '无法移除工作树（存在未提交更改？）',
-      removeWorktreeConfirm:
-        '从 git 中移除（删除工作树目录，但保留分支），或仅从侧边栏隐藏该泳道并将工作树保留在磁盘上',
-      removeWorktreeDirty: '此工作树有未提交的更改，强制移除（丢弃这些更改），或仅隐藏泳道并保留在磁盘上',
-      forceRemove: '强制移除',
-      enter: label => `打开 ${label}`,
-      reorder: label => `重新排序 ${label}`,
-      toggle: (label, open) => `${open ? '展开' : '收起'} ${label} 会话`,
-      back: '全部项目',
-      showAllCount: count => `显示全部 ${count} 个会话`
-    },
+    projects: zhProjects,
     newSessionIn: label => `在 ${label} 中新建会话`,
     showMoreIn: (count, label) => `在 ${label} 中再显示 ${count} 个`,
     loading: '加载中…',
@@ -5537,6 +5469,13 @@ export const zhOverrides = {
     attachments: count => `${count} 个附件`,
     editingInComposer: '正在输入框中编辑',
     editingQueuedInComposer: '正在输入框中编辑排队回合',
+    restoredDraftNotice: '已恢复你未发送的消息',
+    restoredDraftUndo: '撤销',
+    localSetup: {
+      title: '这可以在你的电脑上运行',
+      text: (model: string) => `${model} 适合这台电脑，免费，对话留在你的电脑上`,
+      action: '带我看看'
+    },
     queueEdit: '编辑',
     queueExpand: '展开',
     queueCollapse: '收起',
@@ -5632,9 +5571,7 @@ export const zhOverrides = {
         text: '请解释这是如何工作的，并指给我关键文件'
       }
     },
-    wakeWord: phrase => `唤醒词"${phrase}"`,
-    restoredDraftNotice: '已恢复你未发送的消息',
-    restoredDraftUndo: '撤销'
+    wakeWord: phrase => `唤醒词"${phrase}"`
   },
   statusStack: {
     agents: '代理',
@@ -5951,85 +5888,11 @@ export const zhOverrides = {
     sessionsText:
       '此列表属于默认配置档案，“新建会话”会在当前选中的配置档案中创建会话，在侧栏切换配置档案，列表也会随之切换',
     stayTitle: '随时都能找到 Hermes',
-    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可，这个对话会一直保留'
+    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可，这个对话会一直保留',
+    localTitle: '这台电脑可以在本地运行模型',
+    localText: (model: string) => `${model} 适合你的硬件，免费运行，对话不会离开你的电脑，随时在这里的模型菜单中选择它`
   },
-  guidedGreeting: {
-    line: '来了，进来吧，我是 Hermes，给我两分钟，把这里按你的习惯收拾一下，然后我们找件你真正想做的事来做\n\n先说，我该怎么称呼你？',
-    nameSuggestion: (name: string) => `（如果你愿意，我也可以直接叫你 ${name}）`
-  },
-  guidedOnboarding: {
-    done: '✓ 完成',
-    continue: '继续',
-    skipSetup: '跳过设置',
-    fallbackOption: '一起想想做什么',
-    handoffFailed: '无法启动第一个任务',
-    handoffFailedRetry: '无法启动第一个任务，请重试并检查其会话',
-    handoffStarted: title => `${title} 已启动，可在会话列表中找到`,
-    handoffOpening: title => `正在打开 ${title}…`,
-    retryFirstBuild: '重试第一个任务',
-    workingOnIt: '正在处理',
-    firstBuild: '第一个任务',
-    signpostTitle: 'Hermes 就在隔壁',
-    signpostBody: '你现在位于自己的工作区，所有 profile 都在这里，刚才的对话仍保留在其中，需要帮忙时随时回来',
-    profileDescription: '你与 Hermes 初次见面的地方 — 引导首次使用，并在你熟悉后适时跟进',
-    accentNames: {
-      mono: '单色',
-      githubGreen: 'GitHub 绿',
-      cyberCyan: '赛博青',
-      nousBlue: 'Nous 蓝',
-      ultraviolet: '紫外紫',
-      barbiePink: '芭比粉',
-      electricRed: '电光红',
-      safetyOrange: '安全橙'
-    },
-    layoutNames: {
-      basic: '基础',
-      elite: '高级'
-    },
-    script: {
-      forkQuestion: '想好让它做什么了吗？',
-      automate: '自动处理我常做的事',
-      figure: '一起想想做什么',
-      mind: '我已经有想法了',
-      skip: '暂时跳过',
-      somethingElse: '其他事情',
-      tourQuestion: '要先四处看看吗？',
-      tourBasics: '快速导览',
-      tourNone: '跳过，直接开始做点东西',
-      tourFull: '完整导览',
-      fallbackQuestion: '哪个听起来更合适？',
-      buildReviewQuestion: '这符合你的预期吗？',
-      buildReviewLooksRight: '符合预期',
-      buildReviewChange: '修改一些内容',
-      buildReviewFurther: '继续完善',
-      machineRunQuestion: '要我执行这个方案吗？',
-      machineRunGoAhead: '开始吧',
-      machineRunChangeList: '修改清单',
-      machineRunEssentials: '只做必要项',
-      checkpointQuestion: '接下来想怎么做？',
-      computerKind: '电脑',
-      machineSetupOption: kind => `帮我设置这台 ${kind}`,
-      machineSetupTask: kind => `设置这台 ${kind}`
-    },
-    errors: {
-      firstBuildNeedsAttention: '第一个任务需要处理',
-      welcomeOwnerUnavailable: '欢迎对话暂时不可用，请重新打开后重试第一个任务',
-      preferencesSaveFailed: '无法保存引导设置，请在启动第一个任务前重试',
-      sessionOpenFailed: '无法打开第一个任务的会话',
-      sessionIdentityMissing: '第一个任务的会话未返回持久标识，请检查会话后重试',
-      welcomeCreateFailed: '无法创建欢迎对话，请重试',
-      restoreProfileFailed: '无法恢复你的 profile',
-      welcomeNeedsAttention: '欢迎对话需要处理',
-      welcomeStartFailed: '无法启动欢迎对话',
-      receiptUnreadable: '无法读取已保存的第一个任务记录，请先检查会话再启动其他任务',
-      receiptSaveFailed: '无法保存第一个任务的恢复信息，尚未发送新的启动请求',
-      verifyFailed: '无法验证第一个任务，请在连接恢复后重试',
-      unconfirmedRunning: '第一个任务尚未确认启动，但会话仍显示正在运行，请在其空闲后重试，没有重复发送',
-      notAcknowledged: '第一个任务尚未确认启动，请检查其会话后重试，没有重复发送',
-      notAcknowledgedStart: '第一个任务未确认启动，请检查其会话后重试',
-      pluginFolderUnavailable: '桌面插件文件夹不可用，请在启动第一个任务前重试'
-    }
-  },
+
   install: {
     stageStates: {
       pending: '等待中',
@@ -6131,103 +5994,9 @@ export const zhOverrides = {
     useLocalDesc: '这里已安装 Hermes 运行时——一键即可启动，无需下载任何内容',
     bundledLocalDesc: '使用此应用内置的 Hermes 运行时——内置后端即为本地安装'
   },
-  onboarding: {
-    headerTitle: '开始设置 Hermes Agent',
-    headerDesc: '连接模型提供方即可开始对话，大多数选项只需一次点击',
-    providerTitles: {
-      anthropic: 'Anthropic API 密钥',
-      'claude-code': 'Anthropic OAuth：需额外用量额度才能使用订阅',
-      'openai-codex': 'ChatGPT 或 Codex 订阅'
-    },
-    preparingInstall: 'Hermes 正在完成安装，首次运行通常不到一分钟',
-    starting: '正在启动 Hermes…',
-    lookingUpProviders: '正在查找提供方...',
-    collapse: '收起',
-    otherProviders: '其他提供方',
-    haveApiKey: '我有 API 密钥',
-    chooseLater: '稍后再选择提供方',
-    recommended: '推荐',
-    connected: '已连接',
-    featuredPitch: '一个订阅，300+ 前沿模型 — 运行 Hermes 的推荐方式',
-    fireworksPitch: '直接模型 API — Fireworks 托管的前沿模型',
-    localModelsTitle: '本地运行模型',
-    localModelsPitch: '无需账号 — 下载模型，在本机运行',
-    openRouterPitch: '一个密钥，数百个模型 — 稳妥的默认选择',
-    apiKeyOptions: {
-      fireworks: {
-        short: '直接模型 API',
-        description: '直接访问 Fireworks AI 托管的模型'
-      },
-      openrouter: {
-        short: '一个密钥，多个模型',
-        description: '用一个密钥访问数百个模型，适合新安装的默认选择'
-      },
-      openai: {
-        short: 'GPT 级模型',
-        description: '直接访问 OpenAI 模型'
-      },
-      gemini: {
-        short: 'Gemini 模型',
-        description: '直接访问 Google Gemini 模型'
-      },
-      xai: {
-        short: 'Grok 模型',
-        description: '直接访问 xAI Grok 模型'
-      },
-      local: {
-        short: '自托管',
-        description: '将 Hermes 指向本地或自托管的 OpenAI 兼容端点 (vLLM、llama.cpp、Ollama 等)'
-      }
-    },
-    backToSignIn: '返回登录',
-    getKey: '获取密钥',
-    replaceCurrent: '替换当前值',
-    pasteApiKey: '粘贴 API 密钥',
-    directApiAccess: provider => `直接通过 API 访问 ${provider}`,
-    localApiKeyPlaceholder: 'API 密钥（可选 — 仅当端点需要时填写）',
-    localModelNamePlaceholder: '模型名称（例如 command-a-plus-05-2026）',
-    couldNotSave: '无法保存凭据',
-    connecting: '连接中',
-    update: '更新',
-    flowSubtitles: {
-      pkce: '打开浏览器登录，然后回到这里继续',
-      device_code: '在浏览器中打开验证页面 — Hermes 会自动连接',
-      external: '先在终端登录一次，然后回来继续对话'
-    },
-    startingSignIn: provider => `正在为 ${provider} 启动登录..`,
-    verifyingCode: provider => `正在通过 ${provider} 验证你的代码..`,
-    connectedProvider: provider => `${provider} 已连接`,
-    connectedPicking: provider => `${provider} 已连接，正在选择默认模型..`,
-    signInFailed: '登录失败，请重试',
-    signInExpired: '在你完成之前，登录页面超时了，请重试，并在几分钟内完成浏览器步骤，或者改用 API 密钥',
-    pickDifferentProvider: '选择其他提供方',
-    signInWith: provider => `使用 ${provider} 登录`,
-    openedBrowser: provider => `已在浏览器中打开 ${provider}`,
-    authorizeThere: '请在那里授权 Hermes',
-    copyAuthCode: '复制授权码并粘贴到下面',
-    pasteAuthCode: '粘贴授权码',
-    reopenAuthPage: '重新打开授权页面',
-    autoBrowser: provider => `已在浏览器中打开 ${provider}，请在那里授权 Hermes，连接会自动完成，无需复制或粘贴`,
-    reopenSignInPage: '重新打开登录页面',
-    waitingAuthorize: '等待你授权...',
-    externalPending: provider => `${provider} 通过自己的 CLI 登录，请在终端运行此命令，然后回来选择"我已登录"：`,
-    signedIn: '我已登录',
-    deviceCodeOpened: provider => `已在浏览器中打开 ${provider}，请在那里输入此代码：`,
-    reopenVerification: '重新打开验证页面',
-    copy: '复制',
-    defaultModel: '默认模型',
-    freeTier: '免费层',
-    pro: 'Pro',
-    free: '免费',
-    price: (input, output) => `${input} 输入 / ${output} 输出每 Mtok`,
-    change: '更改',
-    startChatting: '开始',
-    docs: provider => `${provider} 文档`,
-    signInDidNotFinish: provider => `使用${provider}登录未完成，请检查你的网络连接并重试，或者选择不同的提供商`,
-    tryAgain: '再试一次',
-    useApiKeyInstead: '使用 API 密钥',
-    errorDetails: '详情'
-  },
+
+  onboarding: zhOnboarding,
+
   freeTier: {
     providerRowTitle: 'Nous · 免费层',
     providerRowPitch: '登录 Nous 账户以解锁更多模型和工具',
@@ -6269,6 +6038,12 @@ export const zhOverrides = {
     errorBody: '登录未完成，准备好时请再次尝试',
     alreadySignedInHeading: '已登录',
     alreadySignedInBody: '此 Hermes 已登录 Nous 账户',
+    offer: {
+      heading: '继续使用 Hermes',
+      body: '你正在使用免费额度，继续使用 Hermes 的话，你会开始遇到限制，登录免费的 Nous 账户，即可获得更多额度',
+      signIn: '登录',
+      notNow: '暂不'
+    },
     busyHeading: '马上就到了',
     busyBody: wait =>
       `Hermes couldn't finish signing you in because the Nous service is busy. Try again in ${wait}你的会议还在这期间`,
@@ -7071,8 +6846,34 @@ export const zhOverrides = {
       recommendedSuffix: '（推荐）',
       singleSelectHint: '选一个',
       multiSelectHint: '可多选',
+      oneQuestion: '1 个问题',
       questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
       notDelivered: '此问题未送达应用，无法在此回答，请按停止结束本轮，然后在聊天中回复'
+    },
+    setupChoose: {
+      kinds: {
+        accent: '强调色',
+        connectors: '应用',
+        layout: '布局',
+        plugins: '插件',
+        theme: '外观'
+      },
+      loading: '正在加载选项…',
+      unavailable: '此列表暂不可用，请直接在对话中回复',
+      findApp: '查找应用',
+      customColor: '自定义颜色',
+      plugin: '插件',
+      startsLater: '开始时我们会帮你设置好这些'
+    },
+    startChat: {
+      starting: title => `正在启动“${title}”…`,
+      startingUntitled: '正在启动对话…',
+      untitled: '新对话',
+      notStarted: '对话未能启动',
+      retry: '重试',
+      inProfile: profile => `位于 ${profile}`,
+      open: '打开',
+      openFailed: '无法打开对话'
     },
     catalogInstall: {
       preparing: '正在准备安装…',
@@ -7282,6 +7083,16 @@ export const zhOverrides = {
           done: '已提问',
           pending: '正在提问',
           pendingAction: '正在提问'
+        },
+        setup_choose: {
+          done: '已提出设置问题',
+          pending: '正在提出设置问题',
+          pendingAction: '正在提问'
+        },
+        start_chat: {
+          done: '已启动对话',
+          pending: '正在启动对话',
+          pendingAction: '正在启动'
         },
         cronjob: {
           done: 'Cron 任务',
@@ -7568,11 +7379,6 @@ export const zhOverrides = {
       'composer-mentions': {
         title: '附件与命令',
         text: '输入 @ 把文件带入对话，输入 / 运行命令'
-      },
-      'local-setup': {
-        title: '这台电脑可以本地运行模型',
-        text: '你的硬件可以运行本地模型，对话不离开你的电脑，而且完全免费',
-        action: '立即设置'
       },
       'right-pane': {
         title: '工作面板',
