@@ -56,6 +56,8 @@ export const arRuntime = {
     mcpOauthCallbackUnsupported: 'حدّث Hermes Desktop لدعم استدعاءات MCP OAuth الراجعة.',
     mcpOauthTimedOut: 'انتهت مهلة انتظار تفويض MCP OAuth',
     audioContextUnavailable: 'AudioContext غير متاح لالتقاط الإيقاظ من جهة العميل',
-    connectionBridgeUnavailable: 'جسر اتصال Hermes Desktop غير متاح'
+    connectionBridgeUnavailable: 'جسر اتصال Hermes Desktop غير متاح',
+    builtinProviderId: (id: string, suggestion: string) =>
+      `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

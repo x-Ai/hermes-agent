@@ -63,6 +63,8 @@ export const zhRuntime = {
     mcpOauthCallbackUnsupported: '请更新 Hermes Desktop 以支持 MCP OAuth 回调',
     mcpOauthTimedOut: '等待 MCP OAuth 授权超时',
     audioContextUnavailable: '客户端唤醒采集所需的 AudioContext 不可用',
-    connectionBridgeUnavailable: 'Hermes Desktop 连接桥接不可用'
+    connectionBridgeUnavailable: 'Hermes Desktop 连接桥接不可用',
+    builtinProviderId: (id: string, suggestion: string) =>
+      `"${id}" 是内置提供商 ID，请为此端点另选一个 ID（例如 "${suggestion}"）`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

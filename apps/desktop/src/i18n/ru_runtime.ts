@@ -67,6 +67,8 @@ export const ruRuntime = {
     mcpOauthCallbackUnsupported: 'Обновите Hermes Desktop для поддержки обратных вызовов MCP OAuth.',
     mcpOauthTimedOut: 'Истекло время ожидания авторизации MCP OAuth',
     audioContextUnavailable: 'AudioContext недоступен для захвата пробуждения на клиенте',
-    connectionBridgeUnavailable: 'Мост соединений Hermes Desktop недоступен'
+    connectionBridgeUnavailable: 'Мост соединений Hermes Desktop недоступен',
+    builtinProviderId: (id: string, suggestion: string) =>
+      `«${id}» — идентификатор встроенного провайдера. Укажите для этой конечной точки другой идентификатор (например, «${suggestion}»).`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

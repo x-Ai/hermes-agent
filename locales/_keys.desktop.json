@@ -3220,6 +3220,7 @@
     "runtimeErrors.backendReconnecting",
     "runtimeErrors.backendRetired",
     "runtimeErrors.backgroundRestartNoTaskId",
+    "runtimeErrors.builtinProviderId",
     "runtimeErrors.clipboardUnavailable",
     "runtimeErrors.connectionBridgeUnavailable",
     "runtimeErrors.connectionNotActive",

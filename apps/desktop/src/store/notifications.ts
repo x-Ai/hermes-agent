@@ -130,6 +130,12 @@ export const RECOVERY_ACTIONS = {
  *  (`hermes_state_errors.classify_persistence_error`). */
 const STORAGE_CODE_RE = /['"]code['"]\s*:\s*['"](storage_[a-z_]+|disk_full)['"]/i
 
+/** The custom-endpoint route's 422 for an id that names a built-in provider
+ *  (`hermes_cli/web_routers/config_env.py`). Its English detail is the marker;
+ *  the id and the suggested replacement are read out of it. */
+const BUILTIN_PROVIDER_ID_RE = /'([^']+)' is a built-in provider id\b/i
+const SUGGESTED_ENDPOINT_ID_RE = /for example '([^']+)'/i
+
 interface ErrorSummaryRule {
   /** The toast's error category for friction telemetry (a closed code-defined set, never the text). */
   category: ErrorToastCategory
@@ -198,6 +204,17 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'other',
     test: msg => /^invalid preview url$/i.test(msg.trim()),
     summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
+    hideDetail: true
+  },
+  {
+    category: 'other',
+    test: msg => BUILTIN_PROVIDER_ID_RE.test(msg),
+    summarize: msg => {
+      const id = BUILTIN_PROVIDER_ID_RE.exec(msg)?.[1] ?? ''
+      const suggestion = SUGGESTED_ENDPOINT_ID_RE.exec(msg)?.[1] ?? `${id}-relay`
+
+      return translateNow('runtimeErrors.builtinProviderId', id, suggestion)
+    },
     hideDetail: true
   },
   {

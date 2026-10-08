@@ -66,6 +66,8 @@ export const enRuntime = {
     mcpOauthCallbackUnsupported: 'Update Hermes Desktop to support MCP OAuth callbacks.',
     mcpOauthTimedOut: 'Timed out waiting for MCP OAuth authorization',
     audioContextUnavailable: 'AudioContext unavailable for client wake capture',
-    connectionBridgeUnavailable: 'Hermes Desktop connection bridge unavailable'
+    connectionBridgeUnavailable: 'Hermes Desktop connection bridge unavailable',
+    builtinProviderId: (id: string, suggestion: string) =>
+      `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`
   }
 } satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors'>

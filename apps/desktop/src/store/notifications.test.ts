@@ -106,6 +106,31 @@ test('preview URL errors use localized copy without repeating raw details', () =
   })
 })
 
+// The custom-endpoint save route refuses an id that names a built-in provider
+// with an English `detail`; the toast re-renders it in the display language
+// with the id and the suggested replacement instead of showing the raw line.
+test('a built-in provider id refusal from the custom endpoint route is localized with both ids', () => {
+  const detail = "'gmi' is a built-in provider id; choose another id for this endpoint (for example 'gmi-relay')"
+  const error = new Error(`Error invoking remote method 'hermes:api': Error: 422: {"detail":"${detail}"}`)
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.settings.customEndpoints.saveFailed,
+    message: TRANSLATIONS.zh.runtimeErrors.builtinProviderId('gmi', 'gmi-relay'),
+    detail: undefined
+  })
+  expect(lastMessage()).toContain('gmi-relay')
+  expect(lastMessage()).not.toContain('built-in provider id')
+
+  clearNotifications()
+  setRuntimeI18nLocale('en')
+  notifyError(error, en.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({ message: detail, detail: undefined })
+})
+
 test('notifyError posts the full error to desktop.log, not the summary', () => {
   const logLine = vi.fn()
 

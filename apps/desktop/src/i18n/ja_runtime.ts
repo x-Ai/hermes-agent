@@ -69,6 +69,8 @@ export const jaRuntime = {
     mcpOauthCallbackUnsupported: 'MCP OAuth コールバックに対応するには Hermes Desktop を更新してください',
     mcpOauthTimedOut: 'MCP OAuth の認可待ちがタイムアウトしました',
     audioContextUnavailable: 'クライアント側のウェイク取り込みに必要な AudioContext を利用できません',
-    connectionBridgeUnavailable: 'Hermes Desktop の接続ブリッジを利用できません'
+    connectionBridgeUnavailable: 'Hermes Desktop の接続ブリッジを利用できません',
+    builtinProviderId: (id: string, suggestion: string) =>
+      `「${id}」は組み込みプロバイダーの ID です。このエンドポイントには別の ID を指定してください（例：「${suggestion}」）`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

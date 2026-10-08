@@ -11,7 +11,8 @@ export interface TimelineEventsCopy {
   backgroundProcessFinished: string
 }
 
-/** Messages the renderer throws from its own actions; they surface as `notifyError` toast bodies. */
+/** Messages the renderer throws from its own actions, plus backend details the toast summariser
+ *  re-renders; they surface as `notifyError` toast bodies. */
 export interface RuntimeErrorsCopy {
   previewTargetUnavailable: (target: string) => string
   desktopBridgeUnavailable: string
@@ -67,4 +68,6 @@ export interface RuntimeErrorsCopy {
   mcpOauthTimedOut: string
   audioContextUnavailable: string
   connectionBridgeUnavailable: string
+  /** The custom-endpoint route's 422 for an id that names a built-in provider (its English detail is the marker). */
+  builtinProviderId: (id: string, suggestion: string) => string
 }
