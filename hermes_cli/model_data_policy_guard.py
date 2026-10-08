@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Optional
 
+from agent.i18n import t
+
 
 @dataclass(frozen=True)
 class DataTrainingWarning:
@@ -29,28 +31,21 @@ def _is_meta_contributor(model_lower: str, provider_lower: str) -> bool:
     return model_lower.endswith("-contributor") or "contributor" in model_lower.split("-")
 
 
-_META_CONTRIBUTOR_MESSAGE = (
-    "!!! CONTRIBUTOR TIER — TRAINS ON YOUR DATA !!!\n"
-    "\n"
-    "This is Meta's contributor tier. Selecting it permits Meta to use your\n"
-    "prompts and completions to train future Meta models.\n"
-    "\n"
-    "See current pricing and rate limits for the Meta Model API here:\n"
-    "  https://dev.meta.ai/docs/pricing-rate-limits/\n"
-    "\n"
-    "It lowers the barrier to entry for prototyping, testing integrations, and\n"
-    "scaling experiments where training on your data is acceptable. Do NOT use it\n"
-    "for confidential, proprietary, personal, or otherwise sensitive data. For the\n"
-    "same model with no training on your data, select the standard variant\n"
-    "(without the -contributor suffix).\n"
-    "\n"
-    "Confirm only if training on your prompts and completions is acceptable."
-)
+def _meta_contributor_message() -> str:
+    """Catalog copy (``core.model_switch.meta_contributor_*``), resolved per call so the confirm follows
+    the surface's language; the English rendering is the former literal."""
+    return "\n\n".join([
+        t("core.model_switch.meta_contributor_banner"),
+        t("core.model_switch.meta_contributor_intro"),
+        t("core.model_switch.meta_contributor_pricing"),
+        t("core.model_switch.meta_contributor_usage"),
+        t("core.model_switch.meta_contributor_confirm")])
 
 
-# (predicate, message) pairs, evaluated in order; first match wins.
-_RULES: tuple[tuple[Callable[[str, str], bool], str], ...] = (
-    (_is_meta_contributor, _META_CONTRIBUTOR_MESSAGE),
+# (predicate, message builder) pairs, evaluated in order; first match wins. Builders rather than
+# strings: catalog text must resolve at call time, never at import.
+_RULES: tuple[tuple[Callable[[str, str], bool], Callable[[], str]], ...] = (
+    (_is_meta_contributor, _meta_contributor_message),
 )
 
 
@@ -69,7 +64,7 @@ def data_training_warning(
     for predicate, message in _RULES:
         try:
             if predicate(model_lower, provider_lower):
-                return DataTrainingWarning(model=model, provider=(provider or "").strip(), message=message)
+                return DataTrainingWarning(model=model, provider=(provider or "").strip(), message=message())
         except Exception:
             continue  # a misbehaving predicate must never break model selection
     return None

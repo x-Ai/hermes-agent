@@ -70,7 +70,7 @@ def _cost_guard(
 
     warning = expensive_model_warning(
         model_name, provider=provider, base_url=base_url, api_key=api_key, model_info=model_info)
-    return _wrap("cost", "Expensive Model Warning", warning, model_name, provider)
+    return _wrap("cost", t("core.model_switch.expensive_title"), warning, model_name, provider)
 
 
 def _data_policy_guard(
@@ -79,7 +79,7 @@ def _data_policy_guard(
     from hermes_cli.model_data_policy_guard import data_training_warning
 
     warning = data_training_warning(model_name, provider=provider, base_url=base_url)
-    return _wrap("data_policy", "Data-Training Tier Warning", warning, model_name, provider)
+    return _wrap("data_policy", t("core.model_switch.data_training_title"), warning, model_name, provider)
 
 
 # Context-token threshold above which a mid-session switch asks for confirmation: providers key

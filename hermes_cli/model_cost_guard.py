@@ -6,13 +6,13 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
+from agent.i18n import t
 from agent.models_dev import ModelInfo, PROVIDER_TO_MODELS_DEV
 
 
 INPUT_COST_WARNING_THRESHOLD = Decimal("20")
 OUTPUT_COST_WARNING_THRESHOLD = Decimal("100")
 GPT55_PRO_OPENROUTER_ID = "openai/gpt-5.5-pro"
-GPT55_SUGGESTION = "did you mean to select openai/gpt-5.5?"
 
 
 @dataclass(frozen=True)
@@ -35,7 +35,7 @@ def _to_decimal(value: object) -> Optional[Decimal]:
 
 
 def _format_money(value: Optional[Decimal]) -> str:
-    return "unknown" if value is None else f"${value:.2f}/M"
+    return t("core.model_switch.expensive_unknown_price") if value is None else f"${value:.2f}/M"
 
 
 def _pricing_from_model_info(
@@ -115,18 +115,20 @@ def expensive_model_warning(
     if not over_input and not over_output and not is_known_gpt55_pro_confusion:
         return None
 
+    # Catalog copy (``core.model_switch.expensive_*``): every selection surface shows this as-is.
     lines = [
-        "!!! EXPENSIVE MODEL WARNING !!!",
+        t("core.model_switch.expensive_banner"),
         "",
-        f"{model} has known pricing above Hermes' safety threshold.",
-        f"Input tokens: {_format_money(input_cost)}",
-        f"Output tokens: {_format_money(output_cost)}",
-        "Threshold: more than $20/M input tokens or more than $100/M output tokens."]
+        t("core.model_switch.expensive_above_threshold", model=model),
+        t("core.model_switch.expensive_input", price=_format_money(input_cost)),
+        t("core.model_switch.expensive_output", price=_format_money(output_cost)),
+        t("core.model_switch.expensive_threshold", input_limit=f"{INPUT_COST_WARNING_THRESHOLD:.0f}",
+          output_limit=f"{OUTPUT_COST_WARNING_THRESHOLD:.0f}")]
     if source:
-        lines.append(f"Pricing source: {source}.")
+        lines.append(t("core.model_switch.expensive_source", source=source))
     if is_known_gpt55_pro_confusion:
-        lines.append(GPT55_SUGGESTION)
-    lines.append("Confirm only if you intend to use this model.")
+        lines.append(t("core.model_switch.expensive_gpt55_suggestion"))
+    lines.append(t("core.model_switch.expensive_confirm"))
 
     return ExpensiveModelWarning(
         model=model, provider=(provider or "").strip(), input_cost_per_million=input_cost,
