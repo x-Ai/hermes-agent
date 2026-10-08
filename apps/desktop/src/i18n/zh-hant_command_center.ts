@@ -860,6 +860,38 @@ export const zhHantCommandCenter = {
       BUZZ_CREDENTIALS_FILE: {
         label: '憑證檔案路徑（或留空）',
         help: '保存 nsec 的 JSON 憑證檔案（當 BUZZ_PRIVATE_KEY 未設定時作為回退）。'
+      },
+      TELEGRAM_WEBHOOK_SECRET: {
+        label: 'Webhook 密鑰',
+        help: 'Telegram 隨每次 Webhook 更新一同傳送的密鑰權杖（設定了 TELEGRAM_WEBHOOK_URL 時必填）。'
+      },
+      EMAIL_AUTHSERV_ID: {
+        label: '收件 MTA 的 authserv-id',
+        help: '郵件伺服器最頂層 Authentication-Results 標頭中的 authserv-id 原文，例如 mx.google.com（除非 EMAIL_TRUST_FROM_HEADER=true，否則必填）。'
+      },
+      A2A_PUSH_SECRET: {
+        label: 'A2A 推送簽章密鑰（或留空）',
+        help: '為推送通知簽章的 HMAC 密鑰（預設使用 A2A 共用權杖）。'
+      },
+      BUZZ_REPLY_IN_THREAD: {
+        label: '在討論串中回覆？（true/false）',
+        help: '在觸發訊息下方以討論串回覆（true/false，預設 true）；設為 false 時直接發佈到頻道時間軸。'
+      },
+      PHOTON_READ_RECEIPTS: {
+        label: '傳送已讀回條？（true/false）',
+        help: '轉發給 Hermes 後，將收到的 iMessage 標記為已讀（true/false，預設 true）。'
+      },
+      PHOTON_SIDECAR_TOKEN: {
+        label: 'Sidecar 權杖',
+        help: '回送 sidecar 通道的共用密鑰（預設每次啟動隨機產生）。'
+      },
+      TEAMS_GRAPH_ACCESS_TOKEN: {
+        label: 'Graph 存取權杖（或留空）',
+        help: 'graph 模式下傳遞會議摘要所用的 Microsoft Graph 存取權杖。'
+      },
+      TEAMS_INCOMING_WEBHOOK_URL: {
+        label: '傳入 Webhook URL（或留空）',
+        help: 'webhook 模式下傳遞會議摘要所用的傳入 Webhook URL（這個 URL 本身就是憑證）。'
       }
     },
     platformIntro: {
