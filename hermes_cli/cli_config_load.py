@@ -208,7 +208,7 @@ def _cli_config_defaults():
         "agent": {
             "max_turns": 500, "verbose": False, "system_prompt": "", "prefill_messages_file": "",  # max_turns shared with subagents
             "reasoning_effort": "", "service_tier": "",
-            "output_truncation_retries": 1,
+            "output_truncation_retries": 3,
             "post_tool_empty_retries": 1,
             "thinking_prefill_retries": 2,
             "empty_response_retries": 3,

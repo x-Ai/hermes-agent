@@ -4657,6 +4657,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Stream interrupted mid tool-call ({tools}) — requesting chunked retry ({n}/{limit})..."
+    continue_stream: "↻ Stream interrupted — requesting continuation ({n}/{limit})..."
+    continue_text: "↻ Requesting continuation ({n}/{limit})..."
+    window_filled: "⚠️  Not continuing — each attempt would only grow the prompt."
+    window_filled_error: "Prompt used {prompt} of {ctx} context tokens; no room to answer"
+    ceiling_kept: "⚠️  Response still truncated after {n} continuation attempt(s) — keeping the partial response received so far."
+    ceiling_no_text: "⚠️  Response still truncated after {n} continuation attempt(s) — no visible text was produced."
+    ceiling_error: "Response remained truncated after {n} continuation attempt(s)"
+    codex_incomplete_error: "Codex response remained incomplete after {n} continuation attempt(s)"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Model returned empty after tool calls — nudging to continue ({n}/{budget})"
+    thinking_prefill: "↻ Thinking-only response — prefilling to continue ({n}/{budget})"
+    retry_status: "⚠️ Empty response from model — retrying ({n}/{budget}) in {wait}s{note}"
+    high_cost_note: " — high-cost request, reduced retry budget"
   failed_turn:
     notice: "Your request was not processed. Send it again if you still want me to carry it out."
     partial_notice: "This turn did not complete. Some actions may already have run; verify their effects before resending."

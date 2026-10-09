@@ -4528,6 +4528,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Stroom halfpad deur 'n gereedskapoproep onderbreek ({tools}) — versoek herprobeer in dele ({n}/{limit})..."
+    continue_stream: "↻ Stroom onderbreek — versoek voortsetting ({n}/{limit})..."
+    continue_text: "↻ Versoek voortsetting ({n}/{limit})..."
+    window_filled: "⚠️  Gaan nie voort nie — elke poging sou net die prompt laat groei."
+    window_filled_error: "Die prompt gebruik {prompt} van hierdie model se {ctx} konteks-tekens; geen plek om te antwoord nie"
+    ceiling_kept: "⚠️  Antwoord steeds afgesny ná {n} voortsettingspoging(s) — die gedeeltelike antwoord wat tot dusver ontvang is, word behou."
+    ceiling_no_text: "⚠️  Antwoord steeds afgesny ná {n} voortsettingspoging(s) — geen sigbare teks is geproduseer nie."
+    ceiling_error: "Antwoord het ná {n} voortsettingspoging(s) afgesny gebly"
+    codex_incomplete_error: "Codex-antwoord het ná {n} voortsettingspoging(s) onvolledig gebly"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Model het ná gereedskapoproepe 'n leë antwoord gegee — word aangepor om voort te gaan ({n}/{budget})"
+    thinking_prefill: "↻ Slegs denke, geen sigbare teks nie — vul vooraf in om voort te gaan ({n}/{budget})"
+    retry_status: "⚠️ Leë antwoord van model — probeer weer ({n}/{budget}) oor {wait}s{note}"
+    high_cost_note: " — duur versoek, herprobeerbegroting verminder"
   failed_turn:
     notice: "Jou versoek is nie verwerk nie. Stuur dit weer as jy steeds wil hê ek moet dit uitvoer."
     partial_notice: "Hierdie beurt is nie voltooi nie. Sommige aksies het dalk reeds geloop; kontroleer hul uitwerking voordat jy weer stuur."

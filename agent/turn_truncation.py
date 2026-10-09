@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from agent.error_classifier import FailoverReason
+from agent.i18n import t
 from agent.message_metadata import append_message
 from agent.message_sanitization import close_interrupted_tool_sequence
 from agent.repetition_guard import is_repetition_dominated
@@ -304,7 +305,8 @@ def _content_filter_fallback(st: _Trunc, _retry: TurnRetryState) -> Optional[Tru
 
 def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -> TruncationVerdict:
     """Text truncation (no tool calls): append the fragment + a continuation nudge (up to
-    4), then the ceiling exit that drops the fragment trail and keeps the stitched partial.
+    ``agent.output_truncation_retries``, default 3), then the ceiling exit that drops the
+    fragment trail and keeps the stitched partial.
     Never appends an interim assistant row with NO visible content — strict providers
     reject it with 400 — only the nudge."""
     from agent.conversation_loop import _get_continuation_prompt, _join_truncated_parts
@@ -331,14 +333,13 @@ def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -
     if n <= limit and filled is None:
         _dropped_tools = getattr(st.response, "_dropped_tool_names", None)
         if st.is_stub and _dropped_tools:
-            agent._vprint(
-                f"{agent.log_prefix}↻ Stream interrupted mid "
-                f"tool-call ({', '.join(_dropped_tools[:3])}) — requesting chunked retry ({n}/{limit})...", diagnostic=True,
-            )
+            progress = t("core.truncation.continue_tool_call",
+                         tools=", ".join(_dropped_tools[:3]), n=n, limit=limit)
         elif st.is_stub:
-            agent._vprint(f"{agent.log_prefix}↻ Stream interrupted — requesting continuation ({n}/{limit})...", diagnostic=True)
+            progress = t("core.truncation.continue_stream", n=n, limit=limit)
         else:
-            agent._vprint(f"{agent.log_prefix}↻ Requesting continuation ({n}/{limit})...", diagnostic=True)
+            progress = t("core.truncation.continue_text", n=n, limit=limit)
+        agent._vprint(f"{agent.log_prefix}{progress}", diagnostic=True)
         append_message(messages, {
             "role": "user", "content": _get_continuation_prompt(st.is_stub, _dropped_tools),
             "_length_continuation_nudge": True,
@@ -354,23 +355,25 @@ def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -
     )
     # The one-shot reasoning-off override must not leak into the next turn.
     agent._ephemeral_reasoning_off = False
-    agent._vprint(
-        f"{agent.log_prefix}⚠️  Not continuing — each attempt would only grow the prompt."
-        if filled is not None else
-        f"{agent.log_prefix}⚠️  Response still truncated after {n} continuation attempts — "
-        + ("keeping the partial response received so far." if partial_response
-           else "no visible text was produced."),
-        force=True, diagnostic=True,
-    )
+    # ``n`` counts truncated responses; the first was the original answer, so the continuations
+    # actually sent are ``n - 1`` (the configured limit once the ladder is spent, 0 when disabled).
+    continuations = n - 1
+    if filled is not None:
+        ceiling = t("core.truncation.window_filled")
+    elif partial_response:
+        ceiling = t("core.truncation.ceiling_kept", n=continuations)
+    else:
+        ceiling = t("core.truncation.ceiling_no_text", n=continuations)
+    agent._vprint(f"{agent.log_prefix}{ceiling}", force=True, diagnostic=True)
     if filled is not None:
         notice = _WINDOW_FILLED.format(prompt=filled[0], ctx=filled[1])
         return st.end_turn(
             f"{partial_response}\n\n{notice}" if partial_response else notice,
-            f"Prompt used {filled[0]} of {filled[1]} context tokens; no room to answer",
+            t("core.truncation.window_filled_error", prompt=filled[0], ctx=filled[1]),
         )
     return st.end_turn(
         partial_response or _CEILING_NO_TEXT,
-        "Response remained truncated after 4 continuation attempts",
+        t("core.truncation.ceiling_error", n=continuations),
     )
 
 
@@ -704,10 +707,8 @@ def continue_codex_incomplete(
     agent._codex_incomplete_retries = 0
     agent._codex_reasoning_only_streak = 0
     agent._persist_session(messages, conversation_history)
-    return partial_result(
-        messages, api_call_count,
-        f"Codex response remained incomplete after {n} continuation attempt{'s' if n != 1 else ''}",
-    )
+    # ``n`` counts incomplete responses; the continuations actually sent are ``n - 1``.
+    return partial_result(messages, api_call_count, t("core.truncation.codex_incomplete_error", n=n - 1))
 
 
 @dataclass

@@ -1,12 +1,14 @@
-"""Regression tests for Anthropic standard output truncation.
+"""Regression tests for anthropic_messages truncation continuation.
 
 When an Anthropic response hits ``stop_reason: max_tokens`` (mapped to
-``finish_reason == 'length'`` in run_agent), Hermes keeps the partial response
-and ends the turn without replaying the request.
+``finish_reason == 'length'`` in run_agent), the agent continues the answer
+within ``agent.output_truncation_retries`` — the same ladder it has always run
+for chat_completions and bedrock_converse — and keeps the stitched partial once
+that budget is spent.
 
 We don't exercise the full agent loop here (it's 3000 lines of inference,
 streaming, plugin hooks, etc.) — instead we verify the normalization
-adapter produces exactly the shape the finalization block consumes.
+adapter produces exactly the shape the continuation block consumes.
 """
 
 from __future__ import annotations
@@ -32,7 +34,7 @@ class TestTruncatedAnthropicResponseNormalization:
     """AnthropicTransport.normalize_response() gives us the shape _build_assistant_message expects."""
 
     def test_text_only_truncation_produces_text_content_no_tool_calls(self):
-        """Pure-text Anthropic truncation remains available as a partial response."""
+        """Pure-text Anthropic truncation → the text-continuation path fires."""
         from agent.transports import get_transport
 
         response = _make_anthropic_response(
@@ -40,13 +42,14 @@ class TestTruncatedAnthropicResponseNormalization:
         )
         nr = get_transport("anthropic_messages").normalize_response(response)
 
-        # The finalization block checks these two attributes:
-        #   assistant_message.content  → preserved as the partial response
-        #   assistant_message.tool_calls → prevents incomplete tool execution
+        # The continuation block checks these two attributes:
+        #   assistant_message.content  → appended to truncated_response_parts
+        #   assistant_message.tool_calls → guards the text-retry branch
         assert nr.content is not None
         assert "partial response" in nr.content
         assert not nr.tool_calls, (
-            "Pure-text truncation must not invent tool calls"
+            "Pure-text truncation must have no tool_calls so the text-continuation "
+            "branch (not the tool-retry branch) fires"
         )
         assert nr.finish_reason == "length", "max_tokens stop_reason must map to OpenAI-style 'length'"
 

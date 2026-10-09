@@ -4526,6 +4526,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ 串流在工具呼叫途中中斷（{tools}）— 正在要求分段重試（{n}/{limit}）…"
+    continue_stream: "↻ 串流中斷 — 正在要求續寫（{n}/{limit}）…"
+    continue_text: "↻ 正在要求續寫（{n}/{limit}）…"
+    window_filled: "⚠️  不再續寫 — 每次嘗試只會讓提示變得更長。"
+    window_filled_error: "提示已佔用此模型 {ctx} 個上下文 Token 中的 {prompt} 個；沒有空間作答"
+    ceiling_kept: "⚠️  續寫 {n} 次後回覆仍被截斷 — 保留目前已收到的部分回覆。"
+    ceiling_no_text: "⚠️  續寫 {n} 次後回覆仍被截斷 — 沒有產生可見文字。"
+    ceiling_error: "續寫 {n} 次後回覆仍被截斷"
+    codex_incomplete_error: "續寫 {n} 次後 Codex 回覆仍不完整"
+  empty_recovery:
+    post_tool_nudge: "⚠️ 模型在工具呼叫後回傳空回應 — 正在提示其繼續（{n}/{budget}）"
+    thinking_prefill: "↻ 只有思考而沒有可見文字 — 正在預先填入以繼續產生（{n}/{budget}）"
+    retry_status: "⚠️ 模型回傳空回應 — {wait} 秒後重試（{n}/{budget}）{note}"
+    high_cost_note: " — 高成本請求，已縮減重試預算"
   failed_turn:
     notice: "你的請求未被處理。如果你仍希望我執行，請重新傳送。"
     partial_notice: "此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。"

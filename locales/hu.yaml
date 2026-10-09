@@ -4545,6 +4545,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ A stream eszközhívás közben megszakadt ({tools}) — darabolt újrapróbálás kérése ({n}/{limit})..."
+    continue_stream: "↻ A stream megszakadt — folytatás kérése ({n}/{limit})..."
+    continue_text: "↻ Folytatás kérése ({n}/{limit})..."
+    window_filled: "⚠️  Nincs folytatás — minden próbálkozás csak a promptot növelné."
+    window_filled_error: "A prompt a modell {ctx} kontextustokenjéből {prompt}-t foglal el; nem maradt hely a válasznak"
+    ceiling_kept: "⚠️  A válasz {n} folytatási kísérlet után is csonka — az eddig kapott részleges választ megtartom."
+    ceiling_no_text: "⚠️  A válasz {n} folytatási kísérlet után is csonka — nem keletkezett látható szöveg."
+    ceiling_error: "A válasz {n} folytatási kísérlet után is csonka maradt"
+    codex_incomplete_error: "A Codex-válasz {n} folytatási kísérlet után is hiányos maradt"
+  empty_recovery:
+    post_tool_nudge: "⚠️ A modell üres választ adott az eszközhívások után — folytatásra ösztönzöm ({n}/{budget})"
+    thinking_prefill: "↻ Csak gondolkodás, látható szöveg nélkül — előtöltés a folytatáshoz ({n}/{budget})"
+    retry_status: "⚠️ Üres válasz a modelltől — újrapróbálás ({n}/{budget}) {wait}s múlva{note}"
+    high_cost_note: " — költséges kérés, az újrapróbálási keret csökkentve"
   failed_turn:
     notice: "A kérésed nem lett feldolgozva. Küldd el újra, ha még mindig szeretnéd, hogy végrehajtsam."
     partial_notice: "Ez a kör nem fejeződött be. Néhány művelet már lefuthatott; ellenőrizd a hatásukat, mielőtt újraküldöd."

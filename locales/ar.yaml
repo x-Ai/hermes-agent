@@ -4527,6 +4527,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ انقطع البث في منتصف استدعاء أداة ({tools}) — جارٍ طلب إعادة المحاولة على أجزاء ({n}/{limit})..."
+    continue_stream: "↻ انقطع البث — جارٍ طلب المتابعة ({n}/{limit})..."
+    continue_text: "↻ جارٍ طلب المتابعة ({n}/{limit})..."
+    window_filled: "⚠️  لن تتم المتابعة — كل محاولة ستزيد حجم الموجّه فقط."
+    window_filled_error: "استهلك الموجّه {prompt} من أصل {ctx} من رموز سياق هذا النموذج؛ لا مساحة للإجابة"
+    ceiling_kept: "⚠️  لا يزال الرد مقطوعًا بعد {n} من محاولات المتابعة — سيتم الاحتفاظ بالرد الجزئي المستلم حتى الآن."
+    ceiling_no_text: "⚠️  لا يزال الرد مقطوعًا بعد {n} من محاولات المتابعة — لم يُنتَج أي نص مرئي."
+    ceiling_error: "ظل الرد مقطوعًا بعد {n} من محاولات المتابعة"
+    codex_incomplete_error: "ظل رد Codex غير مكتمل بعد {n} من محاولات المتابعة"
+  empty_recovery:
+    post_tool_nudge: "⚠️ أعاد النموذج ردًا فارغًا بعد استدعاءات الأدوات — جارٍ حثه على المتابعة ({n}/{budget})"
+    thinking_prefill: "↻ رد يتضمن التفكير فقط دون نص مرئي — جارٍ التعبئة المسبقة للمتابعة ({n}/{budget})"
+    retry_status: "⚠️ رد فارغ من النموذج — إعادة المحاولة ({n}/{budget}) خلال {wait} ث{note}"
+    high_cost_note: " — طلب مكلف، تم تقليص ميزانية إعادة المحاولة"
   failed_turn:
     notice: "لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه."
     partial_notice: "لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال."

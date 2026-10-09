@@ -4528,6 +4528,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Fluxo interrompido no meio de uma chamada de ferramenta ({tools}) — solicitando nova tentativa em partes ({n}/{limit})..."
+    continue_stream: "↻ Fluxo interrompido — solicitando continuação ({n}/{limit})..."
+    continue_text: "↻ Solicitando continuação ({n}/{limit})..."
+    window_filled: "⚠️  Não vou continuar — cada tentativa só aumentaria o prompt."
+    window_filled_error: "O prompt ocupa {prompt} dos {ctx} tokens de contexto deste modelo; não há espaço para responder"
+    ceiling_kept: "⚠️  Resposta ainda truncada após {n} tentativa(s) de continuação — mantendo a resposta parcial recebida até agora."
+    ceiling_no_text: "⚠️  Resposta ainda truncada após {n} tentativa(s) de continuação — nenhum texto visível foi produzido."
+    ceiling_error: "A resposta permaneceu truncada após {n} tentativa(s) de continuação"
+    codex_incomplete_error: "A resposta do Codex permaneceu incompleta após {n} tentativa(s) de continuação"
+  empty_recovery:
+    post_tool_nudge: "⚠️ O modelo retornou uma resposta vazia após as chamadas de ferramentas — pedindo que continue ({n}/{budget})"
+    thinking_prefill: "↻ Resposta só com raciocínio, sem texto visível — pré-preenchendo para continuar ({n}/{budget})"
+    retry_status: "⚠️ Resposta vazia do modelo — tentando novamente ({n}/{budget}) em {wait}s{note}"
+    high_cost_note: " — solicitação cara, orçamento de tentativas reduzido"
   failed_turn:
     notice: "Seu pedido não foi processado. Envie-o novamente se ainda quiser que eu o execute."
     partial_notice: "Este turno não foi concluído. Algumas ações podem já ter sido executadas; verifique seus efeitos antes de reenviar."

@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from agent import empty_response_guard as _empty_guard
+from agent.i18n import t
 from agent.message_metadata import append_message
 from agent.turn_context_compaction import _refund_api_call
 from agent.turn_recovery import interruptible_backoff_sleep
@@ -71,12 +72,14 @@ def _retry_empty(
         "Empty response (no content or reasoning) — retry %d/%d in %.1fs (model=%s)",
         n, budget, wait_time, agent.model,
     )
+    # The note means the cost guard LOWERED the budget; an ``agent.empty_response_retries`` below
+    # the default is the operator's choice, not a high-cost reduction.
     _budget_note = (
-        " — high-cost request, reduced retry budget"
-        if budget < _empty_guard.DEFAULT_EMPTY_RETRY_BUDGET else ""
+        t("core.empty_recovery.high_cost_note")
+        if budget < _empty_guard.configured_empty_retry_budget(agent) else ""
     )
     agent._buffer_diagnostic_status(
-        f"⚠️ Empty response from model — retrying ({n}/{budget}) in {wait_time:.0f}s{_budget_note}"
+        t("core.empty_recovery.retry_status", n=n, budget=budget, wait=f"{wait_time:.0f}", note=_budget_note)
     )
     _interrupted = interruptible_backoff_sleep(
         agent, wait_time, None,
@@ -217,8 +220,7 @@ def recover_empty_response(
             _post_tool_retry, _post_tool_budget,
         )
         agent._buffer_diagnostic_status(
-            "⚠️ Model returned empty after tool calls — nudging to continue "
-            f"({_post_tool_retry}/{_post_tool_budget})"
+            t("core.empty_recovery.post_tool_nudge", n=_post_tool_retry, budget=_post_tool_budget)
         )
         # tool → assistant("(empty)") → user keeps the sequence valid.
         _nudge_msg = agent._build_assistant_message(assistant_message, finish_reason)
@@ -246,8 +248,8 @@ def recover_empty_response(
             agent._thinking_prefill_retries, _thinking_prefill_budget,
         )
         agent._buffer_diagnostic_status(
-            "↻ Thinking-only response — prefilling to continue "
-            f"({agent._thinking_prefill_retries}/{_thinking_prefill_budget})"
+            t("core.empty_recovery.thinking_prefill",
+              n=agent._thinking_prefill_retries, budget=_thinking_prefill_budget)
         )
         interim_msg = agent._build_assistant_message(assistant_message, "incomplete")
         interim_msg["_thinking_prefill"] = True

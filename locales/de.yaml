@@ -4528,6 +4528,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Stream mitten im Tool-Aufruf unterbrochen ({tools}) — fordere Wiederholung in Teilen an ({n}/{limit})..."
+    continue_stream: "↻ Stream unterbrochen — fordere Fortsetzung an ({n}/{limit})..."
+    continue_text: "↻ Fordere Fortsetzung an ({n}/{limit})..."
+    window_filled: "⚠️  Keine Fortsetzung — jeder Versuch würde den Prompt nur vergrößern."
+    window_filled_error: "Der Prompt belegt {prompt} von {ctx} Kontext-Tokens dieses Modells; kein Platz für eine Antwort"
+    ceiling_kept: "⚠️  Antwort nach {n} Fortsetzungsversuch(en) weiterhin abgeschnitten — die bisher erhaltene Teilantwort wird behalten."
+    ceiling_no_text: "⚠️  Antwort nach {n} Fortsetzungsversuch(en) weiterhin abgeschnitten — kein sichtbarer Text wurde erzeugt."
+    ceiling_error: "Antwort blieb nach {n} Fortsetzungsversuch(en) abgeschnitten"
+    codex_incomplete_error: "Codex-Antwort blieb nach {n} Fortsetzungsversuch(en) unvollständig"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Modell lieferte nach Tool-Aufrufen eine leere Antwort — stupse zum Weitermachen an ({n}/{budget})"
+    thinking_prefill: "↻ Nur Denken, kein sichtbarer Text — fülle vor, um fortzufahren ({n}/{budget})"
+    retry_status: "⚠️ Leere Antwort vom Modell — neuer Versuch ({n}/{budget}) in {wait}s{note}"
+    high_cost_note: " — teure Anfrage, Wiederholungsbudget reduziert"
   failed_turn:
     notice: "Deine Anfrage wurde nicht bearbeitet. Sende sie erneut, wenn ich sie noch ausführen soll."
     partial_notice: "Dieser Zug wurde nicht abgeschlossen. Einige Aktionen sind möglicherweise schon gelaufen; prüfe ihre Auswirkungen, bevor du erneut sendest."

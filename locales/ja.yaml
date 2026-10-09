@@ -4526,6 +4526,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ ツール呼び出しの途中でストリームが中断（{tools}）— 分割再試行を要求しています（{n}/{limit}）..."
+    continue_stream: "↻ ストリームが中断 — 続きを要求しています（{n}/{limit}）..."
+    continue_text: "↻ 続きを要求しています（{n}/{limit}）..."
+    window_filled: "⚠️  続行しません — 試行するたびにプロンプトが長くなるだけです。"
+    window_filled_error: "プロンプトがこのモデルのコンテキスト {ctx} トークンのうち {prompt} トークンを使用しており、回答する余地がありません"
+    ceiling_kept: "⚠️  {n} 回の続行要求後も応答が途中で切れています — これまでに受け取った部分的な応答を保持します。"
+    ceiling_no_text: "⚠️  {n} 回の続行要求後も応答が途中で切れています — 表示可能なテキストは生成されませんでした。"
+    ceiling_error: "{n} 回の続行要求後も応答が途中で切れたままです"
+    codex_incomplete_error: "{n} 回の続行要求後も Codex の応答が不完全なままです"
+  empty_recovery:
+    post_tool_nudge: "⚠️ ツール呼び出し後にモデルが空の応答を返しました — 続行を促しています（{n}/{budget}）"
+    thinking_prefill: "↻ 思考のみで表示テキストがありません — 続きを生成するためプレフィルします（{n}/{budget}）"
+    retry_status: "⚠️ モデルから空の応答 — {wait} 秒後に再試行します（{n}/{budget}）{note}"
+    high_cost_note: " — 高コストのリクエストのため再試行回数を減らしました"
   failed_turn:
     notice: "リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください"
     partial_notice: "このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください"

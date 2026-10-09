@@ -4527,6 +4527,21 @@ storage:
 
 # core: 各界面共用的回合循环与手动压缩文本（agent/turn_failure_copy.py、agent/manual_compression_feedback.py）
 core:
+  truncation:
+    continue_tool_call: "↻ 流在工具调用中途中断（{tools}），正在请求分块重试（{n}/{limit}）…"
+    continue_stream: "↻ 流中断，正在请求续写（{n}/{limit}）…"
+    continue_text: "↻ 正在请求续写（{n}/{limit}）…"
+    window_filled: "⚠️  不再续写，每次尝试只会让提示更长"
+    window_filled_error: "提示已占用该模型 {ctx} 个上下文 Token 中的 {prompt} 个，没有空间作答"
+    ceiling_kept: "⚠️  续写 {n} 次后回复仍被截断，保留目前已收到的部分回复"
+    ceiling_no_text: "⚠️  续写 {n} 次后回复仍被截断，没有产生可见文本"
+    ceiling_error: "续写 {n} 次后回复仍被截断"
+    codex_incomplete_error: "续写 {n} 次后 Codex 回复仍不完整"
+  empty_recovery:
+    post_tool_nudge: "⚠️ 模型在工具调用后返回空响应，正在提示其继续（{n}/{budget}）"
+    thinking_prefill: "↻ 只有思考没有可见文本，正在预填充以继续生成（{n}/{budget}）"
+    retry_status: "⚠️ 模型返回空响应，{wait} 秒后重试（{n}/{budget}）{note}"
+    high_cost_note: "，高成本请求，已缩减重试预算"
   failed_turn:
     notice: "你的请求未被处理，如果你仍希望我执行，请重新发送"
     partial_notice: "本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送"

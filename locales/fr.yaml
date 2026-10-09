@@ -4853,6 +4853,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Flux interrompu en plein appel d'outil ({tools}) — nouvelle tentative par morceaux demandée ({n}/{limit})..."
+    continue_stream: "↻ Flux interrompu — suite demandée ({n}/{limit})..."
+    continue_text: "↻ Suite demandée ({n}/{limit})..."
+    window_filled: "⚠️  Pas de suite — chaque tentative ne ferait qu'allonger le prompt."
+    window_filled_error: "Le prompt occupe {prompt} des {ctx} jetons de contexte de ce modèle ; plus de place pour répondre"
+    ceiling_kept: "⚠️  Réponse toujours tronquée après {n} tentative(s) de suite — la réponse partielle reçue jusqu'ici est conservée."
+    ceiling_no_text: "⚠️  Réponse toujours tronquée après {n} tentative(s) de suite — aucun texte visible n'a été produit."
+    ceiling_error: "La réponse est restée tronquée après {n} tentative(s) de suite"
+    codex_incomplete_error: "La réponse Codex est restée incomplète après {n} tentative(s) de suite"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Le modèle a renvoyé une réponse vide après les appels d'outils — relance pour continuer ({n}/{budget})"
+    thinking_prefill: "↻ Réponse composée uniquement de réflexion, sans texte visible — préremplissage pour continuer ({n}/{budget})"
+    retry_status: "⚠️ Réponse vide du modèle — nouvelle tentative ({n}/{budget}) dans {wait}s{note}"
+    high_cost_note: " — requête coûteuse, budget de tentatives réduit"
   failed_turn:
     notice: "Votre demande n'a pas été traitée. Renvoyez-la si vous souhaitez toujours que je l'exécute."
     partial_notice: "Ce tour ne s'est pas terminé. Certaines actions ont peut-être déjà été exécutées ; vérifiez leurs effets avant de renvoyer."

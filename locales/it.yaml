@@ -4528,6 +4528,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Flusso interrotto durante una chiamata a strumento ({tools}) — richiesta di ripetizione a blocchi ({n}/{limit})..."
+    continue_stream: "↻ Flusso interrotto — richiesta di continuazione ({n}/{limit})..."
+    continue_text: "↻ Richiesta di continuazione ({n}/{limit})..."
+    window_filled: "⚠️  Non continuo — ogni tentativo farebbe solo crescere il prompt."
+    window_filled_error: "Il prompt occupa {prompt} dei {ctx} token di contesto di questo modello; non c'è spazio per rispondere"
+    ceiling_kept: "⚠️  Risposta ancora troncata dopo {n} tentativo/i di continuazione — conservo la risposta parziale ricevuta finora."
+    ceiling_no_text: "⚠️  Risposta ancora troncata dopo {n} tentativo/i di continuazione — non è stato prodotto testo visibile."
+    ceiling_error: "La risposta è rimasta troncata dopo {n} tentativo/i di continuazione"
+    codex_incomplete_error: "La risposta Codex è rimasta incompleta dopo {n} tentativo/i di continuazione"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Il modello ha restituito una risposta vuota dopo le chiamate agli strumenti — lo sollecito a continuare ({n}/{budget})"
+    thinking_prefill: "↻ Risposta di solo ragionamento, senza testo visibile — precompilo per continuare ({n}/{budget})"
+    retry_status: "⚠️ Risposta vuota dal modello — nuovo tentativo ({n}/{budget}) tra {wait}s{note}"
+    high_cost_note: " — richiesta costosa, budget di tentativi ridotto"
   failed_turn:
     notice: "La tua richiesta non è stata elaborata. Inviala di nuovo se vuoi ancora che la esegua."
     partial_notice: "Questo turno non è stato completato. Alcune azioni potrebbero essere già state eseguite; verifica i loro effetti prima di reinviare."

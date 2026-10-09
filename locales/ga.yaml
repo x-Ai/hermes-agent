@@ -4528,6 +4528,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Cuireadh isteach ar an sruth i lár glao uirlise ({tools}) — ag iarraidh atriail i gcodanna ({n}/{limit})..."
+    continue_stream: "↻ Cuireadh isteach ar an sruth — ag iarraidh leanúint ar aghaidh ({n}/{limit})..."
+    continue_text: "↻ Ag iarraidh leanúint ar aghaidh ({n}/{limit})..."
+    window_filled: "⚠️  Ní leanfar ar aghaidh — ní dhéanfadh gach iarracht ach an leid a mhéadú."
+    window_filled_error: "D'úsáid an leid {prompt} as {ctx} comhartha comhthéacs an mhúnla seo; níl spás ar bith le freagairt"
+    ceiling_kept: "⚠️  Tá an freagra fós teasctha tar éis {n} iarracht(aí) leanúna — coinnítear an freagra páirteach a fuarthas go dtí seo."
+    ceiling_no_text: "⚠️  Tá an freagra fós teasctha tar éis {n} iarracht(aí) leanúna — níor táirgeadh aon téacs infheicthe."
+    ceiling_error: "D'fhan an freagra teasctha tar éis {n} iarracht(aí) leanúna"
+    codex_incomplete_error: "D'fhan freagra Codex neamhiomlán tar éis {n} iarracht(aí) leanúna"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Thug an tsamhail freagra folamh tar éis glaonna uirlise — á spreagadh le leanúint ar aghaidh ({n}/{budget})"
+    thinking_prefill: "↻ Freagra smaointeoireachta amháin gan téacs infheicthe — ag réamhlíonadh le leanúint ar aghaidh ({n}/{budget})"
+    retry_status: "⚠️ Freagra folamh ón tsamhail — ag atriail ({n}/{budget}) i gceann {wait}s{note}"
+    high_cost_note: " — iarratas costasach, buiséad atrialacha laghdaithe"
   failed_turn:
     notice: "Níor próiseáladh d'iarratas. Seol arís é más mian leat fós go gcuirfinn i gcrích é."
     partial_notice: "Níor críochnaíodh an babhta seo. Seans go bhfuil roinnt gníomhartha rite cheana; fíoraigh a n-éifeachtaí sula seolann tú arís."

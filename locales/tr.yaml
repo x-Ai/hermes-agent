@@ -4527,6 +4527,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ Akış araç çağrısının ortasında kesildi ({tools}) — parçalı yeniden deneme isteniyor ({n}/{limit})..."
+    continue_stream: "↻ Akış kesildi — devam isteniyor ({n}/{limit})..."
+    continue_text: "↻ Devam isteniyor ({n}/{limit})..."
+    window_filled: "⚠️  Devam edilmiyor — her deneme yalnızca istemi büyütürdü."
+    window_filled_error: "İstem bu modelin {ctx} bağlam belirtecinin {prompt} tanesini kullandı; yanıt için yer kalmadı"
+    ceiling_kept: "⚠️  {n} devam denemesinden sonra yanıt hâlâ kesik — şimdiye kadar alınan kısmi yanıt korunuyor."
+    ceiling_no_text: "⚠️  {n} devam denemesinden sonra yanıt hâlâ kesik — görünür bir metin üretilmedi."
+    ceiling_error: "Yanıt {n} devam denemesinden sonra kesik kaldı"
+    codex_incomplete_error: "Codex yanıtı {n} devam denemesinden sonra eksik kaldı"
+  empty_recovery:
+    post_tool_nudge: "⚠️ Model araç çağrılarından sonra boş yanıt döndürdü — devam etmesi için dürtülüyor ({n}/{budget})"
+    thinking_prefill: "↻ Yalnızca düşünme içeren yanıt, görünür metin yok — devam için ön doldurma yapılıyor ({n}/{budget})"
+    retry_status: "⚠️ Modelden boş yanıt — {wait}s içinde yeniden deneniyor ({n}/{budget}){note}"
+    high_cost_note: " — maliyetli istek, yeniden deneme bütçesi azaltıldı"
   failed_turn:
     notice: "İsteğiniz işlenmedi. Hâlâ yerine getirmemi istiyorsanız yeniden gönderin."
     partial_notice: "Bu tur tamamlanmadı. Bazı eylemler çoktan çalışmış olabilir; yeniden göndermeden önce etkilerini doğrulayın."

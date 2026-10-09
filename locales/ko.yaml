@@ -4526,6 +4526,21 @@ storage:
 
 # core: turn-loop and manual-compression copy every surface stores or prints (agent/turn_failure_copy.py, agent/manual_compression_feedback.py)
 core:
+  truncation:
+    continue_tool_call: "↻ 도구 호출 중 스트림이 중단됨 ({tools}) — 분할 재시도를 요청합니다 ({n}/{limit})..."
+    continue_stream: "↻ 스트림 중단 — 이어쓰기를 요청합니다 ({n}/{limit})..."
+    continue_text: "↻ 이어쓰기를 요청합니다 ({n}/{limit})..."
+    window_filled: "⚠️  더 이상 이어쓰지 않습니다 — 시도할 때마다 프롬프트만 길어집니다."
+    window_filled_error: "프롬프트가 이 모델의 컨텍스트 토큰 {ctx}개 중 {prompt}개를 사용하여 답변할 여유가 없습니다"
+    ceiling_kept: "⚠️  {n}번 이어쓰기를 요청한 뒤에도 응답이 잘려 있습니다 — 지금까지 받은 부분 응답을 유지합니다."
+    ceiling_no_text: "⚠️  {n}번 이어쓰기를 요청한 뒤에도 응답이 잘려 있습니다 — 표시할 텍스트가 생성되지 않았습니다."
+    ceiling_error: "{n}번 이어쓰기를 요청한 뒤에도 응답이 잘린 상태입니다"
+    codex_incomplete_error: "{n}번 이어쓰기를 요청한 뒤에도 Codex 응답이 불완전합니다"
+  empty_recovery:
+    post_tool_nudge: "⚠️ 도구 호출 후 모델이 빈 응답을 반환했습니다 — 계속하도록 유도합니다 ({n}/{budget})"
+    thinking_prefill: "↻ 사고만 있고 표시할 텍스트가 없습니다 — 계속 생성하도록 프리필합니다 ({n}/{budget})"
+    retry_status: "⚠️ 모델이 빈 응답을 반환했습니다 — {wait}초 후 다시 시도합니다 ({n}/{budget}){note}"
+    high_cost_note: " — 고비용 요청이므로 재시도 횟수를 줄였습니다"
   failed_turn:
     notice: "요청이 처리되지 않았습니다. 계속 진행하길 원하면 다시 보내 주세요."
     partial_notice: "이 턴이 완료되지 않았습니다. 일부 작업은 이미 실행되었을 수 있으니, 다시 보내기 전에 그 결과를 확인하세요."
