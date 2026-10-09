@@ -14,6 +14,7 @@ import { zhProjects } from './zh_projects'
 import { zhProviderWait } from './zh_provider_wait'
 import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
+import { zhTerminalBackend } from './zh_terminal_backend'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
   document: '个文档',
@@ -3348,31 +3349,7 @@ export const zhOverrides = {
         selectedMessage: backend => `终端命令现在通过 ${backend} 运行，将应用于新会话`,
         failedSelect: backend => `选择 ${backend} 失败`,
         needsSetupHint: '现在即可选择此后端 — 但在完成设置前命令将会失败',
-        descriptions: {
-          local: '直接在本机上运行命令，不进行隔离',
-          docker: '在隔离的 Docker 容器中运行命令，并使用持久化工作区',
-          singularity: '在 Singularity/Apptainer 容器中运行命令（适合 HPC，无需 root）',
-          modal: '在 Modal 云沙箱中运行命令',
-          daytona: '在 Daytona 云沙箱中运行命令',
-          ssh: '通过 SSH 在远程主机上运行命令'
-        },
-        details: {
-          'Docker not reachable — start Docker and retry.': '无法连接 Docker — 请启动 Docker 后重试',
-          'Docker CLI not found — install Docker Desktop or docker-ce.':
-            '未找到 Docker CLI — 请安装 Docker Desktop 或 docker-ce',
-          'Docker daemon not reachable — start Docker and retry.': '无法连接 Docker 守护进程 — 请启动 Docker 后重试',
-          'Docker daemon not responding (timed out).': 'Docker 守护进程无响应（已超时）',
-          'Neither singularity nor apptainer found on PATH.': 'PATH 中未找到 singularity 或 apptainer',
-          'Modal credentials not found — set MODAL_TOKEN_ID and MODAL_TOKEN_SECRET (or run `modal setup`).':
-            '未找到 Modal 凭据 — 请设置 MODAL_TOKEN_ID 和 MODAL_TOKEN_SECRET（或运行 `modal setup`）',
-          'Set DAYTONA_API_KEY to use the Daytona backend.': '请设置 DAYTONA_API_KEY 以使用 Daytona 后端',
-          'Set terminal.ssh_host and terminal.ssh_user in config.yaml (or the matching TERMINAL_SSH_* env vars).':
-            '请在 config.yaml 中设置 terminal.ssh_host 和 terminal.ssh_user（或对应的 TERMINAL_SSH_* 环境变量）',
-          'Set terminal.ssh_host in config.yaml (or the matching TERMINAL_SSH_* env vars).':
-            '请在 config.yaml 中设置 terminal.ssh_host（或对应的 TERMINAL_SSH_* 环境变量）',
-          'Set terminal.ssh_user in config.yaml (or the matching TERMINAL_SSH_* env vars).':
-            '请在 config.yaml 中设置 terminal.ssh_user（或对应的 TERMINAL_SSH_* 环境变量）'
-        },
+        ...zhTerminalBackend,
         needsSetupConfirmTitle: backend => `仍要选择 ${backend} 吗？`,
         needsSetupConfirmDescription: detail => `${detail} 此更改生效后启动的会话在设置完成前将没有终端或文件工具`,
         needsSetupConfirmDescriptionGeneric:

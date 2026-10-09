@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { ProfileScope } from '@/api/client'
 import { I18nProvider } from '@/i18n'
+import { zh } from '@/i18n/zh'
+import { zhHant } from '@/i18n/zh-hant'
 import { deferred } from '@/test/deferred'
 import type { TerminalBackendsResponse } from '@/types/hermes'
 
@@ -154,16 +156,37 @@ describe('TerminalBackendPanel', () => {
     expect(selectTerminalBackend).not.toHaveBeenCalled()
   })
 
-  it('localizes the live Docker availability warning in Chinese', async () => {
-    const { TerminalBackendPanel } = await import('./terminal-backend-panel')
-    render(
-      <I18nProvider configClient={null} initialLocale="zh">
-        <TerminalBackendPanel onConfiguredChange={vi.fn()} />
-      </I18nProvider>
-    )
+  // The dashboard router (hermes_cli/web_routers/tools.py) reports probe outcomes
+  // as English prose and the Chinese catalogs match that prose verbatim, so every
+  // outcome the Docker / Podman probe emits must render localized, never fall through.
+  const DOCKER_PROBE_DETAILS = [
+    'Docker CLI not found — install Docker Desktop, docker-ce, or Podman.',
+    'Docker not reachable — start Docker and retry.',
+    'Podman not reachable — run `podman machine start` and retry.',
+    'Docker not responding (timed out).',
+    'Podman not responding (timed out).'
+  ]
 
-    expect(await screen.findByText('无法连接 Docker — 请启动 Docker 后重试')).toBeTruthy()
-    expect(screen.queryByText('Docker not reachable — start Docker and retry.')).toBeNull()
+  it.each([
+    ['zh', zh],
+    ['zh-hant', zhHant]
+  ] as const)('localizes every Docker / Podman probe outcome in %s', async (locale, catalog) => {
+    const [local, docker] = backends().backends
+
+    for (const detail of DOCKER_PROBE_DETAILS) {
+      const localized = catalog.settings.toolsets.terminalBackend.details[detail] ?? ''
+      expect(localized, detail).toMatch(/[㐀-鿿]/u)
+      getTerminalBackends.mockResolvedValue(backends({ backends: [local, { ...docker, detail }] }))
+      render(
+        <I18nProvider configClient={null} initialLocale={locale}>
+          <TerminalBackendPanel onConfiguredChange={vi.fn()} />
+        </I18nProvider>
+      )
+
+      expect(await screen.findByText(localized)).toBeTruthy()
+      expect(screen.queryByText(detail)).toBeNull()
+      cleanup()
+    }
   })
 
   it('does not re-select the already active backend', async () => {

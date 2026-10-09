@@ -1,6 +1,7 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import type { TranslationOverrides } from './define-locale'
+import { zhHantTerminalBackend } from './zh-hant_terminal_backend'
 import { zhHantUninstallSection } from './zh-hant_uninstall_section'
 
 export const zhHantSettings = {
@@ -2133,10 +2134,7 @@ export const zhHantSettings = {
         selectedMessage: backend => `終端命令現在透過 ${backend} 執行。將套用於新工作階段。`,
         failedSelect: backend => `選擇 ${backend} 失敗`,
         needsSetupHint: '現在即可選擇此後端——但在完成設定前命令將會失敗。',
-        descriptions: {},
-        details: {
-          'Docker not reachable — start Docker and retry.': '無法連線 Docker——請啟動 Docker 後重試'
-        },
+        ...zhHantTerminalBackend,
         needsSetupConfirmTitle: backend => `選擇${backend}無論如何?`,
         needsSetupConfirmDescription: detail => `${detail}在此更改之後開始的會話，在設置完成之前將沒有終端或文件工具。`,
         needsSetupConfirmDescriptionGeneric:
