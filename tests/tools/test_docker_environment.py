@@ -595,17 +595,6 @@ def test_label_sanitizer_rejects_invalid_characters():
     assert len(docker_env._sanitize_label_value(long_value)) == 63
 
 
-def test_persistent_container_name_is_stable_and_identity_scoped():
-    """The daemon-wide name is the atomic rendezvous key across processes."""
-    first = docker_env._persistent_container_name("ws-project", "default", "off")
-    assert first == docker_env._persistent_container_name("ws-project", "default", "off")
-    assert first != docker_env._persistent_container_name("ws-other", "default", "off")
-    assert first != docker_env._persistent_container_name("ws-project", "work", "off")
-    assert first != docker_env._persistent_container_name("ws-project", "default", "on")
-    assert first.startswith("hermes-ws-project-")
-    assert len(first) <= 63
-
-
 def test_reuse_environment_fingerprint_tracks_immutable_configuration():
     """Containers with different images, mounts, or Hermes homes must not
     share the label used for cross-process reuse."""

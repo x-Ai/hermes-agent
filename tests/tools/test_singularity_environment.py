@@ -84,11 +84,12 @@ def _persistent_env(task_id: str = "ws-project"):
     )
 
 
-def test_persistent_name_is_stable_and_profile_scoped():
-    first = singularity_mod._persistent_instance_name("ws-project", "default")
-    assert first == singularity_mod._persistent_instance_name("ws-project", "default")
-    assert first != singularity_mod._persistent_instance_name("ws-other", "default")
-    assert first != singularity_mod._persistent_instance_name("ws-project", "research")
+def test_persistent_name_is_stable_and_identity_scoped():
+    first = singularity_mod._persistent_instance_name("ws-project", "default", "env-a")
+    assert first == singularity_mod._persistent_instance_name("ws-project", "default", "env-a")
+    assert first != singularity_mod._persistent_instance_name("ws-other", "default", "env-a")
+    assert first != singularity_mod._persistent_instance_name("ws-project", "research", "env-a")
+    assert first != singularity_mod._persistent_instance_name("ws-project", "default", "env-b")
     assert first.startswith("hermes_ws_project_")
 
 
@@ -160,3 +161,76 @@ def test_nonpersistent_instances_remain_ephemeral(fake_apptainer):
 
     env.cleanup()
     assert fake_apptainer.count("stop") == 1
+
+
+# --- the bind publishes the same mount contract DockerEnvironment does -----------------------
+
+def _bound_env(proj):
+    return singularity_mod.SingularityEnvironment(
+        image="/tmp/test.sif", persistent_filesystem=False,
+        host_cwd=str(proj), auto_mount_cwd=True,
+    )
+
+
+def test_bound_workspace_publishes_the_shared_mount_contract(fake_apptainer, tmp_path):
+    """``host_cwd`` / ``host_cwd_mount`` are how every shared path translator (file tools, vision
+    ingest, the terminal's cwd remapping) learns about a bind. DockerEnvironment publishes them;
+    a backend that binds without them leaves every host path untranslated."""
+    proj = tmp_path / "proj"
+    proj.mkdir()
+
+    env = _bound_env(proj)
+    assert (env.host_cwd, env.host_cwd_mount) == (str(proj), "/workspace")
+
+    unbound = singularity_mod.SingularityEnvironment(
+        image="/tmp/test.sif", persistent_filesystem=False,
+        host_cwd=str(proj), auto_mount_cwd=False,
+    )
+    assert (unbound.host_cwd, unbound.host_cwd_mount) == (None, None)
+
+
+def test_file_tools_translate_host_paths_through_the_bind(fake_apptainer, tmp_path):
+    from tools.file_operations import ShellFileOperations
+
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    ops = ShellFileOperations(_bound_env(proj), cwd="/workspace")
+
+    assert ops._expand_path(str(proj / "src" / "a.txt")) == "/workspace/src/a.txt"
+
+
+# --- an instance is adopted by name only under the configuration that started it ---------------
+
+def _starts(fake):
+    return [c for c in fake.calls if c[1:3] == ["instance", "start"]]
+
+
+def test_changed_bind_starts_a_new_instance_instead_of_adopting_the_old(fake_apptainer, tmp_path):
+    """The name must carry what an instance bakes in at start (Docker's ``hermes-environment``
+    label). Otherwise switching the project mount on, off or onto another directory keeps
+    adopting the instance started under the previous configuration: the sandbox silently shows
+    the WRONG project, and a mount switched off stays bound."""
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    first = _persistent_env()
+
+    second = singularity_mod.SingularityEnvironment(
+        image="/tmp/test.sif", persistent_filesystem=True, task_id="ws-project",
+        host_cwd=str(proj), auto_mount_cwd=True,
+    )
+
+    assert second.instance_id != first.instance_id
+    assert second._instance_reused is False
+    assert _starts(fake_apptainer)[-1][-1] == second.instance_id
+    assert f"{proj}:/workspace" in _starts(fake_apptainer)[-1]
+
+
+def test_changed_image_starts_a_new_instance(fake_apptainer):
+    first = _persistent_env()
+
+    second = singularity_mod.SingularityEnvironment(
+        image="/tmp/other.sif", persistent_filesystem=True, task_id="ws-project",
+    )
+
+    assert second.instance_id != first.instance_id
+    assert "/tmp/other.sif" in _starts(fake_apptainer)[-1]

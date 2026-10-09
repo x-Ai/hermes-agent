@@ -415,13 +415,8 @@ def _sanitize_cwd_for_live_env(env: Any, new_cwd: str) -> Optional[str]:
     if not _is_unusable_container_cwd(new_cwd, mounted_host=mounted):
         return new_cwd
     if mounted:
-        # The bind may sit at a fallback mount when the workspace path is claimed; a
-        # backend without ``host_cwd_mount`` (Singularity) binds at its configured path.
-        container_mount = (
-            getattr(env, "host_cwd_mount", None)
-            or getattr(env, "_workspace_mount_path", None)
-            or _DEFAULT_WORKSPACE_MOUNT_PATH
-        )
+        # The bind may sit at a fallback mount when the workspace path is claimed.
+        container_mount = getattr(env, "host_cwd_mount", None) or _DEFAULT_WORKSPACE_MOUNT_PATH
         if _is_mounted_host_cwd(new_cwd, mounted):
             return container_mount
         translated = translate_mounted_host_path(new_cwd, mounted, container_mount)
@@ -504,6 +499,11 @@ def _has_isolation_overrides(task_id: Optional[str]) -> bool:
     return bool(overrides and set(overrides) & _ISOLATION_OVERRIDE_KEYS)
 
 
+# Backends whose persistent sandbox is adopted by NAME across processes and survives ``cleanup()``;
+# keyed per session, each session would leave one running sandbox behind.
+_PROFILE_SCOPED_SANDBOXES = frozenset({"docker", "singularity"})
+
+
 @dataclass(frozen=True)
 class _SessionScope:
     """Backend identity + scoping predicates for one call, read once.
@@ -525,6 +525,10 @@ class _SessionScope:
       cross-profile SSH reuse; ungated it fragmented persistent Docker into one
       container per gateway session, so this restores profile scoping for exactly
       this backend/mode.
+    * ``profile_scoped`` — the same collapse for every backend in
+      ``_PROFILE_SCOPED_SANDBOXES``: a persistent Singularity instance is adopted by
+      name across processes and survives ``cleanup()`` exactly like a persistent
+      Docker container, so a per-session key left one running instance per session.
     """
     env_type: str
     persistent: bool
@@ -544,6 +548,10 @@ class _SessionScope:
     @property
     def docker_profile_scoped(self) -> bool:
         return self.env_type == "docker" and self.persistent
+
+    @property
+    def profile_scoped(self) -> bool:
+        return self.env_type in _PROFILE_SCOPED_SANDBOXES and self.persistent
 
 
 def _session_scope() -> _SessionScope:
@@ -658,15 +666,17 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
        session's task_id is its own key (a fresh chat gets a fresh sandbox with only
        ITS mounts); delegate_task children follow the alias registry to the parent.
        Routed profiles qualify the key (:func:`_qualify_task_key`, #123989).
-    3. Session key present (WebUI per-session, gateway per-message): persistent
-       Docker is PROFILE-scoped — ``shared:<key>`` opt-in, else ``profile:<name>``,
+    3. Session key present (WebUI per-session, gateway per-message): a persistent
+       Docker or Singularity sandbox is PROFILE-scoped — ``shared:<key>`` opt-in
+       (docker), else ``profile:<name>``,
        with the default profile staying literally ``"default"`` so CLI and
        default-profile gateway sessions share ONE container; other backends key
        ``session:<key>`` so switching profiles can't reuse another profile's
        SSHEnvironment on the wrong host.
     4. No session key (CLI, cron): ``shared:<key>`` when opted in (else a CLI run of a
        keyed profile would split from its gateway sessions); a routed multiplexed profile
-       keys its own home (``profile:<name>`` under persistent Docker, matching branch 3);
+       keys its own home (``profile:<name>`` under a persistent docker/singularity
+       sandbox, matching branch 3);
        else ``"default"``, which subagent ids collapse onto to share the parent's container.
     """
     if task_id and _has_isolation_overrides(task_id):
@@ -701,8 +711,8 @@ def _resolve_container_task_id(task_id: Optional[str]) -> str:
         # ONE container/cache slot (and sandbox dir) regardless of profile name (#84671).
         return f"shared:{shared}"
     if not session_key:
-        return _routed_home_task_key(scope.docker_profile_scoped) or "default"
-    if not scope.docker_profile_scoped:
+        return _routed_home_task_key(scope.profile_scoped) or "default"
+    if not scope.profile_scoped:
         return _qualify_task_key(f"session:{session_key}")
     profile = _current_session_profile() or "default"
     return "default" if profile == "default" else f"profile:{profile}"
@@ -1189,11 +1199,7 @@ def _resolve_command_cwd(
             if visible != recorded:
                 return visible
             if _is_mounted_host_cwd(recorded, mounted_host):
-                container_mount = (
-                    getattr(env, "host_cwd_mount", None)
-                    or getattr(env, "_workspace_mount_path", None)
-                    or _workspace_mount_path(env_type)
-                )
+                container_mount = getattr(env, "host_cwd_mount", None) or _workspace_mount_path(env_type)
                 logger.info(
                     "Remapping recorded session cwd %r for %s backend "
                     "(mounted host directory). Using %r instead.",

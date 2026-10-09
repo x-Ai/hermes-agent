@@ -5,6 +5,7 @@ resource limits and optional persistence via writable overlay dirs that survive 
 """
 
 import hashlib
+import json
 import logging
 import os
 import re
@@ -35,11 +36,26 @@ def _get_active_profile_name() -> str:
         return "default"
 
 
-def _persistent_instance_name(task_id: str, profile_name: str) -> str:
+def _instance_fingerprint(image: str, bind_args: list[str], hermes_home: str) -> str:
+    """Hash of what an instance bakes in at ``instance start``: the image, the workspace bind and
+    the Hermes home whose credential/skills binds it carries. The Singularity twin of Docker's
+    ``hermes-environment`` reuse label — it goes into the instance NAME, so an instance started
+    under another configuration is never adopted by name (a mount switched off would otherwise
+    stay bound, a mount moved to another project would keep showing the previous one)."""
+    normalized_home = os.path.normcase(os.path.abspath(os.path.expanduser(hermes_home)))
+    payload = json.dumps(
+        {"image": image, "bind_args": bind_args, "hermes_home": normalized_home},
+        sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
+
+
+def _persistent_instance_name(task_id: str, profile_name: str, environment: str) -> str:
+    """Stable rendezvous name for a reusable instance: task, profile and environment fingerprint,
+    the same identity a Docker container's reuse probe filters on."""
     task_text = str(task_id or "default")
     profile_text = str(profile_name or "default")
     readable = _INSTANCE_NAME_UNSAFE_RE.sub("_", task_text)[:24].strip("_") or "task"
-    identity = f"{task_text}\0{profile_text}"
+    identity = f"{task_text}\0{profile_text}\0{environment}"
     digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()[:16]
     return f"hermes_{readable}_{digest}"
 
@@ -176,11 +192,6 @@ class SingularityEnvironment(BaseEnvironment):
         self._persistent = persistent_filesystem
         self._task_id = task_id
         self._profile_name = _get_active_profile_name()
-        self.instance_id = (
-            _persistent_instance_name(task_id, self._profile_name)
-            if self._persistent
-            else f"hermes_{uuid.uuid4().hex[:12]}"
-        )
         self._instance_started = False
         self._instance_reused = False
         self._overlay_dir: Optional[Path] = None
@@ -190,15 +201,28 @@ class SingularityEnvironment(BaseEnvironment):
             (workspace_mount_path or "/workspace").rstrip("/") or "/workspace"
         )
         host_cwd_abs = os.path.abspath(os.path.expanduser(host_cwd)) if host_cwd else ""
-        self._host_workspace: Optional[str] = None
+        # The two attributes DockerEnvironment publishes for its bind: file tools, vision ingest
+        # and the terminal's cwd remapping translate host paths onto the mount through them, so a
+        # backend that binds without publishing them leaves every host path untranslated.
+        self.host_cwd: Optional[str] = None
+        self.host_cwd_mount: Optional[str] = None
         if auto_mount_cwd and host_cwd_abs:
             if os.path.isdir(host_cwd_abs):
-                self._host_workspace = host_cwd_abs
+                self.host_cwd = host_cwd_abs
+                self.host_cwd_mount = self._workspace_mount_path
             else:
                 logger.debug(
                     "Singularity: skipping cwd mount because host_cwd is not a valid directory: %s",
                     host_cwd,
                 )
+
+        self.instance_id = (
+            _persistent_instance_name(
+                task_id, self._profile_name,
+                _instance_fingerprint(str(self.image), self._workspace_bind_args(), str(get_hermes_home())))
+            if self._persistent
+            else f"hermes_{uuid.uuid4().hex[:12]}"
+        )
 
         if self._persistent:
             # A raw session-key task_id carries colons etc. unsafe in host path components;
@@ -209,6 +233,10 @@ class SingularityEnvironment(BaseEnvironment):
 
         self._start_instance()
         self.init_session()
+
+    def _workspace_bind_args(self) -> list[str]:
+        """``--bind`` argv for the host workspace; empty when nothing is mounted."""
+        return ["--bind", f"{self.host_cwd}:{self.host_cwd_mount}"] if self.host_cwd else []
 
     def _instance_is_running(self) -> bool:
         try:
@@ -245,15 +273,10 @@ class SingularityEnvironment(BaseEnvironment):
         else:
             cmd.append("--writable-tmpfs")
 
-        if self._host_workspace:
-            cmd.extend([
-                "--bind",
-                f"{self._host_workspace}:{self._workspace_mount_path}",
-            ])
-            logger.info(
-                "Singularity: mounting host workspace %s -> %s",
-                self._host_workspace, self._workspace_mount_path,
-            )
+        bind_args = self._workspace_bind_args()
+        if bind_args:
+            cmd.extend(bind_args)
+            logger.info("Singularity: mounting host workspace %s -> %s", self.host_cwd, self.host_cwd_mount)
 
         try:
             from tools.credential_files import get_credential_file_mounts, get_skills_directory_mount

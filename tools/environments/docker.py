@@ -103,11 +103,18 @@ def _sanitize_label_value(value: str) -> str:
 
 
 def _persistent_container_name(
-    task_label: str, profile_label: str, egress_label: str,
+    task_label: str, profile_label: str, egress_label: str, environment_label: str,
 ) -> str:
-    """Stable daemon-wide rendezvous name for a reusable container."""
+    """Stable daemon-wide rendezvous name for a reusable container.
+
+    Keyed on exactly what ``_find_reusable_container`` filters on, the environment fingerprint
+    included: a name conflict then only ever means a concurrent creator of the SAME sandbox (the
+    loser joins it). Without the fingerprint, a sandbox from an earlier image / mount / home
+    configuration is invisible to the probe yet still owns the name, and every fresh run fails
+    until someone removes it by hand. An explicit shared key carries no fingerprint label and
+    passes ``""`` — sharing opts into the first creator's settings on the probe side too."""
     readable = task_label[:24].strip("._-") or "task"
-    identity = f"{task_label}\0{profile_label}\0{egress_label}"
+    identity = f"{task_label}\0{profile_label}\0{egress_label}\0{environment_label}"
     digest = hashlib.sha256(identity.encode("utf-8", "surrogatepass")).hexdigest()[:16]
     return f"hermes-{readable}-{digest}"
 
@@ -1114,16 +1121,24 @@ class DockerEnvironment(BaseEnvironment):
             raise
         return result.stdout.strip(), False
 
+    def _identity_labels(self) -> tuple[str, str, str]:
+        """``(task, profile, egress)`` labels the reuse probe and the rendezvous name key on."""
+        return (self._labels.get("hermes-task-id", "unknown"),
+                self._labels.get("hermes-profile", "unknown"),
+                self._labels.get(_EGRESS_LABEL_KEY, "off"))
+
+    def _fresh_container_name(self) -> str:
+        """Name for a container this process starts: the rendezvous name under cross-process
+        persistence (see ``_persistent_container_name``), else a throwaway one."""
+        if not self._persist_across_processes:
+            return f"hermes-{uuid.uuid4().hex[:8]}"
+        return _persistent_container_name(
+            *self._identity_labels(), self._labels.get(_ENVIRONMENT_LABEL_KEY, ""))
+
     def _docker_run(self, cwd: str) -> str:
         """Start a fresh container or join the concurrent persistent winner."""
-        task_label = self._labels.get("hermes-task-id", "unknown")
-        profile_label = self._labels.get("hermes-profile", "unknown")
-        egress_label = self._labels.get(_EGRESS_LABEL_KEY, "off")
-        container_name = (
-            _persistent_container_name(task_label, profile_label, egress_label)
-            if self._persist_across_processes
-            else f"hermes-{uuid.uuid4().hex[:8]}"
-        )
+        task_label, profile_label, egress_label = self._identity_labels()
+        container_name = self._fresh_container_name()
         run_cmd = self._run_command(container_name, cwd)
         logger.debug("Starting container: %s", ' '.join(run_cmd))
         container_id, joined_race = self._run_new_container(
@@ -1240,14 +1255,8 @@ class DockerEnvironment(BaseEnvironment):
                 logger.error("Recovery: no saved image name, cannot recreate container")
                 return False
             try:
-                task_label = self._labels.get("hermes-task-id", "unknown")
-                profile_label = self._labels.get("hermes-profile", "unknown")
-                egress_label = self._labels.get(_EGRESS_LABEL_KEY, "off")
-                new_name = (
-                    _persistent_container_name(task_label, profile_label, egress_label)
-                    if self._persist_across_processes
-                    else f"hermes-{uuid.uuid4().hex[:8]}"
-                )
+                task_label, profile_label, egress_label = self._identity_labels()
+                new_name = self._fresh_container_name()
                 self._container_id, joined_race = self._run_new_container(
                     self._run_command(new_name, self.cwd),
                     container_name=new_name,
