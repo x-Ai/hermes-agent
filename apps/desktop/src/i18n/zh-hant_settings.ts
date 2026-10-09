@@ -736,13 +736,19 @@ export const zhHantSettings = {
         containerPersistent:
           '跨工作階段保留容器檔案系統狀態。變更會在後端重新啟動後生效，且不會銷毀目前的容器或執行個體。',
         dockerImage: '執行後端為 Docker 時使用的容器映像檔',
-        dockerMountCwdToWorkspace: '將專案目錄繫結掛載到 Docker 沙箱的 /workspace；關閉時沙箱完全隔離',
-        dockerWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的容器',
-        dockerWorkspaceMountPath: '專案在容器內的完整掛載路徑，預設 /workspace；修改後對下一個容器生效',
+        dockerMountCwdToWorkspace:
+          '將專案目錄繫結掛載到 Docker 沙箱的掛載路徑（預設 /workspace）；關閉時沙箱完全隔離；變更會在後端重新啟動後對下一個容器生效',
+        dockerWorkspacePerSession:
+          '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的容器；變更會在後端重新啟動後生效',
+        dockerWorkspaceMountPath:
+          '專案在容器內的完整掛載路徑，預設 /workspace；變更會在後端重新啟動後對下一個容器生效，且不會銷毀目前的容器',
         singularityImage: '執行後端為 Singularity 時使用的映像檔',
-        singularityMountCwdToWorkspace: '將專案目錄繫結掛載到 Singularity 沙箱的 /workspace；關閉時沙箱完全隔離',
-        singularityWorkspacePerSession: '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的執行個體',
-        singularityWorkspaceMountPath: '專案在沙箱內的完整繫結路徑，預設 /workspace；修改後對下一個執行個體生效',
+        singularityMountCwdToWorkspace:
+          '將專案目錄繫結掛載到 Singularity 沙箱的掛載路徑（預設 /workspace）；關閉時沙箱完全隔離；變更會在後端重新啟動後對下一個執行個體生效',
+        singularityWorkspacePerSession:
+          '使用各工作階段自己選擇的目錄，而不只是啟動目錄；每個專案會有獨立的執行個體；變更會在後端重新啟動後生效',
+        singularityWorkspaceMountPath:
+          '專案在沙箱內的完整繫結路徑，預設 /workspace；變更會在後端重新啟動後對下一個執行個體生效，且不會銷毀目前的執行個體',
         modalImage: '執行後端為 Modal 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載',
         daytonaImage: '執行後端為 Daytona 時使用的映像檔。在雲端執行：專案目錄以副本方式同步，不會掛載'
       },

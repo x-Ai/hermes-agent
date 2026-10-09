@@ -949,13 +949,19 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'terminal.env_passthrough': '传入工具执行的环境变量',
   'terminal.container_persistent': '跨会话保留容器文件系统状态，修改将在后端重启后生效，且不会销毁当前容器或实例',
   'terminal.docker_image': '执行后端为 Docker 时使用的容器镜像',
-  'terminal.docker_mount_cwd_to_workspace': '把项目目录绑定挂载到 Docker 沙箱的 /workspace，关闭时沙箱完全隔离',
-  'terminal.docker_workspace_per_session': '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立容器',
-  'terminal.docker_workspace_mount_path': '项目在容器内的完整挂载路径，默认 /workspace',
+  'terminal.docker_mount_cwd_to_workspace':
+    '把项目目录绑定挂载到 Docker 沙箱的挂载路径（默认 /workspace），关闭时沙箱完全隔离，修改将在后端重启后对下一个容器生效',
+  'terminal.docker_workspace_per_session':
+    '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立容器，修改将在后端重启后生效',
+  'terminal.docker_workspace_mount_path':
+    '项目在容器内的完整挂载路径，默认 /workspace，修改将在后端重启后对下一个容器生效，且不会销毁当前容器',
   'terminal.singularity_image': '执行后端为 Singularity 时使用的镜像',
-  'terminal.singularity_mount_cwd_to_workspace': '把项目目录绑定挂载到 Singularity 沙箱的 /workspace',
-  'terminal.singularity_workspace_per_session': '使用各会话自己选择的目录，每个项目会有独立实例',
-  'terminal.singularity_workspace_mount_path': '项目在沙箱内的完整绑定路径，默认 /workspace',
+  'terminal.singularity_mount_cwd_to_workspace':
+    '把项目目录绑定挂载到 Singularity 沙箱的挂载路径（默认 /workspace），关闭时沙箱完全隔离，修改将在后端重启后对下一个实例生效',
+  'terminal.singularity_workspace_per_session':
+    '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立实例，修改将在后端重启后生效',
+  'terminal.singularity_workspace_mount_path':
+    '项目在沙箱内的完整绑定路径，默认 /workspace，修改将在后端重启后对下一个实例生效，且不会销毁当前实例',
   'terminal.modal_image': '执行后端为 Modal 时使用的云端镜像',
   'terminal.daytona_image': '执行后端为 Daytona 时使用的云端镜像',
   file_read_max_chars: 'Hermes 单次文件读取可读取的最大字符数',

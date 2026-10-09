@@ -675,18 +675,18 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
       'Keep container filesystem state across Hermes sessions. Changes apply after the backend restarts and do not destroy the current container or instance.',
     dockerImage: 'Container image used when the execution backend is Docker.',
     dockerMountCwdToWorkspace:
-      'Bind-mount the project folder into the Docker sandbox at /workspace. Off keeps the sandbox fully isolated.',
+      'Bind-mount the project folder into the Docker sandbox at the configured mount path (default /workspace). Off keeps the sandbox fully isolated. Changes apply to the next container after the backend restarts.',
     dockerWorkspacePerSession:
-      'Use the folder each session picked instead of only the launch folder. Every project gets its own container.',
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own container. Changes apply after the backend restarts.',
     dockerWorkspaceMountPath:
-      'Full in-container path where the project is mounted. Default /workspace. Changes apply to the next container.',
+      'Full in-container path where the project is mounted. Default /workspace. Changes apply to the next container after the backend restarts and do not destroy the current one.',
     singularityImage: 'Image used when the execution backend is Singularity.',
     singularityMountCwdToWorkspace:
-      'Bind-mount the project folder into the Singularity sandbox at /workspace. Off keeps the sandbox fully isolated.',
+      'Bind-mount the project folder into the Singularity sandbox at the configured mount path (default /workspace). Off keeps the sandbox fully isolated. Changes apply to the next instance after the backend restarts.',
     singularityWorkspacePerSession:
-      'Use the folder each session picked instead of only the launch folder. Every project gets its own instance.',
+      'Use the folder each session picked instead of only the launch folder. Every project gets its own instance. Changes apply after the backend restarts.',
     singularityWorkspaceMountPath:
-      'Full in-container path where the project is bound. Default /workspace. Changes apply to the next instance.',
+      'Full in-container path where the project is bound. Default /workspace. Changes apply to the next instance after the backend restarts and do not destroy the current one.',
     modalImage:
       'Image used when the execution backend is Modal. Runs in the cloud: project folders are synced as copies, not mounted.',
     daytonaImage:

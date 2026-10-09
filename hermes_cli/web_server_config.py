@@ -109,31 +109,40 @@ _SCHEMA_OVERRIDES: dict[str, dict[str, Any]] = {
     ),
     "terminal.container_persistent": {
         "type": "boolean",
-        "description": "Keep container filesystem state across Hermes sessions",
+        "description": ("Keep container filesystem state across Hermes sessions; changes apply after the "
+                        "backend restarts and do not destroy the current container or instance"),
     },
     "terminal.docker_mount_cwd_to_workspace": {
         "type": "boolean",
-        "description": "Bind-mount the project folder into Docker at /workspace",
+        "description": ("Bind-mount the project folder into the Docker sandbox at the configured mount path "
+                        "(default /workspace); off keeps the sandbox fully isolated; changes apply to the next "
+                        "container after the backend restarts"),
     },
     "terminal.docker_workspace_per_session": {
         "type": "boolean",
-        "description": "Follow the project folder selected by each session in Docker",
+        "description": ("Use the folder each session picked instead of only the launch folder; every project "
+                        "gets its own container; changes apply after the backend restarts"),
     },
     "terminal.docker_workspace_mount_path": {
         "type": "string",
-        "description": "Full in-container Docker project mount path",
+        "description": ("Full in-container path where the project is mounted (default /workspace); changes "
+                        "apply to the next container after the backend restarts and do not destroy the current one"),
     },
     "terminal.singularity_mount_cwd_to_workspace": {
         "type": "boolean",
-        "description": "Bind-mount the project folder into Singularity at /workspace",
+        "description": ("Bind-mount the project folder into the Singularity sandbox at the configured mount path "
+                        "(default /workspace); off keeps the sandbox fully isolated; changes apply to the next "
+                        "instance after the backend restarts"),
     },
     "terminal.singularity_workspace_per_session": {
         "type": "boolean",
-        "description": "Follow the project folder selected by each session in Singularity",
+        "description": ("Use the folder each session picked instead of only the launch folder; every project "
+                        "gets its own instance; changes apply after the backend restarts"),
     },
     "terminal.singularity_workspace_mount_path": {
         "type": "string",
-        "description": "Full in-container Singularity project mount path",
+        "description": ("Full in-container path where the project is bound (default /workspace); changes "
+                        "apply to the next instance after the backend restarts and do not destroy the current one"),
     },
     # sync with _SUPPORTED_VERCEL_RUNTIMES in terminal_tool.py
     "terminal.vercel_image": {
