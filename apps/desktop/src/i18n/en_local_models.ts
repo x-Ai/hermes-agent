@@ -36,13 +36,11 @@ export const enLocalModels: Translations['settings']['localModels'] = {
       'The highest-quality model that runs entirely on your GPU at full speed. Picks weigh quality against predicted speed on this hardware.',
     'speed-gated-quality':
       'A higher-quality model fits this machine but would respond too slowly on its memory bandwidth — this is the best model that stays fast.',
-    'fastest-resident':
-      'No model reaches full speed on this hardware; this one comes closest while running entirely in GPU memory.',
     'product-default': 'The default model for this machine, chosen by its manufacturer.'
   } as Record<string, string>,
   noRecommendationTitle: 'No automatic recommendation for this machine',
   noRecommendationDetail:
-    'Automatic setup requires a curated model that fits entirely in GPU or unified memory. You can still choose a model below or browse more models.',
+    'Automatic setup requires a curated model that runs entirely in GPU or unified memory at full speed. You can still choose a model below or browse more models.',
   noRecommendationAction: 'Browse models',
   downloaded: 'Downloaded',
   downloadAction: size => `Download · ${size}`,

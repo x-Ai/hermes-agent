@@ -49,13 +49,11 @@ export const jaLocalModels: TranslationOverride<Translations['settings']['localM
       'GPU に完全に載り、フルスピードで動くモデルの中で最高品質です。おすすめは品質とこのハードウェアでの予測速度を両立させて選ばれます。',
     'speed-gated-quality':
       'より高品質なモデルもこのマシンに載りますが、メモリ帯域の制約で応答が遅くなります — これは速度を保てる最良のモデルです。',
-    'fastest-resident':
-      'このハードウェアでフルスピードに達するモデルはありません。GPU メモリ内で動くものの中で最速です。',
     'product-default': 'このマシンのメーカーが選んだ標準モデルです。'
   } as Record<string, string>,
   noRecommendationTitle: 'このマシン向けの自動推奨モデルはありません',
   noRecommendationDetail:
-    '自動セットアップには、GPU メモリまたはユニファイドメモリに完全に収まる厳選モデルが必要です。下の一覧から選ぶか、ほかのモデルを探すこともできます。',
+    '自動セットアップには、GPU メモリまたはユニファイドメモリに完全に載り、フルスピードで動く厳選モデルが必要です。下の一覧から選ぶか、ほかのモデルを探すこともできます。',
   noRecommendationAction: 'モデルを探す',
   downloaded: 'ダウンロード済み',
   downloadAction: size => `ダウンロード · ${size}`,

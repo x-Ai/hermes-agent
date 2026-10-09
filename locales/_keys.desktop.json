@@ -4294,7 +4294,6 @@
     "settings.localModels.recommended",
     "settings.localModels.recommendedBuild",
     "settings.localModels.recommendedReason.best-quality-resident",
-    "settings.localModels.recommendedReason.fastest-resident",
     "settings.localModels.recommendedReason.product-default",
     "settings.localModels.recommendedReason.speed-gated-quality",
     "settings.localModels.runtimeInstalled",
