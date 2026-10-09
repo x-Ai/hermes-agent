@@ -4536,6 +4536,8 @@ core:
     ceiling_kept: "⚠️  {n} devam denemesinden sonra yanıt hâlâ kesik — şimdiye kadar alınan kısmi yanıt korunuyor."
     ceiling_no_text: "⚠️  {n} devam denemesinden sonra yanıt hâlâ kesik — görünür bir metin üretilmedi."
     ceiling_error: "Yanıt {n} devam denemesinden sonra kesik kaldı"
+    ceiling_no_text_response: "⚠️ **Görünür bir yanıt üretilmedi.** Model her devam denemesinde çıktı belirteci sınırına ulaştı — akıl yürütme her seferinde bütçenin tamamını tüketti.\n\nÇözüm:\n→ Akıl yürütme düzeyini düşürün: `/reasoning low` veya `/reasoning none`\n→ Veya bu model için max_tokens değerini artırın"
+    window_filled_response: "⚠️ **Bağlam penceresi dolu.** İstem bu modelin {ctx} belirteçlik bağlam penceresinin {prompt} belirtecini kullandı ve yanıt için yer kalmadı. Bu bir bağlam penceresi sınırıdır, çıktı uzunluğu sınırı değil.\n\nÇözüm:\n→ Konuşmayı `/compress` ile sıkıştırın veya yeni bir oturum başlatın\n→ Veya modelin bağlam penceresini büyütün (örn. Ollama `num_ctx`)"
     codex_incomplete_error: "Codex yanıtı {n} devam denemesinden sonra eksik kaldı"
   empty_recovery:
     post_tool_nudge: "⚠️ Model araç çağrılarından sonra boş yanıt döndürdü — devam etmesi için dürtülüyor ({n}/{budget})"

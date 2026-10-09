@@ -4537,6 +4537,8 @@ core:
     ceiling_kept: "⚠️  Resposta ainda truncada após {n} tentativa(s) de continuação — mantendo a resposta parcial recebida até agora."
     ceiling_no_text: "⚠️  Resposta ainda truncada após {n} tentativa(s) de continuação — nenhum texto visível foi produzido."
     ceiling_error: "A resposta permaneceu truncada após {n} tentativa(s) de continuação"
+    ceiling_no_text_response: "⚠️ **Nenhuma resposta visível foi produzida.** O modelo atingiu o limite de tokens de saída em cada tentativa de continuação — o raciocínio consumiu todo o orçamento a cada vez.\n\nPara corrigir:\n→ Reduza o esforço de raciocínio: `/reasoning low` ou `/reasoning none`\n→ Ou aumente max_tokens para este modelo"
+    window_filled_response: "⚠️ **Janela de contexto cheia.** O prompt ocupa {prompt} dos {ctx} tokens da janela de contexto deste modelo, sem deixar espaço para responder. Este é um limite da janela de contexto, não do comprimento da saída.\n\nPara corrigir:\n→ Compacte a conversa com `/compress` ou inicie uma nova sessão\n→ Ou aumente a janela de contexto do modelo (por ex. Ollama `num_ctx`)"
     codex_incomplete_error: "A resposta do Codex permaneceu incompleta após {n} tentativa(s) de continuação"
   empty_recovery:
     post_tool_nudge: "⚠️ O modelo retornou uma resposta vazia após as chamadas de ferramentas — pedindo que continue ({n}/{budget})"

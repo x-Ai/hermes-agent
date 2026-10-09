@@ -4862,6 +4862,8 @@ core:
     ceiling_kept: "⚠️  Réponse toujours tronquée après {n} tentative(s) de suite — la réponse partielle reçue jusqu'ici est conservée."
     ceiling_no_text: "⚠️  Réponse toujours tronquée après {n} tentative(s) de suite — aucun texte visible n'a été produit."
     ceiling_error: "La réponse est restée tronquée après {n} tentative(s) de suite"
+    ceiling_no_text_response: "⚠️ **Aucune réponse visible n'a été produite.** Le modèle a atteint sa limite de jetons de sortie à chaque tentative de suite — son raisonnement a consommé tout le budget à chaque fois.\n\nPour corriger :\n→ Réduire l'effort de raisonnement : `/reasoning low` ou `/reasoning none`\n→ Ou augmenter max_tokens pour ce modèle"
+    window_filled_response: "⚠️ **Fenêtre de contexte pleine.** Le prompt occupe {prompt} des {ctx} jetons de la fenêtre de contexte de ce modèle, sans laisser de place pour répondre. C'est une limite de fenêtre de contexte, pas une limite de longueur de sortie.\n\nPour corriger :\n→ Compresser la conversation avec `/compress` ou démarrer une nouvelle session\n→ Ou agrandir la fenêtre de contexte du modèle (p. ex. Ollama `num_ctx`)"
     codex_incomplete_error: "La réponse Codex est restée incomplète après {n} tentative(s) de suite"
   empty_recovery:
     post_tool_nudge: "⚠️ Le modèle a renvoyé une réponse vide après les appels d'outils — relance pour continuer ({n}/{budget})"

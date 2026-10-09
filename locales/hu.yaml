@@ -4554,6 +4554,8 @@ core:
     ceiling_kept: "⚠️  A válasz {n} folytatási kísérlet után is csonka — az eddig kapott részleges választ megtartom."
     ceiling_no_text: "⚠️  A válasz {n} folytatási kísérlet után is csonka — nem keletkezett látható szöveg."
     ceiling_error: "A válasz {n} folytatási kísérlet után is csonka maradt"
+    ceiling_no_text_response: "⚠️ **Nem keletkezett látható válasz.** A modell minden folytatási kísérletnél elérte a kimeneti tokenkorlátot — a gondolkodás minden alkalommal felemésztette a teljes keretet.\n\nMegoldás:\n→ Csökkentsd a gondolkodási erőfeszítést: `/reasoning low` vagy `/reasoning none`\n→ Vagy növeld a max_tokens értékét ennél a modellnél"
+    window_filled_response: "⚠️ **A kontextusablak megtelt.** A prompt a modell {ctx} tokenes kontextusablakából {prompt} tokent foglal el, így nem maradt hely a válasznak. Ez kontextusablak-korlát, nem kimeneti hosszkorlát.\n\nMegoldás:\n→ Tömörítsd a beszélgetést a `/compress` paranccsal, vagy indíts új munkamenetet\n→ Vagy növeld a modell kontextusablakát (pl. Ollama `num_ctx`)"
     codex_incomplete_error: "A Codex-válasz {n} folytatási kísérlet után is hiányos maradt"
   empty_recovery:
     post_tool_nudge: "⚠️ A modell üres választ adott az eszközhívások után — folytatásra ösztönzöm ({n}/{budget})"

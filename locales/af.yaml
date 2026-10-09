@@ -4537,6 +4537,8 @@ core:
     ceiling_kept: "⚠️  Antwoord steeds afgesny ná {n} voortsettingspoging(s) — die gedeeltelike antwoord wat tot dusver ontvang is, word behou."
     ceiling_no_text: "⚠️  Antwoord steeds afgesny ná {n} voortsettingspoging(s) — geen sigbare teks is geproduseer nie."
     ceiling_error: "Antwoord het ná {n} voortsettingspoging(s) afgesny gebly"
+    ceiling_no_text_response: "⚠️ **Geen sigbare antwoord is geproduseer nie.** Die model het by elke voortsettingspoging sy uitset-tekenlimiet bereik — die redenering het elke keer die hele begroting verbruik.\n\nOm dit reg te stel:\n→ Verlaag die redeneerinspanning: `/reasoning low` of `/reasoning none`\n→ Of verhoog max_tokens vir hierdie model"
+    window_filled_response: "⚠️ **Konteksvenster vol.** Die prompt gebruik {prompt} van hierdie model se {ctx}-teken konteksvenster, wat geen plek laat om te antwoord nie. Dit is 'n konteksvensterlimiet, nie 'n uitsetlengtelimiet nie.\n\nOm dit reg te stel:\n→ Pers die gesprek saam met `/compress` of begin 'n nuwe sessie\n→ Of vergroot die model se konteksvenster (bv. Ollama `num_ctx`)"
     codex_incomplete_error: "Codex-antwoord het ná {n} voortsettingspoging(s) onvolledig gebly"
   empty_recovery:
     post_tool_nudge: "⚠️ Model het ná gereedskapoproepe 'n leë antwoord gegee — word aangepor om voort te gaan ({n}/{budget})"

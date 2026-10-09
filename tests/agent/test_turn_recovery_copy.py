@@ -115,3 +115,51 @@ def test_truncation_ceiling_error_renders_in_the_client_language(zh):
     result = _run_truncated(0)
     assert CJK.search(result["error"]) and "0" in result["error"]
     assert "truncated" not in result["error"]
+
+
+# ---------------------------------------------------------------- ceiling / window-filled responses
+
+def _run_with_responses(agent, responses):
+    agent.client.chat.completions.create.side_effect = responses
+    with (patch.object(agent, "_persist_session"), patch.object(agent, "_save_trajectory"),
+          patch.object(agent, "_cleanup_task_resources")):
+        return agent.run_conversation("hello")
+
+
+def test_ceiling_without_visible_text_returns_the_catalog_response():
+    """Reasoning ate the whole budget on the only attempt: the user gets the catalog's advice
+    (reasoning effort / max_tokens), not an empty answer."""
+    result = _run_with_responses(_chat_agent(0), [_mock_response(content=None, finish_reason="length")])
+    assert result["partial"] is True
+    assert result["final_response"].startswith("⚠️ **No visible answer was produced.**")
+    assert "`/reasoning low`" in result["final_response"]
+
+
+def test_window_filled_returns_the_catalog_response_with_the_counts():
+    agent = _chat_agent(3)
+    agent.context_compressor.context_length = 1000
+    filled = _mock_response(content="Part 1 ", finish_reason="length",
+                            usage={"prompt_tokens": 900, "completion_tokens": 10, "total_tokens": 910})
+
+    result = _run_with_responses(agent, [filled])
+
+    assert result["api_calls"] == 1, "a full window is never continued"
+    assert result["final_response"].startswith("Part 1")
+    assert "\n\n⚠️ **Context window full.** The prompt used 900 of this model's 1,000-token" in result["final_response"]
+    assert "\n→ Or raise the model's context window" in result["final_response"], "real line breaks, not \\n text"
+    assert result["error"] == "Prompt used 900 of 1000 context tokens; no room to answer"
+
+
+def test_ceiling_and_window_responses_render_in_the_client_language(zh):
+    no_text = _run_with_responses(_chat_agent(0), [_mock_response(content=None, finish_reason="length")])
+    assert CJK.search(no_text["final_response"]) and "`/reasoning low`" in no_text["final_response"]
+    assert "No visible answer" not in no_text["final_response"]
+
+    agent = _chat_agent(3)
+    agent.context_compressor.context_length = 1000
+    window = _run_with_responses(agent, [_mock_response(
+        content="Part 1 ", finish_reason="length",
+        usage={"prompt_tokens": 900, "completion_tokens": 10, "total_tokens": 910})])
+    assert window["final_response"].startswith("Part 1\n\n")
+    assert CJK.search(window["final_response"]) and "1,000" in window["final_response"]
+    assert CJK.search(window["error"]) and "900" in window["error"]

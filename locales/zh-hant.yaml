@@ -4535,6 +4535,8 @@ core:
     ceiling_kept: "⚠️  續寫 {n} 次後回覆仍被截斷 — 保留目前已收到的部分回覆。"
     ceiling_no_text: "⚠️  續寫 {n} 次後回覆仍被截斷 — 沒有產生可見文字。"
     ceiling_error: "續寫 {n} 次後回覆仍被截斷"
+    ceiling_no_text_response: "⚠️ **沒有產生可見的回答。** 模型在每次續寫時都碰到了輸出 Token 上限 — 推理每次都耗盡了全部預算。\n\n解決方法：\n→ 降低推理強度：`/reasoning low` 或 `/reasoning none`\n→ 或為此模型調高 max_tokens"
+    window_filled_response: "⚠️ **上下文視窗已滿。** 提示已佔用此模型 {ctx} Token 上下文視窗中的 {prompt} 個，沒有空間作答。這是上下文視窗限制，不是輸出長度限制。\n\n解決方法：\n→ 用 `/compress` 壓縮對話，或開始新的工作階段\n→ 或調高模型的上下文視窗（例如 Ollama 的 `num_ctx`）"
     codex_incomplete_error: "續寫 {n} 次後 Codex 回覆仍不完整"
   empty_recovery:
     post_tool_nudge: "⚠️ 模型在工具呼叫後回傳空回應 — 正在提示其繼續（{n}/{budget}）"

@@ -4666,6 +4666,8 @@ core:
     ceiling_kept: "⚠️  Response still truncated after {n} continuation attempt(s) — keeping the partial response received so far."
     ceiling_no_text: "⚠️  Response still truncated after {n} continuation attempt(s) — no visible text was produced."
     ceiling_error: "Response remained truncated after {n} continuation attempt(s)"
+    ceiling_no_text_response: "⚠️ **No visible answer was produced.** The model hit its output-token limit on every continuation attempt — its reasoning consumed the entire budget each time.\n\nTo fix this:\n→ Lower reasoning effort: `/reasoning low` or `/reasoning none`\n→ Or raise max_tokens for this model"
+    window_filled_response: "⚠️ **Context window full.** The prompt used {prompt} of this model's {ctx}-token context window, leaving no room to answer in. This is a context-window limit, not an output-length limit.\n\nTo fix this:\n→ Compress the conversation with `/compress` or start a new session\n→ Or raise the model's context window (e.g. Ollama `num_ctx`)"
     codex_incomplete_error: "Codex response remained incomplete after {n} continuation attempt(s)"
   empty_recovery:
     post_tool_nudge: "⚠️ Model returned empty after tool calls — nudging to continue ({n}/{budget})"

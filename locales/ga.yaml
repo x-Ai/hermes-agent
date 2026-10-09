@@ -4537,6 +4537,8 @@ core:
     ceiling_kept: "⚠️  Tá an freagra fós teasctha tar éis {n} iarracht(aí) leanúna — coinnítear an freagra páirteach a fuarthas go dtí seo."
     ceiling_no_text: "⚠️  Tá an freagra fós teasctha tar éis {n} iarracht(aí) leanúna — níor táirgeadh aon téacs infheicthe."
     ceiling_error: "D'fhan an freagra teasctha tar éis {n} iarracht(aí) leanúna"
+    ceiling_no_text_response: "⚠️ **Níor táirgeadh aon fhreagra infheicthe.** Shroich an tsamhail a teorainn comharthaí aschuir ag gach iarracht leanúna — d'ídigh an réasúnaíocht an buiséad iomlán gach uair.\n\nChun é seo a réiteach:\n→ Laghdaigh an iarracht réasúnaíochta: `/reasoning low` nó `/reasoning none`\n→ Nó ardaigh max_tokens don tsamhail seo"
+    window_filled_response: "⚠️ **Tá an fhuinneog chomhthéacs lán.** D'úsáid an leid {prompt} as fuinneog chomhthéacs {ctx} comhartha an mhúnla seo, gan aon spás fágtha le freagairt. Teorainn fuinneoige comhthéacs é seo, ní teorainn ar fhad an aschuir.\n\nChun é seo a réiteach:\n→ Comhbhrúigh an comhrá le `/compress` nó tosaigh seisiún nua\n→ Nó méadaigh fuinneog chomhthéacs an mhúnla (m.sh. Ollama `num_ctx`)"
     codex_incomplete_error: "D'fhan freagra Codex neamhiomlán tar éis {n} iarracht(aí) leanúna"
   empty_recovery:
     post_tool_nudge: "⚠️ Thug an tsamhail freagra folamh tar éis glaonna uirlise — á spreagadh le leanúint ar aghaidh ({n}/{budget})"

@@ -4537,6 +4537,8 @@ core:
     ceiling_kept: "⚠️  Antwort nach {n} Fortsetzungsversuch(en) weiterhin abgeschnitten — die bisher erhaltene Teilantwort wird behalten."
     ceiling_no_text: "⚠️  Antwort nach {n} Fortsetzungsversuch(en) weiterhin abgeschnitten — kein sichtbarer Text wurde erzeugt."
     ceiling_error: "Antwort blieb nach {n} Fortsetzungsversuch(en) abgeschnitten"
+    ceiling_no_text_response: "⚠️ **Keine sichtbare Antwort erzeugt.** Das Modell erreichte bei jedem Fortsetzungsversuch sein Ausgabe-Token-Limit — das Reasoning verbrauchte jedes Mal das gesamte Budget.\n\nAbhilfe:\n→ Reasoning-Aufwand senken: `/reasoning low` oder `/reasoning none`\n→ Oder max_tokens für dieses Modell erhöhen"
+    window_filled_response: "⚠️ **Kontextfenster voll.** Der Prompt belegt {prompt} der {ctx} Token des Kontextfensters dieses Modells, sodass kein Platz für eine Antwort bleibt. Das ist ein Kontextfenster-Limit, kein Ausgabelängen-Limit.\n\nAbhilfe:\n→ Unterhaltung mit `/compress` komprimieren oder eine neue Session starten\n→ Oder das Kontextfenster des Modells vergrößern (z. B. Ollama `num_ctx`)"
     codex_incomplete_error: "Codex-Antwort blieb nach {n} Fortsetzungsversuch(en) unvollständig"
   empty_recovery:
     post_tool_nudge: "⚠️ Modell lieferte nach Tool-Aufrufen eine leere Antwort — stupse zum Weitermachen an ({n}/{budget})"

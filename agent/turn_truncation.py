@@ -125,20 +125,9 @@ _REPETITION_STREAM_CUT = repetition_copy(
     "so the stream was stopped instead of running on. The partial response was discarded.",
     " and the stream was cut mid-loop; discarding the",
 )
-_CEILING_NO_TEXT = (
-    "⚠️ **No visible answer was produced.** The model hit its output-token limit on every "
-    "continuation attempt — its reasoning consumed the entire budget each time.\n\nTo fix this:\n"
-    "→ Lower reasoning effort: `/reasoning low` or `/reasoning none`\n→ Or raise max_tokens for this model"
-)
 # Below this many free tokens the prompt itself filled the window: a continuation nudge +
 # fragment costs ~100 tokens per attempt, so retrying only shrinks the room (#106120).
 _MIN_CONTINUATION_HEADROOM = 512
-_WINDOW_FILLED = (
-    "⚠️ **Context window full.** The prompt used {prompt:,} of this model's {ctx:,}-token "
-    "context window, leaving no room to answer in. This is a context-window limit, not an "
-    "output-length limit.\n\nTo fix this:\n→ Compress the conversation with `/compress` or start "
-    "a new session\n→ Or raise the model's context window (e.g. Ollama `num_ctx`)"
-)
 
 
 def _prompt_filled_window(agent: Any, response: Any) -> Optional[tuple[int, int]]:
@@ -366,13 +355,13 @@ def _continue_text(st: _Trunc, _retry: TurnRetryState, assistant_message: Any) -
         ceiling = t("core.truncation.ceiling_no_text", n=continuations)
     agent._vprint(f"{agent.log_prefix}{ceiling}", force=True, diagnostic=True)
     if filled is not None:
-        notice = _WINDOW_FILLED.format(prompt=filled[0], ctx=filled[1])
+        notice = t("core.truncation.window_filled_response", prompt=f"{filled[0]:,}", ctx=f"{filled[1]:,}")
         return st.end_turn(
             f"{partial_response}\n\n{notice}" if partial_response else notice,
             t("core.truncation.window_filled_error", prompt=filled[0], ctx=filled[1]),
         )
     return st.end_turn(
-        partial_response or _CEILING_NO_TEXT,
+        partial_response or t("core.truncation.ceiling_no_text_response"),
         t("core.truncation.ceiling_error", n=continuations),
     )
 
