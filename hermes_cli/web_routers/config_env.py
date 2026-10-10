@@ -591,6 +591,7 @@ def _custom_endpoint_response(cfg: dict[str, Any]) -> dict[str, Any]:
 
     endpoints: list[dict[str, Any]] = []
     providers = cfg.get("providers")
+    shared_ids = _shared_endpoint_ids()
     if isinstance(providers, dict):
         for provider_id, raw_entry in providers.items():
             if not isinstance(raw_entry, dict):
@@ -605,7 +606,8 @@ def _custom_endpoint_response(cfg: dict[str, Any]) -> dict[str, Any]:
                 str(raw_entry.get("model") or raw_entry.get("default_model") or (models[0] if models else "")),
                 models, _model_token_limits_from_custom_endpoint_entry(raw_entry, models),
                 bool(raw_entry.get("discover_models", True)),
-                raw_entry, _model_names_provider(model_cfg, endpoint_id, raw_entry), "providers",
+                raw_entry, _model_names_provider(model_cfg, endpoint_id, raw_entry),
+                "default-profile" if endpoint_id in shared_ids else "providers",
             ))
 
     # Legacy ``custom_providers:`` list entries the migration left behind are
@@ -647,6 +649,24 @@ def _custom_endpoint_response(cfg: dict[str, Any]) -> dict[str, Any]:
             "provider": current_provider, "model": current_model, "base_url": current_base_url,
         },
     }
+
+
+def _shared_endpoint_ids() -> set[str]:
+    """Endpoint ids the scoped profile reads through from the default profile (``profile.yaml``
+    ``share_providers``): listed with ``source: default-profile``, and never written here — the default
+    profile owns them, and ``save_config`` would keep them out of this profile's file anyway."""
+    from hermes_constants import get_hermes_home
+    from hermes_cli.profiles_shared_providers import default_profile_custom_endpoints, profile_shares_providers
+    return set(default_profile_custom_endpoints()) if profile_shares_providers(get_hermes_home()) else set()
+
+
+def _refuse_shared_endpoint_write(endpoint_id: str) -> None:
+    if endpoint_id.lower() in {shared.lower() for shared in _shared_endpoint_ids()}:
+        raise HTTPException(
+            status_code=422,
+            detail=f"'{endpoint_id}' is shared from the default profile; edit it there, or stop sharing "
+                   f"providers in this profile first",
+        )
 
 
 def _pop_legacy_custom_provider(cfg: dict[str, Any], provider_key: str) -> Optional[dict[str, Any]]:
@@ -999,6 +1019,7 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = 
         # holds _CONFIG_MUTATION_LOCK so a concurrent config autosave cannot
         # drop this write (or vice versa).
         with _config_profile_scope(profile), _CONFIG_MUTATION_LOCK:
+            _refuse_shared_endpoint_write(coerce_provider_id(body.id) or _custom_endpoint_id(body.name))
             cfg = load_config()
             providers = cfg.get("providers")
             created = _resolve_custom_endpoint_entry(
@@ -1082,6 +1103,7 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
         detail="Failed to delete custom endpoint",
     ):
         with _config_profile_scope(profile), _CONFIG_MUTATION_LOCK:  # RMW span
+            _refuse_shared_endpoint_write(endpoint_id)
             cfg = load_config()
             providers = cfg.get("providers")
             stored_key, entry = _resolve_custom_endpoint_entry(providers, endpoint_id)

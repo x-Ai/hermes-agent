@@ -679,11 +679,11 @@ const en: BotsMessages = {
     freshProfile: 'Fresh profile (bundled skills)',
     inheritedModel: 'inherited from launch profile',
     soul: 'SOUL.md (optional — replaces the generated persona)',
-    shareKeys: 'Share keys & accounts with the main profile',
+    shareKeys: 'Share keys, accounts & model providers with the main profile',
     shareKeysOn: (target, defaultProfileName) =>
-      `Share keys & accounts with the ${defaultProfileName.toLowerCase()} profile on ${target}`,
+      `Share keys, accounts & model providers with the ${defaultProfileName.toLowerCase()} profile on ${target}`,
     shareKeysHint:
-      'Subscriptions, OAuth logins, and API keys stay shared (not copied), so token refreshes never invalidate each other. Uncheck for an isolated snapshot copy.',
+      'Subscriptions, OAuth logins, API keys and custom endpoints are read from the main profile live: a key rotated or an endpoint added there applies to this bot at once. Uncheck for an isolated profile with copies of its own.',
     needsModel:
       'No model provider is ready for it yet, so it skipped its introduction. Pick a provider and model under Advanced.',
     configureModel: 'Configure model',
@@ -1290,11 +1290,11 @@ const ja: BotsMessages = {
     freshProfile: '新規プロファイル（同梱スキル）',
     inheritedModel: '起動時のプロファイルから継承',
     soul: 'SOUL.md（任意 — 生成された人格を置き換えます）',
-    shareKeys: 'メインプロファイルとキー・アカウントを共有',
+    shareKeys: 'メインプロファイルとキー・アカウント・モデルプロバイダーを共有',
     shareKeysOn: (target, defaultProfileName) =>
-      `${target} の ${defaultProfileName} プロファイルとキー・アカウントを共有`,
+      `${target} の ${defaultProfileName} プロファイルとキー・アカウント・モデルプロバイダーを共有`,
     shareKeysHint:
-      'サブスクリプション、OAuth ログイン、API キーをコピーせず共有するため、トークン更新で互いに無効になりません。チェックを外すと独立したスナップショットをコピーします',
+      'サブスクリプション、OAuth ログイン、API キー、カスタムエンドポイントをメインプロファイルから直接読み取ります。キーのローテーションや新しいエンドポイントはこのボットにも即座に反映されます。チェックを外すと独自のコピーを持つ独立したプロファイルになります',
     needsModel:
       'まだ使用できるモデルプロバイダーがないため、自己紹介をスキップしました。「詳細設定」でプロバイダーとモデルを選んでください',
     configureModel: 'モデルを設定',
@@ -1904,10 +1904,10 @@ const zh: BotsMessages = {
     freshProfile: '新配置档案（内置技能）',
     inheritedModel: '继承启动时的配置档案',
     soul: 'SOUL.md（可选，将替换生成的人格）',
-    shareKeys: '与主配置档案共享密钥和账户',
-    shareKeysOn: (target, defaultProfileName) => `与 ${target} 上的 ${defaultProfileName} 配置档案共享密钥和账户`,
+    shareKeys: '与主配置档案共享密钥、账户和模型提供方',
+    shareKeysOn: (target, defaultProfileName) => `与 ${target} 上的 ${defaultProfileName} 档案共享密钥、账户和提供方`,
     shareKeysHint:
-      '订阅、OAuth 登录和 API 密钥保持共享而非复制，令牌刷新不会使另一方失效，取消勾选则创建隔离的快照副本',
+      '订阅、OAuth 登录、API 密钥和自定义端点都直接读取主配置档案，主档案轮换密钥或新增端点会立即对此机器人生效，取消勾选则此机器人独立持有自己的副本',
     needsModel: '它还没有可用的模型提供商，因此跳过了自我介绍，请在“高级”中选择提供商和模型',
     configureModel: '配置模型',
     createEmpty: '创建空配置（跳过内置技能）',
@@ -2494,10 +2494,10 @@ const zhHant: BotsMessages = {
     freshProfile: '新設定檔（內建技能）',
     inheritedModel: '繼承啟動時的設定檔',
     soul: 'SOUL.md（選填，將取代產生的人格）',
-    shareKeys: '與主要設定檔共用金鑰和帳戶',
-    shareKeysOn: (target, defaultProfileName) => `與 ${target} 上的${defaultProfileName}設定檔共用金鑰和帳戶`,
+    shareKeys: '與主要設定檔共用金鑰、帳戶和模型提供者',
+    shareKeysOn: (target, defaultProfileName) => `與 ${target} 上的${defaultProfileName}設定檔共用金鑰、帳戶和提供者`,
     shareKeysHint:
-      '訂閱、OAuth 登入和 API 金鑰保持共用而非複製，權杖更新不會使另一方失效。取消勾選則建立隔離的快照副本',
+      '訂閱、OAuth 登入、API 金鑰和自訂端點都直接讀取主要設定檔。主設定檔輪換金鑰或新增端點會立即對此機器人生效，取消勾選則此機器人獨立持有自己的副本',
     needsModel: '它還沒有可用的模型提供者，因此略過了自我介紹。請在「進階」中選擇提供者和模型',
     configureModel: '設定模型',
     createEmpty: '建立空白設定（略過內建技能）',

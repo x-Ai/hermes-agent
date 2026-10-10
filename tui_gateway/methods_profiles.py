@@ -335,6 +335,11 @@ def _(rid, params: dict) -> dict:
     soul_written = isinstance(soul, str) and bool(soul.strip()) and _best_effort(
         lambda: (path / "SOUL.md").write_text(soul, encoding="utf-8"))
     mirrored = _mirror_launch_credentials(path, params)
+    if is_truthy_value(params.get("share_auth", False)):
+        # The switch promises shared keys: read the default profile's model providers and their
+        # credentials through (profile.yaml share_providers) instead of keeping copies current.
+        mirrored["providers"] = "shared" if _best_effort(lambda: _lazy(
+            "hermes_cli.profiles_shared_providers", "set_profile_shares_providers")(path, True)) else False
     model, provider = _model_provider_params(params)
     model_set = False
     if model and provider:
@@ -379,7 +384,9 @@ def _(rid, params: dict) -> dict:
             "model": {"provider": str(model_cfg.get("provider") or ""),
                       "default": str(model_cfg.get("default") or "")},
             "skills": installed, "toolsets": toolsets_out,
-            "toolsets_pinned": pinned_set is not None, "mcp_servers": mcp_out})
+            "toolsets_pinned": pinned_set is not None, "mcp_servers": mcp_out,
+            "share_providers": _try(lambda: _lazy(
+                "hermes_cli.profiles_shared_providers", "profile_shares_providers")(profile_dir), False)})
 
 
 @_profile_handler("profiles.configure", 5064)
@@ -399,6 +406,8 @@ def _(rid, params: dict) -> dict:
         write_meta = _lazy("hermes_cli.profiles", "write_profile_meta")
         applied["description"] = _best_effort(lambda: write_meta(
             profile_dir, description=params["description"].strip(), description_auto=False))
+    if params.get("share_providers") is not None:
+        applied["share_providers"] = _best_effort(lambda: _configure_share_providers(profile_dir, params))
     confirm_message = _configure_model(profile_dir, params, applied)
     if any(isinstance(params.get(k), list) for k in ("disabled_skills", "enabled_toolsets", "enabled_mcp_servers")):
         _configure_cfg_sections(profile_dir, params, applied)
@@ -664,6 +673,25 @@ def _configure_model(profile_dir, params, applied):
     if confirm_message is None:
         applied["model"] = _best_effort(lambda: _pin_profile_model(profile_dir, provider, model))
     return confirm_message
+
+
+def _configure_share_providers(profile_dir, params) -> None:
+    """Flip ``profile.yaml`` ``share_providers``. Turning it OFF materializes the endpoints the model
+    pin names (the current one and an incoming pick in the same payload) when they were only ever read
+    through from the default profile — entry plus key variable, ``adopt_default_endpoint`` — so the pin
+    keeps resolving as an island. Flag first: a sharing profile's ``save_config`` keeps shared ids out."""
+    mod = "hermes_cli.profiles_shared_providers"
+    enabled = is_truthy_value(params.get("share_providers"))
+    was_sharing = _lazy(mod, "profile_shares_providers")(profile_dir)
+    _lazy(mod, "set_profile_shares_providers")(profile_dir, enabled)
+    if enabled or not was_sharing:
+        return
+    from hermes_cli.config import read_user_config_raw
+    with _hermes_home_scope(profile_dir):
+        model_cfg = (read_user_config_raw() or {}).get("model") or {}
+        pinned = str(model_cfg.get("provider") or "").strip()
+        for provider in {pinned, _model_provider_params(params)[1]} - {""}:
+            _lazy(mod, "adopt_default_endpoint")(profile_dir, provider)
 
 
 def _clean_names(values) -> set:

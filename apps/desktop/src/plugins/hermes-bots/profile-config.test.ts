@@ -106,6 +106,22 @@ beforeEach(() => {
   respondWith(() => ({}))
 })
 
+describe('the share switch', () => {
+  it('writes profile.yaml share_providers through profiles.configure', async () => {
+    respondWith(() => ({ applied: { share_providers: true } }))
+
+    const result = await applyAdvancedConfig(bot, {
+      ...emptyAdvancedState(),
+      dirtyShare: true,
+      loaded: true,
+      shareProviders: false
+    })
+
+    expect(routed).toEqual([{ method: 'profiles.configure', params: { name: 'zeta', share_providers: false } }])
+    expect(result).toMatchObject({ applied: { share_providers: true }, ok: true })
+  })
+})
+
 describe('selecting Inherit', () => {
   it('clears the profile model assignment through the CLI', async () => {
     respondWith(() => ({ blocked: false, code: 0, output: 'Unset model' }))

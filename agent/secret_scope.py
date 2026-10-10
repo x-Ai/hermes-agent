@@ -399,6 +399,12 @@ def build_profile_secret_scope(hermes_home: Path) -> dict[str, str]:
     except Exception:
         external_secrets = {}
     secrets.update((k, v) for k, v in external_secrets.items() if not _is_global_env(k))
+    # A profile sharing the default profile's model providers (profile.yaml share_providers) reads their
+    # credentials through: the default .env's provider key variables win over the profile's own copies,
+    # nothing else crosses (hermes_cli/profiles_shared_providers.py).
+    from hermes_cli.profiles_shared_providers import profile_shares_providers, shared_provider_secrets
+    if profile_shares_providers(hermes_home):
+        secrets.update(shared_provider_secrets())
     # The DEFAULT profile's config.yaml allow_all_users grant lives only in os.environ (bridged by
     # gateway.config_loader); scoped gate readers under multiplex never fall to os.environ, so seed it
     # into that profile's own mapping. A secondary never inherits it (#80099 class).

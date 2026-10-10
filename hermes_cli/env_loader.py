@@ -508,6 +508,13 @@ def load_hermes_dotenv(
         loaded.append(user_env)
         _clear_known_keys_missing_from_dotenv(user_env)  # mirrors reload_env(): inherited keys must not leak
 
+    # A profile sharing the default profile's model providers (profile.yaml share_providers) takes their
+    # credentials from the default .env, over its own copies — the standalone-process twin of the secret
+    # scope layer (hermes_cli/profiles_shared_providers.py).
+    from hermes_cli.profiles_shared_providers import profile_shares_providers, shared_provider_secrets
+    if profile_shares_providers(home_path):
+        os.environ.update(shared_provider_secrets())
+
     # .op.env AFTER .env so .env wins, but the bootstrap OP_SERVICE_ACCOUNT_TOKEN reaches
     # apply_onepassword_secrets() even in cron with no shell state; gitignored so the token never enters
     # the committed .env. override=False lets a systemd `EnvironmentFile=-…/.op.env` token win.

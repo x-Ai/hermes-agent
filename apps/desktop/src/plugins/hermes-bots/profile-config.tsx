@@ -98,6 +98,8 @@ export function CheckList({ items, onToggle, columns = 2 }: CheckListProps) {
 export interface ProfileDescribeResponse {
   mcp_servers?: CapabilityEntry[]
   model?: { default?: string; provider?: string }
+  /** profile.yaml `share_providers`: reads the main profile's model providers and keys live. */
+  share_providers?: boolean
   skills?: CapabilityEntry[]
   soul?: string
   toolsets?: CapabilityEntry[]
@@ -111,6 +113,7 @@ export interface McpCatalogResponse {
 interface AdvancedConfigState {
   dirtyMcp: boolean
   dirtyModel: boolean
+  dirtyShare: boolean
   dirtySkills: boolean
   dirtySoul: boolean
   dirtyToolsets: boolean
@@ -118,6 +121,7 @@ interface AdvancedConfigState {
   mcp: CapabilityEntry[]
   model: string
   provider: string
+  shareProviders: boolean
   skills: CapabilityEntry[]
   soul: string
   toolsets: CapabilityEntry[]
@@ -158,6 +162,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           ...prev,
           provider: res.model?.provider || '',
           model: res.model?.default || '',
+          shareProviders: res.share_providers === true,
           soul: res.soul || '',
           skills: res.skills || [],
           toolsets: res.toolsets || [],
@@ -268,6 +273,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
             model: state.model
           }}
         />
+        <ShareProvidersToggle setState={setState} state={state} />
         {labeled(
           b.editor.liveCapabilities,
           <ResizableFrame height={460} minHeight={300}>
@@ -317,6 +323,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
             model: state.model
           }}
         />
+        <ShareProvidersToggle setState={setState} state={state} />
         <div className="rounded-md border border-(--ui-stroke-secondary) px-3 py-2 text-xs text-(--ui-text-tertiary)">
           {b.editor.remoteCapabilitiesHint}
         </div>
@@ -354,6 +361,7 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
           model: state.model
         }}
       />
+      <ShareProvidersToggle setState={setState} state={state} />
       {labeled(
         b.editor.skillsEnabled(enabledSkills, state.skills.length),
         <div className="grid gap-1.5 rounded-md border border-(--ui-stroke-secondary) p-2">
@@ -503,16 +511,44 @@ export function AdvancedProfileConfig({ bot, state, setState }: AdvancedProfileC
   )
 }
 
+/** The New Bot dialog's share switch, editable later: profile.yaml `share_providers`
+ *  (`profiles.describe` → `profiles.configure`). On, the bot reads the main profile's
+ *  model providers and keys live; off, it keeps copies of its own. */
+function ShareProvidersToggle({ setState, state }: Pick<AdvancedProfileConfigProps, 'setState' | 'state'>) {
+  const b = useBots()
+
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
+        <Checkbox
+          checked={state.shareProviders}
+          onCheckedChange={value =>
+            setState(prev => ({
+              ...prev,
+              dirtyShare: true,
+              shareProviders: Boolean(value)
+            }))
+          }
+        />
+        {b.editor.shareKeys}
+      </label>
+      <div className="pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)">{b.editor.shareKeysHint}</div>
+    </div>
+  )
+}
+
 export function emptyAdvancedState(): AdvancedConfigState {
   return {
     loaded: false,
     provider: '',
     model: '',
+    shareProviders: false,
     soul: '',
     skills: [],
     toolsets: [],
     mcp: [],
     dirtyModel: false,
+    dirtyShare: false,
     dirtySoul: false,
     dirtySkills: false,
     dirtyToolsets: false,
@@ -531,6 +567,7 @@ export type ProfileConfigurePayload = {
   model?: string
   name: string
   provider?: string
+  share_providers?: boolean
   soul?: string
 }
 /** What `profiles.configure` answers: per-section success, plus the #95293
@@ -539,6 +576,42 @@ interface ProfileConfigureResult {
   applied?: Record<string, boolean>
   confirm_message?: string
   confirm_required?: boolean
+}
+
+/** The model section: a provider + model pin rides the configure payload; an
+ *  "Inherit" pick (both empty) clears the profile's assignment through the CLI
+ *  instead, and a half-filled pair is a failed section. */
+async function applyModelSection(
+  bot: RosterRow,
+  state: AdvancedConfigState,
+  payload: ProfileConfigurePayload,
+  applied: Record<string, boolean>
+) {
+  const model = state.model.trim()
+  const provider = state.provider.trim()
+
+  if (model && provider) {
+    payload.model = model
+    payload.provider = provider
+
+    return
+  }
+
+  if (model || provider) {
+    applied.model = false
+
+    return
+  }
+
+  try {
+    const result = (await requestForBot(bot, 'cli.exec', {
+      argv: ['--profile', bot.name, 'config', 'unset', 'model']
+    })) as { blocked?: boolean; code?: number }
+
+    applied.model = result?.blocked !== true && result?.code === 0
+  } catch {
+    applied.model = false
+  }
 }
 
 /** Persist only the dirty sections of the advanced editor. */
@@ -554,25 +627,7 @@ export async function applyAdvancedConfig(bot: RosterRow, state: AdvancedConfigS
   }
 
   if (state.dirtyModel) {
-    const model = state.model.trim()
-    const provider = state.provider.trim()
-
-    if (model && provider) {
-      payload.model = model
-      payload.provider = provider
-    } else if (!model && !provider) {
-      try {
-        const result = (await requestForBot(bot, 'cli.exec', {
-          argv: ['--profile', bot.name, 'config', 'unset', 'model']
-        })) as { blocked?: boolean; code?: number }
-
-        applied.model = result?.blocked !== true && result?.code === 0
-      } catch {
-        applied.model = false
-      }
-    } else {
-      applied.model = false
-    }
+    await applyModelSection(bot, state, payload, applied)
   }
 
   if (state.dirtySkills) {
@@ -588,6 +643,10 @@ export async function applyAdvancedConfig(bot: RosterRow, state: AdvancedConfigS
 
   if (state.dirtyMcp) {
     payload.enabled_mcp_servers = (state.mcp || []).filter(m => m.enabled).map(m => m.name)
+  }
+
+  if (state.dirtyShare) {
+    payload.share_providers = state.shareProviders
   }
 
   if (Object.keys(payload).length === 1) {

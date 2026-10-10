@@ -2225,7 +2225,8 @@ def _load_config_cache_sig(config_path: Path) -> tuple[Optional[tuple[int, int, 
         managed_sig = (0, 0, 0, 0)
     if user_sig is None and managed_sig == (0, 0, 0, 0):
         return None, None
-    return user_sig, (*(user_sig or (0, 0, 0, 0)), *managed_sig)
+    from hermes_cli.profiles_shared_providers import shared_providers_cache_sig
+    return user_sig, (*(user_sig or (0, 0, 0, 0)), *managed_sig, *shared_providers_cache_sig(config_path))
 
 
 def _last_known_good_fallback(config_path: Path, path_key: str, cache_sig, exc: Exception) -> Optional[dict[str, Any]]:
@@ -2294,9 +2295,9 @@ def _load_config_cache_hit(path_key: str, cache_sig: Any) -> Optional[dict[str, 
     pin unexpanded literals (e.g. auxiliary.<task>.api_key) for the process lifetime (#58514).
     Shared by the lock-free fast path and the locked re-check of ``_load_config_impl``."""
     cached = _LOAD_CONFIG_CACHE.get(path_key)
-    if cached is None or cache_sig is None or cached[:8] != cache_sig:
+    if cached is None or cache_sig is None or cached[:len(cache_sig)] != tuple(cache_sig):
         return None
-    hit = cached[8]
+    hit = cached[len(cache_sig)]
     if isinstance(hit, FailedConfigRead) and isinstance(hit.read_error, OSError):
         # A read error (EMFILE/EIO/sharing violation) can clear without touching the file's
         # signature: serve the fallback only while the file still cannot be read.
@@ -2306,7 +2307,7 @@ def _load_config_cache_hit(path_key: str, cache_sig: Any) -> Optional[dict[str, 
             return None
         except OSError:
             return hit
-    env_snapshot = cached[9] if len(cached) > 9 else {}
+    env_snapshot = cached[len(cache_sig) + 1] if len(cached) > len(cache_sig) + 1 else {}
     if all(_env_ref_lookup(k) == v for k, v in env_snapshot.items()):
         return hit
     return None
@@ -2376,6 +2377,8 @@ def _load_config_impl(*, want_deepcopy: bool) -> dict[str, Any]:
                     _LOAD_CONFIG_CACHE[path_key] = (*cache_sig, fallback, {})
                 return copy.deepcopy(fallback) if want_deepcopy else fallback
 
+        from hermes_cli.profiles_shared_providers import overlay_shared_providers
+        overlay_shared_providers(config, config_path.parent)  # profile.yaml share_providers
         normalized = _canonicalize_config(config)
         expanded, managed_config = _merge_managed_overlay(_expand_env_vars(normalized))
         _LAST_EXPANDED_CONFIG_BY_PATH[path_key] = copy.deepcopy(expanded)
@@ -2397,42 +2400,6 @@ def _load_config_impl(*, want_deepcopy: bool) -> dict[str, Any]:
         return expanded
 
 
-_SECURITY_COMMENT = """
-# ── Security ──────────────────────────────────────────────────────────
-# Secret redaction is ON by default — strings that look like API keys,
-# tokens, and passwords are masked in tool output, logs, and chat
-# responses before the model or user ever sees them. Set redact_secrets
-# to false to disable (e.g. when developing the redactor itself).
-#
-# security:
-#   redact_secrets: true
-"""
-
-_FALLBACK_COMMENT = """
-# ── Fallback Model ────────────────────────────────────────────────────
-# Automatic provider failover when primary is unavailable.
-# Uncomment and configure to enable. Triggers on rate limits (429),
-# overload (529), service errors (503), or connection failures.
-#
-# Supported providers:
-#   openrouter   (OPENROUTER_API_KEY)  — routes to any model
-#   openai-codex (OAuth — hermes auth) — OpenAI Codex
-#   nous         (OAuth — hermes auth) — Nous Portal
-#   zai          (ZAI_API_KEY)         — Z.AI / GLM
-#   kimi-coding  (KIMI_API_KEY)        — Kimi / Moonshot
-#   kimi-coding-cn (KIMI_CN_API_KEY)   — Kimi / Moonshot (China)
-#   minimax      (MINIMAX_API_KEY)     — MiniMax
-#   minimax-cn   (MINIMAX_CN_API_KEY)  — MiniMax (China)
-#   bedrock      (AWS IAM / boto3)     — AWS Bedrock (Converse API)
-#
-# For custom OpenAI-compatible endpoints, add base_url and key_env.
-#
-# fallback_model:
-#   provider: openrouter
-#   model: anthropic/claude-sonnet-4
-"""
-
-
 def _strip_managed_keys_for_save(config: dict[str, Any]) -> dict[str, Any]:
     """Drop every leaf the managed layer pins (bulk safety net; single-key ``config set``
     hard-rejects) and tell the user what was not saved."""
@@ -2445,18 +2412,6 @@ def _strip_managed_keys_for_save(config: dict[str, Any]) -> dict[str, Any]:
             f"Note: {len(_stripped)} managed setting(s) were not saved "
             f"(managed by your administrator): {', '.join(sorted(_stripped))}", file=sys.stderr)
     return config
-
-
-def _commented_sections_for_save(normalized: dict[str, Any]) -> Optional[str]:
-    """Commented-out example blocks for features that are off/unconfigured."""
-    parts = []
-    if (normalized.get("security") or {}).get("redact_secrets") is None:
-        parts.append(_SECURITY_COMMENT)
-    fb = normalized.get("fallback_model", {})
-    fb_entries = fb if isinstance(fb, list) else [fb]
-    if not any(isinstance(e, dict) and e.get("provider") and e.get("model") for e in fb_entries):
-        parts.append(_FALLBACK_COMMENT)
-    return "".join(parts) or None
 
 
 def save_config(
@@ -2485,6 +2440,8 @@ def save_config(
         _raw_for_paths = require_readable_config_before_write(config_path)
         if merge_existing and _raw_for_paths:
             config = _merge_partial_save(_raw_for_paths, config)
+        from hermes_cli.profiles_shared_providers import restore_own_providers_for_save
+        config = restore_own_providers_for_save(config, _raw_for_paths or {}, config_path)
 
         current_normalized = _canonicalize_config(config)
         normalized = current_normalized
@@ -2498,6 +2455,7 @@ def save_config(
             effective_preserve_keys = _explicit_config_paths(_raw_for_paths) | set(preserve_keys or ())
             normalized = _strip_default_values(normalized, DEFAULT_CONFIG, preserve_keys=effective_preserve_keys)
 
+        from hermes_cli.config_save_comments import _commented_sections_for_save
         atomic_config_replace(config_path, normalized, extra_content_on_create=_commented_sections_for_save(normalized))
         _secure_file(config_path)
         _RAW_CONFIG_CACHE.pop(str(config_path), None)

@@ -24452,6 +24452,21 @@
             ],
             "default": null,
             "title": "Enabled Mcp Servers"
+          },
+          "share_providers": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Share Providers"
           }
         },
         "title": "ProfilesConfigureParams",
@@ -24761,6 +24776,11 @@
             },
             "title": "Mcp Servers",
             "type": "array"
+          },
+          "share_providers": {
+            "default": false,
+            "title": "Share Providers",
+            "type": "boolean"
           }
         },
         "required": [

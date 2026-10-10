@@ -260,6 +260,9 @@ class ProfilesDescribeResult(Result):
     toolsets: list[ToolsetEntry] = Field(default_factory=list)
     toolsets_pinned: bool = False
     mcp_servers: list[McpServerEntry] = Field(default_factory=list)
+    # profile.yaml ``share_providers``: the profile reads the default profile's model providers and
+    # their credentials through instead of owning copies.
+    share_providers: bool = False
 
 
 method("profiles.describe", params=ProfileNameParams, result=ProfilesDescribeResult,
@@ -280,6 +283,8 @@ class ProfilesConfigureParams(ProfileParams):
     disabled_skills: list[str] | None = None
     enabled_toolsets: list[str] | None = None
     enabled_mcp_servers: list[str] | None = None
+    # Flip profile.yaml ``share_providers``; turning it off copies the pinned endpoint into the profile.
+    share_providers: bool | str | None = None
 
 
 class UiMetaConflict(Result):
