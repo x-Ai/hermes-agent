@@ -185,11 +185,32 @@ def _print_channel_clone_notice(name: str, source_label: str, clone_channels: bo
         print(shared_credential_warning(name, shared, source_label))
 
 
-def _profile_create(args):
+def _print_alias_setup(name: str, no_alias: bool) -> None:
+    """Create the ``~/.local/bin`` wrapper for a new profile and say what happened (a name collision
+    with its ways around it, or the PATH hint when the wrapper dir is not on PATH)."""
     from hermes_cli.profiles import (
-        _get_wrapper_dir, _is_wrapper_dir_in_path, check_alias_collision, create_profile,
-        create_wrapper_script, get_active_profile_name, seed_profile_skills,
+        _get_wrapper_dir, _is_wrapper_dir_in_path, check_alias_collision, create_wrapper_script,
     )
+    if no_alias:
+        return
+    collision = check_alias_collision(name)
+    if collision:
+        print(f"\n⚠ Cannot create alias '{name}' — {collision}")
+        print(f"  Choose a custom alias:  hermes profile alias {name} --name <custom>")
+        print(f"  Or access via flag:     hermes -p {name} chat")
+        return
+    wrapper_path = create_wrapper_script(name)
+    if not wrapper_path:
+        return
+    print(f"Wrapper created: {wrapper_path}")
+    if not _is_wrapper_dir_in_path():
+        print(f"\n⚠ {_get_wrapper_dir()} is not in your PATH.")
+        print("  Add to your shell config (~/.bashrc or ~/.zshrc):")
+        print('    export PATH="$HOME/.local/bin:$PATH"')
+
+
+def _profile_create(args):
+    from hermes_cli.profiles import create_profile, get_active_profile_name, seed_profile_skills
     name = args.profile_name
     clone = getattr(args, "clone", False)
     clone_all = getattr(args, "clone_all", False)
@@ -198,6 +219,7 @@ def _profile_create(args):
     clone_from = getattr(args, "clone_from", None)
     clone_channels = getattr(args, "clone_channels", False)
     sync_imports = getattr(args, "sync_imports", False)
+    isolated_memory = getattr(args, "isolated_memory", False)
     clone_config = clone or clone_from is not None
     cloned = clone_config or clone_all
     source_label = clone_from or get_active_profile_name()
@@ -205,11 +227,13 @@ def _profile_create(args):
         profile_dir = create_profile(
             name=name, clone_from=clone_from, clone_all=clone_all, clone_config=clone_config,
             no_alias=no_alias, no_skills=no_skills, description=getattr(args, "description", None),
-            clone_channels=clone_channels, sync_imports=sync_imports,
+            clone_channels=clone_channels, sync_imports=sync_imports, isolated_memory=isolated_memory,
         )
     except (ValueError, FileExistsError, FileNotFoundError) as e:
         _die(f"Error: {e}")
     print(f"\nProfile '{name}' created at {profile_dir}")
+    if isolated_memory:
+        print("Persistent memory starts empty and stays isolated from the default profile's (--isolated-memory).")
     if cloned:
         if clone_all:
             print(f"Full copy from {source_label} (excluding session history, cron jobs, backups, and snapshots).")
@@ -250,20 +274,7 @@ def _profile_create(args):
             print(f"{len(result.get('copied', []))} bundled skills synced.")
         else:
             print(f"⚠ Skills could not be seeded. Run `{name} update` to retry.")
-    if not no_alias:
-        collision = check_alias_collision(name)
-        if collision:
-            print(f"\n⚠ Cannot create alias '{name}' — {collision}")
-            print(f"  Choose a custom alias:  hermes profile alias {name} --name <custom>")
-            print(f"  Or access via flag:     hermes -p {name} chat")
-        else:
-            wrapper_path = create_wrapper_script(name)
-            if wrapper_path:
-                print(f"Wrapper created: {wrapper_path}")
-                if not _is_wrapper_dir_in_path():
-                    print(f"\n⚠ {_get_wrapper_dir()} is not in your PATH.")
-                    print("  Add to your shell config (~/.bashrc or ~/.zshrc):")
-                    print('    export PATH="$HOME/.local/bin:$PATH"')
+    _print_alias_setup(name, no_alias)
     try:
         profile_dir_display = "~/" + profile_dir.relative_to(Path.home()).as_posix()
     except ValueError:

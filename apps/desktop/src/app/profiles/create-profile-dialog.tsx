@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { ActionStatus } from '@/components/ui/action-status'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ export function CreateProfileDialog({
   const p = t.profiles
   const [name, setName] = useState('')
   const [cloneFrom, setCloneFrom] = useState<null | string>('default')
+  const [isolatedMemory, setIsolatedMemory] = useState(false)
   const [soul, setSoul] = useState('')
   const [status, setStatus] = useState<'done' | 'idle' | 'saving'>('idle')
   const [error, setError] = useState<null | string>(null)
@@ -56,6 +58,7 @@ export function CreateProfileDialog({
 
     setName('')
     setCloneFrom('default')
+    setIsolatedMemory(false)
     setSoul('')
     setError(null)
     setStatus('idle')
@@ -78,7 +81,7 @@ export function CreateProfileDialog({
     setError(null)
 
     try {
-      await createProfile({ name: trimmed, clone_from: cloneFrom })
+      await createProfile({ name: trimmed, clone_from: cloneFrom, isolated_memory: isolatedMemory })
 
       if (soul.trim()) {
         await updateProfileSoul(trimmed, soul)
@@ -134,6 +137,20 @@ export function CreateProfileDialog({
             </Select>
             <FieldHint>{p.cloneFromDesc}</FieldHint>
           </Field>
+
+          {/* A clone copies the source's MEMORY.md/USER.md; this leaves them out and marks the
+              profile's memory isolated from the default profile's (profile.yaml `isolated_memory`). */}
+          <div className="grid gap-1">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                checked={isolatedMemory}
+                id="new-profile-isolated-memory"
+                onCheckedChange={value => setIsolatedMemory(Boolean(value))}
+              />
+              {t.memoryIsolation.createLabel}
+            </label>
+            <FieldHint>{t.memoryIsolation.createHint}</FieldHint>
+          </div>
 
           <Field htmlFor="new-profile-soul" label="SOUL.md" optional optionalLabel={p.soulOptional}>
             <Textarea

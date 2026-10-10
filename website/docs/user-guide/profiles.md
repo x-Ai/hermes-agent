@@ -82,6 +82,16 @@ hermes profile create work --clone
 
 Copies your current profile's `config.yaml`, `.env`, `SOUL.md`, skills, and the curated memory files `memories/MEMORY.md` and `memories/USER.md` into the new profile — memory is treated as part of the agent's identity, like `SOUL.md`. If `config.yaml` selects an external memory provider (`memory.provider`), that provider's own config travels too — its `<provider>/` directory or `<provider>.json` under the profile home, e.g. `hindsight/config.json` — so the clone's memory is available instead of silently off; a cloned `local_embedded` hindsight config still shares the source's embedded daemon and bank until you give the clone its own hindsight `profile`/`bank_id` ([#81815](https://github.com/NousResearch/hermes-agent/issues/81815)). Installed plugins travel too: `plugins/` (catalog, Git and hand-installed plugins, plus their install records) is copied, so a memory provider installed from the plugin catalog keeps working in the clone at the same revision and keeps its catalog install record. Plugin Python dependencies live in the shared environment and are not reinstalled. Sessions, `state.db`, cron jobs and everything else start empty. For a blank memory as well, create the profile without `--clone` or delete the two files afterwards; the agent never falls back to another profile's memory when they are absent. Edit `~/.hermes/profiles/work/.env` for different API keys, or `~/.hermes/profiles/work/SOUL.md` for a different personality.
 
+#### Start with an isolated memory (`--isolated-memory`)
+
+```bash
+hermes profile create work --clone --isolated-memory
+```
+
+The clone keeps the config, keys, `SOUL.md` and skills but leaves `memories/MEMORY.md` and `memories/USER.md` behind, and its `profile.yaml` records `isolated_memory: true`. This is for a profile whose model should never see the main profile's notes — a model with a strict safety filter that fails the whole conversation over something in your global memory — without turning memory off: the profile still saves memories of its own, they just never start from the default profile's.
+
+The same switch exists for an existing profile in the desktop app under **Settings → Memory & Context → Persistent memory** when the page applies to a profile other than the default one (**Isolated memory**). Turning it on removes the entries that are identical to the default profile's current entries and keeps the ones the profile wrote itself; turning it off copies the default profile's entries the profile lacks back in, within the profile's memory budgets (nothing is written when a file would overflow). The default profile cannot be isolated: it is the source. Memory stays per profile either way — the flag only governs what a profile is seeded with, never which files a session reads.
+
 #### Keep a clone's imported agent setups synced (`--sync-imports`)
 
 If the source profile has run [`hermes import-agent`](./import-from-other-agents.md), its `import-sync.json` records which external Claude Code / Codex trees it imported. `--clone` leaves that manifest behind, so the clone gets a one-off copy of those skills and memories and stops there. Add `--sync-imports` to carry the manifest over:

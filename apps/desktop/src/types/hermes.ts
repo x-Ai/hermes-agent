@@ -1195,6 +1195,8 @@ export interface ProfileCreatePayload {
   clone_all?: boolean
   clone_from?: null | string
   clone_from_default?: boolean
+  /** Leave the clone's memory files out: the profile's memory starts empty and isolated. */
+  isolated_memory?: boolean
   name: string
   no_skills?: boolean
 }

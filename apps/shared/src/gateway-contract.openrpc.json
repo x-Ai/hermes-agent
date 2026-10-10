@@ -18812,6 +18812,138 @@
         "title": "McpServersTestResult",
         "type": "object"
       },
+      "MemoryEntryCounts": {
+        "additionalProperties": false,
+        "description": "Entries per built-in memory store (``MEMORY.md`` / ``USER.md``).",
+        "properties": {
+          "memory": {
+            "default": 0,
+            "title": "Memory",
+            "type": "integer"
+          },
+          "user": {
+            "default": 0,
+            "title": "User",
+            "type": "integer"
+          }
+        },
+        "title": "MemoryEntryCounts",
+        "type": "object"
+      },
+      "MemoryIsolationChange": {
+        "additionalProperties": false,
+        "description": "What flipping ``isolated_memory`` did: ``removed`` per store when switching on, ``added`` (plus the\n``skipped`` entries the threat scan refused) when switching off. ``ok`` False carries the\n``failure_class`` (``over_budget`` with ``target`` / ``chars`` / ``limit``, ``default_profile``, or a\nstore refusal with its ``error``) and ``isolated`` says where the flag stayed.",
+        "properties": {
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "isolated": {
+            "title": "Isolated",
+            "type": "boolean"
+          },
+          "removed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemoryEntryCounts"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "added": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemoryEntryCounts"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "skipped": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Skipped"
+          },
+          "failure_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Failure Class"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target"
+          },
+          "chars": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Chars"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Limit"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Error"
+          }
+        },
+        "required": [
+          "ok",
+          "isolated"
+        ],
+        "title": "MemoryIsolationChange",
+        "type": "object"
+      },
       "MessageCompletePayload": {
         "additionalProperties": false,
         "description": "``prompt_turn._complete_turn_payload`` / ``session_auto_continue._emit_terminal_turn_error`` /\n``agent_callbacks._mirror_subagent_to_child`` (child watch mirror: ``text`` only) /\n``compute_host_bridge`` (``text`` + ``status``).",
@@ -24284,6 +24416,18 @@
             ],
             "default": null,
             "title": "Mcp Servers"
+          },
+          "isolated_memory": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Isolated Memory"
           }
         },
         "title": "ProfilesConfigureApplied",
@@ -24467,6 +24611,21 @@
             ],
             "default": null,
             "title": "Share Providers"
+          },
+          "isolated_memory": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Isolated Memory"
           }
         },
         "title": "ProfilesConfigureParams",
@@ -24482,6 +24641,17 @@
           },
           "applied": {
             "$ref": "#/components/schemas/ProfilesConfigureApplied"
+          },
+          "memory_isolation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemoryIsolationChange"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "confirm_required": {
             "anyOf": [
@@ -24670,6 +24840,21 @@
             "default": null,
             "title": "Share Auth"
           },
+          "isolated_memory": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Isolated Memory"
+          },
           "mirror_credentials": {
             "anyOf": [
               {
@@ -24781,6 +24966,14 @@
             "default": false,
             "title": "Share Providers",
             "type": "boolean"
+          },
+          "isolated_memory": {
+            "default": false,
+            "title": "Isolated Memory",
+            "type": "boolean"
+          },
+          "inherited_memory": {
+            "$ref": "#/components/schemas/MemoryEntryCounts"
           }
         },
         "required": [

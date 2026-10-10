@@ -19,7 +19,7 @@ import type { NoticeTranslations } from './types_notices'
 import type { OnboardingTranslations } from './types_onboarding'
 import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
-import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
+import type { MemoryIsolationTranslations, RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
 import type { UninstallSectionTranslations } from './types_uninstall_section'
 
@@ -98,7 +98,7 @@ interface IntroRevealSideAgentCopy {
   line1: string
   line2: string
 }
-export interface Translations extends NoticeTranslations, GoalStatusTranslations {
+export interface Translations extends NoticeTranslations, GoalStatusTranslations, MemoryIsolationTranslations {
   /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */
   sharedMetrics: SharedMetricsTranslations
   appTour: AppTourTranslations

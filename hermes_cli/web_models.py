@@ -489,6 +489,8 @@ class ProfileCreate(BaseModel):
     # Opt-in: also copy the source's messaging channels (bot tokens, allowlists, platform sections).
     # Default False — a copied bot credential makes two profiles collide over one bot.
     clone_channels: bool = False
+    # Leave the clone's memory files out and mark the profile's memory isolated from the default profile's.
+    isolated_memory: bool = False
     no_skills: bool = False
     description: Optional[str] = None
     provider: Optional[str] = None

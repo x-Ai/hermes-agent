@@ -200,6 +200,8 @@ class ProfilesCreateParams(ProfileParams):
     model: str | None = None
     provider: str | None = None
     share_auth: bool | str | None = None
+    # Leave the clone's memory files out and mark the profile's memory isolated from the default profile's.
+    isolated_memory: bool | str | None = None
     mirror_credentials: bool | str | None = None
 
 
@@ -249,6 +251,13 @@ class ProfileModelPin(Result):
     default: str = ""
 
 
+class MemoryEntryCounts(Result):
+    """Entries per built-in memory store (``MEMORY.md`` / ``USER.md``)."""
+
+    memory: int = 0
+    user: int = 0
+
+
 class ProfilesDescribeResult(Result):
     """Editor snapshot; ``toolsets_pinned`` says whether ``tools.enabled_toolsets`` is explicit."""
 
@@ -263,6 +272,11 @@ class ProfilesDescribeResult(Result):
     # profile.yaml ``share_providers``: the profile reads the default profile's model providers and
     # their credentials through instead of owning copies.
     share_providers: bool = False
+    # profile.yaml ``isolated_memory``: the profile's memory is kept apart from the default profile's
+    # (``hermes_cli.profiles_isolated_memory``); ``inherited_memory`` counts its entries identical to a
+    # default-profile entry, what switching isolation on removes.
+    isolated_memory: bool = False
+    inherited_memory: MemoryEntryCounts = Field(default_factory=MemoryEntryCounts)
 
 
 method("profiles.describe", params=ProfileNameParams, result=ProfilesDescribeResult,
@@ -285,6 +299,9 @@ class ProfilesConfigureParams(ProfileParams):
     enabled_mcp_servers: list[str] | None = None
     # Flip profile.yaml ``share_providers``; turning it off copies the pinned endpoint into the profile.
     share_providers: bool | str | None = None
+    # Flip profile.yaml ``isolated_memory``: on strips the entries shared with the default profile, off
+    # copies the default profile's missing entries in; the result's ``memory_isolation`` says what happened.
+    isolated_memory: bool | str | None = None
 
 
 class UiMetaConflict(Result):
@@ -304,6 +321,25 @@ class ProfilesConfigureApplied(Result):
     skills: bool | None = None
     toolsets: bool | None = None
     mcp_servers: bool | None = None
+    isolated_memory: bool | None = None
+
+
+class MemoryIsolationChange(Result):
+    """What flipping ``isolated_memory`` did: ``removed`` per store when switching on, ``added`` (plus the
+    ``skipped`` entries the threat scan refused) when switching off. ``ok`` False carries the
+    ``failure_class`` (``over_budget`` with ``target`` / ``chars`` / ``limit``, ``default_profile``, or a
+    store refusal with its ``error``) and ``isolated`` says where the flag stayed."""
+
+    ok: bool
+    isolated: bool
+    removed: MemoryEntryCounts | None = None
+    added: MemoryEntryCounts | None = None
+    skipped: int | None = None
+    failure_class: str | None = None
+    target: str | None = None
+    chars: int | None = None
+    limit: int | None = None
+    error: str | None = None
 
 
 class ProfilesConfigureResult(Result):
@@ -311,6 +347,7 @@ class ProfilesConfigureResult(Result):
 
     ok: bool
     applied: ProfilesConfigureApplied
+    memory_isolation: MemoryIsolationChange | None = None
     confirm_required: bool | None = None
     confirm_message: str | None = None
 

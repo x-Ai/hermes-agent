@@ -2043,6 +2043,7 @@ export interface ProfilesCreateParams {
   model?: string | null
   provider?: string | null
   share_auth?: boolean | string | null
+  isolated_memory?: boolean | string | null
   mirror_credentials?: boolean | string | null
 }
 export interface ProfilesCreateResult {
@@ -2075,6 +2076,8 @@ export interface ProfilesDescribeResult {
   toolsets_pinned?: boolean
   mcp_servers?: McpServerEntry[]
   share_providers?: boolean
+  isolated_memory?: boolean
+  inherited_memory?: MemoryEntryCounts
 }
 export interface ProfileModelPin {
   provider?: string
@@ -2096,6 +2099,11 @@ export interface McpServerEntry {
   enabled?: boolean
   transport?: string
 }
+/** Entries per built-in memory store (``MEMORY.md`` / ``USER.md``). */
+export interface MemoryEntryCounts {
+  memory?: number
+  user?: number
+}
 /** Sections are independent; ``ui_meta_expected_revisions`` is a per-key compare-and-swap. */
 export interface ProfilesConfigureParams {
   profile?: string | null
@@ -2111,11 +2119,13 @@ export interface ProfilesConfigureParams {
   enabled_toolsets?: string[] | null
   enabled_mcp_servers?: string[] | null
   share_providers?: boolean | string | null
+  isolated_memory?: boolean | string | null
 }
 /** ``confirm_required`` mirrors ``config.set``: a guarded model pick wrote nothing yet. */
 export interface ProfilesConfigureResult {
   ok: boolean
   applied: ProfilesConfigureApplied
+  memory_isolation?: MemoryIsolationChange | null
   confirm_required?: boolean | null
   confirm_message?: string | null
 }
@@ -2130,10 +2140,24 @@ export interface ProfilesConfigureApplied {
   skills?: boolean | null
   toolsets?: boolean | null
   mcp_servers?: boolean | null
+  isolated_memory?: boolean | null
 }
 export interface UiMetaConflict {
   expected?: unknown
   actual?: number
+}
+/** What flipping ``isolated_memory`` did: ``removed`` per store when switching on, ``added`` (plus the ``skipped`` entries the threat scan refused) when switching off. ``ok`` False carries the ``failure_class`` (``over_budget`` with ``target`` / ``chars`` / ``limit``, ``default_profile``, or a store refusal with its ``error``) and ``isolated`` says where the flag stayed. */
+export interface MemoryIsolationChange {
+  ok: boolean
+  isolated: boolean
+  removed?: MemoryEntryCounts | null
+  added?: MemoryEntryCounts | null
+  skipped?: number | null
+  failure_class?: string | null
+  target?: string | null
+  chars?: number | null
+  limit?: number | null
+  error?: string | null
 }
 /** ``data`` is a data URL or bare base64 (PNG/JPEG/WebP, sniffed); ``clear`` deletes instead. */
 export interface ProfilesSetAssetParams {

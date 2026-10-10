@@ -74,3 +74,28 @@ export interface RuntimeErrorsCopy {
   welcomeStartFailed: string
   restoreProfileFailed: string
 }
+
+/** Settings › Memory & Context › Persistent memory for a profile other than the default one, and the
+ *  New profile / New Bot dialogs: profile.yaml `isolated_memory` (`profiles.describe` /
+ *  `profiles.configure`, `hermes_cli/profiles_isolated_memory.py`). */
+export interface MemoryIsolationCopy {
+  title: string
+  description: string
+  /** Entries still identical to the default profile's: what switching on removes. */
+  inherited: (count: number) => string
+  noneInherited: string
+  /** The create dialogs' checkbox: leave the clone's copied memory files out. */
+  createLabel: string
+  createHint: string
+  isolated: (removed: number) => string
+  shared: (added: number) => string
+  /** `file` is the store's file name (MEMORY.md / USER.md): a marker, not display text. */
+  overBudget: (file: string, chars: number, limit: number) => string
+  defaultProfile: string
+  failed: string
+}
+
+/** Joined into `Translations` through `extends`, so the over-cap types.ts gains no line. */
+export interface MemoryIsolationTranslations {
+  memoryIsolation: MemoryIsolationCopy
+}

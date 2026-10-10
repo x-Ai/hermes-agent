@@ -37,7 +37,7 @@ import {
   useI18n,
   useValue
 } from '@hermes/plugin-sdk'
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import { avatarColor, blobatarSvg, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
@@ -118,6 +118,29 @@ interface CreateAgentDialogProps {
   roster: RosterRow[]
 }
 
+/** One Advanced › General option: a checkbox, its label, and an explanatory line under it. */
+function Option({
+  checked,
+  hint,
+  label,
+  onChange
+}: {
+  checked: boolean
+  hint?: string
+  label: ReactNode
+  onChange: (on: boolean) => void
+}) {
+  return (
+    <>
+      <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
+        <Checkbox checked={checked} onCheckedChange={value => onChange(Boolean(value))} />
+        {label}
+      </label>
+      {hint ? <div className="pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)">{hint}</div> : null}
+    </>
+  )
+}
+
 export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: CreateAgentDialogProps) {
   const { t } = useI18n()
   const b = useBots()
@@ -145,6 +168,7 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
   const [soul, setSoul] = useState('')
   const [noSkills, setNoSkills] = useState(false)
   const [shareAuth, setShareAuth] = useState(true)
+  const [isolated, setIsolated] = useState(false)
   const [advTab, setAdvTab] = useState('general')
   // Where the profile is created: '' = the active gateway (unchanged default),
   // else a registry connection id — the profiles.create lands on THAT
@@ -180,6 +204,9 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
   const targetLabel = remoteTarget
     ? (connections || []).find(c => c.id === targetConnection)?.label || targetConnection
     : ''
+
+  const keyLabel = remoteTarget ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName) : b.editor.shareKeys
+  const copy = t.memoryIsolation
 
   /** Gateway RPC on the create target: the picked connection's default
    *  backend for remote targets, the active gateway otherwise. */
@@ -279,6 +306,7 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
     setSoul('')
     setNoSkills(false)
     setShareAuth(true)
+    setIsolated(false)
     setAdvTab('general')
     setCreatedForCaps(null)
     setCaps(null)
@@ -399,6 +427,9 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
         // profile, so refreshes can't invalidate each other. Older gateways
         // ignore the param and copy — still functional, just forked.
         share_auth: shareAuth,
+        // Leave the clone's memory files out: the bot starts from an empty, isolated store
+        // (profile.yaml `isolated_memory`). Older gateways ignore the param and copy as before.
+        isolated_memory: isolated,
         soul: composeSoul({
           name: slug,
           title: botTitle,
@@ -814,17 +845,9 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
                       value={soul}
                     />
                   )}
-                  <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
-                    <Checkbox checked={shareAuth} onCheckedChange={value => setShareAuth(Boolean(value))} />
-                    {remoteTarget ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName) : b.editor.shareKeys}
-                  </label>
-                  <div className="pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)">
-                    {b.editor.shareKeysHint}
-                  </div>
-                  <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
-                    <Checkbox checked={noSkills} onCheckedChange={value => setNoSkills(Boolean(value))} />
-                    {b.editor.createEmpty}
-                  </label>
+                  <Option checked={shareAuth} hint={b.editor.shareKeysHint} label={keyLabel} onChange={setShareAuth} />
+                  <Option checked={isolated} hint={copy.createHint} label={copy.createLabel} onChange={setIsolated} />
+                  <Option checked={noSkills} label={b.editor.createEmpty} onChange={setNoSkills} />
                 </div>
               ) : advTab === 'capabilities' ? (
                 !valid || taken ? (

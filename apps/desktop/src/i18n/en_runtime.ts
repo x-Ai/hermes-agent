@@ -72,5 +72,28 @@ export const enRuntime = {
     welcomeNeedsAttention: 'Welcome chat needs attention',
     welcomeStartFailed: 'The welcome chat could not start.',
     restoreProfileFailed: 'Could not restore your profile'
+  },
+  memoryIsolation: {
+    title: 'Isolated memory',
+    description:
+      "Keep this profile's persistent memory apart from the default profile: entries copied from it are removed now and it is never seeded from it again. The profile keeps saving memories of its own.",
+    inherited: (count: number) =>
+      `${count} ${count === 1 ? 'entry is' : 'entries are'} identical to the default profile's memory.`,
+    noneInherited: 'No entries come from the default profile.',
+    createLabel: "Start with isolated memory (do not copy the source profile's memories)",
+    createHint:
+      'The new profile starts from an empty MEMORY.md and USER.md, for models whose safety filters reject notes from the main profile.',
+    isolated: (removed: number) =>
+      removed
+        ? `Memory isolated: ${removed} inherited ${removed === 1 ? 'entry' : 'entries'} removed.`
+        : 'Memory isolated.',
+    shared: (added: number) =>
+      added
+        ? `Default profile memory copied in: ${added} ${added === 1 ? 'entry' : 'entries'} added.`
+        : 'Memory follows the default profile again.',
+    overBudget: (file: string, chars: number, limit: number) =>
+      `${file} would hold ${chars} characters, over its ${limit}-character budget. Raise the budget or trim entries first.`,
+    defaultProfile: 'The default profile is the source of shared memory; pick another profile to isolate.',
+    failed: 'Could not change memory isolation.'
   }
-} satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors'>
+} satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors' | 'memoryIsolation'>

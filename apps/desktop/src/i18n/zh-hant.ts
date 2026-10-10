@@ -85,6 +85,7 @@ export const zhHantOverrides = {
   paletteCommands: zhHantChrome.paletteCommands,
   timelineEvents: zhHantChat.timelineEvents,
   runtimeErrors: zhHantRuntime.runtimeErrors,
+  memoryIsolation: zhHantRuntime.memoryIsolation,
   findInPage: zhHantChrome.findInPage,
   language: zhHantSettings.language,
   quickEntry: zhHantChat.quickEntry,

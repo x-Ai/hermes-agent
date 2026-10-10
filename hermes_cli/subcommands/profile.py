@@ -38,6 +38,11 @@ def build_profile_parser(subparsers, *, cmd_profile: Callable) -> None:
              "the new profile stays registered against the same Claude Code / Codex trees "
              "(`hermes -p <name> import-agent --sync`). Never syncs config from the source profile.")
     profile_create.add_argument(
+        "--isolated-memory", action="store_true",
+        help="Start with an empty persistent memory: a clone leaves the source's memories/MEMORY.md and "
+             "USER.md behind, and the profile is marked isolated from the default profile's memory "
+             "(Desktop: Settings > Memory & Context > Persistent memory).")
+    profile_create.add_argument(
         "--no-alias", action="store_true", help="Skip wrapper script creation")
     profile_create.add_argument(
         "--no-skills", action="store_true",

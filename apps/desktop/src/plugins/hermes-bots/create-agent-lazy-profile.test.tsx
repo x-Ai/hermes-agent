@@ -261,7 +261,7 @@ describe('materializing the draft profile', () => {
     ])
     fireEvent.click(screen.getByRole('option', { name: /Fresh profile/ }))
     // Shared keys live on the TARGET machine, and the label says which.
-    screen.getByText('Share keys & accounts with the default profile on Studio')
+    screen.getByText('Share keys, accounts & model providers with the default profile on Studio')
 
     fireEvent.click(screen.getByRole('button', { name: 'Create Bot' }))
 

@@ -61,5 +61,20 @@ export const zhHantRuntime = {
     welcomeNeedsAttention: '歡迎對話需要處理',
     welcomeStartFailed: '無法啟動歡迎對話。',
     restoreProfileFailed: '無法還原你的設定檔'
+  },
+  memoryIsolation: {
+    title: '記憶隔離',
+    description:
+      '讓此設定檔的持久記憶與預設設定檔分開：現在移除從預設設定檔複製來的條目，之後也不再從它播種。此設定檔仍會繼續儲存自己的記憶。',
+    inherited: (count: number) => `有 ${count} 筆條目與預設設定檔的記憶相同。`,
+    noneInherited: '沒有來自預設設定檔的條目。',
+    createLabel: '使用獨立記憶（不複製來源設定檔的記憶）',
+    createHint: '新設定檔從空白的 MEMORY.md 和 USER.md 開始，適合安全過濾會拒絕主設定檔記憶內容的模型。',
+    isolated: (removed: number) => (removed ? `記憶已隔離：移除了 ${removed} 筆繼承的條目。` : '記憶已隔離。'),
+    shared: (added: number) => (added ? `已補入預設設定檔的 ${added} 筆記憶。` : '記憶已重新跟隨預設設定檔。'),
+    overBudget: (file: string, chars: number, limit: number) =>
+      `${file} 補入後將有 ${chars} 個字元，超出 ${limit} 個字元的預算。請先提高預算或精簡條目。`,
+    defaultProfile: '預設設定檔是共用記憶的來源，請選擇其他設定檔進行隔離。',
+    failed: '無法變更記憶隔離設定。'
   }
-} satisfies Pick<TranslationOverrides, 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'runtimeErrors' | 'memoryIsolation'>

@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Tuple
 from agent.file_safety import HOME_CREDENTIAL_DIRS
 from hermes_cli.archive_safe import archive_root_dirs, make_targz, normalize_archive_parts, safe_extract_targz
 from hermes_cli.home_data_layout import PM_RUNTIME_ROOT_DIRS
+from hermes_cli.profiles_clone_fs import copytree_keep_junctions, materialize_symlinked_files
 from hermes_constants import (
     LOCAL_RUNTIME_ROOT_DIRS, PROFILE_ID_RE, clear_named_profile_deleted, mark_named_profile_deleted,
     named_profile_has_identity, named_profile_is_deleted, named_profile_is_live,
@@ -1212,76 +1213,11 @@ def _clone_file(source_dir: Path, profile_dir: Path, relpath: str) -> None:
             os.chmod(str(dst), 0o600)
 
 
-# Files a clone edits in place after copying. A ``--clone-all`` copy preserves symlinks
-# (``symlinks=True``), so a symlinked source ``.env`` would otherwise be edited THROUGH the link and
-# the channel stripping would mutate the SOURCE profile. These are materialized as real files first.
-_CLONE_MATERIALIZE = (".env", "config.yaml", "auth.json", "SOUL.md")
-
-
-def _materialize_symlinked_files(profile_dir: Path) -> list[str]:
-    """Replace symlinked root files the clone will edit with private copies of their targets (a
-    dangling link is dropped). Returns the relative names materialized."""
-    done: list[str] = []
-    for name in _CLONE_MATERIALIZE:
-        path = profile_dir / name
-        if not path.is_symlink():
-            continue
-        target = Path(os.path.realpath(path))
-        path.unlink()
-        if target.is_file():
-            shutil.copy2(target, path)
-        done.append(name)
-    return done
-
-
-def _junction_target(path: str) -> Optional[str]:
-    """Target of an NTFS directory junction, else ``None``. A junction is a reparse point, not a
-    symlink: ``os.path.islink()`` is False and ``shutil.copytree(symlinks=True)`` descends into it."""
-    if os.name != "nt":
-        return None
-    try:
-        if os.lstat(path).st_reparse_tag != stat.IO_REPARSE_TAG_MOUNT_POINT:
-            return None
-        target = os.readlink(path)
-    except OSError:
-        return None
-    # readlink hands back the substitute name; CreateJunction rejects the ``\\?\`` spelling.
-    if target.startswith("\\\\?\\UNC\\"):
-        return "\\" + target[7:]
-    return target[4:] if target.startswith("\\\\?\\") else target
-
-
-def _copytree_keep_junctions(src: Path, dst: Path, ignore, dirs_exist_ok: bool = False) -> None:
-    """``shutil.copytree(symlinks=True)`` that re-creates NTFS junctions as junctions instead of
-    traversing them. A ``skills/foo`` junction into a ``skills.external_dirs`` root copied as a
-    physical tree is a second same-named candidate and ``_locate_skill`` refuses to guess (#113471).
-    A junction whose target is gone is skipped with a warning, never a crash."""
-    junctions: dict[str, str] = {}
-
-    def _ignore(directory: str, names: list[str]) -> set:
-        ignored = set(ignore(directory, names))
-        for name in names:
-            target = _junction_target(os.path.join(directory, name))
-            if target is not None:
-                junctions[os.path.join(directory, name)] = target
-                ignored.add(name)
-        return ignored
-
-    shutil.copytree(src, dst, symlinks=True, dirs_exist_ok=dirs_exist_ok, ignore=_ignore)
-    if junctions:
-        import _winapi  # Windows-only stdlib module; only reachable once a junction was seen
-    for link, target in junctions.items():
-        try:
-            _winapi.CreateJunction(target, os.path.join(dst, os.path.relpath(link, src)))
-        except OSError as exc:
-            logger.warning("clone: skipped junction %s -> %s (%s)", link, target, exc)
-
-
 def _clone_all_into(source_dir: Path, profile_dir: Path, canon: str) -> None:
     """--clone-all: full copytree minus infrastructure/history, then strip runtime files
     and cloned single-use OAuth grants."""
-    _copytree_keep_junctions(source_dir, profile_dir, _clone_all_copytree_ignore(source_dir))
-    materialized = _materialize_symlinked_files(profile_dir)
+    copytree_keep_junctions(source_dir, profile_dir, _clone_all_copytree_ignore(source_dir))
+    materialized = materialize_symlinked_files(profile_dir)
     if materialized:
         logger.info("profile %s: materialized symlinked %s so the clone never writes through to %s",
                     canon, materialized, source_dir)
@@ -1329,8 +1265,8 @@ def _clone_plugins(source_dir: Path, profile_dir: Path) -> None:
     selection of the same plugin already put them."""
     source_plugins = source_dir / "plugins"
     if source_plugins.is_dir():
-        _copytree_keep_junctions(source_plugins, profile_dir / "plugins",
-                                 _clone_plugins_ignore(source_plugins), dirs_exist_ok=True)
+        copytree_keep_junctions(source_plugins, profile_dir / "plugins",
+                                _clone_plugins_ignore(source_plugins), dirs_exist_ok=True)
 
 
 def cloned_plugin_names(profile_dir: Path) -> list[str]:
@@ -1362,7 +1298,7 @@ def _bootstrap_profile_dir(profile_dir: Path, source_dir: Optional[Path],
         _clone_file(source_dir, profile_dir, relpath)
     source_skills = source_dir / "skills"
     if source_skills.is_dir():
-        _copytree_keep_junctions(source_skills, profile_dir / "skills", _non_exportable_entries, dirs_exist_ok=True)
+        copytree_keep_junctions(source_skills, profile_dir / "skills", _non_exportable_entries, dirs_exist_ok=True)
     for relpath in _CLONE_SUBDIR_FILES:
         _clone_file(source_dir, profile_dir, relpath)
     _clone_plugins(source_dir, profile_dir)
@@ -1377,7 +1313,7 @@ def _bootstrap_profile_dir(profile_dir: Path, source_dir: Optional[Path],
 def create_profile(
     name: str, clone_from: Optional[str] = None, clone_all: bool = False, clone_config: bool = False,
     no_alias: bool = False, no_skills: bool = False, description: Optional[str] = None,
-    clone_channels: bool = False, sync_imports: bool = False,
+    clone_channels: bool = False, sync_imports: bool = False, isolated_memory: bool = False,
 ) -> Path:
     """Create a new profile directory and return its path.
 
@@ -1390,7 +1326,9 @@ def create_profile(
     ``no_skills`` creates an empty profile and writes a marker so ``hermes update`` skips
     re-seeding its skills; it is mutually exclusive with the clone options, which copy skills.
     ``sync_imports`` (``--clone`` only; ``--clone-all`` copies the file anyway) also copies the
-    ``import-agent`` sync manifest so the clone can keep pulling the same external agent trees."""
+    ``import-agent`` sync manifest so the clone can keep pulling the same external agent trees.
+    ``isolated_memory`` leaves the memory files a clone would copy out and marks the profile's memory
+    isolated from the default profile's (``hermes_cli.profiles_isolated_memory``)."""
     if no_skills and (clone_from is not None or clone_config or clone_all):
         raise ValueError(
             "--no-skills is mutually exclusive with --clone / --clone-from / --clone-all "
@@ -1444,6 +1382,9 @@ def create_profile(
             stripped = strip_channel_settings(staging, include_state=clone_all, source_dir=source_dir)
             if stripped:
                 logger.info("profile %s: cloned without messaging channels %s", canon, stripped)
+        if isolated_memory:
+            from hermes_cli.profiles_isolated_memory import start_isolated
+            start_isolated(staging)
         _finish_profile_layout(staging, no_skills=no_skills, clone_all=clone_all, description=description)
         os.rename(staging, profile_dir)
     except BaseException:

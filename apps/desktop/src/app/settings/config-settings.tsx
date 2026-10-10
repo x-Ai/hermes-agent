@@ -51,6 +51,7 @@ import {
   voiceFieldVisible
 } from './helpers'
 import { MemoryConnect } from './memory/connect'
+import { MemoryIsolationSetting } from './memory/isolation-setting'
 import { ProviderConfigPanel } from './memory/provider-config-panel'
 import { ModelSettings, ModelSettingsSkeleton } from './model-settings'
 import { PoolLimitsSetting } from './pool-limits-setting'
@@ -514,6 +515,9 @@ function ConfigSettingsInner({
       {/* Shared metrics are two coupled opt-ins with a consent side effect, so they
           go through their own RPC rather than the generic field autosave. */}
       {showSharedMetrics ? <SharedMetricsSettings /> : null}
+      {/* profile.yaml `isolated_memory` is a per-profile flag with its own RPC, not a config.yaml
+          field; the row gates itself on the Memory › Persistent page and a non-default scope. */}
+      <MemoryIsolationSetting profile={scopeProfile} section={activeSectionId} subpage={subpage} />
       {activeSectionId === 'voice' ? (
         <ListRow description={c.voiceShortcutHintDesc} title={c.voiceShortcutHintTitle} />
       ) : null}

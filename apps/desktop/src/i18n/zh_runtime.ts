@@ -69,5 +69,20 @@ export const zhRuntime = {
     welcomeNeedsAttention: '欢迎对话需要处理',
     welcomeStartFailed: '无法启动欢迎对话',
     restoreProfileFailed: '无法恢复你的配置档案'
+  },
+  memoryIsolation: {
+    title: '记忆隔离',
+    description:
+      '让此配置文件的持久记忆与默认配置文件分开：现在移除从默认配置文件复制来的条目，之后也不再从它播种，此配置文件仍会继续保存自己的记忆',
+    inherited: (count: number) => `有 ${count} 条条目与默认配置文件的记忆相同`,
+    noneInherited: '没有来自默认配置文件的条目',
+    createLabel: '使用独立记忆（不复制来源配置文件的记忆）',
+    createHint: '新配置文件从空白的 MEMORY.md 和 USER.md 开始，适合安全过滤会拒绝主配置文件记忆内容的模型',
+    isolated: (removed: number) => (removed ? `记忆已隔离：移除了 ${removed} 条继承的条目` : '记忆已隔离'),
+    shared: (added: number) => (added ? `已补入默认配置文件的 ${added} 条记忆` : '记忆已重新跟随默认配置文件'),
+    overBudget: (file: string, chars: number, limit: number) =>
+      `${file} 补入后将有 ${chars} 个字符，超出 ${limit} 个字符的预算，请先提高预算或精简条目`,
+    defaultProfile: '默认配置文件是共享记忆的来源，请选择其他配置文件进行隔离',
+    failed: '无法更改记忆隔离设置'
   }
-} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors' | 'memoryIsolation'>

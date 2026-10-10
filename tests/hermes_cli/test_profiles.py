@@ -351,7 +351,8 @@ class TestCreateProfile:
         (default_home / "skills" / "gone").mkdir()
         targets = {str(default_home / "skills" / "foo"): str(external / "foo"),
                    str(default_home / "skills" / "gone"): str(profile_env / "nowhere")}
-        monkeypatch.setattr(profiles, "_junction_target", lambda path: targets.get(path), raising=False)
+        from hermes_cli import profiles_clone_fs
+        monkeypatch.setattr(profiles_clone_fs, "junction_target", lambda path: targets.get(path))
 
         def _create_junction(target, dst):
             if not os.path.isdir(target):

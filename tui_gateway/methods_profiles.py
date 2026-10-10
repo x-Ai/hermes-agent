@@ -307,7 +307,7 @@ def _(rid, params: dict) -> dict:
     """Create a profile (ws twin of POST /api/profiles). Params: ``name``, ``description``,
     ``clone_from`` (omitted = fresh + bundled skills), ``clone_all``, ``clone_channels`` (opt-in: keep the
     source's bot tokens/allowlists — default strips them so two profiles never hold one bot), ``no_skills``, ``soul``,
-    ``model`` + ``provider``, ``share_auth``, ``no_alias``, ``mirror_credentials`` (default true: a bare
+    ``model`` + ``provider``, ``share_auth``, ``no_alias``, ``isolated_memory``, ``mirror_credentials`` (default true: a bare
     ``create_profile()`` seeds a comment-only .env and no auth.json = NO provider headless)."""
     name = str(params.get("name") or "").strip()
     if not name:
@@ -321,7 +321,8 @@ def _(rid, params: dict) -> dict:
             clone_config=bool(clone_from) and not clone_all,
             no_skills=is_truthy_value(params.get("no_skills", False)),
             description=str(params.get("description") or "").strip() or None,
-            clone_channels=is_truthy_value(params.get("clone_channels", False)))
+            clone_channels=is_truthy_value(params.get("clone_channels", False)),
+            isolated_memory=is_truthy_value(params.get("isolated_memory", False)))
     except (ValueError, FileExistsError, FileNotFoundError) as e:
         return _err(rid, 4062, str(e))
     except Exception as e:
@@ -386,14 +387,18 @@ def _(rid, params: dict) -> dict:
             "skills": installed, "toolsets": toolsets_out,
             "toolsets_pinned": pinned_set is not None, "mcp_servers": mcp_out,
             "share_providers": _try(lambda: _lazy(
-                "hermes_cli.profiles_shared_providers", "profile_shares_providers")(profile_dir), False)})
+                "hermes_cli.profiles_shared_providers", "profile_shares_providers")(profile_dir), False),
+            "isolated_memory": _try(lambda: _lazy(_ISOLATED, "profile_memory_is_isolated")(profile_dir), False),
+            "inherited_memory": _try(lambda: _lazy(_ISOLATED, "inherited_memory_counts")(profile_dir),
+                                     {"memory": 0, "user": 0})})
 
 
 @_profile_handler("profiles.configure", 5064)
 def _(rid, params: dict) -> dict:
     """Editor Save: ``name`` plus any of ``ui_meta`` (+ ``ui_meta_expected_revisions``), ``soul``,
     ``description``, ``model`` + ``provider`` (+ ``confirm_expensive_model``), ``disabled_skills``,
-    ``enabled_toolsets``, ``enabled_mcp_servers``; sections are independent, ``applied`` reports each."""
+    ``enabled_toolsets``, ``enabled_mcp_servers``, ``share_providers``, ``isolated_memory``; sections are
+    independent, ``applied`` reports each (``memory_isolation`` carries what the memory flip did)."""
     _name, profile_dir, err = _resolve_profile(rid, params)
     if err is not None:
         return err
@@ -408,11 +413,15 @@ def _(rid, params: dict) -> dict:
             profile_dir, description=params["description"].strip(), description_auto=False))
     if params.get("share_providers") is not None:
         applied["share_providers"] = _best_effort(lambda: _configure_share_providers(profile_dir, params))
+    memory_isolation = None
+    if params.get("isolated_memory") is not None:
+        memory_isolation = _configure_isolated_memory(profile_dir, params, applied)
     confirm_message = _configure_model(profile_dir, params, applied)
     if any(isinstance(params.get(k), list) for k in ("disabled_skills", "enabled_toolsets", "enabled_mcp_servers")):
         _configure_cfg_sections(profile_dir, params, applied)
     # confirm_* is the shape config.set returns, so clients reuse one confirm handler.
     return _ok(rid, {"ok": all(applied.values()) if applied else True, "applied": applied,
+                     **({"memory_isolation": memory_isolation} if memory_isolation is not None else {}),
                      **({"confirm_required": True, "confirm_message": confirm_message}
                         if confirm_message is not None else {})})
 
@@ -692,6 +701,24 @@ def _configure_share_providers(profile_dir, params) -> None:
         pinned = str(model_cfg.get("provider") or "").strip()
         for provider in {pinned, _model_provider_params(params)[1]} - {""}:
             _lazy(mod, "adopt_default_endpoint")(profile_dir, provider)
+
+
+_ISOLATED = "hermes_cli.profiles_isolated_memory"
+
+
+def _configure_isolated_memory(profile_dir, params, applied) -> dict:
+    """Flip ``profile.yaml`` ``isolated_memory`` through the module's two switch operations: on strips the
+    entries the profile shares with the default profile, off copies the default profile's missing entries
+    in (nothing is written when a target would overflow its budget). The change record (counts, or a
+    ``failure_class`` with its details) rides the result so the client can say what happened."""
+    wanted = is_truthy_value(params.get("isolated_memory"))
+    operation = "isolate_profile_memory" if wanted else "inherit_default_memory"
+    with _hermes_home_scope(profile_dir):
+        change = _try(lambda: _lazy(_ISOLATED, operation)(profile_dir), None)
+    if change is None:
+        change = {"ok": False, "isolated": not wanted, "failure_class": "error"}
+    applied["isolated_memory"] = bool(change.get("ok"))
+    return change
 
 
 def _clean_names(values) -> set:
