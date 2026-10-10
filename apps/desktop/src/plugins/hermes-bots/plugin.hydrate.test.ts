@@ -3,8 +3,8 @@
  * for a room is what the room store shows after a window load.
  *
  * The register-time whitelist used to rebuild each stored room field by field
- * and skipped the working directories, the hold switch and the held-message
- * queue — all of which `updateGroupChat` persists. They
+ * and skipped the working directories, the explicit @handle, the hold switch
+ * and the held-message queue — all of which `updateGroupChat` persists. They
  * came back only once the gateway mirror was pulled, so a Desktop whose
  * gateway was unreachable (or a room the pull preserves because of a local
  * edit) lost them across a restart.
@@ -85,6 +85,7 @@ const STORED = {
     members: [{ name: 'dev' }],
     roomId: 'r-abc',
     image: null,
+    handle: 'crew',
     workspace: '/projects/app',
     memberWorkspaces: { dev: '/projects/dev' },
     threadWorkspaces: {},
@@ -130,7 +131,7 @@ beforeEach(() => {
 })
 
 describe('room hydrate on window load', () => {
-  it('restores the folders, hold switch and held queue plugin storage holds', async () => {
+  it('restores the folders, handle, hold switch and held queue plugin storage holds', async () => {
     const { $groupChats } = await registerWithStoredRooms(STORED)
 
     await vi.waitFor(() => expect($groupChats.get()['Build Crew']).toBeTruthy())
@@ -138,6 +139,7 @@ describe('room hydrate on window load', () => {
 
     expect(room.workspace).toBe('/projects/app')
     expect(room.memberWorkspaces).toEqual({ dev: '/projects/dev' })
+    expect(room.handle).toBe('crew')
     expect(room.holdDetection).toBe(false)
     expect(room.heldMessages).toEqual({ dev: ['m-1'] })
     // What the whitelist always carried stays intact.

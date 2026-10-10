@@ -45,6 +45,7 @@ import {
   botHandle,
   botMetaV2Active,
   botSourceStatus,
+  cachedUnionRoster,
   noteBotMetaWrite,
   persistBotMetaSnapshot,
   ROSTER_KEY,
@@ -67,6 +68,7 @@ import {
   groupThreadOf,
   rememberGroupChatTombstone,
   scheduleGroupChatServerSync,
+  setGroupChatHandle,
   setGroupChatHoldDetection,
   setGroupChatImage,
   updateGroupChat
@@ -77,6 +79,8 @@ import type { GroupRoomPrompt } from './group-chat-parts'
 import { GroupMemberPicker } from './group-chat-view-members'
 import { compressGroupMemberHistory } from './group-compress'
 import { sweepExternalGroupWrites } from './group-external-writes'
+import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
+import { GroupHandleField } from './group-handle-field'
 import { GroupHoldStatus } from './group-hold-status'
 import {
   botGroups,
@@ -403,9 +407,11 @@ function GroupChatSettingsDialog({
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const current = (rooms[group] || {}).image || null
   const currentHoldDetection = (rooms[group] || {}).holdDetection !== false
+  const currentHandle = (rooms[group] || {}).handle || ''
   const [name, setName] = useState(group)
   const [image, setImage] = useState(current)
   const [holdDetection, setHoldDetection] = useState(currentHoldDetection)
+  const [handle, setHandle] = useState(currentHandle)
   const [compressing, setCompressing] = useState<null | string>(null)
   // Room + per-member working directories (group-workspace-settings.tsx).
   const workspaceDraft = useGroupWorkspaceDraft(group, members || [], open)
@@ -414,6 +420,7 @@ function GroupChatSettingsDialog({
       setName(group)
       setImage(current)
       setHoldDetection(currentHoldDetection)
+      setHandle(currentHandle)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, group])
@@ -449,6 +456,21 @@ function GroupChatSettingsDialog({
   }
 
   const save = async () => {
+    // The handle is checked first (cheap, local): a tag a bot or another room
+    // already answers to keeps the dialog open before any gateway probe runs.
+    const handleCheck = checkGroupHandleInput(handle, {
+      except: group,
+      meta: $botMeta.get(),
+      rooms,
+      roster: cachedUnionRoster()?.profiles || $lastRoster.get()
+    })
+
+    if (handleCheck.problem) {
+      host.notify({ kind: 'error', message: handleCheck.problem })
+
+      return
+    }
+
     // Folders are checked against their gateways BEFORE anything is written:
     // a rename must not land while a typo in a path keeps the dialog open.
     if (!(await workspaceDraft.validate())) {
@@ -467,6 +489,10 @@ function GroupChatSettingsDialog({
 
     if (holdDetection !== currentHoldDetection) {
       setGroupChatHoldDetection(finalName, holdDetection)
+    }
+
+    if ((handleCheck.handle || '') !== currentHandle) {
+      setGroupChatHandle(finalName, handleCheck.handle)
     }
 
     workspaceDraft.apply(finalName)
@@ -512,6 +538,7 @@ function GroupChatSettingsDialog({
             value={name}
           />
         </form>
+        <GroupHandleField onChange={setHandle} suggestion={groupHandleFromName(name.trim() || group)} value={handle} />
         <ToggleRow
           checked={holdDetection}
           description={b.group.holdDetectionHint}

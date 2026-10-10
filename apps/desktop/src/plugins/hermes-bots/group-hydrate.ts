@@ -6,13 +6,14 @@
  * into the engine.
  *
  * Every field `updateGroupChat` persists is restored here. The whitelist used
- * to skip the room's working directories, the hold switch and the queue of
- * messages consumed under a hold, so those came back
+ * to skip the room's working directories, its explicit `@handle`, the hold
+ * switch and the queue of messages consumed under a hold, so those came back
  * only once the gateway mirror was pulled — and never on a Desktop whose
  * gateway was unreachable, or for a room with a local edit the pull preserves.
  */
 
 import { assignLegacyThreads } from './group-chat'
+import { durableGroupHandle } from './group-handle-sync'
 import { durableGroupWorkspaceFields } from './group-workspace-sync'
 import type { GroupChat } from './types'
 
@@ -46,6 +47,7 @@ export function hydrateStoredGroupChat(stored: unknown): GroupChat | null {
     members: Array.isArray(room.members) ? room.members : [],
     roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
     image: typeof room.image === 'string' && room.image ? room.image : null,
+    handle: durableGroupHandle(room),
     ...durableGroupWorkspaceFields(room),
     rosterOrder: Number.isFinite(room.rosterOrder) ? room.rosterOrder : undefined,
     pinned: Boolean(room.pinned),

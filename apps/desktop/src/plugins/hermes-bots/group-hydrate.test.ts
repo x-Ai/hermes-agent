@@ -18,6 +18,7 @@ const stored = {
   members: [{ name: 'dev' }],
   roomId: 'r-abc',
   image: 'data:image/png;base64,room',
+  handle: 'crew',
   workspace: '/projects/app',
   memberWorkspaces: { dev: '/projects/dev' },
   threadWorkspaces: { 't-1': '/projects/thread' },
@@ -37,6 +38,7 @@ describe('hydrateStoredGroupChat', () => {
     expect(room.workspace).toBe('/projects/app')
     expect(room.memberWorkspaces).toEqual({ dev: '/projects/dev' })
     expect(room.threadWorkspaces).toEqual({ 't-1': '/projects/thread' })
+    expect(room.handle).toBe('crew')
     expect(room.holdDetection).toBe(false)
     expect(room.heldMessages).toEqual({ dev: ['m-1'] })
 
@@ -63,6 +65,7 @@ describe('hydrateStoredGroupChat', () => {
     expect(room.holds).toEqual({})
     expect(room.heldMessages).toEqual({})
     expect(room.holdDetection).toBe(true)
+    expect(room.handle).toBeNull()
     expect(room.workspace).toBeNull()
     expect(room.memberWorkspaces).toEqual({})
     expect(room.roomId).toBeNull()

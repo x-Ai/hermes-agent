@@ -46,10 +46,18 @@ import { $selectedBot } from './bot-state'
 import { createCanonicalChat } from './canonical-chat'
 import { $botMeta, botHandle, botRosterKey, filterBots, ROSTER_KEY, saveBotMeta } from './data'
 import { labeled, ResizableFrame } from './dialog-parts'
-import { GROUP_CHAT_MAX_MEMBERS, mintGroupRoomId, uniqueGroupChatName, updateGroupChat } from './group-chat'
+import {
+  $groupChats,
+  GROUP_CHAT_MAX_MEMBERS,
+  mintGroupRoomId,
+  uniqueGroupChatName,
+  updateGroupChat
+} from './group-chat'
 import type { GroupChatRoom } from './group-chat'
 import { GroupImageControls } from './group-chat-parts'
 import { setGroupMembership } from './group-chat-view-members'
+import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
+import { GroupHandleField } from './group-handle-field'
 import {
   botGroups,
   durableGroupChatMembers,
@@ -1157,6 +1165,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   const [name, setName] = useState('')
   const [image, setImage] = useState<null | string>(null)
   const [workspace, setWorkspace] = useState('')
+  const [handle, setHandle] = useState('')
 
   // Reset per open so a cancelled draft doesn't leak into the next one.
   useEffect(() => {
@@ -1166,6 +1175,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
       setName('')
       setImage(null)
       setWorkspace('')
+      setHandle('')
     }
   }, [open])
 
@@ -1181,11 +1191,23 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
     : b.group.nameLabel
 
   const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length)
+  // The handle the room gets from its name alone — the field's placeholder.
+  const handleSuggestion = groupHandleFromName((name.trim() || (selected.length ? placeholder : '')).slice(0, 64))
 
   const create = async () => {
     const base = (name.trim() || placeholder).slice(0, 64)
 
     if (selected.length < 2 || !base) {
+      return
+    }
+
+    // An explicit handle is checked before anything is written: a tag a bot
+    // or another room already answers to keeps the dialog open.
+    const handleCheck = checkGroupHandleInput(handle, { meta: allMeta, rooms: $groupChats.get(), roster })
+
+    if (handleCheck.problem) {
+      host.notify({ kind: 'error', message: handleCheck.problem })
+
       return
     }
 
@@ -1241,6 +1263,10 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
 
       if (roomWorkspace) {
         room.workspace = roomWorkspace
+      }
+
+      if (handleCheck.handle) {
+        room.handle = handleCheck.handle
       }
 
       return room
@@ -1381,6 +1407,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
               value={name}
             />
           </form>
+          <GroupHandleField onChange={setHandle} suggestion={handleSuggestion} value={handle} />
           <GroupWorkspaceField onChange={setWorkspace} value={workspace} />
         </div>
         <DialogFooter>

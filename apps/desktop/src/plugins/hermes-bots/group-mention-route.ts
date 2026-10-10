@@ -12,6 +12,11 @@
  * normal session. Mentions further into the text are left alone: the room's
  * own parser addresses members, and a mid-sentence room name is prose.
  *
+ * A room's tag is its `@handle` (`group-handle.ts`): explicit when the user
+ * set one, else derived from the name — which is what gives a room named in
+ * another script a tag at all. The name's own ASCII forms stay aliases, so
+ * `@build-crew` keeps working after "Build Crew" is given a shorter handle.
+ *
  * The draft's composer attachments ride along as room attachments
  * (`group-route-attachments.ts`): files become the data URLs members receive,
  * reference chips become leading text. One chip that cannot be converted
@@ -22,15 +27,17 @@
 import { host } from '@hermes/plugin-sdk'
 
 import { mentionNameForms } from './data'
+import { groupMentionHandle } from './group-handle'
 import { routedGroupAttachments } from './group-route-attachments'
 import type { RoutedAttachmentDeps } from './group-route-attachments'
 import { normalizeGroupWorkspacePath } from './group-workspace'
 import { botsText } from './i18n'
 import type { Attachment, GroupChat, RosterRow } from './types'
 
-/** The tags a room completes and resolves on — the slug forms a bot title gets. */
-export function groupMentionTags(name: string): string[] {
-  return mentionNameForms(name)
+/** The tags a room completes and resolves on: its handle first (the form the
+ *  popover inserts), then the slug forms its name yields, as aliases. */
+export function groupMentionTags(name: string, room?: Pick<GroupChat, 'handle'> | null): string[] {
+  return [...new Set([groupMentionHandle(name, room), ...mentionNameForms(name)])].filter(Boolean)
 }
 
 export interface GroupMentionItem {
@@ -52,7 +59,7 @@ export function groupMentionCompletions(
       continue
     }
 
-    const tag = groupMentionTags(name)[0]
+    const tag = groupMentionTags(name, room)[0]
 
     if (!tag || (q && !tag.startsWith(q) && !name.toLowerCase().startsWith(q))) {
       continue
@@ -87,7 +94,7 @@ export function matchLeadingGroupMention(
   const tag = match[1].toLowerCase()
 
   for (const [name, room] of Object.entries(rooms || {})) {
-    if (room && !room.tombstone && groupMentionTags(name).includes(tag)) {
+    if (room && !room.tombstone && groupMentionTags(name, room).includes(tag)) {
       return { group: name, rest: (text || '').slice(match[0].length).trim(), tag }
     }
   }

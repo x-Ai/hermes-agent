@@ -12,6 +12,7 @@
 import { atom, host } from '@hermes/plugin-sdk'
 
 import { $botMeta, $lastRoster, botRosterKey } from './data'
+import { durableGroupHandle, groupHandleProjection, mergeGroupHandleField } from './group-handle-sync'
 import {
   durableGroupWorkspaceFields,
   groupWorkspaceProjection,
@@ -67,6 +68,8 @@ let groupChatSyncTimer: ReturnType<typeof setTimeout> | null = null
 interface GroupChatSyncRoom {
   holdDetection?: boolean
   image?: null | string
+  /** Explicit @handle (`group-handle-sync.ts`): null when unset, so a clear propagates. */
+  handle?: null | string
   log: GroupMessage[]
   members?: GroupMember[]
   /** Working-directory fields (`group-workspace-sync.ts`): the room folder
@@ -401,7 +404,8 @@ export function groupChatSyncSnapshot(
             image: room.image
           }
         : {}),
-      ...groupWorkspaceProjection(room, log, GROUP_CHAT_MAX_MEMBERS)
+      ...groupWorkspaceProjection(room, log, GROUP_CHAT_MAX_MEMBERS),
+      ...groupHandleProjection(room)
     }
 
     const key = groupChatRoomKey(name, room)
@@ -855,6 +859,7 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
       // Same revision rule as the picture: a newer mirror's folders win, a
       // preserved (locally edited) room keeps its own.
       ...mergeGroupWorkspaceFields(existing, projected, { adoptRemote }),
+      ...mergeGroupHandleField(existing, projected, { adoptRemote }),
       syncRevision: isPreserved ? localRevision : Math.max(remoteRevision, localRevision),
       epoch: Number(existing.epoch || 0),
       running: Boolean(existing.running)
@@ -937,6 +942,7 @@ export function durableGroupChatRooms(all: Record<string, GroupChat> = $groupCha
       // already carries.
       roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
       image: room.image || null,
+      handle: durableGroupHandle(room),
       rosterOrder: room.rosterOrder,
       pinned: room.pinned,
       // Sidebar filing (user-sections) is room-local; keep it across sync.
@@ -1657,6 +1663,8 @@ export function updateGroupChat(
         roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
         // Room picture (small data URL, same normalization as bot avatars).
         image: room.image || null,
+        // Explicit @handle (group-handle.ts); null means "derived from the name".
+        handle: durableGroupHandle(room),
         // Working directories (group-workspace.ts): room, per member, per thread.
         ...durableGroupWorkspaceFields(room),
         rosterOrder: room.rosterOrder,
@@ -1717,6 +1725,16 @@ export function setGroupChatHoldDetection(group: string, enabled: boolean) {
 export function setGroupChatImage(group: string, image: null | string | undefined) {
   updateGroupChat(group, (room: GroupChatRoom) => {
     room.image = image || null
+
+    return room
+  })
+}
+
+/** Set or clear a group chat's explicit `@handle` (`group-handle.ts`); null
+ *  returns the room to the handle derived from its name. */
+export function setGroupChatHandle(group: string, handle: null | string | undefined) {
+  updateGroupChat(group, (room: GroupChatRoom) => {
+    room.handle = durableGroupHandle({ handle })
 
     return room
   })

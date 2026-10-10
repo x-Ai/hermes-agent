@@ -41,6 +41,13 @@ export type GroupCreateCopy = {
   routedAttachmentsBlocked: (group: string) => string
   /** The send was cancelled: these chips could not be read or sit over the room's size cap. */
   routedAttachmentsUnreadable: (group: string, names: string[]) => string
+  /** The room's `@handle` field (`group-handle-field.tsx`). */
+  handleLabel: string
+  handleHint: string
+  /** Placeholder when the name yields no handle to suggest. */
+  handlePlaceholder: string
+  handleInvalid: string
+  handleTaken: (handle: string, owner: string) => string
 }
 
 const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${group}"`).join(separator)
@@ -71,7 +78,13 @@ const en: GroupCreateCopy = {
   routedAttachmentsUnreadable: (group, names) =>
     `Could not attach ${names.join(', ')} (unreadable or over the size limit), so nothing was sent to "${group}". Remove the attachment or send it from the group chat.`,
   routedAttachmentsBlocked: group =>
-    `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`
+    `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`,
+  handleLabel: '@handle',
+  handleHint:
+    'What follows @ in any composer to send a draft into this room: lowercase letters, digits, - and _. Empty derives it from the name.',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: 'A handle is lowercase letters, digits, - or _, and not a reserved word such as everyone.',
+  handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`
 }
 
 const ja: GroupCreateCopy = {
@@ -101,7 +114,13 @@ const ja: GroupCreateCopy = {
   routedAttachmentsUnreadable: (group, names) =>
     `${names.join('、')} を添付できなかったため（読み取れないかサイズ上限超過）、"${group}" には何も送信していません。添付を外すか、グループチャットから送信してください`,
   routedAttachmentsBlocked: group =>
-    `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`
+    `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`,
+  handleLabel: '@ハンドル',
+  handleHint:
+    '任意の入力欄で @ に続けて入力すると、このルームに送信できます。小文字の英数字、- と _ のみ。空欄なら名前から自動生成します',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: 'ハンドルに使えるのは小文字の英数字、- と _ のみで、everyone などの予約語は使えません',
+  handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`
 }
 
 const zh: GroupCreateCopy = {
@@ -126,7 +145,13 @@ const zh: GroupCreateCopy = {
     folder ? `已作为新线程发送到 "${group}"，工作目录 ${folder}` : `已作为新线程发送到 "${group}"`,
   routedAttachmentsUnreadable: (group, names) =>
     `无法附加 ${names.join('、')}，文件不可读或超过大小上限，因此没有向 "${group}" 发送任何内容，请移除该附件或在群聊中发送`,
-  routedAttachmentsBlocked: group => `无法从这里向 "${group}" 发送附件，请打开群聊后再发送`
+  routedAttachmentsBlocked: group => `无法从这里向 "${group}" 发送附件，请打开群聊后再发送`,
+  handleLabel: '@ 标签',
+  handleHint:
+    '在任意输入框里输入 @ 加这个标签，就能把消息发进这个群聊，只能用小写字母、数字、- 和 _，留空则按群名自动生成',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: '标签只能用小写字母、数字、- 和 _，且不能是 everyone 这类保留词',
+  handleTaken: (handle, owner) => `@${handle} 已被 "${owner}" 使用`
 }
 
 const zhHant: GroupCreateCopy = {
@@ -151,7 +176,13 @@ const zhHant: GroupCreateCopy = {
     folder ? `已作為新討論串傳送到「${group}」，工作目錄 ${folder}` : `已作為新討論串傳送到「${group}」`,
   routedAttachmentsUnreadable: (group, names) =>
     `無法附加 ${names.join('、')}（無法讀取或超過大小上限），因此沒有向「${group}」傳送任何內容。請移除該附件或在群組聊天中傳送`,
-  routedAttachmentsBlocked: group => `無法從這裡向「${group}」傳送附件，請開啟群組聊天後再傳送`
+  routedAttachmentsBlocked: group => `無法從這裡向「${group}」傳送附件，請開啟群組聊天後再傳送`,
+  handleLabel: '@ 標籤',
+  handleHint:
+    '在任一輸入框輸入 @ 加這個標籤，即可把訊息送進這個群組聊天。只能使用小寫字母、數字、- 和 _，留空則依群組名稱自動產生',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: '標籤只能使用小寫字母、數字、- 和 _，且不能是 everyone 這類保留字',
+  handleTaken: (handle, owner) => `@${handle} 已被「${owner}」使用`
 }
 
 const ru: GroupCreateCopy = {
@@ -178,7 +209,13 @@ const ru: GroupCreateCopy = {
   routedAttachmentsUnreadable: (group, names) =>
     `Не удалось приложить ${names.join(', ')} (файл не читается или превышает лимит размера), поэтому в "${group}" ничего не отправлено. Уберите вложение или отправьте его из группового чата.`,
   routedAttachmentsBlocked: group =>
-    `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`
+    `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`,
+  handleLabel: '@-хэндл',
+  handleHint:
+    'Что вводить после @ в любом поле ввода, чтобы отправить черновик в эту комнату: строчные латинские буквы, цифры, - и _. Пустое поле — хэндл выводится из названия.',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: 'Хэндл — это строчные латинские буквы, цифры, - или _, и не зарезервированное слово вроде everyone.',
+  handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`
 }
 
 const ar: GroupCreateCopy = {
@@ -203,7 +240,13 @@ const ar: GroupCreateCopy = {
     folder ? `أُرسلت إلى "${group}" كمحادثة فرعية جديدة في ${folder}` : `أُرسلت إلى "${group}" كمحادثة فرعية جديدة`,
   routedAttachmentsUnreadable: (group, names) =>
     `تعذر إرفاق ${names.join('، ')} (غير قابل للقراءة أو يتجاوز حد الحجم)، لذا لم يُرسل شيء إلى "${group}". أزل المرفق أو أرسله من المحادثة الجماعية.`,
-  routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح المحادثة الجماعية لإرسالها.`
+  routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح المحادثة الجماعية لإرسالها.`,
+  handleLabel: 'معرّف @',
+  handleHint:
+    'ما يُكتب بعد @ في أي حقل إدخال لإرسال المسودة إلى هذه الغرفة: أحرف لاتينية صغيرة وأرقام و- و_. اتركه فارغًا ليُشتق من الاسم.',
+  handlePlaceholder: 'dev-team',
+  handleInvalid: 'المعرّف أحرف لاتينية صغيرة وأرقام و- أو _ فقط، وليس كلمة محجوزة مثل everyone.',
+  handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`
 }
 
 export const groupCreateCopy: Record<'ar' | 'en' | 'ja' | 'ru' | 'zh' | 'zh-hant', GroupCreateCopy> = {

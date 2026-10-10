@@ -206,6 +206,10 @@ export interface GroupChat {
   heldMessages?: Record<string, string[]>
   holds?: Record<string, GroupHold>
   image?: null | string
+  /** The explicit `@handle` the room answers to in the main composer
+   *  (`group-handle.ts`): lowercase ASCII like a profile id. Null/absent: the
+   *  handle is derived from the room name. */
+  handle?: null | string
   log: GroupMessage[]
   members?: GroupMember[]
   /** Room working directory — a path on the room's own gateway host, so only

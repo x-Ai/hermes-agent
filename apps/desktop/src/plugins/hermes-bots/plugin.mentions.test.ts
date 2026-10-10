@@ -299,6 +299,23 @@ describe('@-mention completions', () => {
     expect(provide('').map(item => item.insert)).toEqual(['@default-vera'])
   })
 
+  it('lists a group chat named in another script under its derived handle', async () => {
+    const { provide } = await contributions()
+    const { $groupChats } = await import('./group-chat')
+
+    // "大模型管家" has no ASCII slug, so it used to be skipped outright: the
+    // popover showed only bots and the room could not be routed to at all.
+    $groupChats.set({
+      大模型管家: { log: [], members: [{ name: 'auditor' }, { name: 'qa' }], watermarks: {} }
+    })
+
+    const row = provide('').find(item => item.insert === '@u5927-u6a21-u578b-u7ba1-u5bb6')
+
+    expect(row?.meta).toContain('大模型管家')
+    expect(provide('大').map(item => item.insert)).toEqual(['@u5927-u6a21-u578b-u7ba1-u5bb6'])
+    expect(provide('u59').map(item => item.insert)).toEqual(['@u5927-u6a21-u578b-u7ba1-u5bb6'])
+  })
+
   it('narrows on the typed prefix and labels the source device', async () => {
     const { provide } = await contributions()
 

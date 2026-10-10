@@ -67,6 +67,12 @@ it('renders the New group chat dialog from the catalog and follows a locale swit
 
   expect(screen.getByRole('button', { name: zh('group.createAction', 2) }).hasAttribute('disabled')).toBe(false)
 
+  // The @handle field renders from the catalog too, with the handle the
+  // member-names default would get as its placeholder.
+  expect(screen.getByLabelText(zh('group.handleLabel'))).toBeTruthy()
+  expect(screen.getByPlaceholderText('alpha-beta')).toBeTruthy()
+  expect(screen.getByText(zh('group.handleHint'))).toBeTruthy()
+
   fireEvent.change(screen.getByPlaceholderText(zh('group.searchToAddPlaceholder')), { target: { value: 'nobody' } })
   expect(screen.getByText(zh('group.noBotsMatch', 'nobody'))).toBeTruthy()
 

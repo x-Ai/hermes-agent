@@ -87,6 +87,44 @@ describe('group mention completions', () => {
   })
 })
 
+describe('room handles', () => {
+  // A room named in another script has no ASCII slug; its derived handle is
+  // the same code-point escape a CJK bot name gets as its profile id. A room
+  // with an explicit handle completes under it and keeps its name slug alias.
+  const HANDLED: Record<string, GroupChat> = {
+    'Build Crew': room({ handle: 'crew', members: [{ name: 'dev' }] as RosterRow[] }),
+    大模型管家: room({ members: [{ name: 'auditor' }, { name: 'qa' }] as RosterRow[] })
+  }
+
+  it('completes a CJK room under its derived handle, with the name beside it', () => {
+    const rows = groupMentionCompletions('', HANDLED, count => `Group chat · ${count}`)
+
+    expect(rows.map(r => r.insert)).toEqual(['@crew', '@u5927-u6a21-u578b-u7ba1-u5bb6'])
+    expect(rows[0].meta).toBe('Group chat · 1 · Build Crew')
+    expect(rows[1].meta).toBe('Group chat · 2 · 大模型管家')
+  })
+
+  it('filters a CJK room by its handle or by the name the user actually knows', () => {
+    expect(groupMentionCompletions('u59', HANDLED, c => `${c}`).map(r => r.insert)).toEqual([
+      '@u5927-u6a21-u578b-u7ba1-u5bb6'
+    ])
+    expect(groupMentionCompletions('大', HANDLED, c => `${c}`).map(r => r.insert)).toEqual([
+      '@u5927-u6a21-u578b-u7ba1-u5bb6'
+    ])
+    expect(groupMentionCompletions('build', HANDLED, c => `${c}`).map(r => r.insert)).toEqual(['@crew'])
+  })
+
+  it('routes the explicit handle, the derived handle, and the name slug alias', () => {
+    expect(matchLeadingGroupMention('@crew ship it', HANDLED)?.group).toBe('Build Crew')
+    expect(matchLeadingGroupMention('@build-crew ship it', HANDLED)?.group).toBe('Build Crew')
+    expect(matchLeadingGroupMention('@u5927-u6a21-u578b-u7ba1-u5bb6 看看这个', HANDLED)).toEqual({
+      group: '大模型管家',
+      rest: '看看这个',
+      tag: 'u5927-u6a21-u578b-u7ba1-u5bb6'
+    })
+  })
+})
+
 describe('matchLeadingGroupMention', () => {
   it('matches a room tag only as the first token', () => {
     expect(matchLeadingGroupMention('@build-crew ship it', ROOMS)?.group).toBe('Build Crew')
