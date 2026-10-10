@@ -495,7 +495,7 @@ def test_official_ssh_healing_uses_public_https_without_retargeting_forks(instal
     root, linked, home, _base, head, responses, _requests, git = installation
     git("remote", "set-url", "origin", f"git@github.com:{repository}.git")
     git("config", f"url.{root.as_uri()}.insteadOf", f"https://github.com/{OFFICIAL_REPOSITORY}.git")
-    # The branch heal is a main-channel concern; an official checkout's default is stable.
+    # The branch heal is a main-channel concern; pin the channel explicitly.
     set_install_channel("main", linked)
     monkeypatch.setenv("GIT_SSH_COMMAND", "false")
     branch_file = home / "desktop-update.json"

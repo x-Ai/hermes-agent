@@ -466,9 +466,8 @@ def main() -> None:
             set_install_channel(args.set_channel, args.install_root)
             args.force = True
         result = check_for_updates(**{k: v for k, v in vars(args).items() if k != "set_channel"})
-    if isinstance(result, dict):
-        # Older runtimes reject --set-channel; Desktop offers its selector only on this flag.
-        result["channelSelectable"] = True
+    # Upstream reports ``channelSelectable`` here so the Desktop offers its stable/main selector;
+    # this fork publishes no releases, so there is nothing to select and the selector stays hidden.
     print(json.dumps(result))
 
 

@@ -276,30 +276,18 @@ def test_stable_is_the_latest_published_github_release_without_r2(releases):
     assert not any(path.startswith("/releases/") for path in releases.requests)
 
 
-@pytest.mark.parametrize("start,expected", [(0, 1), (3, 3)], ids=["behind-release", "newer-than-release"])
-def test_default_stable_only_moves_forward_until_the_channel_is_chosen(releases, monkeypatch, capsys,
-                                                                       start, expected):
-    from hermes_cli.update_channel import default_channel
+def test_official_origin_source_checkout_keeps_following_main(releases):
+    """The fork publishes no GitHub releases: an unconfigured checkout of the official repository
+    keeps following main (upstream defaults it to the stable release channel), so nothing rides a
+    forward-only default; only a persisted record moves the install onto releases."""
+    from hermes_cli.update_channel import default_channel, install_id, resolve_update_channel, rides_default_channel
 
     _track_official_origin(releases)
-    git(releases.root, "checkout", "--detach", releases.commits[start])
-    assert default_channel(releases.root) == "stable"
-    opts = update_cmd._UpdateOptions(
-        pre_update_version=None, gw_input_fn=None,
-        assume_yes=True, keep_stash=False, switch_branch=False, discard_local_changes=False,
-    )
-    monkeypatch.setattr(update_cmd, "_resolve_update_options", lambda *_: opts)
-    monkeypatch.setattr(update_cmd, "_begin_update_receipt_and_plan", lambda *_: None)
-    monkeypatch.setattr(main, "_run_pre_update_backup", lambda *_: None)
-    monkeypatch.setattr(main, "_pause_windows_gateways_for_update", lambda: None)
-    monkeypatch.setattr(update_cmd, "_prepare_git_command", lambda **_: (False, ["git"], False))
-    monkeypatch.setattr(update_cmd, "_complete_source_update", lambda request: None)
-    # The Desktop passes the channel its check reported; naming the default is not a choice.
-    update_cmd._cmd_update_impl(SimpleNamespace(branch=None, channel="stable", force_venv=True), False)
-    assert git(releases.root, "rev-parse", "HEAD") == releases.commits[expected]
-    update_cmd._cmd_update_check()
-    assert ("No newer release" if start > 1 else "Up to date with") in capsys.readouterr().out
-    # Persisting the channel is consent to land exactly on the release.
-    set_install_channel("stable", releases.root)
-    update_cmd._cmd_update_impl(SimpleNamespace(branch=None, channel=None, force_venv=True), False)
-    assert git(releases.root, "rev-parse", "HEAD") == releases.commits[1]
+    assert default_channel(releases.root) == "main"
+    assert resolve_update_channel({}, releases.root) == "main"
+    assert rides_default_channel({}, "main", releases.root) is True
+    assert rides_default_channel({}, "stable", releases.root) is False
+    record = {"path": str(releases.root), "channel": "stable"}
+    config = {"update": {"installs": {install_id(releases.root): record}}}
+    assert resolve_update_channel(config, releases.root) == "stable"
+    assert rides_default_channel(record, "stable", releases.root) is False
