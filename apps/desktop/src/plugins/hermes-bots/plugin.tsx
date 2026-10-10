@@ -55,7 +55,6 @@ import {
 import {
   $groupChats,
   $groupChatWorkspace,
-  assignLegacyThreads,
   handleSessionsGatewayTransition,
   hydrateGroupChatTombstones,
   pullGroupChatServerState,
@@ -66,6 +65,7 @@ import {
   updateGroupChat
 } from './group-chat'
 import { openGroupChat } from './group-chat-view'
+import { hydrateStoredGroupChat } from './group-hydrate'
 import { groupChatMemberBots, groupWorkspaceOwnerKey } from './group-membership'
 import { groupMentionCompletions, maybeRouteDraftToGroup } from './group-mention-route'
 import { sendToGroupChat } from './group-rounds'
@@ -321,31 +321,10 @@ export default {
             const rooms: Record<string, GroupChat> = {}
 
             for (const [name, room] of Object.entries(value)) {
-              if (room && Array.isArray(room.log)) {
-                rooms[name] = {
-                  // Pre-thread entries get synthetic thread ids on hydrate so
-                  // every UI/engine path can assume entry.thread exists.
-                  log: assignLegacyThreads(room.log),
-                  watermarks: room.watermarks && typeof room.watermarks === 'object' ? room.watermarks : {},
-                  sessions: room.sessions && typeof room.sessions === 'object' ? room.sessions : {},
-                  sessionOwners: room.sessionOwners && typeof room.sessionOwners === 'object' ? room.sessionOwners : {},
-                  stranded: room.stranded && typeof room.stranded === 'object' ? room.stranded : {},
-                  // #93129: rehydrate sticky stop holds with the same shape
-                  // guard as the other maps — a held bot stays held across
-                  // window restarts until explicitly released.
-                  holds: room.holds && typeof room.holds === 'object' ? room.holds : {},
-                  externalCursors:
-                    room.externalCursors && typeof room.externalCursors === 'object' ? room.externalCursors : {},
-                  members: Array.isArray(room.members) ? room.members : [],
-                  roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
-                  image: typeof room.image === 'string' && room.image ? room.image : null,
-                  rosterOrder: Number.isFinite(room.rosterOrder) ? room.rosterOrder : undefined,
-                  pinned: Boolean(room.pinned),
-                  sectionId: room.sectionId ?? null,
-                  syncRevision: Math.max(0, Number(room.syncRevision || 0)),
-                  epoch: 0,
-                  running: false
-                }
+              const hydrated = hydrateStoredGroupChat(room)
+
+              if (hydrated) {
+                rooms[name] = hydrated
               }
             }
 
