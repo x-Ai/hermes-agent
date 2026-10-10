@@ -15,6 +15,7 @@ import { zhProviderWait } from './zh_provider_wait'
 import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
 import { zhTerminalBackend } from './zh_terminal_backend'
+import { zhUpdateChannel } from './zh_update_channel'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
   document: '个文档',
@@ -1905,6 +1906,7 @@ export const zhOverrides = {
       bundleSwapPendingDesc: '更新后的应用已安装完成，只需重启 Hermes 即可加载新版本，聊天记录和设置不会受到影响',
       bundleSwapPendingAction: '重启 Hermes',
       updates: '更新',
+      channel: zhUpdateChannel,
       checkNow: '立即检查',
       checking: '检查中…',
       seeWhatsNew: '查看新增内容',
@@ -5454,11 +5456,6 @@ export const zhOverrides = {
     editingQueuedInComposer: '正在输入框中编辑排队回合',
     restoredDraftNotice: '已恢复你未发送的消息',
     restoredDraftUndo: '撤销',
-    localSetup: {
-      title: '这可以在你的电脑上运行',
-      text: (model: string) => `${model} 适合这台电脑，免费，对话留在你的电脑上`,
-      action: '带我看看'
-    },
     queueEdit: '编辑',
     queueExpand: '展开',
     queueCollapse: '收起',

@@ -22,6 +22,8 @@ same path, and the channel opt-in must survive that.
   (it knows its own id — the user never types a sha).
 * Shown by ``hermes update --install-id`` and the desktop About page.
 * Source installs select an R2 channel name, or use an explicit branch override.
+  Unconfigured source checkouts keep ``main``: this fork publishes no GitHub releases
+  (upstream defaults an official-origin checkout to ``stable``).
   Bundles derive their channel from their baked identity, never these records.
   ``external`` installs have no configurable channel; the steward owns updates.
 
@@ -139,7 +141,10 @@ def _package_channel(stamp: dict) -> bool:
 def default_channel(project_root: Optional[Path] = None) -> str:
     """The channel an unconfigured install tracks.
 
-    ``self`` source installs follow main (historical behavior).
+    Source checkouts keep following main: this fork publishes no GitHub releases,
+    and upstream's rule (an official-origin checkout follows the latest published
+    stable release) would resolve nothing or land on upstream tags that lack the
+    fork's features.
     ``electron-updater`` and ``app-installer`` bundles report their artifact
     channel: a canary artifact tracks canary, every other bundle
     tracks stable. The stamp's ``tag`` is the authority, the same fact
@@ -160,6 +165,17 @@ def default_channel(project_root: Optional[Path] = None) -> str:
             raise ValueError("Channel bundle has no baked subscription")
         return validate_name(request.get("channel"))
     return CHANNEL_CANARY if is_canary_tag(stamp.get("tag")) else CHANNEL_STABLE
+
+
+def rides_default_channel(record: dict, channel: str, project_root: Optional[Path] = None) -> bool:
+    """True when no channel was ever persisted (``record``) and ``channel`` is the default.
+
+    Such an install never consented to a release switch, so it only moves forward: a
+    checkout already newer than the latest release waits for the next one. A transient
+    ``--channel`` naming the default (the Desktop passes the channel its check reported)
+    is still the default; only ``--set-channel`` consents to a downgrade.
+    """
+    return record.get("channel") is None and channel == default_channel(project_root)
 
 
 def resolve_update_channel(

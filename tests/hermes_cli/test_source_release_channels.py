@@ -14,6 +14,9 @@ from hermes_cli.source_releases import resolve_source_release
 from hermes_cli.update_channel import set_install_channel
 from hermes_cli.source_releases import OFFICIAL_REPOSITORY
 
+# The fixture serves release metadata over loopback; stable's real GitHub path is the subject.
+pytestmark = pytest.mark.real_release_channels
+
 
 def git(root, *args):
     return subprocess.run(
@@ -63,6 +66,9 @@ def releases(tmp_path, monkeypatch, request):
         responses[f"/repos/{OFFICIAL_REPOSITORY}/commits/{tag}"] = {
             "sha": commits[1 if channel == "stable" else 2],
         }
+    responses[f"/repos/{OFFICIAL_REPOSITORY}/releases/latest"] = {
+        "tag_name": tags["stable"], "draft": False, "prerelease": False,
+    }
     responses["/releases/stable/release-candidates.json"] = {
         "tag": tags["stable"], "commit": commits[1],
     }
@@ -246,3 +252,42 @@ def test_missing_pointers_fall_back_only_to_published_releases(releases, channel
     )
     assert not any("/tags?" in path for path in releases.requests)
     assert f"/repos/{OFFICIAL_REPOSITORY}/releases/tags/{releases.tags[channel]}" not in releases.requests
+
+
+def _track_official_origin(releases):
+    official = f"https://github.com/{OFFICIAL_REPOSITORY}.git"
+    git(releases.root, "remote", "set-url", "origin", official)
+    git(releases.root, "config", f"url.{releases.origin.as_uri()}.insteadOf", official)
+
+
+def test_stable_is_the_latest_published_github_release_without_r2(releases):
+    """Publishing a GitHub release is the only promotion stable needs: no R2 record or pointer."""
+    from hermes_cli import source_releases
+
+    def no_r2(name, repository):
+        raise AssertionError("stable must not read an R2 channel record")
+
+    source_releases._resolve_channel = no_r2
+    # A pointer naming a different build must not outrank the published release.
+    releases.responses["/releases/stable/release-candidates.json"] = {
+        "tag": "v99.0.0", "commit": releases.commits[3]}
+    target = source_releases.resolve_source_target("stable", ["git"], releases.root)
+    assert (target.commit, target.version) == (releases.commits[1], "1.2.3")
+    assert not any(path.startswith("/releases/") for path in releases.requests)
+
+
+def test_official_origin_source_checkout_keeps_following_main(releases):
+    """The fork publishes no GitHub releases: an unconfigured checkout of the official repository
+    keeps following main (upstream defaults it to the stable release channel), so nothing rides a
+    forward-only default; only a persisted record moves the install onto releases."""
+    from hermes_cli.update_channel import default_channel, install_id, resolve_update_channel, rides_default_channel
+
+    _track_official_origin(releases)
+    assert default_channel(releases.root) == "main"
+    assert resolve_update_channel({}, releases.root) == "main"
+    assert rides_default_channel({}, "main", releases.root) is True
+    assert rides_default_channel({}, "stable", releases.root) is False
+    record = {"path": str(releases.root), "channel": "stable"}
+    config = {"update": {"installs": {install_id(releases.root): record}}}
+    assert resolve_update_channel(config, releases.root) == "stable"
+    assert rides_default_channel(record, "stable", releases.root) is False

@@ -15,6 +15,7 @@ import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
 import { enSharedMetrics } from './en_shared_metrics'
 import { enUninstallSection } from './en_uninstall_section'
+import { enUpdateChannel } from './en_update_channel'
 import type { Translations } from './types'
 
 export const en: Translations = {
@@ -1495,6 +1496,7 @@ export const en: Translations = {
         'The updated app is already installed — Hermes only needs to restart to load it. Chats and settings are untouched.',
       bundleSwapPendingAction: 'Restart Hermes',
       updates: 'Updates',
+      channel: enUpdateChannel,
       checkNow: 'Check now',
       checking: 'Checking…',
       seeWhatsNew: "See what's new",
@@ -4611,11 +4613,6 @@ export const en: Translations = {
     editingQueuedInComposer: 'Editing queued turn in composer',
     restoredDraftNotice: 'Restored your unsent message',
     restoredDraftUndo: 'Undo',
-    localSetup: {
-      title: 'This could run on your computer',
-      text: (model: string) => `${model} fits this machine. Free, and chats stay on your computer.`,
-      action: 'Show me'
-    },
     queueEdit: 'Edit',
     queueExpand: 'Expand',
     queueCollapse: 'Collapse',

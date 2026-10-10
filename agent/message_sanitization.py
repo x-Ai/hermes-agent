@@ -636,13 +636,16 @@ def _set_provider_tool_id(tc: Any, key: str, value: str) -> None:
 #
 # require — the vendor's OWN endpoint, named by exact provider id or base-URL host: kimi (provider
 #   kimi-coding / kimi-coding-cn, host api.kimi.com / moonshot.ai / moonshot.cn), deepseek (provider
-#   "deepseek", host api.deepseek.com; #15250), mimo (provider "xiaomi", host *.xiaomimimo.com).
+#   "deepseek", host api.deepseek.com; #15250), mimo (provider "xiaomi", host *.xiaomimimo.com),
+#   ollama (provider "ollama-cloud", host ollama.com: Ollama's /v1 feeds the field back into the
+#   template's thinking slot, so stripping it drops the model's own CoT mid tool loop).
 #   Echo-back is enforced: with ``tools`` in the request a replayed assistant turn without
 #   reasoning_content is HTTP 400 ("The reasoning_content in the thinking mode must be passed back to
 #   the API"), so a turn that produced no reasoning is padded with " " (V4 Pro rejects "", #17341).
 #   ``model.reasoning_echo: true`` opts any route in up front.
-# lenient — a family model served by someone else: the model id contains "deepseek" / "mimo" but
-#   neither provider nor host is the vendor's (relays, aggregators). Real reasoning is echoed
+# lenient — a family model served by someone else: the model id contains "deepseek" / "mimo" or
+#   carries Ollama's ":cloud" / "<size>-cloud" tag, but neither provider nor host is the vendor's
+#   (relays, aggregators, a local Ollama serving a cloud model). Real reasoning is echoed
 #   verbatim so thinking stays continuous, but nothing is fabricated: a blank pad replayed to an
 #   adaptive-thinking backend reads as "this assistant does not think here" and switches reasoning
 #   off for every later turn (content-neutral A/B on a DeepSeek relay, 6 runs per arm: real echo
@@ -661,6 +664,7 @@ _REASONING_ECHO_RULES: tuple = (
     ("kimi", frozenset({"kimi-coding", "kimi-coding-cn"}), frozenset(), (), ("api.kimi.com", "moonshot.ai", "moonshot.cn")),
     ("deepseek", frozenset(), frozenset({"deepseek"}), ("deepseek",), ("api.deepseek.com",)),
     ("mimo", frozenset(), frozenset({"xiaomi"}), ("mimo",), ("api.xiaomimimo.com", "xiaomimimo.com")),
+    ("ollama", frozenset(), frozenset({"ollama-cloud"}), (":cloud",), ("ollama.com",)),
 )
 _REASONING_ECHO_RULE_BY_FAMILY = {rule[0]: rule for rule in _REASONING_ECHO_RULES}
 _REASONING_ECHO_FAMILIES = tuple(rule[0] for rule in _REASONING_ECHO_RULES)
@@ -681,6 +685,8 @@ def matches_reasoning_echo_identity(family: str, provider: Any, base_url: Any) -
 def matches_reasoning_echo_model(family: str, model: Any) -> bool:
     """True when the model id belongs to the family (substring); alone, this is the lenient signal."""
     model_lower = (model or "").lower()
+    if ":" in model_lower and model_lower.endswith("-cloud"):
+        model_lower += ":cloud"  # Ollama's "<size>-cloud" tag (gpt-oss:120b-cloud) == ":cloud"
     return any(sub in model_lower for sub in _REASONING_ECHO_RULE_BY_FAMILY[family][3])
 
 
@@ -690,9 +696,9 @@ def matches_reasoning_echo_family(family: str, provider: Any, model: Any, base_u
     return matches_reasoning_echo_identity(family, provider, base_url) or matches_reasoning_echo_model(family, model)
 
 
-def reasoning_echo_family(provider: Any, model: Any, base_url: Any) -> "str | None":
-    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` (first match in table order) when the route belongs
-    to an echo family by any signal, else ``None``."""
+def reasoning_echo_family(provider: Any, model: Any, base_url: Any) -> str | None:
+    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` / ``"ollama"`` (first match in table order) when the
+    route belongs to an echo family by any signal, else ``None``."""
     return next((f for f in _REASONING_ECHO_FAMILIES if matches_reasoning_echo_family(f, provider, model, base_url)), None)
 
 

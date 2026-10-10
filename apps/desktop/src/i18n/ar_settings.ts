@@ -1,3 +1,4 @@
+import { arUpdateChannel } from './ar_update_channel'
 import type { TranslationOverrides } from './define-locale'
 
 export const arSettings = {
@@ -621,6 +622,7 @@ export const arSettings = {
         'تم تثبيت التطبيق المحدَّث بالفعل — يكفي إعادة تشغيل Hermes لتحميله. لن تتأثر المحادثات أو الإعدادات.',
       bundleSwapPendingAction: 'إعادة تشغيل Hermes',
       updates: 'التحديثات',
+      channel: arUpdateChannel,
       checkNow: 'التحقق الآن',
       checking: 'جار التحقق...',
       seeWhatsNew: 'عرض الجديد',

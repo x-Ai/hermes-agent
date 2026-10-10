@@ -172,6 +172,12 @@ class TestReasoningEchoFamily:
         ("xiaomi", None, "https://x", "mimo", ECHO_REQUIRE),
         ("custom", None, "https://api.xiaomimimo.com/v1", "mimo", ECHO_REQUIRE),
         ("custom", "MiMo-7B", "https://x", "mimo", ECHO_LENIENT),
+        ("ollama-cloud", "kimi-k3", "https://x", "ollama", ECHO_REQUIRE),
+        ("custom", "kimi-k3", "https://ollama.com/v1", "ollama", ECHO_REQUIRE),
+        ("custom", "kimi-k3:cloud", "http://127.0.0.1:11434/v1", "ollama", ECHO_LENIENT),  # tag only
+        ("custom", "gpt-oss:120b-cloud", "http://127.0.0.1:11434/v1", "ollama", ECHO_LENIENT),
+        ("gmi", "gmi-cloud", "https://x", None, ECHO_STRICT),  # "-cloud" counts only behind a ":" tag
+        ("custom", "qwen3:8b", "http://127.0.0.1:11434/v1", None, ECHO_STRICT),
         ("openai", "gpt-5", "https://api.openai.com/v1", None, ECHO_STRICT),
         ("mistral", "mistral-large", "https://api.mistral.ai/v1", None, ECHO_STRICT),
         (None, None, None, None, ECHO_STRICT),

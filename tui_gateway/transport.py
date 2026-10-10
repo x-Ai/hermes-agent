@@ -290,7 +290,7 @@ class TeeTransport:
 
     __slots__ = ("_primary", "_secondaries", "__weakref__")
 
-    def __init__(self, primary: "Transport", *secondaries: "Transport") -> None:
+    def __init__(self, primary: Transport, *secondaries: Transport) -> None:
         self._primary = primary
         self._secondaries = secondaries
 

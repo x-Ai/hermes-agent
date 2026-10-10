@@ -159,9 +159,10 @@ class ReasoningParamsMixin:
         """Echo policy for the active route: ``"require"`` (pad a reasoning-less turn with " "),
         ``"lenient"`` (echo real reasoning, never pad) or ``"strict"`` (strip). Table and rationale:
         the reasoning_content policy block in ``message_sanitization``. Require also comes from the
-        ``model.reasoning_echo`` opt-in and from a route this session learned enforces the echo
-        (``turn_recovery``). Cached per (provider, model, base_url, opt-in) — called ~16× per turn;
-        ``switch_model()`` / ``_try_activate_fallback()`` change the key.
+        ``model.reasoning_echo`` opt-in, from a route this session learned enforces the echo
+        (``turn_recovery``) and from the Nous Portal stealth model. Cached per (provider, model,
+        base_url, opt-in) — called ~16× per turn; ``switch_model()`` / ``_try_activate_fallback()``
+        change the key.
         """
         opt_in = self._reasoning_echo_opt_in()
         key = (self.provider, self.model, getattr(self, "_base_url_lower", self.base_url), opt_in)
@@ -169,7 +170,9 @@ class ReasoningParamsMixin:
         if cached is not None and cached[0] == key:
             return cached[1]
         if (opt_in or self._needs_deepseek_tool_reasoning() or self._needs_kimi_tool_reasoning()
-                or self._needs_mimo_tool_reasoning()):
+                or self._needs_mimo_tool_reasoning() or self._needs_ollama_tool_reasoning()
+                or ((self.provider or "").lower() == "nous"
+                    and (self.model or "").lower() == "stealth/missingno")):
             mode = ECHO_REQUIRE
         else:
             mode = reasoning_echo_mode(self.provider, self.model, self.base_url)
@@ -178,8 +181,8 @@ class ReasoningParamsMixin:
 
     def _needs_thinking_reasoning_pad(self) -> bool:
         """True when the active route enforces ``reasoning_content`` echo-back on tool-call replays —
-        DeepSeek v4, Kimi / Moonshot and Xiaomi MiMo thinking all 400 without it (refs 15250, #17400):
-        ``_reasoning_echo_mode()`` is require."""
+        DeepSeek v4, Kimi / Moonshot and Xiaomi MiMo thinking all 400 without it (refs 15250, #17400),
+        Ollama Cloud feeds it to the template: ``_reasoning_echo_mode()`` is require."""
         return self._reasoning_echo_mode() == ECHO_REQUIRE
 
     def _reasoning_echo_opt_in(self) -> bool:
@@ -200,8 +203,8 @@ class ReasoningParamsMixin:
             return False
 
     # Echo identities are host/provider-driven, never model-name-driven: aggregators re-exporting Kimi
-    # reject the echo (532b209f01), and a deepseek-/mimo-named model behind another host is lenient, not
-    # require. Rule table: ``message_sanitization._REASONING_ECHO_RULES``. Kimi passes the raw provider
+    # reject the echo (532b209f01), and a deepseek-/mimo-named or ":cloud"-tagged model behind another
+    # host is lenient, not require. Rule table: ``message_sanitization._REASONING_ECHO_RULES``. Kimi passes the raw provider
     # (its rule matches exact provider ids + hosts only).
     def _needs_kimi_tool_reasoning(self) -> bool:
         """True when the current route is Kimi / Moonshot's own thinking-mode endpoint."""
@@ -216,12 +219,17 @@ class ReasoningParamsMixin:
         """True when the current route is Xiaomi MiMo's own thinking-mode endpoint."""
         return matches_reasoning_echo_identity("mimo", (self.provider or "").lower(), self.base_url)
 
+    def _needs_ollama_tool_reasoning(self) -> bool:
+        """True when the current route is Ollama Cloud's own endpoint (provider ``ollama-cloud`` or host
+        ollama.com); a local Ollama serving a ``:cloud`` / ``-cloud`` tag is the lenient model signal."""
+        return matches_reasoning_echo_identity("ollama", (self.provider or "").lower(), self.base_url)
+
     _copy_reasoning_content_for_api = _forward("agent.agent_runtime_helpers", "copy_reasoning_content_for_api")
 
     _reapply_reasoning_echo_for_provider = _forward("agent.agent_runtime_helpers", "reapply_reasoning_echo_for_provider")
 
     @staticmethod
-    def _sanitize_tool_calls_for_strict_api(api_msg: dict, model: "str | None" = None) -> dict:
+    def _sanitize_tool_calls_for_strict_api(api_msg: dict, model: str | None = None) -> dict:
         """Strip Codex Responses fields from tool_calls for strict Chat Completions APIs (Mistral, Fireworks
         400/422 on unknown fields). ``extra_content`` (Gemini thought_signature) is kept only for Gemini-family
         models. Builds new dicts so the internal history keeps the Codex fields for a later fallback."""

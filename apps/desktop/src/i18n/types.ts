@@ -22,6 +22,7 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
 import type { UninstallSectionTranslations } from './types_uninstall_section'
+import type { UpdateChannelCopy } from './types_update_channel'
 
 /** The locales compiled into the app (`TRANSLATIONS`). */
 export type BundledLocale = 'en' | 'zh' | 'zh-hant' | 'ja' | 'ar' | 'ru' | 'fr' | 'de' | 'es'
@@ -1323,6 +1324,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       bundleSwapPendingDesc: string
       bundleSwapPendingAction: string
       updates: string
+      channel: UpdateChannelCopy
       checkNow: string
       checking: string
       seeWhatsNew: string
@@ -2918,8 +2920,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     attachments: (count: number) => string
     editingInComposer: string
     editingQueuedInComposer: string
-    /** The local-setup offer above the input after the first finished task. */
-    localSetup: { title: string; text: (model: string) => string; action: string }
     queueEdit: string
     queueExpand: string
     queueCollapse: string

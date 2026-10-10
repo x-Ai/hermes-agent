@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import type { TranslationOverrides } from './define-locale'
 import { zhHantTerminalBackend } from './zh-hant_terminal_backend'
 import { zhHantUninstallSection } from './zh-hant_uninstall_section'
+import { zhHantUpdateChannel } from './zh-hant_update_channel'
 
 export const zhHantSettings = {
   language: {
@@ -845,6 +846,7 @@ export const zhHantSettings = {
         '更新後的應用程式已安裝完成，只需重新啟動 Hermes 即可載入新版本。聊天記錄和設定不會受到影響。',
       bundleSwapPendingAction: '重新啟動 Hermes',
       updates: '更新',
+      channel: zhHantUpdateChannel,
       checkNow: '立即檢查',
       checking: '檢查中…',
       seeWhatsNew: '查看新增內容',

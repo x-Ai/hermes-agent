@@ -30,8 +30,20 @@ For a managed source installation:
 hermes update
 ```
 
-Source installs track `main`, the only valid source channel. The update
-prepares dependencies through PM and reports configuration changes and process-restart results.
+Source checkouts of this fork track `main`: `hermes update` and the Desktop update
+button follow the fork's `main` branch commit by commit. (Upstream checkouts default
+to the latest published `vX.Y.Z` GitHub release; this fork publishes no releases, so
+its Desktop shows no stable/main selector.) The update prepares dependencies through
+PM and reports configuration changes and process-restart results.
+
+```bash
+hermes update --set-channel main     # the default: follow every commit on main
+hermes update --channel main         # one run against main; nothing is saved
+```
+
+A chosen channel is stored per install under `update.installs` in `config.yaml`.
+Windows Store, MSIX and bundled desktop installs are unaffected; their channel
+is baked into the package (see below).
 
 ### Bundled desktop updates
 
@@ -230,8 +242,8 @@ git -C "$repo" -c gc.writeCommitGraph=false gc --auto
 
 ### Updating against a non-default branch: `--branch`
 
-Source installs track `origin/main`. Use
-`--branch NAME` for a one-run branch override:
+`--branch NAME` is a one-run override that updates against a branch tip
+instead of the selected channel:
 
 ```bash
 hermes update --branch release-candidate
@@ -287,7 +299,8 @@ You can pass `--keep-stash` to a terminal `hermes update` too if you want the sa
 
 ### Preview-only: `hermes update --check`
 
-`hermes update --check` compares the checkout with `origin/main`
+`hermes update --check` compares the checkout with the selected channel's
+target (`origin/main` by default)
 without applying code, installing dependencies, or restarting gateways. The
 comparison can fetch Git metadata; it is not a promise of zero filesystem writes.
 Package-owned installs report their external update method.

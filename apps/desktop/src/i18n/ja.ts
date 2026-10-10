@@ -14,6 +14,7 @@ import { jaProjects } from './ja_projects'
 import { jaProviderWait } from './ja_provider_wait'
 import { jaRuntime } from './ja_runtime'
 import { jaSharedMetrics } from './ja_shared_metrics'
+import { jaUpdateChannel } from './ja_update_channel'
 
 export const jaOverrides = {
   externalOpenFailed: {
@@ -1676,6 +1677,7 @@ export const jaOverrides = {
         '更新されたアプリはすでにインストール済みです。Hermes を再起動するだけで新しいビルドが読み込まれます。チャットや設定はそのまま保持されます。',
       bundleSwapPendingAction: 'Hermes を再起動',
       updates: '更新',
+      channel: jaUpdateChannel,
       checkNow: '今すぐ確認',
       checking: '確認中…',
       seeWhatsNew: '新機能を見る',
@@ -4534,11 +4536,6 @@ export const jaOverrides = {
     editingQueuedInComposer: 'コンポーザーでキュー済みターンを編集中',
     restoredDraftNotice: '未送信のメッセージを復元しました',
     restoredDraftUndo: '元に戻す',
-    localSetup: {
-      title: 'このコンピューターで実行できます',
-      text: (model: string) => `${model} はこのマシンで動きます。無料で、チャットはこのコンピューターから出ません。`,
-      action: '見てみる'
-    },
     queueEdit: '編集',
     queueExpand: '展開',
     queueCollapse: '折りたたむ',
