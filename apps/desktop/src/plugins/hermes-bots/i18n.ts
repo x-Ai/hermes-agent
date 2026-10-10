@@ -32,6 +32,8 @@
 import { type PluginLocaleBundles, type PluginTranslate, usePluginI18n } from '@hermes/plugin-sdk'
 import { useMemo } from 'react'
 
+import { bind, type Bound } from './i18n_bind'
+import { type GroupCreateCopy, groupCreateCopy } from './i18n_group_create'
 import { getPluginCtx } from './shared'
 
 type BotsMessages = {
@@ -329,7 +331,7 @@ type BotsMessages = {
     noPetMatches: string
   }
   /** Group chats: the room, its composer, threads and activity feed. */
-  group: {
+  group: GroupCreateCopy & {
     newTitle: string
     manageDesc: string
     manageTitle: string
@@ -942,6 +944,7 @@ const en: BotsMessages = {
     noPetMatches: 'No pets match.'
   },
   group: {
+    ...groupCreateCopy.en,
     newTitle: 'New group chat',
     manageDesc: 'A bot can join multiple group chats. Memberships sync to every machine.',
     manageTitle: 'Manage groups',
@@ -1553,6 +1556,7 @@ const ja: BotsMessages = {
     noPetMatches: 'ペットの試合はありません.'
   },
   group: {
+    ...groupCreateCopy.ja,
     newTitle: '新しいグループチャット',
     manageDesc: 'ボットは複数のグループチャットに参加できます。メンバーシップはすべてのマシンに同期されます',
     manageTitle: 'グループを管理',
@@ -1662,21 +1666,21 @@ const ja: BotsMessages = {
     manageMembers: 'メンバーの管理',
     manageMembersAria: 'グループメンバーの管理',
     manageMembersDescription: (max, group) =>
-      `ピック2～${max} bots for “${group}。部屋、その歴史、およびそのメンバーセッションは、彼らがいるようにとどまります.`,
+      `「${group}」のボットを 2〜${max} 体選びます。ルーム、その履歴、メンバーのセッションはそのまま残ります`,
     manageMembersCount: count => `メンバーの管理(${count})…`,
     cancel: 'キャンセル',
     saveMembers: 'メンバーの保存',
     createAndJoin: '作成して参加',
-    newGroupPlaceholder: 'グループ名（例：リサーチ）',
-    groupNamePlaceholder: 'グループ名(例:研究)',
-    noBots: 'グループチャットでのボットなし',
-    noBotsMatch: query => `ボットが一致しない “${query}”`,
+    newGroupPlaceholder: '新しいグループ…',
+    groupNamePlaceholder: 'グループ名（例：リサーチ）',
+    noBots: 'このグループチャットにボットはいません',
+    noBotsMatch: query => `「${query}」に一致するボットはありません`,
     noBotsYet: 'ボットはまだありません。先に作成してください',
-    deleting: '削除..',
+    deleting: '削除中…',
     deleted: '削除されました',
     deleteDescription: name =>
-      `これは削除します。 “${name}ボットから「共有ルームログをクリア」 ボットと個々のチャットが保持されます.`,
-    deletedGroup: name => `削除されたグループ “${name}”`,
+      `「${name}」をボットから外し、共有ルームログを消去します。ボットとそれぞれのチャットは残ります`,
+    deletedGroup: name => `グループ「${name}」を削除しました`,
     attachmentFailed: (file, member) => `添付できませんでした${file}〜のために${member}`,
     emptyResponse:
       '⚠️ ツール結果の処理後にモデルから応答がありませんでした。一部のモデルで発生することがあります。もう一度試すか、質問を言い換えてください',
@@ -2152,6 +2156,7 @@ const zh: BotsMessages = {
     noPetMatches: '没有匹配的宠物'
   },
   group: {
+    ...groupCreateCopy.zh,
     newTitle: '新建群聊',
     manageDesc: '一个机器人可以加入多个群聊，成员关系会同步到每台设备',
     manageTitle: '管理群组',
@@ -2258,20 +2263,20 @@ const zh: BotsMessages = {
     manageMembers: '管理成员',
     manageMembersAria: '管理群组成员',
     manageMembersDescription: (max, group) =>
-      `选择2个–${max}“的机器人${group}，这个房间、它的历史以及它的成员会议保持原样`,
+      `为"${group}"选择 2–${max} 个机器人，房间、历史记录和成员会话都会保持不变`,
     manageMembersCount: count => `管理成员 (${count})…`,
     cancel: '取消',
     saveMembers: '保存成员',
     createAndJoin: '创建并加入',
-    newGroupPlaceholder: '群组名称（例如：研究）',
-    groupNamePlaceholder: '小组名称（例如：研究）',
-    noBots: '本群聊中禁止使用机器人',
-    noBotsMatch: query => `没有匹配 “ 的机器人${query}”`,
+    newGroupPlaceholder: '新群组…',
+    groupNamePlaceholder: '群组名称（例如：研究）',
+    noBots: '此群聊中还没有机器人',
+    noBotsMatch: query => `没有匹配"${query}"的机器人`,
     noBotsYet: '还没有机器人，请先创建一个',
     deleting: '正在删除…',
     deleted: '已删除',
-    deleteDescription: name => `这将移除“${name}从它的机器人中删除，并清除共享房间日志，机器人及其各自的聊天会被保留`,
-    deletedGroup: name => `已删除的群组“${name}”`,
+    deleteDescription: name => `这会把"${name}"从其机器人中移除，并清空共享房间日志，机器人及其各自的聊天都会保留`,
+    deletedGroup: name => `已删除群组"${name}"`,
     attachmentFailed: (file, member) => `无法为 ${member} 附加 ${file}`,
     emptyResponse: '⚠️ 模型处理工具结果后没有返回响应，某些模型可能出现此情况，请重试或换一种方式提问',
     noFreeName: '没有可用于群组的名称'
@@ -2741,6 +2746,7 @@ const zhHant: BotsMessages = {
     noPetMatches: '沒有寵物匹配.'
   },
   group: {
+    ...groupCreateCopy['zh-hant'],
     newTitle: '新增群組聊天',
     manageDesc: '一個機器人可以加入多個群組聊天。成員關係會同步到每台裝置',
     manageTitle: '管理群組',
@@ -2846,20 +2852,21 @@ const zhHant: BotsMessages = {
     createdWith: (group, count) => `已建立「${group}」，包含 ${count} 個機器人`,
     manageMembers: '管理成員',
     manageMembersAria: '管理群組成員',
-    manageMembersDescription: (max, group) => `選擇 2 -${max} bots for “${group}」.`,
-    manageMembersCount: count => `管理成員( E)${count})…`,
+    manageMembersDescription: (max, group) =>
+      `為「${group}」選擇 2–${max} 個機器人。房間、歷史紀錄和成員工作階段都會保持不變`,
+    manageMembersCount: count => `管理成員 (${count})…`,
     cancel: '取消',
     saveMembers: '儲存成員',
     createAndJoin: '建立並加入',
-    newGroupPlaceholder: '群組名稱（例如：研究）',
-    groupNamePlaceholder: '群組名稱( 例如研究)',
-    noBots: '此群組聊天中沒有 bots',
-    noBotsMatch: query => `不匹配${query}”`,
+    newGroupPlaceholder: '新群組…',
+    groupNamePlaceholder: '群組名稱（例如：研究）',
+    noBots: '此群組聊天中還沒有機器人',
+    noBotsMatch: query => `沒有符合「${query}」的機器人`,
     noBotsYet: '還沒有機器人，請先建立一個',
-    deleting: '正在刪除中..',
+    deleting: '正在刪除…',
     deleted: '已刪除',
-    deleteDescription: name => `此移除“${name}也清除了共享的房間紀錄。 他們的談話都保留下來了.`,
-    deletedGroup: name => `已刪除的群組${name}”`,
+    deleteDescription: name => `這會將「${name}」從其機器人中移除，並清除共享的房間紀錄。機器人及其各自的聊天都會保留`,
+    deletedGroup: name => `已刪除群組「${name}」`,
     attachmentFailed: (file, member) => `無法為 ${member} 附加 ${file}`,
     emptyResponse: '⚠️ 模型處理工具結果後沒有傳回回應。部分模型可能發生此情況，請重試或換一種方式提問',
     noFreeName: '沒有可用於群組的名稱'
@@ -3274,6 +3281,7 @@ const ru: BotsMessages = {
     noPetMatches: 'Никаких домашних животных.'
   },
   group: {
+    ...groupCreateCopy.ru,
     newTitle: 'Новый групповой чат',
     manageDesc: 'Бот может присоединиться к нескольким групповым чатам. Членство синхронизируется с каждой машиной.',
     manageTitle: 'Управлять группами',
@@ -3392,8 +3400,8 @@ const ru: BotsMessages = {
     newGroupPlaceholder: 'Новая группа..',
     groupNamePlaceholder: 'Название группы (например, исследование)',
     noBots: 'Никаких ботов в этом групповом чате',
-    noBotsMatch: query => `Никаких ботов"${query}”`,
-    noBotsYet: 'Никаких ботов — создайте их первыми.',
+    noBotsMatch: query => `Нет ботов по запросу "${query}"`,
+    noBotsYet: 'Ботов пока нет — сначала создайте одного.',
     deleting: 'Удаление..',
     deleted: 'Удаленный',
     deleteDescription: name =>
@@ -3727,6 +3735,7 @@ const ar: BotsMessages = {
     noPetMatches: 'لا تطابق الحيوانات الأليفة.'
   },
   group: {
+    ...groupCreateCopy.ar,
     newTitle: 'حديث المجموعة الجديدة',
     manageDesc: 'يمكن للمضرب أن ينضم إلى دردشة جماعية متعددة العضوية متزامنة مع كل آلة.',
     manageTitle: 'فئات إدارة',
@@ -3843,8 +3852,8 @@ const ar: BotsMessages = {
     newGroupPlaceholder: 'مجموعة جديدة',
     groupNamePlaceholder: 'اسم المجموعة (مثل البحث)',
     noBots: 'لا ضغائن في هذه المجموعة',
-    noBotsMatch: query => `لا يوجد أحذية تطابق${query}”`,
-    noBotsYet: 'لا ضغائن حتى الآن - خلق واحدة أولا.',
+    noBotsMatch: query => `لا توجد بوتات تطابق "${query}"`,
+    noBotsYet: 'لا توجد بوتات بعد — أنشئ واحداً أولاً.',
     deleting: 'إلغاء..',
     deleted: 'تم الحذف',
     deleteDescription: name =>
@@ -3956,40 +3965,6 @@ const ar: BotsMessages = {
 
 /** Registered via `ctx.i18n.register` at plugin load (disposer tracked). */
 export const BOTS_LOCALES: PluginLocaleBundles = { ar, en, ja, ru, zh, 'zh-hant': zhHant }
-
-// Bind the message SHAPE to a plugin translator: string leaves resolve now,
-// function leaves forward their args through t(path, …).
-type Bound<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => string
-    ? (...args: A) => string
-    : T[K] extends object
-      ? Bound<T[K]>
-      : string
-}
-
-function bind<T extends object>(t: PluginTranslate, template: T, prefix = ''): Bound<T> {
-  const out = {} as Record<string, unknown>
-
-  for (const [key, value] of Object.entries(template)) {
-    const path = prefix ? `${prefix}.${key}` : key
-    out[key] =
-      typeof value === 'function'
-        ? (...args: unknown[]) => {
-            const translated = t(path, ...args)
-
-            return translated === path ? value(...args) : translated
-          }
-        : value && typeof value === 'object'
-          ? bind(t, value as object, path)
-          : (() => {
-              const translated = t(path)
-
-              return translated === path ? value : translated
-            })()
-  }
-
-  return out as Bound<T>
-}
 
 export type BotsText = Bound<BotsMessages>
 

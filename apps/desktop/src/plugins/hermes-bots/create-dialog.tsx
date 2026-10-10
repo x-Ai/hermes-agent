@@ -816,9 +816,7 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
                   )}
                   <label className="flex items-center gap-2 text-xs text-(--ui-text-secondary)">
                     <Checkbox checked={shareAuth} onCheckedChange={value => setShareAuth(Boolean(value))} />
-                    {remoteTarget
-                      ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName)
-                      : b.editor.shareKeys}
+                    {remoteTarget ? b.editor.shareKeysOn(targetLabel, b.bot.defaultProfileName) : b.editor.shareKeys}
                   </label>
                   <div className="pl-6 pt-0.5 text-[0.7rem] leading-5 text-(--ui-text-tertiary)">
                     {b.editor.shareKeysHint}
@@ -1244,7 +1242,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{b.group.newTitle}</DialogTitle>
-          <DialogDescription>{`Pick 2–${GROUP_CHAT_MAX_MEMBERS} bots. Local memberships sync through each Bot profile; cross-machine members stay scoped to this room.`}</DialogDescription>
+          <DialogDescription>{b.group.newDescription(GROUP_CHAT_MAX_MEMBERS)}</DialogDescription>
         </DialogHeader>
         {/* TODO(bot-mode-types): this search box never takes focus when the dialog
             opens — SearchField accepts no `autoFocus` prop and forwards no extra
@@ -1313,7 +1311,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
                       <div className="truncate text-[0.625rem] text-(--ui-text-quaternary)">
                         {[
                           currentGroups.length
-                            ? `@${botHandle(bot.name, bot)} · in ${currentGroups.map(group => `“${group}”`).join(', ')}`
+                            ? `@${botHandle(bot.name, bot)} · ${b.group.inGroups(currentGroups)}`
                             : `@${botHandle(bot.name, bot)}`,
                           bot.remoteSource && bot.connectionLabel ? ` · ${bot.connectionLabel}` : ''
                         ].join('')}
@@ -1334,7 +1332,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
               })
             ) : (
               <div className="px-1.5 py-3 text-center text-xs text-(--ui-text-tertiary)">
-                {query.trim() ? `No bots match “${query.trim()}”` : 'No bots yet — create one first.'}
+                {query.trim() ? b.group.noBotsMatch(query.trim()) : b.group.noBotsYet}
               </div>
             )}
           </div>
@@ -1365,10 +1363,9 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
           <Button onClick={onClose} variant="secondary">
             {t.common.cancel}
           </Button>
-          <Button
-            disabled={!canCreate}
-            onClick={create}
-          >{`Create Group${selected.length ? ` (${selected.length})` : ''}`}</Button>
+          <Button disabled={!canCreate} onClick={create}>
+            {b.group.createAction(selected.length)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
