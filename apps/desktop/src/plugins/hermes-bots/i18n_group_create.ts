@@ -63,7 +63,8 @@ const en: GroupCreateCopy = {
   mentionMeta: count => `Group chat · ${count} ${count === 1 ? 'member' : 'members'}`,
   routedToGroup: (group, folder) =>
     folder ? `Sent to "${group}" as a new thread in ${folder}` : `Sent to "${group}" as a new thread`,
-  routedAttachmentsBlocked: group => `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`
+  routedAttachmentsBlocked: group =>
+    `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`
 }
 
 const ja: GroupCreateCopy = {
@@ -79,13 +80,18 @@ const ja: GroupCreateCopy = {
   memberWorkspacePlaceholder: 'このメンバー専用のフォルダ（任意）',
   memberWorkspaceRemotePlaceholder: 'このメンバーのマシン上の専用フォルダ（任意）',
   workspaceSource: source =>
-    ({ member: '専用フォルダ', profile: 'プロファイル既定', room: 'ルームのフォルダ', thread: 'スレッドのフォルダ' })[source],
+    ({ member: '専用フォルダ', profile: 'プロファイル既定', room: 'ルームのフォルダ', thread: 'スレッドのフォルダ' })[
+      source
+    ],
   workspaceInvalid: path => `フォルダが見つかりません: ${path}`,
   workspaceApplyFailed: (member, path, error) => `${member} を ${path} に移動できませんでした: ${error}`,
   mentionMeta: count => `グループチャット · メンバー ${count} 人`,
   routedToGroup: (group, folder) =>
-    folder ? `"${group}" に新しいスレッドとして送信しました（${folder}）` : `"${group}" に新しいスレッドとして送信しました`,
-  routedAttachmentsBlocked: group => `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`
+    folder
+      ? `"${group}" に新しいスレッドとして送信しました（${folder}）`
+      : `"${group}" に新しいスレッドとして送信しました`,
+  routedAttachmentsBlocked: group =>
+    `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`
 }
 
 const zh: GroupCreateCopy = {
@@ -100,7 +106,8 @@ const zh: GroupCreateCopy = {
   workspaceClear: '清除',
   memberWorkspacePlaceholder: '该成员的专属目录，可选',
   memberWorkspaceRemotePlaceholder: '该成员所在设备上的专属目录，可选',
-  workspaceSource: source => ({ member: '专属目录', profile: '配置档案默认', room: '群目录', thread: '线程目录' })[source],
+  workspaceSource: source =>
+    ({ member: '专属目录', profile: '配置档案默认', room: '群目录', thread: '线程目录' })[source],
   workspaceInvalid: path => `找不到文件夹：${path}`,
   workspaceApplyFailed: (member, path, error) => `无法把 ${member} 切换到 ${path}：${error}`,
   mentionMeta: count => `群聊 · ${count} 位成员`,
@@ -121,7 +128,8 @@ const zhHant: GroupCreateCopy = {
   workspaceClear: '清除',
   memberWorkspacePlaceholder: '該成員的專屬目錄（選填）',
   memberWorkspaceRemotePlaceholder: '該成員所在裝置上的專屬目錄（選填）',
-  workspaceSource: source => ({ member: '專屬目錄', profile: '設定檔預設', room: '群目錄', thread: '討論串目錄' })[source],
+  workspaceSource: source =>
+    ({ member: '專屬目錄', profile: '設定檔預設', room: '群目錄', thread: '討論串目錄' })[source],
   workspaceInvalid: path => `找不到資料夾：${path}`,
   workspaceApplyFailed: (member, path, error) => `無法將 ${member} 切換到 ${path}：${error}`,
   mentionMeta: count => `群組聊天 · ${count} 位成員`,
@@ -136,7 +144,8 @@ const ru: GroupCreateCopy = {
   inGroups: groups => `в ${quoted(groups)}`,
   createAction: count => (count ? `Создать группу (${count})` : 'Создать группу'),
   workspaceLabel: 'Рабочий каталог',
-  workspaceHint: 'Папка, в которой участники работают в этой комнате. Участники с других машин используют только свою папку.',
+  workspaceHint:
+    'Папка, в которой участники работают в этой комнате. Участники с других машин используют только свою папку.',
   workspacePlaceholder: 'Пусто — каждый участник использует папку из своего профиля',
   workspacePick: 'Выбрать папку…',
   workspaceClear: 'Очистить',
@@ -149,7 +158,8 @@ const ru: GroupCreateCopy = {
   mentionMeta: count => `Групповой чат · участников: ${count}`,
   routedToGroup: (group, folder) =>
     folder ? `Отправлено в "${group}" как новый тред в ${folder}` : `Отправлено в "${group}" как новый тред`,
-  routedAttachmentsBlocked: group => `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`
+  routedAttachmentsBlocked: group =>
+    `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`
 }
 
 const ar: GroupCreateCopy = {

@@ -527,19 +527,19 @@ function GroupChatSettingsDialog({
               return (
                 <li className="flex flex-col gap-1 text-sm" key={key}>
                   <div className="flex items-center justify-between gap-2">
-                  <span className="truncate">{displayName(member, botRosterMeta(member, $botMeta.get()))}</span>
-                  <Tip label={b.group.compressHistoryHint(member.name)}>
-                    <Button
-                      aria-label={`${b.group.compressHistory}: ${member.name}`}
-                      disabled={compressing !== null}
-                      onClick={() => void compressMember(member)}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      <Codicon name={compressing === key ? 'loading' : 'fold'} spinning={compressing === key} />
-                      {b.group.compressHistory}
-                    </Button>
-                  </Tip>
+                    <span className="truncate">{displayName(member, botRosterMeta(member, $botMeta.get()))}</span>
+                    <Tip label={b.group.compressHistoryHint(member.name)}>
+                      <Button
+                        aria-label={`${b.group.compressHistory}: ${member.name}`}
+                        disabled={compressing !== null}
+                        onClick={() => void compressMember(member)}
+                        size="sm"
+                        variant="secondary"
+                      >
+                        <Codicon name={compressing === key ? 'loading' : 'fold'} spinning={compressing === key} />
+                        {b.group.compressHistory}
+                      </Button>
+                    </Tip>
                   </div>
                   <GroupMemberWorkspaceField
                     effective={workspaceDraft.effectiveFor(member)}

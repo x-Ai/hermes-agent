@@ -7,7 +7,10 @@ import { describe, expect, it, vi } from 'vitest'
 const { host, notes } = vi.hoisted(() => {
   const notes: Array<{ kind: string; message: string }> = []
 
-  return { host: { notify: (note: { kind: string; message: string }) => notes.push(note) } as Record<string, unknown>, notes }
+  return {
+    host: { notify: (note: { kind: string; message: string }) => notes.push(note) } as Record<string, unknown>,
+    notes
+  }
 })
 
 vi.mock('@hermes/plugin-sdk', async () => {

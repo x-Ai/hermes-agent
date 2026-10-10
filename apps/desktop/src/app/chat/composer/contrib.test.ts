@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { registry } from '@/contrib/registry'
 
@@ -50,5 +50,17 @@ describe('runComposerMiddleware', () => {
     addMiddleware('async', async d => ({ ...d, text: d.text.toUpperCase() }))
 
     expect(await runComposerMiddleware({ text: 'quiet' })).toEqual({ text: 'QUIET' })
+  })
+
+  it('ends the chain on a consumed verdict and hands it back unchanged', async () => {
+    // A plugin that delivered the draft itself (Bot Mode routing "@<group> …"
+    // into a room) must stop the chain like a cancel does, yet stay
+    // distinguishable from one: null restores the draft, consumed clears it.
+    const later = vi.fn((draft: { text: string }) => ({ ...draft, text: 'never' }))
+    addMiddleware('router', () => ({ consumed: true }))
+    addMiddleware('later', later, 99)
+
+    expect(await runComposerMiddleware({ text: '@room hi' })).toEqual({ consumed: true })
+    expect(later).not.toHaveBeenCalled()
   })
 })

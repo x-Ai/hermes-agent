@@ -12,7 +12,11 @@
 import { atom, host } from '@hermes/plugin-sdk'
 
 import { $botMeta, $lastRoster, botRosterKey } from './data'
-import { durableGroupWorkspaceFields, groupWorkspaceProjection, mergeGroupWorkspaceFields } from './group-workspace-sync'
+import {
+  durableGroupWorkspaceFields,
+  groupWorkspaceProjection,
+  mergeGroupWorkspaceFields
+} from './group-workspace-sync'
 import { groupMemberReferencesConnection, markOrphanedGroupMemberDescriptor } from './hygiene'
 import { botsText } from './i18n'
 import { botGatewayLabel, displayName, gatewayDisplayLabel } from './labels'

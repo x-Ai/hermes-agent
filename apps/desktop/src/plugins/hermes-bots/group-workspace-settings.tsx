@@ -189,8 +189,7 @@ export function useGroupWorkspaceDraft(group: string, members: GroupMember[], op
   const setMemberWorkspace = (member: GroupMember, value: string) =>
     setMemberWorkspaces(previous => ({ ...previous, [groupMemberKey(member)]: value }))
 
-  const effectiveFor = (member: GroupMember) =>
-    resolveGroupMemberWorkspace({ memberWorkspaces, workspace }, member)
+  const effectiveFor = (member: GroupMember) => resolveGroupMemberWorkspace({ memberWorkspaces, workspace }, member)
 
   const changedMembers = () =>
     members.filter(member => {

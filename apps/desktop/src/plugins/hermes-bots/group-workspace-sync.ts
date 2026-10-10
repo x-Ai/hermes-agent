@@ -41,7 +41,11 @@ export function groupWorkspaceProjection(
   log: GroupMessage[],
   maxMembers: number
 ): GroupWorkspaceProjection {
-  const workspace = typeof room?.workspace === 'string' && room.workspace.trim() ? room.workspace.slice(0, GROUP_WORKSPACE_PATH_MAX) : null
+  const workspace =
+    typeof room?.workspace === 'string' && room.workspace.trim()
+      ? room.workspace.slice(0, GROUP_WORKSPACE_PATH_MAX)
+      : null
+
   const memberWorkspaces = boundedPaths(room?.memberWorkspaces, maxMembers)
   const threads = new Set(log.map(entry => String(entry?.thread || '')).filter(Boolean))
   const threadWorkspaces = boundedPaths(room?.threadWorkspaces, threads.size, key => threads.has(key))
@@ -65,8 +69,7 @@ export function mergeGroupWorkspaceFields(
   const has = (key: keyof GroupWorkspaceProjection) =>
     Boolean(projected) && Object.prototype.hasOwnProperty.call(projected, key)
 
-  const workspace =
-    adoptRemote && has('workspace') ? (projected?.workspace || null) : existing?.workspace || null
+  const workspace = adoptRemote && has('workspace') ? projected?.workspace || null : existing?.workspace || null
 
   const memberWorkspaces =
     adoptRemote && has('memberWorkspaces')
@@ -83,7 +86,9 @@ export function mergeGroupWorkspaceFields(
 /** The working-directory slice of a room's durable (plugin-storage) record.
  *  Spread into the persisted room object so the `||` normalization lives here,
  *  not in `updateGroupChat`. */
-export function durableGroupWorkspaceFields(room: GroupWorkspaceFields | null | undefined): Required<GroupWorkspaceFields> {
+export function durableGroupWorkspaceFields(
+  room: GroupWorkspaceFields | null | undefined
+): Required<GroupWorkspaceFields> {
   return {
     workspace: room?.workspace || null,
     memberWorkspaces: room?.memberWorkspaces || {},
