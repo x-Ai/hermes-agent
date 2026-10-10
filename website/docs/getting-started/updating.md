@@ -30,14 +30,18 @@ For a managed source installation:
 hermes update
 ```
 
-Source checkouts of this fork track `main`: `hermes update` and the Desktop update
-button follow the fork's `main` branch commit by commit. (Upstream checkouts default
-to the latest published `vX.Y.Z` GitHub release; this fork publishes no releases, so
-its Desktop shows no stable/main selector.) The update prepares dependencies through
-PM and reports configuration changes and process-restart results.
+Source checkouts of this fork track `main` by default: `hermes update` and the Desktop
+update button follow the fork's `main` branch commit by commit. The Desktop's
+About ▸ Updates selector (or `--set-channel`) can switch an install to **stable**: the
+latest `vX.Y.Z` GitHub Release published by this repository (`x-Ai/hermes-agent`),
+checked out at its exact commit. That release can be older than the code you run, so
+the Desktop asks before switching. Both channels resolve against this repository,
+never upstream's. The update prepares dependencies through PM and reports
+configuration changes and process-restart results.
 
 ```bash
 hermes update --set-channel main     # the default: follow every commit on main
+hermes update --set-channel stable   # this repository's latest published release only
 hermes update --channel main         # one run against main; nothing is saved
 ```
 

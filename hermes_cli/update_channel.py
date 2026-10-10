@@ -22,8 +22,9 @@ same path, and the channel opt-in must survive that.
   (it knows its own id — the user never types a sha).
 * Shown by ``hermes update --install-id`` and the desktop About page.
 * Source installs select an R2 channel name, or use an explicit branch override.
-  Unconfigured source checkouts keep ``main``: this fork publishes no GitHub releases
-  (upstream defaults an official-origin checkout to ``stable``).
+  Unconfigured source checkouts keep ``main`` (this fork's default; upstream defaults an
+  official-origin checkout to ``stable``). The Desktop's stable/main selector or
+  ``--set-channel`` may move one to ``stable`` = this repository's latest GitHub release.
   Bundles derive their channel from their baked identity, never these records.
   ``external`` installs have no configurable channel; the steward owns updates.
 
@@ -141,10 +142,11 @@ def _package_channel(stamp: dict) -> bool:
 def default_channel(project_root: Optional[Path] = None) -> str:
     """The channel an unconfigured install tracks.
 
-    Source checkouts keep following main: this fork publishes no GitHub releases,
-    and upstream's rule (an official-origin checkout follows the latest published
-    stable release) would resolve nothing or land on upstream tags that lack the
-    fork's features.
+    Source checkouts keep following main until a channel is chosen: this fork's
+    releases are occasional, and upstream's rule (an official-origin checkout
+    follows the latest published stable release) would park the Desktop on the
+    last fork release until the next one ships. ``stable`` stays selectable (the
+    Desktop selector, ``--set-channel``) and resolves this repository's releases.
     ``electron-updater`` and ``app-installer`` bundles report their artifact
     channel: a canary artifact tracks canary, every other bundle
     tracks stable. The stamp's ``tag`` is the authority, the same fact
