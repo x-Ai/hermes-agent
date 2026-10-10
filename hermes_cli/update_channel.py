@@ -22,8 +22,7 @@ same path, and the channel opt-in must survive that.
   (it knows its own id — the user never types a sha).
 * Shown by ``hermes update --install-id`` and the desktop About page.
 * Source installs select an R2 channel name, or use an explicit branch override.
-  Unconfigured source checkouts keep ``main``: this fork publishes no GitHub releases
-  (upstream defaults an official-origin checkout to ``stable``).
+  Unconfigured official checkouts track ``stable``; forks and mirrors keep ``main``.
   Bundles derive their channel from their baked identity, never these records.
   ``external`` installs have no configurable channel; the steward owns updates.
 
@@ -141,10 +140,8 @@ def _package_channel(stamp: dict) -> bool:
 def default_channel(project_root: Optional[Path] = None) -> str:
     """The channel an unconfigured install tracks.
 
-    Source checkouts keep following main: this fork publishes no GitHub releases,
-    and upstream's rule (an official-origin checkout follows the latest published
-    stable release) would resolve nothing or land on upstream tags that lack the
-    fork's features.
+    A source checkout of the official repository follows the latest published
+    stable release. Forks, mirrors and checkout-less trees keep following main.
     ``electron-updater`` and ``app-installer`` bundles report their artifact
     channel: a canary artifact tracks canary, every other bundle
     tracks stable. The stamp's ``tag`` is the authority, the same fact
@@ -158,13 +155,38 @@ def default_channel(project_root: Optional[Path] = None) -> str:
     root = Path(project_root) if project_root is not None else install_root()
     stamp = _read_stamp(root)
     if not _package_channel(stamp):
-        return CHANNEL_MAIN
+        return CHANNEL_STABLE if _tracks_official_origin(root) else CHANNEL_MAIN
     if stamp.get("source") == "channel-build":
         request = stamp.get("channelBuild")
         if not isinstance(request, dict):
             raise ValueError("Channel bundle has no baked subscription")
         return validate_name(request.get("channel"))
     return CHANNEL_CANARY if is_canary_tag(stamp.get("tag")) else CHANNEL_STABLE
+
+
+def _tracks_official_origin(root: Path) -> bool:
+    """True when ``root`` is a git checkout whose ``remote.origin.url`` is the official repo.
+
+    Read from the git config file (no git process: the banner and boot paths call this).
+    Forks, mirrors and local-path origins publish no official releases.
+    """
+    from hermes_cli.source_releases import _GITHUB_ORIGIN, OFFICIAL_REPOSITORY
+    from hermes_cli.update_lock import _git_common_dir
+
+    common = _git_common_dir(root)
+    try:
+        lines = (common / "config").read_text(encoding="utf-8-sig").splitlines() if common else []
+    except OSError:
+        return False
+    in_origin = False
+    for line in lines:
+        text = line.strip()
+        if text.startswith("["):
+            in_origin = text == '[remote "origin"]'
+        elif in_origin and text.partition("=")[0].strip() == "url":
+            match = _GITHUB_ORIGIN.fullmatch(text.partition("=")[2].strip())
+            return bool(match) and match[1].lower() == OFFICIAL_REPOSITORY.lower()
+    return False
 
 
 def rides_default_channel(record: dict, channel: str, project_root: Optional[Path] = None) -> bool:
