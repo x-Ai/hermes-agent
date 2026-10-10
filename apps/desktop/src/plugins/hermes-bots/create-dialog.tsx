@@ -57,6 +57,8 @@ import {
   knownGroups,
   liveGroupChatNames
 } from './group-membership'
+import { normalizeGroupWorkspacePath, probeGroupWorkspace } from './group-workspace'
+import { GroupWorkspaceField } from './group-workspace-settings'
 import { useBots } from './i18n'
 import { botProfileIdentity, displayName, localizedProfileName } from './labels'
 import { McpSetupButton } from './mcp-setup'
@@ -1154,6 +1156,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [name, setName] = useState('')
   const [image, setImage] = useState<null | string>(null)
+  const [workspace, setWorkspace] = useState('')
 
   // Reset per open so a cancelled draft doesn't leak into the next one.
   useEffect(() => {
@@ -1162,6 +1165,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
       setChecked({})
       setName('')
       setImage(null)
+      setWorkspace('')
     }
   }, [open])
 
@@ -1178,11 +1182,26 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
 
   const canCreate = selected.length >= 2 && Boolean(name.trim() || selected.length)
 
-  const create = () => {
+  const create = async () => {
     const base = (name.trim() || placeholder).slice(0, 64)
 
     if (selected.length < 2 || !base) {
       return
+    }
+
+    // The room folder is checked on this window's gateway before the room
+    // exists; a typo keeps the dialog open instead of minting a room that
+    // sends its members nowhere.
+    let roomWorkspace: null | string = null
+
+    if (normalizeGroupWorkspacePath(workspace)) {
+      roomWorkspace = await probeGroupWorkspace(null, workspace).catch(() => null)
+
+      if (!roomWorkspace) {
+        host.notify({ kind: 'error', message: b.group.workspaceInvalid(workspace.trim()) })
+
+        return
+      }
     }
 
     // Creating a group is always a FRESH room. Without this, re-creating a
@@ -1218,6 +1237,10 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
 
       if (image) {
         room.image = image
+      }
+
+      if (roomWorkspace) {
+        room.workspace = roomWorkspace
       }
 
       return room
@@ -1347,7 +1370,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
           <form
             onSubmit={event => {
               event.preventDefault()
-              create()
+              void create()
             }}
           >
             <Input
@@ -1358,12 +1381,13 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
               value={name}
             />
           </form>
+          <GroupWorkspaceField onChange={setWorkspace} value={workspace} />
         </div>
         <DialogFooter>
           <Button onClick={onClose} variant="secondary">
             {t.common.cancel}
           </Button>
-          <Button disabled={!canCreate} onClick={create}>
+          <Button disabled={!canCreate} onClick={() => void create()}>
             {b.group.createAction(selected.length)}
           </Button>
         </DialogFooter>

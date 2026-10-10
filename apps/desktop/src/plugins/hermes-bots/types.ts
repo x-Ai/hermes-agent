@@ -208,6 +208,16 @@ export interface GroupChat {
   image?: null | string
   log: GroupMessage[]
   members?: GroupMember[]
+  /** Room working directory — a path on the room's own gateway host, so only
+   *  members on the active connection inherit it (`group-workspace.ts`).
+   *  Null/absent: each member keeps its profile's own default. */
+  workspace?: null | string
+  /** Per-member working directories keyed by durable member key; the one
+   *  rung that also applies to a member on another connection. */
+  memberWorkspaces?: Record<string, string>
+  /** Per-thread working directories (a thread started from a project through
+   *  an `@<group>` draft), keyed by thread id; bounded, oldest dropped. */
+  threadWorkspaces?: Record<string, string>
   /** Immutable identity, so a rename doesn't fork the room. */
   roomId?: null | string
   running?: boolean

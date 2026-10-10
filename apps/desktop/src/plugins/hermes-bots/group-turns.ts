@@ -31,6 +31,11 @@ import {
   formatFreshThreadRoomContext,
   GROUP_PROMPT_HEADER_PREFIX
 } from './group-round-prompt'
+import {
+  groupSessionCreateCwdParams,
+  reconcileGroupSessionWorkspace,
+  resolveGroupMemberWorkspace
+} from './group-workspace'
 import { botsText } from './i18n'
 import { botConnectionRoute, requestForBot } from './routing'
 import type { Attachment, GroupMember, GroupPrompt, GroupPromptQuestion, ProfileRoute } from './types'
@@ -180,6 +185,8 @@ interface GroupSessionSnapshot {
    *  object, which after a failure is RETAINED as `{ status: 'error', … }`
    *  (`_fail_inflight_turn`) so a reconnecting client can rebuild the error. */
   inflight?: boolean | { error?: string; status?: string }
+  /** The session's live view; `cwd` is the workspace the turn would run in. */
+  info?: { cwd?: string }
   message_count?: number
   messages?: GroupTurnTranscriptMessage[]
   /** Still-open server→client requests (`server_requests.open_requests`); the
@@ -293,6 +300,9 @@ export async function ensureGroupChatSession(
 
   try {
     const room = $groupChats.get()[group] || {}
+    // Where this member works in this thread (group-workspace.ts ladder);
+    // null leaves the backend's own profile/launch fallback in charge.
+    const workspace = resolveGroupMemberWorkspace(room, member, thread).cwd
     // New rooms title member sessions by their immutable roomId so a
     // same-name recreate never resumes the old room's sessions by title;
     // legacy rooms without a roomId fall back to the display name.
@@ -370,6 +380,12 @@ export async function ensureGroupChatSession(
             })
           }
 
+          // A folder set or changed since this session was minted re-homes it
+          // before the turn; the member is idle here, so a busy refusal only
+          // means another thread's turn is still finishing. The caller
+          // re-checks binding liveness before it uses this runtime.
+          await reconcileGroupSessionWorkspace(group, member, res.session_id, res.info?.cwd, workspace)
+
           return {
             runtime: res.session_id,
             stored,
@@ -404,7 +420,11 @@ export async function ensureGroupChatSession(
         // stored model/provider pin. Older gateways ignore the unknown params;
         // the server's hidden + "Group: " title fallback then covers legacy.
         room_plumbing: true,
-        follow_profile_config: true
+        follow_profile_config: true,
+        // A picked folder carries the provenance of a deliberate per-session
+        // workspace pick in the main chat: it beats the member profile's
+        // configured terminal.cwd (#52589). Absent → the backend's own ladder.
+        ...groupSessionCreateCwdParams(workspace)
       },
       GROUP_SESSION_CREATE_OPTIONS
     )) as { session_id?: string; stored_session_id?: string }

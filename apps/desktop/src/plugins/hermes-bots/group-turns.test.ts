@@ -1537,3 +1537,120 @@ describe('room record', () => {
     expect('Gone' in durable).toBe(false)
   })
 })
+
+describe('member session working directory', () => {
+  it('creates a member session with the room folder as an explicit cwd', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+      current.workspace = '/projects/app'
+
+      return current
+    })
+
+    const handle = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+
+    // The gateway only records a cwd the client vouched for with cwd_explicit.
+    expect(room.gateway.sessions.get(String(handle.stored))?.cwd).toBe('/projects/app')
+    const create = room.gateway.rpcFor('session.create').at(-1)
+    expect(create?.params.cwd).toBe('/projects/app')
+    expect(create?.params.cwd_explicit).toBe(true)
+  })
+
+  it('prefers a member folder over the room folder', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+      current.workspace = '/projects/app'
+      current.memberWorkspaces = { research: '/projects/research' }
+
+      return current
+    })
+
+    const handle = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+
+    expect(room.gateway.sessions.get(String(handle.stored))?.cwd).toBe('/projects/research')
+  })
+
+  it('creates a member session with no cwd when no folder is set', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+
+      return current
+    })
+
+    await room.turns.ensureGroupChatSession('Ws', member, 't1')
+    const create = room.gateway.rpcFor('session.create').at(-1)
+
+    expect(create?.params.cwd).toBeUndefined()
+    expect(create?.params.cwd_explicit).toBeUndefined()
+  })
+
+  it('re-homes an existing session when the room folder changed', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+      current.workspace = '/projects/app'
+
+      return current
+    })
+
+    const first = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+    expect(room.gateway.sessions.get(String(first.stored))?.cwd).toBe('/projects/app')
+
+    // The room moves; the next turn resumes the same session and re-homes it.
+    room.chat.updateGroupChat('Ws', current => ({ ...current, workspace: '/projects/moved' }))
+    const second = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+
+    expect(second.stored).toBe(first.stored)
+    expect(room.gateway.sessions.get(String(second.stored))?.cwd).toBe('/projects/moved')
+    expect(room.gateway.rpcFor('session.cwd.set').at(-1)?.params.cwd).toBe('/projects/moved')
+  })
+
+  it('does not re-home when a busy session refuses the cwd change (4009)', async () => {
+    const room = await loadRoom({ rejectCwdSetWith: Object.assign(new Error('session busy'), { code: 4009 }) })
+    const member: GroupMember = { name: 'research', title: '' }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+      current.workspace = '/projects/app'
+
+      return current
+    })
+
+    const first = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+    room.chat.updateGroupChat('Ws', current => ({ ...current, workspace: '/projects/moved' }))
+
+    // A busy refusal is swallowed: the turn still resolves on the live session.
+    const second = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+    expect(second.runtime).toBeTruthy()
+    expect(room.gateway.sessions.get(String(second.stored))?.cwd).toBe('/projects/app')
+  })
+
+  it('never sends a remote member to the room folder', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { connectionId: 'box', name: 'research', remoteSource: true, sourceScoped: true }
+
+    room.chat.updateGroupChat('Ws', current => {
+      current.roomId = 'r-ws'
+      current.workspace = '/projects/app'
+
+      return current
+    })
+
+    const handle = await room.turns.ensureGroupChatSession('Ws', member, 't1')
+    const create = room.gateway.rpcFor('session.create').at(-1)
+
+    expect(create?.params.cwd).toBeUndefined()
+    expect(room.gateway.sessions.get(String(handle.stored))?.cwd).toBeUndefined()
+  })
+})

@@ -102,6 +102,12 @@ import {
 import type { GroupComposerDraft, GroupDraftSetter } from './group-panes'
 import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-rounds'
 import { clearGroupClarify, renameGroupClarify } from './group-turns'
+import {
+  GroupMemberWorkspaceField,
+  GroupWorkspaceField,
+  useGroupWorkspaceDraft,
+  workspaceLeaf
+} from './group-workspace-settings'
 import { botsText, useBots } from './i18n'
 import { displayName, slugifyProfileName } from './labels'
 import { botRosterMeta, groupTranscriptSpeakerMeta, setBotsWorkspaceOwner } from './routing'
@@ -401,6 +407,8 @@ function GroupChatSettingsDialog({
   const [image, setImage] = useState(current)
   const [holdDetection, setHoldDetection] = useState(currentHoldDetection)
   const [compressing, setCompressing] = useState<null | string>(null)
+  // Room + per-member working directories (group-workspace-settings.tsx).
+  const workspaceDraft = useGroupWorkspaceDraft(group, members || [], open)
   useEffect(() => {
     if (open) {
       setName(group)
@@ -441,6 +449,12 @@ function GroupChatSettingsDialog({
   }
 
   const save = async () => {
+    // Folders are checked against their gateways BEFORE anything is written:
+    // a rename must not land while a typo in a path keeps the dialog open.
+    if (!(await workspaceDraft.validate())) {
+      return
+    }
+
     const finalName = await renameGroupChat(group, name, members)
 
     if (finalName === null) {
@@ -454,6 +468,8 @@ function GroupChatSettingsDialog({
     if (holdDetection !== currentHoldDetection) {
       setGroupChatHoldDetection(finalName, holdDetection)
     }
+
+    workspaceDraft.apply(finalName)
 
     onClose()
 
@@ -502,13 +518,15 @@ function GroupChatSettingsDialog({
           label={b.group.holdDetection}
           onChange={setHoldDetection}
         />
+        <GroupWorkspaceField onChange={workspaceDraft.setWorkspace} value={workspaceDraft.workspace} />
         {(members || []).length > 0 ? (
-          <ul className="flex flex-col gap-1" data-testid="group-settings-members">
+          <ul className="flex flex-col gap-2" data-testid="group-settings-members">
             {(members || []).map(member => {
               const key = groupMemberKey(member)
 
               return (
-                <li className="flex items-center justify-between gap-2 text-sm" key={key}>
+                <li className="flex flex-col gap-1 text-sm" key={key}>
+                  <div className="flex items-center justify-between gap-2">
                   <span className="truncate">{displayName(member, botRosterMeta(member, $botMeta.get()))}</span>
                   <Tip label={b.group.compressHistoryHint(member.name)}>
                     <Button
@@ -522,6 +540,13 @@ function GroupChatSettingsDialog({
                       {b.group.compressHistory}
                     </Button>
                   </Tip>
+                  </div>
+                  <GroupMemberWorkspaceField
+                    effective={workspaceDraft.effectiveFor(member)}
+                    member={member}
+                    onChange={value => workspaceDraft.setMemberWorkspace(member, value)}
+                    value={workspaceDraft.memberWorkspaces[key] ?? ''}
+                  />
                 </li>
               )
             })}
@@ -559,6 +584,48 @@ function GroupChatSettingsDialog({
 // new thread with the whole group; replying inside a thread continues that
 // work. Member turns are scoped to the thread that triggered them — deltas,
 // watermarks, and responder resolution all key on the thread id.
+
+/** The room header's leading identity: picture (or fallback glyph), name, and
+ *  the working-directory chip. Split out of GroupChatWorkspace to hold that
+ *  component's size and complexity flat. */
+function GroupRoomTitle({
+  group,
+  image,
+  workspace
+}: {
+  group: string
+  image?: null | string
+  workspace?: null | string
+}) {
+  return (
+    <>
+      {/* Room picture (set via Group settings) leads the title when present. */}
+      {image ? (
+        <img
+          alt=""
+          className="size-6 shrink-0 rounded-md object-cover ring-1 ring-(--ui-stroke-secondary)"
+          src={image}
+        />
+      ) : (
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-(--chrome-action-hover) text-(--ui-text-tertiary)">
+          <Codicon name="organization" />
+        </span>
+      )}
+      <div className="min-w-0 flex-1 truncate text-sm font-semibold">{group}</div>
+      {workspace ? (
+        <Tip label={workspace}>
+          <span
+            className="flex shrink-0 items-center gap-1 text-[0.65rem] text-(--ui-text-quaternary)"
+            data-testid="group-workspace-chip"
+          >
+            <Codicon name="folder" />
+            {workspaceLeaf(workspace)}
+          </span>
+        </Tip>
+      ) : null}
+    </>
+  )
+}
 
 interface GroupChatWorkspaceProps {
   group: string
@@ -879,19 +946,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
       <Button onClick={() => (onBack ? onBack() : $groupChatWorkspace.set(null))} size="sm" variant="ghost">
         {t.common.back}
       </Button>
-      {/* Room picture (set via Group settings) leads the title when present. */}
-      {room.image ? (
-        <img
-          alt=""
-          className="size-6 shrink-0 rounded-md object-cover ring-1 ring-(--ui-stroke-secondary)"
-          src={room.image}
-        />
-      ) : (
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-(--chrome-action-hover) text-(--ui-text-tertiary)">
-          <Codicon name="organization" />
-        </span>
-      )}
-      <div className="min-w-0 flex-1 truncate text-sm font-semibold">{group}</div>
+      <GroupRoomTitle group={group} image={room.image} workspace={room.workspace} />
       <Tip label={memberNames}>
         <span
           aria-label={availabilityLabel}

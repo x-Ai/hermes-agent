@@ -30,6 +30,7 @@ import {
 import { runGroupContinuationMembers, runGroupRoundMember } from './group-round-members'
 import { rejectGroupSlashCommand } from './group-slash'
 import { GROUP_TURN_HARD_CAP_MS, harvestStrandedGroupReply } from './group-turns'
+import { withGroupThreadWorkspace } from './group-workspace'
 import { botsText } from './i18n'
 import { requestForBot } from './routing'
 import type { Attachment, GroupMember, GroupMessage } from './types'
@@ -868,12 +869,19 @@ async function harvestStrandedUntilSettled(group: string, members: GroupMember[]
  *  Appends and queues the target thread behind the active room drive,
  *  without redirecting a member whose inference is still in flight.
  *  Returns the thread id the message landed in. */
+export interface SendToGroupChatOptions {
+  /** Pin the (new) thread to this folder — a draft started under a project
+   *  in the main composer carries the project's directory here. */
+  workspace?: null | string
+}
+
 export function sendToGroupChat(
   group: string,
   members: GroupMember[],
   text: string,
   thread?: null | string,
-  images?: Attachment[]
+  images?: Attachment[],
+  options?: SendToGroupChatOptions
 ): null | string {
   const trimmed = String(text || '').trim()
 
@@ -945,7 +953,9 @@ export function sendToGroupChat(
             members.map((member: GroupMember) => groupMemberKey(member))
           )
 
-    return room
+    // Pinned before the drive starts, so the first member turn already
+    // resolves the thread's folder (group-workspace.ts rung 2).
+    return options?.workspace ? withGroupThreadWorkspace(room, target, options.workspace) : room
   })
   recordGroupActivity(group, {
     kind: 'queued',

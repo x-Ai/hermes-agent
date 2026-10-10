@@ -12,6 +12,7 @@
 import { atom, host } from '@hermes/plugin-sdk'
 
 import { $botMeta, $lastRoster, botRosterKey } from './data'
+import { durableGroupWorkspaceFields, groupWorkspaceProjection, mergeGroupWorkspaceFields } from './group-workspace-sync'
 import { groupMemberReferencesConnection, markOrphanedGroupMemberDescriptor } from './hygiene'
 import { botsText } from './i18n'
 import { botGatewayLabel, displayName, gatewayDisplayLabel } from './labels'
@@ -64,6 +65,12 @@ interface GroupChatSyncRoom {
   image?: null | string
   log: GroupMessage[]
   members?: GroupMember[]
+  /** Working-directory fields (`group-workspace-sync.ts`): the room folder
+   *  (null when cleared, so a clear propagates), per-member folders, and the
+   *  folders of the threads this projection still carries. */
+  memberWorkspaces?: Record<string, string>
+  threadWorkspaces?: Record<string, string>
+  workspace?: null | string
   name?: string
   /** At least this many earlier room entries exist that the projection does
    *  not carry (head-trimmed to the message/byte budget). */
@@ -389,7 +396,8 @@ export function groupChatSyncSnapshot(
         ? {
             image: room.image
           }
-        : {})
+        : {}),
+      ...groupWorkspaceProjection(room, log, GROUP_CHAT_MAX_MEMBERS)
     }
 
     const key = groupChatRoomKey(name, room)
@@ -780,12 +788,15 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
     }
 
     const isPreserved = preserved.has(displayName) || (localName && preserved.has(localName))
+    // A newer (or equal) mirror of a room the user has not locally edited wins
+    // membership, picture, hold flag and folders; computed once, read by each.
+    const adoptRemote = !isPreserved && remoteRevision >= localRevision
 
     // Membership follows the higher revision (a tie unions, as the publish
     // merge does). An OLDER projection never unions: a room-side roster edit
     // bumps the local revision precisely so a lagging mirror cannot re-seat
     // the member it just removed.
-    if (!isPreserved && remoteRevision >= localRevision) {
+    if (adoptRemote) {
       if (remoteRevision > localRevision) {
         members.clear()
       }
@@ -820,10 +831,7 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
     rooms[targetName] = {
       ...existing,
       log: bounded.log,
-      holdDetection:
-        !isPreserved && remoteRevision >= localRevision
-          ? projected.holdDetection !== false
-          : existing.holdDetection !== false,
+      holdDetection: adoptRemote ? projected.holdDetection !== false : existing.holdDetection !== false,
       watermarks: bounded.watermarks,
       sessions: existing.sessions && typeof existing.sessions === 'object' ? existing.sessions : {},
       stranded: existing.stranded && typeof existing.stranded === 'object' ? existing.stranded : {},
@@ -840,6 +848,9 @@ export function mergeRemoteGroupChatSnapshotIntoRooms(
         : remoteRevision >= localRevision && Object.prototype.hasOwnProperty.call(projected, 'image')
           ? projected.image || null
           : existing.image || null,
+      // Same revision rule as the picture: a newer mirror's folders win, a
+      // preserved (locally edited) room keeps its own.
+      ...mergeGroupWorkspaceFields(existing, projected, { adoptRemote }),
       syncRevision: isPreserved ? localRevision : Math.max(remoteRevision, localRevision),
       epoch: Number(existing.epoch || 0),
       running: Boolean(existing.running)
@@ -1642,6 +1653,8 @@ export function updateGroupChat(
         roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
         // Room picture (small data URL, same normalization as bot avatars).
         image: room.image || null,
+        // Working directories (group-workspace.ts): room, per member, per thread.
+        ...durableGroupWorkspaceFields(room),
         rosterOrder: room.rosterOrder,
         pinned: room.pinned,
         // Sidebar filing (user-sections) is room-local; keep it durable.

@@ -32,6 +32,9 @@ export interface ScriptedMessage {
 
 export interface ScriptedSession {
   contracts?: { follow_profile_config: boolean; room_plumbing: boolean }
+  /** The session's workspace: the explicit `cwd` it was created with, later
+   *  `session.cwd.set` re-homes; the harness's launch dir until then. */
+  cwd?: string
   messages: ScriptedMessage[]
   profile: string
   runtime: string
@@ -101,6 +104,8 @@ export interface GatewayOptions {
   failEverySubmitWith?: unknown
   /** Reject only the FIRST prompt.submit — the 4001 reap the retry recovers. */
   failFirstSubmitWith?: unknown
+  /** Reject every `session.cwd.set` with this (a 4009 busy refusal, a 4017 missing dir). */
+  rejectCwdSetWith?: unknown
   /** Fired on each post-submit poll, so a test can land a stop mid-turn. */
   onResumePoll?: (polls: number) => void
   /** Report the member inflight for the first N post-submit polls. */
@@ -112,8 +117,46 @@ export interface GatewayOptions {
   turn?: TurnScript
 }
 
+/** Where a scripted session lands when nobody picked a folder for it — the
+ *  gateway process's own launch directory, as on the real backend. */
+export const HARNESS_LAUNCH_CWD = '/launch'
+
+/** The attach RPCs the harness records (a set, so the dispatch stays one check). */
+const SCRIPTED_ATTACH_METHODS = new Set(['image.attach_bytes', 'pdf.attach', 'file.attach'])
+
+/** session.info the create/resume replies carry: the session's workspace. */
+function scriptedSessionInfo(session: ScriptedSession): { cwd: string } {
+  return { cwd: session.cwd ?? HARNESS_LAUNCH_CWD }
+}
+
+/** Apply a scripted session.cwd.set: re-home the session, or replay a rejection
+ *  (a 4009 busy refusal, a 4017 missing dir) the room engine must handle. */
+function scriptedCwdSet(
+  session: ScriptedSession | null,
+  params: Record<string, unknown>,
+  options: GatewayOptions
+): { branch: string; cwd: string } {
+  if (!session) {
+    throw gatewayError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
+  }
+
+  if (options.rejectCwdSetWith) {
+    throw options.rejectCwdSetWith
+  }
+
+  session.cwd = String(params.cwd ?? '')
+
+  return { branch: '', cwd: session.cwd }
+}
+
+/** The explicit cwd a session.create persists: only one the client vouched for
+ *  with cwd_explicit (the desktop arm of the real `_resolve_create_cwd`). */
+function scriptedCreateCwd(params: Record<string, unknown>): { cwd?: string } {
+  return params.cwd_explicit === true && typeof params.cwd === 'string' ? { cwd: params.cwd } : {}
+}
+
 /** A gateway-shaped rejection: `.code` is what the engine branches on. */
-function gatewayError(message: string, code: number) {
+export function gatewayError(message: string, code: number) {
   return Object.assign(new Error(message), { code })
 }
 
@@ -238,6 +281,9 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
           follow_profile_config: params.follow_profile_config === true,
           room_plumbing: params.room_plumbing === true
         },
+        // The gateway only persists a client cwd it can vouch for (or that the
+        // desktop vouches for with cwd_explicit); the launch dir otherwise.
+        ...scriptedCreateCwd(params),
         messages: [],
         profile,
         runtime: `rt-${profile}-${sequence}`,
@@ -249,7 +295,17 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
       runtimeToStored.set(session.runtime, session.stored)
       titleToStored.set(`${profile}::${title}`, session.stored)
 
-      return { message_count: 0, messages: [], session_id: session.runtime, stored_session_id: session.stored }
+      return {
+        info: scriptedSessionInfo(session),
+        message_count: 0,
+        messages: [],
+        session_id: session.runtime,
+        stored_session_id: session.stored
+      }
+    }
+
+    if (method === 'session.cwd.set') {
+      return scriptedCwdSet(resolveSession(null, params.session_id), params, options)
     }
 
     if (method === 'session.resume') {
@@ -285,6 +341,7 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
           : null
 
       return {
+        info: scriptedSessionInfo(session),
         inflight: retained ?? busy,
         message_count: busy ? 0 : session.messages.length,
         messages: busy || params.omit_messages ? [] : [...session.messages],
@@ -296,7 +353,7 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
       }
     }
 
-    if (method === 'image.attach_bytes' || method === 'pdf.attach' || method === 'file.attach') {
+    if (SCRIPTED_ATTACH_METHODS.has(method)) {
       const session = resolveSession(null, params.session_id)
 
       if (!session) {

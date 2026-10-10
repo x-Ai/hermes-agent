@@ -46,10 +46,26 @@ export interface ComposerDraft {
   attachments?: ComposerAttachment[]
 }
 
+/** A middleware's "I delivered this myself" verdict: the send is over, the
+ *  composer clears the draft, and no session turn runs. Distinct from `null`,
+ *  which cancels the send and hands the draft BACK to the user — a message a
+ *  plugin already routed elsewhere (a Bot Mode group chat) must not reappear
+ *  in the box as if it were rejected. */
+export interface ComposerDraftConsumed {
+  consumed: true
+}
+
+export type ComposerMiddlewareResult = ComposerDraft | ComposerDraftConsumed | null
+
+export function isConsumedComposerDraft(value: ComposerMiddlewareResult | undefined): value is ComposerDraftConsumed {
+  return Boolean(value) && (value as ComposerDraftConsumed).consumed === true
+}
+
 /** Payload of a `composer.middleware` data contribution. */
 export interface ComposerMiddleware {
-  /** Rewrite (return a draft), pass through (same draft), or cancel (null). */
-  handler: (draft: ComposerDraft) => ComposerDraft | null | Promise<ComposerDraft | null>
+  /** Rewrite (return a draft), pass through (same draft), cancel (null), or
+   *  report the draft consumed (`{ consumed: true }`, see above). */
+  handler: (draft: ComposerDraft) => ComposerMiddlewareResult | Promise<ComposerMiddlewareResult>
 }
 
 /** One row a `composer.atCompletions` source offers for the current query. */
@@ -95,10 +111,11 @@ export interface ComposerAttachmentProvider {
 /**
  * Run the ordered middleware chain over a draft. Contributions execute in
  * registry order (`order`, then registration order); the first `null` wins
- * and cancels the send. A throwing handler is treated as pass-through so a
- * broken plugin can't eat messages.
+ * and cancels the send, and the first consumed verdict ends the chain the
+ * same way (the message is already delivered). A throwing handler is treated
+ * as pass-through so a broken plugin can't eat messages.
  */
-export async function runComposerMiddleware(draft: ComposerDraft): Promise<ComposerDraft | null> {
+export async function runComposerMiddleware(draft: ComposerDraft): Promise<ComposerMiddlewareResult> {
   let current = draft
 
   for (const contribution of registry.getArea(COMPOSER_AREAS.middleware)) {
@@ -111,8 +128,8 @@ export async function runComposerMiddleware(draft: ComposerDraft): Promise<Compo
     try {
       const next = await middleware.handler(current)
 
-      if (next === null) {
-        return null
+      if (next === null || isConsumedComposerDraft(next)) {
+        return next
       }
 
       current = next

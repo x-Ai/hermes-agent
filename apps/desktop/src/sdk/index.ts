@@ -48,8 +48,10 @@ import { registry } from '@/contrib/registry'
 import type { WorkspaceMode } from '@/contrib/types'
 import { deleteProfile, getLogs, getStatus, hermesApi, type HermesGateway } from '@/hermes'
 import { translateNow as translateDesktop } from '@/i18n/runtime'
+import { selectDesktopPaths } from '@/lib/desktop-fs'
 import { traceIdentityChange } from '@/lib/identity-trace'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
+import { beginHydrationBackgroundSync } from '@/sdk/hydration-badge'
 import {
   $gateway,
   activeGatewayConnectionId,
@@ -370,10 +372,8 @@ export const DEFAULT_SESSION_HYDRATION_TIMEOUT_MS = 20_000
  *  and paint durable history. Bot Mode opts into one retry, so its effective
  *  ceiling is two bounded attempts rather than an unbounded wait. */
 export const BOT_CHAT_SESSION_HYDRATION_TIMEOUT_MS = 60_000
-/** Ceiling on the paint-first "Syncing…" badge. The profile gate it waits on is
- *  not guaranteed to ever fire (see beginHydrationBackgroundSync), so the badge
- *  needs a bound of its own or it outlives the wake it describes. */
-export const HYDRATION_SYNC_BADGE_TIMEOUT_MS = 30_000
+/** The plugin authoring contract (`HermesPlugin`, `PluginContext`, `ctx.*` door types). */
+export type * from './plugin-contract'
 let openSessionGeneration = 0
 /** Which generation's wake most recently set $gatewaySwapTarget. Clearing it
  *  keys off this, not off `generation === openSessionGeneration`, so a
@@ -427,50 +427,6 @@ export interface PluginOpenSessionOptions {
 export interface PluginNewChatOptions {
   workspaceMode?: WorkspaceMode
   workspaceOwnerKey?: string
-}
-
-// Raise the "Syncing…" affordance for a paint-first wake (#89843) and tear it
-// down as soon as the active-profile gate catches up. The listener clears ONLY
-// its own profile's badge: a newer wake may have replaced the badge with a
-// different profile, and the stale listener must not wipe the winner's.
-//
-// The gate is not guaranteed to fire. `.listen()` is change-only, and a wake
-// is routed here precisely because $activeGatewayProfile did not match at
-// resolve time. ensureGatewayProfile does publish the target on a
-// shared-primary connection, but when the activation did NOT land it publishes
-// the route the registry actually settled on instead — so on that path the
-// atom may never become this profile and the listener never fires. Without a
-// cap the badge would outlive the wake it describes and strand a permanent
-// "Syncing <profile>…" spinner with no user-reachable dismissal; only a full
-// app restart would clear it. Cap the wait so the badge can never outlive the
-// work.
-function beginHydrationBackgroundSync(profile: string): void {
-  $hydrationSyncProfile.set(profile)
-
-  let timer: number | undefined
-
-  const clearOwnBadge = (): void => {
-    if ($hydrationSyncProfile.get() === profile) {
-      $hydrationSyncProfile.set(null)
-    }
-  }
-
-  const unlisten = $activeGatewayProfile.listen(next => {
-    if (normalizeProfileKey(next) === profile) {
-      clearOwnBadge()
-
-      if (timer !== undefined) {
-        window.clearTimeout(timer)
-      }
-
-      unlisten()
-    }
-  })
-
-  timer = window.setTimeout(() => {
-    clearOwnBadge()
-    unlisten()
-  }, HYDRATION_SYNC_BADGE_TIMEOUT_MS)
 }
 
 function waitForFocusedSessionHydration({
@@ -1293,6 +1249,9 @@ export const host = {
     }
   },
 
+  /** Native path picker, connection-aware (remote pick browses that host). The same picker the core project dialog uses; feature-detect on older desktops. */
+  selectPaths: (options?: Parameters<typeof selectDesktopPaths>[0]): Promise<string[]> => selectDesktopPaths(options),
+
   /** Open (or re-front) a plugin-rendered MAIN-AREA workspace tile — the same
    *  surface a session tile or a preview occupies: a closeable tab docked
    *  beside the main workspace, taking over the chat area when active. This is
@@ -1652,12 +1611,10 @@ export const host = {
 
 // -- react bridge -------------------------------------------------------------
 
-/** The plugin authoring contract (`HermesPlugin`, `PluginContext`, `ctx.*` door types). */
-export type * from './plugin-contract'
+export type { DesktopSettingKey, DesktopSettingValues } from './settings'
 
 // -- ui: the design language --------------------------------------------------
 
-export type { DesktopSettingKey, DesktopSettingValues } from './settings'
 /** THE whole Capabilities surface (Skills / Tools / MCP tabs, installed
  *  lists, full-skill detail pane, embedded hub picker with one-click
  *  installs). For plugin dialogs pass `embedded` (tab state stays local —
@@ -1742,7 +1699,6 @@ export {
   PanelRowMenu,
   PanelSectionLabel
 } from '@/app/overlays/panel'
-
 export {
   type ProfileGroupHeaderContribution,
   type ProfileGroupRoute,
@@ -1753,6 +1709,7 @@ export {
   type SidebarNavContribution,
   WORKSPACE_PAGE_HEADER_AREA
 } from '@/app/routes'
+
 /** Appearance settings' plugin seam: register a render contribution at
  *  `APPEARANCE_AREAS.extra` to add controls at the end of the Appearance page.
  *  `ColorSwatches` is the app's own swatch grid (profile rail / project dialog
@@ -1889,11 +1846,11 @@ export type { GatewayEventListener } from '@/contrib/events'
  *  `ctx.register` stays the door for permanent contributions. Namespace the
  *  id with your plugin slug (`kanban:board-switcher`). */
 export { Contribute, type ContributeProps } from '@/contrib/react/contribute'
+/** Settings ▸ Plugins entries (`ctx.registerSettingsPage`); `pluginSettingsHref` deep-links one. */
+export { pluginSettingsHref, SETTINGS_PLUGINS_AREA } from '@/contrib/settings-pages'
 
 // -- contracts ----------------------------------------------------------------
 
-/** Settings ▸ Plugins entries (`ctx.registerSettingsPage`); `pluginSettingsHref` deep-links one. */
-export { pluginSettingsHref, SETTINGS_PLUGINS_AREA } from '@/contrib/settings-pages'
 export type { Contribution } from '@/contrib/types'
 /** The live gateway instance type — for typing the `gateway` prop `ConnectorsTab`
  *  takes; obtain the instance from `host.getGateway()`. */
@@ -1974,7 +1931,6 @@ export { PROFILE_SWATCHES, profileColor, profileColorSoft } from '@/lib/profile-
  *  `ctx.socket` frame invalidating a query). Inside components keep using
  *  `useQueryClient`. */
 export { queryClient } from '@/lib/query-client'
-
 /** Compact labels for the reasoning levels exported from @hermes/shared, so a
  *  plugin surfacing a thinking depth uses the same spelling as the app. */
 export { reasoningEffortLabel } from '@/lib/reasoning-effort'
@@ -1983,6 +1939,7 @@ export { reasoningEffortLabel } from '@/lib/reasoning-effort'
  *  setup.runtime_check, reconciled) — pass `host.request`. Don't hand-roll
  *  readiness from raw RPC shapes. */
 export { evaluateRuntimeReadiness, type RuntimeReadinessResult } from '@/lib/runtime-readiness'
+
 /** Row-decoration slots: register a `data` contribution with a `render` for
  *  `SESSION_ROW_AREAS.leading` / `.trailing` to decorate sidebar session rows
  *  (the props carry the row's stored session id). */
@@ -2005,6 +1962,9 @@ export {
   type TranscriptDirectiveProps
 } from '@/lib/transcript-directives'
 export { cn } from '@/lib/utils'
+// HYDRATION_SYNC_BADGE_TIMEOUT_MS + beginHydrationBackgroundSync live in
+// ./hydration-badge (facade line budget); re-exported for profile-routing.test.
+export { HYDRATION_SYNC_BADGE_TIMEOUT_MS } from '@/sdk/hydration-badge'
 /** THE unread store behind `SessionStatusDot`'s emerald dot. A plugin that
  *  learns out-of-band that a session produced something the user hasn't seen
  *  (a roster poll's activity watermark, say) writes HERE rather than keeping

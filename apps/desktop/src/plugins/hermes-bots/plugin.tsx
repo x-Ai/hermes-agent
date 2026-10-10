@@ -65,7 +65,10 @@ import {
   sweepGroupChatMembersForRemovedConnection,
   updateGroupChat
 } from './group-chat'
-import { groupWorkspaceOwnerKey } from './group-membership'
+import { openGroupChat } from './group-chat-view'
+import { groupChatMemberBots, groupWorkspaceOwnerKey } from './group-membership'
+import { groupMentionCompletions, maybeRouteDraftToGroup } from './group-mention-route'
+import { sendToGroupChat } from './group-rounds'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
 import { BOTS_LOCALES, botsText, resetBotsText } from './i18n'
 import { botGatewayLabel, displayName } from './labels'
@@ -100,11 +103,27 @@ interface MentionCompletionItem {
   handles?: string[]
 }
 
-/** The draft a `composer.middleware` handler rewrites, passes through, or
- *  cancels (this plugin never cancels). */
+/** The draft a `composer.middleware` handler rewrites, passes through,
+ *  cancels, or — once routed into a group chat — reports consumed. */
 interface ComposerDraftPayload {
   attachments?: unknown[]
   text: string
+}
+
+type ComposerMiddlewareVerdict = ComposerDraftPayload | null | { consumed: true }
+
+/** Whether a BOT (not a room) answers to `tag` on the live union roster — the
+ *  tie-break that lets a bot keep an ambiguous @tag (group routing yields). */
+function botOwnsMentionTag(tag: string): boolean {
+  const union = cachedUnionRoster()
+
+  return (
+    Array.isArray(union?.profiles) &&
+    resolveRosterMentions(`@${tag}`, union.profiles, {
+      name: focusedMentionProfile(),
+      connectionId: String(host.state.connectionId?.get?.() || host.activeConnectionId?.() || 'local')
+    }).length > 0
+  )
 }
 
 export default {
@@ -222,7 +241,11 @@ export default {
             })
           }
 
-          return items.slice(0, 8)
+          // Group chats complete beside bots: an "@<room>" opening a draft
+          // routes that draft into the room (group-mention-route.ts).
+          const rooms = groupMentionCompletions(q, $groupChats.get(), count => botsText().group.mentionMeta(count))
+
+          return [...items.slice(0, 8), ...rooms.slice(0, 4)]
         }
       }
     })
@@ -777,7 +800,7 @@ export default {
       id: 'mention-middleware',
       area: COMPOSER_AREAS.middleware,
       data: {
-        handler: async (draft: ComposerDraftPayload): Promise<ComposerDraftPayload> => {
+        handler: async (draft: ComposerDraftPayload): Promise<ComposerMiddlewareVerdict> => {
           const text = draft.text || ''
 
           // /new inside a bot's canonical forever-chat would fork the
@@ -815,6 +838,24 @@ export default {
                 text: '/compact'
               }
             }
+          }
+
+          // "@<group> …" as the FIRST token hands the draft to that room as a
+          // new thread pinned to the composer's current workspace — the
+          // project a Sessions-page draft was started under. A bot owning the
+          // same tag keeps the identification path below (bots win a tie).
+          const routed = maybeRouteDraftToGroup(draft, {
+            botOwnsTag: tag => botOwnsMentionTag(tag),
+            cwd: () => String(host.state.cwd?.get?.() || ''),
+            members: group => groupChatMemberBots(group, $lastRoster.get(), $botMeta.get()),
+            open: openGroupChat,
+            rooms: $groupChats.get(),
+            send: (group, members, body, workspace) =>
+              sendToGroupChat(group, members, body, null, undefined, { workspace })
+          })
+
+          if (routed) {
+            return routed === 'consumed' ? { consumed: true } : null
           }
 
           if (!/(^|\s)@[a-z0-9][a-z0-9_-]*/i.test(text)) {

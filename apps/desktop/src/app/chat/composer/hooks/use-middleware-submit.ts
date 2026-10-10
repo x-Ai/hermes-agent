@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 
 import { interceptsTypedVoiceStop } from '@/lib/voice-stop-word'
 
-import { runComposerMiddleware } from '../contrib'
+import { isConsumedComposerDraft, runComposerMiddleware } from '../contrib'
 import type { ChatBarProps } from '../types'
 
 interface VoiceStopHandle {
@@ -41,6 +41,13 @@ export function useMiddlewareSubmit(onSubmitProp: ChatBarProps['onSubmit']) {
 
       if (!draft) {
         return false
+      }
+
+      // A plugin delivered the message itself (Bot Mode routes an "@<group> …"
+      // draft into that room): accepted, so the submit engine clears the draft
+      // instead of restoring it as a rejected send.
+      if (isConsumedComposerDraft(draft)) {
+        return true
       }
 
       return onSubmitProp(draft.text, { ...options, attachments: draft.attachments })
