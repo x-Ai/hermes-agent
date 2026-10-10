@@ -25,6 +25,7 @@ import { capabilityScoped } from '@/api/client'
 import { PRIMARY_SESSION_VIEW } from '@/app/chat/session-view'
 import { openSession, type OpenSessionIntent } from '@/app/open-session'
 import { syncWorkspaceRoute } from '@/app/routes'
+import { readFileDataUrlForAttach } from '@/app/session/hooks/use-prompt-actions/utils'
 import type { ClientSessionState } from '@/app/types'
 import {
   $narrowViewport,
@@ -1251,6 +1252,9 @@ export const host = {
 
   /** Native path picker, connection-aware (remote pick browses that host). The same picker the core project dialog uses; feature-detect on older desktops. */
   selectPaths: (options?: Parameters<typeof selectDesktopPaths>[0]): Promise<string[]> => selectDesktopPaths(options),
+
+  /** A LOCAL file (this machine's disk) as a data URL through the Electron bridge's attach-sized read — the read the composer's own chips get. Null when the bridge is absent (browser dev) or the read failed (gone, unreadable, over the size cap). Feature-detect on older desktops. */
+  readFileDataUrl: (path: string): Promise<null | string> => readFileDataUrlForAttach(path),
 
   /** Open (or re-front) a plugin-rendered MAIN-AREA workspace tile — the same
    *  surface a session tile or a preview occupies: a closeable tab docked

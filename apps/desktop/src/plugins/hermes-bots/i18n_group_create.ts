@@ -39,6 +39,8 @@ export type GroupCreateCopy = {
   mentionMeta: (memberCount: number) => string
   routedToGroup: (group: string, folder: null | string) => string
   routedAttachmentsBlocked: (group: string) => string
+  /** The send was cancelled: these chips could not be read or sit over the room's size cap. */
+  routedAttachmentsUnreadable: (group: string, names: string[]) => string
 }
 
 const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${group}"`).join(separator)
@@ -66,6 +68,8 @@ const en: GroupCreateCopy = {
   mentionMeta: count => `Group chat · ${count} ${count === 1 ? 'member' : 'members'}`,
   routedToGroup: (group, folder) =>
     folder ? `Sent to "${group}" as a new thread in ${folder}` : `Sent to "${group}" as a new thread`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `Could not attach ${names.join(', ')} (unreadable or over the size limit), so nothing was sent to "${group}". Remove the attachment or send it from the group chat.`,
   routedAttachmentsBlocked: group =>
     `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`
 }
@@ -94,6 +98,8 @@ const ja: GroupCreateCopy = {
     folder
       ? `"${group}" に新しいスレッドとして送信しました（${folder}）`
       : `"${group}" に新しいスレッドとして送信しました`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `${names.join('、')} を添付できなかったため（読み取れないかサイズ上限超過）、"${group}" には何も送信していません。添付を外すか、グループチャットから送信してください`,
   routedAttachmentsBlocked: group =>
     `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`
 }
@@ -118,6 +124,8 @@ const zh: GroupCreateCopy = {
   mentionMeta: count => `群聊 · ${count} 位成员`,
   routedToGroup: (group, folder) =>
     folder ? `已作为新线程发送到 "${group}"，工作目录 ${folder}` : `已作为新线程发送到 "${group}"`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `无法附加 ${names.join('、')}，文件不可读或超过大小上限，因此没有向 "${group}" 发送任何内容，请移除该附件或在群聊中发送`,
   routedAttachmentsBlocked: group => `无法从这里向 "${group}" 发送附件，请打开群聊后再发送`
 }
 
@@ -141,6 +149,8 @@ const zhHant: GroupCreateCopy = {
   mentionMeta: count => `群組聊天 · ${count} 位成員`,
   routedToGroup: (group, folder) =>
     folder ? `已作為新討論串傳送到「${group}」，工作目錄 ${folder}` : `已作為新討論串傳送到「${group}」`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `無法附加 ${names.join('、')}（無法讀取或超過大小上限），因此沒有向「${group}」傳送任何內容。請移除該附件或在群組聊天中傳送`,
   routedAttachmentsBlocked: group => `無法從這裡向「${group}」傳送附件，請開啟群組聊天後再傳送`
 }
 
@@ -165,6 +175,8 @@ const ru: GroupCreateCopy = {
   mentionMeta: count => `Групповой чат · участников: ${count}`,
   routedToGroup: (group, folder) =>
     folder ? `Отправлено в "${group}" как новый тред в ${folder}` : `Отправлено в "${group}" как новый тред`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `Не удалось приложить ${names.join(', ')} (файл не читается или превышает лимит размера), поэтому в "${group}" ничего не отправлено. Уберите вложение или отправьте его из группового чата.`,
   routedAttachmentsBlocked: group =>
     `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`
 }
@@ -189,6 +201,8 @@ const ar: GroupCreateCopy = {
   mentionMeta: count => `محادثة جماعية · ${count} أعضاء`,
   routedToGroup: (group, folder) =>
     folder ? `أُرسلت إلى "${group}" كمحادثة فرعية جديدة في ${folder}` : `أُرسلت إلى "${group}" كمحادثة فرعية جديدة`,
+  routedAttachmentsUnreadable: (group, names) =>
+    `تعذر إرفاق ${names.join('، ')} (غير قابل للقراءة أو يتجاوز حد الحجم)، لذا لم يُرسل شيء إلى "${group}". أزل المرفق أو أرسله من المحادثة الجماعية.`,
   routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح المحادثة الجماعية لإرسالها.`
 }
 

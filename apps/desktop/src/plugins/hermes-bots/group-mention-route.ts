@@ -11,14 +11,22 @@
  * send is reported consumed so the composer clears instead of also starting a
  * normal session. Mentions further into the text are left alone: the room's
  * own parser addresses members, and a mid-sentence room name is prose.
+ *
+ * The draft's composer attachments ride along as room attachments
+ * (`group-route-attachments.ts`): files become the data URLs members receive,
+ * reference chips become leading text. One chip that cannot be converted
+ * cancels the whole send — a kept draft the user can fix beats a message
+ * delivered in half.
  */
 
 import { host } from '@hermes/plugin-sdk'
 
 import { mentionNameForms } from './data'
+import { routedGroupAttachments } from './group-route-attachments'
+import type { RoutedAttachmentDeps } from './group-route-attachments'
 import { normalizeGroupWorkspacePath } from './group-workspace'
 import { botsText } from './i18n'
-import type { GroupChat, RosterRow } from './types'
+import type { Attachment, GroupChat, RosterRow } from './types'
 
 /** The tags a room completes and resolves on — the slug forms a bot title gets. */
 export function groupMentionTags(name: string): string[] {
@@ -90,10 +98,18 @@ export function matchLeadingGroupMention(
 export interface GroupRouteDeps {
   /** The composer's live workspace ('' when detached). */
   cwd: () => string
+  /** The host's file door for the draft's attachments; null on a desktop without one. */
+  files: null | RoutedAttachmentDeps
   members: (group: string) => RosterRow[]
   open: (group: string) => void
   /** `sendToGroupChat` — returns the thread id, or null when nothing was sent. */
-  send: (group: string, members: RosterRow[], text: string, workspace: null | string) => null | string
+  send: (
+    group: string,
+    members: RosterRow[],
+    text: string,
+    workspace: null | string,
+    images: Attachment[]
+  ) => null | string
 }
 
 /** `consumed`: the room has the message (or was opened for a bare tag) and the
@@ -101,22 +117,41 @@ export interface GroupRouteDeps {
  *  to the user with a notice already shown. */
 export type GroupRouteVerdict = 'cancel' | 'consumed'
 
-export function routeDraftToGroup(
+export async function routeDraftToGroup(
   hit: GroupMentionHit,
   draft: { attachments?: unknown[]; text: string },
   deps: GroupRouteDeps
-): GroupRouteVerdict {
+): Promise<GroupRouteVerdict> {
   const copy = botsText().group
+  const chips = Array.isArray(draft.attachments) ? draft.attachments.filter(Boolean) : []
+  let images: Attachment[] = []
+  let refs: string[] = []
 
-  // Composer attachments are staged refs/paths, not the data URLs the room
-  // engine forwards to members; rather than drop them silently, keep the draft.
-  if (Array.isArray(draft.attachments) && draft.attachments.length) {
-    host.notify({ kind: 'info', message: copy.routedAttachmentsBlocked(hit.group) })
+  if (chips.length) {
+    // Chips are local paths and thumbnails; the room forwards data URLs. A
+    // desktop without the file door keeps the draft rather than drop them.
+    if (!deps.files) {
+      host.notify({ kind: 'info', message: copy.routedAttachmentsBlocked(hit.group) })
 
-    return 'cancel'
+      return 'cancel'
+    }
+
+    const routed = await routedGroupAttachments(chips, deps.files)
+
+    if (routed.failed.length) {
+      host.notify({ kind: 'error', message: copy.routedAttachmentsUnreadable(hit.group, routed.failed) })
+
+      return 'cancel'
+    }
+
+    images = routed.images
+    refs = routed.refs
   }
 
-  if (!hit.rest) {
+  // Reference chips lead the text, as they do in the 1:1 chat's prompt.
+  const body = [refs.join('\n'), hit.rest].filter(Boolean).join('\n\n')
+
+  if (!body && !images.length) {
     deps.open(hit.group)
 
     return 'consumed'
@@ -124,7 +159,7 @@ export function routeDraftToGroup(
 
   const workspace = normalizeGroupWorkspacePath(deps.cwd())
   // sendToGroupChat raises its own notice when the room has no members.
-  const thread = deps.send(hit.group, deps.members(hit.group), hit.rest, workspace)
+  const thread = deps.send(hit.group, deps.members(hit.group), body, workspace, images)
 
   if (!thread) {
     return 'cancel'
@@ -148,10 +183,10 @@ export interface LeadingGroupRouteDeps extends GroupRouteDeps {
  *  not a room tag (or a bot owns it) and the caller should continue. Keeping
  *  the match + tie-break + route together here holds the composer middleware's
  *  own complexity flat. */
-export function maybeRouteDraftToGroup(
+export async function maybeRouteDraftToGroup(
   draft: { attachments?: unknown[]; text: string },
   deps: LeadingGroupRouteDeps
-): GroupRouteVerdict | null {
+): Promise<GroupRouteVerdict | null> {
   const hit = matchLeadingGroupMention(draft.text, deps.rooms)
 
   if (!hit || deps.botOwnsTag(hit.tag)) {

@@ -69,6 +69,7 @@ import { openGroupChat } from './group-chat-view'
 import { groupChatMemberBots, groupWorkspaceOwnerKey } from './group-membership'
 import { groupMentionCompletions, maybeRouteDraftToGroup } from './group-mention-route'
 import { sendToGroupChat } from './group-rounds'
+import { composerAttachmentDeps } from './group-route-attachments'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
 import { BOTS_LOCALES, botsText, resetBotsText } from './i18n'
 import { botGatewayLabel, displayName } from './labels'
@@ -844,14 +845,15 @@ export default {
           // new thread pinned to the composer's current workspace — the
           // project a Sessions-page draft was started under. A bot owning the
           // same tag keeps the identification path below (bots win a tie).
-          const routed = maybeRouteDraftToGroup(draft, {
+          const routed = await maybeRouteDraftToGroup(draft, {
             botOwnsTag: tag => botOwnsMentionTag(tag),
             cwd: () => String(host.state.cwd?.get?.() || ''),
+            files: composerAttachmentDeps(),
             members: group => groupChatMemberBots(group, $lastRoster.get(), $botMeta.get()),
             open: openGroupChat,
             rooms: $groupChats.get(),
-            send: (group, members, body, workspace) =>
-              sendToGroupChat(group, members, body, null, undefined, { workspace })
+            send: (group, members, body, workspace, images) =>
+              sendToGroupChat(group, members, body, null, images, { workspace })
           })
 
           if (routed) {

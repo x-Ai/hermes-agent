@@ -1102,6 +1102,10 @@ host.openWorkspace(id, { render, title?, minWidth?, onClose? })
                                            //   workspace zone and reveal it; returns a disposer
 host.paneVisibility(paneId)                // ReadableAtom<boolean> — is a contributed pane
                                            //   actually on screen (its zone's active tab)?
+host.selectPaths(options?)                 // native path picker, connection-aware (the core
+                                           //   project dialog's); feature-detect on older desktops
+host.readFileDataUrl(path)                 // a LOCAL file as a data URL via the bridge's attach-
+                                           //   sized read; null when absent/unreadable/over the cap
 host.onEvent(type, fn)                     // gateway event stream ('*' = all); returns disposer.
                                            //   Calls made during register() are retired with the
                                            //   plugin; elsewhere prefer ctx.onEvent (always tracked)

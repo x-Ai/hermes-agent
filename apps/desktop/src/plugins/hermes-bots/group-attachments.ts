@@ -86,8 +86,9 @@ export function pickGroupAttachments(): Promise<Attachment[]> {
 /** Bound a group attachment's long edge so room logs (persisted with the
  *  plugin's other durable state) stay light while screenshots keep enough
  *  resolution for vision models to read text. No-op for small images or
- *  anything the canvas can't decode. */
-function normalizeGroupAttachment(dataUrl: string, maxEdge = 1568): Promise<string> {
+ *  anything the canvas can't decode. Shared with the `@<group>` composer
+ *  route, which converts the main composer's image chips the same way. */
+export function normalizeGroupAttachment(dataUrl: string, maxEdge = 1568): Promise<string> {
   return new Promise(resolve => {
     const img = new Image()
 
