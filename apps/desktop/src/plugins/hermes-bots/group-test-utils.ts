@@ -33,7 +33,8 @@ export interface ScriptedMessage {
 export interface ScriptedSession {
   contracts?: { follow_profile_config: boolean; room_plumbing: boolean }
   /** The session's workspace: the explicit `cwd` it was created with, later
-   *  `session.cwd.set` re-homes; the harness's launch dir until then. */
+   *  `session.cwd.set` / `session.workspace.move` re-homes; the harness's
+   *  launch dir until then. */
   cwd?: string
   messages: ScriptedMessage[]
   profile: string
@@ -106,6 +107,8 @@ export interface GatewayOptions {
   failFirstSubmitWith?: unknown
   /** Reject every `session.cwd.set` with this (a 4009 busy refusal, a 4017 missing dir). */
   rejectCwdSetWith?: unknown
+  /** Reject every `session.workspace.move` with this (a 4017 missing dir). */
+  rejectWorkspaceMoveWith?: unknown
   /** Fired on each post-submit poll, so a test can land a stop mid-turn. */
   onResumePoll?: (polls: number) => void
   /** Report the member inflight for the first N post-submit polls. */
@@ -147,6 +150,28 @@ function scriptedCwdSet(
   session.cwd = String(params.cwd ?? '')
 
   return { branch: '', cwd: session.cwd }
+}
+
+/** Apply a scripted session.workspace.move: re-home a STORED session by key —
+ *  no live runtime involved — or answer 4007 when the gateway has no such row. */
+function scriptedWorkspaceMove(
+  sessions: Map<string, ScriptedSession>,
+  params: Record<string, unknown>,
+  options: GatewayOptions
+): { branch: string; cwd: string; git_repo_root: null } {
+  const session = sessions.get(String(params.session_key ?? ''))
+
+  if (!session) {
+    throw gatewayError(`session not found: ${String(params.session_key)}`, 4007)
+  }
+
+  if (options.rejectWorkspaceMoveWith) {
+    throw options.rejectWorkspaceMoveWith
+  }
+
+  session.cwd = String(params.cwd ?? '')
+
+  return { branch: '', cwd: session.cwd, git_repo_root: null }
 }
 
 /** The explicit cwd a session.create persists: only one the client vouched for
@@ -306,6 +331,10 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
 
     if (method === 'session.cwd.set') {
       return scriptedCwdSet(resolveSession(null, params.session_id), params, options)
+    }
+
+    if (method === 'session.workspace.move') {
+      return scriptedWorkspaceMove(sessions, params, options)
     }
 
     if (method === 'session.resume') {

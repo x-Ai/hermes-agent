@@ -6,7 +6,7 @@
  *  - the "New group chat" dialog (`CreateGroupChatDialog` in
  *    `create-dialog.tsx`): description, current-rooms note, confirm button;
  *  - working directories (`group-workspace.ts`, `group-workspace-settings.tsx`):
- *    the room folder, per-member folders, their notices;
+ *    the room folder, per-member folders, the thread chip, their notices;
  *  - the `@<group>` composer route (`group-mention-route.ts`).
  */
 
@@ -33,6 +33,8 @@ export type GroupCreateCopy = {
   workspaceSource: (source: 'member' | 'profile' | 'room' | 'thread') => string
   workspaceInvalid: (path: string) => string
   workspaceApplyFailed: (member: string, path: string, error: string) => string
+  /** Tooltip of the folder chip on a thread's opening message. */
+  threadWorkspace: (path: string) => string
   /** The `@` popover row for a room. */
   mentionMeta: (memberCount: number) => string
   routedToGroup: (group: string, folder: null | string) => string
@@ -60,6 +62,7 @@ const en: GroupCreateCopy = {
     ({ member: 'own folder', profile: 'profile default', room: 'room folder', thread: 'thread folder' })[source],
   workspaceInvalid: path => `Folder not found: ${path}`,
   workspaceApplyFailed: (member, path, error) => `Could not move ${member} to ${path}: ${error}`,
+  threadWorkspace: path => `This thread works in ${path}`,
   mentionMeta: count => `Group chat · ${count} ${count === 1 ? 'member' : 'members'}`,
   routedToGroup: (group, folder) =>
     folder ? `Sent to "${group}" as a new thread in ${folder}` : `Sent to "${group}" as a new thread`,
@@ -85,6 +88,7 @@ const ja: GroupCreateCopy = {
     ],
   workspaceInvalid: path => `フォルダが見つかりません: ${path}`,
   workspaceApplyFailed: (member, path, error) => `${member} を ${path} に移動できませんでした: ${error}`,
+  threadWorkspace: path => `このスレッドの作業ディレクトリ: ${path}`,
   mentionMeta: count => `グループチャット · メンバー ${count} 人`,
   routedToGroup: (group, folder) =>
     folder
@@ -110,6 +114,7 @@ const zh: GroupCreateCopy = {
     ({ member: '专属目录', profile: '配置档案默认', room: '群目录', thread: '线程目录' })[source],
   workspaceInvalid: path => `找不到文件夹：${path}`,
   workspaceApplyFailed: (member, path, error) => `无法把 ${member} 切换到 ${path}：${error}`,
+  threadWorkspace: path => `该线程的工作目录：${path}`,
   mentionMeta: count => `群聊 · ${count} 位成员`,
   routedToGroup: (group, folder) =>
     folder ? `已作为新线程发送到 "${group}"，工作目录 ${folder}` : `已作为新线程发送到 "${group}"`,
@@ -132,6 +137,7 @@ const zhHant: GroupCreateCopy = {
     ({ member: '專屬目錄', profile: '設定檔預設', room: '群目錄', thread: '討論串目錄' })[source],
   workspaceInvalid: path => `找不到資料夾：${path}`,
   workspaceApplyFailed: (member, path, error) => `無法將 ${member} 切換到 ${path}：${error}`,
+  threadWorkspace: path => `此討論串的工作目錄：${path}`,
   mentionMeta: count => `群組聊天 · ${count} 位成員`,
   routedToGroup: (group, folder) =>
     folder ? `已作為新討論串傳送到「${group}」，工作目錄 ${folder}` : `已作為新討論串傳送到「${group}」`,
@@ -155,6 +161,7 @@ const ru: GroupCreateCopy = {
     ({ member: 'своя папка', profile: 'профиль по умолчанию', room: 'папка комнаты', thread: 'папка треда' })[source],
   workspaceInvalid: path => `Папка не найдена: ${path}`,
   workspaceApplyFailed: (member, path, error) => `Не удалось перевести ${member} в ${path}: ${error}`,
+  threadWorkspace: path => `Рабочий каталог этого треда: ${path}`,
   mentionMeta: count => `Групповой чат · участников: ${count}`,
   routedToGroup: (group, folder) =>
     folder ? `Отправлено в "${group}" как новый тред в ${folder}` : `Отправлено в "${group}" как новый тред`,
@@ -178,6 +185,7 @@ const ar: GroupCreateCopy = {
     ({ member: 'مجلد خاص', profile: 'افتراضي الملف التعريفي', room: 'مجلد الغرفة', thread: 'مجلد المحادثة' })[source],
   workspaceInvalid: path => `المجلد غير موجود: ${path}`,
   workspaceApplyFailed: (member, path, error) => `تعذر نقل ${member} إلى ${path}: ${error}`,
+  threadWorkspace: path => `دليل عمل هذه المحادثة الفرعية: ${path}`,
   mentionMeta: count => `محادثة جماعية · ${count} أعضاء`,
   routedToGroup: (group, folder) =>
     folder ? `أُرسلت إلى "${group}" كمحادثة فرعية جديدة في ${folder}` : `أُرسلت إلى "${group}" كمحادثة فرعية جديدة`,

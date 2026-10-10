@@ -104,9 +104,9 @@ import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-
 import { clearGroupClarify, renameGroupClarify } from './group-turns'
 import {
   GroupMemberWorkspaceField,
+  GroupWorkspaceChip,
   GroupWorkspaceField,
-  useGroupWorkspaceDraft,
-  workspaceLeaf
+  useGroupWorkspaceDraft
 } from './group-workspace-settings'
 import { botsText, useBots } from './i18n'
 import { displayName, slugifyProfileName } from './labels'
@@ -612,19 +612,28 @@ function GroupRoomTitle({
         </span>
       )}
       <div className="min-w-0 flex-1 truncate text-sm font-semibold">{group}</div>
-      {workspace ? (
-        <Tip label={workspace}>
-          <span
-            className="flex shrink-0 items-center gap-1 text-[0.65rem] text-(--ui-text-quaternary)"
-            data-testid="group-workspace-chip"
-          >
-            <Codicon name="folder" />
-            {workspaceLeaf(workspace)}
-          </span>
-        </Tip>
-      ) : null}
+      <GroupWorkspaceChip path={workspace} testId="group-workspace-chip" />
     </>
   )
+}
+
+/** First and last log index of every thread: the opener wears the thread's
+ *  folder chip, the last entry carries its reply box. The public room is one
+ *  arrival-ordered log, so both are plain index scans. */
+function groupThreadBounds(log: GroupMessage[]) {
+  const starts = new Map<string, number>()
+  const ends = new Map<string, number>()
+
+  log.forEach((entry, index) => {
+    const id = groupThreadOf(entry)
+    ends.set(id, index)
+
+    if (!starts.has(id)) {
+      starts.set(id, index)
+    }
+  })
+
+  return { ends, starts }
 }
 
 interface GroupChatWorkspaceProps {
@@ -1273,7 +1282,10 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
   }
 
   // One log entry, rendered exactly as before conversation folding existed.
-  const renderEntry = (entry: GroupMessage, index: number) => {
+  // `threadChip` marks a thread's opening message with the folder the thread
+  // is pinned to (an `@<group>` draft sent from a project); the caller builds
+  // it so this renderer takes on no new branch.
+  const renderEntry = (entry: GroupMessage, index: number, threadChip: ReactNode = null) => {
     const isUser = entry.from.kind === 'user'
     const meta = groupTranscriptSpeakerMeta(entry, members, allMeta)
 
@@ -1353,6 +1365,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
               </Tip>
             )}
             <span className="text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(entry.at)}</span>
+            {threadChip}
             {entry.text.trim() || !isUser ? (
               <div className="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
                 {isUser ? null : (
@@ -1423,12 +1436,19 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
   // The public room is one arrival-ordered conversation. Thread ids scope
   // replies and prompts, not visibility: a newer topic must never hide a
   // member's completed answer or move it ahead of intervening messages.
-  const threadEnds = new Map<string, number>()
-  room.log.forEach((entry, index) => threadEnds.set(groupThreadOf(entry), index))
+  const { ends: threadEnds, starts: threadStarts } = groupThreadBounds(room.log)
   const logChildren: ReactNode[] = []
   room.log.forEach((entry, index) => {
-    logChildren.push(renderEntry(entry, index))
     const id = groupThreadOf(entry)
+    // The folder an `@<group>` thread was started from rides its first message.
+    const pinned = threadStarts.get(id) === index ? room.threadWorkspaces?.[id] : null
+    logChildren.push(
+      renderEntry(
+        entry,
+        index,
+        <GroupWorkspaceChip path={pinned} testId="group-thread-workspace-chip" tip={b.group.threadWorkspace} />
+      )
+    )
 
     if (threadEnds.get(id) !== index) {
       return

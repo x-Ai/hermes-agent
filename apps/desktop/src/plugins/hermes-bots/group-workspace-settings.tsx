@@ -1,13 +1,16 @@
 /**
  * Working-directory controls for a group chat: the room folder field shared by
- * the create and settings dialogs, the per-member own-folder row, and the
- * settings dialog's draft (validate against the gateways, then apply).
+ * the create and settings dialogs, the per-member own-folder row, the folder
+ * chip the room header and a pinned thread's opener wear, and the settings
+ * dialog's draft (validate against the gateways, then apply).
  *
  * Validation goes to the gateway that will run the member: `config.get project`
  * answers with the folder when that host can see it, so a path typed for a
  * member on another machine is checked THERE, and the room folder is checked
  * on this window's gateway. Nothing is written until every changed folder
  * passed, and a failure keeps the dialog open with the offending path named.
+ * Once written, an idle room's member sessions follow the new folders at once
+ * (`rehomeIdleGroupSessions`); a running room catches up at its next turn.
  */
 
 import { Button, Codicon, host, Input, Tip, useValue } from '@hermes/plugin-sdk'
@@ -20,6 +23,7 @@ import {
   memberFollowsRoomWorkspace,
   normalizeGroupWorkspacePath,
   probeGroupWorkspace,
+  rehomeIdleGroupSessions,
   resolveGroupMemberWorkspace,
   sameGroupWorkspace,
   setGroupChatWorkspace,
@@ -35,6 +39,33 @@ export function workspaceLeaf(path: string): string {
     .filter(Boolean)
 
   return parts[parts.length - 1] || path
+}
+
+interface GroupWorkspaceChipProps {
+  path: null | string | undefined
+  testId: string
+  /** Tooltip for the path; the bare path when omitted. */
+  tip?: (path: string) => string
+}
+
+/** A folder's leaf name with the full path in its tooltip. Renders nothing
+ *  without a path, so a caller passes the ladder's answer straight through. */
+export function GroupWorkspaceChip({ path, testId, tip }: GroupWorkspaceChipProps) {
+  if (!path) {
+    return null
+  }
+
+  return (
+    <Tip label={tip ? tip(path) : path}>
+      <span
+        className="flex shrink-0 items-center gap-1 text-[0.65rem] text-(--ui-text-quaternary)"
+        data-testid={testId}
+      >
+        <Codicon name="folder" />
+        {workspaceLeaf(path)}
+      </span>
+    </Tip>
+  )
 }
 
 async function pickFolder(current: string): Promise<null | string> {
@@ -229,6 +260,9 @@ export function useGroupWorkspaceDraft(group: string, members: GroupMember[], op
   }
 
   const apply = (target: string) => {
+    const threadWorkspaces = room?.threadWorkspaces || {}
+    const before = { workspace: currentWorkspace, memberWorkspaces: currentMembers, threadWorkspaces }
+
     if (!sameGroupWorkspace(workspace, currentWorkspace)) {
       setGroupChatWorkspace(target, workspace)
     }
@@ -236,6 +270,10 @@ export function useGroupWorkspaceDraft(group: string, members: GroupMember[], op
     for (const member of changedMembers()) {
       setGroupMemberWorkspace(target, member, memberWorkspaces[groupMemberKey(member)])
     }
+
+    // Best effort, off the save path: the idle room's sessions move now; a
+    // failure is a notice, never a blocked save.
+    void rehomeIdleGroupSessions(target, members, before, { workspace, memberWorkspaces, threadWorkspaces })
   }
 
   return { apply, effectiveFor, memberWorkspaces, setMemberWorkspace, setWorkspace, validate, workspace }

@@ -73,3 +73,27 @@ it('keeps every public member reply readable in room arrival order across interl
     expect(text).toContain(name)
   }
 })
+
+it('marks a thread pinned to its own folder on its opening message only', async () => {
+  Element.prototype.scrollIntoView = vi.fn()
+  const { $groupChats } = await import('./group-chat')
+  const { GroupChatWorkspace } = await import('./group-chat-view')
+
+  const log = [
+    { id: 'u1', thread: 'a', from: { kind: 'user' as const, name: 'You' }, text: 'From the app project', at: 1 },
+    { id: 'm1', thread: 'a', from: { kind: 'member' as const, name: 'Builder' }, text: 'On it', at: 2 },
+    { id: 'u2', thread: 'b', from: { kind: 'user' as const, name: 'You' }, text: 'Room default', at: 3 }
+  ]
+
+  $groupChats.set({
+    Room: { log, watermarks: {}, sessions: {}, workspace: '/srv/room', threadWorkspaces: { a: '/srv/app' } }
+  })
+  const { getAllByTestId, getByTestId } = render(<GroupChatWorkspace group="Room" members={[]} />)
+
+  // The header chip is the room default; the thread chip sits on thread a's
+  // opener and nowhere else — not on its reply, not on the unpinned thread b.
+  expect(getByTestId('group-workspace-chip').textContent).toBe('room')
+  const chips = getAllByTestId('group-thread-workspace-chip')
+  expect(chips.map(chip => chip.textContent)).toEqual(['app'])
+  expect(chips[0].closest('.group')?.textContent).toContain('From the app project')
+})

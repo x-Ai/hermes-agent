@@ -24,13 +24,15 @@
  * through it). A fresh session is created with the folder; a resumed one is
  * re-homed with `session.cwd.set` when its cwd disagrees — at turn start the
  * session is idle, so the busy refusal (4009) only means "a turn is still
- * running, retry next turn". Nothing chases live sessions on save.
+ * running, retry next turn". A settings save re-homes the stored sessions of
+ * an idle room at once (`rehomeIdleGroupSessions`); a running room waits for
+ * that turn-start pass.
  */
 
 import { host } from '@hermes/plugin-sdk'
 
-import { updateGroupChat } from './group-chat'
-import { groupMemberKey } from './group-membership'
+import { $groupChats, updateGroupChat } from './group-chat'
+import { groupMemberKey, groupSessionMemberKey, groupSessionThread } from './group-membership'
 import { botsText } from './i18n'
 import { requestForBot } from './routing'
 import type { GroupChat, GroupMember } from './types'
@@ -147,6 +149,24 @@ export function withGroupThreadWorkspace<T extends GroupWorkspaceRoom>(
 // otherwise toast on every turn of every thread.
 const workspaceFailureNotices = new Set<string>()
 
+function noteWorkspaceApplyFailure(group: string, member: GroupMember, desired: string, error: unknown) {
+  const notice = `${group}::${groupMemberKey(member)}::${desired}`
+
+  if (workspaceFailureNotices.has(notice)) {
+    return
+  }
+
+  workspaceFailureNotices.add(notice)
+  host.notify({
+    kind: 'error',
+    message: botsText().group.workspaceApplyFailed(
+      member.name,
+      desired,
+      error instanceof Error ? error.message : String(error)
+    )
+  })
+}
+
 /** Re-home a live member session whose cwd disagrees with the ladder. Returns
  *  whether a re-home was sent. A busy refusal (4009) is not a failure: the
  *  member is still finishing another thread's turn and the next turn retries. */
@@ -166,26 +186,68 @@ export async function reconcileGroupSessionWorkspace(
 
     return true
   } catch (error: any) {
-    if (error?.code === 4009) {
-      return false
-    }
-
-    const notice = `${group}::${groupMemberKey(member)}::${desired}`
-
-    if (!workspaceFailureNotices.has(notice)) {
-      workspaceFailureNotices.add(notice)
-      host.notify({
-        kind: 'error',
-        message: botsText().group.workspaceApplyFailed(
-          member.name,
-          desired,
-          error instanceof Error ? error.message : String(error)
-        )
-      })
+    if (error?.code !== 4009) {
+      noteWorkspaceApplyFailure(group, member, desired, error)
     }
 
     return false
   }
+}
+
+/** Re-home the stored member sessions of an IDLE room whose ladder answer
+ *  changed on save, so the new folder holds before anyone speaks (a later cold
+ *  resume, a CLI resume of the plumbing session, and the turn-start reconcile
+ *  all read the stored cwd). `session.workspace.move` works by stored key —
+ *  no resume, no agent build — but also follows a LIVE session mid-turn, so a
+ *  running room is skipped wholesale: moving a member under its turn is not
+ *  "idle", and `reconcileGroupSessionWorkspace` re-homes it at its next turn
+ *  anyway. A thread pinned to its own folder or a member with its own folder
+ *  resolves the same rung before and after, so it stays put. Resolves to the
+ *  number of sessions moved. */
+export async function rehomeIdleGroupSessions(
+  group: string,
+  members: GroupMember[],
+  before: GroupWorkspaceRoom,
+  after: GroupWorkspaceRoom
+): Promise<number> {
+  const room = $groupChats.get()[group]
+
+  if (!room || room.running) {
+    return 0
+  }
+
+  let moved = 0
+
+  for (const [key, stored] of Object.entries(room.sessions || {})) {
+    const member = members.find(candidate => groupMemberKey(candidate) === groupSessionMemberKey(key))
+
+    if (typeof stored !== 'string' || !member) {
+      continue
+    }
+
+    const thread = groupSessionThread(key)
+    const desired = resolveGroupMemberWorkspace(after, member, thread).cwd
+
+    if (!desired || sameGroupWorkspace(resolveGroupMemberWorkspace(before, member, thread).cwd, desired)) {
+      continue
+    }
+
+    try {
+      await requestForBot(member, 'session.workspace.move', {
+        session_key: stored,
+        cwd: desired,
+        profile: member.name
+      })
+      moved += 1
+    } catch (error: any) {
+      // 4007: the gateway no longer has the row; the next turn mints anew.
+      if (error?.code !== 4007) {
+        noteWorkspaceApplyFailure(group, member, desired, error)
+      }
+    }
+  }
+
+  return moved
 }
 
 /** Ask the gateway that will run the member whether it can see `path`:
