@@ -2,6 +2,7 @@ import { useStore } from '@nanostores/react'
 import { useEffect } from 'react'
 
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { cn } from '@/lib/utils'
 import { $activeGatewayProfile, $profiles, normalizeProfileKey, profileLabel, refreshProfiles } from '@/store/profile'
 import {
@@ -56,9 +57,11 @@ export function SettingsProfileScope({ className }: { className?: string }) {
   const profiles = useStore($profiles)
   // The note names the edit target with the same presentation label as its
   // chip (Bot title → display_name → slug); the slug alone can name a bot the
-  // user has never seen called that.
+  // user has never seen called that. The root profile's canonical `default`
+  // is rendered through displayEntityName like every other profile surface,
+  // so a zh Desktop reads 默认 here too, not the slug.
   const selectedLabel = profiles.find(profile => normalizeProfileKey(profile.name) === selected)
-  const selectedName = selectedLabel ? settingsScopeLabel(selectedLabel) : selected
+  const selectedName = displayEntityName(selectedLabel ? settingsScopeLabel(selectedLabel) : selected, t)
 
   // Refresh lazily so a profile created elsewhere shows up; the cached list
   // paints immediately. Best-effort — a failure keeps the cached roster.
@@ -80,7 +83,7 @@ export function SettingsProfileScope({ className }: { className?: string }) {
           <ScopeChip
             active={normalizeProfileKey(profile.name) === selected}
             key={profile.name}
-            label={settingsScopeLabel(profile)}
+            label={displayEntityName(settingsScopeLabel(profile), t)}
             onSelect={() => setSettingsScope(profile.name)}
           />
         ))}
@@ -130,7 +133,7 @@ export function ActiveProfileNote({ className }: { className?: string }) {
       )}
       role="status"
     >
-      {t.settings.profileScope.editsProfile(profile ? settingsScopeLabel(profile) : key)}
+      {t.settings.profileScope.editsProfile(displayEntityName(profile ? settingsScopeLabel(profile) : key, t))}
     </p>
   )
 }
