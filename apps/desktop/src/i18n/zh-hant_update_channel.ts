@@ -13,5 +13,8 @@ export const zhHantUpdateChannel = {
   change: '變更',
   latestRelease: (v: string) => `你正在使用最新的穩定版發布（${v}）。`,
   noReleaseTitle: '尚無穩定版發布',
-  noReleaseBody: (repo: string) => `${repo} 尚未發布任何穩定版本。切換到「滾動更新」以繼續跟隨 main 分支。`
+  noReleaseBody: (repo: string) => `${repo} 尚未發布任何穩定版本。切換到「滾動更新」以繼續跟隨 main 分支。`,
+  rollbackTitle: (v: string) => `回退到穩定版 ${v}`,
+  rollbackBody: (v: string) => `目前的組建比穩定版 ${v} 更新。安裝後 Hermes 將回退到該版本。`,
+  rollbackAction: (v: string) => `回退到 ${v}`
 }

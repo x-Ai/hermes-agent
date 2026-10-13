@@ -563,3 +563,26 @@ def test_a_repository_without_a_release_reports_release_missing(installation):
     assert status["message"] == "No published stable release in fixture/fork"
     assert "targetSha" not in status
     assert requests == ["/repos/fixture/fork/releases/latest"]
+
+
+@pytest.mark.parametrize("on,release,rollback", [("head", "base", True), ("base", "head", False)])
+def test_stable_release_the_checkout_already_contains_is_a_rollback(installation, tmp_path, on, release, rollback):
+    """A release HEAD contains is a move back (#137714); an older checkout is a real update."""
+    from hermes_cli.source_check import check_for_updates
+
+    root, _linked, home, base, head, responses, _requests, git = installation
+    shas = {"base": base, "head": head}
+    bare = tmp_path / "origin.git"
+    git("clone", "-q", "--bare", str(root), str(bare), cwd=tmp_path)
+    git("tag", "v1.2.3", shas[release], cwd=bare)
+    git("remote", "set-url", "origin", str(bare))
+    git("checkout", "-q", "--detach", shas[on])
+    api = f"/repos/{OFFICIAL_REPOSITORY}"  # the fixture's origin is a local bare repo: the fallback repository answers
+    responses[f"{api}/releases/latest"] = (200, {"draft": False, "prerelease": False, "tag_name": "v1.2.3"})
+    responses[f"{api}/commits/v1.2.3"] = (200, {"sha": shas[release]})
+
+    status = check_for_updates(install_root=root, home=home, channel="stable", force=True)
+
+    assert status.get("targetSha") == shas[release], status
+    assert status["updateAvailable"] is True
+    assert status["rollback"] is rollback

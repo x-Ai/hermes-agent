@@ -1,10 +1,8 @@
 /** Dashboard-only copy that is intentionally separate from CLI strings.
  *
- * The browser dashboard renders several metadata-driven surfaces whose labels
- * must be translated without changing the config keys, API payloads, or CLI
- * output that back them. Locales that have not translated this newer bundle
- * fall back to English through getDashboardCopy().
- */
+ * The browser dashboard renders several metadata-driven surfaces whose labels must be translated
+ * without changing the config keys, API payloads, or CLI output that back them. Locales that have
+ * not translated this newer bundle fall back to English through getDashboardCopy(). */
 import { dashboardFilesEn, dashboardFilesZh } from './dashboard-files'
 
 export const dashboardEn = {
@@ -844,6 +842,7 @@ export const dashboardEn = {
     checkUpdates: 'Check for updates',
     latestVersion: 'You are on the latest version.',
     updateAvailable: 'Update available',
+    newerThanRelease: 'newer than v{version}',
     portal: 'Nous Portal',
     notLoggedIn: 'not logged in',
     loggedIn: 'logged in',
@@ -1836,6 +1835,7 @@ export const dashboardZh: DashboardCopy = {
     checkUpdates: '检查更新',
     latestVersion: '当前已是最新版本',
     updateAvailable: '有可用更新',
+    newerThanRelease: '比 v{version} 更新',
     portal: 'Nous 门户',
     notLoggedIn: '未登录',
     loggedIn: '已登录',

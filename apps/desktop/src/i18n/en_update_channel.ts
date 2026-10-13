@@ -16,5 +16,9 @@ export const enUpdateChannel: UpdateChannelCopy = {
   latestRelease: (v: string) => `You’re on the latest stable release (${v}).`,
   noReleaseTitle: 'No stable release yet',
   noReleaseBody: (repo: string) =>
-    `${repo} has not published a stable release. Switch to Every commit to keep following the main branch.`
+    `${repo} has not published a stable release. Switch to Every commit to keep following the main branch.`,
+  rollbackTitle: (v: string) => `Back to stable release ${v}`,
+  rollbackBody: (v: string) =>
+    `This build is newer than the stable release ${v}. Installing it moves Hermes back to that release.`,
+  rollbackAction: (v: string) => `Roll back to ${v}`
 }

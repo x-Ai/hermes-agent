@@ -22,7 +22,7 @@ hermes update --set-channel stable   # 仅跟踪本仓库最新发布的版本
 hermes update --channel main         # 仅本次针对 main 运行，不保存
 ```
 
-选定的渠道按安装存储在 `config.yaml` 的 `update.installs` 下。Windows 应用商店、MSIX 和捆绑桌面安装不受影响。
+选定的渠道按安装存储在 `config.yaml` 的 `update.installs` 下。运行 `--set-channel stable` 会把检出固定到该发布的精确提交，即使它比当前运行的代码更旧：桌面应用会把这一步称为回退到该发布，`hermes update --check` 也会说明当前检出更新，而不是宣布有新更新。在已经选择了 `main` 以外渠道的安装上重新运行安装器（`install.sh`、`install.ps1` 或 Hermes-Setup）不会移动检出，只有 `hermes update` 会移动它；显式的 `--commit` 固定仍然有效。Windows 应用商店、MSIX 和捆绑桌面安装不受影响。
 
 :::tip
 `hermes update` 会自动检测新的配置选项并提示你添加。如果跳过了该提示，可手动运行 `hermes config check` 查看缺失的选项，再运行 `hermes config migrate` 以交互方式添加。

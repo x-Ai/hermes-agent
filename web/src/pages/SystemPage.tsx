@@ -68,7 +68,7 @@ import type {
 } from "@/lib/api";
 import { apiErrorFromResponse, errorMessage } from "@/lib/api-error";
 import { useI18n } from "@/i18n";
-import { getDashboardCopy } from "@/i18n/dashboard";
+import { type DashboardCopy, getDashboardCopy } from "@/i18n/dashboard";
 import { localizeUpdateCheckNotice, localizeUpdateRefusal } from "@/i18n/update-metadata";
 
 function formatBytes(n: number): string {
@@ -122,6 +122,17 @@ function localizePortalFeature(
  * backup, import, skills update, checkpoints prune, gateway start/stop).
  * Polls /api/actions/<name>/status until the process exits.
  */
+/** Badge for an available update; a rollback names the release it returns to. Localized through the
+ *  dashboard copy like the rest of the page (upstream renders English literals here). */
+function updateBadge(info: UpdateCheckResponse, copy: DashboardCopy["system"]): string {
+  if (info.rollback_to) return copy.newerThanRelease.replace("{version}", info.rollback_to);
+  return info.behind && info.behind > 0 ? copy.behind.replace("{count}", String(info.behind)) : copy.updateAvailable;
+}
+
+function updateToast(info: UpdateCheckResponse, copy: DashboardCopy["system"]): string {
+  return updateBadge(info, copy);
+}
+
 function ActionLogViewer({
   action,
   onClose,
@@ -617,12 +628,7 @@ export default function SystemPage() {
         setUpdateInfo(info);
         if (force) {
           if (info.update_available) {
-            showToast(
-              info.behind && info.behind > 0
-                ? copy.behind.replace("{count}", String(info.behind))
-                : copy.updateAvailable,
-              "success"
-            );
+            showToast(updateToast(info, copy), "success");
           } else if (info.behind === 0) {
             showToast(copy.latestVersion, "success");
           } else if (info.message) {
@@ -979,9 +985,7 @@ export default function SystemPage() {
                     updateInfo &&
                     (updateInfo.update_available ? (
                       <Badge tone="warning">
-                        {updateInfo.behind && updateInfo.behind > 0
-                          ? copy.behind.replace("{count}", String(updateInfo.behind))
-                          : copy.updateAvailable}
+                        {updateBadge(updateInfo, copy)}
                       </Badge>
                     ) : updateInfo.behind === 0 ? (
                       <Badge tone="success">{copy.latest}</Badge>

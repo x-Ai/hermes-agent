@@ -20,4 +20,10 @@ export interface UpdateChannelCopy {
    *  line, and the body naming the repository and the way back to following main. */
   noReleaseTitle: string
   noReleaseBody: (repository: string) => string
+  /** Updates overlay title: the stable release is older than this checkout (a rollback). */
+  rollbackTitle: (version: string) => string
+  /** Installing the older stable release moves the checkout back; says so plainly. */
+  rollbackBody: (version: string) => string
+  /** Updates overlay install button for that rollback. */
+  rollbackAction: (version: string) => string
 }

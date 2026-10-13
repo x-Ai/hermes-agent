@@ -15,5 +15,9 @@ export const frUpdateChannel = {
   latestRelease: (v: string) => `Vous utilisez la dernière version stable (${v}).`,
   noReleaseTitle: 'Pas encore de version stable',
   noReleaseBody: (repo: string) =>
-    `${repo} n’a pas encore publié de version stable. Passez à « Chaque commit » pour continuer à suivre la branche main.`
+    `${repo} n’a pas encore publié de version stable. Passez à « Chaque commit » pour continuer à suivre la branche main.`,
+  rollbackTitle: (v: string) => `Revenir à la version stable ${v}`,
+  rollbackBody: (v: string) =>
+    `Cette build est plus récente que la version stable ${v}. L’installer ramène Hermes à cette version.`,
+  rollbackAction: (v: string) => `Revenir à ${v}`
 }

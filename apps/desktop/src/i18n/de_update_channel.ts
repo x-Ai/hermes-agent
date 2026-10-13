@@ -15,5 +15,9 @@ export const deUpdateChannel = {
   latestRelease: (v: string) => `Du nutzt das neueste stabile Release (${v}).`,
   noReleaseTitle: 'Noch kein stabiles Release',
   noReleaseBody: (repo: string) =>
-    `${repo} hat noch kein stabiles Release veröffentlicht. Wechsle zu „Jeder Commit“, um dem main-Branch weiter zu folgen.`
+    `${repo} hat noch kein stabiles Release veröffentlicht. Wechsle zu „Jeder Commit“, um dem main-Branch weiter zu folgen.`,
+  rollbackTitle: (v: string) => `Zurück zum stabilen Release ${v}`,
+  rollbackBody: (v: string) =>
+    `Dieser Build ist neuer als das stabile Release ${v}. Die Installation setzt Hermes auf dieses Release zurück.`,
+  rollbackAction: (v: string) => `Zurück auf ${v}`
 }
