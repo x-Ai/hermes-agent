@@ -12,6 +12,7 @@ import { noteBotAttention } from './data'
 import { groupFailureReason, recordGroupActivity } from './group-activity'
 import { $groupChats, $groupClarify, appendGroupChatEntry, updateGroupChat } from './group-chat'
 import type { GroupChatRoom } from './group-chat'
+import { noteGroupSessionRuntime, noteGroupSessionSnapshot } from './group-context-usage'
 import {
   failedTurnBoundaryRow,
   groupTranscriptRowText,
@@ -185,8 +186,9 @@ interface GroupSessionSnapshot {
    *  object, which after a failure is RETAINED as `{ status: 'error', … }`
    *  (`_fail_inflight_turn`) so a reconnecting client can rebuild the error. */
   inflight?: boolean | { error?: string; status?: string }
-  /** The session's live view; `cwd` is the workspace the turn would run in. */
-  info?: { cwd?: string }
+  /** The session's live view; `cwd` is the workspace the turn would run in,
+   *  `usage` its occupancy once it has run a turn here (`group-context-usage.ts`). */
+  info?: { cwd?: string; usage?: unknown }
   message_count?: number
   messages?: GroupTurnTranscriptMessage[]
   /** Still-open server→client requests (`server_requests.open_requests`); the
@@ -385,6 +387,7 @@ export async function ensureGroupChatSession(
           // means another thread's turn is still finishing. The caller
           // re-checks binding liveness before it uses this runtime.
           await reconcileGroupSessionWorkspace(group, member, res.session_id, res.info?.cwd, workspace)
+          noteGroupSessionSnapshot(group, thread, member, res)
 
           return {
             runtime: res.session_id,
@@ -434,6 +437,7 @@ export async function ensureGroupChatSession(
     }
 
     const stored = created?.stored_session_id || null
+    noteGroupSessionRuntime(group, thread, member, created?.session_id)
 
     if (stored) {
       updateGroupChat(group, (r: GroupChatRoom) => {
@@ -1098,6 +1102,8 @@ async function pollGroupMemberTurn(context: GroupTurnPollContext): Promise<null 
       runtimeIds.add(state.session_id)
     }
 
+    noteGroupSessionSnapshot(context.group, thread, member, state)
+
     const messages = Array.isArray(state?.messages) ? state.messages : []
     const busy = groupSessionBusy(state)
     // A clarify blocking inside the member's session is a question for the
@@ -1236,6 +1242,7 @@ async function runGroupChatMemberTurnLeased(
     })
 
     const { before, leftover, runtimeIds, snapshot } = await prepareGroupTurnBaseline(member, runtime, stored)
+    noteGroupSessionSnapshot(group, thread, member, snapshot)
 
     if (!binding.isLive()) {
       return null
@@ -1378,6 +1385,7 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
       return
     }
 
+    noteGroupSessionSnapshot(group, strandedThread, member, state)
     // Pending prompts are authoritative even while the session is running.
     const awaitingUser = syncGroupClarify(group, member, strandedThread, state)
 

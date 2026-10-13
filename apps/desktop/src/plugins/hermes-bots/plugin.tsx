@@ -65,6 +65,7 @@ import {
   updateGroupChat
 } from './group-chat'
 import { openGroupChat } from './group-chat-view'
+import { startGroupContextUsage } from './group-context-usage-contrib'
 import { hydrateStoredGroupChat } from './group-hydrate'
 import { groupChatMemberBots, groupWorkspaceOwnerKey } from './group-membership'
 import { groupMentionCompletions, maybeRouteDraftToGroup } from './group-mention-route'
@@ -162,14 +163,15 @@ export default {
     startBotRelay()
     // Opt-in per bot: raise a bot's Screen tab on its first live screen tool call.
     const stopScreenAutoRaise = startScreenAutoRaise()
+    // The statusbar context chip describes the group room in front (group-context-usage-contrib).
+    const stopGroupContextUsage = startGroupContextUsage(ctx)
 
-    // Disabling the plugin (or a hot reload) must actually stop the clock —
+    // Disabling the plugin (or a hot reload) must actually stop these —
     // before this, the rAF loop + 1Hz document scan ran until app restart.
     if (typeof ctx.onDispose === 'function') {
-      ctx.onDispose(disposeLocales)
-      ctx.onDispose(stopFaceClock)
-      ctx.onDispose(stopBotRelay)
-      ctx.onDispose(stopScreenAutoRaise)
+      for (const stop of [disposeLocales, stopFaceClock, stopBotRelay, stopScreenAutoRaise, stopGroupContextUsage]) {
+        ctx.onDispose(stop)
+      }
     }
 
     // @-mention autocomplete: typing "@rese…" in ANY composer offers the

@@ -119,7 +119,7 @@ import { sessionsHost } from './sessions'
 import { desktopSettings } from './settings'
 
 /** Pane, status bar and titlebar slots; see `./areas` for the mount rules. */
-export { PANES_AREA, STATUSBAR_AREAS, TITLEBAR_AREAS } from './areas'
+export * from './areas'
 
 // -- state: readonly views over the app's live atoms -------------------------
 

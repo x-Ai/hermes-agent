@@ -10,9 +10,11 @@
  *  - the `@<group>` composer route (`group-mention-route.ts`).
  */
 
+import { type GroupContextCopy, groupContextCopy } from './i18n_group_context'
+
 // A type alias, not an interface: `BotsMessages` must stay assignable to the
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
-export type GroupCreateCopy = {
+type GroupCreateOwnCopy = {
   /** `max` is GROUP_CHAT_MAX_MEMBERS. */
   newDescription: (max: number) => string
   /** After a candidate's @handle: the rooms it already belongs to. */
@@ -55,7 +57,7 @@ const bracketed = (groups: string[]) => groups.map(group => `「${group}」`).jo
 
 // English stays byte-identical to the former literals: the e2e specs click
 // `Create Group (2)`.
-const en: GroupCreateCopy = {
+const en: GroupCreateOwnCopy = {
   newDescription: max =>
     `Pick 2–${max} bots. Local memberships sync through each Bot profile; cross-machine members stay scoped to this room.`,
   inGroups: groups => `in ${quoted(groups)}`,
@@ -87,7 +89,7 @@ const en: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`
 }
 
-const ja: GroupCreateCopy = {
+const ja: GroupCreateOwnCopy = {
   newDescription: max =>
     `ボットを 2〜${max} 体選びます。ローカルのボットのメンバーシップは各ボットのプロファイルを通じて同期され、他のマシンのメンバーはこのルームにのみ属します`,
   inGroups: groups => `${bracketed(groups)} に参加中`,
@@ -123,7 +125,7 @@ const ja: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`
 }
 
-const zh: GroupCreateCopy = {
+const zh: GroupCreateOwnCopy = {
   newDescription: max =>
     `选择 2–${max} 个机器人，本机机器人的成员关系会通过各自的配置档案同步，来自其他设备的成员只保留在这个房间内`,
   inGroups: groups => `已加入 ${quoted(groups, '、')}`,
@@ -154,7 +156,7 @@ const zh: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} 已被 "${owner}" 使用`
 }
 
-const zhHant: GroupCreateCopy = {
+const zhHant: GroupCreateOwnCopy = {
   newDescription: max =>
     `選擇 2–${max} 個機器人。本機機器人的成員關係會透過各自的設定檔同步，來自其他裝置的成員只保留在這個房間內`,
   inGroups: groups => `已加入 ${bracketed(groups)}`,
@@ -185,7 +187,7 @@ const zhHant: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} 已被「${owner}」使用`
 }
 
-const ru: GroupCreateCopy = {
+const ru: GroupCreateOwnCopy = {
   newDescription: max =>
     `Выберите от 2 до ${max} ботов. Участники с этой машины синхронизируются через профиль каждого бота; участники с других машин остаются только в этой комнате.`,
   inGroups: groups => `в ${quoted(groups)}`,
@@ -218,7 +220,7 @@ const ru: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`
 }
 
-const ar: GroupCreateCopy = {
+const ar: GroupCreateOwnCopy = {
   newDescription: max =>
     `اختر من 2 إلى ${max} بوتات. تتم مزامنة عضويات البوتات المحلية عبر ملف تعريف كل بوت، أما الأعضاء من الأجهزة الأخرى فيبقون ضمن هذه الغرفة فقط.`,
   inGroups: groups => `في ${quoted(groups, '، ')}`,
@@ -249,11 +251,15 @@ const ar: GroupCreateCopy = {
   handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`
 }
 
+/** Everything the fork adds to `b.group.*`: this file's keys plus the room's
+ *  context-usage readout (`i18n_group_context.ts`). */
+export type GroupCreateCopy = GroupContextCopy & GroupCreateOwnCopy
+
 export const groupCreateCopy: Record<'ar' | 'en' | 'ja' | 'ru' | 'zh' | 'zh-hant', GroupCreateCopy> = {
-  ar,
-  en,
-  ja,
-  ru,
-  zh,
-  'zh-hant': zhHant
+  ar: { ...ar, ...groupContextCopy.ar },
+  en: { ...en, ...groupContextCopy.en },
+  ja: { ...ja, ...groupContextCopy.ja },
+  ru: { ...ru, ...groupContextCopy.ru },
+  zh: { ...zh, ...groupContextCopy.zh },
+  'zh-hant': { ...zhHant, ...groupContextCopy['zh-hant'] }
 }

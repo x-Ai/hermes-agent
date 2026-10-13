@@ -11,7 +11,8 @@
  */
 
 import { $groupChats } from './group-chat'
-import { groupMemberKey, groupSessionMemberKey } from './group-membership'
+import { noteGroupSessionSnapshot, recordGroupSessionUsageEvent } from './group-context-usage'
+import { groupMemberKey, groupSessionMemberKey, groupSessionThread } from './group-membership'
 import { requestForBot } from './routing'
 import type { GroupMember } from './types'
 
@@ -54,6 +55,15 @@ function memberSessionTargets(group: string, member: GroupMember): string[] {
   return stored.length > 0 ? Array.from(new Set(stored)) : [`Group: ${room.roomId || group}`]
 }
 
+/** The thread a stored session id belongs to in the room record ('legacy' for
+ *  a pre-thread pointer or an id the room no longer lists). */
+function memberSessionThread(group: string, stored: string): string {
+  const room = $groupChats.get()[group] || {}
+  const key = Object.entries(room.sessions || {}).find(([, value]) => value === stored)?.[0]
+
+  return key ? groupSessionThread(key) : 'legacy'
+}
+
 export async function compressGroupMemberHistory(
   group: string,
   member: GroupMember
@@ -71,6 +81,7 @@ export async function compressGroupMemberHistory(
       })) as { session_id?: string }
 
       runtime = resumed?.session_id || null
+      noteGroupSessionSnapshot(group, memberSessionThread(group, target), member, resumed)
     } catch (error: any) {
       // 4007 = the gateway genuinely has no such session; anything else is a
       // real failure the caller should see.
@@ -91,6 +102,9 @@ export async function compressGroupMemberHistory(
       { session_id: runtime },
       { timeoutMs: GROUP_SESSION_COMPRESS_TIMEOUT_MS }
     )
+
+    // The compress answer carries the post-compaction usage for the chip's row.
+    recordGroupSessionUsageEvent({ payload: result, session_id: runtime })
 
     if (result?.status === 'pending') {
       outcome.pending += 1
