@@ -232,7 +232,7 @@ Import the area constants from the SDK; each area has its own `data` payload.
 | Full page | `ROUTES_AREA` | `data: { path }` + `render` |
 | Sidebar nav | `SIDEBAR_NAV_AREA` | `data: { path, label, codicon }` |
 | Status bar | `STATUSBAR_AREAS.left` / `.right` | `render` (or `data` as `StatusbarItem`) |
-| Context chip override | `STATUSBAR_CONTEXT_USAGE_AREA` | `data: ContextUsageOverrideContribution` — `active` / `label` / `detail` atoms + `panel`; while `active` is true the core context-usage chip paints your label and opens your panel (a main-area workspace that is not a session, e.g. a group room whose members run in hidden sessions) |
+| Session readouts override | `STATUSBAR_CONTEXT_USAGE_AREA` | `data: ContextUsageOverrideContribution` — `active` / `label` / `detail` / `cacheHit` / `tokensPerSecond` atoms + `panel`; while `active` is true the core context-usage chip paints your label and opens your panel, and the cache-hit-rate / tokens-per-second items paint your atoms (a main-area workspace that is not a session, e.g. a group room whose members run in hidden sessions) |
 | Title bar | `TITLEBAR_AREAS.left` / `.center` / `.right` | `data` as `TitlebarTool`, or a mount-scoped `<Contribute>` |
 | Page header | `WORKSPACE_PAGE_HEADER_AREA` | `<WorkspacePageHeaderControl>` inside your page (inline in a split tile) |
 | ⌘K palette | `PALETTE_AREA` | `data: PaletteContribution` |

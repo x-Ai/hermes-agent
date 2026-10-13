@@ -68,7 +68,16 @@ afterEach(() => {
 
 it('lists every member: the measured occupancy, or the placeholder for one that has not spoken', async () => {
   noteGroupSessionSnapshot('Alpha', 'main', alpha, {
-    info: { usage: { compressions: 2, context_max: 200_000, context_percent: 6, context_used: 12_000 } },
+    info: {
+      usage: {
+        avg_tps: 41.6,
+        cache_hit_pct: 87.4,
+        compressions: 2,
+        context_max: 200_000,
+        context_percent: 6,
+        context_used: 12_000
+      }
+    },
     session_id: 'rt-a1'
   })
 
@@ -79,7 +88,7 @@ it('lists every member: the measured occupancy, or the placeholder for one that 
   const figures = screen.getAllByTestId('group-context-usage-figure').map(node => node.textContent)
 
   expect(figures).toEqual(['12k/200k · 6%', 'No turn yet'])
-  expect(screen.getByText('2 compressions')).toBeTruthy()
+  expect(screen.getByText('2 compressions · cache hit 87% · 42 t/s')).toBeTruthy()
 
   // Opening the popover measures only the member without a reading.
   await waitFor(() => expect(requestForBot).toHaveBeenCalled())
@@ -91,6 +100,7 @@ it('lists every member: the measured occupancy, or the placeholder for one that 
 it('projects a measured split onto the live occupancy for the bar', () => {
   const entry = {
     at: 0,
+    seq: 1,
     categories: [
       { color: 'c1', id: 'system_prompt', label: 'System prompt', tokens: 4_000 },
       { color: 'c2', id: 'conversation', label: 'Conversation', tokens: 1_000 }

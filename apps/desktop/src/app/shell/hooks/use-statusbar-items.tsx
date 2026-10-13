@@ -11,8 +11,8 @@ import { projectLiveContextBreakdown } from '@/app/shell/context-usage-panel'
 import { GatewayMenuPanel } from '@/app/shell/gateway-menu-panel'
 import { useChangeWorkspaceItem } from '@/app/shell/hooks/use-change-workspace'
 import { useContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
-import { useContextUsageChip } from '@/app/shell/hooks/use-context-usage-chip'
 import { useFocusedSessionRow } from '@/app/shell/hooks/use-focused-session-row'
+import { useStatusbarReadouts } from '@/app/shell/hooks/use-statusbar-readouts'
 import { useSystemResourcesStatusbarItem } from '@/app/shell/system-resources-statusbar'
 import { $paneVisible } from '@/components/pane-shell/tree/store'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +36,7 @@ import {
 } from '@/lib/icons'
 import { type RuntimeReadinessResult } from '@/lib/runtime-readiness'
 import { resolveSessionTimerSince } from '@/lib/session-timer-since'
-import { cacheHitLabel, LiveDuration, tokensPerSecondLabel } from '@/lib/statusbar'
+import { LiveDuration } from '@/lib/statusbar'
 import { rollbackSentence } from '@/lib/update-copy'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
@@ -361,12 +361,8 @@ export function useStatusbarItems({
     [contextBreakdown, gaugeUsage]
   )
 
-  // The item's face: the focused session's, or an active plugin override's (STATUSBAR_CONTEXT_USAGE_AREA).
-  const contextChip = useContextUsageChip(displayedContextBreakdown, contextBreakdownLoading, gaugeUsage)
-  // Both ride the same usage payload the context meter does (session.usage
-  // ticks mid-turn, message.complete after) — no extra RPC, no polling.
-  const cacheHit = cacheHitLabel(currentUsage)
-  const tokensPerSecond = tokensPerSecondLabel(currentUsage)
+  // Context chip, cache hit and t/s: the focused session's, or an active plugin override's (a group room in front).
+  const readouts = useStatusbarReadouts(displayedContextBreakdown, contextBreakdownLoading, gaugeUsage, currentUsage)
 
   // Dial the viewed profile directly: the ambient `requestGateway` is the
   // session-routed dispatcher, which re-scopes `params.profile` to the FOCUSED
@@ -696,10 +692,10 @@ export function useStatusbarItems({
         variant: 'text'
       },
       {
-        // Label, `[bar] N%` detail and popover come from useContextUsageChip:
+        // Label, `[bar] N%` detail and popover come from useStatusbarReadouts:
         // the focused session's, or an active plugin override's (a group room
         // in front). It never self-hides — an empty label is a placeholder.
-        ...contextChip,
+        ...readouts.contextChip,
         id: 'context-usage',
         menuAlign: 'end',
         menuClassName: 'w-auto border-(--ui-stroke-secondary) p-0',
@@ -711,7 +707,7 @@ export function useStatusbarItems({
         id: 'cache-hit-rate',
         // Same never-self-hide rule as the context meter: opted in means a
         // placeholder until the first cached turn reports, not a vanished item.
-        label: cacheHit || '—',
+        label: readouts.cacheHit || '—',
         title: copy.cacheHitRateTitle,
         toggleLabel: copy.toggleCacheHitRate,
         variant: 'text'
@@ -719,7 +715,7 @@ export function useStatusbarItems({
       {
         icon: <Zap className="size-3" />,
         id: 'tokens-per-second',
-        label: tokensPerSecond || '—',
+        label: readouts.tokensPerSecond || '—',
         title: copy.tokensPerSecondTitle,
         toggleLabel: copy.toggleTokensPerSecond,
         variant: 'text'
@@ -757,16 +753,14 @@ export function useStatusbarItems({
       approvalModeItem,
       backendVersionItem,
       busy,
-      cacheHit,
       chatOpen,
       clientVersionItem,
-      contextChip,
+      readouts,
       copy,
       sessionStartedAt,
       gatewayState,
       systemResourcesItem,
       terminalShowing,
-      tokensPerSecond,
       turnStartedAt
     ]
   )

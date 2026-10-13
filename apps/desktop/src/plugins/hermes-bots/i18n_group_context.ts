@@ -20,6 +20,9 @@ export type GroupContextCopy = {
   /** A member driven in several threads: the row shows the latest, this names the count. */
   contextUsageThreads: (count: number) => string
   contextUsageCompressions: (count: number) => string
+  /** The member's prompt-cache hit rate and rolling throughput, as the statusbar items show them. */
+  contextUsageCacheHit: (percent: number) => string
+  contextUsageTokensPerSecond: (tps: number) => string
   contextUsageNoMembers: string
 }
 
@@ -31,6 +34,8 @@ const en: GroupContextCopy = {
   contextUsageNone: 'No turn yet',
   contextUsageThreads: count => `${count} ${count === 1 ? 'thread' : 'threads'}`,
   contextUsageCompressions: count => `${count} ${count === 1 ? 'compression' : 'compressions'}`,
+  contextUsageCacheHit: percent => `cache hit ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: 'No members in this room'
 }
 
@@ -42,6 +47,8 @@ const zh: GroupContextCopy = {
   contextUsageNone: '尚未发言',
   contextUsageThreads: count => `${count} 个线程`,
   contextUsageCompressions: count => `压缩 ${count} 次`,
+  contextUsageCacheHit: percent => `缓存命中 ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: '此群聊还没有成员'
 }
 
@@ -53,6 +60,8 @@ const zhHant: GroupContextCopy = {
   contextUsageNone: '尚未發言',
   contextUsageThreads: count => `${count} 個討論串`,
   contextUsageCompressions: count => `已壓縮 ${count} 次`,
+  contextUsageCacheHit: percent => `快取命中 ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: '此群組尚無成員'
 }
 
@@ -65,6 +74,8 @@ const ja: GroupContextCopy = {
   contextUsageNone: 'まだ発言なし',
   contextUsageThreads: count => `${count} 件のスレッド`,
   contextUsageCompressions: count => `圧縮 ${count} 回`,
+  contextUsageCacheHit: percent => `キャッシュヒット ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: 'このルームにはメンバーがいません'
 }
 
@@ -77,6 +88,8 @@ const ru: GroupContextCopy = {
   contextUsageNone: 'Реплик ещё не было',
   contextUsageThreads: count => `Тредов: ${count}`,
   contextUsageCompressions: count => `Сжатий: ${count}`,
+  contextUsageCacheHit: percent => `Кэш: ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} т/с`,
   contextUsageNoMembers: 'В этой комнате нет участников'
 }
 
@@ -88,6 +101,8 @@ const ar: GroupContextCopy = {
   contextUsageNone: 'لا ردود بعد',
   contextUsageThreads: count => `${count} سلاسل`,
   contextUsageCompressions: count => `${count} عمليات ضغط`,
+  contextUsageCacheHit: percent => `إصابة التخزين المؤقت ${percent}%`,
+  contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: 'لا أعضاء في هذه الغرفة'
 }
 

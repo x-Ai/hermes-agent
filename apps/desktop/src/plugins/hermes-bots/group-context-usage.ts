@@ -28,6 +28,10 @@ import type { GroupMember } from './types'
 
 /** The occupancy fields of a gateway usage snapshot (`_get_usage`) kept per session. */
 export interface GroupSessionUsageStats {
+  /** Rolling output tokens per second over the last ~10 calls (`_get_usage`). */
+  avg_tps?: number
+  /** Session prompt-cache hit rate, 0–100; omitted while the provider reports no cache reads. */
+  cache_hit_pct?: number
   compressions?: number
   context_estimated?: boolean
   context_max?: number
@@ -47,6 +51,8 @@ export interface GroupSessionUsageCategory {
 export interface GroupSessionUsage {
   /** Wall clock of the last reading. */
   at: number
+  /** Order of the last reading across every session (two in one millisecond still order). */
+  seq: number
   /** Per-category split from `session.context_breakdown`; empty until asked. */
   categories: GroupSessionUsageCategory[]
   group: string
@@ -84,6 +90,7 @@ export const $groupRoomInFront = atom<null | string>(null)
 /** Runtime session id → reading key, so a usage frame keyed by runtime id
  *  (message.complete, session.usage) finds the member it belongs to. */
 const runtimeOwners = new Map<string, string>()
+let readingSeq = 0
 
 const finite = (value: unknown): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined
@@ -106,6 +113,8 @@ function pickUsage(raw: unknown): GroupSessionUsageStats | null {
   const usage = raw as Record<string, unknown>
 
   return {
+    avg_tps: finite(usage.avg_tps),
+    cache_hit_pct: finite(usage.cache_hit_pct),
     compressions: finite(usage.compressions),
     context_estimated: flag(usage.context_estimated),
     context_max: finite(usage.context_max),
@@ -149,7 +158,12 @@ function mergeUsage(previous: GroupSessionUsageStats, incoming: GroupSessionUsag
   if (incoming.context_used === undefined) {
     return {
       ...previous,
-      ...defined({ compressions: incoming.compressions, context_max: incoming.context_max })
+      ...defined({
+        avg_tps: incoming.avg_tps,
+        cache_hit_pct: incoming.cache_hit_pct,
+        compressions: incoming.compressions,
+        context_max: incoming.context_max
+      })
     }
   }
 
@@ -186,6 +200,7 @@ function commit(
 
   const next: GroupSessionUsage = {
     at: Date.now(),
+    seq: readingSeq + 1,
     categories: categories ?? (compacted ? [] : (previous?.categories ?? [])),
     group: identity.group,
     memberKey: identity.memberKey,
@@ -198,6 +213,7 @@ function commit(
     return
   }
 
+  readingSeq = next.seq
   $groupSessionUsage.set({ ...all, [key]: next })
 }
 
@@ -491,6 +507,36 @@ export function fullestGroupUsage(entries: readonly GroupSessionUsage[]): GroupS
   return best
 }
 
+/** The member session most recently heard from — the one running now, or the
+ *  last one that did. Its throughput and cache hit are what the statusbar's
+ *  `tokens-per-second` / `cache-hit-rate` items show for the room: members
+ *  overwrite each other as they take turns, by design. */
+export function latestGroupUsage(entries: readonly GroupSessionUsage[]): GroupSessionUsage | null {
+  let latest: GroupSessionUsage | null = null
+
+  for (const entry of entries) {
+    if (!latest || entry.seq > latest.seq) {
+      latest = entry
+    }
+  }
+
+  return latest
+}
+
+/** `87%` — the core `cacheHitLabel` format; '' while the provider reports no cache reads. */
+export function groupCacheHitLabel(usage: GroupSessionUsageStats): string {
+  const pct = usage.cache_hit_pct
+
+  return typeof pct === 'number' && Number.isFinite(pct) ? `${Math.round(pct)}%` : ''
+}
+
+/** `42 t/s` — the core `tokensPerSecondLabel` format; '' before the first completed call. */
+export function groupTokensPerSecondLabel(usage: GroupSessionUsageStats): string {
+  const tps = usage.avg_tps
+
+  return typeof tps === 'number' && Number.isFinite(tps) && tps > 0 ? `${Math.round(tps)} t/s` : ''
+}
+
 /** `~45k/1M` — the core chip's own format (`usageContextLabel`). */
 export function groupUsageLabel(usage: GroupSessionUsageStats): string {
   if (groupUsagePercent(usage) === null) {
@@ -519,18 +565,30 @@ function fullestInFront(room: null | string, all: Record<string, GroupSessionUsa
 
 export interface GroupContextChipStores {
   active: ReadableAtom<boolean>
+  cacheHit: ReadableAtom<string>
   detail: ReadableAtom<string>
   label: ReadableAtom<string>
+  tokensPerSecond: ReadableAtom<string>
+}
+
+function latestInFront(room: null | string, all: Record<string, GroupSessionUsage>): GroupSessionUsage | null {
+  return room ? latestGroupUsage(groupRoomUsageEntries(room, all)) : null
 }
 
 /** The chip override's contract (`STATUSBAR_CONTEXT_USAGE_AREA`): active while
- *  a room tab is in front; label and detail follow the fullest member. The
+ *  a room tab is in front; label and detail follow the fullest member, cache
+ *  hit and tokens per second the member heard from last. The
  *  `$groupChats` input re-keys the readings when a room record changes. Built
  *  on demand (at plugin register), not at import: the room engine imports
  *  this module too, and its test doubles of the SDK stop at `atom`. */
 export function groupContextChipStores(): GroupContextChipStores {
   return {
     active: computed($groupRoomInFront, room => room !== null),
+    cacheHit: computed([$groupRoomInFront, $groupSessionUsage, $groupChats], (room, all) => {
+      const latest = latestInFront(room, all)
+
+      return latest ? groupCacheHitLabel(latest.usage) : ''
+    }),
     detail: computed([$groupRoomInFront, $groupSessionUsage, $groupChats], (room, all) => {
       const best = fullestInFront(room, all)
 
@@ -540,6 +598,11 @@ export function groupContextChipStores(): GroupContextChipStores {
       const best = fullestInFront(room, all)
 
       return best ? groupUsageLabel(best.usage) : ''
+    }),
+    tokensPerSecond: computed([$groupRoomInFront, $groupSessionUsage, $groupChats], (room, all) => {
+      const latest = latestInFront(room, all)
+
+      return latest ? groupTokensPerSecondLabel(latest.usage) : ''
     })
   }
 }

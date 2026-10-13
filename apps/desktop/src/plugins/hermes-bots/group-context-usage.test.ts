@@ -343,3 +343,43 @@ describe('the statusbar contribution', () => {
     expect($groupRoomInFront.get()).toBeNull()
   })
 })
+
+describe('the running member', () => {
+  it('shows the throughput and cache hit of whichever member was heard from last', () => {
+    const chip = groupContextChipStores()
+    visibility.set(groupRoomPaneId('Alpha'), atom(true))
+    const stop = trackGroupRoomInFront()
+    recordGroupMainTab('Alpha', () => undefined)
+
+    noteGroupSessionSnapshot('Alpha', 'main', alpha, { session_id: 'rt-a1' })
+    noteGroupSessionSnapshot('Alpha', 'main', beta, { session_id: 'rt-b1' })
+    expect(chip.cacheHit.get()).toBe('')
+    expect(chip.tokensPerSecond.get()).toBe('')
+
+    recordGroupSessionUsageEvent({
+      payload: { usage: { avg_tps: 41.6, cache_hit_pct: 87.4, context_max: 100_000, context_used: 10_000 } },
+      session_id: 'rt-a1'
+    })
+    expect(chip.cacheHit.get()).toBe('87%')
+    expect(chip.tokensPerSecond.get()).toBe('42 t/s')
+
+    // Beta speaks next: its figures take the items over.
+    recordGroupSessionUsageEvent({
+      payload: { usage: { avg_tps: 12.2, cache_hit_pct: 30, context_max: 100_000, context_used: 5_000 } },
+      session_id: 'rt-b1'
+    })
+    expect(chip.tokensPerSecond.get()).toBe('12 t/s')
+    expect(chip.cacheHit.get()).toBe('30%')
+
+    // A snapshot without an occupancy still carries the running member's throughput;
+    // its earlier cache reading stays until the provider reports again.
+    noteGroupSessionSnapshot('Alpha', 'main', alpha, {
+      info: { usage: { avg_tps: 55, context_max: 100_000, context_pending: true } },
+      session_id: 'rt-a2'
+    })
+    expect(chip.tokensPerSecond.get()).toBe('55 t/s')
+    expect(chip.cacheHit.get()).toBe('87%')
+
+    stop()
+  })
+})

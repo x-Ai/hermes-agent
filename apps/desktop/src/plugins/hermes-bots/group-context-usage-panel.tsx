@@ -61,7 +61,7 @@ export function latestMemberUsage(
   member: RosterRow
 ): { latest: GroupSessionUsage | null; threads: number } {
   const memberKey = groupMemberKey(member)
-  const mine = entries.filter(entry => entry.memberKey === memberKey).sort((a, b) => b.at - a.at)
+  const mine = entries.filter(entry => entry.memberKey === memberKey).sort((a, b) => b.seq - a.seq)
 
   return { latest: mine[0] ?? null, threads: mine.length }
 }
@@ -152,10 +152,14 @@ export function GroupContextUsagePanel() {
             const { latest, threads } = latestMemberUsage(entries, member)
             const percent = latest ? groupUsagePercent(latest.usage) : null
             const compressions = latest?.usage.compressions ?? 0
+            const cacheHit = latest?.usage.cache_hit_pct
+            const tps = latest?.usage.avg_tps ?? 0
 
             const hints = [
               threads > 1 ? b.group.contextUsageThreads(threads) : '',
-              compressions > 0 ? b.group.contextUsageCompressions(compressions) : ''
+              compressions > 0 ? b.group.contextUsageCompressions(compressions) : '',
+              cacheHit !== undefined ? b.group.contextUsageCacheHit(Math.round(cacheHit)) : '',
+              tps > 0 ? b.group.contextUsageTokensPerSecond(Math.round(tps)) : ''
             ].filter(Boolean)
 
             return (
