@@ -30,7 +30,6 @@ DECLARING_ROUTES = [
 
 @pytest.fixture(scope="module")
 def profile_for():
-    import model_tools  # noqa: F401  — plugin discovery registers the provider profiles
     import providers
 
     def lookup(name):

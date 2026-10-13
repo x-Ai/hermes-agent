@@ -290,7 +290,7 @@ def test_providers_singular_model_does_not_suppress_ollama_native_discovery(monk
 
 def test_user_provider_colliding_with_builtin_uses_custom_slug(monkeypatch):
     """A configured endpoint named xai must not select the built-in xAI route."""
-    monkeypatch.setattr("agent.models_dev.fetch_models_dev", lambda: {})
+    monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
     monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})
 
     providers = list_authenticated_providers(

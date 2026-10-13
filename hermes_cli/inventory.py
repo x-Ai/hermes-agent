@@ -557,6 +557,7 @@ def _apply_capabilities(rows: list[dict], *, metadata_config: dict | None = None
     declaration → serving catalog → models.dev ``reasoning_options``). It is known to under-report
     levels a route honors (the Portal serves glm-5.3 ``minimal`` it never publishes), so the Desktop
     dims and annotates unsupported levels rather than hiding them — the user can still pick one."""
+    from agent.codex_service_tiers import ultrafast_offered
     from hermes_cli.models import model_supports_ultrafast, resolve_fast_mode_overrides
 
     try:
@@ -587,7 +588,8 @@ def _apply_capabilities(rows: list[dict], *, metadata_config: dict | None = None
             fast = resolve_fast_mode_overrides(
                 model, provider=slug, base_url=row.get("api_url")) is not None
             entry: dict[str, Any] = {"fast": fast, "reasoning": reasoning}
-            if fast and model_supports_ultrafast(model):
+            if fast and model_supports_ultrafast(model) and ultrafast_offered(
+                    model, provider=slug, base_url=row.get("api_url")):
                 entry["ultrafast"] = True
 
             detail = None

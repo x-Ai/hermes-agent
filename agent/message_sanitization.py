@@ -12,7 +12,7 @@ import json
 import logging
 import re
 from functools import partial
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, NamedTuple
 
 from agent.agent_runtime_helpers_placeholders import _INTERRUPTED_PLACEHOLDER, hidden_interrupt_placeholder_row
 from agent.message_metadata import DB_ROW_SNAPSHOT
@@ -459,16 +459,16 @@ def _looks_like_corrupt_image_rejection(error_body: str) -> bool:
 
 
 __all__ = [
-    "ECHO_LENIENT", "ECHO_REQUIRE", "ECHO_STRICT", "_SURROGATE_RE",
-    "_escape_invalid_chars_in_json_strings", "_repair_tool_call_arguments",
-    "_sanitize_messages_non_ascii", "_sanitize_messages_surrogates",
-    "_sanitize_structure_non_ascii", "_sanitize_structure_surrogates", "_sanitize_surrogates",
-    "_sanitize_tools_non_ascii", "_strip_images_from_messages", "_strip_non_ascii",
-    "apply_reasoning_content_policy", "close_interrupted_tool_sequence", "coalesce_tool_call_id",
-    "coerce_tool_name", "deterministic_call_id", "looks_like_reasoning_echo_required",
-    "matches_reasoning_echo_family", "matches_reasoning_echo_identity",
-    "matches_reasoning_echo_model", "needs_reasoning_echo", "normalize_provider_tool_call_ids",
-    "reapply_reasoning_echo", "reasoning_echo_family", "reasoning_echo_mode",
+    "_SURROGATE_RE", "_escape_invalid_chars_in_json_strings", "_repair_tool_call_arguments",
+    "_sanitize_messages_non_ascii", "_sanitize_messages_surrogates", "_sanitize_structure_non_ascii",
+    "_sanitize_structure_surrogates", "_sanitize_surrogates", "_sanitize_tools_non_ascii",
+    "_strip_images_from_messages", "_strip_non_ascii", "apply_reasoning_content_policy",
+    "close_interrupted_tool_sequence", "coalesce_tool_call_id", "coerce_tool_name",
+    "deterministic_call_id", "looks_like_reasoning_echo_required", "matches_reasoning_echo_family",
+    "matches_reasoning_echo_identity", "matches_reasoning_echo_model", "needs_reasoning_echo",
+    "normalize_provider_tool_call_ids", "reapply_reasoning_echo", "reasoning_echo_family",
+    "reasoning_replay_route", "record_reasoning_field_rejection", "rejected_reasoning_carriers",
+    "route_reasoning_carriers",
     "sanitize_outbound_kwargs", "stale_thinking_reaches_wire", "strip_images_for_rejecting_model",
     "tool_call_id_variants", "tool_result_id_variants", "uniquify_tool_call_ids",
 ]
@@ -627,55 +627,81 @@ def _set_provider_tool_id(tc: Any, key: str, value: str) -> None:
         _tc_set(tc, key, value)
 
 
-# -- reasoning_content policy: single owner of strip-vs-re-pad; adapters keep only SYNTAX --
-# Audit F4 consolidated the decision previously forked across the wire files in separate incident
-# commits (2b3a4f0af8 strip for strict providers, b5495db701 re-pad for require-side,
-# 94b3131be7/9a9f8a6d99 kimi pad). The POLICY — which route gets which treatment — lives here as one
-# rule table + apply functions; adapters keep only SYNTAX mapping (e.g. anthropic_adapter turning
-# reasoning_content into a thinking block). Three directions, decided per route:
-#
-# require — the vendor's OWN endpoint, named by exact provider id or base-URL host: kimi (provider
-#   kimi-coding / kimi-coding-cn, host api.kimi.com / moonshot.ai / moonshot.cn), deepseek (provider
-#   "deepseek", host api.deepseek.com; #15250), mimo (provider "xiaomi", host *.xiaomimimo.com),
-#   ollama (provider "ollama-cloud", host ollama.com: Ollama's /v1 feeds the field back into the
-#   template's thinking slot, so stripping it drops the model's own CoT mid tool loop).
-#   Echo-back is enforced: with ``tools`` in the request a replayed assistant turn without
-#   reasoning_content is HTTP 400 ("The reasoning_content in the thinking mode must be passed back to
-#   the API"), so a turn that produced no reasoning is padded with " " (V4 Pro rejects "", #17341).
-#   ``model.reasoning_echo: true`` opts any route in up front.
-# lenient — a family model served by someone else: the model id contains "deepseek" / "mimo" or
-#   carries Ollama's ":cloud" / "<size>-cloud" tag, but neither provider nor host is the vendor's
-#   (relays, aggregators, a local Ollama serving a cloud model). Real reasoning is echoed
-#   verbatim so thinking stays continuous, but nothing is fabricated: a blank pad replayed to an
-#   adaptive-thinking backend reads as "this assistant does not think here" and switches reasoning
-#   off for every later turn (content-neutral A/B on a DeepSeek relay, 6 runs per arm: real echo
-#   6/6 turns reasoned, field omitted 2/6, " " pad 0/6 — and the pad is self-perpetuating). A
-#   verbatim proxy that does enforce the echo is learned from its 400 (turn_recovery) and promoted
-#   to require for the session.
-# strict — everyone else (Mistral, Cerebras, Groq, SambaNova, …; #45655): the key is rejected with
-#   400/422 "Extra inputs are not permitted", even a one-space pad. Strip it entirely.
-# Identity is host/provider-driven on purpose: aggregators re-exporting kimi reject the echo
-# (532b209f01), and the same model id behind a relay is not the vendor's API.
-ECHO_REQUIRE, ECHO_LENIENT, ECHO_STRICT = "require", "lenient", "strict"
-_ECHO_MODES = frozenset({ECHO_REQUIRE, ECHO_LENIENT, ECHO_STRICT})
-
+# -- reasoning replay policy: single owner; adapters keep only SYNTAX ----------------------
+# Every model reasons and intends that reasoning to be replayed, so every chat-completions
+# route gets its stored reasoning back BY DEFAULT, on the carrier(s) that route reads. Two
+# tables own the decision:
+#   * ``_REASONING_ECHO_RULES`` — the MUST-ECHO tier: a tool-call turn without a non-empty
+#     ``reasoning_content`` is an HTTP 400 there, so a missing value is padded with " " (never
+#     "": DeepSeek V4 rejects it, #17341). Kimi is host-driven on purpose (aggregators
+#     re-exporting kimi do not need the pad). Membership by provider id / vendor host is the
+#     must-echo IDENTITY; the model-id substring alone (deepseek-*/mimo-* behind a relay, an
+#     aggregator or a local server) is only the family signal: such a route is replayed like any
+#     other and NEVER padded — a blank pad replayed to an adaptive-thinking backend reads as "this
+#     assistant does not think here" and switches reasoning off for every later turn (content-
+#     neutral A/B on a DeepSeek relay, 6 runs per arm: real echo 6/6 turns reasoned, field omitted
+#     2/6, " " pad 0/6 — and the pad perpetuates itself). A verbatim proxy that enforces the echo
+#     after all is learned from its 400 (turn_recovery) and padded for the session.
+#   * ``_REASONING_CARRIER_ROUTES`` — which carriers a route reads (first match wins). Strict
+#     hosts come first: their schemas reject unknown message keys with 400/422 ("Extra inputs
+#     are not permitted" / "property X is unsupported" / "no such field", #45655, #70233).
+#     Every other route defaults to ``reasoning_content``, which is the de-facto standard.
+# A route that still rejects a field is learned at runtime (``record_reasoning_field_rejection``)
+# and the field is dropped for that (provider, host, model) only. Stored history keeps every
+# carrier; only wire copies are shaped here.
 _REASONING_ECHO_RULES: tuple = (
     # (family, exact providers (raw), exact providers (lowered), model substrings (lowered), hosts)
     ("kimi", frozenset({"kimi-coding", "kimi-coding-cn"}), frozenset(), (), ("api.kimi.com", "moonshot.ai", "moonshot.cn")),
     ("deepseek", frozenset(), frozenset({"deepseek"}), ("deepseek",), ("api.deepseek.com",)),
     ("mimo", frozenset(), frozenset({"xiaomi"}), ("mimo",), ("api.xiaomimimo.com", "xiaomimimo.com")),
-    ("ollama", frozenset(), frozenset({"ollama-cloud"}), (":cloud",), ("ollama.com",)),
+    # Portal stealth model that 400s on a tool-call turn without reasoning_content (f86276d2ebc).
+    ("missingno", frozenset(), frozenset(), ("stealth/missingno",), ()),
 )
 _REASONING_ECHO_RULE_BY_FAMILY = {rule[0]: rule for rule in _REASONING_ECHO_RULES}
-_REASONING_ECHO_FAMILIES = tuple(rule[0] for rule in _REASONING_ECHO_RULES)
+# Families whose model signal IS the identity: an exact stealth id served by one vendor, not a
+# vendor-family substring that relays and aggregators reuse for their own deployments.
+_MODEL_IDENTITY_FAMILIES = frozenset({"missingno"})
+
+RC, R, RD = "reasoning_content", "reasoning", "reasoning_details"
+REASONING_CARRIERS = (RC, R, RD)
+_ALL_CARRIERS = frozenset(REASONING_CARRIERS)
+_DEFAULT_CARRIERS = frozenset({RC})
+_LOCAL_CARRIERS = frozenset({RC, R})  # llama.cpp/SGLang read reasoning_content, vLLM/Ollama read reasoning
+
+_REASONING_CARRIER_ROUTES: tuple = (
+    # (carriers, providers (lowered), hosts) — evidence per row in the PR body / FINDINGS.
+    (frozenset(), frozenset({"mistral", "groq", "cerebras", "sambanova"}),
+     ("mistral.ai", "groq.com", "cerebras.ai", "sambanova.ai", "hunyuan.cloud.tencent.com")),
+    # Fireworks' ChatMessage schema is additionalProperties:false with reasoning_content only.
+    (frozenset({RC}), frozenset({"fireworks"}), ("fireworks.ai",)),
+    # OpenRouter-format gateways read the unified array, the string and the alias.
+    (_ALL_CARRIERS, frozenset({"openrouter", "kilocode", "ai-gateway", "nous"}),
+     ("openrouter.ai", "kilo.ai", "ai-gateway.vercel.sh", "nousresearch.com")),
+    # Vendors that document reasoning_details replay next to reasoning_content.
+    (frozenset({RC, RD}), frozenset({"novita", "tencent-tokenhub", "minimax", "minimax-cn"}),
+     ("novita.ai", "tokenhub.tencentmaas.com", "tokenhub-intl.tencentcloudmaas.com", "minimax.io", "minimaxi.com")),
+    (_LOCAL_CARRIERS, frozenset({"ollama-cloud", "custom", "lmstudio", "upstage"}), ("ollama.com", "upstage.ai")),
+)
 
 
-def matches_reasoning_echo_identity(family: str, provider: Any, base_url: Any) -> bool:
-    """True when ``provider`` / ``base_url`` name one family's OWN endpoint (exact provider id or host):
-    the require-side signal. Raises KeyError for an unknown family."""
+class ReasoningReplayRoute(NamedTuple):
+    """``pad``: must-echo tier (missing reasoning_content -> " "). ``carriers``: the reasoning
+    keys an assistant wire copy carries; ``None`` outside chat_completions, where the native
+    adapters own reasoning replay (only the must-echo pad is applied, details are untouched)."""
+
+    pad: bool
+    carriers: frozenset | None
+
+
+def matches_reasoning_echo_identity(family: str, provider: Any, base_url: Any, model: Any = None) -> bool:
+    """True when the route IS the family's own endpoint — exact provider id or vendor host (or, for
+    ``_MODEL_IDENTITY_FAMILIES``, the exact model id): the must-echo signal. Raises KeyError for an
+    unknown family."""
     from utils import base_url_host_matches
 
     _, raw_providers, lowered_providers, _, hosts = _REASONING_ECHO_RULE_BY_FAMILY[family]
+    if family in _MODEL_IDENTITY_FAMILIES and matches_reasoning_echo_model(family, model):
+        return True
     return (
         provider in raw_providers or (provider or "").lower() in lowered_providers
         or any(base_url_host_matches(base_url, host) for host in hosts)
@@ -683,39 +709,33 @@ def matches_reasoning_echo_identity(family: str, provider: Any, base_url: Any) -
 
 
 def matches_reasoning_echo_model(family: str, model: Any) -> bool:
-    """True when the model id belongs to the family (substring); alone, this is the lenient signal."""
+    """True when the model id belongs to the family (substring). Alone this is the LENIENT signal: the
+    same model id behind a relay or aggregator is not the vendor's API, so its stored reasoning is
+    replayed like any other route's but never padded."""
     model_lower = (model or "").lower()
-    if ":" in model_lower and model_lower.endswith("-cloud"):
-        model_lower += ":cloud"  # Ollama's "<size>-cloud" tag (gpt-oss:120b-cloud) == ":cloud"
     return any(sub in model_lower for sub in _REASONING_ECHO_RULE_BY_FAMILY[family][3])
 
 
 def matches_reasoning_echo_family(family: str, provider: Any, model: Any, base_url: Any) -> bool:
-    """True when (provider, model, base_url) belongs to one echo family by ANY signal (families can
-    overlap; membership is tested independently). Raises KeyError for an unknown family."""
-    return matches_reasoning_echo_identity(family, provider, base_url) or matches_reasoning_echo_model(family, model)
+    """True when (provider, model, base_url) belongs to one echo-back family by ANY signal (families
+    can overlap; membership is tested independently). Raises KeyError for an unknown family."""
+    return matches_reasoning_echo_identity(family, provider, base_url, model) or matches_reasoning_echo_model(family, model)
 
 
 def reasoning_echo_family(provider: Any, model: Any, base_url: Any) -> str | None:
-    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` / ``"ollama"`` (first match in table order) when the
-    route belongs to an echo family by any signal, else ``None``."""
-    return next((f for f in _REASONING_ECHO_FAMILIES if matches_reasoning_echo_family(f, provider, model, base_url)), None)
-
-
-def reasoning_echo_mode(provider: Any, model: Any, base_url: Any) -> str:
-    """``ECHO_REQUIRE`` when provider/host name a family's own endpoint, ``ECHO_LENIENT`` when only
-    the model id belongs to a family, else ``ECHO_STRICT``. Table facts only: the per-session opt-in
-    and the learned-from-400 promotion are folded in by ``ReasoningParamsMixin._reasoning_echo_mode``."""
-    if any(matches_reasoning_echo_identity(f, provider, base_url) for f in _REASONING_ECHO_FAMILIES):
-        return ECHO_REQUIRE
-    if any(matches_reasoning_echo_model(f, model) for f in _REASONING_ECHO_FAMILIES):
-        return ECHO_LENIENT
-    return ECHO_STRICT
+    """``"kimi"`` / ``"deepseek"`` / ``"mimo"`` / ``"missingno"`` (first match in table order) when
+    the route belongs to an echo-back family by any signal, else ``None``."""
+    families = (rule[0] for rule in _REASONING_ECHO_RULES)
+    return next((f for f in families if matches_reasoning_echo_family(f, provider, model, base_url)), None)
 
 
 def needs_reasoning_echo(provider: Any, model: Any, base_url: Any) -> bool:
-    """True when the endpoint enforces reasoning_content echo-back (require side)."""
-    return reasoning_echo_mode(provider, model, base_url) == ECHO_REQUIRE
+    """True when the route enforces reasoning_content echo-back (the must-echo tier): a family's OWN
+    endpoint by provider id / vendor host, never a family model id behind someone else's host — that
+    route is lenient (``matches_reasoning_echo_model``: replayed, never padded) until a 400 proves the
+    echo is enforced (``looks_like_reasoning_echo_required``) and turn_recovery promotes it."""
+    families = (rule[0] for rule in _REASONING_ECHO_RULES)
+    return any(matches_reasoning_echo_identity(f, provider, base_url, model) for f in families)
 
 
 def looks_like_reasoning_echo_required(error_body: Any) -> bool:
@@ -725,6 +745,48 @@ def looks_like_reasoning_echo_required(error_body: Any) -> bool:
     return "passed back" in body and ("reasoning_content" in body or "reasoning content" in body)
 
 
+def route_reasoning_carriers(provider: Any, base_url: Any) -> frozenset:
+    """Reasoning carriers the chat-completions route reads (before any runtime rejection)."""
+    from utils import base_url_host_matches
+
+    provider_lower = (provider or "").strip().lower()
+    carriers = next(
+        (c for c, providers, hosts in _REASONING_CARRIER_ROUTES
+         if provider_lower in providers or any(base_url_host_matches(base_url, h) for h in hosts)),
+        None,
+    )
+    if carriers is None:
+        from agent.model_metadata import is_local_endpoint
+
+        carriers = _LOCAL_CARRIERS if base_url and is_local_endpoint(str(base_url)) else _DEFAULT_CARRIERS
+    if RD not in carriers and carriers and _profile_declares_native_details(provider_lower):
+        carriers = carriers | {RD}
+    return carriers
+
+
+def _profile_declares_native_details(provider_lower: str) -> bool:
+    """A profile declaring ``native_reasoning_details_type`` consumes replayed details by contract."""
+    if not provider_lower:
+        return False
+    from providers import get_provider_profile
+
+    return bool(getattr(get_provider_profile(provider_lower), "native_reasoning_details_type", None))
+
+
+def reasoning_replay_route(
+    api_mode: Any, provider: Any, model: Any, base_url: Any, *, echo_opt_in: bool = False,
+    rejected: Iterable[str] = (),
+) -> ReasoningReplayRoute:
+    """Replay decision for one route. Deterministic in its inputs, so the wire prefix is byte-stable
+    across turns and changes only on a route switch or a recorded rejection (``rejected``)."""
+    pad = bool(echo_opt_in) or needs_reasoning_echo(provider, model, base_url)
+    if (api_mode or "chat_completions") != "chat_completions":
+        return ReasoningReplayRoute(pad, None)
+    carriers = route_reasoning_carriers(provider, base_url) - frozenset(rejected)
+    # A strict route never gets a reasoning key, not even the must-echo pad.
+    return ReasoningReplayRoute(pad and RC in carriers, carriers)
+
+
 def stale_thinking_reaches_wire(api_mode: Any, provider: Any, model: Any, base_url: Any) -> bool:
     """True when stale assistant reasoning text is actually replayed on the wire for the route.
 
@@ -732,13 +794,20 @@ def stale_thinking_reaches_wire(api_mode: Any, provider: Any, model: Any, base_u
     walks must share: if they disagree, a reasoning-heavy session can look over-threshold
     to preflight yet fully tail-protected to the walk — an infinite compaction loop.
     ``codex_responses`` never reads the text keys (continuity rides the encrypted sidecar).
-    Both echo sides replay real reasoning; only the strict side strips it.
+    A runtime rejection is not visible here; both sides then over-charge identically.
     """
     if (api_mode or "") == "anthropic_messages":
         from agent.anthropic_thinking_policy import native_anthropic_preserves_prior_thinking
         if native_anthropic_preserves_prior_thinking(base_url, model):
             return True
-    return (api_mode or "") != "codex_responses" and reasoning_echo_mode(provider, model, base_url) != ECHO_STRICT
+    if not api_mode:
+        # No route facts (a bare compressor): the echo families are known to replay — the must-echo
+        # tier by contract, a family model behind another host because its real reasoning is echoed.
+        return reasoning_echo_family(provider, model, base_url) is not None
+    route = reasoning_replay_route(api_mode, provider, model, base_url)
+    if route.carriers is None:
+        return (api_mode or "") != "codex_responses" and route.pad
+    return bool(route.carriers & {RC, R})
 
 
 def native_anthropic_accounting_projection(messages: Any) -> tuple[Any, tuple[str, ...]]:
@@ -793,74 +862,183 @@ def native_anthropic_accounting_projection(messages: Any) -> tuple[Any, tuple[st
     return projected, tuple(replayed_thinking)
 
 
-def apply_reasoning_content_policy(source_msg: dict, api_msg: dict, echo_mode: str) -> None:
-    """Copy provider-facing reasoning fields onto an API replay message (mutates ``api_msg``) in one
-    of the three ``echo_mode`` directions (``ReasoningParamsMixin._reasoning_echo_mode``). Lenient is
-    require minus the fabricated pad: a turn with no real reasoning gets " " on the require side and
-    no field on the lenient side; everything else is identical."""
-    if echo_mode not in _ECHO_MODES:
-        raise ValueError(f"unknown reasoning echo mode {echo_mode!r}")
+def _replayable_reasoning_text(msg: dict) -> str | None:
+    """The turn's reasoning text: a non-blank ``reasoning_content`` wins over ``reasoning``."""
+    for key in (RC, R):
+        value = msg.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+    return None
+
+
+def _apply_legacy_must_echo_pad(source_msg: dict, api_msg: dict) -> None:
+    """Native-adapter wires (``carriers=None``): the pre-replay contract, byte-for-byte. An explicit
+    value is kept verbatim (legacy "" upgraded to " "); a tool-call turn holding only another
+    provider's ``reasoning`` is padded instead of converted into a native thinking block."""
+    existing, reasoning = source_msg.get(RC), source_msg.get(R)
+    if isinstance(existing, str):
+        api_msg[RC] = existing or " "
+    elif isinstance(reasoning, str) and reasoning and not source_msg.get("tool_calls"):
+        api_msg[RC] = reasoning
+    else:
+        api_msg[RC] = " "
+
+
+def apply_reasoning_content_policy(
+    source_msg: dict, api_msg: dict, needs_thinking_pad: bool, carriers: frozenset | None = None,
+) -> None:
+    """Shape an assistant replay message's reasoning keys for the active route (mutates ``api_msg``).
+
+    ``needs_thinking_pad`` is the must-echo flag; ``carriers`` the keys the route reads
+    (``reasoning_replay_route``). ``carriers=None`` is a non-chat-completions wire: only the
+    must-echo ``reasoning_content`` rides there and ``reasoning_details`` is left to the adapter.
+    Keys the route does not read are removed, so a strict host never sees one (#45655, #70233).
+    """
     if source_msg.get("role") != "assistant":
         return
-    if echo_mode == ECHO_STRICT:
-        # Strict side: never carry the field — a reasoning primary pads history with " ",
-        # then a fallback to Mistral/Cerebras/Groq replays the pad and 422s. Also drops a
-        # non-string value (None after compaction): never pass null to the API. Strict
-        # OpenAI-compatible providers reject ANY reasoning_content key in input messages with
-        # HTTP 400/422 ("Extra inputs are not permitted"), even an empty string or a single-space
-        # pad. Stripping here covers the rebuild path; ``reapply_reasoning_echo`` covers the
-        # already-built api_messages path. Refs #45655.
-        api_msg.pop("reasoning_content", None)
-        return
-    existing, reasoning = source_msg.get("reasoning_content"), source_msg.get("reasoning")
-    if isinstance(existing, str) and existing.strip():
-        # Real reasoning (the route's own, or an earlier provider's that the echo side carries):
-        # verbatim on both echo sides.
-        api_msg["reasoning_content"] = existing
-    elif isinstance(existing, str) and echo_mode == ECHO_REQUIRE:
-        # The placeholder written at creation time. Sessions persisted BEFORE #17341 carry "";
-        # DeepSeek V4 Pro rejects that with HTTP 400, so upgrade "" → " " on replay.
-        api_msg["reasoning_content"] = existing or " "
-    elif isinstance(reasoning, str) and reasoning and not source_msg.get("tool_calls"):
-        # Healthy session: promote internal 'reasoning' → 'reasoning_content'. Before the
-        # unconditional pad so genuine reasoning is never overwritten (#15812).
-        api_msg["reasoning_content"] = reasoning
-    elif echo_mode == ECHO_REQUIRE:
-        # tool_calls + 'reasoning' but no 'reasoning_content' means the reasoning came from
-        # ANOTHER provider (DeepSeek's own build pins reasoning_content for tool-call turns):
-        # pad without leaking foreign CoT. No reasoning at all: every assistant turn still needs
-        # the field; " " (not "") because DeepSeek V4 rejects empty string.
-        api_msg["reasoning_content"] = " "
+    text = _replayable_reasoning_text(source_msg)
+    effective = carriers if carriers is not None else (frozenset({RC}) if needs_thinking_pad else frozenset())
+    if carriers is None and needs_thinking_pad:
+        _apply_legacy_must_echo_pad(source_msg, api_msg)
+    elif RC in effective and (text is not None or needs_thinking_pad):
+        # Must-echo tier: every assistant turn carries the field; " " (not "") when there is no
+        # text, because DeepSeek V4 rejects empty string (#17341) and a legacy "" pad upgrades.
+        api_msg[RC] = text if text is not None else " "
     else:
-        # Lenient: nothing real to echo → no field. A replayed blank pad is what switches an
-        # adaptive-thinking backend off; an omitted field is accepted.
-        api_msg.pop("reasoning_content", None)
+        # Also drops a non-string value (None after compaction) and a whitespace pad written
+        # for a must-echo provider: never pass null, never replay a pad as reasoning.
+        api_msg.pop(RC, None)
+    if R in effective and text is not None:
+        api_msg[R] = text
+    else:
+        api_msg.pop(R, None)
+    if carriers is not None and RD not in carriers:
+        # Private ``*.native_assistant`` records (Gemini/Copilot carriers) survive: the transport lifts
+        # them onto the route that reads them and filters them from every other wire.
+        private = [d for d in api_msg.pop(RD, None) or () if isinstance(d, dict)
+                   and str(d.get("type") or "").endswith(".native_assistant")]
+        if private:
+            api_msg[RD] = private
 
 
-_ABSENT = object()
+def _reasoning_shape(msg: dict) -> tuple:
+    return tuple(msg.get(key) for key in REASONING_CARRIERS)
 
 
-def reapply_reasoning_echo(api_messages: list, echo_mode: str) -> int:
-    """Re-pad, un-pad or strip assistant turns' reasoning_content for the ACTIVE route.
+def reapply_reasoning_echo(api_messages: list, needs_thinking_pad: bool, carriers: frozenset | None = None) -> int:
+    """Reconcile already-built assistant turns with the ACTIVE route.
 
-    ``api_messages`` is built once under the primary provider; a mid-conversation fallback
-    can switch providers, so baked-in fields must be reconciled: TO a require-side provider
-    re-applies the pad (else 400; refs #17341 — DeepSeek/Kimi thinking mode need the field on
-    every assistant turn, a single space when no real reasoning exists), TO a lenient route
-    drops blank pads (else the backend stops thinking), TO a strict one strips everything
-    (else 422). Idempotent. Returns the number of assistant turns changed.
+    ``api_messages`` is built once under the primary; a mid-conversation fallback or a recorded
+    field rejection changes the route, so baked-in keys are reconciled both ways: TO a must-echo
+    provider the pad is re-applied (else 400), TO a strict one the keys are stripped (else 422),
+    and a carrier the new route reads is restored from the text that is still present.
+    Idempotent. Returns the number of assistant turns changed.
     """
     changed = 0
     for api_msg in api_messages:
         if api_msg.get("role") != "assistant":
             continue
-        before = api_msg.get("reasoning_content", _ABSENT)
-        if echo_mode != ECHO_STRICT and isinstance(before, str) and before.strip():
-            continue  # real reasoning already on the wire copy: both echo sides keep it verbatim
-        apply_reasoning_content_policy(api_msg, api_msg, echo_mode)
-        if api_msg.get("reasoning_content", _ABSENT) != before:
-            changed += 1
+        before = _reasoning_shape(api_msg)
+        if carriers is None and needs_thinking_pad and api_msg.get(RC):
+            continue
+        apply_reasoning_content_policy(api_msg, api_msg, needs_thinking_pad, carriers)
+        changed += _reasoning_shape(api_msg) != before
     return changed
+
+
+# Provider error bodies (lowercased) for "this request carries a key my schema does not know".
+_UNKNOWN_FIELD_PHRASES = (
+    "extra inputs are not permitted", "is unsupported", "no such field", "unknown field",
+    "unrecognized request argument", "unrecognized field", "unknown parameter", "unexpected field",
+    "additional propert", "unknown key",
+)
+_NAMED_FIELD_RES = {
+    RC: re.compile(r"(?<![\w])reasoning_content(?![\w])"),
+    RD: re.compile(r"(?<![\w])reasoning_details(?![\w])"),
+    # The bare word is also a top-level request param; only a message-path mention counts.
+    R: re.compile(r"messages[^\n]{0,80}?(?<![\w])reasoning(?![\w])"),
+}
+
+
+def rejected_reasoning_fields(error_body: Any, sent_messages: Any) -> frozenset:
+    """Reasoning keys to drop after an unknown-field rejection that names one this request carried.
+
+    Strict schemas report one offending key per error, so the drop is widened to the keys the
+    same schema will reject next: a rejected ``reasoning_details`` / ``reasoning`` takes the
+    other non-standard carrier too (``reasoning_content`` still carries the text); a rejected
+    ``reasoning_content`` (the most widely accepted alias) takes all three. One retry, not three.
+    """
+    body = str(error_body or "").lower()
+    if not any(phrase in body for phrase in _UNKNOWN_FIELD_PHRASES):
+        return frozenset()
+    sent = {
+        key for msg in (sent_messages if isinstance(sent_messages, list) else ())
+        if isinstance(msg, dict) and msg.get("role") == "assistant" for key in REASONING_CARRIERS if key in msg
+    }
+    named = {key for key in sent if _NAMED_FIELD_RES[key].search(body)}
+    if not named:
+        return frozenset()
+    return frozenset(sent & (_ALL_CARRIERS if RC in named else {R, RD}))
+
+
+def reasoning_route_key(agent: Any) -> tuple[str, str, str]:
+    """``(provider, base_url host, model)``: one gateway serves models on different upstream lanes,
+    so a rejection learned for one model must not strip carriers from its siblings."""
+    from utils import base_url_hostname
+
+    return (
+        (getattr(agent, "provider", "") or "").strip().lower(),
+        base_url_hostname(getattr(agent, "base_url", "") or "") or "",
+        (getattr(agent, "model", "") or "").strip(),
+    )
+
+
+_REJECTION_MODEL_CONFIG_KEY = "reasoning_rejected_carriers"
+
+
+def rejected_reasoning_carriers(agent: Any) -> frozenset:
+    """Reasoning keys the active (provider, host, model) rejected in this session.
+
+    Persisted in the session's ``model_config`` so a resumed process (``--resume``, a gateway
+    restart) never re-learns a rejection with another 400. Loaded once per ``session_id``.
+    """
+    routes = agent.__dict__.setdefault("_reasoning_rejecting_routes", {})
+    session_id = getattr(agent, "session_id", None)
+    if session_id and getattr(agent, "_reasoning_rejections_loaded_for", None) != session_id:
+        agent._reasoning_rejections_loaded_for = session_id
+        getter = getattr(getattr(agent, "_session_db", None), "get_session_model_config_value", None)
+        stored = getter(session_id, _REJECTION_MODEL_CONFIG_KEY, []) if callable(getter) else []
+        for entry in stored if isinstance(stored, list) else ():
+            if isinstance(entry, list) and len(entry) == 4 and isinstance(entry[3], list):
+                routes.setdefault(tuple(entry[:3]), set()).update(k for k in entry[3] if k in _ALL_CARRIERS)
+    return frozenset(routes.get(reasoning_route_key(agent), ()))
+
+
+def record_reasoning_field_rejection(agent: Any, error_body: Any, sent_messages: Any) -> frozenset:
+    """Remember the reasoning keys this route rejected; returns the NEW ones (empty = no retry).
+
+    The next ``build_api_request`` re-shapes ``api_messages`` without them for this
+    (provider, host, model) for the rest of the session. A repeat rejection of an already
+    recorded key returns empty, so recovery can never loop. History is never touched.
+    """
+    if getattr(agent, "api_mode", "chat_completions") != "chat_completions":
+        return frozenset()
+    fields = rejected_reasoning_fields(error_body, sent_messages)
+    if needs_reasoning_echo(getattr(agent, "provider", ""), getattr(agent, "model", ""), getattr(agent, "base_url", "")):
+        # Must-echo routes 400 on any tool turn WITHOUT reasoning_content; a body naming it is a
+        # value complaint ("must not be empty"), never a schema that lacks the field.
+        fields -= {RC}
+    if not fields:
+        return frozenset()
+    new = fields - rejected_reasoning_carriers(agent)
+    if not new:
+        return frozenset()
+    routes = agent._reasoning_rejecting_routes
+    routes.setdefault(reasoning_route_key(agent), set()).update(new)
+    patcher = getattr(getattr(agent, "_session_db", None), "patch_session_model_config", None)
+    if callable(patcher) and getattr(agent, "session_id", None) and not getattr(agent, "_persist_disabled", False):
+        patcher(agent.session_id, {_REJECTION_MODEL_CONFIG_KEY: [[*key, sorted(v)] for key, v in sorted(routes.items())]})
+    return frozenset(new)
 
 
 # Image / multimodal parts are deliberately NOT consolidated here: per-adapter handling is

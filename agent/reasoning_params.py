@@ -7,7 +7,7 @@ Extracted from ``run_agent.py``; every method resolves through ``AIAgent``'s MRO
 import time
 
 from agent.lazy_forward import forward as _forward, forward_static as _forward_static
-from agent.message_sanitization import ECHO_REQUIRE, matches_reasoning_echo_identity, reasoning_echo_mode
+from agent.message_sanitization import matches_reasoning_echo_identity
 from agent.vision_message_prep import _provider_model_key
 from utils import base_url_host_matches
 
@@ -155,40 +155,39 @@ class ReasoningParamsMixin:
 
     _build_assistant_message = _forward("agent.chat_completion_helpers", "build_assistant_message")
 
-    def _reasoning_echo_mode(self) -> str:
-        """Echo policy for the active route: ``"require"`` (pad a reasoning-less turn with " "),
-        ``"lenient"`` (echo real reasoning, never pad) or ``"strict"`` (strip). Table and rationale:
-        the reasoning_content policy block in ``message_sanitization``. Require also comes from the
-        ``model.reasoning_echo`` opt-in, from a route this session learned enforces the echo
-        (``turn_recovery``) and from the Nous Portal stealth model. Cached per (provider, model,
-        base_url, opt-in) — called ~16× per turn; ``switch_model()`` / ``_try_activate_fallback()``
-        change the key.
+    def _reasoning_replay_route(self):
+        """Reasoning replay decision for the active route (``message_sanitization.reasoning_replay_route``).
+
+        Cached per (api_mode, provider, model, base_url, opt-in, rejected keys) — called many times
+        per turn — and recomputed after ``switch_model()`` / fallback activation or a recorded
+        field rejection, the only events allowed to change the replayed bytes mid-session.
         """
-        opt_in = self._reasoning_echo_opt_in()
-        key = (self.provider, self.model, getattr(self, "_base_url_lower", self.base_url), opt_in)
-        cached = getattr(self, "_thinking_pad_cache", None)
+        from agent.message_sanitization import reasoning_replay_route, rejected_reasoning_carriers
+
+        rejected = rejected_reasoning_carriers(self)
+        key = (getattr(self, "api_mode", None), self.provider, self.model, getattr(self, "_base_url_lower", self.base_url),
+               self._reasoning_echo_opt_in(), rejected)
+        cached = getattr(self, "_reasoning_route_cache", None)
         if cached is not None and cached[0] == key:
             return cached[1]
-        if (opt_in or self._needs_deepseek_tool_reasoning() or self._needs_kimi_tool_reasoning()
-                or self._needs_mimo_tool_reasoning() or self._needs_ollama_tool_reasoning()
-                or ((self.provider or "").lower() == "nous"
-                    and (self.model or "").lower() == "stealth/missingno")):
-            mode = ECHO_REQUIRE
-        else:
-            mode = reasoning_echo_mode(self.provider, self.model, self.base_url)
-        self._thinking_pad_cache = (key, mode)
-        return mode
+        route = reasoning_replay_route(key[0], self.provider, self.model, self.base_url,
+                                       echo_opt_in=key[4], rejected=rejected)
+        self._reasoning_route_cache = (key, route)
+        return route
 
     def _needs_thinking_reasoning_pad(self) -> bool:
-        """True when the active route enforces ``reasoning_content`` echo-back on tool-call replays —
-        DeepSeek v4, Kimi / Moonshot and Xiaomi MiMo thinking all 400 without it (refs 15250, #17400),
-        Ollama Cloud feeds it to the template: ``_reasoning_echo_mode()`` is require."""
-        return self._reasoning_echo_mode() == ECHO_REQUIRE
+        """True for the must-echo tier: DeepSeek / Kimi / MiMo thinking 400 on a replayed tool-call turn
+        without a non-empty ``reasoning_content`` (#15250, #17400) — their OWN endpoints, a
+        ``model.reasoning_echo`` opt-in for gateways proxying them, or a route this session learned
+        enforces the echo from its 400. Never true for a family model id behind another host (a
+        replayed pad switches its thinking off) nor on a route that does not read the field."""
+        return self._reasoning_replay_route().pad
 
     def _reasoning_echo_opt_in(self) -> bool:
-        """``model.reasoning_echo`` opt-in for the *current* provider (covers gateways the host rules miss;
-        fallback activation swaps the flag and ``restore_primary_runtime()`` restores it), or a
-        (provider, model) this session learned enforces the echo from its 400 (``turn_recovery``)."""
+        """``model.reasoning_echo``: treat the *current* provider as must-echo (pad tool-call turns) — for
+        gateways proxying DeepSeek/Kimi/MiMo that the host rules miss. Replay itself is on by default;
+        fallback activation swaps the flag and ``restore_primary_runtime()`` restores it. Also true for
+        a (provider, model) this session learned enforces the echo from its 400 (``turn_recovery``)."""
         if getattr(self, "_reasoning_echo_flag", False):
             return True
         return _provider_model_key(self) in getattr(self, "_reasoning_echo_required_routes", ())
@@ -219,25 +218,23 @@ class ReasoningParamsMixin:
         """True when the current route is Xiaomi MiMo's own thinking-mode endpoint."""
         return matches_reasoning_echo_identity("mimo", (self.provider or "").lower(), self.base_url)
 
-    def _needs_ollama_tool_reasoning(self) -> bool:
-        """True when the current route is Ollama Cloud's own endpoint (provider ``ollama-cloud`` or host
-        ollama.com); a local Ollama serving a ``:cloud`` / ``-cloud`` tag is the lenient model signal."""
-        return matches_reasoning_echo_identity("ollama", (self.provider or "").lower(), self.base_url)
-
     _copy_reasoning_content_for_api = _forward("agent.agent_runtime_helpers", "copy_reasoning_content_for_api")
 
     _reapply_reasoning_echo_for_provider = _forward("agent.agent_runtime_helpers", "reapply_reasoning_echo_for_provider")
 
     @staticmethod
-    def _sanitize_tool_calls_for_strict_api(api_msg: dict, model: str | None = None) -> dict:
+    def _sanitize_tool_calls_for_strict_api(api_msg: dict, model: str | None = None, *, base_url: str | None = None,
+                                            provider: str | None = None) -> dict:
         """Strip Codex Responses fields from tool_calls for strict Chat Completions APIs (Mistral, Fireworks
-        400/422 on unknown fields). ``extra_content`` (Gemini thought_signature) is kept only for Gemini-family
-        models. Builds new dicts so the internal history keeps the Codex fields for a later fallback."""
+        400/422 on unknown fields). ``extra_content`` (Gemini thought_signature) is kept only on Gemini routes
+        (model family, Gemini host or provider). Builds new dicts so the internal history keeps the Codex
+        fields for a later fallback."""
         tool_calls = api_msg.get("tool_calls")
         if not isinstance(tool_calls, list):
             return api_msg
         from agent.transports.chat_completions import _model_consumes_thought_signature
-        strip = {"call_id", "response_item_id"} | (set() if _model_consumes_thought_signature(model) else {"extra_content"})
+        keep_signature = _model_consumes_thought_signature(model, base_url, provider)
+        strip = {"call_id", "response_item_id"} | (set() if keep_signature else {"extra_content"})
         api_msg["tool_calls"] = [{k: v for k, v in tc.items() if k not in strip} if isinstance(tc, dict) else tc
                                  for tc in tool_calls]
         return api_msg

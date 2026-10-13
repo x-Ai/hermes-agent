@@ -8,7 +8,7 @@ so tests patching that module still intercept the call.
 
 import logging
 import re
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Iterator, Optional
 from urllib.parse import urlparse
 
 from hermes_cli.route_identity import normalize_route_base_url
@@ -208,11 +208,11 @@ def _positive_token_count(raw: Any) -> Optional[int]:
     return value if value > 0 else None
 
 
-def _normalize_model_token_limits(value: Any) -> Dict[str, Dict[str, int]]:
+def _normalize_model_token_limits(value: Any) -> dict[str, dict[str, int]]:
     """Keep only positive, exact-model token overrides from a provider entry."""
     if not isinstance(value, dict):
         return {}
-    result: Dict[str, Dict[str, int]] = {}
+    result: dict[str, dict[str, int]] = {}
     for raw_model, raw_limits in value.items():
         model = str(raw_model).strip()
         if not model or not isinstance(raw_limits, dict):
@@ -614,8 +614,8 @@ def get_custom_provider_context_length(
 
 
 def _token_limit_entries_for_provider(
-    entries: List[Dict[str, Any]], *, requested_provider: str = "",
-) -> List[Dict[str, Any]]:
+    entries: list[dict[str, Any]], *, requested_provider: str = "",
+) -> list[dict[str, Any]]:
     """Resolve a stable provider key before display aliases, refusing ambiguous identities."""
     from hermes_cli.providers import custom_provider_aliases, custom_provider_slug
 
@@ -639,9 +639,9 @@ def _token_limit_entries_for_provider(
 
 
 def _token_limit_entries_for_route(
-    base_url: str, custom_providers: Optional[List[Dict[str, Any]]],
-    config: Optional[Dict[str, Any]] = None, *, requested_provider: str = "",
-) -> List[Dict[str, Any]]:
+    base_url: str, custom_providers: Optional[list[dict[str, Any]]],
+    config: Optional[dict[str, Any]] = None, *, requested_provider: str = "",
+) -> list[dict[str, Any]]:
     """Select one provider's limits; a shared URL alone cannot identify that provider."""
     if custom_providers is None:
         from hermes_cli.config import get_compatible_custom_providers
@@ -656,10 +656,10 @@ def _token_limit_entries_for_route(
 def get_custom_provider_token_limits(
     model: str,
     base_url: str,
-    custom_providers: Optional[List[Dict[str, Any]]] = None,
-    config: Optional[Dict[str, Any]] = None,
+    custom_providers: Optional[list[dict[str, Any]]] = None,
+    config: Optional[dict[str, Any]] = None,
     *, requested_provider: str = "",
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Configured total-context, input and output limits for one exact endpoint/model route.
 
     Precedence, most specific user intent first: ``model_token_limits[model]`` > a hand-curated
@@ -707,7 +707,7 @@ def get_custom_provider_token_limits(
         if entry.get("models_discovered") is True
         and (model_cfg := _route_model_cfg(entry, model)) is not None
     ]
-    result: Dict[str, int] = {}
+    result: dict[str, int] = {}
     for field, keys in aliases.items():
         for source in (*override_cfgs, *curated_cfgs, *entries, *discovered_cfgs):
             value = next(
@@ -722,8 +722,8 @@ def get_custom_provider_token_limits(
 
 
 def get_custom_provider_max_tokens_field(
-    model: str, base_url: str, custom_providers: Optional[List[Dict[str, Any]]] = None,
-    config: Optional[Dict[str, Any]] = None, *, requested_provider: str = "",
+    model: str, base_url: str, custom_providers: Optional[list[dict[str, Any]]] = None,
+    config: Optional[dict[str, Any]] = None, *, requested_provider: str = "",
 ) -> Optional[str]:
     """The chat-completions output-cap field name pinned for one route (``max_tokens`` or
     ``max_completion_tokens``), a ``models[model]`` row winning over the entry, or None."""

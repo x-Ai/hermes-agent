@@ -15,7 +15,7 @@ import sys
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Set, Tuple
+from typing import Iterator, Optional
 
 # Force UTF-8 stdout/stderr: GBK-style Windows locales can't encode the glyphs
 # printed here (✓ ↑ →), and install.ps1 parses this script's stdout as UTF-8.
@@ -287,9 +287,9 @@ class _SyncState:
             print(msg)
 
 
-def _remove_retired_skills(st: "_SyncState") -> List[str]:
+def _remove_retired_skills(st: "_SyncState") -> list[str]:
     """Delete unmodified copies of RETIRED_BUNDLED_SKILLS and drop their manifest entries."""
-    retired: List[str] = []
+    retired: list[str] = []
     for name in sorted(RETIRED_BUNDLED_SKILLS & set(st.manifest)):
         copies = [md.parent for md in _iter_active_skill_mds() if _read_skill_name(md, md.parent.name) == name]
         edited = [d for d in copies if not _matches_origin_hash(d, st.manifest[name])]

@@ -37,16 +37,16 @@ Fragments retain their explicit whitespace; normalization adds no intra-field se
 Main-stream and Relay recording retain the existing paragraph breaks between complete
 bold reasoning headings. Reasoning stays separate from the visible answer.
 
-Replaying stored `reasoning_content` back to the provider follows one of three directions,
-decided per route by `reasoning_echo_mode()` in `agent/message_sanitization.py`:
-**require** for the vendors' own endpoints (DeepSeek, Kimi/Moonshot, Xiaomi MiMo, matched by
-provider id or base-URL host, plus any route with `model.reasoning_echo: true`), which return
-HTTP 400 without the field and therefore get a `" "` pad on reasoning-less tool-call turns;
-**lenient** for the same model ids behind a relay or aggregator, which echo real reasoning
-verbatim but are never padded (a replayed pad switches adaptive thinking off for the rest of
-the session); **strict** for everyone else, where the key is stripped (Mistral, Groq, Cerebras
-reject it). A lenient route that answers with the DeepSeek echo-back 400 is promoted to
-require for the session and the request is retried once (`agent/turn_recovery.py`).
+Stored reasoning is replayed to every chat-completions route on the carriers that route reads
+(`reasoning_replay_route()` in `agent/message_sanitization.py`; strict schemas such as Mistral,
+Groq and Cerebras get no reasoning key at all). The must-echo `" "` pad on reasoning-less
+tool-call turns is decided by **identity only** (`needs_reasoning_echo()`): the vendors' own
+endpoints (DeepSeek, Kimi/Moonshot, Xiaomi MiMo, matched by provider id or base-URL host), the
+Portal stealth model, and any route with `model.reasoning_echo: true`. The same model ids behind
+a relay or aggregator are **lenient**: their real reasoning is replayed verbatim but never padded,
+because a replayed pad switches adaptive thinking off for the rest of the session. A lenient
+route that answers with the DeepSeek echo-back 400 is promoted to the pad for the session and
+the request is retried once (`agent/turn_recovery.py`).
 
 `delta.reasoning_details` is a list of opaque provider records. Both the main
 stream and Relay recording append these records in arrival order without

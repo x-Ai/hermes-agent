@@ -364,7 +364,7 @@ class TestSummaryRecoveryBudgetClamp:
         ],
     )
     def test_explicit_compression_budget_is_clamped_to_known_route_ceiling(self, monkeypatch, api_mode, route_limit, expected):
-        import agent.output_tokens as output_tokens
+        from agent import output_tokens
 
         monkeypatch.setattr(output_tokens, "_compression_route_output_limit", lambda **_kw: route_limit)
 

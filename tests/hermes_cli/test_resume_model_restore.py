@@ -165,7 +165,7 @@ def test_restore_session_model_swaps_running_agent_in_place():
 
 def test_stored_custom_endpoint_protocol_is_refreshed_on_resume(monkeypatch):
     """A same-named custom endpoint may change wire protocol after a session was saved."""
-    import hermes_cli.runtime_provider as runtime_provider
+    from hermes_cli import runtime_provider
 
     monkeypatch.setattr(runtime_provider, "load_config", lambda: {
         "providers": {

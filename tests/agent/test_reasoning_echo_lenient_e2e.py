@@ -115,7 +115,7 @@ def test_verbatim_proxy_echo_400_gets_one_padded_retry(tmp_path):
             agent = _agent(srv, db, "proxy")
             result = agent.run_conversation("read notes.txt")
             assert result["final_response"].strip() == "DONE", result
-            assert agent._reasoning_echo_mode() == "require"
+            assert agent._needs_thinking_reasoning_pad() is True
             _close(agent)
         finally:
             db.close()

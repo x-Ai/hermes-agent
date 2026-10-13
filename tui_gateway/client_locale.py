@@ -22,7 +22,7 @@ from .transport import current_transport
 # Keyed by transport object; a closed connection drops its claim with the transport. Slotted
 # transports declare ``__weakref__`` for this; a test double that cannot be weak-referenced simply
 # carries no claim.
-_claims: "weakref.WeakKeyDictionary[Any, str]" = weakref.WeakKeyDictionary()
+_claims: weakref.WeakKeyDictionary[Any, str] = weakref.WeakKeyDictionary()
 
 
 def remember_client_locale(transport: Any, lang: Any) -> str:

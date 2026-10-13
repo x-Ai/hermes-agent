@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Iterable, Optional
 
 _log = logging.getLogger("hermes_cli.web_server")
 
@@ -26,7 +26,7 @@ _CAPABILITY_KEYS = ("supports_vision", "supports_reasoning")
 _FIELD_KEYS = _LIMIT_KEYS + _CAPABILITY_KEYS + ("supported_efforts",)
 
 
-def raw_model_rows(resp: Any) -> Dict[str, Dict[str, Any]]:
+def raw_model_rows(resp: Any) -> dict[str, dict[str, Any]]:
     """``{id: row}`` for the dict rows of an OpenAI-compatible ``/v1/models`` response; ``{}`` on any
     parse error (the id list from ``_parse_model_entries`` is the contract, this is the enrichment)."""
     try:
@@ -34,7 +34,7 @@ def raw_model_rows(resp: Any) -> Dict[str, Dict[str, Any]]:
     except Exception:
         return {}
     data = payload.get("data") if isinstance(payload, dict) else payload
-    rows: Dict[str, Dict[str, Any]] = {}
+    rows: dict[str, dict[str, Any]] = {}
     for item in data if isinstance(data, list) else []:
         model_id = str(item.get("id") or "").strip() if isinstance(item, dict) else ""
         if model_id:
@@ -42,7 +42,7 @@ def raw_model_rows(resp: Any) -> Dict[str, Dict[str, Any]]:
     return rows
 
 
-def _row_bool(row: Dict[str, Any], keys: tuple) -> Optional[bool]:
+def _row_bool(row: dict[str, Any], keys: tuple) -> Optional[bool]:
     capabilities = row.get("capabilities")
     for scope in (row, capabilities if isinstance(capabilities, dict) else {}):
         for key in keys:
@@ -52,7 +52,7 @@ def _row_bool(row: Dict[str, Any], keys: tuple) -> Optional[bool]:
     return None
 
 
-def _row_vision(row: Dict[str, Any]) -> Optional[bool]:
+def _row_vision(row: dict[str, Any]) -> Optional[bool]:
     """OpenRouter-schema ``architecture`` first (``input_modalities`` / ``"text+image->text"``), else a
     boolean the server states outright."""
     architecture = row.get("architecture")
@@ -66,13 +66,13 @@ def _row_vision(row: Dict[str, Any]) -> Optional[bool]:
     return _row_bool(row, ("supports_vision", "vision"))
 
 
-def endpoint_row_metadata(row: Dict[str, Any]) -> Dict[str, Any]:
+def endpoint_row_metadata(row: dict[str, Any]) -> dict[str, Any]:
     """What a ``/models`` row (live, or the runtime's cached extract of one) states about the model.
     Limits go through the runtime's own readers so the table shows the value the agent will use."""
     from agent.model_metadata import _MAX_COMPLETION_KEYS, _context_length_from_model_payload, _extract_first_int
     from hermes_cli.models_reasoning_caps import parse_openrouter_reasoning_capabilities
 
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     context = _context_length_from_model_payload(row)
     if context is not None:
         out["context_length"] = context
@@ -97,7 +97,7 @@ def endpoint_row_metadata(row: Dict[str, Any]) -> Dict[str, Any]:
 
 def _catalog_metadata(
     model_id: str, canonical: Optional[str], catalog_provider: Optional[str],
-) -> tuple[Dict[str, Any], str, str]:
+) -> tuple[dict[str, Any], str, str]:
     """``(metadata, source, ref)`` from models.dev: a hit under the configured ``catalog_provider`` is
     what the runtime itself resolves; any other hit is a cross-provider suggestion. A reasoning alias
     (``gpt-5.6-sol-high`` → ``gpt-5.6-sol``) is looked up by its canonical id first."""
@@ -115,20 +115,20 @@ def _catalog_metadata(
 
 
 def resolve_custom_endpoint_model_details(
-    entries: Iterable[Dict[str, Any]], *, endpoint_rows: Optional[Dict[str, Dict[str, Any]]] = None,
+    entries: Iterable[dict[str, Any]], *, endpoint_rows: Optional[dict[str, dict[str, Any]]] = None,
     catalog_provider: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Enrich ``_parse_model_entries`` rows with the resolved limits/capabilities and a ``sources`` map
     (field → ``endpoint`` / ``catalog_provider`` / ``catalog``). A field is set from the first layer that
     states it, in the runtime's precedence; ``catalog_ref`` names the catalog entry a suggestion came from."""
-    details: List[Dict[str, Any]] = []
+    details: list[dict[str, Any]] = []
     rows = endpoint_rows or {}
     for entry in entries:
         model_id = str(entry.get("id") or "").strip()
         if not model_id:
             continue
-        detail: Dict[str, Any] = dict(entry)
-        layers: List[tuple[Dict[str, Any], str]] = []
+        detail: dict[str, Any] = dict(entry)
+        layers: list[tuple[dict[str, Any], str]] = []
         row = rows.get(model_id)
         if isinstance(row, dict):
             layers.append((endpoint_row_metadata(row), SOURCE_ENDPOINT))
@@ -140,7 +140,7 @@ def resolve_custom_endpoint_model_details(
         if catalog_meta:
             layers.append((catalog_meta, catalog_source))
             detail["catalog_ref"] = ref
-        sources: Dict[str, str] = {}
+        sources: dict[str, str] = {}
         for meta, source in layers:
             for key in _FIELD_KEYS:
                 if key in meta and key not in sources:
@@ -152,7 +152,7 @@ def resolve_custom_endpoint_model_details(
     return details
 
 
-def saved_endpoint_model_details(base_url: str, models: Iterable[str], entry: Dict[str, Any]) -> List[Dict[str, Any]]:
+def saved_endpoint_model_details(base_url: str, models: Iterable[str], entry: dict[str, Any]) -> list[dict[str, Any]]:
     """Details for a SAVED endpoint's model list without any probe: the runtime's on-disk memo of its
     last ``/models`` read (when still fresh) plus the catalogs. Never raises — the endpoint row must list
     even when the enrichment cannot."""

@@ -23,10 +23,10 @@ from agent.model_metadata import is_output_cap_error, parse_available_output_tok
 from agent.retry_utils import is_zai_coding_overload_error, zai_coding_overload_retry_ceiling
 from agent.error_classifier import FailoverReason, classify_api_error
 from agent.message_sanitization import (
-    ECHO_REQUIRE, _looks_like_corrupt_image_rejection, _looks_like_image_content_rejection,
-    _sanitize_messages_non_ascii, _sanitize_messages_surrogates, _sanitize_structure_non_ascii,
-    _sanitize_structure_surrogates, _strip_images_from_messages, _strip_non_ascii,
-    close_interrupted_tool_sequence, looks_like_reasoning_echo_required,
+    _looks_like_corrupt_image_rejection, _looks_like_image_content_rejection, _sanitize_messages_non_ascii,
+    _sanitize_messages_surrogates, _sanitize_structure_non_ascii, _sanitize_structure_surrogates,
+    _strip_images_from_messages, _strip_non_ascii, close_interrupted_tool_sequence,
+    looks_like_reasoning_echo_required, record_reasoning_field_rejection,
 )
 from agent.thinking_timeout_guidance import build_thinking_timeout_guidance, is_thinking_timeout
 from agent.vision_message_prep import _provider_model_key
@@ -35,6 +35,7 @@ from agent.turn_failure_copy import (
     provider_label_for, site_copy, stamp_failure,
 )
 from agent.turn_retry_state import TurnRetryState
+from agent.turn_recovery_codex import _is_codex_token_expired, _recover_stale_codex_reasoning
 from hermes_constants import display_hermes_home
 from utils import base_url_host_matches
 
@@ -241,8 +242,10 @@ def recover_before_classification(
     provider image-content rejection (record the (provider, model);
     build_api_request strips images from that model's requests only), the reasoning_content
     echo-back 400 from a lenient route (record the (provider, model); build_api_request re-pads
-    that model's replays), and the Bedrock AnthropicBedrock SDK streaming fallback. Returns
-    ``(retry_now, active_system_prompt)``; the prompt may be ASCII-sanitized in place."""
+    that model's replays), an unknown-field rejection naming a replayed reasoning key (recorded
+    per (provider, host, model), stripped on the retry), and the Bedrock AnthropicBedrock SDK
+    streaming fallback. Returns ``(retry_now, active_system_prompt)``; the prompt may be
+    ASCII-sanitized in place."""
     if isinstance(api_error, UnicodeEncodeError) and getattr(agent, '_unicode_sanitization_passes', 0) < 2:
         _recovered, active_system_prompt = _recover_unicode_encode_error(
             agent, api_error, messages, api_messages, api_kwargs, active_system_prompt
@@ -300,12 +303,20 @@ def recover_before_classification(
     # A deepseek-/mimo-named model behind a non-vendor host runs lenient (real reasoning echoed,
     # nothing fabricated); a verbatim proxy to the vendor enforces the echo after all and 400s the
     # first replay of a reasoning-less tool-call turn. Learn it once per (provider, model): the route
-    # is require from here on and build_api_request re-pads the same api_messages on the retry.
-    if _status_ok and looks_like_reasoning_echo_required(_err_body) and agent._reasoning_echo_mode() != ECHO_REQUIRE:
+    # pads from here on and build_api_request re-pads the same api_messages on the retry.
+    if _status_ok and looks_like_reasoning_echo_required(_err_body) and not agent._needs_thinking_reasoning_pad():
         agent._reasoning_echo_required_routes.add(_model_key)
         _vlines(agent, "⚠️  Endpoint enforces reasoning_content echo-back — padding replayed turns for this model, retrying...")
-        logger.warning("%sreasoning_content echo-back enforced by %s/%s: route promoted to require for this session",
+        logger.warning("%sreasoning_content echo-back enforced by %s/%s: route promoted to must-echo for this session",
                        agent.log_prefix, agent.provider, agent.model)
+        return True, active_system_prompt
+
+    # A strict schema rejected a replayed reasoning key BY NAME: record it per (provider, host, model)
+    # and retry once; build_api_request re-shapes api_messages without it. An unnamed upstream error
+    # never counts, and a key already recorded falls through to normal handling (no loop).
+    _sent = api_kwargs.get("messages") if isinstance(api_kwargs, dict) else None
+    if _status_ok and (_new := record_reasoning_field_rejection(agent, _err_body, _sent or api_messages)):
+        _vlines(agent, f"⚠️  {agent.model} rejected replayed {', '.join(sorted(_new))} — retrying without it for this model.")
         return True, active_system_prompt
 
     # AnthropicBedrock SDK raises "Unexpected event order" when Bedrock errors before
@@ -451,65 +462,6 @@ def _refresh_credentials_after_401(
             return True
         _print_anthropic_401_diagnostics(agent, agent._anthropic_api_key)
     return False
-
-
-def _is_codex_token_expired(agent: Any, api_error: Exception) -> bool:
-    """401 ``token_expired`` from the Codex backend (#88510). It rejects a stale replayed
-    ``encrypted_content`` blob with this auth signature, so a persisted session loops on "sign
-    in again" while a fresh session on the same bearer works. The caller treats it like
-    ``invalid_encrypted_content`` — but only while cached reasoning items remain to strip."""
-    if getattr(api_error, "status_code", None) != 401:
-        return False
-    reason = agent._extract_api_error_context(api_error).get("reason")
-    return isinstance(reason, str) and reason.strip().lower() == "token_expired"
-
-
-def reset_codex_reasoning_replay(agent: Any) -> None:
-    """The replay verdict belongs to the route that earned it: a ``/model`` switch, fallback
-    activation or primary restore starts the new route with replay on (#61552)."""
-    agent._codex_reasoning_replay_enabled = True
-    agent._codex_reasoning_replay_rejected = False
-
-
-def _recover_stale_codex_reasoning(
-    agent: Any, _retry: TurnRetryState, messages: list[dict[str, Any]], api_messages: Any,
-) -> bool:
-    """Stale ``codex_reasoning_items`` blob rejected by the provider: strip cached items (mutates
-    persisted ``messages``) and retry once. The first rejection keeps replay on, since blobs the
-    route mints from now on are sealed with its current key; a repeat rejection means the route
-    cannot round-trip its own blobs, so replay is disabled for the session."""
-    if (
-        _retry.invalid_encrypted_content_retry_attempted
-        or agent.api_mode != "codex_responses"
-        or not bool(getattr(agent, "_codex_reasoning_replay_enabled", True))
-        or not any(
-            isinstance(_m, dict)
-            and _m.get("role") == "assistant"
-            and isinstance(_m.get("codex_reasoning_items"), list)
-            and _m.get("codex_reasoning_items")
-            for _m in messages
-        )
-    ):
-        return False
-    _retry.invalid_encrypted_content_retry_attempted = True
-    keep_replay = not getattr(agent, "_codex_reasoning_replay_rejected", False)
-    agent._codex_reasoning_replay_rejected = True
-    replay_stats = agent._disable_codex_reasoning_replay(messages, keep_replay=keep_replay)
-    # The retry is rebuilt from the request copy; with replay kept on it would resend the stale blob.
-    for _m in api_messages if isinstance(api_messages, list) else []:
-        if isinstance(_m, dict):
-            _m.pop("codex_reasoning_items", None)
-    action = "stripped stale" if keep_replay else "disabled replay for this session and stripped"
-    _vlines(
-        agent,
-        f"⚠️  Encrypted reasoning replay was rejected by the provider — "
-        f"{action} {replay_stats['items']} item(s) from {replay_stats['messages']} message(s), retrying...",
-    )
-    logger.warning(
-        "%sInvalid encrypted reasoning recovery: %s %d items from %d messages",
-        agent.log_prefix, action, replay_stats["items"], replay_stats["messages"],
-    )
-    return True
 
 
 def _recover_format_errors(
@@ -673,6 +625,11 @@ def _clamp_to_affordable_budget(agent: Any, api_error: Exception, classified: An
     return True
 
 
+def _reject_all_turns(agent: Any, api_error: Exception) -> bool:
+    reject = getattr(agent._get_transport(), "reject_all_turns", None)
+    return bool(reject(api_error)) if callable(reject) else False
+
+
 def recover_after_classification(
     agent: Any, api_error: Exception, classified: Any, _retry: TurnRetryState, *,
     status_code: Optional[int], error_context: Any, messages: list[dict[str, Any]],
@@ -680,7 +637,7 @@ def recover_after_classification(
 ) -> tuple[bool, bool]:
     """One-shot recovery chain that runs AFTER ``classify_api_error`` and before the
     generic retry path. Order is load-bearing (each branch may ``return`` early):
-    welcome-tier repair → credit-limited 402 output-cap clamp → Nous paid-entitlement refresh →
+    welcome-tier repair → credit-limited 402 output-cap clamp → ``reasoning.context`` opt-out → Nous paid-entitlement refresh →
     Codex stale-reasoning strip on 401 ``token_expired`` → credential-pool rotation → image shrink → multimodal-tool-content strip → corrupt-image
     strip → Anthropic OAuth 1M-beta disable → per-provider 401 credential refresh →
     format-recovery strips.
@@ -688,10 +645,11 @@ def recover_after_classification(
     from agent.conversation_loop import _is_nous_inference_route
 
     # The credit-limited 402 clamp runs before pool rotation, which would bench a credential
-    # that still has credit.
+    # that still has credit. A ``reasoning.context`` 400 is classified reasoning_mandatory, whose rung
+    # would drop the whole reasoning config; omit only the all_turns opt-in, ahead of it.
     if _recover_welcome_tier(agent, classified, _retry) or _clamp_to_affordable_budget(
         agent, api_error, classified, _retry
-    ):
+    ) or (agent.api_mode == "codex_responses" and _reject_all_turns(agent, api_error)):
         return True, False
 
     # 401 ``token_expired`` while the transcript still carries ``codex_reasoning_items`` is a

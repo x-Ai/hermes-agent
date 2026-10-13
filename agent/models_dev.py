@@ -15,7 +15,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from utils import atomic_json_write, atomic_write_text
 
@@ -107,7 +107,7 @@ class ModelCapabilities:
     # ``reasoning_options`` of the catalog entry: the effort vocabulary the vendor publishes
     # (``{"type": "effort", "values": [...]}``) and whether thinking can be switched off
     # (``{"type": "toggle"}`` or a published ``none`` level). None = the catalog does not say.
-    supported_efforts: Optional[Tuple[str, ...]] = None
+    supported_efforts: Optional[tuple[str, ...]] = None
     can_disable_reasoning: Optional[bool] = None
 
 

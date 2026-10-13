@@ -183,7 +183,7 @@ class SingularityEnvironment(BaseEnvironment):
 
     def __init__(self, image: str, cwd: str = "~", timeout: int = 60, cpu: float = 0,
                  memory: int = 0, disk: int = 0, persistent_filesystem: bool = False,
-                 task_id: str = "default", host_cwd: str = None,
+                 task_id: str = "default", host_cwd: str | None = None,
                  auto_mount_cwd: bool = False,
                  workspace_mount_path: str = "/workspace"):
         super().__init__(cwd=cwd, timeout=timeout)
@@ -248,6 +248,7 @@ class SingularityEnvironment(BaseEnvironment):
                 errors="replace",
                 timeout=15,
                 stdin=subprocess.DEVNULL,
+                check=False,
             )
         except (OSError, subprocess.TimeoutExpired):
             return False
@@ -300,6 +301,7 @@ class SingularityEnvironment(BaseEnvironment):
                 errors="replace",
                 timeout=120,
                 stdin=subprocess.DEVNULL,
+                check=False,
             )
         except subprocess.TimeoutExpired:
             if self._persistent and self._instance_is_running():
@@ -345,6 +347,7 @@ class SingularityEnvironment(BaseEnvironment):
                     errors="replace",
                     timeout=30,
                     stdin=subprocess.DEVNULL,
+                    check=False,
                 )
                 logger.info("Singularity instance %s stopped", self.instance_id)
             except Exception as e:

@@ -669,7 +669,8 @@ export const FIELD_DESCRIPTIONS: Record<string, string> = defineFieldCopy({
   },
   terminal: {
     cwd: 'Default project folder for tool and terminal work.',
-    persistentShell: 'Keep shell state between commands when the backend supports it.',
+    persistentShell:
+      'SSH backend: keep exported variables between commands. Off starts each command from the login environment; the working directory always carries over.',
     envPassthrough: 'Environment variables to pass into tool execution.',
     containerPersistent:
       'Keep container filesystem state across Hermes sessions. Changes apply after the backend restarts and do not destroy the current container or instance.',

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from hermes_constants import openrouter_variant_base
 
@@ -30,7 +30,7 @@ class CatalogMatch:
 
     provider_id: str  # models.dev provider id ("openai", "openrouter")
     model_id: str  # catalog id under that provider
-    entry: Dict[str, Any]
+    entry: dict[str, Any]
     exact: bool  # True = the whole id matched; False = only the ``vendor/model`` tail did
 
     @property
@@ -49,7 +49,7 @@ _PREFERRED_RESELLERS = frozenset({"openrouter"})
 
 # Model-family brand → the lab that owns it, so a bare id listed by several labs (``kimi-k3`` on
 # moonshotai AND alibaba's Model Studio) resolves to the vendor's own row.
-_BRAND_PROVIDERS: Dict[str, str] = {
+_BRAND_PROVIDERS: dict[str, str] = {
     "claude": "anthropic", "gpt": "openai", "chatgpt": "openai", "codex": "openai", "gemini": "google", "gemma": "google",
     "deepseek": "deepseek", "glm": "zai", "grok": "xai", "qwen": "alibaba", "qwq": "alibaba", "kimi": "moonshotai",
     "moonshot": "moonshotai", "minimax": "minimax", "mistral": "mistral", "mixtral": "mistral", "codestral": "mistral",
@@ -68,20 +68,20 @@ def _brand_owner(tail: str) -> Optional[str]:
     return _BRAND_PROVIDERS.get(lead.group(0)) if lead else None
 
 # Hugging Face / relay organisation prefixes → the models.dev provider that owns the model.
-_VENDOR_PREFIX_PROVIDERS: Dict[str, str] = {
+_VENDOR_PREFIX_PROVIDERS: dict[str, str] = {
     "zai-org": "zai", "z-ai": "zai", "deepseek-ai": "deepseek", "qwen": "alibaba", "meta-llama": "meta",
     "x-ai": "xai", "mistralai": "mistral", "minimaxai": "minimax", "xiaomimimo": "xiaomi", "moonshotai": "moonshotai",
     "google": "google", "openai": "openai", "anthropic": "anthropic", "deepseek": "deepseek", "zai": "zai",
     "xai": "xai", "cohere": "cohere", "nvidia": "nvidia", "stepfun": "stepfun", "perplexity": "perplexity",
 }
 
-_Hits = Dict[str, List[Tuple[str, str]]]
+_Hits = dict[str, list[tuple[str, str]]]
 # (registry object, by lower-cased id, by lower-cased ``vendor/model`` tail). The registry object is
 # held so its ``id()`` cannot be recycled onto a different dict while this index is cached.
-_index_cache: Optional[Tuple[Dict[str, Any], _Hits, _Hits]] = None
+_index_cache: Optional[tuple[dict[str, Any], _Hits, _Hits]] = None
 
 
-def _index(registry: Dict[str, Any]) -> Tuple[_Hits, _Hits]:
+def _index(registry: dict[str, Any]) -> tuple[_Hits, _Hits]:
     global _index_cache
     if _index_cache is not None and _index_cache[0] is registry and len(_index_cache[0]) == len(registry):
         return _index_cache[1], _index_cache[2]
@@ -112,7 +112,7 @@ def _mdev_provider_id(provider: Optional[str]) -> Optional[str]:
     return PROVIDER_TO_MODELS_DEV.get(key, _VENDOR_PREFIX_PROVIDERS.get(key.lower(), key))
 
 
-def _query_forms(model: str) -> List[str]:
+def _query_forms(model: str) -> list[str]:
     """Lower-cased ids to look up: the id itself, then its OpenRouter routing-variant base."""
     raw = (model or "").strip()
     forms = [raw]
@@ -122,7 +122,7 @@ def _query_forms(model: str) -> List[str]:
     return list(dict.fromkeys(form.lower() for form in forms if form))
 
 
-def _rank(provider_id: str, exact: bool, preferred: Tuple[str, ...], brand: Optional[str]) -> Tuple[int, int, str]:
+def _rank(provider_id: str, exact: bool, preferred: tuple[str, ...], brand: Optional[str]) -> tuple[int, int, str]:
     if provider_id in preferred:
         tier = 0
     elif brand is not None and provider_id == brand:
@@ -158,7 +158,7 @@ def find_catalog_model(
         p for p in (_mdev_provider_id(provider_hint), _mdev_provider_id(forms[0].split("/", 1)[0]) if "/" in forms[0] else None)
         if p
     )
-    candidates: Dict[Tuple[str, str], bool] = {}
+    candidates: dict[tuple[str, str], bool] = {}
     for form in forms:
         for hit in by_id.get(form, ()):
             candidates.setdefault(hit, True)
@@ -173,10 +173,10 @@ def find_catalog_model(
     return CatalogMatch(provider_id, model_id, registry[provider_id]["models"][model_id], exact)
 
 
-def match_metadata(match: CatalogMatch) -> Dict[str, Any]:
+def match_metadata(match: CatalogMatch) -> dict[str, Any]:
     """Canonical-key metadata from a match; a key is present only when the entry states it."""
     entry = match.entry
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for key, limit in (("context_length", "context"), ("max_input_tokens", "input"), ("max_output_tokens", "output")):
         value = _models_dev._extract_limit(entry, limit)
         if value is not None:

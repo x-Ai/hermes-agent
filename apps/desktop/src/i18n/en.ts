@@ -5,6 +5,8 @@ import { enAuxTasks } from './en_aux_tasks'
 import { enBilling } from './en_billing'
 import { enBoot } from './en_boot'
 import { enCatalogInstall } from './en_catalog_install'
+import { enConnectorAccounts } from './en_connector_accounts'
+import { enConnectorCard } from './en_connector_card'
 import { enGoalStatus } from './en_goal_status'
 import { enLocalModels } from './en_local_models'
 import { enModelMenu } from './en_model_menu'
@@ -33,60 +35,7 @@ export const en: Translations = {
   appTour: enAppTour,
   // English editorial copy stays in the shipped JSONL; other locales override it.
   intro: { stock: {}, custom: () => [] },
-  connectors: {
-    title: 'Connect your apps',
-    connect: 'Connect',
-    skip: 'Not now',
-    cancel: 'Stop waiting',
-    retry: 'Try again',
-    grant: 'Reconnect',
-    connected: 'Connected',
-    checking: 'Checking your apps…',
-    waitingSignIn: 'Waiting for you to finish signing in…',
-    notConnected: 'Not connected',
-    notAvailable: 'Not available',
-    startWith: count => `Start the task with ${count} ${count === 1 ? 'app' : 'apps'} connected`,
-    startWithout: 'Start without connections',
-    skipped: 'Skipped',
-    disabled: 'Unavailable',
-    failed: 'Could not connect',
-    needsAuth: 'Access expired',
-    opening: 'Opening sign-in…',
-    waiting: 'Waiting for your browser…',
-    timeout: 'Still waiting for authorization.',
-    keepWaiting: 'Keep waiting',
-    refresh: 'Refresh status',
-    statusError: 'Could not check connections. Try refreshing.',
-    connectError: 'Could not start authorization. Try again.',
-    connectErrorFor: (app: string) => `Could not start authorization for ${app}.`,
-    unavailable: 'Connectors are unavailable for this session.',
-    ownerMissing: 'Reopen this conversation to manage its connections.',
-    search: 'Find an app',
-    empty: 'No matching apps',
-    continue: 'Continue in chat',
-    continueBusy: 'Waiting for this turn to finish',
-    continueFailed: 'Could not continue. Try again.',
-    missingResult: 'Missing connector result',
-    disclaimer: 'Connecting is optional. Only authorize the apps you want Hermes to use.',
-    connectTitle: app => `Connect ${app}?`,
-    describe: app => `Hermes signs in to ${app} in your browser and asks before reading anything there.`,
-    skipThis: 'Skip this',
-    continueWith: count => `Continue with ${count}`,
-    noneOfThese: 'None of these',
-    unavailableNow: 'Connections aren’t available right now — this can be set up later.',
-    nothingConnectedYet: 'Nothing connects yet.',
-    connectWhenNeeded: 'Hermes will offer to link these when a task needs them, and asks before reading anything.',
-    execution: 'Connector tools',
-    setup: server => `Set up ${server}`,
-    openInBrowser: 'Open in browser',
-    setupCancel: 'Cancel',
-    authorizedToolsUnavailable: 'Authorized. Tools unavailable.',
-    plugin: 'Plugin',
-    nothingSelectedYet: 'Nothing connects or installs yet.',
-    connectOrInstallWhenNeeded:
-      'Hermes will offer to link these, or install a plugin, when a task needs them, and asks first.',
-    required: 'Required'
-  },
+  connectors: enConnectorCard,
 
   // `connectors.*` above stays the onboarding and chat vocabulary; these are the page's own, and the two are not shared.
   connectorsPage: {
@@ -251,6 +200,8 @@ export const en: Translations = {
       advanced: 'Advanced',
       advancedHint: 'the mcp.json entry and logs'
     },
+
+    accounts: enConnectorAccounts,
 
     tools: {
       title: 'Tools',

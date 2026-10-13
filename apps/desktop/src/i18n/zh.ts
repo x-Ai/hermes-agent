@@ -3,6 +3,8 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhAuxTasks } from './zh_aux_tasks'
+import { zhConnectorAccounts } from './zh_connector_accounts'
+import { zhConnectorCard } from './zh_connector_card'
 import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
@@ -44,59 +46,7 @@ export const zhOverrides = {
   },
   sharedMetrics: zhSharedMetrics,
   intro: introZh,
-  connectors: {
-    title: '连接你的应用',
-    connect: '连接',
-    skip: '暂不连接',
-    cancel: '停止等待',
-    retry: '重试',
-    grant: '重新连接',
-    connected: '已连接',
-    checking: '正在检查你的应用…',
-    waitingSignIn: '等待你完成登录…',
-    notConnected: '未连接',
-    notAvailable: '不可用',
-    startWith: count => `使用已连接的 ${count} 个应用开始任务`,
-    startWithout: '不连接应用，直接开始',
-    skipped: '已跳过',
-    disabled: '不可用',
-    failed: '连接失败',
-    needsAuth: '授权已过期',
-    opening: '正在打开登录…',
-    waiting: '请在浏览器中完成连接…',
-    timeout: '仍在等待授权',
-    keepWaiting: '继续等待',
-    refresh: '刷新状态',
-    statusError: '无法检查连接，请刷新重试',
-    connectError: '无法开始授权，请重试',
-    unavailable: '此会话暂时无法使用连接器',
-    ownerMissing: '请重新打开此对话以管理连接',
-    search: '查找应用',
-    empty: '没有匹配的应用',
-    continue: '在对话中继续',
-    continueBusy: '等待当前操作完成',
-    continueFailed: '无法继续，请重试',
-    missingResult: '缺少连接器结果',
-    disclaimer: '连接为可选操作，请仅授权你希望 Hermes 使用的应用',
-    connectTitle: app => `连接 ${app}？`,
-    describe: app => `Hermes 会在浏览器中登录 ${app}，读取任何内容前都会先询问`,
-    skipThis: '跳过此项',
-    continueWith: count => `继续使用已选的 ${count} 个应用`,
-    noneOfThese: '都不用',
-    unavailableNow: '目前无法使用连接功能，可以稍后再设置',
-    nothingConnectedYet: '目前尚未连接任何应用',
-    connectWhenNeeded: '任务需要时，Hermes 会提示你连接，并在读取任何内容前先询问',
-    execution: '连接器工具',
-    connectErrorFor: app => `无法为 ${app} 开始授权`,
-    setup: server => `设置 ${server}`,
-    openInBrowser: '在浏览器中打开',
-    setupCancel: '取消',
-    authorizedToolsUnavailable: '已授权，工具不可用',
-    plugin: '插件',
-    nothingSelectedYet: '目前不会连接或安装任何内容',
-    connectOrInstallWhenNeeded: '任务需要时，Hermes 会提示你连接应用或安装插件，并会先征得同意',
-    required: '必填'
-  },
+  connectors: zhConnectorCard,
   connectorsPage: {
     title: '连接器',
     searchPlaceholder: count => `搜索 ${count} 个应用`,
@@ -250,6 +200,8 @@ export const zhOverrides = {
       advanced: '高级',
       advancedHint: 'mcp.json 条目和日志'
     },
+    accounts: zhConnectorAccounts,
+
     tools: {
       title: '工具',
       notInstalledBody: '安装到此设备后即可查看其提供的工具',

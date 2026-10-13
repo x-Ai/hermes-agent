@@ -89,7 +89,6 @@ class TestNeedsDeepSeekToolReasoning:
         reasoning, never pad — the pad is what locks adaptive thinking off."""
         agent = _make_agent(provider="custom", model="deepseek-v4.1-flash", base_url="https://relay.example/v1")
         assert agent._needs_deepseek_tool_reasoning() is False
-        assert agent._reasoning_echo_mode() == "lenient"
         assert agent._needs_thinking_reasoning_pad() is False
 
 
@@ -348,6 +347,7 @@ class TestReapplyReasoningEchoForProviderSwitch:
             model="gpt-5.5",
             base_url="https://chatgpt.com/backend-api/codex",
         )
+        agent.api_mode = "codex_responses"  # the Responses wire never reads reasoning_content
         msgs = self._codex_built_history()
         changed = reapply_reasoning_echo_for_provider(agent, msgs)
         # msgs[2] carried "summary from codex" — must be stripped for the

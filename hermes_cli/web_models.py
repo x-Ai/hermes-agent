@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import BaseModel, Field, SecretStr, StrictBool, field_validator
 
@@ -57,8 +57,8 @@ class CustomEndpointModelDetail(BaseModel):
     max_output_tokens: Optional[int] = None
     supports_vision: Optional[bool] = None
     supports_reasoning: Optional[bool] = None
-    supported_efforts: Optional[List[str]] = None
-    sources: Optional[Dict[str, str]] = None
+    supported_efforts: Optional[list[str]] = None
+    sources: Optional[dict[str, str]] = None
     catalog_ref: Optional[str] = None
 
 
@@ -87,8 +87,8 @@ class CustomEndpointUpdate(BaseModel):
     # None (older UI payload) leaves a hand-written api_mode alone.
     api_mode: Optional[Literal["", "chat_completions", "codex_responses", "anthropic_messages"]] = None
     context_length: Optional[TokenLimit] = None
-    model_context_lengths: Optional[Dict[str, Optional[TokenLimit]]] = None
-    model_token_limits: Optional[Dict[str, CustomEndpointModelTokenLimits]] = None
+    model_context_lengths: Optional[dict[str, Optional[TokenLimit]]] = None
+    model_token_limits: Optional[dict[str, CustomEndpointModelTokenLimits]] = None
     max_output_tokens: Optional[TokenLimit] = None
     auth_scheme: Optional[str] = None
     user_agent: Optional[str] = None

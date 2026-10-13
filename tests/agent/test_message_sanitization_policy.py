@@ -12,19 +12,22 @@ from types import SimpleNamespace
 import pytest
 
 from agent.message_sanitization import (
-    ECHO_LENIENT,
-    ECHO_REQUIRE,
-    ECHO_STRICT,
+    RC,
     apply_reasoning_content_policy,
     coalesce_tool_call_id,
     deterministic_call_id,
     matches_reasoning_echo_family,
+    matches_reasoning_echo_model,
     needs_reasoning_echo,
     reapply_reasoning_echo,
     reasoning_echo_family,
-    reasoning_echo_mode,
+    reasoning_replay_route,
     uniquify_tool_call_ids,
 )
+
+# A chat-completions route outside the must-echo tier that reads ``reasoning_content``: the
+# lenient shape (replay real reasoning, never pad) of a family model behind a relay.
+LENIENT = (False, frozenset({RC}))
 
 # ---------------------------------------------------------------------------
 # deterministic_call_id — byte-exact (prompt-cache keys)
@@ -154,38 +157,44 @@ class TestUniquifyToolCallIds:
 # ---------------------------------------------------------------------------
 
 class TestReasoningEchoFamily:
-    # family = membership by ANY signal; mode = what goes on the wire. Only the vendor's own
-    # endpoint (exact provider id / host) is require; the same model id behind another host is
-    # lenient (echo real reasoning, never pad); everyone else is strict (strip).
-    @pytest.mark.parametrize("provider,model,base_url,family,mode", [
-        ("kimi-coding", None, "https://x", "kimi", ECHO_REQUIRE),
-        ("kimi-coding-cn", None, "https://x", "kimi", ECHO_REQUIRE),
-        ("custom", None, "https://api.kimi.com/v1", "kimi", ECHO_REQUIRE),
-        ("custom", None, "https://api.moonshot.ai/v1", "kimi", ECHO_REQUIRE),
-        ("custom", None, "https://api.moonshot.cn/v1", "kimi", ECHO_REQUIRE),
-        ("custom", "kimi-k3", "https://gw.example.com/v1", None, ECHO_STRICT),  # kimi has no model signal
-        ("deepseek", "whatever", "https://x", "deepseek", ECHO_REQUIRE),
-        ("DeepSeek", "whatever", "https://x", "deepseek", ECHO_REQUIRE),
-        ("custom", None, "https://api.deepseek.com", "deepseek", ECHO_REQUIRE),
-        ("openrouter", "deepseek/deepseek-v3", "https://openrouter.ai", "deepseek", ECHO_LENIENT),
-        ("custom", "deepseek-v4.1-flash", "https://relay.example/v1", "deepseek", ECHO_LENIENT),
-        ("xiaomi", None, "https://x", "mimo", ECHO_REQUIRE),
-        ("custom", None, "https://api.xiaomimimo.com/v1", "mimo", ECHO_REQUIRE),
-        ("custom", "MiMo-7B", "https://x", "mimo", ECHO_LENIENT),
-        ("ollama-cloud", "kimi-k3", "https://x", "ollama", ECHO_REQUIRE),
-        ("custom", "kimi-k3", "https://ollama.com/v1", "ollama", ECHO_REQUIRE),
-        ("custom", "kimi-k3:cloud", "http://127.0.0.1:11434/v1", "ollama", ECHO_LENIENT),  # tag only
-        ("custom", "gpt-oss:120b-cloud", "http://127.0.0.1:11434/v1", "ollama", ECHO_LENIENT),
-        ("gmi", "gmi-cloud", "https://x", None, ECHO_STRICT),  # "-cloud" counts only behind a ":" tag
-        ("custom", "qwen3:8b", "http://127.0.0.1:11434/v1", None, ECHO_STRICT),
-        ("openai", "gpt-5", "https://api.openai.com/v1", None, ECHO_STRICT),
-        ("mistral", "mistral-large", "https://api.mistral.ai/v1", None, ECHO_STRICT),
-        (None, None, None, None, ECHO_STRICT),
+    # family = membership by ANY signal; pad = the must-echo tier that goes on the wire. Only the
+    # vendor's own endpoint (exact provider id / host) pads; the same model id behind another host is
+    # lenient (its stored reasoning is replayed like any other route's, never padded).
+    @pytest.mark.parametrize("provider,model,base_url,family,pad", [
+        ("kimi-coding", None, "https://x", "kimi", True),
+        ("kimi-coding-cn", None, "https://x", "kimi", True),
+        ("custom", None, "https://api.kimi.com/v1", "kimi", True),
+        ("custom", None, "https://api.moonshot.ai/v1", "kimi", True),
+        ("custom", None, "https://api.moonshot.cn/v1", "kimi", True),
+        ("custom", "kimi-k3", "https://gw.example.com/v1", None, False),  # kimi has no model signal
+        ("deepseek", "whatever", "https://x", "deepseek", True),
+        ("DeepSeek", "whatever", "https://x", "deepseek", True),
+        ("custom", None, "https://api.deepseek.com", "deepseek", True),
+        ("openrouter", "deepseek/deepseek-v3", "https://openrouter.ai", "deepseek", False),
+        ("custom", "deepseek-v4.1-flash", "https://relay.example/v1", "deepseek", False),
+        ("xiaomi", None, "https://x", "mimo", True),
+        ("custom", None, "https://api.xiaomimimo.com/v1", "mimo", True),
+        ("custom", "MiMo-7B", "https://x", "mimo", False),
+        # The Portal stealth model is identified by its exact id, wherever it is served.
+        ("nous", "stealth/missingno", "https://inference-api.nousresearch.com/v1", "missingno", True),
+        # Ollama has no echo-back requirement: replayed (as reasoning + reasoning_content) but never padded.
+        ("ollama-cloud", "kimi-k3", "https://x", None, False),
+        ("custom", "kimi-k3", "https://ollama.com/v1", None, False),
+        ("custom", "kimi-k3:cloud", "http://127.0.0.1:11434/v1", None, False),
+        ("custom", "gpt-oss:120b-cloud", "http://127.0.0.1:11434/v1", None, False),
+        ("gmi", "gmi-cloud", "https://x", None, False),
+        ("custom", "qwen3:8b", "http://127.0.0.1:11434/v1", None, False),
+        ("openai", "gpt-5", "https://api.openai.com/v1", None, False),
+        ("mistral", "mistral-large", "https://api.mistral.ai/v1", None, False),
+        (None, None, None, None, False),
     ])
-    def test_table(self, provider, model, base_url, family, mode):
+    def test_table(self, provider, model, base_url, family, pad):
         assert reasoning_echo_family(provider, model, base_url) == family
-        assert reasoning_echo_mode(provider, model, base_url) == mode
-        assert needs_reasoning_echo(provider, model, base_url) is (mode == ECHO_REQUIRE)
+        assert needs_reasoning_echo(provider, model, base_url) is pad
+        assert reasoning_replay_route("chat_completions", provider, model, base_url).pad is pad
+        if family is not None and not pad:
+            # Family by the model id alone: the lenient signal, never the pad.
+            assert matches_reasoning_echo_model(family, model) is True
 
     def test_kimi_provider_match_is_exact_not_lowered(self):
         # Original predicate compared the raw provider string against the
@@ -212,62 +221,62 @@ class TestApplyReasoningContentPolicy:
     def test_non_assistant_untouched(self):
         api = {"role": "user", "content": "u", "reasoning_content": "keep"}
         apply_reasoning_content_policy(
-            {"role": "user", "content": "u", "reasoning_content": "keep"}, api, ECHO_REQUIRE)
+            {"role": "user", "content": "u", "reasoning_content": "keep"}, api, True)
         assert api["reasoning_content"] == "keep"
 
     def test_require_side_preserves_existing(self):
         api = {"role": "assistant", "content": "x"}
         apply_reasoning_content_policy(
             {"role": "assistant", "content": "x", "reasoning_content": "thoughts"},
-            api, ECHO_REQUIRE)
+            api, True)
         assert api["reasoning_content"] == "thoughts"
 
     def test_require_side_upgrades_empty_string_to_space(self):
         api = {"role": "assistant", "content": "x", "reasoning_content": ""}
         apply_reasoning_content_policy(
-            {"role": "assistant", "content": "x", "reasoning_content": ""}, api, ECHO_REQUIRE)
+            {"role": "assistant", "content": "x", "reasoning_content": ""}, api, True)
         assert api["reasoning_content"] == " "
 
     def test_strict_side_strips_existing(self):
         api = {"role": "assistant", "content": "x", "reasoning_content": " "}
         apply_reasoning_content_policy(
-            {"role": "assistant", "content": "x", "reasoning_content": " "}, api, ECHO_STRICT)
+            {"role": "assistant", "content": "x", "reasoning_content": " "}, api, False)
         assert "reasoning_content" not in api
 
     def test_cross_provider_poisoned_history_pads_with_space(self):
         src = {"role": "assistant", "content": "x", "reasoning": "other-provider CoT",
                "tool_calls": [{"id": "c", "function": {"name": "t", "arguments": "{}"}}]}
         api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy(src, api, ECHO_REQUIRE)
+        apply_reasoning_content_policy(src, api, True)
         assert api["reasoning_content"] == " "  # pad, never the foreign CoT
 
     def test_reasoning_promoted_only_on_require_side(self):
         src = {"role": "assistant", "content": "x", "reasoning": "healthy"}
         api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy(src, api, ECHO_REQUIRE)
+        apply_reasoning_content_policy(src, api, True)
         assert api["reasoning_content"] == "healthy"
         api2 = {"role": "assistant", "content": "x", "reasoning_content": "stale"}
-        apply_reasoning_content_policy(src, api2, ECHO_STRICT)
+        apply_reasoning_content_policy(src, api2, False)
         assert "reasoning_content" not in api2
 
     def test_require_side_pads_bare_assistant_turn(self):
         api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy({"role": "assistant", "content": "x"}, api, ECHO_REQUIRE)
+        apply_reasoning_content_policy({"role": "assistant", "content": "x"}, api, True)
         assert api["reasoning_content"] == " "
 
     def test_non_string_reasoning_content_removed(self):
         api = {"role": "assistant", "content": "x", "reasoning_content": None}
         apply_reasoning_content_policy(
-            {"role": "assistant", "content": "x", "reasoning_content": None}, api, ECHO_STRICT)
+            {"role": "assistant", "content": "x", "reasoning_content": None}, api, False)
         assert "reasoning_content" not in api
 
 
-    # Lenient = require minus the fabricated pad: a family model behind a relay / aggregator.
+    # Lenient = the route's carriers minus the fabricated pad: a family model behind a relay / aggregator.
     def test_lenient_echoes_real_reasoning_verbatim(self):
         src = {"role": "assistant", "content": "x", "reasoning_content": "relay CoT",
                "tool_calls": [{"id": "c", "function": {"name": "t", "arguments": "{}"}}]}
         api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy(src, api, ECHO_LENIENT)
+        apply_reasoning_content_policy(src, api, *LENIENT)
         assert api["reasoning_content"] == "relay CoT"
 
     @pytest.mark.parametrize("pad", ["", " ", "   "])
@@ -276,31 +285,22 @@ class TestApplyReasoningContentPolicy:
         # tells an adaptive-thinking backend to stop reasoning, so it must not go out.
         api = {"role": "assistant", "content": "x", "reasoning_content": pad}
         apply_reasoning_content_policy(
-            {"role": "assistant", "content": "x", "reasoning_content": pad}, api, ECHO_LENIENT)
+            {"role": "assistant", "content": "x", "reasoning_content": pad}, api, *LENIENT)
         assert "reasoning_content" not in api
 
     def test_lenient_never_pads(self):
         bare = {"role": "assistant", "content": "x",
                 "tool_calls": [{"id": "c", "function": {"name": "t", "arguments": "{}"}}]}
         api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy(bare, api, ECHO_LENIENT)
+        apply_reasoning_content_policy(bare, api, *LENIENT)
         assert "reasoning_content" not in api
-        foreign = dict(bare, reasoning="other-provider CoT")
-        api = {"role": "assistant", "content": "x"}
-        apply_reasoning_content_policy(foreign, api, ECHO_LENIENT)
-        assert "reasoning_content" not in api  # no pad, and no foreign CoT either
 
     def test_lenient_promotes_reasoning_on_text_turn_like_require(self):
         src = {"role": "assistant", "content": "x", "reasoning": "healthy"}
-        for mode in (ECHO_REQUIRE, ECHO_LENIENT):
+        for route in ((True, frozenset({RC})), LENIENT):
             api = {"role": "assistant", "content": "x"}
-            apply_reasoning_content_policy(src, api, mode)
+            apply_reasoning_content_policy(src, api, *route)
             assert api["reasoning_content"] == "healthy"
-
-    def test_unknown_mode_raises(self):
-        # The old boolean argument must fail loudly, never silently pick a direction.
-        with pytest.raises(ValueError):
-            apply_reasoning_content_policy({"role": "assistant", "content": "x"}, {}, True)
 
 # ---------------------------------------------------------------------------
 # reapply_reasoning_echo
@@ -317,7 +317,7 @@ class TestReapplyReasoningEcho:
     def test_require_side_pads_missing_only(self):
         import copy
         msgs = copy.deepcopy(self.MSGS)
-        assert reapply_reasoning_echo(msgs, ECHO_REQUIRE) == 1
+        assert reapply_reasoning_echo(msgs, True) == 1
         assert msgs[0]["reasoning_content"] == " "  # untouched
         assert msgs[1]["reasoning_content"] == " "  # padded
         assert "reasoning_content" not in msgs[2]
@@ -325,27 +325,27 @@ class TestReapplyReasoningEcho:
     def test_strict_side_strips_all(self):
         import copy
         msgs = copy.deepcopy(self.MSGS)
-        assert reapply_reasoning_echo(msgs, ECHO_STRICT) == 1
+        assert reapply_reasoning_echo(msgs, False) == 1
         assert all("reasoning_content" not in m for m in msgs)
 
     def test_idempotent(self):
         import copy
         msgs = copy.deepcopy(self.MSGS)
-        reapply_reasoning_echo(msgs, ECHO_REQUIRE)
-        assert reapply_reasoning_echo(msgs, ECHO_REQUIRE) == 0
-        reapply_reasoning_echo(msgs, ECHO_STRICT)
-        assert reapply_reasoning_echo(msgs, ECHO_STRICT) == 0
+        reapply_reasoning_echo(msgs, True)
+        assert reapply_reasoning_echo(msgs, True) == 0
+        reapply_reasoning_echo(msgs, False)
+        assert reapply_reasoning_echo(msgs, False) == 0
 
     def test_lenient_side_unpads_only(self):
         import copy
         msgs = copy.deepcopy(self.MSGS) + [
             {"role": "assistant", "content": "a3", "reasoning_content": "kept"},
         ]
-        assert reapply_reasoning_echo(msgs, ECHO_LENIENT) == 1
+        assert reapply_reasoning_echo(msgs, *LENIENT) == 1
         assert "reasoning_content" not in msgs[0]  # blank pad dropped
         assert "reasoning_content" not in msgs[1]  # bare turn stays bare
         assert msgs[4]["reasoning_content"] == "kept"
-        assert reapply_reasoning_echo(msgs, ECHO_LENIENT) == 0
+        assert reapply_reasoning_echo(msgs, *LENIENT) == 0
 
 
 # ---------------------------------------------------------------------------

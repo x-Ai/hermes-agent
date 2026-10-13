@@ -165,7 +165,7 @@ def test_save_round_trip_keeps_shared_endpoints_out_of_the_profiles_file(homes):
 
 
 def test_secret_scope_layers_only_the_default_profiles_provider_credentials(homes):
-    root, bot = homes
+    _root, bot = homes
     island = build_profile_secret_scope(bot)
     assert island["RELAY_TOKEN"] == "stale-relay-copy"
     assert "HERMES_CUSTOM_SLOTTED_API_KEY" not in island and "ANTHROPIC_API_KEY" not in island
@@ -182,7 +182,7 @@ def test_secret_scope_layers_only_the_default_profiles_provider_credentials(home
 
 
 def test_standalone_dotenv_load_layers_the_same_credentials(homes, monkeypatch):
-    root, bot = homes
+    _root, bot = homes
     for name in ("RELAY_TOKEN", "HERMES_CUSTOM_SLOTTED_API_KEY", "HERMES_CUSTOM_MINE_API_KEY", "TELEGRAM_BOT_TOKEN"):
         monkeypatch.delenv(name, raising=False)
     shared.set_profile_shares_providers(bot, True)
@@ -234,7 +234,7 @@ def test_adopt_copies_a_default_endpoint_with_its_pointer_and_key_once(homes):
 
 
 def test_adopt_never_overwrites_a_key_the_profile_already_holds(homes):
-    root, bot = homes
+    _root, bot = homes
     (bot / "config.yaml").write_text("model:\n  provider: relay\n  default: m-1\n", encoding="utf-8")
     with profile_scope(bot):
         assert shared.adopt_default_endpoint(bot, "relay") == {"entry": True, "key_env": "RELAY_TOKEN", "key_copied": False}

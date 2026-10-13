@@ -1093,7 +1093,7 @@ class DockerEnvironment(BaseEnvironment):
         )
         subprocess.run(
             [self._docker_exe, "rm", "-f", container_name],
-            capture_output=True, timeout=10, stdin=subprocess.DEVNULL,
+            capture_output=True, timeout=10, stdin=subprocess.DEVNULL, check=False,
         )
 
     def _run_new_container(
@@ -1319,7 +1319,7 @@ class DockerEnvironment(BaseEnvironment):
                 _storage_opt_ok = True
                 if probe.stdout.strip():
                     subprocess.run([docker, "rm", probe.stdout.strip()],
-                                   capture_output=True, timeout=5, stdin=subprocess.DEVNULL)
+                                   capture_output=True, timeout=5, stdin=subprocess.DEVNULL, check=False)
             elif "storage" in (probe.stderr or "").lower():
                 _storage_opt_ok = False  # daemon rejected --storage-opt: a host property
             # else: pull/daemon failure unrelated to storage-opt; not cached, retried next spawn
@@ -1422,7 +1422,7 @@ class DockerEnvironment(BaseEnvironment):
                 try:
                     subprocess.run(
                         [docker_exe, *argv, container_id],
-                        capture_output=True, timeout=30, stdin=subprocess.DEVNULL)
+                        capture_output=True, timeout=30, stdin=subprocess.DEVNULL, check=False)
                 except (subprocess.TimeoutExpired, OSError) as e:
                     logger.warning(fail_msg, log_id, e)
 

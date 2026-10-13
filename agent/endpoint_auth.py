@@ -6,13 +6,13 @@ this module is the Chat Completions / Responses counterpart, so one config field
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 _SCHEMES = ("bearer", "x-api-key")
 
 
 def custom_provider_auth_scheme(
-    base_url: Any, custom_providers: Any = None, config: Optional[Dict[str, Any]] = None,
+    base_url: Any, custom_providers: Any = None, config: Optional[dict[str, Any]] = None,
 ) -> Optional[str]:
     """``"bearer"`` / ``"x-api-key"`` pinned on the endpoint serving ``base_url``, else None
     (auto-detect). The exact route wins; failing that, an entry on the same host (or a parent
@@ -41,7 +41,7 @@ def custom_provider_auth_scheme(
     return None
 
 
-def auth_scheme_default_headers(base_url: Any, api_key: Any, custom_providers: Any = None) -> Dict[str, Any]:
+def auth_scheme_default_headers(base_url: Any, api_key: Any, custom_providers: Any = None) -> dict[str, Any]:
     """Header overrides that move a static key from ``Authorization: Bearer`` to ``x-api-key`` when
     the endpoint pins that scheme; ``{}`` otherwise. The OpenAI SDK drops ``Omit()``-valued default
     headers, which is how the bearer header is suppressed. A callable (command-minted) key stays on
@@ -55,7 +55,7 @@ def auth_scheme_default_headers(base_url: Any, api_key: Any, custom_providers: A
     return {"Authorization": Omit(), "x-api-key": api_key.strip()}
 
 
-def apply_auth_scheme_to_client_kwargs(client_kwargs: Dict[str, Any], base_url: Any, custom_providers: Any = None) -> None:
+def apply_auth_scheme_to_client_kwargs(client_kwargs: dict[str, Any], base_url: Any, custom_providers: Any = None) -> None:
     """Merge :func:`auth_scheme_default_headers` onto ``client_kwargs['default_headers']`` in place."""
     overrides = auth_scheme_default_headers(base_url, client_kwargs.get("api_key"), custom_providers)
     if not overrides:

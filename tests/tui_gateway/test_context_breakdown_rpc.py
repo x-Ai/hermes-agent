@@ -15,7 +15,6 @@ import pytest
 
 from agent.context_compressor import ContextCompressor
 from tui_gateway import server
-import tui_gateway.methods_session  # noqa: F401  (registers RPC methods)
 
 METHOD = "session.context_breakdown"
 

@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from agent.reasoning_effort import OPENAI_COMPAT_WIRE_EFFORTS, route_supported_efforts
 
@@ -39,7 +39,7 @@ class RouteReasoningSupport:
     ``source`` names the deciding authority (``codex`` / ``profile`` / ``aggregator`` / ``catalog`` /
     ``catalog_match``)."""
 
-    efforts: Optional[Tuple[str, ...]] = None
+    efforts: Optional[tuple[str, ...]] = None
     can_disable: Optional[bool] = None
     source: str = ""
 
@@ -77,11 +77,11 @@ def route_profile(provider: Optional[str], base_url: Optional[str] = None):
     return get_provider_profile(name) if name else None
 
 
-def _normalized(levels) -> Tuple[str, ...]:
+def _normalized(levels) -> tuple[str, ...]:
     return tuple(dict.fromkeys(str(level).strip().lower() for level in levels if str(level).strip()))
 
 
-def _declared_efforts(profile, model: str) -> Optional[Tuple[str, ...]]:
+def _declared_efforts(profile, model: str) -> Optional[tuple[str, ...]]:
     if profile is None:
         return None
     try:
@@ -92,7 +92,7 @@ def _declared_efforts(profile, model: str) -> Optional[Tuple[str, ...]]:
     return None if declared is None else _normalized(declared)
 
 
-def _is_generic_ceiling(declared: Tuple[str, ...]) -> bool:
+def _is_generic_ceiling(declared: tuple[str, ...]) -> bool:
     return set(declared) == set(OPENAI_COMPAT_WIRE_EFFORTS)
 
 
@@ -112,7 +112,7 @@ def aggregator_reasoning_detail(provider: Optional[str], model: str) -> Optional
 
 def _catalog_support(
     provider: Optional[str], model: str, *, config, catalog_caps,
-) -> Tuple[Optional[Tuple[str, ...]], Optional[bool], str]:
+) -> tuple[Optional[tuple[str, ...]], Optional[bool], str]:
     """models.dev verdict: the provider's own catalog (``catalog_provider`` included), else — for a route
     with no catalog at all — a cross-provider match on the id."""
     from agent.models_dev import _models_dev_id, entry_reasoning_support, get_model_capabilities
@@ -170,7 +170,7 @@ def route_reasoning_support(
 
     declared = _declared_efforts(route_profile(provider, base_url) if profile is _UNSET else profile, mid)
     detail = aggregator_reasoning_detail(name, mid) if aggregator_detail is _UNSET else aggregator_detail
-    agg_efforts: Optional[Tuple[str, ...]] = None
+    agg_efforts: Optional[tuple[str, ...]] = None
     agg_can_disable: Optional[bool] = None
     if isinstance(detail, dict):
         if not detail.get("supports_reasoning"):

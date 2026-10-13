@@ -32,7 +32,7 @@ from hermes_cli.providers import is_builtin_provider_id
 from agent.secret_scope import get_secret_str
 from hermes_cli.config_providers import _canonical_api_mode, _custom_provider_entry_to_provider_config
 from hermes_cli.web_models import ConfigUpdate, EnvVarUpdate, EnvVarDelete, EnvVarReveal, CustomEndpointUpdate
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 _log = logging.getLogger("hermes_cli.web_server")
 config_router = APIRouter()
@@ -475,18 +475,18 @@ _LIMIT_FIELDS = {
 }
 
 
-def _default_token_limits_from_entry(entry: Dict[str, Any]) -> Dict[str, int]:
+def _default_token_limits_from_entry(entry: dict[str, Any]) -> dict[str, int]:
     """The entry-level (provider-wide) budgets, shown in Desktop's "all models" row."""
     limits = {field: _positive_model_limit(entry, *aliases) for field, aliases in _LIMIT_FIELDS.items()}
     return {field: value for field, value in limits.items() if value is not None}
 
 
 def _model_token_limits_from_custom_endpoint_entry(
-    entry: Dict[str, Any], models: List[str]
-) -> Dict[str, Dict[str, int]]:
+    entry: dict[str, Any], models: list[str]
+) -> dict[str, dict[str, int]]:
     """Exact per-model pins only (``model_token_limits`` over a hand-curated ``models`` row); the
     provider-wide defaults are reported separately so the UI never re-saves them as per-model pins."""
-    result: Dict[str, Dict[str, int]] = {}
+    result: dict[str, dict[str, int]] = {}
     override_configs = entry.get("model_token_limits")
     model_configs = entry.get("models")
     models_are_discovered = entry.get("models_discovered") is True
@@ -496,7 +496,7 @@ def _model_token_limits_from_custom_endpoint_entry(
             model_configs.get(model)
             if isinstance(model_configs, dict) and not models_are_discovered else None
         )
-        limits: Dict[str, int] = {}
+        limits: dict[str, int] = {}
         for field, aliases in _LIMIT_FIELDS.items():
             value = _positive_model_limit(override_cfg, *aliases) or _positive_model_limit(model_cfg, *aliases)
             if value is not None:
@@ -506,10 +506,10 @@ def _model_token_limits_from_custom_endpoint_entry(
     return result
 
 
-def _model_capabilities_from_entry(entry: Dict[str, Any], models: List[str]) -> Dict[str, Dict[str, bool]]:
+def _model_capabilities_from_entry(entry: dict[str, Any], models: list[str]) -> dict[str, dict[str, bool]]:
     """Per-model ``supports_vision`` / ``supports_reasoning`` pins from the ``models`` rows."""
     rows = entry.get("models") if isinstance(entry.get("models"), dict) else {}
-    result: Dict[str, Dict[str, bool]] = {}
+    result: dict[str, dict[str, bool]] = {}
     for model in models:
         row = rows.get(model)
         if not isinstance(row, dict):
@@ -523,7 +523,7 @@ def _model_capabilities_from_entry(entry: Dict[str, Any], models: List[str]) -> 
             result[model] = pins
     return result
 
-def _extract_endpoint_user_agent(entry: Dict[str, Any]) -> str:
+def _extract_endpoint_user_agent(entry: dict[str, Any]) -> str:
     """Read a case-insensitive User-Agent override from ``extra_headers``."""
     headers = entry.get("extra_headers")
     if isinstance(headers, dict):
@@ -823,7 +823,7 @@ def _write_custom_endpoint(cfg: dict[str, Any], body: CustomEndpointUpdate) -> t
     if body.model_token_limits is not None:
         limit_fields = _LIMIT_FIELDS
         existing_overrides = entry.get("model_token_limits")
-        overrides_map: Dict[str, Any] = (
+        overrides_map: dict[str, Any] = (
             dict(existing_overrides) if isinstance(existing_overrides, dict) else {}
         )
         models_are_discovered = entry.get("models_discovered") is True
@@ -946,7 +946,7 @@ def _write_custom_endpoint(cfg: dict[str, Any], body: CustomEndpointUpdate) -> t
 
     if body.user_agent is not None and body.extra_headers is None:
         raw_headers = entry.get("extra_headers")
-        headers_map: Dict[str, Any] = dict(raw_headers) if isinstance(raw_headers, dict) else {}
+        headers_map: dict[str, Any] = dict(raw_headers) if isinstance(raw_headers, dict) else {}
         for key in [key for key in headers_map if str(key).lower() == "user-agent"]:
             headers_map.pop(key, None)
         user_agent = body.user_agent.strip()
@@ -1124,7 +1124,7 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
         return response
 
 
-def _probe_auth_headers(mode: str, api_key: str, auth_scheme: str, base_url: str) -> Dict[str, str]:
+def _probe_auth_headers(mode: str, api_key: str, auth_scheme: str, base_url: str) -> dict[str, str]:
     """The authentication header the runtime sends on this route, so the Test button proves the same
     request shape: a pinned ``auth_scheme`` wins; otherwise Anthropic-wire follows the adapter's host
     rule (x-api-key unless a known bearer relay) and OpenAI-wire uses Bearer."""
@@ -1137,11 +1137,11 @@ def _probe_auth_headers(mode: str, api_key: str, auth_scheme: str, base_url: str
     return {"x-api-key": api_key} if scheme == "x-api-key" else {"Authorization": f"Bearer {api_key}"}
 
 
-def _probe_request_headers(body: CustomEndpointUpdate, entry: Dict[str, Any], mode: str, base_url: str) -> Dict[str, str]:
+def _probe_request_headers(body: CustomEndpointUpdate, entry: dict[str, Any], mode: str, base_url: str) -> dict[str, str]:
     """Headers for one endpoint probe: the stored entry's ``extra_headers``, the form's User-Agent,
     then the credential — the form's key, else the stored ``key_env``/``api_key`` (an edit leaves
     the key field blank, which must not turn the probe into an unauthenticated request)."""
-    headers: Dict[str, str] = {"Accept": "application/json"}
+    headers: dict[str, str] = {"Accept": "application/json"}
     stored = entry.get("extra_headers") if isinstance(entry, dict) else None
     if isinstance(stored, dict):
         headers.update({str(k): str(v) for k, v in stored.items() if v is not None})

@@ -14,7 +14,7 @@ import os
 import threading
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Iterator, Optional
 
 from agent.i18n import t
 from agent.prompt_cache_scope import resolve_prompt_cache_scope_safe
@@ -672,7 +672,7 @@ class _SkillReviewAction:
 
 
 def _action_lines(
-    data: Dict, detail: Dict, verbose: bool,
+    data: dict, detail: dict, verbose: bool,
     skill_actions: dict[tuple[str, str], _SkillReviewAction],
 ) -> list[str | _SkillReviewAction]:
     """Summary line(s) for one successful notify-tool result (``[]`` when nothing to report)."""
@@ -691,7 +691,7 @@ def _action_lines(
         results = data.get("results")
         if not data.get("operations_applied") or not isinstance(results, list):
             return []
-        lines: List[str | _SkillReviewAction] = []
+        lines: list[str | _SkillReviewAction] = []
         for result in results:
             if not isinstance(result, dict) or result.get("success") is not True:
                 continue
