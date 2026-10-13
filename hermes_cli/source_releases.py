@@ -159,6 +159,11 @@ def _resolve_source_target(channel: str, git_cmd=None, cwd=None, *, repository=N
                         version=request["sourceVersion"], build_id=request["buildId"])
 
 
+class NoPublishedRelease(ValueError):
+    """The repository has no published release on the channel: not a transport failure, and the
+    normal state of a fork that mirrors upstream's tags without cutting releases of its own."""
+
+
 def _describe_release_failure(failure: BaseException) -> str:
     """A transport failure names its cause (a rate limit is not "no release")."""
     if isinstance(failure, (urllib.error.URLError, TimeoutError)):
@@ -176,6 +181,8 @@ def _resolve_stable(repository: str, git_cmd=None, cwd=None) -> SourceTarget:
     """
     try:
         tag, commit = _resolve_release("stable", git_cmd, cwd, repository=repository, pointer=False)
+    except NoPublishedRelease:
+        raise
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         logger.warning("Could not resolve the stable source release: %s", exc)
         raise ValueError(_describe_release_failure(exc)) from exc
@@ -278,8 +285,15 @@ def _json(url: str):
 
 
 def _published_fallback(channel: str, base: str) -> dict:
+    repository = base.rsplit("/repos/", 1)[-1]
     if channel == "stable":
-        release = _json(f"{base}/releases/latest")
+        try:
+            release = _json(f"{base}/releases/latest")
+        except urllib.error.HTTPError as exc:
+            # GitHub answers 404 for /releases/latest when the repository has no release at all.
+            if exc.code != 404:
+                raise
+            raise NoPublishedRelease(f"No published stable release in {repository}") from exc
         if _published(release, channel):
             return release
     else:
@@ -294,7 +308,7 @@ def _published_fallback(channel: str, base: str) -> dict:
                     return release
             if len(entries) < 100:
                 break
-    raise ValueError(f"No published {channel} release")
+    raise NoPublishedRelease(f"No published {channel} release in {repository}")
 
 
 def _release_pointer(channel: str) -> tuple[str | None, str | None]:

@@ -17,7 +17,7 @@ import urllib.error
 import urllib.request
 
 from hermes_constants import get_hermes_home
-from hermes_cli.source_releases import OFFICIAL_REPOSITORY, _GITHUB_ORIGIN, resolve_source_target
+from hermes_cli.source_releases import NoPublishedRelease, OFFICIAL_REPOSITORY, _GITHUB_ORIGIN, resolve_source_target
 
 logger = logging.getLogger(__name__)
 UPDATE_AVAILABLE_NO_COUNT = -1
@@ -281,6 +281,11 @@ def _resolve_channel(result: dict, channel: str, co: _Checkout, *, forward_only:
         source_target = resolve_source_target(channel, [co.git] if not co.embedded else None, co.root,
                                               repository=co.repository or OFFICIAL_REPOSITORY,
                                               forward_only=forward_only)
+    except NoPublishedRelease as exc:
+        # Not a transport failure: the repository simply has no release on this channel (a fork
+        # that mirrors upstream's tags without releases). The client names the way back to main.
+        result.update(error="release-missing", message=str(exc), repository=co.repository or OFFICIAL_REPOSITORY)
+        return None
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         result.update(error="release-unavailable", message=f"Could not resolve the {channel} source channel: {exc}")
         return None

@@ -12,5 +12,8 @@ export const frUpdateChannel = {
   detailsLabel: 'Canal',
   branch: (b: string) => `Branche : ${b}`,
   change: 'Modifier',
-  latestRelease: (v: string) => `Vous utilisez la dernière version stable (${v}).`
+  latestRelease: (v: string) => `Vous utilisez la dernière version stable (${v}).`,
+  noReleaseTitle: 'Pas encore de version stable',
+  noReleaseBody: (repo: string) =>
+    `${repo} n’a pas encore publié de version stable. Passez à « Chaque commit » pour continuer à suivre la branche main.`
 }

@@ -12,5 +12,8 @@ export const jaUpdateChannel = {
   detailsLabel: 'チャンネル',
   branch: (b: string) => `ブランチ: ${b}`,
   change: '変更',
-  latestRelease: (v: string) => `最新の安定版リリース（${v}）を使用しています。`
+  latestRelease: (v: string) => `最新の安定版リリース（${v}）を使用しています。`,
+  noReleaseTitle: 'まだ安定版リリースがありません',
+  noReleaseBody: (repo: string) =>
+    `${repo} はまだ安定版をリリースしていません。「すべてのコミット」に切り替えると main ブランチに追従し続けます。`
 }

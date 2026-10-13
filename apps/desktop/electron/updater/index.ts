@@ -62,6 +62,8 @@ export interface UpdaterStatusWire {
   channel?: string
   /** source_check can persist a channel; runtimes older than the selector cannot. */
   channelSelectable?: boolean
+  /** Source checkouts: the GitHub repository the channel resolves against (release-missing names it). */
+  repository?: string
   retirement?: ChannelRetirementStatus
   latestTag?: string | null
   targetSha?: string

@@ -11,5 +11,8 @@ export const esUpdateChannel = {
   detailsLabel: 'Canal',
   branch: (b: string) => `Rama: ${b}`,
   change: 'Cambiar',
-  latestRelease: (v: string) => `Tienes la última versión estable (${v}).`
+  latestRelease: (v: string) => `Tienes la última versión estable (${v}).`,
+  noReleaseTitle: 'Aún no hay versión estable',
+  noReleaseBody: (repo: string) =>
+    `${repo} todavía no ha publicado una versión estable. Cambia a «Cada commit» para seguir la rama main.`
 }

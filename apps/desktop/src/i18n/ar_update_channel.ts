@@ -11,5 +11,7 @@ export const arUpdateChannel = {
   detailsLabel: 'القناة',
   branch: (b: string) => `الفرع: ${b}`,
   change: 'تغيير',
-  latestRelease: (v: string) => `أنت على أحدث إصدار مستقر (${v}).`
+  latestRelease: (v: string) => `أنت على أحدث إصدار مستقر (${v}).`,
+  noReleaseTitle: 'لا يوجد إصدار مستقر بعد',
+  noReleaseBody: (repo: string) => `لم ينشر ${repo} أي إصدار مستقر بعد. بدّل إلى «كل التزام» لمتابعة فرع main.`
 }

@@ -12,5 +12,8 @@ export const deUpdateChannel = {
   detailsLabel: 'Kanal',
   branch: (b: string) => `Branch: ${b}`,
   change: 'Ändern',
-  latestRelease: (v: string) => `Du nutzt das neueste stabile Release (${v}).`
+  latestRelease: (v: string) => `Du nutzt das neueste stabile Release (${v}).`,
+  noReleaseTitle: 'Noch kein stabiles Release',
+  noReleaseBody: (repo: string) =>
+    `${repo} hat noch kein stabiles Release veröffentlicht. Wechsle zu „Jeder Commit“, um dem main-Branch weiter zu folgen.`
 }

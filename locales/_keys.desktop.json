@@ -3322,6 +3322,8 @@
     "settings.about.channel.failed",
     "settings.about.channel.latestRelease",
     "settings.about.channel.main",
+    "settings.about.channel.noReleaseBody",
+    "settings.about.channel.noReleaseTitle",
     "settings.about.channel.stable",
     "settings.about.channel.stableConfirm",
     "settings.about.channel.stableConfirmBody",

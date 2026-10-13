@@ -13,5 +13,8 @@ export const enUpdateChannel: UpdateChannelCopy = {
   detailsLabel: 'Channel',
   branch: (b: string) => `Branch: ${b}`,
   change: 'Change',
-  latestRelease: (v: string) => `You’re on the latest stable release (${v}).`
+  latestRelease: (v: string) => `You’re on the latest stable release (${v}).`,
+  noReleaseTitle: 'No stable release yet',
+  noReleaseBody: (repo: string) =>
+    `${repo} has not published a stable release. Switch to Every commit to keep following the main branch.`
 }

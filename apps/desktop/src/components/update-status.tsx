@@ -27,7 +27,7 @@ import {
 const RELEASE_NOTES_URL = 'https://github.com/x-Ai/hermes-agent/releases'
 const INSTALLER_URL = 'https://hermes-agent.nousresearch.com/'
 
-export type UpdateStatusTone = 'idle' | 'available' | 'error' | 'unsupported'
+export type UpdateStatusTone = 'idle' | 'available' | 'error' | 'notice' | 'unsupported'
 
 export interface UpdateStatusView {
   line: string
@@ -67,6 +67,8 @@ interface UpdateStatusInput {
   u: Translations['updates']
   /** Names the pinned release when a source install is current on stable. */
   latestRelease?: (version: string) => string
+  /** Stable chosen on a repository with no published release: the line and the body naming the way back. */
+  noRelease?: { title: string; body: (repository: string) => string }
 }
 
 export function deriveUpdateStatus(input: UpdateStatusInput): UpdateStatusView {
@@ -84,10 +86,27 @@ export function deriveUpdateStatus(input: UpdateStatusInput): UpdateStatusView {
   return ordinaryUpdateStatus(input)
 }
 
+/** A failed check. A repository with no release on the chosen channel is not a transport failure:
+ *  GitHub answered, nothing is broken, the install just cannot move until one is published or the
+ *  channel goes back to main — a notice naming the way back. Everything else keeps the transport
+ *  line with the backend's message. */
+function checkFailure(
+  status: DesktopUpdateStatus,
+  u: Translations['updates'],
+  noRelease: UpdateStatusInput['noRelease']
+): Pick<UpdateStatusView, 'error' | 'line' | 'tone'> {
+  if (status.error === 'release-missing' && noRelease) {
+    return { error: noRelease.body(status.repository || 'GitHub'), line: noRelease.title, tone: 'notice' }
+  }
+
+  return { error: [status.message, status.error].filter(l => !!l).join('\n'), line: u.cantReach, tone: 'error' }
+}
+
 function ordinaryUpdateStatus({
   apply,
   checking,
   latestRelease,
+  noRelease,
   status,
   target,
   u
@@ -104,14 +123,7 @@ function ordinaryUpdateStatus({
   }
 
   if (status?.error) {
-    return {
-      applying,
-      error: [status.message, status.error].filter(l => !!l).join('\n'),
-      line: u.cantReach,
-      supported,
-      tone: 'error',
-      updateAvailable
-    }
+    return { applying, ...checkFailure(status, u, noRelease), supported, updateAvailable }
   }
 
   if (applying) {
@@ -303,6 +315,7 @@ export function UpdateStatusCard({
     apply,
     checking,
     latestRelease: t.settings.about.channel.latestRelease,
+    noRelease: { title: t.settings.about.channel.noReleaseTitle, body: t.settings.about.channel.noReleaseBody },
     status,
     target,
     u
@@ -320,13 +333,14 @@ export function UpdateStatusCard({
         'rounded-xl border px-4 py-3 text-sm',
         view.tone === 'available' && 'border-primary/30 bg-primary/5 text-foreground',
         view.tone === 'error' && 'border-destructive/35 bg-destructive/5 text-destructive',
-        (view.tone === 'idle' || view.tone === 'unsupported') && 'border-border/70 bg-muted/20 text-foreground'
+        (view.tone === 'idle' || view.tone === 'notice' || view.tone === 'unsupported') &&
+          'border-border/70 bg-muted/20 text-foreground'
       )}
     >
       <div className="flex items-start gap-2">
         {view.tone === 'available' ? (
           <Codicon className="mt-0.5 size-4 shrink-0 text-primary" name="cloud-download" size="1rem" />
-        ) : view.tone === 'error' || view.tone === 'unsupported' ? null : (
+        ) : view.tone === 'error' || view.tone === 'notice' || view.tone === 'unsupported' ? null : (
           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
         )}
         <div className="min-w-0">

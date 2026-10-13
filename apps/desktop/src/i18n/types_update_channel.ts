@@ -16,4 +16,8 @@ export interface UpdateChannelCopy {
   change: string
   /** Up to date on stable: names the release the install is pinned to. */
   latestRelease: (version: string) => string
+  /** Stable chosen on a repository that has published no release (`release-missing`): the card's
+   *  line, and the body naming the repository and the way back to following main. */
+  noReleaseTitle: string
+  noReleaseBody: (repository: string) => string
 }

@@ -546,3 +546,20 @@ def test_branch_tip_failure_names_the_cause(installation):
     status = check_for_updates(install_root=root, home=home, force=True)
     assert status["error"] == "fetch-failed"
     assert "HTTP 503" in status["message"]
+
+
+def test_a_repository_without_a_release_reports_release_missing(installation):
+    """A fork that mirrors upstream's tags but publishes no release: GitHub answers 404 for
+    ``/releases/latest``. That is not a transport failure (``release-unavailable``), it is the
+    channel's empty state — ``release-missing`` with the repository named, so a client can point at
+    the way back to main instead of "we couldn't reach the update server"."""
+    from hermes_cli.source_check import check_for_updates
+
+    _root, linked, home, _base, _head, responses, requests, _git = installation
+    responses["/repos/fixture/fork/releases/latest"] = (404, {"message": "Not Found"})
+    status = check_for_updates(install_root=linked, home=home, channel="stable")
+    assert status.get("error") == "release-missing", status
+    assert status["repository"] == "fixture/fork"
+    assert status["message"] == "No published stable release in fixture/fork"
+    assert "targetSha" not in status
+    assert requests == ["/repos/fixture/fork/releases/latest"]

@@ -12,5 +12,8 @@ export const ruUpdateChannel = {
   detailsLabel: 'Канал',
   branch: (b: string) => `Ветка: ${b}`,
   change: 'Изменить',
-  latestRelease: (v: string) => `У вас последний стабильный релиз (${v}).`
+  latestRelease: (v: string) => `У вас последний стабильный релиз (${v}).`,
+  noReleaseTitle: 'Стабильных релизов пока нет',
+  noReleaseBody: (repo: string) =>
+    `${repo} ещё не публиковал стабильных релизов. Переключитесь на «Каждый коммит», чтобы и дальше следовать ветке main.`
 }

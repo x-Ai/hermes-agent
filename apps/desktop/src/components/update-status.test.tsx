@@ -39,7 +39,16 @@ const IDLE_APPLY: UpdateApplyState = {
 }
 
 function derive(status: DesktopUpdateStatus | null, apply: UpdateApplyState = IDLE_APPLY, checking = false) {
-  return deriveUpdateStatus({ apply, checking, status, target: 'client', u: en.updates })
+  const channel = en.settings.about.channel
+
+  return deriveUpdateStatus({
+    apply,
+    checking,
+    noRelease: { title: channel.noReleaseTitle, body: channel.noReleaseBody },
+    status,
+    target: 'client',
+    u: en.updates
+  })
 }
 
 describe('deriveUpdateStatus', () => {
@@ -107,6 +116,24 @@ describe('deriveUpdateStatus', () => {
     expect(view.tone).toBe('unsupported')
     expect(view.line).toBe('managed install')
     expect(view.supported).toBe(false)
+  })
+
+  it('a stable channel on a repository without a release is a notice naming the way back, not a transport error', () => {
+    const view = derive({
+      supported: true,
+      channel: 'stable',
+      error: 'release-missing',
+      message: 'No published stable release in fixture/fork',
+      repository: 'fixture/fork'
+    })
+
+    expect(view.tone).toBe('notice')
+    expect(view.line).toBe(en.settings.about.channel.noReleaseTitle)
+    expect(view.error).toBe(en.settings.about.channel.noReleaseBody('fixture/fork'))
+    // An older checker omits the repository: still no raw English transport line.
+    expect(derive({ supported: true, error: 'release-missing', message: 'x' }).error).toBe(
+      en.settings.about.channel.noReleaseBody('GitHub')
+    )
   })
 
   it('check error shows one plain line and keeps the transport message with the error', () => {

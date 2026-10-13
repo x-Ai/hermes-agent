@@ -883,6 +883,8 @@ export interface DesktopUpdateStatus {
   channel?: string
   /** The install's source_check can persist a channel (older runtimes cannot). */
   channelSelectable?: boolean
+  /** Source checkouts: the GitHub repository the channel resolves against (release-missing names it). */
+  repository?: string
   /** The latest release tag on a release-feed channel, e.g. `v0.18.0`. */
   latestTag?: string | null
   /** Source stable: the release version the channel resolves to, e.g. `0.21.6`. */
