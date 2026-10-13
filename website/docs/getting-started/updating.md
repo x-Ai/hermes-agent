@@ -34,9 +34,11 @@ Source checkouts of this fork track `main` by default: `hermes update` and the D
 update button follow the fork's `main` branch commit by commit. The Desktop's
 About ▸ Updates selector (or `--set-channel`) can switch an install to **stable**: the
 latest `vX.Y.Z` GitHub Release published by this repository (`x-Ai/hermes-agent`),
-checked out at its exact commit. That release can be older than the code you run, so
-the Desktop asks before switching. Both channels resolve against this repository,
-never upstream's. The update prepares dependencies through PM and reports
+checked out at its exact commit. Releases here carry upstream's version numbers: this
+repository's `vX.Y.Z` is upstream's `vX.Y.Z` plus the fork's changes (published with the
+`Fork stable release` workflow after the sync that merges it). That release can be older
+than the code you run, so the Desktop asks before switching. Both channels resolve against
+this repository, never upstream's. The update prepares dependencies through PM and reports
 configuration changes and process-restart results.
 
 ```bash

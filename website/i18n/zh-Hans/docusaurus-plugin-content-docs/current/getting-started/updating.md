@@ -14,7 +14,7 @@ description: "如何将 Hermes Agent 更新至最新版本或将其卸载"
 hermes update
 ```
 
-本 fork 的源码安装默认跟踪 `main`：`hermes update` 和桌面应用的更新按钮会逐个提交跟进 fork 的 `main` 分支。桌面应用"关于 ▸ 更新"里的 stable/main 选择器（或 `--set-channel`）可以把安装切到 **stable**：本仓库（`x-Ai/hermes-agent`）最新发布的 `vX.Y.Z` GitHub Release，检出到该发布的精确提交；它可能比当前运行的代码更旧，因此桌面应用会先确认。两个渠道都只解析本仓库，不会指向上游。此命令还会更新依赖项，并提示你配置自上次更新以来新增的选项。
+本 fork 的源码安装默认跟踪 `main`：`hermes update` 和桌面应用的更新按钮会逐个提交跟进 fork 的 `main` 分支。桌面应用"关于 ▸ 更新"里的 stable/main 选择器（或 `--set-channel`）可以把安装切到 **stable**：本仓库（`x-Ai/hermes-agent`）最新发布的 `vX.Y.Z` GitHub Release，检出到该发布的精确提交。本仓库的发布沿用上游的版本号：这里的 `vX.Y.Z` 就是上游的 `vX.Y.Z` 加上 fork 的改动（同步合并后由 `Fork stable release` 工作流发布）；它可能比当前运行的代码更旧，因此桌面应用会先确认。两个渠道都只解析本仓库，不会指向上游。此命令还会更新依赖项，并提示你配置自上次更新以来新增的选项。
 
 ```bash
 hermes update --set-channel main     # 默认值：跟踪 main 上的每个提交

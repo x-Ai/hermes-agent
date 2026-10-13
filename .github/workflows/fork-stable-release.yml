@@ -1,0 +1,56 @@
+name: Fork stable release
+
+# Fork-local, hand-dispatched. This fork invents no version numbers of its own: a stable
+# release here is upstream's vX.Y.Z plus this repository's changes, under upstream's number,
+# so `hermes update --set-channel stable` and the Desktop's selector have a release to resolve
+# and `hermes --version` reads vX.Y.Z+N the way upstream's checkouts do. The tag of that name
+# arrived as a mirror of upstream's (a commit without the fork) and is re-pointed at the released
+# commit; the notes are upstream's verbatim plus a fork section. Refusal rules and the notes:
+# scripts/releases/fork_stable_release.py.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Upstream release version to publish from this fork (e.g. 0.21.7)
+        required: true
+      ref:
+        description: Commit or branch to release
+        required: true
+        default: main
+      force:
+        description: Replace an existing release of this version
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fork-stable-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Upstream has its own release pipeline; this workflow is a no-op there.
+    if: github.repository != 'NousResearch/hermes-agent'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_FORCE: ${{ inputs.force }}
+        run: |
+          flags=()
+          if [ "$RELEASE_FORCE" = "true" ]; then flags+=(--force); fi
+          python3 scripts/releases/fork_stable_release.py --version "$RELEASE_VERSION" --ref HEAD \
+            --repository "$GITHUB_REPOSITORY" "${flags[@]}"
