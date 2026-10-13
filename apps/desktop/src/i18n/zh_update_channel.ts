@@ -1,6 +1,6 @@
 export const zhUpdateChannel = {
   title: '更新渠道',
-  description: '稳定版只安装已发布版本，滚动更新跟随 main 分支最新提交',
+  description: '稳定版只安装已发布版本，滚动更新跟随 main 分支最新',
   stable: '稳定版发布',
   main: '滚动更新',
   stableConfirmTitle: '切换到稳定版发布？',
@@ -11,5 +11,7 @@ export const zhUpdateChannel = {
   detailsLabel: '渠道',
   branch: (b: string) => `分支：${b}`,
   change: '更改',
-  latestRelease: (v: string) => `你正在使用最新的稳定版发布（${v}）`
+  latestRelease: (v: string) => `你正在使用最新的稳定版发布（${v}）`,
+  noReleaseTitle: '暂无稳定版发布',
+  noReleaseBody: (repo: string) => `${repo} 还没有发布过稳定版本，切换到"滚动更新"可继续跟随 main 分支`
 }
