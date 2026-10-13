@@ -136,6 +136,10 @@ const STORAGE_CODE_RE = /['"]code['"]\s*:\s*['"](storage_[a-z_]+|disk_full)['"]/
 const BUILTIN_PROVIDER_ID_RE = /'([^']+)' is a built-in provider id\b/i
 const SUGGESTED_ENDPOINT_ID_RE = /for example '([^']+)'/i
 
+/** The same route's 422 for an endpoint the scoped profile reads through from
+ *  the default profile (`profile.yaml` `share_providers`); the id is read out of it. */
+const SHARED_ENDPOINT_RE = /'([^']+)' is shared from the default profile\b/i
+
 interface ErrorSummaryRule {
   /** The toast's error category for friction telemetry (a closed code-defined set, never the text). */
   category: ErrorToastCategory
@@ -215,6 +219,12 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
 
       return translateNow('runtimeErrors.builtinProviderId', id, suggestion)
     },
+    hideDetail: true
+  },
+  {
+    category: 'other',
+    test: msg => SHARED_ENDPOINT_RE.test(msg),
+    summarize: msg => translateNow('runtimeErrors.sharedProviderEndpoint', SHARED_ENDPOINT_RE.exec(msg)?.[1] ?? ''),
     hideDetail: true
   },
   {

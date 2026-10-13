@@ -131,6 +131,33 @@ test('a built-in provider id refusal from the custom endpoint route is localized
   expect($notifications.get()[0]).toMatchObject({ message: detail, detail: undefined })
 })
 
+// A profile that shares providers reads its custom endpoints through from the
+// default profile; the route refuses to edit one of those with an English
+// `detail` naming the endpoint. The toast re-renders it in the display language.
+test('a shared-endpoint refusal from the custom endpoint route is localized with the endpoint id', () => {
+  const detail =
+    "'magpie' is shared from the default profile; edit it there, or stop sharing providers in this profile first"
+
+  const error = new Error(`Error invoking remote method 'hermes:api': Error: 422: {"detail":"${detail}"}`)
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.settings.customEndpoints.saveFailed,
+    message: TRANSLATIONS.zh.runtimeErrors.sharedProviderEndpoint('magpie'),
+    detail: undefined
+  })
+  expect(lastMessage()).toContain('magpie')
+  expect(lastMessage()).not.toContain('shared from the default profile')
+
+  clearNotifications()
+  setRuntimeI18nLocale('en')
+  notifyError(error, en.settings.customEndpoints.saveFailed)
+
+  expect($notifications.get()[0]).toMatchObject({ message: detail, detail: undefined })
+})
+
 test('notifyError posts the full error to desktop.log, not the summary', () => {
   const logLine = vi.fn()
 

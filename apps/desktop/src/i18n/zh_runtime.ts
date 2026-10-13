@@ -66,6 +66,8 @@ export const zhRuntime = {
     connectionBridgeUnavailable: 'Hermes Desktop 连接桥接不可用',
     builtinProviderId: (id: string, suggestion: string) =>
       `"${id}" 是内置提供商 ID，请为此端点另选一个 ID（例如 "${suggestion}"）`,
+    sharedProviderEndpoint: (id: string) =>
+      `"${id}" 由主配置档案共享，请到主配置档案中修改，或先取消此配置档案的提供方共享`,
     welcomeNeedsAttention: '欢迎对话需要处理',
     welcomeStartFailed: '无法启动欢迎对话',
     restoreProfileFailed: '无法恢复你的配置档案'

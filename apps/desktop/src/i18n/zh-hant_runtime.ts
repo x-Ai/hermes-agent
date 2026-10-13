@@ -58,6 +58,8 @@ export const zhHantRuntime = {
     connectionBridgeUnavailable: 'Hermes Desktop 連線橋接無法使用',
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」是內建供應商 ID，請為此端點另選一個 ID（例如「${suggestion}」）。`,
+    sharedProviderEndpoint: (id: string) =>
+      `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`,
     welcomeNeedsAttention: '歡迎對話需要處理',
     welcomeStartFailed: '無法啟動歡迎對話。',
     restoreProfileFailed: '無法還原你的設定檔'

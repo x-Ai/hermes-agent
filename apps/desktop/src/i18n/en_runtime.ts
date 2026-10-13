@@ -69,6 +69,8 @@ export const enRuntime = {
     connectionBridgeUnavailable: 'Hermes Desktop connection bridge unavailable',
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`,
+    sharedProviderEndpoint: (id: string) =>
+      `'${id}' is shared from the default profile; edit it there, or stop sharing providers in this profile first`,
     welcomeNeedsAttention: 'Welcome chat needs attention',
     welcomeStartFailed: 'The welcome chat could not start.',
     restoreProfileFailed: 'Could not restore your profile'

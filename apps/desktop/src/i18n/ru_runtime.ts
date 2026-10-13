@@ -70,6 +70,8 @@ export const ruRuntime = {
     connectionBridgeUnavailable: 'Мост соединений Hermes Desktop недоступен',
     builtinProviderId: (id: string, suggestion: string) =>
       `«${id}» — идентификатор встроенного провайдера. Укажите для этой конечной точки другой идентификатор (например, «${suggestion}»).`,
+    sharedProviderEndpoint: (id: string) =>
+      `«${id}» используется совместно из профиля по умолчанию. Измените его там или сначала отключите совместное использование провайдеров в этом профиле.`,
     welcomeNeedsAttention: 'Приветственный чат требует внимания',
     welcomeStartFailed: 'Не удалось запустить приветственный чат.',
     restoreProfileFailed: 'Не удалось восстановить профиль'

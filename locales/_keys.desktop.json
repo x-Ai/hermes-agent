@@ -3251,6 +3251,7 @@
     "runtimeErrors.restoreUnavailableForMessage",
     "runtimeErrors.savingUnavailable",
     "runtimeErrors.sessionControlGatewayUnavailable",
+    "runtimeErrors.sharedProviderEndpoint",
     "runtimeErrors.sttHttpError",
     "runtimeErrors.transcriptionTimedOut",
     "runtimeErrors.ttsHttpError",

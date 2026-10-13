@@ -72,6 +72,8 @@ export const jaRuntime = {
     connectionBridgeUnavailable: 'Hermes Desktop の接続ブリッジを利用できません',
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」は組み込みプロバイダーの ID です。このエンドポイントには別の ID を指定してください（例：「${suggestion}」）`,
+    sharedProviderEndpoint: (id: string) =>
+      `「${id}」はメインプロファイルから共有されています。メインプロファイルで編集するか、先にこのプロファイルのプロバイダー共有を解除してください。`,
     welcomeNeedsAttention: 'ウェルカムチャットを確認してください',
     welcomeStartFailed: 'ウェルカムチャットを開始できませんでした。',
     restoreProfileFailed: 'プロファイルを復元できませんでした'

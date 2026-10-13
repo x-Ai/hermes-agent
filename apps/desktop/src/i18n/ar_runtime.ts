@@ -59,6 +59,8 @@ export const arRuntime = {
     connectionBridgeUnavailable: 'جسر اتصال Hermes Desktop غير متاح',
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`,
+    sharedProviderEndpoint: (id: string) =>
+      `'${id}' مشترك من الملف الشخصي الافتراضي. عدّله هناك، أو أوقف مشاركة المزوّدين في هذا الملف الشخصي أولًا.`,
     welcomeNeedsAttention: 'محادثة الترحيب تحتاج إلى انتباهك',
     welcomeStartFailed: 'تعذر بدء محادثة الترحيب.',
     restoreProfileFailed: 'تعذرت استعادة ملفك الشخصي'
