@@ -81,7 +81,13 @@ function useModelOptions(bot: null | RosterRow = null) {
   const orphaned = resolved?.status === 'owner_removed'
 
   return useQuery<ModelOptionsResult>({
-    queryKey: [ID, 'model-options', route ? botRouteKey(route) : 'active'],
+    // Under the core `['model-options']` prefix: the app invalidates that prefix
+    // after a Settings save (a custom endpoint deleted or edited), a main-model
+    // change and a free-tier sign-in, so this inventory refreshes with the
+    // core picker's instead of offering a deleted endpoint for two minutes. The
+    // `plugin:` segment can never be a profile id, so the local-runtime job
+    // watcher's per-profile predicate (`queryKey[1] === profile`) skips it.
+    queryKey: ['model-options', `plugin:${ID}`, route ? botRouteKey(route) : 'active'],
     // No forced `refresh`: forcing a network read on EVERY mount bypassed the
     // staleTime cache, so each Bots view remount (tab re-front, dialog reopen,
     // pane visibility flip) knocked the picker back into its loading state and
