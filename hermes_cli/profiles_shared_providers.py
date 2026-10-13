@@ -24,6 +24,7 @@ profile takes when it stops sharing, so the endpoint its model pin names keeps r
 from __future__ import annotations
 
 import copy
+from contextvars import ContextVar
 import logging
 import re
 from pathlib import Path
@@ -133,10 +134,25 @@ def _is_custom_endpoint(key: str, entry: dict[str, Any]) -> bool:
     return is_provider_enabled(entry) and is_custom_endpoint_entry(key, entry)
 
 
+# Classifying the default profile's rows reaches the provider runtime (``is_custom_endpoint_entry``:
+# registry discovery, the models.dev catalog behind ``get_label``), and both load the config on their
+# way. That nested load must see the profile's own file, never this classification again: re-entering
+# recursed until the RecursionError was swallowed as a "formatting error" (default settings, a
+# ``.corrupt`` backup, a warning per load) and took the models.dev refresh lock twice on one thread.
+_CLASSIFYING: ContextVar[bool] = ContextVar("hermes_shared_providers_classifying", default=False)
+
+
 def default_profile_custom_endpoints() -> dict[str, dict[str, Any]]:
-    """Custom endpoints the default (root) profile declares, keyed by their ``providers.<key>``."""
-    return {key: entry for key, entry in _raw_providers(_default_root()).items()
-            if _is_custom_endpoint(key, entry)}
+    """Custom endpoints the default (root) profile declares, keyed by their ``providers.<key>``.
+    ``{}`` for a config load the classification itself triggers (``_CLASSIFYING``)."""
+    if _CLASSIFYING.get():
+        return {}
+    token = _CLASSIFYING.set(True)
+    try:
+        return {key: entry for key, entry in _raw_providers(_default_root()).items()
+                if _is_custom_endpoint(key, entry)}
+    finally:
+        _CLASSIFYING.reset(token)
 
 
 def missing_default_endpoints(profile_home: Path) -> dict[str, dict[str, Any]]:

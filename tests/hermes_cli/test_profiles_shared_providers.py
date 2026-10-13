@@ -239,3 +239,62 @@ def test_adopt_never_overwrites_a_key_the_profile_already_holds(homes):
     with profile_scope(bot):
         assert shared.adopt_default_endpoint(bot, "relay") == {"entry": True, "key_env": "RELAY_TOKEN", "key_copied": False}
     assert load_env_file(bot / ".env")["RELAY_TOKEN"] == "stale-relay-copy"
+
+
+def test_sharing_profile_load_never_reenters_load_config(homes, monkeypatch, caplog):
+    """``is_custom_endpoint_entry`` → ``is_builtin_provider_id`` resolved every non-builtin key of the
+    default profile through ``resolve_provider``, whose unknown-provider hint validates the whole
+    config with ``load_config()`` — the overlay again — until the RecursionError was swallowed as a
+    "formatting error": default settings for that nested load, a ``.corrupt`` backup copy, a warning
+    per load. The overlay must read the default profile without re-entering the loader."""
+    import logging
+
+    import hermes_cli.config as config_mod
+
+    _root, bot = homes
+    shared.set_profile_shares_providers(bot, True)
+    depth = {"now": 0, "max": 0}
+    real_impl = config_mod._load_config_impl
+
+    def counting_impl(*args, **kwargs):
+        depth["now"] += 1
+        depth["max"] = max(depth["max"], depth["now"])
+        try:
+            return real_impl(*args, **kwargs)
+        finally:
+            depth["now"] -= 1
+
+    monkeypatch.setattr(config_mod, "_load_config_impl", counting_impl)
+    with caplog.at_level(logging.WARNING):
+        providers = _providers(bot)
+    # Provider discovery itself loads the config once (``plugins.enabled``) the first time it runs
+    # in a process: one legitimate nested level, never a chain.
+    assert depth["max"] <= 2, f"load_config re-entered itself {depth['max']} deep"
+    assert "maximum recursion depth" not in caplog.text
+    assert "formatting error" not in caplog.text
+    assert not list((bot / "backups").rglob("*.corrupt.*"))
+    assert set(providers) == {"mine", "relay", "slotted"}  # the default profile's endpoints came through
+
+
+def test_a_config_load_from_inside_the_classification_sees_the_profiles_own_file(homes, monkeypatch):
+    """``is_custom_endpoint_entry`` asks the provider runtime for a built-in id's label, and the
+    models.dev catalog behind it reads the config (``load_config_readonly``) on a cold cache — from
+    INSIDE the overlay. That nested load re-entered the classification (and the models.dev refresh
+    took its own lock a second time on the same thread: a deadlock at startup). It must come back
+    with the profile's own rows and leave the outer load's shared rows intact."""
+    import hermes_cli.providers as providers_mod
+    from hermes_cli.config import load_config_readonly
+
+    _root, bot = homes
+    shared.set_profile_shares_providers(bot, True)
+    real_label = providers_mod.get_label
+    nested: list[set[str]] = []
+
+    def label_after_a_config_read(name):
+        nested.append(set(load_config_readonly().get("providers") or {}))
+        return real_label(name)
+
+    monkeypatch.setattr(providers_mod, "get_label", label_after_a_config_read)
+    assert set(_providers(bot)) == {"mine", "relay", "slotted"}
+    assert nested, "the built-in xai row never reached the label comparison"
+    assert all(seen == {"mine", "relay"} for seen in nested), nested

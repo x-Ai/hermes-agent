@@ -441,16 +441,21 @@ def custom_provider_slug(display_name: str, provider_key: str = "") -> str:
 def is_builtin_provider_id(name: str) -> bool:
     """True when ``name`` is exactly a canonical built-in provider id (``openai``, ``xai``, ...).
     A custom endpoint may not take such an id: ``providers.<builtin>`` is that provider's settings
-    block, so the same key cannot also describe a foreign endpoint."""
+    block, so the same key cannot also describe a foreign endpoint.
+
+    Only ``resolve_provider``'s registry rung, never its unknown-provider hint: the hint validates
+    the whole config through ``load_config()``, and this predicate runs INSIDE ``load_config()`` for
+    a profile that shares the default profile's endpoints (``profiles_shared_providers``), so every
+    non-builtin key there re-entered the loader until the RecursionError was swallowed as a
+    "formatting error" (default settings for that nested load, a ``.corrupt`` backup, a warning)."""
     requested = str(name or "").strip().lower()
     if not requested or requested == "custom" or requested.startswith("custom:"):
         return False
-    from hermes_cli.auth import AuthError, resolve_provider
-    try:
-        canonical = resolve_provider(requested)
-    except AuthError:
-        return False
-    return str(canonical or "").strip().lower() == requested
+    from hermes_cli.auth import _plugin_aliases, _registry_lookup
+    canonical = _plugin_aliases().get(requested, requested)
+    if canonical != requested:
+        return False  # an alias names a provider; it is not that provider's canonical id
+    return canonical == "openrouter" or _registry_lookup(canonical) is not None
 
 
 # Keys under which a ``providers:`` row declares a credential of its own.
