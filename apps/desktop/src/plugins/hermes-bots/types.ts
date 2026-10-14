@@ -11,6 +11,8 @@
 
 import type { ProfileSessionPreview } from '@hermes/plugin-sdk'
 
+import type { GroupTurnTrace } from './group-trace'
+
 /**
  * The compact age suffixes the sidebar's session rows render ("now", "m", "h",
  * "d"). Structural rather than an import of core's `Translations`, which the
@@ -186,6 +188,10 @@ export interface GroupMessage {
   text: string
   /** Messages predating threading carry the sentinel thread `'legacy'`. */
   thread?: string
+  /** A member reply's reasoning + tool calls, folded under the speaker line
+   *  (`group-trace.ts`). Window-local richness like `images`: it rides the
+   *  plugin-storage room log but never the bounded ui_meta mirror. */
+  trace?: GroupTurnTrace | null
   /** Set on the ui_meta projection when `text` was cut to the sync budget. */
   truncated?: boolean
 }

@@ -18,6 +18,7 @@ import {
   GROUP_ADDRESSED_NUDGE_SUFFIX,
   isGroupChatSelf
 } from './group-round-prompt'
+import type { GroupTurnTraceSink } from './group-trace'
 import { isGroupPassText, runGroupChatMemberTurn } from './group-turns'
 import type { Attachment, GroupMember, GroupMessage } from './types'
 
@@ -151,13 +152,14 @@ async function runVisibleMemberTurn(
   context: GroupRoundMemberContext,
   member: GroupMember,
   prompt: string,
-  images?: Attachment[]
+  images?: Attachment[],
+  sink?: GroupTurnTraceSink
 ) {
   const turn = { ...member }
   updateGroupChat(context.group, (room: GroupChatRoom) => ({ ...room, turn }), { sync: false })
 
   try {
-    return await runGroupChatMemberTurn(context.group, member, prompt, context.thread, images)
+    return await runGroupChatMemberTurn(context.group, member, prompt, context.thread, images, sink)
   } finally {
     if (context.binding.isLive() && $groupChats.get()[context.group]?.turn === turn) {
       updateGroupChat(context.group, (room: GroupChatRoom) => ({ ...room, turn: null }), { sync: false })
@@ -185,9 +187,13 @@ export async function runGroupRoundMember(
   const anchorId = room.log.at(-1)?.id ?? null
   let reply: null | string = null
   let accepted = false
+  // The turn engine fills this with the reasoning + tools behind the reply it
+  // returns; the nudge retry below overwrites it, so the delivered reply's
+  // trace is the one appended (group-trace.ts).
+  const traceSink: GroupTurnTraceSink = {}
 
   try {
-    reply = await runVisibleMemberTurn(context, member, prompt, deltaImages)
+    reply = await runVisibleMemberTurn(context, member, prompt, deltaImages, traceSink)
 
     // #129443: the participation rules ("reply only with something new,
     // else (pass)") let a directly addressed member pass just because a
@@ -200,7 +206,13 @@ export async function runGroupRoundMember(
     // discarded by the epoch check right below anyway, so nudging it would
     // burn a model call whose result can never be committed.
     if (context.isCurrent() && reply !== null && isGroupPassText(reply) && context.addressedKeys?.has(memberKey)) {
-      reply = await runVisibleMemberTurn(context, member, `${prompt}${GROUP_ADDRESSED_NUDGE_SUFFIX}`, deltaImages)
+      reply = await runVisibleMemberTurn(
+        context,
+        member,
+        `${prompt}${GROUP_ADDRESSED_NUDGE_SUFFIX}`,
+        deltaImages,
+        traceSink
+      )
     }
 
     accepted = true
@@ -303,7 +315,7 @@ export async function runGroupRoundMember(
   const spoke = reply !== null && !isGroupPassText(reply)
 
   if (reply !== null && spoke) {
-    appendGroupChatEntry(context.group, groupMemberAuthor(member), reply, thread)
+    appendGroupChatEntry(context.group, groupMemberAuthor(member), reply, thread, undefined, traceSink.trace)
   } else if (reply !== null && context.isCurrent() && context.addressedKeys?.has(memberKey)) {
     // #129443: the nudge was passed on too. Record the noncompliance where
     // the user looks (activity row + roster badge) instead of letting the

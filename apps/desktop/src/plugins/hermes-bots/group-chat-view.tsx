@@ -105,6 +105,7 @@ import {
 } from './group-panes'
 import type { GroupComposerDraft, GroupDraftSetter } from './group-panes'
 import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-rounds'
+import { GroupTurnTraceView } from './group-trace-view'
 import { groupMemberBodyText } from './group-transcript-text'
 import { clearGroupClarify, renameGroupClarify } from './group-turns'
 import {
@@ -1457,6 +1458,9 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
               )}
             </div>
           ) : null}
+          {/* The member's reasoning + tools behind this reply, folded away by */
+          /* default (group-trace-view.tsx); the user opens it to read along. */}
+          <GroupTurnTraceView hidden={isUser} trace={entry.trace} />
         </div>
       </div>
     )

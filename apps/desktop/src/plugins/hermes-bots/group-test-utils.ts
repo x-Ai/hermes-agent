@@ -23,11 +23,21 @@
 import type { PluginContext } from '@hermes/plugin-sdk'
 import { vi } from 'vitest'
 
-/** One message in a scripted session transcript, in the gateway's own shape. */
+/** One message in a scripted session transcript, in the gateway's own shape.
+ *  The trailing fields are the assistant reasoning sidecars and tool-row
+ *  descriptors `session.resume` carries, so a turn can script the reasoning
+ *  and tool calls a trace reads (group-trace-capture.ts). */
 export interface ScriptedMessage {
   content: string
   display_kind?: string
   role: string
+  args?: unknown
+  context?: string
+  display_metadata?: unknown
+  name?: string
+  reasoning?: string
+  reasoning_content?: string
+  reasoning_details?: unknown
 }
 
 export interface ScriptedSession {

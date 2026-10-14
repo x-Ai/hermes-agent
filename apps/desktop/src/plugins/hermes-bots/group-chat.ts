@@ -13,6 +13,8 @@ import { atom, host } from '@hermes/plugin-sdk'
 
 import { $botMeta, $lastRoster, botRosterKey } from './data'
 import { durableGroupHandle, groupHandleProjection, mergeGroupHandleField } from './group-handle-sync'
+import { isGroupTurnTrace, retainGroupTraces } from './group-trace'
+import type { GroupTurnTrace } from './group-trace'
 import {
   durableGroupWorkspaceFields,
   groupWorkspaceProjection,
@@ -1573,7 +1575,10 @@ export function trimGroupChatLog(
 
   if (keep >= log.length) {
     return {
-      log: capped,
+      // Entry text is count/char-bounded above; traces carry their own budget
+      // (the oldest lose their trace, never their text) so a room of
+      // tool-heavy turns can't bloat the persisted log.
+      log: retainGroupTraces(capped),
       watermarks
     }
   }
@@ -1586,7 +1591,7 @@ export function trimGroupChatLog(
   }
 
   return {
-    log: capped.slice(drop),
+    log: retainGroupTraces(capped.slice(drop)),
     watermarks: trimmed
   }
 }
@@ -1764,7 +1769,8 @@ export function appendGroupChatEntry(
   from: GroupMessageAuthor,
   text: string,
   thread?: null | string,
-  images?: Attachment[]
+  images?: Attachment[],
+  trace?: GroupTurnTrace | null
 ): GroupMessage {
   const entry: GroupMessage = {
     id: groupChatEntryId(),
@@ -1780,6 +1786,12 @@ export function appendGroupChatEntry(
     // [{ name, data }] — data URLs. Persisted with the room log so reloads
     // keep showing what the members were shown.
     entry.images = images
+  }
+
+  // The member's reasoning + tool calls for this reply (group-trace.ts).
+  // Guarded so a malformed shape never reaches storage or the renderer.
+  if (isGroupTurnTrace(trace) && trace.steps.length) {
+    entry.trace = trace
   }
 
   // #93127 insurance: a residual double-append path (stale loop + fresh

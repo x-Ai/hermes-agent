@@ -11,6 +11,7 @@
  */
 
 import { type GroupContextCopy, groupContextCopy } from './i18n_group_context'
+import { type GroupTraceCopy, groupTraceCopy } from './i18n_group_trace'
 
 // A type alias, not an interface: `BotsMessages` must stay assignable to the
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
@@ -251,15 +252,16 @@ const ar: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`
 }
 
-/** Everything the fork adds to `b.group.*`: this file's keys plus the room's
- *  context-usage readout (`i18n_group_context.ts`). */
-export type GroupCreateCopy = GroupContextCopy & GroupCreateOwnCopy
+/** Everything the fork adds to `b.group.*`: this file's keys, the room's
+ *  context-usage readout (`i18n_group_context.ts`), and the reply's
+ *  thinking/actions disclosure (`i18n_group_trace.ts`). */
+export type GroupCreateCopy = GroupContextCopy & GroupTraceCopy & GroupCreateOwnCopy
 
 export const groupCreateCopy: Record<'ar' | 'en' | 'ja' | 'ru' | 'zh' | 'zh-hant', GroupCreateCopy> = {
-  ar: { ...ar, ...groupContextCopy.ar },
-  en: { ...en, ...groupContextCopy.en },
-  ja: { ...ja, ...groupContextCopy.ja },
-  ru: { ...ru, ...groupContextCopy.ru },
-  zh: { ...zh, ...groupContextCopy.zh },
-  'zh-hant': { ...zhHant, ...groupContextCopy['zh-hant'] }
+  ar: { ...ar, ...groupContextCopy.ar, ...groupTraceCopy.ar },
+  en: { ...en, ...groupContextCopy.en, ...groupTraceCopy.en },
+  ja: { ...ja, ...groupContextCopy.ja, ...groupTraceCopy.ja },
+  ru: { ...ru, ...groupContextCopy.ru, ...groupTraceCopy.ru },
+  zh: { ...zh, ...groupContextCopy.zh, ...groupTraceCopy.zh },
+  'zh-hant': { ...zhHant, ...groupContextCopy['zh-hant'], ...groupTraceCopy['zh-hant'] }
 }

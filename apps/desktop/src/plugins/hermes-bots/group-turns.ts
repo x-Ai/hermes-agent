@@ -32,6 +32,8 @@ import {
   formatFreshThreadRoomContext,
   GROUP_PROMPT_HEADER_PREFIX
 } from './group-round-prompt'
+import type { GroupTurnTraceSink } from './group-trace'
+import { captureGroupTurnTrace } from './group-trace-capture'
 import {
   groupSessionCreateCwdParams,
   reconcileGroupSessionWorkspace,
@@ -894,7 +896,8 @@ export async function runGroupChatMemberTurn(
   member: GroupMember,
   prompt: string,
   thread: string,
-  images?: Attachment[]
+  images?: Attachment[],
+  sink?: GroupTurnTraceSink
 ): Promise<null | string> {
   // #93602: hold the member's route socket for the whole turn. Without the
   // lease, every RPC below rides its own request-scoped socket lease; the
@@ -909,7 +912,7 @@ export async function runGroupChatMemberTurn(
   try {
     releaseTurnLease = await retainGroupTurnRoute(member)
 
-    return binding.isLive() ? await runGroupChatMemberTurnLeased(group, member, prompt, thread, images) : null
+    return binding.isLive() ? await runGroupChatMemberTurnLeased(group, member, prompt, thread, images, sink) : null
   } finally {
     releaseTurnLease?.()
     binding.dispose()
@@ -996,6 +999,9 @@ interface GroupTurnPollContext {
   binding: { isLive(): boolean }
   /** The in-flight marker this poll owns (see markGroupTurnInFlight). */
   turn: string
+  /** Filled with the finished turn's reasoning + tool trace on a substantive
+   *  reply, so the caller can append it beside the entry (group-trace.ts). */
+  sink?: GroupTurnTraceSink
 }
 
 // Polls alive in THIS process, by marker token. A marker whose token is here belongs to a turn
@@ -1048,6 +1054,20 @@ function clearGroupTurnMarker(group: string, member: GroupMember, turn: string) 
 
     return r
   })
+}
+
+/** Record the reasoning + tools behind a substantive reply into the caller's
+ *  sink (group-trace.ts), folded under the speaker line. A pass left nothing
+ *  worth showing. Kept out of the poll loop so its complexity does not grow. */
+function noteGroupReplyTrace(
+  context: GroupTurnPollContext,
+  messages: GroupTurnTranscriptMessage[],
+  before: number,
+  reply: string
+) {
+  if (context.sink && !isGroupPassText(reply)) {
+    context.sink.trace = captureGroupTurnTrace(messages, before, reply)
+  }
 }
 
 async function pollGroupMemberTurn(context: GroupTurnPollContext): Promise<null | string> {
@@ -1126,6 +1146,7 @@ async function pollGroupMemberTurn(context: GroupTurnPollContext): Promise<null 
       const pick = messages.length > before && !failedThisTurn ? pickGroupTurnReply(messages, before) : null
 
       if (typeof pick === 'string') {
+        noteGroupReplyTrace(context, messages, before, pick)
         recordGroupActivity(context.group, {
           kind: isGroupPassText(pick) ? 'passed' : 'replied',
           member: groupMemberKey(member),
@@ -1219,7 +1240,8 @@ async function runGroupChatMemberTurnLeased(
   member: GroupMember,
   prompt: string,
   thread: string,
-  images?: Attachment[]
+  images?: Attachment[],
+  sink?: GroupTurnTraceSink
 ): Promise<null | string> {
   const binding = followGroupChat(group, name => {
     group = name
@@ -1302,7 +1324,8 @@ async function runGroupChatMemberTurnLeased(
         before,
         leftover,
         binding,
-        turn
+        turn,
+        sink
       })
 
       // A reply (or an explicit pass) ends the turn; null is a timeout or a dead
@@ -1443,7 +1466,14 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
         member: groupMemberKey(member),
         thread: strandedThread
       })
-      appendGroupChatEntry(group, groupMemberAuthor(member), reply, strandedThread)
+      appendGroupChatEntry(
+        group,
+        groupMemberAuthor(member),
+        reply,
+        strandedThread,
+        undefined,
+        captureGroupTurnTrace(messages, strandedBefore, reply)
+      )
       updateGroupChat(group, (r: GroupChatRoom) => {
         const markKey = `${strandedThread}::${memberKey}`
 
