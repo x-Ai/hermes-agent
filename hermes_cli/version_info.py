@@ -7,6 +7,10 @@ Resolution order:
    for packaged builds.
 2. Live git — for unstamped source/dev installs with a ``.git`` directory.
 3. Unknown — no stamp and no git. The provenance is unknown.
+
+A ``source: git`` stamp beside a live checkout is read only while it still names the
+checkout's identity: its commit, and the release (newest reachable stable tag plus the
+commits since it) the checkout would publish today. Once either moved, live git answers.
 """
 
 from __future__ import annotations
@@ -116,6 +120,16 @@ def _calver_release_version(repo_dir: Path) -> tuple[str, int] | None:
     return version, distance
 
 
+def _reachable_release(repo_dir: Path) -> tuple[str, int | None] | None:
+    """The newest stable release merged into HEAD and the commits since it; None without one."""
+    tags = _run_git(repo_dir, "tag", "--merged", "HEAD", "--list", "v[0-9]*")
+    releases = [tag[1:] for tag in (tags or "").splitlines() if STABLE_TAG_RE.fullmatch(tag)]
+    if not releases:
+        return None
+    version = max(releases, key=lambda value: tuple(int(part) for part in value.split(".")))
+    return version, _parse_nonnegative(_run_git(repo_dir, "rev-list", "--count", f"v{version}..HEAD"))
+
+
 # --- Install stamp reader ---------------------------------------------------
 
 def _resolve_stamp_file() -> Path | None:
@@ -162,17 +176,22 @@ def _stamp_version_info() -> VersionInfo | None:
     if not commit or set(commit) == {"0"}:
         # All-zero placeholder = fallback stamp, not real provenance.
         return None
-    stamp_source = str(data.get("source") or "")
-    if stamp_source == "git" and (stamp_file.parent / ".git").exists():
-        live_commit = _run_git(stamp_file.parent, "rev-parse", "HEAD")
-        if live_commit and live_commit != commit:
-            return None
-
     base_version = data.get("baseVersion") or "unknown"
     display_version = data.get("displayVersion") or base_version
     distance = data.get("distance")
     if isinstance(distance, str):
         distance = _parse_nonnegative(distance)
+    stamp_source = str(data.get("source") or "")
+    if stamp_source == "git" and (stamp_file.parent / ".git").exists():
+        live_commit = _run_git(stamp_file.parent, "rev-parse", "HEAD")
+        if live_commit and live_commit != commit:
+            return None
+        # A release cut from the commit the checkout already runs arrives as a tag alone (on a
+        # fork, as a tag re-pointed at it): HEAD never moves, yet the identity the checkout would
+        # publish did. Such a stamp is as stale as one naming a replaced commit.
+        release = _reachable_release(stamp_file.parent)
+        if release is not None and release != (base_version, distance):
+            return None
 
     # ``source`` describes build provenance, while ``distribution`` identifies
     # the package form users installed. Keep both facts intact for support.
@@ -237,21 +256,8 @@ def _git_version_info(repo_dir: Path, *, include_untracked: bool = False) -> Ver
     except (OSError, subprocess.SubprocessError):
         dirty = False
 
-    tags = _run_git(repo_dir, "tag", "--merged", "HEAD", "--list", "v[0-9]*")
-    releases = [
-        tag[1:]
-        for tag in (tags or "").splitlines()
-        if STABLE_TAG_RE.fullmatch(tag)
-    ]
-    base_version = (
-        max(releases, key=lambda value: tuple(int(part) for part in value.split(".")))
-        if releases else "unknown"
-    )
-    distance = _parse_nonnegative(
-        _run_git(repo_dir, "rev-list", "--count", f"v{base_version}..HEAD")
-    ) if releases else None
-    if not releases:
-        base_version, distance = _calver_release_version(repo_dir) or ("unknown", None)
+    base_version, distance = (
+        _reachable_release(repo_dir) or _calver_release_version(repo_dir) or ("unknown", None))
     short_commit = _run_git(repo_dir, "rev-parse", "--short=7", "HEAD")
     if base_version == "unknown" and short_commit:
         display_version = f"git.{short_commit}{'.dirty' if dirty else ''}"
