@@ -83,3 +83,27 @@ def test_a_sharing_profiles_picker_context_lists_the_default_profiles_endpoint(h
         rows = get_compatible_custom_providers(load_config())
 
     assert [(row["provider_key"], row["base_url"]) for row in rows] == [("relay", "https://relay.example.com/v1")]
+
+
+def test_create_with_the_share_switch_leaves_no_provider_key_copies_in_the_profiles_env(homes):
+    """Creation mirrors the launch .env; a sharing profile reads provider keys through, so the copies
+    would only shadow a later rotation on the file-first readers. Tool keys still travel."""
+    root = homes
+    # ``RELAY_*`` is a messaging platform's key family (the channel strip drops it from every mirror);
+    # the endpoint credential under test must be a plain provider variable.
+    (root / "config.yaml").write_text(
+        "model:\n  provider: acme\n  default: m-1\n"
+        "providers:\n  acme:\n    name: Acme\n    base_url: https://acme.example.com/v1\n"
+        "    api_key: ${ACME_TOKEN}\n    model: m-1\n", encoding="utf-8")
+    (root / ".env").write_text(
+        "ACME_TOKEN=root-acme-secret\nANTHROPIC_API_KEY=root-anthropic-secret\nBRAVE_API_KEY=root-brave-key\n",
+        encoding="utf-8")
+
+    _ok("profiles.create", {"name": "scout", "no_alias": True, "no_skills": True, "share_auth": True})
+    _ok("profiles.create", {"name": "lone", "no_alias": True, "no_skills": True})
+
+    assert load_env_file(root / "profiles" / "scout" / ".env") == {"BRAVE_API_KEY": "root-brave-key"}
+    assert load_env_file(root / "profiles" / "lone" / ".env") == {
+        "ACME_TOKEN": "root-acme-secret", "ANTHROPIC_API_KEY": "root-anthropic-secret",
+        "BRAVE_API_KEY": "root-brave-key"}
+

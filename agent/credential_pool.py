@@ -2846,17 +2846,17 @@ def _seed_from_singletons(provider: str, entries: list[PooledCredential]) -> tup
 
 
 def get_env_prefer_dotenv(key: str) -> str:
-    """Resolve a credential env var, preferring ~/.hermes/.env over os.environ.
-
-    The user's config file is authoritative; stale env vars from parent
-    processes (Codex CLI, test scripts) must not override deliberate .env
-    changes. load_env() memoizes on mtime, so per-call reads cost a stat().
-    An unresolved ``op://`` reference in .env yields to the already-resolved
-    value from the active secret scope (set by apply_onepassword_secrets());
-    otherwise every provider auth attempt would receive a URL instead of a key.
-    """
-    env_file = load_env()
-    raw = env_file.get(key, "").strip()
+    """Resolve a credential env var, preferring ~/.hermes/.env over os.environ: the user's file is
+    authoritative, a stale env var from a parent process (Codex CLI, test scripts) must not override a
+    deliberate .env change (load_env() memoizes on mtime, so a read costs a stat()). An unresolved
+    ``op://`` reference in .env yields to the already-resolved value from the active secret scope
+    (apply_onepassword_secrets()), else every auth attempt would receive a URL instead of a key. A
+    profile sharing the default profile's model providers takes the shared value ahead of its own
+    .env line, as its secret scope does (``shared_provider_secret_override``)."""
+    from hermes_cli.profiles_shared_providers import shared_provider_secret_override
+    if shared := shared_provider_secret_override(key):
+        return shared
+    raw = load_env().get(key, "").strip()
     scoped_value = (_get_secret(key, "") or "").strip()
     if raw.startswith("op://") and scoped_value:
         return scoped_value

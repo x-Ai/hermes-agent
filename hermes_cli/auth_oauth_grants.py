@@ -561,6 +561,24 @@ def _pool_rows(store: dict[str, Any], provider_id: str) -> tuple[Any, list[Any]]
     return pool, rows if isinstance(rows, list) else []
 
 
+def provider_borrowed_from_root(provider_id: str) -> bool:
+    """True when the scoped profile holds no credential of its own for ``provider_id`` and resolves it
+    through the global-root fallback (``read_credential_pool`` / ``_load_provider_state``): the default
+    profile's sign-in, read-only here. False in classic mode and for the default root itself."""
+    from agent.credential_pool import _store_owns_pool_provider
+    from hermes_cli.auth import _global_auth_file_path, _load_auth_store, _load_global_auth_store, _provider_state_in
+    if _global_auth_file_path() is None:
+        return False
+    try:
+        own = _load_auth_store()
+    except OSError:  # an unreadable profile store proves nothing borrowed
+        return False
+    if _store_owns_pool_provider(own, provider_id) or _provider_state_in(own, provider_id):
+        return False
+    root = _load_global_auth_store()
+    return bool(_store_owns_pool_provider(root, provider_id) or _provider_state_in(root, provider_id))
+
+
 def owned_profile_reads_root_state(
         auth_store: dict[str, Any], provider_id: str, source_path: Optional[Path]) -> bool:
     """True when a profile that owns its own pool rows would seed ``providers.<id>`` from ROOT.

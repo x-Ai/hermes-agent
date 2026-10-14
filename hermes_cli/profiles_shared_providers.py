@@ -14,11 +14,17 @@ providers THROUGH instead of owning copies:
   ``save_config()`` keeps them out of the profile's file (``restore_own_providers_for_save``);
 * every profile secret scope and the standalone dotenv load layer the default profile's provider
   credentials over the profile's own (``shared_provider_secrets``) — only variables that hold a
-  model-provider key, never channel tokens or anything else from the default ``.env``.
+  model-provider key, never channel tokens or anything else from the default ``.env``;
+* the file-first credential readers (``config.get_env_value_prefer_dotenv``,
+  ``credential_pool.get_env_prefer_dotenv``) take the same shared value ahead of the profile's own
+  ``.env`` line (``shared_provider_secret_override``), and creation strips the mirrored provider keys
+  from a sharing profile's ``.env`` (``strip_shared_provider_env_file``): a copy there is a second
+  place for the secret to live and only shadowed a later rotation.
 
 Everything else — sessions, memory, skills, channels, the model pin itself — stays the profile's own,
 and the default profile never follows anybody. ``adopt_default_endpoint`` is the one-time copy a
-profile takes when it stops sharing, so the endpoint its model pin names keeps resolving.
+profile takes when it stops sharing: the default profile's CURRENT definition, over any drifted copy
+creation left in the file, so the endpoint its model pin names keeps resolving as it did while shared.
 """
 
 from __future__ import annotations
@@ -49,7 +55,7 @@ def _default_root() -> Path:
     return get_default_hermes_root()
 
 
-def _is_default_root(home: Path) -> bool:
+def is_default_root(home: Path) -> bool:
     """String equality first: ``load_config()`` asks on every call, and the default root is the common case."""
     home, root = Path(home), _default_root()
     if home == root:
@@ -79,7 +85,7 @@ _FLAG_CACHE: dict[str, tuple[tuple[int, int], bool]] = {}
 def profile_shares_providers(profile_home: Path) -> bool:
     """``profile.yaml`` ``share_providers`` of ``profile_home``; always False for the default root."""
     home = Path(profile_home)
-    if _is_default_root(home):
+    if is_default_root(home):
         return False
     path = home / "profile.yaml"
     try:
@@ -155,16 +161,6 @@ def default_profile_custom_endpoints() -> dict[str, dict[str, Any]]:
         _CLASSIFYING.reset(token)
 
 
-def missing_default_endpoints(profile_home: Path) -> dict[str, dict[str, Any]]:
-    """Default-profile endpoints ``profile_home``'s own file does not declare (by key, case-insensitive).
-    ``{}`` for the default profile: it has nothing to inherit from itself."""
-    home = Path(profile_home)
-    if _is_default_root(home):
-        return {}
-    own = {key.lower() for key in _raw_providers(home)}
-    return {key: entry for key, entry in default_profile_custom_endpoints().items() if key.lower() not in own}
-
-
 def endpoint_models(entry: dict[str, Any]) -> list[str]:
     """Model ids an endpoint entry declares: ``model``/``default_model`` first, then ``models``
     (mapping keys, or list items by ``id``/``name``), de-duplicated."""
@@ -205,7 +201,7 @@ def shared_providers_cache_sig(config_path: Path) -> tuple[int, int, int, int]:
     and, while sharing, the default profile's ``config.yaml`` (the shared definitions). Zeros for
     the default root and for a home without ``profile.yaml``."""
     home = Path(config_path).parent
-    if _is_default_root(home):
+    if is_default_root(home):
         return (0, 0, 0, 0)
     paths = [home / "profile.yaml"]
     if profile_shares_providers(home):
@@ -292,30 +288,106 @@ def shared_provider_secret_names(shared: dict[str, dict[str, Any]] | None = None
     return {name for name in names if name and not _is_global_env(name)}
 
 
+# default root -> ((config.yaml sig, .env sig), secrets): the file-first readers ask per variable.
+_SECRETS_CACHE: dict[str, tuple[tuple[tuple[int, int], tuple[int, int]], dict[str, str]]] = {}
+
+
+def _default_files_sig(root: Path) -> tuple[tuple[int, int], tuple[int, int]]:
+    sig: list[tuple[int, int]] = []
+    for name in ("config.yaml", ".env"):
+        try:
+            st = (root / name).stat()
+            sig.append((st.st_mtime_ns, st.st_size))
+        except OSError:
+            sig.append((0, 0))
+    return (sig[0], sig[1])
+
+
 def shared_provider_secrets() -> dict[str, str]:
     """The default profile's values for its model-provider credentials: ``shared_provider_secret_names``
-    plus every dashboard custom-endpoint slot, read from the default ``.env`` only."""
+    plus every dashboard custom-endpoint slot, read from the default ``.env`` only. Memoised on the
+    default profile's ``config.yaml`` / ``.env`` signatures (the file-first readers ask per variable);
+    never stored from inside the endpoint classification, which sees no endpoints (``_CLASSIFYING``)."""
     from agent.secret_scope import load_env_file
+    root = _default_root()
+    sig = _default_files_sig(root)
+    cached = _SECRETS_CACHE.get(str(root))
+    if cached is not None and cached[0] == sig:
+        return dict(cached[1])
     names = shared_provider_secret_names()
-    return {name: value for name, value in load_env_file(_default_root() / ".env").items()
-            if value and (name in names or _CUSTOM_SLOT_RE.match(name))}
+    secrets = {name: value for name, value in load_env_file(root / ".env").items()
+               if value and (name in names or _CUSTOM_SLOT_RE.match(name))}
+    if not _CLASSIFYING.get():
+        _SECRETS_CACHE[str(root)] = (sig, dict(secrets))
+    return secrets
+
+
+def shared_provider_secret_override(name: str) -> str | None:
+    """The default profile's value for credential ``name`` when the scoped profile shares providers and
+    the default ``.env`` holds it, else None. The file-first readers consult this before the profile's
+    own ``.env`` line: the secret scope already layers the shared value over the profile's copy, and a
+    reader that preferred the file put that copy — a creation-time snapshot — back in front of a key
+    the default profile has since rotated."""
+    from hermes_constants import get_hermes_home
+    if not profile_shares_providers(get_hermes_home()):
+        return None
+    return shared_provider_secrets().get(name) or None
+
+
+_ENV_ASSIGNMENT_RE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=")
+
+
+def strip_shared_provider_env_file(env_path: Path) -> list[str]:
+    """Drop every model-provider credential assignment from ``env_path`` in place: the variables a
+    sharing profile reads through from the default profile (``shared_provider_secret_names`` plus the
+    dashboard's custom-endpoint slots). Comments, blank lines and every other key survive verbatim.
+    Returns the keys removed. Runs on the ``.env`` creation mirrors into a profile that shares."""
+    path = Path(env_path)
+    if not path.is_file():
+        return []
+    names = shared_provider_secret_names()
+    removed: list[str] = []
+    kept: list[str] = []
+    for line in path.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+        match = _ENV_ASSIGNMENT_RE.match(line)
+        key = match.group(1) if match else None
+        if key is not None and (key in names or _CUSTOM_SLOT_RE.match(key)):
+            removed.append(key)
+        else:
+            kept.append(line)
+    if removed:
+        path.write_text("\n".join(kept) + ("\n" if kept else ""), encoding="utf-8")
+    return removed
+
+
+def sharing_profile_homes() -> list[Path]:
+    """Every named profile directory whose ``profile.yaml`` shares providers, sorted by name (the default
+    root never does)."""
+    from hermes_cli.profiles import _get_profiles_root
+    try:
+        candidates = sorted(
+            path for path in _get_profiles_root().iterdir() if path.is_dir() and not path.name.startswith("."))
+    except OSError:
+        return []
+    return [home for home in candidates if profile_shares_providers(home)]
 
 
 # ── leaving the shared mode ──────────────────────────────────────────────────────────────────────
 
 def adopt_default_endpoint(profile_home: Path, key: str) -> dict[str, Any]:
     """Copy default-profile endpoint ``key`` into ``profile_home``: the raw entry under
-    ``providers.<key>`` and the key variable behind it into the profile's ``.env`` (only when the
-    profile does not define that variable already). The copy a profile takes when it stops sharing,
-    so the endpoint its model pin names keeps resolving.
+    ``providers.<key>`` — the default profile's current definition, over any copy creation left there,
+    which the overlay had shadowed and the profile would otherwise fall back to — and the key variable
+    behind it into the profile's ``.env`` (only when the profile does not define that variable already).
+    The copy a profile takes when it stops sharing, so the endpoint its model pin names keeps resolving.
 
     Runs inside the profile's runtime scope — the caller binds it (config / ``.env`` writes target the
     scoped home) — and with sharing already OFF (``save_config`` keeps shared ids out of a sharing
     profile's file). Returns ``{"entry", "key_env", "key_copied"}``; ``entry`` False means ``key`` is not
-    a default-profile endpoint the profile's own file lacks and nothing was written."""
+    a default-profile endpoint and nothing was written."""
     home = Path(profile_home)
     key = coerce_provider_id(key)
-    entry = missing_default_endpoints(home).get(key)
+    entry = default_profile_custom_endpoints().get(key)
     if entry is None:
         return {"entry": False, "key_env": "", "key_copied": False}
     from agent.secret_scope import load_env_file

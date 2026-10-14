@@ -685,9 +685,14 @@ async def list_oauth_providers(profile: Optional[str] = None):
     """Every OAuth-capable provider with current status (token_preview is the last
     N chars, never the full token; disconnect_command only for external providers)."""
     def _run():
+        from hermes_cli.auth_oauth_grants import provider_borrowed_from_root
         providers = []
         for p in _build_oauth_catalog():
             status = _resolve_provider_status(p["id"], p.get("status_fn"))
+            if status.get("logged_in") and provider_borrowed_from_root(p["id"]):
+                # The default profile's sign-in, read through the global-root fallback: this profile
+                # neither owns nor can disconnect it.
+                status["borrowed_from_root"] = True
             disconnect_hint = _oauth_provider_disconnect_hint(p, status)
             providers.append({
                 "id": p["id"], "name": p["name"], "flow": p["flow"],
@@ -749,6 +754,13 @@ async def disconnect_oauth_provider(provider_id: str, request: Request, profile:
         # Flow-only rejection first so external providers never reach status resolution.
         _reject_if_not_disconnectable(provider, {})
         _reject_if_not_disconnectable(provider, _resolve_provider_status(provider_id, provider.get("status_fn")))
+        from hermes_cli.auth_oauth_grants import provider_borrowed_from_root
+        if provider_borrowed_from_root(provider_id):
+            # Nothing of this profile's to clear: the sign-in is the default profile's, read through
+            # the global-root fallback, and clearing it there would log out every profile.
+            raise HTTPException(
+                422, f"'{provider_id}' is signed in from the default profile; sign out there, "
+                     f"or sign in on this profile first")
 
         if provider_id == "anthropic":
             try:

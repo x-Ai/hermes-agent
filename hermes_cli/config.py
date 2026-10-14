@@ -2859,17 +2859,17 @@ def get_env_value(key: str) -> Optional[str]:
 
 def get_env_value_prefer_dotenv(key: str) -> Optional[str]:
     """Resolve a Hermes-managed credential preferring ``~/.hermes/.env`` over ``os.environ``, so a
-    deliberate .env edit beats a stale value inherited from the parent shell.
-
-    An unresolved ``op://`` reference left in .env yields to the already-resolved value from the
-    active secret scope (set by the 1Password secret source) — otherwise a provider auth attempt
-    would receive a URL instead of a key. Same carve-out as
-    ``agent.credential_pool.get_env_prefer_dotenv``."""
+    deliberate .env edit beats a stale value inherited from the parent shell. An unresolved ``op://``
+    reference left in .env yields to the value the active secret scope resolved (1Password source), or
+    a provider auth attempt would receive a URL instead of a key — the carve-out
+    ``agent.credential_pool.get_env_prefer_dotenv`` shares. A profile sharing the default profile's model
+    providers takes the shared value ahead of its own .env line (``shared_provider_secret_override``)."""
+    from hermes_cli.profiles_shared_providers import shared_provider_secret_override
+    if shared := shared_provider_secret_override(key):
+        return shared
     raw = load_env().get(key) or ""
-    if str(raw).lstrip().startswith("op://"):
-        scoped = _scoped_environ_get(key)
-        if scoped:
-            return scoped
+    if str(raw).lstrip().startswith("op://") and (scoped := _scoped_environ_get(key)):
+        return scoped
     return raw or _scoped_environ_get(key)
 
 

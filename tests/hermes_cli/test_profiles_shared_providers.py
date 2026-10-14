@@ -220,8 +220,8 @@ def test_adopt_copies_a_default_endpoint_with_its_pointer_and_key_once(homes):
         # No credential field at all: the dashboard slot is the variable that travels.
         assert shared.adopt_default_endpoint(bot, "slotted") == {
             "entry": True, "key_env": "HERMES_CUSTOM_SLOTTED_API_KEY", "key_copied": True}
-        # Not a default-profile endpoint the file lacks: nothing happens.
-        for provider in ("relay", "xai", "dormant", "anthropic", "nope"):
+        # Not a default-profile endpoint: nothing happens.
+        for provider in ("xai", "dormant", "anthropic", "nope"):
             assert shared.adopt_default_endpoint(bot, provider)["entry"] is False
     cfg = yaml.safe_load((bot / "config.yaml").read_text(encoding="utf-8"))
     assert cfg["providers"]["relay"]["api_key"] == "${RELAY_TOKEN}"  # the pointer, never the secret
@@ -298,3 +298,74 @@ def test_a_config_load_from_inside_the_classification_sees_the_profiles_own_file
     assert set(_providers(bot)) == {"mine", "relay", "slotted"}
     assert nested, "the built-in xai row never reached the label comparison"
     assert all(seen == {"mine", "relay"} for seen in nested), nested
+
+
+def test_adopt_replaces_a_drifted_creation_copy_with_the_default_profiles_current_entry(homes):
+    """The bot's file still holds the ``relay`` creation copied (old URL); shared mode shadowed it, so
+    stopping the share must hand the pin the definition it was running on, not the stale one."""
+    _root, bot = homes
+    with profile_scope(bot):
+        assert shared.adopt_default_endpoint(bot, "relay") == {"entry": True, "key_env": "RELAY_TOKEN", "key_copied": False}
+    raw = yaml.safe_load((bot / "config.yaml").read_text(encoding="utf-8"))
+    assert raw["providers"]["relay"]["base_url"] == "https://relay.example.com/v1"
+    assert raw["providers"]["relay"]["api_key"] == "${RELAY_TOKEN}"
+    assert set(raw["providers"]) == {"mine", "relay"}
+    assert raw["model"] == {"provider": "relay", "default": "m-1"}
+
+
+def test_file_first_credential_readers_take_the_shared_value_over_the_profiles_own_line(homes):
+    """``get_env_value_prefer_dotenv`` / ``get_env_prefer_dotenv`` prefer the profile's .env FILE to its
+    environment; on a sharing profile that file holds creation's copy of the key, which put the copy
+    back in front of the rotation the secret scope had already applied."""
+    from agent.credential_pool import get_env_prefer_dotenv
+    from hermes_cli.config import get_env_value_prefer_dotenv
+
+    _root, bot = homes
+    with profile_scope(bot):  # an island: its own line wins, as before
+        assert get_env_value_prefer_dotenv("RELAY_TOKEN") == "stale-relay-copy"
+        assert get_env_prefer_dotenv("RELAY_TOKEN") == "stale-relay-copy"
+    shared.set_profile_shares_providers(bot, True)
+    with profile_scope(bot):
+        assert get_env_value_prefer_dotenv("RELAY_TOKEN") == "root-relay-secret"
+        assert get_env_prefer_dotenv("RELAY_TOKEN") == "root-relay-secret"
+        assert get_env_value_prefer_dotenv("ANTHROPIC_API_KEY") == "root-anthropic-secret"
+        # The bot's own endpoint key and a channel token stay its own.
+        assert get_env_value_prefer_dotenv("HERMES_CUSTOM_MINE_API_KEY") == "bot-mine-secret"
+        assert get_env_prefer_dotenv("TELEGRAM_BOT_TOKEN") == "bot-telegram-token"
+
+
+def test_a_default_profile_rotation_reaches_the_file_first_readers_without_a_restart(homes):
+    from hermes_cli.config import get_env_value_prefer_dotenv
+
+    root, bot = homes
+    shared.set_profile_shares_providers(bot, True)
+    with profile_scope(bot):
+        assert get_env_value_prefer_dotenv("RELAY_TOKEN") == "root-relay-secret"
+    (root / ".env").write_text(ROOT_ENV.replace("root-relay-secret", "rotated-relay-secret"), encoding="utf-8")
+    _bump(root / ".env")
+    with profile_scope(bot):
+        assert get_env_value_prefer_dotenv("RELAY_TOKEN") == "rotated-relay-secret"
+
+
+def test_strip_removes_only_the_default_profiles_provider_credentials_from_an_env_file(homes):
+    _root, bot = homes
+    (bot / ".env").write_text(
+        "# keys\nRELAY_TOKEN=copy\nexport ANTHROPIC_API_KEY=copy\nHERMES_CUSTOM_SLOTTED_API_KEY=copy\n"
+        "BRAVE_API_KEY=tool-key\nTELEGRAM_BOT_TOKEN=bot-telegram-token\n\n", encoding="utf-8")
+
+    removed = shared.strip_shared_provider_env_file(bot / ".env")
+
+    assert sorted(removed) == ["ANTHROPIC_API_KEY", "HERMES_CUSTOM_SLOTTED_API_KEY", "RELAY_TOKEN"]
+    assert (bot / ".env").read_text(encoding="utf-8") == (
+        "# keys\nBRAVE_API_KEY=tool-key\nTELEGRAM_BOT_TOKEN=bot-telegram-token\n\n")
+    assert shared.strip_shared_provider_env_file(bot / ".env") == []
+
+
+def test_sharing_profile_homes_lists_the_named_profiles_that_carry_the_flag(homes):
+    root, bot = homes
+    assert shared.sharing_profile_homes() == []
+    shared.set_profile_shares_providers(bot, True)
+    (root / "profiles" / "island").mkdir()
+    (root / "profiles" / ".deleted").mkdir()
+    assert shared.sharing_profile_homes() == [bot]
+

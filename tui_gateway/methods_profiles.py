@@ -559,6 +559,11 @@ def _mirror_launch_credentials(path, params: dict) -> dict:
         # Provider/tool keys are what "mirror credentials" means; the launch profile's bot tokens
         # and allowlists would make the new bot collide with it over one Telegram/Discord bot.
         _best_effort(lambda: _lazy("hermes_cli.profile_channels", "strip_channel_env_file")(path / ".env"))
+    if mirrored["env"] and share_auth:
+        # A sharing profile reads provider keys through from the default profile (share_providers): the
+        # mirrored copies would be a second home for each secret and shadow a later rotation.
+        _best_effort(lambda: _lazy(
+            "hermes_cli.profiles_shared_providers", "strip_shared_provider_env_file")(path / ".env"))
     if not share_auth:  # a copy forks token state: the first refresh in either store strands the other
         mirrored["auth"] = _try(lambda: _mirror_secret(path, launch_home, "auth.json",
                                                        lambda src, dst: not dst.exists()), False)
@@ -677,9 +682,9 @@ def _configure_model(profile_dir, params, applied):
 
 def _configure_share_providers(profile_dir, params) -> None:
     """Flip ``profile.yaml`` ``share_providers``. Turning it OFF materializes the endpoints the model
-    pin names (the current one and an incoming pick in the same payload) when they were only ever read
-    through from the default profile — entry plus key variable, ``adopt_default_endpoint`` — so the pin
-    keeps resolving as an island. Flag first: a sharing profile's ``save_config`` keeps shared ids out."""
+    pin names (the current one and an incoming pick in the same payload) as the default profile defines
+    them today — entry plus key variable, ``adopt_default_endpoint`` — so the pin keeps resolving as an
+    island. Flag first: a sharing profile's ``save_config`` keeps shared ids out."""
     mod = "hermes_cli.profiles_shared_providers"
     enabled = is_truthy_value(params.get("share_providers"))
     was_sharing = _lazy(mod, "profile_shares_providers")(profile_dir)

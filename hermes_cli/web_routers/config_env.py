@@ -32,6 +32,7 @@ from hermes_cli.providers import is_builtin_provider_id
 from agent.secret_scope import get_secret_str
 from hermes_cli.config_providers import _canonical_api_mode, _custom_provider_entry_to_provider_config
 from hermes_cli.web_models import ConfigUpdate, EnvVarUpdate, EnvVarDelete, EnvVarReveal, CustomEndpointUpdate
+from pathlib import Path
 from typing import Any, Optional
 
 _log = logging.getLogger("hermes_cli.web_server")
@@ -271,11 +272,13 @@ async def get_env_vars(profile: Optional[str] = None):
 def _get_env_vars_sync(profile: Optional[str] = None):
     with _profile_scope(profile):
         env_on_disk = load_env()
+        shared_values = _shared_provider_values()
     channel_keys = _channel_managed_env_keys()
     catalog_meta = _catalog_provider_env_metadata()
 
     def _row(var_name: str, info: dict, *, custom: bool = False) -> dict:
-        value = env_on_disk.get(var_name)
+        shared = var_name in shared_values
+        value = shared_values[var_name] if shared else env_on_disk.get(var_name)
         cat_meta = catalog_meta.get(var_name) or {}
         # Hand OPTIONAL_ENV_VARS prose wins where present; the catalog fills any
         # gaps (description/url) and always supplies provider grouping hints.
@@ -307,6 +310,9 @@ def _get_env_vars_sync(profile: Optional[str] = None):
             # True for a .env key in no catalog at all — an arbitrary/custom var
             # the user added directly, listed so the Keys page can manage it.
             "custom": custom,
+            # Read through from the default profile (profile.yaml share_providers): the preview is the
+            # value this profile resolves, and the Keys page edits it in the default profile only.
+            "source": "default-profile" if shared else "profile",
         }
 
     result = {}
@@ -327,7 +333,35 @@ def _get_env_vars_sync(profile: Optional[str] = None):
         row["category"] = "custom"
         row["is_password"] = True
         result[var_name] = row
+    # A default-profile credential this profile's own file never held (an endpoint slot added after the
+    # profile was created) is still what the profile resolves: list it where its owner would.
+    for var_name in shared_values:
+        if var_name in result or var_name in channel_keys:
+            continue
+        row = _row(var_name, {}, custom=True)
+        row["category"] = "custom"
+        row["is_password"] = True
+        result[var_name] = row
     return result
+
+
+def _shared_provider_values() -> dict[str, str]:
+    """The default profile's provider credentials the scoped profile reads through
+    (``profile.yaml`` ``share_providers``), else ``{}``."""
+    from hermes_constants import get_hermes_home
+    from hermes_cli.profiles_shared_providers import profile_shares_providers, shared_provider_secrets
+    return shared_provider_secrets() if profile_shares_providers(get_hermes_home()) else {}
+
+
+def _refuse_shared_env_write(key: str) -> None:
+    """A provider credential the scoped profile reads through is edited in the default profile: a
+    write here would land in a file the profile's resolution puts behind the shared value."""
+    if key in _shared_provider_values():
+        raise HTTPException(
+            status_code=422,
+            detail=f"'{key}' is shared from the default profile; edit it there, or stop sharing "
+                   f"providers in this profile first",
+        )
 
 
 @router.put("/api/env")
@@ -349,6 +383,7 @@ def _save_env_credential(key: str, value: str, provider_setup: bool = False) -> 
     from hermes_cli.credential_lifecycle import save_provider_env_credential
     from hermes_cli.observability.shared_metrics_setup import record_api_key_saved, web_setup_surface
 
+    _refuse_shared_env_write(key)
     previous = load_env().get(key)
     result = save_provider_env_credential(key, value)
     record_api_key_saved(key, value, previous, web_setup_surface(), connecting=provider_setup)
@@ -666,6 +701,51 @@ def _refuse_shared_endpoint_write(endpoint_id: str) -> None:
             status_code=422,
             detail=f"'{endpoint_id}' is shared from the default profile; edit it there, or stop sharing "
                    f"providers in this profile first",
+        )
+
+
+def _sharing_profiles_pinned_to(endpoint_id: str, entry: Optional[dict[str, Any]]) -> list[Path]:
+    """Homes of the sharing profiles whose main slot names ``endpoint_id`` — only while the scoped
+    profile is the default root, the one they read it from; ``[]`` elsewhere."""
+    from hermes_constants import get_hermes_home
+    from hermes_cli.config import read_user_config_raw
+    from hermes_cli.profiles_shared_providers import is_default_root, sharing_profile_homes
+    if not is_default_root(get_hermes_home()):
+        return []
+    pinned: list[Path] = []
+    for home in sharing_profile_homes():
+        model_cfg = read_user_config_raw(home / "config.yaml").get("model")
+        if isinstance(model_cfg, dict) and _model_names_provider(model_cfg, endpoint_id, entry):
+            pinned.append(home)
+    return pinned
+
+
+def _sync_sharing_profiles_model_route(endpoint_id: str, entry: dict[str, Any]) -> list[str]:
+    """The default profile saved ``endpoint_id``: re-sync the ``model:`` route mirror of every sharing
+    profile pinned to it (``_sync_main_model_route`` reaches the edited file only), or their stored
+    route keeps naming the host and protocol the endpoint had when they activated it. Targeted key
+    writes on the raw files: nothing else of theirs is loaded or rewritten. Returns the profile names."""
+    from utils import atomic_roundtrip_yaml_update
+    base_url = str(entry.get("base_url") or "").strip()
+    api_mode = _canonical_api_mode(str(entry.get("api_mode") or entry.get("transport") or "")).lower() or None
+    synced: list[str] = []
+    for home in _sharing_profiles_pinned_to(endpoint_id, entry):
+        if base_url:
+            atomic_roundtrip_yaml_update(home / "config.yaml", "model.base_url", base_url)
+        atomic_roundtrip_yaml_update(home / "config.yaml", "model.api_mode", api_mode)
+        synced.append(home.name)
+    return synced
+
+
+def _refuse_delete_pinned_by_sharing_profiles(endpoint_id: str, entry: Optional[dict[str, Any]]) -> None:
+    """Deleting a default-profile endpoint a sharing profile runs on would leave that profile's pin
+    naming nothing ("Unknown provider" at its next turn): the pin moves first."""
+    pinned = [home.name for home in _sharing_profiles_pinned_to(endpoint_id, entry)]
+    if pinned:
+        raise HTTPException(
+            status_code=422,
+            detail=f"'{endpoint_id}' is the model provider of sharing profile(s) {', '.join(pinned)}; "
+                   f"repoint them (or stop sharing providers there) before deleting it",
         )
 
 
@@ -1045,6 +1125,7 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = 
             endpoint_id, _entry = _write_custom_endpoint(cfg, body)
             _sync_main_model_route(cfg, endpoint_id, _entry)
             save_config(cfg)
+            synced = _sync_sharing_profiles_model_route(endpoint_id, _entry)
             response = _custom_endpoint_response(cfg)
             from hermes_constants import get_hermes_home
             home = get_hermes_home()
@@ -1052,6 +1133,7 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = 
             _record_custom_endpoint_setup(home)
         response["ok"] = True
         response["id"] = endpoint_id
+        response["sharing_profiles_synced"] = synced
         return response
 
 
@@ -1126,6 +1208,8 @@ def delete_custom_endpoint(endpoint_id: str, profile: Optional[str] = None):
             cfg = load_config()
             providers = cfg.get("providers")
             stored_key, entry = _resolve_custom_endpoint_entry(providers, endpoint_id)
+            _refuse_delete_pinned_by_sharing_profiles(
+                coerce_provider_id(stored_key) if entry is not None else _custom_endpoint_id(endpoint_id), entry)
             if entry is not None and isinstance(providers, dict):
                 provider_key = coerce_provider_id(stored_key)
                 providers.pop(stored_key, None)
@@ -1414,12 +1498,17 @@ async def remove_env_var(body: EnvVarDelete, profile: Optional[str] = None):
     with _env_write_errors("DELETE /api/env failed"):
         from hermes_cli.credential_lifecycle import remove_provider_env_credential
 
-        result = await scoped_to_thread(
-            body.profile or profile, lambda: remove_provider_env_credential(body.key)
-        )
+        result = await scoped_to_thread(body.profile or profile, lambda: _remove_env_credential(body.key))
         if not result.get("found"):
             raise HTTPException(status_code=404, detail=f"{body.key} not found in .env")
         return result
+
+
+def _remove_env_credential(key: str) -> dict[str, Any]:
+    """Remove under the request's profile scope; a shared provider credential is refused like a write."""
+    from hermes_cli.credential_lifecycle import remove_provider_env_credential
+    _refuse_shared_env_write(key)
+    return remove_provider_env_credential(key)
 
 
 @router.post("/api/env/reveal")
