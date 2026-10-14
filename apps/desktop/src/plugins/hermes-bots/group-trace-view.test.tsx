@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import type { GroupTurnTrace } from './group-trace'
 import { translateBots } from './i18n-test-helper'
@@ -28,6 +28,11 @@ vi.mock('@hermes/plugin-sdk', async () => {
 })
 
 afterEach(cleanup)
+
+// Opening a disclosure reveals it in the room; jsdom has no scrollIntoView.
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn()
+})
 
 const TRACE: GroupTurnTrace = {
   dropped: 2,
@@ -121,4 +126,78 @@ it('shows no live disclosure for an idle room or a member without steps yet', as
   const quiet = render(<GroupLiveTurnTrace group="Room" room={{ running: true, turn: { name: 'helper' } }} />)
 
   expect(quiet.container.firstChild).toBeNull()
+})
+
+const liveRoom = { running: true, turn: { name: 'helper' } }
+
+function liveEntry(count: number) {
+  return {
+    'Room::helper': {
+      group: 'Room',
+      memberKey: 'helper',
+      thread: 't1',
+      startedAt: 1,
+      runningIndex: null,
+      steps: Array.from({ length: count }, (_, i) => ({ kind: 'text' as const, text: `step ${i}` }))
+    }
+  }
+}
+
+it('opens the live disclosure at the newest output, follows growth, and leaves a reader who scrolled up alone', async () => {
+  const [{ $groupLiveTraces }, { GroupLiveTurnTrace }] = await Promise.all([
+    import('./group-trace-live'),
+    import('./group-trace-view')
+  ])
+
+  $groupLiveTraces.set(liveEntry(3))
+  const view = render(<GroupLiveTurnTrace group="Room" room={liveRoom} />)
+
+  fireEvent.click(screen.getByRole('button'))
+
+  const box = screen.getByTestId('group-trace-steps')
+  // The steps are their own scroll surface, and a wheel inside it stays inside it at either edge.
+  expect(box.className).toContain('overflow-y-auto')
+  expect(box.className).toContain('overscroll-contain')
+  // Opening also brings the block (header included) into the room's view.
+  expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
+
+  // jsdom lays nothing out: give the box a viewport and a content height that grows with the trace.
+  let contentHeight = 500
+  Object.defineProperty(box, 'clientHeight', { configurable: true, get: () => 100 })
+  Object.defineProperty(box, 'scrollHeight', { configurable: true, get: () => contentHeight })
+
+  // Growth while following pins the view to the bottom.
+  $groupLiveTraces.set(liveEntry(4))
+  contentHeight = 600
+  view.rerender(<GroupLiveTurnTrace group="Room" room={liveRoom} />)
+  expect(box.scrollTop).toBe(600)
+
+  // The reader scrolls up to read: later growth must not yank them back down.
+  box.scrollTop = 120
+  fireEvent.scroll(box)
+  $groupLiveTraces.set(liveEntry(5))
+  contentHeight = 700
+  view.rerender(<GroupLiveTurnTrace group="Room" room={liveRoom} />)
+  expect(box.scrollTop).toBe(120)
+
+  // Back within reach of the bottom: following resumes on the next growth.
+  box.scrollTop = 700 - 100 - 10
+  fireEvent.scroll(box)
+  $groupLiveTraces.set(liveEntry(6))
+  contentHeight = 800
+  view.rerender(<GroupLiveTurnTrace group="Room" room={liveRoom} />)
+  expect(box.scrollTop).toBe(800)
+})
+
+it('opens a finished disclosure at its start, never pinned to the bottom', async () => {
+  await renderView()
+
+  fireEvent.click(screen.getByRole('button'))
+
+  const box = screen.getByTestId('group-trace-steps')
+  Object.defineProperty(box, 'clientHeight', { configurable: true, get: () => 100 })
+  Object.defineProperty(box, 'scrollHeight', { configurable: true, get: () => 900 })
+
+  expect(box.scrollTop).toBe(0)
+  expect(box.className).toContain('overscroll-contain')
 })

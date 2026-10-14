@@ -5,12 +5,13 @@
  * wrote and the tools it ran on the way to the answer. The trace is built by
  * `group-trace-capture.ts` and rides the room entry (`group-trace.ts`); while a
  * member's turn is still running, `GroupLiveTurnTrace` shows the same
- * disclosure growing under the working line from `group-trace-live.ts`.
+ * disclosure growing under the working line from `group-trace-live.ts`,
+ * opened at the newest output and following it until the user scrolls up.
  */
 
 import * as sdk from '@hermes/plugin-sdk'
 import { cn, Codicon, RowButton, useValue } from '@hermes/plugin-sdk'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { groupTraceCounts, isGroupTurnTrace } from './group-trace'
 import type { GroupTraceStep, GroupTurnTrace } from './group-trace'
@@ -75,30 +76,118 @@ function TraceStepView({ running = false, step }: { running?: boolean; step: Gro
   )
 }
 
+// How close to the bottom (px) still counts as "reading the latest": scrolling
+// back within it resumes following, as the 1:1 chat's thinking preview does.
+const TRACE_RELOCK_THRESHOLD_PX = 24
+
 interface GroupTraceStepsProps {
   dropped?: number
+  /** Live disclosure: open at the newest output and keep following growth
+   *  until the user scrolls up to read; scrolling back down resumes. */
+  follow?: boolean
   /** Index of the tool step still running (live disclosure only). */
   runningIndex?: null | number
   steps: GroupTraceStep[]
 }
 
-function GroupTraceSteps({ dropped, runningIndex = null, steps }: GroupTraceStepsProps) {
+/** The "follow the newest output" latch of one live disclosure. Plain closure
+ *  state, not React state: it flips on every wheel tick and must never repaint.
+ *  Following is on from the moment the box opens, off once the reader scrolls
+ *  up, on again when they come back within reach of the bottom. */
+function createScrollFollower() {
+  let following = true
+
+  const atBottom = (el: HTMLElement) => el.scrollHeight - el.scrollTop - el.clientHeight < TRACE_RELOCK_THRESHOLD_PX
+
+  return {
+    /** Jump to the newest output and keep the box pinned there while the
+     *  reader stays at the bottom. Markdown and code cards settle their height
+     *  after paint; the observer keeps the pin through that too. */
+    attach(el: HTMLElement | null, content: HTMLElement | null): (() => void) | undefined {
+      if (!el || !content) {
+        return undefined
+      }
+
+      following = true
+      el.scrollTop = el.scrollHeight
+
+      const trackScroll = () => {
+        following = atBottom(el)
+      }
+
+      const pin = () => {
+        if (following) {
+          el.scrollTop = el.scrollHeight
+        }
+      }
+
+      const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(pin) : null
+      observer?.observe(content)
+      el.addEventListener('scroll', trackScroll, { passive: true })
+
+      return () => {
+        observer?.disconnect()
+        el.removeEventListener('scroll', trackScroll)
+      }
+    },
+    /** A flush of the live trace (a new step, a longer reasoning block) landed. */
+    pin(el: HTMLElement | null) {
+      if (el && following) {
+        el.scrollTop = el.scrollHeight
+      }
+    }
+  }
+}
+
+/** The steps in their own bounded scroll box: a long trace never takes the
+ *  room over, and a wheel inside it scrolls the trace alone — `overscroll-
+ *  contain` stops the room list from taking the wheel at either edge, so the
+ *  header stays where it was and one click still folds the block. */
+function GroupTraceSteps({ dropped, follow = false, runningIndex = null, steps }: GroupTraceStepsProps) {
   const b = useBots()
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const contentRef = useRef<HTMLDivElement | null>(null)
+  const [follower] = useState(createScrollFollower)
+
+  useEffect(() => (follow ? follower.attach(scrollRef.current, contentRef.current) : undefined), [follow, follower])
+
+  useEffect(() => {
+    if (follow) {
+      follower.pin(scrollRef.current)
+    }
+  }, [follow, follower, steps])
 
   return (
     <div
-      className="mt-1 grid gap-1.5 border-l border-(--ui-stroke-secondary) pl-2 text-[0.7rem] text-(--ui-text-tertiary)"
+      className="mt-1 max-h-[45vh] overflow-y-auto overscroll-contain border-l border-(--ui-stroke-secondary) pl-2 text-[0.7rem] text-(--ui-text-tertiary)"
       data-selectable-text="true"
       data-testid="group-trace-steps"
+      ref={scrollRef}
     >
-      {dropped ? (
-        <div className="text-[0.65rem] italic text-(--ui-text-quaternary)">{b.group.traceOmitted(dropped)}</div>
-      ) : null}
-      {steps.map((step, index) => (
-        <TraceStepView key={index} running={index === runningIndex} step={step} />
-      ))}
+      <div className="grid gap-1.5" ref={contentRef}>
+        {dropped ? (
+          <div className="text-[0.65rem] italic text-(--ui-text-quaternary)">{b.group.traceOmitted(dropped)}</div>
+        ) : null}
+        {steps.map((step, index) => (
+          <TraceStepView key={index} running={index === runningIndex} step={step} />
+        ))}
+      </div>
     </div>
   )
+}
+
+/** Opening a disclosure is the user's own click: bring the whole block —
+ *  header included, so it can be folded again — into the room's view. */
+function useRevealOnOpen(open: boolean) {
+  const ref = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (open) {
+      ref.current?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [open])
+
+  return ref
 }
 
 /** The collapsed header's count chips: "thought · 3 tools". */
@@ -118,13 +207,14 @@ export function GroupTurnTraceView({ hidden, trace }: { hidden?: boolean; trace?
   const b = useBots()
   const [open, setOpen] = useState(false)
   const counts = useTraceCounts(isGroupTurnTrace(trace) ? trace.steps : [])
+  const blockRef = useRevealOnOpen(open)
 
   if (hidden || !isGroupTurnTrace(trace) || !trace.steps.length) {
     return null
   }
 
   return (
-    <div className="mt-0.5" data-slot="group-trace">
+    <div className="mt-0.5" data-slot="group-trace" ref={blockRef}>
       <RowButton
         aria-expanded={open}
         className="flex min-w-0 items-center gap-1 text-[0.65rem] text-(--ui-text-quaternary) transition-colors hover:text-foreground"
@@ -156,13 +246,14 @@ export function GroupLiveTurnTrace({ group, room }: GroupLiveTurnTraceProps) {
   const [open, setOpen] = useState(false)
   const entry = room.running && room.turn ? live[groupLiveTraceKey(group, room.turn)] : undefined
   const counts = useTraceCounts(entry?.steps ?? [])
+  const blockRef = useRevealOnOpen(open)
 
   if (!entry || !entry.steps.length) {
     return null
   }
 
   return (
-    <div className="px-2 pb-1" data-slot="group-trace-live" data-testid="group-trace-live">
+    <div className="px-2 pb-1" data-slot="group-trace-live" data-testid="group-trace-live" ref={blockRef}>
       <RowButton
         aria-expanded={open}
         className="flex min-w-0 items-center gap-1 text-[0.65rem] text-(--ui-text-quaternary) transition-colors hover:text-foreground"
@@ -173,7 +264,7 @@ export function GroupLiveTurnTrace({ group, room }: GroupLiveTurnTraceProps) {
         <span className="shrink-0 font-medium">{b.group.traceLive}</span>
         {counts.length ? <span className="min-w-0 truncate">{counts.join(' · ')}</span> : null}
       </RowButton>
-      {open ? <GroupTraceSteps runningIndex={entry.runningIndex} steps={entry.steps} /> : null}
+      {open ? <GroupTraceSteps follow runningIndex={entry.runningIndex} steps={entry.steps} /> : null}
     </div>
   )
 }
