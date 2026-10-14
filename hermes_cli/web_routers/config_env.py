@@ -701,6 +701,24 @@ def _detach_main_model_from_provider(cfg: dict[str, Any], provider_key: str, ent
     cfg["model"] = model_cfg
 
 
+def _sync_main_model_route(cfg: dict[str, Any], provider_key: str, entry: dict[str, Any]) -> None:
+    """Keep the main slot's mirror of the endpoint being edited in step with it. ``activate`` copies
+    the entry's route (``base_url``, ``api_mode``) onto ``model``; an edit that changes the host or the
+    protocol must land there too, or ``model:`` keeps naming the route the endpoint had when it was
+    activated. Only touches ``model`` when it names this endpoint."""
+    model_cfg = cfg.get("model")
+    if not isinstance(model_cfg, dict) or not _model_names_provider(model_cfg, provider_key, entry):
+        return
+    base_url = str(entry.get("base_url") or "").strip()
+    if base_url:
+        model_cfg["base_url"] = base_url
+    api_mode = _canonical_api_mode(str(entry.get("api_mode") or entry.get("transport") or "")).lower()
+    if api_mode:
+        model_cfg["api_mode"] = api_mode
+    else:
+        model_cfg.pop("api_mode", None)
+
+
 def _write_custom_endpoint(cfg: dict[str, Any], body: CustomEndpointUpdate) -> tuple[str, dict[str, Any]]:
     name = (body.name or "").strip()
     base_url = (body.base_url or "").strip().rstrip("/")
@@ -1025,6 +1043,7 @@ def upsert_custom_endpoint(body: CustomEndpointUpdate, profile: Optional[str] = 
             created = _resolve_custom_endpoint_entry(
                 providers if isinstance(providers, dict) else {}, body.id or body.name)[1] is None
             endpoint_id, _entry = _write_custom_endpoint(cfg, body)
+            _sync_main_model_route(cfg, endpoint_id, _entry)
             save_config(cfg)
             response = _custom_endpoint_response(cfg)
             from hermes_constants import get_hermes_home

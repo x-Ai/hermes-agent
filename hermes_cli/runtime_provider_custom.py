@@ -11,7 +11,7 @@ import logging
 import os
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from hermes_cli.providers import custom_provider_aliases, custom_provider_slug
+from hermes_cli.providers import custom_provider_aliases, custom_provider_slug, is_builtin_provider_id
 from agent.secret_scope import get_secret_str
 from utils import base_url_hostname
 
@@ -234,9 +234,15 @@ def has_named_custom_provider(requested_provider: str) -> bool:
 def current_custom_provider_api_mode(
     requested_provider: str, *, model: Optional[str] = None,
 ) -> Optional[str]:
-    """Return the protocol explicitly pinned on a named custom endpoint."""
-    requested = _clean(requested_provider).lower()
-    if not requested.startswith("custom:"):
+    """Return the protocol explicitly pinned on the named custom endpoint ``requested_provider``
+    names — its ``custom:<name>`` identity or the bare ``providers:`` key / entry name a session row
+    and ``model.provider`` carry. None for bare ``custom``, aliases and built-in providers. The
+    protocol belongs to the endpoint, not to the chat: a resumed session follows the entry as it is
+    configured NOW, or an edit made in Settings is undone by the next restart."""
+    requested = _clean(requested_provider)
+    if _normalize_custom_provider_name(requested) in {"", "custom"}:
+        return None
+    if not requested.lower().startswith("custom:") and is_builtin_provider_id(requested):
         return None
     try:
         entry = _get_named_custom_provider(requested_provider)
