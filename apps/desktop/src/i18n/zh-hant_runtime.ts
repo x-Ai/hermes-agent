@@ -58,6 +58,17 @@ export const zhHantRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」是內建供應商 ID，請為此端點另選一個 ID（例如「${suggestion}」）。`,
     sharedProviderEndpoint: (id: string) =>
-      `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`
+      `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`,
+    sharedEndpointPinned: (id: string, profiles: string) =>
+      `「${id}」仍是設定檔 ${profiles} 的模型供應商，請先更改它們的模型指向（或取消其供應商共享），再刪除。`,
+    sharedProviderAccount: (id: string) => `「${id}」沿用主設定檔的登入，請到主設定檔中登出，或先在此設定檔中登入。`
+  },
+  sharedProviders: {
+    badge: '由主設定檔共享',
+    editInMain: '到主設定檔編輯',
+    endpointHint: '此端點由主設定檔共享，請到主設定檔中修改；此設定檔仍可使用它。',
+    keyHint: '此金鑰由主設定檔共享，請到主設定檔中修改。',
+    accountBadge: '沿用主設定檔的登入',
+    accountHint: '此登入屬於主設定檔，請到主設定檔中登出；在此設定檔登入後將改用自己的帳號，不再跟隨主設定檔。'
   }
-} satisfies Pick<TranslationOverrides, 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'runtimeErrors' | 'sharedProviders'>

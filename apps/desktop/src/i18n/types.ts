@@ -22,7 +22,7 @@ import type { NoticeTranslations } from './types_notices'
 import type { OnboardingTranslations } from './types_onboarding'
 import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
-import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
+import type { RuntimeErrorsCopy, SharedProvidersCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
 import type { ThemePickerCopy } from './types_theme_picker'
 import type { UninstallSectionTranslations } from './types_uninstall_section'
@@ -519,6 +519,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
   }
   timelineEvents: TimelineEventsCopy
   runtimeErrors: RuntimeErrorsCopy
+  sharedProviders: SharedProvidersCopy
   quickEntry: {
     label: string
     askPlaceholder: string
@@ -1891,7 +1892,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       }
       sections: {
         invoices: string
-
         plan: string
         paymentAndCredits: string
         usage: string

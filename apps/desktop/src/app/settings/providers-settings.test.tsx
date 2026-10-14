@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfirmHost } from '@/components/confirm-host'
 import { I18nProvider, TRANSLATIONS } from '@/i18n'
+import { queryClient } from '@/lib/query-client'
 import { $confirmRequest } from '@/store/confirm'
 import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
 
@@ -191,6 +192,33 @@ describe('ProvidersSettings', () => {
     expect(listOAuthProviders).toHaveBeenCalledTimes(2)
   })
 
+  it('marks a sign-in borrowed from the main profile and offers no removal for it', async () => {
+    listOAuthProviders.mockResolvedValue({
+      providers: [provider('nous', true, { status: { borrowed_from_root: true, logged_in: true } })]
+    })
+
+    await renderProvidersSettings()
+
+    expect(await screen.findByText(TRANSLATIONS.en.sharedProviders.accountBadge)).toBeTruthy()
+    expect(screen.getByText(TRANSLATIONS.en.sharedProviders.accountHint)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Remove Nous Portal' })).toBeNull()
+  })
+
+  it('refreshes the model-options caches once an account is disconnected', async () => {
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue(undefined)
+    await renderProvidersSettings()
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Remove Nous Portal' }))
+    })
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
+    })
+
+    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous', 'default'))
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['model-options'] })
+  })
+
   it('leaves the account connected when the removal prompt is dismissed', async () => {
     await renderProvidersSettings()
 
@@ -248,13 +276,7 @@ describe('ProvidersSettings', () => {
   it('localizes provider cards from stable ids and credential keys', async () => {
     const cases = [
       ['router', 'Ramp Router', 'RAMP_ROUTER_API_KEY', 'RAMP_ROUTER_BASE_URL', 'Ramp Router'],
-      [
-        'nebius-token-factory',
-        'Nebius Token Factory',
-        'NEBIUS_API_KEY',
-        'NEBIUS_BASE_URL',
-        'Nebius Token Factory'
-      ],
+      ['nebius-token-factory', 'Nebius Token Factory', 'NEBIUS_API_KEY', 'NEBIUS_BASE_URL', 'Nebius Token Factory'],
       [
         'alibaba-token-plan',
         'Alibaba Cloud (Token Plan)',
@@ -276,13 +298,7 @@ describe('ProvidersSettings', () => {
         'ALIBABA_CODING_PLAN_CN_BASE_URL',
         '阿里云（Coding Plan，中国大陆）'
       ],
-      [
-        'tencent-tokenplan',
-        'Tencent TokenPlan',
-        'TOKENPLAN_API_KEY',
-        'TOKENPLAN_BASE_URL',
-        '腾讯 TokenPlan'
-      ]
+      ['tencent-tokenplan', 'Tencent TokenPlan', 'TOKENPLAN_API_KEY', 'TOKENPLAN_BASE_URL', '腾讯 TokenPlan']
     ] as const
 
     const vars: Record<string, EnvVarInfo> = {}
@@ -318,6 +334,7 @@ describe('ProvidersSettings', () => {
       const title = await screen.findByText(localizedName)
 
       fireEvent.click(title)
+
       const description =
         TRANSLATIONS.zh.settings.providers.providerDescriptions[sourceName] ??
         TRANSLATIONS.zh.settings.envKeys[key]?.description ??

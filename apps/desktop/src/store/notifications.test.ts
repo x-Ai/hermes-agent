@@ -158,6 +158,44 @@ test('a shared-endpoint refusal from the custom endpoint route is localized with
   expect($notifications.get()[0]).toMatchObject({ message: detail, detail: undefined })
 })
 
+test('the delete refusal naming the sharing profiles pinned to an endpoint is localized with both', () => {
+  const detail =
+    "'magpie' is the model provider of sharing profile(s) auditor, qa; repoint them (or stop sharing providers there) before deleting it"
+
+  const error = new Error(`Error invoking remote method 'hermes:api': Error: 422: {"detail":"${detail}"}`)
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.customEndpoints.deleteFailed)
+
+  expect($notifications.get()[0]).toMatchObject({
+    title: TRANSLATIONS.zh.settings.customEndpoints.deleteFailed,
+    message: TRANSLATIONS.zh.runtimeErrors.sharedEndpointPinned('magpie', 'auditor, qa'),
+    detail: undefined
+  })
+  expect(lastMessage()).toContain('auditor, qa')
+  expect(lastMessage()).not.toContain('sharing profile(s)')
+  clearNotifications()
+  setRuntimeI18nLocale('en')
+})
+
+test('a borrowed sign-in refusal from the OAuth disconnect route is localized with the provider id', () => {
+  const detail =
+    "'openai-codex' is signed in from the default profile; sign out there, or sign in on this profile first"
+
+  const error = new Error(`Error invoking remote method 'hermes:api': Error: 422: {"detail":"${detail}"}`)
+
+  setRuntimeI18nLocale('zh')
+  notifyError(error, TRANSLATIONS.zh.settings.providers.failedRemove('OpenAI Codex'))
+
+  expect($notifications.get()[0]).toMatchObject({
+    message: TRANSLATIONS.zh.runtimeErrors.sharedProviderAccount('openai-codex'),
+    detail: undefined
+  })
+  expect(lastMessage()).not.toContain('signed in from the default profile')
+  clearNotifications()
+  setRuntimeI18nLocale('en')
+})
+
 test('notifyError posts the full error to desktop.log, not the summary', () => {
   const logLine = vi.fn()
 

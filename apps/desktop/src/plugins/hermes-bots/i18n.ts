@@ -686,7 +686,7 @@ const en: BotsMessages = {
     shareKeysOn: (target, defaultProfileName) =>
       `Share keys, accounts & model providers with the ${defaultProfileName.toLowerCase()} profile on ${target}`,
     shareKeysHint:
-      'Subscriptions, OAuth logins, API keys and custom endpoints are read from the main profile live: a key rotated or an endpoint added there applies to this bot at once. Uncheck for an isolated profile with copies of its own.',
+      "Custom endpoints and provider API keys are read from the main profile live, and the main profile wins: a key rotated or an endpoint added there applies to this bot at once. Account sign-ins are the main profile's until this bot signs in itself. Unchecking copies only the endpoint this bot is pinned to.",
     needsModel:
       'No model provider is ready for it yet, so it skipped its introduction. Pick a provider and model under Advanced.',
     configureModel: 'Configure model',
@@ -1300,7 +1300,7 @@ const ja: BotsMessages = {
     shareKeysOn: (target, defaultProfileName) =>
       `${target} の ${defaultProfileName} プロファイルとキー・アカウント・モデルプロバイダーを共有`,
     shareKeysHint:
-      'サブスクリプション、OAuth ログイン、API キー、カスタムエンドポイントをメインプロファイルから直接読み取ります。キーのローテーションや新しいエンドポイントはこのボットにも即座に反映されます。チェックを外すと独自のコピーを持つ独立したプロファイルになります',
+      'カスタムエンドポイントとプロバイダーの API キーはメインプロファイルから直接読み取り、メインプロファイルの値が優先されます。キーのローテーションや新しいエンドポイントはこのボットにも即座に反映されます。アカウントのサインインは、このボット自身がサインインするまでメインプロファイルのものを使います。チェックを外すと、このボットが現在指定しているエンドポイントだけがコピーされます',
     needsModel:
       'まだ使用できるモデルプロバイダーがないため、自己紹介をスキップしました。「詳細設定」でプロバイダーとモデルを選んでください',
     configureModel: 'モデルを設定',
@@ -1916,7 +1916,7 @@ const zh: BotsMessages = {
     shareKeys: '与主配置档案共享密钥、账户和模型提供方',
     shareKeysOn: (target, defaultProfileName) => `与 ${target} 上的 ${defaultProfileName} 档案共享密钥、账户和提供方`,
     shareKeysHint:
-      '订阅、OAuth 登录、API 密钥和自定义端点都直接读取主配置档案，主档案轮换密钥或新增端点会立即对此机器人生效，取消勾选则此机器人独立持有自己的副本',
+      '自定义端点和提供方 API 密钥实时读取主配置档案，且以主配置档案为准，主档案轮换密钥或新增端点会立即对此机器人生效，账号登录沿用主配置档案，直到此机器人自行登录，取消勾选只会复制此机器人当前指向的端点',
     needsModel: '它还没有可用的模型提供商，因此跳过了自我介绍，请在“高级”中选择提供商和模型',
     configureModel: '配置模型',
     createEmpty: '创建空配置（跳过内置技能）',
@@ -2508,7 +2508,7 @@ const zhHant: BotsMessages = {
     shareKeys: '與主要設定檔共用金鑰、帳戶和模型提供者',
     shareKeysOn: (target, defaultProfileName) => `與 ${target} 上的${defaultProfileName}設定檔共用金鑰、帳戶和提供者`,
     shareKeysHint:
-      '訂閱、OAuth 登入、API 金鑰和自訂端點都直接讀取主要設定檔。主設定檔輪換金鑰或新增端點會立即對此機器人生效，取消勾選則此機器人獨立持有自己的副本',
+      '自訂端點和供應商 API 金鑰直接讀取主設定檔，且以主設定檔為準。主設定檔輪換金鑰或新增端點會立即對此機器人生效；帳號登入沿用主設定檔，直到此機器人自行登入。取消勾選只會複製此機器人目前指向的端點',
     needsModel: '它還沒有可用的模型提供者，因此略過了自我介紹。請在「進階」中選擇提供者和模型',
     configureModel: '設定模型',
     createEmpty: '建立空白設定（略過內建技能）',

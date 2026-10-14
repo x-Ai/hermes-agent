@@ -461,4 +461,68 @@ describe('CustomEndpointsSettings', () => {
     expect(context.placeholder).toBe('Auto · 200,000')
     expect(context.title).toBe('Source: catalog provider')
   })
+
+  it('marks an endpoint shared from the main profile, keeps it usable and sends its edit to the main profile', async () => {
+    $profiles.set([
+      { is_default: true, name: 'default' },
+      { is_default: false, name: 'bot' }
+    ] as never)
+    $settingsScopeOverride.set('bot')
+
+    const relay = {
+      base_url: 'http://relay.test/v1',
+      discover_models: true,
+      has_api_key: false,
+      id: 'relay',
+      is_current: true,
+      model: 'm',
+      models: ['m'],
+      name: 'Relay'
+    }
+
+    const mine = {
+      base_url: 'http://mine.test/v1',
+      discover_models: true,
+      has_api_key: false,
+      id: 'mine',
+      is_current: false,
+      model: 'm',
+      models: ['m'],
+      name: 'Mine',
+      source: 'providers'
+    }
+
+    const current = { base_url: 'http://relay.test/v1', model: 'm', provider: 'relay' }
+    // The bot reads `relay` through from the main profile; the main profile owns it.
+    getCustomEndpoints.mockImplementation(async (profile?: string) =>
+      profile === 'bot'
+        ? { current, endpoints: [{ ...relay, source: 'default-profile' }, mine] }
+        : { current, endpoints: [{ ...relay, source: 'providers' }] }
+    )
+
+    render(<CustomEndpointsSettings />)
+
+    await screen.findByText('Relay')
+    expect(getCustomEndpoints).toHaveBeenLastCalledWith('bot')
+    expect(screen.getByText(en.sharedProviders.badge)).toBeTruthy()
+    // One delete button: the bot's own endpoint. The shared row keeps Use and loses Delete.
+    expect(screen.getAllByRole('button', { name: en.settings.customEndpoints.deleteEndpoint })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: en.settings.customEndpoints.use })).toHaveLength(2)
+    // The current (shared) endpoint opened in the editor: the hint shows and Save is off.
+    expect(screen.getByText(en.sharedProviders.endpointHint)).toBeTruthy()
+    expect((screen.getByRole('button', { name: en.settings.customEndpoints.save }) as HTMLButtonElement).disabled).toBe(
+      true
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: en.sharedProviders.editInMain }))
+
+    // The "Applies to" scope moved to the main profile (the app's active one, so no override) and the
+    // list was re-read there with the same endpoint selected.
+    expect($settingsScopeOverride.get()).toBeNull()
+    await waitFor(() => expect(getCustomEndpoints).toHaveBeenLastCalledWith('default'))
+    await waitFor(() => expect(screen.queryByText(en.sharedProviders.endpointHint)).toBeNull())
+    expect(
+      (screen.getByRole('textbox', { name: en.settings.customEndpoints.fields.name }) as HTMLInputElement).value
+    ).toBe('Relay')
+  })
 })

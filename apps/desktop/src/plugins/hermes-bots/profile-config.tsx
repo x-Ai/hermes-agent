@@ -663,6 +663,12 @@ export async function applyAdvancedConfig(bot: RosterRow, state: AdvancedConfigS
     ...(result?.applied || {})
   }
 
+  if (payload.share_providers !== undefined && merged.share_providers) {
+    // The bot's provider inventory changed shape (the main profile's endpoints came or went): every
+    // picker keyed on model-options refetches, instead of showing the old list for its stale time.
+    void queryClient.invalidateQueries({ queryKey: ['model-options'] })
+  }
+
   // #95293 remainder: the gateway now guards data-policy / expensive models
   // on THIS surface too — `confirm_required` means the model section is
   // PENDING the user's confirmation, not failed. Route it through the SAME

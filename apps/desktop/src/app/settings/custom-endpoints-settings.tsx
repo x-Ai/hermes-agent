@@ -13,12 +13,14 @@ import {
   validateCustomEndpoint
 } from '@/hermes'
 import { useI18n } from '@/i18n'
+import type { Translations } from '@/i18n/types'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Globe, Loader2, Plus, Save, Trash2, Zap } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
-import { $settingsRequestProfile } from '@/store/settings-scope'
+import { $profiles } from '@/store/profile'
+import { $settingsRequestProfile, setSettingsScope } from '@/store/settings-scope'
 import type {
   CustomEndpoint,
   CustomEndpointApiMode,
@@ -35,6 +37,132 @@ import { SettingsProfileScope } from './profile-scope'
 interface CustomEndpointsSettingsProps {
   onConfigSaved?: () => void
   onMainModelChanged?: (provider: string, model: string) => void
+}
+
+/** A row the scoped profile reads through from the main profile (`profile.yaml` `share_providers`):
+ *  the backend lists it with `source: default-profile`, refuses to write it here, and still lets
+ *  this profile use it. */
+const isSharedEndpoint = (endpoint: Pick<CustomEndpoint, 'source'>) => endpoint.source === 'default-profile'
+
+type CustomEndpointsCopy = Translations['settings']['customEndpoints']
+
+/** The editor's copy-driven field tables: the three token budgets, the two capability pins and the
+ *  pin's tri-state options. */
+function editorFields(ce: CustomEndpointsCopy) {
+  const tokenLimitFields = [
+    { key: 'contextLength', label: ce.contextWindowLabel },
+    { key: 'maxInputTokens', label: ce.maxInputLabel },
+    { key: 'maxOutputTokens', label: ce.maxOutputLabel }
+  ] as const
+
+  const capabilityFields = [
+    { key: 'supportsVision', label: ce.visionLabel },
+    { key: 'supportsReasoning', label: ce.reasoningLabel }
+  ] as const
+
+  const capabilityOptions: readonly { id: CapabilityPin; label: string }[] = [
+    { id: '', label: ce.capabilityAuto },
+    { id: 'yes', label: ce.capabilityYes },
+    { id: 'no', label: ce.capabilityNo }
+  ]
+
+  return { capabilityFields, capabilityOptions, tokenLimitFields }
+}
+
+/** Save needs a named, routable, parsable form that this profile may write: a shared endpoint is
+ *  edited in the main profile. */
+function canSaveEndpoint(form: EndpointForm, invalidTokenLimit: boolean, invalidExtraBody: boolean, shared: boolean) {
+  return Boolean(
+    form.name.trim() && form.baseUrl.trim() && form.model.trim() && !invalidTokenLimit && !invalidExtraBody && !shared
+  )
+}
+
+/** The row the editor opens with after a load: the endpoint a main-profile jump asked for, else the
+ *  active one, else the first. */
+function endpointToEdit(endpoints: CustomEndpoint[], wanted: null | string): CustomEndpoint | undefined {
+  return (
+    (wanted ? endpoints.find(endpoint => endpoint.id === wanted) : undefined) ??
+    endpoints.find(endpoint => endpoint.is_current) ??
+    endpoints[0]
+  )
+}
+
+interface EndpointRowProps {
+  activating: null | string
+  deleting: null | string
+  endpoint: CustomEndpoint
+  onActivate: (endpoint: CustomEndpoint) => void
+  onDelete: (endpoint: CustomEndpoint) => void
+  onSelect: (endpoint: CustomEndpoint) => void
+}
+
+function EndpointRow({ activating, deleting, endpoint, onActivate, onDelete, onSelect }: EndpointRowProps) {
+  const { t } = useI18n()
+  const ce = t.settings.customEndpoints
+  const shared = isSharedEndpoint(endpoint)
+
+  return (
+    <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      <button className="min-w-0 text-left" onClick={() => onSelect(endpoint)} type="button">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium">{endpoint.name}</span>
+          {endpoint.is_current && (
+            <Pill tone="primary">
+              <Check className="size-3" />
+              {ce.active}
+            </Pill>
+          )}
+          {endpoint.source === 'direct-config' && <Pill>config.yaml</Pill>}
+          {shared && <Pill>{t.sharedProviders.badge}</Pill>}
+        </div>
+        <div className="mt-1 truncate font-mono text-[0.7rem] text-muted-foreground">{endpoint.base_url}</div>
+        <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <span>{endpoint.model}</span>
+          {endpoint.has_api_key && <span>{endpoint.api_key_preview ?? ce.apiKeySet}</span>}
+        </div>
+      </button>
+      <div className="flex items-center gap-2 sm:justify-end">
+        <Button
+          disabled={endpoint.is_current || activating === endpoint.id}
+          onClick={() => onActivate(endpoint)}
+          size="sm"
+          variant="outline"
+        >
+          {activating === endpoint.id ? <Loader2 className="animate-spin" /> : <Zap />}
+          {ce.use}
+        </Button>
+        {endpoint.source !== 'direct-config' && !shared && (
+          <Button
+            aria-label={ce.deleteEndpoint}
+            className="hover:text-destructive"
+            disabled={deleting === endpoint.id}
+            onClick={() => onDelete(endpoint)}
+            size="icon-sm"
+            variant="ghost"
+          >
+            {deleting === endpoint.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** The editor opened on a shared endpoint: it is edited in the main profile, and this profile still uses it. */
+function SharedEndpointNotice({ onEditInMain }: { onEditInMain: () => void }) {
+  const { t } = useI18n()
+
+  return (
+    <div
+      className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/50 px-3 py-2 text-xs text-muted-foreground"
+      role="status"
+    >
+      <span>{t.sharedProviders.endpointHint}</span>
+      <Button onClick={onEditInMain} size="sm" type="button" variant="outline">
+        {t.sharedProviders.editInMain}
+      </Button>
+    </div>
+  )
 }
 
 interface ModelTokenLimitForm {
@@ -286,7 +414,11 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   // not whichever Bot is active in the left rail. Undefined follows the
   // active profile (request-shaped — never pass null, which retargets primary).
   const scopeProfile = useStore($settingsRequestProfile)
+  const profiles = useStore($profiles)
   const mounted = useRef(false)
+  // A shared endpoint is edited in the main profile: the jump moves the "Applies to" scope there and
+  // re-selects the same endpoint once that profile's list has loaded.
+  const pendingEditRef = useRef<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -337,7 +469,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         }
 
         setEndpoints(data.endpoints)
-        const current = data.endpoints.find(endpoint => endpoint.is_current) ?? data.endpoints[0]
+        const current = endpointToEdit(data.endpoints, pendingEditRef.current)
+        pendingEditRef.current = null
 
         if (current) {
           setEditingId(current.id)
@@ -361,6 +494,18 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       mounted.current = false
     }
   }, [scopeProfile])
+
+  function editInMainProfile() {
+    pendingEditRef.current = editingId
+    setSettingsScope(profiles.find(profile => profile.is_default)?.name ?? 'default')
+  }
+
+  function selectEndpoint(endpoint: CustomEndpoint) {
+    setEditingId(endpoint.id)
+    setForm(formFromEndpoint(endpoint))
+    setDiscoveredModels(endpoint.models)
+    setDiscoveredDetails(endpoint.model_details ?? [])
+  }
 
   async function handleSave() {
     try {
@@ -531,27 +676,12 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
   const extraBodyInvalid = Boolean(parseExtraBody(form.extraBody).error)
 
-  const canSave =
-    form.name.trim() && form.baseUrl.trim() && form.model.trim() && !hasInvalidTokenLimit && !extraBodyInvalid
+  const editingShared = endpoints.some(endpoint => endpoint.id === editingId && isSharedEndpoint(endpoint))
+  const canSave = canSaveEndpoint(form, hasInvalidTokenLimit, extraBodyInvalid, editingShared)
 
   const showMaxTokensField = form.apiMode === '' || form.apiMode === 'chat_completions'
 
-  const tokenLimitFields = [
-    { key: 'contextLength', label: ce.contextWindowLabel },
-    { key: 'maxInputTokens', label: ce.maxInputLabel },
-    { key: 'maxOutputTokens', label: ce.maxOutputLabel }
-  ] as const
-
-  const capabilityFields = [
-    { key: 'supportsVision', label: ce.visionLabel },
-    { key: 'supportsReasoning', label: ce.reasoningLabel }
-  ] as const
-
-  const capabilityOptions: readonly { id: CapabilityPin; label: string }[] = [
-    { id: '', label: ce.capabilityAuto },
-    { id: 'yes', label: ce.capabilityYes },
-    { id: 'no', label: ce.capabilityNo }
-  ]
+  const { capabilityFields, capabilityOptions, tokenLimitFields } = editorFields(ce)
 
   const tableGrid = 'sm:grid-cols-[minmax(9rem,1fr)_repeat(3,minmax(6rem,9rem))_repeat(2,minmax(5rem,6.5rem))]'
 
@@ -732,59 +862,15 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
           <div className="divide-y divide-border/40 rounded-md border border-border/50">
             {endpoints.length ? (
               endpoints.map(endpoint => (
-                <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center" key={endpoint.id}>
-                  <button
-                    className="min-w-0 text-left"
-                    onClick={() => {
-                      setEditingId(endpoint.id)
-                      setForm(formFromEndpoint(endpoint))
-                      setDiscoveredModels(endpoint.models)
-                      setDiscoveredDetails(endpoint.model_details ?? [])
-                    }}
-                    type="button"
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate text-sm font-medium">{endpoint.name}</span>
-                      {endpoint.is_current && (
-                        <Pill tone="primary">
-                          <Check className="size-3" />
-                          {ce.active}
-                        </Pill>
-                      )}
-                      {endpoint.source === 'direct-config' && <Pill>config.yaml</Pill>}
-                    </div>
-                    <div className="mt-1 truncate font-mono text-[0.7rem] text-muted-foreground">
-                      {endpoint.base_url}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>{endpoint.model}</span>
-                      {endpoint.has_api_key && <span>{endpoint.api_key_preview ?? ce.apiKeySet}</span>}
-                    </div>
-                  </button>
-                  <div className="flex items-center gap-2 sm:justify-end">
-                    <Button
-                      disabled={endpoint.is_current || activating === endpoint.id}
-                      onClick={() => void handleActivate(endpoint)}
-                      size="sm"
-                      variant="outline"
-                    >
-                      {activating === endpoint.id ? <Loader2 className="animate-spin" /> : <Zap />}
-                      {ce.use}
-                    </Button>
-                    {endpoint.source !== 'direct-config' && (
-                      <Button
-                        aria-label={t.settings.customEndpoints.deleteEndpoint}
-                        className="hover:text-destructive"
-                        disabled={deleting === endpoint.id}
-                        onClick={() => void handleDelete(endpoint)}
-                        size="icon-sm"
-                        variant="ghost"
-                      >
-                        {deleting === endpoint.id ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                <EndpointRow
+                  activating={activating}
+                  deleting={deleting}
+                  endpoint={endpoint}
+                  key={endpoint.id}
+                  onActivate={target => void handleActivate(target)}
+                  onDelete={target => void handleDelete(target)}
+                  onSelect={selectEndpoint}
+                />
               ))
             ) : (
               <EmptyState
@@ -797,6 +883,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
 
         <section>
           <SectionHeading icon={Plus} title={editingId ? ce.editTitle : ce.addTitle} />
+          {editingShared && <SharedEndpointNotice onEditInMain={editInMainProfile} />}
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid content-start gap-1.5 text-xs text-muted-foreground">

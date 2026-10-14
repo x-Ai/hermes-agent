@@ -1,7 +1,8 @@
 import type { Translations } from './types'
 
-// Timeline labels and the renderer's own runtime errors. Split out of en.ts: the monolith sits
-// over the FILE_LINES ratchet, so new copy lands in topical siblings that en.ts spreads in.
+// Timeline labels, the renderer's own runtime errors and the shared-provider rows. Split out of
+// en.ts: the monolith sits over the FILE_LINES ratchet, so new copy lands in topical siblings that
+// en.ts spreads in.
 export const enRuntime = {
   timelineEvents: {
     modelChanged: 'model changed',
@@ -69,6 +70,19 @@ export const enRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`,
     sharedProviderEndpoint: (id: string) =>
-      `'${id}' is shared from the default profile; edit it there, or stop sharing providers in this profile first`
+      `'${id}' is shared from the default profile; edit it there, or stop sharing providers in this profile first`,
+    sharedEndpointPinned: (id: string, profiles: string) =>
+      `'${id}' is the model provider of sharing profile(s) ${profiles}; repoint them (or stop sharing providers there) before deleting it`,
+    sharedProviderAccount: (id: string) =>
+      `'${id}' is signed in from the default profile; sign out there, or sign in on this profile first`
+  },
+  sharedProviders: {
+    badge: 'Shared from the main profile',
+    editInMain: 'Edit in the main profile',
+    endpointHint: 'This endpoint is shared from the main profile and edited there; this profile can still use it.',
+    keyHint: 'This key is shared from the main profile and edited there.',
+    accountBadge: 'Signed in from the main profile',
+    accountHint:
+      'This sign-in belongs to the main profile; sign out there. Signing in here gives this profile its own account, which no longer follows the main profile.'
   }
-} satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors'>
+} satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors' | 'sharedProviders'>

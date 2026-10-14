@@ -139,6 +139,10 @@ const SUGGESTED_ENDPOINT_ID_RE = /for example '([^']+)'/i
 /** The same route's 422 for an endpoint the scoped profile reads through from
  *  the default profile (`profile.yaml` `share_providers`); the id is read out of it. */
 const SHARED_ENDPOINT_RE = /'([^']+)' is shared from the default profile\b/i
+/** The delete route's 422 while sharing profiles still run on the endpoint; the id and their names are read out of it. */
+const SHARED_ENDPOINT_PINNED_RE = /'([^']+)' is the model provider of sharing profile\(s\) ([^;]+);/i
+/** The OAuth disconnect route's 422 for a sign-in the profile only borrows from the default profile. */
+const SHARED_ACCOUNT_RE = /'([^']+)' is signed in from the default profile\b/i
 
 interface ErrorSummaryRule {
   /** The toast's error category for friction telemetry (a closed code-defined set, never the text). */
@@ -225,6 +229,22 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'other',
     test: msg => SHARED_ENDPOINT_RE.test(msg),
     summarize: msg => translateNow('runtimeErrors.sharedProviderEndpoint', SHARED_ENDPOINT_RE.exec(msg)?.[1] ?? ''),
+    hideDetail: true
+  },
+  {
+    category: 'other',
+    test: msg => SHARED_ENDPOINT_PINNED_RE.test(msg),
+    summarize: msg => {
+      const match = SHARED_ENDPOINT_PINNED_RE.exec(msg)
+
+      return translateNow('runtimeErrors.sharedEndpointPinned', match?.[1] ?? '', match?.[2]?.trim() ?? '')
+    },
+    hideDetail: true
+  },
+  {
+    category: 'other',
+    test: msg => SHARED_ACCOUNT_RE.test(msg),
+    summarize: msg => translateNow('runtimeErrors.sharedProviderAccount', SHARED_ACCOUNT_RE.exec(msg)?.[1] ?? ''),
     hideDetail: true
   },
   {

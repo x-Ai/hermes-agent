@@ -72,6 +72,20 @@ export const jaRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」は組み込みプロバイダーの ID です。このエンドポイントには別の ID を指定してください（例：「${suggestion}」）`,
     sharedProviderEndpoint: (id: string) =>
-      `「${id}」はメインプロファイルから共有されています。メインプロファイルで編集するか、先にこのプロファイルのプロバイダー共有を解除してください。`
+      `「${id}」はメインプロファイルから共有されています。メインプロファイルで編集するか、先にこのプロファイルのプロバイダー共有を解除してください。`,
+    sharedEndpointPinned: (id: string, profiles: string) =>
+      `「${id}」はプロファイル ${profiles} のモデルプロバイダーです。削除する前に、それらのモデルの指定先を変更するか、プロバイダー共有を解除してください。`,
+    sharedProviderAccount: (id: string) =>
+      `「${id}」はメインプロファイルのサインインを使用しています。メインプロファイルでサインアウトするか、先にこのプロファイルでサインインしてください。`
+  },
+  sharedProviders: {
+    badge: 'メインプロファイルから共有',
+    editInMain: 'メインプロファイルで編集',
+    endpointHint:
+      'このエンドポイントはメインプロファイルから共有されています。編集はメインプロファイルで行ってください。このプロファイルでも引き続き使用できます',
+    keyHint: 'このキーはメインプロファイルから共有されています。編集はメインプロファイルで行ってください',
+    accountBadge: 'メインプロファイルのサインインを使用中',
+    accountHint:
+      'このサインインはメインプロファイルのものです。サインアウトはメインプロファイルで行ってください。ここでサインインすると、このプロファイル独自のアカウントになり、メインプロファイルに追従しなくなります'
   }
-} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors' | 'sharedProviders'>

@@ -71,4 +71,19 @@ export interface RuntimeErrorsCopy {
   builtinProviderId: (id: string, suggestion: string) => string
   /** The same route's 422 for an endpoint a sharing profile reads through from the default profile. */
   sharedProviderEndpoint: (id: string) => string
+  /** The delete route's 422 while sharing profiles still run on the endpoint (their names are read out of it). */
+  sharedEndpointPinned: (id: string, profiles: string) => string
+  /** The OAuth disconnect route's 422 for a sign-in the profile only reads through the global-root fallback. */
+  sharedProviderAccount: (id: string) => string
+}
+
+/** Rows a bot profile reads through from the main profile (`profile.yaml` `share_providers`; the
+ *  global-root sign-in fallback): the pill, the hint under the row and the jump to the owning profile. */
+export interface SharedProvidersCopy {
+  badge: string
+  editInMain: string
+  endpointHint: string
+  keyHint: string
+  accountBadge: string
+  accountHint: string
 }

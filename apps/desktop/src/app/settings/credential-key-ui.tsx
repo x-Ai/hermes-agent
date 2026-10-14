@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import { type ChangeEvent, type KeyboardEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -6,11 +7,13 @@ import { translateNow, useI18n } from '@/i18n'
 import { ChevronDown, ExternalLink, Loader2, Save, Trash2 } from '@/lib/icons'
 import { isSubmitEnter } from '@/lib/ime'
 import { cn } from '@/lib/utils'
+import { $profiles } from '@/store/profile'
+import { setSettingsScope } from '@/store/settings-scope'
 import type { EnvVarInfo } from '@/types/hermes'
 
 import { CONTROL_TEXT } from './constants'
 import { credentialPreview, prettyName, withoutKey } from './helpers'
-import { LIST_ROW_COLUMNS, ListRow } from './primitives'
+import { LIST_ROW_COLUMNS, ListRow, Pill } from './primitives'
 import type { EnvRowProps } from './types'
 
 export type KeyRowProps = Omit<EnvRowProps, 'info' | 'varKey'>
@@ -69,6 +72,11 @@ export function KeyField({
   const dirty = draft.trim().length > 0
   const busy = saving === varKey
   const masked = credentialPreview(info.redacted_value) ?? '••••••••'
+
+  if (info.source === 'default-profile') {
+    return <SharedKeyField masked={masked} />
+  }
+
   const startEdit = () => setEdits(c => ({ ...c, [editKey]: '' }))
   const cancel = () => setEdits(c => withoutKey(c, editKey))
   const update = (e: ChangeEvent<HTMLInputElement>) => setEdits(c => ({ ...c, [editKey]: e.target.value }))
@@ -138,6 +146,31 @@ export function KeyField({
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+/** A credential the scoped profile reads through from the main profile (`source: default-profile`):
+ *  the resolved value, read-only, and the jump to the profile that owns it. */
+function SharedKeyField({ masked }: { masked: string }) {
+  const { t } = useI18n()
+  const profiles = useStore($profiles)
+
+  return (
+    <div className="grid gap-1">
+      <Input className={cn(CREDENTIAL_CONTROL_CLASS, 'text-muted-foreground')} readOnly value={masked} />
+      <div className="flex flex-wrap items-center gap-2 text-[0.68rem] leading-5 text-muted-foreground">
+        <Pill>{t.sharedProviders.badge}</Pill>
+        <span>{t.sharedProviders.keyHint}</span>
+        <Button
+          onClick={() => setSettingsScope(profiles.find(profile => profile.is_default)?.name ?? 'default')}
+          size="inline"
+          type="button"
+          variant="textStrong"
+        >
+          {t.sharedProviders.editInMain}
+        </Button>
+      </div>
     </div>
   )
 }

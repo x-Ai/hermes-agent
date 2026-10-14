@@ -20,6 +20,7 @@ import { Tip } from '@/components/ui/tooltip'
 import { disconnectOAuthProvider, listOAuthProviders } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { Check, ChevronDown, ChevronRight, KeyRound, Loader2, Terminal, Trash2 } from '@/lib/icons'
+import { queryClient } from '@/lib/query-client'
 import { normalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
 import { confirm } from '@/store/confirm'
@@ -297,13 +298,16 @@ function ConnectedProviderRow({
   const copy = t.settings.providers
   const title = providerTitle(provider)
   const Trail = provider.flow === 'external' ? Terminal : ChevronRight
+  // The main profile's sign-in, read through the global-root fallback: nothing of this profile's to
+  // clear (the backend refuses), and signing in here gives the profile an account of its own.
+  const borrowed = provider.status?.borrowed_from_root === true
   // Hermes can clear this provider's creds via the API.
-  const canDisconnect = provider.disconnectable ?? provider.flow !== 'external'
+  const canDisconnect = !borrowed && (provider.disconnectable ?? provider.flow !== 'external')
   // External (CLI-managed) provider Hermes can't clear via the API, but ships a
   // command we can run in the embedded terminal (Electron shell only).
-  const terminalDisconnect = !canDisconnect && Boolean(provider.disconnect_command) && canRunInTerminal()
+  const terminalDisconnect = !borrowed && !canDisconnect && Boolean(provider.disconnect_command) && canRunInTerminal()
   // Only fall back to a static "remove it elsewhere" hint when we offer no button.
-  const showHint = !canDisconnect && !terminalDisconnect
+  const showHint = !borrowed && !canDisconnect && !terminalDisconnect
 
   return (
     <div className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-[6px] transition-colors hover:bg-(--ui-control-hover-background)">
@@ -315,10 +319,13 @@ function ConnectedProviderRow({
           <span className="truncate text-[length:var(--conversation-text-font-size)] font-semibold">{title}</span>
           <span className="inline-flex shrink-0 items-center gap-1 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             <Check className="size-3" />
-            {copy.connected}
+            {borrowed ? t.sharedProviders.accountBadge : copy.connected}
           </span>
         </div>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">{t.onboarding.flowSubtitles[provider.flow]}</p>
+        {borrowed && (
+          <p className="mt-0.5 text-[0.68rem] leading-5 text-muted-foreground/70">{t.sharedProviders.accountHint}</p>
+        )}
         {showHint && (
           <p className="mt-0.5 truncate text-[0.68rem] leading-5 text-muted-foreground/70">
             {provider.flow === 'external' ? copy.removeExternalGeneric(title) : copy.removeKeyManaged(title)}
@@ -464,6 +471,18 @@ export function ProvidersSettings({
     ready: key => apiKeysShown && keyGroupByEnv.has(key)
   })
 
+  // A sign-in finished (or was dismissed) from this page: the provider inventory the model pickers
+  // cache under `model-options` may have changed, like a key save on the Keys view does.
+  useEffect(
+    () =>
+      $desktopOnboarding.listen((value, previous) => {
+        if (!value.manual && previous?.manual) {
+          void queryClient.invalidateQueries({ queryKey: ['model-options'] })
+        }
+      }),
+    []
+  )
+
   const refreshOAuthProviders = useCallback(async () => {
     // OAuth providers are best-effort — a failure here just hides the panel.
     const { providers } = await listOAuthProviders(scopeProfile)
@@ -555,6 +574,7 @@ export function ProvidersSettings({
         title: t.settings.providers.removedTitle,
         message: t.settings.providers.removedMessage(name)
       })
+      void queryClient.invalidateQueries({ queryKey: ['model-options'] })
       await refreshOAuthProviders().catch(() => undefined)
     } catch (err) {
       notifyError(err, t.settings.providers.failedRemove(name))

@@ -66,6 +66,17 @@ export const zhRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `"${id}" 是内置提供商 ID，请为此端点另选一个 ID（例如 "${suggestion}"）`,
     sharedProviderEndpoint: (id: string) =>
-      `"${id}" 由主配置档案共享，请到主配置档案中修改，或先取消此配置档案的提供方共享`
+      `"${id}" 由主配置档案共享，请到主配置档案中修改，或先取消此配置档案的提供方共享`,
+    sharedEndpointPinned: (id: string, profiles: string) =>
+      `"${id}" 仍是配置档案 ${profiles} 的模型提供方，请先改变它们的模型指向（或取消其提供方共享），再删除`,
+    sharedProviderAccount: (id: string) => `"${id}" 沿用主配置档案的登录，请到主配置档案中退出，或先在此配置档案中登录`
+  },
+  sharedProviders: {
+    badge: '由主配置档案共享',
+    editInMain: '到主配置档案编辑',
+    endpointHint: '此端点由主配置档案共享，请到主配置档案中修改，此配置档案仍可使用它',
+    keyHint: '此密钥由主配置档案共享，请到主配置档案中修改',
+    accountBadge: '沿用主配置档案的登录',
+    accountHint: '此登录属于主配置档案，请到主配置档案中退出，在此配置档案登录后将改用自己的账号，不再跟随主配置档案'
   }
-} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors' | 'sharedProviders'>

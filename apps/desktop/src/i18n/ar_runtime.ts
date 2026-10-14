@@ -59,6 +59,10 @@ export const arRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`,
     sharedProviderEndpoint: (id: string) =>
-      `'${id}' مشترك من الملف الشخصي الافتراضي. عدّله هناك، أو أوقف مشاركة المزوّدين في هذا الملف الشخصي أولًا.`
+      `'${id}' مشترك من الملف الشخصي الافتراضي. عدّله هناك، أو أوقف مشاركة المزوّدين في هذا الملف الشخصي أولًا.`,
+    sharedEndpointPinned: (id: string, profiles: string) =>
+      `'${id}' هو مزوّد النموذج للملفات الشخصية المشارِكة ${profiles}. أعد توجيهها (أو أوقف مشاركة المزوّدين هناك) قبل حذفه.`,
+    sharedProviderAccount: (id: string) =>
+      `'${id}' مسجَّل الدخول من الملف الشخصي الافتراضي. سجّل الخروج هناك، أو سجّل الدخول في هذا الملف الشخصي أولًا.`
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

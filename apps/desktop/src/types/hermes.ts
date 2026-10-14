@@ -86,6 +86,9 @@ export interface OAuthProviderStatus {
    *  rather than a signed-in account. `logged_in` stays true either way — a
    *  token exists — so this is the only way to tell the two apart. */
   free_tier?: boolean
+  /** The sign-in is the default profile's, read through the global-root fallback: this profile can
+   *  use it but not disconnect it, and signing in here gives it an account of its own. */
+  borrowed_from_root?: boolean
   has_refresh_token?: boolean
   last_refresh?: null | string
   logged_in: boolean
@@ -218,6 +221,9 @@ export interface EnvVarInfo {
   // credential. It keeps the provider's first credential ahead of aliases.
   provider_primary?: boolean
   redacted_value: null | string
+  /** 'default-profile' when the scoped profile reads this credential through from the default profile
+   *  (`profile.yaml` `share_providers`): the preview is the resolved value and it is edited there. */
+  source?: 'default-profile' | 'profile'
   tools: string[]
   url: null | string
 }

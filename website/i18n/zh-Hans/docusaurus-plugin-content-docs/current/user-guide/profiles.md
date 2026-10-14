@@ -72,6 +72,8 @@ hermes profile create backup --clone-all
 
 :::note OAuth 登录是共享的，而不是复制的
 Anthropic（Claude Pro/Max）、OpenAI Codex 和 xAI 的 OAuth 登录使用**一次性刷新令牌**——复制一份并不会得到第二个凭证，而是同一个凭证有了两个持有者，第一个刷新它的 profile 会让其他所有副本失效。因此 `--clone-all`（以及仪表盘的凭证镜像）不会把这些 OAuth 条目复制到克隆中。新 profile 继续从根目录的 `~/.hermes/auth.json` 读取登录，任何 profile 中执行的令牌刷新都会写回根目录，所有 profile 都保持登录状态。静态 API 密钥照常复制。若要让某个 profile 拥有自己独立的 OAuth 登录，请在其中运行 `hermes -p <name> auth add <provider>`。该登录保存在这个 profile 自己的 `auth.json` 中（即使根目录还没有该提供商的登录也是如此），此后该 profile 使用它而不是根目录的登录；根目录的 `auth.json` 不会被修改。如果登录无法保存，命令会报错，而不会打印 `Added`。
+
+`profile.yaml` 中设置了 `share_providers: true` 的 profile（机器人模式的**与主配置档案共享密钥、账户和模型提供方**开关写入的就是它）在模型提供方上更进一步：它实时读取根 profile 的自定义端点以及背后的 API 密钥变量，并以根 profile 为准，覆盖自己的副本，所有解析提供方密钥的路径都如此（profile 自己的密钥作用域和优先读取 `.env` 文件的读取器都一样）。根 `.env` 中的其他内容不会跨越（频道令牌仍按 profile 隔离），根 profile 从不跟随任何人，打开开关创建的 profile 自己的 `.env` 里也不再保留根 profile 提供方密钥的副本。在设置中，该 profile 的"自定义端点"和"API 密钥"页会把这类条目标记为由主配置档案共享，只能在主配置档案中修改（该 profile 仍可*使用*共享端点）；"账号"页会把从根 profile 借用的登录标记为主配置档案的登录——退出要在主配置档案中进行，而在该 profile 中登录会让它拥有自己的账号，不再跟随根 profile。根 profile 修改一个共享端点时，所有指向它的共享 profile 保存的路由（`model.base_url` / `model.api_mode`）会同步刷新；删除一个仍有共享 profile 在使用的端点会被拒绝，直到该 profile 改变模型指向。关闭开关时，会把该 profile 当前指向的端点复制进它自己的配置一次——复制的是根 profile 的当前定义，而不是旧副本——这样它作为独立 profile 仍能继续工作。
 :::
 
 ### 从指定 profile 克隆
