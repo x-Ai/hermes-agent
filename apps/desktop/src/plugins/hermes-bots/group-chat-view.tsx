@@ -105,6 +105,7 @@ import {
 } from './group-panes'
 import type { GroupComposerDraft, GroupDraftSetter } from './group-panes'
 import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-rounds'
+import { groupMemberBodyText } from './group-transcript-text'
 import { clearGroupClarify, renameGroupClarify } from './group-turns'
 import {
   GroupMemberWorkspaceField,
@@ -671,7 +672,7 @@ interface GroupChatWorkspaceProps {
 }
 
 export function GroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const b = useBots()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
@@ -1314,6 +1315,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
   // it so this renderer takes on no new branch.
   const renderEntry = (entry: GroupMessage, index: number, threadChip: ReactNode = null) => {
     const isUser = entry.from.kind === 'user'
+    const body = groupMemberBodyText(entry, { locale, t })
     const meta = groupTranscriptSpeakerMeta(entry, members, allMeta)
 
     // Match this speaker back to its member descriptor so display
@@ -1421,11 +1423,11 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
             data-slot="group-chat-message-content"
           >
             {MessageTextContent ? (
-              <MessageTextContent decorateText={mentionText} media={!member?.remoteSource} text={entry.text} />
+              <MessageTextContent decorateText={mentionText} media={!member?.remoteSource} text={body} />
             ) : Streamdown ? (
-              <Streamdown components={mentionComponents}>{entry.text}</Streamdown>
+              <Streamdown components={mentionComponents}>{body}</Streamdown>
             ) : (
-              entry.text
+              body
             )}
           </div>
           {/* User attachments: what every responding bot was */

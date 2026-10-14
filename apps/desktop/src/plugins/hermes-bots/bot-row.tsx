@@ -61,6 +61,7 @@ import { $groupChats, $groupChatWorkspace } from './group-chat'
 import { botGroups, groupLastActivity } from './group-membership'
 import { toggleGroupChatPinned } from './group-pin'
 import { $activeGroupMemberKeys } from './group-presence'
+import { groupMemberBodyText } from './group-transcript-text'
 import { fallbackSelectionAfterHide, isBotHidden, isBotPinned } from './hidden-bots'
 import { useBots } from './i18n'
 import { botGatewayLabel, displayName, stripPreviewMarkdown } from './labels'
@@ -509,7 +510,7 @@ interface GroupRowProps {
 }
 
 export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, onNewSection }: GroupRowProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const b = useBots()
   const rooms = useValue($groupChats)
   const sections = useValue($botSections)
@@ -532,7 +533,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
   )
 
   const preview = last
-    ? `${last.from?.kind === 'user' ? b.group.you : `@${lastHandle}`}: ${stripPreviewMarkdown(last.text) || '…'}`
+    ? `${last.from?.kind === 'user' ? b.group.you : `@${lastHandle}`}: ${stripPreviewMarkdown(groupMemberBodyText(last, { locale, t })) || '…'}`
     : b.group.memberCount(members.length)
 
   const availableMembers = members.filter(member => botSourceStatus(member).available).length

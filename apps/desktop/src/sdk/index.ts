@@ -1725,9 +1725,8 @@ export { APPEARANCE_AREAS } from '@/app/settings/appearance-contrib'
  *  never an Off/On pill pair. Use them for preference rows in plugin panes and
  *  dialogs so they line up with core Settings. */
 export { ListRow, ToggleRow } from '@/app/settings/primitives'
-/** THE full per-toolset config panel core Settings renders — provider picker,
- *  env vars / API keys, model catalog picker, and post-setup runners. Route-
- *  decoupled (the "manage keys" deep link is a no-op outside the router); pass
+/** THE full per-toolset config panel core Settings renders — provider picker, env vars / API keys, model catalog
+ *  picker, and post-setup runners. Route-decoupled (the "manage keys" deep link is a no-op outside the router); pass
  *  `toolset`, optional `onConfiguredChange`, and an optional `profile`. */
 export { ToolsetConfigPanel } from '@/app/settings/toolset-config-panel'
 /** THE model catalog menu — the same searchable, provider-grouped, family-
@@ -1755,10 +1754,11 @@ export {
 } from '@/app/shell/model-menu-row-decorations'
 export type { StatusbarItem } from '@/app/shell/statusbar-controls'
 export type { TitlebarTool } from '@/app/shell/titlebar-controls'
-/** Canonical raw message renderer: applies Desktop message transforms (including
- * `MEDIA:` delivery directives) and the same rich Markdown/media components as
- * core chat. Prefer this over raw Streamdown for transcript-style messages. */
+/** Canonical raw message renderer: applies Desktop message transforms (including `MEDIA:` delivery directives) and the
+ *  same rich Markdown/media components as core chat. Prefer this over raw Streamdown for transcript-style messages. */
 export { MessageTextContent } from '@/components/assistant-ui/markdown-text'
+/** The thread's re-rendering of the agent's English placeholders ("Operation interrupted…") in the UI language. */
+export { localizeAssistantTranscriptText } from '@/components/assistant-ui/thread/transcript-localization'
 /** The oversized Collapse lettering an empty chat is titled with — core writes
  *  "HERMES AGENT" with it, a `chat.empty` contribution writes its own name. */
 export { Wordmark } from '@/components/chat/wordmark'
