@@ -151,13 +151,15 @@ export function GroupContextUsagePanel() {
           {members.map(member => {
             const { latest, threads } = latestMemberUsage(entries, member)
             const percent = latest ? groupUsagePercent(latest.usage) : null
-            const compressions = latest?.usage.compressions ?? 0
+            // The live runtime's count, like the core popover: shown whenever the
+            // session has a reading, zero included — a hidden zero read as "unknown".
+            const compressions = latest?.usage.compressions
             const cacheHit = latest?.usage.cache_hit_pct
             const tps = latest?.usage.avg_tps ?? 0
 
             const hints = [
               threads > 1 ? b.group.contextUsageThreads(threads) : '',
-              compressions > 0 ? b.group.contextUsageCompressions(compressions) : '',
+              compressions !== undefined ? b.group.contextUsageCompressions(compressions) : '',
               cacheHit !== undefined ? b.group.contextUsageCacheHit(Math.round(cacheHit)) : '',
               tps > 0 ? b.group.contextUsageTokensPerSecond(Math.round(tps)) : ''
             ].filter(Boolean)

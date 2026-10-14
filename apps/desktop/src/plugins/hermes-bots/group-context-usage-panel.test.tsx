@@ -97,6 +97,17 @@ it('lists every member: the measured occupancy, or the placeholder for one that 
   ])
 })
 
+it('shows a zero compression count rather than hiding it', () => {
+  noteGroupSessionSnapshot('Alpha', 'main', beta, {
+    info: { usage: { compressions: 0, context_max: 200_000, context_percent: 1, context_used: 2_000 } },
+    session_id: 'rt-b1'
+  })
+
+  render(<GroupContextUsagePanel />)
+
+  expect(screen.getByText('0 compressions')).toBeTruthy()
+})
+
 it('projects a measured split onto the live occupancy for the bar', () => {
   const entry = {
     at: 0,
