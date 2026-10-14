@@ -1,0 +1,121 @@
+name: Bootstrap installer macOS (unsigned)
+
+# Fork-local, hand-dispatched build of the Tauri bootstrap installer
+# (apps/bootstrap-installer, "Hermes-Setup") for Apple Silicon WITHOUT a
+# Developer ID or notarization: this fork has no Apple signing secrets, and
+# upstream's bootstrap-installer-build workflow refuses to run without them.
+# Same recipe as that workflow's macos-arm64 job minus the certificate import,
+# notarization and stapling. The bundle is ad-hoc signed (Apple Silicon will
+# not launch an unsigned binary at all) and the dmg is uploaded as a run
+# artifact only, nothing is published. Gatekeeper cannot verify an
+# unnotarized download, so recipients allow it once under
+# System Settings > Privacy & Security ("Open Anyway").
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, branch or tag to build
+        required: true
+        default: main
+      pin_branch:
+        description: Branch the installer follows at install time (HERMES_BUILD_PIN_BRANCH)
+        required: true
+        default: main
+      pin_commit:
+        description: Optional commit pin baked in instead (HERMES_BUILD_PIN_COMMIT)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bootstrap-installer-unsigned-macos-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  HERMES_BUILD_PIN_BRANCH: ${{ inputs.pin_branch }}
+  HERMES_BUILD_PIN_COMMIT: ${{ inputs.pin_commit }}
+  CARGO_INCREMENTAL: '0'
+  SCCACHE_DISABLE: '1'
+
+jobs:
+  macos-arm64:
+    name: Hermes-Setup.dmg (macos arm64, unsigned)
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # 7.0.0
+        with:
+          node-version: 24.11.1
+
+      - name: Fresh cache dirs
+        run: |
+          {
+            echo "CARGO_HOME=$RUNNER_TEMP/cargo-home"
+            echo "CARGO_TARGET_DIR=$RUNNER_TEMP/target"
+            echo "npm_config_cache=$RUNNER_TEMP/npm-cache"
+          } >> "$GITHUB_ENV"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Select Xcode 26 for the macOS 26 layered icon
+        # Tauri compiles src-tauri/icons/icon.icon with actool, which only
+        # Xcode >= 26 ships; without it the bundle carries the .icns alone.
+        # Not a reason to fail an unsigned build: warn and continue.
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$xcode" ]; then
+            echo "::warning::no Xcode 26 on this runner; the bundle ships the .icns icon only"
+            exit 0
+          fi
+          echo "DEVELOPER_DIR=$xcode/Contents/Developer" >> "$GITHUB_ENV"
+          echo "selected $xcode"
+
+      - name: Build (ad-hoc signed, not notarized)
+        env:
+          # Tauri's bundler signs with this identity; "-" is codesign's ad-hoc
+          # seal, the minimum Apple Silicon needs to launch the binary.
+          APPLE_SIGNING_IDENTITY: '-'
+        run: |
+          rustup target add aarch64-apple-darwin
+          npm ci --workspace apps/bootstrap-installer --include-workspace-root=false --prefer-online --no-audit --no-fund
+          cd apps/bootstrap-installer
+          npx tauri build --target aarch64-apple-darwin --bundles app,dmg
+
+      - name: Set the dmg volume icon and checksum
+        run: |
+          shopt -s nullglob
+          bundle="$CARGO_TARGET_DIR/aarch64-apple-darwin/release/bundle"
+          dmgs=("$bundle"/dmg/*.dmg)
+          test ${#dmgs[@]} -eq 1
+          mkdir -p "$RUNNER_TEMP/out"
+          dmg="$RUNNER_TEMP/out/Hermes-Setup.dmg"
+          # Tauri always uses the app icns as the volume icon; give the DMG the
+          # same drive artwork as the desktop installer.
+          scripts/bundles/set_dmg_volume_icon.sh "${dmgs[0]}" apps/desktop/packaging/dmg-volume.icns "$dmg"
+          (cd "$RUNNER_TEMP/out" && shasum -a 256 Hermes-Setup.dmg | tee Hermes-Setup.dmg.sha256)
+
+      - name: Verify the ad-hoc seal and the dmg contents
+        run: |
+          shopt -s nullglob
+          apps=("$CARGO_TARGET_DIR"/aarch64-apple-darwin/release/bundle/macos/*.app)
+          test ${#apps[@]} -eq 1
+          codesign --verify --strict --verbose=2 "${apps[0]}"
+          codesign -dv "${apps[0]}" 2>&1 | grep -q 'Signature=adhoc'
+          mount=$(hdiutil attach -nobrowse -readonly "$RUNNER_TEMP/out/Hermes-Setup.dmg" | awk -F'\t' '/\/Volumes\//{print $NF; exit}')
+          test -f "$mount/.VolumeIcon.icns"
+          shipped=("$mount"/*.app)
+          test ${#shipped[@]} -eq 1
+          hdiutil detach "$mount"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Hermes-Setup-macos-arm64-unsigned
+          path: ${{ runner.temp }}/out/
+          if-no-files-found: error
