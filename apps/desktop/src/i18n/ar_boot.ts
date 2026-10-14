@@ -251,19 +251,6 @@ export const arBoot = {
     openDownloadPage: 'Page',
     justNowSuffix: 'الآن'
   },
-  handoffTour: {
-    profileTitle: 'مهمتك الأولى تجري على ملف الفشل',
-    profileText:
-      'هذا السكك الحديدي يبدل المواصفات الإضاءة الآن غير مقصودة، حيث تَعِيشُ جلسةَ المهمةَ. الآخر هو الملف الشخصي، حيث الدردشة الترحيبية تعيش.',
-    sessionsTitle: 'يحتفظ كل ملف بجلساته الخاصة',
-    sessionsText:
-      'هذه القائمة تعود إلى الملف الافتراضي وتبدأ الدورة الجديدة دورة واحدة عن أي مكان يتم اختياره. تُغيّر ملامح السكك الحديدية والقائمة بها.',
-    stayTitle: 'Hermes على بعد نقطة واحدة',
-    stayText: 'انتقل إلى ملف الإعداد وافتح «مرحباً بك في Hermes» متى احتجت إلى المساعدة؛ سيبقى هناك.',
-    localTitle: 'يمكن لهذا الجهاز تشغيل النماذج محليًا',
-    localText: (model: string) =>
-      `${model} يناسب أجهزتك. يعمل مجانًا، ولا تغادر المحادثات جهازك. اختره من هنا، من قائمة النماذج، متى شئت.`
-  },
   install: {
     stageStates: {
       pending: 'قيد الانتظار',
@@ -462,9 +449,7 @@ export const arBoot = {
       `تسجيل الدخول باستخدام${provider}لم يكتمل. تحقق من اتصال الإنترنت الخاص بك وحاول مرة أخرى، أو اختر مزودًا مختلفًا.`,
     tryAgain: 'حاول مرة أخرى',
     useApiKeyInstead: 'استخدام مفتاح API',
-    errorDetails: 'تفاصيل',
-    skipSetup: 'تخطي الإعداد',
-    skipSetupTip: 'جارٍ تحويلك إلى ملفك الشخصي الافتراضي'
+    errorDetails: 'تفاصيل'
   },
   freeTier: {
     providerRowTitle: 'Nous · المستوى المجاني',
@@ -539,5 +524,5 @@ export const arBoot = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'handoffTour' | 'install' | 'onboarding' | 'freeTier'
+  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'install' | 'onboarding' | 'freeTier'
 >

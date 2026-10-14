@@ -1,5 +1,5 @@
 auth:
-  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one, type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
 
 provider:
   custom_endpoint: "Пользовательская конечная точка"
@@ -502,7 +502,6 @@ gateway:
     last_activity: "**Последняя активность:** {timestamp}"
     model: "**Модель:** `{model}`"
     model_provider: "**Модель:** `{model}` ({provider})"
-    free_tier: "Nous · бесплатный тариф · nous/welcome · /login для входа"
     context: "**Контекст:** {used} / {total} ({pct}%)"
     context_used: "**Контекст:** ~{used} токенов"
     tokens: "**Всего токенов списано за всё время:** {tokens} _(это не размер текущего контекста; используйте `/context`)_"
@@ -851,8 +850,6 @@ gateway:
   plan:
     ack_task: "Планирую: {task}"
     ack_conversation: "Планирую на основе контекста этого разговора…"
-  initiate_setup:
-    ack: "Запуск настройки…"
   init:
     start_failed: "Не удалось запустить /init — попробуйте ещё раз."
     ack_update: "Обновляю AGENTS.md по результатам сканирования проекта…"
@@ -915,7 +912,6 @@ gateway:
   startup:
     handoff_thread_title: "Hermes — {title}"
     restarted: "♻ Шлюз успешно перезапущен. Ваш сеанс продолжается."
-    free_tier_line: "Инференс: бесплатный уровень Nous (nous/welcome). Войдите, чтобы получить больше: /login"
     online: "♻️ Шлюз в сети — Hermes снова готов к работе."
     db_corrupt: "⚠️ Обнаружено повреждение базы данных сеансов. Сообщения могут не сохраняться. Варианты восстановления:\n1. Выполните `hermes {profile_arg}doctor --fix`\n2. Остановите шлюз, затем восстановите:\n   hermes {profile_arg}sessions recover --source {db_path} --inspect-only\n   (если сообщает, что восстановление возможно) hermes {profile_arg}sessions recover --source {db_path} --output recovered-state.db\n   — восстановление сначала делает снимок повреждённого файла; НЕ запускайте `sqlite3 ... \".recover\"` на рабочем state.db — уязвимый CLI sqlite3 может повредить его ещё сильнее\n3. Восстановите из резервной копии в {backups_dir}/\nВыполните `hermes {profile_arg}doctor` для очищенной диагностики."
     db_fts_corrupt: "⚠️ База данных сеансов сообщила об ошибке повреждения, ограниченной поисковым индексом (FTS5); таблицы сообщений не повреждены. Сообщения могут не сохраняться до починки: выполните `hermes {profile_arg}doctor --fix`, затем перезапустите шлюз. Не запускайте инструменты восстановления и не восстанавливайте резервную копию, пока `hermes {profile_arg}doctor` не подтвердит повреждение."
@@ -1630,8 +1626,6 @@ slash:
     description: "Повторять промпт с заданным интервалом в этом сеансе"
   plan:
     description: "Написать план реализации в markdown в .hermes/plans/, ничего не выполняя"
-  initiate-setup:
-    description: "Запустить первичную настройку: узнать о вас и настроить Hermes под вас"
   moa:
     description: "Прогнать один промпт через пресет Mixture of Agents по умолчанию, затем вернуть вашу модель"
   subgoal:
@@ -2991,8 +2985,6 @@ cli:
     plan:
       planning: "📋 Планирование: {task}"
       from_conversation: "📋 Планирую на основе контекста этого разговора..."
-    initiate_setup:
-      starting: "🧭 Запуск настройки..."
     init:
       updating: "⚡ Обновляю AGENTS.md по результатам сканирования проекта..."
       generating: "⚡ Генерирую AGENTS.md по результатам сканирования проекта..."
@@ -4365,7 +4357,6 @@ tui_gateway:
     facts_too_long: "Сведения из онбординга слишком длинные, чтобы их запомнить"
     memory_not_saved: "Память не была сохранена"
     verify_failed: "Не удалось проверить сохранённые сведения онбординга"
-    no_setup_profile: "нет профиля настройки для сброса"
   projects:
     not_found: "нет такого проекта"
   subagent:

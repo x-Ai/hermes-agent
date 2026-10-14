@@ -50,7 +50,6 @@ export interface RuntimeErrorsCopy {
   defaultProfileUnsupported: string
   poolLimitsApplyFailed: string
   clipboardUnavailable: string
-  welcomeConversationUnavailable: string
   pluginFolderUnavailable: string
   manifestMinContextInvalid: string
   manifestToolsNotList: string
@@ -72,7 +71,4 @@ export interface RuntimeErrorsCopy {
   builtinProviderId: (id: string, suggestion: string) => string
   /** The same route's 422 for an endpoint a sharing profile reads through from the default profile. */
   sharedProviderEndpoint: (id: string) => string
-  welcomeNeedsAttention: string
-  welcomeStartFailed: string
-  restoreProfileFailed: string
 }

@@ -281,18 +281,6 @@ export const zhHantBoot = {
     versionDetailsUncommittedChanges: '未提交的變更',
     justNowSuffix: ' · 剛剛'
   },
-  handoffTour: {
-    profileTitle: '您的第一個任務在預設設定檔上運行',
-    profileText:
-      '此導軌開關型材。現在亮起的是預設值，也就是任務會話所在的位置。另一個是設定配置文件，歡迎聊天就在其中。',
-    sessionsTitle: '每個設定檔都有自己的會話',
-    sessionsText: '此列表屬於預設設定檔。新會話將在選擇的設定檔上啟動。在導軌上切換配置文件，清單隨之變化。',
-    stayTitle: 'Hermes 只需點擊一下即可',
-    stayText: '切換到設定設定檔並在需要協助時開啟歡迎使用 Hermes。它留在那裡。',
-    localTitle: '這台電腦可以在本機執行模型',
-    localText: (model: string) =>
-      `${model} 適合你的硬體。免費執行，對話不會離開你的電腦。隨時在這裡的模型選單中選擇它。`
-  },
 
   install: {
     stageStates: {
@@ -492,9 +480,7 @@ export const zhHantBoot = {
     localModelNamePlaceholder: '模型名稱（例如 command-a-plus-05-2026）',
     setupSlowTitle: '設定花費的時間比平常久。',
     setupSlowBody: 'Hermes 仍在背景中啟動。',
-    continueWithoutSetup: '略過設定並繼續',
-    skipSetup: '略過設定',
-    skipSetupTip: '正在為你切換到預設設定檔'
+    continueWithoutSetup: '略過設定並繼續'
   },
   freeTier: {
     providerRowTitle: 'Nous · 免費套餐',
@@ -564,5 +550,5 @@ export const zhHantBoot = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'handoffTour' | 'install' | 'onboarding' | 'freeTier'
+  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'updates' | 'install' | 'onboarding' | 'freeTier'
 >

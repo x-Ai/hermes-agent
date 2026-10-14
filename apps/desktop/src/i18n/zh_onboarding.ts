@@ -79,8 +79,6 @@ export const zhOnboarding: TranslationOverrides['onboarding'] = {
     'openai-codex': 'ChatGPT 或 Codex 订阅'
   },
   directApiAccess: provider => `直接通过 API 访问 ${provider}`,
-  skipSetup: '跳过设置',
-  skipSetupTip: '正在为你切换到默认配置档案',
   errorDetails: '详情',
   signInDidNotFinish: provider => `使用${provider}登录未完成，请检查你的网络连接并重试，或者选择不同的提供商`,
   tryAgain: '再试一次',

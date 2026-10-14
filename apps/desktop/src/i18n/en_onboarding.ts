@@ -90,7 +90,5 @@ export const enOnboarding: Translations['onboarding'] = {
     'claude-code': 'Anthropic OAuth: Required Extra Usage Credits to Use Subscription',
     'openai-codex': 'ChatGPT or Codex Subscription'
   },
-  directApiAccess: provider => `Direct API access to ${provider}.`,
-  skipSetup: 'Skip setup',
-  skipSetupTip: 'Switching you over to your default profile'
+  directApiAccess: provider => `Direct API access to ${provider}.`
 }

@@ -38,7 +38,6 @@ export const zhHantRuntime = {
     defaultProfileUnsupported: '此版本的桌面版無法儲存預設設定檔。',
     poolLimitsApplyFailed: '套用集區限制失敗',
     clipboardUnavailable: '剪貼簿 API 無法使用',
-    welcomeConversationUnavailable: '無法載入歡迎對話。請再試一次。',
     pluginFolderUnavailable: '桌面外掛資料夾無法使用。請在開始首次建置前重試。',
     manifestMinContextInvalid: '最小上下文視窗必須是數字或留空',
     manifestToolsNotList: 'tools 必須是清單',
@@ -59,9 +58,6 @@ export const zhHantRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」是內建供應商 ID，請為此端點另選一個 ID（例如「${suggestion}」）。`,
     sharedProviderEndpoint: (id: string) =>
-      `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`,
-    welcomeNeedsAttention: '歡迎對話需要處理',
-    welcomeStartFailed: '無法啟動歡迎對話。',
-    restoreProfileFailed: '無法還原你的設定檔'
+      `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

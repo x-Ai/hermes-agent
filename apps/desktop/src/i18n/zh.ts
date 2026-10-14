@@ -3,8 +3,10 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhAuxTasks } from './zh_aux_tasks'
+import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
+import { zhFirstRun } from './zh_first_run'
 import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
@@ -17,6 +19,7 @@ import { zhProviderWait } from './zh_provider_wait'
 import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
 import { zhTerminalBackend } from './zh_terminal_backend'
+import { zhThemePicker } from './zh_theme_picker'
 import { zhUpdateChannel } from './zh_update_channel'
 
 const TOOL_COUNT_UNITS: Record<string, string> = {
@@ -45,6 +48,7 @@ export const zhOverrides = {
     }
   },
   sharedMetrics: zhSharedMetrics,
+  firstRun: zhFirstRun,
   intro: introZh,
   connectors: zhConnectorCard,
   connectorsPage: {
@@ -1122,28 +1126,32 @@ export const zhOverrides = {
         desktopLabel: '桌面 UI',
         agentTargetLocal: (profile, dir) => `安装到 ${profile} 后端（${dir}）`,
         agentTargetRemote: profile => `安装到已连接的 ${profile} 后端`,
-        catalogPinned: (name, sha) =>
-          `Hermes 目录条目「${name}」— Agent 部分将安装在经过审核的固定提交${sha ? ` ${sha}` : ''}，而不是分支最新代码`,
-        reviewedHeading: '经过审核的目录条目',
-        reviewedIntro: '此条目已在其固定提交处经过人工审核，你仍可在下方检查确切代码',
         restartToApply: '重启网关后插件才会生效',
         restartNow: '重启网关',
         toolsConnected: n => `${n} 个工具已连接`,
         skillsReady: names => (names.length === 1 ? `技能 ${names[0]} 已就绪` : `${names.length} 个技能已就绪`),
         nextChat: '下次对话中可使用更多工具',
         serverNotConnected: (server, reason) => `MCP 服务器 ${server} 未连接${reason ? `：${reason}` : ''}`,
+        verified: '已验证',
+        unverified: '未验证',
+        reviewedByNous: '已由 Nous 审核',
+        installsAndEnables: profile => `安装到 ${profile}，并立即启用`,
+        installsOnly: profile => `安装到 ${profile}`,
+        advanced: '高级',
+        versionLabel: '版本',
+        reviewedPin: sha => (sha ? `已审核的固定提交 ${sha}` : '已审核的固定提交'),
+        latestCommit: '最新提交',
+        nothingToInstall: '此包在这里没有可安装的内容',
         missingEnvAction: '去设置',
         alreadyInstalled: (name: string) => `${name} 已安装`,
         desktopTarget: '安装到此应用的本地 desktop-plugins 文件夹',
         desktopTargetFromPackage: '从上方的包加载到本应用 — 所有配置相同',
         desktopOnlyNote: '仅桌面包不会安装后端智能体插件',
         insecureWarning: '此 URL 使用了不安全的本地 scheme，生产环境请优先使用 https:// 或 git@',
-        securityHeading: '安装前须知',
         securityIntro: '请仅安装你信任的来源 — 如需了解将添加的内容，可先查看下方仓库',
         sourceHeading: '源代码',
         viewRepository: '查看仓库',
         viewPluginFiles: '查看插件文件',
-        gitCloneLabel: 'Git 克隆地址',
         enableAgent: '安装后启用智能体插件',
         forceReinstall: '强制重装（替换已存在的安装）',
         pinToCommit: '固定到提交（可选）',
@@ -1923,11 +1931,6 @@ export const zhOverrides = {
       minimizeToTrayDesc:
         '最小化窗口或关闭主窗口时，将其隐藏到系统托盘（macOS 上为菜单栏），让 Hermes 继续运行,通过托盘菜单中的"退出 Hermes"或 Cmd+Q 退出，默认关闭，仅适用于此设备',
       minimizeToTrayUnavailable: '系统托盘不可用，窗口将正常最小化和关闭，关闭此选项后重新开启即可重试',
-      developerTitle: '开发者',
-      resetOnboardingTitle: '重置新手引导',
-      resetOnboardingDesc: '删除设置对话，重建设置配置文件，并重新运行首次设置，你自己的配置文件、对话和插件会保留',
-      resetOnboardingAction: '重置',
-      resetOnboardingFailed: '无法重置新手引导',
       showOptions: '显示选项'
     },
     quickEntry: {
@@ -5812,18 +5815,6 @@ export const zhOverrides = {
     checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新',
     justNowSuffix: ' · 刚刚'
   },
-  handoffTour: {
-    profileTitle: '你的第一个任务在默认配置档案中运行',
-    profileText:
-      '这里可以切换配置档案，当前高亮的是 default，任务会话就在其中，另一个是设置配置档案，欢迎对话保存在那里',
-    sessionsTitle: '每个配置档案都有自己的会话',
-    sessionsText:
-      '此列表属于默认配置档案，“新建会话”会在当前选中的配置档案中创建会话，在侧栏切换配置档案，列表也会随之切换',
-    stayTitle: '随时都能找到 Hermes',
-    stayText: '需要帮忙时，切换到设置配置档案并打开 Welcome to Hermes 即可，这个对话会一直保留',
-    localTitle: '这台电脑可以在本地运行模型',
-    localText: (model: string) => `${model} 适合你的硬件，免费运行，对话不会离开你的电脑，随时在这里的模型菜单中选择它`
-  },
 
   install: {
     stageStates: {
@@ -6764,49 +6755,8 @@ export const zhOverrides = {
       openSafetySettings: '打开安全设置',
       commandDetails: '命令详情'
     },
-    clarify: {
-      notReady: '澄清请求尚未就绪',
-      gatewayDisconnected: 'Hermes 目前离线，重新连接，然后再次发送',
-      sendFailed: '无法发送澄清响应',
-      loadingQuestion: '正在加载问题…',
-      other: '其他 (输入你的答案)',
-      placeholder: '输入你的答案…',
-      skip: '跳过',
-      skipped: '已跳过',
-      noAnswer: '未回答',
-      confirmAndContinueLabel: '确认并继续',
-      recommendedSuffix: '（推荐）',
-      singleSelectHint: '选一个',
-      multiSelectHint: '可多选',
-      oneQuestion: '1 个问题',
-      questionProgress: (answered, total) => `已回答 ${answered}/${total}`,
-      notDelivered: '此问题未送达应用，无法在此回答，请按停止结束本轮，然后在聊天中回复'
-    },
-    setupChoose: {
-      kinds: {
-        accent: '强调色',
-        connectors: '应用',
-        layout: '布局',
-        plugins: '插件',
-        theme: '外观'
-      },
-      loading: '正在加载选项…',
-      unavailable: '此列表暂不可用，请直接在对话中回复',
-      findApp: '查找应用',
-      customColor: '自定义颜色',
-      plugin: '插件',
-      startsLater: '开始时我们会帮你设置好这些'
-    },
-    startChat: {
-      starting: title => `正在启动“${title}”…`,
-      startingUntitled: '正在启动对话…',
-      untitled: '新对话',
-      notStarted: '对话未能启动',
-      retry: '重试',
-      inProfile: profile => `位于 ${profile}`,
-      open: '打开',
-      openFailed: '无法打开对话'
-    },
+    clarify: zhClarify,
+    themePicker: zhThemePicker,
     catalogInstall: {
       preparing: '正在准备安装…',
       install: '安装',
@@ -7015,16 +6965,6 @@ export const zhOverrides = {
           done: '已提问',
           pending: '正在提问',
           pendingAction: '正在提问'
-        },
-        setup_choose: {
-          done: '已提出设置问题',
-          pending: '正在提出设置问题',
-          pendingAction: '正在提问'
-        },
-        start_chat: {
-          done: '已启动对话',
-          pending: '正在启动对话',
-          pendingAction: '正在启动'
         },
         cronjob: {
           done: 'Cron 任务',

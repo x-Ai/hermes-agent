@@ -85,8 +85,6 @@ export const jaOnboarding: TranslationOverrides['onboarding'] = {
     'openai-codex': 'ChatGPT または Codex サブスクリプション'
   },
   directApiAccess: provider => `${provider} の API に直接アクセスします。`,
-  skipSetup: 'セットアップをスキップ',
-  skipSetupTip: 'デフォルトのプロファイルに切り替えます',
   errorDetails: '詳細',
   localApiKeyPlaceholder: 'API キー (オプション - エンドポイントで必要な場合のみ)',
   signInDidNotFinish: provider =>

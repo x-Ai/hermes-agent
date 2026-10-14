@@ -48,7 +48,6 @@ export const enRuntime = {
     defaultProfileUnsupported: 'This Desktop version cannot save a default profile.',
     poolLimitsApplyFailed: 'Applying pool limits failed',
     clipboardUnavailable: 'Clipboard API is unavailable',
-    welcomeConversationUnavailable: 'The welcome conversation could not be loaded. Please try again.',
     pluginFolderUnavailable: 'The desktop plugin folder is unavailable. Retry before starting the first build.',
     manifestMinContextInvalid: 'Minimum context window must be a number or blank',
     manifestToolsNotList: 'Tools must be a list',
@@ -70,9 +69,6 @@ export const enRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' is a built-in provider id; choose another id for this endpoint (for example '${suggestion}')`,
     sharedProviderEndpoint: (id: string) =>
-      `'${id}' is shared from the default profile; edit it there, or stop sharing providers in this profile first`,
-    welcomeNeedsAttention: 'Welcome chat needs attention',
-    welcomeStartFailed: 'The welcome chat could not start.',
-    restoreProfileFailed: 'Could not restore your profile'
+      `'${id}' is shared from the default profile; edit it there, or stop sharing providers in this profile first`
   }
 } satisfies Pick<Translations, 'timelineEvents' | 'runtimeErrors'>

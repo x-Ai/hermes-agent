@@ -8,12 +8,14 @@
 import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
-import type { AppTourTranslations, HandoffTourTranslations } from './types_app_tour'
+import type { AppTourTranslations } from './types_app_tour'
 import type { AuxTaskCopyMap } from './types_aux_tasks'
 import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
 import type { CatalogInstallTranslations } from './types_catalog_install'
+import type { ClarifyCopy } from './types_clarify'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
+import type { FirstRunCopy } from './types_first_run'
 import type { GoalStatusTranslations } from './types_goal_status'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { NoticeTranslations } from './types_notices'
@@ -22,6 +24,7 @@ import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
 import type { RuntimeErrorsCopy, TimelineEventsCopy } from './types_runtime'
 import type { SharedMetricsTranslations } from './types_shared_metrics'
+import type { ThemePickerCopy } from './types_theme_picker'
 import type { UninstallSectionTranslations } from './types_uninstall_section'
 import type { UpdateChannelCopy } from './types_update_channel'
 
@@ -63,9 +66,7 @@ export type ToolTitleKey =
   | 'read_file'
   | 'search_files'
   | 'session_search_recall'
-  | 'setup_choose'
   | 'skill_view'
-  | 'start_chat'
   | 'terminal'
   | 'todo'
   | 'vision_analyze'
@@ -104,6 +105,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
   /** Shared-metrics consent: first-run dialog + Settings › Safety toggles. */
   sharedMetrics: SharedMetricsTranslations
   appTour: AppTourTranslations
+  firstRun: FirstRunCopy
   intro: {
     stock: Record<string, string[]>
     custom: (label: string) => string[]
@@ -971,27 +973,32 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         profileLabel: string
         agentTargetLocal: (profile: string, dir: string) => string
         agentTargetRemote: (profile: string) => string
-        catalogPinned: (name: string, sha: string) => string
-        reviewedHeading: string
-        reviewedIntro: string
         restartToApply: string
         restartNow: string
         toolsConnected: (n: number) => string
         skillsReady: (names: string[]) => string
         nextChat: string
         serverNotConnected: (server: string, reason: string) => string
+        verified: string
+        unverified: string
+        reviewedByNous: string
+        installsAndEnables: (profile: string) => string
+        installsOnly: (profile: string) => string
+        advanced: string
+        versionLabel: string
+        reviewedPin: (sha: string) => string
+        latestCommit: string
+        nothingToInstall: string
         missingEnvAction: string
         alreadyInstalled: (name: string) => string
         desktopTarget: string
         desktopTargetFromPackage: string
         desktopOnlyNote: string
         insecureWarning: string
-        securityHeading: string
         securityIntro: string
         sourceHeading: string
         viewRepository: string
         viewPluginFiles: string
-        gitCloneLabel: string
         enableAgent: string
         forceReinstall: string
         pinToCommit: string
@@ -1300,11 +1307,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       minimizeToTrayTitle: string
       minimizeToTrayDesc: string
       minimizeToTrayUnavailable: string
-      developerTitle: string
-      resetOnboardingTitle: string
-      resetOnboardingDesc: string
-      resetOnboardingAction: string
-      resetOnboardingFailed: string
       none: string
       noneParen: string
       builtinOnly: string
@@ -3368,45 +3370,10 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       alwaysDescription: (pattern: string) => string
       alwaysAllow: string
     }
-    clarify: {
-      oneQuestion: string
-      notReady: string
-      gatewayDisconnected: string
-      sendFailed: string
-      loadingQuestion: string
-      other: string
-      placeholder: string
-      skip: string
-      skipped: string
-      noAnswer: string
-      confirmAndContinueLabel: string
-      singleSelectHint: string
-      multiSelectHint: string
-      questionProgress: (answered: number, total: number) => string
-      notDelivered: string
-      recommendedSuffix: string
-    }
+    clarify: ClarifyCopy
+    themePicker: ThemePickerCopy
     catalogInstall: CatalogInstallTranslations
 
-    setupChoose: {
-      kinds: Record<'accent' | 'connectors' | 'layout' | 'plugins' | 'theme', string>
-      loading: string
-      unavailable: string
-      findApp: string
-      customColor: string
-      plugin: string
-      startsLater: string
-    }
-    startChat: {
-      starting: (title: string) => string
-      startingUntitled: string
-      untitled: string
-      notStarted: string
-      retry: string
-      inProfile: (profile: string) => string
-      open: string
-      openFailed: string
-    }
     mcpSetup: {
       installTitle: string
       enableTitle: string
@@ -4444,7 +4411,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       worktrees: string
     }
   }
-  handoffTour: HandoffTourTranslations
   install: {
     stageStates: Record<string, string>
     stageNames: Record<string, string>

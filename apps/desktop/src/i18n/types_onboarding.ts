@@ -62,6 +62,4 @@ export interface OnboardingTranslations {
   docs: (provider: string) => string
   providerTitles: Record<string, string>
   directApiAccess: (provider: string) => string
-  skipSetup: string
-  skipSetupTip: string
 }

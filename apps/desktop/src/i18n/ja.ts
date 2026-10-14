@@ -3,7 +3,9 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introJa } from './intro-ja'
 import { jaAuxTasks } from './ja_aux_tasks'
+import { jaClarify } from './ja_clarify'
 import { jaConnectors } from './ja_connectors'
+import { jaFirstRun } from './ja_first_run'
 import { jaGoalStatus } from './ja_goal_status'
 import { jaLocalModels } from './ja_local_models'
 import { jaMessagingFieldCopy } from './ja_messaging_fields'
@@ -15,6 +17,7 @@ import { jaProjects } from './ja_projects'
 import { jaProviderWait } from './ja_provider_wait'
 import { jaRuntime } from './ja_runtime'
 import { jaSharedMetrics } from './ja_shared_metrics'
+import { jaThemePicker } from './ja_theme_picker'
 import { jaUpdateChannel } from './ja_update_channel'
 
 export const jaOverrides = {
@@ -26,6 +29,7 @@ export const jaOverrides = {
     close: '閉じる'
   },
   sharedMetrics: jaSharedMetrics,
+  firstRun: jaFirstRun,
   intro: introJa,
   sessionImport: jaConnectors.sessionImport,
   common: {
@@ -899,11 +903,6 @@ export const jaOverrides = {
         desktopLabel: 'デスクトップUI',
         agentTargetLocal: (profile, dir) => `にインストールします${profile}バックエンド（${dir})`,
         agentTargetRemote: profile => `接続されたものにインストールします${profile}バックエンド`,
-        catalogPinned: (name, sha) =>
-          `Hermes カタログ エントリ "${name}" - エージェント コンポーネントはレビューされたピンにインストールされます${sha ? ` ${sha}` : ''}、枝の先端ではありません。`,
-        reviewedHeading: 'レビューされたカタログエントリ',
-        reviewedIntro:
-          'このエントリは、固定されたコミットで人間によってレビューされました。以下で正確なコードを調べることができます。',
         restartToApply: 'プラグインを有効にするには、ゲートウェイを再起動します。',
         restartNow: 'ゲートウェイを再起動',
         missingEnvAction: 'それを設定する',
@@ -914,13 +913,11 @@ export const jaOverrides = {
           'デスクトップ専用パッケージでは、バックエンド エージェント プラグインはインストールされません。',
         insecureWarning:
           'この URL は、安全でないスキームまたはローカル スキームを使用しています。運用環境のインストールには https:// または git@ を推奨します。',
-        securityHeading: 'インストールする前に',
         securityIntro:
           '信頼できるソースからのみインストールしてください。何が追加されるかを確認したい場合は、以下のリポジトリを確認してください。',
         sourceHeading: 'ソースコード',
         viewRepository: 'リポジトリの表示',
         viewPluginFiles: 'プラグインファイルを表示する',
-        gitCloneLabel: 'Git クローン URL',
         enableAgent: 'インストール後にエージェントプラグインを有効にする',
         forceReinstall: '強制的に再インストールします（すでにインストールされている場合は置き換えます）',
         pinToCommit: 'コミットするピン (オプション)',
@@ -946,6 +943,16 @@ export const jaOverrides = {
         nextChat: 'ほかのツールは次のチャットで使えます',
         serverNotConnected: (server, reason) =>
           `MCP サーバー ${server} は接続されていません${reason ? `: ${reason}` : '。'}`,
+        verified: '確認済み',
+        unverified: '未確認',
+        reviewedByNous: 'Nous がレビュー済み。',
+        installsAndEnables: profile => `${profile} にインストールし、すぐに有効になります。`,
+        installsOnly: profile => `${profile} にインストールします。`,
+        advanced: '詳細設定',
+        versionLabel: 'バージョン',
+        reviewedPin: sha => (sha ? `レビュー済みのピン ${sha}` : 'レビュー済みのピン'),
+        latestCommit: '最新のコミット',
+        nothingToInstall: 'このパッケージにはここでインストールするものがありません。',
         skillsReady: names =>
           names.length === 1 ? `スキル ${names[0]} の準備ができました` : `${names.length} 個のスキルの準備ができました`,
         toolsConnected: n => `${n} 個のツールを接続しました`
@@ -1637,12 +1644,6 @@ export const jaOverrides = {
       invalidJson: '設定 JSON が無効です',
       toolsetsWipeConfirm:
         '有効なツールセットをすべて削除しますか?これにより、メモリ、ターミナル、Web 検索、委任、およびその他のほとんどのツールは、再度有効にするまで無効になります。',
-      developerTitle: '開発者',
-      resetOnboardingTitle: 'オンボーディングをリセット',
-      resetOnboardingDesc:
-        'セットアップ用のチャットを削除し、セットアッププロファイルを作り直して、初回セットアップをもう一度実行します。自分で作成したプロファイル、チャット、プラグインはそのまま残ります。',
-      resetOnboardingAction: 'リセット',
-      resetOnboardingFailed: 'オンボーディングをリセットできませんでした',
       keepAwakeTitle: 'コンピューターをスリープさせない',
       keepAwakeDesc:
         '本体のスリープを防ぎます。「実行中のみ」はターンの実行中だけ有効になるため、夜通しの実行を継続しつつ、ノートPCを一週間つけたままにはしません。画面は暗転できます。',
@@ -4268,26 +4269,6 @@ export const jaOverrides = {
     logs: 'ログ'
   },
 
-  handoffTour: {
-    profileTitle: '最初のタスクはデフォルトのプロファイルで実行されます',
-
-    profileText:
-      'このレールでプロファイルを切り替えます。いま点灯しているのが default で、タスクのセッションはここにあります。もう一方はセットアップ用のプロファイルで、ウェルカムチャットはそちらにあります。',
-
-    sessionsTitle: 'プロファイルごとにセッションが分かれています',
-
-    sessionsText:
-      'この一覧は default プロファイルのものです。「新しいセッション」は選択中のプロファイルで始まります。レールでプロファイルを切り替えると一覧も変わります。',
-
-    stayTitle: 'Hermes はワンクリックで呼べます',
-
-    stayText:
-      '手を借りたいときは、セットアッププロファイルに切り替えて「Hermes へようこそ」を開いてください。いつでもそこにあります。',
-    localTitle: 'このマシンはローカルでモデルを実行できます',
-    localText: (model: string) =>
-      `${model} はお使いのハードウェアで動きます。無料で、チャットはこのコンピューターから出ません。いつでもここ、モデルメニューから選べます。`
-  },
-
   composer: {
     message: 'メッセージ',
     botSelectionRequired: '先にボットを選択してから、新しいチャットを開始してください。',
@@ -5826,25 +5807,8 @@ export const jaOverrides = {
         '承認がタイムアウトしました — コマンドは実行されませんでした。 Hermes に再試行するよう依頼するか、「設定」→「安全性」→「承認タイムアウト」で制限を引き上げます。',
       openSafetySettings: '安全設定を開く'
     },
-    clarify: {
-      notReady: '明確化リクエストはまだ準備できていません',
-      gatewayDisconnected: 'Hermes ゲートウェイが接続されていません',
-      sendFailed: '明確化応答を送信できませんでした',
-      loadingQuestion: '質問を読み込み中…',
-      other: 'その他（回答を入力）',
-      placeholder: '回答を入力…',
-      skip: 'スキップ',
-      skipped: 'スキップ済み',
-      noAnswer: '回答なし',
-      confirmAndContinueLabel: '確定して続行',
-      recommendedSuffix: '（おすすめ）',
-      singleSelectHint: '1つ選ぶ',
-      multiSelectHint: '該当するものをすべて選択',
-      oneQuestion: '1問',
-      questionProgress: (answered, total) => `${total}問中${answered}問回答済み`,
-      notDelivered:
-        'この質問はアプリに届かなかったため、ここでは回答できません。停止を押してターンを終了し、チャットで返信してください。'
-    },
+    clarify: jaClarify,
+    themePicker: jaThemePicker,
     mcpSetup: {
       installTitle: 'MCP サーバーを追加する',
       enableTitle: 'MCP サーバーを有効にする',
@@ -5861,31 +5825,6 @@ export const jaOverrides = {
       sendFailed: 'MCP セットアップ応答を送信できませんでした',
       reloadFailed: 'サーバーは保存されましたが、MCP ツールの再ロードに失敗しました - 次のセッションがロードされます',
       gatewayDisconnected: 'Hermes は現在オフラインです。再接続してから再度送信してください。'
-    },
-    setupChoose: {
-      kinds: {
-        accent: 'アクセントカラー',
-        connectors: 'アプリ',
-        layout: 'レイアウト',
-        plugins: 'プラグイン',
-        theme: '外観'
-      },
-      loading: 'オプションを読み込み中…',
-      unavailable: 'このリストは現在利用できません。代わりにチャットで返信してください。',
-      findApp: 'アプリを検索',
-      customColor: 'カスタムカラー',
-      plugin: 'プラグイン',
-      startsLater: '始めるときに設定します。'
-    },
-    startChat: {
-      starting: title => `「${title}」を開始中…`,
-      startingUntitled: 'チャットを開始中…',
-      untitled: '新しいチャット',
-      notStarted: 'チャットを開始できませんでした',
-      inProfile: profile => `${profile} 内`,
-      open: '開く',
-      openFailed: 'チャットを開けませんでした',
-      retry: '再試行'
     },
     tool: {
       copyCode: 'コードをコピー',
@@ -6075,16 +6014,6 @@ export const jaOverrides = {
           done: 'セッション履歴を検索しました',
           pending: 'セッション履歴を検索中',
           pendingAction: '検索中'
-        },
-        setup_choose: {
-          done: '設定の質問をしました',
-          pending: '設定の質問をしています',
-          pendingAction: '質問中'
-        },
-        start_chat: {
-          done: 'チャットを開始しました',
-          pending: 'チャットを開始中',
-          pendingAction: '開始中'
         },
         skill_view: {
           done: 'スキルを読み込みました',

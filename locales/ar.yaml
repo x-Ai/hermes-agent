@@ -1,5 +1,5 @@
 auth:
-  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one (the free Nous tier needs no API key), type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
+  no_provider_configured: "Hermes is not connected to any AI provider yet. Run `hermes model` to pick one, type `/login` in chat, or add a key with `hermes auth add <provider>`. (Advanced: put an API key such as OPENROUTER_API_KEY in {home}/.env.)"
 
 provider:
   custom_endpoint: "نقطة نهاية مخصصة"
@@ -501,7 +501,6 @@ gateway:
     last_activity: "**آخر نشاط:** {timestamp}"
     model: "**النموذج:** `{model}`"
     model_provider: "**النموذج:** `{model}` ({provider})"
-    free_tier: "Nous · الخطة المجانية · nous/welcome · /login لتسجيل الدخول"
     context: "**السياق:** {used} / {total} ({pct}%)"
     context_used: "**السياق:** ~{used} رمزًا"
     tokens: "**رموز API التراكمية (تُعاد كل استدعاء):** {tokens}"
@@ -850,8 +849,6 @@ gateway:
   plan:
     ack_task: "جارٍ التخطيط: {task}"
     ack_conversation: "جارٍ التخطيط من سياق هذه المحادثة…"
-  initiate_setup:
-    ack: "جارٍ بدء الإعداد…"
   init:
     start_failed: "تعذّر بدء /init — يُرجى المحاولة مرة أخرى."
     ack_update: "جارٍ تحديث AGENTS.md من فحص المشروع…"
@@ -914,7 +911,6 @@ gateway:
   startup:
     handoff_thread_title: "Hermes — {title}"
     restarted: "♻ أُعيد تشغيل البوّابة بنجاح. جلستك مستمرة."
-    free_tier_line: "الاستدلال: الطبقة المجانية من Nous (nous/welcome). سجّل الدخول للمزيد: /login"
     online: "♻️ البوّابة متصلة — Hermes عاد وجاهز."
     db_corrupt: "⚠️ رُصد تلف في قاعدة بيانات الجلسات. قد لا تُحفظ الرسائل. خيارات الاستعادة:\n1. شغّل `hermes {profile_arg}doctor --fix`\n2. أوقف البوّابة، ثم استعد بـ:\n   hermes {profile_arg}sessions recover --source {db_path} --inspect-only\n   (إذا أفاد بإمكانية الاستعادة) hermes {profile_arg}sessions recover --source {db_path} --output recovered-state.db\n   — تأخذ الاستعادة لقطة من الملف المتضرر أولًا؛ لا تشغّل `sqlite3 ... \".recover\"` على state.db الحي، فقد يزيد sqlite3 CLI المعرّض للثغرات من تلفه\n3. استعد من نسخة احتياطية في {backups_dir}/\nشغّل `hermes {profile_arg}doctor` للحصول على تشخيصات منقّحة."
     db_fts_corrupt: "⚠️ أفادت قاعدة بيانات الجلسات بخطأ تلف محصور في فهرس البحث (FTS5)؛ جداول الرسائل غير متضررة. قد لا تُحفظ الرسائل حتى إصلاحه: شغّل `hermes {profile_arg}doctor --fix` ثم أعد تشغيل البوّابة. لا تشغّل أدوات الاستعادة ولا تستعد نسخة احتياطية إلا إذا أكّد `hermes {profile_arg}doctor` وجود تلف."
@@ -1629,8 +1625,6 @@ slash:
     description: "إعادة تشغيل مطالبة على فترات متكررة في هذه الجلسة"
   plan:
     description: "كتابة خطة تنفيذ بصيغة markdown في .hermes/plans/ دون تنفيذ أي شيء"
-  initiate-setup:
-    description: "شغّل الإعداد الأول: يتعرّف عليك ويجهّز Hermes حولك"
   moa:
     description: "تشغيل مطالبة واحدة عبر الإعداد الافتراضي لـ Mixture of Agents ثم استعادة نموذجك"
   subgoal:
@@ -2990,8 +2984,6 @@ cli:
     plan:
       planning: "📋 جارٍ التخطيط: {task}"
       from_conversation: "📋 جارٍ التخطيط من سياق هذه المحادثة..."
-    initiate_setup:
-      starting: "🧭 جارٍ بدء الإعداد..."
     init:
       updating: "⚡ جارٍ تحديث AGENTS.md من فحص المشروع..."
       generating: "⚡ جارٍ إنشاء AGENTS.md من فحص المشروع..."
@@ -4364,7 +4356,6 @@ tui_gateway:
     facts_too_long: "حقائق الإعداد الأولي أطول من أن تُحفظ"
     memory_not_saved: "لم تُحفظ الذاكرة"
     verify_failed: "تعذّر التحقق من حقائق الإعداد الأولي المحفوظة"
-    no_setup_profile: "لا يوجد ملف إعداد شخصي لإعادة ضبطه"
   projects:
     not_found: "لا يوجد مشروع بهذا الاسم"
   subagent:

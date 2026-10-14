@@ -38,7 +38,6 @@ export const arRuntime = {
     defaultProfileUnsupported: 'لا يمكن لإصدار سطح المكتب هذا حفظ ملف شخصي افتراضي.',
     poolLimitsApplyFailed: 'فشل تطبيق حدود المجمع',
     clipboardUnavailable: 'واجهة الحافظة غير متاحة',
-    welcomeConversationUnavailable: 'تعذّر تحميل محادثة الترحيب. يرجى المحاولة مرة أخرى.',
     pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء البناء الأول.',
     manifestMinContextInvalid: 'يجب أن يكون الحد الأدنى لنافذة السياق رقمًا أو فارغًا',
     manifestToolsNotList: 'يجب أن تكون tools قائمة',
@@ -60,9 +59,6 @@ export const arRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `'${id}' هو معرّف مزوّد مضمّن. اختر معرّفًا آخر لنقطة النهاية هذه (مثل '${suggestion}').`,
     sharedProviderEndpoint: (id: string) =>
-      `'${id}' مشترك من الملف الشخصي الافتراضي. عدّله هناك، أو أوقف مشاركة المزوّدين في هذا الملف الشخصي أولًا.`,
-    welcomeNeedsAttention: 'محادثة الترحيب تحتاج إلى انتباهك',
-    welcomeStartFailed: 'تعذر بدء محادثة الترحيب.',
-    restoreProfileFailed: 'تعذرت استعادة ملفك الشخصي'
+      `'${id}' مشترك من الملف الشخصي الافتراضي. عدّله هناك، أو أوقف مشاركة المزوّدين في هذا الملف الشخصي أولًا.`
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

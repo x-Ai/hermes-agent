@@ -82,8 +82,6 @@ export const ruOnboarding: TranslationOverrides['onboarding'] = {
     'openai-codex': 'Подписка ChatGPT или Codex'
   },
   directApiAccess: provider => `Прямой доступ к API ${provider}.`,
-  skipSetup: 'Пропустить настройку',
-  skipSetupTip: 'Переключаем вас на профиль по умолчанию',
   errorDetails: 'Детали',
   localModelsPitch: 'Учетная запись не требуется — загрузите модель и запустите ее на этом компьютере.',
   localModelsTitle: 'Запускайте модели локально',

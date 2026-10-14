@@ -70,11 +70,6 @@ export const arSettings = {
         desktopLabel: 'واجهة مستخدم سطح المكتب',
         agentTargetLocal: (profile, dir) => `يثبت في${profile}الخلفية (${dir})`,
         agentTargetRemote: profile => `يتم التثبيت في المتصل${profile}الخلفية`,
-        catalogPinned: (name, sha) =>
-          `إدخال كتالوج Hermes "${name}" - يتم تثبيت مكون الوكيل على الدبوس الذي تمت مراجعته${sha ? ` ${sha}` : ''}، وليس طرف الفرع.`,
-        reviewedHeading: 'مراجعة إدخال الكتالوج',
-        reviewedIntro:
-          'تمت مراجعة هذا الإدخال بواسطة الإنسان عند التزامه المثبت. لا يزال بإمكانك فحص الرمز الدقيق أدناه.',
         restartToApply: 'أعد تشغيل البوابة ليصبح المكون الإضافي ساري المفعول.',
         restartNow: 'إعادة تشغيل البوابة',
         missingEnvAction: 'قم بإعداده',
@@ -83,13 +78,11 @@ export const arSettings = {
         desktopTargetFromPackage: 'تم تحميله في هذا التطبيق من الحزمة أعلاه - نفس الشيء بالنسبة لكل ملف تعريف',
         desktopOnlyNote: 'لا تقوم حزم سطح المكتب فقط بتثبيت مكون إضافي لعامل الواجهة الخلفية.',
         insecureWarning: 'يستخدم URL نظامًا محليًا أو غير آمن. تفضل https:// أو git@ لعمليات تثبيت الإنتاج.',
-        securityHeading: 'قبل التثبيت',
         securityIntro:
           'قم بالتثبيت فقط من المصادر التي تثق بها - قم بمراجعة المستودع أدناه إذا كنت تريد معرفة ما سيتم إضافته.',
         sourceHeading: 'كود المصدر',
         viewRepository: 'عرض المستودع',
         viewPluginFiles: 'عرض ملفات البرنامج المساعد',
-        gitCloneLabel: 'جيت استنساخ URL',
         enableAgent: 'تمكين البرنامج المساعد للوكيل بعد التثبيت',
         forceReinstall: 'فرض إعادة التثبيت (استبدله إذا كان مثبتًا بالفعل)',
         pinToCommit: 'تثبيت للالتزام (اختياري)',
@@ -114,6 +107,16 @@ export const arSettings = {
           'توقف Hermes عن انتظار نتيجة التثبيت، لكن قد يستمر تثبيت المكوّن الإضافي. أغلق هذه النافذة وأعد فحص قائمة المكوّنات الإضافية قبل محاولة التثبيت مرة أخرى.',
         nextChat: 'أدوات أخرى متاحة في دردشتك التالية',
         serverNotConnected: (server, reason) => `خادم MCP ${server} غير متصل${reason ? `: ${reason}` : '.'}`,
+        verified: 'موثّق',
+        unverified: 'غير موثّق',
+        reviewedByNous: 'راجعته Nous.',
+        installsAndEnables: profile => `يُثبَّت لملف ${profile} ويعمل فورًا.`,
+        installsOnly: profile => `يُثبَّت لملف ${profile}.`,
+        advanced: 'متقدم',
+        versionLabel: 'الإصدار',
+        reviewedPin: sha => (sha ? `الإصدار المثبّت المراجَع ${sha}` : 'الإصدار المثبّت المراجَع'),
+        latestCommit: 'أحدث إيداع',
+        nothingToInstall: 'لا تحتوي هذه الحزمة على ما يُثبَّت هنا.',
         skillsReady: names => (names.length === 1 ? `المهارة ${names[0]} جاهزة` : `${names.length} من المهارات جاهزة`),
         toolsConnected: n => `تم توصيل ${n} من الأدوات`
       }
@@ -647,12 +650,6 @@ export const arSettings = {
     },
 
     config: {
-      developerTitle: 'المطوّر',
-      resetOnboardingTitle: 'إعادة تعيين الإعداد الأولي',
-      resetOnboardingDesc:
-        'حذف محادثات الإعداد، وإعادة بناء ملف الإعداد الشخصي، وتشغيل الإعداد الأولي مرة أخرى. تبقى ملفاتك الشخصية ومحادثاتك وإضافاتك كما هي.',
-      resetOnboardingAction: 'إعادة تعيين',
-      resetOnboardingFailed: 'تعذّر إعادة تعيين الإعداد الأولي',
       minimizeToTrayTitle: 'التصغير إلى علبة النظام',
       minimizeToTrayDesc:
         'تصغير النوافذ أو إغلاق النافذة الرئيسية يخفيها في علبة النظام (شريط القوائم على macOS) مع استمرار Hermes في العمل. استخدم إنهاء Hermes من قائمة العلبة أو Cmd+Q للخروج. معطّل افتراضيًا ويُطبّق على هذا الجهاز فقط.',

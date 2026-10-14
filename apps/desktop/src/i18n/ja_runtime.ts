@@ -50,7 +50,6 @@ export const jaRuntime = {
     defaultProfileUnsupported: 'この Desktop バージョンでは既定のプロファイルを保存できません',
     poolLimitsApplyFailed: 'プール上限の適用に失敗しました',
     clipboardUnavailable: 'クリップボード API を利用できません',
-    welcomeConversationUnavailable: 'ようこそ会話を読み込めませんでした。もう一度お試しください',
     pluginFolderUnavailable:
       'デスクトッププラグインのフォルダーを利用できません。最初のビルドを始める前に再試行してください',
     manifestMinContextInvalid: '最小コンテキストウィンドウは数値か空欄でなければなりません',
@@ -73,9 +72,6 @@ export const jaRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `「${id}」は組み込みプロバイダーの ID です。このエンドポイントには別の ID を指定してください（例：「${suggestion}」）`,
     sharedProviderEndpoint: (id: string) =>
-      `「${id}」はメインプロファイルから共有されています。メインプロファイルで編集するか、先にこのプロファイルのプロバイダー共有を解除してください。`,
-    welcomeNeedsAttention: 'ウェルカムチャットを確認してください',
-    welcomeStartFailed: 'ウェルカムチャットを開始できませんでした。',
-    restoreProfileFailed: 'プロファイルを復元できませんでした'
+      `「${id}」はメインプロファイルから共有されています。メインプロファイルで編集するか、先にこのプロファイルのプロバイダー共有を解除してください。`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

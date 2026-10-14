@@ -1,3 +1,4 @@
+import { arThemePicker } from './ar_theme_picker'
 import type { TranslationOverrides } from './define-locale'
 
 export const arAssistant = {
@@ -379,6 +380,7 @@ export const arAssistant = {
       oneQuestion: 'سؤال واحد',
       questionProgress: (answered, total) => `تمت الإجابة على ${answered} من ${total}`
     },
+    themePicker: arThemePicker,
     mcpSetup: {
       installTitle: 'إضافة خواديم MCP',
       enableTitle: 'خواديم طراز MCP',
@@ -395,31 +397,6 @@ export const arAssistant = {
       sendFailed: 'لم يكن بمقدوره إرسال رد من شركة MCP',
       reloadFailed: 'أنقذ سيرفر، ولكن إعادة تحميل أدوات MCP فشلت - وهي تحمل الدورة القادمة',
       gatewayDisconnected: 'Hermes is offline right now. إعادة الاتصال، ثم إرسالها مرة أخرى.'
-    },
-    setupChoose: {
-      kinds: {
-        accent: 'لون التمييز',
-        connectors: 'التطبيقات',
-        layout: 'التخطيط',
-        plugins: 'الإضافات',
-        theme: 'المظهر'
-      },
-      loading: 'جار تحميل الخيارات...',
-      unavailable: 'هذه القائمة غير متاحة الآن. رد في المحادثة بدلا من ذلك.',
-      findApp: 'ابحث عن تطبيق',
-      customColor: 'لون مخصص',
-      plugin: 'إضافة',
-      startsLater: 'سنُعِدّ هذه عندما تبدأ.'
-    },
-    startChat: {
-      starting: title => `جار بدء "${title}"...`,
-      startingUntitled: 'جار بدء محادثة...',
-      untitled: 'محادثة جديدة',
-      notStarted: 'تعذر بدء هذه المحادثة.',
-      retry: 'إعادة المحاولة',
-      inProfile: profile => `في ${profile}`,
-      open: 'فتح',
-      openFailed: 'تعذر فتح المحادثة'
     },
     tool: {
       copyCode: 'نسخ الكود',
@@ -523,8 +500,6 @@ export const arAssistant = {
         runningTool: action => `جار تشغيل ${action.toLowerCase()}`
       },
       titles: {
-        setup_choose: { done: 'طرح سؤال إعداد', pending: 'يطرح سؤال إعداد', pendingAction: 'يسأل' },
-        start_chat: { done: 'بدأ محادثة', pending: 'يبدأ محادثة', pendingAction: 'يبدأ' },
         browser_click: {
           done: 'تم النقر على عنصر الصفحة',
           pending: 'جار النقر على عنصر الصفحة',

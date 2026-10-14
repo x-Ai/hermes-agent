@@ -8,6 +8,7 @@ import { arCommandCenter } from './ar_command_center'
 import { arCommon } from './ar_common'
 import { arConnectors } from './ar_connectors'
 import { arDiagnostics } from './ar_diagnostics'
+import { arFirstRun } from './ar_first_run'
 import { arRuntime } from './ar_runtime'
 import { arSettings } from './ar_settings'
 import { defineLocale, type TranslationOverrides } from './define-locale'
@@ -15,6 +16,7 @@ import { defineLocale, type TranslationOverrides } from './define-locale'
 export const arOverrides = {
   connectors: arConnectors.connectors,
   sharedMetrics: arCommon.sharedMetrics,
+  firstRun: arFirstRun,
   externalOpenFailed: arChrome.externalOpenFailed,
   skillDeepLink: arCapabilities.skillDeepLink,
   sessionImport: arConnectors.sessionImport,
@@ -55,7 +57,6 @@ export const arOverrides = {
   statusStack: arChat.statusStack,
   goalStatus: arChat.goalStatus,
   updates: arBoot.updates,
-  handoffTour: arBoot.handoffTour,
   install: arBoot.install,
   onboarding: arBoot.onboarding,
   freeTier: arBoot.freeTier,

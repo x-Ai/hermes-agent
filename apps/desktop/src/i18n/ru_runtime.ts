@@ -49,7 +49,6 @@ export const ruRuntime = {
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
     poolLimitsApplyFailed: 'Не удалось применить ограничения пула',
     clipboardUnavailable: 'API буфера обмена недоступен',
-    welcomeConversationUnavailable: 'Не удалось загрузить приветственный разговор. Попробуйте ещё раз.',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',
     manifestMinContextInvalid: 'Минимальное окно контекста должно быть числом или пустым',
     manifestToolsNotList: 'tools должен быть списком',
@@ -71,9 +70,6 @@ export const ruRuntime = {
     builtinProviderId: (id: string, suggestion: string) =>
       `«${id}» — идентификатор встроенного провайдера. Укажите для этой конечной точки другой идентификатор (например, «${suggestion}»).`,
     sharedProviderEndpoint: (id: string) =>
-      `«${id}» используется совместно из профиля по умолчанию. Измените его там или сначала отключите совместное использование провайдеров в этом профиле.`,
-    welcomeNeedsAttention: 'Приветственный чат требует внимания',
-    welcomeStartFailed: 'Не удалось запустить приветственный чат.',
-    restoreProfileFailed: 'Не удалось восстановить профиль'
+      `«${id}» используется совместно из профиля по умолчанию. Измените его там или сначала отключите совместное использование провайдеров в этом профиле.`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>
