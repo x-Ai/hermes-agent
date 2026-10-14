@@ -34,10 +34,12 @@ export interface ScriptedMessage {
   args?: unknown
   context?: string
   display_metadata?: unknown
+  display_reasoning?: string
   name?: string
   reasoning?: string
   reasoning_content?: string
   reasoning_details?: unknown
+  tool_call_id?: string
 }
 
 export interface ScriptedSession {

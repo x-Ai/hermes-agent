@@ -123,4 +123,46 @@ describe('captureGroupTurnTrace', () => {
 
     expect(trace?.steps).toEqual([{ kind: 'tool', name: 'web_search', context: 'search hermes' }])
   })
+
+  it('prefers the display projection of reasoning, and an empty one means nothing to show', async () => {
+    const projected = [
+      { role: 'user', content: HEADER },
+      { role: 'assistant', reasoning: 'raw with commentary', display_reasoning: 'public part', content: 'A' }
+    ]
+
+    const emptied = [
+      { role: 'user', content: HEADER },
+      { role: 'assistant', reasoning: 'all of it was commentary', display_reasoning: '', content: 'B' }
+    ]
+
+    expect((await capture(projected, 0, 'A'))?.steps).toEqual([{ kind: 'reasoning', text: 'public part' }])
+    expect(await capture(emptied, 0, 'B')).toBeNull()
+  })
+
+  it('joins the outcomes heard live by tool_call_id, without overriding what the row itself says', async () => {
+    const { captureGroupTurnTrace } = await import('./group-trace-capture')
+
+    const messages = [
+      { role: 'user', content: HEADER },
+      { role: 'tool', name: 'terminal', context: 'ls', tool_call_id: 'c1' },
+      {
+        role: 'tool',
+        name: 'patch',
+        context: 'edit x',
+        tool_call_id: 'c2',
+        display_metadata: { error: 'row says so' }
+      },
+      { role: 'assistant', content: 'Done.' }
+    ]
+
+    const trace = captureGroupTurnTrace(messages as never, 0, 'Done.', {
+      c1: { note: 'exit 0 · 3 files' },
+      c2: { failed: true, note: 'live says otherwise' }
+    })
+
+    expect(trace?.steps).toEqual([
+      { kind: 'tool', name: 'terminal', context: 'ls', note: 'exit 0 · 3 files' },
+      { kind: 'tool', name: 'patch', context: 'edit x', failed: true, note: 'row says so' }
+    ])
+  })
 })

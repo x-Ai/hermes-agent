@@ -108,6 +108,7 @@ import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-
 import { GroupTurnTraceView } from './group-trace-view'
 import { groupMemberBodyText } from './group-transcript-text'
 import { clearGroupClarify, renameGroupClarify } from './group-turns'
+import { GroupWorkingLine } from './group-working-line'
 import {
   GroupMemberWorkspaceField,
   GroupWorkspaceChip,
@@ -1593,15 +1594,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
               members={members}
             />
           ))}
-          {room.running ? (
-            <div className="px-2 py-1 text-[0.7rem] italic text-(--ui-text-quaternary)" key={'working'}>
-              {roomClarifies.length
-                ? b.group.waitingForAnswer
-                : room.turn
-                  ? b.group.memberThinking(displayName(room.turn, botRosterMeta(room.turn, allMeta)))
-                  : b.group.roomWorking}
-            </div>
-          ) : null}
+          <GroupWorkingLine allMeta={allMeta} group={group} room={room} waiting={roomClarifies.length > 0} />
           {/* Scroll anchor (#89835): rooms opened at scroll position 0, mid- */
           /* history. The effect below scrolls this sentinel into view on */
           /* mount and on log growth — unless the user has scrolled up. */}

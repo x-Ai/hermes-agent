@@ -18,6 +18,8 @@ export type GroupTraceCopy = {
   traceFailed: string
   /** Older steps dropped from the front to fit the per-entry budget. */
   traceOmitted: (count: number) => string
+  /** Header of the live disclosure under the working line while a member's turn runs. */
+  traceLive: string
 }
 
 const en: GroupTraceCopy = {
@@ -25,7 +27,8 @@ const en: GroupTraceCopy = {
   traceThought: 'thought',
   traceTools: count => `${count} ${count === 1 ? 'tool' : 'tools'}`,
   traceFailed: 'Failed',
-  traceOmitted: count => `${count} earlier ${count === 1 ? 'step' : 'steps'} hidden`
+  traceOmitted: count => `${count} earlier ${count === 1 ? 'step' : 'steps'} hidden`,
+  traceLive: 'Working…'
 }
 
 const zh: GroupTraceCopy = {
@@ -33,7 +36,8 @@ const zh: GroupTraceCopy = {
   traceThought: '思考',
   traceTools: count => `${count} 个工具`,
   traceFailed: '失败',
-  traceOmitted: count => `已省略较早的 ${count} 步`
+  traceOmitted: count => `已省略较早的 ${count} 步`,
+  traceLive: '执行中…'
 }
 
 const zhHant: GroupTraceCopy = {
@@ -41,7 +45,8 @@ const zhHant: GroupTraceCopy = {
   traceThought: '思考',
   traceTools: count => `${count} 個工具`,
   traceFailed: '失敗',
-  traceOmitted: count => `已省略較早的 ${count} 步`
+  traceOmitted: count => `已省略較早的 ${count} 步`,
+  traceLive: '執行中…'
 }
 
 const ja: GroupTraceCopy = {
@@ -49,7 +54,8 @@ const ja: GroupTraceCopy = {
   traceThought: '思考',
   traceTools: count => `ツール ${count} 件`,
   traceFailed: '失敗',
-  traceOmitted: count => `以前の ${count} ステップを省略`
+  traceOmitted: count => `以前の ${count} ステップを省略`,
+  traceLive: '作業中…'
 }
 
 const ru: GroupTraceCopy = {
@@ -57,7 +63,8 @@ const ru: GroupTraceCopy = {
   traceThought: 'мысли',
   traceTools: count => `Инструментов: ${count}`,
   traceFailed: 'Ошибка',
-  traceOmitted: count => `Скрыто ранних шагов: ${count}`
+  traceOmitted: count => `Скрыто ранних шагов: ${count}`,
+  traceLive: 'Выполняется…'
 }
 
 const ar: GroupTraceCopy = {
@@ -65,7 +72,8 @@ const ar: GroupTraceCopy = {
   traceThought: 'تفكير',
   traceTools: count => `${count} أدوات`,
   traceFailed: 'فشل',
-  traceOmitted: count => `${count} خطوات سابقة مخفية`
+  traceOmitted: count => `${count} خطوات سابقة مخفية`,
+  traceLive: 'جارٍ العمل…'
 }
 
 export const groupTraceCopy: Record<'ar' | 'en' | 'ja' | 'ru' | 'zh' | 'zh-hant', GroupTraceCopy> = {

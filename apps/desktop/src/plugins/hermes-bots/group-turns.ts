@@ -34,6 +34,8 @@ import {
 } from './group-round-prompt'
 import type { GroupTurnTraceSink } from './group-trace'
 import { captureGroupTurnTrace } from './group-trace-capture'
+import { startGroupLiveTrace } from './group-trace-live'
+import type { GroupLiveTraceRecorder } from './group-trace-live'
 import {
   groupSessionCreateCwdParams,
   reconcileGroupSessionWorkspace,
@@ -1002,6 +1004,10 @@ interface GroupTurnPollContext {
   /** Filled with the finished turn's reasoning + tool trace on a substantive
    *  reply, so the caller can append it beside the entry (group-trace.ts). */
   sink?: GroupTurnTraceSink
+  /** The turn's live trace (group-trace-live.ts): fed each poll's transcript
+   *  while no frame has streamed, and asked for the tool outcomes it heard
+   *  when the finished trace is captured. */
+  live?: GroupLiveTraceRecorder
 }
 
 // Polls alive in THIS process, by marker token. A marker whose token is here belongs to a turn
@@ -1066,7 +1072,7 @@ function noteGroupReplyTrace(
   reply: string
 ) {
   if (context.sink && !isGroupPassText(reply)) {
-    context.sink.trace = captureGroupTurnTrace(messages, before, reply)
+    context.sink.trace = captureGroupTurnTrace(messages, before, reply, context.live?.outcomes())
   }
 }
 
@@ -1125,6 +1131,9 @@ async function pollGroupMemberTurn(context: GroupTurnPollContext): Promise<null 
     noteGroupSessionSnapshot(context.group, thread, member, state)
 
     const messages = Array.isArray(state?.messages) ? state.messages : []
+    // The transcript so far is this beat's view of the turn for a gateway that
+    // streams no tool progress; the live recorder ignores it once frames flow.
+    context.live?.notePoll(captureGroupTurnTrace(messages, before, null))
     const busy = groupSessionBusy(state)
     // A clarify blocking inside the member's session is a question for the
     // HUMAN (#90694) — mirror it into the room store so a card renders, and
@@ -1247,6 +1256,10 @@ async function runGroupChatMemberTurnLeased(
     group = name
   })
 
+  // The turn's live trace (group-trace-live.ts): started before the submit so
+  // the first frame is heard, stopped with the turn whatever ends it.
+  let live: GroupLiveTraceRecorder | null = null
+
   try {
     const { runtime, stored, fresh } = await ensureGroupChatSession(group, member, thread)
 
@@ -1290,6 +1303,8 @@ async function runGroupChatMemberTurnLeased(
 
     const turnText = staged ? `${contextualPrompt}\n\n${staged}` : contextualPrompt
 
+    live = startGroupLiveTrace(group, member, thread, runtimeIds)
+
     // #93602: one-shot recovery when the runtime session was reaped between
     // minting and submitting. Tracks the runtime id the submit landed on so
     // the poll fallback below targets a live session.
@@ -1325,7 +1340,8 @@ async function runGroupChatMemberTurnLeased(
         leftover,
         binding,
         turn,
-        sink
+        sink,
+        live
       })
 
       // A reply (or an explicit pass) ends the turn; null is a timeout or a dead
@@ -1343,6 +1359,7 @@ async function runGroupChatMemberTurnLeased(
       liveGroupTurns.delete(turn)
     }
   } finally {
+    live?.stop()
     binding.dispose()
   }
 }

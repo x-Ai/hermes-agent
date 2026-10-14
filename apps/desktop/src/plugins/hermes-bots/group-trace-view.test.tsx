@@ -74,3 +74,51 @@ it('renders nothing for an empty trace', async () => {
 
   expect(container.firstChild).toBeNull()
 })
+
+it('shows the live disclosure while a turn runs — collapsed, with the running tool marked when opened', async () => {
+  const [{ $groupLiveTraces }, { GroupLiveTurnTrace }] = await Promise.all([
+    import('./group-trace-live'),
+    import('./group-trace-view')
+  ])
+
+  $groupLiveTraces.set({
+    'Room::helper': {
+      group: 'Room',
+      memberKey: 'helper',
+      thread: 't1',
+      startedAt: 1,
+      runningIndex: 1,
+      steps: [
+        { kind: 'reasoning', text: 'thinking live' },
+        { kind: 'tool', name: 'terminal', context: 'npm test' }
+      ]
+    }
+  })
+
+  render(<GroupLiveTurnTrace group="Room" room={{ running: true, turn: { name: 'helper' } }} />)
+
+  expect(screen.getByText('Working…')).toBeTruthy()
+  expect(screen.queryByTestId('group-trace-steps')).toBeNull()
+
+  fireEvent.click(screen.getByRole('button'))
+
+  expect(screen.getByText('thinking live')).toBeTruthy()
+  expect(screen.getByTestId('group-trace-tool').dataset.running).toBe('true')
+})
+
+it('shows no live disclosure for an idle room or a member without steps yet', async () => {
+  const [{ $groupLiveTraces }, { GroupLiveTurnTrace }] = await Promise.all([
+    import('./group-trace-live'),
+    import('./group-trace-view')
+  ])
+
+  $groupLiveTraces.set({})
+
+  const idle = render(<GroupLiveTurnTrace group="Room" room={{ running: false, turn: null }} />)
+
+  expect(idle.container.firstChild).toBeNull()
+
+  const quiet = render(<GroupLiveTurnTrace group="Room" room={{ running: true, turn: { name: 'helper' } }} />)
+
+  expect(quiet.container.firstChild).toBeNull()
+})

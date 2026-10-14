@@ -9,7 +9,9 @@
  * (`session_history.py::_history_to_messages`, `tool_progress.py`). We walk the
  * rows this turn appended (after the submit baseline) and keep the reasoning,
  * the tool calls, and any interim text the member wrote before a tool — the
- * answer itself is the room entry's own text, never a trace step.
+ * answer itself is the room entry's own text, never a trace step. The
+ * projection carries no tool OUTPUT, so the outcomes the live stream heard
+ * (`group-trace-live.ts`) are joined in by `tool_call_id`.
  *
  * The SDK does not export the core reasoning-details reader, so the small
  * extractor below mirrors `lib/chat-messages/parts.ts::reasoningTextFromDetails`
@@ -27,21 +29,31 @@ import {
   GROUP_TRACE_REASONING_CHARS,
   GROUP_TRACE_TEXT_CHARS
 } from './group-trace'
-import type { GroupTraceStep, GroupTraceToolStep, GroupTurnTrace } from './group-trace'
+import type { GroupToolOutcome, GroupTraceStep, GroupTraceToolStep, GroupTurnTrace } from './group-trace'
 
 /** The assistant/tool fields a trace reads, on top of the plain transcript row. */
 export interface GroupTraceSourceRow extends GroupTranscriptRow {
   name?: string
   tool_name?: string
+  tool_call_id?: string
   context?: unknown
   args?: unknown
   display_metadata?: unknown
+  /** The gateway's display projection of `reasoning` with Codex commentary
+   *  removed (`agent/history_commentary.py`); wins over the raw field, as in
+   *  the 1:1 chat, and an empty string means "nothing to show". */
+  display_reasoning?: unknown
   reasoning?: unknown
   reasoning_content?: unknown
   reasoning_details?: unknown
 }
 
 const PASS_RE = /^\(?\s*pass\s*\)?\.?$/i
+
+/** "(pass)" and its spellings — the member stayed silent, not a thing it said. */
+export function tracePassText(text: string): boolean {
+  return PASS_RE.test(text)
+}
 
 function firstString(...values: unknown[]): string {
   for (const value of values) {
@@ -57,6 +69,10 @@ function firstString(...values: unknown[]): string {
  *  structured `reasoning_details` envelope (string, JSON string, or an array of
  *  `{ type: 'reasoning.summary' | 'reasoning.text', … }` / `{ thinking }` parts). */
 export function traceReasoningText(row: GroupTraceSourceRow): string {
+  if (typeof row.display_reasoning === 'string') {
+    return row.display_reasoning.trim()
+  }
+
   const direct = firstString(row.reasoning, row.reasoning_content)
 
   if (direct) {
@@ -133,7 +149,7 @@ function reasoningFromDetails(details: unknown): string {
 
 /** Pretty JSON of a tool call's arguments, with the display-only `context` and
  *  label keys dropped so the row shows the real call. */
-function toolArgsText(args: unknown): string {
+export function traceToolArgsText(args: unknown): string {
   if (!args || typeof args !== 'object' || Array.isArray(args)) {
     return typeof args === 'string' ? args.trim() : ''
   }
@@ -159,22 +175,27 @@ function toolArgsText(args: unknown): string {
   }
 }
 
-function toolStep(row: GroupTraceSourceRow): GroupTraceToolStep {
+/** A tool row as a step. The row's own `display_metadata` (what the gateway
+ *  persisted) comes first; the outcome heard live for the same call fills in
+ *  what the projection omits — the result summary, a failure. */
+function toolStep(row: GroupTraceSourceRow, outcome?: GroupToolOutcome): GroupTraceToolStep {
   const meta =
     row.display_metadata && typeof row.display_metadata === 'object'
       ? (row.display_metadata as Record<string, unknown>)
       : null
+
   const errText = typeof meta?.error === 'string' ? meta.error : meta?.error === true ? 'error' : ''
-  const note = errText || firstString(meta?.summary, meta?.message, meta?.preview)
+  const note = errText || firstString(meta?.summary, meta?.message, meta?.preview, outcome?.note)
+  const failed = Boolean(errText || outcome?.failed)
   const context = typeof row.context === 'string' ? row.context.trim() : ''
-  const args = toolArgsText(row.args)
+  const args = traceToolArgsText(row.args)
 
   return {
     kind: 'tool',
     name: String(row.name || row.tool_name || 'tool'),
     ...(context ? { context: clampTraceText(context, GROUP_TRACE_ARGS_CHARS) } : {}),
     ...(args ? { args: clampTraceText(args, GROUP_TRACE_ARGS_CHARS) } : {}),
-    ...(errText ? { failed: true } : {}),
+    ...(failed ? { failed: true } : {}),
     ...(note ? { note: clampTraceText(note, GROUP_TRACE_NOTE_CHARS) } : {})
   }
 }
@@ -192,13 +213,15 @@ function pushReasoning(steps: GroupTraceStep[], text: string) {
 
 /**
  * The reasoning, tool calls and interim text of the turn whose submit left the
- * transcript at `before`, up to (but excluding) its `reply`. Returns null when
- * the turn left no process to show — a bare answer with no thinking or tools.
+ * transcript at `before`, up to (but excluding) its `reply`. `outcomes` are the
+ * tool results the live stream heard, by `tool_call_id`. Returns null when the
+ * turn left no process to show — a bare answer with no thinking or tools.
  */
 export function captureGroupTurnTrace(
   messages: GroupTraceSourceRow[] | null | undefined,
   before: number,
-  reply: null | string
+  reply: null | string,
+  outcomes: Record<string, GroupToolOutcome> = {}
 ): GroupTurnTrace | null {
   const rows = Array.isArray(messages) ? messages : []
   const answer = String(reply || '').trim()
@@ -224,7 +247,7 @@ export function captureGroupTurnTrace(
     }
 
     if (role === 'tool') {
-      steps.push(toolStep(row))
+      steps.push(toolStep(row, outcomes[String(row.tool_call_id || '')]))
 
       continue
     }
@@ -245,7 +268,7 @@ export function captureGroupTurnTrace(
 
     const text = groupTranscriptRowText(row)
 
-    if (text && text !== answer && !PASS_RE.test(text)) {
+    if (text && text !== answer && !tracePassText(text)) {
       steps.push({ kind: 'text', text: clampTraceText(text, GROUP_TRACE_TEXT_CHARS) })
     }
   }

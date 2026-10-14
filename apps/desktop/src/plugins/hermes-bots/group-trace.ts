@@ -52,6 +52,15 @@ export interface GroupTurnTraceSink {
   trace?: GroupTurnTrace | null
 }
 
+/** What a tool call came back with, as the gateway's `tool.complete` frame
+ *  told it (`group-trace-live.ts`): the transcript projection a finished turn
+ *  is captured from carries no tool output, so these are joined in by
+ *  `tool_call_id`. */
+export interface GroupToolOutcome {
+  failed?: boolean
+  note?: string
+}
+
 export const GROUP_TRACE_REASONING_CHARS = 4_000
 export const GROUP_TRACE_TEXT_CHARS = 2_000
 export const GROUP_TRACE_ARGS_CHARS = 600

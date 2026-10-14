@@ -5,6 +5,7 @@ import type * as groupRounds from './group-rounds'
 import { createGroupGateway, drain, runTimersInline, scriptedStorage } from './group-test-utils'
 import type { GatewayOptions, ScriptedGateway, TurnScript } from './group-test-utils'
 import type { GroupTurnTraceSink } from './group-trace'
+import type * as groupTraceLive from './group-trace-live'
 import type * as groupTurns from './group-turns'
 import type { GroupMember } from './types'
 
@@ -95,5 +96,60 @@ describe('group turn trace', () => {
 
     expect(reply?.text).toBe('Config looks right.')
     expect(reply?.trace?.steps.map(step => step.kind)).toEqual(['reasoning', 'tool'])
+  })
+
+  it('shows the turn live from the gateway stream and joins the tool outcome into the reply', async () => {
+    const listeners = new Map<string, Set<(event: unknown) => void>>()
+
+    const emit = (type: string, session_id: string, payload: unknown) => {
+      for (const listener of listeners.get(type) ?? []) {
+        listener({ payload, session_id, type })
+      }
+    }
+
+    let seenLive: unknown = null
+    let liveModule: typeof groupTraceLive | null = null
+
+    const room = await loadRoom({
+      turn: ({ session }) => {
+        // Frames stream while the member works, keyed by the runtime id the turn owns.
+        emit('tool.start', session.runtime, { tool_id: 'c1', name: 'read_file', context: 'read config.yaml' })
+        seenLive = liveModule?.$groupLiveTraces.get()['Room::helper'] ?? null
+        emit('tool.complete', session.runtime, { tool_id: 'c1', name: 'read_file', summary: 'read 12 lines' })
+
+        return [
+          { content: '', role: 'tool', name: 'read_file', context: 'read config.yaml', tool_call_id: 'c1' },
+          { role: 'assistant', content: 'Config looks right.' }
+        ]
+      }
+    })
+
+    // A tap on the scripted host (loadRoom rebuilt the record, so it goes on
+    // afterwards): the recorder subscribes through host.onEvent at turn start.
+    host.onEvent = (type: string, listener: (event: unknown) => void) => {
+      const set = listeners.get(type) ?? new Set<(event: unknown) => void>()
+      set.add(listener)
+      listeners.set(type, set)
+
+      return () => set.delete(listener)
+    }
+
+    // The same module registry the engine uses (loadRoom reset it).
+    liveModule = await import('./group-trace-live')
+    const sink: GroupTurnTraceSink = {}
+
+    const reply = await room.turns.runGroupChatMemberTurn('Room', LOCAL_MEMBER, 'hi', 't1', [], sink)
+
+    expect(reply).toBe('Config looks right.')
+    // Mid-turn, the live store carried the running tool.
+    expect((seenLive as { steps?: unknown[]; runningIndex?: unknown } | null)?.steps).toEqual([
+      { kind: 'tool', name: 'read_file', context: 'read config.yaml' }
+    ])
+    expect((seenLive as { runningIndex?: unknown } | null)?.runningIndex).toBe(0)
+    // After the turn the live entry is gone and the reply's trace carries the outcome by tool_call_id.
+    expect(liveModule.$groupLiveTraces.get()['Room::helper']).toBeUndefined()
+    expect(sink.trace?.steps).toEqual([
+      { kind: 'tool', name: 'read_file', context: 'read config.yaml', note: 'read 12 lines' }
+    ])
   })
 })
