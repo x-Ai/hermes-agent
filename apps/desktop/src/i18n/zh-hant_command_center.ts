@@ -547,6 +547,11 @@ export const zhHantCommandCenter = {
         placeholder: 'http://homeassistant.local:8123'
       },
       HASS_TOKEN: { label: '長期存取權杖', help: 'Home Assistant 長期存取權杖。' },
+      HASS_HOME_CHANNEL: {
+        label: '預設通知目標',
+        help: '排程任務以 deliver=homeassistant 投遞時使用的預設通知目標（如 mobile_app_my_phone）。',
+        placeholder: 'mobile_app_my_phone'
+      },
       EMAIL_ADDRESS: { label: '電子郵件位址', help: '電子郵件帳戶位址。' },
       EMAIL_PASSWORD: { label: '電子郵件密碼', help: '電子郵件帳戶密碼 / 應用程式專用密碼。' },
       EMAIL_IMAP_HOST: { label: 'IMAP 主機', help: '收件輪詢使用的 IMAP 主機。', placeholder: 'imap.gmail.com' },

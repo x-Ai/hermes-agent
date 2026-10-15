@@ -128,6 +128,7 @@ function setup() {
   const controller = createMinimizeToTray({
     preferencesPath: path.join(home, 'minimize-to-tray.json'),
     getIconPath: () => 'icon.png',
+    getLabels: () => ({ show: 'Show Hermes', quit: 'Quit Hermes' }),
     restoreMainWindow: () => main.showInactive(),
     isQuittingForHandoff: () => handoff,
     log: vi.fn()

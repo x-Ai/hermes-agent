@@ -1384,7 +1384,7 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
             {isUser ? (
               <span className="text-[0.7rem] font-semibold text-foreground">{label}</span>
             ) : (
-              <Tip label={revealed ? 'Hide full handle' : 'Show full handle'}>
+              <Tip label={revealed ? b.group.hideFullHandle : b.group.showFullHandle}>
                 <Button
                   className="text-left text-[0.7rem] font-semibold text-(--ui-accent)"
                   onClick={() => setRevealedSpeaker(revealed ? null : entryKey)}
@@ -1400,9 +1400,9 @@ export function GroupChatWorkspace({ group, members, onBack, visible = true }: G
             {entry.text.trim() || !isUser ? (
               <div className="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
                 {isUser ? null : (
-                  <Tip label={`Reply to @${replyMentionTag(entry, member)}`}>
+                  <Tip label={b.group.replyTo(replyMentionTag(entry, member))}>
                     <Button
-                      aria-label={`Reply to ${display}`}
+                      aria-label={b.group.replyToMember(display)}
                       className="text-(--ui-text-tertiary) hover:text-foreground"
                       onClick={() => replyToMember(entry, member)}
                       size="icon"

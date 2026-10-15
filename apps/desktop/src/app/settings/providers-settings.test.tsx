@@ -389,6 +389,142 @@ describe('ProvidersSettings', () => {
     expect((inputs[1] as HTMLInputElement).value).toBe('')
   })
 
+  it('localizes both cards of a provider pair that shares one credential', async () => {
+    // /api/env as the backend builds it for CommandCode: one key var carrying two
+    // provider profiles, each profile with its own base-URL override var. The
+    // shared row skips the envKeys localization step, so the card copy has to
+    // come from the provider-catalog maps — or the backend's English prose shows.
+    const shared = {
+      description: 'CommandCode API key (GOAT/Pro/Max/Provider plans — 30+ models)',
+      provider: 'commandcode',
+      provider_label: 'CommandCode',
+      provider_primary: true,
+      provider_profiles: [
+        {
+          description: 'CommandCode — 20+ models via OpenAI-compatible API',
+          primary: true,
+          provider: 'commandcode',
+          provider_label: 'CommandCode',
+          url: 'https://commandcode.ai/'
+        },
+        {
+          description: 'CommandCode — Claude models via Anthropic Messages API',
+          primary: true,
+          provider: 'commandcode-anthropic',
+          provider_label: 'CommandCode (Anthropic)',
+          url: 'https://commandcode.ai/'
+        }
+      ],
+      url: 'https://commandcode.ai/'
+    }
+
+    for (const locale of ['zh', 'zh-hant'] as const) {
+      getEnvVars.mockResolvedValue({
+        COMMANDCODE_API_KEY: keyVar(shared),
+        COMMANDCODE_BASE_URL: keyVar({
+          advanced: true,
+          description: 'CommandCode base URL override',
+          is_password: false,
+          provider: 'commandcode',
+          provider_label: 'CommandCode'
+        }),
+        COMMANDCODE_ANTHROPIC_BASE_URL: keyVar({
+          advanced: true,
+          description: 'CommandCode (Anthropic) base URL override',
+          is_password: false,
+          provider: 'commandcode-anthropic',
+          provider_label: 'CommandCode (Anthropic)'
+        })
+      })
+      listOAuthProviders.mockResolvedValue({ providers: [] })
+
+      const copy = TRANSLATIONS[locale].settings
+
+      const { unmount } = render(
+        <I18nProvider configClient={null} initialLocale={locale}>
+          <ProvidersSettings onClose={vi.fn()} onViewChange={vi.fn()} view="keys" />
+        </I18nProvider>
+      )
+
+      // A card shows its blurb and advanced rows only while expanded.
+      fireEvent.click(await screen.findByText('CommandCode'))
+      expect(screen.getByText(copy.providers.providerDescriptions.CommandCode)).toBeTruthy()
+
+      fireEvent.click(screen.getByText(copy.providers.providerLabels['commandcode-anthropic']))
+      expect(screen.getByText(copy.providers.providerDescriptions['CommandCode (Anthropic)'])).toBeTruthy()
+      expect(screen.getByText(copy.envKeys.COMMANDCODE_ANTHROPIC_BASE_URL.description!)).toBeTruthy()
+      expect(screen.queryByText('CommandCode (Anthropic)')).toBeNull()
+      expect(screen.queryByText('CommandCode — Claude models via Anthropic Messages API')).toBeNull()
+      expect(screen.queryByText('CommandCode (Anthropic) base URL override')).toBeNull()
+
+      unmount()
+    }
+  })
+
+  it('localizes the mainland-China DashScope card that rides on the shared credential', async () => {
+    // Four providers share DASHSCOPE_API_KEY; the China route's own card gets
+    // its blurb from the catalog maps (the shared row never consults envKeys)
+    // and its base-URL override row from the env key copy.
+    const profile = (provider: string, label: string, description: string, primary: boolean) => ({
+      description,
+      primary,
+      provider,
+      provider_label: label,
+      url: 'https://bailian.console.aliyun.com/'
+    })
+
+    for (const locale of ['zh', 'zh-hant'] as const) {
+      getEnvVars.mockResolvedValue({
+        DASHSCOPE_API_KEY: keyVar({
+          description: 'Alibaba Cloud DashScope API key (Qwen + multi-provider models)',
+          provider: 'alibaba',
+          provider_label: 'Qwen Cloud',
+          provider_primary: true,
+          provider_profiles: [
+            profile('alibaba', 'Qwen Cloud', 'Qwen Cloud / DashScope (Qwen + multi-provider)', true),
+            profile(
+              'alibaba-cn',
+              'Alibaba Cloud DashScope (China)',
+              'Alibaba Cloud DashScope, mainland-China endpoint',
+              true
+            ),
+            profile(
+              'alibaba-coding-plan',
+              'Alibaba Cloud (Coding Plan)',
+              'Alibaba Cloud Coding Plan (Dedicated coding tier)',
+              false
+            )
+          ]
+        }),
+        DASHSCOPE_CN_BASE_URL: keyVar({
+          advanced: true,
+          description: 'Alibaba Cloud DashScope (China) base URL override',
+          is_password: false,
+          provider: 'alibaba-cn',
+          provider_label: 'Alibaba Cloud DashScope (China)'
+        })
+      })
+      listOAuthProviders.mockResolvedValue({ providers: [] })
+
+      const copy = TRANSLATIONS[locale].settings
+
+      const { unmount } = render(
+        <I18nProvider configClient={null} initialLocale={locale}>
+          <ProvidersSettings onClose={vi.fn()} onViewChange={vi.fn()} view="keys" />
+        </I18nProvider>
+      )
+
+      fireEvent.click(await screen.findByText(copy.providers.providerLabels['alibaba-cn']))
+
+      expect(screen.getByText(copy.providers.providerDescriptions['Alibaba Cloud DashScope (China)'])).toBeTruthy()
+      expect(screen.getByText(copy.envKeys.DASHSCOPE_CN_BASE_URL.description!)).toBeTruthy()
+      expect(screen.queryByText('Alibaba Cloud DashScope, mainland-China endpoint')).toBeNull()
+      expect(screen.queryByText('Alibaba Cloud DashScope (China) base URL override')).toBeNull()
+
+      unmount()
+    }
+  })
+
   it('keeps a card on its own key when a shared credential arrives with primary: false', async () => {
     // The CN Coding Plan card's own credential (its index-0 var) plus the
     // shared DASHSCOPE_API_KEY, which the catalog contributes as a FALLBACK

@@ -209,6 +209,11 @@ export const zhMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
     placeholder: 'http://homeassistant.local:8123'
   },
   HASS_TOKEN: { label: '长期访问令牌', help: 'Home Assistant 长期访问令牌' },
+  HASS_HOME_CHANNEL: {
+    label: '默认通知目标',
+    help: '定时任务以 deliver=homeassistant 投递时使用的默认通知目标（如 mobile_app_my_phone）',
+    placeholder: 'mobile_app_my_phone'
+  },
   EMAIL_ADDRESS: { label: '邮箱地址', help: '邮箱账户地址' },
   EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱账户密码 / 应用专用密码' },
   EMAIL_IMAP_HOST: { label: 'IMAP 主机', help: '收件轮询使用的 IMAP 主机', placeholder: 'imap.gmail.com' },

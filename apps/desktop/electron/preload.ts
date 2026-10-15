@@ -55,6 +55,8 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   openSessionInTerminal: (sessionId, opts) => ipcRenderer.invoke('hermes:window:openInTerminal', sessionId, opts),
   openWindow: (options?: DesktopProfileRoute) => ipcRenderer.invoke('hermes:window:openInstance', options),
   openBrowserWindow: tabId => ipcRenderer.invoke('hermes:window:openBrowser', tabId),
+  // The language this window renders, for the native menus main owns.
+  setAppLocale: locale => ipcRenderer.send('hermes:app-locale', locale),
   windowRelay: {
     send: payload => ipcRenderer.send('hermes:window:relay', payload),
     onMessage: callback => {

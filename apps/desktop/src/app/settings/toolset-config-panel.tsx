@@ -69,9 +69,45 @@ export function localizedBadge(badge: string, tokens: Record<string, string>): s
 export function localizedModelDescription(
   model: Pick<ToolsetModel, 'id' | 'strengths'>,
   modelDescriptions: Record<string, string>,
-  prose: Record<string, string>
+  prose: Record<string, string>,
+  strengthTokens: Record<string, string> = {}
 ): string {
-  return modelDescriptions[model.id] ?? prose[model.strengths] ?? model.strengths
+  return (
+    modelDescriptions[model.id] ??
+    prose[model.strengths] ??
+    localizedStrengthList(model.strengths, strengthTokens) ??
+    model.strengths
+  )
+}
+
+const DURATION_RANGE = /^(\d+)-(\d+)s$/
+const RESOLUTIONS = /^\d+[pk](?:\/\d+[pk])*$/i
+
+/** A live catalog (OpenRouter video) describes a model as a comma list of a
+ *  duration range, resolutions and feature tokens ("4-15s, 480p/720p, audio,
+ *  i2v") that no per-model map can keep up with. Localize it token by token;
+ *  a list with a token the catalog does not know stays verbatim. */
+function localizedStrengthList(strengths: string, tokens: Record<string, string>): null | string {
+  const parts = strengths
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean)
+
+  if (parts.length < 2 || !tokens.secondsRange) {
+    return null
+  }
+
+  const localized = parts.map(part => {
+    const range = DURATION_RANGE.exec(part)
+
+    if (range) {
+      return tokens.secondsRange.replace('{a}', range[1]).replace('{b}', range[2])
+    }
+
+    return RESOLUTIONS.test(part) ? part : (tokens[part] ?? null)
+  })
+
+  return localized.every(part => part !== null) ? localized.join(tokens.separator ?? ', ') : null
 }
 
 export function localizedModelLabel(
@@ -562,7 +598,9 @@ function ModelCatalogPicker({ toolset, providerName, isActiveBackend, profile }:
               <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.68rem] text-muted-foreground">
                 {model.speed && <span>{localizedModelSpeed(model.speed, copy.modelSpeeds)}</span>}
                 {model.strengths && (
-                  <span>{localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy)}</span>
+                  <span>
+                    {localizedModelDescription(model, copy.modelDescriptions, copy.tagCopy, copy.modelStrengthTokens)}
+                  </span>
                 )}
                 {model.price && <span className="font-mono">{copy.modelPrices[model.id] ?? model.price}</span>}
               </span>

@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider'
 import type { DesktopMarketplaceSearchItem } from '@/global'
 import { saveHermesConfig } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { triggerHaptic } from '@/lib/haptics'
 import { Check, Download, Loader2, Palette, Trash2 } from '@/lib/icons'
 import { selectableCardClass } from '@/lib/selectable-card'
@@ -656,7 +657,7 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
                   </div>
                   {showProfileNote && (
                     <p className="mt-3 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
-                      {a.themeProfileNote(activeProfileName)}
+                      {a.themeProfileNote(displayEntityName(activeProfileName, t))}
                     </p>
                   )}
                 </>

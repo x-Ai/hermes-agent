@@ -105,6 +105,9 @@ declare global {
       // `tabId` is the `$previewTabs` id; closing the window fires
       // `onBrowserPopoutClosed` so the caller can dock the tab again.
       openBrowserWindow: (tabId: string) => Promise<{ ok: boolean; error?: string }>
+      // Tell main which language this window renders so the native application,
+      // Window and tray menus follow it. Absent on a shell older than the renderer.
+      setAppLocale?: (locale: string) => void
       // Cross-window renderer relay (pop-out Browser ↔ chat windows). Electron
       // main relays opaque payloads to the other Hermes renderer windows;
       // renderer code keeps the destination exact and rejects anything not

@@ -9,7 +9,7 @@ import { I18nProvider, TRANSLATIONS } from '@/i18n'
 import type { ToolsetConfig, WebCapability } from '@/types/hermes'
 
 // Collect the component graph before the behavioral test deadline starts.
-import { ToolsetConfigPanel } from './toolset-config-panel'
+import { localizedModelDescription, ToolsetConfigPanel } from './toolset-config-panel'
 
 // EnvVarField navigates to Settings → Keys via useNavigate, so every render
 // needs a router context. The navigate spy asserts the deep-link target.
@@ -171,6 +171,23 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+})
+
+describe('localizedModelDescription', () => {
+  const tokens = TRANSLATIONS.zh.settings.toolsets.modelStrengthTokens
+
+  it("localizes a live catalog's compact strengths token by token and keeps prose verbatim", () => {
+    const compact = { id: 'minimax/hailuo-3-max', strengths: '5-15s, 768p/480p, audio, i2v' }
+
+    expect(localizedModelDescription(compact, {}, {}, tokens)).toBe('5–15 秒，768p/480p，音频，图生视频')
+    // A per-model or verbatim-prose entry still wins over the token pass.
+    expect(localizedModelDescription(compact, { [compact.id]: '按型号' }, {}, tokens)).toBe('按型号')
+    // A list with a token the catalog does not know is not half-translated.
+    const unknown = { id: 'x', strengths: '5-15s, 720p, lipsync' }
+    expect(localizedModelDescription(unknown, {}, {}, tokens)).toBe(unknown.strengths)
+    // English (no tokens) is untouched.
+    expect(localizedModelDescription(compact, {}, {}, {})).toBe(compact.strengths)
+  })
 })
 
 describe('ToolsetConfigPanel', () => {

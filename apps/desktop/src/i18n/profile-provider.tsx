@@ -27,6 +27,7 @@ export function ProfileI18nProvider({ children }: { children: ReactNode }) {
 
   useBackendLocalePacks(scopeKey)
   useClientLocaleAnnounce(scopeKey)
+  useNativeMenuLocale()
 
   return <I18nProvider scopeKey={scopeKey}>{children}</I18nProvider>
 }
@@ -51,6 +52,19 @@ function useClientLocaleAnnounce(scopeKey: string): void {
 
     void announceClientLocale((method, params) => gateway.request(method, params), locale)
   }, [open, locale, scopeKey])
+}
+
+/**
+ * The native menus (application, Window, tray) belong to the main process,
+ * which renders no React copy: hand it the language this window renders so
+ * they follow the switcher and the OS-inferred default alike.
+ */
+function useNativeMenuLocale(): void {
+  const locale = useSyncExternalStore(subscribeRuntimeI18nLocale, getRuntimeI18nLocale)
+
+  useEffect(() => {
+    window.hermesDesktop?.setAppLocale?.(locale)
+  }, [locale])
 }
 
 /**

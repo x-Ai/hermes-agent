@@ -26,6 +26,7 @@ async function run() {
   const controller = createMinimizeToTray({
     preferencesPath: path.join(app.getPath('userData'), 'minimize-to-tray.json'),
     getIconPath: () => process.argv[3],
+    getLabels: () => ({ show: 'Show Hermes', quit: 'Quit Hermes' }),
     restoreMainWindow: () => {
       primary.show()
       primary.focus()

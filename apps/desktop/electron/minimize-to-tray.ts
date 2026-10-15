@@ -11,6 +11,8 @@ export interface MinimizeToTrayStatus {
 interface Options {
   preferencesPath: string
   getIconPath: () => string | undefined
+  /** Menu labels in the language the renderer announced; re-read by `relabel()`. */
+  getLabels: () => { show: string; quit: string }
   restoreMainWindow: () => void
   isQuittingForHandoff: () => boolean
   log: (message: string) => void
@@ -184,14 +186,7 @@ export function createMinimizeToTray(options: Options) {
           })
         )
         tray.setToolTip('Hermes')
-        tray.setContextMenu(
-          Menu.buildFromTemplate([
-            { label: 'Show Hermes', click: restore },
-            { type: 'separator' },
-            // Do not bypass the ordinary active-work confirmation or teardown.
-            { label: 'Quit Hermes', click: () => app.quit() }
-          ])
-        )
+        applyTrayMenu()
 
         // macOS single-click opens the native menu, not the window behind it.
         if (process.platform !== 'darwin') {
@@ -209,6 +204,23 @@ export function createMinimizeToTray(options: Options) {
     broadcast()
 
     return status()
+  }
+
+  function applyTrayMenu() {
+    if (!tray || tray.isDestroyed()) {
+      return
+    }
+
+    const labels = options.getLabels()
+
+    tray.setContextMenu(
+      Menu.buildFromTemplate([
+        { label: labels.show, click: restore },
+        { type: 'separator' },
+        // Do not bypass the ordinary active-work confirmation or teardown.
+        { label: labels.quit, click: () => app.quit() }
+      ])
+    )
   }
 
   function registerWindow(win: BrowserWindow, { closeToTray = false } = {}) {
@@ -347,6 +359,8 @@ export function createMinimizeToTray(options: Options) {
     setEnabled,
     registerWindow,
     restore,
+    /** Rebuild the context menu after the announced language changed. */
+    relabel: applyTrayMenu,
     // Call only AFTER the active-work guard accepts the quit. Cancelling the
     // prompt must leave hiding and its recovery affordance intact.
     beginQuit: () => {

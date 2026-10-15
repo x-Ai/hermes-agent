@@ -21,7 +21,6 @@ import {
   type IpcMainEvent,
   type IpcMainInvokeEvent,
   Menu,
-  type MenuItemConstructorOptions,
   nativeTheme,
   powerMonitor,
   powerSaveBlocker,
@@ -48,14 +47,17 @@ import {
 } from './api-transport'
 import { appIconCandidates, resolveAppIcon, shouldOverrideDockIcon } from './app-icon'
 import { stageAppInstallerFile } from './app-installer-file'
+import { appMenuCopy, type AppMenuLocale, resolveAppMenuLocale } from './app-menu-copy'
 import {
   appVersionInfo,
   type AppVersionInfo,
   assertSourceUpdateChannel,
+  nativeAboutBuild,
   nativeAboutVersion,
   packagedReleaseChannel
 } from './app-version'
 import { runAppInstallerChecker } from './appinstaller-checker'
+import { applicationMenuTemplate } from './application-menu'
 import { installApplicationMenuAfterFirstWindow } from './application-menu-startup'
 import { stopBackendChild as stopBackendChildImpl, waitForBackendExit } from './backend-child'
 import {
@@ -677,7 +679,6 @@ import {
 import { registerWindowControlIpc, windowControlState } from './window-controls'
 import { revealAction, shouldFocusToTakeKeyboard } from './window-focus-policy'
 import { isAppSized, registerWindowSizing } from './window-growth'
-import { windowMenuTemplate } from './window-menu'
 import { createWindowOpenHandler } from './window-open-policy'
 import { installWindowRendererLifecycle } from './window-renderer-lifecycle'
 import { wireWindowReveal } from './window-reveal'
@@ -1859,8 +1860,18 @@ if (IS_WINDOWS) {
 app.setAboutPanelOptions({
   applicationName: APP_NAME,
   applicationVersion: nativeAboutVersion(appVersionInfo(INSTALL_STAMP, '', app.getVersion())),
+  ...nativeAboutBuildOption(),
   copyright: 'Copyright © 2026 Nous Research'
 })
+
+// AppKit prints CFBundleVersion in parentheses after the version — the 0.0.0
+// placeholder on an app packed from main. Override only then; a real bundle
+// version keeps AppKit's own.
+function nativeAboutBuildOption(): { version?: string } {
+  const build = nativeAboutBuild(app.getVersion(), INSTALL_STAMP)
+
+  return build === undefined ? {} : { version: build }
+}
 
 // Custom scheme for streaming audio/video into the renderer. Local paths read
 // from this machine; remote paths are proxied through the configured gateway
@@ -3673,6 +3684,37 @@ function writeZoomState(zoomLevel) {
     writeFileAtomic(DESKTOP_ZOOM_STATE_PATH, JSON.stringify({ zoomLevel }, null, 2))
   } catch (error) {
     rememberLog(`[zoom] json persist failed: ${error?.message || error}`)
+  }
+}
+
+// The language the renderer last announced for the native menus (application,
+// Window, tray), kept so the first menu of the next launch already matches the
+// window about to appear; before any announcement the OS locale decides.
+const APP_MENU_LOCALE_PATH = path.join(app.getPath('userData'), 'app-locale.json')
+
+let appMenuLocale: AppMenuLocale | null = null
+let applicationMenuInstalled = false
+
+function currentAppMenuLocale(): AppMenuLocale {
+  if (appMenuLocale) {
+    return appMenuLocale
+  }
+
+  try {
+    appMenuLocale = resolveAppMenuLocale(JSON.parse(fs.readFileSync(APP_MENU_LOCALE_PATH, 'utf8'))?.locale)
+  } catch {
+    appMenuLocale = resolveAppMenuLocale(app.getLocale())
+  }
+
+  return appMenuLocale
+}
+
+function writeAppMenuLocale(locale: AppMenuLocale) {
+  try {
+    fs.mkdirSync(path.dirname(APP_MENU_LOCALE_PATH), { recursive: true })
+    writeFileAtomic(APP_MENU_LOCALE_PATH, JSON.stringify({ locale }, null, 2))
+  } catch (error) {
+    rememberLog(`[menu] locale persist failed: ${error?.message || error}`)
   }
 }
 
@@ -6709,141 +6751,33 @@ function sendWindowStateChanged(nextIsFullscreen?: boolean, target = mainWindow)
 }
 
 function buildApplicationMenu() {
-  const template: MenuItemConstructorOptions[] = []
-
-  const checkForUpdatesItem = {
-    label: 'Check for Updates…',
-    click: () => sendOpenUpdatesRequested()
-  }
-
-  if (IS_MAC) {
-    template.push({
-      label: APP_NAME,
-      submenu: [
-        { label: `About ${APP_NAME}`, click: () => showAboutPanelFresh() },
-        checkForUpdatesItem,
-        { type: 'separator' },
-        { role: 'services' },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' }
-      ]
-    })
-  }
-
-  template.push({
-    label: 'File',
-    submenu: [
-      // No accelerator: ⌘⇧N is a rebindable renderer keybind (session.newWindow);
-      // a menu accelerator would fight the rebind panel and (on macOS) be
-      // swallowed before the renderer sees it. Here purely for discoverability.
-      { click: () => createInstanceWindow(), label: 'New Window' },
-      // Same no-accelerator rationale: ⌘O is the rebindable renderer keybind
-      // (workspace.openFolder). Clicking runs the same open-folder-as-project
-      // flow through the renderer.
-      { click: () => sendOpenFolderRequested(), label: 'Open Folder…' },
-      { type: 'separator' },
-      IS_MAC
-        ? {
-            // NO accelerator: on macOS a registered ⌘W is consumed by the OS
-            // menu before the web contents ever sees it (and registerAccelerator
-            // false is a no-op on mac — electron#18295). Leaving it off lets the
-            // `before-input-event` handler below intercept ⌘W and route it to the
-            // renderer's close-active-tab. Clicking the item still closes the tab
-            // (or window) via the same request.
-            click: () => sendClosePreviewRequested(),
-            label: 'Close'
-          }
-        : { role: 'quit' }
-    ]
-  })
-  template.push({
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      // ⌘⇧V is only wired up by this item existing: an accelerator with no menu
-      // entry is never translated into an editor command, so the chord was a
-      // no-op in every input in the app. The composer inserts plain text on
-      // every paste anyway, so this is the same result as ⌘V there — it's the
-      // terminal, preview, and other editable surfaces that need the strip.
-      { role: 'pasteAndMatchStyle' },
-      { role: 'delete' },
-      { role: 'selectAll' },
-      ...(IS_MAC
-        ? ([
-            { type: 'separator' },
-            {
-              label: 'Substitutions',
-              submenu: [{ role: 'showSubstitutions' }, { type: 'separator' }, { role: 'toggleTextReplacement' }]
-            }
-          ] satisfies MenuItemConstructorOptions[])
-        : [])
-    ]
-  })
-  template.push({
-    label: 'View',
-    submenu: [
-      // Not `role: 'reload'`: that hard-reloads the RENDERER (every pane, the
-      // whole shell) and a focused in-app browser needs ⌘R to mean "reload
-      // this page", the way it does in every other browser. ⇧⌘R
-      // (`forceReload`) below stays the unconditional escape hatch.
-      //
-      // No accelerator: ⌘R is claimed in `installPreviewShortcut`, which works
-      // on every platform (this menu exists only on macOS). Declaring it here
-      // too would fire the item and the input hook for one keypress.
-      { click: () => sendPreviewNavCommand('reload'), label: 'Reload' },
-      { role: 'forceReload' },
-      {
-        label: 'Toggle Developer Tools',
-        accelerator: process.platform === 'darwin' ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
-        click: (_menuItem, browserWindow) => toggleDevTools(browserWindow || mainWindow)
-      },
-      { type: 'separator' },
-      {
-        label: 'Actual Size',
-        accelerator: 'CommandOrControl+0',
-        click: () => {
-          setAndPersistZoomLevel(mainWindow, DEFAULT_ZOOM_LEVEL)
-        }
-      },
-      {
-        label: 'Zoom In',
-        accelerator: 'CommandOrControl+Plus',
-        click: () => {
+  return Menu.buildFromTemplate(
+    applicationMenuTemplate({
+      appName: APP_NAME,
+      isMac: IS_MAC,
+      copy: appMenuCopy(currentAppMenuLocale()),
+      showAbout: () => showAboutPanelFresh(),
+      openUpdates: () => sendOpenUpdatesRequested(),
+      newWindow: () => createInstanceWindow(),
+      openFolder: () => sendOpenFolderRequested(),
+      closePreview: () => sendClosePreviewRequested(),
+      reloadPreview: () => sendPreviewNavCommand('reload'),
+      toggleDevTools: browserWindow => toggleDevTools(browserWindow || mainWindow),
+      zoom: {
+        reset: () => setAndPersistZoomLevel(mainWindow, DEFAULT_ZOOM_LEVEL),
+        in: () => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             setAndPersistZoomLevel(mainWindow, mainWindow.webContents.getZoomLevel() + ZOOM_STEP)
           }
-        }
-      },
-      {
-        label: 'Zoom Out',
-        accelerator: 'CommandOrControl+-',
-        click: () => {
+        },
+        out: () => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             setAndPersistZoomLevel(mainWindow, mainWindow.webContents.getZoomLevel() - ZOOM_STEP)
           }
         }
-      },
-      { type: 'separator' },
-      { role: 'togglefullscreen' }
-    ]
-  })
-  template.push(windowMenuTemplate(IS_MAC))
-  template.push({
-    label: 'Help',
-    role: 'help',
-    submenu: [checkForUpdatesItem]
-  })
-
-  return Menu.buildFromTemplate(template)
+      }
+    })
+  )
 }
 
 function toggleDevTools(window) {
@@ -13670,6 +13604,11 @@ const sessionWindows = createSessionWindowRegistry()
 const minimizeToTray = createMinimizeToTray({
   preferencesPath: path.join(app.getPath('userData'), 'minimize-to-tray.json'),
   getIconPath: getAppIconPath,
+  getLabels: () => {
+    const m = appMenuCopy(currentAppMenuLocale())
+
+    return { show: m.trayShow(APP_NAME), quit: m.trayQuit(APP_NAME) }
+  },
   // A tray click is an explicit relaunch gesture (#130810): restore with
   // activation (show + focus), not the ambient showInactive path.
   restoreMainWindow: () =>
@@ -18115,6 +18054,25 @@ ipcMain.on('hermes:native-theme', (_event, mode) => {
   }
 })
 
+// The language the renderer renders drives the native application, Window and
+// tray menus, which Electron never localizes on its own.
+ipcMain.on('hermes:app-locale', (_event, locale) => {
+  const next = resolveAppMenuLocale(locale)
+
+  if (next === currentAppMenuLocale()) {
+    return
+  }
+
+  appMenuLocale = next
+  writeAppMenuLocale(next)
+
+  if (IS_MAC && applicationMenuInstalled) {
+    Menu.setApplicationMenu(buildApplicationMenu())
+  }
+
+  minimizeToTray.relabel()
+})
+
 // See-through window translucency. Persist + re-apply to every open window at
 // runtime (no recreation, so caching/sessions are untouched).
 //
@@ -18684,6 +18642,7 @@ function showAboutPanelFresh(): void {
     app.setAboutPanelOptions({
       applicationName: APP_NAME,
       applicationVersion: skew.outOfSync ? `${display} — app build out of date, update the desktop app` : display,
+      ...nativeAboutBuildOption(),
       copyright: 'Copyright © 2026 Nous Research'
     })
     app.showAboutPanel()
@@ -19409,7 +19368,10 @@ app.whenReady().then(() => {
   installApplicationMenuAfterFirstWindow({
     isMac: IS_MAC,
     buildMenu: buildApplicationMenu,
-    setApplicationMenu: menu => Menu.setApplicationMenu(menu),
+    setApplicationMenu: menu => {
+      Menu.setApplicationMenu(menu)
+      applicationMenuInstalled = true
+    },
     createWindow
   })
 

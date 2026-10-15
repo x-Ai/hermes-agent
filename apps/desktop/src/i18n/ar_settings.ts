@@ -1545,6 +1545,7 @@ export const arSettings = {
       modelSpeeds: {},
       modelDescriptions: {},
       modelPrices: {},
+      modelStrengthTokens: {},
       terminalBackend: {
         sectionTitle: 'دعم التنفيذ',
         loading: 'التحقق من عمليات الإعدام',

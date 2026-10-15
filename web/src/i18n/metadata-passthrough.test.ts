@@ -33,6 +33,13 @@ describe('backend metadata pass-through', () => {
     const curated = localizeEnvDescription('OPENROUTER_API_KEY', 'OpenRouter API key', 'zh')
     expect(curated).not.toBe('OpenRouter API key')
     expect(curated).toContain('OpenRouter')
+    const override = localizeEnvDescription(
+      'COMMANDCODE_ANTHROPIC_BASE_URL',
+      'CommandCode (Anthropic) base URL override',
+      'zh'
+    )
+    expect(override).not.toBe('CommandCode (Anthropic) base URL override')
+    expect(CJK.test(override)).toBe(true)
 
     const prompt = 'MCP Server URL (n8n Settings > Instance-level MCP > Connect; ends in /mcp-server/http)'
     expect(localizeEnvDescription('N8N_MCP_SERVER_URL', prompt, 'zh')).toBe(prompt)

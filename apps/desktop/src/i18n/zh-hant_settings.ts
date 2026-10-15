@@ -1,7 +1,17 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import type { TranslationOverrides } from './define-locale'
+import { zhHantProviderDescriptions, zhHantProviderEnvKeys, zhHantProviderLabels } from './zh-hant_provider_catalog'
 import { zhHantTerminalBackend } from './zh-hant_terminal_backend'
+import {
+  zhHantModelDescriptions,
+  zhHantModelLabels,
+  zhHantModelPrices,
+  zhHantModelSpeeds,
+  zhHantModelStrengthTokens,
+  zhHantToolsetBadgeTokens,
+  zhHantToolsetTagCopy
+} from './zh-hant_toolset_copy'
 import { zhHantUninstallSection } from './zh-hant_uninstall_section'
 import { zhHantUpdateChannel } from './zh-hant_update_channel'
 
@@ -1944,8 +1954,8 @@ export const zhHantSettings = {
         description: '將 Hermes 指向任意 OpenAI 相容端點（Zyphra、vLLM、llama.cpp、Ollama 等）。'
       },
       loading: '正在載入提供方...',
-      providerLabels: {},
-      providerDescriptions: {}
+      providerLabels: zhHantProviderLabels,
+      providerDescriptions: zhHantProviderDescriptions
     },
     sessions: {
       loading: '正在載入已封存工作階段…',
@@ -1999,89 +2009,8 @@ export const zhHantSettings = {
       ready: '就緒',
       needsSignIn: '需要登入',
       needsSetup: '需要安裝',
-      badgeTokens: {
-        recommended: '推薦',
-        free: '免費',
-        'keyless/paid': '免金鑰/付費',
-        local: '本機',
-        'self-hosted': '自架',
-        paid: '付費',
-        preview: '預覽',
-        subscription: '訂閱',
-        'no key': '免金鑰',
-        'search only': '僅搜尋',
-        'optional gateway': '選用閘道',
-        native: '原生'
-      },
-      tagCopy: {
-        '30 prebuilt voices, controllable via prompts': '30 種預置語音，可透過提示詞控制',
-        'Anti-detection browser (Firefox/Camoufox)': '反偵測瀏覽器 (Firefox/Camoufox)',
-        'Background computer-use via cua-driver — does NOT steal your cursor or focus. Works with any model.':
-          '透過 cua-driver 背景控制電腦——不會搶佔您的游標或焦點。適用於任何模型。',
-        'Browser login at accounts.x.ai — no API key required': '在 accounts.x.ai 瀏覽器登入——無需 API 金鑰',
-        'Chatterbox, Qwen3-TTS, … — live catalog from api.deepinfra.com':
-          'Chatterbox、Qwen3-TTS 等——來自 api.deepinfra.com 的即時目錄',
-        'Direct xAI API billing via XAI_API_KEY': '透過 XAI_API_KEY 直接按 xAI API 計費',
-        'Good quality, no API key needed': '音質不錯，無需 API 金鑰',
-        'Grok voices — uses xAI Grok OAuth or XAI_API_KEY': 'Grok 語音——使用 xAI Grok OAuth 或 XAI_API_KEY',
-        'Headless Chromium, no API key needed': '無頭 Chromium，無需 API 金鑰',
-        'High quality voices': '高品質語音',
-        'Hosted Langfuse (cloud.langfuse.com)': '託管版 Langfuse (cloud.langfuse.com)',
-        'Lightweight local ONNX TTS (~25MB), no API key': '輕量本機 ONNX TTS（約 25MB），無需 API 金鑰',
-        'Local neural TTS, 44 languages (voices ~20-90MB)': '本機神經網路 TTS，支援 44 種語言（語音包約 20-90MB）',
-        'Managed Browser Use billed to your subscription': '託管 Browser Use，計入您的訂閱',
-        'Managed FAL image generation billed to your subscription': '託管 FAL 圖像生成，計入您的訂閱',
-        'Managed image generation (FAL, Krea 2, Nous Portal models) billed to your subscription':
-          '託管圖像生成（FAL、Krea 2、Nous Portal 模型），費用計入您的訂閱',
-        'Managed FAL video generation billed to your subscription': '託管 FAL 影片生成，計入您的訂閱',
-        'Managed Firecrawl billed to your subscription': '託管 Firecrawl，計入您的訂閱',
-        'Managed web search and extract billed to your subscription': '託管網頁搜尋與內容擷取，費用計入您的訂閱',
-        'Managed OpenAI TTS billed to your subscription': '託管 OpenAI TTS，計入您的訂閱',
-        'Most natural voices': '最自然的語音',
-        'Multilingual, native Opus': '多語言，原生 Opus',
-        'PKCE OAuth — opens the setup wizard': 'PKCE OAuth——將開啟設定精靈',
-        'REST API integration': 'REST API 整合',
-        'Run your own Firecrawl instance (Docker)': '執行您自己的 Firecrawl 執行個體 (Docker)',
-        'Self-hosted Langfuse instance': '自架 Langfuse 執行個體',
-        "Agentic web search via Grok's web_search tool — uses xAI Grok OAuth or XAI_API_KEY.":
-          '透過 Grok 的 web_search 工具進行代理式網頁搜尋——使用 xAI Grok OAuth 或 XAI_API_KEY。',
-        'Cloud browser with remote execution': '支援遠端執行的雲端瀏覽器',
-        'Cloud browser with stealth and proxies': '帶隱身與代理的雲端瀏覽器',
-        'FLUX, Qwen-Image, … — live catalog from api.deepinfra.com':
-          'FLUX、Qwen-Image 等——來自 api.deepinfra.com 的即時目錄',
-        'Free, privacy-respecting metasearch. Point SEARXNG_URL at your instance.':
-          '免費、尊重隱私的元搜尋。把 SEARXNG_URL 指向您的執行個體。',
-        'Free-tier API key — 2k queries/mo, search only.': '免費方案 API 金鑰——每月 2000 次查詢，僅搜尋。',
-        'Full search + extract; supports direct API and Nous tool-gateway routing.':
-          '完整的搜尋 + 擷取；支援直連 API 和 Nous 工具閘道路由。',
-        'Gemini Flash Image & more via OpenRouter; uses OPENROUTER_API_KEY':
-          '經 OpenRouter 使用 Gemini Flash Image 等；使用 OPENROUTER_API_KEY',
-        'Krea 2 foundation model — Medium ($0.03), Large ($0.06), Medium Turbo ($0.015). Style transfer, moodboards, reference-guided generation. Direct key or managed Nous Subscription gateway.':
-          'Krea 2 基礎模型——Medium ($0.03)、Large ($0.06)、Medium Turbo ($0.015)。風格轉移、情緒板、參考引導生成。可直連金鑰或經託管 Nous 訂閱閘道。',
-        'LTX, Pixverse, Veo 3.1, Seedance 2.0, Kling 4K, Happy Horse — text-to-video & image-to-video':
-          'LTX、Pixverse、Veo 3.1、Seedance 2.0、Kling 4K、Happy Horse——文生影片與圖生影片',
-        'Objective-tuned search + parallel page extraction.': '面向目標調校的搜尋 + 平行頁面擷取。',
-        'Pick from flux-2-klein, flux-2-pro, gpt-image, nano-banana, etc. — text-to-image & image editing':
-          '可選 flux-2-klein、flux-2-pro、gpt-image、nano-banana 等——文生圖與圖像編輯',
-        'Reference-grounded image generation via Nous Portal (OpenRouter-backed)':
-          '經 Nous Portal 的參考圖像生成（OpenRouter 支援）',
-        'Search + extract in one provider.': '搜尋 + 擷取一體的供應商。',
-        'Search via the ddgs Python package — no API key (pair with any extract provider)':
-          '透過 ddgs Python 套件搜尋——無需 API 金鑰（可搭配任意擷取供應商）',
-        'Search runs on the provider side (needs the Codex Responses transport + an openai-codex login); search only, extraction still uses another backend':
-          '搜尋由供應商端執行（需要 Codex Responses 傳輸方式並登入 openai-codex）；僅支援搜尋，內容擷取仍使用其他後端',
-        'Semantic + neural web search with content extraction.': '語意 + 神經網路網頁搜尋，帶內容擷取。',
-        'Wan, p-video, … — live catalog from api.deepinfra.com; text-to-video & image-to-video':
-          'Wan、p-video 等——來自 api.deepinfra.com 的即時目錄；文生影片與圖生影片',
-        'gpt-image-2 at low/medium/high quality tiers — text-to-image & image editing':
-          'gpt-image-2，低/中/高品質檔——文生圖與圖像編輯',
-        'gpt-image-2 via ChatGPT/Codex OAuth — no API key required; supports text and image inputs':
-          '經 ChatGPT/Codex OAuth 使用 gpt-image-2——無需 API 金鑰；支援文字與圖像輸入',
-        'grok-imagine-image - text-to-image & image editing; uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `image_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-image——文生圖與圖像編輯；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `image_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。',
-        'grok-imagine-video for text/reference; grok-imagine-video-1.5 for image-to-video; edit/extend: pass the stored public HTTPS MP4 (`video` / `public_url` from a prior Imagine result); uses xAI Grok OAuth or XAI_API_KEY. xAI Imagine storage is enabled so generated media gets a reusable public URL without an automatic expiry. xAI may bill for stored files and public URL hosting. Disable this with `video_gen.xai.storage.enabled: false` or set `expires_after` to change the retention.':
-          'grok-imagine-video 用於文字/參考生成；grok-imagine-video-1.5 用於圖生影片；編輯/延伸：傳入先前 Imagine 結果的公開 HTTPS MP4（`video` / `public_url`）；使用 xAI Grok OAuth 或 XAI_API_KEY。已啟用 xAI Imagine 儲存，生成的媒體會取得可重複使用的公開 URL 且不自動過期。xAI 可能對儲存檔案和公開 URL 託管計費。可用 `video_gen.xai.storage.enabled: false` 停用，或設定 `expires_after` 變更保留期。'
-      },
+      badgeTokens: zhHantToolsetBadgeTokens,
+      tagCopy: zhHantToolsetTagCopy,
       activeBackend: '目前後端',
       activeBackendHint: '這是你目前使用的後端',
       useBackend: '使用此後端',
@@ -2124,10 +2053,11 @@ export const zhHantSettings = {
       modelSelectedTitle: '所選型號',
       modelSelectedMessage: model => `${model}適用於新會話。`,
       failedSelectModel: model => `選取失敗${model}`,
-      modelLabels: {},
-      modelSpeeds: {},
-      modelDescriptions: {},
-      modelPrices: {},
+      modelLabels: zhHantModelLabels,
+      modelSpeeds: zhHantModelSpeeds,
+      modelDescriptions: zhHantModelDescriptions,
+      modelPrices: zhHantModelPrices,
+      modelStrengthTokens: zhHantModelStrengthTokens,
       terminalBackend: {
         sectionTitle: '執行後端',
         loading: '正在檢查執行後端…',
@@ -2250,6 +2180,7 @@ export const zhHantSettings = {
       contextChanged: '當前草稿在捕捉過程中被更改。截圖未附上或未發送。'
     },
     envKeys: {
+      ...zhHantProviderEnvKeys,
       NOUS_BASE_URL: { description: 'Nous Portal 基礎 URL 覆寫' },
       OPENROUTER_API_KEY: { description: 'OpenRouter API 金鑰（用於視覺、網頁擷取輔助和 MOA）' },
       GOOGLE_API_KEY: { description: 'Google AI Studio API 金鑰（也識別 GEMINI_API_KEY）' },
@@ -2306,8 +2237,6 @@ export const zhHantSettings = {
       AWS_PROFILE: { description: '用於 Bedrock 驗證的 AWS 命名設定檔（來自 ~/.aws/credentials）' },
       AZURE_FOUNDRY_API_KEY: { description: '自訂 Azure 端點的 Azure Foundry API 金鑰' },
       AZURE_FOUNDRY_BASE_URL: { description: 'Azure Foundry 基礎 URL（端點級設定請用 hermes model 設定）' },
-      ALIBABA_CODING_PLAN_API_KEY: { description: '阿里雲（Coding Plan）API 金鑰' },
-      ALIBABA_CODING_PLAN_BASE_URL: { description: '阿里雲（Coding Plan）基礎 URL 覆寫' },
       ANTHROPIC_API_KEY: { description: 'Anthropic API 金鑰' },
       ANTHROPIC_TOKEN: { description: 'Anthropic API 金鑰' },
       CLAUDE_CODE_OAUTH_TOKEN: { description: 'Anthropic API 金鑰' },

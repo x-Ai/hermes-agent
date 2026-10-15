@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { appVersionInfo, assertSourceUpdateChannel, nativeAboutVersion } from './app-version'
+import { appVersionInfo, assertSourceUpdateChannel, nativeAboutBuild, nativeAboutVersion } from './app-version'
 import type { InstallStamp } from './install-stamp'
 
 describe('artifact version identity', (): void => {
@@ -121,5 +121,17 @@ describe('artifact version identity', (): void => {
     expect(nativeAboutVersion({ appVersion: '9.9.9' })).toBe('9.9.9')
     expect(nativeAboutVersion({ appVersion: '0.0.0', baseVersion: '1.2.3' })).toBe('1.2.3')
     expect(nativeAboutVersion({ appVersion: '' })).toBe('unknown')
+  })
+
+  it('never shows the 0.0.0 bundle placeholder as the native About build', (): void => {
+    const stamped = { commit: 'abcdef1234567890', payload: 'bundled' } as InstallStamp
+
+    // A packaged release carries its real version in the bundle: AppKit's default stands.
+    expect(nativeAboutBuild('1.2.3', stamped)).toBeUndefined()
+    // A main-packed app shows the renderer bundle's commit when the stamp knows it…
+    expect(nativeAboutBuild('0.0.0', stamped)).toBe('abcdef1')
+    // …and otherwise no build at all, rather than the placeholder.
+    expect(nativeAboutBuild('0.0.0', null)).toBe('')
+    expect(nativeAboutBuild('', { commit: '0'.repeat(40) } as InstallStamp)).toBe('')
   })
 })

@@ -19,6 +19,7 @@ import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
 import { enSharedMetrics } from './en_shared_metrics'
 import { enThemePicker } from './en_theme_picker'
+import { enToolsetCopy } from './en_toolset_copy'
 import { enUninstallSection } from './en_uninstall_section'
 import { enUpdateChannel } from './en_update_channel'
 import type { Translations } from './types'
@@ -2498,8 +2499,6 @@ export const en: Translations = {
       ready: 'Ready',
       needsSignIn: 'Needs sign-in',
       needsSetup: 'Setup required',
-      badgeTokens: {},
-      tagCopy: {},
       activeBackend: 'Active',
       activeBackendHint: 'This is your active backend',
       useBackend: 'Use this backend',
@@ -2544,10 +2543,7 @@ export const en: Translations = {
       modelSelectedTitle: 'Model selected',
       modelSelectedMessage: model => `${model} applies to new sessions.`,
       failedSelectModel: model => `Failed to select ${model}`,
-      modelLabels: {},
-      modelSpeeds: {},
-      modelDescriptions: {},
-      modelPrices: {},
+      ...enToolsetCopy,
       terminalBackend: {
         sectionTitle: 'Execution backend',
         loading: 'Checking execution backends…',

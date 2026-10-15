@@ -76,6 +76,22 @@ export function nativeAboutVersion(info: AppVersionInfo): string {
   return 'unknown'
 }
 
+/** The native About panel's parenthesized build. AppKit shows CFBundleVersion
+ *  there, which is the 0.0.0 placeholder on an app packed from main — the
+ *  "(0.0.0)" next to a real Hermes version. A real bundle version keeps
+ *  AppKit's default (undefined = don't override); a placeholder shows the
+ *  renderer bundle's commit when the stamp knows it, and otherwise an empty
+ *  build, which drops the parentheses. */
+export function nativeAboutBuild(bundleVersion: string, stamp: Readonly<InstallStamp> | null): string | undefined {
+  if (!PLACEHOLDER_VERSIONS.has(bundleVersion)) {
+    return undefined
+  }
+
+  const commit = stamp?.commit
+
+  return commit && !/^0+$/.test(commit) ? commit.slice(0, 7) : ''
+}
+
 /** The backend may live on another machine and run a different release. */
 export function appVersionInfo(
   stamp: Readonly<InstallStamp> | null,
