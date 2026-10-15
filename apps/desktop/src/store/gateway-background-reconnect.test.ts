@@ -62,7 +62,11 @@ class NetworkSocket extends EventTarget {
     }
 
     const request = JSON.parse(data) as (typeof this.requests)[number]
-    this.requests.push(request)
+
+    // Every socket announces the window's language on open; the turn protocol under test ignores it.
+    if (request.method !== 'i18n.client_locale') {
+      this.requests.push(request)
+    }
 
     const result =
       request.method === 'session.events.since'

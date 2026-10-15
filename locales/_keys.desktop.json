@@ -327,6 +327,8 @@
     "assistant.thread.errorToastTitle",
     "assistant.thread.errorUpdateApiKey",
     "assistant.thread.expandMessage",
+    "assistant.thread.failedTurnNotice",
+    "assistant.thread.failedTurnPartialNotice",
     "assistant.thread.filesChanged",
     "assistant.thread.goForward",
     "assistant.thread.loadingLocalModel",

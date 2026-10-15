@@ -5,8 +5,9 @@ does not persist that guess, so the profile's own resolution (``HERMES_LANGUAGE`
 > ``en``) answered English under a Chinese UI: the failed-turn notice, provider labels and every
 ``_t()`` reply landed in the wrong language. A client announces what it renders over
 ``i18n.client_locale``; the claim lives with its connection (``WSTransport``: one per socket) and is
-bound into ``agent.i18n`` for every RPC body on that connection and for every turn a prompt from it
-starts (``session["client_locale"]``, so follow-up turns and off-turn events keep the language).
+bound into ``agent.i18n`` for every RPC body on that connection and, through every session-scoped
+RPC it sends, onto the session (``session["client_locale"]``), so the turns and off-turn events of a
+session the connection drives keep the language.
 """
 
 from __future__ import annotations
@@ -52,9 +53,10 @@ def client_locale(transport: Any) -> str:
 
 
 def remember_session_client_locale(session: dict, transport: Any) -> None:
-    """Carry the submitting connection's claim onto the session, so the turn thread (which does not
-    inherit the RPC context) and every later off-turn body for this session render in it. A submit
-    with no claim (hosted-room / relay dispatch, an old client) leaves the previous one in place."""
+    """Carry the connection's claim onto the session (``server._sess_nowait``: every session-scoped
+    RPC, prompt.submit included), so the turn thread (which does not inherit the RPC context) and
+    every later off-turn body for this session render in it. A request with no claim (hosted-room /
+    relay dispatch, an old client) leaves the previous one in place."""
     if lang := client_locale(transport):
         session["client_locale"] = lang
 

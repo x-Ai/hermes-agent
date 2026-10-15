@@ -3,6 +3,9 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // Backend wait / retry status lines (see types_provider_wait.ts), spread into
 // `assistant.thread` in ja.ts.
 export const jaProviderWait: ProviderWaitThreadCopy = {
+  failedTurnNotice: 'リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください',
+  failedTurnPartialNotice:
+    'このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください',
   modelContinuing: (attempt, maxAttempts) =>
     `モデルが思考内容のみを返し、最終回答がないため、続きを要求しています（${attempt}/${maxAttempts}）`,
   providerReconnecting: (elapsedSeconds, kind) =>

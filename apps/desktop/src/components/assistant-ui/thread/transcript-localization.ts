@@ -87,10 +87,27 @@ const INTERRUPTED_TRANSCRIPT_PATTERNS: TranscriptLocalizationPattern[] = [
   }
 ]
 
+// The boundary rows Hermes writes when a turn ends without a reply
+// (`agent/turn_failure_copy.py`, `display_kind: failed_turn`). The backend
+// authors them in the connection's announced language, but a row written on a
+// socket that had not announced yet (a reconnect after a backend restart) is
+// stored in English for good — so the stored English is mapped here as well.
+const FAILED_TURN_TRANSCRIPT_PATTERNS: TranscriptLocalizationPattern[] = [
+  {
+    pattern: /^Your request was not processed\. Send it again if you still want me to carry it out\.$/,
+    format: (_match, copy) => copy.failedTurnNotice
+  },
+  {
+    pattern:
+      /^This turn did not complete\. Some actions may already have run; verify their effects before resending\.$/,
+    format: (_match, copy) => copy.failedTurnPartialNotice
+  }
+]
+
 export function localizeAssistantTranscriptText(text: string, copy: AssistantThreadCopy, locale: Locale): string {
   const trimmed = text.trim()
 
-  for (const candidate of INTERRUPTED_TRANSCRIPT_PATTERNS) {
+  for (const candidate of [...INTERRUPTED_TRANSCRIPT_PATTERNS, ...FAILED_TURN_TRANSCRIPT_PATTERNS]) {
     const match = trimmed.match(candidate.pattern)
 
     if (match) {

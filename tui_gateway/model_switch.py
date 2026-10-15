@@ -134,11 +134,14 @@ def _release_profile_runtime_scope_tokens(scopes: _TurnScopes | None) -> None:
 def _session_profile_runtime_scope(session: dict, *, hydrate_secrets: bool = True):
     """Bind model resolution to the session's profile config and secrets (launch profile included
     once the process multiplexes; see ``_profile_runtime_scope_tokens``) plus the display language
-    the session's client announced, so an off-turn body's copy matches its screen."""
-    from tui_gateway.client_locale import client_language_scope
+    the session's client announced, so an off-turn body's copy matches its screen. A session that
+    carries no claim yet keeps the one of the connection the request arrived on (binding an empty
+    claim here blanked it, and the large-context switch confirm came out English)."""
+    from tui_gateway.client_locale import client_language_scope, client_locale
+    from tui_gateway.transport import current_transport
     scopes = _profile_runtime_scope_tokens(session.get("profile_home"), hydrate_secrets=hydrate_secrets)
     try:
-        with client_language_scope(session.get("client_locale")):
+        with client_language_scope(session.get("client_locale") or client_locale(current_transport())):
             yield
     finally:
         _release_profile_runtime_scope_tokens(scopes)

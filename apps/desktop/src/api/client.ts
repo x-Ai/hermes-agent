@@ -6,6 +6,7 @@ import type { HermesApiRequest } from '@/global'
 // which imports `@/hermes` → `./client` — a cycle vitest cannot resolve when a
 // test mocks `@/hermes` with a factory that imports this module (the whole ui
 // project deadlocked at collection).
+import { announceRuntimeLocale } from '@/i18n/backend-packs'
 import { translateNow } from '@/i18n/runtime'
 
 // Desktop startup fires a burst of read-only data calls (config, profiles,
@@ -42,6 +43,8 @@ export class HermesGateway extends JsonRpcGatewayClient {
       connectErrorMessage: () => translateNow('notifications.toast.gatewayConnectFailed'),
       createRequestId: nextId => nextId,
       notConnectedErrorMessage: GATEWAY_NOT_CONNECTED_MESSAGE,
+      // Per connection, per open: the backend keys the announced language on its transport.
+      onOpen: client => announceRuntimeLocale((method, params) => client.request(method, params)),
       // The channel already answered -32603; surface the crash in devtools like the dial-failure sink.
       onRequestHandlerError: (error, request) =>
         console.error(`[gateway] server request handler crashed for ${request.method} (${request.id}):`, error),

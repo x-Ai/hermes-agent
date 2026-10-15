@@ -54,6 +54,9 @@ export const arAssistant = {
         memoryLabel: 'الذاكرة',
         userProfileLabel: 'ملف المستخدم'
       },
+      failedTurnNotice: 'لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه.',
+      failedTurnPartialNotice:
+        'لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال.',
       operationInterrupted: 'تمت مقاطعة العملية.',
       operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
         `تمت مقاطعة العملية أثناء إعادة المحاولة (${reason}، المحاولة ${attempt}/${maxAttempts}).`,

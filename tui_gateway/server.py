@@ -50,6 +50,7 @@ from tui_gateway.user_messages import (
     AGENT_BUILD_ABANDONED, agent_init_failed_message, agent_missing_for_turn, agent_still_starting, busy_message,
     resume_failed_message, turn_error_text, handoff_busy_message)
 from agent.i18n import t as _t  # split-module bodies run under this namespace
+from tui_gateway.client_locale import remember_session_client_locale
 from tui_gateway.transport import (FanoutTransport, StdioTransport, Transport, bind_transport,
                                    current_transport, reset_transport)
 
@@ -1228,6 +1229,9 @@ def _sess_nowait(params, rid):
     sid = params.get("session_id") or ""
     s = _sessions.get(sid)
     if s:
+        # The connection's announced language rides onto the session on EVERY session-scoped RPC: a
+        # session resumed after a backend restart otherwise kept no claim until its next prompt.
+        remember_session_client_locale(s, current_transport())
         return (s, None)
     # Stale runtime id (reaped/evicted/TTL): the client should session.resume the STORED id. Logged so
     # "message vanished" reads as "arrived and was rejected".

@@ -31,6 +31,8 @@ import { markNativeNotifyBaseline } from '@/store/notify-baseline'
 import { setConnection, setGatewayState } from '@/store/session'
 import { stampSecondaryProfileOwner } from '@/store/session-event-provenance'
 
+import { isMissingConnectionError, isMissingProfileError } from './gateway-dial-errors'
+
 // ── Multi-profile gateway routing ──────────────────────────────────────────
 // Concurrent sessions across profiles need concurrent sockets: the renderer's
 // event handler is already session-keyed, so the only thing stopping two
@@ -558,6 +560,13 @@ export function gatewayActivationEpoch(): number {
   return Number.isFinite(g.activationEpoch) ? g.activationEpoch : 0
 }
 
+/** Every socket this window owns right now (the primary and the registry secondaries), any state. */
+export function liveGateways(): HermesGateway[] {
+  const secondaries = [...g.secondaries.values()].map(entry => entry.gateway)
+
+  return g.primaryGateway ? [g.primaryGateway, ...secondaries] : secondaries
+}
+
 export function activeGateway(): HermesGateway | null {
   if (g.activeKey === g.primaryProfile) {
     return g.primaryGateway
@@ -1066,25 +1075,6 @@ async function reconnectSecondary(entry: Secondary): Promise<void> {
       scheduleReconnect(entry)
     }
   }
-}
-
-// Electron's getConnectionFor rejects with `No connection with id "…"` when
-// the registry entry is gone. That is a permanent condition for the scoped
-// socket, unlike transient transport errors.
-function isMissingConnectionError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error ?? '')
-
-  return message.includes('No connection with id')
-}
-
-// Electron's spawn guard (assertLocalProfileCanStart) rejects with these when
-// the profile's directory is gone or its DELETE is still in flight. For a
-// renderer socket that condition is permanent: the backend it reconnects to
-// can never come back, and every retry hammers the guard (#88769).
-function isMissingProfileError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error ?? '')
-
-  return message.includes('no longer exists') || message.includes('is being deleted')
 }
 
 function createSecondary(profile: string, connectionId: null | string = null): Secondary {

@@ -22,6 +22,7 @@ import { isRecord } from '@hermes/shared/i18n'
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 
 import { type AppLocaleRegistration, normalizeLocaleId, replaceAppLocaleSource } from './registry'
+import { getRuntimeI18nLocale } from './runtime'
 
 export type BackendLocaleRequest = <T>(method: string, params: Record<string, unknown>) => Promise<T>
 
@@ -138,4 +139,17 @@ export async function syncBackendLocalePacks(
  */
 export async function announceClientLocale(request: BackendLocaleRequest, lang: null | string): Promise<void> {
   await tolerant(() => request<unknown>('i18n.client_locale', { lang: lang ? normalizeLocaleId(lang) : '' }))
+}
+
+/**
+ * Announce the language this window renders right now. Every socket calls it
+ * on every open (`HermesGateway`'s `onOpen`): the claim lives with the
+ * backend's transport, so a reconnect after a backend restart or sleep/wake
+ * and every registry secondary start without one — and the backend-authored
+ * transcript rows that follow (the failed-turn notice, slash replies,
+ * refusals) would fall back to the profile's unset `display.language`. The
+ * gateway store re-announces to the open sockets when the language changes.
+ */
+export function announceRuntimeLocale(request: BackendLocaleRequest): void {
+  void announceClientLocale(request, getRuntimeI18nLocale())
 }

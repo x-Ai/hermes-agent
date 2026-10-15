@@ -3,6 +3,9 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // Backend wait / retry status lines (see types_provider_wait.ts), spread into
 // `assistant.thread` in en.ts.
 export const enProviderWait: ProviderWaitThreadCopy = {
+  failedTurnNotice: 'Your request was not processed. Send it again if you still want me to carry it out.',
+  failedTurnPartialNotice:
+    'This turn did not complete. Some actions may already have run; verify their effects before resending.',
   modelContinuing: (attempt, maxAttempts) =>
     `The model returned reasoning without a final answer — asking it to continue (${attempt}/${maxAttempts})`,
   providerReconnecting: (elapsedSeconds, kind) =>

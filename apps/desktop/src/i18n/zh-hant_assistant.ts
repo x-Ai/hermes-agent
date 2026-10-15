@@ -84,6 +84,8 @@ export const zhHantAssistant = {
         memoryLabel: '記憶',
         userProfileLabel: '使用者資料'
       },
+      failedTurnNotice: '你的請求未被處理。如果你仍希望我執行，請重新傳送。',
+      failedTurnPartialNotice: '此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。',
       operationInterrupted: '操作已中斷。',
       operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
         `操作已中斷：重試過程中（${reason}，第 ${attempt}/${maxAttempts} 次嘗試）。`,

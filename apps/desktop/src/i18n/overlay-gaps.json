@@ -48,6 +48,8 @@
   "assistant.thread.emojiSearch": ["de","es","fr"],
   "assistant.thread.errorCodes.no_reply.body": ["ar","ja","ru"],
   "assistant.thread.errorCodes.no_reply.title": ["ar","ja","ru"],
+  "assistant.thread.failedTurnNotice": ["de","es","fr"],
+  "assistant.thread.failedTurnPartialNotice": ["de","es","fr"],
   "assistant.thread.messageFrom": ["de","es","fr"],
   "assistant.thread.messagedAgent": ["de","es","fr"],
   "assistant.thread.messagingAgent": ["de","es","fr"],

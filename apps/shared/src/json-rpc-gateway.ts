@@ -33,6 +33,10 @@ export interface GatewayClientOptions {
   onRequestHandlerError?: JsonRpcRequestChannelOptions['onRequestHandlerError']
   /** No handler accepted a server→client request; the channel already answered `-32601`. */
   onUnhandledRequest?: JsonRpcRequestChannelOptions['onUnhandledRequest']
+  /** Runs after every successful open — the first connect and each reconnect — once the client
+   *  accepts requests: the place for per-connection announcements (the Desktop's `i18n.client_locale`),
+   *  which a reconnect would otherwise silently lose. */
+  onOpen?: (client: JsonRpcGatewayClient) => void
   /** Return true to intercept the default closed-state transition. */
   onSocketClose?: (event: { code: number }) => boolean | void
   /** Fetch `session.events.since` after a reconnect (default). Off for notification-only feeds whose peer never answers RPCs. */
@@ -156,9 +160,9 @@ export class JsonRpcGatewayClient {
   private replayEpoch: string | null = null
   private readonly stateHandlers = new Set<(state: ConnectionState) => void>()
   private readonly options: Required<
-    Omit<GatewayClientOptions, 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
+    Omit<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
   > &
-    Pick<GatewayClientOptions, 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
+    Pick<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
 
   constructor(options: GatewayClientOptions = {}) {
     this.options = {
@@ -169,6 +173,7 @@ export class JsonRpcGatewayClient {
       heartbeatDeadlineMs: options.heartbeatDeadlineMs ?? DEFAULT_HEARTBEAT_DEADLINE_MS,
       heartbeatIntervalMs: options.heartbeatIntervalMs ?? DEFAULT_HEARTBEAT_INTERVAL_MS,
       notConnectedErrorMessage: options.notConnectedErrorMessage ?? 'gateway not connected',
+      onOpen: options.onOpen,
       onSocketClose: options.onSocketClose ?? (() => false),
       replay: options.replay ?? true,
       requestIdPrefix: options.requestIdPrefix ?? 'r',
@@ -271,6 +276,7 @@ export class JsonRpcGatewayClient {
         // reads. Replay stays fire-and-forget; connect latency is unchanged.
         this.fetchReplay()
         this.setState('open')
+        this.options.onOpen?.(this)
         resolve()
       }
 

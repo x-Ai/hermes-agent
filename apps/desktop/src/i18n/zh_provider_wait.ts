@@ -3,6 +3,8 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // Backend wait / retry status lines (see types_provider_wait.ts), spread into
 // `assistant.thread` in zh.ts.
 export const zhProviderWait: ProviderWaitThreadCopy = {
+  failedTurnNotice: '你的请求未被处理，如果你仍希望我执行，请重新发送',
+  failedTurnPartialNotice: '本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送',
   modelContinuing: (attempt, maxAttempts) =>
     `模型仅返回了思考内容，未给出最终回答，正在请求继续（第 ${attempt}/${maxAttempts} 次）`,
   providerReconnecting: (elapsedSeconds, kind) =>

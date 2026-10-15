@@ -15,6 +15,7 @@ import { shouldApplyPostBootProgressError } from '@/components/boot-failure-reau
 import type { DesktopBootProgress, HermesConnection, HermesWindowState } from '@/global'
 import { HermesGateway } from '@/hermes'
 import { translateNow } from '@/i18n'
+import { subscribeRuntimeI18nLocale } from '@/i18n/runtime'
 import { desktopDefaultCwd } from '@/lib/desktop-fs'
 import {
   decideLivenessForceClose,
@@ -57,6 +58,7 @@ import {
   setPrimaryGatewayConnection,
   touchSecondaryGateways
 } from '@/store/gateway'
+import { announceClientLocaleToOpenGateways } from '@/store/gateway-client-locale'
 import { type GatewayReconnectOptions, reconnectGateway, registerGatewayReconnect } from '@/store/gateway-reconnect'
 import {
   $gatewaySwitching,
@@ -1080,6 +1082,8 @@ export function useGatewayBoot({
     })
 
     const offActiveGatewayReauth = $gateway.listen(syncPrimaryReauthError)
+    // The language switcher (or the OS default settling) re-announces to every open socket.
+    const offLocale = subscribeRuntimeI18nLocale(() => announceClientLocaleToOpenGateways())
     const offActiveStateReauth = $gatewayState.listen(syncPrimaryReauthError)
 
     const offState = gateway.onState(st => {
@@ -1705,6 +1709,7 @@ export function useGatewayBoot({
       offPoolRetiring?.()
       offGatewayReconnect()
       offActiveGatewayReauth()
+      offLocale()
       offActiveStateReauth()
       offState()
       offEvent()

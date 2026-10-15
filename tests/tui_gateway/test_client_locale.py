@@ -77,12 +77,49 @@ def test_claim_rides_onto_the_session_only_when_the_submit_carries_one():
     assert session["client_locale"] == "ja"
 
 
+def test_every_session_scoped_rpc_carries_the_connections_claim_onto_the_session(monkeypatch):
+    """A session resumed after a backend restart sees no prompt before its first history read; the
+    claim must not wait for prompt.submit, or that session's first failed turn is written in English."""
+    claimed, bare = _Transport(), _Transport()
+    remember_client_locale(claimed, "zh")
+    monkeypatch.setitem(server._sessions, "sid-locale", {"profile_home": None})  # an empty dict reads as "no session"
+
+    token = bind_transport(claimed)
+    try:
+        session, err = server._sess_nowait({"session_id": "sid-locale"}, "r")
+    finally:
+        reset_transport(token)
+    assert err is None and session["client_locale"] == "zh"
+
+    token = bind_transport(bare)  # a later RPC from an unannounced connection keeps the claim
+    try:
+        server._sess_nowait({"session_id": "sid-locale"}, "r")
+    finally:
+        reset_transport(token)
+    assert session["client_locale"] == "zh"
+
+
 def test_session_runtime_scope_binds_the_sessions_client_language():
     with server._session_profile_runtime_scope({"profile_home": None, "client_locale": "zh"}, hydrate_secrets=False):
         assert i18n.t(KEY) == i18n.t(KEY, lang="zh")
     assert i18n.t(KEY) == i18n.t(KEY, lang="en")
     with server._session_profile_runtime_scope({"profile_home": None}, hydrate_secrets=False):
         assert i18n.t(KEY) == i18n.t(KEY, lang="en")
+
+
+def test_session_runtime_scope_falls_back_to_the_connections_claim():
+    """The model-switch confirm renders inside this scope during an RPC: a session with no claim of
+    its own must not blank the language the request's connection announced."""
+    transport = _Transport()
+    remember_client_locale(transport, "zh")
+    token = bind_transport(transport)
+    try:
+        with server._session_profile_runtime_scope({"profile_home": None}, hydrate_secrets=False):
+            assert i18n.t(KEY) == i18n.t(KEY, lang="zh")
+        with server._session_profile_runtime_scope({"profile_home": None, "client_locale": "ja"}, hydrate_secrets=False):
+            assert i18n.t(KEY) == i18n.t(KEY, lang="ja")  # the session's own claim still wins
+    finally:
+        reset_transport(token)
 
 
 def test_slotted_transports_can_carry_a_claim_and_doubles_that_cannot_are_tolerated():
