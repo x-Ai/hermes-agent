@@ -599,6 +599,22 @@ describe('buildToolView memory status', () => {
     expect(view.subtitle).toBe('Applied 1 operation(s).')
   })
 
+  it('renders the count label in the UI language, falling back to the English plural for an unknown noun', () => {
+    const saved = { result: { success: true, entry_count: 13 } }
+
+    setRuntimeI18nLocale('zh')
+    expect(memory(saved).countLabel).toBe('13 条记录')
+    expect(buildToolView(part({ result: { widget_count: 2 }, toolName: 'custom_tool' }), '').countLabel).toBe(
+      '2 widgets'
+    )
+
+    setRuntimeI18nLocale('zh-hant')
+    expect(memory(saved).countLabel).toBe('13 筆記錄')
+
+    setRuntimeI18nLocale('en')
+    expect(memory(saved).countLabel).toBe('13 entries')
+  })
+
   it('uses soft warning copy for over-budget refusals, not "Saved"', () => {
     const view = memory({
       result: {

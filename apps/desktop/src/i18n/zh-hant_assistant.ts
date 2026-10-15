@@ -1,5 +1,6 @@
 import type { TranslationOverrides } from './define-locale'
 import { zhHantThemePicker } from './zh-hant_theme_picker'
+import { TOOL_COUNT_UNITS } from './zh-hant_tool_count_units'
 
 export const zhHantAssistant = {
   assistant: {
@@ -470,7 +471,7 @@ export const zhHantAssistant = {
         unavailable: '目前環境無法使用澄清問題工具',
         inputFailed: detail => `取得使用者輸入失敗：${detail}`
       },
-      countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
+      countLabel: (count, noun, displayNoun) => `${count} ${TOOL_COUNT_UNITS[noun] ?? displayNoun}`,
       runSummary: {
         analyze: {
           count: (count, live) => `${live ? '正在分析' : '分析了'} ${count} 張圖片`,

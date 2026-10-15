@@ -417,8 +417,10 @@ function pluralizeNoun(noun: string, count: number): string {
   return `${noun}s`
 }
 
+// The catalog renders the unit: English keeps the plural built here (`13 entries`), the
+// Chinese catalogs replace it with their own measure word for the noun (`13 条记录`).
 function formatCountLabel(metric: CountMetric): string {
-  return `${metric.count} ${pluralizeNoun(metric.noun, metric.count)}`
+  return translateNow('assistant.tool.countLabel', metric.count, metric.noun, pluralizeNoun(metric.noun, metric.count))
 }
 
 function countMetric(count: number, noun: string): CountMetric {

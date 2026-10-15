@@ -21,6 +21,7 @@ import { zhRuntime } from './zh_runtime'
 import { zhSharedMetrics } from './zh_shared_metrics'
 import { zhTerminalBackend } from './zh_terminal_backend'
 import { zhThemePicker } from './zh_theme_picker'
+import { TOOL_COUNT_UNITS } from './zh_tool_count_units'
 import {
   zhModelDescriptions,
   zhModelLabels,
@@ -31,20 +32,6 @@ import {
   zhToolsetTagCopy
 } from './zh_toolset_copy'
 import { zhUpdateChannel } from './zh_update_channel'
-
-const TOOL_COUNT_UNITS: Record<string, string> = {
-  document: '个文档',
-  entry: '条记录',
-  file: '个文件',
-  item: '项',
-  match: '个匹配项',
-  result: '个结果',
-  row: '行',
-  search: '次搜索',
-  source: '个来源',
-  step: '个步骤',
-  task: '个任务'
-}
 
 export const zhOverrides = {
   externalOpenFailed: {
