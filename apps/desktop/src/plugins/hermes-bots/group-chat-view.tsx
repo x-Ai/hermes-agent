@@ -1800,8 +1800,14 @@ export function openGroupChat(group: string): void {
 
   if (typeof host.openWorkspace === 'function') {
     try {
+      // A hosted room's projection names it; one opened before its first sync is named by its binding.
+      const title = groupChatDisplayName(
+        group,
+        $groupChats.get()[group] ?? { displayName: $canonicalGroupBindings.get()[group]?.roomName }
+      )
+
       const close = host.openWorkspace(`${ID}:group:${slugifyProfileName(group)}`, {
-        title: groupChatDisplayName(group, $groupChats.get()[group]),
+        title,
         minWidth: '24rem',
         render: () => <GroupChatMainView group={group} />,
         onClose: () => {
