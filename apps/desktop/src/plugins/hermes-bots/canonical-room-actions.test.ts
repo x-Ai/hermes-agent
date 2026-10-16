@@ -20,6 +20,7 @@ vi.mock('./i18n', () => ({
   botsText: () => ({
     group: {
       canonicalActionFailed: (error: string) => `act:${error}`,
+      canonicalAttachmentsUnsupported: (group: string) => `files:${group}`,
       canonicalSendFailed: (error: string) => `send:${error}`,
       routedAttachmentsBlocked: (group: string) => `blocked:${group}`
     }
@@ -157,17 +158,87 @@ describe('sendToCanonicalRoom', () => {
     expect(host.notify).toHaveBeenCalledWith({ kind: 'error', message: 'send:room is full' })
   })
 
-  it('refuses attachments on the in-process member route', async () => {
+  const picture = { data: 'data:image/png;base64,AAAA', kind: 'image' as const, name: 'a.png' }
+
+  it('uploads attachments to the room, binds them to the send and retires the entry by its durable id', async () => {
+    const calls = script(
+      {
+        'groups.attachment.upload': params => ({
+          attachment_id: 'att_' + '1'.repeat(32),
+          kind: params.kind,
+          mime: params.mime,
+          name: params.name,
+          size: 3,
+          sha256: 'x',
+          state: 'uncommitted'
+        }),
+        'groups.send': params => ({ accepted: true, event: { event_id: `user:${params.event_id}`, seq: 1 } })
+      },
+      ['room_settings', 'member_sessions', 'room_live', 'activity_watch', 'room_attachments']
+    )
+
+    await syncCanonicalRoom(KEY, binding)
+    const room = $groupChats.get()[KEY]
+
+    const thread = sendToCanonicalRoom(KEY, room, 'look', null, [picture])
+    expect(thread).toMatch(/[0-9a-f-]{36}/)
+    // The picture shows at once, from the composer's own bytes.
+    expect($groupChats.get()[KEY].log.at(-1)?.images).toEqual([picture])
+
+    await flush()
+    await flush()
+    expect(calls.find(([method]) => method === 'groups.attachment.upload')?.[1]).toMatchObject({
+      data_base64: 'AAAA',
+      kind: 'image',
+      mime: 'image/png',
+      name: 'a.png',
+      room_id: 'r1'
+    })
+    expect(calls.find(([method]) => method === 'groups.send')?.[1]).toMatchObject({
+      payload: {
+        attachments: [
+          { attachment_id: 'att_' + '1'.repeat(32), kind: 'image', mime: 'image/png', name: 'a.png', size: 3 }
+        ],
+        text: 'look',
+        thread_id: thread
+      }
+    })
+    // The pending entry now carries the gateway's event id, so the log echo replaces it instead of doubling it.
+    const send = calls.find(([method]) => method === 'groups.send')?.[1]
+    const shown = $groupChats.get()[KEY].log.filter(entry => entry.text === 'look')
+    expect(shown.map(entry => entry.id)).toEqual([`user:${send?.event_id}`])
+    expect(host.notify).not.toHaveBeenCalled()
+  })
+
+  it('refuses attachments up front when a member runs on another machine', async () => {
+    const calls = script({
+      'groups.state': () => ({
+        room: {
+          ...ROOM,
+          members: [...ROOM.members, { member_id: 'far', profile: 'far', handle: 'far', target: { kind: 'peer' } }]
+        },
+        driver_status: { working: false }
+      })
+    })
+
+    await syncCanonicalRoom(KEY, binding)
+    const room = $groupChats.get()[KEY]
+
+    expect(sendToCanonicalRoom(KEY, room, 'look', null, [picture])).toBeNull()
+    expect(host.notify).toHaveBeenCalledWith({ kind: 'error', message: 'files:Release room' })
+    expect(calls.some(([method]) => method === 'groups.send' || method === 'groups.attachment.upload')).toBe(false)
+  })
+
+  it('withdraws the entry when the gateway does not carry room attachments', async () => {
     const calls = script()
     await syncCanonicalRoom(KEY, binding)
     const room = $groupChats.get()[KEY]
 
-    expect(
-      sendToCanonicalRoom(KEY, room, 'look', null, [
-        { data: 'data:image/png;base64,AAAA', kind: 'image', name: 'a.png' }
-      ])
-    ).toBeNull()
-    expect(host.notify).toHaveBeenCalledWith({ kind: 'error', message: 'blocked:Release room' })
+    expect(sendToCanonicalRoom(KEY, room, '', null, [picture])).toMatch(/[0-9a-f-]{36}/)
+    await flush()
+    await flush()
+    expect($groupChats.get()[KEY].log.some(entry => entry.images?.length)).toBe(false)
+    expect(host.notify).toHaveBeenCalledWith({ kind: 'error', message: 'send:files:Release room' })
     expect(calls.some(([method]) => method === 'groups.send')).toBe(false)
   })
 })

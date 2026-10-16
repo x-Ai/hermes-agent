@@ -127,13 +127,13 @@ Routines 本质上就是命名空间为 `[bot:<name>] <routine>` 的普通 [Herm
 - **@ 标签**可以从任意输入框把草稿发进房间。**Group settings** 可以重命名房间，修改它的标签、目录和**检测停止指令**；**解散**会在 gateway 上移除这个房间，对所有客户端生效。
 - 每条回复下的**思考与执行**和实时的**执行中…**一行由 gateway 在房间打开期间提供：Desktop 会观察这个房间（`groups.watch`），成员的推理、工具调用和结果以 `room.activity` 事件送达。上下文用量芯片从 gateway 读取每个成员隐藏的房间会话（`groups.member_sessions`）。
 - 成员的**命令审批**会以 Desktop 房间里同样的卡片出现，并点亮房间的"需要你"徽标；回答经由 gateway 送回（`groups.approve`），可选项为**允许一次**和**拒绝**。
+- **附件**随消息一起送达。Desktop 先把每个文件上传到房间所在的 gateway（`groups.attachment.upload`），消息再把它们绑定进去（`groups.send`）；gateway 为房间成员提交这些文件，并在每个成员的轮次开始前把它们放进该成员的房间会话：图片作为图片，其他文件放进会话的 `attachments/` 目录，并在提示词里用一行 `[Shared attachment] file:` 点名，与 `hermes gateway run` 进程组装的提示词相同。房间里它们显示为图片，或显示为点一下就能保存文件的芯片（`groups.attachment.download`）。gateway 通过 `room_attachments` 声明这项能力；旧版 gateway，或者有成员在其他机器上的房间，会在发送前直接拒绝附件，因为跨机器通道只承载文本。
 - 房间的图片、置顶、排序和分区归档仍保存在这台 Desktop 上，与 Desktop 房间相同。
 
 **迁移已有的房间。** 在一个 Desktop 房间上打开 **Group settings**，选择**交给网关托管…**（当连接的 gateway 能容纳它的全部成员时才会出现）。随后会创建并打开一个名称、成员、图片、@ 标签、目录和停止指令检测设置都相同的托管群聊；原来的 Desktop 房间以 `<名称>（Desktop）` 的名字保留历史记录，并让出 @ 标签，这样一个标签仍然只指向一个房间。历史记录本身不会复制——gateway 的日志只会随发进房间的消息增长。不再需要那些历史时，解散这个 Desktop 房间即可。
 
 托管群聊目前还做不到的事：
 
-- **附件**不能发进托管群聊（gateway 进程内的成员通道只承载文本）。请在 Desktop 房间或 Bot 聊天里发送。
 - **成员在创建时固定。** 托管群聊没有 Manage members；要改变成员，就新建一个托管群聊。
 - **停止指令**（`stop @bot`）和**检测停止指令**开关会随房间设置保存，但 gateway 的驱动器尚未执行它们。**Stop** 按钮照常取消当前运行。
 - 托管成员向你提出的**澄清问题**暂时不会出现在房间里（gateway 只上报审批），这样的轮次会等到问题自身超时。gateway 未能收尾的轮次也不会在房间里提供重试；gateway 的 `groups.retry` 方法可以处理。

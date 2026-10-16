@@ -10,7 +10,7 @@
 import type { CanonicalGroupBinding, CanonicalRoom, CanonicalRoomMember } from './canonical-groups'
 import type { GroupChatRoom } from './group-chat'
 import type { GroupTurnTrace } from './group-trace'
-import type { GroupActivityKind, GroupMember, GroupMessage } from './types'
+import type { GroupActivityKind, GroupMember, GroupMessage, HostedAttachment } from './types'
 
 export interface CanonicalRoomEvent {
   seq: number
@@ -105,6 +105,34 @@ function memberById(members: GroupMember[], memberId: unknown): GroupMember | nu
   return (id && members.find(member => member.name === id || member.targetProfile === id)) || null
 }
 
+/** The message's file manifest, bound to the event the files were committed under. */
+function hostedAttachments(value: unknown, eventId: string | undefined): HostedAttachment[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  const files: HostedAttachment[] = []
+
+  for (const item of value) {
+    const record = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>
+
+    if (typeof record.attachment_id !== 'string' || typeof record.name !== 'string') {
+      continue
+    }
+
+    files.push({
+      attachment_id: record.attachment_id,
+      event_id: eventId,
+      kind: text(record.kind) || 'file',
+      mime: text(record.mime) || 'application/octet-stream',
+      name: record.name,
+      ...(typeof record.size === 'number' ? { size: record.size } : {})
+    })
+  }
+
+  return files
+}
+
 /** The log entry one durable room event becomes; null for events that are not
  *  messages (terminal turns and room status feed the activity list instead). */
 export function canonicalEntryFromEvent(
@@ -113,12 +141,14 @@ export function canonicalEntryFromEvent(
   traces: Record<string, GroupTurnTrace> = {}
 ): GroupMessage | null {
   const payload = event.payload || {}
+  const attachments = hostedAttachments(payload.attachments, event.event_id)
 
   const base = {
     at: seconds(event.created_at),
     id: event.event_id || `seq:${event.seq}`,
     text: text(payload.text),
-    thread: text(payload.thread_id) || 'legacy'
+    thread: text(payload.thread_id) || 'legacy',
+    ...(attachments.length ? { attachments } : {})
   }
 
   if (event.kind === 'message.user') {

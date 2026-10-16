@@ -195,6 +195,21 @@ export function notePendingCanonicalSend(key: string, entry: GroupMessage): void
   }
 }
 
+/** The gateway named the durable event of a pending send: key the optimistic entry by it, so the
+ *  echo retires it (`hosted_rooms.user_event_id` derives the stored id from the client's). */
+export function rekeyPendingCanonicalSend(key: string, from: string, to: string): void {
+  const state = rooms.get(key)
+  const entry = state?.pending.get(from)
+
+  if (!state || !entry || from === to) {
+    return
+  }
+
+  state.pending.delete(from)
+  state.pending.set(to, { ...entry, id: to })
+  publishCanonicalRoom(key)
+}
+
 export function dropPendingCanonicalSend(key: string, id: string): void {
   const state = rooms.get(key)
 

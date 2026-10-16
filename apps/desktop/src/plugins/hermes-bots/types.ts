@@ -179,9 +179,22 @@ export interface GroupMessageAuthor {
   gateway?: string
 }
 
+/** One file of a gateway-hosted room message, as the room log carries it: the store manifest plus
+ *  the durable event it belongs to (`groups.attachment.download` reads it back by both). */
+export interface HostedAttachment {
+  attachment_id: string
+  event_id?: string
+  kind: string
+  mime: string
+  name: string
+  size?: number
+}
+
 export interface GroupMessage {
   /** Milliseconds. */
   at: number
+  /** Files bound to a gateway-hosted room's message (`canonical-room-model.ts`). */
+  attachments?: HostedAttachment[]
   from: GroupMessageAuthor
   id?: string
   images?: Attachment[]

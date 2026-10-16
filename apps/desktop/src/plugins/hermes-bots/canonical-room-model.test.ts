@@ -72,6 +72,43 @@ describe('canonicalEntryFromEvent', () => {
     })
     expect(canonicalEntryFromEvent({ seq: 3, kind: 'turn.settled', payload: {} }, members)).toBeNull()
   })
+
+  it("carries a message's files bound to the event they were committed under", () => {
+    const entry = canonicalEntryFromEvent(
+      {
+        ...user,
+        payload: {
+          ...user.payload,
+          attachments: [
+            { attachment_id: 'att_' + 'a'.repeat(32), kind: 'image', name: 'shot.png', mime: 'image/png', size: 12 },
+            { attachment_id: 'att_' + 'b'.repeat(32), name: 'note.txt' },
+            { name: 'no id' },
+            'junk'
+          ]
+        }
+      },
+      members
+    )
+
+    expect(entry?.attachments).toEqual([
+      {
+        attachment_id: 'att_' + 'a'.repeat(32),
+        event_id: 'e1',
+        kind: 'image',
+        mime: 'image/png',
+        name: 'shot.png',
+        size: 12
+      },
+      {
+        attachment_id: 'att_' + 'b'.repeat(32),
+        event_id: 'e1',
+        kind: 'file',
+        mime: 'application/octet-stream',
+        name: 'note.txt'
+      }
+    ])
+    expect(canonicalEntryFromEvent(user, members)?.attachments).toBeUndefined()
+  })
 })
 
 describe('canonicalActivityFromEvent', () => {

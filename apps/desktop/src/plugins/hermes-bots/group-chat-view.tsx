@@ -83,6 +83,7 @@ import { GroupClarifyCard, GroupImageControls, GroupMentionInput } from './group
 import type { GroupRoomPrompt } from './group-chat-parts'
 import { GroupMemberPicker } from './group-chat-view-members'
 import { compressGroupMemberHistory } from './group-compress'
+import { GroupEntryAttachments } from './group-entry-attachments'
 import { sweepExternalGroupWrites } from './group-external-writes'
 import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
 import { GroupHandleField } from './group-handle-field'
@@ -1496,33 +1497,8 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
               body
             )}
           </div>
-          {/* User attachments: what every responding bot was */
-          /* shown — image previews, or a named chip for */
-          /* PDFs/files. */}
-          {Array.isArray(entry.images) && entry.images.length ? (
-            <div className="mt-1 flex flex-wrap items-center gap-1.5">
-              {entry.images.map((img, imgIndex) =>
-                img.kind === 'pdf' || img.kind === 'file' ? (
-                  <div
-                    className="flex items-center gap-1 rounded-md border border-(--ui-stroke-secondary) px-1.5 py-1 text-[0.65rem] text-(--ui-text-tertiary)"
-                    key={`${entryKey}:img:${imgIndex}`}
-                    title={img.name || 'attached file'}
-                  >
-                    <Codicon className="text-[0.8rem]" name={img.kind === 'pdf' ? 'file-pdf' : 'file'} />
-                    <span className="max-w-48 truncate">{img.name || 'attached file'}</span>
-                  </div>
-                ) : (
-                  <img
-                    alt={img.name || 'attached image'}
-                    className="max-h-40 max-w-60 rounded-md border border-(--ui-stroke-secondary) object-contain"
-                    key={`${entryKey}:img:${imgIndex}`}
-                    src={img.data}
-                    title={img.name || 'attached image'}
-                  />
-                )
-              )}
-            </div>
-          ) : null}
+          {/* What the members were shown: pictures and file chips (group-entry-attachments.tsx). */}
+          <GroupEntryAttachments binding={room.canonical ?? null} entry={entry} entryKey={entryKey} />
           {/* The member's reasoning + tools behind this reply, folded away by */
           /* default (group-trace-view.tsx); the user opens it to read along. */}
           <GroupTurnTraceView hidden={isUser} trace={entry.trace} />

@@ -10,11 +10,13 @@ import { host } from '@hermes/plugin-sdk'
 
 import { registerCanonicalGroup } from './canonical-group-registry'
 import { canonicalGroupRequest, type CanonicalGroupRoute, createCanonicalGroup } from './canonical-groups'
+import { ROOM_ATTACHMENTS_FEATURE, uploadCanonicalAttachments } from './canonical-room-attachments'
 import {
   canonicalRouteFeatures,
   dropPendingCanonicalSend,
   forgetCanonicalRoom,
   notePendingCanonicalSend,
+  rekeyPendingCanonicalSend,
   syncCanonicalRoom
 } from './canonical-room-sync'
 import { recordGroupActivity } from './group-activity'
@@ -53,8 +55,10 @@ function fail(message: string): void {
 
 /** A user send into a canonical room. Returns the thread id at once (the entry
  *  shows optimistically); the gateway call runs behind it and a refusal removes
- *  the entry again with a notice. Attachments are refused: the in-process member
- *  route cannot carry files yet (`HostedRoomServerRPC.accepts_attachments`). */
+ *  the entry again with a notice. Attachments are uploaded to the room first and
+ *  bound to the message (`canonical-room-attachments.ts`); a room with a member
+ *  on another machine refuses them up front, since the peer route carries text
+ *  only and the driver would settle that member's turn as a proven failure. */
 export function sendToCanonicalRoom(
   group: string,
   room: GroupChatRoom,
@@ -65,14 +69,15 @@ export function sendToCanonicalRoom(
 ): null | string {
   const binding = canonicalOf(room)
   const trimmed = String(text || '').trim()
+  const name = groupChatDisplayName(group, room)
 
-  if (images.length) {
-    fail(botsText().group.routedAttachmentsBlocked(groupChatDisplayName(group, room)))
-
+  if (!trimmed && !images.length) {
     return null
   }
 
-  if (!trimmed) {
+  if (images.length && (room.members || []).some(member => member.remoteSource)) {
+    fail(botsText().group.canonicalAttachmentsUnsupported(name))
+
     return null
   }
 
@@ -83,25 +88,42 @@ export function sendToCanonicalRoom(
     from: { kind: 'user', name: 'You' },
     id: eventId,
     text: trimmed,
-    thread: target
+    thread: target,
+    ...(images.length ? { images } : {})
   })
   recordGroupActivity(group, { kind: 'queued', member: 'You', thread: target })
 
   void (async () => {
+    const features = await canonicalRouteFeatures(binding)
     const workspace = options.workspace ? String(options.workspace).trim() : ''
 
-    if (workspace && (await canonicalRouteFeatures(binding)).has('room_settings')) {
+    if (workspace && features.has('room_settings')) {
       await canonicalGroupRequest(binding, 'groups.settings.set', {
         patch: { thread_workspaces: { [target]: workspace } },
         room_id: binding.roomId
       })
     }
 
-    await canonicalGroupRequest(binding, 'groups.send', {
+    const payload: Record<string, unknown> = { text: trimmed, thread_id: target }
+
+    if (images.length) {
+      if (!features.has(ROOM_ATTACHMENTS_FEATURE)) {
+        throw new Error(botsText().group.canonicalAttachmentsUnsupported(name))
+      }
+
+      payload.attachments = await uploadCanonicalAttachments(binding, images)
+    }
+
+    const sent = await canonicalGroupRequest<{ event?: { event_id?: string } }>(binding, 'groups.send', {
       event_id: eventId,
-      payload: { text: trimmed, thread_id: target },
+      payload,
       room_id: binding.roomId
     })
+
+    if (sent?.event?.event_id) {
+      rekeyPendingCanonicalSend(group, eventId, sent.event.event_id)
+    }
+
     await syncCanonicalRoom(group, binding)
   })().catch((error: unknown) => {
     dropPendingCanonicalSend(group, eventId)

@@ -44,6 +44,7 @@ import {
   forgetCanonicalRoom,
   hydrateCanonicalRoomPrefs,
   notePendingCanonicalSend,
+  rekeyPendingCanonicalSend,
   startCanonicalRoomViewer,
   syncCanonicalRoom
 } from './canonical-room-sync'
@@ -229,6 +230,35 @@ describe('syncCanonicalRoom', () => {
     expect($groupChats.get()[KEY].log.map(entry => entry.id)).toEqual(['e1', 'e9'])
     const logReads = calls.filter(([method]) => method === 'groups.log').map(([, params]) => params.since_seq)
     expect(logReads).toEqual([0, 1])
+  })
+
+  it('retires an optimistic send by the durable event id the gateway gave it, not the client id', async () => {
+    const events = [
+      { seq: 1, event_id: 'e1', kind: 'message.user', created_at: 1, payload: { text: 'Hello', thread_id: 't1' } }
+    ]
+
+    script({ events })
+    await syncCanonicalRoom(KEY, binding)
+    notePendingCanonicalSend(KEY, {
+      at: 5,
+      from: { kind: 'user', name: 'You' },
+      id: 'client-9',
+      text: 'Pending',
+      thread: 't2'
+    })
+    // groups.send answered: the stored event is user:<sha256(client id)>.
+    rekeyPendingCanonicalSend(KEY, 'client-9', 'user:9f86d081')
+    expect($groupChats.get()[KEY].log.map(entry => entry.id)).toEqual(['e1', 'user:9f86d081'])
+
+    events.push({
+      seq: 2,
+      event_id: 'user:9f86d081',
+      kind: 'message.user',
+      created_at: 6,
+      payload: { text: 'Pending', thread_id: 't2' }
+    })
+    await syncCanonicalRoom(KEY, binding)
+    expect($groupChats.get()[KEY].log.map(entry => entry.id)).toEqual(['e1', 'user:9f86d081'])
   })
 
   it('names the working member from the live turn and from activity frames between polls', async () => {
