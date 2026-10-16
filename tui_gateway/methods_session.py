@@ -817,7 +817,7 @@ def _resume_locate(ctx: _Resume) -> dict | None:
     if not ctx.found and not ctx.lazy and _is_server_minted_key(ctx.target) \
             and not _any_live_session_claims_key(ctx.target):
         _resume_materialize_minted(ctx)
-    return None if ctx.found else _err(ctx.rid, 4007, "session not found")
+    return None if ctx.found else _session_not_found(ctx.rid, 4007)
 
 
 def _resume_follow_tip(ctx: _Resume) -> None:
@@ -1125,7 +1125,7 @@ def _(rid, params: dict) -> dict:
         # A draft has no row yet; the live re-home still applies (row inherits cwd on write).
         if not db.get_session(target):
             if live is None:
-                return _err(rid, 4007, "session not found")
+                return _session_not_found(rid, 4007)
         else:
             try:
                 db.update_session_cwd(target, target_cwd, branch, root, replace_git_meta=True)
@@ -1194,7 +1194,7 @@ def _(rid, params: dict) -> dict:
             return _err(rid, 4023, _t("tui_gateway.session.delete_active"))
         except Exception as e:
             return _err(rid, 5036, _t("tui_gateway.session.delete_failed", detail=e))
-    return _ok(rid, {"deleted": target}) if deleted else _err(rid, 4007, "session not found")
+    return _ok(rid, {"deleted": target}) if deleted else _session_not_found(rid, 4007)
 
 
 def _title_read(session: dict, db, key: str) -> str:
@@ -1271,7 +1271,7 @@ def _(rid, params: dict) -> dict:
             else:
                 # ``resolve_session_id`` follows key/title aliases like the REST pin/archive path.
                 if not (key := db.resolve_session_id(target) if hasattr(db, "resolve_session_id") else target):
-                    return _err(rid, 4001, "session not found")
+                    return _session_not_found(rid)
                 db.set_session_archived(key, archived)
             return _ok(rid, {"archived": archived, "session_key": key})
         except Exception as e:
@@ -1302,7 +1302,7 @@ def _(rid, params: dict) -> dict:
                 # ``resolve_session_id`` follows key/title aliases like the REST pin/archive path.
                 target = _str_param(params, "session_id")
                 if not (key := db.resolve_session_id(target) if hasattr(db, "resolve_session_id") else target):
-                    return _err(rid, 4001, "session not found")
+                    return _session_not_found(rid)
                 db.set_session_hidden(key, hidden)
             return _ok(rid, {"hidden": hidden, "session_key": key})
         except Exception as e:

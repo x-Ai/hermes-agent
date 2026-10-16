@@ -1,37 +1,18 @@
 /**
- * Whether a session RPC failed because the target session is not there: the legacy sidecar's
- * JSON-RPC 4007 ("genuinely never existed") or the canonical owner's `not_found` reason (its
- * errors share code 4001 and carry the reason in `data`; a bare `not_found` message is the same
- * verdict after a bridge dropped the frame's structure). Both leave the room engine free to mint
- * the member's session anew; every other failure must fail closed, since the real session may
- * still be there. Duck-typed: gateway errors can cross realm boundaries.
+ * Whether a session RPC failed because the target session is not there. The gateway names that
+ * verdict by reason: the canonical owner refuses with `RuntimeStoreError('not_found')`, and the
+ * legacy sidecar's "session not found" answers carry the same `data.reason` beside their
+ * historical codes (`tui_gateway/session_registry.py` `_session_not_found`). The reason is the
+ * contract; no numeric code is read. A refusal without it, whatever its code, fails closed: the
+ * real session may still be there, and minting another would fork the member's history.
+ * Duck-typed: gateway errors can cross realm boundaries.
  */
 
-interface SessionErrorLike {
-  code?: unknown
-  data?: unknown
-  message?: unknown
-}
-
-const LEGACY_NOT_FOUND_CODE = 4007
-const CANONICAL_ERROR_CODE = 4001
+export const SESSION_NOT_FOUND_REASON = 'not_found'
 
 export function isMissingSessionError(error: unknown): boolean {
-  if (!error || typeof error !== 'object') {
-    return false
-  }
-
-  const { code, data, message } = error as SessionErrorLike
-
-  if (code === LEGACY_NOT_FOUND_CODE) {
-    return true
-  }
-
+  const data = error && typeof error === 'object' ? (error as { data?: unknown }).data : undefined
   const reason = data && typeof data === 'object' ? (data as { reason?: unknown }).reason : undefined
 
-  if (reason !== undefined) {
-    return reason === 'not_found'
-  }
-
-  return (code === CANONICAL_ERROR_CODE || code === undefined) && message === 'not_found'
+  return reason === SESSION_NOT_FOUND_REASON
 }

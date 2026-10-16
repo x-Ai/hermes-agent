@@ -299,6 +299,17 @@ def _start_agent_build(sid: str, session: dict) -> None:
     build_thread.start()
 
 
+#: ``data.reason`` of every "session not found" refusal: the canonical owner's vocabulary
+#: (``RuntimeStoreError('not_found')``, ``gateway/session_controls.py``). Clients classify a missing
+#: session by this reason, never by a method's historical code (4001 here, 4007 on the resume family).
+SESSION_NOT_FOUND_REASON = "not_found"
+
+
+def _session_not_found(rid, code: int = 4001) -> dict:
+    """The sidecar's "session not found", carrying the owner's reason beside the method's code."""
+    return _err(rid, code, "session not found", {"reason": SESSION_NOT_FOUND_REASON})
+
+
 def _sess_nowait(params, rid):
     sid = params.get("session_id") or ""
     s = _sessions.get(sid)
@@ -318,7 +329,7 @@ def _sess_nowait(params, rid):
                    # "request arrived and was rejected" instead of "request never arrived" (see #90428).
                    "(detached/reaped runtime; client should resume the stored session), rid=%r",
                    _current_rpc_method.get() or "?", sid, rid)
-    return (None, _err(rid, 4001, "session not found"))
+    return (None, _session_not_found(rid))
 
 
 def _sess(params, rid):

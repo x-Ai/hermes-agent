@@ -155,7 +155,7 @@ function scriptedCwdSet(
   options: GatewayOptions
 ): { branch: string; cwd: string } {
   if (!session) {
-    throw gatewayError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
+    throw sessionNotFoundError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
   }
 
   if (options.rejectCwdSetWith) {
@@ -177,7 +177,7 @@ function scriptedWorkspaceMove(
   const session = sessions.get(String(params.session_key ?? ''))
 
   if (!session) {
-    throw gatewayError(`session not found: ${String(params.session_key)}`, 4007)
+    throw sessionNotFoundError(`session not found: ${String(params.session_key)}`, 4007)
   }
 
   if (options.rejectWorkspaceMoveWith) {
@@ -196,13 +196,19 @@ function scriptedCreateCwd(params: Record<string, unknown>): { cwd?: string } {
 }
 
 /** A gateway-shaped rejection: `.code` is what the engine branches on. */
-export function gatewayError(message: string, code: number) {
-  return Object.assign(new Error(message), { code })
+export function gatewayError(message: string, code: number, data?: Record<string, unknown>) {
+  return Object.assign(new Error(message), { code, ...(data ? { data } : {}) })
+}
+
+/** The gateway's "session not found": the owner's reason beside the method's historical code
+ *  (`tui_gateway/session_registry.py` `_session_not_found`); the engine reads the reason only. */
+export function sessionNotFoundError(message: string, code: number) {
+  return gatewayError(message, code, { reason: 'not_found' })
 }
 
 /** What a resume of a session the gateway does not have throws (`GatewayOptions.resumeNotFoundAs`). */
 function resumeNotFound(options: GatewayOptions, sessionId: unknown): unknown {
-  return options.resumeNotFoundAs ?? gatewayError(`session not found: ${String(sessionId)}`, 4007)
+  return options.resumeNotFoundAs ?? sessionNotFoundError(`session not found: ${String(sessionId)}`, 4007)
 }
 
 export interface ScriptedGateway {
@@ -416,7 +422,7 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
       const session = resolveSession(null, params.session_id)
 
       if (!session) {
-        throw gatewayError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
+        throw sessionNotFoundError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
       }
 
       attaches.push({
@@ -451,7 +457,7 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
       const session = resolveSession(null, params.session_id)
 
       if (!session) {
-        throw gatewayError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
+        throw sessionNotFoundError(`session-scoped RPC rejected: ${String(params.session_id)} not in memory`, 4001)
       }
 
       const prompt = String(params.text ?? '')
