@@ -3236,6 +3236,7 @@
     "runtimeErrors.artifactWriteFailed",
     "runtimeErrors.attachmentReadFailed",
     "runtimeErrors.audioContextUnavailable",
+    "runtimeErrors.backendConnectTimedOut",
     "runtimeErrors.backendReconnecting",
     "runtimeErrors.backgroundRestartNoTaskId",
     "runtimeErrors.builtinProviderId",

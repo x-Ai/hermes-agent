@@ -87,7 +87,7 @@ export const jaBoot = {
       permission: 'Hermes はデータ フォルダーに書き込むことができませんでした (権限の問題)。',
       diskFull: 'ディスクがいっぱいであるため、Hermes を開始できませんでした。',
       portInUse: '別のプログラムが Hermes が必要とするネットワーク ポートを使用しています。',
-      installMissing: "Hermes' インストールの一部が欠落しています。元に戻すには、修復インストールを選択します。"
+      installMissing: 'Hermes のインストールの一部が欠落しています。元に戻すには、修復インストールを選択します。'
     }
   }
 } satisfies Pick<TranslationOverrides, 'boot'>

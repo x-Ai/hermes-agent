@@ -72,7 +72,11 @@ export const enRuntime = {
     sharedEndpointPinned: (id: string, profiles: string) =>
       `'${id}' is the model provider of sharing profile(s) ${profiles}; repoint them (or stop sharing providers there) before deleting it`,
     sharedProviderAccount: (id: string) =>
-      `'${id}' is signed in from the default profile; sign out there, or sign in on this profile first`
+      `'${id}' is signed in from the default profile; sign out there, or sign in on this profile first`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null
+        ? "Timed out connecting to Hermes' background service."
+        : `Timed out connecting to Hermes' background service after ${seconds} s.`
   },
   sharedProviders: {
     badge: 'Shared from the main profile',

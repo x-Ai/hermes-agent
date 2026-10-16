@@ -71,6 +71,10 @@ export const ruRuntime = {
     sharedEndpointPinned: (id: string, profiles: string) =>
       `«${id}» — провайдер модели для профилей с общими провайдерами: ${profiles}. Перед удалением переключите их на другой провайдер (или отключите там совместное использование провайдеров).`,
     sharedProviderAccount: (id: string) =>
-      `«${id}» — вход выполнен в профиле по умолчанию. Выйдите там или сначала войдите в этом профиле.`
+      `«${id}» — вход выполнен в профиле по умолчанию. Выйдите там или сначала войдите в этом профиле.`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null
+        ? 'Не удалось дождаться ответа фоновой службы Hermes.'
+        : `Не удалось дождаться ответа фоновой службы Hermes за ${seconds} с.`
   }
 } satisfies Pick<TranslationOverrides, 'timelineEvents' | 'runtimeErrors'>

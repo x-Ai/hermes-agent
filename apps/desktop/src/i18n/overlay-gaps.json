@@ -983,6 +983,7 @@
   "runtimeErrors.artifactWriteFailed": ["de","es","fr"],
   "runtimeErrors.attachmentReadFailed": ["de","es","fr"],
   "runtimeErrors.audioContextUnavailable": ["de","es","fr"],
+  "runtimeErrors.backendConnectTimedOut": ["de","es","fr"],
   "runtimeErrors.backendReconnecting": ["de","es","fr"],
   "runtimeErrors.backgroundRestartNoTaskId": ["de","es","fr"],
   "runtimeErrors.builtinProviderId": ["de","es","fr"],

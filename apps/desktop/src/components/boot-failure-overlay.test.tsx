@@ -185,6 +185,23 @@ describe('BootFailureOverlay', () => {
     expect(screen.queryByRole('button', { name: /use local gateway/i })).toBeNull()
   })
 
+  it('shows a backend connection timeout under Details in the UI language', () => {
+    $desktopBoot.set({
+      error: 'Timed out connecting to Hermes backend after 45000ms',
+      fakeMode: false,
+      message: 'boot failed',
+      phase: 'renderer.error',
+      progress: 40,
+      running: false,
+      timestamp: Date.now(),
+      visible: true
+    })
+    render(<BootFailureOverlay />)
+    expect(screen.getByText(en.boot.causes.timedOut)).toBeTruthy()
+    expect(screen.getByText(en.runtimeErrors.backendConnectTimedOut(45))).toBeTruthy()
+    expect(screen.queryByText(/Timed out connecting to Hermes backend/)).toBeNull()
+  })
+
   it('leads with Gateway settings and drops Repair for a remote (token) failure', async () => {
     const restore = stubDesktop(remoteToken)
 

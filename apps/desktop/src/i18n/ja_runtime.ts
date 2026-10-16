@@ -73,7 +73,11 @@ export const jaRuntime = {
     sharedEndpointPinned: (id: string, profiles: string) =>
       `「${id}」はプロファイル ${profiles} のモデルプロバイダーです。削除する前に、それらのモデルの指定先を変更するか、プロバイダー共有を解除してください。`,
     sharedProviderAccount: (id: string) =>
-      `「${id}」はメインプロファイルのサインインを使用しています。メインプロファイルでサインアウトするか、先にこのプロファイルでサインインしてください。`
+      `「${id}」はメインプロファイルのサインインを使用しています。メインプロファイルでサインアウトするか、先にこのプロファイルでサインインしてください。`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null
+        ? 'Hermes のバックグラウンドサービスへの接続がタイムアウトしました。'
+        : `Hermes のバックグラウンドサービスへの接続がタイムアウトしました（${seconds} 秒待機）。`
   },
   sharedProviders: {
     badge: 'メインプロファイルから共有',

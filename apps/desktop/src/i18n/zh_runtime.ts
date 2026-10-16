@@ -67,7 +67,9 @@ export const zhRuntime = {
       `"${id}" 由主配置档案共享，请到主配置档案中修改，或先取消此配置档案的提供方共享`,
     sharedEndpointPinned: (id: string, profiles: string) =>
       `"${id}" 仍是配置档案 ${profiles} 的模型提供方，请先改变它们的模型指向（或取消其提供方共享），再删除`,
-    sharedProviderAccount: (id: string) => `"${id}" 沿用主配置档案的登录，请到主配置档案中退出，或先在此配置档案中登录`
+    sharedProviderAccount: (id: string) => `"${id}" 沿用主配置档案的登录，请到主配置档案中退出，或先在此配置档案中登录`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null ? '连接 Hermes 后台服务超时' : `连接 Hermes 后台服务超时，等待了 ${seconds} 秒`
   },
   sharedProviders: {
     badge: '由主配置档案共享',

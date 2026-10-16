@@ -59,7 +59,9 @@ export const zhHantRuntime = {
       `「${id}」由主設定檔共享，請到主設定檔中修改，或先取消此設定檔的供應商共享。`,
     sharedEndpointPinned: (id: string, profiles: string) =>
       `「${id}」仍是設定檔 ${profiles} 的模型供應商，請先更改它們的模型指向（或取消其供應商共享），再刪除。`,
-    sharedProviderAccount: (id: string) => `「${id}」沿用主設定檔的登入，請到主設定檔中登出，或先在此設定檔中登入。`
+    sharedProviderAccount: (id: string) => `「${id}」沿用主設定檔的登入，請到主設定檔中登出，或先在此設定檔中登入。`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null ? '連線 Hermes 後台服務逾時。' : `連線 Hermes 後台服務逾時，等待了 ${seconds} 秒。`
   },
   sharedProviders: {
     badge: '由主設定檔共享',

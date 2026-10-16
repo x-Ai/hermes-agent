@@ -432,7 +432,7 @@ export const zhOverrides = {
     },
     failure: {
       title: 'Hermes 无法启动',
-      description: "Hermes' 的后台服务未启动，请尝试下面的恢复步骤，这里的操作不会删除您的聊天记录或设置",
+      description: 'Hermes 的后台服务未启动，请尝试下面的恢复步骤，这里的操作不会删除您的聊天记录或设置',
       remoteTitle: '需要重新登录远程网关',
       remoteDescription: '你的远程网关会话已过期，请重新登录以恢复连接，这些操作不会删除你的对话或设置',
       retry: '重试',
@@ -615,7 +615,7 @@ export const zhOverrides = {
       gatewayAuthFailed: '该 Hermes 不再接受您保存的登录信息，请打开 网关 并重新登录（或粘贴新的访问令牌），然后重试',
       invalidExternalUrl: '外部链接无效',
       invalidPreviewUrl: '预览链接无效',
-      methodNotAllowed: "Hermes' 后台服务与应用程序不同步，可能是在更新后出现，重启它以解决此问题",
+      methodNotAllowed: 'Hermes 后台服务与应用程序不同步，可能是在更新后出现，重启它以解决此问题',
       microphonePermission: '麦克风权限已被拒绝',
       openaiRejectedApiKey: 'OpenAI 未接受您的 API 密钥，在 设置 → 密钥 中更新后再试一次',
       openaiRejectedApiKeyWithStatus: status => `OpenAI 拒绝了该 API key (${status} invalid_api_key)`,

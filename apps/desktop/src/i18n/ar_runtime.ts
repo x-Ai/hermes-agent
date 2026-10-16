@@ -61,6 +61,10 @@ export const arRuntime = {
     sharedEndpointPinned: (id: string, profiles: string) =>
       `'${id}' هو مزوّد النموذج للملفات الشخصية المشارِكة ${profiles}. أعد توجيهها (أو أوقف مشاركة المزوّدين هناك) قبل حذفه.`,
     sharedProviderAccount: (id: string) =>
-      `'${id}' مسجَّل الدخول من الملف الشخصي الافتراضي. سجّل الخروج هناك، أو سجّل الدخول في هذا الملف الشخصي أولًا.`
+      `'${id}' مسجَّل الدخول من الملف الشخصي الافتراضي. سجّل الخروج هناك، أو سجّل الدخول في هذا الملف الشخصي أولًا.`,
+    backendConnectTimedOut: (seconds: null | number) =>
+      seconds === null
+        ? 'انتهت مهلة الاتصال بخدمة Hermes الخلفية.'
+        : `انتهت مهلة الاتصال بخدمة Hermes الخلفية بعد ${seconds} ث.`
   }
 } satisfies Pick<TranslationOverrides, 'runtimeErrors'>

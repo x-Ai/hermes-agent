@@ -19,6 +19,7 @@ import { notify, notifyError } from '@/store/notifications'
 import { $desktopOnboarding } from '@/store/onboarding'
 
 import { classifyLocalBootFailure, type LocalBootFailureCopy, localBootFailureCopy } from './boot-failure-cause'
+import { localizeBootFailureDetail } from './boot-failure-detail'
 import type { RemoteReauth } from './boot-failure-reauth'
 import {
   deriveProviderShape,
@@ -527,7 +528,7 @@ export function BootFailureOverlay() {
                   className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-[0.6875rem] leading-relaxed"
                   data-selectable-text="true"
                 >
-                  {failureCopy.rawDetail}
+                  {localizeBootFailureDetail(failureCopy.rawDetail, t.runtimeErrors)}
                 </pre>
               </details>
             ) : null}

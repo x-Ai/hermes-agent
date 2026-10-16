@@ -73,6 +73,8 @@ export interface RuntimeErrorsCopy {
   sharedEndpointPinned: (id: string, profiles: string) => string
   /** The OAuth disconnect route's 422 for a sign-in the profile only reads through the global-root fallback. */
   sharedProviderAccount: (id: string) => string
+  /** The boot overlay's Details line for a backend connection timeout; `seconds` when the report named the wait. */
+  backendConnectTimedOut: (seconds: null | number) => string
 }
 
 /** Rows a bot profile reads through from the main profile (`profile.yaml` `share_providers`; the
