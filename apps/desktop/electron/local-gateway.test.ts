@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { expect, test, vi } from 'vitest'
 
-import { createLocalGatewayDials, ensureLocalGateway, nativeGrantRoute, routedGatewayEndpoint, runGatewayEnsure } from './local-gateway'
+import { createLocalGatewayDials, ensureLocalGateway, namedProfileRoute, nativeGrantRoute, routedGatewayEndpoint, runGatewayEnsure } from './local-gateway'
 import { shortSocketTmpDir } from './local-gateway.test-helpers'
 
 test('the ensure client inherits the caller-scrubbed parent env, not the raw Desktop env', async () => {
@@ -579,4 +579,14 @@ test('an update-paused ensure refusal points to the restart that completes its t
   await expect(ensureLocalGateway(async () => ({
     code: 6, stdout: JSON.stringify({ state: 'draining', reason_code: 'update_paused', endpoint: null })
   }))).rejects.toThrow('Gateway draining (update_paused). Use hermes gateway restart for recovery.')
+})
+
+test('namedProfileRoute names the profile a /api/profiles/<name>/... route is scoped by', () => {
+  expect(namedProfileRoute('/api/profiles/p2/soul')).toBe('p2')
+  expect(namedProfileRoute('/api/profiles/my%20bot/setup-command/')).toBe('my bot')
+
+  for (const other of ['/api/profiles', '/api/profiles/', '/api/profiles/sessions', '/api/profiles/sessions/sidebar',
+    '/api/profiles/projects/tree', '/api/profiles/active', '/api/config']) {
+    expect(namedProfileRoute(other)).toBeNull()
+  }
 })

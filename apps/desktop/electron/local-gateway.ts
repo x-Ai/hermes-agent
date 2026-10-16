@@ -362,6 +362,25 @@ const PROFILE_COLLECTION_ROUTES = new Set([
   'active', 'import', 'projects/tree', 'sessions', 'sessions/pull-requests', 'sessions/sidebar'
 ])
 
+/** The profile a `/api/profiles/<name>/...` route names in its path; null for the collection routes
+ *  and every other path. Its native ticket is minted for that profile (`scopedProfileOf`), so a
+ *  request must not carry a different `?profile=` selector beside it: the gateway checks both against
+ *  the grant and refuses the disagreement (`connection-config.pathWithProfileScope`). */
+export function namedProfileRoute(pathname: string): null | string {
+  const prefix = '/api/profiles/'
+  const trimmed = pathname.replace(/\/+$/, '')
+  const suffix = trimmed.startsWith(prefix) ? trimmed.slice(prefix.length) : ''
+  const segment = suffix.split('/', 1)[0]
+
+  if (!segment || PROFILE_COLLECTION_ROUTES.has(suffix)) {return null}
+
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return null
+  }
+}
+
 /** The batched sidebar names its owner in `recents_profile`. A named profile route carries its
  *  owner in the first path segment; all other profile-scoped routes use `profile`. */
 function scopedProfileOf(url: URL): null | string {

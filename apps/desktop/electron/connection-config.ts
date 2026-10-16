@@ -36,6 +36,7 @@
 //     force a needless full re-login every ~15 min — hence cookiesHaveLiveSession.
 import { readStatusCode } from './api-transport'
 import { sharesHostBackend } from './host-backend-singleton'
+import { namedProfileRoute } from './local-gateway'
 
 const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
 const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
@@ -1029,6 +1030,13 @@ function pathWithProfileScope(path, profile) {
   }
 
   if (parsed.searchParams.has('profile')) {
+    return path
+  }
+
+  // A named profile route (`/api/profiles/<name>/soul`, `/setup-command`, …) is scoped by its
+  // path: the native ticket is minted for that profile, and the gateway refuses a second,
+  // different selector beside it. The ambient window profile stays off these requests.
+  if (namedProfileRoute(parsed.pathname)) {
     return path
   }
 

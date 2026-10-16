@@ -1607,3 +1607,25 @@ test('FIX #95701: transport and server failures at the ticket mint stay retryabl
     assert.equal(wrapped.isReauthRequired, undefined)
   }
 })
+
+test('pathWithProfileScope leaves a named profile route to its path: the ticket is minted for that profile', () => {
+  // The Profiles screen edits another profile's SOUL from the default window. The native ticket is
+  // minted for the profile in the path (local-gateway scopedProfileOf); an ambient `default`
+  // selector beside it is the disagreement the gateway refuses with 403 profile_scope_mismatch.
+  assert.equal(pathWithProfileScope('/api/profiles/developer/soul', 'default'), '/api/profiles/developer/soul')
+  assert.equal(
+    pathWithProfileScope('/api/profiles/developer/setup-command', 'default'),
+    '/api/profiles/developer/setup-command'
+  )
+  assert.equal(
+    pathForRegistryBackendRequest('/api/profiles/developer/soul', 'default', { mode: 'local' }),
+    '/api/profiles/developer/soul'
+  )
+  // Collection routes under /api/profiles keep naming their owner.
+  assert.equal(pathWithProfileScope('/api/profiles/sessions', 'default'), '/api/profiles/sessions?profile=default')
+  assert.equal(
+    pathWithProfileScope('/api/profiles/projects/tree', 'research'),
+    '/api/profiles/projects/tree?profile=research'
+  )
+  assert.equal(pathWithProfileScope('/api/profiles', 'research'), '/api/profiles?profile=research')
+})
