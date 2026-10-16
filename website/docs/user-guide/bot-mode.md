@@ -176,6 +176,27 @@ Use the **Move up** and **Move down** arrows beside a room to choose its positio
 - **Plugins can watch members work.** The durable room log records `turn.started` and `turn.settled`; what a member does in between (tools, approvals, streamed text) is projected to plugins through the [`on_room_member_activity`](./features/hooks.md#on_room_member_activity) hook with room, member and turn coordinates, so community clients can build tool cards and live member status on top of Group Chat without reading Hermes internals.
 - **What a member says outside the room still reaches it.** Each member's room session is an ordinary Hermes session (titled `Group: <room> · <thread>`), so you can resume it from the CLI, a routine can post into it, or the Bot's own tools can write to it. When you open the room, and again each time the room drives that member, whatever those writers added since the room last looked — your questions and the member's answers — is posted into the room log under that member's name, once, in the thread the session belongs to; a window restart does not repeat it. The room's own turn prompts and their replies are never duplicated this way, and neither are the agent's housekeeping rows (context compaction notes, routine deliveries, delegation results) or the member's reactions to them. The room starts watching a session the first time it sees it: what was already in that session by then is not replayed, so a room restored on a second Desktop does not re-post its members' history.
 
+### Gateway-hosted rooms
+
+When every member of a new group lives on the gateway you are connected to and that gateway hosts room settings (this fork's gateway advertises `room_settings` in `groups.capabilities`), **New Group Chat** creates a **gateway-hosted room** instead of a Desktop room. The gateway owns the room — its members, its durable message log and the turn driver — so the room keeps running while Hermes Desktop is closed, and every Desktop connected to that gateway sees the same room. A hosted room's roster row carries a small server glyph. When the picker seats a Bot from another connection, or the gateway is older, a Desktop room is created as before.
+
+Everything this fork adds to rooms works on a hosted room; the room's settings live on the gateway beside the room (`groups.settings.get` / `groups.settings.set`), not in this Desktop's storage:
+
+- The **working directory** ladder — the room folder, per-member folders and the folder a thread was started in — is applied by the gateway before each member turn, so it holds on every Desktop and for turns no Desktop watched.
+- The **@handle** routes a draft from any composer. **Group settings** renames the room and edits its handle, folders and **Detect stop directives**; **Disband** removes the room on the gateway, for every client.
+- **Thinking & actions** under each reply and the live **Working…** line are fed by the gateway while the room is open: the Desktop watches the room (`groups.watch`) and receives its members' reasoning, tool calls and results as `room.activity` events. The context-usage chips read each member's hidden room session from the gateway (`groups.member_sessions`).
+- A member's **command approval** appears as the same card a Desktop room shows and lights the room's needs-you badge; the answer goes back through the gateway (`groups.approve`), with **Allow once** and **Deny** as the choices.
+- The room's picture, pin, order and section filing stay on this Desktop, as for Desktop rooms.
+
+**Moving an existing room.** Open **Group settings** on a Desktop room and choose **Host on the gateway…** (offered when the connected gateway can seat all of its members). A hosted room with the same name, members, picture, @handle, folders and stop-detection setting is created and opened; the Desktop room keeps its history under the name `<name> (Desktop)` and gives up its @handle, so one tag still routes to one room. The history itself is not copied — the gateway's log only grows through messages sent to the room. Disband the Desktop room once you no longer need its history.
+
+What a hosted room cannot do yet:
+
+- **Attachments** cannot be sent into a hosted room (the gateway's in-process member route carries text only). Send them in a Desktop room or a Bot chat.
+- **Membership is fixed at creation.** There is no Manage members for a hosted room; create a new hosted room to change the roster.
+- **Stop directives** (`stop @bot`) and the **Detect stop directives** switch are stored with the room's settings but not yet honoured by the gateway's driver. The **Stop** button cancels the active run as usual.
+- A **clarifying question** a hosted member asks you is not surfaced in the room yet (the gateway reports approvals only), so such a turn waits for the question's own timeout. A turn the gateway could not settle is not offered for retry in the room; the gateway's `groups.retry` method covers it.
+
 ## Bot-to-bot messaging
 
 Bots message each other with attribution, and you can hand work off from any chat:

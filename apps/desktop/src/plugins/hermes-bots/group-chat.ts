@@ -11,6 +11,7 @@
 
 import { atom, host } from '@hermes/plugin-sdk'
 
+import { rememberCanonicalRoomPrefs } from './canonical-room-prefs'
 import { $botMeta, $lastRoster, botRosterKey } from './data'
 import { durableGroupHandle, groupHandleProjection, mergeGroupHandleField } from './group-handle-sync'
 import { isGroupTurnTrace, retainGroupTraces } from './group-trace'
@@ -236,6 +237,16 @@ export function groupChatGatewayJsonSize(value: unknown) {
  *  delete+create, and disband tombstones follow the room itself. Legacy
  *  rooms (no roomId) fall back to `name:<name>` keys with the older
  *  revision-gated tombstone semantics. */
+/** A gateway-hosted room's projection key (`canonical-room-model.ts`). */
+export function isCanonicalGroupKey(group: string): boolean {
+  return typeof group === 'string' && group.startsWith('canonical:')
+}
+
+/** The name a room shows: a Desktop room IS its name; a hosted room carries it beside its key. */
+export function groupChatDisplayName(group: string, room?: Pick<GroupChat, 'displayName'> | null): string {
+  return room?.displayName || group
+}
+
 export function groupChatRoomKey(name: string, room: GroupChat) {
   return typeof room?.roomId === 'string' && room.roomId ? `id:${room.roomId}` : `name:${String(name)}`
 }
@@ -302,7 +313,7 @@ export function groupChatSyncSnapshot(
   const ranked = Object.entries(all || {})
     // Empty runtime tombstones are used to stop an in-flight room after
     // disband. They are not real rooms and must never reappear on mobile.
-    .filter(([, room]) => room && Array.isArray(room.log) && room.log.length > 0)
+    .filter(([, room]) => room && !room.canonical && Array.isArray(room.log) && room.log.length > 0)
     .sort(([, left], [, right]) => {
       const leftAt = Number(left.log[left.log.length - 1]?.at || 0)
       const rightAt = Number(right.log[right.log.length - 1]?.at || 0)
@@ -925,6 +936,11 @@ export function durableGroupChatRooms(all: Record<string, GroupChat> = $groupCha
     // room as an empty record on the next load AND keep its name "taken" for
     // same-name recreates. Mirrors updateGroupChat's inline durable map.
     if (room.tombstone) {
+      continue
+    }
+
+    // A gateway-hosted room is a projection of the gateway's state; the gateway is its store.
+    if (room.canonical) {
       continue
     }
 
@@ -1643,6 +1659,14 @@ export function updateGroupChat(
         continue
       }
 
+      // A gateway-hosted room is a projection of the gateway's state; the gateway is its store.
+      // Only this Desktop's row preferences (picture, pin, order, section) are kept, on their own.
+      if (room.canonical) {
+        rememberCanonicalRoomPrefs(name, room)
+
+        continue
+      }
+
       durable[name] = {
         log: room.log,
         holdDetection: room.holdDetection !== false,
@@ -1792,6 +1816,11 @@ export function appendGroupChatEntry(
   // Guarded so a malformed shape never reaches storage or the renderer.
   if (isGroupTurnTrace(trace) && trace.steps.length) {
     entry.trace = trace
+  }
+
+  // A hosted room's log is the gateway's: a local echo would vanish at the next projection.
+  if ($groupChats.get()[group]?.canonical) {
+    return entry
   }
 
   // #93127 insurance: a residual double-append path (stale loop + fresh

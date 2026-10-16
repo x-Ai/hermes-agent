@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
+import { _resetCanonicalRoomSyncForTests } from './canonical-room-sync'
 import { CreateGroupChatDialog } from './create-dialog'
 import { $botMeta } from './data'
 import { $groupChats, $groupChatWorkspace, updateGroupChat } from './group-chat'
@@ -98,6 +99,7 @@ const appManagedUnavailable = {
 const legacy = { driver: false, persistent_process: false }
 
 beforeEach(() => {
+  _resetCanonicalRoomSyncForTests()
   activation.epoch = 1
   state.connectionId.set('local')
   state.profile.set('default')
@@ -174,7 +176,7 @@ it.each(reported)('a Desktop room renders the legacy workspace when the gateway 
 })
 
 it.each([legacy, { driver: true, persistent_process: true }])(
-  'New group chat creates a Desktop room, never a gateway room, when the gateway reports %j',
+  'New group chat creates a Desktop room when the gateway reports %j (no room settings)',
   async value => {
     answer(value)
     const { onCreated } = await submitDialog()
@@ -182,18 +184,152 @@ it.each([legacy, { driver: true, persistent_process: true }])(
     expect(updateGroupChat).toHaveBeenCalledOnce()
     expect(Object.keys($groupChats.get())).toHaveLength(1)
     expect($canonicalGroupBindings.get()).toEqual({})
-    expect(request.mock.calls.filter(call => ['groups.capabilities', 'groups.create'].includes(call[1]))).toHaveLength(
-      0
-    )
+    // The dialog asks what the gateway can host, and settles on a Desktop room without groups.create.
+    expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
   }
 )
 
-it('a canonical binding renders the canonical workspace', async () => {
+it('New group chat creates a gateway-hosted room, with the handle and folder on the gateway, when it hosts room settings', async () => {
+  request.mockImplementation(async (_route, method, params) => {
+    switch (method) {
+      case 'groups.capabilities':
+        return {
+          driver: true,
+          features: ['room_settings', 'member_sessions', 'room_live', 'activity_watch'],
+          methods: []
+        }
+
+      case 'groups.create':
+        return { room: { room_id: 'hosted-1', name: params.name, members: params.members } }
+
+      case 'groups.settings.set':
+        return { room_id: 'hosted-1', revision: 1, settings: params.patch }
+
+      case 'groups.state':
+        return {
+          room: { room_id: 'hosted-1', name: params.name || 'Alpha, Beta', members: [] },
+          driver_status: { working: false }
+        }
+
+      case 'groups.log':
+        return { events: [], has_more: false }
+
+      case 'groups.settings.get':
+        return {
+          revision: 1,
+          settings: {
+            workspace: null,
+            member_workspaces: {},
+            thread_workspaces: {},
+            handle: null,
+            hold_detection: true
+          }
+        }
+
+      case 'groups.member_sessions':
+        return { sessions: [] }
+
+      case 'groups.live':
+        return { current: null, watching: false }
+
+      case 'profiles.configure':
+        return {}
+
+      default:
+        throw new Error(`Unexpected RPC: ${method}`)
+    }
+  })
+  const { onCreated } = await submitDialog()
+  await act(async () => {
+    await Promise.resolve()
+  })
+  expect(onCreated).toHaveBeenCalledWith('canonical:local:default:hosted-1')
+  expect(request.mock.calls.find(call => call[1] === 'groups.create')?.[2]).toMatchObject({
+    members: [
+      { handle: 'alpha', member_id: 'alpha', profile: 'alpha' },
+      { handle: 'beta', member_id: 'beta', profile: 'beta' }
+    ]
+  })
+  expect($canonicalGroupBindings.get()['canonical:local:default:hosted-1']).toEqual({
+    connectionId: 'local',
+    profile: 'default',
+    roomId: 'hosted-1'
+  })
+  expect($groupChats.get()['canonical:local:default:hosted-1']?.canonical?.roomId).toBe('hosted-1')
+  // Nothing was written as a Desktop room.
+  expect(Object.keys($groupChats.get()).filter(name => !name.startsWith('canonical:'))).toEqual([])
+})
+
+it('a hosted room renders the Desktop room view, fed by the gateway it is bound to', async () => {
   const key = 'canonical:local:default:r1'
   $canonicalGroupBindings.set({ [key]: { connectionId: 'local', profile: 'default', roomId: 'r1' } })
+  request.mockImplementation(async (_route, method, params) => {
+    switch (method) {
+      case 'groups.capabilities':
+        return {
+          driver: true,
+          features: ['room_settings', 'member_sessions', 'room_live', 'activity_watch'],
+          methods: []
+        }
+
+      case 'groups.state':
+        return {
+          room: {
+            room_id: 'r1',
+            name: 'Gateway room',
+            members: [{ member_id: 'alpha', profile: 'alpha', handle: 'alpha' }]
+          },
+          driver_status: { working: false }
+        }
+
+      case 'groups.log':
+        return {
+          events:
+            Number(params.since_seq || 0) > 0
+              ? []
+              : [
+                  {
+                    seq: 1,
+                    event_id: 'e1',
+                    kind: 'message.user',
+                    created_at: 1,
+                    payload: { text: 'Hello from the gateway', thread_id: 't1' }
+                  }
+                ],
+          has_more: false
+        }
+
+      case 'groups.settings.get':
+        return {
+          revision: 1,
+          settings: {
+            workspace: null,
+            member_workspaces: {},
+            thread_workspaces: {},
+            handle: null,
+            hold_detection: true
+          }
+        }
+
+      case 'groups.member_sessions':
+        return { sessions: [] }
+
+      case 'groups.live':
+        return { current: null, watching: false }
+
+      case 'groups.watch':
+        return { room_id: 'r1', watching: true }
+
+      default:
+        throw new Error(`Unexpected RPC: ${method}`)
+    }
+  })
   await act(async () => {
     render(<GroupChatWorkspace group={key} members={[]} />)
   })
-  expect(screen.getByTestId('canonical-group-workspace')).toBeTruthy()
-  expect(screen.queryByRole('textbox')).toBeNull()
+  expect(await screen.findByText('Gateway room')).toBeTruthy()
+  expect(screen.getByText('Hello from the gateway')).toBeTruthy()
+  expect(screen.getByRole('textbox')).toBeTruthy()
+  expect(screen.queryByTestId('canonical-group-workspace')).toBeNull()
+  expect(request.mock.calls.some(call => call[1] === 'groups.watch' && call[2].on !== false)).toBe(true)
 })

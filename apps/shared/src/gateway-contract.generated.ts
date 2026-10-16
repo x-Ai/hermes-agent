@@ -1885,6 +1885,72 @@ export interface BrowserControllerParams {
 export interface BrowserControllerDetachResult {
   detached?: boolean
 }
+/** Any method addressed at one hosted room. */
+export interface RoomParams {
+  profile?: string | null
+  room_id: string
+}
+export interface GroupsSettingsResult {
+  room_id: string
+  settings: RoomSettings
+  revision: number
+}
+/** ``gateway/hosted_room_settings.py`` shape: folders by member id / thread id, the room's folder, its ``@handle`` and whether stop directives are detected. */
+export interface RoomSettings {
+  workspace?: string | null
+  member_workspaces: Record<string, string>
+  thread_workspaces: Record<string, string>
+  handle?: string | null
+  hold_detection: boolean
+}
+export interface GroupsSettingsSetParams {
+  profile?: string | null
+  room_id: string
+  patch: RoomSettingsPatch
+  expected_revision?: number | null
+}
+/** Scalars replace (``null`` clears); folder maps merge entry by entry (``null`` removes one). */
+export interface RoomSettingsPatch {
+  workspace?: string | null
+  member_workspaces?: Record<string, string | null> | null
+  thread_workspaces?: Record<string, string | null> | null
+  handle?: string | null
+  hold_detection?: boolean | null
+}
+export interface GroupsMemberSessionsResult {
+  room_id: string
+  sessions: RoomMemberSession[]
+}
+/** A local member's hidden room session (``Group: <room_id>``); ids are None until its first turn. ``session_id`` is the compression tip a client resumes, ``root_id`` the stored row. */
+export interface RoomMemberSession {
+  member_id: string
+  profile: string
+  local: boolean
+  session_id?: string | null
+  root_id?: string | null
+}
+export interface GroupsLiveResult {
+  room_id: string
+  current?: RoomLiveTurn | null
+  watching: boolean
+}
+export interface RoomLiveTurn {
+  member_id?: string | null
+  thread_id: string
+  turn_id: string
+  task_id: string
+  status: string
+  started_at?: number | null
+}
+export interface GroupsWatchParams {
+  profile?: string | null
+  room_id: string
+  on?: boolean
+}
+export interface GroupsWatchResult {
+  room_id: string
+  watching: boolean
+}
 export interface I18nLanguagesResult {
   languages: LanguageOption[]
 }
@@ -5882,6 +5948,19 @@ export interface PetHatchProgressPayload {
 }
 /** ``change_watcher._CHANGE_WATCHES`` payload fn — ``{}`` for every watch except pet.changed. */
 export type ChangeSignalPayload = Record<string, unknown>
+/** One member-activity frame re-emitted to a watching connection: the room coordinates of the turn, the activity ``kind`` (tool.started, tool.completed, reasoning.delta, message.delta, message.interim, turn.error, request.opened, turn.complete, session.usage, ...) and the original frame's payload. */
+export interface RoomActivityPayload {
+  room_id: string
+  thread_id?: string | null
+  member_id?: string | null
+  turn_id?: string | null
+  task_id?: string | null
+  execution_generation?: number | null
+  kind: string
+  seq?: number | null
+  session_id: string
+  payload: unknown
+}
 export type ConnectorErrorReason = 'INVALID_PARAMS' | 'NOT_OWNER' | 'UNSUPPORTED_RUNTIME' | 'CONNECTOR_REQUEST_FAILED' | 'INVALID_CONNECTOR_RESPONSE' | 'UNKNOWN_TARGET' | 'LINK_STILL_VALID' | 'REISSUE_REFUSED' | 'UNKNOWN_OPERATION' | 'INVALID_ANSWER' | 'NEEDS_NOUS_AUTH' | 'CONNECTOR_NOT_FOUND' | 'TOOLS_UNAVAILABLE' | 'CONNECTORS_UNAVAILABLE' | 'CATALOG_UNAVAILABLE' | 'ACCOUNTS_UNAVAILABLE' | 'CONNECTION_NOT_FOUND' | 'POLICY_UNAVAILABLE' | 'POLICY_CONFLICT' | 'FORBIDDEN_SCOPE' | 'ORG_REQUIRED' | 'ORG_ACCESS_DENIED' | 'INVALID_POLICY' | 'ALIAS_TAKEN'
 
 // ── Client→server methods ──
@@ -6022,8 +6101,12 @@ export interface RpcMethods {
   'groups.disband': { params: GroupsDisbandParams; result: GroupsDisbandResult }
   /** List rooms hosted by this gateway, most recently changed first. */
   'groups.list': { params: GroupsListParams; result: GroupsListResult }
+  /** The member turn running right now (None when the room is idle) and this connection's watch. */
+  'groups.live': { params: RoomParams; result: GroupsLiveResult }
   /** A monotonic room-log delta after since_seq, bounded by count and page bytes. */
   'groups.log': { params: GroupsLogParams; result: GroupsLogResult }
+  /** Each member's hidden room session, so a client can read its usage and transcript. */
+  'groups.member_sessions': { params: RoomParams; result: GroupsMemberSessionsResult }
   /** Mint one target-issued room/profile grant for a prospective room home. */
   'groups.peer.invite': { params: GroupsPeerInviteParams; result: GroupsPeerInviteResult }
   /** Register and probe one scoped peer route on the room home. */
@@ -6042,10 +6125,16 @@ export interface RpcMethods {
   'groups.retry': { params: GroupsRetryParams; result: GroupsRetryResult }
   /** Append one inert message.user event idempotently; the actor is server-owned. */
   'groups.send': { params: GroupsSendParams; result: GroupsSendResult }
+  /** This fork's per-room settings; a room without a row answers the defaults at revision 0. */
+  'groups.settings.get': { params: RoomParams; result: GroupsSettingsResult }
+  /** Merge a settings patch under a revision compare-and-swap. */
+  'groups.settings.set': { params: GroupsSettingsSetParams; result: GroupsSettingsResult }
   /** One hosted room's replay cursor and fenced authority state, plus live driver status. */
   'groups.state': { params: GroupsStateParams; result: GroupsStateResult }
   /** Durably cancel queued or running work for one hosted room. */
   'groups.stop': { params: GroupsStopParams; result: GroupsStopResult }
+  /** Forward the room's member activity to this connection as room.activity events. */
+  'groups.watch': { params: GroupsWatchParams; result: GroupsWatchResult }
   /** Fail a not-yet-claimed handoff (client poll timeout); CAS against the watcher. */
   'handoff.fail': { params: HandoffFailParams; result: HandoffFailResult }
   /** Queue a handoff to a messaging platform's home channel; the gateway watcher claims it. */
@@ -6473,7 +6562,9 @@ export const RPC_METHODS = [
   'groups.demote',
   'groups.disband',
   'groups.list',
+  'groups.live',
   'groups.log',
+  'groups.member_sessions',
   'groups.peer.invite',
   'groups.peer.register',
   'groups.peer.revoke',
@@ -6483,8 +6574,11 @@ export const RPC_METHODS = [
   'groups.replicate',
   'groups.retry',
   'groups.send',
+  'groups.settings.get',
+  'groups.settings.set',
   'groups.state',
   'groups.stop',
+  'groups.watch',
   'handoff.fail',
   'handoff.request',
   'handoff.state',
@@ -6936,6 +7030,8 @@ export interface BackendGatewayEventMap {
   'request.cancel': RequestCancelPayload
   /** Background review of the last turn finished. */
   'review.summary': ReviewSummaryPayload
+  /** A watched room's member did something: the hidden session's frame with room coordinates. */
+  'room.activity': RoomActivityPayload
   /** Persisted goal / loop / heartbeat state changed. */
   'session.control.update': SessionControlUpdatePayload
   /** Live session settings snapshot (``server._session_info``); also the ``info`` of create/resume/activate. */
@@ -7046,6 +7142,7 @@ export const GATEWAY_EVENT_TYPES = [
   'reasoning.delta',
   'request.cancel',
   'review.summary',
+  'room.activity',
   'session.control.update',
   'session.info',
   'session.reclaimed',

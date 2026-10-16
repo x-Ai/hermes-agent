@@ -57,7 +57,7 @@ import {
   ROSTER_KEY,
   saveBotMeta
 } from './data'
-import { $groupChats, $groupChatWorkspace } from './group-chat'
+import { $groupChats, $groupChatWorkspace, groupChatDisplayName } from './group-chat'
 import { botGroups, groupLastActivity } from './group-membership'
 import { toggleGroupChatPinned } from './group-pin'
 import { $activeGroupMemberKeys } from './group-presence'
@@ -509,6 +509,30 @@ interface GroupRowProps {
   onOpen: (group: string) => void
 }
 
+/** The marks after a room's name: pinned, and hosted by a gateway rather than this Desktop. */
+function GroupRowMarks({
+  b,
+  room
+}: {
+  b: ReturnType<typeof useBots>
+  room: { canonical?: unknown; pinned?: boolean }
+}) {
+  return (
+    <>
+      {room.pinned ? (
+        <Tip label={b.roster.pinned}>
+          <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
+        </Tip>
+      ) : null}
+      {room.canonical ? (
+        <Tip label={b.group.hostedRoom}>
+          <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="server" />
+        </Tip>
+      ) : null}
+    </>
+  )
+}
+
 export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, onNewSection }: GroupRowProps) {
   const { locale, t } = useI18n()
   const b = useBots()
@@ -520,6 +544,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
     log: []
   }
 
+  const roomName = groupChatDisplayName(group, room)
   const log = Array.isArray(room.log) ? room.log : []
   const last = log.length ? log[log.length - 1] : null
   const lastAt = groupLastActivity(room)
@@ -546,7 +571,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
 
   const row = (
     <RowButton
-      aria-label={`${group}, ${b.group.memberCount(members.length)}, ${availabilityLabel}`}
+      aria-label={`${roomName}, ${b.group.memberCount(members.length)}, ${availabilityLabel}`}
       className={cn(
         'flex w-full min-w-0 max-w-full items-center gap-2.5 overflow-hidden rounded-md px-2 py-2 text-left transition-colors',
         'hover:bg-(--chrome-action-hover)',
@@ -598,12 +623,8 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-medium">{group}</span>
-          {room.pinned ? (
-            <Tip label={b.roster.pinned}>
-              <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
-            </Tip>
-          ) : null}
+          <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-medium">{roomName}</span>
+          <GroupRowMarks b={b} room={room} />
           {needsYou ? (
             <Tip label={b.group.needsYourInput}>
               <Codicon aria-label={b.roster.needsInput} className="shrink-0 text-(--ui-accent)" name="question" />
@@ -633,7 +654,10 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
             const pinned = toggleGroupChatPinned(group)
 
             if (pinned !== null) {
-              host.notify({ kind: 'info', message: pinned ? b.bot.pinnedToast(group) : b.bot.unpinnedToast(group) })
+              host.notify({
+                kind: 'info',
+                message: pinned ? b.bot.pinnedToast(roomName) : b.bot.unpinnedToast(roomName)
+              })
             }
           }}
         >

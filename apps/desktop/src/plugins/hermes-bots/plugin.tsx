@@ -38,6 +38,7 @@ import {
   focusedMentionProfile
 } from './bot-state'
 import { isCanonicalChatOnScreen, openBotCanonicalChat } from './canonical-chat'
+import { discoverActiveCanonicalRooms, hydrateCanonicalRoomPrefs } from './canonical-room-sync'
 import { BotChatEmpty } from './chat-empty'
 import { bindProfileSync, RoutinesPane } from './cron'
 import {
@@ -317,6 +318,15 @@ export default {
 
     try {
       // @ts-expect-error TODO(bot-mode-types): PluginStorage.get requires a fallback argument.
+      Promise.resolve(ctx.storage?.get?.('canonical-room-prefs'))
+        .then(value => hydrateCanonicalRoomPrefs(value))
+        .catch(() => undefined)
+    } catch {
+      /* no storage — hosted rooms get default rows this window */
+    }
+
+    try {
+      // @ts-expect-error TODO(bot-mode-types): PluginStorage.get requires a fallback argument.
       Promise.resolve(ctx.storage?.get?.('group-chats'))
         .then(async value => {
           if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -398,6 +408,7 @@ export default {
     const primeOnGatewayOpen = (state: unknown) => {
       if (String(state) === 'open') {
         void primeRoster()
+        void discoverActiveCanonicalRooms()
       }
     }
 

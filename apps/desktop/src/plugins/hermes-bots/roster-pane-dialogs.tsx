@@ -1,9 +1,11 @@
 import { ConfirmDialog, host } from '@hermes/plugin-sdk'
 import type { useI18n } from '@hermes/plugin-sdk'
 
+import { disbandCanonicalRoom } from './canonical-room-actions'
 import { CreateAgentDialog, CreateGroupChatDialog, GroupDialog } from './create-dialog'
 import type { useRoster } from './data'
 import { EditProfileDialog } from './edit-profile-dialog'
+import { $groupChats, groupChatDisplayName } from './group-chat'
 import { disbandGroupChat, openGroupChat } from './group-chat-view'
 import type { useBots } from './i18n'
 import { deleteBot } from './profile-ops'
@@ -54,9 +56,7 @@ export function renderRosterDialogs({
   activeSourceRoster,
   refetch
 }: renderRosterDialogsProps) {
-  const deletingDisplayName = deleting
-    ? deleting.name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName)
-    : ''
+  const deletingDisplayName = deleting ? deleting.name.replace(/^default(?=$|[-_\s])/i, t.common.defaultName) : ''
 
   return (
     <>
@@ -142,7 +142,11 @@ export function renderRosterDialogs({
       <ConfirmDialog
         busyLabel={b.group.deleting}
         confirmLabel={b.group.deleteAction}
-        description={deletingGroup ? b.group.deleteDescription(deletingGroup.name) : null}
+        description={
+          deletingGroup
+            ? b.group.deleteDescription(groupChatDisplayName(deletingGroup.name, $groupChats.get()[deletingGroup.name]))
+            : null
+        }
         destructive
         doneLabel={b.group.deleted}
         onClose={() => setDeletingGroup(null)}
@@ -151,10 +155,19 @@ export function renderRosterDialogs({
             return
           }
 
-          await disbandGroupChat(deletingGroup.name, deletingGroup.members)
+          const hosted = $groupChats.get()[deletingGroup.name]
+
+          if (hosted?.canonical) {
+            if (!(await disbandCanonicalRoom(deletingGroup.name, hosted))) {
+              return
+            }
+          } else {
+            await disbandGroupChat(deletingGroup.name, deletingGroup.members)
+          }
+
           host.notify({
             kind: 'success',
-            message: b.group.deletedGroup(deletingGroup.name)
+            message: b.group.deletedGroup(groupChatDisplayName(deletingGroup.name, hosted))
           })
         }}
         open={Boolean(deletingGroup)}

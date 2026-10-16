@@ -1231,6 +1231,24 @@
       }
     },
     {
+      "name": "groups.live",
+      "summary": "The member turn running right now (None when the room is idle) and this connection's watch.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/RoomParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GroupsLiveResult"
+        }
+      }
+    },
+    {
       "name": "groups.log",
       "summary": "A monotonic room-log delta after since_seq, bounded by count and page bytes.",
       "params": [
@@ -1245,6 +1263,24 @@
         "name": "result",
         "schema": {
           "$ref": "#/components/schemas/GroupsLogResult"
+        }
+      }
+    },
+    {
+      "name": "groups.member_sessions",
+      "summary": "Each member's hidden room session, so a client can read its usage and transcript.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/RoomParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GroupsMemberSessionsResult"
         }
       }
     },
@@ -1411,6 +1447,42 @@
       }
     },
     {
+      "name": "groups.settings.get",
+      "summary": "This fork's per-room settings; a room without a row answers the defaults at revision 0.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/RoomParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GroupsSettingsResult"
+        }
+      }
+    },
+    {
+      "name": "groups.settings.set",
+      "summary": "Merge a settings patch under a revision compare-and-swap.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/GroupsSettingsSetParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GroupsSettingsResult"
+        }
+      }
+    },
+    {
       "name": "groups.state",
       "summary": "One hosted room's replay cursor and fenced authority state, plus live driver status.",
       "params": [
@@ -1443,6 +1515,24 @@
         "name": "result",
         "schema": {
           "$ref": "#/components/schemas/GroupsStopResult"
+        }
+      }
+    },
+    {
+      "name": "groups.watch",
+      "summary": "Forward the room's member activity to this connection as room.activity events.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/GroupsWatchParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/GroupsWatchResult"
         }
       }
     },
@@ -19155,6 +19245,36 @@
         "title": "GroupsListResult",
         "type": "object"
       },
+      "GroupsLiveResult": {
+        "additionalProperties": false,
+        "properties": {
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoomLiveTurn"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
+          "watching": {
+            "title": "Watching",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "room_id",
+          "watching"
+        ],
+        "title": "GroupsLiveResult",
+        "type": "object"
+      },
       "GroupsLogParams": {
         "additionalProperties": false,
         "properties": {
@@ -19252,6 +19372,28 @@
           "authority"
         ],
         "title": "GroupsLogResult",
+        "type": "object"
+      },
+      "GroupsMemberSessionsResult": {
+        "additionalProperties": false,
+        "properties": {
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/RoomMemberSession"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "room_id",
+          "sessions"
+        ],
+        "title": "GroupsMemberSessionsResult",
         "type": "object"
       },
       "GroupsPeerInviteParams": {
@@ -19963,6 +20105,71 @@
         "title": "GroupsSendResult",
         "type": "object"
       },
+      "GroupsSettingsResult": {
+        "additionalProperties": false,
+        "properties": {
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/RoomSettings"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "room_id",
+          "settings",
+          "revision"
+        ],
+        "title": "GroupsSettingsResult",
+        "type": "object"
+      },
+      "GroupsSettingsSetParams": {
+        "additionalProperties": false,
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "patch": {
+            "$ref": "#/components/schemas/RoomSettingsPatch"
+          },
+          "expected_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Revision"
+          }
+        },
+        "required": [
+          "room_id",
+          "patch"
+        ],
+        "title": "GroupsSettingsSetParams",
+        "type": "object"
+      },
       "GroupsStateParams": {
         "additionalProperties": false,
         "properties": {
@@ -20075,6 +20282,56 @@
           "cancelled"
         ],
         "title": "GroupsStopResult",
+        "type": "object"
+      },
+      "GroupsWatchParams": {
+        "additionalProperties": false,
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "on": {
+            "default": true,
+            "title": "On",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "room_id"
+        ],
+        "title": "GroupsWatchParams",
+        "type": "object"
+      },
+      "GroupsWatchResult": {
+        "additionalProperties": false,
+        "properties": {
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "watching": {
+            "title": "Watching",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "room_id",
+          "watching"
+        ],
+        "title": "GroupsWatchResult",
         "type": "object"
       },
       "HandoffFailParams": {
@@ -32969,6 +33226,107 @@
         "title": "Room",
         "type": "object"
       },
+      "RoomActivityPayload": {
+        "additionalProperties": false,
+        "description": "One member-activity frame re-emitted to a watching connection: the room coordinates of the turn,\nthe activity ``kind`` (tool.started, tool.completed, reasoning.delta, message.delta, message.interim,\nturn.error, request.opened, turn.complete, session.usage, ...) and the original frame's payload.",
+        "properties": {
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Thread Id"
+          },
+          "member_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Member Id"
+          },
+          "turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Turn Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Task Id"
+          },
+          "execution_generation": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Execution Generation"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Seq"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "payload": {
+            "title": "Payload"
+          }
+        },
+        "required": [
+          "room_id",
+          "kind",
+          "session_id",
+          "payload"
+        ],
+        "title": "RoomActivityPayload",
+        "type": "object"
+      },
       "RoomActor": {
         "additionalProperties": false,
         "properties": {
@@ -33477,6 +33835,59 @@
         "title": "RoomLinkStatus",
         "type": "object"
       },
+      "RoomLiveTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "member_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Member Id"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "turn_id": {
+            "title": "Turn Id",
+            "type": "string"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Started At"
+          }
+        },
+        "required": [
+          "thread_id",
+          "turn_id",
+          "task_id",
+          "status"
+        ],
+        "title": "RoomLiveTurn",
+        "type": "object"
+      },
       "RoomMember": {
         "additionalProperties": true,
         "description": "One roster row (``hosted_room_discussion.validate_roster``); legacy rooms may carry\npre-normalisation rows, so the set stays open.",
@@ -33613,6 +34024,225 @@
           }
         },
         "title": "RoomMemberInput",
+        "type": "object"
+      },
+      "RoomMemberSession": {
+        "additionalProperties": false,
+        "description": "A local member's hidden room session (``Group: <room_id>``); ids are None until its first turn.\n``session_id`` is the compression tip a client resumes, ``root_id`` the stored row.",
+        "properties": {
+          "member_id": {
+            "title": "Member Id",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "local": {
+            "title": "Local",
+            "type": "boolean"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Session Id"
+          },
+          "root_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Root Id"
+          }
+        },
+        "required": [
+          "member_id",
+          "profile",
+          "local"
+        ],
+        "title": "RoomMemberSession",
+        "type": "object"
+      },
+      "RoomParams": {
+        "additionalProperties": false,
+        "description": "Any method addressed at one hosted room.",
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile"
+          },
+          "room_id": {
+            "title": "Room Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "room_id"
+        ],
+        "title": "RoomParams",
+        "type": "object"
+      },
+      "RoomSettings": {
+        "additionalProperties": false,
+        "description": "``gateway/hosted_room_settings.py`` shape: folders by member id / thread id, the room's folder,\nits ``@handle`` and whether stop directives are detected.",
+        "properties": {
+          "workspace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Workspace"
+          },
+          "member_workspaces": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Member Workspaces",
+            "type": "object"
+          },
+          "thread_workspaces": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Thread Workspaces",
+            "type": "object"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Handle"
+          },
+          "hold_detection": {
+            "title": "Hold Detection",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "member_workspaces",
+          "thread_workspaces",
+          "hold_detection"
+        ],
+        "title": "RoomSettings",
+        "type": "object"
+      },
+      "RoomSettingsPatch": {
+        "additionalProperties": false,
+        "description": "Scalars replace (``null`` clears); folder maps merge entry by entry (``null`` removes one).",
+        "properties": {
+          "workspace": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Workspace"
+          },
+          "member_workspaces": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Member Workspaces"
+          },
+          "thread_workspaces": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Thread Workspaces"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Handle"
+          },
+          "hold_detection": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Hold Detection"
+          }
+        },
+        "title": "RoomSettingsPatch",
         "type": "object"
       },
       "RoomTaskReceipt": {
@@ -48102,6 +48732,18 @@
           "name": "payload",
           "schema": {
             "$ref": "#/components/schemas/ReviewSummaryPayload"
+          }
+        }
+      ]
+    },
+    {
+      "name": "room.activity",
+      "summary": "A watched room's member did something: the hidden session's frame with room coordinates.",
+      "params": [
+        {
+          "name": "payload",
+          "schema": {
+            "$ref": "#/components/schemas/RoomActivityPayload"
           }
         }
       ]

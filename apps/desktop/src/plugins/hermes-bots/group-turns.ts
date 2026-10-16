@@ -8,6 +8,7 @@
 
 import { APPROVAL_RESPOND_TIMEOUT_MS, host } from '@hermes/plugin-sdk'
 
+import { answerCanonicalApproval } from './canonical-room-prompts'
 import { noteBotAttention } from './data'
 import { groupFailureReason, recordGroupActivity } from './group-activity'
 import { $groupChats, $groupClarify, appendGroupChatEntry, updateGroupChat } from './group-chat'
@@ -836,6 +837,12 @@ export async function answerGroupClarify(
   member: GroupMember,
   answers: Record<string, null | string> | string | undefined
 ) {
+  if (entry.hostedAction) {
+    await answerCanonicalApproval(entry, typeof answers === 'string' ? answers : 'deny')
+
+    return
+  }
+
   let group = entry.group
 
   const binding = followGroupChat(group, name => {

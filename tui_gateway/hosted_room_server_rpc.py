@@ -64,6 +64,10 @@ class HostedRoomServerRPC:
             "profile": profile, "title": title, "source": source, "hidden": True,
             "room_plumbing": True, "follow_profile_config": True, "close_on_disconnect": False})
 
+    def set_workspace(self, *, profile: str, session_id: str, cwd: str) -> Mapping[str, Any]:
+        """Re-home the resumed member session before its turn (fork: room working directories)."""
+        return self._call("session.cwd.set", {"profile": profile, "session_id": session_id, "cwd": cwd})
+
     def resume(self, *, profile: str, session_id: str, source: str) -> Mapping[str, Any]:
         return self._call("session.resume", {
             "profile": profile, "session_id": session_id, "omit_messages": True, "source": source})

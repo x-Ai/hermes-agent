@@ -202,6 +202,11 @@ export interface GroupHold {
 }
 
 export interface GroupChat {
+  /** Set on a gateway-hosted room's projection (`canonical-room-model.ts`):
+   *  the route its mutations go through. Absent on a Desktop room. */
+  canonical?: { connectionId: string; profile: string; roomId: string }
+  /** A gateway-hosted room's name; the record key is its opaque `canonical:` key. */
+  displayName?: string
   /** Whether user text may create sticky member holds. Defaults to true for
    *  rooms written by older builds; the room settings switch can disable it. */
   holdDetection?: boolean
@@ -286,6 +291,9 @@ interface GroupPromptBase {
   /** The thread the blocking question belongs to — part of the mirror key,
    *  since a member can be blocked in two threads at once. */
   thread?: string
+  /** Set on a prompt mirrored from a gateway-hosted room: the driver's action coordinates,
+   *  answered through `groups.approve` (`canonical-room-prompts.ts`), never the member session. */
+  hostedAction?: { executionGeneration: number; memberId: string; taskId: string }
 }
 
 interface GroupApprovalPrompt extends GroupPromptBase {

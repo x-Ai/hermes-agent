@@ -13,6 +13,7 @@ import threading
 from collections.abc import Callable
 
 from agent.i18n import t as _t
+from tui_gateway.methods_groups_settings import FEATURES as _FORK_FEATURES, METHODS as _FORK_METHODS
 
 _registry = HandlerRegistry()
 method = _registry.method
@@ -223,7 +224,7 @@ def _room_method(
 
 
 @method("groups.capabilities")
-def _(rid, params: dict, _catalog=_local_catalog, _methods=_METHODS) -> dict:
+def _(rid, params: dict, _catalog=_local_catalog, _methods=_METHODS, _fork=(_FORK_FEATURES, _FORK_METHODS)) -> dict:
     """Describe the hosted-room protocol implemented by this gateway."""
     from gateway.hosted_rooms import MAX_LOG_LIMIT, PROTOCOL_VERSION, local_authority_gateway_id
     service = get_hosted_room_service()
@@ -250,8 +251,8 @@ def _(rid, params: dict, _catalog=_local_catalog, _methods=_METHODS) -> dict:
         "features": [
             "authority_epoch", "coordinator_fencing", "room_identity", "monotonic_log",
             "idempotent_send", "replayable_disband", "typed_events", "actor_identity",
-            "log_replication", "authority_takeover"],
-        "methods": list(_methods), "max_log_limit": MAX_LOG_LIMIT})
+            "log_replication", "authority_takeover", *_fork[0]],
+        "methods": [*_methods, *_fork[1]], "max_log_limit": MAX_LOG_LIMIT})
 
 
 @_room_method("groups.peer.invite", code=4120, db=True)

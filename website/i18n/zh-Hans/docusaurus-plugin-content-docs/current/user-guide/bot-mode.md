@@ -117,6 +117,27 @@ Routines 本质上就是命名空间为 `[bot:<name>] <routine>` 的普通 [Herm
 - **房间可以跨越多台机器。** New Group Chat 选择器可以从任意已注册的连接中挑选 Bot；每个成员的发言都运行在它自己的机器上，在它自己那台机器的房间会话里。跨机器的成员在房间和其他成员的对话记录中都带有设备徽标（`dixie · Mac Mini`），消除歧义的 `@name-device` handle 在房间提及中同样有效——因此两台机器上同名的 agent 永远不会混淆。
 - **插件可以观察成员的工作。** 持久的房间日志会记录 `turn.started` 和 `turn.settled`；成员在这两者之间做的事情（工具、审批、流式文本）会通过 [`on_room_member_activity`](./features/hooks.md#on_room_member_activity) 钩子投射给插件，并附带房间、成员和轮次坐标，因此社区客户端无需读取 Hermes 内部实现，就能在 Group Chat 之上构建工具卡片和实时成员状态。
 
+### 网关托管的群聊
+
+当新建群聊的所有成员都在你当前连接的 gateway 上，并且该 gateway 托管群聊设置（本 fork 的 gateway 会在 `groups.capabilities` 中声明 `room_settings`）时，**New Group Chat** 创建的是一个**网关托管的群聊**，而不是 Desktop 房间。房间归 gateway 所有——成员、持久的消息日志和轮次驱动器都在 gateway 上——因此关闭 Hermes Desktop 后房间仍会继续运行，连接到同一个 gateway 的每台 Desktop 看到的都是同一个房间。托管群聊的花名册行带有一个小小的服务器图标。当选择器选入了其他连接上的 Bot，或者 gateway 版本较旧时，仍会像以前一样创建 Desktop 房间。
+
+本 fork 为房间增加的所有功能在托管群聊上都可用；房间的设置随房间保存在 gateway 上（`groups.settings.get` / `groups.settings.set`），而不是这台 Desktop 的存储里：
+
+- **工作目录**阶梯——群目录、成员专属目录以及线程开始时所在的目录——由 gateway 在每个成员轮次开始前应用，因此在每台 Desktop 上都成立，没有任何 Desktop 盯着的轮次也不例外。
+- **@ 标签**可以从任意输入框把草稿发进房间。**Group settings** 可以重命名房间，修改它的标签、目录和**检测停止指令**；**解散**会在 gateway 上移除这个房间，对所有客户端生效。
+- 每条回复下的**思考与执行**和实时的**执行中…**一行由 gateway 在房间打开期间提供：Desktop 会观察这个房间（`groups.watch`），成员的推理、工具调用和结果以 `room.activity` 事件送达。上下文用量芯片从 gateway 读取每个成员隐藏的房间会话（`groups.member_sessions`）。
+- 成员的**命令审批**会以 Desktop 房间里同样的卡片出现，并点亮房间的"需要你"徽标；回答经由 gateway 送回（`groups.approve`），可选项为**允许一次**和**拒绝**。
+- 房间的图片、置顶、排序和分区归档仍保存在这台 Desktop 上，与 Desktop 房间相同。
+
+**迁移已有的房间。** 在一个 Desktop 房间上打开 **Group settings**，选择**交给网关托管…**（当连接的 gateway 能容纳它的全部成员时才会出现）。随后会创建并打开一个名称、成员、图片、@ 标签、目录和停止指令检测设置都相同的托管群聊；原来的 Desktop 房间以 `<名称>（Desktop）` 的名字保留历史记录，并让出 @ 标签，这样一个标签仍然只指向一个房间。历史记录本身不会复制——gateway 的日志只会随发进房间的消息增长。不再需要那些历史时，解散这个 Desktop 房间即可。
+
+托管群聊目前还做不到的事：
+
+- **附件**不能发进托管群聊（gateway 进程内的成员通道只承载文本）。请在 Desktop 房间或 Bot 聊天里发送。
+- **成员在创建时固定。** 托管群聊没有 Manage members；要改变成员，就新建一个托管群聊。
+- **停止指令**（`stop @bot`）和**检测停止指令**开关会随房间设置保存，但 gateway 的驱动器尚未执行它们。**Stop** 按钮照常取消当前运行。
+- 托管成员向你提出的**澄清问题**暂时不会出现在房间里（gateway 只上报审批），这样的轮次会等到问题自身超时。gateway 未能收尾的轮次也不会在房间里提供重试；gateway 的 `groups.retry` 方法可以处理。
+
 ## Bot 之间的消息
 
 Bot 之间发消息会带有署名，你也可以从任意对话中把工作转交出去：

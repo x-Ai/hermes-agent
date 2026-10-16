@@ -5,6 +5,7 @@
  */
 import { host } from '@hermes/plugin-sdk'
 
+import { sendToCanonicalRoom, stopCanonicalRoom } from './canonical-room-actions'
 import { botFriendlyNames, botHandle, botMentionTag, mentionNameForms } from './data'
 import { groupFailureReason, recordGroupActivity } from './group-activity'
 import {
@@ -547,6 +548,12 @@ export function unaddressedGroupMentions(group: string, members: GroupMember[], 
  *  falls back to the room's durable roster so a two-arg call still works. */
 export async function stopGroupThread(group: string, thread: null | string, members: GroupMember[] | null = null) {
   const room = $groupChats.get()[group] || {}
+
+  if (room.canonical) {
+    // A gateway-hosted room: the gateway cancels its queued and running work (canonical-room-actions.ts).
+    return stopCanonicalRoom(group, room, thread)
+  }
+
   const roster = Array.isArray(members) && members.length ? members : room.members || []
   const onTurn = room.turn || null
   groupChatDrives.get(groupChatRoomKey(group, room))?.pending.clear()
@@ -644,8 +651,15 @@ async function harvestGroupRoundMembers(context: GroupRoundMemberContext): Promi
  *  epoch and discards queued continuations.
  *  Watermarks are per thread+member (`${thread}::${memberKey}`), so parallel
  *  topics never eat each other's deltas. */
-export async function runGroupChatRounds(group: string, members: GroupMember[], thread: string, failedMembers = new Set<string>()) {
-  if (group.startsWith('canonical:')) {throw new Error('Canonical rooms are driven by the gateway')}
+export async function runGroupChatRounds(
+  group: string,
+  members: GroupMember[],
+  thread: string,
+  failedMembers = new Set<string>()
+) {
+  if (group.startsWith('canonical:')) {
+    throw new Error('Canonical rooms are driven by the gateway')
+  }
 
   const binding = followGroupChat(group, name => {
     group = name
@@ -888,7 +902,6 @@ export function sendToGroupChat(
   images?: Attachment[],
   options?: SendToGroupChatOptions
 ): null | string {
-  if (group.startsWith('canonical:')) {throw new Error('Canonical rooms are driven by the gateway')}
   const trimmed = String(text || '').trim()
 
   if (rejectGroupSlashCommand(trimmed)) {
@@ -899,6 +912,13 @@ export function sendToGroupChat(
 
   if (!trimmed && !attached.length) {
     return null
+  }
+
+  const canonicalRoom = $groupChats.get()[group]
+
+  if (canonicalRoom?.canonical) {
+    // A gateway-hosted room: the gateway drives the members (canonical-room-actions.ts).
+    return sendToCanonicalRoom(group, canonicalRoom, trimmed, thread, attached, options)
   }
 
   // An empty member seat (roster hydration race, meta clobber, legacy room
