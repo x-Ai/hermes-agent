@@ -467,8 +467,8 @@ export const zhOverrides = {
       reinstallApp: '重新安装应用'
     },
     causes: {
-      exitedEarly: 'Hermes的背景服务在开始后就停止了',
-      timedOut: 'Hermes的背景服务没有及时回答',
+      exitedEarly: 'Hermes的后台服务在开始后就停止了',
+      timedOut: 'Hermes的后台服务没有及时回答',
       permission: 'Hermes无法写入其数据文件夹(许可问题).',
       diskFull: '磁盘已经满了, 所以 Hermes 无法启动 .',
       portInUse: '另一个程序是使用网络端口Hermes需要',
