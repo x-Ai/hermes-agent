@@ -1885,137 +1885,332 @@ export interface BrowserControllerParams {
 export interface BrowserControllerDetachResult {
   detached?: boolean
 }
-/** Any method addressed at one hosted room. */
-export interface RoomParams {
+/** ``text`` is normally a string; the relay / hosted paths may hand a structured (parts list) payload, and the busy path renders it. Truncation (rewind / edit / regenerate) needs explicit consent: ``confirm_truncate`` plus one durable target (``truncate_before_row_id`` preferred, ``truncate_before_message_id``, or the legacy ``truncate_before_user_ordinal``). */
+export interface PromptSubmitParams {
+  session_id: string
   profile?: string | null
-  room_id: string
+  text?: unknown
+  display_kind?: string | null
+  interrupted?: boolean | null
+  queued?: boolean | null
+  surface?: string | null
+  voice_context?: string | null
+  voice_turn?: boolean | null
+  title_preview?: string | null
+  truncate_before_user_ordinal?: number | null
+  truncate_before_row_id?: number | null
+  truncate_before_message_id?: string | null
+  confirm_truncate?: boolean | null
+  confirm_empty_truncate?: boolean | null
+  confirm_deep_truncate?: boolean | null
+  rebind_survivor_row_ids?: number[] | null
 }
-export interface GroupsSettingsResult {
-  room_id: string
-  settings: RoomSettings
-  revision: number
+/** ``status`` is absent only on the typed-stop-phrase reply (``voice_stopped``). After a truncation the survivor row ids let the client rebind its cached ``rowId``s (``None`` map entries: drop the cached id). ``turn_isolation`` marks a compute-host dispatch. */
+export interface PromptSubmitResult {
+  status?: PromptSubmitStatus | null
+  voice_stopped?: boolean | null
+  user_row_id?: number | null
+  survivor_user_row_ids?: (number | null)[] | null
+  survivor_row_id_map?: Record<string, number | null> | null
+  turn_isolation?: boolean | null
 }
-/** ``gateway/hosted_room_settings.py`` shape: folders by member id / thread id, the room's folder, its ``@handle`` and whether stop directives are detected. */
-export interface RoomSettings {
-  workspace?: string | null
-  member_workspaces: Record<string, string>
-  thread_workspaces: Record<string, string>
-  handle?: string | null
-  hold_detection: boolean
-}
-export interface GroupsSettingsSetParams {
+export type PromptSubmitStatus = 'streaming' | 'queued' | 'steered' | 'redirected'
+export interface ClipboardPasteParams {
+  session_id: string
   profile?: string | null
-  room_id: string
-  patch: RoomSettingsPatch
-  expected_revision?: number | null
 }
-/** Scalars replace (``null`` clears); folder maps merge entry by entry (``null`` removes one). */
-export interface RoomSettingsPatch {
-  workspace?: string | null
-  member_workspaces?: Record<string, string | null> | null
-  thread_workspaces?: Record<string, string | null> | null
-  handle?: string | null
-  hold_detection?: boolean | null
+/** ``methods_prompt.py::_attached_image_result``: the image is queued for the next turn. */
+export interface AttachedImageResult {
+  name?: string | null
+  width?: number | null
+  height?: number | null
+  token_estimate?: number | null
+  attached: boolean
+  path?: string | null
+  count?: number | null
+  remainder?: string | null
+  text?: string | null
+  bytes?: number | null
+  message?: string | null
 }
-export interface GroupsMemberSessionsResult {
-  room_id: string
-  sessions: RoomMemberSession[]
+export interface ImageAttachParams {
+  session_id: string
+  profile?: string | null
+  path: string
 }
-/** A local member's hidden room session (``Group: <room_id>``); ids are None until its first turn. ``session_id`` is the compression tip a client resumes, ``root_id`` the stored row. */
-export interface RoomMemberSession {
-  member_id: string
-  profile: string
-  local: boolean
-  session_id?: string | null
-  root_id?: string | null
+/** ``content_base64`` (or the ``data`` alias) carries the bytes; ``filename`` / ``ext`` only hint the extension — magic bytes decide. */
+export interface ImageAttachBytesParams {
+  session_id: string
+  profile?: string | null
+  content_base64?: string | null
+  data?: string | null
+  filename?: string | null
+  ext?: string | null
 }
-export interface GroupsLiveResult {
-  room_id: string
-  current?: RoomLiveTurn | null
-  watching: boolean
+/** Host ``path`` or base64 ``content_base64`` / ``data``; ``first_page`` / ``last_page`` bound the render (per-call page cap enforced server-side). */
+export interface PdfAttachParams {
+  session_id: string
+  profile?: string | null
+  path?: string | null
+  content_base64?: string | null
+  data?: string | null
+  filename?: string | null
+  first_page?: number | null
+  last_page?: number | null
 }
-export interface RoomLiveTurn {
-  member_id?: string | null
-  thread_id: string
-  turn_id: string
+export interface PdfAttachResult {
+  attached: boolean
+  filename: string
+  pages_attached: number
+  pages: PdfPage[]
+  count: number
+  text: string
+}
+export interface PdfPage {
+  name?: string | null
+  width?: number | null
+  height?: number | null
+  token_estimate?: number | null
+  path: string
+  page: number
+}
+/** ``path`` when the file is gateway-visible, else ``data_url`` carries the bytes; ``name`` labels an uploaded file. */
+export interface FileAttachParams {
+  session_id: string
+  profile?: string | null
+  path?: string | null
+  data_url?: string | null
+  name?: string | null
+}
+export interface FileAttachResult {
+  attached: boolean
+  name: string
+  path: string
+  ref_path: string
+  ref_text: string
+  uploaded: boolean
+}
+export interface ImageDetachParams {
+  session_id: string
+  profile?: string | null
+  path: string
+}
+export interface ImageDetachResult {
+  detached: boolean
+  count: number
+}
+export interface InputDetectDropParams {
+  session_id: string
+  profile?: string | null
+  text?: string | null
+}
+/** ``matched: false`` alone when the text is not a drop; an image drop is queued immediately (``is_image`` + ``count``), a file drop only yields the ``text`` to insert. */
+export interface InputDetectDropResult {
+  name?: string | null
+  width?: number | null
+  height?: number | null
+  token_estimate?: number | null
+  matched: boolean
+  is_image?: boolean | null
+  path?: string | null
+  count?: number | null
+  text?: string | null
+}
+export interface SideAgentParams {
+  session_id: string
+  profile?: string | null
+  text: string
+}
+/** The side agent runs detached; its answer lands on the parent session as an event carrying this ``task_id``. */
+export interface TaskIdResult {
   task_id: string
-  status: string
-  started_at?: number | null
 }
-export interface GroupsWatchParams {
+export interface PreviewRestartParams {
+  session_id: string
   profile?: string | null
-  room_id: string
-  on?: boolean
+  url: string
+  cwd?: string | null
+  context?: string | null
 }
-export interface GroupsWatchResult {
-  room_id: string
-  watching: boolean
+export interface ClarifyLockParams {
+  request_id: string
+  question_id: string
+  answer?: unknown
+  profile?: string | null
 }
-export interface I18nLanguagesResult {
-  languages: LanguageOption[]
+/** ``remaining`` lists the qids still unanswered; the lock that empties it resolves the request. ``expired``: the wait already ended (timeout / cancel) — not an error. */
+export interface ClarifyLockResult {
+  status: ClarifyLockStatus
+  remaining?: string[] | null
 }
-/** ``agent.i18n_languages.language_options`` row. ``source`` is ``bundled``, ``overlay`` or ``plugin:<name>`` — the highest layer that supplies the language. */
-export interface LanguageOption {
+export type ClarifyLockStatus = 'ok' | 'expired'
+export interface RequestAnswerParams {
   id: string
-  endonym: string
-  rtl: boolean
-  source: string
-}
-export interface I18nCatalogParams {
+  result: Record<string, unknown>
   profile?: string | null
-  lang: string
-  surface?: LocaleSurface
 }
-export type LocaleSurface = 'core' | 'tui' | 'desktop'
-/** ``messages`` is ONLY the pack + user-overlay layer for that surface (flat dotted keys); the client merges it over its bundled ``en``/``<lang>``. ``lang`` is the canonical id the request resolved to (``pt-BR`` → ``pt-br``; an unknown id resolves to ``en`` with an empty layer). */
-export interface I18nCatalogResult {
-  lang: string
-  surface: LocaleSurface
-  messages: Record<string, string>
+export interface RequestAnswerResult {
+  status: ClarifyLockStatus
 }
-/** ``lang`` is what the client renders (a code, alias or regional tag); empty withdraws the claim. */
-export interface I18nClientLocaleParams {
-  lang?: string
+export interface ApprovalPendingParams {
+  session_id: string
+  profile?: string | null
 }
-/** ``lang`` is the canonical id now bound to this connection; ``""`` when the claim was withdrawn or named a language no layer supplies (the profile's own setting applies again). */
-export interface I18nClientLocaleResult {
-  lang: string
+export interface ApprovalPendingResult {
+  approvals: PendingApproval[]
 }
-export type PingParams = Record<string, never>
-export interface PingResult {
-  pong: boolean
+/** One unresolved ``tools/approval.py`` gateway queue entry as ``server._approval_request_payload`` renders it (command redacted; ``choices`` precomputed). The key set is owned by the approval tool. */
+export interface PendingApproval {
+  request_id?: string | null
+  command?: string | null
+  description?: string | null
+  pattern_key?: string | null
+  pattern_keys?: string[] | null
+  allow_permanent?: boolean | null
+  allow_session?: boolean | null
+  smart_denied?: boolean | null
+  choices?: string[] | null
+  tool_name?: string | null
+  [key: string]: unknown
 }
-export interface GatewayCapabilitiesResult {
-  per_session_exclusive_submit: boolean
+export interface ApprovalReceivedParams {
+  session_id: string
+  profile?: string | null
+  request_id: string
 }
-export interface ClientCapabilitiesParams {
-  server_requests?: boolean
+export interface ApprovalReceivedResult {
+  acknowledged: boolean
 }
-export interface ClientCapabilitiesResult {
-  server_requests: string[]
-  declines_not_shown?: boolean
+/** ``choice`` is one of the offered ``approval`` choices (once / session / always / deny); ``all`` resolves every pending approval, ``request_id`` a specific one, neither the oldest. */
+export interface ApprovalRespondParams {
+  session_id: string
+  profile?: string | null
+  choice?: string | null
+  all?: boolean | null
+  request_id?: string | null
 }
-/** Client→server method params / server→client request params. Unknown keys are rejected. */
-export type Params = Record<string, never>
-/** ``machine_kind`` is ``Spark``, ``Mac``, ``PC`` or ``computer``. ``nvidia_platform`` is ``products.nvidia_platform()``: ``rtx_spark``, ``dgx_spark``, ``discrete`` or null. ``locale`` is the OS account's first UI language, null when the OS has none. */
-export interface MachineFactsResult {
-  machine: MachineInfo
-  machine_kind: string
-  has_nvidia_gpu: boolean
-  nvidia_platform?: 'rtx_spark' | 'dgx_spark' | 'discrete' | null
-  locale?: string | null
+export interface ApprovalRespondResult {
+  resolved: number
 }
-/** Measured hardware; a key that was not measured is absent. */
-export interface MachineInfo {
-  os_family?: string | null
-  os_release?: string | null
-  native_arch?: string | null
-  cpu_model?: string | null
-  ram_gb?: number | null
-  gpu_class?: string | null
-  vendor?: string | null
-  wsl?: boolean | null
-  container?: boolean | null
+export interface VoiceToggleParams {
+  action?: VoiceToggleAction
+  profile?: string | null
+}
+export type VoiceToggleAction = 'status' | 'on' | 'off' | 'tts'
+/** ``methods_voice.py::_voice_status_payload`` (+ the requirements probe on ``status``, the spoken stop hint on ``on``). */
+export interface VoiceToggleResult {
+  enabled: boolean
+  record_key: string
+  tts: boolean
+  stop_hint?: string | null
+  available?: boolean | null
+  audio_available?: boolean | null
+  stt_available?: boolean | null
+  details?: string | null
+}
+export interface VoiceRecordParams {
+  action?: VoiceRecordAction
+  session_id?: string | null
+  profile?: string | null
+}
+export type VoiceRecordAction = 'start' | 'stop'
+export interface VoiceRecordResult {
+  status: VoiceRecordStatus
+  reason?: string | null
+}
+export type VoiceRecordStatus = 'recording' | 'stopped' | 'busy'
+export interface VoiceTtsParams {
+  text: string
+  profile?: string | null
+}
+export interface VoiceTtsResult {
+  status: string
+}
+/** ``surface`` names the caller ("tui" | "gui"); ``persist`` is the explicit gesture that also flips ``wake_word.enabled`` on; ``client_capture`` asks for PCM streamed via wake.feed. */
+export interface WakeStartParams {
+  surface?: string | null
+  persist?: boolean | null
+  client_capture?: boolean | null
+  session_id?: string | null
+  profile?: string | null
+}
+/** ``started: false`` carries ``reason`` (unavailable / disabled / disabled_for_surface / owned); ``sample_rate`` / ``frame_length`` describe the PCM frames the armed detector expects. */
+export interface WakeStartResult {
+  started: boolean
+  reason?: string | null
+  hint?: string | null
+  phrase?: string | null
+  provider?: string | null
+  owner_surface?: string | null
+  enabled_persisted?: boolean | null
+  capture?: string | null
+  sample_rate?: number | null
+  frame_length?: number | null
+}
+export interface WakeStopParams {
+  persist?: boolean | null
+  profile?: string | null
+}
+export interface WakeStopResult {
+  reason?: string | null
+  stopped: boolean
+  disabled_persisted: boolean
+}
+export interface WakeControlParams {
+  profile?: string | null
+}
+export interface WakePauseResult {
+  reason?: string | null
+  paused: boolean
+}
+export interface WakeResumeResult {
+  reason?: string | null
+  resumed: boolean
+}
+export interface WakeStatusParams {
+  surface?: string | null
+  client_capture?: boolean | null
+  profile?: string | null
+}
+/** ``enabled`` is config truth; ``listening`` is this caller's armed detector; ``audio_silent`` means armed but deaf (see ``hint``). */
+export interface WakeStatusResult {
+  listening: boolean
+  owned_by_caller: boolean
+  owner_surface?: string | null
+  phrase: string
+  provider: string
+  configured_surface: string
+  input_device: WakeInputDevice
+  available: boolean
+  hint: string
+  enabled: boolean
+  audio_silent: boolean
+  capture: string
+  local_input_available: boolean
+  sample_rate: number
+  frame_length: number
+}
+/** ``tools/wake_word.py::_describe_input_device`` — PortAudio diagnostics for the configured mic. */
+export interface WakeInputDevice {
+  selector?: number | string | null
+  name?: string | null
+  error?: string | null
+  max_input_channels?: number | null
+  default_samplerate?: number | null
+  hostapi_index?: number | null
+  hostapi?: string | null
+  [key: string]: unknown
+}
+/** ``pcm`` (or the ``pcm_b64`` alias): base64 int16 mono little-endian, 16 kHz only. */
+export interface WakeFeedParams {
+  pcm?: string | null
+  pcm_b64?: string | null
+  sample_rate?: number | null
+  profile?: string | null
+}
+export interface WakeFeedResult {
+  reason?: string | null
+  fed: boolean
 }
 /** ``word`` is the token under the cursor (``@`` prefix = context reference); ``cwd`` / ``session_id`` pick the directory the listing resolves against. */
 export interface CompletePathParams {
@@ -2461,6 +2656,180 @@ export interface SubagentTailResult {
   text?: string
   truncated?: boolean
 }
+/** Any method addressed at one hosted room. */
+export interface RoomParams {
+  profile?: string | null
+  room_id: string
+}
+export interface GroupsSettingsResult {
+  room_id: string
+  settings: RoomSettings
+  revision: number
+}
+/** ``gateway/hosted_room_settings.py`` shape: folders by member id / thread id, the room's folder, its ``@handle`` and whether stop directives are detected. */
+export interface RoomSettings {
+  workspace?: string | null
+  member_workspaces: Record<string, string>
+  thread_workspaces: Record<string, string>
+  handle?: string | null
+  hold_detection: boolean
+}
+export interface GroupsSettingsSetParams {
+  profile?: string | null
+  room_id: string
+  patch: RoomSettingsPatch
+  expected_revision?: number | null
+}
+/** Scalars replace (``null`` clears); folder maps merge entry by entry (``null`` removes one). */
+export interface RoomSettingsPatch {
+  workspace?: string | null
+  member_workspaces?: Record<string, string | null> | null
+  thread_workspaces?: Record<string, string | null> | null
+  handle?: string | null
+  hold_detection?: boolean | null
+}
+export interface GroupsMemberSessionsResult {
+  room_id: string
+  sessions: RoomMemberSession[]
+}
+/** A local member's hidden room session (``Group: <room_id>``); ids are None until its first turn. ``session_id`` is the compression tip a client resumes, ``root_id`` the stored row. */
+export interface RoomMemberSession {
+  member_id: string
+  profile: string
+  local: boolean
+  session_id?: string | null
+  root_id?: string | null
+}
+export interface GroupsLiveResult {
+  room_id: string
+  current?: RoomLiveTurn | null
+  watching: boolean
+}
+export interface RoomLiveTurn {
+  member_id?: string | null
+  thread_id: string
+  turn_id: string
+  task_id: string
+  status: string
+  started_at?: number | null
+}
+export interface GroupsWatchParams {
+  profile?: string | null
+  room_id: string
+  on?: boolean
+}
+export interface GroupsWatchResult {
+  room_id: string
+  watching: boolean
+}
+export interface GroupsAttachmentUploadParams {
+  profile?: string | null
+  room_id: string
+  upload_id: string
+  kind: string
+  name: string
+  mime: string
+  data_base64: string
+}
+export interface RoomAttachment {
+  attachment_id: string
+  kind: string
+  name: string
+  size: number
+  mime: string
+  sha256: string
+  state: string
+  created_at: number
+  idempotent: boolean
+  event_id?: string | null
+  [key: string]: unknown
+}
+export interface GroupsAttachmentDownloadParams {
+  profile?: string | null
+  room_id: string
+  event_id: string
+  attachment_id: string
+}
+export interface RoomAttachmentBytes {
+  attachment_id: string
+  kind: string
+  name: string
+  size: number
+  mime: string
+  sha256: string
+  state: string
+  created_at: number
+  idempotent: boolean
+  event_id?: string | null
+  data_base64: string
+  [key: string]: unknown
+}
+export interface I18nLanguagesResult {
+  languages: LanguageOption[]
+}
+/** ``agent.i18n_languages.language_options`` row. ``source`` is ``bundled``, ``overlay`` or ``plugin:<name>`` — the highest layer that supplies the language. */
+export interface LanguageOption {
+  id: string
+  endonym: string
+  rtl: boolean
+  source: string
+}
+export interface I18nCatalogParams {
+  profile?: string | null
+  lang: string
+  surface?: LocaleSurface
+}
+export type LocaleSurface = 'core' | 'tui' | 'desktop'
+/** ``messages`` is ONLY the pack + user-overlay layer for that surface (flat dotted keys); the client merges it over its bundled ``en``/``<lang>``. ``lang`` is the canonical id the request resolved to (``pt-BR`` → ``pt-br``; an unknown id resolves to ``en`` with an empty layer). */
+export interface I18nCatalogResult {
+  lang: string
+  surface: LocaleSurface
+  messages: Record<string, string>
+}
+/** ``lang`` is what the client renders (a code, alias or regional tag); empty withdraws the claim. */
+export interface I18nClientLocaleParams {
+  lang?: string
+}
+/** ``lang`` is the canonical id now bound to this connection; ``""`` when the claim was withdrawn or named a language no layer supplies (the profile's own setting applies again). */
+export interface I18nClientLocaleResult {
+  lang: string
+}
+export type PingParams = Record<string, never>
+export interface PingResult {
+  pong: boolean
+}
+export interface GatewayCapabilitiesResult {
+  per_session_exclusive_submit: boolean
+}
+export interface ClientCapabilitiesParams {
+  server_requests?: boolean
+}
+export interface ClientCapabilitiesResult {
+  server_requests: string[]
+  declines_not_shown?: boolean
+}
+/** Client→server method params / server→client request params. Unknown keys are rejected. */
+export type Params = Record<string, never>
+/** ``machine_kind`` is ``Spark``, ``Mac``, ``PC`` or ``computer``. ``nvidia_platform`` is ``products.nvidia_platform()``: ``rtx_spark``, ``dgx_spark``, ``discrete`` or null. ``locale`` is the OS account's first UI language, null when the OS has none. */
+export interface MachineFactsResult {
+  machine: MachineInfo
+  machine_kind: string
+  has_nvidia_gpu: boolean
+  nvidia_platform?: 'rtx_spark' | 'dgx_spark' | 'discrete' | null
+  locale?: string | null
+}
+/** Measured hardware; a key that was not measured is absent. */
+export interface MachineInfo {
+  os_family?: string | null
+  os_release?: string | null
+  native_arch?: string | null
+  cpu_model?: string | null
+  ram_gb?: number | null
+  gpu_class?: string | null
+  vendor?: string | null
+  wsl?: boolean | null
+  container?: boolean | null
+}
 /** ``methods_projects._projects_payload``: every project (archived included) + the active id. */
 export interface ProjectsPayload {
   projects: ProjectInfo[]
@@ -2794,333 +3163,6 @@ export interface PetScaleParams {
 export interface PetScaleResult {
   ok: boolean
   scale: number
-}
-/** ``text`` is normally a string; the relay / hosted paths may hand a structured (parts list) payload, and the busy path renders it. Truncation (rewind / edit / regenerate) needs explicit consent: ``confirm_truncate`` plus one durable target (``truncate_before_row_id`` preferred, ``truncate_before_message_id``, or the legacy ``truncate_before_user_ordinal``). */
-export interface PromptSubmitParams {
-  session_id: string
-  profile?: string | null
-  text?: unknown
-  display_kind?: string | null
-  interrupted?: boolean | null
-  queued?: boolean | null
-  surface?: string | null
-  voice_context?: string | null
-  voice_turn?: boolean | null
-  title_preview?: string | null
-  truncate_before_user_ordinal?: number | null
-  truncate_before_row_id?: number | null
-  truncate_before_message_id?: string | null
-  confirm_truncate?: boolean | null
-  confirm_empty_truncate?: boolean | null
-  confirm_deep_truncate?: boolean | null
-  rebind_survivor_row_ids?: number[] | null
-}
-/** ``status`` is absent only on the typed-stop-phrase reply (``voice_stopped``). After a truncation the survivor row ids let the client rebind its cached ``rowId``s (``None`` map entries: drop the cached id). ``turn_isolation`` marks a compute-host dispatch. */
-export interface PromptSubmitResult {
-  status?: PromptSubmitStatus | null
-  voice_stopped?: boolean | null
-  user_row_id?: number | null
-  survivor_user_row_ids?: (number | null)[] | null
-  survivor_row_id_map?: Record<string, number | null> | null
-  turn_isolation?: boolean | null
-}
-export type PromptSubmitStatus = 'streaming' | 'queued' | 'steered' | 'redirected'
-export interface ClipboardPasteParams {
-  session_id: string
-  profile?: string | null
-}
-/** ``methods_prompt.py::_attached_image_result``: the image is queued for the next turn. */
-export interface AttachedImageResult {
-  name?: string | null
-  width?: number | null
-  height?: number | null
-  token_estimate?: number | null
-  attached: boolean
-  path?: string | null
-  count?: number | null
-  remainder?: string | null
-  text?: string | null
-  bytes?: number | null
-  message?: string | null
-}
-export interface ImageAttachParams {
-  session_id: string
-  profile?: string | null
-  path: string
-}
-/** ``content_base64`` (or the ``data`` alias) carries the bytes; ``filename`` / ``ext`` only hint the extension — magic bytes decide. */
-export interface ImageAttachBytesParams {
-  session_id: string
-  profile?: string | null
-  content_base64?: string | null
-  data?: string | null
-  filename?: string | null
-  ext?: string | null
-}
-/** Host ``path`` or base64 ``content_base64`` / ``data``; ``first_page`` / ``last_page`` bound the render (per-call page cap enforced server-side). */
-export interface PdfAttachParams {
-  session_id: string
-  profile?: string | null
-  path?: string | null
-  content_base64?: string | null
-  data?: string | null
-  filename?: string | null
-  first_page?: number | null
-  last_page?: number | null
-}
-export interface PdfAttachResult {
-  attached: boolean
-  filename: string
-  pages_attached: number
-  pages: PdfPage[]
-  count: number
-  text: string
-}
-export interface PdfPage {
-  name?: string | null
-  width?: number | null
-  height?: number | null
-  token_estimate?: number | null
-  path: string
-  page: number
-}
-/** ``path`` when the file is gateway-visible, else ``data_url`` carries the bytes; ``name`` labels an uploaded file. */
-export interface FileAttachParams {
-  session_id: string
-  profile?: string | null
-  path?: string | null
-  data_url?: string | null
-  name?: string | null
-}
-export interface FileAttachResult {
-  attached: boolean
-  name: string
-  path: string
-  ref_path: string
-  ref_text: string
-  uploaded: boolean
-}
-export interface ImageDetachParams {
-  session_id: string
-  profile?: string | null
-  path: string
-}
-export interface ImageDetachResult {
-  detached: boolean
-  count: number
-}
-export interface InputDetectDropParams {
-  session_id: string
-  profile?: string | null
-  text?: string | null
-}
-/** ``matched: false`` alone when the text is not a drop; an image drop is queued immediately (``is_image`` + ``count``), a file drop only yields the ``text`` to insert. */
-export interface InputDetectDropResult {
-  name?: string | null
-  width?: number | null
-  height?: number | null
-  token_estimate?: number | null
-  matched: boolean
-  is_image?: boolean | null
-  path?: string | null
-  count?: number | null
-  text?: string | null
-}
-export interface SideAgentParams {
-  session_id: string
-  profile?: string | null
-  text: string
-}
-/** The side agent runs detached; its answer lands on the parent session as an event carrying this ``task_id``. */
-export interface TaskIdResult {
-  task_id: string
-}
-export interface PreviewRestartParams {
-  session_id: string
-  profile?: string | null
-  url: string
-  cwd?: string | null
-  context?: string | null
-}
-export interface ClarifyLockParams {
-  request_id: string
-  question_id: string
-  answer?: unknown
-  profile?: string | null
-}
-/** ``remaining`` lists the qids still unanswered; the lock that empties it resolves the request. ``expired``: the wait already ended (timeout / cancel) — not an error. */
-export interface ClarifyLockResult {
-  status: ClarifyLockStatus
-  remaining?: string[] | null
-}
-export type ClarifyLockStatus = 'ok' | 'expired'
-export interface RequestAnswerParams {
-  id: string
-  result: Record<string, unknown>
-  profile?: string | null
-}
-export interface RequestAnswerResult {
-  status: ClarifyLockStatus
-}
-export interface ApprovalPendingParams {
-  session_id: string
-  profile?: string | null
-}
-export interface ApprovalPendingResult {
-  approvals: PendingApproval[]
-}
-/** One unresolved ``tools/approval.py`` gateway queue entry as ``server._approval_request_payload`` renders it (command redacted; ``choices`` precomputed). The key set is owned by the approval tool. */
-export interface PendingApproval {
-  request_id?: string | null
-  command?: string | null
-  description?: string | null
-  pattern_key?: string | null
-  pattern_keys?: string[] | null
-  allow_permanent?: boolean | null
-  allow_session?: boolean | null
-  smart_denied?: boolean | null
-  choices?: string[] | null
-  tool_name?: string | null
-  [key: string]: unknown
-}
-export interface ApprovalReceivedParams {
-  session_id: string
-  profile?: string | null
-  request_id: string
-}
-export interface ApprovalReceivedResult {
-  acknowledged: boolean
-}
-/** ``choice`` is one of the offered ``approval`` choices (once / session / always / deny); ``all`` resolves every pending approval, ``request_id`` a specific one, neither the oldest. */
-export interface ApprovalRespondParams {
-  session_id: string
-  profile?: string | null
-  choice?: string | null
-  all?: boolean | null
-  request_id?: string | null
-}
-export interface ApprovalRespondResult {
-  resolved: number
-}
-export interface VoiceToggleParams {
-  action?: VoiceToggleAction
-  profile?: string | null
-}
-export type VoiceToggleAction = 'status' | 'on' | 'off' | 'tts'
-/** ``methods_voice.py::_voice_status_payload`` (+ the requirements probe on ``status``, the spoken stop hint on ``on``). */
-export interface VoiceToggleResult {
-  enabled: boolean
-  record_key: string
-  tts: boolean
-  stop_hint?: string | null
-  available?: boolean | null
-  audio_available?: boolean | null
-  stt_available?: boolean | null
-  details?: string | null
-}
-export interface VoiceRecordParams {
-  action?: VoiceRecordAction
-  session_id?: string | null
-  profile?: string | null
-}
-export type VoiceRecordAction = 'start' | 'stop'
-export interface VoiceRecordResult {
-  status: VoiceRecordStatus
-  reason?: string | null
-}
-export type VoiceRecordStatus = 'recording' | 'stopped' | 'busy'
-export interface VoiceTtsParams {
-  text: string
-  profile?: string | null
-}
-export interface VoiceTtsResult {
-  status: string
-}
-/** ``surface`` names the caller ("tui" | "gui"); ``persist`` is the explicit gesture that also flips ``wake_word.enabled`` on; ``client_capture`` asks for PCM streamed via wake.feed. */
-export interface WakeStartParams {
-  surface?: string | null
-  persist?: boolean | null
-  client_capture?: boolean | null
-  session_id?: string | null
-  profile?: string | null
-}
-/** ``started: false`` carries ``reason`` (unavailable / disabled / disabled_for_surface / owned); ``sample_rate`` / ``frame_length`` describe the PCM frames the armed detector expects. */
-export interface WakeStartResult {
-  started: boolean
-  reason?: string | null
-  hint?: string | null
-  phrase?: string | null
-  provider?: string | null
-  owner_surface?: string | null
-  enabled_persisted?: boolean | null
-  capture?: string | null
-  sample_rate?: number | null
-  frame_length?: number | null
-}
-export interface WakeStopParams {
-  persist?: boolean | null
-  profile?: string | null
-}
-export interface WakeStopResult {
-  reason?: string | null
-  stopped: boolean
-  disabled_persisted: boolean
-}
-export interface WakeControlParams {
-  profile?: string | null
-}
-export interface WakePauseResult {
-  reason?: string | null
-  paused: boolean
-}
-export interface WakeResumeResult {
-  reason?: string | null
-  resumed: boolean
-}
-export interface WakeStatusParams {
-  surface?: string | null
-  client_capture?: boolean | null
-  profile?: string | null
-}
-/** ``enabled`` is config truth; ``listening`` is this caller's armed detector; ``audio_silent`` means armed but deaf (see ``hint``). */
-export interface WakeStatusResult {
-  listening: boolean
-  owned_by_caller: boolean
-  owner_surface?: string | null
-  phrase: string
-  provider: string
-  configured_surface: string
-  input_device: WakeInputDevice
-  available: boolean
-  hint: string
-  enabled: boolean
-  audio_silent: boolean
-  capture: string
-  local_input_available: boolean
-  sample_rate: number
-  frame_length: number
-}
-/** ``tools/wake_word.py::_describe_input_device`` — PortAudio diagnostics for the configured mic. */
-export interface WakeInputDevice {
-  selector?: number | string | null
-  name?: string | null
-  error?: string | null
-  max_input_channels?: number | null
-  default_samplerate?: number | null
-  hostapi_index?: number | null
-  hostapi?: string | null
-  [key: string]: unknown
-}
-/** ``pcm`` (or the ``pcm_b64`` alias): base64 int16 mono little-endian, 16 kHz only. */
-export interface WakeFeedParams {
-  pcm?: string | null
-  pcm_b64?: string | null
-  sample_rate?: number | null
-  profile?: string | null
-}
-export interface WakeFeedResult {
-  reason?: string | null
-  fed: boolean
 }
 export interface SessionCreateParams {
   profile?: string | null
@@ -4565,11 +4607,6 @@ export interface PluginCatalogLookupEntry {
   sha: string
   subdir: string
 }
-export interface CanonicalShellExecParams {
-  session_id: string
-  command: string
-  profile?: string | null
-}
 export interface PromptReceiptParams {
   session_id: string
   admission_id: string
@@ -4881,48 +4918,6 @@ export interface WorkerPersistParams {
 }
 /** The operation's durable receipt (``message_id`` for an append, delegation results, …). */
 export type WorkerPersistResult = Record<string, unknown>
-export interface GroupsAttachmentUploadParams {
-  profile?: string | null
-  room_id: string
-  upload_id: string
-  kind: string
-  name: string
-  mime: string
-  data_base64: string
-}
-export interface RoomAttachment {
-  attachment_id: string
-  kind: string
-  name: string
-  size: number
-  mime: string
-  sha256: string
-  state: string
-  created_at: number
-  idempotent: boolean
-  event_id?: string | null
-  [key: string]: unknown
-}
-export interface GroupsAttachmentDownloadParams {
-  profile?: string | null
-  room_id: string
-  event_id: string
-  attachment_id: string
-}
-export interface RoomAttachmentBytes {
-  attachment_id: string
-  kind: string
-  name: string
-  size: number
-  mime: string
-  sha256: string
-  state: string
-  created_at: number
-  idempotent: boolean
-  event_id?: string | null
-  data_base64: string
-  [key: string]: unknown
-}
 export interface GroupsDiscardParams {
   profile?: string | null
   room_id: string
@@ -5281,6 +5276,11 @@ export interface CanonicalBotDeliverResult {
   retry_admission_id?: string | null
   error?: string | null
   reason?: string | null
+}
+export interface CanonicalShellExecParams {
+  session_id: string
+  command: string
+  profile?: string | null
 }
 /** ``answers`` rides only on a reconnect replay (locks the server already accepted; null = skipped). */
 export interface ClarifyRequestParams {
@@ -6093,6 +6093,10 @@ export interface RpcMethods {
   'gateway.capabilities': { params: PingParams; result: GatewayCapabilitiesResult }
   /** Resolve one exact pending approval raised by a local or peer room member. */
   'groups.approve': { params: GroupsApproveParams; result: GroupsApproveResult }
+  /** Read one committed attachment for a live room viewer. */
+  'groups.attachment.download': { params: GroupsAttachmentDownloadParams; result: RoomAttachmentBytes }
+  /** Store one attachment for a later groups.send manifest (idempotent per upload_id); the in-process member route stages it into each member's session before its turn. */
+  'groups.attachment.upload': { params: GroupsAttachmentUploadParams; result: RoomAttachment }
   /** Describe the hosted-room protocol implemented by this gateway. */
   'groups.capabilities': { params: GroupsCapabilitiesParams; result: GroupsCapabilitiesResult }
   /** Create a hosted room idempotently; authority is this gateway's stable install identity. */
@@ -6559,6 +6563,8 @@ export const RPC_METHODS = [
   'free_tier.status',
   'gateway.capabilities',
   'groups.approve',
+  'groups.attachment.download',
+  'groups.attachment.upload',
   'groups.capabilities',
   'groups.create',
   'groups.demote',

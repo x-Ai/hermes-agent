@@ -55,7 +55,8 @@ def test_capabilities_advertise_the_fork_features_and_methods(home):
     caps = _result(srv._methods["groups.capabilities"](1, {}))
     assert set(FEATURES) <= set(caps["features"])
     assert set(METHODS) <= set(caps["methods"])
-    assert caps["methods"][: len(caps["methods"]) - len(METHODS)] == list(methods_groups._METHODS)
+    # Upstream's wire order comes first; the fork's methods follow it (settings, then attachments).
+    assert caps["methods"][: len(methods_groups._METHODS)] == list(methods_groups._METHODS)
 
 
 def test_settings_round_trip_with_revision_cas_and_errors(home):

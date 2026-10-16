@@ -13,7 +13,12 @@ import threading
 from collections.abc import Callable
 
 from agent.i18n import t as _t
-from tui_gateway.methods_groups_settings import FEATURES as _FORK_FEATURES, METHODS as _FORK_METHODS
+from tui_gateway.methods_groups_attachments import FEATURES as _FORK_ATTACHMENT_FEATURES, METHODS as _FORK_ATTACHMENT_METHODS
+from tui_gateway.methods_groups_settings import FEATURES as _FORK_SETTINGS_FEATURES, METHODS as _FORK_SETTINGS_METHODS
+
+# Fork capabilities: room settings / member sessions / live turn / activity watch, then room attachments.
+_FORK_FEATURES = (*_FORK_SETTINGS_FEATURES, *_FORK_ATTACHMENT_FEATURES)
+_FORK_METHODS = (*_FORK_SETTINGS_METHODS, *_FORK_ATTACHMENT_METHODS)
 
 _registry = HandlerRegistry()
 method = _registry.method

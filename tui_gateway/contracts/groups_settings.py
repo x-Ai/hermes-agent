@@ -1,12 +1,16 @@
-"""Fork extensions of the hosted-room contract (``methods_groups_settings.py``): per-room settings the
-Desktop's room features keep on the gateway, member session lookup, the live turn and the activity watch
-that feeds the room view's trace and usage chips. ``groups.capabilities.features`` advertises them as
-``room_settings`` / ``member_sessions`` / ``room_live`` / ``activity_watch``.
+"""Fork extensions of the hosted-room contract (``methods_groups_settings.py``,
+``methods_groups_attachments.py``): per-room settings the Desktop's room features keep on the gateway,
+member session lookup, the live turn, the activity watch that feeds the room view's trace and usage chips,
+and the canonical contract's attachment upload / download served in-process. ``groups.capabilities.features``
+advertises them as ``room_settings`` / ``member_sessions`` / ``room_live`` / ``activity_watch`` /
+``room_attachments``.
 """
 
 from __future__ import annotations
 
 from .base import JsonValue, Params, Payload, Result
+from .canonical import (
+    GroupsAttachmentDownloadParams, GroupsAttachmentUploadParams, RoomAttachment, RoomAttachmentBytes)
 from .groups_bot_relay import RoomParams
 from .registry import event, method
 
@@ -128,3 +132,13 @@ class RoomActivityPayload(Payload):
 
 event("room.activity", RoomActivityPayload,
       doc="A watched room's member did something: the hidden session's frame with room coordinates.")
+
+
+# ── attachments (the canonical contract's methods, served by the in-process gateway) ───────────
+
+method("groups.attachment.upload", params=GroupsAttachmentUploadParams, result=RoomAttachment,
+       doc="Store one attachment for a later groups.send manifest (idempotent per upload_id); the "
+           "in-process member route stages it into each member's session before its turn.")
+
+method("groups.attachment.download", params=GroupsAttachmentDownloadParams, result=RoomAttachmentBytes,
+       doc="Read one committed attachment for a live room viewer.")

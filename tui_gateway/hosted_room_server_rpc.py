@@ -7,6 +7,7 @@ from __future__ import annotations
 import itertools
 import threading
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable
 
@@ -28,11 +29,12 @@ class HostedRoomSessionError(RuntimeError):
 class HostedRoomServerRPC:
     """Normalize the installed server handlers for :class:`HostedRoomRuntime`."""
 
-    accepts_attachments = False  # prompt.submit here has no event-bound file resolution
+    accepts_attachments = True  # bound bytes are staged into the member session before prompt.submit
 
-    def __init__(self, server: ModuleType) -> None:
+    def __init__(self, server: ModuleType, *, db_path: Path | str | None = None) -> None:
         self.server = server
         self._ids = itertools.count(1)
+        self.db_path = db_path  # the room store the bound files are read from (default: the room db)
 
     def _call(self, method: str, params: dict[str, Any]) -> dict[str, Any]:
         envelope = self.server._methods[method](f"hosted-room-{next(self._ids)}", params)
@@ -77,9 +79,12 @@ class HostedRoomServerRPC:
         execution_generation: int, on_terminal: Callable[[Mapping[str, Any]], None], member_id: str,
         attachments: Sequence[Mapping[str, Any]] | None = None,
     ) -> Mapping[str, Any]:
-        if attachments:  # the driver refuses files before submit on this route
-            raise ValueError("attachments_unsupported_on_route: in-process route cannot carry files")
         try:
+            if attachments:
+                from tui_gateway.hosted_room_member_attachments import stage_member_attachments
+                prompt = stage_member_attachments(
+                    self, profile=profile, session_id=session_id, room_id=task.room_id, member_id=member_id,
+                    prompt=prompt, attachments=attachments, db_path=self.db_path)
             return self._call("prompt.submit", {
                 "profile": profile, "session_id": session_id, "text": prompt, "source": source,
                 "_hosted_task": {
