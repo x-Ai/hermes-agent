@@ -429,12 +429,17 @@ export class CanonicalDesktopProtocol {
   // pins priority, Normal pins normal over a profile tier, omitted inherits); `cwd_explicit` is the
   // provenance that lets a named profile's own workspace beat an inherited cwd.
   private prepareCreate(input: Record<string, unknown>): Record<string, unknown> {
-    const { reasoning_effort: effort, fast, service_tier: picked, ...params } = input
+    const { reasoning_effort: effort, fast, service_tier: picked, room_plumbing: plumbing, ...params } = input
     const tier = typeof picked === 'string' && picked ? picked : fast === true ? 'priority' : fast === false ? 'normal' : undefined
 
     if (typeof effort === 'string' && effort) { params.reasoning = effort }
 
     if (tier) { params.service_tier = tier }
+
+    // Fork: a Desktop room's member session carries the sidecar's explicit `room_plumbing` flag
+    // (hermes-bots group-turns); the owner's create contract spells the same thing hidden +
+    // follow_profile_config, which is what the sidecar derives from the flag.
+    if (plumbing === true) { params.hidden = true; params.follow_profile_config = true }
 
     if (typeof params.cwd_explicit !== 'boolean') { delete params.cwd_explicit }
 

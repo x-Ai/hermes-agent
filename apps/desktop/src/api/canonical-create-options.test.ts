@@ -49,6 +49,21 @@ const CASES: Array<[string, Record<string, unknown>, Record<string, unknown> | R
     { ...BASE, title: 'Bot Chat', hidden: true, follow_profile_config: true },
     { profile: 'default', follow_profile_config: true, hidden: true }
   ],
+  // Fork: a Desktop room's member session (hermes-bots group-turns) carries the sidecar's explicit
+  // `room_plumbing` contract; the owner has no such key and expresses it as hidden +
+  // follow_profile_config, so the frame is translated rather than refused by name.
+  [
+    'room member session',
+    {
+      ...BASE,
+      profile: 'bot',
+      title: 'Group: r1 · main',
+      hidden: true,
+      room_plumbing: true,
+      follow_profile_config: true
+    },
+    { profile: 'bot', title: 'Group: r1 · main', hidden: true, follow_profile_config: true }
+  ],
   [
     'Fast speed',
     { ...BASE, cwd: '/w', cwd_explicit: false, fast: true },

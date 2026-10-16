@@ -426,6 +426,8 @@ export async function ensureGroupChatSession(
         // from the member profile's CURRENT config on resume, never a stale
         // stored model/provider pin. Older gateways ignore the unknown params;
         // the server's hidden + "Group: " title fallback then covers legacy.
+        // On a canonical dial the protocol layer (canonical-protocol.ts
+        // prepareCreate) folds it into hidden + follow_profile_config.
         room_plumbing: true,
         follow_profile_config: true,
         // A picked folder carries the provenance of a deliberate per-session
