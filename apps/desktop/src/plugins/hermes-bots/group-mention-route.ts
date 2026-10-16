@@ -36,7 +36,7 @@ import type { Attachment, GroupChat, RosterRow } from './types'
 
 /** The tags a room completes and resolves on: its handle first (the form the
  *  popover inserts), then the slug forms its name yields, as aliases. */
-export function groupMentionTags(name: string, room?: Pick<GroupChat, 'handle'> | null): string[] {
+export function groupMentionTags(name: string, room?: Pick<GroupChat, 'displayName' | 'handle'> | null): string[] {
   return [...new Set([groupMentionHandle(name, room), ...mentionNameForms(name)])].filter(Boolean)
 }
 
@@ -54,11 +54,12 @@ export function groupMentionCompletions(
   const q = (query || '').toLowerCase()
   const items: GroupMentionItem[] = []
 
-  for (const [name, room] of Object.entries(rooms || {})) {
+  for (const [key, room] of Object.entries(rooms || {})) {
     if (!room || room.tombstone) {
       continue
     }
 
+    const name = room.displayName || key
     const tag = groupMentionTags(name, room)[0]
 
     if (!tag || (q && !tag.startsWith(q) && !name.toLowerCase().startsWith(q))) {
@@ -93,9 +94,9 @@ export function matchLeadingGroupMention(
 
   const tag = match[1].toLowerCase()
 
-  for (const [name, room] of Object.entries(rooms || {})) {
-    if (room && !room.tombstone && groupMentionTags(name, room).includes(tag)) {
-      return { group: name, rest: (text || '').slice(match[0].length).trim(), tag }
+  for (const [key, room] of Object.entries(rooms || {})) {
+    if (room && !room.tombstone && groupMentionTags(room.displayName || key, room).includes(tag)) {
+      return { group: key, rest: (text || '').slice(match[0].length).trim(), tag }
     }
   }
 

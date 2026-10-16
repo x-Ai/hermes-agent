@@ -52,6 +52,10 @@ type GroupCreateOwnCopy = {
   handlePlaceholder: string
   handleInvalid: string
   handleTaken: (handle: string, owner: string) => string
+  /** Gateway-hosted rooms (`canonical-room-actions.ts`). */
+  canonicalSendFailed: (error: string) => string
+  canonicalActionFailed: (error: string) => string
+  canonicalMembersFixed: string
 }
 
 const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${group}"`).join(separator)
@@ -88,7 +92,10 @@ const en: GroupCreateOwnCopy = {
     'What follows @ in any composer to send a draft into this room: lowercase letters, digits, - and _. Empty derives it from the name.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'A handle is lowercase letters, digits, - or _, and not a reserved word such as everyone.',
-  handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`
+  handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`,
+  canonicalSendFailed: error => `The group did not take the message: ${error}`,
+  canonicalActionFailed: error => `The gateway refused the change: ${error}`,
+  canonicalMembersFixed: 'Members of a gateway-hosted room are set when it is created.'
 }
 
 const ja: GroupCreateOwnCopy = {
@@ -124,7 +131,10 @@ const ja: GroupCreateOwnCopy = {
     '任意の入力欄で @ に続けて入力すると、このルームに送信できます。小文字の英数字、- と _ のみ。空欄なら名前から自動生成します',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'ハンドルに使えるのは小文字の英数字、- と _ のみで、everyone などの予約語は使えません',
-  handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`
+  handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`,
+  canonicalSendFailed: error => `グループはメッセージを受け付けませんでした: ${error}`,
+  canonicalActionFailed: error => `ゲートウェイが変更を拒否しました: ${error}`,
+  canonicalMembersFixed: 'ゲートウェイ管理のルームのメンバーは作成時に決まります。'
 }
 
 const zh: GroupCreateOwnCopy = {
@@ -155,7 +165,10 @@ const zh: GroupCreateOwnCopy = {
     '在任意输入框里输入 @ 加这个标签，就能把消息发进这个群聊，只能用小写字母、数字、- 和 _，留空则按群名自动生成',
   handlePlaceholder: 'dev-team',
   handleInvalid: '标签只能用小写字母、数字、- 和 _，且不能是 everyone 这类保留词',
-  handleTaken: (handle, owner) => `@${handle} 已被 "${owner}" 使用`
+  handleTaken: (handle, owner) => `@${handle} 已被 "${owner}" 使用`,
+  canonicalSendFailed: error => `群组没有收下这条消息: ${error}`,
+  canonicalActionFailed: error => `网关拒绝了这次修改: ${error}`,
+  canonicalMembersFixed: '网关托管群组的成员在创建时确定'
 }
 
 const zhHant: GroupCreateOwnCopy = {
@@ -186,7 +199,10 @@ const zhHant: GroupCreateOwnCopy = {
     '在任一輸入框輸入 @ 加這個標籤，即可把訊息送進這個群組聊天。只能使用小寫字母、數字、- 和 _，留空則依群組名稱自動產生',
   handlePlaceholder: 'dev-team',
   handleInvalid: '標籤只能使用小寫字母、數字、- 和 _，且不能是 everyone 這類保留字',
-  handleTaken: (handle, owner) => `@${handle} 已被「${owner}」使用`
+  handleTaken: (handle, owner) => `@${handle} 已被「${owner}」使用`,
+  canonicalSendFailed: error => `群組沒有收下這則訊息: ${error}`,
+  canonicalActionFailed: error => `閘道拒絕了這次修改: ${error}`,
+  canonicalMembersFixed: '閘道託管群組的成員在建立時確定。'
 }
 
 const ru: GroupCreateOwnCopy = {
@@ -219,7 +235,10 @@ const ru: GroupCreateOwnCopy = {
     'Что вводить после @ в любом поле ввода, чтобы отправить черновик в эту комнату: строчные латинские буквы, цифры, - и _. Пустое поле — хэндл выводится из названия.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'Хэндл — это строчные латинские буквы, цифры, - или _, и не зарезервированное слово вроде everyone.',
-  handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`
+  handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`,
+  canonicalSendFailed: error => `Группа не приняла сообщение: ${error}`,
+  canonicalActionFailed: error => `Шлюз отклонил изменение: ${error}`,
+  canonicalMembersFixed: 'Состав группы, которой владеет шлюз, задаётся при её создании.'
 }
 
 const ar: GroupCreateOwnCopy = {
@@ -250,7 +269,10 @@ const ar: GroupCreateOwnCopy = {
     'ما يُكتب بعد @ في أي حقل إدخال لإرسال المسودة إلى هذه الغرفة: أحرف لاتينية صغيرة وأرقام و- و_. اتركه فارغًا ليُشتق من الاسم.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'المعرّف أحرف لاتينية صغيرة وأرقام و- أو _ فقط، وليس كلمة محجوزة مثل everyone.',
-  handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`
+  handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`,
+  canonicalSendFailed: error => `لم تقبل المجموعة الرسالة: ${error}`,
+  canonicalActionFailed: error => `رفضت البوابة التغيير: ${error}`,
+  canonicalMembersFixed: 'يُحدَّد أعضاء المجموعة التي تملكها البوابة عند إنشائها.'
 }
 
 /** Everything the fork adds to `b.group.*`: this file's keys, the room's

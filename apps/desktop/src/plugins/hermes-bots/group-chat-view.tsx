@@ -40,7 +40,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { avatarColor, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
 import { $canonicalGroupBindings } from './canonical-group-registry'
-import { CanonicalGroupWorkspace } from './canonical-group-workspace'
+import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
+import { useCanonicalRoomSync } from './canonical-room-sync'
 import {
   $botMeta,
   $lastRoster,
@@ -67,6 +68,7 @@ import {
   $groupChatWorkspace,
   $groupClarify,
   $groupNeedsYou,
+  groupChatDisplayName,
   groupThreadOf,
   rememberGroupChatTombstone,
   scheduleGroupChatServerSync,
@@ -482,6 +484,31 @@ function GroupChatSettingsDialog({
       return
     }
 
+    const canonicalRoom = rooms[group]?.canonical ? rooms[group] : null
+
+    if (canonicalRoom) {
+      // A gateway-hosted room keeps its key: the name, handle, folders and hold switch are
+      // written on the gateway (canonical-room-actions.ts); only the picture stays local.
+      if (image !== current) {
+        setGroupChatImage(group, image)
+      }
+
+      const saved = await saveCanonicalRoomSettings(group, canonicalRoom, {
+        handle: handleCheck.handle,
+        holdDetection,
+        memberWorkspaces: workspaceDraft.memberWorkspaces,
+        members: members || [],
+        name,
+        workspace: workspaceDraft.workspace
+      })
+
+      if (saved) {
+        onClose()
+      }
+
+      return
+    }
+
     const finalName = await renameGroupChat(group, name, members)
 
     if (finalName === null) {
@@ -668,6 +695,22 @@ function groupThreadBounds(log: GroupMessage[]) {
   return { ends, starts }
 }
 
+/** Members of a gateway-hosted room are fixed at creation: no picker for it. */
+function manageMembersFor(room: GroupChatRoom, open: () => void): (() => void) | undefined {
+  return room.canonical ? undefined : open
+}
+
+/** Disband from the room's own dialog: a hosted room on its gateway, a Desktop room locally. */
+async function disbandRoom(group: string, room: GroupChatRoom, members: GroupMember[]): Promise<boolean> {
+  if (room.canonical) {
+    return disbandCanonicalRoom(group, room)
+  }
+
+  await disbandGroupChat(group, members)
+
+  return true
+}
+
 interface GroupChatWorkspaceProps {
   group: string
   members: GroupMember[]
@@ -679,14 +722,10 @@ export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
   const bindings = useValue($canonicalGroupBindings)
   const binding = bindings[props.group]
 
-  // Fork: a Desktop room keeps the legacy workspace (room/member folders, @handle,
-  // the folded trace, context chips) whatever the gateway's group driver reports;
-  // only a room the gateway owns (a canonical binding) renders the canonical view.
-  // Upstream gates legacy rooms behind `groups.capabilities` and offers a gateway
-  // group instead — adopting that is a product decision, not a merge resolution.
-  if (binding) {
-    return <CanonicalGroupWorkspace binding={binding} onBack={props.onBack} visible={props.visible} />
-  }
+  // Fork: a gateway-hosted room renders the SAME room view as a Desktop room — its record is a
+  // projection of the gateway's state kept fresh here (canonical-room-sync.ts) while the view is
+  // up; a Desktop room runs on the Desktop. Upstream's capability gate and skeleton view are unused.
+  useCanonicalRoomSync(props.group, binding, props.visible !== false)
 
   return <LegacyGroupChatWorkspace {...props} />
 }
@@ -697,11 +736,8 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
 
-  const room: GroupChatRoom = rooms[group] || {
-    log: [],
-    running: false
-  }
-
+  const room: GroupChatRoom = rooms[group] || { log: [], running: false }
+  const roomName = groupChatDisplayName(group, room)
   const composerKey = groupComposerDraftKey(group, room)
   const composerKeyRef = useRef(composerKey)
   const [composerDraft, setComposerDraft] = useState(() => groupComposerDraftSnapshot(composerKey))
@@ -837,7 +873,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         setComposerDraft(next)
         host.notify({
           kind: 'success',
-          message: `${Number(request.count) || attachments.length} Browser comment${Number(request.count) === 1 ? '' : 's'} added to ${group}. Review the New Thread draft before sending.`
+          message: `${Number(request.count) || attachments.length} Browser comment${Number(request.count) === 1 ? '' : 's'} added to ${groupChatDisplayName(group, $groupChats.get()[group])}. Review the New Thread draft before sending.`
         })
         send({
           ok: true,
@@ -1003,7 +1039,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
       <Button onClick={() => (onBack ? onBack() : $groupChatWorkspace.set(null))} size="sm" variant="ghost">
         {t.common.back}
       </Button>
-      <GroupRoomTitle group={group} image={room.image} workspace={room.workspace} />
+      <GroupRoomTitle group={roomName} image={room.image} workspace={room.workspace} />
       <Tip label={memberNames}>
         <span
           aria-label={availabilityLabel}
@@ -1017,9 +1053,9 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
             : b.group.memberCount(members.length)}
         </span>
       </Tip>
-      <Tip label={b.group.settingsHint(group)}>
+      <Tip label={b.group.settingsHint(roomName)}>
         <Button
-          aria-label={b.group.settingsLabel(group)}
+          aria-label={b.group.settingsLabel(roomName)}
           className="shrink-0 text-(--ui-text-tertiary) hover:text-foreground"
           onClick={() => setSettingsOpen(true)}
           size="sm"
@@ -1039,9 +1075,9 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
           <Codicon name="organization" />
         </Button>
       </Tip>
-      <Tip label={b.group.disbandHint(group)}>
+      <Tip label={b.group.disbandHint(roomName)}>
         <Button
-          aria-label={b.group.disbandLabel(group)}
+          aria-label={b.group.disbandLabel(roomName)}
           className="shrink-0 text-(--ui-text-tertiary) hover:text-destructive"
           onClick={() => setConfirmDisband(true)}
           size="sm"
@@ -1630,12 +1666,12 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
           {attachmentRow(null)}
           <div className="flex items-center gap-1.5">
             <GroupMentionInput
-              aria-label={b.group.messageRoom(group)}
+              aria-label={b.group.messageRoom(roomName)}
               members={members}
               onChange={setDraft}
               onPaste={event => pasteImages(null, event)}
               onSubmitDraft={submit}
-              placeholder={b.group.newThreadPlaceholder(group)}
+              placeholder={b.group.newThreadPlaceholder(roomName)}
               value={draft}
             />
             {attachButton(null)}
@@ -1649,7 +1685,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         group={group}
         members={members}
         onClose={() => setSettingsOpen(false)}
-        onManageMembers={() => setMemberPickerOpen(true)}
+        onManageMembers={manageMembersFor(room, () => setMemberPickerOpen(true))}
         open={settingsOpen}
       />
       <GroupMemberPicker
@@ -1668,7 +1704,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
           /* prefix goes empty where the name leads (core's deleteDesc* shape). */
           <span>
             {b.group.disbandDescPrefix}
-            <span className="font-medium text-foreground">{group}</span>
+            <span className="font-medium text-foreground">{roomName}</span>
             {b.group.disbandDescSuffix(members.length)}
           </span>
         }
@@ -1677,11 +1713,10 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         onClose={() => setConfirmDisband(false)}
         onConfirm={async () => {
           clearGroupComposerDraft(composerKeyRef.current)
-          await disbandGroupChat(group, members)
-          host.notify({
-            kind: 'success',
-            message: b.group.disbanded(group)
-          })
+
+          if (await disbandRoom(group, room, members)) {
+            host.notify({ kind: 'success', message: b.group.disbanded(roomName) })
+          }
         }}
         open={confirmDisband}
         title={b.group.disbandTitle}
@@ -1745,15 +1780,18 @@ export function openGroupChat(group: string): void {
   })
   const ownerKey = groupWorkspaceOwnerKey(group)
   setBotsWorkspaceOwner(ownerKey, null, 'New group conversations start in the group composer.')
+
   // #93813: what reached the members' room sessions while nobody drove them
   // (a Bot posting reports into its own session, a CLI resume) is posted as
   // the room opens, not only once the room next drives that member.
-  void sweepExternalGroupWrites(group, groupChatMemberBots(group, $lastRoster.get(), $botMeta.get()))
+  if (!$groupChats.get()[group]?.canonical) {
+    void sweepExternalGroupWrites(group, groupChatMemberBots(group, $lastRoster.get(), $botMeta.get()))
+  }
 
   if (typeof host.openWorkspace === 'function') {
     try {
       const close = host.openWorkspace(`${ID}:group:${slugifyProfileName(group)}`, {
-        title: group,
+        title: groupChatDisplayName(group, $groupChats.get()[group]),
         minWidth: '24rem',
         render: () => <GroupChatMainView group={group} />,
         onClose: () => {

@@ -44,12 +44,15 @@ import { isBackfilledFacePng } from './avatar-image'
 import { AvatarPicker } from './avatar-picker'
 import { $selectedBot } from './bot-state'
 import { createCanonicalChat } from './canonical-chat'
+import { captureCanonicalGroupRoute } from './canonical-groups'
+import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
 import { $botMeta, botHandle, botRosterKey, filterBots, ROSTER_KEY, saveBotMeta } from './data'
 import { labeled, ResizableFrame } from './dialog-parts'
 import {
   $groupChats,
   GROUP_CHAT_MAX_MEMBERS,
   mintGroupRoomId,
+  setGroupChatImage,
   uniqueGroupChatName,
   updateGroupChat
 } from './group-chat'
@@ -1145,6 +1148,15 @@ export function GroupDialog({ bot, onClose }: GroupDialogProps) {
   )
 }
 
+/** The window's authority route, or null when no connection is bound (a hosted room needs one). */
+function canonicalRouteOrNull() {
+  try {
+    return captureCanonicalGroupRoute()
+  } catch {
+    return null
+  }
+}
+
 interface CreateGroupChatDialogProps {
   onClose: () => void
   onCreated?: (group: string) => void
@@ -1233,6 +1245,35 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
 
           return
         }
+      }
+
+      // A gateway that hosts rooms with this fork's settings gets a hosted room: the gateway drives
+      // the members and every window sees the same room. A cross-connection selection or an older
+      // gateway keeps the Desktop room below.
+      const route = canonicalRouteOrNull()
+
+      if (route && (await canCreateCanonicalRoom(route, selected))) {
+        try {
+          const key = await createCanonicalRoomWithSettings(route, base, selected, {
+            handle: handleCheck.handle,
+            workspace: roomWorkspace
+          })
+
+          if (image) {
+            setGroupChatImage(key, image)
+          }
+
+          host.notify({ kind: 'info', message: b.group.createdWith(base, selected.length) })
+          onClose()
+          onCreated?.(key)
+        } catch (error) {
+          host.notify({
+            kind: 'error',
+            message: b.group.canonicalActionFailed(error instanceof Error ? error.message : String(error))
+          })
+        }
+
+        return
       }
 
       // Creating a group is always a FRESH room. Without this, re-creating a
