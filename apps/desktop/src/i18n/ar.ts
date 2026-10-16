@@ -31,6 +31,7 @@ export const arOverrides = {
   billingPage: arCommon.billingPage,
   butterbar: arBoot.butterbar,
   promptNotices: arBoot.promptNotices,
+  keepAwakeOffer: arBoot.keepAwakeOffer,
   titlebar: arChrome.titlebar,
   keybinds: arChrome.keybinds,
   paletteCommands: arChrome.paletteCommands,

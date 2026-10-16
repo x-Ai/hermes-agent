@@ -1650,7 +1650,7 @@
   "sidebar.filterMenu.show": ["de","es","fr"],
   "sidebar.filterMenu.status": ["de","es","fr"],
   "sidebar.nav.skills": ["de","es","fr"],
-  "sidebar.projects.moveBusy": ["ar","ja","zh-hant"],
+  "sidebar.projects.moveBusy": ["ar","ja"],
   "sidebar.projects.unavailableAllProfiles": ["de","es","fr"],
   "sidebar.row.continuationOrigin": ["ja","ru"],
   "sidebar.row.splitDirections.bottom": ["de","es","fr"],

@@ -110,6 +110,12 @@ export const zhHantBoot = {
       startAnywayRefused: '在 Hermes 啟動之前，佔用安裝目錄的程序發生了變化。請檢查後再試一次。'
     }
   },
+
+  keepAwakeOffer: {
+    title: '電腦在 Hermes 工作時進入了睡眠',
+    message: 'Hermes 可以在工作執行時保持電腦喚醒。螢幕仍會照常關閉，使用電池時電腦仍可能進入睡眠。',
+    action: '執行期間保持喚醒'
+  },
   remoteDisplayBanner: {
     message: reason => `軟體繪圖已啟用 — 偵測到遠端顯示（${reason}）。為防止畫面閃爍，已停用 GPU 加速。`
   },
@@ -555,5 +561,13 @@ export const zhHantBoot = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  'boot' | 'remoteDisplayBanner' | 'butterbar' | 'promptNotices' | 'updates' | 'install' | 'onboarding' | 'freeTier'
+  | 'boot'
+  | 'remoteDisplayBanner'
+  | 'butterbar'
+  | 'promptNotices'
+  | 'keepAwakeOffer'
+  | 'updates'
+  | 'install'
+  | 'onboarding'
+  | 'freeTier'
 >
