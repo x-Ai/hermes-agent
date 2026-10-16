@@ -467,12 +467,12 @@ export const zhOverrides = {
       reinstallApp: '重新安装应用'
     },
     causes: {
-      exitedEarly: 'Hermes的后台服务在开始后就停止了',
-      timedOut: 'Hermes的后台服务没有及时回答',
-      permission: 'Hermes无法写入其数据文件夹(许可问题).',
-      diskFull: '磁盘已经满了, 所以 Hermes 无法启动 .',
-      portInUse: '另一个程序是使用网络端口Hermes需要',
-      installMissing: 'Hermes的部分安装缺失，选择修复安装以放回去 .'
+      exitedEarly: 'Hermes 的后台服务在开始后就停止了',
+      timedOut: 'Hermes 的后台服务没有及时回答',
+      permission: 'Hermes 无法写入其数据文件夹（权限问题）',
+      diskFull: '磁盘已经满了，所以 Hermes 无法启动',
+      portInUse: '另一个程序正在使用 Hermes 需要的网络端口',
+      installMissing: 'Hermes 的部分安装缺失，选择"修复安装"以放回去'
     },
     updateHold: {
       title: '较早的更新仍占用着 Hermes',
