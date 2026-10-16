@@ -18,5 +18,6 @@ export const ruUpdateChannel = {
     `${repo} ещё не публиковал стабильных релизов. Переключитесь на «Каждый коммит», чтобы и дальше следовать ветке main.`,
   rollbackTitle: (v: string) => `Вернуться к стабильному релизу ${v}`,
   rollbackBody: (v: string) => `Эта сборка новее стабильного релиза ${v}. Установка вернёт Hermes к этому релизу.`,
-  rollbackAction: (v: string) => `Вернуться к ${v}`
+  rollbackAction: (v: string) => `Вернуться к ${v}`,
+  allChanges: 'Все изменения'
 }

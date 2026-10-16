@@ -40,7 +40,6 @@ export interface RuntimeErrorsCopy {
   gatewayUnavailable: string
   gatewayNotConnectedShort: string
   gatewayDisconnected: string
-  backendRetired: (profile: string) => string
   backendReconnecting: (profile: string) => string
   gatewayUnavailableForProfile: (profile: string) => string
   registryDialUnsupported: string
@@ -48,7 +47,6 @@ export interface RuntimeErrorsCopy {
   profileChangedWhileConnecting: string
   connectionNotActive: (label: string) => string
   defaultProfileUnsupported: string
-  poolLimitsApplyFailed: string
   clipboardUnavailable: string
   pluginFolderUnavailable: string
   manifestMinContextInvalid: string

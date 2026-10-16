@@ -5,7 +5,7 @@
  * the FILE_LINES ratchet.
  */
 
-import type { BotsMessages } from './i18n'
+import type { BotsMessages } from './i18n-messages'
 import { groupCreateCopy } from './i18n_group_create'
 
 /** A bundle's own strings; `i18n.ts` lays them over the English bundle (`tools` and `cron` key by key),

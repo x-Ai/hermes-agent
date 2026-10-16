@@ -2510,20 +2510,6 @@ export const zhOverrides = {
         }
       }
     },
-    poolLimits: {
-      warmBackends: '保持运行的机器人后端数量',
-      warmBackendsDescription:
-        '保持运行以便快速切换的机器人后端数量，数量越多，切换越快，内存占用也越高(每个后端约 60 MB)，修改后立即生效',
-      idleTimeout: '后端空闲超时',
-      idleTimeoutDescription:
-        '未使用的远程机器人连接在断开前保持缓存的时长，本地后端在空闲时继续运行，因为它们要跑定时任务和机器人聊天',
-      idleTimeoutAria: '后端空闲超时（毫秒）',
-      milliseconds: '毫秒',
-      warmBotBackendsAria: '预热机器人后端',
-      warmBotBackendsTitle: '预热机器人后端',
-      backendIdleTimeoutAria: '后端空闲超时（毫秒）',
-      backendIdleTimeoutTitle: '后端空闲超时（毫秒）'
-    },
     localModels: zhLocalModels,
     billing: {
       perMonth: amount => `${amount}/月`,
@@ -4856,6 +4842,7 @@ export const zhOverrides = {
     openDirective: '打开',
     queueMessage: '排队消息',
     steer: '引导当前运行',
+    redirect: '重新定向当前运行',
     stop: '停止',
     send: '发送',
     speaking: '讲话中',
@@ -4998,6 +4985,11 @@ export const zhOverrides = {
     queueSteer: '引导 — 立即修正当前回合',
     queueSend: '发送',
     queueDelete: '删除',
+    queueLostNote: '重启期间该轮次已丢失',
+    restoreImageDraft: '恢复图片草稿',
+    queueCancelFailed: '无法移除排队的轮次',
+    queueLostDiscard: '丢弃',
+    queueLostDiscardTip: '网关在该轮次进行中重启，无法完成。丢弃后其后的排队轮次将继续执行。',
     queueResume: '继续',
     queueResumeTip: '已被停止操作暂停 — 继续发送排队的回合',
     queueStuckTitle: '排队消息未发送',
@@ -5173,7 +5165,7 @@ export const zhOverrides = {
       heartbeatEveryHours: hours => `每 ${hours} 小时`,
       heartbeatEverySeconds: seconds => `每 ${seconds} 秒`,
       heartbeatNext: time => `下次 ${time}`,
-      heartbeatDueWaitingForIdle: '已到期，等待会话空闲',
+      dueWaitingForIdle: '已到期，等待会话空闲',
       heartbeatActions: '心跳操作',
       pauseHeartbeat: '暂停心跳',
       resumeHeartbeat: '恢复心跳',

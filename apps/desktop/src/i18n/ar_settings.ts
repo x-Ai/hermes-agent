@@ -1267,20 +1267,6 @@ export const arSettings = {
         }
       }
     },
-    poolLimits: {
-      warmBackends: 'عدد العمليات الخلفية للبوتات التي تبقى قيد التشغيل',
-      warmBackendsDescription:
-        'عدد العمليات الخلفية للبوتات التي تبقى قيد التشغيل للتبديل الفوري. زيادة العدد تسرّع التبديل وتزيد استهلاك الذاكرة (نحو 60 MB لكل عملية). تُطبّق التغييرات فوراً.',
-      idleTimeout: 'مهلة خمول العملية الخلفية',
-      idleTimeoutDescription:
-        'مدة بقاء اتصال بوت بعيد غير مستخدم في ذاكرة التخزين المؤقت قبل إسقاطه. تواصل الخلفيات المحلية العمل أثناء الخمول لأنها تشغّل مهام cron ومحادثات البوتات.',
-      idleTimeoutAria: 'مهلة خمول العملية الخلفية بالمللي ثانية',
-      milliseconds: 'مللي ثانية',
-      warmBotBackendsAria: 'الواجهات الخلفية للبوت الدافئة',
-      warmBotBackendsTitle: 'الخوادم الخلفية للروبوت الدافئ',
-      backendIdleTimeoutAria: 'مهلة الخمول للواجهة الخلفية بالميلي ثانية',
-      backendIdleTimeoutTitle: 'مهلة الخمول للخادم الخلفي'
-    },
     localModels: {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':

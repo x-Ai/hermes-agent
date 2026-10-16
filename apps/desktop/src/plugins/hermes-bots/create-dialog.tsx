@@ -1194,89 +1194,103 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
   // The handle the room gets from its name alone — the field's placeholder.
   const handleSuggestion = groupHandleFromName((name.trim() || (selected.length ? placeholder : '')).slice(0, 64))
 
+  const creating = useRef(false)
+
   const create = async () => {
-    const base = (name.trim() || placeholder).slice(0, 64)
-
-    if (selected.length < 2 || !base) {
+    if (creating.current) {
       return
     }
 
-    // An explicit handle is checked before anything is written: a tag a bot
-    // or another room already answers to keeps the dialog open.
-    const handleCheck = checkGroupHandleInput(handle, { meta: allMeta, rooms: $groupChats.get(), roster })
+    creating.current = true
 
-    if (handleCheck.problem) {
-      host.notify({ kind: 'error', message: handleCheck.problem })
+    try {
+      const base = (name.trim() || placeholder).slice(0, 64)
 
-      return
-    }
+      if (selected.length < 2 || !base) {
+        return
+      }
 
-    // The room folder is checked on this window's gateway before the room
-    // exists; a typo keeps the dialog open instead of minting a room that
-    // sends its members nowhere.
-    let roomWorkspace: null | string = null
+      // An explicit handle is checked before anything is written: a tag a bot
+      // or another room already answers to keeps the dialog open.
+      const handleCheck = checkGroupHandleInput(handle, { meta: allMeta, rooms: $groupChats.get(), roster })
 
-    if (normalizeGroupWorkspacePath(workspace)) {
-      roomWorkspace = await probeGroupWorkspace(null, workspace).catch(() => null)
-
-      if (!roomWorkspace) {
-        host.notify({ kind: 'error', message: b.group.workspaceInvalid(workspace.trim()) })
+      if (handleCheck.problem) {
+        host.notify({ kind: 'error', message: handleCheck.problem })
 
         return
       }
+
+      // The room folder is checked on this window's gateway before the room
+      // exists; a typo keeps the dialog open instead of minting a room that
+      // sends its members nowhere.
+      let roomWorkspace: null | string = null
+
+      if (normalizeGroupWorkspacePath(workspace)) {
+        roomWorkspace = await probeGroupWorkspace(null, workspace).catch(() => null)
+
+        if (!roomWorkspace) {
+          host.notify({ kind: 'error', message: b.group.workspaceInvalid(workspace.trim()) })
+
+          return
+        }
+      }
+
+      // Creating a group is always a FRESH room. Without this, re-creating a
+      // group under an existing name (easy — the default name is just the
+      // member names) silently reopens the old room with its full log, which
+      // reads as "not a fresh group" (db's Aug 2026 report). Uniquify against
+      // both live rooms and any bot's current grouping, then mint a fresh
+      // roomId: member sessions are titled by that roomId, so a
+      // disbanded-and-recreated group with the SAME display name still gets
+      // new sessions instead of resuming the old room's by title.
+      const taken = new Set(liveGroupChatNames())
+
+      for (const meta of Object.values($botMeta.get() || {})) {
+        for (const existing of botGroups(meta)) {
+          taken.add(existing)
+        }
+      }
+
+      const groupName = uniqueGroupChatName(base, taken)
+      const roomId = mintGroupRoomId()
+
+      for (const bot of selected) {
+        void saveBotMeta(bot, groupMembershipPatch(botRosterMeta(bot, allMeta), groupName, true))
+      }
+
+      // Persist every machine identity, including today's active source. That
+      // member becomes remote after a source switch and cannot rely on the new
+      // gateway's name-keyed bot metadata to remain seated in this room.
+      const roomMembers = durableGroupChatMembers(selected)
+      updateGroupChat(groupName, (room: GroupChatRoom) => {
+        room.members = roomMembers
+        room.roomId = roomId
+
+        if (image) {
+          room.image = image
+        }
+
+        if (roomWorkspace) {
+          room.workspace = roomWorkspace
+        }
+
+        if (handleCheck.handle) {
+          room.handle = handleCheck.handle
+        }
+
+        return room
+      })
+      host.notify({
+        kind: 'info',
+        message: b.group.createdWith(groupName, selected.length)
+      })
+      onClose()
+      onCreated?.(groupName)
+    } catch (error) {
+      host.notify({ kind: 'error', message: error instanceof Error ? error.message : String(error) })
+    } finally {
+      creating.current = false
     }
-
-    // Creating a group is always a FRESH room. Without this, re-creating a
-    // group under an existing name (easy — the default name is just the
-    // member names) silently reopens the old room with its full log, which
-    // reads as "not a fresh group" (db's Aug 2026 report). Uniquify against
-    // both live rooms and any bot's current grouping, then mint a fresh
-    // roomId: member sessions are titled by that roomId, so a
-    // disbanded-and-recreated group with the SAME display name still gets
-    // new sessions instead of resuming the old room's by title.
-    const taken = new Set(liveGroupChatNames())
-
-    for (const meta of Object.values($botMeta.get() || {})) {
-      for (const existing of botGroups(meta)) {
-        taken.add(existing)
-      }
-    }
-
-    const groupName = uniqueGroupChatName(base, taken)
-    const roomId = mintGroupRoomId()
-
-    for (const bot of selected) {
-      void saveBotMeta(bot, groupMembershipPatch(botRosterMeta(bot, allMeta), groupName, true))
-    }
-
-    // Persist every machine identity, including today's active source. That
-    // member becomes remote after a source switch and cannot rely on the new
-    // gateway's name-keyed bot metadata to remain seated in this room.
-    const roomMembers = durableGroupChatMembers(selected)
-    updateGroupChat(groupName, (room: GroupChatRoom) => {
-      room.members = roomMembers
-      room.roomId = roomId
-
-      if (image) {
-        room.image = image
-      }
-
-      if (roomWorkspace) {
-        room.workspace = roomWorkspace
-      }
-
-      if (handleCheck.handle) {
-        room.handle = handleCheck.handle
-      }
-
-      return room
-    })
-    host.notify({
-      kind: 'info',
-      message: b.group.createdWith(groupName, selected.length)
-    })
-    onClose()
-    onCreated?.(groupName)
   }
 
   return (

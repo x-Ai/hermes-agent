@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introJa } from './intro-ja'
 import { jaAuxTasks } from './ja_aux_tasks'
+import { jaBoot } from './ja_boot'
 import { jaClarify } from './ja_clarify'
 import { jaConnectors } from './ja_connectors'
 import { jaFirstRun } from './ja_first_run'
@@ -112,94 +113,9 @@ export const jaOverrides = {
     revealUnavailable:
       'そのパスはこのコンピュータ上にはなく、バックエンド マシン上に存在します。 「ファイルツリーで表示」を使用します。'
   },
-  boot: {
-    ready: 'Hermes Desktop の準備ができました',
-    connecting: '接続中',
-    desktopBootFailedWithMessage: message => `デスクトップの起動に失敗しました: ${message}`,
-    steps: {
-      connectingGateway: 'ライブデスクトップゲートウェイに接続中',
-      loadingSettings: 'Hermes の設定を読み込み中',
-      loadingSessions: '最近のセッションを読み込み中',
-      retryingRemoteBackend: 'リモート Hermes バックエンドに再接続中…',
-      startingDesktopConnection: 'デスクトップ接続を開始中',
-      startingHermesDesktop: 'Hermes Desktop を起動中…',
-      backendReady: 'Hermes バックエンドの準備ができました',
-      connectingRemoteBackend: 'リモート Hermes バックエンドに接続中',
-      resolvingBackend: 'Hermes バックエンドを解決中',
-      resolvingRuntime: 'Hermes ランタイムを解決中',
-      restartingAfterUpdate: '更新を完了するため Hermes を再起動中…',
-      runtimeReady: 'Hermes ランタイムの準備ができました',
-      startingBackend: 'Hermes バックエンドを起動中',
-      usingRuntime: 'インストール済みの Hermes ランタイムを使用中',
-      waitingBackendLaunch: 'Hermes バックエンドの起動を待機中',
-      waitingBackendReady: 'Hermes バックエンドの準備完了を待機中',
-      waitingForUpdate: '現在の更新が完了するまで待機中…',
-      waitingSetupChoice: '初回セットアップの選択を待っています'
-    },
-    errors: {
-      backgroundExited: 'Hermes バックグラウンドプロセスが終了しました。',
-      backgroundExitedDuringStartup: '起動中に Hermes バックグラウンドプロセスが終了しました。',
-      backendStopped: 'バックエンドが停止しました',
-      desktopBootFailed: 'デスクトップの起動に失敗しました',
-      gatewayConnectionLost: 'ゲートウェイへの接続が切断されました',
-      gatewayConnectionLostDetail:
-        'バックグラウンドで再試行しています。読み取りや下書きは続けられます。問題が続く場合はゲートウェイ設定を開いてください。',
-      gatewaySignInRequired: 'ゲートウェイへのサインインが必要です',
-      ipcBridgeUnavailable: 'デスクトップ IPC ブリッジが利用できません。',
-      restartHermes: '再起動 Hermes',
-      openLogs: 'ログを開く',
-      reconnectNow: '今すぐ再接続してください',
-      connectionSettings: '接続設定',
-      gatewaySignInRequiredDetail: '再接続するには、もう一度サインインしてください。チャットと設定は安全です。',
-      signInAgain: '再度サインインしてください'
-    },
-    failure: {
-      title: 'Hermes を起動できませんでした',
-      description:
-        'バックグラウンドゲートウェイが起動しませんでした。以下の回復手順をお試しください。チャットや設定は削除されません。',
-      remoteTitle: 'リモートゲートウェイへのサインインが必要です',
-      remoteDescription:
-        'リモートゲートウェイのセッションが期限切れです。再接続するにはもう一度サインインしてください。チャットや設定は削除されません。',
-      retry: '再試行',
-      repairInstall: 'インストールを修復',
-      useLocalGateway: 'ローカルゲートウェイを使用',
-      gatewaySettings: 'ゲートウェイ設定',
-      back: '戻る',
-      openLogs: 'ログを開く',
-      repairHint: '修復はインストーラーを再実行します。新しいマシンでは数分かかる場合があります。',
-      remoteSignInHint: signInLabel =>
-        `保存済みのリモートブラウザセッションからサインアウトし、${signInLabel}を開きます。代わりにバンドルされたバックエンドに切り替えるには「ローカルゲートウェイを使用」を選択してください。`,
-      signOutAndSignIn: 'サインアウトして再サインイン',
-      remoteFailureHint:
-        '「ゲートウェイ設定」でゲートウェイの URL とサインインを確認するか、ローカルゲートウェイに切り替えてください。',
-      cloudDownTitle: 'Nous Cloud エージェントが停止しています',
-      cloudDownDescription:
-        'このゲートウェイが接続している Nous 管理のクラウドエージェントがサーバーエラーを返しています。ここから再起動することはできません。ステータスを確認するか、ローカルゲートウェイに切り替えるか、サポートに連絡してください。',
-      cloudDownHint:
-        '下のボタンから Nous Portal（インスタンスの状態と操作）を開くか、Discord でサポートを受けられます。',
-      cloudDownCheckPortal: 'Portal のステータスを確認',
-      cloudDownDiscord: 'Discord でサポートを受ける',
-      hideRecentLogs: '最近のログを非表示',
-      showRecentLogs: '最近のログを表示',
-      signedInTitle: 'サインインしました',
-      signedInMessage: 'リモートゲートウェイに再接続中…',
-      signInIncompleteTitle: 'サインインが完了していません',
-      signInIncompleteMessage: '認証が完了する前にログインウィンドウが閉じられました。',
-      signInFailed: 'サインインに失敗しました',
-      signInToRemoteGateway: 'リモートゲートウェイにサインイン',
-      signInWithProvider: provider => `${provider} でサインイン`,
-      identityProvider: 'ID プロバイダー',
-      details: '詳細'
-    },
-    causes: {
-      exitedEarly: 'Hermes のバックグラウンド サービスが起動直後に停止しました。',
-      timedOut: 'Hermes のバックグラウンド サービスが時間内に応答しませんでした。',
-      permission: 'Hermes はデータ フォルダーに書き込むことができませんでした (権限の問題)。',
-      diskFull: 'ディスクがいっぱいであるため、Hermes を開始できませんでした。',
-      portInUse: '別のプログラムが Hermes が必要とするネットワーク ポートを使用しています。',
-      installMissing: "Hermes' インストールの一部が欠落しています。元に戻すには、修復インストールを選択します。"
-    }
-  },
+
+  boot: jaBoot.boot,
+
   notifications: {
     sharedProfileWarning:
       '別の Hermes インストールがこのプロファイルを使用しています。両方が設定とデータを共有しているため、変更が競合する可能性があります。このまま続けるか、変更する前にもう一方を終了してください。',
@@ -2213,20 +2129,6 @@ export const jaOverrides = {
             'EVERYTHING — チャット GUI、Hermes エージェント、およびすべての設定、チャット、シークレット、ログ'
         }
       }
-    },
-    poolLimits: {
-      warmBackends: '起動を維持するボットバックエンド数',
-      warmBackendsDescription:
-        '素早く切り替えられるよう、起動したままにするボットバックエンドの数です。増やすと切り替えが速くなりますが、メモリ使用量も増えます（バックエンドごとに約 60 MB）。変更はすぐに反映されます。',
-      idleTimeout: 'バックエンドのアイドルタイムアウト',
-      idleTimeoutDescription:
-        '未使用のリモートボット接続を破棄するまでキャッシュしておく時間です。ローカルのバックエンドは cron ジョブやボットチャットを実行するため、アイドル中も動き続けます。',
-      idleTimeoutAria: 'バックエンドのアイドルタイムアウト（ミリ秒）',
-      milliseconds: 'ミリ秒',
-      warmBotBackendsAria: 'ウォームボットバックエンド',
-      warmBotBackendsTitle: 'ウォームボットバックエンド',
-      backendIdleTimeoutAria: 'バックエンドのアイドルタイムアウト（ミリ秒単位）',
-      backendIdleTimeoutTitle: 'バックエンドアイドルタイムアウト'
     },
     localModels: jaLocalModels,
     providers: {
@@ -4300,6 +4202,7 @@ export const jaOverrides = {
     openDirective: '開く',
     queueMessage: 'メッセージをキューに入れる',
     steer: '現在の走行を制御する',
+    redirect: '現在の実行をリダイレクト',
     stop: '停止',
     send: '送信',
     speaking: '話しています',
@@ -4442,6 +4345,12 @@ export const jaOverrides = {
     queueSteer: 'ステア — 現在のターンを今すぐ修正',
     queueSend: '送信',
     queueDelete: '削除',
+    queueLostNote: '再起動中にターンが失われました',
+    restoreImageDraft: '画像の下書きを復元',
+    queueCancelFailed: 'キュー内のターンを削除できませんでした',
+    queueLostDiscard: '破棄',
+    queueLostDiscardTip:
+      'ターン中にゲートウェイが再起動したため完了できません。破棄すると後続のキュー済みターンが実行されます。',
     queueResume: '再開',
     queueResumeTip: '停止により一時停止中 — キュー済みターンの送信を再開します',
     queueStuckTitle: 'キュー内のメッセージを送信できません',
@@ -4621,7 +4530,7 @@ export const jaOverrides = {
       heartbeatEveryHours: hours => `${hours}時間ごと`,
       heartbeatEverySeconds: seconds => `${seconds}秒ごと`,
       heartbeatNext: time => `次回 ${time}`,
-      heartbeatDueWaitingForIdle: '期限到来 — アイドル待ち',
+      dueWaitingForIdle: '期限到来 — アイドル待ち',
       heartbeatActions: 'ハートビートのアクション',
       pauseHeartbeat: 'ハートビートを一時停止',
       resumeHeartbeat: 'ハートビートを再開',

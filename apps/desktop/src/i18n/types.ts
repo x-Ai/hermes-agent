@@ -770,18 +770,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       startFailed: string
       options: Record<'full' | 'gui' | 'lite', { title: string; description: string; consequence: string }>
     }
-    poolLimits: {
-      warmBackends: string
-      warmBackendsDescription: string
-      idleTimeout: string
-      idleTimeoutDescription: string
-      idleTimeoutAria: string
-      milliseconds: string
-      warmBotBackendsAria: string
-      warmBotBackendsTitle: string
-      backendIdleTimeoutAria: string
-      backendIdleTimeoutTitle: string
-    }
     toolsets: ToolsetsTranslations
     subpages: Record<string, string>
     closeSettings: string
@@ -2679,6 +2667,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     openDirective: string
     queueMessage: string
     steer: string
+    redirect: string
     stop: string
     send: string
     speaking: string
@@ -2738,6 +2727,11 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     queueSend: string
     queueSteer: string
     queueDelete: string
+    queueLostNote: string
+    restoreImageDraft: string
+    queueCancelFailed: string
+    queueLostDiscard: string
+    queueLostDiscardTip: string
     queueResume: string
     queueResumeTip: string
     queueStuckTitle: string
@@ -4205,7 +4199,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       heartbeatEveryHours: (hours: number) => string
       heartbeatEverySeconds: (seconds: number) => string
       heartbeatNext: (time: string) => string
-      heartbeatDueWaitingForIdle: string
+      dueWaitingForIdle: string
       heartbeatActions: string
       pauseHeartbeat: string
       resumeHeartbeat: string

@@ -36,8 +36,6 @@ export const jaRuntime = {
     gatewayUnavailable: 'Hermes ゲートウェイを利用できません',
     gatewayNotConnectedShort: 'ゲートウェイが接続されていません',
     gatewayDisconnected: 'ゲートウェイが切断されました',
-    backendRetired: (profile: string) =>
-      `「${profile}」のバックエンドは終了しました。再接続するには明示的に開いてください`,
     backendReconnecting: (profile: string) =>
       `「${profile}」のバックエンドは再接続中です。落ち着いてから再試行してください`,
     gatewayUnavailableForProfile: (profile: string) =>
@@ -48,7 +46,6 @@ export const jaRuntime = {
     profileChangedWhileConnecting: '接続中にアクティブな Hermes プロファイルが変わりました',
     connectionNotActive: (label: string) => `接続「${label}」がアクティブになりませんでした`,
     defaultProfileUnsupported: 'この Desktop バージョンでは既定のプロファイルを保存できません',
-    poolLimitsApplyFailed: 'プール上限の適用に失敗しました',
     clipboardUnavailable: 'クリップボード API を利用できません',
     pluginFolderUnavailable:
       'デスクトッププラグインのフォルダーを利用できません。最初のビルドを始める前に再試行してください',

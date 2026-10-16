@@ -39,6 +39,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { avatarColor, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
+import { $canonicalGroupBindings } from './canonical-group-registry'
+import { CanonicalGroupWorkspace } from './canonical-group-workspace'
 import {
   $botMeta,
   $lastRoster,
@@ -673,7 +675,23 @@ interface GroupChatWorkspaceProps {
   visible?: boolean
 }
 
-export function GroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
+export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
+  const bindings = useValue($canonicalGroupBindings)
+  const binding = bindings[props.group]
+
+  // Fork: a Desktop room keeps the legacy workspace (room/member folders, @handle,
+  // the folded trace, context chips) whatever the gateway's group driver reports;
+  // only a room the gateway owns (a canonical binding) renders the canonical view.
+  // Upstream gates legacy rooms behind `groups.capabilities` and offers a gateway
+  // group instead — adopting that is a product decision, not a merge resolution.
+  if (binding) {
+    return <CanonicalGroupWorkspace binding={binding} onBack={props.onBack} visible={props.visible} />
+  }
+
+  return <LegacyGroupChatWorkspace {...props} />
+}
+
+function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
   const { locale, t } = useI18n()
   const b = useBots()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)

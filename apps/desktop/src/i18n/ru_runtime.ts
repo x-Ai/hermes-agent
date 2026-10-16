@@ -36,8 +36,6 @@ export const ruRuntime = {
     gatewayUnavailable: 'Шлюз Hermes недоступен',
     gatewayNotConnectedShort: 'Шлюз не подключён',
     gatewayDisconnected: 'Шлюз отключён',
-    backendRetired: (profile: string) =>
-      `Бэкенд для «${profile}» был остановлен; откройте его явно, чтобы переподключиться.`,
     backendReconnecting: (profile: string) =>
       `Бэкенд для «${profile}» переподключается; повторите, когда он стабилизируется.`,
     gatewayUnavailableForProfile: (profile: string) => `Шлюз Hermes недоступен для профиля «${profile}»`,
@@ -47,7 +45,6 @@ export const ruRuntime = {
     profileChangedWhileConnecting: 'Активный профиль Hermes изменился во время подключения',
     connectionNotActive: (label: string) => `Соединение «${label}» не стало активным.`,
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
-    poolLimitsApplyFailed: 'Не удалось применить ограничения пула',
     clipboardUnavailable: 'API буфера обмена недоступен',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',
     manifestMinContextInvalid: 'Минимальное окно контекста должно быть числом или пустым',

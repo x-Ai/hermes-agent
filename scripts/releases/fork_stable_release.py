@@ -11,9 +11,14 @@ tag on origin names the release commit (``hermes_cli/source_releases._resolve_re
 
 Run by ``.github/workflows/fork-stable-release.yml`` (workflow_dispatch) on a full-depth checkout of
 the commit to release, with ``gh`` authenticated for the repository. Refuses when upstream has no
-such published release, when upstream's tag commit is not an ancestor of the released commit (the
-sync has not merged it), when origin's tag of that name points outside the released history, or
-when this repository already released the version (``--force`` replaces it).
+such published release, when the released commit does not contain upstream's release (the sync has
+not merged it), when origin's tag of that name points outside the released history, or when this
+repository already released the version (``--force`` replaces it).
+
+Upstream cuts patch releases on ``release/*`` branches that never merge into ``main`` as such
+(v0.22.2's commit says so); their fixes reach ``main`` as a merge-back or as cherry-picks. So
+"contains" means: upstream's tag commit is an ancestor of the released commit, or every non-merge
+commit the tag carries beyond the released history has a patch-equivalent there (``git cherry``).
 """
 
 from __future__ import annotations
@@ -80,6 +85,15 @@ def gh_json(path: str, *, missing_ok: bool = False):
 
 def is_ancestor(commit: str, ref: str, cwd: str | None = None) -> bool:
     return run(["git", "merge-base", "--is-ancestor", commit, ref], cwd=cwd, check=False).returncode == 0
+
+
+def release_commits_missing_from(upstream_commit: str, commit: str, cwd: str | None = None) -> list[str]:
+    """Upstream's non-merge release commits that ``commit`` neither contains nor carries as an
+    equivalent patch (``git cherry``: ``+`` = no equivalent); empty when the release is contained."""
+    if is_ancestor(upstream_commit, commit, cwd=cwd):
+        return []
+    listed = git("cherry", commit, upstream_commit, cwd=cwd, check=False)
+    return [line[2:] for line in listed.splitlines() if line.startswith("+ ")]
 
 
 def origin_repository(cwd: str | None = None) -> str:
@@ -152,8 +166,9 @@ def plan_release(version: str, ref: str, repository: str, cwd: str | None = None
     if upstream is None or upstream.get("draft") or upstream.get("prerelease"):
         raise SystemExit(f"{UPSTREAM_REPOSITORY} has no published release {tag}; this fork releases upstream's versions only")
     upstream_commit = gh_json(f"repos/{UPSTREAM_REPOSITORY}/commits/{tag}")["sha"]
-    if not is_ancestor(upstream_commit, commit, cwd=cwd):
-        raise SystemExit(f"{commit[:10]} does not contain upstream {tag} ({upstream_commit[:10]}); sync upstream first")
+    if missing := release_commits_missing_from(upstream_commit, commit, cwd=cwd):
+        raise SystemExit(f"{commit[:10]} does not contain upstream {tag} ({upstream_commit[:10]}): "
+                         f"{len(missing)} of its commits have no equivalent here ({missing[0][:10]}, …); sync upstream first")
     existing = gh_json(f"repos/{repository}/releases/tags/{tag}", missing_ok=True) is not None
     previous = previous_release(repository, commit, tag, cwd=cwd)
     commits, more = fork_commits(previous, commit, cwd=cwd)

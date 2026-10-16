@@ -373,7 +373,7 @@ export const arChat = {
       heartbeatEveryHours: hours => `كل ${hours} س`,
       heartbeatEverySeconds: seconds => `كل ${seconds} ث`,
       heartbeatNext: time => `التالي ${time}`,
-      heartbeatDueWaitingForIdle: 'المستحق - في انتظار العبث',
+      dueWaitingForIdle: 'المستحق - في انتظار العبث',
       heartbeatActions: 'إجراءات النبض',
       pauseHeartbeat: 'إيقاف النبض مؤقتاً',
       resumeHeartbeat: 'استئناف النبض',

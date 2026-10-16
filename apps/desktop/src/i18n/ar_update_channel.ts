@@ -16,5 +16,6 @@ export const arUpdateChannel = {
   noReleaseBody: (repo: string) => `لم ينشر ${repo} أي إصدار مستقر بعد. بدّل إلى «كل التزام» لمتابعة فرع main.`,
   rollbackTitle: (v: string) => `العودة إلى الإصدار المستقر ${v}`,
   rollbackBody: (v: string) => `هذا الإصدار أحدث من الإصدار المستقر ${v}. سيعيد التثبيت Hermes إلى ذلك الإصدار.`,
-  rollbackAction: (v: string) => `العودة إلى ${v}`
+  rollbackAction: (v: string) => `العودة إلى ${v}`,
+  allChanges: 'عرض كل التغييرات'
 }

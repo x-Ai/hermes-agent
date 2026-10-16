@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import subprocess
+
 import pytest
 
 from hermes_cli.update_channel import STABLE_TAG_RE
@@ -51,3 +53,40 @@ def test_origin_must_be_a_github_repository(tmp_path, monkeypatch):
         release.origin_repository()
     monkeypatch.setattr(release, "git", lambda *a, **k: "git@github.com:x-Ai/hermes-agent.git")
     assert release.origin_repository() == "x-Ai/hermes-agent"
+
+
+def _git(cwd, *args):
+    return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args],
+                          cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
+
+
+def _commit(cwd, name, text):
+    (cwd / name).write_text(text, encoding="utf-8")
+    _git(cwd, "add", name)
+    _git(cwd, "commit", "-q", "-m", f"add {name}")
+    return _git(cwd, "rev-parse", "HEAD")
+
+
+def test_a_release_cut_on_a_release_branch_counts_once_its_fixes_reached_the_released_history(tmp_path):
+    """Upstream's v0.22.2 lives on release/0.22.1, never on main: the fork's release must accept a
+    commit that carries the branch's fixes (merged back or cherry-picked) and refuse one that lacks them."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q", "-b", "main")
+    _commit(repo, "base.txt", "base")
+    _git(repo, "checkout", "-q", "-b", "release")
+    fix = _commit(repo, "fix.txt", "fix")
+    _git(repo, "checkout", "-q", "main")
+    later = _commit(repo, "later.txt", "later")
+    # a release commit that is not reachable from main (upstream's shape), and main without the fix
+    assert release.release_commits_missing_from(fix, later, cwd=str(repo)) == [fix]
+    # the same fix cherry-picked onto main: patch-equivalent, so the release is contained
+    _git(repo, "cherry-pick", "-x", fix)
+    picked = _git(repo, "rev-parse", "HEAD")
+    assert release.release_commits_missing_from(fix, picked, cwd=str(repo)) == []
+    # a true merge-back makes the release commit an ancestor outright
+    _git(repo, "reset", "-q", "--hard", later)
+    _git(repo, "merge", "-q", "--no-ff", "-m", "merge back", "release")
+    merged = _git(repo, "rev-parse", "HEAD")
+    assert release.is_ancestor(fix, merged, cwd=str(repo))
+    assert release.release_commits_missing_from(fix, merged, cwd=str(repo)) == []

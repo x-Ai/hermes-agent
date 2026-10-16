@@ -1549,20 +1549,6 @@ export const zhHantSettings = {
         }
       }
     },
-    poolLimits: {
-      warmBackends: '保持執行的機器人後端數量',
-      warmBackendsDescription:
-        '保持執行以便快速切換的機器人後端數量。數量越多，切換越快，記憶體用量也越高（每個後端約 60 MB）。修改後立即生效。',
-      idleTimeout: '後端閒置逾時',
-      idleTimeoutDescription:
-        '未使用的遠端機器人連線在中斷前保持快取的時間。本機後端在閒置時會繼續執行，因為它們要跑排程工作和機器人聊天。',
-      idleTimeoutAria: '後端閒置逾時（毫秒）',
-      milliseconds: '毫秒',
-      warmBotBackendsAria: '熱身機器人後端',
-      warmBotBackendsTitle: '熱身機器人後端',
-      backendIdleTimeoutAria: '後端閒置超時（毫秒）',
-      backendIdleTimeoutTitle: '後端閒置逾時'
-    },
     localModels: {
       catalogDescriptions: {
         'Best all-round agent model; sees images; long context stays fast':
