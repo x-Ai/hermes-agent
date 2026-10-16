@@ -20,6 +20,7 @@ from typing import Any, ContextManager, Protocol, cast
 
 from agent.i18n import t as _t
 from gateway import hosted_room_driver as state
+from tui_gateway.hosted_room_workspace import apply_member_workspace
 
 _CANCEL_ROUTE_RETRIES = 8
 _STOP_ACK_STATUSES = {"cancelled", "interrupted"}
@@ -600,6 +601,10 @@ class HostedRoomRuntime:
                     "attached files")
             with self.turn_lock(profile):
                 session = self._resolve_or_create(transport, profile, binding.room_id)
+                # Fork: the room's working-directory ladder re-homes the member session per turn.
+                apply_member_workspace(
+                    self.db_path, transport, profile=profile, session_id=_session_id(session),
+                    room_id=binding.room_id, member_id=_member_id(task), thread_id=task["identity"].thread_id)
                 # A submit should fail before admission or return after it; an unexpected
                 # exception at that boundary is ambiguous, never a proven failure.
                 submit_attempted, session_id = True, _session_id(session)
