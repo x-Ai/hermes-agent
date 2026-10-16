@@ -13,7 +13,7 @@ import {
   modelOptionsQueryKey,
   requestModelOptions
 } from '@/lib/model-options'
-import { notifyError } from '@/store/notifications'
+import { notify, notifyError } from '@/store/notifications'
 import { $activeGatewayProfile } from '@/store/profile'
 import {
   $activeSessionId,
@@ -375,6 +375,12 @@ export function useModelControls({
           void queryClient.invalidateQueries({
             queryKey: modelOptionsQueryKey(liveGatewayProfile, liveSessionId, cacheOwnerConnectionId)
           })
+        } else {
+          notify({
+            id: `model-pick-deferred-${liveSessionId}`,
+            kind: 'info',
+            message: t.shell.modelMenu.pickDeferred(selection.model)
+          })
         }
       }
 
@@ -476,7 +482,7 @@ export function useModelControls({
         return false
       }
     },
-    [cacheOwnerConnectionId, cacheProfile, copy.modelSwitchFailed, queryClient, requestGateway, updateModelOptionsCache]
+    [cacheOwnerConnectionId, cacheProfile, copy, queryClient, requestGateway, t, updateModelOptionsCache]
   )
 
   return { applySavedMainModel, followDefaultModel, refreshCurrentModel, selectModel }
