@@ -280,7 +280,7 @@ describe('discoverCanonicalRooms', () => {
     script()
     const keys = await discoverCanonicalRooms({ connectionId: 'local', profile: 'default' })
     expect(keys).toEqual([KEY])
-    expect($canonicalGroupBindings.get()[KEY]).toEqual(binding)
+    expect($canonicalGroupBindings.get()[KEY]).toEqual({ ...binding, roomName: 'Release room' })
     expect($groupChats.get()[KEY].displayName).toBe('Release room')
   })
 })

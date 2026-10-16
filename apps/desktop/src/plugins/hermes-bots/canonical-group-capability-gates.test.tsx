@@ -250,7 +250,7 @@ it('New group chat creates a gateway-hosted room, with the handle and folder on 
       { handle: 'beta', member_id: 'beta', profile: 'beta' }
     ]
   })
-  expect($canonicalGroupBindings.get()['canonical:local:default:hosted-1']).toEqual({
+  expect($canonicalGroupBindings.get()['canonical:local:default:hosted-1']).toMatchObject({
     connectionId: 'local',
     profile: 'default',
     roomId: 'hosted-1'

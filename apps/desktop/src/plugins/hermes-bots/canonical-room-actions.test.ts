@@ -265,7 +265,7 @@ describe('creation', () => {
       patch: { handle: 'fresh', workspace: '/srv/fresh' },
       room_id: 'r2'
     })
-    expect($canonicalGroupBindings.get()[key]).toEqual({ ...route, roomId: 'r2' })
+    expect($canonicalGroupBindings.get()[key]).toEqual({ ...route, roomId: 'r2', roomName: 'Fresh' })
     expect($groupChats.get()[key]?.displayName).toBe('Fresh')
   })
 })

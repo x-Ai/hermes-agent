@@ -23,6 +23,17 @@ export function CanonicalGroupWorkspace({ binding, visible = true, onBack }: {
   return <CanonicalRoomView binding={binding} key={JSON.stringify(binding)} onBack={onBack} visible={visible} />
 }
 
+/** The room's name with its member roster beneath (hermes-agent#139477); its own component so the
+ *  view's complexity stays under the ratchet. */
+function RoomHeading({ room, loading }: { room: CanonicalRoom | undefined; loading: string }) {
+  return <div className="min-w-0">
+    <h2>{room?.name || loading}</h2>
+    {!!room?.members?.length && <ul aria-label="Members" className="flex flex-wrap gap-x-2 text-xs text-(--ui-text-tertiary)">
+      {room.members.map(member => <li key={member.member_id}>{member.display_name || member.handle || member.member_id}</li>)}
+    </ul>}
+  </div>
+}
+
 function CanonicalRoomView({ binding: initialBinding, visible, onBack }: {
   binding: CanonicalGroupBinding; visible: boolean; onBack?: () => void
 }) {
@@ -159,12 +170,7 @@ function CanonicalRoomView({ binding: initialBinding, visible, onBack }: {
   return <section className="flex h-full min-h-0 flex-col gap-3 p-3">
     <header className="flex items-center gap-2">
       {onBack && <Button onClick={onBack}>{labels.back}</Button>}
-      <div className="min-w-0">
-        <h2>{state?.room.name || labels.loadingGroup}</h2>
-        {!!state?.room.members?.length && <ul aria-label="Members" className="flex flex-wrap gap-x-2 text-xs text-(--ui-text-tertiary)">
-          {state.room.members.map(member => <li key={member.member_id}>{member.display_name || member.handle || member.member_id}</li>)}
-        </ul>}
-      </div>
+      <RoomHeading loading={labels.loadingGroup} room={state?.room} />
       <Button disabled={busy || !state?.driver_status} onClick={() => void mutate(() => canonicalGroupRequest(binding, 'groups.stop', { room_id: binding.roomId, cancel_id: crypto.randomUUID() }))}>{labels.stop}</Button>
     </header>
     {readError && <div role="alert">{readError}<Button onClick={() => void refresh().catch(e => setReadError(String(e)))}>{labels.refresh}</Button></div>}
