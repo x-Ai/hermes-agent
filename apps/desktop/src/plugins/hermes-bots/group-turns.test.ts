@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as groupChat from './group-chat'
+import { groupSessionKey } from './group-membership'
 import type * as groupRounds from './group-rounds'
 import { createGroupGateway, drain, runTimersInline, scriptedStorage } from './group-test-utils'
 import type { GatewayOptions, ScriptedGateway } from './group-test-utils'
@@ -67,6 +68,37 @@ beforeEach(() => {
 })
 
 describe('session resolution', () => {
+  const ownerNotFound = () => Object.assign(new Error('not_found'), { code: 4001, data: { reason: 'not_found' } })
+
+  it('mints anew when the canonical owner answers not_found for a stored pointer, like the sidecar 4007', async () => {
+    const room = await loadRoom({ resumeNotFoundAs: ownerNotFound() })
+    room.chat.updateGroupChat('Room', current => {
+      current.sessions = { [groupSessionKey('t1', LOCAL_MEMBER)]: 'stale-sid' }
+
+      return current
+    })
+
+    const handle = await room.turns.ensureGroupChatSession('Room', LOCAL_MEMBER, 't1')
+
+    expect(handle.fresh).toBe(true)
+    expect(handle.stored).not.toBe('stale-sid')
+    expect(room.gateway.sessions.get(String(handle.stored))?.title).toBe('Group: Room · t1')
+  })
+
+  it('fails closed, in words, when the lookup fails for any other reason', async () => {
+    const room = await loadRoom({ resumeNotFoundAs: Object.assign(new Error('backend warming up'), { code: 5000 }) })
+    room.chat.updateGroupChat('Room', current => {
+      current.sessions = { [groupSessionKey('t1', LOCAL_MEMBER)]: 'stale-sid' }
+
+      return current
+    })
+
+    await expect(room.turns.ensureGroupChatSession('Room', LOCAL_MEMBER, 't1')).rejects.toThrow(
+      "Could not check helper's group session (backend warming up) — not starting a new one"
+    )
+    expect(room.gateway.sessions.size).toBe(0)
+  })
+
   it('pins session titles to the roomId, with a legacy fallback to the display name', async () => {
     const room = await loadRoom()
 

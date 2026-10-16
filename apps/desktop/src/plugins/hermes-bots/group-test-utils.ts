@@ -121,6 +121,9 @@ export interface GatewayOptions {
   rejectCwdSetWith?: unknown
   /** Reject every `session.workspace.move` with this (a 4017 missing dir). */
   rejectWorkspaceMoveWith?: unknown
+  /** What a resume of a session the gateway does not have throws, instead of the sidecar's 4007
+   *  (the canonical owner answers code 4001 with reason `not_found`). */
+  resumeNotFoundAs?: unknown
   /** Fired on each post-submit poll, so a test can land a stop mid-turn. */
   onResumePoll?: (polls: number) => void
   /** Report the member inflight for the first N post-submit polls. */
@@ -195,6 +198,11 @@ function scriptedCreateCwd(params: Record<string, unknown>): { cwd?: string } {
 /** A gateway-shaped rejection: `.code` is what the engine branches on. */
 export function gatewayError(message: string, code: number) {
   return Object.assign(new Error(message), { code })
+}
+
+/** What a resume of a session the gateway does not have throws (`GatewayOptions.resumeNotFoundAs`). */
+function resumeNotFound(options: GatewayOptions, sessionId: unknown): unknown {
+  return options.resumeNotFoundAs ?? gatewayError(`session not found: ${String(sessionId)}`, 4007)
 }
 
 export interface ScriptedGateway {
@@ -363,7 +371,7 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
       const session = resolveSession(params.profile, params.session_id)
 
       if (!session) {
-        throw gatewayError(`session not found: ${String(params.session_id)}`, 4007)
+        throw resumeNotFound(options, params.session_id)
       }
 
       // Every resume mints a fresh runtime id; the stored id is the durable

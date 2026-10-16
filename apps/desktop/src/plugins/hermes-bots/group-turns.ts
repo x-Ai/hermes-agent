@@ -33,6 +33,7 @@ import {
   formatFreshThreadRoomContext,
   GROUP_PROMPT_HEADER_PREFIX
 } from './group-round-prompt'
+import { isMissingSessionError } from './group-session-errors'
 import type { GroupTurnTraceSink } from './group-trace'
 import { captureGroupTurnTrace } from './group-trace-capture'
 import { startGroupLiveTrace } from './group-trace-live'
@@ -401,13 +402,11 @@ export async function ensureGroupChatSession(
           }
         }
       } catch (error: any) {
-        if (error?.code !== 4007) {
-          const detail = error instanceof Error && error.message ? ` (${error.message})` : ''
-          throw new Error(
-            `Could not check ${member?.name || 'member'}'s group session${detail} — not starting a new one`
-          )
+        if (!isMissingSessionError(error)) {
+          const detail = error instanceof Error && error.message ? error.message : ''
+          throw new Error(botsText().group.sessionCheckFailed(member?.name || 'member', detail))
         }
-        /* genuinely doesn't exist (4007) — try the next target / fall through to create */
+        /* genuinely doesn't exist (4007, or the owner's not_found) — try the next target / fall through to create */
       }
     }
 
@@ -1412,7 +1411,7 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
     } catch (error: any) {
       // A session that genuinely no longer exists has nothing to harvest, and a marker that can
       // never resolve would keep the member out of every round; only unreachability keeps it.
-      if (error?.code === 4007) {
+      if (isMissingSessionError(error)) {
         updateGroupChat(group, (r: GroupChatRoom) => {
           const next = {
             ...(r.stranded || {})

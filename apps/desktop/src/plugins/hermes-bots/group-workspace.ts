@@ -33,6 +33,7 @@ import { host } from '@hermes/plugin-sdk'
 
 import { $groupChats, updateGroupChat } from './group-chat'
 import { groupMemberKey, groupSessionMemberKey, groupSessionThread } from './group-membership'
+import { isMissingSessionError } from './group-session-errors'
 import { botsText } from './i18n'
 import { requestForBot } from './routing'
 import type { GroupChat, GroupMember } from './types'
@@ -240,8 +241,8 @@ export async function rehomeIdleGroupSessions(
       })
       moved += 1
     } catch (error: any) {
-      // 4007: the gateway no longer has the row; the next turn mints anew.
-      if (error?.code !== 4007) {
+      // The gateway no longer has the row (4007, or the owner's not_found); the next turn mints anew.
+      if (!isMissingSessionError(error)) {
         noteWorkspaceApplyFailure(group, member, desired, error)
       }
     }

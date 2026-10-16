@@ -69,6 +69,9 @@ type GroupCreateOwnCopy = {
   legacyRoomName: (name: string) => string
   /** Roster-row tooltip of a hosted room. */
   hostedRoom: string
+  /** A member's room session could not be looked up (`error` = the gateway's reason, may be empty);
+   *  the engine fails closed instead of minting a second session. */
+  sessionCheckFailed: (member: string, error: string) => string
 }
 
 const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${group}"`).join(separator)
@@ -119,7 +122,9 @@ const en: GroupCreateOwnCopy = {
   hostOnGatewayBusy: 'Creating…',
   hostedOnGateway: name => `"${name}" now runs on the gateway`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'Gateway-hosted room'
+  hostedRoom: 'Gateway-hosted room',
+  sessionCheckFailed: (member, error) =>
+    `Could not check ${member}'s group session${error ? ` (${error})` : ''} — not starting a new one`
 }
 
 const ja: GroupCreateOwnCopy = {
@@ -169,7 +174,9 @@ const ja: GroupCreateOwnCopy = {
   hostOnGatewayBusy: '作成中…',
   hostedOnGateway: name => `"${name}" はゲートウェイ管理で動作しています`,
   legacyRoomName: name => `${name}（Desktop）`,
-  hostedRoom: 'ゲートウェイ管理のルーム'
+  hostedRoom: 'ゲートウェイ管理のルーム',
+  sessionCheckFailed: (member, error) =>
+    `${member} のグループセッションを確認できませんでした${error ? `（${error}）` : ''}。新しいセッションは開始しません`
 }
 
 const zh: GroupCreateOwnCopy = {
@@ -214,7 +221,8 @@ const zh: GroupCreateOwnCopy = {
   hostOnGatewayBusy: '创建中…',
   hostedOnGateway: name => `"${name}" 现在由网关托管运行`,
   legacyRoomName: name => `${name}（Desktop）`,
-  hostedRoom: '网关托管群聊'
+  hostedRoom: '网关托管群聊',
+  sessionCheckFailed: (member, error) => `无法检查 ${member} 的群聊会话${error ? `（${error}）` : ''}，因此没有新建会话`
 }
 
 const zhHant: GroupCreateOwnCopy = {
@@ -259,7 +267,9 @@ const zhHant: GroupCreateOwnCopy = {
   hostOnGatewayBusy: '建立中…',
   hostedOnGateway: name => `「${name}」現在由閘道託管執行`,
   legacyRoomName: name => `${name}（Desktop）`,
-  hostedRoom: '閘道託管群組聊天'
+  hostedRoom: '閘道託管群組聊天',
+  sessionCheckFailed: (member, error) =>
+    `無法檢查 ${member} 的群組聊天工作階段${error ? `（${error}）` : ''}，因此沒有建立新的工作階段。`
 }
 
 const ru: GroupCreateOwnCopy = {
@@ -306,7 +316,9 @@ const ru: GroupCreateOwnCopy = {
   hostOnGatewayBusy: 'Создание…',
   hostedOnGateway: name => `"${name}" теперь работает на шлюзе`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'Комната, которой владеет шлюз'
+  hostedRoom: 'Комната, которой владеет шлюз',
+  sessionCheckFailed: (member, error) =>
+    `Не удалось проверить сеанс группы для ${member}${error ? ` (${error})` : ''} — новый сеанс не создан.`
 }
 
 const ar: GroupCreateOwnCopy = {
@@ -351,7 +363,9 @@ const ar: GroupCreateOwnCopy = {
   hostOnGatewayBusy: 'جارٍ الإنشاء…',
   hostedOnGateway: name => `"${name}" تعمل الآن على البوابة`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'غرفة تملكها البوابة'
+  hostedRoom: 'غرفة تملكها البوابة',
+  sessionCheckFailed: (member, error) =>
+    `تعذر التحقق من جلسة المجموعة الخاصة بـ ${member}${error ? ` (${error})` : ''} — لن تُبدأ جلسة جديدة.`
 }
 
 /** Everything the fork adds to `b.group.*`: this file's keys, the room's
