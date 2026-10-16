@@ -16,3 +16,11 @@ export function isMissingSessionError(error: unknown): boolean {
 
   return reason === SESSION_NOT_FOUND_REASON
 }
+
+/** A missing-session rejection shaped like the gateway's, for a client-side resolve that finds no
+ *  session to act on (a title lookup that returns no row). Throwing it lets a caller funnel "nothing
+ *  to resume" through the same `isMissingSessionError` path a real not_found refusal takes, instead
+ *  of a second branch that would have to be kept in step with it. */
+export function missingSessionError(message: string): Error {
+  return Object.assign(new Error(message), { data: { reason: SESSION_NOT_FOUND_REASON } })
+}

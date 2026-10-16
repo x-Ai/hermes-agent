@@ -33,7 +33,7 @@ import {
   formatFreshThreadRoomContext,
   GROUP_PROMPT_HEADER_PREFIX
 } from './group-round-prompt'
-import { isMissingSessionError } from './group-session-errors'
+import { isMissingSessionError, missingSessionError } from './group-session-errors'
 import type { GroupTurnTraceSink } from './group-trace'
 import { captureGroupTurnTrace } from './group-trace-capture'
 import { startGroupLiveTrace } from './group-trace-live'
@@ -1372,6 +1372,58 @@ async function runGroupChatMemberTurnLeased(
   }
 }
 
+/** Drop a member's stranded marker: its finished reply has been harvested, or
+ *  there is nothing (live) to harvest. A marker that can never resolve would
+ *  keep the member out of every round, so it must not outlive its session. */
+function clearStrandedGroupMarker(group: string, memberKey: string): void {
+  updateGroupChat(group, (r: GroupChatRoom) => {
+    const next = {
+      ...(r.stranded || {})
+    }
+
+    delete next[memberKey]
+    r.stranded = next
+
+    return r
+  })
+}
+
+/** Resolve a member's hidden per-group session by its title to a durable id.
+ *  The harvest has only the title when the thread's stored pointer was pruned
+ *  or a hydrate restored just the marker. The canonical owner resolves a title
+ *  ONLY through `session.resume`'s
+ *  own `title` param — a title handed to `session_id` is looked up as an id,
+ *  misses, and answers not_found, which the harvest would read as "session
+ *  gone" and silently drop a finished late reply (the hidden session is really
+ *  there). `session.list` by title returns the live tip (`resolved_id`) on both
+ *  the legacy sidecar and the canonical owner, the same lookup the Bots roster's
+ *  forever-chat registry (findExistingCanonicalChat) and the hosted-room
+ *  resolver (resolve_exact) already resolve through. An empty list means the
+ *  session is genuinely gone; it throws a missing-session error so the caller's
+ *  not_found path consumes the marker, rather than returning a value the caller
+ *  would have to branch on. */
+async function resolveStrandedGroupSessionId(member: GroupMember, title: string): Promise<string> {
+  const res = await requestForBot<{ sessions?: { id?: string; resolved_id?: string }[] }>(
+    member,
+    'session.list',
+    {
+      profile: member.name,
+      title,
+      include_hidden: true
+    },
+    GROUP_SESSION_BACKGROUND_RESUME_OPTIONS
+  )
+
+  const row = res?.sessions?.[0]
+  const id = row?.resolved_id || row?.id
+
+  if (typeof id === 'string' && id) {
+    return id
+  }
+
+  throw missingSessionError(`no stranded group session titled ${title}`)
+}
+
 /** Post a timed-out member's finished reply into the room, if it landed
  *  after we stopped waiting. Called at the member's next turn boundary and
  *  on user sends, so long-running work is delivered late rather than lost. */
@@ -1401,11 +1453,21 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
       const sessions = room.sessions || {}
       const scoped = sessions[groupSessionKey(strandedThread, member)]
       const stored = scoped || (hasThreadScopedGroupSession(sessions, memberKey) ? null : sessions[memberKey])
+
+      // No stored pointer (pruned, or a hydrate restored only the marker):
+      // resolve the hidden session by its title to a durable id before
+      // resuming. A title handed to `session.resume`'s `session_id` answers
+      // not_found on the canonical owner and would drop a finished reply;
+      // `session.list` by title gives the live tip on both backends, and an
+      // empty list throws a missing-session error the catch below consumes.
+      const resumeId =
+        stored || (await resolveStrandedGroupSessionId(member, `Group: ${room.roomId || group} · ${strandedThread}`))
+
       state = await requestForBot<GroupSessionSnapshot>(
         member,
         'session.resume',
         {
-          session_id: stored || `Group: ${room.roomId || group} · ${strandedThread}`,
+          session_id: resumeId,
           profile: member.name
         },
         GROUP_SESSION_BACKGROUND_RESUME_OPTIONS
@@ -1414,16 +1476,7 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
       // A session that genuinely no longer exists has nothing to harvest, and a marker that can
       // never resolve would keep the member out of every round; only unreachability keeps it.
       if (isMissingSessionError(error)) {
-        updateGroupChat(group, (r: GroupChatRoom) => {
-          const next = {
-            ...(r.stranded || {})
-          }
-
-          delete next[memberKey]
-          r.stranded = next
-
-          return r
-        })
+        clearStrandedGroupMarker(group, memberKey)
       }
 
       return
@@ -1442,16 +1495,7 @@ export async function harvestStrandedGroupReply(group: string, member: GroupMemb
     }
 
     // Done (or dead): the marker is consumed either way.
-    updateGroupChat(group, (r: GroupChatRoom) => {
-      const next = {
-        ...(r.stranded || {})
-      }
-
-      delete next[memberKey]
-      r.stranded = next
-
-      return r
-    })
+    clearStrandedGroupMarker(group, memberKey)
     const messages = Array.isArray(state?.messages) ? state.messages : []
     // A transcript that never grew is not proof of nothing: a turn that dies
     // before its prompt is committed leaves only the retained error behind.

@@ -195,6 +195,29 @@ function scriptedCreateCwd(params: Record<string, unknown>): { cwd?: string } {
   return params.cwd_explicit === true && typeof params.cwd === 'string' ? { cwd: params.cwd } : {}
 }
 
+/** Title-as-identity lookup (the owner's resolve_titled_session / the sidecar's
+ *  _session_list_by_title): a hidden session answers by its exact title with its
+ *  durable id as `resolved_id`, the lookup the roster's forever-chat registry and
+ *  the stranded-reply harvest resolve through. No match → an empty list, never an
+ *  error. A seeded session is resumable by its stored id but not by title (the
+ *  harness never registers a title for it), exactly as the canonical owner resumes
+ *  only ids — so a harvest that still handed the title to `session.resume` misses. */
+function scriptedSessionListByTitle(
+  sessions: Map<string, ScriptedSession>,
+  params: Record<string, unknown>
+): { sessions: Array<{ id: string; resolved_id: string; title: string }> } {
+  const title = String(params.title ?? '')
+  const profile = params.profile === undefined ? null : String(params.profile)
+
+  const match = title
+    ? [...sessions.values()].find(session => session.title === title && (profile === null || session.profile === profile))
+    : undefined
+
+  return match
+    ? { sessions: [{ id: match.stored, resolved_id: match.stored, title: match.title }] }
+    : { sessions: [] }
+}
+
 /** A gateway-shaped rejection: `.code` is what the engine branches on. */
 export function gatewayError(message: string, code: number, data?: Record<string, unknown>) {
   return Object.assign(new Error(message), { code, ...(data ? { data } : {}) })
@@ -317,9 +340,17 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
   }
 
   const handle = async (method: string, params: Record<string, unknown>): Promise<unknown> => {
-    // A legacy Desktop room: no hosted-room driver, nonpersistent owner.
-    if (method === 'groups.capabilities') {
-      return { driver: false, persistent_process: false }
+    // Methods with a fixed, state-free answer. One lookup rather than a branch
+    // apiece so adding one does not grow this dispatcher's complexity.
+    //  - groups.capabilities: a legacy Desktop room (no hosted-room driver, nonpersistent owner).
+    //  - session.list: title-as-identity lookup the stranded-reply harvest resolves through.
+    const canned: Record<string, () => unknown> = {
+      'groups.capabilities': () => ({ driver: false, persistent_process: false }),
+      'session.list': () => scriptedSessionListByTitle(sessions, params)
+    }
+
+    if (method in canned) {
+      return canned[method]()
     }
 
     if (method === 'profiles.list') {

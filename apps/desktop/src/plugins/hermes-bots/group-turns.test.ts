@@ -1069,6 +1069,12 @@ describe('clarify and approvals (#90694)', () => {
     const original = host.request as (method: string, params: Record<string, unknown>) => Promise<any>
 
     host.request = async (method: string, params: Record<string, unknown>) => {
+      // The harvest resolves a titled stranded session to a durable id before
+      // resuming; answer the lookup so it reaches the resume this scenario drives.
+      if (method === 'session.list') {
+        return { sessions: [{ id: `sid-${params.profile}`, resolved_id: `sid-${params.profile}`, title: params.title }] }
+      }
+
       if (method !== 'session.resume') {
         return original(method, params)
       }
@@ -1319,6 +1325,71 @@ describe('stranded harvest', () => {
     expect(log(room, 'Late')[0].from.name).toBe('research')
     expect(log(room, 'Late')[0].text).toMatch(/delivered late/)
     expect(room.chat.$groupChats.get().Late.stranded?.research).toBeUndefined()
+  })
+
+  // The canonical-owner edge: the marker survived but room.sessions has no
+  // stored id for this thread (only a sibling thread's), so the harvest has
+  // only the member session's title. The owner resolves a title only through
+  // `session.resume`'s `title` param — a title handed to `session_id` answers
+  // not_found, so the pre-fix harvest cleared the marker and silently dropped
+  // the finished reply. session.list by title resolves it to a real id first.
+  it('resolves a titled stranded session on a canonical owner and posts the late reply', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+    const { groupSessionKey } = await import('./group-membership')
+
+    room.chat.updateGroupChat('Titled', current => {
+      current.roomId = 'r-titled'
+      // Only a sibling thread holds a stored pointer, so this thread's harvest
+      // finds none (hasThreadScopedGroupSession is true, this thread's key is
+      // absent) and falls through to the title.
+      current.sessions = { [groupSessionKey('other', member)]: 'sid-other' }
+      current.stranded = { research: { before: 0, thread: 't1' } }
+
+      return current
+    })
+    // Seeded straight into the gateway: resumable by its stored id but NOT by
+    // title (the harness registers a title only for a session.create), exactly
+    // as the canonical owner resumes only ids. So a title handed to
+    // session.resume misses while session.list by title still finds it.
+    seedSession(room, 'sid-research', 'research', 'Group: r-titled · t1', [
+      ['user', roomPrompt('Titled')],
+      ['assistant', 'Here is the late result, resolved by title.']
+    ])
+
+    await room.turns.harvestStrandedGroupReply('Titled', member)
+
+    expect(log(room, 'Titled')).toHaveLength(1)
+    expect(log(room, 'Titled')[0].from.name).toBe('research')
+    expect(log(room, 'Titled')[0].text).toMatch(/resolved by title/)
+    expect(room.chat.$groupChats.get().Titled.stranded?.research).toBeUndefined()
+    // The reply was resumed by the id session.list returned, never the title.
+    expect(room.gateway.rpcFor('session.resume').map(call => call.params.session_id)).toEqual(['sid-research'])
+  })
+
+  // No session answers the title lookup: the session is genuinely gone, so the
+  // marker is consumed (not left to keep the member out of every round) and
+  // nothing is posted.
+  it('clears the marker when the titled stranded session is genuinely gone', async () => {
+    const room = await loadRoom()
+    const member: GroupMember = { name: 'research', title: '' }
+    const { groupSessionKey } = await import('./group-membership')
+
+    room.chat.updateGroupChat('Gone', current => {
+      current.roomId = 'r-gone'
+      current.sessions = { [groupSessionKey('other', member)]: 'sid-other' }
+      current.stranded = { research: { before: 0, thread: 't1' } }
+
+      return current
+    })
+    // Nothing seeded under 'Group: r-gone · t1' → session.list answers empty.
+
+    await room.turns.harvestStrandedGroupReply('Gone', member)
+
+    expect(log(room, 'Gone')).toHaveLength(0)
+    expect(room.chat.$groupChats.get().Gone.stranded?.research).toBeUndefined()
+    // No resume is attempted once the title resolves to nothing.
+    expect(room.gateway.rpcFor('session.resume')).toHaveLength(0)
   })
 
   it('prefers the substantive answer over a trailing synthetic (pass)', async () => {

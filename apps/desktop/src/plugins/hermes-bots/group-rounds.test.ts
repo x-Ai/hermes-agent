@@ -473,7 +473,13 @@ describe('round lifecycle', () => {
     const request = host.request as (...args: unknown[]) => Promise<unknown>
 
     host.request = (...args: unknown[]) => {
-      const [method, params] = args as [string, { profile?: string }]
+      const [method, params] = args as [string, { profile?: string; title?: string }]
+
+      // The harvest resolves the stranded session by title before resuming;
+      // answer the lookup for builder so it reaches the malformed resume below.
+      if (method === 'session.list' && params.profile === 'builder') {
+        return Promise.resolve({ sessions: [{ id: 'sid-builder', resolved_id: 'sid-builder', title: params.title }] })
+      }
 
       // JSON-shaped malformed reply text throws while harvesting, after RPC acceptance.
       return method === 'session.resume' && params.profile === 'builder'
