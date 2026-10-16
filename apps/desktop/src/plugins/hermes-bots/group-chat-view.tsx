@@ -41,6 +41,7 @@ import { avatarColor, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
+import { HostOnGatewayButton } from './canonical-room-migrate'
 import { useCanonicalRoomSync } from './canonical-room-sync'
 import {
   $botMeta,
@@ -625,6 +626,15 @@ function GroupChatSettingsDialog({
             {b.group.manageMembersCount((members || []).length)}
           </Button>
         ) : null}
+        <HostOnGatewayButton
+          group={group}
+          members={members || []}
+          onHosted={key => {
+            onClose()
+            openGroupChat(key)
+          }}
+          rename={renameGroupChat}
+        />
         <DialogFooter>
           <Button onClick={onClose} variant="secondary">
             {t.common.cancel}

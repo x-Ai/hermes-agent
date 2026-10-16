@@ -56,6 +56,17 @@ type GroupCreateOwnCopy = {
   canonicalSendFailed: (error: string) => string
   canonicalActionFailed: (error: string) => string
   canonicalMembersFixed: string
+  /** Moving a Desktop room onto its gateway (`canonical-room-migrate.tsx`). */
+  hostOnGateway: string
+  hostOnGatewayTitle: string
+  hostOnGatewayDescription: (name: string, legacyName: string) => string
+  hostOnGatewayAction: string
+  hostOnGatewayBusy: string
+  hostedOnGateway: (name: string) => string
+  /** The name the Desktop room keeps beside its hosted successor. */
+  legacyRoomName: (name: string) => string
+  /** Roster-row tooltip of a hosted room. */
+  hostedRoom: string
 }
 
 const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${group}"`).join(separator)
@@ -95,7 +106,16 @@ const en: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`,
   canonicalSendFailed: error => `The group did not take the message: ${error}`,
   canonicalActionFailed: error => `The gateway refused the change: ${error}`,
-  canonicalMembersFixed: 'Members of a gateway-hosted room are set when it is created.'
+  canonicalMembersFixed: 'Members of a gateway-hosted room are set when it is created.',
+  hostOnGateway: 'Host on the gateway…',
+  hostOnGatewayTitle: 'Host this room on the gateway',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `A gateway-hosted room named "${name}" is created with the same members, picture, @handle, folders and stop-detection setting. It keeps running while this Desktop is closed and appears on every Desktop connected to this gateway. This room keeps its history here as "${legacyName}" and gives up its @handle; disband it once the history is no longer needed. Attachments cannot be sent into a hosted room yet.`,
+  hostOnGatewayAction: 'Create hosted room',
+  hostOnGatewayBusy: 'Creating…',
+  hostedOnGateway: name => `"${name}" now runs on the gateway`,
+  legacyRoomName: name => `${name} (Desktop)`,
+  hostedRoom: 'Gateway-hosted room'
 }
 
 const ja: GroupCreateOwnCopy = {
@@ -134,7 +154,16 @@ const ja: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`,
   canonicalSendFailed: error => `グループはメッセージを受け付けませんでした: ${error}`,
   canonicalActionFailed: error => `ゲートウェイが変更を拒否しました: ${error}`,
-  canonicalMembersFixed: 'ゲートウェイ管理のルームのメンバーは作成時に決まります。'
+  canonicalMembersFixed: 'ゲートウェイ管理のルームのメンバーは作成時に決まります。',
+  hostOnGateway: 'ゲートウェイに管理させる…',
+  hostOnGatewayTitle: 'このルームをゲートウェイに管理させる',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `同じメンバー、画像、@ハンドル、作業フォルダ、停止指示の検出設定を持つゲートウェイ管理のルーム "${name}" を新しく作成します。この Desktop を閉じても動き続け、このゲートウェイに接続したすべての Desktop に表示されます。現在のルームは "${legacyName}" という名前で履歴ごとこの Desktop に残り、@ハンドルを譲ります。履歴が不要になったら解散してください。ゲートウェイ管理のルームにはまだ添付ファイルを送れません`,
+  hostOnGatewayAction: '管理ルームを作成',
+  hostOnGatewayBusy: '作成中…',
+  hostedOnGateway: name => `"${name}" はゲートウェイ管理で動作しています`,
+  legacyRoomName: name => `${name}（Desktop）`,
+  hostedRoom: 'ゲートウェイ管理のルーム'
 }
 
 const zh: GroupCreateOwnCopy = {
@@ -168,7 +197,16 @@ const zh: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} 已被 "${owner}" 使用`,
   canonicalSendFailed: error => `群组没有收下这条消息: ${error}`,
   canonicalActionFailed: error => `网关拒绝了这次修改: ${error}`,
-  canonicalMembersFixed: '网关托管群组的成员在创建时确定'
+  canonicalMembersFixed: '网关托管群组的成员在创建时确定',
+  hostOnGateway: '交给网关托管…',
+  hostOnGatewayTitle: '把这个群聊交给网关托管',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `将新建一个由网关托管、名为 "${name}" 的群聊，成员、图片、@ 标签、工作目录和停止指令检测设置保持不变，关闭 Desktop 后它仍会继续运行，连接到这个网关的每台 Desktop 都能看到它。当前群聊会以 "${legacyName}" 的名字连同历史记录保留在本机，并让出 @ 标签，不再需要这些记录时可以解散它。托管群聊暂时还不能发送附件`,
+  hostOnGatewayAction: '创建托管群聊',
+  hostOnGatewayBusy: '创建中…',
+  hostedOnGateway: name => `"${name}" 现在由网关托管运行`,
+  legacyRoomName: name => `${name}（Desktop）`,
+  hostedRoom: '网关托管群聊'
 }
 
 const zhHant: GroupCreateOwnCopy = {
@@ -202,7 +240,16 @@ const zhHant: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} 已被「${owner}」使用`,
   canonicalSendFailed: error => `群組沒有收下這則訊息: ${error}`,
   canonicalActionFailed: error => `閘道拒絕了這次修改: ${error}`,
-  canonicalMembersFixed: '閘道託管群組的成員在建立時確定。'
+  canonicalMembersFixed: '閘道託管群組的成員在建立時確定。',
+  hostOnGateway: '交給閘道託管…',
+  hostOnGatewayTitle: '把這個群組聊天交給閘道託管',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `將建立一個由閘道託管、名為「${name}」的群組聊天，成員、圖片、@ 標籤、工作目錄和停止指令偵測設定保持不變。關閉 Desktop 後它仍會繼續執行，連線到這個閘道的每台 Desktop 都能看到它。目前的群組聊天會以「${legacyName}」的名稱連同歷史記錄保留在本機，並讓出 @ 標籤，不再需要這些記錄時可以解散它。託管群組聊天暫時還不能傳送附件`,
+  hostOnGatewayAction: '建立託管群組聊天',
+  hostOnGatewayBusy: '建立中…',
+  hostedOnGateway: name => `「${name}」現在由閘道託管執行`,
+  legacyRoomName: name => `${name}（Desktop）`,
+  hostedRoom: '閘道託管群組聊天'
 }
 
 const ru: GroupCreateOwnCopy = {
@@ -238,7 +285,16 @@ const ru: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`,
   canonicalSendFailed: error => `Группа не приняла сообщение: ${error}`,
   canonicalActionFailed: error => `Шлюз отклонил изменение: ${error}`,
-  canonicalMembersFixed: 'Состав группы, которой владеет шлюз, задаётся при её создании.'
+  canonicalMembersFixed: 'Состав группы, которой владеет шлюз, задаётся при её создании.',
+  hostOnGateway: 'Передать шлюзу…',
+  hostOnGatewayTitle: 'Передать эту комнату шлюзу',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `Будет создана комната "${name}", которой владеет шлюз, с теми же участниками, картинкой, @-хэндлом, папками и настройкой распознавания стоп-команд. Она продолжает работать, пока этот Desktop закрыт, и видна на каждом Desktop, подключённом к этому шлюзу. Текущая комната сохраняет историю здесь под именем "${legacyName}" и отдаёт свой @-хэндл; распустите её, когда история больше не нужна. Вложения в комнату шлюза пока отправлять нельзя.`,
+  hostOnGatewayAction: 'Создать комнату шлюза',
+  hostOnGatewayBusy: 'Создание…',
+  hostedOnGateway: name => `"${name}" теперь работает на шлюзе`,
+  legacyRoomName: name => `${name} (Desktop)`,
+  hostedRoom: 'Комната, которой владеет шлюз'
 }
 
 const ar: GroupCreateOwnCopy = {
@@ -272,7 +328,16 @@ const ar: GroupCreateOwnCopy = {
   handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`,
   canonicalSendFailed: error => `لم تقبل المجموعة الرسالة: ${error}`,
   canonicalActionFailed: error => `رفضت البوابة التغيير: ${error}`,
-  canonicalMembersFixed: 'يُحدَّد أعضاء المجموعة التي تملكها البوابة عند إنشائها.'
+  canonicalMembersFixed: 'يُحدَّد أعضاء المجموعة التي تملكها البوابة عند إنشائها.',
+  hostOnGateway: 'تسليمها إلى البوابة…',
+  hostOnGatewayTitle: 'تسليم هذه الغرفة إلى البوابة',
+  hostOnGatewayDescription: (name, legacyName) =>
+    `ستُنشأ غرفة تملكها البوابة باسم "${name}" بالأعضاء أنفسهم والصورة ومعرّف @ والمجلدات وإعداد كشف أوامر الإيقاف. تواصل العمل بينما هذا الـ Desktop مغلق، وتظهر على كل Desktop متصل بهذه البوابة. تحتفظ الغرفة الحالية بسجلها هنا باسم "${legacyName}" وتتخلى عن معرّف @ الخاص بها؛ حُلّها عندما لا تعود بحاجة إلى السجل. لا يمكن بعد إرسال المرفقات إلى غرفة تملكها البوابة.`,
+  hostOnGatewayAction: 'إنشاء غرفة البوابة',
+  hostOnGatewayBusy: 'جارٍ الإنشاء…',
+  hostedOnGateway: name => `"${name}" تعمل الآن على البوابة`,
+  legacyRoomName: name => `${name} (Desktop)`,
+  hostedRoom: 'غرفة تملكها البوابة'
 }
 
 /** Everything the fork adds to `b.group.*`: this file's keys, the room's

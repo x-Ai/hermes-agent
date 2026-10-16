@@ -38,7 +38,7 @@ import {
   focusedMentionProfile
 } from './bot-state'
 import { isCanonicalChatOnScreen, openBotCanonicalChat } from './canonical-chat'
-import { discoverActiveCanonicalRooms } from './canonical-room-sync'
+import { discoverActiveCanonicalRooms, hydrateCanonicalRoomPrefs } from './canonical-room-sync'
 import { BotChatEmpty } from './chat-empty'
 import { bindProfileSync, RoutinesPane } from './cron'
 import {
@@ -314,6 +314,15 @@ export default {
         .catch(() => undefined)
     } catch {
       /* no storage — no remembered disbands this window */
+    }
+
+    try {
+      // @ts-expect-error TODO(bot-mode-types): PluginStorage.get requires a fallback argument.
+      Promise.resolve(ctx.storage?.get?.('canonical-room-prefs'))
+        .then(value => hydrateCanonicalRoomPrefs(value))
+        .catch(() => undefined)
+    } catch {
+      /* no storage — hosted rooms get default rows this window */
     }
 
     try {

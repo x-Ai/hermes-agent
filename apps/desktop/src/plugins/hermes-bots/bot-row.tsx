@@ -509,6 +509,30 @@ interface GroupRowProps {
   onOpen: (group: string) => void
 }
 
+/** The marks after a room's name: pinned, and hosted by a gateway rather than this Desktop. */
+function GroupRowMarks({
+  b,
+  room
+}: {
+  b: ReturnType<typeof useBots>
+  room: { canonical?: unknown; pinned?: boolean }
+}) {
+  return (
+    <>
+      {room.pinned ? (
+        <Tip label={b.roster.pinned}>
+          <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
+        </Tip>
+      ) : null}
+      {room.canonical ? (
+        <Tip label={b.group.hostedRoom}>
+          <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="server" />
+        </Tip>
+      ) : null}
+    </>
+  )
+}
+
 export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, onNewSection }: GroupRowProps) {
   const { locale, t } = useI18n()
   const b = useBots()
@@ -600,11 +624,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <span className="min-w-0 flex-1 truncate text-[0.8125rem] font-medium">{roomName}</span>
-          {room.pinned ? (
-            <Tip label={b.roster.pinned}>
-              <Codicon className="shrink-0 text-[0.6875rem] text-(--ui-text-quaternary)" name="pinned" />
-            </Tip>
-          ) : null}
+          <GroupRowMarks b={b} room={room} />
           {needsYou ? (
             <Tip label={b.group.needsYourInput}>
               <Codicon aria-label={b.roster.needsInput} className="shrink-0 text-(--ui-accent)" name="question" />

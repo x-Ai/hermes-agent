@@ -291,6 +291,9 @@ interface GroupPromptBase {
   /** The thread the blocking question belongs to — part of the mirror key,
    *  since a member can be blocked in two threads at once. */
   thread?: string
+  /** Set on a prompt mirrored from a gateway-hosted room: the driver's action coordinates,
+   *  answered through `groups.approve` (`canonical-room-prompts.ts`), never the member session. */
+  hostedAction?: { executionGeneration: number; memberId: string; taskId: string }
 }
 
 interface GroupApprovalPrompt extends GroupPromptBase {

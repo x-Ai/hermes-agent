@@ -7,7 +7,7 @@ import pytest
 
 import tui_gateway.server as srv
 from tui_gateway import methods_groups
-from tui_gateway.client_locale import bind_transport, reset_transport
+from tui_gateway.transport import bind_transport, reset_transport
 from tui_gateway.methods_groups_settings import FEATURES, METHODS
 
 

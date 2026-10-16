@@ -10,7 +10,6 @@ import { host } from '@hermes/plugin-sdk'
 
 import { registerCanonicalGroup } from './canonical-group-registry'
 import { canonicalGroupRequest, type CanonicalGroupRoute, createCanonicalGroup } from './canonical-groups'
-import type { CanonicalRoomSettings } from './canonical-room-model'
 import {
   canonicalRouteFeatures,
   dropPendingCanonicalSend,
@@ -243,7 +242,10 @@ export async function disbandCanonicalRoom(group: string, room: GroupChatRoom): 
 }
 
 /** Whether New group chat can create a gateway-hosted room for these members on this route. */
-export async function canCreateCanonicalRoom(route: CanonicalGroupRoute, members: RosterRow[]): Promise<boolean> {
+export async function canCreateCanonicalRoom(
+  route: CanonicalGroupRoute,
+  members: Array<Pick<RosterRow, 'connectionId' | 'name' | 'remoteSource'>>
+): Promise<boolean> {
   if (
     members.length < 2 ||
     members.some(member => member.remoteSource || (member.connectionId && member.connectionId !== route.connectionId))
@@ -256,15 +258,8 @@ export async function canCreateCanonicalRoom(route: CanonicalGroupRoute, members
   return features.has('room_settings')
 }
 
-/** Create the room on the gateway, apply the dialog's handle / folder, register and project it. */
-export async function createCanonicalRoomWithSettings(
-  route: CanonicalGroupRoute,
-  name: string,
-  members: RosterRow[],
-  settings: Pick<CanonicalRoomSettings, 'handle' | 'workspace'>
-): Promise<string> {
-  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[])
-  const key = registerCanonicalGroup(route, room)
+/** What a settings draft asks beyond a fresh room's defaults; empty when nothing. */
+function creationPatch(settings: CanonicalRoomSettingsPatch): CanonicalRoomSettingsPatch {
   const patch: CanonicalRoomSettingsPatch = {}
 
   if (settings.handle) {
@@ -274,6 +269,30 @@ export async function createCanonicalRoomWithSettings(
   if (settings.workspace) {
     patch.workspace = settings.workspace
   }
+
+  if (settings.hold_detection === false) {
+    patch.hold_detection = false
+  }
+
+  const folders = Object.entries(settings.member_workspaces || {}).filter(([, path]) => path)
+
+  if (folders.length) {
+    patch.member_workspaces = Object.fromEntries(folders)
+  }
+
+  return patch
+}
+
+/** Create the room on the gateway, apply the draft's settings, register and project it. */
+export async function createCanonicalRoomWithSettings(
+  route: CanonicalGroupRoute,
+  name: string,
+  members: GroupMember[] | RosterRow[],
+  settings: CanonicalRoomSettingsPatch
+): Promise<string> {
+  const { binding, room } = await createCanonicalGroup(route, name, members as GroupMember[])
+  const key = registerCanonicalGroup(route, room)
+  const patch = creationPatch(settings)
 
   if (Object.keys(patch).length) {
     await canonicalGroupRequest(binding, 'groups.settings.set', { patch, room_id: binding.roomId })

@@ -40,8 +40,10 @@ import {
   type CanonicalRoomSettings,
   projectCanonicalRoom
 } from './canonical-room-model'
+import { canonicalRoomPrefs, forgetCanonicalRoomPrefs, loadCanonicalRoomPrefs } from './canonical-room-prefs'
+import { dropCanonicalPrompts, mirrorCanonicalPendingActions } from './canonical-room-prompts'
 import { recordGroupActivity } from './group-activity'
-import { $groupChats, updateGroupChat } from './group-chat'
+import { $groupChats, type GroupChatRoom, updateGroupChat } from './group-chat'
 import { noteGroupSessionRuntime } from './group-context-usage'
 import type { GroupMessage } from './types'
 
@@ -129,6 +131,13 @@ export function canonicalBindingFor(group: string): CanonicalGroupBinding | unde
   return $canonicalGroupBindings.get()[group]
 }
 
+/** A room projected for the first time this window starts from the row preferences stored for it. */
+function seededPrevious(key: string): GroupChatRoom | null {
+  const stored = canonicalRoomPrefs(key)
+
+  return stored ? { epoch: 0, log: [], running: false, watermarks: {}, ...stored } : null
+}
+
 /** Publish the projection from what this module holds for `key`. */
 export function publishCanonicalRoom(key: string): void {
   const state = rooms.get(key)
@@ -137,7 +146,7 @@ export function publishCanonicalRoom(key: string): void {
     return
   }
 
-  const previous = $groupChats.get()[key] || null
+  const previous = $groupChats.get()[key] || seededPrevious(key)
   const liveFromFrames = canonicalLiveTurn(key)
 
   const live =
@@ -253,16 +262,20 @@ async function syncOnce(key: string, state: RoomSyncState, full: boolean): Promi
   const { binding } = state
   const features = await canonicalRouteFeatures(binding).catch(() => new Set<string>())
 
-  const snapshot = await canonicalGroupRequest<{ driver_status?: { working?: boolean }; room: CanonicalRoom }>(
-    binding,
-    'groups.state',
-    { room_id: binding.roomId }
-  )
+  const snapshot = await canonicalGroupRequest<{
+    driver_status?: { pending_actions?: unknown[]; working?: boolean }
+    room: CanonicalRoom
+  }>(binding, 'groups.state', { room_id: binding.roomId })
 
   const since = full ? 0 : state.latestSeq
   const fresh = await readLog(state, since)
   state.room = snapshot.room
   state.working = Boolean(snapshot.driver_status?.working)
+  mirrorCanonicalPendingActions(
+    key,
+    canonicalRoomMembers(snapshot.room, binding),
+    snapshot.driver_status?.pending_actions
+  )
   state.events = full ? fresh : [...state.events, ...fresh]
 
   if (state.events.length > EVENTS_RETAINED) {
@@ -449,6 +462,29 @@ export async function discoverActiveCanonicalRooms(): Promise<void> {
   await discoverCanonicalRooms(route).catch(() => undefined)
 }
 
+/** Plugin activation: load the stored row preferences and apply them to rooms projected before they arrived. */
+export function hydrateCanonicalRoomPrefs(value: unknown): void {
+  for (const key of loadCanonicalRoomPrefs(value)) {
+    const stored = canonicalRoomPrefs(key)
+
+    if (!stored || !$groupChats.get()[key]?.canonical) {
+      continue
+    }
+
+    updateGroupChat(
+      key,
+      room => ({
+        ...room,
+        image: room.image || stored.image || null,
+        pinned: room.pinned ?? stored.pinned,
+        rosterOrder: room.rosterOrder ?? stored.rosterOrder,
+        sectionId: room.sectionId || stored.sectionId || null
+      }),
+      { sync: false }
+    )
+  }
+}
+
 /** Drop a room's projection and sync state (disband, or the gateway no longer lists it). */
 export function forgetCanonicalRoom(key: string): void {
   const state = rooms.get(key)
@@ -458,6 +494,8 @@ export function forgetCanonicalRoom(key: string): void {
   }
 
   stopCanonicalRoomLive(key)
+  forgetCanonicalRoomPrefs(key)
+  dropCanonicalPrompts(key)
   rooms.delete(key)
   const { [key]: _room, ...rest } = $groupChats.get()
   $groupChats.set(rest)

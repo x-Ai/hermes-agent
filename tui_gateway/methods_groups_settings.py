@@ -1,10 +1,10 @@
 """Fork extensions of the hosted-room JSON-RPC contract (see ``methods_groups.py``): per-room settings,
 member session lookup, the live turn and the activity watch the Desktop's room view is built on.
 
-Handlers are rebound onto server.py's globals at install (``method_ctx.py``), so every fork import is
-local to its handler and module constants travel as keyword defaults."""
+Handlers are rebound onto server.py's globals at install (``method_ctx.bind_module``), which also
+publishes this module's helpers and codes there; every fork import stays local to its handler."""
 
-from .method_ctx import HandlerRegistry
+from .method_ctx import HandlerRegistry, bind_module
 
 _registry = HandlerRegistry()
 method = _registry.method
@@ -138,4 +138,5 @@ def _(rid, params: dict) -> dict:
 
 
 def register(server) -> None:
-    _registry.install(server)
+    """Publish this module's helpers + handlers onto ``server``, rebound to its globals."""
+    bind_module(globals(), server, skip=("_",))

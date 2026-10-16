@@ -11,6 +11,7 @@
 
 import { atom, host } from '@hermes/plugin-sdk'
 
+import { rememberCanonicalRoomPrefs } from './canonical-room-prefs'
 import { $botMeta, $lastRoster, botRosterKey } from './data'
 import { durableGroupHandle, groupHandleProjection, mergeGroupHandleField } from './group-handle-sync'
 import { isGroupTurnTrace, retainGroupTraces } from './group-trace'
@@ -1659,7 +1660,10 @@ export function updateGroupChat(
       }
 
       // A gateway-hosted room is a projection of the gateway's state; the gateway is its store.
+      // Only this Desktop's row preferences (picture, pin, order, section) are kept, on their own.
       if (room.canonical) {
+        rememberCanonicalRoomPrefs(name, room)
+
         continue
       }
 
@@ -1812,6 +1816,11 @@ export function appendGroupChatEntry(
   // Guarded so a malformed shape never reaches storage or the renderer.
   if (isGroupTurnTrace(trace) && trace.steps.length) {
     entry.trace = trace
+  }
+
+  // A hosted room's log is the gateway's: a local echo would vanish at the next projection.
+  if ($groupChats.get()[group]?.canonical) {
+    return entry
   }
 
   // #93127 insurance: a residual double-append path (stale loop + fresh

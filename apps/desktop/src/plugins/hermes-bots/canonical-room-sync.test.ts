@@ -34,14 +34,21 @@ vi.mock('@hermes/plugin-sdk', async () => {
 
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import {
+  _resetCanonicalRoomPrefsForTests,
+  canonicalRoomPrefs,
+  rememberCanonicalRoomPrefs
+} from './canonical-room-prefs'
+import {
   _resetCanonicalRoomSyncForTests,
   discoverCanonicalRooms,
+  forgetCanonicalRoom,
+  hydrateCanonicalRoomPrefs,
   notePendingCanonicalSend,
   startCanonicalRoomViewer,
   syncCanonicalRoom
 } from './canonical-room-sync'
 import { $groupActivity } from './group-activity'
-import { $groupChats } from './group-chat'
+import { $groupChats, setGroupChatImage } from './group-chat'
 import { $groupLiveTraces } from './group-trace-live'
 
 const binding = { connectionId: 'local', profile: 'default', roomId: 'r1' }
@@ -275,5 +282,37 @@ describe('discoverCanonicalRooms', () => {
     expect(keys).toEqual([KEY])
     expect($canonicalGroupBindings.get()[KEY]).toEqual(binding)
     expect($groupChats.get()[KEY].displayName).toBe('Release room')
+  })
+})
+
+describe('row preferences of a hosted room', () => {
+  beforeEach(() => {
+    _resetCanonicalRoomPrefsForTests()
+  })
+
+  it('seed a room projected for the first time this window, and follow its record from then on', async () => {
+    script()
+    rememberCanonicalRoomPrefs(KEY, { image: 'data:img', pinned: true, sectionId: 's1' })
+    await syncCanonicalRoom(KEY, binding)
+    expect($groupChats.get()[KEY]).toMatchObject({ image: 'data:img', pinned: true, sectionId: 's1' })
+
+    setGroupChatImage(KEY, 'data:next')
+    expect(canonicalRoomPrefs(KEY)?.image).toBe('data:next')
+
+    forgetCanonicalRoom(KEY)
+    expect(canonicalRoomPrefs(KEY)).toBeNull()
+  })
+
+  it('reach a room projected before they were loaded', async () => {
+    script()
+    await syncCanonicalRoom(KEY, binding)
+    expect($groupChats.get()[KEY].image ?? null).toBeNull()
+
+    hydrateCanonicalRoomPrefs({ [KEY]: { image: 'data:img', sectionId: 's1' } })
+
+    expect($groupChats.get()[KEY]).toMatchObject({ image: 'data:img', sectionId: 's1' })
+    // A later sync keeps them: the record is now the projection's "previous".
+    await syncCanonicalRoom(KEY, binding)
+    expect($groupChats.get()[KEY]).toMatchObject({ image: 'data:img', sectionId: 's1' })
   })
 })
