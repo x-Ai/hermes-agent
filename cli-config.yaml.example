@@ -450,6 +450,9 @@ terminal:
   docker_workspace_per_session: false   # Mount the project dir each session picked (Desktop folder picker) instead of the launch cwd. Needs the flag above; one container per project.
   docker_workspace_mount_path: "/workspace"  # Full in-container mount target. Changing it applies to the NEXT container.
   lifetime_seconds: 300
+  # Two process_manage wait/poll calls in a row with no new output on a running background process
+  # turn on notify_on_complete for it and tell the agent to stop checking; false = poll as before.
+  process_wait_auto_notify: true
   # A `hermes` / `hermes --tui` session's local tools (terminal, background processes, execute_code)
   # start with the launching shell's toolchain: PATH, an activated venv and CONDA_* / NODE_* / NVM_* /
   # PYENV_* (plus GOPATH, GOROOT, CARGO_HOME, RUSTUP_HOME, JAVA_HOME), for that session only, when
