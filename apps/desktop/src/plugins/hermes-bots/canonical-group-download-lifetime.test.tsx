@@ -7,10 +7,10 @@ import { expectDownloaded, observeDownloads } from './canonical-download-test-ut
 const request = vi.hoisted(() => vi.fn())
 vi.mock('@hermes/plugin-sdk', async () => {
   const { en } = await import('@/i18n/en')
+  const { Textarea } = await import('@/components/ui/textarea')
 
-  return { host: { requestProfile: request }, useI18n: () => ({ locale: 'en', t: en }),
+  return { Textarea, MessageTextContent: undefined, Streamdown: undefined, host: { requestProfile: request }, useI18n: () => ({ locale: 'en', t: en }),
     Button: (props: ComponentProps<'button'>) => <button {...props} />,
-    Streamdown: ({ children }: { children: ReactNode }) => <div>{children}</div>,
     Codicon: () => <span />, Tip: ({ children }: { children: ReactNode }) => <>{children}</> }
 })
 vi.mock('./canonical-group-labels', async () => {

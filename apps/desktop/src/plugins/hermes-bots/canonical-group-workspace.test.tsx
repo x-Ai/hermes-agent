@@ -35,6 +35,22 @@ afterEach(() => {
   window.hermesDesktop = originalDesktop
 })
 
+it('preserves the unsent draft when only the room display name changes', async () => {
+  request.mockImplementation(async (_route, method) => method === 'groups.state'
+    ? { room: { name: 'Room' }, driver_status: {} } : method === 'groups.log' ? { events: [] } : {})
+  const binding = { connectionId: 'local', profile: 'team', roomId: 'rename', roomName: 'Room' }
+  const view = render(<CanonicalGroupWorkspace binding={binding} />)
+  await waitFor(() => expect((screen.getByRole('textbox') as HTMLTextAreaElement).disabled).toBe(false))
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Keep this draft' } })
+  view.rerender(<CanonicalGroupWorkspace binding={{ ...binding, roomName: 'Renamed room' }} />)
+  await waitFor(() => expect((screen.getByRole('textbox') as HTMLTextAreaElement).disabled).toBe(false))
+  expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Keep this draft')
+
+  view.rerender(<CanonicalGroupWorkspace binding={{ ...binding, roomId: 'another-room' }} />)
+  await waitFor(() => expect((screen.getByRole('textbox') as HTMLTextAreaElement).disabled).toBe(false))
+  expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('')
+})
+
 it('restores a frozen send after remount and retires only its acknowledged exact retry', async () => {
   const binding = { connectionId: 'remote', profile: 'team', roomId: 'restore' }
 

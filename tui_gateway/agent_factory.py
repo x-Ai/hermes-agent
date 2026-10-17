@@ -162,7 +162,9 @@ def _stored_session_runtime_overrides(row: dict | None) -> dict:
             provider = healed
             base_url = ""  # the healed identity owns a registered endpoint; the snapshot URL must not override it
         else:
-            provider = ""
+            # The route is gone with its endpoint and wire: on the default provider they would send
+            # that provider's credentials to the stored URL.
+            provider = base_url = api_mode = ""
     if provider:  # a named custom endpoint's protocol is read from the entry as configured now, not from the row
         try:
             from hermes_cli.runtime_provider import current_custom_provider_api_mode

@@ -129,8 +129,6 @@ export const zhHantCapabilities = {
       catalogProvenance: (sha: string) => `從 Hermes 目錄安裝${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) => `Pinned to commit ${sha}。在使用新 pin 重新安裝之前，更新將被拒絕。`,
       pinnedBadge: (sha: string) => `已固定 @${sha}`,
-      tierOfficial: '官方',
-      tierCommunity: '社群',
       updateToPin: (sha: string) => `更新至${sha}`,
       updateFailed: (name: string) => `無法更新${name}`,
       updated: (name: string) => `${name}已更新至當前目錄 PIN。請重新啟動網關以套用。`,

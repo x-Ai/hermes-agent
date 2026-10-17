@@ -117,8 +117,6 @@ export const arCapabilities = {
       catalogProvenance: (sha: string) => `Installed from the Hermes catalog${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) => `Pinned to commit ${sha}- تُرفض المستجدات إلى أن تُعاد تركيبها بمدبوس جديد.`,
       pinnedBadge: (sha: string) => `مثبت @${sha}`,
-      tierOfficial: 'الرسمي',
-      tierCommunity: 'المجتمعات المحلية',
       updateToPin: (sha: string) => `تحديث إلى${sha}`,
       updateFailed: (name: string) => `تعذر التحديث${name}`,
       updated: (name: string) => `${name}تم التحديث إلى دبوس الكتالوج الحالي. أعد تشغيل البوابة لتطبيق التغييرات.`,

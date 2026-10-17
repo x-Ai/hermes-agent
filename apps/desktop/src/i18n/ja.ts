@@ -2759,8 +2759,6 @@ export const jaOverrides = {
       pinnedProvenance: (sha: string) =>
         `Pinned to commit ${sha}。新しいピンで再インストールされるまで、更新は拒否されます。`,
       pinnedBadge: (sha: string) => `固定済み @${sha}`,
-      tierOfficial: '役人',
-      tierCommunity: 'コミュニティ',
       updateToPin: (sha: string) => `に更新${sha}`,
       updateFailed: (name: string) => `更新できませんでした${name}`,
       updated: (name: string) =>
@@ -5989,7 +5987,7 @@ export const jaOverrides = {
       hideNames: '名前を隠す',
       skill: name => `スキル ${name}`,
       kind: { plugin: 'プラグイン', skill: 'スキル' },
-      tier: { official: '公式', community: 'コミュニティ' },
+      tier: { official: '公式', verified: '認証済み', community: 'コミュニティ' },
       targetProfile: profile => `${profile} プロファイルにインストールします`,
       sendFailed: '回答を送信できませんでした。もう一度お試しください。',
       commitLabel: 'コミット',

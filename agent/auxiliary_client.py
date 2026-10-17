@@ -7485,7 +7485,7 @@ def _prepare_aux_request(
         if isinstance(client, (CodexAuxiliaryClient, AsyncCodexAuxiliaryClient)) else None
     )
     request_provider = effective_provider or resolved_provider
-    compression_config = _get_auxiliary_task_config("compression") if task == "compression" else {}
+    compression_config = _get_auxiliary_task_config(task) if task == "compression" else {}  # authoritative: no aux route
     if not async_mode:
         _, effective_extra_body = _compression_fast_lane_controls(
             task, actual_provider=request_provider, actual_model=final_model,

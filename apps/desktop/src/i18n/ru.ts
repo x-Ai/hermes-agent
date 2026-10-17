@@ -2642,8 +2642,6 @@ export const ruOverrides = {
       pinnedProvenance: (sha: string) =>
         `Pinned to commit ${sha}. Обновления отклоняются до тех пор, пока они не будут переустановлены с новым PIN-кодом.`,
       pinnedBadge: (sha: string) => `закреплено @${sha}`,
-      tierOfficial: 'чиновник',
-      tierCommunity: 'сообщество',
       updateToPin: (sha: string) => `Обновить до${sha}`,
       updateFailed: (name: string) => `Не удалось обновить${name}`,
       updated: (name: string) =>
@@ -5585,7 +5583,7 @@ export const ruOverrides = {
       hideNames: 'скрыть имена',
       skill: name => `навык ${name}`,
       kind: { plugin: 'плагин', skill: 'навык' },
-      tier: { official: 'официальный', community: 'сообщество' },
+      tier: { official: 'официальный', verified: 'проверенный', community: 'сообщество' },
       targetProfile: profile => `Установка в ваш профиль ${profile}`,
       sendFailed: 'Не удалось отправить ответ. Попробуйте ещё раз.',
       commitLabel: 'Коммит',
