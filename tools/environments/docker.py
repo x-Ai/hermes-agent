@@ -34,6 +34,7 @@ from tools.environments.docker_egress import (
     check_forward_env_collisions, merge_egress_env,
 )
 from tools.environments.docker_ownership import hand_back_sandbox_files, reclaim_sandbox_files
+from tools.environments.docker_ownership_projects import hand_back_project_files, project_mount_baseline
 from tools.environments.path_utils import sanitize_task_id_for_path
 from tools.environments.remote_common import (
     bash_argv, client_env_with, load_hermes_env_vars, prepend_unset, resolve_passthrough_env, run_capture)
@@ -401,6 +402,17 @@ _PRIVDROP_CAP_ARGS = ["--cap-add", "SETUID", "--cap-add", "SETGID"]
 _TEARDOWN_THREADS: set[threading.Thread] = set()
 _TEARDOWN_LOCK = threading.Lock()
 
+
+def _start_teardown_thread(target, name: str) -> threading.Thread:
+    """A daemon worker the atexit drain (``wait_for_all_teardowns``) joins before the interpreter exits;
+    it runs under the caller's contextvars, so the owning profile scope travels with it."""
+    from agent.memory_provider import spawn_context_thread
+    t = spawn_context_thread(target, name=name)
+    with _TEARDOWN_LOCK:
+        _TEARDOWN_THREADS.add(t)
+    t.start()
+    return t
+
 _S6_INIT_ENTRYPOINTS = ("/init", "/package/admin/s6-overlay/command/init")
 
 
@@ -717,6 +729,9 @@ class DockerEnvironment(BaseEnvironment):
         )
         # (host_dir, container_path) of the Hermes-created sandbox bind mounts; owner handback targets.
         self._sandbox_mounts: list[tuple[str, str]] = []
+        # The mounted host project directory and its root-owned entries at start (docker_ownership_projects).
+        self._project_mounts: list[tuple[str, str]] = []
+        self._project_root_baseline: Optional[frozenset[bytes]] = None
         logger.info("DockerEnvironment volumes: %s", volumes)
         if volumes is not None and not isinstance(volumes, list):
             logger.warning("docker_volumes config is not a list: %r", volumes)
@@ -729,6 +744,8 @@ class DockerEnvironment(BaseEnvironment):
             volumes, host_cwd, auto_mount_cwd, task_id, self._workspace_mount_path
         )
         mount = getattr(self, "host_cwd_mount", None)
+        if getattr(self, "host_cwd", None) and mount:
+            self._project_mounts = [(self.host_cwd, mount)]
         if mount and cwd_follows_host_mount(cwd, mount):
             logger.info(
                 "Container cwd follows configured host workspace at %s (requested %s)",
@@ -798,6 +815,7 @@ class DockerEnvironment(BaseEnvironment):
         if not reused:
             self._container_id = self._docker_run(cwd)
         reclaim_sandbox_files(self._docker_exe, self._container_id, self._sandbox_mounts)
+        self._project_root_baseline = project_mount_baseline(self._docker_exe, self._container_id, self._project_mounts)
 
         # Init-time env forwarding args seed the snapshot.
         self._init_env_args = self._build_init_env_args()
@@ -1412,22 +1430,31 @@ class DockerEnvironment(BaseEnvironment):
                 self._remove_bind_dirs()
             return
 
-        if not force_remove and self._persist_across_processes:
-            # Drop the in-process handle so a fresh __init__ re-probes via
-            # labels instead of reusing a stale Python reference.
-            self._container_id = None
-            return
-
         # Capture what the worker needs — the thread can outlive ``self``.
         docker_exe = self._docker_exe
         log_id = container_id[:12]
         sandbox_mounts = list(getattr(self, "_sandbox_mounts", []))
+        project_mounts = list(getattr(self, "_project_mounts", []))
+        project_baseline = getattr(self, "_project_root_baseline", None)
+
+        if not force_remove and self._persist_across_processes:
+            # The container stays up for the next session; the project files it wrote as root go
+            # back to the user now, through ``docker exec``, on a worker the atexit drain joins.
+            if project_mounts and project_baseline is not None:
+                _start_teardown_thread(lambda: hand_back_project_files(
+                    docker_exe, container_id, project_mounts, project_baseline), f"hermes-handback-{log_id}")
+            # Drop the in-process handle so a fresh __init__ re-probes via
+            # labels instead of reusing a stale Python reference.
+            self._container_id = None
+            return
 
         def _do_cleanup() -> None:
             for argv, fail_msg in ((["stop", "-t", "10"], "docker stop %s timed out / failed: %s"),
                                    (["rm", "-f"], "docker rm -f %s failed: %s")):
                 if argv[0] == "rm" and sandbox_mounts:  # stopped: no writer left, volumes still reachable
                     hand_back_sandbox_files(docker_exe, container_id, sandbox_mounts)
+                if argv[0] == "rm" and project_mounts:  # same moment, from the stopped container's volumes
+                    hand_back_project_files(docker_exe, container_id, project_mounts, project_baseline)
                 try:
                     subprocess.run(
                         [docker_exe, *argv, container_id],

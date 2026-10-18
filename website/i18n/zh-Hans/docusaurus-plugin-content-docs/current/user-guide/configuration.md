@@ -380,7 +380,7 @@ Hermes 首先从您当前的 shell 解析每个列出的变量，然后回退到
 
 ### 以宿主用户身份运行容器
 
-默认情况下，Docker 容器以 `root`（UID 0）身份运行。在 `/workspace` 或其他绑定挂载中创建的文件在宿主上归 root 所有，因此会话结束后您必须 `sudo chown` 才能从宿主编辑器编辑它们。`terminal.docker_run_as_host_user` 标志解决了这个问题：
+默认情况下，Docker 容器以 `root`（UID 0）身份运行。在 `/workspace` 或其他绑定挂载中创建的文件在宿主上归 root 所有，因此会话结束后您必须 `sudo chown` 才能从宿主编辑器编辑它们。在 Linux 上，Hermes 停止并删除一个 root 容器时，会先把它自己的沙箱绑定挂载（`TERMINAL_SANDBOX_DIR` 下的 `/root` 与 `/workspace`）里的文件交还给您的用户（rootless Docker 与 userns-remap 下跳过）。本分支还覆盖挂载进容器的宿主项目目录（`docker_mount_cwd_to_workspace`、`docker_workspace_per_session`）：会话释放容器时，容器以 root 在该目录下新建的条目会交还给您，长期运行、不会被删除的容器也包括在内；容器启动前就归 root 的内容不动，之后也不会再翻回 root，`docker_volumes` 不受影响。`terminal.docker_run_as_host_user` 标志则从一开始就避免产生 root 文件，对所有挂载都生效：
 
 ```yaml
 terminal:
@@ -437,7 +437,7 @@ terminal:
 - **它会按项目继承上面的安全权衡。** 你选择的每个目录都会变成沙箱内可写的宿主目录。
 - **容器数量随你接触的项目数增长。** 这正是切回来能瞬间恢复的原因，但每个容器都持有自己的镜像层和包状态。
 - **审批提示会跟随挂载。** 在任何挂载了宿主目录的会话中，危险命令都会失去沙箱快速通道 —— 这是正确的姿态，因为此时沙箱已不再是边界。
-- **在 Linux 上请同时设置 `docker_run_as_host_user: true`**，否则项目目录里会出现 root 所有的文件。（在 Windows 上它是空操作，由 Docker Desktop 负责映射。）
+- **在 Linux 上，容器以 root 在项目目录里新建的文件会在会话释放容器时交还给您的用户**（容器启动前就归 root 的内容不动，参见下方"以宿主用户身份运行容器"）。若希望文件从写入那一刻起就归您所有，仍可设置 `docker_run_as_host_user: true`。（在 Windows 上它是空操作，由 Docker Desktop 负责映射。）
 
 如果你希望所有工作共用一个容器，或者你主要从 CLI 使用 Hermes（启动目录本就是项目目录），请保持关闭。
 
