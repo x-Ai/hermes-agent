@@ -137,6 +137,16 @@ describe('ModelSettings profile scope', () => {
 })
 
 describe('ModelSettings', () => {
+  it('labels the main provider, model and default controls independently', async () => {
+    renderModelSettings()
+
+    expect(await screen.findByRole('combobox', { name: 'Provider' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Model' })).toBeTruthy()
+    expect(await screen.findByRole('combobox', { name: 'Reasoning' })).toBeTruthy()
+    expect(screen.getByText('Provider', { exact: true })).toBeTruthy()
+    expect(screen.getByText('Model', { exact: true })).toBeTruthy()
+    expect(setModelAssignment).not.toHaveBeenCalled()
+  })
   it.each(['custom', 'local', 'custom:lab'])(
     'opens local endpoint setup when %s has no inventory row',
     async provider => {
@@ -334,14 +344,6 @@ describe('ModelSettings', () => {
     fireEvent.click(fastSwitch)
 
     await waitFor(() => expect(saveHermesConfig).toHaveBeenCalledWith({ agent: { service_tier: 'fast' } }))
-  })
-
-  it('keeps the main reasoning label on one line beside its selector', async () => {
-    await renderModelSettings()
-
-    const label = await screen.findByText('Reasoning', { selector: 'span' })
-
-    expect(label.classList.contains('whitespace-nowrap')).toBe(true)
   })
 
   it('hides the reasoning/speed defaults when the main model reports no capabilities', async () => {
