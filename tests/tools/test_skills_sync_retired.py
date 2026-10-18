@@ -7,7 +7,7 @@ that no longer exist. The retired list removes exactly such copies; an edited co
 from contextlib import ExitStack
 from unittest.mock import patch
 
-from tools.skills_sync import RETIRED_BUNDLED_SKILLS, _dir_hash, _read_manifest, _write_manifest, sync_skills
+from tools.skills_sync import RETIRED_BUNDLED_SKILLS, dir_hash, _read_manifest, _write_manifest, sync_skills
 
 RETIRED = "collective-wisdom-install"
 
@@ -25,7 +25,7 @@ def _seed(stack, tmp_path, monkeypatch):
     copy.mkdir(parents=True)
     (copy / "SKILL.md").write_text(
         f"---\nname: {RETIRED}\ndescription: Browse team skills.\n---\n# shipped copy\n", encoding="utf-8")
-    _write_manifest({RETIRED: _dir_hash(copy)})
+    _write_manifest({RETIRED: dir_hash(copy)})
     return copy
 
 
