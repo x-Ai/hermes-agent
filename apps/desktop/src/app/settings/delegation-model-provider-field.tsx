@@ -1,15 +1,23 @@
 import type { ModelOptionProvider } from '@hermes/shared'
 import { useStore } from '@nanostores/react'
 import { useQuery } from '@tanstack/react-query'
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { getGlobalModelOptions, type ProfileScope, profileScopeKey } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { findCatalogProvider } from '@/lib/model-options'
+import { catalogProviderMatches, findCatalogProvider, isCustomEndpointRow } from '@/lib/model-options'
 import { cn } from '@/lib/utils'
 import { $customModels, withCustomModels } from '@/store/custom-models'
 
@@ -36,6 +44,9 @@ interface DelegationModelProviderFieldProps {
   baseUrl?: string
   modelDescription?: ReactNode
   scope?: ProfileScope
+  /** The fork's `delegation.use_custom_endpoints`: offer the owner's custom endpoints (`providers:`
+   *  entries) as routes. Off, only a route already saved on one stays visible. */
+  offerCustomEndpoints?: boolean
   onChange: (next: DelegationModelProviderValue) => void
 }
 
@@ -48,26 +59,54 @@ export function DelegationModelProviderField(props: DelegationModelProviderField
   return <DelegationRouteEditor key={identity} {...props} />
 }
 
-/** Catalog rows for the owner being edited; custom ids enrich only providers returned for that owner. */
-function useOwnerCatalog(scope: ProfileScope | undefined) {
+/** The slug of a custom endpoint whose models the normal catalog load did not bring (it probes only the
+ *  current endpoint, so a saved or freshly picked one arrives empty), or '' when nothing is missing. */
+function undiscoveredEndpoint(rows: readonly ModelOptionProvider[], provider: string): string {
+  const row = provider ? findCatalogProvider(rows, provider) : undefined
+
+  return row && isCustomEndpointRow(row) && !row.models?.length && row.authenticated !== false ? row.slug : ''
+}
+
+/** Catalog rows for the owner being edited. */
+function useOwnerRows(scope: ProfileScope | undefined) {
   const query = useQuery({
     queryKey: ['model-options', 'delegation', profileScopeKey(scope)],
     queryFn: () => getGlobalModelOptions(undefined, scope),
     retry: false
   })
 
+  const rows = useMemo(() => (query.data?.providers ?? []).filter(p => p.slug), [query.data?.providers])
+
+  return { rows, query }
+}
+
+/** The rows as routes: custom ids enrich only providers returned for that owner, and `discover` names a
+ *  custom endpoint probed once for its models (one refresh load, as the Model page does on a switch,
+ *  #59063) whose answer fills that endpoint's model list. */
+function useRoutableProviders(
+  scope: ProfileScope | undefined,
+  rows: readonly ModelOptionProvider[],
+  discover: string
+): readonly ModelOptionProvider[] {
+  const discovery = useQuery({
+    queryKey: ['model-options', 'delegation', profileScopeKey(scope), 'discover', discover],
+    queryFn: () => getGlobalModelOptions({ refresh: true }, scope),
+    enabled: discover !== '',
+    retry: false,
+    staleTime: Infinity
+  })
+
   const customModels = useStore($customModels)
 
-  const providers = useMemo(
-    () =>
-      withCustomModels(
-        (query.data?.providers ?? []).filter(p => p.slug),
-        customModels
-      ),
-    [query.data?.providers, customModels]
-  )
+  return useMemo(() => {
+    const found = discover ? discovery.data?.providers?.find(p => catalogProviderMatches(p, discover)) : undefined
 
-  return { providers, query }
+    const merged = found?.models?.length
+      ? rows.map(p => (catalogProviderMatches(p, discover) ? { ...p, models: found.models } : p))
+      : rows
+
+    return withCustomModels(merged, customModels)
+  }, [rows, discover, discovery.data?.providers, customModels])
 }
 
 /** A saved provider the catalog lacks (alias, display name, custom) stays visible as-is. */
@@ -90,10 +129,39 @@ function DelegationRouteEditor({
   baseUrl = '',
   modelDescription,
   scope,
+  offerCustomEndpoints = true,
   onChange
 }: DelegationModelProviderFieldProps) {
-  const { providers, query } = useOwnerCatalog(scope)
-  const draft = useDelegationRouteDraft({ model, provider, baseUrl }, providers)
+  // The endpoint the user is routing to: the draft's pick, else the saved route. Read off the
+  // unmerged rows so a finished discovery keeps its query (and merged models) instead of looping.
+  const [picked, setPicked] = useState('')
+  const { rows, query } = useOwnerRows(scope)
+  const catalog = useRoutableProviders(scope, rows, undiscoveredEndpoint(rows, picked || provider))
+
+  // Off, the owner's custom endpoints are not offered; a route already saved on one stays readable.
+  const providers = useMemo(
+    () =>
+      offerCustomEndpoints
+        ? catalog
+        : catalog.filter(p => !isCustomEndpointRow(p) || catalogProviderMatches(p, provider)),
+    [catalog, offerCustomEndpoints, provider]
+  )
+
+  const withheld = catalog.length - providers.length
+  const route = useDelegationRouteDraft({ model, provider, baseUrl }, providers)
+
+  const draft: DelegationRouteDraft = {
+    ...route,
+    chooseMode: value => {
+      route.chooseMode(value)
+      setPicked(value.startsWith(providerItem('')) ? value.slice(providerItem('').length) : '')
+    },
+    reset: () => {
+      route.reset()
+      setPicked('')
+    }
+  }
+
   const showsModel = draft.mode !== INHERIT_VALUE && !draft.useParentModel
 
   return (
@@ -105,7 +173,7 @@ function DelegationRouteEditor({
       />
       {showsModel && <ModelRow description={modelDescription} draft={draft} providers={providers} />}
       <div className="grid justify-items-end gap-3 pb-3 text-right">
-        <RouteNotes draft={draft} />
+        <RouteNotes draft={draft} withheld={withheld} />
         {query.isError && <CatalogRetry fetching={query.isFetching} onRetry={() => void query.refetch()} />}
         {draft.pending && <ApplyBar draft={draft} onApply={() => onChange(draft.value)} />}
       </div>
@@ -124,6 +192,8 @@ function ProviderRow({
 }) {
   const { t } = useI18n()
   const s = t.settings.model.subagents
+  const builtin = providers.filter(p => !isCustomEndpointRow(p))
+  const endpoints = providers.filter(isCustomEndpointRow)
 
   return (
     <ListRow
@@ -140,11 +210,21 @@ function ProviderRow({
               {draft.hasDirectEndpoint && <SelectItem value={DIRECT_VALUE}>{s.direct}</SelectItem>}
               <SelectItem value={INHERIT_VALUE}>{s.inherit}</SelectItem>
               <SelectItem value={MODEL_ONLY_VALUE}>{s.modelOnly}</SelectItem>
-              {providers.map(p => (
+              {builtin.map(p => (
                 <SelectItem key={p.slug} value={providerItem(p.slug)}>
                   {p.name}
                 </SelectItem>
               ))}
+              {endpoints.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel>{s.customEndpoints}</SelectLabel>
+                  {endpoints.map(p => (
+                    <SelectItem key={p.slug} value={providerItem(p.slug)}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
               <SelectItem value={CUSTOM_PROVIDER_VALUE}>{s.customProvider}</SelectItem>
             </SelectContent>
           </Select>
@@ -198,7 +278,7 @@ function ModelRow({
   )
 }
 
-function RouteNotes({ draft }: { draft: DelegationRouteDraft }) {
+function RouteNotes({ draft, withheld }: { draft: DelegationRouteDraft; withheld: number }) {
   const { t } = useI18n()
   const s = t.settings.model.subagents
   const allowsParentModel = draft.mode !== INHERIT_VALUE && draft.mode !== MODEL_ONLY_VALUE
@@ -206,6 +286,7 @@ function RouteNotes({ draft }: { draft: DelegationRouteDraft }) {
 
   return (
     <>
+      {withheld > 0 && <p className={note}>{s.customEndpointsHidden}</p>}
       {allowsParentModel && (
         <label className={cn('flex items-center gap-2', note)}>
           <Checkbox

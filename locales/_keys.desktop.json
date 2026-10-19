@@ -4601,6 +4601,8 @@
     "settings.model.staleAuxPrefix",
     "settings.model.staleAuxSuffix",
     "settings.model.subagents.catalogFailed",
+    "settings.model.subagents.customEndpoints",
+    "settings.model.subagents.customEndpointsHidden",
     "settings.model.subagents.customProvider",
     "settings.model.subagents.customProviderLabel",
     "settings.model.subagents.direct",

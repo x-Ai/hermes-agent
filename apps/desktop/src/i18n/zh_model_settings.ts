@@ -93,6 +93,8 @@ export const zhModelSettings: TranslationOverride<ModelSettingsTranslations> = {
     direct: '直接端点覆盖',
     customProvider: '自定义提供商...',
     customProviderLabel: '自定义子智能体提供商',
+    customEndpoints: '自定义端点',
+    customEndpointsHidden: '打开"子智能体建议自定义端点"后，这里会列出你的自定义端点',
     parentModel: '使用主智能体模型',
     parentModelWarning:
       '所选提供商必须支持主智能体模型，模型不兼容时，仅覆盖提供商的路由可能失败，若该提供商设置了自己的默认模型，子智能体会改用该模型',

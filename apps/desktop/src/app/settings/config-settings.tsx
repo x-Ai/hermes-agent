@@ -41,8 +41,6 @@ import { configSubpageForField } from './config-subpages'
 import { DELEGATION_ROUTE_COMPANION_KEY, DelegationRouteRow } from './delegation-route-row'
 import {
   clearsEnabledToolsets,
-  delegationModelOptions,
-  delegationProviderOptions,
   diffConfig,
   enumOptionsFor,
   getNested,
@@ -454,14 +452,6 @@ function ConfigSettingsInner({
   const enumOptionsForKey = (key: string) => {
     if (key === 'tts.elevenlabs.voice_id') {
       return enumOptionsFor(key, getNested(config, key), config, elevenLabsVoiceOptions ?? undefined)
-    }
-
-    if (key === 'delegation.provider') {
-      return enumOptionsFor(key, getNested(config, key), config, delegationProviderOptions(config))
-    }
-
-    if (key === 'delegation.model') {
-      return enumOptionsFor(key, getNested(config, key), config, delegationModelOptions(config))
     }
 
     return enumOptionsFor(key, getNested(config, key), config)

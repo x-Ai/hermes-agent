@@ -65,6 +65,8 @@ export interface ModelSettingsTranslations {
     direct: string
     customProvider: string
     customProviderLabel: string
+    customEndpoints: string
+    customEndpointsHidden: string
     parentModel: string
     parentModelWarning: string
     directActive: string

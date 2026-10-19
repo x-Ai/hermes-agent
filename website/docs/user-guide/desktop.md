@@ -117,6 +117,8 @@ Provider and model changes remain a local draft until you click **Apply**. **Can
 
 **Inherit from main agent** uses the parent's model and credentials. **Custom model (use parent credentials)** overrides only the model. Existing direct endpoints are shown as **Direct endpoint override**. Applying a different route clears the superseded delegation endpoint, its stored key and its wire protocol together, without removing other request settings. If the catalog is unavailable, use **Custom provider...** and **Custom model…** to enter a route manually, or click **Retry** without losing your draft.
 
+Your own custom endpoints (**Settings → Providers → Custom Endpoints**) are offered under a **Custom endpoints** heading of the provider dropdown while **Suggest Custom Endpoints for Subagents** (the switch just above the route) is on. Picking one lists the models it serves, probing the endpoint once if the catalog has not seen them yet. With the switch off they are withheld, and a route already saved on one stays visible so it can be read or replaced.
+
 ### File browser
 
 Explore and preview the working directory without leaving the app — useful for following along as the agent reads, writes, and edits files. Set the initial project directory with `hermes desktop --cwd <path>` (or the `HERMES_DESKTOP_CWD` environment variable).

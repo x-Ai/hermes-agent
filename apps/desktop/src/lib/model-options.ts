@@ -19,6 +19,12 @@ export function catalogProviderMatches(provider: CatalogProviderIdentity, curren
   )
 }
 
+/** One of the owner's own custom endpoints (a `providers:` entry the catalog lists with
+ *  `is_user_defined`), as opposed to a built-in provider or the managed local runtime. */
+export function isCustomEndpointRow(row: Pick<ModelOptionProvider, 'is_user_defined'>): boolean {
+  return row.is_user_defined === true
+}
+
 /** The catalog row for `currentProvider`, matched the same way as
  *  `catalogProviderMatches` (so a saved `custom:<key>` finds its row). */
 export function findCatalogProvider<T extends CatalogProviderIdentity>(

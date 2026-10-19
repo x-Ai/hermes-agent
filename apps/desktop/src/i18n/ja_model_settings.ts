@@ -94,6 +94,9 @@ export const jaModelSettings: TranslationOverride<ModelSettingsTranslations> = {
     direct: '直接エンドポイント',
     customProvider: 'カスタムプロバイダー...',
     customProviderLabel: 'サブエージェントのカスタムプロバイダー',
+    customEndpoints: 'カスタムエンドポイント',
+    customEndpointsHidden:
+      '「サブエージェントにカスタムエンドポイントを提案」をオンにすると、ここにカスタムエンドポイントが表示されます。',
     parentModel: 'メインエージェントのモデルを使用',
     parentModelWarning:
       '選択したプロバイダーがメインエージェントのモデルに対応している必要があります。モデルが対応していないと、プロバイダーのみのルートは失敗することがあります。そのプロバイダーに独自の既定モデルがある場合、サブエージェントはそちらを使用します。',

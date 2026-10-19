@@ -132,6 +132,8 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
     direct: '直接端點覆寫',
     customProvider: '自訂提供方...',
     customProviderLabel: '自訂子代理提供方',
+    customEndpoints: '自訂端點',
+    customEndpointsHidden: '開啟"子代理建議自訂端點"後，這裡會列出你的自訂端點。',
     parentModel: '使用主代理模型',
     parentModelWarning:
       '所選提供方必須支援主代理模型。模型不相容時，僅指定提供方的路由可能失敗。若該提供方設定了自己的預設模型，子代理會改用該模型。',

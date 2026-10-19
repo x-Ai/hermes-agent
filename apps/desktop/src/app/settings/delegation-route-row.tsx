@@ -1,3 +1,5 @@
+import { delegationCustomEndpointsEnabled } from '@hermes/shared'
+
 import type { ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
 import type { HermesConfigRecord } from '@/types/hermes'
@@ -50,6 +52,7 @@ export function DelegationRouteRow({
         baseUrl={String(getNested(config, 'delegation.base_url') ?? '')}
         model={String(getNested(config, 'delegation.model') ?? '')}
         modelDescription={description}
+        offerCustomEndpoints={delegationCustomEndpointsEnabled(config)}
         onChange={route => onConfigChange(applyDelegationRoute(config, route))}
         provider={String(getNested(config, 'delegation.provider') ?? '')}
         scope={scope}

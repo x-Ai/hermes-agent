@@ -4,6 +4,7 @@ import { defineLocale, type TranslationOverrides } from './define-locale'
 import { ruBoot } from './ru_boot'
 import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
+import { ruDelegationFieldLabels } from './ru_delegation_fields'
 import { ruFirstRun } from './ru_first_run'
 import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
@@ -1344,14 +1345,7 @@ export const ruOverrides = {
           timeout: 'Таймаут модели сжатия (с)'
         }
       },
-      delegation: {
-        model: 'Модель субагента',
-        provider: 'Провайдер субагента',
-        maxIterations: 'Лимит ходов субагента',
-        maxConcurrentChildren: 'Параллельные субагенты',
-        childTimeoutSeconds: 'Тайм-аут субагента',
-        reasoningEffort: 'Глубина рассуждений субагента'
-      },
+      delegation: ruDelegationFieldLabels,
       updates: {
         nonInteractiveLocalChanges: 'Локальные изменения при обновлении из приложения'
       }

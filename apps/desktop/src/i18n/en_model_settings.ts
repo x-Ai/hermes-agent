@@ -92,6 +92,8 @@ export const enModelSettings: ModelSettingsTranslations = {
     direct: 'Direct endpoint override',
     customProvider: 'Custom provider...',
     customProviderLabel: 'Custom subagent provider',
+    customEndpoints: 'Custom endpoints',
+    customEndpointsHidden: 'Your custom endpoints appear here once Suggest Custom Endpoints for Subagents is on.',
     parentModel: 'Use parent model',
     parentModelWarning:
       'The chosen provider must support the parent model. A provider-only route can fail if the model is incompatible. If that provider sets its own default model, subagents use that one instead.',
