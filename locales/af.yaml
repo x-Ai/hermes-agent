@@ -3962,6 +3962,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Die gateway voer 'n beurt in hierdie klets uit en {why}. Niks is gestuur nie. Stuur dit weer wanneer die huidige beurt eindig."
+    owner_unconfirmed: "Die gateway voer 'n beurt in hierdie klets uit en het nie jou boodskap betyds bevestig nie. Dit is dalk reeds daar in die tou: kyk na die klets voordat jy dit weer stuur."
+    owner_busy_reason:
+      rewind_or_attachment: "'n terugdraai of aanhegsel kan nie by sy tou aansluit nie"
+      unsupported: "hierdie soort boodskap kan nie by sy tou aansluit nie"
+      image_removed: "'n beeld kan nie by sy tou aansluit nie, daarom is dit uit hierdie boodskap verwyder"
+      refused: "die gateway het dit geweier"
+    owner_unavailable:
+      other_protocol: "die gateway het met 'n ander protokol geantwoord"
+      not_admitted: "die gateway het dit nie toegelaat nie"
+      no_stored_session: "die klets het nog geen gestoorde sessie nie"
   turn_error:
     not_answered: "{title}. Jou boodskap is nie beantwoord nie."
     details: "Besonderhede: {detail}"

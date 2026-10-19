@@ -39,7 +39,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { avatarColor, botAppearance, BotFace } from './avatar'
 import { isBackfilledFacePng } from './avatar-image'
-import { $canonicalGroupBindings } from './canonical-group-registry'
+import type { CanonicalGroupOrigin } from './canonical-group-registry'
+import { $canonicalGroupBindings, canonicalGroupBindingFor } from './canonical-group-registry'
 import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
 import { HostOnGatewayButton } from './canonical-room-migrate'
 import { useCanonicalRoomSync } from './canonical-room-sync'
@@ -106,6 +107,7 @@ import {
   groupComposerDraftSnapshot,
   migrateGroupComposerDraft,
   recordGroupMainTab,
+  recordGroupOpenOrigin,
   restoreGroupComposerDraft,
   updateGroupComposerDraft
 } from './group-panes'
@@ -377,7 +379,7 @@ export async function renameGroupChat(oldName: string, newName: string, members:
 
   if (groupChatMainTabs.has(oldName)) {
     closeGroupChatMainTab(oldName)
-    openGroupChat(next)
+    openGroupChat(next, 'name')
   }
 
   // Same convergence as disband: drop the pre-rename roster snapshot so the
@@ -632,7 +634,7 @@ function GroupChatSettingsDialog({
           members={members || []}
           onHosted={key => {
             onClose()
-            openGroupChat(key)
+            openGroupChat(key, 'key')
           }}
           rename={renameGroupChat}
         />
@@ -724,6 +726,9 @@ async function disbandRoom(group: string, room: GroupChatRoom, members: GroupMem
 
 interface GroupChatWorkspaceProps {
   group: string
+  /** Where `group` came from (see CanonicalGroupOrigin). Defaults to 'name',
+   *  which fails closed: a name never parses as a `canonical:` key. */
+  origin?: CanonicalGroupOrigin
   members: GroupMember[]
   onBack?: () => void
   visible?: boolean
@@ -731,7 +736,9 @@ interface GroupChatWorkspaceProps {
 
 export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
   const bindings = useValue($canonicalGroupBindings)
-  const binding = bindings[props.group]
+  const connectionId = useValue(host.state.connectionId)
+  const profile = useValue(host.state.profile)
+  const binding = canonicalGroupBindingFor(bindings, { connectionId: connectionId ?? '', profile }, props.group, props.origin ?? 'name')
 
   // Fork: a gateway-hosted room renders the SAME room view as a Desktop room — its record is a
   // projection of the gateway's state kept fresh here (canonical-room-sync.ts) while the view is
@@ -1719,9 +1726,10 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
  *  visible edge to re-anchor its log to the bottom (#89835 follow-up). */
 interface GroupChatMainViewProps {
   group: string
+  origin: CanonicalGroupOrigin
 }
 
-function GroupChatMainView({ group }: GroupChatMainViewProps) {
+function GroupChatMainView({ group, origin }: GroupChatMainViewProps) {
   const allMeta = useValue($botMeta)
   // Subscribe: membership changes ride bot meta AND the room record.
   useValue($groupChats)
@@ -1741,7 +1749,7 @@ function GroupChatMainView({ group }: GroupChatMainViewProps) {
   const visible = useValue($visible)
 
   return (
-    <GroupChatWorkspace group={group} members={members} onBack={() => closeGroupChatMainTab(group)} visible={visible} />
+    <GroupChatWorkspace group={group} members={members} onBack={() => closeGroupChatMainTab(group)} origin={origin} visible={visible} />
   )
 }
 
@@ -1755,7 +1763,7 @@ function GroupChatMainView({ group }: GroupChatMainViewProps) {
  *  in-pane fallback painted alongside the main tab, and because the map
  *  write itself repaints nothing, the duplicate stuck until an unrelated
  *  re-render. */
-export function openGroupChat(group: string): void {
+export function openGroupChat(group: string, origin: CanonicalGroupOrigin): void {
   // A room selection supersedes any bot-open transition still hydrating.
   // The in-flight host navigation may complete underneath this workspace,
   // but it may not later close or visually steal the room the user chose.
@@ -1764,6 +1772,7 @@ export function openGroupChat(group: string): void {
     ...$groupNeedsYou.get(),
     [group]: false
   })
+  recordGroupOpenOrigin(group, origin)
   const ownerKey = groupWorkspaceOwnerKey(group)
   setBotsWorkspaceOwner(ownerKey, null, 'New group conversations start in the group composer.')
 
@@ -1776,16 +1785,18 @@ export function openGroupChat(group: string): void {
 
   if (typeof host.openWorkspace === 'function') {
     try {
-      // A hosted room's projection names it; one opened before its first sync is named by its binding.
+      // A hosted room's projection names it; one opened before its first sync is named by its binding
+      // (looked up the way the group string was opened: by key, or by name through its alias).
+      const route = { connectionId: host.state.connectionId.get() ?? '', profile: host.state.profile.get() }
       const title = groupChatDisplayName(
         group,
-        $groupChats.get()[group] ?? { displayName: $canonicalGroupBindings.get()[group]?.roomName }
+        $groupChats.get()[group] ?? { displayName: canonicalGroupBindingFor($canonicalGroupBindings.get(), route, group, origin)?.roomName }
       )
 
       const close = host.openWorkspace(`${ID}:group:${slugifyProfileName(group)}`, {
         title,
         minWidth: '24rem',
-        render: () => <GroupChatMainView group={group} />,
+        render: () => <GroupChatMainView group={group} origin={origin} />,
         onClose: () => {
           dropGroupMainTab(group)
 

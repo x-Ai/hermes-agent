@@ -182,19 +182,19 @@ class TestWindowsDriveGuard:
 class TestWorkspaceContainerKey:
     def test_same_directory_yields_one_key(self, projects):
         proj, _ = projects
-        assert tt._workspace_container_key(str(proj)) == tt._workspace_container_key(
+        assert tt._mounted_workspace_key(str(proj)) == tt._mounted_workspace_key(
             str(proj) + os.sep
         )
 
     def test_different_directories_yield_different_keys(self, projects):
         a, b = projects
-        assert tt._workspace_container_key(str(a)) != tt._workspace_container_key(str(b))
+        assert tt._mounted_workspace_key(str(a)) != tt._mounted_workspace_key(str(b))
 
     def test_key_is_docker_label_safe(self, tmp_path):
         # Docker label values must match [A-Za-z0-9_.-] and stay under 63 chars
         # to survive a `docker ps --filter label=...` round-trip.
         awkward = tmp_path / "a b&c=d,e" / "ünïcodé"
-        key = tt._workspace_container_key(str(awkward))
+        key = tt._mounted_workspace_key(str(awkward))
         assert len(key) <= 63
         assert all(ch.isalnum() or ch in "_.-" for ch in key), key
 
@@ -202,7 +202,7 @@ class TestWorkspaceContainerKey:
     def test_case_differences_collapse_on_windows(self, projects):
         proj, _ = projects
         upper = str(proj).upper()
-        assert tt._workspace_container_key(str(proj)) == tt._workspace_container_key(upper)
+        assert tt._mounted_workspace_key(str(proj)) == tt._mounted_workspace_key(upper)
 
 
 class TestContainerIdentityFollowsWorkspace:
@@ -787,7 +787,7 @@ class TestIdentityAndMountAgree:
             mount_source, _ = tt._resolve_workspace_mount_for_task(session, config)
 
             assert mount_source == str(project)
-            assert identity == tt._workspace_container_key(str(project)), (
+            assert identity == tt._mounted_workspace_key(str(project)), (
                 f"{session} is keyed on a different directory than it mounts"
             )
 
@@ -815,7 +815,7 @@ class TestIdentityAndMountAgree:
         identities = {tt._resolve_container_task_id(s) for s in ("never-registered", "also-never")}
         mount_source, container_cwd = tt._resolve_workspace_mount_for_task("never-registered", config)
 
-        assert identities == {tt._workspace_container_key(launch_dir)}
+        assert identities == {tt._mounted_workspace_key(launch_dir)}
         assert mount_source == launch_dir
         assert container_cwd == tt._workspace_mount_path()
 
@@ -829,7 +829,7 @@ class TestIdentityAndMountAgree:
         mount_source, _ = tt._resolve_workspace_mount_for_task("sess-recorded", config)
 
         assert mount_source == str(a)
-        assert identity == tt._workspace_container_key(str(a))
+        assert identity == tt._mounted_workspace_key(str(a))
 
     def test_opt_in_off_means_no_mount_and_the_shared_container(self, projects, monkeypatch):
         a, _ = projects
@@ -922,7 +922,7 @@ class TestEveryToolResolvesOneMount:
 
         _cwd, host_cwd = creation_args(execute_code, "sess-a")
 
-        assert tt._resolve_container_task_id("sess-a") == tt._workspace_container_key(host_cwd)
+        assert tt._resolve_container_task_id("sess-a") == tt._mounted_workspace_key(host_cwd)
 
 
 class TestMountedCwdReachesTheSandbox:
@@ -970,7 +970,7 @@ class TestWorkspaceKeyIsProfileScoped:
         for profile in ("alpha", "beta", "alpha"):
             tokens = set_session_vars(profile=profile, session_key=f"sess-{profile}")
             try:
-                keys.setdefault(profile, set()).add(tt._workspace_container_key(str(a)))
+                keys.setdefault(profile, set()).add(tt._mounted_workspace_key(str(a)))
             finally:
                 clear_session_vars(tokens)
 

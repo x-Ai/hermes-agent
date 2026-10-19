@@ -3962,6 +3962,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Il gateway sta eseguendo un turno in questa chat e {why}. Non è stato inviato nulla. Invialo di nuovo quando il turno corrente termina."
+    owner_unconfirmed: "Il gateway sta eseguendo un turno in questa chat e non ha confermato il tuo messaggio in tempo. Potrebbe essere già in coda lì: controlla la chat prima di inviarlo di nuovo."
+    owner_busy_reason:
+      rewind_or_attachment: "un riavvolgimento o un allegato non può entrare nella sua coda"
+      unsupported: "questo tipo di messaggio non può entrare nella sua coda"
+      image_removed: "un'immagine non può entrare nella sua coda, quindi è stata rimossa da questo messaggio"
+      refused: "il gateway lo ha rifiutato"
+    owner_unavailable:
+      other_protocol: "il gateway ha risposto con un altro protocollo"
+      not_admitted: "il gateway non lo ha ammesso"
+      no_stored_session: "la chat non ha ancora una sessione salvata"
   turn_error:
     not_answered: "{title}. Il tuo messaggio non ha ricevuto risposta."
     details: "Dettagli: {detail}"

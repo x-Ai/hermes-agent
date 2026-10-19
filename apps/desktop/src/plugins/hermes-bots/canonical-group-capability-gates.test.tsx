@@ -243,7 +243,7 @@ it('New group chat creates a gateway-hosted room, with the handle and folder on 
   await act(async () => {
     await Promise.resolve()
   })
-  expect(onCreated).toHaveBeenCalledWith('canonical:local:default:hosted-1')
+  expect(onCreated).toHaveBeenCalledWith('canonical:local:default:hosted-1', 'key')
   expect(request.mock.calls.find(call => call[1] === 'groups.create')?.[2]).toMatchObject({
     members: [
       { handle: 'alpha', member_id: 'alpha', profile: 'alpha' },
@@ -325,7 +325,7 @@ it('a hosted room renders the Desktop room view, fed by the gateway it is bound 
     }
   })
   await act(async () => {
-    render(<GroupChatWorkspace group={key} members={[]} />)
+    render(<GroupChatWorkspace group={key} members={[]} origin="key" />)
   })
   expect(await screen.findByText('Gateway room')).toBeTruthy()
   expect(screen.getByText('Hello from the gateway')).toBeTruthy()

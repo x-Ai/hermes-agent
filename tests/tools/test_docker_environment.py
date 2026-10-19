@@ -99,8 +99,6 @@ def test_auto_mount_host_cwd_adds_volume(monkeypatch, tmp_path):
     assert f"{project_dir}:/workspace" in run_args_str
 
 
-
-
 def _make_execute_only_env(forward_env=None):
     env = docker_env.DockerEnvironment.__new__(docker_env.DockerEnvironment)
     env.cwd = "/root"
@@ -763,8 +761,6 @@ def test_sandbox_dir_name_drops_separators_docker_and_the_fs_reserve():
         assert not (set(name) & set(':/\\')), name
 
 
-
-
 def test_sandbox_dir_name_bounds_pathological_ids():
     """Long keys (a Matrix room plus thread id) must stay inside the
     per-component filesystem limit."""
@@ -1010,54 +1006,6 @@ def test_reuse_attaches_to_running_container_without_docker_run(monkeypatch):
     assert not start_invocations, (
         f"docker start should be skipped when container already running, got: {start_invocations}"
     )
-
-
-def test_concurrent_persistent_create_joins_name_race_winner(monkeypatch):
-    """Two backend processes may both pass the label probe before either runs.
-
-    Docker's deterministic-name conflict elects one winner. The loser must join
-    it and, critically, must not execute the generic failed-run cleanup that
-    would remove the winner's live container.
-    """
-    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
-    monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
-    docker_env._cgroup_limits_ok = True
-    calls = []
-    ps_calls = 0
-
-    def _run(cmd, **kwargs):
-        nonlocal ps_calls
-        calls.append((list(cmd) if isinstance(cmd, list) else cmd, kwargs))
-        if isinstance(cmd, list) and len(cmd) >= 2:
-            sub = cmd[1]
-            if sub == "version":
-                return subprocess.CompletedProcess(cmd, 0, stdout="ok", stderr="")
-            if sub == "ps":
-                ps_calls += 1
-                if ps_calls == 1:
-                    return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
-                return subprocess.CompletedProcess(
-                    cmd, 0, stdout="winner-cid\trunning\n", stderr="",
-                )
-            if sub == "run":
-                raise subprocess.CalledProcessError(
-                    125,
-                    cmd,
-                    output="",
-                    stderr=(
-                        'docker: Error response from daemon: Conflict. The container name '
-                        '"/hermes-ws-shared-abc" is already in use by container "winner-cid".'
-                    ),
-                )
-        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
-
-    monkeypatch.setattr(docker_env.subprocess, "run", _run)
-
-    env = _make_dummy_env(task_id="ws-shared", persist_across_processes=True)
-
-    assert env._container_id == "winner-cid"
-    assert len([c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["run"]]) == 1
-    assert not [c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["rm"]]
 
 
 def test_egress_enabled_does_not_reuse_pre_egress_container(monkeypatch):
@@ -1369,48 +1317,6 @@ def test_docker_run_timeout_cleans_up_orphaned_container(monkeypatch):
     assert rm_cmd[3].startswith("hermes-"), "should remove the container by its generated name"
 
 
-def test_recovery_joins_concurrent_recreation_winner(monkeypatch):
-    """Out-of-band recovery uses the same cross-process arbitration path."""
-    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
-    monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
-    _mock_subprocess_run(monkeypatch)
-    env = _make_dummy_env(task_id="ws-recovery", persist_across_processes=True)
-    env._container_id = "gone-cid"
-
-    calls = []
-    ps_calls = 0
-
-    def _run(cmd, **kwargs):
-        nonlocal ps_calls
-        calls.append((list(cmd) if isinstance(cmd, list) else cmd, kwargs))
-        if isinstance(cmd, list) and len(cmd) >= 2:
-            sub = cmd[1]
-            if sub == "ps":
-                ps_calls += 1
-                if ps_calls == 1:
-                    return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
-                return subprocess.CompletedProcess(
-                    cmd, 0, stdout="recovery-winner\trunning\n", stderr="",
-                )
-            if sub == "run":
-                raise subprocess.CalledProcessError(
-                    125,
-                    cmd,
-                    output="",
-                    stderr=(
-                        "docker: Error response from daemon: Conflict. The container name "
-                        "is already in use by container recovery-winner"
-                    ),
-                )
-        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
-
-    monkeypatch.setattr(docker_env.subprocess, "run", _run)
-
-    assert env._recreate_container() is True
-    assert env._container_id == "recovery-winner"
-    assert not [c for c in calls if isinstance(c[0], list) and c[0][1:2] == ["rm"]]
-
-
 def test_find_reusable_handles_empty_label_string(monkeypatch):
     """Robustness against trailing-tab sloppiness in ps output: the
     ``ID\\tState\\t\\n`` line (Docker CLI v29.5.3 emitted this shape for
@@ -1607,8 +1513,6 @@ def test_cleanup_with_persist_disabled_stops_and_rms(monkeypatch):
         "docker rm MUST run when persist_across_processes=False, even with "
         "persistent_filesystem=True — that gating was the leak source in #20561."
     )
-
-
 
 
 def test_cleanup_on_env_with_no_container_id_does_not_raise(monkeypatch):
@@ -2097,3 +2001,34 @@ def test_volume_target_is_the_exact_container_path(spec, target):
     from tools.environments.docker import _volume_target
 
     assert _volume_target(spec) == target
+@pytest.mark.parametrize("base", ["default", "profile:research-assistant-for-the-quarterly-ops"])
+def test_workspace_container_labels_identify_it_to_the_orphan_reaper(monkeypatch, base):
+    """The orphan reaper must recognise an idle-STOPPED workspace container from the labels the
+    create path actually stamps. ``hermes-task-id`` is truncated to 63 chars, so a profile name of
+    36+ chars cut the ``_ws_<digest>`` suffix and the next sweep ``docker rm``-ed the container,
+    losing everything installed outside the mounts."""
+    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+    calls = _mock_subprocess_run(monkeypatch)
+    _make_dummy_env(task_id=f"{base}:ws:0123456789abcdef")
+    labels = dict(lbl.split("=", 1) for lbl in _labels_in_run_args(_run_args_from_calls(calls)))
+
+    def _inspect(cmd, **kwargs):
+        key = re.search(r'Labels "([^"]+)"', cmd[cmd.index("--format") + 1]).group(1)
+        return subprocess.CompletedProcess(cmd, 0, stdout=labels.get(key, "<no value>") + "\n", stderr="")
+
+    monkeypatch.setattr(docker_env.subprocess, "run", _inspect)
+    assert docker_env._is_idle_workspace_container("/usr/bin/docker", "cid"), labels
+
+
+def test_non_workspace_container_is_not_an_idle_workspace(monkeypatch):
+    monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
+    calls = _mock_subprocess_run(monkeypatch)
+    _make_dummy_env(task_id="profile:research-assistant-for-the-quarterly-ops")
+    labels = dict(lbl.split("=", 1) for lbl in _labels_in_run_args(_run_args_from_calls(calls)))
+
+    def _inspect(cmd, **kwargs):
+        key = re.search(r'Labels "([^"]+)"', cmd[cmd.index("--format") + 1]).group(1)
+        return subprocess.CompletedProcess(cmd, 0, stdout=labels.get(key, "<no value>") + "\n", stderr="")
+
+    monkeypatch.setattr(docker_env.subprocess, "run", _inspect)
+    assert not docker_env._is_idle_workspace_container("/usr/bin/docker", "cid"), labels

@@ -1,13 +1,13 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
-import { ruAuxTasks } from './ru_aux_tasks'
 import { ruBoot } from './ru_boot'
 import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
 import { ruFirstRun } from './ru_first_run'
 import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
+import { ruModelSettings } from './ru_model_settings'
 import { ruNotices } from './ru_notices'
 import { ruOnboarding } from './ru_onboarding'
 import { ruPluginSettings } from './ru_plugins'
@@ -1877,91 +1877,7 @@ export const ruOverrides = {
       catalogAuthOAuth: 'OAuth',
       catalogAuthApiKey: 'API ключ'
     },
-    model: {
-      moaPreset: 'Пресет',
-      moaDescription:
-        'Настройте именованные пресеты, которые появятся как модели провайдера Mixture of Agents. Модель-агрегатор выполняет каждый шаг цикла инструментов; почти вся стоимость запуска списывается у её провайдера. По умолчанию референсные модели дают совет один раз на сообщение пользователя.',
-      moaAggregator: 'Модель-агрегатор',
-      moaAggregatorBilled: 'исполняющая модель · на неё приходится стоимость запуска',
-      moaReferenceHint: 'по умолчанию советует один раз за ход',
-      setupProviderFallback: 'провайдер',
-      setUpProvider: name => `Настроить ${name}`,
-      staleAuxBefore: (count, names) => `Вспомогательные задачи (${count}: ${names}) по-прежнему используют `,
-      staleAuxAfter: ', а не основную модель.',
-      staleAuxOtherProviders: 'других провайдеров',
-      moaEnabled: 'Включено',
-      moaSetDefault: 'Сделать основным',
-      moaNewPresetPlaceholder: 'новый пресет',
-      moaAddPreset: 'Добавить пресет',
-      customModel: 'Своя модель…',
-      customModelPlaceholder: 'ID модели',
-      chooseFromList: 'Выбрать из списка',
-      moaDefault: 'По умолчанию:',
-      moaReferenceToggle: (enabled, index) => `${enabled ? 'Отключить' : 'Включить'} референс ${index}`,
-      moaReferenceTitle: index => `Референс ${index}`,
-      moaAddReference: 'Добавить референсную модель',
-      loading: 'Загрузка конфигурации модели…',
-      appliesDesc:
-        'Применяется к новым сеансам. Для горячей смены модели в активном чате используйте выборщик модели в композере.',
-      provider: 'Провайдер',
-      model: 'Модель',
-      applying: 'Применение…',
-      defaultsLabel: 'По умолчанию',
-      reasoning: 'Рассуждения',
-      reasoningOff: 'Выкл',
-      speed: 'Скорость',
-      speedStandard: 'Стандартная',
-      defaultsFailed: 'Не удалось сохранить модель по умолчанию',
-      loadFailed: 'Не удалось загрузить модели',
-      restartRequired:
-        'Этот бэкэнд выполняет старый код после обновления. Перезапустите его, чтобы загрузить новый код.',
-      restartBackend: 'Перезапустить серверную часть',
-      restartingBackend: 'Перезапуск серверной части...',
-      restartFailed: 'Не удалось перезапустить серверную часть',
-      auxiliaryTitle: 'Вспомогательные модели',
-      resetAllToMain: 'Сбросить всё на основную',
-      staleAuxDismiss: 'Больше не показывать',
-      auxiliaryDesc:
-        'Вспомогательные задачи по умолчанию выполняются основной моделью. Назначьте отдельную модель любой задаче, чтобы переопределить.',
-      setToMain: 'На основную',
-      change: 'Изменить',
-      autoUseMain: 'авто · использовать основную модель',
-      providerDefault: '(по умолчанию провайдера)',
-      fallbackAdd: 'Добавить запасную',
-      fallbackEmpty: 'Запасных моделей нет — используется модель по умолчанию, если она не падает.',
-      notInCatalog: 'нет в списке моделей этого провайдера — вызовы могут уходить на запасную.',
-      staleAuxPrefix: (count, names) => `${count} auxiliary task${count === 1 ? '' : 's'} (${names}) still run on `,
-      staleAuxSuffix: 'не ваша основная модель.',
-      pasteKeyPlaceholder: keyEnv => `Вставить${keyEnv}`,
-      activate: 'Активировать',
-      activating: 'Активировать...',
-      needsApiKeyHint: name => `${name}требуется ключ API — настройте его, чтобы выбрать модель.`,
-      oauthHint: name => `${name}входит через ваш браузер — Hermes запускает процесс за вас.`,
-      moa: {
-        title: 'Смесь агентов',
-        shortTitle: 'MoA',
-        presetsTitle: 'Пресеты MoA',
-        description:
-          'Настройка именованных предустановок, которые появляются в качестве моделей под провайдером Mixture of Agents. Агрегатор — это модель действия.',
-        presetPlaceholder: 'Предустановка',
-        enabled: 'Включено',
-        setDefault: 'Установить по умолчанию',
-        deletePreset: 'Удалить',
-        newPresetPlaceholder: 'новый preset',
-        addPreset: 'Добавить preset',
-        defaultLabel: 'По умолчанию:',
-        referenceTitle: index => `Справка${index}`,
-        toggleReference: (index, enabled) => `${enabled ? 'Инвалид' : 'Допускать'} reference ${index}`,
-        removeReference: 'Удалить',
-        addReference: 'Добавить справочную модель',
-        aggregatorTitle: 'Агрегатор'
-      },
-      tasks: ruAuxTasks,
-      inheritMainEffort: 'наследовать · усилие основной модели',
-      inheritsFrom: task => `наследует ${task}`,
-      followTask: task => `Как ${task}`,
-      moaTitle: 'Смесь агентов'
-    },
+    model: ruModelSettings,
     customEndpoints: {
       title: 'Пользовательские конечные точки',
       loadFailed: 'Невозможно загрузить пользовательские конечные точки',

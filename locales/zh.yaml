@@ -3961,6 +3961,18 @@ tips:
 
 # tui_gateway: 桌面端与终端 TUI 后端自身面向用户的文本（拒绝信息、斜杠命令输出、附件错误等）
 tui_gateway:
+  prompt:
+    owner_busy: "网关正在此对话中运行一轮对话，{why}，未发送任何内容，等当前这一轮结束后再重新发送"
+    owner_unconfirmed: "网关正在此对话中运行一轮对话，且未及时确认你的消息，它可能已在那里排队：再次发送前请先查看对话"
+    owner_busy_reason:
+      rewind_or_attachment: "回退或附件无法加入其队列"
+      unsupported: "这类消息无法加入其队列"
+      image_removed: "图片无法加入其队列，已从这条消息中移除"
+      refused: "网关拒绝了它"
+    owner_unavailable:
+      other_protocol: "网关以另一种协议应答"
+      not_admitted: "网关未受理它"
+      no_stored_session: "此对话尚无已保存的会话"
   turn_error:
     not_answered: "{title}，你的消息未得到回答"
     details: "详情：{detail}"

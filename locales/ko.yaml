@@ -3960,6 +3960,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "게이트웨이가 이 채팅에서 턴을 실행 중이며 {why}. 아무것도 전송되지 않았습니다. 현재 턴이 끝나면 다시 보내세요."
+    owner_unconfirmed: "게이트웨이가 이 채팅에서 턴을 실행 중이며 메시지를 제시간에 확인하지 못했습니다. 이미 그쪽 대기열에 들어갔을 수 있으니 다시 보내기 전에 채팅을 확인하세요."
+    owner_busy_reason:
+      rewind_or_attachment: "되감기나 첨부 파일은 그 대기열에 들어갈 수 없습니다"
+      unsupported: "이 종류의 메시지는 그 대기열에 들어갈 수 없습니다"
+      image_removed: "이미지는 그 대기열에 들어갈 수 없어 이 메시지에서 제거되었습니다"
+      refused: "게이트웨이가 거부했습니다"
+    owner_unavailable:
+      other_protocol: "게이트웨이가 다른 프로토콜로 응답했습니다"
+      not_admitted: "게이트웨이가 접수하지 않았습니다"
+      no_stored_session: "이 채팅에는 아직 저장된 세션이 없습니다"
   turn_error:
     not_answered: "{title}. 메시지에 대한 답변이 없었습니다."
     details: "세부 정보: {detail}"

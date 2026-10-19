@@ -3961,6 +3961,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "البوّابة تنفّذ دورًا في هذه المحادثة و{why}. لم يُرسَل شيء. أعد إرساله عندما ينتهي الدور الحالي."
+    owner_unconfirmed: "البوّابة تنفّذ دورًا في هذه المحادثة ولم تؤكد رسالتك في الوقت المناسب. قد تكون في قائمة الانتظار هناك بالفعل: راجع المحادثة قبل إرسالها مرة أخرى."
+    owner_busy_reason:
+      rewind_or_attachment: "لا يمكن للإرجاع أو المرفق الانضمام إلى قائمة انتظارها"
+      unsupported: "لا يمكن لهذا النوع من الرسائل الانضمام إلى قائمة انتظارها"
+      image_removed: "لا يمكن للصورة الانضمام إلى قائمة انتظارها، لذا أُزيلت من هذه الرسالة"
+      refused: "رفضته البوّابة"
+    owner_unavailable:
+      other_protocol: "أجابت البوّابة ببروتوكول آخر"
+      not_admitted: "لم تقبله البوّابة"
+      no_stored_session: "لا تملك المحادثة جلسة محفوظة بعد"
   turn_error:
     not_answered: "{title}. لم تتم الإجابة عن رسالتك."
     details: "التفاصيل: {detail}"

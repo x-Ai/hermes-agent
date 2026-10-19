@@ -44,6 +44,7 @@ import { isBackfilledFacePng } from './avatar-image'
 import { AvatarPicker } from './avatar-picker'
 import { $selectedBot } from './bot-state'
 import { createCanonicalChat } from './canonical-chat'
+import type { CanonicalGroupOrigin } from './canonical-group-registry'
 import { captureCanonicalGroupRoute } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
 import { $botMeta, botHandle, botRosterKey, filterBots, ROSTER_KEY, saveBotMeta } from './data'
@@ -1197,7 +1198,7 @@ function canonicalRouteOrNull() {
 
 interface CreateGroupChatDialogProps {
   onClose: () => void
-  onCreated?: (group: string) => void
+  onCreated?: (group: string, origin: CanonicalGroupOrigin) => void
   open: boolean
   roster: RosterRow[]
 }
@@ -1303,7 +1304,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
 
           host.notify({ kind: 'info', message: b.group.createdWith(base, selected.length) })
           onClose()
-          onCreated?.(key)
+          onCreated?.(key, 'key')
         } catch (error) {
           host.notify({
             kind: 'error',
@@ -1364,7 +1365,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
         message: b.group.createdWith(groupName, selected.length)
       })
       onClose()
-      onCreated?.(groupName)
+      onCreated?.(groupName, 'name')
     } catch (error) {
       host.notify({ kind: 'error', message: error instanceof Error ? error.message : String(error) })
     } finally {

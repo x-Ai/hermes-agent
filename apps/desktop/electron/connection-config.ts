@@ -36,7 +36,7 @@
 //     force a needless full re-login every ~15 min — hence cookiesHaveLiveSession.
 import { readStatusCode } from './api-transport'
 import { sharesHostBackend } from './host-backend-singleton'
-import { namedProfileRoute } from './local-gateway'
+import { profileCollectionRoute, profileRouteSuffix } from './profile-routes'
 
 const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
 const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
@@ -1008,7 +1008,7 @@ function translateSelfProfileQuery(path, profile, backendProfile) {
  * gateway host serving every profile, scoped per request). An explicit
  * `?profile=` already on the path wins; an empty profile is a no-op.
  */
-function pathWithProfileScope(path, profile) {
+function pathWithProfileScope(path, profile, method?: string) {
   const scopedProfile = connectionScopeKey(profile)
 
   if (!scopedProfile) {
@@ -1029,14 +1029,10 @@ function pathWithProfileScope(path, profile) {
     return path
   }
 
-  if (parsed.searchParams.has('profile')) {
-    return path
-  }
-
-  // A named profile route (`/api/profiles/<name>/soul`, `/setup-command`, …) is scoped by its
-  // path: the native ticket is minted for that profile, and the gateway refuses a second,
-  // different selector beside it. The ambient window profile stays off these requests.
-  if (namedProfileRoute(parsed.pathname)) {
+  // A path that already names its profile never also carries the ambient one: the two disagree
+  // whenever the sidebar is on another profile or "All profiles", and the gateway refuses the pair.
+  if (parsed.searchParams.has('profile')
+      || (profileRouteSuffix(parsed.pathname) && !profileCollectionRoute(parsed.pathname, method))) {
     return path
   }
 
@@ -1059,9 +1055,9 @@ export interface RegistryBackendRequestScope {
  * isolated SSH backends already own one profile but may translate a Desktop
  * alias in an existing self-profile filter.
  */
-function pathForRegistryBackendRequest(path, profile, backend: RegistryBackendRequestScope) {
+function pathForRegistryBackendRequest(path, profile, backend: RegistryBackendRequestScope, method?: string) {
   return backend.sharedRemote || backend.sharedPrimary || backend.mode === 'local'
-    ? pathWithProfileScope(path, profile)
+    ? pathWithProfileScope(path, profile, method)
     : translateSelfProfileQuery(path, profile, backend.remoteProfile)
 }
 

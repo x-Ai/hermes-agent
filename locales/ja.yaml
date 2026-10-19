@@ -3960,6 +3960,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "ゲートウェイはこのチャットでターンを実行中で、{why}。何も送信されませんでした。現在のターンが終わってからもう一度送信してください。"
+    owner_unconfirmed: "ゲートウェイはこのチャットでターンを実行中で、メッセージを時間内に確認できませんでした。すでにそちらのキューに入っている可能性があります。再送する前にチャットを確認してください。"
+    owner_busy_reason:
+      rewind_or_attachment: "巻き戻しや添付ファイルはそのキューに加えられません"
+      unsupported: "この種類のメッセージはそのキューに加えられません"
+      image_removed: "画像はそのキューに加えられないため、このメッセージから削除されました"
+      refused: "ゲートウェイが拒否しました"
+    owner_unavailable:
+      other_protocol: "ゲートウェイが別のプロトコルで応答しました"
+      not_admitted: "ゲートウェイが受け付けませんでした"
+      no_stored_session: "このチャットにはまだ保存されたセッションがありません"
   turn_error:
     not_answered: "{title}。メッセージには回答されませんでした"
     details: "詳細: {detail}"

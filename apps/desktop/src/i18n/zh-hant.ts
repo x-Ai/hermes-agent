@@ -26,6 +26,11 @@ export const zhHantOverrides = {
     installed: '已安裝',
     source: '來源'
   },
+  gatewayGroupOpen: {
+    opening: '正在開啟網關群聊…',
+    lookupFailed: '無法在網關上查詢此群聊，請重試。',
+    missing: '此網關群聊已不存在。'
+  },
   externalOpenFailed: {
     title: '無法開啟此連結',
     message: '沒有註冊用於開啟此位址的瀏覽器。請複製連結並手動開啟。',

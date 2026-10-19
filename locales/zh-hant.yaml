@@ -3960,6 +3960,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "網關正在此對話中執行一輪對話，{why}。未傳送任何內容。等目前這一輪結束後再重新傳送。"
+    owner_unconfirmed: "網關正在此對話中執行一輪對話，且未及時確認你的訊息。它可能已在那裡排入佇列：再次傳送前請先查看對話。"
+    owner_busy_reason:
+      rewind_or_attachment: "回退或附件無法加入其佇列"
+      unsupported: "這類訊息無法加入其佇列"
+      image_removed: "圖片無法加入其佇列，已從這則訊息中移除"
+      refused: "網關拒絕了它"
+    owner_unavailable:
+      other_protocol: "網關以另一種協定回應"
+      not_admitted: "網關未受理它"
+      no_stored_session: "此對話尚無已儲存的工作階段"
   turn_error:
     not_answered: "{title}。你的訊息未得到回答。"
     details: "詳情：{detail}"

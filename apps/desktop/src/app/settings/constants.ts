@@ -781,7 +781,17 @@ export const SECTIONS: DesktopConfigSection[] = [
     id: 'model',
     label: 'Model',
     icon: Box,
-    keys: ['model_context_length', 'fallback_providers']
+    keys: [
+      'model_context_length',
+      'fallback_providers',
+      'delegation.use_custom_endpoints',
+      'delegation.model',
+      'delegation.provider',
+      'delegation.max_iterations',
+      'delegation.max_concurrent_children',
+      'delegation.child_timeout_seconds',
+      'delegation.reasoning_effort'
+    ]
   },
   {
     id: 'chat',
@@ -939,13 +949,6 @@ export const SECTIONS: DesktopConfigSection[] = [
       'agent.service_tier',
       'agent.tool_use_enforcement',
       'agent.environment_probe',
-      'delegation.use_custom_endpoints',
-      'delegation.model',
-      'delegation.provider',
-      'delegation.max_iterations',
-      'delegation.max_concurrent_children',
-      'delegation.child_timeout_seconds',
-      'delegation.reasoning_effort',
       'updates.non_interactive_local_changes'
     ]
   }

@@ -4287,6 +4287,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Le gateway exécute un tour dans cette discussion et {why}. Rien n'a été envoyé. Renvoyez-le une fois le tour en cours terminé."
+    owner_unconfirmed: "Le gateway exécute un tour dans cette discussion et n'a pas confirmé votre message à temps. Il est peut-être déjà en file là-bas : vérifiez la discussion avant de le renvoyer."
+    owner_busy_reason:
+      rewind_or_attachment: "un retour en arrière ou une pièce jointe ne peut pas rejoindre sa file"
+      unsupported: "ce type de message ne peut pas rejoindre sa file"
+      image_removed: "une image ne peut pas rejoindre sa file, elle a donc été retirée de ce message"
+      refused: "le gateway l'a refusé"
+    owner_unavailable:
+      other_protocol: "le gateway a répondu avec un autre protocole"
+      not_admitted: "le gateway ne l'a pas admis"
+      no_stored_session: "la discussion n'a pas encore de session enregistrée"
   turn_error:
     not_answered: "{title}. Votre message est resté sans réponse."
     details: "Détails : {detail}"

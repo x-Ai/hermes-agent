@@ -3979,6 +3979,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Az átjáró épp egy kört futtat ebben a csevegésben, és {why}. Semmi sem lett elküldve. Küldd el újra, amikor a jelenlegi kör véget ér."
+    owner_unconfirmed: "Az átjáró épp egy kört futtat ebben a csevegésben, és nem igazolta vissza időben az üzenetedet. Lehet, hogy már ott van a sorban: nézd meg a csevegést, mielőtt újra elküldenéd."
+    owner_busy_reason:
+      rewind_or_attachment: "egy visszatekerés vagy melléklet nem kerülhet a sorába"
+      unsupported: "ilyen üzenet nem kerülhet a sorába"
+      image_removed: "egy kép nem kerülhet a sorába, ezért eltávolítottuk ebből az üzenetből"
+      refused: "az átjáró elutasította"
+    owner_unavailable:
+      other_protocol: "az átjáró más protokollal válaszolt"
+      not_admitted: "az átjáró nem fogadta be"
+      no_stored_session: "a csevegésnek még nincs mentett munkamenete"
   turn_error:
     not_answered: "{title}. Az üzenetedre nem érkezett válasz."
     details: "Részletek: {detail}"

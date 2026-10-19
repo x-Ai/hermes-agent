@@ -70,6 +70,7 @@ import { startGroupContextUsage } from './group-context-usage-contrib'
 import { hydrateStoredGroupChat } from './group-hydrate'
 import { groupChatMemberBots, groupWorkspaceOwnerKey } from './group-membership'
 import { groupMentionCompletions, maybeRouteDraftToGroup } from './group-mention-route'
+import { groupOpenOrigin } from './group-panes'
 import { sendToGroupChat } from './group-rounds'
 import { composerAttachmentDeps } from './group-route-attachments'
 import { annotateOrphanedGroupChatMembers } from './hygiene'
@@ -842,7 +843,7 @@ export default {
             cwd: () => String(host.state.cwd?.get?.() || ''),
             files: composerAttachmentDeps(),
             members: group => groupChatMemberBots(group, $lastRoster.get(), $botMeta.get()),
-            open: openGroupChat,
+            open: group => openGroupChat(group, groupOpenOrigin(group)),
             rooms: $groupChats.get(),
             send: (group, members, body, workspace, images) =>
               sendToGroupChat(group, members, body, null, images, { workspace })

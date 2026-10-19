@@ -3962,6 +3962,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Tá an gateway ag rith seal sa chomhrá seo agus {why}. Níor seoladh aon rud. Seol arís é nuair a chríochnóidh an seal reatha."
+    owner_unconfirmed: "Tá an gateway ag rith seal sa chomhrá seo agus níor dheimhnigh sé do theachtaireacht in am. Seans go bhfuil sí sa scuaine ansin cheana féin: seiceáil an comhrá sula seolann tú arís í."
+    owner_busy_reason:
+      rewind_or_attachment: "ní féidir le hathchasadh ná le ceangaltán dul isteach ina scuaine"
+      unsupported: "ní féidir leis an gcineál seo teachtaireachta dul isteach ina scuaine"
+      image_removed: "ní féidir le híomhá dul isteach ina scuaine, mar sin baineadh as an teachtaireacht seo í"
+      refused: "dhiúltaigh an gateway é"
+    owner_unavailable:
+      other_protocol: "d'fhreagair an gateway le prótacal eile"
+      not_admitted: "níor ghlac an gateway leis"
+      no_stored_session: "níl aon seisiún stóráilte ag an gcomhrá fós"
   turn_error:
     not_answered: "{title}. Níor freagraíodh do theachtaireacht."
     details: "Sonraí: {detail}"

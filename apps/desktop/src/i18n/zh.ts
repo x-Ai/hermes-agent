@@ -2,7 +2,6 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
-import { zhAuxTasks } from './zh_aux_tasks'
 import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
@@ -11,6 +10,7 @@ import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
 import { zhModelMenu } from './zh_model_menu'
+import { zhModelSettings } from './zh_model_settings'
 import { zhNotices } from './zh_notices'
 import { zhOnboarding } from './zh_onboarding'
 import { zhPluginManifests } from './zh_plugin_manifests'
@@ -2281,89 +2281,7 @@ export const zhOverrides = {
       unusedPill: '未使用',
       waitingForBrowser: '正在等待浏览器…'
     },
-    model: {
-      setupProviderFallback: '提供方',
-      setUpProvider: name => `设置 ${name}`,
-      staleAuxBefore: (count, names) => `${count} 个辅助任务（${names}）仍由 `,
-      staleAuxAfter: ' 运行，而不是主模型',
-      staleAuxOtherProviders: '其他提供方',
-      moaEnabled: '启用',
-      moaSetDefault: '设为默认',
-      moaNewPresetPlaceholder: '新预设',
-      moaAddPreset: '添加预设',
-      customModel: '自定义模型…',
-      customModelPlaceholder: '模型 ID',
-      chooseFromList: '从列表中选择',
-      moaDefault: '默认：',
-      moaReferenceToggle: (enabled, index) => `${enabled ? '禁用' : '启用'}参考 ${index}`,
-      moaReferenceTitle: index => `参考 ${index}`,
-      moaAddReference: '添加参考模型',
-      loading: '正在加载模型配置...',
-      appliesDesc: '应用于新会话，可在输入框的模型选择器中临时切换当前对话',
-      provider: '提供方',
-      model: '模型',
-      applying: '应用中...',
-      mainAppliedTitle: '主模型已更新',
-      mainAppliedMessage: model => `新会话将使用 ${model}`,
-      defaultsLabel: '默认值',
-      reasoning: '推理强度',
-      reasoningOff: '关闭',
-      speed: '速度',
-      speedStandard: '标准',
-      defaultsFailed: '保存模型默认值失败',
-      loadFailed: '无法加载模型',
-      restartRequired: '更新后此后端仍在运行旧代码，请重启以加载新代码',
-      restartBackend: '重启后端',
-      restartingBackend: '正在重启后端...',
-      restartFailed: '无法重启后端',
-      auxiliaryTitle: '辅助模型',
-      resetAllToMain: '全部重置为主模型',
-      staleAuxDismiss: '不再显示',
-      auxiliaryDesc: '辅助任务默认使用主模型，你可以为任意任务指定专用模型',
-      setToMain: '设为主模型',
-      change: '更改',
-      autoUseMain: '自动 · 使用主模型',
-      providerDefault: '(提供方默认)',
-      fallbackAdd: '添加备用模型',
-      fallbackEmpty: '未配置备用模型 — 默认模型失败时才会使用备用模型',
-      notInCatalog: '不在该提供方的模型列表中 — 调用可能回退到备用模型',
-      staleAuxPrefix: (count, names) => `${count} 个辅助任务（${names}）仍运行在 `,
-      staleAuxSuffix: ' 上，而非你的主模型',
-      pasteKeyPlaceholder: keyEnv => `粘贴 ${keyEnv}`,
-      activate: '激活',
-      activating: '激活中...',
-      needsApiKeyHint: name => `${name} 需要 API 密钥 — 完成设置后才能选择模型`,
-      oauthHint: name => `${name} 通过浏览器登录 — Hermes 会为你完成整个流程`,
-      moa: {
-        title: '混合智能体 (MOA)',
-        shortTitle: 'MoA',
-        presetsTitle: 'MoA 预设',
-        description: '配置以模型形式出现在"混合智能体"提供方下的命名预设，聚合模型是实际应答的模型',
-        presetPlaceholder: '预设',
-        enabled: '启用',
-        setDefault: '设为默认',
-        deletePreset: '删除',
-        newPresetPlaceholder: '新预设名',
-        addPreset: '添加预设',
-        defaultLabel: '默认：',
-        referenceTitle: index => `参考模型 ${index}`,
-        toggleReference: (index, enabled) => `${enabled ? '停用' : '启用'}参考模型 ${index}`,
-        removeReference: '移除',
-        addReference: '添加参考模型',
-        aggregatorTitle: '聚合模型'
-      },
-      tasks: zhAuxTasks,
-      inheritMainEffort: '继承 · 主模型推理强度',
-      inheritsFrom: task => `继承 ${task}`,
-      followTask: task => `跟随 ${task}`,
-      moaTitle: '混合智能体（Mixture of Agents）',
-      moaPreset: '预设',
-      moaDescription:
-        '配置以「混合智能体」提供商下模型形式出现的命名预设，聚合模型是执行模型——它运行工具循环的每一步，整个运行几乎全部费用都计入其提供商，参考模型默认每轮用户消息仅提供一次建议',
-      moaAggregator: '聚合模型',
-      moaAggregatorBilled: '执行模型 · 整个运行在此计费',
-      moaReferenceHint: '默认每轮仅建议一次'
-    },
+    model: zhModelSettings,
     customEndpoints: {
       loadFailed: '无法加载自定义端点',
       saved: '自定义端点已保存',
@@ -3308,6 +3226,11 @@ export const zhOverrides = {
     destinationChanged: '安装目标已更改，请关闭此对话框并重新打开安装链接',
     installed: '已安装',
     source: '来源'
+  },
+  gatewayGroupOpen: {
+    opening: '正在打开网关群聊…',
+    lookupFailed: '无法在网关上查找此群聊，请重试',
+    missing: '此网关群聊已不存在'
   },
   skills: {
     tabSkills: '技能',
@@ -6237,8 +6160,16 @@ export const zhOverrides = {
         free_tier_refused: {
           title: '未登录时无法发送此消息',
           body: '请登录免费的 Nous 账户后继续'
+        },
+        SESSION_OWNER_BUSY: {
+          title: 'Hermes 正在此对话中忙碌',
+          body: '这里正在运行另一轮对话，你的消息无法加入其队列，未发送任何内容，等那一轮结束后再重试'
+        },
+        SESSION_OWNER_UNCONFIRMED: {
+          title: '你的消息可能已在队列中',
+          body: '网关未及时确认你的消息，如果它已入队，会在先前那一轮完成或被处理后运行，再次发送前请先查看对话'
         }
-      },
+},
       errorLayers: {
         auth: '登录问题',
         billing: '额度不足',

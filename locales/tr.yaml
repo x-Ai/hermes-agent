@@ -3961,6 +3961,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Gateway bu sohbette bir tur yürütüyor ve {why}. Hiçbir şey gönderilmedi. Geçerli tur bittiğinde yeniden gönderin."
+    owner_unconfirmed: "Gateway bu sohbette bir tur yürütüyor ve mesajınızı zamanında onaylamadı. Mesaj orada zaten sırada olabilir: yeniden göndermeden önce sohbeti kontrol edin."
+    owner_busy_reason:
+      rewind_or_attachment: "bir geri sarma ya da ek onun sırasına giremez"
+      unsupported: "bu tür bir mesaj onun sırasına giremez"
+      image_removed: "bir görsel onun sırasına giremediğinden bu mesajdan kaldırıldı"
+      refused: "gateway bunu reddetti"
+    owner_unavailable:
+      other_protocol: "gateway başka bir protokolle yanıt verdi"
+      not_admitted: "gateway bunu kabul etmedi"
+      no_stored_session: "sohbetin henüz kayıtlı bir oturumu yok"
   turn_error:
     not_answered: "{title}. Mesajınız yanıtlanmadı."
     details: "Ayrıntılar: {detail}"

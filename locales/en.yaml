@@ -4090,6 +4090,18 @@ tips:
 # tui_gateway: the Desktop / terminal-TUI backend's own user-facing text (refusals, slash output,
 # attachment errors). Keys are resolved by tui_gateway/*.py through agent.i18n.t().
 tui_gateway:
+  prompt:
+    owner_busy: "The gateway is running a turn in this chat and {why}. Nothing was sent. Send it again when the current turn ends."
+    owner_unconfirmed: "The gateway is running a turn in this chat and did not confirm your message in time. It may already be queued there: check the chat before sending it again."
+    owner_busy_reason:
+      rewind_or_attachment: "a rewind or attachment cannot join its queue"
+      unsupported: "this kind of message cannot join its queue"
+      image_removed: "an image cannot join its queue, so it was removed from this message"
+      refused: "the gateway refused it"
+    owner_unavailable:
+      other_protocol: "the gateway answered with another protocol"
+      not_admitted: "the gateway did not admit it"
+      no_stored_session: "the chat has no stored session yet"
   turn_error:
     not_answered: "{title}. Your message was not answered."
     details: "Details: {detail}"

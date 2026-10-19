@@ -3962,6 +3962,18 @@ tips:
 
 # tui_gateway: Desktop / terminal-TUI backend user-facing text
 tui_gateway:
+  prompt:
+    owner_busy: "Das Gateway führt in diesem Chat gerade einen Zug aus und {why}. Es wurde nichts gesendet. Sende es erneut, sobald der aktuelle Zug endet."
+    owner_unconfirmed: "Das Gateway führt in diesem Chat gerade einen Zug aus und hat deine Nachricht nicht rechtzeitig bestätigt. Sie ist dort möglicherweise bereits eingereiht: Prüfe den Chat, bevor du sie erneut sendest."
+    owner_busy_reason:
+      rewind_or_attachment: "ein Zurückspulen oder ein Anhang kann nicht in seine Warteschlange aufgenommen werden"
+      unsupported: "diese Art von Nachricht kann nicht in seine Warteschlange aufgenommen werden"
+      image_removed: "ein Bild kann nicht in seine Warteschlange aufgenommen werden, daher wurde es aus dieser Nachricht entfernt"
+      refused: "das Gateway hat sie abgelehnt"
+    owner_unavailable:
+      other_protocol: "das Gateway hat mit einem anderen Protokoll geantwortet"
+      not_admitted: "das Gateway hat sie nicht angenommen"
+      no_stored_session: "der Chat hat noch keine gespeicherte Sitzung"
   turn_error:
     not_answered: "{title}. Ihre Nachricht wurde nicht beantwortet."
     details: "Details: {detail}"

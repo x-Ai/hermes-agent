@@ -301,8 +301,16 @@ export const zhHantAssistant = {
         free_tier_refused: {
           title: '未登入時無法傳送此訊息',
           body: '請登入免費的 Nous 帳戶後繼續。'
+        },
+        SESSION_OWNER_BUSY: {
+          title: 'Hermes 正在此對話中忙碌',
+          body: '這裡正在執行另一輪對話，你的訊息無法加入其佇列。未傳送任何內容。等那一輪結束後再重試。'
+        },
+        SESSION_OWNER_UNCONFIRMED: {
+          title: '你的訊息可能已在佇列中',
+          body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
         }
-      },
+},
       errorLayers: {
         auth: '認證錯誤',
         billing: '額度不足',

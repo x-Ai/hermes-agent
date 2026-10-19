@@ -90,12 +90,12 @@ def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monk
         assert config["host_cwd"] == str(project)
         assert config["cwd"] == "/scoped-workspace"
         assert tt.resolve_workspace_mount(str(project)) == (str(project), "/scoped-workspace")
-        scoped_key = tt._workspace_container_key(str(project))
+        scoped_key = tt._mounted_workspace_key(str(project))
     finally:
         reset_terminal_scope(token)
     token = set_terminal_scope({**policy, f"{prefix}_WORKSPACE_MOUNT_PATH": "/other-workspace"})
     try:
-        assert tt._workspace_container_key(str(project)) != scoped_key
+        assert tt._mounted_workspace_key(str(project)) != scoped_key
     finally:
         reset_terminal_scope(token)
     token = set_terminal_scope({"TERMINAL_ENV": backend})
