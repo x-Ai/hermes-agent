@@ -41,12 +41,13 @@ import { configSubpageForField } from './config-subpages'
 import { DELEGATION_ROUTE_COMPANION_KEY, DelegationRouteRow } from './delegation-route-row'
 import {
   clearsEnabledToolsets,
+  configFieldValue,
   diffConfig,
   enumOptionsFor,
   getNested,
   isExternalMemoryProvider,
   sectionFieldEntries,
-  setNested,
+  setConfigField,
   voiceFieldVisible
 } from './helpers'
 import { MemoryConnect } from './memory/connect'
@@ -528,11 +529,11 @@ function ConfigSettingsInner({
                     ) : undefined
                   }
                   enumOptions={enumOptionsForKey(key)}
-                  onChange={value => updateConfig(setNested(config, key, value))}
+                  onChange={value => updateConfig(setConfigField(config, key, value))}
                   optionLabels={key === 'tts.elevenlabs.voice_id' ? elevenLabsVoiceLabels : undefined}
                   schema={field}
                   schemaKey={key}
-                  value={getNested(config, key)}
+                  value={configFieldValue(config, key)}
                 />
               )}
               {key === 'memory.provider' && isExternalMemoryProvider(getNested(config, key)) ? (

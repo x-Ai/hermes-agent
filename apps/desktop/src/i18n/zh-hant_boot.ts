@@ -1,4 +1,5 @@
 import type { TranslationOverrides } from './define-locale'
+import { zhHantDesktopCommands } from './zh-hant_desktop_commands'
 import { zhHantSessionCommands } from './zh-hant_session_commands'
 
 export const zhHantBoot = {
@@ -136,7 +137,8 @@ export const zhHantBoot = {
     mcpReloadUnavailable: servers => `未能連線：${servers}`,
     compactedTurnUnavailable: '這則訊息在壓縮對話時已被摘要，無法再還原或編輯。',
     staleTurnUnavailable: '這則訊息已不在此對話的歷史記錄中。',
-    sessionCommands: zhHantSessionCommands
+    sessionCommands: zhHantSessionCommands,
+    desktopCommands: zhHantDesktopCommands
   },
 
   updates: {
