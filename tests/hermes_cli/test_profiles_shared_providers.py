@@ -62,8 +62,9 @@ providers:
 BOT_ENV = "RELAY_TOKEN=stale-relay-copy\nHERMES_CUSTOM_MINE_API_KEY=bot-mine-secret\nTELEGRAM_BOT_TOKEN=bot-telegram-token\n"
 
 
-@pytest.fixture
-def homes(tmp_path, monkeypatch):
+def make_homes(tmp_path, monkeypatch):
+    """``(root, bot)``: a default root holding ROOT_CONFIG / ROOT_ENV and a ``bot`` profile holding
+    BOT_CONFIG / BOT_ENV, with HERMES_HOME on the root (shared with the sibling test modules)."""
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(root))
@@ -74,6 +75,11 @@ def homes(tmp_path, monkeypatch):
     (bot / "config.yaml").write_text(BOT_CONFIG, encoding="utf-8")
     (bot / ".env").write_text(BOT_ENV, encoding="utf-8")
     return root, bot
+
+
+@pytest.fixture
+def homes(tmp_path, monkeypatch):
+    return make_homes(tmp_path, monkeypatch)
 
 
 @contextlib.contextmanager

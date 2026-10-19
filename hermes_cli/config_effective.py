@@ -10,6 +10,10 @@ Order matches ``_load_config_impl``: the user layer is expanded BEFORE the manag
 managed ``${VAR}`` resolves against the process environment only (``apply_managed_overlay``
 expands it) and can never be re-resolved through a profile's secret scope
 (docs/design/managed-scope.md §4.1). ``read_user_config_raw`` stays the write-back primitive.
+A sharing profile (``profile.yaml`` ``share_providers``) gets the same read-through as
+``load_config()``: the default profile's custom endpoints are laid over its ``providers:`` before
+expansion (``overlay_shared_providers``; the gateway freezes a session's config and resolves a
+model pick from this read), and the cache signature folds in the files that overlay depends on.
 """
 
 from __future__ import annotations
@@ -73,9 +77,10 @@ def load_user_config_effective(config_path: Optional[Path] = None, *, fail_close
     with _config._CONFIG_LOCK:
         user_sig, cache_sig = _config._load_config_cache_sig(config_path)
         cached = _EFFECTIVE_CACHE.get(path_key)
-        if cached is not None and cache_sig is not None and cached[:8] == cache_sig:
-            if all(_config._env_ref_lookup(k) == v for k, v in cached[9].items()):
-                return copy.deepcopy(cached[8])
+        if cached is not None and cache_sig is not None and cached[:len(cache_sig)] == tuple(cache_sig):
+            hit, env_refs = cached[len(cache_sig)], cached[len(cache_sig) + 1]
+            if all(_config._env_ref_lookup(k) == v for k, v in env_refs.items()):
+                return copy.deepcopy(hit)
 
         raw: dict[str, Any] = {}
         recovered = False
@@ -102,6 +107,10 @@ def load_user_config_effective(config_path: Optional[Path] = None, *, fail_close
                     from hermes_cli.config_backups import backup_config
                     backup_config(config_path, "good")
 
+        # The raw caches above hold the file as written; the shared endpoints join the user layer
+        # here, so their ``${VAR}`` refs are snapshotted and expanded like the profile's own.
+        from hermes_cli.profiles_shared_providers import overlay_shared_providers
+        overlay_shared_providers(raw, config_path.parent)
         env_snapshot = _config._env_ref_snapshot(raw)
         managed = managed_scope.load_managed_config()
         if managed:
