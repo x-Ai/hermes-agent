@@ -511,6 +511,9 @@ gateway:
     state_no: "لا"
     queued: "**المتابعات في الطابور:** {count}"
     platforms: "**المنصّات المتصلة:** {platforms}"
+  discard:
+    nothing: "لا شيء لتجاهله: لا توجد في هذه المحادثة جولة فُقدت أثناء إعادة التشغيل."
+    done: "🗑️ تم تجاهل {count} جولة مفقودة؛ لم تُعد تشغيلها. سيتم الرد على رسائلك المحفوظة الآن."
   stop:
     stopped_pending: "⚡ تم الإيقاف. لم يكن الوكيل قد بدأ بعد — يمكنك متابعة هذه الجلسة."
     stopped: "⚡ تم الإيقاف. يمكنك متابعة هذه الجلسة."
@@ -1601,6 +1604,8 @@ slash:
     description: "استيراد أرشيف ملف تعريفي مشترك كملف تعريفي جديد"
   stop:
     description: "إنهاء كل العمليات قيد التشغيل في الخلفية"
+  discard:
+    description: "تجاهل جولة فُقدت عند إعادة تشغيل Hermes لتستأنف قائمة انتظار هذه المحادثة"
   pause:
     description: "إيقاف الأعمال الجديدة مؤقتًا على مستوى النظام (إيقاف طارئ)؛ '/pause off' يستأنفها"
   deny:
@@ -3075,6 +3080,10 @@ cli:
       usage_disconnect: "disconnect   الرجوع إلى الواجهة الخلفية الافتراضية للمتصفح"
       usage_status: "status       عرض وضع المتصفح الحالي"
       usage_use: "use [off]    التبديل إلى وضع Browser Use (CLI 3.0) / الرجوع إلى الأدوات المضمّنة"
+      remote_gateway: "‏/browser connect و /browser disconnect يديران متصفحًا من عائلة Chromium على مضيف البوابة — متاح فقط عند الاتصال ببوابة محلية."
+      checking: "جارٍ التحقق من التصحيح عن بُعد لمتصفح Chromium على {url}..."
+      new_sessions_only: "ينطبق على الجلسات الجديدة — تحتفظ هذه الجلسة بأدواتها الحالية (‏/new لبدء جلسة)."
+      status_gateway_default: "🌐 المتصفح: الواجهة الافتراضية لمتصفح البوابة (لا يوجد اتصال CDP مباشر)"
     heartbeat:
       label: "النبضات"
       paused: "⏸ تم إيقاف النبض مؤقتًا: {prompt}"
@@ -3973,6 +3982,14 @@ tui_gateway:
       other_protocol: "أجابت البوّابة ببروتوكول آخر"
       not_admitted: "لم تقبله البوّابة"
       no_stored_session: "لا تملك المحادثة جلسة محفوظة بعد"
+  voice:
+    capture_busy: "التقاط الصوت مشغول في جلسة أخرى"
+    wake_unavailable: "وحدة الإيقاظ غير متاحة: {detail}"
+    wake_device_unresolved: "تعذّر تحديد جهاز إدخال كلمة الإيقاظ: {detail}"
+    enable_first: "فعّل الوضع الصوتي أولًا: /voice on"
+    mode_off: "الوضع الصوتي معطّل — فعّله بـ /voice on"
+    module_missing_deps: "وحدة الصوت غير متاحة — ثبّت تبعيات الصوت"
+    module_missing: "وحدة الصوت غير متاحة"
   turn_error:
     not_answered: "{title}. لم تتم الإجابة عن رسالتك."
     details: "التفاصيل: {detail}"
@@ -4276,13 +4293,6 @@ tui_gateway:
     heartbeat_resumed: "▶ استُؤنف النبض (كل {interval}): {prompt}"
     no_heartbeat_to_resume: "لا يوجد نبض لاستئنافه."
     heartbeat_cleared: "✓ تم مسح النبض."
-  voice:
-    wake_unavailable: "وحدة الإيقاظ غير متاحة: {detail}"
-    wake_device_unresolved: "تعذّر تحديد جهاز إدخال كلمة الإيقاظ: {detail}"
-    enable_first: "فعّل الوضع الصوتي أولًا: /voice on"
-    mode_off: "الوضع الصوتي معطّل — فعّله بـ /voice on"
-    module_missing_deps: "وحدة الصوت غير متاحة — ثبّت تبعيات الصوت"
-    module_missing: "وحدة الصوت غير متاحة"
   browser:
     already_listening: "متصفح من عائلة Chromium يستمع بالفعل على {url}"
     port_occupied: "المنفذ {port} مشغول بتطبيق آخر ليس متصفح CDP (قد يستخدمه مصحح IDE أو خادم تطوير) — سيُشغَّل متصفح تصحيح على المنفذ {launch_port} بدلًا من ذلك..."
@@ -4570,6 +4580,7 @@ core:
     retry_status: "⚠️ رد فارغ من النموذج — إعادة المحاولة ({n}/{budget}) خلال {wait} ث{note}"
     high_cost_note: " — طلب مكلف، تم تقليص ميزانية إعادة المحاولة"
   failed_turn:
+    automation_interrupted: "انقطع تسليم تلقائي ولم يُعَد تشغيله. قد تكون بعض الإجراءات قد نُفِّذت بالفعل؛ تحقق من آثارها."
     notice: "لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه."
     partial_notice: "لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال."
   compress:

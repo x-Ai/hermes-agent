@@ -7,6 +7,9 @@ import { localizeAssistantTranscriptText } from './transcript-localization'
 const NOTICE = 'Your request was not processed. Send it again if you still want me to carry it out.'
 const PARTIAL = 'This turn did not complete. Some actions may already have run; verify their effects before resending.'
 
+const AUTOMATION =
+  'An automated delivery was interrupted and was not run again. Some actions may already have run; verify their effects.'
+
 describe('localizeAssistantTranscriptText', () => {
   it('renders the stored failed-turn boundary rows in the UI language', () => {
     for (const locale of ['zh', 'zh-hant'] as const) {
@@ -14,6 +17,8 @@ describe('localizeAssistantTranscriptText', () => {
 
       expect(localizeAssistantTranscriptText(NOTICE, copy, locale)).toBe(copy.failedTurnNotice)
       expect(localizeAssistantTranscriptText(`${PARTIAL}\n`, copy, locale)).toBe(copy.failedTurnPartialNotice)
+      expect(localizeAssistantTranscriptText(AUTOMATION, copy, locale)).toBe(copy.failedTurnAutomationNotice)
+      expect(copy.failedTurnAutomationNotice).not.toBe(AUTOMATION)
       expect(copy.failedTurnNotice).not.toBe(NOTICE)
     }
   })

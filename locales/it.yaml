@@ -512,6 +512,9 @@ gateway:
     state_no: "No"
     queued: "**Follow-up in coda:** {count}"
     platforms: "**Piattaforme connesse:** {platforms}"
+  discard:
+    nothing: "Niente da scartare: questa chat non ha turni persi in un riavvio."
+    done: "🗑️ Scartati {count} turni persi; non sono stati rieseguiti. I tuoi messaggi salvati riceveranno ora risposta."
   stop:
     stopped_pending: "⚡ Fermato. L'agente non era ancora partito — puoi continuare questa sessione."
     stopped: "⚡ Fermato. Puoi continuare questa sessione."
@@ -1602,6 +1605,8 @@ slash:
     description: "Importa un archivio di profilo condiviso come nuovo profilo"
   stop:
     description: "Termina tutti i processi in background in esecuzione"
+  discard:
+    description: "Scarta un turno perso al riavvio di Hermes così la coda di questa chat riprende"
   pause:
     description: "Metti in pausa globalmente il nuovo lavoro (arresto di emergenza); '/pause off' riprende"
   deny:
@@ -3076,6 +3081,10 @@ cli:
       usage_disconnect: "disconnect   Torna al backend browser predefinito"
       usage_status: "status       Mostra la modalità browser attuale"
       usage_use: "use [off]    Passa alla modalità Browser Use (CLI 3.0) / torna agli strumenti integrati"
+      remote_gateway: "/browser connect e /browser disconnect gestiscono un browser Chromium sull'host del gateway — disponibile solo con un gateway locale."
+      checking: "Verifica del debug remoto del browser Chromium su {url}..."
+      new_sessions_only: "Si applica alle nuove sessioni — questa mantiene gli strumenti attuali (/new per avviarne una)."
+      status_gateway_default: "🌐 Browser: backend browser predefinito del gateway (nessuna connessione CDP attiva)"
     heartbeat:
       label: "Heartbeat"
       paused: "⏸ Heartbeat in pausa: {prompt}"
@@ -3974,6 +3983,14 @@ tui_gateway:
       other_protocol: "il gateway ha risposto con un altro protocollo"
       not_admitted: "il gateway non lo ha ammesso"
       no_stored_session: "la chat non ha ancora una sessione salvata"
+  voice:
+    capture_busy: "l'acquisizione vocale è occupata in un'altra sessione"
+    wake_unavailable: "modulo di attivazione vocale non disponibile: {detail}"
+    wake_device_unresolved: "Impossibile risolvere il dispositivo di input per la parola di attivazione: {detail}"
+    enable_first: "attiva prima la modalità vocale: /voice on"
+    mode_off: "la modalità vocale è disattivata — attivala con /voice on"
+    module_missing_deps: "modulo vocale non disponibile — installa le dipendenze audio"
+    module_missing: "modulo vocale non disponibile"
   turn_error:
     not_answered: "{title}. Il tuo messaggio non ha ricevuto risposta."
     details: "Dettagli: {detail}"
@@ -4277,13 +4294,6 @@ tui_gateway:
     heartbeat_resumed: "▶ Heartbeat ripreso (ogni {interval}): {prompt}"
     no_heartbeat_to_resume: "Nessun heartbeat da riprendere."
     heartbeat_cleared: "✓ Heartbeat cancellato."
-  voice:
-    wake_unavailable: "modulo di attivazione vocale non disponibile: {detail}"
-    wake_device_unresolved: "Impossibile risolvere il dispositivo di input per la parola di attivazione: {detail}"
-    enable_first: "attiva prima la modalità vocale: /voice on"
-    mode_off: "la modalità vocale è disattivata — attivala con /voice on"
-    module_missing_deps: "modulo vocale non disponibile — installa le dipendenze audio"
-    module_missing: "modulo vocale non disponibile"
   browser:
     already_listening: "Un browser della famiglia Chromium è già in ascolto su {url}"
     port_occupied: "La porta {port} è occupata da un'altra applicazione che non è un browser CDP (potrebbe usarla un debugger dell'IDE o un server di sviluppo) — avvio di un browser di debug sulla porta {launch_port} al suo posto..."
@@ -4571,6 +4581,7 @@ core:
     retry_status: "⚠️ Risposta vuota dal modello — nuovo tentativo ({n}/{budget}) tra {wait}s{note}"
     high_cost_note: " — richiesta costosa, budget di tentativi ridotto"
   failed_turn:
+    automation_interrupted: "Una consegna automatica è stata interrotta e non è stata rieseguita. Alcune azioni potrebbero essere già state eseguite; verificane gli effetti."
     notice: "La tua richiesta non è stata elaborata. Inviala di nuovo se vuoi ancora che la esegua."
     partial_notice: "Questo turno non è stato completato. Alcune azioni potrebbero essere già state eseguite; verifica i loro effetti prima di reinviare."
   compress:

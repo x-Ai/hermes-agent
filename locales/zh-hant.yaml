@@ -510,6 +510,9 @@ gateway:
     state_no: "否"
     queued: "**排隊中的後續：** {count}"
     platforms: "**已連線平台：** {platforms}"
+  discard:
+    nothing: "沒有可捨棄的內容：此聊天沒有在重新啟動時遺失的回合。"
+    done: "🗑️ 已捨棄 {count} 個遺失的回合；未重新執行。現在會回覆你已儲存的訊息。"
   stop:
     stopped_pending: "⚡ 已停止。代理尚未啟動 — 你可以繼續此工作階段。"
     stopped: "⚡ 已停止。你可以繼續此工作階段。"
@@ -1600,6 +1603,8 @@ slash:
     description: "將分享的設定檔封存檔匯入為新設定檔"
   stop:
     description: "終止所有執行中的背景程序"
+  discard:
+    description: "捨棄 Hermes 重新啟動時遺失的回合，讓此聊天的佇列繼續執行"
   pause:
     description: "全域暫停新工作（緊急停止）；'/pause off' 恢復"
   deny:
@@ -3074,6 +3079,10 @@ cli:
       usage_disconnect: "disconnect   還原為預設瀏覽器後端"
       usage_status: "status       顯示目前的瀏覽器模式"
       usage_use: "use [off]    切換至 Browser Use 模式（CLI 3.0）／切回內建工具"
+      remote_gateway: "/browser connect 與 /browser disconnect 管理閘道主機上的 Chromium 系瀏覽器 — 僅在連線至本機閘道時可用。"
+      checking: "正在檢查 {url} 的 Chromium 系瀏覽器遠端偵錯..."
+      new_sessions_only: "套用於新工作階段 — 此工作階段保留目前工具（/new 開始新的）。"
+      status_gateway_default: "🌐 瀏覽器：閘道的預設瀏覽器後端（無即時 CDP 連線）"
     heartbeat:
       label: "心跳"
       paused: "⏸ 心跳已暫停：{prompt}"
@@ -3972,6 +3981,14 @@ tui_gateway:
       other_protocol: "網關以另一種協定回應"
       not_admitted: "網關未受理它"
       no_stored_session: "此對話尚無已儲存的工作階段"
+  voice:
+    capture_busy: "語音擷取正被另一個工作階段使用"
+    wake_unavailable: "喚醒模組無法使用：{detail}"
+    wake_device_unresolved: "無法解析喚醒詞輸入裝置：{detail}"
+    enable_first: "請先啟用語音模式：/voice on"
+    mode_off: "語音模式已關閉 — 以 /voice on 啟用"
+    module_missing_deps: "語音模組無法使用 — 請安裝音訊相依套件"
+    module_missing: "語音模組無法使用"
   turn_error:
     not_answered: "{title}。你的訊息未得到回答。"
     details: "詳情：{detail}"
@@ -4275,13 +4292,6 @@ tui_gateway:
     heartbeat_resumed: "▶ 心跳已恢復（每 {interval}）：{prompt}"
     no_heartbeat_to_resume: "沒有可恢復的心跳。"
     heartbeat_cleared: "✓ 心跳已清除。"
-  voice:
-    wake_unavailable: "喚醒模組無法使用：{detail}"
-    wake_device_unresolved: "無法解析喚醒詞輸入裝置：{detail}"
-    enable_first: "請先啟用語音模式：/voice on"
-    mode_off: "語音模式已關閉 — 以 /voice on 啟用"
-    module_missing_deps: "語音模組無法使用 — 請安裝音訊相依套件"
-    module_missing: "語音模組無法使用"
   browser:
     already_listening: "Chromium 系瀏覽器已在 {url} 監聽"
     port_occupied: "連接埠 {port} 被另一個非 CDP 瀏覽器的應用程式占用（可能是 IDE 偵錯器或開發伺服器）— 改為在連接埠 {launch_port} 上啟動偵錯瀏覽器…"
@@ -4569,6 +4579,7 @@ core:
     retry_status: "⚠️ 模型回傳空回應 — {wait} 秒後重試（{n}/{budget}）{note}"
     high_cost_note: " — 高成本請求，已縮減重試預算"
   failed_turn:
+    automation_interrupted: "一次自動投遞已中斷，未再次執行。部分動作可能已經執行；請確認其影響。"
     notice: "你的請求未被處理。如果你仍希望我執行，請重新傳送。"
     partial_notice: "此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。"
   compress:

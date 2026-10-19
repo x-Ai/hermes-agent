@@ -510,6 +510,9 @@ gateway:
     state_no: "否"
     queued: "**排队的后续：** {count}"
     platforms: "**已连接平台：** {platforms}"
+  discard:
+    nothing: "没有可丢弃的内容：此聊天没有在重启时丢失的回合"
+    done: "🗑️ 已丢弃 {count} 个丢失的回合，未重新执行，现在会回复你已保存的消息"
   stop:
     stopped_pending: "⚡ 已停止，代理尚未启动 — 你可以继续此会话"
     stopped: "⚡ 已停止，你可以继续此会话"
@@ -1601,6 +1604,8 @@ slash:
     description: "将分享的配置档归档导入为新配置档"
   stop:
     description: "终止所有正在运行的后台进程"
+  discard:
+    description: "丢弃 Hermes 重启时丢失的回合，让此聊天的队列继续运行"
   pause:
     description: "全局暂停新工作（紧急停止），'/pause off' 恢复"
   deny:
@@ -3075,6 +3080,10 @@ cli:
       usage_disconnect: "disconnect   恢复为默认浏览器后端"
       usage_status: "status       显示当前浏览器模式"
       usage_use: "use [off]    切换到 Browser Use 模式（CLI 3.0）/ 切回内置工具"
+      remote_gateway: "/browser connect 和 /browser disconnect 管理网关主机上的 Chromium 系浏览器 — 仅在连接到本地网关时可用"
+      checking: "正在检查 {url} 的 Chromium 系浏览器远程调试..."
+      new_sessions_only: "应用于新会话 — 此会话保留当前工具（/new 开始新的）"
+      status_gateway_default: "🌐 浏览器：网关的默认浏览器后端（无实时 CDP 连接）"
     heartbeat:
       label: "心跳"
       paused: "⏸ 心跳已暂停：{prompt}"
@@ -3973,6 +3982,14 @@ tui_gateway:
       other_protocol: "网关以另一种协议应答"
       not_admitted: "网关未受理它"
       no_stored_session: "此对话尚无已保存的会话"
+  voice:
+    capture_busy: "语音采集正被另一个会话占用"
+    wake_unavailable: "唤醒模块不可用：{detail}"
+    wake_device_unresolved: "无法解析唤醒词输入设备：{detail}"
+    enable_first: "请先启用语音模式：/voice on"
+    mode_off: "语音模式已关闭，用 /voice on 启用"
+    module_missing_deps: "语音模块不可用，请安装音频依赖"
+    module_missing: "语音模块不可用"
   turn_error:
     not_answered: "{title}，你的消息未得到回答"
     details: "详情：{detail}"
@@ -4276,13 +4293,6 @@ tui_gateway:
     heartbeat_resumed: "▶ 心跳已恢复（每 {interval}）：{prompt}"
     no_heartbeat_to_resume: "没有可恢复的心跳"
     heartbeat_cleared: "✓ 心跳已清除"
-  voice:
-    wake_unavailable: "唤醒模块不可用：{detail}"
-    wake_device_unresolved: "无法解析唤醒词输入设备：{detail}"
-    enable_first: "请先启用语音模式：/voice on"
-    mode_off: "语音模式已关闭，用 /voice on 启用"
-    module_missing_deps: "语音模块不可用，请安装音频依赖"
-    module_missing: "语音模块不可用"
   browser:
     already_listening: "Chromium 系浏览器已在 {url} 监听"
     port_occupied: "端口 {port} 被另一个非 CDP 浏览器的应用占用（可能是 IDE 调试器或开发服务器），改为在端口 {launch_port} 上启动调试浏览器…"
@@ -4570,6 +4580,7 @@ core:
     retry_status: "⚠️ 模型返回空响应，{wait} 秒后重试（{n}/{budget}）{note}"
     high_cost_note: "，高成本请求，已缩减重试预算"
   failed_turn:
+    automation_interrupted: "一次自动投递已中断，未再次运行，部分操作可能已经执行，请核实其效果"
     notice: "你的请求未被处理，如果你仍希望我执行，请重新发送"
     partial_notice: "本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送"
   compress:

@@ -4,6 +4,8 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in ru.ts.
 export const ruProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: 'Ваш запрос не был обработан. Отправьте его снова, если всё ещё хотите, чтобы я его выполнил.',
+  failedTurnAutomationNotice:
+    'Автоматическая доставка была прервана и не была запущена снова. Некоторые действия могли уже выполниться; проверьте их результаты.',
   failedTurnPartialNotice:
     'Этот ход не завершился. Некоторые действия могли уже выполниться; проверьте их результат, прежде чем отправлять снова.',
   modelContinuing: (attempt, maxAttempts) =>

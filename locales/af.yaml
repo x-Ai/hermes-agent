@@ -512,6 +512,9 @@ gateway:
     state_no: "Nee"
     queued: "**Opgehoopte opvolge:** {count}"
     platforms: "**Verbinde Platforms:** {platforms}"
+  discard:
+    nothing: "Niks om weg te gooi nie: hierdie klets het geen beurt wat in 'n herbegin verlore is nie."
+    done: "🗑️ {count} verlore beurt(e) weggegooi; hulle is nie weer uitgevoer nie. Jou gestoorde boodskappe word nou beantwoord."
   stop:
     stopped_pending: "⚡ Gestop. Die agent het nog nie begin nie — jy kan met hierdie sessie voortgaan."
     stopped: "⚡ Gestop. Jy kan met hierdie sessie voortgaan."
@@ -1602,6 +1605,8 @@ slash:
     description: "Voer 'n gedeelde profielargief as 'n nuwe profiel in"
   stop:
     description: "Beëindig alle lopende agtergrondprosesse"
+  discard:
+    description: "Gooi 'n beurt weg wat verlore is toe Hermes herbegin het sodat hierdie klets se tou weer loop"
   pause:
     description: "Pouseer nuwe werk globaal (noodstop); '/pause off' hervat"
   deny:
@@ -3076,6 +3081,10 @@ cli:
       usage_disconnect: "disconnect   Keer terug na die verstek-blaaieragterkant"
       usage_status: "status       Wys die huidige blaaiermodus"
       usage_use: "use [off]    Skakel oor na Browser Use-modus (CLI 3.0) / terug na ingeboude gereedskap"
+      remote_gateway: "/browser connect en /browser disconnect bestuur 'n Chromium-blaaier op die gateway-gasheer — slegs beskikbaar wanneer aan 'n plaaslike gateway gekoppel."
+      checking: "Kontroleer Chromium-blaaier se afstandontfouting by {url}..."
+      new_sessions_only: "Geld vir nuwe sessies — hierdie een behou sy huidige gereedskap (/new om een te begin)."
+      status_gateway_default: "🌐 Blaaier: die gateway se verstek-blaaier (geen lewendige CDP-verbinding nie)"
     heartbeat:
       label: "Hartklopte"
       paused: "⏸ Hartklop gepouseer: {prompt}"
@@ -3974,6 +3983,14 @@ tui_gateway:
       other_protocol: "die gateway het met 'n ander protokol geantwoord"
       not_admitted: "die gateway het dit nie toegelaat nie"
       no_stored_session: "die klets het nog geen gestoorde sessie nie"
+  voice:
+    capture_busy: "stemopname is besig in 'n ander sessie"
+    wake_unavailable: "wekmodule nie beskikbaar nie: {detail}"
+    wake_device_unresolved: "Die wekwoord se invoertoestel kon nie bepaal word nie: {detail}"
+    enable_first: "skakel eers stemmodus aan: /voice on"
+    mode_off: "stemmodus is af — skakel dit aan met /voice on"
+    module_missing_deps: "stemmodule nie beskikbaar nie — installeer die oudio-afhanklikhede"
+    module_missing: "stemmodule nie beskikbaar nie"
   turn_error:
     not_answered: "{title}. Jou boodskap is nie beantwoord nie."
     details: "Besonderhede: {detail}"
@@ -4277,13 +4294,6 @@ tui_gateway:
     heartbeat_resumed: "▶ Hartklop hervat (elke {interval}): {prompt}"
     no_heartbeat_to_resume: "Geen hartklop om te hervat nie."
     heartbeat_cleared: "✓ Hartklop uitgevee."
-  voice:
-    wake_unavailable: "wekmodule nie beskikbaar nie: {detail}"
-    wake_device_unresolved: "Die wekwoord se invoertoestel kon nie bepaal word nie: {detail}"
-    enable_first: "skakel eers stemmodus aan: /voice on"
-    mode_off: "stemmodus is af — skakel dit aan met /voice on"
-    module_missing_deps: "stemmodule nie beskikbaar nie — installeer die oudio-afhanklikhede"
-    module_missing: "stemmodule nie beskikbaar nie"
   browser:
     already_listening: "'n Chromium-familie-blaaier luister reeds by {url}"
     port_occupied: "Poort {port} word deur 'n ander toepassing beset wat nie 'n CDP-blaaier is nie ('n IDE-ontfouter of ontwikkelingsbediener gebruik dit dalk) — 'n ontfoutblaaier word eerder op poort {launch_port} begin..."
@@ -4571,6 +4581,7 @@ core:
     retry_status: "⚠️ Leë antwoord van model — probeer weer ({n}/{budget}) oor {wait}s{note}"
     high_cost_note: " — duur versoek, herprobeerbegroting verminder"
   failed_turn:
+    automation_interrupted: "'n Outomatiese aflewering is onderbreek en is nie weer uitgevoer nie. Sommige aksies het dalk reeds uitgevoer; verifieer hul uitwerking."
     notice: "Jou versoek is nie verwerk nie. Stuur dit weer as jy steeds wil hê ek moet dit uitvoer."
     partial_notice: "Hierdie beurt is nie voltooi nie. Sommige aksies het dalk reeds geloop; kontroleer hul uitwerking voordat jy weer stuur."
   compress:

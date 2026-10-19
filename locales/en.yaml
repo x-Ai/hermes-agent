@@ -526,6 +526,9 @@ gateway:
     state_no: "No"
     queued: "**Queued follow-ups:** {count}"
     platforms: "**Connected Platforms:** {platforms}"
+  discard:
+    nothing: "Nothing to discard: this chat has no turn lost in a restart."
+    done: "🗑️ Discarded {count} lost turn(s); they were not re-run. Your saved messages will be answered now."
   stop:
     stopped_pending: "⚡ Stopped. The agent hadn't started yet — you can continue this session."
     stopped: "⚡ Stopped. You can continue this session."
@@ -1685,6 +1688,8 @@ slash:
     description: "Import a shared profile archive as a new profile"
   stop:
     description: "Kill all running background processes"
+  discard:
+    description: "Drop a turn lost when Hermes restarted so this chat's queue runs again"
   pause:
     description: "Pause new work globally (emergency stop); '/pause off' resumes"
   deny:
@@ -3188,6 +3193,10 @@ cli:
       usage_disconnect: "disconnect   Revert to default browser backend"
       usage_status: "status       Show current browser mode"
       usage_use: "use [off]    Switch to Browser Use mode (CLI 3.0) / back to built-in tools"
+      remote_gateway: "/browser connect and /browser disconnect manage a Chromium-family browser on the gateway host — only available when connected to a local gateway."
+      checking: "Checking Chromium-family browser remote debugging at {url}..."
+      new_sessions_only: "Applies to new sessions — this one keeps its current tools (/new to start one)."
+      status_gateway_default: "🌐 Browser: the gateway's default browser backend (no live CDP connection)"
     heartbeat:
       label: "Heartbeats"
       paused: "⏸ Heartbeat paused: {prompt}"
@@ -4102,6 +4111,14 @@ tui_gateway:
       other_protocol: "the gateway answered with another protocol"
       not_admitted: "the gateway did not admit it"
       no_stored_session: "the chat has no stored session yet"
+  voice:
+    capture_busy: "voice capture is busy in another session"
+    wake_unavailable: "wake module unavailable: {detail}"
+    wake_device_unresolved: "Wake-word input device could not be resolved: {detail}"
+    enable_first: "enable voice mode first: /voice on"
+    mode_off: "voice mode is off — enable with /voice on"
+    module_missing_deps: "voice module not available — install audio dependencies"
+    module_missing: "voice module not available"
   turn_error:
     not_answered: "{title}. Your message was not answered."
     details: "Details: {detail}"
@@ -4405,13 +4422,6 @@ tui_gateway:
     heartbeat_resumed: "▶ Heartbeat resumed (every {interval}): {prompt}"
     no_heartbeat_to_resume: "No heartbeat to resume."
     heartbeat_cleared: "✓ Heartbeat cleared."
-  voice:
-    wake_unavailable: "wake module unavailable: {detail}"
-    wake_device_unresolved: "Wake-word input device could not be resolved: {detail}"
-    enable_first: "enable voice mode first: /voice on"
-    mode_off: "voice mode is off — enable with /voice on"
-    module_missing_deps: "voice module not available — install audio dependencies"
-    module_missing: "voice module not available"
   browser:
     already_listening: "Chromium-family browser is already listening at {url}"
     port_occupied: "Port {port} is occupied by another application that isn't a CDP browser (an IDE debugger or dev server may be using it) — launching a debug browser on port {launch_port} instead..."
@@ -4699,6 +4709,7 @@ core:
     retry_status: "⚠️ Empty response from model — retrying ({n}/{budget}) in {wait}s{note}"
     high_cost_note: " — high-cost request, reduced retry budget"
   failed_turn:
+    automation_interrupted: "An automated delivery was interrupted and was not run again. Some actions may already have run; verify their effects."
     notice: "Your request was not processed. Send it again if you still want me to carry it out."
     partial_notice: "This turn did not complete. Some actions may already have run; verify their effects before resending."
   compress:

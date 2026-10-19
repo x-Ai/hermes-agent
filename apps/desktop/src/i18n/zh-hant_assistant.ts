@@ -86,6 +86,7 @@ export const zhHantAssistant = {
         userProfileLabel: '使用者資料'
       },
       failedTurnNotice: '你的請求未被處理。如果你仍希望我執行，請重新傳送。',
+      failedTurnAutomationNotice: '一次自動投遞已中斷，未再次執行。部分動作可能已經執行；請確認其影響。',
       failedTurnPartialNotice: '此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。',
       operationInterrupted: '操作已中斷。',
       operationInterruptedDuringRetry: (reason, attempt, maxAttempts) =>
@@ -310,7 +311,7 @@ export const zhHantAssistant = {
           title: '你的訊息可能已在佇列中',
           body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
         }
-},
+      },
       errorLayers: {
         auth: '認證錯誤',
         billing: '額度不足',

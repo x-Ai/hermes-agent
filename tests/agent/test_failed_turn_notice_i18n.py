@@ -10,8 +10,9 @@ import pytest
 
 from agent import i18n
 from agent.turn_failure_copy import (
-    FAILED_TURN_DISPLAY_KIND, FAILED_TURN_NOTICE, PARTIAL_FAILED_TURN_NOTICE, failed_turn_notice,
-    partial_failed_turn_notice, untyped_failed_turn_display_kind)
+    AUTOMATION_INTERRUPTED_NOTICE, FAILED_TURN_DISPLAY_KIND, FAILED_TURN_NOTICE, PARTIAL_FAILED_TURN_NOTICE,
+    automation_interrupted_notice, failed_turn_notice, partial_failed_turn_notice,
+    untyped_failed_turn_display_kind)
 
 
 @pytest.fixture
@@ -30,6 +31,7 @@ def test_english_rendering_matches_the_legacy_constants(monkeypatch):
         assert failed_turn_notice([{"role": "user", "content": "hi"}]) == FAILED_TURN_NOTICE
         assert failed_turn_notice([{"role": "assistant", "tool_calls": [{}]}]) == PARTIAL_FAILED_TURN_NOTICE
         assert partial_failed_turn_notice() == PARTIAL_FAILED_TURN_NOTICE
+        assert automation_interrupted_notice() == AUTOMATION_INTERRUPTED_NOTICE
     finally:
         i18n.reset_language_cache()
 
@@ -42,3 +44,13 @@ def test_notice_is_localized_and_hedges_when_a_tool_ran(chinese):
     assert "core.failed_turn" not in plain + hedged
     # Legacy rows carry the English text and no display_kind; the read-side matcher still types them.
     assert untyped_failed_turn_display_kind("assistant", FAILED_TURN_NOTICE) == FAILED_TURN_DISPLAY_KIND
+
+
+def test_settled_automation_notice_is_localized_and_its_legacy_row_still_typed(chinese):
+    """The unattended-turn closer (gateway/session_unattended_unknown.py) writes this copy; a row an older
+    gateway wrote in English is typed by the read-side matcher like the other two notices."""
+    notice = automation_interrupted_notice()
+    assert notice == i18n.t("core.failed_turn.automation_interrupted", lang="zh") != AUTOMATION_INTERRUPTED_NOTICE
+    assert "core.failed_turn" not in notice
+    assert untyped_failed_turn_display_kind("assistant", AUTOMATION_INTERRUPTED_NOTICE) == FAILED_TURN_DISPLAY_KIND
+

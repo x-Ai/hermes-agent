@@ -552,6 +552,9 @@ gateway:
     state_no: "Non"
     queued: "**Suivis en file :** {count}"
     platforms: "**Plateformes connectées :** {platforms}"
+  discard:
+    nothing: "Rien à ignorer : ce chat n'a aucun tour perdu lors d'un redémarrage."
+    done: "🗑️ {count} tour(s) perdu(s) ignoré(s) ; ils n'ont pas été relancés. Vos messages enregistrés vont maintenant recevoir une réponse."
   stop:
     stopped_pending: "⚡ Arrêté. L'agent n'avait pas encore commencé — vous pouvez continuer cette session."
     stopped: "⚡ Arrêté. Vous pouvez continuer cette session."
@@ -1854,6 +1857,8 @@ slash:
     description: "Importer une archive de profil partagée comme nouveau profil"
   stop:
     description: "Tuer tous les processus en arrière-plan en cours"
+  discard:
+    description: "Ignorer un tour perdu au redémarrage de Hermes pour que la file de ce chat reprenne"
   pause:
     description: "Suspendre tout nouveau travail globalement (arrêt d'urgence) ; '/pause off' reprend"
   deny:
@@ -3381,6 +3386,10 @@ cli:
       usage_disconnect: "disconnect   Revenir au backend de navigateur par défaut"
       usage_status: "status       Afficher le mode de navigateur actuel"
       usage_use: "use [off]    Passer en mode Browser Use (CLI 3.0) / revenir aux outils intégrés"
+      remote_gateway: "/browser connect et /browser disconnect gèrent un navigateur Chromium sur l'hôte de la passerelle — disponible uniquement avec une passerelle locale."
+      checking: "Vérification du débogage distant du navigateur Chromium à {url}..."
+      new_sessions_only: "S'applique aux nouvelles sessions — celle-ci garde ses outils actuels (/new pour en démarrer une)."
+      status_gateway_default: "🌐 Navigateur : backend de navigateur par défaut de la passerelle (pas de connexion CDP en direct)"
     heartbeat:
       label: "Heartbeats"
       paused: "⏸ Heartbeat en pause : {prompt}"
@@ -4299,6 +4308,14 @@ tui_gateway:
       other_protocol: "le gateway a répondu avec un autre protocole"
       not_admitted: "le gateway ne l'a pas admis"
       no_stored_session: "la discussion n'a pas encore de session enregistrée"
+  voice:
+    capture_busy: "la capture vocale est occupée dans une autre session"
+    wake_unavailable: "module de réveil indisponible : {detail}"
+    wake_device_unresolved: "Le périphérique d'entrée du mot de réveil n'a pas pu être résolu : {detail}"
+    enable_first: "activez d'abord le mode vocal : /voice on"
+    mode_off: "le mode vocal est désactivé — activez-le avec /voice on"
+    module_missing_deps: "module vocal indisponible — installez les dépendances audio"
+    module_missing: "module vocal indisponible"
   turn_error:
     not_answered: "{title}. Votre message est resté sans réponse."
     details: "Détails : {detail}"
@@ -4602,13 +4619,6 @@ tui_gateway:
     heartbeat_resumed: "▶ Heartbeat repris (toutes les {interval}) : {prompt}"
     no_heartbeat_to_resume: "Aucun heartbeat à reprendre."
     heartbeat_cleared: "✓ Heartbeat effacé."
-  voice:
-    wake_unavailable: "module de réveil indisponible : {detail}"
-    wake_device_unresolved: "Le périphérique d'entrée du mot de réveil n'a pas pu être résolu : {detail}"
-    enable_first: "activez d'abord le mode vocal : /voice on"
-    mode_off: "le mode vocal est désactivé — activez-le avec /voice on"
-    module_missing_deps: "module vocal indisponible — installez les dépendances audio"
-    module_missing: "module vocal indisponible"
   browser:
     already_listening: "Un navigateur de la famille Chromium écoute déjà sur {url}"
     port_occupied: "Le port {port} est occupé par une autre application qui n'est pas un navigateur CDP (peut-être un débogueur d'IDE ou un serveur de dev) — lancement d'un navigateur de débogage sur le port {launch_port} à la place..."
@@ -4896,6 +4906,7 @@ core:
     retry_status: "⚠️ Réponse vide du modèle — nouvelle tentative ({n}/{budget}) dans {wait}s{note}"
     high_cost_note: " — requête coûteuse, budget de tentatives réduit"
   failed_turn:
+    automation_interrupted: "Une livraison automatique a été interrompue et n'a pas été relancée. Certaines actions ont peut-être déjà été exécutées ; vérifiez leurs effets."
     notice: "Votre demande n'a pas été traitée. Renvoyez-la si vous souhaitez toujours que je l'exécute."
     partial_notice: "Ce tour ne s'est pas terminé. Certaines actions ont peut-être déjà été exécutées ; vérifiez leurs effets avant de renvoyer."
   compress:

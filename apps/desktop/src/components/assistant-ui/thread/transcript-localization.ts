@@ -101,6 +101,11 @@ const FAILED_TURN_TRANSCRIPT_PATTERNS: TranscriptLocalizationPattern[] = [
     pattern:
       /^This turn did not complete\. Some actions may already have run; verify their effects before resending\.$/,
     format: (_match, copy) => copy.failedTurnPartialNotice
+  },
+  {
+    pattern:
+      /^An automated delivery was interrupted and was not run again\. Some actions may already have run; verify their effects\.$/,
+    format: (_match, copy) => copy.failedTurnAutomationNotice
   }
 ]
 

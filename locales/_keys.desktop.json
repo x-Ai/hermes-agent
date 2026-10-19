@@ -332,6 +332,7 @@
     "assistant.thread.errorToastTitle",
     "assistant.thread.errorUpdateApiKey",
     "assistant.thread.expandMessage",
+    "assistant.thread.failedTurnAutomationNotice",
     "assistant.thread.failedTurnNotice",
     "assistant.thread.failedTurnPartialNotice",
     "assistant.thread.filesChanged",

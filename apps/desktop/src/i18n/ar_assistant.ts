@@ -55,6 +55,8 @@ export const arAssistant = {
         userProfileLabel: 'ملف المستخدم'
       },
       failedTurnNotice: 'لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه.',
+      failedTurnAutomationNotice:
+        'انقطع تسليم تلقائي ولم يُعَد تشغيله. قد تكون بعض الإجراءات قد نُفِّذت بالفعل؛ تحقق من آثارها.',
       failedTurnPartialNotice:
         'لم يكتمل هذا الدور. ربما نُفِّذت بعض الإجراءات بالفعل؛ تحقق من آثارها قبل إعادة الإرسال.',
       operationInterrupted: 'تمت مقاطعة العملية.',

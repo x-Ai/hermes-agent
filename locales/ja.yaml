@@ -510,6 +510,9 @@ gateway:
     state_no: "いいえ"
     queued: "**キュー内の後続:** {count}"
     platforms: "**接続プラットフォーム:** {platforms}"
+  discard:
+    nothing: "破棄するものはありません: このチャットに再起動で失われたターンはありません。"
+    done: "🗑️ 失われたターンを {count} 件破棄しました。再実行はしていません。保存されたメッセージにこれから応答します。"
   stop:
     stopped_pending: "⚡ 停止しました。エージェントはまだ開始していません — このセッションを続行できます。"
     stopped: "⚡ 停止しました。このセッションを続行できます。"
@@ -1600,6 +1603,8 @@ slash:
     description: "共有されたプロファイルアーカイブを新しいプロファイルとしてインポート"
   stop:
     description: "実行中のバックグラウンドプロセスをすべて終了"
+  discard:
+    description: "Hermes の再起動で失われたターンを破棄し、このチャットのキューを再開します"
   pause:
     description: "新しい作業を全体的に一時停止（緊急停止）。'/pause off' で再開"
   deny:
@@ -3074,6 +3079,10 @@ cli:
       usage_disconnect: "disconnect   デフォルトのブラウザバックエンドに戻します"
       usage_status: "status       現在のブラウザモードを表示します"
       usage_use: "use [off]    Browser Use モード (CLI 3.0) に切り替え / 組み込みツールに戻します"
+      remote_gateway: "/browser connect と /browser disconnect はゲートウェイホスト上の Chromium 系ブラウザーを管理します — ローカルゲートウェイ接続時のみ利用できます。"
+      checking: "{url} で Chromium 系ブラウザーのリモートデバッグを確認しています..."
+      new_sessions_only: "新しいセッションに適用されます — このセッションは現在のツールを維持します（/new で開始）。"
+      status_gateway_default: "🌐 ブラウザー: ゲートウェイの既定ブラウザーバックエンド（ライブ CDP 接続なし）"
     heartbeat:
       label: "ハートビート"
       paused: "⏸ ハートビートを一時停止しました: {prompt}"
@@ -3972,6 +3981,14 @@ tui_gateway:
       other_protocol: "ゲートウェイが別のプロトコルで応答しました"
       not_admitted: "ゲートウェイが受け付けませんでした"
       no_stored_session: "このチャットにはまだ保存されたセッションがありません"
+  voice:
+    capture_busy: "音声キャプチャは別のセッションで使用中です"
+    wake_unavailable: "ウェイクモジュールを利用できません: {detail}"
+    wake_device_unresolved: "ウェイクワードの入力デバイスを解決できませんでした: {detail}"
+    enable_first: "先に音声モードを有効にしてください: /voice on"
+    mode_off: "音声モードはオフです — /voice on で有効にしてください"
+    module_missing_deps: "音声モジュールを利用できません — オーディオ依存関係をインストールしてください"
+    module_missing: "音声モジュールを利用できません"
   turn_error:
     not_answered: "{title}。メッセージには回答されませんでした"
     details: "詳細: {detail}"
@@ -4275,13 +4292,6 @@ tui_gateway:
     heartbeat_resumed: "▶ ハートビートを再開しました（{interval} ごと）: {prompt}"
     no_heartbeat_to_resume: "再開するハートビートがありません"
     heartbeat_cleared: "✓ ハートビートをクリアしました"
-  voice:
-    wake_unavailable: "ウェイクモジュールを利用できません: {detail}"
-    wake_device_unresolved: "ウェイクワードの入力デバイスを解決できませんでした: {detail}"
-    enable_first: "先に音声モードを有効にしてください: /voice on"
-    mode_off: "音声モードはオフです — /voice on で有効にしてください"
-    module_missing_deps: "音声モジュールを利用できません — オーディオ依存関係をインストールしてください"
-    module_missing: "音声モジュールを利用できません"
   browser:
     already_listening: "Chromium 系ブラウザは既に {url} で待ち受けています"
     port_occupied: "ポート {port} は CDP ブラウザではない別のアプリケーションに占有されています（IDE のデバッガーや開発サーバーが使っている可能性があります）— 代わりにポート {launch_port} でデバッグブラウザを起動します..."
@@ -4569,6 +4579,7 @@ core:
     retry_status: "⚠️ モデルから空の応答 — {wait} 秒後に再試行します（{n}/{budget}）{note}"
     high_cost_note: " — 高コストのリクエストのため再試行回数を減らしました"
   failed_turn:
+    automation_interrupted: "自動配信が中断され、再実行されませんでした。一部の操作はすでに実行された可能性があります。影響を確認してください。"
     notice: "リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください"
     partial_notice: "このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください"
   compress:

@@ -52,6 +52,7 @@
   "assistant.thread.errorCodes.SESSION_OWNER_UNCONFIRMED.title": ["ar","de","es","fr","ja","ru"],
   "assistant.thread.errorCodes.no_reply.body": ["ar","ja","ru"],
   "assistant.thread.errorCodes.no_reply.title": ["ar","ja","ru"],
+  "assistant.thread.failedTurnAutomationNotice": ["de","es","fr"],
   "assistant.thread.failedTurnNotice": ["de","es","fr"],
   "assistant.thread.failedTurnPartialNotice": ["de","es","fr"],
   "assistant.thread.messageFrom": ["de","es","fr"],

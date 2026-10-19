@@ -4,6 +4,8 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in ja.ts.
 export const jaProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: 'リクエストは処理されませんでした。引き続き実行を希望する場合は、もう一度送信してください',
+  failedTurnAutomationNotice:
+    '自動配信が中断され、再実行されませんでした。一部の操作はすでに実行された可能性があります。影響を確認してください。',
   failedTurnPartialNotice:
     'このターンは完了しませんでした。一部の操作はすでに実行された可能性があります。再送信する前にその影響を確認してください',
   modelContinuing: (attempt, maxAttempts) =>

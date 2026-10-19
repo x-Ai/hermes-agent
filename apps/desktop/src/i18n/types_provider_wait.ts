@@ -20,6 +20,7 @@ export interface ProviderWaitThreadCopy {
    *  (`agent/turn_failure_copy.py`), re-rendered from their English text. */
   failedTurnNotice: string
   failedTurnPartialNotice: string
+  failedTurnAutomationNotice: string
   modelContinuing: (attempt: string, maxAttempts: string) => string
   providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
   providerRetrying: (retrySeconds: string, attempt: string, maxAttempts: string) => string

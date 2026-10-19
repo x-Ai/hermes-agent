@@ -512,6 +512,9 @@ gateway:
     state_no: "Níl"
     queued: "**Tascanna i scuaine:** {count}"
     platforms: "**Ardáin Cheangailte:** {platforms}"
+  discard:
+    nothing: "Níl aon rud le caitheamh amach: níl aon seal caillte ag an gcomhrá seo i n-atosú."
+    done: "🗑️ Caitheadh amach {count} seal caillte; níor ritheadh arís iad. Freagrófar do theachtaireachtaí sábháilte anois."
   stop:
     stopped_pending: "⚡ Stoptha. Ní raibh an gníomhaire tosaithe fós — is féidir leat leanúint leis an seisiún seo."
     stopped: "⚡ Stoptha. Is féidir leat leanúint leis an seisiún seo."
@@ -1602,6 +1605,8 @@ slash:
     description: "Iompórtáil cartlann próifíle roinnte mar phróifíl nua"
   stop:
     description: "Maraigh gach próiseas cúlra atá ag rith"
+  discard:
+    description: "Caith amach seal a cailleadh nuair a atosaíodh Hermes ionas go ritheann scuaine an chomhrá seo arís"
   pause:
     description: "Cuir obair nua ar sos go domhanda (stop éigeandála); atosaíonn '/pause off' í"
   deny:
@@ -3076,6 +3081,10 @@ cli:
       usage_disconnect: "disconnect   Fill ar inneall brabhsálaí réamhshocraithe"
       usage_status: "status       Taispeáin mód reatha an bhrabhsálaí"
       usage_use: "use [off]    Athraigh go mód Browser Use (CLI 3.0) / ar ais go huirlisí ionsuite"
+      remote_gateway: "Bainistíonn /browser connect agus /browser disconnect brabhsálaí Chromium ar óstach an gheata — ar fáil ach amháin le geata áitiúil."
+      checking: "Ag seiceáil dífhabhtú cianda an bhrabhsálaí Chromium ag {url}..."
+      new_sessions_only: "Baineann sé le seisiúin nua — coinníonn an ceann seo a uirlisí reatha (/new chun ceann a thosú)."
+      status_gateway_default: "🌐 Brabhsálaí: inneall réamhshocraithe brabhsálaí an gheata (gan nasc beo CDP)"
     heartbeat:
       label: "Buillí croí"
       paused: "⏸ Buille croí curtha ar sos: {prompt}"
@@ -3974,6 +3983,14 @@ tui_gateway:
       other_protocol: "d'fhreagair an gateway le prótacal eile"
       not_admitted: "níor ghlac an gateway leis"
       no_stored_session: "níl aon seisiún stóráilte ag an gcomhrá fós"
+  voice:
+    capture_busy: "tá gabháil gutha gnóthach i seisiún eile"
+    wake_unavailable: "níl an modúl múscailte ar fáil: {detail}"
+    wake_device_unresolved: "Níorbh fhéidir gléas ionchuir an fhocail mhúscailte a réiteach: {detail}"
+    enable_first: "cumasaigh an mód gutha ar dtús: /voice on"
+    mode_off: "tá an mód gutha múchta — cumasaigh é le /voice on"
+    module_missing_deps: "níl an modúl gutha ar fáil — suiteáil na spleáchais fuaime"
+    module_missing: "níl an modúl gutha ar fáil"
   turn_error:
     not_answered: "{title}. Níor freagraíodh do theachtaireacht."
     details: "Sonraí: {detail}"
@@ -4277,13 +4294,6 @@ tui_gateway:
     heartbeat_resumed: "▶ Buille croí atosaithe (gach {interval}): {prompt}"
     no_heartbeat_to_resume: "Níl aon bhuille croí le hatosú."
     heartbeat_cleared: "✓ Buille croí glanta."
-  voice:
-    wake_unavailable: "níl an modúl múscailte ar fáil: {detail}"
-    wake_device_unresolved: "Níorbh fhéidir gléas ionchuir an fhocail mhúscailte a réiteach: {detail}"
-    enable_first: "cumasaigh an mód gutha ar dtús: /voice on"
-    mode_off: "tá an mód gutha múchta — cumasaigh é le /voice on"
-    module_missing_deps: "níl an modúl gutha ar fáil — suiteáil na spleáchais fuaime"
-    module_missing: "níl an modúl gutha ar fáil"
   browser:
     already_listening: "Tá brabhsálaí de theaghlach Chromium ag éisteacht cheana ag {url}"
     port_occupied: "Tá port {port} in úsáid ag feidhmchlár eile nach brabhsálaí CDP é (b'fhéidir dífhabhtóir IDE nó freastalaí forbartha) — brabhsálaí dífhabhtaithe á sheoladh ar phort {launch_port} ina ionad..."
@@ -4571,6 +4581,7 @@ core:
     retry_status: "⚠️ Freagra folamh ón tsamhail — ag atriail ({n}/{budget}) i gceann {wait}s{note}"
     high_cost_note: " — iarratas costasach, buiséad atrialacha laghdaithe"
   failed_turn:
+    automation_interrupted: "Cuireadh isteach ar sheachadadh uathoibríoch agus níor ritheadh arís é. Seans go bhfuil roinnt gníomhartha rite cheana; deimhnigh a n-éifeachtaí."
     notice: "Níor próiseáladh d'iarratas. Seol arís é más mian leat fós go gcuirfinn i gcrích é."
     partial_notice: "Níor críochnaíodh an babhta seo. Seans go bhfuil roinnt gníomhartha rite cheana; fíoraigh a n-éifeachtaí sula seolann tú arís."
   compress:

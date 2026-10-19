@@ -4,6 +4,7 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in zh.ts.
 export const zhProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: '你的请求未被处理，如果你仍希望我执行，请重新发送',
+  failedTurnAutomationNotice: '一次自动投递已中断，未再次运行，部分操作可能已经执行，请核实其效果',
   failedTurnPartialNotice: '本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送',
   modelContinuing: (attempt, maxAttempts) =>
     `模型仅返回了思考内容，未给出最终回答，正在请求继续（第 ${attempt}/${maxAttempts} 次）`,
