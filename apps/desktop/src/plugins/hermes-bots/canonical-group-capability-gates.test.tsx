@@ -1,6 +1,6 @@
 import type * as HermesSdk from '@hermes/plugin-sdk'
 import { host } from '@hermes/plugin-sdk'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { WritableAtom } from 'nanostores'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
@@ -13,7 +13,10 @@ import { $groupChats, $groupChatWorkspace, updateGroupChat } from './group-chat'
 import type * as GroupChatModule from './group-chat'
 import type * as GroupChatParts from './group-chat-parts'
 import { GroupChatWorkspace } from './group-chat-view'
+import { botsText } from './i18n'
 import { translateBots } from './i18n-test-helper'
+import { renderRosterToolbar } from './roster-pane-toolbar'
+import type { RosterRow } from './types'
 
 const { request, notify, openWorkspace, activation } = vi.hoisted(() => ({
   request: vi.fn(),
@@ -71,9 +74,20 @@ const state = {
   gateway: host.state.gateway as WritableAtom<string>
 }
 
-const roster = [
+const roster: RosterRow[] = [
   { name: 'alpha', connectionId: 'local' },
   { name: 'beta', connectionId: 'local' }
+]
+
+const mixedRoster: RosterRow[] = [
+  ...roster,
+  { name: 'remote', connectionId: 'other-box', connectionLabel: 'Other box', remoteSource: true },
+  {
+    name: 'spoofed',
+    connectionId: 'local',
+    remoteSource: true,
+    route: { connectionId: 'other-box', mode: 'remote', profile: 'spoofed', targetProfile: 'spoofed' }
+  }
 ]
 
 const unavailable = CANONICAL_GROUP_LOCALES.en.driverUnavailable
@@ -150,6 +164,9 @@ async function submitDialog() {
     fireEvent.click(checkbox)
   }
 
+  // The picker's capability read has landed before Create is pressed, so the
+  // call counts below are deterministic.
+  await waitFor(() => expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities'))
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' }))
   })
@@ -175,7 +192,7 @@ it.each(reported)('a Desktop room renders the legacy workspace when the gateway 
   expect(request.mock.calls.filter(call => call[1] === 'groups.capabilities')).toHaveLength(0)
 })
 
-it.each([legacy, { driver: true, persistent_process: true }])(
+it.each(reported)(
   'New group chat creates a Desktop room when the gateway reports %j (no room settings)',
   async value => {
     answer(value)
@@ -186,8 +203,58 @@ it.each([legacy, { driver: true, persistent_process: true }])(
     expect($canonicalGroupBindings.get()).toEqual({})
     // The dialog asks what the gateway can host, and settles on a Desktop room without groups.create.
     expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+    // Upstream disables Create and shows the driver status here; a Desktop room needs no driver.
+    expect(screen.queryByText(unavailable)).toBeNull()
   }
 )
+
+it('offers only the bots the authority says this caller can seat (#141178)', async () => {
+  // `parked` is on this connection but not served (or a sibling this socket may
+  // not seat): neither room kind can drive it, so the picker must not offer it.
+  const withParked: RosterRow[] = [...roster, { name: 'parked', connectionId: 'local' }]
+  answer({ driver: true, persistent_process: true, seatable_profiles: ['alpha', 'beta', 'default'] })
+  const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={withParked} />)
+
+  await waitFor(() => {
+    expect(baseElement.querySelector('[data-bot-face="alpha"]')).not.toBeNull()
+    expect(baseElement.querySelector('[data-bot-face="beta"]')).not.toBeNull()
+  })
+  expect(baseElement.querySelector('[data-bot-face="parked"]')).toBeNull()
+  expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+})
+
+// Fork contract: Desktop rooms seat bots from other registered connections (their turns route to
+// their own machines), so the picker keeps offering them on a canonical gateway, and a
+// cross-connection pick creates a Desktop room even when the gateway hosts room settings.
+it('keeps offering bots from other connections; a cross-connection pick creates a Desktop room', async () => {
+  answer({
+    driver: true,
+    features: ['room_settings', 'member_sessions'],
+    seatable_profiles: ['alpha', 'beta', 'default']
+  })
+  const onCreated = vi.fn()
+
+  const { baseElement } = render(
+    <CreateGroupChatDialog onClose={vi.fn()} onCreated={onCreated} open roster={mixedRoster} />
+  )
+
+  await waitFor(() => expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities'))
+  await act(async () => {})
+  expect(baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull()
+  expect(baseElement.querySelector('[data-bot-face="spoofed"]')).not.toBeNull()
+
+  const checkboxes = screen.getAllByRole('checkbox')
+  expect(checkboxes).toHaveLength(4)
+  fireEvent.click(checkboxes[0])
+  fireEvent.click(checkboxes[2])
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' }))
+  })
+
+  expect(onCreated).toHaveBeenCalledWith(expect.any(String), 'name')
+  expect(updateGroupChat).toHaveBeenCalledOnce()
+  expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
+})
 
 it('New group chat creates a gateway-hosted room, with the handle and folder on the gateway, when it hosts room settings', async () => {
   request.mockImplementation(async (_route, method, params) => {
@@ -332,4 +399,50 @@ it('a hosted room renders the Desktop room view, fed by the gateway it is bound 
   expect(screen.getByRole('textbox')).toBeTruthy()
   expect(screen.queryByTestId('canonical-group-workspace')).toBeNull()
   expect(request.mock.calls.some(call => call[1] === 'groups.watch' && call[2].on !== false)).toBe(true)
+})
+
+// The New… menu opens New Group Chat. It is offered only when the dialog can
+// seat two bots by the SAME rule the dialog's picker uses; counting the whole
+// roster opened a dialog with one checkbox and a Create button that never woke.
+it.each([
+  ['one seatable bot', ['alpha', 'default'], true],
+  ['two seatable bots', ['alpha', 'beta'], false]
+])('New Group Chat in the New… menu, with %s', async (_label, seatable, disabled) => {
+  const withParked: RosterRow[] = [...roster, { name: 'parked', connectionId: 'local' }]
+  answer({ driver: true, persistent_process: true, seatable_profiles: seatable })
+  const setGroupCreateOpen = vi.fn()
+
+  render(
+    renderRosterToolbar({
+      activeFilterCount: 0,
+      activeSourceRoster: withParked,
+      activityFilter: 'all',
+      activityToasts: false,
+      b: botsText(),
+      gatewayFilter: 'all',
+      gatewayOptions: [],
+      query: '',
+      roster: withParked,
+      rowKindFilter: 'all',
+      setActivityFilter: vi.fn(),
+      setCreateOpen: vi.fn(),
+      setGatewayFilter: vi.fn(),
+      setGroupCreateOpen,
+      setQuery: vi.fn(),
+      setRowKindFilter: vi.fn(),
+      setSectionDialog: vi.fn(),
+      showRosterFilters: false,
+      showRosterSearch: false,
+      showRosterTools: false
+    })
+  )
+
+  fireEvent.keyDown(screen.getByRole('button', { name: botsText().roster.newBotOrGroup }), { key: 'Enter' })
+  const item = await screen.findByRole('menuitem', { name: botsText().group.newTitle })
+
+  // Settles once the authority's seatable roster is in: all three bots are on
+  // this connection, but only the ones it will seat count.
+  await waitFor(() => expect(item.hasAttribute('data-disabled')).toBe(disabled))
+  fireEvent.click(item)
+  expect(setGroupCreateOpen).toHaveBeenCalledTimes(disabled ? 0 : 1)
 })
