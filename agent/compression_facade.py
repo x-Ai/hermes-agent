@@ -198,6 +198,12 @@ def _mirror_result_onto_live_lists(agent, result, messages, *, direct_path: bool
     if isinstance(session_messages, list) and session_messages is not messages:
         # Durable-parent adoption can leave `_session_messages` on the pre-adoption list.
         _sync_persisted_markers(session_messages, result_messages)
+    if result_messages is not messages:
+        # The token-estimate memo pins message strings; bodies the summary replaced can never hit again,
+        # and close() only sees the compressed history.
+        from agent.model_metadata_token_memo import forget_message_token_memo
+        with contextlib.suppress(Exception):
+            forget_message_token_memo(messages, keep=result_messages)
     # The live pointer is NOT rebound here: the turn loop adopts the returned list itself, and a manual
     # ``/compress here N`` passes only the head (the tail is rejoined by the caller), so publishing the
     # result would hand shutdown/eviction flushes and live readers a truncated transcript.
