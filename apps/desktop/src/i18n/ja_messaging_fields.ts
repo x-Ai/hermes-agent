@@ -47,20 +47,24 @@ export const jaMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
     help: 'true にすると BlueBubbles の許可リストをスキップします。'
   },
   MATTERMOST_ALLOW_ALL_USERS: {
-    label: 'すべての Mattermost ユーザーを許可'
+    label: 'すべての Mattermost ユーザーを許可',
+    help: 'すべての Mattermost ユーザーが許可リストを経由せずにボットを利用できます。'
   },
   MATTERMOST_HOME_CHANNEL: {
-    label: 'ホームチャンネル'
+    label: 'ホームチャンネル',
+    help: 'Cron / 通知配信のデフォルト Mattermost チャンネル ID。'
   },
   QQ_ALLOW_ALL_USERS: {
-    label: 'すべての QQ ユーザーを許可'
+    label: 'すべての QQ ユーザーを許可',
+    help: 'すべての QQ ユーザーが許可リストを経由せずにボットを利用できます（true/false）。'
   },
   QQBOT_HOME_CHANNEL: {
     label: 'QQ ホームチャンネル',
     help: 'Cron 配信のデフォルトチャンネルまたはグループ。'
   },
   QQBOT_HOME_CHANNEL_NAME: {
-    label: 'QQ ホームチャンネル名'
+    label: 'QQ ホームチャンネル名',
+    help: 'QQ ホームチャンネルの表示名。'
   },
   SLACK_BOT_TOKEN: {
     label: 'Slack ボットトークン',
@@ -78,6 +82,7 @@ export const jaMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
   },
   MATTERMOST_URL: {
     label: 'サーバー URL',
+    help: 'Mattermost サーバーの URL（例: https://mm.example.com）。',
     placeholder: 'https://mattermost.example.com'
   },
   MATTERMOST_TOKEN: {
@@ -678,5 +683,238 @@ export const jaMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
   TEAMS_INCOMING_WEBHOOK_URL: {
     label: '受信 Webhook URL（または空）',
     help: 'webhook モードで会議サマリーを配信するための受信 Webhook URL（URL 自体が資格情報です）。'
+  },
+  WHATSAPP_CLOUD_PHONE_NUMBER_ID: {
+    label: '電話番号 ID',
+    help: 'Meta アプリダッシュボードの WhatsApp 電話番号 ID（WhatsApp → API Setup）。'
+  },
+  WHATSAPP_CLOUD_ACCESS_TOKEN: {
+    label: 'アクセストークン',
+    help: 'システムユーザーの永続アクセストークン。',
+    placeholder: 'WhatsApp Cloud のアクセストークンを貼り付け'
+  },
+  WHATSAPP_CLOUD_APP_SECRET: {
+    label: 'アプリシークレット',
+    help: 'X-Hub-Signature-256 Webhook 検証の HMAC キーとして使うアプリシークレット。'
+  },
+  WHATSAPP_CLOUD_VERIFY_TOKEN: {
+    label: '検証トークン',
+    help: 'Webhook 検証ハンドシェイクで使う共有シークレット（hub.verify_token）。'
+  },
+  WHATSAPP_CLOUD_APP_ID: {
+    label: 'アプリ ID',
+    help: 'Meta アプリ ID（任意）。'
+  },
+  WHATSAPP_CLOUD_WABA_ID: {
+    label: 'WhatsApp Business アカウント ID',
+    help: '設定すると、受信 Webhook はこのアカウントと一致する必要があります。'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_HOST: {
+    label: 'Webhook ホスト',
+    help: 'Webhook のバインドホスト（デフォルト: 未設定 → デュアルスタック、全インターフェース）。'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_PORT: {
+    label: 'Webhook ポート',
+    help: 'Webhook のバインドポート（デフォルト: 8090）。'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_PATH: {
+    label: 'Webhook パス',
+    help: 'Webhook のパス（デフォルト: /whatsapp/webhook）。'
+  },
+  WHATSAPP_CLOUD_API_VERSION: {
+    label: 'Graph API バージョン',
+    help: 'Graph API のバージョン（デフォルト: v20.0）。'
+  },
+  WHATSAPP_CLOUD_ALLOWED_USERS: {
+    label: '許可する電話番号',
+    help: '推奨。ボットと会話できる WhatsApp の電話番号（1 欄に 1 件）。'
+  },
+  WHATSAPP_CLOUD_ALLOW_ALL_USERS: {
+    label: 'すべての WhatsApp ユーザーを許可',
+    help: '開発用のみ。すべての WhatsApp ユーザーがボットを利用できます。'
+  },
+  WHATSAPP_CLOUD_DM_POLICY: {
+    label: 'DM ポリシー',
+    help: 'open、allowlist、disabled のいずれか。未設定時は WHATSAPP_DM_POLICY に従います。'
+  },
+  WHATSAPP_CLOUD_HOME_CHANNEL: {
+    label: 'ホーム電話番号',
+    help: 'Cron / 通知配信のデフォルト電話番号。'
+  },
+  SIGNAL_ALLOW_ALL_USERS: {
+    label: 'すべての Signal ユーザーを許可',
+    help: '開発用のみ。すべての Signal ユーザーがボットと会話できます。'
+  },
+  SIGNAL_GROUP_ALLOWED_USERS: {
+    label: '許可するグループ ID',
+    help: 'ボットと会話できる Signal グループ ID（1 欄に 1 件、* で全グループ）。'
+  },
+  SIGNAL_REQUIRE_MENTION: {
+    label: 'グループ内で @メンションを必須にする',
+    help: 'ボットがメンションされたグループメッセージにのみ応答します（true/false、デフォルト: false）。'
+  },
+  SIGNAL_IGNORE_STORIES: {
+    label: 'ストーリーを無視',
+    help: 'Signal のストーリーを無視します（true/false、デフォルト: true）。'
+  },
+  SIGNAL_HOME_CHANNEL: {
+    label: 'ホームチャンネル',
+    help: 'Cron / 通知配信のデフォルトチャット（電話番号または group:<id>）。'
+  },
+  SIGNAL_HOME_CHANNEL_NAME: {
+    label: 'ホームチャンネル名',
+    help: 'Signal ホームチャンネルの表示名。'
+  },
+  BLUEBUBBLES_HOME_CHANNEL: {
+    label: 'ホームチャンネルのアドレス',
+    help: 'Cron / 通知配信のデフォルト iMessage アドレスまたはチャット GUID。'
+  },
+  BLUEBUBBLES_HOME_CHANNEL_NAME: {
+    label: 'ホームチャンネル名',
+    help: 'ホームチャンネルの表示名。'
+  },
+  BLUEBUBBLES_WEBHOOK_HOST: {
+    label: 'Webhook ホスト',
+    help: 'Webhook リスナーのバインドホスト（デフォルト: 127.0.0.1）。'
+  },
+  BLUEBUBBLES_WEBHOOK_PORT: {
+    label: 'Webhook ポート',
+    help: 'Webhook リスナーのポート（デフォルト: 8645）。'
+  },
+  BLUEBUBBLES_WEBHOOK_PATH: {
+    label: 'Webhook パス',
+    help: 'Webhook リスナーのパス（デフォルト: /bluebubbles-webhook）。'
+  },
+  BLUEBUBBLES_SEND_READ_RECEIPTS: {
+    label: '既読通知を送信',
+    help: '受信メッセージを自動的に既読にします（デフォルト: true。Private API ヘルパーが必要）。'
+  },
+  BLUEBUBBLES_REQUIRE_MENTION: {
+    label: 'グループ内でウェイクワードを必須にする',
+    help: 'グループチャットではウェイクワードがある場合のみ応答します（デフォルト: false）。'
+  },
+  BLUEBUBBLES_MENTION_PATTERNS: {
+    label: 'メンションパターン',
+    help: 'グループのウェイクワード正規表現（JSON リスト、またはカンマ/改行区切り）。デフォルトは Hermes のウェイクワード。'
+  },
+  WEIXIN_CDN_BASE_URL: {
+    label: 'iLink CDN ベース URL',
+    help: 'iLink メディア CDN のベース URL（デフォルト: https://novac2c.cdn.weixin.qq.com/c2c）。'
+  },
+  WEIXIN_DM_POLICY: {
+    label: 'DM ポリシー',
+    help: 'pairing、open、allowlist、disabled のいずれか（デフォルト: pairing）。'
+  },
+  WEIXIN_GROUP_POLICY: {
+    label: 'グループポリシー',
+    help: 'disabled、open、allowlist のいずれか（デフォルト: disabled）。'
+  },
+  WEIXIN_ALLOWED_USERS: {
+    label: '許可する Weixin ユーザー',
+    help: 'ボットに DM できる Weixin ユーザー ID（1 欄に 1 件）。'
+  },
+  WEIXIN_GROUP_ALLOWED_USERS: {
+    label: '許可するグループチャット ID',
+    help: 'グループポリシーが allowlist のときに許可するグループチャット ID（1 欄に 1 件）。'
+  },
+  WEIXIN_ALLOW_ALL_USERS: {
+    label: 'すべての Weixin ユーザーを許可',
+    help: '開発用のみ。すべての Weixin ユーザーがボットを利用できます。'
+  },
+  WEIXIN_HOME_CHANNEL: {
+    label: 'ホームチャンネル ID',
+    help: 'Cron / 通知配信のデフォルトチャット ID。'
+  },
+  WEIXIN_HOME_CHANNEL_NAME: {
+    label: 'ホームチャンネル名',
+    help: 'Weixin ホームチャンネルの表示名。'
+  },
+  WEIXIN_SPLIT_MULTILINE_MESSAGES: {
+    label: '複数行メッセージを分割',
+    help: '複数行の返信を 1 行ずつ別のメッセージとして送信します（デフォルト: false）。'
+  },
+  QQBOT_HOME_CHANNEL_THREAD_ID: {
+    label: 'QQ ホームチャンネルのスレッド ID',
+    help: 'ホームチャンネルの宛先がスレッドの場合のスレッド ID。'
+  },
+  QQ_MARKDOWN_SUPPORT: {
+    label: 'Markdown 対応',
+    help: 'ボットに許可されている場合、QQ メッセージを Markdown で送信します（true/false）。'
+  },
+  QQ_PORTAL_HOST: {
+    label: 'オープンプラットフォームのホスト',
+    help: 'QQ オープンプラットフォームのポータルホスト（デフォルト: q.qq.com）。'
+  },
+  QQ_STT_API_KEY: {
+    label: '音声文字起こし API キー',
+    help: 'QQ 音声文字起こしのフォールバックに使う API キー。'
+  },
+  QQ_STT_BASE_URL: {
+    label: '音声文字起こしベース URL',
+    help: 'QQ 音声文字起こしプロバイダーのベース URL。'
+  },
+  QQ_STT_MODEL: {
+    label: '音声文字起こしモデル',
+    help: 'QQ 音声文字起こしプロバイダーのモデル名。'
+  },
+  YUANBAO_APP_ID: {
+    label: 'App ID',
+    help: 'Yuanbao IM ボット認証情報の App ID（旧エイリアス: YUANBAO_APP_KEY）。'
+  },
+  YUANBAO_APP_SECRET: {
+    label: 'App Secret',
+    help: 'Yuanbao IM ボットの App Secret（HMAC 署名に使用）。'
+  },
+  YUANBAO_BOT_ID: {
+    label: 'ボット ID',
+    help: 'ボットアカウント ID（未設定時は署名トークンから自動検出）。'
+  },
+  YUANBAO_WS_URL: {
+    label: 'WebSocket URL',
+    help: 'Yuanbao WebSocket ゲートウェイ URL の上書き。'
+  },
+  YUANBAO_API_DOMAIN: {
+    label: 'API ドメイン',
+    help: 'Yuanbao API ドメインの上書き（署名トークンのエンドポイント）。'
+  },
+  YUANBAO_ROUTE_ENV: {
+    label: 'ルーティング環境',
+    help: '非本番 Yuanbao バックエンド向けのルーティング環境ヘッダー。'
+  },
+  YUANBAO_DM_POLICY: {
+    label: 'DM ポリシー',
+    help: 'open、allowlist、disabled のいずれか。'
+  },
+  YUANBAO_DM_ALLOW_FROM: {
+    label: 'DM 許可リスト',
+    help: 'ボットに DM できるユーザー ID（カンマ区切り、allowlist ポリシー用）。'
+  },
+  YUANBAO_GROUP_POLICY: {
+    label: 'グループポリシー',
+    help: 'open、allowlist、disabled のいずれか。'
+  },
+  YUANBAO_GROUP_ALLOW_FROM: {
+    label: 'グループ許可リスト',
+    help: '許可するグループ ID（カンマ区切り、allowlist ポリシー用）。'
+  },
+  YUANBAO_ALLOWED_USERS: {
+    label: '許可する Yuanbao ユーザー',
+    help: 'ボットと会話できる Yuanbao ユーザー ID（1 欄に 1 件）。'
+  },
+  YUANBAO_ALLOW_ALL_USERS: {
+    label: 'すべての Yuanbao ユーザーを許可',
+    help: '開発用のみ。すべての Yuanbao ユーザーがボットを利用できます。'
+  },
+  YUANBAO_HOME_CHANNEL: {
+    label: 'ホームチャンネル ID',
+    help: 'Cron / 通知配信のデフォルトチャット ID。'
+  },
+  YUANBAO_HOME_CHANNEL_NAME: {
+    label: 'ホームチャンネル名',
+    help: 'ホームチャンネルの表示名。'
+  },
+  TEAMS_REQUIRE_MENTION: {
+    label: 'チャンネルとグループチャットで @メンションを必須にする',
+    help: 'ボットを @メンションしたか、ボットに返信したチャンネル / グループチャットのメッセージにのみ応答します（デフォルト: false。アプリが RSC のメッセージ読み取り同意を得た後に必要）。'
   }
 }

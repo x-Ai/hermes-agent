@@ -553,5 +553,234 @@ export const zhMessagingFieldCopy: Translations['messaging']['fieldCopy'] = {
   TEAMS_INCOMING_WEBHOOK_URL: {
     label: '传入 Webhook URL（或留空）',
     help: 'webhook 模式下投递会议纪要所用的传入 Webhook URL（这个 URL 本身就是凭据）'
+  },
+  WHATSAPP_CLOUD_PHONE_NUMBER_ID: {
+    label: '电话号码 ID',
+    help: 'Meta 应用控制台中的 WhatsApp 电话号码 ID（WhatsApp → API 设置）'
+  },
+  WHATSAPP_CLOUD_ACCESS_TOKEN: {
+    label: '访问令牌',
+    help: '系统用户的永久访问令牌',
+    placeholder: '粘贴 WhatsApp Cloud 访问令牌'
+  },
+  WHATSAPP_CLOUD_APP_SECRET: {
+    label: '应用密钥',
+    help: '应用密钥，用作 X-Hub-Signature-256 Webhook 校验的 HMAC 密钥'
+  },
+  WHATSAPP_CLOUD_VERIFY_TOKEN: {
+    label: '验证令牌',
+    help: 'Webhook 验证握手使用的共享密钥（hub.verify_token）'
+  },
+  WHATSAPP_CLOUD_APP_ID: {
+    label: '应用 ID',
+    help: 'Meta 应用 ID（可选）'
+  },
+  WHATSAPP_CLOUD_WABA_ID: {
+    label: 'WhatsApp Business 账号 ID',
+    help: '设置后，入站 Webhook 必须与该账号匹配'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_HOST: {
+    label: 'Webhook 主机',
+    help: 'Webhook 绑定主机（默认未设置 → 双栈，所有接口）'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_PORT: {
+    label: 'Webhook 端口',
+    help: 'Webhook 绑定端口（默认 8090）'
+  },
+  WHATSAPP_CLOUD_WEBHOOK_PATH: {
+    label: 'Webhook 路径',
+    help: 'Webhook 路径（默认 /whatsapp/webhook）'
+  },
+  WHATSAPP_CLOUD_API_VERSION: {
+    label: 'Graph API 版本',
+    help: 'Graph API 版本（默认 v20.0）'
+  },
+  WHATSAPP_CLOUD_ALLOWED_USERS: {
+    label: '允许的电话号码',
+    help: '推荐，允许与机器人对话的 WhatsApp 电话号码（每格一个）'
+  },
+  WHATSAPP_CLOUD_ALLOW_ALL_USERS: {
+    label: '允许所有 WhatsApp 用户',
+    help: '仅用于开发，任何 WhatsApp 用户都能触发机器人'
+  },
+  WHATSAPP_CLOUD_DM_POLICY: {
+    label: '私信策略',
+    help: 'open、allowlist 或 disabled，未设置时沿用 WHATSAPP_DM_POLICY'
+  },
+  WHATSAPP_CLOUD_HOME_CHANNEL: {
+    label: '主页电话号码',
+    help: 'cron / 通知投递的默认电话号码'
+  },
+  SIGNAL_ALLOW_ALL_USERS: {
+    label: '允许所有 Signal 用户',
+    help: '仅用于开发，任何 Signal 用户都能与机器人对话'
+  },
+  SIGNAL_GROUP_ALLOWED_USERS: {
+    label: '允许的群组 ID',
+    help: '允许与机器人对话的 Signal 群组 ID（每格一个，* 表示所有群组）'
+  },
+  SIGNAL_REQUIRE_MENTION: {
+    label: '群组内需要 @提及',
+    help: '仅回应群组中 @提及机器人的消息（true/false，默认 false）'
+  },
+  SIGNAL_IGNORE_STORIES: {
+    label: '忽略动态',
+    help: '忽略 Signal 动态（true/false，默认 true）'
+  },
+  SIGNAL_HOME_CHANNEL: {
+    label: '主页频道',
+    help: 'cron / 通知投递的默认聊天（电话号码或 group:<id>）'
+  },
+  SIGNAL_HOME_CHANNEL_NAME: {
+    label: '主页频道名称',
+    help: 'Signal 主页频道的显示名称'
+  },
+  BLUEBUBBLES_HOME_CHANNEL: {
+    label: '主页频道地址',
+    help: 'cron / 通知投递的默认 iMessage 地址或聊天 GUID'
+  },
+  BLUEBUBBLES_HOME_CHANNEL_NAME: {
+    label: '主页频道名称',
+    help: '主页频道的显示名称'
+  },
+  BLUEBUBBLES_WEBHOOK_HOST: {
+    label: 'Webhook 主机',
+    help: 'Webhook 监听绑定主机（默认 127.0.0.1）'
+  },
+  BLUEBUBBLES_WEBHOOK_PORT: {
+    label: 'Webhook 端口',
+    help: 'Webhook 监听端口（默认 8645）'
+  },
+  BLUEBUBBLES_WEBHOOK_PATH: {
+    label: 'Webhook 路径',
+    help: 'Webhook 监听路径（默认 /bluebubbles-webhook）'
+  },
+  BLUEBUBBLES_SEND_READ_RECEIPTS: {
+    label: '发送已读回执',
+    help: '自动把收到的消息标记为已读（默认 true，需要 Private API 助手）'
+  },
+  BLUEBUBBLES_REQUIRE_MENTION: {
+    label: '群聊需要唤醒词',
+    help: '群聊中需要唤醒词才会回应（默认 false）'
+  },
+  BLUEBUBBLES_MENTION_PATTERNS: {
+    label: '群聊提及模式',
+    help: '群聊的唤醒词正则（JSON 列表或逗号/换行分隔，默认使用 Hermes 唤醒词）'
+  },
+  WEIXIN_CDN_BASE_URL: {
+    label: 'iLink CDN 基础 URL',
+    help: 'iLink 媒体 CDN 基础 URL（默认 https://novac2c.cdn.weixin.qq.com/c2c）'
+  },
+  WEIXIN_DM_POLICY: {
+    label: '私信策略',
+    help: 'pairing、open、allowlist 或 disabled（默认 pairing）'
+  },
+  WEIXIN_GROUP_POLICY: {
+    label: '群聊策略',
+    help: 'disabled、open 或 allowlist（默认 disabled）'
+  },
+  WEIXIN_ALLOWED_USERS: {
+    label: '允许的微信用户',
+    help: '允许私信机器人的微信用户 ID（每格一个）'
+  },
+  WEIXIN_GROUP_ALLOWED_USERS: {
+    label: '允许的群聊 ID',
+    help: '群聊策略为 allowlist 时允许的群聊 ID（每格一个）'
+  },
+  WEIXIN_ALLOW_ALL_USERS: {
+    label: '允许所有微信用户',
+    help: '仅用于开发，任何微信用户都能触发机器人'
+  },
+  WEIXIN_HOME_CHANNEL: {
+    label: '主页频道 ID',
+    help: 'cron / 通知投递的默认聊天 ID'
+  },
+  WEIXIN_HOME_CHANNEL_NAME: {
+    label: '主页频道名称',
+    help: '微信主页频道的显示名称'
+  },
+  WEIXIN_SPLIT_MULTILINE_MESSAGES: {
+    label: '拆分多行消息',
+    help: '把多行回复的每一行作为单独消息发送（默认 false）'
+  },
+  QQBOT_HOME_CHANNEL_THREAD_ID: {
+    label: 'QQ 主页频道话题 ID',
+    help: '主页频道目标为话题时使用的话题 ID'
+  },
+  QQ_MARKDOWN_SUPPORT: {
+    label: 'Markdown 支持',
+    help: '机器人获准时以 Markdown 发送 QQ 消息（true/false）'
+  },
+  QQ_PORTAL_HOST: {
+    label: '开放平台域名',
+    help: 'QQ 开放平台门户域名（默认 q.qq.com）'
+  },
+  QQ_STT_API_KEY: {
+    label: '语音转写 API 密钥',
+    help: 'QQ 语音转写回退所用的 API 密钥'
+  },
+  QQ_STT_BASE_URL: {
+    label: '语音转写基础 URL',
+    help: 'QQ 语音转写服务的基础 URL'
+  },
+  QQ_STT_MODEL: {
+    label: '语音转写模型',
+    help: 'QQ 语音转写服务使用的模型名称'
+  },
+  YUANBAO_APP_ID: {
+    label: 'App ID',
+    help: '元宝 IM 机器人凭据中的 App ID（旧别名 YUANBAO_APP_KEY）'
+  },
+  YUANBAO_APP_SECRET: {
+    label: 'App Secret',
+    help: '元宝 IM 机器人的 App Secret（用于 HMAC 签名）'
+  },
+  YUANBAO_BOT_ID: {
+    label: '机器人 ID',
+    help: '机器人账号 ID（未设置时从签名令牌自动识别）'
+  },
+  YUANBAO_WS_URL: {
+    label: 'WebSocket URL',
+    help: '覆盖元宝 WebSocket 网关 URL'
+  },
+  YUANBAO_API_DOMAIN: {
+    label: 'API 域名',
+    help: '覆盖元宝 API 域名（签名令牌接口）'
+  },
+  YUANBAO_ROUTE_ENV: {
+    label: '路由环境',
+    help: '非生产环境元宝后端使用的路由环境请求头'
+  },
+  YUANBAO_DM_POLICY: {
+    label: '私信策略',
+    help: 'open、allowlist 或 disabled'
+  },
+  YUANBAO_DM_ALLOW_FROM: {
+    label: '私信允许列表',
+    help: '允许私信机器人的用户 ID，逗号分隔（allowlist 策略）'
+  },
+  YUANBAO_GROUP_POLICY: {
+    label: '群聊策略',
+    help: 'open、allowlist 或 disabled'
+  },
+  YUANBAO_GROUP_ALLOW_FROM: {
+    label: '群聊允许列表',
+    help: '允许的群组 ID，逗号分隔（allowlist 策略）'
+  },
+  YUANBAO_ALLOWED_USERS: {
+    label: '允许的元宝用户',
+    help: '允许与机器人对话的元宝用户 ID（每格一个）'
+  },
+  YUANBAO_ALLOW_ALL_USERS: {
+    label: '允许所有元宝用户',
+    help: '仅用于开发，任何元宝用户都能触发机器人'
+  },
+  YUANBAO_HOME_CHANNEL: {
+    label: '主页频道 ID',
+    help: 'cron / 通知投递的默认聊天 ID'
+  },
+  YUANBAO_HOME_CHANNEL_NAME: {
+    label: '主页频道名称',
+    help: '主页频道的显示名称'
   }
 }

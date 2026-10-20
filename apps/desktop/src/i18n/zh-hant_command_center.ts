@@ -381,10 +381,12 @@ export const zhHantCommandCenter = {
         help: '為 true 時略過 BlueBubbles 允許清單。'
       },
       MATTERMOST_ALLOW_ALL_USERS: {
-        label: '允許所有 Mattermost 使用者'
+        label: '允許所有 Mattermost 使用者',
+        help: '允許所有 Mattermost 使用者略過允許清單與機器人互動。'
       },
       MATTERMOST_HOME_CHANNEL: {
-        label: '主頻道'
+        label: '主頻道',
+        help: 'cron / 通知傳遞的預設 Mattermost 頻道 ID。'
       },
       QQ_ALLOW_ALL_USERS: {
         label: '允許所有 QQ 使用者',
@@ -897,6 +899,235 @@ export const zhHantCommandCenter = {
       TEAMS_INCOMING_WEBHOOK_URL: {
         label: '傳入 Webhook URL（或留空）',
         help: 'webhook 模式下傳遞會議摘要所用的傳入 Webhook URL（這個 URL 本身就是憑證）。'
+      },
+      WHATSAPP_CLOUD_PHONE_NUMBER_ID: {
+        label: '電話號碼 ID',
+        help: 'Meta 應用程式主控台中的 WhatsApp 電話號碼 ID（WhatsApp → API 設定）。'
+      },
+      WHATSAPP_CLOUD_ACCESS_TOKEN: {
+        label: '存取權杖',
+        help: '系統使用者的永久存取權杖。',
+        placeholder: '貼上 WhatsApp Cloud 存取權杖'
+      },
+      WHATSAPP_CLOUD_APP_SECRET: {
+        label: '應用程式密鑰',
+        help: '應用程式密鑰，用作 X-Hub-Signature-256 Webhook 驗證的 HMAC 金鑰。'
+      },
+      WHATSAPP_CLOUD_VERIFY_TOKEN: {
+        label: '驗證權杖',
+        help: 'Webhook 驗證交握使用的共用密鑰（hub.verify_token）。'
+      },
+      WHATSAPP_CLOUD_APP_ID: {
+        label: '應用程式 ID',
+        help: 'Meta 應用程式 ID（選填）。'
+      },
+      WHATSAPP_CLOUD_WABA_ID: {
+        label: 'WhatsApp Business 帳號 ID',
+        help: '設定後，傳入的 Webhook 必須與該帳號相符。'
+      },
+      WHATSAPP_CLOUD_WEBHOOK_HOST: {
+        label: 'Webhook 主機',
+        help: 'Webhook 繫結主機（預設未設定 → 雙協定棧，所有介面）。'
+      },
+      WHATSAPP_CLOUD_WEBHOOK_PORT: {
+        label: 'Webhook 連接埠',
+        help: 'Webhook 繫結連接埠（預設 8090）。'
+      },
+      WHATSAPP_CLOUD_WEBHOOK_PATH: {
+        label: 'Webhook 路徑',
+        help: 'Webhook 路徑（預設 /whatsapp/webhook）。'
+      },
+      WHATSAPP_CLOUD_API_VERSION: {
+        label: 'Graph API 版本',
+        help: 'Graph API 版本（預設 v20.0）。'
+      },
+      WHATSAPP_CLOUD_ALLOWED_USERS: {
+        label: '允許的電話號碼',
+        help: '建議設定。允許與機器人對話的 WhatsApp 電話號碼（每格一個）。'
+      },
+      WHATSAPP_CLOUD_ALLOW_ALL_USERS: {
+        label: '允許所有 WhatsApp 使用者',
+        help: '僅供開發使用。任何 WhatsApp 使用者都能觸發機器人。'
+      },
+      WHATSAPP_CLOUD_DM_POLICY: {
+        label: '私訊策略',
+        help: 'open、allowlist 或 disabled，未設定時沿用 WHATSAPP_DM_POLICY。'
+      },
+      WHATSAPP_CLOUD_HOME_CHANNEL: {
+        label: '主電話號碼',
+        help: 'cron / 通知傳遞的預設電話號碼。'
+      },
+      SIGNAL_ALLOW_ALL_USERS: {
+        label: '允許所有 Signal 使用者',
+        help: '僅供開發使用。任何 Signal 使用者都能與機器人對話。'
+      },
+      SIGNAL_GROUP_ALLOWED_USERS: {
+        label: '允許的群組 ID',
+        help: '允許與機器人對話的 Signal 群組 ID（每格一個，* 代表所有群組）。'
+      },
+      SIGNAL_REQUIRE_MENTION: {
+        label: '群組內需要 @提及',
+        help: '僅回應群組中 @提及機器人的訊息（true/false，預設 false）。'
+      },
+      SIGNAL_IGNORE_STORIES: {
+        label: '忽略限時動態',
+        help: '忽略 Signal 限時動態（true/false，預設 true）。'
+      },
+      SIGNAL_HOME_CHANNEL: {
+        label: '主頻道',
+        help: 'cron / 通知傳遞的預設聊天（電話號碼或 group:<id>）。'
+      },
+      SIGNAL_HOME_CHANNEL_NAME: {
+        label: '主頻道名稱',
+        help: 'Signal 主頻道的顯示名稱。'
+      },
+      BLUEBUBBLES_HOME_CHANNEL: {
+        label: '主頻道位址',
+        help: 'cron / 通知傳遞的預設 iMessage 位址或聊天 GUID。'
+      },
+      BLUEBUBBLES_HOME_CHANNEL_NAME: {
+        label: '主頻道名稱',
+        help: '主頻道的顯示名稱。'
+      },
+      BLUEBUBBLES_WEBHOOK_HOST: {
+        label: 'Webhook 主機',
+        help: 'Webhook 監聽繫結主機（預設 127.0.0.1）。'
+      },
+      BLUEBUBBLES_WEBHOOK_PORT: {
+        label: 'Webhook 連接埠',
+        help: 'Webhook 監聽連接埠（預設 8645）。'
+      },
+      BLUEBUBBLES_WEBHOOK_PATH: {
+        label: 'Webhook 路徑',
+        help: 'Webhook 監聽路徑（預設 /bluebubbles-webhook）。'
+      },
+      BLUEBUBBLES_SEND_READ_RECEIPTS: {
+        label: '傳送已讀回條',
+        help: '自動將收到的訊息標記為已讀（預設 true，需要 Private API 輔助程式）。'
+      },
+      BLUEBUBBLES_REQUIRE_MENTION: {
+        label: '群組聊天需要喚醒詞',
+        help: '群組聊天中需要喚醒詞才會回應（預設 false）。'
+      },
+      BLUEBUBBLES_MENTION_PATTERNS: {
+        label: '群組提及模式',
+        help: '群組聊天的喚醒詞正規表示式（JSON 清單或逗號/換行分隔；預設使用 Hermes 喚醒詞）。'
+      },
+      WEIXIN_CDN_BASE_URL: {
+        label: 'iLink CDN 基礎 URL',
+        help: 'iLink 媒體 CDN 基礎 URL（預設 https://novac2c.cdn.weixin.qq.com/c2c）。'
+      },
+      WEIXIN_DM_POLICY: {
+        label: '私訊策略',
+        help: 'pairing、open、allowlist 或 disabled（預設 pairing）。'
+      },
+      WEIXIN_GROUP_POLICY: {
+        label: '群組聊天策略',
+        help: 'disabled、open 或 allowlist（預設 disabled）。'
+      },
+      WEIXIN_ALLOWED_USERS: {
+        label: '允許的微信使用者',
+        help: '允許私訊機器人的微信使用者 ID（每格一個）。'
+      },
+      WEIXIN_GROUP_ALLOWED_USERS: {
+        label: '允許的群組聊天 ID',
+        help: '群組聊天策略為 allowlist 時允許的群組聊天 ID（每格一個）。'
+      },
+      WEIXIN_ALLOW_ALL_USERS: {
+        label: '允許所有微信使用者',
+        help: '僅供開發使用。任何微信使用者都能觸發機器人。'
+      },
+      WEIXIN_HOME_CHANNEL: {
+        label: '主頻道 ID',
+        help: 'cron / 通知傳遞的預設聊天 ID。'
+      },
+      WEIXIN_HOME_CHANNEL_NAME: {
+        label: '主頻道名稱',
+        help: '微信主頻道的顯示名稱。'
+      },
+      WEIXIN_SPLIT_MULTILINE_MESSAGES: {
+        label: '拆分多行訊息',
+        help: '將多行回覆的每一行作為單獨訊息傳送（預設 false）。'
+      },
+      QQBOT_HOME_CHANNEL_THREAD_ID: {
+        label: 'QQ 主頻道討論串 ID',
+        help: '主頻道目標為討論串時使用的討論串 ID。'
+      },
+      QQ_MARKDOWN_SUPPORT: {
+        label: 'Markdown 支援',
+        help: '機器人獲准時以 Markdown 傳送 QQ 訊息（true/false）。'
+      },
+      QQ_PORTAL_HOST: {
+        label: '開放平台網域',
+        help: 'QQ 開放平台入口網域（預設 q.qq.com）。'
+      },
+      QQ_STT_API_KEY: {
+        label: '語音轉錄 API 金鑰',
+        help: 'QQ 語音轉錄備援所用的 API 金鑰。'
+      },
+      QQ_STT_BASE_URL: {
+        label: '語音轉錄基礎 URL',
+        help: 'QQ 語音轉錄服務的基礎 URL。'
+      },
+      QQ_STT_MODEL: {
+        label: '語音轉錄模型',
+        help: 'QQ 語音轉錄服務使用的模型名稱。'
+      },
+      YUANBAO_APP_ID: {
+        label: 'App ID',
+        help: '元寶 IM 機器人憑證中的 App ID（舊別名 YUANBAO_APP_KEY）。'
+      },
+      YUANBAO_APP_SECRET: {
+        label: 'App Secret',
+        help: '元寶 IM 機器人的 App Secret（用於 HMAC 簽章）。'
+      },
+      YUANBAO_BOT_ID: {
+        label: '機器人 ID',
+        help: '機器人帳號 ID（未設定時從簽章權杖自動偵測）。'
+      },
+      YUANBAO_WS_URL: {
+        label: 'WebSocket URL',
+        help: '覆寫元寶 WebSocket 閘道 URL。'
+      },
+      YUANBAO_API_DOMAIN: {
+        label: 'API 網域',
+        help: '覆寫元寶 API 網域（簽章權杖端點）。'
+      },
+      YUANBAO_ROUTE_ENV: {
+        label: '路由環境',
+        help: '非正式環境元寶後端使用的路由環境標頭。'
+      },
+      YUANBAO_DM_POLICY: {
+        label: '私訊策略',
+        help: 'open、allowlist 或 disabled。'
+      },
+      YUANBAO_DM_ALLOW_FROM: {
+        label: '私訊允許清單',
+        help: '允許私訊機器人的使用者 ID，逗號分隔（allowlist 策略）。'
+      },
+      YUANBAO_GROUP_POLICY: {
+        label: '群組策略',
+        help: 'open、allowlist 或 disabled。'
+      },
+      YUANBAO_GROUP_ALLOW_FROM: {
+        label: '群組允許清單',
+        help: '允許的群組 ID，逗號分隔（allowlist 策略）。'
+      },
+      YUANBAO_ALLOWED_USERS: {
+        label: '允許的元寶使用者',
+        help: '允許與機器人對話的元寶使用者 ID（每格一個）。'
+      },
+      YUANBAO_ALLOW_ALL_USERS: {
+        label: '允許所有元寶使用者',
+        help: '僅供開發使用。任何元寶使用者都能觸發機器人。'
+      },
+      YUANBAO_HOME_CHANNEL: {
+        label: '主頻道 ID',
+        help: 'cron / 通知傳遞的預設聊天 ID。'
+      },
+      YUANBAO_HOME_CHANNEL_NAME: {
+        label: '主頻道名稱',
+        help: '主頻道的顯示名稱。'
       }
     },
     platformIntro: {
