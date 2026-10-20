@@ -4014,6 +4014,12 @@ tui_gateway:
     mode_off: "語音模式已關閉 — 以 /voice on 啟用"
     module_missing_deps: "語音模組無法使用 — 請安裝音訊相依套件"
     module_missing: "語音模組無法使用"
+  plugins:
+    update_failed: "更新失敗"
+    toggle_failed: "切換失敗"
+    install_failed: "安裝失敗"
+    remove_failed: "移除失敗"
+    not_found: "找不到外掛 '{name}'"
   turn_error:
     not_answered: "{title}。你的訊息未得到回答。"
     details: "詳情：{detail}"
@@ -4295,12 +4301,6 @@ tui_gateway:
     oauth_url_timeout: "等待 MCP 授權連結逾時"
     oauth_session_expired: "OAuth 工作階段不存在或已過期"
     oauth_cancelled: "使用者已取消 OAuth"
-  plugins:
-    toggle_failed: "切換失敗"
-    install_failed: "安裝失敗"
-    not_catalog_install: "'{name}' 不是從目錄安裝的 — 請透過 CLI 更新"
-    remove_failed: "移除失敗"
-    not_found: "找不到外掛 '{name}'"
   shell:
     blocked_hardline: "已封鎖（硬性規則）：{reason}。危險指令請交給代理執行。"
     blocked: "已封鎖：{reason}。危險指令請交給代理執行。"

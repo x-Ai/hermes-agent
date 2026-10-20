@@ -4016,6 +4016,12 @@ tui_gateway:
     mode_off: "stemmodus is af — skakel dit aan met /voice on"
     module_missing_deps: "stemmodule nie beskikbaar nie — installeer die oudio-afhanklikhede"
     module_missing: "stemmodule nie beskikbaar nie"
+  plugins:
+    update_failed: "opdatering het misluk"
+    toggle_failed: "wissel het misluk"
+    install_failed: "installasie het misluk"
+    remove_failed: "verwydering het misluk"
+    not_found: "inprop '{name}' nie gevind nie"
   turn_error:
     not_answered: "{title}. Jou boodskap is nie beantwoord nie."
     details: "Besonderhede: {detail}"
@@ -4297,12 +4303,6 @@ tui_gateway:
     oauth_url_timeout: "Tyd verstreke terwyl op die MCP-magtigings-URL gewag is"
     oauth_session_expired: "OAuth-sessie nie gevind nie of verval"
     oauth_cancelled: "OAuth deur gebruiker gekanselleer"
-  plugins:
-    toggle_failed: "wissel het misluk"
-    install_failed: "installasie het misluk"
-    not_catalog_install: "'{name}' is nie 'n katalogusinstallasie nie — werk dit via die CLI op"
-    remove_failed: "verwydering het misluk"
-    not_found: "inprop '{name}' nie gevind nie"
   shell:
     blocked_hardline: "geblokkeer (streng reël): {reason}. Gebruik die agent vir gevaarlike opdragte."
     blocked: "geblokkeer: {reason}. Gebruik die agent vir gevaarlike opdragte."

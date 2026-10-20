@@ -4014,6 +4014,12 @@ tui_gateway:
     mode_off: "音声モードはオフです — /voice on で有効にしてください"
     module_missing_deps: "音声モジュールを利用できません — オーディオ依存関係をインストールしてください"
     module_missing: "音声モジュールを利用できません"
+  plugins:
+    update_failed: "更新に失敗しました"
+    toggle_failed: "切り替えに失敗しました"
+    install_failed: "インストールに失敗しました"
+    remove_failed: "削除に失敗しました"
+    not_found: "プラグイン '{name}' が見つかりません"
   turn_error:
     not_answered: "{title}。メッセージには回答されませんでした"
     details: "詳細: {detail}"
@@ -4295,12 +4301,6 @@ tui_gateway:
     oauth_url_timeout: "MCP 認可 URL の待機がタイムアウトしました"
     oauth_session_expired: "OAuth セッションが見つからないか期限切れです"
     oauth_cancelled: "ユーザーが OAuth をキャンセルしました"
-  plugins:
-    toggle_failed: "切り替えに失敗しました"
-    install_failed: "インストールに失敗しました"
-    not_catalog_install: "'{name}' はカタログからのインストールではありません — CLI で更新してください"
-    remove_failed: "削除に失敗しました"
-    not_found: "プラグイン '{name}' が見つかりません"
   shell:
     blocked_hardline: "ブロックされました（ハードライン）: {reason}。危険なコマンドはエージェントに任せてください"
     blocked: "ブロックされました: {reason}。危険なコマンドはエージェントに任せてください"

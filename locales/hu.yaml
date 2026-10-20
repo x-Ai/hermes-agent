@@ -4033,6 +4033,12 @@ tui_gateway:
     mode_off: "a hangmód ki van kapcsolva — kapcsold be a /voice on paranccsal"
     module_missing_deps: "a hangmodul nem érhető el — telepítsd az audiofüggőségeket"
     module_missing: "a hangmodul nem érhető el"
+  plugins:
+    update_failed: "a frissítés nem sikerült"
+    toggle_failed: "az átkapcsolás sikertelen"
+    install_failed: "a telepítés sikertelen"
+    remove_failed: "az eltávolítás sikertelen"
+    not_found: "a(z) '{name}' bővítmény nem található"
   turn_error:
     not_answered: "{title}. Az üzenetedre nem érkezett válasz."
     details: "Részletek: {detail}"
@@ -4314,12 +4320,6 @@ tui_gateway:
     oauth_url_timeout: "Időtúllépés az MCP engedélyezési URL-re várva"
     oauth_session_expired: "Az OAuth munkamenet nem található vagy lejárt"
     oauth_cancelled: "Az OAuth-ot a felhasználó megszakította"
-  plugins:
-    toggle_failed: "az átkapcsolás sikertelen"
-    install_failed: "a telepítés sikertelen"
-    not_catalog_install: "a(z) '{name}' nem katalógusból telepített — frissítsd a CLI-n keresztül"
-    remove_failed: "az eltávolítás sikertelen"
-    not_found: "a(z) '{name}' bővítmény nem található"
   shell:
     blocked_hardline: "blokkolva (szigorú szabály): {reason}. A veszélyes parancsokhoz használd az ügynököt."
     blocked: "blokkolva: {reason}. A veszélyes parancsokhoz használd az ügynököt."

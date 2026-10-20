@@ -4014,6 +4014,12 @@ tui_gateway:
     mode_off: "음성 모드가 꺼져 있습니다 — /voice on으로 켜세요"
     module_missing_deps: "음성 모듈을 사용할 수 없습니다 — 오디오 의존성을 설치하세요"
     module_missing: "음성 모듈을 사용할 수 없습니다"
+  plugins:
+    update_failed: "업데이트 실패"
+    toggle_failed: "전환 실패"
+    install_failed: "설치 실패"
+    remove_failed: "제거 실패"
+    not_found: "플러그인 '{name}'을(를) 찾을 수 없습니다"
   turn_error:
     not_answered: "{title}. 메시지에 대한 답변이 없었습니다."
     details: "세부 정보: {detail}"
@@ -4295,12 +4301,6 @@ tui_gateway:
     oauth_url_timeout: "MCP 인가 URL 대기 시간이 초과되었습니다"
     oauth_session_expired: "OAuth 세션이 없거나 만료되었습니다"
     oauth_cancelled: "사용자가 OAuth를 취소했습니다"
-  plugins:
-    toggle_failed: "전환 실패"
-    install_failed: "설치 실패"
-    not_catalog_install: "'{name}'은(는) 카탈로그 설치가 아닙니다 — CLI로 업데이트하세요"
-    remove_failed: "제거 실패"
-    not_found: "플러그인 '{name}'을(를) 찾을 수 없습니다"
   shell:
     blocked_hardline: "차단됨(하드라인): {reason}. 위험한 명령은 에이전트에게 맡기세요."
     blocked: "차단됨: {reason}. 위험한 명령은 에이전트에게 맡기세요."

@@ -4015,6 +4015,12 @@ tui_gateway:
     mode_off: "ses modu kapalı — /voice on ile etkinleştirin"
     module_missing_deps: "ses modülü kullanılamıyor — ses bağımlılıklarını kurun"
     module_missing: "ses modülü kullanılamıyor"
+  plugins:
+    update_failed: "güncelleme başarısız oldu"
+    toggle_failed: "geçiş başarısız"
+    install_failed: "kurulum başarısız"
+    remove_failed: "kaldırma başarısız"
+    not_found: "'{name}' eklentisi bulunamadı"
   turn_error:
     not_answered: "{title}. Mesajınız yanıtlanmadı."
     details: "Ayrıntılar: {detail}"
@@ -4296,12 +4302,6 @@ tui_gateway:
     oauth_url_timeout: "MCP yetkilendirme URL'si beklenirken zaman aşımı"
     oauth_session_expired: "OAuth oturumu bulunamadı veya süresi doldu"
     oauth_cancelled: "OAuth kullanıcı tarafından iptal edildi"
-  plugins:
-    toggle_failed: "geçiş başarısız"
-    install_failed: "kurulum başarısız"
-    not_catalog_install: "'{name}' bir katalog kurulumu değil — CLI üzerinden güncelleyin"
-    remove_failed: "kaldırma başarısız"
-    not_found: "'{name}' eklentisi bulunamadı"
   shell:
     blocked_hardline: "engellendi (katı kural): {reason}. Tehlikeli komutlar için ajanı kullanın."
     blocked: "engellendi: {reason}. Tehlikeli komutlar için ajanı kullanın."

@@ -4144,6 +4144,12 @@ tui_gateway:
     mode_off: "voice mode is off — enable with /voice on"
     module_missing_deps: "voice module not available — install audio dependencies"
     module_missing: "voice module not available"
+  plugins:
+    update_failed: "update failed"
+    toggle_failed: "toggle failed"
+    install_failed: "install failed"
+    remove_failed: "remove failed"
+    not_found: "plugin '{name}' not found"
   turn_error:
     not_answered: "{title}. Your message was not answered."
     details: "Details: {detail}"
@@ -4425,12 +4431,6 @@ tui_gateway:
     oauth_url_timeout: "Timed out waiting for MCP authorization URL"
     oauth_session_expired: "OAuth session not found or expired"
     oauth_cancelled: "OAuth cancelled by user"
-  plugins:
-    toggle_failed: "toggle failed"
-    install_failed: "install failed"
-    not_catalog_install: "'{name}' is not a catalog install — update it via the CLI"
-    remove_failed: "remove failed"
-    not_found: "plugin '{name}' not found"
   shell:
     blocked_hardline: "blocked (hardline): {reason}. Use the agent for dangerous commands."
     blocked: "blocked: {reason}. Use the agent for dangerous commands."

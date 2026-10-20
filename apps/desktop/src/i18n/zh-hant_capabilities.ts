@@ -1,4 +1,5 @@
 import type { TranslationOverrides } from './define-locale'
+import { zhHantPluginUpdate } from './zh-hant_plugin_update'
 
 export const zhHantCapabilities = {
   skills: {
@@ -129,16 +130,10 @@ export const zhHantCapabilities = {
       catalogProvenance: (sha: string) => `從 Hermes 目錄安裝${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) => `Pinned to commit ${sha}。在使用新 pin 重新安裝之前，更新將被拒絕。`,
       pinnedBadge: (sha: string) => `已固定 @${sha}`,
-      updateToPin: (sha: string) => `更新至${sha}`,
-      updateFailed: (name: string) => `無法更新${name}`,
-      updated: (name: string) => `${name}已更新至當前目錄 PIN。請重新啟動網關以套用。`,
+      ...zhHantPluginUpdate,
       desktopHalfRemote: '不可用（遠端後端）',
       desktopHalfRemoteTip:
         '該套件的桌面部分位於遠端後端的磁碟上，該應用程式無法讀取該磁碟。要在此處使用它，請從 Git 運行安裝，並選中軟體包的存儲庫 URL 並選中桌面目標，這會將桌面的一半克隆到這台電腦上。',
-      updateConsentTitle: (name: string) => `${name}要求更多`,
-      updateConsentBody: (name: string, sha: string) =>
-        `The new catalog pin of ${name} (${sha}) 增加了已安裝版本所沒有的表面。僅當您信任他們時才應用它：`,
-      updateConsentConfirm: '應用程式更新',
       uninstall: '解除安裝',
       uninstallTip: (name: string, profile: string) => `卸載${name}從${profile}`,
       uninstallConfirmTitle: (name: string) => `卸載${name}?`,

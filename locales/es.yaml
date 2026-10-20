@@ -4016,6 +4016,12 @@ tui_gateway:
     mode_off: "el modo de voz está desactivado — actívalo con /voice on"
     module_missing_deps: "módulo de voz no disponible — instala las dependencias de audio"
     module_missing: "módulo de voz no disponible"
+  plugins:
+    update_failed: "la actualización falló"
+    toggle_failed: "falló el cambio"
+    install_failed: "falló la instalación"
+    remove_failed: "falló la eliminación"
+    not_found: "plugin '{name}' no encontrado"
   turn_error:
     not_answered: "{title}. Tu mensaje no obtuvo respuesta."
     details: "Detalles: {detail}"
@@ -4297,12 +4303,6 @@ tui_gateway:
     oauth_url_timeout: "Se agotó el tiempo esperando la URL de autorización de MCP"
     oauth_session_expired: "Sesión OAuth no encontrada o caducada"
     oauth_cancelled: "OAuth cancelado por el usuario"
-  plugins:
-    toggle_failed: "falló el cambio"
-    install_failed: "falló la instalación"
-    not_catalog_install: "'{name}' no es una instalación del catálogo — actualízalo desde la CLI"
-    remove_failed: "falló la eliminación"
-    not_found: "plugin '{name}' no encontrado"
   shell:
     blocked_hardline: "bloqueado (regla estricta): {reason}. Usa el agente para los comandos peligrosos."
     blocked: "bloqueado: {reason}. Usa el agente para los comandos peligrosos."

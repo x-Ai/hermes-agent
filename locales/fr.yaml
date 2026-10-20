@@ -4341,6 +4341,12 @@ tui_gateway:
     mode_off: "le mode vocal est désactivé — activez-le avec /voice on"
     module_missing_deps: "module vocal indisponible — installez les dépendances audio"
     module_missing: "module vocal indisponible"
+  plugins:
+    update_failed: "échec de la mise à jour"
+    toggle_failed: "échec du basculement"
+    install_failed: "échec de l'installation"
+    remove_failed: "échec de la suppression"
+    not_found: "plugin '{name}' introuvable"
   turn_error:
     not_answered: "{title}. Votre message est resté sans réponse."
     details: "Détails : {detail}"
@@ -4622,12 +4628,6 @@ tui_gateway:
     oauth_url_timeout: "Délai dépassé en attendant l'URL d'autorisation MCP"
     oauth_session_expired: "Session OAuth introuvable ou expirée"
     oauth_cancelled: "OAuth annulé par l'utilisateur"
-  plugins:
-    toggle_failed: "échec du basculement"
-    install_failed: "échec de l'installation"
-    not_catalog_install: "'{name}' n'est pas une installation depuis le catalogue — mettez-le à jour via la CLI"
-    remove_failed: "échec de la suppression"
-    not_found: "plugin '{name}' introuvable"
   shell:
     blocked_hardline: "bloqué (règle stricte) : {reason}. Confiez les commandes dangereuses à l'agent."
     blocked: "bloqué : {reason}. Confiez les commandes dangereuses à l'agent."

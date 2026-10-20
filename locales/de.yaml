@@ -4016,6 +4016,12 @@ tui_gateway:
     mode_off: "Der Sprachmodus ist aus — aktiviere ihn mit /voice on"
     module_missing_deps: "Sprachmodul nicht verfügbar — installiere die Audio-Abhängigkeiten"
     module_missing: "Sprachmodul nicht verfügbar"
+  plugins:
+    update_failed: "Aktualisierung fehlgeschlagen"
+    toggle_failed: "Umschalten fehlgeschlagen"
+    install_failed: "Installation fehlgeschlagen"
+    remove_failed: "Entfernen fehlgeschlagen"
+    not_found: "Plugin '{name}' nicht gefunden"
   turn_error:
     not_answered: "{title}. Ihre Nachricht wurde nicht beantwortet."
     details: "Details: {detail}"
@@ -4297,12 +4303,6 @@ tui_gateway:
     oauth_url_timeout: "Zeitüberschreitung beim Warten auf die MCP-Autorisierungs-URL"
     oauth_session_expired: "OAuth-Sitzung nicht gefunden oder abgelaufen"
     oauth_cancelled: "OAuth vom Nutzer abgebrochen"
-  plugins:
-    toggle_failed: "Umschalten fehlgeschlagen"
-    install_failed: "Installation fehlgeschlagen"
-    not_catalog_install: "'{name}' ist keine Kataloginstallation — aktualisiere es über die CLI"
-    remove_failed: "Entfernen fehlgeschlagen"
-    not_found: "Plugin '{name}' nicht gefunden"
   shell:
     blocked_hardline: "blockiert (hardline): {reason}. Nutze für gefährliche Befehle den Agenten."
     blocked: "blockiert: {reason}. Nutze für gefährliche Befehle den Agenten."

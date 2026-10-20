@@ -4016,6 +4016,12 @@ tui_gateway:
     mode_off: "tá an mód gutha múchta — cumasaigh é le /voice on"
     module_missing_deps: "níl an modúl gutha ar fáil — suiteáil na spleáchais fuaime"
     module_missing: "níl an modúl gutha ar fáil"
+  plugins:
+    update_failed: "theip ar an nuashonrú"
+    toggle_failed: "theip ar an scoránú"
+    install_failed: "theip ar an tsuiteáil"
+    remove_failed: "theip ar an mbaint"
+    not_found: "breiseán '{name}' gan aimsiú"
   turn_error:
     not_answered: "{title}. Níor freagraíodh do theachtaireacht."
     details: "Sonraí: {detail}"
@@ -4297,12 +4303,6 @@ tui_gateway:
     oauth_url_timeout: "Chuaigh an fanacht le URL údaraithe MCP thar am"
     oauth_session_expired: "Seisiún OAuth gan aimsiú nó imithe in éag"
     oauth_cancelled: "Chealaigh an t-úsáideoir OAuth"
-  plugins:
-    toggle_failed: "theip ar an scoránú"
-    install_failed: "theip ar an tsuiteáil"
-    not_catalog_install: "ní suiteáil chatalóige é '{name}' — nuashonraigh é tríd an CLI"
-    remove_failed: "theip ar an mbaint"
-    not_found: "breiseán '{name}' gan aimsiú"
   shell:
     blocked_hardline: "blocáilte (riail dhocht): {reason}. Úsáid an gníomhaire d'orduithe contúirteacha."
     blocked: "blocáilte: {reason}. Úsáid an gníomhaire d'orduithe contúirteacha."

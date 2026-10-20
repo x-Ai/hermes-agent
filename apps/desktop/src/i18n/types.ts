@@ -21,6 +21,7 @@ import type { ModelMenuTranslations } from './types_model_menu'
 import type { ModelSettingsTranslations } from './types_model_settings'
 import type { NoticeTranslations } from './types_notices'
 import type { OnboardingTranslations } from './types_onboarding'
+import type { PluginUpdateTranslations } from './types_plugin_update'
 import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
 import type { RuntimeErrorsCopy, SharedProvidersCopy, TimelineEventsCopy } from './types_runtime'
@@ -1879,7 +1880,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
   skillDeepLink: SkillDeepLinkCopy
   gatewayGroupOpen: GatewayGroupOpenCopy
   skills: {
-    plugins: {
+    plugins: PluginUpdateTranslations & {
       agentTitle: string
       agentBlurb: string
       pageBlurb: string
@@ -1928,14 +1929,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       catalogProvenance: (sha: string) => string
       pinnedProvenance: (sha: string) => string
       pinnedBadge: (sha: string) => string
-      updateToPin: (sha: string) => string
-      updateFailed: (name: string) => string
-      updated: (name: string) => string
       desktopHalfRemote: string
       desktopHalfRemoteTip: string
-      updateConsentTitle: (name: string) => string
-      updateConsentBody: (name: string, sha: string) => string
-      updateConsentConfirm: string
       uninstall: string
       uninstallTip: (name: string, profile: string) => string
       uninstallConfirmTitle: (name: string) => string

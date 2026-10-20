@@ -4015,6 +4015,12 @@ tui_gateway:
     mode_off: "الوضع الصوتي معطّل — فعّله بـ /voice on"
     module_missing_deps: "وحدة الصوت غير متاحة — ثبّت تبعيات الصوت"
     module_missing: "وحدة الصوت غير متاحة"
+  plugins:
+    update_failed: "فشل التحديث"
+    toggle_failed: "فشل التبديل"
+    install_failed: "فشل التثبيت"
+    remove_failed: "فشلت الإزالة"
+    not_found: "الإضافة '{name}' غير موجودة"
   turn_error:
     not_answered: "{title}. لم تتم الإجابة عن رسالتك."
     details: "التفاصيل: {detail}"
@@ -4296,12 +4302,6 @@ tui_gateway:
     oauth_url_timeout: "انتهت مهلة انتظار عنوان تفويض MCP"
     oauth_session_expired: "جلسة OAuth غير موجودة أو منتهية الصلاحية"
     oauth_cancelled: "ألغى المستخدم OAuth"
-  plugins:
-    toggle_failed: "فشل التبديل"
-    install_failed: "فشل التثبيت"
-    not_catalog_install: "'{name}' ليس تثبيتًا من الكتالوج — حدّثه عبر CLI"
-    remove_failed: "فشلت الإزالة"
-    not_found: "الإضافة '{name}' غير موجودة"
   shell:
     blocked_hardline: "محظور (قاعدة صارمة): {reason}. استخدم الوكيل للأوامر الخطرة."
     blocked: "محظور: {reason}. استخدم الوكيل للأوامر الخطرة."

@@ -4016,6 +4016,12 @@ tui_gateway:
     mode_off: "голосовий режим вимкнено — увімкніть його командою /voice on"
     module_missing_deps: "голосовий модуль недоступний — встановіть аудіозалежності"
     module_missing: "голосовий модуль недоступний"
+  plugins:
+    update_failed: "оновлення не вдалося"
+    toggle_failed: "не вдалося перемкнути"
+    install_failed: "встановлення не вдалося"
+    remove_failed: "видалення не вдалося"
+    not_found: "плагін '{name}' не знайдено"
   turn_error:
     not_answered: "{title}. Ваше повідомлення залишилося без відповіді."
     details: "Подробиці: {detail}"
@@ -4297,12 +4303,6 @@ tui_gateway:
     oauth_url_timeout: "Вичерпано час очікування URL авторизації MCP"
     oauth_session_expired: "Сесію OAuth не знайдено або її термін минув"
     oauth_cancelled: "OAuth скасовано користувачем"
-  plugins:
-    toggle_failed: "не вдалося перемкнути"
-    install_failed: "встановлення не вдалося"
-    not_catalog_install: "'{name}' встановлено не з каталогу — оновіть його через CLI"
-    remove_failed: "видалення не вдалося"
-    not_found: "плагін '{name}' не знайдено"
   shell:
     blocked_hardline: "заблоковано (жорстке правило): {reason}. Для небезпечних команд використовуйте агента."
     blocked: "заблоковано: {reason}. Для небезпечних команд використовуйте агента."

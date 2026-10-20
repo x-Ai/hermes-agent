@@ -15,6 +15,7 @@ import { enModelMenu } from './en_model_menu'
 import { enModelSettings } from './en_model_settings'
 import { enNotices } from './en_notices'
 import { enOnboarding } from './en_onboarding'
+import { enPluginUpdate } from './en_plugin_update'
 import { enProjects } from './en_projects'
 import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
@@ -2749,16 +2750,10 @@ export const en: Translations = {
       pinnedProvenance: (sha: string) =>
         `Pinned to commit ${sha}. Updates are refused until it is reinstalled with a new pin.`,
       pinnedBadge: (sha: string) => `pinned @ ${sha}`,
-      updateToPin: (sha: string) => `Update to ${sha}`,
-      updateFailed: (name: string) => `Could not update ${name}`,
-      updated: (name: string) => `${name} updated to the current catalog pin. Restart the gateway to apply.`,
+      ...enPluginUpdate,
       desktopHalfRemote: 'unavailable (remote backend)',
       desktopHalfRemoteTip:
         "This package's desktop half is on the remote backend's disk, which this app cannot read. To use it here, run Install from Git with the package's repo URL and the Desktop target checked — that clones the desktop half onto this machine.",
-      updateConsentTitle: (name: string) => `${name} asks for more`,
-      updateConsentBody: (name: string, sha: string) =>
-        `The new catalog pin of ${name} (${sha}) adds surfaces the installed version does not have. Apply it only if you trust them:`,
-      updateConsentConfirm: 'Apply update',
       uninstall: 'Uninstall',
       uninstallTip: (name: string, profile: string) => `Uninstall ${name} from ${profile}`,
       uninstallConfirmTitle: (name: string) => `Uninstall ${name}?`,

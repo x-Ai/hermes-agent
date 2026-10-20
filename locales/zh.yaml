@@ -4015,6 +4015,12 @@ tui_gateway:
     mode_off: "语音模式已关闭，用 /voice on 启用"
     module_missing_deps: "语音模块不可用，请安装音频依赖"
     module_missing: "语音模块不可用"
+  plugins:
+    update_failed: "更新失败"
+    toggle_failed: "切换失败"
+    install_failed: "安装失败"
+    remove_failed: "移除失败"
+    not_found: "未找到插件 '{name}'"
   turn_error:
     not_answered: "{title}，你的消息未得到回答"
     details: "详情：{detail}"
@@ -4296,12 +4302,6 @@ tui_gateway:
     oauth_url_timeout: "等待 MCP 授权链接超时"
     oauth_session_expired: "OAuth 会话不存在或已过期"
     oauth_cancelled: "用户已取消 OAuth"
-  plugins:
-    toggle_failed: "切换失败"
-    install_failed: "安装失败"
-    not_catalog_install: "'{name}' 不是从目录安装的，请通过 CLI 更新"
-    remove_failed: "移除失败"
-    not_found: "未找到插件 '{name}'"
   shell:
     blocked_hardline: "已阻止（硬性规则）：{reason}，危险命令请交给代理执行"
     blocked: "已阻止：{reason}，危险命令请交给代理执行"

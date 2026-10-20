@@ -14,6 +14,7 @@ import { zhModelSettings } from './zh_model_settings'
 import { zhNotices } from './zh_notices'
 import { zhOnboarding } from './zh_onboarding'
 import { zhPluginManifests } from './zh_plugin_manifests'
+import { zhPluginUpdate } from './zh_plugin_update'
 import { zhProjects } from './zh_projects'
 import { zhProviderDescriptions, zhProviderEnvKeys, zhProviderLabels } from './zh_provider_catalog'
 import { zhProviderWait } from './zh_provider_wait'
@@ -3347,16 +3348,10 @@ export const zhOverrides = {
       catalogProvenance: (sha: string) => `从 Hermes 目录安装${sha ? `，固定提交 ${sha}` : ''}`,
       pinnedProvenance: (sha: string) => `已固定到提交 ${sha}，重新固定前将拒绝更新`,
       pinnedBadge: (sha: string) => `固定 @ ${sha}`,
-      updateToPin: (sha: string) => `更新到 ${sha}`,
-      updateFailed: (name: string) => `无法更新 ${name}`,
-      updated: (name: string) => `${name} 已更新到当前目录固定提交，重启网关后生效`,
+      ...zhPluginUpdate,
       desktopHalfRemote: '不可用（远程后端）',
       desktopHalfRemoteTip:
         '此软件包的桌面部分位于远程后端的磁盘上，该应用无法读取它，要在此使用它，请运行从 Git 安装，并勾选该软件包的仓库 URL 和 Desktop 目标——这会将桌面部分克隆到此机器上',
-      updateConsentTitle: (name: string) => `${name}请求更多`,
-      updateConsentBody: (name: string, sha: string) =>
-        `The new catalog pin of ${name} (${sha})添加已安装版本没有的表面，只有在你信任他们的情况下才应用:`,
-      updateConsentConfirm: '应用更新',
       uninstall: '卸载',
       uninstallTip: (name: string, profile: string) => `卸载${name}来自${profile}`,
       uninstallConfirmTitle: (name: string) => `卸载${name}?`,
@@ -6169,7 +6164,7 @@ export const zhOverrides = {
           title: '你的消息可能已在队列中',
           body: '网关未及时确认你的消息，如果它已入队，会在先前那一轮完成或被处理后运行，再次发送前请先查看对话'
         }
-},
+      },
       errorLayers: {
         auth: '登录问题',
         billing: '额度不足',
