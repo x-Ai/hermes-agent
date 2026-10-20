@@ -55,6 +55,10 @@ export const arAssistant = {
         userProfileLabel: 'ملف المستخدم'
       },
       failedTurnNotice: 'لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه.',
+      failedTurnRestartNotice:
+        'البوّابة قيد إعادة التشغيل: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد أن يعيد Hermes الاتصال.',
+      failedTurnShutdownNotice:
+        'البوّابة قيد الإيقاف: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد عودة Hermes.',
       failedTurnAutomationNotice:
         'انقطع تسليم تلقائي ولم يُعَد تشغيله. قد تكون بعض الإجراءات قد نُفِّذت بالفعل؛ تحقق من آثارها.',
       failedTurnPartialNotice:

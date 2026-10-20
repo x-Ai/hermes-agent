@@ -55,6 +55,8 @@
   "assistant.thread.failedTurnAutomationNotice": ["de","es","fr"],
   "assistant.thread.failedTurnNotice": ["de","es","fr"],
   "assistant.thread.failedTurnPartialNotice": ["de","es","fr"],
+  "assistant.thread.failedTurnRestartNotice": ["de","es","fr"],
+  "assistant.thread.failedTurnShutdownNotice": ["de","es","fr"],
   "assistant.thread.messageFrom": ["de","es","fr"],
   "assistant.thread.messagedAgent": ["de","es","fr"],
   "assistant.thread.messagingAgent": ["de","es","fr"],

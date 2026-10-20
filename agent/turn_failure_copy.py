@@ -80,6 +80,22 @@ def automation_interrupted_notice() -> str:
     return t("core.failed_turn.automation_interrupted")
 
 
+def restart_interrupt_notice() -> str:
+    """The owner-restart boundary copy, in the profile's language (core.failed_turn.restart_interrupted);
+    ``gateway.session_settlement_recovery.RESTART_INTERRUPT_NOTICE`` stays its English key."""
+    from agent.i18n import t
+
+    return t("core.failed_turn.restart_interrupted")
+
+
+def shutdown_interrupt_notice() -> str:
+    """The owner-shutdown boundary copy (core.failed_turn.shutdown_interrupted); the English constant
+    ``SHUTDOWN_INTERRUPT_NOTICE`` stays its key."""
+    from agent.i18n import t
+
+    return t("core.failed_turn.shutdown_interrupted")
+
+
 def failed_turn_notice(turn_messages: Any) -> str:
     """Boundary copy for a failed turn: never claim "not processed" when a tool may have run.
     Resolved per call from the catalog; the English constants above stay the legacy read-side key."""

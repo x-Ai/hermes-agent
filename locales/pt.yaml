@@ -2458,6 +2458,14 @@ cli:
     move_out_of_range: "Movimento na fila fora do intervalo. Tamanho atual: {size}"
     moved: "Item {source} da fila movido para {destination}."
     usage_add: "Uso: /queue add <prompt>"
+    gateway_refused: "O gateway não o enfileirou: {error}. Nada foi enfileirado; envie novamente quando o turno terminar."
+    submit_unknown: "O gateway não respondeu ({error}), então o prompt pode já estar na fila. Confira /queue list antes de enviá-lo de novo."
+    move_gateway_fifo: "O gateway executa prompts enfileirados na ordem de envio; edite ou remova um em vez disso."
+    remove_refused: "Não foi possível remover o item {index} da fila: {error}"
+    edit_refused: "Não foi possível editar o item {index} da fila: {error}"
+    already_started: "O item {index} da fila já começou; ele roda como foi enviado."
+    started_stopped: "O item {index} da fila já tinha começado; o gateway o parou."
+    change_unknown: "O gateway não respondeu sobre o item {index} da fila ({error}); confira /queue list antes de tentar de novo."
   reload:
     env_reloaded: ".env recarregado ({count} variável(is) atualizada(s))"
   steer:
@@ -4599,6 +4607,8 @@ core:
     high_cost_note: " — solicitação cara, orçamento de tentativas reduzido"
   failed_turn:
     automation_interrupted: "Uma entrega automática foi interrompida e não foi executada novamente. Algumas ações podem já ter sido executadas; verifique seus efeitos."
+    restart_interrupted: "O gateway está reiniciando: este turno foi interrompido e não será executado novamente. Envie sua mensagem novamente quando o Hermes reconectar."
+    shutdown_interrupted: "O gateway está sendo desligado: este turno foi interrompido e não será executado novamente. Envie sua mensagem novamente quando o Hermes voltar."
     notice: "Seu pedido não foi processado. Envie-o novamente se ainda quiser que eu o execute."
     partial_notice: "Este turno não foi concluído. Algumas ações podem já ter sido executadas; verifique seus efeitos antes de reenviar."
   compress:

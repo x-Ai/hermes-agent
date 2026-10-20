@@ -2458,6 +2458,14 @@ cli:
     move_out_of_range: "Bogadh scuaine as raon. Méid reatha: {size}"
     moved: "Bogadh mír scuaine {source} go {destination}."
     usage_add: "Úsáid: /queue add <prompt>"
+    gateway_refused: "Níor chuir an geata sa scuaine é: {error}. Níor cuireadh aon rud sa scuaine; seol arís é nuair a chríochnaíonn an seal."
+    submit_unknown: "Níor fhreagair an geata ({error}), mar sin seans go bhfuil an leid sa scuaine cheana. Seiceáil /queue list sula seolann tú arís í."
+    move_gateway_fifo: "Ritheann an geata leideanna sa scuaine san ord inar seoladh iad; cuir ceann in eagar nó bain é ina ionad."
+    remove_refused: "Níorbh fhéidir mír {index} a bhaint den scuaine: {error}"
+    edit_refused: "Níorbh fhéidir mír {index} den scuaine a chur in eagar: {error}"
+    already_started: "Tá mír {index} den scuaine tosaithe cheana; ritheann sí mar a seoladh í."
+    started_stopped: "Bhí mír {index} den scuaine tosaithe cheana; stop an geata í."
+    change_unknown: "Níor fhreagair an geata faoi mhír {index} den scuaine ({error}); seiceáil /queue list sula ndéanann tú iarracht arís."
   reload:
     env_reloaded: "Athlódáladh .env ({count} athróg nuashonraithe)"
   steer:
@@ -4599,6 +4607,8 @@ core:
     high_cost_note: " — iarratas costasach, buiséad atrialacha laghdaithe"
   failed_turn:
     automation_interrupted: "Cuireadh isteach ar sheachadadh uathoibríoch agus níor ritheadh arís é. Seans go bhfuil roinnt gníomhartha rite cheana; deimhnigh a n-éifeachtaí."
+    restart_interrupted: "Tá an gateway á atosú: cuireadh isteach ar an seal seo agus ní rithfear arís é. Seol do theachtaireacht arís a luaithe a athcheanglaíonn Hermes."
+    shutdown_interrupted: "Tá an gateway á mhúchadh: cuireadh isteach ar an seal seo agus ní rithfear arís é. Seol do theachtaireacht arís a luaithe a bheidh Hermes ar ais."
     notice: "Níor próiseáladh d'iarratas. Seol arís é más mian leat fós go gcuirfinn i gcrích é."
     partial_notice: "Níor críochnaíodh an babhta seo. Seans go bhfuil roinnt gníomhartha rite cheana; fíoraigh a n-éifeachtaí sula seolann tú arís."
   compress:

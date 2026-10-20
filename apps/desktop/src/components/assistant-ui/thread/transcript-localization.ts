@@ -106,6 +106,16 @@ const FAILED_TURN_TRANSCRIPT_PATTERNS: TranscriptLocalizationPattern[] = [
     pattern:
       /^An automated delivery was interrupted and was not run again\. Some actions may already have run; verify their effects\.$/,
     format: (_match, copy) => copy.failedTurnAutomationNotice
+  },
+  {
+    pattern:
+      /^Gateway restarting: this turn was interrupted and will not be run again\. Send your message again once Hermes reconnects\.$/,
+    format: (_match, copy) => copy.failedTurnRestartNotice
+  },
+  {
+    pattern:
+      /^Gateway shutting down: this turn was interrupted and will not be run again\. Send your message again once Hermes is back\.$/,
+    format: (_match, copy) => copy.failedTurnShutdownNotice
   }
 ]
 

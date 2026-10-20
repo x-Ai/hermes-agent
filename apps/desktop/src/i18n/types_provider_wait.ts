@@ -21,6 +21,8 @@ export interface ProviderWaitThreadCopy {
   failedTurnNotice: string
   failedTurnPartialNotice: string
   failedTurnAutomationNotice: string
+  failedTurnRestartNotice: string
+  failedTurnShutdownNotice: string
   modelContinuing: (attempt: string, maxAttempts: string) => string
   providerReconnecting: (elapsedSeconds: string, kind: 'output' | 'response') => string
   providerRetrying: (retrySeconds: string, attempt: string, maxAttempts: string) => string

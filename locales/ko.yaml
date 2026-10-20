@@ -2456,6 +2456,14 @@ cli:
     move_out_of_range: "대기열 이동 범위를 벗어났어요. 현재 크기: {size}"
     moved: "대기열 항목 {source}을(를) {destination}으로 이동했어요."
     usage_add: "사용법: /queue add <prompt>"
+    gateway_refused: "게이트웨이가 대기열에 넣지 않았습니다: {error}. 아무것도 대기열에 없습니다. 턴이 끝나면 다시 보내세요."
+    submit_unknown: "게이트웨이가 응답하지 않았습니다 ({error}). 프롬프트가 이미 대기열에 있을 수 있습니다. 다시 보내기 전에 /queue list를 확인하세요."
+    move_gateway_fifo: "게이트웨이는 대기 중인 프롬프트를 보낸 순서대로 실행합니다. 대신 편집하거나 삭제하세요."
+    remove_refused: "대기열 항목 {index}을(를) 제거할 수 없습니다: {error}"
+    edit_refused: "대기열 항목 {index}을(를) 편집할 수 없습니다: {error}"
+    already_started: "대기열 항목 {index}은(는) 이미 시작되었습니다. 보낸 그대로 실행됩니다."
+    started_stopped: "대기열 항목 {index}은(는) 이미 시작되어 게이트웨이가 중지했습니다."
+    change_unknown: "게이트웨이가 대기열 항목 {index}에 응답하지 않았습니다 ({error}). 다시 시도하기 전에 /queue list를 확인하세요."
   reload:
     env_reloaded: ".env를 다시 불러왔어요 (변수 {count}개 업데이트됨)"
   steer:
@@ -4597,6 +4605,8 @@ core:
     high_cost_note: " — 고비용 요청이므로 재시도 횟수를 줄였습니다"
   failed_turn:
     automation_interrupted: "자동 전달이 중단되었고 다시 실행되지 않았습니다. 일부 작업은 이미 실행되었을 수 있으니 그 결과를 확인하세요."
+    restart_interrupted: "게이트웨이 재시작 중: 이 턴은 중단되었고 다시 실행되지 않습니다. Hermes가 다시 연결되면 메시지를 다시 보내세요."
+    shutdown_interrupted: "게이트웨이 종료 중: 이 턴은 중단되었고 다시 실행되지 않습니다. Hermes가 돌아오면 메시지를 다시 보내세요."
     notice: "요청이 처리되지 않았습니다. 계속 진행하길 원하면 다시 보내 주세요."
     partial_notice: "이 턴이 완료되지 않았습니다. 일부 작업은 이미 실행되었을 수 있으니, 다시 보내기 전에 그 결과를 확인하세요."
   compress:

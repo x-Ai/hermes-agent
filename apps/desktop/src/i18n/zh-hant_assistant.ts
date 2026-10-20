@@ -86,6 +86,8 @@ export const zhHantAssistant = {
         userProfileLabel: '使用者資料'
       },
       failedTurnNotice: '你的請求未被處理。如果你仍希望我執行，請重新傳送。',
+      failedTurnRestartNotice: '閘道正在重新啟動：此回合已中斷，不會再次執行。等 Hermes 重新連線後請重新傳送你的訊息。',
+      failedTurnShutdownNotice: '閘道正在關閉：此回合已中斷，不會再次執行。等 Hermes 恢復後請重新傳送你的訊息。',
       failedTurnAutomationNotice: '一次自動投遞已中斷，未再次執行。部分動作可能已經執行；請確認其影響。',
       failedTurnPartialNotice: '此回合未完成。部分動作可能已經執行；請先確認其影響再重新傳送。',
       operationInterrupted: '操作已中斷。',

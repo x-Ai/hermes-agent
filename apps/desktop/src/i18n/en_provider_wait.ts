@@ -4,6 +4,10 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in en.ts.
 export const enProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: 'Your request was not processed. Send it again if you still want me to carry it out.',
+  failedTurnRestartNotice:
+    'Gateway restarting: this turn was interrupted and will not be run again. Send your message again once Hermes reconnects.',
+  failedTurnShutdownNotice:
+    'Gateway shutting down: this turn was interrupted and will not be run again. Send your message again once Hermes is back.',
   failedTurnAutomationNotice:
     'An automated delivery was interrupted and was not run again. Some actions may already have run; verify their effects.',
   failedTurnPartialNotice:

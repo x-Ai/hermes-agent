@@ -4,6 +4,10 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in ru.ts.
 export const ruProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: 'Ваш запрос не был обработан. Отправьте его снова, если всё ещё хотите, чтобы я его выполнил.',
+  failedTurnRestartNotice:
+    'Шлюз перезапускается: этот ход был прерван и не будет запущен снова. Отправьте сообщение снова, когда Hermes переподключится.',
+  failedTurnShutdownNotice:
+    'Шлюз завершает работу: этот ход был прерван и не будет запущен снова. Отправьте сообщение снова, когда Hermes вернётся.',
   failedTurnAutomationNotice:
     'Автоматическая доставка была прервана и не была запущена снова. Некоторые действия могли уже выполниться; проверьте их результаты.',
   failedTurnPartialNotice:

@@ -2458,6 +2458,14 @@ cli:
     move_out_of_range: "Verschiebung außerhalb der Warteschlange. Aktuelle Größe: {size}"
     moved: "Warteschlangeneintrag {source} nach {destination} verschoben."
     usage_add: "Verwendung: /queue add <prompt>"
+    gateway_refused: "Das Gateway hat es nicht eingereiht: {error}. Nichts wurde eingereiht; sende es erneut, wenn der Zug endet."
+    submit_unknown: "Das Gateway hat nicht geantwortet ({error}), der Prompt ist also vielleicht schon eingereiht. Prüfe /queue list, bevor du ihn erneut sendest."
+    move_gateway_fifo: "Das Gateway führt eingereihte Prompts in Sendereihenfolge aus; bearbeite oder entferne stattdessen einen."
+    remove_refused: "Warteschlangeneintrag {index} konnte nicht entfernt werden: {error}"
+    edit_refused: "Warteschlangeneintrag {index} konnte nicht bearbeitet werden: {error}"
+    already_started: "Warteschlangeneintrag {index} hat bereits begonnen; er läuft wie gesendet."
+    started_stopped: "Warteschlangeneintrag {index} hatte bereits begonnen; das Gateway hat ihn gestoppt."
+    change_unknown: "Das Gateway hat zu Warteschlangeneintrag {index} nicht geantwortet ({error}); prüfe /queue list, bevor du es erneut versuchst."
   reload:
     env_reloaded: ".env neu geladen ({count} Variable(n) aktualisiert)"
   steer:
@@ -4599,6 +4607,8 @@ core:
     high_cost_note: " — teure Anfrage, Wiederholungsbudget reduziert"
   failed_turn:
     automation_interrupted: "Eine automatische Zustellung wurde unterbrochen und nicht erneut ausgeführt. Einige Aktionen wurden möglicherweise bereits ausgeführt; prüfe ihre Auswirkungen."
+    restart_interrupted: "Gateway startet neu: dieser Zug wurde unterbrochen und wird nicht erneut ausgeführt. Sende deine Nachricht erneut, sobald Hermes wieder verbunden ist."
+    shutdown_interrupted: "Gateway wird heruntergefahren: dieser Zug wurde unterbrochen und wird nicht erneut ausgeführt. Sende deine Nachricht erneut, sobald Hermes zurück ist."
     notice: "Deine Anfrage wurde nicht bearbeitet. Sende sie erneut, wenn ich sie noch ausführen soll."
     partial_notice: "Dieser Zug wurde nicht abgeschlossen. Einige Aktionen sind möglicherweise schon gelaufen; prüfe ihre Auswirkungen, bevor du erneut sendest."
   compress:

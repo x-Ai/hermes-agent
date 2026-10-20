@@ -2458,6 +2458,14 @@ cli:
     move_out_of_range: "Spostamento fuori dai limiti della coda. Dimensione attuale: {size}"
     moved: "Elemento {source} della coda spostato in posizione {destination}."
     usage_add: "Uso: /queue add <prompt>"
+    gateway_refused: "Il gateway non l'ha accodato: {error}. Nulla è stato accodato; invialo di nuovo a fine turno."
+    submit_unknown: "Il gateway non ha risposto ({error}), quindi il prompt potrebbe essere già in coda. Controlla /queue list prima di inviarlo di nuovo."
+    move_gateway_fifo: "Il gateway esegue i prompt in coda nell'ordine di invio; modificane o rimuovine uno invece."
+    remove_refused: "Impossibile rimuovere l'elemento {index} della coda: {error}"
+    edit_refused: "Impossibile modificare l'elemento {index} della coda: {error}"
+    already_started: "L'elemento {index} della coda è già partito; viene eseguito così come è stato inviato."
+    started_stopped: "L'elemento {index} della coda era già partito; il gateway lo ha fermato."
+    change_unknown: "Il gateway non ha risposto sull'elemento {index} della coda ({error}); controlla /queue list prima di riprovare."
   reload:
     env_reloaded: "Ricaricato .env (variabili aggiornate: {count})"
   steer:
@@ -4599,6 +4607,8 @@ core:
     high_cost_note: " — richiesta costosa, budget di tentativi ridotto"
   failed_turn:
     automation_interrupted: "Una consegna automatica è stata interrotta e non è stata rieseguita. Alcune azioni potrebbero essere già state eseguite; verificane gli effetti."
+    restart_interrupted: "Il gateway si sta riavviando: questo turno è stato interrotto e non verrà rieseguito. Invia di nuovo il messaggio quando Hermes si riconnette."
+    shutdown_interrupted: "Il gateway si sta spegnendo: questo turno è stato interrotto e non verrà rieseguito. Invia di nuovo il messaggio quando Hermes torna disponibile."
     notice: "La tua richiesta non è stata elaborata. Inviala di nuovo se vuoi ancora che la esegua."
     partial_notice: "Questo turno non è stato completato. Alcune azioni potrebbero essere già state eseguite; verifica i loro effetti prima di reinviare."
   compress:

@@ -10,6 +10,12 @@ const PARTIAL = 'This turn did not complete. Some actions may already have run; 
 const AUTOMATION =
   'An automated delivery was interrupted and was not run again. Some actions may already have run; verify their effects.'
 
+const RESTART =
+  'Gateway restarting: this turn was interrupted and will not be run again. Send your message again once Hermes reconnects.'
+
+const SHUTDOWN =
+  'Gateway shutting down: this turn was interrupted and will not be run again. Send your message again once Hermes is back.'
+
 describe('localizeAssistantTranscriptText', () => {
   it('renders the stored failed-turn boundary rows in the UI language', () => {
     for (const locale of ['zh', 'zh-hant'] as const) {
@@ -19,6 +25,9 @@ describe('localizeAssistantTranscriptText', () => {
       expect(localizeAssistantTranscriptText(`${PARTIAL}\n`, copy, locale)).toBe(copy.failedTurnPartialNotice)
       expect(localizeAssistantTranscriptText(AUTOMATION, copy, locale)).toBe(copy.failedTurnAutomationNotice)
       expect(copy.failedTurnAutomationNotice).not.toBe(AUTOMATION)
+      expect(localizeAssistantTranscriptText(RESTART, copy, locale)).toBe(copy.failedTurnRestartNotice)
+      expect(localizeAssistantTranscriptText(SHUTDOWN, copy, locale)).toBe(copy.failedTurnShutdownNotice)
+      expect(copy.failedTurnRestartNotice).not.toBe(RESTART)
       expect(copy.failedTurnNotice).not.toBe(NOTICE)
     }
   })

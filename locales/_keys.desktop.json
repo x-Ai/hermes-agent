@@ -335,6 +335,8 @@
     "assistant.thread.failedTurnAutomationNotice",
     "assistant.thread.failedTurnNotice",
     "assistant.thread.failedTurnPartialNotice",
+    "assistant.thread.failedTurnRestartNotice",
+    "assistant.thread.failedTurnShutdownNotice",
     "assistant.thread.filesChanged",
     "assistant.thread.goForward",
     "assistant.thread.loadingLocalModel",

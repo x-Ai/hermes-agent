@@ -4,6 +4,8 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // `assistant.thread` in zh.ts.
 export const zhProviderWait: ProviderWaitThreadCopy = {
   failedTurnNotice: '你的请求未被处理，如果你仍希望我执行，请重新发送',
+  failedTurnRestartNotice: '网关正在重启：本轮已中断，不会再次运行，等 Hermes 重新连接后请重新发送你的消息',
+  failedTurnShutdownNotice: '网关正在关闭：本轮已中断，不会再次运行，等 Hermes 恢复后请重新发送你的消息',
   failedTurnAutomationNotice: '一次自动投递已中断，未再次运行，部分操作可能已经执行，请核实其效果',
   failedTurnPartialNotice: '本轮未完成，部分操作可能已经执行，请先核实其效果再重新发送',
   modelContinuing: (attempt, maxAttempts) =>
