@@ -312,6 +312,10 @@ export const zhHantAssistant = {
         SESSION_OWNER_UNCONFIRMED: {
           title: '你的訊息可能已在佇列中',
           body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
+        },
+        cron_session_read_only: {
+          title: '此聊天屬於一個排程工作',
+          body: '它只會執行該工作，因此你的訊息未被執行。請開始新的聊天後再傳送。'
         }
       },
       errorLayers: {

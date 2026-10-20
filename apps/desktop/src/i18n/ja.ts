@@ -312,14 +312,6 @@ export const jaOverrides = {
   },
   ...jaNotices,
   ...jaGoalStatus,
-  billingBlock: {
-    titleNous: 'Nous クレジットが不足しています',
-    titleProvider: provider => `クレジット不足 — ${provider}`,
-    fallbackMessage: 'アカウントのクレジットが不足しています。続行するにはクレジットを追加してください。',
-    openBilling: '請求を開く',
-    addCredits: 'クレジットを追加',
-    dismiss: '閉じる'
-  },
   billingPage: {
     title: '請求',
     paymentAndCredits: '支払いとクレジット',
@@ -5541,6 +5533,10 @@ export const jaOverrides = {
         free_tier_refused: {
           title: 'サインインなしではこのメッセージを送信できません',
           body: '無料の Nous アカウントでサインインして続けてください。'
+        },
+        cron_session_read_only: {
+          title: 'このチャットはスケジュールされたジョブ用です',
+          body: 'このチャットはそのジョブの実行専用のため、メッセージは実行されませんでした。送信するには新しいチャットを開始してください。'
         }
       },
       errorLayers: {

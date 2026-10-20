@@ -325,14 +325,6 @@ export const ruOverrides = {
   },
   ...ruNotices,
   ...ruGoalStatus,
-  billingBlock: {
-    titleNous: 'Кредиты Nous закончились',
-    titleProvider: provider => `Кредиты закончились — ${provider}`,
-    fallbackMessage: 'В вашем аккаунте закончились кредиты. Пополните баланс, чтобы продолжить.',
-    openBilling: 'Открыть биллинг',
-    addCredits: 'Пополнить кредиты',
-    dismiss: 'Скрыть'
-  },
   billingPage: {
     title: 'Выставление счетов',
     paymentAndCredits: 'Оплата и кредиты',
@@ -5432,6 +5424,10 @@ export const ruOverrides = {
         free_tier_refused: {
           title: 'Hermes не смог отправить это без входа в систему.',
           body: 'Вход в систему с учетной записью Nous бесплатен.'
+        },
+        cron_session_read_only: {
+          title: 'Этот чат относится к запланированной задаче',
+          body: 'Он только выполняет эту задачу, поэтому ваше сообщение не было выполнено. Начните новый чат, чтобы отправить его.'
         }
       },
       errorAuthKinds: {

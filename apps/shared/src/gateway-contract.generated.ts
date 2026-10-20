@@ -2214,6 +2214,621 @@ export interface WakeFeedResult {
   reason?: string | null
   fed: boolean
 }
+export interface SessionCreateParams {
+  profile?: string | null
+  cols?: number | null
+  source?: string | null
+  cwd?: string | null
+  cwd_explicit?: boolean | null
+  messages?: SeedMessage[] | null
+  parent_session_id?: string | null
+  title?: string | null
+  model?: string | null
+  provider?: string | null
+  reasoning_effort?: string | null
+  fast?: boolean | null
+  service_tier?: string | null
+  close_on_disconnect?: boolean
+  hidden?: boolean
+  room_plumbing?: boolean
+  follow_profile_config?: boolean
+  idempotency_key?: string | null
+}
+/** One create-time transcript row (``session_history._coerce_seed_history``); ``text`` is the legacy alias of ``content``; only ``display_kind: "hidden"`` is accepted from the wire. Clients forward stored rows verbatim (``_row_id``, ``timestamp``, …) and the coercer drops what it does not use, so the row stays open. */
+export interface SeedMessage {
+  role: string
+  content?: string | null
+  text?: string | null
+  display_kind?: string | null
+  [key: string]: unknown
+}
+export interface SessionCreateResult {
+  session_id: string
+  stored_session_id: string
+  message_count: number
+  messages: TranscriptMessage[]
+  info: SessionLiveInfo
+}
+/** One transcript row as the gateway PROJECTS it for renderers (``session_history._project_history``): ``text``, display-only ``timestamp`` / ``display_kind`` / ``display_metadata``, the durable ``row_id`` rewind targets, and for tool rows raw ``content``, ``tool_call_id``, ``name``, ``context`` and ``args``. Assistant detail sidecars (``reasoning``, …) ride as extra keys. */
+export interface TranscriptMessage {
+  role: string
+  text?: string | null
+  content?: unknown | null
+  tool_call_id?: string | null
+  timestamp?: number | null
+  row_id?: number | null
+  display_kind?: string | null
+  display_metadata?: unknown | null
+  name?: string | null
+  context?: string | null
+  args?: Record<string, unknown> | null
+  labels?: ToolLabel[] | null
+  reasoning?: string | null
+  [key: string]: unknown
+}
+/** ``tools.tool_labels.ToolLabel`` — what one call executed through the tool_search bridge is, in words. Clients render ``text`` (or ``app``/``action`` in their own columns) and never parse the tool name themselves. */
+export interface ToolLabel {
+  kind: ToolLabelKind
+  app: string
+  action: string
+  emoji: string
+  text: string
+  name: string
+  preview?: string
+}
+/** Which surface one inner call of a bridged ``tool_call`` runs on. */
+export type ToolLabelKind = 'connector' | 'mcp' | 'tool'
+export interface SessionBranchStoredParams {
+  profile?: string | null
+  parent_session_id: string
+  cols?: number | null
+  source?: string | null
+  cwd?: string | null
+  idempotency_key?: string | null
+}
+export interface SessionBranchStoredResult {
+  session_id: string
+  stored_session_id: string
+  message_count: number
+  messages_omitted: boolean
+  info: SessionLiveInfo
+}
+/** ``session_id`` is the STORED id (or an exact title); the reply's ``session_id`` is the runtime id. */
+export interface SessionResumeParams {
+  session_id: string
+  profile?: string | null
+  cols?: number | null
+  source?: string | null
+  lazy?: boolean
+  defer_history?: boolean
+  omit_messages?: boolean
+  eager_build?: boolean
+  close_on_disconnect?: boolean
+  inline_images?: boolean
+}
+export interface SessionResumeResult {
+  session_id: string
+  message_count: number
+  messages: TranscriptMessage[]
+  info: SessionLiveInfo
+  stored_session_id?: string | null
+  resumed?: string | null
+  session_key?: string | null
+  messages_omitted?: boolean | null
+  hydrating?: boolean | null
+  running?: boolean | null
+  turn_started_at?: number | null
+  started_at?: number | null
+  status?: string | null
+  inflight?: InflightTurn | null
+  queued?: QueuedPrompt | null
+  pending_approval?: PendingApproval | null
+  open_requests?: OpenRequestEntry[] | null
+  pending_connection?: ConnectionRequestPayload | null
+  todo_state?: TodoState | null
+  auto_continue?: AutoContinue | null
+}
+/** ``session_auto_continue._inflight_snapshot``: the live (or retained failed) turn a reconnecting client rebuilds its bubbles from. */
+export interface InflightTurn {
+  assistant?: string
+  streaming?: boolean
+  user?: string
+  display_kind?: string | null
+  display_metadata?: Record<string, unknown> | null
+  corrections?: string[] | null
+  correction_offsets?: number[] | null
+  error?: string | null
+  status?: string | null
+  recoverable?: boolean | null
+  error_surface?: Record<string, unknown> | null
+}
+export interface QueuedPrompt {
+  user: string
+}
+/** One unanswered server→client request (``server_requests.Request.snapshot``); the reconnecting client re-delivers it to its request handlers. */
+export interface OpenRequestEntry {
+  id: string
+  method: string
+  params: Record<string, unknown>
+}
+/** ``ConnectionOperation.request_payload``: opens the card; also the ``pending_connection`` resume snapshot so a client that missed the event restores the card with the server's deadline. */
+export interface ConnectionRequestPayload {
+  op_id: string
+  seq: number
+  deadline_at: number
+  timeout_seconds: number
+  targets: ConnectionOperationTarget[]
+  tool_call_id?: string | null
+  display?: ConnectionDisplay | null
+}
+/** ``manage_connections`` action ``display``: the directory card, with these slugs pinned as Suggested. */
+export interface ConnectionDisplay {
+  suggested: string[]
+}
+/** ``tool_progress._normalize_todo_state``: the authoritative todo snapshot. */
+export interface TodoState {
+  todos: Record<string, unknown>[]
+  revision: number
+}
+/** A crash-interrupted turn was scheduled to continue right after this resume. */
+export interface AutoContinue {
+  attempt: number
+  interrupted_at: number
+}
+export interface SessionActivateParams {
+  session_id: string
+  profile?: string | null
+  cols?: number | null
+  omit_messages?: boolean
+}
+export interface SessionActivateResult {
+  session_id: string
+  message_count: number
+  messages: TranscriptMessage[]
+  info: SessionLiveInfo
+  stored_session_id?: string | null
+  resumed?: string | null
+  session_key?: string | null
+  messages_omitted?: boolean | null
+  hydrating?: boolean | null
+  running?: boolean | null
+  turn_started_at?: number | null
+  started_at?: number | null
+  status?: string | null
+  inflight?: InflightTurn | null
+  queued?: QueuedPrompt | null
+  pending_approval?: PendingApproval | null
+  open_requests?: OpenRequestEntry[] | null
+  pending_connection?: ConnectionRequestPayload | null
+  todo_state?: TodoState | null
+  auto_continue?: AutoContinue | null
+}
+export interface SessionListParams {
+  profile?: string | null
+  title?: string | null
+  limit?: number | null
+  include_hidden?: boolean
+}
+export interface SessionListResult {
+  sessions: SessionListRow[]
+}
+/** ``methods_session._session_row_summary``; ``resolved_id`` only on a title lookup that followed a compression lineage to its tip. */
+export interface SessionListRow {
+  id: string
+  resolved_id?: string | null
+  title?: string
+  preview?: string
+  started_at?: number
+  message_count?: number
+  live_message_count?: number | null
+  source?: string
+  _lineage_root_id?: string | null
+}
+export interface SessionMostRecentParams {
+  profile?: string | null
+}
+export interface SessionMostRecentResult {
+  session_id: string | null
+  title?: string | null
+  started_at?: number | null
+  source?: string | null
+}
+export interface SessionActiveListParams {
+  profile?: string | null
+  current_session_id?: string | null
+}
+export interface SessionActiveListResult {
+  sessions: SessionActiveItem[]
+}
+/** ``server._session_live_item``. */
+export interface SessionActiveItem {
+  current: boolean
+  id: string
+  last_active: number
+  message_count: number
+  model: string
+  preview: string
+  session_key: string
+  source?: string | null
+  started_at: number
+  status: LiveSessionStatus
+  title: string
+}
+export type LiveSessionStatus = 'idle' | 'starting' | 'waiting' | 'working' | 'streaming' | 'resuming'
+/** ``session_id`` is the STORED id. */
+export interface SessionDeleteParams {
+  session_id: string
+  profile?: string | null
+}
+export interface SessionDeleteResult {
+  deleted: string
+}
+export interface SessionTitleParams {
+  session_id: string
+  profile?: string | null
+  title?: string | null
+}
+export interface SessionTitleResult {
+  title: string
+  session_key?: string | null
+  pending?: boolean | null
+}
+/** ``session_id`` is a live runtime id first, else a stored id / key / title. */
+export interface SessionSetHiddenParams {
+  session_id: string
+  hidden: boolean
+  profile?: string | null
+}
+export interface SessionSetHiddenResult {
+  hidden: boolean
+  session_key: string
+}
+/** ``session_id`` (or its ``session_key`` alias) is a live runtime id first, else a stored id / key / title. */
+export interface SessionArchiveParams {
+  session_id?: string | null
+  session_key?: string | null
+  archived?: boolean
+  profile?: string | null
+}
+export interface SessionArchiveResult {
+  archived: boolean
+  session_key: string
+}
+export interface SessionWorkspaceMoveParams {
+  profile?: string | null
+  session_key: string
+  cwd: string
+}
+export interface SessionWorkspaceMoveResult {
+  cwd: string
+  branch?: string | null
+  git_repo_root?: string | null
+}
+export interface SessionCwdSetParams {
+  session_id: string
+  profile?: string | null
+  cwd: string
+}
+/** The refreshed ``session.info`` view (full agent view, or the lazy shape). */
+export interface SessionCwdSetResult {
+  model?: string
+  provider?: string
+  reasoning_effort?: string
+  reasoning_effort_wire?: string
+  reasoning_efforts?: string[] | null
+  service_tier?: string
+  fast?: boolean
+  yolo?: boolean
+  approval_mode?: string
+  tools?: Record<string, string[]>
+  skills?: Record<string, string[]>
+  cwd?: string
+  branch?: string | null
+  project?: ProjectRef | null
+  terminal_backend?: string
+  personality?: string
+  running?: boolean
+  turn_started_at?: number | null
+  title?: string
+  stored_session_id?: string
+  desktop_contract?: number | string | null
+  version?: string
+  release_date?: string
+  update_behind?: unknown | null
+  update_command?: string
+  usage?: Usage | null
+  profile_name?: string | null
+  mcp_servers?: McpServerStatus[]
+  system_prompt?: string | null
+  credential_warning?: string | null
+  lazy?: boolean | null
+  [key: string]: unknown
+}
+export interface SessionCloseParams {
+  session_id: string
+  profile?: string | null
+}
+export interface SessionCloseResult {
+  closed: boolean
+  messages?: string[]
+}
+export interface SessionBranchParams {
+  session_id: string
+  profile?: string | null
+  name?: string | null
+  count?: number | null
+  idempotency_key?: string | null
+}
+export interface SessionBranchResult {
+  session_id: string
+  stored_session_id: string
+  title: string
+  parent: string
+  message_count: number
+  messages: TranscriptMessage[]
+  info: SessionLiveInfo
+}
+export interface SessionBranchWholeParams {
+  session_id: string
+  profile?: string | null
+  name?: string | null
+  idempotency_key?: string | null
+}
+export interface SessionBranchWholeResult {
+  session_id: string
+  stored_session_id: string
+  title: string
+  parent: string
+  message_count: number
+  messages_omitted: boolean
+  info: SessionLiveInfo
+}
+export interface SessionUndoParams {
+  session_id: string
+  profile?: string | null
+  intent?: UndoIntent | null
+}
+export type UndoIntent = 'retry' | 'undo'
+export interface SessionUndoResult {
+  removed: number
+}
+export interface SessionSaveParams {
+  session_id: string
+  profile?: string | null
+}
+/** Under turn isolation the compute host's result passes through verbatim. */
+export interface SessionSaveResult {
+  file?: string | null
+  [key: string]: unknown
+}
+export interface SessionStatusParams {
+  session_id: string
+  profile?: string | null
+}
+export interface SessionStatusResult {
+  output: string
+}
+export interface SessionHistoryParams {
+  session_id: string
+  profile?: string | null
+}
+export interface SessionHistoryResult {
+  count: number
+  messages: TranscriptMessage[]
+}
+export interface SessionUsageParams {
+  session_id: string
+  profile?: string | null
+}
+export interface SessionUsageResult {
+  model?: string
+  input?: number
+  output?: number
+  reasoning?: number
+  prompt?: number
+  completion?: number
+  total?: number
+  calls?: number
+  compressions?: number | null
+  context_pending?: boolean | null
+  context_used?: number | null
+  context_max?: number | null
+  context_percent?: number | null
+  context_source?: string | null
+  context_estimated?: boolean | null
+  cache_hit_pct?: number | null
+  cache_read?: number | null
+  cache_write?: number | null
+  avg_latency_s?: number | null
+  avg_tps?: number | null
+  active_subagents?: number | null
+  dev_credits_spent_micros?: number | null
+  cost_usd?: number | null
+  cost_status?: string | null
+  credits_lines?: string[] | null
+  [key: string]: unknown
+}
+export interface SessionContextBreakdownParams {
+  session_id: string
+  profile?: string | null
+}
+/** ``agent.context_breakdown.compute_session_context_breakdown`` (empty categories before the agent builds) plus the per-file context manifest (empty until the agent exists). */
+export interface SessionContextBreakdownResult {
+  categories: ContextCategory[]
+  context_max: number
+  context_percent: number
+  context_used: number
+  estimated_total: number
+  context_estimated: boolean
+  context_source: string
+  model: string
+  context_files?: ContextFileSource[]
+  ready?: boolean
+}
+export interface ContextCategory {
+  color: string
+  id: string
+  label: string
+  tokens: number
+}
+/** One row of ``agent.context_file_sources.list_context_file_sources``. */
+export interface ContextFileSource {
+  label: string
+  path: string
+  chars: number
+  est_tokens: number
+  loaded: boolean
+  status: string
+}
+export interface SessionCompressParams {
+  session_id: string
+  profile?: string | null
+  focus_topic?: string | null
+}
+/** In-process: the before/after summary + replacement transcript. Compute host: its result passes through (hence open) with ``turn_isolation``; a lock held elsewhere answers ``compressed: false``. */
+export interface SessionCompressResult {
+  status?: string | null
+  removed?: number | null
+  before_messages?: number | null
+  after_messages?: number | null
+  before_tokens?: number | null
+  after_tokens?: number | null
+  summary?: CompressionSummary | null
+  usage?: Usage | null
+  info?: SessionLiveInfo | null
+  messages?: TranscriptMessage[] | null
+  compressed?: boolean | null
+  lock_held?: boolean | null
+  message?: string | null
+  turn_isolation?: boolean | null
+  host_ack?: Record<string, unknown> | null
+  [key: string]: unknown
+}
+/** ``agent.manual_compression_feedback.summarize_manual_compression``. */
+export interface CompressionSummary {
+  noop?: boolean
+  aborted?: boolean
+  refused_would_grow?: boolean | null
+  fallback_used?: boolean | null
+  headline?: string
+  token_line?: string
+  note?: string | null
+  [key: string]: unknown
+}
+export interface SessionInterruptParams {
+  session_id: string
+  profile?: string | null
+  expected_hosted_task_id?: string | null
+}
+export interface SessionInterruptResult {
+  status: InterruptStatus
+  interrupted?: boolean | null
+  turn_isolation?: boolean | null
+}
+export type InterruptStatus = 'interrupted' | 'not_interrupted'
+export interface SessionCorrectionParams {
+  session_id: string
+  profile?: string | null
+  text: string
+}
+export interface SessionCorrectionResult {
+  status: CorrectionStatus
+  text: string
+}
+export type CorrectionStatus = 'queued' | 'redirected' | 'rejected'
+export interface SpawnTreeSaveParams {
+  profile?: string | null
+  subagents: Record<string, unknown>[]
+  session_id?: string | null
+  started_at?: number | null
+  finished_at?: number | null
+  label?: string | null
+}
+export interface SpawnTreeSaveResult {
+  path: string
+  session_id: string
+}
+export interface SpawnTreeListParams {
+  profile?: string | null
+  session_id?: string | null
+  cross_session?: boolean
+  limit?: number | null
+}
+export interface SpawnTreeListResult {
+  entries: SpawnTreeEntry[]
+}
+/** Index row (``server._append_spawn_tree_index``) or a legacy file scan. */
+export interface SpawnTreeEntry {
+  path: string
+  session_id?: string | null
+  started_at?: number | null
+  finished_at?: number | null
+  label?: string
+  count?: number
+  [key: string]: unknown
+}
+export interface SpawnTreeLoadParams {
+  profile?: string | null
+  path: string
+}
+/** The snapshot file as written by ``spawn_tree.save`` (open: the file is the contract). */
+export interface SpawnTreeLoadResult {
+  session_id?: string | null
+  started_at?: number | null
+  finished_at?: number | null
+  label?: string | null
+  subagents?: Record<string, unknown>[]
+  [key: string]: unknown
+}
+export interface TerminalResizeParams {
+  session_id: string
+  profile?: string | null
+  cols?: number | null
+}
+export interface TerminalResizeResult {
+  cols: number
+}
+export interface SessionEventsSinceParams {
+  session_id: string
+  profile?: string | null
+  last_seen?: number | null
+  replay_epoch?: string | null
+}
+export interface SessionEventsSinceResult {
+  events: Record<string, unknown>[]
+  latest_seq: number
+  truncated: boolean
+  count: number
+  epoch: string
+  open_requests: OpenRequestEntry[]
+}
+export interface SessionEventsStatsParams {
+  profile?: string | null
+}
+/** ``event_replay.replay_stats``. */
+export interface SessionEventsStatsResult {
+  sessions: number
+  events: number
+  bytes: number
+  max_per_session: number
+  max_bytes_per_session: number
+  max_bytes_process: number
+}
+/** Needs a ``template`` or ``instructions`` / ``input``; a live ``session_id`` lends its model. */
+export interface LlmOneshotParams {
+  profile?: string | null
+  template?: string | null
+  instructions?: string | null
+  input?: string | null
+  variables?: Record<string, unknown> | null
+  task?: string | null
+  temperature?: number | null
+  max_tokens?: number | null
+  session_id?: string | null
+}
+export interface LlmOneshotResult {
+  text: string
+}
 /** ``word`` is the token under the cursor (``@`` prefix = context reference); ``cwd`` / ``session_id`` pick the directory the listing resolves against. */
 export interface CompletePathParams {
   profile?: string | null
@@ -3165,621 +3780,6 @@ export interface PetScaleParams {
 export interface PetScaleResult {
   ok: boolean
   scale: number
-}
-export interface SessionCreateParams {
-  profile?: string | null
-  cols?: number | null
-  source?: string | null
-  cwd?: string | null
-  cwd_explicit?: boolean | null
-  messages?: SeedMessage[] | null
-  parent_session_id?: string | null
-  title?: string | null
-  model?: string | null
-  provider?: string | null
-  reasoning_effort?: string | null
-  fast?: boolean | null
-  service_tier?: string | null
-  close_on_disconnect?: boolean
-  hidden?: boolean
-  room_plumbing?: boolean
-  follow_profile_config?: boolean
-  idempotency_key?: string | null
-}
-/** One create-time transcript row (``session_history._coerce_seed_history``); ``text`` is the legacy alias of ``content``; only ``display_kind: "hidden"`` is accepted from the wire. Clients forward stored rows verbatim (``_row_id``, ``timestamp``, …) and the coercer drops what it does not use, so the row stays open. */
-export interface SeedMessage {
-  role: string
-  content?: string | null
-  text?: string | null
-  display_kind?: string | null
-  [key: string]: unknown
-}
-export interface SessionCreateResult {
-  session_id: string
-  stored_session_id: string
-  message_count: number
-  messages: TranscriptMessage[]
-  info: SessionLiveInfo
-}
-/** One transcript row as the gateway PROJECTS it for renderers (``session_history._project_history``): ``text``, display-only ``timestamp`` / ``display_kind`` / ``display_metadata``, the durable ``row_id`` rewind targets, and for tool rows raw ``content``, ``tool_call_id``, ``name``, ``context`` and ``args``. Assistant detail sidecars (``reasoning``, …) ride as extra keys. */
-export interface TranscriptMessage {
-  role: string
-  text?: string | null
-  content?: unknown | null
-  tool_call_id?: string | null
-  timestamp?: number | null
-  row_id?: number | null
-  display_kind?: string | null
-  display_metadata?: unknown | null
-  name?: string | null
-  context?: string | null
-  args?: Record<string, unknown> | null
-  labels?: ToolLabel[] | null
-  reasoning?: string | null
-  [key: string]: unknown
-}
-/** ``tools.tool_labels.ToolLabel`` — what one call executed through the tool_search bridge is, in words. Clients render ``text`` (or ``app``/``action`` in their own columns) and never parse the tool name themselves. */
-export interface ToolLabel {
-  kind: ToolLabelKind
-  app: string
-  action: string
-  emoji: string
-  text: string
-  name: string
-  preview?: string
-}
-/** Which surface one inner call of a bridged ``tool_call`` runs on. */
-export type ToolLabelKind = 'connector' | 'mcp' | 'tool'
-export interface SessionBranchStoredParams {
-  profile?: string | null
-  parent_session_id: string
-  cols?: number | null
-  source?: string | null
-  cwd?: string | null
-  idempotency_key?: string | null
-}
-export interface SessionBranchStoredResult {
-  session_id: string
-  stored_session_id: string
-  message_count: number
-  messages_omitted: boolean
-  info: SessionLiveInfo
-}
-/** ``session_id`` is the STORED id (or an exact title); the reply's ``session_id`` is the runtime id. */
-export interface SessionResumeParams {
-  session_id: string
-  profile?: string | null
-  cols?: number | null
-  source?: string | null
-  lazy?: boolean
-  defer_history?: boolean
-  omit_messages?: boolean
-  eager_build?: boolean
-  close_on_disconnect?: boolean
-  inline_images?: boolean
-}
-export interface SessionResumeResult {
-  session_id: string
-  message_count: number
-  messages: TranscriptMessage[]
-  info: SessionLiveInfo
-  stored_session_id?: string | null
-  resumed?: string | null
-  session_key?: string | null
-  messages_omitted?: boolean | null
-  hydrating?: boolean | null
-  running?: boolean | null
-  turn_started_at?: number | null
-  started_at?: number | null
-  status?: string | null
-  inflight?: InflightTurn | null
-  queued?: QueuedPrompt | null
-  pending_approval?: PendingApproval | null
-  open_requests?: OpenRequestEntry[] | null
-  pending_connection?: ConnectionRequestPayload | null
-  todo_state?: TodoState | null
-  auto_continue?: AutoContinue | null
-}
-/** ``session_auto_continue._inflight_snapshot``: the live (or retained failed) turn a reconnecting client rebuilds its bubbles from. */
-export interface InflightTurn {
-  assistant?: string
-  streaming?: boolean
-  user?: string
-  display_kind?: string | null
-  display_metadata?: Record<string, unknown> | null
-  corrections?: string[] | null
-  correction_offsets?: number[] | null
-  error?: string | null
-  status?: string | null
-  recoverable?: boolean | null
-  error_surface?: Record<string, unknown> | null
-}
-export interface QueuedPrompt {
-  user: string
-}
-/** One unanswered server→client request (``server_requests.Request.snapshot``); the reconnecting client re-delivers it to its request handlers. */
-export interface OpenRequestEntry {
-  id: string
-  method: string
-  params: Record<string, unknown>
-}
-/** ``ConnectionOperation.request_payload``: opens the card; also the ``pending_connection`` resume snapshot so a client that missed the event restores the card with the server's deadline. */
-export interface ConnectionRequestPayload {
-  op_id: string
-  seq: number
-  deadline_at: number
-  timeout_seconds: number
-  targets: ConnectionOperationTarget[]
-  tool_call_id?: string | null
-  display?: ConnectionDisplay | null
-}
-/** ``manage_connections`` action ``display``: the directory card, with these slugs pinned as Suggested. */
-export interface ConnectionDisplay {
-  suggested: string[]
-}
-/** ``tool_progress._normalize_todo_state``: the authoritative todo snapshot. */
-export interface TodoState {
-  todos: Record<string, unknown>[]
-  revision: number
-}
-/** A crash-interrupted turn was scheduled to continue right after this resume. */
-export interface AutoContinue {
-  attempt: number
-  interrupted_at: number
-}
-export interface SessionActivateParams {
-  session_id: string
-  profile?: string | null
-  cols?: number | null
-  omit_messages?: boolean
-}
-export interface SessionActivateResult {
-  session_id: string
-  message_count: number
-  messages: TranscriptMessage[]
-  info: SessionLiveInfo
-  stored_session_id?: string | null
-  resumed?: string | null
-  session_key?: string | null
-  messages_omitted?: boolean | null
-  hydrating?: boolean | null
-  running?: boolean | null
-  turn_started_at?: number | null
-  started_at?: number | null
-  status?: string | null
-  inflight?: InflightTurn | null
-  queued?: QueuedPrompt | null
-  pending_approval?: PendingApproval | null
-  open_requests?: OpenRequestEntry[] | null
-  pending_connection?: ConnectionRequestPayload | null
-  todo_state?: TodoState | null
-  auto_continue?: AutoContinue | null
-}
-export interface SessionListParams {
-  profile?: string | null
-  title?: string | null
-  limit?: number | null
-  include_hidden?: boolean
-}
-export interface SessionListResult {
-  sessions: SessionListRow[]
-}
-/** ``methods_session._session_row_summary``; ``resolved_id`` only on a title lookup that followed a compression lineage to its tip. */
-export interface SessionListRow {
-  id: string
-  resolved_id?: string | null
-  title?: string
-  preview?: string
-  started_at?: number
-  message_count?: number
-  live_message_count?: number | null
-  source?: string
-  _lineage_root_id?: string | null
-}
-export interface SessionMostRecentParams {
-  profile?: string | null
-}
-export interface SessionMostRecentResult {
-  session_id: string | null
-  title?: string | null
-  started_at?: number | null
-  source?: string | null
-}
-export interface SessionActiveListParams {
-  profile?: string | null
-  current_session_id?: string | null
-}
-export interface SessionActiveListResult {
-  sessions: SessionActiveItem[]
-}
-/** ``server._session_live_item``. */
-export interface SessionActiveItem {
-  current: boolean
-  id: string
-  last_active: number
-  message_count: number
-  model: string
-  preview: string
-  session_key: string
-  source?: string | null
-  started_at: number
-  status: LiveSessionStatus
-  title: string
-}
-export type LiveSessionStatus = 'idle' | 'starting' | 'waiting' | 'working' | 'streaming' | 'resuming'
-/** ``session_id`` is the STORED id. */
-export interface SessionDeleteParams {
-  session_id: string
-  profile?: string | null
-}
-export interface SessionDeleteResult {
-  deleted: string
-}
-export interface SessionTitleParams {
-  session_id: string
-  profile?: string | null
-  title?: string | null
-}
-export interface SessionTitleResult {
-  title: string
-  session_key?: string | null
-  pending?: boolean | null
-}
-/** ``session_id`` is a live runtime id first, else a stored id / key / title. */
-export interface SessionSetHiddenParams {
-  session_id: string
-  hidden: boolean
-  profile?: string | null
-}
-export interface SessionSetHiddenResult {
-  hidden: boolean
-  session_key: string
-}
-/** ``session_id`` (or its ``session_key`` alias) is a live runtime id first, else a stored id / key / title. */
-export interface SessionArchiveParams {
-  session_id?: string | null
-  session_key?: string | null
-  archived?: boolean
-  profile?: string | null
-}
-export interface SessionArchiveResult {
-  archived: boolean
-  session_key: string
-}
-export interface SessionWorkspaceMoveParams {
-  profile?: string | null
-  session_key: string
-  cwd: string
-}
-export interface SessionWorkspaceMoveResult {
-  cwd: string
-  branch?: string | null
-  git_repo_root?: string | null
-}
-export interface SessionCwdSetParams {
-  session_id: string
-  profile?: string | null
-  cwd: string
-}
-/** The refreshed ``session.info`` view (full agent view, or the lazy shape). */
-export interface SessionCwdSetResult {
-  model?: string
-  provider?: string
-  reasoning_effort?: string
-  reasoning_effort_wire?: string
-  reasoning_efforts?: string[] | null
-  service_tier?: string
-  fast?: boolean
-  yolo?: boolean
-  approval_mode?: string
-  tools?: Record<string, string[]>
-  skills?: Record<string, string[]>
-  cwd?: string
-  branch?: string | null
-  project?: ProjectRef | null
-  terminal_backend?: string
-  personality?: string
-  running?: boolean
-  turn_started_at?: number | null
-  title?: string
-  stored_session_id?: string
-  desktop_contract?: number | string | null
-  version?: string
-  release_date?: string
-  update_behind?: unknown | null
-  update_command?: string
-  usage?: Usage | null
-  profile_name?: string | null
-  mcp_servers?: McpServerStatus[]
-  system_prompt?: string | null
-  credential_warning?: string | null
-  lazy?: boolean | null
-  [key: string]: unknown
-}
-export interface SessionCloseParams {
-  session_id: string
-  profile?: string | null
-}
-export interface SessionCloseResult {
-  closed: boolean
-  messages?: string[]
-}
-export interface SessionBranchParams {
-  session_id: string
-  profile?: string | null
-  name?: string | null
-  count?: number | null
-  idempotency_key?: string | null
-}
-export interface SessionBranchResult {
-  session_id: string
-  stored_session_id: string
-  title: string
-  parent: string
-  message_count: number
-  messages: TranscriptMessage[]
-  info: SessionLiveInfo
-}
-export interface SessionBranchWholeParams {
-  session_id: string
-  profile?: string | null
-  name?: string | null
-  idempotency_key?: string | null
-}
-export interface SessionBranchWholeResult {
-  session_id: string
-  stored_session_id: string
-  title: string
-  parent: string
-  message_count: number
-  messages_omitted: boolean
-  info: SessionLiveInfo
-}
-export interface SessionUndoParams {
-  session_id: string
-  profile?: string | null
-  intent?: UndoIntent | null
-}
-export type UndoIntent = 'retry' | 'undo'
-export interface SessionUndoResult {
-  removed: number
-}
-export interface SessionSaveParams {
-  session_id: string
-  profile?: string | null
-}
-/** Under turn isolation the compute host's result passes through verbatim. */
-export interface SessionSaveResult {
-  file?: string | null
-  [key: string]: unknown
-}
-export interface SessionStatusParams {
-  session_id: string
-  profile?: string | null
-}
-export interface SessionStatusResult {
-  output: string
-}
-export interface SessionHistoryParams {
-  session_id: string
-  profile?: string | null
-}
-export interface SessionHistoryResult {
-  count: number
-  messages: TranscriptMessage[]
-}
-export interface SessionUsageParams {
-  session_id: string
-  profile?: string | null
-}
-export interface SessionUsageResult {
-  model?: string
-  input?: number
-  output?: number
-  reasoning?: number
-  prompt?: number
-  completion?: number
-  total?: number
-  calls?: number
-  compressions?: number | null
-  context_pending?: boolean | null
-  context_used?: number | null
-  context_max?: number | null
-  context_percent?: number | null
-  context_source?: string | null
-  context_estimated?: boolean | null
-  cache_hit_pct?: number | null
-  cache_read?: number | null
-  cache_write?: number | null
-  avg_latency_s?: number | null
-  avg_tps?: number | null
-  active_subagents?: number | null
-  dev_credits_spent_micros?: number | null
-  cost_usd?: number | null
-  cost_status?: string | null
-  credits_lines?: string[] | null
-  [key: string]: unknown
-}
-export interface SessionContextBreakdownParams {
-  session_id: string
-  profile?: string | null
-}
-/** ``agent.context_breakdown.compute_session_context_breakdown`` (empty categories before the agent builds) plus the per-file context manifest (empty until the agent exists). */
-export interface SessionContextBreakdownResult {
-  categories: ContextCategory[]
-  context_max: number
-  context_percent: number
-  context_used: number
-  estimated_total: number
-  context_estimated: boolean
-  context_source: string
-  model: string
-  context_files?: ContextFileSource[]
-  ready?: boolean
-}
-export interface ContextCategory {
-  color: string
-  id: string
-  label: string
-  tokens: number
-}
-/** One row of ``agent.context_file_sources.list_context_file_sources``. */
-export interface ContextFileSource {
-  label: string
-  path: string
-  chars: number
-  est_tokens: number
-  loaded: boolean
-  status: string
-}
-export interface SessionCompressParams {
-  session_id: string
-  profile?: string | null
-  focus_topic?: string | null
-}
-/** In-process: the before/after summary + replacement transcript. Compute host: its result passes through (hence open) with ``turn_isolation``; a lock held elsewhere answers ``compressed: false``. */
-export interface SessionCompressResult {
-  status?: string | null
-  removed?: number | null
-  before_messages?: number | null
-  after_messages?: number | null
-  before_tokens?: number | null
-  after_tokens?: number | null
-  summary?: CompressionSummary | null
-  usage?: Usage | null
-  info?: SessionLiveInfo | null
-  messages?: TranscriptMessage[] | null
-  compressed?: boolean | null
-  lock_held?: boolean | null
-  message?: string | null
-  turn_isolation?: boolean | null
-  host_ack?: Record<string, unknown> | null
-  [key: string]: unknown
-}
-/** ``agent.manual_compression_feedback.summarize_manual_compression``. */
-export interface CompressionSummary {
-  noop?: boolean
-  aborted?: boolean
-  refused_would_grow?: boolean | null
-  fallback_used?: boolean | null
-  headline?: string
-  token_line?: string
-  note?: string | null
-  [key: string]: unknown
-}
-export interface SessionInterruptParams {
-  session_id: string
-  profile?: string | null
-  expected_hosted_task_id?: string | null
-}
-export interface SessionInterruptResult {
-  status: InterruptStatus
-  interrupted?: boolean | null
-  turn_isolation?: boolean | null
-}
-export type InterruptStatus = 'interrupted' | 'not_interrupted'
-export interface SessionCorrectionParams {
-  session_id: string
-  profile?: string | null
-  text: string
-}
-export interface SessionCorrectionResult {
-  status: CorrectionStatus
-  text: string
-}
-export type CorrectionStatus = 'queued' | 'redirected' | 'rejected'
-export interface SpawnTreeSaveParams {
-  profile?: string | null
-  subagents: Record<string, unknown>[]
-  session_id?: string | null
-  started_at?: number | null
-  finished_at?: number | null
-  label?: string | null
-}
-export interface SpawnTreeSaveResult {
-  path: string
-  session_id: string
-}
-export interface SpawnTreeListParams {
-  profile?: string | null
-  session_id?: string | null
-  cross_session?: boolean
-  limit?: number | null
-}
-export interface SpawnTreeListResult {
-  entries: SpawnTreeEntry[]
-}
-/** Index row (``server._append_spawn_tree_index``) or a legacy file scan. */
-export interface SpawnTreeEntry {
-  path: string
-  session_id?: string | null
-  started_at?: number | null
-  finished_at?: number | null
-  label?: string
-  count?: number
-  [key: string]: unknown
-}
-export interface SpawnTreeLoadParams {
-  profile?: string | null
-  path: string
-}
-/** The snapshot file as written by ``spawn_tree.save`` (open: the file is the contract). */
-export interface SpawnTreeLoadResult {
-  session_id?: string | null
-  started_at?: number | null
-  finished_at?: number | null
-  label?: string | null
-  subagents?: Record<string, unknown>[]
-  [key: string]: unknown
-}
-export interface TerminalResizeParams {
-  session_id: string
-  profile?: string | null
-  cols?: number | null
-}
-export interface TerminalResizeResult {
-  cols: number
-}
-export interface SessionEventsSinceParams {
-  session_id: string
-  profile?: string | null
-  last_seen?: number | null
-  replay_epoch?: string | null
-}
-export interface SessionEventsSinceResult {
-  events: Record<string, unknown>[]
-  latest_seq: number
-  truncated: boolean
-  count: number
-  epoch: string
-  open_requests: OpenRequestEntry[]
-}
-export interface SessionEventsStatsParams {
-  profile?: string | null
-}
-/** ``event_replay.replay_stats``. */
-export interface SessionEventsStatsResult {
-  sessions: number
-  events: number
-  bytes: number
-  max_per_session: number
-  max_bytes_per_session: number
-  max_bytes_process: number
-}
-/** Needs a ``template`` or ``instructions`` / ``input``; a live ``session_id`` lends its model. */
-export interface LlmOneshotParams {
-  profile?: string | null
-  template?: string | null
-  instructions?: string | null
-  input?: string | null
-  variables?: Record<string, unknown> | null
-  task?: string | null
-  temperature?: number | null
-  max_tokens?: number | null
-  session_id?: string | null
-}
-export interface LlmOneshotResult {
-  text: string
 }
 export interface SystemBatteryParams {
   profile?: string | null
@@ -5039,6 +5039,7 @@ export interface CanonicalSnapshot {
   prompts: CanonicalPendingPrompt[]
   info: CanonicalSnapshotInfo
   pending_connection?: ConnectionRequestPayload | null
+  todo_state?: TodoState | null
 }
 export interface CanonicalPendingAdmission {
   admission_id: string
@@ -5168,6 +5169,7 @@ export interface CanonicalCorrectionAck {
   text: string
   execution_generation: number
   authority_epoch: number
+  delivered?: false | null
 }
 /** A bare stop phrase typed while the session's voice chat is on: the chat ended, nothing was admitted (TUI-26). */
 export interface CanonicalVoiceStopped {

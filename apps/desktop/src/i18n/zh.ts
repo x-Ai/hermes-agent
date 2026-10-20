@@ -684,14 +684,6 @@ export const zhOverrides = {
   },
   ...zhNotices,
   ...zhGoalStatus,
-  billingBlock: {
-    titleNous: 'Nous 额度已用尽',
-    titleProvider: provider => `额度已用尽 — ${provider}`,
-    fallbackMessage: '您的账户额度已用尽，请充值以继续使用',
-    openBilling: '打开账单',
-    addCredits: '添加额度',
-    dismiss: '忽略'
-  },
   billingPage: {
     title: '账单',
     paymentAndCredits: '支付与额度',
@@ -6163,6 +6155,10 @@ export const zhOverrides = {
         SESSION_OWNER_UNCONFIRMED: {
           title: '你的消息可能已在队列中',
           body: '网关未及时确认你的消息，如果它已入队，会在先前那一轮完成或被处理后运行，再次发送前请先查看对话'
+        },
+        cron_session_read_only: {
+          title: '此聊天属于一个定时任务',
+          body: '它只运行该任务，因此你的消息未被执行，请新建聊天后再发送'
         }
       },
       errorLayers: {

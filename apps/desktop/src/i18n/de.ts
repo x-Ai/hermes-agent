@@ -493,14 +493,6 @@ export const deOverrides = {
   },
   ...deNotices,
   ...deGoalStatus,
-  billingBlock: {
-    titleNous: 'Keine Nous-Credits mehr',
-    titleProvider: provider => `Keine Credits mehr — ${provider}`,
-    fallbackMessage: 'Auf Ihrem Konto sind keine Credits mehr übrig. Fügen Sie Credits hinzu, um fortzufahren.',
-    openBilling: 'Billing öffnen',
-    addCredits: 'Credits hinzufügen',
-    dismiss: 'Schließen'
-  },
   sendDiagnostics: {
     title: 'Diagnosedaten an Nous senden',
     privacyNotice:
@@ -5103,6 +5095,10 @@ export const deOverrides = {
         free_tier_refused: {
           title: 'Hermes konnte das ohne Anmeldung nicht senden',
           body: 'Eine Anmeldung mit einem Nous-Konto ist kostenlos.'
+        },
+        cron_session_read_only: {
+          title: 'Dieser Chat gehört zu einer geplanten Aufgabe',
+          body: 'Er führt nur diese Aufgabe aus, daher wurde Ihre Nachricht nicht ausgeführt. Starten Sie einen neuen Chat, um sie zu senden.'
         }
       },
       errorAuthKinds: {

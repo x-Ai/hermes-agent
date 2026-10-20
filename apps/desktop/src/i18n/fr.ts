@@ -493,14 +493,6 @@ export const frOverrides = {
   },
   ...frNotices,
   ...frGoalStatus,
-  billingBlock: {
-    titleNous: 'Plus de crédits Nous',
-    titleProvider: provider => `Plus de crédits — ${provider}`,
-    fallbackMessage: 'Votre compte est à court de crédits. Ajoutez-en pour continuer.',
-    openBilling: 'Ouvrir la facturation',
-    addCredits: 'Ajouter des crédits',
-    dismiss: 'Fermer'
-  },
   sendDiagnostics: {
     title: 'Envoyer les diagnostics à Nous',
     privacyNotice:
@@ -5109,6 +5101,10 @@ export const frOverrides = {
         free_tier_refused: {
           title: "Hermes n'a pas pu envoyer ce message sans connexion",
           body: 'La connexion avec un compte Nous est gratuite.'
+        },
+        cron_session_read_only: {
+          title: 'Cette conversation appartient à une tâche planifiée',
+          body: 'Elle n’exécute que cette tâche ; votre message n’a donc pas été exécuté. Démarrez une nouvelle conversation pour l’envoyer.'
         }
       },
       errorAuthKinds: {

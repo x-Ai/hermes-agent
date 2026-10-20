@@ -496,14 +496,6 @@ export const esOverrides = {
   },
   ...esNotices,
   ...esGoalStatus,
-  billingBlock: {
-    titleNous: 'Sin créditos de Nous',
-    titleProvider: provider => `Sin créditos — ${provider}`,
-    fallbackMessage: 'Tu cuenta se quedó sin créditos. Añade créditos para continuar.',
-    openBilling: 'Abrir facturación',
-    addCredits: 'Añadir créditos',
-    dismiss: 'Descartar'
-  },
   sendDiagnostics: {
     title: 'Enviar diagnóstico a Nous',
     privacyNotice:
@@ -5096,6 +5088,10 @@ export const esOverrides = {
         free_tier_refused: {
           title: 'Hermes no pudo enviarlo sin iniciar sesión',
           body: 'Iniciar sesión con una cuenta de Nous es gratis.'
+        },
+        cron_session_read_only: {
+          title: 'Este chat pertenece a una tarea programada',
+          body: 'Solo ejecuta esa tarea, así que tu mensaje no se ejecutó. Empieza un chat nuevo para enviarlo.'
         }
       },
       errorAuthKinds: {

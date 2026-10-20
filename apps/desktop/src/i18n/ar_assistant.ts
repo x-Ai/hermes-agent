@@ -154,54 +154,11 @@ export const arAssistant = {
         runtime: 'Hermes واجه مشكلة',
         streaming: 'تم قطع الرد'
       },
-      errorRetry: 'إعادة المحاولة',
-      errorStartNewSession: 'بدء جلسة جديدة',
-      errorSwitchProvider: 'تبديل المزوّد',
-      errorSignInAgain: provider => `تسجيل الدخول إلى ${provider} مجدداً`,
-      errorOauthExpired: provider =>
-        `انتهت صلاحية تسجيل دخولك إلى ${provider} أو تم إلغاؤه. سجّل الدخول مجدداً لمتابعة المحادثة.`,
-      errorOpenLogs: 'فتح السجلات',
-      errorOpenLogsFailed: 'تعذّر فتح مجلد السجلات',
-      errorOpenDesktopLogs: 'فتح سجلات سطح المكتب',
-      errorCopyDiagnostics: 'نسخ تفاصيل الخطأ',
-      errorSendDiagnostics: 'إرسال التشخيصات',
-      filesChanged: count => `${count} ملفات تم تغييرها`,
-      reviewChanges: 'مراجعة',
-      readAloudFailed: 'فشلت القراءة بصوت عال',
-      preparingAudio: 'جار تجهيز الصوت',
-      stopReading: 'إيقاف القراءة',
-      readAloud: 'قراءة بصوت عال',
-      copyFullResponse: 'نسخ الرد الكامل',
-      readAloudFullResponseHint: 'انقر مع الضغط على Shift: قراءة الرد الكامل بصوت عال',
-      editMessage: 'تحرير الرسالة',
-      expandMessage: 'الرسالة الموسعة',
-      scrollToBottom: 'التمرير إلى الأسفل',
-      stop: 'إيقاف',
-      restorePrevious: 'استعادة السابق',
-      restoreCheckpoint: 'استعادة النقطة',
-      restoreFromHere: 'استعادة نقطة التحقق — إعادة التشغيل من هذا الموجّه',
-      restoreFailed: 'فشل الاستعادة',
-      restoreTitle: 'الاستعادة إلى نقطة التحقق هذه؟',
-      restoreBody: 'يُزال كل ما يلي هذا الموجّه من المحادثة، ويُعاد تشغيل الموجّه من هنا.',
-      restoreConfirm: 'استعادة وإعادة تشغيل',
-      restoreNext: 'استعادة التالي',
-      goForward: 'تقدم',
-      sendEdited: 'إرسال التعديل',
-      attachingFile: 'جار إرفاق الملف',
-      errorLayerBodies: {
-        auth: 'لقد رفضت شركة "آي آي" توقيعك تحقق من وثائق تفويض هذا المزود ثم أرسل رسالتك مرة أخرى.',
-        billing: 'حسابك ليس لديه أي ائتمانات لهذا المزود اصعدي أو صانعة مفاتيح ثم ارسلي مرة اخرى.',
-        disk: 'القرص ممتلئ، لذلك تعذر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة ثم أعد المحاولة.',
-        endpoint: 'لا يمكن أن تصل إلى خادم نموذجك تأكد من أنها تعمل ثم أرسل رسالتك مرة أخرى.',
-        gateway:
-          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
-        generic: 'حدث خطأ أثناء رد Hermes. أعد المحاولة، أو انسخ التفاصيل إذا استمرت المشكلة.',
-        provider: 'The AI service could not complete this request. ارجعوا في لحظة أو مزود تبديل.',
-        runtime:
-          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
-        streaming: 'The connection dropped before the reply ended. حاول أن ترسلها مرة أخرى.'
-      },
       errorCodes: {
+        cron_session_read_only: {
+          title: 'هذه المحادثة تابعة لمهمة مجدولة',
+          body: 'إنها تشغّل تلك المهمة فقط، لذا لم تُنفَّذ رسالتك. ابدأ محادثة جديدة لإرسالها.'
+        },
         auth: {
           title: provider => `${provider}رفض تسجيل الدخول الخاص بك`,
           body: provider =>
@@ -329,6 +286,53 @@ export const arAssistant = {
           title: 'Hermes لا يمكن أن ترسل ذلك دون التوقيع في',
           body: 'التوقيع مع حساب Nous هو مجانا.'
         }
+      },
+      errorRetry: 'إعادة المحاولة',
+      errorStartNewSession: 'بدء جلسة جديدة',
+      errorSwitchProvider: 'تبديل المزوّد',
+      errorSignInAgain: provider => `تسجيل الدخول إلى ${provider} مجدداً`,
+      errorOauthExpired: provider =>
+        `انتهت صلاحية تسجيل دخولك إلى ${provider} أو تم إلغاؤه. سجّل الدخول مجدداً لمتابعة المحادثة.`,
+      errorOpenLogs: 'فتح السجلات',
+      errorOpenLogsFailed: 'تعذّر فتح مجلد السجلات',
+      errorOpenDesktopLogs: 'فتح سجلات سطح المكتب',
+      errorCopyDiagnostics: 'نسخ تفاصيل الخطأ',
+      errorSendDiagnostics: 'إرسال التشخيصات',
+      filesChanged: count => `${count} ملفات تم تغييرها`,
+      reviewChanges: 'مراجعة',
+      readAloudFailed: 'فشلت القراءة بصوت عال',
+      preparingAudio: 'جار تجهيز الصوت',
+      stopReading: 'إيقاف القراءة',
+      readAloud: 'قراءة بصوت عال',
+      copyFullResponse: 'نسخ الرد الكامل',
+      readAloudFullResponseHint: 'انقر مع الضغط على Shift: قراءة الرد الكامل بصوت عال',
+      editMessage: 'تحرير الرسالة',
+      expandMessage: 'الرسالة الموسعة',
+      scrollToBottom: 'التمرير إلى الأسفل',
+      stop: 'إيقاف',
+      restorePrevious: 'استعادة السابق',
+      restoreCheckpoint: 'استعادة النقطة',
+      restoreFromHere: 'استعادة نقطة التحقق — إعادة التشغيل من هذا الموجّه',
+      restoreFailed: 'فشل الاستعادة',
+      restoreTitle: 'الاستعادة إلى نقطة التحقق هذه؟',
+      restoreBody: 'يُزال كل ما يلي هذا الموجّه من المحادثة، ويُعاد تشغيل الموجّه من هنا.',
+      restoreConfirm: 'استعادة وإعادة تشغيل',
+      restoreNext: 'استعادة التالي',
+      goForward: 'تقدم',
+      sendEdited: 'إرسال التعديل',
+      attachingFile: 'جار إرفاق الملف',
+      errorLayerBodies: {
+        auth: 'لقد رفضت شركة "آي آي" توقيعك تحقق من وثائق تفويض هذا المزود ثم أرسل رسالتك مرة أخرى.',
+        billing: 'حسابك ليس لديه أي ائتمانات لهذا المزود اصعدي أو صانعة مفاتيح ثم ارسلي مرة اخرى.',
+        disk: 'القرص ممتلئ، لذلك تعذر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة ثم أعد المحاولة.',
+        endpoint: 'لا يمكن أن تصل إلى خادم نموذجك تأكد من أنها تعمل ثم أرسل رسالتك مرة أخرى.',
+        gateway:
+          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
+        generic: 'حدث خطأ أثناء رد Hermes. أعد المحاولة، أو انسخ التفاصيل إذا استمرت المشكلة.',
+        provider: 'The AI service could not complete this request. ارجعوا في لحظة أو مزود تبديل.',
+        runtime:
+          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
+        streaming: 'The connection dropped before the reply ended. حاول أن ترسلها مرة أخرى.'
       },
       errorAuthKinds: {
         api_key: {
