@@ -6,6 +6,7 @@ import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
 import { ruDelegationFieldLabels } from './ru_delegation_fields'
 import { ruFirstRun } from './ru_first_run'
+import { ruGatewayMenu } from './ru_gateway_menu'
 import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
 import { ruModelSettings } from './ru_model_settings'
@@ -4742,22 +4743,7 @@ export const ruOverrides = {
       fastFailed: 'Не удалось обновить быстрый режим',
       sendsOnRoute: (level: string) => `на этом маршруте отправляется ${level}`
     },
-    gatewayMenu: {
-      gateway: 'Шлюз',
-      connected: 'Подключён',
-      connecting: 'Подключение',
-      offline: 'Недоступен',
-      inferenceReady: 'Инференс готов',
-      inferenceNotReady: 'Инференс не готов',
-      checkingInference: 'Проверка инференса',
-      disconnected: 'Отключён',
-      reconnectGateway: 'Переподключить шлюз',
-      openSystem: 'Открыть системную панель',
-      connection: label => `Соединение: ${label}`,
-      recentActivity: 'Недавняя активность',
-      viewAllLogs: 'Все журналы →',
-      messagingPlatforms: 'Платформы сообщений'
-    },
+    gatewayMenu: ruGatewayMenu,
     approvalMode: {
       title: 'Режим подтверждения',
       ariaLabel: mode => `Режим подтверждения: ${mode}`,

@@ -10,6 +10,7 @@ import { enConnectorCard } from './en_connector_card'
 import { enGatewayGroupOpen, enSkillDeepLink } from './en_deep_links'
 import { enErrorLayers } from './en_error_layers'
 import { enFirstRun } from './en_first_run'
+import { enGatewayMenu } from './en_gateway_menu'
 import { enGoalStatus } from './en_goal_status'
 import { enLocalModels } from './en_local_models'
 import { enModelMenu } from './en_model_menu'
@@ -5117,22 +5118,7 @@ export const en: Translations = {
       fastFailed: 'Fast mode update failed',
       sendsOnRoute: (level: string) => `sends ${level} on this route`
     },
-    gatewayMenu: {
-      gateway: 'Gateway',
-      connected: 'Connected',
-      connecting: 'Connecting',
-      offline: 'Offline',
-      inferenceReady: 'Inference ready',
-      inferenceNotReady: 'Inference not ready',
-      checkingInference: 'Checking inference',
-      disconnected: 'Disconnected',
-      reconnectGateway: 'Reconnect gateway',
-      openSystem: 'Open system panel',
-      connection: label => `Connection: ${label}`,
-      recentActivity: 'Recent activity',
-      viewAllLogs: 'View all logs →',
-      messagingPlatforms: 'Messaging platforms'
-    },
+    gatewayMenu: enGatewayMenu,
     approvalMode: {
       title: 'Approval mode',
       ariaLabel: mode => `Approval mode: ${mode}`,

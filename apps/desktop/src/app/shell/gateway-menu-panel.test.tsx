@@ -29,9 +29,11 @@ vi.mock('@/i18n', () => ({
       shell: {
         gatewayMenu: {
           checkingInference: 'Checking inference',
+          closed: '已关闭',
           connected: 'Connected',
           connecting: 'Connecting',
           disconnected: 'Disconnected',
+          error: '连接错误',
           inferenceNotReady: 'Inference not ready',
           inferenceReady: 'Inference ready',
           messagingPlatforms: 'Messaging platforms',
@@ -96,6 +98,17 @@ describe('GatewayMenuPanel reconnect action', () => {
   })
 
   afterEach(() => cleanup())
+
+  it('names a closed or errored socket in the UI language, never the raw state word', () => {
+    renderPanel('closed')
+    expect(screen.getByText('已关闭')).toBeTruthy()
+    expect(screen.queryByText('Closed')).toBeNull()
+    cleanup()
+
+    renderPanel('error')
+    expect(screen.getByText('连接错误')).toBeTruthy()
+    expect(screen.queryByText('Error')).toBeNull()
+  })
 
   it('shows reconnect while disconnected and disables it in flight', async () => {
     let finish: (() => void) | undefined

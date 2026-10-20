@@ -16,6 +16,7 @@ import type { ClarifyCopy } from './types_clarify'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
 import type { GatewayGroupOpenCopy, SkillDeepLinkCopy } from './types_deep_links'
 import type { FirstRunCopy } from './types_first_run'
+import type { GatewayMenuTranslations } from './types_gateway_menu'
 import type { GoalStatusTranslations } from './types_goal_status'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { ModelSettingsTranslations } from './types_model_settings'
@@ -4378,22 +4379,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       updateFailed: string
       fastFailed: string
     }
-    gatewayMenu: {
-      gateway: string
-      connected: string
-      connecting: string
-      offline: string
-      inferenceReady: string
-      inferenceNotReady: string
-      checkingInference: string
-      disconnected: string
-      reconnectGateway: string
-      openSystem: string
-      connection: (label: string) => string
-      recentActivity: string
-      viewAllLogs: string
-      messagingPlatforms: string
-    }
+    gatewayMenu: GatewayMenuTranslations
     approvalMode: {
       title: string
       ariaLabel: (mode: string) => string

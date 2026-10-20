@@ -6,6 +6,7 @@ import { jaBoot } from './ja_boot'
 import { jaClarify } from './ja_clarify'
 import { jaConnectors } from './ja_connectors'
 import { jaFirstRun } from './ja_first_run'
+import { jaGatewayMenu } from './ja_gateway_menu'
 import { jaGoalStatus } from './ja_goal_status'
 import { jaLocalModels } from './ja_local_models'
 import { jaMessagingFieldCopy } from './ja_messaging_fields'
@@ -4887,22 +4888,7 @@ export const jaOverrides = {
       fastFailed: '高速モードの更新に失敗しました',
       sendsOnRoute: (level: string) => `このルートでは ${level} を送信`
     },
-    gatewayMenu: {
-      gateway: 'ゲートウェイ',
-      connected: '接続済み',
-      connecting: '接続中',
-      offline: 'オフライン',
-      inferenceReady: '推論準備完了',
-      inferenceNotReady: '推論準備未完了',
-      checkingInference: '推論を確認中',
-      disconnected: '切断済み',
-      reconnectGateway: 'ゲートウェイに再接続',
-      openSystem: 'システムパネルを開く',
-      connection: label => `接続: ${label}`,
-      recentActivity: '最近のアクティビティ',
-      viewAllLogs: 'すべてのログを見る →',
-      messagingPlatforms: 'メッセージングプラットフォーム'
-    },
+    gatewayMenu: jaGatewayMenu,
     approvalMode: {
       title: '承認モード',
       ariaLabel: mode => `承認モード: ${mode}`,

@@ -135,7 +135,7 @@ export function GatewayMenuPanel({
     ? copy.connected
     : gatewayConnecting
       ? copy.connecting
-      : prettyState(gatewayState || copy.offline)
+      : prettyState(gatewayState || 'idle', { closed: copy.closed, error: copy.error, idle: copy.offline })
 
   const inferenceLabel = gatewayOpen
     ? inferenceStatus?.ready

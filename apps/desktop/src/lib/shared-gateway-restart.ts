@@ -21,3 +21,12 @@ export function sharedGatewayProfiles(
 
   return names.sort((left, right) => (left === 'default' ? -1 : right === 'default' ? 1 : left.localeCompare(right)))
 }
+
+/** The names as the restart dialog shows them: the root profile under its localized label
+ *  (`default` is its canonical id, not a name anyone chose), every other profile as recorded.
+ *  Display only; callers keep the canonical names for the restart itself. */
+export function sharedGatewayProfileLabels(names: readonly string[], defaultLabel: string): string[] {
+  const label = defaultLabel.trim()
+
+  return names.map(name => (label && /^default$/i.test(name) ? label : name))
+}

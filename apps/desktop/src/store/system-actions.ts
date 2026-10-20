@@ -2,7 +2,7 @@ import { atom } from 'nanostores'
 
 import { getActionStatus, getStatus, restartGateway } from '@/hermes'
 import { translateNow } from '@/i18n'
-import { sharedGatewayProfiles } from '@/lib/shared-gateway-restart'
+import { sharedGatewayProfileLabels, sharedGatewayProfiles } from '@/lib/shared-gateway-restart'
 import { confirm } from '@/store/confirm'
 import { reconnectGateway } from '@/store/gateway-reconnect'
 import { notify, notifyError } from '@/store/notifications'
@@ -96,7 +96,10 @@ export async function confirmSharedGatewayRestart(): Promise<false | null | stri
 
   const ok = await confirm({
     title: translateNow('commandCenter.sharedGatewayRestartTitle'),
-    description: translateNow('commandCenter.sharedGatewayRestartDescription', shared.join(', ')),
+    description: translateNow(
+      'commandCenter.sharedGatewayRestartDescription',
+      sharedGatewayProfileLabels(shared, translateNow('cron.deliveryLabels.defaultProfile')).join(', ')
+    ),
     confirmLabel: translateNow('commandCenter.sharedGatewayRestartConfirm'),
     cancelLabel: translateNow('common.cancel'),
     destructive: true

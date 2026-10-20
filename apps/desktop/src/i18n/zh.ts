@@ -6,6 +6,7 @@ import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
 import { zhFirstRun } from './zh_first_run'
+import { zhGatewayMenu } from './zh_gateway_menu'
 import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
@@ -5524,22 +5525,7 @@ export const zhOverrides = {
       fastFailed: '快速模式更新失败',
       sendsOnRoute: (level: string) => `此路由实际发送 ${level}`
     },
-    gatewayMenu: {
-      gateway: '网关',
-      connected: '已连接',
-      connecting: '连接中',
-      offline: '离线',
-      inferenceReady: '推理已就绪',
-      inferenceNotReady: '推理未就绪',
-      checkingInference: '正在检查推理',
-      disconnected: '已断开',
-      reconnectGateway: '重连网关',
-      openSystem: '打开系统面板',
-      connection: label => `连接：${label}`,
-      recentActivity: '最近活动',
-      viewAllLogs: '查看全部日志 →',
-      messagingPlatforms: '消息平台'
-    },
+    gatewayMenu: zhGatewayMenu,
     approvalMode: {
       title: '审批模式',
       ariaLabel: mode => `审批模式：${mode}`,

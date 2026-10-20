@@ -451,6 +451,8 @@ export const zhHantChrome = {
       connected: '已連線',
       connecting: '連線中',
       offline: '離線',
+      closed: '已關閉',
+      error: '錯誤',
       inferenceReady: '推論已就緒',
       inferenceNotReady: '推論未就緒',
       checkingInference: '正在檢查推論',

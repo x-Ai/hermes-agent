@@ -1621,6 +1621,8 @@
   "sharedProviders.editInMain": ["ar","de","es","fr","ru"],
   "sharedProviders.endpointHint": ["ar","de","es","fr","ru"],
   "sharedProviders.keyHint": ["ar","de","es","fr","ru"],
+  "shell.gatewayMenu.closed": ["ar","de","es","fr"],
+  "shell.gatewayMenu.error": ["ar","de","es","fr"],
   "shell.modelMenu.moaPresets": ["de","es","fr"],
   "shell.statusbar.backend": ["de","es","fr"],
   "shell.statusbar.compressions": ["de","es","fr"],
