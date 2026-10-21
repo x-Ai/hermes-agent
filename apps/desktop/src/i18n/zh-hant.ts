@@ -4,6 +4,7 @@ import { zhHantArtifacts } from './zh-hant_artifacts'
 import { zhHantAssistant } from './zh-hant_assistant'
 import { zhHantBoot } from './zh-hant_boot'
 import { zhHantCapabilities } from './zh-hant_capabilities'
+import { zhHantCatalog } from './zh-hant_catalog'
 import { zhHantChat } from './zh-hant_chat'
 import { zhHantChrome } from './zh-hant_chrome'
 import { zhHantCommandCenter } from './zh-hant_command_center'
@@ -15,6 +16,7 @@ import { zhHantRuntime } from './zh-hant_runtime'
 import { zhHantSettings } from './zh-hant_settings'
 
 export const zhHantOverrides = {
+  catalog: zhHantCatalog,
   skillDeepLink: {
     installTitle: (name: string) => `安裝「${name}」？`,
     installDescription: '此技能將於新的工作階段中可用，請僅安裝可信來源的內容',

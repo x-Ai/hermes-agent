@@ -11,10 +11,12 @@ import type { TipId } from '@/lib/tips/catalog'
 import type { AppTourTranslations } from './types_app_tour'
 import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
+import type { CatalogTranslations } from './types_catalog'
 import type { CatalogInstallTranslations } from './types_catalog_install'
 import type { ClarifyCopy } from './types_clarify'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
 import type { GatewayGroupOpenCopy, SkillDeepLinkCopy } from './types_deep_links'
+import type { ExternalOpenFailedCopy } from './types_external_open'
 import type { FirstRunCopy } from './types_first_run'
 import type { GatewayMenuTranslations } from './types_gateway_menu'
 import type { GoalStatusTranslations } from './types_goal_status'
@@ -110,11 +112,13 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
   sharedMetrics: SharedMetricsTranslations
   appTour: AppTourTranslations
   firstRun: FirstRunCopy
+  externalOpenFailed: ExternalOpenFailedCopy
   intro: {
     stock: Record<string, string[]>
     custom: (label: string) => string[]
   }
   connectors: ConnectorCardTranslations
+  catalog: CatalogTranslations
   common: {
     apply: string
     back: string
@@ -729,6 +733,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       openFolder: string
       rescan: string
       reveal: string
+      enable: string
+      disable: string
       failed: string
       kinds: { bundled: string; disk: string; runtime: string }
       installModal: {
@@ -1922,10 +1928,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       bundledNames: Record<string, string>
       bundledDescriptions: Record<string, string>
       sourceLabels: Record<string, string>
-      catalogTitle: string
-      catalogBrowse: string
-      catalogHide: string
-      catalogHint: string
       alreadyInstalled: (name: string) => string
       catalogProvenance: (sha: string) => string
       pinnedProvenance: (sha: string) => string
@@ -1951,6 +1953,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         saved: (name: string) => string
         saveFailed: (name: string) => string
         required: string
+        optional: string
         secretSet: string
         secretStoredAs: (env: string) => string
       }
@@ -4810,16 +4813,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       title: string
       description: string
       toggle: (open: boolean) => string
-    }
-  }
-  externalOpenFailed: {
-    title: string
-    message: string
-    copyUrl: string
-    close: string
-    missing: {
-      title: string
-      message: string
     }
   }
 }

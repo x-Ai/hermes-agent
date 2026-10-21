@@ -3,12 +3,14 @@ import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'
 import { enAppTour } from './en_app_tour'
 import { enBilling } from './en_billing'
 import { enBoot } from './en_boot'
+import { enCatalog } from './en_catalog'
 import { enCatalogInstall } from './en_catalog_install'
 import { enClarify } from './en_clarify'
 import { enConnectorAccounts } from './en_connector_accounts'
 import { enConnectorCard } from './en_connector_card'
 import { enGatewayGroupOpen, enSkillDeepLink } from './en_deep_links'
 import { enErrorLayers } from './en_error_layers'
+import { enExternalOpenFailed } from './en_external_open'
 import { enFirstRun } from './en_first_run'
 import { enGatewayMenu } from './en_gateway_menu'
 import { enGoalStatus } from './en_goal_status'
@@ -29,16 +31,7 @@ import { enUpdateChannel } from './en_update_channel'
 import type { Translations } from './types'
 
 export const en: Translations = {
-  externalOpenFailed: {
-    title: 'Couldn’t open this link',
-    message: 'No browser is registered to open this address. Copy the link and open it manually.',
-    copyUrl: 'Copy link',
-    close: 'Close',
-    missing: {
-      title: 'File not found',
-      message: 'This file does not exist — it may have been deleted or moved, or it lives on another machine.'
-    }
-  },
+  externalOpenFailed: enExternalOpenFailed,
   sharedMetrics: enSharedMetrics,
   appTour: enAppTour,
   firstRun: enFirstRun,
@@ -46,6 +39,7 @@ export const en: Translations = {
   intro: { stock: {}, custom: () => [] },
   connectors: enConnectorCard,
 
+  catalog: enCatalog,
   // `connectors.*` above stays the onboarding and chat vocabulary; these are the page's own, and the two are not shared.
   connectorsPage: {
     title: 'Connectors',
@@ -1022,6 +1016,8 @@ export const en: Translations = {
       openFolder: 'Open Desktop plugins folder',
       rescan: 'Rescan',
       reveal: 'Reveal in file manager',
+      enable: 'Enable',
+      disable: 'Disable',
       failed: 'failed',
       kinds: { bundled: 'bundled', disk: 'on disk', runtime: 'runtime' },
       installModal: {
@@ -2742,11 +2738,6 @@ export const en: Translations = {
         project: 'project',
         entrypoint: 'entry point'
       },
-      catalogTitle: 'Plugin catalog',
-      catalogBrowse: 'Browse',
-      catalogHide: 'Hide the catalog browser',
-      catalogHint:
-        'Hit "+ Add to this Agent" on any plugin — reviewed entries install at their pinned commit into the selected profile. Bundled agent+desktop plugins offer both halves.',
       alreadyInstalled: (name: string) => `${name} is already installed in this profile.`,
       catalogProvenance: (sha: string) => `Installed from the Hermes catalog${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) =>
@@ -2779,6 +2770,7 @@ export const en: Translations = {
         saved: (name: string) => `${name} settings saved.`,
         saveFailed: (name: string) => `Could not save ${name} settings`,
         required: 'Required',
+        optional: '(optional)',
         secretSet: '•••••••• (set)',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}, never in config.yaml; leave blank to keep the current value.`

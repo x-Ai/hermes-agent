@@ -121,11 +121,6 @@ export const zhHantCapabilities = {
         project: '專案',
         entrypoint: '入口'
       },
-      catalogTitle: '插件目錄',
-      catalogBrowse: '瀏覽',
-      catalogHide: '隱藏目錄瀏覽器',
-      catalogHint:
-        '在任何外掛程式上點選「+ 新增到此代理程式」 - 已審核的項目會在其固定提交時安裝到所選設定檔中。捆綁的代理+桌面插件提供了這兩個部分。',
       alreadyInstalled: (name: string) => `${name}已經安裝在此配置檔中。`,
       catalogProvenance: (sha: string) => `從 Hermes 目錄安裝${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) => `Pinned to commit ${sha}。在使用新 pin 重新安裝之前，更新將被拒絕。`,
@@ -155,6 +150,7 @@ export const zhHantCapabilities = {
         saved: (name: string) => `${name}設定已儲存。`,
         saveFailed: (name: string) => `無法儲存${name}設定`,
         required: '必填',
+        optional: '（選填）',
         secretSet: '••••••••（套）',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}，絕不在 config.yaml 中；留空以保留目前值。`

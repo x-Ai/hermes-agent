@@ -2,6 +2,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { ruBoot } from './ru_boot'
+import { ruCatalog, ruSkillDeepLink } from './ru_catalog'
 import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
 import { ruDelegationFieldLabels } from './ru_delegation_fields'
@@ -42,6 +43,7 @@ const RU_NOUN = (count: number | string, one: string, few: string, many: string)
 }
 
 export const ruOverrides = {
+  catalog: ruCatalog,
   connectors: ruConnectors.connectors,
   sharedMetrics: ruSharedMetrics,
   firstRun: ruFirstRun,
@@ -2426,17 +2428,7 @@ export const ruOverrides = {
     },
     envKeys: {}
   },
-  skillDeepLink: {
-    installTitle: (name: string) => `Установить «${name}»?`,
-    installDescription: 'Навык будет доступен в новых сессиях. Устанавливайте только из источников, которым доверяете.',
-    installTo: 'Установить в',
-    thisComputer: 'Этот компьютер',
-    installing: 'Установка…',
-    installComplete: (name: string) => `«${name}» установлен`,
-    destinationChanged: 'Место установки изменилось. Закройте диалог и снова откройте ссылку установки.',
-    installed: 'Установленные',
-    source: 'Источник'
-  },
+  skillDeepLink: ruSkillDeepLink,
   skills: {
     tabSkills: 'Навыки',
     tabToolsets: 'Инструменты',
@@ -2535,11 +2527,6 @@ export const ruOverrides = {
         project: 'проект',
         entrypoint: 'точка входа'
       },
-      catalogTitle: 'Каталог плагинов',
-      catalogBrowse: 'Обзор',
-      catalogHide: 'Скрыть браузер каталога',
-      catalogHint:
-        'Нажмите «+ Добавить к этому агенту» на любом плагине — проверенные записи будут установлены при закрепленном коммите в выбранный профиль. Входящие в комплект плагины «агент + рабочий стол» предлагают обе половины.',
       alreadyInstalled: (name: string) => `${name}уже установлено в этом профиле.`,
       catalogProvenance: (sha: string) => `Установлен из каталога Hermes.${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) =>

@@ -2,6 +2,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
+import { zhCatalog } from './zh_catalog'
 import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
@@ -36,6 +37,7 @@ import {
 import { zhUpdateChannel } from './zh_update_channel'
 
 export const zhOverrides = {
+  catalog: zhCatalog,
   externalOpenFailed: {
     title: '无法打开此链接',
     message: '没有注册用于打开此地址的浏览器，请复制链接并手动打开',
@@ -1099,6 +1101,8 @@ export const zhOverrides = {
       openFolder: '打开插件文件夹',
       rescan: '重新扫描',
       reveal: '在文件管理器中显示',
+      enable: '启用',
+      disable: '禁用',
       failed: '失败',
       kinds: {
         bundled: '内置',
@@ -3332,11 +3336,6 @@ export const zhOverrides = {
         project: '项目',
         entrypoint: '入口点'
       },
-      catalogTitle: '插件目录',
-      catalogBrowse: '浏览',
-      catalogHide: '隐藏目录浏览器',
-      catalogHint:
-        '点击任意插件上的「+ Add to this Agent」— 经过审核的条目会以其固定提交安装到所选配置，捆绑的 agent+桌面插件会同时提供两部分',
       alreadyInstalled: (name: string) => `${name} 已安装在此配置中`,
       catalogProvenance: (sha: string) => `从 Hermes 目录安装${sha ? `，固定提交 ${sha}` : ''}`,
       pinnedProvenance: (sha: string) => `已固定到提交 ${sha}，重新固定前将拒绝更新`,
@@ -3366,6 +3365,7 @@ export const zhOverrides = {
         saved: (name: string) => `${name}设置已保存`,
         saveFailed: (name: string) => `无法保存${name}设置`,
         required: '必填',
+        optional: '（可选）',
         secretSet: '(套数)',
         secretStoredAs: (env: string) => `Stored in the profile's .env as ${env}，绝不在 config.yaml，留空以保留当前值`
       }

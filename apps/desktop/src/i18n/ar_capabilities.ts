@@ -108,11 +108,6 @@ export const arCapabilities = {
         project: 'المشروع',
         entrypoint: 'نقطة الدخول'
       },
-      catalogTitle: 'كتالوج الإضافات',
-      catalogBrowse: 'تصفح',
-      catalogHide: 'اختبئوا',
-      catalogHint:
-        'اضرب أضف إلى هذا الوكيل على أيّ بلوجين - إعادة النظر في القيود في إرتباطهم المعلق في الملف المختار. العميل المزدحم (+ ديديكتوب) يقدم النصفين.',
       alreadyInstalled: (name: string) => `${name}تم تثبيته بالفعل في هذا الملف الشخصي.`,
       catalogProvenance: (sha: string) => `Installed from the Hermes catalog${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) => `Pinned to commit ${sha}- تُرفض المستجدات إلى أن تُعاد تركيبها بمدبوس جديد.`,

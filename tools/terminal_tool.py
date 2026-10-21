@@ -48,7 +48,7 @@ from tools.terminal_tool_lifecycle import (
 from tools.terminal_tool_config import (
     _is_container_backend, _is_host_cwd, _is_mounted_host_cwd, _is_unusable_container_cwd,
     _is_windows_drive_path, _parse_env_var, _plugin_env_flag, _quiet, _safe_getcwd, _tenv, _tenv_bool,
-    coerce_ssh_remote_cwd, translate_mounted_host_path,
+    _in_sandbox_home, coerce_ssh_remote_cwd, translate_mounted_host_path,
 )
 from tools.terminal_tool_backends import (
     _REQUIREMENT_CHECKERS, _VERCEL_SANDBOX_DEFAULT_CWD, _check_plugin_requirements,
@@ -902,8 +902,21 @@ def _ensure_terminal_env_bridged() -> None:
             apply_terminal_config_to_env(env=None, override=False)
 
 
-# Default cwd per backend; anything else (container backends, plugins) is "/root".
+# Default cwd per backend; plugins may declare ``default_cwd``; anything else (container backends) is "/root".
 _DEFAULT_CWD_BY_BACKEND = {"ssh": "~", "vercel_sandbox": _VERCEL_SANDBOX_DEFAULT_CWD}
+
+
+def _backend_default_cwd(env_type: str) -> str:
+    if env_type == "local":
+        return _safe_getcwd()
+    if env_type in _DEFAULT_CWD_BY_BACKEND:
+        return _DEFAULT_CWD_BY_BACKEND[env_type]
+    declared = _plugin_env_flag(env_type, "default_cwd", None)
+    # "~" is each sandbox's own home, expanded inside it; otherwise only an absolute in-sandbox path
+    # (a relative value would be anchored on the host).
+    if isinstance(declared, str) and (declared == "~" or declared.startswith("/")):
+        return declared
+    return "/root"
 
 
 def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
@@ -913,10 +926,11 @@ def _resolve_config_cwd(env_type: str, mount_cwd_active: bool) -> tuple:
     path is remapped to /workspace and tracked as host_cwd; otherwise host paths
     are discarded in favor of the backend default.
     """
-    default_cwd = _safe_getcwd() if env_type == "local" else _DEFAULT_CWD_BY_BACKEND.get(env_type, "/root")
+    default_cwd = _backend_default_cwd(env_type)
     cwd = _tenv("TERMINAL_CWD", default_cwd)
     from hermes_cli.config import _is_ssh_remote_tilde_cwd
-    if cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
+    # The backend's own default is an in-sandbox path: its ``~`` is the sandbox home, not ours.
+    if cwd and cwd != default_cwd and not _is_ssh_remote_tilde_cwd(env_type, cwd):
         cwd = os.path.expanduser(cwd)
     host_cwd = None
     if mount_cwd_active:
@@ -1233,7 +1247,7 @@ def _resolve_command_cwd(
         translated = _translate_mounted_cwd(recorded, session_key, _get_env_config())
         if translated:
             return coerce_ssh_remote_cwd(translated, env_type)
-        if _is_unusable_container_cwd(recorded, mounted_host=mounted_host):
+        if _is_unusable_container_cwd(recorded, mounted_host=mounted_host) and not _in_sandbox_home(recorded, env):
             visible = _container_visible_cwd(recorded, env_type, env)
             if visible != recorded:
                 return visible
