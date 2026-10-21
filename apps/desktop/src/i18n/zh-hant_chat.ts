@@ -229,43 +229,6 @@ export const zhHantChat = {
     snippetsDesc: '選擇一個起始提示詞放入輸入框。',
     dropFiles: '拖曳檔案以附加',
     dropSession: '拖曳以連結此聊天',
-    mcpSuggestions: {
-      label: server => `新增${server}`,
-      tip: keyword => `推薦是因為您提到“${keyword}” — 點選連接`,
-      connecting: server => `連接中${server}…`,
-      cancelTip: '點擊取消',
-      added: server => `已新增${server}`,
-      addedTip: '已連線 — 其工具已在本次聊天中準備就緒',
-      connectFailed: server => `無法連接${server}`
-    },
-    skillSuggestions: {
-      label: skill => `使用技能：${skill}`,
-      tip: skill => `你提到「${skill}” — 點擊以使用該技能進行領導`,
-      done: skill => `添加/${skill}`,
-      doneTip: '發送時技能會載入'
-    },
-    githubSuggestions: {
-      label: '設定GitHub',
-      tip: 'GitHub 透過此處的 gh CLI 技能進行工作 — 按一下以連接您的帳戶',
-      done: '新增了 /github-auth',
-      doneTip: '發送訊息，客服人員將引導您完成 GitHub 登入'
-    },
-    repairSuggestions: {
-      label: server => `重新連接${server}`,
-      tip: server => `A ${server}呼叫剛因連線錯誤而失敗`,
-      working: server => `重新連接${server}…`,
-      workingTip: '點擊取消',
-      done: server => `重新連接${server}`,
-      doneTip: '新的憑證在此聊天中即時顯示',
-      failed: server => `無法重新連線${server}`
-    },
-    cronSuggestions: {
-      label: '安排這個',
-      tip: phrase => `“${phrase}” 聽起來反覆出現——而是按計劃運行`,
-      prefix: '將其設定為計劃作業：',
-      done: '標記為調度',
-      doneTip: '發送它，代理創建作業'
-    },
     snippets: {
       codeReview: {
         label: '程式碼審查',

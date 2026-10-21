@@ -232,43 +232,6 @@ export const arChat = {
     snippetsDesc: 'اختر موجّهًا أوليًا لإدراجه في المحرّر.',
     dropFiles: 'أفلت الملفات للإرفاق',
     dropSession: 'أفلت الجلسة للفتح',
-    mcpSuggestions: {
-      label: server => `أضف${server}`,
-      tip: keyword => `مقترح لأنك ذكرت "${keyword}" - نقر الاتصال`,
-      connecting: server => `الاتصال${server}…`,
-      cancelTip: 'قم بإلغاء',
-      added: server => `تمت الإضافة${server}`,
-      addedTip: 'متصل - أدواته جاهزة في هذه الدردشة',
-      connectFailed: server => `تعذر الاتصال${server}`
-    },
-    skillSuggestions: {
-      label: skill => `استخدم المهارة:${skill}`,
-      tip: skill => `لقد ذكرت "${skill}" - نقر القيادة بهذه المهارة`,
-      done: skill => `مضافة/${skill}`,
-      doneTip: 'حشو المهارة عندما ترسل'
-    },
-    githubSuggestions: {
-      label: 'قم بإعداد GitHub',
-      tip: 'تعمل شركة GitHub من خلال مهارات CLI هنا - نقر لربط حسابك',
-      done: 'مضافا إليه/غيثوب أوث',
-      doneTip: 'أرسل الرسالة وسيرشدك الوكيل خلال تسجيل الدخول إلى GitHub'
-    },
-    repairSuggestions: {
-      label: server => `إعادة الاتصال${server}`,
-      tip: server => `A ${server}فشل الاتصال بالمكالمة بسبب خطأ في الاتصال`,
-      working: server => `إعادة الاتصال${server}…`,
-      workingTip: 'قم بإلغاء',
-      done: server => `تم إعادة الاتصال${server}`,
-      doneTip: 'وثائق التفويض الجديدة تعيش في هذه الدردشة',
-      failed: server => `تعذر إعادة الاتصال${server}`
-    },
-    cronSuggestions: {
-      label: 'الجدول الزمني لهذا',
-      tip: phrase => `“${phrase}" الأصوات المتكررة - تشغيله على جدول زمني بدلا من ذلك`,
-      prefix: 'وضع هذا كوظيفة مقررة:',
-      done: 'علامة على الجدولة',
-      doneTip: 'أرسله والوكيل يخلق الوظيفة'
-    },
     snippets: {
       codeReview: {
         label: 'مراجعة الكود',

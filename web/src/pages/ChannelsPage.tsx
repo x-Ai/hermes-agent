@@ -35,6 +35,7 @@ import type {
 } from "@/lib/api";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { AllowlistInput } from "@/components/AllowlistInput";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { cn, themedBody } from "@/lib/utils";
 import { errorMessage } from "@/lib/api-error";
@@ -670,7 +671,7 @@ export default function ChannelsPage() {
   );
 }
 
-function WhatsAppOnboardingPanel({
+export function WhatsAppOnboardingPanel({
   onChanged,
   onRestartNeeded,
   platform,
@@ -696,6 +697,7 @@ function WhatsAppOnboardingPanel({
   );
   const [mode, setMode] = useState<"bot" | "self-chat">(configuredMode ?? "bot");
   const [allowedUsers, setAllowedUsers] = useState("");
+  const [confirmRepair, setConfirmRepair] = useState(false);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
 
@@ -781,14 +783,17 @@ function WhatsAppOnboardingPanel({
     setError("");
   };
 
-  const start = async () => {
+  const start = async (resetSession = false) => {
+    setConfirmRepair(false);
+    setSetup(null);
     setPhase("starting");
     setError("");
     setQrDataUrl("");
     try {
       const res = await api.startWhatsAppOnboarding({
         mode,
-        allowed_users: allowedUsers
+        allowed_users: allowedUsers,
+        reset_session: resetSession
       });
       setSetup(res);
       if (res.qr_payload) {
@@ -906,6 +911,7 @@ function WhatsAppOnboardingPanel({
       : !allowedUsers.trim() && hasSavedAllowedUsers
         ? copy.keepAllowlist
         : copy.pairingInstruction;
+  const pairingBusy = ["starting", "waiting", "applying"].includes(phase);
 
   return (
     <div className="rounded-sm border border-border bg-background/35 p-4">
@@ -915,15 +921,33 @@ function WhatsAppOnboardingPanel({
             size="sm"
             className="uppercase"
             onClick={() => void start()}
-            disabled={phase === "starting" || phase === "waiting" || phase === "applying"}
+            disabled={pairingBusy}
             prefix={phase === "starting" ? <Spinner /> : <QrCode className="h-4 w-4" />}
           >
             {phase === "starting" ? copy.starting : copy.pairQr}
+          </Button>
+          <Button
+            size="sm"
+            outlined
+            onClick={() => setConfirmRepair(true)}
+            disabled={pairingBusy}
+          >
+            {copy.rePairQr}
           </Button>
           {platform.configured && (
             <span className="text-xs text-muted-foreground">{copy.whatsappConfigured}</span>
           )}
         </div>
+
+        <ConfirmDialog
+          open={confirmRepair}
+          title={copy.rePairTitle}
+          description={copy.rePairBody}
+          confirmLabel={copy.rePairConfirm}
+          destructive
+          onCancel={() => setConfirmRepair(false)}
+          onConfirm={() => void start(true)}
+        />
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="grid gap-1.5">

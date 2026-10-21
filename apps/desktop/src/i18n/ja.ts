@@ -4282,43 +4282,6 @@ export const jaOverrides = {
     snippetsDesc: 'スターターのプロンプトをコンポーザーに挿入します。',
     dropFiles: 'ファイルをドロップして添付',
     dropSession: 'ドロップしてこのチャットをリンク',
-    mcpSuggestions: {
-      label: server => `追加${server}`,
-      tip: keyword => `「」と言及したため提案されました${keyword}” — クリックして接続します`,
-      connecting: server => `接続中${server}…`,
-      cancelTip: 'クリックしてキャンセルします',
-      added: server => `追加済み${server}`,
-      addedTip: '接続済み — このチャットではそのツールが用意されています',
-      connectFailed: server => `接続できませんでした${server}`
-    },
-    skillSuggestions: {
-      label: skill => `スキルを使う：${skill}`,
-      tip: skill => `あなたは「${skill}」 — クリックしてそのスキルをリードします`,
-      done: skill => `追加 /${skill}`,
-      doneTip: '送信するとスキルが読み込まれます'
-    },
-    githubSuggestions: {
-      label: 'GitHub のセットアップ',
-      tip: 'GitHub は、ここで gh CLI スキルを通じて機能します — クリックしてアカウントに接続してください',
-      done: '/github-auth を追加しました',
-      doneTip: 'メッセージを送信すると、エージェントが GitHub サインインを案内します。'
-    },
-    repairSuggestions: {
-      label: server => `再接続${server}`,
-      tip: server => `A ${server}接続エラーで呼び出しに失敗しました`,
-      working: server => `再接続${server}…`,
-      workingTip: 'クリックしてキャンセルします',
-      done: server => `再接続された${server}`,
-      doneTip: '新しい認証情報がこのチャットに公開されています',
-      failed: server => `再接続できませんでした${server}`
-    },
-    cronSuggestions: {
-      label: 'これをスケジュールします',
-      tip: phrase => `“${phrase}” という音が繰り返し聞こえるので、代わりにスケジュールに従って実行してください`,
-      prefix: 'これをスケジュールされたジョブとして設定します。',
-      done: 'スケジュール用にマークされています',
-      doneTip: 'それを送信すると、エージェントがジョブを作成します'
-    },
     snippets: {
       codeReview: {
         label: 'コードレビュー',
