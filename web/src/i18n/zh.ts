@@ -117,10 +117,9 @@ export const zh: Translations = {
     dismiss: '关闭',
     sharedMetricsTitle: '协助改进 Hermes？',
     sharedMetricsBody:
-      '共享指标只包含有上限的计数，绝不包含提示词、文件、路径或错误文本，收集仅在本机进行，发送给 Nous 需要另行同意',
+      '共享指标只是有上限的计数，绝不包含提示词、文件、路径或错误文本，分享后每天发送给 Nous 一次',
     sharedMetricsReaskBody: '再问一次：早期版本可能在你看到这个问题之前就保存了“不用了”',
-    sharedMetricsShare: '发送给 Nous',
-    sharedMetricsLocal: '仅本机',
+    sharedMetricsShare: '分享给 Nous',
     sharedMetricsOff: '不用了',
     sharedMetricsDetails: '详情',
     sharedMetricsSaveFailed: '无法保存你的选择'

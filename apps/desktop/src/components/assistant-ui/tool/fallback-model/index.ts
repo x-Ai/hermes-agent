@@ -16,6 +16,7 @@ import {
   compactPreview,
   contextValue,
   formatDurationSeconds,
+  isNeutralFailure,
   isRecord,
   numberValue,
   parseMaybeObject,
@@ -744,6 +745,10 @@ function toolStatus(part: ToolPart, resultRecord: Record<string, unknown>): Tool
   // Compared against the same catalog sentence toolErrorText produced, so the
   // exit-1 softening holds in every UI language.
   if (part.toolName === 'terminal' && error === translateNow('assistant.tool.commandFailedWithExitCode', 1)) {
+    return 'notice'
+  }
+
+  if (isNeutralFailure(part.toolName, part.result)) {
     return 'notice'
   }
 

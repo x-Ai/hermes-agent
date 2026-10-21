@@ -92,11 +92,10 @@ export const zhHant: Translations = {
     webUi: "管理面板",
     sharedMetricsTitle: "協助改進 Hermes？",
     sharedMetricsBody:
-      "共享指標只包含有上限的計數，絕不包含提示詞、檔案、路徑或錯誤文字，收集僅在本機進行，傳送給 Nous 需要另行同意",
+      "共享指標只是有上限的計數，絕不包含提示詞、檔案、路徑或錯誤文字。分享後每天傳送給 Nous 一次。",
     sharedMetricsReaskBody:
       "再問一次：舊版本可能在您看到這個問題之前就儲存了「不用了」。",
-    sharedMetricsShare: "傳送給 Nous",
-    sharedMetricsLocal: "僅本機",
+    sharedMetricsShare: "分享給 Nous",
     sharedMetricsOff: "不用了",
     sharedMetricsDetails: "詳細資訊",
     sharedMetricsSaveFailed: "無法儲存你的選擇",
