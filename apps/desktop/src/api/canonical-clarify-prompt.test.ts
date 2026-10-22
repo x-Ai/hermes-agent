@@ -24,6 +24,14 @@ test('a reopened sibling chat delivers retained questions before returning and r
     socket.on('message', (bytes: Buffer) => {
       const frame = JSON.parse(bytes.toString())
 
+      // The Desktop opens every socket with a capabilities handshake; answer it and keep it
+      // out of the frames under test, like the fork's UI-language announce below.
+      if (frame.method === 'client.capabilities') {
+        socket.send(JSON.stringify({ jsonrpc: '2.0', id: frame.id, result: { server_requests: [] } }))
+
+        return
+      }
+
       // The fork announces the UI language on every open; it is not a producer under test.
       if (frame.method !== 'i18n.client_locale') {
         sent.push(frame)
@@ -82,6 +90,14 @@ test('a canonical clarify prompt drives the question card and its lock answers o
   server.on('connection', (socket: any) => {
     socket.on('message', (bytes: Buffer) => {
       const frame = JSON.parse(bytes.toString())
+
+      // The Desktop opens every socket with a capabilities handshake; answer it and keep it
+      // out of the frames under test, like the fork's UI-language announce below.
+      if (frame.method === 'client.capabilities') {
+        socket.send(JSON.stringify({ jsonrpc: '2.0', id: frame.id, result: { server_requests: [] } }))
+
+        return
+      }
 
       // The fork announces the UI language on every open; it is not a producer under test.
       if (frame.method !== 'i18n.client_locale') {
