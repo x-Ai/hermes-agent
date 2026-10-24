@@ -21,14 +21,12 @@ import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
 import { $profiles } from '@/store/profile'
 import { $settingsRequestProfile, setSettingsScope } from '@/store/settings-scope'
+import type { CustomEndpoint, CustomEndpointApiMode, CustomEndpointUpdate } from '@/types/hermes'
 import type {
-  CustomEndpoint,
-  CustomEndpointApiMode,
   CustomEndpointMaxTokensField,
   CustomEndpointModelDetail,
-  CustomEndpointModelDetailSource,
-  CustomEndpointUpdate
-} from '@/types/hermes'
+  CustomEndpointModelDetailSource
+} from '@/types/hermes_custom_endpoint'
 
 import { ComboboxInput } from './combobox-input'
 import { EmptyState, Pill, SectionHeading, SettingsContent, SettingsSkeleton } from './primitives'

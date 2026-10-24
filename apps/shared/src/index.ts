@@ -109,6 +109,19 @@ export {
 } from './json-rpc-gateway'
 export { modelSearchText } from './model-search-text'
 export {
+  gaugeScope,
+  gaugeTitle,
+  hasTopTier,
+  PAYMENT_PAUSE_REASON,
+  planBlocks,
+  planLimit,
+  sectionAt,
+  splitRecommended,
+  type UsageLevel,
+  usageLevel,
+  usageTag
+} from './plan-usage'
+export {
   clampEffort,
   DEFAULT_REASONING_EFFORT,
   EFFORT_LADDER,
@@ -189,7 +202,7 @@ export {
 } from './translucency'
 
 export { type UpdateDebt, updateDebt, type UpdateDebtReceipt, type UpdateDebtStep } from './update-debt'
-export { usageFromTick, type UsageTickPayload } from './usage-tick'
+export { mergeUsage, usageFromTick, type UsageTickPayload } from './usage-tick'
 export {
   buildHermesWebSocketUrl,
   type GatewayAuthMode,

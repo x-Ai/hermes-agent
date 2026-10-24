@@ -16,7 +16,7 @@ import { notify } from '@/store/notifications'
 import { flashPetActivity, markPetUnread, setPetActivity } from '@/store/pet'
 import { clearAllPrompts } from '@/store/prompts'
 import { providerWaitText, setSessionProviderWait } from '@/store/provider-wait'
-import { setCurrentUsage, setTurnStartedAt } from '@/store/session'
+import { setTurnStartedAt } from '@/store/session'
 import { refreshSupportedSessionControlAfterTurn } from '@/store/session-control'
 import { $focusedStoredSessionId } from '@/store/session-focus'
 import { $sessionStates } from '@/store/session-states'
@@ -26,7 +26,7 @@ import { clearActiveSessionTodos } from '@/store/todos'
 import { isWatchWindow } from '@/store/windows'
 
 import type { GatewayEventContext } from './types'
-import { mergeUsageSnapshot } from './usage-snapshot'
+import { applyTurnUsage } from './usage-snapshot'
 
 function firstBillingLine(text: string): string {
   return (text || '').split('\n')[0]?.trim() ?? ''
@@ -140,6 +140,7 @@ function relayedWaitNoticeShown(sessionId: string | null | undefined, raw: strin
   return true
 }
 
+// health: allow CC -- usage-window limit: one guard so the error card, not a second billing toast, says it; this event switch was over target on main
 export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
   const { deps, event, payload, sessionId, isActiveEvent, occurredAt } = ctx
 
@@ -425,8 +426,12 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     }
 
     // Structured billing wall forwarded by the gateway (out of credits /
-    // payment required) — cache it + raise a billing-specific toast.
-    if (payload?.billing) {
+    // payment required) — cache it + raise a billing-specific toast. A window
+    // plan's limit is said once, by the turn's error card (its buttons are the
+    // ways on); a toast and banner would only repeat it.
+    const usageWindowWall = parseErrorSurface(payload?.error_surface)?.code === 'usage_window'
+
+    if (payload?.billing && !usageWindowWall) {
       surfaceBillingBlock(sessionId, payload.billing)
     }
 
@@ -454,17 +459,7 @@ export function handleMessageStreamEvent(ctx: GatewayEventContext): boolean {
     }
 
     if (payload?.usage) {
-      // Per-session twin FIRST (the statusbar reads it for focused tiles);
-      // the primary-only global mirrors the ACTIVE session — ungated it
-      // let a background tile's turn overwrite the primary's count.
-      updateSessionState(sessionId, state => ({
-        ...state,
-        usage: mergeUsageSnapshot({ calls: 0, input: 0, output: 0, total: 0, ...state.usage }, payload.usage)
-      }))
-
-      if (isActiveEvent) {
-        setCurrentUsage(current => mergeUsageSnapshot(current, payload.usage))
-      }
+      applyTurnUsage(sessionId, payload.usage, isActiveEvent, updateSessionState)
     }
 
     // Refresh only the structured-control sessions already proven capable.

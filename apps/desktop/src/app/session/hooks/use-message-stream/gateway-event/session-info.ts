@@ -1,4 +1,4 @@
-import { usageFromTick } from '@hermes/shared'
+import { mergeUsage, usageFromTick } from '@hermes/shared'
 
 import { finalizeInterruptedMessages } from '@/lib/chat-messages'
 import { normalizePersonalityValue } from '@/lib/chat-runtime'
@@ -315,8 +315,7 @@ export function handleSessionInfoEvent(ctx: GatewayEventContext): boolean {
           return {
             ...nextState,
             usage: {
-              ...previousUsage,
-              ...payload.usage,
+              ...mergeUsage({ ...previousUsage }, payload.usage),
               calls: payload.usage.calls ?? previousUsage?.calls ?? 0,
               // session.info is authoritative: omission means unavailable, not
               // "reuse the previous runtime's compression count".

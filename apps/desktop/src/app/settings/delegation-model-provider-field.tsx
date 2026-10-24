@@ -109,8 +109,17 @@ function useRoutableProviders(
   }, [rows, discover, discovery.data?.providers, customModels])
 }
 
+/** Catalog rows for the owner being edited, as routes, with nothing to discover: the routing section and
+ *  the route dialog read them this way. */
+export function useOwnerCatalog(scope: ProfileScope | undefined) {
+  const { rows, query } = useOwnerRows(scope)
+  const providers = useRoutableProviders(scope, rows, '')
+
+  return { providers, query }
+}
+
 /** A saved provider the catalog lacks (alias, display name, custom) stays visible as-is. */
-function displayProviders(
+export function displayProviders(
   providers: readonly ModelOptionProvider[],
   draftProvider: string
 ): readonly ModelOptionProvider[] {

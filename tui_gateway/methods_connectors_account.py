@@ -14,20 +14,24 @@ method = _registry.method
 _profile_scoped = _registry.profile_scoped
 
 
-def _account_method(params_model=None, *, invalid="", invalid_reason=ConnectorErrorReason.invalid_params,
+def _account_method(params_model=None, *, creates_guest, invalid="", invalid_reason=ConnectorErrorReason.invalid_params,
                     unavailable, unavailable_message):
+    """``creates_guest``: whether this entry point may create the guest identity when the user has
+    none. The page's reads never do; they answer from what a caller without a token can see."""
     def decorate(fn):
         def handler(rid, params):
             from pydantic import ValidationError
             from tools.connectors.gateway.errors import GatewayAuthError
 
             with _desktop_page_vars():
-                if gate_error := _account_gate_closed(rid) or _account_identity_error(rid):
+                if gate_error := _account_gate_closed(rid):
                     return gate_error
                 try:
                     request = params if params_model is None else params_model.model_validate(params)
                 except ValidationError:
                     return _connector_rpc_error(rid, 4000, invalid_reason, _t(invalid) if invalid else "")
+                if creates_guest and (identity_error := _account_identity_error(rid)):
+                    return identity_error
                 try:
                     return fn(rid, request)
                 except GatewayAuthError as exc:
@@ -48,6 +52,7 @@ def _account_method(params_model=None, *, invalid="", invalid_reason=ConnectorEr
 @_profile_scoped
 @_account_method(
     ConnectorToolsParams,
+    creates_guest=True,
     invalid="tui_gateway.connectors.slug_refresh_required",
     unavailable=ConnectorErrorReason.tools_unavailable,
     unavailable_message="tui_gateway.connectors.tools_unavailable",
@@ -71,16 +76,17 @@ def _(rid, request):
 @method("connectors.catalog")
 @_profile_scoped
 @_account_method(
+    creates_guest=False,
     unavailable=ConnectorErrorReason.catalog_unavailable,
     unavailable_message="tui_gateway.connectors.catalog_unavailable",
 )
 def _(rid, _params):
     from tools.connectors.portal.client import PortalConnectorClient
+    from tools.managed_tool_gateway import read_nous_access_token
     from tui_gateway.contracts.connectors import ConnectorsCatalogResult
 
     client = PortalConnectorClient()
-    client.require_authentication()
-    catalog = client.catalog()
+    catalog = client.catalog() if read_nous_access_token() else client.public_catalog()
     return _ok(rid, ConnectorsCatalogResult.model_validate(catalog, from_attributes=True).model_dump(mode="json"))
 
 
@@ -88,15 +94,17 @@ def _(rid, _params):
 @_profile_scoped
 @_account_method(
     ConnectorAccountsParams,
+    creates_guest=False,
     invalid="tui_gateway.connectors.slug_required",
     unavailable=ConnectorErrorReason.accounts_unavailable,
     unavailable_message="tui_gateway.connectors.accounts_unavailable",
 )
 def _(rid, request):
     from tools.connectors.portal.client import PortalConnectorClient
+    from tools.managed_tool_gateway import read_nous_access_token
     from tui_gateway.contracts.connectors import ConnectorAccountRow, ConnectorAccountsResult
 
-    accounts = PortalConnectorClient().list_accounts()
+    accounts = PortalConnectorClient().list_accounts() if read_nous_access_token() else []
     rows = [account for account in accounts if request.connector is None or account["connector"] == request.connector]
     result = ConnectorAccountsResult(accounts=[_account_row(account) for account in rows])
     return _ok(rid, result.model_dump(mode="json"))
@@ -123,9 +131,10 @@ def _account_row(account):
 @_profile_scoped
 @_account_method(
     ConnectorAccountsRenameParams,
-    invalid="connection_id and a valid alias are required.",
+    creates_guest=True,
+    invalid="tui_gateway.connectors.connection_id_alias_required",
     unavailable=ConnectorErrorReason.accounts_unavailable,
-    unavailable_message="Connector accounts are unavailable.",
+    unavailable_message="tui_gateway.connectors.accounts_unavailable",
 )
 def _(rid, request):
     from tools.connectors.gateway.errors import (
@@ -140,19 +149,19 @@ def _(rid, request):
     try:
         account = PortalConnectorClient().rename_account(request.connection_id, request.alias)
     except IdempotencyConflict:
-        return _connector_rpc_error(rid, 4090, ConnectorErrorReason.alias_taken, "That name is already used.")
+        return _connector_rpc_error(rid, 4090, ConnectorErrorReason.alias_taken, _t("tui_gateway.connectors.alias_taken"))
     except GatewayUnavailable as exc:
         if exc.code == "connection_not_found":
-            return _connector_rpc_error(rid, 4041, ConnectorErrorReason.connection_not_found, "Connector account not found.")
-        return _connector_rpc_error(rid, 5034, ConnectorErrorReason.accounts_unavailable, "Connector accounts are unavailable.")
+            return _connector_rpc_error(rid, 4041, ConnectorErrorReason.connection_not_found, _t("tui_gateway.connectors.account_not_found"))
+        return _connector_rpc_error(rid, 5034, ConnectorErrorReason.accounts_unavailable, _t("tui_gateway.connectors.accounts_unavailable"))
     except GatewayAuthError:
         raise
     except ToolGatewayError as exc:
         if exc.code == "org_required":
             raise
         if exc.status == 400:
-            return _connector_rpc_error(rid, 4000, ConnectorErrorReason.invalid_params, "That name is invalid.")
-        return _connector_rpc_error(rid, 5034, ConnectorErrorReason.accounts_unavailable, "Connector accounts are unavailable.")
+            return _connector_rpc_error(rid, 4000, ConnectorErrorReason.invalid_params, _t("tui_gateway.connectors.alias_invalid"))
+        return _connector_rpc_error(rid, 5034, ConnectorErrorReason.accounts_unavailable, _t("tui_gateway.connectors.accounts_unavailable"))
     return _ok(rid, _account_row(account).model_dump(mode="json"))
 
 
@@ -160,6 +169,7 @@ def _(rid, request):
 @_profile_scoped
 @_account_method(
     ConnectorAccountsRemoveParams,
+    creates_guest=True,
     invalid="tui_gateway.connectors.connection_id_required",
     unavailable=ConnectorErrorReason.accounts_unavailable,
     unavailable_message="tui_gateway.connectors.accounts_unavailable",
@@ -192,6 +202,7 @@ def _(rid, request):
 @method("connectors.policy.get")
 @_profile_scoped
 @_account_method(
+    creates_guest=False,
     unavailable=ConnectorErrorReason.policy_unavailable,
     unavailable_message="tui_gateway.connectors.policy_unavailable",
 )
@@ -222,6 +233,7 @@ def _(rid, _params):
 @_profile_scoped
 @_account_method(
     ConnectorPolicySetParams,
+    creates_guest=True,
     invalid="tui_gateway.connectors.params_invalid",
     unavailable=ConnectorErrorReason.policy_unavailable,
     unavailable_message="tui_gateway.connectors.policy_unavailable",

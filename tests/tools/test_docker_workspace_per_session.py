@@ -21,6 +21,12 @@ Behaviours pinned here, all of them contracts rather than snapshots:
    the mount that was *actually* resolved for this call, not the startup
    snapshot. A stale answer here hands the agent host write access under
    sandbox-grade approval rules.
+
+Singularity left core for the ``singularity`` catalog plugin in v0.22.5: the
+``--bind`` translation on ``instance start`` is the plugin's now, and core
+classifies Singularity as a container backend (the gate on in-sandbox cwd
+handling) only once that plugin registers it. The switch pair below is still
+pinned; the cases that need that classification run on Docker alone.
 """
 
 import os
@@ -73,6 +79,16 @@ def per_session_on(request, monkeypatch):
     monkeypatch.setenv(mount_var, "true")
     monkeypatch.setenv(per_session_var, "true")
     return backend
+
+
+@pytest.fixture
+def docker_per_session_on(monkeypatch):
+    """Docker with both opt-ins on: the only mount-capable backend core still classifies itself."""
+    mount_var, per_session_var = _BACKEND_FLAGS["docker"]
+    monkeypatch.setenv("TERMINAL_ENV", "docker")
+    monkeypatch.setenv(mount_var, "true")
+    monkeypatch.setenv(per_session_var, "true")
+    return "docker"
 
 
 @pytest.fixture(autouse=True)
@@ -466,17 +482,6 @@ class TestConfigPlumbing:
         assert config["cwd"] == "/workspace"
         assert config["host_cwd"] == str(proj)
 
-    def test_singularity_mount_off_discards_host_path(self, projects, monkeypatch):
-        """Without the opt-in, a host TERMINAL_CWD is discarded for the sandbox
-        default — the pre-existing isolation posture."""
-        proj, _ = projects
-        monkeypatch.setenv("TERMINAL_ENV", "singularity")
-        monkeypatch.delenv("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", raising=False)
-        monkeypatch.setenv("TERMINAL_CWD", str(proj))
-        config = tt._get_env_config()
-        assert config["host_cwd"] is None
-        assert config["cwd"] == "/root"
-
     def test_config_defaults_are_off(self):
         from hermes_cli.config import DEFAULT_CONFIG
 
@@ -677,84 +682,7 @@ class TestDockerCustomMountTarget:
 
 
 # ---------------------------------------------------------------------------
-# 6. Singularity --bind translation
-# ---------------------------------------------------------------------------
-
-class TestSingularityBindMount:
-    """The resolved host workspace must become an ``--bind host:/workspace``
-    flag on ``instance start`` — and only under the opt-in."""
-
-    @pytest.fixture
-    def sg(self, monkeypatch):
-        from tools.environments import singularity as sg_mod
-
-        monkeypatch.setattr(sg_mod, "_ensure_singularity_available", lambda: "apptainer")
-        monkeypatch.setattr(sg_mod, "_get_or_build_sif", lambda image, executable: image)
-        # init_session shells into the (fake) instance; not under test here.
-        monkeypatch.setattr(sg_mod.SingularityEnvironment, "init_session", lambda self: None)
-
-        calls = []
-
-        def _run(cmd, **kwargs):
-            import subprocess as _sp
-            calls.append(list(cmd))
-            return _sp.CompletedProcess(cmd, 0, stdout="", stderr="")
-
-        monkeypatch.setattr(sg_mod.subprocess, "run", _run)
-        return sg_mod, calls
-
-    @staticmethod
-    def _instance_start_cmd(calls):
-        starts = [c for c in calls if len(c) >= 3 and c[1:3] == ["instance", "start"]]
-        assert starts, f"no instance start captured; calls={calls}"
-        return starts[0]
-
-    def test_opt_in_mounts_the_host_workspace(self, sg, tmp_path):
-        sg_mod, calls = sg
-        proj = tmp_path / "proj"
-        proj.mkdir()
-        sg_mod.SingularityEnvironment(
-            image="docker://python:3.11", cwd="/workspace",
-            host_cwd=str(proj), auto_mount_cwd=True,
-        )
-        cmd = self._instance_start_cmd(calls)
-        joined = " ".join(cmd)
-        assert f"{proj}:/workspace" in joined
-        assert "--bind" in cmd
-
-    def test_without_opt_in_no_workspace_bind(self, sg, tmp_path):
-        sg_mod, calls = sg
-        proj = tmp_path / "proj"
-        proj.mkdir()
-        sg_mod.SingularityEnvironment(
-            image="docker://python:3.11", cwd="/root",
-            host_cwd=str(proj), auto_mount_cwd=False,
-        )
-        assert f"{proj}:/workspace" not in " ".join(self._instance_start_cmd(calls))
-
-    def test_missing_host_dir_is_not_mounted(self, sg, tmp_path):
-        sg_mod, calls = sg
-        ghost = tmp_path / "does-not-exist"
-        sg_mod.SingularityEnvironment(
-            image="docker://python:3.11", cwd="/workspace",
-            host_cwd=str(ghost), auto_mount_cwd=True,
-        )
-        assert f"{ghost}:/workspace" not in " ".join(self._instance_start_cmd(calls))
-
-    def test_custom_mount_target_reaches_the_bind_flag(self, sg, tmp_path):
-        sg_mod, calls = sg
-        proj = tmp_path / "proj"
-        proj.mkdir()
-        sg_mod.SingularityEnvironment(
-            image="docker://python:3.11", cwd="/mnt/project",
-            host_cwd=str(proj), auto_mount_cwd=True,
-            workspace_mount_path="/mnt/project",
-        )
-        assert f"{proj}:/mnt/project" in " ".join(self._instance_start_cmd(calls))
-
-
-# ---------------------------------------------------------------------------
-# 7. Identity / mount agreement
+# 6. Identity / mount agreement
 # ---------------------------------------------------------------------------
 
 class TestIdentityAndMountAgree:
@@ -844,7 +772,7 @@ class TestIdentityAndMountAgree:
 
 
 # ---------------------------------------------------------------------------
-# 8. One mount per sandbox, whichever tool creates it
+# 7. One mount per sandbox, whichever tool creates it
 # ---------------------------------------------------------------------------
 
 class TestEveryToolResolvesOneMount:
@@ -938,7 +866,7 @@ class TestMountedCwdReachesTheSandbox:
         (directory / "pkg").mkdir(parents=True)
         return directory
 
-    def test_plan_uses_the_mount_target_as_container_cwd(self, project, per_session_on):
+    def test_plan_uses_the_mount_target_as_container_cwd(self, project, docker_per_session_on):
         tt.register_task_env_overrides("sess-x", {"cwd": str(project)})
 
         plan = tt._plan_execution("pwd", task_id="sess-x", timeout=None, background=False, _host_local=False)
@@ -946,13 +874,13 @@ class TestMountedCwdReachesTheSandbox:
         assert plan.host_cwd == str(project)
         assert plan.cwd == tt._workspace_mount_path()
 
-    def test_recorded_host_cwd_inside_the_mount_is_translated_per_command(self, project, per_session_on):
+    def test_recorded_host_cwd_inside_the_mount_is_translated_per_command(self, project, docker_per_session_on):
         tt.register_task_env_overrides("sess-x", {"cwd": str(project)})
         tt.record_session_cwd("sess-x", str(project / "pkg"))
 
         cwd = tt._resolve_command_cwd(
             workdir=None, default_cwd=tt._workspace_mount_path(), session_key="sess-x",
-            env_type=per_session_on)
+            env_type=docker_per_session_on)
 
         assert cwd == tt._workspace_mount_path() + "/pkg"
 

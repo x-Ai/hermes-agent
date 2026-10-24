@@ -14,25 +14,29 @@ import { getDashboardCopy } from "@/i18n/dashboard";
  *
  * Shared by the chat sidebar picker and the Models page so both behave
  * identically. `model` is the short model name awaiting confirmation, or null
- * when the dialog is closed.
+ * when the dialog is closed. `notice`: the backend's switch warning (Nous window
+ * plans, Large model), shown under the body; absent for everyone else.
  */
 export function ModelReloadConfirm({
   model,
   description,
-  onCancel
+  notice,
+  onCancel,
 }: {
   model: string | null;
   /** Override the default body copy (e.g. the Models-page phrasing). */
   description?: string;
+  notice?: string | null;
   onCancel: () => void;
 }) {
   const { t } = useI18n();
   const copy = getDashboardCopy(t).models;
+  const body = description ?? copy.switchModelDescription.replace("{model}", model ?? "");
   return (
     <ConfirmDialog
       open={model !== null}
       title={copy.switchModelTitle}
-      description={description ?? copy.switchModelDescription.replace("{model}", model ?? "")}
+      description={notice ? `${body}\n\n⚠ ${notice}` : body}
       confirmLabel={copy.reload}
       onConfirm={() => window.location.reload()}
       onCancel={onCancel}

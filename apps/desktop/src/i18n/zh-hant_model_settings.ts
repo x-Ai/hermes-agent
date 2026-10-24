@@ -1,6 +1,7 @@
 import type { TranslationOverride } from '@hermes/shared/i18n'
 
 import type { ModelSettingsTranslations } from './types_model_settings'
+import { zhHantDelegationRouting } from './zh-hant_delegation_routing'
 
 export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations> = {
   setupProviderFallback: '提供方',
@@ -140,6 +141,7 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
     directActive: '直接端點已啟用，優先於已儲存的提供方。選擇此模式時會保留其端點與憑證。',
     directClear: '套用此路由會清除直接端點及其儲存的金鑰。其他請求設定維持不變。',
     catalogFailed: '模型目錄無法使用。請手動輸入提供方與模型，或重試。',
-    draftHint: '套用前，變更只保留在本機。'
+    draftHint: '套用前，變更只保留在本機。',
+    routing: zhHantDelegationRouting
   }
 }

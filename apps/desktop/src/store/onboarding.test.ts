@@ -219,7 +219,10 @@ describe('refreshOnboarding', () => {
       }
 
       if (method === 'setup.runtime_check') {
-        return { ok: false, error: 'Hermes is not connected to any AI provider yet. Run `hermes model` to pick one.' } as never
+        return {
+          ok: false,
+          error: 'Hermes is not connected to any AI provider yet. Run `hermes model` to pick one.'
+        } as never
       }
 
       throw new Error(`unexpected gateway method: ${method}`)
@@ -1168,7 +1171,7 @@ describe('device-code poll expiry', () => {
         return deviceStart(2)
       }
 
-      if (path === '/api/providers/oauth/nous/poll/device-sess-1') {
+      if (path.startsWith('/api/providers/oauth/nous/poll/device-sess-1')) {
         return { status: 'pending' }
       }
 
@@ -1195,7 +1198,7 @@ describe('device-code poll expiry', () => {
         return deviceStart(600)
       }
 
-      if (path === '/api/providers/oauth/nous/poll/device-sess-1') {
+      if (path.startsWith('/api/providers/oauth/nous/poll/device-sess-1')) {
         return { status: 'pending' }
       }
 

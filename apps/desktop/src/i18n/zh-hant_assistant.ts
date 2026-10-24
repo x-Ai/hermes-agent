@@ -316,6 +316,14 @@ export const zhHantAssistant = {
         cron_session_read_only: {
           title: '此聊天屬於一個排程工作',
           body: '它只會執行該工作，因此你的訊息未被執行。請開始新的聊天後再傳送。'
+        },
+        usage_window: {
+          title: '包含用量已用完',
+          body: '你的方案包含的用量已用完，將在重設後恢復。在 /topup 中新增額度即可繼續。'
+        },
+        workspace_unavailable: {
+          title: '此聊天的資料夾已不存在',
+          body: '此聊天使用的資料夾已被移動或刪除，因此你的訊息未被執行。請重新建立該資料夾，或使用「Move to project」為聊天指定其他資料夾，然後重試。'
         }
       },
       errorLayers: {
@@ -330,6 +338,12 @@ export const zhHantAssistant = {
         streaming: '串流連線錯誤'
       },
       errorRetry: '重試',
+      errorSwitchToModel: (model, note) => (note ? `切換到 ${model}（${note}）` : `切換到 ${model}`),
+      errorSwitchModelFailed: '無法切換模型',
+      errorUseCredits: '開啟用額度繼續',
+      errorUseCreditsFailed: '無法開啟用額度繼續',
+      errorAddCredits: '新增額度',
+      errorOpenBillingSettings: '開啟帳單設定',
       errorStartNewSession: '開始新工作階段',
       errorSwitchProvider: '切換服務商',
       errorSignInAgain: provider => `重新登入 ${provider}`,

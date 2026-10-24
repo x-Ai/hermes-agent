@@ -72,6 +72,8 @@ interface UpdateStatusInput {
   noRelease?: { title: string; body: (repository: string) => string }
   /** Names a move back to an older stable release the checkout already contains. */
   rollback?: (version: string) => string
+  /** Names a stable release the updater refuses, so this install stays where it is. */
+  held?: (version: string) => string
 }
 
 export function deriveUpdateStatus(input: UpdateStatusInput): UpdateStatusView {
@@ -124,6 +126,7 @@ function availableLine(
 function ordinaryUpdateStatus({
   apply,
   checking,
+  held,
   latestRelease,
   noRelease,
   rollback,
@@ -161,22 +164,9 @@ function ordinaryUpdateStatus({
   }
 
   if (status) {
-    // Stable pins to a release; name it. A checkout ahead of it (forward-only) is newer
-    // than the release, so it keeps the generic line instead of claiming to be on it.
-    const pinned =
-      target === 'client' &&
-      latestRelease &&
-      status.channel === 'stable' &&
-      status.sourceVersion &&
-      // Older checkers omit the field and may also pin an ahead checkout to HEAD.
-      status.aheadOfRelease === false &&
-      status.targetSha &&
-      status.currentSha === status.targetSha
-
     return {
       applying,
-      line:
-        target === 'backend' ? u.latestBodyBackend : pinned ? latestRelease(`v${status.sourceVersion}`) : u.latestBody,
+      line: currentLine(status, target, u, latestRelease, held),
       supported,
       tone: 'idle',
       updateAvailable
@@ -184,6 +174,36 @@ function ordinaryUpdateStatus({
   }
 
   return { applying, line: checking ? u.checking : u.tapCheck, supported, tone: 'idle', updateAvailable }
+}
+
+/** The line for an install with nothing to apply: a held release, the pinned stable release, or "latest". */
+function currentLine(
+  status: DesktopUpdateStatus,
+  target: UpdateTarget,
+  u: Translations['updates'],
+  latestRelease?: (version: string) => string,
+  held?: (version: string) => string
+): string {
+  if (held && status.held && status.sourceVersion) {
+    return held(`v${status.sourceVersion}`)
+  }
+
+  if (target === 'backend') {
+    return u.latestBodyBackend
+  }
+
+  // Stable pins to a release; name it. A checkout ahead of it (forward-only) is newer
+  // than the release, so it keeps the generic line instead of claiming to be on it.
+  const pinned =
+    latestRelease &&
+    status.channel === 'stable' &&
+    status.sourceVersion &&
+    // Older checkers omit the field and may also pin an ahead checkout to HEAD.
+    status.aheadOfRelease === false &&
+    status.targetSha &&
+    status.currentSha === status.targetSha
+
+  return pinned ? latestRelease(`v${status.sourceVersion}`) : u.latestBody
 }
 
 function relativeTime(ms: number | undefined, u: Translations['updates']): string {
@@ -334,6 +354,7 @@ export function UpdateStatusCard({
   const view = deriveUpdateStatus({
     apply,
     checking,
+    held: t.settings.about.channel.heldBody,
     latestRelease: t.settings.about.channel.latestRelease,
     noRelease: { title: t.settings.about.channel.noReleaseTitle, body: t.settings.about.channel.noReleaseBody },
     rollback: t.settings.about.channel.rollbackBody,

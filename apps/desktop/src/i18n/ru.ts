@@ -1,3 +1,4 @@
+// health: allow FILE_LINES -- locale data: translated copy for the usage-window plan UI (allowance gauges, Large/Free tags, the limit card), one key per string
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
@@ -12,6 +13,7 @@ import { ruGoalStatus } from './ru_goal_status'
 import { ruModelMenu } from './ru_model_menu'
 import { ruModelSettings } from './ru_model_settings'
 import { ruNotices } from './ru_notices'
+import { ruNotifications } from './ru_notifications'
 import { ruOnboarding } from './ru_onboarding'
 import { ruPluginSettings } from './ru_plugins'
 import { ruProjects } from './ru_projects'
@@ -706,6 +708,37 @@ export const ruOverrides = {
     openInHermes: 'Открыть в Hermes'
   },
   settings: {
+    // Window plans (Nous subscription with included usage). Other billing strings: overlay-gaps.json.
+    billing: {
+      keepGoingOnCredits: {
+        title: 'Продолжать за кредиты',
+        description: 'Тратить кредиты, когда включённый объём закончится. Выключено: Hermes ждёт сброса.',
+        approveInBrowser:
+          'Чтобы изменить это, одобрите удалённые траты в браузере. Изменение применится сразу после одобрения.',
+        openAgain: 'Открыть снова',
+        cancel: 'Отмена',
+        approvedRetry: 'Удалённые траты одобрены, но изменение не сохранилось.',
+        tryAgain: 'Повторить'
+      },
+      state: {
+        usage: {
+          window: {
+            today: 'Сегодня',
+            week: 'Эта неделя',
+            month: 'Этот месяц',
+            topTier: 'Крупные модели (месяц)',
+            barLabel: title => `${title}: использовано включённого объёма`,
+            captionPaused: 'Приостановлено: платёж по подписке не прошёл',
+            captionPausedOther: 'Приостановлено: см. раздел «Оплата» на портале',
+            captionTopTierUsedUp: 'Месячный лимит исчерпан, остальное оплачивается кредитами',
+            captionTopTierUsedUpKeepGoingOff: 'Месячный лимит исчерпан, другие включённые модели работают',
+            captionResetsIn: duration => `Сброс через ${duration}`,
+            captionIncluded: 'Включённый объём',
+            valueUsed: percent => `использовано ${percent}`
+          }
+        }
+      }
+    },
     closeSettings: 'Закрыть настройки',
     exportConfig: 'Экспорт конфигурации',
     importConfig: 'Импорт конфигурации',
@@ -895,49 +928,7 @@ export const ruOverrides = {
         masterPasswordPlaceholder: 'Мастер-пароль'
       }
     },
-    notifications: {
-      title: 'Уведомления',
-      intro: 'Системные уведомления (не всплывающие внутри приложения). Настраивается для каждого устройства.',
-      enableAll: 'Включить уведомления',
-      enableAllDesc: 'Если выключено — все уведомления ниже будут заглушены.',
-      focusedHint: 'Оповещения о завершении срабатывают только пока Hermes в фоне.',
-      kinds: {
-        approval: {
-          label: 'Нужно одобрение',
-          description: 'Команда ожидает вашего одобрения или отклонения.'
-        },
-        input: {
-          label: 'Нужен ввод',
-          description: 'Hermes задал вопрос или требует пароль/секрет.'
-        },
-        turnDone: {
-          label: 'Ответ готов',
-          description: 'Ход завершился, пока Hermes был в фоне.'
-        },
-        turnError: { label: 'Ход не удался', description: 'Ошибки фоновых ходов.' },
-        backgroundDone: {
-          label: 'Фоновая задача завершена',
-          description: 'Фоновая команда терминала выполнена.'
-        },
-        credits: {
-          label: 'Оповещения о кредитах',
-          description: 'Доступ к кредитам приостановлен или восстановлен.'
-        },
-        plugin: {
-          label: 'Уведомления плагинов',
-          description: 'Плагин приложения отправил уведомление, пока Hermes был в фоне.'
-        }
-      },
-      test: 'Отправить тестовое уведомление',
-      testTitle: 'Hermes',
-      testBody: 'Уведомления работают.',
-      testSent:
-        'Тест отправлен. Если ничего не появилось, проверьте разрешения на уведомления в системе и режим «Не беспокоить».',
-      testUnsupported: 'Эта система не поддерживает системные уведомления.',
-      completionSoundTitle: 'Звук завершения',
-      completionSoundDesc: 'Воспроизводится, когда ход агента завершён. Выберите пресет и прослушайте здесь.',
-      completionSoundPreview: 'Прослушать'
-    },
+    notifications: ruNotifications,
     memoryProvider: {
       loadFailed: detail => `Не удалось загрузить настройки поставщика памяти:${detail}`,
       loadFailedFallback: 'Настройки провайдера памяти не удалось загрузить',
@@ -4575,29 +4566,25 @@ export const ruOverrides = {
     signIn: 'Войти',
     signInHeading: 'Войдите в систему с учетной записью Nous, чтобы разблокировать больше моделей и инструментов.',
     settingUp: 'Настройка свободного вывода…',
-    codeBody: 'Введите этот код в браузере, чтобы завершить вход.',
-    copyLink: 'Скопировать ссылку',
+    finishInBrowser: 'Завершите в браузере',
     doNotShare: 'Не делитесь этим кодом.',
+    openPageAgain: 'Открыть страницу снова',
     waiting: 'Ожидание входа в систему…',
     finishingHeading: 'Завершение входа в систему…',
     finishingBody: 'Одобрено в браузере. Сбор токенов вашего аккаунта.',
-    signedInAs: email => `Вход выполнен как${email}`,
+    signedInAsLabel: 'Вы вошли как',
     signedIn: 'Выполнен вход.',
     completedBody: 'Теперь в вашей учетной записи есть выводы и инструменты.',
+    reconnect: 'Переподключить',
+    openConnectors: 'Открыть коннекторы',
     defaultModel: 'Модель по умолчанию',
     change: 'Изменить',
     done: 'Готово',
     notNow: 'Не сейчас',
     tryAgain: 'Попробуйте снова',
-    startAgain: 'Начать заново',
     didNotComplete: 'Вход не завершен',
-    rejectedBody:
-      'Нет проблем, вы по-прежнему пользуетесь бесплатным сервисом Nous. Войдите в систему, когда будете готовы.',
-    supersededBody: 'На смену этому коду входа пришел новый код. Используйте самую новую версию или начните заново.',
     timedOutHeading: 'Срок действия этой ссылки для входа истек.',
     timedOutBody: 'Начните снова, когда будете готовы. Вы по-прежнему пользуетесь бесплатным сервисом Nous.',
-    retiredBody:
-      'Ваш сеанс завершился до завершения входа в систему. Hermes начнет новый; затем войдите в систему снова, когда будете готовы.',
     errorBody: 'Вход не завершен. Попробуйте еще раз, когда будете готовы.',
     alreadySignedInHeading: 'Уже авторизован.',
     alreadySignedInBody: 'Этот Hermes уже вошел в учетную запись Nous.',
@@ -4654,7 +4641,32 @@ export const ruOverrides = {
     wasPrice: 'было',
     customModel: 'Своя модель',
     addCustomModelAction: 'Добавить свою модель…',
-    customModelPlaceholder: 'Введите id модели, например openai/gpt-5'
+    customModelPlaceholder: 'Введите id модели, например openai/gpt-5',
+    today: 'Сегодня',
+    week: 'Неделя',
+    month: 'Месяц',
+    topTier: 'Крупные модели (в месяц)',
+    included: 'Все модели ниже включены',
+    pausedRenewal: 'пауза: оплата не прошла',
+    pausedOther: 'пауза',
+    includedUsedUp: 'Включённый объём исчерпан',
+    limitReached: name => `Достигнут ${name}`,
+    limitNames: {
+      day: 'дневной лимит',
+      month: 'месячный лимит',
+      top_tier: 'месячный лимит крупных моделей',
+      week: 'недельный лимит'
+    },
+    limitThenCredits: 'платные модели теперь используют ваши кредиты (оплата по факту)',
+    limitThenCreditsLarge: 'крупные модели теперь используют ваши кредиты (оплата по факту)',
+    limitThenWait: 'до сброса только бесплатные модели',
+    limitThenWaitLarge: 'крупные модели приостановлены до сброса',
+    percentUsed: percent => `${percent} использовано`,
+    resetsIn: duration => `сброс через ${duration}`,
+    usageLevels: { free: 'Бесплатно', top_tier: 'Крупная' },
+    sectionRecommended: 'Рекомендуемые',
+    sectionOther: 'Другие модели',
+    largeFootnote: 'Крупные модели также расходуют месячный лимит крупных моделей.'
   },
   modelVisibility: {
     title: 'Модели',
@@ -5086,6 +5098,13 @@ export const ruOverrides = {
       embedTitle: label => `${label}встроить`
     },
     thread: {
+      errorSwitchToModel: (model: string, note?: string) =>
+        note ? `Переключиться на ${model} (${note})` : `Переключиться на ${model}`,
+      errorSwitchModelFailed: 'Не удалось переключить модель',
+      errorUseCredits: 'Включить «Продолжать за кредиты»',
+      errorUseCreditsFailed: 'Не удалось включить «Продолжать за кредиты»',
+      errorAddCredits: 'Пополнить кредиты',
+      errorOpenBillingSettings: 'Открыть настройки оплаты',
       loadingSession: 'Загрузка сеанса',
       openSessionFailed: 'Не удалось открыть заседание',
       showEarlier: 'Показать ранние сообщения',
@@ -5364,6 +5383,14 @@ export const ruOverrides = {
         cron_session_read_only: {
           title: 'Этот чат относится к запланированной задаче',
           body: 'Он только выполняет эту задачу, поэтому ваше сообщение не было выполнено. Начните новый чат, чтобы отправить его.'
+        },
+        workspace_unavailable: {
+          title: 'Папка этого чата пропала',
+          body: 'Папка, в которой работает этот чат, была перемещена или удалена, поэтому ваше сообщение не было выполнено. Создайте папку заново или назначьте чату другую через «Переместить в проект», затем повторите попытку.'
+        },
+        usage_window: {
+          title: 'Включённый объём исчерпан',
+          body: 'Включённый объём вашего плана исчерпан до сброса. Пополните кредиты в /topup, чтобы продолжить.'
         }
       },
       errorAuthKinds: {

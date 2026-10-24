@@ -1,3 +1,4 @@
+// health: allow FILE_LINES -- locale data: translated copy for the usage-window plan UI (allowance gauges, Large/Free tags, the limit card), one key per string
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
@@ -6,6 +7,7 @@ import { zhCatalog } from './zh_catalog'
 import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
+import { zhErrorLayers } from './zh_error_layers'
 import { zhFirstRun } from './zh_first_run'
 import { zhGatewayMenu } from './zh_gateway_menu'
 import { zhGoalStatus } from './zh_goal_status'
@@ -14,6 +16,7 @@ import { zhMessagingFieldCopy } from './zh_messaging_fields'
 import { zhModelMenu } from './zh_model_menu'
 import { zhModelSettings } from './zh_model_settings'
 import { zhNotices } from './zh_notices'
+import { zhNotifications } from './zh_notifications'
 import { zhOnboarding } from './zh_onboarding'
 import { zhPluginManifests } from './zh_plugin_manifests'
 import { zhPluginUpdate } from './zh_plugin_update'
@@ -1251,51 +1254,7 @@ export const zhOverrides = {
         masterPasswordPlaceholder: '主密码'
       }
     },
-    notifications: {
-      title: '通知',
-      intro: '原生桌面通知，区别于应用内提示，设置按设备保存，每台电脑各自独立',
-      enableAll: '启用通知',
-      enableAllDesc: '关闭后静音下方所有通知',
-      focusedHint: '完成提醒仅在 Hermes 处于后台时触发',
-      kinds: {
-        approval: {
-          label: '需要批准',
-          description: '有命令正在等待你批准或拒绝'
-        },
-        input: {
-          label: '需要输入',
-          description: 'Hermes 提出了问题，或需要密码或密钥'
-        },
-        turnDone: {
-          label: '回复就绪',
-          description: 'Hermes 在后台时完成了一轮对话'
-        },
-        turnError: {
-          label: '本轮失败',
-          description: '后台回合错误'
-        },
-        backgroundDone: {
-          label: '后台任务完成',
-          description: '后台终端命令已完成'
-        },
-        credits: {
-          label: '额度提醒',
-          description: '额度访问被暂停或恢复'
-        },
-        plugin: {
-          label: '插件通知',
-          description: 'Hermes 在后台时，桌面插件发送了通知'
-        }
-      },
-      test: '发送测试通知',
-      testTitle: 'Hermes',
-      testBody: '通知工作正常',
-      testSent: '测试已发送，如果没有出现，请检查系统通知权限和专注模式／勿扰模式',
-      testUnsupported: '此系统不支持原生通知',
-      completionSoundTitle: '完成提示音',
-      completionSoundDesc: '智能体回合结束时播放，可在此选择预设并预览',
-      completionSoundPreview: '预览'
-    },
+    notifications: zhNotifications,
     memoryProvider: {
       loadFailed: detail => `记忆提供方设置加载失败：${detail}`,
       loadFailedFallback: '记忆提供方设置加载失败',
@@ -2518,6 +2477,15 @@ export const zhOverrides = {
         effectScheduled: (targetName, effectiveAt, creditsDelta) =>
           `更改为 ${targetName}，于 ${effectiveAt} 生效，现在不扣费，在此之前保留当前套餐${creditsDelta ? `，每月额度变化：${creditsDelta}` : ''}`
       },
+      keepGoingOnCredits: {
+        title: '用额度继续',
+        description: '包含的用量用完后，使用你的额度，关闭时，Hermes 等待重置',
+        approveInBrowser: '请在浏览器中批准 Remote Spending 以更改此设置，批准后立即生效',
+        openAgain: '再次打开',
+        cancel: '取消',
+        approvedRetry: 'Remote Spending 已批准，但更改未保存',
+        tryAgain: '重试'
+      },
       autoReload: {
         threshold: '阈值',
         thresholdAria: '自动充值阈值',
@@ -2588,6 +2556,20 @@ export const zhOverrides = {
             captionDefault: '默认上限',
             captionSpending: '每月远程支出',
             valueUsed: (spent, limit) => `${limit} 中已用 ${spent}`
+          },
+          window: {
+            today: '今天',
+            week: '本周',
+            month: '本月',
+            topTier: '大型模型（每月）',
+            barLabel: title => `${title}已用包含用量`,
+            captionPaused: '已暂停：订阅付款失败',
+            captionPausedOther: '已暂停：请在 Portal 的账单页查看',
+            captionTopTierUsedUp: '每月额度已用完，剩余部分由你的额度支付',
+            captionTopTierUsedUpKeepGoingOff: '每月额度已用完，其他包含的模型仍可使用',
+            captionResetsIn: duration => `${duration}后重置`,
+            captionIncluded: '包含用量',
+            valueUsed: percent => `已用 ${percent}`
           }
         },
         planCard: {
@@ -5381,27 +5363,25 @@ export const zhOverrides = {
     signIn: '登录',
     signInHeading: '登录 Nous 账户以解锁更多模型和工具',
     settingUp: '正在设置免费推理…',
-    codeBody: '在浏览器中输入此代码以完成登录',
-    copyLink: '复制链接',
+    finishInBrowser: '在浏览器中完成',
     doNotShare: '请勿分享此代码',
+    openPageAgain: '重新打开页面',
     waiting: '等待登录…',
     finishingHeading: '正在完成登录…',
     finishingBody: '已在浏览器中批准，正在获取账户令牌',
-    signedInAs: email => `已登录为 ${email}`,
+    signedInAsLabel: '已登录为',
     signedIn: '已登录',
     completedBody: '现在由你的账户提供推理和工具',
+    reconnect: '重新连接',
+    openConnectors: '打开连接器',
     defaultModel: '默认模型',
     change: '更改',
     done: '完成',
     notNow: '暂不',
     tryAgain: '重试',
-    startAgain: '重新开始',
     didNotComplete: '登录未完成',
-    rejectedBody: '没问题，你仍然在免费 Nous 服务上，随时准备好就可以登录',
-    supersededBody: '较新的登录代码已取代此代码，请使用最新代码，或者重新开始',
     timedOutHeading: '该登录链接已过期',
     timedOutBody: '随时准备好就可以重新开始，你仍然在免费 Nous 服务上',
-    retiredBody: '在登录完成前，你的会话已结束，Hermes 将启动一个新的会话，然后随时准备好再次登录',
     errorBody: '登录未完成，准备好时请再次尝试',
     alreadySignedInHeading: '已登录',
     alreadySignedInBody: '此 Hermes 已登录 Nous 账户',
@@ -5450,7 +5430,27 @@ export const zhOverrides = {
     wasPrice: '原价',
     customModel: '自定义模型',
     addCustomModelAction: '添加自定义模型…',
-    customModelPlaceholder: '输入模型 ID，例如 openai/gpt-5'
+    customModelPlaceholder: '输入模型 ID，例如 openai/gpt-5',
+    today: '今日',
+    week: '本周',
+    month: '本月',
+    topTier: '大型模型（每月）',
+    included: '下列模型均已包含',
+    pausedRenewal: '已暂停：续费未到账',
+    pausedOther: '已暂停',
+    includedUsedUp: '包含用量已用完',
+    limitReached: name => `已达${name}上限`,
+    limitNames: { day: '每日', month: '每月', top_tier: '每月大型模型', week: '每周' },
+    limitThenCredits: '付费模型现在使用你的额度（按量付费）',
+    limitThenCreditsLarge: '大型模型现在使用你的额度（按量付费）',
+    limitThenWait: '在此之前仅可使用免费模型',
+    limitThenWaitLarge: '在此之前大型模型已暂停',
+    percentUsed: percent => `已用 ${percent}`,
+    resetsIn: duration => `${duration}后重置`,
+    usageLevels: { free: '免费', top_tier: '大' },
+    sectionRecommended: '推荐',
+    sectionOther: '其他模型',
+    largeFootnote: '大型模型也会消耗你的每月大型模型额度'
   },
   modelVisibility: {
     title: '模型',
@@ -5960,17 +5960,7 @@ export const zhOverrides = {
       dismissError: '关闭错误',
       responseStopped: '回复已停止',
       errorGenericProvider: 'AI 服务',
-      errorLayerBodies: {
-        auth: 'AI 服务拒绝了登录凭据，请检查此提供商的凭据，然后重新发送消息',
-        billing: '此提供商账户的额度已用尽，请充值或切换提供商，然后重新发送',
-        disk: '磁盘空间已满，Hermes 无法保存此对话，请释放空间后重试',
-        generic: 'Hermes 回复时出现问题，请重试，若问题持续，请复制错误详情',
-        provider: 'AI 服务无法完成此请求，请稍后重试或切换服务商',
-        endpoint: 'Hermes 无法连接到你的自定义模型服务器，请确认它正在运行，然后重新发送消息',
-        gateway: 'Hermes 在开始回复时遇到内部问题，请重新发送消息，若问题持续，请发送诊断信息',
-        runtime: 'Hermes 在开始回复时遇到内部问题，请重新发送消息，若问题持续，请发送诊断信息',
-        streaming: '回复完成前连接已断开，请重试以重新发送'
-      },
+      ...zhErrorLayers,
       errorCodes: {
         auth: {
           title: provider => `${provider} 拒绝了登录`,
@@ -6108,20 +6098,23 @@ export const zhOverrides = {
         cron_session_read_only: {
           title: '此聊天属于一个定时任务',
           body: '它只运行该任务，因此你的消息未被执行，请新建聊天后再发送'
+        },
+        usage_window: {
+          title: '包含用量已用完',
+          body: '你的方案包含的用量已用完，将在重置后恢复，在 /topup 中添加额度即可继续'
+        },
+        workspace_unavailable: {
+          title: '此聊天的文件夹已不存在',
+          body: '此聊天使用的文件夹已被移动或删除，因此你的消息未被执行，请重新创建该文件夹，或使用“移动到项目”为聊天指定其他文件夹，然后重试'
         }
       },
-      errorLayers: {
-        auth: '登录问题',
-        billing: '额度不足',
-        disk: '磁盘已满',
-        endpoint: '无法连接到您的模型服务器',
-        gateway: 'Hermes 遇到问题',
-        generic: 'Hermes 无法完成此回复',
-        provider: 'AI 服务返回了一个错误',
-        runtime: 'Hermes 遇到问题',
-        streaming: '答复被切断了'
-      },
       errorRetry: '重试',
+      errorSwitchToModel: (model, note) => (note ? `切换到 ${model}（${note}）` : `切换到 ${model}`),
+      errorSwitchModelFailed: '无法切换模型',
+      errorUseCredits: '开启用额度继续',
+      errorUseCreditsFailed: '无法开启用额度继续',
+      errorAddCredits: '添加额度',
+      errorOpenBillingSettings: '打开账单设置',
       errorStartNewSession: '开始新会话',
       errorSwitchProvider: '切换服务商',
       errorSignInAgain: provider => `重新登录 ${provider}`,

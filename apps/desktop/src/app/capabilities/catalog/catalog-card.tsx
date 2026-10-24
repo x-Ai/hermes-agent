@@ -85,7 +85,7 @@ function CatalogCardFooter({ entry, action, hero }: { entry: CatalogEntry; actio
       <CatalogHeaderMeta entry={entry} />
       <span className="flex shrink-0 items-center gap-3">
         <CatalogRating entry={entry} />
-        {hero && <span className="catalog-hero-action relative shrink-0">{action}</span>}
+        {hero && <span className="catalog-hero-action relative z-10 shrink-0">{action}</span>}
       </span>
     </div>
   )

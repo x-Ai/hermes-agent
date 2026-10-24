@@ -24,13 +24,13 @@ from tools.delegate_tool import (
 )
 
 
+# Docker only: since v0.22.5 Singularity ships as a catalog plugin, and core classifies it as a
+# container backend (the gate on the mount-path translation below) only once that plugin registers it.
 _BACKEND_MOUNT_FLAG = {
     "docker": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
-    "singularity": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
 }
 _BACKEND_MOUNT_PATH = {
     "docker": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
-    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
 }
 _MOUNT_CASES = [
     (backend, mount_path)

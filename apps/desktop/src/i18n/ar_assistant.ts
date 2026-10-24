@@ -285,9 +285,23 @@ export const arAssistant = {
         free_tier_refused: {
           title: 'Hermes لا يمكن أن ترسل ذلك دون التوقيع في',
           body: 'التوقيع مع حساب Nous هو مجانا.'
+        },
+        usage_window: {
+          title: 'نفد الاستخدام المضمّن',
+          body: 'نفد الاستخدام المضمّن في خطتك حتى إعادة التعيين. أضف رصيدًا عبر /topup للمتابعة.'
+        },
+        workspace_unavailable: {
+          title: 'مجلد هذه المحادثة غير موجود',
+          body: 'نُقل المجلد الذي تعمل فيه هذه المحادثة أو حُذف، لذا لم تُنفَّذ رسالتك. أعد إنشاء المجلد، أو استخدم «Move to project» لتعيين مجلد آخر للمحادثة، ثم أعد المحاولة.'
         }
       },
       errorRetry: 'إعادة المحاولة',
+      errorSwitchToModel: (model, note) => (note ? `التبديل إلى ${model} (${note})` : `التبديل إلى ${model}`),
+      errorSwitchModelFailed: 'تعذر تبديل النموذج',
+      errorUseCredits: 'تفعيل الاستمرار بالرصيد',
+      errorUseCreditsFailed: 'تعذر تفعيل الاستمرار بالرصيد',
+      errorAddCredits: 'إضافة رصيد',
+      errorOpenBillingSettings: 'فتح إعدادات الفوترة',
       errorStartNewSession: 'بدء جلسة جديدة',
       errorSwitchProvider: 'تبديل المزوّد',
       errorSignInAgain: provider => `تسجيل الدخول إلى ${provider} مجدداً`,
