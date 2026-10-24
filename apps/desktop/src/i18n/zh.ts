@@ -5551,6 +5551,8 @@ export const zhOverrides = {
       toggleWorkspace: '工作区',
       cacheHitRateTitle: '本会话的提示缓存命中率',
       tokensPerSecondTitle: '每秒输出 Token 数，取最近 10 次模型调用平均值',
+      togglePlanUsage: '套餐用量',
+      planUsageTitle: (used, resetsIn) => `套餐用量已使用 ${used}${resetsIn ? ` · ${resetsIn} 后重置` : ''} · 打开账单`,
       agents: '代理',
       closeAgents: '关闭代理',
       openAgents: '打开代理',

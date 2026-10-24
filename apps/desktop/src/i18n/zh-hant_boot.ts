@@ -117,6 +117,10 @@ export const zhHantBoot = {
     message: 'Hermes 可以在工作執行時保持電腦喚醒。螢幕仍會照常關閉，使用電池時電腦仍可能進入睡眠。',
     action: '執行期間保持喚醒'
   },
+  connectorOffer: {
+    heading: '保留你已連接的應用程式',
+    body: '登入免費的 Nous 帳戶，即可把你連接的應用程式（如 Gmail 或 Slack）保留在你的帳戶中。'
+  },
   remoteDisplayBanner: {
     message: reason => `軟體繪圖已啟用 — 偵測到遠端顯示（${reason}）。為防止畫面閃爍，已停用 GPU 加速。`
   },
@@ -570,6 +574,7 @@ export const zhHantBoot = {
   | 'butterbar'
   | 'promptNotices'
   | 'keepAwakeOffer'
+  | 'connectorOffer'
   | 'updates'
   | 'install'
   | 'onboarding'

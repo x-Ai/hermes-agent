@@ -84,6 +84,7 @@ export const zhHantOverrides = {
   butterbar: zhHantBoot.butterbar,
   promptNotices: zhHantBoot.promptNotices,
   keepAwakeOffer: zhHantBoot.keepAwakeOffer,
+  connectorOffer: zhHantBoot.connectorOffer,
   billingBlock: zhHantCommon.billingBlock,
   billingPage: zhHantCommon.billingPage,
   sendDiagnostics: zhHantDiagnostics.sendDiagnostics,

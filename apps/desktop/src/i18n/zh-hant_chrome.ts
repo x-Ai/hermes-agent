@@ -525,6 +525,8 @@ export const zhHantChrome = {
       toggleWorkspace: '工作區',
       cacheHitRateTitle: '本次會話的提示快取命中率 - 快取的代幣成本較低，因此越高越便宜',
       tokensPerSecondTitle: '每秒輸出令牌數，最近 10 次模型呼叫的平均值',
+      togglePlanUsage: '方案用量',
+      planUsageTitle: (used, resetsIn) => `方案用量已使用 ${used}${resetsIn ? ` · ${resetsIn} 後重置` : ''} · 開啟帳單`,
       session: '會話',
       agents: '代理',
       closeAgents: '關閉代理',

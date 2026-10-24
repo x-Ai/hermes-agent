@@ -31,6 +31,10 @@ export const zhNotices = {
     message: 'Hermes 可以在任务运行时保持电脑唤醒，屏幕仍会照常关闭，使用电池时电脑仍可能睡眠',
     action: '运行期间保持唤醒'
   },
+  connectorOffer: {
+    heading: '保留你已连接的应用',
+    body: '登录免费的 Nous 账户，即可把你连接的应用（如 Gmail 或 Slack）保留在你的账户中'
+  },
   billingBlock: {
     titleNous: 'Nous 额度已用尽',
     titleProvider: provider => `额度已用尽 — ${provider}`,
@@ -41,5 +45,5 @@ export const zhNotices = {
   }
 } satisfies Pick<
   TranslationOverrides,
-  'remoteDisplayBanner' | 'butterbar' | 'promptNotices' | 'keepAwakeOffer' | 'billingBlock'
+  'remoteDisplayBanner' | 'butterbar' | 'promptNotices' | 'keepAwakeOffer' | 'connectorOffer' | 'billingBlock'
 >
