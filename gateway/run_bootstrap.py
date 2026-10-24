@@ -557,9 +557,6 @@ def _start_gateway_resolve_terminal_cwd() -> None:
             docker_mount_cwd_to_workspace=os.getenv(
                 "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false").lower()
             in {"true", "1", "yes"},
-            singularity_mount_cwd_to_workspace=os.getenv(
-                "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "false").lower()
-            in {"true", "1", "yes"},
             home_fallback=str(Path.home()))
         if resolved_cwd is None:
             os.environ.pop("TERMINAL_CWD", None)

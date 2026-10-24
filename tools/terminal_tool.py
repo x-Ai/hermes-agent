@@ -173,9 +173,6 @@ def _sandbox_has_host_access(config: dict[str, Any], host_cwd: Optional[str] = N
     env_type = config.get("env_type")
     if env_type == "docker":
         return _docker_has_host_access(config, host_cwd)
-    if env_type == "singularity":
-        effective_host_cwd = host_cwd if host_cwd is not None else config.get("host_cwd")
-        return bool(effective_host_cwd) and bool(config.get("singularity_mount_cwd_to_workspace"))
     return False
 
 
@@ -310,10 +307,7 @@ def get_session_execution_cwd(session_key: Optional[str]) -> Optional[str]:
     # container path (notably /private/var/... on macOS). Translate a mountable recorded path before
     # accepting it verbatim as an in-container cwd.
     if recorded:
-        mount_enabled = bool(config.get(
-            "docker_mount_cwd_to_workspace"
-            if env_type == "docker" else "singularity_mount_cwd_to_workspace"
-        ))
+        mount_enabled = bool(config.get("docker_mount_cwd_to_workspace"))
         if mount_enabled and resolve_workspace_mount(recorded)[0]:
             return str(config.get("workspace_mount_path") or _DEFAULT_WORKSPACE_MOUNT_PATH)
         if not _is_unusable_container_cwd(recorded):
@@ -758,7 +752,7 @@ def _lookup_active_env(effective_task_id: str, task_id: Optional[str]):
 
 
 def _resolve_task_host_cwd(config: dict[str, Any], task_id: Optional[str]) -> Optional[str]:
-    """Host directory to bind into *task_id*'s Docker/Singularity sandbox.
+    """Host directory to bind into *task_id*'s Docker sandbox.
 
     Single owner of the cwd-mount policy for every creation site. Shared-
     container mode: the ``TERMINAL_CWD``-derived ``config["host_cwd"]``.
@@ -774,13 +768,7 @@ def _resolve_task_host_cwd(config: dict[str, Any], task_id: Optional[str]) -> Op
     the workspace path is already claimed, is the volume mount, not this override.
     """
     env_type = str(config.get("env_type") or "").strip().lower()
-    mount_enabled = bool(
-        config.get(
-            "docker_mount_cwd_to_workspace"
-            if env_type == "docker"
-            else "singularity_mount_cwd_to_workspace"
-        )
-    )
+    mount_enabled = bool(config.get("docker_mount_cwd_to_workspace"))
     if env_type not in _MOUNT_CWD_ENV_VARS or not mount_enabled:
         return None
     if config.get("workspace_per_session"):
@@ -922,11 +910,7 @@ def _get_env_config() -> dict[str, Any]:
     _ensure_terminal_env_bridged()
     env_type = _tenv("TERMINAL_ENV", "local")
     mount_docker_cwd = _tenv_bool("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "false")
-    mount_singularity_cwd = _tenv_bool("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "false")
-    mount_cwd_active = (
-        (env_type == "docker" and mount_docker_cwd)
-        or (env_type == "singularity" and mount_singularity_cwd)
-    )
+    mount_cwd_active = env_type == "docker" and mount_docker_cwd
     workspace_per_session = _resolve_workspace_per_session(env_type, mount_cwd_active)
 
     # Container/docker-only payloads are parsed only when such a backend is
@@ -963,7 +947,6 @@ def _get_env_config() -> dict[str, Any]:
         "cwd": cwd,
         "host_cwd": host_cwd,
         "docker_mount_cwd_to_workspace": mount_docker_cwd,
-        "singularity_mount_cwd_to_workspace": mount_singularity_cwd,
         "workspace_per_session": workspace_per_session,
         "workspace_mount_path": _workspace_mount_path(env_type),
         "timeout": _parse_env_var("TERMINAL_TIMEOUT", "180"),

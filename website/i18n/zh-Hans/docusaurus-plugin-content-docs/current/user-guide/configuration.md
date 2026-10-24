@@ -441,27 +441,13 @@ terminal:
 
 如果你希望所有工作共用一个容器，或者你主要从 CLI 使用 Hermes（启动目录本就是项目目录），请保持关闭。
 
-#### Singularity 有同样的一对开关
-
-Singularity/Apptainer 后端支持完全相同的两个选择加入项，用 `--bind` 而非 `-v` 实现。两组开关刻意相互独立——打开 Docker 的那对不会影响 Singularity：
-
-```yaml
-terminal:
-  backend: singularity
-  singularity_mount_cwd_to_workspace: true
-  singularity_workspace_per_session: true
-```
-
-上文的所有说明原样适用：两个开关都必需、每个项目目录一个实例、挂载目录在沙箱内可写宿主文件、挂载期间危险命令失去沙箱快速通道。
-
 #### 修改项目在沙箱内的落点
 
-容器内挂载目标默认 `/workspace`，可按后端配置为完整绝对路径：
+容器内挂载目标默认 `/workspace`，可配置为完整绝对路径：
 
 ```yaml
 terminal:
   docker_workspace_mount_path: "/root/workspace"       # 默认 /workspace
-  singularity_workspace_mount_path: "/mnt/project"     # 默认 /workspace
 ```
 
 取值会被规范化（`/root//workspace/` → `/root/workspace`）；相对路径、`/`、以及沙箱内部挂载点（`/root`、`/home`、`/tmp`、`/var/tmp`、`/run`——它们下面的嵌套路径没问题）会回落默认值并打印警告。

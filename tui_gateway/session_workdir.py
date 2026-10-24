@@ -226,10 +226,6 @@ _WORKSPACE_FOLLOW_FLAGS = {
         ("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "docker_mount_cwd_to_workspace"),
         ("TERMINAL_DOCKER_WORKSPACE_PER_SESSION", "docker_workspace_per_session"),
     ),
-    "singularity": (
-        ("TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE", "singularity_mount_cwd_to_workspace"),
-        ("TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION", "singularity_workspace_per_session"),
-    ),
 }
 
 
@@ -325,8 +321,6 @@ def _host_cwd_is_terminal_cwd(profile_home) -> bool:
     backend = _bound_terminal_backend(profile_home)
     if backend in {"local", "docker"}:
         return True
-    if backend == "singularity" and _workdir_flag(*_WORKSPACE_FOLLOW_FLAGS["singularity"][0]):
-        return True  # the fork's singularity_mount_cwd_to_workspace binds the host dir at the mount path
     from tools.terminal_tool_config import _BUILTIN_BACKENDS
     if backend in _BUILTIN_BACKENDS:
         return False

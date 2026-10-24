@@ -930,10 +930,6 @@ export const SECTIONS: DesktopConfigSection[] = [
       'terminal.docker_workspace_per_session',
       'terminal.docker_workspace_mount_path',
       'terminal.singularity_image',
-      // Same pairing rule as the Docker trio above.
-      'terminal.singularity_mount_cwd_to_workspace',
-      'terminal.singularity_workspace_per_session',
-      'terminal.singularity_workspace_mount_path',
       'terminal.modal_image',
       'terminal.daytona_image',
       'tool_output.max_bytes',

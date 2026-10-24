@@ -19,16 +19,13 @@ logger = logging.getLogger(__name__)
 
 _MOUNT_CWD_ENV_VARS = {
     "docker": "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE",
-    "singularity": "TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE",
 }
 _WORKSPACE_PER_SESSION_ENV_VARS = {
     "docker": "TERMINAL_DOCKER_WORKSPACE_PER_SESSION",
-    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_PER_SESSION",
 }
 _DEFAULT_WORKSPACE_MOUNT_PATH = "/workspace"
 _WORKSPACE_MOUNT_PATH_ENV_VARS = {
     "docker": "TERMINAL_DOCKER_WORKSPACE_MOUNT_PATH",
-    "singularity": "TERMINAL_SINGULARITY_WORKSPACE_MOUNT_PATH",
 }
 _SANDBOX_PATH_PREFIXES = ("/workspace", "/root")
 # no-tmp: ok — a denylist of mount TARGETS the workspace may not shadow, not scratch space.

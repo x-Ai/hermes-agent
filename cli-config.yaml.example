@@ -538,14 +538,6 @@ terminal:
 #   timeout: 180
 #   lifetime_seconds: 300
 #   singularity_image: "docker://nousresearch/hermes-sandbox:desktop"
-#   # Same two opt-ins as the Docker backend, implemented with --bind.
-#   # SECURITY: off by default — a mounted project dir is host-writable
-#   # from inside the sandbox.
-#   singularity_mount_cwd_to_workspace: true   # mount the launch cwd into /workspace
-#   singularity_workspace_per_session: true    # follow each session's project dir; one instance per project
-#   singularity_workspace_mount_path: "/workspace"  # full in-container bind target; applies to the NEXT instance
-#   # (Modal/Daytona have no mount option: they run on remote cloud machines
-#   # and sync uploaded copies of skills/credentials instead.)
 
 # -----------------------------------------------------------------------------
 # OPTION 5: Modal cloud execution

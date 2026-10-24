@@ -841,9 +841,6 @@ const EN_FULL_LABELS: Record<string, string> = {
   'terminal.docker_mount_cwd_to_workspace': 'Mount Project Into Docker',
   'terminal.docker_workspace_per_session': 'Follow Each Session’s Project',
   'terminal.docker_workspace_mount_path': 'Docker Mount Path',
-  'terminal.singularity_mount_cwd_to_workspace': 'Mount Project Into Singularity',
-  'terminal.singularity_workspace_per_session': 'Follow Each Session’s Project (Singularity)',
-  'terminal.singularity_workspace_mount_path': 'Singularity Mount Path',
   'delegation.use_custom_endpoints': 'Suggest Custom Endpoints for Subagents',
   'delegation.model': 'Subagent Model',
   'delegation.provider': 'Subagent Provider',
@@ -882,9 +879,6 @@ const ZH_FULL_LABELS: Record<string, string> = {
   'terminal.docker_workspace_per_session': '跟随各会话选择的项目',
   'terminal.docker_workspace_mount_path': 'Docker 挂载路径',
   'terminal.singularity_image': 'Singularity 镜像',
-  'terminal.singularity_mount_cwd_to_workspace': '将项目目录挂载进 Singularity',
-  'terminal.singularity_workspace_per_session': '跟随各会话选择的项目（Singularity）',
-  'terminal.singularity_workspace_mount_path': 'Singularity 挂载路径',
   'terminal.modal_image': 'Modal 镜像',
   'terminal.daytona_image': 'Daytona 镜像',
   file_read_max_chars: '文件读取上限',
@@ -956,12 +950,6 @@ const ZH_DESCRIPTIONS: Record<string, string> = {
   'terminal.docker_workspace_mount_path':
     '项目在容器内的完整挂载路径，默认 /workspace，修改将在后端重启后对下一个容器生效，且不会销毁当前容器',
   'terminal.singularity_image': '执行后端为 Singularity 时使用的镜像',
-  'terminal.singularity_mount_cwd_to_workspace':
-    '把项目目录绑定挂载到 Singularity 沙箱的挂载路径（默认 /workspace），关闭时沙箱完全隔离，修改将在后端重启后对下一个实例生效',
-  'terminal.singularity_workspace_per_session':
-    '使用各会话自己选择的目录，而不只是启动目录，每个项目会有独立实例，修改将在后端重启后生效',
-  'terminal.singularity_workspace_mount_path':
-    '项目在沙箱内的完整绑定路径，默认 /workspace，修改将在后端重启后对下一个实例生效，且不会销毁当前实例',
   'terminal.modal_image': '执行后端为 Modal 时使用的云端镜像',
   'terminal.daytona_image': '执行后端为 Daytona 时使用的云端镜像',
   file_read_max_chars: 'Hermes 单次文件读取可读取的最大字符数',

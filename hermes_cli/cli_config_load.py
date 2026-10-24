@@ -89,10 +89,7 @@ _TERMINAL_ENV_MAPPINGS = {
         "ssh_host", "ssh_user", "ssh_port", "ssh_key", "container_cpu", "container_memory",
         "container_disk", "container_persistent", "docker_volumes", "docker_env", "docker_extra_args",
         "docker_shm_size", "docker_mount_cwd_to_workspace", "docker_network", "docker_run_as_host_user",
-        "docker_workspace_per_session", "singularity_mount_cwd_to_workspace",
-        "singularity_workspace_per_session", "docker_workspace_mount_path",
-        "singularity_workspace_mount_path",
-        "docker_snap_compat",
+        "docker_workspace_per_session", "docker_workspace_mount_path", "docker_snap_compat",
         "docker_persist_across_processes", "docker_shared_container_key", "docker_orphan_reaper",
         "sandbox_dir", "persistent_shell",
     )
@@ -193,10 +190,7 @@ def _cli_config_defaults():
             "docker_image": img, "docker_forward_env": [], "modal_image": img, "daytona_image": img, "docker_volumes": [],
             "docker_mount_cwd_to_workspace": False,  # opt-in only: sandbox isolation
             "docker_workspace_per_session": False,
-            "singularity_mount_cwd_to_workspace": False,
-            "singularity_workspace_per_session": False,
             "docker_workspace_mount_path": "/workspace",
-            "singularity_workspace_mount_path": "/workspace",
             "docker_shared_container_key": "",
         },
         "browser": {

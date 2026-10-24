@@ -61,7 +61,7 @@ _CONTAINER_KEYS = (
     ("container_cpu", 1), ("container_memory", 5120), ("container_disk", 51200),
     ("container_persistent", True), ("modal_mode", "auto"), ("vercel_runtime", ""), ("vercel_image", ""),
     ("docker_volumes", []), ("docker_mount_cwd_to_workspace", False), ("docker_forward_env", []),
-    ("singularity_mount_cwd_to_workspace", False), ("workspace_per_session", False),
+    ("workspace_per_session", False),
     ("workspace_mount_path", "/workspace"),
     ("docker_env", {}), ("docker_run_as_host_user", False), ("docker_extra_args", []),
     ("docker_shm_size", "1g"), ("docker_network", True), ("docker_persist_across_processes", True),

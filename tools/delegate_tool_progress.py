@@ -277,13 +277,7 @@ def _resolve_workspace_hint(parent_agent) -> Optional[str]:
         if _is_container_backend(env_type):
             parent_task_id = getattr(parent_agent, "_current_task_id", None)
             recorded_cwd = get_session_cwd(parent_task_id)
-            mount_enabled = (
-                env_type == "docker"
-                and bool(config.get("docker_mount_cwd_to_workspace"))
-            ) or (
-                env_type == "singularity"
-                and bool(config.get("singularity_mount_cwd_to_workspace"))
-            )
+            mount_enabled = env_type == "docker" and bool(config.get("docker_mount_cwd_to_workspace"))
             if (
                 recorded_cwd and not _is_unusable_container_cwd(recorded_cwd)
             ) or (host_hint and mount_enabled):

@@ -172,17 +172,6 @@ def test_docker_keeps_the_host_dir(launch_dir, monkeypatch, mount):
     assert server._persisted_session_cwd(session) == str(launch_dir)
 
 
-def test_singularity_with_the_cwd_mount_keeps_the_host_dir(launch_dir, monkeypatch):
-    """The fork's ``singularity_mount_cwd_to_workspace`` binds the host dir at the mount path, as docker's mount
-    does: the launch dir stays the session's terminal cwd (``session``, the bind-mount source) instead of the
-    "" a sandbox backend without host directories answers."""
-    _backend(monkeypatch, "singularity", TERMINAL_SINGULARITY_MOUNT_CWD_TO_WORKSPACE="true")
-    session = _fresh_session("singularity-mount")
-
-    assert server._terminal_task_cwd_with_source(session) == (str(launch_dir), "session")
-    assert server._persisted_session_cwd(session) == str(launch_dir)
-
-
 def test_sandbox_resume_drops_a_stored_hermes_home_cwd(launch_dir, monkeypatch):
     """A row persisted before the fix with a launch dir (the Hermes home, its subprocess home) as cwd is not
     re-adopted as the sandbox workspace. ssh keeps its own rule: a remote ``/`` someone picked survives."""

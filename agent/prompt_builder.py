@@ -865,7 +865,6 @@ def _run_backend_probe(env_type: str, terminal_tool) -> str:
             "container_persistent": False,
             "docker_persist_across_processes": False,
             "docker_mount_cwd_to_workspace": False,
-            "singularity_mount_cwd_to_workspace": False,
             "docker_volumes": [],
             "docker_forward_env": [],
             "docker_env": {},

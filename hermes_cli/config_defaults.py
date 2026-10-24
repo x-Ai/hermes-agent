@@ -376,10 +376,7 @@ DEFAULT_CONFIG = {
         "docker_volumes": [],
         "docker_mount_cwd_to_workspace": False,  # mount host cwd at /workspace (weakens isolation)
         "docker_workspace_per_session": False,
-        "singularity_mount_cwd_to_workspace": False,
-        "singularity_workspace_per_session": False,
         "docker_workspace_mount_path": "/workspace",
-        "singularity_workspace_mount_path": "/workspace",
         "docker_network": True,  # false = --network=none, no network access from commands
         "docker_extra_args": [],        # Extra flags passed verbatim to docker run
         # /dev/shm size for the Docker sandbox. Docker's 64 MB default silently breaks

@@ -64,19 +64,18 @@ def test_no_scope_keeps_process_env_behavior():
     assert terminal_env("TERMINAL_SSH_HOST") == "10.10.0.103"
 
 
-@pytest.mark.parametrize("backend", ["docker", "singularity"])
-def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monkeypatch, backend):
+def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monkeypatch):
     """Fork workspace options must obey the upstream authoritative scope too."""
     import tools.terminal_tool as tt
 
     project = tmp_path / "project"
     project.mkdir()
-    prefix = f"TERMINAL_{backend.upper()}"
+    prefix = "TERMINAL_DOCKER"
     monkeypatch.setenv(f"{prefix}_WORKSPACE_MOUNT_PATH", "/ambient-workspace")
     monkeypatch.setenv(f"{prefix}_MOUNT_CWD_TO_WORKSPACE", "false")
     monkeypatch.setenv(f"{prefix}_WORKSPACE_PER_SESSION", "false")
     policy = {
-        "TERMINAL_ENV": backend,
+        "TERMINAL_ENV": "docker",
         "TERMINAL_CWD": str(project),
         f"{prefix}_MOUNT_CWD_TO_WORKSPACE": "on",
         f"{prefix}_WORKSPACE_PER_SESSION": "on",
@@ -98,7 +97,7 @@ def test_workspace_mount_and_identity_use_the_same_profile_policy(tmp_path, monk
         assert tt._mounted_workspace_key(str(project)) != scoped_key
     finally:
         reset_terminal_scope(token)
-    token = set_terminal_scope({"TERMINAL_ENV": backend})
+    token = set_terminal_scope({"TERMINAL_ENV": "docker"})
     try:
         assert tt._workspace_per_session_enabled() is False
         assert tt._workspace_mount_path() == "/workspace"

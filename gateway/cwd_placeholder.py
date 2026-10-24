@@ -19,7 +19,6 @@ def resolve_placeholder_terminal_cwd(
     messaging_cwd: str | None,
     docker_mount_cwd_to_workspace: bool,
     home_fallback: str,
-    singularity_mount_cwd_to_workspace: bool = False,
 ) -> str | None:
     """Return the ``TERMINAL_CWD`` value to set, or ``None`` to leave it unset.
 
@@ -33,11 +32,6 @@ def resolve_placeholder_terminal_cwd(
     messaging = (messaging_cwd or "").strip()
     if backend == "local":
         return messaging or home_fallback
-    mount_on = (
-        backend == "docker" and docker_mount_cwd_to_workspace
-    ) or (
-        backend == "singularity" and singularity_mount_cwd_to_workspace
-    )
-    if mount_on and messaging and messaging not in CWD_PLACEHOLDERS:
+    if backend == "docker" and docker_mount_cwd_to_workspace and messaging and messaging not in CWD_PLACEHOLDERS:
         return messaging
     return None
