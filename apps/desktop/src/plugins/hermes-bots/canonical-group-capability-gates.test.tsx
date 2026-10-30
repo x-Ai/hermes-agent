@@ -34,16 +34,17 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
     ...sdk,
     gatewayActivationEpoch: () => activation.epoch,
     // The hook subscribes, like the real store: an epoch that moves re-renders its readers.
-    useGatewayActivationEpoch: () => useSyncExternalStore(
-      listener => {
-        activation.listeners.add(listener)
+    useGatewayActivationEpoch: () =>
+      useSyncExternalStore(
+        listener => {
+          activation.listeners.add(listener)
 
-        return () => {
-          activation.listeners.delete(listener)
-        }
-      },
-      () => activation.epoch
-    ),
+          return () => {
+            activation.listeners.delete(listener)
+          }
+        },
+        () => activation.epoch
+      ),
     host: {
       ...sdk.host,
       requestProfile: request,
@@ -227,12 +228,12 @@ it('offers only the bots the authority says this caller can seat (#141178)', asy
   answer({ driver: true, persistent_process: true, seatable_profiles: ['alpha', 'beta', 'default'] })
   const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={withParked} />)
 
-  await waitFor(() => {
-    expect(baseElement.querySelector('[data-bot-face="alpha"]')).not.toBeNull()
-    expect(baseElement.querySelector('[data-bot-face="beta"]')).not.toBeNull()
-  })
+  // Wait on the state only a settled capability produces: while the read is in flight the
+  // dialog is in `checking` with `seatable` null, so every bot on the connection — `parked`
+  // included — is offered. Alpha and beta are already rendered then, so waiting for them
+  // returns on the first check and the assertions below race the answer.
+  await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(2))
   expect(baseElement.querySelector('[data-bot-face="parked"]')).toBeNull()
-  expect(screen.getAllByRole('checkbox')).toHaveLength(2)
 })
 
 // Fork contract: Desktop rooms seat bots from other registered connections (their turns route to
