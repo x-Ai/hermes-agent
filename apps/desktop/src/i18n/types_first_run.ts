@@ -51,4 +51,6 @@ export interface FirstRunCopy {
     action: string
     failed: string
   }
+  slashOffBody: string
+  slashOffTitle: string
 }

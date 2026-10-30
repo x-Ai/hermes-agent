@@ -210,4 +210,12 @@ def chat_max_tokens_field(
         host == "api.githubcopilot.com" or host.endswith(".githubcopilot.com")
     ):
         return "max_completion_tokens"
+    # A provider profile serving this endpoint may declare the field itself (a custom route pointed
+    # at a plugin provider's host keeps that provider's quirk); a pure hook, answered per request shape.
+    from agent.provider_route_hooks import route_answer
+
+    declared = route_answer(
+        "max_tokens_param", provider=str(provider or ""), base_url=url, model=str(model or ""))
+    if declared:
+        return str(declared)
     return "max_tokens"

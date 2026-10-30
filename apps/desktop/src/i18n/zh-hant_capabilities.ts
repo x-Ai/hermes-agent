@@ -154,7 +154,33 @@ export const zhHantCapabilities = {
         secretSet: '••••••••（套）',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}，絕不在 config.yaml 中；留空以保留目前值。`
-      }
+      },
+      folderAccess: {
+        title: '資料夾存取',
+        hint: (name: string) => `${name} 可以讀取和修改這些資料夾中的檔案。撤銷後立即生效。`,
+        revoke: '撤銷',
+        revokeLabel: (path: string) => `撤銷對 ${path} 的存取`,
+        revoked: (name: string, path: string) => `${name} 已無法再使用 ${path}。`,
+        revokeFailed: (name: string) => `無法撤銷 ${name} 的資料夾存取`,
+        pickerTitle: (name: string) => `為 ${name} 選擇資料夾`,
+        pickerButton: '允許存取',
+        refusedProtected: (name: string) =>
+          `${name} 不能使用該資料夾：其中包含 Hermes 的設定、金鑰或外掛資料。請選擇不包含它們的資料夾。`,
+        loadFailed: (name: string) => `無法載入與 ${name} 共用的資料夾。`
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `無法儲存此變更，因此它僅在 Hermes 重新啟動前有效。目前 ${plugin} 在 ${origin} 上被封鎖。`,
+      previewScriptRevoked: (plugin: string, origin: string) => `${plugin} 不能再於 ${origin} 上執行指令碼。`,
+      previewScriptRevoke: (origin: string) => `撤銷對 ${origin} 的存取`,
+      previewScriptAccessNone: '在頁面上執行指令碼前會先詢問',
+      previewScriptAccessLabel: '頁面指令碼',
+      previewScriptDeny: '不允許',
+      previewScriptAllow: '在此網站允許',
+      previewScriptPromptRevokeHint: '僅適用於此網站。你可以在 技能與工具 ▸ 外掛 中撤銷。',
+      previewScriptPromptRisk: '指令碼可以讀取並變更該網站上的所有內容，包括你在該網站已登入帳戶的頁面。',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `${plugin} 想在預覽瀏覽器中的 ${origin} 上執行 JavaScript。`,
+      previewScriptPromptTitle: (plugin: string) => `允許 ${plugin} 在此頁面執行指令碼嗎？`
     },
     officialCatalog: '可安裝',
     officialPill: '官方',

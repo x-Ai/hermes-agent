@@ -1072,7 +1072,9 @@ describe('clarify and approvals (#90694)', () => {
       // The harvest resolves a titled stranded session to a durable id before
       // resuming; answer the lookup so it reaches the resume this scenario drives.
       if (method === 'session.list') {
-        return { sessions: [{ id: `sid-${params.profile}`, resolved_id: `sid-${params.profile}`, title: params.title }] }
+        return {
+          sessions: [{ id: `sid-${params.profile}`, resolved_id: `sid-${params.profile}`, title: params.title }]
+        }
       }
 
       if (method !== 'session.resume') {

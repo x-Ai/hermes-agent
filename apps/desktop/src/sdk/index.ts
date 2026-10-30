@@ -18,7 +18,7 @@
  *  - `ui.*` — the design language, so plugin UI looks native by default.
  */
 
-import { atom, computed, type ReadableAtom } from 'nanostores'
+import { computed, type ReadableAtom } from 'nanostores'
 import type { ReactNode } from 'react'
 
 import { capabilityScoped, getApiRequestConnection } from '@/api/client'
@@ -29,7 +29,6 @@ import { syncWorkspaceRoute } from '@/app/routes'
 import { readFileDataUrlForAttach } from '@/app/session/hooks/use-prompt-actions/utils'
 import type { ClientSessionState } from '@/app/types'
 import {
-  $narrowViewport,
   $newSessionTabAction,
   $paneVisible,
   adoptContributedPanes,
@@ -116,6 +115,7 @@ import { pluginDecisions, profiles, skills, toolsets } from './bridge'
 import { composerHost } from './composer'
 import { i18nHost } from './i18n'
 import { planPluginOpenSession } from './plugin-open-session-plan'
+import { dropLeftoverProfilePrefs, warmProfile } from './profile-local'
 import {
   type PluginProfileRequestOptions,
   type PluginProfileRoute,
@@ -124,10 +124,15 @@ import {
 } from './profile-request'
 import { sessionsHost } from './sessions'
 import { desktopSettings } from './settings'
+import { spellcheckHost } from './spellcheck'
+import { $viewport, type ViewportRect } from './viewport'
 
 /** Pane, status bar and titlebar slots; see `./areas` for the mount rules. */
 export * from './areas'
-
+/** The plugin authoring contract (`HermesPlugin`, `PluginContext`, `ctx.*` door types). */
+export type * from './plugin-contract'
+/** The plugin authoring contract (`HermesPlugin`, `PluginContext`, `ctx.*` door types). */
+export type * from './plugin-contract'
 // -- state: readonly views over the app's live atoms -------------------------
 
 const readonlyAtom = <T>(atomLike: ReadableAtom<T>): ReadableAtom<T> => atomLike
@@ -220,20 +225,6 @@ const $focusedSessionProfile = computed(
     owner?.profile || rememberedSessionProfile(sessions, focused, activeProfile)
 )
 
-/** Window geometry + the app's responsive posture, one readonly rect. */
-export interface ViewportRect {
-  width: number
-  height: number
-  /** Below the app's sidebar-collapse breakpoint (rails become overlays). */
-  narrow: boolean
-}
-
-const readViewport = (): ViewportRect => ({
-  width: typeof window === 'undefined' ? 0 : window.innerWidth,
-  height: typeof window === 'undefined' ? 0 : window.innerHeight,
-  narrow: $narrowViewport.get()
-})
-
 /** Runtime session id → mid-turn. Not gateway socket state. */
 const $busyBySession = computed($sessionStates, states => {
   const map: Record<string, boolean> = {}
@@ -244,14 +235,6 @@ const $busyBySession = computed($sessionStates, states => {
 
   return map
 })
-
-const $viewport = atom<ViewportRect>(readViewport())
-
-if (typeof window !== 'undefined') {
-  const refresh = () => $viewport.set(readViewport())
-  window.addEventListener('resize', refresh)
-  $narrowViewport.listen(refresh)
-}
 
 /** Live usage of the FOCUSED session, projected out of the streamed session
  *  state — the same readout the core statusbar's context chip paints. */
@@ -278,8 +261,7 @@ export const DEFAULT_SESSION_HYDRATION_TIMEOUT_MS = 20_000
  *  and paint durable history. Bot Mode opts into one retry, so its effective
  *  ceiling is two bounded attempts rather than an unbounded wait. */
 export const BOT_CHAT_SESSION_HYDRATION_TIMEOUT_MS = 60_000
-/** The plugin authoring contract (`HermesPlugin`, `PluginContext`, `ctx.*` door types). */
-export type * from './plugin-contract'
+export type { PluginProfileRequestOptions, PluginProfileRoute } from './profile-request'
 let openSessionGeneration = 0
 /** Which generation's wake most recently set $gatewaySwapTarget. Clearing it
  *  keys off this, not off `generation === openSessionGeneration`, so a
@@ -628,27 +610,8 @@ export const host = {
     syncWorkspaceRoute(to)
   },
 
-  /** Pre-dial a profile's gateway socket in the background — pool-only, no
-   *  activation, no navigation, no scope change. Delegates to
-   *  prewarmProfileBackend so plugin surfaces get the SAME pool-saturation
-   *  guard, hover dwell, and per-profile throttle as the built-in rail
-   *  (#91545): a pointer sweep across a plugin roster (bot-row's
-   *  onPointerEnter fires with no dwell of its own) previously spawned at
-   *  pointer speed, filled the local backend pool past maxBackends, and left
-   *  the next profile's spawn queued until the 30s slot timeout — observed
-   *  as a profile surface that hangs forever while every other profile
-   *  renders. It already no-ops for shared-remote routes and the primary.
-   *  Fire-and-forget: failures are swallowed — the click path re-runs its
-   *  own ensure and surfaces errors properly. */
-  warmProfile: (profile: string): void => {
-    const name = (profile ?? '').trim()
-
-    if (!name) {
-      return
-    }
-
-    prewarmProfileBackend(name)
-  },
+  warmProfile,
+  dropLeftoverProfilePrefs,
 
   /** Delete a profile THROUGH the desktop's teardown-routed REST path — the
    *  same door core surfaces use (DeleteProfileDialog). Electron intercepts
@@ -1526,6 +1489,9 @@ export const host = {
 
   composer: composerHost,
 
+  /** Chromium's custom spell-check dictionary, one validated word per call. */
+  spellcheck: spellcheckHost,
+
   /** Language packs: `host.i18n.registerAppLocale(id, { endonym, rtl?,
    *  translations })` adds a whole UI language at runtime (see `sdk/i18n.ts`);
    *  `host.i18n.languageOptions()` lists what the switcher shows. */
@@ -1534,12 +1500,11 @@ export const host = {
 
 // -- react bridge -------------------------------------------------------------
 
-export type { PluginProfileRequestOptions, PluginProfileRoute } from './profile-request'
 export type { DesktopSettingKey, DesktopSettingValues } from './settings'
 
 // -- ui: the design language --------------------------------------------------
 
-/** THE whole Capabilities surface (Skills / Tools / MCP tabs, installed
+export type { ViewportRect } from './viewport' /** THE whole Capabilities surface (Skills / Tools / MCP tabs, installed
  *  lists, full-skill detail pane, embedded hub picker with one-click
  *  installs). For plugin dialogs pass `embedded` (tab state stays local —
  *  never touches the page router) and `fixedProfile` to pin every tab to one
@@ -1563,6 +1528,10 @@ export {
   type ComposerAtCompletionItem,
   type ComposerAtCompletionSource,
   type ComposerAttachmentProvider,
+  type ComposerContextMenuAction,
+  type ComposerContextMenuContext,
+  type ComposerContextMenuItem,
+  type ComposerContextMenuProvider,
   type ComposerMiddleware,
   type ComposerModelPillContext,
   type ComposerModelPillProvider
@@ -1597,14 +1566,7 @@ export { WorkspacePageHeaderControl } from '@/app/contrib/workspace-page-header'
  *  that prints a next run switches its label on this (`t.cron.next` →
  *  `t.cron.overdueSince`) so a dead scheduler never reads as "Next: 7 hr ago". */
 export { nextRunOverdueMs } from '@/app/cron/job-state'
-/** THE master-detail toolkit core uses for list+inspector surfaces (Scheduled
- *  jobs, Kanban, …): a dense left `PanelList` of `PanelListRow`s beside a
- *  scrolling `PanelDetail` of `PanelSectionLabel` / `PanelMeta` / `PanelBlock`.
- *  `PanelEmpty` is the icon+action empty state (plain `EmptyState` is title +
- *  description only, and silently drops an `icon`). A row takes a custom `lead`
- *  (avatar/swatch), trailing `meta`, and `menuItems` for kebab + right-click
- *  parity, so a roster needs no hand-rolled row. The overlay-bound `Panel` root
- *  is deliberately NOT exported — these compose inside a pane just as well. */
+/** Master-detail components for pane content; the overlay-bound Panel root is deliberately private. */
 export {
   PanelAction,
   PanelAddButton,
@@ -1814,6 +1776,10 @@ export { type BudgetedLoop, type BudgetedLoopOptions, createBudgetedLoop } from 
 /** The blank transcript as a contribution area: claim the sessions you own and
  *  render what stands in the gap. Core's own splash keeps a fresh draft. */
 export { CHAT_EMPTY_AREA, type ChatEmptyContribution, type ChatEmptyProps } from '@/lib/chat-empty'
+/** THE copy-to-clipboard path (CopyButton's): Electron's IPC first, the Clipboard API, and a
+ *  selection copy where an insecure origin has no Clipboard API. Never call
+ *  `navigator.clipboard.writeText` directly. */
+export { writeClipboardText } from '@/lib/clipboard'
 /** THE confirm flow for guarded model switches — when a gateway model-switch
  *  RPC answers `confirm_required` (data-policy / expensive-model guard),
  *  route it through this shared applier instead of forking a per-surface
@@ -1889,8 +1855,10 @@ export { cn } from '@/lib/utils'
 // HYDRATION_SYNC_BADGE_TIMEOUT_MS + beginHydrationBackgroundSync live in
 // ./hydration-badge (facade line budget); re-exported for profile-routing.test.
 export { HYDRATION_SYNC_BADGE_TIMEOUT_MS } from '@/sdk/hydration-badge'
-export { gatewayActivationEpoch } from '@/store/gateway'
-/** THE unread store behind `SessionStatusDot`'s emerald dot. A plugin that
+export {
+  gatewayActivationEpoch,
+  useGatewayActivationEpoch
+} from '@/store/gateway' /** THE unread store behind `SessionStatusDot`'s emerald dot. A plugin that
  *  learns out-of-band that a session produced something the user hasn't seen
  *  (a roster poll's activity watermark, say) writes HERE rather than keeping
  *  its own unread map — core's dot only paints what this store claims, and a
@@ -1954,6 +1922,9 @@ export { compactNumber } from '@hermes/shared'
  *  `approvals.timeout` (300s) so a plugin answering an approval never rejects
  *  its own RPC while the backend still applies the decision (#60654). */
 export { APPROVAL_RESPOND_TIMEOUT_MS } from '@hermes/shared'
+/** THE id minter: a v4 UUID on every origin. `crypto.randomUUID` exists only in secure contexts,
+ *  so a Webapp opened over plain HTTP from another machine has none. */
+export { randomUuid } from '@hermes/shared'
 /** Hermes' reasoning levels, so a plugin surfacing a thinking depth uses the
  *  same scale as the rest of the app (labels: `reasoningEffortLabel`). */
 export {

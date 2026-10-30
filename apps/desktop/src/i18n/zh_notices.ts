@@ -24,7 +24,8 @@ export const zhNotices = {
     compactedTurnUnavailable: '这条消息在压缩对话时已被概括，无法再恢复或编辑',
     staleTurnUnavailable: '这条消息已不在此对话的历史记录中',
     sessionCommands: zhSessionCommands,
-    desktopCommands: zhDesktopCommands
+    desktopCommands: zhDesktopCommands,
+    restoredDraftAttachmentsDropped: '未发送消息中的附件没有恢复。发送前请重新添加。'
   },
   keepAwakeOffer: {
     title: '电脑在 Hermes 工作时进入了睡眠',

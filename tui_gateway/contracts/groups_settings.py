@@ -132,13 +132,3 @@ class RoomActivityPayload(Payload):
 
 event("room.activity", RoomActivityPayload,
       doc="A watched room's member did something: the hidden session's frame with room coordinates.")
-
-
-# ── attachments (the canonical contract's methods, served by the in-process gateway) ───────────
-
-method("groups.attachment.upload", params=GroupsAttachmentUploadParams, result=RoomAttachment,
-       doc="Store one attachment for a later groups.send manifest (idempotent per upload_id); the "
-           "in-process member route stages it into each member's session before its turn.")
-
-method("groups.attachment.download", params=GroupsAttachmentDownloadParams, result=RoomAttachmentBytes,
-       doc="Read one committed attachment for a live room viewer.")

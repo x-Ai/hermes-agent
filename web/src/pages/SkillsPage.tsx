@@ -66,6 +66,7 @@ import { getDashboardCopy } from "@/i18n/dashboard";
 import { usePageHeader } from "@/contexts/usePageHeader";
 import { PluginSlot } from "@/plugins";
 import { errorMessage } from "@/lib/api-error";
+import { installedHubEntry } from "@/lib/skill-hub-installed";
 
 /* ------------------------------------------------------------------ */
 /*  Types & helpers                                                    */
@@ -987,9 +988,8 @@ function HubBrowser({
   }, [copy.updateFailed, copy.updatingSkills, showToast, profile]);
 
   const isInstalled = useCallback(
-    (identifier: string) => Boolean(installed[identifier]),
-    [installed]
-  );
+    (hit: SkillHubResult) => Boolean(installedHubEntry(installed, hit)),
+    [installed],  );
 
   const showLanding = !searched && !searching;
 
@@ -1085,7 +1085,7 @@ function HubBrowser({
                 <HubResultCard
                   key={r.identifier}
                   result={r}
-                  installed={isInstalled(r.identifier)}
+                  installed={isInstalled(r)}
                   onOpen={() => setDetail(r)}
                   onInstall={() => void install(r.identifier)}
                 />
@@ -1128,7 +1128,7 @@ function HubBrowser({
               <HubResultCard
                 key={r.identifier}
                 result={r}
-                installed={isInstalled(r.identifier)}
+                installed={isInstalled(r)}
                 onOpen={() => setDetail(r)}
                 onInstall={() => void install(r.identifier)}
               />
@@ -1141,7 +1141,7 @@ function HubBrowser({
       {detail && (
         <SkillDetailDialog
           result={detail}
-          installed={isInstalled(detail.identifier)}
+          installed={isInstalled(detail)}
           onClose={() => setDetail(null)}
           onInstall={() => void install(detail.identifier)}
           showToast={showToast}

@@ -1,4 +1,5 @@
 import { arDelegationRouting } from './ar_delegation_routing'
+import { arMemoryLayers } from './ar_memory_layers'
 import { arUpdateChannel } from './ar_update_channel'
 import type { TranslationOverrides } from './define-locale'
 
@@ -149,7 +150,18 @@ export const arSettings = {
         latestCommit: 'أحدث إيداع',
         nothingToInstall: 'لا تحتوي هذه الحزمة على ما يُثبَّت هنا.',
         skillsReady: names => (names.length === 1 ? `المهارة ${names[0]} جاهزة` : `${names.length} من المهارات جاهزة`),
-        toolsConnected: n => `تم توصيل ${n} من الأدوات`
+        toolsConnected: n => `تم توصيل ${n} من الأدوات`,
+        partialInstall: sha =>
+          sha
+            ? `لم يُثبَّت سوى جزء من هذه الإضافة: جزء الوكيل مثبَّت عند الإيداع ${sha}، لكن جزء سطح المكتب لم يتمكن من اللحاق به لأن المستودع تغيّر منذ مراجعتك له. فعّل فرض إعادة التثبيت ضمن «متقدم» لاستبدال الجزأين بالإصدار المعروض، أو ألغِ للإبقاء على جزء الوكيل وحده.`
+            : 'لم يُثبَّت سوى جزء من هذه الإضافة: جزء الوكيل مثبَّت، لكن جزء سطح المكتب لم يتمكن من اللحاق به لأن المستودع تغيّر منذ مراجعتك له. فعّل فرض إعادة التثبيت ضمن «متقدم» لاستبدال الجزأين بالإصدار المعروض، أو ألغِ للإبقاء على جزء الوكيل وحده.',
+        installAnyway: 'ثبّت على أي حال',
+        legacyBackendConfirm:
+          'هذه الواجهة الخلفية أقدم من هذا التطبيق، لذا لا يمكنها ضمان أن يكون الإصدار الذي راجعته هو ما سيُثبَّت: إذا تغيّر المستودع منذ ذلك الحين، فسيُثبَّت الإصدار الأحدث بدلًا منه. حدّث الواجهة الخلفية للحصول على هذا الضمان.',
+        sourceMoved: sha =>
+          sha
+            ? `تغيّر المستودع منذ مراجعتك له. راجع الإصدار الجديد (الإيداع ${sha}) قبل تثبيته.`
+            : 'تغيّر المستودع منذ مراجعتك له. جارٍ قراءة الإصدار الجديد…'
       }
     },
     vault: {
@@ -599,7 +611,9 @@ export const arSettings = {
       'delegation.maxConcurrentChildren': 'الوكلاء الفرعيون المتوازيون',
       'delegation.childTimeoutSeconds': 'مهلة الوكيل الفرعي',
       'delegation.reasoningEffort': 'جهد تفكير الوكيل الفرعي',
-      'updates.nonInteractiveLocalChanges': 'تغييرات التحديث داخل التطبيق'
+      'updates.nonInteractiveLocalChanges': 'تغييرات التحديث داخل التطبيق',
+      'auxiliary.compression.timeout': 'مهلة نموذج الضغط (ثانية)',
+      'compression.codexGpt55Autoraise': 'الرفع التلقائي لضغط Codex'
     },
     fieldDescriptions: {
       model: 'يستخدم في المحادثات الجديدة ما لم تختر نموذجاً مختلفاً من محرر الرسائل.',
@@ -644,7 +658,10 @@ export const arSettings = {
       'stt.enabled': 'يفعل التفريغ الصوتي المحلي أو عبر مزود.',
       'stt.elevenlabs.languageCode': 'رمز لغة ISO-639-3 اختياري. اتركه فارغاً للاكتشاف التلقائي.',
       'updates.nonInteractiveLocalChanges':
-        'عندما يحدّث Hermes نفسه من التطبيق دون موجه طرفية، احتفظ بتعديلات المصدر المحلية أو تجاهلها.'
+        'عندما يحدّث Hermes نفسه من التطبيق دون موجه طرفية، احتفظ بتعديلات المصدر المحلية أو تجاهلها.',
+      'auxiliary.compression.timeout':
+        'عدد الثواني لانتظار نموذج الضغط المساعد في كل استدعاء (الافتراضي 120). ارفعه للنماذج المحلية البطيئة.',
+      'compression.codexGpt55Autoraise': 'يرفع عتبة الضغط إلى 85٪ لنماذج ChatGPT Codex OAuth المدعومة.'
     },
     about: {
       heading: 'حول Hermes',
@@ -978,7 +995,46 @@ export const arSettings = {
       sshErrPlatform: 'منصة بعيدة غير مدعومة. يدعم وضع Hermes Desktop SSH المضيفين البعيدين Linux وmacOS وWindows.',
       sshErrTimeout: 'انتهت مهلة اتصال SSH. قد يكون المضيف غير قابل للوصول أو نائمًا.',
       sshErrUpdateRequired: 'قم بتحديث Hermes على المضيف البعيد قبل الاتصال بسطح المكتب SSH.',
-      sshErrUnknown: 'فشل اتصال SSH.'
+      sshErrUnknown: 'فشل اتصال SSH.',
+      webAccess: {
+        title: 'الوصول عبر الويب',
+        intro:
+          'افتح Hermes الموجود على هذا الحاسوب من هاتفك أو من حاسوب آخر، مع تسجيل الدخول بحساب Nous. من يسجّل الدخول يمكنه تشغيل الأوامر على هذا الحاسوب.',
+        failed: 'تعذّر تغيير الوصول عبر الويب',
+        running: 'قيد التشغيل',
+        stopped: 'متوقف',
+        starting: 'جارٍ البدء',
+        stopping: 'جارٍ الإيقاف',
+        restartNeeded: 'يلزم إعادة التشغيل',
+        unavailable: 'غير متاح',
+        notRunningDetail: 'شغّله لفتح Hermes من جهاز آخر.',
+        needsNous: 'سجّل الدخول إلى حساب Nous من قسم المزوّدين أولًا.',
+        runningLan: 'افتح هذا العنوان على جهاز في الشبكة نفسها.',
+        runningPublic: 'يُقدَّم عبر عنوانك.',
+        runningLocal: 'يمكن فتحه من هذا الحاسوب فقط. أوقفه ثم شغّله من جديد لفتحه من أجهزة أخرى.',
+        pendingOn: 'تم الحفظ. ستقدّم البوابة تطبيق الويب بعد إعادة تشغيلها.',
+        pendingOff: 'تم الإيقاف، لكن البوابة تواصل تقديم تطبيق الويب حتى إعادة تشغيلها.',
+        unavailableDetail: reason => `تعذّر على البوابة تقديم تطبيق الويب: ${reason}`,
+        restartBusy:
+          'تم الحفظ. توجد محادثة قيد التشغيل، لذا لم تُعَد تشغيل البوابة. اختر «إعادة تشغيل البوابة» عند انتهائها.',
+        restartFailed: 'تم الحفظ، لكن تعذّرت إعادة تشغيل البوابة. اختر «إعادة تشغيل البوابة» للمحاولة مجددًا.',
+        restartFailedBecause: reason => `تعذّرت إعادة تشغيل البوابة: ${reason}`,
+        startTimedOut: 'لم تقدّم البوابة تطبيق الويب خلال 90 ثانية.',
+        stopTimedOut: 'لم تتوقف البوابة عن تقديم تطبيق الويب خلال 90 ثانية.',
+        start: 'تشغيل',
+        stop: 'إيقاف',
+        restartGateway: 'إعادة تشغيل البوابة',
+        modeLan: 'هذه الشبكة',
+        modeLanDetail: url => `تفتح الأجهزة على شبكة Wi-Fi العنوان ${url}. استخدمه على شبكة تثق بها فقط.`,
+        lanUnencrypted: 'الاتصال غير مشفّر: يمكن لآخرين على هذه الشبكة قراءة ما ترسله وتستقبله.',
+        noLan: 'لا يملك هذا الحاسوب عنوان شبكة يمكن للأجهزة الأخرى الوصول إليه.',
+        modePublic: 'عنواني الخاص',
+        modePublicDetail: port =>
+          `عنوان HTTPS تديره بالفعل، مثل Tailscale Serve أو نفق، يحوّل إلى http://127.0.0.1:${port}.`
+      },
+      webappHostDesc:
+        'يستخدم Webapp دائمًا مضيف Hermes الذي يقدّمه. لتبديل البوابة أو تسجيل الدخول إلى Hermes Cloud أو إدارة الاتصالات المحفوظة، استخدم تطبيق Hermes Desktop.',
+      webappHostTitle: 'مضيف Hermes'
     },
     keys: {
       loading: 'جار تحميل مفاتيح API وبيانات الاعتماد...',
@@ -1502,7 +1558,7 @@ export const arSettings = {
       autoArchiveFailed: 'لا يمكن تحديث آلية',
       defaultDirTitle: 'مجلد المشروع الافتراضي',
       defaultDirDesc: 'تبدأ الجلسات الجديدة في هذا المجلد ما لم تختر غيره. اتركه غير مضبوط لاستخدام مجلدك الرئيسي.',
-      defaultDirUpdated: 'تم تحديث مجلد المشروع الافتراضي، ابدأ محادثة جديدة (Ctrl/⌘+N) ليطبق التغيير',
+      defaultDirUpdated: () => 'تم تحديث مجلد المشروع الافتراضي، ابدأ محادثة جديدة (Ctrl/⌘+N) ليطبق التغيير',
       defaultsTo: label => `الافتراضي هو ${label}.`,
       change: 'تغيير',
       choose: 'اختيار',
@@ -1762,7 +1818,8 @@ export const arSettings = {
       captureFailed: 'تعذر التقاط النافذة الأمامية. لم يتم إرفاق أي شيء أو إرساله.',
       contextChanged: 'تم تغيير المسودة الحالية أثناء الالتقاط. لم يتم إرفاق الصورة أو إرسالها.'
     },
-    envKeys: {}
+    envKeys: {},
+    memoryLayers: arMemoryLayers
   },
   modelPicker: {
     title: 'اختيار النموذج',

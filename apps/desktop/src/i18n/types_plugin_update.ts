@@ -1,3 +1,16 @@
+export interface PluginFolderAccessTranslations {
+  title: string
+  hint: (name: string) => string
+  revoke: string
+  revokeLabel: (path: string) => string
+  revoked: (name: string, path: string) => string
+  revokeFailed: (name: string) => string
+  pickerTitle: (name: string) => string
+  pickerButton: string
+  refusedProtected: (name: string) => string
+  loadFailed: (name: string) => string
+}
+
 /** Copy for updating an installed plugin (Plugins tab): catalog re-pin consent and the security-scan override. */
 export interface PluginUpdateTranslations {
   updateToPin: (sha: string) => string
@@ -12,4 +25,5 @@ export interface PluginUpdateTranslations {
   updateScanConfirm: string
   updateScanBlocked: (name: string) => string
   updatedGit: (name: string) => string
+  folderAccess: PluginFolderAccessTranslations
 }

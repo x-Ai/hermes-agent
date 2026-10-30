@@ -210,12 +210,12 @@ function scriptedSessionListByTitle(
   const profile = params.profile === undefined ? null : String(params.profile)
 
   const match = title
-    ? [...sessions.values()].find(session => session.title === title && (profile === null || session.profile === profile))
+    ? [...sessions.values()].find(
+        session => session.title === title && (profile === null || session.profile === profile)
+      )
     : undefined
 
-  return match
-    ? { sessions: [{ id: match.stored, resolved_id: match.stored, title: match.title }] }
-    : { sessions: [] }
+  return match ? { sessions: [{ id: match.stored, resolved_id: match.stored, title: match.title }] } : { sessions: [] }
 }
 
 /** A gateway-shaped rejection: `.code` is what the engine branches on. */
@@ -599,9 +599,21 @@ export function createGroupGateway(options: GatewayOptions = {}): ScriptedGatewa
 export async function pluginSdkMock(host: Record<string, unknown>) {
   const nanostores = await import('nanostores')
   const { Textarea } = await import('@/components/ui/textarea')
+  const { cn } = await import('@/lib/utils')
+  const { randomUuid } = await import('@hermes/shared')
+
+  // The gateway Group Chat row's right-click menu (#143571) renders the real one.
+  const { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } =
+    await import('@/components/ui/context-menu')
 
   return {
     Textarea,
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+    cn,
     // Real value: approval.respond forwards it as its client deadline (#60654).
     APPROVAL_RESPOND_TIMEOUT_MS: 300_000,
     atom: nanostores.atom,
@@ -614,7 +626,9 @@ export async function pluginSdkMock(host: Record<string, unknown>) {
     createBudgetedLoop: undefined,
     gatewayActivationEpoch: () => 0,
     GlyphSpinner: () => null,
+    useGatewayActivationEpoch: () => 0,
     host,
+    randomUuid,
     CapabilitiesView: undefined,
     MessageTextContent: undefined,
     Streamdown: undefined,

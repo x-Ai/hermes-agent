@@ -1,13 +1,14 @@
 /**
  * Files in a gateway-hosted room. A send uploads each composer attachment to the room's gateway
  * (`groups.attachment.upload`) and binds the returned manifest to the message; the gateway commits
- * the files for the room's members with the event and stages them into each member's session before
- * its turn (`tui_gateway/hosted_room_member_attachments.py`). Reading back goes through
+ * the files for the room's members with the event, and a member turn resolves its own bytes from that
+ * store before it submits (`session_hosted_attachments.bound_submission_payload`). Reading back goes through
  * `groups.attachment.download` with the event the file belongs to: pictures are shown inline from a
  * window-local cache, other files are saved through the browser download path upstream's room view
  * uses. A gateway advertises the member route's file support as `room_attachments`.
  */
 
+import { randomUuid } from '@hermes/plugin-sdk'
 import { useEffect, useState } from 'react'
 
 import { downloadCanonicalAttachment } from './canonical-attachment-download'
@@ -54,7 +55,7 @@ export async function uploadCanonicalAttachments(
       mime: parts.mime,
       name: item.name,
       room_id: binding.roomId,
-      upload_id: crypto.randomUUID()
+      upload_id: randomUuid()
     })
 
     // Upload receipts carry storage metadata beside the manifest; the send accepts the manifest only.

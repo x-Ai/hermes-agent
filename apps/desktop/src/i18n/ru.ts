@@ -10,6 +10,7 @@ import { ruDelegationFieldLabels } from './ru_delegation_fields'
 import { ruFirstRun } from './ru_first_run'
 import { ruGatewayMenu } from './ru_gateway_menu'
 import { ruGoalStatus } from './ru_goal_status'
+import { ruMemoryLayers } from './ru_memory_layers'
 import { ruModelMenu } from './ru_model_menu'
 import { ruModelSettings } from './ru_model_settings'
 import { ruNotices } from './ru_notices'
@@ -302,7 +303,9 @@ export const ruOverrides = {
       liveUnavailable: reason =>
         `GPT-Live voice chat is not available: ${reason}. Вместо этого используйте преобразование речи в текст.`,
       liveEndedConnectionLost: 'Сеанс прямой голосовой связи потерял связь.',
-      liveEndedClosed: 'Сеанс живого голоса был закрыт сервисом.'
+      liveEndedClosed: 'Сеанс живого голоса был закрыт сервисом.',
+      microphoneNeedsHttps:
+        'Микрофону нужно защищённое соединение. Откройте Webapp по HTTPS или через SSH-туннель к 127.0.0.1, чтобы им пользоваться.'
     },
     native: {
       approvalTitle: 'Требуется одобрение',
@@ -666,7 +669,8 @@ export const ruOverrides = {
       'nav.capabilities': 'Открыть навыки',
       'view.cycleSidebarGrouping': 'Группировка циклических сессий',
       'view.toggleProfileRail': 'Показать / скрыть панель профилей',
-      'view.terminalSelection': 'Отправить выделенное из терминала в композер'
+      'view.terminalSelection': 'Отправить выделенное из терминала в композер',
+      'view.toggleSimpleMode': 'Переключить простой режим'
     }
   },
   paletteCommands: {
@@ -1789,7 +1793,49 @@ export const ruOverrides = {
       sshErrUpdateRequired: 'Перед подключением через SSH обновите Hermes на удалённой машине.',
       sshErrInteractiveAuth:
         'Tailscale SSH требует интерактивной проверки в браузере. Выполните `ssh <host> true` в терминале, завершите проверку и повторите попытку — Hermes запускает SSH неинтерактивно.',
-      sshErrUnknown: 'SSH-соединение не удалось.'
+      sshErrUnknown: 'SSH-соединение не удалось.',
+      webAccess: {
+        title: 'Веб-доступ',
+        intro:
+          'Откройте Hermes этого компьютера с телефона или другого компьютера, войдя через аккаунт Nous. Вошедший может запускать команды на этом компьютере.',
+        failed: 'Не удалось изменить веб-доступ',
+        running: 'Работает',
+        stopped: 'Остановлен',
+        starting: 'Запускается',
+        stopping: 'Останавливается',
+        restartNeeded: 'Нужен перезапуск',
+        unavailable: 'Недоступен',
+        notRunningDetail: 'Запустите его, чтобы открыть Hermes с другого устройства.',
+        needsNous: 'Сначала войдите в аккаунт Nous в разделе «Провайдеры».',
+        runningLan: 'Откройте этот адрес на устройстве в той же сети.',
+        runningPublic: 'Доступен через ваш URL.',
+        runningLocal:
+          'Открыть его можно только на этом компьютере. Остановите и снова запустите его, чтобы открыть с других устройств.',
+        pendingOn: 'Сохранено. Шлюз откроет веб-приложение после перезапуска.',
+        pendingOff: 'Выключено, но шлюз продолжает открывать веб-приложение до перезапуска.',
+        unavailableDetail: reason => `Шлюзу не удалось открыть веб-приложение: ${reason}`,
+        restartBusy:
+          'Сохранено. Идёт чат, поэтому шлюз не перезапущен. Когда он закончится, нажмите «Перезапустить шлюз».',
+        restartFailed:
+          'Сохранено, но шлюз не удалось перезапустить. Нажмите «Перезапустить шлюз», чтобы попробовать снова.',
+        restartFailedBecause: reason => `Не удалось перезапустить шлюз: ${reason}`,
+        startTimedOut: 'Шлюз не открыл веб-приложение за 90 секунд.',
+        stopTimedOut: 'Шлюз не перестал открывать веб-приложение за 90 секунд.',
+        start: 'Запустить',
+        stop: 'Остановить',
+        restartGateway: 'Перезапустить шлюз',
+        modeLan: 'Эта сеть',
+        modeLanDetail: url => `Устройства в вашей сети Wi-Fi открывают ${url}. Используйте только в доверенной сети.`,
+        lanUnencrypted:
+          'Соединение не зашифровано: другие в этой сети могут прочитать то, что вы отправляете и получаете.',
+        noLan: 'У этого компьютера нет сетевого адреса, доступного другим устройствам.',
+        modePublic: 'Мой собственный URL',
+        modePublicDetail: port =>
+          `Уже работающий HTTPS-адрес, например Tailscale Serve или туннель, который перенаправляет на http://127.0.0.1:${port}.`
+      },
+      webappHostDesc:
+        'Webapp всегда использует хост Hermes, который его обслуживает. Чтобы сменить шлюз, войти в Hermes Cloud или управлять сохранёнными подключениями, используйте приложение Hermes Desktop.',
+      webappHostTitle: 'Хост Hermes'
     },
     keys: {
       loading: 'Загрузка API-ключей и учётных данных…',
@@ -2153,7 +2199,7 @@ export const ruOverrides = {
       defaultDirTitle: 'Папка проекта по умолчанию',
       defaultDirDesc:
         'Новые сеансы начинаются в этой папке, если вы не выбрали другую. Оставьте пустым, чтобы использовать домашнюю директорию.',
-      defaultDirUpdated:
+      defaultDirUpdated: () =>
         'Папка проекта по умолчанию обновлена — начните новый чат (Ctrl/⌘+N), чтобы она вступила в силу',
       defaultsTo: label => `По умолчанию: ${label}.`,
       change: 'Изменить',
@@ -2417,7 +2463,8 @@ export const ruOverrides = {
       captureFailed: 'Не удалось снять переднее окно. Ничего не прикреплено и не отправлено.',
       contextChanged: 'Текущий черновик изменился во время съёмки. Снимок не прикреплён и не отправлен.'
     },
-    envKeys: {}
+    envKeys: {},
+    memoryLayers: ruMemoryLayers
   },
   skillDeepLink: ruSkillDeepLink,
   skills: {
@@ -2560,7 +2607,23 @@ export const ruOverrides = {
         secretSet: '•••••••• (комплект)',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}, никогда в config.yaml; оставьте пустым, чтобы сохранить текущее значение.`
-      }
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `Не удалось сохранить изменение, поэтому оно действует только до перезапуска Hermes. Пока ${plugin} заблокирован на ${origin}.`,
+      previewScriptRevoked: (plugin: string, origin: string) =>
+        `${plugin} больше не может запускать скрипты на ${origin}.`,
+      previewScriptRevoke: (origin: string) => `Отозвать доступ к ${origin}`,
+      previewScriptAccessNone: 'Спрашивает перед запуском скриптов на странице',
+      previewScriptAccessLabel: 'Скрипты страниц',
+      previewScriptDeny: 'Не разрешать',
+      previewScriptAllow: 'Разрешить на этом сайте',
+      previewScriptPromptRevokeHint:
+        'Действует только для этого сайта. Отозвать можно в разделе Возможности ▸ Плагины.',
+      previewScriptPromptRisk:
+        'Скрипты могут читать и изменять всё на этом сайте, включая страницы аккаунтов, в которые вы там вошли.',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `${plugin} хочет выполнить JavaScript во встроенном браузере на ${origin}.`,
+      previewScriptPromptTitle: (plugin: string) => `Разрешить ${plugin} запускать скрипты на этой странице?`
     },
     officialCatalog: 'Доступно для установки',
     officialPill: 'Официальный',
@@ -3421,7 +3484,10 @@ export const ruOverrides = {
     defaultProfile: 'Профиль по умолчанию',
     defaultSet: name => `${name} теперь используется по умолчанию`,
     defaultDescription: 'Используется при запуске Hermes и для новых чатов. Профили существующих сессий не меняются.',
-    failedSetDefault: 'Не удалось установить профиль по умолчанию'
+    failedSetDefault: 'Не удалось установить профиль по умолчанию',
+    notServedHere: 'Здесь не обслуживается',
+    exportNeedsHost: name =>
+      `Браузер не может сохранить архив профиля. На хосте Hermes выполните: hermes profile export ${name}`
   },
   cron: {
     close: 'Закрыть cron',
@@ -4445,7 +4511,9 @@ export const ruOverrides = {
       `Готово новое обновление (включено ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}).`,
     updateReadyUnknown: 'Готово новое обновление.',
     version: value => `Версия ${value}`,
-    versionUnavailable: 'Версия недоступна'
+    versionUnavailable: 'Версия недоступна',
+    versionDetailsBackend: 'Подключённый бэкенд',
+    versionDetailsClient: 'Это устройство'
   },
   install: {
     stageStates: {
@@ -4867,7 +4935,8 @@ export const ruOverrides = {
     terminalCloseAll: 'Закрыть все',
     addToChat: 'Добавить в чат',
     showIgnored: 'Показать файлы из gitignore',
-    hideIgnored: 'Скрыть файлы из gitignore'
+    hideIgnored: 'Скрыть файлы из gitignore',
+    terminalDropUnquotable: (shell, paths) => `Эти имена нельзя безопасно ввести в ${shell}: ${paths}`
   },
   preview: {
     tab: 'Предпросмотр',
@@ -4981,7 +5050,9 @@ export const ruOverrides = {
       commentPlaceholder: 'Добавить комментарий...',
       commentTitle: n => `Комментарий${n}`,
       saveComment: 'Сохранить',
-      cancelComment: 'Отменить комментарий'
+      cancelComment: 'Отменить комментарий',
+      embeddedPreviewHint:
+        'Некоторые сайты блокируют встроенный предпросмотр. Откройте исходную страницу во вкладке браузера.'
     }
   },
   interfaceMode: {
@@ -5054,7 +5125,8 @@ export const ruOverrides = {
       focus: 'Фокус',
       'terminal-deck': 'Терминальная панель',
       quad: 'Четыре панели'
-    }
+    },
+    tabActions: title => `Действия: ${title}`
   },
   contextMenu: {
     link: {
@@ -5251,86 +5323,89 @@ export const ruOverrides = {
       },
       errorCodes: {
         auth: {
-          title: provider => `${provider}отклонил ваш вход`,
-          body: provider =>
-            `Сохранённые учётные данные для${provider}не были приняты. Исправьте их в Настройках или смените поставщика, затем отправьте сообщение снова.`
+          title: provider => `${provider} отклонил ваш вход`,
+          body: () =>
+            'Сохранённые учётные данные не были приняты. Исправьте их в Настройках или смените поставщика, затем отправьте сообщение снова.'
         },
         auth_permanent: {
-          title: provider => `${provider}отклонил ваш вход`,
-          body: provider =>
-            `Сохранённые учётные данные для${provider}недействительны или были отозваны. Обновите их или смените поставщика, затем отправьте сообщение снова.`
+          title: provider => `${provider} отклонил ваш вход`,
+          body: () =>
+            'Сохранённые учётные данные недействительны или были отозваны. Обновите их или смените поставщика, затем отправьте сообщение снова.'
         },
         billing: {
-          title: 'Закончились кредиты',
+          title: provider => `${provider}: закончились кредиты`,
           body: provider =>
-            `Твой${provider}на счету нет средств. Пополните счет или смените провайдера, затем отправьте снова.`
+            `${provider}: на счету нет средств. Пополните счет или смените провайдера, затем отправьте снова.`
         },
         rate_limit: {
-          title: 'Служба AI занята',
-          body: provider => `${provider}сейчас ограничивает запросы. Подождите минуту, а затем попробуйте снова.`
+          title: provider => `${provider} сейчас занята`,
+          body: provider => `${provider} сейчас ограничивает запросы. Подождите минуту, а затем попробуйте снова.`
         },
         upstream_rate_limit: {
-          title: 'Служба AI занята',
-          body: provider => `${provider}сейчас ограничивает запросы. Подождите минуту, а затем попробуйте снова.`
+          title: (_provider, model) => `${model || 'Эта модель'} сейчас занята`,
+          body: (provider, model) =>
+            `${model || 'Эта модель'} ограничена на стороне ${provider}, а не вашим аккаунтом. Повторите попытку через минуту.`
         },
         overloaded: {
-          title: 'Служба AI перегружена',
-          body: provider =>
-            `${provider}сейчас возникают проблемы. Попробуйте еще раз через минуту или смените провайдера.`
+          title: provider => `${provider} перегружена`,
+          body: provider => `${provider} сейчас перегружена. Попробуйте еще раз через минуту или смените провайдера.`
         },
         server_error: {
-          title: 'У службы AI возникла проблема',
+          title: provider => `У службы ${provider} возникла проблема`,
           body: provider =>
-            `${provider}возвратил ошибку сервера. Повторите попытку через некоторое время или смените провайдера.`
+            `${provider} возвратил ошибку сервера. Повторите попытку через некоторое время или смените провайдера.`
         },
         timeout: {
-          title: 'Время ответа истекло',
-          body: provider => `${provider}не ответил вовремя. Попробуйте отправить это снова.`
+          title: provider => `${provider} не ответил вовремя`,
+          body: provider => `${provider} не ответил вовремя. Попробуйте отправить это снова.`
         },
         stream_drop: {
           title: 'Ответ был прерван',
           body: 'Соединение прервалось до завершения ответа. Повторите попытку отправки еще раз.'
         },
         upstream_blocked: {
-          title: 'Брандмауэр заблокировал запрос',
+          title: provider => `Брандмауэр заблокировал запрос к ${provider}`,
           body: provider =>
-            `Межсетевой экран или CDN перед${provider}заблокировал запрос до того, как он достиг модели — ваш ключ, вероятно, в порядке. Установите заголовок User-Agent через extra_headers провайдера в Настройках или смените провайдера, затем отправьте сообщение снова.`
+            `Межсетевой экран или CDN перед ${provider} заблокировал запрос до того, как он достиг модели — ваш ключ, вероятно, в порядке. Установите заголовок User-Agent через extra_headers провайдера в Настройках или смените провайдера, затем отправьте сообщение снова.`
         },
         ssl_cert_verification: {
-          title: 'Безопасное соединение не удалось',
+          title: provider => `Не удалось проверить безопасное соединение с ${provider}`,
           body: provider =>
-            `Hermes could not verify the secure connection to ${provider}. Проверьте настройки сети или прокси-сервера или смените поставщика услуг, а затем отправьте сообщение еще раз.`
+            `Прокси или устаревшее хранилище сертификатов заблокировало безопасное соединение с ${provider}. В руководстве по настройке показано, как это исправить.`
         },
         context_overflow: {
           title: 'Этот разговор слишком длинный',
-          body: 'Разговор больше не соответствует этой модели. Сожмите его или начните новый чат, а затем отправьте снова.'
+          body: (_provider, model) =>
+            `Разговор больше не помещается в контекст ${model || 'модели'}. Сожмите его, чтобы продолжить.`
         },
         payload_too_large: {
           title: 'Это сообщение слишком велико',
-          body: 'Запрос был слишком велик для модели. Сожмите разговор или начните новый чат, а затем отправьте его еще раз.'
+          body: provider =>
+            `Запрос вместе с вложениями превышает лимит ${provider}. Сожмите разговор или удалите вложения.`
         },
         model_not_found: {
-          title: 'Эта модель недоступна',
-          body: provider =>
-            `${provider}этот модель не доступна на вашем аккаунте. Выберите другую модель, затем отправьте свое сообщение снова.`
+          title: (_provider, model) => `${model || 'Эта модель'} недоступна`,
+          body: (provider, model) =>
+            `${provider} не предлагает ${model || 'эту модель'} для вашего аккаунта. Выберите другую модель.`
         },
         provider_policy_blocked: {
-          title: 'Эта модель заблокирована настройками вашего аккаунта',
+          title: (provider, model) => `Настройки ${provider} блокируют ${model || 'эту модель'}`,
           body: provider =>
-            `${provider}не будет маршрутизировать этот запрос в соответствии с настройками данных или конфиденциальности вашей учетной записи. Выберите другую модель или смените провайдера.`
+            `${provider} не будет маршрутизировать этот запрос в соответствии с настройками данных или конфиденциальности вашей учетной записи. Выберите другую модель или смените провайдера.`
         },
         content_policy_blocked: {
-          title: 'Служба AI отклонила этот запрос',
-          body: provider => `${provider}не буду отвечать на это сообщение. Отредактируй его и отправь снова.`
+          title: provider => `${provider} отклонил это сообщение`,
+          body: provider => `${provider} отклонил это сообщение. Отредактируйте его и отправьте снова.`
         },
         format_error: {
-          title: 'Служба AI отклонила запрос',
+          title: provider => `${provider} отклонил этот запрос`,
           body: provider =>
-            `${provider}не приняли, как был сформирован этот запрос. Смените поставщика или пришлите диагностические данные, чтобы мы могли это изучить.`
+            `${provider} не принял структуру этого разговора. Смените провайдера или начните новый чат, если это повторяется.`
         },
         truncated: {
           title: 'Ответ был прерван',
-          body: 'Модель остановилась, не закончив работу. Повторите попытку, чтобы получить полный ответ.'
+          body: (_provider, model) =>
+            `${model || 'Модель'} остановилась, не закончив, поэтому последний шаг не выполнился. Продолжите, чтобы вернуться к этому месту.`
         },
         invalid_response: {
           title: 'Служба AI отправила нечитаемый ответ',
@@ -5391,6 +5466,19 @@ export const ruOverrides = {
         usage_window: {
           title: 'Включённый объём исчерпан',
           body: 'Включённый объём вашего плана исчерпан до сброса. Пополните кредиты в /topup, чтобы продолжить.'
+        },
+        agent_init_failed: {
+          title: 'Не удалось начать этот чат',
+          body: provider =>
+            `Hermes не удалось подключиться к ${provider} для этого чата. Повторите попытку; если ошибка не исчезнет, проверьте провайдера в настройках.`
+        },
+        launch_credentials_unavailable: {
+          title: 'Ключ API этого чата изменился',
+          body: 'Этот чат был начат с ключом API, который с тех пор изменили или удалили, поэтому ваше сообщение не отправлено. Открытый чат никогда сам не переключается на другой ключ. Нажмите «Start new session», чтобы использовать текущий ключ.'
+        },
+        session_read_only: {
+          title: 'Этот чат только для чтения',
+          body: 'Это сохранённая история, которую Hermes может показать, но не может продолжить, поэтому ваше сообщение не было выполнено. Начните новый чат, чтобы отправить его.'
         }
       },
       errorAuthKinds: {
@@ -5416,7 +5504,19 @@ export const ruOverrides = {
       errorOpenHermesFolder: 'Откройте папку Hermes.',
       errorOpenHermesFolderFailed: 'Не удалось открыть папку Hermes.',
       errorUpdateApiKey: 'Обновить ключ API',
-      errorSignInFreeTier: 'Войдите с помощью учетной записи Nous.'
+      errorSignInFreeTier: 'Войдите с помощью учетной записи Nous.',
+      errorRateLimitResetBody: (provider, time) => `Вы достигли лимита запросов ${provider}. Он сбросится в ${time}.`,
+      errorRetryAtResetShort: time => `Повторить в ${time}`,
+      errorChooseModelLink: 'Выбрать другую модель',
+      errorStartNewChatLink: 'Начать новый чат',
+      errorOpenModelSettings: 'Открыть настройки модели',
+      errorSetupGuideLink: 'Руководство по настройке',
+      errorOpenSetupGuide: 'Открыть руководство по настройке',
+      errorOpenProviderSettings: provider => `Открыть настройки ${provider}`,
+      errorContinue: 'Продолжить',
+      errorCopyRaw: 'Копировать ошибку',
+      errorDetailsCopy: 'Копировать подробности',
+      errorHideDetails: 'Скрыть подробности ошибки'
     },
     approval: {
       gatewayDisconnected: 'Шлюз Hermes не подключён',
@@ -5874,7 +5974,9 @@ export const ruOverrides = {
     modelSwitchConfirmTitle: (model: string) => `Переключиться на ${model}?`,
     modelSwitchConfirmTitleFallback: 'Сменить модель?',
     modelSwitchKeepLabel: 'Оставить текущую модель',
-    modelSwitchStaleNotice: 'Выбор изменился — смена модели не применена.'
+    modelSwitchStaleNotice: 'Выбор изменился — смена модели не применена.',
+    dropFilesMore: (count: number) => `и ещё ${count}`,
+    attachFailed: 'Прикрепление не удалось'
   },
   tips: {
     close: 'Больше не показывать этот совет',

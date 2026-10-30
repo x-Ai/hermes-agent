@@ -547,7 +547,9 @@ export const zhHantChat = {
     modelSwitchConfirmTitle: (model: string) => `切換到 ${model}？`,
     modelSwitchConfirmTitleFallback: '切換模型？',
     modelSwitchKeepLabel: '保留目前模型',
-    modelSwitchStaleNotice: '選擇已變更 — 未套用模型切換。'
+    modelSwitchStaleNotice: '選擇已變更 — 未套用模型切換。',
+    dropFilesMore: count => `另有 ${count} 個`,
+    attachFailed: '附加失敗'
   },
   tips: {
     close: '不再顯示這則提示',

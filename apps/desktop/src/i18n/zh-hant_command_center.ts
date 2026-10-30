@@ -1338,7 +1338,9 @@ export const zhHantCommandCenter = {
       unread: count => `${count} 個工作階段有未讀訊息`,
       needsInput: count => `${count} 個工作階段等待你的回覆`,
       working: count => `${count} 個工作階段正在執行`
-    }
+    },
+    notServedHere: '未在此提供',
+    exportNeedsHost: name => `瀏覽器無法儲存設定檔封存。請在 Hermes 主機上執行：hermes profile export ${name}`
   },
   cron: {
     close: '關閉排程',

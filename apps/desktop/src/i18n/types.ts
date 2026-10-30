@@ -19,13 +19,16 @@ import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from '.
 import type { GatewayGroupOpenCopy, SkillDeepLinkCopy } from './types_deep_links'
 import type { ExternalOpenFailedCopy } from './types_external_open'
 import type { FirstRunCopy } from './types_first_run'
+import type { GatewayHostTranslations } from './types_gateway_host'
 import type { GatewayMenuTranslations } from './types_gateway_menu'
 import type { GoalStatusTranslations } from './types_goal_status'
+import type { MemoryLayersTranslations } from './types_memory_layers'
 import type { ModelMenuTranslations } from './types_model_menu'
 import type { ModelSettingsTranslations } from './types_model_settings'
 import type { NoticeTranslations } from './types_notices'
 import type { NotificationSettingsTranslations } from './types_notifications'
 import type { OnboardingTranslations } from './types_onboarding'
+import type { PluginPreviewAccessTranslations } from './types_plugin_preview_access'
 import type { PluginUpdateTranslations } from './types_plugin_update'
 import type { SidebarProjectsTranslations } from './types_projects'
 import type { ProviderWaitThreadCopy } from './types_provider_wait'
@@ -52,8 +55,8 @@ export type ProviderExhaustedReason = 'rate_limit' | 'overloaded' | 'server_erro
 /** One error-card entry: a short title and one plain sentence. Either may
  *  take the failing provider's display name (falls back to "the AI service"). */
 export interface ErrorCardCopy {
-  title: string | ((provider: string) => string)
-  body: string | ((provider: string) => string)
+  title: string | ((provider: string, model: string) => string)
+  body: string | ((provider: string, model: string) => string)
 }
 
 export type ToolTitleKey =
@@ -316,6 +319,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       liveUnavailable: (reason: string) => string
       liveEndedConnectionLost: string
       liveEndedClosed: string
+      microphoneNeedsHttps: string
     }
     native: {
       approvalTitle: string
@@ -796,6 +800,10 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         desktopFailed: string
         missingEnv: (name: string, vars: string) => string
         installUncertain: string
+        partialInstall: (sha: string) => string
+        installAnyway: string
+        legacyBackendConfirm: string
+        sourceMoved: (sha: string) => string
       }
     }
     vault: {
@@ -1235,7 +1243,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       scopesRestored: (profiles: string) => string
       scopeNotRestored: (profile: string, error: string) => string
     }
-    gateway: {
+    gateway: GatewayHostTranslations & {
       loading: string
       unavailableTitle: string
       unavailableDesc: string
@@ -1878,7 +1886,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       autoArchiveFailed: string
       defaultDirTitle: string
       defaultDirDesc: string
-      defaultDirUpdated: string
+      defaultDirUpdated: (shortcut: null | string) => string
       defaultsTo: (label: string) => string
       change: string
       choose: string
@@ -1892,81 +1900,83 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     }
 
     envKeys: Record<string, { description?: string; label?: string; prompt?: string }>
+    memoryLayers: MemoryLayersTranslations
   }
   skillDeepLink: SkillDeepLinkCopy
   gatewayGroupOpen: GatewayGroupOpenCopy
   skills: {
-    plugins: PluginUpdateTranslations & {
-      agentTitle: string
-      agentBlurb: string
-      pageBlurb: string
-      halfDesktop: string
-      halfDesktopHint: string
-      halfAgent: string
-      halfAgentIn: (profile: string) => string
-      defaultProfile: string
-      kindAgent: string
-      kindDesktop: string
-      kindBoth: string
-      installAgentHere: string
-      installAgentHereTip: (profile: string) => string
-      installAgentHereNoOrigin: string
-      desktopHalfPending: string
-      desktopHalfPendingTip: string
-      emptyAll: string
-      empty: string
-      emptyHint: string
-      loadFailed: string
-      toggleFailed: (name: string) => string
-      toolsetOn: (name: string, profile: string) => string
-      toolsetOff: (name: string, profile: string) => string
-      toolsetToggleFailed: (name: string) => string
-      legacyBackend: string
-      portableBadge: string
-      serverStates: {
-        connected: string
-        app_not_running: string
-        hermes_not_connected: string
-        endpoint_unavailable: string
-        no_interactive_session: string
-        version_too_old: string
-        missing_app: string
-        unsupported_gpu: string
-        unknown: string
+    plugins: PluginUpdateTranslations &
+      PluginPreviewAccessTranslations & {
+        agentTitle: string
+        agentBlurb: string
+        pageBlurb: string
+        halfDesktop: string
+        halfDesktopHint: string
+        halfAgent: string
+        halfAgentIn: (profile: string) => string
+        defaultProfile: string
+        kindAgent: string
+        kindDesktop: string
+        kindBoth: string
+        installAgentHere: string
+        installAgentHereTip: (profile: string) => string
+        installAgentHereNoOrigin: string
+        desktopHalfPending: string
+        desktopHalfPendingTip: string
+        emptyAll: string
+        empty: string
+        emptyHint: string
+        loadFailed: string
+        toggleFailed: (name: string) => string
+        toolsetOn: (name: string, profile: string) => string
+        toolsetOff: (name: string, profile: string) => string
+        toolsetToggleFailed: (name: string) => string
+        legacyBackend: string
+        portableBadge: string
+        serverStates: {
+          connected: string
+          app_not_running: string
+          hermes_not_connected: string
+          endpoint_unavailable: string
+          no_interactive_session: string
+          version_too_old: string
+          missing_app: string
+          unsupported_gpu: string
+          unknown: string
+        }
+        bundledNames: Record<string, string>
+        bundledDescriptions: Record<string, string>
+        sourceLabels: Record<string, string>
+        alreadyInstalled: (name: string) => string
+        catalogProvenance: (sha: string) => string
+        pinnedProvenance: (sha: string) => string
+        pinnedBadge: (sha: string) => string
+        desktopHalfRemote: string
+        desktopHalfRemoteTip: string
+        uninstall: string
+        uninstallTip: (name: string, profile: string) => string
+        uninstallConfirmTitle: (name: string) => string
+        uninstallConfirmBody: (name: string, profile: string) => string
+        uninstallFailed: (name: string) => string
+        uninstalled: (name: string) => string
+        uninstallDesktopTip: (name: string) => string
+        uninstallDesktopConfirmBody: (name: string) => string
+        uninstalledDesktop: (name: string) => string
+        deepLinkErrorTitle: string
+        deepLinkCatalogInvalidName: string
+        deepLinkCatalogUnknown: (name: string) => string
+        deepLinkCatalogUnavailable: string
+        settingsToggle: (name: string) => string
+        settingsForm: {
+          save: string
+          saved: (name: string) => string
+          saveFailed: (name: string) => string
+          required: string
+          optional: string
+          secretSet: string
+          secretStoredAs: (env: string) => string
+        }
       }
-      bundledNames: Record<string, string>
-      bundledDescriptions: Record<string, string>
-      sourceLabels: Record<string, string>
-      alreadyInstalled: (name: string) => string
-      catalogProvenance: (sha: string) => string
-      pinnedProvenance: (sha: string) => string
-      pinnedBadge: (sha: string) => string
-      desktopHalfRemote: string
-      desktopHalfRemoteTip: string
-      uninstall: string
-      uninstallTip: (name: string, profile: string) => string
-      uninstallConfirmTitle: (name: string) => string
-      uninstallConfirmBody: (name: string, profile: string) => string
-      uninstallFailed: (name: string) => string
-      uninstalled: (name: string) => string
-      uninstallDesktopTip: (name: string) => string
-      uninstallDesktopConfirmBody: (name: string) => string
-      uninstalledDesktop: (name: string) => string
-      deepLinkErrorTitle: string
-      deepLinkCatalogInvalidName: string
-      deepLinkCatalogUnknown: (name: string) => string
-      deepLinkCatalogUnavailable: string
-      settingsToggle: (name: string) => string
-      settingsForm: {
-        save: string
-        saved: (name: string) => string
-        saveFailed: (name: string) => string
-        required: string
-        optional: string
-        secretSet: string
-        secretStoredAs: (env: string) => string
-      }
-    }
     hub: {
       searchPlaceholder: string
       search: string
@@ -2823,6 +2833,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     versionDetailsInstallId: string
     versionDetailsUncommittedChanges: string
     justNowSuffix: string
+    versionDetailsBackend: string
+    versionDetailsClient: string
   }
   assistant: {
     media: {
@@ -2996,6 +3008,18 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       errorOpenHermesFolderFailed: string
       errorUpdateApiKey: string
       errorSignInFreeTier: string
+      errorHideDetails: string
+      errorDetailsCopy: string
+      errorCopyRaw: string
+      errorContinue: string
+      errorOpenProviderSettings: (provider: string) => string
+      errorOpenSetupGuide: string
+      errorSetupGuideLink: string
+      errorOpenModelSettings: string
+      errorStartNewChatLink: string
+      errorChooseModelLink: string
+      errorRetryAtResetShort: (time: string) => string
+      errorRateLimitResetBody: (provider: string, time: string) => string
     }
     tool: {
       copyCode: string
@@ -3242,6 +3266,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     modelSwitchStaleNotice: string
     restored: string
     unarchiveFailed: string
+    dropFilesMore: (count: number) => string
+    attachFailed: string
   }
   connectorsPage: {
     title: string
@@ -3826,6 +3852,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       needsInput: (count: number) => string
       working: (count: number) => string
     }
+    notServedHere: string
+    exportNeedsHost: (name: string) => string
   }
   modelAssignment: {
     saveFailed: string
@@ -4553,6 +4581,12 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     remotePickerCreateFolder: string
     remotePickerInvalidFolderName: string
     remotePickerCreateFolderFailed: (error: string) => string
+    terminalDropUnquotable: (shell: string, paths: string) => string
+    terminalDropControl: (paths: string) => string
+    terminalDropControlTitle: string
+    terminalDropTooLarge: (names: string, limit: string) => string
+    terminalDropTooLargeTitle: string
+    terminalDropUploadFailed: (name: string) => string
   }
   preview: {
     tab: string
@@ -4664,6 +4698,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       commentTitle: (n: number) => string
       saveComment: string
       cancelComment: string
+      embeddedPreviewHint: string
     }
   }
   interfaceMode: {
@@ -4723,6 +4758,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     tabCount: (count: number) => string
     toggleLayoutEditMode: string
     layoutNames: Record<string, string>
+    tabActions: (title: string) => string
   }
   contextMenu: {
     link: {

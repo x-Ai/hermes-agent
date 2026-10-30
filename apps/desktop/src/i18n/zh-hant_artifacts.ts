@@ -175,7 +175,8 @@ export const zhHantArtifacts = {
       commentPlaceholder: '新增評論...',
       commentTitle: n => `評論${n}`,
       saveComment: '儲存',
-      cancelComment: '取消評論'
+      cancelComment: '取消評論',
+      embeddedPreviewHint: '部分網站會封鎖內嵌預覽。請在瀏覽器分頁中開啟原始頁面。'
     }
   }
 } satisfies Pick<TranslationOverrides, 'media' | 'artifacts' | 'artifactCard' | 'artifactPreview' | 'preview'>

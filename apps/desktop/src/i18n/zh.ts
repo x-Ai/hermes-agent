@@ -7,11 +7,13 @@ import { zhCatalog } from './zh_catalog'
 import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
+import { zhErrorCodes } from './zh_error_codes'
 import { zhErrorLayers } from './zh_error_layers'
 import { zhFirstRun } from './zh_first_run'
 import { zhGatewayMenu } from './zh_gateway_menu'
 import { zhGoalStatus } from './zh_goal_status'
 import { zhLocalModels } from './zh_local_models'
+import { zhMemoryLayers } from './zh_memory_layers'
 import { zhMessagingFieldCopy } from './zh_messaging_fields'
 import { zhModelMenu } from './zh_model_menu'
 import { zhModelSettings } from './zh_model_settings'
@@ -442,6 +444,8 @@ export const zhOverrides = {
       description: 'Hermes 的后台服务未启动，请尝试下面的恢复步骤，这里的操作不会删除您的聊天记录或设置',
       remoteTitle: '需要重新登录远程网关',
       remoteDescription: '你的远程网关会话已过期，请重新登录以恢复连接，这些操作不会删除你的对话或设置',
+      webappTitle: '登录 Hermes',
+      webappDescription: '在这台电脑上运行 hermes webapp，即可为此浏览器登录',
       retry: '重试',
       repairInstall: '修复安装',
       useLocalGateway: '使用本地网关',
@@ -660,7 +664,8 @@ export const zhOverrides = {
       liveDelegationFailed: '无法将请求交给 Hermes',
       liveUnavailable: reason => `GPT-Live 语音聊天不可用：${reason}，已改用语音转文字`,
       liveEndedConnectionLost: '实时语音会话已断开连接',
-      liveEndedClosed: '实时语音会话已被服务关闭'
+      liveEndedClosed: '实时语音会话已被服务关闭',
+      microphoneNeedsHttps: '麦克风需要安全连接。请通过 HTTPS 或到 127.0.0.1 的 SSH 隧道打开 Webapp 后使用'
     },
     native: {
       approvalTitle: '需要批准',
@@ -1171,7 +1176,16 @@ export const zhOverrides = {
           `${name} 已安装，但需要先配置密钥才能使用：${vars}，请立即添加，否则该插件的工具将无法运行`,
         profileLabel: '安装到配置文件',
         installUncertain:
-          'Hermes 已停止等待安装结果，但插件可能仍在安装中，请关闭此对话框，并在“插件”中执行“重新扫描”后再尝试安装'
+          'Hermes 已停止等待安装结果，但插件可能仍在安装中，请关闭此对话框，并在“插件”中执行“重新扫描”后再尝试安装',
+        partialInstall: sha =>
+          sha
+            ? `插件只安装了一部分：代理部分已安装在提交 ${sha}，但由于仓库在你审阅后有变更，桌面部分未能随之安装。在“高级”中打开强制重装，可用显示的版本替换两部分；或取消，仅保留代理部分`
+            : '插件只安装了一部分：代理部分已安装，但由于仓库在你审阅后有变更，桌面部分未能随之安装。在“高级”中打开强制重装，可用显示的版本替换两部分；或取消，仅保留代理部分',
+        installAnyway: '仍然安装',
+        legacyBackendConfirm:
+          '此后端比本应用旧，无法保证安装的就是你审阅过的版本：如果仓库此后有变更，安装的会是更新的版本。更新后端即可获得这一保证',
+        sourceMoved: sha =>
+          sha ? `自你审阅后仓库已变更。请先审阅新版本（提交 ${sha}）再安装。` : '自你审阅后仓库已变更。正在读取新版本…'
       }
     },
     vault: {
@@ -2135,7 +2149,44 @@ export const zhOverrides = {
       sshErrUpdateRequired: '使用 Desktop SSH 连接前，请更新远程主机上的 Hermes',
       sshErrInteractiveAuth:
         'Tailscale SSH 需要交互式浏览器验证，请在终端运行 `ssh <host> true` 完成验证后重试——Hermes 以非交互方式运行 SSH',
-      sshErrUnknown: 'SSH 连接失败'
+      sshErrUnknown: 'SSH 连接失败',
+      webAccess: {
+        title: '网页访问',
+        intro: '用手机或其他电脑，以你的 Nous 账户登录并打开这台电脑上的 Hermes。登录的人可以在这台电脑上运行命令',
+        failed: '无法更改网页访问',
+        running: '运行中',
+        stopped: '已停止',
+        starting: '正在启动',
+        stopping: '正在停止',
+        restartNeeded: '需要重启',
+        unavailable: '不可用',
+        notRunningDetail: '启动后即可从其他设备打开 Hermes',
+        needsNous: '请先在“提供商”中登录你的 Nous 账户',
+        runningLan: '在同一网络中的设备上打开此地址',
+        runningPublic: '通过你的网址提供服务',
+        runningLocal: '只有这台电脑可以打开。要从其他设备打开，请先停止，再重新启动',
+        pendingOn: '已保存。网关重启后将提供网页应用',
+        pendingOff: '已关闭，但网关在重启前仍会继续提供网页应用',
+        unavailableDetail: reason => `网关无法提供网页应用：${reason}`,
+        restartBusy: '已保存。有对话正在进行，因此网关没有重启。对话结束后请选择“重启网关”',
+        restartFailed: '已保存，但网关无法重启。请选择“重启网关”重试',
+        restartFailedBecause: reason => `网关无法重启：${reason}`,
+        startTimedOut: '网关未能在 90 秒内提供网页应用',
+        stopTimedOut: '网关未能在 90 秒内停止提供网页应用',
+        start: '启动',
+        stop: '停止',
+        restartGateway: '重启网关',
+        modeLan: '当前网络',
+        modeLanDetail: url => `你的 Wi-Fi 中的设备可打开 ${url}。仅在你信任的网络中使用`,
+        lanUnencrypted: '连接未加密：同一网络中的其他人可能读取你发送和接收的内容',
+        noLan: '这台电脑没有其他设备可以访问的网络地址',
+        modePublic: '我自己的网址',
+        modePublicDetail: port =>
+          `你已有的 HTTPS 地址（例如 Tailscale Serve 或隧道），并转发到 http://127.0.0.1:${port}`
+      },
+      webappHostDesc:
+        'Webapp 始终使用提供它的 Hermes 主机。如需切换网关、登录 Hermes Cloud 或管理已保存的连接，请使用 Hermes Desktop 应用',
+      webappHostTitle: 'Hermes 主机'
     },
     keys: {
       loading: '正在加载 API 密钥和凭据...',
@@ -2681,7 +2732,7 @@ export const zhOverrides = {
       autoArchiveFailed: '无法更新自动归档设置',
       defaultDirTitle: '默认项目目录',
       defaultDirDesc: '新会话默认从此文件夹开始，除非你选择其他目录，留空则使用你的 Home 目录',
-      defaultDirUpdated: '默认项目目录已更新',
+      defaultDirUpdated: () => '默认项目目录已更新',
       defaultsTo: label => `默认使用 ${label}`,
       change: '更改',
       choose: '选择',
@@ -3193,7 +3244,8 @@ export const zhOverrides = {
       WEBHOOK_SECRET: {
         description: '用于验证 Webhook 签名的全局 HMAC 密钥（可在 config.yaml 中按路由覆盖）'
       }
-    }
+    },
+    memoryLayers: zhMemoryLayers
   },
 
   skillDeepLink: {
@@ -3350,7 +3402,33 @@ export const zhOverrides = {
         optional: '（可选）',
         secretSet: '(套数)',
         secretStoredAs: (env: string) => `Stored in the profile's .env as ${env}，绝不在 config.yaml，留空以保留当前值`
-      }
+      },
+      folderAccess: {
+        title: '文件夹访问',
+        hint: (name: string) => `${name} 可以读取和修改这些文件夹中的文件。撤销后立即生效`,
+        revoke: '撤销',
+        revokeLabel: (path: string) => `撤销对 ${path} 的访问`,
+        revoked: (name: string, path: string) => `${name} 已无法再使用 ${path}`,
+        revokeFailed: (name: string) => `无法撤销 ${name} 的文件夹访问`,
+        pickerTitle: (name: string) => `为 ${name} 选择文件夹`,
+        pickerButton: '允许访问',
+        refusedProtected: (name: string) =>
+          `${name} 不能使用该文件夹：其中包含 Hermes 的设置、密钥或插件数据。请选择不包含它们的文件夹`,
+        loadFailed: (name: string) => `无法加载与 ${name} 共享的文件夹`
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `无法保存此更改，因此它仅在 Hermes 重启前有效。目前 ${plugin} 在 ${origin} 上被阻止`,
+      previewScriptRevoked: (plugin: string, origin: string) => `${plugin} 不能再在 ${origin} 上运行脚本`,
+      previewScriptRevoke: (origin: string) => `撤销对 ${origin} 的访问`,
+      previewScriptAccessNone: '在页面上运行脚本前会先询问',
+      previewScriptAccessLabel: '页面脚本',
+      previewScriptDeny: '不允许',
+      previewScriptAllow: '在此网站允许',
+      previewScriptPromptRevokeHint: '仅适用于此网站。你可以在 技能与工具 ▸ 插件 中撤销',
+      previewScriptPromptRisk: '脚本可以读取并更改该网站上的所有内容，包括你在该网站已登录账户的页面',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `${plugin} 想在预览浏览器中的 ${origin} 上运行 JavaScript`,
+      previewScriptPromptTitle: (plugin: string) => `允许 ${plugin} 在此页面运行脚本吗？`
     },
     officialCatalog: '可安装',
     officialPill: '官方',
@@ -4199,7 +4277,9 @@ export const zhOverrides = {
       unread: count => `${count} 个会话有未读消息`,
       needsInput: count => `${count} 个会话等待你的回复`,
       working: count => `${count} 个会话正在运行`
-    }
+    },
+    notServedHere: '此处未提供',
+    exportNeedsHost: name => `浏览器无法保存配置档案归档。请在 Hermes 主机上运行：hermes profile export ${name}`
   },
   cron: {
     close: '关闭定时任务',
@@ -5239,7 +5319,9 @@ export const zhOverrides = {
     applyingCloseAppInstaller: '此窗口将会关闭，Windows 完成更新后 Hermes 会自动重新打开',
     checkUnknownTitleAppInstaller: '无法检查更新',
     checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新',
-    justNowSuffix: ' · 刚刚'
+    justNowSuffix: ' · 刚刚',
+    versionDetailsBackend: '已连接的后端',
+    versionDetailsClient: '本设备'
   },
 
   install: {
@@ -5652,7 +5734,13 @@ export const zhOverrides = {
     terminalCloseAll: '关闭全部',
     addToChat: '添加到对话',
     showIgnored: '显示 gitignore 的文件',
-    hideIgnored: '隐藏 gitignore 的文件'
+    hideIgnored: '隐藏 gitignore 的文件',
+    terminalDropUnquotable: (shell, paths) => `无法在 ${shell} 中安全地输入这些名称：${paths}`,
+    terminalDropUploadFailed: name => `无法上传 ${name}`,
+    terminalDropTooLargeTitle: '文件过大，无法上传',
+    terminalDropTooLarge: (names, limit) => `每个文件最大 ${limit}。未上传：${names}`,
+    terminalDropControlTitle: '未输入到终端',
+    terminalDropControl: paths => `这些名称包含 shell 会当作按键处理的控制字符：${paths}`
   },
   preview: {
     tab: '预览',
@@ -5765,7 +5853,8 @@ export const zhOverrides = {
       commentPlaceholder: '添加批注…',
       commentTitle: n => `批注 ${n}`,
       saveComment: '保存',
-      cancelComment: '取消批注'
+      cancelComment: '取消批注',
+      embeddedPreviewHint: '部分网站不允许嵌入式预览。请在浏览器标签页中打开原始页面'
     }
   },
   interfaceMode: {
@@ -5838,7 +5927,8 @@ export const zhOverrides = {
       focus: '专注',
       'terminal-deck': '终端面板',
       quad: '四格'
-    }
+    },
+    tabActions: title => `${title} 的操作`
   },
   contextMenu: {
     link: {
@@ -5964,130 +6054,56 @@ export const zhOverrides = {
       errorGenericProvider: 'AI 服务',
       ...zhErrorLayers,
       errorCodes: {
-        auth: {
-          title: provider => `${provider} 拒绝了登录`,
-          body: provider => `为 ${provider} 保存的凭据未被接受，请在设置中修正凭据或切换提供商，然后重新发送消息`
-        },
-        auth_permanent: {
-          title: provider => `${provider} 拒绝了登录`,
-          body: provider => `为 ${provider} 保存的凭据无效或已被撤销，请更新凭据或切换提供商，然后重新发送消息`
-        },
-        billing: {
-          title: '额度不足',
-          body: provider => `${provider} 账户的额度已用尽，请充值或切换提供商，然后重新发送`
-        },
+        ...zhErrorCodes,
         provider_policy_blocked: {
-          title: '账户设置阻止了此模型',
-          body: provider => `${provider} 无法按你账户的数据或隐私设置路由此请求，请选择其他模型或切换服务商`
+          title: (provider, model) => `${provider} 设置阻止了 ${model || '此模型'}`,
+          body: provider =>
+            `你的 ${provider} 隐私设置排除了此模型的所有端点。请在 ${provider} 上更改设置，或选择其他模型。`
         },
         content_policy_blocked: {
-          title: 'AI 服务拒绝回答此请求',
-          body: provider => `${provider} 拒绝回答这条消息，请修改后重新发送`
+          title: provider => `${provider} 拒绝了此消息`,
+          body: provider => `${provider} 的安全过滤器拒绝了它。请修改消息后重新发送。`
         },
         format_error: {
-          title: 'AI 服务拒绝了请求格式',
-          body: provider => `${provider} 不接受此请求的构造方式，请切换服务商，或发送诊断信息以便我们排查`
+          title: provider => `${provider} 拒绝了此请求`,
+          body: provider => `${provider} 无法接受此对话的结构。请切换服务商；若问题持续，请新建聊天。`
         },
         invalid_response: {
-          title: 'AI 服务返回了无法读取的回复',
-          body: provider => `${provider} 返回了 Hermes 无法读取的内容，请稍后重试`
+          title: '无法读取回复',
+          body: provider => `${provider} 返回了空的或损坏的回复。请稍后重试。`
         },
         empty_response: {
-          title: 'AI 服务返回了空回复',
-          body: provider => `${provider} 没有为此消息返回内容，请稍后重试`
+          title: '未能获得回复',
+          body: provider => `${provider} 没有为此消息返回内容。请稍后重试。`
         },
         rate_limit: {
-          title: 'AI 服务繁忙',
-          body: provider => `${provider} 正在限制请求数量，请稍等片刻后重试`
+          title: provider => `${provider} 当前繁忙`,
+          body: provider => `你已达到 ${provider} 的速率限制。请稍等片刻后重试。`
         },
         upstream_rate_limit: {
-          title: 'AI 服务繁忙',
-          body: provider => `${provider} 正在限制请求数量，请稍等片刻后重试`
+          title: (_provider, model) => `${model || '此模型'} 当前繁忙`,
+          body: (provider, model) =>
+            `${model || '此模型'} 在 ${provider} 的上游受到速率限制，与你的账户无关。请稍后重试。`
         },
         overloaded: {
-          title: 'AI 服务负载过高',
-          body: provider => `${provider} 当前遇到问题，请稍后重试或切换服务商`
+          title: provider => `${provider} 当前繁忙`,
+          body: provider => `${provider} 负载过高，无法处理此请求。请稍后重试。`
         },
         server_error: {
-          title: 'AI 服务发生错误',
-          body: provider => `${provider} 返回了服务器错误，请稍后重试或切换服务商`
+          title: provider => `${provider} 出现问题`,
+          body: provider => `${provider} 返回了服务器错误。请稍后重试。`
         },
         timeout: {
-          title: '无法连接到 AI 服务',
-          body: provider => `无法连接到 ${provider}，或其未及时响应，请检查网络连接后重试`
-        },
-        stream_drop: {
-          title: '回复被中断',
-          body: '连接在回复完成前已中断，请重试以重新发送'
-        },
-        no_reply: {
-          title: '回复未完成',
-          body: 'Hermes 在没有回复的情况下结束了本轮，请重试以再次发送'
-        },
-        upstream_blocked: {
-          title: '请求被防火墙拦截',
-          body: provider =>
-            `${provider} 前方的防火墙或 CDN 在请求到达模型前将其拦截，你的密钥可能没有问题，请在设置中通过提供商的 extra_headers 设置 User-Agent，或切换提供商后重试`
+          title: provider => `无法连接 ${provider}`,
+          body: provider => `Hermes 无法连接到 ${provider}。请检查网络连接后重试。`
         },
         ssl_cert_verification: {
-          title: '安全连接失败',
-          body: provider => `Hermes 无法验证与 ${provider} 的安全连接，请检查网络或代理设置，或切换服务商后重新发送`
+          title: provider => `无法验证 ${provider} 的连接`,
+          body: provider => `代理或过时的证书存储阻止了与 ${provider} 的安全连接。设置指南介绍了修复方法。`
         },
-        context_overflow: {
-          title: '此对话过长',
-          body: '对话内容已超出模型上下文，请压缩对话或新建对话，然后重新发送'
-        },
-        payload_too_large: {
-          title: '此消息过大',
-          body: '请求内容超出模型限制，请压缩对话或新建对话，然后重新发送'
-        },
-        model_not_found: {
-          title: '此模型不可用',
-          body: provider => `${provider} 未向你的账户提供此模型，请选择其他模型，然后重新发送`
-        },
-        truncated: {
-          title: '回复未完整生成',
-          body: '模型在完成回复前停止了，请重试以获取完整回复'
-        },
-        loop_error: {
-          title: 'Hermes 陷入循环',
-          body: '回复持续重复相同步骤，因此 Hermes 已停止运行，请重试，若再次发生，可新建对话'
-        },
-        SESSION_NOT_OWNED: {
-          title: '此对话已在其他位置打开',
-          body: '此对话当前正在另一个 Hermes 窗口或终端中打开，请先在那里关闭，然后重新发送，也可以在这里新建对话'
-        },
-        disk_full: {
-          title: '磁盘已满',
-          body: '磁盘空间已满，Hermes 无法保存此对话，请释放空间后重试'
-        },
-        free_tier_disabled: {
-          title: '未登录的免费服务当前已关闭',
-          body: '登录免费的 Nous 账户即可继续对话'
-        },
-        free_tier_rate_limited: {
-          title: '未登录聊天额度已用尽',
-          body: '额度很快会恢复，登录免费的 Nous 账户可获得更高额度'
-        },
-        free_tier_at_capacity: {
-          title: '未登录聊天当前繁忙',
-          body: '登录免费账户可跳过队列，也可以稍后重试'
-        },
-        free_tier_model_not_free: {
-          title: '未登录时无法使用此模型',
-          body: 'Hermes 当前使用免费模型，登录免费的 Nous 账户可使用更多模型'
-        },
-        free_tier_route: {
-          title: 'Hermes 无法访问此路由上的免费模型',
-          body: '请登录免费的 Nous 账户，或检查 NOUS_INFERENCE_BASE_URL 设置'
-        },
-        free_tier_outage: {
-          title: '免费模型暂时无法响应',
-          body: '请稍后重新发送消息'
-        },
-        free_tier_refused: {
-          title: '未登录时无法发送此消息',
-          body: '请登录免费的 Nous 账户后继续'
+        usage_window: {
+          title: '包含用量已用完',
+          body: '你的方案包含的用量已用完，将在重置后恢复。在 /topup 中添加额度即可继续。'
         },
         SESSION_OWNER_BUSY: {
           title: 'Hermes 正在此对话中忙碌',
@@ -6097,17 +6113,9 @@ export const zhOverrides = {
           title: '你的消息可能已在队列中',
           body: '网关未及时确认你的消息，如果它已入队，会在先前那一轮完成或被处理后运行，再次发送前请先查看对话'
         },
-        cron_session_read_only: {
-          title: '此聊天属于一个定时任务',
-          body: '它只运行该任务，因此你的消息未被执行，请新建聊天后再发送'
-        },
-        usage_window: {
-          title: '包含用量已用完',
-          body: '你的方案包含的用量已用完，将在重置后恢复，在 /topup 中添加额度即可继续'
-        },
-        workspace_unavailable: {
-          title: '此聊天的文件夹已不存在',
-          body: '此聊天使用的文件夹已被移动或删除，因此你的消息未被执行，请重新创建该文件夹，或使用“移动到项目”为聊天指定其他文件夹，然后重试'
+        stream_drop: {
+          title: '回复被中断',
+          body: '连接在回复完成前已中断，请重试以重新发送'
         }
       },
       errorRetry: '重试',
@@ -6170,7 +6178,19 @@ export const zhOverrides = {
       errorOpenHermesFolder: '打开 Hermes 文件夹',
       errorOpenHermesFolderFailed: '无法打开 Hermes 文件夹',
       errorUpdateApiKey: '更新 API 密钥',
-      errorSignInFreeTier: '用 Nous 账户签名'
+      errorSignInFreeTier: '用 Nous 账户签名',
+      errorRateLimitResetBody: (provider, time) => `你已达到 ${provider} 的速率限制，将于 ${time} 重置`,
+      errorRetryAtResetShort: time => `于 ${time} 重试`,
+      errorChooseModelLink: '选择其他模型',
+      errorStartNewChatLink: '新建聊天',
+      errorOpenModelSettings: '打开模型设置',
+      errorSetupGuideLink: '设置指南',
+      errorOpenSetupGuide: '打开设置指南',
+      errorOpenProviderSettings: provider => `打开 ${provider} 设置`,
+      errorContinue: '继续',
+      errorCopyRaw: '复制错误',
+      errorDetailsCopy: '复制详情',
+      errorHideDetails: '隐藏错误详情'
     },
     approval: {
       gatewayDisconnected: 'Hermes 目前离线，该命令仍在等待您的回复（直到批准超时），重新连接后，再次发送它',
@@ -6651,7 +6671,9 @@ export const zhOverrides = {
     modelSwitchConfirmTitle: (model: string) => `切换到 ${model}？`,
     modelSwitchConfirmTitleFallback: '切换模型？',
     modelSwitchKeepLabel: '保留当前模型',
-    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换'
+    modelSwitchStaleNotice: '选择已更改 — 未应用模型切换',
+    dropFilesMore: (count: number) => `以及另外 ${count} 项`,
+    attachFailed: '附加失败'
   },
   tips: {
     close: '不再显示这条提示',

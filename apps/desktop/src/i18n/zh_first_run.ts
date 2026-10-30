@@ -43,5 +43,7 @@ export const zhFirstRun: FirstRunCopy = {
     description: '打开一个新的设置对话，用你当前的模型走一遍首次运行的步骤。',
     action: '重新运行',
     failed: '无法启动新手引导'
-  }
+  },
+  slashOffBody: '设置完成后即可照常使用。',
+  slashOffTitle: '设置期间无法使用斜杠命令'
 }

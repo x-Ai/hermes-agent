@@ -1,3 +1,4 @@
+import { fileUrlToNativePath } from '@hermes/shared'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
 import type {
@@ -53,6 +54,8 @@ import { markPreviewTabMissing, openPreview, type PreviewTarget } from '@/store/
 import { setPreviewDirty } from '@/store/preview-edit'
 import { $connection, $currentCwd } from '@/store/session'
 import { notifyWorkspaceChanged } from '@/store/workspace-events'
+
+import { usePdfObjectUrl } from './preview-pdf-url'
 
 const SHIKI_THEME = { dark: 'github-dark-default', light: 'github-light-default' } as const
 const TEXT_PREVIEW_MAX_BYTES = 512 * 1024
@@ -203,13 +206,7 @@ function filePathForTarget(target: PreviewTarget) {
     return target.path
   }
 
-  try {
-    const url = new URL(target.url)
-
-    return url.protocol === 'file:' ? decodeURIComponent(url.pathname) : target.url
-  } catch {
-    return target.url
-  }
+  return fileUrlToNativePath(target.url) ?? target.url
 }
 
 function formatBytes(bytes: number | undefined) {
@@ -249,48 +246,9 @@ function looksBinaryBytes(bytes: Uint8Array) {
   return suspicious / Math.min(bytes.length, 4096) > 0.12
 }
 
-function dataUrlToBlob(dataUrl: string) {
-  const comma = dataUrl.indexOf(',')
-
-  if (comma < 0 || !dataUrl.startsWith('data:')) {
-    throw new Error('Invalid PDF data URL')
-  }
-
-  const metadata = dataUrl
-    .slice(5, comma)
-    .split(';')
-    .map(part => part.trim().toLowerCase())
-
-  const payload = dataUrl.slice(comma + 1)
-
-  if (metadata[0] !== 'application/pdf' || !metadata.slice(1).includes('base64')) {
-    throw new Error('Invalid PDF data URL type')
-  }
-
-  let binary: string
-
+async function readTextPreview(filePath: string, sessionId?: string) {
   try {
-    binary = atob(decodeURIComponent(payload))
-  } catch {
-    throw new Error('Invalid PDF data URL payload')
-  }
-
-  if (!binary.startsWith('%PDF-')) {
-    throw new Error('Invalid PDF file header')
-  }
-
-  const bytes = new Uint8Array(binary.length)
-
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index)
-  }
-
-  return new Blob([bytes], { type: 'application/pdf' })
-}
-
-async function readTextPreview(filePath: string) {
-  try {
-    return await readDesktopFileText(filePath)
+    return await readDesktopFileText(filePath, { sessionId })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
 
@@ -750,6 +708,7 @@ export function LocalFilePreview({
   onClose,
   onSelectRendered,
   reloadKey,
+  sessionId,
   target
 }: {
   /** Closes the preview's tab; offered when the file can't be shown. */
@@ -758,13 +717,13 @@ export function LocalFilePreview({
    *  `rendered` mode to the switcher and routes its selection to the pane. */
   onSelectRendered?: () => void
   reloadKey: number
+  /** The session whose tab this is: a gateway read and Save resolve `/workspace` in its sandbox. */
+  sessionId?: string
   target: PreviewTarget
 }) {
   const { t } = useI18n()
   const [state, setState] = useState<LocalPreviewState>({ loading: true })
   const [forcePreview, setForcePreview] = useState(false)
-  const [pdfError, setPdfError] = useState<string>()
-  const [pdfUrl, setPdfUrl] = useState<string>()
   // User-picked view; null = auto (diff when changed, else rendered markdown,
   // else source). Reset when the previewed file changes.
   const [userMode, setUserMode] = useState<null | PreviewViewMode>(null)
@@ -792,6 +751,7 @@ export function LocalFilePreview({
   const filePath = filePathForTarget(target)
   const isImage = target.previewKind === 'image'
   const isPdf = target.previewKind === 'pdf'
+  const { pdfError, pdfUrl } = usePdfObjectUrl(isPdf, state.dataUrl)
 
   // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
   useEffect(() => {
@@ -834,7 +794,7 @@ export function LocalFilePreview({
         if (isImage || isPdf) {
           // Prefer bytes the caller already handed us (a pasted/dropped
           // screenshot) over re-reading a path that may be transient/unreadable.
-          const dataUrl = target.dataUrl || (await readDesktopFileDataUrl(filePath))
+          const dataUrl = target.dataUrl || (await readDesktopFileDataUrl(filePath, { sessionId }))
 
           if (active) {
             setState({ dataUrl, loading: false })
@@ -843,7 +803,7 @@ export function LocalFilePreview({
           return
         }
 
-        const result = await readTextPreview(filePath)
+        const result = await readTextPreview(filePath, sessionId)
 
         if (active) {
           const shouldBlock = !forcePreview && (result.binary || (result.byteSize ?? 0) > TEXT_PREVIEW_MAX_BYTES)
@@ -908,40 +868,11 @@ export function LocalFilePreview({
     isText,
     reloadKey,
     selfReload,
+    sessionId,
     target.dataUrl,
     target.language,
     target.url
   ])
-
-  useEffect(() => {
-    setPdfUrl(undefined)
-    setPdfError(undefined)
-
-    if (!isPdf || !state.dataUrl) {
-      return
-    }
-
-    // Chromium's PDF viewer is blank for large data: URLs in an iframe. Use a
-    // blob URL instead, and revoke it when the target or loaded bytes change.
-    if (typeof URL.createObjectURL !== 'function') {
-      setPdfError('PDF preview requires object URL support')
-
-      return
-    }
-
-    let objectUrl: string
-
-    try {
-      objectUrl = URL.createObjectURL(dataUrlToBlob(state.dataUrl))
-      setPdfUrl(objectUrl)
-    } catch (error) {
-      setPdfError(error instanceof Error ? error.message : String(error))
-
-      return
-    }
-
-    return () => URL.revokeObjectURL(objectUrl)
-  }, [isPdf, state.dataUrl])
 
   // Editing is only offered for whole, readable text — never images, binaries,
   // or files we only loaded the first 512 KB of (saving would drop the tail).
@@ -1056,7 +987,7 @@ export function LocalFilePreview({
       // choice. `force` is the user picking "overwrite" from that banner.
       if (!force) {
         try {
-          const current = await readTextPreview(filePath)
+          const current = await readTextPreview(filePath, sessionId)
 
           if (!current.binary && (current.text ?? '') !== baselineRef.current) {
             setConflict(true)
@@ -1072,7 +1003,7 @@ export function LocalFilePreview({
       // Also guards Overwrite: bypassing a content conflict never authorizes
       // writing the same path on another connection/profile or this device.
       requireEditorOwner()
-      await writeDesktopFileText(filePath, draftRef.current)
+      await writeDesktopFileText(filePath, draftRef.current, { sessionId })
       baselineRef.current = draftRef.current
       setDirty(false)
       setConflict(false)

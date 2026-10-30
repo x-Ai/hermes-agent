@@ -25,6 +25,12 @@ export function projectLiveContextBreakdown(
     return breakdown
   }
 
+  // An agentless snapshot knows no window: there is nothing to project onto, and the
+  // popover keeps the very object it was handed.
+  if (breakdown.context_max === 0) {
+    return breakdown
+  }
+
   const contextUsed = usage.context_used
   const contextMax = usage.context_max ?? breakdown.context_max
 

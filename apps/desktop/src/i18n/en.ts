@@ -17,6 +17,7 @@ import { enFirstRun } from './en_first_run'
 import { enGatewayMenu } from './en_gateway_menu'
 import { enGoalStatus } from './en_goal_status'
 import { enLocalModels } from './en_local_models'
+import { enMemoryLayers } from './en_memory_layers'
 import { enModelMenu } from './en_model_menu'
 import { enModelSettings } from './en_model_settings'
 import { enNotices } from './en_notices'
@@ -571,7 +572,9 @@ export const en: Translations = {
       liveDelegationFailed: 'Could not hand the request to Hermes',
       liveUnavailable: reason => `GPT-Live voice chat is not available: ${reason}. Using speech-to-text instead.`,
       liveEndedConnectionLost: 'The live voice session lost its connection.',
-      liveEndedClosed: 'The live voice session was closed by the service.'
+      liveEndedClosed: 'The live voice session was closed by the service.',
+      microphoneNeedsHttps:
+        'The microphone needs a secure connection. Open the Webapp over HTTPS, or through an SSH tunnel to 127.0.0.1, to use it.'
     },
     native: {
       approvalTitle: 'Approval needed',
@@ -1083,7 +1086,18 @@ export const en: Translations = {
         desktopFailed: 'Desktop plugin install failed',
         missingEnv: (name, vars) =>
           `${name} is installed but needs a key before it can work: ${vars}. Add it now, or the plugin's tools will fail.`,
-        profileLabel: 'Install for profile'
+        profileLabel: 'Install for profile',
+        partialInstall: sha =>
+          sha
+            ? `Only part of this plugin is installed: the agent half is in at commit ${sha}, but the desktop half could not follow because the repository changed since you reviewed it. Turn on Force reinstall under Advanced to replace both halves with the version shown, or Cancel to keep only the agent half.`
+            : 'Only part of this plugin is installed: the agent half is in, but the desktop half could not follow because the repository changed since you reviewed it. Turn on Force reinstall under Advanced to replace both halves with the version shown, or Cancel to keep only the agent half.',
+        installAnyway: 'Install anyway',
+        legacyBackendConfirm:
+          'This backend is older than this app, so it cannot guarantee that the version you reviewed is the one that gets installed: if the repository changed since, the newer version installs instead. Update the backend to get that guarantee.',
+        sourceMoved: sha =>
+          sha
+            ? `The repository changed since you reviewed it. Review the new version (commit ${sha}) before installing it.`
+            : 'The repository changed since you reviewed it. Reading the new version…'
       }
     },
     vault: {
@@ -1743,7 +1757,45 @@ export const en: Translations = {
       sshErrUpdateRequired: 'Update Hermes on the remote host before connecting with Desktop SSH.',
       sshErrInteractiveAuth:
         'Tailscale SSH requires an interactive browser check. In Terminal, run `ssh <host> true`, complete the check, then retry — Hermes runs SSH non-interactively.',
-      sshErrUnknown: 'SSH connection failed.'
+      sshErrUnknown: 'SSH connection failed.',
+      webAccess: {
+        title: 'Web access',
+        intro:
+          'Open Hermes on this computer from your phone or another computer, signed in with your Nous account. Whoever signs in can run commands on this computer.',
+        failed: "Couldn't change web access",
+        running: 'Running',
+        stopped: 'Stopped',
+        starting: 'Starting',
+        stopping: 'Stopping',
+        restartNeeded: 'Restart needed',
+        unavailable: 'Unavailable',
+        notRunningDetail: 'Start it to open Hermes from another device.',
+        needsNous: 'Sign in to your Nous account under Providers first.',
+        runningLan: 'Open this address on a device on the same network.',
+        runningPublic: 'Served through your URL.',
+        runningLocal: 'Only this computer can open it. Stop it, then start it again to open it from other devices.',
+        pendingOn: 'Saved. The gateway serves the web app once it restarts.',
+        pendingOff: 'Turned off, but the gateway keeps serving the web app until it restarts.',
+        unavailableDetail: reason => `The gateway couldn't serve the web app: ${reason}`,
+        restartBusy: "Saved. A chat is running, so the gateway didn't restart. Choose Restart gateway once it ends.",
+        restartFailed: "Saved, but the gateway couldn't restart. Choose Restart gateway to try again.",
+        restartFailedBecause: reason => `The gateway couldn't restart: ${reason}`,
+        startTimedOut: "The gateway didn't serve the web app within 90 seconds.",
+        stopTimedOut: "The gateway didn't stop serving the web app within 90 seconds.",
+        start: 'Start',
+        stop: 'Stop',
+        restartGateway: 'Restart gateway',
+        modeLan: 'This network',
+        modeLanDetail: url => `Devices on your Wi-Fi open ${url}. Use it only on a network you trust.`,
+        lanUnencrypted: 'The connection is not encrypted: others on this network could read what you send and receive.',
+        noLan: 'This computer has no network address other devices can reach.',
+        modePublic: 'My own URL',
+        modePublicDetail: port =>
+          `An HTTPS address you already run, such as Tailscale Serve or a tunnel, forwarding to http://127.0.0.1:${port}.`
+      },
+      webappHostDesc:
+        'The Webapp always uses the Hermes host that serves it. To switch gateways, sign in to Hermes Cloud or manage saved connections, use the Hermes Desktop app.',
+      webappHostTitle: 'Hermes host'
     },
     keys: {
       loading: 'Loading API keys and credentials...',
@@ -2351,7 +2403,7 @@ export const en: Translations = {
       defaultDirTitle: 'Default project directory',
       defaultDirDesc:
         'New sessions start in this folder unless you pick another. Leave it unset to use your home directory.',
-      defaultDirUpdated: 'Default project directory updated — start a new chat (Ctrl/⌘+N) for it to take effect',
+      defaultDirUpdated: () => 'Default project directory updated — start a new chat (Ctrl/⌘+N) for it to take effect',
       defaultsTo: label => `Defaults to ${label}.`,
       change: 'Change',
       choose: 'Choose',
@@ -2604,7 +2656,8 @@ export const en: Translations = {
       captureFailed: 'Could not capture the frontmost window. Nothing was attached or sent.',
       contextChanged: 'The current draft changed during capture. The screenshot was not attached or sent.'
     },
-    envKeys: {}
+    envKeys: {},
+    memoryLayers: enMemoryLayers
   },
 
   skillDeepLink: enSkillDeepLink,
@@ -2756,6 +2809,33 @@ export const en: Translations = {
         secretSet: '•••••••• (set)',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}, never in config.yaml; leave blank to keep the current value.`
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `Couldn't save that change, so it lasts only until Hermes restarts. ${plugin} is blocked on ${origin} for now.`,
+      previewScriptRevoked: (plugin: string, origin: string) => `${plugin} can no longer run scripts on ${origin}.`,
+      previewScriptRevoke: (origin: string) => `Revoke access to ${origin}`,
+      previewScriptAccessNone: 'Asks before running scripts on a page',
+      previewScriptAccessLabel: 'Page scripts',
+      previewScriptDeny: "Don't allow",
+      previewScriptAllow: 'Allow on this site',
+      previewScriptPromptRevokeHint: 'Applies to this site only. You can revoke it in Capabilities ▸ Plugins.',
+      previewScriptPromptRisk:
+        'Scripts can read and change everything on that site, including pages from accounts you are signed in to there.',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `${plugin} wants to run JavaScript in the preview Browser on ${origin}.`,
+      previewScriptPromptTitle: (plugin: string) => `Let ${plugin} run scripts on this page?`,
+      folderAccess: {
+        title: 'Folder access',
+        hint: (name: string) => `${name} can read and change files in these folders. Revoking takes effect at once.`,
+        revoke: 'Revoke',
+        revokeLabel: (path: string) => `Revoke access to ${path}`,
+        revoked: (name: string, path: string) => `${name} can no longer use ${path}.`,
+        revokeFailed: (name: string) => `Could not revoke folder access for ${name}`,
+        pickerTitle: (name: string) => `Choose a folder for ${name}`,
+        pickerButton: 'Allow access',
+        refusedProtected: (name: string) =>
+          `${name} cannot use that folder: it holds Hermes settings, keys or plugin data. Choose a folder that does not contain them.`,
+        loadFailed: (name: string) => `Could not load the folders shared with ${name}.`
       }
     },
     officialCatalog: 'Available to install',
@@ -3746,7 +3826,10 @@ export const en: Translations = {
     defaultProfile: 'Default profile',
     defaultSet: name => `${name} is now the default`,
     defaultDescription: 'Used when Hermes opens and for new chats. Existing sessions stay in their profiles.',
-    failedSetDefault: 'Could not set the default profile'
+    failedSetDefault: 'Could not set the default profile',
+    notServedHere: 'Not served here',
+    exportNeedsHost: name =>
+      `The browser can't save a profile archive. On the Hermes host, run: hermes profile export ${name}`
   },
   cron: {
     close: 'Close cron',
@@ -4814,7 +4897,9 @@ export const en: Translations = {
     versionDetailsRuntimeExternal: 'External (uses the machine runtime)',
     versionDetailsInstallId: 'Install ID',
     versionDetailsUncommittedChanges: 'uncommitted changes',
-    justNowSuffix: ' · just now'
+    justNowSuffix: ' · just now',
+    versionDetailsBackend: 'Connected backend',
+    versionDetailsClient: 'This device'
   },
   install: {
     stageStates: {
@@ -5238,7 +5323,13 @@ export const en: Translations = {
     terminalCloseAll: 'Close all',
     addToChat: 'Add to chat',
     showIgnored: 'Show gitignored files',
-    hideIgnored: 'Hide gitignored files'
+    hideIgnored: 'Hide gitignored files',
+    terminalDropUnquotable: (shell, paths) => `No safe way to type these names in ${shell}: ${paths}`,
+    terminalDropControl: paths => `These names hold control characters the shell would act on as keys: ${paths}`,
+    terminalDropControlTitle: 'Not typed into the terminal',
+    terminalDropTooLarge: (names, limit) => `Each file can be up to ${limit}. Not uploaded: ${names}`,
+    terminalDropTooLargeTitle: 'Too large to upload',
+    terminalDropUploadFailed: name => `Could not upload ${name}`
   },
   preview: {
     tab: 'Preview',
@@ -5354,7 +5445,8 @@ export const en: Translations = {
       commentPlaceholder: 'Add a comment...',
       commentTitle: n => `Comment ${n}`,
       saveComment: 'Save',
-      cancelComment: 'Cancel comment'
+      cancelComment: 'Cancel comment',
+      embeddedPreviewHint: 'Some sites block embedded previews. Open the original page in a browser tab.'
     }
   },
   interfaceMode: {
@@ -5419,13 +5511,14 @@ export const en: Translations = {
     saveApply: 'Save & apply',
     notExpressible: 'this arrangement interlocks (pinwheel) — not expressible as nested splits yet',
     zoneCount: count => `${count} zones`,
-    tabCount: count => `${count} tabs`,
+    tabCount: count => `${count} tab${count === 1 ? '' : 's'}`,
     layoutNames: {
       default: 'Default',
       focus: 'Focus',
       'terminal-deck': 'Terminal deck',
       quad: 'Quad'
-    }
+    },
+    tabActions: title => `Actions for ${title}`
   },
   contextMenu: {
     link: {
@@ -5617,7 +5710,19 @@ export const en: Translations = {
       errorOpenHermesFolder: 'Open Hermes folder',
       errorOpenHermesFolderFailed: 'Could not open the Hermes folder',
       errorUpdateApiKey: 'Update API key',
-      errorSignInFreeTier: 'Sign in with a Nous account'
+      errorSignInFreeTier: 'Sign in with a Nous account',
+      errorRateLimitResetBody: (provider, time) => `You've hit ${provider}'s rate limit. It resets at ${time}.`,
+      errorRetryAtResetShort: time => `Retry at ${time}`,
+      errorChooseModelLink: 'Choose another model',
+      errorStartNewChatLink: 'Start a new chat',
+      errorOpenModelSettings: 'Open model settings',
+      errorSetupGuideLink: 'Setup guide',
+      errorOpenSetupGuide: 'Open setup guide',
+      errorOpenProviderSettings: provider => `Open ${provider} settings`,
+      errorContinue: 'Continue',
+      errorCopyRaw: 'Copy error',
+      errorDetailsCopy: 'Copy details',
+      errorHideDetails: 'Hide error details'
     },
     approval: {
       gatewayDisconnected:
@@ -6080,7 +6185,9 @@ export const en: Translations = {
     modelSwitchConfirmTitle: (model: string) => `Switch to ${model}?`,
     modelSwitchConfirmTitleFallback: 'Switch models?',
     modelSwitchKeepLabel: 'Keep current model',
-    modelSwitchStaleNotice: 'Selection changed — the model switch was not applied.'
+    modelSwitchStaleNotice: 'Selection changed — the model switch was not applied.',
+    dropFilesMore: (count: number) => `and ${count} more`,
+    attachFailed: 'Attach failed'
   },
   tips: {
     close: "Don't show this tip again",

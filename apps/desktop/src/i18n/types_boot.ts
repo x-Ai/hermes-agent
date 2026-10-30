@@ -80,6 +80,8 @@ export interface BootTranslations {
     signInToRemoteGateway: string
     signInWithProvider: (provider: string) => string
     identityProvider: string
+    webappDescription: string
+    webappTitle: string
   }
   // The blocked boot screen while an earlier update still holds the install (R8 D3).
   updateHold: {

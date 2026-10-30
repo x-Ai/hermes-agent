@@ -181,141 +181,144 @@ export const zhHantAssistant = {
       },
       errorCodes: {
         auth: {
-          title: provider => `${provider} 拒絕了登入`,
-          body: provider => `為 ${provider} 儲存的憑證未被接受。請在設定中修正憑證或切換供應商，然後重新傳送訊息。`
+          title: provider => `${provider} 拒絕了你的 API 金鑰`,
+          body: () => '已儲存的金鑰無效或已被撤銷。請更新金鑰，然後重新傳送訊息。'
         },
         auth_permanent: {
-          title: provider => `${provider} 拒絕了登入`,
-          body: provider => `為 ${provider} 儲存的憑證無效或已被撤銷。請更新憑證或切換供應商，然後重新傳送訊息。`
+          title: provider => `${provider} 拒絕了你的 API 金鑰`,
+          body: () => '已儲存的金鑰無效或已被撤銷。請更新金鑰，然後重新傳送訊息。'
         },
         billing: {
-          title: '額度不足',
-          body: provider => `${provider} 帳戶的額度已用盡。請儲值或切換供應商，然後重新傳送。`
-        },
-        provider_policy_blocked: {
-          title: '帳戶設定封鎖了此模型',
-          body: provider => `${provider} 無法依你帳戶的資料或隱私設定路由此請求。請選擇其他模型或切換服務商。`
-        },
-        content_policy_blocked: {
-          title: 'AI 服務拒絕回答此請求',
-          body: provider => `${provider} 拒絕回答這則訊息。請修改後重新傳送。`
-        },
-        format_error: {
-          title: 'AI 服務拒絕了請求格式',
-          body: provider => `${provider} 不接受此請求的建構方式。請切換服務商，或傳送診斷資訊以便我們排查。`
-        },
-        invalid_response: {
-          title: 'AI 服務傳回了無法讀取的回覆',
-          body: provider => `${provider} 傳回了 Hermes 無法讀取的內容。請稍後重試。`
-        },
-        empty_response: {
-          title: 'AI 服務傳回了空回覆',
-          body: provider => `${provider} 沒有為此訊息傳回內容。請稍後重試。`
+          title: provider => `${provider} 額度已用完`,
+          body: provider => `請新增額度，以繼續在 ${provider} 上使用付費模型。`
         },
         rate_limit: {
-          title: 'AI 服務忙碌中',
-          body: provider => `${provider} 正在限制請求數量。請稍等片刻後重試。`
+          title: provider => `${provider} 目前忙碌中`,
+          body: provider => `你已達到 ${provider} 的速率限制。請稍候片刻後重試。`
         },
         upstream_rate_limit: {
-          title: 'AI 服務忙碌中',
-          body: provider => `${provider} 正在限制請求數量。請稍等片刻後重試。`
+          title: (_provider, model) => `${model || '此模型'}目前忙碌中`,
+          body: (provider, model) =>
+            `${model || '此模型'}在 ${provider} 的上游受到速率限制，並非你的帳戶問題。請稍後重試。`
         },
         overloaded: {
-          title: 'AI 服務負載過高',
-          body: provider => `${provider} 目前遇到問題。請稍後重試或切換服務商。`
+          title: provider => `${provider} 目前忙碌中`,
+          body: provider => `${provider} 負載過高，無法處理此請求。請稍後重試。`
         },
         server_error: {
-          title: 'AI 服務發生錯誤',
-          body: provider => `${provider} 傳回了伺服器錯誤。請稍後重試或切換服務商。`
+          title: provider => `${provider} 發生問題`,
+          body: provider => `${provider} 傳回了伺服器錯誤。請稍後重試。`
         },
         timeout: {
-          title: '無法連線到 AI 服務',
-          body: provider => `無法連線到 ${provider}，或其未及時回應。請檢查網路連線後重試。`
+          title: provider => `無法連線到 ${provider}`,
+          body: provider => `Hermes 無法連線到 ${provider}。請檢查網路連線後重試。`
         },
         stream_drop: {
           title: '回覆被中斷',
-          body: '連線在回覆完成前已中斷。請重試以重新傳送。'
+          body: '回覆完成前連線已中斷。請重試以重新傳送。'
         },
         no_reply: {
-          title: '回覆未完成',
-          body: 'Hermes 在沒有回覆的情況下結束了這一輪，請重試以再次傳送'
+          title: '未收到回覆',
+          body: 'Hermes 已完成本輪，但回覆沒有送達此視窗。請重試以重新傳送。'
         },
         upstream_blocked: {
-          title: '請求被防火牆攔截',
+          title: provider => `${provider} 封鎖了此請求`,
           body: provider =>
-            `${provider} 前方的防火牆或 CDN 在請求到達模型前將其攔截；你的金鑰可能沒有問題。請在設定中透過供應商的 extra_headers 設定 User-Agent，或切換供應商後重試。`
+            `${provider} 前端的防火牆在請求送達模型前就拒絕了它。請切換服務商，或為其設定自訂 User-Agent。`
         },
         ssl_cert_verification: {
-          title: '安全連線失敗',
-          body: provider => `Hermes 無法驗證與 ${provider} 的安全連線。請檢查網路或代理設定，或切換服務商後重新傳送。`
+          title: provider => `無法驗證 ${provider} 的連線`,
+          body: provider => `代理伺服器或過時的憑證存放區阻擋了與 ${provider} 的安全連線。設定指南會說明修正方法。`
         },
         context_overflow: {
-          title: '此對話過長',
-          body: '對話內容已超出模型上下文。請壓縮對話或建立新對話，然後重新傳送。'
+          title: '此聊天過長',
+          body: (_provider, model) => `對話已超出${model ? ` ${model} ` : '模型'}的上下文視窗。請壓縮對話以繼續。`
         },
         payload_too_large: {
           title: '此訊息過大',
-          body: '請求內容超出模型限制。請壓縮對話或建立新對話，然後重新傳送。'
+          body: provider => `此請求（含附件）超出 ${provider} 的大小上限。請壓縮對話或移除附件。`
         },
         model_not_found: {
-          title: '此模型不可用',
-          body: provider => `${provider} 未向你的帳戶提供此模型。請選擇其他模型，然後重新傳送。`
+          title: (_provider, model) => `${model || '此模型'}無法使用`,
+          body: (provider, model) => `${provider} 未在你的帳戶上提供${model ? ` ${model}` : '此模型'}。請選擇其他模型。`
+        },
+        provider_policy_blocked: {
+          title: (provider, model) => `${provider} 設定封鎖了${model ? ` ${model}` : '此模型'}`,
+          body: provider =>
+            `你的 ${provider} 隱私設定排除了此模型的所有端點。請在 ${provider} 上變更設定，或選擇其他模型。`
+        },
+        content_policy_blocked: {
+          title: provider => `${provider} 拒絕了這則訊息`,
+          body: provider => `${provider} 的安全篩選器拒絕了它。請修改訊息後重新傳送。`
+        },
+        format_error: {
+          title: provider => `${provider} 拒絕了此請求`,
+          body: provider => `${provider} 無法接受此對話的結構。請切換服務商；若問題持續，請開始新的聊天。`
         },
         truncated: {
-          title: '回覆未完整產生',
-          body: '模型在完成回覆前停止了。請重試以取得完整回覆。'
+          title: '回覆被截斷',
+          body: (_provider, model) =>
+            `${model || '模型'}在完成前停止，因此最後一步沒有執行。按「繼續」即可從中斷處接續。`
+        },
+        invalid_response: {
+          title: '無法讀取回覆',
+          body: provider => `${provider} 傳回了空白或損壞的回覆。請稍後重試。`
+        },
+        empty_response: {
+          title: '未取得回覆',
+          body: provider => `${provider} 沒有為此訊息傳回內容。請稍後重試。`
         },
         loop_error: {
-          title: 'Hermes 陷入循環',
-          body: '回覆持續重複相同步驟，因此 Hermes 已停止執行。請重試；若再次發生，可建立新對話。'
+          title: 'Hermes 無法完成此步驟',
+          body: '處理回覆時發生問題。請重試；若再次發生，請從詳細資訊中傳送診斷資訊。'
+        },
+        agent_init_failed: {
+          title: '無法開始此聊天',
+          body: provider => `Hermes 無法為此聊天連線到 ${provider}。請重試；若持續失敗，請在設定中檢查服務商。`
         },
         SESSION_NOT_OWNED: {
-          title: '此對話已在其他位置開啟',
-          body: '此對話目前正在另一個 Hermes 視窗或終端機中開啟。請先在那裡關閉，然後重新傳送；也可以在此建立新對話。'
+          title: '聊天已在別處開啟',
+          body: '此聊天已在另一個 Hermes 視窗或終端機中開啟。請在這裡開始新的聊天，或先在那裡關閉它。'
         },
         disk_full: {
-          title: '磁碟已滿',
-          body: '磁碟空間已滿，Hermes 無法儲存此對話。請釋放空間後重試。'
+          title: '你的磁碟已滿',
+          body: 'Hermes 無法儲存此對話。請釋放空間後重試。'
         },
         free_tier_disabled: {
-          title: '未登入的免費服務目前已關閉',
-          body: '登入免費的 Nous 帳戶即可繼續對話。'
+          title: '登入以繼續聊天',
+          body: '使用 Nous 帳戶登入即可繼續聊天，完全免費。'
         },
         free_tier_rate_limited: {
-          title: '未登入聊天額度已用盡',
-          body: '額度很快會恢復。登入免費的 Nous 帳戶可獲得更高額度。'
+          title: '免費額度已用完',
+          body: '額度很快就會恢復。使用 Nous 帳戶登入可獲得更多額度，完全免費。'
         },
         free_tier_at_capacity: {
-          title: '未登入聊天目前忙碌',
-          body: '登入免費帳戶可略過佇列，也可以稍後重試。'
+          title: '免費方案忙碌中',
+          body: '登入即可免排隊，完全免費；或稍後再試。'
         },
         free_tier_model_not_free: {
-          title: '未登入時無法使用此模型',
-          body: 'Hermes 目前使用免費模型。登入免費的 Nous 帳戶可使用更多模型。'
+          title: '此模型需要登入',
+          body: 'Hermes 目前改用免費模型。使用 Nous 帳戶登入即可使用更多模型，完全免費。'
         },
         free_tier_route: {
-          title: 'Hermes 無法存取此路由上的免費模型',
-          body: '請登入免費的 Nous 帳戶，或檢查 NOUS_INFERENCE_BASE_URL 設定。'
+          title: '無法連線到免費模型',
+          body: '請使用 Nous 帳戶登入（完全免費），或檢查 NOUS_INFERENCE_BASE_URL 設定。'
         },
         free_tier_outage: {
-          title: '免費模型暫時無法回應',
-          body: '請稍後重新傳送訊息。'
+          title: '免費模型發生問題',
+          body: '請稍候一分鐘再重新傳送訊息。'
         },
         free_tier_refused: {
-          title: '未登入時無法傳送此訊息',
-          body: '請登入免費的 Nous 帳戶後繼續。'
-        },
-        SESSION_OWNER_BUSY: {
-          title: 'Hermes 正在此對話中忙碌',
-          body: '這裡正在執行另一輪對話，你的訊息無法加入其佇列。未傳送任何內容。等那一輪結束後再重試。'
-        },
-        SESSION_OWNER_UNCONFIRMED: {
-          title: '你的訊息可能已在佇列中',
-          body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
+          title: '登入以繼續聊天',
+          body: '使用 Nous 帳戶登入完全免費。'
         },
         cron_session_read_only: {
           title: '此聊天屬於一個排程工作',
           body: '它只會執行該工作，因此你的訊息未被執行。請開始新的聊天後再傳送。'
+        },
+        session_read_only: {
+          title: '此聊天為唯讀',
+          body: '它是 Hermes 只能顯示、無法繼續的已儲存歷史記錄，因此你的訊息未被執行。請開始新的聊天後再傳送。'
         },
         usage_window: {
           title: '包含用量已用完',
@@ -324,6 +327,18 @@ export const zhHantAssistant = {
         workspace_unavailable: {
           title: '此聊天的資料夾已不存在',
           body: '此聊天使用的資料夾已被移動或刪除，因此你的訊息未被執行。請重新建立該資料夾，或使用「Move to project」為聊天指定其他資料夾，然後重試。'
+        },
+        launch_credentials_unavailable: {
+          title: '此聊天的 API 金鑰已變更',
+          body: '此聊天開始時使用的 API 金鑰後來已被變更或刪除，因此你的訊息未送出。開啟中的聊天不會自行切換到其他金鑰。請使用「開始新工作階段」以使用目前的金鑰。'
+        },
+        SESSION_OWNER_BUSY: {
+          title: 'Hermes 正在此對話中忙碌',
+          body: '這裡正在執行另一輪對話，你的訊息無法加入其佇列。未傳送任何內容。等那一輪結束後再重試。'
+        },
+        SESSION_OWNER_UNCONFIRMED: {
+          title: '你的訊息可能已在佇列中',
+          body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
         }
       },
       errorLayers: {
@@ -397,7 +412,19 @@ export const zhHantAssistant = {
       errorOpenHermesFolder: '開啟Hermes資料夾',
       errorOpenHermesFolderFailed: '無法開啟 Hermes 資料夾',
       errorUpdateApiKey: '更新 API 金鑰',
-      errorSignInFreeTier: '使用 Nous 帳號登入'
+      errorSignInFreeTier: '使用 Nous 帳號登入',
+      errorRateLimitResetBody: (provider, time) => `你已達到 ${provider} 的速率限制，將於 ${time} 重設。`,
+      errorRetryAtResetShort: time => `${time} 重試`,
+      errorChooseModelLink: '選擇其他模型',
+      errorStartNewChatLink: '開始新的聊天',
+      errorOpenModelSettings: '開啟模型設定',
+      errorSetupGuideLink: '設定指南',
+      errorOpenSetupGuide: '開啟設定指南',
+      errorOpenProviderSettings: provider => `開啟 ${provider} 設定`,
+      errorContinue: '繼續',
+      errorCopyRaw: '複製錯誤',
+      errorDetailsCopy: '複製詳細資訊',
+      errorHideDetails: '隱藏錯誤詳細資訊'
     },
     approval: {
       gatewayDisconnected: 'Hermes 閘道未連線',

@@ -43,5 +43,7 @@ export const zhHantFirstRun: FirstRunCopy = {
     description: '開啟新的設定對話，用你目前的模型走一遍首次執行的步驟。',
     action: '重新執行',
     failed: '無法啟動新手引導'
-  }
+  },
+  slashOffBody: '設定完成後即可照常使用。',
+  slashOffTitle: '設定期間無法使用斜線指令'
 }

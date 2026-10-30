@@ -72,6 +72,15 @@ export const zhHantSettingsPlugins = {
       `${name} is installed but needs a key before it can work: ${vars}。現在添加它，否則插件的工具將失敗。`,
     profileLabel: '安裝設定檔',
     installUncertain:
-      'Hermes 已停止等待安裝結果，但插件可能仍在安裝中。請關閉此對話方塊，並在「插件」中執行「重新掃描」後再嘗試安裝'
+      'Hermes 已停止等待安裝結果，但插件可能仍在安裝中。請關閉此對話方塊，並在「插件」中執行「重新掃描」後再嘗試安裝',
+    partialInstall: sha =>
+      sha
+        ? `外掛只安裝了一部分：代理部分已安裝在提交 ${sha}，但由於儲存庫在你審閱後有變更，桌面部分未能隨之安裝。在「進階」中開啟強制重新安裝，可用顯示的版本取代兩部分；或取消，只保留代理部分。`
+        : '外掛只安裝了一部分：代理部分已安裝，但由於儲存庫在你審閱後有變更，桌面部分未能隨之安裝。在「進階」中開啟強制重新安裝，可用顯示的版本取代兩部分；或取消，只保留代理部分。',
+    installAnyway: '仍要安裝',
+    legacyBackendConfirm:
+      '此後端比本應用程式舊，無法保證安裝的就是你審閱過的版本：如果儲存庫之後有變更，安裝的會是較新的版本。更新後端即可獲得這項保證。',
+    sourceMoved: sha =>
+      sha ? `自你審閱後儲存庫已變更。請先審閱新版本（提交 ${sha}）再安裝。` : '自你審閱後儲存庫已變更。正在讀取新版本…'
   }
 } satisfies NonNullable<TranslationOverrides['settings']>['plugins']

@@ -628,7 +628,13 @@ export const zhHantChrome = {
     terminalCloseAll: '全部關閉',
     addToChat: '新增至聊天',
     showIgnored: '顯示 gitignore 的檔案',
-    hideIgnored: '隱藏 gitignore 的檔案'
+    hideIgnored: '隱藏 gitignore 的檔案',
+    terminalDropUnquotable: (shell, paths) => `無法在 ${shell} 中安全地輸入這些名稱：${paths}`,
+    terminalDropUploadFailed: name => `無法上傳 ${name}`,
+    terminalDropTooLargeTitle: '檔案過大，無法上傳',
+    terminalDropTooLarge: (names, limit) => `每個檔案最大 ${limit}。未上傳：${names}`,
+    terminalDropControlTitle: '未輸入到終端機',
+    terminalDropControl: paths => `這些名稱包含 shell 會當作按鍵處理的控制字元：${paths}`
   },
   zones: {
     showTabStrip: '顯示分頁',
@@ -687,7 +693,8 @@ export const zhHantChrome = {
       focus: '專注',
       'terminal-deck': '終端面板',
       quad: '四格'
-    }
+    },
+    tabActions: title => `${title} 的動作`
   },
   contextMenu: {
     link: {

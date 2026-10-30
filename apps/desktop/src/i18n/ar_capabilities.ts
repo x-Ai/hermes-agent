@@ -146,7 +146,35 @@ export const arCapabilities = {
         secretSet: '● ● ● ● ● ● ● ● ● ● ● ـ ـ ـ ـ ـ ـ ـ ـ )مجموعة(',
         secretStoredAs: (env: string) =>
           `تُحفظ في ملف .env الخاص بالملف الشخصي باسم ${env}، ولا تُحفظ أبداً في config.yaml؛ اتركها فارغة للاحتفاظ بالقيمة الحالية.`
-      }
+      },
+      folderAccess: {
+        title: 'الوصول إلى المجلدات',
+        hint: (name: string) => `يمكن لـ ${name} قراءة الملفات وتعديلها في هذه المجلدات. يسري الإلغاء فورًا.`,
+        revoke: 'إلغاء',
+        revokeLabel: (path: string) => `إلغاء الوصول إلى ${path}`,
+        revoked: (name: string, path: string) => `لم يعد بإمكان ${name} استخدام ${path}.`,
+        revokeFailed: (name: string) => `تعذر إلغاء وصول ${name} إلى المجلدات`,
+        pickerTitle: (name: string) => `اختر مجلدًا لـ ${name}`,
+        pickerButton: 'السماح بالوصول',
+        refusedProtected: (name: string) =>
+          `لا يمكن لـ ${name} استخدام هذا المجلد: فهو يحتوي على إعدادات Hermes أو مفاتيحه أو بيانات الإضافات. اختر مجلدًا لا يحتويها.`,
+        loadFailed: (name: string) => `تعذّر تحميل المجلدات المشتركة مع ${name}.`
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `تعذّر حفظ هذا التغيير، لذا يسري فقط حتى إعادة تشغيل Hermes. ${plugin} محظور على ${origin} في الوقت الحالي.`,
+      previewScriptRevoked: (plugin: string, origin: string) =>
+        `لم يعد بإمكان ${plugin} تشغيل نصوص برمجية على ${origin}.`,
+      previewScriptRevoke: (origin: string) => `إلغاء الوصول إلى ${origin}`,
+      previewScriptAccessNone: 'يسأل قبل تشغيل النصوص البرمجية على أي صفحة',
+      previewScriptAccessLabel: 'نصوص الصفحة',
+      previewScriptDeny: 'عدم السماح',
+      previewScriptAllow: 'السماح على هذا الموقع',
+      previewScriptPromptRevokeHint: 'ينطبق على هذا الموقع فقط. يمكنك إلغاؤه من المهارات ▸ الإضافات.',
+      previewScriptPromptRisk:
+        'يمكن للنصوص البرمجية قراءة كل شيء على ذلك الموقع وتغييره، بما في ذلك صفحات الحسابات التي سجّلت الدخول إليها هناك.',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `يريد ${plugin} تشغيل JavaScript في متصفح المعاينة على ${origin}.`,
+      previewScriptPromptTitle: (plugin: string) => `هل تسمح لـ ${plugin} بتشغيل نصوص برمجية على هذه الصفحة؟`
     },
     officialCatalog: 'متاح للتثبيت',
     officialPill: 'الرسمي',

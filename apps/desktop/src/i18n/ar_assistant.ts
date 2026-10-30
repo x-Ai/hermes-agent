@@ -155,136 +155,144 @@ export const arAssistant = {
         streaming: 'تم قطع الرد'
       },
       errorCodes: {
+        auth: {
+          title: provider => `رفض ${provider} مفتاح API الخاص بك`,
+          body: () => 'المفتاح المحفوظ غير صالح أو أُلغي. حدّثه، ثم أرسل رسالتك مجددًا.'
+        },
+        auth_permanent: {
+          title: provider => `رفض ${provider} مفتاح API الخاص بك`,
+          body: () => 'المفتاح المحفوظ غير صالح أو أُلغي. حدّثه، ثم أرسل رسالتك مجددًا.'
+        },
+        billing: {
+          title: provider => `نفد رصيدك في ${provider}`,
+          body: provider => `أضف رصيدًا لمواصلة استخدام النماذج المدفوعة على ${provider}.`
+        },
+        rate_limit: {
+          title: provider => `${provider} مشغول الآن`,
+          body: provider => `بلغت حد الطلبات في ${provider}. انتظر قليلًا، ثم أعد المحاولة.`
+        },
+        upstream_rate_limit: {
+          title: (_provider, model) => `${model || 'هذا النموذج'} مشغول الآن`,
+          body: (provider, model) =>
+            `${model || 'هذا النموذج'} مقيَّد بحد الطلبات لدى مصدر ${provider}، لا في حسابك. أعد المحاولة بعد قليل.`
+        },
+        overloaded: {
+          title: provider => `${provider} مشغول الآن`,
+          body: provider => `${provider} مثقل بالطلبات ولم يتمكن من معالجة هذا الطلب. أعد المحاولة بعد قليل.`
+        },
+        server_error: {
+          title: provider => `${provider} يواجه مشكلة`,
+          body: provider => `أعاد ${provider} خطأ في الخادم. أعد المحاولة بعد قليل.`
+        },
+        timeout: {
+          title: provider => `تعذّر الوصول إلى ${provider}`,
+          body: provider => `تعذّر على Hermes الوصول إلى ${provider}. تحقّق من اتصالك، ثم أعد المحاولة.`
+        },
+        no_reply: {
+          title: 'لم يصل الرد',
+          body: 'أنهى Hermes هذه الجولة، لكن لم يصل أي رد إلى هذه النافذة. أعد المحاولة لإرسالها مجددًا.'
+        },
+        upstream_blocked: {
+          title: provider => `حظر ${provider} هذا الطلب`,
+          body: provider =>
+            `رفض جدار حماية أمام ${provider} الطلب قبل وصوله إلى النموذج. بدّل المزوّد، أو عيّن له User-Agent مخصصًا.`
+        },
+        ssl_cert_verification: {
+          title: provider => `تعذّر التحقق من اتصال ${provider}`,
+          body: provider =>
+            `منع وكيل (proxy) أو مخزن شهادات قديم الاتصال الآمن بـ ${provider}. يوضح دليل الإعداد كيفية إصلاح ذلك.`
+        },
+        context_overflow: {
+          title: 'هذه المحادثة طويلة جدًا',
+          body: (_provider, model) => `لم تعد المحادثة تتسع في نافذة سياق ${model || 'النموذج'}. اضغطها للمتابعة.`
+        },
+        payload_too_large: {
+          title: 'هذه الرسالة كبيرة جدًا',
+          body: provider => `يتجاوز الطلب، بما فيه المرفقات، حد الحجم لدى ${provider}. اضغط المحادثة أو أزل المرفقات.`
+        },
+        model_not_found: {
+          title: (_provider, model) => `${model || 'هذا النموذج'} غير متاح`,
+          body: (provider, model) => `لا يوفّر ${provider} ${model || 'هذا النموذج'} في حسابك. اختر نموذجًا آخر.`
+        },
+        provider_policy_blocked: {
+          title: (provider, model) => `إعدادات ${provider} تحظر ${model || 'هذا النموذج'}`,
+          body: provider =>
+            `تستبعد إعدادات الخصوصية في ${provider} جميع نقاط الوصول لهذا النموذج. غيّرها على ${provider}، أو اختر نموذجًا آخر.`
+        },
+        content_policy_blocked: {
+          title: provider => `رفض ${provider} هذه الرسالة`,
+          body: provider => `رفضها مرشّح الأمان في ${provider}. عدّل الرسالة وأرسلها مجددًا.`
+        },
+        format_error: {
+          title: provider => `رفض ${provider} هذا الطلب`,
+          body: provider =>
+            `لم يقبل ${provider} طريقة بناء هذه المحادثة. بدّل المزوّد، أو ابدأ محادثة جديدة إذا تكرر ذلك.`
+        },
+        truncated: {
+          title: 'انقطع الرد قبل اكتماله',
+          body: (_provider, model) =>
+            `توقف ${model || 'النموذج'} قبل أن ينتهي، لذا لم تُنفَّذ خطوته الأخيرة. اختر «متابعة» ليكمل من حيث توقف.`
+        },
+        invalid_response: {
+          title: 'تعذّرت قراءة الرد',
+          body: provider => `أعاد ${provider} ردًا فارغًا أو تالفًا. أعد المحاولة بعد قليل.`
+        },
+        empty_response: {
+          title: 'تعذّر الحصول على رد',
+          body: provider => `لم يُعِد ${provider} أي شيء لهذه الرسالة. أعد المحاولة بعد قليل.`
+        },
+        loop_error: {
+          title: 'تعذّر على Hermes إنهاء هذه الخطوة',
+          body: 'حدث خطأ أثناء معالجة الرد. أعد المحاولة؛ وإذا تكرر ذلك، أرسل التشخيصات من التفاصيل.'
+        },
+        agent_init_failed: {
+          title: 'تعذّر بدء هذه المحادثة',
+          body: provider =>
+            `تعذّر على Hermes الاتصال بـ ${provider} لهذه المحادثة. أعد المحاولة؛ وإذا استمر الفشل، تحقّق من المزوّد في الإعدادات.`
+        },
+        SESSION_NOT_OWNED: {
+          title: 'المحادثة مفتوحة في مكان آخر',
+          body: 'هذه المحادثة مفتوحة في نافذة Hermes أخرى أو في الطرفية. ابدأ محادثة جديدة هنا، أو أغلقها هناك أولًا.'
+        },
+        disk_full: {
+          title: 'القرص ممتلئ',
+          body: 'تعذّر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة، ثم أعد المحاولة.'
+        },
+        free_tier_disabled: {
+          title: 'سجّل الدخول لمتابعة المحادثة',
+          body: 'سجّل الدخول بحساب Nous لمتابعة المحادثة، فهو مجاني.'
+        },
+        free_tier_rate_limited: {
+          title: 'نفدت الحصة المجانية',
+          body: 'تتجدد قريبًا. سجّل الدخول بحساب Nous للحصول على حصة أكبر، فهو مجاني.'
+        },
+        free_tier_at_capacity: {
+          title: 'الفئة المجانية مزدحمة',
+          body: 'سجّل الدخول لتتجاوز الانتظار، فهو مجاني، أو حاول مجددًا بعد قليل.'
+        },
+        free_tier_model_not_free: {
+          title: 'هذا النموذج يتطلب تسجيل الدخول',
+          body: 'يستخدم Hermes النموذج المجاني حاليًا. سجّل الدخول بحساب Nous للوصول إلى نماذج أكثر، فهو مجاني.'
+        },
+        free_tier_route: {
+          title: 'تعذّر الوصول إلى النموذج المجاني',
+          body: 'سجّل الدخول بحساب Nous، فهو مجاني، أو تحقّق من إعداد NOUS_INFERENCE_BASE_URL.'
+        },
+        free_tier_outage: {
+          title: 'النموذج المجاني يواجه مشكلة',
+          body: 'حاول إرسال رسالتك مجددًا بعد دقيقة.'
+        },
+        free_tier_refused: {
+          title: 'سجّل الدخول لمتابعة المحادثة',
+          body: 'تسجيل الدخول بحساب Nous مجاني.'
+        },
         cron_session_read_only: {
           title: 'هذه المحادثة تابعة لمهمة مجدولة',
           body: 'إنها تشغّل تلك المهمة فقط، لذا لم تُنفَّذ رسالتك. ابدأ محادثة جديدة لإرسالها.'
         },
-        auth: {
-          title: provider => `${provider}رفض تسجيل الدخول الخاص بك`,
-          body: provider =>
-            `بيانات الاعتماد المحفوظة لـ${provider}لم يتم قبولها. قم بإصلاحها في الإعدادات أو قم بتغيير المزود، ثم أرسل رسالتك مرة أخرى.`
-        },
-        auth_permanent: {
-          title: provider => `${provider}رفض تسجيل الدخول الخاص بك`,
-          body: provider =>
-            `بيانات الاعتماد المحفوظة لـ${provider}غير صالحة أو تم إلغاؤها. قم بتحديثها أو غيّر المزود، ثم أرسل رسالتك مرة أخرى.`
-        },
-        billing: {
-          title: 'انتهت الرصيد',
-          body: provider =>
-            `لك${provider}الحساب لم يعد يحتوي على أرصدة. قم بإعادة الشحن أو تغيير المزود، ثم أرسل مرة أخرى.`
-        },
-        rate_limit: {
-          title: 'خدمة "أي آي" مشغولة',
-          body: provider => `${provider}يقوم حاليًا بتحديد عدد الطلبات. انتظر دقيقة، ثم حاول مرة أخرى.`
-        },
-        upstream_rate_limit: {
-          title: 'خدمة "أي آي" مشغولة',
-          body: provider => `${provider}يقوم حاليًا بتحديد عدد الطلبات. انتظر دقيقة، ثم حاول مرة أخرى.`
-        },
-        overloaded: {
-          title: '"خدمة "آى آي',
-          body: provider => `${provider}يواجه مشاكل الآن. حاول مرة أخرى بعد قليل أو قم بتغيير المزود.`
-        },
-        server_error: {
-          title: 'كان لدائرة مكافحة المخدرات مشكلة',
-          body: provider => `${provider}أعاد خادم الخطأ. حاول مرة أخرى بعد لحظة أو غيّر المزود.`
-        },
-        timeout: {
-          title: 'تاريخ تقديم الرد',
-          body: provider => `${provider}لم يتم الرد في الوقت المحدد. حاول إرسالها مرة أخرى.`
-        },
-        stream_drop: {
-          title: 'تم قطع الرد',
-          body: 'The connection dropped before the reply ended. حاول أن ترسلها مرة أخرى.'
-        },
-        upstream_blocked: {
-          title: 'حائط ناري أغلق الطلب',
-          body: provider =>
-            `جدار ناري أو CDN أمام${provider}تم حظر الطلب قبل أن يصل إلى النموذج — من المحتمل أن تكون مفتاحك على ما يرام. قم بتعيين رأس User-Agent عبر extra_headers الخاصة بالمزود في الإعدادات، أو قم بتغيير المزود، ثم أعد إرسال رسالتك.`
-        },
-        ssl_cert_verification: {
-          title: 'فشل الاتصال الآمن',
-          body: provider =>
-            `Hermes could not verify the secure connection to ${provider}تحقق من شبكتك أو أماكن العميلة أو مزود المفاتيح ثم أرسل رسالتك مرة أخرى.`
-        },
-        context_overflow: {
-          title: 'هذه المحادثة طويلة جداً',
-          body: 'المحادثة لم تعد تناسب النموذج اضغطي عليه أو ابدأي حديث جديد ثم ارسليه مرة اخرى.'
-        },
-        payload_too_large: {
-          title: 'هذه الرسالة كبيرة جدا',
-          body: 'الطلب كان كبيرا جدا للنموذج. اضغطي على المحادثة أو ابدأي حديث جديد ثم ارسلي مرة اخرى.'
-        },
-        model_not_found: {
-          title: 'هذا النموذج غير متاح',
-          body: provider => `${provider}لا يقدم هذا النموذج على حسابك. اختر نموذجًا آخر، ثم أرسل رسالتك مرة أخرى.`
-        },
-        provider_policy_blocked: {
-          title: 'هذا النموذج محجوب من خلال حساباتك',
-          body: provider =>
-            `${provider}لن يتم توجيه هذا الطلب ضمن إعدادات البيانات أو الخصوصية لحسابك. اختر نموذجًا آخر أو قم بتغيير المزود.`
-        },
-        content_policy_blocked: {
-          title: 'ورفضت دائرة الاستخبارات المالية هذا الطلب',
-          body: provider => `${provider}لن يجيب على هذه الرسالة. حررها وأرسلها مرة أخرى.`
-        },
-        format_error: {
-          title: 'ورفضت دائرة الاستخبارات المالية الطلب',
-          body: provider =>
-            `${provider}لم يتم قبول الطريقة التي تم بها بناء هذا الطلب. قم بتغيير المزود أو أرسل بيانات التشخيص حتى نتمكن من الاطلاع عليها.`
-        },
-        truncated: {
-          title: 'قُطع الرد',
-          body: 'النموذج توقف قبل الانتهاء حاول الحصول على رد كامل.'
-        },
-        invalid_response: {
-          title: 'أرسل خدمة الذكاء الاصطناعي ردًا غير قابل للقراءة',
-          body: provider => `${provider}أعاد شيئًا Hermes لم يتمكن من قراءته. حاول مرة أخرى بعد لحظة.`
-        },
-        empty_response: {
-          title: 'أرسل خدمة الذكاء الاصطناعي ردًا فارغًا',
-          body: provider => `${provider}لم يُرجع شيئًا لهذه الرسالة. حاول مرة أخرى بعد لحظة.`
-        },
-        loop_error: {
-          title: 'علق Hermes في حلقة تكرار',
-          body: 'واستمر الرد في تكرار نفس الخطوات، لذا أوقفته Hermes. ارجع او ابدأ حديث جديد اذا حدث مرة اخرى.'
-        },
-        SESSION_NOT_OWNED: {
-          title: 'هذه الدردشة مفتوحة في مكان آخر',
-          body: 'وهذه الدردشة مفتوحة حاليا في نافذة أو محطة طرفية أخرى من طراز Hermes. اغلقه هناك وارسل رسالتك مرة اخرى او ابدأ حديث جديد هنا.'
-        },
-        disk_full: {
-          title: 'القرص ممتلئ',
-          body: 'القرص ممتلئ، لذلك تعذر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة ثم أعد المحاولة.'
-        },
-        free_tier_disabled: {
-          title: 'استخدام Hermes بدون توقيع في',
-          body: 'التوقيع مع حساب Nous للحفاظ على الدردشة، انها حرة.'
-        },
-        free_tier_rate_limited: {
-          title: 'لقد استعملت علاوة الدردشة دون التوقيع',
-          body: 'ستنعش قريباً توقيع مع حساب Nous لبدل أكبر، هو مجانا.'
-        },
-        free_tier_at_capacity: {
-          title: 'التحدي دون التوقيع مشغول جدا الآن',
-          body: 'وقّعْ لتَرْك الطابور، هو حرُ، أَو يُحاولُ ثانيةً في فترة قصيرة.'
-        },
-        free_tier_model_not_free: {
-          title: 'هذا النموذج غير متاح بدون توقيع',
-          body: 'Hermes تستخدم النموذج الحر الآن. التوقيع مع حساب Nous للمزيد من النماذج، هو مجانا.'
-        },
-        free_tier_route: {
-          title: 'Hermes لا يمكن أن تصل إلى النموذج المجاني على هذا الطريق',
-          body: 'التوقيع مع حساب Nous، هو مجانا، أو التحقق من موقع NOUS_INFERENCE_BASE_URL.'
-        },
-        free_tier_outage: {
-          title: 'النموذج الحر يواجه مشكلة في الرد الآن',
-          body: 'حاول إرسال رسالتك مرة أخرى في دقيقة.'
-        },
-        free_tier_refused: {
-          title: 'Hermes لا يمكن أن ترسل ذلك دون التوقيع في',
-          body: 'التوقيع مع حساب Nous هو مجانا.'
+        session_read_only: {
+          title: 'هذه المحادثة للقراءة فقط',
+          body: 'إنها سجلّ محفوظ يستطيع Hermes عرضه لكن لا يستطيع متابعته، لذا لم تُنفَّذ رسالتك. ابدأ محادثة جديدة لإرسالها.'
         },
         usage_window: {
           title: 'نفد الاستخدام المضمّن',
@@ -293,6 +301,14 @@ export const arAssistant = {
         workspace_unavailable: {
           title: 'مجلد هذه المحادثة غير موجود',
           body: 'نُقل المجلد الذي تعمل فيه هذه المحادثة أو حُذف، لذا لم تُنفَّذ رسالتك. أعد إنشاء المجلد، أو استخدم «Move to project» لتعيين مجلد آخر للمحادثة، ثم أعد المحاولة.'
+        },
+        launch_credentials_unavailable: {
+          title: 'تغيّر مفتاح API لهذه المحادثة',
+          body: 'بدأت هذه المحادثة بمفتاح API تم تغييره أو حذفه منذ ذلك الحين، لذا لم تُرسل رسالتك. المحادثة المفتوحة لا تنتقل أبدًا إلى مفتاح مختلف من تلقاء نفسها. استخدم «بدء جلسة جديدة» لاستخدام مفتاحك الحالي.'
+        },
+        stream_drop: {
+          title: 'تم قطع الرد',
+          body: 'انقطع الاتصال قبل أن يكتمل الرد. أعد المحاولة لإرساله مرة أخرى.'
         }
       },
       errorRetry: 'إعادة المحاولة',
@@ -370,7 +386,19 @@ export const arAssistant = {
       errorOpenHermesFolder: 'ملف Hermes',
       errorOpenHermesFolderFailed: 'لا يمكن فتح ملف Hermes',
       errorUpdateApiKey: 'تحديث مفتاح API',
-      errorSignInFreeTier: 'وقع مع حساب Nous'
+      errorSignInFreeTier: 'وقع مع حساب Nous',
+      errorRateLimitResetBody: (provider, time) => `بلغت حد الطلبات في ${provider}. يُعاد ضبطه عند ${time}.`,
+      errorRetryAtResetShort: time => `إعادة المحاولة عند ${time}`,
+      errorChooseModelLink: 'اختيار نموذج آخر',
+      errorStartNewChatLink: 'بدء محادثة جديدة',
+      errorOpenModelSettings: 'فتح إعدادات النموذج',
+      errorSetupGuideLink: 'دليل الإعداد',
+      errorOpenSetupGuide: 'فتح دليل الإعداد',
+      errorOpenProviderSettings: provider => `فتح إعدادات ${provider}`,
+      errorContinue: 'متابعة',
+      errorCopyRaw: 'نسخ الخطأ',
+      errorDetailsCopy: 'نسخ التفاصيل',
+      errorHideDetails: 'إخفاء تفاصيل الخطأ'
     },
     approval: {
       gatewayDisconnected:

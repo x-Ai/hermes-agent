@@ -165,7 +165,9 @@ export const arChrome = {
       'nav.capabilities': 'فتح المهارات',
       'view.cycleSidebarGrouping': 'تجميع جلسة الدورة',
       'view.toggleProfileRail': 'تبديل السكك الحديدية الشخصية',
-      'view.closePreviewTab': 'إغلاق علامة تبويب المعاينة'
+      'view.closePreviewTab': 'إغلاق علامة تبويب المعاينة',
+      'conversation.scrollPageDown': 'تمرير المحادثة صفحة إلى الأسفل',
+      'conversation.scrollPageUp': 'تمرير المحادثة صفحة إلى الأعلى'
     }
   },
   paletteCommands: {
@@ -693,7 +695,8 @@ export const arChrome = {
     terminalCloseAll: 'أغلق الكل',
     addToChat: 'إضافة للمحادثة',
     showIgnored: 'إظهار الملفات المتجاهلة في git',
-    hideIgnored: 'إخفاء الملفات المتجاهلة في git'
+    hideIgnored: 'إخفاء الملفات المتجاهلة في git',
+    terminalDropUnquotable: (shell, paths) => `لا يمكن كتابة هذه الأسماء بأمان في ${shell}: ${paths}`
   },
   zones: {
     showTabStrip: 'إظهار علامات التبويب',
@@ -750,7 +753,8 @@ export const arChrome = {
       focus: 'تركيز',
       'terminal-deck': 'لوحة الطرفية',
       quad: 'رباعي'
-    }
+    },
+    tabActions: title => `إجراءات ${title}`
   },
   contextMenu: {
     link: {

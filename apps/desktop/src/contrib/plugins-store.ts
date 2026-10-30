@@ -20,11 +20,13 @@ export interface PluginRecord {
   status: PluginStatus
   /** One-liner from the plugin's own metadata (what it adds). */
   description?: string
+
   /** Locale-keyed display names. Falls back to `name`. */
   localizedName?: Partial<Record<string, string>>
   /** Locale-keyed descriptions. Falls back to `description`. */
   localizedDescription?: Partial<Record<string, string>>
-  /** Load/registration failure message (status 'error'). */
+  /** Sensitive doors the plugin declared (`HermesPlugin.capabilities`). */
+  capabilities?: string[]  /** Load/registration failure message (status 'error'). */
   error?: string
   /** Absolute plugin.js path (disk plugins) — powers "Reveal in Finder". */
   file?: string

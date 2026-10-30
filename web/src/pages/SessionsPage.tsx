@@ -863,7 +863,7 @@ export default function SessionsPage() {
     };
   }, [loading, setAfterTitle, total]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setEnd(
       <Button outlined size="sm" onClick={() => setPruneOpen(true)} prefix={<Archive />}>
         {copy.prune}

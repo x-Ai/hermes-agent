@@ -28,6 +28,7 @@ export interface NoticeTranslations {
     sessionCommands: SessionCommandNotices
     /** Desktop-side /rollback /agents /config /history /save /export /import /timestamps lines. */
     desktopCommands: DesktopCommandNotices
+    restoredDraftAttachmentsDropped: string
   }
 
   /** Once per computer, after a timed sleep interrupted a turn with keep-awake off. */

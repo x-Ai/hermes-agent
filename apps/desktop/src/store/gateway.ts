@@ -14,6 +14,7 @@ import { canonicalOwnerProfile } from '@/api/canonical-protocol'
 import type { HermesConnection } from '@/global'
 import { HermesGateway, setApiRequestConnection } from '@/hermes'
 import { translateNow } from '@/i18n'
+import { UnservedProfileError } from '@/lib/browser-served-profiles'
 import {
   decideLivenessForceClose,
   LIVENESS_PROBE_TIMEOUT_MS,
@@ -22,18 +23,22 @@ import {
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 import { traceIdentityChange } from '@/lib/identity-trace'
 import { isPermanentLocalGatewayEnsureError } from '@/lib/local-gateway-ensure-failure'
+import { initialGatewayProfile } from '@/lib/platform'
 import {
   isTimeoutError,
   RECONNECT_ATTEMPT_TIMEOUT_MS,
   SOURCE_SWITCH_DIAL_TIMEOUT_MS,
   withTimeout
 } from '@/lib/with-timeout'
+import { $gatewayActivationEpoch } from '@/store/gateway-activation-epoch'
+import { isMissingConnectionError, isMissingProfileError } from '@/store/gateway-dial-failures'
+import { sharedPrimaryRoute } from '@/store/gateway-shared-primary'
 import { notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
 import { markNativeNotifyBaseline } from '@/store/notify-baseline'
 import { setConnection, setGatewayState } from '@/store/session'
 import { stampSecondaryProfileOwner } from '@/store/session-event-provenance'
-
-import { isMissingConnectionError, isMissingProfileError } from './gateway-dial-errors'
+export { useGatewayActivationEpoch } from '@/store/gateway-activation-epoch'
+export { sharedPrimaryRoute } from '@/store/gateway-shared-primary'
 
 // ── Multi-profile gateway routing ──────────────────────────────────────────
 // Concurrent sessions across profiles need concurrent sockets: the renderer's
@@ -221,7 +226,6 @@ interface GatewayRegistryState {
   primaryConnectionMode: 'local' | 'remote' | null
   primaryProfile: string
   activeKey: string
-  activationEpoch: number
   secondaries: Map<string, Secondary>
   // Auth rejection outlives the disposable socket, including background request leases.
   reauthFailures: Map<string, { connectionId: string | null; error: Error }>
@@ -248,9 +252,8 @@ function createRegistryState(): GatewayRegistryState {
     primaryGateway: null,
     primaryConnectionId: null,
     primaryConnectionMode: null,
-    primaryProfile: 'default',
-    activeKey: 'default',
-    activationEpoch: 0,
+    primaryProfile: initialGatewayProfile(),
+    activeKey: initialGatewayProfile(),
     secondaries: new Map<string, Secondary>(),
     reauthFailures: new Map(),
     dialFailures: new Map(),
@@ -268,7 +271,7 @@ function createRegistryState(): GatewayRegistryState {
     // the split-brain where an eviction re-pointed activeKey at the primary
     // while the profile atom kept naming the evicted bot routed every
     // "loki" session.resume to the default backend (#89206 wake failures).
-    $activeProfile: atom<string>('default')
+    $activeProfile: atom<string>(initialGatewayProfile())
   }
 }
 
@@ -533,7 +536,7 @@ export function isActivePrimary(): boolean {
 
 /** Changes on every active route selection, including same-profile source swaps. */
 export function gatewayActivationEpoch(): number {
-  return Number.isFinite(g.activationEpoch) ? g.activationEpoch : 0
+  return Number.isFinite($gatewayActivationEpoch.get()) ? $gatewayActivationEpoch.get() : 0
 }
 
 /** Every socket this window owns right now (the primary and the registry secondaries), any state. */
@@ -646,9 +649,9 @@ function setActive(profile: string): void {
 }
 
 function beginGatewayActivation(): number {
-  g.activationEpoch = gatewayActivationEpoch() + 1
+  $gatewayActivationEpoch.set(gatewayActivationEpoch() + 1)
 
-  return g.activationEpoch
+  return $gatewayActivationEpoch.get()
 }
 
 function applyActive(profile: string, activationEpoch: number): boolean {
@@ -847,6 +850,12 @@ async function openSecondary(entry: Secondary): Promise<void> {
   } catch (error) {
     if (isGatewayReauthRequired(error) && g.secondaries.get(entry.scope) === entry) {
       g.reauthFailures.set(entry.scope, { connectionId: entry.connectionId, error })
+      entry.wantOpen = false
+      clearTimer(entry)
+    }
+
+    // Parked here, where every dial lands, so not even the first scheduled redial runs.
+    if (error instanceof UnservedProfileError) {
       entry.wantOpen = false
       clearTimer(entry)
     }
@@ -1118,33 +1127,6 @@ function createSecondary(profile: string, connectionId: null | string = null): S
 // profile. `sharedPrimary` is the explicit discriminator; treating every tagged
 // descriptor as shared strands local/own-remote pooled profiles on the default
 // socket. Dialing a second socket at the shared descriptor is wrong — over SSH
-// the second dial fails (tunnel/token are per-backend) and the closed socket
-// poisons the active gateway with "not connected" even though the primary is
-// open right next to it.
-async function sharedPrimaryRoute(profile: string): Promise<boolean> {
-  const desktop = window.hermesDesktop
-
-  if (!desktop) {
-    return false
-  }
-
-  try {
-    // Unbounded IPC round-trip into main (#93454) — a wedge here must reject
-    // like any other failure, not hang the route decision forever, since
-    // every caller (gatewayForProfile → requestGatewayForProfile/Agent) awaits
-    // this before it can fall back to dialing a secondary.
-    const conn = await withTimeout(
-      desktop.getConnection(profile),
-      RECONNECT_ATTEMPT_TIMEOUT_MS,
-      `Timed out resolving the shared-primary route for profile "${profile}"`
-    )
-
-    return Boolean(conn && typeof conn === 'object' && (conn as { sharedPrimary?: boolean }).sharedPrimary === true)
-  } catch {
-    return false
-  }
-}
-
 // Resolve and open `profile`'s socket WITHOUT changing the active gateway.
 // Shared global-remote profiles intentionally return the primary socket plus a
 // request-scope flag; dedicated local/remote profiles use their pooled socket.

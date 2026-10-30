@@ -1,17 +1,14 @@
-"""A member turn with a bound file reaches the member only on a route that can carry it.
+"""A member turn with a bound file must not reach a route that cannot carry it.
 
-The canonical authority route resolves event-bound attachment bytes inside its admission. This
-fork's in-process route (`HostedRoomServerRPC`) stages the same bytes into the member session
-before `prompt.submit` (`hosted_room_member_attachments.py`): images through `image.attach_bytes`,
-other files through `file.attach` plus the authority route's `[Shared attachment] file:` prompt
-line. The peer route (`PeerHostedRoomTransport`) still cannot carry files, so the driver refuses
-such a turn before dispatching, as a proven failure (a `TypeError` after submit used to book the
-attempt ambiguous and leave it `running`).
+Only the canonical authority route resolves event-bound attachment bytes. The legacy
+in-process route (`HostedRoomServerRPC`) and the peer route (`PeerHostedRoomTransport`)
+never declared `attachments`, so the driver's submit raised `TypeError` after it had
+marked the attempt submitted: the task was booked ambiguous and stayed `running`.
+The driver now refuses such a turn before submitting, as a proven failure.
 """
 
 from __future__ import annotations
 
-import base64
 import threading
 import time
 from pathlib import Path
@@ -21,8 +18,6 @@ import pytest
 
 from gateway import hosted_room_driver as state
 from gateway import hosted_rooms
-from gateway.hosted_room_attachments import HostedRoomAttachmentStore
-from gateway.session_ingress_media import HOSTED_DOCUMENT_LINE
 from tests.tui_gateway.test_hosted_room_driver_runtime import (
     BINDING,
     PROFILE,
@@ -58,16 +53,6 @@ def db(tmp_path: Path) -> Path:
         now=time.time(),
     )
     return path
-
-
-def _bind_file(db: Path, *, recipient="member-ops", data=b"exact bytes", name="note.txt",
-               mime="text/plain", kind="file") -> list[dict]:
-    """Upload one file and commit it to event-1 for ``recipient``: the task manifest it binds."""
-    store = HostedRoomAttachmentStore(db)
-    saved = store.put(room_id=ROOM_ID, upload_id=f"upload-{name}", kind=kind, name=name, mime=mime, data=data)
-    manifest = [{key: saved[key] for key in ("attachment_id", "kind", "name", "size", "mime")}]
-    store.commit_message(room_id=ROOM_ID, event_id="event-1", manifest=manifest, recipient_member_ids=[recipient])
-    return [{**manifest[0], "event_id": "event-1"}]
 
 
 def _admit(db: Path, *, attachments=None) -> state.TaskIdentity:
@@ -107,17 +92,6 @@ def _server_module():
         params["_hosted_terminal_callback"]({"status": "settled", "text": "Read it."})
         return {"id": rid, "result": {"status": "streaming"}}
 
-    staged = []
-
-    def file_attach(rid, params):
-        staged.append(("file.attach", params))
-        return {"id": rid, "result": {"attached": True, "name": params["name"],
-                                      "path": f"/srv/member/attachments/{params['name']}"}}
-
-    def image_attach_bytes(rid, params):
-        staged.append(("image.attach_bytes", params))
-        return {"id": rid, "result": {"attached": True, "path": "/srv/member/images/upload.png", "count": 1}}
-
     server = SimpleNamespace(
         _methods={
             "session.list": ok({"sessions": []}),
@@ -125,10 +99,7 @@ def _server_module():
             "session.resume": ok({"session_id": "runtime"}),
             "session.history": ok({"messages": []}),
             "prompt.submit": prompt_submit,
-            "file.attach": file_attach,
-            "image.attach_bytes": image_attach_bytes,
         },
-        staged=staged,
         _sessions={},
         _sessions_lock=threading.Lock(),
         _pending_approval_request_payload=lambda _session_key: None,
@@ -190,49 +161,15 @@ def _assert_refused_as_proven_failure(task: dict, runtime: HostedRoomRuntime) ->
     assert runtime.status()["blocked_rooms"] == ()
 
 
-def test_legacy_route_stages_a_bound_document_into_the_member_session_before_submitting(db: Path):
-    identity = _admit(db, attachments=_bind_file(db))
+def test_legacy_route_refuses_a_turn_with_a_file_before_submitting(db: Path):
+    identity = _admit(db, attachments=ATTACHMENTS)
     server, submits = _server_module()
-    runtime = _legacy_runtime(db, HostedRoomServerRPC(server, db_path=db))
+    runtime = _legacy_runtime(db, HostedRoomServerRPC(server))
 
     task = _run_until_settled_or_error(runtime, db, identity)
 
-    assert task["status"] == "settled", runtime.status()["last_error"]
-    [(door, params)] = server.staged
-    assert door == "file.attach"
-    assert (params["profile"], params["session_id"], params["name"]) == (PROFILE, "runtime", "note.txt")
-    assert base64.b64decode(params["data_url"].split(",", 1)[1]) == b"exact bytes"
-    # The member reads the same prompt the authority route composes: the file named on its own line.
-    assert submits[0]["text"] == (
-        "Read the attached note." + HOSTED_DOCUMENT_LINE + "/srv/member/attachments/note.txt\n")
-
-
-def test_legacy_route_queues_a_bound_image_on_the_member_session(db: Path):
-    png = b"\x89PNG\r\n\x1a\n" + bytes(16)
-    identity = _admit(db, attachments=_bind_file(db, data=png, name="shot.png", mime="image/png", kind="image"))
-    server, submits = _server_module()
-    runtime = _legacy_runtime(db, HostedRoomServerRPC(server, db_path=db))
-
-    task = _run_until_settled_or_error(runtime, db, identity)
-
-    assert task["status"] == "settled", runtime.status()["last_error"]
-    [(door, params)] = server.staged
-    assert door == "image.attach_bytes"
-    assert base64.b64decode(params["content_base64"]) == png and params["filename"] == "shot.png"
-    assert submits[0]["text"] == "Read the attached note."  # images ride as images, not prompt lines
-
-
-def test_legacy_route_proves_not_admitted_when_the_member_may_not_read_the_file(db: Path):
-    identity = _admit(db, attachments=_bind_file(db, recipient="someone-else"))
-    server, submits = _server_module()
-    runtime = _legacy_runtime(db, HostedRoomServerRPC(server, db_path=db))
-
-    task = _run_until_settled_or_error(runtime, db, identity)
-
-    assert task["status"] == "queued", runtime.status()["last_error"]
-    assert "was not admitted" in runtime.status()["last_error"]
-    assert runtime.status()["blocked_rooms"] == ()
-    assert server.staged == [] and submits == []
+    _assert_refused_as_proven_failure(task, runtime)
+    assert submits == []
 
 
 def test_legacy_route_still_runs_a_turn_without_a_file(db: Path):

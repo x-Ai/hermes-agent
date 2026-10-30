@@ -67,6 +67,8 @@ export {
   delegationModelOptions,
   delegationProviderOptions
 } from './delegation-suggestions'
+export { type ExternalUrlTarget, externalUrlTarget } from './external-url'
+export { fileUrlToNativePath } from './file-url'
 export { compactNumber } from './format'
 export { type FuzzyMatch, fuzzyRank, fuzzyScore, fuzzyScoreMulti, type RankedItem } from './fuzzy'
 export * from './gateway-events'
@@ -138,6 +140,7 @@ export {
   reconnectBackoffDelayMs,
   type ReconnectBackoffOptions
 } from './reconnect-backoff'
+export { randomUuid } from './session-http-mutations'
 export { skillInvocationText } from './skill-scaffold'
 export {
   type HermesSkin,
@@ -204,6 +207,7 @@ export {
 export { type UpdateDebt, updateDebt, type UpdateDebtReceipt, type UpdateDebtStep } from './update-debt'
 export { mergeUsage, usageFromTick, type UsageTickPayload } from './usage-tick'
 export {
+  BROWSER_NATIVE_DIAL,
   buildHermesWebSocketUrl,
   type GatewayAuthMode,
   GatewayReauthRequiredError,
@@ -211,6 +215,7 @@ export {
   type GatewayWsUrlResult,
   type HermesWebSocketUrlOptions,
   isGatewayReauthRequired,
+  normalizeBasePath,
   resolveGatewayWsUrl,
   type ResolveGatewayWsUrlDeps,
   type WebSocketAuthParam

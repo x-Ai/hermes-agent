@@ -6,7 +6,7 @@
  * `canonical`; everything they return keeps the legacy contract.
  */
 
-import { host } from '@hermes/plugin-sdk'
+import { host, randomUuid } from '@hermes/plugin-sdk'
 
 import { registerCanonicalGroup } from './canonical-group-registry'
 import { canonicalGroupRequest, type CanonicalGroupRoute, createCanonicalGroup } from './canonical-groups'
@@ -20,7 +20,7 @@ import {
   syncCanonicalRoom
 } from './canonical-room-sync'
 import { recordGroupActivity } from './group-activity'
-import { groupChatDisplayName, type GroupChatRoom } from './group-chat'
+import { $groupChatWorkspace, groupChatDisplayName, type GroupChatRoom } from './group-chat'
 import { groupMemberKey } from './group-membership'
 import { normalizeGroupWorkspacePath, sameGroupWorkspace } from './group-workspace'
 import { botsText } from './i18n'
@@ -81,8 +81,8 @@ export function sendToCanonicalRoom(
     return null
   }
 
-  const target = thread || crypto.randomUUID()
-  const eventId = crypto.randomUUID()
+  const target = thread || randomUuid()
+  const eventId = randomUuid()
   notePendingCanonicalSend(group, {
     at: Date.now(),
     from: { kind: 'user', name: 'You' },
@@ -137,7 +137,7 @@ export async function stopCanonicalRoom(group: string, room: GroupChatRoom, thre
   const binding = canonicalOf(room)
 
   try {
-    await canonicalGroupRequest(binding, 'groups.stop', { cancel_id: crypto.randomUUID(), room_id: binding.roomId })
+    await canonicalGroupRequest(binding, 'groups.stop', { cancel_id: randomUuid(), room_id: binding.roomId })
     recordGroupActivity(group, { kind: 'stopped', member: 'You', thread })
     await syncCanonicalRoom(group, binding)
   } catch (error) {
@@ -159,7 +159,7 @@ export async function renameCanonicalRoom(group: string, room: GroupChatRoom, na
 
   try {
     await canonicalGroupRequest(binding, 'groups.rename', {
-      event_id: crypto.randomUUID(),
+      event_id: randomUuid(),
       name: next,
       room_id: binding.roomId
     })
@@ -252,8 +252,15 @@ export async function disbandCanonicalRoom(group: string, room: GroupChatRoom): 
   const binding = canonicalOf(room)
 
   try {
-    await canonicalGroupRequest(binding, 'groups.disband', { cancel_id: crypto.randomUUID(), room_id: binding.roomId })
+    await canonicalGroupRequest(binding, 'groups.disband', { cancel_id: randomUuid(), room_id: binding.roomId })
     forgetCanonicalRoom(group)
+
+    // This fork renders a hosted room through the legacy view, not upstream's
+    // CanonicalGroupWorkspace, so no onBack fires to leave the open room: a
+    // disbanded room would keep the pane pointed at a record that no longer exists.
+    if ($groupChatWorkspace.get() === group) {
+      $groupChatWorkspace.set(null)
+    }
 
     return true
   } catch (error) {

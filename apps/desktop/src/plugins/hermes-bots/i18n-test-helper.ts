@@ -7,7 +7,7 @@
  * (or its tests) may not import.
  */
 
-import { BOTS_LOCALES } from './i18n'
+import { BOTS_LOCALES } from './i18n_locales'
 
 /** The same resolver against another shipped locale, for a test that has to
  *  tell a catalog string from an English literal that happens to match `en`. */

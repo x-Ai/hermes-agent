@@ -7,8 +7,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from agent.i18n import t
-from agent.models_dev import ModelInfo, PROVIDER_TO_MODELS_DEV
-
+from agent.models_dev import ModelInfo, models_dev_id_for
 
 INPUT_COST_WARNING_THRESHOLD = Decimal(20)
 OUTPUT_COST_WARNING_THRESHOLD = Decimal(100)
@@ -47,7 +46,7 @@ def _pricing_from_model_info(
 
 def _known_models_dev_provider(provider: Optional[str]) -> Optional[str]:
     normalized = (provider or "").strip().lower()
-    return PROVIDER_TO_MODELS_DEV.get(normalized) if normalized else None
+    return models_dev_id_for(normalized) if normalized else None
 
 
 def _can_trust_model_info_pricing(

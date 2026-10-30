@@ -738,7 +738,12 @@ export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
   const bindings = useValue($canonicalGroupBindings)
   const connectionId = useValue(host.state.connectionId)
   const profile = useValue(host.state.profile)
-  const binding = canonicalGroupBindingFor(bindings, { connectionId: connectionId ?? '', profile }, props.group, props.origin ?? 'name')
+  const binding = canonicalGroupBindingFor(
+    bindings,
+    { connectionId: connectionId ?? '', profile },
+    props.group,
+    props.origin ?? 'name'
+  )
 
   // Fork: a gateway-hosted room renders the SAME room view as a Desktop room — its record is a
   // projection of the gateway's state kept fresh here (canonical-room-sync.ts) while the view is
@@ -1749,7 +1754,13 @@ function GroupChatMainView({ group, origin }: GroupChatMainViewProps) {
   const visible = useValue($visible)
 
   return (
-    <GroupChatWorkspace group={group} members={members} onBack={() => closeGroupChatMainTab(group)} origin={origin} visible={visible} />
+    <GroupChatWorkspace
+      group={group}
+      members={members}
+      onBack={() => closeGroupChatMainTab(group)}
+      origin={origin}
+      visible={visible}
+    />
   )
 }
 
@@ -1788,9 +1799,12 @@ export function openGroupChat(group: string, origin: CanonicalGroupOrigin): void
       // A hosted room's projection names it; one opened before its first sync is named by its binding
       // (looked up the way the group string was opened: by key, or by name through its alias).
       const route = { connectionId: host.state.connectionId.get() ?? '', profile: host.state.profile.get() }
+
       const title = groupChatDisplayName(
         group,
-        $groupChats.get()[group] ?? { displayName: canonicalGroupBindingFor($canonicalGroupBindings.get(), route, group, origin)?.roomName }
+        $groupChats.get()[group] ?? {
+          displayName: canonicalGroupBindingFor($canonicalGroupBindings.get(), route, group, origin)?.roomName
+        }
       )
 
       const close = host.openWorkspace(`${ID}:group:${slugifyProfileName(group)}`, {

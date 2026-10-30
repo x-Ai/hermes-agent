@@ -1,5 +1,7 @@
 import { translateNow } from '@/i18n'
 
+import { bytesToBase64 } from './base64'
+
 /**
  * Client-side mic capture for remote wake word.
  *
@@ -89,18 +91,6 @@ function floatToInt16LE(input: Float32Array): ArrayBuffer {
   }
 
   return buf
-}
-
-function bytesToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf)
-  let binary = ''
-  const chunk = 0x8000
-
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk))
-  }
-
-  return btoa(binary)
 }
 
 /**

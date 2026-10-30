@@ -2,6 +2,7 @@ import type * as HermesSdk from '@hermes/plugin-sdk'
 import { host } from '@hermes/plugin-sdk'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { WritableAtom } from 'nanostores'
+import { useSyncExternalStore } from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
@@ -22,7 +23,7 @@ const { request, notify, openWorkspace, activation } = vi.hoisted(() => ({
   request: vi.fn(),
   notify: vi.fn(),
   openWorkspace: vi.fn(),
-  activation: { epoch: 1 }
+  activation: { epoch: 1, listeners: new Set<() => void>() }
 }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
@@ -32,6 +33,17 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
   return {
     ...sdk,
     gatewayActivationEpoch: () => activation.epoch,
+    // The hook subscribes, like the real store: an epoch that moves re-renders its readers.
+    useGatewayActivationEpoch: () => useSyncExternalStore(
+      listener => {
+        activation.listeners.add(listener)
+
+        return () => {
+          activation.listeners.delete(listener)
+        }
+      },
+      () => activation.epoch
+    ),
     host: {
       ...sdk.host,
       requestProfile: request,

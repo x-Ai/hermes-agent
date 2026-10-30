@@ -7,11 +7,13 @@ import { jaBoot } from './ja_boot'
 import { jaCatalog, jaSkillDeepLink } from './ja_catalog'
 import { jaClarify } from './ja_clarify'
 import { jaConnectors } from './ja_connectors'
+import { jaErrorCodes } from './ja_error_codes'
 import { jaErrorLayers } from './ja_error_layers'
 import { jaFirstRun } from './ja_first_run'
 import { jaGatewayMenu } from './ja_gateway_menu'
 import { jaGoalStatus } from './ja_goal_status'
 import { jaLocalModels } from './ja_local_models'
+import { jaMemoryLayers } from './ja_memory_layers'
 import { jaMessagingFieldCopy } from './ja_messaging_fields'
 import { jaModelMenu } from './ja_model_menu'
 import { jaModelSettings } from './ja_model_settings'
@@ -290,7 +292,9 @@ export const jaOverrides = {
       liveDelegationFailed: 'リクエストをHermesに渡せませんでした',
       liveUnavailable: reason => `GPT-Live voice chat is not available: ${reason}。代わりに音声合成を使用します。`,
       liveEndedConnectionLost: '生音声セッションの接続が失われました。',
-      liveEndedClosed: 'ライブボイスセッションはサービスにより終了しました。'
+      liveEndedClosed: 'ライブボイスセッションはサービスにより終了しました。',
+      microphoneNeedsHttps:
+        'マイクには安全な接続が必要です。使うには、Webapp を HTTPS か 127.0.0.1 への SSH トンネル経由で開いてください。'
     },
     native: {
       approvalTitle: '承認が必要です',
@@ -1835,7 +1839,49 @@ export const jaOverrides = {
       sshErrUpdateRequired: 'Desktop SSH で接続する前に、リモートホストの Hermes を更新してください。',
       sshErrInteractiveAuth:
         'Tailscale SSH では対話的なブラウザー確認が必要です。ターミナルで `ssh <host> true` を実行して確認を完了し、再試行してください。Hermes は SSH を非対話的に実行します。',
-      sshErrUnknown: 'SSH 接続に失敗しました。'
+      sshErrUnknown: 'SSH 接続に失敗しました。',
+      webAccess: {
+        title: 'Web アクセス',
+        intro:
+          'スマートフォンや別のコンピューターから、Nous アカウントでサインインしてこのコンピューターの Hermes を開きます。サインインした人はこのコンピューターでコマンドを実行できます。',
+        failed: 'Web アクセスを変更できませんでした',
+        running: '実行中',
+        stopped: '停止中',
+        starting: '起動中',
+        stopping: '停止処理中',
+        restartNeeded: '再起動が必要',
+        unavailable: '利用できません',
+        notRunningDetail: '起動すると、別のデバイスから Hermes を開けます。',
+        needsNous: '先に「プロバイダー」で Nous アカウントにサインインしてください。',
+        runningLan: '同じネットワーク上のデバイスでこのアドレスを開いてください。',
+        runningPublic: 'あなたの URL 経由で提供中です。',
+        runningLocal:
+          'このコンピューターからのみ開けます。他のデバイスから開くには、停止してからもう一度起動してください。',
+        pendingOn: '保存しました。ゲートウェイの再起動後に Web アプリが提供されます。',
+        pendingOff: 'オフにしましたが、ゲートウェイは再起動するまで Web アプリを提供し続けます。',
+        unavailableDetail: reason => `ゲートウェイが Web アプリを提供できませんでした: ${reason}`,
+        restartBusy:
+          '保存しました。チャットが実行中のため、ゲートウェイは再起動しませんでした。終了したら「ゲートウェイを再起動」を選んでください。',
+        restartFailed:
+          '保存しましたが、ゲートウェイを再起動できませんでした。「ゲートウェイを再起動」を選んで再試行してください。',
+        restartFailedBecause: reason => `ゲートウェイを再起動できませんでした: ${reason}`,
+        startTimedOut: 'ゲートウェイが 90 秒以内に Web アプリを提供しませんでした。',
+        stopTimedOut: 'ゲートウェイが 90 秒以内に Web アプリの提供を停止しませんでした。',
+        start: '開始',
+        stop: '停止',
+        restartGateway: 'ゲートウェイを再起動',
+        modeLan: 'このネットワーク',
+        modeLanDetail: url => `Wi-Fi 上のデバイスで ${url} を開きます。信頼できるネットワークでのみ使用してください。`,
+        lanUnencrypted:
+          '接続は暗号化されていません。同じネットワーク上の他の人が送受信の内容を読み取れる可能性があります。',
+        noLan: 'このコンピューターには、他のデバイスから到達できるネットワークアドレスがありません。',
+        modePublic: '独自の URL',
+        modePublicDetail: port =>
+          `Tailscale Serve やトンネルなど、すでに運用している HTTPS アドレスで、http://127.0.0.1:${port} に転送するもの。`
+      },
+      webappHostDesc:
+        'Webapp は常に配信元の Hermes ホストを使用します。ゲートウェイの切り替え、Hermes Cloud へのサインイン、保存済み接続の管理は Hermes Desktop アプリで行ってください。',
+      webappHostTitle: 'Hermes ホスト'
     },
     keys: {
       loading: 'API キーと認証情報を読み込み中...',
@@ -2084,7 +2130,7 @@ export const jaOverrides = {
       defaultDirTitle: 'デフォルトのプロジェクトディレクトリ',
       defaultDirDesc:
         '別のフォルダーを選択しない限り、新しいセッションはこのフォルダーで開始します。未設定の場合はホームディレクトリが使用されます。',
-      defaultDirUpdated: 'デフォルトのプロジェクトディレクトリを更新しました',
+      defaultDirUpdated: () => 'デフォルトのプロジェクトディレクトリを更新しました',
       defaultsTo: label => `デフォルト: ${label}。`,
       change: '変更',
       choose: '選択',
@@ -2534,7 +2580,8 @@ export const jaOverrides = {
         description:
           'リモート Hermes API サーバーとの認証用 Bearer トークン（プロキシモード）。リモートホストの API_SERVER_KEY と一致させる必要があります。'
       }
-    }
+    },
+    memoryLayers: jaMemoryLayers
   },
 
   skillDeepLink: jaSkillDeepLink,
@@ -2680,7 +2727,23 @@ export const jaOverrides = {
         secretSet: '•••••••（セット）',
         secretStoredAs: (env: string) =>
           `Stored in the profile's .env as ${env}、config.yaml には決してありません。現在の値を保持するには空白のままにします。`
-      }
+      },
+      previewScriptRevokeUnsaved: (plugin: string, origin: string) =>
+        `変更を保存できなかったため、Hermes を再起動するまでの一時的な設定です。現在 ${plugin} は ${origin} でブロックされています。`,
+      previewScriptRevoked: (plugin: string, origin: string) =>
+        `${plugin} は ${origin} でスクリプトを実行できなくなりました。`,
+      previewScriptRevoke: (origin: string) => `${origin} へのアクセスを取り消す`,
+      previewScriptAccessNone: 'ページでスクリプトを実行する前に確認します',
+      previewScriptAccessLabel: 'ページスクリプト',
+      previewScriptDeny: '許可しない',
+      previewScriptAllow: 'このサイトで許可',
+      previewScriptPromptRevokeHint:
+        'このサイトにのみ適用されます。スキルとツール ▸ プラグインでいつでも取り消せます。',
+      previewScriptPromptRisk:
+        'スクリプトはそのサイトのすべてを読み取り・変更できます。ログイン中のアカウントのページも含まれます。',
+      previewScriptPromptBody: (plugin: string, origin: string) =>
+        `${plugin} がプレビューブラウザーの ${origin} で JavaScript を実行しようとしています。`,
+      previewScriptPromptTitle: (plugin: string) => `${plugin} にこのページでスクリプトの実行を許可しますか？`
     },
     officialCatalog: 'インストール可能',
     officialPill: '公式',
@@ -3549,7 +3612,10 @@ export const jaOverrides = {
     defaultProfile: 'デフォルトのプロファイル',
     defaultSet: name => `${name} をデフォルトに設定しました`,
     defaultDescription: 'Hermes の起動時と新しいチャットに使用します。既存のセッションのプロファイルは変わりません。',
-    failedSetDefault: 'デフォルトのプロファイルを設定できませんでした'
+    failedSetDefault: 'デフォルトのプロファイルを設定できませんでした',
+    notServedHere: 'ここでは提供されていません',
+    exportNeedsHost: name =>
+      `ブラウザーではプロファイルのアーカイブを保存できません。Hermes ホストで次を実行してください: hermes profile export ${name}`
   },
   cron: {
     close: 'Cron を閉じる',
@@ -4580,7 +4646,9 @@ export const jaOverrides = {
     updateReady: count => `新しい更新の準備ができました (${count} 件の変更を含みます)。`,
     updateReadyUnknown: '新しい更新の準備ができました。',
     version: value => `バージョン ${value}`,
-    versionUnavailable: 'バージョンを取得できません'
+    versionUnavailable: 'バージョンを取得できません',
+    versionDetailsBackend: '接続中のバックエンド',
+    versionDetailsClient: 'このデバイス'
   },
 
   install: {
@@ -5002,7 +5070,8 @@ export const jaOverrides = {
     terminalCloseAll: 'すべて閉じる',
     addToChat: 'チャットに追加',
     showIgnored: 'gitignore されたファイルを表示',
-    hideIgnored: 'gitignore されたファイルを非表示'
+    hideIgnored: 'gitignore されたファイルを非表示',
+    terminalDropUnquotable: (shell, paths) => `これらの名前は ${shell} に安全に入力できません: ${paths}`
   },
   preview: {
     tab: 'プレビュー',
@@ -5118,7 +5187,9 @@ export const jaOverrides = {
       commentPlaceholder: 'コメントを追加...',
       commentTitle: n => `コメント${n}`,
       saveComment: '保存',
-      cancelComment: 'コメントをキャンセル'
+      cancelComment: 'コメントをキャンセル',
+      embeddedPreviewHint:
+        '埋め込みプレビューを許可しないサイトもあります。元のページをブラウザーのタブで開いてください。'
     }
   },
   interfaceMode: {
@@ -5194,7 +5265,8 @@ export const jaOverrides = {
       focus: 'フォーカス',
       'terminal-deck': 'ターミナルデッキ',
       quad: 'クワッド'
-    }
+    },
+    tabActions: title => `${title} の操作`
   },
   contextMenu: {
     link: {
@@ -5324,148 +5396,63 @@ export const jaOverrides = {
       errorGenericProvider: 'AI サービス',
       ...jaErrorLayers,
       errorCodes: {
-        auth: {
-          title: provider => `${provider} がサインインを拒否しました`,
-          body: provider =>
-            `${provider} に保存された認証情報が受け付けられませんでした。設定を修正するかプロバイダーを切り替えて、再送してください。`
-        },
-        auth_permanent: {
-          title: provider => `${provider} がサインインを拒否しました`,
-          body: provider =>
-            `${provider} に保存された認証情報が無効、または取り消されています。更新するかプロバイダーを切り替えて、再送してください。`
-        },
-        billing: {
-          title: 'クレジットがありません',
-          body: provider =>
-            `${provider} アカウントのクレジットがありません。チャージするかプロバイダーを切り替えて、再送してください。`
-        },
+        ...jaErrorCodes,
         provider_policy_blocked: {
-          title: 'アカウント設定によりこのモデルはブロックされています',
+          title: (provider, model) => `${provider} の設定で ${model || 'このモデル'} がブロックされています`,
           body: provider =>
-            `${provider} はアカウントのデータまたはプライバシー設定により、このリクエストを処理できません。別のモデルまたはプロバイダーを選んでください。`
+            `${provider} のプライバシー設定により、このモデルのエンドポイントがすべて除外されています。${provider} で設定を変更するか、別のモデルを選んでください。`
         },
         content_policy_blocked: {
-          title: 'AI サービスが回答を拒否しました',
-          body: provider => `${provider} はこのメッセージへの回答を拒否しました。編集して再送してください。`
+          title: provider => `${provider} がこのメッセージを拒否しました`,
+          body: provider => `${provider} の安全フィルターにより拒否されました。メッセージを編集して再送してください。`
         },
         format_error: {
-          title: 'AI サービスがリクエストの形式を拒否しました',
+          title: provider => `${provider} がこのリクエストを拒否しました`,
           body: provider =>
-            `${provider} はこのリクエストの形式を受け付けませんでした。プロバイダーを切り替えるか、調査のため診断情報を送信してください。`
+            `${provider} はこの会話の構成を受け付けませんでした。プロバイダーを切り替えるか、繰り返し発生する場合は新しいチャットを開始してください。`
         },
         invalid_response: {
-          title: 'AI サービスが読み取れない応答を返しました',
-          body: provider => `${provider} は Hermes が読み取れない内容を返しました。しばらくしてから再試行してください。`
+          title: '返信を読み取れませんでした',
+          body: provider => `${provider} から空または壊れた返信が返されました。少ししてから再試行してください。`
         },
         empty_response: {
-          title: 'AI サービスが空の応答を返しました',
-          body: provider => `${provider} はこのメッセージに内容を返しませんでした。しばらくしてから再試行してください。`
+          title: '返信を取得できませんでした',
+          body: provider => `${provider} はこのメッセージに何も返しませんでした。少ししてから再試行してください。`
         },
         rate_limit: {
-          title: 'AI サービスが混み合っています',
-          body: provider => `${provider} は現在リクエスト数を制限しています。少し待ってから再試行してください。`
+          title: provider => `${provider} は現在混み合っています`,
+          body: provider => `${provider} のレート制限に達しました。少し待ってから再試行してください。`
         },
         upstream_rate_limit: {
-          title: 'AI サービスが混み合っています',
-          body: provider => `${provider} は現在リクエスト数を制限しています。少し待ってから再試行してください。`
+          title: (_provider, model) => `${model || 'このモデル'} は現在混み合っています`,
+          body: (provider, model) =>
+            `${model || 'このモデル'} は ${provider} の提供元でレート制限されています（お使いのアカウントの制限ではありません）。少ししてから再試行してください。`
         },
         overloaded: {
-          title: 'AI サービスの負荷が高すぎます',
+          title: provider => `${provider} は現在混み合っています`,
           body: provider =>
-            `${provider} で現在問題が発生しています。しばらくしてから再試行するか、プロバイダーを切り替えてください。`
+            `${provider} は過負荷のため、このリクエストを処理できませんでした。少ししてから再試行してください。`
         },
         server_error: {
-          title: 'AI サービスでエラーが発生しました',
-          body: provider =>
-            `${provider} がサーバーエラーを返しました。しばらくしてから再試行するか、プロバイダーを切り替えてください。`
+          title: provider => `${provider} で問題が発生しています`,
+          body: provider => `${provider} がサーバーエラーを返しました。少ししてから再試行してください。`
         },
         timeout: {
-          title: 'AI サービスに接続できません',
-          body: provider =>
-            `${provider} に接続できないか、時間内に応答がありませんでした。インターネット接続を確認してから再試行してください。`
-        },
-        stream_drop: {
-          title: '返信が途中で切れました',
-          body: '返信が完了する前に接続が切れました。再試行してもう一度送信してください。'
-        },
-        upstream_blocked: {
-          title: 'ファイアウォールがリクエストをブロックしました',
-          body: provider =>
-            `${provider} の前段にあるファイアウォールまたは CDN が、モデルに届く前にリクエストをブロックしました。キーは正常な可能性があります。設定でプロバイダーの extra_headers に User-Agent を指定するか、プロバイダーを切り替えて再送してください。`
+          title: provider => `${provider} に接続できません`,
+          body: provider => `Hermes は ${provider} に接続できませんでした。接続を確認してから再試行してください。`
         },
         ssl_cert_verification: {
-          title: '安全な接続に失敗しました',
+          title: provider => `${provider} との接続を検証できません`,
           body: provider =>
-            `Hermes は ${provider} との安全な接続を検証できませんでした。ネットワークやプロキシの設定を確認するか、プロバイダーを切り替えて再送してください。`
-        },
-        context_overflow: {
-          title: 'この会話は長すぎます',
-          body: '会話がモデルのコンテキストに収まりません。会話を圧縮するか、新しいチャットを開始して再送してください。'
-        },
-        payload_too_large: {
-          title: 'このメッセージは大きすぎます',
-          body: 'リクエストがモデルの上限を超えています。会話を圧縮するか、新しいチャットを開始して再送してください。'
-        },
-        model_not_found: {
-          title: 'このモデルは利用できません',
-          body: provider =>
-            `${provider} はこのアカウントにモデルを提供していません。別のモデルを選んで再送してください。`
-        },
-        truncated: {
-          title: '返信が途中で終了しました',
-          body: 'モデルが回答を完了する前に停止しました。再試行して完全な返信を取得してください。'
-        },
-        loop_error: {
-          title: 'Hermes がループしました',
-          body: '同じ手順が繰り返されたため、Hermes は処理を停止しました。再試行し、再発する場合は新しいチャットを開始してください。'
-        },
-        SESSION_NOT_OWNED: {
-          title: 'このチャットは別の場所で開かれています',
-          body: 'このチャットは別の Hermes ウィンドウまたはターミナルで開かれています。そちらで閉じて再送するか、ここで新しいチャットを開始してください。'
-        },
-        disk_full: {
-          title: 'ディスクがいっぱいです',
-          body: 'ディスクがいっぱいのため、Hermes はこの会話を保存できませんでした。空き容量を確保して再試行してください。'
-        },
-        free_tier_disabled: {
-          title: 'サインインなしの無料利用は現在停止中です',
-          body: '無料の Nous アカウントでサインインすると、チャットを続けられます。'
-        },
-        free_tier_rate_limited: {
-          title: 'サインインなしの利用枠を使い切りました',
-          body: '利用枠はまもなく更新されます。無料の Nous アカウントでサインインすると、より大きな利用枠を使えます。'
-        },
-        free_tier_at_capacity: {
-          title: 'サインインなしのチャットは現在混み合っています',
-          body: '無料アカウントでサインインすると待ち行列を回避できます。しばらく待って再試行することもできます。'
-        },
-        free_tier_model_not_free: {
-          title: 'サインインなしではこのモデルを利用できません',
-          body: 'Hermes は現在無料モデルを使用しています。無料の Nous アカウントでサインインすると、より多くのモデルを利用できます。'
-        },
-        free_tier_route: {
-          title: 'この経路では無料モデルに接続できません',
-          body: '無料の Nous アカウントでサインインするか、NOUS_INFERENCE_BASE_URL の設定を確認してください。'
-        },
-        free_tier_outage: {
-          title: '無料モデルは一時的に応答できません',
-          body: 'しばらくしてからメッセージを再送してください。'
-        },
-        free_tier_refused: {
-          title: 'サインインなしではこのメッセージを送信できません',
-          body: '無料の Nous アカウントでサインインして続けてください。'
-        },
-        cron_session_read_only: {
-          title: 'このチャットはスケジュールされたジョブ用です',
-          body: 'このチャットはそのジョブの実行専用のため、メッセージは実行されませんでした。送信するには新しいチャットを開始してください。'
+            `プロキシまたは古い証明書ストアが ${provider} への安全な接続をブロックしました。修正方法はセットアップガイドを参照してください。`
         },
         usage_window: {
           title: '含まれる利用量を使い切りました',
           body: 'プランに含まれる利用量はリセットまで使い切りました。続けるには /topup でクレジットを追加してください。'
         },
-        workspace_unavailable: {
-          title: 'このチャットのフォルダーが見つかりません',
-          body: 'このチャットの作業フォルダーが移動または削除されたため、メッセージは実行されませんでした。フォルダーを作り直すか、「Move to project」で別のフォルダーを割り当ててから、もう一度お試しください。'
+        stream_drop: {
+          title: '返信が途中で切れました',
+          body: '返信が完了する前に接続が切れました。再試行してもう一度送信してください。'
         }
       },
       errorRetry: '再試行',
@@ -5530,7 +5517,19 @@ export const jaOverrides = {
       errorOpenHermesFolder: 'Hermesフォルダーを開く',
       errorOpenHermesFolderFailed: 'Hermes フォルダーを開けませんでした',
       errorUpdateApiKey: 'API キーを更新します',
-      errorSignInFreeTier: 'Nous アカウントでサインインする'
+      errorSignInFreeTier: 'Nous アカウントでサインインする',
+      errorRateLimitResetBody: (provider, time) => `${provider} のレート制限に達しました。${time} にリセットされます。`,
+      errorRetryAtResetShort: time => `${time} に再試行`,
+      errorChooseModelLink: '別のモデルを選ぶ',
+      errorStartNewChatLink: '新しいチャットを開始',
+      errorOpenModelSettings: 'モデル設定を開く',
+      errorSetupGuideLink: 'セットアップガイド',
+      errorOpenSetupGuide: 'セットアップガイドを開く',
+      errorOpenProviderSettings: provider => `${provider} の設定を開く`,
+      errorContinue: '続行',
+      errorCopyRaw: 'エラーをコピー',
+      errorDetailsCopy: '詳細をコピー',
+      errorHideDetails: 'エラーの詳細を隠す'
     },
     approval: {
       gatewayDisconnected: 'Hermes ゲートウェイが接続されていません',
@@ -5995,7 +5994,9 @@ export const jaOverrides = {
     modelSwitchConfirmTitle: (model: string) => `${model} に切り替えますか？`,
     modelSwitchConfirmTitleFallback: 'モデルを切り替えますか？',
     modelSwitchKeepLabel: '現在のモデルを維持',
-    modelSwitchStaleNotice: '選択が変更されたため、モデルの切り替えは適用されませんでした。'
+    modelSwitchStaleNotice: '選択が変更されたため、モデルの切り替えは適用されませんでした。',
+    dropFilesMore: (count: number) => `ほか ${count} 件`,
+    attachFailed: '添付に失敗しました'
   },
   tips: {
     close: 'このヒントを今後表示しない',
