@@ -222,14 +222,6 @@ const MEMORY_STATUS_TONE: Record<
   missing: "destructive"
 };
 
-const MEMORY_STATUS_LABEL: Record<MemoryProviderInfo["status"], string> = {
-  ready: "ready",
-  needs_config: "needs setup",
-  unavailable: "unavailable",
-  missing: "missing"
-};
-
-
 export default function SystemPage() {
   const { toast, showToast } = useToast();
   const { locale, t } = useI18n();
