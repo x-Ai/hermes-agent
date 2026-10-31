@@ -52,6 +52,43 @@ def _report_context_length_detection(model_name: str, base_url: str, api_key: st
               f"(set model.context_length in config.yaml to override)")
 
 
+_AUTH_SCHEMES = ("bearer", "x-api-key")
+
+
+def _parse_token_count(text: str):
+    """``4096`` / ``4k`` / ``8,192`` -> int; None when blank, non-positive, or unparsable (warns)."""
+    if not text:
+        return None
+    try:
+        value = int(str(text).replace(",", "").replace("k", "000").replace("K", "000"))
+    except ValueError:
+        print(f"Invalid token count: {text} — using auto.")
+        return None
+    return value if value > 0 else None
+
+
+def _prompt_endpoint_advanced() -> tuple[str, str, int | None]:
+    """The endpoint extras the Desktop's custom-endpoint editor also writes, as optional prompts.
+
+    ``auth_scheme`` (bearer vs ``x-api-key``) is what relays that reject a bearer token need;
+    the User-Agent override is for gateways that key on it; the output budget pins this model's
+    ceiling. Every prompt accepts Enter for "leave the default", so a scripted answer sequence
+    that stops early keeps working exactly as before (``_ask`` returns ``on_cancel``).
+    """
+    _say("", "  Endpoint extras (press Enter to keep the default):")
+    raw_scheme = str(_ask(
+        "  Auth header [auto|bearer|x-api-key] (auto): ", cancel_msg=None, on_cancel="") or "")
+    scheme = raw_scheme.strip().lower().replace("_", "-")
+    if scheme in {"auto", "default", "none"}:
+        scheme = ""
+    if scheme and scheme not in _AUTH_SCHEMES:
+        print(f"  Unknown auth header '{raw_scheme}' — keeping auto-detect.")
+        scheme = ""
+    user_agent = str(_ask("  User-Agent override (none): ", cancel_msg=None, on_cancel="") or "").strip()
+    raw_limit = _ask("  Max output tokens for this model (auto): ", cancel_msg=None, on_cancel="")
+    return scheme, user_agent, _parse_token_count(raw_limit)
+
+
 def _probe_custom_endpoint(effective_key: str, effective_url: str) -> tuple[dict, str]:
     """Verify a custom endpoint via ``probe_api_models`` and report; returns
     ``(probe, effective_url)`` where the URL may be the working fallback base."""
@@ -154,6 +191,7 @@ def _model_flow_custom(config):
         # Display name — shown in the provider menu on future runs
         default_name = _auto_provider_name(effective_url)
         display_name = line_input(f"Display name [{default_name}]: ").strip() or default_name
+        auth_scheme, user_agent, max_output_tokens = _prompt_endpoint_advanced()
     except (KeyboardInterrupt, EOFError):
         print("\nCancelled.")
         return
@@ -209,7 +247,16 @@ def _model_flow_custom(config):
 
     # Auto-save to custom_providers so it appears in the menu next time
     _save_custom_provider(effective_url, effective_key, model_name or "", context_length=context_length,
-                          name=display_name, api_mode=api_mode, key_env=custom_key_env)
+                          name=display_name, api_mode=api_mode, key_env=custom_key_env,
+                          auth_scheme=auth_scheme, user_agent=user_agent,
+                          max_output_tokens=max_output_tokens)
+    if auth_scheme or user_agent or max_output_tokens:
+        extras = [f"auth={auth_scheme or 'auto'}"]
+        if user_agent:
+            extras.append(f"User-Agent={user_agent}")
+        if max_output_tokens:
+            extras.append(f"max output={max_output_tokens}")
+        print(f"  Endpoint extras saved: {', '.join(extras)}")
     _prune_replaced_custom_model_config_credentials(effective_url, provider_name=display_name)
 
 

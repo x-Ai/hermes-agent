@@ -671,8 +671,9 @@ def test_model_flow_custom_saves_verified_v1_base_url(monkeypatch):
 
     # After the probe detects a single model ("llm"), the flow asks
     # "Use this model? [Y/n]:" — confirm with Enter, then context length,
-    # then display name. The api_mode prompt also runs before model selection.
-    answers = iter(["http://localhost:8000", "local-key", "", "", "", "", ""])
+    # display name, and the three endpoint extras (auth header / User-Agent / output
+    # budget, all Enter = default). The api_mode prompt runs before model selection.
+    answers = iter(["http://localhost:8000", "local-key", "", "", "", "", "", "", "", ""])
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))
     monkeypatch.setattr("hermes_cli.secret_prompt.masked_secret_prompt", lambda _prompt="": next(answers))
 
@@ -711,7 +712,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
     )
     monkeypatch.setattr(
         "hermes_cli.main_provider_setup._save_custom_provider",
-        lambda base_url, api_key="", model="", context_length=None, name=None, api_mode=None, key_env="": captured_provider.update(
+        lambda base_url, api_key="", model="", context_length=None, name=None, api_mode=None, key_env="", **extras: captured_provider.update(
             {
                 "base_url": base_url,
                 "api_key": api_key,
@@ -720,6 +721,7 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
                 "name": name,
                 "api_mode": api_mode,
                 "key_env": key_env,
+                **extras,
             }
         ),
     )
@@ -731,6 +733,9 @@ def test_model_flow_custom_persists_selected_api_mode(monkeypatch):
             "chosen-model",
             "",
             "",
+            "",  # auth header
+            "",  # User-Agent
+            "",  # max output tokens
         ]
     )
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(answers))

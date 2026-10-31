@@ -95,6 +95,9 @@ class TestCustomProviderModelSwitch:
                      "",
                      "",
                      "New Endpoint",
+                     "",  # auth header
+                     "",  # User-Agent
+                     "",  # max output tokens
                  ],
              ), \
              patch("builtins.print"):

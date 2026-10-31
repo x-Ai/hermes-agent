@@ -489,15 +489,43 @@ def _custom_provider_base_url_config_value(provider_info, resolved_base_url=""):
 
 
 def _save_custom_provider(base_url, api_key="", model="", context_length=None, name=None, api_mode=None,
-                          key_env=""):
+                          key_env="", auth_scheme="", user_agent="", max_output_tokens=None):
     """Save a custom endpoint to ``custom_providers`` in config.yaml, deduplicated by base_url (an
     existing entry gets model / context_length / api_mode updated). *key_env* set means the caller
     already wrote the key to ``.env``; the entry references it instead of inlining the secret.
 
+    *auth_scheme* / *user_agent* / *max_output_tokens* are the same per-endpoint extras the
+    Desktop's endpoint editor writes: an explicit auth header for relays that reject a bearer
+    token, a User-Agent override, and the one model's output budget. Empty/None keeps whatever the
+    entry already carries, so a plain re-save never clears an earlier edit.
+
     See #69449.
     """
-    from hermes_cli.config import load_config, save_config
+    from hermes_cli.config import load_config, normalize_extra_headers, save_config
     cfg = load_config()
+
+    def _apply_endpoint_extras(entry: dict) -> bool:
+        """Write the three optional fields; True when the entry changed."""
+        changed = False
+        if auth_scheme and entry.get("auth_scheme") != auth_scheme:
+            entry["auth_scheme"] = auth_scheme
+            changed = True
+        if user_agent:
+            headers = {k: v for k, v in normalize_extra_headers(entry.get("extra_headers")).items()
+                       if str(k).lower() != "user-agent"}
+            headers["User-Agent"] = user_agent
+            if entry.get("extra_headers") != headers:
+                entry["extra_headers"] = headers
+                changed = True
+        if model and max_output_tokens:
+            limits = _ensure_dict_section(entry, "model_token_limits")
+            row = limits.get(model) if isinstance(limits.get(model), dict) else {}
+            merged = {**row, "max_output_tokens": int(max_output_tokens)}
+            if row != merged:
+                limits[model] = merged
+                changed = True
+        return changed
+
     providers = cfg.get("custom_providers") or []
     if not isinstance(providers, list):
         providers = []
@@ -522,6 +550,8 @@ def _save_custom_provider(base_url, api_key="", model="", context_length=None, n
             entry["key_env"] = key_env
             entry.pop("api_key", None)
             changed = True
+        if _apply_endpoint_extras(entry):
+            changed = True
         if changed:
             cfg["custom_providers"] = providers
             save_config(cfg)
@@ -539,6 +569,7 @@ def _save_custom_provider(base_url, api_key="", model="", context_length=None, n
         entry["api_mode"] = api_mode
     if model and context_length:
         entry["models"] = {model: {"context_length": context_length}}
+    _apply_endpoint_extras(entry)
 
     providers.append(entry)
     cfg["custom_providers"] = providers
