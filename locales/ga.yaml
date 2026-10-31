@@ -2985,10 +2985,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) caithfidh --repeat a bheith ina shlánuimhir"
       unknown_command: "(._.) Ordú cron anaithnid: {subcommand}"
-      available: "Ar fáil: list, add, edit, pause, resume, run, remove"
+      available: "Ar fáil: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Tascanna Sceidealta"
       overview_commands: "Orduithe:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Seiceáil stádas an fhreastalaí\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Tasc nua\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Seiceáil stádas an fhreastalaí\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Tasc nua\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Tascanna Reatha:"
       skills: "Scileanna: {skills}"
       skills_none: "Scileanna: gan aon cheann"
@@ -3025,6 +3025,14 @@ cli:
       paused: "(^_^)b Tasc curtha ar sos: {name} ({job_id})"
       resumed: "(^_^)b Tasc atosaithe: {name} ({job_id})"
       triggered: "(^_^)b Tasc spreagtha: {name} ({job_id})"
+      cancel_failed: "(x_x) Níorbh éirigh leis an rith a chealú: {error}"
+      nothing_to_cancel: "(._.) Níl aon rud le cealú do {name} ({job_id})"
+      cancelled: "(^_^)b Cealú iarrtha: {name} ({job_id})"
+      cancelled_execution: "Cur i gcrích: {execution_id} (pid {pid})"
+      runs_none: "(._.) Níl aon rith cron taifeadta."
+      runs_header: "Rith le déanaí:"
+      runs_row: "{execution_id}  {status}  tasc={job_id}  foinse={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) caithfidh --limit a bheith ina shlánuimhir"
     suggestions:
       failed: "Theip ar an ordú moltaí: {error}"
     blueprint:

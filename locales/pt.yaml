@@ -2985,10 +2985,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat deve ser um número inteiro"
       unknown_command: "(._.) Comando cron desconhecido: {subcommand}"
-      available: "Disponíveis: list, add, edit, pause, resume, run, remove"
+      available: "Disponíveis: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Tarefas Agendadas"
       overview_commands: "Comandos:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Verificar status do servidor\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nova tarefa\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Verificar status do servidor\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nova tarefa\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Tarefas atuais:"
       skills: "Skills: {skills}"
       skills_none: "Skills: nenhuma"
@@ -3025,6 +3025,14 @@ cli:
       paused: "(^_^)b Tarefa pausada: {name} ({job_id})"
       resumed: "(^_^)b Tarefa retomada: {name} ({job_id})"
       triggered: "(^_^)b Tarefa disparada: {name} ({job_id})"
+      cancel_failed: "(x_x) Falha ao cancelar a execução: {error}"
+      nothing_to_cancel: "(._.) Nada para cancelar em {name} ({job_id})"
+      cancelled: "(^_^)b Cancelamento solicitado: {name} ({job_id})"
+      cancelled_execution: "Execução: {execution_id} (pid {pid})"
+      runs_none: "(._.) Nenhuma execução de cron registrada."
+      runs_header: "Execuções recentes:"
+      runs_row: "{execution_id}  {status}  tarefa={job_id}  origem={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit deve ser um número inteiro"
     suggestions:
       failed: "O comando de sugestões falhou: {error}"
     blueprint:

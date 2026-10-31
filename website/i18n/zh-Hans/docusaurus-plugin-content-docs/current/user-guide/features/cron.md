@@ -198,6 +198,8 @@ Cron 任务现在拥有比创建/删除更完整的生命周期。
 /cron pause <job_id>
 /cron resume <job_id>
 /cron run <job_id>
+/cron cancel <job_id>
+/cron runs [job_id]
 /cron remove <job_id>
 ```
 

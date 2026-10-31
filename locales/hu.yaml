@@ -3002,10 +3002,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) A --repeat értéke egész szám kell legyen"
       unknown_command: "(._.) Ismeretlen cron parancs: {subcommand}"
-      available: "Elérhető: list, add, edit, pause, resume, run, remove"
+      available: "Elérhető: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Ütemezett feladatok"
       overview_commands: "Parancsok:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Szerverállapot ellenőrzése\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Új feladat\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Szerverállapot ellenőrzése\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Új feladat\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Jelenlegi feladatok:"
       skills: "Skillek: {skills}"
       skills_none: "Skillek: nincs"
@@ -3042,6 +3042,14 @@ cli:
       paused: "(^_^)b Feladat szüneteltetve: {name} ({job_id})"
       resumed: "(^_^)b Feladat folytatva: {name} ({job_id})"
       triggered: "(^_^)b Feladat elindítva: {name} ({job_id})"
+      cancel_failed: "(x_x) Nem sikerült megszakítani a futást: {error}"
+      nothing_to_cancel: "(._.) Nincs mit megszakítani ennél: {name} ({job_id})"
+      cancelled: "(^_^)b Megszakítás kérve: {name} ({job_id})"
+      cancelled_execution: "Végrehajtás: {execution_id} (pid {pid})"
+      runs_none: "(._.) Nincs rögzített cron-futás."
+      runs_header: "Legutóbbi futások:"
+      runs_row: "{execution_id}  {status}  feladat={job_id}  forrás={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) A --limit értéke egész szám kell legyen"
     suggestions:
       failed: "A suggestions parancs nem sikerült: {error}"
     blueprint:

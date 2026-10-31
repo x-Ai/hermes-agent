@@ -2983,10 +2983,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat 必須是整數"
       unknown_command: "(._.) 未知的 cron 指令：{subcommand}"
-      available: "可用：list, add, edit, pause, resume, run, remove"
+      available: "可用：list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) 排程任務"
       overview_commands: "指令："
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"檢查伺服器狀態\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"新任務\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"檢查伺服器狀態\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"新任務\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "目前的任務："
       skills: "技能：{skills}"
       skills_none: "技能：無"
@@ -3023,6 +3023,14 @@ cli:
       paused: "(^_^)b 已暫停任務：{name}（{job_id}）"
       resumed: "(^_^)b 已恢復任務：{name}（{job_id}）"
       triggered: "(^_^)b 已觸發任務：{name}（{job_id}）"
+      cancel_failed: "(x_x) 取消執行失敗：{error}"
+      nothing_to_cancel: "(._.) {name}（{job_id}）沒有可取消的執行。"
+      cancelled: "(^_^)b 已請求取消：{name}（{job_id}）。"
+      cancelled_execution: "執行：{execution_id}（pid {pid}）。"
+      runs_none: "(._.) 沒有 cron 執行記錄。"
+      runs_header: "最近的執行："
+      runs_row: "{execution_id}  {status}  任務={job_id}  來源={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit 必須是整數"
     suggestions:
       failed: "建議指令失敗：{error}"
     blueprint:

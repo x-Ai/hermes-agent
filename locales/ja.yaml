@@ -2983,10 +2983,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat には整数を指定してください"
       unknown_command: "(._.) 不明な cron コマンド: {subcommand}"
-      available: "利用可能: list, add, edit, pause, resume, run, remove"
+      available: "利用可能: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) スケジュール済みタスク"
       overview_commands: "コマンド:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Check server status\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"New task\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Check server status\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"New task\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "現在のジョブ:"
       skills: "スキル: {skills}"
       skills_none: "スキル: なし"
@@ -3023,6 +3023,14 @@ cli:
       paused: "(^_^)b ジョブを一時停止しました: {name} ({job_id})"
       resumed: "(^_^)b ジョブを再開しました: {name} ({job_id})"
       triggered: "(^_^)b ジョブを起動しました: {name} ({job_id})"
+      cancel_failed: "(x_x) 実行を取り消せませんでした: {error}"
+      nothing_to_cancel: "(._.) {name}（{job_id}）には取り消す実行がありません"
+      cancelled: "(^_^)b 取り消しを要求しました: {name}（{job_id}）"
+      cancelled_execution: "実行: {execution_id}（pid {pid}）"
+      runs_none: "(._.) cron の実行履歴はありません。"
+      runs_header: "最近の実行:"
+      runs_row: "{execution_id}  {status}  job={job_id}  source={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit には整数を指定してください"
     suggestions:
       failed: "suggestions コマンドが失敗しました: {error}"
     blueprint:

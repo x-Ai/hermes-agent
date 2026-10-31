@@ -9,12 +9,17 @@ from __future__ import annotations
 
 
 def cron_read(tokens):
-    """``'overview'`` / ``'list'`` / ``'list-all'`` for the read forms of the shlex-split ``/cron`` argument;
-    None for a write."""
+    """``'overview'`` / ``'list'`` / ``'list-all'`` / ``'runs'`` for the read forms of the shlex-split
+    ``/cron`` argument; None for a write."""
     if not tokens:
         return 'overview'
-    if tokens[0].lower() == 'list' and set(tokens[1:]) <= {'--all', '-a'}:
+    verb = tokens[0].lower()
+    if verb == 'list' and set(tokens[1:]) <= {'--all', '-a'}:
         return 'list-all' if tokens[1:] else 'list'
+    # ``runs``/``history`` read the executions ledger only: no store write, so a viewer's own
+    # connection may answer it (and keeps the answer deadline, unlike a control's unbounded wait).
+    if verb in {'runs', 'history'}:
+        return 'runs'
     return None
 
 

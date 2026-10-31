@@ -75,7 +75,8 @@ def cron_list_lines(*, include_disabled: bool = False) -> list[str]:
 # consume a value; --repeat is int-validated separately.
 _CRON_BOOL_FLAGS = {"--clear-skills": "clear_skills", "--all": "all"}
 _CRON_LIST_FLAGS = {"--skill": "skills", "--add-skill": "add_skills", "--remove-skill": "remove_skills"}
-_CRON_VALUE_FLAGS = {"--name": "name", "--deliver": "deliver", "--prompt": "prompt", "--schedule": "schedule"}
+_CRON_VALUE_FLAGS = {"--name": "name", "--deliver": "deliver", "--prompt": "prompt",
+                     "--schedule": "schedule", "--reason": "reason"}
 
 
 def _normalize_skills(values) -> list:
@@ -89,9 +90,14 @@ def _normalize_skills(values) -> list:
 
 
 def _parse_cron_flags(tokens):
-    """Parse /cron flags into an opts dict (None for a bad --repeat)."""
+    """Parse /cron flags into an opts dict; ``opts["bad_flag"]`` names an int flag that failed.
+
+    Two flags are integer-validated (``--repeat``, ``--limit``) and each gets its own message, so the
+    parser records WHICH one failed instead of collapsing both into one generic refusal.
+    """
     opts = {
         "name": None, "deliver": None, "repeat": None, "prompt": None, "schedule": None,
+        "reason": None, "limit": None, "bad_flag": None,
         "skills": [], "add_skills": [], "remove_skills": [],
         "clear_skills": False, "all": False, "positionals": []}
     i = 0
@@ -108,7 +114,15 @@ def _parse_cron_flags(tokens):
             try:
                 opts["repeat"] = int(tokens[i + 1])
             except ValueError:
-                return None
+                opts["bad_flag"] = "--repeat"
+                return opts
+            i += 2
+        elif token == "--limit" and has_value:
+            try:
+                opts["limit"] = int(tokens[i + 1])
+            except ValueError:
+                opts["bad_flag"] = "--limit"
+                return opts
             i += 2
         elif token in _CRON_VALUE_FLAGS and has_value:
             opts[_CRON_VALUE_FLAGS[token]] = tokens[i + 1]
@@ -200,11 +214,55 @@ def _job_action_lines(subcommand: str, opts: dict) -> list[str]:
     return out
 
 
+def _cancel_lines(subcommand: str, opts: dict) -> list[str]:
+    """``/cron cancel <job_id>``: stop the job's live run; its schedule is untouched."""
+    positionals = opts["positionals"]
+    if not positionals:
+        return [_t("cron.usage_action", subcommand="cancel")]
+    job_id = positionals[0]
+    result = _cron(action="cancel", job_id=job_id, reason=opts.get("reason") or "cancelled from /cron")
+    if not result.get("success"):
+        return [_t("cron.cancel_failed", error=result.get("error"))]
+    job = result.get("job") or {}
+    name = job.get("name") or job_id
+    if not result.get("cancelled"):
+        return [_t("cron.nothing_to_cancel", name=name, job_id=job_id)]
+    out = [_t("cron.cancelled", name=name, job_id=job_id)]
+    if execution_id := result.get("execution_id"):
+        out.append(f"  {_t('cron.cancelled_execution', execution_id=execution_id, pid=result.get('pid'))}")
+    return out
+
+
+def _runs_lines(subcommand: str, opts: dict) -> list[str]:
+    """``/cron runs [job_id] [--limit N]``: durable execution attempts, newest first.
+
+    A read, so it answers on the caller's connection with its deadline (``cron_read`` in
+    ``gateway/session_cron_commands.py`` classifies it) and never touches the store.
+    """
+    from cron.executions import list_executions
+    positionals = opts["positionals"]
+    limit = 20 if opts["limit"] is None else opts["limit"]
+    records = list_executions(job_id=positionals[0] if positionals else None, limit=limit)
+    if not records:
+        return [_t("cron.runs_none")]
+    out = ["", _t("cron.runs_header"), "-" * 80]
+    for record in records:
+        out.append("  " + _t(
+            "cron.runs_row",
+            execution_id=record.get("id", "?"), status=record.get("status", "?"),
+            job_id=record.get("job_id", "?"), source=record.get("source", "?"),
+            claimed_at=record.get("claimed_at", "?")))
+        if record.get("error"):
+            out.append(f"    {record['error']}")
+    return out
+
+
 # /cron subcommand -> line builder.
 _CRON_SUBCOMMANDS = {
     # ``-a``: the list-all alias main's TUI read path accepted (only here, so no other form loses a ``-a`` word).
     "list": lambda _sub, opts: cron_list_lines(include_disabled=opts["all"] or "-a" in opts["positionals"]),
     "add": _add_lines, "create": _add_lines, "edit": _edit_lines,
+    "cancel": _cancel_lines, "runs": _runs_lines, "history": _runs_lines,
     **{k: _job_action_lines for k in ("pause", "resume", "run", "remove", "rm", "delete")}}
 
 
@@ -214,8 +272,11 @@ def cron_command_lines(arg: str) -> list[str]:
     if not tokens:
         return cron_overview_lines()
     subcommand, opts = tokens[0].lower(), _parse_cron_flags(tokens[1:])
-    if opts is None:
-        return [_t("cron.repeat_must_be_integer")]
+    if opts["bad_flag"]:
+        # Each integer flag owns its message: "--repeat must be an integer" for a bad --limit sent
+        # the reader looking at a flag they never typed.
+        key = "cron.limit_must_be_integer" if opts["bad_flag"] == "--limit" else "cron.repeat_must_be_integer"
+        return [_t(key)]
     handler = _CRON_SUBCOMMANDS.get(subcommand)
     if handler is None:
         return [_t("cron.unknown_command", subcommand=subcommand), f"  {_t('cron.available')}"]

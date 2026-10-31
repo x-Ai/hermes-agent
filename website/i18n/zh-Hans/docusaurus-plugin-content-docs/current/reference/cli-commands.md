@@ -366,7 +366,7 @@ hermes status [--all] [--deep]
 ## `hermes cron`
 
 ```bash
-hermes cron <list|create|edit|pause|resume|run|remove|status|tick>
+hermes cron <list|create|edit|pause|resume|run|cancel|remove|status|runs|tick>
 ```
 
 | 子命令 | 说明 |
@@ -377,6 +377,8 @@ hermes cron <list|create|edit|pause|resume|run|remove|status|tick>
 | `pause` | 暂停任务而不删除。 |
 | `resume` | 恢复已暂停的任务并计算下次未来运行时间。 |
 | `run` | 在下次调度器 tick 时触发任务。 |
+| `cancel` | 停止任务正在进行的运行。计划不受影响，下次仍会照常触发。 |
+| `runs` | 显示持久化的运行记录（最新在前），可只查一个任务；`--limit N` 限制条数。 |
 | `remove` | 删除调度任务。 |
 | `status` | 检查 cron 调度器是否正在运行。 |
 | `tick` | 运行到期任务一次后退出。 |

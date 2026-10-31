@@ -2984,10 +2984,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) يجب أن يكون --repeat عددًا صحيحًا"
       unknown_command: "(._.) أمر cron غير معروف: {subcommand}"
-      available: "المتاح: list, add, edit, pause, resume, run, remove"
+      available: "المتاح: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) المهام المجدولة"
       overview_commands: "الأوامر:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"تحقّق من حالة الخادم\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"مهمة جديدة\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"تحقّق من حالة الخادم\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"مهمة جديدة\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "المهام الحالية:"
       skills: "المهارات: {skills}"
       skills_none: "المهارات: لا شيء"
@@ -3024,6 +3024,14 @@ cli:
       paused: "(^_^)b تم إيقاف المهمة مؤقتًا: {name} ({job_id})"
       resumed: "(^_^)b تم استئناف المهمة: {name} ({job_id})"
       triggered: "(^_^)b تم تشغيل المهمة: {name} ({job_id})"
+      cancel_failed: "(x_x) تعذّر إلغاء التشغيل: {error}"
+      nothing_to_cancel: "(._.) لا يوجد ما يمكن إلغاؤه لـ {name} ({job_id})"
+      cancelled: "(^_^)b تم طلب الإلغاء: {name} ({job_id})"
+      cancelled_execution: "التنفيذ: {execution_id} (pid {pid})"
+      runs_none: "(._.) لا توجد عمليات تشغيل cron مسجّلة."
+      runs_header: "أحدث عمليات التشغيل:"
+      runs_row: "{execution_id}  {status}  المهمة={job_id}  المصدر={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) يجب أن يكون ‎--limit عددًا صحيحًا"
     suggestions:
       failed: "فشل أمر الاقتراحات: {error}"
     blueprint:

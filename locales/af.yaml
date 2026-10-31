@@ -2985,10 +2985,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat moet 'n heelgetal wees"
       unknown_command: "(._.) Onbekende cron-opdrag: {subcommand}"
-      available: "Beskikbaar: list, add, edit, pause, resume, run, remove"
+      available: "Beskikbaar: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Geskeduleerde Take"
       overview_commands: "Opdragte:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Kontroleer bedienerstatus\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nuwe taak\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Kontroleer bedienerstatus\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nuwe taak\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Huidige Take:"
       skills: "Vaardighede: {skills}"
       skills_none: "Vaardighede: geen"
@@ -3025,6 +3025,14 @@ cli:
       paused: "(^_^)b Taak gepouseer: {name} ({job_id})"
       resumed: "(^_^)b Taak hervat: {name} ({job_id})"
       triggered: "(^_^)b Taak geaktiveer: {name} ({job_id})"
+      cancel_failed: "(x_x) Kon nie die lopies kanselleer nie: {error}"
+      nothing_to_cancel: "(._.) Niks om te kanselleer vir {name} ({job_id}) nie"
+      cancelled: "(^_^)b Kansellasie versoek: {name} ({job_id})"
+      cancelled_execution: "Uitvoering: {execution_id} (pid {pid})"
+      runs_none: "(._.) Geen cron-uitvoerings aangeteken nie."
+      runs_header: "Onlangse lopies:"
+      runs_row: "{execution_id}  {status}  taak={job_id}  bron={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit moet 'n heelgetal wees"
     suggestions:
       failed: "Voorstelle-opdrag het misluk: {error}"
     blueprint:

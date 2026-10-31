@@ -220,6 +220,12 @@ Skills are loaded in order — `arxiv` first (teaches the agent how to search pa
 # Trigger a job immediately (for testing)
 /cron run <job_id>
 
+# Stop a run that is already in flight (the schedule is untouched)
+/cron cancel <job_id>
+
+# Inspect the durable execution history, optionally for one job
+/cron runs [job_id]
+
 # Pause a job without deleting it
 /cron pause <job_id>
 

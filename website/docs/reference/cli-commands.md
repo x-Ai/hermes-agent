@@ -761,7 +761,7 @@ platforms the gateway would start, and scheduled jobs. No key values are printed
 ## `hermes cron`
 
 ```bash
-hermes cron <list|create|edit|pause|resume|run|remove|status|runs|incidents|doctor|tick>
+hermes cron <list|create|edit|pause|resume|run|cancel|remove|status|runs|incidents|doctor|tick>
 ```
 
 | Subcommand | Description |
@@ -772,6 +772,8 @@ hermes cron <list|create|edit|pause|resume|run|remove|status|runs|incidents|doct
 | `pause` | Pause a job without deleting it. |
 | `resume` | Resume a paused job. A recurring slot that came due while paused stays due (one catch-up run or a logged skip on the next tick); otherwise the next future run is computed. |
 | `run` | Trigger a job on the next scheduler tick. |
+| `cancel` | Stop a job's live run. The schedule is untouched — the next fire still happens. |
+| `runs` | Show the durable execution attempts (newest first), optionally for one job; `--limit N` caps the rows. |
 | `remove` | Delete a scheduled job. |
 | `status` | Check whether the cron scheduler is running. |
 | `doctor` | Read-only fleet health check: failed runs, failed deliveries, overdue/missing `next_run_at`, missing scripts or workdirs. Exits non-zero when issues are found. |

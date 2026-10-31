@@ -2985,10 +2985,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat має бути цілим числом"
       unknown_command: "(._.) Невідома команда cron: {subcommand}"
-      available: "Доступні: list, add, edit, pause, resume, run, remove"
+      available: "Доступні: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Заплановані завдання"
       overview_commands: "Команди:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Перевірити стан сервера\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Нове завдання\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Перевірити стан сервера\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Нове завдання\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Поточні завдання:"
       skills: "Навички: {skills}"
       skills_none: "Навички: немає"
@@ -3025,6 +3025,14 @@ cli:
       paused: "(^_^)b Завдання призупинено: {name} ({job_id})"
       resumed: "(^_^)b Завдання відновлено: {name} ({job_id})"
       triggered: "(^_^)b Завдання запущено: {name} ({job_id})"
+      cancel_failed: "(x_x) Не вдалося скасувати запуск: {error}"
+      nothing_to_cancel: "(._.) Для {name} ({job_id}) немає що скасовувати"
+      cancelled: "(^_^)b Скасування запитано: {name} ({job_id})"
+      cancelled_execution: "Виконання: {execution_id} (pid {pid})"
+      runs_none: "(._.) Записів про запуски cron немає."
+      runs_header: "Останні запуски:"
+      runs_row: "{execution_id}  {status}  завдання={job_id}  джерело={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit має бути цілим числом"
     suggestions:
       failed: "Не вдалося виконати команду пропозицій: {error}"
     blueprint:

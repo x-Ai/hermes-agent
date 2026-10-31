@@ -2985,10 +2985,10 @@ cli:
     cron:
       repeat_must_be_integer: "(._.) --repeat deve essere un numero intero"
       unknown_command: "(._.) Comando cron sconosciuto: {subcommand}"
-      available: "Disponibili: list, add, edit, pause, resume, run, remove"
+      available: "Disponibili: list, add, edit, pause, resume, run, cancel, runs, remove"
       overview_title: "(^_^) Attività pianificate"
       overview_commands: "Comandi:"
-      overview_usage: "/cron list\n/cron add \"every 2h\" \"Controlla lo stato del server\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nuova attività\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron remove <job_id>"
+      overview_usage: "/cron list\n/cron add \"every 2h\" \"Controlla lo stato del server\" [--skill blogwatcher]\n/cron edit <job_id> --schedule \"every 4h\" --prompt \"Nuova attività\"\n/cron edit <job_id> --skill blogwatcher --skill maps\n/cron edit <job_id> --remove-skill blogwatcher\n/cron edit <job_id> --clear-skills\n/cron pause <job_id>\n/cron resume <job_id>\n/cron run <job_id>\n/cron cancel <job_id>\n/cron runs [job_id]\n/cron remove <job_id>"
       current_jobs: "Job attuali:"
       skills: "Skill: {skills}"
       skills_none: "Skill: nessuna"
@@ -3025,6 +3025,14 @@ cli:
       paused: "(^_^)b Job in pausa: {name} ({job_id})"
       resumed: "(^_^)b Job ripreso: {name} ({job_id})"
       triggered: "(^_^)b Job avviato: {name} ({job_id})"
+      cancel_failed: "(x_x) Impossibile annullare l'esecuzione: {error}"
+      nothing_to_cancel: "(._.) Nulla da annullare per {name} ({job_id})"
+      cancelled: "(^_^)b Annullamento richiesto: {name} ({job_id})"
+      cancelled_execution: "Esecuzione: {execution_id} (pid {pid})"
+      runs_none: "(._.) Nessuna esecuzione cron registrata."
+      runs_header: "Esecuzioni recenti:"
+      runs_row: "{execution_id}  {status}  job={job_id}  origine={source}  {claimed_at}"
+      limit_must_be_integer: "(._.) --limit deve essere un numero intero"
     suggestions:
       failed: "Comando suggestions non riuscito: {error}"
     blueprint:

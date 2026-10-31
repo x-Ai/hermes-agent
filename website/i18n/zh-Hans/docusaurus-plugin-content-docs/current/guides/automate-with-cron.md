@@ -216,6 +216,12 @@ Skill 按顺序加载——先加载 `arxiv`（教 agent 如何搜索论文）�
 # 立即触发某个任务（用于测试）
 /cron run <job_id>
 
+# 停止正在进行的运行（计划不受影响）
+/cron cancel <job_id>
+
+# 查看持久化的运行记录，可按任务过滤
+/cron runs [job_id]
+
 # 暂停任务而不删除
 /cron pause <job_id>
 

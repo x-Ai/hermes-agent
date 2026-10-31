@@ -284,6 +284,8 @@ Cron jobs now have a fuller lifecycle than just create/remove.
 /cron pause <job_id>
 /cron resume <job_id>
 /cron run <job_id>
+/cron cancel <job_id>
+/cron runs [job_id]
 /cron remove <job_id>
 ```
 
