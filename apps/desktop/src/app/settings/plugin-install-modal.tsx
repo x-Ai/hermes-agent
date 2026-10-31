@@ -19,6 +19,7 @@ import {
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { Input } from '@/components/ui/input'
 import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { AlertTriangle, Loader2 } from '@/lib/icons'
 import { lookupPluginCatalogEntry } from '@/lib/plugin-catalog'
 import { cn } from '@/lib/utils'
@@ -474,7 +475,8 @@ function InstallView({ request, installing, onInstallingChange }: InstallViewPro
   }, [cancel, request.repo, start])
 
   const targetInfo = profiles.find(profile => normalizeProfileKey(profile.name) === targetProfile)
-  const targetLabel = profileLabel(targetInfo ?? { name: targetProfile })
+  // Display only: the canonical id stays in `targetProfile` for the RPC and the profile: path.
+  const targetLabel = displayEntityName(profileLabel(targetInfo ?? { name: targetProfile }), t)
   const pin = pinRef.trim().toLowerCase()
   const pinInvalid = pin !== '' && !COMMIT_SHA_RE.test(pin)
   const nothing = nothingInstallable(request, probe)

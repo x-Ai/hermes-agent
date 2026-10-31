@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useI18n } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { ExternalLink } from '@/lib/external-link'
 import { resolvePluginSourceLinks } from '@/lib/plugin-source-urls'
 import { cn } from '@/lib/utils'
@@ -158,6 +160,7 @@ function ContentsRow({
 /** The install's particulars behind Advanced: where it comes from, which version, what it puts down, and
  *  the profile it lands in. A git URL that is not in the reviewed catalog also offers Force and a pin. */
 export function PluginInstallDetails(props: PluginInstallDetailsProps) {
+  const { t } = useI18n()
   const { busy, copy, force, onForceChange, probe, profile, request } = props
   const agent = !probe?.ok || installComponents(request, probe).agent
 
@@ -174,7 +177,7 @@ export function PluginInstallDetails(props: PluginInstallDetailsProps) {
           <SelectContent>
             {profile.options.map(option => (
               <SelectItem key={option.name} value={normalizeProfileKey(option.name)}>
-                {profileLabel(option)}
+                {displayEntityName(profileLabel(option), t)}
               </SelectItem>
             ))}
           </SelectContent>
