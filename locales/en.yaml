@@ -4228,6 +4228,10 @@ tui_gateway:
       format_error:
         title: "The model provider rejected the request format"
         hint: "Try /retry; if it persists, switch with /model."
+      local_runtime_unavailable:
+        title: "The local model server is not running"
+        hint: "Try /retry once it is up, or switch with /model."
+        hint_unrecoverable: "Start the local model server (Hermes desktop app, or `hermes model` → Local models), or switch with /model."
       ssl_cert_verification:
         title: "The connection to the model provider could not be verified (TLS)"
         hint: "Check the endpoint's certificate, then /retry."

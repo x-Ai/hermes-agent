@@ -4099,6 +4099,10 @@ tui_gateway:
       format_error:
         title: "Model sağlayıcısı istek biçimini reddetti"
         hint: "/retry deneyin; sürerse /model ile model değiştirin."
+      local_runtime_unavailable:
+        title: "Yerel model sunucusu çalışmıyor"
+        hint: "Çalışmaya başladığında /retry deneyin veya /model ile değiştirin."
+        hint_unrecoverable: "Yerel model sunucusunu başlatın (Hermes masaüstü uygulaması veya `hermes model` → Local models) ya da /model ile değiştirin."
       ssl_cert_verification:
         title: "Model sağlayıcısına bağlantı doğrulanamadı (TLS)"
         hint: "Uç noktanın sertifikasını kontrol edin, sonra /retry."

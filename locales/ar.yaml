@@ -4099,6 +4099,10 @@ tui_gateway:
       format_error:
         title: "رفض مزوّد النموذج تنسيق الطلب"
         hint: "جرّب /retry؛ وإذا استمر الأمر فبدّل النموذج عبر /model."
+      local_runtime_unavailable:
+        title: "خادم النماذج المحلي لا يعمل"
+        hint: "جرّب /retry بمجرد تشغيله، أو بدّل باستخدام /model."
+        hint_unrecoverable: "شغّل خادم النماذج المحلي (تطبيق Hermes لسطح المكتب، أو `hermes model` → Local models)، أو بدّل باستخدام /model."
       ssl_cert_verification:
         title: "تعذّر التحقق من الاتصال بمزوّد النموذج (TLS)"
         hint: "تحقق من شهادة نقطة النهاية ثم /retry."

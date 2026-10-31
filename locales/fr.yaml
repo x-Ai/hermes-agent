@@ -4425,6 +4425,10 @@ tui_gateway:
       format_error:
         title: "Le fournisseur de modèle a rejeté le format de la requête"
         hint: "Essayez /retry ; si cela persiste, changez de modèle avec /model."
+      local_runtime_unavailable:
+        title: "Le serveur de modèles local ne tourne pas"
+        hint: "Essayez /retry une fois qu’il est démarré, ou changez avec /model."
+        hint_unrecoverable: "Démarrez le serveur de modèles local (application de bureau Hermes, ou `hermes model` → Local models), ou changez avec /model."
       ssl_cert_verification:
         title: "La connexion au fournisseur de modèle n'a pas pu être vérifiée (TLS)"
         hint: "Vérifiez le certificat du point de terminaison, puis /retry."

@@ -1,3 +1,4 @@
+import { arCronControl } from './ar_cron_control'
 import type { TranslationOverrides } from './define-locale'
 
 export const arCommandCenter = {
@@ -772,6 +773,7 @@ export const arCommandCenter = {
     failedSetDefault: 'تعذر تعيين الملف الشخصي الافتراضي'
   },
   cron: {
+    control: arCronControl,
     close: 'إغلاق',
     title: 'الوظائف المجدولة',
     count: count => `${count} ${count === 1 ? 'العمل' : 'الوظائف'}`,

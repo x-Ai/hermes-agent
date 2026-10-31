@@ -25,11 +25,15 @@ _CODE_ALIASES: dict[str, str] = {
 _CODE_KEYS = frozenset({
     "auth", "billing", "rate_limit", "upstream_blocked", "overloaded", "server_error", "timeout",
     "context_overflow", "payload_too_large", "model_not_found", "content_policy_blocked",
-    "provider_policy_blocked", "format_error", "ssl_cert_verification"})
+    "provider_policy_blocked", "format_error", "ssl_cert_verification",
+    "local_runtime_unavailable"})
 _LAYER_KEYS = frozenset({"auth", "endpoint", "streaming", "disk", "gateway", "provider"})
 # Entries whose hint opens with "Send /retry": a turn that cannot be retried gets their
 # ``hint_unrecoverable`` sibling, which names /model instead.
-_RETRY_LED_HINTS = frozenset({"default", "layer.streaming", "layer.gateway", "layer.provider"})
+_RETRY_LED_HINTS = frozenset({
+    "default", "layer.streaming", "layer.gateway", "layer.provider",
+    # Switched off: nothing comes up on its own, so the hint names where to start it.
+    "code.local_runtime_unavailable"})
 
 _DETAIL_LIMIT = 400
 
@@ -59,7 +63,7 @@ def turn_error_title(surface: dict | None) -> str:
 
 def turn_error_hint(surface: dict | None, recoverable: bool = True) -> str:
     key = _copy_key(surface)
-    if not recoverable and key in _RETRY_LED_HINTS:
+    if (not recoverable or surface.get("retryable") is False) and key in _RETRY_LED_HINTS:
         return _t(f"tui_gateway.turn_error.{key}.hint_unrecoverable")
     return _t(f"tui_gateway.turn_error.{key}.hint")
 

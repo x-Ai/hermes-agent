@@ -4100,6 +4100,10 @@ tui_gateway:
       format_error:
         title: "Dhiúltaigh soláthraí na samhla d'fhormáid an iarratais"
         hint: "Bain triail as /retry; má mhaireann sé, athraigh le /model."
+      local_runtime_unavailable:
+        title: "Níl an freastalaí samhlacha áitiúil ag rith"
+        hint: "Bain triail as /retry nuair a bheidh sé ar siúl, nó athraigh le /model."
+        hint_unrecoverable: "Tosaigh an freastalaí samhlacha áitiúil (aip deisce Hermes, nó `hermes model` → Local models), nó athraigh le /model."
       ssl_cert_verification:
         title: "Níorbh fhéidir an nasc le soláthraí na samhla a fhíorú (TLS)"
         hint: "Seiceáil teastas an chríochphointe, ansin /retry."

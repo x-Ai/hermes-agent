@@ -4098,6 +4098,10 @@ tui_gateway:
       format_error:
         title: "モデルプロバイダーがリクエスト形式を拒否しました"
         hint: "/retry を試し、続く場合は /model で切り替えてください"
+      local_runtime_unavailable:
+        title: "ローカルモデルサーバーが動作していません"
+        hint: "起動したら /retry を試すか、/model で切り替えてください。"
+        hint_unrecoverable: "ローカルモデルサーバーを起動する（Hermes デスクトップアプリ、または `hermes model` → Local models）か、/model で切り替えてください。"
       ssl_cert_verification:
         title: "モデルプロバイダーへの接続を検証できませんでした（TLS）"
         hint: "エンドポイントの証明書を確認してから /retry してください"

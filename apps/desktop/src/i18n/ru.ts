@@ -6,6 +6,7 @@ import { ruBoot } from './ru_boot'
 import { ruCatalog, ruSkillDeepLink } from './ru_catalog'
 import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
+import { ruCronControl } from './ru_cron_control'
 import { ruDelegationFieldLabels } from './ru_delegation_fields'
 import { ruFirstRun } from './ru_first_run'
 import { ruGatewayMenu } from './ru_gateway_menu'
@@ -3490,6 +3491,7 @@ export const ruOverrides = {
       `Браузер не может сохранить архив профиля. На хосте Hermes выполните: hermes profile export ${name}`
   },
   cron: {
+    control: ruCronControl,
     close: 'Закрыть cron',
     title: 'Запланированные задачи',
     count: count => `${count} ${RU_PLURAL(count, 'задача', 'задачи', 'задач')}`,
@@ -5475,6 +5477,12 @@ export const ruOverrides = {
         launch_credentials_unavailable: {
           title: 'Ключ API этого чата изменился',
           body: 'Этот чат был начат с ключом API, который с тех пор изменили или удалили, поэтому ваше сообщение не отправлено. Открытый чат никогда сам не переключается на другой ключ. Нажмите «Start new session», чтобы использовать текущий ключ.'
+        },
+        local_runtime_unavailable: {
+          title: 'Не удаётся связаться с локальным сервером моделей',
+          body: 'Локальный сервер моделей ещё не работает: возможно, он ещё запускается. Повторите попытку через минуту или переключитесь на другую модель.',
+          bodyNoRetry:
+            'Локальный сервер моделей выключен. Запустите его в настольном приложении Hermes или командой `hermes model` в терминале, либо переключитесь на другую модель.'
         },
         session_read_only: {
           title: 'Этот чат только для чтения',

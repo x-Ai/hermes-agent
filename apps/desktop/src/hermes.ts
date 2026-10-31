@@ -54,11 +54,6 @@ export type {
   ComputerUseStatus,
   ConfigFieldSchema,
   ConfigSchemaResponse,
-  CronDeliveryTarget,
-  CronJob,
-  CronJobCreatePayload,
-  CronJobSchedule,
-  CronJobUpdates,
   CuratorStatusResponse,
   CustomEndpoint,
   CustomEndpointsResponse,
@@ -133,3 +128,11 @@ export type {
   WebhookRoute,
   WebhooksResponse
 } from '@/types/hermes'
+
+export type {
+  CronDeliveryTarget,
+  CronJob,
+  CronJobCreatePayload,
+  CronJobSchedule,
+  CronJobUpdates
+} from '@/types/hermes_cron'

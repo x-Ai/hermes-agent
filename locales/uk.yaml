@@ -4100,6 +4100,10 @@ tui_gateway:
       format_error:
         title: "Провайдер моделі відхилив формат запиту"
         hint: "Спробуйте /retry; якщо не минає, перемкніть модель через /model."
+      local_runtime_unavailable:
+        title: "Локальний сервер моделей не запущено"
+        hint: "Спробуйте /retry, коли він запрацює, або перемкніться через /model."
+        hint_unrecoverable: "Запустіть локальний сервер моделей (настільний застосунок Hermes або `hermes model` → Local models) або перемкніться через /model."
       ssl_cert_verification:
         title: "Не вдалося перевірити з'єднання з провайдером моделі (TLS)"
         hint: "Перевірте сертифікат кінцевої точки, потім /retry."

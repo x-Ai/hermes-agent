@@ -4098,6 +4098,10 @@ tui_gateway:
       format_error:
         title: "模型提供方拒絕了請求格式"
         hint: "試試 /retry；如果仍然失敗，請用 /model 切換模型。"
+      local_runtime_unavailable:
+        title: "本機模型伺服器未執行"
+        hint: "待其啟動後試試 /retry，或用 /model 切換。"
+        hint_unrecoverable: "啟動本機模型伺服器（Hermes 桌面應用程式，或 `hermes model` → Local models），或用 /model 切換。"
       ssl_cert_verification:
         title: "無法驗證與模型提供方的連線（TLS）"
         hint: "檢查端點的憑證，然後 /retry。"

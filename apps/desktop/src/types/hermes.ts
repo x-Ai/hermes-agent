@@ -1111,62 +1111,6 @@ export interface AnalyticsTotals {
   total_sessions: number
 }
 
-export interface CronJob {
-  deliver?: null | string
-  enabled: boolean
-  id: string
-  last_error?: null | string
-  last_run_at?: null | string
-  model?: null | string
-  name?: null | string
-  next_run_at?: null | string
-  no_agent?: boolean
-  prompt?: null | string
-  provider?: null | string
-  schedule?: CronJobSchedule
-  schedule_display?: null | string
-  script?: null | string
-  state?: null | string
-}
-
-export interface CronJobCreatePayload {
-  deliver?: string
-  model?: string
-  name?: string
-  prompt: string
-  provider?: string
-  repeat?: number
-  schedule: string
-}
-
-export interface CronJobSchedule {
-  display?: string
-  expr?: string
-  kind?: string
-}
-
-export interface CronJobUpdates {
-  deliver?: string
-  enabled?: boolean
-  model?: null | string
-  name?: string
-  prompt?: string
-  provider?: null | string
-  schedule?: string
-}
-
-// A cron delivery target from GET /api/cron/delivery-targets — the single
-// source of truth (cron.scheduler.cron_delivery_targets) for where a cron job
-// can auto-deliver. Only 'local' plus configured gateway platforms appear; a
-// configured platform without a cron home channel comes back with
-// home_target_set=false so the UI can flag it.
-export interface CronDeliveryTarget {
-  home_env_var: null | string
-  home_target_set: boolean
-  id: string
-  name: string
-}
-
 // Automation Blueprints — parameterized cron templates with typed slots. The
 // backend (cron/blueprint_catalog.py) is the single source of truth; the
 // desktop renders each slot as a form field, then instantiates a real cron job

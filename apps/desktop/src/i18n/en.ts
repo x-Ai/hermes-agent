@@ -9,6 +9,7 @@ import { enCatalogInstall } from './en_catalog_install'
 import { enClarify } from './en_clarify'
 import { enConnectorAccounts } from './en_connector_accounts'
 import { enConnectorCard } from './en_connector_card'
+import { enCronControl } from './en_cron_control'
 import { enGatewayGroupOpen, enSkillDeepLink } from './en_deep_links'
 import { enErrorCodes } from './en_error_codes'
 import { enErrorLayers } from './en_error_layers'
@@ -3832,6 +3833,7 @@ export const en: Translations = {
       `The browser can't save a profile archive. On the Hermes host, run: hermes profile export ${name}`
   },
   cron: {
+    control: enCronControl,
     close: 'Close cron',
     title: 'Scheduled jobs',
     count: count => `${count} ${count === 1 ? 'job' : 'jobs'}`,

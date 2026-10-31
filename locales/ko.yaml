@@ -4098,6 +4098,10 @@ tui_gateway:
       format_error:
         title: "모델 제공자가 요청 형식을 거부했습니다"
         hint: "/retry를 시도하고, 지속되면 /model로 전환하세요."
+      local_runtime_unavailable:
+        title: "로컬 모델 서버가 실행 중이 아닙니다"
+        hint: "실행되면 /retry를 시도하거나 /model로 전환하세요."
+        hint_unrecoverable: "로컬 모델 서버를 시작하거나(Hermes 데스크톱 앱 또는 `hermes model` → Local models) /model로 전환하세요."
       ssl_cert_verification:
         title: "모델 제공자와의 연결을 검증할 수 없습니다(TLS)"
         hint: "엔드포인트의 인증서를 확인한 뒤 /retry하세요."
