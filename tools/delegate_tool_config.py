@@ -466,6 +466,39 @@ def _runtime_provider_credentials(v: dict, explicit_request_overrides) -> dict:
         command=pinned_command, args=list(runtime.get("args") or []),
     )
 
+def _custom_endpoint_delegation_route(values: dict, cfg: dict,
+                                       explicit_request_overrides) -> Optional[dict]:
+    """``delegation.use_custom_endpoints``: route to the custom endpoint that serves ``delegation.model``.
+
+    The switch's first job is the Desktop/dashboard picker offering configured endpoints. The same
+    intent on a surface with no picker (CLI, TUI, gateway, cron) is "the model I named lives on one of
+    my endpoints" — so when no route is configured and the named model is served by exactly one saved
+    endpoint, children run there instead of sending that model id to the parent's provider.
+
+    A configured route is never touched (``provider``/``base_url`` win before this runs), the switch
+    being off changes nothing, and an endpoint that cannot be identified falls through to plain
+    inheritance. Resolution goes through the runtime provider path, so the child gets the entry's own
+    key, base_url and wire protocol rather than the parent's.
+    """
+    if not is_truthy_value(cfg.get("use_custom_endpoints")):
+        return None
+    model = values.get("model")
+    if not model:
+        return None
+    try:
+        from hermes_cli.runtime_provider_custom import find_custom_provider_identity_by_model
+        slug = find_custom_provider_identity_by_model(model)
+    except Exception:
+        # A config store this boundary cannot read is not a routing verdict: fall through to plain
+        # inheritance rather than refusing every child (the traceback stays greppable at debug).
+        logger.debug("delegation: custom endpoint lookup for %r failed", model, exc_info=True)
+        return None
+    if not slug:
+        return None
+    return _runtime_provider_credentials(
+        {**values, "provider": slug, "base_url": None}, explicit_request_overrides)
+
+
 def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
     """Child credential bundle from the ``delegation`` config section. Three branches: ``base_url`` set → direct
     endpoint (``api_key`` None means inherit the parent's key, so providers keyed outside OPENAI_API_KEY work);
@@ -480,6 +513,9 @@ def _resolve_delegation_credentials(cfg: dict, parent_agent) -> dict:
     if values["base_url"] and not is_native_sdk_provider:
         return _direct_endpoint_credentials(values, explicit_request_overrides)
     if not values["provider"]:
+        routed = _custom_endpoint_delegation_route(values, cfg, explicit_request_overrides)
+        if routed is not None:
+            return routed
         # Pure inherit; explicit request_overrides still merge OVER the parent's.
         return _credential_bundle(
             values["model"], None, None, None, None,
