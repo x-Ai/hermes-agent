@@ -128,7 +128,7 @@ function MemoryProviderSetupResults({ results }: { results: MemoryProviderSetupR
               </span>
             </div>
             {result.command ? (
-              <code className="block break-all border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem]">
+              <code className="block break-all border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem] text-foreground">
                 {result.command}
               </code>
             ) : null}
@@ -242,7 +242,7 @@ function MemoryProviderSetupHint({
                 {setup.pip_dependencies.map(dep => (
                   <code
                     key={dep}
-                    className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem]"
+                    className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem] text-foreground"
                   >
                     {dep}
                   </code>
@@ -260,7 +260,7 @@ function MemoryProviderSetupHint({
             {setup.required_env.map(envKey => (
               <code
                 key={envKey}
-                className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem]"
+                className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem] text-foreground"
               >
                 {envKey}
               </code>
@@ -1320,7 +1320,7 @@ function CatalogEntryCard(props: CatalogEntryCardProps) {
             {chips.map((chip) => (
               <code
                 key={chip}
-                className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem]"
+                className="border border-border bg-background/40 px-2 py-1 font-mono text-[0.6875rem] text-foreground"
               >
                 {chip}
               </code>

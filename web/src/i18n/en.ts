@@ -479,6 +479,10 @@ export const en: Translations = {
     catalogConfirmInstallNote:
       "Plugins install disabled; enable it after install to activate.",
     catalogRequiresEnv: "Requires env",
+    capabilityTools: "{count} tools",
+    capabilityHooks: "{count} hooks",
+    capabilityMiddleware: "{count} middleware",
+    capabilityEnv: "env: {names}",
     removedFromCatalog: "Removed from catalog",
   },
 

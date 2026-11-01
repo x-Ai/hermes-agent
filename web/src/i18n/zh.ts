@@ -461,6 +461,10 @@ export const zh: Translations = {
     catalogConfirmTitle: '安装此插件？',
     catalogConfirmInstallNote: '插件安装后默认禁用，请在安装后启用',
     catalogRequiresEnv: '需要环境变量',
+    capabilityTools: '{count} 个工具',
+    capabilityHooks: '{count} 个钩子',
+    capabilityMiddleware: '{count} 个中间件',
+    capabilityEnv: '环境变量：{names}',
     removedFromCatalog: '已从目录移除'
   },
 

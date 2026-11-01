@@ -433,6 +433,11 @@ export interface Translations {
     catalogConfirmTitle?: string;
     catalogConfirmInstallNote?: string;
     catalogRequiresEnv?: string;
+    /** Capability chips on a catalog card (env-only fallback convention — optional keys). */
+    capabilityTools?: string;
+    capabilityHooks?: string;
+    capabilityMiddleware?: string;
+    capabilityEnv?: string;
     removedFromCatalog?: string;
   };
 
