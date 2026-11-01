@@ -26,6 +26,19 @@ function write(file: string, text: string) {
   fs.writeFileSync(file, text)
 }
 
+/** Whether this host's temporary folder ignores case: create `X`, look for `x`. */
+function caseInsensitiveTmp(): boolean {
+  const probe = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-dp-case-'))
+
+  try {
+    fs.mkdirSync(path.join(probe, 'Desktop'))
+
+    return fs.existsSync(path.join(probe, 'desktop'))
+  } finally {
+    fs.rmSync(probe, { force: true, recursive: true })
+  }
+}
+
 afterEach(() => {
   for (const home of homes.splice(0)) {
     fs.rmSync(home, { force: true, recursive: true })
@@ -322,19 +335,22 @@ describe('reconcileUnifiedDesktopHalves', () => {
     }
   )
 
-  it.skipIf(process.platform === 'win32')('never stamps a marker into a plugin the user linked into the app root', async () => {
-    const home = makeHome()
-    const appRoot = path.join(home, 'desktop-plugins')
-    const own = path.join(home, 'src', 'pkg')
-    write(path.join(own, 'plugin.js'), 'same')
-    write(path.join(home, 'plugins', 'pkg', 'desktop', 'plugin.js'), 'same')
-    fs.mkdirSync(appRoot, { recursive: true })
-    fs.symlinkSync(own, path.join(appRoot, 'pkg'))
+  it.skipIf(process.platform === 'win32')(
+    'never stamps a marker into a plugin the user linked into the app root',
+    async () => {
+      const home = makeHome()
+      const appRoot = path.join(home, 'desktop-plugins')
+      const own = path.join(home, 'src', 'pkg')
+      write(path.join(own, 'plugin.js'), 'same')
+      write(path.join(home, 'plugins', 'pkg', 'desktop', 'plugin.js'), 'same')
+      fs.mkdirSync(appRoot, { recursive: true })
+      fs.symlinkSync(own, path.join(appRoot, 'pkg'))
 
-    expect(await reconcileUnifiedDesktopHalves(home, appRoot)).toEqual([])
-    expect(fs.existsSync(path.join(own, PACKAGE_MARKER))).toBe(false)
-    expect(fs.lstatSync(path.join(appRoot, 'pkg')).isSymbolicLink()).toBe(true)
-  })
+      expect(await reconcileUnifiedDesktopHalves(home, appRoot)).toEqual([])
+      expect(fs.existsSync(path.join(own, PACKAGE_MARKER))).toBe(false)
+      expect(fs.lstatSync(path.join(appRoot, 'pkg')).isSymbolicLink()).toBe(true)
+    }
+  )
 
   it('never overwrites a standalone plugin the user installed under the same name', async () => {
     const home = makeHome()
@@ -491,6 +507,24 @@ describe('desktop tree publication', () => {
         spy.mockRestore()
       }
 
+      expect(fs.readFileSync(path.join(appRoot, 'media', 'plugin.js'), 'utf8')).toBe('export default {}')
+    }
+  )
+
+  // The stand-in above runs everywhere; this one runs where the temporary folder really ignores case
+  // (macOS APFS and Windows NTFS by default), with `Desktop/` the only spelling on disk.
+  it.runIf(caseInsensitiveTmp())(
+    'publishes a Desktop/ folder that a case-insensitive volume finds as desktop/',
+    async () => {
+      const home = makeHome()
+      const appRoot = path.join(home, 'desktop-plugins')
+      const pkg = path.join(home, 'plugins', 'media')
+      write(path.join(pkg, 'Desktop', 'plugin.js'), 'export default {}')
+
+      await expect(reconcileDesktopHalvesReport(home, appRoot)).resolves.toEqual({
+        published: [path.join(appRoot, 'media')],
+        refused: []
+      })
       expect(fs.readFileSync(path.join(appRoot, 'media', 'plugin.js'), 'utf8')).toBe('export default {}')
     }
   )
