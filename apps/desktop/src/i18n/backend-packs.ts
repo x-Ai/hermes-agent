@@ -17,10 +17,12 @@
  * window renders, per connection (`i18n.client_locale`).
  */
 
+import type { LocaleSurface } from '@hermes/shared'
 import { isRecord } from '@hermes/shared/i18n'
 
 import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 
+import { isBundledLocale } from './catalog'
 import { type AppLocaleRegistration, normalizeLocaleId, replaceAppLocaleSource } from './registry'
 import { getRuntimeI18nLocale } from './runtime'
 
@@ -32,6 +34,16 @@ export interface BackendLanguageOption {
   endonym?: string
   rtl?: boolean
   source?: string
+  /** Surfaces some backend layer has strings for. Absent on older backends. */
+  surfaces?: LocaleSurface[]
+}
+
+/** The backend lists every language it translates for any surface (core,
+ *  TUI). A language the Desktop does not bundle renders in English unless the
+ *  backend has Desktop strings for it, so only those enter the picker. Rows
+ *  without `surfaces` (older backends) are kept. */
+function hasDesktopStrings(id: string, row: BackendLanguageOption): boolean {
+  return isBundledLocale(id) || !Array.isArray(row.surfaces) || row.surfaces.includes(DESKTOP_SURFACE)
 }
 
 /** `i18n.catalog` reply: the pack + overlay layer for one surface, flat. */
@@ -111,7 +123,7 @@ export async function syncBackendLocalePacks(
   for (const row of languageRows(languages)) {
     const id = normalizeLocaleId(row.id)
 
-    if (id) {
+    if (id && hasDesktopStrings(id, row)) {
       registrations.set(id, {
         id,
         endonym: typeof row.endonym === 'string' ? row.endonym : undefined,

@@ -195,18 +195,24 @@ export function I18nProvider({
             return
           }
 
-          if (saved != null && saved !== '') {
-            setLocaleState(DEFAULT_LOCALE)
-
-            return
-          }
-
           // Keep inference unsaved so OS language changes apply on the next boot
-          // until the user explicitly picks a language.
+          // until the user explicitly picks a language. The saved ask is checked
+          // again after the probe: its pack may have arrived in the meantime.
+          //
+          // A saved ask the Desktop still cannot render settles on English rather
+          // than the last resolved UI locale: it is the user's explicit choice, and
+          // a stale first-paint cache must not answer for it. Only with no saved ask
+          // does the cache win, so an OS change still applies on a later boot.
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            setLocaleState(resolvePreferredLocale(undefined, [machineProfile?.locale]))
+            setLocaleState(
+              requestedRef.current
+                ? isSupportedLocaleValue(requestedRef.current)
+                  ? normalizeLocale(requestedRef.current)
+                  : DEFAULT_LOCALE
+                : resolvePreferredLocale(undefined, [machineProfile?.locale])
+            )
           }
         })
         .catch(error => {
