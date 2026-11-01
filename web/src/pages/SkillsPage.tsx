@@ -89,7 +89,72 @@ const CATEGORY_LABELS: Record<string, string> = {
   ui: "UI"
 };
 
+/** `lark-<part>` skill families; a part not listed keeps its English word. */
+const LARK_PART_LABELS: Record<string, string> = {
+  approval: "审批",
+  apps: "应用",
+  attendance: "考勤",
+  base: "多维表格",
+  calendar: "日历",
+  contact: "通讯录",
+  doc: "文档",
+  drive: "云空间",
+  event: "事件",
+  im: "即时消息",
+  mail: "邮件",
+  markdown: "Markdown",
+  meeting: "会议",
+  minutes: "妙记",
+  note: "笔记",
+  okr: "OKR",
+  openapi: "OpenAPI",
+  "openapi-explorer": "OpenAPI 浏览",
+  shared: "共享",
+  sheets: "表格",
+  skill: "技能",
+  "skill-maker": "技能创建",
+  slides: "幻灯片",
+  task: "任务",
+  vc: "视频会议",
+  "vc-agent": "视频会议智能体",
+  whiteboard: "白板",
+  wiki: "知识库",
+  workflow: "工作流",
+  "workflow-meeting-summary": "工作流 · 会议纪要",
+  "workflow-standup-report": "工作流 · 站会报告"
+};
+
 const ZH_CATEGORY_LABELS: Record<string, string> = {
+  apple: "苹果生态",
+  "autonomous-ai-agents": "自主 AI 智能体",
+  blockchain: "区块链",
+  communication: "沟通协作",
+  creative: "创意",
+  "data-science": "数据科学",
+  devops: "DevOps",
+  dogfood: "内部试用",
+  email: "电子邮件",
+  "ethos-explore": "Ethos 研究",
+  finance: "金融",
+  gaming: "游戏",
+  health: "健康",
+  media: "媒体",
+  migration: "迁移",
+  "note-taking": "笔记",
+  "orca-cli": "Orca CLI",
+  payments: "支付",
+  "proactive-memory": "主动记忆",
+  productivity: "生产力",
+  "recon-evolution": "侦察演进",
+  research: "研究",
+  security: "安全",
+  "smart-home": "智能家居",
+  "social-media": "社交媒体",
+  "software-development": "软件开发",
+  web: "网页",
+  "web-development": "Web 开发",
+  "windows-ad-exploitation": "Windows AD 渗透",
+  yuanbao: "元宝",
   mlops: "MLOps",
   "mlops/cloud": "MLOps / 云平台",
   "mlops/evaluation": "MLOps / 评估",
@@ -113,6 +178,13 @@ function prettyCategory(
 ): string {
   if (!raw) return generalLabel;
   if (locale === "zh" && ZH_CATEGORY_LABELS[raw]) return ZH_CATEGORY_LABELS[raw];
+  if (locale === "zh" && raw.startsWith("lark-")) {
+    return `飞书 · ${raw
+      .slice("lark-".length)
+      .split("-")
+      .map(w => (LARK_PART_LABELS[w] ?? w.charAt(0).toUpperCase() + w.slice(1)))
+      .join(" ")}`;
+  }
   if (CATEGORY_LABELS[raw]) return CATEGORY_LABELS[raw];
   return raw
     .split(/[-_/]/)

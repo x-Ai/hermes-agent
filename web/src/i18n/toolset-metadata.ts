@@ -6,6 +6,8 @@ import type { Locale } from "./types";
  * unchanged; only user-facing labels and explanatory prose are localized.
  */
 const ZH_TOOLSET_LABELS: Record<string, string> = {
+  a2a: "A2A",
+  connections: "连接",
   web: "网页搜索与抓取",
   browser: "浏览器自动化",
   terminal: "终端与进程",
@@ -34,6 +36,8 @@ const ZH_TOOLSET_LABELS: Record<string, string> = {
 };
 
 const ZH_TOOLSET_DESCRIPTIONS: Record<string, string> = {
+  browser: "用于网页交互的浏览器自动化（导航、点击、输入、滚动、iframe、长按），并带用于查找 URL 的网页搜索",
+  connections: "远程连接器工具与账户授权",
   a2a:
     "Hermes Agent 支持 Linux 基金会 A2A v1.0 标准，实现双向代理间通信：出站支持代理发现、Agent Card 获取及 JSON-RPC 任务发送，入站通过 /.well-known/agent-card.json 暴露服务，并将任务路由至保留完整记忆与上下文的实时会话，未配置 Bearer Token 时仅监听 localhost，通信全程执行入站过滤、出站凭据清理及独立审计，仅依赖 Python 标准库，无需 a2a-sdk",
   clarify: "向用户提出澄清问题（选择题或开放式）",

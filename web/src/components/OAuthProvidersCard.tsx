@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@nous-research/ui/ui/components/confirm-dialog";
 import { OAuthLoginModal } from "@/components/OAuthLoginModal";
 import { useI18n } from "@/i18n";
 import { getDashboardCopy } from "@/i18n/dashboard";
+import { localizeOAuthProviderName } from "@/i18n/oauth-metadata";
 import { errorMessage } from "@/lib/api-error";
 
 interface Props {
@@ -51,7 +52,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loginFor, setLoginFor] = useState<OAuthProvider | null>(null);
   const [disconnectTarget, setDisconnectTarget] = useState<OAuthProvider | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const copy = getDashboardCopy(t).oauth;
 
   const onErrorRef = useRef(onError);
@@ -77,7 +78,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
     setDisconnectTarget(null);
     try {
       await api.disconnectOAuthProvider(provider.id);
-      onSuccess?.(copy.disconnected.replace("{name}", provider.name));
+      onSuccess?.(copy.disconnected.replace("{name}", localizeOAuthProviderName(provider.id, provider.name, locale)));
       refresh();
     } catch (e) {
       onError?.(copy.disconnectFailed.replace("{error}", errorMessage(e)));
@@ -137,7 +138,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                   )}
                   <div className="flex flex-col min-w-0 gap-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm">{p.name}</span>
+                      <span className="font-medium text-sm">{localizeOAuthProviderName(p.id, p.name, locale)}</span>
                       <Badge tone="outline" className="text-xs tracking-wide">
                         {t.oauth.flowLabels[p.flow]}
                       </Badge>
@@ -199,7 +200,7 @@ export function OAuthProvidersCard({ onError, onSuccess }: Props) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex"
-                      title={copy.openDocs.replace("{name}", p.name)}
+                      title={copy.openDocs.replace("{name}", localizeOAuthProviderName(p.id, p.name, locale))}
                     >
                       <Button ghost size="icon">
                         <ExternalLink />
