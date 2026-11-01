@@ -380,7 +380,6 @@ export const arChrome = {
       backgroundRunning: 'تعمل في الخلفية',
       draftSession: 'مسودة — لم تُرسل بعد',
       handoffOrigin: platform => `قادمة من ${platform}`,
-      continuationOrigin: 'متابعة تلقائية — تم ضغط هذه المحادثة ومتابعتها',
       ownedByProfile: profile => `مملوكة للملف الشخصي ${profile}`,
       renamed: 'تمت إعادة التسمية',
       renameFailed: 'فشلت إعادة التسمية',

@@ -309,7 +309,6 @@ export const zhHantChrome = {
       backgroundRunning: '背景任務執行中',
       draftSession: '草稿 — 尚未傳送',
       handoffOrigin: platform => `從 ${platform} 轉接`,
-      continuationOrigin: '自動延續 — 此對話已壓縮並延續',
       ownedByProfile: profile => `設定檔：${profile}`,
       renamed: '已重新命名',
       renameFailed: '重新命名失敗',
