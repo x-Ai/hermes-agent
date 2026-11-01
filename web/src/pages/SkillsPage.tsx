@@ -61,6 +61,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "@nous-research/ui/ui/components/input";
 import { useI18n } from "@/i18n";
+import { localizeToolsetDescription, localizeToolsetLabel } from "@/i18n/toolset-metadata";
 import { en } from "@/i18n/en";
 import { getDashboardCopy } from "@/i18n/dashboard";
 import { usePageHeader } from "@/contexts/usePageHeader";
@@ -664,7 +665,8 @@ export default function SkillsPage() {
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredToolsets.map(ts => {
                     const TsIcon = toolsetIcon(ts.name);
-                    const labelText = ts.label.trim() || ts.name;
+                    const labelText = localizeToolsetLabel(ts.name, ts.label.trim() || ts.name, locale);
+                    const descriptionText = localizeToolsetDescription(ts.name, ts.description, locale);
 
                     return (
                       <Card key={ts.name} className="relative rounded-none">
@@ -681,7 +683,7 @@ export default function SkillsPage() {
                                   {ts.enabled ? t.common.active : t.common.inactive}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-text-secondary mb-2">{ts.description}</p>
+                              <p className="text-xs text-text-secondary mb-2">{descriptionText}</p>
                               {ts.enabled && !ts.configured && (
                                 <p className="text-xs text-amber-300 mb-2">
                                   {t.skills.setupNeeded}

@@ -7,6 +7,7 @@ import { api, type OAuthProvider, type OAuthStartResponse } from "@/lib/api";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { Input } from "@nous-research/ui/ui/components/input";
 import { useI18n } from "@/i18n";
+import { localizeOAuthProviderName } from "@/i18n/oauth-metadata";
 import { getDashboardCopy } from "@/i18n/dashboard";
 import { cn, themedBody } from "@/lib/utils";
 import { errorMessage } from "@/lib/api-error";
@@ -31,8 +32,9 @@ export function OAuthLoginModal({ provider, onClose, onSuccess }: Props) {
   const isMounted = useRef(true);
   const pollTimer = useRef<number | null>(null);
   const copyResetTimer = useRef<number | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const dashboardCopy = getDashboardCopy(t).oauth;
+  const providerName = localizeOAuthProviderName(provider.id, provider.name, locale);
 
   // Initiate flow on mount
   useEffect(() => {
@@ -123,7 +125,7 @@ export function OAuthLoginModal({ provider, onClose, onSuccess }: Props) {
         if (resp.status === "approved") {
           setPhase("approved");
           if (pollTimer.current !== null) window.clearInterval(pollTimer.current);
-          onSuccess(dashboardCopy.connected.replace("{name}", provider.name));
+          onSuccess(dashboardCopy.connected.replace("{name}", providerName));
           window.setTimeout(() => isMounted.current && onClose(), 1500);
         } else if (resp.status !== "pending") {
           setPhase("error");
@@ -142,7 +144,7 @@ export function OAuthLoginModal({ provider, onClose, onSuccess }: Props) {
     return () => {
       if (pollTimer.current !== null) window.clearInterval(pollTimer.current);
     };
-  }, [dashboardCopy, start, phase, provider.id, provider.name, onSuccess, onClose]);
+  }, [dashboardCopy, start, phase, provider.id, providerName, onSuccess, onClose]);
 
   const handleSubmitPkceCode = async () => {
     if (!start || start.flow !== "pkce") return;
@@ -154,7 +156,7 @@ export function OAuthLoginModal({ provider, onClose, onSuccess }: Props) {
       if (!isMounted.current) return;
       if (resp.ok && resp.status === "approved") {
         setPhase("approved");
-        onSuccess(dashboardCopy.connected.replace("{name}", provider.name));
+        onSuccess(dashboardCopy.connected.replace("{name}", providerName));
         window.setTimeout(() => isMounted.current && onClose(), 1500);
       } else {
         setPhase("error");
@@ -232,7 +234,7 @@ export function OAuthLoginModal({ provider, onClose, onSuccess }: Props) {
         <div className="p-6 flex flex-col gap-4">
           <div>
             <H2 id="oauth-modal-title" variant="sm" mondwest className="tracking-wider uppercase">
-              {t.oauth.connect} {provider.name}
+              {t.oauth.connect} {providerName}
             </H2>
             {secondsLeft !== null && phase !== "approved" && phase !== "error" && (
               <p className="text-xs text-muted-foreground mt-1">
