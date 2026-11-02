@@ -23,6 +23,12 @@ _profile_scoped = _registry.profile_scoped
 
 _I18N_ERR = 5400
 
+#: Handlers whose cold call runs plugin discovery (every enabled plugin loads): they run on the RPC pool.
+#: ``i18n.client_locale`` stays inline on purpose: a claim settled on the pool can land after the
+#: connection's next frame was already dispatched (the Desktop announces first, then asks), and
+#: ``dispatch`` answers a pool handler with None instead of the reply.
+_PACK_LOADING_METHODS = frozenset({"i18n.languages", "i18n.catalog"})
+
 
 def _load_language_packs() -> None:
     """Plugin packs register during plugin discovery, which nothing in this process may have run yet: the
@@ -72,5 +78,4 @@ def _(rid, params: dict) -> dict:
 
 def register(server) -> None:
     bind_module(globals(), server, skip=("_",))
-    # A cold call runs plugin discovery, which loads every enabled plugin: keep it off the request reader.
-    server._LONG_HANDLERS = server._LONG_HANDLERS | _registry.names()
+    server._LONG_HANDLERS = server._LONG_HANDLERS | _PACK_LOADING_METHODS

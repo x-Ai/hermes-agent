@@ -381,3 +381,25 @@ def test_apply_live_compression_config_is_self_contained():
     _apply_live_compression_config(agent, {"compression": {"enabled": True}})
     assert agent.compression_enabled is True
     assert agent.codex_responses_native_compaction is False
+
+
+def test_signature_read_keeps_the_launch_dotenv_out_of_the_process_env(tmp_path, monkeypatch):
+    """``session.context_breakdown`` reads the signature on the RPC thread under the session's profile
+    scope, so the extractor must come from its sibling: importing the ``gateway.run`` facade boots the
+    messaging gateway, which copies the launch home's ``.env`` into ``os.environ`` (a profile secret
+    escaping the secret scope, the #112927 class)."""
+    import os
+    import sys
+
+    home = tmp_path / "home"
+    home.mkdir()
+    (home / ".env").write_text("SIGNATURE_PROBE_SECRET=from-launch-dotenv\n", encoding="utf-8")
+    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.delenv("SIGNATURE_PROBE_SECRET", raising=False)
+    monkeypatch.delitem(sys.modules, "gateway.run", raising=False)
+    session, _compressor = _session_with_compressor()
+
+    signature = server._tui_compression_config_signature({"compression": {"threshold_tokens": 100_000}}, session["agent"])
+
+    assert dict(signature)["compression.threshold_tokens"] == 100_000
+    assert "SIGNATURE_PROBE_SECRET" not in os.environ

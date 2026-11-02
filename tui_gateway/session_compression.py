@@ -49,8 +49,12 @@ def _global_context_length_for_agent(agent: Any, cfg: dict) -> int | None:
 def _tui_compression_config_signature(cfg: dict | None, agent: Any = None) -> tuple:
     """Stable snapshot of compression/context keys that must apply next turn: the messaging-gateway
     cache-busting extract plus ``idle_compact_after_seconds``/``tail_mode`` (live-TUI-only keys)."""
-    from gateway.run import GatewayRunner
-    keys = GatewayRunner._extract_cache_busting_config(cfg)
+    # The sibling that owns the extractor, never the ``gateway.run`` facade: importing that module boots
+    # the messaging gateway and copies the launch home's .env into os.environ, which the dotenv multiplex
+    # guard allows while a launch-profile scope is bound, and ``session.context_breakdown`` reads this
+    # signature on the RPC thread under exactly that scope.
+    from gateway.run_agent_cache import GatewayAgentCacheMixin
+    keys = GatewayAgentCacheMixin._extract_cache_busting_config(cfg)
     picked = {k: v for k, v in keys.items() if k.startswith("compression.") or k == "model.context_length"}
     compression = cfg.get("compression") if isinstance(cfg, dict) and isinstance(cfg.get("compression"), dict) else {}
     picked.update({f"compression.{k}": compression.get(k) for k in ("idle_compact_after_seconds", "tail_mode")})
