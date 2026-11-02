@@ -33,13 +33,18 @@ import {
 import { $gatewayActivationEpoch } from '@/store/gateway-activation-epoch'
 import { isMissingConnectionError, isMissingProfileError } from '@/store/gateway-dial-failures'
 import { $primaryGatewayRoute } from '@/store/gateway-primary-route'
-import { sharedPrimaryRoute } from '@/store/gateway-shared-primary'
+import type { Secondary } from '@/store/gateway-secondary'
+import {
+  isPrimaryRider,
+  notePrimaryRider,
+  type PrimaryIdentity,
+  sharedPrimaryRoute
+} from '@/store/gateway-shared-route'
 import { notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
 import { markNativeNotifyBaseline } from '@/store/notify-baseline'
 import { setConnection, setGatewayState } from '@/store/session'
 import { stampSecondaryProfileOwner } from '@/store/session-event-provenance'
 export { useGatewayActivationEpoch } from '@/store/gateway-activation-epoch'
-export { sharedPrimaryRoute } from '@/store/gateway-shared-primary'
 
 // ── Multi-profile gateway routing ──────────────────────────────────────────
 // Concurrent sessions across profiles need concurrent sockets: the renderer's
@@ -110,85 +115,6 @@ interface RegistryConfig {
    * `activeRequests` is 0 during most of a turn.
    */
   liveScopes?: () => ReadonlySet<string>
-}
-
-// ── Secondary (pool) backends ──────────────────────────────────────────────
-interface Secondary {
-  /** Scope key from registryBackendScopeKey(connectionId, profile). */
-  scope: string
-  profile: string
-  /** Registry connection serving this socket; null = the local/legacy path. */
-  connectionId: null | string
-  connection: HermesConnection | null
-  gateway: HermesGateway
-  /**
-   * Date.now() of the most recent socket 'open'. The live-work pruner's
-   * min-lifetime grace reads this: an idle prune can race an on-demand dial
-   * (prune → redial → prune) and close freshly opened sockets before their
-   * consumer registers in the keep-set, re-triggering the orphan-reap /
-   * remount loop (#94769). 0 = never opened.
-   */
-  lastOpenedAt: number
-  /** Date.now() of the CURRENT socket's 'open'; null while not open. Stability
-   *  clock for the backoff reset (#83134) — `lastOpenedAt` persists across
-   *  closes and would make every failed redial look like a stable session. */
-  openedAt: null | number
-  activeRequests: number
-  connectPromise: Promise<void> | null
-  offEvent: () => void
-  offRequest: () => void
-  offState: () => void
-  reconnectTimer: ReturnType<typeof setTimeout> | null
-  reconnectAttempt: number
-  /**
-   * Consecutive unanswered wake-probe pings on this entry's current socket;
-   * drives the same streak tolerance the primary's probe applies
-   * (decideLivenessForceClose). Reset on every answered probe and on every
-   * fresh socket open.
-   */
-  livenessProbeFailures: number
-  /** Pending deferred liveness re-probe after an in-flight-work deferral. */
-  livenessReprobeTimer: ReturnType<typeof setTimeout> | null
-  /** Consecutive automatic dials that stalled (slot wait / dial timeout)
-   *  rather than failing fast; see SECONDARY_STALLED_DIAL_BUDGET. */
-  stalledDials: number
-  reconnecting: boolean
-  /** A material connection edit is waiting for live owners to drain. */
-  pendingConnectionRedial: boolean
-  /**
-   * True when a foreground/prewarmed consumer owns this entry beyond one RPC.
-   * Guards ONLY the dispose-at-refcount-0 paths (request/relay leases), never
-   * the live-work pruner: it is a one-way latch that every hover pre-warm and
-   * profile switch sets and nothing ever clears, so honoring it in
-   * pruneSecondaryGateways would pin every socket ever warmed. A foreground
-   * surface that must keep its owner socket (a mounted session tile, the
-   * primary thread) is represented in the pruner's keep-set instead — see
-   * foregroundSessionScopes in store/session-states (#93892).
-   */
-  retained: boolean
-  /**
-   * Bot-relay retainers pinning this socket open across drain ticks (#93594).
-   * The relay's drain loop RPCs every registered connection on an interval;
-   * without retention each tick dialed and tore down a fresh WebSocket per
-   * connection (refcount hit 0 → dispose). Counted, not boolean, so relay
-   * retention can never clobber (or be clobbered by) the foreground
-   * `retained` flag. Only non-local registry routes are ever counted here —
-   * see retainGatewayForRelay.
-   */
-  relayRetainCount: number
-  // While true the entry auto-reconnects on drop; pruning flips it off so a
-  // deliberate close doesn't trigger the backoff loop.
-  wantOpen: boolean
-  /**
-   * Epoch-ms deadline while an activation (prepare/ensure) is mid-dial. The
-   * live-work pruner must not dispose an entry the user is switching to: a
-   * switch target is not yet the active key, has no live sessions and holds
-   * no request lease, so during a cold pool spawn (~3s) every prune recompute
-   * saw it as idle garbage and disposed it mid-dial — the root of the dead
-   * profile clicks in #89622. Cleared when the activation settles; bounded so
-   * an orphaned lease self-heals.
-   */
-  activationLeaseUntil: number
 }
 
 // How long a mid-dial activation holds its prune lease: it must outlast every
@@ -318,6 +244,21 @@ export function activeGatewayProfileKey(): string {
   return g.$activeProfile.get()
 }
 
+/** Never dials or asks main: the socket a request for (connectionId, profile)
+ *  would ride (`primary:<profile>` for the window primary and profiles known to
+ *  share its backend, else the pooled scope) and whether it is open right now. */
+export function gatewayRouteState(connectionId: null | string, profile: string): { key: string; open: boolean } {
+  const key = normKey(profile)
+  const scope = registryBackendScopeKey(connectionId, key)
+  const onPrimary = key === g.primaryProfile && (scope === key || isPrimaryRegistryRoute(connectionId, key))
+
+  if (onPrimary || isPrimaryRider(scope, primaryIdentity())) {
+    return { key: `primary:${key}`, open: isOpen(g.primaryGateway) }
+  }
+
+  return { key: scope, open: isOpen(g.secondaries.get(scope)?.gateway ?? null) }
+}
+
 export function configureGatewayRegistry(cfg: RegistryConfig): void {
   g.config = cfg
 }
@@ -369,6 +310,10 @@ export function dispatchPrimaryServerRequest(request: ServerRequest, profile: st
 function primaryConnectionId(): null | string {
   return $primaryGatewayRoute.get().connectionId
 }
+
+// Taken BEFORE a route await, so a hint learned across a re-home stays bound
+// to the primary the route was resolved against.
+const primaryIdentity = (): PrimaryIdentity => ({ connectionId: primaryConnectionId(), gateway: g.primaryGateway })
 
 export function setPrimaryGateway(gateway: HermesGateway | null, profile = 'default'): void {
   const next = normKey(profile)
@@ -1116,12 +1061,6 @@ function createSecondary(profile: string, connectionId: null | string = null): S
   return entry
 }
 
-// True when `profile`'s backend route resolves to the SHARED primary backend
-// (global-remote case 3 in resolveProfileBackendRoute). Both shared-primary and
-// pooled descriptors carry `profile` so WebSocket URL minting targets the right
-// profile. `sharedPrimary` is the explicit discriminator; treating every tagged
-// descriptor as shared strands local/own-remote pooled profiles on the default
-// socket. Dialing a second socket at the shared descriptor is wrong — over SSH
 // Resolve and open `profile`'s socket WITHOUT changing the active gateway.
 // Shared global-remote profiles intentionally return the primary socket plus a
 // request-scope flag; dedicated local/remote profiles use their pooled socket.
@@ -1145,7 +1084,7 @@ async function gatewayForProfile(
     throw new Error(translateNow('runtimeErrors.backendReconnecting', key))
   }
 
-  if (await sharedPrimaryRoute(key)) {
+  if (notePrimaryRider(primaryIdentity(), key, await sharedPrimaryRoute(key))) {
     return { gateway: g.primaryGateway, key, release: noRelease, scopeProfile: true }
   }
 
@@ -1283,7 +1222,7 @@ export async function requestGatewayForAgent<T>(
     return requestGatewayForProfile<T>(key, method, params, timeoutMs, signal, { spawnPriority })
   }
 
-  if (await ridesPrimaryBackend(connectionId, key)) {
+  if (notePrimaryRider(primaryIdentity(), scope, await ridesPrimaryBackend(connectionId, key))) {
     traceAgentRoute(scope, 'primary-shared')
 
     return requestOnPrimaryGateway<T>(method, { ...params, profile: key }, timeoutMs, signal)
