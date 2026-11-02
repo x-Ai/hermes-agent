@@ -712,7 +712,7 @@ export const frOverrides = {
       advancedOutput: 'Limites de sortie',
       advancedDelegation: 'Sous-agents',
       advancedDesktop: 'Desktop et démarrage',
-      gatewayConnection: 'Cette fenêtre',
+      gatewayConnection: 'Gateway principal',
       gatewayDevices: 'Connexions enregistrées',
       gatewayManagedUpdates: 'Mises à jour à distance',
       gatewayManagedUpdatesUnavailable:

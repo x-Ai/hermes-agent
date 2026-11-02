@@ -1,7 +1,7 @@
 import type { HermesConnection } from '@/global'
 import type { HermesGateway } from '@/hermes'
 
-// ── Secondary (pool) backends ──────────────────────────────────────────────
+/** One secondary (pool) socket the gateway registry (store/gateway.ts) keeps. */
 export interface Secondary {
   /** Scope key from registryBackendScopeKey(connectionId, profile). */
   scope: string

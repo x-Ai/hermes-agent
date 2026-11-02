@@ -4,11 +4,8 @@ import { test, vi } from 'vitest'
 
 import { createBackendConnectionState } from './backend-connection-state'
 import { createFirstRunSetupGate } from './first-run-setup-gate'
-import {
-  createPrimaryRemoteConnection,
-  FirstRunSetupResetError,
-  runPrimaryBackendStartup
-} from './primary-backend-startup'
+import { FirstRunSetupResetError, runPrimaryBackendStartup } from './primary-backend-startup'
+import { createPrimaryRemoteConnection } from './primary-remote-startup'
 
 const bootstrapBackend = {
   activeRoot: '/tmp/hermes-home/hermes-agent',

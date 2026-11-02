@@ -1767,7 +1767,7 @@ export const arSettings = {
       advancedOutput: 'حدود الإخراج',
       advancedDelegation: 'الوكلاء الفرعيون',
       advancedDesktop: 'سطح المكتب وبدء التشغيل',
-      gatewayConnection: 'هذه النافذة',
+      gatewayConnection: 'البوابة الأساسية',
       gatewayDevices: 'الاتصالات المحفوظة',
       gatewayManagedUpdates: 'التحديثات عن بُعد',
       gatewayManagedUpdatesUnavailable: 'تتطلب التحديثات عن بُعد نسخة سطح المكتب مع دعم تحديثات SSH المدارة.',

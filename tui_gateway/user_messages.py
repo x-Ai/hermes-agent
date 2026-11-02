@@ -110,8 +110,9 @@ _AUTH_LOCK_TIMEOUT_PREFIXES = (
 
 
 def agent_init_failed_message(exc: Any) -> str:
-    lock = any(prefix in str(exc) for prefix in _AUTH_LOCK_TIMEOUT_PREFIXES)
-    return _t("tui_gateway.agent.init_failed_lock" if lock else "tui_gateway.agent.init_failed", detail=str(exc))
+    detail = str(exc).rstrip(". ")  # resolver messages end in a sentence; no ".." before the hint
+    lock = any(prefix in detail for prefix in _AUTH_LOCK_TIMEOUT_PREFIXES)
+    return _t("tui_gateway.agent.init_failed_lock" if lock else "tui_gateway.agent.init_failed", detail=detail)
 
 
 def agent_still_starting() -> str:
