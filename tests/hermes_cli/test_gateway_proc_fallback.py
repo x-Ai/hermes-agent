@@ -1,7 +1,7 @@
 """Tests for /proc-based gateway PID detection in Docker environments.
 
 Verifies that _scan_gateway_pids() uses /proc/*/cmdline when available
-(Docker without procps) and falls back to ps only when /proc is absent.
+(Docker without procps) and falls back to psutil, then ps, when /proc is absent.
 
 See: NousResearch/hermes-agent#7622
 """
@@ -125,6 +125,8 @@ def test_other_users_gateways_are_not_ours_unless_root(euid, expected):
     ps_out = f"111 {_GATEWAY_CMD}\n222 {_GATEWAY_CMD}\n"
     with (
         patch("os.path.isdir", side_effect=lambda p: p != "/proc"),
+        # No /proc and no psutil: the ps rows below are the whole process table.
+        patch("hermes_cli.gateway_process_scan.iter_psutil_cmdlines", side_effect=ImportError("no psutil")),
         patch("os.geteuid", return_value=euid),  # windows-footgun: ok — POSIX-only test (platforms marker)
         patch("hermes_cli.gateway_migrate_guards._pid_uid", side_effect=owners.get),
         patch("hermes_cli.gateway._get_ancestor_pids", return_value=set()),
@@ -140,12 +142,13 @@ class TestPsFallbackBsdCompat:
     ``ps -A eww`` fails on macOS (BSD ``e`` is not the procps flag), which
     made gateway discovery silently return nothing whenever /proc is absent.
     Linux-only like ``TestProcFallback``: the real host selects the POSIX arm
-    and only /proc's absence is faked, to force the ps rung.
+    and only /proc's absence (and psutil's) is faked, to force the ps rung.
     """
 
     def test_ps_fallback_uses_bsd_compatible_flags_and_columns(self):
         with (
             patch("os.path.isdir", side_effect=lambda p: p != "/proc"),
+            patch("hermes_cli.gateway_process_scan.iter_psutil_cmdlines", side_effect=ImportError("no psutil")),
             patch("hermes_cli.gateway._get_ancestor_pids", return_value=set()),
             patch("subprocess.run") as mock_run,
         ):

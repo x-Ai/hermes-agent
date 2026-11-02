@@ -23,7 +23,8 @@ when this process dies.
   later started through their supervisor, so it cannot respawn them on old code mid-update; one
   that does not take the drain gets its supervisor's stop at once.
 * bare ``gateway run`` processes that do not answer get marker + SIGTERM, and are replayed from
-  their recorded argv + home.
+  their recorded argv + home. The runtime a manual ``gateway restart`` hosts in-process (no
+  service manager) is one of them, replayed as ``gateway run``.
 * the updater never kills itself: a unit whose cgroup holds this process (``/update`` from
   chat: the update runs in the gateway unit's cgroup, which ``systemctl stop`` kills) is
   stopped only after this process moved into a transient scope of its own. A launchd job
@@ -223,7 +224,9 @@ def _respawning_service(pid: int) -> str | None:
 
 
 def _discover_bare(service_pids: set[int]) -> tuple[list[dict], list[str]]:
-    """``(bare gateways, notices)``: this install's ``gateway run`` processes outside any unit."""
+    """``(bare gateways, notices)``: this install's gateway runtimes outside any unit: ``gateway run``
+    processes and the one a manual ``gateway restart`` hosts in-process (no service manager: the
+    fallback runs ``run_gateway()`` inside the restart CLI, so the live argv says ``restart``)."""
     from gateway.status import get_process_start_time
     from hermes_cli.gateway import _capture_gateway_argv, _get_service_pids, find_gateway_pids
     from hermes_cli.update_cmd_fleet import _scoped_manual_gateway_pids
@@ -234,14 +237,39 @@ def _discover_bare(service_pids: set[int]) -> tuple[list[dict], list[str]]:
     for pid in pids:
         pid = int(pid)
         marker = _supervisor_markers(pid)
-        argv, home = _capture_gateway_argv(pid), gateway_pid_home(pid)
+        argv, home = _capture_gateway_argv(pid, runtime=True), gateway_pid_home(pid)
         if marker or not argv or not home:
             why = f"supervised by {marker}" if marker else "its command line could not be read" if not argv \
                 else "its Hermes home could not be proved"
             notices.append(f"  ↷ gateway PID {pid} keeps running until after the update ({why})")
             continue
-        bare.append({"pid": pid, "argv": list(argv), "home": str(home), "ct": get_process_start_time(pid)})
+        bare.append({"pid": pid, "argv": _replay_argv(argv), "home": str(home), "ct": get_process_start_time(pid)})
     return bare, notices
+
+
+#: ``gateway restart`` switches without a ``gateway run`` counterpart; ``--force`` and the profile
+#: selectors carry over to the replay.
+_RESTART_ONLY_FLAGS = frozenset({"--all", "--system", "--detach", "-y", "--yes", "--interrupt"})
+
+
+def _replay_argv(argv: list[str]) -> list[str]:
+    """*argv* as the ``gateway run`` command line that brings the same runtime back. The runtime the
+    manual restart fallback hosts carries ``gateway restart``, and replaying that verb would first
+    stop whatever serves the home, then host the gateway in the updater's child under ``restart``
+    again. Only the hosting subcommand changes; any other argv is returned as it is."""
+    if "gateway" not in argv:
+        return list(argv)
+    at = argv.index("gateway") + 1
+    while at < len(argv):  # the profile selectors the CLI pre-parser strips may follow ``gateway``
+        if argv[at] in ("-p", "--profile"):
+            at += 2
+        elif argv[at].startswith(("-p=", "--profile=")):
+            at += 1
+        else:
+            break
+    if argv[at:at + 1] != ["restart"]:
+        return list(argv)
+    return [*argv[:at], "run", *(arg for arg in argv[at + 1:] if arg not in _RESTART_ONLY_FLAGS)]
 
 
 # --------------------------------------------------------------------------- self-preservation

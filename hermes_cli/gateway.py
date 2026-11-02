@@ -639,25 +639,9 @@ def _scan_gateway_pids(
             for pid, command in _iter_windows_list_processes(listing):
                 _consider(pid, command)
         else:
-            # /proc first (Docker without procps), then `ps -Aww`.
-            _found_via_proc = False
-            if os.path.isdir("/proc"):
-                try:
-                    for pid, command in _iter_proc_cmdlines(exclude_pids):
-                        _consider(pid, command)
-                    _found_via_proc = True
-                except Exception:
-                    pass
-
-            if not _found_via_proc:
-                # ``-Aww`` not ``-A eww``: BSD/macOS ps rejects ``e``; ``-ww`` = unlimited width.
-                result = subprocess.run(["ps", "-Aww", "-o", "pid=,command="], timeout=10, **_CAPTURE_TEXT, check=False)
-                if result.returncode != 0:
-                    return []
-                for line in result.stdout.split("\n"):
-                    parsed = _parse_ps_line(line)
-                    if parsed is not None:
-                        _consider(*parsed)
+            from hermes_cli.gateway_process_scan import iter_posix_cmdlines
+            for pid, command in iter_posix_cmdlines(exclude_pids):
+                _consider(pid, command)
     except (OSError, subprocess.TimeoutExpired):
         return []
 
@@ -934,9 +918,11 @@ def _gateway_run_args_for_profile(profile: str) -> list[str]:
     return runtime_command(PROJECT_ROOT, args)
 
 
-def _capture_gateway_argv(pid: int) -> list[str] | None:
+def _capture_gateway_argv(pid: int, *, runtime: bool = False) -> list[str] | None:
     """Live argv of a running gateway (snapshotted before update kills so unmapped gateways can respawn);
-    None if psutil is unavailable, the process is gone/denied, or the argv isn't a gateway command."""
+    None if psutil is unavailable, the process is gone/denied, or the argv isn't a gateway command.
+    ``runtime``: also accept the ``gateway restart`` argv the manual restart fallback hosts the runtime
+    under on a host without a service manager (``looks_like_gateway_runtime_command_line``)."""
     if pid <= 1:
         return None
     try:
@@ -951,8 +937,9 @@ def _capture_gateway_argv(pid: int) -> list[str] | None:
         return None
     # Never respawn an unrelated process the scan happened to report.
     try:
-        from gateway.status import looks_like_gateway_command_line
-        if not looks_like_gateway_command_line(" ".join(argv)):
+        from gateway.status import looks_like_gateway_command_line, looks_like_gateway_runtime_command_line
+        matches = looks_like_gateway_runtime_command_line if runtime else looks_like_gateway_command_line
+        if not matches(" ".join(argv)):
             return None
     except Exception:
         pass
