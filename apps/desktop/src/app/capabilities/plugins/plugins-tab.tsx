@@ -566,7 +566,8 @@ function PackageRow({
             disabled={busy}
             name={displayName}
             note={p.uninstallTip(displayName, scopeLabel)}
-            onUninstall={() => onAgentRemove(agent, desktop)}          />
+            onUninstall={() => onAgentRemove(agent, desktop)}
+          />
         ) : (
           desktop &&
           desktopRemovable && (
@@ -806,10 +807,14 @@ export const PluginsTab = memo(function PluginsTab({
       }
     }
 
+    // On only when every half it actuates is on: a package whose desktop half
+    // is off (pane missing) must not read On just because its agent half is.
+    const on = (!agent || agent.status === 'enabled') && (!desktop || desktop.status !== 'disabled')
+
     return (
       <CatalogSwitch
         aria-label={pkg.name}
-        checked={agent ? agent.status === 'enabled' : desktop?.status !== 'disabled'}
+        checked={on}
         disabled={agent ? !agent.key || agentBusy(agent) : false}
         onCheckedChange={setEnabled}
         size="xs"

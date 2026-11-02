@@ -1110,8 +1110,6 @@ export const zhOverrides = {
       openFolder: '打开插件文件夹',
       rescan: '重新扫描',
       reveal: '在文件管理器中显示',
-      enable: '启用',
-      disable: '禁用',
       failed: '失败',
       kinds: {
         bundled: '内置',

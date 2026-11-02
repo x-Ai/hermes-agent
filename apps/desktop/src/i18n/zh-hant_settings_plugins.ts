@@ -6,8 +6,6 @@ export const zhHantSettingsPlugins = {
   openFolder: '打開插件資料夾',
   rescan: '重新掃描',
   reveal: '在檔案總管中顯示',
-  enable: '啟用',
-  disable: '停用',
   failed: '失敗了',
   kinds: {
     bundled: '捆綁的',

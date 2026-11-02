@@ -743,8 +743,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       openFolder: string
       rescan: string
       reveal: string
-      enable: string
-      disable: string
       failed: string
       kinds: { bundled: string; disk: string; runtime: string }
       installModal: {
