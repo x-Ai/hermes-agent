@@ -21,8 +21,11 @@ from hermes_cli import update_cmd
 
 
 def _git(root: Path, *args: str) -> str:
-    return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True,
-                          text=True, encoding="utf-8").stdout.strip()
+    # Fixture git with auto-maintenance off: Apple git 2.54's commit detaches a `maintenance run --auto`
+    # that repacks and deletes the origin's loose objects while a local clone is still copying them. A
+    # flag, not config, so the install under test keeps git's defaults.
+    return subprocess.run(["git", "-C", str(root), "-c", "maintenance.auto=false", "-c", "gc.auto=0", *args],
+                          check=True, capture_output=True, text=True, encoding="utf-8").stdout.strip()
 
 
 _MULTI = "top = 1\nx = 0\ny = 0\nz = 0\nend = 1\n"
@@ -588,8 +591,11 @@ def test_an_empty_head_answer_keeps_the_marker(tmp_path, monkeypatch, capsys):
     marker for the next launch instead of reading as "the update finished"."""
     root, pre, target = _broken_release(tmp_path, 5)
     marker = _rollback_marker(root, pre, target)
+    # A program, not an empty file: under custody macOS spawns git outside `subprocess.run`
+    # (the owner watch), so there the stub itself gives the silent exit-0 answer.
     stub = tmp_path / "silent-git"
-    stub.write_text("", encoding="utf-8")
+    stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="")
+    stub.chmod(0o755)
     monkeypatch.setattr(er, "_git_executable", lambda recorded="": str(stub))
     real_run = subprocess.run
 
