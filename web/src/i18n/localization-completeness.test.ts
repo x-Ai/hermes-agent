@@ -18,6 +18,7 @@ import { ru } from './ru'
 import { hu } from './hu'
 import { ar } from './ar'
 import { dashboardEn, dashboardZh } from './dashboard'
+import { BUILTIN_AUX_TASKS } from '../lib/aux-tasks'
 import { localizeBlueprintDescription } from './blueprint-metadata'
 import { localizeChannelDescription } from './channel-metadata'
 import { localizeConfigLabel, localizeConfigOption } from './config-metadata'
@@ -61,6 +62,15 @@ describe('Dashboard catalog parity', () => {
 
     const dashboardChinesePaths = new Set(leafPaths(dashboardZh))
     expect(leafPaths(dashboardEn).filter(path => !dashboardChinesePaths.has(path))).toEqual([])
+  })
+
+  it('the Models page has a localized slot for every built-in auxiliary task', () => {
+    // A built-in missing from `auxiliarySlots` renders the English label and hint
+    // hard-coded in `BUILTIN_AUX_TASKS`, whatever the locale.
+    for (const copy of [dashboardEn, dashboardZh]) {
+      const slots = new Set(Object.keys(copy.models.auxiliarySlots))
+      expect(BUILTIN_AUX_TASKS.map(task => task.key).filter(key => !slots.has(key))).toEqual([])
+    }
   })
 
   it('Traditional Chinese covers every English key any peer locale covers', () => {
