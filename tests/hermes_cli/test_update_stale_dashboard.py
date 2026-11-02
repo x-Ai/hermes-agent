@@ -784,7 +784,7 @@ class TestFilterDashboardRespawnCandidates:
 
 
 class TestCmdlineCapture:
-    """_dashboard_cmdline_for_pid reads /proc on Linux, ps on macOS."""
+    """_dashboard_cmdline_for_pid reads /proc on Linux, psutil then ps elsewhere."""
 
     def _live(self):
         return main_dashboard
@@ -817,6 +817,8 @@ class TestCmdlineCapture:
 
     @pytest.mark.skipif(sys.platform == "win32", reason="POSIX ps cmdline fallback")
     def test_falls_back_to_ps_without_proc(self, monkeypatch):
+        """``ps`` answers when neither /proc nor psutil does (another user's process on macOS)."""
+        import psutil
         live = self._live()
 
         def fake_run(args, *a, **kw):
@@ -824,6 +826,7 @@ class TestCmdlineCapture:
             return MagicMock(returncode=0, stdout="hermes serve --port 8300\n", stderr="")
 
         with patch.object(live.os.path, "exists", return_value=False), \
+             patch.object(psutil, "Process", side_effect=psutil.AccessDenied(888)), \
              patch("subprocess.run", side_effect=fake_run):
             argv = main_dashboard._dashboard_cmdline_for_pid(888)
 

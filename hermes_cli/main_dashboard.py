@@ -372,8 +372,13 @@ def _restart_launchd_job(domain: str, label: str, old_pid: int | None, *, timeou
 
 
 def _dashboard_cmdline_for_pid(pid: int) -> list[str] | None:
-    """Exact argv of a running process: ``/proc/<pid>/cmdline`` (Linux), ``ps -o command=`` + shlex
-    (macOS), None on Windows (no graceful taskkill window; Desktop manages its backend)."""
+    """Exact argv of a running process: ``/proc/<pid>/cmdline`` (Linux), psutil, then ``ps -o
+    command=`` + shlex; None on Windows (no graceful taskkill window; Desktop manages its backend).
+
+    psutil before ``ps``: BSD ``ps`` (macOS) renders a newline inside one argument as the octal
+    escape ``\\012``, so the published launcher's multi-line ``-c`` bootstrap came back split into
+    words and every respawn died on ``SyntaxError`` within the liveness grace. ``ps`` still answers
+    for a process psutil cannot read (another user's)."""
     if sys.platform == "win32":
         return None
     try:
@@ -383,6 +388,13 @@ def _dashboard_cmdline_for_pid(pid: int) -> list[str] | None:
                 raw = f.read()
             argv = [part.decode("utf-8", errors="replace") for part in raw.split(b"\x00") if part]
             return argv or None
+        import psutil  # type: ignore
+        try:
+            argv = list(psutil.Process(pid).cmdline() or [])
+        except psutil.Error:  # NoSuchProcess / AccessDenied (another user's: ps still reports it) / ZombieProcess
+            argv = []
+        if argv:
+            return argv
         result = _run_probe(["ps", "-p", str(pid), "-o", "command="], timeout=10)
         if result.returncode != 0:
             return None
