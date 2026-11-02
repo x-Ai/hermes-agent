@@ -66,7 +66,7 @@ export function ProfileSwitcher({ collapsed }: ProfileSwitcherProps) {
         )}
         id="hermes-profile-switcher"
         onValueChange={setProfile}
-        value={profile}
+        value={isOther ? profile : ""}
       >
         <SelectOption value="">{currentDashboardLabel}</SelectOption>
 

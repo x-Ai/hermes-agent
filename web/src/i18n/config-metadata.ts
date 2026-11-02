@@ -175,6 +175,7 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
   assignee: '负责人',
   assistant: '助手',
   attachment: '附件',
+  attachments: '附件',
   attempts: '尝试次数',
   attention: '关注',
   attributes: '属性',
@@ -705,6 +706,7 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
   status: '状态',
   steer: '调整',
   stop: '停止',
+  storage: '存储',
   store: '存储',
   storm: '风暴保护',
   strategy: '策略',
@@ -779,6 +781,7 @@ const ZH_EXTRA_TERMS: Record<string, string> = {
   vacuum: '数据库整理',
   vad: '语音活动检测',
   vars: '变量',
+  vault: '密码库',
   vercel: 'Vercel',
   verifier: '验证器',
   verify: '验证',
@@ -909,7 +912,15 @@ const ZH_FULL_LABELS: Record<string, string> = {
   'proxy.credential_source': '出站凭据来源',
   'proxy.enforce_on_docker': '在 Docker 中强制启用出站代理',
   'browser.headed': '以可视模式运行浏览器',
-  'plugins.hook_callback_timeout': '插件钩子回调超时'
+  'plugins.hook_callback_timeout': '插件钩子回调超时',
+  'attachments.storage': '附件存储位置',
+  'vault.key_storage': '密钥存储方式',
+  'vault.onepassword.enabled': '启用 1Password',
+  'vault.onepassword.account': '1Password 账号',
+  'vault.onepassword.binary_path': '1Password 二进制路径',
+  'vault.onepassword.service_account_token_env': '服务账号令牌环境变量',
+  'vault.bitwarden.enabled': '启用 Bitwarden',
+  'vault.bitwarden.binary_path': 'Bitwarden 二进制路径'
 }
 
 const ZH_FULL_SECTIONS: Record<string, string> = {

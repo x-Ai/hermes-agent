@@ -51,6 +51,23 @@ describe("dashboard config metadata localization", () => {
     expect(localizeConfigOption("some-vendor-only-value", "zh")).toBe("some-vendor-only-value");
   });
 
+  it("localizes the attachments and vault sections, their field labels and paths", () => {
+    for (const section of ["attachments", "vault"]) {
+      const label = localizeConfigSection(section, "zh");
+      expect(label, section).not.toBe(section);
+      expect(CJK.test(label), section).toBe(true);
+    }
+
+    // The uncurated path fallback joins translated segments; storage must not
+    // survive as raw English inside a Chinese breadcrumb.
+    expect(localizeConfigSection("attachments.storage", "zh")).toBe("附件 → 存储");
+
+    expect(localizeConfigLabel("vault.key_storage", "zh")).toBe("密钥存储方式");
+    const tokenEnv = localizeConfigLabel("vault.onepassword.service_account_token_env", "zh");
+    expect(tokenEnv).toBe("服务账号令牌环境变量");
+    expect(tokenEnv).not.toContain("Token");
+  });
+
   it("uses curated wording for primary settings in both languages", () => {
     for (const key of ["agent.output_truncation_retries", "agent.empty_response_retries"]) {
       const english = localizeConfigLabel(key, "en");
