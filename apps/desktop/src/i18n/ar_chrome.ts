@@ -692,6 +692,13 @@ export const arChrome = {
     terminalNew: 'محطة جديدة',
     terminalCloseOthers: 'أشخاص مقربون',
     terminalCloseAll: 'أغلق الكل',
+    terminalNewOn: 'طرفية جديدة على…',
+    terminalGatewayRemoved: 'بوابة محذوفة',
+    terminalGatewayRemovedBody:
+      'حُذفت البوابة التي كانت تعمل عليها هذه الطرفية، لذا لا يمكن إعادة فتحها. أغلق علامة التبويب هذه.',
+    terminalGatewayNoShellBody:
+      'لا توفر هذه البوابة وصولاً إلى الصدفة، لذا لا يمكن إعادة فتح هذه الطرفية. أغلق علامة التبويب هذه.',
+    terminalDisconnectedBody: 'انقطع اتصال الطرفية. اضغط Enter لبدء صدفة جديدة؛ يُحفظ سجل التمرير.',
     addToChat: 'إضافة للمحادثة',
     showIgnored: 'إظهار الملفات المتجاهلة في git',
     hideIgnored: 'إخفاء الملفات المتجاهلة في git',

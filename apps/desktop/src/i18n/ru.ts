@@ -1565,7 +1565,7 @@ export const ruOverrides = {
       intro:
         'Управляйте этим устройством и всеми шлюзами Hermes, до которых можно дотянуться через удалённые, SSH или Cloud-соединения.',
       stagedNote:
-        'Переключайтесь между шлюзами из раздела «Сеансы». Профили, чаты, мессенджеры и cron-задачи остаются за своим шлюзом; работа на других шлюзах продолжается.',
+        'Все шлюзы остаются подключёнными. Профили, чаты, мессенджеры и cron-задачи остаются за своим шлюзом, а «Сеансы» могут показывать их все сразу.',
       launchModeTitle: 'При запуске возвращаться к «Сеансам» на последнем шлюзе',
       launchModeDesc: 'Если выключено, «Сеансы» открываются на основном шлюзе.',
       searchPlaceholder: 'Поиск шлюзов…',
@@ -2521,6 +2521,10 @@ export const ruOverrides = {
     changesApplyNewSessions: 'Изменения применяются к новым сеансам.',
     skillUpdated: 'Навык обновлён',
     edit: 'Изменить',
+    lock: 'Заблокировать',
+    locked: 'Заблокирован',
+    lockHint: 'Пока навык заблокирован, агент не может его менять. Вы по-прежнему можете редактировать его сами.',
+    unlockedHint: 'Заблокируйте навык, чтобы агент не мог его менять. Вы по-прежнему можете редактировать его сами.',
     archive: 'В архив',
     archiveSkillTitle: name => `Архивировать ${name}?`,
     archiveSkillDescription: 'Навык будет архивирован; его можно восстановить командой `hermes curator restore`.',
@@ -3363,17 +3367,14 @@ export const ruOverrides = {
       gateway: gateway => `Профили включены${gateway}`,
       gatewayUnreachable: gateway => `${gateway}· недоступный`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
-      switchTo: (name, gateway) => `Переключиться на${name}включено${gateway}`,
+      switchTo: (name, gateway) => `Открыть ${name} на ${gateway}`,
       deleteOn: gateway => `включено${gateway}`,
       connectExistingInstead: 'Вместо этого подключить существующий',
       installDeviceConfirm: 'Установить локально',
       installDeviceDesc:
         'Hermes будет установлен локально, затем откроется новая сессия на этом компьютере. Установка не начнётся, пока вы не подтвердите.',
-      installDeviceTitle: 'Переключиться на это устройство?',
-      localDevice: 'Это устройство (локальный бэкенд — установит Hermes, если его нет, иначе откроет новую сессию)',
-      switchDeviceConfirm: 'Переключить',
-      switchDeviceDesc: 'Откроется новая сессия на этом компьютере. Текущий разговор останется на другом шлюзе.',
-      switchDeviceTitle: 'Переключиться на это устройство?'
+      installDeviceTitle: 'Установить Hermes на это устройство?',
+      localDevice: 'Это устройство (локальный бэкенд — установит Hermes, если его нет, иначе откроет новую сессию)'
     },
     remoteOverride: {
       menuItem: 'Подключиться к удаленному хосту…',
@@ -4935,6 +4936,14 @@ export const ruOverrides = {
     terminalNew: 'Новый терминал',
     terminalCloseOthers: 'Закрыть другие',
     terminalCloseAll: 'Закрыть все',
+    terminalNewOn: 'Новый терминал на…',
+    terminalGatewayRemoved: 'Удалённый шлюз',
+    terminalGatewayRemovedBody:
+      'Шлюз, на котором работал этот терминал, удалён, поэтому его нельзя открыть снова. Закройте эту вкладку.',
+    terminalGatewayNoShellBody:
+      'У этого шлюза нет доступа к оболочке, поэтому терминал нельзя открыть снова. Закройте эту вкладку.',
+    terminalDisconnectedBody:
+      'Терминал отключён. Нажмите Enter, чтобы запустить новую оболочку; история прокрутки сохранена.',
     addToChat: 'Добавить в чат',
     showIgnored: 'Показать файлы из gitignore',
     hideIgnored: 'Скрыть файлы из gitignore',

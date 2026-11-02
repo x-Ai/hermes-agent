@@ -651,16 +651,13 @@ export const arCommandCenter = {
       gateway: gateway => `الملفات الشخصية مفعلة${gateway}`,
       gatewayUnreachable: gateway => `${gateway}· لا يمكن الوصول إليه`,
       onGateway: (name, gateway) => `${name} · ${gateway}`,
-      switchTo: (name, gateway) => `التبديل إلى${name}على${gateway}`,
+      switchTo: (name, gateway) => `فتح ${name} على ${gateway}`,
       deleteOn: gateway => `على${gateway}`,
       connectExistingInstead: 'الاتصال بموجود بدلًا من ذلك',
       installDeviceConfirm: 'تثبيت محليًا',
       installDeviceDesc: 'سيُثبَّت Hermes محليًا ثم تُفتح جلسة جديدة على هذا الحاسوب. لا يبدأ التثبيت قبل التأكيد.',
-      installDeviceTitle: 'التبديل إلى هذا الجهاز؟',
-      localDevice: 'هذا الجهاز (خلفية محلية — تثبّت Hermes إن كان مفقودًا، وإلا تفتح جلسة جديدة)',
-      switchDeviceConfirm: 'تبديل',
-      switchDeviceDesc: 'يفتح هذا جلسة جديدة على هذا الحاسوب. تبقى المحادثة الحالية على البوابة الأخرى.',
-      switchDeviceTitle: 'التبديل إلى هذا الجهاز؟'
+      installDeviceTitle: 'تثبيت Hermes على هذا الجهاز؟',
+      localDevice: 'هذا الجهاز (خلفية محلية — تثبّت Hermes إن كان مفقودًا، وإلا تفتح جلسة جديدة)'
     },
     remoteOverride: {
       menuItem: 'الاتصال بمضيف بعيد…',

@@ -2085,6 +2085,10 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     archiveSkillTitle: (name: string) => string
     archiveSkillDescription: string
     skillArchivedTitle: string
+    lock: string
+    locked: string
+    lockHint: string
+    unlockedHint: string
     skillArchivedMessage: string
     tabPlugins: string
     officialCatalog: string
@@ -3740,9 +3744,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       deleteOn: (gateway: string) => string
       /** At-rest local default pill: device, not Home, and the click's consequence. */
       localDevice: string
-      switchDeviceTitle: string
-      switchDeviceDesc: string
-      switchDeviceConfirm: string
       installDeviceTitle: string
       installDeviceDesc: string
       installDeviceConfirm: string
@@ -4579,6 +4580,11 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     terminalOpenInteractive: string
     terminalCloseOthers: string
     terminalCloseAll: string
+    terminalNewOn: string
+    terminalGatewayRemoved: string
+    terminalGatewayRemovedBody: string
+    terminalGatewayNoShellBody: string
+    terminalDisconnectedBody: string
     addToChat: string
     remotePickerNewFolder: string
     remotePickerFolderName: string
