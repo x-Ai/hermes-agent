@@ -20,7 +20,7 @@ import { notify, notifyError } from '@/store/notifications'
 import { $desktopOnboarding } from '@/store/onboarding'
 
 import { classifyLocalBootFailure, type LocalBootFailureCopy, localBootFailureCopy } from './boot-failure-cause'
-import { localizeBootFailureDetail } from './boot-failure-detail'
+import { canonicalBootFailure, localizeBootFailureDetail } from './boot-failure-detail'
 import type { RemoteReauth } from './boot-failure-reauth'
 import {
   deriveProviderShape,
@@ -374,12 +374,15 @@ export function BootFailureOverlay() {
 
   const copy = t.boot.failure
 
+  // The classifiers match English; a renderer timeout arrives in the language it was raised in.
+  const bootError = canonicalBootFailure(boot.error, t.runtimeErrors)
+
   // SSH failures keep their own gloss; every other local failure is classified
   // into one plain sentence, raw output collapsed underneath (desktop-05).
   const failureCopy: LocalBootFailureCopy =
     connectionConfig?.mode === 'ssh'
-      ? { headline: sshFailureMessage(connectionConfig, boot.error, t.settings.gateway), rawDetail: null }
-      : localBootFailureCopy(boot.error, t.boot.causes)
+      ? { headline: sshFailureMessage(connectionConfig, bootError, t.settings.gateway), rawDetail: null }
+      : localBootFailureCopy(bootError, t.boot.causes)
 
   const label = signInLabel(remoteReauth, {
     identityProvider: copy.identityProvider,
@@ -481,7 +484,7 @@ export function BootFailureOverlay() {
     // re-run: Repair is dropped, and "Reinstall the app" is offered only when
     // the payload itself is what's broken — a port clash or timeout on a
     // bundled install is not fixed by reinstalling.
-    const damagedPayload: boolean = bundled && classifyLocalBootFailure(boot.error) === 'installMissing'
+    const damagedPayload: boolean = bundled && classifyLocalBootFailure(bootError) === 'installMissing'
 
     const fixAction: RecoveryAction | null = damagedPayload
       ? {

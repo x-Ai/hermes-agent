@@ -50,6 +50,7 @@ export const jaRuntime = {
     profileWsUrlTimedOut: (profile: string) =>
       `プロファイル「${profile}」のゲートウェイ WebSocket URL の再取得がタイムアウトしました`,
     gatewayWsUrlTimedOut: 'ゲートウェイ WebSocket URL の取得がタイムアウトしました',
+    gatewayWsUrlRemintTimedOut: 'ゲートウェイ WebSocket URL の再取得がタイムアウトしました',
     unexpectedGatewayWsPath: (path: string) => `ゲートウェイ WebSocket のパスが想定外です：${path}`,
     defaultProfileUnsupported: 'この Desktop バージョンでは既定のプロファイルを保存できません',
     clipboardUnavailable: 'クリップボード API を利用できません',

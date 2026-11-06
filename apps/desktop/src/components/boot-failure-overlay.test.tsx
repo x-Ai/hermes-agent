@@ -1,7 +1,9 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_LOCALE, I18nProvider, LOCALE_STORAGE_KEY, setRuntimeI18nLocale } from '@/i18n'
 import { en } from '@/i18n/en'
+import { zh } from '@/i18n/zh'
 import { WEBAPP_LAUNCH_REQUIRED } from '@/lib/browser-launch-session'
 import { $desktopBoot } from '@/store/boot'
 import { $notifications } from '@/store/notifications'
@@ -15,9 +17,9 @@ import { BootFailureOverlay, StartupOverlay } from './boot-failure-overlay'
 // to an in-line connect form — instead of stranding them (the old bug forced a
 // hand-edit of connection.json).
 
-function failBoot() {
+function failBoot(error = 'Could not connect to Hermes gateway') {
   $desktopBoot.set({
-    error: 'Could not connect to Hermes gateway',
+    error,
     fakeMode: false,
     message: 'boot failed',
     phase: 'renderer.error',
@@ -201,6 +203,56 @@ describe('BootFailureOverlay', () => {
     expect(screen.getByText(en.boot.causes.timedOut)).toBeTruthy()
     expect(screen.getByText(en.runtimeErrors.backendConnectTimedOut(45))).toBeTruthy()
     expect(screen.queryByText(/Timed out connecting to Hermes backend/)).toBeNull()
+  })
+
+  // use-gateway-boot.ts raises its WebSocket URL timeouts in the UI language of the moment. The
+  // headline still names the cause, and Details reads the timeout in the language shown now.
+  describe('a WebSocket URL timeout raised in the UI language', () => {
+    async function renderInChinese() {
+      await act(async () => {
+        render(
+          <I18nProvider configClient={null} initialLocale="zh">
+            <BootFailureOverlay />
+          </I18nProvider>
+        )
+      })
+    }
+
+    afterEach(() => {
+      window.localStorage.removeItem(LOCALE_STORAGE_KEY)
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+    })
+
+    it('still leads with the timeout cause in Chinese', async () => {
+      failBoot(zh.runtimeErrors.gatewayWsUrlTimedOut)
+      await renderInChinese()
+
+      expect(screen.getByText(zh.boot.causes.timedOut)).toBeTruthy()
+      expect(screen.getByText(zh.runtimeErrors.gatewayWsUrlTimedOut)).toBeTruthy()
+    })
+
+    it('still names an SSH connection timeout in Chinese', async () => {
+      failBoot(zh.runtimeErrors.gatewayWsUrlRemintTimedOut)
+      const restore = stubDesktop({ mode: 'ssh', sshHost: 'box' })
+
+      try {
+        await renderInChinese()
+
+        expect(await screen.findByText(zh.settings.gateway.sshErrTimeout)).toBeTruthy()
+      } finally {
+        restore()
+      }
+    })
+
+    // The overlay's own language switcher changes the language without raising the error again.
+    it('reads in English once the language changes after the error was raised in Chinese', () => {
+      failBoot(zh.runtimeErrors.gatewayWsUrlRemintTimedOut)
+      render(<BootFailureOverlay />)
+
+      expect(screen.getByText(en.boot.causes.timedOut)).toBeTruthy()
+      expect(screen.getByText(en.runtimeErrors.gatewayWsUrlRemintTimedOut)).toBeTruthy()
+      expect(screen.queryByText(zh.runtimeErrors.gatewayWsUrlRemintTimedOut)).toBeNull()
+    })
   })
 
   it('leads with Gateway settings and drops Repair for a remote (token) failure', async () => {

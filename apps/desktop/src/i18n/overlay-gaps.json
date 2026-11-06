@@ -1122,6 +1122,7 @@
   "runtimeErrors.gatewayNotConnectedShort": ["de", "es", "fr"],
   "runtimeErrors.gatewayUnavailable": ["de", "es", "fr"],
   "runtimeErrors.gatewayUnavailableForProfile": ["de", "es", "fr"],
+  "runtimeErrors.gatewayWsUrlRemintTimedOut": ["de", "es", "fr"],
   "runtimeErrors.gatewayWsUrlTimedOut": ["de", "es", "fr"],
   "runtimeErrors.hermesDesktopBridgeUnavailable": ["de", "es", "fr"],
   "runtimeErrors.manifestMinContextInvalid": ["de", "es", "fr"],

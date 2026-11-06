@@ -50,6 +50,7 @@ export const enRuntime = {
     profileWsUrlTimedOut: (profile: string) =>
       `Timed out re-minting the gateway WebSocket URL for profile "${profile}"`,
     gatewayWsUrlTimedOut: 'Timed out minting the gateway WebSocket URL',
+    gatewayWsUrlRemintTimedOut: 'Timed out re-minting the gateway WebSocket URL',
     unexpectedGatewayWsPath: (path: string) => `Unexpected gateway WebSocket path: ${path}`,
     defaultProfileUnsupported: 'This Desktop version cannot save a default profile.',
     clipboardUnavailable: 'Clipboard API is unavailable',

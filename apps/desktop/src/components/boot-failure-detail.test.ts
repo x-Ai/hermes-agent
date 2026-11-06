@@ -16,6 +16,16 @@ describe('localizeBootFailureDetail', () => {
     expect(zh.runtimeErrors.backendConnectTimedOut(45)).not.toMatch(/Timed out|backend/)
   })
 
+  // The renderer raises these in the UI language of the moment, which can change on the overlay.
+  it('re-renders a WebSocket URL timeout in the UI language, whichever language raised it', () => {
+    expect(localizeBootFailureDetail(zh.runtimeErrors.gatewayWsUrlTimedOut, en.runtimeErrors)).toBe(
+      en.runtimeErrors.gatewayWsUrlTimedOut
+    )
+    expect(localizeBootFailureDetail(en.runtimeErrors.gatewayWsUrlRemintTimedOut, zh.runtimeErrors)).toBe(
+      zh.runtimeErrors.gatewayWsUrlRemintTimedOut
+    )
+  })
+
   it('leaves unknown lines verbatim and maps line by line', () => {
     const raw = 'exited before it became ready (1)\nTimed out connecting to Hermes backend after 500ms'
     expect(localizeBootFailureDetail(raw, en.runtimeErrors)).toBe(

@@ -1,35 +1,57 @@
 /**
- * Localized reading of a raw boot-failure detail. The main process and the renderer report what
- * they saw in English ("Timed out connecting to Hermes backend after 45000ms"); the overlay keeps
- * that text under Details, so the known shapes are re-rendered in the UI language, line by line,
- * and anything else stays verbatim for whoever reads the log. Pure and table-driven, like the
- * cause classifier beside it.
+ * Localized reading of a raw boot-failure detail. The main process reports what it saw in English
+ * ("Timed out connecting to Hermes backend after 45000ms"); the renderer raises its WebSocket URL
+ * timeouts in the UI language of that moment. The overlay keeps that text under Details, so the
+ * known shapes are re-rendered in the current UI language, line by line, and anything else stays
+ * verbatim for whoever reads the log. Pure and table-driven, like the cause classifier beside it.
  */
 
+import { TRANSLATIONS } from '@/i18n/catalog'
 import type { RuntimeErrorsCopy } from '@/i18n/types_runtime'
 
-type DetailCopy = Pick<RuntimeErrorsCopy, 'backendConnectTimedOut'>
+// use-gateway-boot.ts's mint timeouts. The overlay can change language after one is raised, so a
+// line matches in the current copy or in any bundled catalog.
+const RENDERER_TIMEOUTS = ['gatewayWsUrlTimedOut', 'gatewayWsUrlRemintTimedOut'] as const
+
+type RendererTimeout = (typeof RENDERER_TIMEOUTS)[number]
+
+type DetailCopy = Pick<RuntimeErrorsCopy, 'backendConnectTimedOut' | RendererTimeout>
 
 // `withTimeout` in use-gateway-boot.ts and the main process's backend requests.
 const BACKEND_TIMEOUT = /^Timed out connecting to Hermes backend(?: after (\d+)\s*ms)?\.?$/i
 
+function rendererTimeout(line: string, copy: DetailCopy): RendererTimeout | null {
+  const text = line.trim()
+  const catalogs: DetailCopy[] = [copy, ...Object.values(TRANSLATIONS).map(translations => translations.runtimeErrors)]
+
+  return RENDERER_TIMEOUTS.find(key => catalogs.some(catalog => catalog[key] === text)) ?? null
+}
+
 function localizeLine(line: string, copy: DetailCopy): string {
   const match = BACKEND_TIMEOUT.exec(line.trim())
 
-  if (!match) {
-    return line
+  if (match) {
+    return copy.backendConnectTimedOut(match[1] ? Math.max(1, Math.round(Number(match[1]) / 1000)) : null)
   }
 
-  return copy.backendConnectTimedOut(match[1] ? Math.max(1, Math.round(Number(match[1]) / 1000)) : null)
+  const timeout = rendererTimeout(line, copy)
+
+  return timeout ? copy[timeout] : line
+}
+
+function mapLines(raw: null | string, map: (line: string) => string): null | string {
+  return raw ? raw.split('\n').map(map).join('\n') : raw
 }
 
 export function localizeBootFailureDetail(raw: null | string, copy: DetailCopy): null | string {
-  if (!raw) {
-    return raw
-  }
+  return mapLines(raw, line => localizeLine(line, copy))
+}
 
-  return raw
-    .split('\n')
-    .map(line => localizeLine(line, copy))
-    .join('\n')
+/** `raw` with each renderer timeout back in English, the language the cause classifiers match. */
+export function canonicalBootFailure(raw: null | string, copy: DetailCopy): null | string {
+  return mapLines(raw, line => {
+    const timeout = rendererTimeout(line, copy)
+
+    return timeout ? TRANSLATIONS.en.runtimeErrors[timeout] : line
+  })
 }

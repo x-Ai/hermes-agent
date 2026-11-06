@@ -50,6 +50,7 @@ export interface RuntimeErrorsCopy {
   profileConnectTimedOut: (profile: string) => string
   profileWsUrlTimedOut: (profile: string) => string
   gatewayWsUrlTimedOut: string
+  gatewayWsUrlRemintTimedOut: string
   unexpectedGatewayWsPath: (path: string) => string
   defaultProfileUnsupported: string
   clipboardUnavailable: string

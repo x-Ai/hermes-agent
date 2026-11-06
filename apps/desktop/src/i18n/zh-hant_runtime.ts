@@ -38,6 +38,7 @@ export const zhHantRuntime = {
     profileConnectTimedOut: (profile: string) => `連線至設定檔「${profile}」逾時`,
     profileWsUrlTimedOut: (profile: string) => `重新取得設定檔「${profile}」的閘道 WebSocket URL 逾時`,
     gatewayWsUrlTimedOut: '取得閘道 WebSocket URL 逾時',
+    gatewayWsUrlRemintTimedOut: '重新取得閘道 WebSocket URL 逾時',
     unexpectedGatewayWsPath: (path: string) => `閘道 WebSocket 路徑異常：${path}`,
     defaultProfileUnsupported: '此版本的桌面版無法儲存預設設定檔。',
     clipboardUnavailable: '剪貼簿 API 無法使用',

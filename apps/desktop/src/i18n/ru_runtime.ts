@@ -49,6 +49,7 @@ export const ruRuntime = {
     profileWsUrlTimedOut: (profile: string) =>
       `Истекло время ожидания повторного получения WebSocket URL шлюза для профиля «${profile}»`,
     gatewayWsUrlTimedOut: 'Истекло время ожидания получения WebSocket URL шлюза',
+    gatewayWsUrlRemintTimedOut: 'Истекло время ожидания повторного получения WebSocket URL шлюза',
     unexpectedGatewayWsPath: (path: string) => `Неожиданный путь WebSocket шлюза: ${path}`,
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
     clipboardUnavailable: 'API буфера обмена недоступен',

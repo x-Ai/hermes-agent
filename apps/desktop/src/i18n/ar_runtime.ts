@@ -39,6 +39,7 @@ export const arRuntime = {
     profileWsUrlTimedOut: (profile: string) =>
       `انتهت مهلة تجديد عنوان WebSocket الخاص بالبوابة للملف الشخصي "${profile}"`,
     gatewayWsUrlTimedOut: 'انتهت مهلة الحصول على عنوان WebSocket الخاص بالبوابة',
+    gatewayWsUrlRemintTimedOut: 'انتهت مهلة تجديد عنوان WebSocket الخاص بالبوابة',
     unexpectedGatewayWsPath: (path: string) => `مسار WebSocket غير متوقع للبوابة: ${path}`,
     defaultProfileUnsupported: 'لا يمكن لإصدار سطح المكتب هذا حفظ ملف شخصي افتراضي.',
     clipboardUnavailable: 'واجهة الحافظة غير متاحة',
