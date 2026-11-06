@@ -15,8 +15,10 @@ const OWN = {
 }
 
 // Names every locale keeps in English, and words the user types as they are.
-const PRODUCT_TERMS = new Set(['hermes', 'desktop', 'soul', 'mcp', 'api', 'oauth', 'cron', 'petdex'])
+const PRODUCT_TERMS = new Set(['hermes', 'desktop', 'cloud', 'soul', 'mcp', 'api', 'oauth', 'cron', 'petdex'])
 const TYPED_LITERALS = new Set(['hermes model', 'resume', 'every', 'everyone'])
+// What Bot Screen needs on the gateway host, and the protocols that reach it.
+const HOST_TERMS = new Set(['linux', 'tigervnc', 'xfce', 'sudo', 'apt', 'dnf', 'pacman', 'https', 'ssh'])
 
 // Arguments that pick a branch instead of being echoed.
 const IDENTIFIER_ARGS: Record<string, unknown[]> = {
@@ -84,7 +86,7 @@ function englishRuns(text: string): string[] {
 
   return (prose.match(/[A-Za-z]+(?:[\s&’'-]+[A-Za-z]+)*/g) ?? []).filter(run => {
     const phrase = run.toLowerCase().replace(/\s+/g, ' ')
-    const allProductTerms = phrase.split(/[^a-z]+/).every(word => PRODUCT_TERMS.has(word))
+    const allProductTerms = phrase.split(/[^a-z]+/).every(word => PRODUCT_TERMS.has(word) || HOST_TERMS.has(word))
 
     return !allProductTerms && !TYPED_LITERALS.has(phrase)
   })
