@@ -20,6 +20,7 @@ import {
 import { Tip, TipHintLabel } from '@/components/ui/tooltip'
 import type { DesktopRegistryConnection } from '@/global'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
 import { formatCombo } from '@/lib/keybinds/combo'
 import { cn } from '@/lib/utils'
 import { $connectionsRegistry } from '@/store/connections'
@@ -84,7 +85,7 @@ export function NewTerminalButton({ className }: { className: string }) {
     choices.map(choice => (
       <Item data-terminal-gateway={choice.id} key={choice.id} onSelect={() => openOn(choice)}>
         <ConnectionGlyph connection={choice} />
-        {choice.label}
+        {displayConnectionLabel(choice, t)}
       </Item>
     ))
 

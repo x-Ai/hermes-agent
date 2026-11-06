@@ -1111,6 +1111,7 @@
   "runtimeErrors.clipboardUnavailable": ["de", "es", "fr"],
   "runtimeErrors.connectionBridgeUnavailable": ["de", "es", "fr"],
   "runtimeErrors.connectionNotActive": ["de", "es", "fr"],
+  "runtimeErrors.connectionTimedOut": ["de", "es", "fr"],
   "runtimeErrors.defaultProfileUnsupported": ["de", "es", "fr"],
   "runtimeErrors.deleteUnavailable": ["de", "es", "fr"],
   "runtimeErrors.desktopBridgeUnavailable": ["de", "es", "fr"],

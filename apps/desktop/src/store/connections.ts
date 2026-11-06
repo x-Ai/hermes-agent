@@ -791,7 +791,10 @@ export async function selectConnection(connectionId: string, options: SelectConn
   }
 
   try {
-    const timeoutMessage = `Timed out connecting to "${targetConnection.label}".`
+    // The timeout and not-active errors are the switch toast's detail, so they
+    // are UI copy; the registry label is English data, not the name the UI shows.
+    const targetLabel = displayConnectionLabel(targetConnection, runtimeTranslations())
+    const timeoutMessage = translateNow('runtimeErrors.connectionTimedOut', targetLabel)
     // Open the target WITHOUT activating it, so a dead gateway fails here and
     // the one in front loses nothing — not even the draft. Every registered
     // gateway is normally connected already, so this resolves at once.
@@ -834,12 +837,7 @@ export async function selectConnection(connectionId: string, options: SelectConn
     }
 
     if (!targetIsActive()) {
-      throw new Error(
-        translateNow(
-          'runtimeErrors.connectionNotActive',
-          displayConnectionLabel(targetConnection, runtimeTranslations())
-        )
-      )
+      throw new Error(translateNow('runtimeErrors.connectionNotActive', targetLabel))
     }
 
     if (revision !== switchRevision) {

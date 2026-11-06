@@ -45,6 +45,7 @@ export const jaRuntime = {
     sessionControlGatewayUnavailable: 'セッション制御ゲートウェイを利用できません',
     profileChangedWhileConnecting: '接続中にアクティブな Hermes プロファイルが変わりました',
     connectionNotActive: (label: string) => `接続「${label}」がアクティブになりませんでした`,
+    connectionTimedOut: (label: string) => `「${label}」への接続がタイムアウトしました`,
     defaultProfileUnsupported: 'この Desktop バージョンでは既定のプロファイルを保存できません',
     clipboardUnavailable: 'クリップボード API を利用できません',
     pluginFolderUnavailable:

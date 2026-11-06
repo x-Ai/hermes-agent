@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/context-menu'
 import { Tip, TipHintLabel } from '@/components/ui/tooltip'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
 import { formatCombo } from '@/lib/keybinds/combo'
 import { isMetaClose, middleClickHandlers } from '@/lib/middle-click'
 import { cn } from '@/lib/utils'
@@ -106,7 +107,10 @@ function TerminalRailItem({ active, canCloseOthers, index, term, toggleHint }: T
   const host = terminalHost(term, registry)
   // Where the shell runs. This device stays unlabeled until a tab runs elsewhere.
   const shown = host === 'removed' || (host && (mixed || host.connection.kind !== 'local')) ? host : null
-  const hostLabel = shown === 'removed' ? t.rightSidebar.terminalGatewayRemoved : shown?.connection.label
+
+  const hostLabel =
+    shown === 'removed' ? t.rightSidebar.terminalGatewayRemoved : shown && displayConnectionLabel(shown.connection, t)
+
   const label = `${index + 1}. ${term.title}${hostLabel ? ` · ${hostLabel}` : ''}`
 
   return (

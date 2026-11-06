@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setApiRequestConnection, setApiRequestProfile } from '@/api/client'
 import type { DesktopConnectionsRegistry } from '@/global'
 import { DEFAULT_LOCALE, setRuntimeI18nLocale } from '@/i18n'
-import { BACKEND_BOOT_WAIT_TIMEOUT_MS, SOURCE_SWITCH_DIAL_TIMEOUT_MS } from '@/lib/with-timeout'
+import { BACKEND_BOOT_WAIT_TIMEOUT_MS, isTimeoutError, SOURCE_SWITCH_DIAL_TIMEOUT_MS } from '@/lib/with-timeout'
 
 import { deferred } from '../test/deferred'
 
@@ -409,6 +409,35 @@ describe('selectConnection', () => {
       expect(message).not.toContain('This device')
     } finally {
       setRuntimeI18nLocale(DEFAULT_LOCALE)
+    }
+  })
+
+  // A timed-out dial's message is the switch toast's detail too: the whole
+  // sentence is copy, not just the name in it.
+  it('names This device in the UI language when the dial times out', async () => {
+    vi.useFakeTimers()
+    setConnectionsRegistry({ ...registry, primary: 'homelab' })
+    $connection.set({ connectionId: 'homelab', mode: 'remote' })
+    openGatewayAgent.mockImplementationOnce(() => new Promise<void>(() => undefined))
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const outcome = selectConnection('local').then(
+        () => null,
+        (error: unknown) => error
+      )
+
+      await vi.advanceTimersByTimeAsync(SOURCE_SWITCH_DIAL_TIMEOUT_MS)
+      const error = await outcome
+
+      // Still a TimeoutError, so the toast keeps its timeout category.
+      expect(isTimeoutError(error)).toBe(true)
+      expect((error as Error).message).toContain('本设备')
+      // No English sentence around the name, and never "This device".
+      expect((error as Error).message).not.toMatch(/[A-Za-z]/)
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+      vi.useRealTimers()
     }
   })
 

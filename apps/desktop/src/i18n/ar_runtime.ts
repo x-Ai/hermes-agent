@@ -34,6 +34,7 @@ export const arRuntime = {
     sessionControlGatewayUnavailable: 'بوابة التحكم في الجلسة غير متاحة',
     profileChangedWhileConnecting: 'تغيّر ملف Hermes الشخصي النشط أثناء الاتصال',
     connectionNotActive: (label: string) => `لم يصبح الاتصال "${label}" نشطًا.`,
+    connectionTimedOut: (label: string) => `انتهت مهلة الاتصال بـ "${label}".`,
     defaultProfileUnsupported: 'لا يمكن لإصدار سطح المكتب هذا حفظ ملف شخصي افتراضي.',
     clipboardUnavailable: 'واجهة الحافظة غير متاحة',
     pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء البناء الأول.',

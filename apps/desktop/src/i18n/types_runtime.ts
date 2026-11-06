@@ -46,6 +46,7 @@ export interface RuntimeErrorsCopy {
   sessionControlGatewayUnavailable: string
   profileChangedWhileConnecting: string
   connectionNotActive: (label: string) => string
+  connectionTimedOut: (label: string) => string
   defaultProfileUnsupported: string
   clipboardUnavailable: string
   pluginFolderUnavailable: string

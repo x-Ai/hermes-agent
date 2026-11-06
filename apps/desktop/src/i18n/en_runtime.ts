@@ -45,6 +45,7 @@ export const enRuntime = {
     sessionControlGatewayUnavailable: 'Session control gateway is unavailable',
     profileChangedWhileConnecting: 'Active Hermes profile changed while connecting',
     connectionNotActive: (label: string) => `Connection "${label}" did not become active.`,
+    connectionTimedOut: (label: string) => `Timed out connecting to "${label}".`,
     defaultProfileUnsupported: 'This Desktop version cannot save a default profile.',
     clipboardUnavailable: 'Clipboard API is unavailable',
     pluginFolderUnavailable: 'The desktop plugin folder is unavailable. Retry before starting the first build.',
