@@ -169,6 +169,20 @@ export const zhHantChat = {
       '/debug': '上傳偵錯報告（系統資訊與記錄），並取得可分享連結',
       '/model': '切換此工作階段的模型'
     },
+    slashGroups: {
+      Session: '工作階段',
+      Configuration: '設定',
+      Info: '資訊',
+      'Tools & Skills': '工具與技能',
+      'User commands': '使用者指令',
+      'Plugin commands': '外掛指令',
+      Commands: '指令',
+      Skills: '技能',
+      Options: '選項',
+      Themes: '主題',
+      Sessions: '工作階段'
+    },
+    browseAllSessions: '瀏覽所有工作階段…',
     currentThemeLabel: label => `${label}（目前）`,
     hotkeyDescs: {
       'composer.mention': '參照檔案、資料夾、URL、git',

@@ -1,7 +1,7 @@
 import type { AppendMessage } from '@assistant-ui/react'
 import { JsonRpcGatewayError } from '@hermes/shared'
 
-import { translateNow, type Translations } from '@/i18n'
+import { runtimeTranslations, translateNow, type Translations } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { isReadFileErrorResult } from '@/lib/desktop-fs'
 import { type CommandsCatalogLike, filterDesktopCommandsCatalog } from '@/lib/desktop-slash-commands'
@@ -577,6 +577,8 @@ export function friendlyRemoteAttachError(err: unknown, label: string): Error {
 
 export function renderCommandsCatalog(catalog: CommandsCatalogLike, copy: Translations['desktop']): string {
   const desktopCatalog = filterDesktopCommandsCatalog(catalog)
+  // Section names are backend category ids: header them the way the slash menu does.
+  const groups = runtimeTranslations().composer.slashGroups
 
   const sections = desktopCatalog.categories?.length
     ? desktopCatalog.categories
@@ -587,7 +589,7 @@ export function renderCommandsCatalog(catalog: CommandsCatalogLike, copy: Transl
     .map(section => {
       const rows = section.pairs.map(([cmd, desc]) => `${cmd.padEnd(18)} ${desc}`)
 
-      return [`${section.name}:`, ...rows].join('\n')
+      return [`${groups[section.name] ?? section.name}:`, ...rows].join('\n')
     })
     .join('\n\n')
 

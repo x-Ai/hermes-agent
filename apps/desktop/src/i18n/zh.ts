@@ -4968,6 +4968,20 @@ export const zhOverrides = {
       '/debug': '上传调试报告（系统信息与日志），并获取可分享链接',
       '/model': '切换此会话的模型'
     },
+    slashGroups: {
+      Session: '会话',
+      Configuration: '配置',
+      Info: '信息',
+      'Tools & Skills': '工具与技能',
+      'User commands': '用户命令',
+      'Plugin commands': '插件命令',
+      Commands: '命令',
+      Skills: '技能',
+      Options: '选项',
+      Themes: '主题',
+      Sessions: '会话'
+    },
+    browseAllSessions: '浏览全部会话…',
     currentThemeLabel: label => `${label}（当前）`,
     hotkeyDescs: {
       'composer.mention': '引用文件、文件夹、URL、git',

@@ -3979,6 +3979,20 @@ export const deOverrides = {
       '/debug': 'Debug-Bericht (Systeminfos + Logs) hochladen und teilbare Links erhalten',
       '/model': 'Modell für diese Session wechseln'
     },
+    slashGroups: {
+      Session: 'Session',
+      Configuration: 'Konfiguration',
+      Info: 'Info',
+      'Tools & Skills': 'Tools & Skills',
+      'User commands': 'Benutzerbefehle',
+      'Plugin commands': 'Plugin-Befehle',
+      Commands: 'Befehle',
+      Skills: 'Skills',
+      Options: 'Optionen',
+      Themes: 'Themes',
+      Sessions: 'Sessions'
+    },
+    browseAllSessions: 'Alle Sessions durchsuchen…',
     currentThemeLabel: label => `${label} (aktuell)`,
     hotkeyDescs: {
       'composer.mention': 'Dateien, Ordner, URLs, git referenzieren',

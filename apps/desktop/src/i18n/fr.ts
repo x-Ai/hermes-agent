@@ -3988,6 +3988,20 @@ export const frOverrides = {
       '/debug': 'Téléverser un rapport de débogage (infos système + journaux) et obtenir des liens partageables',
       '/model': 'Changer le modèle de cette session'
     },
+    slashGroups: {
+      Session: 'Session',
+      Configuration: 'Configuration',
+      Info: 'Infos',
+      'Tools & Skills': 'Outils et skills',
+      'User commands': 'Commandes utilisateur',
+      'Plugin commands': 'Commandes de plugins',
+      Commands: 'Commandes',
+      Skills: 'Skills',
+      Options: 'Options',
+      Themes: 'Thèmes',
+      Sessions: 'Sessions'
+    },
+    browseAllSessions: 'Parcourir toutes les sessions…',
     currentThemeLabel: label => `${label} (actuel)`,
     hotkeyDescs: {
       'composer.mention': 'référencer des fichiers, dossiers, URLs, git',

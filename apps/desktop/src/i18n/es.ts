@@ -3965,6 +3965,20 @@ export const esOverrides = {
       '/debug': 'Subir un informe de depuración (información del sistema + registros) y obtener enlaces para compartir',
       '/model': 'Cambiar el modelo de esta sesión'
     },
+    slashGroups: {
+      Session: 'Sesión',
+      Configuration: 'Configuración',
+      Info: 'Información',
+      'Tools & Skills': 'Herramientas y skills',
+      'User commands': 'Comandos de usuario',
+      'Plugin commands': 'Comandos de plugins',
+      Commands: 'Comandos',
+      Skills: 'Skills',
+      Options: 'Opciones',
+      Themes: 'Temas',
+      Sessions: 'Sesiones'
+    },
+    browseAllSessions: 'Ver todas las sesiones…',
     currentThemeLabel: label => `${label} (actual)`,
     hotkeyDescs: {
       'composer.mention': 'referenciar archivos, carpetas, URL y Git',

@@ -79,7 +79,8 @@ export function useSlashCompletions(options: {
   activeSkin?: string
 }): SlashCompletions {
   const { gateway, sessionId, profile, skinThemes, activeSkin } = options
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
+  const browseAllSessions = t.composer.browseAllSessions
   const enabled = Boolean(gateway)
   const epoch = useStore($slashCompletionsEpoch)
 
@@ -175,7 +176,7 @@ export function useSlashCompletions(options: {
         // submitting it (Enter) still opens the overlay if the action is skipped.
         items.push({
           text: '/resume',
-          display: 'Browse all sessions…',
+          display: browseAllSessions,
           meta: '',
           group: 'Sessions',
           action: 'session-picker'
@@ -305,7 +306,7 @@ export function useSlashCompletions(options: {
         return { items: [], query }
       }
     },
-    [gateway, skinThemes, activeSkin, keysFor, sessionParams]
+    [gateway, skinThemes, activeSkin, keysFor, sessionParams, browseAllSessions]
   )
 
   const toItem = useCallback((entry: CompletionEntry, index: number): Unstable_TriggerItem => {

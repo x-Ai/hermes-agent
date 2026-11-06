@@ -2665,6 +2665,9 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     hotkeys: string
     helpFooter: string
     commandDescs: Record<string, string>
+    /** Slash menu headers, keyed by group id: a backend category or a desktop group. */
+    slashGroups: Record<string, string>
+    browseAllSessions: string
     currentThemeLabel: (label: string) => string
     hotkeyDescs: Record<string, string>
     attachUrlTitle: string

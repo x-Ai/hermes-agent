@@ -4526,6 +4526,20 @@ export const en: Translations = {
       '/debug': 'Upload debug report (system info + logs) and get shareable links',
       '/model': 'Switch the model for this session'
     },
+    slashGroups: {
+      Session: 'Session',
+      Configuration: 'Configuration',
+      Info: 'Info',
+      'Tools & Skills': 'Tools & Skills',
+      'User commands': 'User commands',
+      'Plugin commands': 'Plugin commands',
+      Commands: 'Commands',
+      Skills: 'Skills',
+      Options: 'Options',
+      Themes: 'Themes',
+      Sessions: 'Sessions'
+    },
+    browseAllSessions: 'Browse all sessions…',
     currentThemeLabel: label => `${label} (current)`,
     hotkeyDescs: {
       'composer.mention': 'reference files, folders, urls, git',

@@ -1,7 +1,8 @@
 import type { Unstable_TriggerItem } from '@assistant-ui/core'
-import { act, cleanup, render, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { ComposerTriggerPopover } from '@/app/chat/composer/trigger-popover'
 import { renderCommandsCatalog } from '@/app/session/hooks/use-prompt-actions/utils'
 import type { HermesGateway } from '@/hermes'
 import { I18nProvider, useI18n } from '@/i18n'
@@ -81,9 +82,64 @@ describe('desktop slash description localization', () => {
       const syntax = '/retry [instructions]'
       expect(desktopSlashDescription('/retry', `Retry (usage: ${syntax})`)).toContain(syntax)
       const help = renderCommandsCatalog(catalog, copy.desktop)
+      expect(help).toContain(`${copy.composer.slashGroups.Session}:`)
       expect(help).toContain(copy.composer.commandDescs['/new'])
       expect(help).toContain(copy.composer.commandDescs['/retry'])
     }
+  })
+
+  it('translates slash menu group headers and shows an unknown group as sent', () => {
+    const items = ['Tools & Skills', 'Skills', 'Options', 'A future category'].map((group, index) => ({
+      id: `/c${index}`,
+      type: 'slash',
+      label: `c${index}`,
+      metadata: { command: `/c${index}`, display: `/c${index}`, group, meta: '', rawText: `/c${index}` }
+    }))
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <ComposerTriggerPopover
+          activeIndex={0}
+          items={items}
+          kind="/"
+          loading={false}
+          onHover={vi.fn()}
+          onPick={vi.fn()}
+        />
+      </I18nProvider>
+    )
+
+    const zh = TRANSLATIONS.zh.composer.slashGroups
+
+    for (const group of ['Tools & Skills', 'Skills', 'Options']) {
+      expect(screen.getByText(zh[group] ?? '')).toBeTruthy()
+      expect(screen.queryByText(group)).toBeNull()
+    }
+
+    expect(screen.getByText('A future category')).toBeTruthy()
+  })
+
+  it('labels the /resume browse-all row in the active locale', async () => {
+    const api: { search?: (query: string) => readonly Unstable_TriggerItem[] } = {}
+
+    function Probe() {
+      api.search = useSlashCompletions({ gateway: { request: vi.fn() } as unknown as HermesGateway }).adapter?.search
+
+      return null
+    }
+
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <Probe />
+      </I18nProvider>
+    )
+
+    const browseRow = () => api.search!('resume ').find(item => item.metadata?.action === 'session-picker')
+
+    // Wait for the row itself: before it loads, `undefined` would match a missing key.
+    await waitFor(() => expect(browseRow()).toBeDefined())
+
+    expect(browseRow()?.label).toBe(TRANSLATIONS.zh.composer.browseAllSessions)
   })
 
   it('never shows another locale the English the desktop writes for a built-in', () => {

@@ -4180,6 +4180,20 @@ export const ruOverrides = {
       '/debug': 'Загрузить отчёт отладки с данными системы и журналами и получить ссылку',
       '/model': 'Переключить модель для этого сеанса'
     },
+    slashGroups: {
+      Session: 'Сеанс',
+      Configuration: 'Конфигурация',
+      Info: 'Информация',
+      'Tools & Skills': 'Инструменты и навыки',
+      'User commands': 'Пользовательские команды',
+      'Plugin commands': 'Команды плагинов',
+      Commands: 'Команды',
+      Skills: 'Навыки',
+      Options: 'Параметры',
+      Themes: 'Темы',
+      Sessions: 'Сеансы'
+    },
+    browseAllSessions: 'Просмотреть все сеансы…',
     currentThemeLabel: label => `${label} (текущая)`,
     hotkeyDescs: {
       'composer.mention': 'ссылки на файлы, папки, URL, git',

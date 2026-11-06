@@ -199,7 +199,12 @@ export function ComposerTriggerPopover({
 
           return (
             <Fragment key={item.id}>
-              {showHeader && <div className={cn(GROUP_HEADER_CLASS, isFirstHeader ? 'pt-0.5' : 'pt-2')}>{group}</div>}
+              {showHeader && group && (
+                // The group stays an id (icons, chip kind, ordering); only the header is translated.
+                <div className={cn(GROUP_HEADER_CLASS, isFirstHeader ? 'pt-0.5' : 'pt-2')}>
+                  {copy.slashGroups[group] ?? group}
+                </div>
+              )}
               <Tip delayDuration={400} label={kind === '/' ? description : undefined} placement="row" sideOffset={4}>
                 <button
                   className={ROW_CLASS}

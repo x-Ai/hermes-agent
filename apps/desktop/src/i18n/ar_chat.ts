@@ -169,6 +169,20 @@ export const arChat = {
       '/debug': 'رفع تقرير تصحيح يتضمن معلومات النظام والسجلات للحصول على رابط قابل للمشاركة',
       '/model': 'تبديل نموذج هذه الجلسة'
     },
+    slashGroups: {
+      Session: 'الجلسة',
+      Configuration: 'الإعدادات',
+      Info: 'معلومات',
+      'Tools & Skills': 'الأدوات والمهارات',
+      'User commands': 'أوامر المستخدم',
+      'Plugin commands': 'أوامر الإضافات',
+      Commands: 'الأوامر',
+      Skills: 'المهارات',
+      Options: 'الخيارات',
+      Themes: 'السمات',
+      Sessions: 'الجلسات'
+    },
+    browseAllSessions: 'تصفح كل الجلسات…',
     currentThemeLabel: label => `${label} (الحالية)`,
     hotkeyDescs: {
       'composer.mention': 'الإشارة إلى الملفات والمجلدات والروابط وgit',

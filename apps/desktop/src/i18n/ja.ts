@@ -4309,6 +4309,20 @@ export const jaOverrides = {
       '/debug': 'デバッグレポートを作成',
       '/model': 'このセッションのモデルを切り替え'
     },
+    slashGroups: {
+      Session: 'セッション',
+      Configuration: '設定',
+      Info: '情報',
+      'Tools & Skills': 'ツールとスキル',
+      'User commands': 'ユーザーコマンド',
+      'Plugin commands': 'プラグインコマンド',
+      Commands: 'コマンド',
+      Skills: 'スキル',
+      Options: 'オプション',
+      Themes: 'テーマ',
+      Sessions: 'セッション'
+    },
+    browseAllSessions: 'すべてのセッションを表示…',
     currentThemeLabel: label => `${label}（使用中）`,
     hotkeyDescs: {
       'composer.mention': 'ファイル、フォルダー、URL、Git を参照',
