@@ -96,7 +96,8 @@ const onForeground = (connectionId: string) => (host.state?.connectionId?.get() 
 
 /** An update restarts the gateway, so a reopened socket may be a gateway with other features. As
  *  `useGroupMethods` does with the methods, each change of the foreground socket drops what the
- *  routes on its connection advertised; a route on another connection keeps its answer. */
+ *  routes on its connection advertised; a route on another connection keeps its answer until a
+ *  window starts showing one of its rooms (`startCanonicalRoomViewer`). */
 function ensureSocketTap(): void {
   if (socketTap || !host.state?.gateway) {
     return
@@ -111,8 +112,9 @@ function ensureSocketTap(): void {
   })
 }
 
-/** What the room's gateway advertises in `groups.capabilities.features`: one read per route, and
- *  for a route on the foreground connection one per opening of its socket. */
+/** What the room's gateway advertises in `groups.capabilities.features`: one read per route, again
+ *  for a route on the foreground connection each time its socket opens, and for one on another
+ *  connection each time a window starts showing one of its rooms. */
 export function canonicalRouteFeatures(route: CanonicalGroupRoute): Promise<Set<string>> {
   ensureSocketTap()
   const key = routeKey(route)
@@ -462,13 +464,20 @@ async function setWatch(state: RoomSyncState, on: boolean): Promise<void> {
   state.watching = on
 }
 
-/** A window is showing the room: watch it and poll its log; returns the stop. */
+/** A window is showing the room: watch it and poll its log; returns the stop. Nothing here sees
+ *  another connection's gateway restart, so a room there reads what its gateway advertises again
+ *  each time a window starts showing it, as upstream keeps such a room's methods until it reopens. */
 export function startCanonicalRoomViewer(key: string, binding: CanonicalGroupBinding): () => void {
   const state = ensure(key, binding)
   state.viewers += 1
 
   if (state.viewers === 1) {
     ensureActivityTap()
+
+    if (!onForeground(state.binding.connectionId)) {
+      forgetCanonicalRouteFeatures(state.binding)
+    }
+
     void setWatch(state, true).catch(() => undefined)
 
     const poll = async () => {

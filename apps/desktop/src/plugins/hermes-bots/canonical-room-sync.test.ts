@@ -40,6 +40,7 @@ import {
 } from './canonical-room-prefs'
 import {
   _resetCanonicalRoomSyncForTests,
+  CANONICAL_POLL_MS,
   canonicalRouteFeatures,
   discoverCanonicalRooms,
   forgetCanonicalRoom,
@@ -442,6 +443,31 @@ describe("the features a hosted room's gateway advertises", () => {
     expect(readsOf('groups.capabilities')).toEqual(['local', 'remote', 'local'])
     expect(readsOf('groups.settings.get')).toEqual(['local', 'local'])
     expect($groupChats.get()[KEY].workspace).toBe('/srv/room')
+  })
+
+  // Nothing reports a restart of another connection's gateway: opening one of its rooms asks again.
+  it('are read again for a room on another connection each time a window starts showing it, not on its polls', async () => {
+    vi.useFakeTimers()
+    script()
+    await syncCanonicalRoom(REMOTE_KEY, remote)
+    await syncCanonicalRoom(KEY, binding)
+    expect(readsOf('groups.capabilities')).toEqual(['remote', 'local'])
+
+    // The foreground room keeps its read: the openings of its socket decide when it reads again.
+    const stopRemote = startCanonicalRoomViewer(REMOTE_KEY, remote)
+    const stopLocal = startCanonicalRoomViewer(KEY, binding)
+    const remoteStateReads = () => readsOf('groups.state').filter(connection => connection === 'remote').length
+    const before = remoteStateReads()
+    await vi.advanceTimersByTimeAsync(CANONICAL_POLL_MS * 2 + 100)
+    expect(remoteStateReads()).toBeGreaterThan(before + 1)
+    expect(readsOf('groups.capabilities')).toEqual(['remote', 'local', 'remote'])
+
+    stopRemote()
+    stopLocal()
+    const stopAgain = startCanonicalRoomViewer(REMOTE_KEY, remote)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(readsOf('groups.capabilities')).toEqual(['remote', 'local', 'remote', 'remote'])
+    stopAgain()
   })
 
   it("never lets a read from before the socket changed drop the current opening's read", async () => {
