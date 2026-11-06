@@ -3510,8 +3510,8 @@ export const jaOverrides = {
   },
   profiles: {
     close: 'プロファイルを閉じる',
-    openFailed: profile => `Failed to open profile "${profile}"`,
-    switchFailed: profile => `Failed to switch to profile "${profile}"`,
+    openFailed: profile => `プロファイル「${profile}」を開けませんでした`,
+    switchFailed: profile => `プロファイル「${profile}」への切り替えに失敗しました`,
     nameHint: '小文字、数字、ハイフン、アンダースコア。文字または数字で始める必要があります。',
     title: 'プロファイル',
     count: count => `${count} プロファイル`,

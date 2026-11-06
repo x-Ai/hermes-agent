@@ -1222,8 +1222,8 @@ export const zhHantCommandCenter = {
   },
   profiles: {
     close: '關閉設定檔',
-    openFailed: profile => `Failed to open profile "${profile}"`,
-    switchFailed: profile => `Failed to switch to profile "${profile}"`,
+    openFailed: profile => `開啟設定檔「${profile}」失敗`,
+    switchFailed: profile => `切換至設定檔「${profile}」失敗`,
     nameHint: '小寫字母、數字、連字號和底線。必須以字母或數字開頭。',
     title: '設定檔',
     count: count => `${count} 個設定檔`,

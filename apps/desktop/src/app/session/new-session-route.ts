@@ -1,5 +1,6 @@
 import { NO_PROJECT_ID } from '@/app/chat/sidebar/projects/workspace-groups'
-import { translateNow } from '@/i18n'
+import { runtimeTranslations, translateNow } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 import { $defaultProfileRoute } from '@/store/default-profile'
 import { notifyError } from '@/store/notifications'
 import {
@@ -66,6 +67,6 @@ export function prepareDefaultNewSession(): void {
     : ensureGatewayProfile(target.profile, { forceLegacyRoute: true })
 
   void activation.catch(error => {
-    notifyError(error, translateNow('profiles.openFailed', target.profile))
+    notifyError(error, translateNow('profiles.openFailed', displayEntityName(target.profile, runtimeTranslations())))
   })
 }

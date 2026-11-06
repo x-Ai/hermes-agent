@@ -3381,8 +3381,8 @@ export const ruOverrides = {
   },
   profiles: {
     close: 'Закрыть профили',
-    openFailed: profile => `Failed to open profile "${profile}"`,
-    switchFailed: profile => `Failed to switch to profile "${profile}"`,
+    openFailed: profile => `Не удалось открыть профиль «${profile}»`,
+    switchFailed: profile => `Не удалось переключиться на профиль «${profile}»`,
     nameHint: 'Строчные буквы, цифры, дефисы и подчёркивания. Должно начинаться с буквы или цифры.',
     title: 'Профили',
     count: count => `${count} ${RU_PLURAL(count, 'профиль', 'профиля', 'профилей')}`,

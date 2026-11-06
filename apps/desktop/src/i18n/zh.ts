@@ -4172,8 +4172,8 @@ export const zhOverrides = {
   },
   profiles: {
     close: '关闭配置档案',
-    openFailed: profile => `Failed to open profile "${profile}"`,
-    switchFailed: profile => `Failed to switch to profile "${profile}"`,
+    openFailed: profile => `打开配置档案“${profile}”失败`,
+    switchFailed: profile => `切换到配置档案“${profile}”失败`,
     nameHint: '小写字母、数字、连字符和下划线，必须以字母或数字开头',
     title: '配置档案',
     count: count => `${count} 个配置档案`,

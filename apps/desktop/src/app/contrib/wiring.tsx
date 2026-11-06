@@ -34,8 +34,9 @@ import { SharedMetricsConsentDialog } from '@/components/shared-metrics/consent-
 import { TipHost } from '@/components/tips'
 import { UpdateHoldOverlay } from '@/components/update-hold-overlay'
 import { emitGatewayEvent } from '@/contrib/events'
-import { translateNow } from '@/i18n'
+import { runtimeTranslations, translateNow } from '@/i18n'
 import { type ChatMessage, chatMessageText } from '@/lib/chat-messages'
+import { displayEntityName } from '@/lib/display-name'
 import { isMessagingSource } from '@/lib/session-source'
 import { activateWakeIndicator } from '@/lib/wake-indicator'
 import { playWakeSound } from '@/lib/wake-sound'
@@ -855,7 +856,8 @@ export function ContribWiring({ children }: { children: ReactNode }) {
           } else {
             void ensureGatewayProfile(normalizeProfileKey(targetProfile)).catch((error: unknown) => {
               // #81094: the voice-path switch must surface its failure too.
-              notifyError(error, translateNow('profiles.switchFailed', normalizeProfileKey(targetProfile)))
+              const profileName = displayEntityName(normalizeProfileKey(targetProfile), runtimeTranslations())
+              notifyError(error, translateNow('profiles.switchFailed', profileName))
             })
           }
         } else if (payload?.start_new_session !== false) {

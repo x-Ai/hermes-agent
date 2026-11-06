@@ -654,8 +654,8 @@ export const arCommandCenter = {
   },
   profiles: {
     close: 'إغلاق',
-    openFailed: profile => `Failed to open profile "${profile}"`,
-    switchFailed: profile => `Failed to switch to profile "${profile}"`,
+    openFailed: profile => `تعذّر فتح الملف الشخصي «${profile}»`,
+    switchFailed: profile => `تعذّر التبديل إلى الملف الشخصي «${profile}»`,
     nameHint: 'اسم الملف الشخصي',
     title: 'الملفات الشخصية',
     count: count => `${count} ملف شخصي`,
