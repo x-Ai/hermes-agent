@@ -9,6 +9,8 @@ export const zhLocalModels: TranslationOverride<Translations['settings']['localM
     'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
       '前沿规模的混合专家模型，支持多词元预测和图像理解',
     'Frontier-scale model; needs a very large GPU to run well': '前沿大模型，需要显存容量很大的 GPU 才能流畅运行',
+    "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+      'NVIDIA 74B 混合专家模型的 2 比特量化版本，支持图像理解',
     'Bigger mixture-of-experts with multi-token prediction; sees images':
       '更大规模的混合专家模型，支持多词元预测和图像理解',
     'Frontier-class model for machines with 128GB+ memory': '前沿级模型，适合配备 128 GB 及以上内存的机器'

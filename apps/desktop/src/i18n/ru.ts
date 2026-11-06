@@ -2027,6 +2027,8 @@ export const ruOverrides = {
           'Передовая модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
         'Frontier-scale model; needs a very large GPU to run well':
           'Передовая крупная модель; для быстрой работы нужен GPU с очень большим объёмом памяти',
+        "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+          'Модель NVIDIA со смесью экспертов на 74 млрд параметров в 2-битной сборке; понимает изображения',
         'Bigger mixture-of-experts with multi-token prediction; sees images':
           'Более крупная модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
         'Frontier-class model for machines with 128GB+ memory':

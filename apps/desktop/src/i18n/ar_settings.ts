@@ -1398,6 +1398,8 @@ export const arSettings = {
           'نموذج مزيج خبراء متقدم واسع النطاق مع توقع رموز متعددة؛ يفهم الصور',
         'Frontier-scale model; needs a very large GPU to run well':
           'نموذج متقدم واسع النطاق؛ يتطلب ذاكرة GPU كبيرة جداً ليعمل بسلاسة',
+        "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+          'نموذج مزيج خبراء من NVIDIA بـ 74 مليار معامل في إصدار مكمّم بدقة 2 بت؛ يفهم الصور',
         'Bigger mixture-of-experts with multi-token prediction; sees images':
           'نموذج مزيج خبراء أكبر مع توقع رموز متعددة؛ يفهم الصور',
         'Frontier-class model for machines with 128GB+ memory': 'نموذج متقدم للأجهزة المزودة بذاكرة 128 GB أو أكثر'

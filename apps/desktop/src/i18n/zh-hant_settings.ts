@@ -1424,6 +1424,8 @@ export const zhHantSettings = {
           '前沿規模的混合專家模型，支援多詞元預測和圖像理解',
         'Frontier-scale model; needs a very large GPU to run well':
           '前沿大型模型；需要顯示記憶體容量很大的 GPU 才能流暢執行',
+        "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+          'NVIDIA 74B 混合專家模型的 2 位元量化版本，支援圖像理解',
         'Bigger mixture-of-experts with multi-token prediction; sees images':
           '更大規模的混合專家模型，支援多詞元預測和圖像理解',
         'Frontier-class model for machines with 128GB+ memory': '前沿級模型，適合配備 128 GB 及以上記憶體的機器'

@@ -10,6 +10,8 @@ export const jaLocalModels: TranslationOverride<Translations['settings']['localM
       'マルチトークン予測を備えた最先端規模の混合エキスパートモデル。画像に対応',
     'Frontier-scale model; needs a very large GPU to run well':
       '最先端の大規模モデル。快適な動作には非常に大容量の GPU メモリが必要',
+    "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+      'NVIDIA の 74B 混合エキスパートモデルを 2 ビットに量子化したビルド。画像に対応',
     'Bigger mixture-of-experts with multi-token prediction; sees images':
       'マルチトークン予測を備えた、より大規模な混合エキスパートモデル。画像に対応',
     'Frontier-class model for machines with 128GB+ memory': '128 GB 以上のメモリを搭載したマシン向けの最先端モデル'
