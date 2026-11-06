@@ -1,0 +1,154 @@
+import { describe, expect, it } from 'vitest'
+
+import { arOverrides } from './ar'
+import { AR_PLURAL } from './ar_plural'
+import { en } from './en'
+import { ruOverrides } from './ru'
+
+// The ru and ar overlays came from machine translation, which glued `${…}`
+// arguments to the words around them ("Профили включены${gateway}", "انتقل إلى${name}")
+// and dropped some of them. These blocks have been reviewed against English;
+// a value the overlay leaves out falls back to English and is not read here.
+const REVIEWED_BLOCKS = [
+  'billingBlock',
+  'billingPage',
+  'notifications',
+  'sendDiagnostics',
+  'fileMenu',
+  'titlebar',
+  'keybinds',
+  'paletteCommands',
+  'findInPage',
+  'sidebar',
+  'shell',
+  'rightSidebar',
+  'zones',
+  'contextMenu',
+  'commandCenter',
+  'messaging',
+  'profiles',
+  'cron'
+] as const
+
+const OVERLAYS = { ru: ruOverrides, ar: arOverrides } as Record<string, Record<string, unknown>>
+
+type Leaf = { path: string; value: unknown }
+
+function leaves(value: unknown, path: string): Leaf[] {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return Object.entries(value).flatMap(([key, child]) => leaves(child, `${path}.${key}`))
+  }
+
+  return [{ path, value }]
+}
+
+const at = (root: unknown, path: string) =>
+  path.split('.').reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], root)
+
+// A one-element array reads as its marker in a template and still takes the
+// `.map` / `.join` / `.at` a list argument gets; as a count it is NaN, which
+// sends plural helpers to the form that prints the number.
+const probes = (arity: number) => Array.from({ length: Math.max(arity, 1) }, (_, index) => [`⟦${index}⟧`])
+
+function render(value: unknown, args: unknown[]): string | undefined {
+  try {
+    const out = (value as (...params: unknown[]) => unknown)(...args)
+
+    return typeof out === 'string' ? out : undefined
+  } catch {
+    return undefined // needs a structured argument; nothing to inspect
+  }
+}
+
+// An Arabic one-letter proclitic (و، ف، ب، ل، ك, optionally with a tatweel) is
+// written joined to the word it governs, a number included: "و${count} أخرى".
+const PROCLITIC = /^[وفبلك]ـ?$/u
+const LETTER = /[\p{L}\p{N}]/u
+
+/** Markers written flush against a word, on either side. */
+function gluedMarkers(text: string): Set<string> {
+  const glued = new Set<string>()
+
+  for (const match of text.matchAll(/⟦\d+⟧/g)) {
+    const start = match.index ?? 0
+    const before = text.slice(0, start)
+    const after = text[start + match[0].length] ?? ''
+    const word = /[\p{L}\p{N}ـ]+$/u.exec(before)?.[0] ?? ''
+
+    if ((word && !PROCLITIC.test(word)) || LETTER.test(after)) {
+      glued.add(match[0])
+    }
+  }
+
+  return glued
+}
+
+function interpolationFaults(path: string, value: unknown): string[] {
+  if (typeof value !== 'function') {
+    return []
+  }
+
+  const args = probes(value.length)
+  const translated = render(value, args)
+  const english = render(at(en, path), args)
+
+  if (translated === undefined || english === undefined) {
+    return []
+  }
+
+  const dropped = args
+    .map(([marker]) => marker)
+    .filter(marker => english.includes(marker) && !translated.includes(marker))
+    .map(marker => `drops ${marker}: ${translated}`)
+
+  // English itself writes a few markers flush (`v${version}`, `failed${detail}`).
+  const englishGlued = gluedMarkers(english)
+
+  const glued = [...gluedMarkers(translated)]
+    .filter(marker => !englishGlued.has(marker))
+    .map(marker => `glues ${marker} to a word: ${translated}`)
+
+  return [...dropped, ...glued]
+}
+
+describe.each(['ru', 'ar'] as const)('the reviewed %s core copy', locale => {
+  it('keeps every argument English shows, set apart from the words around it', () => {
+    const overlay = OVERLAYS[locale]
+
+    const faults = REVIEWED_BLOCKS.flatMap(block => leaves(overlay[block], block)).flatMap(({ path, value }) =>
+      interpolationFaults(path, value).map(fault => `${path} ${fault}`)
+    )
+
+    expect(faults).toEqual([])
+  })
+})
+
+describe('AR_PLURAL', () => {
+  const forms = { one: 'one', two: 'two', few: 'few', many: 'many' }
+
+  it('picks the Arabic noun form for each count', () => {
+    expect([1, 2, 3, 10, 11, 99, 103, 111].map(count => AR_PLURAL(count, forms))).toEqual([
+      'one',
+      'two',
+      'few',
+      'few',
+      'many',
+      'many',
+      'few',
+      'many'
+    ])
+  })
+
+  it('reads zero and the hundreds like the counted form unless told otherwise', () => {
+    expect(AR_PLURAL(0, forms)).toBe('many')
+    expect(AR_PLURAL(100, forms)).toBe('many')
+    expect(AR_PLURAL(0, { ...forms, other: 'other' })).toBe('other')
+    expect(AR_PLURAL(0, { ...forms, zero: 'zero', other: 'other' })).toBe('zero')
+    expect(AR_PLURAL(200, { ...forms, other: 'other' })).toBe('other')
+  })
+
+  it('accepts a count passed as a string', () => {
+    expect(AR_PLURAL('2', forms)).toBe('two')
+    expect(AR_PLURAL('5', forms)).toBe('few')
+  })
+})

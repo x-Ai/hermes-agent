@@ -1,3 +1,4 @@
+import { AR_PLURAL } from './ar_plural'
 import type { TranslationOverrides } from './define-locale'
 
 export const arDiagnostics = {
@@ -7,70 +8,84 @@ export const arDiagnostics = {
     region: 'الإشعارات',
     hide: 'إخفاء',
     show: 'إظهار',
-    more: count => `${count} إشعار إضافي`,
+    more: count =>
+      AR_PLURAL(count, {
+        one: 'إشعار إضافي واحد',
+        two: 'إشعاران إضافيان',
+        few: `${count} إشعارات إضافية`,
+        many: `${count} إشعارًا إضافيًا`
+      }),
     clearAll: 'مسح الكل',
     dismiss: 'إغلاق الإشعار',
     details: 'التفاصيل',
     copyDetail: 'نسخ التفاصيل',
     copyDetailFailed: 'تعذر نسخ تفاصيل الإشعار',
-    backendOutOfDateTitle: 'الخلفية قديمة',
-    backendOutOfDateMessage: 'خلفية Hermes أقدم من إصدار سطح المكتب الحالي وقد لا تعمل كما يجب. حدثهما ليتوافقا.',
+    backendOutOfDateTitle: 'الواجهة الخلفية قديمة',
+    backendOutOfDateMessage:
+      'الواجهة الخلفية لـ Hermes أقدم من إصدار هذا التطبيق وقد لا تعمل كما يجب. حدّثهما ليتوافقا.',
     installMethodUnsupportedTitle: 'طريقة التثبيت غير مدعومة',
     updateHermes: 'تحديث Hermes',
     updateReadyTitle: 'التحديث جاهز',
-    updateReadyMessage: count => `${count} تغيير جديد متاح.`,
+    updateReadyMessage: count =>
+      AR_PLURAL(count, {
+        one: 'يتوفر تغيير جديد واحد.',
+        two: 'يتوفر تغييران جديدان.',
+        few: `تتوفر ${count} تغييرات جديدة.`,
+        many: `يتوفر ${count} تغييرًا جديدًا.`
+      }),
     updateReadyMessageUnknown: 'يتوفر تحديث جديد.',
     seeWhatsNew: 'عرض الجديد',
     toast: {
-      artifactPartialLoad: (failed, total) => `تخطى${failed}من${total}الجلسات الأخيرة أثناء فهرسة القطع الأثرية.`,
-      artifactSafeLimitExceeded: count => `${count}تجاوز حد تحميل النص الآمن.`,
-      artifactUnreadable: count => `${count}تعذر قراءته.`,
-      attachmentLimitSaveFailed: 'لا يمكن أن ينقذ الحد الأقصى لحجم الملحق',
-      localEndpointSaveFailed: 'لا يمكن إنقاذ نقطة النهاية المحلية',
-      memoryConnectionStartFailed: 'فشل في بدء الاتصال',
-      memoryFieldSaveFailed: label => `فشل الحفظ${label}`,
-      memoryProviderSavedMessage: 'تحديث تشكيلة مقدِّم الذاكرة.',
-      memoryProviderSavedTitle: label => `${label}تم الحفظ`,
-      memoryProviderSettingsSaveFailed: label => `فشل الحفظ${label}الإعدادات`,
-      modelChangeFailed: 'لا يمكن تغيير النموذج',
-      onboardingReadyTitle: 'Hermes جاهزة',
+      artifactPartialLoad: (failed, total) =>
+        `تم تخطي ${failed} من أصل ${total} من الجلسات الحديثة أثناء فهرسة العناصر.`,
+      artifactSafeLimitExceeded: count => `تجاوز ${count} منها الحد الآمن لتحميل سجل المحادثة.`,
+      artifactUnreadable: count => `تعذّرت قراءة ${count} منها.`,
+      attachmentLimitSaveFailed: 'تعذّر حفظ الحد الأقصى لحجم المرفقات',
+      localEndpointSaveFailed: 'تعذّر حفظ نقطة النهاية المحلية',
+      memoryConnectionStartFailed: 'تعذّر بدء الاتصال',
+      memoryFieldSaveFailed: label => `تعذّر حفظ ${label}`,
+      memoryProviderSavedMessage: 'تم تحديث إعدادات مزوّد الذاكرة.',
+      memoryProviderSavedTitle: label => `تم حفظ ${label}`,
+      memoryProviderSettingsSaveFailed: label => `تعذّر حفظ إعدادات ${label}`,
+      modelChangeFailed: 'تعذّر تغيير النموذج',
+      onboardingReadyTitle: 'Hermes جاهز',
       openBrowserWindowFailed: 'تعذّر فتح المتصفح في نافذة منفصلة',
-      openNewWindowFailed: 'لا يمكن فتح نافذة جديدة',
-      openSessionTerminalFailed: 'لا يمكن فتح دردشة في محطة',
-      openSessionWindowFailed: 'لا يمكن فتح الدردشة في نافذة جديدة',
-      petDraftsReadyMessage: 'الحيوانات الأليفة الخاصة بك تبدو منتهية - اختيار واحد لجلب.',
-      petDraftsReadyTitle: 'مشاريع بيت جاهزة',
-      petGenerationFailedTitle: 'فشل جيل الفستق',
-      petHatchedMessage: 'ابدأي بالاسم وتبنيه.',
-      petHatchedTitle: 'حيوانك الأليف',
-      petHatchingFailedTitle: 'فشل القفز',
-      petReopenTryAgain: 'أعيدي المحاولة مرة أخرى.',
-      pluginLoadFailed: origin => `Plugin "${origin}فشل في تحميل`,
-      pluginRegisterFailed: name => `تعذّر تسجيل المكوّن الإضافي «${name}»`,
-      pluginsFolderOpenFailed: 'لا يمكن فتح ملف البلوغين',
-      pluginsFolderResolveFailed: 'لا يمكن حل ملف البلوغين',
-      pluginsFolderUnavailable: 'المزلاجات غير متاحة',
-      pluginsHomeUnavailable: 'لم تبلغ الخلفية عن دليلها المنزلي',
-      gatewayConnectFailed: 'تعذر الاتصال بالبوابة Hermes',
-      processStopFailed: 'لم أستطع إيقاف العملية',
-      providerConnected: provider => `${provider}متصل.`,
-      providerSaveFailed: label => `تعذر الحفظ${label}`,
-      reactionFailed: 'لا يمكن رد فعل',
+      openNewWindowFailed: 'تعذّر فتح نافذة جديدة',
+      openSessionTerminalFailed: 'تعذّر فتح المحادثة في الطرفية',
+      openSessionWindowFailed: 'تعذّر فتح المحادثة في نافذة جديدة',
+      petDraftsReadyMessage: 'يبدو حيوانك الأليف جاهزًا — اختر واحدًا لتفقيسه.',
+      petDraftsReadyTitle: 'مسوّدات الحيوان الأليف جاهزة',
+      petGenerationFailedTitle: 'فشل توليد الحيوان الأليف',
+      petHatchedMessage: 'أعد الفتح لتسميته وتبنّيه.',
+      petHatchedTitle: 'فقس حيوانك الأليف',
+      petHatchingFailedTitle: 'فشل التفقيس',
+      petReopenTryAgain: 'أعد الفتح لتحاول مجددًا.',
+      pluginLoadFailed: origin => `تعذّر تحميل الإضافة «${origin}»`,
+      pluginRegisterFailed: name => `تعذّر تسجيل الإضافة «${name}»`,
+      pluginsFolderOpenFailed: 'تعذّر فتح مجلد الإضافات',
+      pluginsFolderResolveFailed: 'تعذّر تحديد مجلد الإضافات',
+      pluginsFolderUnavailable: 'إضافات سطح المكتب غير متاحة',
+      pluginsHomeUnavailable: 'لم تُبلغ الواجهة الخلفية عن مجلدها الرئيسي',
+      gatewayConnectFailed: 'تعذّر الاتصال ببوابة Hermes',
+      processStopFailed: 'تعذّر إيقاف العملية',
+      providerConnected: provider => `تم الاتصال بـ ${provider}.`,
+      providerSaveFailed: label => `تعذّر حفظ ${label}`,
+      reactionFailed: 'تعذّرت إضافة التفاعل',
       runtimeNotReadyMessage:
-        'Hermes Desktop لا يمكن التحقق من التراجع المستمر في البداية. وقد تكون بعض الملامح غير متاحة حتى يمكن الوصول إلى البوابة.',
-      runtimeNotReadyTitle: 'جاهز',
+        'تعذّر على Hermes Desktop التحقق من الواجهة الخلفية العاملة عند بدء التشغيل. قد تكون بعض الميزات غير متاحة حتى يمكن الوصول إلى البوابة.',
+      runtimeNotReadyTitle: 'بيئة التشغيل غير جاهزة',
       toolGatewayEnabledMessage: labels => {
-        const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(', ')} and ${labels.at(-1)}`
+        const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join('، ')} و${labels.at(-1)}`
 
-        return `${list} now run through your Nous subscription — no separate API keys needed.`
+        return `${list}: تعمل الآن عبر اشتراكك في Nous — لا حاجة إلى مفاتيح API منفصلة.`
       },
-      toolGatewayEnabledTitle: 'المدخل المتحرك',
+      toolGatewayEnabledTitle: 'تم تفعيل Tool Gateway',
       toolGatewayTools: {
-        browser: 'التشغيل الآلي للمصفوفين',
-        image_gen: 'إنتاج الصور',
-        tts: 'النص إلى الكلام',
-        video_gen: 'إنتاج الفيديو',
-        web: 'البحث على شبكة الإنترنت'
+        browser: 'أتمتة المتصفح',
+        image_gen: 'توليد الصور',
+        tts: 'تحويل النص إلى كلام',
+        video_gen: 'توليد الفيديو',
+        web: 'البحث في الويب واستخراج المحتوى'
       },
       unknownError: 'خطأ غير معروف',
       view: 'عرض'
@@ -83,7 +98,7 @@ export const arDiagnostics = {
       signIn: 'تسجيل الدخول',
       view: 'عرض',
       disable: 'تعطيل',
-      disabledMessage: name => `تم تعطيل ${name} MCP. يمكنك إعادة تفعيله في أي وقت من الإمكانات → MCP.`,
+      disabledMessage: name => `تم تعطيل ${name} MCP. يمكنك إعادة تفعيله في أي وقت من القدرات ← MCP.`,
       disableFailed: name => `تعذّر تعطيل ${name} MCP.`
     },
     errors: {
@@ -92,9 +107,10 @@ export const arDiagnostics = {
       unknownProvider: provider =>
         `المزوّد '${provider}' غير معروف. شغّل 'hermes model' لعرض المزوّدين المتاحين، أو شغّل 'hermes doctor' لتشخيص مشكلات الإعداد.`,
       fastModeUnavailable: 'الوضع السريع غير متاح لهذا النموذج.',
-      apiRetriesExhausted: retries => `فشل استدعاء API بعد ${retries} محاولات إعادة`,
+      apiRetriesExhausted: retries =>
+        `فشل استدعاء API بعد ${AR_PLURAL(retries, { one: 'محاولة إعادة واحدة', two: 'محاولتي إعادة', few: `${retries} محاولات إعادة`, many: `${retries} محاولة إعادة` })}`,
       invalidApiResponseAfterRetries: (retries, detail) =>
-        `استجابة API غير صالحة بعد ${retries} محاولات إعادة: ${detail}`,
+        `استجابة API غير صالحة بعد ${AR_PLURAL(retries, { one: 'محاولة إعادة واحدة', two: 'محاولتي إعادة', few: `${retries} محاولات إعادة`, many: `${retries} محاولة إعادة` })}: ${detail}`,
       resetsIn: remaining => `الوقت المتبقي لإعادة التعيين: ${remaining}`,
       providerRetriesExhausted: (reason, label, attempts, resetWindow) => {
         const lead = {
@@ -102,39 +118,40 @@ export const arDiagnostics = {
           overloaded: `أبلغ ${label} عن تحميل زائد في كل المحاولات الـ ${attempts}`,
           server_error: `أعاد ${label} خطأ خادم في كل المحاولات الـ ${attempts}`,
           timeout: `لم يستجب ${label} في الوقت المناسب في أي من المحاولات الـ ${attempts}`,
-          unknown: `لم يجب ${label} بعد ${attempts} محاولات`
+          unknown: `لم يجب ${label} بعد ${AR_PLURAL(attempts, { one: 'محاولة واحدة', two: 'محاولتين', few: `${attempts} محاولات`, many: `${attempts} محاولة` })}`
         }[reason]
 
         const situation = resetWindow
           ? `يُعاد ضبط حد الاستخدام الخاص به خلال ${resetWindow}. أرسل /retry بعد ذلك، أو بدّل النموذج عبر /model.`
           : 'يبدو أنه غير متاح مؤقتًا. انتظر دقيقة ثم أرسل /retry، أو بدّل النموذج عبر /model.'
 
-        return `${lead} — ${situation} لتجنب ذلك مستقبلًا، أضف موفّرًا احتياطيًا عبر \`hermes fallback add\`.`
+        return `${lead} — ${situation} لتجنب ذلك مستقبلًا، أضف مزوّدًا احتياطيًا عبر \`hermes fallback add\`.`
       },
-      providerSaid: summary => `قال الموفّر: ${summary}`,
+      providerSaid: summary => `ردّ المزوّد: ${summary}`,
       providerInvalidResponse: (label, attempts) =>
-        `أعاد ${label} ردًا فارغًا أو معطوبًا ${attempts} مرات — على الأرجح أنه محمّل فوق طاقته أو يقيّد معدل طلباتك. انتظر دقيقة ثم أرسل /retry، أو بدّل النموذج عبر /model.`,
+        `أعاد ${label} ردًا فارغًا أو معطوبًا ${AR_PLURAL(attempts, { one: 'مرة واحدة', two: 'مرتين', few: `${attempts} مرات`, many: `${attempts} مرة` })} — على الأرجح أنه محمّل فوق طاقته أو يقيّد معدل طلباتك. انتظر دقيقة ثم أرسل /retry، أو بدّل النموذج عبر /model.`,
       errorDetailsLine: detail => `التفاصيل: ${detail}`,
-      elevenLabsNeedsKey: 'يتطلب ElevenLabs STT المفتاح ELEVENLABS_API_KEY.',
-      elevenLabsRejectedKey: 'رفض ElevenLabs مفتاح API (401).',
+      elevenLabsNeedsKey: 'يتطلب الإدخال الصوتي مفتاح ElevenLabs. أضفه من الإعدادات ← المفاتيح.',
+      elevenLabsRejectedKey: 'لم يقبل ElevenLabs مفتاح API الخاص بك. حدّثه من الإعدادات ← المفاتيح ثم حاول مرة أخرى.',
       diskFull: 'القرص ممتلئ — حرّر مساحة ثم أعد المحاولة.',
       fileNotFound: target => (target ? `لم يتم العثور على الملف: ${target}` : 'لم يتم العثور على الملف.'),
       gatewayAuthFailed:
         'لم يعد Hermes يقبل تسجيل الدخول المحفوظ الخاص بك. افتح البوابات وقم بتسجيل الدخول مرة أخرى (أو الصق رمز وصول جديد)، ثم أعد المحاولة.',
       invalidExternalUrl: 'عنوان URL الخارجي غير صالح.',
       invalidPreviewUrl: 'عنوان URL للمعاينة غير صالح.',
-      methodNotAllowed: 'رفضت خلفية سطح المكتب هذا الطلب (405 Method Not Allowed). جرب إعادة تشغيل Hermes Desktop.',
+      methodNotAllowed:
+        'الخدمة الخلفية لـ Hermes غير متوافقة مع التطبيق، على الأرجح بعد تحديث. أعد تشغيلها لإصلاح ذلك.',
       microphonePermission: 'تم رفض إذن الميكروفون.',
-      openaiRejectedApiKey: 'رفض OpenAI مفتاح API.',
+      openaiRejectedApiKey: 'لم يقبل OpenAI مفتاح API الخاص بك. حدّثه من الإعدادات ← المفاتيح ثم حاول مرة أخرى.',
       openaiRejectedApiKeyWithStatus: status => `رفض OpenAI مفتاح API (${status} invalid_api_key).`,
-      openaiTtsNeedsKey: 'يتطلب OpenAI TTS المفتاح VOICE_TOOLS_OPENAI_KEY أو OPENAI_API_KEY.',
-      restoreTargetMissing: 'لم تعد الرسالة المستهدفة في تاريخ هذه الدورة. كرر الجلسة وحاول مرة أخرى.',
-      restoreTargetUnsafe: 'ولا يمكن إعادة نقطة التفتيش هذه بأمان. كرر الجلسة وحاول مرة أخرى.',
+      openaiTtsNeedsKey: 'يتطلب الصوت مفتاح OpenAI. أضفه من الإعدادات ← المفاتيح.',
+      restoreTargetMissing: 'لم تعد الرسالة المستهدفة في سجل هذه الجلسة. حدّث الجلسة وحاول مرة أخرى.',
+      restoreTargetUnsafe: 'لا يمكن استعادة نقطة الحفظ هذه بأمان. حدّث الجلسة وحاول مرة أخرى.',
       sessionStoppedBeforeAgentReady: 'توقفت الجلسة قبل أن يصبح الوكيل جاهزًا.',
-      turnCancelledBeforeAgentReady: 'أُلغيت الجولة قبل أن يصبح الوكيل جاهزًا.',
-      codeSkewRestartRequired: 'بعد التحديث ما زال هذا الخلفية يشغّل كودا قديما. أعد تشغيله لتحميل الكود الجديد.',
-      storageFailure: 'تعذر حفظ Hermes في مجلد البيانات الخاص به. افتح الصيانة لفحصها وإصلاحها.',
-      rpcOutOfSync: 'التطبيق والواجهة الخلفية موجودان في إصدارات مختلفة. قم بتحديث كليهما.',
+      turnCancelledBeforeAgentReady: 'أُلغي الدور قبل أن يصبح الوكيل جاهزًا.',
+      codeSkewRestartRequired: 'حُدّث Hermes لكنه لا يزال يشغّل الإصدار القديم. أعد تشغيله لإكمال التحديث.',
+      storageFailure: 'تعذّر على Hermes الحفظ في مجلد بياناته. افتح الصيانة لفحصه وإصلاحه.',
+      rpcOutOfSync: 'إصدارا التطبيق والواجهة الخلفية مختلفان. حدّث كليهما.',
       restartHermesFailed: 'تعذر إعادة تشغيل Hermes'
     },
     voice: {
@@ -146,7 +163,7 @@ export const arDiagnostics = {
       microphoneInUse: 'الميكروفون مستخدم من تطبيق آخر.',
       microphonePermissionDenied: 'تم رفض إذن الميكروفون.',
       microphoneStartFailed: 'تعذر بدء تسجيل الميكروفون.',
-      microphoneUnsupported: 'هذا المتصفح لا يدعم تسجيل الميكروفون.',
+      microphoneUnsupported: 'بيئة التشغيل هذه لا تدعم تسجيل الميكروفون.',
       noMicrophone: 'لم يتم العثور على ميكروفون.',
       noSpeechDetected: 'لم يتم اكتشاف كلام',
       playbackFailed: 'فشل تشغيل الصوت',
@@ -157,10 +174,10 @@ export const arDiagnostics = {
       tryRecordingAgain: 'حاول التسجيل مرة أخرى.',
       unavailable: 'الصوت غير متاح',
       liveEnded: 'انتهت الجلسة الصوتية المباشرة',
-      liveError: 'صوت حي',
+      liveError: 'المحادثة الصوتية المباشرة',
       liveDelegationFailed: 'تعذر تسليم الطلب إلى Hermes',
       liveUnavailable: reason =>
-        `GPT-Live voice chat is not available: ${reason}. استخدام تحويل الكلام إلى نص بدلا من ذلك.`,
+        `المحادثة الصوتية GPT-Live غير متاحة: ${reason}. يُستخدم تحويل الكلام إلى نص بدلًا منها.`,
       liveEndedConnectionLost: 'فقدت جلسة الصوت المباشر اتصالها.',
       liveEndedClosed: 'تم إغلاق الجلسة الصوتية المباشرة بواسطة الخدمة.'
     },
@@ -172,22 +189,23 @@ export const arDiagnostics = {
       inputBody: 'ينتظر Hermes ردّك.',
       turnDoneTitle: 'أنهى Hermes',
       turnDoneBody: 'اكتملت الرسالة.',
-      turnErrorTitle: 'فشلت الجولة',
+      turnErrorTitle: 'فشل الدور',
       backgroundDoneTitle: 'انتهت المهمة في الخلفية',
       backgroundFailedTitle: 'فشلت المهمة في الخلفية',
-      creditsTitle: 'الاعتمادات',
+      creditsTitle: 'الرصيد',
       approvalTitleNamed: session => `مطلوب موافقة — ${session}`,
       inputTitleNamed: session => `مطلوب إدخال — ${session}`
     },
     gatewayErrorTitle: 'خطأ Hermes',
-    gatewayErrorFallback: 'Hermes أبلغ عن خطأ',
+    gatewayErrorFallback: 'أبلغ Hermes عن خطأ',
     actions: {
-      restartHermes: 'أعد تشغيل Hermes',
+      restartHermes: 'إعادة تشغيل Hermes',
       openKeys: 'فتح المفاتيح',
       openGateways: 'فتح البوابات',
-      openMaintenance: 'الصيانة المفتوحة'
+      openMaintenance: 'فتح الصيانة'
     },
-    desktopOutOfDateMessage: 'تطبيق Hermes أقدم من الخلفية المتصل بها وقد لا يعمل كما يجب. حدّث التطبيق ليتوافقا.',
+    desktopOutOfDateMessage:
+      'تطبيق Hermes هذا أقدم من الواجهة الخلفية المتصل بها وقد لا يعمل كما يجب. حدّث التطبيق ليتوافقا.',
     desktopOutOfDateTitle: 'التطبيق قديم',
     updateDesktopApp: 'تحديث التطبيق'
   },

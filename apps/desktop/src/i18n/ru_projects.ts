@@ -1,7 +1,7 @@
 // Тексты секции проектов в боковой панели; подключается из ru.ts.
 import type { TranslationOverrides } from './define-locale'
 export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'] = {
-  showAllSessions: 'Показать все сессии',
+  showAllSessions: 'Показать все сеансы',
   sectionLabel: 'Проекты',
   home: 'Главная',
   newButton: 'Новый проект',
@@ -22,7 +22,7 @@ export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   removeFolder: 'Удалить',
   create: 'Создать',
   menu: 'Действия',
-  menuRename: 'Переименовать',
+  menuRename: 'Переименовать…',
   menuAppearance: 'Внешний вид',
   noColor: 'Без цвета',
   menuAddFolder: 'Добавить папку',
@@ -60,11 +60,11 @@ export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   worktreeProjectNone: 'Нет проектов с папкой',
   convertBranch: 'Преобразовать ветку…',
   convertBranchTitle: 'Преобразовать ветку',
-  convertBranchDesc: 'Откройте закоммиченные ветки или создайте worktree для свободной ветки.',
+  convertBranchDesc: 'Откройте уже извлечённые ветки или создайте worktree для свободной ветки.',
   convertBranchPlaceholder: 'Поиск веток…',
   convertBranchInstead: 'Преобразовать существующую ветку',
   branchOpenExisting: 'открыть',
-  branchSwitchHome: 'сменить home',
+  branchSwitchHome: 'переключить основную копию',
   branchCreateWorktree: 'новый worktree',
   branchTrackRemote: 'отслеживать удалённую',
   branchesLoading: 'Загрузка веток…',
@@ -72,14 +72,14 @@ export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   removeWorktree: 'Удалить worktree',
   removeWorktreeFailed: 'Не удалось удалить worktree (есть незакоммиченные изменения?)',
   removeWorktreeConfirm:
-    'Удалить из git (сотрёт каталог worktree; ветка останется) или просто скрыть лану из боковой панели, оставив worktree на диске.',
+    'Удалить из git (сотрёт каталог worktree; ветка останется) или просто скрыть его из боковой панели, оставив worktree на диске.',
   removeWorktreeDirty:
-    'В этом worktree есть незакоммиченные изменения. Удалить принудительно (сбросит эти изменения) или просто скрыть лану и оставить на диске.',
+    'В этом worktree есть незакоммиченные изменения. Удалить принудительно (сбросит эти изменения) или просто скрыть его и оставить на диске.',
   forceRemove: 'Удалить принудительно',
   enter: label => `Открыть ${label}`,
   reorder: label => `Изменить порядок ${label}`,
   toggle: (label, open) => `${open ? 'Показать' : 'Скрыть'} сеансы ${label}`,
-  showAllCount: count => `Показать все сессии (${count})`,
+  showAllCount: count => `Показать все сеансы (${count})`,
   back: 'Все проекты',
   unavailableAllProfiles: 'Проекты недоступны при просмотре всех профилей',
   autoDiscovered: 'Автоматически обнаружено'
