@@ -540,7 +540,8 @@ export const en: BotsMessages = {
     agentControls: 'Bot is in control',
     controlTaken: 'Another viewer took control. Watching only.',
     needsHttps:
-      'Bot screens need a secure connection. Open the Webapp over HTTPS, or through an SSH tunnel to 127.0.0.1, to view this one.'
+      'Bot screens need a secure connection. Open the Webapp over HTTPS, or through an SSH tunnel to 127.0.0.1, to view this one.',
+    noConnectionOwner: name => `Bot ${name} has no connection owner`
   },
   cron: {
     untitled: 'Untitled job',
@@ -1164,7 +1165,8 @@ const ja: BotsMessages = {
     agentControls: 'ボットが操作中',
     controlTaken: '別のビューアが操作を引き継ぎました。閲覧のみ',
     needsHttps:
-      'ボットの画面には安全な接続が必要です。表示するには、Webapp を HTTPS か 127.0.0.1 への SSH トンネル経由で開いてください。'
+      'ボットの画面には安全な接続が必要です。表示するには、Webapp を HTTPS か 127.0.0.1 への SSH トンネル経由で開いてください。',
+    noConnectionOwner: name => `ボット ${name} が属する接続がありません`
   },
   cron: {
     untitled: '無題のジョブ',

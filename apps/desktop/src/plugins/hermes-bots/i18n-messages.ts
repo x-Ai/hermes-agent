@@ -537,6 +537,8 @@ export type BotsMessages = {
     agentControls: string
     controlTaken: string
     needsHttps: string
+    /** The bot's connection was removed, so its screen has no route to dial. */
+    noConnectionOwner: (name: string) => string
   }
 
   /** Bot-scoped scheduled jobs. Generic scheduling chrome (weekday names,

@@ -13,6 +13,7 @@
 import { host, resolveSiblingWsUrl } from '@hermes/plugin-sdk'
 import type { DisplayLease, PluginProfileRoute, RpcEvent } from '@hermes/plugin-sdk'
 
+import { botsText } from './i18n'
 import { resolveBotConnectionRoute } from './routing'
 import type { RosterRow } from './types'
 
@@ -117,8 +118,9 @@ export function isEventForBotScreen(bot: RosterRow, event: RpcEvent, profileKey:
 export function displayRequest<T>(bot: RosterRow, method: string, params: Record<string, unknown> = {}): Promise<T> {
   const route = botScreenRoute(bot)
 
+  // The Screen pane and its install panel show this message as it is.
   if (route === null) {
-    return Promise.reject(new Error(`Bot ${bot.name} has no connection owner`))
+    return Promise.reject(new Error(botsText().screen.noConnectionOwner(bot.name)))
   }
 
   // display.* handlers are @_profile_scoped: without an explicit `profile` the
@@ -167,7 +169,7 @@ export async function resolveScreenWsUrl(bot: RosterRow, ticket: string): Promis
   const resolved = resolveBotConnectionRoute(bot)
 
   if (resolved.status === 'owner_removed') {
-    throw new Error(`Bot ${bot.name} has no connection owner`)
+    throw new Error(botsText().screen.noConnectionOwner(bot.name))
   }
 
   const route = resolved.route

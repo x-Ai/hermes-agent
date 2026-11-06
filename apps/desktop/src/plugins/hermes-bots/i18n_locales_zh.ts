@@ -514,7 +514,8 @@ export const zh: BotsMessages = {
     otherControls: '另一位查看者正在控制',
     agentControls: '机器人正在控制',
     controlTaken: '另一位查看者已接管控制，仅可观看',
-    needsHttps: '机器人屏幕需要安全连接，请通过 HTTPS 或到 127.0.0.1 的 SSH 隧道打开 Webapp 后查看'
+    needsHttps: '机器人屏幕需要安全连接，请通过 HTTPS 或到 127.0.0.1 的 SSH 隧道打开 Webapp 后查看',
+    noConnectionOwner: name => `机器人 ${name} 没有所属的连接`
   },
   cron: {
     untitled: '未命名任务',
@@ -1111,7 +1112,8 @@ export const zhHant: BotsMessages = {
     otherControls: '另一位檢視者正在控制',
     agentControls: '機器人正在控制',
     controlTaken: '另一位檢視者已接手控制。僅可觀看。',
-    needsHttps: '機器人螢幕需要安全連線。請透過 HTTPS 或到 127.0.0.1 的 SSH 通道開啟 Webapp 後檢視。'
+    needsHttps: '機器人螢幕需要安全連線。請透過 HTTPS 或到 127.0.0.1 的 SSH 通道開啟 Webapp 後檢視。',
+    noConnectionOwner: name => `機器人 ${name} 沒有所屬的連線`
   },
   cron: {
     untitled: '未命名工作',

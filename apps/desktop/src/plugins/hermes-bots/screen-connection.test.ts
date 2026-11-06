@@ -11,10 +11,12 @@ import type { RosterRow } from './types'
 
 const routeMock = vi.fn<() => { connectionId: string; profile: string; targetProfile?: string } | null>(() => null)
 
-vi.mock('@hermes/plugin-sdk', () => ({
-  host: { requestProfile: vi.fn() },
-  resolveSiblingWsUrl: vi.fn()
-}))
+vi.mock('@hermes/plugin-sdk', async () => {
+  // shared.ts, behind the plugin ctx botsText() reads, builds a nanostores atom at load.
+  const { atom } = await import('nanostores')
+
+  return { atom, host: { requestProfile: vi.fn() }, resolveSiblingWsUrl: vi.fn() }
+})
 
 vi.mock('./routing', async importOriginal => {
   const actual = await importOriginal<typeof routing>()
@@ -46,11 +48,29 @@ vi.mock('./routing', async importOriginal => {
 
 import { host, resolveSiblingWsUrl } from '@hermes/plugin-sdk'
 
+import { translateBotsIn } from './i18n-test-helper'
 import { displayRequest, isEventForBotScreen, resolveScreenWsUrl } from './screen-connection'
+import { setPluginCtx } from './shared'
 
 const bot = { name: 'ops' } as RosterRow
 const orphan = { name: 'ops', remoteSource: true } as RosterRow
 const key = '/home/hermes/.hermes'
+// One identity per language: botsText() rebinds whenever the translator changes.
+const zh = translateBotsIn('zh')
+
+/** The message a Screen surface shows for `run`'s failure, read with a zh UI. */
+async function zhFailure(run: () => Promise<unknown>): Promise<string> {
+  setPluginCtx({ i18n: { t: zh } } as never)
+
+  try {
+    return await run().then(
+      () => '',
+      (error: unknown) => (error as Error).message
+    )
+  } finally {
+    setPluginCtx(null)
+  }
+}
 
 describe('isEventForBotScreen', () => {
   it('ignores a same-profile-path event that arrived from another host', () => {
@@ -89,6 +109,15 @@ describe('displayRequest', () => {
 
     await expect(displayRequest(orphan, 'display.status')).rejects.toThrow(/no connection owner/)
     expect(host.requestProfile).not.toHaveBeenCalled()
+  })
+
+  // The Screen pane and its install panel show this message as it is.
+  it('reports a removed connection in the UI language around the bot name', async () => {
+    const message = await zhFailure(() => displayRequest(orphan, 'display.status'))
+
+    expect(message).toContain('ops')
+    // No English sentence around the name.
+    expect(message.replace('ops', '')).not.toMatch(/[A-Za-z]/)
   })
 
   it('scopes display.status to the bot backend profile instead of the launch display', async () => {
@@ -131,5 +160,16 @@ describe('resolveScreenWsUrl', () => {
       '/api/display/ws',
       { stripGatewayCredential: true }
     )
+  })
+
+  // The pane's attach shows this message as it is.
+  it('reports a removed connection in the UI language around the bot name', async () => {
+    routeMock.mockReturnValue(null)
+
+    const message = await zhFailure(() => resolveScreenWsUrl(orphan, 'ticket-123'))
+
+    expect(message).toContain('ops')
+    // No English sentence around the name.
+    expect(message.replace('ops', '')).not.toMatch(/[A-Za-z]/)
   })
 })
