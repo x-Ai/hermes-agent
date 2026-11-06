@@ -2958,6 +2958,9 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       react: string
       dismissError: string
       responseStopped: string
+      /** Greyed notice on a safety-refused turn kept for display, used when the
+       *  backend sent none in display_metadata.content_refused.notice. */
+      contentRefusedNotice: string
       errorLayers: {
         auth: string
         billing: string

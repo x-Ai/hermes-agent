@@ -4743,3 +4743,9 @@ core:
     meta_contributor_pricing: "A Meta Model API aktuális árai és sebességkorlátai:\n  https://dev.meta.ai/docs/pricing-rate-limits/"
     meta_contributor_usage: "Csökkenti a belépési küszöböt prototípusokhoz, integrációs tesztekhez és skálázott kísérletekhez, ahol az adataidon való tanítás elfogadható. NE használd bizalmas, védett, személyes vagy más módon érzékeny adatokhoz. Ugyanahhoz a modellhez az adataidon való tanítás nélkül válaszd a standard változatot (a -contributor utótag nélkül)."
     meta_contributor_confirm: "Csak akkor erősítsd meg, ha a promptjaidon és a válaszokon való tanítás elfogadható."
+
+shared:
+  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  undo_rollback:
+    list: "↶ A visszavont körökben módosított fájlok: {files}. Futtasd a /rollback parancsot az ellenőrzőpontok listázásához és egy visszaállításához."
+    more: "+{count} további"

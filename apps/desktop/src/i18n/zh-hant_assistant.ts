@@ -381,6 +381,7 @@ export const zhHantAssistant = {
       readAloud: '朗讀',
       copyFullResponse: '複製完整回覆',
       readAloudFullResponseHint: '按住 Shift 點擊：朗讀完整回覆',
+      contentRefusedNotice: '此訊息被模型的安全篩選器拒絕 — 請改用其他問題重試。',
       editMessage: '編輯訊息',
       expandMessage: '展開留言',
       scrollToBottom: '滾動到底部',

@@ -4726,3 +4726,9 @@ core:
     meta_contributor_pricing: "Veja os preços e limites de taxa atuais da Meta Model API aqui:\n  https://dev.meta.ai/docs/pricing-rate-limits/"
     meta_contributor_usage: "Ele reduz a barreira de entrada para prototipagem, testes de integração e experimentos em escala em que treinar com seus dados é aceitável. NÃO o use para dados confidenciais, proprietários, pessoais ou sensíveis de outra forma. Para o mesmo modelo sem treinamento com seus dados, selecione a variante padrão (sem o sufixo -contributor)."
     meta_contributor_confirm: "Confirme apenas se o treinamento com seus prompts e respostas for aceitável."
+
+shared:
+  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  undo_rollback:
+    list: "↶ Arquivos alterados nos turnos desfeitos: {files}. Execute /rollback para listar os checkpoints e restaurar um."
+    more: "+{count} mais"

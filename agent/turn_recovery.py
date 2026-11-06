@@ -26,9 +26,10 @@ from agent.message_sanitization import (
     _looks_like_corrupt_image_rejection, _looks_like_image_content_rejection, _messages_carry_images,
     _sanitize_messages_non_ascii, _sanitize_messages_surrogates, _sanitize_structure_non_ascii,
     _sanitize_structure_surrogates, _strip_images_from_messages, _strip_non_ascii, close_interrupted_tool_sequence,
-    looks_like_reasoning_echo_required, record_reasoning_field_rejection,
+    record_reasoning_field_rejection,
 )
 from agent.thinking_timeout_guidance import build_thinking_timeout_guidance, is_thinking_timeout
+from agent.turn_recovery_reasoning_echo import promote_reasoning_echo_route
 from agent.vision_message_prep import _provider_model_key
 from agent.turn_failure_copy import (
     CONTENT_POLICY_NEXT_STEPS, content_policy_copy, exhausted_copy, limit_reset_copy, nonretryable_copy,
@@ -240,10 +241,9 @@ def recover_before_classification(
     """Recovery branches that run BEFORE ``classify_api_error``: UnicodeEncodeError sanitization, Anthropic fast
     mode with no capacity (drop ``speed`` for that model), provider image-content rejection (record the
     (provider, model); build_api_request strips images from that model's requests only), the reasoning_content
-    echo-back 400 from a lenient route (record the (provider, model); build_api_request re-pads that model's
-    replays), an unknown-field rejection naming a replayed reasoning key (recorded per (provider, host, model),
-    stripped on the retry), and the Bedrock AnthropicBedrock SDK streaming fallback. Returns
-    ``(retry_now, active_system_prompt)``; the prompt may be ASCII-sanitized in place."""
+    echo-back 400 (``turn_recovery_reasoning_echo``), an unknown-field rejection naming a replayed reasoning key
+    (recorded per (provider, host, model), stripped on the retry), and the Bedrock AnthropicBedrock SDK streaming
+    fallback. Returns ``(retry_now, active_system_prompt)``; the prompt may be ASCII-sanitized in place."""
     if isinstance(api_error, UnicodeEncodeError) and getattr(agent, '_unicode_sanitization_passes', 0) < 2:
         _recovered, active_system_prompt = _recover_unicode_encode_error(
             agent, api_error, messages, api_messages, api_kwargs, active_system_prompt
@@ -300,17 +300,8 @@ def recover_before_classification(
             )
             return True, active_system_prompt
 
-    # A deepseek-/mimo-named model behind a non-vendor host runs lenient (real reasoning echoed,
-    # nothing fabricated); a verbatim proxy to the vendor enforces the echo after all and 400s the
-    # first replay of a reasoning-less tool-call turn. Learn it once per (provider, model): the route
-    # pads from here on and build_api_request re-pads the same api_messages on the retry.
-    if _status_ok and looks_like_reasoning_echo_required(_err_body) and not agent._needs_thinking_reasoning_pad():
-        agent._reasoning_echo_required_routes.add(_model_key)
-        _vlines(agent, "⚠️  Endpoint enforces reasoning_content echo-back — padding replayed turns for this model, retrying...")
-        logger.warning("%sreasoning_content echo-back enforced by %s/%s: route promoted to must-echo for this session",
-                       agent.log_prefix, agent.provider, agent.model)
+    if _status_ok and promote_reasoning_echo_route(agent, _err_body, _model_key):  # turn_recovery_reasoning_echo
         return True, active_system_prompt
-
     # A strict schema rejected a replayed reasoning key BY NAME: record it per (provider, host, model)
     # and retry once; build_api_request re-shapes api_messages without it. An unnamed upstream error
     # never counts, and a key already recorded falls through to normal handling (no loop).
@@ -1041,7 +1032,7 @@ def nonretryable_client_error_result(
     agent: Any, api_error: Exception, classified: Any, *, status_code: Optional[int],
     api_kwargs: Any, api_messages: Any, messages: list[dict[str, Any]], conversation_history: Any,
     api_call_count: int, approx_tokens: int, provider: Any, base_url: Any, model: Any,
-    delivered: str = "",
+    delivered: str = "", current_turn_user_idx: Any = None,
 ) -> dict[str, Any]:
     """Terminal path for a non-retryable 4xx once fallback is exhausted: debug dump, flush
     the retry trace, print auth / billing / content-policy / TLS guidance, persist (skipped
@@ -1119,6 +1110,22 @@ def nonretryable_client_error_result(
             "        for localhost, or add the server's cert to your trust store.",
         )
     logger.error("%sNon-retryable client error: %s", agent.log_prefix, api_error)
+    if classified.reason == FailoverReason.content_policy_blocked:
+        # Safety refusal that arrived as an exception (400 / APIError) rather than an HTTP-200
+        # finish_reason. Treat it exactly like the HTTP-200 refusal handler: do NOT persist the
+        # refused turn, and hand back the PRE-refusal history so an in-memory surface (CLI/TUI/ACP
+        # keep result["messages"] as live history) carries nothing forward. A refusal is
+        # deterministic for the unchanged conversation, so a persisted refused turn re-trips the
+        # filter on every later message and locks the chat (the "stuck session" report); the owner
+        # erases the durable turn-start row after the lease releases. Mirrors #1630.
+        from agent.turn_context import history_before_current_turn, refused_turn_boundary_row_id
+        _clean = history_before_current_turn(messages, current_turn_user_idx, conversation_history)
+        return _content_policy_blocked_result(
+            _clean, api_call_count,
+            final_response="⚠️ " + content_policy_copy(label=_plabel, summary=_nonretryable_summary),
+            error_detail=_nonretryable_summary,
+            boundary_row_id=refused_turn_boundary_row_id(messages, current_turn_user_idx),
+        )
     # Skip persistence on likely context-overflow (400 + large session): persisting the
     # failed message grows the session and repeats the failure.
     # Persisting the failed user message would make the session even larger, causing the same failure on the
@@ -1127,12 +1134,6 @@ def nonretryable_client_error_result(
         _vlines(agent, "⚠️  Skipping session persistence for large failed session to prevent growth loop.")
     else:
         agent._persist_session(messages, conversation_history)
-    if classified.reason == FailoverReason.content_policy_blocked:
-        return _content_policy_blocked_result(
-            messages, api_call_count,
-            final_response="⚠️ " + content_policy_copy(label=_plabel, summary=_nonretryable_summary),
-            error_detail=_nonretryable_summary,
-        )
     # Billing walls get the same structured recovery descriptor as the max-retries path
     # so every surface renders one consistent signal.
     if classified.reason == FailoverReason.billing:

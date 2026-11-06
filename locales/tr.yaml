@@ -4725,3 +4725,9 @@ core:
     meta_contributor_pricing: "Meta Model API'nin güncel fiyatları ve hız sınırları için:\n  https://dev.meta.ai/docs/pricing-rate-limits/"
     meta_contributor_usage: "Verilerinizle eğitimin kabul edilebilir olduğu prototipleme, entegrasyon testleri ve ölçekli deneyler için giriş engelini düşürür. Gizli, özel, kişisel veya başka türlü hassas veriler için KULLANMAYIN. Aynı modeli verilerinizle eğitim olmadan kullanmak için standart sürümü (-contributor soneki olmayan) seçin."
     meta_contributor_confirm: "Yalnızca istemleriniz ve yanıtlarınızla eğitim yapılması kabul edilebilirse onaylayın."
+
+shared:
+  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  undo_rollback:
+    list: "↶ Geri alınan turlarda değişen dosyalar: {files}. Kontrol noktalarını listelemek ve birini geri yüklemek için /rollback çalıştırın."
+    more: "+{count} daha"

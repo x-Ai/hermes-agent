@@ -4724,3 +4724,9 @@ core:
     meta_contributor_pricing: "Meta Model API 目前的定價與速率限制請見：\n  https://dev.meta.ai/docs/pricing-rate-limits/"
     meta_contributor_usage: "它降低了原型開發、整合測試與擴充實驗的門檻，適用於可以接受用你的資料進行訓練的情境。切勿用於機密、專有、個人或其他敏感資料。如需同一模型且不訓練你的資料，請選擇標準版本（不帶 -contributor 後綴）。"
     meta_contributor_confirm: "只有在可以接受用你的提示與補全內容進行訓練時才確認。"
+
+shared:
+  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  undo_rollback:
+    list: "↶ 已復原回合中變更的檔案：{files}。執行 /rollback 列出檢查點並還原其中一個。"
+    more: "另外 {count} 個"

@@ -4726,3 +4726,9 @@ core:
     meta_contributor_pricing: "Актуальні ціни та ліміти Meta Model API:\n  https://dev.meta.ai/docs/pricing-rate-limits/"
     meta_contributor_usage: "Він знижує поріг входу для прототипування, тестування інтеграцій і масштабування експериментів, де навчання на ваших даних прийнятне. НЕ використовуйте його для конфіденційних, пропрієтарних, персональних чи інших чутливих даних. Для тієї самої моделі без навчання на ваших даних виберіть стандартний варіант (без суфікса -contributor)."
     meta_contributor_confirm: "Підтверджуйте лише якщо навчання на ваших підказках і відповідях прийнятне."
+
+shared:
+  # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
+  undo_rollback:
+    list: "↶ Файли, змінені у скасованих ходах: {files}. Виконайте /rollback, щоб переглянути контрольні точки й відновити одну."
+    more: "ще {count}"
