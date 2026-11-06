@@ -79,4 +79,51 @@ describe('resolveSiblingWsUrl', () => {
       vi.useRealTimers()
     }
   })
+
+  // The Bot Screen pane shows the next two errors as they are. The protocol name stays Latin,
+  // as it does across the zh bundle; nothing else does.
+  it('reports a WebSocket URL mint that never answers in the UI language', async () => {
+    vi.useFakeTimers()
+    getGatewayWsUrlFor.mockImplementation(() => new Promise(() => undefined))
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const outcome = resolveSiblingWsUrl(
+        { connectionId: 'gw-tailscale', profile: 'research' },
+        '/api/display/ws'
+      ).then(
+        () => '',
+        (error: unknown) => (error as Error).message
+      )
+
+      await vi.runAllTimersAsync()
+      const message = await outcome
+
+      expect(message).not.toBe('')
+      expect(message.replace('WebSocket URL', '')).not.toMatch(/[A-Za-z]/)
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+      vi.useRealTimers()
+    }
+  })
+
+  it('reports an unexpected gateway WebSocket path in the UI language', async () => {
+    getGatewayWsUrlFor.mockResolvedValue({ ok: true, wsUrl: 'wss://gateway.example/api/other?ticket=fresh' })
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const message = await resolveSiblingWsUrl(
+        { connectionId: 'gw-tailscale', profile: 'research' },
+        '/api/display/ws'
+      ).then(
+        () => '',
+        (error: unknown) => (error as Error).message
+      )
+
+      expect(message).toContain('/api/other')
+      expect(message.replace('WebSocket', '').replace('/api/other', '')).not.toMatch(/[A-Za-z]/)
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+    }
+  })
 })

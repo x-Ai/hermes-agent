@@ -48,6 +48,8 @@ export const ruRuntime = {
     profileConnectTimedOut: (profile: string) => `Истекло время ожидания подключения к профилю «${profile}»`,
     profileWsUrlTimedOut: (profile: string) =>
       `Истекло время ожидания повторного получения WebSocket URL шлюза для профиля «${profile}»`,
+    gatewayWsUrlTimedOut: 'Истекло время ожидания получения WebSocket URL шлюза',
+    unexpectedGatewayWsPath: (path: string) => `Неожиданный путь WebSocket шлюза: ${path}`,
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
     clipboardUnavailable: 'API буфера обмена недоступен',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',

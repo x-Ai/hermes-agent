@@ -49,6 +49,8 @@ export const enRuntime = {
     profileConnectTimedOut: (profile: string) => `Timed out connecting to profile "${profile}"`,
     profileWsUrlTimedOut: (profile: string) =>
       `Timed out re-minting the gateway WebSocket URL for profile "${profile}"`,
+    gatewayWsUrlTimedOut: 'Timed out minting the gateway WebSocket URL',
+    unexpectedGatewayWsPath: (path: string) => `Unexpected gateway WebSocket path: ${path}`,
     defaultProfileUnsupported: 'This Desktop version cannot save a default profile.',
     clipboardUnavailable: 'Clipboard API is unavailable',
     pluginFolderUnavailable: 'The desktop plugin folder is unavailable. Retry before starting the first build.',

@@ -92,13 +92,13 @@ export async function resolveSiblingWsUrl(
   const wsUrl = await withTimeout(
     resolveGatewayWsUrl(wsDeps, conn),
     RESOLVE_TIMEOUT_MS,
-    'Timed out minting the gateway WebSocket URL'
+    translateNow('runtimeErrors.gatewayWsUrlTimedOut')
   )
 
   const url = new URL(wsUrl)
 
   if (!url.pathname.endsWith('/api/ws')) {
-    throw new Error(`Unexpected gateway WebSocket path: ${url.pathname}`)
+    throw new Error(translateNow('runtimeErrors.unexpectedGatewayWsPath', url.pathname))
   }
 
   url.pathname = url.pathname.replace(/\/api\/ws$/, path.startsWith('/') ? path : `/${path}`)
