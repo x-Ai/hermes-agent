@@ -1705,6 +1705,8 @@ slash:
     description: "'Hey Hermes' ウェイクワードのリスナーを切り替え"
   busy:
     description: "Hermes の作業中にメッセージをどう扱うかを制御"
+  autoprune:
+    description: "古いセッションの自動整理のオン/オフを切り替え"
   tools:
     description: "ツールを管理: /tools [list|disable|enable] [name...]"
   toolsets:

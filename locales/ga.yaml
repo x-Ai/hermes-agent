@@ -1707,6 +1707,8 @@ slash:
     description: "Scoránaigh éisteoir an fhocail dúisithe 'Hey Hermes'"
   busy:
     description: "Rialaigh conas a iompraíonn teachtaireachtaí fad atá Hermes ag obair"
+  autoprune:
+    description: "Cas air nó as glanadh uathoibríoch na seanseisiún"
   tools:
     description: "Bainistigh uirlisí: /tools [list|disable|enable] [name...]"
   toolsets:

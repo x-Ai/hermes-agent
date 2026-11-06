@@ -1724,6 +1724,8 @@ slash:
     description: "A 'Hey Hermes' ébresztőszó-figyelő be-/kikapcsolása"
   busy:
     description: "Az üzenetek viselkedésének beállítása, amíg a Hermes dolgozik"
+  autoprune:
+    description: "A régi munkamenetek automatikus kitakarításának be-/kikapcsolása"
   tools:
     description: "Eszközök kezelése: /tools [list|disable|enable] [name...]"
   toolsets:

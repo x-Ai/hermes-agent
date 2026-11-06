@@ -1705,6 +1705,8 @@ slash:
     description: "'Hey Hermes' 웨이크 워드 감지 전환"
   busy:
     description: "Hermes가 작업 중일 때 메시지 처리 방식 제어"
+  autoprune:
+    description: "오래된 세션 자동 정리 켜기/끄기"
   tools:
     description: "도구 관리: /tools [list|disable|enable] [name...]"
   toolsets:

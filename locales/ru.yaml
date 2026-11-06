@@ -1707,6 +1707,8 @@ slash:
     description: "Переключить прослушивание пробуждающей фразы 'Hey Hermes'"
   busy:
     description: "Настроить поведение сообщений, пока Hermes работает"
+  autoprune:
+    description: "Включить или выключить автоматическое удаление старых сеансов"
   tools:
     description: "Управлять инструментами: /tools [list|disable|enable] [имя...]"
   toolsets:

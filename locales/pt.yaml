@@ -1707,6 +1707,8 @@ slash:
     description: "Alternar a escuta da palavra de ativação 'Hey Hermes'"
   busy:
     description: "Controlar como as mensagens se comportam enquanto o Hermes está trabalhando"
+  autoprune:
+    description: "Ativar ou desativar a limpeza automática de sessões antigas"
   tools:
     description: "Gerenciar ferramentas: /tools [list|disable|enable] [nome...]"
   toolsets:

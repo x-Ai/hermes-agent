@@ -1790,6 +1790,8 @@ slash:
     description: "Toggle the 'Hey Hermes' wake word listener"
   busy:
     description: "Control how messages behave while Hermes is working"
+  autoprune:
+    description: "Turn automatic pruning of old sessions on or off"
   tools:
     description: "Manage tools: /tools [list|disable|enable] [name...]"
   toolsets:

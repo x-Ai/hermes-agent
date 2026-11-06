@@ -1706,6 +1706,8 @@ slash:
     description: "'Hey Hermes' uyandırma sözcüğü dinleyicisini aç/kapat"
   busy:
     description: "Hermes çalışırken mesajların nasıl işleneceğini denetle"
+  autoprune:
+    description: "Eski oturumların otomatik temizlenmesini aç/kapat"
   tools:
     description: "Araçları yönet: /tools [list|disable|enable] [name...]"
   toolsets:

@@ -1706,6 +1706,8 @@ slash:
     description: "تبديل مستمع كلمة التنبيه 'Hey Hermes'"
   busy:
     description: "التحكم في سلوك الرسائل أثناء عمل Hermes"
+  autoprune:
+    description: "تشغيل التنظيف التلقائي للجلسات القديمة أو إيقافه"
   tools:
     description: "إدارة الأدوات: /tools [list|disable|enable] [name...]"
   toolsets:

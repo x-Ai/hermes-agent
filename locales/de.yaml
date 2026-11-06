@@ -1707,6 +1707,8 @@ slash:
     description: "Aktivierungswort-Erkennung für 'Hey Hermes' umschalten"
   busy:
     description: "Steuern, wie Nachrichten behandelt werden, während Hermes arbeitet"
+  autoprune:
+    description: "Automatisches Aufräumen alter Sitzungen ein- oder ausschalten"
   tools:
     description: "Tools verwalten: /tools [list|disable|enable] [name...]"
   toolsets:
