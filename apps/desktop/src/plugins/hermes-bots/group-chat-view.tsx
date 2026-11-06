@@ -14,7 +14,6 @@ import * as sdk from '@hermes/plugin-sdk'
 import {
   atom,
   Button,
-  cn,
   Codicon,
   ConfirmDialog,
   CopyButton,
@@ -27,8 +26,6 @@ import {
   host,
   Input,
   queryClient,
-  relativeTime,
-  RowButton,
   Tip,
   ToggleRow,
   useI18n,
@@ -42,8 +39,10 @@ import { isBackfilledFacePng } from './avatar-image'
 import type { CanonicalGroupOrigin } from './canonical-group-registry'
 import { $canonicalGroupBindings, canonicalGroupBindingFor } from './canonical-group-registry'
 import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
+import { HostedContextFields, useHostedContextDraft } from './canonical-room-context'
 import { HostOnGatewayButton } from './canonical-room-migrate'
 import { useCanonicalRoomSync } from './canonical-room-sync'
+import { groupUserLabel, HostedRoomMethods, HostedRoomNotices, HostedScheduledBadge } from './canonical-room-view'
 import {
   $botMeta,
   $lastRoster,
@@ -56,14 +55,9 @@ import {
   ROSTER_KEY,
   saveBotMeta
 } from './data'
-import {
-  $groupActivity,
-  currentGroupActivity,
-  GROUP_ACTIVITY_GLYPHS,
-  groupActivityLabel,
-  groupActivityTone
-} from './group-activity'
+import { $groupActivity, currentGroupActivity } from './group-activity'
 import type { GroupActivityEntry } from './group-activity'
+import { GroupActivityPanel } from './group-activity-panel'
 import { filesToGroupAttachments, pickGroupAttachments } from './group-attachments'
 import {
   $groupChats,
@@ -429,16 +423,20 @@ function GroupChatSettingsDialog({
   const current = (rooms[group] || {}).image || null
   const currentHoldDetection = (rooms[group] || {}).holdDetection !== false
   const currentHandle = (rooms[group] || {}).handle || ''
-  const [name, setName] = useState(group)
+  // A hosted room's key is opaque (`canonical:…`); the name field edits the name it is shown by.
+  const currentName = groupChatDisplayName(group, rooms[group])
+  const [name, setName] = useState(currentName)
   const [image, setImage] = useState(current)
   const [holdDetection, setHoldDetection] = useState(currentHoldDetection)
   const [handle, setHandle] = useState(currentHandle)
   const [compressing, setCompressing] = useState<null | string>(null)
   // Room + per-member working directories (group-workspace-settings.tsx).
   const workspaceDraft = useGroupWorkspaceDraft(group, members || [], open)
+  // A hosted room's purpose, notes and routing (canonical-room-context.tsx).
+  const contextDraft = useHostedContextDraft(rooms[group], open)
   useEffect(() => {
     if (open) {
-      setName(group)
+      setName(currentName)
       setImage(current)
       setHoldDetection(currentHoldDetection)
       setHandle(currentHandle)
@@ -477,6 +475,11 @@ function GroupChatSettingsDialog({
   }
 
   const save = async () => {
+    // Notes past the gateway's cap would be refused: Save waits until they are shortened.
+    if (contextDraft.over) {
+      return
+    }
+
     // The handle is checked first (cheap, local): a tag a bot or another room
     // already answers to keeps the dialog open before any gateway probe runs.
     const handleCheck = checkGroupHandleInput(handle, {
@@ -508,6 +511,7 @@ function GroupChatSettingsDialog({
       }
 
       const saved = await saveCanonicalRoomSettings(group, canonicalRoom, {
+        context: contextDraft.edit,
         handle: handleCheck.handle,
         holdDetection,
         memberWorkspaces: workspaceDraft.memberWorkspaces,
@@ -568,7 +572,7 @@ function GroupChatSettingsDialog({
           image={image}
           onImage={setImage}
           seedMembers={(members || []).map(member => member.name)}
-          seedName={name.trim() || group}
+          seedName={name.trim() || currentName}
         />
         <form
           onSubmit={event => {
@@ -584,7 +588,12 @@ function GroupChatSettingsDialog({
             value={name}
           />
         </form>
-        <GroupHandleField onChange={setHandle} suggestion={groupHandleFromName(name.trim() || group)} value={handle} />
+        <GroupHandleField
+          onChange={setHandle}
+          suggestion={groupHandleFromName(name.trim() || currentName)}
+          value={handle}
+        />
+        <HostedContextFields context={contextDraft} members={members || []} room={rooms[group]} />
         <ToggleRow
           checked={holdDetection}
           description={b.group.holdDetectionHint}
@@ -652,7 +661,7 @@ function GroupChatSettingsDialog({
           <Button onClick={onClose} variant="secondary">
             {t.common.cancel}
           </Button>
-          <Button disabled={!name.trim()} onClick={() => void save()}>
+          <Button disabled={!name.trim() || contextDraft.over} onClick={() => void save()}>
             {t.common.save}
           </Button>
         </DialogFooter>
@@ -726,10 +735,15 @@ export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
 
   // Fork: a gateway-hosted room renders the SAME room view as a Desktop room — its record is a
   // projection of the gateway's state kept fresh here (canonical-room-sync.ts) while the view is
-  // up; a Desktop room runs on the Desktop. Upstream's capability gate and skeleton view are unused.
+  // up; a Desktop room runs on the Desktop. Upstream's capability gate and skeleton view are unused;
+  // its hosted-room controls (Continue, purpose / notes / routing) follow the gateway's method list.
   useCanonicalRoomSync(props.group, binding, props.visible !== false)
 
-  return <LegacyGroupChatWorkspace {...props} />
+  return (
+    <HostedRoomMethods binding={binding} visible={props.visible !== false}>
+      <LegacyGroupChatWorkspace {...props} />
+    </HostedRoomMethods>
+  )
 }
 
 function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
@@ -1021,9 +1035,6 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     void filesToGroupAttachments(files).then(picked => addImages(replyThread, picked))
   }
 
-  // Collapsible Activity view: collapsed by default — opening it is always an
-  // explicit user action, it never steals focus, and it never auto-scrolls.
-  const [activityOpen, setActivityOpen] = useState(false)
   // Subscribe: activity rows re-render as turn events land.
   useValue($groupActivity)
   // Pending member questions for THIS room (#90694), oldest first.
@@ -1042,16 +1053,14 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     <LegacyRoomHeader
       availabilityLabel={availabilityLabel}
       availableMembers={availableMembers}
-      image={room.image}
-      memberCount={members.length}
       memberNames={memberNames}
+      members={members}
       onBack={() => (onBack ? onBack() : $groupChatWorkspace.set(null))}
       onDisband={() => setConfirmDisband(true)}
       onManageMembers={() => setMemberPickerOpen(true)}
       onSettings={() => setSettingsOpen(true)}
+      room={room}
       roomName={roomName}
-      running={Boolean(room.running)}
-      workspace={room.workspace}
     />
   )
 
@@ -1069,107 +1078,21 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     }))
   }
 
-  // Activity disclosure: quiet, collapsed by default. The collapsed row shows
-  // the latest event; expanding lists the current run's events newest-first.
-  // Events are epoch-tagged, so a superseded run's history drops out of view.
+  // The current run's activity (group-activity-panel.tsx). Events are epoch-tagged, so a superseded
+  // run's history drops out of view.
   const activityEvents: GroupActivityEntry[] = currentGroupActivity(group)
-  const latestActivity = activityEvents.length ? activityEvents[activityEvents.length - 1] : null
-  // A later "settled" event must not hide a member that failed to answer.
-  // Successful completion for that member clears its unresolved warning.
-  const unresolvedFailures = new Map<string, GroupActivityEntry>()
-
-  for (const event of activityEvents) {
-    const key = event.member || ''
-
-    if (event.kind === 'failed' || event.kind === 'timed-out') {
-      unresolvedFailures.delete(key)
-      unresolvedFailures.set(key, event)
-    } else if (event.kind === 'replied' || event.kind === 'passed' || event.kind === 'delivered') {
-      unresolvedFailures.delete(key)
-    }
-  }
-
-  const summaryActivity =
-    !room.running && unresolvedFailures.size ? [...unresolvedFailures.values()].at(-1)! : latestActivity
 
   // #94570 shell rewired onto the real primitive (#91868/#94569): the button
   // must stop the ROUND, not just spray per-member interrupts — without the
   // epoch bump + holds the loop marched on to the next member. Thread scope:
   // the run being stopped is the one the latest activity belongs to.
   const stopRoomRun = async () => {
-    await stopGroupThread(group, latestActivity?.thread || null, memberDescriptors())
+    await stopGroupThread(group, activityEvents.at(-1)?.thread || null, memberDescriptors())
     host.notify({
       kind: 'success',
       message: b.group.stopped(group)
     })
   }
-
-  const activityPanel = (
-    <div className="border-b border-(--ui-stroke-tertiary) px-4">
-      <div className="mx-auto flex w-full max-w-3xl items-center gap-1">
-        <RowButton
-          aria-controls={`group-activity:${group}`}
-          aria-expanded={activityOpen}
-          className="flex min-w-0 flex-1 items-center gap-1.5 px-1 py-1.5 text-left text-xs text-(--ui-text-tertiary) transition-colors hover:text-foreground"
-          onClick={() => setActivityOpen(prev => !prev)}
-        >
-          <Codicon className="shrink-0 text-[0.65rem]" name={activityOpen ? 'chevron-down' : 'chevron-right'} />
-          <span className="shrink-0 font-medium">{b.group.activity}</span>
-          {summaryActivity ? (
-            <span
-              className={cn('min-w-0 flex-1 truncate', groupActivityTone(summaryActivity.kind))}
-            >{`${groupActivityLabel(summaryActivity, group)} · ${relativeTime(summaryActivity.at)}`}</span>
-          ) : null}
-        </RowButton>
-        {room.running ? (
-          <Tip label={b.group.stopHint}>
-            <Button
-              className="shrink-0 text-(--ui-accent)"
-              onClick={() => void stopRoomRun()}
-              size="xs"
-              variant="ghost"
-            >
-              <Codicon name="debug-stop" />
-              {b.group.stop}
-            </Button>
-          </Tip>
-        ) : null}
-      </div>
-      {activityOpen ? (
-        <div className="mx-auto grid w-full max-w-3xl gap-0.5 px-2.5 pb-1.5" id={`group-activity:${group}`}>
-          {activityEvents.length ? (
-            [...activityEvents].reverse().map((event, i) => (
-              <div className="flex items-center gap-1.5 text-[0.7rem]" key={`${event.at}:${i}`}>
-                <Codicon
-                  className={cn('shrink-0 text-[0.65rem]', groupActivityTone(event.kind))}
-                  name={GROUP_ACTIVITY_GLYPHS[event.kind] || 'circle-outline'}
-                />
-                <span className={cn('min-w-0 flex-1 truncate', groupActivityTone(event.kind))}>
-                  {groupActivityLabel(event, group)}
-                </span>
-                <span className="shrink-0 text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(event.at)}</span>
-                {room.running && event.kind === 'working' ? (
-                  <Tip label={b.group.stopHint}>
-                    <Button
-                      className="shrink-0 text-(--ui-accent)"
-                      onClick={() => void stopRoomRun()}
-                      size="micro"
-                      variant="ghost"
-                    >
-                      <Codicon name="debug-stop" />
-                      {b.group.stop}
-                    </Button>
-                  </Tip>
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <div className="px-0.5 pb-0.5 text-[0.625rem] text-(--ui-text-quaternary)">{b.group.noActivityYet}</div>
-          )}
-        </div>
-      ) : null}
-    </div>
-  )
 
   const submit = () => {
     const text = draft.trim()
@@ -1348,9 +1271,9 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   }
 
   // One log entry, rendered exactly as before conversation folding existed.
-  // `threadChip` marks a thread's opening message with the folder the thread
-  // is pinned to (an `@<group>` draft sent from a project); the caller builds
-  // it so this renderer takes on no new branch.
+  // `threadChip` carries the badges beside the speaker: the folder a thread's opening message is pinned
+  // to (an `@<group>` draft sent from a project) and a scheduled job's label; the caller builds them so
+  // this renderer takes on no new branch.
   const renderEntry = (entry: GroupMessage, index: number, threadChip: ReactNode = null) => {
     const isUser = entry.from.kind === 'user'
     const body = groupMemberBodyText(entry, { locale, t })
@@ -1371,7 +1294,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     // Clicked: append the gateway name so same-named agents on
     // two connections are tellable apart on demand.
     const label = isUser
-      ? b.group.you
+      ? groupUserLabel(entry, b.group.you)
       : revealed
         ? `${display}${entry.from.source ? `-${entry.from.source}` : ''} (@${botHandle(entry.from.name, member || undefined)})`
         : display
@@ -1454,16 +1377,31 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   // member's completed answer or move it ahead of intervening messages.
   const { ends: threadEnds, starts: threadStarts } = groupThreadBounds(room.log)
   const logChildren: ReactNode[] = []
+
+  // A hosted room's routing, Continue and cap notices, after the entry they follow (canonical-room-view.tsx).
+  const hostedNotices = (after: string) => {
+    const notices = room.hosted?.notices[after]
+
+    return notices ? (
+      <HostedRoomNotices group={group} key={`notices:${after}`} members={members} notices={notices} room={room} />
+    ) : null
+  }
+
   room.log.forEach((entry, index) => {
     const id = groupThreadOf(entry)
     // The folder an `@<group>` thread was started from rides its first message.
     const pinned = threadStarts.get(id) === index ? room.threadWorkspaces?.[id] : null
     logChildren.push(
+      index === 0 ? hostedNotices('') : null,
       renderEntry(
         entry,
         index,
-        <GroupWorkspaceChip path={pinned} testId="group-thread-workspace-chip" tip={b.group.threadWorkspace} />
-      )
+        <>
+          <GroupWorkspaceChip path={pinned} testId="group-thread-workspace-chip" tip={b.group.threadWorkspace} />
+          <HostedScheduledBadge entry={entry} />
+        </>
+      ),
+      hostedNotices(String(entry.id))
     )
 
     if (threadEnds.get(id) !== index) {
@@ -1556,7 +1494,12 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         memberLabel={member => displayName(member, botRosterMeta(member, allMeta))}
         members={members}
       />
-      {activityPanel}
+      <GroupActivityPanel
+        activity={activityEvents}
+        group={group}
+        onStop={() => void stopRoomRun()}
+        running={Boolean(room.running)}
+      />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
         {/* minmax(0,1fr): an implicit grid track is min-content sized, so one */}
         {/* unbreakable code line widened every entry to its own width and the */}

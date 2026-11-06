@@ -1,49 +1,49 @@
 /**
  * The Desktop room view's header: upstream's `RoomHeader` with the room picture,
- * display name, member count and this fork's working-directory chip in the
- * title, and the settings / members / disband actions. Split out of
- * `LegacyGroupChatWorkspace` (`group-chat-view.tsx`) to hold that function
+ * display name, member count, this fork's working-directory chip and a hosted
+ * room's lead in the title, and the settings / members / disband actions. Split
+ * out of `LegacyGroupChatWorkspace` (`group-chat-view.tsx`) to hold that function
  * under its code-health line cap.
  */
 
 import { Button, Codicon, Tip, useI18n } from '@hermes/plugin-sdk'
 
+import { HostedLeadChip } from './canonical-room-view'
+import type { GroupChatRoom } from './group-chat'
 import { LegacyRoomTitle } from './group-chat-legacy-parts'
 import { RoomHeader } from './group-room-ui'
 import { GroupWorkspaceChip } from './group-workspace-settings'
 import { useBots } from './i18n'
+import type { GroupMember } from './types'
 
 interface LegacyRoomHeaderProps {
   availabilityLabel: string
   availableMembers: number
-  image?: null | string
-  memberCount: number
   memberNames: string
+  members: GroupMember[]
   onBack: () => void
   onDisband: () => void
   onManageMembers: () => void
   onSettings: () => void
+  room: GroupChatRoom
   roomName: string
-  running: boolean
-  workspace?: null | string
 }
 
 export function LegacyRoomHeader({
   availabilityLabel,
   availableMembers,
-  image,
-  memberCount,
   memberNames,
+  members,
   onBack,
   onDisband,
   onManageMembers,
   onSettings,
-  roomName,
-  running,
-  workspace
+  room,
+  roomName
 }: LegacyRoomHeaderProps) {
   const { t } = useI18n()
   const b = useBots()
+  const memberCount = members.length
 
   return (
     <RoomHeader
@@ -56,11 +56,12 @@ export function LegacyRoomHeader({
             availabilityLabel={availabilityLabel}
             countLabel={b.group.memberCount(memberCount)}
             group={roomName}
-            image={image}
+            image={room.image}
             memberNames={memberNames}
             short={memberCount > 0 && availableMembers < memberCount}
           />
-          <GroupWorkspaceChip path={workspace} testId="group-workspace-chip" />
+          <GroupWorkspaceChip path={room.workspace} testId="group-workspace-chip" />
+          <HostedLeadChip members={members} room={room} />
         </span>
       }
       trailing={
@@ -100,7 +101,7 @@ export function LegacyRoomHeader({
           </Tip>
         </>
       }
-      working={running}
+      working={Boolean(room.running)}
     />
   )
 }

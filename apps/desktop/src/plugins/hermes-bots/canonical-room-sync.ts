@@ -1,6 +1,7 @@
 /**
  * Keeps a canonical room's projection (`canonical-room-model.ts`) in the room
- * store: `groups.state` + `groups.log` (incremental), plus this fork's
+ * store: `groups.state` (with the room's purpose, notes, routing and Continue
+ * budget) + `groups.log` (incremental), plus this fork's
  * `groups.settings.get` / `groups.member_sessions` / `groups.live` when the
  * gateway advertises them. While a window shows the room it also watches it
  * (`groups.watch`), so its members' activity frames arrive as `room.activity`
@@ -19,6 +20,7 @@ import {
   canonicalGroupRequest,
   type CanonicalGroupRoute,
   type CanonicalRoom,
+  type CanonicalRoomContext,
   discoverCanonicalGroups
 } from './canonical-groups'
 import {
@@ -39,6 +41,7 @@ import {
   type CanonicalRoomSettings,
   projectCanonicalRoom
 } from './canonical-room-model'
+import { canonicalRoomNotices } from './canonical-room-notices'
 import { canonicalRoomPrefs, forgetCanonicalRoomPrefs, loadCanonicalRoomPrefs } from './canonical-room-prefs'
 import { dropCanonicalPrompts, mirrorCanonicalPendingActions } from './canonical-room-prompts'
 import { recordGroupActivity } from './group-activity'
@@ -49,14 +52,26 @@ import type { GroupMessage } from './types'
 export const CANONICAL_POLL_MS = 2000
 const EVENTS_RETAINED = 600
 
+/** `groups.state.driver_status` fields the room view reads beyond whether it works. */
+interface DriverStatus {
+  max_continues?: unknown
+  pending_actions?: unknown[]
+  routing_modes?: unknown
+  working?: boolean
+}
+
 interface RoomSyncState {
   activitySeq: number
   binding: CanonicalGroupBinding
+  /** `groups.state.context`: purpose, notes and routing. */
+  context: CanonicalRoomContext | null
   events: CanonicalRoomEvent[]
   latestSeq: number
   live: CanonicalLiveTurn | null
+  maxContinues?: number
   pending: Map<string, GroupMessage>
   room: CanonicalRoom | null
+  routingModes: string[]
   sessions: CanonicalMemberSession[] | null
   settings: CanonicalRoomSettings | null
   syncing: null | Promise<void>
@@ -107,11 +122,13 @@ function ensure(key: string, binding: CanonicalGroupBinding): RoomSyncState {
     state = {
       activitySeq: 0,
       binding,
+      context: null,
       events: [],
       latestSeq: 0,
       live: null,
       pending: new Map(),
       room: null,
+      routingModes: [],
       sessions: null,
       settings: null,
       syncing: null,
@@ -163,6 +180,12 @@ export function publishCanonicalRoom(key: string): void {
   const projection = projectCanonicalRoom({
     binding: state.binding,
     events: state.events,
+    hosted: {
+      context: state.context,
+      maxContinues: state.maxContinues,
+      notices: canonicalRoomNotices(state.events, state.maxContinues),
+      routingModes: state.routingModes
+    },
     live,
     pending: [...state.pending.values()],
     previous,
@@ -272,19 +295,32 @@ function recordNewActivity(key: string, state: RoomSyncState, fresh: CanonicalRo
   state.activitySeq = Math.max(state.activitySeq, ...fresh.map(event => Number(event.seq) || 0))
 }
 
+/** The room-level answers of `groups.state`. A stopped driver sends no driver status, so no Continue. */
+function noteRoomState(
+  state: RoomSyncState,
+  snapshot: { context?: CanonicalRoomContext | null; driver_status?: DriverStatus }
+): void {
+  const driver = snapshot.driver_status
+  state.context = snapshot.context ?? null
+  state.maxContinues = typeof driver?.max_continues === 'number' ? driver.max_continues : undefined
+  state.routingModes = Array.isArray(driver?.routing_modes) ? driver.routing_modes.map(String) : []
+  state.working = Boolean(driver?.working)
+}
+
 async function syncOnce(key: string, state: RoomSyncState, full: boolean): Promise<void> {
   const { binding } = state
   const features = await canonicalRouteFeatures(binding).catch(() => new Set<string>())
 
   const snapshot = await canonicalGroupRequest<{
-    driver_status?: { pending_actions?: unknown[]; working?: boolean }
+    context?: CanonicalRoomContext | null
+    driver_status?: DriverStatus
     room: CanonicalRoom
   }>(binding, 'groups.state', { room_id: binding.roomId })
 
   const since = full ? 0 : state.latestSeq
   const fresh = await readLog(state, since)
   state.room = snapshot.room
-  state.working = Boolean(snapshot.driver_status?.working)
+  noteRoomState(state, snapshot)
   mirrorCanonicalPendingActions(
     key,
     canonicalRoomMembers(snapshot.room, binding),

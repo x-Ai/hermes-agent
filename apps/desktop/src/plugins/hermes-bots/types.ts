@@ -11,6 +11,7 @@
 
 import type { ProfileSessionPreview } from '@hermes/plugin-sdk'
 
+import type { HostedRoomState } from './canonical-room-model'
 import type { GroupTurnTrace } from './group-trace'
 
 /**
@@ -206,6 +207,9 @@ export interface GroupMessage {
   from: GroupMessageAuthor
   id?: string
   images?: Attachment[]
+  /** A gateway-hosted room's post by a scheduled job (`deliver: room:<id>`): the job's name, which labels
+   *  the line instead of You (`canonical-room-model.ts`). */
+  scheduledBy?: string
   text: string
   /** Messages predating threading carry the sentinel thread `'legacy'`. */
   thread?: string
@@ -228,6 +232,9 @@ export interface GroupChat {
   canonical?: { connectionId: string; profile: string; roomId: string }
   /** A gateway-hosted room's name; the record key is its opaque `canonical:` key. */
   displayName?: string
+  /** A gateway-hosted room's room-level state (purpose, notes, routing, Continue, notices), projected
+   *  from `groups.state` and its log; never stored. Absent on a Desktop room. */
+  hosted?: HostedRoomState
   /** Whether user text may create sticky member holds. Defaults to true for
    *  rooms written by older builds; the room settings switch can disable it. */
   holdDetection?: boolean

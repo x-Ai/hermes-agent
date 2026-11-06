@@ -70,7 +70,15 @@ function emit(type: string, payload: unknown) {
   }
 }
 
-function script(options: { events?: Array<Record<string, unknown>>; working?: boolean; live?: unknown } = {}) {
+function script(
+  options: {
+    events?: Array<Record<string, unknown>>
+    working?: boolean
+    live?: unknown
+    /** Replaces fields of the `groups.state` answer (context, driver_status). */
+    state?: Record<string, unknown>
+  } = {}
+) {
   const events = options.events ?? [
     { seq: 1, event_id: 'e1', kind: 'message.user', created_at: 1, payload: { text: 'Hello', thread_id: 't1' } },
     {
@@ -102,7 +110,7 @@ function script(options: { events?: Array<Record<string, unknown>>; working?: bo
         }
 
       case 'groups.state':
-        return { room: ROOM, driver_status: { working: options.working ?? false } }
+        return { room: ROOM, driver_status: { working: options.working ?? false }, ...options.state }
 
       case 'groups.log':
         return { events: events.filter(event => Number(event.seq) > Number(params.since_seq || 0)), has_more: false }
@@ -201,6 +209,51 @@ describe('syncCanonicalRoom', () => {
     }
 
     expect(host.request).not.toHaveBeenCalled()
+  })
+
+  it("projects the room's purpose, routing, Continue budget and between-message notices", async () => {
+    const context = { purpose: 'Ship v2', notes: 'Fridays only', routing: 'lead', lead_member_id: 'alpha' }
+    script({
+      events: [
+        { seq: 1, event_id: 'u1', kind: 'message.user', payload: { text: 'Plan it', thread_id: 't1' } },
+        { seq: 2, kind: 'room.assignment', payload: { lead_member_id: 'alpha', member_ids: ['beta'] } },
+        {
+          seq: 3,
+          event_id: 'm1',
+          kind: 'message.member',
+          payload: { text: 'On it', thread_id: 't1', member_id: 'beta', discussion_event_id: 'u1' }
+        },
+        { seq: 4, kind: 'room.activity', payload: { status: 'bounded', discussion_event_id: 'u1', thread_id: 't1' } }
+      ],
+      state: {
+        context,
+        driver_status: { working: false, max_continues: 5, routing_modes: ['everyone', 'lead', 'auto'] }
+      }
+    })
+    await syncCanonicalRoom(KEY, binding)
+
+    const hosted = $groupChats.get()[KEY].hosted
+    expect(hosted?.context).toEqual(context)
+    expect(hosted?.maxContinues).toBe(5)
+    expect(hosted?.routingModes).toEqual(['everyone', 'lead', 'auto'])
+    expect(hosted?.notices.u1.map(notice => notice.event.kind)).toEqual(['room.assignment'])
+    expect(hosted?.notices.m1.map(notice => notice.paused)).toEqual([{ count: 1, actionable: true }])
+  })
+
+  it('offers no Continue while the driver is down: the gateway then sends no driver status', async () => {
+    script({
+      events: [
+        { seq: 1, event_id: 'u1', kind: 'message.user', payload: { text: 'Plan it', thread_id: 't1' } },
+        { seq: 2, kind: 'room.activity', payload: { status: 'bounded', discussion_event_id: 'u1', thread_id: 't1' } }
+      ],
+      state: { context: { purpose: '', notes: '', routing: 'everyone', lead_member_id: '' }, driver_status: undefined }
+    })
+    await syncCanonicalRoom(KEY, binding)
+
+    const hosted = $groupChats.get()[KEY].hosted
+    expect(hosted?.maxContinues).toBeUndefined()
+    expect(hosted?.routingModes).toEqual([])
+    expect(hosted?.notices).toEqual({})
   })
 
   it('reads the log incrementally and drops an optimistic send once the gateway echoes it', async () => {

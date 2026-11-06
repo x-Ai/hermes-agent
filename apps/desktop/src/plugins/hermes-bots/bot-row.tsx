@@ -41,6 +41,7 @@ import {
   saveSelectedRosterBot
 } from './bot-state'
 import { ensureBotMetadata, ensureBotProfile } from './canonical-chat'
+import { groupUserLabel } from './canonical-room-view'
 import {
   $botAttention,
   $botMeta,
@@ -551,7 +552,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
   )
 
   const preview = last
-    ? `${last.from?.kind === 'user' ? b.group.you : `@${lastHandle}`}: ${stripPreviewMarkdown(groupMemberBodyText(last, { locale, t })) || '…'}`
+    ? `${last.from?.kind === 'user' ? groupUserLabel(last, b.group.you) : `@${lastHandle}`}: ${stripPreviewMarkdown(groupMemberBodyText(last, { locale, t })) || '…'}`
     : b.group.memberCount(members.length)
 
   const availableMembers = members.filter(member => botSourceStatus(member).available).length

@@ -1,7 +1,8 @@
 /**
  * The room mutations of a canonical room, routed to its gateway: send (an
- * optimistic user entry, then `groups.send`), stop, rename, this fork's room
- * settings, disband, and creation with those settings. The engine
+ * optimistic user entry, then `groups.send`), stop, Continue at the discussion
+ * cap, rename, the room's purpose / notes / routing (`groups.context`), this
+ * fork's room settings, disband, and creation with those settings. The engine
  * (`group-rounds.ts`) and the room view branch here when a room record carries
  * `canonical`; everything they return keeps the legacy contract.
  */
@@ -9,7 +10,12 @@
 import { host, randomUuid } from '@hermes/plugin-sdk'
 
 import { registerCanonicalGroup } from './canonical-group-registry'
-import { canonicalGroupRequest, type CanonicalGroupRoute, createCanonicalGroup } from './canonical-groups'
+import {
+  canonicalGroupRequest,
+  type CanonicalGroupRoute,
+  type CanonicalRoomContext,
+  createCanonicalGroup
+} from './canonical-groups'
 import { ROOM_ATTACHMENTS_FEATURE, uploadCanonicalAttachments } from './canonical-room-attachments'
 import {
   canonicalRouteFeatures,
@@ -51,6 +57,11 @@ function canonicalOf(room: GroupChatRoom) {
 
 function fail(message: string): void {
   host.notify({ kind: 'error', message })
+}
+
+/** A refused room action, in the gateway's own words. */
+function failAction(error: unknown): void {
+  fail(botsText().group.canonicalActionFailed(error instanceof Error ? error.message : String(error)))
 }
 
 /** A user send into a canonical room. Returns the thread id at once (the entry
@@ -141,8 +152,35 @@ export async function stopCanonicalRoom(group: string, room: GroupChatRoom, thre
     recordGroupActivity(group, { kind: 'stopped', member: 'You', thread })
     await syncCanonicalRoom(group, binding)
   } catch (error) {
-    fail(botsText().group.canonicalActionFailed(error instanceof Error ? error.message : String(error)))
+    failAction(error)
   }
+}
+
+/** Continue on a discussion paused at its cap (`groups.continue`): one more budget of rounds and messages.
+ *  False when the gateway refused it (the pause moved on meanwhile, or every Continue is used). */
+export async function continueCanonicalRoom(
+  group: string,
+  room: GroupChatRoom,
+  discussionEventId: string
+): Promise<boolean> {
+  const binding = canonicalOf(room)
+
+  try {
+    await canonicalGroupRequest(binding, 'groups.continue', {
+      discussion_event_id: discussionEventId,
+      room_id: binding.roomId
+    })
+  } catch (error) {
+    failAction(error)
+
+    return false
+  }
+
+  // Granted: the next poll brings `room.continued` if this read fails, and a Continue retried
+  // because of a failed read would be refused as no longer paused.
+  await syncCanonicalRoom(group, binding).catch(() => undefined)
+
+  return true
 }
 
 /** Rename on the gateway; the record keeps its key, only `displayName` moves. */
@@ -167,7 +205,76 @@ export async function renameCanonicalRoom(group: string, room: GroupChatRoom, na
 
     return true
   } catch (error) {
-    fail(botsText().group.canonicalActionFailed(error instanceof Error ? error.message : String(error)))
+    failAction(error)
+
+    return false
+  }
+}
+
+/** Room settings as the gateway stores them (`hosted_room_context.validate_context`): a lead only on lead routing. */
+function normalizedContext(context: CanonicalRoomContext): CanonicalRoomContext {
+  return {
+    purpose: context.purpose.split(/\s+/).filter(Boolean).join(' '),
+    notes: context.notes.trim(),
+    ...(context.routing && {
+      routing: context.routing,
+      lead_member_id: context.routing === 'lead' ? (context.lead_member_id || '').trim() : ''
+    })
+  }
+}
+
+const sameContext = (a: CanonicalRoomContext, b: CanonicalRoomContext) =>
+  JSON.stringify(normalizedContext(a)) === JSON.stringify(normalizedContext(b))
+
+/** A settings dialog's edit of the room's purpose, notes and routing: what it opened with, and what it holds now. */
+export interface CanonicalContextEdit {
+  base: CanonicalRoomContext
+  draft: CanonicalRoomContext
+}
+
+const routingOf = ({ lead_member_id: lead, routing }: CanonicalRoomContext) =>
+  routing ? { routing, lead_member_id: lead ?? '' } : {}
+
+/** The edit over the room's latest settings: a field left as the dialog opened keeps the room's current
+ *  value, so a change another client made meanwhile is not written back over. */
+function editedContext({ base, draft }: CanonicalContextEdit, current: CanonicalRoomContext): CanonicalRoomContext {
+  const rerouted =
+    (draft.routing ?? '') !== (base.routing ?? '') || (draft.lead_member_id ?? '') !== (base.lead_member_id ?? '')
+
+  return {
+    purpose: draft.purpose === base.purpose ? current.purpose : draft.purpose,
+    notes: draft.notes === base.notes ? current.notes : draft.notes,
+    ...routingOf(rerouted ? draft : current)
+  }
+}
+
+/** Save the room's purpose, notes and routing (`groups.context`) when the edit changes them. Routing rides
+ *  along only when the runtime reported it; without it the gateway keeps the room's own. False when the
+ *  gateway refused, so the dialog keeps the draft for another try. */
+export async function setCanonicalRoomContext(
+  group: string,
+  room: GroupChatRoom,
+  edit: CanonicalContextEdit
+): Promise<boolean> {
+  const binding = canonicalOf(room)
+  const current = room.hosted?.context
+  const next = current ? editedContext(edit, current) : edit.draft
+
+  if (current && sameContext(next, current)) {
+    return true
+  }
+
+  try {
+    await canonicalGroupRequest(binding, 'groups.context', {
+      event_id: randomUuid(),
+      room_id: binding.roomId,
+      ...normalizedContext(next)
+    })
+    await syncCanonicalRoom(group, binding)
+
+    return true
+  } catch (error) {
+    failAction(error)
 
     return false
   }
@@ -190,13 +297,15 @@ export async function setCanonicalRoomSettings(
 
     return true
   } catch (error) {
-    fail(botsText().group.canonicalActionFailed(error instanceof Error ? error.message : String(error)))
+    failAction(error)
 
     return false
   }
 }
 
 export interface CanonicalSettingsDraft {
+  /** Purpose, notes and routing; null when the gateway does not offer them (`groups.context`). */
+  context?: CanonicalContextEdit | null
   handle: null | string
   holdDetection: boolean
   /** Member folders as the dialog's draft holds them, keyed by member key (= member id). */
@@ -207,7 +316,8 @@ export interface CanonicalSettingsDraft {
 }
 
 /** The settings dialog's Save for a hosted room: rename, then one settings patch holding only what
- *  changed (handle, hold switch, room folder, member folders). False when the gateway refused. */
+ *  changed (handle, hold switch, room folder, member folders), then purpose / notes / routing when
+ *  they changed. False when the gateway refused. */
 export async function saveCanonicalRoomSettings(
   group: string,
   room: GroupChatRoom,
@@ -245,7 +355,11 @@ export async function saveCanonicalRoomSettings(
     patch.member_workspaces = folders
   }
 
-  return setCanonicalRoomSettings(group, room, patch)
+  if (!(await setCanonicalRoomSettings(group, room, patch))) {
+    return false
+  }
+
+  return draft.context ? setCanonicalRoomContext(group, room, draft.context) : true
 }
 
 export async function disbandCanonicalRoom(group: string, room: GroupChatRoom): Promise<boolean> {
@@ -264,7 +378,7 @@ export async function disbandCanonicalRoom(group: string, room: GroupChatRoom): 
 
     return true
   } catch (error) {
-    fail(botsText().group.canonicalActionFailed(error instanceof Error ? error.message : String(error)))
+    failAction(error)
 
     return false
   }

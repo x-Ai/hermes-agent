@@ -109,6 +109,20 @@ describe('canonicalEntryFromEvent', () => {
     ])
     expect(canonicalEntryFromEvent(user, members)?.attachments).toBeUndefined()
   })
+
+  // gateway/hosted_room_context.py stamps a scheduled job's post `cron:<job>` (`cron-notice:<job>` for a
+  // failure notice) with the job's name; every client send is stamped `desktop`.
+  it("names a scheduled job's post after the job, and the user's own message after nobody", () => {
+    const post = (actor: Record<string, string>) =>
+      canonicalEntryFromEvent({ ...user, actor: { kind: 'user', ...actor } }, members)
+
+    expect(post({ id: 'cron:daily-digest', display_name: 'Daily digest' })).toMatchObject({
+      from: { kind: 'user', name: 'You' },
+      scheduledBy: 'Daily digest'
+    })
+    expect(post({ id: 'cron-notice:daily-digest' })?.scheduledBy).toBe('cron-notice:daily-digest')
+    expect(post({ id: 'desktop' })).not.toHaveProperty('scheduledBy')
+  })
 })
 
 describe('canonicalActivityFromEvent', () => {

@@ -4,10 +4,18 @@
  * room feature (timeline, threads, folder chips, @handle, the folded trace, the
  * context chips) works unchanged on a canonical room. Pure: sources in, record
  * out. The record is keyed by the opaque `canonical:` key; `displayName` is the
- * room's name, `canonical` the binding the actions route through.
+ * room's name, `canonical` the binding the actions route through, `hosted` the
+ * room-level state the log does not carry (`canonical-room-notices.ts`).
  */
 
-import type { CanonicalGroupBinding, CanonicalRoom, CanonicalRoomMember } from './canonical-groups'
+import type { CanonicalGroupEvent } from './canonical-group-history'
+import type { CanonicalPausedDiscussion } from './canonical-group-routed'
+import type {
+  CanonicalGroupBinding,
+  CanonicalRoom,
+  CanonicalRoomContext,
+  CanonicalRoomMember
+} from './canonical-groups'
 import type { GroupChatRoom } from './group-chat'
 import type { GroupTurnTrace } from './group-trace'
 import type { GroupActivityKind, GroupMember, GroupMessage, HostedAttachment } from './types'
@@ -47,9 +55,30 @@ export interface CanonicalLiveTurn {
   turn_id: string
 }
 
+/** A room-log event the room view shows between messages (`canonical-room-notices.ts`). */
+export interface HostedRoomNotice {
+  event: CanonicalGroupEvent
+  /** Set on a pause at the discussion cap: what the discussion said, and whether Continue still applies. */
+  paused?: CanonicalPausedDiscussion
+}
+
+/** What a hosted room's record carries beside its log: the room-level state of `groups.state`. */
+export interface HostedRoomState {
+  /** `groups.state.context` (purpose, notes, routing); null on a runtime without room settings. */
+  context: CanonicalRoomContext | null
+  /** Continues one discussion may take (`driver_status.max_continues`); absent without a driver that has them. */
+  maxContinues?: number
+  /** Notices by the `GroupMessage.id` they follow; `''` holds those older than every retained message. */
+  notices: Record<string, HostedRoomNotice[]>
+  /** `driver_status.routing_modes`: `auto` means the gateway can pick who answers. */
+  routingModes: string[]
+}
+
 export interface CanonicalRoomSources {
   binding: CanonicalGroupBinding
   events: CanonicalRoomEvent[]
+  /** Room-level state from `groups.state`, with the notices computed from `events`. */
+  hosted?: HostedRoomState
   live?: CanonicalLiveTurn | null
   /** Optimistic user entries the gateway has not echoed yet (`id` = the send's event id). */
   pending?: GroupMessage[]
@@ -133,6 +162,21 @@ function hostedAttachments(value: unknown, eventId: string | undefined): HostedA
   return files
 }
 
+/** The `GroupMessage.id` a durable room event's entry carries. */
+export const canonicalEntryId = (event: Pick<CanonicalRoomEvent, 'event_id' | 'seq'>) =>
+  event.event_id || `seq:${event.seq}`
+
+// The gateway stamps a scheduled job's room post with a `cron:` / `cron-notice:` actor
+// (`gateway/hosted_room_context.py`); `groups.send` stamps every client as `desktop`, so none can mint one.
+const SCHEDULED_ACTOR = /^cron(-notice)?:/
+
+/** A scheduled job's post names the job instead of reading as the user's own line. */
+function scheduledAuthor(actor: CanonicalRoomEvent['actor']): Pick<GroupMessage, 'scheduledBy'> {
+  const id = text(actor?.id)
+
+  return SCHEDULED_ACTOR.test(id) ? { scheduledBy: text(actor?.display_name) || id } : {}
+}
+
 /** The log entry one durable room event becomes; null for events that are not
  *  messages (terminal turns and room status feed the activity list instead). */
 export function canonicalEntryFromEvent(
@@ -145,14 +189,14 @@ export function canonicalEntryFromEvent(
 
   const base = {
     at: seconds(event.created_at),
-    id: event.event_id || `seq:${event.seq}`,
+    id: canonicalEntryId(event),
     text: text(payload.text),
     thread: text(payload.thread_id) || 'legacy',
     ...(attachments.length ? { attachments } : {})
   }
 
   if (event.kind === 'message.user') {
-    return { ...base, from: { kind: 'user', name: 'You' } }
+    return { ...base, from: { kind: 'user', name: 'You' }, ...scheduledAuthor(event.actor) }
   }
 
   if (event.kind === 'message.member') {
@@ -254,6 +298,7 @@ export function projectCanonicalRoom(sources: CanonicalRoomSources): GroupChatRo
   return {
     canonical: { connectionId: binding.connectionId, profile: binding.profile, roomId: binding.roomId },
     displayName: room.name,
+    hosted: sources.hosted,
     roomId: room.room_id,
     log,
     members,
