@@ -14,6 +14,7 @@ import type { SessionListRow } from '@hermes/plugin-sdk'
 
 import { $botMeta, botMetaKey, botOwner, persistBotMetaSnapshot } from './data'
 import { botsText } from './i18n'
+import { botGatewayLabel } from './labels'
 import { backendTargetProfile, botConnectionRoute, botRosterMeta, botWorkspaceOwnerKey, requestForBot } from './routing'
 import type { RpcErrorLike } from './routing'
 import { getPluginCtx } from './shared'
@@ -278,7 +279,7 @@ export function notifyBotOpenFailure(error: unknown, bot: RosterRow, step: BotOp
   const detail = errorDetail(error)
 
   if (botModeGatewayNeedsUpdate(error)) {
-    const connectionLabel = bot.connectionLabel || bot.connectionId || 'Hermes'
+    const connectionLabel = botGatewayLabel(bot, b.thisDevice, bot.connectionId || 'Hermes')
     host.notify?.({
       kind: 'error',
       title: b.openNeedsUpdateTitle,

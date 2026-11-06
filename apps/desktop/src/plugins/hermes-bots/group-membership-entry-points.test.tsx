@@ -6,18 +6,23 @@
  */
 
 import type * as HermesSdk from '@hermes/plugin-sdk'
+import { host } from '@hermes/plugin-sdk'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { WritableAtom } from 'nanostores'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { GroupDialog } from './create-dialog'
 import { $botMeta, $lastRoster } from './data'
 import { GroupMemberPicker } from './group-chat-view-members'
 import { botsText } from './i18n'
-import { translateBots } from './i18n-test-helper'
+import { translateBots, translateBotsIn } from './i18n-test-helper'
 import { renderRosterToolbar } from './roster-pane-toolbar'
 import type { RosterRow } from './types'
 
 const { request } = vi.hoisted(() => ({ request: vi.fn() }))
+
+// The dialogs read their strings per render, so a test can pick the UI language.
+const i18n = vi.hoisted(() => ({ locale: 'en' as 'en' | 'zh' }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
   const sdk = await importOriginal<typeof HermesSdk>()
@@ -40,9 +45,13 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
       }
     },
     useI18n: () => ({ locale: 'en', t: en }),
-    usePluginI18n: () => translateBots
+    usePluginI18n: () => (i18n.locale === 'zh' ? translateZh : translateBots)
   }
 })
+
+const connectionId = host.state.connectionId as WritableAtom<string | null>
+// One identity per language: the dialogs rebind their strings whenever the translator changes.
+const translateZh = translateBotsIn('zh')
 
 const remote = (name: string): RosterRow => ({
   name,
@@ -64,6 +73,8 @@ const alpha: RosterRow = { name: 'alpha', connectionId: 'local' }
 const beta: RosterRow = { name: 'beta', connectionId: 'local' }
 
 beforeEach(() => {
+  i18n.locale = 'en'
+  connectionId.set('local')
   request.mockReset().mockImplementation(async (_route, method) => {
     if (method === 'groups.capabilities') {
       return { driver: true, persistent_process: true, seatable_profiles: ['alpha', 'beta'] }
@@ -132,6 +143,47 @@ it('Manage groups disables every change for a bot whose machine is offline, and 
   )
   expect(screen.getByRole('checkbox').hasAttribute('disabled')).toBe(true)
   expect(screen.getByRole('textbox').hasAttribute('disabled')).toBe(true)
+})
+
+it('Manage groups labels its create-and-join button in the UI language', () => {
+  i18n.locale = 'zh'
+  $lastRoster.set([alpha])
+  render(<GroupDialog bot={alpha} onClose={vi.fn()} />)
+
+  expect(screen.getByRole('button', { name: '创建并加入' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Create & join' })).toBeNull()
+})
+
+it('Manage members names This device in the UI language on a window that runs on another machine', async () => {
+  i18n.locale = 'zh'
+  connectionId.set('other-box')
+
+  // From that window, this computer's agents are another source, and the registry labels
+  // it "This device" whatever language the UI is in.
+  const local: RosterRow = {
+    name: 'alpha',
+    connectionId: 'local',
+    connectionKind: 'local',
+    connectionLabel: 'This device',
+    remoteSource: true,
+    sourceReachable: false,
+    route: { connectionId: 'local', mode: 'local', profile: 'alpha', targetProfile: 'alpha' }
+  }
+
+  $lastRoster.set([local])
+
+  const { baseElement } = render(<GroupMemberPicker group="Core" members={[local]} onClose={vi.fn()} open />)
+
+  await waitFor(() => expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities'))
+  await act(async () => {})
+
+  const row = [...baseElement.querySelectorAll('[data-testid="group-member-picker"] [role="checkbox"]')].find(node =>
+    node.textContent?.includes('@alpha')
+  ) as HTMLElement
+
+  expect(row.textContent).toContain('@alpha · 本设备')
+  expect(row.textContent).toContain(translateZh('crossGateway.memberOffline', '本设备', 'Alpha'))
+  expect(row.textContent).not.toContain('This device')
 })
 
 function renderToolbar(roster: RosterRow[]) {

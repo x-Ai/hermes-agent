@@ -2,6 +2,7 @@ import { gatewayActivationEpoch, host, useGatewayActivationEpoch, useValue } fro
 import { useEffect, useState } from 'react'
 
 import { canonicalGroupRequest } from './canonical-groups'
+import { botGatewayLabel } from './labels'
 import { resolveBotConnectionRoute } from './routing'
 import type { RosterRow } from './types'
 
@@ -287,9 +288,10 @@ export function groupCreationEngine(
   return groupSelectionElsewhere(selection, connectionId) ? 'elsewhere' : 'gateway'
 }
 
-/** The name a person knows a bot's connection by. */
-export function connectionName(bot: RosterRow | undefined): string {
-  return String(bot?.connectionLabel || bot?.connectionId || '')
+/** The name a person knows a bot's connection by; `thisDevice` names the local
+ *  one in the UI language, where the registry's own label is always English. */
+export function connectionName(bot: RosterRow | undefined, thisDevice: string): string {
+  return botGatewayLabel(bot, thisDevice, bot?.connectionId)
 }
 
 /** The roster rows New Group Chat may seat: never an outage placeholder. Bots on

@@ -52,7 +52,7 @@ import {
 } from './group-membership'
 import { harvestStrandedGroupReply } from './group-turns'
 import { botsText, useBots } from './i18n'
-import { displayName } from './labels'
+import { botGatewayLabel, displayName } from './labels'
 import { botRosterMeta } from './routing'
 import type { BotMeta, RosterRow } from './types'
 
@@ -116,8 +116,10 @@ function onOtherMachine(bot: RosterRow, connectionId: null | string): boolean {
 }
 
 function memberSaveFailed(bot: RosterRow, meta: Record<string, BotMeta>): Error {
+  const b = botsText()
+
   return new Error(
-    botsText().crossGateway.memberSaveFailed(connectionName(bot), displayName(bot, botRosterMeta(bot, meta)))
+    b.crossGateway.memberSaveFailed(connectionName(bot, b.bot.thisDevice), displayName(bot, botRosterMeta(bot, meta)))
   )
 }
 
@@ -241,7 +243,7 @@ async function writeMembershipChanges(group: string, writes: MembershipWrite[], 
 
         throw new Error(
           botsText().crossGateway.memberRollbackFailed(
-            connectionName(held),
+            connectionName(held, botsText().bot.thisDevice),
             displayName(held, botRosterMeta(held, meta))
           )
         )
@@ -431,11 +433,11 @@ export function GroupMemberPicker({ group, members, open, onClose }: GroupMember
                 <div className="min-w-0 flex-1 text-left">
                   <div className="truncate text-xs text-foreground">{displayName(bot, meta)}</div>
                   <div className="truncate text-[0.625rem] text-(--ui-text-quaternary)">
-                    {`@${botHandle(bot.name, bot)}${bot.remoteSource && bot.connectionLabel ? ` · ${bot.connectionLabel}` : ''}`}
+                    {`@${botHandle(bot.name, bot)}${bot.remoteSource && bot.connectionLabel ? ` · ${botGatewayLabel(bot, b.bot.thisDevice)}` : ''}`}
                   </div>
                   {locked && (
                     <div className="text-[0.625rem] text-(--ui-text-tertiary)" data-testid="group-member-locked">
-                      {b.crossGateway.memberOffline(connectionName(bot), displayName(bot, meta))}
+                      {b.crossGateway.memberOffline(connectionName(bot, b.bot.thisDevice), displayName(bot, meta))}
                     </div>
                   )}
                 </div>

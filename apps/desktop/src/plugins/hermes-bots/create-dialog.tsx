@@ -80,7 +80,7 @@ import { offerableGroupBots } from './group-offerable'
 import { normalizeGroupWorkspacePath, probeGroupWorkspace } from './group-workspace'
 import { GroupWorkspaceField } from './group-workspace-settings'
 import { useBots } from './i18n'
-import { botProfileIdentity, displayName, localizedProfileName } from './labels'
+import { botGatewayLabel, botProfileIdentity, displayName, localizedProfileName } from './labels'
 import { McpSetupButton } from './mcp-setup'
 import { ModelPicker } from './model-picker'
 import type {
@@ -1254,7 +1254,7 @@ export function GroupDialog({ bot, onClose }: GroupDialogProps) {
         ) : null}
         {locked ? (
           <div className="text-xs text-(--ui-text-tertiary)" data-testid="group-dialog-locked">
-            {b.crossGateway.groupsOffline(connectionName(bot), botName)}
+            {b.crossGateway.groupsOffline(connectionName(bot, b.bot.thisDevice), botName)}
           </div>
         ) : null}
         <form
@@ -1277,7 +1277,7 @@ export function GroupDialog({ bot, onClose }: GroupDialogProps) {
             value={name}
           />
           <Button disabled={locked || !name.trim()} size="sm" type="submit">
-            Create & join
+            {b.group.createAndJoin}
           </Button>
         </form>
         {current.length ? (
@@ -1615,8 +1615,11 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
                     </div>
                     {spansConnections && (
                       <Badge className="shrink-0 rounded-full px-1.5 text-[0.625rem]" data-device-badge variant="muted">
-                        {bot.connectionLabel ||
-                          (botOnConnection(bot, connectionId) ? b.bot.thisDevice : bot.connectionId)}
+                        {botGatewayLabel(
+                          bot,
+                          b.bot.thisDevice,
+                          botOnConnection(bot, connectionId) ? b.bot.thisDevice : bot.connectionId
+                        )}
                       </Badge>
                     )}
                     <Checkbox

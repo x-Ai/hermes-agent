@@ -19,7 +19,7 @@ import {
 import type * as GroupChatModule from './group-chat'
 import type * as GroupChatParts from './group-chat-parts'
 import { GroupChatWorkspace } from './group-chat-view'
-import { translateBots } from './i18n-test-helper'
+import { translateBots, translateBotsIn } from './i18n-test-helper'
 import type { RosterRow } from './types'
 
 // Group chats whose bots live on different connected machines (#141178, #142248):
@@ -36,6 +36,9 @@ const { request, notify, openWorkspace } = vi.hoisted(() => ({
   notify: vi.fn(),
   openWorkspace: vi.fn()
 }))
+
+// The dialog reads its strings per render, so a test can pick the UI language.
+const i18n = vi.hoisted(() => ({ locale: 'en' as 'en' | 'zh' }))
 
 vi.mock('@hermes/plugin-sdk', async importOriginal => {
   const sdk = await importOriginal<typeof HermesSdk>()
@@ -60,7 +63,7 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
       }
     },
     useI18n: () => ({ locale: 'en', t: en }),
-    usePluginI18n: () => translateBots
+    usePluginI18n: () => (i18n.locale === 'zh' ? translateZh : translateBots)
   }
 })
 vi.mock('./group-chat', async importOriginal => {
@@ -77,6 +80,8 @@ vi.mock('./group-chat-parts', async importOriginal => ({
 }))
 
 const connectionId = host.state.connectionId as WritableAtom<string | null>
+// One identity per language: the dialog rebinds its strings whenever the translator changes.
+const translateZh = translateBotsIn('zh')
 
 const alpha: RosterRow = { name: 'alpha', connectionId: 'local', connectionLabel: 'This device' }
 const beta: RosterRow = { name: 'beta', connectionId: 'local', connectionLabel: 'This device' }
@@ -94,6 +99,7 @@ const unreachable: RosterRow = { ...remote, name: 'offline', sourceReachable: fa
 const desktopDriven = CROSS_GATEWAY_GROUP_LOCALES.en.desktopDriven
 
 beforeEach(() => {
+  i18n.locale = 'en'
   connectionId.set('local')
   $canonicalGroupBindings.set({})
   $groupChats.set({})
@@ -168,6 +174,15 @@ it('offers bots from every reachable connection, each with its device badge', as
   expect(view.baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull()
   expect(view.baseElement.querySelector('[data-bot-face="offline"]')).toBeNull()
   expect(badges).toEqual(['This device', 'This device', 'Other box'])
+})
+
+it('names the local machine on its device badge in the UI language, never by its registry label', async () => {
+  i18n.locale = 'zh'
+  // The registry labels the local connection "This device" whatever language the UI is in.
+  const { view } = await pick([alpha, beta, remote], [])
+  const badges = [...view.baseElement.querySelectorAll('[data-device-badge]')].map(node => node.textContent)
+
+  expect(badges).toEqual(['本设备', '本设备', 'Other box'])
 })
 
 it('a selection spanning two connections creates a Desktop-driven room, never a refused groups.create', async () => {

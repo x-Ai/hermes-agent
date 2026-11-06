@@ -7,6 +7,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { translateBotsIn } from './i18n-test-helper'
 import type { RosterRow } from './types'
 
 const { hostMock, pluginCtx } = vi.hoisted(() => ({
@@ -81,6 +82,18 @@ describe('notifyBotOpenFailure', () => {
 
     toast.action?.onClick()
     expect(hostMock.navigate).toHaveBeenCalledWith('/settings?tab=gateway')
+  })
+
+  it('needs-update: names This device in the UI language, never by its registry label', async () => {
+    pluginCtx.current = { i18n: { t: translateBotsIn('zh') } }
+    const { notifyBotOpenFailure } = await load()
+    // The registry labels the local connection "This device" whatever language the UI is in.
+    const local = { connectionId: 'local', connectionKind: 'local', connectionLabel: 'This device', name: 'ops' }
+
+    notifyBotOpenFailure(new Error('RPC -32601: method not found: bots.canonical'), local as RosterRow, 'open')
+
+    expect(lastToast().message).toContain('本设备')
+    expect(lastToast().message).not.toContain('This device')
   })
 
   it('unreachable: plain-words title and next step; the connection error is detail only', async () => {
