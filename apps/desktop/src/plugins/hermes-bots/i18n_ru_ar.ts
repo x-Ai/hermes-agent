@@ -375,17 +375,17 @@ export const ruOverrides: BotsBundleOverrides = {
     noFreeName: 'Нет свободного имени для группы.'
   },
   tools: {
-    skillsHub: 'Центр навыков Hermes',
-    skillsHubShort: 'Центр навыков',
+    skillsHub: 'Хаб навыков Hermes',
+    skillsHubShort: 'Хаб навыков',
     filterSkills: 'Фильтр навыков…',
-    searchHub: 'Поиск в центре (сообщество + известные источники)…',
+    searchHub: 'Поиск в хабе (сообщество + известные источники)…',
     noMcpServers: 'Нет серверов MCP — ни настроенных, ни в каталоге.',
     setupDone: 'настроено ✓',
     saveAndTest: 'Сохранить и проверить',
     working: 'Выполняется…',
     retry: 'повторить',
     searchingHub: 'Поиск по сообществу и известным источникам — может занять ~10 с…',
-    noHubMatches: 'В центре нет подходящих навыков.',
+    noHubMatches: 'В хабе нет подходящих навыков.',
     added: '✓ добавлено',
     addServerFailed: 'Не удалось добавить сервер',
     noTargetProfile: 'Нет целевого профиля',
@@ -400,8 +400,8 @@ export const ruOverrides: BotsBundleOverrides = {
     setupFailed: 'Настройка не удалась',
     signIn: 'Войти…',
     setUp: 'Настроить…',
-    hideHubBrowser: 'скрыть обзор центра',
-    browseFullHub: 'открыть весь центр ▾',
+    hideHubBrowser: 'скрыть обзор хаба',
+    browseFullHub: 'открыть весь хаб ▾',
     installingSkill: name => `Установка «${name}»…`,
     hubBrowserHint:
       'Нажмите «+» у любого навыка — он установится и появится в списке выше. Потяните за угол, чтобы изменить размер.',
@@ -412,7 +412,7 @@ export const ruOverrides: BotsBundleOverrides = {
   },
   cron: {
     filterHint:
-      'В этом профиле есть запланированные задачи, но ни одна не помечена для этого бота. Назовите задачу «[bot:<имя>] …», чтобы она появилась здесь, или посмотрите их в разделе Cron ниже.',
+      'В этом профиле есть запланированные задачи, но ни одна не помечена для этого бота. Назовите задачу «[bot:<имя>] …», чтобы она появилась здесь, или посмотрите их в разделе «Cron-задачи» ниже.',
     needsRosterFirst: 'Сначала этот бот должен появиться в списке.',
     staleNotice: 'Не удалось обновить запланированные задачи. Показан последний полученный список.',
     readFailure: 'Список, возможно, на месте — это ошибка чтения, а не удаление.',
@@ -457,9 +457,9 @@ export const ruOverrides: BotsBundleOverrides = {
     schedulePlaceholder: 'every 1d · every 2h · 0 9 * * * (cron)',
     stopAfter: 'Остановить после',
     runsForever: 'запусков (пусто — без ограничения)',
-    minutesFromNow: 'минут',
-    hoursFromNow: 'часов',
-    daysFromNow: 'дней',
+    minutesFromNow: 'мин',
+    hoursFromNow: 'ч',
+    daysFromNow: 'дн.',
     minutes: 'минуты',
     hours: 'часы',
     days: 'дни'
@@ -897,7 +897,7 @@ export const arOverrides: BotsBundleOverrides = {
   },
   cron: {
     filterHint:
-      'توجد مهام مجدولة في هذا الملف الشخصي، لكن لا تحمل أيٌّ منها وسم هذا الروبوت. سمِّ المهمة «[bot:<الاسم>] …» لتظهر هنا، أو اعرضها في Cron أدناه.',
+      'توجد مهام مجدولة في هذا الملف الشخصي، لكن لا تحمل أيٌّ منها وسم هذا الروبوت. سمِّ المهمة «[bot:<name>] …» لتظهر هنا، أو اعرضها في «المهام المجدولة» أدناه.',
     needsRosterFirst: 'يجب أن يظهر هذا الروبوت في القائمة أولًا.',
     staleNotice: 'تعذّر تحديث المهام المجدولة. تُعرض آخر قائمة لدينا.',
     readFailure: 'ربما لا تزال القائمة موجودة — كان هذا فشلًا في القراءة وليس حذفًا.',
@@ -925,7 +925,7 @@ export const arOverrides: BotsBundleOverrides = {
     freqOnce: 'مرة واحدة، بعد…',
     freqHourly: 'كل ساعة',
     freqDaily: 'كل يوم',
-    freqWeekdays: 'أيام العمل',
+    freqWeekdays: 'من الاثنين إلى الجمعة',
     freqWeekly: 'كل أسبوع',
     freqMonthly: 'كل شهر',
     freqInterval: 'فاصل زمني',
