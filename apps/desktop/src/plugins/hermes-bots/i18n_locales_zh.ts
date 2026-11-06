@@ -201,6 +201,7 @@ export const zh: BotsMessages = {
     openChatFailedTitle: botName => `无法打开 ${botName} 的聊天`,
     openChatFailedMessage: '请重试',
     openGateways: '打开网关',
+    noConnectionOwner: name => `机器人 ${name} 没有所属的连接`,
     chatEmpty: '说点什么开始吧',
     kickoff: '你好，介绍一下你自己吧！',
     description: '拥有独立记忆、技能和聊天的具名队友，可以与你的其他机器人互发消息',
@@ -514,8 +515,7 @@ export const zh: BotsMessages = {
     otherControls: '另一位查看者正在控制',
     agentControls: '机器人正在控制',
     controlTaken: '另一位查看者已接管控制，仅可观看',
-    needsHttps: '机器人屏幕需要安全连接，请通过 HTTPS 或到 127.0.0.1 的 SSH 隧道打开 Webapp 后查看',
-    noConnectionOwner: name => `机器人 ${name} 没有所属的连接`
+    needsHttps: '机器人屏幕需要安全连接，请通过 HTTPS 或到 127.0.0.1 的 SSH 隧道打开 Webapp 后查看'
   },
   cron: {
     untitled: '未命名任务',
@@ -798,6 +798,7 @@ export const zhHant: BotsMessages = {
     openChatFailedTitle: botName => `無法打開${botName}的聊天`,
     openChatFailedMessage: '再試一次',
     openGateways: '開啟網關',
+    noConnectionOwner: name => `機器人 ${name} 沒有所屬的連線`,
     chatEmpty: '說點什麼開始吧',
     kickoff: '你好，介紹一下你自己吧！',
     description: '擁有獨立記憶、技能和聊天的具名隊友，可以與你的其他機器人互傳訊息',
@@ -1112,8 +1113,7 @@ export const zhHant: BotsMessages = {
     otherControls: '另一位檢視者正在控制',
     agentControls: '機器人正在控制',
     controlTaken: '另一位檢視者已接手控制。僅可觀看。',
-    needsHttps: '機器人螢幕需要安全連線。請透過 HTTPS 或到 127.0.0.1 的 SSH 通道開啟 Webapp 後檢視。',
-    noConnectionOwner: name => `機器人 ${name} 沒有所屬的連線`
+    needsHttps: '機器人螢幕需要安全連線。請透過 HTTPS 或到 127.0.0.1 的 SSH 通道開啟 Webapp 後檢視。'
   },
   cron: {
     untitled: '未命名工作',

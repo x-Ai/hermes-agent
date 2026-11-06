@@ -72,6 +72,19 @@ export function resolveBotConnectionRoute(bot: Partial<RosterRow> | null | undef
   }
 }
 
+/** botConnectionRoute's refusal for a row whose owning connection is gone.
+ *  The message is the English fallback: this module loads no copy, so a
+ *  surface that shows the refusal names the bot in the UI language from
+ *  `ownerRemovedProfile`. */
+export class BotOwnerRemovedError extends Error {
+  readonly ownerRemovedProfile: string
+
+  constructor(profile: string) {
+    super(`Bot ${profile} has no connection owner`)
+    this.ownerRemovedProfile = profile
+  }
+}
+
 /** Immutable owner descriptor for every source-scoped row. The active
  *  gateway is presentation state and is never consulted here. Strict: throws
  *  when the owning connection is gone -- correct for real dispatch
@@ -82,7 +95,7 @@ export function botConnectionRoute(bot: Partial<RosterRow> | null | undefined): 
   const resolved = resolveBotConnectionRoute(bot)
 
   if (resolved.status === 'owner_removed') {
-    throw new Error(`Bot ${resolved.profile} has no connection owner`)
+    throw new BotOwnerRemovedError(resolved.profile!)
   }
 
   return resolved.route

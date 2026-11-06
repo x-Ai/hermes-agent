@@ -228,6 +228,7 @@ export const ruOverrides: BotsBundleOverrides = {
     openChatFailedTitle: botName => `Не удалось открыть чат с ${botName}`,
     openChatFailedMessage: 'Повторите попытку.',
     openGateways: 'Открыть шлюзы',
+    noConnectionOwner: name => `Бот ${name} не привязан ни к одному подключению`,
     chatEmpty: 'Напишите что-нибудь, чтобы начать.',
     kickoff: 'Привет, расскажи о себе!',
     description: 'Член команды со своим именем, памятью, навыками и чатом. Может писать другим вашим агентам.',
@@ -560,8 +561,7 @@ export const ruOverrides: BotsBundleOverrides = {
     agentControls: 'Управляет бот',
     controlTaken: 'Управление перехватил другой зритель. Доступен только просмотр.',
     needsHttps:
-      'Экранам ботов нужно защищённое соединение. Чтобы посмотреть этот экран, откройте веб-приложение по HTTPS или через SSH-туннель к 127.0.0.1.',
-    noConnectionOwner: name => `Бот ${name} не привязан ни к одному подключению`
+      'Экранам ботов нужно защищённое соединение. Чтобы посмотреть этот экран, откройте веб-приложение по HTTPS или через SSH-туннель к 127.0.0.1.'
   },
   cron: {
     untitled: 'Задача без названия',
@@ -890,6 +890,7 @@ export const arOverrides: BotsBundleOverrides = {
     openChatFailedTitle: botName => `تعذّر فتح محادثة ${botName}`,
     openChatFailedMessage: 'حاول مرة أخرى.',
     openGateways: 'فتح البوابات',
+    noConnectionOwner: name => `الروبوت ${name} غير مرتبط بأي اتصال`,
     chatEmpty: 'اكتب شيئًا للبدء.',
     kickoff: 'مرحبًا، حدّثني عن نفسك!',
     description: 'زميل فريق له اسمه وذاكرته ومهاراته ومحادثته الخاصة. يمكنه مراسلة وكلائك الآخرين.',
@@ -1217,8 +1218,7 @@ export const arOverrides: BotsBundleOverrides = {
     agentControls: 'الروبوت يتحكم',
     controlTaken: 'تولّى مشاهد آخر التحكم. المشاهدة فقط.',
     needsHttps:
-      'تحتاج شاشات الروبوتات إلى اتصال آمن. لعرض هذه الشاشة، افتح تطبيق الويب عبر HTTPS أو عبر نفق SSH إلى 127.0.0.1.',
-    noConnectionOwner: name => `الروبوت ${name} غير مرتبط بأي اتصال`
+      'تحتاج شاشات الروبوتات إلى اتصال آمن. لعرض هذه الشاشة، افتح تطبيق الويب عبر HTTPS أو عبر نفق SSH إلى 127.0.0.1.'
   },
   cron: {
     untitled: 'مهمة بلا عنوان',

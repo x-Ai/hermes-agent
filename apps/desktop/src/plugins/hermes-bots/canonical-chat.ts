@@ -16,7 +16,7 @@ import { $botMeta, botMetaKey, botOwner, persistBotMetaSnapshot } from './data'
 import { botsText } from './i18n'
 import { botGatewayLabel } from './labels'
 import { backendTargetProfile, botConnectionRoute, botRosterMeta, botWorkspaceOwnerKey, requestForBot } from './routing'
-import type { RpcErrorLike } from './routing'
+import type { BotOwnerRemovedError, RpcErrorLike } from './routing'
 import { getPluginCtx } from './shared'
 import type { BotMeta, CanonicalSession, RosterRow } from './types'
 
@@ -258,8 +258,18 @@ function botModeGatewayNeedsUpdate(error: unknown) {
  *  routes, so the literal lives here). */
 const GATEWAY_SETTINGS_PATH = '/settings?tab=gateway'
 
-/** Raw error text for the toast's muted `detail` line — never the body. */
+/** Raw error text for the toast's muted `detail` line — never the body. A row
+ *  whose connection is gone reads in the UI language instead: routing throws
+ *  that refusal with English copy. Matched by shape, not instanceof, because a
+ *  value import from ./routing would break the routing mocks most Bot Mode
+ *  tests use. */
 function errorDetail(error: unknown): string | undefined {
+  const ownerRemoved = (error as null | Partial<BotOwnerRemovedError>)?.ownerRemovedProfile
+
+  if (typeof ownerRemoved === 'string') {
+    return botsText().bot.noConnectionOwner(ownerRemoved)
+  }
+
   const text = String((error as RpcErrorLike)?.message || error || '').trim()
 
   return text || undefined

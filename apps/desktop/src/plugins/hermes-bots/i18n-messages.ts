@@ -223,6 +223,9 @@ export type BotsMessages = {
     openChatFailedTitle: (botName: string) => string
     openChatFailedMessage: string
     openGateways: string
+    /** The bot's connection was removed, so it has no route to dial: the open
+     *  toast's detail and the Screen's error. */
+    noConnectionOwner: (name: string) => string
     neverResetsTitle: string
     neverResetsBody: string
     /** Stands under the bot's name in a chat it has not spoken in yet. */
@@ -537,8 +540,6 @@ export type BotsMessages = {
     agentControls: string
     controlTaken: string
     needsHttps: string
-    /** The bot's connection was removed, so its screen has no route to dial. */
-    noConnectionOwner: (name: string) => string
   }
 
   /** Bot-scoped scheduled jobs. Generic scheduling chrome (weekday names,

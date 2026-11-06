@@ -120,7 +120,7 @@ export function displayRequest<T>(bot: RosterRow, method: string, params: Record
 
   // The Screen pane and its install panel show this message as it is.
   if (route === null) {
-    return Promise.reject(new Error(botsText().screen.noConnectionOwner(bot.name)))
+    return Promise.reject(new Error(botsText().bot.noConnectionOwner(bot.name)))
   }
 
   // display.* handlers are @_profile_scoped: without an explicit `profile` the
@@ -169,7 +169,7 @@ export async function resolveScreenWsUrl(bot: RosterRow, ticket: string): Promis
   const resolved = resolveBotConnectionRoute(bot)
 
   if (resolved.status === 'owner_removed') {
-    throw new Error(botsText().screen.noConnectionOwner(bot.name))
+    throw new Error(botsText().bot.noConnectionOwner(bot.name))
   }
 
   const route = resolved.route
