@@ -722,7 +722,7 @@ async function openSecondary(entry: Secondary): Promise<void> {
     const wsUrl = await withTimeout(
       resolveGatewayWsUrl(wsDeps, conn),
       RECONNECT_ATTEMPT_TIMEOUT_MS,
-      `Timed out re-minting the gateway WebSocket URL for profile "${entry.profile}"`
+      translateNow('runtimeErrors.profileWsUrlTimedOut', profileName)
     )
 
     try {

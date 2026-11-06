@@ -356,6 +356,47 @@ describe('secondary connection timeout (#93454)', () => {
     }
   })
 
+  // The same toast's detail when the descriptor arrives but its ticket mint wedges.
+  it('names the profile in the UI language when the WebSocket URL re-mint times out', async () => {
+    vi.useFakeTimers()
+    setPrimaryGateway({ connectionState: 'open' } as never, 'work')
+
+    let callCount = 0
+
+    // The first call is sharedPrimaryRoute's probe; openSecondary's dial gets an OAuth
+    // descriptor, so resolveGatewayWsUrl must mint a fresh ticket, and that mint wedges.
+    const getConnection = vi.fn(() => {
+      callCount += 1
+
+      return Promise.resolve(
+        callCount === 1
+          ? { sharedPrimary: false }
+          : { authMode: 'oauth', mode: 'remote', profile: 'default', wsUrl: 'wss://default.invalid/api/ws' }
+      )
+    })
+
+    installDesktop({ getConnection, getGatewayWsUrl: vi.fn(() => new Promise(() => undefined)) })
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const outcome = ensureGatewayForProfile('default').then(
+        () => null,
+        (error: unknown) => error
+      )
+
+      await vi.advanceTimersByTimeAsync(RECONNECT_ATTEMPT_TIMEOUT_MS)
+      const error = await outcome
+
+      expect(isTimeoutError(error)).toBe(true)
+      expect((error as Error).message).toContain('默认')
+      // The protocol name stays Latin, as it does across the zh bundle; nothing else does,
+      // so no English sentence surrounds the name and the raw key "default" never shows.
+      expect((error as Error).message.replace('WebSocket URL', '')).not.toMatch(/[A-Za-z]/)
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+    }
+  })
+
   it('does not let a wedged shared-primary-route probe block the secondary dial forever', async () => {
     // Same unbounded-IPC hazard as above, but for sharedPrimaryRoute's own
     // getConnection() probe, which runs BEFORE openSecondary on every route —

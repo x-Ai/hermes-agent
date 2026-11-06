@@ -44,6 +44,7 @@ export const zhRuntime = {
     connectionNotActive: (label: string) => `连接“${label}”未能变为活动状态`,
     connectionTimedOut: (label: string) => `连接“${label}”超时`,
     profileConnectTimedOut: (profile: string) => `连接到配置档案“${profile}”超时`,
+    profileWsUrlTimedOut: (profile: string) => `重新获取配置档案“${profile}”的网关 WebSocket URL 超时`,
     defaultProfileUnsupported: '此版本的桌面端无法保存默认配置档案',
     clipboardUnavailable: '剪贴板 API 不可用',
     pluginFolderUnavailable: '桌面插件文件夹不可用，请在开始首次构建前重试',

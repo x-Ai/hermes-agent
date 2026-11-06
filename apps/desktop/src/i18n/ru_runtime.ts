@@ -46,6 +46,8 @@ export const ruRuntime = {
     connectionNotActive: (label: string) => `Соединение «${label}» не стало активным.`,
     connectionTimedOut: (label: string) => `Истекло время ожидания подключения к «${label}».`,
     profileConnectTimedOut: (profile: string) => `Истекло время ожидания подключения к профилю «${profile}»`,
+    profileWsUrlTimedOut: (profile: string) =>
+      `Истекло время ожидания повторного получения WebSocket URL шлюза для профиля «${profile}»`,
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
     clipboardUnavailable: 'API буфера обмена недоступен',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',

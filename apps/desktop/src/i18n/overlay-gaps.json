@@ -1143,6 +1143,7 @@
   "runtimeErrors.previewTargetUnavailable": ["de", "es", "fr"],
   "runtimeErrors.profileChangedWhileConnecting": ["de", "es", "fr"],
   "runtimeErrors.profileConnectTimedOut": ["de", "es", "fr"],
+  "runtimeErrors.profileWsUrlTimedOut": ["de", "es", "fr"],
   "runtimeErrors.quickEntryDestinationChanged": ["de", "es", "fr"],
   "runtimeErrors.registryDialUnsupported": ["de", "es", "fr"],
   "runtimeErrors.remotePreviewLoadFailed": ["de", "es", "fr"],
