@@ -9,6 +9,10 @@ The hot-path check is two syscalls (``os.stat`` + ``shutil.disk_usage``, microse
 run at every session start. Only when it fires does :func:`advise` open the database read-only to
 estimate what a prune would actually free, so the prompt can say plainly when pruning will not
 fix the disk (nothing old enough to delete, or the store is a small share of the full disk).
+
+Every line shown to the user comes from the ``shared.autoprune.*`` catalog keys, resolved in the
+language of the calling scope. Code that renders it outside a turn binds the owning profile's scope
+first: *home* chooses the data read here, not the language.
 """
 
 from __future__ import annotations
@@ -22,6 +26,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
+from agent.i18n import t
 
 logger = logging.getLogger(__name__)
 
@@ -270,42 +276,41 @@ def _row_bytes_sql(db) -> str:
 
 def _gb(n: int) -> str:
     """Human size: GB at or above 1 GiB, MB below (a 26 MB store must not read "0.0 GB")."""
-    return f"{n / GIB:.1f} GB" if n >= GIB else f"{max(n, 0) / 1024 ** 2:.0f} MB"
+    if n >= GIB:
+        return t("shared.autoprune.size_gb", size=f"{n / GIB:.1f}")
+    return t("shared.autoprune.size_mb", size=f"{max(n, 0) / 1024 ** 2:.0f}")
 
 
-def _sessions(n: int) -> str:
-    return f"{n} session" + ("" if n == 1 else "s")
+def _counted(key: str, count: int, **fmt) -> str:
+    """``key`` in the catalogs' count convention: ``<key>_one`` for exactly one, else ``<key>_other``."""
+    return t(f"{key}_one" if count == 1 else f"{key}_other", count=count, **fmt)
 
 
 def advice_lines(advice: Advice, *, command_prefix: str = "/") -> list[str]:
     """Plain-text prompt shared by every surface (no markup); the last line names the commands."""
     d = advice.disk
+    prunable, total = advice.prunable_sessions, advice.total_sessions
     lines = [
-        f"Low disk space: {_gb(d.free_bytes)} free of {_gb(d.total_bytes)}. "
-        f"Your session history (state.db) uses {_gb(d.db_bytes)}.",
-        f"Auto-prune is off. Turning it on deletes ended sessions inactive for more than "
-        f"{advice.retention_days} days, once a day (pinned and open sessions are kept).",
+        t("shared.autoprune.low_disk", free=_gb(d.free_bytes), total=_gb(d.total_bytes), db=_gb(d.db_bytes)),
+        t("shared.autoprune.off_explainer", days=advice.retention_days),
     ]
     if not advice.estimate_ok:
-        lines.append("Could not read state.db to estimate how much pruning would free.")
-    elif advice.prunable_sessions == 0:
-        held = (f"none of your {_sessions(advice.total_sessions)} is older than {advice.retention_days} days"
-                if advice.total_sessions else "there is no session history to delete")
-        lines.append(f"Pruning will not help right now: {held}. Something else is filling this disk.")
+        lines.append(t("shared.autoprune.estimate_unavailable"))
+    elif prunable == 0:
+        lines.append(_counted("shared.autoprune.none_old_enough", total, days=advice.retention_days)
+                     if total else t("shared.autoprune.no_history"))
     elif not advice.helps:
-        lines.append(f"Pruning would remove only about {_gb(advice.reclaim_bytes)} of history "
-                     f"({_sessions(advice.prunable_sessions)}), which will not fix this disk on its own.")
+        lines.append(_counted("shared.autoprune.too_small", prunable, size=_gb(advice.reclaim_bytes)))
     else:
-        lines.append(f"Pruning would remove about {_gb(advice.reclaim_bytes)} of history "
-                     f"({advice.prunable_sessions} of {_sessions(advice.total_sessions)}).")
-    if advice.estimate_ok and advice.prunable_sessions:
+        lines.append(_counted("shared.autoprune.reclaim", total, size=_gb(advice.reclaim_bytes),
+                              prunable=prunable))
+    if advice.estimate_ok and prunable:
         # Automatic compaction runs only past a free-page threshold most prunes never reach, so the
         # disk gets the space back reliably only from an explicit VACUUM.
-        lines.append("Deleted history frees space inside state.db; to give it back to the disk, run "
-                     "`hermes sessions optimize` with other Hermes windows closed.")
+        lines.append(t("shared.autoprune.optimize_hint"))
     p = command_prefix
-    lines.append(f"{p}autoprune on to enable, {p}autoprune off to keep everything (never asked again), "
-                 f"{p}autoprune later to be reminded in a week.")
+    lines.append(t("shared.autoprune.commands", on=f"{p}autoprune on", off=f"{p}autoprune off",
+                   later=f"{p}autoprune later"))
     return lines
 
 
@@ -316,7 +321,7 @@ def notice_payload(advice: Advice) -> dict:
     """``notification.show`` payload for TUI/Desktop: a short status-line ``text`` plus the full
     question in ``detail`` (Desktop's expandable toast body; Ink prints it into the transcript)."""
     d = advice.disk
-    return {"text": f"⚠ Low disk ({_gb(d.free_bytes)} free) · /autoprune on|off|later",
+    return {"text": f"⚠ {t('shared.autoprune.notice', free=_gb(d.free_bytes))} · /autoprune on|off|later",
             "detail": "\n".join(advice_lines(advice)), "level": "warn", "kind": "sticky", "ttl_ms": None,
             "key": NOTICE_KEY, "id": NOTICE_KEY}
 
@@ -364,33 +369,31 @@ def decide(enable: bool, home: Optional[Path] = None) -> bool:
     return bool((_effective_sessions(home) or {}).get("auto_prune")) == bool(enable)
 
 
-_SAVE_FAILED = "Could not save sessions.auto_prune; check disk space and config.yaml permissions."
-
-
 def run_command(args: str, home: Optional[Path] = None) -> str:
     """``/autoprune [on|off|later|status]`` — the one handler behind the CLI, TUI, Desktop and
     messaging surfaces."""
     arg = (args or "").strip().lower()
     sessions = _effective_sessions(home) or {}
-    state = "on" if sessions.get("auto_prune") else "off"
+    enabled = bool(sessions.get("auto_prune"))
     if arg in {"on", "off", "enable", "disable", "yes", "no", "later", "snooze"} and managed():
-        return f"Auto-prune is {state}, set by your administrator; it cannot be changed here."
+        return t("shared.autoprune.managed_on" if enabled else "shared.autoprune.managed_off")
     if arg in {"on", "enable", "yes"}:
-        return ("Auto-prune is on: ended sessions inactive past retention_days are deleted once a day."
-                if decide(True, home) else _SAVE_FAILED)
+        return t("shared.autoprune.enabled" if decide(True, home) else "shared.autoprune.save_failed")
     if arg in {"off", "disable", "no"}:
-        return ("Auto-prune is off and you will not be asked again. `hermes sessions prune` still works any time."
-                if decide(False, home) else _SAVE_FAILED)
+        return t("shared.autoprune.disabled" if decide(False, home) else "shared.autoprune.save_failed")
     if arg in {"later", "snooze"}:
         snooze(home)
-        return "OK, I'll ask again in a week if the disk is still low."
-    chosen = ("set by your administrator" if managed() else
-              "default" if "auto_prune" not in sessions else "your setting")
-    snap = disk_snapshot(home)
-    disk = (f" state.db {_gb(snap.db_bytes)}; {_gb(snap.free_bytes)} free of {_gb(snap.total_bytes)}"
-            f"{' (low)' if snap.low else ''}.") if snap else ""
-    return (f"Auto-prune is {state} ({chosen}), retention {_retention_days(sessions)} days.{disk} "
-            "Usage: /autoprune on | off | later")
+        return t("shared.autoprune.snoozed")
+    source_key = ("shared.autoprune.source_managed" if managed() else
+                  "shared.autoprune.source_default" if "auto_prune" not in sessions else
+                  "shared.autoprune.source_user")
+    parts = [t("shared.autoprune.status_on" if enabled else "shared.autoprune.status_off",
+               source=t(source_key), days=_retention_days(sessions))]
+    if snap := disk_snapshot(home):
+        parts.append(t("shared.autoprune.status_disk_low" if snap.low else "shared.autoprune.status_disk",
+                       db=_gb(snap.db_bytes), free=_gb(snap.free_bytes), total=_gb(snap.total_bytes)))
+    parts.append(t("shared.autoprune.usage"))
+    return " ".join(parts)
 
 
 def offer_interactive(*, cprint, ask=input) -> Optional[bool]:
@@ -410,7 +413,7 @@ def offer_interactive(*, cprint, ask=input) -> Optional[bool]:
     for line in advice_lines(advice)[1:-1]:
         cprint(f"  {line}")
     try:
-        answer = ask("  Enable auto-prune? [y = enable / n = never prune, don't ask again / Enter = remind me later]: ")
+        answer = ask(f"  {t('shared.autoprune.ask')}: ")
     except (KeyboardInterrupt, EOFError):
         print()
         return None
@@ -418,11 +421,11 @@ def offer_interactive(*, cprint, ask=input) -> Optional[bool]:
     if answer in {"y", "yes", "n", "no"}:
         enable = answer.startswith("y")
         if not decide(enable):
-            cprint(f"  {_SAVE_FAILED}")
+            cprint(f"  {t('shared.autoprune.save_failed')}")
             return None
         cprint("  ✓ sessions.auto_prune: true" if enable else
-               "  ✓ sessions.auto_prune: false. You won't be asked again.")
+               f"  ✓ {t('shared.autoprune.answered_off', setting='sessions.auto_prune: false')}")
         return enable
     snooze()
-    cprint("  Later. /autoprune on|off decides it any time.")
+    cprint(f"  {t('shared.autoprune.later', command='/autoprune on|off')}")
     return None

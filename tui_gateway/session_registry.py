@@ -379,12 +379,14 @@ def _init_session(
 _AUTO_PRUNE_NOTIFIED: dict[str, float] = {}
 
 
-def _maybe_notify_auto_prune(sid: str, profile_home: str | None) -> None:
+def _maybe_notify_auto_prune(sid: str, session: dict) -> None:
     """Low disk + auto-prune never decided: a sticky notice (TUI status line / Desktop toast) per
     profile per snooze window, on session create and cold resume. The cheap gate runs inline;
     the DB estimate runs off-thread."""
     from hermes_cli import prune_advisor
     from hermes_constants import get_hermes_home
+    from tui_gateway.client_locale import client_locale
+    profile_home = session.get("profile_home")
     home = Path(profile_home) if profile_home else get_hermes_home()
     if not prune_advisor.notice_due(home, _AUTO_PRUNE_NOTIFIED):
         return
@@ -393,7 +395,13 @@ def _maybe_notify_auto_prune(sid: str, profile_home: str | None) -> None:
     def _work() -> None:
         advice = prune_advisor.advise(home)
         if advice is not None and prune_advisor.should_ask(home) is not None:  # not answered meanwhile
-            _emit("notification.show", sid, prune_advisor.notice_payload(advice))
+            # These threads carry no RPC context: word the notice in the session profile's language,
+            # or in the language of the client it is shown to (the session's own transport).
+            claim = session.get("client_locale") or client_locale(session.get("transport"))
+            with _session_profile_runtime_scope({"profile_home": profile_home, "client_locale": claim},
+                                                hydrate_secrets=False):
+                payload = prune_advisor.notice_payload(advice)
+            _emit("notification.show", sid, payload)
         else:
             _AUTO_PRUNE_NOTIFIED.pop(str(home), None)
 
@@ -551,7 +559,7 @@ def _schedule_agent_build(sid: str, delay: float = 0.05) -> None:
     def _run():
         if (session := _sessions.get(sid)) is not None:
             _start_agent_build(sid, session)
-            _maybe_notify_auto_prune(sid, session.get("profile_home"))
+            _maybe_notify_auto_prune(sid, session)
     timer = threading.Timer(delay, _run)
     timer.daemon = True
     timer.start()
