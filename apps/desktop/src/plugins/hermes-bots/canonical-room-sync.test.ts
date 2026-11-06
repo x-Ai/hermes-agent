@@ -1,4 +1,4 @@
-import { atom } from 'nanostores'
+import { atom, type WritableAtom } from 'nanostores'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 type Listener = (event: { payload?: unknown; session_id?: string; type?: string }) => void
@@ -40,6 +40,7 @@ import {
 } from './canonical-room-prefs'
 import {
   _resetCanonicalRoomSyncForTests,
+  canonicalRouteFeatures,
   discoverCanonicalRooms,
   forgetCanonicalRoom,
   hydrateCanonicalRoomPrefs,
@@ -397,5 +398,70 @@ describe('row preferences of a hosted room', () => {
     // A later sync keeps them: the record is now the projection's "previous".
     await syncCanonicalRoom(KEY, binding)
     expect($groupChats.get()[KEY]).toMatchObject({ image: 'data:img', sectionId: 's1' })
+  })
+})
+
+// An update restarts the gateway, and the gateway the socket reopens on may offer other features.
+describe("the features a hosted room's gateway advertises", () => {
+  const remote = { connectionId: 'remote', profile: 'team', roomId: 'r1' }
+  const REMOTE_KEY = 'canonical:remote:team:r1'
+
+  /** The connection each `method` request went to, in order. */
+  const readsOf = (method: string) =>
+    host.requestProfile.mock.calls.filter(call => call[1] === method).map(call => call[0].connectionId)
+
+  function restartForegroundGateway() {
+    const gateway = host.state.gateway as WritableAtom<string>
+    gateway.set('closed')
+    gateway.set('open')
+  }
+
+  it('are read again when the foreground socket reopens, never on a plain re-sync, and kept for another connection', async () => {
+    let offered = ['room_identity', 'member_sessions', 'room_live']
+    script()
+    const scripted = host.requestProfile.getMockImplementation()!
+    host.requestProfile.mockImplementation(async (route: unknown, method: string, params: Record<string, unknown>) => {
+      const answer = await scripted(route, method, params)
+
+      return method === 'groups.capabilities' ? { ...answer, features: offered } : answer
+    })
+
+    await syncCanonicalRoom(KEY, binding)
+    await syncCanonicalRoom(REMOTE_KEY, remote)
+    await syncCanonicalRoom(KEY, binding)
+    await syncCanonicalRoom(REMOTE_KEY, remote)
+    expect(readsOf('groups.capabilities')).toEqual(['local', 'remote'])
+    expect(readsOf('groups.settings.get')).toEqual([])
+
+    // The updated gateway keeps room settings: the room reads them from its next sync on.
+    offered = [...offered, 'room_settings']
+    restartForegroundGateway()
+    await syncCanonicalRoom(KEY, binding)
+    await syncCanonicalRoom(REMOTE_KEY, remote)
+    await syncCanonicalRoom(KEY, binding)
+    expect(readsOf('groups.capabilities')).toEqual(['local', 'remote', 'local'])
+    expect(readsOf('groups.settings.get')).toEqual(['local', 'local'])
+    expect($groupChats.get()[KEY].workspace).toBe('/srv/room')
+  })
+
+  it("never lets a read from before the socket changed drop the current opening's read", async () => {
+    let failEarlier: (error: Error) => void = () => {}
+    script()
+    host.requestProfile.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          failEarlier = reject
+        })
+    )
+
+    const earlier = canonicalRouteFeatures(binding)
+    restartForegroundGateway()
+    const current = canonicalRouteFeatures(binding)
+    failEarlier(new Error('socket closed'))
+
+    await expect(earlier).rejects.toThrow('socket closed')
+    expect(await current).toContain('room_settings')
+    expect(canonicalRouteFeatures(binding)).toBe(current)
+    expect(readsOf('groups.capabilities')).toEqual(['local', 'local'])
   })
 })

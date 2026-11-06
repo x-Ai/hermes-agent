@@ -82,29 +82,60 @@ interface RoomSyncState {
 }
 
 const rooms = new Map<string, RoomSyncState>()
-const featureCache = new Map<string, Promise<Set<string>>>()
+const featureCache = new Map<string, { connectionId: string; features: Promise<Set<string>> }>()
 let activityTap: (() => void) | null = null
+let socketTap: (() => void) | null = null
 
 function routeKey(route: CanonicalGroupRoute): string {
   return `${route.connectionId}::${route.profile}`
 }
 
-/** What the room's gateway advertises in `groups.capabilities.features`, once per route. */
-export function canonicalRouteFeatures(route: CanonicalGroupRoute): Promise<Set<string>> {
-  const key = routeKey(route)
-  let cached = featureCache.get(key)
+// `host.state.gateway` is the foreground connection's socket: it says nothing about a room on
+// another connection. A host double without socket state reads as one socket that stays open.
+const onForeground = (connectionId: string) => (host.state?.connectionId?.get() ?? connectionId) === connectionId
 
-  if (!cached) {
-    cached = canonicalGroupRequest<{ features?: unknown }>(route, 'groups.capabilities')
-      .then(answer => new Set(Array.isArray(answer?.features) ? answer.features.map(String) : []))
-      .catch(error => {
-        featureCache.delete(key)
-        throw error
-      })
-    featureCache.set(key, cached)
+/** An update restarts the gateway, so a reopened socket may be a gateway with other features. As
+ *  `useGroupMethods` does with the methods, each change of the foreground socket drops what the
+ *  routes on its connection advertised; a route on another connection keeps its answer. */
+function ensureSocketTap(): void {
+  if (socketTap || !host.state?.gateway) {
+    return
   }
 
-  return cached
+  socketTap = host.state.gateway.listen(() => {
+    for (const [key, entry] of featureCache) {
+      if (onForeground(entry.connectionId)) {
+        featureCache.delete(key)
+      }
+    }
+  })
+}
+
+/** What the room's gateway advertises in `groups.capabilities.features`: one read per route, and
+ *  for a route on the foreground connection one per opening of its socket. */
+export function canonicalRouteFeatures(route: CanonicalGroupRoute): Promise<Set<string>> {
+  ensureSocketTap()
+  const key = routeKey(route)
+  const cached = featureCache.get(key)
+
+  if (cached) {
+    return cached.features
+  }
+
+  const features: Promise<Set<string>> = canonicalGroupRequest<{ features?: unknown }>(route, 'groups.capabilities')
+    .then(answer => new Set(Array.isArray(answer?.features) ? answer.features.map(String) : []))
+    .catch(error => {
+      // A read from before the socket changed that fails late never drops the current opening's read.
+      if (featureCache.get(key)?.features === features) {
+        featureCache.delete(key)
+      }
+
+      throw error
+    })
+
+  featureCache.set(key, { connectionId: route.connectionId, features })
+
+  return features
 }
 
 export function forgetCanonicalRouteFeatures(route?: CanonicalGroupRoute): void {
@@ -575,4 +606,6 @@ export function _resetCanonicalRoomSyncForTests(): void {
   featureCache.clear()
   activityTap?.()
   activityTap = null
+  socketTap?.()
+  socketTap = null
 }
