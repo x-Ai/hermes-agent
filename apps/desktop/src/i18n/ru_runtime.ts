@@ -45,6 +45,7 @@ export const ruRuntime = {
     profileChangedWhileConnecting: 'Активный профиль Hermes изменился во время подключения',
     connectionNotActive: (label: string) => `Соединение «${label}» не стало активным.`,
     connectionTimedOut: (label: string) => `Истекло время ожидания подключения к «${label}».`,
+    profileConnectTimedOut: (profile: string) => `Истекло время ожидания подключения к профилю «${profile}»`,
     defaultProfileUnsupported: 'Эта версия Desktop не может сохранить профиль по умолчанию.',
     clipboardUnavailable: 'API буфера обмена недоступен',
     pluginFolderUnavailable: 'Папка плагинов Desktop недоступна. Повторите попытку перед первой сборкой.',

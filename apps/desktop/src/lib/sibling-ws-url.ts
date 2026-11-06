@@ -13,7 +13,8 @@
 
 import { resolveGatewayWsUrl } from '@hermes/shared'
 
-import { translateNow } from '@/i18n'
+import { runtimeTranslations, translateNow } from '@/i18n'
+import { displayEntityName } from '@/lib/display-name'
 
 const RESOLVE_TIMEOUT_MS = 15_000
 
@@ -72,18 +73,14 @@ export async function resolveSiblingWsUrl(
     )
   }
 
+  // The Bot Screen pane shows this error as it is: UI copy naming the profile the way the sidebar does.
+  const profileName = displayEntityName(String(profile), runtimeTranslations())
+  const timedOut = translateNow('runtimeErrors.profileConnectTimedOut', profileName)
+
   const conn =
     connectionId && desktop.getConnectionFor
-      ? await withTimeout(
-          desktop.getConnectionFor({ connectionId, profile }),
-          RESOLVE_TIMEOUT_MS,
-          `Timed out connecting to profile "${profile}"`
-        )
-      : await withTimeout(
-          desktop.getConnection(profile),
-          RESOLVE_TIMEOUT_MS,
-          `Timed out connecting to profile "${profile}"`
-        )
+      ? await withTimeout(desktop.getConnectionFor({ connectionId, profile }), RESOLVE_TIMEOUT_MS, timedOut)
+      : await withTimeout(desktop.getConnection(profile), RESOLVE_TIMEOUT_MS, timedOut)
 
   const wsDeps =
     connectionId && desktop.getGatewayWsUrlFor

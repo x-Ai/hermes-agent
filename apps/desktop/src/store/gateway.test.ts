@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_LOCALE, setRuntimeI18nLocale } from '@/i18n'
+import { isTimeoutError, RECONNECT_ATTEMPT_TIMEOUT_MS } from '@/lib/with-timeout'
+
 // Connection lifecycle for registry-scoped secondary gateways:
 //
 //  1. Removing a connection must dispose its secondaries — remote/cloud
@@ -312,6 +315,45 @@ describe('secondary connection timeout (#93454)', () => {
     // await must reject instead of hanging forever.
     await vi.advanceTimersByTimeAsync(20_000)
     await pending
+  })
+
+  // A failed profile switch toasts this message, and a non-English toast shows it as the
+  // detail under its title: the whole sentence is copy, and the profile is named the way
+  // the sidebar names it.
+  it('names the profile in the UI language when the secondary dial times out', async () => {
+    vi.useFakeTimers()
+    // A window started in another profile reaches `default` as a secondary.
+    setPrimaryGateway({ connectionState: 'open' } as never, 'work')
+
+    let callCount = 0
+
+    // The first call is sharedPrimaryRoute's probe; openSecondary's dial wedges.
+    const getConnection = vi.fn(() => {
+      callCount += 1
+
+      return callCount === 1 ? Promise.resolve({ sharedPrimary: false }) : new Promise(() => undefined)
+    })
+
+    installDesktop({ getConnection })
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const outcome = ensureGatewayForProfile('default').then(
+        () => null,
+        (error: unknown) => error
+      )
+
+      await vi.advanceTimersByTimeAsync(RECONNECT_ATTEMPT_TIMEOUT_MS)
+      const error = await outcome
+
+      // Still a TimeoutError, so the toast keeps its timeout category.
+      expect(isTimeoutError(error)).toBe(true)
+      expect((error as Error).message).toContain('默认')
+      // No English sentence around the name, and never the raw key "default".
+      expect((error as Error).message).not.toMatch(/[A-Za-z]/)
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+    }
   })
 
   it('does not let a wedged shared-primary-route probe block the secondary dial forever', async () => {

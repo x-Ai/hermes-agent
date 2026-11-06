@@ -46,6 +46,7 @@ export const jaRuntime = {
     profileChangedWhileConnecting: '接続中にアクティブな Hermes プロファイルが変わりました',
     connectionNotActive: (label: string) => `接続「${label}」がアクティブになりませんでした`,
     connectionTimedOut: (label: string) => `「${label}」への接続がタイムアウトしました`,
+    profileConnectTimedOut: (profile: string) => `プロファイル「${profile}」への接続がタイムアウトしました`,
     defaultProfileUnsupported: 'この Desktop バージョンでは既定のプロファイルを保存できません',
     clipboardUnavailable: 'クリップボード API を利用できません',
     pluginFolderUnavailable:

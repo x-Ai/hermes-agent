@@ -35,6 +35,7 @@ export const zhHantRuntime = {
     profileChangedWhileConnecting: '連線期間作用中的 Hermes 設定檔發生了變化',
     connectionNotActive: (label: string) => `連線「${label}」未能變為作用中。`,
     connectionTimedOut: (label: string) => `連線「${label}」逾時。`,
+    profileConnectTimedOut: (profile: string) => `連線至設定檔「${profile}」逾時`,
     defaultProfileUnsupported: '此版本的桌面版無法儲存預設設定檔。',
     clipboardUnavailable: '剪貼簿 API 無法使用',
     pluginFolderUnavailable: '桌面外掛資料夾無法使用。請在開始首次建置前重試。',

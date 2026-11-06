@@ -13,8 +13,9 @@ import { atom, batch } from 'nanostores'
 import { canonicalOwnerProfile } from '@/api/canonical-protocol'
 import type { HermesConnection } from '@/global'
 import { HermesGateway } from '@/hermes'
-import { translateNow } from '@/i18n'
+import { runtimeTranslations, translateNow } from '@/i18n'
 import { UnservedProfileError } from '@/lib/browser-served-profiles'
+import { displayEntityName } from '@/lib/display-name'
 import {
   decideLivenessForceClose,
   LIVENESS_REPROBE_DELAY_MS,
@@ -680,6 +681,9 @@ async function openSecondary(entry: Secondary): Promise<void> {
       }
     }
 
+    const profileName = displayEntityName(entry.profile, runtimeTranslations())
+    const timedOut = translateNow('runtimeErrors.profileConnectTimedOut', profileName)
+
     // Registry-scoped entries dial through getConnectionFor when the bridge has
     // it. Local/legacy entries retain the existing getConnection path. Both are
     // IPC round-trips into the main process with no timeout of their own
@@ -699,13 +703,9 @@ async function openSecondary(entry: Secondary): Promise<void> {
         ? await withTimeout(
             desktop.getConnectionFor({ connectionId: entry.connectionId, profile: entry.profile }),
             SOURCE_SWITCH_DIAL_TIMEOUT_MS,
-            `Timed out connecting to profile "${entry.profile}"`
+            timedOut
           )
-        : await withTimeout(
-            desktop.getConnection(entry.profile),
-            RECONNECT_ATTEMPT_TIMEOUT_MS,
-            `Timed out connecting to profile "${entry.profile}"`
-          )
+        : await withTimeout(desktop.getConnection(entry.profile), RECONNECT_ATTEMPT_TIMEOUT_MS, timedOut)
 
     entry.connection = conn
 

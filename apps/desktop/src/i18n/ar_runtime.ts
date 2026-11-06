@@ -35,6 +35,7 @@ export const arRuntime = {
     profileChangedWhileConnecting: 'تغيّر ملف Hermes الشخصي النشط أثناء الاتصال',
     connectionNotActive: (label: string) => `لم يصبح الاتصال "${label}" نشطًا.`,
     connectionTimedOut: (label: string) => `انتهت مهلة الاتصال بـ "${label}".`,
+    profileConnectTimedOut: (profile: string) => `انتهت مهلة الاتصال بالملف الشخصي "${profile}"`,
     defaultProfileUnsupported: 'لا يمكن لإصدار سطح المكتب هذا حفظ ملف شخصي افتراضي.',
     clipboardUnavailable: 'واجهة الحافظة غير متاحة',
     pluginFolderUnavailable: 'مجلد إضافات سطح المكتب غير متاح. أعد المحاولة قبل بدء البناء الأول.',
