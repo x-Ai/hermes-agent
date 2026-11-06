@@ -2665,6 +2665,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     hotkeys: string
     helpFooter: string
     commandDescs: Record<string, string>
+    currentThemeLabel: (label: string) => string
     hotkeyDescs: Record<string, string>
     attachUrlTitle: string
     attachUrlDesc: string

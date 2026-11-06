@@ -885,20 +885,16 @@ export function desktopSkinSlashCompletions(
   const prefix = argPrefix.trim().toLowerCase()
 
   const commands: DesktopSlashCompletion[] = [
-    {
-      text: '/skin list',
-      display: '/skin list',
-      meta: 'Show available desktop themes'
-    },
-    {
-      text: '/skin next',
-      display: '/skin next',
-      meta: 'Cycle to the next desktop theme'
-    },
+    ...['/skin list', '/skin next'].map(command => ({
+      text: command,
+      display: command,
+      meta: translateNow(`composer.commandDescs.${command}`)
+    })),
+    // Theme label and description are the theme author's; only the marker is ours.
     ...themes.map(theme => ({
       text: `/skin ${theme.name}`,
       display: `/skin ${theme.name}`,
-      meta: `${theme.label}${theme.name === activeThemeName ? ' (current)' : ''} - ${theme.description}`
+      meta: `${theme.name === activeThemeName ? translateNow('composer.currentThemeLabel', theme.label) : theme.label} - ${theme.description}`
     }))
   ]
 

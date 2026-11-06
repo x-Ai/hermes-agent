@@ -5,14 +5,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderCommandsCatalog } from '@/app/session/hooks/use-prompt-actions/utils'
 import type { HermesGateway } from '@/hermes'
 import { I18nProvider, useI18n } from '@/i18n'
-import { TRANSLATIONS } from '@/i18n/catalog'
+import { BUNDLED_LOCALES, TRANSLATIONS } from '@/i18n/catalog'
 import { setRuntimeI18nLocale } from '@/i18n/runtime'
 import type { Locale } from '@/i18n/types'
 import {
   type CommandsCatalogLike,
+  desktopSkinSlashCompletions,
   desktopSlashDescription,
+  isDesktopSlashSuggestion,
   rememberDesktopCommandsCatalog
 } from '@/lib/desktop-slash-commands'
+import desktopSlashRegistry from '@/lib/desktop-slash-registry.json'
 import { queryClient } from '@/lib/query-client'
 
 import { useSlashCompletions } from './use-slash-completions'
@@ -80,6 +83,50 @@ describe('desktop slash description localization', () => {
       const help = renderCommandsCatalog(catalog, copy.desktop)
       expect(help).toContain(copy.composer.commandDescs['/new'])
       expect(help).toContain(copy.composer.commandDescs['/retry'])
+    }
+  })
+
+  it('never shows another locale the English the desktop writes for a built-in', () => {
+    // A built-in with a DESKTOP_COMMAND_SPECS description but no commandDescs key
+    // rendered that English everywhere, over the backend's own localized text
+    // (/config, /history, /skills).
+    const backend = 'backend description'
+    const offered = Object.keys(desktopSlashRegistry).filter(isDesktopSlashSuggestion)
+    const english = new Map(offered.map(command => [command, desktopSlashDescription(command, backend)]))
+    const desktopWritten = offered.filter(command => english.get(command) !== backend)
+
+    expect(desktopWritten).not.toHaveLength(0)
+
+    for (const locale of BUNDLED_LOCALES.filter(locale => locale !== 'en')) {
+      setRuntimeI18nLocale(locale)
+
+      const leaked = desktopWritten.filter(
+        command => desktopSlashDescription(command, backend) === english.get(command)
+      )
+
+      expect(leaked, locale).toEqual([])
+    }
+  })
+
+  it('describes the desktop-owned /skin rows in the active locale and keeps theme text verbatim', () => {
+    const themes = [
+      { name: 'mono', label: 'Mono', description: 'Clean grayscale' },
+      { name: 'slate', label: 'Slate', description: 'Cool slate blue' }
+    ]
+
+    const rows = () => new Map(desktopSkinSlashCompletions(themes, 'mono', '').map(row => [row.text, row.meta]))
+    const english = rows()
+
+    for (const locale of BUNDLED_LOCALES.filter(locale => locale !== 'en')) {
+      setRuntimeI18nLocale(locale)
+      const local = rows()
+
+      for (const command of ['/skin list', '/skin next', '/skin mono']) {
+        expect(local.get(command), `${locale}: ${command}`).not.toBe(english.get(command))
+      }
+
+      expect(local.get('/skin mono'), locale).toMatch(/Mono.* - Clean grayscale$/)
+      expect(local.get('/skin slate'), locale).toBe(english.get('/skin slate'))
     }
   })
 
