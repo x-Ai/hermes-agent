@@ -5,6 +5,8 @@
  * reach components as `b.group.*` without touching upstream's `group:` block.
  */
 
+import { arPlural } from './i18n_plural'
+
 // A type alias, not an interface: `BotsMessages` must stay assignable to the
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
 export type GroupContextCopy = {
@@ -88,7 +90,7 @@ const ru: GroupContextCopy = {
   contextUsageNone: 'Реплик ещё не было',
   contextUsageThreads: count => `Тредов: ${count}`,
   contextUsageCompressions: count => `Сжатий: ${count}`,
-  contextUsageCacheHit: percent => `Кэш: ${percent}%`,
+  contextUsageCacheHit: percent => `Попадания в кэш: ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} т/с`,
   contextUsageNoMembers: 'В этой комнате нет участников'
 }
@@ -99,8 +101,16 @@ const ar: GroupContextCopy = {
   contextUsageRefresh: 'تحديث',
   contextUsageRefreshing: 'جارٍ القياس…',
   contextUsageNone: 'لا ردود بعد',
-  contextUsageThreads: count => `${count} سلاسل`,
-  contextUsageCompressions: count => `${count} عمليات ضغط`,
+  contextUsageThreads: count =>
+    arPlural(count, { one: 'سلسلة واحدة', two: 'سلسلتان', few: '# سلاسل', many: '# سلسلة', other: '# سلسلة' }),
+  contextUsageCompressions: count =>
+    arPlural(count, {
+      one: 'عملية ضغط واحدة',
+      two: 'عمليتا ضغط',
+      few: '# عمليات ضغط',
+      many: '# عملية ضغط',
+      other: '# عملية ضغط'
+    }),
   contextUsageCacheHit: percent => `إصابة التخزين المؤقت ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} t/s`,
   contextUsageNoMembers: 'لا أعضاء في هذه الغرفة'

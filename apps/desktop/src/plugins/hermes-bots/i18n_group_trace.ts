@@ -5,6 +5,8 @@
  * touching upstream's `group:` block. See [[hermes-fork-i18n-scope]].
  */
 
+import { arPlural } from './i18n_plural'
+
 // A type alias, not an interface: `BotsMessages` must stay assignable to the
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
 export type GroupTraceCopy = {
@@ -70,9 +72,17 @@ const ru: GroupTraceCopy = {
 const ar: GroupTraceCopy = {
   traceLabel: 'التفكير والإجراءات',
   traceThought: 'تفكير',
-  traceTools: count => `${count} أدوات`,
+  traceTools: count =>
+    arPlural(count, { one: 'أداة واحدة', two: 'أداتان', few: '# أدوات', many: '# أداة', other: '# أداة' }),
   traceFailed: 'فشل',
-  traceOmitted: count => `${count} خطوات سابقة مخفية`,
+  traceOmitted: count =>
+    arPlural(count, {
+      one: 'خطوة سابقة واحدة مخفية',
+      two: 'خطوتان سابقتان مخفيتان',
+      few: '# خطوات سابقة مخفية',
+      many: '# خطوة سابقة مخفية',
+      other: '# خطوة سابقة مخفية'
+    }),
   traceLive: 'جارٍ العمل…'
 }
 

@@ -13,6 +13,7 @@
 import { type GroupContextCopy, groupContextCopy } from './i18n_group_context'
 import { type GroupMessageActionsCopy, groupMessageActionsCopy } from './i18n_group_message_actions'
 import { type GroupTraceCopy, groupTraceCopy } from './i18n_group_trace'
+import { arPlural } from './i18n_plural'
 
 // A type alias, not an interface: `BotsMessages` must stay assignable to the
 // SDK's index-signature `PluginMessages`, which an interface member breaks.
@@ -323,24 +324,25 @@ const ru: GroupCreateOwnCopy = {
 
 const ar: GroupCreateOwnCopy = {
   newDescription: max =>
-    `اختر من 2 إلى ${max} بوتات. تتم مزامنة عضويات البوتات المحلية عبر ملف تعريف كل بوت، أما الأعضاء من الأجهزة الأخرى فيبقون ضمن هذه الغرفة فقط.`,
+    `اختر من 2 إلى ${max} روبوتات. تتم مزامنة عضويات الروبوتات المحلية عبر الملف الشخصي لكل روبوت، أما الأعضاء من الأجهزة الأخرى فيبقون ضمن هذه الغرفة فقط.`,
   inGroups: groups => `في ${quoted(groups, '، ')}`,
   createAction: count => (count ? `إنشاء مجموعة (${count})` : 'إنشاء مجموعة'),
   workspaceLabel: 'دليل العمل',
   workspaceHint: 'المجلد الذي يعمل فيه الأعضاء في هذه الغرفة. الأعضاء على الأجهزة الأخرى يستخدمون مجلدهم الخاص فقط.',
-  workspacePlaceholder: 'اتركه فارغًا ليستخدم كل عضو المجلد الافتراضي لملفه التعريفي',
+  workspacePlaceholder: 'اتركه فارغًا ليستخدم كل عضو المجلد الافتراضي لملفه الشخصي',
   workspacePick: 'اختيار مجلد…',
   workspaceClear: 'مسح',
   memberWorkspacePlaceholder: 'مجلد خاص بهذا العضو (اختياري)',
   memberWorkspaceRemotePlaceholder: 'مجلد خاص على جهاز هذا العضو (اختياري)',
   workspaceSource: source =>
-    ({ member: 'مجلد خاص', profile: 'افتراضي الملف التعريفي', room: 'مجلد الغرفة', thread: 'مجلد المحادثة' })[source],
+    ({ member: 'مجلد خاص', profile: 'افتراضي الملف الشخصي', room: 'مجلد الغرفة', thread: 'مجلد السلسلة' })[source],
   workspaceInvalid: path => `المجلد غير موجود: ${path}`,
   workspaceApplyFailed: (member, path, error) => `تعذر نقل ${member} إلى ${path}: ${error}`,
-  threadWorkspace: path => `دليل عمل هذه المحادثة الفرعية: ${path}`,
-  mentionMeta: count => `محادثة جماعية · ${count} أعضاء`,
+  threadWorkspace: path => `دليل عمل هذه السلسلة: ${path}`,
+  mentionMeta: count =>
+    `محادثة جماعية · ${arPlural(count, { one: 'عضو واحد', two: 'عضوان', few: '# أعضاء', many: '# عضوًا', other: '# عضو' })}`,
   routedToGroup: (group, folder) =>
-    folder ? `أُرسلت إلى "${group}" كمحادثة فرعية جديدة في ${folder}` : `أُرسلت إلى "${group}" كمحادثة فرعية جديدة`,
+    folder ? `أُرسلت إلى "${group}" كسلسلة جديدة في ${folder}` : `أُرسلت إلى "${group}" كسلسلة جديدة`,
   routedAttachmentsUnreadable: (group, names) =>
     `تعذر إرفاق ${names.join('، ')} (غير قابل للقراءة أو يتجاوز حد الحجم)، لذا لم يُرسل شيء إلى "${group}". أزل المرفق أو أرسله من المحادثة الجماعية.`,
   routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح المحادثة الجماعية لإرسالها.`,
