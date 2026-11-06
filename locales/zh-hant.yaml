@@ -1780,10 +1780,10 @@ slash:
     description: "離開 CLI（加上 --delete 同時移除工作階段歷史）"
 cli:
   backtrack:
-    title: "↺ 回溯 — 選擇先前的提示"
-    keys_hint: "↑/↓ 選擇 · Enter 編輯並重新傳送 · f 從此處分支 · Esc 關閉"
-    preview_label: "提示 {number} / {total}:"
-    more_lines: "…(還有 {count} 行)"
+    title: "↺ 對話紀錄 — 選擇要編輯的提示"
+    keys_hint: "瀏覽對話紀錄 · ↑↓/jk 捲動 · ←→/hl 提示 · ↵ 編輯 · f 分支 · esc 返回"
+    prime_hint: "再按一次 esc 以編輯上一則訊息"
+    no_previous: "沒有可編輯的上一則訊息。"
     editing_hint: "↺ 正在編輯提示 {number} — Enter 回溯至此並傳送 · Esc Esc 取消"
     edit_cancelled: "↺ 已取消回溯;未移除任何內容。"
     rewound: "↺ 已回溯至提示 {number}(已封存 {count} 則訊息);正在傳送編輯內容。"
@@ -4196,7 +4196,7 @@ tui_gateway:
     reply_truncated: "[回覆已截斷。請讓該 Bot 以檔案形式分享完整結果。]"
     turn_deadline_exceeded: "此群組聊天回合超過了設定的時間限制，已被停止。"
     not_found: "找不到託管房間"
-    still_stopping: "房間工作仍在停止中；請等停止完成後再重試刪除"
+    still_stopping: "群組聊天工作仍在停止中。請等停止完成後再重試刪除。"
     approval_not_pending: "房間批准已不再處於等待狀態"
   attach:
     clipboard_unavailable: "剪貼簿無法使用：{error}"

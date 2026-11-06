@@ -1865,10 +1865,10 @@ slash:
     description: "Exit the CLI (use --delete to also remove session history)"
 cli:
   backtrack:
-    title: "↺ Rewind — pick an earlier prompt"
-    keys_hint: "↑/↓ choose · Enter edit & resend · f fork from here · Esc close"
-    preview_label: "Prompt {number} of {total}:"
-    more_lines: "… ({count} more lines)"
+    title: "↺ Transcript — pick a prompt to edit"
+    keys_hint: "Browsing transcript · ↑↓/jk scroll · ←→/hl prompts · ↵ edit · f fork · esc back"
+    prime_hint: "esc again to edit previous message"
+    no_previous: "No previous message to edit."
     editing_hint: "↺ Editing prompt {number} — Enter rewinds here and sends · Esc Esc cancels"
     edit_cancelled: "↺ Rewind cancelled; nothing was removed."
     rewound: "↺ Rewound to prompt {number} ({count} message(s) archived); sending the edit."
@@ -4326,7 +4326,7 @@ tui_gateway:
     reply_truncated: "[Reply truncated. Ask the Bot to share the full result as a file.]"
     turn_deadline_exceeded: "This Group Chat turn exceeded its configured time limit and was stopped."
     not_found: "hosted room not found"
-    still_stopping: "room work is still stopping; retry deletion after Stop completes"
+    still_stopping: "Group chat work is still stopping; retry deletion after Stop completes."
     approval_not_pending: "room approval is no longer pending"
   attach:
     clipboard_unavailable: "clipboard unavailable: {error}"
