@@ -94,7 +94,7 @@ export function GatewayProfileGroups({
       sections.push({
         id,
         connectionId: owner,
-        label: gatewayLabel(owner, registry, t.settings.gateway.webappHostTitle),
+        label: gatewayLabel(owner, registry, t),
         mode: 'profile',
         path: null,
         sessions: []

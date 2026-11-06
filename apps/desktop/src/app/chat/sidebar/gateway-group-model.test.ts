@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { DesktopConnectionsRegistry } from '@/global'
+import { en } from '@/i18n/en'
 import { makeSessionInfo } from '@/test/session-info'
 
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups } from './gateway-group-model'
@@ -27,7 +28,7 @@ const members = (groups: ReturnType<typeof buildGatewaySessionGroups>) =>
 
 describe('buildGatewaySessionGroups', () => {
   it('keys groups by exact owner, so one profile name on two gateways stays two groups', () => {
-    const groups = buildGatewaySessionGroups(rows, registry, {})
+    const groups = buildGatewaySessionGroups(rows, registry, {}, en)
 
     expect(members(groups)).toEqual({
       [JSON.stringify(['local', 'default'])]: ['a', 'd'],
@@ -41,7 +42,7 @@ describe('buildGatewaySessionGroups', () => {
   })
 
   it('leaves legacy rows without a connection unassigned instead of guessing a gateway', () => {
-    const legacy = buildGatewaySessionGroups(rows, registry, {}).find(group => group.connectionId === null)!
+    const legacy = buildGatewaySessionGroups(rows, registry, {}, en).find(group => group.connectionId === null)!
 
     expect(legacy.label).toBe(legacy.profile)
     expect(registry.connections.some(connection => legacy.label.includes(connection.label))).toBe(false)
@@ -50,7 +51,7 @@ describe('buildGatewaySessionGroups', () => {
 
 describe('scopeGatewaySessionGroups', () => {
   it('namespaces preference ids and keeps the gateway in labels only when owners mix gateways', () => {
-    const recents = buildGatewaySessionGroups(rows, registry, {})
+    const recents = buildGatewaySessionGroups(rows, registry, {}, en)
     const mixed = scopeGatewaySessionGroups(recents, 'messaging:telegram')
     const single = scopeGatewaySessionGroups(recents.slice(0, 1), 'messaging:telegram')
 

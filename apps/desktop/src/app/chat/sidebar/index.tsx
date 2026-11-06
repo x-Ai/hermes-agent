@@ -1994,7 +1994,7 @@ export function ChatSidebar({
                 // and load-more stay about the platform, not one of its groups.
                 const ownerGroups = ownerGrouped
                   ? scopeGatewaySessionGroups(
-                      buildGatewaySessionGroups(shownSessions, connectionsRegistry, profileColors),
+                      buildGatewaySessionGroups(shownSessions, connectionsRegistry, profileColors, t),
                       `messaging:${group.sourceId}`
                     )
                   : undefined

@@ -5,6 +5,8 @@ import { useMemo } from 'react'
 import { $apiRequestScope } from '@/api/client'
 import type { DesktopConnectionsRegistry } from '@/global'
 import type { SessionInfo } from '@/hermes'
+import { type Translations, useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
 import { isBrowserHostedDesktop } from '@/lib/platform'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $connectionsRegistry } from '@/store/connection-registry-state'
@@ -15,16 +17,18 @@ import { $sessionProfilesFailed, $sessionsLoadError, isSessionProfileUnread } fr
 
 import type { SidebarSessionGroup } from './projects/workspace-groups'
 
-/** A gateway section's name: its registry label, else `localLabel` for the `local` source a
- *  registry does not list (the Webapp's one gateway, the host serving it), else the raw id. */
+/** A gateway's name in the sidebar: its registry label, with This device named in the UI language,
+ *  else the Webapp host title for the `local` source a registry does not list (the Webapp's one
+ *  gateway, the host serving it), else the raw id. */
 export function gatewayLabel(
   connectionId: string,
   registry: DesktopConnectionsRegistry | null,
-  localLabel: string
+  t: Translations
 ): string {
-  const registered = registry?.connections.find(connection => connection.id === connectionId)?.label
+  const registered = registry?.connections.find(connection => connection.id === connectionId)
+  const label = registered ? displayConnectionLabel(registered, t) : ''
 
-  return registered || (connectionId === LOCAL_CONNECTION_ID ? localLabel : connectionId)
+  return label || (connectionId === LOCAL_CONNECTION_ID ? t.settings.gateway.webappHostTitle : connectionId)
 }
 
 /** Whether a profile group header shows the profile-keyed usage totals. Those totals are keyed only
@@ -44,7 +48,8 @@ export function showsProfileTotals(connectionId: string | null | undefined, embe
 export function buildGatewaySessionGroups(
   sessions: SessionInfo[],
   registry: DesktopConnectionsRegistry | null,
-  colors: Record<string, string>
+  colors: Record<string, string>,
+  t: Translations
 ): SidebarSessionGroup[] {
   const groups = new Map<string, SidebarSessionGroup>()
 
@@ -52,7 +57,7 @@ export function buildGatewaySessionGroups(
     const profile = normalizeProfileKey(session.profile)
     const connectionId = session.connection_id || null
     const id = JSON.stringify([connectionId, profile])
-    const group = groups.get(id) ?? ownerGroup(connectionId, profile, registry, colors)
+    const group = groups.get(id) ?? ownerGroup(connectionId, profile, registry, colors, t)
 
     group.sessions.push(session)
     groups.set(id, group)
@@ -65,13 +70,12 @@ function ownerGroup(
   connectionId: null | string,
   profile: string,
   registry: DesktopConnectionsRegistry | null,
-  colors: Record<string, string>
+  colors: Record<string, string>,
+  t: Translations
 ): SidebarSessionGroup {
-  const gateway = registry?.connections.find(connection => connection.id === connectionId)
-
   return {
     id: JSON.stringify([connectionId, profile]),
-    label: connectionId ? `${gateway?.label || connectionId} · ${profile}` : profile,
+    label: connectionId ? `${gatewayLabel(connectionId, registry, t)} · ${profile}` : profile,
     connectionId,
     profile,
     mode: 'profile',
@@ -126,7 +130,8 @@ export function withEmptyProfileGroups(
   profiles: readonly string[],
   connectionId: null | string,
   registry: DesktopConnectionsRegistry | null,
-  colors: Record<string, string>
+  colors: Record<string, string>,
+  t: Translations
 ): SidebarSessionGroup[] {
   const present = new Set(groups.map(group => group.id))
 
@@ -134,7 +139,7 @@ export function withEmptyProfileGroups(
     .map(normalizeProfileKey)
     .filter((profile, index, all) => all.indexOf(profile) === index)
     .filter(profile => !present.has(JSON.stringify([connectionId, profile])))
-    .map(profile => ownerGroup(connectionId, profile, registry, colors))
+    .map(profile => ownerGroup(connectionId, profile, registry, colors, t))
 
   return missing.length ? sortGroups([...groups, ...missing]) : groups
 }
@@ -143,6 +148,7 @@ export function withEmptyProfileGroups(
  *  unless the list is a narrowed view (filters, archive) or failed to load, or that profile's own
  *  scan failed (empty there means unread, not "No sessions yet"). */
 export function useGatewaySessionGroups(sessions: SessionInfo[], enabled: boolean, narrowed = true) {
+  const { t } = useI18n()
   const registry = useStore($connectionsRegistry)
   const colors = useStore($profileColors)
   const profiles = useStore($profiles)
@@ -165,7 +171,7 @@ export function useGatewaySessionGroups(sessions: SessionInfo[], enabled: boolea
       return undefined
     }
 
-    const groups = buildGatewaySessionGroups(sessions, registry, colors)
+    const groups = buildGatewaySessionGroups(sessions, registry, colors, t)
 
     if (!includeEmptyProfiles) {
       return groups
@@ -182,7 +188,8 @@ export function useGatewaySessionGroups(sessions: SessionInfo[], enabled: boolea
       profiles.map(profile => profile.name).filter(name => !(ownsErrors && isSessionProfileUnread(failed, name))),
       owner,
       registry,
-      colors
+      colors,
+      t
     )
   }, [
     sessions,
@@ -190,6 +197,7 @@ export function useGatewaySessionGroups(sessions: SessionInfo[], enabled: boolea
     includeEmptyProfiles,
     registry,
     colors,
+    t,
     profiles,
     failed,
     apiConnectionId,

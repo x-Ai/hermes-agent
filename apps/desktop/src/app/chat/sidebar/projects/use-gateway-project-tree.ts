@@ -57,7 +57,6 @@ export function useGatewayProjectTree(
   const { t } = useI18n()
   const registry = useStore($connectionsRegistry)
   const owners = useSessionOwners()
-  const localLabel = t.settings.gateway.webappHostTitle
 
   const looks = useStore($gatewayProjectLooks)
 
@@ -67,9 +66,9 @@ export function useGatewayProjectTree(
     }
 
     return withGatewayProjectRows(tree, live, owners.foreignOwner, connectionId =>
-      gatewayLabel(connectionId, registry, localLabel)
+      gatewayLabel(connectionId, registry, t)
     )
-  }, [tree, live, registry, owners, localLabel])
+  }, [tree, live, registry, owners, t])
 
   // Each owner's project looks, read once per (gateway, profile) its projects here come from, and
   // only over a socket already open to it: a render that finds none retries on the next render.
