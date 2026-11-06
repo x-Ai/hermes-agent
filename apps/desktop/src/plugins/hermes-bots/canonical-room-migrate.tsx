@@ -11,8 +11,9 @@
 import { Button, Codicon, ConfirmDialog, host, useValue } from '@hermes/plugin-sdk'
 import { useEffect, useState } from 'react'
 
-import { type CanonicalGroupRoute, captureCanonicalGroupRoute } from './canonical-groups'
+import { type CanonicalGroupRoute } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
+import { captureCanonicalGroupRoute } from './canonical-room-sync'
 import {
   $groupChats,
   groupChatDisplayName,

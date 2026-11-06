@@ -96,5 +96,5 @@ it('marks a thread pinned to its own folder on its opening message only', async 
   expect(getByTestId('group-workspace-chip').textContent).toBe('room')
   const chips = getAllByTestId('group-thread-workspace-chip')
   expect(chips.map(chip => chip.textContent)).toEqual(['app'])
-  expect(chips[0].closest('.group')?.textContent).toContain('From the app project')
+  expect(chips[0].closest('[data-room-message]')?.textContent).toContain('From the app project')
 })

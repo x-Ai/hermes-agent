@@ -17,6 +17,7 @@ import { ruModelSettings } from './ru_model_settings'
 import { ruNotices } from './ru_notices'
 import { ruNotifications } from './ru_notifications'
 import { ruOnboarding } from './ru_onboarding'
+import { ruPluginUpdateAll } from './ru_plugin_update_all'
 import { ruPluginSettings } from './ru_plugins'
 import { ruProjects } from './ru_projects'
 import { ruProviderWait } from './ru_provider_wait'
@@ -1822,6 +1823,13 @@ export const ruOverrides = {
         restartFailedBecause: reason => `Не удалось перезапустить шлюз: ${reason}`,
         startTimedOut: 'Шлюз не открыл веб-приложение за 90 секунд.',
         stopTimedOut: 'Шлюз не перестал открывать веб-приложение за 90 секунд.',
+        startStages: {
+          preparing: 'Готовим веб-приложение. Сборка может занять несколько минут.',
+          building: 'Собираем веб-приложение. Это может занять несколько минут.',
+          registering: 'Настраиваем вход через Nous для этого адреса.',
+          restarting: 'Перезапускаем шлюз, чтобы открыть веб-приложение.'
+        },
+        startElapsed: time => `Прошло: ${time}`,
         start: 'Запустить',
         stop: 'Остановить',
         restartGateway: 'Перезапустить шлюз',
@@ -2532,6 +2540,7 @@ export const ruOverrides = {
     skillArchivedMessage: 'Восстановить через hermes curator restore.',
     tabPlugins: 'Плагины',
     plugins: {
+      ...ruPluginUpdateAll,
       agentTitle: 'Плагины агента',
       agentBlurb:
         'Расширьте агент для выбранного профиля — инструменты, хуки, провайдеры. Вступит в силу после перезапуска шлюза.',
@@ -3085,6 +3094,35 @@ export const ruOverrides = {
     restartNow: 'Перезапустить',
     restarting: 'Перезапуск…',
     restartFailedManual: 'Не удалось перезапустить шлюз — перезапустите его вручную и проверьте журналы.',
+    relayLink: {
+      title: 'Team Gateway',
+      badge: 'Токен бота не нужен',
+      intro: (platform: string) =>
+        `${platform} связывается с этим агентом через общий бот Hermes. Привяжите свой аккаунт ${platform} и напишите боту, чтобы говорить с агентом.`,
+      link: (platform: string) => `Привязать ${platform}`,
+      linkAnother: (platform: string) => `Привязать ещё один аккаунт ${platform}`,
+      linkedAccounts: 'Привязанные аккаунты',
+      unlink: 'Отвязать',
+      unlinkFailed: 'Не удалось отвязать аккаунт',
+      stepOpen: (platform: string) => `1. Отсканируйте код телефоном или откройте бота в ${platform}.`,
+      stepSend: '2. Отправьте боту это сообщение с аккаунта, который хотите привязать:',
+      open: (platform: string) => `Открыть ${platform}`,
+      copy: 'Скопировать сообщение',
+      copied: 'Скопировано',
+      copyFailed: (command: string) => `Не удалось скопировать. Введите ${command} вручную.`,
+      waiting: 'Ждём, пока бот получит сообщение. Код действует один раз.',
+      linked: (platform: string) => `Аккаунт ${platform} привязан. Напишите боту, чтобы говорить с агентом.`,
+      expired: 'Срок действия кода истёк до использования. Получите новый код и попробуйте снова.',
+      refused: (platform: string) => `${platform} отклонил привязку. Получите новый код и попробуйте снова.`,
+      qrAlt: (platform: string) => `QR-код общего бота ${platform}`,
+      managed: 'Под управлением Team Gateway',
+      managedNote: (platform: string) =>
+        `На этом экземпляре сообщения идут через Team Gateway, поэтому шлюз отключает прямое подключение ${platform} при каждом запуске. Чтобы использовать его вместе с ретранслятором, задайте GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true в окружении шлюза (прямое подключение не даёт экземпляру масштабироваться до нуля и может доставлять сообщения дважды).`,
+      managedIntro: 'Аккаунты этого агента привязываются в Nous Portal.',
+      openPortal: 'Привязать аккаунты в Nous Portal',
+      noNewAccount: (platform: string) =>
+        `Код больше не активен, и новый аккаунт не появился. Если вашего аккаунта ${platform} нет в списке, получите новый код и попробуйте снова.`
+    },
     telegramQr: {
       title: 'Выберите способ подключения Telegram-бота',
       subtitle:
@@ -4774,7 +4812,9 @@ export const ruOverrides = {
       ultra: 'Ультра',
       updateFailed: 'Не удалось обновить опцию модели',
       fastFailed: 'Не удалось обновить быстрый режим',
-      sendsOnRoute: (level: string) => `на этом маршруте отправляется ${level}`
+      sendsOnRoute: (level: string) => `на этом маршруте отправляется ${level}`,
+      daybreak: 'Daybreak',
+      daybreakFailed: 'Не удалось обновить Daybreak'
     },
     gatewayMenu: ruGatewayMenu,
     approvalMode: {
@@ -4873,6 +4913,15 @@ export const ruOverrides = {
           subagent_definitions: 'Определения субагентов',
           system_prompt: 'Системный промпт',
           tool_definitions: 'Определения инструментов'
+        },
+        compact: {
+          action: 'Сжать диалог',
+          busyHint: 'Сначала завершите или остановите текущий ответ',
+          confirm: 'Сжать',
+          hint: 'Сожмите старый контекст, чтобы освободить место. Разговор продолжится здесь же.',
+          question: 'Сжать этот диалог в краткое изложение?',
+          questionNamed: title => `Сжать «${title}» в краткое изложение?`,
+          working: 'Сжимаю…'
         },
         empty: 'Данных контекста пока нет',
         loading: 'Загрузка разбивки…',
@@ -5591,6 +5640,10 @@ export const ruOverrides = {
       authorized: server => `${server} авторизован`,
       failed: server => `Настройка не удалась для ${server}`,
       toolCount: count => `${count} ${RU_NOUN(count, 'инструмент', 'инструмента', 'инструментов')}`,
+      launchCommand: target => `Запускает: ${target}`,
+      launchRemote: target => `Подключается к: ${target}`,
+      launchEnv: keys => `Окружение: ${keys}`,
+      launchCwd: dir => `Рабочая папка: ${dir}`,
       envRequired: 'Сначала заполните обязательные учётные данные',
       sendFailed: 'Не удалось отправить ответ на настройку MCP',
       reloadFailed: 'Сервер сохранён, но перезагрузка MCP-инструментов не удалась — они загрузятся в следующем сеансе',

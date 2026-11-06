@@ -7,6 +7,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
+import { canonicalGroupCreateError } from './canonical-groups'
 import { _resetCanonicalRoomSyncForTests } from './canonical-room-sync'
 import { CreateGroupChatDialog } from './create-dialog'
 import { $botMeta } from './data'
@@ -47,6 +48,8 @@ vi.mock('@hermes/plugin-sdk', async importOriginal => {
       ),
     host: {
       ...sdk.host,
+      // Fork: the hosted-room path calls this fork's groups.settings.* / member_sessions / live /
+      // watch methods, which upstream's contract checker (captureGroupRequests) does not declare.
       requestProfile: request,
       notify,
       openWorkspace,
@@ -153,6 +156,10 @@ afterEach(() => {
 function answer(capabilities: unknown) {
   request.mockImplementation(async (_route, method, params) => {
     if (method === 'groups.capabilities') {
+      if (capabilities instanceof Error) {
+        throw capabilities
+      }
+
       return capabilities
     }
 
@@ -238,7 +245,8 @@ it('offers only the bots the authority says this caller can seat (#141178)', asy
 
 // Fork contract: Desktop rooms seat bots from other registered connections (their turns route to
 // their own machines), so the picker keeps offering them on a canonical gateway, and a
-// cross-connection pick creates a Desktop room even when the gateway hosts room settings.
+// cross-connection pick creates a Desktop room even when the gateway hosts room settings. A row
+// whose route disagrees with its own connection is never offered (upstream's seatableGroupBots).
 it('keeps offering bots from other connections; a cross-connection pick creates a Desktop room', async () => {
   answer({
     driver: true,
@@ -254,10 +262,10 @@ it('keeps offering bots from other connections; a cross-connection pick creates 
   await waitFor(() => expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities'))
   await act(async () => {})
   expect(baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull()
-  expect(baseElement.querySelector('[data-bot-face="spoofed"]')).not.toBeNull()
+  expect(baseElement.querySelector('[data-bot-face="spoofed"]')).toBeNull()
 
   const checkboxes = screen.getAllByRole('checkbox')
-  expect(checkboxes).toHaveLength(4)
+  expect(checkboxes).toHaveLength(3)
   fireEvent.click(checkboxes[0])
   fireEvent.click(checkboxes[2])
   await act(async () => {
@@ -458,4 +466,48 @@ it.each([
   await waitFor(() => expect(item.hasAttribute('data-disabled')).toBe(disabled))
   fireEvent.click(item)
   expect(setGroupCreateOpen).toHaveBeenCalledTimes(disabled ? 0 : 1)
+})
+
+// Upstream's gate tests (a classic room held on the gate, its earlier messages, the gate's
+// Retry and Start new group) are not taken: this fork renders every room through the Desktop
+// room view (the fork contract above) and has no gate.
+
+// Desktop's own backend and SSH, URL and Cloud connections reach `hermes serve`
+// (tui_gateway/methods_groups.py): it refuses a create with 4110, or 4123/5111 for a missing worker
+// or a failure, and puts the reason in the message. The session gateway answers 4001 with data.detail.
+it("keeps the gateway's own reason for a refused create from either server", () => {
+  const labels = CANONICAL_GROUP_LOCALES.en
+  const refused = labels.createRefused
+
+  const rows: [unknown, string][] = [
+    [
+      {
+        code: 4001,
+        message: 'invalid_params',
+        data: { reason: 'invalid_params', detail: "member 1 profile 'beta' is parked" }
+      },
+      `${refused} member 1 profile 'beta' is parked`
+    ],
+    [
+      { code: 4001, message: 'permission_denied', data: { reason: 'permission_denied' } },
+      `${refused} permission_denied`
+    ],
+    // Rejections arrive as JsonRpcGatewayError, or as plain objects across the IPC bridge.
+    [
+      Object.assign(new Error("member 2 profile 'gamma' is not served here"), {
+        code: 4110,
+        data: { reason: 'invalid_member' }
+      }),
+      `${refused} member 2 profile 'gamma' is not served here`
+    ],
+    [
+      Object.assign(new Error('Group Chat worker is unavailable'), { code: 4123 }),
+      `${refused} Group Chat worker is unavailable`
+    ],
+    [{ code: 5111, message: 'database is locked' }, `${refused} database is locked`],
+    [new Error('request timed out: groups.create'), 'request timed out: groups.create'],
+    [{ canonicalGroupProblem: 'otherConnection' }, labels.createOtherConnection]
+  ]
+
+  expect(rows.map(([error]) => canonicalGroupCreateError(error, labels))).toEqual(rows.map(([, words]) => words))
 })

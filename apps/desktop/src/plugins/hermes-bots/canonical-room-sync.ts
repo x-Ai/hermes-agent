@@ -19,7 +19,6 @@ import {
   canonicalGroupRequest,
   type CanonicalGroupRoute,
   type CanonicalRoom,
-  captureCanonicalGroupRoute,
   discoverCanonicalGroups
 } from './canonical-groups'
 import {
@@ -448,6 +447,20 @@ export function useCanonicalRoomSync(
     // The binding is frozen per room id; re-subscribing on every object identity would churn the watch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [group, roomId, visible])
+}
+
+/** The window's active connection + profile as a room route; throws without one. Upstream dropped
+ *  this helper from `canonical-groups.ts` with its CanonicalGroupList; this fork's discovery,
+ *  creation and Host-on-gateway still dial the window's active route. */
+export function captureCanonicalGroupRoute(): CanonicalGroupRoute {
+  const connectionId = host.state.connectionId.get()
+  const profile = host.state.profile.get()
+
+  if (!connectionId?.trim() || !profile?.trim()) {
+    throw new Error('Canonical groups require an explicit connection and profile')
+  }
+
+  return { connectionId, profile }
 }
 
 /** Register and project every room the route's gateway lists, so they appear in the roster. */

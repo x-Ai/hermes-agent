@@ -23,6 +23,7 @@ import { zhNotifications } from './zh_notifications'
 import { zhOnboarding } from './zh_onboarding'
 import { zhPluginManifests } from './zh_plugin_manifests'
 import { zhPluginUpdate } from './zh_plugin_update'
+import { zhPluginUpdateAll } from './zh_plugin_update_all'
 import { zhProjects } from './zh_projects'
 import { zhProviderDescriptions, zhProviderEnvKeys, zhProviderLabels } from './zh_provider_catalog'
 import { zhProviderWait } from './zh_provider_wait'
@@ -2172,6 +2173,13 @@ export const zhOverrides = {
         restartFailedBecause: reason => `网关无法重启：${reason}`,
         startTimedOut: '网关未能在 90 秒内提供网页应用',
         stopTimedOut: '网关未能在 90 秒内停止提供网页应用',
+        startStages: {
+          preparing: '正在准备网页应用，构建可能需要几分钟',
+          building: '正在构建网页应用，可能需要几分钟',
+          registering: '正在为此地址设置 Nous 登录',
+          restarting: '正在重启网关以提供网页应用'
+        },
+        startElapsed: time => `已用时 ${time}`,
         start: '启动',
         stop: '停止',
         restartGateway: '重启网关',
@@ -3378,6 +3386,7 @@ export const zhOverrides = {
       pinnedProvenance: (sha: string) => `已固定到提交 ${sha}，重新固定前将拒绝更新`,
       pinnedBadge: (sha: string) => `固定 @ ${sha}`,
       ...zhPluginUpdate,
+      ...zhPluginUpdateAll,
       desktopHalfRemote: '不可用（远程后端）',
       desktopHalfRemoteTip:
         '此软件包的桌面部分位于远程后端的磁盘上，该应用无法读取它，要在此使用它，请运行从 Git 安装，并勾选该软件包的仓库 URL 和 Desktop 目标——这会将桌面部分克隆到此机器上',
@@ -3971,6 +3980,35 @@ export const zhOverrides = {
     restartNow: '立即重启',
     restarting: '正在重启…',
     restartFailedManual: '网关重启失败 — 请手动重启并检查网关日志',
+    relayLink: {
+      title: 'Team Gateway',
+      badge: '无需机器人令牌',
+      intro: (platform: string) =>
+        `${platform} 通过共享的 Hermes 机器人连接到此智能体。关联你的 ${platform} 账号，然后给机器人发消息即可与智能体对话`,
+      link: (platform: string) => `关联 ${platform}`,
+      linkAnother: (platform: string) => `关联另一个 ${platform} 账号`,
+      linkedAccounts: '已关联账号',
+      unlink: '取消关联',
+      unlinkFailed: '无法取消关联该账号',
+      stepOpen: (platform: string) => `1. 用手机扫描二维码，或在 ${platform} 中打开机器人`,
+      stepSend: '2. 用要关联的账号向机器人发送这条消息：',
+      open: (platform: string) => `打开 ${platform}`,
+      copy: '复制消息',
+      copied: '已复制',
+      copyFailed: (command: string) => `复制失败，请手动输入 ${command}`,
+      waiting: '正在等待机器人收到你的消息。此代码只能使用一次',
+      linked: (platform: string) => `${platform} 账号已关联。给机器人发消息即可与智能体对话`,
+      expired: '代码在使用前已过期。请获取新代码后重试',
+      refused: (platform: string) => `${platform} 拒绝了关联。请获取新代码后重试`,
+      qrAlt: (platform: string) => `共享 ${platform} 机器人的二维码`,
+      managed: '由 Team Gateway 管理',
+      managedNote: (platform: string) =>
+        `此实例的消息由 Team Gateway 承载，因此网关每次启动都会关闭 ${platform} 的直连。若要与中继同时使用，请在网关环境中设置 GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true（直连会使实例无法缩容到零，并可能重复投递消息）`,
+      managedIntro: '此智能体的账号在 Nous Portal 中关联',
+      openPortal: '在 Nous Portal 中关联账号',
+      noNewAccount: (platform: string) =>
+        `该代码已失效，且没有出现新账号。如果你的 ${platform} 账号不在列表中，请获取新代码后重试`
+    },
     telegramQr: {
       title: '选择连接 Telegram 机器人的方式',
       subtitle: '两种方式都会连接一个由你控制的机器人，凭据仅保存在此 Hermes 安装中',
@@ -5568,7 +5606,9 @@ export const zhOverrides = {
       ultra: '超高',
       updateFailed: '模型选项更新失败',
       fastFailed: '快速模式更新失败',
-      sendsOnRoute: (level: string) => `此路由实际发送 ${level}`
+      sendsOnRoute: (level: string) => `此路由实际发送 ${level}`,
+      daybreak: 'Daybreak',
+      daybreakFailed: 'Daybreak 更新失败'
     },
     gatewayMenu: zhGatewayMenu,
     approvalMode: {
@@ -5669,6 +5709,15 @@ export const zhOverrides = {
           subagent_definitions: '子代理定义',
           system_prompt: '系统提示词',
           tool_definitions: '工具定义'
+        },
+        compact: {
+          action: '压缩对话',
+          busyHint: '请先完成或停止当前回复',
+          confirm: '压缩',
+          hint: '总结较早的上下文以腾出空间，继续当前对话',
+          question: '将此对话压缩为摘要？',
+          questionNamed: title => `将“${title}”压缩为摘要？`,
+          working: '正在压缩…'
         },
         empty: '暂无上下文数据',
         loading: '正在加载明细…',
@@ -6260,6 +6309,10 @@ export const zhOverrides = {
       authorized: server => `已授权 ${server}`,
       failed: server => `${server} 设置失败`,
       toolCount: count => `${count} 个工具`,
+      launchCommand: target => `将运行：${target}`,
+      launchRemote: target => `将连接：${target}`,
+      launchEnv: keys => `环境变量：${keys}`,
+      launchCwd: dir => `工作目录：${dir}`,
       envRequired: '请先填写所需凭据',
       sendFailed: '无法发送 MCP 设置响应',
       reloadFailed: '服务器已保存，但重新加载 MCP 工具失败 — 将在下个会话加载',

@@ -15,6 +15,8 @@ import {
   parseRosterKey,
   saveSelectedRosterBot
 } from './bot-state'
+import type { CanonicalRoomLive } from './canonical-group-details'
+import type { GatewayGroupRoom } from './canonical-group-registry'
 /**
  * The Bots pane itself: the roster's selection reconciliation, the
  * workspace-ownership reads its lifecycle keys off, and the pane that lists
@@ -59,6 +61,9 @@ import {
   type SectionDialogState
 } from './user-sections'
 import { useEscapeCancelsBotDrag } from './user-sections-ui'
+
+const NO_GATEWAY_ROOMS: GatewayGroupRoom[] = []
+const NO_GATEWAY_ROOM_LIVE: Record<string, CanonicalRoomLive> = {}
 
 // ── roster pane ──────────────────────────────────────────────────────────────
 
@@ -348,6 +353,11 @@ export function BotsPane() {
     activityFilter,
     rowKindFilter,
     groupRooms,
+    // Fork: a gateway-hosted room is projected into $groupChats (canonical-room-sync.ts) and
+    // listed as a room row with its pins, picture and section; upstream's gateway-room rows
+    // (useGatewayGroupRooms) would list it a second time.
+    gatewayRooms: NO_GATEWAY_ROOMS,
+    gatewayRoomLive: NO_GATEWAY_ROOM_LIVE,
     activeRosterKeys,
     gatewayOptions,
     activityOf,
@@ -503,7 +513,7 @@ export function BotsPane() {
         staleNotice,
         isLoading,
         initialRosterLoading,
-        roster,
+        listedCount: roster.length,
         error,
         gatewayUp,
         refetch,

@@ -19,6 +19,7 @@ import { frNotices } from './fr_notices'
 import { frNotifications } from './fr_notifications'
 import { frOnboarding } from './fr_onboarding'
 import { frPluginUpdate } from './fr_plugin_update'
+import { frPluginUpdateAll } from './fr_plugin_update_all'
 import { frProjects } from './fr_projects'
 import { frSharedMetrics } from './fr_shared_metrics'
 import { frThemePicker } from './fr_theme_picker'
@@ -1882,6 +1883,13 @@ export const frOverrides = {
         restartFailedBecause: reason => `La passerelle n'a pas pu redémarrer : ${reason}`,
         startTimedOut: "La passerelle n'a pas servi l'application web en 90 secondes.",
         stopTimedOut: "La passerelle n'a pas cessé de servir l'application web en 90 secondes.",
+        startStages: {
+          preparing: "Préparation de l'application web. Sa compilation peut prendre quelques minutes.",
+          building: "Compilation de l'application web. Cela peut prendre quelques minutes.",
+          registering: 'Configuration de la connexion Nous pour cette adresse.',
+          restarting: "Redémarrage de la passerelle pour servir l'application web."
+        },
+        startElapsed: time => `Temps écoulé : ${time}`,
         start: 'Démarrer',
         stop: 'Arrêter',
         restartGateway: 'Redémarrer la passerelle',
@@ -2568,6 +2576,7 @@ export const frOverrides = {
         `Épinglé au commit ${sha}. Les mises à jour sont refusées tant qu’il n’est pas réinstallé avec un nouvel épinglage.`,
       pinnedBadge: (sha: string) => `épinglé @ ${sha}`,
       ...frPluginUpdate,
+      ...frPluginUpdateAll,
       uninstall: 'Désinstaller',
       uninstallTip: (name: string, profile: string) => `Désinstaller ${name} de ${profile}`,
       uninstallConfirmTitle: (name: string) => `Désinstaller ${name} ?`,
@@ -3065,6 +3074,35 @@ export const frOverrides = {
       'Réessayez le redémarrage ; si le problème persiste, ouvrez les journaux et envoyez les diagnostics.',
     restartAgain: 'Redémarrer à nouveau',
     openLogs: 'Ouvrir les journaux',
+    relayLink: {
+      title: 'Team Gateway',
+      badge: 'Aucun jeton de bot requis',
+      intro: (platform: string) =>
+        `${platform} atteint cet agent via le bot Hermes partagé. Associez votre compte ${platform} et écrivez au bot pour parler à votre agent.`,
+      link: (platform: string) => `Associer ${platform}`,
+      linkAnother: (platform: string) => `Associer un autre compte ${platform}`,
+      linkedAccounts: 'Comptes associés',
+      unlink: 'Dissocier',
+      unlinkFailed: 'Impossible de dissocier ce compte',
+      stepOpen: (platform: string) => `1. Scannez le code avec votre téléphone ou ouvrez le bot dans ${platform}.`,
+      stepSend: '2. Envoyez ce message au bot depuis le compte à associer :',
+      open: (platform: string) => `Ouvrir ${platform}`,
+      copy: 'Copier le message',
+      copied: 'Copié',
+      copyFailed: (command: string) => `Échec de la copie. Tapez plutôt ${command}.`,
+      waiting: 'En attente du message dans le bot. Le code ne sert qu’une fois.',
+      linked: (platform: string) => `Compte ${platform} associé. Écrivez au bot pour parler à votre agent.`,
+      expired: 'Le code a expiré avant d’être utilisé. Demandez-en un nouveau et réessayez.',
+      refused: (platform: string) => `${platform} a refusé l’association. Demandez un nouveau code et réessayez.`,
+      qrAlt: (platform: string) => `Code QR du bot ${platform} partagé`,
+      managed: 'Géré par Team Gateway',
+      managedNote: (platform: string) =>
+        `Team Gateway assure la messagerie sur cette instance : le gateway désactive donc la connexion directe ${platform} à chaque démarrage. Pour l’utiliser en plus du relais, définissez GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true dans l’environnement du gateway (une connexion directe empêche l’instance de descendre à zéro et peut livrer les messages deux fois).`,
+      managedIntro: 'Les comptes de cet agent se lient depuis Nous Portal.',
+      openPortal: 'Lier des comptes dans Nous Portal',
+      noNewAccount: (platform: string) =>
+        `Le code n’est plus actif et aucun nouveau compte n’est apparu. Si votre compte ${platform} n’est pas listé, obtenez un nouveau code et réessayez.`
+    },
     telegramQr: {
       title: 'Choisissez comment connecter votre bot Telegram',
       subtitle:
@@ -4595,7 +4633,9 @@ export const frOverrides = {
       ultra: 'Ultra',
       sendsOnRoute: (level: string) => `envoie ${level} sur cette route`,
       updateFailed: "Échec de la mise à jour de l'option du modèle",
-      fastFailed: 'Échec de la mise à jour du mode rapide'
+      fastFailed: 'Échec de la mise à jour du mode rapide',
+      daybreak: 'Daybreak',
+      daybreakFailed: 'Échec de la mise à jour de Daybreak'
     },
     gatewayMenu: {
       gateway: 'Gateway',
@@ -4705,6 +4745,15 @@ export const frOverrides = {
           subagent_definitions: 'Définitions de sous-agents',
           system_prompt: 'Invite système',
           tool_definitions: "Définitions d'outils"
+        },
+        compact: {
+          action: 'Compacter la conversation',
+          busyHint: "Terminez ou arrêtez d'abord la réponse en cours",
+          confirm: 'Compacter',
+          hint: 'Résumez le contexte ancien pour libérer de la place. Continuez dans cette même conversation.',
+          question: 'Compacter cette conversation en un résumé ?',
+          questionNamed: title => `Compacter « ${title} » en un résumé ?`,
+          working: 'Compaction…'
         },
         empty: 'Aucune donnée de contexte pour le moment',
         loading: 'Chargement du détail…',
@@ -5300,6 +5349,10 @@ export const frOverrides = {
       authorized: server => `${server} autorisé`,
       failed: server => `Échec de la configuration de ${server}`,
       toolCount: count => (count === 1 ? '1 outil' : `${count} outils`),
+      launchCommand: target => `Exécute : ${target}`,
+      launchRemote: target => `Se connecte à : ${target}`,
+      launchEnv: keys => `Environnement : ${keys}`,
+      launchCwd: dir => `Dossier de travail : ${dir}`,
       envRequired: "Renseignez d'abord les identifiants requis",
       sendFailed: "Impossible d'envoyer la réponse de configuration MCP",
       reloadFailed:

@@ -48,6 +48,7 @@ import {
   localizeChannelTestResult,
 } from "@/i18n/channel-metadata";
 import type { Locale } from "@/i18n/types";
+import { RelayLinkPanel } from "./ChannelsRelayLink";
 
 // State → badge mapping. The backend emits a small, fixed vocabulary plus
 // whatever the live gateway runtime reports (connected/disconnected/fatal).
@@ -66,6 +67,28 @@ function stateBadge(state: string, copy: DashboardCopy["channels"]) {
     fatal: { tone: "destructive", label: copy.error }
   };
   return badges[state] ?? { tone: "outline" as const, label: state };
+}
+
+function platformBadge(platform: MessagingPlatform, copy: DashboardCopy["channels"]) {
+  if (platform.relay_exclusive) return { tone: "secondary" as const, label: copy.viaTeamGateway };
+  if (platform.disabled_by_relay) return { tone: "secondary" as const, label: copy.managedByTeamGateway };
+  return stateBadge(platform.state, copy);
+}
+
+// The relay-exclusive rule turns this platform off on every gateway start (#141175):
+// a plain "Disabled" plus a live toggle reads as a setting that will not save.
+export function RelayManagedNote({ platform }: { platform: MessagingPlatform }) {
+  // A platform the shared bot carries gets the link panel instead of this dead end.
+  if (!platform.disabled_by_relay || platform.relay_exclusive) return null;
+  return (
+    <span id={`relay-note-${platform.id}`} className="text-xs text-muted-foreground">
+      Team Gateway carries messaging on this deployment, so the gateway turns the direct{" "}
+      {platform.name} connection off at every start. To run it alongside the relay, set{" "}
+      <code className="font-mono">GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true</code> in the
+      gateway's environment (a direct connection keeps the instance from scaling to zero and
+      can deliver messages twice).
+    </span>
+  );
 }
 
 const TELEGRAM_USER_ID_RE = /^\d+$/;
@@ -563,7 +586,9 @@ export default function ChannelsPage() {
       {/* Platform list */}
       <div className="grid gap-3">
         {platforms.map(platform => {
-          const badge = stateBadge(platform.state, copy);
+          // Under an exclusive relay the direct bot never runs: setup is the shared-bot link below.
+          const viaRelay = Boolean(platform.relay_exclusive);
+          const badge = platformBadge(platform, copy);
           const busy = togglingId === platform.id;
           const StateIcon =
             platform.state === "connected"
@@ -596,6 +621,7 @@ export default function ChannelsPage() {
                       <span className="text-xs text-muted-foreground">
                         {localizeChannelDescription(platform.id, platform.description, locale)}
                       </span>
+                      <RelayManagedNote platform={platform} />
                       {platform.error_message && (
                         <span className="text-xs text-destructive">{platform.error_message}</span>
                       )}
@@ -608,6 +634,7 @@ export default function ChannelsPage() {
                     </div>
                   </div>
 
+                  {!viaRelay && (
                   <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                     <div className="flex items-center gap-1.5">
                       {busy ? (
@@ -617,6 +644,10 @@ export default function ChannelsPage() {
                           checked={platform.enabled}
                           onCheckedChange={() => void handleToggle(platform)}
                           aria-label={copy.enablePlatform.replace("{name}", platform.name)}
+                          disabled={platform.disabled_by_relay}
+                          aria-describedby={
+                            platform.disabled_by_relay ? `relay-note-${platform.id}` : undefined
+                          }
                         />
                       )}
                     </div>
@@ -642,8 +673,12 @@ export default function ChannelsPage() {
                       </Button>
                     )}
                   </div>
+                  )}
                 </div>
-                {platform.id === "telegram" && (
+                {platform.relay_fronted && (
+                  <RelayLinkPanel platform={platform} showToast={showToast} />
+                )}
+                {platform.id === "telegram" && !viaRelay && (
                   <TelegramOnboardingPanel
                     onManualSetup={() => openConfig(platform)}
                     onChanged={load}
@@ -653,7 +688,7 @@ export default function ChannelsPage() {
                     showToast={showToast}
                   />
                 )}
-                {platform.id === "whatsapp" && (
+                {platform.id === "whatsapp" && !viaRelay && (
                   <WhatsAppOnboardingPanel
                     onChanged={load}
                     onRestartNeeded={() => setRestartNeeded(true)}

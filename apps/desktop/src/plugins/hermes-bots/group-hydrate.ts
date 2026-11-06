@@ -13,6 +13,7 @@
  */
 
 import { assignLegacyThreads } from './group-chat'
+import { stickyGroupEngine } from './group-engine'
 import { durableGroupHandle } from './group-handle-sync'
 import { durableGroupWorkspaceFields } from './group-workspace-sync'
 import type { GroupChat } from './types'
@@ -46,6 +47,7 @@ export function hydrateStoredGroupChat(stored: unknown): GroupChat | null {
     externalCursors: record(room.externalCursors),
     members: Array.isArray(room.members) ? room.members : [],
     roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
+    ...stickyGroupEngine(room),
     image: typeof room.image === 'string' && room.image ? room.image : null,
     handle: durableGroupHandle(room),
     ...durableGroupWorkspaceFields(room),

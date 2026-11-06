@@ -9,16 +9,11 @@ interface GroupOffer {
 }
 
 /** The bots New Group Chat offers, shared by the dialog's picker and the New… menu gate.
- *  Upstream seats only this connection's bots the authority will seat; this fork's Desktop
- *  rooms also seat bots from other registered connections (their turns route to their own
- *  machines), so a bot that is not on this connection stays offered and only this
- *  connection's unseatable bots (parked, or refused by the authority) drop out. */
+ *  Upstream's `seatableGroupBots` offers this connection's bots the authority will seat plus
+ *  reachable bots on other connections. A window with no registry connection id (an env or
+ *  legacy remote) has no authority to consult, so upstream offers it nothing outside legacy mode;
+ *  this fork's creation never waits on the group driver and makes a Desktop room whenever the
+ *  gateway cannot host one, so such a window offers every bot, as legacy mode does. */
 export function offerableGroupBots(roster: RosterRow[], offer: GroupOffer): RosterRow[] {
-  const onThisConnection = new Set(
-    seatableGroupBots(roster, { connectionId: offer.connectionId, mode: 'canonical', seatable: null })
-  )
-
-  const seatable = new Set(seatableGroupBots(roster, offer))
-
-  return roster.filter(bot => !bot?.ghost && (seatable.has(bot) || !onThisConnection.has(bot)))
+  return seatableGroupBots(roster, String(offer.connectionId || '').trim() ? offer : { ...offer, mode: 'legacy' })
 }

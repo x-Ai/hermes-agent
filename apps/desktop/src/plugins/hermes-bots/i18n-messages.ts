@@ -3,10 +3,13 @@
  */
 
 import { type CanonicalGroupMessages } from './canonical-group-locales'
+import { type CrossGatewayGroupMessages } from './cross-gateway-locales'
 import { type GroupCreateCopy } from './i18n_group_create'
 
 export type BotsMessages = {
   canonical: { [K in keyof CanonicalGroupMessages]: string }
+  /** Group chats seating bots from more than one connected machine. */
+  crossGateway: { [K in keyof CrossGatewayGroupMessages]: CrossGatewayGroupMessages[K] }
   /** Left rail: the bot + group-chat roster. */
   editor: {
     fullConfigHint: string

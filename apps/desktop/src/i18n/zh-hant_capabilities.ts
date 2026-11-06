@@ -1,5 +1,6 @@
 import type { TranslationOverrides } from './define-locale'
 import { zhHantPluginUpdate } from './zh-hant_plugin_update'
+import { zhHantPluginUpdateAll } from './zh-hant_plugin_update_all'
 
 export const zhHantCapabilities = {
   skills: {
@@ -66,6 +67,7 @@ export const zhHantCapabilities = {
     skillArchivedMessage: '可透過 hermes curator restore 還原。',
     tabPlugins: '外掛',
     plugins: {
+      ...zhHantPluginUpdateAll,
       agentTitle: '代理商插件',
       agentBlurb: '擴充所選設定檔的代理 - 工具、掛鉤、提供者。網關重啟後生效。',
       pageBlurb: '每個插件一行。插件可以擴展此應用程式、代理或兩者——每一部分都有自己的開關。',

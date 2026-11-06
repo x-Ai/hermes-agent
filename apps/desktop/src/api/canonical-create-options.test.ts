@@ -49,20 +49,18 @@ const CASES: Array<[string, Record<string, unknown>, Record<string, unknown> | R
     { ...BASE, title: 'Bot Chat', hidden: true, follow_profile_config: true },
     { profile: 'default', follow_profile_config: true, hidden: true }
   ],
-  // Fork: a Desktop room's member session (hermes-bots group-turns) carries the sidecar's explicit
-  // `room_plumbing` contract; the owner has no such key and expresses it as hidden +
-  // follow_profile_config, so the frame is translated rather than refused by name.
+  // group-turns.ts: a Desktop-driven room's member session on this owner. `room_plumbing` is the
+  // serve socket's flag; the owner keys the same behaviour on hidden + follow_profile_config.
   [
-    'room member session',
-    {
-      ...BASE,
-      profile: 'bot',
-      title: 'Group: r1 · main',
-      hidden: true,
-      room_plumbing: true,
-      follow_profile_config: true
-    },
-    { profile: 'bot', title: 'Group: r1 · main', hidden: true, follow_profile_config: true }
+    'Desktop-driven room member',
+    { ...BASE, title: 'Group: r-1 · t1', hidden: true, room_plumbing: true, follow_profile_config: true },
+    { profile: 'default', title: 'Group: r-1 · t1', follow_profile_config: true, hidden: true }
+  ],
+  // A caller sending only the serve flag still gets a hidden row that follows the profile config.
+  [
+    'room plumbing flag alone',
+    { ...BASE, title: 'Group: r-2 · t1', room_plumbing: true },
+    { profile: 'default', title: 'Group: r-2 · t1', follow_profile_config: true }
   ],
   [
     'Fast speed',

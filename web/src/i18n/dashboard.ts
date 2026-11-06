@@ -259,7 +259,6 @@ export const dashboardEn = {
     auxiliarySlots: {
       vision: ['Vision', 'Image analysis'],
       compression: ['Compression', 'Context compaction'],
-      skills_hub: ['Skills Hub', 'Skill search'],
       approval: ['Approval', 'Smart auto-approve'],
       mcp: ['MCP', 'MCP tool routing'],
       title_generation: ['Title generation', 'Session titles'],
@@ -1150,7 +1149,6 @@ export const dashboardZh: DashboardCopy = {
     auxiliarySlots: {
       vision: ['视觉', '图像分析'],
       compression: ['上下文压缩', '上下文精简'],
-      skills_hub: ['技能中心', '技能搜索'],
       approval: ['审批', '智能自动批准'],
       mcp: ['MCP', 'MCP 工具路由'],
       title_generation: ['标题生成', '会话标题'],

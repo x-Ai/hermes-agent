@@ -649,7 +649,10 @@ def _token_limit_entries_for_route(
     requested = str(requested_provider or "").strip().lower()
     entries = custom_providers if isinstance(custom_providers, list) else []
     if requested and requested not in {"auto", "custom"}:
-        entries = _token_limit_entries_for_provider(entries, requested_provider=requested)
+        # A key that names none of these entries (a built-in provider on a custom URL, e.g. a side task
+        # inheriting the main provider) cannot choose among them: the URL decides, and a URL two
+        # providers share still selects nothing.
+        entries = _token_limit_entries_for_provider(entries, requested_provider=requested) or entries
     return _token_limit_entries_for_provider(list(_entries_for_route(base_url, entries, config)))
 
 

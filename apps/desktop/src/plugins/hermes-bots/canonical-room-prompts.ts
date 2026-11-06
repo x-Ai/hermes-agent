@@ -102,13 +102,16 @@ export async function answerCanonicalApproval(entry: GroupPrompt, choice: string
   const action = entry.hostedAction
   const binding = $canonicalGroupBindings.get()[entry.group]
 
-  if (!action || !binding) {
+  if (!action || !binding || entry.kind !== 'approval') {
     throw new Error('hosted approval without a room binding')
   }
 
+  // The card shows the command and choices the gateway reported; they ride back so the room's
+  // approve guard (actCanonicalGroup) can check the choice was offered and Allow once was reviewable.
   await actCanonicalGroup(
     binding,
     {
+      approval: { choices: entry.choices, command: entry.command, description: entry.question },
       execution_generation: action.executionGeneration,
       kind: 'approval',
       member_id: action.memberId,

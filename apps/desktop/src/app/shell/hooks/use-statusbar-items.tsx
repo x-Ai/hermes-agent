@@ -11,6 +11,7 @@ import { useApprovalModeStatusbarItem } from '@/app/shell/approval-mode-menu'
 import { projectLiveContextBreakdown } from '@/app/shell/context-usage-panel'
 import { GatewayMenuPanel } from '@/app/shell/gateway-menu-panel'
 import { useChangeWorkspaceItem } from '@/app/shell/hooks/use-change-workspace'
+import { useCompactConversation } from '@/app/shell/hooks/use-compact-conversation'
 import { useContextBreakdown } from '@/app/shell/hooks/use-context-breakdown'
 import { useFocusedSessionRow } from '@/app/shell/hooks/use-focused-session-row'
 import { useStatusbarReadouts } from '@/app/shell/hooks/use-statusbar-readouts'
@@ -45,6 +46,7 @@ import { cn } from '@/lib/utils'
 import { resolveVersionStatus } from '@/lib/version-status'
 import { requestGatewayForActiveRoute } from '@/store/active-route-request'
 import type { ApprovalModeRequester } from '@/store/approval-mode'
+import { $cloudOwnsUpdates } from '@/store/cloud-updates'
 import { copyFilePath, revealFile, shouldOfferLocalReveal } from '@/store/file-actions'
 import { $freeTierSignInOpen, $freeTierStatus, FREE_TIER_MODEL } from '@/store/free-tier'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
@@ -108,11 +110,12 @@ function versionItem(
   target: 'backend' | 'client',
   status: ReturnType<typeof resolveVersionStatus>,
   applying: boolean,
-  toggleLabel: string
+  toggleLabel: string,
+  hidden = false
 ): StatusbarItem {
   return {
     className: status.hasUpdate ? 'text-primary hover:text-primary' : undefined,
-    hidden: status.unknown,
+    hidden: status.unknown || hidden,
     icon: applying ? <Loader2 className="size-3 animate-spin" /> : <Hash className="size-3" />,
     id: `version-${target}`,
     label: status.label,
@@ -206,6 +209,7 @@ export function useStatusbarItems({
   const backendUpdateApply = useStore($backendUpdateApply)
   const desktopVersion = useStore($desktopVersion)
   const connection = useStore($connection)
+  const cloudOwnsUpdates = useStore($cloudOwnsUpdates)
 
   // The FOCUSED session (interacted tile, else the primary — the same
   // derivation the titlebar title follows): every session-scoped readout
@@ -327,6 +331,8 @@ export function useStatusbarItems({
     sessionId: activeSessionId
   })
 
+  const compactConversation = useCompactConversation({ busy, sessionId: activeSessionId })
+
   // The breakdown wins whenever we have one, for two reasons: it reports the
   // MEASURED occupancy once the backend has it (falling back to the estimate
   // only before that), and it is keyed to the session it describes. The global
@@ -376,8 +382,16 @@ export function useStatusbarItems({
     () => projectLiveContextBreakdown(contextBreakdown, gaugeUsage),
     [contextBreakdown, gaugeUsage]
   )
+
   // Context chip, cache hit and t/s: the focused session's, or an active plugin override's (a group room in front).
-  const readouts = useStatusbarReadouts(displayedContextBreakdown, contextBreakdownLoading, gaugeUsage, currentUsage)
+  const readouts = useStatusbarReadouts(
+    displayedContextBreakdown,
+    contextBreakdownLoading,
+    gaugeUsage,
+    currentUsage,
+    compactConversation
+  )
+
   const planGauge = currentUsage.plan_gauge
   const planUsed = planGauge ? Math.min(1, Math.max(0, planGauge.used_bp / 10_000)) : 0
 
@@ -470,8 +484,10 @@ export function useStatusbarItems({
       version: desktopVersion?.appVersion
     })
 
-    return versionItem('client', status, applying, copy.toggleVersion)
+    // A Webapp served by Hermes Cloud: Cloud updates it, so there is no version/update pill to open.
+    return versionItem('client', status, applying, copy.toggleVersion, cloudOwnsUpdates.client)
   }, [
+    cloudOwnsUpdates.client,
     desktopVersion?.appVersion,
     connection?.mode,
     copy,
@@ -483,7 +499,8 @@ export function useStatusbarItems({
   ])
 
   const backendVersionItem = useMemo<StatusbarItem | null>(() => {
-    if (connection?.mode !== 'remote') {
+    // Hermes Cloud updates its agents itself: no backend pill, as outside remote mode.
+    if (connection?.mode !== 'remote' || cloudOwnsUpdates.backend) {
       return null
     }
 
@@ -504,6 +521,7 @@ export function useStatusbarItems({
 
     return versionItem('backend', status, applying, copy.toggleBackendVersion)
   }, [
+    cloudOwnsUpdates.backend,
     connection?.mode,
     statusSnapshot?.version,
     backendUpdateStatus,

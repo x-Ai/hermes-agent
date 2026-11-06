@@ -82,8 +82,10 @@ import {
 import type { GroupChatRoom } from './group-chat'
 import { GroupClarifyCard, GroupImageControls, GroupMentionInput } from './group-chat-parts'
 import type { GroupRoomPrompt } from './group-chat-parts'
+import { LegacyRoomHeader } from './group-chat-view-header'
 import { GroupMemberPicker } from './group-chat-view-members'
 import { compressGroupMemberHistory } from './group-compress'
+import { stickyGroupEngine } from './group-engine'
 import { GroupEntryAttachments } from './group-entry-attachments'
 import { sweepExternalGroupWrites } from './group-external-writes'
 import { checkGroupHandleInput, groupHandleFromName } from './group-handle'
@@ -112,6 +114,13 @@ import {
   updateGroupComposerDraft
 } from './group-panes'
 import type { GroupComposerDraft, GroupDraftSetter } from './group-panes'
+import {
+  ROOM_AVATAR_SIZE,
+  ROOM_COMPOSER_AREAS,
+  ROOM_COMPOSER_INPUT_CLASS,
+  RoomComposer,
+  RoomMessage
+} from './group-room-ui'
 import { groupReplyMentionTag, sendToGroupChat, stopGroupThread } from './group-rounds'
 import { GroupTurnTraceView } from './group-trace-view'
 import { groupMemberBodyText } from './group-transcript-text'
@@ -125,7 +134,7 @@ import {
 } from './group-workspace-settings'
 import { botsText, useBots } from './i18n'
 import { displayName, slugifyProfileName } from './labels'
-import { botRosterMeta, groupTranscriptSpeakerMeta, setBotsWorkspaceOwner } from './routing'
+import { botRosterMeta, groupTranscriptSpeaker, groupTranscriptSpeakerMeta, setBotsWorkspaceOwner } from './routing'
 import { bumpBotOpenGeneration, getPluginCtx, ID } from './shared'
 import type { Attachment, BotMeta, GroupChat, GroupMember, GroupMessage, RosterRow } from './types'
 
@@ -233,6 +242,7 @@ export async function disbandGroupChat(group: string, members: RosterRow[]) {
           sessionOwners: room.sessionOwners || {},
           members: Array.isArray(room.members) ? room.members : [],
           roomId: typeof room.roomId === 'string' && room.roomId ? room.roomId : null,
+          ...stickyGroupEngine(room),
           image: room.image || null,
           syncRevision: Math.max(0, Number(room.syncRevision || 0))
         }
@@ -657,38 +667,6 @@ function GroupChatSettingsDialog({
 // work. Member turns are scoped to the thread that triggered them — deltas,
 // watermarks, and responder resolution all key on the thread id.
 
-/** The room header's leading identity: picture (or fallback glyph), name, and
- *  the working-directory chip. Split out of GroupChatWorkspace to hold that
- *  component's size and complexity flat. */
-function GroupRoomTitle({
-  group,
-  image,
-  workspace
-}: {
-  group: string
-  image?: null | string
-  workspace?: null | string
-}) {
-  return (
-    <>
-      {/* Room picture (set via Group settings) leads the title when present. */}
-      {image ? (
-        <img
-          alt=""
-          className="size-6 shrink-0 rounded-md object-cover ring-1 ring-(--ui-stroke-secondary)"
-          src={image}
-        />
-      ) : (
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-(--chrome-action-hover) text-(--ui-text-tertiary)">
-          <Codicon name="organization" />
-        </span>
-      )}
-      <div className="min-w-0 flex-1 truncate text-sm font-semibold">{group}</div>
-      <GroupWorkspaceChip path={workspace} testId="group-workspace-chip" />
-    </>
-  )
-}
-
 /** First and last log index of every thread: the opener wears the thread's
  *  folder chip, the last entry carries its reply box. The public room is one
  *  arrival-ordered log, so both are plain index scans. */
@@ -738,6 +716,7 @@ export function GroupChatWorkspace(props: GroupChatWorkspaceProps) {
   const bindings = useValue($canonicalGroupBindings)
   const connectionId = useValue(host.state.connectionId)
   const profile = useValue(host.state.profile)
+
   const binding = canonicalGroupBindingFor(
     bindings,
     { connectionId: connectionId ?? '', profile },
@@ -758,6 +737,8 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   const b = useBots()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
+  // A former member's line is labelled from the live roster (renderEntry).
+  const liveRoster: RosterRow[] = useValue($lastRoster)
 
   const room: GroupChatRoom = rooms[group] || { log: [], running: false }
   const roomName = groupChatDisplayName(group, room)
@@ -1058,58 +1039,20 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   const memberNames = members.map(bot => displayName(bot, botRosterMeta(bot, allMeta))).join(', ') || b.group.noBots
 
   const header = (
-    <div className="flex items-center gap-2 px-2.5 pt-2.5 pb-2">
-      <Button onClick={() => (onBack ? onBack() : $groupChatWorkspace.set(null))} size="sm" variant="ghost">
-        {t.common.back}
-      </Button>
-      <GroupRoomTitle group={roomName} image={room.image} workspace={room.workspace} />
-      <Tip label={memberNames}>
-        <span
-          aria-label={availabilityLabel}
-          className={cn(
-            'shrink-0 text-[0.65rem] text-(--ui-text-quaternary)',
-            members.length > 0 && availableMembers < members.length && 'text-amber-600 dark:text-amber-300'
-          )}
-        >
-          {members.length > 0 && availableMembers < members.length
-            ? availabilityLabel
-            : b.group.memberCount(members.length)}
-        </span>
-      </Tip>
-      <Tip label={b.group.settingsHint(roomName)}>
-        <Button
-          aria-label={b.group.settingsLabel(roomName)}
-          className="shrink-0 text-(--ui-text-tertiary) hover:text-foreground"
-          onClick={() => setSettingsOpen(true)}
-          size="sm"
-          variant="ghost"
-        >
-          <Codicon name="gear" />
-        </Button>
-      </Tip>
-      <Tip label={b.group.manageMembers}>
-        <Button
-          aria-label={b.group.manageMembersAria}
-          className="shrink-0 text-(--ui-text-tertiary) hover:text-foreground"
-          onClick={() => setMemberPickerOpen(true)}
-          size="sm"
-          variant="ghost"
-        >
-          <Codicon name="organization" />
-        </Button>
-      </Tip>
-      <Tip label={b.group.disbandHint(roomName)}>
-        <Button
-          aria-label={b.group.disbandLabel(roomName)}
-          className="shrink-0 text-(--ui-text-tertiary) hover:text-destructive"
-          onClick={() => setConfirmDisband(true)}
-          size="sm"
-          variant="ghost"
-        >
-          <Codicon name="trash" />
-        </Button>
-      </Tip>
-    </div>
+    <LegacyRoomHeader
+      availabilityLabel={availabilityLabel}
+      availableMembers={availableMembers}
+      image={room.image}
+      memberCount={members.length}
+      memberNames={memberNames}
+      onBack={() => (onBack ? onBack() : $groupChatWorkspace.set(null))}
+      onDisband={() => setConfirmDisband(true)}
+      onManageMembers={() => setMemberPickerOpen(true)}
+      onSettings={() => setSettingsOpen(true)}
+      roomName={roomName}
+      running={Boolean(room.running)}
+      workspace={room.workspace}
+    />
   )
 
   // Seat from the live sources at send time, not from the painted `members`
@@ -1162,12 +1105,12 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   }
 
   const activityPanel = (
-    <div className="border-b border-(--ui-stroke-secondary)">
-      <div className="flex items-center gap-1">
+    <div className="border-b border-(--ui-stroke-tertiary) px-4">
+      <div className="mx-auto flex w-full max-w-3xl items-center gap-1">
         <RowButton
           aria-controls={`group-activity:${group}`}
           aria-expanded={activityOpen}
-          className="flex min-w-0 flex-1 items-center gap-1.5 px-2.5 py-1 text-left text-[0.7rem] text-(--ui-text-quaternary) transition-colors hover:text-foreground"
+          className="flex min-w-0 flex-1 items-center gap-1.5 px-1 py-1.5 text-left text-xs text-(--ui-text-tertiary) transition-colors hover:text-foreground"
           onClick={() => setActivityOpen(prev => !prev)}
         >
           <Codicon className="shrink-0 text-[0.65rem]" name={activityOpen ? 'chevron-down' : 'chevron-right'} />
@@ -1193,7 +1136,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         ) : null}
       </div>
       {activityOpen ? (
-        <div className="grid gap-0.5 px-2.5 pb-1.5" id={`group-activity:${group}`}>
+        <div className="mx-auto grid w-full max-w-3xl gap-0.5 px-2.5 pb-1.5" id={`group-activity:${group}`}>
           {activityEvents.length ? (
             [...activityEvents].reverse().map((event, i) => (
               <div className="flex items-center gap-1.5 text-[0.7rem]" key={`${event.at}:${i}`}>
@@ -1388,6 +1331,22 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     }
   }
 
+  // Same appearance pipeline as the roster: custom image/pet, else the deterministic shape+color face.
+  const speakerFace = (name: string, meta: BotMeta | null | undefined) => {
+    const appearance = botAppearance(name, meta)
+    const image = appearance.image ?? null
+
+    return (
+      <BotFace
+        color={avatarColor(appearance.color, name)}
+        image={image && !isBackfilledFacePng(image) ? image : null}
+        name={name}
+        shape={appearance.shape}
+        size={ROOM_AVATAR_SIZE}
+      />
+    )
+  }
+
   // One log entry, rendered exactly as before conversation folding existed.
   // `threadChip` marks a thread's opening message with the folder the thread
   // is pinned to (an `@<group>` draft sent from a project); the caller builds
@@ -1395,28 +1354,16 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   const renderEntry = (entry: GroupMessage, index: number, threadChip: ReactNode = null) => {
     const isUser = entry.from.kind === 'user'
     const body = groupMemberBodyText(entry, { locale, t })
-    const meta = groupTranscriptSpeakerMeta(entry, members, allMeta)
+    const meta = groupTranscriptSpeakerMeta(entry, members, allMeta, liveRoster)
 
     // Match this speaker back to its member descriptor so display
     // names and disambiguating handles come from the roster (the
     // primary "default" profile renders as Hermes, remote dupes
-    // carry their @name-device handle) instead of raw profile ids.
-    const member = isUser
-      ? null
-      : members.find(
-          b =>
-            b.name === entry.from.name &&
-            (entry.from.source ? (b.connectionLabel || b.connectionId) === entry.from.source : !b.remoteSource)
-        ) || null
+    // carry their @name-device handle); a former member as its own machine names it.
+    const speaker = groupTranscriptSpeaker(entry, members, liveRoster)
+    const member = members.find(bot => bot === speaker) ?? null
 
-    const display = isUser
-      ? b.group.you
-      : displayName(
-          member || {
-            name: entry.from.name
-          },
-          meta
-        )
+    const display = isUser || !speaker ? b.group.you : displayName(speaker, meta)
 
     const entryKey = `${entry.at}:${index}`
     const revealed = !isUser && revealedSpeaker === entryKey
@@ -1429,93 +1376,76 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         ? `${display}${entry.from.source ? `-${entry.from.source}` : ''} (@${botHandle(entry.from.name, member || undefined)})`
         : display
 
-    // Speaker avatar: same appearance pipeline as the roster
-    // (custom image/pet, else deterministic shape+color face).
+    // Speaker avatar: same appearance pipeline as the roster (speakerFace).
     // Source-qualified speakers use owner-aware botRosterMeta (#96432).
-    // Non-null exactly when !isUser — the user's own lines carry no avatar.
-    const appearance = isUser ? null : botAppearance(entry.from.name, meta)
-    const image = appearance?.image ?? null
-    const photo = Boolean(image && !isBackfilledFacePng(image))
+    // The user's own lines carry no avatar.
+    const actions =
+      entry.text.trim() || !isUser ? (
+        <>
+          {isUser ? null : (
+            <Tip label={b.group.replyTo(replyMentionTag(entry, member))}>
+              <Button
+                aria-label={b.group.replyToMember(display)}
+                className="text-(--ui-text-tertiary) hover:text-foreground"
+                onClick={() => replyToMember(entry, member)}
+                size="icon"
+                variant="ghost"
+              >
+                <Codicon name="reply" />
+              </Button>
+            </Tip>
+          )}
+          {entry.text.trim() ? (
+            <CopyButton appearance="icon" buttonSize="icon" stopPropagation text={entry.text} />
+          ) : null}
+        </>
+      ) : undefined
+
+    const author = isUser ? (
+      label
+    ) : (
+      <Tip label={revealed ? b.group.hideFullHandle : b.group.showFullHandle}>
+        <Button
+          className="text-left text-[0.8125rem] font-semibold text-foreground"
+          onClick={() => setRevealedSpeaker(revealed ? null : entryKey)}
+          size="inline"
+          variant="text"
+        >
+          {label}
+        </Button>
+      </Tip>
+    )
 
     return (
-      <div
-        className={cn(
-          'group flex items-start gap-2',
-          isUser ? 'rounded-md bg-(--chrome-action-hover) px-2 py-1.5' : 'px-2 py-1'
-        )}
+      <RoomMessage
+        actions={actions}
+        author={author}
+        avatar={isUser ? undefined : speakerFace(entry.from.name, meta)}
+        badge={threadChip}
+        isUser={isUser}
         key={entryKey}
+        timestampMs={entry.at}
       >
-        {appearance ? (
-          <div className="mt-0.5 shrink-0">
-            <BotFace
-              color={avatarColor(appearance.color, entry.from.name)}
-              image={photo ? image : null}
-              name={entry.from.name}
-              shape={appearance.shape}
-              size={24}
-            />
-          </div>
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {isUser ? (
-              <span className="text-[0.7rem] font-semibold text-foreground">{label}</span>
-            ) : (
-              <Tip label={revealed ? b.group.hideFullHandle : b.group.showFullHandle}>
-                <Button
-                  className="text-left text-[0.7rem] font-semibold text-(--ui-accent)"
-                  onClick={() => setRevealedSpeaker(revealed ? null : entryKey)}
-                  size="inline"
-                  variant="text"
-                >
-                  {label}
-                </Button>
-              </Tip>
-            )}
-            <span className="text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(entry.at)}</span>
-            {threadChip}
-            {entry.text.trim() || !isUser ? (
-              <div className="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
-                {isUser ? null : (
-                  <Tip label={b.group.replyTo(replyMentionTag(entry, member))}>
-                    <Button
-                      aria-label={b.group.replyToMember(display)}
-                      className="text-(--ui-text-tertiary) hover:text-foreground"
-                      onClick={() => replyToMember(entry, member)}
-                      size="icon"
-                      variant="ghost"
-                    >
-                      <Codicon name="reply" />
-                    </Button>
-                  </Tip>
-                )}
-                {entry.text.trim() ? (
-                  <CopyButton appearance="icon" buttonSize="icon" stopPropagation text={entry.text} />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-          <div
-            className="min-w-0 text-xs text-(--ui-text-secondary) [&_p]:mb-1 [&_p:last-child]:mb-0 [&_ul]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:mb-1 [&_ol]:list-decimal [&_ol]:pl-4 [&_pre]:whitespace-pre-wrap [&_pre]:wrap-anywhere" // The app shell sets user-select: none globally; message bodies opt
-            // back in so drag-select and ⌘C work in group chat logs.
-            data-selectable-text="true"
-            data-slot="group-chat-message-content"
-          >
-            {MessageTextContent ? (
-              <MessageTextContent decorateText={mentionText} media={!member?.remoteSource} text={body} />
-            ) : Streamdown ? (
-              <Streamdown components={mentionComponents}>{body}</Streamdown>
-            ) : (
-              body
-            )}
-          </div>
-          {/* What the members were shown: pictures and file chips (group-entry-attachments.tsx). */}
-          <GroupEntryAttachments binding={room.canonical ?? null} entry={entry} entryKey={entryKey} />
-          {/* The member's reasoning + tools behind this reply, folded away by */
-          /* default (group-trace-view.tsx); the user opens it to read along. */}
-          <GroupTurnTraceView hidden={isUser} trace={entry.trace} />
+        <div
+          className="min-w-0 [&_pre]:whitespace-pre-wrap [&_pre]:wrap-anywhere" // The app shell sets user-select: none globally; message bodies opt
+          // back in so drag-select and ⌘C work in group chat logs.
+          data-selectable-text="true"
+          data-slot="group-chat-message-content"
+        >
+          {MessageTextContent ? (
+            <MessageTextContent decorateText={mentionText} media={!member?.remoteSource} text={body} />
+          ) : Streamdown ? (
+            <Streamdown components={mentionComponents}>{body}</Streamdown>
+          ) : (
+            body
+          )}
         </div>
-      </div>
+        {/* What the members were shown: pictures and file chips (group-entry-attachments.tsx). */}
+        <GroupEntryAttachments binding={room.canonical ?? null} entry={entry} entryKey={entryKey} />
+        {/* The member's reasoning + tools behind this reply, folded away by */
+        /* default (group-trace-view.tsx); the user opens it to read along. */}
+        <GroupTurnTraceView hidden={isUser} trace={entry.trace} />
+      </RoomMessage>
     )
   }
 
@@ -1627,11 +1557,12 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         members={members}
       />
       {activityPanel}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4">
         {/* minmax(0,1fr): an implicit grid track is min-content sized, so one */}
         {/* unbreakable code line widened every entry to its own width and the */}
         {/* log scrolled sideways as a whole instead of the code block (#91878). */}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5 px-2.5 pb-2">
+        {/* mt-auto anchors a short room on the composer, like a chat thread. */}
+        <div className="mx-auto mt-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)] gap-0.5 py-4">
           {room.log.length
             ? logChildren
             : [
@@ -1646,38 +1577,41 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
               members={members}
             />
           ))}
-          <GroupWorkingLine allMeta={allMeta} group={group} room={room} waiting={roomClarifies.length > 0} />
+          <GroupWorkingLine
+            activity={activityEvents}
+            allMeta={allMeta}
+            avatar={(turn: GroupMember) => speakerFace(turn.name, botRosterMeta(turn, allMeta))}
+            group={group}
+            key={'working'}
+            room={room}
+            waiting={roomClarifies.length > 0}
+          />
           {/* Scroll anchor (#89835): rooms opened at scroll position 0, mid- */
           /* history. The effect below scrolls this sentinel into view on */
           /* mount and on log growth — unless the user has scrolled up. */}
           <div aria-hidden key={'bottom-sentinel'} ref={bottomSentinelRef} />
         </div>
       </div>
-      <div className="border-t border-(--ui-stroke-secondary) p-2">
-        <form
-          className="grid gap-0"
-          onSubmit={event => {
-            event.preventDefault()
-            submit()
-          }}
+      <div className="px-4">
+        <RoomComposer
+          above={attachmentRow(null)}
+          attach={<div className={ROOM_COMPOSER_AREAS.button}>{attachButton(null)}</div>}
+          canSend={Boolean(draft.trim() || imagesFor(null).length)}
+          className="mx-auto w-full max-w-3xl"
+          onSubmit={submit}
+          sendLabel={b.group.newThread}
         >
-          {attachmentRow(null)}
-          <div className="flex items-center gap-1.5">
-            <GroupMentionInput
-              aria-label={b.group.messageRoom(roomName)}
-              members={members}
-              onChange={setDraft}
-              onPaste={event => pasteImages(null, event)}
-              onSubmitDraft={submit}
-              placeholder={b.group.newThreadPlaceholder(roomName)}
-              value={draft}
-            />
-            {attachButton(null)}
-            <Button disabled={!draft.trim() && !imagesFor(null).length} size="sm" type="submit">
-              {b.group.newThread}
-            </Button>
-          </div>
-        </form>
+          <GroupMentionInput
+            aria-label={b.group.messageRoom(roomName)}
+            className={ROOM_COMPOSER_INPUT_CLASS}
+            members={members}
+            onChange={setDraft}
+            onPaste={event => pasteImages(null, event)}
+            onSubmitDraft={submit}
+            placeholder={b.group.newThreadPlaceholder(roomName)}
+            value={draft}
+          />
+        </RoomComposer>
       </div>
       <GroupChatSettingsDialog
         group={group}

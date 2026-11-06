@@ -29,7 +29,9 @@ interface NewGroupChatItemProps {
 
 /** Mounted only while the menu is open, so the capability read happens on
  *  demand. Offered only when the dialog it opens can seat two bots: the same
- *  predicate the dialog's picker uses, or it opened to a dead Create button. */
+ *  predicate the dialog's picker uses, or it opened to a dead Create button.
+ *  This fork never refuses a selection wholly on another connection (it becomes
+ *  a Desktop room), so the item has no "elsewhere" state. */
 function NewGroupChatItem({ label, onSelect, roster }: NewGroupChatItemProps) {
   const { connectionId, mode, seatable } = useGroupCapability(true)
 

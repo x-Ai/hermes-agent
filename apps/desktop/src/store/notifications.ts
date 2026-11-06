@@ -2,6 +2,7 @@ import { atom } from 'nanostores'
 
 import { getRuntimeI18nLocale, translateNow } from '@/i18n/runtime'
 import { isOutOfSyncRpcParams } from '@/lib/gateway-rpc'
+import { servedByHermesCloud } from '@/lib/hermes-cloud-host'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
 import { isTimeoutError } from '@/lib/with-timeout'
 import { type ErrorToastCategory, recordFriction } from '@/store/desktop-metrics'
@@ -109,6 +110,10 @@ export const RECOVERY_ACTIONS = {
   openUpdates: (): NotificationAction => ({
     label: translateNow('notifications.updateHermes'),
     onClick: () => void import('@/store/updates').then(({ openUpdatesWindow }) => openUpdatesWindow())
+  }),
+  reload: (): NotificationAction => ({
+    label: translateNow('commandCenter.reloadWindow'),
+    onClick: () => window.location.reload()
   }),
   restartHermes: (): NotificationAction => ({
     label: translateNow('notifications.actions.restartHermes'),
@@ -298,7 +303,8 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'rpc_out_of_sync',
     test: msg => isOutOfSyncRpcParams(msg),
     summarize: () => translateNow('notifications.errors.rpcOutOfSync'),
-    action: () => RECOVERY_ACTIONS.openUpdates()
+    // A Webapp served by Hermes Cloud has no updater: reloading picks up the agent's new app.
+    action: () => (servedByHermesCloud() ? RECOVERY_ACTIONS.reload() : RECOVERY_ACTIONS.openUpdates())
   },
   {
     category: 'restart_required',

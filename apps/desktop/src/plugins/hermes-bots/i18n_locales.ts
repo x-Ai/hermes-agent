@@ -1,6 +1,7 @@
 import { type PluginLocaleBundles } from '@hermes/plugin-sdk'
 
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
+import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
 import { type BotsMessages } from './i18n-messages'
 import { groupCreateCopy } from './i18n_group_create'
 import { zh, zhHant } from './i18n_locales_zh'
@@ -8,6 +9,7 @@ import { arOverrides, type BotsBundleOverrides, ruOverrides } from './i18n_ru_ar
 
 export const en: BotsMessages = {
   canonical: CANONICAL_GROUP_LOCALES.en,
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES.en,
   editor: {
     fullConfigHint: 'Full configuration needs a newer gateway (restart it after updating Hermes).',
     liveCapabilities: 'Capabilities (applies immediately — skills, tools, MCP)',
@@ -625,6 +627,7 @@ export const en: BotsMessages = {
 
 const ja: BotsMessages = {
   canonical: CANONICAL_GROUP_LOCALES.ja,
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES.ja,
   editor: {
     fullConfigHint: 'すべての設定を使うには新しいゲートウェイが必要です（Hermes 更新後に再起動してください）',
     liveCapabilities: '機能（即時適用 — スキル、ツール、MCP）',
@@ -1254,8 +1257,17 @@ const overlay = (own: BotsBundleOverrides): BotsMessages => ({
   tools: { ...en.tools, ...own.tools }
 })
 
-const ru = overlay({ canonical: CANONICAL_GROUP_LOCALES.ru, ...ruOverrides })
-const ar = overlay({ canonical: CANONICAL_GROUP_LOCALES.ar, ...arOverrides })
+const ru = overlay({
+  canonical: CANONICAL_GROUP_LOCALES.ru,
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES.ru,
+  ...ruOverrides
+})
+
+const ar = overlay({
+  canonical: CANONICAL_GROUP_LOCALES.ar,
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES.ar,
+  ...arOverrides
+})
 
 /** Registered via `ctx.i18n.register` at plugin load (disposer tracked). */
 export const BOTS_LOCALES: PluginLocaleBundles = {
@@ -1265,7 +1277,7 @@ export const BOTS_LOCALES: PluginLocaleBundles = {
   ru,
   zh,
   'zh-hant': zhHant,
-  fr: { canonical: CANONICAL_GROUP_LOCALES.fr },
-  de: { canonical: CANONICAL_GROUP_LOCALES.de },
-  es: { canonical: CANONICAL_GROUP_LOCALES.es }
+  fr: { canonical: CANONICAL_GROUP_LOCALES.fr, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.fr },
+  de: { canonical: CANONICAL_GROUP_LOCALES.de, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.de },
+  es: { canonical: CANONICAL_GROUP_LOCALES.es, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.es }
 }

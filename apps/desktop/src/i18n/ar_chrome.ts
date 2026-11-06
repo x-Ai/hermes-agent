@@ -514,7 +514,9 @@ export const arChrome = {
       ultra: 'ألترا',
       updateFailed: 'فشل تحديث خيار النموذج',
       fastFailed: 'فشل تحديث الوضع السريع',
-      sendsOnRoute: (level: string) => `يُرسل ${level} على هذا المسار`
+      sendsOnRoute: (level: string) => `يُرسل ${level} على هذا المسار`,
+      daybreak: 'Daybreak',
+      daybreakFailed: 'فشل تحديث Daybreak'
     },
     gatewayMenu: {
       gateway: 'البوابة',
@@ -628,6 +630,15 @@ export const arChrome = {
           subagent_definitions: 'التعاريف الفرعية',
           system_prompt: 'النظام السريع',
           tool_definitions: 'التعاريف'
+        },
+        compact: {
+          action: 'ضغط المحادثة',
+          busyHint: 'أكمل الرد الحالي أو أوقفه أولًا',
+          confirm: 'ضغط',
+          hint: 'لخّص السياق القديم لإفساح المجال. تابع في هذه المحادثة نفسها.',
+          question: 'ضغط هذه المحادثة في ملخص؟',
+          questionNamed: title => `ضغط «${title}» في ملخص؟`,
+          working: 'جارٍ الضغط…'
         },
         empty: 'لا توجد بيانات سياقية بعد',
         loading: 'انهيار الضغط',

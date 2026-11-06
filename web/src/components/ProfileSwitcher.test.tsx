@@ -6,7 +6,7 @@
 
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProfileContext } from "@/contexts/profile-context";
 import { I18nProvider } from "@/i18n";
@@ -15,7 +15,22 @@ import { ProfileSwitcher } from "./ProfileSwitcher";
 let container: HTMLDivElement;
 let root: Root;
 
+// Node 26 defines an experimental global `localStorage` that shadows jsdom's and is undefined
+// without --localstorage-file, so the test and the I18nProvider share one in-memory Storage.
+const stored = new Map<string, string>();
+const memoryStorage = {
+  clear: () => stored.clear(),
+  getItem: (key: string) => stored.get(key) ?? null,
+  key: (index: number) => [...stored.keys()][index] ?? null,
+  get length() {
+    return stored.size;
+  },
+  removeItem: (key: string) => void stored.delete(key),
+  setItem: (key: string, value: string) => void stored.set(key, String(value)),
+};
+
 beforeEach(() => {
+  vi.stubGlobal("localStorage", memoryStorage);
   localStorage.setItem("hermes-locale", "zh");
 });
 
@@ -23,6 +38,7 @@ afterEach(async () => {
   await act(async () => root?.unmount());
   container?.remove();
   localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 function render(ui: ReactNode) {

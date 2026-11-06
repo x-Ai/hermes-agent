@@ -86,10 +86,6 @@ export const zhHantModelSettings: TranslationOverride<ModelSettingsTranslations>
       label: '壓縮',
       hint: '上下文壓縮'
     },
-    skills_hub: {
-      label: '技能中心',
-      hint: '技能搜尋'
-    },
     approval: {
       label: '核准',
       hint: '智慧自動核准'

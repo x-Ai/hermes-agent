@@ -441,6 +441,12 @@ export const zh: Translations = {
     authRequired: '需要认证',
     authRequiredHint: '运行此命令以完成认证：',
     updateGit: 'git pull',
+    updateAll: '全部更新',
+    updatingAll: '正在更新插件…',
+    updateAllDone: (updated: number, needsReview: number, failed: number) =>
+      `已更新 ${updated}，需审核 ${needsReview}，失败 ${failed}`,
+    autoUpdate: '自动更新',
+    autoUpdateDesc: (hours: number) => `网关检查时（每 ${hours} 小时）自动应用插件更新，更新后的代码在新会话中加载`,
     updateConsentBody: (name: string, sha: string) =>
       `${name} 的新目录固定版本（${sha}）增加了当前安装版本不具备的能力，仅在你信任这些能力时应用：`,
     updateScanBody: (name: string, count: number) =>

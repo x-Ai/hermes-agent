@@ -3,6 +3,7 @@ import { atom, computed } from 'nanostores'
 import { useMemo } from 'react'
 
 import { ContextMeterDetail, ContextUsagePanel } from '@/app/shell/context-usage-panel'
+import type { CompactConversationAction } from '@/app/shell/hooks/use-compact-conversation'
 import type { StatusbarItem } from '@/app/shell/statusbar-controls'
 import { ContribBoundary, ContribRender } from '@/contrib/react/boundary'
 import { useContributions } from '@/contrib/react/use-contributions'
@@ -56,7 +57,8 @@ export function useStatusbarReadouts(
   breakdown: ContextBreakdown | null,
   loading: boolean,
   gaugeUsage: UsageStats,
-  currentUsage: UsageStats
+  currentUsage: UsageStats,
+  compact?: CompactConversationAction
 ): StatusbarReadouts {
   const contributions = useContributions(STATUSBAR_CONTEXT_USAGE_AREA)
 
@@ -110,9 +112,9 @@ export function useStatusbarReadouts(
       contextChip: {
         detail: bar ? <ContextMeterDetail bar={bar} compressions={gaugeUsage.compressions} /> : undefined,
         label: usageContextLabel(gaugeUsage) || '—',
-        menuContent: <ContextUsagePanel breakdown={breakdown} loading={loading} usage={gaugeUsage} />
+        menuContent: <ContextUsagePanel breakdown={breakdown} compact={compact} loading={loading} usage={gaugeUsage} />
       },
       tokensPerSecond: tokensPerSecondLabel(currentUsage)
     }
-  }, [active, breakdown, cacheHit, currentUsage, detail, gaugeUsage, label, loading, tokensPerSecond])
+  }, [active, breakdown, cacheHit, compact, currentUsage, detail, gaugeUsage, label, loading, tokensPerSecond])
 }

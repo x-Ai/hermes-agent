@@ -1,3 +1,4 @@
+import { arPluginUpdateAll } from './ar_plugin_update_all'
 import type { TranslationOverrides } from './define-locale'
 
 export const arCapabilities = {
@@ -77,6 +78,7 @@ export const arCapabilities = {
     skillArchivedMessage: 'يمكن استعادتها باستخدام hermes curator restore.',
     tabPlugins: 'الإضافات',
     plugins: {
+      ...arPluginUpdateAll,
       agentTitle: 'العميل (بلوجين)',
       agentBlurb: 'Extend the agent for the selected profile - tools, hooks, providers. قم بتفعيله بعد عودة البوابة.',
       pageBlurb: 'صف واحد لكل بوجين ويمكن للمرء أن يمدد هذا التطبيق، أو الوكيل، أو كلاهما - كل نصف له مفتاحه الخاص.',

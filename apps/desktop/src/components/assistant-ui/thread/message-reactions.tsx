@@ -46,10 +46,10 @@ const FullEmojiPicker: FC<{ onSelect: (emoji: string) => void }> = ({ onSelect }
           ("lol" → 😂), which frimousse handles natively. */}
       <EmojiPicker.Search
         autoFocus
-        className="mx-1 border-b border-(--ui-stroke-tertiary) bg-transparent px-1 pb-1 text-sm outline-hidden focus:border-(--ui-stroke-secondary)"
+        className="mx-1 border-b border-(--ui-stroke-tertiary) bg-transparent px-1 pb-1 text-sm focus:outline-hidden focus:border-(--ui-stroke-secondary)"
         placeholder={t.assistant.thread.emojiSearch}
       />
-      <EmojiPicker.Viewport className="relative flex-1 outline-hidden">
+      <EmojiPicker.Viewport className="relative flex-1">
         <EmojiPicker.Loading className="absolute inset-0 grid place-items-center text-xs text-(--ui-text-tertiary)">
           {t.assistant.thread.emojiLoading}
         </EmojiPicker.Loading>

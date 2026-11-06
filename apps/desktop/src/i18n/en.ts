@@ -25,6 +25,7 @@ import { enNotices } from './en_notices'
 import { enNotifications } from './en_notifications'
 import { enOnboarding } from './en_onboarding'
 import { enPluginUpdate } from './en_plugin_update'
+import { enPluginUpdateAll } from './en_plugin_update_all'
 import { enProjects } from './en_projects'
 import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
@@ -1781,6 +1782,13 @@ export const en: Translations = {
         restartFailedBecause: reason => `The gateway couldn't restart: ${reason}`,
         startTimedOut: "The gateway didn't serve the web app within 90 seconds.",
         stopTimedOut: "The gateway didn't stop serving the web app within 90 seconds.",
+        startStages: {
+          preparing: 'Getting the web app ready. Building it can take a few minutes.',
+          building: 'Building the web app. This can take a few minutes.',
+          registering: 'Setting up Nous sign-in for this address.',
+          restarting: 'Restarting the gateway to serve the web app.'
+        },
+        startElapsed: time => `${time} elapsed`,
         start: 'Start',
         stop: 'Stop',
         restartGateway: 'Restart gateway',
@@ -2782,6 +2790,7 @@ export const en: Translations = {
         `Pinned to commit ${sha}. Updates are refused until it is reinstalled with a new pin.`,
       pinnedBadge: (sha: string) => `pinned @ ${sha}`,
       ...enPluginUpdate,
+      ...enPluginUpdateAll,
       desktopHalfRemote: 'unavailable (remote backend)',
       desktopHalfRemoteTip:
         "This package's desktop half is on the remote backend's disk, which this app cannot read. To use it here, run Install from Git with the package's repo URL and the Desktop target checked — that clones the desktop half onto this machine.",
@@ -3291,6 +3300,35 @@ export const en: Translations = {
     restartNow: 'Restart now',
     restarting: 'Restarting…',
     restartFailedManual: "Hermes couldn't restart to apply your messaging settings",
+    relayLink: {
+      title: 'Team Gateway',
+      badge: 'No bot token needed',
+      intro: (platform: string) =>
+        `${platform} reaches this agent through the shared Hermes bot. Link your ${platform} account to it and message the bot to talk to your agent.`,
+      link: (platform: string) => `Link ${platform}`,
+      linkAnother: (platform: string) => `Link another ${platform} account`,
+      linkedAccounts: 'Linked accounts',
+      unlink: 'Unlink',
+      unlinkFailed: 'Couldn’t unlink that account',
+      stepOpen: (platform: string) => `1. Scan the code with your phone, or open the bot in ${platform}.`,
+      stepSend: '2. Send the bot this message from the account you want to link:',
+      open: (platform: string) => `Open ${platform}`,
+      copy: 'Copy message',
+      copied: 'Copied',
+      copyFailed: (command: string) => `Copy failed. Type ${command} instead.`,
+      waiting: 'Waiting for the bot to see your message. The code works once.',
+      linked: (platform: string) => `${platform} account linked. Message the bot to talk to your agent.`,
+      expired: 'That code expired before it was used. Get a new code and try again.',
+      refused: (platform: string) => `${platform} refused the link. Get a new code and try again.`,
+      qrAlt: (platform: string) => `QR code for the shared ${platform} bot`,
+      managed: 'Managed by Team Gateway',
+      managedNote: (platform: string) =>
+        `Team Gateway carries messaging on this deployment, so the gateway turns the direct ${platform} connection off at every start. To run it alongside the relay, set GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true in the gateway's environment (a direct connection keeps the instance from scaling to zero and can deliver messages twice).`,
+      managedIntro: "This agent's accounts are linked from Nous Portal.",
+      openPortal: 'Link accounts in Nous Portal',
+      noNewAccount: (platform: string) =>
+        `The code is no longer active and no new account appeared. If your ${platform} account isn't listed, get a new code and try again.`
+    },
     telegramQr: {
       title: 'Choose how to connect your Telegram bot',
       subtitle: 'Both options connect a bot you control and save its credentials only to this Hermes installation.',
@@ -5154,7 +5192,9 @@ export const en: Translations = {
       ultra: 'Ultra',
       updateFailed: 'Model option update failed',
       fastFailed: 'Fast mode update failed',
-      sendsOnRoute: (level: string) => `sends ${level} on this route`
+      sendsOnRoute: (level: string) => `sends ${level} on this route`,
+      daybreak: 'Daybreak',
+      daybreakFailed: 'Daybreak update failed'
     },
     gatewayMenu: enGatewayMenu,
     approvalMode: {
@@ -5257,6 +5297,15 @@ export const en: Translations = {
           subagent_definitions: 'Subagent definitions',
           system_prompt: 'System prompt',
           tool_definitions: 'Tool definitions'
+        },
+        compact: {
+          action: 'Compact conversation',
+          busyHint: 'Finish or stop the current reply first',
+          confirm: 'Compact',
+          hint: 'Summarize older context to make room. Continue in this same conversation.',
+          question: 'Compress this chat into a summary?',
+          questionNamed: title => `Compress “${title}” into a summary?`,
+          working: 'Compacting…'
         },
         empty: 'No context data yet',
         loading: 'Loading breakdown…',
@@ -5764,6 +5813,10 @@ export const en: Translations = {
       authorized: server => `Authorized ${server}`,
       failed: server => `Setup failed for ${server}`,
       toolCount: count => (count === 1 ? '1 tool' : `${count} tools`),
+      launchCommand: target => `Runs: ${target}`,
+      launchRemote: target => `Connects to: ${target}`,
+      launchEnv: keys => `Env: ${keys}`,
+      launchCwd: dir => `Working dir: ${dir}`,
       envRequired: 'Fill in the required credentials first',
       sendFailed: 'Could not send MCP setup response',
       reloadFailed: 'Server saved, but reloading MCP tools failed — they load next session',

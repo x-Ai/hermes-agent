@@ -1,9 +1,11 @@
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
+import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
 import { type BotsMessages } from './i18n-messages'
 import { groupCreateCopy } from './i18n_group_create'
 
 export const zh: BotsMessages = {
   canonical: CANONICAL_GROUP_LOCALES.zh,
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES.zh,
   editor: {
     fullConfigHint: '完整配置需要更新网关（更新 Hermes 后请重启网关）',
     liveCapabilities: '功能（立即生效 — 技能、工具、MCP）',
@@ -599,6 +601,7 @@ export const zh: BotsMessages = {
 
 export const zhHant: BotsMessages = {
   canonical: CANONICAL_GROUP_LOCALES['zh-hant'],
+  crossGateway: CROSS_GATEWAY_GROUP_LOCALES['zh-hant'],
   editor: {
     fullConfigHint: '完整設定需要更新閘道（更新 Hermes 後請重新啟動閘道）',
     liveCapabilities: '功能（立即生效 — 技能、工具、MCP）',
