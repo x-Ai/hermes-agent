@@ -469,23 +469,23 @@ export const CANONICAL_GROUP_LOCALES = {
     approvalAction: '操作',
     approvalCommand: '命令',
     approvalDetailsMissing: '无法显示操作详情。请先刷新详情，再允许此操作。',
-    checkingDriver: '正在检查群组运行程序…',
+    checkingDriver: '正在检查此连接上的群聊…',
     legacyRoom:
       '这个群聊由 Desktop 自己运行，因此无法在此网关上继续。用相同的机器人开始一个新群组：关闭 Desktop 后它仍会继续工作。之前的消息不会复制到新群组。',
     startGatewayGroup: '开始新群聊',
     createRefused: '网关无法创建此群聊。',
-    createGroupSize: '网关群组需要 2 到 6 个机器人。',
-    createOtherConnection: '网关群组只能加入此连接上的机器人。',
-    createDuplicateMember: '网关群组中的机器人需要使用不同的配置文件和名称标识；@all 和 @everyone 为保留名称。',
+    createGroupSize: '这里的群聊需要 2 到 6 个机器人。',
+    createOtherConnection: '这里的群聊只能加入此连接上的机器人。',
+    createDuplicateMember: '群聊中的机器人需要使用不同的配置文件和名称标识；@all 和 @everyone 为保留名称。',
     legacyRoomElsewhere:
-      '这个群聊无法在此继续：它包含其他电脑上的机器人，而网关群组只能加入同一个连接上的机器人。请切换到这些机器人所在的连接并在那里开始群组，或者用此连接上的机器人开始一个新群聊。之前的消息不会复制到新群组。',
+      '这个群聊无法在此继续：它包含其他电脑上的机器人，而这里的群聊只能加入同一个连接上的机器人。请切换到这些机器人所在的连接并在那里开始群组，或者用此连接上的机器人开始一个新群聊。之前的消息不会复制到新群组。',
     otherConnections: '其他连接上的机器人：{connections}',
     legacyRoomBlocked:
-      '这个群聊由 Desktop 自己运行，因此无法在此网关上继续，而且这些机器人目前无法组成网关群组（原因见下方）。请开始一个新群聊并选择它的机器人。之前的消息不会复制到新群组。',
+      '这个群聊由 Desktop 自己运行，因此无法在此网关上继续，而且这些机器人目前无法在这里组成群聊（原因见下方）。请开始一个新群聊并选择它的机器人。之前的消息不会复制到新群组。',
     groupsUnsupported:
       '无法在此打开群聊：此连接所在电脑上的 Hermes 版本太旧，不支持群聊。请在那台电脑上更新 Hermes 并重新连接，然后再试一次。不会丢失任何内容：之前的消息仍保留在原处。',
     groupDriverStopped:
-      '暂时无法在此打开群聊：此连接的网关没有运行群组运行程序。请在那台电脑上重启或更新 Hermes，然后再试一次。不会丢失任何内容：之前的消息仍保留在原处。',
+      '暂时无法在此打开群聊：群聊功能没有在此连接的网关上运行。请在那台电脑上重启或更新 Hermes，然后再试一次。不会丢失任何内容：之前的消息仍保留在原处。',
     groupsUnreachable:
       '无法连接到此连接的网关来打开这个群聊。请确认那台电脑上的 Hermes 正在运行且你已连接，然后再试一次。不会丢失任何内容：之前的消息仍保留在原处。',
     earlierMessages: '之前的消息（只读）。它们保留在此 Desktop 上，不会复制到新群组。'
@@ -591,23 +591,23 @@ export const CANONICAL_GROUP_LOCALES = {
     approvalAction: '操作',
     approvalCommand: '命令',
     approvalDetailsMissing: '無法顯示操作詳細資訊。請先重新整理詳細資訊，再允許此操作。',
-    checkingDriver: '正在檢查群組執行程式…',
+    checkingDriver: '正在檢查此連線上的群聊…',
     legacyRoom:
       '這個群聊由 Desktop 自行執行，因此無法在此閘道上繼續。用相同的機器人開始新群組：關閉 Desktop 後它仍會繼續運作。先前的訊息不會複製到新群組。',
     startGatewayGroup: '開始新群聊',
     createRefused: '閘道無法建立此群聊。',
-    createGroupSize: '閘道群組需要 2 到 6 個機器人。',
-    createOtherConnection: '閘道群組只能加入此連線上的機器人。',
-    createDuplicateMember: '閘道群組中的機器人需要使用不同的設定檔和代稱；@all 與 @everyone 為保留名稱。',
+    createGroupSize: '這裡的群聊需要 2 到 6 個機器人。',
+    createOtherConnection: '這裡的群聊只能加入此連線上的機器人。',
+    createDuplicateMember: '群聊中的機器人需要使用不同的設定檔和代稱；@all 與 @everyone 為保留名稱。',
     legacyRoomElsewhere:
-      '這個群聊無法在此繼續：它包含其他電腦上的機器人，而閘道群組只能加入同一個連線上的機器人。請切換到這些機器人所在的連線並在那裡開始群組，或用此連線上的機器人開始新的群聊。先前的訊息不會複製到新群組。',
+      '這個群聊無法在此繼續：它包含其他電腦上的機器人，而這裡的群聊只能加入同一個連線上的機器人。請切換到這些機器人所在的連線並在那裡開始群組，或用此連線上的機器人開始新的群聊。先前的訊息不會複製到新群組。',
     otherConnections: '其他連線上的機器人：{connections}',
     legacyRoomBlocked:
-      '這個群聊由 Desktop 自行執行，因此無法在此閘道上繼續，而且這些機器人目前無法組成閘道群組（原因見下方）。請開始新的群聊並選擇它的機器人。先前的訊息不會複製到新群組。',
+      '這個群聊由 Desktop 自行執行，因此無法在此閘道上繼續，而且這些機器人目前無法在這裡組成群聊（原因見下方）。請開始新的群聊並選擇它的機器人。先前的訊息不會複製到新群組。',
     groupsUnsupported:
       '無法在此開啟群聊：此連線所在電腦上的 Hermes 版本太舊，不支援群聊。請在那台電腦上更新 Hermes 並重新連線，然後再試一次。不會遺失任何內容：先前的訊息仍保留在原處。',
     groupDriverStopped:
-      '暫時無法在此開啟群聊：此連線的閘道沒有執行群組執行程式。請在那台電腦上重新啟動或更新 Hermes，然後再試一次。不會遺失任何內容：先前的訊息仍保留在原處。',
+      '暫時無法在此開啟群聊：群聊功能沒有在此連線的閘道上執行。請在那台電腦上重新啟動或更新 Hermes，然後再試一次。不會遺失任何內容：先前的訊息仍保留在原處。',
     groupsUnreachable:
       '無法連上此連線的閘道來開啟這個群聊。請確認那台電腦上的 Hermes 正在執行且你已連線，然後再試一次。不會遺失任何內容：先前的訊息仍保留在原處。',
     earlierMessages: '先前的訊息（唯讀）。它們會保留在此 Desktop 上，不會複製到新群組。'
