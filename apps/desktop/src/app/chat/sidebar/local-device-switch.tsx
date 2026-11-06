@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { FirstRunRemoteSetup } from '@/components/remote-setup/first-run'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useI18n } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
 import { localBootstrapNeeded } from '@/lib/local-backend-probe'
 import { notifyError } from '@/store/notifications'
 
@@ -45,7 +46,11 @@ export function useLocalDeviceSwitch() {
     try {
       bootstrapNeeded = await localBootstrapNeeded()
     } catch (error) {
-      notifyError(error, t.profiles.switchConnectionFailed(target.label))
+      // Only the local connection gets past the guard above.
+      notifyError(
+        error,
+        t.profiles.switchConnectionFailed(displayConnectionLabel({ kind: 'local', label: target.label }, t))
+      )
 
       return false
     }

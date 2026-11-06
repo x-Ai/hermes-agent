@@ -2,7 +2,8 @@ import { atom, computed } from 'nanostores'
 
 import { getConnectionServedProfiles, getProfiles } from '@/api/profiles'
 import type { DesktopConnectionsRegistry } from '@/global'
-import { translateNow } from '@/i18n'
+import { runtimeTranslations, translateNow } from '@/i18n'
+import { displayConnectionLabel } from '@/lib/connection-display'
 import { traceIdentityChange } from '@/lib/identity-trace'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import { persistStringRecord, storedStringRecord } from '@/lib/storage'
@@ -833,7 +834,12 @@ export async function selectConnection(connectionId: string, options: SelectConn
     }
 
     if (!targetIsActive()) {
-      throw new Error(translateNow('runtimeErrors.connectionNotActive', targetConnection.label))
+      throw new Error(
+        translateNow(
+          'runtimeErrors.connectionNotActive',
+          displayConnectionLabel(targetConnection, runtimeTranslations())
+        )
+      )
     }
 
     if (revision !== switchRevision) {

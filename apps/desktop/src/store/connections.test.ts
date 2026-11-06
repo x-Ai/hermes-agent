@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setApiRequestConnection, setApiRequestProfile } from '@/api/client'
 import type { DesktopConnectionsRegistry } from '@/global'
+import { DEFAULT_LOCALE, setRuntimeI18nLocale } from '@/i18n'
 import { BACKEND_BOOT_WAIT_TIMEOUT_MS, SOURCE_SWITCH_DIAL_TIMEOUT_MS } from '@/lib/with-timeout'
 
 import { deferred } from '../test/deferred'
@@ -387,6 +388,28 @@ describe('selectConnection', () => {
 
     expect(ensureGatewayAgent).toHaveBeenCalledWith('local', 'default', expect.anything())
     expect(api).not.toHaveBeenCalled()
+  })
+
+  // The failure becomes the switch toast's detail; the registry label is
+  // English data, so the message names This device in the UI language.
+  it('names This device in the UI language when it never becomes active', async () => {
+    setConnectionsRegistry({ ...registry, primary: 'homelab' })
+    $connection.set({ connectionId: 'homelab', mode: 'remote' })
+    // The dial answers but publishes nothing, so the local route never lands.
+    ensureGatewayAgent.mockImplementationOnce(async () => undefined)
+    setRuntimeI18nLocale('zh')
+
+    try {
+      const message = await selectConnection('local').then(
+        () => 'resolved',
+        (error: Error) => error.message
+      )
+
+      expect(message).toContain('本设备')
+      expect(message).not.toContain('This device')
+    } finally {
+      setRuntimeI18nLocale(DEFAULT_LOCALE)
+    }
   })
 
   it('lands on an explicit profile instead of the one last used on that source', async () => {

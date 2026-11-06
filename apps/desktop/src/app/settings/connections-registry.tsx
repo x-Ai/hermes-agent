@@ -491,7 +491,7 @@ export function ConnectionsRegistrySection() {
           // roster missed; explicit recovery should bypass its cache window.
           void refreshFleetRoster({ force: true })
         } else {
-          notifyError(new Error(result.error || conn.label), s.testFailed)
+          notifyError(new Error(result.error || displayConnectionLabel(conn, t)), s.testFailed)
         }
       } catch (err) {
         notifyError(err, s.testFailed)
@@ -515,16 +515,18 @@ export function ConnectionsRegistrySection() {
       const { results } = await bridge.updateAll()
 
       for (const row of results) {
+        const label = displayConnectionLabel(row, t)
+
         if (row.ok) {
-          notify({ title: row.label, message: row.detail || s.updateAllDone })
+          notify({ title: label, message: row.detail || s.updateAllDone })
         } else if (row.skipped && row.reason === 'cloud-managed') {
-          notify({ title: row.label, message: s.updateSkippedCloud })
+          notify({ title: label, message: s.updateSkippedCloud })
         } else if (row.skipped && row.reason === 'darwin-drain-unsupported' && row.detail) {
           // A deliberate per-row skip (e.g. a macOS SSH remote whose running
           // serve Desktop cannot safely stop) — informational, not a failure.
-          notify({ title: row.label, message: row.detail })
+          notify({ title: label, message: row.detail })
         } else {
-          notifyError(new Error(row.error || row.detail || row.reason || row.label), s.updateAllFailed)
+          notifyError(new Error(row.error || row.detail || row.reason || label), s.updateAllFailed)
         }
       }
     } catch (err) {
@@ -532,7 +534,7 @@ export function ConnectionsRegistrySection() {
     } finally {
       setUpdatingAll(false)
     }
-  }, [bridge, s.updateAllDone, s.updateAllFailed, s.updateSkippedCloud])
+  }, [bridge, s.updateAllDone, s.updateAllFailed, s.updateSkippedCloud, t])
 
   const kindMeta: Record<DesktopConnectionKind, { label: string; desc: string }> = {
     cloud: { desc: s.kindCloudDesc, label: s.kindCloud },

@@ -339,7 +339,14 @@ export function ProfileRail() {
       setPendingRoute(key)
 
       void selectConnection(target.connectionId, { profile: target.profile })
-        .catch((error: unknown) => notifyError(error, p.switchConnectionFailed(target.connectionLabel)))
+        .catch((error: unknown) =>
+          notifyError(
+            error,
+            p.switchConnectionFailed(
+              displayConnectionLabel({ kind: target.connectionKind, label: target.connectionLabel }, t)
+            )
+          )
+        )
         .finally(() => setPendingRoute(current => (current === key ? null : current)))
     }
 
@@ -564,11 +571,10 @@ export function ProfileRail() {
             active={isAll || onDefault}
             connectionId={activeConnectionId ?? undefined}
             glyph={isAll ? 'layers' : 'home'}
-            label={
-              onDefault ? p.showAllProfiles : p.switchToProfile(displayEntityName(profileLabel(homeProfile), t))
-            }
+            label={onDefault ? p.showAllProfiles : p.switchToProfile(displayEntityName(profileLabel(homeProfile), t))}
             onSelect={() => (onDefault ? setShowAllProfiles(true) : selectProfile(homeProfile.name))}
-            profile={homeProfile.name}          />
+            profile={homeProfile.name}
+          />
         ) : (
           <ProfilePill active={isAll} glyph="layers" label={p.allProfiles} onSelect={() => setShowAllProfiles(true)} />
         ))}
