@@ -154,7 +154,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
 import { SidebarFilterMenu } from './filter-menu'
-import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
+import { messagingOwnerGroups, useGatewaySessionGroups } from './gateway-group-model'
 import { SidebarLoadMoreRow } from './load-more-row'
 import { orderByIds, reconcileOrderIds, resolveManualSessionOrderIds, sameIds } from './order'
 import { filterSessionsByProfileScope } from './profile-scope'
@@ -1993,10 +1993,7 @@ export function ChatSidebar({
                 // Group only what the cap lets through, so the footer's count
                 // and load-more stay about the platform, not one of its groups.
                 const ownerGroups = ownerGrouped
-                  ? scopeGatewaySessionGroups(
-                      buildGatewaySessionGroups(shownSessions, connectionsRegistry, profileColors, t),
-                      `messaging:${group.sourceId}`
-                    )
+                  ? messagingOwnerGroups(shownSessions, group.sourceId, connectionsRegistry, profileColors, t)
                   : undefined
 
                 return (

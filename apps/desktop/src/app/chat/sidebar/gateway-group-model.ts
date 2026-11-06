@@ -7,6 +7,7 @@ import type { DesktopConnectionsRegistry } from '@/global'
 import type { SessionInfo } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
 import { displayConnectionLabel } from '@/lib/connection-display'
+import { displayEntityName } from '@/lib/display-name'
 import { isBrowserHostedDesktop } from '@/lib/platform'
 import { resolveProfileColor } from '@/lib/profile-color'
 import { $connectionsRegistry } from '@/store/connection-registry-state'
@@ -73,9 +74,11 @@ function ownerGroup(
   colors: Record<string, string>,
   t: Translations
 ): SidebarSessionGroup {
+  const name = displayEntityName(profile, t)
+
   return {
     id: JSON.stringify([connectionId, profile]),
-    label: connectionId ? `${gatewayLabel(connectionId, registry, t)} · ${profile}` : profile,
+    label: connectionId ? `${gatewayLabel(connectionId, registry, t)} · ${name}` : name,
     connectionId,
     profile,
     mode: 'profile',
@@ -93,14 +96,29 @@ function sortGroups(groups: SidebarSessionGroup[]): SidebarSessionGroup[] {
  *  their collapse/alias/order preferences never touch the recents groups. No
  *  gateway header sits above them there, so the gateway stays in the label only
  *  when the section mixes gateways. */
-export function scopeGatewaySessionGroups(groups: SidebarSessionGroup[], scope: string): SidebarSessionGroup[] {
+export function scopeGatewaySessionGroups(
+  groups: SidebarSessionGroup[],
+  scope: string,
+  t: Translations
+): SidebarSessionGroup[] {
   const mixed = new Set(groups.map(group => group.connectionId)).size > 1
 
   return groups.map(group => ({
     ...group,
     id: JSON.stringify([scope, group.id]),
-    label: mixed ? group.label : group.profile!
+    label: mixed ? group.label : displayEntityName(group.profile!, t)
   }))
+}
+
+/** The owner groups of the rows one messaging platform's section shows, scoped to that platform. */
+export function messagingOwnerGroups(
+  sessions: SessionInfo[],
+  sourceId: string,
+  registry: DesktopConnectionsRegistry | null,
+  colors: Record<string, string>,
+  t: Translations
+): SidebarSessionGroup[] {
+  return scopeGatewaySessionGroups(buildGatewaySessionGroups(sessions, registry, colors, t), `messaging:${sourceId}`, t)
 }
 
 /** The owner id the profile list belongs to, in the same vocabulary rows are tagged with: a

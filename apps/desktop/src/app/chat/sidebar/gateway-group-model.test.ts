@@ -52,8 +52,8 @@ describe('buildGatewaySessionGroups', () => {
 describe('scopeGatewaySessionGroups', () => {
   it('namespaces preference ids and keeps the gateway in labels only when owners mix gateways', () => {
     const recents = buildGatewaySessionGroups(rows, registry, {}, en)
-    const mixed = scopeGatewaySessionGroups(recents, 'messaging:telegram')
-    const single = scopeGatewaySessionGroups(recents.slice(0, 1), 'messaging:telegram')
+    const mixed = scopeGatewaySessionGroups(recents, 'messaging:telegram', en)
+    const single = scopeGatewaySessionGroups(recents.slice(0, 1), 'messaging:telegram', en)
 
     expect(mixed.map(group => group.id).filter(id => recents.some(group => group.id === id))).toEqual([])
     expect(new Set(mixed.map(group => group.label)).size).toBe(mixed.length)
