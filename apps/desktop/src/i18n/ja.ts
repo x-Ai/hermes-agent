@@ -27,6 +27,7 @@ import { jaPluginSettings } from './ja_plugins'
 import { jaProjects } from './ja_projects'
 import { jaProviderWait } from './ja_provider_wait'
 import { jaRuntime } from './ja_runtime'
+import { jaSessionSettings } from './ja_session_settings'
 import { jaSharedMetrics } from './ja_shared_metrics'
 import { jaThemePicker } from './ja_theme_picker'
 import { jaUpdateChannel } from './ja_update_channel'
@@ -2119,39 +2120,7 @@ export const jaOverrides = {
       providerLabels: {},
       providerDescriptions: {}
     },
-    sessions: {
-      loading: 'アーカイブ済みセッションを読み込み中…',
-      archivedTitle: 'アーカイブ済みセッション',
-      archivedIntro:
-        'アーカイブ済みチャットはサイドバーでは非表示になりますが、すべてのメッセージは保持されます。サイドバーのチャットを Alt/⌥+Shift クリックするとアーカイブできます。',
-      emptyArchivedTitle: 'アーカイブがありません',
-      emptyArchivedDesc: 'チャットをアーカイブするとここに表示されます。',
-      unarchive: 'アーカイブを解除',
-      deletePermanently: '完全に削除',
-      messages: count => `${count} 件のメッセージ`,
-      restored: '復元しました',
-      deleteConfirm: title => `"${title}" を完全に削除しますか？この操作は元に戻せません。`,
-      autoArchiveTitle: '古いチャットを自動アーカイブ',
-      autoArchiveDesc:
-        'しばらく操作していないチャットを自動的にアーカイブします。ピン留めしたチャットはアーカイブされず、削除もされません。アーカイブされたチャットはここに移動します。',
-      autoArchiveDaysLabel: 'アーカイブまでの日数',
-      autoArchiveDaysUnit: '日間操作なし',
-      autoArchiveFailed: '自動アーカイブを更新できませんでした',
-      defaultDirTitle: 'デフォルトのプロジェクトディレクトリ',
-      defaultDirDesc:
-        '別のフォルダーを選択しない限り、新しいセッションはこのフォルダーで開始します。未設定の場合はホームディレクトリが使用されます。',
-      defaultDirUpdated: () => 'デフォルトのプロジェクトディレクトリを更新しました',
-      defaultsTo: label => `デフォルト: ${label}。`,
-      change: '変更',
-      choose: '選択',
-      clear: 'クリア',
-      notSet: '未設定',
-      failedLoad: 'アーカイブ済みセッションを読み込めませんでした',
-      unarchiveFailed: 'アーカイブ解除に失敗しました',
-      deleteFailed: '削除に失敗しました',
-      updateDirFailed: 'デフォルトディレクトリを更新できませんでした',
-      clearDirFailed: 'デフォルトディレクトリをクリアできませんでした'
-    },
+    sessions: jaSessionSettings,
     toolsets: {
       loadingConfig: '設定を読み込み中',
       savedTitle: '認証情報を保存しました',

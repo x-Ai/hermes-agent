@@ -2741,7 +2741,7 @@ export const zhOverrides = {
       autoArchiveFailed: '无法更新自动归档设置',
       defaultDirTitle: '默认项目目录',
       defaultDirDesc: '新会话默认从此文件夹开始，除非你选择其他目录，留空则使用你的 Home 目录',
-      defaultDirUpdated: () => '默认项目目录已更新',
+      defaultDirUpdated: shortcut => `默认项目目录已更新，新建会话${shortcut ? `（${shortcut}）` : ''}后生效`,
       defaultsTo: label => `默认使用 ${label}`,
       change: '更改',
       choose: '选择',
