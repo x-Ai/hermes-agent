@@ -24,6 +24,8 @@ const REVIEWED = {
     'settings.uninstall',
     'boot.causes',
     'boot.steps',
+    'boot.errors',
+    'boot.failure',
     'commandCenter.maintenance',
     'assistant.thread',
     'sendDiagnostics',
