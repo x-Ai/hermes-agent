@@ -18,7 +18,9 @@ const REVIEWED = {
     'rightSidebar',
     'zones',
     'contextMenu',
-    'settings.connections'
+    'settings.connections',
+    'notifications',
+    'settings.managedUpdates'
   ],
   ja: ['keybinds', 'paletteCommands', 'findInPage', 'notifications']
 } as const
@@ -26,9 +28,9 @@ const REVIEWED = {
 const OVERLAYS: Record<keyof typeof REVIEWED, unknown> = { 'zh-hant': zhHantOverrides, ja: jaOverrides }
 
 // Characters that exist only in Simplified Chinese (each has a different Traditional
-// form). Machine translation slipped them into zh-hant copy: 过滤器, 合并, 全部折叠.
+// form). Machine translation slipped them into zh-hant copy: 过滤器, 合并, 全部折叠, 触发.
 const SIMPLIFIED_ONLY =
-  /[过这们为个对时会发开关还从进应网无与认设说话请让读写选择删叠机动页图码务级线连载档输键显隐闭间问题项览计运执实现处历记录换简数据库账户单么样经终侧边栏视标签编辑复并]/u
+  /[过这们为个对时会发开关还从进应网无与认设说话请让读写选择删叠机动页图码务级线连载档输键显隐闭间问题项览计运执实现处历记录换简数据库账户单么样经终侧边栏视标签编辑复并触]/u
 
 // Three English words in a row outside a code span: a sentence the overlay kept in
 // English ("now run through your Nous subscription", "405 Method Not Allowed").
@@ -37,8 +39,12 @@ const ENGLISH_RUN = /\b[A-Za-z]{2,}(?: +[A-Za-z]{2,}){2,}\b/
 type Leaf = { path: string; value: unknown }
 
 function leaves(value: unknown, path: string): Leaf[] {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    return Object.entries(value).flatMap(([key, child]) => leaves(child, `${path}.${key}`))
+  if (Array.isArray(value)) {
+    return value.flatMap((child, index) => leaves(child, `${path}[${index}]`))
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.entries(value).flatMap(([key, child]) => leaves(child, path ? `${path}.${key}` : key))
   }
 
   return [{ path, value }]
@@ -67,14 +73,16 @@ function rendered(value: unknown): string | undefined {
   }
 }
 
-function reviewedCopy(locale: keyof typeof REVIEWED): { path: string; text: string }[] {
-  return REVIEWED[locale]
-    .flatMap(block => leaves(at(OVERLAYS[locale], block), block))
-    .flatMap(({ path, value }) => {
-      const text = rendered(value)
+function copy(found: Leaf[]): { path: string; text: string }[] {
+  return found.flatMap(({ path, value }) => {
+    const text = rendered(value)
 
-      return text === undefined ? [] : [{ path, text }]
-    })
+    return text === undefined ? [] : [{ path, text }]
+  })
+}
+
+function reviewedCopy(locale: keyof typeof REVIEWED): { path: string; text: string }[] {
+  return copy(REVIEWED[locale].flatMap(block => leaves(at(OVERLAYS[locale], block), block)))
 }
 
 describe.each(['zh-hant', 'ja'] as const)('the reviewed %s copy', locale => {
@@ -93,9 +101,11 @@ describe.each(['zh-hant', 'ja'] as const)('the reviewed %s copy', locale => {
   })
 })
 
-describe('the reviewed zh-hant copy', () => {
+// Unlike the English check, this one reads the whole zh-hant overlay: no leaf, reviewed
+// or not, may hold a Simplified character.
+describe('the zh-hant overlay', () => {
   it('is written in Traditional characters', () => {
-    const faults = reviewedCopy('zh-hant')
+    const faults = copy(leaves(zhHantOverrides, ''))
       .filter(({ text }) => SIMPLIFIED_ONLY.test(text))
       .map(({ path, text }) => `${path}: ${text}`)
 

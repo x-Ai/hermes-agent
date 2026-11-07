@@ -400,7 +400,7 @@ export const zhOverrides = {
     deleteBody: '将移至废纸篓，你可以从那里恢复',
     pathCopied: '已复制路径',
     revealMissing: '该文件夹不在这台电脑上',
-    revealUnavailable: '这条路不在电脑上——它生活在后端机器上，使用“ 文件树中的编辑 ” .'
+    revealUnavailable: '该路径不在这台电脑上，而是位于后端机器上。请使用“在文件树中显示”。'
   },
   boot: {
     ready: 'Hermes 桌面版已就绪',
@@ -4668,7 +4668,7 @@ export const zhOverrides = {
     groupTitleGrouped: '取消分组',
     groupTitleUngrouped: '按工作区分组',
     allPinned: '这里的全部已置顶，取消置顶某个对话即可在最近中显示',
-    shiftClickHint: 'Shift+ 单击对话以置顶 · 拖动以重新排序',
+    shiftClickHint: 'Shift+单击对话以置顶',
     noWorkspace: '无工作区',
     projectEmpty: '暂无会话',
     projectLoadFailed: '会话加载失败',

@@ -407,7 +407,7 @@ export const zhHantAssistant = {
         }
       },
       errorDetails: '檢視錯誤詳細資訊',
-      errorToastTitle: 'Hermes 无法完成回复',
+      errorToastTitle: 'Hermes 無法完成回覆',
       errorLimitResets: time => `限額將於 ${time} 重設`,
       errorRetryAtReset: time => `限額重設後重試（${time}）`,
       errorRetryScheduled: (time, wait) => `將於 ${time} 重試 — 還剩 ${wait}`,

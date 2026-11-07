@@ -964,20 +964,20 @@ export const zhHantSettings = {
     },
     managedUpdates: {
       title: '託管更新',
-      intro: '更新桌面管理的 SSH 以交易方式安裝：會話耗盡、遠端結帳更新，並且每個設定檔都透過相關收據恢復。',
-      sshConnection: '桌面管理的 SSH 安裝',
+      intro: '以交易方式更新桌面版管理的 SSH 安裝：結束工作階段、更新遠端程式碼、還原每個設定檔，並產生對應的回條。',
+      sshConnection: '由桌面版管理的 SSH 安裝',
       update: '更新',
       updating: '正在更新…',
-      progress: '排空會話、更新遠端安裝和恢復設定檔......',
+      progress: '正在結束工作階段、更新遠端安裝並還原設定檔…',
       updated: '已更新',
-      partial: '已更新 — 恢復失敗',
-      refused: '拒絕',
+      partial: '已更新 — 還原失敗',
+      refused: '已拒絕',
       failed: '更新失敗',
       alreadyRunning: '更新已在進行中',
-      receipt: (id: string, outcome: string) => `收據${id} · ${outcome}`,
+      receipt: (id: string, outcome: string) => `回條 ${id} · ${outcome}`,
       receiptVersions: (pre: string, post: string) => `${pre} → ${post}`,
-      scopesRestored: (profiles: string) => `已還原的檔案資料:${profiles}`,
-      scopeNotRestored: (profile: string, error: string) => `簡介“${profile}” not restored: ${error}`
+      scopesRestored: (profiles: string) => `已還原的設定檔：${profiles}`,
+      scopeNotRestored: (profile: string, error: string) => `設定檔「${profile}」未還原：${error}`
     },
     gateway: {
       loading: '正在載入閘道設定...',

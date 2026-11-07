@@ -17,7 +17,7 @@ export const zhHantBoot = {
       backendReady: 'Hermes 後端已準備好',
       connectingRemoteBackend: '正在連接到遠端 Hermes 後端',
       resolvingBackend: '正在解析 Hermes 後端',
-      resolvingRuntime: '解析 Hermes 运行时',
+      resolvingRuntime: '正在解析 Hermes 執行環境',
       restartingAfterUpdate: '正在重新啟動 Hermes 以完成更新…',
       runtimeReady: 'Hermes 執行時已準備好',
       startingBackend: '啟動 Hermes 後端',
@@ -84,7 +84,7 @@ export const zhHantBoot = {
     },
     causes: {
       exitedEarly: 'Hermes的背景服務在啟動後就停止了.',
-      timedOut: 'Hermes的背景服務未及时回答.',
+      timedOut: 'Hermes 的背景服務未及時回應。',
       permission: 'Hermes無法寫入其資料夾( permission problem) .',
       diskFull: '磁碟已滿, 所以 Hermes 無法啟動 .',
       portInUse: '另一程序是使用網路端口Hermes需要.',

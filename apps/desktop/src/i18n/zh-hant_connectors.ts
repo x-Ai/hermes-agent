@@ -373,7 +373,7 @@ export const zhHantConnectors = {
     fieldDeliver: '交付給',
     fieldDeliverOnly: '僅傳送有效負載',
     fieldPrompt: '提示',
-    fieldPromptPlaceholder: '此 Webhook 触发时向代理提供的说明（可选）',
+    fieldPromptPlaceholder: '此 Webhook 觸發時給代理的指示（選填）',
     nameRequired: '需要姓名',
     create: '創建',
     creating: '創建中...',
