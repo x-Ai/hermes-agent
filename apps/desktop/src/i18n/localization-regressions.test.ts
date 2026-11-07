@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BOTS_LOCALES } from '@/plugins/hermes-bots/i18n'
 import botsPlugin from '@/plugins/hermes-bots/plugin'
 
+import { BUNDLED_LOCALES, TRANSLATIONS } from './catalog'
 import { en } from './en'
 import { resolveTranslations } from './registry'
 import { zh } from './zh'
@@ -171,6 +172,18 @@ describe('Chinese localization regressions', () => {
       for (const key of ['typeStdio', 'typeHttp', 'url', 'authOauth', 'authBearer'] as const) {
         expect(page.add[key], key).toBe(en.connectorsPage.add[key])
       }
+    }
+  })
+})
+
+// A number in this copy states a backend fact: the connect watch lasts 10 minutes
+// (OPERATION_DEADLINE_SECONDS). A merge that kept older translations left most locales at 5.
+describe('backend facts stated in copy', () => {
+  it('names the connect-watch deadline English names in every bundled locale', () => {
+    const minutes = en.connectors.directory.receiptTimedOut.match(/\d+/g)
+
+    for (const locale of BUNDLED_LOCALES) {
+      expect(TRANSLATIONS[locale].connectors.directory.receiptTimedOut.match(/\d+/g), locale).toEqual(minutes)
     }
   })
 })
