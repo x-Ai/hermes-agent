@@ -1,34 +1,35 @@
+import { AR_PLURAL } from './ar_plural'
 import { arThemePicker } from './ar_theme_picker'
 import type { TranslationOverrides } from './define-locale'
 
 export const arAssistant = {
   assistant: {
     media: {
-      gatewayFetchFailed: name => `تعذر جلب ${name} من البوابة (مفقود أو غير قابل للقراءة أو كبير جداً).`,
+      gatewayFetchFailed: name => `تعذّر جلب ${name} من البوابة (مفقود أو تتعذّر قراءته أو كبير جدًا).`,
       openMediaFile: kind => `فتح ملف ${kind === 'audio' ? 'الصوت' : 'الفيديو'}`,
       openNamed: name => `فتح ${name}`,
       loadingNamed: name => `جارٍ تحميل ${name}…`,
-      couldNotLoad: name => `تعذر تحميل ${name}.`,
+      couldNotLoad: name => `تعذّر تحميل ${name}.`,
       openImage: 'فتح الصورة',
       imageFallbackName: 'صورة'
     },
     embeds: {
       load: label => `تحميل ${label}`,
-      alwaysAllow: label => `السماح دائماً لـ ${label}`,
+      alwaysAllow: label => `السماح دائمًا لـ ${label}`,
       holdToZoom: 'اضغط مطولاً على Ctrl/⌘ للتكبير',
-      failedToLoad: label => `تعذر تحميل تضمين ${label}`,
+      failedToLoad: label => `تعذّر تحميل تضمين ${label}`,
       openDiagram: 'فتح المخطط',
       embedTitle: label => `تضمين ${label}`
     },
     thread: {
-      loadingSession: 'جار تحميل الجلسة...',
-      openSessionFailed: 'تعذر فتح هذه الجلسة',
+      loadingSession: 'جارٍ تحميل الجلسة',
+      openSessionFailed: 'تعذّر فتح هذه الجلسة',
       showEarlier: 'عرض الرسائل الأقدم',
-      loadingResponse: 'جار تحميل الرد...',
+      loadingResponse: 'يحمّل Hermes ردًا',
       steered: 'تم التوجيه',
       asyncDelegationFailure: detail => `(فشل: ${detail})`,
       asyncDelegationPartialOutput: 'الناتج الجزئي:',
-      messagingAgent: name => `جار مراسلة ${name}…`,
+      messagingAgent: name => `جارٍ مراسلة ${name}…`,
       messagedAgent: name => `تمت مراسلة ${name}`,
       messageFrom: name => `رسالة من ${name}`,
       showMessage: 'عرض الرسالة',
@@ -36,7 +37,7 @@ export const arAssistant = {
       showReply: 'عرض الرد',
       processOutput: 'المخرجات',
       emojiSearch: 'بحث…',
-      emojiLoading: 'جار تحميل الرموز التعبيرية…',
+      emojiLoading: 'جارٍ تحميل الرموز التعبيرية…',
       emojiEmpty: 'لم يتم العثور على رموز تعبيرية.',
       moreEmoji: 'المزيد من الرموز التعبيرية',
       removeReaction: emoji => `إزالة تفاعل ${emoji}`,
@@ -49,16 +50,16 @@ export const arAssistant = {
         userProfileUpdated: 'تم تحديث ملف المستخدم',
         skillCreated: 'تم إنشاء المهارة',
         skillNamedCreated: (name, detail) => `تم إنشاء المهارة «${name}»${detail ? `: ${detail}` : ''}`,
-        skillNamedPatched: (name, detail) => `تم إصلاح المهارة «${name}»${detail ? `: ${detail}` : ''}`,
+        skillNamedPatched: (name, detail) => `تم تعديل المهارة «${name}»${detail ? `: ${detail}` : ''}`,
         skillNamedRewritten: (name, detail) => `تمت إعادة كتابة المهارة «${name}»${detail ? `: ${detail}` : ''}`,
         memoryLabel: 'الذاكرة',
         userProfileLabel: 'ملف المستخدم'
       },
       failedTurnNotice: 'لم تتم معالجة طلبك. أرسله مرة أخرى إذا كنت لا تزال تريد مني تنفيذه.',
       failedTurnRestartNotice:
-        'البوّابة قيد إعادة التشغيل: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد أن يعيد Hermes الاتصال.',
+        'البوابة قيد إعادة التشغيل: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد أن يعيد Hermes الاتصال.',
       failedTurnShutdownNotice:
-        'البوّابة قيد الإيقاف: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد عودة Hermes.',
+        'البوابة قيد الإيقاف: انقطع هذا الدور ولن يُعاد تشغيله. أعد إرسال رسالتك بمجرد عودة Hermes.',
       failedTurnAutomationNotice:
         'انقطع تسليم تلقائي ولم يُعَد تشغيله. قد تكون بعض الإجراءات قد نُفِّذت بالفعل؛ تحقق من آثارها.',
       failedTurnPartialNotice:
@@ -74,30 +75,30 @@ export const arAssistant = {
         `تمت مقاطعة العملية أثناء إعادة محاولة استجابة فارغة من النموذج (المحاولة ${retry}/${maxRetries}).`,
       operationInterruptedRetryReasons: {
         fastResponseLikelyRateLimited: durationSeconds =>
-          `استجابة سريعة (${durationSeconds} ث) — يُرجح وجود تقييد للمعدل`,
-        rateLimited: 'تقييد المعدل من موفر المنبع (429)',
+          `استجابة سريعة (${durationSeconds} ث) — على الأرجح بسبب تقييد المعدل`,
+        rateLimited: 'قيّد المزوّد معدل الطلبات (429)',
         responseTime: durationSeconds => `زمن الاستجابة ${durationSeconds} ث`,
         slowResponseLikelyUpstreamTimeout: durationSeconds =>
-          `استجابة بطيئة (${durationSeconds} ث) — يُرجح انتهاء مهلة المنبع`,
-        upstreamError: (code, durationSeconds) => `خطأ في المنبع (الرمز ${code}، ${durationSeconds} ث)`,
-        upstreamGatewayTimedOut: durationSeconds => `انتهت مهلة بوابة المنبع (504، ${durationSeconds} ث)`,
-        upstreamProviderOverloaded: code => `موفر المنبع محمّل فوق طاقته (${code})`,
-        upstreamProviderTimedOut: durationSeconds => `انتهت مهلة موفر المنبع (Cloudflare 524، ${durationSeconds} ث)`,
-        upstreamServerError: (code, durationSeconds) => `خطأ في خادم المنبع (${code}، ${durationSeconds} ث)`
+          `استجابة بطيئة (${durationSeconds} ث) — على الأرجح انتهت مهلة المزوّد`,
+        upstreamError: (code, durationSeconds) => `خطأ لدى المزوّد (الرمز ${code}، ${durationSeconds} ث)`,
+        upstreamGatewayTimedOut: durationSeconds => `انتهت مهلة الخادم الوسيط لدى المزوّد (504، ${durationSeconds} ث)`,
+        upstreamProviderOverloaded: code => `المزوّد محمّل فوق طاقته (${code})`,
+        upstreamProviderTimedOut: durationSeconds => `انتهت مهلة المزوّد (Cloudflare 524، ${durationSeconds} ث)`,
+        upstreamServerError: (code, durationSeconds) => `خطأ في خادم المزوّد (${code}، ${durationSeconds} ث)`
       },
       operationInterruptedWaitingForModel: elapsedSeconds =>
         `تمت مقاطعة العملية: في انتظار استجابة النموذج (انقضت ${elapsedSeconds} ث).`,
       modelContinuing: (attempt, maxAttempts) =>
-        `أعاد النموذج تفكيرًا دون إجابة نهائية — جار طلب المتابعة (${attempt}/${maxAttempts})`,
+        `أعاد النموذج استدلالًا دون إجابة نهائية — جارٍ طلب المتابعة منه (${attempt}/${maxAttempts})`,
       providerReconnecting: (elapsedSeconds, kind) =>
-        `لم يرسل الموفّر ${kind === 'output' ? 'مخرجات' : 'استجابة'} منذ ${elapsedSeconds} ث — جار إعادة الاتصال…`,
+        `لم يرسل المزوّد ${kind === 'output' ? 'مخرجات' : 'استجابة'} منذ ${elapsedSeconds} ث — جارٍ إعادة الاتصال…`,
       providerRetrying: (retrySeconds, attempt, maxAttempts) =>
-        `في انتظار الموفّر — إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
+        `في انتظار المزوّد — إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
       providerWaitPhases: {
-        first_event: seconds => `${seconds} ث في انتظار أول حدث من الموفّر`,
-        reconnect: seconds => `${seconds} ث في انتظار أول حدث من الموفّر بعد إعادة الاتصال`,
-        pre_progress: seconds => `بث الموفّر مفتوح؛ ${seconds} ث دون تقدم فعلي من النموذج`,
-        post_event: seconds => `بث الموفّر نشط؛ ${seconds} ث دون أحداث بث`,
+        first_event: seconds => `${seconds} ث في انتظار أول حدث من المزوّد`,
+        reconnect: seconds => `${seconds} ث في انتظار أول حدث من المزوّد بعد إعادة الاتصال`,
+        pre_progress: seconds => `بث المزوّد مفتوح؛ ${seconds} ث دون تقدم فعلي من النموذج`,
+        post_event: seconds => `بث المزوّد نشط؛ ${seconds} ث دون أحداث بث`,
         first_chunk: seconds => `${seconds} ث في انتظار أول جزء من البث`,
         post_chunk: seconds => `البث مفتوح؛ ${seconds} ث دون مخرجات بث`
       },
@@ -107,13 +108,13 @@ export const arAssistant = {
         }`,
       providerRetryReasons: {
         rate_limited: 'تم تقييد المعدل',
-        overloaded: 'الموفّر محمّل فوق طاقته',
+        overloaded: 'المزوّد محمّل فوق طاقته',
         free_model_busy: 'النموذج المجاني مشغول'
       },
       providerRetryingAfter: (reason, resetWindow, retrySeconds, attempt, maxAttempts) =>
         `${reason} — ${resetWindow ? `يُعاد الضبط خلال ${resetWindow}، ` : ''}إعادة المحاولة بعد ${retrySeconds} ث (المحاولة ${attempt}/${maxAttempts})`,
       providerAutoRecovering: (retrySeconds, cycle, total, stopHint) =>
-        `الموفّر غير متاح مؤقتًا — إعادة المحاولة تلقائيًا بعد ${retrySeconds} ث (الدورة ${cycle}/${total})${
+        `المزوّد غير متاح مؤقتًا — إعادة المحاولة تلقائيًا بعد ${retrySeconds} ث (الدورة ${cycle}/${total})${
           stopHint ? `؛ ${stopHint}` : ''
         }`,
       providerStopHints: {
@@ -121,37 +122,43 @@ export const arAssistant = {
         cancelRequest: 'ألغِ الطلب للإيقاف',
         stopCommand: 'أرسل /stop للإلغاء'
       },
-      summarizingThread: 'جار تنظيم المحادثة',
-      moaAggregating: 'جار التجميع عبر MoA…',
+      summarizingThread: 'جارٍ تلخيص المحادثة',
+      moaAggregating: 'جارٍ التجميع عبر MoA…',
       moaReference: (label, index, count) =>
         `النموذج المرجعي${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
-      moaReferencesProgress: (done, total, label) => `تقدم مراجع MoA ${done}/${total}${label ? ` — ${label}` : ''}`,
-      loadingLocalModel: model => `جارٍ التحميل${model}إلى الذاكرة`,
-      processingPrompt: 'المعالجة السريعة',
+      moaReferencesProgress: (done, total, label) =>
+        `النماذج المرجعية لـ MoA ${done}/${total}${label ? ` — ${label}` : ''}`,
+      loadingLocalModel: model => `جارٍ تحميل ${model} إلى الذاكرة`,
+      processingPrompt: 'جارٍ معالجة الموجّه',
       resumeWhenBackgroundDone: count =>
-        count === 1 ? 'سيُستأنف عند انتهاء المهمة الخلفية' : `سيُستأنف عند انتهاء ${count} مهام خلفية`,
-      thinking: 'يفكر...',
+        AR_PLURAL(count, {
+          one: 'سيُستأنف عند انتهاء المهمة الخلفية',
+          two: 'سيُستأنف عند انتهاء المهمتين الخلفيتين',
+          few: `سيُستأنف عند انتهاء ${count} مهام خلفية`,
+          many: `سيُستأنف عند انتهاء ${count} مهمة خلفية`
+        }),
+      thinking: 'يفكّر...',
       thought: 'فكّر',
       thoughtBriefly: 'فكّر قليلاً',
       thoughtFor: duration => `فكّر لمدة ${duration}`,
-      turnDuration: duration => `استغرقت هذه الجولة ${duration}`,
-      today: time => `اليوم ${time}`,
-      yesterday: time => `أمس ${time}`,
+      turnDuration: duration => `استغرق هذا الدور ${duration}`,
+      today: time => `اليوم، ${time}`,
+      yesterday: time => `أمس، ${time}`,
       copy: 'نسخ',
       refresh: 'تحديث',
       moreActions: 'إجراءات إضافية',
       branchNewChat: 'تفريع إلى محادثة جديدة',
-      react: 'تفاعل',
+      react: 'إضافة تفاعل',
       dismissError: 'تجاهل الخطأ',
       errorLayers: {
         auth: 'مشكلة تسجيل الدخول',
         billing: 'نفاد الرصيد',
         disk: 'القرص ممتلئ',
-        endpoint: 'لا يمكن الوصول إلى خادم النموذج الخاص بك',
-        gateway: 'Hermes واجه مشكلة',
-        generic: 'Hermes لم يتمكن من إنهاء هذا الرد',
-        provider: 'أرجعت خدمة الذكاء الاصطناعي خطأ',
-        runtime: 'Hermes واجه مشكلة',
+        endpoint: 'تعذّر الوصول إلى خادم النموذج',
+        gateway: 'تعذّر إرسال رسالتك',
+        generic: 'تعذّر على Hermes إنهاء هذا الرد',
+        provider: 'أعادت خدمة الذكاء الاصطناعي خطأ',
+        runtime: 'واجه Hermes مشكلة',
         streaming: 'تم قطع الرد'
       },
       errorCodes: {
@@ -190,7 +197,7 @@ export const arAssistant = {
         },
         no_reply: {
           title: 'لم يصل الرد',
-          body: 'أنهى Hermes هذه الجولة، لكن لم يصل أي رد إلى هذه النافذة. أعد المحاولة لإرسالها مجددًا.'
+          body: 'أنهى Hermes هذا الدور، لكن لم يصل أي رد إلى هذه النافذة. أعد المحاولة لإرسال رسالتك مجددًا.'
         },
         upstream_blocked: {
           title: provider => `حظر ${provider} هذا الطلب`,
@@ -266,7 +273,7 @@ export const arAssistant = {
           body: 'تتجدد قريبًا. سجّل الدخول بحساب Nous للحصول على حصة أكبر، فهو مجاني.'
         },
         free_tier_at_capacity: {
-          title: 'الفئة المجانية مزدحمة',
+          title: 'المستوى المجاني مزدحم',
           body: 'سجّل الدخول لتتجاوز الانتظار، فهو مجاني، أو حاول مجددًا بعد قليل.'
         },
         free_tier_model_not_free: {
@@ -299,11 +306,11 @@ export const arAssistant = {
         },
         workspace_unavailable: {
           title: 'مجلد هذه المحادثة غير موجود',
-          body: 'نُقل المجلد الذي تعمل فيه هذه المحادثة أو حُذف، لذا لم تُنفَّذ رسالتك. أعد إنشاء المجلد، أو استخدم «Move to project» لتعيين مجلد آخر للمحادثة، ثم أعد المحاولة.'
+          body: 'نُقل المجلد الذي تعمل فيه هذه المحادثة أو حُذف، لذا لم تُنفَّذ رسالتك. أعد إنشاء المجلد، أو استخدم «نقل إلى مشروع» لتعيين مجلد آخر للمحادثة، ثم أعد المحاولة.'
         },
         launch_credentials_unavailable: {
           title: 'تغيّر مفتاح API لهذه المحادثة',
-          body: 'بدأت هذه المحادثة بمفتاح API تم تغييره أو حذفه منذ ذلك الحين، لذا لم تُرسل رسالتك. المحادثة المفتوحة لا تنتقل أبدًا إلى مفتاح مختلف من تلقاء نفسها. استخدم «بدء جلسة جديدة» لاستخدام مفتاحك الحالي.'
+          body: 'بدأت هذه المحادثة بمفتاح API تم تغييره أو حذفه منذ ذلك الحين، لذا لم تُرسل رسالتك. المحادثة المفتوحة لا تنتقل أبدًا إلى مفتاح مختلف من تلقاء نفسها. ابدأ جلسة جديدة لاستخدام مفتاحك الحالي.'
         },
         local_runtime_unavailable: {
           title: 'تعذّر الوصول إلى خادم النماذج المحلي',
@@ -318,81 +325,86 @@ export const arAssistant = {
       },
       errorRetry: 'إعادة المحاولة',
       errorSwitchToModel: (model, note) => (note ? `التبديل إلى ${model} (${note})` : `التبديل إلى ${model}`),
-      errorSwitchModelFailed: 'تعذر تبديل النموذج',
-      errorUseCredits: 'تفعيل الاستمرار بالرصيد',
-      errorUseCreditsFailed: 'تعذر تفعيل الاستمرار بالرصيد',
+      errorSwitchModelFailed: 'تعذّر تبديل النموذج',
+      errorUseCredits: 'تفعيل «الاستمرار بالرصيد»',
+      errorUseCreditsFailed: 'تعذّر تفعيل «الاستمرار بالرصيد»',
       errorAddCredits: 'إضافة رصيد',
       errorOpenBillingSettings: 'فتح إعدادات الفوترة',
       errorStartNewSession: 'بدء جلسة جديدة',
       errorSwitchProvider: 'تبديل المزوّد',
-      errorSignInAgain: provider => `تسجيل الدخول إلى ${provider} مجدداً`,
+      errorSignInAgain: provider => `تسجيل الدخول إلى ${provider} مجددًا`,
       errorOauthExpired: provider =>
-        `انتهت صلاحية تسجيل دخولك إلى ${provider} أو تم إلغاؤه. سجّل الدخول مجدداً لمتابعة المحادثة.`,
+        `انتهت صلاحية تسجيل دخولك إلى ${provider} أو أُلغي. سجّل الدخول مجددًا لمتابعة المحادثة.`,
       errorOpenLogs: 'فتح السجلات',
       errorOpenLogsFailed: 'تعذّر فتح مجلد السجلات',
-      errorOpenDesktopLogs: 'فتح سجلات سطح المكتب',
+      errorOpenDesktopLogs: 'فتح سجلات تطبيق سطح المكتب',
       errorCopyDiagnostics: 'نسخ تفاصيل الخطأ',
       errorSendDiagnostics: 'إرسال التشخيصات',
-      filesChanged: count => `${count} ملفات تم تغييرها`,
+      filesChanged: count =>
+        AR_PLURAL(count, {
+          one: 'تم تغيير ملف واحد',
+          two: 'تم تغيير ملفين',
+          few: `تم تغيير ${count} ملفات`,
+          many: `تم تغيير ${count} ملفًا`,
+          other: `تم تغيير ${count} ملف`
+        }),
       reviewChanges: 'مراجعة',
-      readAloudFailed: 'فشلت القراءة بصوت عال',
-      preparingAudio: 'جار تجهيز الصوت',
+      readAloudFailed: 'تعذّرت القراءة بصوت عالٍ',
+      preparingAudio: 'جارٍ تجهيز الصوت...',
       stopReading: 'إيقاف القراءة',
-      readAloud: 'قراءة بصوت عال',
+      readAloud: 'القراءة بصوت عالٍ',
       copyFullResponse: 'نسخ الرد الكامل',
-      readAloudFullResponseHint: 'انقر مع الضغط على Shift: قراءة الرد الكامل بصوت عال',
-      contentRefusedNotice: 'رفض فلتر الأمان في النموذج هذه الرسالة — جرّب طلبًا مختلفًا.',
-      editMessage: 'تحرير الرسالة',
-      expandMessage: 'الرسالة الموسعة',
+      readAloudFullResponseHint: 'انقر مع الضغط على Shift: قراءة الرد الكامل بصوت عالٍ',
+      contentRefusedNotice: 'رفض مرشّح الأمان في النموذج هذه الرسالة — جرّب طلبًا مختلفًا.',
+      editMessage: 'تعديل الرسالة',
+      expandMessage: 'توسيع الرسالة',
       scrollToBottom: 'التمرير إلى الأسفل',
       stop: 'إيقاف',
-      restorePrevious: 'استعادة السابق',
-      restoreCheckpoint: 'استعادة النقطة',
-      restoreFromHere: 'استعادة نقطة التحقق — إعادة التشغيل من هذا الموجّه',
-      restoreFailed: 'فشل الاستعادة',
-      restoreTitle: 'الاستعادة إلى نقطة التحقق هذه؟',
+      restorePrevious: 'استعادة نقطة الاستعادة السابقة',
+      restoreCheckpoint: 'استعادة نقطة الاستعادة',
+      restoreFromHere: 'استعادة نقطة الاستعادة — إعادة التشغيل من هذا الموجّه',
+      restoreFailed: 'تعذّرت الاستعادة',
+      restoreTitle: 'العودة إلى نقطة الاستعادة هذه؟',
       restoreBody: 'يُزال كل ما يلي هذا الموجّه من المحادثة، ويُعاد تشغيل الموجّه من هنا.',
       restoreConfirm: 'استعادة وإعادة تشغيل',
-      restoreNext: 'استعادة التالي',
-      goForward: 'تقدم',
-      sendEdited: 'إرسال التعديل',
-      attachingFile: 'جار إرفاق الملف',
+      restoreNext: 'استعادة نقطة الاستعادة التالية',
+      goForward: 'التقدّم للأمام',
+      sendEdited: 'إرسال الرسالة المعدّلة',
+      attachingFile: 'جارٍ الإرفاق…',
       errorLayerBodies: {
-        auth: 'لقد رفضت شركة "آي آي" توقيعك تحقق من وثائق تفويض هذا المزود ثم أرسل رسالتك مرة أخرى.',
-        billing: 'حسابك ليس لديه أي ائتمانات لهذا المزود اصعدي أو صانعة مفاتيح ثم ارسلي مرة اخرى.',
-        disk: 'القرص ممتلئ، لذلك تعذر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة ثم أعد المحاولة.',
-        endpoint: 'لا يمكن أن تصل إلى خادم نموذجك تأكد من أنها تعمل ثم أرسل رسالتك مرة أخرى.',
-        gateway:
-          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
-        generic: 'حدث خطأ أثناء رد Hermes. أعد المحاولة، أو انسخ التفاصيل إذا استمرت المشكلة.',
-        provider: 'The AI service could not complete this request. ارجعوا في لحظة أو مزود تبديل.',
-        runtime:
-          'Hermes hit an internal problem starting this reply. أرسل رسالتك مرة أخرى، إذا استمر الأمر في الحدوث أرسل التشخيصات.',
-        streaming: 'The connection dropped before the reply ended. حاول أن ترسلها مرة أخرى.'
+        auth: 'رفضت خدمة الذكاء الاصطناعي تسجيل دخولك. تحقّق من بيانات اعتماد هذا المزوّد، ثم أرسل رسالتك مجددًا.',
+        billing: 'لم يعد في حسابك رصيد لدى هذا المزوّد. اشحن رصيدك أو بدّل المزوّد، ثم أعد الإرسال.',
+        disk: 'القرص ممتلئ، لذا تعذّر على Hermes حفظ هذه المحادثة. حرّر بعض المساحة ثم أعد المحاولة.',
+        endpoint: 'تعذّر على Hermes الوصول إلى خادم النموذج المخصص. تأكد من أنه يعمل، ثم أرسل رسالتك مجددًا.',
+        gateway: 'واجه Hermes مشكلة داخلية عند بدء هذا الرد. أرسل رسالتك مجددًا؛ وإذا تكرر ذلك، أرسل التشخيصات.',
+        generic: 'حدث خطأ أثناء رد Hermes. أعد المحاولة، أو انسخ التفاصيل إذا تكررت المشكلة.',
+        provider: 'تعذّر على خدمة الذكاء الاصطناعي إكمال هذا الطلب. أعد المحاولة بعد قليل أو بدّل المزوّد.',
+        runtime: 'واجه Hermes مشكلة داخلية عند بدء هذا الرد. أرسل رسالتك مجددًا؛ وإذا تكرر ذلك، أرسل التشخيصات.',
+        streaming: 'انقطع الاتصال قبل اكتمال الرد. أعد المحاولة لإرسال رسالتك مجددًا.'
       },
       errorAuthKinds: {
         api_key: {
-          title: provider => `${provider}رفض مفتاح API الخاص بك`,
-          body: provider => `المفتاح المحفوظ لـ ${provider} غير صالح أو تم إلغاؤه. حدّثه ثم حاول مرة أخرى.`
+          title: provider => `رفض ${provider} مفتاح API الخاص بك`,
+          body: provider => `المفتاح المحفوظ لـ ${provider} غير صالح أو أُلغي. حدّثه ثم أعد المحاولة.`
         },
         oauth: {
-          title: provider => `لك${provider}انتهت صلاحية تسجيل الدخول`
+          title: provider => `انتهت صلاحية تسجيل دخولك إلى ${provider}`
         }
       },
-      errorDetails: 'تفاصيل',
-      errorGenericProvider: 'خدمات AI',
-      errorToastTitle: 'Hermes لا يمكن إنهاء الرد',
-      errorLimitResets: time => `يتم إعادة تعيين الحد عند${time}`,
+      errorDetails: 'التفاصيل',
+      errorGenericProvider: 'خدمة الذكاء الاصطناعي',
+      errorToastTitle: 'تعذّر على Hermes إنهاء الرد',
+      errorLimitResets: time => `يُعاد ضبط الحد عند ${time}`,
       errorRetryAtReset: time => `أعد المحاولة عند إعادة ضبط الحد (${time})`,
-      errorRetryScheduled: (time, wait) => `إعادة المحاولة عند${time}— في${wait}`,
+      errorRetryScheduled: (time, wait) => `إعادة المحاولة عند ${time} — بعد ${wait}`,
       errorRetryScheduledCancel: 'إلغاء',
       errorChooseModel: 'اختيار نموذج',
-      errorCompressConversation: 'محادثة ضغط',
-      errorCompressFailed: 'لا يمكن الضغط على المحادثة',
-      errorOpenHermesFolder: 'ملف Hermes',
-      errorOpenHermesFolderFailed: 'لا يمكن فتح ملف Hermes',
+      errorCompressConversation: 'ضغط المحادثة',
+      errorCompressFailed: 'تعذّر ضغط المحادثة',
+      errorOpenHermesFolder: 'فتح مجلد Hermes',
+      errorOpenHermesFolderFailed: 'تعذّر فتح مجلد Hermes',
       errorUpdateApiKey: 'تحديث مفتاح API',
-      errorSignInFreeTier: 'وقع مع حساب Nous',
+      errorSignInFreeTier: 'تسجيل الدخول بحساب Nous',
       errorRateLimitResetBody: (provider, time) => `بلغت حد الطلبات في ${provider}. يُعاد ضبطه عند ${time}.`,
       errorRetryAtResetShort: time => `إعادة المحاولة عند ${time}`,
       errorChooseModelLink: 'اختيار نموذج آخر',
@@ -408,65 +420,67 @@ export const arAssistant = {
     },
     approval: {
       gatewayDisconnected:
-        'Hermes غير متصل الآن. الأمر لا يزال في انتظار ردك (حتى انتهاء مهلة الموافقة). أعد الاتصال، ثم أرسله مرة أخرى.',
-      sendFailed: 'تعذر إرسال إجابتك',
+        'Hermes غير متصل الآن. لا يزال الأمر ينتظر إجابتك (حتى انتهاء مهلة الموافقة). أعد الاتصال، ثم أرسلها مرة أخرى.',
+      sendFailed: 'تعذّر إرسال إجابتك',
       run: 'تشغيل',
       command: 'الأمر',
-      moreOptions: 'خيارات إضافية',
-      allowSession: 'السماح لهذه الجلسة',
-      alwaysAllowMenu: 'السماح دائما',
+      moreOptions: 'خيارات موافقة إضافية',
+      allowSession: 'السماح في هذه الجلسة',
+      alwaysAllowMenu: 'السماح دائمًا…',
       jumpToApproval: 'الموافقة مطلوبة',
       reject: 'رفض',
-      alwaysTitle: 'السماح دائما',
-      alwaysDescription: pattern => `السماح دائما بالأوامر المطابقة لـ ${pattern}`,
-      alwaysAllow: 'السماح دائما',
+      alwaysTitle: 'السماح بهذا الأمر دائمًا؟',
+      alwaysDescription: pattern =>
+        `يضيف هذا النمط «${pattern}» إلى قائمة السماح الدائمة لديك (~/.hermes/config.yaml). لن يسألك Hermes مجددًا عن أوامر كهذه — في هذه الجلسة ولا في أي جلسة لاحقة.`,
+      alwaysAllow: 'السماح دائمًا',
       reconnect: 'إعادة الاتصال',
       timedOutSystemLine:
-        'ووقت الموافقة - لم يتم تشغيل القيادة. اطلب من شركة Hermes المحاولة مرة أخرى، أو رفع الحد الأقصى في ستينغز . السلامة . الموافقة.',
-      openSafetySettings: 'أماكن الأمان المفتوحة'
+        'انتهت مهلة الموافقة — لم يُشغَّل الأمر. اطلب من Hermes المحاولة مجددًا، أو ارفع الحد من الإعدادات ← الأمان ← مهلة الموافقة.',
+      openSafetySettings: 'فتح إعدادات الأمان'
     },
     clarify: {
-      notReady: 'غير جاهز',
-      gatewayDisconnected: 'Hermes is offline right now. إعادة الاتصال، ثم إرسالها مرة أخرى.',
-      sendFailed: 'فشل الإرسال',
-      loadingQuestion: 'جار تحميل السؤال...',
-      other: 'غير ذلك',
-      placeholder: 'اكتب إجابتك...',
-      skip: 'تخطي',
-      skipped: 'تخطى',
+      notReady: 'طلب التوضيح غير جاهز بعد',
+      gatewayDisconnected: 'Hermes غير متصل الآن. أعد الاتصال، ثم أرسلها مرة أخرى.',
+      sendFailed: 'تعذّر إرسال ردك على طلب التوضيح',
+      loadingQuestion: 'جارٍ تحميل السؤال…',
+      other: 'غير ذلك (اكتب إجابتك)',
+      placeholder: 'اكتب إجابتك…',
+      skip: 'تخطٍّ',
+      skipped: 'تم التخطي',
       confirmAndContinueLabel: 'تأكيد ومتابعة',
-      singleSelectHint: 'اختر واحدا',
+      singleSelectHint: 'اختر واحدًا',
       multiSelectHint: 'حدد كل ما ينطبق',
       recommendedSuffix: ' (موصى به)',
       oneQuestion: 'سؤال واحد',
-      questionProgress: (answered, total) => `تمت الإجابة على ${answered} من ${total}`
+      questionProgress: (answered, total) => `تمت الإجابة عن ${answered} من ${total}`
     },
     themePicker: arThemePicker,
     mcpSetup: {
-      installTitle: 'إضافة خواديم MCP',
-      enableTitle: 'خواديم طراز MCP',
+      installTitle: 'إضافة خوادم MCP',
+      enableTitle: 'تفعيل خوادم MCP',
       authorizeTitle: 'تفويض خوادم MCP',
       installAction: 'تثبيت',
-      enableAction: 'التمكين',
-      authorizeAction: 'الإذن',
-      installed: server => `مثبت${server}`,
-      enabled: server => `مُمكّن${server}`,
-      authorized: server => `مصرح به${server}`,
-      failed: server => `فشل الإعداد لـ${server}`,
-      toolCount: count => (count === 1 ? 'أداة واحدة' : `${count} tools`),
+      enableAction: 'تفعيل',
+      authorizeAction: 'تفويض',
+      installed: server => `تم تثبيت ${server}`,
+      enabled: server => `تم تفعيل ${server}`,
+      authorized: server => `تم تفويض ${server}`,
+      failed: server => `تعذّر إعداد ${server}`,
+      toolCount: count =>
+        AR_PLURAL(count, { one: 'أداة واحدة', two: 'أداتان', few: `${count} أدوات`, many: `${count} أداة` }),
       launchCommand: target => `يشغّل: ${target}`,
       launchRemote: target => `يتصل بـ: ${target}`,
       launchEnv: keys => `متغيرات البيئة: ${keys}`,
       launchCwd: dir => `مجلد العمل: ${dir}`,
-      envRequired: 'ملء وثائق التفويض المطلوبة أولا',
-      sendFailed: 'لم يكن بمقدوره إرسال رد من شركة MCP',
-      reloadFailed: 'أنقذ سيرفر، ولكن إعادة تحميل أدوات MCP فشلت - وهي تحمل الدورة القادمة',
-      gatewayDisconnected: 'Hermes is offline right now. إعادة الاتصال، ثم إرسالها مرة أخرى.'
+      envRequired: 'املأ بيانات الاعتماد المطلوبة أولًا',
+      sendFailed: 'تعذّر إرسال ردك على إعداد MCP',
+      reloadFailed: 'تم حفظ الخادم، لكن تعذّرت إعادة تحميل أدوات MCP — ستُحمَّل في الجلسة التالية',
+      gatewayDisconnected: 'Hermes غير متصل الآن. أعد الاتصال، ثم أرسله مرة أخرى.'
     },
     tool: {
       copyCode: 'نسخ الكود',
-      renderingImage: 'جار عرض الصورة...',
-      copyOutput: 'نسخ الإخراج',
+      renderingImage: 'جارٍ عرض الصورة...',
+      copyOutput: 'نسخ المخرجات',
       copyCommand: 'نسخ الأمر',
       copyContent: 'نسخ المحتوى',
       copyUrl: 'نسخ الرابط',
@@ -474,29 +488,41 @@ export const arAssistant = {
       copyQuery: 'نسخ الاستعلام',
       copyFile: 'نسخ الملف',
       copyPath: 'نسخ المسار',
-      outputAlt: 'إخراج الأداة',
+      outputAlt: 'مخرجات الأداة',
       rawResponse: 'الرد الخام',
       copyActivity: 'نسخ النشاط',
       toolPayload: 'حمولة الأداة',
       searchResults: 'نتائج البحث',
-      recoveredOne: 'تم الاسترداد',
-      recoveredMany: count => `تم استرداد ${count}`,
-      failedOne: 'فشل',
-      failedMany: count => `فشل ${count}`,
-      statusRunning: 'يعمل',
+      recoveredOne: 'تم التعافي بعد فشل خطوة واحدة',
+      recoveredMany: count =>
+        AR_PLURAL(count, {
+          one: 'تم التعافي بعد فشل خطوة واحدة',
+          two: 'تم التعافي بعد فشل خطوتين',
+          few: `تم التعافي بعد فشل ${count} خطوات`,
+          many: `تم التعافي بعد فشل ${count} خطوة`
+        }),
+      failedOne: 'فشلت خطوة واحدة',
+      failedMany: count =>
+        AR_PLURAL(count, {
+          one: 'فشلت خطوة واحدة',
+          two: 'فشلت خطوتان',
+          few: `فشلت ${count} خطوات`,
+          many: `فشلت ${count} خطوة`
+        }),
+      statusRunning: 'قيد التشغيل',
       statusError: 'خطأ',
-      statusRecovered: 'تم الاسترداد',
+      statusRecovered: 'تم التعافي',
       statusDone: 'تم',
-      memoryWriteNoted: 'تم تسجيل كتابة الذاكرة',
-      failedToWriteFile: detail => `فشل في كتابة الملف: ${detail}`,
+      memoryWriteNoted: 'سُجّلت محاولة الكتابة في الذاكرة',
+      failedToWriteFile: detail => `تعذّرت كتابة الملف: ${detail}`,
       sensitiveSystemPathWriteRefused: path =>
         `رُفضت الكتابة إلى مسار نظام حساس: ${path}\nإذا كنت بحاجة إلى تعديل ملفات النظام، فاستخدم أداة الطرفية مع sudo.`,
-      returnedError: 'أرجعت الأداة خطأ.',
-      returnedSuccessFalse: 'أرجعت الأداة success=false.',
-      returnedStatus: status => `أرجعت الأداة الحالة «${status}».`,
+      returnedError: 'أعادت الأداة خطأ.',
+      returnedSuccessFalse: 'أعادت الأداة success=false.',
+      returnedStatus: status => `أعادت الأداة الحالة «${status}».`,
       commandFailedWithExitCode: exitCode => `فشل تنفيذ الأمر برمز الخروج ${exitCode}.`,
       sessionKernelTimedOut: (timeoutSeconds, remote) =>
-        `انتهت مهلة الخلية بعد ${timeoutSeconds} ثانية؛ تم إنهاء نواة ${remote ? 'الجلسة البعيدة' : 'الجلسة'} وفُقدت حالتها. سيبدأ استدعاء execute_code التالي بنواة جديدة.`,
+        `انتهت مهلة الخلية بعد ${timeoutSeconds} ث؛ أُنهيت نواة ${remote ? 'الجلسة البعيدة' : 'الجلسة'} وفُقدت حالتها. سيبدأ استدعاء execute_code التالي بنواة جديدة.`,
       clarifyErrors: {
         questionsMustBeArray: 'يجب أن تكون المعلمة questions مصفوفة من كائنات الأسئلة.',
         questionsLimit: limit => `تدعم المعلمة questions عددًا أقصاه ${limit} من العناصر.`,
@@ -512,44 +538,77 @@ export const arAssistant = {
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
         delegate: {
-          count: (count, live) => `${live ? 'الفصل' : 'المندوب'} ${count} ${count === 1 ? 'المهمة' : 'المهام'}`,
-          present: 'الفصل',
-          target: (target, live) => `${live ? 'الفصل' : 'المندوب'} ${target}`
+          count: (count, live) =>
+            `${live ? 'جارٍ تفويض' : 'تم تفويض'} ${AR_PLURAL(count, {
+              one: 'مهمة واحدة',
+              two: 'مهمتين',
+              few: `${count} مهام`,
+              many: `${count} مهمة`
+            })}`,
+          present: 'جارٍ التفويض',
+          target: (target, live) => `${live ? 'جارٍ تفويض' : 'تم تفويض'} ${target}`
         },
         edit: {
-          count: (count, live) => `${live ? 'التحرير' : 'Edited'} ${count} ${count === 1 ? 'ملف' : 'الملفات'}`,
-          present: 'التحرير',
-          target: (target, live) => `${live ? 'التحرير' : 'Edited'} ${target}`
+          count: (count, live) =>
+            `${live ? 'جارٍ تحرير' : 'تم تحرير'} ${AR_PLURAL(count, {
+              one: 'ملف واحد',
+              two: 'ملفين',
+              few: `${count} ملفات`,
+              many: `${count} ملفًا`,
+              other: `${count} ملف`
+            })}`,
+          present: 'جارٍ التحرير',
+          target: (target, live) => `${live ? 'جارٍ تحرير' : 'تم تحرير'} ${target}`
         },
         explore: {
-          count: (count, live) => `${live ? 'استكشاف' : 'Explored'} ${count} ${count === 1 ? 'ملف' : 'الملفات'}`,
-          present: 'استكشاف',
-          target: (target, live) => `${live ? 'استكشاف' : 'Explored'} ${target}`
+          count: (count, live) =>
+            `${live ? 'جارٍ استكشاف' : 'تم استكشاف'} ${AR_PLURAL(count, {
+              one: 'ملف واحد',
+              two: 'ملفين',
+              few: `${count} ملفات`,
+              many: `${count} ملفًا`,
+              other: `${count} ملف`
+            })}`,
+          present: 'جارٍ الاستكشاف',
+          target: (target, live) => `${live ? 'جارٍ استكشاف' : 'تم استكشاف'} ${target}`
         },
         other: {
-          count: (count, live) => `${live ? 'استخدام' : 'مستخدم'} ${count} ${count === 1 ? 'أداة' : 'الأدوات'}`,
-          present: 'استخدام',
-          target: (target, live) => `${live ? 'استخدام' : 'مستخدم'} ${target}`
+          count: (count, live) =>
+            `${live ? 'جارٍ استخدام' : 'تم استخدام'} ${AR_PLURAL(count, {
+              one: 'أداة واحدة',
+              two: 'أداتين',
+              few: `${count} أدوات`,
+              many: `${count} أداة`
+            })}`,
+          present: 'جارٍ استخدام أداة',
+          target: (target, live) => `${live ? 'جارٍ استخدام' : 'تم استخدام'} ${target}`
         },
         run: {
-          count: (count, live) => `${live ? 'تشغيل' : 'ران'} ${count} ${count === 1 ? 'القيادة' : 'الأوامر'}`,
-          present: 'تشغيل',
-          target: (target, live) => `${live ? 'تشغيل' : 'ران'} ${target}`
+          count: (count, live) =>
+            `${live ? 'جارٍ تشغيل' : 'تم تشغيل'} ${AR_PLURAL(count, {
+              one: 'أمر واحد',
+              two: 'أمرين',
+              few: `${count} أوامر`,
+              many: `${count} أمرًا`,
+              other: `${count} أمر`
+            })}`,
+          present: 'جارٍ التشغيل',
+          target: (target, live) => `${live ? 'جارٍ تشغيل' : 'تم تشغيل'} ${target}`
         },
-        separator: ', '
+        separator: '، '
       },
       actions: {
-        read: 'قراءة',
-        reading: 'جار القراءة',
-        opened: 'تم الفتح',
-        opening: 'جار الفتح',
-        failedToOpen: 'فشل في فتح',
-        searched: 'تم البحث',
-        searching: 'جار البحث',
-        ran: 'تم التشغيل',
-        running: 'جار التشغيل',
-        ranCode: 'تم تشغيل الكود',
-        runningCode: 'جار البرمجة'
+        read: 'تمت قراءة',
+        reading: 'جارٍ قراءة',
+        opened: 'تم فتح',
+        opening: 'جارٍ فتح',
+        failedToOpen: 'تعذّر فتح',
+        searched: 'تم البحث عن',
+        searching: 'جارٍ البحث عن',
+        ran: 'تم تشغيل',
+        running: 'جارٍ تشغيل',
+        ranCode: 'تم تنفيذ الكود',
+        runningCode: 'جارٍ تنفيذ الكود'
       },
       prefixes: {
         browser: 'المتصفح',
@@ -557,150 +616,158 @@ export const arAssistant = {
       },
       titleTemplates: {
         actionCommand: (action, command) => `${action} ${command}`,
-        actionQuoted: (action, value) => `${action} “${value}”`,
+        actionQuoted: (action, value) => `${action} «${value}»`,
         actionTarget: (action, target) => `${action} ${target}`,
         completedTool: action => `تم تشغيل ${action}`,
         prefixedDone: (prefix, action) => `${prefix} ${action}`,
-        runningPrefixedTool: (prefix, action) => `جار تشغيل ${prefix.toLowerCase()} ${action.toLowerCase()}`,
-        runningTool: action => `جار تشغيل ${action.toLowerCase()}`
+        runningPrefixedTool: (prefix, action) => `جارٍ تشغيل ${prefix.toLowerCase()} ${action.toLowerCase()}`,
+        runningTool: action => `جارٍ تشغيل ${action.toLowerCase()}`
       },
+      // pendingAction is the part of `pending` that shimmers, so it stays a substring of it.
       titles: {
         browser_click: {
-          done: 'تم النقر على عنصر الصفحة',
-          pending: 'جار النقر على عنصر الصفحة',
-          pendingAction: 'جار النقر'
+          done: 'تم النقر على عنصر في الصفحة',
+          pending: 'جارٍ النقر على عنصر في الصفحة',
+          pendingAction: 'جارٍ النقر'
         },
         browser_fill: {
-          done: 'تم ملء حقل النموذج',
-          pending: 'جار ملء حقل النموذج',
-          pendingAction: 'جار الملء'
+          done: 'تم ملء حقل في النموذج',
+          pending: 'جارٍ ملء حقل في النموذج',
+          pendingAction: 'جارٍ ملء'
         },
         browser_navigate: {
           done: 'تم فتح الصفحة',
-          pending: 'جار فتح الصفحة',
-          pendingAction: 'جار الفتح'
+          pending: 'جارٍ فتح الصفحة',
+          pendingAction: 'جارٍ فتح'
         },
         browser_snapshot: {
-          done: 'تم التقاط لقطة الصفحة',
-          pending: 'جار التقاط لقطة الصفحة',
-          pendingAction: 'جار الالتقاط'
+          done: 'تم التقاط لقطة للصفحة',
+          pending: 'جارٍ التقاط لقطة للصفحة',
+          pendingAction: 'جارٍ التقاط'
         },
         browser_take_screenshot: {
-          done: 'تم التقاط لقطة الشاشة',
-          pending: 'جار التقاط لقطة الشاشة',
-          pendingAction: 'جار الالتقاط'
+          done: 'تم التقاط لقطة شاشة',
+          pending: 'جارٍ التقاط لقطة شاشة',
+          pendingAction: 'جارٍ التقاط'
         },
         browser_type: {
-          done: 'تمت الكتابة على الصفحة',
-          pending: 'جار الكتابة على الصفحة',
-          pendingAction: 'جار الكتابة'
+          done: 'تمت الكتابة في الصفحة',
+          pending: 'جارٍ الكتابة في الصفحة',
+          pendingAction: 'جارٍ الكتابة'
         },
         clarify: {
           done: 'تم طرح سؤال',
-          pending: 'جار طرح سؤال',
-          pendingAction: 'جار السؤال'
+          pending: 'جارٍ طرح سؤال',
+          pendingAction: 'جارٍ طرح'
         },
         cronjob: {
           done: 'مهمة مجدولة',
-          pending: 'جار جدولة المهمة',
-          pendingAction: 'جار الجدولة'
+          pending: 'جارٍ جدولة مهمة',
+          pendingAction: 'جارٍ جدولة'
         },
         edit_file: {
           done: 'تم تحرير الملف',
-          pending: 'جار تحرير الملف',
-          pendingAction: 'جار التحرير'
+          pending: 'جارٍ تحرير الملف',
+          pendingAction: 'جارٍ تحرير'
         },
         execute_code: {
-          done: 'تم تشغيل الكود',
-          pending: 'جار البرمجة',
-          pendingAction: 'جار البرمجة'
+          done: 'تم تنفيذ الكود',
+          pending: 'جارٍ تنفيذ الكود',
+          pendingAction: 'جارٍ تنفيذ'
         },
         image_generate: {
           done: 'تم إنشاء الصورة',
-          pending: 'جار إنشاء الصورة',
-          pendingAction: 'جار الإنشاء'
+          pending: 'جارٍ إنشاء الصورة',
+          pendingAction: 'جارٍ إنشاء'
         },
         list_files: {
           done: 'تم سرد الملفات',
-          pending: 'جار سرد الملفات',
-          pendingAction: 'جار السرد'
+          pending: 'جارٍ سرد الملفات',
+          pendingAction: 'جارٍ سرد'
         },
         memory: {
           done: 'تم الحفظ في الذاكرة',
-          pending: 'جار الحفظ في الذاكرة',
-          pendingAction: 'جار الحفظ'
+          pending: 'جارٍ الحفظ في الذاكرة',
+          pendingAction: 'جارٍ الحفظ'
         },
         patch: {
-          done: 'تم تصحيح الملف',
-          pending: 'جار تصحيح الملف',
-          pendingAction: 'جار التصحيح'
+          done: 'تم تعديل الملف',
+          pending: 'جارٍ تعديل الملف',
+          pendingAction: 'جارٍ تعديل'
         },
         read_file: {
           done: 'تمت قراءة الملف',
-          pending: 'جار قراءة الملف',
-          pendingAction: 'جار القراءة'
+          pending: 'جارٍ قراءة الملف',
+          pendingAction: 'جارٍ قراءة'
         },
         search_files: {
           done: 'تم البحث في الملفات',
-          pending: 'جار البحث في الملفات',
-          pendingAction: 'جار البحث'
+          pending: 'جارٍ البحث في الملفات',
+          pendingAction: 'جارٍ البحث'
         },
         session_search_recall: {
-          done: 'تم البحث في سجل الجلسة',
-          pending: 'جار البحث في سجل الجلسة',
-          pendingAction: 'جار البحث'
+          done: 'تم البحث في سجل الجلسات',
+          pending: 'جارٍ البحث في سجل الجلسات',
+          pendingAction: 'جارٍ البحث'
         },
         skill_view: {
           done: 'تم تحميل المهارة',
-          pending: 'جار تحميل المهارة',
-          pendingAction: 'جار التحميل'
+          pending: 'جارٍ تحميل المهارة',
+          pendingAction: 'جارٍ تحميل'
         },
         terminal: {
           done: 'تم تشغيل الأمر',
-          pending: 'جار تشغيل الأمر',
-          pendingAction: 'جار التشغيل'
+          pending: 'جارٍ تشغيل الأمر',
+          pendingAction: 'جارٍ تشغيل'
         },
         todo: {
           done: 'تم تحديث المهام',
-          pending: 'جار تحديث المهام',
-          pendingAction: 'جار التحديث'
+          pending: 'جارٍ تحديث المهام',
+          pendingAction: 'جارٍ تحديث'
         },
         vision_analyze: {
           done: 'تم تحليل الصورة',
-          pending: 'جار تحليل الصورة',
-          pendingAction: 'جار التحليل'
+          pending: 'جارٍ تحليل الصورة',
+          pendingAction: 'جارٍ تحليل'
         },
         web_extract: {
           done: 'تمت قراءة صفحة الويب',
-          pending: 'جار قراءة صفحة الويب',
-          pendingAction: 'جار القراءة'
+          pending: 'جارٍ قراءة صفحة الويب',
+          pendingAction: 'جارٍ قراءة'
         },
         web_search: {
           done: 'تم البحث في الويب',
-          pending: 'جار البحث في الويب',
-          pendingAction: 'جار البحث'
+          pending: 'جارٍ البحث في الويب',
+          pendingAction: 'جارٍ البحث'
         },
         write_file: {
           done: 'تم تحرير الملف',
-          pending: 'جار تحرير الملف',
-          pendingAction: 'جار التحرير'
+          pending: 'جارٍ تحرير الملف',
+          pendingAction: 'جارٍ تحرير'
         }
       },
-      failedCalls: (count: number) => `${count} tool call${count === 1 ? '' : 's'} failed`,
+      failedCalls: (count: number) =>
+        AR_PLURAL(count, {
+          one: 'فشل استدعاء أداة واحد',
+          two: 'فشل استدعاءان للأدوات',
+          few: `فشل ${count} استدعاءات للأدوات`,
+          many: `فشل ${count} استدعاءً للأدوات`,
+          other: `فشل ${count} استدعاء للأدوات`
+        }),
       skillActivity: {
         loading: 'جارٍ تحميل المهارة',
-        loaded: 'مهارة محملة',
-        loadFailed: 'فشل تحميل المهارة',
-        readingResource: 'مصدر مهارة القراءة',
-        readResource: 'اقرأ مورد المهارة',
-        resourceFailed: 'فشل في قراءة مورد المهارة',
-        listing: 'قائمة المهارات',
-        listed: 'المهارات المدرجة',
-        listFailed: 'فشل في عرض المهارات',
-        unavailable: 'نتيجة المهارة غير متوفرة'
+        loaded: 'تم تحميل المهارة',
+        loadFailed: 'تعذّر تحميل المهارة',
+        readingResource: 'جارٍ قراءة مورد المهارة',
+        readResource: 'تمت قراءة مورد المهارة',
+        resourceFailed: 'تعذّرت قراءة مورد المهارة',
+        listing: 'جارٍ سرد المهارات',
+        listed: 'تم سرد المهارات',
+        listFailed: 'تعذّر سرد المهارات',
+        unavailable: 'نتيجة المهارة غير متاحة'
       },
-      resultUnavailable: 'النتيجة غير متوفرة',
-      resultInterrupted: 'مقاطع'
+      resultUnavailable: 'النتيجة غير متاحة',
+      resultInterrupted: 'تمت المقاطعة'
     },
     catalogInstall: {
       preparing: 'جارٍ تجهيز التثبيت…',

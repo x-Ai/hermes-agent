@@ -1,0 +1,140 @@
+import type { TranslationOverride } from '@hermes/shared/i18n'
+
+import type { Translations } from './types'
+
+export const arLocalModels: TranslationOverride<Translations['settings']['localModels']> = {
+  catalogDescriptions: {
+    'Best all-round agent model; sees images; long context stays fast':
+      'أفضل نموذج وكيل شامل؛ يفهم الصور؛ ويحافظ على السرعة مع السياق الطويل',
+    'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
+      'نموذج مزيج خبراء متقدم واسع النطاق مع توقع رموز متعددة؛ يفهم الصور',
+    'Frontier-scale model; needs a very large GPU to run well':
+      'نموذج متقدم واسع النطاق؛ يتطلب ذاكرة GPU كبيرة جداً ليعمل بسلاسة',
+    "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
+      'نموذج مزيج خبراء من NVIDIA بـ 74 مليار معامل في إصدار مكمّم بدقة 2 بت؛ يفهم الصور',
+    'Bigger mixture-of-experts with multi-token prediction; sees images':
+      'نموذج مزيج خبراء أكبر مع توقع رموز متعددة؛ يفهم الصور',
+    'Frontier-class model for machines with 128GB+ memory': 'نموذج متقدم للأجهزة المزودة بذاكرة 128 GB أو أكثر'
+  },
+  recommendedBuild: (quant, largeWindow) =>
+    `الإصدار الموصى به (${quant}) — نوع التكميم الذي حُسّن له هذا المحرك؛ يعمل بالكامل على GPU${largeWindow ? ' مع نافذة سياق كبيرة' : ''}`,
+  compactBuild: quant =>
+    `إصدار مدمج مناسب لهذا الجهاز (${quant}) — يتجاوز ذاكرة GPU ويستخدم ذاكرة النظام، لذا يعمل ببطء أكبر`,
+  fitTooLarge: (quant, size) => `حتى أصغر إصدار (${quant}، ${size}) يتجاوز مجموع ذاكرة GPU وذاكرة النظام`,
+  fitNeedsMemory: 'يتطلب ذاكرة أكبر من المتوفرة في هذا الجهاز',
+  fitFullContext: context => `يعمل بسياقه الكامل البالغ ${context}`,
+  fitGrowingContext: (start, max) => `يبدأ السياق من ${start} ويتوسع نحو ${max} مع الاستخدام`,
+  fitSpilled: detail => `${detail} (يتجاوز ذاكرة GPU ويستخدم ذاكرة النظام، لذا يعمل ببطء أكبر)`,
+  title: 'النماذج المحلية',
+  runtimeTitle: 'بيئة التشغيل المحلية',
+  runtimeReady: backend => `جاهز · ${backend}`,
+  serverRunning: 'قيد التشغيل',
+  runtimeInstalled: 'بيئة تشغيل llama.cpp مثبّتة',
+  runtimeInstalledDetail: (tag, backend) =>
+    `الإصدار ${tag}، الواجهة الخلفية ${backend}. يتولى Hermes تشغيل الخادم وإدارته نيابةً عنك.`,
+  installTitle: 'تثبيت بيئة التشغيل المحلية',
+  installDetail:
+    'يُنزّل محرك الاستنتاج llama.cpp (بضع مئات من الميغابايت). تعمل النماذج التي تنزّلها بالكامل على هذا الجهاز — بلا حساب، ولا يغادر أي شيء حاسوبك.',
+  installAction: 'تثبيت بيئة التشغيل',
+  installing: 'جارٍ تثبيت بيئة التشغيل…',
+  installFailed: 'فشل تثبيت بيئة التشغيل',
+  hardwareTitle: 'هذا الجهاز',
+  hardwareLoading: 'جارٍ فحص عتاد جهازك…',
+  vram: label => `ذاكرة GPU: ${label}`,
+  ram: label => `ذاكرة RAM: ${label}`,
+  unifiedMemory: 'الذاكرة الموحدة',
+  modelsTitle: 'النماذج',
+  recommended: 'موصى به',
+  recommendedReason: {
+    'best-quality-resident':
+      'النموذج الأعلى جودةً الذي يعمل بالكامل على GPU بأقصى سرعة. يوازن الاختيار بين الجودة والسرعة المتوقعة على هذا العتاد.',
+    'speed-gated-quality':
+      'يتسع هذا الجهاز لنموذج أعلى جودة، لكنه سيستجيب ببطء شديد بسبب عرض نطاق الذاكرة — وهذا أفضل نموذج يحافظ على السرعة.'
+  } as Record<string, string>,
+  noRecommendationTitle: 'لا توجد توصية تلقائية لهذا الجهاز',
+  noRecommendationDetail:
+    'يتطلب الإعداد التلقائي نموذجًا منتقًى يعمل بالكامل في ذاكرة GPU أو الذاكرة الموحدة بأقصى سرعة. لا يزال بإمكانك اختيار نموذج أدناه أو تصفح المزيد من النماذج.',
+  noRecommendationAction: 'تصفح النماذج',
+  downloaded: 'تم التنزيل',
+  downloadAction: size => `تنزيل · ${size}`,
+  downloadProgress: (done, total) => `${done} من ${total}`,
+  downloadDoneToast: model => `أصبح ${model} جاهزًا.`,
+  installDoneToast: 'تم تثبيت بيئة التشغيل المحلية وهي جاهزة.',
+  quickstartTitle: 'تشغيل نموذج على هذا الجهاز',
+  quickstartDetail: (model, size) =>
+    `نقرة واحدة تُعدّ كل شيء: المحرك المحلي، والنموذج ${model} (تنزيل بحجم ${size})، وتعيينه افتراضيًا للدردشات الجديدة. لا يغادر أي شيء هذا الحاسوب.`,
+  quickstartDetailReady: model =>
+    `نقرة واحدة تجعل ${model} النموذج الافتراضي للدردشات الجديدة. كل شيء يعمل على هذا الجهاز.`,
+  quickstartAction: 'الإعداد نيابةً عني',
+  quickstartConfigure: 'دعني أختار',
+  quickstartDoneToast: model => `تم إعداد ${model} — تعمل الدردشات الجديدة على هذا الجهاز.`,
+  quickstartFailed: 'فشل إعداد النموذج المحلي',
+  quickstartStageEngine: 'المحرك',
+  quickstartStageModel: 'النموذج',
+  quickstartStageFinish: 'الانتهاء',
+  useAction: 'استخدام',
+  activePill: 'افتراضي',
+  updateTitle: 'يتوفر تحديث للمحرك',
+  updateDetail: (next, current) =>
+    `إصدار أحدث من llama.cpp (${next}) جاهز للتثبيت — إصدارك الحالي ${current}. تواصل النماذج العمل أثناء التنزيل.`,
+  updateAction: 'تحديث المحرك',
+  updating: 'جارٍ تحديث المحرك…',
+  upToDateTitle: 'المحرك محدّث',
+  upToDateDetail: (tag, backend) => `يعمل llama.cpp بالإصدار ${tag} (${backend}).`,
+  activeDetail: 'تستخدم الدردشات الجديدة هذا النموذج — يُحمَّل عند إرسال رسالتك الأولى',
+  activeNotLoaded: 'يُحمَّل عند رسالتك الأولى',
+  loadedPill: 'في الذاكرة',
+  placementResident: 'بالكامل على GPU',
+  placementSpilled: 'جزئيًا في RAM',
+  placementResidentTip: 'يعمل بالكامل في ذاكرة GPU بنافذة السياق هذه — بأقصى سرعة.',
+  placementSpilledTip:
+    'يُشغَّل جزء من هذا النموذج من ذاكرة RAM للنظام — يعمل، لكن ببطء أكبر. سيتسع إصدار أصغر أو سياق أصغر بالكامل.',
+  loadingPill: 'جارٍ التحميل…',
+  ejectTip: 'تحرير ذاكرة GPU (يُحمَّل النموذج مجددًا عند الرسالة التالية)',
+  ejected: 'تم إلغاء تحميل النموذج — وتحررت ذاكرة GPU.',
+  ejectFailed: 'تعذّر إلغاء تحميل النموذج',
+  stopServer: 'إيقاف التشغيل',
+  startServer: 'تشغيل',
+  runtimeRunningDetail:
+    'الخادم المحلي قيد التشغيل. يؤدي إيقافه إلى تحرير كل ذاكرة GPU ومنع المحادثات الجديدة من استخدام النماذج المحلية حتى تعيد تشغيله.',
+  serverStopped: 'توقف الخادم المحلي — وتحررت ذاكرة GPU.',
+  serverStarted: 'الخادم المحلي قيد التشغيل.',
+  serverStopFailed: 'تعذّر إيقاف الخادم المحلي',
+  serverStartFailed: 'تعذّر تشغيل الخادم المحلي',
+  activating: 'جارٍ البدء…',
+  activateFailed: model => `تعذّر التبديل إلى ${model}`,
+  activateDoneToast: model => `تستخدم الدردشات الجديدة ${model}.`,
+  downloadFailed: model => `فشل تنزيل ${model}`,
+  pillFitsGpu: 'يناسب ذاكرة GPU',
+  pillUsesRam: 'يستخدم ذاكرة RAM للنظام',
+  pillTooBig: 'كبير جدًا على هذا الجهاز',
+  browseTitle: 'ابحث عن المزيد من النماذج',
+  browseHint: 'ابحث في Hugging Face. تُضبط النماذج التي تنزّلها هنا تلقائياً بما يناسب جهازك، لكننا لم نختبرها.',
+  browsePlaceholder: 'ابحث عن النماذج بالاسم أو المؤلف…',
+  browseSearching: 'جارٍ البحث في Hugging Face',
+  browseListing: 'جارٍ قراءة ملفات النموذج',
+  browseShowFiles: 'إظهار الملفات',
+  browseRefresh: 'تحديث',
+  browseDownloads: 'تنزيل',
+  browseLikes: 'إعجاب',
+  browseGated: 'يتطلب تسجيل الدخول إلى Hugging Face',
+  browseNoGguf: 'لم يُعثر على ملفات نماذج متوافقة.',
+  browseFitUnknown: 'الملاءمة غير معروفة',
+  browseAlreadyDownloaded: 'تم تنزيله بالفعل.',
+  addedByYou: 'أضفته أنت',
+  browseDownloadStarted: 'جارٍ تنزيل {name}',
+  browseDownloadAria: 'تنزيل {name}',
+  sideloadButton: 'إضافة ملف نموذج',
+  sideloadTitle: 'اختيار ملف نموذج GGUF',
+  sideloadDone: 'تمت إضافة {name}.',
+  sideloadAlreadyPresent: 'موجود في مكتبتك بالفعل.',
+  pillFullContext: max => `سياق كامل ${max}`,
+  pillFullContextTip: 'يعمل بنافذة السياق الكاملة للنموذج منذ البداية',
+  pillUpTo: max => `سياق حتى ${max}`,
+  pillGrowsTip: 'يتوسع تلقائيًا كلما احتاجت محادثتك إلى مساحة أكبر',
+  pillVision: 'يفهم الصور',
+  deleteAction: 'حذف النموذج',
+  deleteConfirm: model => `حذف ${model} من القرص؟`,
+  deleted: model => `تم حذف ${model}.`,
+  deleteFailed: 'فشل الحذف'
+}

@@ -98,7 +98,7 @@ export const arDiagnostics = {
       signIn: 'تسجيل الدخول',
       view: 'عرض',
       disable: 'تعطيل',
-      disabledMessage: name => `تم تعطيل ${name} MCP. يمكنك إعادة تفعيله في أي وقت من القدرات ← MCP.`,
+      disabledMessage: name => `تم تعطيل ${name} MCP. يمكنك إعادة تفعيله في أي وقت من المهارات ← MCP.`,
       disableFailed: name => `تعذّر تعطيل ${name} MCP.`
     },
     errors: {

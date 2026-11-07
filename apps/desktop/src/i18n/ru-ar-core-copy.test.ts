@@ -9,7 +9,7 @@ import { ruOverrides } from './ru'
 // arguments to the words around them ("Профили включены${gateway}", "انتقل إلى${name}")
 // and dropped some of them. These blocks have been reviewed against English;
 // a value the overlay leaves out falls back to English and is not read here.
-const REVIEWED_BLOCKS = [
+const REVIEWED_IN_BOTH = [
   'billingBlock',
   'billingPage',
   'notifications',
@@ -29,6 +29,57 @@ const REVIEWED_BLOCKS = [
   'profiles',
   'cron'
 ] as const
+
+// Reviewed for Arabic only; the Russian copy of these blocks is still unswept.
+const REVIEWED_AR_ONLY = [
+  'connectors',
+  'sessionImport',
+  'webhooks',
+  'assistant',
+  'skillDeepLink',
+  'skills',
+  'starmap',
+  'agents',
+  'language',
+  'settings',
+  'modelPicker',
+  'modelVisibility',
+  'interfaceMode',
+  'modelAssignment',
+  'timelineEvents',
+  'quickEntry',
+  'petOverlay',
+  'composer',
+  'statusStack',
+  'prompts',
+  'desktop',
+  'tips',
+  'goalStatus',
+  'boot',
+  'keepAwakeOffer',
+  'remoteDisplayBanner',
+  'butterbar',
+  'promptNotices',
+  'updates',
+  'install',
+  'onboarding',
+  'freeTier'
+] as const
+
+const REVIEWED_BLOCKS: Record<'ru' | 'ar', readonly string[]> = {
+  ru: REVIEWED_IN_BOTH,
+  ar: [...REVIEWED_IN_BOTH, ...REVIEWED_AR_ONLY]
+}
+
+// Arguments that are identifiers rather than display text ('audio' | 'video');
+// a translation names the choice in its own words instead of echoing it. The
+// same exemptions as IDENTIFIER_ARGS in catalog-completeness.test.ts.
+const IDENTIFIER_ARGS: Record<string, readonly number[]> = {
+  'assistant.media.openMediaFile': [0],
+  'assistant.thread.providerReconnecting': [1],
+  'settings.toolsets.webCapabilitySelectedMessage': [1],
+  'starmap.editNode': [0]
+}
 
 const OVERLAYS = { ru: ruOverrides, ar: arOverrides } as Record<string, Record<string, unknown>>
 
@@ -96,9 +147,11 @@ function interpolationFaults(path: string, value: unknown): string[] {
     return []
   }
 
+  const identifiers = IDENTIFIER_ARGS[path] ?? []
+
   const dropped = args
     .map(([marker]) => marker)
-    .filter(marker => english.includes(marker) && !translated.includes(marker))
+    .filter((marker, index) => !identifiers.includes(index) && english.includes(marker) && !translated.includes(marker))
     .map(marker => `drops ${marker}: ${translated}`)
 
   // English itself writes a few markers flush (`v${version}`, `failed${detail}`).
@@ -115,9 +168,9 @@ describe.each(['ru', 'ar'] as const)('the reviewed %s core copy', locale => {
   it('keeps every argument English shows, set apart from the words around it', () => {
     const overlay = OVERLAYS[locale]
 
-    const faults = REVIEWED_BLOCKS.flatMap(block => leaves(overlay[block], block)).flatMap(({ path, value }) =>
-      interpolationFaults(path, value).map(fault => `${path} ${fault}`)
-    )
+    const faults = REVIEWED_BLOCKS[locale]
+      .flatMap(block => leaves(overlay[block], block))
+      .flatMap(({ path, value }) => interpolationFaults(path, value).map(fault => `${path} ${fault}`))
 
     expect(faults).toEqual([])
   })
@@ -150,5 +203,10 @@ describe('AR_PLURAL', () => {
   it('accepts a count passed as a string', () => {
     expect(AR_PLURAL('2', forms)).toBe('two')
     expect(AR_PLURAL('5', forms)).toBe('few')
+  })
+
+  it('reads a count that is not a number as the counted form, never as zero', () => {
+    expect(AR_PLURAL('1,234', { ...forms, zero: 'zero' })).toBe('many')
+    expect(AR_PLURAL('1,234', { ...forms, zero: 'zero', other: 'other' })).toBe('other')
   })
 })

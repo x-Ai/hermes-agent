@@ -1,3 +1,5 @@
+import { AR_PLURAL } from './ar_plural'
+
 // Desktop-side /rollback /agents /config /history /save /export /import /timestamps lines
 // (en_desktop_commands.ts is the source).
 export const arDesktopCommands = {
@@ -12,18 +14,37 @@ export const arDesktopCommands = {
   rollbackFailed: (error: string) => `فشلت الاستعادة: ${error}`,
   unknownError: 'خطأ غير معروف',
   restored: (hash: string) => (hash ? `تمت استعادة نقطة الاستعادة ${hash}.` : 'تمت استعادة نقطة الاستعادة.'),
-  rewound: (count: string) => `تم إرجاع ${count} رسالة من هذه المحادثة.`,
+  rewound: (count: string) =>
+    AR_PLURAL(count, {
+      one: 'تم التراجع عن رسالة واحدة في هذه المحادثة.',
+      two: 'تم التراجع عن رسالتين في هذه المحادثة.',
+      few: `تم التراجع عن ${count} رسائل في هذه المحادثة.`,
+      many: `تم التراجع عن ${count} رسالة في هذه المحادثة.`
+    }),
   reopenForRewind: 'أعد فتح هذه المحادثة لرؤية المحادثة بعد الإرجاع.',
-  agentsEmpty: 'لا توجد وكلاء فرعيون نشطون أو عمليات في الخلفية في هذه المحادثة.',
+  agentsEmpty: 'لا يوجد وكلاء فرعيون نشطون ولا عمليات في الخلفية في هذه المحادثة.',
   subagentsHeader: (count: string) => `الوكلاء الفرعيون (${count}):`,
   subagentFallback: 'وكيل فرعي',
   statusRunning: 'قيد التشغيل',
-  toolCalls: (count: string) => `${count} استدعاءات أدوات`,
+  toolCalls: (count: string) =>
+    AR_PLURAL(count, {
+      one: 'استدعاء أداة واحد',
+      two: 'استدعاءان للأدوات',
+      few: `${count} استدعاءات للأدوات`,
+      many: `${count} استدعاءً للأدوات`,
+      other: `${count} استدعاء للأدوات`
+    }),
   processesHeader: (count: string) => `عمليات في الخلفية (${count}):`,
   configHeader: 'الإعدادات (العرض والموافقات واللصق والصوت فقط؛ لا يُعرض أي شيء آخر):',
   configDefaults: '(القيم الافتراضية)',
-  configFooter: 'غيّر الإعدادات من الإعدادات، أو حرّر config.yaml باستخدام `hermes config edit` على مضيف البوابة.',
-  historyHeader: (count: string) => `سجل المحادثة (${count} رسالة):`,
+  configFooter: 'غيّر الإعدادات من صفحة الإعدادات، أو حرّر config.yaml باستخدام `hermes config edit` على مضيف البوابة.',
+  historyHeader: (count: string) =>
+    AR_PLURAL(count, {
+      one: 'سجل المحادثة (رسالة واحدة):',
+      two: 'سجل المحادثة (رسالتان):',
+      few: `سجل المحادثة (${count} رسائل):`,
+      many: `سجل المحادثة (${count} رسالة):`
+    }),
   historyEmpty: 'لا توجد رسائل بعد.',
   historyYou: 'أنت',
   historyHermes: 'Hermes',
@@ -32,7 +53,7 @@ export const arDesktopCommands = {
     'لم يتم الحفظ: لا تستطيع هذه البوابة تصدير نسخة منقّحة أو باسم محدد أو بغير JSON. حدّث البوابة، أو شغّل /save دون خيارات لكتابة JSON خام على مضيف البوابة.',
   savedOnHost: (path: string) => `تم الحفظ على مضيف البوابة: ${path}`,
   unknownPath: '(مسار غير معروف)',
-  saveUnsupported: 'خطأ: لا يستطيع إصدار سطح المكتب هذا حفظ الملفات',
+  saveUnsupported: 'خطأ: لا يستطيع إصدار تطبيق سطح المكتب هذا حفظ الملفات',
   saveDialogTitle: 'حفظ المحادثة',
   savedTo: (path: string) => `تم حفظ المحادثة في ${path}`,
   saveCancelled: 'لم يتم الحفظ (أُلغي).',
