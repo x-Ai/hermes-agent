@@ -3,6 +3,16 @@ import type { TranslationOverride } from '@hermes/shared/i18n'
 import type { Translations } from './types'
 
 export const esLocalModels: TranslationOverride<Translations['settings']['localModels']> = {
+  recommendedBuild: (quant, largeWindow) =>
+    `Compilación recomendada (${quant}): la clase de cuantización para la que está optimizado este motor; se ejecuta por completo en tu GPU${largeWindow ? ' con una ventana de contexto amplia' : ''}`,
+  compactBuild: quant =>
+    `Compilación compacta ajustada a este equipo (${quant}): supera la memoria de GPU, así que se ejecuta más lento`,
+  fitTooLarge: (quant, size) =>
+    `Incluso la compilación más compacta (${quant}, ${size}) supera la memoria de GPU y la RAM del sistema juntas`,
+  fitNeedsMemory: 'Necesita más memoria de la que tiene este equipo',
+  fitFullContext: context => `Se ejecuta con su contexto completo de ${context}`,
+  fitGrowingContext: (start, max) => `El contexto empieza en ${start} y crece hasta ${max} a medida que lo usas`,
+  fitSpilled: detail => `${detail} (supera la memoria de tu GPU: funciona más lento)`,
   connectionChanged: 'Cambió la conexión de los modelos locales',
   title: 'Modelos locales',
   runtimeTitle: 'Entorno local',

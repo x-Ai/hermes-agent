@@ -3,6 +3,15 @@ import type { TranslationOverride } from '@hermes/shared/i18n'
 import type { Translations } from './types'
 
 export const deLocalModels: TranslationOverride<Translations['settings']['localModels']> = {
+  recommendedBuild: (quant, largeWindow) =>
+    `Empfohlener Build (${quant}) — die Quantisierungsklasse, für die diese Engine optimiert ist; läuft komplett auf Ihrer GPU${largeWindow ? ' mit großem Kontextfenster' : ''}`,
+  compactBuild: quant => `Kompakter Build für diesen Rechner (${quant}) — größer als der GPU-Speicher, läuft langsamer`,
+  fitTooLarge: (quant, size) =>
+    `Selbst der kompakteste Build (${quant}, ${size}) übersteigt GPU-Speicher und Arbeitsspeicher zusammen`,
+  fitNeedsMemory: 'Braucht mehr Speicher, als dieser Rechner hat',
+  fitFullContext: context => `Läuft mit dem vollen ${context}-Kontext`,
+  fitGrowingContext: (start, max) => `Der Kontext beginnt bei ${start} und wächst mit der Nutzung bis auf ${max}`,
+  fitSpilled: detail => `${detail} (größer als Ihr GPU-Speicher — daher langsamer)`,
   connectionChanged: 'Verbindung für lokale Modelle geändert',
   title: 'Lokale Modelle',
   runtimeTitle: 'Lokale Laufzeit',
