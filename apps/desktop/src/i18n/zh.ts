@@ -2565,8 +2565,8 @@ export const zhOverrides = {
         notice: {
           loggedOut: {
             title: '连接你的 Nous 账户',
-            message: '在 TUI 中运行 /portal 或打开 Nous 门户连接账户',
-            action: '打开门户 ↗'
+            message: '登录你的 Nous 账户，即可在此查看余额、套餐和用量',
+            action: '登录'
           },
           openPortal: '打开门户 ↗',
           noCard: {

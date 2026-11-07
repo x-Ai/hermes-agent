@@ -215,4 +215,13 @@ describe('platform and behaviour facts stated in copy', () => {
       }
     }
   })
+  // The logged-out Billing notice opens the in-app sign-in dialog (use-billing-state.ts), never a portal link.
+  it('offers the in-app sign-in on the logged-out Billing notice in every bundled locale', () => {
+    for (const locale of BUNDLED_LOCALES) {
+      const notice = TRANSLATIONS[locale].settings.billing.state.notice.loggedOut
+
+      expect(notice.action, locale).not.toContain('↗')
+      expect(notice.message, locale).not.toContain('/portal')
+    }
+  })
 })
