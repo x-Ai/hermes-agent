@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { type I18nContextValue, I18nProvider, useI18n } from '@/i18n'
+import { type I18nContextValue, I18nProvider, TRANSLATIONS, useI18n } from '@/i18n'
 import { $freeTierSignIn } from '@/store/free-tier-sign-in'
 
 import { formatMoney } from './billing-amounts'
@@ -19,6 +19,7 @@ import {
   todayBillingState,
   todaySubscriptionState
 } from './fixtures.test-util'
+import { resolveTierArt } from './tier-art'
 
 import { BillingSettings } from './index'
 
@@ -631,5 +632,30 @@ describe('BillingSettings', () => {
     $freeTierSignIn.set({ status: 'closed' })
     expect(screen.queryByText('Payment method')).toBeNull()
     expect(screen.queryByText('Usage')).toBeNull()
+  })
+
+  // TierArt keys art by the English tier name, so the translated no-plan fallback label
+  // ('無料' in ja) must not decide whether the Free art shows.
+  it.each(['en', 'ja'] as const)('shows the Free tier art on a card with no plan name in %s', async locale => {
+    const usage = { ...todayBillingState.usage, plan_name: null }
+    apiMocks.fetchBillingState.mockResolvedValue(okBilling({ ...todayBillingState, usage }))
+    apiMocks.fetchSubscriptionState.mockResolvedValue(
+      okSubscription({ ...todaySubscriptionState, current: null, usage })
+    )
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    const { container } = render(
+      <MemoryRouter>
+        <I18nProvider configClient={null} initialLocale={locale}>
+          <QueryClientProvider client={client}>
+            <BillingSettings />
+          </QueryClientProvider>
+        </I18nProvider>
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByText(TRANSLATIONS[locale].settings.billing.state.planCard.freeTier)).toBeTruthy()
+    expect(container.querySelector(`img[src="${resolveTierArt('free')?.src}"]`)).not.toBeNull()
+    client.clear()
   })
 })

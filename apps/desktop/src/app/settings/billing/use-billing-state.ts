@@ -106,6 +106,11 @@ export type PendingPlanTransition =
  * "both present" / "neither present" cases.
  */
 export type BillingPlanCardView = {
+  /**
+   * The tier name TierArt looks the thumbnail up by: the server's name, or `free` behind the
+   * translated no-plan fallback, so the art does not depend on the locale. Absent = no art.
+   */
+  artName?: string
   caption: string
   /** A scheduled downgrade / cancellation waiting at period end (drives the undo). */
   pending?: PendingPlanTransition
@@ -489,7 +494,9 @@ function derivePlanCard(
   b: Translations['settings']['billing']
 ): BillingPlanCardView {
   const current = subscription?.current
-  const tierName = current?.tier_name ?? billing.usage?.plan_name ?? b.state.planCard.freeTier
+  const serverTierName = current?.tier_name ?? billing.usage?.plan_name
+  const tierName = serverTierName ?? b.state.planCard.freeTier
+  const artName = serverTierName ?? 'free'
   // Price resolves against the UNFILTERED catalog so a grandfathered current tier
   // still shows its price.
   const price = findCurrentTier(subscription)?.dollars_per_month_display
@@ -512,10 +519,18 @@ function derivePlanCard(
   const hasActionableTier = tiers.some(tier => tier.state === 'upgrade' || tier.state === 'downgrade')
 
   if (capable && hasActionableTier) {
-    return { action: { label: current ? b.plan.changePlan : b.plan.viewPlans }, caption, pending, price, tierName }
+    return {
+      action: { label: current ? b.plan.changePlan : b.plan.viewPlans },
+      artName,
+      caption,
+      pending,
+      price,
+      tierName
+    }
   }
 
   return {
+    artName,
     caption,
     // No in-app action → always hand off to the portal so the user isn't stranded.
     link: {
