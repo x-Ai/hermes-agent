@@ -94,8 +94,11 @@ def _copy_core_inputs(source: Path, destination: Path) -> None:
     metadata = tomllib.loads((source / "pyproject.toml").read_text(encoding="utf-8-sig"))
     project = metadata.get("project", {})
     setuptools = metadata.get("tool", {}).get("setuptools", {})
-    patterns = setuptools.get("packages", {}).get("find", {}).get("include", ["*"])
+    find = setuptools.get("packages", {}).get("find", {})
+    patterns = find.get("include", ["*"])
     package_roots = {pattern.split(".", 1)[0] for pattern in patterns}
+    # A ``where`` root (``src``) holds packages the include patterns name below it, not by its own name.
+    where_roots = {Path(where).parts[0] for where in find.get("where", ["."]) if Path(where).parts}
     files = {"pyproject.toml", "setup.py", "setup.cfg"}
     readme = project.get("readme")
     if isinstance(readme, str):
@@ -121,6 +124,7 @@ def _copy_core_inputs(source: Path, destination: Path) -> None:
         if (entry.is_dir() and not entry.is_symlink() and entry.name not in excluded
                 and not entry.name.startswith(".") and entry.resolve() != destination.resolve()
                 and (entry.name == "locales"  # bundled i18n data (#134965): not a package, but _locales_dir resolves it from the workspace root
+                     or entry.name in where_roots
                      or any(fnmatch.fnmatchcase(entry.name, pattern) for pattern in package_roots))):
             target = destination / entry.name
             shutil.copytree(entry, target, ignore=ignore)

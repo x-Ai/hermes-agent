@@ -2859,15 +2859,20 @@ export const zhOverrides = {
       browserRealProfile: {
         label: '使用我的真实浏览器配置文件',
         description:
-          '将默认浏览器的登录信息和 Cookie 复制到托管快照中，代理使用该快照进行浏览，绝不会直接打开你的真实配置文件，将应用于新会话',
+          '将默认浏览器的登录信息和 Cookie 复制到托管快照中，代理使用该快照进行浏览，应用内浏览器也会用它们登录，绝不会直接打开你的真实配置文件，将应用于新会话',
         enabledTitle: '真实配置文件浏览：已开启',
         enabledMessage: '新会话将使用默认浏览器配置文件的快照进行浏览',
         disabledTitle: '真实配置文件浏览：已关闭',
-        disabledMessage: '配置文件快照将被删除，新会话使用干净的浏览器',
+        disabledMessage: '配置文件快照将被删除，应用内浏览器也会退出这些登录，新会话使用干净的浏览器',
         failedSave: '无法保存真实配置文件设置',
+        reimportSignins: '重新导入登录信息',
+        signinsImportedTitle: '应用内浏览器登录',
+        signinsImported: count => `已使用浏览器配置文件中的 ${count} 个 Cookie 登录应用内浏览器`,
+        signinsRemote: '此后端运行在另一台机器上，因此不会将其浏览器配置文件导入应用内浏览器',
+        signinsFailed: '无法将登录信息导入应用内浏览器',
         prompt: {
           title: '让网站保持登录状态',
-          body: '让 Hermes 使用默认浏览器配置文件的快照进行浏览，网站打开时即已登录',
+          body: '让 Hermes 使用默认浏览器配置文件的快照进行浏览，无论是代理还是应用内浏览器，网站打开时即已登录',
           bulletSnapshot: 'Cookie 和登录信息会复制到托管快照中',
           bulletLiveProfile: '绝不会直接打开你的真实浏览器配置文件',
           bulletLocal: '所有数据都不会离开这台电脑',
@@ -5839,7 +5844,17 @@ export const zhOverrides = {
       commentTitle: n => `批注 ${n}`,
       saveComment: '保存',
       cancelComment: '取消批注',
-      embeddedPreviewHint: '部分网站不允许嵌入式预览。请在浏览器标签页中打开原始页面'
+      embeddedPreviewHint: '部分网站不允许嵌入式预览。请在浏览器标签页中打开原始页面',
+      vaultFill: '填充已保存的登录信息',
+      vaultTitle: site => `${site} 的已保存登录信息`,
+      vaultLoading: '正在加载已保存的登录信息…',
+      vaultEmpty: '此网站没有已保存的登录信息',
+      vaultUnlock: name => `解锁 ${name}`,
+      vaultOpenSettings: '打开凭据保险库设置',
+      vaultFilled: label => `已填充 ${label}。请检查表单，然后登录`,
+      vaultFillFailed: '无法填充登录信息',
+      vaultLoadFailed: '无法加载已保存的登录信息',
+      vaultPageNotReady: '页面仍在加载。加载完成后请重试'
     }
   },
   interfaceMode: {

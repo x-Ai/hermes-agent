@@ -21,6 +21,7 @@ from typing import Any
 
 from agent.i18n import t as _t
 from hermes_constants import get_hermes_home
+from hermes_cli._startup_fast import project_root_str
 from tools.environments.local import hermes_subprocess_env
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ def append_log_record(path: str | Path, record: str) -> None:
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return Path(project_root_str())
 
 
 def _check_output(argv: list[str], **kwargs: Any) -> str:

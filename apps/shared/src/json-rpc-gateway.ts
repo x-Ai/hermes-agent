@@ -37,6 +37,8 @@ export interface GatewayClientOptions {
    *  accepts requests: the place for per-connection announcements (the Desktop's `i18n.client_locale`),
    *  which a reconnect would otherwise silently lose. */
   onOpen?: (client: JsonRpcGatewayClient) => void
+  /** An error frame no request owns (the backend's parse-error reply). */
+  onUncorrelatedError?: JsonRpcRequestChannelOptions['onUncorrelatedError']
   /** Return true to intercept the default closed-state transition. */
   onSocketClose?: (event: { code: number }) => boolean | void
   /** Fetch `session.events.since` after a reconnect (default). Off for notification-only feeds whose peer never answers RPCs. */
@@ -175,9 +177,9 @@ export class JsonRpcGatewayClient {
   private replayEpochBySession = new Map<string, string>()
   private readonly stateHandlers = new Set<(state: ConnectionState) => void>()
   private readonly options: Required<
-    Omit<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
+    Omit<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUncorrelatedError' | 'onUnhandledRequest' | 'socketFactory'>
   > &
-    Pick<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUnhandledRequest' | 'socketFactory'>
+    Pick<GatewayClientOptions, 'onOpen' | 'onRequestHandlerError' | 'onUncorrelatedError' | 'onUnhandledRequest' | 'socketFactory'>
 
   /**
    * This client is the Desktop app on the backend's own machine, read at each socket open
@@ -201,6 +203,7 @@ export class JsonRpcGatewayClient {
       replay: options.replay ?? true,
       requestIdPrefix: options.requestIdPrefix ?? 'r',
       onRequestHandlerError: options.onRequestHandlerError,
+      onUncorrelatedError: options.onUncorrelatedError,
       onUnhandledRequest: options.onUnhandledRequest,
       requestTimeoutMs: options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
       socketFactory: options.socketFactory
@@ -217,6 +220,7 @@ export class JsonRpcGatewayClient {
       onEvent: event => this.handleEvent(event),
       onHeartbeatFailure: error => this.invalidate(error.message),
       onRequestHandlerError: this.options.onRequestHandlerError,
+      onUncorrelatedError: this.options.onUncorrelatedError,
       onUnhandledRequest: this.options.onUnhandledRequest,
       requestTimeoutMs: this.options.requestTimeoutMs
     })

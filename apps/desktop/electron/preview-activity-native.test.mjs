@@ -32,8 +32,12 @@ async function bounded(promise) {
 }
 
 async function run() {
-  const { beginPreviewGuestActivity, endPreviewGuestActivity, executePreviewGuestScript } =
-    await import('./preview-guest-throttle.ts')
+  const {
+    applyPreviewGuestAttachPrefs,
+    beginPreviewGuestActivity,
+    endPreviewGuestActivity,
+    executePreviewGuestScript
+  } = await import('./preview-guest-throttle.ts')
   const { createStreamThrottle } = await import('./stream-throttle.ts')
   let response
   let requested = Promise.withResolvers()
@@ -64,6 +68,11 @@ async function run() {
   throttle.register(window)
 
   try {
+    // Register the preview jar the same way main.ts does, so the activity gate
+    // recognizes the guest's own session (F1).
+    window.webContents.on('will-attach-webview', (_e, webPreferences, params) => {
+      applyPreviewGuestAttachPrefs(webPreferences, params.partition, '/preload.js', p => session.fromPartition(p))
+    })
     const attached = once(window.webContents, 'did-attach-webview')
     await window.loadURL(
       'data:text/html,' +
@@ -77,10 +86,7 @@ async function run() {
       await once(guest, 'did-stop-loading')
     }
 
-    const begin = () =>
-      beginPreviewGuestActivity(window.webContents, guest, session.fromPartition('persist:hermes-preview'), () =>
-        throttle.holdWindow(window)
-      )
+    const begin = () => beginPreviewGuestActivity(window.webContents, guest, () => throttle.holdWindow(window))
     const execute = code => executePreviewGuestScript(window.webContents, begin(), code)
     const assertIdle = () => {
       assert.equal(window.isVisible() && !window.isMinimized(), false)

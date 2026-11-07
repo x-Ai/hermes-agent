@@ -2424,15 +2424,23 @@ export const deOverrides = {
       browserRealProfile: {
         label: 'Mein echtes Browser-Profil verwenden',
         description:
-          'Kopiert die Anmeldungen und Cookies Ihres Standardbrowsers in einen verwalteten Schnappschuss, mit dem der Agent browst. Ihr Live-Profil wird nie direkt geöffnet. Gilt für neue Sessions.',
+          'Kopiert die Anmeldungen und Cookies Ihres Standardbrowsers in einen verwalteten Schnappschuss, mit dem der Agent browst, und meldet auch den In-App-Browser damit an. Ihr Live-Profil wird nie direkt geöffnet. Gilt für neue Sessions.',
         enabledTitle: 'Echtes Profil-Browsen aktiv',
         enabledMessage: 'Neue Sessions browsen mit einem Schnappschuss Ihres Standard-Browserprofils.',
         disabledTitle: 'Echtes Profil-Browsen deaktiviert',
-        disabledMessage: 'Der Profil-Schnappschuss wird gelöscht; neue Sessions verwenden einen sauberen Browser.',
+        disabledMessage:
+          'Der Profil-Schnappschuss wird gelöscht und der In-App-Browser davon abgemeldet; neue Sessions verwenden einen sauberen Browser.',
         failedSave: 'Die Echtes-Profil-Einstellung konnte nicht gespeichert werden',
+        reimportSignins: 'Anmeldungen erneut importieren',
+        signinsImportedTitle: 'Anmeldungen im In-App-Browser',
+        signinsImported: count =>
+          `In-App-Browser mit ${count} Cookie${count === 1 ? '' : 's'} aus Ihrem Browserprofil angemeldet.`,
+        signinsRemote:
+          'Dieses Backend läuft auf einem anderen Rechner, daher wird sein Browserprofil nicht in den In-App-Browser importiert.',
+        signinsFailed: 'Anmeldungen konnten nicht in den In-App-Browser importiert werden',
         prompt: {
           title: 'Auf Ihren Websites angemeldet bleiben',
-          body: 'Lassen Sie Hermes mit einem Schnappschuss Ihres Standard-Browserprofils browsen, damit Websites bereits angemeldet öffnen.',
+          body: 'Lassen Sie Hermes mit einem Schnappschuss Ihres Standard-Browserprofils browsen, damit Websites bereits angemeldet öffnen, für den Agenten und im In-App-Browser.',
           bulletSnapshot: 'Cookies und Anmeldungen werden in einen verwalteten Schnappschuss kopiert.',
           bulletLiveProfile: 'Ihr Live-Browserprofil wird nie direkt geöffnet.',
           bulletLocal: 'Nichts verlässt diesen Computer.',
@@ -4940,7 +4948,17 @@ export const deOverrides = {
       saveComment: 'Speichern',
       cancelComment: 'Kommentar abbrechen',
       embeddedPreviewHint:
-        'Manche Websites blockieren eingebettete Vorschauen. Öffne die Originalseite in einem Browser-Tab.'
+        'Manche Websites blockieren eingebettete Vorschauen. Öffne die Originalseite in einem Browser-Tab.',
+      vaultFill: 'Gespeicherte Anmeldung ausfüllen',
+      vaultTitle: site => `Gespeicherte Anmeldungen für ${site}`,
+      vaultLoading: 'Gespeicherte Anmeldungen werden geladen…',
+      vaultEmpty: 'Keine gespeicherte Anmeldung für diese Website',
+      vaultUnlock: name => `${name} entsperren`,
+      vaultOpenSettings: 'Einstellungen für den Anmeldedaten-Tresor öffnen',
+      vaultFilled: label => `${label} ausgefüllt. Prüfe das Formular und melde dich dann an.`,
+      vaultFillFailed: 'Die Anmeldung konnte nicht ausgefüllt werden',
+      vaultLoadFailed: 'Gespeicherte Anmeldungen konnten nicht geladen werden',
+      vaultPageNotReady: 'Die Seite lädt noch. Versuche es erneut, sobald sie fertig ist.'
     }
   },
   interfaceMode: {

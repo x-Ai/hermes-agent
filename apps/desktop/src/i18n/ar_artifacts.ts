@@ -212,7 +212,17 @@ export const arArtifacts = {
       commentPlaceholder: 'أضف تعليقًا...',
       commentTitle: n => `تعليق ${n}`,
       saveComment: 'حفظ',
-      cancelComment: 'إلغاء التعليق'
+      cancelComment: 'إلغاء التعليق',
+      vaultFill: 'ملء بيانات دخول محفوظة',
+      vaultTitle: site => `بيانات الدخول المحفوظة لـ ${site}`,
+      vaultLoading: 'جارٍ تحميل بيانات الدخول المحفوظة…',
+      vaultEmpty: 'لا توجد بيانات دخول محفوظة لهذا الموقع',
+      vaultUnlock: name => `فتح قفل ${name}`,
+      vaultOpenSettings: 'فتح إعدادات خزنة بيانات الاعتماد',
+      vaultFilled: label => `تم ملء ${label}. راجع النموذج ثم سجّل الدخول.`,
+      vaultFillFailed: 'تعذّر ملء بيانات الدخول',
+      vaultLoadFailed: 'تعذّر تحميل بيانات الدخول المحفوظة',
+      vaultPageNotReady: 'لا تزال الصفحة قيد التحميل. أعد المحاولة عند اكتمالها.'
     }
   }
 } satisfies Pick<TranslationOverrides, 'media' | 'artifacts' | 'artifactCard' | 'artifactPreview' | 'preview'>

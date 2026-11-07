@@ -4658,6 +4658,16 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       saveComment: string
       cancelComment: string
       embeddedPreviewHint: string
+      vaultFill: string
+      vaultTitle: (site: string) => string
+      vaultLoading: string
+      vaultEmpty: string
+      vaultUnlock: (name: string) => string
+      vaultOpenSettings: string
+      vaultFilled: (label: string) => string
+      vaultFillFailed: string
+      vaultLoadFailed: string
+      vaultPageNotReady: string
     }
   }
   interfaceMode: {

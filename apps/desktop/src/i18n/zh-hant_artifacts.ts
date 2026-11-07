@@ -176,7 +176,17 @@ export const zhHantArtifacts = {
       commentTitle: n => `評論${n}`,
       saveComment: '儲存',
       cancelComment: '取消評論',
-      embeddedPreviewHint: '部分網站會封鎖內嵌預覽。請在瀏覽器分頁中開啟原始頁面。'
+      embeddedPreviewHint: '部分網站會封鎖內嵌預覽。請在瀏覽器分頁中開啟原始頁面。',
+      vaultFill: '填入已儲存的登入資訊',
+      vaultTitle: site => `${site} 的已儲存登入資訊`,
+      vaultLoading: '正在載入已儲存的登入資訊…',
+      vaultEmpty: '此網站沒有已儲存的登入資訊',
+      vaultUnlock: name => `解鎖 ${name}`,
+      vaultOpenSettings: '開啟憑證保險庫設定',
+      vaultFilled: label => `已填入 ${label}。請檢查表單，然後登入。`,
+      vaultFillFailed: '無法填入登入資訊',
+      vaultLoadFailed: '無法載入已儲存的登入資訊',
+      vaultPageNotReady: '頁面仍在載入。載入完成後請再試一次。'
     }
   }
 } satisfies Pick<TranslationOverrides, 'media' | 'artifacts' | 'artifactCard' | 'artifactPreview' | 'preview'>

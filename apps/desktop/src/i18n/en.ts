@@ -2502,15 +2502,23 @@ export const en: Translations = {
       browserRealProfile: {
         label: 'Use My Real Browser Profile',
         description:
-          "Copies your default browser's logins and cookies into a managed snapshot the agent browses with. Your live profile is never opened directly. Applies to new sessions.",
+          "Copies your default browser's logins and cookies into a managed snapshot the agent browses with, and signs the in-app Browser tab in with them too. Your live profile is never opened directly. Applies to new sessions.",
         enabledTitle: 'Real-profile browsing on',
         enabledMessage: 'New sessions will browse with a snapshot of your default browser profile.',
         disabledTitle: 'Real-profile browsing off',
-        disabledMessage: 'The profile snapshot will be deleted; new sessions use a clean browser.',
+        disabledMessage:
+          'The profile snapshot will be deleted and the in-app browser signed out of it; new sessions use a clean browser.',
         failedSave: 'Could not save the real-profile setting',
+        reimportSignins: 'Re-import sign-ins',
+        signinsImportedTitle: 'In-app browser sign-ins',
+        signinsImported: count =>
+          `Signed the in-app browser in with ${count} cookie${count === 1 ? '' : 's'} from your browser profile.`,
+        signinsRemote:
+          'This backend runs on another machine, so its browser profile is not imported into the in-app browser.',
+        signinsFailed: 'Could not import sign-ins into the in-app browser',
         prompt: {
           title: 'Stay signed in to your sites',
-          body: 'Let Hermes browse with a snapshot of your default browser profile, so sites open already signed in.',
+          body: 'Let Hermes browse with a snapshot of your default browser profile, so sites open already signed in, both for the agent and in the in-app Browser tab.',
           bulletSnapshot: 'Cookies and logins are copied into a managed snapshot.',
           bulletLiveProfile: 'Your live browser profile is never opened directly.',
           bulletLocal: 'Nothing leaves this computer.',
@@ -5403,7 +5411,17 @@ export const en: Translations = {
       commentTitle: n => `Comment ${n}`,
       saveComment: 'Save',
       cancelComment: 'Cancel comment',
-      embeddedPreviewHint: 'Some sites block embedded previews. Open the original page in a browser tab.'
+      embeddedPreviewHint: 'Some sites block embedded previews. Open the original page in a browser tab.',
+      vaultFill: 'Fill a saved login',
+      vaultTitle: site => `Saved logins for ${site}`,
+      vaultLoading: 'Loading saved logins…',
+      vaultEmpty: 'No saved login for this site',
+      vaultUnlock: name => `Unlock ${name}`,
+      vaultOpenSettings: 'Open Credential Vault settings',
+      vaultFilled: label => `Filled ${label}. Review the form, then sign in.`,
+      vaultFillFailed: 'Could not fill the login',
+      vaultLoadFailed: 'Could not load saved logins',
+      vaultPageNotReady: 'The page is still loading. Try again when it has finished.'
     }
   },
   interfaceMode: {
