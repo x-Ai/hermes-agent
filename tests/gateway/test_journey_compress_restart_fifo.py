@@ -82,12 +82,16 @@ def test_followers_survive_compression_and_restart_in_order_exactly_once(tmp_pat
     thread = threading.Thread(target=peer.serve_forever, daemon=True)
     thread.start()
     url = f'http://127.0.0.1:{peer.server_port}/v1'
+    # Preflight estimates are ~12.0K before PRESSURE_3 and ~15.6K before PRESSURE_4, and the
+    # system prompt's temp paths alone move them by tens of tokens. The trigger sits well between
+    # the two so compaction always lands on PRESSURE_4; a threshold of 12000 sat within ~10 tokens
+    # of PRESSURE_3, so longer paths compacted one turn early and PRESSURE_1 stayed in the tail.
     (home / 'config.yaml').write_text(json.dumps({
         'gateway': {'multiplex_profiles': False},
         'model': {'provider': 'custom', 'default': 'original', 'base_url': url, 'context_length': 64000},
         'auxiliary': {'title_generation': {'enabled': False},
                       'compression': {'provider': 'custom', 'model': 'summary', 'base_url': url}},
-        'compression': {'protect_first_n': 1, 'protect_last_n': 2, 'threshold_tokens': 12000,
+        'compression': {'protect_first_n': 1, 'protect_last_n': 2, 'threshold_tokens': 13500,
                         'threshold': 0.5, 'in_place': False},
         'platform_toolsets': {'cli': []}}))
     (home / 'models_dev_cache.json').write_text(json.dumps({'custom': {'id': 'custom', 'models': {
