@@ -75,7 +75,7 @@ def test_prompt_filling_the_window_ends_the_turn_on_first_truncation(loop_agent)
     assert "part 0" in result["final_response"]
     assert "context window" in result["final_response"].lower()
     assert "32,638" in result["final_response"] and "32,768" in result["final_response"]
-    assert "continuation attempts" not in (result.get("error") or "")
+    assert "continuation attempt" not in (result.get("error") or "")
     # No continuation trail is left behind for the next turn.
     assert not any(
         m.get("_length_continuation_fragment") or m.get("_length_continuation_nudge")
@@ -90,5 +90,6 @@ def test_output_cap_truncation_with_headroom_still_continues(loop_agent):
     result = _run(loop_agent, "write me a long report")
 
     assert loop_agent.client.chat.completions.create.call_count == 4
-    assert "truncated after 4 continuation attempts" in (result.get("error") or "")
+    # Four truncated responses: the original answer plus the three continuations actually sent.
+    assert "truncated after 3 continuation attempt(s)" in (result.get("error") or "")
     assert "part 3" in result["final_response"]

@@ -286,7 +286,8 @@ def test_save_without_a_session_writes_where_a_bare_read_reads(client, sandboxes
     assert _notes(sandboxes) == {"own": "session note", "foreign": "foreign note", "shared": "edited"}
 
 
-@pytest.mark.parametrize("flag", [None, "on"])  # "on" is not a value the terminal mounts on
+# "enabled" is not a value the terminal mounts on (this fork's _tenv_bool also takes "on").
+@pytest.mark.parametrize("flag", [None, "enabled"])
 @pytest.mark.parametrize("path", ["/workspace/note.txt", "file:///workspace/note.txt"])
 def test_without_the_cwd_mount_a_session_reads_and_saves_the_profile_sandbox(
     client, sandboxes, monkeypatch, path, flag,
