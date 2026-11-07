@@ -44,6 +44,7 @@ export const zhProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   createFailed: '无法创建项目',
   staleBackend: '请更新 Hermes 后端以创建项目——当前后端比桌面应用旧（设置 → 更新 → 后端）',
   deleteConfirm: '这会从 Hermes 中移除已保存的项目，文件、git 仓库和工作树保持不变',
+  deleteTitle: label => `删除“${label}”？`,
   startWork: '新建工作树',
   newWorktreeTitle: '新建工作树',
   newWorktreeDesc: '为这个工作树命名分支',

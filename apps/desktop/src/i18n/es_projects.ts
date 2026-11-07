@@ -47,6 +47,7 @@ export const esProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
     'Actualiza el backend de Hermes para crear proyectos: tu backend es más antiguo que esta aplicación de escritorio (Configuración → Actualizaciones → Backend).',
   deleteConfirm:
     'Esto elimina el proyecto guardado de Hermes. Los archivos, los repositorios de git y los árboles de trabajo permanecen intactos.',
+  deleteTitle: label => `¿Borrar “${label}”?`,
   startWork: 'Nuevo worktree',
   newWorktreeTitle: 'Nuevo worktree',
   newWorktreeDesc: 'Asigna un nombre a la rama de este worktree.',

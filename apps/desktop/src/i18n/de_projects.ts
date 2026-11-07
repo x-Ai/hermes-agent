@@ -47,6 +47,7 @@ export const deProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
     'Aktualisieren Sie das Hermes-Backend, um Projekte zu erstellen – Ihr Backend ist älter als diese Desktop-App (Einstellungen → Updates → Backend).',
   deleteConfirm:
     'Das entfernt das gespeicherte Projekt aus Hermes. Dateien, Git-Repos und Worktrees bleiben unberührt.',
+  deleteTitle: label => `„${label}“ löschen?`,
   startWork: 'Neuer Worktree',
   newWorktreeTitle: 'Neuer Worktree',
   newWorktreeDesc: 'Benennen Sie den Branch für diesen Worktree.',

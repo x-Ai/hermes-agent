@@ -159,7 +159,7 @@ function useProjectActions({
       onClose={() => setConfirmDeleteOpen(false)}
       onConfirm={confirmDelete}
       open={confirmDeleteOpen}
-      title={`${p.menuDelete} "${project.label}"?`}
+      title={p.deleteTitle(project.label)}
     />
   )
 

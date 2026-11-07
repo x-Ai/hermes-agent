@@ -333,6 +333,7 @@ export const arChrome = {
       staleBackend:
         'حدِّث خادم Hermes لإنشاء المشاريع — فهو أقدم من هذا التطبيق (الإعدادات ← التحديثات ← الواجهة الخلفية).',
       deleteConfirm: 'هذا يزيل المشروع المحفوظ من Hermes. تبقى الملفات ومستودعات git وأشجار العمل دون تغيير.',
+      deleteTitle: label => `حذف «${label}»؟`,
       startWork: 'شجرة عمل جديدة',
       newWorktreeTitle: 'شجرة عمل جديدة',
       newWorktreeDesc: 'سمِّ الفرع لشجرة العمل هذه.',

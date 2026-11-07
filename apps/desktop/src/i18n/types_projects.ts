@@ -43,6 +43,7 @@ export interface SidebarProjectsTranslations {
   createFailed: string
   staleBackend: string
   deleteConfirm: string
+  deleteTitle: (label: string) => string
   startWork: string
   newWorktreeTitle: string
   newWorktreeDesc: string

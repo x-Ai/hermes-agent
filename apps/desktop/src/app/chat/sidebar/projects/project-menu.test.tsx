@@ -35,6 +35,7 @@ vi.mock('@/i18n', () => ({
         projects: {
           copyPath: 'Copy path',
           deleteConfirm: 'This cannot be undone.',
+          deleteTitle: (label: string) => `Delete "${label}"?`,
           menu: 'Actions',
           menuAddFolder: 'Add folder',
           menuAppearance: 'Appearance',

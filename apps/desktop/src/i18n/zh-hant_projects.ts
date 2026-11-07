@@ -45,6 +45,7 @@ export const zhHantProjects: NonNullable<TranslationOverrides['sidebar']>['proje
   unavailableAllProfiles: '檢視全部設定檔時無法使用專案',
   staleBackend: '請更新 Hermes 後端以建立專案——目前後端比桌面應用舊（設定 → 更新 → 後端）。',
   deleteConfirm: '這會從 Hermes 中移除已儲存的專案。檔案、git 儲存庫和工作樹維持不變。',
+  deleteTitle: label => `刪除「${label}」？`,
   startWork: '新增工作樹',
   newWorktreeTitle: '新增工作樹',
   newWorktreeDesc: '為這個工作樹命名分支。',

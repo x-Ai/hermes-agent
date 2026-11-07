@@ -45,6 +45,7 @@ export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   staleBackend:
     'Обновите бэкенд Hermes, чтобы создавать проекты — ваш бэкенд старше этого desktop-приложения (Настройки → Обновления → Бэкенд).',
   deleteConfirm: 'Это удалит сохранённый проект из Hermes. Файлы, git-репозитории и worktrees не пострадают.',
+  deleteTitle: label => `Удалить «${label}»?`,
   startWork: 'Новый worktree',
   newWorktreeTitle: 'Новый worktree',
   newWorktreeDesc: 'Назовите ветку для этого worktree.',

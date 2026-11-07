@@ -42,6 +42,7 @@ export const jaProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
     'プロジェクトを作成するには Hermes バックエンドを更新してください。バックエンドがこのデスクトップアプリより古いです（設定 → 更新 → バックエンド）。',
   deleteConfirm:
     'Hermes から保存済みプロジェクトを削除します。ファイル・git リポジトリ・ワークツリーはそのまま残ります。',
+  deleteTitle: label => `「${label}」を削除しますか？`,
   startWork: '新しいワークツリー',
   newWorktreeTitle: '新しいワークツリー',
   newWorktreeDesc: 'このワークツリーのブランチ名を入力してください。',
