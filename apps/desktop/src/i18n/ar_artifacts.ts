@@ -176,7 +176,7 @@ export const arArtifacts = {
       commenting: 'التعليق',
       addComments: count => (count === 1 ? 'إضافة تعليق واحد' : `Add ${count} comments`),
       commentPlaceholder: 'أضف تعليق.',
-      commentTitle: n => `تعليق${n}`,
+      commentTitle: n => `تعليق ${n}`,
       saveComment: 'حفظ',
       cancelComment: 'تعليق إلغاء'
     }

@@ -5165,7 +5165,7 @@ export const ruOverrides = {
       commenting: 'Комментирование',
       addComments: count => (count === 1 ? 'Добавить 1 комментарий' : `Add ${count} comments`),
       commentPlaceholder: 'Добавить комментарий...',
-      commentTitle: n => `Комментарий${n}`,
+      commentTitle: n => `Комментарий ${n}`,
       saveComment: 'Сохранить',
       cancelComment: 'Отменить комментарий',
       embeddedPreviewHint:

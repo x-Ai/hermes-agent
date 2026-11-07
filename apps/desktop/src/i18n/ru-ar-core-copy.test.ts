@@ -60,12 +60,16 @@ const REVIEWED_BLOCKS = [
   'updates',
   'install',
   'onboarding',
-  'freeTier'
+  'freeTier',
+  // Checked for arguments only: the rest of this block is not reviewed in either
+  // locale yet (web.addComments still prints English for counts above one).
+  'preview'
 ] as const
 
-// Arabic blocks written against English from the start (no machine-translated
-// past); the Russian overlay still leaves them in English.
-const AR_ONLY_BLOCKS = ['connectorsPage', 'appTour', 'sharedProviders', 'connectorOffer'] as const
+// Blocks reviewed for Arabic only: written against English from the start, or
+// (catalog) rewritten from machine translation. The Russian overlay leaves them
+// in English or unreviewed.
+const AR_ONLY_BLOCKS = ['connectorsPage', 'appTour', 'sharedProviders', 'connectorOffer', 'catalog'] as const
 
 const BLOCKS: Record<'ru' | 'ar', readonly string[]> = {
   ru: REVIEWED_BLOCKS,
