@@ -134,6 +134,8 @@ def test_providers_custom_entry_never_lends_its_key_to_the_submitted_endpoint(is
     assert all(url == SUBMITTED_URL and key != "key-a" for url, key in probes), probes
     model = _read(isolated_home)["model"]
     assert (model["base_url"], model.get("api_key", "")) == (SUBMITTED_URL, api_key)
+    # Nor is the submitted key rotated into that entry: its host keeps its own credential.
+    assert _read(isolated_home)["providers"]["custom"] == {"base_url": COLLIDING_URL, "api_key": "key-a"}
 
 
 def test_bare_custom_without_url_still_selects_the_providers_custom_entry(isolated_home):

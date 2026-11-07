@@ -931,14 +931,16 @@ def _apply_main_assignment_sync(cfg: dict, provider: str, model: str, base_url: 
     endpoint_already_known = (
         provider_lc in {"custom", "local"} and bool(base_url) and _endpoint_known_to_config(cfg, base_url))
     model_cfg = _apply_main_model_assignment(cfg.get("model", {}), result, api_key)
-    rotated_key_env = _rotate_entry_credential(cfg, provider, api_key)
+    # A submitted endpoint carries its own key (or none); a ``providers.custom`` block for ANOTHER
+    # host shares the selector's name. Hydrating from it would pair the new URL with that host's
+    # key, and rotating it would overwrite that host's credential with the submitted one, so the
+    # submitted key stays inline. A block for the same host (its ``key_env``) still takes part.
+    foreign_entry = explicit_endpoint and _entry_points_elsewhere(provider_entry, base_url)
+    rotated_key_env = None if foreign_entry else _rotate_entry_credential(cfg, provider, api_key)
     if rotated_key_env:
         model_cfg["key_env"] = rotated_key_env
         model_cfg.pop("api_key", None)
-    elif not (explicit_endpoint and _entry_points_elsewhere(provider_entry, base_url)):
-        # A submitted endpoint carries its own key (or none); a ``providers.custom`` block for
-        # ANOTHER host shares the selector's name, and hydrating from it would pair the new URL with
-        # that host's key. A block for the same host (its ``key_env``) still supplies the credential.
+    elif not foreign_entry:
         _resolve_assignment_credentials(model_cfg, provider, provider_entry)
     cfg["model"] = model_cfg
 
