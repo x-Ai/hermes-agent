@@ -1,0 +1,104 @@
+import { describe, expect, it } from 'vitest'
+
+import { jaOverrides } from './ja'
+import { zhHantOverrides } from './zh-hant'
+
+// The zh-hant and ja overlays came from machine translation. These blocks have been
+// reviewed against English; a key an overlay leaves out falls back to English and is
+// not read here.
+const REVIEWED = {
+  'zh-hant': [
+    'fileMenu',
+    'titlebar',
+    'keybinds',
+    'paletteCommands',
+    'findInPage',
+    'sidebar',
+    'shell',
+    'rightSidebar',
+    'zones',
+    'contextMenu',
+    'settings.connections'
+  ],
+  ja: ['keybinds', 'paletteCommands', 'findInPage', 'notifications']
+} as const
+
+const OVERLAYS: Record<keyof typeof REVIEWED, unknown> = { 'zh-hant': zhHantOverrides, ja: jaOverrides }
+
+// Characters that exist only in Simplified Chinese (each has a different Traditional
+// form). Machine translation slipped them into zh-hant copy: 过滤器, 合并, 全部折叠.
+const SIMPLIFIED_ONLY =
+  /[过这们为个对时会发开关还从进应网无与认设说话请让读写选择删叠机动页图码务级线连载档输键显隐闭间问题项览计运执实现处历记录换简数据库账户单么样经终侧边栏视标签编辑复并]/u
+
+// Three English words in a row outside a code span: a sentence the overlay kept in
+// English ("now run through your Nous subscription", "405 Method Not Allowed").
+const ENGLISH_RUN = /\b[A-Za-z]{2,}(?: +[A-Za-z]{2,}){2,}\b/
+
+type Leaf = { path: string; value: unknown }
+
+function leaves(value: unknown, path: string): Leaf[] {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return Object.entries(value).flatMap(([key, child]) => leaves(child, `${path}.${key}`))
+  }
+
+  return [{ path, value }]
+}
+
+const at = (root: unknown, path: string) =>
+  path.split('.').reduce<unknown>((node, key) => (node as Record<string, unknown> | undefined)?.[key], root)
+
+// A one-element array reads as its marker in a template and still takes the `.map` /
+// `.join` / `.at` a list argument gets.
+function rendered(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (typeof value !== 'function') {
+    return undefined
+  }
+
+  try {
+    const out = value(...Array.from({ length: Math.max(value.length, 1) }, (_, index) => [`⟦${index}⟧`]))
+
+    return typeof out === 'string' ? out : undefined
+  } catch {
+    return undefined // needs a structured argument; nothing to inspect
+  }
+}
+
+function reviewedCopy(locale: keyof typeof REVIEWED): { path: string; text: string }[] {
+  return REVIEWED[locale]
+    .flatMap(block => leaves(at(OVERLAYS[locale], block), block))
+    .flatMap(({ path, value }) => {
+      const text = rendered(value)
+
+      return text === undefined ? [] : [{ path, text }]
+    })
+}
+
+describe.each(['zh-hant', 'ja'] as const)('the reviewed %s copy', locale => {
+  it('reads every reviewed block', () => {
+    for (const block of REVIEWED[locale]) {
+      expect(at(OVERLAYS[locale], block), block).toBeTypeOf('object')
+    }
+  })
+
+  it('keeps no English sentence outside code', () => {
+    const faults = reviewedCopy(locale)
+      .filter(({ text }) => ENGLISH_RUN.test(text.replace(/`[^`]*`/g, '')))
+      .map(({ path, text }) => `${path}: ${text}`)
+
+    expect(faults).toEqual([])
+  })
+})
+
+describe('the reviewed zh-hant copy', () => {
+  it('is written in Traditional characters', () => {
+    const faults = reviewedCopy('zh-hant')
+      .filter(({ text }) => SIMPLIFIED_ONLY.test(text))
+      .map(({ path, text }) => `${path}: ${text}`)
+
+    expect(faults).toEqual([])
+  })
+})
