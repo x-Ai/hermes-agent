@@ -20,7 +20,14 @@ const REVIEWED = {
     'contextMenu',
     'settings.connections',
     'notifications',
-    'settings.managedUpdates'
+    'settings.managedUpdates',
+    'settings.uninstall',
+    'boot.causes',
+    'boot.steps',
+    'commandCenter.maintenance',
+    'assistant.thread',
+    'sendDiagnostics',
+    'errors'
   ],
   ja: [
     'fileMenu',
@@ -43,6 +50,11 @@ const OVERLAYS: Record<keyof typeof REVIEWED, unknown> = { 'zh-hant': zhHantOver
 // form). Machine translation slipped them into zh-hant copy: 过滤器, 合并, 全部折叠, 触发.
 const SIMPLIFIED_ONLY =
   /[过这们为个对时会发开关还从进应网无与认设说话请让读写选择删叠机动页图码务级线连载档输键显隐闭间问题项览计运执实现处历记录换简数据库账户单么样经终侧边栏视标签编辑复并触]/u
+
+// Terms Taiwan says differently (端口 → 連接埠, 網關 → 閘道, 會話 → 工作階段, 加載 → 載入,
+// 調試 → 偵錯, 日志 → 日誌, 默認 → 預設, 插件 → 外掛程式, ...), and 您, since zh-hant copy
+// says 你. Machine translation left 您, 端口, 網關, 會話, 加載, 調試 and 日志 in blocks now reviewed.
+const NOT_TAIWAN_USAGE = /您|端口|網關|會話|加載|調試|日志|默認|視頻|軟件|屏幕|菜單|鼠標|服務器|緩存|激活|插件|文件夾/u
 
 // Three English words in a row outside a code span: a sentence the overlay kept in
 // English ("now run through your Nous subscription", "405 Method Not Allowed").
@@ -119,6 +131,18 @@ describe('the zh-hant overlay', () => {
   it('is written in Traditional characters', () => {
     const faults = copy(leaves(zhHantOverrides, ''))
       .filter(({ text }) => SIMPLIFIED_ONLY.test(text))
+      .map(({ path, text }) => `${path}: ${text}`)
+
+    expect(faults).toEqual([])
+  })
+})
+
+// Like the English check, this one reads only the reviewed blocks: the unswept rest of
+// the overlay still has these.
+describe('the reviewed zh-hant copy', () => {
+  it('uses Taiwan terms and addresses the user as 你', () => {
+    const faults = reviewedCopy('zh-hant')
+      .filter(({ text }) => NOT_TAIWAN_USAGE.test(text))
       .map(({ path, text }) => `${path}: ${text}`)
 
     expect(faults).toEqual([])

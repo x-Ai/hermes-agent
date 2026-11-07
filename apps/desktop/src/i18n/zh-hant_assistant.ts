@@ -70,8 +70,8 @@ export const zhHantAssistant = {
       emojiLoading: '正在載入表情符號…',
       emojiEmpty: '找不到表情符號。',
       moreEmoji: '更多表情符號',
-      removeReaction: emoji => `移除 ${emoji} 回應`,
-      reactedByHermes: 'Hermes 的回應',
+      removeReaction: emoji => `移除 ${emoji} 表情回應`,
+      reactedByHermes: 'Hermes 加上的表情回應',
       conversationTimeline: '對話時間軸',
       reviewSummary: {
         label: '自我改進回顧',
@@ -144,36 +144,36 @@ export const zhHantAssistant = {
         cancelRequest: '取消請求即可停止',
         stopCommand: '傳送 /stop 可取消'
       },
-      summarizingThread: '正在整理對話',
+      summarizingThread: '正在總結對話',
       moaAggregating: 'MoA 正在彙整…',
       moaReference: (label, index, count) =>
         `參考模型${index && count ? ` ${index}/${count}` : ''}${label ? ` — ${label}` : ''}`,
       moaReferencesProgress: (done, total, label) => `MoA 參考進度 ${done}/${total}${label ? ` — ${label}` : ''}`,
-      loadingLocalModel: model => `加載中${model}進入記憶`,
-      processingPrompt: '處理提示',
+      loadingLocalModel: model => `正在將 ${model} 載入記憶體`,
+      processingPrompt: '正在處理提示',
       resumeWhenBackgroundDone: count =>
         count === 1 ? '背景工作完成後將自動繼續' : `${count} 個背景工作完成後將自動繼續`,
       thinking: '思考中',
       thought: '已思考',
       thoughtBriefly: '思考了片刻',
       thoughtFor: duration => `思考了 ${duration}`,
-      turnDuration: duration => `本輪耗時 ${duration}`,
+      turnDuration: duration => `此回合耗時 ${duration}`,
       today: time => `今天，${time}`,
       yesterday: time => `昨天，${time}`,
       copy: '複製',
       refresh: '重新整理',
       moreActions: '更多動作',
       branchNewChat: '在新聊天中分支',
-      react: '回應',
+      react: '加上表情回應',
       dismissError: '關閉錯誤',
       responseStopped: '回應已停止',
       errorGenericProvider: 'AI 服務',
       errorLayerBodies: {
-        auth: 'AI 服務拒絕了登入憑證。請檢查此供應商的憑證，然後重新傳送訊息。',
+        auth: 'AI 服務拒絕了你的登入。請檢查此供應商的憑證，然後重新傳送訊息。',
         billing: '此供應商帳戶的額度已用盡。請儲值或切換供應商，然後重新傳送。',
         disk: '磁碟空間已滿，Hermes 無法儲存此對話。請釋放空間後重試。',
         generic: 'Hermes 回覆時發生問題。請重試；若問題持續，請複製錯誤詳細資訊。',
-        provider: 'AI 服務無法完成此請求。請稍後重試或切換服務商。',
+        provider: 'AI 服務無法完成此請求。請稍後重試或切換供應商。',
         endpoint: 'Hermes 無法連線至你的自訂模型伺服器。請確認它正在執行，然後重新傳送訊息。',
         gateway: 'Hermes 在開始回覆時遇到內部問題。請重新傳送訊息；若問題持續，請傳送診斷資訊。',
         runtime: 'Hermes 在開始回覆時遇到內部問題。請重新傳送訊息；若問題持續，請傳送診斷資訊。',
@@ -219,12 +219,12 @@ export const zhHantAssistant = {
         },
         no_reply: {
           title: '未收到回覆',
-          body: 'Hermes 已完成本輪，但回覆沒有送達此視窗。請重試以重新傳送。'
+          body: 'Hermes 已完成此回合，但回覆沒有送達此視窗。請重試以重新傳送。'
         },
         upstream_blocked: {
           title: provider => `${provider} 封鎖了此請求`,
           body: provider =>
-            `${provider} 前端的防火牆在請求送達模型前就拒絕了它。請切換服務商，或為其設定自訂 User-Agent。`
+            `位於 ${provider} 前方的防火牆在請求送達模型前就拒絕了它。請切換供應商，或為其設定自訂 User-Agent。`
         },
         ssl_cert_verification: {
           title: provider => `無法驗證 ${provider} 的連線`,
@@ -253,7 +253,7 @@ export const zhHantAssistant = {
         },
         format_error: {
           title: provider => `${provider} 拒絕了此請求`,
-          body: provider => `${provider} 無法接受此對話的結構。請切換服務商；若問題持續，請開始新的聊天。`
+          body: provider => `${provider} 無法接受此對話的結構。請切換供應商；若問題持續，請開始新的聊天。`
         },
         truncated: {
           title: '回覆被截斷',
@@ -273,7 +273,7 @@ export const zhHantAssistant = {
         },
         agent_init_failed: {
           title: '無法開始此聊天',
-          body: provider => `Hermes 無法為此聊天連線到 ${provider}。請重試；若持續失敗，請在設定中檢查服務商。`
+          body: provider => `Hermes 無法為此聊天連線到 ${provider}。請重試；若持續失敗，請在設定中檢查供應商。`
         },
         SESSION_NOT_OWNED: {
           title: '聊天已在別處開啟',
@@ -325,7 +325,7 @@ export const zhHantAssistant = {
         },
         workspace_unavailable: {
           title: '此聊天的資料夾已不存在',
-          body: '此聊天使用的資料夾已被移動或刪除，因此你的訊息未被執行。請重新建立該資料夾，或使用「Move to project」為聊天指定其他資料夾，然後重試。'
+          body: '此聊天使用的資料夾已被移動或刪除，因此你的訊息未被執行。請重新建立該資料夾，或使用「移至專案」為聊天指定其他資料夾，然後重試。'
         },
         launch_credentials_unavailable: {
           title: '此聊天的 API 金鑰已變更',
@@ -339,57 +339,57 @@ export const zhHantAssistant = {
         },
         SESSION_OWNER_BUSY: {
           title: 'Hermes 正在此對話中忙碌',
-          body: '這裡正在執行另一輪對話，你的訊息無法加入其佇列。未傳送任何內容。等那一輪結束後再重試。'
+          body: '這裡正在執行另一個回合，你的訊息無法加入其佇列。未傳送任何內容。請在該回合結束後再重試。'
         },
         SESSION_OWNER_UNCONFIRMED: {
           title: '你的訊息可能已在佇列中',
-          body: '網關未及時確認你的訊息。如果它已排入佇列，會在先前那一輪完成或處理後執行。再次傳送前請先查看對話。'
+          body: '閘道未及時確認你的訊息。如果它已排入佇列，會在前一個回合結束或得到處理後執行。再次傳送前請先查看對話。'
         }
       },
       errorLayers: {
-        auth: '認證錯誤',
-        billing: '額度不足',
+        auth: '登入問題',
+        billing: '額度已用完',
         disk: '磁碟已滿',
-        endpoint: '自訂端點錯誤',
-        gateway: '閘道錯誤',
-        generic: '本輪失敗',
-        provider: '模型服務商錯誤',
-        runtime: '本機執行環境錯誤',
-        streaming: '串流連線錯誤'
+        endpoint: '無法連線至你的模型伺服器',
+        gateway: '無法傳送你的訊息',
+        generic: 'Hermes 無法完成此回覆',
+        provider: 'AI 服務傳回了錯誤',
+        runtime: 'Hermes 遇到問題',
+        streaming: '回覆被中斷'
       },
       errorRetry: '重試',
       errorSwitchToModel: (model, note) => (note ? `切換到 ${model}（${note}）` : `切換到 ${model}`),
       errorSwitchModelFailed: '無法切換模型',
-      errorUseCredits: '開啟用額度繼續',
-      errorUseCreditsFailed: '無法開啟用額度繼續',
+      errorUseCredits: '開啟「用額度繼續」',
+      errorUseCreditsFailed: '無法開啟「用額度繼續」',
       errorAddCredits: '新增額度',
       errorOpenBillingSettings: '開啟帳單設定',
       errorStartNewSession: '開始新工作階段',
-      errorSwitchProvider: '切換服務商',
+      errorSwitchProvider: '切換供應商',
       errorSignInAgain: provider => `重新登入 ${provider}`,
-      errorOauthExpired: provider => `您的 ${provider} 登入已過期或被撤銷。請重新登入以繼續對話。`,
+      errorOauthExpired: provider => `你的 ${provider} 登入已過期或被撤銷。請重新登入以繼續聊天。`,
       errorOpenLogs: '開啟日誌',
       errorOpenLogsFailed: '無法開啟日誌資料夾',
-      errorOpenDesktopLogs: '開啟桌面端日誌',
+      errorOpenDesktopLogs: '開啟桌面版日誌',
       errorCopyDiagnostics: '複製錯誤詳細資訊',
       errorSendDiagnostics: '傳送診斷資訊',
       filesChanged: count => `${count} 個檔案已變更`,
       reviewChanges: '檢視',
       readAloudFailed: '朗讀失敗',
-      preparingAudio: '正在準備音訊...',
+      preparingAudio: '正在準備音訊…',
       stopReading: '停止朗讀',
       readAloud: '朗讀',
       copyFullResponse: '複製完整回覆',
       readAloudFullResponseHint: '按住 Shift 點擊：朗讀完整回覆',
-      contentRefusedNotice: '此訊息被模型的安全篩選器拒絕 — 請改用其他問題重試。',
+      contentRefusedNotice: '此訊息遭模型的安全篩選器拒絕——請換個問題再試。',
       editMessage: '編輯訊息',
-      expandMessage: '展開留言',
-      scrollToBottom: '滾動到底部',
+      expandMessage: '展開訊息',
+      scrollToBottom: '捲動到底部',
       stop: '停止',
       restorePrevious: '還原至上一個檢查點',
       restoreCheckpoint: '還原檢查點',
-      restoreFromHere: '還原檢查點 — 從此提示重新執行',
-      restoreFailed: '回復失敗',
+      restoreFromHere: '還原檢查點——從此提示重新執行',
+      restoreFailed: '還原失敗',
       restoreTitle: '還原至此檢查點？',
       restoreBody: '此提示之後的所有訊息將從對話中移除，並從此處重新執行該提示。',
       restoreConfirm: '還原並重新執行',
@@ -399,28 +399,28 @@ export const zhHantAssistant = {
       attachingFile: '正在附加…',
       errorAuthKinds: {
         api_key: {
-          title: provider => `${provider}拒絕了你的 API 金鑰`,
+          title: provider => `${provider} 拒絕了你的 API 金鑰`,
           body: provider => `為 ${provider} 儲存的 API 金鑰無效或已被撤銷。請更新後再試一次。`
         },
         oauth: {
-          title: provider => `你的${provider}登入已過期`
+          title: provider => `你的 ${provider} 登入已過期`
         }
       },
       errorDetails: '檢視錯誤詳細資訊',
       errorToastTitle: 'Hermes 無法完成回覆',
       errorLimitResets: time => `限額將於 ${time} 重設`,
       errorRetryAtReset: time => `限額重設後重試（${time}）`,
-      errorRetryScheduled: (time, wait) => `將於 ${time} 重試 — 還剩 ${wait}`,
+      errorRetryScheduled: (time, wait) => `將於 ${time} 重試——還剩 ${wait}`,
       errorRetryScheduledCancel: '取消',
-      errorChooseModel: '選擇型號',
+      errorChooseModel: '選擇模型',
       errorCompressConversation: '壓縮對話',
       errorCompressFailed: '無法壓縮對話',
-      errorOpenHermesFolder: '開啟Hermes資料夾',
+      errorOpenHermesFolder: '開啟 Hermes 資料夾',
       errorOpenHermesFolderFailed: '無法開啟 Hermes 資料夾',
       errorUpdateApiKey: '更新 API 金鑰',
-      errorSignInFreeTier: '使用 Nous 帳號登入',
+      errorSignInFreeTier: '使用 Nous 帳戶登入',
       errorRateLimitResetBody: (provider, time) => `你已達到 ${provider} 的速率限制，將於 ${time} 重設。`,
-      errorRetryAtResetShort: time => `${time} 重試`,
+      errorRetryAtResetShort: time => `於 ${time} 重試`,
       errorChooseModelLink: '選擇其他模型',
       errorStartNewChatLink: '開始新的聊天',
       errorOpenModelSettings: '開啟模型設定',

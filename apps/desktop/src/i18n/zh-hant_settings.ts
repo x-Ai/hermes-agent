@@ -1369,31 +1369,31 @@ export const zhHantSettings = {
       contextPlaceholder: '自動'
     },
     uninstall: {
-      dangerZone: '危險區',
-      checking: '檢查安裝了什麼..',
+      dangerZone: '危險操作',
+      checking: '正在檢查已安裝的元件…',
       confirmTitle: '確認解除安裝',
-      confirmBody: consequence => `This removes ${consequence}無法解除.`,
+      confirmBody: consequence => `這將移除${consequence}。此操作無法復原。`,
       appPathLabel: path => `應用程式：${path}`,
-      uninstalling: '完全取消..',
-      confirmYes: '是,卸下',
+      uninstalling: '正在解除安裝…',
+      confirmYes: '是，解除安裝',
       heading: '解除安裝 Hermes',
-      chooseBody: '選擇要移除多少 。 應用程式關閉以完成此工作; 隨時重新啟動安裝器 .',
-      startFailed: '無法啟動 .',
+      chooseBody: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
+      startFailed: '無法開始解除安裝。',
       options: {
         gui: {
-          title: '只解裝聊天( Z)',
-          description: '移除此桌面應用程式 。 Hermes代理,你的配置,和聊天都留下.',
-          consequence: '桌面 Chat GUI( 此應用程式及其資料)'
+          title: '僅解除安裝聊天 GUI',
+          description: '移除此桌面應用程式。Hermes 代理、你的設定和聊天記錄都會保留。',
+          consequence: '桌面聊天 GUI（此應用程式及其資料）'
         },
         lite: {
-          title: '解裝GUI + 代理,保留我的資料',
-          description: '移除應用程式與 Hermes 代理, 但保留設定、 聊天與秘密.',
-          consequence: 'chat Hermes 和 GUI 代理( 配置、 聊天和保密 )'
+          title: '解除安裝 GUI 與代理，保留資料',
+          description: '移除應用程式和 Hermes 代理，但保留設定、聊天記錄和機密，以便日後重新安裝。',
+          consequence: '聊天 GUI 和 Hermes 代理（設定、聊天記錄和機密會保留）'
         },
         full: {
-          title: '解開一切',
-          description: '移除應用程式、代理程式和所有使用者資料——設定、聊天、安排工作、秘密、日志.',
-          consequence: '所有內容——聊天介面、Hermes 代理程式，以及你的全部設定、聊天、密鑰和日誌'
+          title: '解除安裝全部',
+          description: '移除應用程式、代理和所有使用者資料——設定、聊天記錄、排程工作、機密和日誌。',
+          consequence: '全部內容——聊天 GUI、Hermes 代理，以及你的所有設定、聊天記錄、機密和日誌'
         }
       }
     },
