@@ -1671,6 +1671,7 @@ export const en: Translations = {
       probeError:
         "Hermes can't reach that address. Check the URL and that the other computer is running Hermes — sign-in options appear once it answers.",
       signedIn: 'Signed in',
+      signedInMessage: provider => `Connected to ${provider}`,
       signIn: 'Sign in',
       signOut: 'Sign out',
       signInWith: provider => `Sign in with ${provider}`,
@@ -2697,6 +2698,7 @@ export const en: Translations = {
     emptyNoneFound: noun => `No ${noun} found`,
     emptyNothingMatches: query => `Nothing matches “${query}”.`,
     emptyNoneAvailable: noun => `No ${noun} available yet.`,
+    emptyToolsNoun: 'tools',
     changesApplyNewSessions: 'Changes apply to new sessions.',
     skillUpdated: 'Skill updated',
     edit: 'Edit',

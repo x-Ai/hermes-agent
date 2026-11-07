@@ -1762,6 +1762,7 @@ export const frOverrides = {
       probeError:
         "Impossible d'atteindre ce gateway pour le moment. Vérifiez l'URL — la méthode d'authentification apparaîtra une fois qu'il répondra.",
       signedIn: 'Connecté',
+      signedInMessage: provider => `Connecté à ${provider}`,
       signIn: 'Se connecter',
       signOut: 'Se déconnecter',
       signInWith: provider => `Se connecter avec ${provider}`,
@@ -2510,6 +2511,7 @@ export const frOverrides = {
     emptyNoneFound: noun => `Aucun ${noun} trouvé`,
     emptyNothingMatches: query => `Rien ne correspond à « ${query} ».`,
     emptyNoneAvailable: noun => `Aucun ${noun} disponible pour le moment.`,
+    emptyToolsNoun: 'outil',
     changesApplyNewSessions: "Les modifications s'appliquent aux nouvelles sessions.",
     skillUpdated: 'Skill mis à jour',
     edit: 'Modifier',
