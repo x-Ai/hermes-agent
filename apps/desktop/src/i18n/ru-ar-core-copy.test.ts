@@ -61,8 +61,6 @@ const REVIEWED_BLOCKS = [
   'install',
   'onboarding',
   'freeTier',
-  // Checked for arguments only: the rest of this block is not reviewed in either
-  // locale yet (web.addComments still prints English for counts above one).
   'preview'
 ] as const
 
