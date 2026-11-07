@@ -80,7 +80,7 @@ import { offerableGroupBots } from './group-offerable'
 import { normalizeGroupWorkspacePath, probeGroupWorkspace } from './group-workspace'
 import { GroupWorkspaceField } from './group-workspace-settings'
 import { useBots } from './i18n'
-import { botGatewayLabel, botProfileIdentity, displayName, localizedProfileName } from './labels'
+import { botGatewayLabel, botProfileIdentity, connectionRowLabel, displayName, localizedProfileName } from './labels'
 import { McpSetupButton } from './mcp-setup'
 import { ModelPicker } from './model-picker'
 import type {
@@ -371,9 +371,8 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
   // one this window is already on.
   const remoteTarget = Boolean(targetConnection) && targetConnection !== (activeConnectionId || 'local')
 
-  const targetLabel = remoteTarget
-    ? (connections || []).find(c => c.id === targetConnection)?.label || targetConnection
-    : ''
+  const targetRow = connections?.find(c => c.id === targetConnection)
+  const targetLabel = remoteTarget ? connectionRowLabel(targetRow, b.bot.thisDevice, targetConnection) : ''
 
   /** Where the profile is created right now: the picked connection id for a
    *  remote target, '' for the active gateway. */
@@ -849,13 +848,17 @@ export function CreateAgentDialog({ open, onClose, onConfigureModel, roster }: C
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {connections.map(connection => (
-                      <SelectItem key={connection.id} value={connection.id}>
-                        {connection.id === (activeConnectionId || 'local')
-                          ? b.editor.currentConnection(connection.label || connection.id)
-                          : connection.label || connection.id}
-                      </SelectItem>
-                    ))}
+                    {connections.map(connection => {
+                      const label = connectionRowLabel(connection, b.bot.thisDevice, connection.id)
+
+                      return (
+                        <SelectItem key={connection.id} value={connection.id}>
+                          {connection.id === (activeConnectionId || 'local')
+                            ? b.editor.currentConnection(label)
+                            : label}
+                        </SelectItem>
+                      )
+                    })}
                   </SelectContent>
                 </Select>
               )

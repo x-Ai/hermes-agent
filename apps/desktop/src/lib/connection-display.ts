@@ -84,6 +84,18 @@ export function displayConnectionLabel(
   return connection.kind === 'local' ? t.settings.connections.thisDevice || connection.label : connection.label
 }
 
+// The main process rejects a roster source that misses its enumeration deadline with this exact
+// English message (`withEnumerationDeadline` in electron/main.ts), and the `[fleet-roster]` log
+// line keeps it as written.
+const ROSTER_ENUMERATION_TIMED_OUT = 'roster enumeration timed out'
+
+/** A roster source's error as a hover tip shows it. The enumeration deadline is Desktop's own
+ *  message, so it reads in the UI language; any other error is the backend's or the network's
+ *  own detail and stays verbatim. */
+export function displayRosterSourceError(error: string, t: Translations): string {
+  return error === ROSTER_ENUMERATION_TIMED_OUT ? t.profiles.fleet.rosterTimedOut : error
+}
+
 /** Full gateway identity for a hover tip without keeping technical routing in chrome. */
 export function connectionTooltip(connection: DesktopRegistryConnection, label = connection.label): string {
   const endpoint = connectionEndpoint(connection)

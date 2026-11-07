@@ -47,7 +47,7 @@ import type { DesktopRegistryConnection } from '@/global'
 import { getProfileSoul, updateProfileSoul } from '@/hermes'
 import { useResizeObserver } from '@/hooks/use-resize-observer'
 import { type Translations, useI18n } from '@/i18n'
-import { displayConnectionLabel, sortConnectionsForDisplay } from '@/lib/connection-display'
+import { displayConnectionLabel, displayRosterSourceError, sortConnectionsForDisplay } from '@/lib/connection-display'
 import { displayEntityName } from '@/lib/display-name'
 import { triggerHaptic } from '@/lib/haptics'
 import { hostHas } from '@/lib/host-capabilities'
@@ -1250,7 +1250,7 @@ function FleetRestGroup({
 
   const dividerLabel = group.reachable
     ? p.fleet.gateway(groupLabel)
-    : `${group.needsSignIn ? `${p.fleet.gateway(groupLabel)} · ${t.settings.toolsets.needsSignIn}` : p.fleet.gatewayUnreachable(groupLabel)}${group.error ? `\n${group.error}` : ''}`
+    : `${group.needsSignIn ? `${p.fleet.gateway(groupLabel)} · ${t.settings.toolsets.needsSignIn}` : p.fleet.gatewayUnreachable(groupLabel)}${group.error ? `\n${displayRosterSourceError(group.error, t)}` : ''}`
 
   const defaultKey = fleetRouteKey(group.connectionId, group.defaultAgent.profile)
   const defaultName = displayEntityName(group.defaultAgent.profile, t)

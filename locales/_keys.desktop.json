@@ -3275,6 +3275,7 @@
     "profiles.fleet.installDeviceTitle",
     "profiles.fleet.localDevice",
     "profiles.fleet.onGateway",
+    "profiles.fleet.rosterTimedOut",
     "profiles.fleet.switchTo",
     "profiles.importProfile",
     "profiles.imported",

@@ -3753,6 +3753,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       allOnGateway: string
       gateway: (gateway: string) => string
       gatewayUnreachable: (gateway: string) => string
+      /** Hover-tip detail for a gateway the roster gave up on at its own deadline. */
+      rosterTimedOut: string
       onGateway: (name: string, gateway: string) => string
       switchTo: (name: string, gateway: string) => string
       deleteOn: (gateway: string) => string

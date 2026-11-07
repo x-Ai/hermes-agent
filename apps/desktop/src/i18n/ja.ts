@@ -3360,6 +3360,7 @@ export const jaOverrides = {
       allOnGateway: 'このゲートウェイ上のすべてのプロファイル',
       gateway: gateway => `プロフィールオン${gateway}`,
       gatewayUnreachable: gateway => `${gateway}· 到達不可能`,
+      rosterTimedOut: 'プロファイル一覧の取得がタイムアウトしました',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `${gateway} 上の ${name} を開く`,
       deleteOn: gateway => `オン${gateway}`,

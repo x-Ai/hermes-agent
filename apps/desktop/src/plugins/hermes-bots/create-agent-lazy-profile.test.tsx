@@ -442,7 +442,8 @@ describe('cancelling New Bot discards its draft profile', () => {
     )
 
     fireEvent.click(controlUnder('Create on'))
-    fireEvent.click(await screen.findByRole('option', { name: /This Mac/ }))
+    // The local row reads as the UI's own name for this machine, not its registry label.
+    fireEvent.click(await screen.findByRole('option', { name: /This device/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
     await waitFor(() =>

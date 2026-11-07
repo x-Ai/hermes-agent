@@ -1247,6 +1247,7 @@ export const zhHantCommandCenter = {
       allOnGateway: '該網關上的所有設定文件',
       gateway: gateway => `個人資料在${gateway}`,
       gatewayUnreachable: gateway => `${gateway}· 無法到達`,
+      rosterTimedOut: '取得設定檔清單逾時',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `開啟 ${gateway} 上的 ${name}`,
       deleteOn: gateway => `開啟${gateway}`,

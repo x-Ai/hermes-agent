@@ -398,6 +398,7 @@ export interface RoutineJob {
 
 export interface ConnectionRow {
   id: string
+  kind?: string
   label?: string
   primary?: boolean
 }

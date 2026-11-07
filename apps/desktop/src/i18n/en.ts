@@ -3702,6 +3702,7 @@ export const en: Translations = {
       allOnGateway: 'All profiles on this gateway',
       gateway: gateway => `Profiles on ${gateway}`,
       gatewayUnreachable: gateway => `${gateway} · unreachable`,
+      rosterTimedOut: 'roster enumeration timed out',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `Open ${name} on ${gateway}`,
       deleteOn: gateway => ` on ${gateway}`,

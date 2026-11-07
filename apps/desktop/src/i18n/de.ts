@@ -3343,6 +3343,7 @@ export const deOverrides = {
       allOnGateway: 'Alle Profile auf diesem Gateway',
       gateway: gateway => `Profile auf ${gateway}`,
       gatewayUnreachable: gateway => `${gateway} · nicht erreichbar`,
+      rosterTimedOut: 'Zeitüberschreitung beim Abrufen der Profilliste',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `${name} auf ${gateway} öffnen`,
       deleteOn: gateway => ` auf ${gateway}`,

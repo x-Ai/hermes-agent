@@ -9,7 +9,7 @@
  */
 
 import { aliasIdentityFor } from './routing'
-import type { BotMeta, RosterRow } from './types'
+import type { BotMeta, ConnectionRow, RosterRow } from './types'
 
 export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): string {
   // A configured alias route claiming this row overrides source-derived
@@ -105,6 +105,19 @@ export function botGatewayLabel(
 ): string {
   return gatewayDisplayLabel(
     bot ? { connectionId: bot.connectionId, kind: bot.connectionKind, label: bot.connectionLabel } : null,
+    thisDevice,
+    fallback
+  )
+}
+
+/** Registry rows from `host.connections()` carry the same triple as `id`/`kind`/`label`. */
+export function connectionRowLabel(
+  row: Pick<ConnectionRow, 'id' | 'kind' | 'label'> | null | undefined,
+  thisDevice: string,
+  fallback?: string
+): string {
+  return gatewayDisplayLabel(
+    row ? { connectionId: row.id, kind: row.kind, label: row.label } : null,
     thisDevice,
     fallback
   )

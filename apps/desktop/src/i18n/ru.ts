@@ -3308,6 +3308,7 @@ export const ruOverrides = {
       allOnGateway: 'Все профили на этом шлюзе',
       gateway: gateway => `Профили на ${gateway}`,
       gatewayUnreachable: gateway => `${gateway} · недоступен`,
+      rosterTimedOut: 'Истекло время ожидания получения списка профилей',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `Открыть ${name} на ${gateway}`,
       deleteOn: gateway => ` на ${gateway}`,

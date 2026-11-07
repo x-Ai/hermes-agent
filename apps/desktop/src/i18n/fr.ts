@@ -3348,6 +3348,7 @@ export const frOverrides = {
       allOnGateway: 'Tous les profils de cette gateway',
       gateway: gateway => `Profils sur ${gateway}`,
       gatewayUnreachable: gateway => `${gateway} · inaccessible`,
+      rosterTimedOut: 'Délai dépassé lors de la récupération de la liste des profils',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `Ouvrir ${name} sur ${gateway}`,
       deleteOn: gateway => ` sur ${gateway}`,

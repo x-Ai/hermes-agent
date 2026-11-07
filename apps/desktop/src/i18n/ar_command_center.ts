@@ -711,6 +711,7 @@ export const arCommandCenter = {
       allOnGateway: 'كل الملفات الشخصية على هذه البوابة',
       gateway: gateway => `الملفات الشخصية على ${gateway}`,
       gatewayUnreachable: gateway => `${gateway} · تعذّر الوصول`,
+      rosterTimedOut: 'انتهت مهلة جلب قائمة الملفات الشخصية',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `فتح ${name} على ${gateway}`,
       deleteOn: gateway => ` على ${gateway}`,

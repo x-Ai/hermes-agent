@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { I18nProvider } from '@/i18n'
 import { registerPluginLocales } from '@/i18n/plugin-i18n'
-import { BOTS_LOCALES } from '@/plugins/hermes-bots/i18n'
-import { GatewaySectionHeading } from '@/plugins/hermes-bots/roster-sections'
+import { BOTS_LOCALES, useBots } from '@/plugins/hermes-bots/i18n'
+import { rosterSectionRenderers } from '@/plugins/hermes-bots/roster-pane-sections'
+import { GatewaySectionHeading, type ResolvedRosterGatewaySection } from '@/plugins/hermes-bots/roster-sections'
 
 let dispose: (() => void) | undefined
 
@@ -65,5 +66,49 @@ describe('gateway section heading tip', () => {
     expect(tip).toContain('Homelab')
     expect(tip).toContain('SSH')
     expect(tip).not.toMatch(/\bssh\b/)
+  })
+})
+
+// Expanded Hidden bots on a multi-gateway roster are bucketed under a small
+// heading per gateway, named from the same registry label.
+function HiddenGatewayHeading({ section }: { section: ResolvedRosterGatewaySection }) {
+  const b = useBots()
+
+  const renderers = rosterSectionRenderers({
+    allMeta: {},
+    b,
+    dragging: null,
+    groupRooms: {},
+    renderBotRow: bot => <div key={bot.name}>{bot.name}</div>,
+    renderGroupRow: () => null,
+    roster: [],
+    rosterSectionCollapsed: () => false,
+    setSectionDialog: () => undefined,
+    sortedGroupRows: [],
+    toggleRosterSection: () => undefined,
+    userSections: []
+  })
+
+  return <>{renderers.renderHiddenGatewaySection(section)}</>
+}
+
+describe('hidden bots gateway heading', () => {
+  it('names the local gateway in the UI language', () => {
+    dispose = registerPluginLocales('hermes-bots', BOTS_LOCALES)
+    render(
+      <I18nProvider configClient={null} initialLocale="zh">
+        <HiddenGatewayHeading
+          section={{
+            id: 'local',
+            option: { connectionId: 'local', kind: 'local', label: 'This device' },
+            rows: [{ bot: { connectionId: 'local', name: 'scout' } }]
+          }}
+        />
+      </I18nProvider>
+    )
+
+    expect(screen.getByText('本设备')).toBeTruthy()
+    expect(screen.getByText('scout')).toBeTruthy()
+    expect(screen.queryByText('This device')).toBeNull()
   })
 })

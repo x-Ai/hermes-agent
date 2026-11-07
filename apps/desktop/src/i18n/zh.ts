@@ -4177,6 +4177,7 @@ export const zhOverrides = {
       allOnGateway: '此网关上的全部配置档案',
       gateway: gateway => `${gateway} 上的配置档案`,
       gatewayUnreachable: gateway => `${gateway} · 无法连接`,
+      rosterTimedOut: '获取配置档案列表超时',
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `打开 ${gateway} 上的 ${name}`,
       deleteOn: gateway => `（位于 ${gateway}）`,

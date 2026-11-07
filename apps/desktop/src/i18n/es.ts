@@ -3328,6 +3328,7 @@ export const esOverrides = {
       allOnGateway: 'Todos los perfiles de este gateway',
       gateway: (gateway: string) => `Perfiles en ${gateway}`,
       gatewayUnreachable: (gateway: string) => `${gateway} · inaccesible`,
+      rosterTimedOut: 'Se agotó el tiempo de espera al obtener la lista de perfiles',
       onGateway: (name: string, gateway: string) => `${name} · ${gateway}`,
       switchTo: (name: string, gateway: string) => `Abrir ${name} en ${gateway}`,
       deleteOn: (gateway: string) => ` en ${gateway}`,
