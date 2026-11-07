@@ -77,7 +77,7 @@ export const deBoot = {
       signInFailed: 'Sign-in fehlgeschlagen',
       signInToRemoteGateway: 'Beim Remote-Gateway anmelden',
       signInWithProvider: provider => `Mit ${provider} anmelden`,
-      identityProvider: 'Ihr Identity-Provider'
+      identityProvider: 'Ihrem Identity-Provider'
     },
     updateHold: {
       title: 'Ein früheres Update hält Hermes noch fest',

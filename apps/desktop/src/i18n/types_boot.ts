@@ -79,6 +79,8 @@ export interface BootTranslations {
     signInFailed: string
     signInToRemoteGateway: string
     signInWithProvider: (provider: string) => string
+    /** Fills the provider slot when the gateway names none: signInWithProvider and the remote setup's
+     *  signInWith, authNeedsOauth and signedInMessage read it, so inflect it for the slot they give it. */
     identityProvider: string
     webappDescription: string
     webappTitle: string

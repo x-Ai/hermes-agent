@@ -4437,7 +4437,7 @@ export const deOverrides = {
     probing: 'Gateway-Authentifizierung wird erkannt...',
     probeError: 'Dieses Hermes Gateway konnte nicht erreicht werden.',
     probeErrorDetails: 'Details',
-    identityProvider: 'Ihr Identity-Provider',
+    identityProvider: 'Ihrem Identity-Provider',
     authTitle: 'Authentifizierung',
     authNeedsOauth: provider => `Melden Sie sich mit ${provider} an, bevor Sie dieses Gateway testen.`,
     authSignedIn: 'Browser-Sign-in abgeschlossen.',
