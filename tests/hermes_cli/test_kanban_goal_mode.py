@@ -193,6 +193,49 @@ def test_loop_stops_on_worker_failed_flag_default_reason(monkeypatch):
     assert res["reason"] == "worker failed: unknown"
 
 
+@pytest.mark.parametrize("verdict", ["continue", "done"])
+def test_loop_nudge_block_advice_blocks_the_goal_mode_card(kanban_home, monkeypatch, verdict):
+    """A worker that blocks the way the loop's nudge says ends up blocked.
+
+    Both nudges said "call kanban_block with a reason", but kanban_block refuses a goal-mode
+    block without a kind and sends the worker back to kanban_complete, so a worker taking the
+    advice stayed running until the turn budget blocked the card for it."""
+    import re
+    import tools.kanban_tools  # registers kanban_block
+    from tools.registry import registry
+
+    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
+    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    with kbc.connect_closing() as conn:
+        tid = kb.create_task(conn, title="archive repo X", body="Archive repo X.",
+                             assignee="test-worker", goal_mode=True)
+        kb.claim_task(conn, tid)
+        run_id = kb._current_run_id(conn, tid)
+    monkeypatch.setenv("HERMES_KANBAN_TASK", tid)
+    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(run_id))
+    _patch_judge(monkeypatch, [verdict] * 3)
+    replies = []
+
+    def blocked_worker(nudge):
+        # Block with exactly the arguments the nudge spells out.
+        args = {"reason": "repo X does not exist"}
+        kind = re.search(r"\bkind\s*=\s*['\"]?(\w+)", nudge)
+        if kind:
+            args["kind"] = kind.group(1)
+        replies.append(registry.dispatch("kanban_block", args))
+        return {"response": "Blocked: repo X does not exist."}
+
+    def task_status():
+        with kbc.connect_closing() as conn:
+            return kb.get_task(conn, tid).status
+
+    res = goals.run_kanban_goal_loop(
+        task_id=tid, goal_text="Archive repo X.", run_turn=blocked_worker,
+        task_status_fn=task_status, block_fn=lambda _reason: None, max_turns=3,
+        first_response="Repo X does not exist.")
+    assert res["outcome"] == "blocked_by_worker", replies
+
+
 
 
 

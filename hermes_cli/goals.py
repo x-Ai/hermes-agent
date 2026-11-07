@@ -1592,7 +1592,8 @@ class GoalManager:
 # ── Kanban worker goal loop ───────────────────────────────────────────
 
 # Fed to a kanban goal-mode worker that hasn't completed/blocked its task yet: short, and points it
-# back at the lifecycle contract (it already has the full task body).
+# back at the lifecycle contract (it already has the full task body). Both nudges name the block
+# kind: kanban_block refuses a goal-mode block unless kind is 'dependency' or 'needs_input'.
 KANBAN_GOAL_CONTINUATION_TEMPLATE = (
     "[Continuing toward this kanban task — judge says it is not done yet]\n"
     "Reason: {reason}\n\n"
@@ -1600,8 +1601,8 @@ KANBAN_GOAL_CONTINUATION_TEMPLATE = (
     "is genuinely finished, call kanban_complete with a summary. If it is a "
     "code change that needs same-card review before counting as done, call "
     "kanban_request_review with a summary instead. If you are blocked and "
-    "need human input, call kanban_block with a reason. Do not stop without "
-    "calling one of them."
+    "need human input, call kanban_block with kind='needs_input' and a reason. "
+    "Do not stop without calling one of them."
 )
 
 # Judge says done but the worker never made a terminal board call
@@ -1612,7 +1613,8 @@ KANBAN_GOAL_FINALIZE_TEMPLATE = (
     "If the task is genuinely done, call kanban_complete now with a short "
     "summary of what you did. If it is a code change awaiting same-card review, "
     "call kanban_request_review with that summary instead. If something still "
-    "blocks completion, call kanban_block with the reason instead."
+    "blocks completion, call kanban_block with kind='needs_input' and the reason "
+    "instead."
 )
 
 
