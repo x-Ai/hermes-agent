@@ -524,12 +524,16 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
 
       // A warning, as in the main composer, so the same drop looks the same wherever it lands.
       if (failures.length) {
-        notify({ kind: 'warning', title: t.desktop.dropFiles, ...dropWarning(failures, t.desktop.dropFilesMore) })
+        notify({
+          kind: 'warning',
+          title: t.desktop.dropFiles,
+          ...dropWarning(failures, t.desktop.dropFailedItem, t.desktop.dropFilesMore)
+        })
       }
 
       return refs
     },
-    [cwd, gateway, sessionId, t.desktop.dropFiles, t.desktop.dropFilesMore]
+    [cwd, gateway, sessionId, t.desktop.dropFailedItem, t.desktop.dropFiles, t.desktop.dropFilesMore]
   )
 
   const resetDragState = useCallback(() => {

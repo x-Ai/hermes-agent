@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
+import { createElement, type ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider, setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { $notifications } from '@/store/notifications'
 
 import { useComposerActions } from './use-composer-actions'
@@ -25,7 +27,9 @@ describe('useComposerActions drop warnings', () => {
     let attached = true
 
     await act(async () => {
-      attached = await result.current.attachDroppedItems([{ file: new File([], 'shots.png'), isDirectory: true, path: '' }])
+      attached = await result.current.attachDroppedItems([
+        { file: new File([], 'shots.png'), isDirectory: true, path: '' }
+      ])
     })
 
     expect(attached).toBe(false)
@@ -54,7 +58,13 @@ describe('useComposerActions drop warnings', () => {
         activeSessionId: null,
         currentCwd: '/w',
         requestGateway: vi.fn(),
-        scope: { add, remove: vi.fn(() => null), target: 'main', update: vi.fn(() => true), updateIfCurrent: vi.fn(() => true) }
+        scope: {
+          add,
+          remove: vi.fn(() => null),
+          target: 'main',
+          update: vi.fn(() => true),
+          updateIfCurrent: vi.fn(() => true)
+        }
       })
     )
 
@@ -99,7 +109,13 @@ describe('useComposerActions drop warnings', () => {
         activeSessionId: null,
         currentCwd: '/w',
         requestGateway: vi.fn(),
-        scope: { add, remove: vi.fn(() => null), target: 'main', update: vi.fn(() => true), updateIfCurrent: vi.fn(() => true) }
+        scope: {
+          add,
+          remove: vi.fn(() => null),
+          target: 'main',
+          update: vi.fn(() => true),
+          updateIfCurrent: vi.fn(() => true)
+        }
       })
     )
 
@@ -148,6 +164,45 @@ describe('useComposerActions drop warnings', () => {
     expect(warning?.message).toContain('…')
     expect(warning?.message).toContain('Upload request is too large')
     expect(warning?.message).toMatch(/and \d+ more$/)
-    expect(warning?.detail?.split('\n')).toEqual(names.map(name => `Could not attach ${name}: Upload request is too large`))
+    expect(warning?.detail?.split('\n')).toEqual(
+      names.map(name => `Could not attach ${name}: Upload request is too large`)
+    )
+  })
+})
+
+// Each line of the warning is in the UI language too, not only its title and the count of the rest.
+describe('useComposerActions drop warnings in the UI language', () => {
+  afterEach(() => {
+    setRuntimeI18nLocale('en')
+    window.localStorage.clear()
+  })
+
+  it.each([
+    ['zh', '报告'],
+    ['ar', 'تقرير'],
+    ['ru', 'отчёт']
+  ] as const)('writes every line of a %s warning in that language', async (locale, stem) => {
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(I18nProvider, { children, configClient: null, initialLocale: locale })
+
+    const { result } = renderHook(
+      () => useComposerActions({ activeSessionId: null, currentCwd: '/w', requestGateway: vi.fn() }),
+      { wrapper }
+    )
+
+    // With no staging bridge none of these attach. Their names have no Latin letters, so any
+    // Latin letter in the warning comes from its copy.
+    const names = Array.from({ length: 5 }, (_, index) => `${stem}${index}`)
+
+    await act(async () => {
+      await result.current.attachDroppedItems(names.map(name => ({ file: new File(['x'], name), path: '' })))
+    })
+
+    const warning = $notifications.get().find(notice => notice.message.includes(`${stem}0`))
+    const copy = TRANSLATIONS[locale].desktop
+
+    expect(warning).toMatchObject({ kind: 'warning', title: copy.dropFiles })
+    expect(warning?.message).not.toMatch(/[A-Za-z]/)
+    expect(warning?.detail?.split('\n')).toEqual(names.map(name => copy.dropFailedItem(name)))
   })
 })

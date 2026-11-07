@@ -18,6 +18,7 @@ import type { ClarifyCopy } from './types_clarify'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
 import type { CronControlCopy } from './types_cron_control'
 import type { GatewayGroupOpenCopy, SkillDeepLinkCopy } from './types_deep_links'
+import type { DropWarningCopy } from './types_drop_warning'
 import type { ExternalOpenFailedCopy } from './types_external_open'
 import type { FirstRunCopy } from './types_first_run'
 import type { FreeTierTranslations } from './types_free_tier'
@@ -3206,7 +3207,7 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       gatewayDisconnected: string
     }
   }
-  desktop: {
+  desktop: DropWarningCopy & {
     audioReadFailed: string
     compressingContext: string
     compressingContextFor: (topic: string) => string
@@ -3292,7 +3293,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     clipboard: string
     noClipboardImage: string
     clipboardPasteFailed: string
-    dropFiles: string
     handoff: {
       pickPlatform: string
       success: (platform: string) => string
@@ -3311,7 +3311,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     modelSwitchStaleNotice: string
     restored: string
     unarchiveFailed: string
-    dropFilesMore: (count: number) => string
     attachFailed: string
   }
   connectorsPage: {

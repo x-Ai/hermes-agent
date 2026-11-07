@@ -652,6 +652,7 @@ export const arChat = {
     modelSwitchConfirmTitleFallback: 'تبديل النموذج؟',
     modelSwitchKeepLabel: 'الاحتفاظ بالنموذج الحالي',
     modelSwitchStaleNotice: 'تغيّر الاختيار — لم يتم تطبيق تبديل النموذج.',
+    dropFailedItem: name => `تعذّر إرفاق ${name}`,
     dropFilesMore: (count: number) =>
       AR_PLURAL(count, {
         one: 'وملف آخر',

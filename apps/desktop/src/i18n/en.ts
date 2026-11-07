@@ -11,6 +11,7 @@ import { enConnectorAccounts } from './en_connector_accounts'
 import { enConnectorCard } from './en_connector_card'
 import { enCronControl } from './en_cron_control'
 import { enGatewayGroupOpen, enSkillDeepLink } from './en_deep_links'
+import { enDropWarning } from './en_drop_warning'
 import { enErrorCodes } from './en_error_codes'
 import { enErrorLayers } from './en_error_layers'
 import { enExternalOpenFailed } from './en_external_open'
@@ -6179,7 +6180,7 @@ export const en: Translations = {
     clipboard: 'Clipboard',
     noClipboardImage: 'No image found in clipboard',
     clipboardPasteFailed: 'Clipboard paste failed',
-    dropFiles: 'Drop files',
+    ...enDropWarning,
     handoff: {
       pickPlatform: 'Choose a destination',
       success: platform => `Handed off to ${platform}. Resume here anytime.`,
@@ -6197,7 +6198,6 @@ export const en: Translations = {
     modelSwitchConfirmTitleFallback: 'Switch models?',
     modelSwitchKeepLabel: 'Keep current model',
     modelSwitchStaleNotice: 'Selection changed — the model switch was not applied.',
-    dropFilesMore: (count: number) => `and ${count} more`,
     attachFailed: 'Attach failed'
   },
   tips: {

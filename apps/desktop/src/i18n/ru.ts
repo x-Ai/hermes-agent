@@ -8,6 +8,7 @@ import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
 import { ruCronControl } from './ru_cron_control'
 import { ruDelegationFieldLabels } from './ru_delegation_fields'
+import { ruDropWarning } from './ru_drop_warning'
 import { ruFirstRun } from './ru_first_run'
 import { ruGatewayMenu } from './ru_gateway_menu'
 import { ruGoalStatus } from './ru_goal_status'
@@ -6093,7 +6094,7 @@ export const ruOverrides = {
     clipboard: 'Буфер обмена',
     noClipboardImage: 'Изображение в буфере обмена не найдено',
     clipboardPasteFailed: 'Не удалось вставить из буфера обмена',
-    dropFiles: 'Перетаскивание файлов',
+    ...ruDropWarning,
     handoff: {
       pickPlatform: 'Выберите, куда передать сеанс',
       success: platform => `Сеанс передан в ${platform}. Продолжить здесь можно в любой момент.`,
@@ -6111,7 +6112,6 @@ export const ruOverrides = {
     modelSwitchConfirmTitleFallback: 'Сменить модель?',
     modelSwitchKeepLabel: 'Оставить текущую модель',
     modelSwitchStaleNotice: 'Выбор изменился — смена модели не применена.',
-    dropFilesMore: (count: number) => `и ещё ${count}`,
     attachFailed: 'Не удалось прикрепить'
   },
   tips: {

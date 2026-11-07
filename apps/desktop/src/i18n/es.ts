@@ -7,6 +7,7 @@ import { esClarify } from './es_clarify'
 import { esConnectorAccounts } from './es_connector_accounts'
 import { esConnectorCard } from './es_connector_card'
 import { esCronControl } from './es_cron_control'
+import { esDropWarning } from './es_drop_warning'
 import { esErrorCodes } from './es_error_codes'
 import { esErrorLayers } from './es_error_layers'
 import { esFirstRun } from './es_first_run'
@@ -5663,7 +5664,7 @@ export const esOverrides = {
     clipboard: 'Portapapeles',
     noClipboardImage: 'No se encontró ninguna imagen en el portapapeles',
     clipboardPasteFailed: 'No se pudo pegar desde el portapapeles',
-    dropFiles: 'Soltar archivos',
+    ...esDropWarning,
     handoff: {
       pickPlatform: 'Elige un destino',
       success: platform => `Transferido a ${platform}. Puedes reanudar aquí cuando quieras.`,
@@ -5673,7 +5674,6 @@ export const esOverrides = {
         'Hermes no pudo llegar a tu conexión de mensajería. Iníciala desde Configuración → Mensajería y vuelve a intentar el traspaso.',
       startMessaging: 'Iniciar mensajería'
     },
-    dropFilesMore: (count: number) => `y ${count} más`,
     attachFailed: 'No se pudo adjuntar'
   },
   tips: {

@@ -6,6 +6,7 @@ import { deClarify } from './de_clarify'
 import { deConnectorAccounts } from './de_connector_accounts'
 import { deConnectorCard } from './de_connector_card'
 import { deCronControl } from './de_cron_control'
+import { deDropWarning } from './de_drop_warning'
 import { deErrorCodes } from './de_error_codes'
 import { deErrorLayers } from './de_error_layers'
 import { deFirstRun } from './de_first_run'
@@ -5680,7 +5681,7 @@ export const deOverrides = {
     clipboard: 'Zwischenablage',
     noClipboardImage: 'Kein Bild in der Zwischenablage',
     clipboardPasteFailed: 'Zwischenablage-Einfügen fehlgeschlagen',
-    dropFiles: 'Dateien ablegen',
+    ...deDropWarning,
     handoff: {
       pickPlatform: 'Ziel wählen',
       success: platform => `Übergeben an ${platform}. Jederzeit hier fortsetzen.`,
@@ -5689,7 +5690,6 @@ export const deOverrides = {
       timedOut: 'Zeitüberschreitung beim Warten auf das Gateway. Läuft `hermes gateway`?',
       startMessaging: 'Messaging starten'
     },
-    dropFilesMore: (count: number) => `und ${count} weitere`,
     attachFailed: 'Anhängen fehlgeschlagen'
   },
   tips: {

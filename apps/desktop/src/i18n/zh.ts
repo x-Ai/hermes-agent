@@ -8,6 +8,7 @@ import { zhClarify } from './zh_clarify'
 import { zhConnectorAccounts } from './zh_connector_accounts'
 import { zhConnectorCard } from './zh_connector_card'
 import { zhCronControl } from './zh_cron_control'
+import { zhDropWarning } from './zh_drop_warning'
 import { zhErrorCodes } from './zh_error_codes'
 import { zhErrorLayers } from './zh_error_layers'
 import { zhFirstRun } from './zh_first_run'
@@ -6673,7 +6674,7 @@ export const zhOverrides = {
     clipboard: '剪贴板',
     noClipboardImage: '剪贴板中没有图片',
     clipboardPasteFailed: '粘贴剪贴板失败',
-    dropFiles: '拖放文件',
+    ...zhDropWarning,
     handoff: {
       pickPlatform: '选择目标平台',
       success: platform => `已移交到 ${platform}，随时可在此处恢复`,
@@ -6690,7 +6691,6 @@ export const zhOverrides = {
     modelSwitchConfirmTitleFallback: '切换模型？',
     modelSwitchKeepLabel: '保留当前模型',
     modelSwitchStaleNotice: '选择已更改 — 未应用模型切换',
-    dropFilesMore: (count: number) => `以及另外 ${count} 项`,
     attachFailed: '附加失败'
   },
   tips: {

@@ -7,6 +7,7 @@ import { frClarify } from './fr_clarify'
 import { frConnectorAccounts } from './fr_connector_accounts'
 import { frConnectorCard } from './fr_connector_card'
 import { frCronControl } from './fr_cron_control'
+import { frDropWarning } from './fr_drop_warning'
 import { frErrorCodes } from './fr_error_codes'
 import { frErrorLayers } from './fr_error_layers'
 import { frFirstRun } from './fr_first_run'
@@ -5689,7 +5690,7 @@ export const frOverrides = {
     clipboard: 'Presse-papiers',
     noClipboardImage: 'Aucune image trouvée dans le presse-papiers',
     clipboardPasteFailed: 'Échec du collage depuis le presse-papiers',
-    dropFiles: 'Déposer des fichiers',
+    ...frDropWarning,
     handoff: {
       pickPlatform: 'Choisissez une destination',
       success: platform => `Transféré vers ${platform}. Reprenez ici à tout moment.`,
@@ -5698,7 +5699,6 @@ export const frOverrides = {
       timedOut: "Délai d'expiration en attendant la Gateway. `hermes gateway` est-il en cours d'exécution ?",
       startMessaging: 'Démarrer la messagerie'
     },
-    dropFilesMore: (count: number) => `et ${count} de plus`,
     attachFailed: "Échec de l'ajout"
   },
   tips: {

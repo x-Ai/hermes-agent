@@ -528,6 +528,7 @@ export function useComposerActions({
 
         return
       }
+
       if (!paths?.length) {
         return
       }
@@ -899,12 +900,24 @@ export function useComposerActions({
       }
 
       if (failures.length) {
-        notify({ kind: 'warning', title: copy.dropFiles, ...dropWarning(failures, copy.dropFilesMore) })
+        notify({
+          kind: 'warning',
+          title: copy.dropFiles,
+          ...dropWarning(failures, copy.dropFailedItem, copy.dropFilesMore)
+        })
       }
 
       return attached
     },
-    [attachContextFilePath, attachContextFolderPath, attachImageBlob, attachImagePath, copy.dropFiles, copy.dropFilesMore]
+    [
+      attachContextFilePath,
+      attachContextFolderPath,
+      attachImageBlob,
+      attachImagePath,
+      copy.dropFailedItem,
+      copy.dropFiles,
+      copy.dropFilesMore
+    ]
   )
 
   const removeAttachment = useCallback(

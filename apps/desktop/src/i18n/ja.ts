@@ -8,6 +8,7 @@ import { jaCatalog, jaSkillDeepLink } from './ja_catalog'
 import { jaClarify } from './ja_clarify'
 import { jaConnectors } from './ja_connectors'
 import { jaCronControl } from './ja_cron_control'
+import { jaDropWarning } from './ja_drop_warning'
 import { jaErrorCodes } from './ja_error_codes'
 import { jaErrorLayers } from './ja_error_layers'
 import { jaFirstRun } from './ja_first_run'
@@ -6066,7 +6067,7 @@ export const jaOverrides = {
     clipboard: 'クリップボード',
     noClipboardImage: 'クリップボードに画像が見つかりません',
     clipboardPasteFailed: 'クリップボードからの貼り付けに失敗しました',
-    dropFiles: 'ファイルをドロップ',
+    ...jaDropWarning,
     handoff: {
       pickPlatform: '送信先を選択',
       success: platform => `${platform} に引き継ぎました。いつでもここで再開できます。`,
@@ -6083,7 +6084,6 @@ export const jaOverrides = {
     modelSwitchConfirmTitleFallback: 'モデルを切り替えますか？',
     modelSwitchKeepLabel: '現在のモデルを維持',
     modelSwitchStaleNotice: '選択が変更されたため、モデルの切り替えは適用されませんでした。',
-    dropFilesMore: (count: number) => `ほか ${count} 件`,
     attachFailed: '添付に失敗しました'
   },
   tips: {

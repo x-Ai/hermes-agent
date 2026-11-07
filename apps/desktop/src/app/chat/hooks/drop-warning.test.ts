@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { dropWarning } from './drop-warning'
 
+const item = (name: string) => `Could not attach ${name}`
 const more = (count: number) => `and ${count} more`
 const folder = "Folders can't be attached by dropping them. Use Attach → Folder… instead."
 const limit = 'The file is larger than 16 MiB, the largest file the browser can attach.'
@@ -14,12 +15,11 @@ describe('dropWarning', () => {
         { name: 'somefolder', reason: folder },
         { name: 'huge.zip', reason: limit }
       ],
+      item,
       more
     )
 
-    expect(message).toBe(
-      `Could not attach somefolder: ${folder.slice(0, -1)}; Could not attach huge.zip: ${limit}`
-    )
+    expect(message).toBe(`Could not attach somefolder: ${folder.slice(0, -1)}; Could not attach huge.zip: ${limit}`)
     expect(message).not.toContain('.;')
     expect(detail).toBeUndefined()
   })
@@ -30,7 +30,7 @@ describe('dropWarning', () => {
       ...Array.from({ length: 5 }, (_, index) => ({ name: `${'z'.repeat(135)}-${index}.zip`, reason: limit }))
     ]
 
-    const { detail, message } = dropWarning(failures, more)
+    const { detail, message } = dropWarning(failures, item, more)
 
     expect(message).toMatch(/[^.]; and \d+ more$/)
     expect(message).not.toContain('.;')
@@ -38,7 +38,7 @@ describe('dropWarning', () => {
   })
 
   it('keeps a lone reason as it is, period included, with no detail', () => {
-    expect(dropWarning([{ name: 'huge.zip', reason: limit }], more)).toEqual({
+    expect(dropWarning([{ name: 'huge.zip', reason: limit }], item, more)).toEqual({
       message: `Could not attach huge.zip: ${limit}`
     })
   })
