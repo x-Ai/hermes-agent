@@ -173,6 +173,12 @@ const statusCopy = {
   downloadStatusRunning: 'Downloading'
 }
 
+function words(text: string, locale: string): string[] {
+  return [...new Intl.Segmenter(locale, { granularity: 'word' }).segment(text)]
+    .filter(part => part.isWordLike)
+    .map(part => part.segment.toLocaleLowerCase(locale))
+}
+
 describe('downloadStatusText', () => {
   it('composes state, bytes, speed and ETA while bytes move', () => {
     const text = downloadStatusText(
@@ -214,13 +220,31 @@ describe('downloadStatusText', () => {
     expect(text).toBe('Starting the local server')
   })
 
-  // The state label leads the line, so a locale's byte counter must not say it again.
-  it('names the download state once in every bundled locale', () => {
+  // The state label leads the line, so the byte counter after it must name no state: a running line would say
+  // it twice, and a paused one would still claim to be downloading. Every label the app gives a download's
+  // state counts (the model picker titles a running one with its own), word by word, so an inflected repeat
+  // ("werden heruntergeladen" after "Wird heruntergeladen") counts too.
+  it('names the download state only in the leading label, in every bundled locale', () => {
     for (const locale of BUNDLED_LOCALES) {
-      const copy = TRANSLATIONS[locale].settings.localModels
-      const text = downloadStatusText(job({ done_bytes: 1 << 30, total_bytes: 4 * (1 << 30) }), copy)
+      const t = TRANSLATIONS[locale]
+      const copy = t.settings.localModels
 
-      expect(text.split(copy.downloadStatusRunning).length - 1, `${locale}: ${text}`).toBe(1)
+      const stateWords = new Set(
+        [copy.downloadStatusRunning, copy.downloadPausedLabel, t.modelPicker.downloading].flatMap(label =>
+          words(label, locale)
+        )
+      )
+
+      for (const status of ['running', 'paused'] as const) {
+        const label = status === 'paused' ? copy.downloadPausedLabel : copy.downloadStatusRunning
+        const text = downloadStatusText(job({ done_bytes: 1 << 30, status, total_bytes: 4 * (1 << 30) }), copy)
+
+        expect(text.startsWith(`${label} · `), `${locale}: ${text}`).toBe(true)
+        expect(
+          words(text.slice(label.length), locale).filter(word => stateWords.has(word)),
+          `${locale}: ${text}`
+        ).toEqual([])
+      }
     }
   })
 })
