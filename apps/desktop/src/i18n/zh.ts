@@ -2213,25 +2213,12 @@ export const zhOverrides = {
     },
     mcp: {
       loading: '正在加载 MCP 服务器...',
-      failedLoad: 'MCP 配置加载失败',
-      nameRequiredTitle: '需要名称',
-      nameRequiredMessage: '请为此 MCP 服务器提供配置键',
-      objectRequired: '服务器配置必须是 JSON 对象',
       invalidJson: 'MCP JSON 无效',
       saveFailed: '保存失败',
       removeFailed: '移除失败',
-      gatewayUnavailableTitle: '网关不可用',
-      gatewayUnavailableMessage: '重新加载 MCP 前请先重连网关',
-      reloadedTitle: 'MCP 工具已重新加载',
-      reloadedMessage: '新的工具 schema 将应用到后续回合',
       reloadFailed: 'MCP 重新加载失败',
       savedTitle: 'MCP 服务器已保存',
       savedMessage: name => `${name} 会在 MCP 重新加载后生效`,
-      newServer: '新服务器',
-      reload: '重新加载 MCP',
-      reloading: '重新加载中...',
-      emptyTitle: '没有 MCP 服务器',
-      emptyDesc: '添加 stdio 或 HTTP 服务器以暴露 MCP 工具',
       disabled: '已禁用',
       name: '名称',
       serverJson: '服务器 JSON',
@@ -2294,7 +2281,6 @@ export const zhOverrides = {
       importConfirmMany: count => `添加 ${count} 个服务器到 mcp.json`,
       catalogAuthOAuth: 'OAuth',
       catalogAuthApiKey: 'API 密钥',
-      editServer: '编辑服务器',
       saveServer: '保存服务器',
       unusedPill: '未使用',
       waitingForBrowser: '正在等待浏览器…'
@@ -2385,11 +2371,7 @@ export const zhOverrides = {
         name: '名称',
         providerId: '提供商 ID',
         endpointUrl: '端点 URL',
-        defaultModel: '默认模型',
-        context: '上下文',
         apiKey: 'API 密钥',
-        apiKeyNewPlaceholder: '留空以保留当前密钥',
-        apiKeyPlaceholder: '可选',
         useNewChats: '用于新对话',
         discoverModels: '发现模型'
       },
@@ -2397,8 +2379,6 @@ export const zhOverrides = {
       save: '保存',
       newEndpoint: '新建端点',
       reachableVia: transport => `端点可通过 ${transport} 连接`,
-      apiMode: 'API 模式',
-      autoDetect: '自动检测',
       couldNotLoad: '无法加载自定义端点',
       endpointSaved: '自定义端点已保存',
       saveFailed: '保存失败',
@@ -2497,7 +2477,6 @@ export const zhOverrides = {
         declined: '银行卡被拒绝，请在门户中尝试另一张卡',
         failedBody: reason => `扣款未成功（${reason}）`
       },
-      title: '账单',
       preview: '预览',
       summary: { balance: '余额', plan: '套餐', autoRefill: '自动充值' },
       sections: {
@@ -2506,7 +2485,6 @@ export const zhOverrides = {
         paymentAndCredits: '支付与额度',
         usage: '用量'
       },
-      usage: { title: '用量' },
       buyCredits: {
         customAmount: '自定义充值金额',
         title: '立即购买额度',
@@ -2594,7 +2572,6 @@ export const zhOverrides = {
           genericDescription: '余额低于阈值时自动补充额度',
           offPill: '已关闭',
           enabledPill: '已启用',
-          notAvailablePill: '—',
           manageCaption: '在门户中管理自动充值',
           turnOnCaption: '在门户中开启自动充值',
           chargesDescription: (reloadTo, threshold) => `余额低于 ${threshold} 时自动扣款 ${reloadTo}`,
@@ -2957,7 +2934,6 @@ export const zhOverrides = {
     },
     uninstallSection: {
       dangerZone: '危险操作',
-      checkingInstalled: '正在检查已安装内容…',
       uninstallHermes: '卸载 Hermes',
       chooseHowMuch: '选择要删除的内容，应用会关闭以完成卸载，随时重新打开安装程序即可恢复',
       confirmUninstall: '确认卸载',
@@ -3268,11 +3244,6 @@ export const zhOverrides = {
     destinationChanged: '安装目标已更改，请关闭此对话框并重新打开安装链接',
     installed: '已安装',
     source: '来源'
-  },
-  gatewayGroupOpen: {
-    opening: '正在打开网关群聊…',
-    lookupFailed: '无法在网关上查找此群聊，请重试',
-    missing: '此网关群聊已不存在'
   },
   skills: {
     tabSkills: '技能',
@@ -5356,7 +5327,6 @@ export const zhOverrides = {
     bundleOutOfSyncDesc: 'Hermes 运行时已更新，但桌面应用仍是旧版本，请更新桌面应用以获取最新修复',
     bundleOutOfSyncAction: '获取安装程序',
     checkingShort: '正在检查…',
-    releaseAvailable: tag => `版本 ${tag} 可用`,
     versionDetailsTitle: '版本详情',
     versionDetailsBody: '此安装由应用外部管理，请使用最初的安装方式进行更新',
     versionDetailsVersion: '版本',
@@ -5379,7 +5349,6 @@ export const zhOverrides = {
     versionDetailsUncommittedChanges: '未提交更改',
     availableBodyAppInstaller: 'Hermes 新版本已就绪，Hermes 将会关闭，由 Windows 完成更新，然后自动重新打开',
     applyingBodyAppInstaller: 'Hermes 将会关闭，由 Windows 完成更新，完成后 Hermes 会自动重新打开——你无需进行任何操作',
-    applyingCloseAppInstaller: '此窗口将会关闭，Windows 完成更新后 Hermes 会自动重新打开',
     checkUnknownTitleAppInstaller: '无法检查更新',
     checkUnknownBodyAppInstaller: 'Windows 目前无法检查更新，重启 Hermes 时也会自动安装更新',
     justNowSuffix: ' · 刚刚',

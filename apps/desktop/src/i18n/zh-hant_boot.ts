@@ -259,7 +259,6 @@ export const zhHantBoot = {
     availableBodyAppInstaller: 'Hermes 新版本已就緒。Hermes 將會關閉，由 Windows 完成更新，然後自動重新開啟',
     applyingBodyAppInstaller:
       'Hermes 將會關閉，由 Windows 完成更新。完成後 Hermes 會自動重新開啟——你不需要進行任何操作',
-    applyingCloseAppInstaller: '此視窗將會關閉，Windows 完成更新後 Hermes 會自動重新開啟',
     checkUnknownTitleAppInstaller: '無法檢查更新',
     checkUnknownBodyAppInstaller: 'Windows 目前無法檢查更新。重新啟動 Hermes 時也會自動安裝更新',
     appName: 'Hermes',
@@ -285,7 +284,6 @@ export const zhHantBoot = {
     bundleOutOfSyncDesc: 'Hermes 執行環境已更新，但桌面應用程式仍是舊版本。請更新桌面應用程式以取得最新修正',
     bundleOutOfSyncAction: '取得安裝程式',
     checkingShort: '正在檢查…',
-    releaseAvailable: tag => `版本 ${tag} 可用`,
     versionDetailsTitle: '版本詳細資訊',
     versionDetailsBody: '此安裝由應用程式外部管理，請使用最初的安裝方式進行更新',
     versionDetailsVersion: '版本',

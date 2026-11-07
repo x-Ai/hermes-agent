@@ -17,7 +17,7 @@ import type { CatalogInstallTranslations } from './types_catalog_install'
 import type { ClarifyCopy } from './types_clarify'
 import type { ConnectorAccountsTranslations, ConnectorCardTranslations } from './types_connectors'
 import type { CronControlCopy } from './types_cron_control'
-import type { GatewayGroupOpenCopy, SkillDeepLinkCopy } from './types_deep_links'
+import type { SkillDeepLinkCopy } from './types_deep_links'
 import type { DropWarningCopy } from './types_drop_warning'
 import type { ExternalOpenFailedCopy } from './types_external_open'
 import type { FirstRunCopy } from './types_first_run'
@@ -612,17 +612,11 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         name: string
         providerId: string
         endpointUrl: string
-        defaultModel: string
-        context: string
         apiKey: string
-        apiKeyNewPlaceholder: string
-        apiKeyPlaceholder: string
         useNewChats: string
         discoverModels: string
       }
       save: string
-      apiMode: string
-      autoDetect: string
       couldNotLoad: string
       endpointSaved: string
       endpointReachable: string
@@ -1397,17 +1391,9 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     }
     mcp: {
       loading: string
-      failedLoad: string
-      nameRequiredTitle: string
-      nameRequiredMessage: string
-      objectRequired: string
       invalidJson: string
       saveFailed: string
       removeFailed: string
-      gatewayUnavailableTitle: string
-      gatewayUnavailableMessage: string
-      reloadedTitle: string
-      reloadedMessage: string
       reloadFailed: string
       savedTitle: string
       savedMessage: (name: string) => string
@@ -1475,12 +1461,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       importNoMatch: string
       importConfirm: string
       importConfirmMany: (count: number) => string
-      newServer: string
-      reload: string
-      reloading: string
-      emptyTitle: string
-      emptyDesc: string
-      editServer: string
     }
     localModels: {
       /** Exact source descriptions: refreshed/unknown catalog copy falls back unchanged. */
@@ -1658,7 +1638,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         declined: string
         failedBody: (reason: string) => string
       }
-      title: string
       preview: string
       summary: {
         balance: string
@@ -1670,9 +1649,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
         plan: string
         paymentAndCredits: string
         usage: string
-      }
-      usage: {
-        title: string
       }
       buyCredits: {
         customAmount: string
@@ -1756,7 +1732,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
           genericDescription: string
           offPill: string
           enabledPill: string
-          notAvailablePill: string
           manageCaption: string
           turnOnCaption: string
           chargesDescription: (reloadTo: string, threshold: string) => string
@@ -1910,7 +1885,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     memoryLayers: MemoryLayersTranslations
   }
   skillDeepLink: SkillDeepLinkCopy
-  gatewayGroupOpen: GatewayGroupOpenCopy
   skills: {
     plugins: PluginUpdateTranslations &
       PluginUpdateAllTranslations &
@@ -2826,7 +2800,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     bundleSwapPendingAction: string
     availableBodyAppInstaller: string
     applyingBodyAppInstaller: string
-    applyingCloseAppInstaller: string
     checkUnknownTitleAppInstaller: string
     checkUnknownBodyAppInstaller: string
     /** Update-status overlay + version-details (mechanism-aware update UI):
@@ -2854,7 +2827,6 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     bundleOutOfSyncDesc: string
     bundleOutOfSyncAction: string
     checkingShort: string
-    releaseAvailable: (tag: string) => string
     versionDetailsTitle: string
     versionDetailsBody: string
     versionDetailsVersion: string

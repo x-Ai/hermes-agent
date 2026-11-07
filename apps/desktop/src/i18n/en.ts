@@ -10,7 +10,7 @@ import { enClarify } from './en_clarify'
 import { enConnectorAccounts } from './en_connector_accounts'
 import { enConnectorCard } from './en_connector_card'
 import { enCronControl } from './en_cron_control'
-import { enGatewayGroupOpen, enSkillDeepLink } from './en_deep_links'
+import { enSkillDeepLink } from './en_deep_links'
 import { enDropWarning } from './en_drop_warning'
 import { enErrorCodes } from './en_error_codes'
 import { enErrorLayers } from './en_error_layers'
@@ -1823,27 +1823,13 @@ export const en: Translations = {
     },
     mcp: {
       loading: 'Loading MCP servers...',
-      failedLoad: 'MCP config failed to load',
-      nameRequiredTitle: 'Name required',
-      nameRequiredMessage: 'Give this MCP server a config key.',
-      objectRequired: 'Server config must be a JSON object',
       invalidJson: 'Invalid MCP JSON',
       saveFailed: 'Save failed',
       removeFailed: 'Remove failed',
-      gatewayUnavailableTitle: 'Gateway unavailable',
-      gatewayUnavailableMessage: 'Reconnect the gateway before reloading MCP.',
-      reloadedTitle: 'MCP tools reloaded',
-      reloadedMessage: 'New tool schemas apply to fresh turns.',
       reloadFailed: 'MCP reload failed',
       savedTitle: 'MCP server saved',
       savedMessage: name => `${name} applies after MCP reload.`,
-      newServer: 'New server',
-      reload: 'Reload MCP',
-      reloading: 'Reloading...',
-      emptyTitle: 'No MCP servers',
-      emptyDesc: 'Add a stdio or HTTP server to expose MCP tools.',
       disabled: 'disabled',
-      editServer: 'Edit server',
       name: 'Name',
       serverJson: 'Server JSON',
       remove: 'Remove',
@@ -1940,17 +1926,11 @@ export const en: Translations = {
         name: 'Name',
         providerId: 'Provider ID',
         endpointUrl: 'Endpoint URL',
-        defaultModel: 'Default model',
-        context: 'Context',
         apiKey: 'API key',
-        apiKeyNewPlaceholder: 'Paste API key',
-        apiKeyPlaceholder: 'Leave blank to keep the current key',
         useNewChats: 'Use for new chats',
         discoverModels: 'Discover models'
       },
       save: 'Save endpoint',
-      apiMode: 'API mode',
-      autoDetect: 'Auto-detect',
       couldNotLoad: 'Could not load custom endpoints',
       endpointSaved: 'Endpoint saved',
       endpointReachable: 'Endpoint is reachable',
@@ -2118,7 +2098,6 @@ export const en: Translations = {
         declined: 'Your card was declined. Try another card on the portal.',
         failedBody: reason => `The charge didn't go through (${reason}).`
       },
-      title: 'Billing',
       preview: 'preview',
       summary: {
         balance: 'Balance',
@@ -2131,9 +2110,6 @@ export const en: Translations = {
         plan: 'Plan',
         paymentAndCredits: 'Payment & credits',
         usage: 'Usage'
-      },
-      usage: {
-        title: 'Usage'
       },
       buyCredits: {
         customAmount: 'Custom credit amount',
@@ -2225,7 +2201,6 @@ export const en: Translations = {
           genericDescription: 'Keep your balance topped up when it drops below your threshold.',
           offPill: 'Off',
           enabledPill: 'Enabled',
-          notAvailablePill: '—',
           manageCaption: 'Manage auto-refill from the portal.',
           turnOnCaption: 'Turn on auto-refill from the portal',
           chargesDescription: (reloadTo, threshold) =>
@@ -2937,7 +2912,6 @@ export const en: Translations = {
     importedBadge: 'imported map',
     resetToMine: 'Back to my map'
   },
-  gatewayGroupOpen: enGatewayGroupOpen,
   agents: {
     extendedTranscript: 'Extended transcript',
     transcriptTruncated: 'Showing the latest 16 KiB',
@@ -4841,7 +4815,6 @@ export const en: Translations = {
     applyingClose: 'This window will close while the update runs, then Hermes reopens on its own.',
     applyingBodyAppInstaller:
       'Hermes will close and Windows will finish the update. Hermes will reopen when it’s done — you don’t need to do anything.',
-    applyingCloseAppInstaller: 'This window will close, Windows finishes the update, and Hermes reopens on its own.',
     checkUnknownTitleAppInstaller: 'Couldn’t check for updates',
     checkUnknownBodyAppInstaller:
       'Windows couldn’t check for updates right now. Updates also install automatically when you restart Hermes.',
@@ -4914,7 +4887,6 @@ export const en: Translations = {
       'The Hermes runtime was updated, but the desktop app itself is still an older build. Update it to pick up the latest fixes.',
     bundleOutOfSyncAction: 'Get the installer',
     checkingShort: 'Checking…',
-    releaseAvailable: tag => `Version ${tag} is available.`,
     versionDetailsTitle: 'Version details',
     versionDetailsBody: 'This install is managed outside the app. Update it the same way you installed it.',
     versionDetailsVersion: 'Version',

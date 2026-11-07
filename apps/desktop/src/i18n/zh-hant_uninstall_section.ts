@@ -5,7 +5,6 @@ import type { UninstallSectionTranslations } from './types_uninstall_section'
 // 設定 › 關於 › 解除安裝；zh-hant_settings.ts 以 `settings.uninstallSection` 組入（檔案行數上限的拆分）。
 export const zhHantUninstallSection: TranslationOverride<UninstallSectionTranslations> = {
   dangerZone: '危險操作',
-  checkingInstalled: '正在檢查已安裝內容…',
   uninstallHermes: '解除安裝 Hermes',
   chooseHowMuch: '選擇要移除的內容。應用程式會關閉以完成作業；隨時重新開啟安裝程式即可返回。',
   confirmUninstall: '確認解除安裝',

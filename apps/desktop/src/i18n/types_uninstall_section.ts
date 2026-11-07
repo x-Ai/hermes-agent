@@ -1,7 +1,6 @@
 // Settings > About > Uninstall; `Translations.settings.uninstallSection`.
 export interface UninstallSectionTranslations {
   dangerZone: string
-  checkingInstalled: string
   uninstallHermes: string
   managedBody: string
   dataKept: (path: string) => string

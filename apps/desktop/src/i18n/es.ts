@@ -1424,7 +1424,6 @@ export const esOverrides = {
     }),
     uninstallSection: {
       dangerZone: 'Zona de peligro',
-      checkingInstalled: 'Comprobando lo que está instalado…',
       uninstallHermes: 'Desinstalar Hermes',
       chooseHowMuch:
         'Elige cuánto quieres quitar. La app se cierra para terminar; vuelve a abrir el instalador cuando quieras para volver.',
@@ -1466,19 +1465,13 @@ export const esOverrides = {
         name: 'Nombre',
         providerId: 'ID del proveedor',
         endpointUrl: 'URL del endpoint',
-        defaultModel: 'Modelo predeterminado',
-        context: 'Contexto',
         apiKey: 'Clave API',
-        apiKeyNewPlaceholder: 'Déjalo en blanco para conservar la clave actual',
-        apiKeyPlaceholder: 'Opcional',
         useNewChats: 'Usar en los chats nuevos',
         discoverModels: 'Descubrir modelos'
       },
       test: 'Probar',
       save: 'Guardar',
       newEndpoint: 'Nuevo endpoint',
-      apiMode: 'Modo de API',
-      autoDetect: 'Detección automática',
       couldNotLoad: 'No se pudieron cargar los endpoints personalizados',
       endpointSaved: 'Endpoint personalizado guardado.',
       saveFailed: 'Error al guardar',
@@ -2009,7 +2002,6 @@ export const esOverrides = {
         declined: 'Tu tarjeta fue rechazada. Prueba otra tarjeta en el portal.',
         failedBody: (reason: string) => `El cargo no se completó (${reason}).`
       },
-      title: 'Facturación',
       preview: 'vista previa',
       summary: {
         balance: 'Saldo',
@@ -2021,9 +2013,6 @@ export const esOverrides = {
         plan: 'Plan',
         paymentAndCredits: 'Pago y créditos',
         usage: 'Uso'
-      },
-      usage: {
-        title: 'Uso'
       },
       buyCredits: {
         customAmount: 'Importe de créditos personalizado',
@@ -2115,7 +2104,6 @@ export const esOverrides = {
           genericDescription: 'Mantén tu saldo recargado cuando baje de tu umbral.',
           offPill: 'Desactivada',
           enabledPill: 'Activada',
-          notAvailablePill: '—',
           manageCaption: 'Gestiona la recarga automática desde el portal.',
           turnOnCaption: 'Activa la recarga automática desde el portal',
           chargesDescription: (reloadTo: string, threshold: string) =>
@@ -4234,14 +4222,11 @@ export const esOverrides = {
     channels: { stable: 'Estable', canary: 'Canary' },
     appName: 'Hermes',
     availableBodyRelease: tag => `La versión ${tag} está lista para instalarse.`,
-    releaseAvailable: tag => `La versión ${tag} está disponible.`,
     checkingShort: 'Comprobando…',
     availableBodyAppInstaller:
       'Hay una nueva versión de Hermes. Hermes se cerrará, Windows terminará la actualización y Hermes volverá a abrirse automáticamente.',
     applyingBodyAppInstaller:
       'Hermes se cerrará y Windows terminará la actualización. Hermes volverá a abrirse al finalizar; no tienes que hacer nada.',
-    applyingCloseAppInstaller:
-      'Esta ventana se cerrará; Windows terminará la actualización y Hermes volverá a abrirse automáticamente.',
     checkUnknownTitleAppInstaller: 'No se pudieron buscar actualizaciones',
     checkUnknownBodyAppInstaller:
       'Windows no pudo buscar actualizaciones ahora. También se instalan automáticamente al reiniciar Hermes.',

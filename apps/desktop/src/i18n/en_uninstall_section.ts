@@ -3,7 +3,6 @@ import type { UninstallSectionTranslations } from './types_uninstall_section'
 // Settings > About > Uninstall, composed by en.ts as `settings.uninstallSection`.
 export const enUninstallSection: UninstallSectionTranslations = {
   dangerZone: 'Danger zone',
-  checkingInstalled: 'Checking what’s installed…',
   uninstallHermes: 'Uninstall Hermes',
   managedBody: 'This install is managed by your system, so Hermes cannot remove itself.',
   dataKept: path => `Your config, chats, and secrets live in ${path}. Removing the app does not delete them.`,

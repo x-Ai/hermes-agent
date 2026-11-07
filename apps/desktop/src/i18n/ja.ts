@@ -723,7 +723,6 @@ export const jaOverrides = {
     },
     uninstallSection: {
       dangerZone: '危険ゾーン',
-      checkingInstalled: 'インストール内容を確認中…',
       uninstallHermes: 'Hermes をアンインストール',
       chooseHowMuch:
         '削除する範囲を選択してください。完了するためにアプリが閉じます。インストーラーを開き直せばいつでも戻れます。',

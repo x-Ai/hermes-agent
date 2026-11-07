@@ -1427,7 +1427,6 @@ export const frOverrides = {
     }),
     uninstallSection: {
       dangerZone: 'Zone dangereuse',
-      checkingInstalled: 'Vérification des éléments installés…',
       uninstallHermes: 'Désinstaller Hermes',
       chooseHowMuch:
         'Choisissez ce que vous souhaitez supprimer. L’application se ferme pour terminer ; rouvrez le programme d’installation à tout moment pour revenir.',
@@ -1470,19 +1469,13 @@ export const frOverrides = {
         name: 'Nom',
         providerId: 'ID du fournisseur',
         endpointUrl: 'URL du point de terminaison',
-        defaultModel: 'Modèle par défaut',
-        context: 'Contexte',
         apiKey: 'Clé API',
-        apiKeyNewPlaceholder: 'Laissez vide pour conserver la clé actuelle',
-        apiKeyPlaceholder: 'Facultatif',
         useNewChats: 'Utiliser pour les nouvelles conversations',
         discoverModels: 'Découvrir les modèles'
       },
       test: 'Tester',
       save: 'Enregistrer',
       newEndpoint: 'Nouveau point de terminaison',
-      apiMode: 'Mode API',
-      autoDetect: 'Détection automatique',
       couldNotLoad: 'Impossible de charger les points de terminaison personnalisés',
       endpointSaved: 'Point de terminaison personnalisé enregistré.',
       saveFailed: 'Échec de l’enregistrement',
@@ -2022,7 +2015,6 @@ export const frOverrides = {
         declined: 'Votre carte a été refusée. Essayez une autre carte sur le portail.',
         failedBody: (reason: string) => `Le paiement n’a pas abouti (${reason}).`
       },
-      title: 'Facturation',
       preview: 'aperçu',
       summary: {
         balance: 'Solde',
@@ -2034,9 +2026,6 @@ export const frOverrides = {
         plan: 'Forfait',
         paymentAndCredits: 'Paiement et crédits',
         usage: 'Utilisation'
-      },
-      usage: {
-        title: 'Utilisation'
       },
       buyCredits: {
         customAmount: 'Montant de crédits personnalisé',
@@ -2131,7 +2120,6 @@ export const frOverrides = {
           genericDescription: 'Maintenez votre solde approvisionné lorsqu’il passe sous votre seuil.',
           offPill: 'Désactivée',
           enabledPill: 'Activée',
-          notAvailablePill: '—',
           manageCaption: 'Gérez la recharge automatique depuis le portail.',
           turnOnCaption: 'Activez la recharge automatique depuis le portail',
           chargesDescription: (reloadTo: string, threshold: string) =>
@@ -4259,14 +4247,11 @@ export const frOverrides = {
     channels: { stable: 'Stable', canary: 'Canary' },
     appName: 'Hermes',
     availableBodyRelease: tag => `La version ${tag} est prête à être installée.`,
-    releaseAvailable: tag => `La version ${tag} est disponible.`,
     checkingShort: 'Vérification…',
     availableBodyAppInstaller:
       'Une nouvelle version de Hermes est prête. Hermes va se fermer, Windows terminera la mise à jour, puis Hermes rouvrira automatiquement.',
     applyingBodyAppInstaller:
       "Hermes va se fermer et Windows terminera la mise à jour. Hermes rouvrira ensuite automatiquement — vous n'avez rien à faire.",
-    applyingCloseAppInstaller:
-      'Cette fenêtre va se fermer, Windows terminera la mise à jour et Hermes rouvrira automatiquement.',
     checkUnknownTitleAppInstaller: 'Impossible de vérifier les mises à jour',
     checkUnknownBodyAppInstaller:
       "Windows n'a pas pu rechercher les mises à jour. Elles s'installent également automatiquement au redémarrage de Hermes.",

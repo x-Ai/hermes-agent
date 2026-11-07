@@ -1420,7 +1420,6 @@ export const deOverrides = {
     }),
     uninstallSection: {
       dangerZone: 'Gefahrenzone',
-      checkingInstalled: 'Installierte Komponenten werden geprüft…',
       uninstallHermes: 'Hermes deinstallieren',
       chooseHowMuch:
         'Wählen Sie, wie viel entfernt werden soll. Die App wird zum Abschluss geschlossen; Sie können das Installationsprogramm jederzeit erneut öffnen, um zurückzukehren.',
@@ -1463,19 +1462,13 @@ export const deOverrides = {
         name: 'Name',
         providerId: 'Anbieter-ID',
         endpointUrl: 'Endpunkt-URL',
-        defaultModel: 'Standardmodell',
-        context: 'Kontext',
         apiKey: 'API-Schlüssel',
-        apiKeyNewPlaceholder: 'Leer lassen, um den aktuellen Schlüssel zu behalten',
-        apiKeyPlaceholder: 'Optional',
         useNewChats: 'Für neue Chats verwenden',
         discoverModels: 'Modelle ermitteln'
       },
       test: 'Testen',
       save: 'Speichern',
       newEndpoint: 'Neuer Endpunkt',
-      apiMode: 'API-Modus',
-      autoDetect: 'Automatisch erkennen',
       couldNotLoad: 'Benutzerdefinierte Endpunkte konnten nicht geladen werden',
       endpointSaved: 'Benutzerdefinierter Endpunkt gespeichert.',
       saveFailed: 'Speichern fehlgeschlagen',
@@ -2018,7 +2011,6 @@ export const deOverrides = {
         declined: 'Ihre Karte wurde abgelehnt. Versuchen Sie im Portal eine andere Karte.',
         failedBody: (reason: string) => `Die Abbuchung ist nicht durchgegangen (${reason}).`
       },
-      title: 'Abrechnung',
       preview: 'Vorschau',
       summary: {
         balance: 'Guthaben',
@@ -2030,9 +2022,6 @@ export const deOverrides = {
         plan: 'Tarif',
         paymentAndCredits: 'Zahlung & Credits',
         usage: 'Nutzung'
-      },
-      usage: {
-        title: 'Nutzung'
       },
       buyCredits: {
         customAmount: 'Eigener Credit-Betrag',
@@ -2126,7 +2115,6 @@ export const deOverrides = {
           genericDescription: 'Hält Ihr Guthaben aufgeladen, wenn es unter Ihren Schwellenwert fällt.',
           offPill: 'Aus',
           enabledPill: 'Aktiviert',
-          notAvailablePill: '—',
           manageCaption: 'Automatisches Aufladen im Portal verwalten.',
           turnOnCaption: 'Automatisches Aufladen im Portal aktivieren',
           chargesDescription: (reloadTo: string, threshold: string) =>
@@ -4249,14 +4237,11 @@ export const deOverrides = {
     channels: { stable: 'Stabil', canary: 'Canary' },
     appName: 'Hermes',
     availableBodyRelease: tag => `Version ${tag} ist bereit zur Installation.`,
-    releaseAvailable: tag => `Version ${tag} ist verfügbar.`,
     checkingShort: 'Wird geprüft…',
     availableBodyAppInstaller:
       'Eine neue Hermes-Version ist bereit. Hermes wird geschlossen, Windows schließt das Update ab und Hermes startet automatisch neu.',
     applyingBodyAppInstaller:
       'Hermes wird geschlossen und Windows schließt das Update ab. Danach startet Hermes automatisch neu.',
-    applyingCloseAppInstaller:
-      'Dieses Fenster schließt sich, Windows schließt das Update ab und Hermes startet automatisch neu.',
     checkUnknownTitleAppInstaller: 'Update-Check fehlgeschlagen',
     checkUnknownBodyAppInstaller:
       'Windows konnte gerade nicht nach Updates suchen. Updates werden auch beim Neustart von Hermes automatisch installiert.',
