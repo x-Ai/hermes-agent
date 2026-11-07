@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveDesktopCommand } from '@/lib/desktop-slash-commands'
 import { BOTS_LOCALES } from '@/plugins/hermes-bots/i18n'
 import botsPlugin from '@/plugins/hermes-bots/plugin'
 
@@ -184,6 +185,18 @@ describe('backend facts stated in copy', () => {
 
     for (const locale of BUNDLED_LOCALES) {
       expect(TRANSLATIONS[locale].connectors.directory.receiptTimedOut.match(/\d+/g), locale).toEqual(minutes)
+    }
+  })
+
+  // The slash menu reads /browser's description from these catalogs, so its argument list is what
+  // users are told they can type. Upstream dropped `/browser use`; older merges kept it everywhere.
+  it('offers only the /browser subcommands the desktop registry accepts, in every bundled locale', () => {
+    const accepted = resolveDesktopCommand('/browser')?.description?.match(/\[[^\]]*\]/)?.[0]
+
+    expect(accepted).toBeTruthy()
+
+    for (const locale of BUNDLED_LOCALES) {
+      expect(TRANSLATIONS[locale].composer.commandDescs['/browser'].match(/\[[^\]]*\]/)?.[0], locale).toBe(accepted)
     }
   })
 })
