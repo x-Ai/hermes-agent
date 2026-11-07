@@ -468,8 +468,8 @@ _GOAL_GATE_MESSAGES = {
     "kanban_complete": {
         "blocked": (
             "Goal completion rejected: judge ruled the goal unachievable — {reason}. The task "
-            "will NOT complete silently. Either re-scope the task with kanban_edit, or record "
-            "the block with kanban_block and hand the decision to a human / reviewer."),
+            "will NOT complete silently. Record the block with kanban_block (kind='needs_input'), "
+            "giving the reason and any re-scope you suggest, so a human / reviewer can decide."),
         "continue": (
             "Goal completion rejected by judge: {reason}. To proceed, either: (1) provide "
             "explicit acceptance evidence in your summary matching the task's criteria, or (2) "
@@ -477,7 +477,7 @@ _GOAL_GATE_MESSAGES = {
     "kanban_request_review": {
         "blocked": (
             "Goal review handoff rejected: judge ruled the goal unachievable — {reason}. "
-            "Record the block with kanban_block instead of requesting review."),
+            "Record the block with kanban_block (kind='needs_input') instead of requesting review."),
         "continue": (
             "Goal review handoff rejected by judge: {reason}. Provide acceptance evidence "
             "matching the card before requesting review.")}}

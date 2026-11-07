@@ -571,6 +571,30 @@ def test_schedule_goal_mode_refused(monkeypatch, tmp_path):
         conn.close()
 
 
+@pytest.mark.parametrize("verdict", ["blocked", "continue"])
+@pytest.mark.parametrize("handoff", ["kanban_complete", "kanban_request_review"])
+def test_goal_judge_rejection_names_only_registered_kanban_tools(
+        monkeypatch, tmp_path, handoff, verdict):
+    """Every tool a goal-judge rejection tells the worker to call is a registered kanban tool.
+
+    The unachievable-goal rejection of kanban_complete said "re-scope the task with
+    kanban_edit"; there is no such tool, so a worker taking the advice called a tool it lacks."""
+    import re
+    from tools import kanban_tools as kt
+    from tools.registry import registry
+
+    _make_goal_mode_worker_env(monkeypatch, tmp_path)
+    monkeypatch.setattr(kt, "_goal_judge_available", lambda: True)
+    monkeypatch.setattr(kt, "judge_goal", lambda goal, last_response, **_kw: (
+        verdict, "the repository to archive does not exist", False, None, False))
+
+    out = json.loads(registry.dispatch(handoff, {"summary": "Stopped: the repository is gone."}))
+    assert "error" in out, f"the judge gate let {handoff} through: {out}"
+    named = set(re.findall(r"\bkanban_\w+", out["error"]))
+    unknown = named - set(registry.get_tool_names_for_toolset("kanban"))
+    assert not unknown, f"{handoff} ({verdict}) names missing tools {sorted(unknown)}: {out['error']}"
+
+
 def test_schedule_exposed_to_codex_runtime_workers():
     """Codex app-server workers only reach Hermes tools named in EXPOSED_TOOLS."""
     from agent.transports.hermes_tools_mcp_server import EXPOSED_TOOLS
