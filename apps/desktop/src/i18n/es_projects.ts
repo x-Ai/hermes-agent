@@ -72,6 +72,7 @@ export const esProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   branchesLoading: 'Cargando ramas…',
   noBranches: 'No se encontraron ramas',
   removeWorktree: 'Eliminar worktree',
+  removeWorktreeTitle: label => `¿Eliminar el worktree “${label}”?`,
   removeWorktreeFailed: 'No se pudo eliminar el worktree (¿hay cambios sin confirmar?)',
   removeWorktreeConfirm:
     'Elimínalo de Git (se borra el directorio del worktree; la rama se conserva) o simplemente oculta el carril de la barra lateral y deja el worktree en disco.',

@@ -71,6 +71,7 @@ vi.mock('@/i18n', () => ({
           removeWorktreeConfirm: 'Remove this worktree?',
           removeWorktreeDirty: 'This worktree has changes.',
           removeWorktreeFailed: 'Could not remove worktree',
+          removeWorktreeTitle: (label: string) => `Remove worktree "${label}"?`,
           reorder: (label: string) => `Reorder ${label}`,
           reveal: 'Reveal in file manager',
           toggle: (label: string, open: boolean) => `${open ? 'Show' : 'Hide'} ${label} sessions`

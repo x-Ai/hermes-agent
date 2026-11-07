@@ -72,6 +72,7 @@ export const deProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   branchesLoading: 'Branches werden geladen…',
   noBranches: 'Keine Branches gefunden',
   removeWorktree: 'Worktree entfernen',
+  removeWorktreeTitle: label => `Worktree „${label}“ entfernen?`,
   removeWorktreeFailed: 'Worktree konnte nicht entfernt werden (nicht committete Änderungen?)',
   removeWorktreeConfirm:
     'Aus Git entfernen (löscht das Worktree-Verzeichnis; der Branch bleibt), oder einfach die Lane aus der Sidebar ausblenden und den Worktree auf der Festplatte belassen.',

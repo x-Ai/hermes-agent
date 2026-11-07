@@ -67,6 +67,7 @@ export const jaProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   branchesLoading: 'ブランチを読み込み中…',
   noBranches: 'ブランチが見つかりません',
   removeWorktree: 'ワークツリーを削除',
+  removeWorktreeTitle: label => `ワークツリー「${label}」を削除しますか？`,
   removeWorktreeFailed: 'ワークツリーを削除できませんでした（未コミットの変更がある可能性があります）',
   removeWorktreeConfirm:
     'git から削除すると、ワークツリーのディレクトリが削除されます（ブランチは残ります）。サイドバーから非表示にするだけなら、ワークツリーはディスクに残ります。',

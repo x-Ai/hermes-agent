@@ -72,6 +72,7 @@ export const frProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   branchesLoading: 'Chargement des branches…',
   noBranches: 'Aucune branche trouvée',
   removeWorktree: 'Supprimer le worktree',
+  removeWorktreeTitle: label => `Supprimer le worktree « ${label} » ?`,
   removeWorktreeFailed: 'Impossible de supprimer le worktree (modifications non validées ?)',
   removeWorktreeConfirm:
     'Supprimez-le de git (supprime le répertoire du worktree ; la branche reste), ou masquez simplement la voie de la barre latérale et laissez le worktree sur le disque.',

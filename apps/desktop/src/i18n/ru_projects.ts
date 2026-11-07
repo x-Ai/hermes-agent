@@ -70,6 +70,7 @@ export const ruProjects: NonNullable<TranslationOverrides['sidebar']>['projects'
   branchesLoading: 'Загрузка веток…',
   noBranches: 'Ветки не найдены',
   removeWorktree: 'Удалить worktree',
+  removeWorktreeTitle: label => `Удалить worktree «${label}»?`,
   removeWorktreeFailed: 'Не удалось удалить worktree (есть незакоммиченные изменения?)',
   removeWorktreeConfirm:
     'Удалить из git (сотрёт каталог worktree; ветка останется) или просто скрыть его из боковой панели, оставив worktree на диске.',

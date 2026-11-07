@@ -67,6 +67,7 @@ export interface SidebarProjectsTranslations {
   branchesLoading: string
   noBranches: string
   removeWorktree: string
+  removeWorktreeTitle: (label: string) => string
   removeWorktreeFailed: string
   removeWorktreeConfirm: string
   removeWorktreeDirty: string

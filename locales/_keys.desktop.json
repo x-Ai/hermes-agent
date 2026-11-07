@@ -5933,6 +5933,7 @@
     "sidebar.projects.removeWorktreeConfirm",
     "sidebar.projects.removeWorktreeDirty",
     "sidebar.projects.removeWorktreeFailed",
+    "sidebar.projects.removeWorktreeTitle",
     "sidebar.projects.renameTitle",
     "sidebar.projects.reorder",
     "sidebar.projects.reveal",

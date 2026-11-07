@@ -71,6 +71,7 @@ export const enProjects: Translations['sidebar']['projects'] = {
   branchesLoading: 'Loading branches…',
   noBranches: 'No branches found',
   removeWorktree: 'Remove worktree',
+  removeWorktreeTitle: label => `Remove worktree "${label}"?`,
   removeWorktreeFailed: 'Could not remove worktree (uncommitted changes?)',
   removeWorktreeConfirm:
     'Remove it from git (deletes the worktree directory; the branch stays), or just hide the lane from the sidebar and leave the worktree on disk.',

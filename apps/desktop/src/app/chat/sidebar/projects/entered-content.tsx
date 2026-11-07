@@ -247,7 +247,7 @@ function RepoFlatSection({
         label: s.projects.removeFromSidebar,
         onClick: () => target && dismissWorktree(laneKey(target))
       }}
-      title={`${s.projects.removeWorktree} "${target?.label ?? ''}"?`}
+      title={s.projects.removeWorktreeTitle(target?.label ?? '')}
     />
   )
 
