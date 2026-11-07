@@ -42,7 +42,10 @@ const REVIEWED = {
     'shell',
     'rightSidebar',
     'zones',
-    'contextMenu'
+    'contextMenu',
+    'freeTier',
+    'desktop',
+    'billingPage'
   ]
 } as const
 
