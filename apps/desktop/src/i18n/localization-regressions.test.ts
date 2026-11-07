@@ -236,4 +236,16 @@ describe('platform and behaviour facts stated in copy', () => {
 
     expect(en.settings.sessions.defaultDirUpdated('Alt+N')).toContain('Alt+N')
   })
+  // The up-to-date row shows whenever the configured build is the one serving (updateApplied in
+  // local-models-runtime-section.tsx), and that build can be pinned, so it is not "the latest build
+  // Hermes ships" (de5a1da632 retracted that claim).
+  it('names the running engine build without calling it the newest Hermes ships, in every bundled locale', () => {
+    for (const locale of BUNDLED_LOCALES) {
+      const detail = TRANSLATIONS[locale].settings.localModels.upToDateDetail('b8000', 'metal')
+
+      expect(detail, locale).toContain('b8000')
+      expect(detail, locale).toContain('metal')
+      expect(detail, locale).not.toContain('Hermes')
+    }
+  })
 })

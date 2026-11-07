@@ -2407,7 +2407,7 @@ export const deOverrides = {
         selectedMessage: backend => `Terminal-Befehle laufen jetzt über ${backend}. Gilt für neue Sessions.`,
         failedSelect: backend => `${backend} konnte nicht ausgewählt werden`,
         needsSetupHint:
-          'Sie können dieses Backend jetzt auswählen – Befehle schlagen fehl, bis das Setup abgeschlossen ist.',
+          'Dieses Backend ist derzeit ausgewählt, aber nicht vollständig eingerichtet – Befehle schlagen fehl, bis die Einrichtung abgeschlossen ist.',
         needsSetupConfirmTitle: (backend: string) => `${backend} trotzdem auswählen?`,
         needsSetupConfirmDescription: (detail: string) =>
           `${detail} Sessions, die nach dieser Änderung starten, haben keine Terminal- oder Datei-Tools, bis die Einrichtung abgeschlossen ist.`,
@@ -5550,7 +5550,7 @@ export const deOverrides = {
     secretSendFailed: 'Geheimnis konnte nicht gesendet werden',
     sudoTitle: 'Administrator-Passwort',
     sudoDesc:
-      'Hermes benötigt Ihr Sudo-Passwort, um einen privilegierten Befehl auszuführen. Es wird nur an Ihren lokalen Agenten gesendet.',
+      'Überprüfen Sie den Befehl, bevor Sie Ihr Sudo-Passwort eingeben. Ihr Passwort wird an den Agenten gesendet, der ihn ausführt, und für diese Sitzung zwischengespeichert.',
     sudoCommandUnavailable:
       'Dieser Agent hat den Befehl nicht mitgeliefert. Brechen Sie ab, wenn Sie ihn im Gespräch nicht überprüfen können.',
     sudoInstallDesc:

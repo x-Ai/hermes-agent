@@ -5558,7 +5558,7 @@ export const frOverrides = {
     secretSendFailed: "Impossible d'envoyer le secret",
     sudoTitle: 'Mot de passe administrateur',
     sudoDesc:
-      "Hermes a besoin de votre mot de passe sudo pour exécuter une commande privilégiée. Il n'est envoyé qu'à votre agent local.",
+      "Vérifiez la commande avant de saisir votre mot de passe sudo. Votre mot de passe est envoyé à l'agent qui l'exécute et mis en cache pour cette session.",
     sudoCommandUnavailable:
       "Cet agent n'a pas fourni la commande. Annulez si vous ne pouvez pas la vérifier dans la conversation.",
     sudoInstallDesc:

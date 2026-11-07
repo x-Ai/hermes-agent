@@ -69,8 +69,7 @@ export const frLocalModels: TranslationOverride<Translations['settings']['localM
   updateAction: 'Mettre à jour le moteur',
   updating: 'Mise à jour du moteur…',
   upToDateTitle: 'Moteur à jour',
-  upToDateDetail: (tag, backend) =>
-    `llama.cpp ${tag} (${backend}) est en cours d'exécution : il s'agit de la dernière build fournie par Hermes.`,
+  upToDateDetail: (tag, backend) => `llama.cpp ${tag} (${backend}) est en cours d'exécution.`,
   activeDetail:
     "Les nouvelles conversations utilisent ce modèle. Il se charge lors de l'envoi de votre premier message.",
   activeNotLoaded: 'Se charge avec votre premier message',

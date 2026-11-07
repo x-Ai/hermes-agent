@@ -69,8 +69,7 @@ export const deLocalModels: TranslationOverride<Translations['settings']['localM
   updateAction: 'Engine aktualisieren',
   updating: 'Engine wird aktualisiert…',
   upToDateTitle: 'Engine aktuell',
-  upToDateDetail: (tag, backend) =>
-    `llama.cpp ${tag} (${backend}) wird ausgeführt — der neueste Build, den Hermes mitliefert.`,
+  upToDateDetail: (tag, backend) => `llama.cpp ${tag} (${backend}) wird ausgeführt.`,
   activeDetail: 'Neue Chats verwenden dieses Modell – es wird geladen, wenn Sie Ihre erste Nachricht senden',
   activeNotLoaded: 'Wird bei Ihrer ersten Nachricht geladen',
   loadedPill: 'Im Speicher',
