@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { arOverrides } from './ar'
 import { AR_PLURAL } from './ar_plural'
 import { en } from './en'
-import { ruOverrides } from './ru'
+import { ru, ruOverrides } from './ru'
 
 // The ru and ar overlays came from machine translation, which glued `${…}`
 // arguments to the words around them ("Профили включены${gateway}", "انتقل إلى${name}")
@@ -34,6 +34,7 @@ const REVIEWED_BLOCKS = [
   'webhooks',
   'assistant',
   'skillDeepLink',
+  'catalog',
   'skills',
   'starmap',
   'agents',
@@ -64,13 +65,26 @@ const REVIEWED_BLOCKS = [
   'preview'
 ] as const
 
-// Blocks reviewed for Arabic only: written against English from the start, or
-// (catalog) rewritten from machine translation. The Russian overlay leaves them
-// in English or unreviewed.
-const AR_ONLY_BLOCKS = ['connectorsPage', 'appTour', 'sharedProviders', 'connectorOffer', 'catalog'] as const
+// Blocks reviewed for Arabic only: written against English from the start. The
+// Russian overlay leaves them in English.
+const AR_ONLY_BLOCKS = ['connectorsPage', 'appTour', 'sharedProviders', 'connectorOffer'] as const
+
+// Blocks reviewed for Russian only; no sweep has read their Arabic copy yet.
+const RU_ONLY_BLOCKS = [
+  'common',
+  'media',
+  'sharedMetrics',
+  'firstRun',
+  'artifacts',
+  'artifactCard',
+  'artifactPreview',
+  'errors',
+  'ui',
+  'runtimeErrors'
+] as const
 
 const BLOCKS: Record<'ru' | 'ar', readonly string[]> = {
-  ru: REVIEWED_BLOCKS,
+  ru: [...REVIEWED_BLOCKS, ...RU_ONLY_BLOCKS],
   ar: [...REVIEWED_BLOCKS, ...AR_ONLY_BLOCKS]
 }
 
@@ -177,6 +191,17 @@ describe.each(['ru', 'ar'] as const)('the reviewed %s core copy', locale => {
 
     expect(faults).toEqual([])
   })
+})
+
+describe('the Russian media link label', () => {
+  // Chat turns a MEDIA: path into a link titled "<kind>: <name>"; the Russian
+  // overlay kept the English kind words (Audio, File, Image, Video).
+  it.each(['audio', 'file', 'image', 'video'] as const)(
+    'names the %s kind in Russian and keeps the file name',
+    kind => {
+      expect(ru.media.displayLabel(kind, 'clip.bin')).toMatch(/^[А-ЯЁ][а-яё]+: clip\.bin$/u)
+    }
+  )
 })
 
 describe('AR_PLURAL', () => {

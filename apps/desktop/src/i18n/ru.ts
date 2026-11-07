@@ -83,19 +83,19 @@ export const ruOverrides = {
     error: 'Ошибка',
     expand: 'Развернуть',
     failed: 'Ошибка',
-    failedToRender: name => `“${name}"не удалось`,
+    failedToRender: name => `Не удалось отобразить «${name}»`,
     formatJson: 'Форматировать JSON',
     free: 'Бесплатно',
     loading: 'Загрузка…',
     loadingStatus: 'Загрузка',
-    moreActions: 'Больше действий',
+    moreActions: 'Ещё действия',
     notSet: 'Не задано',
-    openFullView: 'Открытый полный обзор',
+    openFullView: 'Открыть в полном размере',
     refresh: 'Обновить',
-    remove: 'Убрать',
+    remove: 'Удалить',
     replace: 'Заменить',
     retry: 'Повторить',
-    reset: 'Сброс',
+    reset: 'Сбросить',
     run: 'Запустить',
     search: 'Поиск',
     send: 'Отправить',
@@ -103,8 +103,8 @@ export const ruOverrides = {
     showOptions: 'Показать параметры',
     skip: 'Пропустить',
     update: 'Обновить',
-    zoomIn: 'Заранее',
-    zoomOut: 'Умереть',
+    zoomIn: 'Увеличить',
+    zoomOut: 'Уменьшить',
     tryHint: term => `Попробуйте «${term}»`,
     on: 'Вкл',
     off: 'Выкл',
@@ -112,7 +112,7 @@ export const ruOverrides = {
   },
   media: {
     displayLabel: (kind, name) => {
-      const labels = { audio: 'Audio', file: 'File', image: 'Image', video: 'Video' }
+      const labels = { audio: 'Аудио', file: 'Файл', image: 'Изображение', video: 'Видео' }
 
       return `${labels[kind]}: ${name}`
     }
@@ -3695,22 +3695,23 @@ export const ruOverrides = {
     tabFiles: 'Файлы',
     tabLinks: 'Ссылки',
     noArtifactsTitle: 'Артефакты не найдены',
-    noArtifactsDesc: 'Сгенерированные изображения и файловые результаты появятся здесь по мере их создания в сеансах.',
+    noArtifactsDesc: 'Здесь появятся изображения и файлы, которые создают сеансы.',
     failedLoad: 'Не удалось загрузить артефакты',
     openFailed: 'Не удалось открыть',
-    itemsImage: 'изображения',
-    itemsLink: 'ссылки',
-    itemsFile: 'файлы',
-    itemsGeneric: 'элементы',
+    // Read after "1–24 из 120" and in goToPage ("…списка изображений"): genitive plural.
+    itemsImage: 'изображений',
+    itemsLink: 'ссылок',
+    itemsFile: 'файлов',
+    itemsGeneric: 'элементов',
     zero: '0',
     rangeOf: (start, end, total) => `${start}–${end} из ${total}`,
-    goToPage: (itemLabel, page) => `Перейти на страницу ${page} ${itemLabel}`,
+    goToPage: (itemLabel, page) => `Перейти на страницу ${page} списка ${itemLabel}`,
     colTitleLink: 'Название ссылки',
     colTitleFile: 'Имя',
     colTitleDefault: 'Название / имя',
     colLocationLink: 'URL',
     colLocationFile: 'Путь',
-    colLocationDefault: 'Место',
+    colLocationDefault: 'Расположение',
     colSession: 'Сеанс',
     kindImage: 'изображение',
     kindFile: 'файл',
@@ -3731,15 +3732,15 @@ export const ruOverrides = {
   },
   artifactPreview: {
     versionOf: (current, total) => `v${current} из ${total}`,
-    olderVersion: 'Более старая версия',
-    newerVersion: 'Более новая версия',
+    olderVersion: 'Предыдущая версия',
+    newerVersion: 'Следующая версия',
     latest: 'Последняя',
     copyContent: 'Копировать содержимое',
     download: 'Скачать',
     openInBrowser: 'Открыть в браузере',
     openInBrowserFailed: 'Не удалось открыть в браузере',
     missingTitle: 'Артефакт недоступен',
-    missingBody: 'Этот артефакт больше нет в локальном реестре.'
+    missingBody: 'Этого артефакта больше нет в локальном реестре.'
   },
   sidebar: {
     profileRail: 'Панель профилей',
@@ -6152,10 +6153,10 @@ export const ruOverrides = {
   errors: {
     genericFailure: 'Что-то пошло не так',
     boundaryTitle: 'Что-то сломалось в интерфейсе',
-    boundaryDesc: 'Вид столкнулся с неожиданной ошибкой. Ваши чаты и настройки в безопасности.',
+    boundaryDesc: 'Не удалось отобразить экран из-за непредвиденной ошибки. Чаты и настройки в безопасности.',
     reloadWindow: 'Перезагрузить окно',
     openLogs: 'Открыть журналы',
-    boundaryDetails: 'Детали',
+    boundaryDetails: 'Подробности',
     sendDiagnostics: 'Отправить диагностику'
   },
   ui: {
@@ -6168,7 +6169,7 @@ export const ruOverrides = {
       top: 'В начало журнала'
     },
     pagination: {
-      label: 'пагинация',
+      label: 'Навигация по страницам',
       previous: 'Назад',
       previousAria: 'Перейти на предыдущую страницу',
       next: 'Дальше',
