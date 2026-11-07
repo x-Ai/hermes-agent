@@ -7,9 +7,10 @@ import { ruOverrides } from './ru'
 
 // The ru and ar overlays came from machine translation, which glued `${…}`
 // arguments to the words around them ("Профили включены${gateway}", "انتقل إلى${name}")
-// and dropped some of them. These blocks have been reviewed against English;
-// a value the overlay leaves out falls back to English and is not read here.
-const REVIEWED_IN_BOTH = [
+// and dropped some of them. These blocks have been reviewed against English in
+// both locales; a value the overlay leaves out falls back to English and is not
+// read here.
+const REVIEWED_BLOCKS = [
   'billingBlock',
   'billingPage',
   'notifications',
@@ -27,11 +28,7 @@ const REVIEWED_IN_BOTH = [
   'commandCenter',
   'messaging',
   'profiles',
-  'cron'
-] as const
-
-// Reviewed for Arabic only; the Russian copy of these blocks is still unswept.
-const REVIEWED_AR_ONLY = [
+  'cron',
   'connectors',
   'sessionImport',
   'webhooks',
@@ -65,11 +62,6 @@ const REVIEWED_AR_ONLY = [
   'onboarding',
   'freeTier'
 ] as const
-
-const REVIEWED_BLOCKS: Record<'ru' | 'ar', readonly string[]> = {
-  ru: REVIEWED_IN_BOTH,
-  ar: [...REVIEWED_IN_BOTH, ...REVIEWED_AR_ONLY]
-}
 
 // Arguments that are identifiers rather than display text ('audio' | 'video');
 // a translation names the choice in its own words instead of echoing it. The
@@ -168,9 +160,9 @@ describe.each(['ru', 'ar'] as const)('the reviewed %s core copy', locale => {
   it('keeps every argument English shows, set apart from the words around it', () => {
     const overlay = OVERLAYS[locale]
 
-    const faults = REVIEWED_BLOCKS[locale]
-      .flatMap(block => leaves(overlay[block], block))
-      .flatMap(({ path, value }) => interpolationFaults(path, value).map(fault => `${path} ${fault}`))
+    const faults = REVIEWED_BLOCKS.flatMap(block => leaves(overlay[block], block)).flatMap(({ path, value }) =>
+      interpolationFaults(path, value).map(fault => `${path} ${fault}`)
+    )
 
     expect(faults).toEqual([])
   })

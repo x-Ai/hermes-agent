@@ -3,7 +3,7 @@ import type { ProviderWaitThreadCopy } from './types_provider_wait'
 // Backend wait / retry status lines (see types_provider_wait.ts), spread into
 // `assistant.thread` in ru.ts.
 export const ruProviderWait: ProviderWaitThreadCopy = {
-  failedTurnNotice: 'Ваш запрос не был обработан. Отправьте его снова, если всё ещё хотите, чтобы я его выполнил.',
+  failedTurnNotice: 'Запрос не был обработан. Отправьте его снова, если всё ещё хотите, чтобы я его выполнил.',
   failedTurnRestartNotice:
     'Шлюз перезапускается: этот ход был прерван и не будет запущен снова. Отправьте сообщение снова, когда Hermes переподключится.',
   failedTurnShutdownNotice:
@@ -15,7 +15,7 @@ export const ruProviderWait: ProviderWaitThreadCopy = {
   modelContinuing: (attempt, maxAttempts) =>
     `Модель вернула рассуждения без итогового ответа — запрашиваем продолжение (${attempt}/${maxAttempts})`,
   providerReconnecting: (elapsedSeconds, kind) =>
-    `No ${kind} from the provider after ${elapsedSeconds}s - воссоединение..`,
+    `От провайдера нет ${kind === 'output' ? 'вывода' : 'ответа'} уже ${elapsedSeconds} с — переподключение…`,
   providerRetrying: (retrySeconds, attempt, maxAttempts) =>
     `Ожидание провайдера — повтор через ${retrySeconds} с (попытка ${attempt}/${maxAttempts})`,
   providerRetryReasons: {

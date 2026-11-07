@@ -1,3 +1,5 @@
+import { RU_PLURAL } from './ru_plural'
+
 // Desktop-side /rollback /agents /config /history /save /export /import /timestamps lines
 // (en_desktop_commands.ts is the source).
 export const ruDesktopCommands = {
@@ -9,28 +11,29 @@ export const ruDesktopCommands = {
   checkpointsHint:
     'Восстановление: /rollback <n> [file] (с --all перезаписываются и ваши правки); предпросмотр: /rollback diff <n>.',
   noDiff: 'С этой контрольной точки изменений нет.',
-  rollbackFailed: (error: string) => `Откат не удался: ${error}`,
+  rollbackFailed: (error: string) => `Не удалось выполнить откат: ${error}`,
   unknownError: 'неизвестная ошибка',
   restored: (hash: string) => (hash ? `Контрольная точка ${hash} восстановлена.` : 'Контрольная точка восстановлена.'),
-  rewound: (count: string) => `Из этого разговора откачено сообщений: ${count}.`,
-  reopenForRewind: 'Откройте этот чат заново, чтобы увидеть откаченный разговор.',
+  rewound: (count: string) =>
+    `Из этого разговора удалено ${count} ${RU_PLURAL(count, 'сообщение', 'сообщения', 'сообщений')}.`,
+  reopenForRewind: 'Откройте этот чат заново, чтобы увидеть разговор после отката.',
   agentsEmpty: 'В этом чате нет активных субагентов и фоновых процессов.',
   subagentsHeader: (count: string) => `Субагенты (${count}):`,
   subagentFallback: 'субагент',
   statusRunning: 'выполняется',
-  toolCalls: (count: string) => `вызовов инструментов: ${count}`,
+  toolCalls: (count: string) => `${count} ${RU_PLURAL(count, 'вызов', 'вызова', 'вызовов')} инструментов`,
   processesHeader: (count: string) => `Фоновые процессы (${count}):`,
   configHeader: 'Конфигурация (настройки отображения, подтверждений, вставки и голоса; остальное не показывается):',
   configDefaults: '(по умолчанию)',
   configFooter:
-    'Меняйте настройки в «Настройках» или редактируйте config.yaml командой `hermes config edit` на хосте шлюза.',
+    'Изменяйте настройки в разделе «Настройки» или редактируйте config.yaml командой `hermes config edit` на хосте шлюза.',
   historyHeader: (count: string) => `История разговора (сообщений: ${count}):`,
   historyEmpty: 'Сообщений пока нет.',
   historyYou: 'Вы',
   historyHermes: 'Hermes',
   saveUsage: 'использование: /save [json|md|html] [filename] [redact]',
   saveLegacyRefused:
-    'Не сохранено: этот шлюз не умеет экспортировать скрытую, именованную или не-JSON копию. Обновите шлюз или выполните /save без параметров, чтобы записать исходный JSON на хосте шлюза.',
+    'Не сохранено: этот шлюз не умеет экспортировать копию со скрытыми секретами, с заданным именем или не в формате JSON. Обновите шлюз или выполните /save без параметров, чтобы записать исходный JSON на хосте шлюза.',
   savedOnHost: (path: string) => `Сохранено на хосте шлюза: ${path}`,
   unknownPath: '(путь неизвестен)',
   saveUnsupported: 'ошибка: эта сборка приложения не умеет сохранять файлы',

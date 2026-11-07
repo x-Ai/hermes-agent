@@ -5,10 +5,10 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   settingsTitle: 'Параметры субагентов по умолчанию',
   intro: 'Как каждый субагент получает свою модель.',
   modes: {
-    default: { label: 'По умолчанию', description: 'Все субагенты работают на модели субагента ниже.' },
+    default: { label: 'По умолчанию', description: 'Все субагенты работают на модели субагентов, указанной ниже.' },
     model_map: {
       label: 'Маршруты моделей',
-      description: 'Назовите несколько моделей. Агент выбирает одну для каждого субагента.'
+      description: 'Укажите несколько моделей. Агент выбирает одну из них для каждого субагента.'
     },
     profile_routes: {
       label: 'Маршруты профилей',
@@ -19,23 +19,24 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   plugin: 'Плагин',
   pluginMissing: 'Маршруты моделей и маршруты профилей предоставляет плагин Advanced Delegation.',
   pluginDisabled: 'Advanced Delegation установлен, но отключён для этого профиля.',
-  pluginNotLoaded: 'Advanced Delegation включён, но Hermes ещё не загрузил его. Перезапустите Hermes, чтобы завершить.',
+  pluginNotLoaded:
+    'Advanced Delegation включён, но Hermes ещё не загрузил его. Перезапустите Hermes, чтобы завершить включение.',
   installPlugin: 'Установить плагин',
   installUnavailable:
-    'Advanced Delegation пока нет в каталоге плагинов. Установите его в разделе Возможности › Плагины.',
+    'Advanced Delegation пока нет в каталоге плагинов. Установите его в разделе Возможности → Плагины.',
   enablePlugin: 'Включить',
   enableFailed: 'Не удалось включить Advanced Delegation',
   modeFailed: 'Не удалось изменить маршрутизацию субагентов',
   loadFailed: 'Не удалось загрузить маршрутизацию субагентов',
   blockedPill: 'Не работает',
   blockedDetail:
-    'Этот режим сохранён, поэтому Hermes отклоняет каждого субагента, а не переходит молча на «По умолчанию».',
+    'Этот режим сохранён, поэтому Hermes отказывается запускать субагентов, а не переходит молча на «По умолчанию».',
   blockedMissing: 'Субагенты не запустятся, пока не установлен Advanced Delegation.',
   blockedDisabled: 'Субагенты не запустятся, пока Advanced Delegation не включён для этого профиля.',
   blockedNotLoaded:
-    'Субагенты не запустятся, пока Hermes не загрузит Advanced Delegation. Перезапустите Hermes, чтобы завершить.',
+    'Субагенты не запустятся, пока Hermes не загрузит Advanced Delegation. Перезапустите Hermes, чтобы завершить включение.',
   blockedUnavailable: label =>
-    `Субагенты не запустятся, пока ${label} не сможет работать здесь. Его плагин сообщает, что не может.`,
+    `Субагенты не запустятся, пока режим «${label}» не сможет работать здесь: его плагин сообщает, что это невозможно.`,
   blockedUnregistered: name =>
     `Субагенты не запустятся, пока не установлен и не включён плагин, предоставляющий «${name}».`,
   thirdPartyDescription: 'Предоставлен плагином. Его настройки находятся в этом плагине.',
@@ -47,7 +48,7 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   makeDefault: 'Сделать основным',
   deleteRoute: 'Удалить',
   defaultBadge: 'Основной',
-  routeActions: name => `Действия для ${name}`,
+  routeActions: name => `Действия с маршрутом «${name}»`,
   deleteConfirmTitle: name => `Удалить маршрут «${name}»?`,
   deleteConfirmBody: 'Субагенты больше не смогут его выбрать.',
   deleteConfirmNextDefault: name => `Это основной маршрут, поэтому основным станет «${name}».`,
@@ -62,13 +63,13 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   namePlaceholder: 'например, fast',
   nameHint: 'Коротко, без пробелов. Агент выбирает маршруты по этому названию.',
   descriptionLabel: 'Когда использовать',
-  descriptionPlaceholder: 'например, Дёшево и быстро: поиск, сводки, простые правки.',
+  descriptionPlaceholder: 'например, дёшево и быстро: поиск, сводки, простые правки.',
   descriptionHint: 'Одна строка, которую агент читает перед выбором.',
   providerLabel: 'Провайдер',
   providerPlaceholder: 'Выберите провайдера',
   modelLabel: 'Модель',
   effortLabel: 'Глубина рассуждений',
-  effortInherit: 'Как у субагента по умолчанию',
+  effortInherit: 'По умолчанию для субагентов',
   tierLabel: 'Скорость',
   tierNormal: 'Обычная',
   tierFast: 'Быстрая',
@@ -78,16 +79,17 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   daybreakOff: 'Выкл.',
   daybreakOn: 'Вкл.',
   daybreakHint: 'Доверенный доступ OpenAI с ослабленными ограничениями, только для этого маршрута.',
-  daybreakUnlisted: 'Эта модель не указана для Daybreak в вашем аккаунте. Выключите его или выберите другую модель.',
+  daybreakUnlisted:
+    'Этой модели нет в списке Daybreak для вашего аккаунта. Отключите Daybreak или выберите другую модель.',
   daybreakNeedsPlugin:
-    'Ваш плагин Advanced Delegation пока не поддерживает маршруты Daybreak. Обновите его или выключите это.',
+    'Установленный плагин Advanced Delegation пока не поддерживает маршруты Daybreak. Обновите его или отключите Daybreak.',
   optional: 'необязательно',
   errors: { required: 'Обязательно', spaces: 'Без пробелов', duplicate: 'Это название уже использует другой маршрут' },
   saveRoute: 'Сохранить маршрут',
   createRoute: 'Добавить маршрут',
 
   profileRoutesTitle: 'Профили, от имени которых могут работать субагенты',
-  profileRoutesHint: 'Каждый отмеченный профиль приносит свою модель, навыки, персону и ключи.',
+  profileRoutesHint: 'У каждого отмеченного профиля свои модель, навыки, персона и ключи.',
   profileDescriptionPlaceholder: 'Когда использовать (необязательно)',
   profileDefault: 'Основной',
   profileEmpty: 'Других профилей пока нет. Создайте профиль на панели профилей.',
@@ -97,7 +99,7 @@ export const ruDelegationRouting: DelegationRoutingTranslations = {
   inactiveModelMap: route =>
     `Маршруты моделей выбирают модель для каждого субагента. Субагенты, не выбравшие маршрут, используют «${route}».`,
   inactiveProfiles: profile =>
-    `Маршруты профилей выбирают профиль для каждого субагента. Субагенты, не выбравшие профиль, работают как «${profile}».`,
+    `Маршруты профилей выбирают профиль для каждого субагента. Субагенты, не выбравшие профиль, работают от имени профиля «${profile}».`,
   inactiveModelMapNoDefault:
     'Маршруты моделей выбирают модель для каждого субагента. Субагенты, не выбравшие маршрут, используют модель основного агента.',
   inactiveProfilesNoDefault:

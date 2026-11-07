@@ -6,5 +6,5 @@ export const ruDelegationFieldLabels = {
   maxConcurrentChildren: 'Параллельные субагенты',
   childTimeoutSeconds: 'Тайм-аут субагента',
   reasoningEffort: 'Глубина рассуждений субагента',
-  useCustomEndpoints: 'Предлагать субагентам пользовательские эндпоинты'
+  useCustomEndpoints: 'Предлагать свои эндпоинты для субагентов'
 }

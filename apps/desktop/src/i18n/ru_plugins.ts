@@ -1,4 +1,5 @@
 import type { TranslationOverrides } from './define-locale'
+import { RU_PLURAL } from './ru_plural'
 
 type SettingsOverrides = NonNullable<TranslationOverrides['settings']>
 
@@ -9,9 +10,9 @@ export const ruPluginSettings = {
     blurb:
       'Параметры, которые добавляют установленные плагины. У каждого плагина своя страница, у некоторых есть подстраницы.',
     empty: 'Пока ни у одного плагина нет настроек.',
-    manage: 'Управление плагинами',
+    manage: 'Управлять плагинами',
     agentSettings: 'Настройки агента',
-    pageCount: (n: number) => `Страниц: ${n}`,
+    pageCount: (n: number) => `${n} ${RU_PLURAL(n, 'страница', 'страницы', 'страниц')}`,
     missing: 'У этого плагина нет страницы настроек. Возможно, он отключён или удалён.'
   },
   plugins: {

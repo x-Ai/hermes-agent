@@ -2,13 +2,13 @@ import type { ThemePickerCopy } from './types_theme_picker'
 
 export const ruThemePicker: ThemePickerCopy = {
   accent: 'Акцентный цвет',
-  layout: 'Макет',
-  mode: 'Оформление',
+  layout: 'Раскладка',
+  mode: 'Внешний вид',
   customColor: 'Свой цвет',
   themeAccent: 'Цвет темы',
   basic: 'Базовый',
   basicDetail: 'Для общения с Hermes.',
-  elite: 'Элитный',
-  eliteDetail: 'Для разработчиков: терминал, файлы, диффы.',
+  elite: 'Продвинутый',
+  eliteDetail: 'Для разработчиков: терминал, файлы, diff.',
   noPick: 'Не выбрано'
 }
