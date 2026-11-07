@@ -570,6 +570,13 @@ export const zhHantBoot = {
       signInBelow: '登入是免費的。選擇下面的 Nous。',
       tryAgain: '再試一次',
       retrying: '再試一次…'
+    },
+    wait: {
+      fewSeconds: '幾秒鐘',
+      aboutMinute: '大約 1 分鐘',
+      aboutMinutes: count => `大約 ${count} 分鐘`,
+      aboutHour: '大約 1 小時',
+      aboutHours: count => `大約 ${count} 小時`
     }
   }
 } satisfies Pick<

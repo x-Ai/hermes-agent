@@ -618,6 +618,26 @@ export const arBoot = {
       signInBelow: 'تسجيل الدخول مجاني. اختر Nous أدناه.',
       tryAgain: 'إعادة المحاولة',
       retrying: 'جارٍ إعادة المحاولة…'
+    },
+    // Read after «بعد» in busyBody and setupFailed.rateLimited, so a dual is genitive.
+    wait: {
+      fewSeconds: 'بضع ثوانٍ',
+      aboutMinute: 'دقيقة تقريبًا',
+      aboutMinutes: count =>
+        AR_PLURAL(count, {
+          one: 'دقيقة تقريبًا',
+          two: 'دقيقتين تقريبًا',
+          few: `${count} دقائق تقريبًا`,
+          many: `${count} دقيقة تقريبًا`
+        }),
+      aboutHour: 'ساعة تقريبًا',
+      aboutHours: count =>
+        AR_PLURAL(count, {
+          one: 'ساعة تقريبًا',
+          two: 'ساعتين تقريبًا',
+          few: `${count} ساعات تقريبًا`,
+          many: `${count} ساعة تقريبًا`
+        })
     }
   }
 } satisfies Pick<

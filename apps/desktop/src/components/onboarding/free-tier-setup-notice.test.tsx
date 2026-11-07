@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { DEFAULT_LOCALE, setRuntimeI18nLocale, TRANSLATIONS } from '@/i18n'
 import { en } from '@/i18n/en'
 import { $freeTierStatus, freeTierSetupFailure } from '@/store/free-tier'
 import type { OnboardingContext } from '@/store/onboarding'
@@ -42,6 +43,7 @@ function ctxReturning(status: FreeTierStatus, provisioned?: FreeTierStatus): Onb
 afterEach(() => {
   cleanup()
   $freeTierStatus.set(null)
+  setRuntimeI18nLocale(DEFAULT_LOCALE)
   vi.restoreAllMocks()
 })
 
@@ -54,6 +56,17 @@ describe('setupFailureCopy', () => {
     expect(failure && setupFailureCopy(failure, copy)).toBe('Something new.')
     // Prototype names are not codes.
     expect(setupFailureCopy({ ...failure!, code: 'constructor', message: '' }, copy)).toBe(copy.generic)
+  })
+
+  // The wait sits inside a translated sentence, so an English "about 2 minutes" broke it mid-line.
+  it('names the rate-limit wait in the UI language', () => {
+    setRuntimeI18nLocale('ar')
+    const ar = TRANSLATIONS.ar.freeTier
+    const failure = freeTierSetupFailure({ ...NO_IDENTITY, error_code: 'anon_rate_limited', retry_after: 120 })
+    const sentence = failure && setupFailureCopy(failure, ar.setupFailed)
+
+    expect(sentence).toBe(ar.setupFailed.rateLimited(ar.wait.aboutMinutes(2)))
+    expect(sentence).not.toMatch(/about|minute/)
   })
 })
 

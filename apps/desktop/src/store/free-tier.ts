@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores'
 
+import { translateNow } from '@/i18n'
 import { runFreeTierChallenge } from '@/store/free-tier-challenge'
 import { setModeContext } from '@/store/interface-mode'
 import { $onboardingSurfaceClear, onboardingSurfaceActive } from '@/store/onboarding-presence'
@@ -124,25 +125,26 @@ export function freeTierSetupFailure(status: FreeTierStatus | null): FreeTierSet
  * A rounded, spoken duration for copy — "a few seconds", "about a minute",
  * "about 5 minutes", "about an hour" — mirroring the backend's `friendly_wait`
  * so a wait reads the same whichever side phrased it. Never a raw second count.
+ * Phrased in the UI language (`freeTier.wait`): it lands inside a translated sentence.
  */
 export function friendlyWait(seconds: number): string {
   const s = Math.max(0, Number.isFinite(seconds) ? seconds : 0)
 
   if (s <= 15) {
-    return 'a few seconds'
+    return translateNow('freeTier.wait.fewSeconds')
   }
 
   if (s < 90) {
-    return 'about a minute'
+    return translateNow('freeTier.wait.aboutMinute')
   }
 
   if (s < 3600) {
-    return `about ${Math.round(s / 60)} minutes`
+    return translateNow('freeTier.wait.aboutMinutes', Math.round(s / 60))
   }
 
   const hours = Math.round(s / 3600)
 
-  return hours <= 1 ? 'about an hour' : `about ${hours} hours`
+  return hours <= 1 ? translateNow('freeTier.wait.aboutHour') : translateNow('freeTier.wait.aboutHours', hours)
 }
 
 /**
