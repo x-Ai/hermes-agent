@@ -16,7 +16,7 @@ export const jaModelMenu = {
     `入力 ${input}/Mtok · 出力 ${output}/Mtok` + (cache ? ` · キャッシュ読み取り ${cache}/Mtok` : ''),
   localSetup: {
     title: 'ローカルで実行 · 無料・プライベート',
-    text: (model: string, size: string) => `${model} はこのマシンで動きます · ${size} をダウンロード`,
+    text: (model: string, size: string) => `${model} はこのマシンで動きます · ダウンロードサイズ ${size}`,
     action: '設定する'
   },
   limited: '制限中',
@@ -25,9 +25,9 @@ export const jaModelMenu = {
     time
       ? `${provider} が利用上限に達しました。${time} にリセットされます。リセット後に使うモデルは今のうちに選べます。`
       : `${provider} が利用上限に達しました。リセット後に使うモデルは今のうちに選べます。`,
-  modelResets: (time: string) => `${time} に再開`,
+  modelResets: (time: string) => `${time} にリセット`,
   modelLimitedTip: (time: string) =>
-    `このモデルは個別の上限に達しており、${time} に再開します。ここにある他のモデルは引き続き使えます。`,
+    `このモデルは個別の上限に達しており、${time} にリセットされます。ここにある他のモデルは引き続き使えます。`,
   usageLeft: (percent: number, time: null | string) =>
     time ? `残り ${percent}% · ${time} にリセット` : `残り ${percent}%`,
   poolAccounts: (count: number) => `${count} アカウント`,

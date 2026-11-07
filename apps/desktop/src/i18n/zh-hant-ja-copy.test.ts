@@ -22,7 +22,19 @@ const REVIEWED = {
     'notifications',
     'settings.managedUpdates'
   ],
-  ja: ['keybinds', 'paletteCommands', 'findInPage', 'notifications']
+  ja: [
+    'fileMenu',
+    'titlebar',
+    'keybinds',
+    'paletteCommands',
+    'findInPage',
+    'notifications',
+    'sidebar',
+    'shell',
+    'rightSidebar',
+    'zones',
+    'contextMenu'
+  ]
 } as const
 
 const OVERLAYS: Record<keyof typeof REVIEWED, unknown> = { 'zh-hant': zhHantOverrides, ja: jaOverrides }
