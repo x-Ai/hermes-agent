@@ -921,6 +921,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       if (result.notice) {
         showLargeModelNotice(result.notice)
       }
+
       setSwitchStaleAux(result.stale_aux ?? [])
       notify({ kind: 'success', title: m.mainAppliedTitle, message: m.mainAppliedMessage(model) })
 
@@ -1133,7 +1134,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                             void activateApiKeyProvider()
                           }
                         }}
-                        placeholder={`Paste ${selectedProviderRow?.key_env ?? 'API key'}`}
+                        placeholder={m.pasteKeyPlaceholder(selectedProviderRow?.key_env ?? '')}
                         type="password"
                         value={apiKeyDraft}
                       />
@@ -1143,7 +1144,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
                         size="sm"
                       >
                         {activating && <Loader2 className="size-3.5 animate-spin" />}
-                        {activating ? 'Activating...' : 'Activate'}
+                        {activating ? m.activating : m.activate}
                       </Button>
                     </div>
                   ) : (
@@ -1180,9 +1181,9 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
           )}
           {needsSetup && !setupIsApiKey && selectedProviderRow && (
             <p className="mt-2 text-xs text-muted-foreground">
-              {selectedProviderRow?.auth_type === 'api_key'
-                ? `${selectedProviderRow?.name} needs an API key — set it up to choose a model.`
-                : `${selectedProviderRow?.name} signs in through your browser — Hermes runs the flow for you.`}
+              {selectedProviderRow.auth_type === 'api_key'
+                ? m.needsApiKeyHint(selectedProviderRow.name)
+                : m.oauthHint(selectedProviderRow.name)}
             </p>
           )}
           {config && mainModel && (reasoningSupported || fastSupported || ultrafastSupported) && (

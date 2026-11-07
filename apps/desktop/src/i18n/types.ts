@@ -1298,6 +1298,9 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
       probing: string
       probeError: string
       signedIn: string
+      /** The `signedIn` toast's message. `provider` is the identity provider's name, or
+       *  boot.failure.identityProvider's phrase when the gateway names none. */
+      signedInMessage: (provider: string) => string
       signIn: string
       signOut: string
       signInWith: (provider: string) => string
@@ -2079,6 +2082,8 @@ export interface Translations extends NoticeTranslations, GoalStatusTranslations
     emptyNoneFound: (noun: string) => string
     emptyNothingMatches: (query: string) => string
     emptyNoneAvailable: (noun: string) => string
+    /** The Tools tab's noun for emptyNoneFound / emptyNoneAvailable, in the form those templates take. */
+    emptyToolsNoun: string
     changesApplyNewSessions: string
     skillUpdated: string
     edit: string

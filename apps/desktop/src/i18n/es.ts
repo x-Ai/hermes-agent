@@ -1755,6 +1755,7 @@ export const esOverrides = {
       probeError:
         'Hermes no puede llegar a esa dirección. Comprueba la URL y que el otro equipo esté ejecutando Hermes; las opciones de inicio de sesión aparecen cuando responde.',
       signedIn: 'Sesión iniciada',
+      signedInMessage: provider => `Conectado a ${provider}`,
       signIn: 'Iniciar sesión',
       signOut: 'Cerrar sesión',
       signInWith: provider => `Iniciar sesión con ${provider}`,
@@ -2493,6 +2494,7 @@ export const esOverrides = {
     emptyNoneFound: noun => `No se encontraron ${noun}`,
     emptyNothingMatches: query => `No hay coincidencias para “${query}”.`,
     emptyNoneAvailable: noun => `Aún no hay ${noun} disponibles.`,
+    emptyToolsNoun: 'herramientas',
     changesApplyNewSessions: 'Los cambios se aplican a las sesiones nuevas.',
     skillUpdated: 'Skill actualizado',
     edit: 'Editar',

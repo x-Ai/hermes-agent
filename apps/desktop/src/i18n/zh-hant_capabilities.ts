@@ -53,6 +53,7 @@ export const zhHantCapabilities = {
     emptyNoneFound: noun => `找不到${noun}`,
     emptyNothingMatches: query => `沒有符合「${query}」的內容。`,
     emptyNoneAvailable: noun => `尚無可用的${noun}。`,
+    emptyToolsNoun: '工具',
     changesApplyNewSessions: '變更將套用至新工作階段。',
     skillUpdated: '技能已更新',
     edit: '編輯',

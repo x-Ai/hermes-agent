@@ -1036,6 +1036,7 @@ export const zhHantSettings = {
       probing: '正在檢查此閘道的驗證方式…',
       probeError: 'Hermes 無法連接到該位址。請檢查 URL 並確認另一台電腦正在運行 Hermes——一旦回應，登入選項就會出現。',
       signedIn: '已登入',
+      signedInMessage: provider => `已連線至 ${provider}`,
       signIn: '登入',
       signOut: '登出',
       signInWith: provider => `使用 ${provider} 登入`,

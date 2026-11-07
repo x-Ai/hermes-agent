@@ -110,7 +110,7 @@ export function useRemoteOAuth(options: RemoteOAuthOptions): RemoteOAuth {
       setOAuthConnected(Boolean(result.connected))
 
       if (result.connected) {
-        notify({ kind: 'success', title: g.signedIn, message: g.connectedTo(providerLabel) })
+        notify({ kind: 'success', title: g.signedIn, message: g.signedInMessage(providerLabel) })
       } else {
         const message = host === 'first-run' ? t.install.signInIncomplete : t.boot.failure.signInIncompleteMessage
         reportError(

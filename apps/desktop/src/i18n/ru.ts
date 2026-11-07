@@ -1721,6 +1721,7 @@ export const ruOverrides = {
       probeError:
         'Hermes не может связаться с этим адресом. Проверьте URL и убедитесь, что на другом компьютере запущен Hermes, — способы входа появятся, когда он ответит.',
       signedIn: 'Вход выполнен',
+      signedInMessage: provider => `Подключено через ${provider}`,
       signIn: 'Войти',
       signOut: 'Выйти',
       signInWith: provider => `Войти через ${provider}`,
@@ -2560,6 +2561,7 @@ export const ruOverrides = {
     emptyNoneFound: noun => `Не найдено: ${noun}`,
     emptyNothingMatches: query => `По запросу «${query}» ничего не найдено.`,
     emptyNoneAvailable: noun => `Пока недоступно: ${noun}.`,
+    emptyToolsNoun: 'инструменты',
     changesApplyNewSessions: 'Изменения применяются к новым сеансам.',
     skillUpdated: 'Навык обновлён',
     edit: 'Изменить',

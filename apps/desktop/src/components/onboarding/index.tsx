@@ -9,7 +9,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { getGlobalModelOptions } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { type Translations, useI18n } from '@/i18n'
 import { Check, ChevronDown, ChevronLeft, KeyRound, Loader2 } from '@/lib/icons'
 import { isSubmitEnter } from '@/lib/ime'
 import { isProviderSetupErrorMessage } from '@/lib/provider-setup-errors'
@@ -190,6 +190,15 @@ function useApiKeyCatalog(scope: OnboardingContext['scope']): ApiKeyOption[] {
 
     return [...API_KEY_OPTIONS.filter(o => curatedByEnv.has(o.envKey)), ...derived]
   }, [rows])
+}
+
+// `name` stays the catalog's English label: saves and description lookups key
+// on it. Brand names read the same everywhere, the local option's name is
+// copy, and a backend provider takes the label Settings › Providers shows.
+function apiKeyOptionName(option: ApiKeyOption, providers: Translations['settings']['providers']): string {
+  return option.envKey === 'OPENAI_BASE_URL'
+    ? providers.localEndpoint.title
+    : (providers.providerLabels[option.id] ?? option.name)
 }
 
 // Exit choreography, mirroring the gateway "connecting" overlay's timing:
@@ -888,7 +897,7 @@ export function ApiKeyForm({
   const optionDescription =
     optionCopy?.description ??
     t.settings.providers.providerDescriptions[option.name] ??
-    t.onboarding.directApiAccess(option.name)
+    t.onboarding.directApiAccess(apiKeyOptionName(option, t.settings.providers))
 
   const submit = async () => {
     if (!canSave || saving) {
@@ -947,7 +956,7 @@ export function ApiKeyForm({
             type="button"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-medium">{o.name}</span>
+              <span className="text-sm font-medium">{apiKeyOptionName(o, t.settings.providers)}</span>
               {isSet?.(o.envKey) ? <Check className="size-3.5 text-muted-foreground" /> : null}
             </div>
             {(t.onboarding.apiKeyOptions[o.id]?.short ?? o.short) ? (

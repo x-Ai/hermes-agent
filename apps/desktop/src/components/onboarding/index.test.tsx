@@ -1,12 +1,12 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
+import { I18nProvider, TRANSLATIONS } from '@/i18n'
 import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext } from '@/store/onboarding'
 import { makeOAuthProvider } from '@/test/oauth-provider'
 import type { OAuthProvider } from '@/types/hermes'
 
-import { ApiKeyForm, Picker } from '.'
+import { ApiKeyForm, type ApiKeyOption, Picker } from '.'
 
 function setProviders(providers: OAuthProvider[]) {
   $desktopOnboarding.set({
@@ -219,5 +219,29 @@ describe('ApiKeyForm manual local-model fallback', () => {
         'command-a-plus-05-2026'
       )
     })
+  })
+})
+
+describe('onboarding API-key option names', () => {
+  const renderForm = (locale: string, options?: ApiKeyOption[]) =>
+    render(
+      <I18nProvider configClient={null} initialLocale={locale}>
+        <ApiKeyForm canGoBack={false} onBack={() => undefined} onSave={async () => ({ ok: true })} options={options} />
+      </I18nProvider>
+    )
+
+  it('names the local endpoint option in the UI language and keeps brand names', () => {
+    renderForm('ru')
+
+    expect(screen.getByText(TRANSLATIONS.ru.settings.providers.localEndpoint.title)).toBeTruthy()
+    expect(screen.queryByText('Local / custom endpoint')).toBeNull()
+    expect(screen.getByText('OpenRouter')).toBeTruthy()
+  })
+
+  it('shows the localized label Settings gives a provider the backend adds', () => {
+    renderForm('zh', [{ docsUrl: '', envKey: 'MINIMAX_CN_API_KEY', id: 'minimax-cn', name: 'MiniMax (China)' }])
+
+    expect(screen.getByText(TRANSLATIONS.zh.settings.providers.providerLabels['minimax-cn'])).toBeTruthy()
+    expect(screen.queryByText('MiniMax (China)')).toBeNull()
   })
 })

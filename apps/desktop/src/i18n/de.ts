@@ -1756,6 +1756,7 @@ export const deOverrides = {
       probeError:
         'Dieses Gateway ist noch nicht erreichbar. Prüfen Sie die URL – die Authentifizierungsmethode erscheint, sobald es antwortet.',
       signedIn: 'Angemeldet',
+      signedInMessage: provider => `Verbunden mit ${provider}`,
       signIn: 'Anmelden',
       signOut: 'Abmelden',
       signInWith: provider => `Mit ${provider} anmelden`,
@@ -2504,6 +2505,7 @@ export const deOverrides = {
     emptyNoneFound: noun => `Kein ${noun} gefunden`,
     emptyNothingMatches: query => `Nichts passt zu “${query}”.`,
     emptyNoneAvailable: noun => `Noch kein ${noun} verfügbar.`,
+    emptyToolsNoun: 'Tool',
     changesApplyNewSessions: 'Änderungen gelten für neue Sessions.',
     skillUpdated: 'Skill aktualisiert',
     edit: 'Bearbeiten',
@@ -5271,7 +5273,8 @@ export const deOverrides = {
       readAloud: 'Vorlesen',
       copyFullResponse: 'Vollständige Antwort kopieren',
       readAloudFullResponseHint: 'Umschalt-Klick: vollständige Antwort vorlesen',
-      contentRefusedNotice: 'Diese Nachricht wurde vom Sicherheitsfilter des Modells abgelehnt – versuche eine andere Anfrage.',
+      contentRefusedNotice:
+        'Diese Nachricht wurde vom Sicherheitsfilter des Modells abgelehnt – versuche eine andere Anfrage.',
       editMessage: 'Nachricht bearbeiten',
       expandMessage: 'Nachricht aufklappen',
       scrollToBottom: 'Nach unten scrollen',

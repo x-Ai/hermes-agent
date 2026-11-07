@@ -80,10 +80,10 @@ export const arCapabilities = {
       bundled: 'مضمّنة',
       hub: 'المركز'
     },
-    // CapabilityEmpty passes its noun as the English literal "tools".
-    emptyNoneFound: noun => `لم يُعثر على ${noun === 'tools' ? 'أدوات' : noun}`,
+    emptyNoneFound: noun => `لم يُعثر على ${noun}`,
     emptyNothingMatches: query => `لا شيء يطابق «${query}».`,
-    emptyNoneAvailable: noun => `لا توجد ${noun === 'tools' ? 'أدوات' : noun} متاحة بعد.`,
+    emptyNoneAvailable: noun => `لا توجد ${noun} متاحة بعد.`,
+    emptyToolsNoun: 'أدوات',
     changesApplyNewSessions: 'تسري التغييرات على الجلسات الجديدة.',
     skillUpdated: 'تم تحديث المهارة',
     edit: 'تحرير',

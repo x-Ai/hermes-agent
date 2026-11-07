@@ -831,6 +831,7 @@ export const arSettings = {
       probeError:
         'لا يستطيع Hermes الوصول إلى هذا العنوان. تحقق من URL ومن تشغيل Hermes على الحاسوب الآخر؛ ستظهر خيارات تسجيل الدخول عندما يستجيب.',
       signedIn: 'تم تسجيل الدخول',
+      signedInMessage: provider => `تم الاتصال عبر ${provider}`,
       signIn: 'تسجيل الدخول',
       signOut: 'تسجيل الخروج',
       signInWith: provider => `تسجيل الدخول عبر ${provider}`,

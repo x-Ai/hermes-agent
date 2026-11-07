@@ -33,8 +33,8 @@ export function DetailHeader({
 }
 
 // Full-bleed empty state, matching the MCP tab (spans both columns, not a
-// cramped note in the left rail). Query-aware, and says "tools" not the
-// internal "toolsets".
+// cramped note in the left rail). Query-aware. `noun` is localized copy (the
+// Tools tab passes skills.emptyToolsNoun: "tools", not the internal "toolsets").
 export function CapabilityEmpty({ noun, query }: { noun: string; query: string }) {
   const { t } = useI18n()
   const q = query.trim()

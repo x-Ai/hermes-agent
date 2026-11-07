@@ -222,7 +222,7 @@ export function NodeContextMenu({ onClose, onNodeRemoved, target }: NodeContextM
             )
           }}
           open={Boolean(deleting)}
-          title={`Delete ${deleting?.label ?? ''}?`}
+          title={t.starmap.deleteTitle(deleting?.label ?? '')}
         />
       )}
     </>

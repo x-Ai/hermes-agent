@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider, TRANSLATIONS } from '@/i18n'
+
 import { NodeContextMenu, type NodeMenuTarget } from './node-context-menu'
 
 vi.mock('@/app/learning/archive-skill-confirm-dialog', () => ({
@@ -34,5 +36,21 @@ describe('NodeContextMenu', () => {
 
     expect(await screen.findByText('Delete Test memory?')).toBeTruthy()
     expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  // Last: the provider leaves its locale in the runtime and in storage.
+  it('asks to delete the memory in the UI language', async () => {
+    const copy = TRANSLATIONS.ru.starmap
+
+    render(
+      <I18nProvider configClient={null} initialLocale="ru">
+        <NodeContextMenu onClose={vi.fn()} onNodeRemoved={vi.fn()} target={target} />
+      </I18nProvider>
+    )
+
+    fireEvent.keyDown(await screen.findByRole('menuitem', { name: copy.deleteMemory }), { key: 'Enter' })
+
+    expect(await screen.findByText(copy.deleteTitle('Test memory'))).toBeTruthy()
+    expect(screen.queryByText('Delete Test memory?')).toBeNull()
   })
 })

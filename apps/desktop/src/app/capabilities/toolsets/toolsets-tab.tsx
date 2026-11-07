@@ -146,7 +146,7 @@ export function ToolsetsTab({ hints, onQueryChange, profile, query, toolsets }: 
     return (
       <div className="flex h-full min-h-0 flex-col">
         {search}
-        <CapabilityEmpty noun="tools" query={query} />
+        <CapabilityEmpty noun={t.skills.emptyToolsNoun} query={query} />
       </div>
     )
   }
