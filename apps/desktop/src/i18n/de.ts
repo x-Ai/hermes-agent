@@ -1776,11 +1776,11 @@ export const deOverrides = {
       pasteSessionToken: 'Session-Token einfügen',
       plainTextConfirmTitle: 'Gateway-Token im Klartext speichern?',
       plainTextConfirmDesc:
-        'Auf diesem Gerät wurde kein Schlüsselbund-Dienst des Betriebssystems gefunden. Das Token würde daher unverschlüsselt in der Verbindungseinstellungsdatei der App gespeichert und wäre für jeden Prozess dieses Benutzers lesbar. Installieren oder aktivieren Sie GNOME Keyring oder KWallet für verschlüsselte Speicherung.',
+        'Auf diesem Gerät wurde kein Schlüsselbund-Dienst des Betriebssystems gefunden. Das Token würde daher unverschlüsselt in der Verbindungseinstellungsdatei der App gespeichert und wäre für jeden Prozess dieses Benutzers lesbar. Installieren oder aktivieren Sie den Schlüsselbund Ihres Systems (unter Linux GNOME Keyring oder KWallet) für verschlüsselte Speicherung.',
       plainTextConfirmAction: 'Als Klartext speichern',
       plainTextStoredTitle: 'Token im Klartext gespeichert',
       plainTextStoredDesc:
-        'Sichere Speicherung ist nicht verfügbar, daher wird das gespeicherte Token unverschlüsselt in der Verbindungseinstellungsdatei der App auf diesem Gerät gespeichert. Installieren oder aktivieren Sie GNOME Keyring oder KWallet, um es zu verschlüsseln.',
+        'Sichere Speicherung ist nicht verfügbar, daher wird das gespeicherte Token unverschlüsselt in der Verbindungseinstellungsdatei der App auf diesem Gerät gespeichert. Installieren oder aktivieren Sie den Schlüsselbund Ihres Systems (unter Linux GNOME Keyring oder KWallet), um es zu verschlüsseln.',
       keychainEncryptionTitle: 'Gespeicherte Geheimnisse mit dem OS-Keychain verschlüsseln',
       keychainEncryptionDesc:
         'Standardmäßig aus. Wenn aktiv, werden Gateway-Tokens und Anmeldedaten mit dem Schlüsselbund Ihres Systems verschlüsselt (Schlüsselbundverwaltung, GNOME Keyring oder Windows DPAPI) – Ihr System fragt möglicherweise nach einer Erlaubnis oder einem Passwort. Wenn aus, werden sie als Klartextdateien gespeichert, die nur Ihr Benutzerkonto lesen kann.',

@@ -200,3 +200,19 @@ describe('backend facts stated in copy', () => {
     }
   })
 })
+
+// What the copy tells people to do has to match what the screen and the platform do now.
+describe('platform and behaviour facts stated in copy', () => {
+  // GNOME Keyring and KWallet exist only on Linux; macOS and Windows keep secrets in their own keychain.
+  it('scopes GNOME Keyring and KWallet to Linux in the plain-text token warnings', () => {
+    for (const locale of BUNDLED_LOCALES) {
+      for (const key of ['plainTextConfirmDesc', 'plainTextStoredDesc'] as const) {
+        const text = TRANSLATIONS[locale].settings.gateway[key]
+
+        if (/GNOME Keyring|KWallet/.test(text)) {
+          expect(text, `${locale} ${key}`).toContain('Linux')
+        }
+      }
+    }
+  })
+})
