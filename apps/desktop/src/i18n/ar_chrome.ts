@@ -6,7 +6,11 @@ export const arChrome = {
     title: 'تعذّر فتح هذا الرابط',
     message: 'لا يوجد متصفح مسجل لفتح هذا العنوان. انسخ الرابط وافتحه يدويًا.',
     copyUrl: 'نسخ الرابط',
-    close: 'إغلاق'
+    close: 'إغلاق',
+    missing: {
+      title: 'لم يُعثر على الملف',
+      message: 'هذا الملف غير موجود — ربما حُذف أو نُقل، أو أنه موجود على جهاز آخر.'
+    }
   },
   fileMenu: {
     revealFinder: 'إظهار في Finder',
@@ -64,6 +68,7 @@ export const arChrome = {
     rebind: 'إعادة تعيين',
     reset: 'إعادة إلى الافتراضي',
     resetAll: 'إعادة تعيين الكل',
+    clear: 'مسح',
     pressKey: 'اضغط مفتاحا...',
     set: 'مضبوط',
     conflictWith: label => `مرتبط أيضا بـ “${label}”`,
@@ -172,6 +177,16 @@ export const arChrome = {
       'view.cycleSidebarGrouping': 'التبديل بين طرق تجميع الجلسات',
       'view.toggleProfileRail': 'تبديل شريط الملفات الشخصية',
       'view.closePreviewTab': 'إغلاق علامة تبويب المعاينة',
+      'view.tabSlot.1': 'التبديل إلى علامة التبويب 1',
+      'view.tabSlot.2': 'التبديل إلى علامة التبويب 2',
+      'view.tabSlot.3': 'التبديل إلى علامة التبويب 3',
+      'view.tabSlot.4': 'التبديل إلى علامة التبويب 4',
+      'view.tabSlot.5': 'التبديل إلى علامة التبويب 5',
+      'view.tabSlot.6': 'التبديل إلى علامة التبويب 6',
+      'view.tabSlot.7': 'التبديل إلى علامة التبويب 7',
+      'view.tabSlot.8': 'التبديل إلى علامة التبويب 8',
+      'view.tabSlot.9': 'التبديل إلى علامة التبويب 9',
+      'view.toggleSimpleMode': 'تبديل الوضع البسيط',
       'conversation.scrollPageDown': 'تمرير المحادثة صفحة إلى الأسفل',
       'conversation.scrollPageUp': 'تمرير المحادثة صفحة إلى الأعلى'
     }
@@ -194,6 +209,13 @@ export const arChrome = {
   sidebar: {
     profileRail: 'شريط الملفات الشخصية',
     markAllRead: 'وضع علامة مقروء على الكل',
+    storageCorrupt: {
+      title: 'قاعدة بيانات الجلسات تالفة',
+      body: profiles =>
+        `يتعذّر على Hermes قراءة سجل الجلسات كاملًا لـ ${profiles}. المحادثات الغائبة عن هذه القائمة لم تُحذف، لكن الملف الذي تُخزَّن فيه تالف.`,
+      action: 'أنهِ Hermes على هذا الملف الشخصي، ثم افحص الملف دون تغييره، أو استعد لقطة:',
+      guide: 'دليل الاسترداد'
+    },
     filter: {
       grouping: 'تجميع',
       ordering: 'ترتيب',
@@ -267,6 +289,7 @@ export const arChrome = {
     noFilterMatches: 'لا توجد جلسات تطابق عوامل التصفية هذه',
     projects: {
       showAllSessions: 'عرض جميع الجلسات',
+      moveBusy: 'أوقف الدور الجاري، ثم انقل المحادثة',
       sectionLabel: 'المشاريع',
       home: 'الرئيسية',
       autoDiscovered: 'مكتشف تلقائيًا',
@@ -549,7 +572,9 @@ export const arChrome = {
       connection: label => `الاتصال: ${label}`,
       recentActivity: 'النشاط الأخير',
       viewAllLogs: 'عرض كل السجلات ←',
-      messagingPlatforms: 'منصات المراسلة'
+      messagingPlatforms: 'منصات المراسلة',
+      closed: 'مغلق',
+      error: 'خطأ'
     },
     approvalMode: {
       title: 'وضع الموافقة',
@@ -563,6 +588,9 @@ export const arChrome = {
     },
     statusbar: {
       unknown: 'غير معروف',
+      planUsageTitle: (used, resetsIn) =>
+        `استُهلك ${used} من حصة خطتك${resetsIn ? ` · يُعاد التعيين خلال ${resetsIn}` : ''} · افتح الفوترة`,
+      togglePlanUsage: 'استخدام الخطة',
       restart: 'إعادة تشغيل',
       update: 'تحديث',
       updateInProgress: 'التحديث جار',
@@ -743,7 +771,12 @@ export const arChrome = {
     addToChat: 'إضافة للمحادثة',
     showIgnored: 'إظهار الملفات المتجاهلة في git',
     hideIgnored: 'إخفاء الملفات المتجاهلة في git',
-    terminalDropUnquotable: (shell, paths) => `لا يمكن كتابة هذه الأسماء بأمان في ${shell}: ${paths}`
+    terminalDropUnquotable: (shell, paths) => `لا يمكن كتابة هذه الأسماء بأمان في ${shell}: ${paths}`,
+    terminalDropUploadFailed: name => `تعذّر رفع ${name}`,
+    terminalDropTooLargeTitle: 'أكبر من حد الرفع',
+    terminalDropTooLarge: (names, limit) => `الحد الأقصى لكل ملف ${limit}. لم يُرفع: ${names}`,
+    terminalDropControlTitle: 'لم يُكتب في الطرفية',
+    terminalDropControl: paths => `تحتوي هذه الأسماء على محارف تحكّم قد تنفّذها الصدفة كأنها مفاتيح: ${paths}`
   },
   zones: {
     showTabStrip: 'إظهار علامات التبويب',

@@ -1,12 +1,15 @@
+import { arAppTour } from './ar_app_tour'
 import { arArtifacts } from './ar_artifacts'
 import { arAssistant } from './ar_assistant'
 import { arBoot } from './ar_boot'
 import { arCapabilities } from './ar_capabilities'
+import { arCatalog } from './ar_catalog'
 import { arChat } from './ar_chat'
 import { arChrome } from './ar_chrome'
 import { arCommandCenter } from './ar_command_center'
 import { arCommon } from './ar_common'
 import { arConnectors } from './ar_connectors'
+import { arConnectorsPage } from './ar_connectors_page'
 import { arDiagnostics } from './ar_diagnostics'
 import { arFirstRun } from './ar_first_run'
 import { arRuntime } from './ar_runtime'
@@ -15,66 +18,9 @@ import { defineLocale, type TranslationOverrides } from './define-locale'
 
 export const arOverrides = {
   connectors: arConnectors.connectors,
-  catalog: {
-    add: 'إضافة',
-    added: 'تمت الإضافة',
-    discover: 'اكتشف',
-    featured: 'مميزة',
-    explorePlugins: 'استكشف الإضافات',
-    exploreSkills: 'استكشف المهارات',
-    mostStarred: 'الأكثر حصولًا على نجوم',
-    newest: 'الأحدث',
-    recentlyUpdated: 'المحدثة مؤخرًا',
-    alphabetical: 'الاسم',
-    sortBy: 'ترتيب حسب',
-    seeAll: 'عرض الكل',
-    related: 'عناصر مشابهة',
-    tags: 'الوسوم',
-    screenshots: 'لقطات الشاشة',
-    listView: 'عرض القائمة',
-    cardView: 'عرض البطاقات',
-    installTitle: (name: string) => `تثبيت «${name}»؟`,
-    installDescription: 'ستتوفر هذه المهارة في الجلسات الجديدة. ثبّت من المصادر التي تثق بها فقط.',
-    installTo: 'التثبيت في',
-    thisComputer: 'هذا الكمبيوتر',
-    installing: 'جارٍ التثبيت…',
-    installComplete: (name: string) => `تم تثبيت «${name}»`,
-    destinationChanged: 'تغيرت وجهة التثبيت. أغلق هذا الحوار وافتح رابط التثبيت مجددًا.',
-    install: 'تثبيت',
-    installed: 'المثبتة',
-    searchSkills: 'البحث في المهارات',
-    searchPlugins: 'البحث في الإضافات',
-    allSources: 'كل المصادر',
-    allCategories: 'كل الفئات',
-    about: 'نبذة',
-    author: 'المؤلف',
-    source: 'المصدر',
-    category: 'الفئة',
-    version: 'الإصدار',
-    platforms: 'المنصات',
-    requires: 'المتطلبات',
-    tools: 'الأدوات',
-    hooks: 'الخطافات',
-    middleware: 'البرمجيات الوسيطة',
-    commands: 'الأوامر',
-    license: 'الترخيص',
-    addedDate: 'تاريخ الإضافة',
-    updatedDate: 'تاريخ التحديث',
-    repository: 'المستودع',
-    documentation: 'التوثيق',
-    noResults: 'لا توجد نتائج مطابقة',
-    tryAnother: 'جرّب بحثًا آخر أو امسح عوامل التصفية.',
-    clearFilters: 'مسح عوامل التصفية',
-    filters: 'عوامل التصفية',
-    loadFailed: 'تعذر تحميل الكتالوج',
-    retry: 'حاول مرة أخرى',
-    more: 'عرض المزيد',
-    pinned: 'التزام تمت مراجعته',
-    snapshotHint: 'من كتالوج Hermes. لا يتصل التصفح بمستودعات المصدر مطلقًا.',
-    installHint: 'راجع المصدر قبل التثبيت. تسري التغييرات على الجلسات الجديدة.',
-    results: (count: number) => `النتائج: ${count.toLocaleString('ar')}`,
-    back: 'العودة إلى النتائج'
-  },
+  connectorsPage: arConnectorsPage,
+  appTour: arAppTour,
+  catalog: arCatalog,
   sharedMetrics: arCommon.sharedMetrics,
   firstRun: arFirstRun,
   externalOpenFailed: arChrome.externalOpenFailed,
@@ -92,11 +38,13 @@ export const arOverrides = {
   butterbar: arBoot.butterbar,
   promptNotices: arBoot.promptNotices,
   keepAwakeOffer: arBoot.keepAwakeOffer,
+  connectorOffer: arBoot.connectorOffer,
   titlebar: arChrome.titlebar,
   keybinds: arChrome.keybinds,
   paletteCommands: arChrome.paletteCommands,
   timelineEvents: arChat.timelineEvents,
   runtimeErrors: arRuntime.runtimeErrors,
+  sharedProviders: arRuntime.sharedProviders,
   findInPage: arChrome.findInPage,
   language: arSettings.language,
   quickEntry: arChat.quickEntry,

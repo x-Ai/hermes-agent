@@ -27,6 +27,7 @@ export const arAssistant = {
       showEarlier: 'عرض الرسائل الأقدم',
       loadingResponse: 'يحمّل Hermes ردًا',
       steered: 'تم التوجيه',
+      responseStopped: 'توقف الرد',
       asyncDelegationFailure: detail => `(فشل: ${detail})`,
       asyncDelegationPartialOutput: 'الناتج الجزئي:',
       messagingAgent: name => `جارٍ مراسلة ${name}…`,
@@ -256,6 +257,14 @@ export const arAssistant = {
           body: provider =>
             `تعذّر على Hermes الاتصال بـ ${provider} لهذه المحادثة. أعد المحاولة؛ وإذا استمر الفشل، تحقّق من المزوّد في الإعدادات.`
         },
+        SESSION_OWNER_BUSY: {
+          title: 'Hermes مشغول في هذه المحادثة',
+          body: 'يجري دور آخر هنا ولم تتمكن رسالتك من الانضمام إلى قائمة انتظاره. لم يُرسَل أي شيء. أعد المحاولة بعد انتهاء ذلك الدور.'
+        },
+        SESSION_OWNER_UNCONFIRMED: {
+          title: 'ربما تكون رسالتك في قائمة الانتظار بالفعل',
+          body: 'لم تؤكد البوابة استلام رسالتك في الوقت المناسب. إن كانت في قائمة الانتظار، فستُنفَّذ بعد انتهاء الدور السابق أو حسمه. راجع المحادثة قبل إرسالها مرة أخرى.'
+        },
         SESSION_NOT_OWNED: {
           title: 'المحادثة مفتوحة في مكان آخر',
           body: 'هذه المحادثة مفتوحة في نافذة Hermes أخرى أو في الطرفية. ابدأ محادثة جديدة هنا، أو أغلقها هناك أولًا.'
@@ -424,6 +433,7 @@ export const arAssistant = {
       sendFailed: 'تعذّر إرسال إجابتك',
       run: 'تشغيل',
       command: 'الأمر',
+      commandDetails: 'تفاصيل الأمر',
       moreOptions: 'خيارات موافقة إضافية',
       allowSession: 'السماح في هذه الجلسة',
       alwaysAllowMenu: 'السماح دائمًا…',
@@ -447,6 +457,9 @@ export const arAssistant = {
       placeholder: 'اكتب إجابتك…',
       skip: 'تخطٍّ',
       skipped: 'تم التخطي',
+      noAnswer: 'لا توجد إجابة',
+      notDelivered:
+        'لم يصل هذا السؤال إلى التطبيق، لذا لا يمكن الإجابة عنه هنا. اضغط «إيقاف» لإنهاء الدور، ثم ردّ في المحادثة.',
       confirmAndContinueLabel: 'تأكيد ومتابعة',
       singleSelectHint: 'اختر واحدًا',
       multiSelectHint: 'حدد كل ما ينطبق',
@@ -850,7 +863,18 @@ export const arAssistant = {
         failed: 'فشل الفحص'
       },
       requirementsLabel: 'المتطلبات',
-      credentialsHeading: 'بيانات الاعتماد'
+      requiresHermes: range => `Hermes ${range}`,
+      envVar: name => `متغير البيئة ${name}`,
+      credentialsHeading: 'بيانات الاعتماد',
+      phase: {
+        downloading: 'جارٍ التنزيل…',
+        python_packages: 'جارٍ تثبيت حزم Python…',
+        loading_tools: 'جارٍ تحميل أدواته…'
+      },
+      serverNotConnected: (server, reason) => `خادم MCP ${server} غير متصل${reason ? `: ${reason}` : ''}`,
+      notEnabled: 'مثبّت لكنه غير مفعّل',
+      missingEnv: names => `اضبط ${names} لإكمال الإعداد`,
+      alreadyInstalled: 'مثبّت بالفعل؛ تُرك كما هو'
     }
   }
 } satisfies Pick<TranslationOverrides, 'assistant'>

@@ -828,7 +828,33 @@ export const arCommandCenter = {
     defaultProfile: 'الملف الشخصي الافتراضي',
     defaultSet: name => `${name} هو الآن الافتراضي`,
     defaultDescription: 'يُستخدم عند فتح Hermes وللمحادثات الجديدة. تظل الجلسات الحالية في ملفاتها الشخصية.',
-    failedSetDefault: 'تعذر تعيين الملف الشخصي الافتراضي'
+    failedSetDefault: 'تعذر تعيين الملف الشخصي الافتراضي',
+    notServedHere: 'غير متاح هنا',
+    exportNeedsHost: name =>
+      `لا يستطيع المتصفح حفظ أرشيف ملف شخصي. على الجهاز المضيف لـ Hermes، شغّل: hermes profile export ${name}`,
+    status: {
+      unread: count =>
+        AR_PLURAL(count, {
+          one: 'جلسة واحدة غير مقروءة',
+          two: 'جلستان غير مقروءتين',
+          few: `${count} جلسات غير مقروءة`,
+          many: `${count} جلسة غير مقروءة`
+        }),
+      needsInput: count =>
+        AR_PLURAL(count, {
+          one: 'جلسة واحدة تحتاج إلى إجابتك',
+          two: 'جلستان تحتاجان إلى إجابتك',
+          few: `${count} جلسات تحتاج إلى إجابتك`,
+          many: `${count} جلسة تحتاج إلى إجابتك`
+        }),
+      working: count =>
+        AR_PLURAL(count, {
+          one: 'جلسة واحدة قيد التشغيل',
+          two: 'جلستان قيد التشغيل',
+          few: `${count} جلسات قيد التشغيل`,
+          many: `${count} جلسة قيد التشغيل`
+        })
+    }
   },
   cron: {
     control: arCronControl,

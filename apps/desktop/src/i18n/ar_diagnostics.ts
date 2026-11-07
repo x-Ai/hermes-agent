@@ -20,6 +20,7 @@ export const arDiagnostics = {
     details: 'التفاصيل',
     copyDetail: 'نسخ التفاصيل',
     copyDetailFailed: 'تعذر نسخ تفاصيل الإشعار',
+    compressDeferredDone: 'اكتمل ضغط السياق',
     backendOutOfDateTitle: 'الواجهة الخلفية قديمة',
     backendOutOfDateMessage:
       'الواجهة الخلفية لـ Hermes أقدم من إصدار هذا التطبيق وقد لا تعمل كما يجب. حدّثهما ليتوافقا.',
@@ -34,6 +35,7 @@ export const arDiagnostics = {
         many: `يتوفر ${count} تغييرًا جديدًا.`
       }),
     updateReadyMessageUnknown: 'يتوفر تحديث جديد.',
+    updateReadyMessageAppInstaller: 'إصدار جديد من Hermes جاهز. حدّث الآن وسيُكمل Windows التثبيت نيابةً عنك.',
     seeWhatsNew: 'عرض الجديد',
     toast: {
       artifactPartialLoad: (failed, total) =>
@@ -161,6 +163,8 @@ export const arDiagnostics = {
       microphoneConstraintsUnsupported: 'قيود الميكروفون غير مدعومة على هذا الجهاز.',
       microphoneFailed: 'فشل الميكروفون',
       microphoneInUse: 'الميكروفون مستخدم من تطبيق آخر.',
+      microphoneNeedsHttps:
+        'يحتاج الميكروفون إلى اتصال آمن. افتح تطبيق الويب عبر HTTPS، أو عبر نفق SSH إلى 127.0.0.1، لاستخدامه.',
       microphonePermissionDenied: 'تم رفض إذن الميكروفون.',
       microphoneStartFailed: 'تعذر بدء تسجيل الميكروفون.',
       microphoneUnsupported: 'بيئة التشغيل هذه لا تدعم تسجيل الميكروفون.',

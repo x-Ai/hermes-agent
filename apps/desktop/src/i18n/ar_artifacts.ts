@@ -71,6 +71,7 @@ export const arArtifacts = {
     closePane: 'إغلاق جزء المعاينة',
     loading: 'جار تحميل المعاينة',
     unavailable: 'المعاينة غير متاحة',
+    missingTarget: 'هذا المسار غير موجود على هذا الجهاز',
     missingTitle: 'الملف لم يعد موجودا',
     missingBody: label =>
       `تم حذف ${label} أو نقله، أو أُفرغ موقعه المؤقت. لن تتم استعادة علامة التبويب هذه عند الإطلاق التالي.`,
@@ -125,6 +126,7 @@ export const arArtifacts = {
       sentMessage: count => `أُضيف ${count} ${count === 1 ? 'إدخال سجل' : 'إدخالات سجل'} إلى المُنشئ`
     },
     web: {
+      embeddedPreviewHint: 'تمنع بعض المواقع المعاينات المضمّنة. افتح الصفحة الأصلية في علامة تبويب بالمتصفح.',
       appFailedToBoot: 'فشل إقلاع تطبيق المعاينة',
       serverNotFound: 'الخادم غير موجود',
       remoteLoopback:

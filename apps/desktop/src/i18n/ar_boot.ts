@@ -126,6 +126,10 @@ export const arBoot = {
       'يمكن لـ Hermes إبقاء جهازك مستيقظًا أثناء تشغيل مهمة. ستنطفئ الشاشة كالمعتاد، وقد يدخل الجهاز في وضع السكون عند العمل بالبطارية.',
     action: 'إبقاء الجهاز مستيقظًا أثناء العمل'
   },
+  connectorOffer: {
+    heading: 'احتفظ بتطبيقاتك المتصلة',
+    body: 'سجّل الدخول بحساب Nous مجاني لتبقى التطبيقات التي ربطتها، مثل Gmail أو Slack، محفوظة في حسابك.'
+  },
   remoteDisplayBanner: {
     message: reason => `العرض البرمجي مفعّل — اكتُشف عرض عن بُعد (${reason}). عُطِّل تسريع GPU لمنع الوميض.`
   },
@@ -647,6 +651,7 @@ export const arBoot = {
   | 'butterbar'
   | 'promptNotices'
   | 'keepAwakeOffer'
+  | 'connectorOffer'
   | 'updates'
   | 'install'
   | 'onboarding'

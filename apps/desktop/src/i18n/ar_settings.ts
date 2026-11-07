@@ -1,8 +1,10 @@
+import { arBilling } from './ar_billing'
 import { arCustomEndpoints } from './ar_custom_endpoints'
 import { arDelegationRouting } from './ar_delegation_routing'
 import { arLocalModels } from './ar_local_models'
 import { arMemoryLayers } from './ar_memory_layers'
 import { AR_PLURAL } from './ar_plural'
+import { arFieldDescriptions, arFieldLabels } from './ar_settings_fields'
 import { arUninstallSection } from './ar_uninstall_section'
 import { arUpdateChannel } from './ar_update_channel'
 import type { TranslationOverrides } from './define-locale'
@@ -18,36 +20,7 @@ export const arSettings = {
     noResults: 'لا توجد لغة مطابقة'
   },
   settings: {
-    // Window plans (Nous subscription with included usage). Other billing strings: overlay-gaps.json.
-    billing: {
-      keepGoingOnCredits: {
-        title: 'الاستمرار بالرصيد',
-        description: 'استخدم رصيدك عند نفاد الاستخدام المضمّن. عند الإيقاف: ينتظر Hermes إعادة التعيين.',
-        approveInBrowser: 'وافق على الإنفاق عن بُعد في متصفحك لتغيير هذا. يُطبَّق فور الموافقة.',
-        openAgain: 'فتح مرة أخرى',
-        cancel: 'إلغاء',
-        approvedRetry: 'تمت الموافقة على الإنفاق عن بُعد، لكن لم يُحفظ التغيير.',
-        tryAgain: 'إعادة المحاولة'
-      },
-      state: {
-        usage: {
-          window: {
-            today: 'اليوم',
-            week: 'هذا الأسبوع',
-            month: 'هذا الشهر',
-            topTier: 'النماذج الكبيرة (شهريًا)',
-            barLabel: title => `المستخدم من الاستخدام المضمّن: ${title}`,
-            captionPaused: 'متوقف مؤقتًا: فشل دفع الاشتراك',
-            captionPausedOther: 'متوقف مؤقتًا: راجع الفوترة في البوابة',
-            captionTopTierUsedUp: 'نفدت الحصة الشهرية، ويغطي الرصيد الباقي',
-            captionTopTierUsedUpKeepGoingOff: 'نفدت الحصة الشهرية، ولا تزال النماذج المضمّنة الأخرى تعمل',
-            captionResetsIn: duration => `يُعاد التعيين خلال ${duration}`,
-            captionIncluded: 'الاستخدام المضمّن',
-            valueUsed: percent => `استُخدم ${percent}`
-          }
-        }
-      }
-    },
+    billing: arBilling,
     closeSettings: 'إغلاق الإعدادات',
     exportConfig: 'تصدير الإعدادات',
     importConfig: 'استيراد الإعدادات',
@@ -578,153 +551,8 @@ export const arSettings = {
       chatFontSample: 'نص حكيم له سر قاطع وذو شأن عظيم مكتوب على ثوب أخضر ومغلف بجلد أزرق. 0123456789',
       chatFontReset: 'استخدام خط السمة'
     },
-    fieldLabels: {
-      model: 'النموذج الافتراضي',
-      modelContextLength: 'نافذة سياق النموذج الرئيسي (تجاوز)',
-      fallbackProviders: 'النماذج الاحتياطية',
-      toolsets: 'مجموعات الأدوات المفعّلة',
-      timezone: 'المنطقة الزمنية',
-      'display.personality': 'الشخصية',
-      'display.showReasoning': 'كتل الاستدلال',
-      'agent.maxTurns': 'الحد الأقصى لخطوات الوكيل',
-      'agent.imageInputMode': 'مرفقات الصور',
-      'agent.apiMaxRetries': 'إعادة محاولة طلبات API',
-      'agent.outputTruncationRetries': 'إعادات المحاولة عند حد الإخراج',
-      'agent.serviceTier': 'مستوى الخدمة',
-      'agent.toolUseEnforcement': 'فرض استخدام الأدوات',
-      'agent.environmentProbe': 'فحص بيئة التنفيذ',
-      'terminal.cwd': 'مجلد العمل',
-      'terminal.backend': 'الواجهة الخلفية للتنفيذ',
-      'terminal.timeout': 'مهلة الأوامر',
-      'terminal.persistentShell': 'صدفة مستمرة',
-      'terminal.envPassthrough': 'تمرير متغيرات البيئة',
-      'terminal.containerPersistent': 'نظام ملفات حاوية دائم',
-      'terminal.dockerImage': 'صورة Docker',
-      'terminal.singularityImage': 'صورة Singularity',
-      'terminal.modalImage': 'صورة Modal',
-      'terminal.daytonaImage': 'صورة Daytona',
-      fileReadMaxChars: 'حد قراءة الملفات',
-      'toolOutput.maxBytes': 'حد مخرجات الطرفية',
-      'toolOutput.maxLines': 'حد صفحات الملفات',
-      'toolOutput.maxLineLength': 'حد طول السطر',
-      'codeExecution.mode': 'نمط تنفيذ الشيفرة',
-      'approvals.mode': 'نمط الموافقات',
-      'approvals.timeout': 'مهلة الموافقة',
-      'approvals.mcpReloadConfirm': 'تأكيد إعادة تحميل MCP',
-      commandAllowlist: 'قائمة الأوامر المسموحة',
-      'security.redactSecrets': 'إخفاء الأسرار',
-      'security.allowPrivateUrls': 'السماح بالروابط الخاصة',
-      'browser.allowPrivateUrls': 'روابط المتصفح الخاصة',
-      'browser.autoLocalForPrivateUrls': 'متصفح محلي للروابط الخاصة',
-      'browser.useRealProfile': 'استخدام ملف تعريف المتصفح الحقيقي',
-      'checkpoints.enabled': 'نقاط استعادة الملفات',
-      'checkpoints.maxSnapshots': 'حد نقاط الاستعادة',
-      'voice.recordKey': 'اختصار الصوت',
-      'voice.maxRecordingSeconds': 'أقصى مدة للتسجيل',
-      'voice.clientDirect': 'اتصال صوتي مباشر',
-      'voice.autoTts': 'قراءة الردود صوتياً',
-      'stt.enabled': 'تحويل الكلام إلى نص',
-      'stt.provider': 'مزوّد تحويل الكلام إلى نص',
-      'stt.local.model': 'نموذج التفريغ المحلي',
-      'stt.local.language': 'لغة التفريغ',
-      'stt.openai.model': 'نموذج OpenAI STT',
-      'stt.groq.model': 'نموذج Groq STT',
-      'stt.mistral.model': 'نموذج Mistral STT',
-      'stt.elevenlabs.modelId': 'نموذج ElevenLabs STT',
-      'stt.elevenlabs.languageCode': 'لغة ElevenLabs',
-      'stt.elevenlabs.tagAudioEvents': 'وسم أحداث الصوت',
-      'stt.elevenlabs.diarize': 'تمييز المتحدثين',
-      'tts.provider': 'مزوّد تحويل النص إلى كلام',
-      'tts.edge.voice': 'صوت Edge',
-      'tts.openai.model': 'نموذج OpenAI TTS',
-      'tts.openai.voice': 'صوت OpenAI',
-      'tts.elevenlabs.voiceId': 'صوت ElevenLabs',
-      'tts.elevenlabs.modelId': 'نموذج ElevenLabs',
-      'tts.xai.voiceId': 'صوت xAI (Grok)',
-      'tts.xai.language': 'لغة xAI',
-      'tts.minimax.model': 'نموذج MiniMax TTS',
-      'tts.minimax.voiceId': 'صوت MiniMax',
-      'tts.mistral.model': 'نموذج Mistral TTS',
-      'tts.mistral.voiceId': 'صوت Mistral',
-      'tts.gemini.model': 'نموذج Gemini TTS',
-      'tts.gemini.voice': 'صوت Gemini',
-      'tts.neutts.model': 'نموذج NeuTTS',
-      'tts.neutts.device': 'جهاز NeuTTS',
-      'tts.kittentts.model': 'نموذج KittenTTS',
-      'tts.kittentts.voice': 'صوت KittenTTS',
-      'tts.piper.voice': 'صوت Piper',
-      'memory.memoryEnabled': 'الذاكرة المستمرة',
-      'memory.userProfileEnabled': 'ملف المستخدم',
-      'memory.memoryCharLimit': 'ميزانية الذاكرة',
-      'memory.userCharLimit': 'ميزانية ملف المستخدم',
-      'memory.provider': 'مزوّد الذاكرة',
-      'context.engine': 'محرك السياق',
-      'compression.enabled': 'الضغط التلقائي',
-      'compression.threshold': 'عتبة الضغط',
-      'compression.targetRatio': 'هدف الضغط',
-      'compression.protectLastN': 'الرسائل الأخيرة المحمية',
-      'delegation.model': 'نموذج الوكيل الفرعي',
-      'delegation.provider': 'مزوّد الوكيل الفرعي',
-      'delegation.maxIterations': 'حد دورات الوكيل الفرعي',
-      'delegation.maxConcurrentChildren': 'الوكلاء الفرعيون المتوازيون',
-      'delegation.childTimeoutSeconds': 'مهلة الوكيل الفرعي',
-      'delegation.reasoningEffort': 'مستوى استدلال الوكيل الفرعي',
-      'updates.nonInteractiveLocalChanges': 'التغييرات المحلية عند التحديث من التطبيق',
-      'auxiliary.compression.timeout': 'مهلة نموذج الضغط (ثانية)',
-      'compression.codexGpt55Autoraise': 'الرفع التلقائي لضغط Codex'
-    },
-    fieldDescriptions: {
-      model: 'يستخدم في المحادثات الجديدة ما لم تختر نموذجاً مختلفاً من محرر الرسائل.',
-      modelContextLength:
-        'يتجاوز نافذة السياق المكتشفة لنموذج المحادثة الرئيسي فقط (بالرموز). اتركه 0 لاستخدام القيمة المكتشفة للنموذج المحدد. لا يؤثر في النماذج المساعدة أو نماذج MoA.',
-      fallbackProviders: 'إدخالات احتياطية بصيغة provider:model لتجربتها إذا فشل النموذج الافتراضي.',
-      'display.personality': 'أسلوب المساعد الافتراضي للجلسات الجديدة.',
-      'display.showReasoning': 'يعرض أقسام الاستدلال عندما توفرها الواجهة الخلفية.',
-      timezone: 'معرّف المنطقة الزمنية بصيغة IANA. اتركه فارغًا لاستخدام المنطقة الزمنية للنظام.',
-      'agent.imageInputMode': 'يتحكم في طريقة إرسال مرفقات الصور إلى النموذج.',
-      'agent.maxTurns': 'الحد الأعلى لدورات استدعاء الأدوات قبل أن يوقف Hermes التشغيل.',
-      'agent.outputTruncationRetries':
-        'عدد مرات متابعة الرد الذي يقطعه حد رموز الإخراج لدى المزوّد (0–3). تعيد كل متابعة إرسال الموجّه المدفوع كاملًا؛ والقيمة 0 تعيد الإجابة الجزئية فورًا. الافتراضي 3.',
-      'agent.environmentProbe':
-        'يفحص تفاصيل بيئة التنفيذ للجلسات الجديدة. تستخدم الواجهات الخلفية القائمة على الحاويات بيئة معزولة مؤقتة تُحذف تلقائيًا بعد الفحص؛ وعند التعطيل يُستخدم وصف ثابت.',
-      'terminal.cwd': 'مجلد المشروع الافتراضي لعمل الأدوات والطرفية.',
-      'terminal.persistentShell':
-        'واجهة SSH الخلفية: يحتفظ بالمتغيرات المُصدَّرة بين الأوامر. عند التعطيل يبدأ كل أمر من بيئة تسجيل الدخول؛ ويُحتفظ بمجلد العمل دائمًا.',
-      'terminal.envPassthrough': 'متغيرات البيئة التي تمرر إلى تنفيذ الأدوات.',
-      'terminal.containerPersistent':
-        'يحتفظ بحالة نظام ملفات الحاوية بين جلسات Hermes. تسري التغييرات بعد إعادة تشغيل الواجهة الخلفية ولا تحذف الحاوية أو المثيل الحالي.',
-      'terminal.dockerImage': 'صورة الحاوية المستخدمة عندما تكون الواجهة الخلفية للتنفيذ Docker.',
-      'terminal.singularityImage': 'الصورة المستخدمة عندما تكون الواجهة الخلفية للتنفيذ Singularity.',
-      'terminal.modalImage':
-        'الصورة المستخدمة عندما تكون الواجهة الخلفية للتنفيذ Modal. تعمل في السحابة: تُزامَن مجلدات المشروع كنسخ ولا تُربط مباشرة.',
-      'terminal.daytonaImage':
-        'الصورة المستخدمة عندما تكون الواجهة الخلفية للتنفيذ Daytona. تعمل في السحابة: تُزامَن مجلدات المشروع كنسخ ولا تُربط مباشرة.',
-      'codeExecution.mode': 'مدى تقييد تنفيذ الشيفرة بالمشروع الحالي.',
-      fileReadMaxChars: 'أقصى عدد أحرف يستطيع Hermes قراءته من ملف واحد في الطلب.',
-      'approvals.mode': 'كيف يتعامل Hermes مع الأوامر التي تحتاج موافقة صريحة.',
-      'approvals.timeout': 'مدة انتظار طلبات الموافقة قبل انتهاء المهلة.',
-      'security.redactSecrets': 'يخفي الأسرار المكتشفة من المحتوى المرئي للنموذج قدر الإمكان.',
-      'security.allowPrivateUrls':
-        'يسمح لأدوات جلب عناوين URL بالوصول إلى المضيف المحلي وعناوين الشبكات الخاصة. تظل نقاط نهاية بيانات تعريف السحابة محظورة.',
-      'browser.useRealProfile':
-        'يستخدم التصفح المحلي جلسات تسجيل دخولك الحقيقية. ينسخ Hermes ملف تعريف متصفحك الافتراضي (ملفات تعريف الارتباط وتسجيلات الدخول والتفضيلات) إلى لقطة مُدارة، ثم يتحكم فيها باستخدام Chromium المرفق. لا يفتح ملفك النشط مباشرة أبدًا، ويحدّث النسخة منه عند كل تشغيل. كما يتيح للوكيل فتح جلسة محلية تستخدم ملفك الحقيقي عند الطلب، حتى عند إعداد واجهة خلفية سحابية للمتصفح. لا تُدعم إلا المتصفحات المبنية على Chromium (Chrome وEdge وBrave وBrave Origin وChromium)، ويعرض Hermes رسالة واضحة إذا لم يكن المتصفح الافتراضي مبنيًا على Chromium. معطّل افتراضيًا.',
-      'checkpoints.enabled': 'ينشئ لقطات رجوع قبل تعديلات الملفات.',
-      'memory.memoryEnabled': 'يحفظ ذكريات دائمة يمكن أن تساعد الجلسات القادمة.',
-      'memory.userProfileEnabled': 'يحافظ على ملف مختصر لتفضيلات المستخدم.',
-      'context.engine': 'استراتيجية إدارة المحادثات الطويلة قرب حد السياق.',
-      'compression.enabled': 'يلخص السياق الأقدم عندما تكبر المحادثات.',
-      'voice.autoTts': 'ينطق ردود المساعد تلقائياً.',
-      'tts.xai.voiceId': 'معرف صوت xAI مثل eve أو معرف صوت مخصص.',
-      'tts.xai.language': 'رمز لغة النطق (مثلًا en أو pt-BR)، أو «auto» للاكتشاف التلقائي.',
-      'tts.neutts.device': 'الجهاز المحلي الذي يُشغَّل عليه NeuTTS.',
-      'stt.enabled': 'يفعّل تفريغ الكلام محليًا أو عبر مزوّد.',
-      'stt.elevenlabs.languageCode': 'رمز لغة ISO-639-3 اختياري. اتركه فارغاً للاكتشاف التلقائي.',
-      'updates.nonInteractiveLocalChanges':
-        'يحدد ما يحدث لتعديلات المصدر المحلية عندما يحدّث Hermes نفسه من التطبيق (دون سؤال في الطرفية): الاحتفاظ بها (stash) أو التخلص منها (discard). أما التحديث من الطرفية فيسأل دائمًا.',
-      'auxiliary.compression.timeout':
-        'عدد الثواني لانتظار نموذج الضغط المساعد في كل استدعاء (الافتراضي 120). ارفعه للنماذج المحلية البطيئة.',
-      'compression.codexGpt55Autoraise': 'يرفع عتبة الضغط إلى 85٪ لنماذج ChatGPT Codex OAuth المدعومة.'
-    },
+    fieldLabels: arFieldLabels,
+    fieldDescriptions: arFieldDescriptions,
     about: {
       heading: 'Hermes Desktop',
       version: value => `الإصدار ${value}`,
@@ -1090,6 +918,8 @@ export const arSettings = {
       sshErrTimeout: 'انتهت مهلة اتصال SSH. قد يتعذّر الوصول إلى المضيف أو قد يكون في وضع السكون.',
       sshErrUpdateRequired: 'حدّث Hermes على المضيف البعيد قبل الاتصال عبر SSH من تطبيق سطح المكتب.',
       sshErrUnknown: 'فشل اتصال SSH.',
+      sshErrInteractiveAuth:
+        'يتطلب Tailscale SSH فحصًا تفاعليًا في المتصفح. شغّل في الطرفية `ssh <host> true` وأكمل الفحص، ثم أعد المحاولة — يشغّل Hermes الأمر ssh بشكل غير تفاعلي.',
       webAccess: {
         title: 'الوصول عبر الويب',
         intro:
@@ -1282,6 +1112,8 @@ export const arSettings = {
       moaAggregator: 'نموذج التجميع',
       moaAggregatorBilled: 'النموذج المنفّذ · تُحتسب عليه تكلفة التشغيل',
       moaReferenceHint: 'يقدّم المشورة مرة واحدة لكل رسالة افتراضياً',
+      mainAppliedTitle: 'تم تحديث النموذج الرئيسي',
+      mainAppliedMessage: model => `ستستخدم الجلسات الجديدة ${model}.`,
       setupProviderFallback: 'المزوّد',
       setUpProvider: name => `إعداد ${name}`,
       staleAuxBefore: (count, names) =>
@@ -1418,6 +1250,9 @@ export const arSettings = {
         direct: 'تجاوز بنقطة نهاية مباشرة',
         customProvider: 'مزوّد مخصص...',
         customProviderLabel: 'مزوّد مخصص للوكلاء الفرعيين',
+        customEndpoints: 'نقاط النهاية المخصصة',
+        customEndpointsHidden:
+          'تظهر نقاط النهاية المخصصة هنا بعد تفعيل «اقتراح نقاط النهاية المخصصة للوكلاء الفرعيين».',
         parentModel: 'استخدام نموذج الوكيل الرئيسي',
         parentModelWarning:
           'يجب أن يدعم المزوّد المختار نموذج الوكيل الرئيسي. قد يفشل المسار الذي يحدد المزوّد وحده إذا كان النموذج غير متوافق. وإذا حدّد هذا المزوّد نموذجًا افتراضيًا خاصًا به، يستخدمه الوكلاء الفرعيون بدلًا من ذلك.',

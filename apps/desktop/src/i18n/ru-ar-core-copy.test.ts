@@ -63,6 +63,15 @@ const REVIEWED_BLOCKS = [
   'freeTier'
 ] as const
 
+// Arabic blocks written against English from the start (no machine-translated
+// past); the Russian overlay still leaves them in English.
+const AR_ONLY_BLOCKS = ['connectorsPage', 'appTour', 'sharedProviders', 'connectorOffer'] as const
+
+const BLOCKS: Record<'ru' | 'ar', readonly string[]> = {
+  ru: REVIEWED_BLOCKS,
+  ar: [...REVIEWED_BLOCKS, ...AR_ONLY_BLOCKS]
+}
+
 // Arguments that are identifiers rather than display text ('audio' | 'video');
 // a translation names the choice in its own words instead of echoing it. The
 // same exemptions as IDENTIFIER_ARGS in catalog-completeness.test.ts.
@@ -160,9 +169,9 @@ describe.each(['ru', 'ar'] as const)('the reviewed %s core copy', locale => {
   it('keeps every argument English shows, set apart from the words around it', () => {
     const overlay = OVERLAYS[locale]
 
-    const faults = REVIEWED_BLOCKS.flatMap(block => leaves(overlay[block], block)).flatMap(({ path, value }) =>
-      interpolationFaults(path, value).map(fault => `${path} ${fault}`)
-    )
+    const faults = BLOCKS[locale]
+      .flatMap(block => leaves(overlay[block], block))
+      .flatMap(({ path, value }) => interpolationFaults(path, value).map(fault => `${path} ${fault}`))
 
     expect(faults).toEqual([])
   })

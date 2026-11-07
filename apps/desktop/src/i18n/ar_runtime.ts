@@ -73,5 +73,15 @@ export const arRuntime = {
       seconds === null
         ? 'انتهت مهلة الاتصال بخدمة Hermes الخلفية.'
         : `انتهت مهلة الاتصال بخدمة Hermes الخلفية بعد ${seconds} ث.`
+  },
+  sharedProviders: {
+    badge: 'مشترك من الملف الشخصي الرئيسي',
+    editInMain: 'التعديل في الملف الشخصي الرئيسي',
+    endpointHint:
+      'نقطة النهاية هذه مشتركة من الملف الشخصي الرئيسي وتُعدَّل هناك، ولا يزال بإمكان هذا الملف الشخصي استخدامها.',
+    keyHint: 'هذا المفتاح مشترك من الملف الشخصي الرئيسي ويُعدَّل هناك.',
+    accountBadge: 'مسجَّل الدخول من الملف الشخصي الرئيسي',
+    accountHint:
+      'تسجيل الدخول هذا تابع للملف الشخصي الرئيسي؛ سجّل الخروج من هناك. أما تسجيل الدخول هنا فيمنح هذا الملف الشخصي حسابه الخاص، فلا يعود يتبع الملف الشخصي الرئيسي.'
   }
-} satisfies Pick<TranslationOverrides, 'runtimeErrors'>
+} satisfies Pick<TranslationOverrides, 'runtimeErrors' | 'sharedProviders'>
