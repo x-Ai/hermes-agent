@@ -571,6 +571,14 @@ export const zhHantChat = {
     modelSwitchStaleNotice: '選擇已變更 — 未套用模型切換。',
     dropFailedItem: name => `無法附加 ${name}`,
     dropFilesMore: count => `另有 ${count} 個`,
+    attachRefusals: {
+      folderDrop: (attach, folder) => `無法以拖曳方式附加資料夾。請改用「${attach} → ${folder}」。`,
+      fileTooLarge: mib => `檔案超過 ${mib} MiB，即瀏覽器可附加檔案的大小上限。`,
+      imageTooLarge: mib => `圖片超過 ${mib} MiB，即瀏覽器可傳送圖片的大小上限。`,
+      unsendableImage: '瀏覽器中無法附加 SVG 和 ICO 圖片。請改為附加 PNG、JPEG、GIF、WebP 或 BMP 圖片。',
+      uploadTooLarge: '檔案上傳失敗（413）：檔案大小超出伺服器或其前置代理允許的上限',
+      uploadFailed: status => `檔案上傳失敗（${status}）`
+    },
     attachFailed: '附加失敗'
   },
   tips: {

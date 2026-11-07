@@ -661,6 +661,14 @@ export const arChat = {
         many: `و${count} ملفًا آخر`,
         other: `و${count} ملف آخر`
       }),
+    attachRefusals: {
+      folderDrop: (attach, folder) => `لا يمكن إرفاق المجلدات بإفلاتها. اختر ${attach} ← ${folder} بدلًا من ذلك.`,
+      fileTooLarge: mib => `حجم الملف أكبر من ${mib} ميغابايت، وهو أقصى حجم ملف يمكن للمتصفح إرفاقه.`,
+      imageTooLarge: mib => `حجم الصورة أكبر من ${mib} ميغابايت، وهو أقصى حجم صورة يمكن للمتصفح إرسالها.`,
+      unsendableImage: 'لا يمكن إرفاق صور SVG وICO في المتصفح. أرفق صورة PNG أو JPEG أو GIF أو WebP أو BMP بدلًا منها.',
+      uploadTooLarge: 'تعذّر رفع الملف (413): حجم الملف أكبر مما يقبله الخادم أو خادم وكيل أمامه',
+      uploadFailed: status => `تعذّر رفع الملف (${status})`
+    },
     attachFailed: 'تعذّر الإرفاق'
   },
   tips: {

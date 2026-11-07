@@ -31,7 +31,8 @@ function failureText(
 ): string {
   const label = item(middleEllipsis(name, maxName))
   // A reason ends with a period, which reads '….;' before the '; ' that joins the next item.
-  const text = joined ? reason?.replace(/\.$/, '') : reason
+  // In Chinese or Japanese the period is '。'.
+  const text = joined ? reason?.replace(/[.。]$/, '') : reason
 
   return text ? `${label}: ${text}` : label
 }

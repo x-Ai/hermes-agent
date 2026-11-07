@@ -37,6 +37,23 @@ describe('dropWarning', () => {
     expect(detail?.split('\n')).toEqual(failures.map(({ name, reason }) => `Could not attach ${name}: ${reason}`))
   })
 
+  it('drops a full-width period too, the one a Chinese or Japanese reason ends with', () => {
+    const zhItem = (name: string) => `无法附加 ${name}`
+    const zhLimit = '文件超过 16 MiB，即浏览器可附加文件的大小上限。'
+
+    const { message } = dropWarning(
+      [
+        { name: '报告', reason: zhLimit },
+        { name: '日志', reason: zhLimit }
+      ],
+      zhItem,
+      more
+    )
+
+    expect(message).toBe(`无法附加 报告: ${zhLimit.slice(0, -1)}; 无法附加 日志: ${zhLimit}`)
+    expect(message).not.toContain('。;')
+  })
+
   it('keeps a lone reason as it is, period included, with no detail', () => {
     expect(dropWarning([{ name: 'huge.zip', reason: limit }], item, more)).toEqual({
       message: `Could not attach huge.zip: ${limit}`

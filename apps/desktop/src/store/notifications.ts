@@ -151,6 +151,51 @@ const SHARED_ENDPOINT_PINNED_RE = /'([^']+)' is the model provider of sharing pr
 /** The OAuth disconnect route's 422 for a sign-in the profile only borrows from the default profile. */
 const SHARED_ACCOUNT_RE = /'([^']+)' is signed in from the default profile\b/i
 
+/** The browser build's own attach refusals (`lib/browser-uploads.ts`, `stageDroppedFilePath`), raised in
+ *  English for the desktop log. Each reads back to its copy with the limit or HTTP status it names: outside
+ *  English an unknown message gives way to the fallback, and a drop warning's line has none. */
+const ATTACH_REFUSALS: [RegExp, (value: string) => string][] = [
+  [
+    /^Folders can't be attached by dropping them\. Use Attach → Folder… instead\.$/,
+    () =>
+      translateNow(
+        'desktop.attachRefusals.folderDrop',
+        translateNow('composer.attachLabel'),
+        translateNow('composer.folder')
+      )
+  ],
+  [
+    /^The file is larger than ([\d.]+) MiB, the largest file the browser can attach\.$/,
+    mib => translateNow('desktop.attachRefusals.fileTooLarge', Number(mib))
+  ],
+  [
+    /^The image is larger than ([\d.]+) MiB, the largest image the browser can send\.$/,
+    mib => translateNow('desktop.attachRefusals.imageTooLarge', Number(mib))
+  ],
+  [
+    /^SVG and ICO images can't be attached in the browser\. Attach a PNG, JPEG, GIF, WebP or BMP instead\.$/,
+    () => translateNow('desktop.attachRefusals.unsendableImage')
+  ],
+  [
+    /^File upload failed \(413\): the file is larger than the server or a proxy in front of it accepts$/,
+    () => translateNow('desktop.attachRefusals.uploadTooLarge')
+  ],
+  [/^File upload failed \((\d+)\)$/, status => translateNow('desktop.attachRefusals.uploadFailed', Number(status))]
+]
+
+/** An attach refusal in the UI language, or null for any other message. */
+function attachRefusal(msg: string): null | string {
+  for (const [pattern, summarize] of ATTACH_REFUSALS) {
+    const match = pattern.exec(msg.trim())
+
+    if (match) {
+      return summarize(match[1] ?? '')
+    }
+  }
+
+  return null
+}
+
 interface ErrorSummaryRule {
   /** The toast's error category for friction telemetry (a closed code-defined set, never the text). */
   category: ErrorToastCategory
@@ -219,6 +264,12 @@ const ERROR_SUMMARIES: ErrorSummaryRule[] = [
     category: 'other',
     test: msg => /^invalid preview url$/i.test(msg.trim()),
     summarize: () => translateNow('notifications.errors.invalidPreviewUrl'),
+    hideDetail: true
+  },
+  {
+    category: 'other',
+    test: msg => attachRefusal(msg) !== null,
+    summarize: msg => attachRefusal(msg) ?? msg,
     hideDetail: true
   },
   {
