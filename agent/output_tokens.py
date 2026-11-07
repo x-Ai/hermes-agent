@@ -214,8 +214,13 @@ def chat_max_tokens_field(
     # at a plugin provider's host keeps that provider's quirk); a pure hook, answered per request shape.
     from agent.provider_route_hooks import route_answer
 
-    declared = route_answer(
-        "max_tokens_param", provider=str(provider or ""), base_url=url, model=str(model or ""))
+    try:
+        declared = route_answer(
+            "max_tokens_param", provider=str(provider or ""), base_url=url, model=str(model or ""))
+    except ImportError:
+        # A provider registry that cannot import leaves the endpoint default; the auxiliary
+        # profile projection degrades the same way.
+        declared = None
     if declared:
         return str(declared)
     return "max_tokens"
