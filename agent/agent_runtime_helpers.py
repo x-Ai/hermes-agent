@@ -2049,8 +2049,8 @@ def create_openai_client(agent, client_kwargs: dict, *, reason: str, shared: boo
         base_url=str(client_kwargs.get("base_url", "")),
     )
     # ``process_bootstrap.OpenAI`` is a lazy SDK proxy; resolved at call time so tests can patch it.
-    from agent import process_bootstrap
-    client = process_bootstrap.OpenAI(**client_kwargs)
+    from agent import endpoint_auth, process_bootstrap
+    client = endpoint_auth.accept_omitted_bearer(process_bootstrap.OpenAI(**client_kwargs))
     # Routing proxies name the deployment they served in a response header (#54864).
     from agent.served_model import install_served_model_capture
     install_served_model_capture(agent, client)

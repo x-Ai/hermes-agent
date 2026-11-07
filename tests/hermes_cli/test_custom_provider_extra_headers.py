@@ -4,7 +4,11 @@ PR #3526 salvage — user-configurable extra HTTP headers on LLM API calls
 (reverse proxies, gateways, custom auth such as Cloudflare Access tokens).
 """
 
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import threading
+
+import pytest
 
 from hermes_cli.config import (
     _normalize_custom_provider_entry,
@@ -236,23 +240,92 @@ def test_fetch_api_models_sends_extra_headers_to_models_probe(monkeypatch):
     assert captured["headers"]["sleeve-base-url"] == "http://localhost:8081/v1"
 
 
-def test_x_api_key_scheme_replaces_bearer_on_openai_wire_clients():
-    """``auth_scheme: x-api-key`` governs Chat Completions / Responses clients too, not only the
-    Anthropic transport: the static key moves to ``x-api-key`` and the SDK's bearer header is dropped."""
-    from openai import OpenAI
-    from openai._models import FinalRequestOptions
-    from agent.endpoint_auth import apply_auth_scheme_to_client_kwargs, auth_scheme_default_headers
+@pytest.fixture
+def x_api_key_relay():
+    """A Chat Completions relay on 127.0.0.1 that records the headers of every completion request."""
+    seen = []
 
-    url = "https://gateway.example.test/v1"
+    class Relay(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            if not self.path.endswith("/chat/completions"):  # e.g. the agent's own Ollama metadata probe
+                self.send_error(404)
+                return
+            seen.append({key.lower(): value for key, value in self.headers.items()})
+            body = json.dumps({"id": "c", "object": "chat.completion", "created": 0, "model": "m", "choices": [
+                {"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": "ok"}}]}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Relay)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}/v1", seen
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+_HI = [{"role": "user", "content": "hi"}]
+
+
+def _assert_x_api_key_only(seen, count):
+    assert len(seen) == count
+    for headers in seen:
+        assert "authorization" not in headers
+        assert headers["x-api-key"] == "sk-secret" and headers["x-tenant"] == "a"
+
+
+def test_x_api_key_scheme_replaces_bearer_on_openai_wire_clients(x_api_key_relay):
+    """``auth_scheme: x-api-key`` governs Chat Completions / Responses clients too, not only the
+    Anthropic transport: the static key goes out as ``x-api-key`` and no bearer header is sent.
+    The main client's kwargs get the policy as on every route swap, then the real constructor."""
+    from agent.agent_runtime_helpers import create_openai_client
+    from agent.endpoint_auth import apply_auth_scheme_to_client_kwargs, auth_scheme_default_headers
+    from run_agent import AIAgent
+
+    url, seen = x_api_key_relay
     entries = [{"name": "gw", "provider_key": "gw", "base_url": url, "auth_scheme": "x-api-key"}]
     kwargs = {"api_key": "sk-secret", "base_url": url, "default_headers": {"X-Tenant": "a"}}
     apply_auth_scheme_to_client_kwargs(kwargs, url, entries)
-    request = OpenAI(**kwargs)._build_request(
-        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={}))
-    assert request.headers.get("authorization") is None
-    assert request.headers.get("x-api-key") == "sk-secret"
-    assert request.headers.get("x-tenant") == "a"
+    agent = AIAgent(api_key="sk-secret", base_url=url, provider="custom", model="m", quiet_mode=True,
+                    skip_context_files=True, skip_memory=True)
+    client = create_openai_client(agent, kwargs, reason="test", shared=False)
+    client.chat.completions.create(model="m", messages=_HI)
+    client.with_options(timeout=30).chat.completions.create(model="m", messages=_HI)
+    _assert_x_api_key_only(seen, 2)
 
     # Unpinned routes and command-minted (callable) keys keep the SDK bearer path untouched.
     assert auth_scheme_default_headers("https://other.example.test/v1", "sk-secret", entries) == {}
     assert auth_scheme_default_headers(url, lambda: "minted", entries) == {}
+
+
+def test_x_api_key_scheme_reaches_auxiliary_clients_and_their_async_twins(x_api_key_relay):
+    """A named custom endpoint's auxiliary client resolves the scheme from config.yaml, and the async
+    rebuild async auxiliary calls use carries it over."""
+    import asyncio
+
+    import hermes_yaml as yaml
+
+    import agent.auxiliary_client as aux
+    from hermes_constants import get_hermes_home
+
+    url, seen = x_api_key_relay
+    (get_hermes_home() / "config.yaml").write_text(yaml.safe_dump(
+        {"providers": {"gw": {"base_url": url, "auth_scheme": "x-api-key"}}}), encoding="utf-8")
+    client = aux._named_custom_openai_wire_client(url, "sk-secret", {"X-Tenant": "a"})
+    client.chat.completions.create(model="m", messages=_HI)
+    twin, _ = aux._to_async_client(client, "m")
+
+    async def _ask():
+        await twin.chat.completions.create(model="m", messages=_HI)
+        await twin.close()
+
+    asyncio.run(_ask())
+    _assert_x_api_key_only(seen, 2)

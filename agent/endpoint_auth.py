@@ -6,6 +6,8 @@ this module is the Chat Completions / Responses counterpart, so one config field
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+import functools
 from typing import Any, Optional
 
 _SCHEMES = ("bearer", "x-api-key")
@@ -44,8 +46,9 @@ def custom_provider_auth_scheme(
 def auth_scheme_default_headers(base_url: Any, api_key: Any, custom_providers: Any = None) -> dict[str, Any]:
     """Header overrides that move a static key from ``Authorization: Bearer`` to ``x-api-key`` when
     the endpoint pins that scheme; ``{}`` otherwise. The OpenAI SDK drops ``Omit()``-valued default
-    headers, which is how the bearer header is suppressed. A callable (command-minted) key stays on
-    the SDK's own bearer path: there is no static value to copy into a header."""
+    headers, which is how the bearer header is suppressed; the client built from them must pass
+    through :func:`accept_omitted_bearer`. A callable (command-minted) key stays on the SDK's own
+    bearer path: there is no static value to copy into a header."""
     if custom_provider_auth_scheme(base_url, custom_providers) != "x-api-key":
         return {}
     if not isinstance(api_key, str) or not api_key.strip() or api_key.strip().lower() == "no-key-required":
@@ -63,3 +66,35 @@ def apply_auth_scheme_to_client_kwargs(client_kwargs: dict[str, Any], base_url: 
     merged = {k: v for k, v in (client_kwargs.get("default_headers") or {}).items() if str(k).lower() != "authorization"}
     merged.update(overrides)
     client_kwargs["default_headers"] = merged
+
+
+def _omits_bearer(headers: Any) -> bool:
+    """True when a client's configured ``default_headers`` drop ``Authorization`` (the ``Omit()`` above)."""
+    from openai._types import Omit
+
+    return isinstance(headers, Mapping) and any(
+        str(k).lower() == "authorization" and isinstance(v, Omit) for k, v in headers.items())
+
+
+@functools.cache
+def _bearer_optional(cls: type) -> type:
+    """*cls* (``OpenAI`` / ``AsyncOpenAI``) with that client-level omission counted as explicit."""
+
+    def _validate_headers(self: Any, headers: Any, custom_headers: Any) -> None:
+        if not _omits_bearer(self._custom_headers):
+            cls._validate_headers(self, headers, custom_headers)
+
+    return type(cls.__name__, (cls,), {"_validate_headers": _validate_headers})
+
+
+def accept_omitted_bearer(client: Any) -> Any:
+    """*client* able to send the requests its ``default_headers`` strip of ``Authorization``.
+
+    openai 2.54 validates auth on every request and counts only an ``Omit()`` passed with that
+    request, so a client built from :func:`auth_scheme_default_headers` raised ``TypeError`` before
+    sending anything. The client-level omission is the same deliberate choice made once (the key
+    rides in ``x-api-key``); the class switch keeps it across ``copy()`` / ``with_options()``.
+    Any other client (or a test double) is returned unchanged."""
+    if _omits_bearer(getattr(client, "_custom_headers", None)):
+        client.__class__ = _bearer_optional(type(client))
+    return client

@@ -4581,7 +4581,6 @@ def _effective_provider_for_client(client: Any, fallback: str) -> str:
 
 def _to_async_client(sync_client, model: str, is_vision: bool = False):
     """Sync client → async counterpart, preserving Codex routing (``is_vision`` keeps the endpoint's vision headers)."""
-    from openai import AsyncOpenAI
     if isinstance(sync_client, _AuxProbeClientStub):
         return sync_client, model
     if isinstance(sync_client, CodexAuxiliaryClient):
@@ -4602,7 +4601,7 @@ def _to_async_client(sync_client, model: str, is_vision: bool = False):
     # ``.api_key`` (which stays ""); rebuilding from the snapshot alone ships NO Authorization
     # header. Configured default_headers (a named entry's extra_headers) are likewise carried over,
     # merged last exactly as the SDK merges them on the sync client. See #109595.
-    from agent.auxiliary_async_rebuild import async_api_key, configured_default_headers
+    from agent.auxiliary_async_rebuild import async_api_key, async_twin, configured_default_headers
     async_kwargs = {"api_key": async_api_key(sync_client), "base_url": sync_base_url}
     if base_url_host_matches(sync_base_url, "openrouter.ai"):
         headers = _apply_user_default_headers(build_or_headers())
@@ -4624,7 +4623,7 @@ def _to_async_client(sync_client, model: str, is_vision: bool = False):
     # Hermes owns the auxiliary retry/timeout budget; disable SDK-internal retries.
     # See #54465.
     async_kwargs.setdefault("max_retries", 0)
-    return AsyncOpenAI(**async_kwargs), model
+    return async_twin(**async_kwargs), model
 
 
 def _normalize_resolved_model(model_name: Optional[str], provider: str) -> Optional[str]:
@@ -5022,13 +5021,13 @@ def _named_custom_openai_wire_client(custom_base: str, custom_key: Any, extra_he
     _headers = _apply_user_default_headers(None)
     if extra_headers:
         _headers = {**(_headers or {}), **extra_headers}
-    from agent.endpoint_auth import auth_scheme_default_headers
+    from agent.endpoint_auth import accept_omitted_bearer, auth_scheme_default_headers
     _auth = auth_scheme_default_headers(custom_base, custom_key)
     if _auth:
         _headers = {**{k: v for k, v in (_headers or {}).items() if str(k).lower() != "authorization"}, **_auth}
     if _headers:
         _extra["default_headers"] = _headers
-    return _create_openai_client(api_key=custom_key, base_url=_clean_base, **_extra)
+    return accept_omitted_bearer(_create_openai_client(api_key=custom_key, base_url=_clean_base, **_extra))
 
 
 def _resolve_named_custom_branch(req: _ResolveRequest) -> Optional[_ResolveResult]:
