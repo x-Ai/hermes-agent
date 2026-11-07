@@ -2065,7 +2065,6 @@ export const zhOverrides = {
       probing: '正在检查此网关的认证方式…',
       probeError: '暂时无法访问此网关，请检查 URL，网关响应后会显示认证方式',
       signedIn: '已登录',
-      signedInMessage: provider => `已连接到 ${provider}`,
       signIn: '登录',
       signOut: '退出登录',
       signInWith: provider => `使用 ${provider} 登录`,
@@ -3323,7 +3322,6 @@ export const zhOverrides = {
     emptyNoneFound: noun => `未找到${noun}`,
     emptyNothingMatches: query => `没有匹配"${query}"的内容`,
     emptyNoneAvailable: noun => `暂无可用的${noun}`,
-    emptyToolsNoun: '工具',
     changesApplyNewSessions: '更改将应用于新会话',
     skillUpdated: '技能已更新',
     edit: '编辑',
@@ -6183,7 +6181,7 @@ export const zhOverrides = {
           title: provider => `你的 ${provider} 登录已过期`
         }
       },
-      errorDetails: '详情',
+      errorDetails: '查看错误详情',
       errorToastTitle: 'Hermes无法完成答复',
       errorLimitResets: time => `限制重置于${time}`,
       errorRetryAtReset: time => `在限制重置时重试 (${time})`,

@@ -1762,7 +1762,6 @@ export const frOverrides = {
       probeError:
         "Impossible d'atteindre ce gateway pour le moment. Vérifiez l'URL — la méthode d'authentification apparaîtra une fois qu'il répondra.",
       signedIn: 'Connecté',
-      signedInMessage: provider => `Connecté à ${provider}`,
       signIn: 'Se connecter',
       signOut: 'Se déconnecter',
       signInWith: provider => `Se connecter avec ${provider}`,
@@ -2511,7 +2510,6 @@ export const frOverrides = {
     emptyNoneFound: noun => `Aucun ${noun} trouvé`,
     emptyNothingMatches: query => `Rien ne correspond à « ${query} ».`,
     emptyNoneAvailable: noun => `Aucun ${noun} disponible pour le moment.`,
-    emptyToolsNoun: 'outil',
     changesApplyNewSessions: "Les modifications s'appliquent aux nouvelles sessions.",
     skillUpdated: 'Skill mis à jour',
     edit: 'Modifier',
@@ -5242,7 +5240,7 @@ export const frOverrides = {
           title: provider => `Votre connexion à ${provider} a expiré`
         }
       },
-      errorDetails: 'Détails',
+      errorDetails: "Voir les détails de l'erreur",
       errorGenericProvider: "Le service d'IA",
       errorToastTitle: "Hermes n'a pas pu terminer la réponse",
       errorRetry: 'Réessayer',

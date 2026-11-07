@@ -1750,7 +1750,6 @@ export const jaOverrides = {
       probing: 'このゲートウェイの認証方法を確認中…',
       probeError: 'このゲートウェイにまだ到達できません。URL を確認してください。応答後に認証方法が表示されます。',
       signedIn: 'サインイン済み',
-      signedInMessage: provider => `${provider} に接続しました`,
       signIn: 'サインイン',
       signOut: 'サインアウト',
       signInWith: provider => `${provider} でサインイン`,
@@ -2613,10 +2612,9 @@ export const jaOverrides = {
       bundled: '組み込み',
       hub: 'ハブ'
     },
-    emptyNoneFound: noun => `${noun}が見つかりません`,
+    emptyNoneFound: noun => `${noun} が見つかりません`,
     emptyNothingMatches: query => `「${query}」に一致するものはありません。`,
-    emptyNoneAvailable: noun => `利用可能な${noun}はまだありません。`,
-    emptyToolsNoun: 'ツール',
+    emptyNoneAvailable: noun => `利用可能な ${noun} はまだありません。`,
     changesApplyNewSessions: '変更は新しいセッションに適用されます。',
     skillUpdated: 'スキルを更新しました',
     edit: '編集',
@@ -5561,7 +5559,7 @@ export const jaOverrides = {
           title: provider => `${provider} へのサインインの期限が切れました`
         }
       },
-      errorDetails: '詳細',
+      errorDetails: 'エラーの詳細を表示',
       errorToastTitle: 'Hermes は返信を完了できませんでした',
       errorLimitResets: time => `制限は ${time} にリセットされます`,
       errorRetryAtReset: time => `制限のリセット時に再試行（${time}）`,

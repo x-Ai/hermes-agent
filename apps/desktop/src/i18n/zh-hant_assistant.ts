@@ -406,7 +406,7 @@ export const zhHantAssistant = {
           title: provider => `你的${provider}登入已過期`
         }
       },
-      errorDetails: '詳細資訊',
+      errorDetails: '檢視錯誤詳細資訊',
       errorToastTitle: 'Hermes 无法完成回复',
       errorLimitResets: time => `限額將於 ${time} 重設`,
       errorRetryAtReset: time => `限額重設後重試（${time}）`,

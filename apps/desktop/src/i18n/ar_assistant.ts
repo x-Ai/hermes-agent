@@ -400,7 +400,7 @@ export const arAssistant = {
           title: provider => `انتهت صلاحية تسجيل دخولك إلى ${provider}`
         }
       },
-      errorDetails: 'التفاصيل',
+      errorDetails: 'عرض تفاصيل الخطأ',
       errorGenericProvider: 'خدمة الذكاء الاصطناعي',
       errorToastTitle: 'تعذّر على Hermes إنهاء الرد',
       errorLimitResets: time => `يُعاد ضبط الحد عند ${time}`,
