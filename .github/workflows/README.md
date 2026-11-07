@@ -9,6 +9,13 @@ release run.
 The YAML is the source of truth. If this file and a workflow disagree, the
 workflow wins. Fix this file in the same PR.
 
+Fork-specific automation: [`fork-upstream-sync.yml`](fork-upstream-sync.yml) polls upstream
+main and published releases once per hour at minute 7 (UTC). It prepares with Pi using a configured Anthropic-compatible endpoint,
+validates the exact candidate without secrets, then advances fork main and publishes localized
+release tags. Configuration, permissions, retry behavior and rollout:
+[`scripts/fork_sync/README.zh-CN.md`](../../scripts/fork_sync/README.zh-CN.md).
+It shares `fork-stable-release` concurrency with the existing manual publisher.
+
 - [Map](#map)
 - [Things to know first](#things-to-know-first)
 - [Regular CI: `ci.yaml`](#regular-ci-ciyaml)

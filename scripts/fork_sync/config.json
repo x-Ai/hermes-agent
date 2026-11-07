@@ -1,0 +1,17 @@
+{
+  "releases_since": "2026-11-07T00:00:00Z",
+  "agent": {
+    "timeout_seconds": 3600,
+    "context_window": 128000,
+    "max_tokens": 16000
+  },
+  "checks": [
+    ["python", "scripts/check", "--base", "{base}", "--commit", "{candidate}"],
+    ["bash", "scripts/run_tests.sh", "-j", "4", "--file-retries", "0", "-q"],
+    ["pnpm", "--dir", "ui-tui", "run", "check"],
+    ["pnpm", "--dir", "apps/desktop", "run", "check:lint"],
+    ["pnpm", "--dir", "apps/desktop", "run", "test:ui"],
+    ["pnpm", "--dir", "web", "run", "check"],
+    ["node", "apps/desktop/scripts/i18n-keys.mjs", "--check"]
+  ]
+}
