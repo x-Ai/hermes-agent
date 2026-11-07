@@ -1947,7 +1947,7 @@ export const zhHantSettings = {
         selectedTitle: '已選擇後端',
         selectedMessage: backend => `終端命令現在透過 ${backend} 執行。將套用於新工作階段。`,
         failedSelect: backend => `選擇 ${backend} 失敗`,
-        needsSetupHint: '現在即可選擇此後端——但在完成設定前命令將會失敗。',
+        needsSetupHint: '此後端已選取但尚未完成設定——在設定完成前命令將會失敗。',
         ...zhHantTerminalBackend,
         needsSetupConfirmTitle: backend => `選擇${backend}無論如何?`,
         needsSetupConfirmDescription: detail => `${detail}在此更改之後開始的會話，在設置完成之前將沒有終端或文件工具。`,

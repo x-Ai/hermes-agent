@@ -2333,7 +2333,7 @@ export const ruOverrides = {
         selectedMessage: backend =>
           `Команды терминала теперь выполняются через ${backend}. Применяется к новым сеансам.`,
         failedSelect: backend => `Не удалось выбрать ${backend}`,
-        needsSetupHint: 'Этот бэкенд можно выбрать сейчас, но команды не будут работать, пока настройка не завершится.',
+        needsSetupHint: 'Этот бэкенд выбран без полной настройки — команды не будут работать, пока она не завершится.',
         descriptions: {},
         details: {},
         needsSetupConfirmTitle: backend => `Всё равно выбрать ${backend}?`,

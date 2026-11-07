@@ -32,6 +32,7 @@ import { enProjects } from './en_projects'
 import { enProviderWait } from './en_provider_wait'
 import { enRuntime } from './en_runtime'
 import { enSharedMetrics } from './en_shared_metrics'
+import { enTerminalBackend } from './en_terminal_backend'
 import { enThemePicker } from './en_theme_picker'
 import { enToolsetCopy } from './en_toolset_copy'
 import { enUninstallSection } from './en_uninstall_section'
@@ -2490,33 +2491,7 @@ export const en: Translations = {
       modelSelectedMessage: model => `${model} applies to new sessions.`,
       failedSelectModel: model => `Failed to select ${model}`,
       ...enToolsetCopy,
-      terminalBackend: {
-        sectionTitle: 'Execution backend',
-        loading: 'Checking execution backends…',
-        failedLoad: 'Could not load terminal backends',
-        ready: 'Ready',
-        needsSetup: 'Needs setup',
-        unavailable: 'Unavailable',
-        inUse: 'In use',
-        selectedTitle: 'Backend selected',
-        selectedMessage: backend => `Terminal commands now run via ${backend}. Applies to new sessions.`,
-        failedSelect: backend => `Failed to select ${backend}`,
-        needsSetupHint: 'You can select this backend now — commands will fail until setup is complete.',
-        descriptions: {},
-        details: {},
-        needsSetupConfirmTitle: backend => `Select ${backend} anyway?`,
-        needsSetupConfirmDescription: detail =>
-          `${detail} Sessions that start after this change will have no terminal or file tools until setup is finished.`,
-        needsSetupConfirmDescriptionGeneric:
-          "This backend isn't set up yet. Sessions that start after this change will have no terminal or file tools until setup is finished.",
-        needsSetupConfirmAction: 'Select anyway',
-        unavailableTitle: 'Terminal commands are unavailable',
-        unavailableMessage: backend =>
-          `Hermes can't run shell commands right now: ${backend} isn't ready. Switch to Local, or finish setting up ${backend} and try again.`,
-        openBackendSettings: 'Open terminal settings',
-        useLocal: 'Use Local',
-        switchedToLocal: 'Terminal commands now run locally. Applies to new sessions.'
-      },
+      terminalBackend: enTerminalBackend,
       computerUse: {
         checking: 'Checking Computer Use status…',
         statusReadFailed: 'Could not read Computer Use status',

@@ -1456,7 +1456,7 @@ export const arSettings = {
         selectedTitle: 'تم اختيار الواجهة الخلفية',
         selectedMessage: backend => `تعمل أوامر الطرفية الآن عبر ${backend}. يسري ذلك على الجلسات الجديدة.`,
         failedSelect: backend => `تعذّر اختيار ${backend}`,
-        needsSetupHint: 'يمكنك اختيار هذه الواجهة الخلفية الآن، لكن الأوامر ستفشل حتى يكتمل الإعداد.',
+        needsSetupHint: 'تم اختيار هذه الواجهة الخلفية دون اكتمال إعدادها، وستفشل الأوامر حتى يكتمل الإعداد.',
         descriptions: {},
         details: {},
         needsSetupConfirmTitle: backend => `اختيار ${backend} على أي حال؟`,
