@@ -3,10 +3,13 @@
 
 Copy this directory out of the checkout BEFORE merging. Run that copy, never
 candidate-controlled Python, in jobs that receive an AI key or a write token.
+Its modules are imported before the coding agent runs, so the agent's shell
+cannot swap the test selection that plans validation.
 """
 from __future__ import annotations
 
 import argparse
+from functools import partial
 import json
 import hashlib
 import logging
@@ -22,6 +25,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import releases
+import select_tests
 
 UPSTREAM = "https://github.com/NousResearch/hermes-agent.git"
 CANDIDATE_REF = "refs/heads/fork-sync-candidate"
@@ -63,6 +67,8 @@ def emit(manifest: dict) -> None:
             for key in ("base", "candidate", "upstream", "changed", "needed"):
                 value = manifest[key]
                 handle.write(f"{key}={str(value).lower() if isinstance(value, bool) else value}\n")
+            shards = manifest.get("tests", {}).get("shards", 0)
+            handle.write(f"shards={json.dumps(list(range(1, shards + 1)))}\n")
 
 
 def prepare(repository: str, artifacts: Path) -> None:
@@ -97,9 +103,20 @@ def prepare(repository: str, artifacts: Path) -> None:
     if manifest["changed"]:
         git("update-ref", CANDIDATE_REF, candidate)
         git("bundle", "create", str(artifacts / "candidate.bundle"), CANDIDATE_REF, f"^{base}")
+        manifest["tests"] = plan_tests(manifest, settings["tests"], artifacts)
     write_json(artifacts / "manifest.json", manifest)
     emit(manifest)
     print(f"Prepared {candidate[:12]}; code changed={manifest['changed']}; releases={len(pending)}")
+
+
+def plan_tests(manifest: dict, settings: dict, artifacts: Path) -> dict:
+    """Write the Python test files the merge can affect; the test matrix shards them."""
+    result = select_tests.plan(Path.cwd(), manifest["base"], manifest["candidate"],
+                               manifest["upstream"], settings)
+    print(select_tests.describe(result), flush=True)
+    (artifacts / "tests.txt").write_text("".join(f"{path}\n" for path in result["files"]), encoding="utf-8")
+    return dict(mode=result["mode"], files=len(result["files"]), weight=result["weight"],
+                shards=result["shards"])
 
 
 def save_diagnostics(artifacts: Path) -> None:
@@ -299,6 +316,22 @@ def validate(artifacts: Path, repository: str) -> None:
         raise RuntimeError("Checks modified tracked candidate files")
 
 
+def run_shard(repository: str, artifacts: Path, shard: int) -> None:
+    data = load_manifest(artifacts, repository)
+    if output("rev-parse", "HEAD") != data["candidate"]:
+        raise RuntimeError("Tests are not running against the prepared commit")
+    total = data.get("tests", {}).get("shards", 0)
+    if not 1 <= shard <= total:
+        raise RuntimeError(f"Shard {shard} is outside the planned 1..{total}")
+    # The runner partitions a sorted list round-robin, so every shard agrees on the split.
+    argv = [*config()["tests"]["command"], "--files-from", str(artifacts / "tests.txt"),
+            "--slice", f"{shard}/{total}"]
+    print("Tests:", " ".join(argv), flush=True)
+    subprocess.run(argv, timeout=3600, check=True)
+    if output("diff", "HEAD", "--name-only"):
+        raise RuntimeError("Tests modified tracked candidate files")
+
+
 def publish(artifacts: Path, repository: str) -> None:
     data = import_candidate(artifacts, repository)
     # origin/main may advance while AI/tests run. Never force it back or silently
@@ -316,14 +349,16 @@ def publish(artifacts: Path, repository: str) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=("prepare", "materialize", "validate", "publish"))
+    parser.add_argument("phase", choices=("prepare", "materialize", "validate", "test", "publish"))
     parser.add_argument("--artifacts", type=Path, required=True)
+    parser.add_argument("--shard", type=int, default=0, help="test phase: 1-based shard number")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
     args = parser.parse_args()
     if not args.repository or args.repository.lower() == "nousresearch/hermes-agent":
         raise RuntimeError("This controller requires a fork repository")
     artifacts = args.artifacts.resolve()
-    phases = dict(prepare=prepare, materialize=checkout_candidate, validate=validate, publish=publish)
+    phases = dict(prepare=prepare, materialize=checkout_candidate, validate=validate,
+                  test=partial(run_shard, shard=args.shard), publish=publish)
     phases[args.phase](repository=args.repository, artifacts=artifacts)
 
 

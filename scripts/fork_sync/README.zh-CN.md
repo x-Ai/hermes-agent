@@ -4,7 +4,7 @@
 
 ## 启用
 
-将本目录、两个 `tests/scripts/test_fork_sync_*.py`、工作流及 `.github/workflows/README.md` 的修改提交到 fork 的默认分支 `main`。仅在本地存在文件不会启用 GitHub Actions。编码 Agent 使用 **Pi**，不包含自研 AI 工具循环。工作流在 runner 临时目录安装固定版本 `@earendil-works/pi-coding-agent@1.5.0`（与本机已安装的 Pi 版本一致），升级时修改工作流中的 `PI_VERSION`。Node 由 Actions 安装，要求版本至少 22.19。
+将本目录、`tests/scripts/test_fork_sync_*.py`、工作流及 `.github/workflows/README.md` 的修改提交到 fork 的默认分支 `main`。仅在本地存在文件不会启用 GitHub Actions。编码 Agent 使用 **Pi**，不包含自研 AI 工具循环。工作流在 runner 临时目录安装固定版本 `@earendil-works/pi-coding-agent@1.5.0`（与本机已安装的 Pi 版本一致），升级时修改工作流中的 `PI_VERSION`。Node 由 Actions 安装，要求版本至少 22.19。
 
 在仓库 **Settings → Secrets and variables → Actions** 配置：
 
@@ -27,10 +27,31 @@
 
 1. **Prepare（只有仓库读取权限）**：获取 upstream main，分页枚举发布时间不早于起始时间的公开 Release，跳过草稿和已存在的 fork Release。上游标签抓取到独立 Git 命名空间，避免覆盖 fork 同名标签。
 2. 对尚未包含的 main 和 Release 提交逐个执行真实 Git 合并。即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
-3. **Validate（无 AI 密钥、无写 token）**：从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。运行 `scripts/check`、标准 Python 测试集、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查。全部命令见 `config.json`。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
+3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
-自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 上限、测试命令保存在 `config.json`；任务分别有 90/120/20 分钟硬超时。有更新才调用 AI；上游改动很多时，首轮 API 花费和执行时间可能明显增加。
+自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 90/120/90/20 分钟硬超时。有更新才调用 AI；上游改动很多时，首轮 API 花费和执行时间可能明显增加。
+
+## Python 测试选择
+
+完整 Python 测试集约 7,300 个文件、5.4 万个测试，在一台 4 核托管 runner 上约需 3 小时，超过单条命令 60 分钟的上限。候选提交与已通过验证的 fork main 只差这次合并，上游 CI 也已在上游代码上跑过上游的测试，所以 Prepare 在合并完成后用 `select_tests.py` 静态分析候选树，把可能受影响的测试文件写入产物 `tests.txt`：
+
+- 本次改动的测试文件；
+- 直接引用改动文件的测试：import（包括函数内的延迟 import）、指向模块的点分字符串（`mock.patch` 目标、`import_module` 参数）、按路径或少见文件名写出的文件，以及「目录名 + 文件名、通配符或后缀」引用的数据文件（如 `"locales"` 与 `"*.yaml"`）。`tests/` 下的辅助模块算作导入它的测试的一部分；
+- fork 自有代码用到改动文件时，该 fork 模块的测试。只看与上游不同的那些行（新增的 import、这些行用到的已导入名称和字符串），fork 为某个功能改过的大文件不会因为任意上游改动拉入它的全部测试；
+- `conftest.py` 改动，或 conftest 加载的测试辅助模块改动时，该 conftest 所在目录下的全部测试。产品模块经 conftest 间接到达时不扩散。
+
+`pyproject.toml`、`uv.lock`、`pm/lock.json`（`config.json` 的 `tests.full_suite`）改动时运行全部测试。不追踪完整的传递 import 闭包：延迟 import 让几乎所有模块互相可达，任何改动都会选中整个测试集。
+
+选中的测试按 `def test_` 数量估算工作量（测试运行器自己的进度估计），每个分片约 `tests_per_shard`（10,000 个，约 30 分钟），最多 `max_shards` 个；每个分片是一个并行任务，运行 `run_tests.sh --files-from tests.txt --slice i/N`。全量测试约 6 个分片。没有选中任何测试时（例如只改了前端或文档），跳过 Python 测试任务，Publish 照常进行。
+
+用 2026-10-31 以来上游 main 的逐小时窗口回放：中位数约为全量测试时间的 5%，四分之三的窗口不超过约 24%，多数只需一个分片；约 12% 的窗口因 conftest、根测试 fixture 或依赖锁改动需要全量，此时 6 个分片并行，墙钟时间约 40 分钟。
+
+这是静态分析的取舍：经过两层以上、且中间模块与上游相同的间接依赖不会被选中，例如测试导入 B、B 再使用改动的 C。这类组合已由上游 CI 在上游代码上验证。若某类改动必须全量测试，把对应路径加入 `full_suite`。在本地预览某个候选提交会选中哪些测试（先检出该候选提交）：
+
+```bash
+python scripts/fork_sync/select_tests.py --base <fork main 提交> --upstream <合并的上游提交> --list
+```
 
 ## i18n 与二开保留规则
 
@@ -54,14 +75,14 @@ Pi 非零退出、超时、JSONL 中的模型/工具错误、缺少 `agent_settl
 
 工作流下一轮会重试。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
 
-上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每次 Pi 调用默认最长 60 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。独立 Validate 的完整测试失败后，本轮停止，下一轮重新尝试。
+上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每次 Pi 调用默认最长 60 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。Validate 或任一 Python 测试分片失败后，本轮停止，下一轮重新尝试。
 
 ## 本地验证自动化本身
 
 按照项目规定使用 `scripts/run_tests.sh`，测试采用临时 Git 仓库、模拟 CLI 结果与 GitHub API，不调用付费模型、不操作真实 Release：
 
 ```bash
-bash scripts/run_tests.sh tests/scripts/test_fork_sync_releases.py tests/scripts/test_fork_sync_run.py -j 2 --file-retries 0 -q
+bash scripts/run_tests.sh tests/scripts/test_fork_sync_releases.py tests/scripts/test_fork_sync_run.py tests/scripts/test_fork_sync_select.py -j 3 --file-retries 0 -q
 python scripts/check --base HEAD
 ```
 

@@ -243,3 +243,39 @@ def test_manifest_rejects_inconsistent_commit_and_changed_flag(controller, tmp_p
     (tmp_path / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(RuntimeError, match="change flag"):
         controller.load_manifest(tmp_path, "owner/repo")
+
+
+def test_prepare_outputs_one_matrix_entry_per_planned_test_shard(controller, tmp_path, monkeypatch):
+    out = tmp_path / "github-output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(out))
+    shas = dict(base="a" * 40, candidate="b" * 40, upstream="c" * 40)
+    controller.emit(dict(shas, changed=True, needed=True,
+                         tests=dict(mode="selected", files=3, weight=12000, shards=2)))
+    controller.emit(dict(shas, candidate="a" * 40, changed=False, needed=True))
+    assert [line for line in out.read_text(encoding="utf-8").splitlines()
+            if line.startswith("shards=")] == ["shards=[1, 2]", "shards=[]"]
+
+
+def test_shard_runs_its_slice_of_the_planned_test_files(controller, history, tmp_path, monkeypatch):
+    _, common, _, fork = history
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    data = dict(repository="owner/repo", base=common, candidate=fork, upstream=common, changed=True,
+                releases=[], tests=dict(mode="selected", files=2, weight=2, shards=3))
+    (artifacts / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    real = subprocess.run
+    calls = []
+
+    def run(argv, **kwargs):
+        if argv[0] != "bash":
+            return real(argv, **kwargs)
+        calls.append(argv)
+        return subprocess.CompletedProcess(argv, 0)
+
+    monkeypatch.setattr(controller.subprocess, "run", run)
+    controller.run_shard("owner/repo", artifacts, 2)
+    assert calls == [[*controller.config()["tests"]["command"],
+                      "--files-from", str(artifacts / "tests.txt"), "--slice", "2/3"]]
+    for outside in (0, 4):
+        with pytest.raises(RuntimeError, match="outside the planned"):
+            controller.run_shard("owner/repo", artifacts, outside)
