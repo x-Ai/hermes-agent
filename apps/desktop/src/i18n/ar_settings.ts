@@ -1,7 +1,9 @@
+import { arCustomEndpoints } from './ar_custom_endpoints'
 import { arDelegationRouting } from './ar_delegation_routing'
 import { arLocalModels } from './ar_local_models'
 import { arMemoryLayers } from './ar_memory_layers'
 import { AR_PLURAL } from './ar_plural'
+import { arUninstallSection } from './ar_uninstall_section'
 import { arUpdateChannel } from './ar_update_channel'
 import type { TranslationOverrides } from './define-locale'
 
@@ -813,8 +815,14 @@ export const arSettings = {
       keepAwakeTitle: 'منع الحاسوب من السكون',
       keepAwakeDesc:
         'يمنع هذا الجهاز من الدخول في وضع السكون. يُبقيه خيار «أثناء العمل» مستيقظًا فقط أثناء تنفيذ دور، فتكتمل المهام الليلية دون إبقاء الحاسوب المحمول مستيقظًا طوال الأسبوع. قد تخفت الشاشة مع ذلك.',
+      keepAwakeOff: 'معطّل',
+      keepAwakeWhileWorking: 'أثناء العمل',
+      keepAwakeAlways: 'دائمًا',
       disableF12Title: 'تعطيل أدوات التطوير F12',
       disableF12Desc: 'منع F12 من فتح أدوات المطور. لا يزال Ctrl+Shift+I (أو Cmd+Opt+I على نظام Mac) يعمل.',
+      alwaysExternalLinksTitle: 'فتح الروابط دائمًا في المتصفح الخارجي',
+      alwaysExternalLinksDesc:
+        'يفتح كل رابط تنقر عليه في متصفح النظام بدلًا من متصفح التطبيق. يبقى الخيار «فتح في متصفح التطبيق» متاحًا في قائمة النقر بزر الماوس الأيمن.',
       attachmentSizeTitle: 'الحد الأقصى لحجم المعاينة / تحميل الصورة',
       attachmentSizeDesc:
         'أقصى حجم بالميغابايت للملف المحلي الذي يحمّله التطبيق للمعاينة وإرفاق الصور. الافتراضي 16. يستخدم إرفاق الملفات غير الصور عن بُعد حدًا منفصلًا قدره 256 ميغابايت. ضبط هذه القيمة على رقم كبير جدًا يحمّل الملف كاملًا في الذاكرة وقد يجمّد التطبيق أو يتسبب في تعطله.',
@@ -1421,88 +1429,7 @@ export const arSettings = {
         routing: arDelegationRouting
       }
     },
-    customEndpoints: {
-      title: 'نقاط النهاية المخصصة',
-      loadFailed: 'تعذّر تحميل نقاط النهاية المخصصة',
-      saved: 'تم حفظ نقطة النهاية المخصصة.',
-      saveFailed: 'فشل الحفظ',
-      reachable: 'يمكن الوصول إلى نقطة النهاية.',
-      reachableWithModels: count =>
-        AR_PLURAL(count, {
-          zero: 'يمكن الوصول إلى نقطة النهاية. لم يُعثر على أي نموذج.',
-          one: 'يمكن الوصول إلى نقطة النهاية. عُثر على نموذج واحد.',
-          two: 'يمكن الوصول إلى نقطة النهاية. عُثر على نموذجين.',
-          few: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نماذج.`,
-          many: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نموذجًا.`,
-          other: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نموذج.`
-        }),
-      validationFailed: 'فشل التحقق من نقطة النهاية.',
-      validationError: 'فشل التحقق',
-      enterUrlFirst: 'أدخل عنوان URL لنقطة النهاية أولًا.',
-      unreachable: url => `تعذّر الوصول إلى ${url}.`,
-      authRejected: 'رفضت نقطة النهاية مفتاح API.',
-      httpError: status => `أعادت نقطة النهاية رمز الحالة HTTP ${status}.`,
-      activationFailed: 'فشل التفعيل',
-      deleteConfirm: name => `حذف «${name}»؟`,
-      deleteFailed: 'فشل الحذف',
-      active: 'نشط',
-      apiKeySet: 'مفتاح API مضبوط',
-      use: 'استخدام',
-      deleteEndpoint: 'حذف نقطة النهاية',
-      emptyTitle: 'لا توجد نقاط نهاية مخصصة',
-      emptyDesc: 'أضف نقطة نهاية متوافقة مع OpenAI أدناه.',
-      editTitle: 'تحرير نقطة النهاية',
-      addTitle: 'إضافة نقطة نهاية',
-      nameLabel: 'الاسم',
-      providerIdLabel: 'معرّف المزوّد',
-      providerIdHint:
-        'معرّف يُخزَّن كمفتاح المزوّد في config.yaml ولا يتغير بعد الإنشاء؛ لاستخدام معرّف مختلف، أنشئ «نقطة نهاية جديدة».',
-      urlLabel: 'عنوان URL لنقطة النهاية',
-      apiModeLabel: 'بروتوكول API',
-      apiModeAuto: 'تلقائي',
-      apiModeChat: 'Chat Completions',
-      apiModeResponses: 'Responses API',
-      apiModeMessages: 'Anthropic Messages',
-      authSchemeLabel: 'ترويسة المصادقة',
-      authSchemeAuto: 'اكتشاف تلقائي',
-      authSchemeHint:
-        'الترويسة التي تحمل مفتاح API في كل بروتوكول. يرسل الاكتشاف التلقائي Authorization: Bearer على المسارات المتوافقة مع OpenAI، ويتبع جدول المضيفين المعروفين على المسارات المتوافقة مع Anthropic؛ ثبّت x-api-key أو Bearer إذا ردّت نقطة النهاية بالخطأ 401/403.',
-      noModelCatalog: 'يمكن الوصول إلى نقطة النهاية، لكنها لا توفّر كتالوج نماذج.',
-      connectedNoModels: url => `تم الاتصال بـ ${url}، لكن نقطة النهاية لم تعرض أي نماذج.`,
-      defaultModelLabel: 'النموذج الافتراضي',
-      contextLabel: 'حدود الرموز لكل نموذج',
-      contextHint:
-        'خصّص السياق الكلي والحد الأقصى للإدخال والحد الأقصى للإخراج لكل نموذج. اترك أي قيمة فارغة ليحددها Hermes تلقائيًا.',
-      modelLabel: 'النموذج',
-      contextWindowLabel: 'السياق الكلي',
-      maxInputLabel: 'أقصى إدخال',
-      maxOutputLabel: 'أقصى إخراج',
-      apiKeyLabel: 'مفتاح API',
-      userAgentLabel: 'User-Agent',
-      userAgentHint:
-        'ترويسة HTTP User-Agent المرسلة إلى نقطة النهاية هذه. تركها فارغة يعني القيمة الافتراضية لـ SDK. بعض خوادم الترحيل وجدران WAF لا تقبل إلا وكلاء مستخدم تشبه المتصفحات؛ استخدم القيمة الجاهزة إذا كانت نقطة النهاية هذه تحظر الطلبات.',
-      contextAuto: 'تلقائي',
-      autoValuePlaceholder: (value: string) => `تلقائي · ${value}`,
-      suggestedValuePlaceholder: (value: string) => `مقترح · ${value}`,
-      fillDetected: 'تعبئة القيم المكتشفة',
-      fillDetectedHint:
-        'ينسخ الحدود والقدرات المكتشفة إلى الخلايا الفارغة لتتمكن من تعديلها لنقطة نهاية غير قياسية. «تلقائي» هو ما يحدده Hermes بنفسه عند ترك الخلية فارغة، و«مقترح» مأخوذ من كتالوج models.dev ولا يُستخدم إلا بعد تعبئته. تبقى الخلايا الفارغة تُحدَّد تلقائياً.',
-      capabilityAutoResolved: (verdict: string) => `تلقائي (${verdict})`,
-      valueSource: (source: string) => `المصدر: ${source}`,
-      sourceEndpoint: 'ما أبلغت عنه نقطة النهاية',
-      sourceCatalogProvider: 'مزوّد الكتالوج',
-      sourceCatalog: (ref: string) => `مطابقة models.dev: ${ref}`,
-      keyKeepPlaceholder: 'اتركه فارغًا للإبقاء على المفتاح الحالي',
-      keyOptionalPlaceholder: 'اختياري',
-      useForNewChats: 'الاستخدام في الدردشات الجديدة',
-      discoverModels: 'اكتشاف النماذج',
-      test: 'اختبار',
-      newEndpoint: 'نقطة نهاية جديدة',
-      reachableVia: transport => `يمكن الوصول إلى نقطة النهاية (استجاب مسار ${transport}).`,
-      emptyDescription: 'أضف نقطة نهاية متوافقة مع OpenAI أدناه.',
-      namePlaceholder: 'مثلًا Axet Proxy',
-      contextPlaceholder: 'تلقائي'
-    },
+    customEndpoints: arCustomEndpoints,
     uninstall: {
       dangerZone: 'منطقة الخطر',
       checking: 'جارٍ التحقق مما هو مثبّت…',
@@ -1817,11 +1744,7 @@ export const arSettings = {
       billingOverview: 'نظرة عامة',
       billingPlans: 'الخطط'
     },
-    uninstallSection: {
-      dangerZone: 'منطقة الخطر',
-      confirmUninstall: 'تأكيد إلغاء التثبيت',
-      uninstallHermes: 'إلغاء تثبيت Hermes'
-    },
+    uninstallSection: arUninstallSection,
     computerUse: {
       accessibility: 'تسهيلات الاستخدام',
       screenRecording: 'تسجيل الشاشة',

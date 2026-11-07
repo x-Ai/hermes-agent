@@ -25,6 +25,7 @@ export const arLocalModels: TranslationOverride<Translations['settings']['localM
   fitFullContext: context => `يعمل بسياقه الكامل البالغ ${context}`,
   fitGrowingContext: (start, max) => `يبدأ السياق من ${start} ويتوسع نحو ${max} مع الاستخدام`,
   fitSpilled: detail => `${detail} (يتجاوز ذاكرة GPU ويستخدم ذاكرة النظام، لذا يعمل ببطء أكبر)`,
+  connectionChanged: 'تغيّر الاتصال الذي تعمل عليه النماذج المحلية',
   title: 'النماذج المحلية',
   runtimeTitle: 'بيئة التشغيل المحلية',
   runtimeReady: backend => `جاهز · ${backend}`,
@@ -49,7 +50,8 @@ export const arLocalModels: TranslationOverride<Translations['settings']['localM
     'best-quality-resident':
       'النموذج الأعلى جودةً الذي يعمل بالكامل على GPU بأقصى سرعة. يوازن الاختيار بين الجودة والسرعة المتوقعة على هذا العتاد.',
     'speed-gated-quality':
-      'يتسع هذا الجهاز لنموذج أعلى جودة، لكنه سيستجيب ببطء شديد بسبب عرض نطاق الذاكرة — وهذا أفضل نموذج يحافظ على السرعة.'
+      'يتسع هذا الجهاز لنموذج أعلى جودة، لكنه سيستجيب ببطء شديد بسبب عرض نطاق الذاكرة — وهذا أفضل نموذج يحافظ على السرعة.',
+    'product-default': 'النموذج الافتراضي لهذا الجهاز، اختارته الشركة المصنّعة.'
   } as Record<string, string>,
   noRecommendationTitle: 'لا توجد توصية تلقائية لهذا الجهاز',
   noRecommendationDetail:
@@ -58,6 +60,15 @@ export const arLocalModels: TranslationOverride<Translations['settings']['localM
   downloaded: 'تم التنزيل',
   downloadAction: size => `تنزيل · ${size}`,
   downloadProgress: (done, total) => `${done} من ${total}`,
+  downloadStatusRunning: 'جارٍ التنزيل',
+  downloadSpeed: rate => `${rate}`,
+  downloadEta: time => `يتبقى نحو ${time}`,
+  downloadEtaSeconds: count => `${count} ث`,
+  downloadEtaMinutes: count => `${count} د`,
+  downloadEtaHours: (hours, minutes) => (minutes ? `${hours} س ${minutes} د` : `${hours} س`),
+  downloadPausedLabel: 'متوقف مؤقتًا',
+  downloadPauseAction: 'إيقاف مؤقت',
+  downloadResumeAction: 'استئناف',
   downloadDoneToast: model => `أصبح ${model} جاهزًا.`,
   installDoneToast: 'تم تثبيت بيئة التشغيل المحلية وهي جاهزة.',
   quickstartTitle: 'تشغيل نموذج على هذا الجهاز',
@@ -105,6 +116,8 @@ export const arLocalModels: TranslationOverride<Translations['settings']['localM
   activateFailed: model => `تعذّر التبديل إلى ${model}`,
   activateDoneToast: model => `تستخدم الدردشات الجديدة ${model}.`,
   downloadFailed: model => `فشل تنزيل ${model}`,
+  downloadPauseFailed: model => `تعذّر إيقاف تنزيل ${model} مؤقتًا`,
+  downloadResumeFailed: model => `تعذّر استئناف تنزيل ${model}`,
   pillFitsGpu: 'يناسب ذاكرة GPU',
   pillUsesRam: 'يستخدم ذاكرة RAM للنظام',
   pillTooBig: 'كبير جدًا على هذا الجهاز',

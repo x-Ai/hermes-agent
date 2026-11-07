@@ -537,6 +537,28 @@ export const arAssistant = {
       },
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
+        analyze: {
+          count: (count, live) =>
+            `${live ? 'جارٍ تحليل' : 'تم تحليل'} ${AR_PLURAL(count, {
+              one: 'صورة واحدة',
+              two: 'صورتين',
+              few: `${count} صور`,
+              many: `${count} صورة`
+            })}`,
+          present: 'جارٍ التحليل',
+          target: (target, live) => `${live ? 'جارٍ تحليل' : 'تم تحليل'} ${target}`
+        },
+        browse: {
+          count: (count, live) =>
+            `${live ? 'جارٍ فتح' : 'تم فتح'} ${AR_PLURAL(count, {
+              one: 'صفحة واحدة',
+              two: 'صفحتين',
+              few: `${count} صفحات`,
+              many: `${count} صفحة`
+            })}`,
+          present: 'جارٍ الفتح',
+          target: (target, live) => `${live ? 'جارٍ فتح' : 'تم فتح'} ${target}`
+        },
         delegate: {
           count: (count, live) =>
             `${live ? 'جارٍ تفويض' : 'تم تفويض'} ${AR_PLURAL(count, {
@@ -572,6 +594,18 @@ export const arAssistant = {
           present: 'جارٍ الاستكشاف',
           target: (target, live) => `${live ? 'جارٍ استكشاف' : 'تم استكشاف'} ${target}`
         },
+        interact: {
+          count: (count, live) =>
+            `${live ? 'جارٍ تنفيذ' : 'تم تنفيذ'} ${AR_PLURAL(count, {
+              one: 'إجراء واحد في المتصفح',
+              two: 'إجراءين في المتصفح',
+              few: `${count} إجراءات في المتصفح`,
+              many: `${count} إجراءً في المتصفح`,
+              other: `${count} إجراء في المتصفح`
+            })}`,
+          present: 'جارٍ تنفيذ إجراء في المتصفح',
+          target: (target, live) => `${live ? 'جارٍ تنفيذ' : 'تم تنفيذ'} ${target}`
+        },
         other: {
           count: (count, live) =>
             `${live ? 'جارٍ استخدام' : 'تم استخدام'} ${AR_PLURAL(count, {
@@ -582,6 +616,17 @@ export const arAssistant = {
             })}`,
           present: 'جارٍ استخدام أداة',
           target: (target, live) => `${live ? 'جارٍ استخدام' : 'تم استخدام'} ${target}`
+        },
+        read: {
+          count: (count, live) =>
+            `${live ? 'جارٍ قراءة' : 'تمت قراءة'} ${AR_PLURAL(count, {
+              one: 'صفحة واحدة',
+              two: 'صفحتين',
+              few: `${count} صفحات`,
+              many: `${count} صفحة`
+            })}`,
+          present: 'جارٍ القراءة',
+          target: (target, live) => `${live ? 'جارٍ قراءة' : 'تمت قراءة'} ${target}`
         },
         run: {
           count: (count, live) =>
@@ -594,6 +639,17 @@ export const arAssistant = {
             })}`,
           present: 'جارٍ التشغيل',
           target: (target, live) => `${live ? 'جارٍ تشغيل' : 'تم تشغيل'} ${target}`
+        },
+        search: {
+          count: (count, live) =>
+            `${live ? 'جارٍ إجراء' : 'تم إجراء'} ${AR_PLURAL(count, {
+              one: 'عملية بحث واحدة',
+              two: 'عمليتي بحث',
+              few: `${count} عمليات بحث`,
+              many: `${count} عملية بحث`
+            })}`,
+          present: 'جارٍ البحث',
+          target: (target, live) => `${live ? 'جارٍ البحث عن' : 'تم البحث عن'} ${target}`
         },
         separator: '، '
       },

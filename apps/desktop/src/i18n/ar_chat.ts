@@ -635,7 +635,7 @@ export const arChat = {
     clipboard: 'الحافظة',
     noClipboardImage: 'لا توجد صورة في الحافظة',
     clipboardPasteFailed: 'فشل اللصق من الحافظة',
-    dropFiles: 'أفلت الملفات هنا',
+    dropFiles: 'إفلات الملفات',
     handoff: {
       pickPlatform: 'اختر وجهة',
       success: platform => `تم التسليم إلى ${platform}. استأنف هنا في أي وقت.`,
@@ -651,7 +651,16 @@ export const arChat = {
     modelSwitchConfirmTitle: (model: string) => `التبديل إلى ${model}؟`,
     modelSwitchConfirmTitleFallback: 'تبديل النموذج؟',
     modelSwitchKeepLabel: 'الاحتفاظ بالنموذج الحالي',
-    modelSwitchStaleNotice: 'تغيّر الاختيار — لم يتم تطبيق تبديل النموذج.'
+    modelSwitchStaleNotice: 'تغيّر الاختيار — لم يتم تطبيق تبديل النموذج.',
+    dropFilesMore: (count: number) =>
+      AR_PLURAL(count, {
+        one: 'وملف آخر',
+        two: 'وملفان آخران',
+        few: `و${count} ملفات أخرى`,
+        many: `و${count} ملفًا آخر`,
+        other: `و${count} ملف آخر`
+      }),
+    attachFailed: 'تعذّر الإرفاق'
   },
   tips: {
     close: 'لا تعرض هذه النصيحة مرة أخرى',

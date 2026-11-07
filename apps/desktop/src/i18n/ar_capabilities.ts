@@ -120,9 +120,24 @@ export const arCapabilities = {
       emptyHint: 'تصفّح الكتالوج أدناه وثبّت إضافة تمت مراجعتها بنقرة واحدة.',
       loadFailed: 'تعذّر تحميل إضافات الوكيل',
       toggleFailed: (name: string) => `تعذّر تبديل حالة ${name}`,
+      toolsetOn: (name: string, profile: string) => `تم تفعيل أدوات الوكيل الخاصة بـ ${name} في ${profile}`,
+      toolsetOff: (name: string, profile: string) => `تم تعطيل أدوات الوكيل الخاصة بـ ${name} في ${profile}`,
+      toolsetToggleFailed: (name: string) =>
+        `تعذّر تبديل حالة أدوات الوكيل الخاصة بـ ${name}؛ وبقيت لوحة تطبيق سطح المكتب دون تغيير`,
       legacyBackend:
         'هذه الواجهة الخلفية أقدم من دعم تبديل الإضافات بمعرّفاتها — حدّث Hermes لإدارة هذه الإضافة من هنا.',
       portableBadge: 'محمولة',
+      serverStates: {
+        connected: 'متصل',
+        app_not_running: 'التطبيق لا يعمل',
+        hermes_not_connected: 'اتصال MCP مفقود',
+        endpoint_unavailable: 'نقطة النهاية غير متاحة',
+        no_interactive_session: 'لا توجد جلسة تفاعلية',
+        version_too_old: 'الإصدار قديم جدًا',
+        missing_app: 'التطبيق غير موجود',
+        unsupported_gpu: 'وحدة GPU غير مدعومة',
+        unknown: 'الحالة غير معروفة'
+      },
       bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
@@ -147,6 +162,19 @@ export const arCapabilities = {
       updateConsentBody: (name: string, sha: string) =>
         `يضيف الإيداع الجديد لـ ${name} في الكتالوج (${sha}) إمكانات لا يملكها الإصدار المثبّت. لا تطبّقه إلا إذا كنت تثق بها:`,
       updateConsentConfirm: 'تطبيق التحديث',
+      updateScanTitle: (name: string) => `وضع الفحص الأمني علامة تحذير على ${name}`,
+      updateScanBody: (name: string, count: number) =>
+        `جاءت نتيجة الفحص الأمني لتحديث ${name} «تحذير» (${AR_PLURAL(count, { one: 'ملاحظة واحدة', two: 'ملاحظتان', few: `${count} ملاحظات`, many: `${count} ملاحظة` })}). يُفحص كل تحديث، فلا تطبّقه إلا إذا كنت تثق بمصدره:`,
+      updateScanMore: (count: number) =>
+        AR_PLURAL(count, {
+          one: '+ ملاحظة أخرى',
+          two: '+ ملاحظتان أخريان',
+          few: `+ ${count} ملاحظات أخرى`,
+          many: `+ ${count} ملاحظة أخرى`
+        }),
+      updateScanConfirm: 'التحديث على أي حال',
+      updateScanBlocked: (name: string) => `حظر الفحص الأمني تحديث ${name} (النتيجة: «خطير»). لا يمكن تجاوز هذا الحظر.`,
+      updatedGit: (name: string) => `تم تحديث ${name} إلى أحدث إيداع.`,
       uninstall: 'إلغاء التثبيت',
       uninstallTip: (name: string, profile: string) => `إلغاء تثبيت ${name} من ${profile}`,
       uninstallConfirmTitle: (name: string) => `إلغاء تثبيت ${name}؟`,
@@ -168,6 +196,7 @@ export const arCapabilities = {
         saved: (name: string) => `تم حفظ إعدادات ${name}.`,
         saveFailed: (name: string) => `تعذّر حفظ إعدادات ${name}`,
         required: 'مطلوب',
+        optional: '(اختياري)',
         secretSet: '•••••••• (مضبوط)',
         secretStoredAs: (env: string) =>
           `تُحفظ في ملف .env الخاص بالملف الشخصي باسم ${env}، ولا تُحفظ أبداً في config.yaml؛ اتركها فارغة للاحتفاظ بالقيمة الحالية.`

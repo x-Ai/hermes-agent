@@ -1,0 +1,135 @@
+import type { TranslationOverride } from '@hermes/shared/i18n'
+
+import { AR_PLURAL } from './ar_plural'
+import type { Translations } from './types'
+
+// Settings › Custom Endpoints, composed by ar_settings.ts as `settings.customEndpoints` (file-size split).
+export const arCustomEndpoints: TranslationOverride<Translations['settings']['customEndpoints']> = {
+  title: 'نقاط النهاية المخصصة',
+  loadFailed: 'تعذّر تحميل نقاط النهاية المخصصة',
+  saved: 'تم حفظ نقطة النهاية المخصصة.',
+  saveFailed: 'فشل الحفظ',
+  reachable: 'يمكن الوصول إلى نقطة النهاية.',
+  reachableWithModels: count =>
+    AR_PLURAL(count, {
+      zero: 'يمكن الوصول إلى نقطة النهاية. لم يُعثر على أي نموذج.',
+      one: 'يمكن الوصول إلى نقطة النهاية. عُثر على نموذج واحد.',
+      two: 'يمكن الوصول إلى نقطة النهاية. عُثر على نموذجين.',
+      few: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نماذج.`,
+      many: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نموذجًا.`,
+      other: `يمكن الوصول إلى نقطة النهاية. عُثر على ${count} نموذج.`
+    }),
+  validationFailed: 'فشل التحقق من نقطة النهاية.',
+  validationError: 'فشل التحقق',
+  enterUrlFirst: 'أدخل عنوان URL لنقطة النهاية أولًا.',
+  unreachable: url => `تعذّر الوصول إلى ${url}.`,
+  authRejected: 'رفضت نقطة النهاية مفتاح API.',
+  httpError: status => `أعادت نقطة النهاية رمز الحالة HTTP ${status}.`,
+  activationFailed: 'فشل التفعيل',
+  deleteConfirm: name => `حذف «${name}»؟`,
+  deleteFailed: 'فشل الحذف',
+  active: 'نشط',
+  apiKeySet: 'مفتاح API مضبوط',
+  use: 'استخدام',
+  deleteEndpoint: 'حذف نقطة النهاية',
+  emptyTitle: 'لا توجد نقاط نهاية مخصصة',
+  emptyDesc: 'أضف نقطة نهاية متوافقة مع OpenAI أدناه.',
+  editTitle: 'تحرير نقطة النهاية',
+  addTitle: 'إضافة نقطة نهاية',
+  fields: {
+    name: 'الاسم',
+    providerId: 'معرّف المزوّد',
+    endpointUrl: 'عنوان URL لنقطة النهاية',
+    apiKey: 'مفتاح API',
+    useNewChats: 'الاستخدام في المحادثات الجديدة',
+    discoverModels: 'اكتشاف النماذج'
+  },
+  save: 'حفظ نقطة النهاية',
+  couldNotLoad: 'تعذّر تحميل نقاط النهاية المخصصة',
+  endpointSaved: 'تم حفظ نقطة النهاية',
+  endpointReachable: 'يمكن الوصول إلى نقطة النهاية',
+  endpointReachableTransport: transport => `يمكن الوصول إلى نقطة النهاية عبر ${transport}`,
+  endpointReachableModels: (reachable, count) =>
+    `${reachable}؛ ${AR_PLURAL(count, {
+      one: 'عُثر على نموذج واحد',
+      two: 'عُثر على نموذجين',
+      few: `عُثر على ${count} نماذج`,
+      many: `عُثر على ${count} نموذجًا`,
+      other: `عُثر على ${count} نموذج`
+    })}`,
+  endpointValidationFailed: 'فشل التحقق من نقطة النهاية',
+  nameLabel: 'الاسم',
+  providerIdLabel: 'معرّف المزوّد',
+  providerIdHint:
+    'معرّف يُخزَّن كمفتاح المزوّد في config.yaml ولا يتغير بعد الإنشاء؛ لاستخدام معرّف مختلف، أنشئ «نقطة نهاية جديدة».',
+  urlLabel: 'عنوان URL لنقطة النهاية',
+  apiModeLabel: 'بروتوكول API',
+  apiModeAuto: 'تلقائي',
+  apiModeChat: 'Chat Completions',
+  apiModeResponses: 'Responses API',
+  apiModeMessages: 'Anthropic Messages',
+  authSchemeLabel: 'ترويسة المصادقة',
+  authSchemeAuto: 'اكتشاف تلقائي',
+  authSchemeHint:
+    'الترويسة التي تحمل مفتاح API في كل بروتوكول. يرسل الاكتشاف التلقائي Authorization: Bearer على المسارات المتوافقة مع OpenAI، ويتبع جدول المضيفين المعروفين على المسارات المتوافقة مع Anthropic؛ ثبّت x-api-key أو Bearer إذا ردّت نقطة النهاية بالخطأ 401/403.',
+  noModelCatalog: 'يمكن الوصول إلى نقطة النهاية، لكنها لا توفّر كتالوج نماذج.',
+  connectedNoModels: url => `تم الاتصال بـ ${url}، لكن نقطة النهاية لم تعرض أي نماذج.`,
+  defaultModelLabel: 'النموذج الافتراضي',
+  contextLabel: 'حدود الرموز لكل نموذج',
+  contextHint:
+    'خصّص السياق الكلي والحد الأقصى للإدخال والحد الأقصى للإخراج لكل نموذج. اترك أي قيمة فارغة ليحددها Hermes تلقائيًا.',
+  modelLabel: 'النموذج',
+  contextWindowLabel: 'السياق الكلي',
+  maxInputLabel: 'أقصى إدخال',
+  maxOutputLabel: 'أقصى إخراج',
+  apiKeyLabel: 'مفتاح API',
+  userAgentLabel: 'User-Agent',
+  userAgentHint:
+    'ترويسة HTTP User-Agent المرسلة إلى نقطة النهاية هذه. تركها فارغة يعني القيمة الافتراضية لـ SDK. بعض خوادم الترحيل وجدران WAF لا تقبل إلا وكلاء مستخدم تشبه المتصفحات؛ استخدم القيمة الجاهزة إذا كانت نقطة النهاية هذه تحظر الطلبات.',
+  useBrowserUserAgent: 'استخدام User-Agent المتصفح',
+  defaultRowLabel: 'كل النماذج (الافتراضي)',
+  visionLabel: 'الرؤية',
+  reasoningLabel: 'الاستدلال',
+  capabilityAuto: 'تلقائي',
+  capabilityYes: 'نعم',
+  capabilityNo: 'لا',
+  extraHeadersLabel: 'ترويسات إضافية',
+  extraHeadersHint:
+    'تُرسَل مع كل طلب إلى نقطة النهاية هذه (رموز بوابات API ووسوم التوجيه مثلًا). تُخزَّن القيم في config.yaml.',
+  headerNamePlaceholder: 'اسم الترويسة',
+  headerValuePlaceholder: 'القيمة',
+  addHeader: 'إضافة ترويسة',
+  removeHeader: 'إزالة الترويسة',
+  extraBodyLabel: 'متن طلب إضافي (JSON)',
+  extraBodyHint:
+    'يُدمَج في متن كل طلب — مثلًا {"chat_template_kwargs": {"enable_thinking": false}} أو ميزانية تفكير يوثّقها خادمك.',
+  extraBodyInvalid: 'يجب أن تكون القيمة كائن JSON',
+  maxTokensFieldLabel: 'حقل حد الإخراج',
+  maxTokensFieldAuto: 'تلقائي (تحدده نقطة النهاية)',
+  maxTokensFieldHint:
+    'حقل Chat Completions الذي يحمل حد الإخراج. ثبّت max_completion_tokens لخادم ترحيل يمرّر الطلبات إلى OpenAI دون تعديل؛ لا تخمّن بيئة التشغيل الحقل من اسم النموذج أبدًا.',
+  catalogProviderLabel: 'مزوّد الكتالوج',
+  catalogProviderHint:
+    'يرث بيانات نافذة السياق وحد الإخراج والرؤية والاستدلال من كتالوج مزوّد مضمّن (مثلًا deepseek أو anthropic أو openai) للنماذج التي يقدّمها خادم الترحيل هذا.',
+  contextAuto: 'تلقائي',
+  autoValuePlaceholder: (value: string) => `تلقائي · ${value}`,
+  suggestedValuePlaceholder: (value: string) => `مقترح · ${value}`,
+  fillDetected: 'تعبئة القيم المكتشفة',
+  fillDetectedHint:
+    'ينسخ الحدود والقدرات المكتشفة إلى الخلايا الفارغة لتتمكن من تعديلها لنقطة نهاية غير قياسية. «تلقائي» هو ما يحدده Hermes بنفسه عند ترك الخلية فارغة، و«مقترح» مأخوذ من كتالوج models.dev ولا يُستخدم إلا بعد تعبئته. تبقى الخلايا الفارغة تُحدَّد تلقائياً.',
+  capabilityAutoResolved: (verdict: string) => `تلقائي (${verdict})`,
+  valueSource: (source: string) => `المصدر: ${source}`,
+  sourceEndpoint: 'ما أبلغت عنه نقطة النهاية',
+  sourceCatalogProvider: 'مزوّد الكتالوج',
+  sourceCatalog: (ref: string) => `مطابقة models.dev: ${ref}`,
+  keyKeepPlaceholder: 'اتركه فارغًا للإبقاء على المفتاح الحالي',
+  keyOptionalPlaceholder: 'اختياري',
+  useForNewChats: 'الاستخدام في الدردشات الجديدة',
+  discoverModels: 'اكتشاف النماذج',
+  test: 'اختبار',
+  newEndpoint: 'نقطة نهاية جديدة',
+  reachableVia: transport => `يمكن الوصول إلى نقطة النهاية (استجاب مسار ${transport}).`,
+  emptyDescription: 'أضف نقطة نهاية متوافقة مع OpenAI أدناه.',
+  namePlaceholder: 'مثلًا Axet Proxy',
+  contextPlaceholder: 'تلقائي'
+}

@@ -53,6 +53,8 @@ export const arBoot = {
       remoteTitle: 'يلزم تسجيل الدخول إلى البوابة البعيدة',
       remoteDescription:
         'انتهت صلاحية جلسة البوابة البعيدة. سجّل الدخول مجددًا لإعادة الاتصال. لا يحذف أي من هذه الخيارات محادثاتك أو إعداداتك.',
+      webappTitle: 'تسجيل الدخول إلى Hermes',
+      webappDescription: 'شغّل hermes webapp على هذا الجهاز لتسجيل الدخول في هذا المتصفح.',
       retry: 'إعادة المحاولة',
       repairInstall: 'إصلاح التثبيت',
       useLocalGateway: 'استخدام البوابة المحلية',
@@ -60,6 +62,9 @@ export const arBoot = {
       back: 'رجوع',
       openLogs: 'فتح السجلات',
       repairHint: 'يعيد الإصلاح تشغيل المثبت وقد يستغرق بضع دقائق على جهاز جديد.',
+      bundledReinstallHint:
+        'لا يستطيع هذا التثبيت المضمّن إصلاح نفسه من داخل التطبيق — أعد تثبيت التطبيق لاستعادة واجهته الخلفية.',
+      reinstallApp: 'إعادة تثبيت التطبيق',
       remoteSignInHint: signInLabel =>
         `يسجّل الخروج من جلسة المتصفح البعيدة المحفوظة، ثم يفتح نافذة ${signInLabel}. اختر «استخدام البوابة المحلية» للتبديل إلى الواجهة الخلفية المضمّنة بدلًا من ذلك.`,
       signOutAndSignIn: 'تسجيل الخروج وإعادة تسجيل الدخول',
@@ -90,6 +95,29 @@ export const arBoot = {
       diskFull: 'القرص ممتلئ، لذلك لا يمكن بدء تشغيل Hermes.',
       portInUse: 'يستخدم برنامج آخر منفذ الشبكة الذي يحتاجه Hermes.',
       installMissing: 'جزء من تثبيت Hermes مفقود. اختر «إصلاح التثبيت» لإعادته.'
+    },
+    updateHold: {
+      title: 'لا يزال تحديث سابق يحجز Hermes',
+      titleUnverified: 'لا يستطيع Hermes التأكد من اكتمال التحديث الأخير',
+      description:
+        'يؤجّل Hermes بدء تشغيله كي لا يحمّل ملفات ربما لا يزال أحد التحديثات يغيّرها. سيبدأ من تلقاء نفسه فور انتهاء الحجز.',
+      heldByProcess: pid => `انتهى التحديث (العملية ${pid})، لكن عملية بدأها لا تزال تحجز تثبيت Hermes.`,
+      heldUnknown: 'انتهى أحد التحديثات، لكن عملية بدأها لا تزال تحجز تثبيت Hermes.',
+      unverified: 'تعذّر على مساعد التحديث معرفة الجهة التي تملك تثبيت Hermes الآن. يواصل Hermes التحقق.',
+      since: time => `في الانتظار منذ ${time}`,
+      lastChecked: time => `آخر تحقق: ${time}`,
+      recoveryHint:
+        'يزول هذا عادةً خلال بضع دقائق. وإن لم يزل: أنهِ Hermes، وأوقف عمليات git أو hermes المتبقية (أو أعد تشغيل الجهاز)، ثم افتح Hermes مجددًا.',
+      checkAgain: 'التحقق مجددًا',
+      quit: 'إنهاء Hermes',
+      openLogs: 'فتح السجلات',
+      startAnyway: 'التشغيل على أي حال…',
+      confirmTitle: 'تشغيل Hermes بينما لا يزال التحديث يحجزه؟',
+      confirmBody:
+        'ربما لا تزال عملية التحديث المتبقية تغيّر ملفات Hermes. قد يؤدي التشغيل الآن إلى تحميل تثبيت محدَّث جزئيًا، وقد لا يعمل حتى تُشغّل التحديث مجددًا. يسجّل Hermes هذا الاختيار في سجله ويُبقي علامة التحديث في مكانها.',
+      confirmKeepWaiting: 'مواصلة الانتظار',
+      confirmStart: 'التشغيل على أي حال',
+      startAnywayRefused: 'تغيّر ما يحجز التثبيت قبل أن يتمكن Hermes من البدء. راجعه وأعد المحاولة.'
     }
   },
   keepAwakeOffer: {
@@ -114,6 +142,7 @@ export const arBoot = {
   promptNotices: {
     legacySendUnconfirmed:
       'تعذّر على هذا الخادم تأكيد الإرسال السابق لهذه الرسالة، لذا ربما تم تنفيذها بالفعل. راجع المحادثة قبل إرسالها مرة أخرى.',
+    restoredDraftAttachmentsDropped: 'لم تُستعَد مرفقات رسالتك غير المرسلة. أرفقها مجددًا قبل إرسالها.',
     mcpReloadDeferred:
       'هذه المحادثة مشغولة: يُطبَّق تغيير MCP بعد انتهاء دورها وإعادة تحميل MCP مجددًا، أو عند إعادة فتح المحادثة',
     mcpReloadUnavailable: servers => `تعذّر الاتصال: ${servers}`,
@@ -193,6 +222,7 @@ export const arBoot = {
     versionDetailsVersion: 'الإصدار',
     versionDetailsCommit: 'الإيداع',
     versionDetailsBuildOrigin: 'مصدر البناء',
+    versionDetailsBuildOriginLocal: 'محلي',
     versionDetailsDistribution: 'التوزيع',
     versionDetailsDistributionDesktop: 'تطبيق سطح المكتب',
     versionDetailsDistributionDesktopMsix: 'تطبيق سطح المكتب (MSIX)',
@@ -207,6 +237,8 @@ export const arBoot = {
     versionDetailsRuntime: 'بيئة التشغيل',
     versionDetailsInstallId: 'معرّف التثبيت',
     versionDetailsUncommittedChanges: 'تغييرات غير مودَعة',
+    versionDetailsBackend: 'الواجهة الخلفية المتصلة',
+    versionDetailsClient: 'هذا الجهاز',
     connectionRetry:
       'تعذّر على Hermes الوصول إلى خادم التحديثات. تحقّق من اتصالك بالإنترنت وأعد المحاولة. إذا كنت تستخدم Hermes بعيدًا، فتأكد من أنه متصل.',
     latestBody: 'أنت تستخدم أحدث إصدار.',
@@ -218,6 +250,8 @@ export const arBoot = {
     availableBodyBackend: 'إصدار أحدث من واجهة Hermes الخلفية المتصلة جاهز للتثبيت.',
     availableBodyNoChangelog: 'إصدار أحدث جاهز. ملاحظات الإصدار غير متاحة لنوع التثبيت هذا.',
     availableBodyRelease: (tag: string) => `الإصدار ${tag} جاهز للتثبيت.`,
+    availableBodyAppInstaller:
+      'إصدار جديد من Hermes جاهز. سيُغلَق Hermes، وسيُكمل Windows التحديث، ثم يُعاد فتح Hermes من تلقاء نفسه.',
     updateNow: 'التحديث الآن',
     maybeLater: 'ربما لاحقا',
     moreChanges: count =>
@@ -255,6 +289,11 @@ export const arBoot = {
     applyingBodyBackend:
       'تطبّق الواجهة الخلفية البعيدة التحديث وستعيد التشغيل. يعيد Hermes الاتصال تلقائيا عند عودتها.',
     applyingClose: 'ستُغلق هذه النافذة أثناء تشغيل التحديث، ثم يعيد Hermes فتح نفسه تلقائيا.',
+    applyingBodyAppInstaller:
+      'سيُغلَق Hermes وسيُكمل Windows التحديث. سيُعاد فتح Hermes عند الانتهاء — لا داعي لأن تفعل شيئًا.',
+    checkUnknownTitleAppInstaller: 'تعذّر التحقق من التحديثات',
+    checkUnknownBodyAppInstaller:
+      'تعذّر على Windows التحقق من التحديثات الآن. تُثبَّت التحديثات تلقائيًا أيضًا عند إعادة تشغيل Hermes.',
     errorTitle: 'لم يكتمل التحديث',
     errorBody: 'لا داعي للقلق — لم يُفقد شيء. يمكنك إعادة المحاولة الآن.',
     blockerTitle: 'إغلاق المعاينات المحلية لتحديث Hermes؟',
@@ -292,7 +331,9 @@ export const arBoot = {
       restarting: 'تعيد الواجهة الخلفية التشغيل لتحميل التحديث...',
       notAvailable: 'التحديث غير متاح لهذه الواجهة الخلفية.',
       failed: 'فشل تحديث الواجهة الخلفية.',
-      noReturn: 'لم تعد الواجهة الخلفية إلى الاتصال. قد لا يكون التحديث قد اكتمل — تحقق من مضيف الواجهة الخلفية.'
+      noReturn: 'لم تعد الواجهة الخلفية إلى الاتصال. قد لا يكون التحديث قد اكتمل — تحقق من مضيف الواجهة الخلفية.',
+      owed: steps =>
+        `تم تحديث الواجهة الخلفية، لكن خطوات لا تزال معلّقة: ${steps}. أعد تشغيل \`hermes update\` لإكمالها.`
     },
     gitUnusable: 'لم يتمكن Hermes من تشغيل Git على هذا الجهاز، لذا لم يتمكن من التحقق من التحديثات.',
     connectionSettings: 'إعدادات الاتصال',
@@ -342,11 +383,15 @@ export const arBoot = {
     retryAfterRun: 'لقد شغّلته -- إعادة المحاولة',
     setupChoiceTitle: 'إعداد Hermes Desktop',
     setupChoiceDesc: 'اربط هذا التطبيق ببوابة Hermes تعمل مسبقاً، أو ثبّت Hermes محلياً على هذا الحاسوب.',
+    setupChoiceDescLocal: 'ثبّت Hermes على هذا الجهاز، أو اتصل ببوابة Hermes تشغّلها مسبقًا.',
     connectExistingTitle: 'الاتصال بتثبيت Hermes موجود',
     connectExistingShort: 'الاتصال بتثبيت موجود',
     connectExistingDesc: 'استخدم واجهة خلفية بعيدة عبر رمز جلسة أو تسجيل الدخول من المتصفح. لن يبدأ أي تثبيت محلي.',
     installLocalTitle: 'تثبيت Hermes محلياً',
     installLocalDesc: 'نزّل Hermes، وأنشئ بيئة Python الخاصة به، وشغّل الواجهة الخلفية على هذا الحاسوب.',
+    useLocalTitle: 'استخدام Hermes على هذا الجهاز',
+    useLocalDesc: 'بيئة تشغيل Hermes مثبّتة هنا بالفعل — شغّلها بنقرة واحدة. لن يُنزَّل أي شيء.',
+    bundledLocalDesc: 'استخدم بيئة تشغيل Hermes المضمّنة في هذا التطبيق — فالواجهة الخلفية المضمّنة هي التثبيت المحلي.',
     localStartUnavailable: 'تعذر بدء التثبيت المحلي. أعد تشغيل Hermes Desktop ثم حاول مجدداً.',
     remoteSetupTitle: 'الاتصال بتثبيت Hermes موجود',
     remoteSetupDesc: 'أدخل رابط البوابة. سيكتشف Hermes Desktop ما إذا كان يحتاج رمزاً أو تسجيل دخول عبر المتصفح.',
@@ -463,6 +508,7 @@ export const arBoot = {
     pasteApiKey: 'الصق مفتاح API',
     directApiAccess: provider => `وصول مباشر إلى ${provider} عبر واجهة API.`,
     localApiKeyPlaceholder: 'مفتاح API (اختياري — فقط إذا كانت نقطة النهاية تتطلبه)',
+    localModelNamePlaceholder: 'اسم النموذج (مثلًا command-a-plus-05-2026)',
     couldNotSave: 'تعذر حفظ بيانات الاعتماد.',
     connecting: 'جار الاتصال',
     update: 'تحديث',
