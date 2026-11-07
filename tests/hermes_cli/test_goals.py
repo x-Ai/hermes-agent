@@ -934,6 +934,43 @@ class TestBlockedVerdict:
         assert mgr.state.status == "paused"
         assert "unachievable" in (mgr.state.paused_reason or "").lower()
 
+    def test_unachievable_pause_suggests_only_commands_that_work(self, hermes_home):
+        """Typing what the pause message suggests must re-scope or override the goal.
+
+        It used to say "Re-scope with /goal set", but /goal has no ``set`` verb, so typing it
+        made the literal "set …" the goal."""
+        import re
+        from unittest.mock import patch
+        from hermes_cli.goal_command import dispatch_goal_command
+        from hermes_cli.goals import GoalManager, load_goal
+
+        original = "delete a repository that does not exist"
+
+        def blocked(session_id):
+            mgr = GoalManager(session_id=session_id)
+            mgr.set(original)
+            with patch(
+                "hermes_cli.goals.judge_goal",
+                return_value=("blocked", "the repo does not exist.", False, None, False),
+            ):
+                message = mgr.evaluate_after_turn("The repo cannot be deleted: it does not exist.")["message"]
+            return mgr, message
+
+        _mgr, message = blocked("blocked-advice")
+        # The word after each `/goal`; `<…>` stands for the new goal text the user types.
+        words = re.findall(r"/goal (\S+?)[,.]?(?=\s|$)", message)
+        assert words, message
+        for index, word in enumerate(words):
+            mgr, _message = blocked(f"blocked-advice-{index}")
+            typed = "archive the repository instead" if word.startswith("<") else word
+            dispatch_goal_command(mgr, typed, authorize_gate=lambda: None)
+            state = load_goal(mgr.session_id)
+            if word.startswith("<"):
+                assert (state.goal, state.status) == (typed, "active"), message
+            else:
+                # A verb acts on the paused goal; it never becomes the goal text.
+                assert state is None or state.goal == original, f"/goal {word} replaced the goal with {state.goal!r}"
+
 
 def test_goal_session_db_is_the_registry_shared_handle(hermes_home):
     """GoalManager must borrow the process-wide registry handle for ``state.db`` rather than

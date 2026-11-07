@@ -67,7 +67,7 @@ export const jaGoalStatus = {
       `目標を一時停止しました — 判定モデルが ${turns} ターン連続で必要な JSON 判定を返していません。より厳密なモデルに判定を切り替えてください: ${configPath}`,
     thenResume: 'その後 /goal resume で続行してください',
     unachievable: reason =>
-      `目標は達成不可能と判定され、一時停止しました: ${reason} /goal set で範囲を見直すか、/goal resume で上書きしてください`,
+      `目標は達成不可能と判定され、一時停止しました: ${reason} /goal <テキスト> で範囲を見直すか、/goal resume で上書きしてください`,
     gateAdded: (command, retries, timeout) =>
       `ゲートを追加しました: $ ${command}（再試行 ${retries} 回、タイムアウト ${timeout} 秒）。目標の完了前に通過する必要があります`,
     gateRemoved: command => `ゲートを削除しました: $ ${command}`,

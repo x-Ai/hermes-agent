@@ -54,12 +54,12 @@ describe('goal store', () => {
     applyGoalStatusText('s1', '⊙ Goal set (20-turn budget): ship the feature')
     applyGoalStatusText(
       's1',
-      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.'
+      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal <text>, or override with /goal resume.'
     )
 
     expect($goalsBySession.get().s1).toMatchObject({
       detail:
-        'Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.',
+        'Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal <text>, or override with /goal resume.',
       status: 'paused',
       title: 'ship the feature'
     })

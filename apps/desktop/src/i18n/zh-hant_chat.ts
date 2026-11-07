@@ -681,7 +681,7 @@ export const zhHantChat = {
       `目標已暫停，判定模型連續 ${turns} 輪未傳回要求的 JSON 判定結果。請在此處將判定器切換到更嚴格的模型：${configPath}`,
     thenResume: '然後執行 /goal resume 繼續。',
     unachievable: reason =>
-      `目標被判定為無法達成，已暫停：${reason} 可用 /goal set 重新界定範圍，或用 /goal resume 強制繼續。`,
+      `目標被判定為無法達成，已暫停：${reason} 可用 /goal <文字> 重新界定範圍，或用 /goal resume 強制繼續。`,
     gateAdded: (command, retries, timeout) =>
       `已新增關卡：$ ${command}（${retries} 次重試，${timeout} 秒逾時）。目標完成前必須通過。`,
     gateRemoved: command => `已移除關卡：$ ${command}`,

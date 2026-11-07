@@ -9,6 +9,9 @@ const zh = TRANSLATIONS.zh
 const LOCALES = Object.keys(TRANSLATIONS) as Locale[]
 const CJK = /[一-鿿]/u
 
+const UNACHIEVABLE =
+  '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal <text>, or override with /goal resume.'
+
 // Lines exactly as hermes_cli/goals.py / goal_command.py write them, with the
 // facts a rendering must keep whatever the language.
 const BACKEND_LINES: ReadonlyArray<[line: string, facts: string[]]> = [
@@ -98,17 +101,15 @@ const BACKEND_LINES: ReadonlyArray<[line: string, facts: string[]]> = [
     ['3', '~/.hermes/config.yaml:']
   ],
   ['Then /goal resume to continue.', ['/goal resume']],
-  [
-    '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.',
-    ['the repo has no tests', '/goal set']
-  ],
+  [UNACHIEVABLE, ['the repo has no tests', '/goal resume']],
   // /goal gate
   [
     '⚿ Gate added: $ npm test (3 retries, 600s timeout). It must pass before the goal can complete.',
     ['npm test', '3', '600']
   ],
   ['✓ Gate removed: $ npm test', ['npm test']],
-  ['✓ Cleared 2 gates.', ['2']],
+  // Not two: Arabic writes two gates as a dual noun, with no numeral.
+  ['✓ Cleared 3 gates.', ['3']],
   ['(no quality gates — use /goal gate add <command> to require one)', ['/goal gate add']],
   ['- 1. $ npm test ✓ passing', ['1', 'npm test']],
   ['- 2. $ make lint ✗ failing (exit 2, attempt 1/3)', ['2', 'make lint', '1/3']],
@@ -163,6 +164,19 @@ describe('localizeGoalStatusText', () => {
           expect(localized, `${locale}: ${line} / ${fact}`).toContain(fact)
         }
       }
+    }
+  })
+
+  it("renders an older runtime's /goal set advice with the corrected copy", () => {
+    // /goal has no `set` verb: following that advice made "set …" the goal.
+    const older = UNACHIEVABLE.replace('/goal <text>', '/goal set')
+
+    for (const locale of LOCALES) {
+      const t = resolveTranslations(locale)
+      const localized = localizeGoalStatusText(older, t)
+
+      expect(localized, locale).toBe(localizeGoalStatusText(UNACHIEVABLE, t))
+      expect(localized, locale).not.toContain('/goal set')
     }
   })
 

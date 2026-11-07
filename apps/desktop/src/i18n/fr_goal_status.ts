@@ -67,7 +67,7 @@ export const frGoalStatus = {
       `Objectif en pause — le modèle juge (${turns} tours) ne renvoie pas le verdict JSON requis. Dirigez le juge vers un modèle plus strict dans ${configPath}`,
     thenResume: 'Puis /goal resume pour continuer.',
     unachievable: reason =>
-      `Objectif jugé inatteignable — en pause : ${reason} Redéfinissez-le avec /goal set ou forcez avec /goal resume.`,
+      `Objectif jugé inatteignable — en pause : ${reason} Redéfinissez-le avec /goal <texte> ou forcez avec /goal resume.`,
     gateAdded: (command, retries, timeout) =>
       `Contrôle ajouté : $ ${command} (${retries} nouvelles tentatives, délai de ${timeout} s). Il doit réussir avant que l'objectif puisse se terminer.`,
     gateRemoved: command => `Contrôle retiré : $ ${command}`,

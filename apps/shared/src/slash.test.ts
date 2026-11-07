@@ -44,7 +44,7 @@ describe('parseCommandDispatch', () => {
       message: 'do',
       display: '/x'
     })
-    // /goal set answers {type:send, notice, message}; dropping the notice once
+    // /goal <text> answers {type:send, notice, message}; dropping the notice once
     // made /goal look like it did nothing on the desktop.
     expect(parseCommandDispatch({ type: 'send', notice: '⊙ Goal set', message: 'do the thing' })).toEqual({
       type: 'send',

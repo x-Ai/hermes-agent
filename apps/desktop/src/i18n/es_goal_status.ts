@@ -66,7 +66,7 @@ export const esGoalStatus = {
       `Objetivo en pausa: el modelo juez (${turns} turnos) no devuelve el veredicto JSON requerido. Dirige el juez a un modelo más estricto en ${configPath}`,
     thenResume: 'Luego /goal resume para continuar.',
     unachievable: reason =>
-      `Objetivo considerado inalcanzable; en pausa: ${reason} Redefínelo con /goal set o fuerza la continuación con /goal resume.`,
+      `Objetivo considerado inalcanzable; en pausa: ${reason} Redefínelo con /goal <texto> o fuerza la continuación con /goal resume.`,
     gateAdded: (command, retries, timeout) =>
       `Control añadido: $ ${command} (${retries} reintentos, ${timeout} s de tiempo límite). Debe superarse antes de que el objetivo pueda completarse.`,
     gateRemoved: command => `Control quitado: $ ${command}`,

@@ -64,7 +64,7 @@ export const zhGoalStatus = {
       `目标已暂停，判定模型连续 ${turns} 轮未返回要求的 JSON 判定结果，请在此处将判定器切换到更严格的模型：${configPath}`,
     thenResume: '然后执行 /goal resume 继续',
     unachievable: reason =>
-      `目标被判定为无法达成，已暂停：${reason} 可用 /goal set 重新界定范围，或用 /goal resume 强制继续`,
+      `目标被判定为无法达成，已暂停：${reason} 可用 /goal <文本> 重新界定范围，或用 /goal resume 强制继续`,
     gateAdded: (command, retries, timeout) =>
       `已添加关卡：$ ${command}（${retries} 次重试，${timeout} 秒超时），目标完成前必须通过`,
     gateRemoved: command => `已移除关卡：$ ${command}`,

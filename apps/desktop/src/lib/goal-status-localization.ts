@@ -197,8 +197,10 @@ const GOAL_LINES: readonly GoalLine[] = [
   },
   { pattern: /^Then \/goal resume to continue\.$/, format: (_match, t) => t.goalStatus.thenResume },
   {
+    // Runtimes from 1bd9fce6cb until the fix wrote "/goal set", a verb /goal never
+    // had (typing it made "set …" the goal); they get the corrected copy too.
     pattern:
-      /^Goal judged unachievable — paused: ([\s\S]+?) Re-scope with \/goal set, or override with \/goal resume\.$/,
+      /^Goal judged unachievable — paused: ([\s\S]+?) Re-scope with \/goal (?:<text>|set), or override with \/goal resume\.$/,
     format: (match, t) => t.goalStatus.unachievable(match[1])
   },
   // ── /goal gate (goal_command.py, render_gates) ──

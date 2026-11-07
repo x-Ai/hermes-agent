@@ -91,7 +91,7 @@ describe('ComposerStatusStack goal indicator', () => {
     $goalsBySession.set({ [SID]: goal('active') })
     applyGoalStatusText(
       SID,
-      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal set, or override with /goal resume.'
+      '🚫 Goal judged unachievable — paused: the repo has no tests. Re-scope with /goal <text>, or override with /goal resume.'
     )
 
     renderStack(SID, 'zh')

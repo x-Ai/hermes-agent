@@ -1532,7 +1532,7 @@ class GoalManager:
         if verdict == "blocked":
             return self._pause_decision(
                 f"judged unachievable: {reason}", "blocked", reason,
-                f"🚫 Goal judged unachievable — paused: {reason} Re-scope with /goal set, or override with /goal resume.",
+                f"🚫 Goal judged unachievable — paused: {reason} Re-scope with /goal <text>, or override with /goal resume.",
             )
 
         if verdict == "done":

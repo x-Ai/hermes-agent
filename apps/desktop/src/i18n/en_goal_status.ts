@@ -65,7 +65,7 @@ export const enGoalStatus = {
       `Goal paused — the judge model (${turns} turns) isn't returning the required JSON verdict. Route the judge to a stricter model in ${configPath}`,
     thenResume: 'Then /goal resume to continue.',
     unachievable: reason =>
-      `Goal judged unachievable — paused: ${reason} Re-scope with /goal set, or override with /goal resume.`,
+      `Goal judged unachievable — paused: ${reason} Re-scope with /goal <text>, or override with /goal resume.`,
     gateAdded: (command, retries, timeout) =>
       `Gate added: $ ${command} (${retries} retries, ${timeout}s timeout). It must pass before the goal can complete.`,
     gateRemoved: command => `Gate removed: $ ${command}`,

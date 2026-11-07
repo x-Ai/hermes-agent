@@ -65,7 +65,7 @@ export const deGoalStatus = {
       `Ziel pausiert – das Richter-Modell (${turns} Runden) liefert nicht das geforderte JSON-Urteil. Leite den Richter auf ein strengeres Modell um in ${configPath}`,
     thenResume: 'Dann /goal resume zum Fortsetzen.',
     unachievable: reason =>
-      `Ziel als unerreichbar beurteilt – pausiert: ${reason} Mit /goal set neu zuschneiden oder mit /goal resume übersteuern.`,
+      `Ziel als unerreichbar beurteilt – pausiert: ${reason} Mit /goal <Text> neu zuschneiden oder mit /goal resume übersteuern.`,
     gateAdded: (command, retries, timeout) =>
       `Gate hinzugefügt: $ ${command} (${retries} Wiederholungen, ${timeout}s Timeout). Es muss bestehen, bevor das Ziel abgeschlossen werden kann.`,
     gateRemoved: command => `Gate entfernt: $ ${command}`,

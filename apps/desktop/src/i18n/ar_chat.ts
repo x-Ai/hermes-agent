@@ -790,7 +790,7 @@ export const arChat = {
       `الهدف متوقف مؤقتًا — نموذج المُقيِّم (${turnCount(turns)}) لا يعيد حكم JSON المطلوب. وجّه المُقيِّم إلى نموذج أكثر صرامة في ${configPath}`,
     thenResume: 'ثم /goal resume للمتابعة.',
     unachievable: reason =>
-      `حُكم بأن الهدف غير قابل للتحقيق — متوقف مؤقتًا: ${reason} أعد تحديد نطاقه عبر /goal set، أو تجاوز ذلك عبر /goal resume.`,
+      `حُكم بأن الهدف غير قابل للتحقيق — متوقف مؤقتًا: ${reason} أعد تحديد نطاقه عبر /goal <text>، أو تجاوز ذلك عبر /goal resume.`,
     gateAdded: (command, retries, timeout) =>
       `تمت إضافة بوابة جودة: $ ${command} (${AR_PLURAL(retries, {
         one: 'محاولة إعادة واحدة',
