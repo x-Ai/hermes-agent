@@ -45,7 +45,8 @@ const REVIEWED = {
     'contextMenu',
     'freeTier',
     'desktop',
-    'billingPage'
+    'billingPage',
+    'settings.billing'
   ]
 } as const
 

@@ -3,6 +3,7 @@ import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introJa } from './intro-ja'
+import { jaBilling } from './ja_billing'
 import { jaBoot } from './ja_boot'
 import { jaCatalog, jaSkillDeepLink } from './ja_catalog'
 import { jaClarify } from './ja_clarify'
@@ -585,36 +586,7 @@ export const jaOverrides = {
     openInHermes: 'Hermes で開く'
   },
   settings: {
-    // Window plans (Nous subscription with included usage). Other billing strings: overlay-gaps.json.
-    billing: {
-      keepGoingOnCredits: {
-        title: 'クレジットで続行',
-        description: '含まれる利用量を使い切ったらクレジットを使います。オフ: Hermes はリセットを待ちます。',
-        approveInBrowser: '変更するにはブラウザでリモート支出を承認してください。承認するとすぐに適用されます。',
-        openAgain: 'もう一度開く',
-        cancel: 'キャンセル',
-        approvedRetry: 'リモート支出は承認されましたが、変更を保存できませんでした。',
-        tryAgain: '再試行'
-      },
-      state: {
-        usage: {
-          window: {
-            today: '今日',
-            week: '今週',
-            month: '今月',
-            topTier: '大型モデル（月間）',
-            barLabel: title => `${title}の含まれる利用量の使用率`,
-            captionPaused: '一時停止中: サブスクリプションの支払いに失敗しました',
-            captionPausedOther: '一時停止中: ポータルの請求をご確認ください',
-            captionTopTierUsedUp: '月間の枠を使い切りました。残りはクレジットで支払われます',
-            captionTopTierUsedUpKeepGoingOff: '月間の枠を使い切りました。他の含まれるモデルは引き続き使えます',
-            captionResetsIn: duration => `${duration}後にリセット`,
-            captionIncluded: '含まれる利用量',
-            valueUsed: percent => `${percent} 使用`
-          }
-        }
-      }
-    },
+    billing: jaBilling,
     uninstallSection: {
       dangerZone: '危険ゾーン',
       uninstallHermes: 'Hermes をアンインストール',
