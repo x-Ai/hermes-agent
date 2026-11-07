@@ -4,6 +4,9 @@ Rebound onto server.py's globals at install time (``method_ctx.bind_module``), s
 bodies reference server globals bare (``_ok``, ``_err``, ``_sessions``, ...).
 """
 
+# Imported, not injected: helpers here are also called unbound (the walk-free @profile check).
+from agent.i18n import t as _t
+
 from .method_ctx import HandlerRegistry, bind_module
 
 _registry = HandlerRegistry()
@@ -413,4 +416,4 @@ def _(rid, params: dict) -> dict:
 
 def register(server) -> None:
     """Rebind this module's helpers + handlers onto ``server`` and register the handlers."""
-    bind_module(globals(), server, skip=("_",))
+    bind_module(globals(), server, skip=("_", "_t"))
