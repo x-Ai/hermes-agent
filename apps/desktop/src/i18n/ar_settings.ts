@@ -1354,7 +1354,8 @@ export const arSettings = {
       autoArchiveFailed: 'تعذّر تحديث الأرشفة التلقائية',
       defaultDirTitle: 'مجلد المشروع الافتراضي',
       defaultDirDesc: 'تبدأ الجلسات الجديدة في هذا المجلد ما لم تختر غيره. اتركه غير مضبوط لاستخدام مجلدك الرئيسي.',
-      defaultDirUpdated: () => 'تم تحديث مجلد المشروع الافتراضي — ابدأ محادثة جديدة (Ctrl/⌘+N) ليسري التغيير',
+      defaultDirUpdated: shortcut =>
+        `تم تحديث مجلد المشروع الافتراضي — ابدأ محادثة جديدة${shortcut ? ` (${shortcut})` : ''} ليسري التغيير`,
       defaultsTo: label => `الافتراضي هو ${label}.`,
       change: 'تغيير',
       choose: 'اختيار',

@@ -224,4 +224,16 @@ describe('platform and behaviour facts stated in copy', () => {
       expect(notice.message, locale).not.toContain('/portal')
     }
   })
+  // The toast names the user's own New session chord (newSessionShortcut() in sessions-settings.tsx): the
+  // Webapp default is not Ctrl/⌘+N, and a remapped or unbound chord must not be contradicted.
+  it("names the user's New session shortcut in the default-folder toast, never a hard-coded one", () => {
+    for (const locale of BUNDLED_LOCALES) {
+      const toast = TRANSLATIONS[locale].settings.sessions.defaultDirUpdated
+
+      expect(toast(null), locale).not.toMatch(/Ctrl|Strg|⌘/)
+      expect(toast('Alt+N') === toast(null) || toast('Alt+N').includes('Alt+N'), locale).toBe(true)
+    }
+
+    expect(en.settings.sessions.defaultDirUpdated('Alt+N')).toContain('Alt+N')
+  })
 })
