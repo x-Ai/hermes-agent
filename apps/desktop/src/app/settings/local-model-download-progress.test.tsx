@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { I18nProvider } from '@/i18n'
+import { BUNDLED_LOCALES, I18nProvider, TRANSLATIONS } from '@/i18n'
 import type * as Notifications from '@/store/notifications'
 import type { LocalRuntimeJob } from '@/types/hermes'
 
@@ -212,6 +212,16 @@ describe('downloadStatusText', () => {
     )
 
     expect(text).toBe('Starting the local server')
+  })
+
+  // The state label leads the line, so a locale's byte counter must not say it again.
+  it('names the download state once in every bundled locale', () => {
+    for (const locale of BUNDLED_LOCALES) {
+      const copy = TRANSLATIONS[locale].settings.localModels
+      const text = downloadStatusText(job({ done_bytes: 1 << 30, total_bytes: 4 * (1 << 30) }), copy)
+
+      expect(text.split(copy.downloadStatusRunning).length - 1, `${locale}: ${text}`).toBe(1)
+    }
   })
 })
 

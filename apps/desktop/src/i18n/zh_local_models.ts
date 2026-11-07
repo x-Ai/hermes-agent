@@ -52,7 +52,7 @@ export const zhLocalModels: TranslationOverride<Translations['settings']['localM
   noRecommendationAction: '浏览模型',
   downloaded: '已下载',
   downloadAction: size => `下载 · ${size}`,
-  downloadProgress: (done, total) => `正在下载 ${done} / ${total}`,
+  downloadProgress: (done, total) => `${done} / ${total}`,
   downloadDoneToast: model => `${model} 已就绪`,
   installDoneToast: '本地运行时已安装就绪',
   quickstartTitle: '在本机运行模型',
