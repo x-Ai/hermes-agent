@@ -76,7 +76,7 @@ Pi 的 bash 工具把每个非零退出码都标成 `isError`（没有匹配的 
 
 `pyproject.toml`、`uv.lock`、`pm/lock.json`（`config.json` 的 `tests.full_suite`）改动时运行全部测试。不追踪完整的传递 import 闭包：延迟 import 让几乎所有模块互相可达，任何改动都会选中整个测试集。
 
-选中的测试按 `def test_` 数量估算工作量（测试运行器自己的进度估计），每个分片约 `tests_per_shard`（10,000 个，约 30 分钟），最多 `max_shards` 个；每个分片是一个并行任务，运行 `run_tests.sh --files-from tests.txt --slice i/N`。全量测试约 6 个分片。没有选中任何测试时（例如只改了前端或文档），跳过 Python 测试任务，Publish 照常进行。
+选中的测试按 `def test_` 数量估算工作量（测试运行器自己的进度估计），每个分片约 `tests_per_shard`（10,000 个，约 30 分钟），最多 `max_shards` 个；每个分片是一个并行任务，运行 `run_tests.sh --files-from tests.txt --slice i/N`。全量测试约 6 个分片。没有选中任何测试时（例如只改了前端或文档），跳过 Python 测试任务，Publish 照常进行。ubuntu-latest 不带 ripgrep 和 tmux，测试任务先安装它们：搜索工具和 doctor 的 PM 存储探针测试要用 ripgrep（与上游 `tests.yml` 同一个固定版本，校验 sha256），经典视图聊天套件在 tmux 里驱动真实 CLI（上游 Blacksmith 镜像自带）。
 
 用 2026-10-31 以来上游 main 的逐小时窗口回放：中位数约为全量测试时间的 5%，四分之三的窗口不超过约 24%，多数只需一个分片；约 12% 的窗口因 conftest、根测试 fixture 或依赖锁改动需要全量，此时 6 个分片并行，墙钟时间约 40 分钟。
 
