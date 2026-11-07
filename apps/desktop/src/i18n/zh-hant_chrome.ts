@@ -102,7 +102,7 @@ export const zhHantChrome = {
       'view.toggleTabStrip': '切換選項卡',
       'view.toggleSimpleMode': '切換簡潔模式',
       'view.showFiles': '顯示文件瀏覽器',
-      'view.showBrowser': '打開瀏覽器',
+      'view.showBrowser': '切換瀏覽器',
       'view.toggleHud': '切換 HUD 模式',
       'hud.snapToPointer': '將 HUD 移到指針（全局，當 HUD 開啟時）',
       'view.showTerminal': '切換終端',

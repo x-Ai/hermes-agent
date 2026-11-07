@@ -74,7 +74,7 @@ export const zhLocalModels: TranslationOverride<Translations['settings']['localM
   updateAction: '更新引擎',
   updating: '正在更新引擎…',
   upToDateTitle: '引擎已是最新',
-  upToDateDetail: (tag, backend) => `正在运行 llama.cpp ${tag}（${backend}） — Hermes 提供的最新构建`,
+  upToDateDetail: (tag, backend) => `正在运行 llama.cpp ${tag}（${backend}）`,
   activeDetail: '新对话使用此模型 — 发送首条消息时加载',
   activeNotLoaded: '首条消息时加载',
   loadedPill: '已加载',

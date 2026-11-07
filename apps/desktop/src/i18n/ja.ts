@@ -594,7 +594,7 @@ export const jaOverrides = {
       'view.toggleStatusbar': 'ステータスバーの切り替え',
       'view.toggleTabStrip': 'タブを切り替えます',
       'view.showFiles': 'ファイルブラウザを表示',
-      'view.showBrowser': 'ブラウザを開く',
+      'view.showBrowser': 'ブラウザの切り替え',
       'view.toggleHud': 'HUD モードの切り替え',
       'hud.snapToPointer': 'HUD をポインターに移動します (HUD が開いている間、グローバル)',
       'view.showTerminal': 'トグル端子',
@@ -1609,7 +1609,7 @@ export const jaOverrides = {
       intro:
         'このデバイスと、リモート、SSH、またはクラウド接続を通じて到達できるすべての Hermes ゲートウェイを管理します。',
       stagedNote:
-        'セッションからゲートウェイを切り替えます。プロファイル、チャット、メッセージング、および cron ジョブはゲートウェイに残ります。他のゲートウェイでの作業は実行され続けます。',
+        'すべてのゲートウェイが接続されたままになります。プロファイル、チャット、メッセージング、cron ジョブはそれぞれのゲートウェイに残り、「セッション」ではすべてを一度に表示できます。',
       launchModeTitle: '起動時に、最後に使用したゲートウェイのセッションに戻ります',
       launchModeDesc: 'オフの場合、セッションはプライマリ ゲートウェイで開きます。',
       searchPlaceholder: 'ゲートウェイを検索…',
@@ -5933,7 +5933,7 @@ export const jaOverrides = {
     secretSendFailed: 'シークレットを送信できませんでした',
     sudoTitle: '管理者パスワード',
     sudoDesc:
-      'Hermes は特権コマンドを実行するために sudo パスワードが必要です。ローカルエージェントにのみ送信されます。',
+      'sudo パスワードを入力する前にコマンドを確認してください。パスワードは実行するエージェントに送信され、このセッション中キャッシュされます。',
     sudoPlaceholder: 'sudo パスワード',
     secretTitle: 'シークレットが必要です',
     secretDesc: 'Hermes は続行するための認証情報が必要です。',

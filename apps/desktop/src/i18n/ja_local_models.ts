@@ -88,7 +88,7 @@ export const jaLocalModels: TranslationOverride<Translations['settings']['localM
   updateAction: 'エンジンを更新',
   updating: 'エンジンを更新中…',
   upToDateTitle: 'エンジンは最新です',
-  upToDateDetail: (tag, backend) => `llama.cpp ${tag}（${backend}）で動作中——Hermes が提供する最新ビルドです。`,
+  upToDateDetail: (tag, backend) => `llama.cpp ${tag}（${backend}）で動作中。`,
   activeDetail: '新しいチャットはこのモデルを使用——最初のメッセージ送信時に読み込みます',
   activeNotLoaded: '最初のメッセージで読み込みます',
   loadedPill: '読み込み済み',

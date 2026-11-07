@@ -904,7 +904,7 @@ export const zhHantSettings = {
     connections: {
       title: '註冊網關',
       intro: '管理此設備以及它可以透過遠端、SSH 或雲端連接到達的每個 Hermes 網關。',
-      stagedNote: '從會話切換網關。個人資料、聊天、訊息傳遞和 cron 作業保留在其網關上；其他網關上的工作繼續運作。',
+      stagedNote: '所有網關都保持連線。設定檔、聊天、訊息和 cron 作業留在各自網關上，「工作階段」可同時顯示全部網關。',
       launchModeTitle: '啟動時，返回上次使用的網關上的會話',
       launchModeDesc: '關閉時，會話將在主網關上開啟。',
       searchPlaceholder: '搜尋網關...',
@@ -1496,7 +1496,7 @@ export const zhHantSettings = {
       updateAction: '更新引擎',
       updating: '正在更新引擎…',
       upToDateTitle: '引擎已是最新',
-      upToDateDetail: (tag, backend) => `跑步 llama.cpp${tag} (${backend}) — 已配置的構建。`,
+      upToDateDetail: (tag, backend) => `正在執行 llama.cpp ${tag}（${backend}）。`,
       activeDetail: '新對話使用此模型——傳送首條訊息時載入',
       activeNotLoaded: '首條訊息時載入',
       loadedPill: '已載入',
