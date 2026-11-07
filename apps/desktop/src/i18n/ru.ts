@@ -2,16 +2,19 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
 import { defineLocale, type TranslationOverrides } from './define-locale'
+import { ruBilling } from './ru_billing'
 import { ruBoot } from './ru_boot'
 import { ruCatalog, ruSkillDeepLink } from './ru_catalog'
 import { ruClarify } from './ru_clarify'
 import { ruConnectors } from './ru_connectors'
 import { ruCronControl } from './ru_cron_control'
+import { ruCustomEndpoints } from './ru_custom_endpoints'
 import { ruDelegationFieldLabels } from './ru_delegation_fields'
 import { ruDropWarning } from './ru_drop_warning'
 import { ruFirstRun } from './ru_first_run'
 import { ruGatewayMenu } from './ru_gateway_menu'
 import { ruGoalStatus } from './ru_goal_status'
+import { ruLocalModels } from './ru_local_models'
 import { ruMemoryLayers } from './ru_memory_layers'
 import { ruModelMenu } from './ru_model_menu'
 import { ruModelSettings } from './ru_model_settings'
@@ -25,6 +28,7 @@ import { ruProviderWait } from './ru_provider_wait'
 import { ruRuntime } from './ru_runtime'
 import { ruSharedMetrics } from './ru_shared_metrics'
 import { ruThemePicker } from './ru_theme_picker'
+import { ruUninstallSection } from './ru_uninstall_section'
 import { ruUpdateChannel } from './ru_update_channel'
 
 // RU_PLURAL: (count, one, few, many) — русские формы сущ. падежа
@@ -718,37 +722,7 @@ export const ruOverrides = {
     openInHermes: 'Открыть в Hermes'
   },
   settings: {
-    // Window plans (Nous subscription with included usage). Other billing strings: overlay-gaps.json.
-    billing: {
-      keepGoingOnCredits: {
-        title: 'Продолжать за кредиты',
-        description: 'Тратить кредиты, когда включённый объём закончится. Выключено: Hermes ждёт сброса.',
-        approveInBrowser:
-          'Чтобы изменить это, одобрите удалённые траты в браузере. Изменение применится сразу после одобрения.',
-        openAgain: 'Открыть снова',
-        cancel: 'Отмена',
-        approvedRetry: 'Удалённые траты одобрены, но изменение не сохранилось.',
-        tryAgain: 'Повторить'
-      },
-      state: {
-        usage: {
-          window: {
-            today: 'Сегодня',
-            week: 'Эта неделя',
-            month: 'Этот месяц',
-            topTier: 'Крупные модели (месяц)',
-            barLabel: title => `${title}: использовано включённого объёма`,
-            captionPaused: 'Приостановлено: платёж по подписке не прошёл',
-            captionPausedOther: 'Приостановлено: см. раздел «Оплата» на портале',
-            captionTopTierUsedUp: 'Месячный лимит исчерпан, остальное оплачивается кредитами',
-            captionTopTierUsedUpKeepGoingOff: 'Месячный лимит исчерпан, другие включённые модели работают',
-            captionResetsIn: duration => `Сброс через ${duration}`,
-            captionIncluded: 'Включённый объём',
-            valueUsed: percent => `использовано ${percent}`
-          }
-        }
-      }
-    },
+    billing: ruBilling,
     closeSettings: 'Закрыть настройки',
     exportConfig: 'Экспортировать конфигурацию',
     importConfig: 'Импортировать конфигурацию',
@@ -853,7 +827,18 @@ export const ruOverrides = {
             ? `навык «${names[0]}» готов`
             : `${names.length} ${RU_PLURAL(names.length, 'навык готов', 'навыка готовы', 'навыков готово')}`,
         toolsConnected: n =>
-          `${n} ${RU_PLURAL(n, 'инструмент подключён', 'инструмента подключены', 'инструментов подключено')}`
+          `${n} ${RU_PLURAL(n, 'инструмент подключён', 'инструмента подключены', 'инструментов подключено')}`,
+        partialInstall: sha =>
+          sha
+            ? `Плагин установлен лишь частично: часть для агента установлена на коммите ${sha}, но часть для приложения установить не удалось — репозиторий изменился после вашего просмотра. Включите параметр «Принудительная переустановка» в разделе «Дополнительно», чтобы заменить обе части показанной версией, или нажмите «Отмена», чтобы оставить только часть для агента.`
+            : 'Плагин установлен лишь частично: часть для агента установлена, но часть для приложения установить не удалось — репозиторий изменился после вашего просмотра. Включите параметр «Принудительная переустановка» в разделе «Дополнительно», чтобы заменить обе части показанной версией, или нажмите «Отмена», чтобы оставить только часть для агента.',
+        installAnyway: 'Всё равно установить',
+        legacyBackendConfirm:
+          'Этот бэкенд старше приложения, поэтому не может гарантировать, что установится именно та версия, которую вы просмотрели: если репозиторий с тех пор изменился, установится более новая версия. Обновите бэкенд, чтобы получить эту гарантию.',
+        sourceMoved: sha =>
+          sha
+            ? `Репозиторий изменился после вашего просмотра. Просмотрите новую версию (коммит ${sha}), прежде чем устанавливать её.`
+            : 'Репозиторий изменился после вашего просмотра. Чтение новой версии…'
       }
     },
     vault: {
@@ -1214,7 +1199,13 @@ export const ruOverrides = {
         persistentShell: 'Постоянная оболочка',
         envPassthrough: 'Проброс переменных окружения',
         dockerImage: 'Образ Docker',
+        dockerMountCwdToWorkspace: 'Монтировать проект в Docker',
+        dockerWorkspacePerSession: 'Следовать за проектом каждого сеанса',
+        dockerWorkspaceMountPath: 'Путь монтирования в Docker',
         singularityImage: 'Образ Singularity',
+        singularityMountCwdToWorkspace: 'Монтировать проект в Singularity',
+        singularityWorkspacePerSession: 'Следовать за проектом каждого сеанса (Singularity)',
+        singularityWorkspaceMountPath: 'Путь монтирования в Singularity',
         modalImage: 'Образ Modal',
         daytonaImage: 'Образ Daytona',
         containerPersistent: 'Сохранять файловую систему контейнера'
@@ -1250,24 +1241,37 @@ export const ruOverrides = {
       voice: {
         maxRecordingSeconds: 'Макс. длительность записи',
         autoTts: 'Зачитывать ответы вслух',
-        clientDirect: 'Прямое голосовое подключение'
+        clientDirect: 'Прямое голосовое подключение',
+        voiceChatMode: 'Режим голосового чата',
+        gptLive: {
+          voice: 'Голос GPT-Live',
+          instructions: 'Персона GPT-Live'
+        }
       },
       stt: {
         enabled: 'Распознавание речи',
         echoTranscripts: 'Показывать расшифровки в чате',
         provider: 'Провайдер распознавания речи',
+        streaming: 'Расшифровка в реальном времени',
         local: {
           model: 'Локальная модель распознавания',
           language: 'Язык распознавания'
         },
         openai: {
-          model: 'Модель STT OpenAI'
+          model: 'Модель STT OpenAI',
+          streamingModel: 'Модель расшифровки в реальном времени OpenAI'
         },
         groq: {
           model: 'Модель STT Groq'
         },
         mistral: {
           model: 'Модель STT Mistral'
+        },
+        xai: {
+          model: 'Модель STT xAI'
+        },
+        deepinfra: {
+          model: 'Модель STT DeepInfra'
         },
         elevenlabs: {
           modelId: 'Модель STT ElevenLabs',
@@ -1388,7 +1392,19 @@ export const ruOverrides = {
           'Бэкенд SSH: сохранять экспортированные переменные между командами. Если выключено, каждая команда запускается в окружении входа; рабочий каталог сохраняется всегда.',
         envPassthrough: 'Переменные окружения, которые передаются инструментам при выполнении.',
         dockerImage: 'Образ контейнера, используемый, когда бэкенд выполнения — Docker.',
+        dockerMountCwdToWorkspace:
+          'Монтировать папку проекта (bind mount) в песочницу Docker по заданному пути (по умолчанию /workspace). Если выключено, песочница полностью изолирована. Изменение вступит в силу для следующего контейнера после перезапуска бэкенда.',
+        dockerWorkspacePerSession:
+          'Использовать папку, выбранную в каждом сеансе, а не только папку запуска. Каждый проект получает собственный контейнер. Изменение вступит в силу после перезапуска бэкенда.',
+        dockerWorkspaceMountPath:
+          'Полный путь внутри контейнера, куда монтируется проект. По умолчанию /workspace. Изменение вступит в силу для следующего контейнера после перезапуска бэкенда и не удалит текущий.',
         singularityImage: 'Образ, используемый, когда бэкенд выполнения — Singularity.',
+        singularityMountCwdToWorkspace:
+          'Монтировать папку проекта (bind mount) в песочницу Singularity по заданному пути (по умолчанию /workspace). Если выключено, песочница полностью изолирована. Изменение вступит в силу для следующего экземпляра после перезапуска бэкенда.',
+        singularityWorkspacePerSession:
+          'Использовать папку, выбранную в каждом сеансе, а не только папку запуска. Каждый проект получает собственный экземпляр. Изменение вступит в силу после перезапуска бэкенда.',
+        singularityWorkspaceMountPath:
+          'Полный путь внутри контейнера, к которому подключается проект. По умолчанию /workspace. Изменение вступит в силу для следующего экземпляра после перезапуска бэкенда и не удалит текущий.',
         modalImage:
           'Образ, используемый, когда бэкенд выполнения — Modal. Работает в облаке: папки проекта синхронизируются копиями, а не монтируются.',
         daytonaImage:
@@ -1405,7 +1421,9 @@ export const ruOverrides = {
         timeout: 'Как долго запросы подтверждения ждут перед тайм-аутом.'
       },
       security: {
-        redactSecrets: 'Скрывать обнаруженные секреты из видимого для модели содержимого, когда это возможно.'
+        redactSecrets: 'Скрывать обнаруженные секреты из видимого для модели содержимого, когда это возможно.',
+        allowPrivateUrls:
+          'Разрешить инструментам, загружающим URL, обращаться к localhost и адресам частной сети. Эндпоинты облачных метаданных остаются заблокированными.'
       },
       checkpoints: {
         enabled: 'Создавать снимки для отката перед правкой файлов.'
@@ -1427,8 +1445,24 @@ export const ruOverrides = {
             'Сколько секунд ждать вспомогательную модель сжатия за один вызов (по умолчанию 120). Увеличьте для медленных локальных моделей.'
         }
       },
+      delegation: {
+        model: 'Модель для субагентов, которым делегируются задачи. Пустое значение — наследовать модель родителя.',
+        provider:
+          'Провайдер для субагентов — встроенное имя или ID своего эндпоинта. Пустое значение — наследовать от родителя.',
+        useCustomEndpoints:
+          'Показывать свои эндпоинты в списке провайдеров субагента, а найденные у них модели — в списке моделей.'
+      },
       voice: {
-        autoTts: 'Автоматически зачитывать ответы ассистента.'
+        clientDirect:
+          'По возможности подключать это приложение напрямую к провайдерам речи, а не передавать звук через шлюз.',
+        autoTts: 'Автоматически зачитывать ответы ассистента.',
+        voiceChatMode:
+          'chained: распознавание речи → Hermes → синтез речи с провайдерами ниже. gpt-live: одна полнодуплексная голосовая модель OpenAI (gpt-live-1) слушает и говорит, а каждый настоящий запрос передаёт Hermes — отвечает любая выбранная вами модель с полным набором инструментов. Нужен API-ключ OpenAI; голосовой слой стоит $0.05 в минуту.',
+        gptLive: {
+          voice: 'Голос для режима GPT-Live. Можно указать ID своего голоса.',
+          instructions:
+            'Дополнительные предложения для голосовой персоны (тон, темп, язык). Hermes сохраняет свой системный промпт.'
+        }
       },
       tts: {
         xai: {
@@ -1444,11 +1478,16 @@ export const ruOverrides = {
         },
         neutts: {
           device: 'Локальное устройство инференса для NeuTTS.'
+        },
+        deepinfra: {
+          voice:
+            'Имя голоса, которое отправляется в API синтеза речи DeepInfra. Оставьте пустым, чтобы использовать голос модели по умолчанию.'
         }
       },
       stt: {
         enabled: 'Включить локальное распознавание речи или распознавание через провайдера.',
         echoTranscripts: 'Возвращать в чат «сырую» 🎙️ расшифровку голосовых сообщений.',
+        streaming: 'Показывать текст, пока вы говорите (OpenAI, xAI, ElevenLabs). При любом сбое используется запись.',
         elevenlabs: {
           languageCode: 'Необязательный код языка ISO-639-3. Пустое значение — автоопределение ElevenLabs.'
         }
@@ -1938,81 +1977,7 @@ export const ruOverrides = {
       catalogAuthApiKey: 'API-ключ'
     },
     model: ruModelSettings,
-    customEndpoints: {
-      title: 'Свои эндпоинты',
-      loadFailed: 'Не удалось загрузить свои эндпоинты',
-      saved: 'Эндпоинт сохранён.',
-      saveFailed: 'Не удалось сохранить',
-      reachable: 'Эндпоинт доступен.',
-      reachableWithModels: count =>
-        `Эндпоинт доступен. ${RU_PLURAL(count, 'Найдена', 'Найдено', 'Найдено')} ${count} ${RU_PLURAL(count, 'модель', 'модели', 'моделей')}.`,
-      validationFailed: 'Проверка эндпоинта не пройдена.',
-      validationError: 'Проверка не пройдена',
-      enterUrlFirst: 'Сначала введите URL эндпоинта.',
-      unreachable: url => `Не удалось связаться с ${url}.`,
-      authRejected: 'Эндпоинт отклонил API-ключ.',
-      httpError: status => `Эндпоинт вернул HTTP ${status}.`,
-      activationFailed: 'Не удалось активировать эндпоинт',
-      deleteConfirm: name => `Удалить «${name}»?`,
-      deleteFailed: 'Не удалось удалить',
-      active: 'Активен',
-      apiKeySet: 'API-ключ задан',
-      use: 'Использовать',
-      deleteEndpoint: 'Удалить эндпоинт',
-      emptyTitle: 'Нет своих эндпоинтов',
-      emptyDesc: 'Добавьте ниже эндпоинт, совместимый с OpenAI.',
-      editTitle: 'Изменение эндпоинта',
-      addTitle: 'Добавление эндпоинта',
-      nameLabel: 'Название',
-      providerIdLabel: 'ID провайдера',
-      providerIdHint:
-        'Идентификатор, который хранится как ключ провайдера в config.yaml. После создания его нельзя изменить; для другого ID создайте эндпоинт кнопкой «Новый эндпоинт».',
-      urlLabel: 'URL эндпоинта',
-      apiModeLabel: 'Протокол API',
-      apiModeAuto: 'Авто',
-      apiModeChat: 'Chat Completions',
-      apiModeResponses: 'Responses API',
-      apiModeMessages: 'Anthropic Messages',
-      authSchemeLabel: 'Заголовок авторизации',
-      authSchemeAuto: 'Автоопределение',
-      authSchemeHint:
-        'Заголовок, в котором передаётся API-ключ в каждом протоколе. Автоопределение отправляет Authorization: Bearer на OpenAI-совместимых маршрутах и следует таблице известных хостов на Anthropic-совместимых; закрепите x-api-key или Bearer, если эндпоинт отвечает 401/403.',
-      noModelCatalog: 'Эндпоинт доступен, но не предоставляет каталог моделей.',
-      connectedNoModels: url => `Подключено к ${url}, но эндпоинт не сообщил ни одной модели.`,
-      defaultModelLabel: 'Модель по умолчанию',
-      contextLabel: 'Лимиты токенов моделей',
-      contextHint:
-        'Задайте общий контекст, максимальный ввод и максимальный вывод для каждой модели. Оставьте значение пустым, чтобы оно определялось автоматически.',
-      modelLabel: 'Модель',
-      contextWindowLabel: 'Общий контекст',
-      maxInputLabel: 'Макс. ввод',
-      maxOutputLabel: 'Макс. вывод',
-      apiKeyLabel: 'API-ключ',
-      userAgentLabel: 'User-Agent',
-      userAgentHint:
-        'HTTP-заголовок User-Agent, который отправляется этому эндпоинту. Пусто = значение SDK по умолчанию. Некоторые прокси и WAF принимают только браузерные User-Agent; если эндпоинт блокирует запросы, воспользуйтесь готовым вариантом.',
-      contextAuto: 'Авто',
-      autoValuePlaceholder: (value: string) => `Авто · ${value}`,
-      suggestedValuePlaceholder: (value: string) => `Рекомендуется · ${value}`,
-      fillDetected: 'Заполнить обнаруженными значениями',
-      fillDetectedHint:
-        'Копирует обнаруженные лимиты и возможности в пустые ячейки, чтобы их можно было подправить для нестандартного эндпоинта. «Авто» — значение, которое Hermes определяет сам при пустой ячейке; «Рекомендуется» взято из каталога models.dev и применяется только после заполнения. Пустые ячейки по-прежнему определяются автоматически.',
-      capabilityAutoResolved: (verdict: string) => `Авто (${verdict})`,
-      valueSource: (source: string) => `Источник: ${source}`,
-      sourceEndpoint: 'данные эндпоинта',
-      sourceCatalogProvider: 'провайдер каталога',
-      sourceCatalog: (ref: string) => `совпадение models.dev: ${ref}`,
-      keyKeepPlaceholder: 'Оставьте пустым, чтобы сохранить текущий ключ',
-      keyOptionalPlaceholder: 'Необязательно',
-      useForNewChats: 'Использовать для новых чатов',
-      discoverModels: 'Найти модели',
-      test: 'Проверить',
-      newEndpoint: 'Новый эндпоинт',
-      reachableVia: transport => `Эндпоинт доступен (обслужен маршрут ${transport}).`,
-      emptyDescription: 'Добавьте ниже эндпоинт, совместимый с OpenAI.',
-      namePlaceholder: 'Axet Proxy',
-      contextPlaceholder: 'Авто'
-    },
+    customEndpoints: ruCustomEndpoints,
     uninstall: {
       dangerZone: 'Опасная зона',
       checking: 'Проверка установленных компонентов…',
@@ -2045,145 +2010,7 @@ export const ruOverrides = {
         }
       }
     },
-    localModels: {
-      catalogDescriptions: {
-        'Best all-round agent model; sees images; long context stays fast':
-          'Лучшая универсальная модель для агента; понимает изображения; сохраняет скорость при длинном контексте',
-        'Frontier-scale mixture-of-experts with multi-token prediction; sees images':
-          'Передовая модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
-        'Frontier-scale model; needs a very large GPU to run well':
-          'Передовая крупная модель; для быстрой работы нужен GPU с очень большим объёмом памяти',
-        "NVIDIA's 74B mixture-of-experts in a 2-bit build; sees images":
-          'Модель NVIDIA со смесью экспертов на 74 млрд параметров в 2-битной сборке; понимает изображения',
-        'Bigger mixture-of-experts with multi-token prediction; sees images':
-          'Более крупная модель со смесью экспертов и предсказанием нескольких токенов; понимает изображения',
-        'Frontier-class model for machines with 128GB+ memory':
-          'Передовая модель для компьютеров со 128 GB памяти и более'
-      },
-      recommendedBuild: (quant, largeWindow) =>
-        `Рекомендуемая сборка (${quant}) — формат квантования, под который оптимизирован движок; полностью работает на GPU${largeWindow ? ' с большим окном контекста' : ''}`,
-      compactBuild: quant =>
-        `Компактная сборка для этого компьютера (${quant}) — превышает объём памяти GPU и использует системную память, поэтому работает медленнее`,
-      fitTooLarge: (quant, size) =>
-        `Даже самая компактная сборка (${quant}, ${size}) превышает суммарный объём памяти GPU и системной памяти`,
-      fitNeedsMemory: 'Требуется больше памяти, чем есть на этом компьютере',
-      fitFullContext: context => `работает с полным контекстом ${context}`,
-      fitGrowingContext: (start, max) => `контекст начинается с ${start} и расширяется до ${max} по мере использования`,
-      fitSpilled: detail => `${detail} (превышает объём памяти GPU и использует системную память — работает медленнее)`,
-      title: 'Локальные модели',
-      runtimeTitle: 'Локальная среда выполнения',
-      runtimeReady: backend => `Готово · ${backend}`,
-      serverRunning: 'Работает',
-      runtimeInstalled: 'Среда выполнения llama.cpp установлена',
-      runtimeInstalledDetail: (tag, backend) =>
-        `Сборка ${tag}, бэкенд ${backend}. Hermes сам запускает сервер и управляет им.`,
-      installTitle: 'Установка локальной среды выполнения',
-      installDetail:
-        'Скачивает движок инференса llama.cpp (несколько сотен МБ). Скачанные модели работают полностью на этом компьютере — аккаунт не нужен, и никакие данные не покидают компьютер.',
-      installAction: 'Установить среду выполнения',
-      installing: 'Установка среды выполнения…',
-      installFailed: 'Не удалось установить среду выполнения',
-      hardwareTitle: 'Этот компьютер',
-      hardwareLoading: 'Проверка оборудования…',
-      vram: label => `${label} памяти GPU`,
-      ram: label => `${label} RAM`,
-      unifiedMemory: 'Единая память',
-      modelsTitle: 'Модели',
-      recommended: 'Рекомендуется',
-      recommendedReason: {
-        'best-quality-resident':
-          'Самая качественная модель, которая целиком работает на вашем GPU на полной скорости. Выбор учитывает и качество, и ожидаемую скорость на этом оборудовании.',
-        'speed-gated-quality':
-          'На этом компьютере поместится и более качественная модель, но из-за пропускной способности памяти она будет отвечать слишком медленно. Эта модель — лучшая из тех, что работают быстро.'
-      } as Record<string, string>,
-      noRecommendationTitle: 'Для этого компьютера нет автоматической рекомендации',
-      noRecommendationDetail:
-        'Для автоматической настройки нужна модель из подборки, которая целиком работает в памяти GPU или единой памяти на полной скорости. Вы всё равно можете выбрать модель ниже или поискать другие модели.',
-      noRecommendationAction: 'Просмотреть модели',
-      downloaded: 'Скачано',
-      downloadAction: size => `Скачать · ${size}`,
-      downloadProgress: (done, total) => `${done} из ${total}`,
-      downloadDoneToast: model => `Модель ${model} готова.`,
-      installDoneToast: 'Локальная среда выполнения установлена и готова.',
-      quickstartTitle: 'Запустите модель на этом компьютере',
-      quickstartDetail: (model, size) =>
-        `Одно нажатие настроит всё: локальный движок, ${model} (${size} для скачивания) и модель по умолчанию для новых чатов. Никакие данные не покидают этот компьютер.`,
-      quickstartDetailReady: model =>
-        `Одно нажатие сделает ${model} моделью по умолчанию для новых чатов. Всё работает на этом компьютере.`,
-      quickstartAction: 'Настроить за меня',
-      quickstartConfigure: 'Выбрать самому',
-      quickstartDoneToast: model => `Модель ${model} настроена — новые чаты работают на этом компьютере.`,
-      quickstartFailed: 'Не удалось настроить локальную модель',
-      quickstartStageEngine: 'Движок',
-      quickstartStageModel: 'Модель',
-      quickstartStageFinish: 'Завершение',
-      useAction: 'Использовать',
-      activePill: 'По умолчанию',
-      updateTitle: 'Доступно обновление движка',
-      updateDetail: (next, current) =>
-        `Новая сборка llama.cpp (${next}) готова к установке — сейчас у вас ${current}. Модели продолжают работать во время скачивания.`,
-      updateAction: 'Обновить движок',
-      updating: 'Обновление движка…',
-      upToDateTitle: 'Движок обновлён',
-      upToDateDetail: (tag, backend) => `Работает llama.cpp ${tag} (${backend}).`,
-      activeDetail: 'Новые чаты используют эту модель — она загружается при отправке первого сообщения.',
-      activeNotLoaded: 'Загрузится при первом сообщении',
-      loadedPill: 'В памяти',
-      placementResident: 'целиком на GPU',
-      placementSpilled: 'частично в RAM',
-      placementResidentTip: 'С этим контекстным окном модель целиком работает в памяти GPU — на полной скорости.',
-      placementSpilledTip:
-        'Часть модели размещена в системной RAM — это работает, но медленнее. Более компактная сборка или меньший контекст поместились бы целиком.',
-      loadingPill: 'Загрузка…',
-      ejectTip: 'Освободить память GPU (модель снова загрузится при следующем сообщении)',
-      ejected: 'Модель выгружена — память GPU освобождена.',
-      ejectFailed: 'Не удалось выгрузить модель',
-      stopServer: 'Выключить',
-      startServer: 'Включить',
-      runtimeRunningDetail:
-        'Локальный сервер работает. Если выключить его, освободится вся память GPU, а новые чаты не смогут использовать локальные модели, пока вы не включите сервер снова.',
-      serverStopped: 'Локальный сервер остановлен — память GPU освобождена.',
-      serverStarted: 'Локальный сервер работает.',
-      serverStopFailed: 'Не удалось остановить локальный сервер',
-      serverStartFailed: 'Не удалось запустить локальный сервер',
-      activating: 'Запуск…',
-      activateFailed: model => `Не удалось переключиться на ${model}`,
-      activateDoneToast: model => `Новые чаты используют ${model}.`,
-      downloadFailed: model => `Не удалось скачать ${model}`,
-      pillFitsGpu: 'Помещается в GPU',
-      pillUsesRam: 'Использует системную RAM',
-      pillTooBig: 'Слишком большая для этого компьютера',
-      browseTitle: 'Найти другие модели',
-      browseHint:
-        'Поиск по всему Hugging Face. Скачанные здесь модели автоматически подбираются под ваш компьютер, но мы их не тестировали.',
-      browsePlaceholder: 'Поиск моделей по названию или автору…',
-      browseSearching: 'Поиск по Hugging Face',
-      browseListing: 'Чтение файлов модели',
-      browseShowFiles: 'Показать файлы',
-      browseRefresh: 'Обновить',
-      browseDownloads: 'скачиваний',
-      browseLikes: 'лайков',
-      browseGated: 'нужен вход в Hugging Face',
-      browseNoGguf: 'Совместимые файлы моделей не найдены.',
-      browseFitUnknown: 'Совместимость неизвестна',
-      browseAlreadyDownloaded: 'Уже скачана.',
-      addedByYou: 'Добавлена вами',
-      browseDownloadStarted: 'Скачивание: {name}',
-      browseDownloadAria: 'Скачать {name}',
-      sideloadButton: 'Добавить файл модели',
-      sideloadTitle: 'Выберите файл модели GGUF',
-      sideloadDone: 'Добавлено: {name}.',
-      sideloadAlreadyPresent: 'Уже есть в библиотеке.',
-      pillFullContext: max => `Полный контекст ${max}`,
-      pillFullContextTip: 'С самого начала работает с полным контекстным окном модели',
-      pillUpTo: max => `Контекст до ${max}`,
-      pillGrowsTip: 'Автоматически расширяется, когда разговору нужно больше места',
-      pillVision: 'Понимает изображения',
-      deleteAction: 'Удалить модель',
-      deleteConfirm: model => `Удалить ${model} с диска?`,
-      deleted: model => `Модель ${model} удалена.`,
-      deleteFailed: 'Не удалось удалить'
-    },
+    localModels: ruLocalModels,
     providers: {
       connectAccount: 'Подключить аккаунт',
       haveApiKey: 'У вас есть API-ключ?',
@@ -2459,11 +2286,7 @@ export const ruOverrides = {
       billingOverview: 'Обзор',
       billingPlans: 'Тарифы'
     },
-    uninstallSection: {
-      dangerZone: 'Опасная зона',
-      confirmUninstall: 'Подтвердите удаление',
-      uninstallHermes: 'Удаление Hermes'
-    },
+    uninstallSection: ruUninstallSection,
     computerUse: {
       accessibility: 'Универсальный доступ',
       screenRecording: 'Запись экрана',
@@ -2602,9 +2425,26 @@ export const ruOverrides = {
       emptyHint: 'Просмотрите каталог ниже и установите проверенный плагин одним щелчком мыши.',
       loadFailed: 'Не удалось загрузить плагины агента',
       toggleFailed: (name: string) => `Не удалось переключить «${name}»`,
+      toolsetOn: (name: string, profile: string) =>
+        `Инструменты агента плагина «${name}» включены для профиля «${profile}»`,
+      toolsetOff: (name: string, profile: string) =>
+        `Инструменты агента плагина «${name}» отключены для профиля «${profile}»`,
+      toolsetToggleFailed: (name: string) =>
+        `Не удалось переключить инструменты агента плагина «${name}»; панель приложения осталась без изменений`,
       legacyBackend:
         'Этот бэкенд старше переключателей плагинов по ключу — обновите Hermes, чтобы управлять плагином здесь.',
       portableBadge: 'переносимый',
+      serverStates: {
+        connected: 'подключён',
+        app_not_running: 'приложение не запущено',
+        hermes_not_connected: 'нет подключения MCP',
+        endpoint_unavailable: 'эндпоинт недоступен',
+        no_interactive_session: 'нет интерактивного сеанса',
+        version_too_old: 'слишком старая версия',
+        missing_app: 'приложение не найдено',
+        unsupported_gpu: 'GPU не поддерживается',
+        unknown: 'состояние неизвестно'
+      },
       bundledNames: {},
       bundledDescriptions: {},
       sourceLabels: {
@@ -2630,6 +2470,14 @@ export const ruOverrides = {
       updateConsentBody: (name: string, sha: string) =>
         `Новый коммит плагина «${name}» в каталоге (${sha}) добавляет возможности, которых нет в установленной версии. Применяйте его, только если доверяете им:`,
       updateConsentConfirm: 'Применить обновление',
+      updateScanTitle: (name: string) => `Проверка безопасности нашла замечания в «${name}»`,
+      updateScanBody: (name: string, count: number) =>
+        `Обновление «${name}» получило вердикт «осторожно» (${count} ${RU_PLURAL(count, 'замечание', 'замечания', 'замечаний')}). Каждое обновление проверяется. Применяйте его, только если доверяете источнику:`,
+      updateScanMore: (count: number) => `+ ещё ${count}`,
+      updateScanConfirm: 'Всё равно обновить',
+      updateScanBlocked: (name: string) =>
+        `Проверка безопасности заблокировала обновление «${name}» (вердикт «опасно»). Это ограничение нельзя обойти.`,
+      updatedGit: (name: string) => `Плагин «${name}» обновлён до последнего коммита.`,
       uninstall: 'Удалить',
       uninstallTip: (name: string, profile: string) => `Удалить «${name}» из профиля «${profile}»`,
       uninstallConfirmTitle: (name: string) => `Удалить «${name}»?`,
@@ -2652,6 +2500,7 @@ export const ruOverrides = {
         saved: (name: string) => `Настройки «${name}» сохранены.`,
         saveFailed: (name: string) => `Не удалось сохранить настройки «${name}»`,
         required: 'Обязательно',
+        optional: '(необязательно)',
         secretSet: '•••••••• (задано)',
         secretStoredAs: (env: string) =>
           `Хранится в файле .env профиля под именем ${env}, а не в config.yaml; оставьте пустым, чтобы сохранить текущее значение.`
@@ -2671,7 +2520,21 @@ export const ruOverrides = {
         'Скрипты могут читать и изменять всё на этом сайте, включая страницы аккаунтов, в которые вы там вошли.',
       previewScriptPromptBody: (plugin: string, origin: string) =>
         `${plugin} хочет выполнить JavaScript во встроенном браузере на ${origin}.`,
-      previewScriptPromptTitle: (plugin: string) => `Разрешить ${plugin} запускать скрипты на этой странице?`
+      previewScriptPromptTitle: (plugin: string) => `Разрешить ${plugin} запускать скрипты на этой странице?`,
+      folderAccess: {
+        title: 'Доступ к папкам',
+        hint: (name: string) =>
+          `Плагин «${name}» может читать и изменять файлы в этих папках. Отзыв доступа действует сразу.`,
+        revoke: 'Отозвать',
+        revokeLabel: (path: string) => `Отозвать доступ к ${path}`,
+        revoked: (name: string, path: string) => `Плагин «${name}» больше не может использовать ${path}.`,
+        revokeFailed: (name: string) => `Не удалось отозвать доступ к папкам у плагина «${name}»`,
+        pickerTitle: (name: string) => `Выберите папку для плагина «${name}»`,
+        pickerButton: 'Разрешить доступ',
+        refusedProtected: (name: string) =>
+          `Плагин «${name}» не может использовать эту папку: в ней хранятся настройки, ключи или данные плагинов Hermes. Выберите папку, в которой их нет.`,
+        loadFailed: (name: string) => `Не удалось загрузить папки, к которым открыт доступ плагину «${name}».`
+      }
     },
     officialCatalog: 'Доступно для установки',
     officialPill: 'Официальный',
@@ -4277,6 +4140,11 @@ export const ruOverrides = {
     queueDroppedTitle: 'Промпт из очереди отброшен',
     queueDroppedBody:
       'Эта запись фоновой очереди отброшена: её сеанс не удалось возобновить после нескольких попыток. Остальные записи очереди не затронуты.',
+    terminalSelectionMissingTitle: 'Выделение из терминала недоступно',
+    terminalSelectionMissingBody:
+      'Выделите строки терминала заново (Ctrl/Cmd+L) перед отправкой — у этого вложения нет исходного текста.',
+    queuedTerminalSelectionExpiredBody:
+      'Это выделение из терминала в очереди больше недоступно. Выделите строки заново (Ctrl/Cmd+L) и снова поставьте сообщение в очередь.',
     previewUnavailable: 'Предпросмотр недоступен',
     previewLabel: label => `Предпросмотр ${label}`,
     couldNotPreview: label => `Не удалось предпросмотреть ${label}`,
@@ -4455,6 +4323,7 @@ export const ruOverrides = {
       scopeUncommitted: 'Незакоммиченные',
       scopeBranch: 'Ветка',
       scopeLastTurn: 'Последний ход',
+      readOnlyScope: 'Только просмотр — добавление в индекс, откат и коммит доступны в режиме «Незакоммиченные»',
       commit: 'Коммит',
       commitAndPush: 'Коммит и отправка',
       commitPlaceholder: shortcut => `Сообщение (${shortcut} — коммит)`,
@@ -4515,6 +4384,8 @@ export const ruOverrides = {
     availableTitleBackend: 'Доступно обновление бэкенда',
     availableBodyBackend: 'Новая версия подключённого бэкенда Hermes готова к установке.',
     availableBodyNoChangelog: 'Новая версия готова. Заметки о выпуске недоступны для этого типа установки.',
+    availableBodyAppInstaller:
+      'Новая версия Hermes готова. Hermes закроется, Windows завершит обновление, и Hermes снова откроется сам.',
     updateNow: 'Обновить сейчас',
     maybeLater: 'Позже',
     moreChanges: count => `+ ещё ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}.`,
@@ -4546,6 +4417,11 @@ export const ruOverrides = {
     applyingBodyBackend:
       'Удалённый бэкенд применяет обновление и перезапустится. Hermes переподключится автоматически, когда бэкенд снова станет доступен.',
     applyingClose: 'Это окно закроется во время обновления, затем Hermes откроется сам.',
+    applyingBodyAppInstaller:
+      'Hermes закроется, и Windows завершит обновление. Когда всё будет готово, Hermes откроется снова — вам ничего не нужно делать.',
+    checkUnknownTitleAppInstaller: 'Не удалось проверить обновления',
+    checkUnknownBodyAppInstaller:
+      'Windows сейчас не удалось проверить обновления. Обновления также устанавливаются автоматически при перезапуске Hermes.',
     errorTitle: 'Обновление не завершилось',
     errorBody: 'Не переживайте — ничего не потеряно. Можно попробовать снова прямо сейчас.',
     blockerTitle: 'Закрыть локальные предпросмотры, чтобы обновить Hermes?',
@@ -4584,7 +4460,9 @@ export const ruOverrides = {
       restarting: 'Бэкенд перезапускается для загрузки обновления…',
       notAvailable: 'Обновление недоступно для этого бэкенда.',
       failed: 'Не удалось обновить бэкенд.',
-      noReturn: 'Бэкенд не вернулся в сеть. Обновление могло не завершиться — проверьте хост бэкенда.'
+      noReturn: 'Бэкенд не вернулся в сеть. Обновление могло не завершиться — проверьте хост бэкенда.',
+      owed: steps =>
+        `Бэкенд обновлён, но не завершены шаги: ${steps}. Снова выполните \`hermes update\`, чтобы закончить их.`
     },
     gitUnusable: 'Hermes не смог запустить Git на этом компьютере, поэтому проверить обновления не удалось.',
     connectionSettings: 'Настройки подключения',
@@ -4611,8 +4489,27 @@ export const ruOverrides = {
     updateReady: count =>
       `Готово новое обновление (включено ${count} ${RU_PLURAL(count, 'изменение', 'изменения', 'изменений')}).`,
     updateReadyUnknown: 'Готово новое обновление.',
+    appName: 'Hermes',
+    availableBodyRelease: tag => `Версия ${tag} готова к установке.`,
     version: value => `Версия ${value}`,
     versionUnavailable: 'Версия недоступна',
+    versionDetailsVersion: 'Версия',
+    versionDetailsCommit: 'Коммит',
+    versionDetailsBuildOrigin: 'Источник сборки',
+    versionDetailsBuildOriginLocal: 'Локальный',
+    versionDetailsDistribution: 'Способ установки',
+    versionDetailsDistributionDesktop: 'Приложение Hermes Desktop',
+    versionDetailsDistributionDesktopMsix: 'Приложение Hermes Desktop (MSIX)',
+    versionDetailsDistributionDesktopInstaller: 'Приложение Hermes Desktop (установщик)',
+    versionDetailsDistributionSourceInstaller: 'Исходный код (скрипт установки)',
+    versionDetailsDistributionSourceInstallerDesktop: 'Исходный код (скрипт установки) + hermes desktop',
+    versionDetailsDistributionSource: 'Исходный код',
+    versionDetailsDistributionSourceDesktop: 'Исходный код + hermes desktop',
+    versionDetailsRuntime: 'Среда выполнения',
+    versionDetailsRuntimeEmbedded: 'Встроенная среда выполнения',
+    versionDetailsRuntimeExternal: 'Внешняя (среда выполнения компьютера)',
+    versionDetailsInstallId: 'ID установки',
+    versionDetailsUncommittedChanges: 'незакоммиченные изменения',
     versionDetailsBackend: 'Подключённый бэкенд',
     versionDetailsClient: 'Это устройство'
   },
@@ -4660,12 +4557,18 @@ export const ruOverrides = {
     setupChoiceTitle: 'Настройка Hermes Desktop',
     setupChoiceDesc:
       'Подключите это приложение к уже работающему шлюзу Hermes или установите Hermes локально на этот компьютер.',
+    setupChoiceDescLocal: 'Установите Hermes на этот компьютер или подключитесь к уже работающему шлюзу Hermes.',
     connectExistingTitle: 'Подключиться к существующему Hermes',
     connectExistingShort: 'Подключить существующий',
     connectExistingDesc:
       'Использовать удалённый бэкенд с токеном сеанса или входом через браузер. Локальная установка не начнётся.',
     installLocalTitle: 'Установить Hermes локально',
     installLocalDesc: 'Скачать Hermes, создать для него окружение Python и запустить бэкенд на этом компьютере.',
+    useLocalTitle: 'Использовать Hermes на этом компьютере',
+    useLocalDesc:
+      'Среда выполнения Hermes здесь уже установлена — запустить её можно одним нажатием. Ничего скачивать не нужно.',
+    bundledLocalDesc:
+      'Использовать среду выполнения Hermes, входящую в это приложение, — встроенный бэкенд и есть локальная установка.',
     localStartUnavailable: 'Не удалось начать локальную установку. Перезапустите Hermes Desktop и попробуйте снова.',
     remoteSetupTitle: 'Подключиться к существующему Hermes',
     remoteSetupDesc: 'Введите URL вашего шлюза. Hermes Desktop определит, нужен токен или вход через браузер.',
@@ -4787,6 +4690,14 @@ export const ruOverrides = {
       signInBelow: 'Вход бесплатный. Выберите Nous ниже.',
       tryAgain: 'Попробовать снова',
       retrying: 'Повторная попытка…'
+    },
+    // friendlyWait(): the phrase after «ожидание:» in busyBody and setupFailed.rateLimited.
+    wait: {
+      fewSeconds: 'несколько секунд',
+      aboutMinute: 'около минуты',
+      aboutMinutes: count => `около ${count} ${RU_PLURAL(count, 'минуты', 'минут', 'минут')}`,
+      aboutHour: 'около часа',
+      aboutHours: count => `около ${count} ${RU_PLURAL(count, 'часа', 'часов', 'часов')}`
     }
   },
   modelPicker: {
@@ -5378,6 +5289,7 @@ export const ruOverrides = {
       branchNewChat: 'Ответвить в новый чат',
       react: 'Добавить реакцию',
       dismissError: 'Скрыть ошибку',
+      responseStopped: 'Ответ остановлен',
       errorLayers: {
         auth: 'Проблема со входом',
         billing: 'Закончились кредиты',
@@ -5478,6 +5390,10 @@ export const ruOverrides = {
           title: 'Ответ был прерван',
           body: 'Соединение прервалось до завершения ответа. Повторите попытку, чтобы отправить сообщение ещё раз.'
         },
+        no_reply: {
+          title: 'Ответ не пришёл',
+          body: 'Hermes завершил этот ход, но ответ не дошёл до этого окна. Повторите попытку, чтобы отправить сообщение ещё раз.'
+        },
         upstream_blocked: {
           title: provider => `${provider} заблокировал этот запрос`,
           body: provider =>
@@ -5533,6 +5449,14 @@ export const ruOverrides = {
         loop_error: {
           title: 'Hermes не смог завершить этот шаг',
           body: 'При обработке ответа что-то пошло не так. Повторите попытку; если ошибка повторится, отправьте диагностику из подробностей.'
+        },
+        SESSION_OWNER_BUSY: {
+          title: 'Hermes занят в этом чате',
+          body: 'Здесь уже выполняется другой ход, и ваше сообщение не удалось поставить в его очередь. Ничего не отправлено. Повторите попытку, когда этот ход завершится.'
+        },
+        SESSION_OWNER_UNCONFIRMED: {
+          title: 'Возможно, ваше сообщение уже в очереди',
+          body: 'Шлюз вовремя не подтвердил ваше сообщение. Если оно попало в очередь, оно выполнится, когда предыдущий ход завершится или будет разрешён. Проверьте чат, прежде чем отправлять сообщение снова.'
         },
         SESSION_NOT_OWNED: {
           title: 'Чат открыт в другом месте',
@@ -5645,6 +5569,7 @@ export const ruOverrides = {
       sendFailed: 'Не удалось отправить ответ',
       run: 'Выполнить',
       command: 'Команда',
+      commandDetails: 'Подробности команды',
       moreOptions: 'Другие варианты подтверждения',
       allowSession: 'Разрешить в этом сеансе',
       alwaysAllowMenu: 'Всегда разрешать…',
@@ -5682,7 +5607,18 @@ export const ruOverrides = {
       securityHeading: 'Безопасность',
       scan: { passed: 'Проверка пройдена', warnings: 'Проверка нашла предупреждения', failed: 'Проверка не пройдена' },
       requirementsLabel: 'Требования',
-      credentialsHeading: 'Учётные данные'
+      requiresHermes: range => `Hermes ${range}`,
+      envVar: name => `Переменная окружения ${name}`,
+      credentialsHeading: 'Учётные данные',
+      phase: {
+        downloading: 'Скачивание…',
+        python_packages: 'Установка пакетов Python…',
+        loading_tools: 'Загрузка инструментов…'
+      },
+      serverNotConnected: (server, reason) => `MCP-сервер ${server} не подключён${reason ? `: ${reason}` : ''}`,
+      notEnabled: 'Установлено, но не включено',
+      missingEnv: names => `Задайте ${names}, чтобы завершить настройку`,
+      alreadyInstalled: 'Уже установлено; оставлено как есть'
     },
     mcpSetup: {
       installTitle: 'Добавить MCP-серверы',
@@ -5755,6 +5691,22 @@ export const ruOverrides = {
       },
       countLabel: (count, _noun, displayNoun) => `${count} ${displayNoun}`,
       runSummary: {
+        analyze: {
+          count: (count, live) =>
+            live
+              ? `Анализирую ${count} ${RU_PLURAL(count, 'изображение', 'изображения', 'изображений')}`
+              : `Проанализировано ${count} ${RU_PLURAL(count, 'изображение', 'изображения', 'изображений')}`,
+          present: 'Анализирую',
+          target: (target, live) => (live ? `Анализирую ${target}` : `Проанализировано: ${target}`)
+        },
+        browse: {
+          count: (count, live) =>
+            live
+              ? `Открываю ${count} ${RU_PLURAL(count, 'страницу', 'страницы', 'страниц')}`
+              : `${RU_PLURAL(count, 'Открыта', 'Открыто', 'Открыто')} ${count} ${RU_PLURAL(count, 'страница', 'страницы', 'страниц')}`,
+          present: 'Открываю',
+          target: (target, live) => (live ? `Открываю ${target}` : `Открыт ${target}`)
+        },
         delegate: {
           count: (count, live) =>
             live
@@ -5779,6 +5731,14 @@ export const ruOverrides = {
           present: 'Просматриваю',
           target: (target, live) => (live ? `Просматриваю ${target}` : `Просмотрен ${target}`)
         },
+        interact: {
+          count: (count, live) =>
+            live
+              ? `Выполняю ${count} ${RU_PLURAL(count, 'действие', 'действия', 'действий')} в браузере`
+              : `Выполнено ${count} ${RU_PLURAL(count, 'действие', 'действия', 'действий')} в браузере`,
+          present: 'Работаю в браузере',
+          target: (target, live) => (live ? `Выполняю ${target}` : `Выполнено: ${target}`)
+        },
         other: {
           count: (count, live) =>
             live
@@ -5787,6 +5747,14 @@ export const ruOverrides = {
           present: 'Использую',
           target: (target, live) => (live ? `Использую ${target}` : `Использовано: ${target}`)
         },
+        read: {
+          count: (count, live) =>
+            live
+              ? `Читаю ${count} ${RU_PLURAL(count, 'страницу', 'страницы', 'страниц')}`
+              : `${RU_PLURAL(count, 'Прочитана', 'Прочитано', 'Прочитано')} ${count} ${RU_PLURAL(count, 'страница', 'страницы', 'страниц')}`,
+          present: 'Читаю',
+          target: (target, live) => (live ? `Читаю ${target}` : `Прочитан ${target}`)
+        },
         run: {
           count: (count, live) =>
             live
@@ -5794,6 +5762,14 @@ export const ruOverrides = {
               : `${RU_PLURAL(count, 'Выполнена', 'Выполнено', 'Выполнено')} ${count} ${RU_PLURAL(count, 'команда', 'команды', 'команд')}`,
           present: 'Выполняю',
           target: (target, live) => (live ? `Выполняю ${target}` : `Выполнена команда ${target}`)
+        },
+        search: {
+          count: (count, live) =>
+            live
+              ? `Выполняю ${count} ${RU_PLURAL(count, 'поисковый запрос', 'поисковых запроса', 'поисковых запросов')}`
+              : `${RU_PLURAL(count, 'Выполнен', 'Выполнено', 'Выполнено')} ${count} ${RU_PLURAL(count, 'поисковый запрос', 'поисковых запроса', 'поисковых запросов')}`,
+          present: 'Ищу',
+          target: (target, live) => (live ? `Ищу ${target}` : `Выполнен поиск по запросу ${target}`)
         },
         separator: ', '
       },
@@ -6016,6 +5992,9 @@ export const ruOverrides = {
     readinessChecksDisagree:
       'setup.status сообщает, что учётные данные настроены, но определить рабочую конфигурацию по-прежнему не удалось.',
     emptySlashCommand: 'пустая слеш-команда',
+    slashCommandIgnoredTitle: 'Команда не отправлена',
+    slashCommandIgnoredBody:
+      'Слеш-команды нельзя совмещать с вложениями. Удалите вложение или отправьте команду отдельно.',
     desktopCommands: 'Команды приложения',
     skillCommandsAvailable: count => `Доступно команд навыков: ${count}.`,
     warningLine: message => `предупреждение: ${message}`,
@@ -6086,6 +6065,9 @@ export const ruOverrides = {
     generatedImageAlt: 'Сгенерированное изображение',
     downloadImage: 'Скачать изображение',
     savingImage: 'Сохранение изображения',
+    zoomIn: 'Увеличить',
+    zoomOut: 'Уменьшить',
+    resetZoom: 'Сбросить масштаб',
     imagePreviewFailed: 'Не удалось показать предпросмотр изображения',
     imageAttach: 'Прикрепление изображения',
     imageWriteFailed: 'Не удалось записать изображение на диск.',

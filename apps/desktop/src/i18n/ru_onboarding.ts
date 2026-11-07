@@ -41,6 +41,7 @@ export const ruOnboarding: TranslationOverrides['onboarding'] = {
   replaceCurrent: 'Заменить текущее значение',
   pasteApiKey: 'Вставьте API-ключ',
   localApiKeyPlaceholder: 'API-ключ (необязательно — только если ваш эндпоинт его требует)',
+  localModelNamePlaceholder: 'Название модели (например, command-a-plus-05-2026)',
   couldNotSave: 'Не удалось сохранить учётные данные.',
   connecting: 'Подключение',
   update: 'Обновить',

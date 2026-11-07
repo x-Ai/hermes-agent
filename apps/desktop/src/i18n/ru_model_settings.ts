@@ -35,6 +35,8 @@ export const ruModelSettings: TranslationOverride<ModelSettingsTranslations> = {
   provider: 'Провайдер',
   model: 'Модель',
   applying: 'Применение...',
+  mainAppliedTitle: 'Основная модель обновлена',
+  mainAppliedMessage: model => `Новые сеансы будут использовать ${model}.`,
   defaultsLabel: 'По умолчанию',
   reasoning: 'Рассуждения',
   reasoningOff: 'Выкл',
