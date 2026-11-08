@@ -27,7 +27,7 @@
 
 1. **Prepare（只有仓库读取权限）**：获取 upstream main，分页枚举发布时间不早于起始时间的公开 Release，跳过草稿和已存在的 fork Release。上游标签抓取到独立 Git 命名空间，避免覆盖 fork 同名标签。
 2. 把尚未包含的 upstream main 分成**有界的步骤**逐步合并，见下文「分步合并与时间预算」；main 合并完后再合并尚未包含的 Release 提交。每一步都执行真实 Git 合并，即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
-3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
+3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。测试只能写入任务设置的临时 `HERMES_HOME`，托管 runner 起始时也没有账户默认的 Hermes 主目录；若 `~/.hermes` 在测试期间出现，说明某个测试的子进程没有隔离 `HERMES_HOME`（见 `tests/AGENTS.md`），该分片判定失败。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
 自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 120/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。

@@ -460,9 +460,19 @@ def run_shard(repository: str, artifacts: Path, shard: int) -> None:
     argv = [*config()["tests"]["command"], "--files-from", str(artifacts / "tests.txt"),
             "--slice", f"{shard}/{total}"]
     print("Tests:", " ".join(argv), flush=True)
+    # Tests must never write the account's own Hermes home (tests/AGENTS.md), and the suite's
+    # in-process guard cannot see the children they spawn. The job tests under a temporary
+    # HERMES_HOME on a runner that starts without the default home, so one that appears during
+    # the run came from a test. A home that already existed (a developer machine) is not judged.
+    account_home = Path.home() / ".hermes"
+    preexisting = account_home.exists()
     subprocess.run(argv, timeout=3600, check=True)
     if output("diff", "HEAD", "--name-only"):
         raise RuntimeError("Tests modified tracked candidate files")
+    if not preexisting and account_home.exists():
+        entries = ", ".join(sorted(entry.name for entry in account_home.iterdir()))
+        raise RuntimeError(f"Tests wrote the real Hermes home {account_home} ({entries}): a test's"
+                           " child process ran without an isolated HERMES_HOME")
 
 
 def publish(artifacts: Path, repository: str) -> None:

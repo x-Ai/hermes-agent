@@ -522,3 +522,29 @@ def test_only_whitespace_the_resolution_wrote_blocks_the_merge(controller, docum
         with pytest.raises(RuntimeError, match=error):
             controller.merge_one(step(upstream), {"agent": {}}, "rules", later())
         assert git(root, "rev-parse", "HEAD") == fork
+
+
+def test_shard_fails_when_its_tests_create_the_account_hermes_home(controller, history, tmp_path, monkeypatch):
+    _, common, _, fork = history
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    data = dict(repository="owner/repo", base=common, candidate=fork, upstream=common, changed=True,
+                releases=[], tests=dict(mode="selected", files=1, weight=1, shards=1))
+    (artifacts / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    account = tmp_path / "account"
+    account.mkdir()
+    monkeypatch.setattr(Path, "home", lambda: account)
+    real = subprocess.run
+
+    def run(argv, **kwargs):
+        if argv[0] != "bash":
+            return real(argv, **kwargs)
+        # What a test's child process without an isolated HERMES_HOME leaves behind.
+        (account / ".hermes" / "sessions").mkdir(parents=True, exist_ok=True)
+        return subprocess.CompletedProcess(argv, 0)
+
+    monkeypatch.setattr(controller.subprocess, "run", run)
+    with pytest.raises(RuntimeError, match=r"real Hermes home .*\(sessions\)"):
+        controller.run_shard("owner/repo", artifacts, 1)
+    # A home that existed before the run (a developer machine's own install) is not judged.
+    controller.run_shard("owner/repo", artifacts, 1)
