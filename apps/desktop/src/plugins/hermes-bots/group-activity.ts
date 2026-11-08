@@ -10,6 +10,7 @@
 import { atom } from '@hermes/plugin-sdk'
 
 import { $groupChats, groupSpeakerLabel } from './group-chat'
+import { groupReasonText } from './group-reason-text'
 import { botsText, type BotsText } from './i18n'
 import type { GroupActivityEvent, GroupActivityKind } from './types'
 
@@ -161,7 +162,9 @@ export function groupActivityLabel(event: GroupActivityEntry, group?: null | str
     return `${who} ${labels.activitySlotWait}`
   }
 
-  return `${who} ${base}${reason ? ` — ${reason}` : ''}`
+  const detail = groupReasonText(reason, botsText().canonical)
+
+  return `${who} ${base}${detail ? ` — ${detail}` : ''}`
 }
 
 const GROUP_ACTIVITY_LABELS = {

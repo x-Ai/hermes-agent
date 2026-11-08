@@ -86,7 +86,9 @@ export function LegacyRoomTitle({
           <Codicon name="organization" />
         </span>
       )}
-      <span className="min-w-0 truncate">{group}</span>
+      <span className="min-w-0 truncate" title={group}>
+        {group}
+      </span>
       <Tip label={memberNames}>
         <span
           aria-label={availabilityLabel}

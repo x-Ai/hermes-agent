@@ -20,6 +20,8 @@ import {
 } from '@hermes/plugin-sdk'
 import type { ComponentProps, FormEvent, ReactNode } from 'react'
 
+import type { GroupReasonMessages } from './group-reason-locales'
+import { groupReasonText } from './group-reason-text'
 import { formatElapsed, type MemberStatus, type RoomCycle } from './group-room-status'
 
 /** The Chat Text Size scope the session transcript and composer get from `styles.css`, for the room's
@@ -31,7 +33,7 @@ export const ROOM_TEXT_SCALE =
 export const fill = (template: string, values: Record<string, number | string>) =>
   template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? ''))
 
-export interface RoomStatusLabels {
+export interface RoomStatusLabels extends GroupReasonMessages {
   statusWorking: string
   statusStalled: string
   memberQueued: string
@@ -78,10 +80,12 @@ const STATUS_WORD: Record<MemberStatus['kind'], keyof RoomStatusLabels> = {
 }
 
 /** One grammar for every member: a status word or the tool, then time.
- *  `terminal · 1m20s`, `working · 12s`, `no progress for 2m05s`, `failed · rate_limited`, `idle`. */
+ *  `terminal · 1m20s`, `working · 12s`, `no progress for 2m05s`, `failed · <reason>`, `idle`. */
 export function memberStatusText(status: MemberStatus, labels: RoomStatusLabels): string {
   if (status.kind === 'working' || status.kind === 'stalled') {
-    const elapsed = status.elapsedS !== undefined ? formatElapsed(status.elapsedS) : undefined
+    const elapsed =
+      status.kind === 'working' && status.elapsedS !== undefined ? formatElapsed(status.elapsedS) : undefined
+
     const lead =
       status.kind === 'stalled' ? fill(labels.statusStalled, { time: formatElapsed(status.quietS ?? 0) }) : ''
 
@@ -89,7 +93,11 @@ export function memberStatusText(status: MemberStatus, labels: RoomStatusLabels)
   }
 
   const word = labels[STATUS_WORD[status.kind]]
-  const reason = 'reason' in status ? status.reason : undefined
+
+  const reason =
+    'reason' in status
+      ? groupReasonText(status.reason, labels) || groupReasonText(status.detail?.split('\n')[0], labels)
+      : ''
 
   return reason ? `${word} · ${reason}` : word
 }
@@ -111,7 +119,7 @@ export function MemberStatusChip({
 }) {
   const busy = status.kind === 'working' || status.kind === 'stalled'
   const text = memberStatusText(status, labels)
-  const detail = 'detail' in status && status.detail ? status.detail : undefined
+  const detail = 'detail' in status ? groupReasonText(status.detail, labels) : ''
 
   return (
     <Tip label={detail ? `${name} · ${detail}` : `${name} · ${text}`}>
@@ -199,6 +207,7 @@ export function RoomMessage({
             isUser && 'w-fit max-w-full rounded-xl border border-(--ui-stroke-tertiary) bg-(--dt-user-bubble) px-3 py-2'
           )}
           data-selectable-text="true"
+          dir="auto"
         >
           {children}
         </div>
@@ -386,20 +395,22 @@ export function RoomHeader({
             </Tip>
           )}
           {onTitle ? (
-            <Tip label={titleLabel}>
+            <Tip label={typeof title === 'string' ? title : titleLabel}>
               <Button
                 aria-expanded={titleExpanded}
                 aria-label={titleLabel}
-                className="min-w-0 rounded-md px-1 text-[0.9375rem] font-semibold text-foreground hover:bg-(--chrome-action-hover)"
+                className="min-w-0 flex-1 shrink justify-start overflow-hidden rounded-md px-1 text-[0.9375rem] font-semibold text-foreground hover:bg-(--chrome-action-hover)"
                 onClick={onTitle}
                 size="inline"
                 variant="text"
               >
-                <span className="truncate">{title}</span>
+                <span className="min-w-0 truncate" title={typeof title === 'string' ? title : undefined}>
+                  {title}
+                </span>
               </Button>
             </Tip>
           ) : (
-            <h2 className="min-w-0 truncate px-1 text-[0.9375rem] font-semibold text-foreground">{title}</h2>
+            <h2 className="min-w-0 flex-1 truncate px-1 text-[0.9375rem] font-semibold text-foreground">{title}</h2>
           )}
           <div className="ml-auto flex shrink-0 items-center gap-0.5">
             {working && onStop && (

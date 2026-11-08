@@ -315,7 +315,8 @@ it.each(['header', 'sidebar'].flatMap(entry => ['empty', 'another room', 'peer u
     fireEvent.click(await screen.findByRole('button', { name: 'Disband Team' }))
   } else {
     fireEvent.contextMenu(await screen.findByRole('button', { name: 'Team' }))
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+    // Upstream names the roster row's action Disband, like the room header's.
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Disband' }))
   }
 
   const confirm = within(await screen.findByRole('dialog')).getByRole('button', { name: 'Disband' })

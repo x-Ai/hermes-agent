@@ -695,7 +695,7 @@ export function GroupRow({ active, group, members, needsYou, onOpen, onDisband, 
             })
           }
         >
-          {b.group.deleteAction}
+          {b.group.disbandAction}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

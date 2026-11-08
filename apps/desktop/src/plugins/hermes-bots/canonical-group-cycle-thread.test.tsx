@@ -46,6 +46,35 @@ it('names only the running members of the thread whose round the strip shows', (
   )
 })
 
+it.each([
+  { pending_actions: [{ kind: 'retry' }] },
+  { pending_actions: [{ kind: 'approval' }] },
+  { pending_actions: [{ kind: 'discard' }] },
+  { counts: { deferred: 1 } }
+])('hides a settled footer until unresolved work is cleared: %j', driver => {
+  const labels = CANONICAL_GROUP_LOCALES.en
+
+  const events: RoomLogEvent[] = [
+    { seq: 1, event_id: 'd', kind: 'message.user', payload: {} },
+    {
+      seq: 2,
+      kind: 'turn.deferred',
+      payload: { member_id: 'a', discussion_event_id: 'd', reason: 'member_unavailable' }
+    },
+    { seq: 3, kind: 'room.activity', payload: { discussion_event_id: 'd', status: 'settled' } }
+  ]
+
+  const props = { cycle: roomCycle(events, []), labels, members, statuses: new Map() }
+  const view = render(<CanonicalGroupCycle {...props} driver={driver} />)
+  expect(view.queryByRole('status')).toBeNull()
+  view.rerender(<CanonicalGroupCycle {...props} driver={{ pending_actions: [], counts: { deferred: 0 } }} />)
+  expect(view.getByRole('status').textContent).toBe(labels.cycleSettled)
+  view.rerender(
+    <CanonicalGroupCycle {...props} cycle={{ kind: 'working', round: 1, members: ['a'] }} driver={driver} />
+  )
+  expect(view.getByRole('status').textContent).toContain('Round 1')
+})
+
 function strip(
   events: RoomLogEvent[],
   activity: { member_id: string; status: string; thread_id: string; round_index: number }[]

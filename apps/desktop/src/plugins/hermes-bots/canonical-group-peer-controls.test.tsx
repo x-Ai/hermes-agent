@@ -197,7 +197,7 @@ it('offers only Retry for a deferred turn on another local profile', async () =>
   render(<CanonicalGroupWorkspace binding={binding} />)
   expect(await screen.findByRole('button', { name: 'Retry' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Discard' })).toBeNull()
-  expect(screen.getByText('reviewer’s turn has not finished. Retry it?')).toBeTruthy()
+  expect(screen.getByText('reviewer’s turn didn’t finish here. Retry it?')).toBeTruthy()
 })
 
 it('shows completed Stop only after the gateway has no waiting work', async () => {
