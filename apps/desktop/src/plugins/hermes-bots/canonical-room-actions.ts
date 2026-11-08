@@ -15,7 +15,8 @@ import {
   canonicalGroupRequest,
   type CanonicalGroupRoute,
   type CanonicalRoomContext,
-  createCanonicalGroup
+  createCanonicalGroup,
+  disbandCanonicalGroup
 } from './canonical-groups'
 import { ROOM_ATTACHMENTS_FEATURE, uploadCanonicalAttachments } from './canonical-room-attachments'
 import {
@@ -363,26 +364,28 @@ export async function saveCanonicalRoomSettings(
   return draft.context ? setCanonicalRoomContext(group, room, draft.context) : true
 }
 
+/** Disband a hosted room. Only the gateway's matching tombstone proves the room ended
+ *  (upstream's disbandCanonicalGroup): a refusal or an unconfirmed answer keeps the room, its
+ *  record and the open pane, and rejects with the reader's-language reason, so the confirm
+ *  dialog stays open and says why. */
 export async function disbandCanonicalRoom(group: string, room: GroupChatRoom): Promise<boolean> {
   const binding = canonicalOf(room)
+  const labels = botsText().canonical
 
-  try {
-    await canonicalGroupRequest(binding, 'groups.disband', { cancel_id: randomUuid(), room_id: binding.roomId })
-    forgetCanonicalRoom(group)
-
-    // This fork renders a hosted room through the legacy view, not upstream's
-    // CanonicalGroupWorkspace, so no onBack fires to leave the open room: a
-    // disbanded room would keep the pane pointed at a record that no longer exists.
-    if ($groupChatWorkspace.get() === group) {
-      $groupChatWorkspace.set(null)
-    }
-
-    return true
-  } catch (error) {
-    failAction(error)
-
-    return false
+  if (!(await disbandCanonicalGroup(binding, labels))) {
+    throw new Error(labels.disbandUnconfirmed)
   }
+
+  forgetCanonicalRoom(group)
+
+  // This fork renders a hosted room through the legacy view, not upstream's
+  // CanonicalGroupWorkspace, so no onBack fires to leave the open room: a
+  // disbanded room would keep the pane pointed at a record that no longer exists.
+  if ($groupChatWorkspace.get() === group) {
+    $groupChatWorkspace.set(null)
+  }
+
+  return true
 }
 
 /** Whether New group chat can create a gateway-hosted room for these members on this route. */

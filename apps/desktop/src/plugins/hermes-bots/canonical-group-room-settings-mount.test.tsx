@@ -40,7 +40,7 @@ afterEach(() => {
   window.hermesDesktop = originalDesktop
 })
 
-it('shows the room purpose and its Room settings control in the Group details panel', async () => {
+it('shows the room purpose and its Group chat settings control in the Group details panel', async () => {
   const binding = { connectionId: 'local', profile: 'team', roomId: 'with-purpose' }
   const members = [{ member_id: 'ops', profile: 'ops', handle: 'ops', display_name: 'Ops' }]
 
@@ -61,5 +61,5 @@ it('shows the room purpose and its Room settings control in the Group details pa
   const details = await screen.findByRole('complementary', { name: 'Group details' })
 
   expect(within(details).getByText('Ship the release')).toBeTruthy()
-  expect((within(details).getByRole('button', { name: 'Room settings' }) as HTMLButtonElement).disabled).toBe(false)
+  expect((within(details).getByRole('button', { name: 'Group chat settings' }) as HTMLButtonElement).disabled).toBe(false)
 })

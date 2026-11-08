@@ -16,17 +16,23 @@ vi.mock('@hermes/plugin-sdk', async () => {
 
   return pluginSdkMock(host)
 })
-vi.mock('./i18n', () => ({
-  botsText: () => ({
-    group: {
-      canonicalActionFailed: (error: string) => `act:${error}`,
-      canonicalAttachmentsUnsupported: (group: string) => `files:${group}`,
-      canonicalSendFailed: (error: string) => `send:${error}`,
-      routedAttachmentsBlocked: (group: string) => `blocked:${group}`
-    }
-  })
-}))
+vi.mock('./i18n', async () => {
+  const { CANONICAL_GROUP_LOCALES } = await import('./canonical-group-locales')
 
+  return {
+    botsText: () => ({
+      canonical: CANONICAL_GROUP_LOCALES.en,
+      group: {
+        canonicalActionFailed: (error: string) => `act:${error}`,
+        canonicalAttachmentsUnsupported: (group: string) => `files:${group}`,
+        canonicalSendFailed: (error: string) => `send:${error}`,
+        routedAttachmentsBlocked: (group: string) => `blocked:${group}`
+      }
+    })
+  }
+})
+
+import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import {
   canCreateCanonicalRoom,
@@ -38,7 +44,7 @@ import {
   stopCanonicalRoom
 } from './canonical-room-actions'
 import { _resetCanonicalRoomSyncForTests, syncCanonicalRoom } from './canonical-room-sync'
-import { $groupChats } from './group-chat'
+import { $groupChats, $groupChatWorkspace } from './group-chat'
 import { stopGroupThread } from './group-rounds'
 
 const binding = { connectionId: 'local', profile: 'default', roomId: 'r1' }
@@ -95,6 +101,10 @@ function script(
 
       case 'groups.create':
         return { room: { ...ROOM, room_id: 'r2', name: String(params.name) } }
+
+      // The gateway's proof that the room ended (tui_gateway/methods_groups.py).
+      case 'groups.disband':
+        return { tombstone: { room_id: params.room_id, disbanded_at: 1 } }
 
       default:
         return {}
@@ -292,6 +302,30 @@ describe('room mutations', () => {
     expect(calls.find(([method]) => method === 'groups.disband')?.[1]).toMatchObject({ room_id: 'r1' })
     expect($groupChats.get()[KEY]).toBeUndefined()
     expect($canonicalGroupBindings.get()[KEY]).toBeUndefined()
+  })
+
+  // Upstream 5a9381988a: a resolved Disband without this room's tombstone, or a refusal, proves
+  // nothing ended. The room, its binding and the open pane stay; the confirm dialog shows why.
+  it.each([
+    ['no tombstone', () => ({}), CANONICAL_GROUP_LOCALES.en.disbandUnconfirmed],
+    ['another room', () => ({ tombstone: { room_id: 'r9', disbanded_at: 1 } }), CANONICAL_GROUP_LOCALES.en.disbandUnconfirmed],
+    [
+      'a refusal',
+      () => Promise.reject(Object.assign(new Error('refused'), { code: 4001, data: { reason: 'room_stop_pending' } })),
+      CANONICAL_GROUP_LOCALES.en.disbandKept.replace('{reason}', CANONICAL_GROUP_LOCALES.en.disbandStopPending)
+    ]
+  ])('disband keeps the room after %s and rejects with the reason', async (_case, answer, words) => {
+    script({ 'groups.disband': answer })
+    await syncCanonicalRoom(KEY, binding)
+    $canonicalGroupBindings.set({ [KEY]: binding })
+    $groupChatWorkspace.set(KEY)
+    const room = $groupChats.get()[KEY]
+
+    await expect(disbandCanonicalRoom(KEY, room)).rejects.toThrow(words)
+    expect($groupChats.get()[KEY]).toEqual(room)
+    expect($canonicalGroupBindings.get()[KEY]).toEqual(binding)
+    expect($groupChatWorkspace.get()).toBe(KEY)
+    expect(host.notify).not.toHaveBeenCalled()
   })
 })
 

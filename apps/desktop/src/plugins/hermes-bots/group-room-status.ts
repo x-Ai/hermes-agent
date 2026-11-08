@@ -182,7 +182,7 @@ export type RoomCycle =
       maxRounds?: number
       /** The live members of the thread `round` is from. */ members: string[]
     }
-  | { kind: 'bounded' | 'messageCap' | 'settled' | 'stopped' }
+  | { kind: 'bounded' | 'messageCap' | 'settled' | 'stopped' | 'stopRequested' }
 
 const ENDING: Record<string, (event: RoomLogEvent) => RoomCycle | null> = {
   'room.activity': event =>
@@ -191,7 +191,7 @@ const ENDING: Record<string, (event: RoomLogEvent) => RoomCycle | null> = {
       : event.payload.status === 'bounded'
         ? { kind: event.payload.reason_code === 'max_messages' ? 'messageCap' : 'bounded' }
         : null,
-  'room.stop_requested': () => ({ kind: 'stopped' })
+  'room.stop_requested': () => ({ kind: 'stopRequested' })
 }
 
 const ended = (events: readonly RoomLogEvent[], discussion: string | undefined): RoomCycle | null => {
@@ -250,7 +250,8 @@ export function roomCycle(
   events: readonly RoomLogEvent[],
   activity: readonly RoomMemberActivity[] | undefined,
   maxRounds?: number | null,
-  focus: string | undefined = focusThread(events)
+  focus: string | undefined = focusThread(events),
+  stopConfirmed = false
 ): RoomCycle | null {
   const discussions = threadDiscussions(events)
 
@@ -261,7 +262,9 @@ export function roomCycle(
   const rows = activity ?? []
 
   if (!rows.length) {
-    return ended(events, focus === undefined ? undefined : discussions.get(focus))
+    const cycle = ended(events, focus === undefined ? undefined : discussions.get(focus))
+
+    return cycle?.kind === 'stopRequested' && stopConfirmed ? { kind: 'stopped' } : cycle
   }
 
   // One thread owns the strip, so its round and the names beside it agree: the focused thread when it has

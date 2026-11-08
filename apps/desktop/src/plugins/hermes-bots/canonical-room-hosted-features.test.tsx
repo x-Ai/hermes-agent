@@ -336,7 +336,7 @@ it("Group settings saves a hosted room's purpose, notes and routing on its gatew
   await openRoom(state)
 
   fireEvent.click(screen.getByRole('button', { name: botsText().group.settingsLabel('Release room') }))
-  const purpose = await screen.findByPlaceholderText('What this room is for, in one line')
+  const purpose = await screen.findByPlaceholderText('What this group chat is for, in one line')
   expect((purpose as HTMLInputElement).value).toBe('Ship v2')
   expect((screen.getByPlaceholderText('Facts every member should keep in mind') as HTMLTextAreaElement).value).toBe(
     'Fridays only'
@@ -380,7 +380,7 @@ it("Save leaves a hosted room's name, purpose, notes and routing alone when the 
   await openRoom(state)
 
   fireEvent.click(screen.getByRole('button', { name: botsText().group.settingsLabel('Release room') }))
-  await screen.findByPlaceholderText('What this room is for, in one line')
+  await screen.findByPlaceholderText('What this group chat is for, in one line')
   expect((screen.getByRole('textbox', { name: botsText().group.nameLabel }) as HTMLInputElement).value).toBe(
     'Release room'
   )
@@ -432,5 +432,5 @@ it('Group settings offers no purpose, notes or routing where the gateway does no
   await screen.findByRole('button', { name: 'Save' })
 
   expect(screen.queryByTestId('group-settings-hosted-context')).toBeNull()
-  expect(screen.queryByPlaceholderText('What this room is for, in one line')).toBeNull()
+  expect(screen.queryByPlaceholderText('What this group chat is for, in one line')).toBeNull()
 })

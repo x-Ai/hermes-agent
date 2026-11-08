@@ -47,6 +47,7 @@ export interface RoomStatusLabels {
   cycleBounded: string
   cycleMessageCap: string
   cycleStopped: string
+  roomStopped: string
   typing: string
   typingTool: string
 }
@@ -286,7 +287,8 @@ export function roomCycleText(cycle: RoomCycle, labels: RoomStatusLabels, workin
           settled: 'cycleSettled',
           bounded: 'cycleBounded',
           messageCap: 'cycleMessageCap',
-          stopped: 'cycleStopped'
+          stopped: 'cycleStopped',
+          stopRequested: 'roomStopped'
         } as const
       )[cycle.kind]
     ]
