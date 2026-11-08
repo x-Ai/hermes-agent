@@ -906,7 +906,10 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         setComposerDraft(next)
         host.notify({
           kind: 'success',
-          message: `${Number(request.count) || attachments.length} Browser comment${Number(request.count) === 1 ? '' : 's'} added to ${groupChatDisplayName(group, $groupChats.get()[group])}. Review the New Thread draft before sending.`
+          message: botsText().group.browserCommentsAdded(
+            Number(request.count) || attachments.length,
+            groupChatDisplayName(group, $groupChats.get()[group])
+          )
         })
         send({
           ok: true,
@@ -1235,9 +1238,9 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
   )
 
   // #91359: recognized @mentions render as inline references; recomputed
-  // only when the roster changes since the classifier consults the members.
-  const mentionComponents = useMemo(() => groupMentionComponents(members), [members])
-  const mentionText = useMemo(() => groupMentionText(members), [members])
+  // when the roster or the translated tooltip labels change.
+  const mentionComponents = useMemo(() => groupMentionComponents(members, b.group), [members, b.group])
+  const mentionText = useMemo(() => groupMentionText(members, b.group), [members, b.group])
 
   // #89883: answer ONE bot from its message. Seeds `@tag ` into the composer
   // that owns this entry's thread — the open reply box when it is this
@@ -1683,7 +1686,7 @@ export function openGroupChat(group: string, origin: CanonicalGroupOrigin): void
   })
   recordGroupOpenOrigin(group, origin)
   const ownerKey = groupWorkspaceOwnerKey(group)
-  setBotsWorkspaceOwner(ownerKey, null, 'New group conversations start in the group composer.')
+  setBotsWorkspaceOwner(ownerKey, null, botsText().group.startInComposer())
 
   // #93813: what reached the members' room sessions while nobody drove them
   // (a Bot posting reports into its own session, a CLI resume) is posted as

@@ -4,7 +4,16 @@
 
 import { type CanonicalGroupMessages } from './canonical-group-locales'
 import { type CrossGatewayGroupMessages } from './cross-gateway-locales'
+import { type GroupChatMessages } from './group-chat-locales'
 import { type GroupCreateCopy } from './i18n_group_create'
+import type { RosterChromeMessages } from './roster-chrome-locales'
+
+/** The fork's `group` keys win where upstream's shared group chat table (`GroupChatMessages`)
+ *  reuses a name with another shape (`createAction(count)`, `deleted`);
+ *  every other upstream key joins the block unchanged. */
+type GroupBlock<Own> = Own & {
+  [K in Exclude<keyof GroupChatMessages, keyof GroupCreateCopy | keyof Own>]: GroupChatMessages[K]
+}
 
 export type BotsMessages = {
   canonical: { [K in keyof CanonicalGroupMessages]: string }
@@ -78,7 +87,7 @@ export type BotsMessages = {
     created: (name: string) => string
     createdOn: (name: string, target: string) => string
   }
-  roster: {
+  roster: { [K in keyof RosterChromeMessages]: RosterChromeMessages[K] } & {
     search: string
     searchPlaceholder: string
     newBotOrGroup: string
@@ -308,7 +317,7 @@ export type BotsMessages = {
     noPetMatches: string
   }
   /** Group chats: the room, its composer, threads and activity feed. */
-  group: GroupCreateCopy & {
+  group: GroupCreateCopy & GroupBlock<{
     newTitle: string
     manageDesc: string
     manageTitle: string
@@ -346,39 +355,16 @@ export type BotsMessages = {
     noActivityYet: string
     showActivity: string
     hideActivity: string
-    activityActorBot: string
-    activityDidSomething: string
-    activityBy: (member: string, action: string) => string
-    activitySlotWait: (member: string) => string
-    activityLabels: Record<
-      | 'queued'
-      | 'working'
-      | 'replied'
-      | 'passed'
-      | 'timedOut'
-      | 'failed'
-      | 'cancelled'
-      | 'settled'
-      | 'capped'
-      | 'delivered'
-      | 'held'
-      | 'stopped',
-      string
-    >
     stop: string
     stopHint: string
-    allHeldStatus: (count: number) => string
     heldMembersStatus: (members: string) => string
     holdReleaseHint: string
     needsYourInput: string
     noMembersToSend: (group: string) => string
     pictureGenerationFailed: string
     nameTaken: (name: string) => string
-    memberCount: (count: number) => string
     /** The reader's own lines in a room: the transcript speaker and the roster preview. */
     you: string
-    /** How many of a room's members are reachable right now. */
-    availableCount: (available: number, total: number) => string
     settingsHint: (group: string) => string
     settingsLabel: (group: string) => string
     disbandHint: (group: string) => string
@@ -387,10 +373,6 @@ export type BotsMessages = {
     disbanding: string
     disbandDone: string
     disbanded: (group: string) => string
-    /** Wraps the bolded group name, so the name can lead the sentence in
-     *  languages that put it there — see core's cron.deleteDesc* pair. */
-    disbandDescPrefix: string
-    disbandDescSuffix: (count: number) => string
     stopped: (group: string) => string
     removeAttachment: string
     threadFallback: string
@@ -434,7 +416,7 @@ export type BotsMessages = {
     attachmentFailed: (file: string, member: string) => string
     emptyResponse: string
     noFreeName: string
-  }
+  }>
   /** Skills hub + MCP setup surfaces embedded in the bot editor. */
   tools: {
     installHint: (name: string) => string

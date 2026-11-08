@@ -32,15 +32,15 @@ it('botsText() follows a locale switch through the onLocaleChange reset', () => 
 
   setRuntimeI18nLocale('en')
   const english = botsText()
-  const englishLeaf = english.group.activityLabels.queued
+  const englishLeaf = english.group.activityQueued
   const englishFn = english.roster.newMessageFor('X')
 
   setRuntimeI18nLocale('zh')
   const chinese = botsText()
 
   expect(chinese).not.toBe(english)
-  expect(chinese.group.activityLabels.queued).toBe(i18n.t('group.activityLabels.queued'))
-  expect(chinese.group.activityLabels.queued).not.toBe(englishLeaf)
+  expect(chinese.group.activityQueued).toBe(i18n.t('group.activityQueued'))
+  expect(chinese.group.activityQueued).not.toBe(englishLeaf)
   expect(chinese.roster.newMessageFor('X')).not.toBe(englishFn)
 
   // Same locale, same translator: the cache is reused, not rebuilt per call.

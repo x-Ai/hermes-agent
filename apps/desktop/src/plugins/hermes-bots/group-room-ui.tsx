@@ -15,7 +15,8 @@ import {
   GlyphSpinner,
   PRIMARY_ICON_BTN,
   relativeTime,
-  Tip
+  Tip,
+  useI18n
 } from '@hermes/plugin-sdk'
 import type { ComponentProps, FormEvent, ReactNode } from 'react'
 
@@ -168,6 +169,8 @@ export function RoomMessage({
   isUser?: boolean
   timestampMs?: number
 }) {
+  const { locale } = useI18n()
+
   return (
     <div className="group/room-message flex items-start gap-3 py-2" data-room-message={isUser ? 'user' : 'member'}>
       <div className={cn(AVATAR_COLUMN, 'mt-0.5')}>{avatar}</div>
@@ -180,7 +183,7 @@ export function RoomMessage({
               className="shrink-0 text-[0.6875rem] tabular-nums text-(--ui-text-tertiary)"
               dateTime={new Date(timestampMs).toISOString()}
             >
-              {relativeTime(timestampMs)}
+              {relativeTime(timestampMs, undefined, locale)}
             </time>
           )}
           {actions && (

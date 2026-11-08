@@ -215,7 +215,7 @@ describe('turn arc', () => {
 
     expect(failed?.reason).toBe(room.activity.GROUP_SLOT_WAIT_REASON)
     expect(room.activity.groupActivityLabel(failed!, 'Slot wait')).toBe(
-      translateBots('group.activitySlotWait', 'builder')
+      `builder ${translateBots('group.activitySlotWait')}`
     )
     expect(room.data.$botAttention.get()).toEqual({})
   })

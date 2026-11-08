@@ -628,7 +628,7 @@ export default {
             setBotsWorkspaceOwner(
               groupWorkspaceOwnerKey(group),
               null,
-              'New group conversations start in the group composer.'
+              botsText().group.startInComposer()
             )
           } else if (selected) {
             setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)

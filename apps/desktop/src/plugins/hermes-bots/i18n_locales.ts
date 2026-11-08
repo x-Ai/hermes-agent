@@ -2,10 +2,15 @@ import { type PluginLocaleBundles } from '@hermes/plugin-sdk'
 
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
+import { GROUP_CHAT_LOCALES } from './group-chat-locales'
+import { GROUP_SURFACE_DE } from './group-surface-de'
+import { GROUP_SURFACE_ES } from './group-surface-es'
+import { GROUP_SURFACE_FR } from './group-surface-fr'
 import { type BotsMessages } from './i18n-messages'
 import { groupCreateCopy } from './i18n_group_create'
 import { zh, zhHant } from './i18n_locales_zh'
 import { arOverrides, type BotsBundleOverrides, ruOverrides } from './i18n_ru_ar'
+import { ROSTER_CHROME } from './roster-chrome-locales'
 
 export const en: BotsMessages = {
   canonical: CANONICAL_GROUP_LOCALES.en,
@@ -60,7 +65,7 @@ export const en: BotsMessages = {
     mcpHint:
       'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).',
     creating: 'Creating…',
-    createBot: 'Create Bot',
+    createBot: 'Create bot',
     auto: 'Auto',
     autoHint: 'Auto — the name decides',
     unlock: 'Unlock',
@@ -85,6 +90,7 @@ export const en: BotsMessages = {
     createdOn: (name, target) => `Bot "${name}" created on ${target}`
   },
   roster: {
+    ...ROSTER_CHROME['en'],
     search: 'Search bots and group chats',
     searchPlaceholder: 'Search bots and group chats…',
     newBotOrGroup: 'New bot or group chat',
@@ -169,8 +175,8 @@ export const en: BotsMessages = {
     helpPromptPlaceholder: 'What should this bot help with?',
     descriptionHint: 'Leave blank to generate from the bot’s name and description.',
     newChatWith: 'New chat with this bot',
-    openBotChat: 'Open Bot Chat',
-    openBotChatInNewTab: 'Open Bot Chat in new tab',
+    openBotChat: 'Open bot chat',
+    openBotChatInNewTab: 'Open bot chat in new tab',
     openingChat: 'Opening chat…',
     pinToTop: 'Pin to top',
     unpin: 'Unpin',
@@ -199,12 +205,12 @@ export const en: BotsMessages = {
     couldNotDeleteProfile: name => `Could not delete profile ${name}.`,
     deleteTitle: 'Delete bot and profile?',
     removeFromAllGroups: 'Remove from all groups',
-    createFirstHint: 'Open the Bots pane and hit “New Bot”.',
+    createFirstHint: 'Open the Bots pane and hit “New bot”.',
     createFailed: 'Could not create the profile yet',
     advanced: 'Advanced',
     advancedHint: 'Advanced — model, skills, toolsets, SOUL.md',
     advancedFailed: 'Advanced configuration failed',
-    openAnotherChatUnsupported: 'Update Hermes Desktop to open another Bot chat.',
+    openAnotherChatUnsupported: 'Update Hermes Desktop to open another bot chat.',
     remoteConnectionsUnsupported: 'Update Hermes Desktop to chat with bots on other connections.',
     storedSessionsUnsupported: 'This Hermes Desktop version cannot open stored sessions.',
     workspaceSelectionRequired: 'Select a bot or group first.',
@@ -248,7 +254,7 @@ export const en: BotsMessages = {
     mcpCopyHint:
       'Configured servers copy from the main profile; catalog entries are the bundled MCP menu. Entries needing API keys route through setup first (credentials follow the shared keys setting).',
     creating: 'Creating…',
-    createBot: 'Create Bot',
+    createBot: 'Create bot',
     openRecentSession: 'Open recent session',
     fullConfigNeedsNewerGateway: 'Full configuration needs a newer gateway (restart it after updating Hermes).',
     remoteCapabilitiesNeedNewerDesktop:
@@ -307,30 +313,31 @@ export const en: BotsMessages = {
     noPetMatches: 'No pets match.'
   },
   group: {
+    ...GROUP_CHAT_LOCALES.en,
     ...groupCreateCopy.en,
     newTitle: 'New group chat',
     manageDesc: 'A bot can join multiple group chats. Memberships sync to every machine.',
     manageTitle: 'Manage groups',
     settingsTitle: 'Group settings',
-    settingsDesc: 'Rename the group or set a room picture. Members and history are kept.',
+    settingsDesc: 'Rename the group or set a group chat picture. Members and history are kept.',
     nameLabel: 'Group name',
     holdDetection: 'Detect stop directives',
-    holdDetectionHint: 'Let room messages put addressed members on hold until they are mentioned again.',
+    holdDetectionHint: 'Let group chat messages put addressed members on hold until they are mentioned again.',
     compressHistory: 'Compress history',
     compressHistoryHint: (member: string) =>
-      `Compress ${member}'s hidden room history so the member stops failing with empty replies`,
-    compressing: (member: string) => `Compressing ${member}'s room history…`,
+      `Compress ${member}'s hidden group chat history so the member stops failing with empty replies`,
+    compressing: (member: string) => `Compressing ${member}'s group chat history…`,
     compressDone: (member: string, compressed: number, detail: string) =>
-      `Compressed ${compressed} room session${compressed === 1 ? '' : 's'} for ${member}${detail ? ` — ${detail}` : ''}`,
-    compressNothing: (member: string) => `Nothing to compress for ${member} — no room session yet`,
-    compressFailed: (member: string, error: string) => `Could not compress ${member}'s room history: ${error}`,
+      `Compressed ${compressed} group chat session${compressed === 1 ? '' : 's'} for ${member}${detail ? ` — ${detail}` : ''}`,
+    compressNothing: (member: string) => `Nothing to compress for ${member} — no group chat session yet`,
+    compressFailed: (member: string, error: string) => `Could not compress ${member}'s group chat history: ${error}`,
     searchToAdd: 'Search bots to add',
     searchToAddPlaceholder: 'Search bots to add…',
     removeFromSelection: 'Remove from selection',
     disbandTitle: 'Disband group chat?',
     deleteTitle: 'Delete group chat?',
     deleteAction: 'Delete',
-    composerPlaceholder: 'Say something — every bot in this group hears the room.',
+    composerPlaceholder: 'Say something — every bot in this group chat sees your message.',
     slashCommandsUnsupported:
       'Slash commands are not supported in group chats. Open an individual bot chat to use them.',
     attachmentFallback: 'attachment',
@@ -346,40 +353,19 @@ export const en: BotsMessages = {
     collapseThreadLabel: 'Collapse this thread',
     activity: 'Activity',
     noActivityYet: 'No activity in this turn yet.',
-    showActivity: 'Show room activity',
-    hideActivity: 'Hide room activity',
-    activityActorBot: 'A bot',
-    activityDidSomething: 'did something',
-    activityBy: (member, action) => `${member} ${action}`,
-    activitySlotWait: member => `${member} couldn't start — too many bots are running`,
-    activityLabels: {
-      queued: 'sent a message',
-      working: 'is working…',
-      replied: 'replied',
-      passed: 'passed',
-      timedOut: 'took too long',
-      failed: 'hit an error',
-      cancelled: 'turn interrupted by a newer message',
-      settled: 'turn settled',
-      capped: 'turn stopped at the round/message cap',
-      delivered: 'delivered a late reply',
-      held: 'is held (stopped by you) — @mention it or say resume to release',
-      stopped: 'stopped the room — remaining turns are held until resumed'
-    },
+    showActivity: 'Show group chat activity',
+    hideActivity: 'Hide group chat activity',
     stop: 'Stop',
     stopHint: 'Stop this run — interrupts the member on turn and holds the rest',
-    allHeldStatus: count => `All ${count} bots are paused`,
     heldMembersStatus: members => `Paused: ${members}`,
     holdReleaseHint: 'Mention a paused bot or send @all resume to release them.',
     needsYourInput: 'A bot in this group chat needs your input',
     noMembersToSend: group =>
-      `${group} has no members to send to — add a bot, or reopen the room if members are still loading.`,
+      `${group} has no members to send to — add a bot, or reopen the group chat if members are still loading.`,
     pictureGenerationFailed: 'Group picture generation failed',
     nameTaken: name => `A group named “${name}” already exists.`,
-    memberCount: count => `${count} bots`,
     you: 'You',
-    availableCount: (available, total) => `${available} of ${total} available`,
-    settingsHint: group => `Group settings — rename ${group} or set a room picture`,
+    settingsHint: group => `Group settings — rename ${group} or set a group chat picture`,
     settingsLabel: group => `Group settings for ${group}`,
     disbandHint: group => `Disband the ${group} group chat`,
     disbandLabel: group => `Disband ${group}`,
@@ -387,9 +373,6 @@ export const en: BotsMessages = {
     disbanding: 'Disbanding…',
     disbandDone: 'Disbanded',
     disbanded: group => `Disbanded “${group}”`,
-    disbandDescPrefix: 'This removes the ',
-    disbandDescSuffix: count =>
-      ` grouping from its ${count} bots and clears the shared room log. The bots themselves and their per-group sessions are kept.`,
     stopped: group => `Stopped ${group} — remaining turns are held until you resume`,
     removeAttachment: 'Remove attachment',
     threadFallback: 'Thread',
@@ -398,10 +381,10 @@ export const en: BotsMessages = {
     dropToRoom: 'Drop to attach — every responding bot sees it',
     waitingForAnswer: 'Waiting for your answer…',
     memberThinking: name => `${name} is thinking…`,
-    roomWorking: 'The room is working…',
+    roomWorking: 'The group chat is working…',
     messageRoom: group => `Message ${group}`,
     newThreadPlaceholder: group => `New thread in ${group}… (@name to direct, @everyone for all)`,
-    everyoneMeta: 'Every bot in the room',
+    everyoneMeta: 'Every bot in the group chat',
     commandApproval: 'command approval',
     answerFailed: (handle, error) => `Could not send the answer to @${handle}: ${error}`,
     wantsToRunCommand: handle => `@${handle} wants to run a command:`,
@@ -417,7 +400,7 @@ export const en: BotsMessages = {
     manageMembers: 'Manage members',
     manageMembersAria: 'Manage group members',
     manageMembersDescription: (max, group) =>
-      `Pick 2–${max} bots for “${group}”. The room, its history and its member sessions stay as they are.`,
+      `Pick 2–${max} bots for “${group}”. The group chat, its history and its member sessions stay as they are.`,
     manageMembersCount: count => `Manage members (${count})…`,
     cancel: 'Cancel',
     saveMembers: 'Save members',
@@ -430,7 +413,7 @@ export const en: BotsMessages = {
     deleting: 'Deleting…',
     deleted: 'Deleted',
     deleteDescription: name =>
-      `This removes “${name}” from its bots and clears the shared room log. The bots and their individual chats are kept.`,
+      `This removes “${name}” from its bots and clears the shared group chat history. The bots and their individual chats are kept.`,
     deletedGroup: name => `Deleted group “${name}”`,
     attachmentFailed: (file, member) => `Could not attach ${file} for ${member}`,
     emptyResponse:
@@ -706,6 +689,7 @@ const ja: BotsMessages = {
     createdOn: (name, target) => `${target} にボット「${name}」を作成しました`
   },
   roster: {
+    ...ROSTER_CHROME['ja'],
     search: 'ボットとグループチャットを検索',
     searchPlaceholder: 'ボットとグループチャットを検索…',
     newBotOrGroup: '新しいボットまたはグループチャット',
@@ -928,30 +912,31 @@ const ja: BotsMessages = {
     noPetMatches: 'ペットの試合はありません.'
   },
   group: {
+    ...GROUP_CHAT_LOCALES.ja,
     ...groupCreateCopy.ja,
     newTitle: '新しいグループチャット',
     manageDesc: 'ボットは複数のグループチャットに参加できます。メンバーシップはすべてのマシンに同期されます',
     manageTitle: 'グループを管理',
     settingsTitle: 'グループ設定',
-    settingsDesc: 'グループ名の変更や部屋の画像の設定ができます。メンバーと履歴は保持されます',
+    settingsDesc: 'グループ名の変更やグループチャットの画像の設定ができます。メンバーと履歴は保持されます',
     nameLabel: 'グループ名',
     holdDetection: '停止指示を検出',
-    holdDetectionHint: 'ルームのメッセージで、再びメンションされるまで対象メンバーを保留にします',
+    holdDetectionHint: 'グループチャットのメッセージで、再びメンションされるまで対象メンバーを保留にします',
     compressHistory: '履歴を圧縮',
     compressHistoryHint: (member: string) =>
-      `${member} の非表示のルーム履歴を圧縮し、空の応答で失敗しなくなるようにします`,
-    compressing: (member: string) => `${member} のルーム履歴を圧縮中…`,
+      `${member} の非表示のグループチャット履歴を圧縮し、空の応答で失敗しなくなるようにします`,
+    compressing: (member: string) => `${member} のグループチャット履歴を圧縮中…`,
     compressDone: (member: string, compressed: number, detail: string) =>
-      `${member} のルームセッション ${compressed} 件を圧縮しました${detail ? ` — ${detail}` : ''}`,
-    compressNothing: (member: string) => `${member} に圧縮する履歴はありません — ルームセッションがまだありません`,
-    compressFailed: (member: string, error: string) => `${member} のルーム履歴を圧縮できませんでした: ${error}`,
+      `${member} のグループチャットセッション ${compressed} 件を圧縮しました${detail ? ` — ${detail}` : ''}`,
+    compressNothing: (member: string) => `${member} に圧縮する履歴はありません — グループチャットセッションがまだありません`,
+    compressFailed: (member: string, error: string) => `${member} のグループチャット履歴を圧縮できませんでした: ${error}`,
     searchToAdd: '追加するボットを検索',
     searchToAddPlaceholder: '追加するボットを検索…',
     removeFromSelection: '選択から外す',
     disbandTitle: 'グループチャットを解散しますか？',
     deleteTitle: 'グループチャットを削除しますか？',
     deleteAction: '削除',
-    composerPlaceholder: '何か書いてください — このグループのすべてのボットが部屋の内容を受け取ります',
+    composerPlaceholder: '何か書いてください — このグループチャットのすべてのボットがメッセージを受け取ります',
     slashCommandsUnsupported:
       'グループチャットではスラッシュコマンドを使用できません。個別のボットチャットを開いて使用してください',
     attachmentFallback: '添付ファイル',
@@ -967,40 +952,19 @@ const ja: BotsMessages = {
     collapseThreadLabel: 'このスレッドを折りたたむ',
     activity: 'アクティビティ',
     noActivityYet: 'このターンのアクティビティはまだありません',
-    showActivity: '部屋のアクティビティを表示',
-    hideActivity: '部屋のアクティビティを隠す',
-    activityActorBot: 'ボット',
-    activityDidSomething: '何かを実行しました',
-    activityBy: (member, action) => `${member}が${action}`,
-    activitySlotWait: member => `${member}を開始できませんでした — 実行中のボットが多すぎます`,
-    activityLabels: {
-      queued: 'メッセージを送信しました',
-      working: '作業中…',
-      replied: '返信しました',
-      passed: 'パスしました',
-      timedOut: '時間がかかりすぎました',
-      failed: 'エラーが発生しました',
-      cancelled: '新しいメッセージでターンが中断されました',
-      settled: 'ターンが完了しました',
-      capped: 'ターンまたはメッセージ上限で停止しました',
-      delivered: '遅延した返信を配信しました',
-      held: '保留中です — @メンションまたは resume で解除できます',
-      stopped: 'ルームを停止しました — 再開するまで残りのターンは保留されます'
-    },
+    showActivity: 'グループチャットのアクティビティを表示',
+    hideActivity: 'グループチャットのアクティビティを隠す',
     stop: '停止',
     stopHint: 'この実行を停止 — ターン中のメンバーを中断し、残りを保留します',
-    allHeldStatus: count => `すべてのボット（${count}体）が一時停止中`,
     heldMembersStatus: members => `一時停止中: ${members}`,
     holdReleaseHint: '一時停止中のボットにメンションするか、@all resume を送信して再開します',
     needsYourInput: 'このグループチャットのボットが入力を待っています',
     noMembersToSend: group =>
-      `${group} に送信先のメンバーがいません。ボットを追加するか、メンバーの読み込み中であればルームを開き直してください`,
+      `${group} に送信先のメンバーがいません。ボットを追加するか、メンバーの読み込み中であればグループチャットを開き直してください`,
     pictureGenerationFailed: 'グループ画像の生成に失敗しました',
     nameTaken: name => `「${name}」という名前のグループはすでに存在します`,
-    memberCount: count => `ボット${count}体`,
     you: 'あなた',
-    availableCount: (available, total) => `${total}体中${available}体が利用可能`,
-    settingsHint: group => `グループ設定 — ${group}の名前変更やルーム画像の設定`,
+    settingsHint: group => `グループ設定 — ${group}の名前変更やグループチャット画像の設定`,
     settingsLabel: group => `${group}のグループ設定`,
     disbandHint: group => `${group}グループチャットを解散`,
     disbandLabel: group => `${group}を解散`,
@@ -1008,9 +972,6 @@ const ja: BotsMessages = {
     disbanding: '解散中…',
     disbandDone: '解散しました',
     disbanded: group => `「${group}」を解散しました`,
-    disbandDescPrefix: '',
-    disbandDescSuffix: count =>
-      `のグループ分けをボット${count}体から解除し、共有ルームログを消去します。ボット自体と各グループのセッションは保持されます`,
     stopped: group => `${group}を停止しました — 残りのターンは再開するまで保留されます`,
     removeAttachment: '添付を削除',
     threadFallback: 'スレッド',
@@ -1019,10 +980,10 @@ const ja: BotsMessages = {
     dropToRoom: 'ドロップして添付 — 応答するすべてのボットが見られます',
     waitingForAnswer: 'あなたの回答を待っています…',
     memberThinking: name => `${name}が考えています…`,
-    roomWorking: 'ルームが作業中です…',
+    roomWorking: 'グループチャットが作業中です…',
     messageRoom: group => `${group}にメッセージ`,
     newThreadPlaceholder: group => `${group}で新しいスレッド…（@名前で個別、@everyoneで全員）`,
-    everyoneMeta: 'ルーム内のすべてのボット',
+    everyoneMeta: 'グループチャット内のすべてのボット',
     commandApproval: 'コマンドの承認',
     answerFailed: (handle, error) => `@${handle}に回答を送信できませんでした: ${error}`,
     wantsToRunCommand: handle => `@${handle}がコマンドを実行しようとしています:`,
@@ -1038,7 +999,7 @@ const ja: BotsMessages = {
     manageMembers: 'メンバーの管理',
     manageMembersAria: 'グループメンバーの管理',
     manageMembersDescription: (max, group) =>
-      `「${group}」のボットを 2〜${max} 体選びます。ルーム、その履歴、メンバーのセッションはそのまま残ります`,
+      `「${group}」のボットを 2〜${max} 体選びます。グループチャット、その履歴、メンバーのセッションはそのまま残ります`,
     manageMembersCount: count => `メンバーの管理(${count})…`,
     cancel: 'キャンセル',
     saveMembers: 'メンバーの保存',
@@ -1051,7 +1012,7 @@ const ja: BotsMessages = {
     deleting: '削除中…',
     deleted: '削除されました',
     deleteDescription: name =>
-      `「${name}」をボットから外し、共有ルームログを消去します。ボットとそれぞれのチャットは残ります`,
+      `「${name}」をボットから外し、グループチャットの共有履歴を消去します。ボットとそれぞれのチャットは残ります`,
     deletedGroup: name => `グループ「${name}」を削除しました`,
     attachmentFailed: (file, member) => `添付できませんでした${file}〜のために${member}`,
     emptyResponse:
@@ -1271,6 +1232,33 @@ const ar = overlay({
   ...arOverrides
 })
 
+// Upstream's shared group chat surface (group-surface-*.ts) for French, German and Spanish, read
+// through this fork's key names where its dialogs ask for the same copy under another name or shape.
+const surface = (own: typeof GROUP_SURFACE_FR, chrome: (typeof ROSTER_CHROME)['fr']) => ({
+  ...own,
+  group: {
+    ...own.group,
+    createAction: (count: number) => (count ? `${own.group.createAction} (${count})` : own.group.createAction),
+    createdWith: own.group.created,
+    deleted: own.group.deletedLabel,
+    deletedGroup: own.group.deleted,
+    deleteDescription: own.group.deleteDesc,
+    groupNamePlaceholder: own.group.namePlaceholder,
+    inGroups: (groups: string[]) => own.group.memberGroups(groups.map(group => `“${group}”`).join(', ')),
+    manageMembersDescription: own.group.manageMembersDesc,
+    newGroupPlaceholder: own.group.newGroup,
+    noBotsYet: own.group.createBotFirst
+  },
+  roster: {
+    ...own.roster,
+    activeFilters: chrome.filtersActive,
+    activityToastsOff: chrome.toastsOff,
+    activityToastsOn: chrome.toastsOn,
+    filterRoster: chrome.filter,
+    filterRosterActive: chrome.filtersActive
+  }
+})
+
 /** Registered via `ctx.i18n.register` at plugin load (disposer tracked). */
 export const BOTS_LOCALES: PluginLocaleBundles = {
   ar,
@@ -1279,7 +1267,7 @@ export const BOTS_LOCALES: PluginLocaleBundles = {
   ru,
   zh,
   'zh-hant': zhHant,
-  fr: { canonical: CANONICAL_GROUP_LOCALES.fr, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.fr },
-  de: { canonical: CANONICAL_GROUP_LOCALES.de, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.de },
-  es: { canonical: CANONICAL_GROUP_LOCALES.es, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.es }
+  fr: { canonical: CANONICAL_GROUP_LOCALES.fr, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.fr, ...surface(GROUP_SURFACE_FR, ROSTER_CHROME.fr) },
+  de: { canonical: CANONICAL_GROUP_LOCALES.de, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.de, ...surface(GROUP_SURFACE_DE, ROSTER_CHROME.de) },
+  es: { canonical: CANONICAL_GROUP_LOCALES.es, crossGateway: CROSS_GATEWAY_GROUP_LOCALES.es, ...surface(GROUP_SURFACE_ES, ROSTER_CHROME.es) }
 }

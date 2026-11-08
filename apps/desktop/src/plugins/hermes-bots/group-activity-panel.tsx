@@ -5,7 +5,7 @@
  * `LegacyGroupChatWorkspace` (`group-chat-view.tsx`) to hold that function under its code-health caps.
  */
 
-import { Button, cn, Codicon, relativeTime, RowButton, Tip } from '@hermes/plugin-sdk'
+import { Button, cn, Codicon, relativeTime, RowButton, Tip, useI18n } from '@hermes/plugin-sdk'
 import { useState } from 'react'
 
 import { GROUP_ACTIVITY_GLYPHS, type GroupActivityEntry, groupActivityLabel, groupActivityTone } from './group-activity'
@@ -43,6 +43,7 @@ export function GroupActivityPanel({
   running: boolean
 }) {
   const b = useBots()
+  const { locale } = useI18n()
   // Opening it is always an explicit user action: it never steals focus and never auto-scrolls.
   const [open, setOpen] = useState(false)
   const latest = activity.length ? activity[activity.length - 1] : null
@@ -62,7 +63,7 @@ export function GroupActivityPanel({
           {summary ? (
             <span
               className={cn('min-w-0 flex-1 truncate', groupActivityTone(summary.kind))}
-            >{`${groupActivityLabel(summary, group)} · ${relativeTime(summary.at)}`}</span>
+            >{`${groupActivityLabel(summary, group)} · ${relativeTime(summary.at, undefined, locale)}`}</span>
           ) : null}
         </RowButton>
         {running ? (
@@ -86,7 +87,7 @@ export function GroupActivityPanel({
                 <span className={cn('min-w-0 flex-1 truncate', groupActivityTone(event.kind))}>
                   {groupActivityLabel(event, group)}
                 </span>
-                <span className="shrink-0 text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(event.at)}</span>
+                <span className="shrink-0 text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(event.at, undefined, locale)}</span>
                 {running && event.kind === 'working' ? (
                   <Tip label={b.group.stopHint}>
                     <Button className="shrink-0 text-(--ui-accent)" onClick={onStop} size="micro" variant="ghost">

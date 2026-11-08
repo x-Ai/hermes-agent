@@ -83,7 +83,7 @@ async function createWithMini({ rows, onCreated }: Awaited<ReturnType<typeof ope
   fireEvent.click(box(rows[1]))
   expect(await screen.findByText('Runs on this device, including when this Desktop is closed. Only text is sent to bots on other computers.')).toBeTruthy()
   fireEvent.change(screen.getByRole('textbox', { name: 'Group name' }), { target: { value: 'Team' } })
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' })) })
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
   await waitFor(() => expect(onCreated).toHaveBeenCalledOnce())
 }
 
@@ -168,7 +168,7 @@ it.each([
   fireEvent.click(box(rows[0]))
   fireEvent.click(box(rows[1]))
   expect(baseElement.querySelector('[data-group-engine="desktop"]')).toBeTruthy()
-  expect((screen.getByRole('button', { name: 'Create Group (2)' }) as HTMLButtonElement).disabled).toBe(false)
+  expect((screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement).disabled).toBe(false)
   expect(localOnly()).toBe(true)
 })
 
@@ -184,20 +184,20 @@ it.each([['owner', false], ['lender', false], ['seatable', false], ['owner', tru
     fireEvent.click(box(dialog.rows[1]))
     expect(dialog.baseElement.querySelector(`[data-group-engine="${enabled ? 'desktop' : 'gateway-peer'}"]`)).toBeTruthy()
     changed = true
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
     expect(request.mock.calls.some(call => call[1] === 'groups.create')).toBe(false)
     expect($groupChats.get()).toEqual({})
     expect(notify).toHaveBeenCalledWith(expect.objectContaining({ kind: 'error' }))
     expect(dialog.onCreated).not.toHaveBeenCalled()
 
     if (kind === 'seatable') {
-      expect((screen.getByRole('button', { name: 'Create Group (1)' }) as HTMLButtonElement).disabled).toBe(true)
+      expect((screen.getByRole('button', { name: 'Create group (1)' }) as HTMLButtonElement).disabled).toBe(true)
 
       return
     }
 
     await waitFor(() => expect(dialog.baseElement.querySelector(`[data-group-engine="${enabled ? 'gateway-peer' : 'desktop'}"]`)).toBeTruthy())
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
     expect(dialog.onCreated).toHaveBeenCalledOnce()
   })
 
@@ -366,7 +366,7 @@ it('retries a lost create reply with one immutable intent; changing the name or 
   fireEvent.click(box(dialog.rows[1]))
   const name = screen.getByRole('textbox', { name: 'Group name' })
   fireEvent.change(name, { target: { value: 'Team' } })
-  const submit = async () => act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Create Group/ })) })
+  const submit = async () => act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Create group/ })) })
   await submit()
   expect(notify).toHaveBeenCalledWith(expect.objectContaining({ kind: 'error' }))
   await act(async () => { (host.state.gateway as ReturnType<typeof HermesSdk.atom<string>>).set('closed') })
@@ -406,14 +406,14 @@ it.each(['owner', 'lender'])('keeps the draft and a working Retry after a failed
 
   if (failing === 'owner') {
     offline = true
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
     // Fork: creation never waits on the gateway here, so a Desktop room stays on offer while its
     // capabilities cannot be read; Retry reads them again.
     await waitFor(() => expect(dialog.baseElement.querySelector('[data-group-engine="desktop"]')).toBeTruthy())
-    expect((screen.getByRole('button', { name: 'Create Group (2)' }) as HTMLButtonElement).disabled).toBe(false)
+    expect((screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement).disabled).toBe(false)
   } else {
     expect(screen.getByText('Could not check Mac Mini. Retry to find out whether this group chat can run without Desktop.')).toBeTruthy()
-    expect((screen.getByRole('button', { name: 'Create Group (2)' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement).disabled).toBe(true)
     expect(dialog.baseElement.querySelector('[data-group-engine="desktop"]')).toBeNull()
   }
 
@@ -422,15 +422,14 @@ it.each(['owner', 'lender'])('keeps the draft and a working Retry after a failed
   await waitFor(() => expect(dialog.baseElement.querySelector('[data-group-engine="gateway-peer"]')).toBeTruthy())
   expect(name).toHaveProperty('value', 'Keep this draft')
   expect(request.mock.calls.filter(call => call[1] === 'groups.create')).toHaveLength(0)
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' })) })
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' })) })
   expect(dialog.onCreated).toHaveBeenCalledOnce()
 })
 
 it.each(Object.keys(CANONICAL_GROUP_LOCALES) as (keyof typeof CANONICAL_GROUP_LOCALES)[])('calls a duplicate-member refusal a group chat (%s)', language => {
-  // Fork: this fork's zh-hant, ar and ru Bot Mode copy words "group chat" as 群聊, المحادثة الجماعية and
-  // групповом чате.
-  const terms = { en: 'group chat', ja: 'グループチャット', zh: '群聊', 'zh-hant': '群聊', ar: 'المحادثة الجماعية',
-    ru: 'групповом чате', fr: 'discussion de groupe', de: 'Gruppenchat', es: 'chat de grupo' }
+  // Bot Mode names a group chat one way per language: 群組聊天 in zh-hant, محادثة المجموعة in ar.
+  const terms = { en: 'group chat', ja: 'グループチャット', zh: '群聊', 'zh-hant': '群組聊天', ar: 'محادثة المجموعة',
+    ru: 'группового чата', fr: 'discussion de groupe', de: 'Gruppenchat', es: 'chat de grupo' }
 
   const message = canonicalGroupCreateError({ canonicalGroupProblem: 'duplicateMember' }, CANONICAL_GROUP_LOCALES[language])
   expect(message).toContain(terms[language])

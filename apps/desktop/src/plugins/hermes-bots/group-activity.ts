@@ -10,7 +10,7 @@
 import { atom } from '@hermes/plugin-sdk'
 
 import { $groupChats, groupSpeakerLabel } from './group-chat'
-import { botsText } from './i18n'
+import { botsText, type BotsText } from './i18n'
 import type { GroupActivityEvent, GroupActivityKind } from './types'
 
 // ── group activity feed ─────────────────────────────────────────────────────
@@ -142,41 +142,42 @@ export function groupFailureDetail(message: unknown): string {
 export function groupActivityLabel(event: GroupActivityEntry, group?: null | string) {
   const b = botsText()
   const kind = event?.kind
+  const labels = b.group
 
-  const labels: Record<GroupActivityKind, string> = {
-    queued: b.group.activityLabels.queued,
-    working: b.group.activityLabels.working,
-    replied: b.group.activityLabels.replied,
-    passed: b.group.activityLabels.passed,
-    'timed-out': b.group.activityLabels.timedOut,
-    failed: b.group.activityLabels.failed,
-    cancelled: b.group.activityLabels.cancelled,
-    settled: b.group.activityLabels.settled,
-    capped: b.group.activityLabels.capped,
-    delivered: b.group.activityLabels.delivered,
-    held: b.group.activityLabels.held,
-    stopped: b.group.activityLabels.stopped
+  if (event?.member === 'You' && (kind === 'queued' || kind === 'stopped')) {
+    return kind === 'queued' ? labels.activityUserQueued : labels.activityUserStopped
   }
 
-  const base = labels[kind] || kind || b.group.activityDidSomething
+  const base = labels[GROUP_ACTIVITY_LABELS[kind]] || kind || labels.activityUnknown
 
   if (kind === 'cancelled' || kind === 'settled' || kind === 'capped') {
     return base
   }
 
-  const who =
-    event?.member === 'You' ? b.group.you : groupSpeakerLabel(event?.member || b.group.activityActorBot, group)
-
+  const who = event?.member === 'You' ? labels.you : groupSpeakerLabel(event?.member || labels.activityBot, group)
   const reason = kind === 'failed' ? String(event?.reason || '').trim() : ''
 
   if (kind === 'failed' && reason === GROUP_SLOT_WAIT_REASON) {
-    return b.group.activitySlotWait(who)
+    return `${who} ${labels.activitySlotWait}`
   }
 
-  const label = b.group.activityBy(who, base)
-
-  return `${label}${reason ? ` — ${reason}` : ''}`
+  return `${who} ${base}${reason ? ` — ${reason}` : ''}`
 }
+
+const GROUP_ACTIVITY_LABELS = {
+  queued: 'activityQueued',
+  working: 'activityWorking',
+  replied: 'activityReplied',
+  passed: 'activityPassed',
+  'timed-out': 'activityTimedOut',
+  failed: 'activityFailed',
+  cancelled: 'activityCancelled',
+  settled: 'activitySettled',
+  capped: 'activityCapped',
+  delivered: 'activityDelivered',
+  held: 'activityHeld',
+  stopped: 'activityStopped'
+} satisfies Record<GroupActivityKind, keyof BotsText['group']>
 
 export const GROUP_ACTIVITY_GLYPHS: Record<GroupActivityKind, string> = {
   queued: 'comment',

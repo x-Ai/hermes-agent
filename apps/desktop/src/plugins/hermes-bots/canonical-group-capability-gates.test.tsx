@@ -189,7 +189,7 @@ async function submitDialog() {
   // call counts below are deterministic.
   await waitFor(() => expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities'))
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' }))
   })
 
   return { onCreated, onClose }
@@ -298,7 +298,7 @@ it('canonical creation offers this connection and reachable other-connection bot
     fireEvent.click(checkbox)
   }
 
-  const submit = screen.getByRole('button', { name: 'Create Group (2)' }) as HTMLButtonElement
+  const submit = screen.getByRole('button', { name: 'Create group (2)' }) as HTMLButtonElement
   await waitFor(() => expect(submit.disabled).toBe(false))
   expect(baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull()
   expect(baseElement.querySelector('[data-bot-face="spoofed"]')).toBeNull()
@@ -345,7 +345,7 @@ it('keeps offering bots from other connections; a cross-connection pick creates 
   fireEvent.click(checkboxes[0])
   fireEvent.click(checkboxes[2])
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Create Group (2)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create group (2)' }))
   })
 
   expect(onCreated).toHaveBeenCalledWith(expect.any(String), 'name')

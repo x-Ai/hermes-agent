@@ -658,7 +658,7 @@ export async function runGroupChatRounds(
   failedMembers = new Set<string>()
 ) {
   if (group.startsWith('canonical:')) {
-    throw new Error('Canonical rooms are driven by the gateway')
+    throw new Error(botsText().group.runsOnGateway)
   }
 
   const binding = followGroupChat(group, name => {

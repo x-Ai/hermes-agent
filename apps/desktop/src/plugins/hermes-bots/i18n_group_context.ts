@@ -30,7 +30,7 @@ export type GroupContextCopy = {
 
 const en: GroupContextCopy = {
   contextUsageTitle: group => `Context usage · ${group}`,
-  contextUsageHint: "Each member's own room session, measured on this backend; it fills in as members speak.",
+  contextUsageHint: "Each member's own group chat session, measured on this backend; it fills in as members speak.",
   contextUsageRefresh: 'Refresh',
   contextUsageRefreshing: 'Measuring…',
   contextUsageNone: 'No turn yet',
@@ -38,7 +38,7 @@ const en: GroupContextCopy = {
   contextUsageCompressions: count => `${count} ${count === 1 ? 'compression' : 'compressions'}`,
   contextUsageCacheHit: percent => `cache hit ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} t/s`,
-  contextUsageNoMembers: 'No members in this room'
+  contextUsageNoMembers: 'No members in this group chat'
 }
 
 const zh: GroupContextCopy = {
@@ -70,7 +70,7 @@ const zhHant: GroupContextCopy = {
 const ja: GroupContextCopy = {
   contextUsageTitle: group => `コンテキスト使用状況 · ${group}`,
   contextUsageHint:
-    '各メンバーのこのルームでのセッションを、このバックエンドで計測します。メンバーが発言すると更新されます。',
+    '各メンバーのこのグループチャットでのセッションを、このバックエンドで計測します。メンバーが発言すると更新されます。',
   contextUsageRefresh: '更新',
   contextUsageRefreshing: '計測中…',
   contextUsageNone: 'まだ発言なし',
@@ -78,13 +78,13 @@ const ja: GroupContextCopy = {
   contextUsageCompressions: count => `圧縮 ${count} 回`,
   contextUsageCacheHit: percent => `キャッシュヒット ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} t/s`,
-  contextUsageNoMembers: 'このルームにはメンバーがいません'
+  contextUsageNoMembers: 'このグループチャットにはメンバーがいません'
 }
 
 const ru: GroupContextCopy = {
   contextUsageTitle: group => `Использование контекста · ${group}`,
   contextUsageHint:
-    'Сессия каждого участника в этой комнате, измеренная этим бэкендом; заполняется по мере реплик участников.',
+    'Сессия каждого участника в этом групповом чате, измеренная этим бэкендом; заполняется по мере реплик участников.',
   contextUsageRefresh: 'Обновить',
   contextUsageRefreshing: 'Измерение…',
   contextUsageNone: 'Реплик ещё не было',
@@ -92,12 +92,12 @@ const ru: GroupContextCopy = {
   contextUsageCompressions: count => `Сжатий: ${count}`,
   contextUsageCacheHit: percent => `Попадания в кэш: ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} т/с`,
-  contextUsageNoMembers: 'В этой комнате нет участников'
+  contextUsageNoMembers: 'В этом групповом чате нет участников'
 }
 
 const ar: GroupContextCopy = {
   contextUsageTitle: group => `استخدام السياق · ${group}`,
-  contextUsageHint: 'جلسة كل عضو في هذه الغرفة كما يقيسها هذا الخادم الخلفي؛ تُحدَّث عندما يتحدث الأعضاء.',
+  contextUsageHint: 'جلسة كل عضو في محادثة المجموعة هذه كما يقيسها هذا الخادم الخلفي؛ تُحدَّث عندما يتحدث الأعضاء.',
   contextUsageRefresh: 'تحديث',
   contextUsageRefreshing: 'جارٍ القياس…',
   contextUsageNone: 'لا ردود بعد',
@@ -113,7 +113,7 @@ const ar: GroupContextCopy = {
     }),
   contextUsageCacheHit: percent => `إصابة التخزين المؤقت ${percent}%`,
   contextUsageTokensPerSecond: tps => `${tps} t/s`,
-  contextUsageNoMembers: 'لا أعضاء في هذه الغرفة'
+  contextUsageNoMembers: 'لا أعضاء في محادثة المجموعة هذه'
 }
 
 export const groupContextCopy: Record<'ar' | 'en' | 'ja' | 'ru' | 'zh' | 'zh-hant', GroupContextCopy> = {

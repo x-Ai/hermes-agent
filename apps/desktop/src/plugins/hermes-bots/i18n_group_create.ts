@@ -78,19 +78,19 @@ const quoted = (groups: string[], separator = ', ') => groups.map(group => `"${g
 const bracketed = (groups: string[]) => groups.map(group => `「${group}」`).join('、')
 
 // English stays byte-identical to the former literals: the e2e specs click
-// `Create Group (2)`.
+// `Create group (2)`.
 const en: GroupCreateOwnCopy = {
   inGroups: groups => `in ${quoted(groups)}`,
-  createAction: count => (count ? `Create Group (${count})` : 'Create Group'),
+  createAction: count => (count ? `Create group (${count})` : 'Create group'),
   workspaceLabel: 'Working directory',
-  workspaceHint: 'The folder the members work in for this room. Members on other machines use only their own folder.',
+  workspaceHint: 'The folder the members work in for this group chat. Members on other machines use only their own folder.',
   workspacePlaceholder: 'Each member keeps its own profile default',
   workspacePick: 'Choose folder…',
   workspaceClear: 'Clear',
   memberWorkspacePlaceholder: 'Own folder (optional)',
   memberWorkspaceRemotePlaceholder: 'Own folder on its machine (optional)',
   workspaceSource: source =>
-    ({ member: 'own folder', profile: 'profile default', room: 'room folder', thread: 'thread folder' })[source],
+    ({ member: 'own folder', profile: 'profile default', room: 'group chat folder', thread: 'thread folder' })[source],
   workspaceInvalid: path => `Folder not found: ${path}`,
   workspaceApplyFailed: (member, path, error) => `Could not move ${member} to ${path}: ${error}`,
   threadWorkspace: path => `This thread works in ${path}`,
@@ -103,24 +103,24 @@ const en: GroupCreateOwnCopy = {
     `Attachments cannot be sent to "${group}" from here. Open the group chat to send them.`,
   handleLabel: '@handle',
   handleHint:
-    'What follows @ in any composer to send a draft into this room: lowercase letters, digits, - and _. Empty derives it from the name.',
+    'What follows @ in any composer to send a draft into this group chat: lowercase letters, digits, - and _. Empty derives it from the name.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'A handle is lowercase letters, digits, - or _, and not a reserved word such as everyone.',
   handleTaken: (handle, owner) => `@${handle} already belongs to ${owner}.`,
   canonicalSendFailed: error => `The group did not take the message: ${error}`,
   canonicalActionFailed: error => `The gateway refused the change: ${error}`,
-  canonicalMembersFixed: 'Members of a gateway-hosted room are set when it is created.',
+  canonicalMembersFixed: 'Members of a group chat hosted on the gateway are set when it is created.',
   canonicalAttachmentsUnsupported: group =>
-    `Attachments cannot reach every member of "${group}": the hosting gateway must carry room attachments and every member must run on it.`,
+    `Attachments cannot reach every member of "${group}": the hosting gateway must support group chat attachments and every member must run on it.`,
   hostOnGateway: 'Host on the gateway…',
-  hostOnGatewayTitle: 'Host this room on the gateway',
+  hostOnGatewayTitle: 'Host this group chat on the gateway',
   hostOnGatewayDescription: (name, legacyName) =>
-    `A gateway-hosted room named "${name}" is created with the same members, picture, @handle, folders and stop-detection setting. It keeps running while this Desktop is closed and appears on every Desktop connected to this gateway. This room keeps its history here as "${legacyName}" and gives up its @handle; disband it once the history is no longer needed.`,
-  hostOnGatewayAction: 'Create hosted room',
+    `A group chat named "${name}", hosted on the gateway, is created with the same members, picture, @handle, folders and stop-detection setting. It keeps running while this Desktop is closed and appears on every Desktop connected to this gateway. This group chat keeps its history here as "${legacyName}" and gives up its @handle; disband it once the history is no longer needed.`,
+  hostOnGatewayAction: 'Create hosted group chat',
   hostOnGatewayBusy: 'Creating…',
   hostedOnGateway: name => `"${name}" now runs on the gateway`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'Gateway-hosted room',
+  hostedRoom: 'Group chat hosted on the gateway',
   sessionCheckFailed: (member, error) =>
     `Could not check ${member}'s group session${error ? ` (${error})` : ''} — not starting a new one`
 }
@@ -129,14 +129,14 @@ const ja: GroupCreateOwnCopy = {
   inGroups: groups => `${bracketed(groups)} に参加中`,
   createAction: count => (count ? `グループを作成 (${count})` : 'グループを作成'),
   workspaceLabel: '作業ディレクトリ',
-  workspaceHint: 'このルームでメンバーが作業するフォルダです。他のマシンのメンバーは各自のフォルダのみを使います',
+  workspaceHint: 'このグループチャットでメンバーが作業するフォルダです。他のマシンのメンバーは各自のフォルダのみを使います',
   workspacePlaceholder: '空欄なら各メンバーのプロファイル既定を使います',
   workspacePick: 'フォルダを選択…',
   workspaceClear: 'クリア',
   memberWorkspacePlaceholder: 'このメンバー専用のフォルダ（任意）',
   memberWorkspaceRemotePlaceholder: 'このメンバーのマシン上の専用フォルダ（任意）',
   workspaceSource: source =>
-    ({ member: '専用フォルダ', profile: 'プロファイル既定', room: 'ルームのフォルダ', thread: 'スレッドのフォルダ' })[
+    ({ member: '専用フォルダ', profile: 'プロファイル既定', room: 'グループチャットのフォルダ', thread: 'スレッドのフォルダ' })[
       source
     ],
   workspaceInvalid: path => `フォルダが見つかりません: ${path}`,
@@ -153,24 +153,24 @@ const ja: GroupCreateOwnCopy = {
     `ここから "${group}" に添付ファイルは送れません。グループチャットを開いて送信してください`,
   handleLabel: '@ハンドル',
   handleHint:
-    '任意の入力欄で @ に続けて入力すると、このルームに送信できます。小文字の英数字、- と _ のみ。空欄なら名前から自動生成します',
+    '任意の入力欄で @ に続けて入力すると、このグループチャットに送信できます。小文字の英数字、- と _ のみ。空欄なら名前から自動生成します',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'ハンドルに使えるのは小文字の英数字、- と _ のみで、everyone などの予約語は使えません',
   handleTaken: (handle, owner) => `@${handle} はすでに「${owner}」が使っています`,
   canonicalSendFailed: error => `グループはメッセージを受け付けませんでした: ${error}`,
   canonicalActionFailed: error => `ゲートウェイが変更を拒否しました: ${error}`,
-  canonicalMembersFixed: 'ゲートウェイ管理のルームのメンバーは作成時に決まります。',
+  canonicalMembersFixed: 'ゲートウェイで運用されるグループチャットのメンバーは作成時に決まります。',
   canonicalAttachmentsUnsupported: group =>
-    `"${group}" の全メンバーに添付ファイルを届けられません。ホストするゲートウェイがルームの添付ファイルに対応し、全メンバーがそのゲートウェイ上で動作している必要があります`,
+    `"${group}" の全メンバーに添付ファイルを届けられません。ホストするゲートウェイがグループチャットの添付ファイルに対応し、全メンバーがそのゲートウェイ上で動作している必要があります`,
   hostOnGateway: 'ゲートウェイに管理させる…',
-  hostOnGatewayTitle: 'このルームをゲートウェイに管理させる',
+  hostOnGatewayTitle: 'このグループチャットをゲートウェイで運用する',
   hostOnGatewayDescription: (name, legacyName) =>
-    `同じメンバー、画像、@ハンドル、作業フォルダ、停止指示の検出設定を持つゲートウェイ管理のルーム "${name}" を新しく作成します。この Desktop を閉じても動き続け、このゲートウェイに接続したすべての Desktop に表示されます。現在のルームは "${legacyName}" という名前で履歴ごとこの Desktop に残り、@ハンドルを譲ります。履歴が不要になったら解散してください`,
-  hostOnGatewayAction: '管理ルームを作成',
+    `同じメンバー、画像、@ハンドル、作業フォルダ、停止指示の検出設定を持つ、ゲートウェイで運用されるグループチャット "${name}" を新しく作成します。この Desktop を閉じても動き続け、このゲートウェイに接続したすべての Desktop に表示されます。現在のグループチャットは "${legacyName}" という名前で履歴ごとこの Desktop に残り、@ハンドルを譲ります。履歴が不要になったら解散してください`,
+  hostOnGatewayAction: 'ゲートウェイで運用するグループチャットを作成',
   hostOnGatewayBusy: '作成中…',
   hostedOnGateway: name => `"${name}" はゲートウェイ管理で動作しています`,
   legacyRoomName: name => `${name}（Desktop）`,
-  hostedRoom: 'ゲートウェイ管理のルーム',
+  hostedRoom: 'ゲートウェイで運用されるグループチャット',
   sessionCheckFailed: (member, error) =>
     `${member} のグループセッションを確認できませんでした${error ? `（${error}）` : ''}。新しいセッションは開始しません`
 }
@@ -179,7 +179,7 @@ const zh: GroupCreateOwnCopy = {
   inGroups: groups => `已加入 ${quoted(groups, '、')}`,
   createAction: count => (count ? `创建群聊 (${count})` : '创建群聊'),
   workspaceLabel: '工作目录',
-  workspaceHint: '群内成员在这个房间里工作的文件夹，其他设备上的成员只使用各自的专属目录',
+  workspaceHint: '成员在这个群聊中工作的文件夹，其他设备上的成员只使用各自的专属目录',
   workspacePlaceholder: '留空则每个成员使用自己配置档案的默认目录',
   workspacePick: '选择文件夹…',
   workspaceClear: '清除',
@@ -223,7 +223,7 @@ const zhHant: GroupCreateOwnCopy = {
   inGroups: groups => `已加入 ${bracketed(groups)}`,
   createAction: count => (count ? `建立群組聊天 (${count})` : '建立群組聊天'),
   workspaceLabel: '工作目錄',
-  workspaceHint: '群內成員在這個房間工作的資料夾。其他裝置上的成員只使用各自的專屬目錄',
+  workspaceHint: '成員在這個群組聊天中工作的資料夾。其他裝置上的成員只使用各自的專屬目錄',
   workspacePlaceholder: '留空則每個成員使用自己設定檔的預設目錄',
   workspacePick: '選擇資料夾…',
   workspaceClear: '清除',
@@ -269,14 +269,14 @@ const ru: GroupCreateOwnCopy = {
   createAction: count => (count ? `Создать группу (${count})` : 'Создать группу'),
   workspaceLabel: 'Рабочий каталог',
   workspaceHint:
-    'Папка, в которой участники работают в этой комнате. Участники с других машин используют только свою папку.',
+    'Папка, в которой участники работают в этом групповом чате. Участники с других машин используют только свою папку.',
   workspacePlaceholder: 'Пусто — каждый участник использует папку из своего профиля',
   workspacePick: 'Выбрать папку…',
   workspaceClear: 'Очистить',
   memberWorkspacePlaceholder: 'Собственная папка (необязательно)',
   memberWorkspaceRemotePlaceholder: 'Собственная папка на его машине (необязательно)',
   workspaceSource: source =>
-    ({ member: 'своя папка', profile: 'профиль по умолчанию', room: 'папка комнаты', thread: 'папка треда' })[source],
+    ({ member: 'своя папка', profile: 'профиль по умолчанию', room: 'папка группового чата', thread: 'папка треда' })[source],
   workspaceInvalid: path => `Папка не найдена: ${path}`,
   workspaceApplyFailed: (member, path, error) => `Не удалось перевести ${member} в ${path}: ${error}`,
   threadWorkspace: path => `Рабочий каталог этого треда: ${path}`,
@@ -289,7 +289,7 @@ const ru: GroupCreateOwnCopy = {
     `Вложения нельзя отправить в "${group}" отсюда. Откройте групповой чат и отправьте их там.`,
   handleLabel: '@-хэндл',
   handleHint:
-    'Что вводить после @ в любом поле ввода, чтобы отправить черновик в эту комнату: строчные латинские буквы, цифры, - и _. Пустое поле — хэндл выводится из названия.',
+    'Что вводить после @ в любом поле ввода, чтобы отправить черновик в этот групповой чат: строчные латинские буквы, цифры, - и _. Пустое поле — хэндл выводится из названия.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'Хэндл — это строчные латинские буквы, цифры, - или _, и не зарезервированное слово вроде everyone.',
   handleTaken: (handle, owner) => `@${handle} уже принадлежит ${owner}.`,
@@ -297,16 +297,16 @@ const ru: GroupCreateOwnCopy = {
   canonicalActionFailed: error => `Шлюз отклонил изменение: ${error}`,
   canonicalMembersFixed: 'Состав группы, которой владеет шлюз, задаётся при её создании.',
   canonicalAttachmentsUnsupported: group =>
-    `Вложения не дойдут до всех участников "${group}": шлюз-хост должен поддерживать вложения комнаты, и все участники должны работать на нём.`,
+    `Вложения не дойдут до всех участников "${group}": шлюз-хост должен поддерживать вложения группового чата, и все участники должны работать на нём.`,
   hostOnGateway: 'Передать шлюзу…',
-  hostOnGatewayTitle: 'Передать эту комнату шлюзу',
+  hostOnGatewayTitle: 'Разместить этот групповой чат на шлюзе',
   hostOnGatewayDescription: (name, legacyName) =>
-    `Будет создана комната "${name}", которой владеет шлюз, с теми же участниками, картинкой, @-хэндлом, папками и настройкой распознавания стоп-команд. Она продолжает работать, пока этот Desktop закрыт, и видна на каждом Desktop, подключённом к этому шлюзу. Текущая комната сохраняет историю здесь под именем "${legacyName}" и отдаёт свой @-хэндл; распустите её, когда история больше не нужна.`,
-  hostOnGatewayAction: 'Создать комнату шлюза',
+    `Будет создан групповой чат "${name}", размещённый на шлюзе, с теми же участниками, картинкой, @-хэндлом, папками и настройкой распознавания стоп-команд. Он продолжает работать, пока этот Desktop закрыт, и виден на каждом Desktop, подключённом к этому шлюзу. Текущий групповой чат сохраняет историю здесь под именем "${legacyName}" и отдаёт свой @-хэндл; распустите его, когда история больше не нужна.`,
+  hostOnGatewayAction: 'Создать групповой чат на шлюзе',
   hostOnGatewayBusy: 'Создание…',
   hostedOnGateway: name => `"${name}" теперь работает на шлюзе`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'Комната, которой владеет шлюз',
+  hostedRoom: 'Групповой чат, размещённый на шлюзе',
   sessionCheckFailed: (member, error) =>
     `Не удалось проверить сеанс группы для ${member}${error ? ` (${error})` : ''} — новый сеанс не создан.`
 }
@@ -315,27 +315,27 @@ const ar: GroupCreateOwnCopy = {
   inGroups: groups => `في ${quoted(groups, '، ')}`,
   createAction: count => (count ? `إنشاء مجموعة (${count})` : 'إنشاء مجموعة'),
   workspaceLabel: 'دليل العمل',
-  workspaceHint: 'المجلد الذي يعمل فيه الأعضاء في هذه الغرفة. الأعضاء على الأجهزة الأخرى يستخدمون مجلدهم الخاص فقط.',
+  workspaceHint: 'المجلد الذي يعمل فيه الأعضاء في محادثة المجموعة هذه. الأعضاء على الأجهزة الأخرى يستخدمون مجلدهم الخاص فقط.',
   workspacePlaceholder: 'اتركه فارغًا ليستخدم كل عضو المجلد الافتراضي لملفه الشخصي',
   workspacePick: 'اختيار مجلد…',
   workspaceClear: 'مسح',
   memberWorkspacePlaceholder: 'مجلد خاص بهذا العضو (اختياري)',
   memberWorkspaceRemotePlaceholder: 'مجلد خاص على جهاز هذا العضو (اختياري)',
   workspaceSource: source =>
-    ({ member: 'مجلد خاص', profile: 'افتراضي الملف الشخصي', room: 'مجلد الغرفة', thread: 'مجلد السلسلة' })[source],
+    ({ member: 'مجلد خاص', profile: 'افتراضي الملف الشخصي', room: 'مجلد محادثة المجموعة', thread: 'مجلد السلسلة' })[source],
   workspaceInvalid: path => `المجلد غير موجود: ${path}`,
   workspaceApplyFailed: (member, path, error) => `تعذر نقل ${member} إلى ${path}: ${error}`,
   threadWorkspace: path => `دليل عمل هذه السلسلة: ${path}`,
   mentionMeta: count =>
-    `محادثة جماعية · ${arPlural(count, { one: 'عضو واحد', two: 'عضوان', few: '# أعضاء', many: '# عضوًا', other: '# عضو' })}`,
+    `محادثة مجموعة · ${arPlural(count, { one: 'عضو واحد', two: 'عضوان', few: '# أعضاء', many: '# عضوًا', other: '# عضو' })}`,
   routedToGroup: (group, folder) =>
     folder ? `أُرسلت إلى "${group}" كسلسلة جديدة في ${folder}` : `أُرسلت إلى "${group}" كسلسلة جديدة`,
   routedAttachmentsUnreadable: (group, names) =>
-    `تعذر إرفاق ${names.join('، ')} (غير قابل للقراءة أو يتجاوز حد الحجم)، لذا لم يُرسل شيء إلى "${group}". أزل المرفق أو أرسله من المحادثة الجماعية.`,
-  routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح المحادثة الجماعية لإرسالها.`,
+    `تعذر إرفاق ${names.join('، ')} (غير قابل للقراءة أو يتجاوز حد الحجم)، لذا لم يُرسل شيء إلى "${group}". أزل المرفق أو أرسله من محادثة المجموعة.`,
+  routedAttachmentsBlocked: group => `لا يمكن إرسال المرفقات إلى "${group}" من هنا. افتح محادثة المجموعة لإرسالها.`,
   handleLabel: 'معرّف @',
   handleHint:
-    'ما يُكتب بعد @ في أي حقل إدخال لإرسال المسودة إلى هذه الغرفة: أحرف لاتينية صغيرة وأرقام و- و_. اتركه فارغًا ليُشتق من الاسم.',
+    'ما يُكتب بعد @ في أي حقل إدخال لإرسال المسودة إلى محادثة المجموعة هذه: أحرف لاتينية صغيرة وأرقام و- و_. اتركه فارغًا ليُشتق من الاسم.',
   handlePlaceholder: 'dev-team',
   handleInvalid: 'المعرّف أحرف لاتينية صغيرة وأرقام و- أو _ فقط، وليس كلمة محجوزة مثل everyone.',
   handleTaken: (handle, owner) => `@${handle} يخص ${owner} بالفعل.`,
@@ -343,16 +343,16 @@ const ar: GroupCreateOwnCopy = {
   canonicalActionFailed: error => `رفضت البوابة التغيير: ${error}`,
   canonicalMembersFixed: 'يُحدَّد أعضاء المجموعة التي تملكها البوابة عند إنشائها.',
   canonicalAttachmentsUnsupported: group =>
-    `لا يمكن إيصال المرفقات إلى جميع أعضاء "${group}": يجب أن تدعم البوابة المضيفة مرفقات الغرفة وأن يعمل جميع الأعضاء عليها.`,
+    `لا يمكن إيصال المرفقات إلى جميع أعضاء "${group}": يجب أن تدعم البوابة المضيفة مرفقات محادثة المجموعة وأن يعمل جميع الأعضاء عليها.`,
   hostOnGateway: 'تسليمها إلى البوابة…',
-  hostOnGatewayTitle: 'تسليم هذه الغرفة إلى البوابة',
+  hostOnGatewayTitle: 'استضافة محادثة المجموعة هذه على البوابة',
   hostOnGatewayDescription: (name, legacyName) =>
-    `ستُنشأ غرفة تملكها البوابة باسم "${name}" بالأعضاء أنفسهم والصورة ومعرّف @ والمجلدات وإعداد كشف أوامر الإيقاف. تواصل العمل بينما هذا الـ Desktop مغلق، وتظهر على كل Desktop متصل بهذه البوابة. تحتفظ الغرفة الحالية بسجلها هنا باسم "${legacyName}" وتتخلى عن معرّف @ الخاص بها؛ حُلّها عندما لا تعود بحاجة إلى السجل.`,
-  hostOnGatewayAction: 'إنشاء غرفة البوابة',
+    `ستُنشأ محادثة مجموعة مستضافة على البوابة باسم "${name}" بالأعضاء أنفسهم والصورة ومعرّف @ والمجلدات وإعداد كشف أوامر الإيقاف. تواصل العمل بينما هذا الـ Desktop مغلق، وتظهر على كل Desktop متصل بهذه البوابة. تحتفظ محادثة المجموعة الحالية بسجلها هنا باسم "${legacyName}" وتتخلى عن معرّف @ الخاص بها؛ حُلّها عندما لا تعود بحاجة إلى السجل.`,
+  hostOnGatewayAction: 'إنشاء محادثة مجموعة على البوابة',
   hostOnGatewayBusy: 'جارٍ الإنشاء…',
   hostedOnGateway: name => `"${name}" تعمل الآن على البوابة`,
   legacyRoomName: name => `${name} (Desktop)`,
-  hostedRoom: 'غرفة تملكها البوابة',
+  hostedRoom: 'محادثة مجموعة مستضافة على البوابة',
   sessionCheckFailed: (member, error) =>
     `تعذر التحقق من جلسة المجموعة الخاصة بـ ${member}${error ? ` (${error})` : ''} — لن تُبدأ جلسة جديدة.`
 }

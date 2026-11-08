@@ -45,3 +45,22 @@ it('provides translated canonical group controls and recovery copy in every supp
     unmount()
   }
 })
+
+
+// This fork opens every group chat in its own room view, so core's gatewayGroupOpen block has no
+// reader and was retired (174dc4de18); the feedback a reader sees while one opens is the plugin's
+// loading copy.
+it('translates group chat opening feedback in every supported locale', () => {
+  const english = BOTS_LOCALES.en?.canonical as Record<string, string>
+
+  for (const locale of Object.keys(TRANSLATIONS)) {
+    if (locale === 'en') {continue}
+
+    const copy = BOTS_LOCALES[locale]?.canonical as Record<string, string> | undefined
+
+    for (const key of ['loadingGroup', 'loadingGroups'] as const) {
+      expect(copy?.[key]?.trim(), `${locale}.${key}`).toBeTruthy()
+      expect(copy?.[key], `${locale}.${key}`).not.toBe(english[key])
+    }
+  }
+})

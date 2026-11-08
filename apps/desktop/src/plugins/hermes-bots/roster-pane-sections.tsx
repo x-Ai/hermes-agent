@@ -184,7 +184,7 @@ export function rosterSectionRenderers({
           icon="organization"
           label={b.roster.groupChats}
           onToggle={() => toggleRosterSection(sectionId)}
-          tip={`${sortedGroupRows.length} global group chat${sortedGroupRows.length === 1 ? '' : 's'}`}
+          tip={b.group.globalCount(sortedGroupRows.length)}
         />
         {collapsed ? null : (
           <div className="grid min-w-0 gap-0.5">{renderUserSections(sortedGroupRows, 'groups:')}</div>
