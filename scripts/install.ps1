@@ -15,9 +15,10 @@
 #                         `hermes pm install cua-driver`
 #   -Verbose              stream every child command's output (the default
 #                         with redirected output and in CI)
-#   -Channel stable|main  stable (default): the latest published release, then
-#                         release to release; main: every commit. Also
-#                         $env:HERMES_INSTALL_CHANNEL (the only way under
+#   -Channel stable|main  main (default): every commit. stable: the latest
+#                         published release, then release to release (the
+#                         default when installing NousResearch/hermes-agent).
+#                         Also $env:HERMES_INSTALL_CHANNEL (the only way under
 #                         `irm | iex`); an explicit choice is saved like
 #                         `hermes update --set-channel`
 [CmdletBinding(PositionalBinding=$false)]

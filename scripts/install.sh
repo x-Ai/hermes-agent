@@ -75,9 +75,10 @@ while [ $# -gt 0 ]; do
             echo "                  [--non-interactive] [--include-desktop] [--verbose]"
             echo "                  [--skip-browser] [--skip-computer-use]"
             echo
-            echo "  --channel       stable (default): the latest published release, then release"
-            echo "                  to release. main: every commit. Also HERMES_INSTALL_CHANNEL;"
-            echo "                  an explicit choice is saved like 'hermes update --set-channel'."
+            echo "  --channel       main (default): every commit. stable: the latest published"
+            echo "                  release, then release to release (the default when installing"
+            echo "                  NousResearch/hermes-agent). Also HERMES_INSTALL_CHANNEL; an"
+            echo "                  explicit choice is saved like 'hermes update --set-channel'."
             echo "  --skip-browser  Do not install the browser (Chromium). Alias: --no-playwright."
             echo "                  Remembered by later installs and 'hermes update';"
             echo "                  undo with 'hermes pm install chromium'."
