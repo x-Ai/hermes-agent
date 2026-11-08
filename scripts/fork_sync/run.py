@@ -128,14 +128,6 @@ def integrate(manifest: dict, settings: dict, artifacts: Path) -> None:
     if not ancestor(goal, "HEAD"):
         print(f"Backlog to {reason}: {steps.measure('HEAD', goal).describe()}", flush=True)
     done = merge_steps(goal, reason, settings, (HERE / "prompt.md").read_text(encoding="utf-8-sig"), artifacts)
-    # Publish up to the last batch upstream finished; with none finished, publish what was merged.
-    ends = [index for index, item in enumerate(done) if item["batch_end"]]
-    keep = ends[-1] + 1 if ends else len(done)
-    if keep < len(done):
-        git("reset", "--hard", done[keep - 1]["merged"])
-        warn(f"{len(done) - keep} step(s) inside an unfinished upstream batch were not published; "
-             "the next run merges them again")
-        done = done[:keep]
     candidate = output("rev-parse", "HEAD")
     # Releases the candidate does not contain yet are discovered again by the next run.
     included = [item for item in pending if ancestor(item["upstream_commit"], candidate)]
@@ -175,7 +167,8 @@ def earliest_containing(commit: str, head: str) -> str:
 def merge_steps(goal: str, reason: str, settings: dict, prompt: str, artifacts: Path) -> list[dict]:
     """Merge toward ``goal`` (a release commit or upstream main) one bounded step at a time.
 
-    Steps stop when the goal is merged or the time budget cannot fit another.
+    Steps stop when the goal is merged, the time budget cannot fit another, or the
+    run has finished an upstream batch and the next one would have to be split.
     A step that fails after an earlier one succeeded is discarded with a warning:
     the completed steps become the candidate and the next run continues from
     them. Only a failure in the first step fails the run.
@@ -191,6 +184,15 @@ def merge_steps(goal: str, reason: str, settings: dict, prompt: str, artifacts: 
         number = len(done) + 1
         if remaining < agent["min_step_seconds"]:
             warn(f"Time budget used after {len(done)} step(s); the next run continues toward {reason}")
+            return done
+        # A batch over the step limits is split, and its steps stop at states upstream's CI never
+        # checked. Once this run has finished a batch, it publishes there instead of splitting the next
+        # one: a split this run cannot finish used to be thrown away and merged again by the next run
+        # (about 70 minutes of Pi work, twice, on 2026-11-08). The next run, which publish starts right
+        # away, splits the batch with the whole budget.
+        if not step["batch_end"] and any(item["batch_end"] for item in done):
+            warn(f"Stopped after {len(done)} step(s) at the end of an upstream batch: the next batch must be"
+                 f" split ({step['summary']}), so the next run starts it with the whole budget")
             return done
         print(f"Step {number}: merge {step['reason']} {step['commit'][:12]} ({step['summary']})", flush=True)
         before = output("rev-parse", "HEAD")

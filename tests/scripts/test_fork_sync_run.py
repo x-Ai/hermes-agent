@@ -491,17 +491,23 @@ def test_release_main_already_contains_is_tagged_where_main_merged_it(controller
     assert release["target"] == merged_first and not manifest["remaining"]
 
 
-def test_steps_inside_an_unfinished_batch_are_not_published(controller, tmp_path, monkeypatch, capsys):
+def test_a_run_that_finished_a_batch_leaves_splitting_the_next_one_to_the_next_run(controller, tmp_path,
+                                                                                  monkeypatch, capsys):
     root, fork, chain = make_backlog(tmp_path, monkeypatch, hours=(10, 11, 11, 11))
     calls = []
-    monkeypatch.setattr(controller, "run_coding_agent", resolver(root, calls, fail_from=3))
-    manifest = dict(base=fork, upstream_tip=chain[-1], releases=[])
+    monkeypatch.setattr(controller, "run_coding_agent", resolver(root, calls))
+    manifest = dict(repository="owner/repo", base=fork, upstream_tip=chain[-1], releases=[])
     controller.integrate(manifest, SETTINGS, tmp_path / "artifacts")
-    # Step 1 ends the first batch; step 2 stops inside the second, whose last step fails.
-    assert [context["upstream"] for context in calls] == chain[:1] + chain[2:]
+    # Step 1 ends the first batch. The second (3 conflicts, limit 2) would end a step inside it, so no
+    # Pi time is spent on it here: it was thrown away at the end of the run whenever the run fell short.
+    assert [context["upstream"] for context in calls] == chain[:1]
     assert manifest["upstream"] == chain[0] == git(root, "rev-parse", "HEAD^2")
     assert [item["commit"] for item in manifest["steps"]] == [chain[0]]
-    assert "1 step(s) inside an unfinished upstream batch were not published" in capsys.readouterr().out
+    assert manifest["remaining"]  # publish starts the next run, which splits the batch with a full budget
+    assert "Stopped after 1 step(s) at the end of an upstream batch" in capsys.readouterr().out
+    calls.clear()
+    controller.integrate(dict(manifest, base=git(root, "rev-parse", "HEAD")), SETTINGS, tmp_path / "artifacts")
+    assert [context["upstream"] for context in calls] == chain[2:]
 
 
 @pytest.fixture
