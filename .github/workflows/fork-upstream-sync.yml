@@ -19,8 +19,9 @@ jobs:
   prepare:
     if: github.repository != 'NousResearch/hermes-agent' && github.ref == 'refs/heads/main' && vars.SYNC_PAUSED != 'true'
     runs-on: ubuntu-latest
-    # config.json agent.budget_seconds (100 min) for the merge steps, plus setup and upload.
-    timeout-minutes: 120
+    # config.json agent.budget_seconds (100 min) for the merge steps, plus setup, the last step's
+    # desktop UI test check (up to 15 min past the budget) and upload.
+    timeout-minutes: 135
     outputs:
       base: ${{ steps.prepare.outputs.base }}
       candidate: ${{ steps.prepare.outputs.candidate }}
@@ -31,6 +32,10 @@ jobs:
       # JSON list of Python test shards, [] when the merge reaches no Python test.
       shards: ${{ steps.prepare.outputs.shards }}
     steps:
+      - name: Isolate Hermes test state
+        run: |
+          printf 'HERMES_HOME=%s/hermes-sync-home\nHERMES_RUNTIME_DIR=%s/hermes-sync-runtime\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.sha }}
@@ -49,6 +54,20 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/fork-sync-cli" --no-audit --no-fund \
             "@earendil-works/pi-coding-agent@$PI_VERSION"
           printf '%s/node_modules/.bin\n' "$RUNNER_TEMP/fork-sync-cli" >> "$GITHUB_PATH"
+      # The validate job's toolchain and locked JS dependencies, so Pi and the controller's per-step
+      # check can run the desktop UI tests (scripts/fork_sync/run.py desktop_tests) instead of merging
+      # desktop code blind. PM's Node 26 also runs Pi, which needs 22.19 or newer.
+      - uses: ./.github/actions/setup-pm
+        with:
+          toolchain: all
+          extras: '["all", "anthropic", "bedrock", "mistral", "fal", "modal", "daytona", "parallel-web", "keychain"]'
+          test-environment: 'true'
+          archive-inputs: 'false'
+          save-tools-cache: 'false'
+          save-python-cache: 'false'
+          save-node-cache: 'false'
+      - name: Install locked frontend dependencies
+        run: pnpm install --frozen-lockfile
       - name: Keep controller outside the merge tree
         run: cp -R scripts/fork_sync "$RUNNER_TEMP/fork-sync-controller"
       - name: Merge upstream (new release first), resolve conflicts, localize new text, keep fork i18n and features

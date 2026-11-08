@@ -4,7 +4,8 @@
 Copy this directory out of the checkout BEFORE merging. Run that copy, never
 candidate-controlled Python, in jobs that receive an AI key or a write token.
 Its sibling modules are imported before the coding agent runs, so the agent's
-shell cannot swap the step planning, the dropped-test guard or the test selection.
+shell cannot swap the step planning, the dropped-test guard, the desktop test
+check or the test selection.
 """
 from __future__ import annotations
 
@@ -27,6 +28,7 @@ from urllib.parse import urlsplit, urlunsplit
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import desktop_tests
 import dropped_tests
 import pi_session
 import releases
@@ -335,14 +337,18 @@ def agent_pass(context: dict, settings: dict, prompt: str, deadline: float, guar
 
 
 def merge_problems(before: str, commit: str, common: str, conflicts: list[str]) -> list[str]:
-    """What a pass left unfinished: conflict markers, and test cases the merge lost."""
+    """What a pass left unfinished: conflict markers, test cases the merge lost, and failing desktop
+    UI tests beside what the step changed."""
     # Writing a resolved file does not clear Git's unmerged index until it is staged.
     paths = set(output("diff", "--name-only", "--no-renames", before).splitlines()) | set(conflicts)
     paths.update(output("ls-files", "--others", "--exclude-standard").splitlines())
-    problems = [f"unresolved conflict markers in {name}" for name in sorted(paths) if has_markers(name)]
+    markers = [f"unresolved conflict markers in {name}" for name in sorted(paths) if has_markers(name)]
     paths.update(output("diff", "--name-only", "--no-renames", common, commit).splitlines())
     lost = dropped_tests.dropped(sorted(paths), read_version, before, commit, common, WORKTREE)
-    problems += [f"dropped test cases in {path}: {'; '.join(names)}" for path, names in lost.items()]
+    problems = markers + [f"dropped test cases in {path}: {'; '.join(names)}" for path, names in lost.items()]
+    # Tests cannot judge a tree that still holds conflict markers.
+    if not markers:
+        problems += desktop_tests.problems(before)
     return problems
 
 
