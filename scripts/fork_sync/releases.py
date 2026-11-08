@@ -1,4 +1,10 @@
-"""Discover upstream releases and publish their metadata on a merged fork commit.
+"""Discover upstream releases and publish them on the fork commit that merged them.
+
+A fork release vX.Y.Z is upstream's vX.Y.Z plus this repository's changes: its tag
+names the first fork commit containing upstream's tag commit, and its notes are
+upstream's verbatim with a fork section appended. ``hermes update --set-channel
+stable`` and the Desktop's stable selector resolve the latest of these
+(``hermes_cli/source_releases._resolve_release``).
 
 Run from the repository root with authenticated ``gh`` and a writable ``origin``.
 Only unpublished upstream mirror tags may move. Annotated provenance receipts let
@@ -20,6 +26,10 @@ GH_TIMEOUT = 60
 _OBJECT_ID = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 _RECEIPT_PREFIX = "hermes-fork-sync-release-v1\n"
+# hermes_cli.update_channel.STABLE_TAG_RE, copied so the controller runs on a bare CI Python;
+# tests/scripts/test_fork_sync_releases.py pins the two patterns to each other.
+STABLE_TAG = re.compile(r"^v(?:0|[1-9]\d{0,2})\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$")
+LISTED_COMMITS = 40
 
 
 def _run(args: list[str], *, timeout: int, input: str | None = None):
@@ -216,7 +226,51 @@ def _previous_candidate(repository: str, release: dict, candidate: str,
     return peeled
 
 
-def _publish_one(repository: str, release: dict, candidate: str, latest_tag: str | None) -> None:
+def _previous_release(repository: str, tag: str, target: str) -> str | None:
+    """The newest published strict release of this repository that ``target`` contains."""
+    for release in _all_releases(repository):  # newest first
+        name = release.get("tag_name")
+        if (release.get("draft") or release.get("prerelease") or not isinstance(name, str)
+                or name == tag or not STABLE_TAG.fullmatch(name)):
+            continue
+        found = _run(["git", "rev-parse", "--verify", "--quiet", f"refs/tags/{name}^{{commit}}"],
+                     timeout=GIT_TIMEOUT)
+        if found.returncode == 0 and _run(["git", "merge-base", "--is-ancestor", found.stdout.strip(), target],
+                                          timeout=GIT_TIMEOUT).returncode == 0:
+            return name
+    return None
+
+
+def notes(repository: str, release: dict, target: str, upstream_main: str) -> str:
+    """Upstream's notes verbatim, then what this repository's release of the same version adds."""
+    tag, up, here = release["tag_name"], release["upstream_commit"][:10], target[:10]
+    synced = _git("merge-base", target, upstream_main)[:10]
+    lines = [
+        str(release.get("body") or "").rstrip(), "", "---", "", f"## {repository.partition('/')[0]} fork", "",
+        f"本仓库的 {tag} = 上游 Hermes Agent {tag}（标签提交 `{up}`）加上本仓库的改动，"
+        f"发布提交 `{here}`，已同步至上游 main `{synced}`。",
+        f"This repository's {tag} is upstream's {tag} (tag commit `{up}`) plus this fork's changes, "
+        f"released from `{here}` and synced with upstream main `{synced}`.",
+        "",
+    ]
+    previous = _previous_release(repository, tag, target)
+    if previous:
+        # The first-parent line minus its merges: the upstream syncs ride on second parents.
+        commits = _git("log", "--first-parent", "--no-merges", "--format=%h%x09%s", f"{previous}..{target}")
+        listed = [line.partition("\t") for line in commits.splitlines() if line.strip()]
+        if listed:
+            lines += [f"自 {previous} 以来本仓库的自有提交 / Fork commits since {previous}:", ""]
+            lines += [f"- `{sha}` {subject}" for sha, _, subject in listed[:LISTED_COMMITS]]
+            if len(listed) > LISTED_COMMITS:
+                more = len(listed) - LISTED_COMMITS
+                lines.append(f"- …另有 {more} 个提交 / and {more} more")
+            lines.append("")
+    lines.append(f"与上游 {tag} 的完整差异 / Full diff against upstream {tag}: "
+                 f"https://github.com/{repository}/compare/{release['upstream_commit']}...{tag}")
+    return "\n".join(lines) + "\n"
+
+
+def _publish_one(repository: str, release: dict, target: str, latest_tag: str | None, candidate: str) -> None:
     tag = release["tag_name"]
     ref = _tag_ref(tag)
     endpoint = f"repos/{repository}/releases/tags/{quote(tag, safe='')}"
@@ -224,11 +278,11 @@ def _publish_one(repository: str, release: dict, candidate: str, latest_tag: str
     if gh_json(endpoint, missing_ok=True) is not None:
         return
     observed, peeled = _origin_tag(ref)
-    target = candidate
-    if observed is not None and peeled not in (release["upstream_commit"], candidate):
-        target = _previous_candidate(repository, release, candidate, ref, observed, peeled)
-    elif peeled != candidate:
-        tag_object = _annotated_tag(repository, release, candidate)
+    tagged = target
+    if observed is not None and peeled not in (release["upstream_commit"], target):
+        tagged = _previous_candidate(repository, release, candidate, ref, observed, peeled)
+    elif peeled != target:
+        tag_object = _annotated_tag(repository, release, target)
         # An annotated tag's peeled commit is NOT the lease's expected object ID.
         _git(
             "push", "--porcelain", f"--force-with-lease={ref}:{observed or ''}",
@@ -236,9 +290,9 @@ def _publish_one(repository: str, release: dict, candidate: str, latest_tag: str
         )
     _gh_request(f"repos/{repository}/releases", payload={
         "tag_name": tag,
-        "target_commitish": target,
+        "target_commitish": tagged,
         "name": release["name"],
-        "body": release["body"],
+        "body": release.get("notes") or release["body"],
         "draft": False,
         "prerelease": release["prerelease"],
         "make_latest": "true" if tag == latest_tag else "false",
@@ -248,15 +302,22 @@ def _publish_one(repository: str, release: dict, candidate: str, latest_tag: str
 def publish(repository: str, releases: list[dict], candidate: str) -> None:
     """Publish without editing existing Releases, assets, or unrelated tags.
 
-    All upstream commits must exist and be ancestors before any remote mutation.
-    API failures leave pushed tags intact so the same candidate can be retried.
+    Each release is tagged at its ``target`` (the first fork commit containing it),
+    else at ``candidate``. All upstream commits must exist and be ancestors of their
+    targets, and every target an ancestor of the candidate, before any remote
+    mutation. API failures leave pushed tags intact so the same candidate can be retried.
     """
     _fork_repository(repository)
     if not releases:
         return
     candidate_commit = _commit(candidate)
+    targets = {}
     for release in releases:
-        _require_ancestor(release["upstream_commit"], candidate_commit)
+        target = _commit(release.get("target") or candidate_commit)
+        _require_ancestor(release["upstream_commit"], target)
+        if _run(["git", "merge-base", "--is-ancestor", target, candidate_commit], timeout=GIT_TIMEOUT).returncode:
+            raise RuntimeError("release target is not in the candidate's history")
+        targets[release["tag_name"]] = target
     existing = {release["tag_name"] for release in _all_releases(repository)}
     pending = [release for release in releases if release["tag_name"] not in existing]
     if not pending:
@@ -264,4 +325,4 @@ def publish(repository: str, releases: list[dict], candidate: str) -> None:
     latest = gh_json(f"repos/{UPSTREAM}/releases/latest", missing_ok=True)
     latest_tag = latest["tag_name"] if latest is not None else None
     for release in pending:
-        _publish_one(repository, release, candidate_commit, latest_tag)
+        _publish_one(repository, release, targets[release["tag_name"]], latest_tag, candidate_commit)

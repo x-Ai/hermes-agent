@@ -11,6 +11,7 @@ from urllib.parse import quote
 
 import pytest
 
+from hermes_cli.update_channel import STABLE_TAG_RE
 from scripts.fork_sync import releases
 
 FORK = "example/hermes-agent"
@@ -444,3 +445,50 @@ def test_timeout_is_bounded_and_does_not_expose_process_details(monkeypatch):
     with pytest.raises(RuntimeError) as failure:
         releases.gh_json(f"repos/{FORK}/releases")
     assert str(failure.value) == "gh command could not complete"
+
+
+def test_previous_release_lookup_follows_the_updaters_stable_tag_rule():
+    # The updater (`_resolve_release`, `_git_version_info`) only ever sees strict vX.Y.Z tags.
+    assert releases.STABLE_TAG.pattern == STABLE_TAG_RE.pattern
+
+
+def test_each_release_is_tagged_at_its_own_target(graph, github):
+    later = _commit(graph.repo, "later.txt", "a later fork change\n")
+    item = _pending(graph, target=graph.candidate, notes="upstream notes\n\n---\nfork section\n")
+
+    releases.publish(FORK, [item], later)
+
+    assert github.creates[0]["target_commitish"] == graph.candidate
+    assert github.creates[0]["body"] == item["notes"]
+    assert _git(graph.origin, "rev-parse", f"refs/tags/{item['tag_name']}^{{commit}}") == graph.candidate
+
+
+def test_a_target_outside_the_candidate_history_is_refused_before_any_mutation(graph, github):
+    _git(graph.repo, "switch", "-q", "-c", "side", graph.base)
+    side = _commit(graph.repo, "side.txt", "not on main\n")
+    item = _pending(graph, target=side)
+
+    with pytest.raises(RuntimeError, match="not in the candidate's history"):
+        releases.publish(FORK, [item], graph.candidate)
+
+    assert github.requests == [] and _git(graph.origin, "tag", "--list") == ""
+
+
+def test_notes_keep_upstreams_body_first_and_name_what_the_fork_adds(graph, github):
+    _git(graph.repo, "tag", "v0.9.0", graph.candidate)
+    github.pages[FORK] = [[{"tag_name": "v0.9.0", "draft": False, "prerelease": False}]]
+    fork_change = _commit(graph.repo, "feature.txt", "fork feature\n")
+    item = _pending(graph, tag="v1.0.0", body="# Hermes Agent v1.0.0\n\nupstream text\n")
+
+    text = releases.notes("example/hermes-agent", item, fork_change, graph.base)
+
+    assert text.startswith("# Hermes Agent v1.0.0\n\nupstream text\n\n---\n\n## example fork\n")
+    assert f"`{graph.base[:10]}`" in text and f"`{fork_change[:10]}`" in text
+    assert "Fork commits since v0.9.0" in text and f"- `{fork_change[:7]}` feature.txt" in text
+    assert text.rstrip().endswith(f"https://github.com/example/hermes-agent/compare/{graph.base}...v1.0.0")
+
+
+def test_first_release_still_links_the_diff(graph, github):
+    text = releases.notes("example/hermes-agent", _pending(graph), graph.candidate, graph.base)
+    assert "Fork commits since" not in text
+    assert f"compare/{graph.base}...v1.0.0" in text

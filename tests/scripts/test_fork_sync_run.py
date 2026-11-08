@@ -184,14 +184,20 @@ def test_pi_cli_receives_model_endpoint_and_no_github_credentials(controller, ag
         return 0, jsonl(pi_events()), False
 
     monkeypatch.setattr(controller.pi_session, "run", invoke)
-    controller.run_coding_agent({"conflicts": []}, {"context_window": 128000, "max_tokens": 16000}, "rules", 1800)
+    controller.run_coding_agent({"conflicts": []}, {"thinking": "max", "context_window": 128000, "max_tokens": 64000},
+                                "rules", 1800)
     command, kwargs = calls[0]
     assert command[0:4] == ["pi", "--mode", "json", "--no-session"]
     assert command[command.index("--model") + 1] == "custom-model"
+    assert command[command.index("--thinking") + 1] == "max"
     provider = models[0]["providers"]["fork-sync"]
     assert provider["baseUrl"] == "https://proxy.example/anthropic"
     assert provider["apiKey"] == "$SYNC_AI_API_KEY"
     assert provider["models"][0]["id"] == "custom-model"
+    # Pi clamps an unmapped max to high and sends effort only in the adaptive format.
+    assert provider["models"][0]["reasoning"] is True
+    assert provider["models"][0]["thinkingLevelMap"] == {"max": "max"}
+    assert provider["models"][0]["compat"] == {"forceAdaptiveThinking": True}
     assert kwargs["env"]["SYNC_AI_API_KEY"] == "test-secret"
     assert "GH_TOKEN" not in kwargs["env"] and "GITHUB_TOKEN" not in kwargs["env"]
     assert "ANTHROPIC_AUTH_TOKEN" not in kwargs["env"] and "CLAUDE_CODE_OAUTH_TOKEN" not in kwargs["env"]
@@ -224,7 +230,7 @@ def test_failed_command_is_feedback_for_the_model_not_a_publication_error(contro
 def test_pi_past_its_time_limit_is_not_published(controller, agent_env, monkeypatch):
     monkeypatch.setattr(controller.pi_session, "run", lambda *args: (143, jsonl(pi_events()), True))
     with pytest.raises(RuntimeError, match="30-minute limit"):
-        controller.run_coding_agent({}, {"context_window": 128000, "max_tokens": 16000}, "rules", 1800)
+        controller.run_coding_agent({}, {"thinking": "max", "context_window": 128000, "max_tokens": 64000}, "rules", 1800)
 
 
 def test_unicode_line_separator_is_not_a_jsonl_record_boundary(controller):
@@ -270,9 +276,9 @@ def test_prepare_outputs_one_matrix_entry_per_planned_test_shard(controller, tmp
     out = tmp_path / "github-output"
     monkeypatch.setenv("GITHUB_OUTPUT", str(out))
     shas = dict(base="a" * 40, candidate="b" * 40, upstream="c" * 40)
-    controller.emit(dict(shas, changed=True, needed=True,
+    controller.emit(dict(shas, changed=True, needed=True, remaining=True,
                          tests=dict(mode="selected", files=3, weight=12000, shards=2)))
-    controller.emit(dict(shas, candidate="a" * 40, changed=False, needed=True))
+    controller.emit(dict(shas, candidate="a" * 40, changed=False, needed=True, remaining=False))
     assert [line for line in out.read_text(encoding="utf-8").splitlines()
             if line.startswith("shards=")] == ["shards=[1, 2]", "shards=[]"]
 
@@ -359,7 +365,7 @@ def test_backlog_merges_in_steps_within_the_conflict_limit(controller, backlog, 
     root, _, chain = backlog
     calls = []
     monkeypatch.setattr(controller, "run_coding_agent", resolver(root, calls))
-    done = controller.merge_steps(chain[-1], [], SETTINGS, "rules", tmp_path / "artifacts")
+    done = controller.merge_steps(chain[-1], "upstream main", SETTINGS, "rules", tmp_path / "artifacts")
     assert [item["commit"] for item in done] == [chain[1], chain[3]]
     assert [len(context["conflicts"]) for context in calls] == [2, 2]
     assert git(root, "rev-parse", "HEAD^2") == chain[3]
@@ -370,7 +376,7 @@ def test_backlog_merges_in_steps_within_the_conflict_limit(controller, backlog, 
 def test_failed_later_step_leaves_the_completed_steps_to_publish(controller, backlog, tmp_path, monkeypatch, capsys):
     root, _, chain = backlog
     monkeypatch.setattr(controller, "run_coding_agent", resolver(root, [], fail_from=2))
-    done = controller.merge_steps(chain[-1], [], SETTINGS, "rules", tmp_path / "artifacts")
+    done = controller.merge_steps(chain[-1], "upstream main", SETTINGS, "rules", tmp_path / "artifacts")
     assert [item["commit"] for item in done] == [chain[1]]
     assert git(root, "rev-parse", "HEAD^2") == chain[1]
     assert git(root, "status", "--porcelain", "--untracked-files=all") == ""
@@ -384,7 +390,7 @@ def test_failed_first_step_fails_the_run(controller, backlog, tmp_path, monkeypa
     root, _, chain = backlog
     monkeypatch.setattr(controller, "run_coding_agent", resolver(root, [], fail_from=1))
     with pytest.raises(RuntimeError, match="unavailable"):
-        controller.merge_steps(chain[-1], [], SETTINGS, "rules", tmp_path / "artifacts")
+        controller.merge_steps(chain[-1], "upstream main", SETTINGS, "rules", tmp_path / "artifacts")
     assert (tmp_path / "artifacts" / "step-1.patch").read_text(encoding="utf-8")
 
 
@@ -410,24 +416,45 @@ def test_budget_shrinks_late_steps_and_stops_before_one_that_cannot_fit(controll
 
     monkeypatch.setattr(controller, "run_coding_agent", slow)
     settings = dict(SETTINGS, agent={"budget_seconds": 3600, "min_step_seconds": 1000})
-    done = controller.merge_steps(chain[-1], [], settings, "rules", tmp_path / "artifacts")
+    done = controller.merge_steps(chain[-1], "upstream main", settings, "rules", tmp_path / "artifacts")
     # 2100 s left after the first step: the conflict limit of 2 shrinks to 1 for the second.
     assert [(item["commit"], item["conflicts"]) for item in done] == [(chain[1], 2), (chain[2], 1)]
     assert "Time budget used after 2 step(s)" in capsys.readouterr().out
 
 
-def test_releases_wait_until_the_candidate_contains_them(controller, backlog, tmp_path, monkeypatch):
+def test_pending_release_is_merged_first_and_tagged_on_its_own_merge(controller, backlog, tmp_path, monkeypatch):
     root, fork, chain = backlog
-    monkeypatch.setattr(controller, "run_coding_agent", resolver(root, [], fail_from=2))
-    early = {"tag_name": "v1", "upstream_commit": chain[0]}
-    late = {"tag_name": "v2", "upstream_commit": chain[3]}
-    manifest = dict(base=fork, upstream_tip=chain[-1], releases=[early, late])
+    calls = []
+    monkeypatch.setattr(controller, "run_coding_agent", resolver(root, calls))
+    monkeypatch.setattr(controller.releases, "notes", lambda repository, item, target, tip: f"notes for {target}")
+    first = {"tag_name": "v1", "upstream_commit": chain[0]}
+    second = {"tag_name": "v2", "upstream_commit": chain[2]}
+    manifest = dict(repository="owner/repo", base=fork, upstream_tip=chain[-1], releases=[first, second])
     controller.integrate(manifest, SETTINGS, tmp_path / "artifacts")
-    assert manifest["candidate"] == git(root, "rev-parse", "HEAD") != fork
-    assert manifest["upstream"] == chain[1]
-    assert manifest["releases"] == [early]
-    assert manifest["needed"] and manifest["changed"]
-    assert (tmp_path / "artifacts" / "candidate.bundle").is_file()
+    # The run stops at the oldest pending release, not at upstream main's tip.
+    assert [context["reason"] for context in calls] == ["release v1"]
+    candidate = git(root, "rev-parse", "HEAD")
+    assert manifest["candidate"] == candidate and git(root, "rev-parse", "HEAD^2") == chain[0]
+    assert manifest["releases"] == [first] and first["target"] == candidate
+    assert first["notes"] == f"notes for {candidate}"
+    assert manifest["upstream"] == chain[0]
+    assert manifest["remaining"] and manifest["changed"] and manifest["needed"]
+
+
+def test_release_main_already_contains_is_tagged_where_main_merged_it(controller, backlog, tmp_path, monkeypatch):
+    root, _, chain = backlog
+    monkeypatch.setattr(controller, "run_coding_agent", resolver(root, []))
+    monkeypatch.setattr(controller.releases, "notes", lambda *args: "notes")
+    controller.merge_steps(chain[1], "upstream main", SETTINGS, "rules", tmp_path / "artifacts")
+    merged_first = git(root, "rev-parse", "HEAD")
+    write_commit(root, {"app/fork.txt": "a later fork change\n"})
+    base = git(root, "rev-parse", "HEAD")
+    release = {"tag_name": "v1", "upstream_commit": chain[0]}
+    manifest = dict(repository="owner/repo", base=base, upstream_tip=chain[1], releases=[release])
+    controller.integrate(manifest, SETTINGS, tmp_path / "artifacts")
+    # Nothing to merge: the release is published on the fork's merge of it, not on today's main.
+    assert manifest["candidate"] == base and not manifest["changed"] and manifest["needed"]
+    assert release["target"] == merged_first and not manifest["remaining"]
 
 
 def test_steps_inside_an_unfinished_batch_are_not_published(controller, tmp_path, monkeypatch, capsys):

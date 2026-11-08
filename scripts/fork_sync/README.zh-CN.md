@@ -17,7 +17,7 @@
 | Variable（可选） | `SYNC_PAUSED` | 设为 `true` 暂停整个工作流 |
 | Secret（可选） | `SYNC_PUSH_TOKEN` | 仅发布任务使用的专用 GitHub App token 或细粒度 PAT，见下方权限说明 |
 
-控制器在临时 `PI_CODING_AGENT_DIR/models.json` 中创建 `fork-sync` provider：`api` 为 `anthropic-messages`，模型 ID 来自 `SYNC_AI_MODEL`，`apiKey` 只写环境变量引用 `$SYNC_AI_API_KEY`。不读取本机 `auth.json` 或复制登录信息。接口地址的 `/v1` 或 `/v1/messages` 后缀会去掉，由 Pi 的 Anthropic 客户端添加；代理路径前缀会保留。默认纯文本、关闭 thinking；`context_window` 和 `max_tokens` 在 `config.json` 中按实际模型能力调整。端点需要支持 Anthropic 流式工具调用，实际兼容性以首次 Actions 运行验证。
+控制器在临时 `PI_CODING_AGENT_DIR/models.json` 中创建 `fork-sync` provider：`api` 为 `anthropic-messages`，模型 ID 来自 `SYNC_AI_MODEL`，`apiKey` 只写环境变量引用 `$SYNC_AI_API_KEY`。不读取本机 `auth.json` 或复制登录信息。接口地址的 `/v1` 或 `/v1/messages` 后缀会去掉，由 Pi 的 Anthropic 客户端添加；代理路径前缀会保留。思考级别由 `config.json` 的 `agent.thinking` 决定，默认 `max`：模型标为支持思考（`reasoning: true`），使用 Anthropic 自适应思考（`compat.forceAdaptiveThinking`，请求带 `thinking.type: adaptive` 和 `output_config.effort`），并把 `max` 映射为 effort `max`（不映射时 Pi 会把 max 降为 high）。端点必须接受这两个字段，否则把 `agent.thinking` 改为 `high` 或 `off`。`max_tokens`（默认 64000）同时容纳思考和回答，太小会让回答被截断、这一步失败；`context_window` 和 `max_tokens` 按实际模型能力调整。思考越深，每步耗时和费用越高。端点需要支持 Anthropic 流式工具调用，实际兼容性以首次 Actions 运行验证。
 
 在 **Actions** 页面为 fork 启用工作流，然后手动运行 **Fork upstream sync** 检查配置与结果。工作流只在 fork 的 `main` 运行。仓库策略必须允许工作流使用 `contents: write`。若规则要求所有修改走 PR、签名或限制机器人直推，需要为专用自动化身份配置适用规则；脚本不会强推或绕过保护规则。
 
@@ -26,11 +26,11 @@
 ## 执行过程
 
 1. **Prepare（只有仓库读取权限）**：获取 upstream main，分页枚举发布时间不早于起始时间的公开 Release，跳过草稿和已存在的 fork Release。上游标签抓取到独立 Git 命名空间，避免覆盖 fork 同名标签。
-2. 把尚未包含的 upstream main 分成**有界的步骤**逐步合并，见下文「分步合并与时间预算」；main 合并完后再合并尚未包含的 Release 提交。每一步都执行真实 Git 合并，即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
+2. **先处理新 Release，再同步 main**：有尚未包含的上游 Release 时，本轮只朝最早的那个 Release 的提交合并，合并到它就停下，验证后在这次合并上发布 fork 的同名 Release，然后立刻触发下一轮继续同步 main；没有待处理的 Release 时朝 upstream main 最新提交合并。两种情况都分成**有界的步骤**，见下文「分步合并与时间预算」。每一步都执行真实 Git 合并，即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
 3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。测试只能写入任务设置的临时 `HERMES_HOME`，托管 runner 起始时也没有账户默认的 Hermes 主目录；若 `~/.hermes` 在测试期间出现，说明某个测试的子进程没有隔离 `HERMES_HOME`（见 `tests/AGENTS.md`），该分片判定失败。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
-自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 120/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
+fork 的稳定版 Release 也由本工作流发布，原来手动运行的 `fork-stable-release.yml` 已并入（见「Release 语义」），因此只有本工作流移动 Release 的 Tag；同一时间只运行一个同步，较新的排队运行会替换较旧的。发布成功后若还有未合并的 upstream main 或 Release（`remaining`），Publish 任务会立即用 `workflow_dispatch` 启动下一轮，不必等到下一个整点；运行失败或已经追平时不会再触发。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 120/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
 
 ## 分步合并与时间预算
 
@@ -43,7 +43,7 @@
 - 每轮的 Pi 总时间预算为 `agent.budget_seconds`（100 分钟）。每步可以用完剩余预算，剩余不足 `agent.min_step_seconds`（10 分钟）时不再开始新步骤；预算越少，后面步骤的上限按比例缩小。
 - 一轮结束时，候选提交停在最后一个完成的批次末尾；同一轮里在未完成批次内合并的步骤会丢弃并发出警告，由下一轮重做。如果一轮一个批次末尾都没到达，仍发布已合并的步骤，避免没有任何进展。
 - 第一步失败时本轮失败（与以前相同）；后面的步骤失败或超时，只丢弃这一步，发出 `::warning::` 注解，已完成的步骤照常验证并发布，下一轮从那里继续。
-- 候选提交还不包含的 Release 本轮不发布，下一轮重新发现，等合并到它的提交后再发布。
+- 每轮只有一个目标：最早的待处理 Release 的提交，没有时是 upstream main 的最新提交。步骤只朝这个目标走，所以发布 Release 的那一轮不会顺带合并它之后的 main 提交。候选提交还不包含的 Release 本轮不发布，下一轮重新发现。
 
 用 11-08 的真实积压（538 个 first-parent 提交）离线演练：7 步到达上游最新提交，控制器自身开销共 22 秒。其中 24 个提交的批次因冲突过多拆成 3 步，另有一个单独的提交带 19 个冲突（把各语言里的“群聊”统一成一个叫法）。
 
@@ -94,10 +94,12 @@ Pi 能读取上下文并尝试解决二开冲突，但不能保证所有语义�
 
 ## Release 语义
 
-- 新 Release 的 **Tag 名、标题、正文和 prerelease 标志**来自上游，正文不追加 fork 说明。
-- Tag 指向通过上述检查的 **fork 代码**，包含中文、二开及该上游 Release 的真实提交；GitHub 自动生成的 Source code ZIP/TAR 因而包含 fork 改动。
+fork 的 vX.Y.Z = 上游 vX.Y.Z 加上本仓库的改动，`hermes update --set-channel stable` 和桌面端的稳定版选择器解析的就是这些 Release（`hermes_cli/source_releases._resolve_release`）。以前由手动的 `fork-stable-release.yml` 发布，现在每次定时同步自动完成：
+
+- 新 Release 的 **Tag 名、标题和 prerelease 标志**来自上游；正文是上游原文，后面追加 fork 说明：上游标签提交、fork 发布提交、已同步到的上游 main 提交、自上一个 fork 稳定版以来本仓库的自有提交（最多列 40 个），以及与上游同版本的完整差异链接。
+- Tag 指向**最早包含该上游标签提交的 fork 提交**，也就是合并它的那次提交：先处理 Release 的流程里就是这一轮验证过的候选提交，不含之后的 main 提交。包含中文、二开及该上游 Release 的真实提交；GitHub 自动生成的 Source code ZIP/TAR 因而包含 fork 改动。已经被 main 包含的 Release（回填或上游晚发布）不再合并，直接在 main 当初合并它的提交上发布，这一轮也跳过 Validate。v0.23.0 以前手动发布的 v0.21.7–v0.22.6 打在当时的 main 上，保持原样。
 - Release 分支可能含 main 没有的提交，准备阶段也会合并它们；发布前要求真实祖先关系，不把缺少对象或 Git 错误当作已同步。
-- 已存在的 fork Release 和已上传附件保持原样，避免轮询重写人工发布记录；这也意味着不会追踪上游对旧 Release 正文的后续编辑。
+- 已存在的 fork Release 和已上传附件保持原样，避免轮询重写人工发布记录；这也意味着不会追踪上游对旧 Release 正文的后续编辑。要重新发布某个版本，在 GitHub 上删除该 fork Release，下一轮会重新发布（版本须在 `SYNC_RELEASES_SINCE` 之后）。
 - 只将上游 `/releases/latest` 对应的正式版本标记为 latest，补发历史版本不会抢占 latest；预发布保留预发布标志。
 - 不直接复制上游二进制附件：它们没有你的本地化或二开代码。当前核实的上游 Release 没有附件。若以后需要中文安装包，应基于 fork Tag 接入现有构建流程并上传；本工作流仅发布源码 Release。
 - 默认从 `2026-11-07T00:00:00Z` 开始，不自动补全之前缺失的历史版本。修改 `SYNC_RELEASES_SINCE` 可显式回填；所有符合条件的版本分页处理，不只读取 latest。
@@ -106,7 +108,7 @@ Pi 能读取上下文并尝试解决二开冲突，但不能保证所有语义�
 
 Pi 非零退出、超时、JSONL 中的模型错误、缺少 `agent_settled` 或最终成功 JSON、冲突残留、丢失测试、测试失败或推送拒绝都会让对应步骤或整轮失败，不能发布未通过检查的内容；第一步之后的步骤失败时，只丢弃这一步，已完成的步骤照常验证发布。模型错误采用保守策略：即使 Pi 后续自行重试成功，这一步仍算失败。prepare 会尽量上传 `fork-sync-candidate` 诊断产物；成功准备时包含候选 bundle/manifest，每个失败的步骤还会保存 `step-<n>.patch`（已跟踪文件的工作区 patch）和 `step-<n>.json`（步骤信息、错误和冲突列表）。以前的恢复 bundle 打包了整个仓库历史（约 1.2 GB），已删除。产物保存 7 天，不包含 API Key、模型完整对话或环境转储。失败时没有自动创建 PR/远端待处理分支，避免依赖额外 PR 写权限。
 
-工作流下一轮会重试。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
+工作流下一轮会重试。新 Release 优先处理，所以一个反复合并失败的 Release 也会挡住 main 的同步；要跳过它，在 fork 中为同一个 Tag 创建 Release（草稿也可以，它会占用这个 Tag 名），同步就不再处理它。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
 
 上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每轮 Pi 总预算默认 100 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。Validate 或任一 Python 测试分片失败后，本轮停止，下一轮重新尝试。
 

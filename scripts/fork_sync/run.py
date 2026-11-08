@@ -73,7 +73,7 @@ def emit(manifest: dict) -> None:
     destination = os.environ.get("GITHUB_OUTPUT")
     if destination:
         with open(destination, "a", encoding="utf-8") as handle:
-            for key in ("base", "candidate", "upstream", "changed", "needed"):
+            for key in ("base", "candidate", "upstream", "changed", "needed", "remaining"):
                 value = manifest[key]
                 handle.write(f"{key}={str(value).lower() if isinstance(value, bool) else value}\n")
             shards = manifest.get("tests", {}).get("shards", 0)
@@ -107,11 +107,20 @@ def prepare(repository: str, artifacts: Path) -> None:
 
 
 def integrate(manifest: dict, settings: dict, artifacts: Path) -> None:
-    """Merge as much as this run's budget allows and record the candidate in ``manifest``."""
+    """Merge as much as this run's budget allows and record the candidate in ``manifest``.
+
+    A pending upstream release comes first: the run merges toward that release's
+    commit, stops there and publishes the release on the merge, so the fork's tag
+    names upstream's release plus this repository's changes and nothing newer.
+    Upstream main follows in the next run, which publish starts right away.
+    """
     base, tip, pending = manifest["base"], manifest["upstream_tip"], manifest["releases"]
-    if not ancestor(tip, "HEAD"):
-        print(f"Upstream main backlog: {steps.measure('HEAD', tip).describe()}", flush=True)
-    done = merge_steps(tip, pending, settings, (HERE / "prompt.md").read_text(encoding="utf-8-sig"), artifacts)
+    missing = [item for item in pending if not ancestor(item["upstream_commit"], base)]
+    goal, reason = ((missing[0]["upstream_commit"], f"release {missing[0]['tag_name']}") if missing
+                    else (tip, "upstream main"))
+    if not ancestor(goal, "HEAD"):
+        print(f"Backlog to {reason}: {steps.measure('HEAD', goal).describe()}", flush=True)
+    done = merge_steps(goal, reason, settings, (HERE / "prompt.md").read_text(encoding="utf-8-sig"), artifacts)
     # Publish up to the last batch upstream finished; with none finished, publish what was merged.
     ends = [index for index, item in enumerate(done) if item["batch_end"]]
     keep = ends[-1] + 1 if ends else len(done)
@@ -121,24 +130,45 @@ def integrate(manifest: dict, settings: dict, artifacts: Path) -> None:
              "the next run merges them again")
         done = done[:keep]
     candidate = output("rev-parse", "HEAD")
-    finished = ancestor(tip, candidate)
     # Releases the candidate does not contain yet are discovered again by the next run.
     included = [item for item in pending if ancestor(item["upstream_commit"], candidate)]
-    manifest.update(candidate=candidate, upstream=tip if finished else done[-1]["commit"],
+    for item in included:
+        item["target"] = earliest_containing(item["upstream_commit"], candidate)
+        item["notes"] = releases.notes(manifest["repository"], item, item["target"], tip)
+    manifest.update(candidate=candidate, upstream=output("merge-base", candidate, tip),
                     changed=candidate != base, needed=candidate != base or bool(included),
+                    remaining=not ancestor(tip, candidate) or len(included) < len(pending),
                     releases=included, steps=done)
     if manifest["changed"]:
         git("update-ref", CANDIDATE_REF, candidate)
         git("bundle", "create", str(artifacts / "candidate.bundle"), CANDIDATE_REF, f"^{base}")
         manifest["tests"] = plan_tests(manifest, settings["tests"], artifacts)
-    left = "" if finished else f"; upstream main continues in the next run from {manifest['upstream'][:12]}"
+    left = "; the next run continues" if manifest["remaining"] else ""
     print(f"Prepared {candidate[:12]}: {len(done)} step(s), {len(included)} of {len(pending)} release(s){left}")
 
 
-def merge_steps(tip: str, pending: list[dict], settings: dict, prompt: str, artifacts: Path) -> list[dict]:
-    """Merge upstream main, then each pending release, one bounded step at a time.
+def earliest_containing(commit: str, head: str) -> str:
+    """The first commit on ``head``'s first-parent line that contains ``commit``.
 
-    Steps stop when everything is merged or the time budget cannot fit another.
+    Once a commit on that line contains it, every newer one does, so bisect for the oldest.
+    (``rev-list --first-parent --ancestry-path`` judges descent along first parents too and
+    misses a commit that a merge brought in below its second parent.)
+    """
+    line = output("rev-list", "--first-parent", head).splitlines()  # newest first; line[0] contains it
+    good, bad = 0, len(line)
+    while bad - good > 1:
+        middle = (good + bad) // 2
+        if ancestor(commit, line[middle]):
+            good = middle
+        else:
+            bad = middle
+    return line[good]
+
+
+def merge_steps(goal: str, reason: str, settings: dict, prompt: str, artifacts: Path) -> list[dict]:
+    """Merge toward ``goal`` (a release commit or upstream main) one bounded step at a time.
+
+    Steps stop when the goal is merged or the time budget cannot fit another.
     A step that fails after an earlier one succeeded is discarded with a warning:
     the completed steps become the candidate and the next run continues from
     them. Only a failure in the first step fails the run.
@@ -148,12 +178,12 @@ def merge_steps(tip: str, pending: list[dict], settings: dict, prompt: str, arti
     done: list[dict] = []
     while True:
         remaining = deadline - time.monotonic()
-        step = next_step(tip, pending, settings["steps"], remaining / agent["budget_seconds"])
+        step = next_step(goal, reason, settings["steps"], remaining / agent["budget_seconds"])
         if step is None:
             return done
         number = len(done) + 1
         if remaining < agent["min_step_seconds"]:
-            warn(f"Time budget used after {len(done)} step(s); the next run continues with {step['reason']}")
+            warn(f"Time budget used after {len(done)} step(s); the next run continues toward {reason}")
             return done
         print(f"Step {number}: merge {step['reason']} {step['commit'][:12]} ({step['summary']})", flush=True)
         before = output("rev-parse", "HEAD")
@@ -170,20 +200,16 @@ def merge_steps(tip: str, pending: list[dict], settings: dict, prompt: str, arti
         done.append(dict(step, merged=output("rev-parse", "HEAD")))
 
 
-def next_step(tip: str, pending: list[dict], limits: dict, scale: float) -> dict | None:
-    """The next bounded step: upstream main first, then each release not merged yet.
+def next_step(goal: str, reason: str, limits: dict, scale: float) -> dict | None:
+    """The next bounded step toward ``goal``, None once HEAD contains it.
 
     Limits shrink with the budget left, so a late step is sized for the time remaining.
     """
     head = output("rev-parse", "HEAD")
-    if not ancestor(tip, head):
-        bound = [max(1, round(limits[key] * min(scale, 1.0))) for key in ("max_conflicts", "max_review_files")]
-        step, reason = steps.furthest(head, tip, *bound), "upstream main"
-    else:
-        release = next((item for item in pending if not ancestor(item["upstream_commit"], head)), None)
-        if release is None:
-            return None
-        step, reason = steps.measure(head, release["upstream_commit"]), f"release {release['tag_name']}"
+    if ancestor(goal, head):
+        return None
+    bound = [max(1, round(limits[key] * min(scale, 1.0))) for key in ("max_conflicts", "max_review_files")]
+    step = steps.furthest(head, goal, *bound)
     return dict(step.record(), reason=reason, summary=step.describe())
 
 
@@ -321,12 +347,15 @@ def run_coding_agent(context: dict, settings: dict, prompt: str, timeout: float)
         env["PI_CODING_AGENT_DIR"] = folder
         write_json(Path(folder) / "models.json", {"providers": {"fork-sync": {
             "baseUrl": endpoint, "api": "anthropic-messages", "apiKey": "$SYNC_AI_API_KEY",
-            "models": [{"id": model, "reasoning": False, "input": ["text"],
+            # Adaptive thinking: Pi sends thinking.type adaptive and output_config.effort, and an
+            # unmapped max level would fall back to high.
+            "models": [{"id": model, "reasoning": True, "thinkingLevelMap": {"max": "max"},
+                        "compat": {"forceAdaptiveThinking": True}, "input": ["text"],
                         "contextWindow": settings["context_window"], "maxTokens": settings["max_tokens"]}],
         }}})
         command = [
             "pi", "--mode", "json", "--no-session", "--provider", "fork-sync", "--model", model,
-            "--thinking", "off", "--tools", "read,grep,find,ls,edit,write,bash",
+            "--thinking", settings["thinking"], "--tools", "read,grep,find,ls,edit,write,bash",
             "--no-extensions", "--no-skills", "--no-prompt-templates", "--no-themes",
             "--no-context-files", "--no-mcp", "--no-approve", "--offline",
             "--append-system-prompt", prompt,

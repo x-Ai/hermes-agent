@@ -8,9 +8,11 @@ on:
 permissions:
   contents: read
 
-# Also serializes with the existing manual fork release publisher.
+# One sync at a time; a newer pending run replaces an older one. This workflow also
+# publishes the fork's stable releases (scripts/fork_sync/releases.py), so no other
+# workflow moves its tags.
 concurrency:
-  group: fork-stable-release
+  group: fork-upstream-sync
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +24,10 @@ jobs:
     outputs:
       base: ${{ steps.prepare.outputs.base }}
       candidate: ${{ steps.prepare.outputs.candidate }}
+      changed: ${{ steps.prepare.outputs.changed }}
       needed: ${{ steps.prepare.outputs.needed }}
+      # true while upstream main or a release is still unmerged: publish starts the next run.
+      remaining: ${{ steps.prepare.outputs.remaining }}
       # JSON list of Python test shards, [] when the merge reaches no Python test.
       shards: ${{ steps.prepare.outputs.shards }}
     steps:
@@ -66,7 +71,8 @@ jobs:
 
   validate:
     needs: prepare
-    if: needs.prepare.outputs.needed == 'true'
+    # Nothing to check when the run only publishes releases on main's existing history.
+    if: needs.prepare.outputs.needed == 'true' && needs.prepare.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -177,15 +183,18 @@ jobs:
 
   publish:
     needs: [prepare, validate, test]
-    # test is skipped, not failed, when the merge reaches no Python test.
+    # test is skipped, not failed, when the merge reaches no Python test; validate too when
+    # the run only publishes releases on main's existing history.
     if: >-
       !cancelled() && needs.prepare.result == 'success' && needs.prepare.outputs.needed == 'true'
-      && needs.validate.result == 'success'
+      && (needs.validate.result == 'success'
+          || (needs.validate.result == 'skipped' && needs.prepare.outputs.changed != 'true'))
       && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: write
+      actions: write
     steps:
       # Only trusted source from the triggering fork main is executed here.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -206,3 +215,11 @@ jobs:
         run: |
           gh auth setup-git
           python scripts/fork_sync/run.py publish --artifacts "$RUNNER_TEMP/fork-sync-artifacts"
+      # A run that stopped at a release (or ran out of budget) leaves upstream main for the
+      # next one; start it now instead of at the next hourly slot. A run that fails or has
+      # nothing left publishes nothing here, so this never loops on its own.
+      - name: Continue with the rest of upstream
+        if: needs.prepare.outputs.remaining == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run fork-upstream-sync.yml --repo "$GITHUB_REPOSITORY" --ref main
