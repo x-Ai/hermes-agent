@@ -71,7 +71,16 @@ def _scrubbed_env(**overrides):
     return env
 
 
-def _run_probe(env):
+def _run_probe(env, home):
+    """Run the probe in a child whose account home is the disposable *home*.
+
+    Its platform-default root (``<home>/.hermes``; ``%LOCALAPPDATA%\\hermes`` on
+    Windows) is the production root the guard must refuse, and merely importing
+    ``hermes_state`` seeds a Hermes home there (config load → home skeleton) —
+    with the caller's own HOME, in the developer's real ``~/.hermes``.
+    """
+    env = {**env, "HOME": str(home), "USERPROFILE": str(home),
+           "LOCALAPPDATA": str(home / "AppData" / "Local")}
     result = subprocess.run(
         [sys.executable, "-c", _CHILD_PROBE.format(repo=str(REPO_ROOT))],
         env=env,
@@ -92,23 +101,23 @@ def _run_probe(env):
 
 
 class TestScrubbedChildEnvironment:
-    def test_child_without_pytest_env_still_refuses_production_db(self):
+    def test_child_without_pytest_env_still_refuses_production_db(self, tmp_path):
         """The #82770 escape: no PYTEST_* and no HERMES_HOME, yet still a test.
 
         This is the exact shape of the leak — the child resolves the real
         ``state.db`` because ``HERMES_HOME`` is gone, and the env-only guard
         sees a "normal user run" because ``PYTEST_*`` is gone with it.
         """
-        assert _run_probe(_scrubbed_env()) == "REFUSED"
+        assert _run_probe(_scrubbed_env(), tmp_path) == "REFUSED"
 
-    def test_child_inheriting_pytest_env_still_refuses_production_db(self):
+    def test_child_inheriting_pytest_env_still_refuses_production_db(self, tmp_path):
         """The pre-existing env path must keep working unchanged."""
         env = dict(os.environ)
         env.pop("HERMES_HOME", None)
         env.setdefault("PYTEST_CURRENT_TEST", "tests/x.py::test_x (call)")
-        assert _run_probe(env) == "REFUSED"
+        assert _run_probe(env, tmp_path) == "REFUSED"
 
-    def test_env_bypass_lets_a_deliberate_child_through(self):
+    def test_env_bypass_lets_a_deliberate_child_through(self, tmp_path):
         """A test that genuinely needs the live DB in a child can opt out.
 
         ``_STATE_DB_GUARD_BYPASS`` is a module global and cannot cross a
@@ -116,7 +125,7 @@ class TestScrubbedChildEnvironment:
         escape hatch or they would have no way to opt out at all.
         """
         env = _scrubbed_env(**{hermes_state._STATE_DB_GUARD_BYPASS_ENV: "1"})
-        assert _run_probe(env) == "ALLOWED"
+        assert _run_probe(env, tmp_path) == "ALLOWED"
 
 
 class TestPytestProcessRecognition:

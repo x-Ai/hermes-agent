@@ -11,6 +11,7 @@ Modeled on tests/tui_gateway/test_slash_worker_sys_path.py's subprocess pattern.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,13 +33,21 @@ sys.meta_path.insert(0, _BlockPatchStdout())
 """
 
 
+def _child_env() -> dict[str, str]:
+    """A bare environment around the test's isolated ``HERMES_HOME``. Without it the child
+    resolves the real ``~/.hermes``, and importing ``cli`` seeds a Hermes home there (directory
+    skeleton, SOUL.md, logs, scratch dir)."""
+    return {"PYTHONPATH": str(PROJECT_ROOT), "PATH": "", "HOME": str(Path.home()),
+            "HERMES_HOME": os.environ["HERMES_HOME"]}
+
+
 def _import_cli_without_patch_stdout():
     code = _BLOCKER + "import cli\n"
     return subprocess.run(
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": str(PROJECT_ROOT), "PATH": "", "HOME": str(Path.home())},
+        env=_child_env(),
         cwd=str(PROJECT_ROOT),
         check=False,
     )
@@ -59,7 +68,7 @@ def test_cli_patch_stdout_falls_back_to_nullcontext():
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": str(PROJECT_ROOT), "PATH": "", "HOME": str(Path.home())},
+        env=_child_env(),
         cwd=str(PROJECT_ROOT),
         check=False,
     )

@@ -156,6 +156,11 @@ class TestSubprocessChildCovered:
         }
         env["PYTEST_CURRENT_TEST"] = "tests/fake.py::test_child (call)"
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
+        # A disposable account home: its platform-default root is the production root the guard
+        # must refuse. Importing hermes_state seeds a Hermes home there before SessionDB() runs, and
+        # a regressed guard would open its state.db — with the caller's HOME, the real ~/.hermes.
+        env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path),
+                   LOCALAPPDATA=str(tmp_path / "AppData" / "Local"))
         code = (
             "from hermes_state import SessionDB\n"
             "SessionDB()\n"
