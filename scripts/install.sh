@@ -651,18 +651,35 @@ is_official_repo() {
         | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/hermes-agent(\.git)?/?$'
 }
 
-# The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
-# stable channel. github.com's /releases/latest redirect answers when the API quota is spent, and
-# origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when github.com's web
-# endpoints are unreachable but git is not. $1 is the origin URL. Prints nothing when none answers.
+# The GitHub repository whose releases origin $1's stable channel follows, as `hermes update` picks it
+# (hermes_cli.source_releases.source_repository): a GitHub origin's own, since a fork cuts its own
+# releases and its vX.Y.Z names the fork's commit; any other origin mirrors the repository this
+# installer clones by default. A subshell, so nocasematch (the parser's re.IGNORECASE) stays in here.
+release_repository() (
+    local origin="${1%/}" re='^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)([a-z0-9_.-]+/[a-z0-9_.-]+)$'
+    shopt -s nocasematch
+    [[ "$origin" != *.git ]] || origin="${origin%????}"
+    if [[ "$origin" =~ $re ]]; then
+        printf '%s' "${BASH_REMATCH[2]}"
+    else
+        printf '%s' 'x-Ai/hermes-agent'
+    fi
+)
+
+# The latest published stable release (vX.Y.Z) of release_repository, the release `hermes update`
+# resolves for the stable channel. github.com's /releases/latest redirect answers when the API quota
+# is spent, and origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when
+# github.com's web endpoints are unreachable but git is not. $1 is the origin URL. Prints nothing
+# when none answers.
 latest_stable_release() {
-    local tag
+    local tag repository
+    repository="$(release_repository "$1")"
     tag="$(curl -fsSL --connect-timeout 5 --max-time 20 -H 'Accept: application/vnd.github+json' \
-        https://api.github.com/repos/NousResearch/hermes-agent/releases/latest 2>/dev/null \
+        "https://api.github.com/repos/$repository/releases/latest" 2>/dev/null \
         | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
     if ! valid_stable_tag "$tag"; then
         tag="$(curl -fsSI --connect-timeout 5 --max-time 20 \
-            https://github.com/NousResearch/hermes-agent/releases/latest 2>/dev/null \
+            "https://github.com/$repository/releases/latest" 2>/dev/null \
             | tr -d '\r' | sed -n 's#^[Ll]ocation:.*/releases/tag/\([^/]*\)$#\1#p' | tail -n 1)"
     fi
     if ! valid_stable_tag "$tag"; then

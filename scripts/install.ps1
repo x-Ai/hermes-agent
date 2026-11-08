@@ -954,21 +954,33 @@ function Get-ChosenChannel {
     return ''
 }
 
-# The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
-# stable channel. github.com's /releases/latest redirect answers when the API quota is spent, and
-# origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when github.com's web
-# endpoints are unreachable but git is not. Returns '' when none answers.
+# The GitHub repository whose releases origin $Origin's stable channel follows, as `hermes update`
+# picks it (hermes_cli.source_releases.source_repository, same pattern): a GitHub origin's own, since a
+# fork cuts its own releases and its vX.Y.Z names the fork's commit; any other origin mirrors the
+# repository this installer clones by default.
+function Get-ReleaseRepository([string]$Origin) {
+    if ($Origin -match '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(\.git)?/?$') {
+        return $Matches[2]
+    }
+    return 'x-Ai/hermes-agent'
+}
+
+# The latest published stable release (vX.Y.Z) of Get-ReleaseRepository, the release `hermes update`
+# resolves for the stable channel. github.com's /releases/latest redirect answers when the API quota
+# is spent, and origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when
+# github.com's web endpoints are unreachable but git is not. Returns '' when none answers.
 function Get-LatestStableRelease([string]$Origin) {
     $pattern = '^v(0|[1-9]\d{0,2})\.(0|[1-9]\d*)\.(0|[1-9]\d*)$'  # update_channel.STABLE_TAG_RE
+    $repository = Get-ReleaseRepository $Origin
     $tag = ''
     try {
-        $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/NousResearch/hermes-agent/releases/latest' `
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$repository/releases/latest" `
             -Headers @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'hermes-installer' } -TimeoutSec 20
         $tag = "$($release.tag_name)"
     } catch { }
     if ($tag -cnotmatch $pattern) {
         try {
-            $request = [Net.HttpWebRequest]::Create('https://github.com/NousResearch/hermes-agent/releases/latest')
+            $request = [Net.HttpWebRequest]::Create("https://github.com/$repository/releases/latest")
             $request.Method = 'HEAD'
             $request.AllowAutoRedirect = $false
             $request.Timeout = 20000
