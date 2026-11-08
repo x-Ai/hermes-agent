@@ -1,9 +1,14 @@
 {
   "releases_since": "2026-11-07T00:00:00Z",
   "agent": {
-    "timeout_seconds": 3600,
+    "budget_seconds": 6000,
+    "min_step_seconds": 600,
     "context_window": 128000,
     "max_tokens": 16000
+  },
+  "steps": {
+    "max_conflicts": 12,
+    "max_review_files": 60
   },
   "checks": [
     ["python", "scripts/check", "--base", "{base}", "--commit", "{candidate}"],

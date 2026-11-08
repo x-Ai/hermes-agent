@@ -26,11 +26,44 @@
 ## 执行过程
 
 1. **Prepare（只有仓库读取权限）**：获取 upstream main，分页枚举发布时间不早于起始时间的公开 Release，跳过草稿和已存在的 fork Release。上游标签抓取到独立 Git 命名空间，避免覆盖 fork 同名标签。
-2. 对尚未包含的 main 和 Release 提交逐个执行真实 Git 合并。即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
+2. 把尚未包含的 upstream main 分成**有界的步骤**逐步合并，见下文「分步合并与时间预算」；main 合并完后再合并尚未包含的 Release 提交。每一步都执行真实 Git 合并，即使没有文本冲突，也调用 `pi --mode json --no-session` 检查新增用户界面文案、补齐 i18n。Pi 负责工具调用、文件编辑和上下文管理，可使用 Bash 运行针对性检查；控制器只启动 CLI、检查 JSONL 事件和最终 Git 状态。显式启用 read/grep/find/ls/edit/write/bash，禁用 extensions、skills、prompt templates、MCP 和自动加载上下文，不批准项目本地配置。`--offline` 禁止模型目录刷新等自动网络活动，不影响显式模型请求。Pi 不提供工具审批，Bash 能访问该进程的 API 环境及 runner 网络；仅在一次性的 GitHub 托管 runner 中运行。GitHub 凭证不传入 Pi，仓库写凭证只在 Publish 任务出现。
 3. **Validate 与 Python tests（无 AI 密钥、无写 token，并行运行）**：两类任务都从 Git bundle 恢复准确的候选提交，通过现有 PM 机制构建锁定依赖。Validate 运行 `scripts/check`、TUI check、桌面端 lint/typecheck 与 UI 测试、Web check，以及 desktop i18n 导出一致性检查（`config.json` 的 `checks`）。Python tests 只运行本次合并可能影响的测试文件，分片并行，见下文「Python 测试选择」。这是 Linux 验证，不包含 macOS/Windows 原生集成或桌面安装包 E2E。
 4. **Publish（仅此任务可写仓库）**：再次确认远端 main 没有被其他人推进，使用普通 fast-forward push 推进 main，然后创建缺失的 Release。测试期间 main 发生变化就失败，下一轮从新 main 重新计算；不会把未经检查的 rebase 结果推送。
 
-自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 90/120/90/20 分钟硬超时。有更新才调用 AI；上游改动很多时，首轮 API 花费和执行时间可能明显增加。
+自动化与现有 `fork-stable-release.yml` 共用并发组，避免两套发布流程同时移动同名 Tag。AI 时间预算、步骤上限、检查与测试命令、分片参数保存在 `config.json`；Prepare、Validate、每个 Python 测试分片和 Publish 分别有 120/120/90/20 分钟硬超时。有更新才调用 AI；落后很多时，追上之前的几轮 API 花费和执行时间会明显增加。
+
+## 分步合并与时间预算
+
+2026-11-07/08 的两次运行都在 Pi 的 60 分钟上限处超时：每轮都从同一个 fork main 出发，合并当时的上游 main 全部新提交，第一次 89 个、第二次 131 个提交（310 个文件、42 个冲突，主要是桌面端 `hermes-bots` 群聊的大改动）。每失败一小时，上游又多出一批提交，下一轮的工作量只会更大，固定时限永远追不上；到 11-08 早上已落后 547 个提交。
+
+现在 Prepare 把积压拆成步骤（`steps.py`），每步只合并上游 main first-parent 链上的一段：
+
+- 用 `git merge-tree --write-tree` 试合并（每次约 0.2 秒，不碰工作区），找出冲突文件不超过 `steps.max_conflicts`（12）、需要审阅的文件不超过 `steps.max_review_files`（60）的最远提交。测试文件、`plugin-catalog/` 和 `contributors/` 不计入审阅文件：它们没有需要本地化的界面文案。
+- 上游把一个 PR 的多个提交用同一个提交时间一起落地，CI 只检查其中最后一个；批次中间的状态可能从未验证过（这次积压里就有一个提交新建文件时多了空行，同批后面的提交才删掉）。所以步骤尽量停在批次末尾，只有一个批次本身超过上限时才在批次内拆分。单个提交永不拆分，所以一个超限的提交仍是一步。
+- 每轮的 Pi 总时间预算为 `agent.budget_seconds`（100 分钟）。每步可以用完剩余预算，剩余不足 `agent.min_step_seconds`（10 分钟）时不再开始新步骤；预算越少，后面步骤的上限按比例缩小。
+- 一轮结束时，候选提交停在最后一个完成的批次末尾；同一轮里在未完成批次内合并的步骤会丢弃并发出警告，由下一轮重做。如果一轮一个批次末尾都没到达，仍发布已合并的步骤，避免没有任何进展。
+- 第一步失败时本轮失败（与以前相同）；后面的步骤失败或超时，只丢弃这一步，发出 `::warning::` 注解，已完成的步骤照常验证并发布，下一轮从那里继续。
+- 候选提交还不包含的 Release 本轮不发布，下一轮重新发现，等合并到它的提交后再发布。
+
+用 11-08 的真实积压（538 个 first-parent 提交）离线演练：7 步到达上游最新提交，控制器自身开销共 22 秒。其中 24 个提交的批次因冲突过多拆成 3 步，另有一个单独的提交带 19 个冲突（把各语言里的“群聊”统一成一个叫法）。
+
+### Pi 的进度日志与超时
+
+以前控制器在 Pi 结束前什么都看不到，超时还会丢掉全部事件，所以 60 分钟用在哪里无从查起。现在 `pi_session.py` 逐行读取 Pi 的 JSON 事件，把每次工具调用写入 Actions 日志：工具名和路径、搜索模式或 bash 命令的第一行，以及失败或超过 1 分钟的调用、模型重试、上下文压缩；不写工具输出或模型正文，API Key 由 Actions 的 secret 遮蔽。每次结束时汇总模型轮数、输出 token、各工具耗时，并列出超时那一刻仍在运行的工具。Pi 最后的完成摘要也会写入日志。
+
+Pi 的 bash 工具没有默认超时，每条命令都在自己的进程组里运行；Pi 收到 SIGTERM 时会杀掉这些进程组，收到 SIGKILL 则来不及清理。两次超时的运行结束时都留下了仍在运行的 node 孤儿进程。现在超时先发 SIGTERM，20 秒后仍未退出才 SIGKILL。
+
+`prompt.md` 会告诉 Pi 本步的剩余时间和截止时间（`time_limit_minutes`、`deadline_utc`），并说明完整验证由后续任务负责：不要跑整个 Python 测试集、整个测试目录、`pnpm install` 或桌面端/TUI 测试套件，每条 bash 命令带不超过 600 秒的超时。
+
+### 不允许丢失测试
+
+第二次超时时 Pi 已经清掉全部冲突标记，但为此删掉了上游的测试：两个新测试文件整个删除，一个文件从 463 行删到 80 行，9 个冲突文件直接整体保留 fork 版本，共丢失 17 个测试用例。如果它按时完成，验证会通过，因为对应的测试已经不在了。
+
+现在每步结束后，控制器（`dropped_tests.py`）比较本步涉及的每个测试文件在共同祖先、fork 和 upstream 中的测试用例名（Python 的 `def test_*`，JS/TS 的 `it(...)`/`test(...)` 标题），按三方合并规则计算应保留的用例：任一方新增的、双方都保留的都必须在；只有一方删除的视为有意删除。按名称在同类文件间汇总计数，所以随文件重命名移动的测试不算丢失；标题按去掉转义后的文本比较，格式化工具换引号不影响结果。用 fork 过去 6 次合并上游的结果检验：5 次无误报；另一次（`0e00c9a356`，v0.23.0 合并）报告的 7 个用例确实被那次合并丢掉了，至今不在 main 上。
+
+发现丢失的测试或残留的冲突标记时，只要剩余时间不少于 5 分钟，控制器会把问题清单交给 Pi 做一次修复；仍未解决则本步失败。
+
+Pi 的 bash 工具把每个非零退出码都标成 `isError`（没有匹配的 grep、Pi 随后修好的失败测试都会这样），控制器以前把它当成会话错误，所以任何一次正常的失败命令都会让整轮无法发布。现在工具调用失败只是给模型的反馈；模型或服务端错误仍会阻止发布。合并结果的空白检查也只拦截两个父提交里都没有的空白错误，上游自己写的空白（例如 Markdown 用行尾两个空格换行）不再导致失败。
 
 ## Python 测试选择
 
@@ -71,18 +104,18 @@ Pi 能读取上下文并尝试解决二开冲突，但不能保证所有语义�
 
 ## 故障与重试
 
-Pi 非零退出、超时、JSONL 中的模型/工具错误、缺少 `agent_settled` 或最终成功 JSON、冲突残留、测试失败或推送拒绝都会使 Actions 失败，不能继续发布。事件错误采用保守策略：即使 Pi 后续自行重试成功，本轮仍阻塞发布。prepare 会尽量上传 `fork-sync-candidate` 诊断产物；成功准备时包含候选 bundle/manifest，合并错误时还会保存已跟踪文件的工作区 patch、冲突列表及 Git 恢复 bundle。产物保存 7 天，不包含 API Key、模型完整对话或环境转储。失败时没有自动创建 PR/远端待处理分支，避免依赖额外 PR 写权限。
+Pi 非零退出、超时、JSONL 中的模型错误、缺少 `agent_settled` 或最终成功 JSON、冲突残留、丢失测试、测试失败或推送拒绝都会让对应步骤或整轮失败，不能发布未通过检查的内容；第一步之后的步骤失败时，只丢弃这一步，已完成的步骤照常验证发布。模型错误采用保守策略：即使 Pi 后续自行重试成功，这一步仍算失败。prepare 会尽量上传 `fork-sync-candidate` 诊断产物；成功准备时包含候选 bundle/manifest，每个失败的步骤还会保存 `step-<n>.patch`（已跟踪文件的工作区 patch）和 `step-<n>.json`（步骤信息、错误和冲突列表）。以前的恢复 bundle 打包了整个仓库历史（约 1.2 GB），已删除。产物保存 7 天，不包含 API Key、模型完整对话或环境转储。失败时没有自动创建 PR/远端待处理分支，避免依赖额外 PR 写权限。
 
 工作流下一轮会重试。持续失败时可设置 `SYNC_PAUSED=true` 控制 API 支出，在 Actions 日志定位失败步骤。检查失败不会自动放松测试；调整规则应作为独立维护变更审查。发布阶段若 main 已推进但 Release 创建失败，不回滚 main，后续轮询补齐尚未创建的 Release；已发布版本不会重复创建。
 
-上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每次 Pi 调用默认最长 60 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。Validate 或任一 Python 测试分片失败后，本轮停止，下一轮重新尝试。
+上游无变更、且没有待同步的新 Release 时结束，不安装项目依赖、不调用模型。准备任务仍会安装固定版 CLI，确保运行环境一致。每轮 Pi 总预算默认 100 分钟，配置位于 `config.json`；Pi CLI 没有采用自研轮数计数器，上下文压缩交给 Pi。Validate 或任一 Python 测试分片失败后，本轮停止，下一轮重新尝试。
 
 ## 本地验证自动化本身
 
 按照项目规定使用 `scripts/run_tests.sh`，测试采用临时 Git 仓库、模拟 CLI 结果与 GitHub API，不调用付费模型、不操作真实 Release：
 
 ```bash
-bash scripts/run_tests.sh tests/scripts/test_fork_sync_releases.py tests/scripts/test_fork_sync_run.py tests/scripts/test_fork_sync_select.py -j 3 --file-retries 0 -q
+bash scripts/run_tests.sh tests/scripts/test_fork_sync_releases.py tests/scripts/test_fork_sync_run.py tests/scripts/test_fork_sync_select.py tests/scripts/test_fork_sync_steps.py tests/scripts/test_fork_sync_pi.py -j 5 --file-retries 0 -q
 python scripts/check --base HEAD
 ```
 
