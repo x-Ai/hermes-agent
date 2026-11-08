@@ -220,6 +220,15 @@ def test_incomplete_or_error_pi_events_cannot_publish(controller, events):
         controller.check_pi_result(jsonl(events))
 
 
+def test_a_blocked_step_keeps_pis_reason_for_its_warning(controller):
+    # The discarded step's warning and step-<n>.json are the only record of why it stopped.
+    events = pi_events("blocked")
+    events[0]["message"]["content"][0]["text"] = json.dumps(
+        {"status": "blocked", "summary": "28 conflicted files will not fit\nthe 18 minutes left"})
+    with pytest.raises(RuntimeError, match=r"\(blocked: 28 conflicted files will not fit the 18 minutes left\)"):
+        controller.check_pi_result(jsonl(events))
+
+
 def test_failed_command_is_feedback_for_the_model_not_a_publication_error(controller):
     # Pi reports every non-zero exit (a grep without matches, a red test it then fixes) as isError.
     events = [{"type": "tool_execution_end", "toolName": "bash", "isError": True}] + pi_events()

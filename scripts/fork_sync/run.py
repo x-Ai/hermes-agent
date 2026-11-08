@@ -41,6 +41,8 @@ ONE_SIDED = {"fork": "the fork", "upstream": "upstream"}
 WHITESPACE = re.compile(r"^[^+].*:\d+: ")  # a `git diff --check` finding, not its quoted line
 # A repair pass needs time to read the problems and fix them; less than this is not worth starting.
 REPAIR_SECONDS = 300
+# Characters of a blocked step's reason kept in its warning and step-<n>.json.
+REASON_SHOWN = 600
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -454,10 +456,15 @@ def check_pi_result(stream: str) -> str:
         completion = json.loads(text)
     except ValueError:
         raise RuntimeError("Pi did not return the requested completion JSON") from None
-    if (not isinstance(completion, dict) or completion.get("status") != "completed"
-            or not isinstance(completion.get("summary"), str) or not completion["summary"].strip()):
-        raise RuntimeError("Pi did not confirm completion; candidate not published")
-    return completion["summary"]
+    if not isinstance(completion, dict):
+        raise RuntimeError("Pi did not return the requested completion JSON")
+    status, summary = completion.get("status"), completion.get("summary")
+    if status != "completed" or not isinstance(summary, str) or not summary.strip():
+        # The step is discarded, and Pi's reason is its only record: the progress log never shows model text.
+        said = " ".join(summary.split())[:REASON_SHOWN] if isinstance(summary, str) else ""
+        detail = f" ({status}: {said})" if said else ""
+        raise RuntimeError(f"Pi did not confirm completion{detail}; candidate not published")
+    return summary
 
 
 def control_snapshot() -> dict:
