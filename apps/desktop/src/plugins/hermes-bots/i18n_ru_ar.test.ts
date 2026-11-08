@@ -16,7 +16,9 @@ const OWN = {
 
 // Names every locale keeps in English, and words the user types as they are.
 const PRODUCT_TERMS = new Set(['hermes', 'desktop', 'cloud', 'soul', 'mcp', 'api', 'oauth', 'cron', 'petdex'])
-const TYPED_LITERALS = new Set(['hermes model', 'resume', 'every', 'everyone'])
+// A lender's setup advice names the `approvals.mode` values to set (manual, smart) and the command
+// that runs its gateway on its own (hermes gateway run): typed as they are, in every locale.
+const TYPED_LITERALS = new Set(['hermes model', 'resume', 'every', 'everyone', 'manual', 'smart', 'hermes gateway run'])
 // What Bot Screen needs on the gateway host, and the protocols that reach it.
 const HOST_TERMS = new Set(['linux', 'tigervnc', 'xfce', 'sudo', 'apt', 'dnf', 'pacman', 'https', 'ssh'])
 

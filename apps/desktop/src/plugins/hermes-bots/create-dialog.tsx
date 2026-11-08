@@ -51,7 +51,7 @@ import {
   groupNeedsDesktopCourier,
   useGroupCapability
 } from './canonical-group-capabilities'
-import { type GroupCreationIntent, usePeerTargets } from './canonical-group-peers'
+import { type GroupCreationIntent, peerSetupText, usePeerTargets } from './canonical-group-peers'
 import type { CanonicalGroupOrigin } from './canonical-group-registry'
 import { canonicalGroupCreateError } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
@@ -1358,11 +1358,10 @@ function groupEngineNoteText(b: BotsCopy, engine: GroupCreateEngine, owner: stri
     unavailable: reason === 'unreachable' ? b.crossGateway.peerCheckFailed(owner, local) : b.canonical.driverUnavailable
   }
 
+  // The lender's refusal code becomes what to change on that computer, never the raw code.
   const setup =
     engine === 'desktop' && reason && !NO_SETUP_NOTE.has(reason)
-      ? b.canonical.peerTargetSetup
-          .replace('{connection}', local ? b.bot.thisDevice : owner)
-          .replace('{reason}', reason)
+      ? peerSetupText(reason, local ? b.bot.thisDevice : owner, b.canonical)
       : ''
 
   // A named profile on another computer cannot be seated in a room that runs without Desktop yet.
