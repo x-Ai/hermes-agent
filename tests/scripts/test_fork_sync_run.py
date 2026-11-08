@@ -298,22 +298,48 @@ def test_shard_runs_its_slice_of_the_planned_test_files(controller, history, tmp
     data = dict(repository="owner/repo", base=common, candidate=fork, upstream=common, changed=True,
                 releases=[], tests=dict(mode="selected", files=2, weight=2, shards=3))
     (artifacts / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
-    real = subprocess.run
     calls = []
-
-    def run(argv, **kwargs):
-        if argv[0] != "bash":
-            return real(argv, **kwargs)
-        calls.append(argv)
-        return subprocess.CompletedProcess(argv, 0)
-
-    monkeypatch.setattr(controller.subprocess, "run", run)
+    monkeypatch.setattr(controller, "run_tests", lambda argv, timeout: calls.append(argv) or [])
     controller.run_shard("owner/repo", artifacts, 2)
     assert calls == [[*controller.config()["tests"]["command"],
                       "--files-from", str(artifacts / "tests.txt"), "--slice", "2/3"]]
     for outside in (0, 4):
         with pytest.raises(RuntimeError, match="outside the planned"):
             controller.run_shard("owner/repo", artifacts, outside)
+
+
+def test_shard_warns_about_test_files_that_passed_only_on_retry(controller, history, tmp_path, monkeypatch,
+                                                                 capsys):
+    _, common, _, fork = history
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    data = dict(repository="owner/repo", base=common, candidate=fork, upstream=common, changed=True,
+                releases=[], tests=dict(mode="selected", files=2, weight=2, shards=1))
+    (artifacts / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(controller, "run_tests", lambda argv, timeout: ["tests/tools/test_live.py"])
+    controller.run_shard("owner/repo", artifacts, 1)
+    warnings = [line for line in capsys.readouterr().out.splitlines() if line.startswith("::warning")]
+    assert len(warnings) == 1 and "tests/tools/test_live.py failed once and passed on retry" in warnings[0]
+
+
+def test_test_runner_output_is_passed_through_and_its_flaky_files_returned(controller, tmp_path, capsys):
+    # The tail of scripts/run_tests_parallel.py's summary when a file passed only on its retry.
+    summary = tmp_path / "summary.txt"
+    summary.write_text(
+        "=== Summary: 2 files, 9 tests passed, 0 failed ===\n\n"
+        "=== ⚠ 1 FLAKY file (failed once, passed on retry — fix these) ===\n"
+        "  tests/tools/test_live.py\n"
+        "⚠ FLAKY: failed on attempt 1, passed on retry (attempt 2). Fix the flake — do not ignore this.\n"
+        "--- first-attempt output ---\n"
+        "  tests/tools/test_live.py:88: in _launch_chrome\n", encoding="utf-8")
+    show = [sys.executable, "-c", "import sys; sys.stdout.buffer.write(open(sys.argv[1], 'rb').read())",
+            str(summary)]
+    assert controller.run_tests(show, 60) == ["tests/tools/test_live.py"]
+    assert capsys.readouterr().out == summary.read_text(encoding="utf-8")
+    with pytest.raises(subprocess.CalledProcessError):
+        controller.run_tests([sys.executable, "-c", "raise SystemExit(1)"], 60)
+    with pytest.raises(subprocess.TimeoutExpired):
+        controller.run_tests([sys.executable, "-c", "import time; time.sleep(30)"], 0.5)
 
 
 SETTINGS = {
@@ -569,16 +595,13 @@ def test_shard_fails_when_its_tests_create_the_account_hermes_home(controller, h
     account = tmp_path / "account"
     account.mkdir()
     monkeypatch.setattr(Path, "home", lambda: account)
-    real = subprocess.run
 
-    def run(argv, **kwargs):
-        if argv[0] != "bash":
-            return real(argv, **kwargs)
+    def run_tests(argv, timeout):
         # What a test's child process without an isolated HERMES_HOME leaves behind.
         (account / ".hermes" / "sessions").mkdir(parents=True, exist_ok=True)
-        return subprocess.CompletedProcess(argv, 0)
+        return []
 
-    monkeypatch.setattr(controller.subprocess, "run", run)
+    monkeypatch.setattr(controller, "run_tests", run_tests)
     with pytest.raises(RuntimeError, match=r"real Hermes home .*\(sessions\)"):
         controller.run_shard("owner/repo", artifacts, 1)
     # A home that existed before the run (a developer machine's own install) is not judged.

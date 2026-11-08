@@ -20,6 +20,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from urllib.parse import urlsplit, urlunsplit
 
@@ -43,6 +44,9 @@ WHITESPACE = re.compile(r"^[^+].*:\d+: ")  # a `git diff --check` finding, not i
 REPAIR_SECONDS = 300
 # Characters of a blocked step's reason kept in its warning and step-<n>.json.
 REASON_SHOWN = 600
+# scripts/run_tests_parallel.py's summary lists each file that passed only on its retry as the
+# file's own line, then a report that starts with this.
+FLAKY_REPORT = "⚠ FLAKY:"
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -535,6 +539,42 @@ def validate(artifacts: Path, repository: str) -> None:
         raise RuntimeError("Checks modified tracked candidate files")
 
 
+def run_tests(argv: list[str], timeout: float) -> list[str]:
+    """Run the test command with its output passed through; return the files it reports flaky.
+
+    The runner re-runs a failed file once, as upstream CI does, so an intermittent upstream test
+    does not throw away a merge that took hours. A file that passed only on that retry still means
+    a race (in the test, or one the merge introduced), and a green job buries the runner's FLAKY
+    summary in a long log, so the shard warns about each one.
+    """
+    flaky, previous = [], ""
+    expired = threading.Event()
+    with subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, encoding="utf-8", errors="replace") as proc:
+        def expire() -> None:
+            expired.set()
+            proc.kill()
+
+        timer = threading.Timer(timeout, expire)
+        timer.start()
+        try:
+            for line in proc.stdout:
+                print(line, end="", flush=True)
+                if line.startswith(FLAKY_REPORT) and previous.startswith("  "):
+                    flaky.append(previous.strip())
+                previous = line
+            # A runner can close its output and still hang; the timer kills it at the deadline, so
+            # this returns by then.
+            proc.wait(timeout=timeout)
+        finally:
+            timer.cancel()
+    if expired.is_set():
+        raise subprocess.TimeoutExpired(argv, timeout)
+    if proc.returncode:
+        raise subprocess.CalledProcessError(proc.returncode, argv)
+    return flaky
+
+
 def run_shard(repository: str, artifacts: Path, shard: int) -> None:
     data = load_manifest(artifacts, repository)
     if output("rev-parse", "HEAD") != data["candidate"]:
@@ -552,7 +592,10 @@ def run_shard(repository: str, artifacts: Path, shard: int) -> None:
     # the run came from a test. A home that already existed (a developer machine) is not judged.
     account_home = Path.home() / ".hermes"
     preexisting = account_home.exists()
-    subprocess.run(argv, timeout=3600, check=True)
+    flaky = run_tests(argv, 3600)
+    if flaky:
+        warn(f"Shard {shard}: {', '.join(flaky)} failed once and passed on retry; the FLAKY summary in"
+             " this job's log has both attempts")
     if output("diff", "HEAD", "--name-only"):
         raise RuntimeError("Tests modified tracked candidate files")
     if not preexisting and account_home.exists():
