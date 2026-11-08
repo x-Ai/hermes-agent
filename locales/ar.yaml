@@ -4723,6 +4723,10 @@ core:
     meta_contributor_usage: "يخفّض حاجز الدخول للنماذج الأولية واختبارات التكامل وتوسيع التجارب حيث يكون التدريب على بياناتك مقبولًا. لا تستخدمه للبيانات السرية أو الخاصة أو الشخصية أو الحساسة بأي شكل آخر. للحصول على النموذج نفسه دون تدريب على بياناتك، اختر النسخة القياسية (بدون اللاحقة -contributor)."
     meta_contributor_confirm: "أكّد فقط إذا كان التدريب على مطالباتك وإكمالاتك مقبولًا."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "الملف الشخصي للمتصفح — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

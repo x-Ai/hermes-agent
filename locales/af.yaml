@@ -4724,6 +4724,10 @@ core:
     meta_contributor_usage: "Dit verlaag die toegangsdrempel vir prototipering, integrasietoetse en opskaling van eksperimente waar opleiding op jou data aanvaarbaar is. Moet dit NIE vir vertroulike, eie, persoonlike of andersins sensitiewe data gebruik nie. Vir dieselfde model sonder opleiding op jou data, kies die standaardvariant (sonder die -contributor-agtervoegsel)."
     meta_contributor_confirm: "Bevestig net as opleiding op jou prompts en antwoorde aanvaarbaar is."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "Blaaierprofiel — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

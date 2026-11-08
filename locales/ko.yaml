@@ -4722,6 +4722,10 @@ core:
     meta_contributor_usage: "데이터 학습을 허용할 수 있는 프로토타이핑, 통합 테스트, 실험 확장의 진입 장벽을 낮춰 줍니다. 기밀, 독점, 개인 또는 기타 민감한 데이터에는 절대 사용하지 마세요. 같은 모델을 데이터 학습 없이 사용하려면 표준 버전(-contributor 접미사 없음)을 선택하세요."
     meta_contributor_confirm: "사용자의 프롬프트와 응답으로 학습하는 것을 허용할 수 있는 경우에만 확인하세요."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "브라우저 프로필 — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

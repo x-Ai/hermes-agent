@@ -4723,6 +4723,10 @@ core:
     meta_contributor_usage: "Verilerinizle eğitimin kabul edilebilir olduğu prototipleme, entegrasyon testleri ve ölçekli deneyler için giriş engelini düşürür. Gizli, özel, kişisel veya başka türlü hassas veriler için KULLANMAYIN. Aynı modeli verilerinizle eğitim olmadan kullanmak için standart sürümü (-contributor soneki olmayan) seçin."
     meta_contributor_confirm: "Yalnızca istemleriniz ve yanıtlarınızla eğitim yapılması kabul edilebilirse onaylayın."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "Tarayıcı profili — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

@@ -4741,6 +4741,10 @@ core:
     meta_contributor_usage: "Csökkenti a belépési küszöböt prototípusokhoz, integrációs tesztekhez és skálázott kísérletekhez, ahol az adataidon való tanítás elfogadható. NE használd bizalmas, védett, személyes vagy más módon érzékeny adatokhoz. Ugyanahhoz a modellhez az adataidon való tanítás nélkül válaszd a standard változatot (a -contributor utótag nélkül)."
     meta_contributor_confirm: "Csak akkor erősítsd meg, ha a promptjaidon és a válaszokon való tanítás elfogadható."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "Böngészőprofil — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

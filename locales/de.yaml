@@ -4724,6 +4724,10 @@ core:
     meta_contributor_usage: "Sie senkt die Einstiegshürde für Prototypen, Integrationstests und skalierende Experimente, bei denen das Training mit deinen Daten akzeptabel ist. Verwende sie NICHT für vertrauliche, geschützte, persönliche oder anderweitig sensible Daten. Für dasselbe Modell ohne Training mit deinen Daten wähle die Standardvariante (ohne das Suffix -contributor)."
     meta_contributor_confirm: "Bestätige nur, wenn das Training mit deinen Prompts und Antworten akzeptabel ist."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "Browserprofil — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

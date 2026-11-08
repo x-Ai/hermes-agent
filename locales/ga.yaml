@@ -4724,6 +4724,10 @@ core:
     meta_contributor_usage: "Laghdaíonn sé an bac iontrála le haghaidh fréamhshamhaltú, tástáil comhtháthaithe agus turgnaimh a scálú nuair atá traenáil ar do chuid sonraí inghlactha. NÁ húsáid é le haghaidh sonraí rúnda, dílseánaigh, pearsanta ná íogaire eile. Don tsamhail chéanna gan traenáil ar do chuid sonraí, roghnaigh an leagan caighdeánach (gan an iarmhír -contributor)."
     meta_contributor_confirm: "Ná deimhnigh ach amháin má tá traenáil ar do leideanna agus do fhreagraí inghlactha."
 
+# vault: credential-vault login source names (agent/vault_backends/)
+vault:
+  browser_profile_source: "Próifíl an bhrabhsálaí — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:

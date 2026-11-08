@@ -4727,6 +4727,10 @@ core:
     meta_contributor_usage: "它降低了原型开发、集成测试和扩展实验的门槛，适用于可以接受用你的数据进行训练的场景，切勿用于机密、专有、个人或其他敏感数据，如需同一模型且不训练你的数据，请选择标准版本（不带 -contributor 后缀）"
     meta_contributor_confirm: "仅在可以接受用你的提示词和补全内容进行训练时再确认"
 
+# vault: 凭据保险库登录来源的名称（agent/vault_backends/）
+vault:
+  browser_profile_source: "浏览器配置文件 — {browser}"
+
 shared:
   # /undo's line naming the files the undone turns changed (tools/checkpoint_undo_hint.py).
   undo_rollback:
