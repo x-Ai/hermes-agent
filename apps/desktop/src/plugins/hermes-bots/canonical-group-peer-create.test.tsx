@@ -8,10 +8,11 @@ import {
   STANDALONE_GROUP_CAPABILITIES, strictGroupCreation
 } from './canonical-group-contract-test-utils'
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
-import { peerTargetState } from './canonical-group-peers'
+import { $peerJoinErrors, peerJoinKey, peerJoinText, peerTargetState } from './canonical-group-peers'
 import { $canonicalGroupBindings, publishCanonicalGroup } from './canonical-group-registry'
 import { canonicalGroupCreateError, canonicalGroupRoster } from './canonical-groups'
 import { CreateGroupChatDialog } from './create-dialog'
+import { CROSS_GATEWAY_GROUP_LOCALES } from './cross-gateway-locales'
 import { $botMeta } from './data'
 import { renderGatewayRooms } from './gateway-group-rooms-test-harness'
 import { $groupChats, $groupChatWorkspace, updateGroupChat } from './group-chat'
@@ -86,6 +87,15 @@ async function createWithMini({ rows, onCreated }: Awaited<ReturnType<typeof ope
   await waitFor(() => expect(onCreated).toHaveBeenCalledOnce())
 }
 
+it('says why a named profile on another computer keeps the group chat on Desktop', async () => {
+  gateways()
+  const { baseElement, rows } = await openDialog()
+  fireEvent.click(box(rows[0]))
+  fireEvent.click(box(baseElement.querySelector('[data-bot-face="coder"]')!))
+  const note = await waitFor(() => baseElement.querySelector('[data-group-engine="desktop"]')!)
+  expect(note.textContent).toContain(CROSS_GATEWAY_GROUP_LOCALES.en.namedProfileFallback)
+})
+
 it('seats a Bot from another connection: the room on this gateway, the invitation on its own, the registration here', async () => {
   gateways()
   const dialog = await openDialog()
@@ -131,7 +141,11 @@ it.each([
   gateways(local, peer)
   const dialog = await openDialog()
   await createWithMini(dialog)
-  expect(notify).toHaveBeenCalledWith({ kind: 'error', message: why.replace('{name}', 'Hermes · Mac Mini') })
+  // The opened group chat's row says why; a toast would outlive it and follow the person elsewhere.
+  // Fork: New group chat still announces the room it made, so only an error toast is ruled out.
+  expect(notify).not.toHaveBeenCalledWith(expect.objectContaining({ kind: 'error' }))
+  const [binding] = Object.values($canonicalGroupBindings.get())
+  expect(peerJoinText($peerJoinErrors.get()[peerJoinKey(binding, 'hermes-mac-mini')], 'Hermes · Mac Mini', words)).toBe(why.replace('{name}', 'Hermes · Mac Mini'))
   expect(request.mock.calls.some(call => call[1] === 'groups.peer.register')).toBe(registers)
   expect(Object.values($canonicalGroupBindings.get())).toHaveLength(1)
   const creates = request.mock.calls.filter(call => call[1] === 'groups.create')
@@ -436,7 +450,7 @@ it('describes membership storage for the chosen engine', async () => {
 
 
 it.each([
-  ['mixed', 'default-this-device', undefined, 'Hermes · This device'],
+  ['mixed', 'default-this-device', undefined, 'Hermes'],
   ['mixed', 'default-this-device', 'Custom name', 'Custom name'],
   ['mixed', 'hermes', undefined, undefined],
   ['local', 'default-this-device', undefined, undefined]

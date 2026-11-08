@@ -7,6 +7,7 @@ export interface CanonicalGroupMessages {
   turnFailed: string
   turnCancelled: string
   turnDeferred: string
+  turnNoAnswer: string
   memberUnavailable: string
   openGroup: string
   loadingGroup: string
@@ -19,6 +20,7 @@ export interface CanonicalGroupMessages {
   discardUnknown: string
   discardWarning: string
   discardStopPending: string
+  retryBusy: string
   discardPeerUnreachable: string
   discardPeerUpdateRequired: string
   confirmDiscard: string
@@ -152,6 +154,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'Turn failed',
     turnCancelled: 'Turn cancelled',
     turnDeferred: 'Turn deferred',
+    turnNoAnswer: 'the bot didn’t answer in time',
     memberUnavailable: 'Member unavailable',
     members: 'Members',
     openGroup: 'Open Group Chat',
@@ -167,6 +170,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'Side effects may already have occurred. Discarding does not undo them. For a bot on another computer, Discard waits for that computer to confirm the turn has stopped or never started.',
     discardStopPending:
       '{name} has not confirmed that its turn has stopped. The turn has been kept. Try Discard again when its computer is answering.',
+    retryBusy: '{name} may still be working on this turn. Try again once it has finished.',
     discardPeerUnreachable:
       '{name}’s computer isn’t answering. The turn has been kept. Reconnect that computer, then try Discard again.',
     discardPeerUpdateRequired:
@@ -325,6 +329,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'ターンに失敗しました',
     turnCancelled: 'ターンがキャンセルされました',
     turnDeferred: 'ターンが延期されました',
+    turnNoAnswer: 'ボットが時間内に応答しませんでした',
     memberUnavailable: 'メンバーは利用できません',
     members: 'メンバー',
     openGroup: 'グループチャットを開く',
@@ -340,6 +345,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'すでに変更が生じている場合があります。破棄しても元には戻りません。別のコンピューターのボットでは、そのコンピューターがターンの停止または未開始を確認するまで待ちます。',
     discardStopPending:
       '{name} はターンの停止をまだ確認していません。ターンは保持されています。そのコンピューターが応答するようになったら、もう一度破棄してください。',
+    retryBusy: '{name} はまだこのターンを実行中の可能性があります。終了してからもう一度お試しください。',
     discardPeerUnreachable:
       '{name} のコンピューターが応答していません。ターンは保持されています。そのコンピューターに再接続してから、もう一度破棄してください。',
     discardPeerUpdateRequired:
@@ -502,6 +508,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: '回合失败',
     turnCancelled: '回合已取消',
     turnDeferred: '回合已推迟',
+    turnNoAnswer: '机器人未及时响应',
     memberUnavailable: '成员不可用',
     members: '成员',
     openGroup: '打开群聊',
@@ -516,6 +523,7 @@ export const CANONICAL_GROUP_LOCALES = {
     discardWarning:
       '可能已经产生了更改，丢弃不会撤销这些更改。对于其他电脑上的机器人，丢弃会等待该电脑确认回合已停止或从未开始。',
     discardStopPending: '{name} 尚未确认回合已停止。回合已保留。请在其电脑恢复响应后再次尝试丢弃。',
+    retryBusy: '{name} 可能仍在处理此回合。请在其完成后重试。',
     discardPeerUnreachable: '{name} 所在的电脑没有响应。回合已保留。请重新连接该电脑，然后再次尝试丢弃。',
     discardPeerUpdateRequired:
       '{name} 所在电脑上的 Hermes 版本太旧，无法确认此回合从未开始。回合已保留。请在该电脑上更新 Hermes，然后再次尝试丢弃。',
@@ -662,6 +670,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: '回合失敗',
     turnCancelled: '回合已取消',
     turnDeferred: '回合已延後',
+    turnNoAnswer: '機器人未及時回應',
     memberUnavailable: '成員無法使用',
     members: '成員',
     openGroup: '開啟群組聊天',
@@ -676,6 +685,7 @@ export const CANONICAL_GROUP_LOCALES = {
     discardWarning:
       '可能已經產生了變更，捨棄不會復原這些變更。對於其他電腦上的機器人，捨棄會等待該電腦確認回合已停止或從未開始。',
     discardStopPending: '{name} 尚未確認回合已停止。回合已保留。請在其電腦恢復回應後再次嘗試捨棄。',
+    retryBusy: '{name} 可能仍在處理此回合。請在完成後再試一次。',
     discardPeerUnreachable: '{name} 所在的電腦沒有回應。回合已保留。請重新連線至該電腦，然後再次嘗試捨棄。',
     discardPeerUpdateRequired:
       '{name} 所在電腦上的 Hermes 版本太舊，無法確認此回合從未開始。回合已保留。請在該電腦上更新 Hermes，然後再次嘗試捨棄。',
@@ -822,6 +832,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'فشل الدور',
     turnCancelled: 'أُلغي الدور',
     turnDeferred: 'أُجّل الدور',
+    turnNoAnswer: 'لم يستجب البوت في الوقت المناسب',
     memberUnavailable: 'العضو غير متاح',
     members: 'الأعضاء',
     openGroup: 'فتح الدردشة الجماعية',
@@ -836,6 +847,7 @@ export const CANONICAL_GROUP_LOCALES = {
     discardWarning:
       'ربما حدثت آثار جانبية بالفعل. لن يؤدي تجاهل الدور إلى التراجع عنها. بالنسبة لروبوت على جهاز آخر، ينتظر التجاهل تأكيد ذلك الجهاز أن الدور توقف أو لم يبدأ أصلًا.',
     discardStopPending: 'لم يؤكد {name} بعد أن دوره توقف. تم الاحتفاظ بالدور. حاول تجاهله مجددًا عندما يستجيب جهازه.',
+    retryBusy: 'قد يكون {name} ما زال يعمل على هذا الدور. أعد المحاولة بعد انتهائه.',
     discardPeerUnreachable:
       'جهاز {name} لا يستجيب. تم الاحتفاظ بالدور. أعد الاتصال بذلك الجهاز، ثم حاول تجاهل الدور مجددًا.',
     discardPeerUpdateRequired:
@@ -989,6 +1001,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'Ход завершился ошибкой',
     turnCancelled: 'Ход отменён',
     turnDeferred: 'Ход отложен',
+    turnNoAnswer: 'бот не ответил вовремя',
     memberUnavailable: 'Участник недоступен',
     members: 'Участники',
     openGroup: 'Открыть групповой чат',
@@ -1005,6 +1018,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'Побочные эффекты могли уже произойти. Отбрасывание хода их не отменяет. Для бота на другом компьютере отбрасывание ждёт, пока тот компьютер подтвердит, что ход остановлен или не начинался.',
     discardStopPending:
       '{name} ещё не подтвердил остановку своего хода. Ход сохранён. Попробуйте отбросить его снова, когда его компьютер будет отвечать.',
+    retryBusy: '{name}, возможно, ещё выполняет этот ход. Повторите попытку, когда он завершится.',
     discardPeerUnreachable:
       'Компьютер {name} не отвечает. Ход сохранён. Восстановите подключение к этому компьютеру и попробуйте отбросить ход снова.',
     discardPeerUpdateRequired:
@@ -1171,6 +1185,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'Tour échoué',
     turnCancelled: 'Tour annulé',
     turnDeferred: 'Tour différé',
+    turnNoAnswer: 'le bot n’a pas répondu à temps',
     memberUnavailable: 'Membre indisponible',
     members: 'Membres',
     openGroup: 'Ouvrir la discussion de groupe',
@@ -1186,6 +1201,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'Des changements ont peut-être déjà eu lieu. Abandonner le tour ne les annule pas. Pour un bot sur un autre ordinateur, il faut attendre que cet ordinateur confirme que le tour est arrêté ou n’a jamais démarré.',
     discardStopPending:
       '{name} n’a pas encore confirmé l’arrêt de son tour. Le tour a été conservé. Réessayez de l’abandonner lorsque son ordinateur répondra.',
+    retryBusy: '{name} travaille peut-être encore sur ce tour. Réessayez une fois qu’il est terminé.',
     discardPeerUnreachable:
       'L’ordinateur de {name} ne répond pas. Le tour a été conservé. Reconnectez cet ordinateur, puis réessayez d’abandonner le tour.',
     discardPeerUpdateRequired:
@@ -1352,6 +1368,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'Zug fehlgeschlagen',
     turnCancelled: 'Zug abgebrochen',
     turnDeferred: 'Zug verschoben',
+    turnNoAnswer: 'der Bot hat nicht rechtzeitig geantwortet',
     memberUnavailable: 'Mitglied nicht verfügbar',
     members: 'Mitglieder',
     openGroup: 'Gruppenchat öffnen',
@@ -1365,9 +1382,10 @@ export const CANONICAL_GROUP_LOCALES = {
     deny: 'Ablehnen',
     discardUnknown: 'Turn verwerfen',
     discardWarning:
-      'Es können bereits Änderungen erfolgt sein. Verwerfen macht sie nicht rückgängig. Bei einem bot auf einem anderen Computer wird gewartet, bis dieser Computer bestätigt, dass der Turn gestoppt wurde oder nie begonnen hat.',
+      'Es können bereits Änderungen erfolgt sein. Verwerfen macht sie nicht rückgängig. Bei einem Bot auf einem anderen Computer wird gewartet, bis dieser Computer bestätigt, dass der Turn gestoppt wurde oder nie begonnen hat.',
     discardStopPending:
       '{name} hat noch nicht bestätigt, dass der Turn gestoppt wurde. Der Turn bleibt erhalten. Versuchen Sie erneut, ihn zu verwerfen, sobald sein Computer antwortet.',
+    retryBusy: '{name} arbeitet möglicherweise noch an diesem Zug. Versuchen Sie es erneut, sobald er beendet ist.',
     discardPeerUnreachable:
       'Der Computer von {name} antwortet nicht. Der Turn bleibt erhalten. Stellen Sie die Verbindung zu diesem Computer wieder her und versuchen Sie dann erneut, den Turn zu verwerfen.',
     discardPeerUpdateRequired:
@@ -1464,7 +1482,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'Die Aktionsdetails sind nicht verfügbar. Aktualisieren Sie sie, bevor Sie diese Aktion erlauben.',
     checkingDriver: 'Gruppentreiber wird geprüft…',
     legacyRoom:
-      'Desktop hat diesen Gruppenchat selbst ausgeführt, daher kann er auf diesem Gateway nicht weiterlaufen. Starten Sie eine neue Gruppe mit denselben bots: Sie arbeitet weiter, wenn Desktop geschlossen ist. Frühere Nachrichten werden nicht in sie kopiert.',
+      'Desktop hat diesen Gruppenchat selbst ausgeführt, daher kann er auf diesem Gateway nicht weiterlaufen. Starten Sie eine neue Gruppe mit denselben Bots: Sie arbeitet weiter, wenn Desktop geschlossen ist. Frühere Nachrichten werden nicht in sie kopiert.',
     startGatewayGroup: 'Neue Gruppe starten',
     createRefused: 'Das Gateway konnte diesen Gruppenchat nicht erstellen.',
     createGroupSize: 'Ein Gruppenchat braucht zwei bis sechs Bots.',
@@ -1472,10 +1490,10 @@ export const CANONICAL_GROUP_LOCALES = {
     createDuplicateMember:
       'Ein Gruppenchat braucht Bots mit unterschiedlichen Profilen und Kennungen; @all und @everyone sind reserviert.',
     legacyRoomElsewhere:
-      'Dieser Gruppenchat kann hier nicht weiterlaufen: Er enthält bots auf anderen Computern, und eine Gateway-Gruppe nimmt nur bots einer einzigen Verbindung auf. Wechseln Sie zu der Verbindung, auf der diese bots laufen, und starten Sie dort eine Gruppe, oder starten Sie einen neuen Gruppenchat mit bots dieser Verbindung. Frühere Nachrichten werden nicht in eine neue Gruppe kopiert.',
-    otherConnections: 'bots auf anderen Verbindungen: {connections}',
+      'Dieser Gruppenchat kann hier nicht weiterlaufen: Er enthält Bots auf anderen Computern, und eine Gateway-Gruppe nimmt nur Bots einer einzigen Verbindung auf. Wechseln Sie zu der Verbindung, auf der diese Bots laufen, und starten Sie dort eine Gruppe, oder starten Sie einen neuen Gruppenchat mit Bots dieser Verbindung. Frühere Nachrichten werden nicht in eine neue Gruppe kopiert.',
+    otherConnections: 'Bots auf anderen Verbindungen: {connections}',
     legacyRoomBlocked:
-      'Desktop hat diesen Gruppenchat selbst ausgeführt, daher kann er auf diesem Gateway nicht weiterlaufen, und diese bots können so keine Gateway-Gruppe bilden (den Grund finden Sie unten). Starten Sie einen neuen Gruppenchat und wählen Sie seine bots. Frühere Nachrichten werden nicht in ihn kopiert.',
+      'Desktop hat diesen Gruppenchat selbst ausgeführt, daher kann er auf diesem Gateway nicht weiterlaufen, und diese Bots können so keine Gateway-Gruppe bilden (den Grund finden Sie unten). Starten Sie einen neuen Gruppenchat und wählen Sie seine Bots. Frühere Nachrichten werden nicht in ihn kopiert.',
     groupsUnsupported:
       'Gruppenchats lassen sich hier nicht öffnen: Hermes auf dem Computer dieser Verbindung ist dafür zu alt. Aktualisieren Sie Hermes auf diesem Computer, verbinden Sie sich neu und versuchen Sie es dann erneut. Nichts geht verloren: Frühere Nachrichten bleiben, wo sie sind.',
     groupDriverStopped:
@@ -1492,24 +1510,24 @@ export const CANONICAL_GROUP_LOCALES = {
     peerJoinUnreachable:
       '{name} ist noch nicht beigetreten: Der Computer, auf dem dieser Gruppenchat läuft, konnte seinen Computer nicht erreichen. Prüfen Sie, ob dieser Computer von dort ohne Desktop erreichbar ist, und versuchen Sie es erneut.',
     peerJoinChanged:
-      '{name} kann diesem Gruppenchat nicht beitreten: Die bot-Einstellungen auf seinem Computer haben sich seit dem Erstellen des Gruppenchats geändert. Starten Sie einen neuen Gruppenchat, um ihn aufzunehmen.',
+      '{name} kann diesem Gruppenchat nicht beitreten: Die Bot-Einstellungen auf seinem Computer haben sich seit dem Erstellen des Gruppenchats geändert. Starten Sie einen neuen Gruppenchat, um ihn aufzunehmen.',
     readTimedOut:
-      'Das Gateway hat nicht rechtzeitig geantwortet. Möglicherweise wartet es auf den Computer eines bots. Wählen Sie „Aktualisieren“, um es erneut zu versuchen.',
+      'Das Gateway hat nicht rechtzeitig geantwortet. Möglicherweise wartet es auf den Computer eines Bots. Wählen Sie „Aktualisieren“, um es erneut zu versuchen.',
     disbandUnconfirmed:
-      'Das Ende des Gruppenchats konnte nicht bestätigt werden. Der Computer eines bots ist möglicherweise im Ruhezustand oder offline. Versuchen Sie es erneut, sobald er wieder erreichbar ist.',
+      'Das Ende des Gruppenchats konnte nicht bestätigt werden. Der Computer eines Bots ist möglicherweise im Ruhezustand oder offline. Versuchen Sie es erneut, sobald er wieder erreichbar ist.',
     disbandKept: 'Der Gruppenchat bleibt erhalten. {reason}',
     disbandPeerUnreachable:
       'Die Arbeit darin wurde gestoppt. Der Computer eines Mitglieds antwortet nicht. Stellen Sie die Verbindung zu diesem Computer wieder her und versuchen Sie erneut, den Gruppenchat aufzulösen.',
     disbandStopPending:
-      'Die bots in diesem Gruppenchat haben noch nicht alle bestätigt, dass sie gestoppt wurden. Versuchen Sie erneut, den Gruppenchat aufzulösen, sobald alle dies bestätigt haben. Nutzen Sie bei einem wartenden Turn „Erneut versuchen“ oder „Verwerfen“, wenn diese Aktionen im Gruppenchat angeboten werden.',
+      'Die Bots in diesem Gruppenchat haben noch nicht alle bestätigt, dass sie gestoppt wurden. Versuchen Sie erneut, den Gruppenchat aufzulösen, sobald alle dies bestätigt haben. Nutzen Sie bei einem wartenden Turn „Erneut versuchen“ oder „Verwerfen“, wenn diese Aktionen im Gruppenchat angeboten werden.',
     disbandMemberHomeUnknown:
-      'Der Gruppenchat arbeitet möglicherweise noch, aber eines seiner bot-Profile ist auf dem Computer, auf dem der Gruppenchat läuft, nicht mehr konfiguriert. Fügen Sie das Profil wieder zu hosted_rooms.profiles hinzu, damit sein Stopp bestätigt werden kann. Versuchen Sie dann erneut, den Gruppenchat aufzulösen.',
+      'Der Gruppenchat arbeitet möglicherweise noch, aber eines seiner Bot-Profile ist auf dem Computer, auf dem der Gruppenchat läuft, nicht mehr konfiguriert. Fügen Sie das Profil wieder zu hosted_rooms.profiles hinzu, damit sein Stopp bestätigt werden kann. Versuchen Sie dann erneut, den Gruppenchat aufzulösen.',
     disbandInProgress:
       'Die Auflösung konnte nicht abgeschlossen werden. Warten Sie kurz, prüfen Sie den Gruppenchat und versuchen Sie es bei Bedarf erneut.',
     disbandRevokeUnsupported:
       'Die Arbeit darin wurde gestoppt. Ein Mitglied kann seinen Zugriff auf diesen Gruppenchat nicht aufheben. Aktualisieren Sie Hermes auf dem Computer dieses Mitglieds und versuchen Sie dann erneut, den Gruppenchat aufzulösen.',
     disbandServiceRequired:
-      'Hermes muss auf dem Computer laufen, der diesen Gruppenchat ausführt, um die bots zu stoppen und ihren Zugriff aufzuheben. Starten Sie Hermes dort oder verbinden Sie es erneut und versuchen Sie dann erneut, den Gruppenchat aufzulösen.',
+      'Hermes muss auf dem Computer laufen, der diesen Gruppenchat ausführt, um die Bots zu stoppen und ihren Zugriff aufzuheben. Starten Sie Hermes dort oder verbinden Sie es erneut und versuchen Sie dann erneut, den Gruppenchat aufzulösen.',
     peerStartWithoutRetry: 'Verwenden Sie für diese Bots im neuen Gruppenchat „Erneut versuchen“.',
     peerStartWithoutKept:
       'Der neue Gruppenchat wurde erstellt und der ursprüngliche Gruppenchat bleibt erhalten. {reason} Lösen Sie den ursprünglichen Gruppenchat auf, wenn Sie bereit sind.',
@@ -1527,7 +1545,7 @@ export const CANONICAL_GROUP_LOCALES = {
       '{name} ist noch nicht beigetreten: Verbinden Sie sich mit dem Computer, auf dem er läuft, und wählen Sie dann Erneut versuchen.',
     peerStartWithout: 'Neuen Gruppenchat ohne {name} starten',
     peerStartWithoutConfirm:
-      'Ein neuer Gruppenchat wird mit den anderen bots erstellt. Der ursprüngliche endet erst, wenn alle beigetreten sind und Stopp und Zugriffsentzug aller ursprünglichen Mitglieder bestätigt wurden. Schlägt ein Schritt fehl, bleiben beide Gruppenchats erhalten. Frühere Nachrichten werden nicht kopiert. Nach der Erstellung legt diese Aktion beim nächsten Mal einen weiteren Gruppenchat an.'
+      'Ein neuer Gruppenchat wird mit den anderen Bots erstellt. Der ursprüngliche endet erst, wenn alle beigetreten sind und Stopp und Zugriffsentzug aller ursprünglichen Mitglieder bestätigt wurden. Schlägt ein Schritt fehl, bleiben beide Gruppenchats erhalten. Frühere Nachrichten werden nicht kopiert. Nach der Erstellung legt diese Aktion beim nächsten Mal einen weiteren Gruppenchat an.'
   },
   es: {
     roomStopped: 'Parada solicitada',
@@ -1537,6 +1555,7 @@ export const CANONICAL_GROUP_LOCALES = {
     turnFailed: 'Turno fallido',
     turnCancelled: 'Turno cancelado',
     turnDeferred: 'Turno aplazado',
+    turnNoAnswer: 'el bot no respondió a tiempo',
     memberUnavailable: 'Miembro no disponible',
     members: 'Miembros',
     openGroup: 'Abrir chat de grupo',
@@ -1552,6 +1571,7 @@ export const CANONICAL_GROUP_LOCALES = {
       'Es posible que ya se hayan producido cambios. Descartar no los deshace. Si el bot está en otro equipo, se espera a que ese equipo confirme que el turno se ha detenido o nunca llegó a empezar.',
     discardStopPending:
       '{name} aún no ha confirmado que su turno se haya detenido. El turno se ha conservado. Vuelve a intentar descartarlo cuando su equipo responda.',
+    retryBusy: 'Puede que {name} siga trabajando en este turno. Inténtalo de nuevo cuando termine.',
     discardPeerUnreachable:
       'El equipo de {name} no responde. El turno se ha conservado. Reconecta ese equipo y vuelve a intentar descartar el turno.',
     discardPeerUpdateRequired:

@@ -12,8 +12,6 @@
  * anything else is a Desktop room, as before.
  */
 
-import { host } from '@hermes/plugin-sdk'
-
 import type { GroupCapabilityState, GroupCreationEngine, GroupCreationPlan } from './canonical-group-capabilities'
 import {
   groupCreationEngine,
@@ -23,12 +21,7 @@ import {
   revalidateGroupCreation
 } from './canonical-group-capabilities'
 import type { CanonicalGroupMessages } from './canonical-group-locales'
-import {
-  createGroupAcrossConnections,
-  type GroupCreationIntent,
-  peerJoinText,
-  readPeerTargets
-} from './canonical-group-peers'
+import { createGroupAcrossConnections, type GroupCreationIntent, readPeerTargets } from './canonical-group-peers'
 import { refreshGatewayGroupRooms, registerCanonicalGroup } from './canonical-group-registry'
 import type { CanonicalGroupRoute } from './canonical-groups'
 import { canonicalGroupRequest } from './canonical-groups'
@@ -111,7 +104,8 @@ export interface HostedPeerRoomDraft {
 
 /** Re-read the plan, create the room on the gateway here, seat each bot from another computer
  *  through its own gateway, then apply the draft's room settings. A bot that did not join is
- *  named in a notice and the room opens anyway. Returns the room's key, or null when the window
+ *  named on the opened room's member row (not a toast, which would outlive the room and follow the
+ *  person elsewhere) and the room opens anyway. Returns the room's key, or null when the window
  *  left the source that approved it (the room then stays on its owner, unopened). */
 export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<null | string> {
   const { capability, intent, labels, name, route, selection, settings, source } = draft
@@ -136,10 +130,6 @@ export async function createHostedPeerRoom(draft: HostedPeerRoomDraft): Promise<
 
   if (!sourceCurrent()) {
     return null
-  }
-
-  for (const { member, error } of created.unjoined) {
-    host.notify({ kind: 'error', message: peerJoinText(error, member.display_name || member.handle, labels) })
   }
 
   const key = registerCanonicalGroup(route, created.room)

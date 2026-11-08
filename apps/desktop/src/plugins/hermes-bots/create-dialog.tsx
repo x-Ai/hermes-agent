@@ -1365,7 +1365,11 @@ function groupEngineNoteText(b: BotsCopy, engine: GroupCreateEngine, owner: stri
           .replace('{reason}', reason)
       : ''
 
-  return { setup, text: text[engine] ?? b.crossGateway.desktopDriven }
+  // A named profile on another computer cannot be seated in a room that runs without Desktop yet.
+  const fallback =
+    engine === 'desktop' && reason === 'default_profile_required' ? b.crossGateway.namedProfileFallback : ''
+
+  return { fallback, setup, text: text[engine] ?? b.crossGateway.desktopDriven }
 }
 
 /** Says, before creation, how a selection with a bot from another machine runs. On a gateway that
@@ -1387,6 +1391,7 @@ function GroupEngineNote({ connectionId, engine, owner, ownerConnectionId, reaso
   return (
     <p className="text-xs text-(--ui-text-secondary)" data-group-engine={peerNote ? engine : 'desktop'} role="note">
       {note.text}
+      {note.fallback && <span> {note.fallback}</span>}
       {note.setup && <span> {note.setup}</span>}
     </p>
   )

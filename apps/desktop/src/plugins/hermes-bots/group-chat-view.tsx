@@ -43,6 +43,7 @@ import {
   canonicalGroupKey,
   canonicalGroupKeyRoute
 } from './canonical-group-registry'
+import { GatewayGroupUpgrade } from './canonical-group-upgrade'
 import { disbandCanonicalRoom, saveCanonicalRoomSettings } from './canonical-room-actions'
 import { HostedContextFields, useHostedContextDraft } from './canonical-room-context'
 import { HostOnGatewayButton } from './canonical-room-migrate'
@@ -1503,6 +1504,12 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
         </div>
       ) : null}
       {header}
+      <GatewayGroupUpgrade
+        group={group}
+        members={members}
+        onCreated={key => openGroupChat(key, 'key')}
+        visible={visible}
+      />
       <GroupHoldStatus
         holds={room.holds}
         memberLabel={member => displayName(member, botRosterMeta(member, allMeta))}
