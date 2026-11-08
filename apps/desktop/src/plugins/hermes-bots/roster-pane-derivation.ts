@@ -74,6 +74,14 @@ function gatewayRoomActive(room: GatewayGroupRoom, live: CanonicalRoomLive | und
   )
 }
 
+/** The gateway rooms among the listed group rows. They come from `groups.list`, not the bot list,
+ *  so they are a list to show while the bot list loads or fails. Fork: a gateway room is a room
+ *  row (discovery projects it into the room store, canonical-room-sync.ts), not upstream's
+ *  gateway-room row. */
+export function listedGatewayRoomCount(groupNames: string[], groupRooms: ReturnType<typeof $groupChats.get>): number {
+  return groupNames.filter(name => groupRooms[name]?.canonical).length
+}
+
 interface RosterRowsInput {
   roster: RosterRow[]
   allMeta: Record<string, BotMeta>

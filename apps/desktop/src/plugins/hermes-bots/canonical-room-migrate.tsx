@@ -11,7 +11,7 @@
 import { Button, Codicon, ConfirmDialog, host, useValue } from '@hermes/plugin-sdk'
 import { useEffect, useState } from 'react'
 
-import { type CanonicalGroupRoute } from './canonical-groups'
+import { canonicalGroupCreateError, type CanonicalGroupRoute } from './canonical-groups'
 import { canCreateCanonicalRoom, createCanonicalRoomWithSettings } from './canonical-room-actions'
 import { captureCanonicalGroupRoute } from './canonical-room-sync'
 import {
@@ -155,7 +155,11 @@ export function HostOnGatewayButton({ group, members, onHosted, rename }: HostOn
         description={b.group.hostOnGatewayDescription(name, b.group.legacyRoomName(name))}
         onClose={() => setConfirming(false)}
         onConfirm={async () => {
-          const key = await hostRoomOnGateway(group, room, members, { rename })
+          // The confirmation shows what this throws: a refusal, in the reader's words.
+          const key = await hostRoomOnGateway(group, room, members, { rename }).catch(error => {
+            throw new Error(canonicalGroupCreateError(error, b.canonical))
+          })
+
           host.notify({ kind: 'success', message: b.group.hostedOnGateway(name) })
           onHosted(key)
         }}

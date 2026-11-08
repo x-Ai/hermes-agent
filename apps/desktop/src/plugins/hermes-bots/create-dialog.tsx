@@ -1459,10 +1459,7 @@ export function CreateGroupChatDialog({ open, roster, onClose, onCreated }: Crea
           onClose()
           onCreated?.(key, 'key')
         } catch (error) {
-          host.notify({
-            kind: 'error',
-            message: b.group.canonicalActionFailed(error instanceof Error ? error.message : String(error))
-          })
+          host.notify({ kind: 'error', message: canonicalGroupCreateError(error, b.canonical) })
         }
 
         return

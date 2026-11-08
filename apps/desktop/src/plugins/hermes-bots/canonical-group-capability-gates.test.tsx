@@ -8,6 +8,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CANONICAL_GROUP_LOCALES } from './canonical-group-locales'
 import { $canonicalGroupBindings } from './canonical-group-registry'
 import { canonicalGroupCreateError } from './canonical-groups'
+import { HostOnGatewayButton } from './canonical-room-migrate'
 import { _resetCanonicalRoomSyncForTests } from './canonical-room-sync'
 import { CreateGroupChatDialog } from './create-dialog'
 import { $botMeta } from './data'
@@ -227,6 +228,30 @@ it.each(reported)(
     expect(screen.queryByText(unavailable)).toBeNull()
   }
 )
+
+// A bot on another connection is offered again: a selection spanning connections
+// becomes a Desktop-driven room (cross-gateway-group-creation.test.tsx). A row
+// whose route disagrees with its own connection is still never offered.
+it('canonical creation offers this connection and reachable other-connection bots, never a contradictory row', async () => {
+  answer({ driver: true, persistent_process: true })
+  const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={mixedRoster} />)
+
+  expect(baseElement.querySelector('[data-bot-face="spoofed"]')).toBeNull()
+  await waitFor(() => {
+    expect(request.mock.calls.map(call => call[1])).toContain('groups.capabilities')
+    expect(baseElement.querySelector('[data-bot-face="alpha"]')).not.toBeNull()
+    expect(baseElement.querySelector('[data-bot-face="beta"]')).not.toBeNull()
+  })
+
+  for (const checkbox of screen.getAllByRole('checkbox').slice(0, 2)) {
+    fireEvent.click(checkbox)
+  }
+
+  const submit = screen.getByRole('button', { name: 'Create Group (2)' }) as HTMLButtonElement
+  await waitFor(() => expect(submit.disabled).toBe(false))
+  expect(baseElement.querySelector('[data-bot-face="remote"]')).not.toBeNull()
+  expect(baseElement.querySelector('[data-bot-face="spoofed"]')).toBeNull()
+})
 
 it('offers only the bots the authority says this caller can seat (#141178)', async () => {
   // `parked` is on this connection but not served (or a sibling this socket may
@@ -469,8 +494,47 @@ it.each([
 })
 
 // Upstream's gate tests (a classic room held on the gate, its earlier messages, the gate's
-// Retry and Start new group) are not taken: this fork renders every room through the Desktop
-// room view (the fork contract above) and has no gate.
+// Retry) are not taken: this fork renders every room through the Desktop room view (the fork
+// contract above) and has no gate. Its refused-creation test is kept on this fork's two ways onto
+// a gateway: New group chat (a hosted room only where the gateway hosts room settings), and
+// Group settings' Host on the gateway… (canonical-room-migrate.tsx) in place of the gate's Start
+// new group.
+it("explains a refused gateway group creation in the reader's language with the member the gateway named, from the dialog and Host on the gateway", async () => {
+  const words =
+    "The gateway couldn’t create this group chat. member 1 profile 'beta': only a host-scoped connection seats a served profile without an entry"
+
+  request.mockImplementation(async (_route, method) => {
+    if (method === 'groups.capabilities') {
+      return { driver: true, persistent_process: true, features: ['room_settings'] }
+    }
+
+    if (method === 'groups.create') {
+      throw Object.assign(new Error('invalid_params'), {
+        code: 4001,
+        data: {
+          reason: 'invalid_params',
+          field: 'members',
+          detail: "member 1 profile 'beta': only a host-scoped connection seats a served profile without an entry"
+        }
+      })
+    }
+
+    throw new Error(`Unexpected RPC: ${method}`)
+  })
+  await submitDialog()
+  await waitFor(() => expect(notify).toHaveBeenCalledWith({ kind: 'error', message: words }))
+  cleanup()
+
+  // And from Host on the gateway… in a Desktop room's Group settings.
+  $groupChats.set({ Existing: { log: [], members: roster, running: false, watermarks: {} } })
+  render(<HostOnGatewayButton group="Existing" members={roster} onHosted={vi.fn()} rename={vi.fn()} />)
+  fireEvent.click(await screen.findByRole('button', { name: botsText().group.hostOnGateway }))
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: botsText().group.hostOnGatewayAction }))
+  })
+  expect(await screen.findByText(words)).toBeTruthy()
+  expect(Object.keys($groupChats.get())).toEqual(['Existing'])
+})
 
 // Desktop's own backend and SSH, URL and Cloud connections reach `hermes serve`
 // (tui_gateway/methods_groups.py): it refuses a create with 4110, or 4123/5111 for a missing worker

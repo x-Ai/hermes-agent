@@ -43,7 +43,12 @@ import { $showHiddenBots, isBotHidden } from './hidden-bots'
 import { useBots } from './i18n'
 import { $activityToasts } from './roster-actions'
 import { renderRosterContent } from './roster-pane-content'
-import { deriveRosterPresentation, deriveRosterRows, sortRosterBots } from './roster-pane-derivation'
+import {
+  deriveRosterPresentation,
+  deriveRosterRows,
+  listedGatewayRoomCount,
+  sortRosterBots
+} from './roster-pane-derivation'
 import { renderRosterDialogs } from './roster-pane-dialogs'
 import { RosterGroupRowView } from './roster-pane-groups'
 import { $lastSources, usePublishRosterSnapshot } from './roster-pane-lifecycle'
@@ -430,8 +435,11 @@ export function BotsPane() {
     b.bot.workspaceSelectionRequired
   )
 
+  // Bots plus gateway rooms: either kind alone is a list to show.
+  const listedCount = roster.length + listedGatewayRoomCount(groupNames, groupRooms)
+
   const staleNotice =
-    error && !live && roster.length ? b.roster.refreshFailed + (gatewayUp ? '' : b.roster.reconnecting) : null
+    error && !live && listedCount ? b.roster.refreshFailed + (gatewayUp ? '' : b.roster.reconnecting) : null
 
   const groupChatMembers = groupChatName ? groupChatMemberBots(groupChatName, roster, allMeta) : []
 
@@ -513,7 +521,7 @@ export function BotsPane() {
         staleNotice,
         isLoading,
         initialRosterLoading,
-        listedCount: roster.length,
+        listedCount,
         error,
         gatewayUp,
         refetch,
